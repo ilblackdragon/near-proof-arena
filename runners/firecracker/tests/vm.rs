@@ -587,3 +587,48 @@ fn candidate_root_image() {
         Err(InfraError::InvalidSpec(_))
     ));
 }
+
+#[test]
+fn rw_dirs_seed_and_write_back_safely() {
+    gate!();
+    let t = scratch_dir();
+    let host = t.path().join("rw");
+    fs::create_dir_all(host.join("sub")).unwrap();
+    fs::write(host.join("keep.txt"), "seed").unwrap();
+    fs::write(host.join("sub/edit.txt"), "old").unwrap();
+    // judge-planted link, resolved inside the guest only
+    std::os::unix::fs::symlink("/in/ro/data.txt", host.join("link.txt")).unwrap();
+    let ro = t.path().join("ro");
+    fs::create_dir_all(&ro).unwrap();
+    fs::write(ro.join("data.txt"), "via-link").unwrap();
+    let mut s = spec(
+        "cd /arena/rw && cat keep.txt link.txt && echo new > sub/edit.txt && echo hi > made.txt && \
+         ln -s /etc/passwd evil && echo x > link.txt 2>/dev/null || echo ro-target",
+        &t.path().join("out"),
+    );
+    s.ro_mounts = vec![RoMount {
+        host_path: ro,
+        guest_path: "/in/ro".into(),
+    }];
+    s.rw_dirs = vec![RwDir {
+        host_dir: host.clone(),
+        guest_path: "/arena/rw".into(),
+    }];
+    s.allow_mount_symlinks = false;
+    let o = run(&s);
+    assert_eq!(o.exit, Exit::Exited(0), "{o:?}");
+    assert_eq!(stdout(&o), "seedvia-linkro-target\n");
+    assert_eq!(
+        fs::read_to_string(host.join("sub/edit.txt")).unwrap(),
+        "new\n"
+    );
+    assert_eq!(fs::read_to_string(host.join("made.txt")).unwrap(), "hi\n");
+    assert_eq!(fs::read_to_string(host.join("keep.txt")).unwrap(), "seed");
+    // the host link is untouched and the guest-made symlink never came back
+    assert_eq!(
+        fs::read_link(host.join("link.txt")).unwrap(),
+        PathBuf::from("/in/ro/data.txt")
+    );
+    assert!(fs::symlink_metadata(host.join("evil")).is_err());
+    assert!(o.outputs.iter().all(|(p, _)| !p.starts_with(".rw")));
+}

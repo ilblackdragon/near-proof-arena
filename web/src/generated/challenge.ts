@@ -65,6 +65,10 @@ export interface ChallengeDefinition {
   chain_id: string;
   claim_encoding: ClaimEncoding;
   created_at: string;
+  /**
+   * Formal admission-statement parameters (v1.2, additive; absent ⇒ not serialized, so existing challenge ids are unchanged).
+   */
+  formal_params?: FormalParams | null;
   hardware_profile: HardwareProfile;
   measurement: MeasurementProcedure;
   name: string;
@@ -96,6 +100,26 @@ export interface ClaimEncoding {
   max_request_bytes: number;
   max_witness_bytes: number;
   spec_digest: Digest;
+}
+/**
+ * Parameters of the judge-built admission statement that are not resource limits of the sandbox (`ArenaCore.ChallengeParams`). Optional so that challenges without a formal statement (demo) keep their ids.
+ *
+ * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
+ * via the `definition` "FormalParams".
+ */
+export interface FormalParams {
+  /**
+   * Honest proof-size bound used by `VerifierComplete` (`ChallengeParams.maxProofBytes`); must equal `resource_limits.max_proof_bytes`.
+   */
+  max_proof_bytes: number;
+  /**
+   * Fuel cap of an explicit standard-model security reduction (`ChallengeParams.maxReductionFuel`).
+   */
+  max_reduction_fuel: number;
+  /**
+   * NPAI fuel given to the approved interpreter for one `verify` call (`ChallengeParams.verifyFuel`).
+   */
+  verify_fuel: number;
 }
 /**
  * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
