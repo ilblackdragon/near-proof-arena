@@ -79,14 +79,16 @@ fn tools_for(r: &JobRun<'_>, env: &FormalEnv) -> Result<(ToolPaths, arena_sandbo
         return Ok((t, arena_sandbox::Rootfs::BackendDefault, "host-installed tools (DEMO)".into()));
     }
     let images = env.images_dir.as_ref().ok_or("no lean-checker images dir configured (ARENA_LEAN_CHECKER_IMAGES)")?;
-    let mut metas: Vec<PathBuf> = std::fs::read_dir(images)
+    // The newest installed image (by manifest mtime).
+    let mut metas: Vec<(std::time::SystemTime, PathBuf)> = std::fs::read_dir(images)
         .map_err(|e| format!("{}: {e}", images.display()))?
         .flatten()
         .map(|e| e.path())
         .filter(|p| p.extension().is_some_and(|x| x == "json"))
+        .filter_map(|p| Some((p.metadata().ok()?.modified().ok()?, p)))
         .collect();
     metas.sort();
-    let meta_path = metas.pop().ok_or("no lean-checker image installed")?;
+    let meta_path = metas.pop().ok_or("no lean-checker image installed")?.1;
     let meta: serde_json::Value = serde_json::from_slice(&std::fs::read(&meta_path).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
     let digest: Digest = meta["digest"].as_str().unwrap_or("").to_string().try_into().map_err(|e: String| e)?;
     let dir = images.join(digest.hex());
