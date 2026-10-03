@@ -243,7 +243,8 @@ CREATE TRIGGER revocations_immutable BEFORE UPDATE OR DELETE ON revocations
 
 -- ---------------------------------------------------------------- formal cache
 CREATE TABLE formal_cache (
-  key                  text PRIMARY KEY CHECK (key ~ '^sha256:[0-9a-f]{64}$'),
+  id                   bigserial PRIMARY KEY,
+  key                  text NOT NULL CHECK (key ~ '^sha256:[0-9a-f]{64}$'),
   challenge_id         text NOT NULL REFERENCES challenges(id),
   challenge_digest     text NOT NULL,
   verified_surface     jsonb NOT NULL,
@@ -259,6 +260,8 @@ CREATE TABLE formal_cache (
   invalidated_by       text,
   invalidated_reason   text
 );
+-- at most one live entry per key; invalidated entries are kept for history
+CREATE UNIQUE INDEX formal_cache_live_key ON formal_cache (key) WHERE invalidated_at IS NULL;
 CREATE INDEX formal_cache_checker ON formal_cache (checker_image);
 CREATE INDEX formal_cache_assumptions ON formal_cache USING gin (assumptions);
 
@@ -268,7 +271,7 @@ BEGIN
   IF TG_OP = 'DELETE' THEN
     RAISE EXCEPTION 'arena: formal cache entries are invalidated, never deleted' USING ERRCODE = 'insufficient_privilege';
   END IF;
-  IF OLD.invalidated_at IS NOT NULL OR NEW.key <> OLD.key OR NEW.gates <> OLD.gates
+  IF OLD.invalidated_at IS NOT NULL OR NEW.id <> OLD.id OR NEW.key <> OLD.key OR NEW.gates <> OLD.gates
      OR NEW.verified_surface <> OLD.verified_surface OR NEW.tier_rank <> OLD.tier_rank
      OR NEW.source_run_id <> OLD.source_run_id OR NEW.invalidated_at IS NULL THEN
     RAISE EXCEPTION 'arena: formal cache entries may only be invalidated once' USING ERRCODE = 'insufficient_privilege';

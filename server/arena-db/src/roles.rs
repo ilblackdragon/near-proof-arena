@@ -70,7 +70,7 @@ pub fn grants_sql(r: RoleNames<'_>) -> String {
         "GRANT SELECT ON workers, agents, challenges, uploads, artifacts, submissions, runs, gate_results, \
          jobs, formal_cache, reports, revocations TO {w};"
     ));
-    add(format!("GRANT USAGE ON SEQUENCE gate_results_id_seq TO {w};"));
+    add(format!("GRANT USAGE ON SEQUENCE gate_results_id_seq, formal_cache_id_seq TO {w};"));
     add(format!(
         "GRANT INSERT ON artifacts, gate_results, jobs, audit_events, formal_cache, reports TO {w};"
     ));
@@ -78,7 +78,7 @@ pub fn grants_sql(r: RoleNames<'_>) -> String {
     // ---- admin
     let a = r.admin;
     add(format!("GRANT SELECT ON {all} TO {a};"));
-    add(format!("GRANT USAGE ON SEQUENCE gate_results_id_seq, revocations_id_seq TO {a};"));
+    add(format!("GRANT USAGE ON SEQUENCE gate_results_id_seq, revocations_id_seq, formal_cache_id_seq TO {a};"));
     add(format!(
         "GRANT INSERT ON agents, admins, workers, challenges, revocations, quotas, runs, jobs, \
          gate_results, audit_events, reports, formal_cache TO {a};"

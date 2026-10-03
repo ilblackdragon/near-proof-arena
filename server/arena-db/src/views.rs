@@ -302,7 +302,7 @@ pub async fn list_bundles(pool: &PgPool, f: &SubmissionFilter) -> Result<Vec<Sub
 
 // ------------------------------------------------------------------ leaderboard
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, schemars::JsonSchema)]
 pub struct Leaderboard {
     pub challenge_id: String,
     pub challenge_tier: Tier,

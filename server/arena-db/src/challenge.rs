@@ -74,7 +74,7 @@ pub fn verify_definition(
     Ok(VerifiedChallenge { id, digest, canonical_bytes, signer: *signer, signature: *sig, definition })
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, schemars::JsonSchema)]
 pub struct StoredChallenge {
     pub id: String,
     pub digest: Digest,
