@@ -1,0 +1,18 @@
+{
+  "case": "missing-certificate",
+  "attack_family": "formal-missing",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "expected_reason_codes": [
+    "CERTIFICATE_MISSING"
+  ],
+  "fail_by_stage": "FORMAL_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The manifest names `Candidate.certificate` but the Lean project defines no such constant. FORMAL_SEMANTIC_SOUNDNESS must fail with CERTIFICATE_MISSING rather than defaulting to pass."
+}

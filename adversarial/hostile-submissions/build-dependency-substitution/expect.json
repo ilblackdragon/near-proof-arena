@@ -1,0 +1,19 @@
+{
+  "case": "build-dependency-substitution",
+  "attack_family": "build-integrity",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "ARTIFACT_BINDING"
+  ],
+  "expected_reason_codes": [
+    "ARTIFACT_BINDING_FAILED"
+  ],
+  "fail_by_stage": "BUILT",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The recipe substitutes a different source for a locked dependency (ignores dependency-locks and compiles an alternate file). Either the build output digest diverges from the certified artifact (ARTIFACT_BINDING) or the reproducibility/lock check fails (BUILD_FAILED).",
+  "notes": "BUILD_FAILED acceptable if lock enforcement rejects the substitution before artifact binding."
+}

@@ -1,0 +1,19 @@
+{
+  "case": "shadowed-definition",
+  "attack_family": "axiom-audit",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "AXIOM_AUDIT"
+  ],
+  "expected_reason_codes": [
+    "SHADOWED_DEFINITION"
+  ],
+  "fail_by_stage": "FORMAL_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The package ships its OWN altered copy of a trusted definition (a weakened `ArenaCore.Admits` / `NearRelation`) so the certificate type-checks against the wrong meaning. The checker pins the trusted sources by tree digest and must detect the shadowed/redefined trusted name.",
+  "notes": "RECHECK_FAILED may also result when the frozen tree digest is re-pinned; the shadow is the root cause."
+}
