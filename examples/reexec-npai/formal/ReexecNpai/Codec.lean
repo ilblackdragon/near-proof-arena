@@ -25,9 +25,9 @@ pre(branch') = 2 ‖ u32 len ‖ h32 ‖ u16 bm ‖ h32 × popcount bm ‖ u64 m
 
 `pre(·)` is exactly nearcore's `RawTrieNodeWithSize` serialization, whose
 SHA-256 is the node hash, except at *placeholders*: the value-hash field of a
-revealed value and the child-hash field of a revealed child. The decoder
-ignores placeholder bytes; the verifier overwrites them with the computed
-hashes before hashing the node. `hp` is the hex-prefix key encoding (it must
+revealed value and the child-hash field of a revealed child. Placeholders must
+be 32 zero bytes (so the encoding is canonical: every proof byte matters); the
+verifier overwrites them with the computed hashes before hashing the node. `hp` is the hex-prefix key encoding (it must
 be canonical), `bm` the children bitmap and `ex ⊆ bm` the revealed children.
 Revealed children are the records that precede their parent (post-order), so
 the decoder is a fold with a stack of finished subtrees.
@@ -204,6 +204,7 @@ def mkKids : Nat → Nat → Nat → List Bytes → List PTrie → Option Kids
       | [] => none
       | h :: hs' =>
         if ex % 2 = 1 then
+          if h ≠ zeros 32 then none else
           match cs with
           | [] => none
           | c :: cs' => (mkKids n (bm / 2) (ex / 2) hs' cs').map (.some c)
@@ -224,7 +225,7 @@ def decVal (hasVal : Bool) : Parser (Option Bytes) := fun bs =>
 /-- The slot from the revealed value (if any) and the `len ‖ h32` fields. -/
 def mkSlot (vo : Option Bytes) (len : Nat) (h : Bytes) : Option Slot :=
   match vo with
-  | some v => if len = v.length then some (.val v) else none
+  | some v => if len = v.length ∧ h = zeros 32 then some (.val v) else none
   | none => some (.ref len h)
 
 /-- One leaf record body (after the kind byte). -/
@@ -282,6 +283,7 @@ def decExt (stk : List PTrie) : Parser (List PTrie) := fun bs =>
   | none => none
   | some (mm, bs) =>
   if e = 1 then
+    if h ≠ zeros 32 then none else
     match stk with
     | [] => none
     | c :: stk' => some (.ext key c mm :: stk', bs)

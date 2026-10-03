@@ -10,6 +10,9 @@ AR + 24 e:  +0 pre   +4 preLen   +8 pslot   +12 kid   +16 res   +20 val
 ```
 
 * `pre`/`preLen`: the node preimage inside the proof copy;
+Placeholders (value hash of a revealed value, hash slot of a revealed child)
+must be zero in the proof (canonical encoding).
+
 * `pslot`: where this node's hash goes (a slot in the parent's preimage, or
   `C_ROOT` for the root) — written by the parent;
 * `kid`: first index of this node's revealed children in `KL` (branch
@@ -42,7 +45,7 @@ def pLeaf : Stmt := seqs [
   ADDI 3 0 49, ADD 4 3 10, le 4 9,
   ADDI 4 10 5, LD8 4 4, CST 11 32, EQ 11 4 11, inRange 12 4 48 16 13, OR 11 11 12, assert 11,
   .ite 1 (seqs [ADDI 4 10 5, ADD 4 4 0, CST 11 4, SUB 11 1 11, CST 12 4, MEMEQ 13 4 11 12,
-    assert 13]) nop,
+    assert 13, ADDI 4 10 9, ADD 4 4 0, CST 11 D_ZERO, CST 12 32, MEMEQ 13 4 11 12, assert 13]) nop,
   wField 0 10, wField 4 3, ldCell 0 C_KC, wField 12 0, MOV 0 8, wField 16 0, wField 20 1,
   ADD 5 5 3, ADD 5 5 2,
   ADD 10 10 3]
@@ -61,6 +64,7 @@ def pExt : Stmt := seqs [
   ADD 10 10 2,
   MOV 2 8,
   .ite 1 (seqs [
+      CST 11 D_ZERO, CST 12 32, MEMEQ 13 0 11 12, assert 13,
       CST 11 1, le 11 7, SUB 7 7 15, CST 4 4, MUL 4 7 4, ADDI 4 4 STK, ld32 1 4,
       CST 4 24, MUL 4 1 4, ADDI 4 4 (AR + 8), st32 4 0,
       CST 4 4, MUL 4 6 4, ADDI 4 4 KL, st32 4 1, ADDI 6 6 1, stCell C_KC 6,
@@ -80,7 +84,8 @@ def pBranch : Stmt := seqs [
   CST 6 4, EQ 6 0 6,
   need 10 1 9, LD8 2 10,
   .ite 6 (seqs [CST 11 1, eqc 2 11, CST 0 1]) (seqs [CST 11 2, eqc 2 11, CST 0 37]),
-  .ite 1 (seqs [ADDI 2 10 1, CST 11 4, SUB 11 1 11, CST 12 4, MEMEQ 13 2 11 12, assert 13]) nop,
+  .ite 1 (seqs [ADDI 2 10 1, CST 11 4, SUB 11 1 11, CST 12 4, MEMEQ 13 2 11 12, assert 13,
+    ADDI 2 10 5, CST 11 D_ZERO, CST 12 32, MEMEQ 13 2 11 12, assert 13]) nop,
   ADD 2 10 0, need 2 2 9, ld16 1 2,
   AND 6 3 1, eqc 6 3,
   popc16 6 1 4 11 12,
@@ -100,6 +105,7 @@ def pBranch : Stmt := seqs [
       CST 11 32, SUB 2 2 11,
       ADDI 11 6 16, SHR 11 1 11, AND 11 11 15,
       .ite 11 (seqs [
+        CST 11 D_ZERO, CST 12 32, MEMEQ 13 2 11 12, assert 13,
         CST 11 1, le 11 7, SUB 7 7 15,
         CST 4 4, MUL 4 7 4, ADDI 4 4 STK, ld32 0 4,
         CST 4 24, MUL 4 0 4, ADDI 4 4 (AR + 8), st32 4 2,

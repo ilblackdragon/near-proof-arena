@@ -458,6 +458,7 @@ theorem dec_ext_rec (k : List Nat) (c : PTrie) (m : Nat) (hw : (PTrie.ext k c m)
   have common : ∀ (e : UInt8) (stk' : List PTrie), e.toNat ≤ 1 →
       decRec stk' (([3, e] ++ preExt k c m) ++ rest) =
         (if e.toNat = 1 then
+          if slotOf c ≠ zeros 32 then none else
           match stk' with
           | [] => none
           | c :: stk'' => some (.ext k c m :: stk'', rest)
@@ -483,7 +484,8 @@ theorem dec_ext_rec (k : List Nat) (c : PTrie) (m : Nat) (hw : (PTrie.ext k c m)
     | _ => simp [revealed] at hr
   · simp only [pushT, hr, ite_true]
     rw [common 1 (c :: stk) (by decide)]
-    simp
+    have : slotOf c = zeros 32 := by cases c <;> simp_all [slotOf, revealed]
+    simp [this]
 
 theorem decVal_false (bs : Bytes) : decVal false bs = some (none, bs) := by simp [decVal]
 theorem decVal_true (bs : Bytes) :
@@ -779,7 +781,7 @@ theorem mkSlot_some {vo : Option Bytes} {len : Nat} {h : Bytes} {s : Slot}
   | some v =>
     simp only [mkSlot] at e
     split at e
-    · next hl => simp only [Option.some.injEq] at e; exact Or.inl ⟨v, rfl, e.symm, hl⟩
+    · next hl => simp only [Option.some.injEq] at e; exact Or.inl ⟨v, rfl, e.symm, hl.1⟩
     · simp at e
 
 theorem decLeaf_inv {hasVal : Bool} {stk stk' : List PTrie} {bs bs' : Bytes}
@@ -898,6 +900,8 @@ theorem mkKids_inv : ∀ (n bm ex : Nat) (hs : List Bytes) (cs : List PTrie) (ki
         split at h
         · split at h
           · simp at h
+          split at h
+          · simp at h
           · rename_i c cs'
             cases hk : mkKids n (bm / 2) (ex / 2) hs' cs' with
             | none => simp [hk] at h
@@ -964,6 +968,8 @@ theorem decExt_inv {stk stk' : List PTrie} {bs bs' : Bytes} (hok : Ok stk)
     exact ⟨by simpa using hmm, by simp at hhl; omega⟩
   split at h
   · split at h
+    · simp at h
+    split at h
     · simp at h
     · rename_i c s0
       simp only [Option.some.injEq, Prod.mk.injEq] at h

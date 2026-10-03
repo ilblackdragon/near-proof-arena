@@ -65,6 +65,7 @@ structure ParseInv (cb pb : Bytes) (rs : List Receipt) (R N o : Nat) (A : List E
   stack : StackOK A S
   amem : ∀ j (h : j < A.length), EntMem m j A[j]
   kmem : ∀ i (h : i < K.length), rd32 m (KL + 4 * i) = K[i]
+  krange : ∀ j (h : j < A.length), A[j].kid + nKids A[j].nf ≤ K.length
   smem : ∀ i (h : i < S.length), rd32 m (STK + 4 * i) = S[i]
   klen : K.length + S.length = A.length
 

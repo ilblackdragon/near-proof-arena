@@ -77,6 +77,8 @@ list, value regions, preimages up to placeholders, record headers. -/
 structure TrieMem (pb : Bytes) (A : List Ent) (K : List Nat) (vals : Nat → Bytes) (m : M) : Prop where
   amem : ∀ j (h : j < A.length), EntMem m j A[j]
   kmem : ∀ i (h : i < K.length), rd32 m (KL + 4 * i) = K[i]
+  krange : ∀ j (h : j < A.length), A[j].kid + nKids A[j].nf ≤ K.length
+  klen : K.length ≤ NCAP
   nodes : rd32 m C_NODES = A.length
   vmem : ∀ j (h : j < A.length), hasVal A[j].nf = true →
     readMem m.mem A[j].val (vlenAt pb A[j]) = vals j ∧ (vals j).length = vlenAt pb A[j]

@@ -1,0 +1,52 @@
+# reexec-npai: re-execution candidate on the approved-interpreter route
+
+Candidate for `near/pv86/receipt-transfer-batch/v0`, backend family
+**re-execution witness**, implementation-connection route **`npai-v1`**:
+the verifier is an NPAI v1 bytecode image (`out/verifier.npai`) that the
+arena runs on its own interpreter, and the Lean certificate proves the
+admission statement for `.interp (sha256 image)` — the
+`FORMAL_IMPL_CONNECTION` edge is **checked**, not trusted.
+
+STATUS: work in progress — see "Status" at the end.
+
+## Layout
+
+| path | what |
+|---|---|
+| `formal/ReexecNpai/Program.lean` | the verifier: a structured `NpaiIR` program (parts in `Prog/`) and `code = encode program` |
+| `formal/ReexecNpai/Codec.lean` | proof format `reexec-npai-v1` (normative encoder/decoder) |
+| `formal/ReexecNpai/Model.lean` | the reference model `check cb pb` (decode claim, decode proof, decide `NearRelation`) |
+| `formal/ReexecNpai/Main.lean` | `interpVerify_eq_check`: the bytecode accepts exactly when `check` does (fuel ≥ 7·10⁸ + 1) |
+| `formal/ReexecNpai/Obligations.lean`, `Certificate.lean` | admission statement on the interp route |
+| `formal/ReexecNpai/Spec/` | per-phase specifications of the program (claim, receipts, trie parse, hash pass, batch, outputs) |
+| `formal/ReexecNpai/Trie/` | the arena representation of the partial trie and its lemmas |
+| `formal/NpaiIR/` | copy of the reusable library `examples/npai-ir` (IR, proven compiler, big-step semantics, adequacy, wp/twp VC generation, memory/bignum macros) |
+| `source/` | Rust prover (`prepare`, `prove`), the image exporter (`export/Export.lean`), and a local `verify` wrapper |
+| `build-recipe/build.sh` | offline reproducible build |
+| `judge-local/` | local emulation of the judge's `ArenaExpected` module (interp template) |
+| `tests/` | `run-fixtures.sh` (prove + `npai-verify` on the public fixtures), `difftest.py` (bytecode vs Lean model on mutated inputs) |
+
+## Proof format `reexec-npai-v1`
+
+```
+proof = u32 n ‖ Receipt × n                (nearcore borsh, byte-identical to the request)
+        ‖ u32 N ‖ rec × N                   (revealed trie nodes in post-order; the last is the root)
+rec   = 1 ‖ u32 |v| ‖ v ‖ pre(leaf)  |  2 ‖ pre(leaf)  |  3 ‖ u8 e ‖ pre(ext)
+      | 4 ‖ u16 ex ‖ pre(branch)  |  5 ‖ u32 |v| ‖ v ‖ u16 ex ‖ pre(branch')  |  6 ‖ u16 ex ‖ pre(branch')
+```
+
+`pre(·)` is nearcore's `RawTrieNodeWithSize` serialization of the node with
+placeholders for the hash of a revealed value and the hashes of revealed
+children (`Codec.lean` header). Honest proofs are ≤ 5 000 000 bytes.
+
+## The `out/verify` binary
+
+On the `npai-v1` route the arena does not run the candidate's `verify`: it
+runs `npai-verify` on `out/verifier.npai`. `out/verify` is a local
+convenience: a verbatim copy of the judge's interpreter
+(`runners/npai/src/interp.rs`) with the image embedded and fuel 2^30, so that
+`arena check-local` exercises the certified bytecode.
+
+## Status
+
+Work in progress; see the lane report.
