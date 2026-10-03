@@ -3,9 +3,10 @@
 use crate::{from_json, from_json_opt, parse_enum, rfc3339, DbError};
 use arena_jobs::BuildOutputs;
 use arena_types::{
-    challenge::Tier, BenchmarkResult, CandidateManifest, ChangeClass, Decision, Digest,
-    EvidenceGraph, GateResult, LeaderboardEntry, ObligationId, ReasonCode, Revocation, Stage,
-    SubmissionView, VerifiedSurface,
+    challenge::Tier, evidence::NodeKind, ArtifactRef, AssumptionRef, BenchmarkResult, BuildInfo,
+    CandidateManifest, ChallengeDefinition, ChangeClass, Decision, Digest, EvidenceGraph,
+    EvidenceRef, GateResult, GateStatus, LeaderboardEntry, LogExcerpt, ObligationId, ReasonCode,
+    Revocation, RevocationEvent, Stage, SubmissionView, TrustedBaseEntry, VerifiedSurface,
 };
 use serde::Serialize;
 use sqlx::{PgExecutor, PgPool};
@@ -192,6 +193,61 @@ pub async fn revocations_of<'e>(
         .collect())
 }
 
+/// Per-job information shown in submission views.
+#[derive(Clone, Debug)]
+pub struct JobSummary {
+    pub kind: String,
+    pub state: String,
+    pub attempt: i32,
+    pub last_error: Option<String>,
+    pub artifacts: Vec<EvidenceRef>,
+    pub log_excerpt: Option<String>,
+    pub sandbox_backend: Option<String>,
+}
+
+pub async fn jobs_of<'e>(
+    ex: impl PgExecutor<'e>,
+    run_ids: &[String],
+) -> Result<HashMap<String, Vec<JobSummary>>, DbError> {
+    #[allow(clippy::type_complexity)]
+    let rows: Vec<(String, String, String, i32, Option<String>, Option<serde_json::Value>, Option<serde_json::Value>)> =
+        sqlx::query_as(
+            "SELECT run_id, kind, state, attempt, last_error, result, execution FROM jobs
+             WHERE run_id = ANY($1) ORDER BY created_at, kind",
+        )
+        .bind(run_ids)
+        .fetch_all(ex)
+        .await?;
+    let mut out: HashMap<String, Vec<JobSummary>> = HashMap::new();
+    for (run, kind, state, attempt, last_error, result, execution) in rows {
+        let artifacts = result
+            .as_ref()
+            .and_then(|r| r.get("artifacts").cloned())
+            .and_then(|a| serde_json::from_value(a).ok())
+            .unwrap_or_default();
+        let log_excerpt = result
+            .as_ref()
+            .and_then(|r| r.get("log_excerpt"))
+            .and_then(|l| l.as_str())
+            .map(str::to_string);
+        let sandbox_backend = execution
+            .as_ref()
+            .and_then(|e| e.get("sandbox_backend"))
+            .and_then(|b| b.as_str())
+            .map(str::to_string);
+        out.entry(run).or_default().push(JobSummary {
+            kind,
+            state,
+            attempt,
+            last_error,
+            artifacts,
+            log_excerpt,
+            sandbox_backend,
+        });
+    }
+    Ok(out)
+}
+
 /// Remove evidence references that must not be shown publicly (e.g. held-out data).
 pub fn public_gate(mut g: GateResult) -> GateResult {
     g.evidence.retain(|e| e.public);
@@ -204,7 +260,20 @@ pub struct SubmissionBundle {
     pub sub: SubmissionRow,
     pub runs: Vec<Run>,
     pub gates: HashMap<String, Vec<GateResult>>,
+    pub jobs: HashMap<String, Vec<JobSummary>>,
     pub revocation: Option<Revocation>,
+}
+
+const LOG_VIEW_BYTES: usize = 16 * 1024;
+
+fn excerpt(name: String, stage: &str, text: &str) -> LogExcerpt {
+    let truncated = text.len() > LOG_VIEW_BYTES;
+    LogExcerpt {
+        name,
+        stage: stage.to_string(),
+        text: arena_jobs::sanitize::sanitize_text(text, LOG_VIEW_BYTES),
+        truncated,
+    }
 }
 
 impl SubmissionBundle {
@@ -216,13 +285,86 @@ impl SubmissionBundle {
     }
 
     /// Public view of the latest run.
-    pub fn view(&self, challenge_tier: Tier) -> SubmissionView {
+    pub fn view(&self, chal: &ChallengeDefinition) -> SubmissionView {
         let s = &self.sub;
         let run = self.latest_run();
-        let gates = run
+        let gates: Vec<GateResult> = run
             .and_then(|r| self.gates.get(&r.id))
             .map(|g| g.iter().cloned().map(public_gate).collect())
             .unwrap_or_default();
+        let jobs: &[JobSummary] = run.and_then(|r| self.jobs.get(&r.id)).map(|v| v.as_slice()).unwrap_or(&[]);
+        let graph = run.and_then(|r| r.evidence_graph.clone());
+
+        let mut artifacts: Vec<ArtifactRef> = Vec::new();
+        for a in jobs.iter().flat_map(|j| j.artifacts.iter()).filter(|a| a.public) {
+            if !artifacts.iter().any(|x| x.digest == a.digest) {
+                artifacts.push(ArtifactRef { label: a.label.clone(), digest: a.digest.clone() });
+            }
+        }
+        let mut logs = Vec::new();
+        for j in jobs {
+            if let Some(t) = &j.log_excerpt {
+                logs.push(excerpt(j.kind.clone(), &j.kind, t));
+            }
+            if let Some(e) = &j.last_error {
+                logs.push(excerpt(format!("{}/error (attempt {})", j.kind, j.attempt), &j.kind, e));
+            }
+        }
+        let build = run.and_then(|r| {
+            let b = r.build_outputs.as_ref()?;
+            Some(BuildInfo {
+                toolchain_image: b.toolchain_image.clone(),
+                reproducible: gates
+                    .iter()
+                    .any(|g| g.gate == ObligationId::BuildReproducible && g.status == GateStatus::Pass),
+                build_ns: b.build_ns,
+            })
+        });
+        let mut assumptions: Vec<AssumptionRef> = chal
+            .security_profile
+            .allowed_assumptions
+            .iter()
+            .map(|id| AssumptionRef { id: id.clone(), lean_decl: None, description: None })
+            .collect();
+        if let Some(g) = &graph {
+            for n in g.nodes.iter().filter(|n| n.kind == NodeKind::Assumption) {
+                match assumptions.iter_mut().find(|a| a.id == n.id) {
+                    Some(a) => a.description = Some(n.label.clone()),
+                    None => assumptions.push(AssumptionRef {
+                        id: n.id.clone(),
+                        lean_decl: None,
+                        description: Some(n.label.clone()),
+                    }),
+                }
+            }
+        }
+        let tp = &chal.toolchain_policy;
+        let mut trusted_base = vec![
+            TrustedBaseEntry {
+                id: "lean-toolchain".into(),
+                label: format!("Lean kernel ({})", tp.lean_toolchain),
+                digest: None,
+            },
+            TrustedBaseEntry {
+                id: "checker-image".into(),
+                label: "formal checker image".into(),
+                digest: Some(tp.checker_image.clone()),
+            },
+        ];
+        for r in &tp.recheckers {
+            trusted_base.push(TrustedBaseEntry { id: format!("rechecker:{r}"), label: format!("rechecker {r}"), digest: None });
+        }
+        let mut backends: Vec<&str> = jobs.iter().filter_map(|j| j.sandbox_backend.as_deref()).collect();
+        backends.sort();
+        backends.dedup();
+        for b in backends {
+            trusted_base.push(TrustedBaseEntry { id: format!("sandbox:{b}"), label: format!("judge sandbox backend {b}"), digest: None });
+        }
+        if let Some(g) = &graph {
+            for n in g.nodes.iter().filter(|n| n.kind == NodeKind::TcbComponent) {
+                trusted_base.push(TrustedBaseEntry { id: n.id.clone(), label: n.label.clone(), digest: n.digest.clone() });
+            }
+        }
         SubmissionView {
             id: s.id.clone(),
             challenge_id: s.challenge_id.clone(),
@@ -230,7 +372,7 @@ impl SubmissionBundle {
             candidate_name: run.map(|r| r.candidate_name.clone()).unwrap_or_default(),
             backend_family: run.map(|r| r.backend_family.clone()).unwrap_or_default(),
             parent: s.parent_id.clone(),
-            tier: run.map(|r| r.tier).unwrap_or(challenge_tier),
+            tier: run.map(|r| r.tier).unwrap_or(chal.tier),
             package_digest: Digest::try_from(s.package_digest.clone()).expect("checked by DB constraint"),
             stage: run.map(|r| r.stage).unwrap_or(Stage::Received),
             decision: run.and_then(|r| r.decision),
@@ -240,10 +382,26 @@ impl SubmissionBundle {
             gates,
             reason_codes: run.map(|r| r.reason_codes.clone()).unwrap_or_default(),
             benchmark: run.and_then(|r| r.benchmark.clone()),
-            evidence_graph: run.and_then(|r| r.evidence_graph.clone()),
+            evidence_graph: graph,
             revoked: self.revocation.clone(),
             created_at: rfc3339(s.created_at),
             updated_at: rfc3339(run.map(|r| r.updated_at).unwrap_or(s.created_at)),
+            artifacts,
+            verified_surface: run.and_then(|r| r.verified_surface.clone()),
+            build,
+            assumptions,
+            trusted_base,
+            logs,
+            revocation_history: self
+                .revocation
+                .iter()
+                .map(|r| RevocationEvent {
+                    action: "revoked".into(),
+                    reason: r.reason.clone(),
+                    at: r.revoked_at.clone(),
+                    by: r.revoked_by.clone(),
+                })
+                .collect(),
         }
     }
 }
@@ -262,6 +420,7 @@ async fn assemble(pool: &PgPool, subs: Vec<SubmissionRow>) -> Result<Vec<Submiss
     let runs = runs_of(pool, &ids).await?;
     let run_ids: Vec<String> = runs.iter().map(|r| r.id.clone()).collect();
     let mut gates = gates_of(pool, &run_ids).await?;
+    let mut jobs = jobs_of(pool, &run_ids).await?;
     let mut revs = revocations_of(pool, &ids).await?;
     let mut by_sub: HashMap<String, Vec<Run>> = HashMap::new();
     for r in runs {
@@ -272,8 +431,9 @@ async fn assemble(pool: &PgPool, subs: Vec<SubmissionRow>) -> Result<Vec<Submiss
         .map(|sub| {
             let runs = by_sub.remove(&sub.id).unwrap_or_default();
             let g = runs.iter().filter_map(|r| gates.remove_entry(&r.id)).collect();
+            let j = runs.iter().filter_map(|r| jobs.remove_entry(&r.id)).collect();
             let revocation = revs.remove(&sub.id);
-            SubmissionBundle { sub, runs, gates: g, revocation }
+            SubmissionBundle { sub, runs, gates: g, jobs: j, revocation }
         })
         .collect())
 }
@@ -313,6 +473,19 @@ pub struct Leaderboard {
     pub ranked: Vec<LeaderboardEntry>,
     /// Every submission with labels (rank set only for ranked entries).
     pub all_submissions: Vec<LeaderboardEntry>,
+}
+
+impl Leaderboard {
+    /// Flat list for `GET /v1/leaderboards/{id}`: ranked entries in rank order,
+    /// then every other submission (rank `null`, newest first) with its labels.
+    pub fn entries(&self) -> Vec<LeaderboardEntry> {
+        let mut ranked: Vec<LeaderboardEntry> = self.ranked.clone();
+        let mut rest: Vec<LeaderboardEntry> =
+            self.all_submissions.iter().filter(|e| e.rank.is_none()).cloned().collect();
+        rest.sort_by(|a, b| b.submitted_at.cmp(&a.submitted_at).then(b.submission_id.cmp(&a.submission_id)));
+        ranked.extend(rest);
+        ranked
+    }
 }
 
 /// Weighted geometric mean of a per-class quantity (weights in ppm).
@@ -367,6 +540,7 @@ fn entry(b: &SubmissionBundle, run: Option<&Run>, chal: &arena_types::ChallengeD
         security_profile: chal.security_profile.id.clone(),
         submitted_at: rfc3339(b.sub.created_at),
         revoked: b.revocation.is_some(),
+        score_ci_milli: bench.and_then(|b| b.score_ci_milli),
     }
 }
 

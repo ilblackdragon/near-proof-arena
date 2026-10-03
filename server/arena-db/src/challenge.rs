@@ -81,7 +81,7 @@ pub struct StoredChallenge {
     pub tier: Tier,
     pub open: bool,
     pub registered_by: String,
-    pub created_at: String,
+    pub registered_at: String,
     /// Hex ed25519 governance key that signed the definition.
     pub governance_key: String,
     /// Hex signature over the JCS bytes of `definition`.
@@ -133,7 +133,7 @@ fn check_row(r: Row, keys: &[VerifyingKey]) -> Result<StoredChallenge, DbError> 
         tier: def.tier,
         open: r.open,
         registered_by: r.registered_by,
-        created_at: rfc3339(r.created_at),
+        registered_at: rfc3339(r.created_at),
         governance_key: hex::encode(key_arr),
         signature: hex::encode(sig_arr),
         definition: def,

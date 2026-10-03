@@ -16,6 +16,7 @@ use std::collections::HashSet;
 pub const MAX_ARTIFACTS: usize = 256;
 pub const MAX_GRAPH_ITEMS: usize = 2000;
 pub const MAX_REASON_CODES: usize = 32;
+pub const MAX_LOG_BYTES: usize = 16 * 1024;
 
 #[derive(Debug, Clone)]
 pub struct Normalized {
@@ -27,6 +28,7 @@ pub struct Normalized {
     pub evidence_graph: Option<EvidenceGraph>,
     pub artifacts: Vec<EvidenceRef>,
     pub execution: ExecutionInfo,
+    pub log_excerpt: Option<String>,
     /// Every owned gate was reported by the worker with a definite status
     /// (no synthesized or UNKNOWN results): eligible for the formal cache.
     pub definite: bool,
@@ -224,11 +226,13 @@ pub fn check_result(
             if status_of(&gates, ObligationId::BuildReproducible) == Some(GateStatus::Pass) {
                 let mut b = r.build.clone().ok_or("passing BUILD result must include build outputs")?;
                 b.certificate_decl = sanitize_line(&b.certificate_decl, 256);
+                b.toolchain_image = b.toolchain_image.map(|t| sanitize_line(&t, 128));
                 build = Some(b);
             } else if let Some(b) = &r.build {
                 // keep diagnostics for failed builds too
                 let mut b = b.clone();
                 b.certificate_decl = sanitize_line(&b.certificate_decl, 256);
+                b.toolchain_image = b.toolchain_image.map(|t| sanitize_line(&t, 128));
                 build = Some(b);
             }
         }
@@ -246,7 +250,19 @@ pub fn check_result(
     if kind != JobKind::Benchmark && r.benchmark.is_some() {
         return Err(format!("{kind} job may not report benchmark measurements"));
     }
-    Ok(Normalized { gates, tier_cap, manifest, build, benchmark, evidence_graph, artifacts, execution, definite })
+    let log_excerpt = r.log_excerpt.as_deref().map(|t| sanitize_text(t, MAX_LOG_BYTES));
+    Ok(Normalized {
+        gates,
+        tier_cap,
+        manifest,
+        build,
+        benchmark,
+        evidence_graph,
+        artifacts,
+        execution,
+        log_excerpt,
+        definite,
+    })
 }
 
 #[cfg(test)]

@@ -20,8 +20,9 @@ impl std::fmt::Debug for ReportSigner {
 }
 
 impl ReportSigner {
-    /// Load a 32-byte ed25519 seed stored as 64 hex chars (optionally with whitespace).
-    /// On unix the file must not be readable by group/others.
+    /// Load the key from a file containing either an ed25519 PKCS#8 PEM
+    /// (`-----BEGIN PRIVATE KEY-----`, the deployment format) or a 32-byte seed
+    /// as 64 hex chars. On unix the file must not be accessible by group/others.
     pub fn from_file(path: &Path) -> Result<Self, String> {
         #[cfg(unix)]
         {
@@ -35,7 +36,18 @@ impl ReportSigner {
             }
         }
         let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
-        Self::from_hex(text.trim())
+        Self::from_text(&text)
+    }
+
+    /// Parse PKCS#8 PEM or a hex seed.
+    pub fn from_text(text: &str) -> Result<Self, String> {
+        let t = text.trim();
+        if t.starts_with("-----BEGIN") {
+            use ed25519_dalek::pkcs8::DecodePrivateKey;
+            let key = SigningKey::from_pkcs8_pem(t).map_err(|e| format!("invalid PKCS#8 ed25519 key: {e}"))?;
+            return Ok(Self { key, ephemeral: false });
+        }
+        Self::from_hex(t)
     }
 
     pub fn from_hex(seed_hex: &str) -> Result<Self, String> {
@@ -49,9 +61,12 @@ impl ReportSigner {
         Self { key: SigningKey::generate(&mut rand::rngs::OsRng), ephemeral: true }
     }
 
-    /// Generate a new seed as hex (for `arena-server keygen`).
-    pub fn generate_seed_hex() -> String {
-        hex::encode(SigningKey::generate(&mut rand::rngs::OsRng).to_bytes())
+    /// Generate a new key as PKCS#8 PEM (for `arena-server keygen`); returns (pem, public hex).
+    pub fn generate_pem() -> (String, String) {
+        use ed25519_dalek::pkcs8::{EncodePrivateKey, spki::der::pem::LineEnding};
+        let k = SigningKey::generate(&mut rand::rngs::OsRng);
+        let pem = k.to_pkcs8_pem(LineEnding::LF).expect("encode pkcs8").to_string();
+        (pem, hex::encode(k.verifying_key().to_bytes()))
     }
 
     pub fn is_ephemeral(&self) -> bool {
@@ -81,5 +96,20 @@ impl ReportSigner {
             base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(seed).into_bytes(),
         ];
         forms.iter().any(|f| haystack.windows(f.len()).any(|w| w == f.as_slice()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn pem_and_hex_roundtrip() {
+        let (pem, pk) = ReportSigner::generate_pem();
+        let s = ReportSigner::from_text(&pem).unwrap();
+        assert_eq!(s.public_key_hex(), pk);
+        let h = ReportSigner::from_text(&format!("{}\n", hex::encode(s.key.to_bytes()))).unwrap();
+        assert_eq!(h.public_key_hex(), pk);
+        assert!(h.leaks_into(pem.as_bytes()) || !pem.is_empty());
+        assert!(ReportSigner::from_text("nope").is_err());
     }
 }

@@ -148,6 +148,12 @@ pub struct BuildOutputs {
     pub formal_tree: Digest,
     /// Lean constant named by the manifest's `[formal].certificate` (empty if none).
     pub certificate_decl: String,
+    /// Build sandbox image/rootfs digest or id (informational).
+    #[serde(default)]
+    pub toolchain_image: Option<String>,
+    /// Judge-measured wall time of one build, ns (informational).
+    #[serde(default)]
+    pub build_ns: Option<u64>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -254,6 +260,10 @@ pub struct JobResult {
     /// Required for a passing `BUILD` job.
     pub build: Option<BuildOutputs>,
     pub execution: ExecutionInfo,
+    /// Short plain-text log excerpt shown publicly (sanitized, bounded to 16 KiB
+    /// by the server). Must not contain held-out data.
+    #[serde(default)]
+    pub log_excerpt: Option<String>,
 }
 
 // ---------------------------------------------------------------------------

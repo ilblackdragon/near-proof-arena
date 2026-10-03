@@ -834,6 +834,7 @@ impl Orchestrator {
             manifest: n.manifest.clone(),
             build: n.build.clone(),
             execution: n.execution.clone(),
+            log_excerpt: n.log_excerpt.clone(),
         };
         sqlx::query(
             "UPDATE jobs SET state = 'done', result = $2, execution = $3, finished_at = now(), updated_at = now() WHERE id = $1",
