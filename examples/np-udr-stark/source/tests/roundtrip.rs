@@ -8,7 +8,7 @@ const PD: [u8; 32] = [7u8; 32];
 
 #[test]
 fn fib_roundtrip() {
-    for log_n in [2usize, 3, 5, 8, 10] {
+    for log_n in [1usize, 2, 3, 5, 8, 10] {
         let air = toy::fib_air();
         let (tr, last) = toy::fib_trace(log_n, 1, 1);
         let cb = toy::fib_claim(1, 1, last);

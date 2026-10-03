@@ -87,9 +87,6 @@ impl Schedule {
             }
         }
         let hmax = *heights.iter().max().unwrap();
-        if hmax < 2 {
-            return Err("largest table must have at least 4 rows".into());
-        }
         let l0 = hmax + LOG_BLOWUP;
         if l0 > MAX_LOG_LDE {
             return Err("LDE too large".into());
@@ -101,7 +98,7 @@ impl Schedule {
         class_layers.dedup();
         let mut committed = vec![];
         let mut k = 0;
-        loop {
+        while fri_l > 0 {
             let next_class = class_layers.iter().copied().find(|&c| c > k).unwrap_or(usize::MAX);
             let next = (k + MAX_ARITY_LOG).min(next_class).min(fri_l);
             committed.push((k, next - k));

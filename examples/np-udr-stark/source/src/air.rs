@@ -33,7 +33,8 @@ pub enum Expr {
 #[derive(Clone, Debug)]
 pub struct Interaction {
     pub bus: usize,
-    pub mult: Expr,
+    /// multiplicity bits, least significant first
+    pub mult: Vec<Expr>,
     pub msg: Vec<Expr>,
     pub send: bool,
 }
@@ -118,8 +119,8 @@ impl Air {
             if t.degree() > 16 {
                 return Err(format!("table {ti}: constraint degree {} > 16", t.degree()));
             }
-            if t.max_log > 22 {
-                return Err(format!("table {ti}: maxLog {} > 22", t.max_log));
+            if t.max_log > 22 || t.max_log < 1 {
+                return Err(format!("table {ti}: maxLog {} not in [1, 22]", t.max_log));
             }
             for c in &t.constraints {
                 check_expr(c, t.width, self.num_pub).map_err(|e| format!("table {ti}: {e}"))?;
@@ -148,9 +149,11 @@ fn check_expr(e: &Expr, width: usize, num_pub: usize) -> Result<(), String> {
 }
 
 // ---------------------------------------------------------------------------
-// JSON (provisional; follows the Lean constructors one to one)
-//   {"const":n} {"col":c,"next":b} {"pub":i} "isFirst" "isLast" "isTransition"
-//   {"add":[a,b]} {"mul":[a,b]} {"neg":a}
+// JSON import: format `np-air-v1` (`ZkFormal.Air.exportJson`, lane L4).
+//   const c ["c",c]   col c next ["v",c,0|1]   pub i ["p",i]
+//   ["first"] ["last"] ["trans"]   ["+",a,b] ["*",a,b] ["-",a]
+// Table `constraints` is `Table.allConstraints` (user constraints followed by
+// the multiplicity-bit booleanity constraints), in α_c order.
 // ---------------------------------------------------------------------------
 
 fn get<'a>(v: &'a Value, k: &str) -> Result<&'a Value, String> {
@@ -159,68 +162,80 @@ fn get<'a>(v: &'a Value, k: &str) -> Result<&'a Value, String> {
 fn nat(v: &Value) -> Result<u64, String> {
     v.as_u64().ok_or_else(|| format!("expected natural, got {v}"))
 }
+fn arr<'a>(v: &'a Value, what: &str) -> Result<&'a Vec<Value>, String> {
+    v.as_array().ok_or_else(|| format!("{what}: expected array"))
+}
 
 pub fn parse_expr(v: &Value) -> Result<Expr, String> {
-    if let Some(s) = v.as_str() {
-        return match s {
-            "isFirst" => Ok(Expr::IsFirst),
-            "isLast" => Ok(Expr::IsLast),
-            "isTransition" => Ok(Expr::IsTransition),
-            _ => Err(format!("unknown expr {s}")),
-        };
-    }
-    let o = v.as_object().ok_or("expr must be object or string")?;
-    if let Some(c) = o.get("const") {
-        return Ok(Expr::Const(nat(c)?));
-    }
-    if let Some(c) = o.get("col") {
-        let next = o.get("next").and_then(|b| b.as_bool()).unwrap_or(false);
-        return Ok(Expr::Col(nat(c)? as usize, next));
-    }
-    if let Some(c) = o.get("pub") {
-        return Ok(Expr::Pub(nat(c)? as usize));
-    }
-    for (k, ctor) in [("add", 0), ("mul", 1)] {
-        if let Some(ab) = o.get(k) {
-            let ab = ab.as_array().ok_or("binary op needs [a,b]")?;
-            if ab.len() != 2 {
-                return Err("binary op needs [a,b]".into());
-            }
-            let (a, b) = (parse_expr(&ab[0])?, parse_expr(&ab[1])?);
-            return Ok(if ctor == 0 { Expr::add(a, b) } else { Expr::mul(a, b) });
+    let a = arr(v, "expr")?;
+    let tag = a.first().and_then(|t| t.as_str()).ok_or("expr: missing tag")?;
+    let want = |n: usize| -> Result<(), String> {
+        if a.len() == n { Ok(()) } else { Err(format!("expr {tag}: arity")) }
+    };
+    Ok(match tag {
+        "c" => {
+            want(2)?;
+            Expr::Const(nat(&a[1])?)
         }
-    }
-    if let Some(a) = o.get("neg") {
-        return Ok(Expr::neg(parse_expr(a)?));
-    }
-    Err(format!("unknown expr {v}"))
+        "v" => {
+            want(3)?;
+            let nx = nat(&a[2])?;
+            if nx > 1 {
+                return Err("expr v: next must be 0/1".into());
+            }
+            Expr::Col(nat(&a[1])? as usize, nx == 1)
+        }
+        "p" => {
+            want(2)?;
+            Expr::Pub(nat(&a[1])? as usize)
+        }
+        "first" => {
+            want(1)?;
+            Expr::IsFirst
+        }
+        "last" => {
+            want(1)?;
+            Expr::IsLast
+        }
+        "trans" => {
+            want(1)?;
+            Expr::IsTransition
+        }
+        "+" => {
+            want(3)?;
+            Expr::add(parse_expr(&a[1])?, parse_expr(&a[2])?)
+        }
+        "*" => {
+            want(3)?;
+            Expr::mul(parse_expr(&a[1])?, parse_expr(&a[2])?)
+        }
+        "-" => {
+            want(2)?;
+            Expr::neg(parse_expr(&a[1])?)
+        }
+        _ => return Err(format!("unknown expr tag {tag}")),
+    })
 }
 
 fn parse_air(v: &Value) -> Result<Air, String> {
+    if get(v, "format")?.as_str() != Some("np-air-v1") {
+        return Err("format must be np-air-v1".into());
+    }
     let mut tables = vec![];
-    for (i, t) in get(v, "tables")?.as_array().ok_or("tables")?.iter().enumerate() {
+    for (i, t) in arr(get(v, "tables")?, "tables")?.iter().enumerate() {
         let mut interactions = vec![];
-        if let Some(is) = t.get("interactions") {
-            for it in is.as_array().ok_or("interactions")? {
-                interactions.push(Interaction {
-                    bus: nat(get(it, "bus")?)? as usize,
-                    mult: parse_expr(get(it, "mult")?)?,
-                    msg: get(it, "msg")?
-                        .as_array()
-                        .ok_or("msg")?
-                        .iter()
-                        .map(parse_expr)
-                        .collect::<Result<_, _>>()?,
-                    send: get(it, "send")?.as_bool().ok_or("send")?,
-                });
-            }
+        for it in arr(get(t, "interactions")?, "interactions")? {
+            interactions.push(Interaction {
+                bus: nat(get(it, "bus")?)? as usize,
+                mult: arr(get(it, "mult")?, "mult")?.iter().map(parse_expr).collect::<Result<_, _>>()?,
+                msg: arr(get(it, "msg")?, "msg")?.iter().map(parse_expr).collect::<Result<_, _>>()?,
+                send: get(it, "send")?.as_bool().ok_or("send")?,
+            });
         }
         tables.push(Table {
-            name: t.get("name").and_then(|n| n.as_str()).map(String::from).unwrap_or(format!("t{i}")),
+            name: format!("t{i}"),
             width: nat(get(t, "width")?)? as usize,
-            constraints: get(t, "constraints")?
-                .as_array()
-                .ok_or("constraints")?
+            constraints: arr(get(t, "constraints")?, "constraints")?
                 .iter()
                 .map(parse_expr)
                 .collect::<Result<_, _>>()?,
@@ -228,12 +243,61 @@ fn parse_air(v: &Value) -> Result<Air, String> {
             max_log: nat(get(t, "maxLog")?)? as usize,
         });
     }
-    let air = Air {
+    Ok(Air {
         tables,
         num_buses: nat(get(v, "numBuses")?)? as usize,
         num_pub: nat(get(v, "numPub")?)? as usize,
-    };
-    Ok(air)
+    })
+}
+
+/// Export in `np-air-v1` (inverse of `Air::from_json`; used for tests and
+/// for hand-written Rust AIRs). `constraints` are written as stored, so a
+/// table built in Rust must already contain its booleanity constraints.
+impl Expr {
+    pub fn to_json(&self) -> String {
+        match self {
+            Expr::Const(c) => format!("[\"c\",{c}]"),
+            Expr::Col(c, n) => format!("[\"v\",{c},{}]", *n as u8),
+            Expr::Pub(i) => format!("[\"p\",{i}]"),
+            Expr::IsFirst => "[\"first\"]".into(),
+            Expr::IsLast => "[\"last\"]".into(),
+            Expr::IsTransition => "[\"trans\"]".into(),
+            Expr::Add(a, b) => format!("[\"+\",{},{}]", a.to_json(), b.to_json()),
+            Expr::Mul(a, b) => format!("[\"*\",{},{}]", a.to_json(), b.to_json()),
+            Expr::Neg(a) => format!("[\"-\",{}]", a.to_json()),
+        }
+    }
+}
+
+fn json_list(xs: impl Iterator<Item = String>) -> String {
+    format!("[{}]", xs.collect::<Vec<_>>().join(","))
+}
+
+impl Air {
+    pub fn to_json(&self) -> String {
+        let tables = json_list(self.tables.iter().map(|t| {
+            let ints = json_list(t.interactions.iter().map(|i| {
+                format!(
+                    "{{\"bus\":{},\"send\":{},\"mult\":{},\"msg\":{}}}",
+                    i.bus,
+                    i.send,
+                    json_list(i.mult.iter().map(|e| e.to_json())),
+                    json_list(i.msg.iter().map(|e| e.to_json()))
+                )
+            }));
+            format!(
+                "{{\"width\":{},\"maxLog\":{},\"constraints\":{},\"interactions\":{}}}",
+                t.width,
+                t.max_log,
+                json_list(t.constraints.iter().map(|e| e.to_json())),
+                ints
+            )
+        }));
+        format!(
+            "{{\"format\":\"np-air-v1\",\"numBuses\":{},\"numPub\":{},\"tables\":{}}}",
+            self.num_buses, self.num_pub, tables
+        )
+    }
 }
 
 // ---------------------------------------------------------------------------
