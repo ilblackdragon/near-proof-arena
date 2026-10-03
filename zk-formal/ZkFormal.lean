@@ -14,6 +14,9 @@ import ZkFormal.Stark.Iop
 import ZkFormal.Stark.Bcs
 import ZkFormal.Stark.Protocol
 import ZkFormal.Stark.Verifier
+import ZkFormal.Stark.Instance
+import ZkFormal.Stark.Statements
+import ZkFormal.Stark.Compose
 import ZkFormal.Algebra.Transport
 import ZkFormal.Algebra.NatPrime
 import ZkFormal.Algebra.Fp
