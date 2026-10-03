@@ -29,13 +29,18 @@ fn json_files(dir: &Path) -> Result<Vec<PathBuf>> {
 }
 
 fn stem(p: &Path) -> String {
-    p.file_stem().and_then(|s| s.to_str()).unwrap_or_default().to_string()
+    p.file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or_default()
+        .to_string()
 }
 
 fn valid_id(id: &str) -> bool {
     !id.is_empty()
         && id.len() <= 64
-        && id.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+        && id
+            .bytes()
+            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
 }
 
 impl GovernedSet {
@@ -46,10 +51,17 @@ impl GovernedSet {
             let a: Assumption = serde_json::from_str(&text)
                 .with_context(|| format!("{}: not a valid Assumption", p.display()))?;
             if a.id != stem(&p) || !valid_id(&a.id) {
-                bail!("{}: id {:?} must equal file stem and match [a-z0-9-]+", p.display(), a.id);
+                bail!(
+                    "{}: id {:?} must equal file stem and match [a-z0-9-]+",
+                    p.display(),
+                    a.id
+                );
             }
             if !a.lean_decl.contains('.') || a.lean_decl.contains(char::is_whitespace) {
-                bail!("{}: lean_decl must be a fully qualified Lean name", p.display());
+                bail!(
+                    "{}: lean_decl must be a fully qualified Lean name",
+                    p.display()
+                );
             }
             if a.description.trim().is_empty() || a.references.is_empty() {
                 bail!("{}: description and references are mandatory", p.display());
@@ -70,7 +82,10 @@ impl GovernedSet {
             }
             for a in &prof.allowed_assumptions {
                 if !set.assumptions.contains_key(a) {
-                    bail!("{}: allowed assumption {a:?} is not a governed assumption", p.display());
+                    bail!(
+                        "{}: allowed assumption {a:?} is not a governed assumption",
+                        p.display()
+                    );
                 }
             }
             let mut sorted = prof.allowed_assumptions.clone();
@@ -84,7 +99,10 @@ impl GovernedSet {
             }
         }
         if set.profiles.is_empty() {
-            bail!("no security profiles found under {}", security_dir.display());
+            bail!(
+                "no security profiles found under {}",
+                security_dir.display()
+            );
         }
         Ok(set)
     }

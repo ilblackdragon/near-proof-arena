@@ -78,7 +78,11 @@ pub struct Keypair {
 impl Keypair {
     pub fn generate(dev_only: bool, label: &str) -> Self {
         let signing = SigningKey::generate(&mut rand_core::OsRng);
-        Keypair { signing, dev_only, label: label.to_string() }
+        Keypair {
+            signing,
+            dev_only,
+            label: label.to_string(),
+        }
     }
 
     pub fn public_file(&self) -> PublicKeyFile {
@@ -122,9 +126,12 @@ impl Keypair {
             use std::os::unix::fs::OpenOptionsExt;
             opts.mode(0o600);
         }
-        let mut f = opts
-            .open(path)
-            .with_context(|| format!("creating private key file {} (must not exist)", path.display()))?;
+        let mut f = opts.open(path).with_context(|| {
+            format!(
+                "creating private key file {} (must not exist)",
+                path.display()
+            )
+        })?;
         f.write_all(serde_json::to_string_pretty(&body)?.as_bytes())?;
         f.write_all(b"\n")?;
         f.sync_all()?;
@@ -147,7 +154,8 @@ impl Keypair {
                 );
             }
         }
-        let text = fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?;
+        let text =
+            fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?;
         let pk: PrivateKeyFile = serde_json::from_str(&text).context("parsing private key file")?;
         if pk.schema != PRIVKEY_SCHEMA || pk.algorithm != "ed25519" {
             bail!("unsupported private key schema/algorithm");
@@ -159,7 +167,11 @@ impl Keypair {
         if key_id(&signing.verifying_key()) != pk.key_id {
             bail!("private key file key_id does not match its seed");
         }
-        Ok(Keypair { signing, dev_only: pk.dev_only, label: pk.label })
+        Ok(Keypair {
+            signing,
+            dev_only: pk.dev_only,
+            label: pk.label,
+        })
     }
 
     pub fn sign_hex(&self, msg: &[u8]) -> String {
@@ -174,7 +186,8 @@ pub struct PublicKey {
 
 impl PublicKey {
     pub fn load(path: &Path) -> Result<Self> {
-        let text = fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?;
+        let text =
+            fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?;
         Self::parse(&text)
     }
 
@@ -197,13 +210,17 @@ impl PublicKey {
     /// `verify_strict` (rejects small-order keys / non-canonical encodings).
     pub fn verify_hex(&self, msg: &[u8], sig_text: &str) -> Result<()> {
         let sig_text = sig_text.strip_suffix('\n').unwrap_or(sig_text);
-        if sig_text.len() != 128 || !sig_text.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')) {
+        if sig_text.len() != 128
+            || !sig_text
+                .bytes()
+                .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+        {
             bail!("signature file must be exactly 128 lowercase hex chars (+ optional newline)");
         }
         let bytes: [u8; 64] = hex::decode(sig_text)?.try_into().unwrap();
         let sig = Signature::from_bytes(&bytes);
-        self.key
-            .verify_strict(msg, &sig)
-            .map_err(|_| anyhow::anyhow!("signature verification FAILED for key {}", self.file.key_id))
+        self.key.verify_strict(msg, &sig).map_err(|_| {
+            anyhow::anyhow!("signature verification FAILED for key {}", self.file.key_id)
+        })
     }
 }

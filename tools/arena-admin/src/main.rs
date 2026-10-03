@@ -1,5 +1,7 @@
 use anyhow::{bail, Context, Result};
-use arena_admin::challenge_file::{self, check_supersession, identity, load_definition, sign_and_write};
+use arena_admin::challenge_file::{
+    self, check_supersession, identity, load_definition, sign_and_write,
+};
 use arena_admin::{policy, GovernedSet, Keypair, PublicKey};
 use clap::{Parser, Subcommand};
 use std::fs;
@@ -104,13 +106,22 @@ fn print_findings(f: &policy::Findings) {
 }
 
 fn load_keys(paths: &[PathBuf]) -> Result<Vec<PublicKey>> {
-    paths.iter().map(|p| PublicKey::load(p).with_context(|| p.display().to_string())).collect()
+    paths
+        .iter()
+        .map(|p| PublicKey::load(p).with_context(|| p.display().to_string()))
+        .collect()
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.cmd {
-        Cmd::Keygen { private, public, label, dev_only, allow_inside_git_tree } => {
+        Cmd::Keygen {
+            private,
+            public,
+            label,
+            dev_only,
+            allow_inside_git_tree,
+        } => {
             if public.exists() {
                 bail!("{} exists", public.display());
             }
@@ -120,14 +131,20 @@ fn main() -> Result<()> {
                     if repo.join("Cargo.toml").exists() || repo.join("challenges").exists() {
                         bail!("--allow-inside-git-tree cannot be used inside a source repository ({})", repo.display());
                     }
-                    eprintln!("warning: private key placed below git tree {} (override given)", repo.display());
+                    eprintln!(
+                        "warning: private key placed below git tree {} (override given)",
+                        repo.display()
+                    );
                 }
             }
             kp.write_private(&private, allow_inside_git_tree)?;
             let pubf = kp.public_file();
             fs::write(&public, serde_json::to_string_pretty(&pubf)? + "\n")?;
             println!("key_id {}", pubf.key_id);
-            println!("private key: {} (0600) — move to offline storage/HSM; never commit", private.display());
+            println!(
+                "private key: {} (0600) — move to offline storage/HSM; never commit",
+                private.display()
+            );
             println!("public key:  {}", public.display());
         }
         Cmd::Canonicalize { def } => {
@@ -151,14 +168,23 @@ fn main() -> Result<()> {
         }
         Cmd::CheckGoverned { security_dir } => {
             let gov = GovernedSet::load(&security_dir)?;
-            println!("OK {} profile(s), {} assumption(s)", gov.profiles.len(), gov.assumptions.len());
+            println!(
+                "OK {} profile(s), {} assumption(s)",
+                gov.profiles.len(),
+                gov.assumptions.len()
+            );
             for (id, a) in &gov.assumptions {
                 if a.lean_decl_digest.is_none() {
                     eprintln!("warning: assumption {id} not pinned to a formal-core declaration digest yet");
                 }
             }
         }
-        Cmd::Sign { def, key, challenges_dir, security_dir } => {
+        Cmd::Sign {
+            def,
+            key,
+            challenges_dir,
+            security_dir,
+        } => {
             let gov = GovernedSet::load(&security_dir)?;
             let kp = Keypair::load_private(&key)?;
             let d = load_definition(&def)?;
@@ -169,7 +195,12 @@ fn main() -> Result<()> {
             challenge_file::verify_file(&jp, &[pk], &gov)?;
             println!("signed {} ({})", jp.display(), ident.digest);
         }
-        Cmd::Verify { mut files, pubkeys, security_dir, all_in } => {
+        Cmd::Verify {
+            mut files,
+            pubkeys,
+            security_dir,
+            all_in,
+        } => {
             let gov = GovernedSet::load(&security_dir)?;
             let keys = load_keys(&pubkeys)?;
             if let Some(dir) = all_in {
@@ -195,10 +226,19 @@ fn main() -> Result<()> {
                 bail!("{failed} challenge file(s) failed verification");
             }
         }
-        Cmd::Supersede { old, draft, key, pubkeys, challenges_dir, security_dir, allow_downgrade } => {
+        Cmd::Supersede {
+            old,
+            draft,
+            key,
+            pubkeys,
+            challenges_dir,
+            security_dir,
+            allow_downgrade,
+        } => {
             let gov = GovernedSet::load(&security_dir)?;
             let keys = load_keys(&pubkeys)?;
-            let old_v = challenge_file::verify_file(&old, &keys, &gov).context("superseded challenge must verify")?;
+            let old_v = challenge_file::verify_file(&old, &keys, &gov)
+                .context("superseded challenge must verify")?;
             let mut new = load_definition(&draft)?;
             if new.supersedes.is_none() {
                 new.supersedes = Some(old_v.id.clone());
@@ -225,7 +265,9 @@ fn challenge_files(dir: &Path) -> Result<Vec<PathBuf>> {
         .filter_map(|e| e.ok().map(|e| e.path()))
         .filter(|p| {
             p.extension().and_then(|x| x.to_str()) == Some("json")
-                && p.file_name().and_then(|n| n.to_str()).is_some_and(|n| n.starts_with("chl_"))
+                && p.file_name()
+                    .and_then(|n| n.to_str())
+                    .is_some_and(|n| n.starts_with("chl_"))
         })
         .collect();
     v.sort();

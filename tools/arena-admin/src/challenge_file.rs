@@ -18,8 +18,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 pub fn parse_definition(text: &str) -> Result<ChallengeDefinition> {
-    let def: ChallengeDefinition =
-        serde_json::from_str(text).context("not a valid ChallengeDefinition (arena-types, deny_unknown_fields)")?;
+    let def: ChallengeDefinition = serde_json::from_str(text)
+        .context("not a valid ChallengeDefinition (arena-types, deny_unknown_fields)")?;
     // Require the raw document to be exactly the typed value (no omitted
     // Option fields relying on defaults).
     let raw: serde_json::Value = serde_json::from_str(text)?;
@@ -42,11 +42,18 @@ pub struct Identity {
 
 pub fn identity(def: &ChallengeDefinition) -> Result<Identity> {
     let jcs = canonical_json(def)?;
-    Ok(Identity { id: def.id()?, digest: def.digest()?, jcs })
+    Ok(Identity {
+        id: def.id()?,
+        digest: def.digest()?,
+        jcs,
+    })
 }
 
 pub fn paths_for(dir: &Path, id: &str) -> (PathBuf, PathBuf) {
-    (dir.join(format!("{id}.json")), dir.join(format!("{id}.sig")))
+    (
+        dir.join(format!("{id}.json")),
+        dir.join(format!("{id}.sig")),
+    )
 }
 
 /// Policy-check, sign and write a challenge. Refuses to overwrite.
@@ -58,7 +65,10 @@ pub fn sign_and_write(
 ) -> Result<(Identity, Findings)> {
     let findings = policy::check_definition(def, gov);
     if !findings.ok() {
-        bail!("policy check failed:\n  - {}", findings.errors.join("\n  - "));
+        bail!(
+            "policy check failed:\n  - {}",
+            findings.errors.join("\n  - ")
+        );
     }
     if def.tier == Tier::Formal && key.dev_only {
         bail!("refusing to sign a formal-tier challenge with a dev-only key");
@@ -89,12 +99,20 @@ pub struct Verified {
 pub fn verify_file(path: &Path, keys: &[PublicKey], gov: &GovernedSet) -> Result<Verified> {
     let def = load_definition(path)?;
     let ident = identity(&def)?;
-    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or_default();
+    let stem = path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or_default();
     if stem != ident.id {
-        bail!("{}: recomputed id {} does not match file name", path.display(), ident.id);
+        bail!(
+            "{}: recomputed id {} does not match file name",
+            path.display(),
+            ident.id
+        );
     }
     let sig_path = path.with_extension("sig");
-    let sig = fs::read_to_string(&sig_path).with_context(|| format!("reading {}", sig_path.display()))?;
+    let sig =
+        fs::read_to_string(&sig_path).with_context(|| format!("reading {}", sig_path.display()))?;
     let mut signer = None;
     for k in keys {
         if k.verify_hex(&ident.jcs, &sig).is_ok() {
@@ -103,39 +121,68 @@ pub fn verify_file(path: &Path, keys: &[PublicKey], gov: &GovernedSet) -> Result
         }
     }
     let Some(signer) = signer else {
-        bail!("{}: signature does not verify under any trusted governance key", path.display());
+        bail!(
+            "{}: signature does not verify under any trusted governance key",
+            path.display()
+        );
     };
     let mut findings = policy::check_definition(&def, gov);
     if def.tier == Tier::Formal && signer.file.dev_only {
-        findings
-            .errors
-            .push(format!("formal-tier challenge signed by dev-only key {}", signer.file.key_id));
+        findings.errors.push(format!(
+            "formal-tier challenge signed by dev-only key {}",
+            signer.file.key_id
+        ));
     }
     if signer.file.dev_only {
-        findings.warnings.push(format!("signed by DEV-ONLY key {} — not for production", signer.file.key_id));
+        findings.warnings.push(format!(
+            "signed by DEV-ONLY key {} — not for production",
+            signer.file.key_id
+        ));
     }
     if let Some(prev) = &def.supersedes {
         let (pj, _) = paths_for(path.parent().unwrap_or(Path::new(".")), prev);
         if !pj.exists() {
-            findings.warnings.push(format!("superseded challenge {prev} not present next to this file"));
+            findings.warnings.push(format!(
+                "superseded challenge {prev} not present next to this file"
+            ));
         }
     }
     if !findings.ok() {
-        bail!("{}: policy check failed:\n  - {}", path.display(), findings.errors.join("\n  - "));
+        bail!(
+            "{}: policy check failed:\n  - {}",
+            path.display(),
+            findings.errors.join("\n  - ")
+        );
     }
-    Ok(Verified { id: ident.id, digest: ident.digest, def, findings })
+    Ok(Verified {
+        id: ident.id,
+        digest: ident.digest,
+        def,
+        findings,
+    })
 }
 
 /// Rules for a successor challenge (on top of the normal policy checks).
-pub fn check_supersession(old: &ChallengeDefinition, old_id: &str, new: &ChallengeDefinition, allow_downgrade: bool) -> Findings {
+pub fn check_supersession(
+    old: &ChallengeDefinition,
+    old_id: &str,
+    new: &ChallengeDefinition,
+    allow_downgrade: bool,
+) -> Findings {
     let mut f = Findings::default();
     if new.supersedes.as_deref() != Some(old_id) {
-        f.errors.push(format!("new definition must set supersedes = {old_id:?}"));
+        f.errors
+            .push(format!("new definition must set supersedes = {old_id:?}"));
     }
     let fmt = &time::format_description::well_known::Rfc3339;
-    match (time::OffsetDateTime::parse(&old.created_at, fmt), time::OffsetDateTime::parse(&new.created_at, fmt)) {
+    match (
+        time::OffsetDateTime::parse(&old.created_at, fmt),
+        time::OffsetDateTime::parse(&new.created_at, fmt),
+    ) {
         (Ok(a), Ok(b)) if b > a => {}
-        _ => f.errors.push("new created_at must be strictly later than the superseded challenge's".into()),
+        _ => f
+            .errors
+            .push("new created_at must be strictly later than the superseded challenge's".into()),
     }
     if new.protocol_version < old.protocol_version && !allow_downgrade {
         f.errors.push(format!(
@@ -144,10 +191,12 @@ pub fn check_supersession(old: &ChallengeDefinition, old_id: &str, new: &Challen
         ));
     }
     if new.name != old.name {
-        f.warnings.push(format!("name changes {:?} -> {:?}", old.name, new.name));
+        f.warnings
+            .push(format!("name changes {:?} -> {:?}", old.name, new.name));
     }
     if (new.tier as u8) != (old.tier as u8) {
-        f.warnings.push(format!("tier changes {:?} -> {:?}", old.tier, new.tier));
+        f.warnings
+            .push(format!("tier changes {:?} -> {:?}", old.tier, new.tier));
     }
     f
 }
@@ -156,36 +205,5 @@ pub fn check_supersession(old: &ChallengeDefinition, old_id: &str, new: &Challen
 /// `[relative_path, "file"|"exec", "sha256:<hex>"]` sorted by path bytes.
 /// Rejects symlinks and non-regular files.
 pub fn tree_digest(root: &Path) -> Result<Digest> {
-    fn walk(root: &Path, dir: &Path, out: &mut Vec<(String, String, String)>) -> Result<()> {
-        for e in fs::read_dir(dir)? {
-            let e = e?;
-            let p = e.path();
-            let ft = fs::symlink_metadata(&p)?.file_type();
-            if ft.is_symlink() {
-                bail!("symlink not allowed in tree: {}", p.display());
-            } else if ft.is_dir() {
-                walk(root, &p, out)?;
-            } else if ft.is_file() {
-                let rel = p.strip_prefix(root)?.to_str().context("non-UTF-8 path")?.to_string();
-                #[cfg(unix)]
-                let exec = {
-                    use std::os::unix::fs::PermissionsExt;
-                    fs::metadata(&p)?.permissions().mode() & 0o111 != 0
-                };
-                #[cfg(not(unix))]
-                let exec = false;
-                let d = Digest::of_bytes(&fs::read(&p)?);
-                out.push((rel, if exec { "exec" } else { "file" }.into(), d.to_string()));
-            } else {
-                bail!("special file not allowed in tree: {}", p.display());
-            }
-        }
-        Ok(())
-    }
-    let mut entries = Vec::new();
-    walk(root, root, &mut entries)?;
-    entries.sort_by(|a, b| a.0.as_bytes().cmp(b.0.as_bytes()));
-    let arr: Vec<serde_json::Value> =
-        entries.into_iter().map(|(p, m, d)| serde_json::json!([p, m, d])).collect();
-    Ok(Digest::of_bytes(&canonical_json(&arr)?))
+    Ok(arena_types::tree_digest(root)?)
 }

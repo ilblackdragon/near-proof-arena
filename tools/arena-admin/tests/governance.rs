@@ -10,7 +10,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 fn repo() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap()
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap()
 }
 
 fn gov() -> GovernedSet {
@@ -59,7 +62,8 @@ fn all_governed_files_load_via_arena_types() {
             }
             let text = fs::read_to_string(&p).unwrap();
             if sub == "profiles" {
-                serde_json::from_str::<SecurityProfile>(&text).unwrap_or_else(|e| panic!("{p:?}: {e}"));
+                serde_json::from_str::<SecurityProfile>(&text)
+                    .unwrap_or_else(|e| panic!("{p:?}: {e}"));
             } else {
                 serde_json::from_str::<Assumption>(&text).unwrap_or_else(|e| panic!("{p:?}: {e}"));
             }
@@ -70,8 +74,14 @@ fn all_governed_files_load_via_arena_types() {
     let g = gov();
     assert!(g.profiles.contains_key("validity-classical-128"));
     assert!(g.profiles.contains_key("zk-classical-128"));
-    assert_eq!(g.profiles["zk-classical-128"].privacy, Privacy::ZeroKnowledge);
-    assert_eq!(g.profiles["validity-classical-128"].privacy, Privacy::ValidityOnly);
+    assert_eq!(
+        g.profiles["zk-classical-128"].privacy,
+        Privacy::ZeroKnowledge
+    );
+    assert_eq!(
+        g.profiles["validity-classical-128"].privacy,
+        Privacy::ValidityOnly
+    );
     assert!(g.assumptions.contains_key("sha256-collision-resistance"));
 }
 
@@ -99,8 +109,13 @@ fn profile_referencing_ungoverned_assumption_is_rejected() {
     fs::create_dir_all(t.path().join("profiles")).unwrap();
     fs::create_dir_all(t.path().join("assumptions")).unwrap();
     let mut prof = gov().profiles["validity-classical-128"].clone();
-    prof.allowed_assumptions.push("my-favourite-assumption".into());
-    fs::write(t.path().join("profiles/validity-classical-128.json"), serde_json::to_string(&prof).unwrap()).unwrap();
+    prof.allowed_assumptions
+        .push("my-favourite-assumption".into());
+    fs::write(
+        t.path().join("profiles/validity-classical-128.json"),
+        serde_json::to_string(&prof).unwrap(),
+    )
+    .unwrap();
     assert!(GovernedSet::load(t.path()).is_err());
 }
 
@@ -116,7 +131,11 @@ fn committed_challenges_verify() {
         let name = p.file_name().unwrap().to_str().unwrap().to_string();
         if name.starts_with("chl_") && name.ends_with(".json") {
             let v = verify_file(&p, &[dev_pub()], &g).unwrap_or_else(|e| panic!("{name}: {e:#}"));
-            assert_ne!(v.def.tier, Tier::Formal, "dev key must never have signed a formal challenge");
+            assert_ne!(
+                v.def.tier,
+                Tier::Formal,
+                "dev key must never have signed a formal challenge"
+            );
             n += 1;
         }
     }
@@ -127,9 +146,19 @@ fn committed_challenges_verify() {
 fn draft_matches_committed_demo_challenge() {
     let d = demo_def();
     let id = d.id().unwrap();
-    assert!(repo().join("challenges").join(format!("{id}.json")).exists(), "re-sign the demo after editing the draft");
+    assert!(
+        repo()
+            .join("challenges")
+            .join(format!("{id}.json"))
+            .exists(),
+        "re-sign the demo after editing the draft"
+    );
     assert_eq!(d.tier, Tier::Demo);
-    assert!(d.semantic_scope.restrictions.iter().any(|r| r.id == "not-near-semantics"));
+    assert!(d
+        .semantic_scope
+        .restrictions
+        .iter()
+        .any(|r| r.id == "not-near-semantics"));
 }
 
 #[test]
@@ -144,7 +173,10 @@ fn template_has_exactly_the_contract_fields() {
         }
     }
     let mut t: serde_json::Value = serde_json::from_str(
-        &fs::read_to_string(repo().join("challenges/templates/near-transfer-receipt-v1.template.json")).unwrap(),
+        &fs::read_to_string(
+            repo().join("challenges/templates/near-transfer-receipt-v1.template.json"),
+        )
+        .unwrap(),
     )
     .unwrap();
     t.as_object_mut().unwrap().remove("_template_notice");
@@ -190,7 +222,10 @@ fn modified_field_breaks_id() {
     v["resource_limits"]["max_verify_ms"] = 999_999.into();
     fs::write(&p, serde_json::to_string_pretty(&v).unwrap()).unwrap();
     let e = verify_file(&p, &[pk(&kp)], &gov()).unwrap_err();
-    assert!(format!("{e:#}").contains("does not match file name"), "{e:#}");
+    assert!(
+        format!("{e:#}").contains("does not match file name"),
+        "{e:#}"
+    );
 }
 
 #[test]
@@ -237,10 +272,14 @@ fn formal_fixture_passes_policy() {
 #[test]
 fn formal_tier_requires_every_formal_obligation() {
     let (mut d, g) = formal_fixture();
-    d.required_obligations.retain(|o| *o != ObligationId::FormalCryptoSoundness);
-    assert!(errs(&d, &g).iter().any(|e| e.contains("FormalCryptoSoundness")));
+    d.required_obligations
+        .retain(|o| *o != ObligationId::FormalCryptoSoundness);
+    assert!(errs(&d, &g)
+        .iter()
+        .any(|e| e.contains("FormalCryptoSoundness")));
     let (mut d, g) = formal_fixture();
-    d.required_obligations.retain(|o| *o != ObligationId::AxiomAudit);
+    d.required_obligations
+        .retain(|o| *o != ObligationId::AxiomAudit);
     assert!(!errs(&d, &g).is_empty());
 }
 
@@ -248,7 +287,9 @@ fn formal_tier_requires_every_formal_obligation() {
 fn validity_only_needs_formal_zk_not_applicable() {
     let (mut d, g) = formal_fixture();
     d.not_applicable_gates.clear();
-    assert!(errs(&d, &g).iter().any(|e| e.contains("FORMAL_ZK must be listed")));
+    assert!(errs(&d, &g)
+        .iter()
+        .any(|e| e.contains("FORMAL_ZK must be listed")));
     let (mut d, g) = formal_fixture();
     d.required_obligations.push(ObligationId::FormalZk);
     assert!(!errs(&d, &g).is_empty());
@@ -258,7 +299,10 @@ fn validity_only_needs_formal_zk_not_applicable() {
 fn zk_profile_requires_formal_zk() {
     let (mut d, g) = formal_fixture();
     d.security_profile = g.profiles["zk-classical-128"].clone();
-    assert!(!errs(&d, &g).is_empty(), "FORMAL_ZK N/A under zk profile must fail");
+    assert!(
+        !errs(&d, &g).is_empty(),
+        "FORMAL_ZK N/A under zk profile must fail"
+    );
     d.not_applicable_gates.clear();
     assert!(errs(&d, &g).iter().any(|e| e.contains("FormalZk")));
     d.required_obligations.push(ObligationId::FormalZk);
@@ -283,7 +327,9 @@ fn weights_must_sum_to_one_million() {
 fn profile_must_match_governed_file() {
     let (mut d, g) = formal_fixture();
     d.security_profile.max_hash_queries_log2 = 40;
-    assert!(errs(&d, &g).iter().any(|e| e.contains("differs from governed")));
+    assert!(errs(&d, &g)
+        .iter()
+        .any(|e| e.contains("differs from governed")));
     let (mut d, g) = formal_fixture();
     d.security_profile.id = "validity-classical-80".into();
     assert!(!errs(&d, &g).is_empty());
@@ -292,10 +338,14 @@ fn profile_must_match_governed_file() {
 #[test]
 fn forbidden_axioms_rejected() {
     let (mut d, g) = formal_fixture();
-    d.toolchain_policy.axiom_allowlist.push("Lean.ofReduceBool".into());
+    d.toolchain_policy
+        .axiom_allowlist
+        .push("Lean.ofReduceBool".into());
     assert!(!errs(&d, &g).is_empty());
     let (mut d, g) = formal_fixture();
-    d.toolchain_policy.axiom_allowlist.push("Arena.Assumptions.Sha256CollisionResistant".into());
+    d.toolchain_policy
+        .axiom_allowlist
+        .push("Arena.Assumptions.Sha256CollisionResistant".into());
     assert!(!errs(&d, &g).is_empty(), "assumptions must never be axioms");
 }
 
@@ -303,7 +353,9 @@ fn forbidden_axioms_rejected() {
 fn formal_needs_pinned_assumptions_and_real_digests() {
     let (d, _) = formal_fixture();
     // repo governed set has lean_decl_digest = null
-    assert!(errs(&d, &gov()).iter().any(|e| e.contains("lean_decl_digest")));
+    assert!(errs(&d, &gov())
+        .iter()
+        .any(|e| e.contains("lean_decl_digest")));
     let (mut d, g) = formal_fixture();
     d.runtime_config_digest = arena_admin::policy::zero_digest();
     assert!(!errs(&d, &g).is_empty());
@@ -360,16 +412,24 @@ fn private_key_handling() {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        assert_eq!(fs::metadata(&p).unwrap().permissions().mode() & 0o777, 0o600);
+        assert_eq!(
+            fs::metadata(&p).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
         let back = Keypair::load_private(&p).unwrap();
         assert_eq!(back.public_file(), kp.public_file());
         fs::set_permissions(&p, fs::Permissions::from_mode(0o644)).unwrap();
-        assert!(Keypair::load_private(&p).is_err(), "group/other readable key must be refused");
+        assert!(
+            Keypair::load_private(&p).is_err(),
+            "group/other readable key must be refused"
+        );
     }
     // refuses to overwrite
     assert!(kp.write_private(&p, true).is_err());
     // refuses to write inside the repository
-    assert!(kp.write_private(&repo().join("challenges/should-not-exist.key"), false).is_err());
+    assert!(kp
+        .write_private(&repo().join("challenges/should-not-exist.key"), false)
+        .is_err());
     assert!(!repo().join("challenges/should-not-exist.key").exists());
 }
 

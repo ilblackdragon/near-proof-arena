@@ -101,18 +101,27 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
     let tier = def.tier;
 
     if def.schema != CHALLENGE_SCHEMA {
-        f.err(format!("schema must be {CHALLENGE_SCHEMA:?}, got {:?}", def.schema));
+        f.err(format!(
+            "schema must be {CHALLENGE_SCHEMA:?}, got {:?}",
+            def.schema
+        ));
     }
     if def.name.is_empty()
         || def.name.len() > 64
-        || !def.name.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+        || !def
+            .name
+            .bytes()
+            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
     {
         f.err("name must match [a-z0-9-]{1,64}");
     }
     if def.season.trim().is_empty() {
         f.err("season must be non-empty");
     }
-    match time::OffsetDateTime::parse(&def.created_at, &time::format_description::well_known::Rfc3339) {
+    match time::OffsetDateTime::parse(
+        &def.created_at,
+        &time::format_description::well_known::Rfc3339,
+    ) {
         Ok(t) if t.offset().is_utc() => {}
         _ => f.err("created_at must be an RFC 3339 timestamp in UTC (…Z)"),
     }
@@ -135,12 +144,30 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
     let zero = zero_digest();
     let mut digests: Vec<(&str, &Digest)> = vec![
         ("runtime_config_digest", &def.runtime_config_digest),
-        ("semantic_scope.formal_spec.tree_digest", &def.semantic_scope.formal_spec.tree_digest),
-        ("semantic_scope.spec_doc_digest", &def.semantic_scope.spec_doc_digest),
-        ("claim_encoding.spec_digest", &def.claim_encoding.spec_digest),
-        ("toolchain_policy.checker_image", &def.toolchain_policy.checker_image),
-        ("workload_suite.public_fixtures", &def.workload_suite.public_fixtures),
-        ("workload_suite.heldout_commitment", &def.workload_suite.heldout_commitment),
+        (
+            "semantic_scope.formal_spec.tree_digest",
+            &def.semantic_scope.formal_spec.tree_digest,
+        ),
+        (
+            "semantic_scope.spec_doc_digest",
+            &def.semantic_scope.spec_doc_digest,
+        ),
+        (
+            "claim_encoding.spec_digest",
+            &def.claim_encoding.spec_digest,
+        ),
+        (
+            "toolchain_policy.checker_image",
+            &def.toolchain_policy.checker_image,
+        ),
+        (
+            "workload_suite.public_fixtures",
+            &def.workload_suite.public_fixtures,
+        ),
+        (
+            "workload_suite.heldout_commitment",
+            &def.workload_suite.heldout_commitment,
+        ),
     ];
     for c in &def.workload_suite.classes {
         digests.push(("workload_suite.classes[].generator", &c.generator));
@@ -148,9 +175,13 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
     for (name, d) in digests {
         if *d == zero {
             if tier == Tier::Demo {
-                f.warn(format!("{name} is the all-zero placeholder (allowed in demo tier only)"));
+                f.warn(format!(
+                    "{name} is the all-zero placeholder (allowed in demo tier only)"
+                ));
             } else {
-                f.err(format!("{name} is the all-zero placeholder; not allowed in {tier:?} tier"));
+                f.err(format!(
+                    "{name} is the all-zero placeholder; not allowed in {tier:?} tier"
+                ));
             }
         }
     }
@@ -163,11 +194,16 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
     let mut rids = BTreeSet::new();
     for r in &s.restrictions {
         if r.id.is_empty() || r.text.trim().is_empty() || !rids.insert(&r.id) {
-            f.err(format!("restriction {:?}: id must be unique and non-empty, text non-empty", r.id));
+            f.err(format!(
+                "restriction {:?}: id must be unique and non-empty, text non-empty",
+                r.id
+            ));
         }
     }
     if s.excludes.is_empty() {
-        f.warn("semantic_scope.excludes is empty: state explicitly which properties are NOT proven");
+        f.warn(
+            "semantic_scope.excludes is empty: state explicitly which properties are NOT proven",
+        );
     }
     if s.formal_spec.lean_toolchain != def.toolchain_policy.lean_toolchain {
         f.err("formal_spec.lean_toolchain must equal toolchain_policy.lean_toolchain");
@@ -200,7 +236,9 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
                          allowed assumption to be pinned to an exact formal-core declaration"
                     ))
                 } else {
-                    f.warn(format!("assumption {a:?} not yet pinned (lean_decl_digest = null)"))
+                    f.warn(format!(
+                        "assumption {a:?} not yet pinned (lean_decl_digest = null)"
+                    ))
                 }
             }
             Some(_) => {}
@@ -226,14 +264,18 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
             f.err(format!("allowed_packages: duplicate {name:?}"));
         }
         if !is_hex(commit, 40) {
-            f.err(format!("allowed_packages[{name}] must pin a full 40-char commit"));
+            f.err(format!(
+                "allowed_packages[{name}] must pin a full 40-char commit"
+            ));
         }
     }
     if tier == Tier::Formal {
         if tp.recheckers.is_empty() {
             f.err("formal tier requires at least one independent kernel rechecker");
         } else if tp.recheckers.len() < 2 {
-            f.warn("formal tier with a single rechecker; two independent recheckers are recommended");
+            f.warn(
+                "formal tier with a single rechecker; two independent recheckers are recommended",
+            );
         }
     }
 
@@ -251,7 +293,9 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
     }
     for o in &na {
         if *o != ObligationId::FormalZk {
-            f.err(format!("{o:?} may not be declared not-applicable (only FORMAL_ZK, for validity_only)"));
+            f.err(format!(
+                "{o:?} may not be declared not-applicable (only FORMAL_ZK, for validity_only)"
+            ));
         }
     }
     match prof.privacy {
@@ -293,7 +337,9 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
     }
     let total: u64 = ws.classes.iter().map(|c| c.weight_ppm as u64).sum();
     if total != WEIGHT_TOTAL_PPM {
-        f.err(format!("workload weights sum to {total} ppm, must be exactly {WEIGHT_TOTAL_PPM}"));
+        f.err(format!(
+            "workload weights sum to {total} ppm, must be exactly {WEIGHT_TOTAL_PPM}"
+        ));
     }
     let mut cids = BTreeSet::new();
     for c in &ws.classes {
@@ -301,7 +347,10 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
             f.err(format!("duplicate workload class {:?}", c.id));
         }
         if c.weight_ppm == 0 || c.batch_size == 0 {
-            f.err(format!("class {:?}: weight_ppm and batch_size must be > 0", c.id));
+            f.err(format!(
+                "class {:?}: weight_ppm and batch_size must be > 0",
+                c.id
+            ));
         }
     }
     let mut bids = BTreeSet::new();
