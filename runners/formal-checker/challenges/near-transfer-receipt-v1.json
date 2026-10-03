@@ -13,5 +13,10 @@
     "module": "ArenaExpected",
     "decl": "ArenaExpected.expectedType",
     "template": "spec/lean/judge/Expected.lean.template"
+  },
+  "expected_native_lean": {
+    "module": "ArenaExpected",
+    "decl": "ArenaExpected.expectedTypeFor",
+    "template": "spec/lean/judge/Expected.native-lean.lean.template"
   }
 }

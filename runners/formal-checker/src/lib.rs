@@ -10,6 +10,7 @@ pub mod digest;
 pub mod expected;
 pub mod findings;
 pub mod grep;
+pub mod native;
 pub mod ndjson;
 pub mod pipeline;
 pub mod report;

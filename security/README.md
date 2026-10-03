@@ -51,8 +51,8 @@ certified bound at the challenge's concrete parameters (CONTRACTS §5).
 
 | id | kind | Lean hypothesis (formal-core) |
 |----|------|-------------------------------|
-| `sha256-collision-resistance` | falsifiable, concrete-security, explicit reduction | `Arena.Assumptions.Sha256CollisionResistant` |
-| `random-oracle-fiat-shamir-sha256` | idealised **model** with query budget | `Arena.Assumptions.RandomOracleFiatShamirSha256` |
+| `sha256-collision-resistance` | falsifiable, concrete-security, explicit reduction | `ArenaCore.Assumptions.Sha256CollisionResistant` |
+| `random-oracle-fiat-shamir-sha256` | idealised **model** with query budget | `ArenaCore.Security.RomSound` |
 
 An assumption file is a *pointer* to an exact Lean declaration in
 `formal-core`. Cryptographic assumptions enter certificates **only as
@@ -60,10 +60,13 @@ explicit hypotheses** of the certified theorem, never as Lean `axiom`s (the
 axiom allowlist of a challenge may contain only `propext`,
 `Classical.choice`, `Quot.sound`; `arena-admin` rejects anything else).
 
-`lean_decl_digest` is currently `null` in both files: the `formal-core` lane
-has not yet published the declarations. **Until it is filled, no `formal`
-tier challenge can be signed** — `arena-admin` refuses formal challenges that
-allow an unpinned assumption. This is intentional fail-closed behaviour.
+`lean_decl_digest` pins each declaration by its structural content hash
+(`decl-hash`, the hash the formal checker's NDJSON audit compares), computed
+from the pinned formal-core by
+`runners/formal-checker/scripts/pin-assumption-digests.sh`. A formal-core
+change that alters either declaration changes the digest and must be
+re-pinned through governance. `arena-admin` refuses formal challenges that
+allow an unpinned assumption (fail-closed).
 
 ## Governance: how this directory changes
 

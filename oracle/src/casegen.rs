@@ -318,6 +318,9 @@ fn price(rng: &mut Rng) -> u128 {
 
 /// Generate an in-domain case. Retries internally until the Rust domain
 /// check accepts (rarely needed: only tokens_burnt_total overflow).
+/// When non-zero, every generated valid case has exactly this many receipts.
+pub static FORCE_RECEIPTS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+
 pub fn gen_valid(seed: u64, idx: u64, profile: &str) -> Case {
     for attempt in 0.. {
         let mut rng = Rng::new(seed, idx.wrapping_mul(1000).wrapping_add(attempt));
@@ -363,11 +366,15 @@ fn gen_valid_once(rng: &mut Rng, seed: u64, idx: u64, profile: &str) -> Case {
         sb.put_account(&h, &random_account(rng, false));
     }
 
-    let n = match profile {
+    let mut n = match profile {
         "large" => rng.range(64, domain::MAX_BATCH as u64),
         "repeat" => rng.range(4, 40),
         _ => rng.range(1, 16),
     } as usize;
+    let forced = FORCE_RECEIPTS.load(std::sync::atomic::Ordering::Relaxed);
+    if forced > 0 {
+        n = forced; // workload classes with a fixed receipt count (--receipts N)
+    }
     let block_gas_price = match profile {
         "prices" => price(rng),
         _ => *rng.pick(&[100_000_000u128, 1_000_000_000, 1_000_000_000, 500_000_000]),
@@ -418,7 +425,11 @@ fn gen_valid_once(rng: &mut Rng, seed: u64, idx: u64, profile: &str) -> Case {
         pre_state_root: CryptoHash::default(), // filled in by exec
         receipts,
     };
-    Case { id: format!("s{seed}-v{idx}"), profile: profile.into(), request, state: sb.kv, invalid_kind: None }
+    let id = match FORCE_RECEIPTS.load(std::sync::atomic::Ordering::Relaxed) {
+        0 => format!("s{seed}-v{idx}"),
+        r => format!("s{seed}-r{r}-v{idx}"),
+    };
+    Case { id, profile: profile.into(), request, state: sb.kv, invalid_kind: None }
 }
 
 /// Generate an out-of-domain case of the given kind, starting from a valid case.

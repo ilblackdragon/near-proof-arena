@@ -38,19 +38,29 @@ pub struct EntrySection {
     pub prepare: String,
     pub prove: String,
     pub verify: String,
-    /// How the arena executes the verifier (v1.2, optional):
-    /// `"npai-v1"` = judge interpreter on `verifier_bytecode`;
-    /// `"native-lean"` = judge builds the verifier executable from the Lean
-    /// model `formal.verifier_model` with the governed Lean compiler.
-    /// Absent = legacy candidate-built `verify` (no formal route admits it).
+    /// How the arena runs verification (v1.2, additive). `native` (default):
+    /// the built `verify` executable. `npai-v1`: the arena's own NPAI
+    /// interpreter runs `verifier_bytecode` (docs/INTERP_SPEC.md); `prepare`
+    /// must then emit exactly `public_dir/public.bin`. `native-lean`: the
+    /// judge builds `verify` itself from the Lean model `formal.verifier_model`
+    /// with the governed Lean compiler (the candidate's binary is not used).
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub verify_route: Option<String>,
-    /// `npai-v1` route: path of the verifier bytecode image.
+    pub verify_route: Option<VerifyRoute>,
+    /// Built NPAI image (relative path among `build.outputs`), required iff
+    /// `verify_route = "npai-v1"`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub verifier_bytecode: Option<String>,
 }
 
-pub const VERIFY_ROUTES: &[&str] = &["npai-v1", "native-lean"];
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub enum VerifyRoute {
+    #[serde(rename = "native")]
+    Native,
+    #[serde(rename = "npai-v1")]
+    NpaiV1,
+    #[serde(rename = "native-lean")]
+    NativeLean,
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -141,23 +151,25 @@ impl CandidateManifest {
                 _ => return bad("formal.verifier_model and verifier_model_module must both be dotted Lean identifiers"),
             }
         }
-        if let Some(b) = &self.entry.verifier_bytecode {
-            paths.push(b.as_str());
+        let has_model = self.formal.as_ref().is_some_and(|f| f.verifier_model.is_some());
+        match self.entry.verify_route {
+            Some(VerifyRoute::NativeLean) if !has_model => {
+                return bad("verify_route native-lean requires formal.verifier_model and verifier_model_module")
+            }
+            Some(VerifyRoute::NativeLean) => {}
+            _ if has_model => return bad("formal.verifier_model is only valid with verify_route = \"native-lean\""),
+            _ => {}
         }
-        match self.entry.verify_route.as_deref() {
-            None => {}
-            Some(r) if !VERIFY_ROUTES.contains(&r) => return bad("unknown entry.verify_route"),
-            Some("native-lean") => {
-                if self.formal.as_ref().and_then(|f| f.verifier_model.as_ref()).is_none() {
-                    return bad("verify_route native-lean requires formal.verifier_model");
+        match (self.entry.verify_route, &self.entry.verifier_bytecode) {
+            (Some(VerifyRoute::NpaiV1), Some(b)) => {
+                if !self.build.outputs.iter().any(|o| o == b) {
+                    return bad("verifier_bytecode must be one of build.outputs");
                 }
+                paths.push(b.as_str());
             }
-            Some("npai-v1") => {
-                if self.entry.verifier_bytecode.is_none() {
-                    return bad("verify_route npai-v1 requires entry.verifier_bytecode");
-                }
-            }
-            Some(_) => {}
+            (Some(VerifyRoute::NpaiV1), None) => return bad("verify_route npai-v1 requires verifier_bytecode"),
+            (_, Some(_)) => return bad("verifier_bytecode is only valid with verify_route = \"npai-v1\""),
+            _ => {}
         }
         if !paths.iter().all(|p| is_safe_relpath(p)) {
             return bad("unsafe relative path");
@@ -198,13 +210,38 @@ certificate = "Candidate.certificate"
         assert!(CandidateManifest::parse(&with_route).is_err(), "model required");
         let full = format!("{with_route}verifier_model = \"Candidate.Model.verify\"\nverifier_model_module = \"Candidate.Model\"\n");
         let m = CandidateManifest::parse(&full).unwrap();
+        assert_eq!(m.entry.verify_route, Some(VerifyRoute::NativeLean));
         assert_eq!(m.formal.unwrap().verifier_model.as_deref(), Some("Candidate.Model.verify"));
-        let bad = full.replace("Candidate.Model.verify", "Candidate.Model.verify x");
-        assert!(CandidateManifest::parse(&bad).is_err());
+        assert!(CandidateManifest::parse(&full.replace("Candidate.Model.verify", "Candidate.Model.verify x")).is_err());
+        // a model without the route is rejected
+        let no_route = full.replace("verify_route = \"native-lean\"\n", "");
+        assert!(CandidateManifest::parse(&no_route).is_err());
     }
     #[test]
     fn rejects_traversal() {
         assert!(CandidateManifest::parse(&OK.replace("out/verify\"\n", "../x\"\n")).is_err());
+    }
+    #[test]
+    fn verify_route() {
+        let npai = OK.replace(
+            "verify = \"out/verify\"\n",
+            "verify = \"out/verify\"\nverify_route = \"npai-v1\"\nverifier_bytecode = \"out/verifier.npai\"\n",
+        );
+        assert!(CandidateManifest::parse(&npai).is_err(), "bytecode must be a build output");
+        let npai = npai.replace("\"out/verify\"]", "\"out/verify\", \"out/verifier.npai\"]");
+        let m = CandidateManifest::parse(&npai).unwrap();
+        assert_eq!(m.entry.verify_route, Some(VerifyRoute::NpaiV1));
+        assert!(CandidateManifest::parse(&npai.replace("verifier_bytecode = \"out/verifier.npai\"\n", "")).is_err());
+        assert!(CandidateManifest::parse(&OK.replace(
+            "verify = \"out/verify\"\n",
+            "verify = \"out/verify\"\nverify_route = \"native\"\n"
+        ))
+        .is_ok());
+        assert!(CandidateManifest::parse(&OK.replace(
+            "verify = \"out/verify\"\n",
+            "verify = \"out/verify\"\nverify_route = \"wasm\"\n"
+        ))
+        .is_err());
     }
     #[test]
     fn rejects_unknown_field() {

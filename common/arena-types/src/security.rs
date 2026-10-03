@@ -56,10 +56,11 @@ pub struct Assumption {
     pub id: String,
     pub description: String,
     /// Fully qualified Lean name of the hypothesis *definition* (a `Prop`-valued
-    /// def in formal-core), e.g. `Arena.Assumptions.Sha256CollisionResistant`.
+    /// def in formal-core), e.g. `ArenaCore.Assumptions.Sha256CollisionResistant`.
     pub lean_decl: String,
-    /// Digest of the Lean declaration's exported type+value (filled by the
-    /// governance tooling; checked by the formal checker).
+    /// Structural content hash of the Lean declaration (lean4export NDJSON,
+    /// `arena_formal_checker::ndjson::Export::decl_hash`, rendered
+    /// `sha256:<hex>`; computed by `runners/formal-checker/scripts/pin-assumption-digests.sh`).
     pub lean_decl_digest: Option<crate::Digest>,
     pub references: Vec<String>,
 }

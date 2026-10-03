@@ -95,7 +95,7 @@
           "type": "string"
         },
         "verifier_bytecode": {
-          "description": "`npai-v1` route: path of the verifier bytecode image.",
+          "description": "Built NPAI image (relative path among `build.outputs`), required iff `verify_route = \"npai-v1\"`.",
           "type": [
             "string",
             "null"
@@ -105,10 +105,14 @@
           "type": "string"
         },
         "verify_route": {
-          "description": "How the arena executes the verifier (v1.2, optional): `\"npai-v1\"` = judge interpreter on `verifier_bytecode`; `\"native-lean\"` = judge builds the verifier executable from the Lean model `formal.verifier_model` with the governed Lean compiler. Absent = legacy candidate-built `verify` (no formal route admits it).",
-          "type": [
-            "string",
-            "null"
+          "description": "How the arena runs verification (v1.2, additive). `native` (default): the built `verify` executable. `npai-v1`: the arena's own NPAI interpreter runs `verifier_bytecode` (docs/INTERP_SPEC.md); `prepare` must then emit exactly `public_dir/public.bin`. `native-lean`: the judge builds `verify` itself from the Lean model `formal.verifier_model` with the governed Lean compiler (the candidate's binary is not used).",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VerifyRoute"
+            },
+            {
+              "type": "null"
+            }
           ]
         }
       },
@@ -162,6 +166,14 @@
         }
       },
       "additionalProperties": false
+    },
+    "VerifyRoute": {
+      "type": "string",
+      "enum": [
+        "native",
+        "npai-v1",
+        "native-lean"
+      ]
     }
   }
 }

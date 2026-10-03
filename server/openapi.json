@@ -1815,6 +1815,11 @@
           "created_at": {
             "type": "string"
           },
+          "formal_params": {
+            "description": "Formal admission-statement parameters (v1.2, additive; absent ⇒ not serialized, so existing challenge ids are unchanged).",
+            "$ref": "#/components/schemas/FormalParams",
+            "nullable": true
+          },
           "hardware_profile": {
             "$ref": "#/components/schemas/HardwareProfile"
           },
@@ -2134,8 +2139,18 @@
           "prove": {
             "type": "string"
           },
+          "verifier_bytecode": {
+            "description": "Built NPAI image (relative path among `build.outputs`), required iff `verify_route = \"npai-v1\"`.",
+            "type": "string",
+            "nullable": true
+          },
           "verify": {
             "type": "string"
+          },
+          "verify_route": {
+            "description": "How the arena runs verification (v1.2, additive). `native` (default): the built `verify` executable. `npai-v1`: the arena's own NPAI interpreter runs `verifier_bytecode` (docs/INTERP_SPEC.md); `prepare` must then emit exactly `public_dir/public.bin`.",
+            "$ref": "#/components/schemas/VerifyRoute",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -2359,6 +2374,36 @@
             "$ref": "#/components/schemas/VerifiedSurface"
           }
         }
+      },
+      "FormalParams": {
+        "description": "Parameters of the judge-built admission statement that are not resource limits of the sandbox (`ArenaCore.ChallengeParams`). Optional so that challenges without a formal statement (demo) keep their ids.",
+        "type": "object",
+        "required": [
+          "max_proof_bytes",
+          "max_reduction_fuel",
+          "verify_fuel"
+        ],
+        "properties": {
+          "max_proof_bytes": {
+            "description": "Honest proof-size bound used by `VerifierComplete` (`ChallengeParams.maxProofBytes`); must equal `resource_limits.max_proof_bytes`.",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "max_reduction_fuel": {
+            "description": "Fuel cap of an explicit standard-model security reduction (`ChallengeParams.maxReductionFuel`).",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "verify_fuel": {
+            "description": "NPAI fuel given to the approved interpreter for one `verify` call (`ChallengeParams.verifyFuel`).",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        },
+        "additionalProperties": false
       },
       "FormalSection": {
         "type": "object",
@@ -3903,6 +3948,13 @@
             "$ref": "#/components/schemas/Digest"
           }
         }
+      },
+      "VerifyRoute": {
+        "type": "string",
+        "enum": [
+          "native",
+          "npai-v1"
+        ]
       },
       "WorkloadClass": {
         "type": "object",

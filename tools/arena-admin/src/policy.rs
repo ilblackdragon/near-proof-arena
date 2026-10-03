@@ -269,6 +269,21 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
             ));
         }
     }
+    // --- formal admission-statement parameters ---------------------------------
+    match &def.formal_params {
+        None if tier == Tier::Formal => f.err(
+            "formal tier requires formal_params {verify_fuel, max_proof_bytes, max_reduction_fuel}",
+        ),
+        None => {}
+        Some(fp) => {
+            if fp.verify_fuel == 0 || fp.max_reduction_fuel == 0 {
+                f.err("formal_params.verify_fuel and max_reduction_fuel must be non-zero");
+            }
+            if fp.max_proof_bytes != def.resource_limits.max_proof_bytes {
+                f.err("formal_params.max_proof_bytes must equal resource_limits.max_proof_bytes");
+            }
+        }
+    }
     if tier == Tier::Formal {
         if tp.recheckers.is_empty() {
             f.err("formal tier requires at least one independent kernel rechecker");
@@ -367,8 +382,14 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
     }
     if bids.len() != cids.len() {
         let msg = "baseline_ns does not cover every workload class (score undefined)";
-        if tier == Tier::Formal {
+        let unmeasured = ws.baseline_ns.is_empty() && ws.baseline_submission.is_none();
+        if tier == Tier::Formal && !unmeasured {
             f.err(msg);
+        } else if unmeasured {
+            // A formal challenge may be frozen before its reference backend is
+            // measured: admission is decided, but scores stay null until a
+            // superseding challenge pins baselines for every class.
+            f.warn("no baseline yet (baseline_submission = null, baseline_ns = []): admissions are decided but scores are null until a superseding challenge pins baselines");
         } else {
             f.warn(msg);
         }

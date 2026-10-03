@@ -13,6 +13,9 @@ pub enum Scope {
     Certificate,
     /// One conjunct (index into `conjunct_gates`) plus AXIOM_AUDIT.
     Conjunct(usize),
+    /// Only the ARTIFACT_BINDING gate (e.g. a candidate-supplied binary that
+    /// is not the judge build; the formal proof itself is unaffected).
+    Binding,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]

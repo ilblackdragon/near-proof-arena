@@ -22,7 +22,15 @@ and `arena-audit` all use it. Helper tool revisions are pinned in
 runners/formal-checker/scripts/setup-tools.sh   # elan toolchain + tools into $ARENA_FC_HOME
 ```
 
-Layout: `$ARENA_FC_HOME/<toolchain>/bin/{lean4export,nanoda_bin,lean4lean,arena-audit}`
+Layout (content-addressed): `$ARENA_FC_HOME/<toolchain>/<tools-key>/bin/{lean4export,nanoda_bin,lean4lean,arena-audit}`,
+where `<tools-key>` = 16 hex of sha256 over the files in `TOOLS_KEY_FILES`
+(toolchain, `tools.toml`, the setup script, the ArenaAudit sources). Checkouts at
+different revisions therefore never share or overwrite helpers. The key is
+also baked into `arena-audit` (`arena-audit version`); `ToolPaths::discover`
+refuses (`ToolError::Mismatch`) any helper whose baked key differs from the
+key computed from this checker's embedded sources — a stale or foreign helper
+is an explicit error, never silently used. A unit test keeps the Rust and
+shell key computations in sync.
 (default `ARENA_FC_HOME=~/.cache/arena-formal-checker`; per-tool overrides
 `ARENA_LEAN_SYSROOT`, `ARENA_LEAN4EXPORT`, `ARENA_NANODA`, `ARENA_LEAN4LEAN`,
 `ARENA_AUDIT_BIN`). Changing the toolchain = edit `lean-toolchain`, re-pin
@@ -119,6 +127,59 @@ Production plugs the firecracker backend in behind the same trait.
 5. Source grep (`src/grep.rs`: sorry/axiom/native_decide/implemented_by/
    extern/unsafe/partial/skipKernelTC/#eval/...) only produces warnings.
 
+### `native-lean` verifier route (candidate model inside the statement)
+
+For `verify_route = "native-lean"` (`formal.verifier_model` +
+`verifier_model_module`, `VerifierRoute::NativeLean`):
+
+1. The Expected template defines the statement as a **function of the model**
+   (`ArenaExpected.expectedTypeFor (model : OracleVerifier) : Prop`, e.g.
+   `spec/lean/judge/Expected.native-lean.lean.template`), so the trusted
+   reference build and export stay candidate-free.
+2. Stage A0: the model module and its candidate imports are compiled first,
+   each in its own sandbox run with only its own output dir writable, against
+   the trusted build only. Model-closure modules may import only trusted
+   modules, other model modules and `Init` (no `Lean`/`Std`/`Lake`: no
+   metaprogram can rewrite the IR behind the kernel definition).
+3. Judge build of `verify`: trusted C from the judge-only trusted build,
+   model C from step 2, a judge-owned `main` wrapper (`native.rs`,
+   CONTRACTS §4 CLI, `pub = public_dir/public.bin`) elaborated with the model
+   in scope **and** against a judge stub axiom of the same name/type — the two
+   elaborations must be identical (catches candidate macros/notation/instances
+   hijacking the wrapper) — then `leanc` compile + link in judge-only runs.
+   The binary is reproducible (same digest across runs).
+4. The statement is rendered with `{{bin_digest}}` = sha256 of that binary and
+   `{{toolchain_id}}`, and instantiated at the model in a judge-generated
+   module `ArenaExpectedInst` (`def ArenaExpectedInst.expectedType : Prop :=
+   ArenaExpected.expectedTypeFor Candidate.Model.verify`), compiled in the
+   sandbox; candidates may state the certificate as that constant, the literal
+   application, or its beta-reduced form (checked syntactically on both the
+   Lean and the NDJSON side, the latter by hashing the lambda body with the
+   model substituted).
+5. Audit: the model's dependency closure is the only untrusted content allowed
+   in the statement and is held to the certificate's standard (axiom
+   allowlist; no sorry / native_decide / partial / opaque / unsafe / extern /
+   implemented_by / initialize; must be a `def` in the declared candidate
+   module; redefining trusted names → `SHADOWED_DEFINITION`).
+6. Gates: an `ARTIFACT_BINDING` gate is added. It passes only when the
+   executed verifier is this judge build; a candidate-supplied binary with a
+   different digest, a candidate-built native verifier without a model
+   (`VerifierRoute::CandidateNative`), a missing model, a model that does not
+   build, or a hijacked wrapper → `ARTIFACT_BINDING_FAILED`.
+7. Evidence graph: `formal:verifier_model` (`backend_semantics`, digest = model
+   closure digest), `statement —contains_candidate_model→ model`,
+   `certificate —proves_obligations_about→ model` (checked),
+   `artifact:verifier_binary —implements→ model` (**trusted**) and
+   `—built_from→ tcb:lean_compiler_runtime`. The report carries
+   `native_verifier {path, digest, toolchain_id}` for the worker to run.
+
+Tests: `tests/native_route.rs` (in-repo formal-core Toy): positive (the judge
+binary accepts a valid toy claim and rejects an invalid one), model with
+sorry / candidate axiom / native_decide / shadowed `ArenaCore.OracleVerifier`
+/ missing decl / macro hijacking `OracleVerifier.deployed` / `import Lean`,
+foreign candidate binary, candidate-native route. `tests/near_spec.rs`
+(`FC_NEAR_SPEC=1`) also builds the NEAR native-lean statement.
+
 ### Per-conjunct gates
 
 If `Policy.conjunct_gates` is set and the statement is a right-nested
@@ -194,3 +255,9 @@ formal-core as `Candidate.lean`, matching their `-- EXPECT:` lines.
 * `nanoda_bin` is run with `unsafe_permit_all_axioms` (pure kernel check);
   axiom policy is enforced by the audits.
 * Result caching by `cache_key` is left to the worker (`reused_from`).
+* native-lean: the binary↔model edge trusts the Lean compiler/runtime (by
+  design) and the wrapper-equality check runs in an audit process that maps
+  candidate `.olean`s (sandboxed, like the rest of the Lean-side audit).
+  Model-closure modules cannot use `Lean` metaprogramming, but compiler
+  attributes on candidate declarations are only rejected by the audit after
+  the build (the build output is never admitted in that case).

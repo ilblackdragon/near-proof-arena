@@ -3,7 +3,8 @@
 //! Commands:
 //!   gen    --seed S --valid N [--invalid M] --out DIR [--profiles p1,p2]
 //!          Generate OracleCase directories (request.bin, witness.bin, claim.bin,
-//!          state.bin, diagnostics.json). Every case is executed by the real
+//!          state.bin, diagnostics.json); [--receipts N] fixes the receipt count
+//!          (workload classes). Every case is executed by the real
 //!          pinned nearcore `Runtime::apply`.
 //!   replay --case DIR
 //!          Re-run nearcore from state.bin + request.bin and check that claim.bin
@@ -159,6 +160,11 @@ fn cmd_gen(args: &[String]) -> i32 {
     let profiles: Vec<String> = arg(args, "--profiles")
         .map(|s| s.split(',').map(String::from).collect())
         .unwrap_or_else(|| casegen::PROFILES.iter().map(|s| s.to_string()).collect());
+    if let Some(r) = arg(args, "--receipts") {
+        let r: usize = r.parse().expect("--receipts N");
+        assert!((1..=domain::MAX_BATCH).contains(&r), "--receipts must be in 1..=256");
+        casegen::FORCE_RECEIPTS.store(r, std::sync::atomic::Ordering::Relaxed);
+    }
     let fixtures = args.iter().any(|a| a == "--fixtures-layout");
     let layout = Layout { claim_name: if fixtures { "expected_claim.bin" } else { "claim.bin" } };
     let case_root = if fixtures { out.join("cases") } else { out.clone() };
