@@ -4,7 +4,7 @@
 schema = "arena-candidate-v1"
 name = "reexec-npai"
 agent = "npai-near"
-challenge = "chl_5ef2bc7d2068219635426e47ca46bfbb"
+challenge = "chl_3be93793610370275ae40f36a475f01f"
 backend_family = "reexec-witness"
 security_profile_request = "validity-classical-128"
 hardware = { gpu = false, min_ram_gb = 4 }

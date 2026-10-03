@@ -312,13 +312,15 @@ open NpaiIR ArenaCore.Interp NearSpec NearSpec.TransferV1
 
 theorem decode_code : ArenaCore.Interp.decode code = some program := decode_encode program program_canon
 
-/-- **Main theorem.** On every input (public tape shorter than `2^32`), the
-NPAI image `code` run by the approved interpreter with any fuel `≥ FUEL + 1`
-accepts exactly when the reference model `check` does. -/
-theorem interpVerify_eq_check {pub cb pb : Bytes} (hpub : pub.length < 4294967296) {fuel : Nat}
-    (hf : FUEL + 1 ≤ fuel) : interpVerify code fuel pub cb pb = check cb pb := by
+/-- The main argument, stated for any image that decodes to `program`. Keeping
+the image a variable here means no checker ever has to unfold the 30 KB
+literal `code` while checking this proof (an independent kernel, nanoda,
+overflows its stack doing so). -/
+theorem interpVerify_eq_check_of_decode {img : Bytes} (hd : ArenaCore.Interp.decode img = some program)
+    {pub cb pb : Bytes} (hpub : pub.length < 4294967296) {fuel : Nat}
+    (hf : FUEL + 1 ≤ fuel) : interpVerify img fuel pub cb pb = check cb pb := by
   unfold interpVerify
-  rw [decode_code]
+  rw [hd]
   simp only
   cases hc : check cb pb with
   | true =>
@@ -348,5 +350,12 @@ theorem interpVerify_eq_check {pub cb pb : Bytes} (hpub : pub.length < 429496729
           have := prog_sound (pub := pub) ⟨hlen.2.1, hlen.2.2⟩ hev
           rw [hc] at this; cases this
         · cases hr
+
+/-- **Main theorem.** On every input (public tape shorter than `2^32`), the
+NPAI image `code` run by the approved interpreter with any fuel `≥ FUEL + 1`
+accepts exactly when the reference model `check` does. -/
+theorem interpVerify_eq_check {pub cb pb : Bytes} (hpub : pub.length < 4294967296) {fuel : Nat}
+    (hf : FUEL + 1 ≤ fuel) : interpVerify code fuel pub cb pb = check cb pb :=
+  interpVerify_eq_check_of_decode decode_code hpub hf
 
 end ReexecNpai

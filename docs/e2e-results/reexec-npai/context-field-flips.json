@@ -1,0 +1,20 @@
+{
+ "height": {
+  "flips": 1280,
+  "relation_true": 128,
+  "npai_accept": 128,
+  "disagree": 0
+ },
+ "gas_price": {
+  "flips": 2560,
+  "relation_true": 230,
+  "npai_accept": 230,
+  "disagree": 0
+ },
+ "gas_limit": {
+  "flips": 1280,
+  "relation_true": 1211,
+  "npai_accept": 1211,
+  "disagree": 0
+ }
+}
