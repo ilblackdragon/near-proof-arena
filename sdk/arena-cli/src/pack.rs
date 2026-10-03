@@ -6,7 +6,8 @@
 //! paths. The same tree therefore always packs to the same bytes, and the
 //! upload digest is a pure function of the tree.
 //!
-//! Excluded (never packed): any `.git/`, `target/`, `.lake/` directory and the
+//! Excluded (never packed): any `.git/` or `.lake/` directory, Cargo `target/`
+//! build dirs (top-level, or marked with `CACHEDIR.TAG`), and the
 //! top-level `out/` directory (build outputs are produced by the judge).
 //! Symlinks, sockets, devices and fifos make packing fail (`ARCHIVE_UNSAFE`).
 
@@ -14,7 +15,11 @@ use crate::exit::{CliError, CliResult};
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
-pub const EXCLUDED_ANY_DEPTH: &[&str] = &[".git", "target", ".lake"];
+pub const EXCLUDED_ANY_DEPTH: &[&str] = &[".git", ".lake"];
+/// `target` is excluded only when it is a Cargo build dir: at the package root
+/// or containing `CACHEDIR.TAG`. Vendored crates (e.g. `cc`) ship source
+/// directories named `target` that must be kept.
+pub const CARGO_TARGET: &str = "target";
 pub const EXCLUDED_TOP_LEVEL: &[&str] = &["out"];
 
 /// One file to be packed.
@@ -54,6 +59,8 @@ fn walk(dir: &Path, rel: &str, out: &mut Vec<PackEntry>) -> CliResult<()> {
         if ft.is_dir() {
             if EXCLUDED_ANY_DEPTH.contains(&name)
                 || (rel.is_empty() && EXCLUDED_TOP_LEVEL.contains(&name))
+                || (name == CARGO_TARGET
+                    && (rel.is_empty() || ent.path().join("CACHEDIR.TAG").exists()))
             {
                 continue;
             }
@@ -116,6 +123,15 @@ mod tests {
         fs::write(dir.join("source/src/a.rs"), "a").unwrap();
         fs::write(dir.join("out/prove"), "bin").unwrap();
         fs::write(dir.join("source/target/junk"), "junk").unwrap();
+        // Cargo marks build dirs with CACHEDIR.TAG; only those are dropped below the root.
+        fs::write(
+            dir.join("source/target/CACHEDIR.TAG"),
+            "Signature: 8a477f597d28d172789f06886806bc55",
+        )
+        .unwrap();
+        // A vendored source dir named `target` (e.g. the `cc` crate) must be kept.
+        fs::create_dir_all(dir.join("source/vendor/cc/src/target")).unwrap();
+        fs::write(dir.join("source/vendor/cc/src/target/mod.rs"), "//").unwrap();
         fs::write(dir.join("run.sh"), "#!/bin/sh").unwrap();
         fs::set_permissions(dir.join("run.sh"), fs::Permissions::from_mode(0o700)).unwrap();
     }
@@ -152,6 +168,7 @@ mod tests {
                 ("run.sh".into(), 0o755, 0),
                 ("source/src/a.rs".into(), 0o644, 0),
                 ("source/src/b.rs".into(), 0o644, 0),
+                ("source/vendor/cc/src/target/mod.rs".into(), 0o644, 0),
             ]
         );
     }
