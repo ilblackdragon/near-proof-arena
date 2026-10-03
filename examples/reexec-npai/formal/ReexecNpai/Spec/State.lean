@@ -4,7 +4,7 @@ import ReexecNpai.Trie.Lemmas
 import ReexecNpai.Roundtrip
 
 /-!
-# Phase interfaces
+# Phase interfaces: state predicates
 
 The verifier body is `seqs [pSetup, pClaim, pProof, pReceipts, pParse, pHash,
 pRootIs (CLM + 117), pBatch, pFinal]`. This file fixes the state predicates
@@ -80,6 +80,8 @@ structure TrieMem (pb : Bytes) (A : List Ent) (K : List Nat) (vals : Nat → Byt
   nodes : rd32 m C_NODES = A.length
   vmem : ∀ j (h : j < A.length), hasVal A[j].nf = true →
     readMem m.mem A[j].val (vlenAt pb A[j]) = vals j ∧ (vals j).length = vlenAt pb A[j]
+  lmem : ∀ j (h : j < A.length), hasVal A[j].nf = true →
+    readMem m.mem (A[j].val - 4) 4 = pseg pb (A[j].val - 4) 4
   pmem : ∀ j (h : j < A.length), ∃ z zs, z.length = 32 ∧ zs.length = nKids A[j].nf ∧
     (∀ x ∈ zs, x.length = 32) ∧ readMem m.mem A[j].pre A[j].preLen = preImg A[j].nf (vlenAt pb A[j]) z zs
   hmem : ∀ j (h : j < A.length), match A[j].nf with
@@ -100,6 +102,9 @@ structure TrieSt (cb pb : Bytes) (rs : List Receipt) (R : Nat) (A : List Ent) (K
   tok : TrieOK pb R A K
   tmem : TrieMem pb A K vals m
 
+/-- Inputs as seen by `run` (tapes shorter than `2^32`). -/
+def TapesOK (cb pb : Bytes) : Prop := cb.length < 4294967296 ∧ pb.length < 4294967296
+
 /-- The root of the represented trie. -/
 def rootT (A : List Ent) (K : List Nat) (vals : Nat → Bytes) : PTrie := treeAt A K vals (A.length - 1)
 
@@ -113,86 +118,5 @@ structure BatchMem (acc : Acc) (m : M) : Prop where
       concatAll (acc.refunds.map Receipt.encode)
   nref : rd32 m C_NREF = acc.refunds.length
   tokens : readMem m.mem C_TOK 16 = u128 acc.tokensBurnt
-
-/-! ## Phase lemmas (statements) -/
-
-section
-variable {pub cb pb : Bytes}
-
-/-- Inputs as seen by `run` (tapes shorter than `2^32`). -/
-def TapesOK (cb pb : Bytes) : Prop := cb.length < 4294967296 ∧ pb.length < 4294967296
-
-theorem receipts_wp {m : M} (h : Front cb pb m) (ht : TapesOK cb pb) :
-    wp P (Inp pub cb pb) pReceipts m (fun m' => ∃ rs R, RcptsSt cb pb rs R m') := by
-  sorry
-
-theorem receipts_twp {m : M} (h : Front cb pb m) {rs : List Receipt} {R : Nat}
-    (hok : RcptsOK cb pb rs R) :
-    twp P (Inp pub cb pb) pReceipts m (fun m' c => RcptsSt cb pb rs R m' ∧ c ≤ 6000000) := by
-  sorry
-
-theorem parse_wp {m : M} {rs : List Receipt} {R : Nat} (h : RcptsSt cb pb rs R m) :
-    wp P (Inp pub cb pb) pParse m (fun m' => ∃ A K, TrieSt cb pb rs R A K (vals0 pb A) m') := by
-  sorry
-
-theorem parse_twp {m : M} {rs : List Receipt} {R : Nat} (h : RcptsSt cb pb rs R m) {t : PTrie}
-    (hd : decTrie (pb.drop R) = some t) (hs : t.revealedBytes ≤ Params.maxWitnessBytes) :
-    twp P (Inp pub cb pb) pParse m (fun m' c => ∃ A K, TrieSt cb pb rs R A K (vals0 pb A) m' ∧
-      rootT A K (vals0 pb A) = t ∧ c ≤ 80 * pb.length + 10000) := by
-  sorry
-
-theorem hash_wp {m : M} {rs : List Receipt} {R : Nat} {A : List Ent} {K : List Nat} {vals : Nat → Bytes}
-    (h : TrieSt cb pb rs R A K vals m) :
-    wp P (Inp pub cb pb) pHash m (fun m' => TrieSt cb pb rs R A K vals m' ∧
-      readMem m'.mem C_ROOT 32 = (rootT A K vals).hashOf) := by
-  sorry
-
-theorem hash_twp {m : M} {rs : List Receipt} {R : Nat} {A : List Ent} {K : List Nat} {vals : Nat → Bytes}
-    (h : TrieSt cb pb rs R A K vals m) :
-    twp P (Inp pub cb pb) pHash m (fun m' c => TrieSt cb pb rs R A K vals m' ∧
-      readMem m'.mem C_ROOT 32 = (rootT A K vals).hashOf ∧ c ≤ 20 * pb.length + 10000) := by
-  sorry
-
-theorem rootIs_wp {m : M} {a : Nat} {d : Bytes} (hk : Base m) (hd : readMem m.mem C_ROOT 32 = d)
-    (ha : a + 32 ≤ CELL) :
-    wp P (Inp pub cb pb) (pRootIs a) m (fun m' => d = readMem m.mem a 32 ∧ m'.mem = m.mem ∧
-      m'.regs 14 = 8 ∧ m'.regs 15 = 1) := by
-  sorry
-
-theorem rootIs_twp {m : M} {a : Nat} {d : Bytes} (hk : Base m) (hd : readMem m.mem C_ROOT 32 = d)
-    (ha : a + 32 ≤ CELL) (he : d = readMem m.mem a 32) :
-    twp P (Inp pub cb pb) (pRootIs a) m (fun m' c => m'.mem = m.mem ∧ (∀ j, j ≠ 0 → j ≠ 1 → j ≠ 2 → j ≠ 3 →
-      m'.regs j = m.regs j) ∧ c ≤ 20) := by
-  sorry
-
-theorem batch_wp {m : M} {rs : List Receipt} {R : Nat} {A : List Ent} {K : List Nat}
-    (h : TrieSt cb pb rs R A K (vals0 pb A) m) :
-    wp P (Inp pub cb pb) pBatch m (fun m' => ∃ acc vals,
-      runBatch (claimOf cb).ctx (rootT A K (vals0 pb A)) rs = some acc ∧
-      TrieSt cb pb rs R A K vals m' ∧ rootT A K vals = acc.trie ∧ BatchMem acc m') := by
-  sorry
-
-theorem batch_twp {m : M} {rs : List Receipt} {R : Nat} {A : List Ent} {K : List Nat}
-    (h : TrieSt cb pb rs R A K (vals0 pb A) m) {acc : Acc}
-    (hr : runBatch (claimOf cb).ctx (rootT A K (vals0 pb A)) rs = some acc) :
-    twp P (Inp pub cb pb) pBatch m (fun m' c => ∃ vals, TrieSt cb pb rs R A K vals m' ∧
-      rootT A K vals = acc.trie ∧ BatchMem acc m' ∧ c ≤ 20000000) := by
-  sorry
-
-theorem final_wp {m : M} {rs : List Receipt} {R : Nat} {A : List Ent} {K : List Nat} {vals : Nat → Bytes}
-    {acc : Acc} (h : TrieSt cb pb rs R A K vals m) (hb : BatchMem acc m) (ht : rootT A K vals = acc.trie)
-    (hlen : acc.outcomes.length = rs.length) (hgas : acc.gasBurnt = rs.length * Params.G) :
-    wp P (Inp pub cb pb) pFinal m (fun m' => Outputs.ofAcc acc = Outputs.ofClaim (claimOf cb) ∧
-      m'.regs 15 = 1) := by
-  sorry
-
-theorem final_twp {m : M} {rs : List Receipt} {R : Nat} {A : List Ent} {K : List Nat} {vals : Nat → Bytes}
-    {acc : Acc} (h : TrieSt cb pb rs R A K vals m) (hb : BatchMem acc m) (ht : rootT A K vals = acc.trie)
-    (hlen : acc.outcomes.length = rs.length) (hgas : acc.gasBurnt = rs.length * Params.G)
-    (he : Outputs.ofAcc acc = Outputs.ofClaim (claimOf cb)) :
-    twp P (Inp pub cb pb) pFinal m (fun m' c => m'.regs 15 = 1 ∧ c ≤ 20 * pb.length + 1000000) := by
-  sorry
-
-end
 
 end ReexecNpai

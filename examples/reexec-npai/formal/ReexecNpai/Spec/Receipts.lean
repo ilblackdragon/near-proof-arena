@@ -1,5 +1,4 @@
-import ReexecNpai.Spec.Front
-import ReexecNpai.Spec.RcptPos
+import ReexecNpai.Spec.State
 
 /-!
 # Phase spec: the receipts section
@@ -9,14 +8,14 @@ set_option maxRecDepth 8000
 
 namespace ReexecNpai
 
-open NpaiIR ArenaCore Interp
+open NpaiIR ArenaCore ArenaCore.Interp NearSpec NearSpec.TransferV1
 
-theorem leToNat_eq_leNat : ∀ l : Bytes, Bytes.leToNat l = NearSpec.leNat l
+theorem leToNat_eq_leNat : ∀ l : NearSpec.Bytes, Bytes.leToNat l = NearSpec.leNat l
   | [] => rfl
   | x :: xs => by simp [Bytes.leToNat, NearSpec.leNat, leToNat_eq_leNat xs]
 
 /-- Reading the proof copy. -/
-theorem rdProof {M0 : Nat → UInt8} {pb : Bytes} (h : readMem M0 PF pb.length = pb) {o n : Nat}
+theorem rdProof {M0 : Nat → UInt8} {pb : NearSpec.Bytes} (h : readMem M0 PF pb.length = pb) {o n : Nat}
     (hn : o + n ≤ pb.length) : readMem M0 (PF + o) n = sl pb o n := by
   apply List.ext_getElem (by simp [sl]; omega)
   intro i h1 h2
@@ -27,7 +26,7 @@ theorem rdProof {M0 : Nat → UInt8} {pb : Bytes} (h : readMem M0 PF pb.length =
   simp [sl, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (show o + i < pb.length by omega)]
 
 /-- What the receipt loop body needs from the current state. -/
-structure RcptPre (cb pb : Bytes) (o e : Nat) (m : M) : Prop extends ClaimIn cb m where
+structure RcptPre (cb pb : NearSpec.Bytes) (o e : Nat) (m : M) : Prop extends ClaimIn cb m where
   proof : readMem m.mem PF pb.length = pb
   plen : pb.length ≤ PMAX
   rP : m.regs 10 = PF + o
@@ -36,7 +35,7 @@ structure RcptPre (cb pb : Bytes) (o e : Nat) (m : M) : Prop extends ClaimIn cb 
   he : RT ≤ e ∧ e + 64 ≤ OL
   ho : o ≤ pb.length
 
-theorem borshField_wp {pub cb pb : Bytes} {o e : Nat} {m : M} (hp : RcptPre cb pb o e m) (off : Nat)
+theorem borshField_wp {pub cb pb : NearSpec.Bytes} {o e : Nat} {m : M} (hp : RcptPre cb pb o e m) (off : Nat)
     (hoff : off + 8 ≤ 64) :
     wp P (Inp pub cb pb) (pBorshField off) m (fun m' => ∃ b o', borshAt pb o = some (b, o') ∧
       m'.regs 10 = PF + o' ∧ m'.regs 1 = PF + o + 4 ∧ m'.regs 2 = b.length ∧
@@ -61,5 +60,19 @@ theorem borshField_wp {pub cb pb : Bytes} {o e : Nat} {m : M} (hp : RcptPre cb p
     simp only [setReg_apply]
     obtain ⟨h1, h2, h3, h4, h5, h6⟩ := hj
     simp [h1, h2, h3, h4, h5, h6, Ne.symm h1, Ne.symm h2, Ne.symm h3, Ne.symm h4, Ne.symm h5, Ne.symm h6]
+
+section
+variable {pub cb pb : NearSpec.Bytes}
+
+theorem receipts_wp {m : M} (h : Front cb pb m) (ht : TapesOK cb pb) :
+    wp P (Inp pub cb pb) pReceipts m (fun m' => ∃ rs R, RcptsSt cb pb rs R m') := by
+  sorry
+
+theorem receipts_twp {m : M} (h : Front cb pb m) {rs : List Receipt} {R : Nat}
+    (hok : RcptsOK cb pb rs R) :
+    twp P (Inp pub cb pb) pReceipts m (fun m' c => RcptsSt cb pb rs R m' ∧ c ≤ 6000000) := by
+  sorry
+
+end
 
 end ReexecNpai

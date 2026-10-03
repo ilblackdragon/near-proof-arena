@@ -1,4 +1,8 @@
-import ReexecNpai.Spec.Iface
+import ReexecNpai.Spec.Receipts
+import ReexecNpai.Spec.Parse
+import ReexecNpai.Spec.Hash
+import ReexecNpai.Spec.Batch
+import ReexecNpai.Spec.Final
 import ReexecNpai.Model
 import NpaiIR.Adequacy
 import NpaiIR.Encode
@@ -101,12 +105,13 @@ theorem runBatch_lens {ctx : Ctx} {t : PTrie} {rs : List Receipt} {acc : Acc} (h
 theorem TrieSt.congr {cb pb : Bytes} {rs : List Receipt} {R : Nat} {A : List Ent} {K : List Nat}
     {vals : Nat → Bytes} {m m' : M} (h : TrieSt cb pb rs R A K vals m) (hm : m'.mem = m.mem)
     (h14 : m'.regs 14 = 8) (h15 : m'.regs 15 = 1) : TrieSt cb pb rs R A K vals m' := by
-  obtain ⟨⟨⟨⟨_, _, hd⟩, hcl, hs⟩, hok, hrc, hpl, hpe, hn, hre, hrt⟩, htok, ⟨ha, hk, hno, hv, hp, hh⟩⟩ := h
+  obtain ⟨⟨⟨⟨_, _, hd⟩, hcl, hs⟩, hok, hrc, hpl, hpe, hn, hre, hrt⟩, htok, ⟨ha, hk, hno, hv, hl, hp, hh⟩⟩ := h
   have r32 : ∀ a, rd32 m' a = rd32 m a := fun a => by simp [rd32, hm]
   refine ⟨⟨⟨⟨h15, h14, (by rw [hm]; exact hd)⟩, (by rw [hm]; exact hcl), hs⟩, hok, (by rw [hm]; exact hrc), hpl,
     (by rw [r32]; exact hpe), (by rw [r32]; exact hn), (by rw [r32]; exact hre), fun i hi => (by rw [hm]; exact hrt i hi)⟩,
     htok, ⟨fun j hj => ?_, fun i hi => (by rw [r32]; exact hk i hi), (by rw [r32]; exact hno),
-    fun j hj hv' => (by rw [hm]; exact hv j hj hv'), fun j hj => (by rw [hm]; exact hp j hj),
+    fun j hj hv' => (by rw [hm]; exact hv j hj hv'), fun j hj hv' => (by rw [hm]; exact hl j hj hv'),
+    fun j hj => (by rw [hm]; exact hp j hj),
     fun j hj => (by rw [hm]; exact hh j hj)⟩⟩
   obtain ⟨a1, a2, a3, a4, a5, a6⟩ := ha j hj
   exact ⟨(by rw [r32]; exact a1), (by rw [r32]; exact a2), (by rw [r32]; exact a3), (by rw [r32]; exact a4),
