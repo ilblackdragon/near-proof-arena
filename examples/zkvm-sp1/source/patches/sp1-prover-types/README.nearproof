@@ -1,0 +1,8 @@
+Patched copy of sp1-prover-types 6.8.1 (crates.io), used via [patch.crates-io]
+in ../../Cargo.toml.  Only build.rs is replaced (and build-dependencies removed);
+generated/{cluster,worker}.rs are the exact OUT_DIR files produced by the
+upstream build.rs (tonic-build 0.12.3 + protoc 29.3,
+protoc-29.3-linux-x86_64.zip sha256 3e866620c5be27664f3d2fa2d656b5f3e09b5152b42f1bedbf427b333e90021a)
+from proto/worker.proto and proto/cluster.proto of this crate. Regenerate with
+build-recipe/regen-prover-types.sh. These types are the prover's internal
+worker/cluster RPC messages; they are not used by the `verify` binary.

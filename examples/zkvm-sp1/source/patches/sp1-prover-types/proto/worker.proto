@@ -1,0 +1,360 @@
+// Proto definition (worker.proto)
+syntax = "proto3";
+package worker;
+
+import "google/protobuf/empty.proto";
+
+service WorkerService {
+    // Open a server->client stream to register the worker and receive tasks to work on.
+    rpc Open(OpenRequest) returns (stream ServerMessage);
+
+    // Tell the server that the worker is closing and cannot receive any more tasks.
+    rpc Close(CloseRequest) returns (google.protobuf.Empty);
+
+    // Send a heartbeat with tasks that the worker is currently working on.
+    rpc Heartbeat(HeartbeatRequest) returns (google.protobuf.Empty);
+
+    // Notify the server that a task has been completed.
+    rpc CompleteTask(CompleteTaskRequest) returns (google.protobuf.Empty);
+
+    // Notify the server that a task has failed.
+    rpc FailTask(FailTaskRequest) returns (google.protobuf.Empty);
+
+    // Create a new task.
+    rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse);
+
+    // Get the statuses of tasks that are currently being worked on.
+    rpc GetTaskStatuses(GetTaskStatusesRequest) returns (GetTaskStatusesResponse);
+
+    // Notify the server that a proof has been completed.
+    rpc CompleteProof(CompleteProofRequest) returns (google.protobuf.Empty);
+
+    // Notify the server that a proof has failed.
+    rpc FailProof(FailProofRequest) returns (google.protobuf.Empty);
+
+    // Create a proof.
+    rpc CreateProof(CreateProofRequest) returns (CreateProofResponse);
+
+    // Create a dummy proof.
+    rpc CreateDummyProof(CreateDummyProofRequest) returns (google.protobuf.Empty);
+
+    // Cancel a proof.
+    rpc CancelProof(CancelProofRequest) returns (google.protobuf.Empty);
+
+    // Open a server->client stream to receive notifications on tasks that are subscribed to.
+    rpc OpenSub(OpenSubRequest) returns (stream ServerSubMessage);
+
+    // Update the server with new tasks that the client wants to wait for.
+    rpc UpdateSub(UpdateSubRequest) returns (google.protobuf.Empty);
+
+    // Acknowledge that the client has received a task update from the server.
+    rpc AckSub(AckSubRequest) returns (google.protobuf.Empty);
+
+    // Check that the server is still alive.
+    rpc Healthcheck(google.protobuf.Empty) returns (google.protobuf.Empty);
+
+    // Get stats about the coordinator.
+    rpc GetStats(google.protobuf.Empty) returns (GetStatsResponse);
+
+    // Subscribe to a task's message stream.
+    rpc SubscribeTaskMessages(SubscribeTaskMessagesRequest) returns (stream MessageStreamResponse);
+
+    // Send a message on a task's channel.
+    rpc SendTaskMessage(SendTaskMessageRequest) returns (google.protobuf.Empty);
+}
+
+// Task types
+
+enum WorkerType {
+    UNSPECIFIED_WORKER_TYPE = 0;
+    CPU = 1;
+    GPU = 2;
+    ALL = 3;
+    NONE = 4;
+}
+
+enum TaskType {
+    UNSPECIFIED_TASK_TYPE = 0;
+    CONTROLLER = 1;
+    PROVE_SHARD = 2;
+    RECURSION_REDUCE = 3;
+    RECURSION_DEFERRED = 4;
+    SHRINK_WRAP = 5;
+    SETUP_VKEY = 6;
+    MARKER_DEFERRED_RECORD = 7;
+    PLONK_WRAP = 8;
+    GROTH16_WRAP = 9;
+    EXECUTE_ONLY = 10;
+    CORE_EXECUTE = 11;
+    UTIL_VKEY_MAP_CONTROLLER = 101;
+    UTIL_VKEY_MAP_CHUNK = 102;
+}
+
+enum TaskStatus {
+    UNSPECIFIED_STATUS = 0;
+    PENDING = 2;
+    RUNNING = 3;
+    SUCCEEDED = 4;
+    FAILED_RETRYABLE = 5;
+    FAILED_FATAL = 6;
+}
+
+message TaskData {
+    TaskType task_type = 1;
+    repeated string inputs = 2;
+    repeated string outputs = 3;
+    string metadata = 4;
+    string proof_id = 5;
+    optional string parent_id = 6;
+    uint32 weight = 7;
+    string requester = 8;
+}
+
+// RPC Messages
+
+message OpenRequest {
+    string worker_id = 1;
+    WorkerType worker_type = 2;
+    uint32 max_weight = 3;
+    // Self-reported build identity of this worker, included in the cluster component
+    // manifest the coordinator publishes (cluster.SetClusterComponentInfo). Additive
+    // fields; workers that do not report leave them empty.
+    string version = 4;
+    string git_sha = 5;
+    string image_tag = 6;
+    string gpu_name = 7;
+    uint64 gpu_memory_total_bytes = 8;
+    // Where this worker runs, as an opaque label the coordinator groups workers
+    // by. Workers derive it from their own environment rather than being told,
+    // so the value is whatever identifies a site in that deployment. Unset means
+    // the worker could not determine one.
+    optional string location = 9;
+}
+
+message ServerMessage {
+    oneof message {
+        WorkerTask new_task = 1;
+        CancelTask cancel_task = 2;
+        ServerHeartbeat server_heartbeat = 3;
+    }
+}
+
+message WorkerTask {
+    string task_id = 1;
+    TaskData data = 2;
+    string metadata = 3;
+}
+
+message CancelTask {
+    string proof_id = 1;
+    string task_id = 2;
+}
+
+message ServerHeartbeat {}
+
+message CloseRequest {
+    string worker_id = 1;
+}
+
+message HeartbeatRequest {
+    string worker_id = 1;
+    repeated string active_task_proof_ids = 2;
+    repeated string active_task_ids = 3;
+    uint32 current_weight = 4;
+}
+
+message CompleteTaskRequest {
+    string worker_id = 1;
+    string proof_id = 2;
+    string task_id = 3;
+    string metadata = 4;
+}
+
+message FailTaskRequest {
+    string worker_id = 1;
+    string proof_id = 2;
+    string task_id = 3;
+    bool retryable = 4;
+}
+
+message CreateTaskRequest {
+    string worker_id = 1;
+    TaskData data = 2;
+}
+
+message CreateTaskResponse {
+    string task_id = 1;
+}
+
+message GetTaskStatusesRequest {
+    string worker_id = 1;
+    string proof_id = 2;
+    repeated string task_ids = 3;
+}
+
+message GetTaskStatusesResponse {
+    repeated TaskStatusMapEntry statuses = 1;
+}
+
+message TaskStatusMapEntry {
+    TaskStatus key = 1;
+    TaskIDList value = 2;
+}
+
+message TaskIDList { repeated string ids = 1; }
+
+message CompleteProofRequest {
+    string worker_id = 1;
+    string proof_id = 2;
+    optional string extra_data = 3;
+}
+
+message FailProofRequest {
+    string worker_id = 1;
+    string proof_id = 2;
+    optional string task_id = 3;
+    optional string extra_data = 4;
+}
+
+message CreateProofRequest {
+    string proof_id = 1;
+    repeated string inputs = 2;
+    repeated string outputs = 3;
+    string requester = 4;
+    int64 expires_at = 5;
+}
+
+message CreateProofResponse {
+    string task_id = 1;
+}
+
+message CreateDummyProofRequest {
+    string worker_id = 1;
+    string proof_id = 2;
+    string requester = 3;
+    int64 expires_at = 4;
+}
+
+message CancelProofRequest {
+    string worker_id = 1;
+    string proof_id = 2;
+}
+
+message OpenSubRequest {
+    string sub_id = 1;
+    string proof_id = 2;
+    repeated string task_ids = 3;
+}
+
+message ServerSubMessage {
+    string msg_id = 1;
+    oneof message {
+        TaskResult task_result = 2;
+        EndOfStream end_of_stream = 3;
+        UnknownTask unknown_task = 4;
+        ServerSubHeartbeat server_heartbeat = 5;
+    }
+}
+
+message TaskResult {
+    string task_id = 1;
+    TaskStatus task_status = 2;
+}
+
+message EndOfStream {}
+
+message UnknownTask {
+    string proof_id = 1;
+    string task_id = 2;
+}
+
+message ServerSubHeartbeat {}
+
+message UpdateSubRequest {
+    string sub_id = 1;
+    repeated string task_ids = 2;
+}
+
+message AckSubRequest {
+    string sub_id = 1;
+    string msg_id = 2;
+}
+
+message GetStatsResponse {
+    string coordinator_version = 1;
+    string sp1_circuit_version = 2;
+    uint64 total_tasks = 3;
+    uint32 active_tasks = 4;
+    uint32 cpu_workers = 5;
+    uint32 gpu_workers = 6;
+    uint32 cpu_utilization_current = 7;
+    uint32 cpu_utilization_max = 8;
+    uint32 gpu_utilization_current = 9;
+    uint32 gpu_utilization_max = 10;
+    uint32 active_proofs = 11;
+    uint32 cpu_queue = 12;
+    uint32 gpu_queue = 13;
+    uint32 active_subscribers = 14;
+}
+
+// Self-reported build identity of a single cluster component (the coordinator or a worker).
+// Keyed by build identity (component + version/git_sha/image_tag); per-instance identity is not
+// reported here (the coordinator tracks workers by OpenRequest.worker_id internally).
+message ClusterComponentInfo {
+    // The component kind: "coordinator", "gpu-node", or "cpu-node".
+    string component = 1;
+    string version = 2;
+    string git_sha = 3;
+    string image_tag = 4;
+}
+
+// Point-in-time GPU capacity and utilization for a cluster, built by the coordinator from
+// its in-memory worker registry. Cluster-internal; the fulfiller maps it onto the SPN
+// ClusterCapacitySnapshot wire type. All GPU time is in GPU-milliseconds.
+message ClusterCapacitySnapshot {
+    // Unix seconds on the coordinator's clock when this snapshot was built.
+    uint64 observed_at = 1;
+    // Unix seconds when this coordinator process started, i.e. when the monotonic counters
+    // below were last reset.
+    uint64 counters_since = 2;
+    // GPU worker nodes connected at `observed_at`; one GPU per node, so a device count.
+    uint32 gpu_nodes = 3;
+    // Monotonic integral of `gpu_nodes` over wall-clock time, in GPU-milliseconds.
+    uint64 gpu_available_ms_total = 4;
+    // Monotonic sum of per-task GPU permit-hold time, in GPU-milliseconds.
+    uint64 gpu_busy_ms_total = 5;
+    // One entry per distinct GPU model; `node_count` values sum to `gpu_nodes`.
+    repeated GpuClassCount gpus = 6;
+}
+
+// The number of connected GPU nodes sharing one GPU model.
+message GpuClassCount {
+    // Device name as reported by CUDA, e.g. "NVIDIA L4". Empty when unknown.
+    string name = 1;
+    // Total VRAM of that device in bytes. Zero when unknown.
+    uint64 memory_total_bytes = 2;
+    // Connected GPU nodes bound to a device with this (name, memory_total_bytes).
+    uint32 node_count = 3;
+}
+
+
+// Message channel RPCs
+
+message SubscribeTaskMessagesRequest {
+    string worker_id = 1;
+    string task_id = 2;
+    uint64 start_offset = 3;
+}
+
+message SendTaskMessageRequest {
+    string worker_id = 1;
+    string task_id = 2;
+    bytes payload = 3;
+}
+
+message MessageStreamResponse {
+    oneof message {
+        bytes payload = 1;
+        EndOfStream end_of_stream = 2;
+    }
+}

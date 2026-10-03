@@ -1,0 +1,11 @@
+# The judge builds with NO network: every crate comes from vendor/ (host
+# workspace) or vendor-guest/ (guest workspace, see guest/.cargo/config.toml).
+# Populate both with build-recipe/vendor.sh before packing.
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "vendor"
+
+[net]
+offline = true

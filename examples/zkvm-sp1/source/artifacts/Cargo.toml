@@ -1,0 +1,13 @@
+[package]
+name = "zk-artifacts"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "public.bin / proof.bin framing shared by prepare, prove and verify; pins the guest ELF digest"
+
+[dependencies]
+sha2 = "=0.10.8"
+transfer-core = { path = "../core" }
+
+[build-dependencies]
+sha2 = "=0.10.8"
