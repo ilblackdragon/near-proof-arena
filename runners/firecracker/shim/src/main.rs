@@ -183,14 +183,18 @@ fn vm_config(job: &ShimJob) -> serde_json::Value {
         .drives
         .iter()
         .map(|d| {
-            serde_json::json!({
+            let mut v = serde_json::json!({
                 "drive_id": d.drive_id,
                 "path_on_host": d.file,
                 "is_root_device": d.is_root,
                 "is_read_only": d.read_only,
                 "cache_type": "Unsafe",
                 "io_engine": "Sync",
-            })
+            });
+            if let Some(rl) = &d.rate_limit {
+                v["rate_limiter"] = rl.to_firecracker_json();
+            }
+            v
         })
         .collect();
     serde_json::json!({

@@ -4,7 +4,12 @@
 //! ```text
 //! arena-fc-run [--mem-mb N] [--scratch-mb N] [--timeout-s N] [--cpus 2,3]
 //!              [--pids N] [--ro HOST:GUEST]... [--env K=V]... [--out DIR]
-//!              -- argv...
+//!              [--root-image DIR] [--copy-in GUEST:SCRATCHREL]... [--mkdir REL]...
+//!              [--cwd ABS] [--collect REL]... -- argv...
+//! ```
+//! Defaults: `--mkdir out --collect out`, cwd `/scratch`. `--root-image`
+//! computes the directory's TreeDigest and runs the candidate chrooted in it.
+//! ```text
 //! ```
 //! Uses `$ARENA_FC_DEPS` (default /data/illia/nearproof-deps/firecracker)
 //! and `$ARENA_FC_WORK` (default `$ARENA_FC_DEPS/work`).
@@ -26,6 +31,11 @@ fn main() {
     let mut ro = Vec::new();
     let mut env = Vec::new();
     let mut out: Option<PathBuf> = None;
+    let mut root_image: Option<PathBuf> = None;
+    let mut copy_in = Vec::new();
+    let mut mkdirs: Option<Vec<String>> = None;
+    let mut collect: Option<Vec<String>> = None;
+    let mut cwd: Option<String> = None;
     let mut argv = Vec::new();
     while let Some(a) = args.next() {
         let mut val = || args.next().expect("missing value");
@@ -49,6 +59,15 @@ fn main() {
                 env.push((k.to_string(), x.to_string()));
             }
             "--out" => out = Some(val().into()),
+            "--root-image" => root_image = Some(val().into()),
+            "--copy-in" => {
+                let v = val();
+                let (g, r) = v.split_once(':').expect("--copy-in GUEST:SCRATCHREL");
+                copy_in.push((g.to_string(), r.to_string()));
+            }
+            "--mkdir" => mkdirs.get_or_insert_with(Vec::new).push(val()),
+            "--collect" => collect.get_or_insert_with(Vec::new).push(val()),
+            "--cwd" => cwd = Some(val()),
             "--" => {
                 argv.extend(args.by_ref());
                 break;
@@ -83,20 +102,39 @@ fn main() {
     // without --out, outputs go to a temporary dir removed after printing
     let keep = out.is_some();
     let out_dir = out.unwrap_or_else(|| work.join(format!("out-{}", std::process::id())));
-    let spec = RunRequest {
-        rootfs_digest: sb.rootfs_digest().clone(),
-        ro_mounts: ro,
-        rw_scratch_mb: scratch,
-        argv,
-        env,
-        cpu_set: cpus,
-        mem_bytes: mem << 20,
-        pids,
-        wall_timeout: Duration::from_secs(timeout),
-        network: None,
-        out_dir: out_dir.clone(),
-        max_output_bytes: u64::MAX,
-    };
+    let mut spec = RunRequest::new(sb.rootfs_digest().clone(), argv, out_dir.clone());
+    spec.ro_mounts = ro;
+    spec.rw_scratch_mb = scratch;
+    spec.env = env;
+    spec.cpu_set = cpus;
+    spec.mem_bytes = mem << 20;
+    spec.pids = pids;
+    spec.wall_timeout = Duration::from_secs(timeout);
+    spec.max_output_bytes = u64::MAX;
+    spec.copy_in = copy_in;
+    if let Some(m) = mkdirs {
+        spec.scratch_dirs = m;
+    }
+    if let Some(c) = collect {
+        spec.collect = c;
+    }
+    if let Some(c) = cwd {
+        spec.cwd = c;
+    }
+    if let Some(dir) = root_image {
+        let lim = arena_archive::Limits {
+            max_expanded_bytes: 64 << 30,
+            max_entries: 5_000_000,
+            ..Default::default()
+        };
+        let digest = arena_archive::tree_from_dir(&dir, &lim)
+            .unwrap_or_else(|e| {
+                eprintln!("root image {}: {e}", dir.display());
+                std::process::exit(1)
+            })
+            .digest();
+        spec.root_image = Some(RootImage { dir, digest });
+    }
     let res = sb.run_native(&spec);
     if !keep {
         let _ = std::fs::remove_dir_all(&out_dir);

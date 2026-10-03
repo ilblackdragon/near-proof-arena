@@ -33,7 +33,12 @@ Per invocation:
    `..`/absolute/over-long paths, normalizing modes to 0644/0755), hashed with
    the CONTRACTS §1 `TreeDigest`, and imaged with `mkfs.ext4 -d` (no journal).
    Images are cached by tree digest and are read-only (0444, attached
-   `is_read_only`). A fresh sparse scratch filesystem (`mkfs.ext4`, owned by
+   `is_read_only`, `lost+found` removed so the guest sees exactly the tree);
+   the cache is evicted LRU by allocated size (default cap 32 GiB; entries are
+   hardlinked into job dirs, so eviction never disturbs a running VM). A
+   `Rootfs::Image` (e.g. the pinned build toolchain, §4) is staged the same
+   way, its `arena_archive` TreeDigest re-verified on the staged copy, and
+   cached as `root-<digest>.ext4`. A fresh sparse scratch filesystem (`mkfs.ext4`, owned by
    the guest candidate uid) and a fresh raw output device are created for
    every run; the control drive (JSON job: argv, env, limits, mounts, nonce)
    is raw too. Kernel and rootfs are hardlinked (0444) from the pinned,
@@ -57,26 +62,38 @@ Per invocation:
    seccomp filters stay on (no `--no-seccomp`, no `--seccomp-filter`).
 4. **VM.** `vm.json` attaches only virtio-blk drives — `vda` rootfs (ro),
    `vdb` control (ro), `vdc` output (rw, raw), `vdd` scratch (rw, ext4),
-   `vde…` bundles (ro) — and the serial console. **No network interface, no
+   `vde…` bundles (ro), optionally a root image (ro) — and the serial
+   console. Every data drive has a Firecracker token-bucket rate limiter
+   (default 512 MiB/s, 20k IOPS, 256 MiB one-time burst; configurable). **No network interface, no
    vsock, no balloon, no API socket, no MMDS.** Boot args: `console=ttyS0
    reboot=k panic=1 pci=off nomodule quiet init=/sbin/arena-init`, rootfs
    mounted read-only. The guest kernel has `CONFIG_MODULES` off.
-5. **Guest init.** Mounts `/proc` (`hidepid=2`), sysfs ro, cgroup2, small
-   tmpfs `/tmp` `/dev/shm`; mounts scratch at `/arena/scratch` (nosuid,nodev)
-   and bundles read-only under `/arena/…` (then remounts `/arena` ro); sets
+5. **Guest init.** Mounts `/proc`, sysfs ro, cgroup2, `/dev/shm`. Builds the
+   candidate root as a **read-only overlayfs** of a tmpfs mount-point skeleton
+   over either the arena rootfs (bind of `/`, ro) or the job's root image,
+   and mounts into it: `/proc` (`hidepid=2`), `/dev`, `/sys` (ro), the scratch
+   disk at `/scratch` (nosuid,nodev; `/tmp` is a bind of `/scratch/tmp`) and
+   the bundles read-only under `/in/…` / `/opt/…` — the same layout as
+   bwrap-dev. Performs `copy_in` (regular files and directories only,
+   `O_NOFOLLOW`, re-owned by the candidate) and `scratch_dirs`; sets
    `vm.overcommit_memory=1`; creates cgroup `job` with `memory.max = mem_bytes`,
    `memory.swap.max = 0`, `memory.oom.group = 1`, `pids.max = pids`; forks the
    candidate into it with `oom_score_adj 0` (init itself is −1000),
+   `chroot` into the candidate root + `chdir(cwd)`,
    `RLIMIT_CORE=0`, `RLIMIT_NOFILE`, `RLIMIT_NPROC`, `setsid`,
    `PR_SET_NO_NEW_PRIVS`, `setgroups([])`, uid/gid 1000, a cleared env plus
    the allowlisted variables, stdin `/dev/null`, stdout/stderr to pipes
    truncated at 64 KiB. Setuid/setgid bits are stripped from the rootfs at
    build time. Init prints `ARENA-START <nonce>` on the console immediately
-   before exec and `ARENA-EXIT <nonce>` immediately after `wait`, kills the
-   whole cgroup (`cgroup.kill`), writes the report and the files under
-   `/arena/scratch/out` (regular files only, `O_NOFOLLOW`, limits on count,
-   bytes, depth and path length) to the raw output drive, and reboots, which
-   makes Firecracker exit.
+   before exec and `ARENA-EXIT <nonce>` immediately after `wait`. At
+   `wall_timeout` (guest clock) init itself kills the cgroup and reports
+   `TimedOut` with the truncated stdout/stderr; the host only hard-kills the
+   VM if the guest has not exited `2 s + 2 %` later. Afterwards init kills the
+   whole cgroup (`cgroup.kill`), writes the report and the scratch-relative
+   `collect` paths (regular files only, `O_NOFOLLOW`; missing paths skipped;
+   symlinks/specials are violations → `output_error`; limits on count, bytes,
+   depth and path length) to the raw output drive, and reboots, which makes
+   Firecracker exit.
 6. **Teardown.** The shim records the VMM cgroup's `memory.peak`, `cpu.stat`,
    `memory.events`, `pids.peak`, moves the output image out, deletes the jail
    (and with it the scratch image), hands the job dir back to the host uid.
@@ -212,6 +229,7 @@ profile above. The library's container invocation is isolated in
 | Firecracker / jailer | v1.17.0 release tgz `06094a11…ade558`; firecracker `99ad0f5c…5de7a5`, jailer `65ef226e…c9c8434f` (full digests in PINS) |
 | guest kernel | Firecracker CI `vmlinux-6.1.155` (`firecracker-ci/v1.15`), `e20e46d0…af53af3d4f2`; config `024b2aae…bef7c3`; `CONFIG_MODULES` off (checked) |
 | rootfs base | `debian:bookworm-slim@sha256:88200866…07ea4171` (glibc; matches typical Rust build images) |
+| build toolchain base | `rust:1.96.0-slim-bookworm@sha256:4732ca96…198e1950` (rustc/cargo 1.96.0, gcc 12.2 as `cc`) |
 | Docker seccomp base | moby v28.0.0 `default.json`, `9c1025c8…ae9c76` |
 
 The rootfs is rebuilt by `deploy/images/rootfs/build.sh`: the base is
@@ -222,6 +240,33 @@ The rootfs is rebuilt by `deploy/images/rootfs/build.sh`: the base is
 them from the source tree). `build.sh --check` builds twice and fails unless
 the images are bit-identical (verified). The resulting digest is the value
 challenges pin in `SandboxSpec.rootfs_digest`.
+
+**Build toolchain image** (`deploy/images/toolchain/build.sh [--check]`): the
+pinned Rust image is flattened into a directory satisfying the CONTRACTS §1
+tree rules — symlinks dereferenced, hardlinks split, dangling links dropped,
+setuid/sticky bits cleared, Docker-managed `/etc/{hostname,hosts,resolv.conf}`
+normalized, and the 8 case-colliding kernel netfilter headers
+(`xt_CONNMARK.h` vs `xt_connmark.h`, …) reduced to their lowercase member —
+and named by its TreeDigest under
+`/data/illia/nearproof-deps/toolchain-images/<hex>/`, with `<hex>.json`
+recording base image, `rustc`/`cc` versions and the env a build uses
+(`PATH=/usr/local/rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/bin:…`,
+`CARGO_HOME=/scratch/.cargo`, `CARGO_NET_OFFLINE=true`). Two flattenings are
+identical (`--check`, verified): current digest
+`sha256:57a89fc6…28ebc117` (8879 files, 1.84 GB). This digest is the
+`BuildJob.toolchain_image` / `toolchain_image` evidence of
+BUILD_REPRODUCIBLE; the worker re-hashes the directory and the Firecracker
+backend re-verifies the staged copy before imaging it. No Lean toolchain is
+included (the formal checker has its own pinned environment).
+
+*Offline dependencies*: the build VM has no network and no registry. Rust
+packages vendor their dependencies (`cargo vendor`) inside the package and
+point `.cargo/config.toml` `[source.crates-io] replace-with` at the vendored
+directory; `cargo build --offline --locked` then verifies the vendored
+`.cargo-checksum.json` files against `Cargo.lock`. The gated worker test
+`build_through_firecracker_with_pinned_toolchain` builds exactly such a
+package (vendored crate + C file via `cc`) twice in microVMs and requires
+bit-identical outputs.
 
 ## 5. Measured on this host (Linux 6.8, 32 cores, KVM via Docker)
 
@@ -242,7 +287,12 @@ Other measurements: `sleep 1` measures 1007–1010 ms on the host clock
 (marker to marker), agreeing with the guest's own clock within 0.6 ms; a 1 GiB output file is collected
 and hashed in ≈ 3.4 s; a 16 GiB scratch disk costs no extra preparation time
 (sparse + lazy init); host-side preparation (images, hashing kernel+rootfs at
-sandbox construction) adds ≈ 0.1 s.
+sandbox construction) adds ≈ 0.1 s. Disk rate limiting: a 48 MiB `O_DIRECT`
+write to scratch takes 18 ms with the default limits and 3.6 s at a 16 MiB/s
+limit. Toolchain image: first use (stage 1.84 GB + verify digest + `mkfs`)
+≈ 14 s, cached afterwards; `rustc -V; cargo -V; cc --version` inside it in a
+VM ≈ 0.3 s; the full worker build test (two Rust+C builds + conformance)
+≈ 19 s.
 
 ## 6. Residual risks and follow-ups
 
@@ -262,16 +312,17 @@ sandbox construction) adds ≈ 0.1 s.
 5. **Host page cache** is charged to the VMM cgroup, so `peak_rss_bytes`
    includes drive I/O cache; use the guest figure to reason about the
    candidate's own RSS.
-6. **Timeouts lose stdout/stderr** (the VM is killed before the report is
-   written). Acceptable for diagnostics; could be added by streaming them on
-   a second serial port.
-7. **Bundle image cache** is unbounded; add LRU eviction. Bundle staging
-   reads every byte on every run (hash + copy); for multi-GiB public params
-   cache by (path, inode, mtime) to skip re-imaging.
-8. **Disk I/O rate limiting** is not configured (Firecracker supports
-   per-drive token buckets) — a candidate can saturate the host disk for the
-   duration of its run.
-9. The jailer is run without `--new-pid-ns` (the container already provides
+6. **Timeouts** keep stdout/stderr only when the guest enforces them; if the
+   guest is wedged (or compromised) the host hard-kill still loses them.
+7. **Bundle staging** reads every byte on every run (hash + copy) before the
+   cache lookup; for multi-GiB public params cache by (path, inode, mtime) to
+   skip re-staging. The cache is LRU-evicted by size.
+8. **Disk I/O rate limits** are global defaults, not per-challenge policy;
+   the output drive is limited too, which bounds collection speed
+   (≈ 512 MiB/s).
+9. The **toolchain image** has no Lean, and `/usr/lib` is duplicated by
+   dereferencing the merged-usr symlinks (1.84 GB).
+10. The jailer is run without `--new-pid-ns` (the container already provides
    a pid namespace, and `--new-pid-ns` daemonizes, which breaks waiting).
 
 ## 7. GPU route (SPECIFIED, NOT IMPLEMENTED)
@@ -340,9 +391,17 @@ deploy/images/fc-runner/build.sh           # prints image id, writes seccomp pro
 
 # run something
 cargo run -p arena-firecracker --bin arena-fc-run -- --mem-mb 256 --cpus 2,3 \
-    --ro /path/bundle:/arena/bundle -- /arena/bundle/out/prove --help
+    --ro /path/bundle:/in/bundle -- /in/bundle/out/prove --help
+# build-style run: copy the package into scratch, build with the toolchain image
+cargo run -p arena-firecracker --bin arena-fc-run -- --mem-mb 2048 \
+    --root-image /data/illia/nearproof-deps/toolchain-images/<hex> \
+    --env PATH=/usr/local/rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/bin:/usr/bin:/bin \
+    --ro /path/pkg:/in/pkg --copy-in /in/pkg:work --cwd /scratch/work \
+    --collect work/out -- ./build-recipe/build.sh
 
 # tests (boot real VMs) and latency
+deploy/images/toolchain/build.sh --check    # pinned build toolchain image
 ARENA_FC_TESTS=1 cargo test -p arena-firecracker -- --test-threads=4
+ARENA_FC_TESTS=1 ARENA_DEV_UNSAFE=1 cargo test -p arena-worker --test firecracker
 runners/firecracker/scripts/latency.sh 30 1
 ```
