@@ -86,7 +86,7 @@ echo "lean-checker image $(basename "$LEAN_IMG"), checker identity $IDENT"
 CH="$WORK/challenges"
 rm -rf "$CH"; mkdir -p "$CH"
 cp "$REPO/challenges/"*.json "$REPO/challenges/"*.sig "$REPO/challenges/"*.pub "$CH/"
-A2= B= M=
+A2='' B='' M=''
 CHALS=()
 for f in "$CH"/chl_*.json; do CHALS+=("$(basename "$f" .json)"); done
 sign_new() { # draft -> prints new id
