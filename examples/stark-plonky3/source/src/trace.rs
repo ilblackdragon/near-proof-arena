@@ -51,7 +51,7 @@ fn add_carries(a: &[u8], b: &[u8], cin: u32) -> (Vec<u8>, Vec<u32>) {
 }
 
 fn sub_bytes(a: &[u8], b: &[u8], extra: u32) -> Vec<u8> {
-    // a - b - extra (assumes non-negative)
+    // a - b - extra (wrapping; honest witnesses never wrap)
     let mut out = vec![0u8; a.len()];
     let mut borrow: i32 = extra as i32;
     for i in 0..a.len() {
@@ -64,7 +64,6 @@ fn sub_bytes(a: &[u8], b: &[u8], extra: u32) -> Vec<u8> {
         }
         out[i] = t as u8;
     }
-    assert_eq!(borrow, 0, "sub_bytes underflow");
     out
 }
 
@@ -262,12 +261,11 @@ pub fn rcpt_trace(c: &RcptCols, wit: &Wit) -> RowMajorMatrix<Val> {
         m.u32s(&c.cd, &cd);
         let dsum: u64 = d.iter().map(|&x| x as u64).sum();
         m.setf(c.dinv, if rw.hr { inv(f(dsum)) } else { Val::ZERO });
-        let (burnt, cb) = mul_const_native(&y, &G_BYTES, 16).expect("burnt overflow");
-        assert_eq!(burnt, le16(rw.burnt));
+        let (burnt, cb) = mul_const_native(&y, &G_BYTES, 16).unwrap_or((le16(rw.burnt).to_vec(), vec![0; 19]));
         m.bytes(&c.burnt, &burnt);
         m.u32s(&c.cb, &cb);
         let surplus = if rw.hr { d } else { [0u8; 16] };
-        let (ramt, cr) = mul_const_native(&surplus, &G_BYTES, 16).expect("refund overflow");
+        let (ramt, cr) = mul_const_native(&surplus, &G_BYTES, 16).unwrap_or((le16(rw.ramt).to_vec(), vec![0; 19]));
         m.bytes(&c.ramt, &ramt);
         m.u32s(&c.cr, &cr);
         m.bytes(&c.t, &le16(rw.tok));
@@ -358,8 +356,7 @@ pub fn sort_trace(c: &SortCols, wit: &Wit) -> RowMajorMatrix<Val> {
         if t > 0 {
             let prev = &wit.sorted_rids[t - 1];
             let diff = sub_bytes(rid, prev, 1);
-            let (s, cs) = add_carries(prev, &diff, 1);
-            assert_eq!(&s[..], &rid[..]);
+            let (_s, cs) = add_carries(prev, &diff, 1);
             m.bytes(&c.diff, &diff);
             m.u32s(&c.cs, &cs);
         }

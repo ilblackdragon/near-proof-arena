@@ -192,9 +192,9 @@ pub fn prove(
     Ok((wit.claim_bytes, w.0, stats))
 }
 
-/// The verifier. `Ok(())` = accept; `Err(reason)` = reject.
-pub fn verify(claim: &[u8], proof: &[u8]) -> Result<(), String> {
-    // ---- claim: strict decode + static domain ----
+/// Strict claim decoding and the domain conditions decidable from the claim
+/// alone (protocol version, chain, batch size, compute limit, gas total).
+pub fn claim_static_check(claim: &[u8]) -> Result<(), String> {
     let c = Claim::decode(claim).map_err(|e| format!("claim: {e}"))?;
     if c.protocol_version != PROTOCOL_VERSION || c.chain_id != CHAIN_ID {
         return Err("claim: out of domain (protocol version / chain)".into());
@@ -212,6 +212,12 @@ pub fn verify(claim: &[u8], proof: &[u8]) -> Result<(), String> {
     if c.refund_count as u64 > n {
         return Err("claim: refund_count > n".into());
     }
+    Ok(())
+}
+
+/// The verifier. `Ok(())` = accept; `Err(reason)` = reject.
+pub fn verify(claim: &[u8], proof: &[u8]) -> Result<(), String> {
+    claim_static_check(claim)?;
     let pv: Vec<Val> = claim[claim.len() - NUM_PV..].iter().map(|&b| Val::from_u8(b)).collect();
     // ---- proof framing ----
     if proof.len() > MAX_PROOF_BYTES {

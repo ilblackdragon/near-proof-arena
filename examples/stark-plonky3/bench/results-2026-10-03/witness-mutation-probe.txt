@@ -1,0 +1,10 @@
+table  tried  constraint  perm-bus  lookup  UNDETECTED(active)  undetected(padding)
+acct    12285       8071      3508     706                   0                    0
+mrk      2754       1050      1603     101                   0                    0
+node    54520      50622      3864      34                   0                    0
+path      560        494        32      34                   0                    0
+rcpt    36822      29477      5653    1692                   0                    0
+sha    312080     311989        91       0                   0                    0
+sort     3298       3298         0       0                   0                    0
+
+undetected single-cell mutations (table, column, row kind, count):

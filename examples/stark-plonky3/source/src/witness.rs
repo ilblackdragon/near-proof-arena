@@ -335,6 +335,14 @@ fn merkle_rows(leaves: &[(MsgId, [u8; 32])]) -> (Vec<MrkRowW>, Vec<(MsgId, Vec<u
 
 /// Build the structured witness. `Err` = out of domain or malformed input.
 pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
+    build_opts(request, witness, true)
+}
+
+/// `checked = false` (testing only): skip the reference re-execution's domain
+/// checks and build traces anyway with wrapping arithmetic, so that the AIR's
+/// own rejection of out-of-domain witnesses can be tested (`npdev conform`).
+/// The claim is then whatever this builder computed.
+pub fn build_opts(request: &[u8], witness: &[u8], checked: bool) -> Result<Wit, String> {
     let req = decode_request(request).map_err(|e| format!("request: {e}"))?;
     let (wroot, values) = decode_witness(witness).map_err(|e| format!("witness: {e}"))?;
     if wroot != req.pre_state_root {
@@ -348,12 +356,28 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
     let keys: Vec<Vec<u8>> = req.receipts.iter().map(|r| nibbles_of(0, r.receiver)).collect();
     let key_refs: Vec<&[u8]> = keys.iter().map(|k| k.as_slice()).collect();
     let mut trie = PTrie::build(&store, req.pre_state_root, &key_refs)?;
-    domain_static(req.protocol_version, req.chain_id, req.gas_limit, &req.receipts, trie.revealed_bytes())?;
-    let out = run_batch(req.block_height, req.block_gas_price, &mut trie, &req.receipts)?;
+    let out = if checked {
+        domain_static(req.protocol_version, req.chain_id, req.gas_limit, &req.receipts, trie.revealed_bytes())?;
+        Some(run_batch(req.block_height, req.block_gas_price, &mut trie, &req.receipts)?)
+    } else {
+        if req.receipts.is_empty() {
+            return Err("unconstructible: empty batch".into());
+        }
+        None
+    };
     let mut rcw = Writer::with_capacity(8 + req.receipts_bytes.len());
     rcw.u64(req.shard_id).raw(req.receipts_bytes);
     let rc_digest = sha256(&rcw.0);
-    let claim = Claim {
+    let nref = req.receipts.iter().filter(|r| r.gas_price > req.block_gas_price).count() as u32;
+    let out = out.unwrap_or(crate::engine::Outputs {
+        slice_post_root: [0; 32],
+        outcome_root: [0; 32],
+        refund_count: nref,
+        refunds_commitment: [0; 32],
+        gas_burnt_total: (G as u64).wrapping_mul(req.receipts.len() as u64),
+        tokens_burnt_total: 0,
+    });
+    let mut claim = Claim {
         protocol_version: req.protocol_version,
         chain_id: req.chain_id.to_vec(),
         shard_id: req.shard_id,
@@ -370,8 +394,6 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
         gas_burnt_total: out.gas_burnt_total,
         tokens_burnt_total: out.tokens_burnt_total,
     };
-    let claim_bytes = claim.encode();
-    let pv = claim_bytes[claim_bytes.len() - NUM_PV..].to_vec();
     let mut msgs: Vec<(MsgId, Vec<u8>, [u8; 32])> = vec![((K_RC, 0), rcw.0.clone(), rc_digest)];
 
     // ---- accounts and trie paths ----
@@ -424,9 +446,9 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
         let hr = r.gas_price > bgp;
         let p = r.gas_price.min(bgp);
         let d = if hr { r.gas_price - bgp } else { bgp - r.gas_price };
-        let burnt = (G as u128) * p;
-        let ramt = if hr { (G as u128) * d } else { 0 };
-        tok += burnt;
+        let burnt = (G as u128).wrapping_mul(p);
+        let ramt = if hr { (G as u128).wrapping_mul(d) } else { 0 };
+        tok = tok.wrapping_add(burnt);
         if hr {
             rf += 1;
         }
@@ -460,7 +482,7 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
         msgs.push(((K_LEAF, r_idx as u32), leaf, ld));
         leaves.push(((K_LEAF, r_idx as u32), ld));
         let abef = amounts[k];
-        let aaft = abef + r.deposit;
+        let aaft = abef.wrapping_add(r.deposit);
         amounts[k] = aaft;
         let t_prev = last_t[k];
         last_t[k] = r_idx as u32 + 1;
@@ -505,9 +527,11 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
         return Err("internal: offset mismatch".into());
     }
     msgs.push(((K_RF, 0), rfw.0.clone(), sha256(&rfw.0)));
-    if sha256(&rfw.0) != claim.refunds_commitment {
+    if checked && sha256(&rfw.0) != claim.refunds_commitment {
         return Err("internal: refunds commitment mismatch".into());
     }
+    claim.refunds_commitment = sha256(&rfw.0);
+    claim.tokens_burnt_total = tok;
     for (k, a) in accounts.iter_mut().enumerate() {
         a.post_amt = amounts[k];
         a.t_last = last_t[k];
@@ -532,9 +556,10 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
         nodes[id].post_dig = sha256(&post);
         nodes[id].post = post;
     }
-    if nodes[0].pre_dig != claim.pre_state_root || nodes[0].post_dig != claim.slice_post_root {
+    if nodes[0].pre_dig != claim.pre_state_root || (checked && nodes[0].post_dig != claim.slice_post_root) {
         return Err("internal: trie root mismatch".into());
     }
+    claim.slice_post_root = nodes[0].post_dig;
     for (id, n) in nodes.iter().enumerate() {
         msgs.push(((K_NPRE, id as u32), n.pre.clone(), n.pre_dig));
         msgs.push(((K_NPOST, id as u32), n.post.clone(), n.post_dig));
@@ -589,7 +614,20 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
     }
     // ---- outcome tree ----
     let (mrk, mmsgs) = merkle_rows(&leaves);
+    let root_digest = {
+        let mut dig: HashMap<MsgId, [u8; 32]> = leaves.iter().copied().collect();
+        for (m, _, d) in &mmsgs {
+            dig.insert(*m, *d);
+        }
+        dig[&mrk.last().unwrap().own]
+    };
+    if checked && root_digest != claim.outcome_root {
+        return Err("internal: outcome root mismatch".into());
+    }
+    claim.outcome_root = root_digest;
     msgs.extend(mmsgs);
+    let claim_bytes = claim.encode();
+    let pv = claim_bytes[claim_bytes.len() - NUM_PV..].to_vec();
     let mut sorted_rids: Vec<[u8; 32]> = receipts.iter().map(|r| r.rid).collect();
     sorted_rids.sort_by(|a, b| a.iter().rev().cmp(b.iter().rev()));
     Ok(Wit { claim, claim_bytes, pv, receipts, accounts, nodes, paths, mrk, sorted_rids, msgs })
