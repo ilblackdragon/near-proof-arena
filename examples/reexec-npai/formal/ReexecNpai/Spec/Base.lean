@@ -42,7 +42,9 @@ syntax "npai_vc" ("[" Lean.Parser.Tactic.simpLemma,* "]")? : tactic
 macro_rules
   | `(tactic| npai_vc) => `(tactic| npai_vc [])
   | `(tactic| npai_vc [$ts,*]) => `(tactic|
-      simp (disch := (first | omega | (simp only [setReg_apply, Nat.reduceEqDiff, ↓reduceIte, P_memSize]; omega)))
+      simp (disch := (first | omega | (simp only [setReg_apply, Nat.reduceEqDiff, ↓reduceIte, P_memSize, readMem_four,
+          readMem_two, readMem_eight, Bytes.leToNat, UInt8.toNat, PF, RT, OL, RB, AR, KL, STK, SH8, CLM,
+          CELL, SCR, PMAX, NCAP, MEMSIZE] at *; omega)))
         only [wp_seq, wp_op, wp_ite, wp_nop, twp_seq, twp_op, twp_ite, twp_nop,
         wp_fail_iff P_mem_le, twp_fail_iff P_mem_le, okInstr, not_true_eq_false, false_and, and_false,
         false_or, or_false, Nat.reduceDiv, Nat.reduceSub, ins, setReg_apply, ite_pos, ite_neg, evAbyte, evAbyte', evA, evS, evM,
@@ -56,5 +58,12 @@ macro_rules
         D_CPRE, D_SYS, D_MID, D_FF, D_G, D_P519, D_ZERO, C_PEND, C_N, C_REND, C_TOK, C_NREF, C_RBEND,
         C_NODES, C_ROOT, C_I, C_KC, S_KEY, S_HP, S_A, S_B, S_C, S_D, S_E, S_ID, S_OUT, S_LEAF, S_H,
         wp_ld32, twp_ld32, wp_ld16, twp_ld16, wp_ld64, twp_ld64, wp_st32, twp_st32, memsize_lt, $ts,*])
+
+/-- Alternate VC generation and introduction of the generated hypotheses
+until neither makes progress (so later bounds can use earlier checks). -/
+syntax "npai_auto" ("[" Lean.Parser.Tactic.simpLemma,* "]")? : tactic
+macro_rules
+  | `(tactic| npai_auto) => `(tactic| npai_auto [])
+  | `(tactic| npai_auto [$ts,*]) => `(tactic| repeat (first | (npai_vc [$ts,*]) | (intro)))
 
 end ReexecNpai
