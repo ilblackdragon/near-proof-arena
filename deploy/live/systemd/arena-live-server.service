@@ -1,0 +1,23 @@
+# Rendered by `arena-live install` (deploy/live/systemd); edit the source, not the copy.
+[Unit]
+Description=NEAR Proof Arena live: control plane (public API + worker API, loopback)
+PartOf=arena-live.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+EnvironmentFile=@LIVE@/config/server.env
+EnvironmentFile=@LIVE@/secrets/server-db.env
+ExecStartPre=@LIVE@/release/deploy/scripts/arena-guard server
+ExecStart=@LIVE@/bin/arena-server serve
+Restart=always
+RestartSec=3
+TimeoutStopSec=30
+StandardOutput=append:@LIVE@/logs/server.log
+StandardError=inherit
+NoNewPrivileges=yes
+UMask=0077
+LimitNOFILE=65536
+
+[Install]
+WantedBy=arena-live.target

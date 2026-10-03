@@ -1,0 +1,6 @@
+[Unit]
+Description=NEAR Proof Arena (live instance): server + workers + web
+Wants=arena-live-server.service arena-live-web.service arena-live-worker@w1.service arena-live-backup.timer
+
+[Install]
+WantedBy=default.target
