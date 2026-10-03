@@ -31,7 +31,7 @@ pub struct Concrete<'a> {
     pub idx: usize,
     pub failed: Vec<usize>,
     pub record_inter: bool,
-    pub inter: Vec<(&'static str, Vec<Val>, Val)>,
+    pub inter: Vec<(&'static str, Vec<Val>, Val, u32)>,
 }
 
 fn intern(bus: &str) -> &'static str {
@@ -88,12 +88,12 @@ impl InteractionBuilder for Concrete<'_> {
         if !self.record_inter {
             return;
         }
-        let (c, _w) = count.into().into_parts();
-        if c == Val::ZERO {
+        let (c, w) = count.into().into_parts();
+        if c == Val::ZERO && w != 0 {
             return;
         }
         let f: Vec<Val> = fields.into_iter().map(Into::into).collect();
-        self.inter.push((intern(bus_name), f, c));
+        self.inter.push((intern(bus_name), f, c, w));
     }
     fn push_local_interaction(&mut self, _t: impl IntoIterator<Item = (Vec<Val>, Count<Val>)>) {
         unimplemented!("no local interactions")
@@ -103,7 +103,9 @@ impl InteractionBuilder for Concrete<'_> {
 /// Per-row evaluation result.
 pub struct RowEval {
     pub failed: Vec<usize>,
-    pub inter: Vec<(&'static str, Vec<Val>, Val)>,
+    /// (bus, tuple, count, weight); weight 0 = lookup table entry (recorded
+    /// even with multiplicity 0), weight 1 = query / perm send / receive.
+    pub inter: Vec<(&'static str, Vec<Val>, Val, u32)>,
 }
 
 pub fn eval_row(
@@ -116,27 +118,39 @@ pub fn eval_row(
 ) -> RowEval {
     let h = trace.height();
     let w = trace.width();
-    let cur = &trace.values[row * w..(row + 1) * w];
     let nr = (row + 1) % h;
+    let cur = &trace.values[row * w..(row + 1) * w];
     let nxt = &trace.values[nr * w..(nr + 1) * w];
-    let empty: &[Val] = &[];
-    let prew = match pre {
+    let (pc, pn): (&[Val], &[Val]) = match pre {
         Some(p) => {
             let pw = p.width();
-            RowWindow::from_two_rows(
-                &p.values[row * pw..(row + 1) * pw],
-                &p.values[nr * pw..(nr + 1) * pw],
-            )
+            (&p.values[row * pw..(row + 1) * pw], &p.values[nr * pw..(nr + 1) * pw])
         }
-        None => RowWindow::from_two_rows(empty, empty),
+        None => (&[], &[]),
     };
+    eval_pair(air, cur, nxt, pc, pn, pvs, row == 0, row + 1 == h, record_inter)
+}
+
+/// Evaluate the AIR on an explicit (current, next) row pair.
+#[allow(clippy::too_many_arguments)]
+pub fn eval_pair(
+    air: &NpAir,
+    cur: &[Val],
+    nxt: &[Val],
+    pre_cur: &[Val],
+    pre_nxt: &[Val],
+    pvs: &[Val],
+    first: bool,
+    last: bool,
+    record_inter: bool,
+) -> RowEval {
     let mut b = Concrete {
         cur,
         nxt,
-        pre: prew,
+        pre: RowWindow::from_two_rows(pre_cur, pre_nxt),
         pvs,
-        first: row == 0,
-        last: row + 1 == h,
+        first,
+        last,
         idx: 0,
         failed: Vec::new(),
         record_inter,
@@ -172,8 +186,8 @@ pub fn tally_queries(
 ) {
     for row in rows {
         let e = eval_row(air, trace, None, pvs, row, true);
-        for (bus, t, c) in e.inter {
-            if LOOKUP_BUSES.contains(&bus) {
+        for (bus, t, c, w) in e.inter {
+            if w != 0 && LOOKUP_BUSES.contains(&bus) {
                 let cu = c.as_canonical_u32();
                 if cu < (1 << 30) {
                     *tally.0.entry(key(bus, &t)).or_insert(0) += cu as u64;
@@ -217,7 +231,7 @@ pub fn check_all(
             if !e.failed.is_empty() && constraint_failures.len() < max_failures {
                 constraint_failures.push((air.name().to_string(), row, e.failed.clone()));
             }
-            for (bus, t, c) in e.inter {
+            for (bus, t, c, _w) in e.inter {
                 let cu = c.as_canonical_u32();
                 let signed =
                     if cu > Val::ORDER_U32 / 2 { -((Val::ORDER_U32 - cu) as i64) } else { cu as i64 };

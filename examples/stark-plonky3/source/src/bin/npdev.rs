@@ -39,6 +39,26 @@ fn main() {
             let d = npstark::proof::air_config_digest();
             println!("{} ({:?})", d.iter().map(|b| format!("{b:02x}")).collect::<String>(), t.elapsed());
         }
+        Some("shape") => {
+            use p3_air::BaseAir;
+            use npstark::config::*;
+            let airs = npstark::air::all_airs();
+            let degrees: Vec<usize> = npstark::proof::HEIGHT_BOUNDS.iter().map(|b| b.0.max(8)).collect();
+            let config = make_config();
+            let budgets: Vec<usize> = airs.iter().map(|a| a.lookup_budget()).collect();
+            let pd = p3_batch_stark::ProverData::from_airs_and_degrees_with_lookup_budgets(&config, &airs, &degrees, &budgets, LOG_BLOWUP).unwrap();
+            let mut tot_main = 0; let mut tot_aux = 0;
+            for (i, a) in airs.iter().enumerate() {
+                let w = BaseAir::<Val>::width(a);
+                let nl = pd.common.lookups[i].len();
+                let aux = if nl == 0 { 0 } else { (nl + 1) * EXT_DEGREE };
+                let layout = p3_air::AirLayout { preprocessed_width: BaseAir::<Val>::preprocessed_width(a), main_width: w, num_public_values: a.num_pv(), ..Default::default() };
+                let lq = p3_batch_stark::symbolic::get_log_num_quotient_chunks::<Val, Challenge, _, _>(a, layout, 1usize << degrees[i], &pd.common.lookups[i], 0, &p3_lookup::LogUpGadget::new());
+                println!("{:5} main={:5} lookups={:4} aux_base={:5} log_qchunks={}", a.name(), w, nl, aux, lq);
+                tot_main += w; tot_aux += aux;
+            }
+            println!("total main={tot_main} aux={tot_aux}");
+        }
         _ => eprintln!("usage: npdev check <dir>... | digest"),
     }
 }

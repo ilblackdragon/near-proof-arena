@@ -44,7 +44,7 @@ pub const BUS_BYTES: &str = "np/bytes"; // perm   (msg, pos, byte)
 pub const BUS_CHAIN: &str = "np/chain"; // perm   (msg, blk, cnt, seen, h[16])
 pub const BUS_DIGEST: &str = "np/digest"; // lookup (msg, limb[16])
 pub const BUS_RANGE8: &str = "np/range8"; // lookup (x)          x < 2^8
-pub const BUS_RANGE16: &str = "np/range16"; // lookup (x)        x < 2^16
+pub const BUS_RANGE12: &str = "np/range12"; // lookup (x)       x < 2^12
 pub const BUS_CLASS: &str = "np/class"; // lookup (c, class)
 pub const BUS_NIB: &str = "np/nib"; // lookup (c, hi, lo)
 pub const BUS_ACCT: &str = "np/acct"; // lookup (k, len, packed[22], locked[16], storage[8])
@@ -60,7 +60,7 @@ pub const BUS_VSLOT: &str = "np/vslot"; // perm  (N, i, k)
 pub const PERM_BUSES: &[&str] =
     &[BUS_BYTES, BUS_CHAIN, BUS_MEM, BUS_RIDS, BUS_KEYNIB, BUS_FINAL, BUS_VSLOT];
 pub const LOOKUP_BUSES: &[&str] = &[
-    BUS_DIGEST, BUS_RANGE8, BUS_RANGE16, BUS_CLASS, BUS_NIB, BUS_ACCT, BUS_MPOS, BUS_EDGE, BUS_EPS,
+    BUS_DIGEST, BUS_RANGE8, BUS_RANGE12, BUS_CLASS, BUS_NIB, BUS_ACCT, BUS_MPOS, BUS_EDGE, BUS_EPS,
 ];
 
 /// `G` as little-endian bytes (G < 2^40).

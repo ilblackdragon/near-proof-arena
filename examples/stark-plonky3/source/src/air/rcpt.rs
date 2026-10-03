@@ -236,6 +236,9 @@ impl RcptAir {
             b.assert_zero(act.clone() * (one.clone() - a[0].clone()));
             b.assert_zero(act.clone() * (one.clone() - a[1].clone()));
             b.assert_zero(sep_of(cl[0].clone()));
+            for i in 0..64 {
+                b.assert_zero((one.clone() - a[i].clone()) * cl[i].clone());
+            }
         }
         let len = |s: &StrCols| s.a.iter().fold(AB::Expr::ZERO, |acc, &i| acc + v(i));
         let (lp, lv, ls) = (len(&c.sp), len(&c.sv), len(&c.ss));
@@ -300,7 +303,7 @@ impl RcptAir {
             query(b, BUS_RANGE8, vec![v(c.t[i])], act.clone());
         }
         for &cc in c.cb.iter().chain(c.cr.iter()) {
-            query(b, BUS_RANGE16, vec![v(cc)], act.clone());
+            query(b, BUS_RANGE12, vec![v(cc)], act.clone());
         }
         // running tokens_burnt_total and refund_count
         {
@@ -349,7 +352,7 @@ impl RcptAir {
         let mut wr = vec![v(c.kacc), v(c.r) + one.clone()];
         wr.extend(vs(&c.aaft));
         send(b, BUS_MEM, wr, act.clone());
-        query(b, BUS_RANGE16, vec![v(c.r) - v(c.t_prev)], act.clone());
+        query(b, BUS_RANGE12, vec![v(c.r) - v(c.t_prev)], act.clone());
         let aaft = vs(&c.aaft);
         assert_add_bytes(b, act.clone(), &vs(&c.abef), &vs(&c.dep), AB::Expr::ZERO, &aaft, &vs(&c.ca));
         let tot = vs(&c.tot);
@@ -367,7 +370,7 @@ impl RcptAir {
         }
         query(
             b,
-            BUS_RANGE16,
+            BUS_RANGE12,
             vec![k::<AB>(770) - st[0].clone() - st[1].clone() * k::<AB>(256)],
             act.clone() * sz.clone(),
         );
@@ -378,8 +381,27 @@ impl RcptAir {
             query(b, BUS_RANGE8, vec![v(c.e[i])], nsz.clone());
         }
         for &cc in &c.cq {
-            query(b, BUS_RANGE16, vec![v(cc)], act.clone());
+            query(b, BUS_RANGE12, vec![v(cc)], act.clone());
         }
+
+        // ---- canonical unused witness ------------------------------------------
+        let has_prev = act.clone() * (one.clone() - isf.clone());
+        for i in 0..15 {
+            b.assert_zero((one.clone() - has_prev.clone()) * v(c.ct[i]));
+            b.assert_zero((one.clone() - nsz.clone()) * v(c.ce[i]));
+        }
+        for i in 0..16 {
+            b.assert_zero((one.clone() - nsz.clone()) * v(c.e[i]));
+            b.assert_zero((one.clone() - hr.clone()) * v(c.ramt[i]));
+        }
+        for &cc in &c.cr {
+            b.assert_zero((one.clone() - hr.clone()) * v(cc));
+        }
+        for i in 0..32 {
+            b.assert_zero((one.clone() - hr.clone()) * v(c.refund_id[i]));
+        }
+        b.assert_zero((one.clone() - hr.clone()) * v(c.dinv));
+        zero_inactive(b, &r, c.act, &[]);
 
         // ---- links -------------------------------------------------------------
         send(b, BUS_RIDS, vs(&c.rid), act.clone());

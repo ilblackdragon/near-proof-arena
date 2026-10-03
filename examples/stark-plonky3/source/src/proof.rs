@@ -14,16 +14,15 @@
 //! recomputes it from the AIRs compiled into the binary and rejects a
 //! `public.bin` that names a different AIR.
 
-use crate::air::fixed::{BYTE_LOG_HEIGHT, U16_LOG_HEIGHT};
+use crate::air::fixed::{BYTE_LOG_HEIGHT, R12_LOG_HEIGHT};
 use crate::air::{NpAir, all_airs};
 use crate::config::*;
 use crate::consts::*;
 use crate::spec::*;
 use crate::wire::{Reader, Writer};
-use p3_air::{AirLayout, BaseAir};
+use p3_air::BaseAir;
 use p3_batch_stark::{BatchProof, ProverData, StarkInstance, prove_batch, verify_batch};
 use p3_field::{PrimeCharacteristicRing, PrimeField32};
-use p3_lookup::InteractionSymbolicBuilder;
 use p3_matrix::Matrix;
 use sha2::Digest;
 
@@ -41,16 +40,8 @@ pub const HEIGHT_BOUNDS: [(usize, usize); 9] = [
     (2, 16),                              // node
     (2, 16),                              // path (<= 256 * 130 rows)
     (BYTE_LOG_HEIGHT, BYTE_LOG_HEIGHT),   // byte
-    (U16_LOG_HEIGHT, U16_LOG_HEIGHT),     // u16
+    (R12_LOG_HEIGHT, R12_LOG_HEIGHT),     // r12
 ];
-
-struct HashWriter(sha2::Sha256);
-impl core::fmt::Write for HashWriter {
-    fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        self.0.update(s.as_bytes());
-        Ok(())
-    }
-}
 
 pub fn config_description() -> String {
     format!(
@@ -63,42 +54,33 @@ pub fn config_description() -> String {
     )
 }
 
+/// Deterministic digest of the configuration and of every AIR (see module
+/// docs and `fingerprint.rs`).
 pub fn air_config_digest() -> [u8; 32] {
-    use core::fmt::Write;
-    let mut hw = HashWriter(sha2::Sha256::new());
-    write!(hw, "{}\n", config_description()).unwrap();
+    let mut h = sha2::Sha256::new();
+    h.update(config_description().as_bytes());
     for air in all_airs() {
-        let layout = AirLayout {
-            preprocessed_width: BaseAir::<Val>::preprocessed_width(&air),
-            main_width: BaseAir::<Val>::width(&air),
-            num_public_values: air.num_pv(),
-            ..Default::default()
-        };
-        write!(
-            hw,
-            "table {} width={} pre={} pv={} budget={} next={}\n",
-            air.name(),
-            layout.main_width,
-            layout.preprocessed_width,
-            layout.num_public_values,
-            air.lookup_budget(),
-            air.uses_next()
-        )
-        .unwrap();
-        if let Some(pre) = BaseAir::<Val>::preprocessed_trace(&air) {
+        let pre = BaseAir::<Val>::preprocessed_trace(&air);
+        h.update(
+            format!(
+                "\ntable {} width={} pre={} pv={} budget={} next={}\n",
+                air.name(),
+                BaseAir::<Val>::width(&air),
+                BaseAir::<Val>::preprocessed_width(&air),
+                air.num_pv(),
+                air.lookup_budget(),
+                air.uses_next()
+            )
+            .as_bytes(),
+        );
+        if let Some(pre) = pre {
             for x in pre.values {
-                hw.0.update(x.as_canonical_u32().to_le_bytes());
+                h.update(x.as_canonical_u32().to_le_bytes());
             }
         }
-        let sb = InteractionSymbolicBuilder::<Val, Challenge>::from_air(&air, layout);
-        for c in sb.base_constraints() {
-            write!(hw, "c {:?}\n", c).unwrap();
-        }
-        for i in sb.global_interactions() {
-            write!(hw, "i {:?}\n", i).unwrap();
-        }
+        h.update(crate::fingerprint::fingerprint(&air));
     }
-    hw.0.finalize().into()
+    h.finalize().into()
 }
 
 pub fn public_bin(params: &[u8], digest: &[u8; 32]) -> Vec<u8> {
@@ -250,6 +232,7 @@ pub fn verify(claim: &[u8], proof: &[u8]) -> Result<(), String> {
         }
     }
     let config = make_config();
+    let tv = std::time::Instant::now();
     let pd = ProverData::from_airs_and_degrees_with_lookup_budgets(
         &config,
         &airs,
@@ -260,5 +243,13 @@ pub fn verify(claim: &[u8], proof: &[u8]) -> Result<(), String> {
     .map_err(|e| format!("common data: {e:?}"))?;
     let pvs: Vec<Vec<Val>> =
         airs.iter().map(|a| if a.num_pv() > 0 { pv.clone() } else { vec![] }).collect();
-    verify_batch(&config, &airs, &p, &pvs, &pd.common).map_err(|e| format!("stark: {e:?}"))
+    if std::env::var("NP_TIMING").is_ok() {
+        eprintln!("verify: common data {:?}", tv.elapsed());
+    }
+    let tv = std::time::Instant::now();
+    let res = verify_batch(&config, &airs, &p, &pvs, &pd.common).map_err(|e| format!("stark: {e:?}"));
+    if std::env::var("NP_TIMING").is_ok() {
+        eprintln!("verify: verify_batch {:?}", tv.elapsed());
+    }
+    res
 }

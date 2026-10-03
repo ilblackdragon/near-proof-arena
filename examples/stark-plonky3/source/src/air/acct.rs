@@ -95,10 +95,13 @@ impl AcctAir {
                 b.assert_zero(a[i + 1].clone() * (one.clone() - a[i].clone()));
             }
             b.assert_zero((one.clone() - a[i].clone()) * ch[i].clone());
+            b.assert_zero((one.clone() - a[i].clone()) * v(c.hi[i]));
+            b.assert_zero((one.clone() - a[i].clone()) * v(c.lo[i]));
             query(b, BUS_NIB, vec![ch[i].clone(), v(c.hi[i]), v(c.lo[i])], a[i].clone());
         }
         b.assert_zero(act.clone() * (one.clone() - a[0].clone()));
         b.assert_zero(act.clone() * (one.clone() - a[1].clone()));
+        zero_inactive(b, &r, c.act, &[]);
         let len = a.iter().fold(AB::Expr::ZERO, |acc, x| acc + x.clone());
         let val = vs(&c.val);
         let post = vs(&c.post);

@@ -13,7 +13,7 @@
 //! | `node` | one revealed trie node | node serialisation pre/post, edges, value slots |
 //! | `path` | one key nibble of one account | trie walk from the root to the value slot |
 //! | `byte` | 256 fixed rows | range-8, char class, nibble split tables |
-//! | `u16`  | 65536 fixed rows | range-16 table |
+//! | `r12`  | 4096 fixed rows | range-12 table |
 
 pub mod acct;
 pub mod fixed;
@@ -133,6 +133,19 @@ pub fn provide<AB: InteractionBuilder>(
     b.push_interaction(bus, fields, Count::provided(-mult));
 }
 
+/// Canonical padding: every listed column is zero on inactive rows. Not
+/// needed for soundness (all semantics are gated by `act`), but it makes the
+/// witness canonical and sharpens the witness-mutation probe.
+pub fn zero_inactive<AB: AirBuilder>(b: &mut AB, r: &Rows<AB>, act: usize, skip: &[usize]) {
+    let one = AB::Expr::ONE;
+    for c in 0..r.cur.len() {
+        if c == act || skip.contains(&c) {
+            continue;
+        }
+        b.assert_zero((one.clone() - r.c(act)) * r.c(c));
+    }
+}
+
 /// Byte-wise little-endian addition `a + b + cin = s` with boolean carries
 /// `cs[i]` (carry into limb i+1) and no carry out, all multiplied by `gate`.
 pub fn assert_add_bytes<AB: AirBuilder>(
@@ -187,6 +200,9 @@ pub fn assert_mul_const<AB: AirBuilder>(
         let ym = if m < y.len() { y[m].clone() } else { AB::Expr::ZERO };
         bld.assert_zero(conv + c_in - ym - c_out * AB::Expr::from_u32(256));
     }
+    for ym in y.iter().skip(m_max) {
+        bld.assert_zero(ym.clone());
+    }
 }
 
 /// Number of carry columns `assert_mul_const` needs.
@@ -226,7 +242,7 @@ pub fn mul_const_native(x: &[u8], cbytes: &[u8], ylen: usize) -> Option<(Vec<u8>
 }
 
 pub use acct::AcctAir;
-pub use fixed::{ByteAir, U16Air};
+pub use fixed::{ByteAir, R12Air};
 pub use mrk::MrkAir;
 pub use node::NodeAir;
 pub use path::PathAir;
@@ -235,7 +251,7 @@ pub use sha::ShaAir;
 pub use sort::SortAir;
 
 /// The instance order inside a proof (fixed).
-pub const TABLES: [&str; 9] = ["sha", "rcpt", "mrk", "sort", "acct", "node", "path", "byte", "u16"];
+pub const TABLES: [&str; 9] = ["sha", "rcpt", "mrk", "sort", "acct", "node", "path", "byte", "r12"];
 
 #[derive(Clone)]
 pub enum NpAir {
@@ -247,7 +263,7 @@ pub enum NpAir {
     Node(NodeAir),
     Path(PathAir),
     Byte(ByteAir),
-    U16(U16Air),
+    R12(R12Air),
 }
 
 /// All AIRs in instance order.
@@ -261,7 +277,7 @@ pub fn all_airs() -> Vec<NpAir> {
         NpAir::Node(NodeAir::new()),
         NpAir::Path(PathAir::new()),
         NpAir::Byte(ByteAir),
-        NpAir::U16(U16Air),
+        NpAir::R12(R12Air),
     ]
 }
 
@@ -276,7 +292,7 @@ macro_rules! dispatch {
             NpAir::Node($a) => $e,
             NpAir::Path($a) => $e,
             NpAir::Byte($a) => $e,
-            NpAir::U16($a) => $e,
+            NpAir::R12($a) => $e,
         }
     };
 }
@@ -292,11 +308,11 @@ impl NpAir {
             NpAir::Node(_) => "node",
             NpAir::Path(_) => "path",
             NpAir::Byte(_) => "byte",
-            NpAir::U16(_) => "u16",
+            NpAir::R12(_) => "r12",
         }
     }
     pub fn uses_next(&self) -> bool {
-        !matches!(self, NpAir::Sha(_) | NpAir::Byte(_) | NpAir::U16(_))
+        !matches!(self, NpAir::Sha(_) | NpAir::Byte(_) | NpAir::R12(_))
     }
     pub fn num_pv(&self) -> usize {
         match self {
@@ -322,14 +338,14 @@ impl<F: Field> BaseAir<F> for NpAir {
     fn preprocessed_trace(&self) -> Option<RowMajorMatrix<F>> {
         match self {
             NpAir::Byte(a) => Some(a.preprocessed()),
-            NpAir::U16(a) => Some(a.preprocessed()),
+            NpAir::R12(a) => Some(a.preprocessed()),
             _ => None,
         }
     }
     fn preprocessed_width(&self) -> usize {
         match self {
             NpAir::Byte(_) => fixed::BYTE_PRE_WIDTH,
-            NpAir::U16(_) => 1,
+            NpAir::R12(_) => 1,
             _ => 0,
         }
     }

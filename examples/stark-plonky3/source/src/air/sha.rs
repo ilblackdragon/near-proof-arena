@@ -109,6 +109,9 @@ impl ShaAir {
         b.assert_zero((one.clone() - act.clone()) * seen.clone());
         b.assert_zero((one.clone() - act.clone()) * f[0].clone());
         b.assert_zero((one.clone() - last.clone()) * v(c.dm));
+        for x in [c.msg, c.blk, c.cnt, c.pn] {
+            b.assert_zero((one.clone() - act.clone()) * v(x));
+        }
         // pn = p80 * (1 - last)
         b.assert_eq(pn.clone(), p80.clone() * (one.clone() - last.clone()));
         // Monotone data flags.

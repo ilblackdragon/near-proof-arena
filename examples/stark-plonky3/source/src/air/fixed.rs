@@ -2,10 +2,10 @@
 //!
 //! * `byte`: 256 rows, preprocessed `(x, class(x), x >> 4, x & 15)`; provides
 //!   `BUS_RANGE8 (x)`, `BUS_CLASS (x, class)`, `BUS_NIB (x, hi, lo)`.
-//! * `u16`: 65536 rows, preprocessed `x`; provides `BUS_RANGE16 (x)`.
+//! * `r12`: 4096 rows, preprocessed `x`; provides `BUS_RANGE12 (x)` (x < 2^12).
 //!
 //! The main trace holds only the free multiplicities. The verifier rejects
-//! any proof whose height for these tables differs from 256 / 65536 (the
+//! any proof whose height for these tables differs from 256 / 4096 (the
 //! preprocessed commitment is built for exactly that height).
 
 use super::*;
@@ -13,7 +13,7 @@ use crate::consts::*;
 
 pub const BYTE_PRE_WIDTH: usize = 4;
 pub const BYTE_LOG_HEIGHT: usize = 8;
-pub const U16_LOG_HEIGHT: usize = 16;
+pub const R12_LOG_HEIGHT: usize = 12;
 
 #[derive(Clone, Debug)]
 pub struct ByteAir;
@@ -45,19 +45,19 @@ impl ByteAir {
 }
 
 #[derive(Clone, Debug)]
-pub struct U16Air;
+pub struct R12Air;
 
-impl U16Air {
+impl R12Air {
     pub fn width(&self) -> usize {
         1
     }
     pub fn preprocessed<F: Field>(&self) -> RowMajorMatrix<F> {
-        RowMajorMatrix::new((0..65536u32).map(F::from_u32).collect(), 1)
+        RowMajorMatrix::new((0..4096u32).map(F::from_u32).collect(), 1)
     }
     pub fn eval<AB: AirBuilder + InteractionBuilder>(&self, b: &mut AB) {
         let p = b.preprocessed().clone();
         let x: AB::Expr = p.current_slice()[0].into();
         let r = Rows::<AB>::new(b, false);
-        provide(b, BUS_RANGE16, vec![x], r.c(0));
+        provide(b, BUS_RANGE12, vec![x], r.c(0));
     }
 }

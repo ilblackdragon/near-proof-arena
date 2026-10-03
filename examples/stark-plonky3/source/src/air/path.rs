@@ -102,6 +102,7 @@ impl PathAir {
             t.assert_zero(nstart * act.clone() * (one.clone() - end.clone()));
             t.assert_zero(act.clone() * (one.clone() - nact) * (one.clone() - end.clone()));
         }
+        zero_inactive(b, &r, c.act, &[]);
         recv(b, BUS_KEYNIB, vec![v(c.k), v(c.t), v(c.nib)], act.clone());
         query(b, BUS_EDGE, vec![v(c.n), v(c.i), v(c.nib), v(c.n2), v(c.i2)], act);
         query(b, BUS_EPS, vec![v(c.n2), v(c.i2), v(c.n3), v(c.i3)], jump);

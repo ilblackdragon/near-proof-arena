@@ -517,7 +517,7 @@ pub fn all_traces(airs: &[NpAir], wit: &Wit) -> Vec<RowMajorMatrix<Val>> {
             NpAir::Node(s) => node_trace(&s.c, wit),
             NpAir::Path(s) => path_trace(&s.c, wit),
             NpAir::Byte(_) => RowMajorMatrix::new(Val::zero_vec(256 * 3), 3),
-            NpAir::U16(_) => RowMajorMatrix::new(Val::zero_vec(65536), 1),
+            NpAir::R12(_) => RowMajorMatrix::new(Val::zero_vec(4096), 1),
         };
         out.push(t);
     }
@@ -534,7 +534,7 @@ fn u(x: Val) -> u32 {
 pub fn fill_multiplicities(airs: &[NpAir], traces: &mut [RowMajorMatrix<Val>], pvs: &[Val]) {
     let mut tally = Tally::default();
     for (a, t) in airs.iter().zip(traces.iter()) {
-        if matches!(a, NpAir::Sha(_) | NpAir::Byte(_) | NpAir::U16(_)) {
+        if matches!(a, NpAir::Sha(_) | NpAir::Byte(_) | NpAir::R12(_)) {
             continue;
         }
         let pv: &[Val] = if a.num_pv() > 0 { pvs } else { &[] };
@@ -665,9 +665,9 @@ pub fn fill_multiplicities(airs: &[NpAir], traces: &mut [RowMajorMatrix<Val>], p
                     row[2] = f(tally.get(BUS_NIB, &[x, x >> 4, x & 15]));
                 }
             }
-            NpAir::U16(_) => {
+            NpAir::R12(_) => {
                 t.values.par_iter_mut().enumerate().for_each(|(x, v)| {
-                    *v = f(tally.get(BUS_RANGE16, &[x as u32]));
+                    *v = f(tally.get(BUS_RANGE12, &[x as u32]));
                 });
             }
             _ => {}

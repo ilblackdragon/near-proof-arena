@@ -68,9 +68,13 @@ impl SortAir {
             assert_add_bytes(&mut t, nact, &rid, &ndiff, one.clone(), &nrid, &ncs);
         }
         recv(b, BUS_RIDS, vs(&c.rid), act.clone());
-        let has_prev = act * (one - isf);
+        let has_prev = act * (one.clone() - isf);
         for &d in &c.diff {
             query(b, BUS_RANGE8, vec![v(d)], has_prev.clone());
         }
+        for &x in c.diff.iter().chain(c.cs.iter()) {
+            b.assert_zero((one.clone() - has_prev.clone()) * v(x));
+        }
+        zero_inactive(b, &r, c.act, &[]);
     }
 }

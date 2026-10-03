@@ -191,6 +191,12 @@ impl NodeAir {
             b.assert_zero((one.clone() - br.clone() * rv.clone()) * v(c.me[j]));
         }
         b.assert_zero((one.clone() - te.clone() * v(c.rv[0])) * v(c.m_eps));
+        for j in 0..16 {
+            b.assert_zero((one.clone() - v(c.rv[j])) * v(c.cid[j]));
+            for i in 0..32 {
+                b.assert_zero((one.clone() - slot_act[j].clone()) * v(c.w[j][i]));
+            }
+        }
         b.assert_zero((one.clone() - le.clone()) * v(c.m_nib));
 
         // ---- value slot -----------------------------------------------------------
@@ -202,7 +208,12 @@ impl NodeAir {
         }
         for i in 0..32 {
             b.assert_zero((one.clone() - tv.clone()) * (v(c.pvh[i]) - v(c.vh[i])));
+            b.assert_zero((one.clone() - gv.clone()) * v(c.vh[i]));
         }
+        for i in 0..4 {
+            b.assert_zero((one.clone() - gv.clone()) * v(c.vlen[i]));
+        }
+        b.assert_zero((one.clone() - tv.clone()) * v(c.vk));
 
         // ---- positions ----------------------------------------------------------------
         let five_hp = k::<AB>(5) + hplen.clone();
@@ -238,7 +249,9 @@ impl NodeAir {
         b.assert_zero(lastn.clone() * (k::<AB>(MAX_WITNESS_BYTES as u64) - v(c.ssum) - slack));
         for &x in &c.wsd {
             query(b, BUS_RANGE8, vec![v(x)], lastn.clone());
+            b.assert_zero((one.clone() - lastn.clone()) * v(x));
         }
+        zero_inactive(b, &r, c.act, &[]);
 
         // ---- digests ----------------------------------------------------------------------
         let npre = |id: AB::Expr| k::<AB>(msg_id(K_NPRE, 0) as u64) + id;

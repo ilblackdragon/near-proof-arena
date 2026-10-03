@@ -131,6 +131,11 @@ impl MrkAir {
             t.assert_zero(up.clone() * ni);
             t.assert_zero(up * (nsp - v(c.s)));
         }
+        for &x in c.l.iter().chain(c.rr.iter()).chain([c.msg_r].iter()) {
+            b.assert_zero((one.clone() - hashrow.clone()) * v(x));
+        }
+        b.assert_zero(root.clone() * v(c.rinv));
+        zero_inactive(b, &r, c.act, &[c.idx]);
         let jm1 = v(c.j) - one.clone();
         let two_i = v(c.i) * AB::Expr::TWO;
         query(b, BUS_MPOS, vec![jm1.clone(), two_i.clone(), v(c.msg_l)], act.clone());
