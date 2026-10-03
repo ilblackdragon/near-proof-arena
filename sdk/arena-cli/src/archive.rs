@@ -1,17 +1,12 @@
 //! Package archive validation (`ARCHIVE_UNSAFE` / `MANIFEST_INVALID` rules from
 //! `docs/CONTRACTS.md` §3).
 //!
-//! SEAM: the judge's authoritative implementation lives in `runners/archive`
-//! (runners-core lane). Until that crate is on `main` the SDK carries this
-//! re-implementation of the same rules. Everything the CLI needs goes through
-//! [`validate_package`]; when `runners/archive` lands, replace the body of
-//! that function with a call into the shared crate and keep this signature,
-//! so `arena check-local` and the server can never disagree.
+//! Thin adapter over the judge's authoritative implementation in
+//! `runners/archive` (crate `arena-archive`), so `arena check-local` and the
+//! server can never disagree.
 
 use arena_types::{CandidateManifest, Digest};
-use std::collections::BTreeSet;
-use std::io::Read;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// Limits from CONTRACTS.md §3.
 #[derive(Clone, Copy, Debug)]
@@ -60,144 +55,66 @@ pub struct ValidatedPackage {
     pub manifest: CandidateManifest,
 }
 
-const ZSTD_MAGIC: [u8; 4] = [0x28, 0xb5, 0x2f, 0xfd];
-
-fn safe_path(p: &str, max_len: usize) -> Result<(), String> {
-    if p.is_empty() || p.len() > max_len {
-        return Err(format!("path length out of range: {p:?}"));
-    }
-    if p.starts_with('/') {
-        return Err(format!("absolute path: {p:?}"));
-    }
-    if p.bytes()
-        .any(|b| b == 0 || b == b'\\' || b < 0x20 || b == 0x7f)
-    {
-        return Err(format!("control/backslash character in path: {p:?}"));
-    }
-    if p.split('/').any(|c| c.is_empty() || c == "." || c == "..") {
-        return Err(format!("non-normal path component: {p:?}"));
-    }
-    Ok(())
-}
-
 /// Validate (and optionally extract) a package archive. This is the single
-/// entry point used by the SDK (see module docs for the seam).
+/// entry point used by the SDK. It delegates to the judge's own
+/// implementation (`runners/archive`, crate `arena-archive`), so
+/// `arena check-local` and the server apply exactly the same ingestion,
+/// layout and manifest rules.
 pub fn validate_package(
     bytes: &[u8],
     limits: &ArchiveLimits,
     extract_to: Option<&Path>,
 ) -> Result<ValidatedPackage, ArchiveError> {
-    let un = |s: String| ArchiveError::Unsafe(s);
-    if bytes.len() as u64 > limits.max_compressed_bytes {
-        return Err(un(format!(
-            "archive is {} bytes > {} limit",
-            bytes.len(),
-            limits.max_compressed_bytes
+    if limits.max_path_len != arena_archive::path::MAX_PATH_BYTES {
+        return Err(ArchiveError::Unsafe(format!(
+            "max_path_len is fixed at {} by the contract",
+            arena_archive::path::MAX_PATH_BYTES
         )));
     }
-    let package_digest = Digest::of_bytes(bytes);
-    let reader: Box<dyn Read + '_> = if bytes.starts_with(&ZSTD_MAGIC) {
-        Box::new(zstd::stream::read::Decoder::new(bytes).map_err(|e| un(format!("zstd: {e}")))?)
-    } else {
-        Box::new(bytes)
+    let l = arena_archive::Limits {
+        max_compressed_bytes: limits.max_compressed_bytes,
+        max_expanded_bytes: limits.max_expanded_bytes,
+        max_entries: limits.max_entries,
+        ..Default::default()
     };
-    // Hard cap on decompressed stream (tar overhead included) as a bomb guard.
-    let cap = limits.max_expanded_bytes + (limits.max_entries + 2) * 1024 + 1;
-    let mut ar = tar::Archive::new(reader.take(cap));
-    let mut seen = BTreeSet::new();
-    let mut files = Vec::new();
-    let mut expanded: u64 = 0;
-    let mut count: u64 = 0;
-    let mut manifest_src: Option<String> = None;
-    for ent in ar.entries().map_err(|e| un(format!("tar: {e}")))? {
-        let mut ent = ent.map_err(|e| un(format!("tar: {e}")))?;
-        count += 1;
-        if count > limits.max_entries {
-            return Err(un(format!("more than {} entries", limits.max_entries)));
-        }
-        let raw = ent.path_bytes().into_owned();
-        let path = String::from_utf8(raw).map_err(|_| un("non-UTF-8 path".into()))?;
-        let et = ent.header().entry_type();
-        let is_dir = et.is_dir();
-        let norm = if is_dir {
-            path.trim_end_matches('/').to_string()
-        } else {
-            path.clone()
-        };
-        safe_path(&norm, limits.max_path_len).map_err(un)?;
-        if !(et.is_file() || is_dir) {
-            return Err(un(format!("entry type {:?} not allowed: {norm}", et)));
-        }
-        if !seen.insert(norm.clone()) {
-            return Err(un(format!("duplicate entry: {norm}")));
-        }
-        if is_dir {
-            if let Some(root) = extract_to {
-                std::fs::create_dir_all(root.join(&norm)).map_err(|e| un(e.to_string()))?;
+    let tmp;
+    let dest: PathBuf = match extract_to {
+        Some(d) => {
+            // `arena-archive` extracts into a fresh directory only.
+            if d.exists() {
+                let empty = std::fs::read_dir(d).map(|mut r| r.next().is_none()).unwrap_or(false);
+                if !empty {
+                    return Err(ArchiveError::Unsafe(format!("{} is not empty", d.display())));
+                }
+                std::fs::remove_dir(d).map_err(|e| ArchiveError::Unsafe(format!("io: {e}")))?;
             }
-            continue;
+            d.to_path_buf()
         }
-        let size = ent.header().size().map_err(|e| un(e.to_string()))?;
-        expanded = expanded.saturating_add(size);
-        if expanded > limits.max_expanded_bytes {
-            return Err(un(format!(
-                "expanded size exceeds {} bytes",
-                limits.max_expanded_bytes
-            )));
+        None => {
+            tmp = tempfile::tempdir().map_err(|e| ArchiveError::Unsafe(format!("io: {e}")))?;
+            tmp.path().join("pkg")
         }
-        let mode = ent.header().mode().map_err(|e| un(e.to_string()))?;
-        let mut data = Vec::with_capacity(size.min(1 << 24) as usize);
-        (&mut ent)
-            .take(size)
-            .read_to_end(&mut data)
-            .map_err(|e| un(format!("tar: {e}")))?;
-        if data.len() as u64 != size {
-            return Err(un(format!("truncated entry: {norm}")));
-        }
-        if norm == "candidate.toml" {
-            manifest_src = Some(
-                String::from_utf8(data.clone())
-                    .map_err(|_| ArchiveError::Manifest("candidate.toml is not UTF-8".into()))?,
-            );
-        }
-        let exec = mode & 0o111 != 0;
-        if let Some(root) = extract_to {
-            let dst = root.join(&norm);
-            if let Some(parent) = dst.parent() {
-                std::fs::create_dir_all(parent).map_err(|e| un(e.to_string()))?;
-            }
-            std::fs::write(&dst, &data).map_err(|e| un(e.to_string()))?;
-            use std::os::unix::fs::PermissionsExt;
-            let m = if exec { 0o755 } else { 0o644 };
-            std::fs::set_permissions(&dst, std::fs::Permissions::from_mode(m))
-                .map_err(|e| un(e.to_string()))?;
-        }
-        files.push(ArchivedFile {
-            path: norm,
-            exec,
-            size,
-            digest: Digest::of_bytes(&data),
-        });
-    }
-    // A directory entry and a file with the same name prefix would collide.
-    let file_set: BTreeSet<&str> = files.iter().map(|f| f.path.as_str()).collect();
-    for f in &files {
-        let mut p = f.path.as_str();
-        while let Some(i) = p.rfind('/') {
-            p = &p[..i];
-            if file_set.contains(p) {
-                return Err(un(format!("path {p} is both a file and a directory")));
-            }
-        }
-    }
-    let src = manifest_src
-        .ok_or_else(|| ArchiveError::Manifest("candidate.toml missing at archive root".into()))?;
-    let manifest =
-        CandidateManifest::parse(&src).map_err(|e| ArchiveError::Manifest(e.to_string()))?;
+    };
+    let x = arena_archive::ingest_bytes(bytes, &dest, &l).map_err(|e| match e {
+        arena_archive::ArchiveError::Unsafe(m) => ArchiveError::Unsafe(m),
+        arena_archive::ArchiveError::Io(e) => ArchiveError::Unsafe(format!("io: {e}")),
+    })?;
+    let manifest = arena_archive::validate_package(&x.root, &x.tree).map_err(|e| ArchiveError::Manifest(e.to_string()))?;
+    let files = x
+        .tree
+        .files
+        .iter()
+        .map(|(p, f)| ArchivedFile {
+            path: p.clone(),
+            exec: f.mode == arena_archive::FileMode::Exec,
+            size: f.size,
+            digest: f.digest.clone(),
+        })
+        .collect();
     Ok(ValidatedPackage {
-        package_digest,
-        compressed_bytes: bytes.len() as u64,
-        expanded_bytes: expanded,
+        package_digest: Digest::of_bytes(bytes),
+        compressed_bytes: x.compressed_bytes,
+        expanded_bytes: x.tree.total_bytes(),
         files,
         manifest,
     })
@@ -246,13 +163,26 @@ verify = "out/verify"
 
     #[test]
     fn accepts_good_and_zstd() {
-        let t = raw_tar(&[(
-            "candidate.toml",
-            tar::EntryType::Regular,
-            MANIFEST.as_bytes(),
-        )]);
+        let mut b = tar::Builder::new(Vec::new());
+        for (p, mode, d) in [
+            ("candidate.toml", 0o644, MANIFEST.as_bytes()),
+            ("README.md", 0o644, &b"x"[..]),
+            ("source/lib.rs", 0o644, &b""[..]),
+            ("dependency-locks/Cargo.lock", 0o644, &b""[..]),
+            ("build-recipe/build.sh", 0o755, &b"#!/bin/sh\n"[..]),
+        ] {
+            let mut h = tar::Header::new_gnu();
+            h.set_size(d.len() as u64);
+            h.set_mode(mode);
+            b.append_data(&mut h, p, d).unwrap();
+        }
+        let t = b.into_inner().unwrap();
         let v = validate_package(&t, &ArchiveLimits::default(), None).unwrap();
         assert_eq!(v.manifest.name, "t");
+        assert!(v.files.iter().any(|f| f.path == "build-recipe/build.sh" && f.exec));
+        // Same rules as the judge: a package without README.md is refused.
+        let bare = raw_tar(&[("candidate.toml", tar::EntryType::Regular, MANIFEST.as_bytes())]);
+        assert!(matches!(validate_package(&bare, &ArchiveLimits::default(), None), Err(ArchiveError::Manifest(_))));
         let z = zstd::encode_all(t.as_slice(), 3).unwrap();
         validate_package(&z, &ArchiveLimits::default(), None).unwrap();
     }

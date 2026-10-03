@@ -3,6 +3,10 @@ resolver = "2"
 members = [
     "adversarial/proof-mutators",
     "common/arena-types",
+    "runners/archive",
+    "runners/sandbox",
+    "runners/measure",
+    "runners/worker",
     "runners/firecracker",
     "runners/firecracker/init",
     "runners/firecracker/proto",
@@ -58,6 +62,14 @@ base64 = "0.22"
 clap = { version = "4", features = ["derive", "env"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+tar = { version = "0.4.44", default-features = false }
+zstd = "0.13"
+libc = "0.2"
+proptest = "1"
+tempfile = "3"
+ureq = { version = "2.12", default-features = false, features = ["json", "tls"] }
+unicode-normalization = "0.1"
+clap = { version = "4", features = ["derive"] }
+ed25519-dalek = { version = "2", features = ["rand_core"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
 globset = "0.4"
-tempfile = "3"

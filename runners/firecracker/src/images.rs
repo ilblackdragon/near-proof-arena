@@ -8,7 +8,7 @@
 //! dirs 0755) because only file-vs-exec is meaningful (CONTRACTS §1).
 //! Symlinks, hardlinks, devices, fifos and sockets are rejected.
 
-use crate::contract::InfraError;
+use arena_sandbox::InfraError;
 use arena_fc_proto::validate_rel_path;
 use arena_types::{canonical_json, Digest};
 use sha2::{Digest as _, Sha256};

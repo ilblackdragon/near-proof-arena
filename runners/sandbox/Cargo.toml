@@ -1,21 +1,22 @@
 [package]
-name = "arena-firecracker"
+name = "arena-sandbox"
 edition.workspace = true
 version.workspace = true
 license.workspace = true
-description = "Firecracker microVM sandbox backend for NEAR Proof Arena runners"
+description = "Sandbox trait (CONTRACTS §9) and the bwrap-dev (DEMO-only) backend"
 
 [dependencies]
 arena-types = { path = "../../common/arena-types" }
-arena-fc-proto = { path = "proto" }
-arena-sandbox = { path = "../sandbox" }
 arena-archive = { path = "../archive" }
 serde.workspace = true
 serde_json.workspace = true
-sha2.workspace = true
-hex.workspace = true
 thiserror.workspace = true
-libc = "0.2"
+libc.workspace = true
+tar.workspace = true
 
 [dev-dependencies]
-tempfile = "3"
+tempfile.workspace = true
+
+[[bin]]
+name = "arena-sandbox-helper"
+path = "src/bin/arena-sandbox-helper.rs"

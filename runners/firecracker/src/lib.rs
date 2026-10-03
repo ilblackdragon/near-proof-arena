@@ -17,11 +17,10 @@
 //! 5. guest `arena-init`: candidate runs as uid 1000 with a cleared env, in a
 //!    memory/pids-limited cgroup, with rlimits and no_new_privs.
 
-pub mod contract;
 pub mod images;
+pub mod native;
 pub mod sandbox;
 
-pub use contract::{
-    Diagnostics, Exit, InfraError, NetworkAccess, RoMount, Sandbox, SandboxOutcome, SandboxSpec,
-};
-pub use sandbox::{FirecrackerConfig, FirecrackerSandbox, CONTAINER_CAPS, ENV_ALLOWLIST};
+pub use arena_sandbox::{Diagnostics, Exit, InfraError, Sandbox, SandboxOutcome};
+pub use native::{NetworkAccess, RoMount, RunRequest};
+pub use sandbox::{FirecrackerConfig, FirecrackerSandbox, BACKEND_NAME, CONTAINER_CAPS, ENV_ALLOWLIST, FC_LAYOUT};
