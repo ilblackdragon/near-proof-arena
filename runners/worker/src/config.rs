@@ -269,11 +269,15 @@ impl WorkerConfig {
         };
         let bench_cpus = match s.get("ARENA_BENCH_CPUS") {
             None => None,
-            Some(v) => Some(parse_cpu_list(&v).map_err(|e| ConfigError::Invalid("ARENA_BENCH_CPUS", e))?),
+            Some(v) => {
+                Some(parse_cpu_list(&v).map_err(|e| ConfigError::Invalid("ARENA_BENCH_CPUS", e))?)
+            }
         };
         let run_cpus = match s.get("ARENA_RUN_CPUS") {
             None => None,
-            Some(v) => Some(parse_cpu_list(&v).map_err(|e| ConfigError::Invalid("ARENA_RUN_CPUS", e))?),
+            Some(v) => {
+                Some(parse_cpu_list(&v).map_err(|e| ConfigError::Invalid("ARENA_RUN_CPUS", e))?)
+            }
         };
         let ms = |key: &'static str, default: u64| -> Result<Duration, ConfigError> {
             Ok(Duration::from_millis(match s.get(key) {
@@ -515,7 +519,10 @@ mod cpu_list_tests {
     use super::parse_cpu_list;
     #[test]
     fn ranges_and_singles() {
-        assert_eq!(parse_cpu_list("8-11, 24,26").unwrap(), vec![8, 9, 10, 11, 24, 26]);
+        assert_eq!(
+            parse_cpu_list("8-11, 24,26").unwrap(),
+            vec![8, 9, 10, 11, 24, 26]
+        );
         assert_eq!(parse_cpu_list("3").unwrap(), vec![3]);
         assert!(parse_cpu_list("").is_err());
         assert!(parse_cpu_list("5-2").is_err());
