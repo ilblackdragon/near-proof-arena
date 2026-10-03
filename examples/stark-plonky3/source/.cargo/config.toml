@@ -1,0 +1,15 @@
+# The judge builds with NO network: every crate (crates.io and the pinned
+# Plonky3 git revision) comes from source/vendor/ (build-recipe/vendor.sh).
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source."git+https://github.com/Plonky3/Plonky3?rev=3acc8b70e68d6c2afc03930700c26540bd47458d"]
+git = "https://github.com/Plonky3/Plonky3"
+rev = "3acc8b70e68d6c2afc03930700c26540bd47458d"
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "vendor"
+
+[net]
+offline = true

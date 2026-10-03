@@ -166,6 +166,9 @@ pub fn prove(
         LOG_BLOWUP,
     )
     .map_err(|e| format!("prover data: {e:?}"))?;
+    if std::env::var("NP_TIMING").is_ok() {
+        eprintln!("prove: prover data {:?}", t2.elapsed());
+    }
     let instances: Vec<StarkInstance<'_, MyConfig, NpAir>> = airs
         .iter()
         .zip(traces.iter())

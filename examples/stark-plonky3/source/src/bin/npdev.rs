@@ -59,6 +59,20 @@ fn main() {
             }
             println!("total main={tot_main} aux={tot_aux}");
         }
+        Some("pdtime") => {
+            use npstark::config::*;
+            let airs = npstark::air::all_airs();
+            let config = make_config();
+            for (i, a) in airs.iter().enumerate() {
+                let t = Instant::now();
+                let db = npstark::proof::HEIGHT_BOUNDS[i].0.max(4);
+                let _pd = p3_batch_stark::ProverData::from_airs_and_degrees_with_lookup_budgets(&config, std::slice::from_ref(a), &[db], &[a.lookup_budget()], LOG_BLOWUP).unwrap();
+                let t1 = t.elapsed();
+                let t = Instant::now();
+                let l = p3_lookup::Lookups::<Val>::from_air::<Challenge, _>(a);
+                println!("{:5} prover_data {:?}  lookups_from_air {:?} ({} lookups)", a.name(), t1, t.elapsed(), l.len());
+            }
+        }
         _ => eprintln!("usage: npdev check <dir>... | digest"),
     }
 }
