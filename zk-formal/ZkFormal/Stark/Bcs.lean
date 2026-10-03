@@ -33,12 +33,12 @@ open ArenaCore ArenaCore.Security Lean.Grind
 
 /-! ## Tags and wide hashing -/
 
-def tagInit : UInt8 := 0x00
-def tagLeaf : UInt8 := 0x01
-def tagNode : UInt8 := 0x02
-def tagAbs : UInt8 := 0x03
-def tagChal : UInt8 := 0x04
-def tagQuery : UInt8 := 0x05
+def tagInit : UInt8 := 0x01
+def tagAbs : UInt8 := 0x02
+def tagChal : UInt8 := 0x03
+def tagQuery : UInt8 := 0x04
+def tagLeaf : UInt8 := 0x05
+def tagNode : UInt8 := 0x06
 
 /-- Protocol identifier absorbed in `d₀`. -/
 def protocolId : Bytes := Bytes.ofString "np-udr-stark-v1"
@@ -92,6 +92,20 @@ def readKs : Nat → Bytes → Option (List K × Bytes)
 
 end Fields
 
+/-- Proof-format version. -/
+def formatVersion : Nat := 1
+
+/-- Header: `u32 version ‖ u32 numTables ‖ u8 log₂ height` per table. -/
+def readHeader (n : Nat) (r : Bytes) : Option (List Nat × Bytes) :=
+  match readU32s 2 r with
+  | some ([v, m], r') =>
+    if v = formatVersion ∧ m = n then
+      match take? n r' with
+      | some (hs, r'') => some (hs.map UInt8.toNat, r'')
+      | none => none
+    else none
+  | _ => none
+
 /-! ## The commit-phase prefix -/
 
 /-- A parsed slot: a message (parts with Merkle roots, and its raw bytes) or a
@@ -110,7 +124,7 @@ def parseParts (hdr : List Nat) : List Part → Bytes → Option (List (PartV K 
     let one : Option (PartV K Bytes × Bytes) :=
       match p with
       | .header n =>
-        match readU32s n r with
+        match readHeader n r with
         | some (l, r') => if l == hdr then some (.header l, r') else none
         | none => none
       | .oracle _ =>
@@ -147,7 +161,7 @@ def parseSlots (hdr : List Nat) : List Slot → Bytes → Option (List (PSlot K)
 of the header, then every message of the schedule.  Returns the header, the
 parsed slots and the query-phase bytes. -/
 def parsePrefix (V : IopSpec F K) (pb : Bytes) : Option (List Nat × List (PSlot K) × Bytes) :=
-  match readU32s V.numTables pb with
+  match readHeader V.numTables pb with
   | none => none
   | some (hdr, _) =>
     if V.headerOk hdr then
@@ -175,12 +189,12 @@ def chain (d : Bytes) : List (PSlot K) → OracleComp hashSpec (List (Entry K By
     let c : K := if ood then decodeOod (F := F) y else decodeChal (F := F) y
     OracleComp.bind (chain d ss) fun r => .pure (.chal c :: r.1, r.2)
 
-/-- The query-phase answers `H(QUERY ‖ d_fin ‖ le32 j)`, `j < n`. -/
+/-- The query-phase answers `H(QUERY ‖ d_fin ‖ u8 j)`, `j < n`. -/
 def queryAnswers (d : Bytes) : Nat → OracleComp hashSpec (List Bytes)
   | 0 => .pure []
   | n + 1 =>
     OracleComp.bind (queryAnswers d n) fun ys =>
-    OracleComp.bind (H (tagQuery :: (d ++ Bytes.leN 4 n))) fun y => .pure (ys ++ [y])
+    OracleComp.bind (H (tagQuery :: (d ++ [UInt8.ofNat n]))) fun y => .pure (ys ++ [y])
 
 end Transcript
 
@@ -236,25 +250,27 @@ def readInj (ws : List Nat) (r : Bytes) : Option (List (List F) × Bytes × Byte
 
 /-- Hash the parent `x` of level `k` from its children, reading its injected
 rows; then continue with `k` (CPS: `cont` gets the remaining bytes). -/
-def mpNode (k : Nat) (ws : List Nat) (x : Nat) (lft rgt : Bytes) (r : Bytes) :
+def mpNode (lvl : Nat) (ws : List Nat) (x : Nat) (lft rgt : Bytes) (r : Bytes) :
     OracleComp hashSpec (Option ((Nat × Bytes) × Option (List (List F)) × Bytes)) :=
   match readInj (F := F) ws r with
   | none => .pure none
   | some (rows, raw, r') =>
-    OracleComp.bind (WH tagNode ((UInt8.ofNat k :: lft) ++ rgt ++ raw)) fun hp =>
-    .pure (some ((x, hp), (if ws.isEmpty then none else some rows), r'))
+    let node (inj : Bytes) : OracleComp hashSpec (Option ((Nat × Bytes) × Option (List (List F)) × Bytes)) :=
+      OracleComp.bind (WH tagNode ((UInt8.ofNat lvl :: lft) ++ rgt ++ inj)) fun hp =>
+      .pure (some ((x, hp), (if ws.isEmpty then none else some rows), r'))
+    if ws.isEmpty then node [] else OracleComp.bind (WH tagLeaf raw) node
 
 /-- One level up: from the known nodes of level `k+1` (ascending) to those of
 level `k`.  For each parent: the missing sibling digest (if any), then its
 injected rows. -/
-def mpUp (k : Nat) (ws : List Nat) :
+def mpUp (k lvl : Nat) (ws : List Nat) :
     List (Nat × Bytes) → Bytes → OracleComp hashSpec (Option (List (Nat × Bytes) × Opened F × Bytes))
   | [], r => .pure (some ([], [], r))
   | (x, h) :: tl, r =>
     let finish (lft rgt : Bytes) (r1 : Bytes)
         (recur : Bytes → OracleComp hashSpec (Option (List (Nat × Bytes) × Opened F × Bytes))) :
         OracleComp hashSpec (Option (List (Nat × Bytes) × Opened F × Bytes)) :=
-      OracleComp.bind (mpNode (F := F) k ws (x / 2) lft rgt r1) fun
+      OracleComp.bind (mpNode (F := F) lvl ws (x / 2) lft rgt r1) fun
         | none => .pure none
         | some (nh, rows?, r2) =>
           OracleComp.bind (recur r2) fun
@@ -266,32 +282,32 @@ def mpUp (k : Nat) (ws : List Nat) :
     match tl with
     | (x', h') :: rest =>
       if x % 2 = 0 ∧ x' = x + 1 then
-        finish h h' r (mpUp k ws rest)
+        finish h h' r (mpUp k lvl ws rest)
       else
         match take? 64 r with
         | none => .pure none
         | some (s, r1) =>
-          if x % 2 = 0 then finish h s r1 (mpUp k ws ((x', h') :: rest))
-          else finish s h r1 (mpUp k ws ((x', h') :: rest))
+          if x % 2 = 0 then finish h s r1 (mpUp k lvl ws ((x', h') :: rest))
+          else finish s h r1 (mpUp k lvl ws ((x', h') :: rest))
     | [] =>
       match take? 64 r with
       | none => .pure none
       | some (s, r1) =>
-        if x % 2 = 0 then finish h s r1 (mpUp k ws [])
-        else finish s h r1 (mpUp k ws [])
+        if x % 2 = 0 then finish h s r1 (mpUp k lvl ws [])
+        else finish s h r1 (mpUp k lvl ws [])
 
 /-- Levels `k = n-1, …, 0` of a multiproof (`fuel = n` steps). -/
-def mpLevels (mats : List (Nat × Nat)) :
+def mpLevels (mats : List (Nat × Nat)) (n : Nat) :
     Nat → List (Nat × Bytes) → Bytes → OracleComp hashSpec (Option (Bytes × Opened F × Bytes))
   | 0, nodes, r =>
     match nodes with
     | [(0, root)] => .pure (some (root, [], r))
     | _ => .pure none
   | k + 1, nodes, r =>
-    OracleComp.bind (mpUp (F := F) k (levelWidths mats k) nodes r) fun
+    OracleComp.bind (mpUp (F := F) k (n - k) (levelWidths mats k) nodes r) fun
       | none => .pure none
       | some (nodes', op, r') =>
-        OracleComp.bind (mpLevels mats k nodes' r') fun
+        OracleComp.bind (mpLevels mats n k nodes' r') fun
           | none => .pure none
           | some (root, op', r'') => .pure (some (root, op ++ op', r''))
 
@@ -304,7 +320,7 @@ def multiproof (mats : List (Nat × Nat)) (root : Bytes) (S : List Nat) (r : Byt
   OracleComp.bind (mpLeaves (F := F) n (levelWidths mats n) S r) fun
     | none => .pure none
     | some (leaves, op, r') =>
-      OracleComp.bind (mpLevels (F := F) mats n leaves r') fun
+      OracleComp.bind (mpLevels (F := F) mats n n leaves r') fun
         | none => .pure none
         | some (root', op', r'') =>
           .pure (if root' == root then some (op ++ op', r'') else none)

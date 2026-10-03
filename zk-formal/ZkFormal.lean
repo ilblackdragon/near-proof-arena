@@ -14,3 +14,4 @@ import ZkFormal.Stark.Params
 import ZkFormal.Stark.Iop
 import ZkFormal.Stark.Bcs
 import ZkFormal.Stark.Protocol
+import ZkFormal.Stark.Verifier
