@@ -1,4 +1,4 @@
-import ReexecNpai.Spec.State
+import ReexecNpai.Spec.Record
 
 /-!
 # Phase spec: the trie section (record parse into the arena)
