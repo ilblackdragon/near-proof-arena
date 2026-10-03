@@ -819,6 +819,29 @@ impl FormalChecker {
                     findings.push(Finding::new(ReasonCode::ManifestInvalid, Scope::All, "verifier model names must be dotted Lean identifiers".into()));
                     break 'pipeline;
                 }
+                // `model_type_module` is spliced into a judge-compiled `import`
+                // and `model_type` into a judge-compiled `axiom … : <type>`
+                // stub (see `native_build`). They are judge/challenge-set
+                // today, but validate their shape here so a future caller that
+                // forwards candidate input cannot inject Lean syntax (extra
+                // commands, newlines) into code the judge compiles and links.
+                if !ok(&r.model_type_module) {
+                    findings.push(Finding::new(ReasonCode::ManifestInvalid, Scope::All, "verifier model_type_module must be a dotted Lean identifier".into()));
+                    break 'pipeline;
+                }
+                // A type expression is richer than an identifier, but it must
+                // stay a single-line type: no newlines (would start a new Lean
+                // command after the stub `axiom`), no comment or string
+                // delimiters, printable ASCII only.
+                let type_bad = r.model_type.is_empty()
+                    || r.model_type.contains(['\n', '\r', '"'])
+                    || r.model_type.contains("--")
+                    || r.model_type.contains("/-")
+                    || r.model_type.chars().any(|c| !(' '..='~').contains(&c));
+                if type_bad {
+                    findings.push(Finding::new(ReasonCode::ManifestInvalid, Scope::All, "verifier model_type must be a single-line printable-ASCII Lean type".into()));
+                    break 'pipeline;
+                }
             }
             if formal_tree.is_none() {
                 findings.push(Finding::new(ReasonCode::ArchiveUnsafe, Scope::All, "formal tree unreadable or contains unsupported entries".into()));
