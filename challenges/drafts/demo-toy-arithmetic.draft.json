@@ -1,0 +1,143 @@
+{
+  "schema": "arena-challenge-v1",
+  "name": "demo-toy-arithmetic",
+  "season": "dev-2026",
+  "tier": "demo",
+  "nearcore": {
+    "repo": "https://github.com/near/nearcore",
+    "tag": "2.13.4",
+    "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
+  },
+  "protocol_version": 86,
+  "chain_id": "demo-local-not-near",
+  "runtime_config_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "semantic_scope": {
+    "name": "demo-toy-arithmetic",
+    "kind": "subset",
+    "granularity": "single_request",
+    "restrictions": [
+      {
+        "id": "not-near-semantics",
+        "text": "DEMO ONLY. This challenge does NOT concern NEAR protocol semantics. The nearcore pin and protocol_version are carried only because the contract requires them; no runtime config applies (runtime_config_digest is the all-zero placeholder)."
+      },
+      {
+        "id": "toy-relation",
+        "text": "The relation is c = a*b mod 2^64 over 64-bit words (see SPEC.md). Plumbing fixture only."
+      }
+    ],
+    "excludes": [
+      "near_state_transition",
+      "block_finality",
+      "data_availability",
+      "receipt_inclusion",
+      "cryptographic_soundness",
+      "zero_knowledge"
+    ],
+    "formal_spec": {
+      "relation_module": "ToyArithmetic",
+      "relation_decl": "Arena.Demo.ToyArithmetic.ToyRelation",
+      "tree_digest": "sha256:e30b95cbce026c21e42e06d75f5b071c86accc46118cceaf727fee176fa22c6f",
+      "lean_toolchain": "leanprover/lean4:v4.34.1"
+    },
+    "spec_doc_digest": "sha256:953ef5aa277994d97e498c2e41d647be34cb38e96c25e975d799f1f1f86c830e"
+  },
+  "claim_encoding": {
+    "format": "demo-toy-arith-v1",
+    "spec_digest": "sha256:953ef5aa277994d97e498c2e41d647be34cb38e96c25e975d799f1f1f86c830e",
+    "max_request_bytes": 16,
+    "max_witness_bytes": 0,
+    "max_claim_bytes": 24
+  },
+  "security_profile": {
+    "id": "validity-classical-128",
+    "privacy": "validity_only",
+    "adversary": "classical",
+    "target_bits": 128,
+    "model": "random_oracle",
+    "setup_model": "transparent",
+    "allowed_assumptions": [
+      "sha256-collision-resistance",
+      "random-oracle-fiat-shamir-sha256"
+    ],
+    "max_prover_queries_log2": 40,
+    "max_hash_queries_log2": 64,
+    "max_aggregation_depth": 8,
+    "deployment_proofs_log2": 40
+  },
+  "toolchain_policy": {
+    "lean_toolchain": "leanprover/lean4:v4.34.1",
+    "checker_image": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "axiom_allowlist": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "allowed_packages": [],
+    "recheckers": [
+      "lean4checker"
+    ]
+  },
+  "required_obligations": [
+    "PKG_WELLFORMED",
+    "BUILD_REPRODUCIBLE",
+    "CONFORMANCE_DIFFERENTIAL",
+    "ADVERSARIAL_PROOFS",
+    "PROVER_RELIABILITY",
+    "RESOURCE_LIMITS",
+    "BENCHMARK"
+  ],
+  "not_applicable_gates": [
+    "FORMAL_ZK"
+  ],
+  "hardware_profile": {
+    "id": "dev-host-cpu-8",
+    "cpu_model": "unspecified shared dev host (DEMO; timings not comparable)",
+    "vcpus": 8,
+    "ram_bytes": 17179869184,
+    "gpu": null
+  },
+  "workload_suite": {
+    "revision": "demo-toy-arith-r1",
+    "classes": [
+      {
+        "id": "toy-small",
+        "description": "a,b uniform in [0,2^32)",
+        "weight_ppm": 600000,
+        "batch_size": 64,
+        "generator": "sha256:862c7a30ddd96bf7e5ad5500f84abe8c5a21066691e16d747d4a6e330d348007"
+      },
+      {
+        "id": "toy-large",
+        "description": "a,b uniform in [0,2^64)",
+        "weight_ppm": 400000,
+        "batch_size": 1024,
+        "generator": "sha256:7c24a8778a94256c8b95aeca342ffcd0cf591bd4e9f846acc00d888070d513d9"
+      }
+    ],
+    "public_fixtures": "sha256:5231501cc6dabdfcd5658136a18d5925a7bd7a0db9674f923da345576f7696ce",
+    "heldout_commitment": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "baseline_submission": null,
+    "baseline_ns": []
+  },
+  "measurement": {
+    "warmup_runs": 1,
+    "measured_runs": 5,
+    "aggregation": "median",
+    "outlier_mad_k": 5,
+    "cold_runs": 1,
+    "concurrency": 1,
+    "per_run_timeout_ms": 60000
+  },
+  "resource_limits": {
+    "max_proof_bytes": 1048576,
+    "max_verify_ms": 1000,
+    "max_prove_ms": 60000,
+    "max_ram_bytes": 2147483648,
+    "max_vram_bytes": 0,
+    "max_public_artifact_bytes": 16777216,
+    "max_prepare_ms": 60000,
+    "max_build_ms": 600000
+  },
+  "supersedes": null,
+  "created_at": "2026-10-03T00:00:00Z"
+}
