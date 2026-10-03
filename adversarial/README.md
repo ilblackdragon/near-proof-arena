@@ -41,7 +41,7 @@ scratch. Nothing is vendored or fetched.
 Archive-attack cases are different: the hostile payload is the **archive
 encoding** (symlink, `../` traversal, hardlink, device node, decompression
 bomb), which a normal directory cannot represent, so those cases ship a
-`make-archive.sh` that emits the malicious tar, and the directory itself is a
+`make-archive.py` that emits the malicious tar, and the directory itself is a
 well-formed placeholder. The e2e driver uploads the builder's output for them.
 
 ### Case list (35 cases, 15 families)
@@ -79,17 +79,24 @@ READMEs.
 
 | case | decision | failing gate(s) | reason code(s) |
 |------|----------|-----------------|----------------|
-| `forged-pass-output` | REJECTED | FORMAL_SEMANTIC_SOUNDNESS | CERTIFICATE_MISSING |
+| `forged-pass-output` | REJECTED | ADVERSARIAL_PROOFS | HOSTILE_PROOF_ACCEPTED |
 | `benchmark-shortcut` | REJECTED | CONFORMANCE_DIFFERENTIAL | CLAIM_MISMATCH |
 | `precomputed-fixture-table` | REJECTED | CONFORMANCE_DIFFERENTIAL | CLAIM_MISMATCH |
 | `background-daemon` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
-| `sandbox-escape-filesystem` | REJECTED | PROVER_RELIABILITY | SANDBOX_VIOLATION |
-| `sandbox-escape-network` | REJECTED | PROVER_RELIABILITY | SANDBOX_VIOLATION |
+| `sandbox-escape-filesystem` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
+| `sandbox-escape-network` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
 | `sandbox-fork-bomb` | REJECTED | RESOURCE_LIMITS | RESOURCE_LIMIT |
-| `sandbox-ptrace-proc` | REJECTED | PROVER_RELIABILITY | SANDBOX_VIOLATION |
-| `forged-timing` | REJECTED | BENCHMARK | SANDBOX_VIOLATION |
+| `sandbox-ptrace-proc` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
+| `forged-timing` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
 | `ui-injection-logs` | REJECTED | ADVERSARIAL_PROOFS | HOSTILE_PROOF_ACCEPTED |
 | `ui-injection-manifest` | REJECTED | PKG_WELLFORMED | MANIFEST_INVALID |
+
+The sandbox-escape / forged-timing cases are kept to the **honest observable**
+on bwrap-dev (which has no seccomp): the attempt is contained and the prover
+produces no proof, so the kill is `PROVER_FAILED`. Sound syscall-level
+`SANDBOX_VIOLATION` detection is a runners-core follow-up; Firecracker's forged
+guest report already maps to `SANDBOX_VIOLATION`. See
+`docs/e2e-results/hostile-final/README.md`.
 
 #### Build / archive attacks
 
@@ -97,7 +104,7 @@ READMEs.
 |------|----------|-----------------|----------------|
 | `build-network-fetch` | REJECTED | BUILD_REPRODUCIBLE | BUILD_FAILED |
 | `build-nonreproducible` | REJECTED | BUILD_REPRODUCIBLE | BUILD_NOT_REPRODUCIBLE |
-| `build-dependency-substitution` | REJECTED | ARTIFACT_BINDING | ARTIFACT_BINDING_FAILED |
+| `build-dependency-substitution` | REJECTED | ADVERSARIAL_PROOFS | HOSTILE_PROOF_ACCEPTED |
 | `archive-zip-slip` | REJECTED | PKG_WELLFORMED | ARCHIVE_UNSAFE |
 | `archive-symlink-escape` | REJECTED | PKG_WELLFORMED | ARCHIVE_UNSAFE |
 | `archive-hardlink` | REJECTED | PKG_WELLFORMED | ARCHIVE_UNSAFE |
@@ -169,19 +176,38 @@ well-formedness check, then the Python driver `run_hostile.py`:
   leaderboard; and assert `ui-log-injection` cases come back with no raw control
   characters.
 
-## Local status (pre-integration)
+## Challenge targeting (`expect.json` `targets` / `runnable`)
 
-Runs green now, with no server:
+A gate only exists where the challenge requires it, so each case declares which
+challenge kind(s) it is meaningful on:
 
-- `cargo test -p proof-mutators` — mutator unit tests (classification,
-  determinism, inference fallback, panic-freedom) and suite well-formedness.
-- `cargo run -p proof-mutators --bin check-suite` — all 35 cases (33 generated + 2 NEAR re-exec cases) load, parse,
-  and agree with `expect.json`.
-- `python3 e2e/run_hostile.py --dry-run` — all 35 packages tar/build (including
-  the malicious archives) and every `expect.json` validates.
-- All hostile C sources compile offline with `cc`; all `build.sh` /
-  `make-archive.sh` pass `sh -n`.
+- `targets: ["demo"]` — attacks a gate in the demo challenge's required
+  obligations; run by `tests/e2e/run.sh --hostile` (driver `--target demo`).
+- `targets: ["near-formal"]` — attacks a formal / artifact-binding / crypto
+  obligation that only the NEAR formal challenge has; run by
+  `--target near-formal` (`milestone-d.sh`, or `run.sh --hostile-near`).
+- `runnable: false` — documents an attack but is not auto-submitted. The 11
+  generic Lean-certificate stubs are `runnable: false`: they need a real
+  reexec-witness backend to build, so the executable NEAR kills are the two
+  `near-reexec-*` cases. The driver skips them with that note (never faked).
 
-Pending integration (needs other lanes): the full live e2e against the server
-(`--server`), and wiring `mutants/` once a reference backend lands under
-`examples/`.
+## Status
+
+Live, green:
+
+- `tests/e2e/run.sh --hostile` (real server + bwrap-dev worker, demo challenge):
+  **22/22 demo cases match** decision + gate + reason codes; 0 admitted, 0
+  ranked; injection sanitized; 13 near-formal cases skipped.
+  Results: `docs/e2e-results/hostile-final/`.
+- `tests/e2e/milestone-d.sh` (Firecracker, NEAR formal): `near-reexec-malicious-executable`
+  and `near-reexec-skip-refund` REJECTED and matching. Results:
+  `docs/e2e-results/milestone-d/`.
+- `cargo test -p proof-mutators` — mutator unit tests + suite well-formedness
+  (35 cases load, parse, agree with `expect.json`).
+- All demo C sources compile offline with `cc`; archives build via
+  `make-archive.py` (Python `tarfile`).
+
+Follow-up: turn the 11 `runnable: false` certificate stubs into reexec-witness
+variants so each formal gate is exercised live; add sound syscall-level
+`SANDBOX_VIOLATION` detection in the sandbox/worker; wire `mutants/` once the
+integrator applies the operators to a reference backend.

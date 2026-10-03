@@ -1,6 +1,10 @@
 {
   "case": "native-decide-certificate",
   "attack_family": "axiom-audit",
+  "targets": [
+    "near-formal"
+  ],
+  "runnable": false,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "AXIOM_AUDIT"
@@ -14,5 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The proof uses `native_decide`, which trusts compiled code and the `Lean.ofReduceBool` axiom instead of the kernel. The policy forbids native evaluation; AXIOM_AUDIT must fail."
+  "why": "The proof uses `native_decide`, trusting compiled code and `ofReduceBool` instead of the kernel. The policy forbids native evaluation; AXIOM_AUDIT must fail with NATIVE_EVAL_FOUND."
 }

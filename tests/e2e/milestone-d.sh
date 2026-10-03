@@ -179,6 +179,7 @@ wait_decided "$VC" verifier-change
 say "3. NEAR hostile cases"
 set +e
 "$REPO/adversarial/e2e/run.sh" --server "$ARENA_URL" --token "$AGENT_TOKEN" --challenge "$E2E_NEAR" \
+  --target near-formal \
   --only near-reexec-skip-refund,near-reexec-malicious-executable --timeout "$TIMEOUT" \
   --report "$RESULTS/hostile-near.json" | tee "$WORK/hostile.log"
 HOSTILE_RC=${PIPESTATUS[0]}

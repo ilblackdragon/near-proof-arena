@@ -1,6 +1,10 @@
 {
   "case": "near-reexec-malicious-executable",
   "attack_family": "artifact-binding",
+  "targets": [
+    "near-formal"
+  ],
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "ARTIFACT_BINDING"

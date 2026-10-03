@@ -1,6 +1,10 @@
 {
   "case": "background-daemon",
   "attack_family": "async-cheat",
+  "targets": [
+    "demo"
+  ],
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "PROVER_RELIABILITY"
@@ -14,6 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "`prove` forks a background daemon and exits immediately; the daemon keeps working and tries to write the real proof AFTER the measured call returns. The sandbox tears down the whole process group at exit and captures outputs only then, so the proof is absent/incomplete: PROVER_RELIABILITY fails and a lingering process is a SANDBOX_VIOLATION.",
-  "notes": "SANDBOX_VIOLATION is an acceptable additional reason code (lingering process / escaped work)."
+  "why": "`prove` forks a background daemon and exits immediately without writing the proof; the daemon would 'finish later'. The sandbox tears down the whole process group at exit and collects outputs only then, so the proof is absent: PROVER_RELIABILITY fails."
 }

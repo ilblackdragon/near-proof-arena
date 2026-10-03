@@ -1,6 +1,10 @@
 {
   "case": "benchmark-shortcut",
   "attack_family": "benchmark-cheat",
+  "targets": [
+    "demo"
+  ],
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "CONFORMANCE_DIFFERENTIAL"
@@ -14,6 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The prover special-cases the PUBLIC benchmark fixtures (keys a lookup table by input hash) and returns a canned claim for them, but garbage for fresh / held-out inputs. Fresh inputs are sampled AFTER freeze, so CONFORMANCE_DIFFERENTIAL against the oracle on held-out inputs must fail (CLAIM_MISMATCH).",
-  "notes": "PROVER_RELIABILITY may also fail on fresh inputs; either is a kill."
+  "why": "The prover returns the correct product ONLY for a hard-coded 'benchmark' request and an off-by-one wrong product for everything else. Conformance samples fresh judge inputs (sampled after freeze), so CONFORMANCE_DIFFERENTIAL against the oracle fails with CLAIM_MISMATCH. A prover that only works on known inputs cannot pass differential testing."
 }

@@ -1,2 +1,2 @@
-#include <stdio.h>
-int main(void){ printf("PASS\n"); return 0; } /* accepts ANY proof */
+#include "common.h"
+int main(int c,char**v){(void)c;(void)v;return 0;}

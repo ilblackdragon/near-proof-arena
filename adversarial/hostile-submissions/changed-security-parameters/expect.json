@@ -1,6 +1,10 @@
 {
   "case": "changed-security-parameters",
   "attack_family": "crypto-soundness",
+  "targets": [
+    "near-formal"
+  ],
+  "runnable": false,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "FORMAL_CRYPTO_SOUNDNESS"
@@ -14,6 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The manifest requests the 128-bit profile, but the concrete parameters (e.g. a 40-bit soundness error / too-few query repetitions) yield far fewer bits. The judge evaluates the CERTIFIED bound formula at the ACTUAL parameters (kernel-evaluated, no native_decide) and ignores the manifest claim; FORMAL_CRYPTO_SOUNDNESS must fail.",
-  "notes": "manifest says 128 bits; parameters give ~40. The manifest number is never trusted."
+  "why": "The manifest requests 128-bit security but the concrete parameters yield ~40 bits. The judge evaluates the CERTIFIED bound formula at the ACTUAL parameters (kernel-evaluated) and ignores the manifest claim; FORMAL_CRYPTO_SOUNDNESS must fail with SECURITY_BOUND_INSUFFICIENT."
 }
