@@ -1,0 +1,18 @@
+{
+  "case": "additional-axiom",
+  "attack_family": "axiom-audit",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "AXIOM_AUDIT"
+  ],
+  "expected_reason_codes": [
+    "FORBIDDEN_AXIOM"
+  ],
+  "fail_by_stage": "FORMAL_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The development introduces an extra `axiom` not on the challenge's allowlist and uses it to close the proof. AXIOM_AUDIT walks the transitive axioms of the certificate and must fail on the forbidden axiom."
+}

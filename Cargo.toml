@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "adversarial/proof-mutators",
     "common/arena-types",
     "sdk/arena-cli",
     "tools/arena-admin",

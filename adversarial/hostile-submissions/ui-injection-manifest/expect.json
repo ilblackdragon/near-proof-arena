@@ -1,0 +1,19 @@
+{
+  "case": "ui-injection-manifest",
+  "attack_family": "ui-log-injection",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "PKG_WELLFORMED"
+  ],
+  "expected_reason_codes": [
+    "MANIFEST_INVALID"
+  ],
+  "fail_by_stage": "VALIDATED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "Injection payloads in manifest fields. `name` is constrained to [a-z0-9-] so a payload there fails PKG_WELLFORMED (MANIFEST_INVALID); payloads in free-form fields (backend_family) must be stored and rendered escaped.",
+  "notes": "The illegal name is the hard failure; the free-form backend_family payload below exercises API escaping."
+}

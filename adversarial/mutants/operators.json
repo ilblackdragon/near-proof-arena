@@ -1,0 +1,35 @@
+{
+  "schema": "arena-mutation-operators-v1",
+  "purpose": "Judge-owned source-mutation operators for the reference backends. The integrator applies these to each backend under examples/<backend>/ once backends exist, rebuilds, and reruns the judge pipeline. A mutant that the pipeline still ADMITS (a surviving mutant) is a hole in the judge's gates, NOT evidence about the candidate. See README.md for the explicit meaning and the forbidden claim.",
+  "equivalence_policy": {
+    "rule": "A mutant is EQUIVALENT if it cannot change any judge-observable outcome (same claims on every input, same verify decisions, same measured resource class within noise). Equivalent mutants are expected to survive and are excluded from the denominator. Optimizations (reordering, strength reduction, caching that is still correct on held-out inputs) are equivalent and MUST NOT be demanded to be killed.",
+    "classification": ["killed", "survived", "equivalent", "timeout", "build_error"],
+    "adjudication": "Equivalence is decided by the differential oracle + adversarial gate, never by diffing source. If a surviving mutant produces identical claims to the oracle on the full held-out suite and identical verify decisions on the hostile-proof set, it is reclassified equivalent."
+  },
+  "generic_operators": [
+    {"id": "arith-op-swap", "desc": "swap +/-, */ /, etc. in arithmetic", "applies_to": "any", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"]},
+    {"id": "relop-swap", "desc": "swap <,<=,>,>=,==,!= in comparisons", "applies_to": "any", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]},
+    {"id": "boundary-off-by-one", "desc": "+/-1 on a loop bound or index", "applies_to": "any", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"]},
+    {"id": "constant-perturb", "desc": "replace a numeric literal with 0 / 1 / value+1", "applies_to": "any", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"]},
+    {"id": "negate-condition", "desc": "negate a branch condition", "applies_to": "any", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL", "PROVER_RELIABILITY"]},
+    {"id": "delete-statement", "desc": "delete a side-effecting statement", "applies_to": "any", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL", "PROVER_RELIABILITY"]},
+    {"id": "return-early", "desc": "insert an early return / accept", "applies_to": "verify", "kills_expected_via": ["ADVERSARIAL_PROOFS"]},
+    {"id": "skip-check", "desc": "remove a validation / bounds / equality check", "applies_to": "verify", "kills_expected_via": ["ADVERSARIAL_PROOFS"]},
+    {"id": "swap-args", "desc": "swap two arguments of the same type at a call", "applies_to": "any", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"]}
+  ],
+  "backend_specific_operators": {
+    "reexec-merkle": [
+      {"id": "hash-domain-drop", "desc": "drop a domain-separation prefix before hashing a trie node", "kills_expected_via": ["ADVERSARIAL_PROOFS"], "equivalence_note": "NOT equivalent: changes node hashes."},
+      {"id": "memory-usage-constant", "desc": "hardcode a node memory_usage field", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"], "equivalence_note": "May be equivalent if memory_usage is not committed for this slice; adjudicate via oracle."},
+      {"id": "nibble-order-flip", "desc": "iterate trie nibbles low-first instead of high-first", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"]},
+      {"id": "leaf-value-ref-inline", "desc": "inline a value instead of ValueRef(sha256)", "kills_expected_via": ["ADVERSARIAL_PROOFS", "CONFORMANCE_DIFFERENTIAL"]},
+      {"id": "skip-storage-stake", "desc": "skip the storage-stake post-check", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"], "equivalence_note": "Equivalent within the slice domain where the check always passes (restriction 6); adjudicate on held-out inputs that approach the bound."},
+      {"id": "burn-price-wrong", "desc": "use block_gas_price instead of min(purchase, block) for tokens_burnt", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"]},
+      {"id": "refund-id-nonce-drop", "desc": "omit the block_height/nonce mix in the gas-refund receipt id", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"]}
+    ]
+  },
+  "reference_backends_todo": [
+    "examples/reexec-merkle (not yet present; owned by backend-* lane)",
+    "The integrator wires this once a backend exists; until then these are definitions only."
+  ]
+}

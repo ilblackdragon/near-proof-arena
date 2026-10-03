@@ -1,0 +1,19 @@
+{
+  "case": "weak-public-input-binding",
+  "attack_family": "public-input-binding",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "ADVERSARIAL_PROOFS"
+  ],
+  "expected_reason_codes": [
+    "HOSTILE_PROOF_ACCEPTED"
+  ],
+  "fail_by_stage": "CONFORMANCE_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The verifier checks the proof is well-formed but never binds it to the claim's public inputs (pre_root / receipts / post_root). A proof valid for one transition then verifies for a different claim. The judge feeds the mismatched-context mutant; ADVERSARIAL_PROOFS must fail, and the independent oracle also forces CLAIM_MISMATCH.",
+  "notes": "CLAIM_MISMATCH is an acceptable additional reason code."
+}
