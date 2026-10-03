@@ -184,7 +184,10 @@ impl WorkerConfig {
             .unwrap_or_else(|| format!("{}-{}", hostname(), std::process::id()));
         // Explicit kinds win; otherwise worker classes (deploy/hardened
         // systemd `arena-worker@<class>`, compose ARENA_WORKER_CLASSES).
-        let class_kinds = match s.get("ARENA_WORKER_CLASSES").or_else(|| s.get("ARENA_WORKER_CLASS")) {
+        let class_kinds = match s
+            .get("ARENA_WORKER_CLASSES")
+            .or_else(|| s.get("ARENA_WORKER_CLASS"))
+        {
             None => None,
             Some(v) => {
                 let mut out: Vec<JobKind> = vec![];
@@ -192,10 +195,17 @@ impl WorkerConfig {
                     let ks: &[JobKind] = match c {
                         "build" => &[JobKind::Validate, JobKind::Build],
                         "formal" => &[JobKind::FormalCheck],
-                        "oracle" | "exec" | "conformance" => &[JobKind::Conformance, JobKind::Adversarial],
+                        "oracle" | "exec" | "conformance" => {
+                            &[JobKind::Conformance, JobKind::Adversarial]
+                        }
                         "bench" | "gpu" => &[JobKind::Benchmark],
                         "all" => &JobKind::ALL,
-                        other => return Err(ConfigError::Invalid("ARENA_WORKER_CLASS", other.to_string())),
+                        other => {
+                            return Err(ConfigError::Invalid(
+                                "ARENA_WORKER_CLASS",
+                                other.to_string(),
+                            ))
+                        }
                     };
                     for k in ks {
                         if !out.contains(k) {
@@ -436,9 +446,28 @@ mod tests {
         let c = WorkerConfig::load(&s).unwrap();
         assert_eq!(c.backend, "firecracker");
         assert_eq!(c.kinds.len(), 6);
-        let s = Settings::new(env(&[("ARENA_SERVER_URL", "http://x"), ("ARENA_WORKER_TOKEN", "t"), ("ARENA_WORKER_CLASS", "bench")]), None).unwrap();
-        assert_eq!(WorkerConfig::load(&s).unwrap().kinds, vec![JobKind::Benchmark]);
-        let s = Settings::new(env(&[("ARENA_SERVER_URL", "http://x"), ("ARENA_WORKER_TOKEN", "t"), ("ARENA_WORKER_CLASS", "nope")]), None).unwrap();
+        let s = Settings::new(
+            env(&[
+                ("ARENA_SERVER_URL", "http://x"),
+                ("ARENA_WORKER_TOKEN", "t"),
+                ("ARENA_WORKER_CLASS", "bench"),
+            ]),
+            None,
+        )
+        .unwrap();
+        assert_eq!(
+            WorkerConfig::load(&s).unwrap().kinds,
+            vec![JobKind::Benchmark]
+        );
+        let s = Settings::new(
+            env(&[
+                ("ARENA_SERVER_URL", "http://x"),
+                ("ARENA_WORKER_TOKEN", "t"),
+                ("ARENA_WORKER_CLASS", "nope"),
+            ]),
+            None,
+        )
+        .unwrap();
         assert!(WorkerConfig::load(&s).is_err());
     }
 

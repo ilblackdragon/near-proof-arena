@@ -516,10 +516,9 @@ impl Orchestrator {
                 }
             }
         }
-        let graph = entry
-            .evidence_graph
-            .as_ref()
-            .map(|eg| normalize::merge_graphs(ctx.run.evidence_graph.clone(), eg));
+        let graph = entry.evidence_graph.as_ref().map(|eg| {
+            normalize::merge_graphs(ctx.run.evidence_graph.clone(), eg, JobKind::FormalCheck)
+        });
         sqlx::query("UPDATE runs SET evidence_graph = COALESCE($2, evidence_graph) WHERE id = $1")
             .bind(&ctx.run.id)
             .bind(graph.as_ref().map(json))
@@ -1037,8 +1036,11 @@ impl Orchestrator {
             ctx.run.tier = tier;
         }
         if let Some(eg) = &n.evidence_graph {
-            ctx.run.evidence_graph =
-                Some(normalize::merge_graphs(ctx.run.evidence_graph.take(), eg));
+            ctx.run.evidence_graph = Some(normalize::merge_graphs(
+                ctx.run.evidence_graph.take(),
+                eg,
+                kind,
+            ));
         }
         match kind {
             JobKind::Validate => {

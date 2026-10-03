@@ -95,9 +95,48 @@ pub fn sanitize_graph(g: &EvidenceGraph) -> Result<EvidenceGraph, String> {
     Ok(out)
 }
 
-/// Merge `add` into `base`: nodes keyed by id, edges keyed by (from, to, kind);
-/// later results win.
-pub fn merge_graphs(base: Option<EvidenceGraph>, add: &EvidenceGraph) -> EvidenceGraph {
+/// Strength of an edge status (weaker = less evidence).
+fn strength(s: arena_types::evidence::EdgeStatus) -> u8 {
+    use arena_types::evidence::EdgeStatus::*;
+    match s {
+        Missing => 0,
+        Tested => 1,
+        Trusted => 2,
+        Checked => 3,
+    }
+}
+
+/// The job kind whose gates own an evidence edge kind (and may therefore
+/// establish it). Unknown edge kinds have no owner.
+pub fn edge_owner(edge_kind: &str) -> Option<JobKind> {
+    match edge_kind {
+        "proves"
+        | "defined_in"
+        | "assumes"
+        | "rechecked_by"
+        | "contains_candidate_model"
+        | "proves_obligations_about"
+        | "implements"
+        | "built_from"
+        | "refines"
+        | "binds" => Some(JobKind::FormalCheck),
+        "tested_against" => Some(JobKind::Conformance),
+        _ => None,
+    }
+}
+
+/// Merge `add` (reported by a job of kind `source`) into `base`. Nodes are
+/// keyed by id (later labels win). Edges, keyed by (from, to, kind), merge
+/// **monotonically**: on a conflict the weaker status wins, so a later
+/// write can never quietly upgrade an edge; the only upgrade allowed is a
+/// MISSING edge becoming established by an edge that carries real evidence
+/// (non-empty digests) and comes from the job kind that owns the edge.
+pub fn merge_graphs(
+    base: Option<EvidenceGraph>,
+    add: &EvidenceGraph,
+    source: JobKind,
+) -> EvidenceGraph {
+    use arena_types::evidence::EdgeStatus;
     let mut g = base.unwrap_or_default();
     for n in &add.nodes {
         match g.nodes.iter_mut().find(|x| x.id == n.id) {
@@ -111,7 +150,15 @@ pub fn merge_graphs(base: Option<EvidenceGraph>, add: &EvidenceGraph) -> Evidenc
             .iter_mut()
             .find(|x| x.from == e.from && x.to == e.to && x.kind == e.kind)
         {
-            Some(x) => *x = e.clone(),
+            Some(x) => {
+                let owned_upgrade = x.status == EdgeStatus::Missing
+                    && e.status != EdgeStatus::Missing
+                    && !e.evidence.is_empty()
+                    && edge_owner(&e.kind) == Some(source);
+                if owned_upgrade || strength(e.status) <= strength(x.status) {
+                    *x = e.clone();
+                }
+            }
             None => g.edges.push(e.clone()),
         }
     }
@@ -344,10 +391,31 @@ mod tests {
             nodes: vec![n("a", "2")],
             edges: vec![e(EdgeStatus::Checked)],
         };
-        let m = merge_graphs(Some(g1), &g2);
+        // No evidence: MISSING is never upgraded.
+        let m = merge_graphs(Some(g1.clone()), &g2, JobKind::FormalCheck);
         assert_eq!(m.nodes.len(), 2);
         assert_eq!(m.nodes[0].label, "2");
         assert_eq!(m.edges.len(), 1);
+        assert_eq!(m.edges[0].status, EdgeStatus::Missing);
+        // With evidence, from the owning job kind: upgraded.
+        let mut g3 = g2.clone();
+        g3.edges[0].evidence = vec![arena_types::Digest::of_bytes(b"proof")];
+        let m = merge_graphs(Some(g1.clone()), &g3, JobKind::FormalCheck);
         assert_eq!(m.edges[0].status, EdgeStatus::Checked);
+        // ...but not from another job kind.
+        let m = merge_graphs(Some(g1), &g3, JobKind::Benchmark);
+        assert_eq!(m.edges[0].status, EdgeStatus::Missing);
+        // Weaker status wins on conflict: CHECKED then TESTED -> TESTED; a
+        // later CHECKED cannot raise it back.
+        let checked = EvidenceGraph {
+            nodes: vec![],
+            edges: vec![g3.edges[0].clone()],
+        };
+        let mut tested = checked.clone();
+        tested.edges[0].status = EdgeStatus::Tested;
+        let m = merge_graphs(Some(checked.clone()), &tested, JobKind::Conformance);
+        assert_eq!(m.edges[0].status, EdgeStatus::Tested);
+        let m = merge_graphs(Some(m), &checked, JobKind::FormalCheck);
+        assert_eq!(m.edges[0].status, EdgeStatus::Tested);
     }
 }
