@@ -60,7 +60,7 @@ cyclically), `["p",i]` (public input `i`, which is byte `cb[i]`, or 0 when
   bit-reversed order**, so positions `2j, 2j+1` are `±y` and fold to `j`.
 * Oracle: `H(m) = sha256("NPAI-RO-v1" ‖ m)`, 32 bytes (`Interp.deployedRO`).
   Wide hash: `WH(tag, m) = H(tag ‖ 0x01 ‖ m) ‖ H(tag ‖ 0x02 ‖ m)`, 64 bytes.
-  Tags: INIT 0x01, ABS 0x02, CHAL 0x03, QUERY 0x04, LEAF 0x05, NODE 0x06.
+  Tags: INIT 0x00, LEAF 0x01, NODE 0x02, ABS 0x03, CHAL 0x04, QUERY 0x05.
 * `decodeChal(y)`: limb `i` is `be32(y[4i..4i+4]) mod p`.
   `decodeOod(y)`: the same, but if limbs 1..7 are all zero, limb 1 is set
   to 1.
@@ -144,9 +144,10 @@ The header gives `h_t = log₂` of each table's height, with
 
 ```
 d₀ = WH(INIT, "np-udr-stark-v1" ‖ le64|pub| ‖ pub ‖ le64|cb| ‖ cb)
-message m:   d ← WH(ABS, d ‖ m)          (m = the raw proof bytes of the message; may be empty)
-challenge:   c = decodeChal(H(CHAL ‖ d))  (decodeOod for z)
-queries:     A_j = H(QUERY ‖ d_fin ‖ u8 j), j < 24;  N = be256(A_j);
+message m:   d ← WH(ABS, d ‖ u8 |ρ| ‖ ρ ‖ μ)   (ρ = the message's 64-byte roots in order,
+                                           μ = its other bytes in proof order; may be empty)
+challenge:   d ← WH(CHAL, d);  c = decodeChal(d[0..32])  (decodeOod for z)
+queries:     A_j = H(QUERY ‖ d_fin ‖ le32 j), j < 24;  N = be256(A_j);
              positions (N ≫ 26·i) mod 2^n0, i < 9   (chunk-major, duplicates kept)
 ```
 
@@ -189,8 +190,9 @@ bytes.
 matrices whose log is `n − k`; a level may have none.
 
 * `N_0[j] = WH(LEAF, rows_0(j))`.
-* `N_k[j] = WH(NODE, u8 k ‖ N_{k−1}[2j] ‖ N_{k−1}[2j+1] [‖ WH(LEAF, rows_k(j))])`.
-  The bracket is present iff level `k` has matrices (even of width 0).
+* `N_k[j] = WH(NODE, u8 k ‖ N_{k−1}[2j] ‖ N_{k−1}[2j+1] ‖ rows_k(j))`, where
+  `rows_k(j)` is empty if level `k` has no matrices. The rows are inlined, not
+  nested in a LEAF hash.
 * `rows_k(j)` concatenates row `j` of those matrices, in table order, as u32le
   values.
 * Position `x` reads row `x ≫ (n0 − m)` of a matrix of log `m`.
@@ -214,15 +216,21 @@ The root must equal the committed root.
 ## 7. Reconciliation with the L8 proposal (`REQUESTS.md` on lane/zk-L8)
 
 **Adopted:**
-* the tag values;
-* the u8 query index;
 * the header bytes (`version`, `numTables`, `u8` heights);
-* nested `WH(LEAF, rows)` injection with bottom-up level bytes;
+* bottom-up level bytes in MMCS nodes;
 * monomial batching coefficients `∏ r^bit`;
 * selectors, fold, committed-layer rule, final layer, OOD order and
   quotient split.
 
 **Different in v1, so Rust must change:**
+* The transcript follows lane L2's extraction encoding (`zk-formal/ZkFormal/Bcs/*`
+  on lane/zk-L2). A challenge **steps the state**: `d ← WH(CHAL, d)`, and the
+  challenge is the first half. Otherwise later states would not depend on
+  the challenge, and the round-by-round analysis would break. Absorption is
+  `u8 #roots ‖ roots ‖ clear`. The tags are 0x00–0x05 (INIT, LEAF, NODE,
+  ABS, CHAL, QUERY), and the query index is le32.
+* MMCS injection inlines the rows (`… ‖ rows_k(j)`) rather than nesting
+  `WH(LEAF, rows)`.
 * `d₀` absorbs the full `pub` (length-prefixed, le64) and `cb` (le64), with
   no `pubDigest`. The header is absorbed as part of message 0 (not in `d₀`).
 * One batching vector `r` is shared by all classes, with

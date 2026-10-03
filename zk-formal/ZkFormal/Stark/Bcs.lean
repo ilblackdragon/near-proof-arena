@@ -13,8 +13,10 @@ non-interactive verifier of an `IopSpec` (DESIGN.md §4, byte format in
    then for every message slot of `V.schedule header` its parts (64-byte
    Merkle roots for oracles, canonical extension elements in the clear);
 3. run the **transcript** (hash queries): `d₀ = WH(INIT, id ‖ |pub| ‖ pub ‖
-   |cb| ‖ cb)`; a message absorbs its raw bytes, `d ← WH(ABS, d ‖ bytes)`; a
-   challenge is `decode(H(CHAL ‖ d))`; finally `numChunks` query answers
+   |cb| ‖ cb)`; a message with roots `ρ` and clear bytes `μ` is absorbed as
+   `d ← WH(ABS, d ‖ u8 |ρ| ‖ ρ ‖ μ)`; a challenge steps the state
+   `d ← WH(CHAL, d)` and is `decode(first 32 bytes of d)` (so every later
+   state depends on it — lane L2's requirement); finally `numChunks` query answers
    `H(QUERY ‖ d ‖ le32 j)` give the positions;
 4. parse and verify the **Merkle multiproofs** of every oracle at the
    positions (hash queries), collecting the opened rows;
@@ -33,12 +35,12 @@ open ArenaCore ArenaCore.Security Lean.Grind
 
 /-! ## Tags and wide hashing -/
 
-def tagInit : UInt8 := 0x01
-def tagAbs : UInt8 := 0x02
-def tagChal : UInt8 := 0x03
-def tagQuery : UInt8 := 0x04
-def tagLeaf : UInt8 := 0x05
-def tagNode : UInt8 := 0x06
+def tagInit : UInt8 := 0x00
+def tagLeaf : UInt8 := 0x01
+def tagNode : UInt8 := 0x02
+def tagAbs : UInt8 := 0x03
+def tagChal : UInt8 := 0x04
+def tagQuery : UInt8 := 0x05
 
 /-- Protocol identifier absorbed in `d₀`. -/
 def protocolId : Bytes := Bytes.ofString "np-udr-stark-v1"
@@ -114,6 +116,10 @@ inductive PSlot (K : Type) where
   | msg (parts : List (PartV K Bytes)) (raw : Bytes)
   | chal (ood : Bool)
 
+/-- The Merkle roots of a parsed message, in order. -/
+def rootsOf {K : Type} (vs : List (PartV K Bytes)) : List Bytes :=
+  vs.filterMap fun | .oracle r => some r | _ => none
+
 section Prefix
 variable {F K : Type} [Field F] [Field K] [StarkField F K] [DecidableEq F]
 
@@ -177,24 +183,37 @@ end Prefix
 section Transcript
 variable {F K : Type} [Field F] [Field K] [StarkField F K] [DecidableEq F]
 
+/-- Clear (non-root) bytes of a message: its raw bytes with the 64-byte roots
+removed, in order. -/
+def clearOf {K : Type} : List (PartV K Bytes) → Bytes → Bytes
+  | [], _ => []
+  | .oracle _ :: vs, r => clearOf vs (r.drop 64)
+  | .header l :: vs, r => r.take (8 + l.length) ++ clearOf vs (r.drop (8 + l.length))
+  | .elems xs :: vs, r => r.take (32 * xs.length) ++ clearOf vs (r.drop (32 * xs.length))
+
+/-- Absorbed body: `d ‖ u8 #roots ‖ roots ‖ clear` (lane L2's `absMsg`). -/
+def absBody (d : Bytes) (roots : List Bytes) (clear : Bytes) : Bytes :=
+  d ++ (UInt8.ofNat roots.length :: (roots.flatten ++ clear))
+
 /-- Run the hash chain over the parsed slots; returns the entries (with
 derived challenges) and the final state `d_fin`. -/
 def chain (d : Bytes) : List (PSlot K) → OracleComp hashSpec (List (Entry K Bytes) × Bytes)
   | [] => .pure ([], d)
   | .msg vs raw :: ss =>
-    OracleComp.bind (WH tagAbs (d ++ raw)) fun d' =>
+    OracleComp.bind (WH tagAbs (absBody d (rootsOf vs) (clearOf vs raw))) fun d' =>
     OracleComp.bind (chain d' ss) fun r => .pure (.msg vs :: r.1, r.2)
   | .chal ood :: ss =>
-    OracleComp.bind (H (tagChal :: d)) fun y =>
+    OracleComp.bind (WH tagChal d) fun d' =>
+    let y := d'.take 32
     let c : K := if ood then decodeOod (F := F) y else decodeChal (F := F) y
-    OracleComp.bind (chain d ss) fun r => .pure (.chal c :: r.1, r.2)
+    OracleComp.bind (chain d' ss) fun r => .pure (.chal c :: r.1, r.2)
 
-/-- The query-phase answers `H(QUERY ‖ d_fin ‖ u8 j)`, `j < n`. -/
+/-- The query-phase answers `H(QUERY ‖ d_fin ‖ le32 j)`, `j < n`. -/
 def queryAnswers (d : Bytes) : Nat → OracleComp hashSpec (List Bytes)
   | 0 => .pure []
   | n + 1 =>
     OracleComp.bind (queryAnswers d n) fun ys =>
-    OracleComp.bind (H (tagQuery :: (d ++ [UInt8.ofNat n]))) fun y => .pure (ys ++ [y])
+    OracleComp.bind (H (tagQuery :: (d ++ Bytes.leN 4 n))) fun y => .pure (ys ++ [y])
 
 end Transcript
 
@@ -255,10 +274,8 @@ def mpNode (lvl : Nat) (ws : List Nat) (x : Nat) (lft rgt : Bytes) (r : Bytes) :
   match readInj (F := F) ws r with
   | none => .pure none
   | some (rows, raw, r') =>
-    let node (inj : Bytes) : OracleComp hashSpec (Option ((Nat × Bytes) × Option (List (List F)) × Bytes)) :=
-      OracleComp.bind (WH tagNode ((UInt8.ofNat lvl :: lft) ++ rgt ++ inj)) fun hp =>
-      .pure (some ((x, hp), (if ws.isEmpty then none else some rows), r'))
-    if ws.isEmpty then node [] else OracleComp.bind (WH tagLeaf raw) node
+    OracleComp.bind (WH tagNode ((UInt8.ofNat lvl :: lft) ++ rgt ++ raw)) fun hp =>
+    .pure (some ((x, hp), (if ws.isEmpty then none else some rows), r'))
 
 /-- One level up: from the known nodes of level `k+1` (ascending) to those of
 level `k`.  For each parent: the missing sibling digest (if any), then its
