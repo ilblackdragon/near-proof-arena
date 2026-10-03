@@ -1,4 +1,4 @@
-import ReexecNpai.Spec.State
+import ReexecNpai.Spec.Walk
 
 /-!
 # Phase spec: applying the receipts
