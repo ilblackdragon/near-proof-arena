@@ -1,9 +1,0 @@
-name = "ArenaCore"
-version = "0.1.0"
-
-[leanOptions]
-autoImplicit = false
-relaxedAutoImplicit = false
-
-[[lean_lib]]
-name = "ArenaCore"

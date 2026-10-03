@@ -4,7 +4,7 @@
   "targets": [
     "near-formal"
   ],
-  "runnable": false,
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "FORMAL_SEMANTIC_SOUNDNESS"
@@ -18,5 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The manifest names `Candidate.certificate` but the Lean project defines no such constant. FORMAL_SEMANTIC_SOUNDNESS must fail with CERTIFICATE_MISSING rather than defaulting to pass."
+  "why": "candidate.toml names `ReexecWitness.certificate`, but the Lean project only defines `ReexecWitness.certificate_draft` (same honest proof). The judge must not default to PASS or search for a look-alike: FORMAL_SEMANTIC_SOUNDNESS fails with CERTIFICATE_MISSING."
 }

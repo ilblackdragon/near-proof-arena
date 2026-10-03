@@ -4,7 +4,7 @@
   "targets": [
     "near-formal"
   ],
-  "runnable": false,
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "AXIOM_AUDIT"
@@ -18,6 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The package ships its own altered copy of a trusted definition (a weakened `ArenaCore.Admits`) so the certificate type-checks against the wrong meaning. The checker pins trusted sources by tree digest and must detect the shadow.",
-  "notes": "Also ships formal/ArenaCore.lean redefining Admits := True."
+  "why": "The package ships its own copy of the trusted module NearSpec.TransferV1 (formal/NearSpec/TransferV1.lean) next to the reference proof. If the candidate's copy were loaded in place of the judge's, the relation the certificate is about could be silently weakened. Candidate modules inside judge-reserved namespaces are refused: SHADOWED_DEFINITION."
 }

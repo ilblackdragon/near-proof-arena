@@ -4,13 +4,14 @@
   "targets": [
     "near-formal"
   ],
-  "runnable": false,
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "ARTIFACT_BINDING"
   ],
   "expected_reason_codes": [
-    "ARTIFACT_BINDING_FAILED"
+    "ARTIFACT_BINDING_FAILED",
+    "THEOREM_TYPE_MISMATCH"
   ],
   "fail_by_stage": "BUILT",
   "must_never": [
@@ -18,6 +19,6 @@
     "accepted",
     "ranked"
   ],
-  "why": "The certificate certifies a PREVIOUS verifier (embedded formal digests point at an older artifact). PACKAGING kill, not semantic: the proof may be sound for the old verifier but is not bound to the artifact built now, so ARTIFACT_BINDING fails.",
-  "notes": "Classified PACKAGING: a stale-digest failure must NOT be reported as a semantic-soundness failure."
+  "why": "The verifier model gained a release tag (`Model.release := 2`), which changes the compiled verify binary, but the certificate is stated against the PREVIOUS build's binary digest (sha256:3931ac6f2c1e..., the admitted reference's verify) instead of the judge-generated statement. The proof is sound for that old artifact but not bound to the binary built now: a PACKAGING kill, reported as THEOREM_TYPE_MISMATCH on the statement and ARTIFACT_BINDING_FAILED -- never as a semantic-soundness verdict on the model.",
+  "notes": "Classified PACKAGING: the stale digest must not be reported as a semantic-soundness failure of the model."
 }

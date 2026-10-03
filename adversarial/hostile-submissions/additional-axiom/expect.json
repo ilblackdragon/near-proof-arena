@@ -4,7 +4,7 @@
   "targets": [
     "near-formal"
   ],
-  "runnable": false,
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "AXIOM_AUDIT"
@@ -18,5 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "An extra `axiom` not on the allowlist is used to close the proof. AXIOM_AUDIT walks the transitive axioms and must fail with FORBIDDEN_AXIOM."
+  "why": "The reference certificate, but verifier completeness (`check_complete`) is ASSUMED via a candidate-declared `axiom` instead of proved. The certificate still has exactly the judge's statement type, so only the axiom audit can catch it: the axiom is not on the challenge allowlist (propext, Quot.sound, Classical.choice) -> FORBIDDEN_AXIOM."
 }
