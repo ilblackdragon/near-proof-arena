@@ -14,6 +14,11 @@ import ZkFormal.Stark.Iop
 import ZkFormal.Stark.Bcs
 import ZkFormal.Stark.Protocol
 import ZkFormal.Stark.Verifier
+import ZkFormal.Stark.Instance
+import ZkFormal.Stark.Statements
+import ZkFormal.Stark.Compose
+import ZkFormal.Stark.Laws
+import ZkFormal.Stark.ParseLemmas
 import ZkFormal.Algebra.Transport
 import ZkFormal.Algebra.NatPrime
 import ZkFormal.Algebra.Fp
@@ -31,3 +36,5 @@ import ZkFormal.Algebra.RSProofs
 import ZkFormal.Algebra.Main
 -- Lane L4: AIR DSL and protocol/verifier model.
 -- Lane L1 (algebra): BabyBear, its degree-8 extension, polynomials, RS codes.
+import ZkFormal.Stark.NpBounds
+import ZkFormal.Stark.QueryBound
