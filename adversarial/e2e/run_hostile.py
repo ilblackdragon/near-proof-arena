@@ -73,8 +73,16 @@ def build_package_bytes(case_dir, expect, challenge_id):
         return out.stdout
 
     buf = io.BytesIO()
-    exclude = {"expect.json", "make-archive.sh", "archive-kind", "README.md"}
+    # The case README.md doubles as the package README (CONTRACTS §3 requires
+    # one); judge-only files are excluded.
+    exclude = {"expect.json", "make-archive.sh", "archive-kind"}
     with tarfile.open(fileobj=buf, mode="w") as tar:
+        # CONTRACTS §3 layout: dependency-locks/ must exist even when empty.
+        if not os.path.isdir(os.path.join(case_dir, "dependency-locks")):
+            ti = tarfile.TarInfo(name="dependency-locks")
+            ti.type = tarfile.DIRTYPE
+            ti.mode = 0o755
+            tar.addfile(ti)
         for root, _dirs, filenames in os.walk(case_dir):
             for fn in filenames:
                 full = os.path.join(root, fn)
@@ -169,6 +177,8 @@ class Client:
             return None, b""
 
 
+OBSERVED = {}
+
 TERMINAL = {"ADMITTED", "REJECTED", "INCONCLUSIVE", "INFRA_ERROR", "CANCELLED"}
 
 
@@ -198,6 +208,17 @@ def check_case(client, name, d, expect, challenge_id, timeout_s):
 
     decision = view.get("decision")
     gates = {g["gate"]: g for g in view.get("gates", [])}
+    OBSERVED[name] = {
+        "submission": sid,
+        "decision": decision,
+        "accepted": view.get("accepted"),
+        "failed_gates": sorted(g for g, v in gates.items() if v.get("status") == "FAIL"),
+        "unknown_gates": sorted(g for g, v in gates.items() if v.get("status") == "UNKNOWN"),
+        "reason_codes": sorted(set(view.get("reason_codes", [])) | {rc for v in gates.values() for rc in v.get("reason_codes", [])}),
+        "expected_decision": expect["expected_decision"],
+        "expected_failing_gates": expect["expected_failing_gates"],
+        "expected_reason_codes": expect["expected_reason_codes"],
+    }
     all_reasons = set(view.get("reason_codes", []))
     for g in view.get("gates", []):
         all_reasons.update(g.get("reason_codes", []))
@@ -265,6 +286,12 @@ def live_run(cases, server, token, challenge_id, timeout_s):
             ok, msgs = False, [f"{name}: driver error: {e}"]
         for m in msgs:
             print(("ok   " if ok else "FAIL ") + m)
+        if not ok and name in OBSERVED:
+            o = OBSERVED[name]
+            print(f"     observed: decision={o['decision']} failed={o['failed_gates']} "
+                  f"unknown={o['unknown_gates']} reasons={o['reason_codes']}")
+        if name in OBSERVED:
+            OBSERVED[name]["ok"] = ok
         if not ok:
             fails += 1
     print()
@@ -283,9 +310,14 @@ def main():
     ap.add_argument("--challenge", default=os.environ.get("ARENA_CHALLENGE"))
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--timeout", type=int, default=600)
+    ap.add_argument("--only", default="", help="comma-separated case names to run")
+    ap.add_argument("--report", default="", help="write per-case outcomes as JSON here")
     args = ap.parse_args()
 
     cases = load_cases()
+    if args.only:
+        want = set(args.only.split(","))
+        cases = [c for c in cases if c[0] in want]
     if not cases:
         print(f"no cases found under {SUITE}", file=sys.stderr)
         return 2
@@ -298,7 +330,11 @@ def main():
     if not args.token:
         print("live run needs --token / ARENA_TOKEN", file=sys.stderr)
         return 2
-    return live_run(cases, args.server, args.token, args.challenge, args.timeout)
+    rc = live_run(cases, args.server, args.token, args.challenge, args.timeout)
+    if args.report:
+        with open(args.report, "w") as f:
+            json.dump(OBSERVED, f, indent=1, sort_keys=True)
+    return rc
 
 
 if __name__ == "__main__":

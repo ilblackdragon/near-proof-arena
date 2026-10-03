@@ -86,6 +86,7 @@ fn formal_core_toy() {
     let policy = Policy { reserved_prefixes: vec!["ArenaCore".into()], ..Policy::default() };
 
     // (name, extra candidate file, certificate, expected data, expected status, acceptable codes)
+    #[allow(clippy::type_complexity)]
     let mut cases: Vec<(String, Option<PathBuf>, String, TemplateExpected, GateStatus, Vec<&str>)> = vec![(
         "toy_certificate".into(),
         None,
