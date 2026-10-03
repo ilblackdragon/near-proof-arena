@@ -47,6 +47,15 @@ pub struct ClosureReport {
 }
 
 #[derive(Clone, Debug, Serialize)]
+pub struct ModelReport {
+    pub decl: String,
+    pub module: String,
+    /// Digest of the model's dependency closure (name, decl hash).
+    pub closure_digest: Option<Digest>,
+    pub axioms: Vec<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
 pub struct FormalCheckReport {
     pub schema: &'static str,
     pub cache_key: Digest,
@@ -60,11 +69,23 @@ pub struct FormalCheckReport {
     pub closure: Option<ClosureReport>,
     pub evidence: Vec<EvidenceRef>,
     pub evidence_graph: EvidenceGraph,
+    /// native-lean route: the judge-built verifier executable.
+    pub native_verifier: Option<crate::native::NativeVerifierBuild>,
+    /// native-lean route: the candidate verifier model inside the statement.
+    pub model: Option<ModelReport>,
     pub warnings: Vec<String>,
     pub timings: Vec<Timing>,
 }
 
 fn gate_relevant(g: ObligationId, f: &Finding, conjunct_gates: Option<&[ObligationId]>) -> bool {
+    if g == ObligationId::ArtifactBinding {
+        // The binding of the executed verifier to the statement: fails on
+        // binding findings; undecided whenever anything is undecided.
+        return f.code == ReasonCode::ArtifactBindingFailed || f.severity == Severity::Unknown;
+    }
+    if f.scope == Scope::Binding {
+        return false;
+    }
     if g == ObligationId::AxiomAudit {
         // Conservative: if there is no valid certificate (wrong statement,
         // missing, not rechecked, ...) there is nothing whose axioms passed.
@@ -77,6 +98,7 @@ fn gate_relevant(g: ObligationId, f: &Finding, conjunct_gates: Option<&[Obligati
             Some(cg) => cg.get(i) == Some(&g),
             None => true,
         },
+        Scope::Binding => false,
     }
 }
 
@@ -109,6 +131,7 @@ pub fn assemble_gates(
             }
             let summary = match status {
                 GateStatus::Pass => match s.gate {
+                    ObligationId::ArtifactBinding => "verifier executable is the judge's build of the certified Lean model; its digest is pinned in the statement (binary↔model edge: trusted Lean compiler/runtime)".to_string(),
                     ObligationId::AxiomAudit => "certified closure uses only allowlisted axioms; no sorry/native shortcuts".to_string(),
                     _ => "certificate type equals the judge-constructed statement; kernel rechecks accepted".to_string(),
                 },
@@ -140,6 +163,8 @@ pub struct GraphInput<'a> {
     pub type_ok: bool,
     pub evidence: Vec<Digest>,
     pub toolchain_digest: Digest,
+    pub model: Option<&'a ModelReport>,
+    pub native: Option<&'a crate::native::NativeVerifierBuild>,
 }
 
 pub fn evidence_graph(g: &GraphInput) -> EvidenceGraph {
@@ -206,6 +231,60 @@ pub fn evidence_graph(g: &GraphInput) -> EvidenceGraph {
             status: if r.verdict == "accepted" { EdgeStatus::Checked } else { EdgeStatus::Missing },
             evidence: vec![],
             note: format!("{} ({})", r.verdict, r.detail.chars().take(200).collect::<String>()),
+        });
+    }
+    if let Some(m) = g.model {
+        nodes.push(EvidenceNode {
+            id: "formal:verifier_model".into(),
+            kind: NodeKind::BackendSemantics,
+            label: format!("candidate-defined verifier model {} (inside the admission statement)", m.decl),
+            digest: m.closure_digest.clone(),
+        });
+        edges.push(EvidenceEdge {
+            from: "formal:expected_statement".into(),
+            to: "formal:verifier_model".into(),
+            kind: "contains_candidate_model".into(),
+            status: if g.type_ok { EdgeStatus::Checked } else { EdgeStatus::Missing },
+            evidence: m.closure_digest.iter().cloned().collect(),
+            note: "statement instantiated at the candidate model; model closure audited (axioms, no sorry/native/partial/unsafe/extern, no shadowing)".into(),
+        });
+        edges.push(EvidenceEdge {
+            from: "formal:certificate".into(),
+            to: "formal:verifier_model".into(),
+            kind: "proves_obligations_about".into(),
+            status: if g.type_ok { EdgeStatus::Checked } else { EdgeStatus::Missing },
+            evidence: vec![],
+            note: "semantic/crypto/completeness obligations are kernel-checked about this model".into(),
+        });
+    }
+    if let Some(n) = g.native {
+        nodes.push(EvidenceNode {
+            id: "artifact:verifier_binary".into(),
+            kind: NodeKind::Artifact,
+            label: format!("judge-built native verify ({})", n.toolchain_id),
+            digest: Some(n.digest.clone()),
+        });
+        nodes.push(EvidenceNode {
+            id: "tcb:lean_compiler_runtime".into(),
+            kind: NodeKind::TcbComponent,
+            label: format!("Lean compiler + runtime {}", n.lean_toolchain),
+            digest: Some(g.toolchain_digest.clone()),
+        });
+        edges.push(EvidenceEdge {
+            from: "artifact:verifier_binary".into(),
+            to: "formal:verifier_model".into(),
+            kind: "implements".into(),
+            status: EdgeStatus::Trusted,
+            evidence: vec![n.digest.clone()],
+            note: "compiled by the judge from the model with the governed Lean compiler; NOT a checked edge".into(),
+        });
+        edges.push(EvidenceEdge {
+            from: "artifact:verifier_binary".into(),
+            to: "tcb:lean_compiler_runtime".into(),
+            kind: "built_from".into(),
+            status: EdgeStatus::Trusted,
+            evidence: vec![g.toolchain_digest.clone()],
+            note: "trusted-base entry".into(),
         });
     }
     EvidenceGraph { nodes, edges }

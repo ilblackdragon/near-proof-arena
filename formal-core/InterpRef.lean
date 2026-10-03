@@ -13,6 +13,11 @@ arena-interp-ref run --code F --public F --claim F --proof F --fuel N
     exit 0 = accept, 1 = reject, 2 = trap / out_of_fuel / decode_error
 arena-interp-ref vectors OUT.json
     writes the built-in vector suite with expected results
+arena-interp-ref batch IN OUT
+    IN: one case per line, `code,public,claim,proof,fuel` (hex fields, may be
+    empty; fuel decimal).  OUT: one JSON line per case, same format as `run`
+    (or {"outcome":"bad_line"} for an unparsable line).  Used to amortise
+    process start-up in large differential-testing campaigns.
 ```
 -/
 
@@ -46,8 +51,42 @@ partial def getArg (args : List String) (key : String) : Option String :=
   | k :: v :: rest => if k == key then some v else getArg (v :: rest) key
   | _ => none
 
+/-- Hex decoder for batch lines (tail-recursive, so long tapes do not
+exhaust the stack). -/
+def hexVal (c : Char) : Option UInt8 :=
+  if '0' ≤ c ∧ c ≤ '9' then some (UInt8.ofNat (c.toNat - 48))
+  else if 'a' ≤ c ∧ c ≤ 'f' then some (UInt8.ofNat (c.toNat - 87))
+  else if 'A' ≤ c ∧ c ≤ 'F' then some (UInt8.ofNat (c.toNat - 55))
+  else none
+
+def parseHex (s : String) : Option Bytes := Id.run do
+  let cs := s.toList.toArray
+  if cs.size % 2 != 0 then return none
+  let mut out : ByteArray := ByteArray.emptyWithCapacity (cs.size / 2)
+  for i in [0:cs.size/2] do
+    match hexVal cs[2*i]!, hexVal cs[2*i+1]! with
+    | some x, some y => out := out.push (16 * x + y)
+    | _, _ => return none
+  return some out.toList
+
+def batchLine (line : String) : String :=
+  match line.trimAscii.toString.splitOn "," with
+  | [c, p, cl, pr, f] =>
+    match parseHex c, parseHex p, parseHex cl, parseHex pr, f.toNat? with
+    | some image, some pub, some claim, some proof, some fuel =>
+      expectJson (expect { name := "batch", image, pub, claim, proof, fuel })
+    | _, _, _, _, _ => "{\"outcome\":\"bad_line\"}"
+  | _ => "{\"outcome\":\"bad_line\"}"
+
 def main (args : List String) : IO UInt32 := do
   match args with
+  | "batch" :: inp :: out :: _ =>
+    let lines ← IO.FS.lines inp
+    IO.FS.withFile out .write fun h => do
+      for l in lines do
+        if l.trimAscii.toString.isEmpty then continue
+        h.putStrLn (batchLine l)
+    return 0
   | "vectors" :: out :: _ =>
     let body := ",\n".intercalate (cases.map caseJson)
     IO.FS.writeFile out ("{\"format\":\"npai-v1-vectors\",\"cases\":[\n" ++ body ++ "\n]}\n")
@@ -69,5 +108,5 @@ def main (args : List String) : IO UInt32 := do
       | .ran .reject .. => 1
       | _ => 2
   | _ =>
-    IO.eprintln "usage: arena-interp-ref (run --code F --public F --claim F --proof F --fuel N | vectors OUT.json)"
+    IO.eprintln "usage: arena-interp-ref (run --code F --public F --claim F --proof F --fuel N | vectors OUT.json | batch IN OUT)"
     return 2

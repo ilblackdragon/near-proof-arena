@@ -82,6 +82,64 @@ pub struct LeanAudit {
     pub closure_missing: Vec<String>,
     pub untrusted_in_statement: Vec<String>,
     pub flagged: Vec<LeanFlagged>,
+    // native-lean route
+    pub model_found: Option<bool>,
+    pub model_kind: Option<String>,
+    pub model_module: Option<String>,
+    pub model_origin: Option<String>,
+    pub model_axioms: Vec<String>,
+    pub model_closure: Vec<LeanClosureEntry>,
+}
+
+/// Findings about the candidate verifier model spliced into the statement
+/// (native-lean route). The model is untrusted code inside a judge statement,
+/// so its whole dependency closure is held to the certificate's standard.
+pub fn lean_model_findings(
+    a: &LeanAudit,
+    model_decl: &str,
+    model_module: &str,
+    allowlist: &[String],
+    trusted_axioms: &BTreeSet<String>,
+) -> Vec<Finding> {
+    let mut f = Vec::new();
+    if !a.import_ok || a.fatal.is_some() {
+        return f;
+    }
+    if a.model_found != Some(true) {
+        f.push(Finding::new(ReasonCode::ArtifactBindingFailed, Scope::All, format!("verifier model {model_decl} not found")));
+        return f;
+    }
+    if a.model_origin.as_deref() != Some("candidate") || a.model_module.as_deref() != Some(model_module) {
+        f.push(Finding::new(
+            ReasonCode::ArtifactBindingFailed,
+            Scope::All,
+            format!("verifier model {model_decl} must be declared in candidate module {model_module} (found in {:?}, origin {:?})", a.model_module, a.model_origin),
+        ));
+    }
+    if a.model_kind.as_deref() != Some("def") {
+        f.push(Finding::new(
+            ReasonCode::UnapprovedAssumption,
+            Scope::All,
+            format!("verifier model {model_decl} is a {:?}, not a definition (its behaviour would be unknown to the proof)", a.model_kind),
+        ));
+    }
+    for ax in &a.model_axioms {
+        if let Some(code) = classify_axiom(ax, allowlist, trusted_axioms) {
+            f.push(Finding::new(code, Scope::All, format!("verifier model depends on axiom {ax}")));
+        }
+    }
+    for c in &a.model_closure {
+        if c.origin == "candidate" && (c.is_partial || c.kind == "opaque") {
+            f.push(Finding::new(ReasonCode::UnapprovedAssumption, Scope::All, format!("verifier model uses candidate {} `{}` (opaque/partial)", c.kind, c.name)));
+        }
+        if c.is_unsafe {
+            f.push(Finding::new(ReasonCode::NativeEvalFound, Scope::All, format!("verifier model uses unsafe `{}`", c.name)));
+        }
+        if c.origin == "trusted" && c.name == model_decl {
+            f.push(Finding::new(ReasonCode::ShadowedDefinition, Scope::All, format!("verifier model {model_decl} resolves to a trusted declaration")));
+        }
+    }
+    f
 }
 
 fn is_partial_aux(f: &LeanFlagged) -> bool {
@@ -209,6 +267,9 @@ pub struct NdAudit {
     /// Per-conjunct axiom sets when the proof term is an `And.intro` chain.
     pub conjunct_axioms: Option<Vec<BTreeSet<String>>>,
     pub trusted_axioms: BTreeSet<String>,
+    pub model_found: bool,
+    pub model_axioms: BTreeSet<String>,
+    pub model_closure_digest: Option<Digest>,
 }
 
 fn axioms_in(ex: &Export, names: &BTreeSet<String>) -> BTreeSet<String> {
@@ -219,7 +280,21 @@ fn axioms_in(ex: &Export, names: &BTreeSet<String>) -> BTreeSet<String> {
         .collect()
 }
 
-pub fn nd_audit(cand: &Export, reference: &Export, certificate: &str, expected_decl: &str, n_conjuncts: usize) -> NdAudit {
+/// native-lean route parameters for the NDJSON audit.
+#[derive(Clone, Copy, Debug)]
+pub struct NdModel<'a> {
+    pub model_decl: &'a str,
+    pub inst_decl: &'a str,
+}
+
+pub fn nd_audit(
+    cand: &Export,
+    reference: &Export,
+    certificate: &str,
+    expected_decl: &str,
+    n_conjuncts: usize,
+    model: Option<NdModel>,
+) -> NdAudit {
     let mut a = NdAudit {
         trusted_axioms: reference
             .decls
@@ -247,7 +322,28 @@ pub fn nd_audit(cand: &Export, reference: &Export, certificate: &str, expected_d
     let Some(exp) = reference.decls.get(expected_decl) else { return a };
     let Some(exp_val) = exp.value else { return a };
     // (a) syntactic equality after positional renaming of universe params.
-    if cert.level_params.len() == exp.level_params.len() {
+    if let Some(m) = model {
+        // Statement = (expected lambda) applied to the model constant: accept
+        // the beta-reduced form, the literal application, or the judge's
+        // instantiation constant whose value is that application.
+        let repl = crate::ndjson::const_hash(m.model_decl);
+        let inst_hash = reference.lambda_body_instantiated(exp_val, &repl);
+        let is_applied = |ex: &Export, e: u32| ex.as_app_of_consts(e) == Some((expected_decl.to_string(), m.model_decl.to_string()));
+        let direct = cert.level_params.is_empty()
+            && exp.level_params.is_empty()
+            && (Some(cand.expr_hash(cert.ty, None)) == inst_hash || is_applied(cand, cert.ty));
+        let via_inst = cert.level_params.is_empty()
+            && cand.const_head(cert.ty).is_some_and(|(n, us)| n == m.inst_decl && us.is_empty())
+            && cand.decls.get(m.inst_decl).is_some_and(|d| d.kind == DeclKind::Def && d.level_params.is_empty() && d.value.is_some_and(|v| is_applied(cand, v)));
+        a.type_equal = direct || via_inst;
+        a.type_via_expected_const = via_inst || (direct && is_applied(cand, cert.ty));
+        let (mclo, _) = cand.closure([m.model_decl.to_string()]);
+        a.model_found = cand.decls.contains_key(m.model_decl);
+        a.model_axioms = axioms_in(cand, &mclo);
+        a.model_closure_digest = Some(json_digest(
+            &mclo.iter().map(|n| (n.clone(), hex(&cand.decl_hash(&cand.decls[n])))).collect::<Vec<_>>(),
+        ));
+    } else if cert.level_params.len() == exp.level_params.len() {
         let subst: HashMap<String, String> =
             cert.level_params.iter().cloned().zip(exp.level_params.iter().cloned()).collect();
         let ct = cand.expr_hash(cert.ty, Some(&subst));
@@ -269,6 +365,7 @@ pub fn nd_audit(cand: &Export, reference: &Export, certificate: &str, expected_d
     // Statement closure in the reference must be present in the candidate export.
     let mut stmt_consts = BTreeSet::new();
     reference.consts_in(exp_val, &mut Default::default(), &mut stmt_consts);
+    stmt_consts.remove(expected_decl);
     let (stmt_closure, _) = reference.closure(stmt_consts);
     if a.type_equal {
         a.missing_trusted = stmt_closure.iter().filter(|n| !cand.decls.contains_key(*n)).cloned().collect();
@@ -322,6 +419,11 @@ pub fn nd_audit(cand: &Export, reference: &Export, certificate: &str, expected_d
 
 pub fn nd_findings(a: &NdAudit, allowlist: &[String]) -> Vec<Finding> {
     let mut f = Vec::new();
+    for ax in &a.model_axioms {
+        if let Some(code) = classify_axiom(ax, allowlist, &a.trusted_axioms) {
+            f.push(Finding::new(code, Scope::All, format!("verifier model depends on axiom {ax}")));
+        }
+    }
     if !a.shadowed.is_empty() {
         f.push(Finding::new(
             ReasonCode::ShadowedDefinition,
@@ -448,23 +550,23 @@ mod tests {
         let reference = write(&d, "ref.ndjson", &[DEF_P, DEF_EXP, AX_PROPEXT]);
         // certificate : P (value irrelevant here; kernel checking is nanoda's job)
         let good = write(&d, "good.ndjson", &[DEF_P, r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":4}}"#]);
-        let a = nd_audit(&good, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1);
+        let a = nd_audit(&good, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1, None);
         assert!(a.certificate_found && a.type_equal && a.shadowed.is_empty() && a.missing_trusted.is_empty(), "{a:?}");
         assert!(nd_findings(&a, &["propext".into()]).is_empty());
 
         // Same name `P`, different body: statement matches by name but P is shadowed.
         let shadow = write(&d, "shadow.ndjson", &[DEF_P_ALTERED, r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":4}}"#]);
-        let a = nd_audit(&shadow, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1);
+        let a = nd_audit(&shadow, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1, None);
         assert_eq!(a.shadowed, vec!["P".to_string()]);
         assert!(nd_findings(&a, &[]).iter().any(|f| f.code == ReasonCode::ShadowedDefinition));
 
         // Wrong type (Prop instead of P).
         let wrong = write(&d, "wrong.ndjson", &[DEF_P, r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":0,"value":4}}"#]);
-        let a = nd_audit(&wrong, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1);
+        let a = nd_audit(&wrong, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1, None);
         assert!(!a.type_equal);
 
         // Missing certificate.
-        let a = nd_audit(&good, &reference, "Candidate.nope", "ArenaExpected.expectedType", 1);
+        let a = nd_audit(&good, &reference, "Candidate.nope", "ArenaExpected.expectedType", 1, None);
         assert!(nd_findings(&a, &[]).iter().any(|f| f.code == ReasonCode::CertificateMissing));
 
         // Axiom in the closure: candidate-declared axiom used by the certificate.
@@ -474,7 +576,7 @@ mod tests {
             r#"{"const":{"name":9,"us":[]},"ie":6}"#,
             r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":6}}"#,
         ]);
-        let a = nd_audit(&ax, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1);
+        let a = nd_audit(&ax, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1, None);
         assert!(a.type_equal);
         assert_eq!(a.axioms.iter().cloned().collect::<Vec<_>>(), vec!["cheat".to_string()]);
         assert!(nd_findings(&a, &["propext".into()]).iter().any(|f| f.code == ReasonCode::ForbiddenAxiom));

@@ -67,6 +67,7 @@ fn near_transfer_expected_reference_build() {
             limits: Limits::default(),
             work_dir: root.join(name).join("work"),
             cache_dir: root.join("cache"),
+            route: Default::default(),
         };
         let rep = checker.check(&req);
         let codes: Vec<String> = rep
@@ -77,6 +78,54 @@ fn near_transfer_expected_reference_build() {
         eprintln!("{name}: {:?} {codes:?}", rep.gates.iter().map(|g| g.status).collect::<Vec<_>>());
         if !rep.gates.iter().any(|g| g.status == GateStatus::Fail) || !codes.iter().any(|c| c == code) {
             failures.push(format!("{name}: {codes:?} findings {:?}", rep.findings.iter().map(|f| f.detail.lines().next().unwrap_or("").to_string()).collect::<Vec<_>>()));
+        }
+    }
+    // native-lean route: the NEAR native template elaborates with a candidate
+    // model spliced in and the judge's own build digest (a sorry certificate
+    // must be reported as SORRY_FOUND, never INFRA_ERROR).
+    {
+        let exp_native = cfg
+            .expected_native_lean(&clean, &ExpectedInputs {
+                profile: &profile,
+                verify_fuel: 1 << 30,
+                max_proof_bytes: 8 << 20,
+                max_reduction_fuel: 1 << 30,
+                public_digest_hex: "ab".repeat(32),
+                verifier_digest_hex: String::new(),
+            })
+            .unwrap();
+        let formal = root.join("native_sorry").join("formal");
+        std::fs::create_dir_all(formal.join("Candidate")).unwrap();
+        std::fs::write(
+            formal.join("Candidate/Model.lean"),
+            "import ArenaCore.Verifier\n\ndef Candidate.Model.verify : ArenaCore.OracleVerifier :=\n  ArenaCore.interpOracleVerifier [] 0\n",
+        )
+        .unwrap();
+        std::fs::write(
+            formal.join("Candidate.lean"),
+            "import ArenaExpectedInst\ntheorem Candidate.certificate : ArenaExpectedInst.expectedType := sorry\n",
+        )
+        .unwrap();
+        let rep = checker.check(&CheckRequest {
+            formal_dir: formal,
+            certificate: "Candidate.certificate".into(),
+            trusted: cfg.trusted_packages(&clean),
+            expected: &exp_native,
+            challenge_digest: None,
+            policy: policy.clone(),
+            limits: Limits::default(),
+            work_dir: root.join("native_sorry").join("work"),
+            cache_dir: root.join("cache"),
+            route: native::VerifierRoute::NativeLean(native::NativeLeanRoute::new("Candidate.Model.verify", "Candidate.Model")),
+        });
+        let codes: Vec<String> = rep
+            .gates
+            .iter()
+            .flat_map(|g| g.reason_codes.iter().map(|c| serde_json::to_value(c).unwrap().as_str().unwrap().to_string()))
+            .collect();
+        eprintln!("native_sorry: {:?} {codes:?} binary={:?}", rep.gates.iter().map(|g| g.status).collect::<Vec<_>>(), rep.native_verifier.as_ref().map(|n| n.digest.to_string()));
+        if rep.native_verifier.is_none() || !codes.iter().any(|c| c == "SORRY_FOUND") || codes.iter().any(|c| c == "INFRA_ERROR") {
+            failures.push(format!("native_sorry: {codes:?} findings {:?}", rep.findings.iter().map(|f| f.detail.lines().next().unwrap_or("").to_string()).collect::<Vec<_>>()));
         }
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));

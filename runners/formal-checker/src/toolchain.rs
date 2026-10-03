@@ -17,6 +17,33 @@ pub const LEAN_TOOLCHAIN: &str = include_str!("../lean-toolchain");
 /// Pinned helper tool revisions (see `tools.toml`).
 pub const TOOLS_TOML: &str = include_str!("../tools.toml");
 
+/// Files whose content determines the helper-tool build (keep in sync with
+/// `TOOLS_KEY_FILES` in `scripts/setup-tools.sh`), embedded at compile time.
+pub const TOOLS_KEY_FILES: &[(&str, &str)] = &[
+    ("lean-toolchain", include_str!("../lean-toolchain")),
+    ("tools.toml", include_str!("../tools.toml")),
+    ("scripts/setup-tools.sh", include_str!("../scripts/setup-tools.sh")),
+    ("lean/ArenaAudit/lakefile.toml", include_str!("../lean/ArenaAudit/lakefile.toml")),
+    ("lean/ArenaAudit/lake-manifest.json", include_str!("../lean/ArenaAudit/lake-manifest.json")),
+    ("lean/ArenaAudit/Main.lean", include_str!("../lean/ArenaAudit/Main.lean")),
+    ("lean/ArenaAudit/ArenaAudit.lean", include_str!("../lean/ArenaAudit/ArenaAudit.lean")),
+    ("lean/ArenaAudit/ArenaAudit/Audit.lean", include_str!("../lean/ArenaAudit/ArenaAudit/Audit.lean")),
+];
+
+/// Content address of the helper tools this checker source expects
+/// (16 hex chars; same algorithm as setup-tools.sh).
+pub fn tools_key() -> String {
+    use sha2::Digest as _;
+    let mut listing = String::new();
+    for (path, content) in TOOLS_KEY_FILES {
+        listing.push_str(path);
+        listing.push('\n');
+        listing.push_str(&hex::encode(sha2::Sha256::digest(content.as_bytes())));
+        listing.push('\n');
+    }
+    hex::encode(sha2::Sha256::digest(listing.as_bytes()))[..16].to_string()
+}
+
 pub fn lean_toolchain() -> &'static str {
     LEAN_TOOLCHAIN.trim()
 }
@@ -42,6 +69,8 @@ pub struct ToolPaths {
 pub enum ToolError {
     #[error("tool missing: {0} (run runners/formal-checker/scripts/setup-tools.sh)")]
     Missing(String),
+    #[error("helper tool mismatch: {0} (run runners/formal-checker/scripts/setup-tools.sh for this checkout)")]
+    Mismatch(String),
     #[error("io: {0}")]
     Io(#[from] std::io::Error),
 }
@@ -66,7 +95,8 @@ impl ToolPaths {
     /// Discover tools: env overrides `ARENA_LEAN_SYSROOT`, `ARENA_LEAN4EXPORT`,
     /// `ARENA_NANODA`, `ARENA_AUDIT_BIN`; otherwise the layout produced by setup-tools.sh.
     pub fn discover() -> Result<Self, ToolError> {
-        let home = fc_home().join(elan_dir_name(lean_toolchain()));
+        let key = tools_key();
+        let home = fc_home().join(elan_dir_name(lean_toolchain())).join(&key);
         let env_or = |k: &str, d: PathBuf| std::env::var(k).map(PathBuf::from).unwrap_or(d);
         let lean_sysroot = env_or(
             "ARENA_LEAN_SYSROOT",
@@ -85,6 +115,16 @@ impl ToolPaths {
             if !p.is_file() {
                 return Err(ToolError::Missing(format!("{name} at {}", p.display())));
             }
+        }
+        // Never run a helper built from different sources: the key baked into
+        // arena-audit at build time must equal this checker's key.
+        let out = std::process::Command::new(&arena_audit).arg("version").output()?;
+        let baked = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        if !out.status.success() || baked != key {
+            return Err(ToolError::Mismatch(format!(
+                "arena-audit at {} reports tools key {baked:?}, this checker expects {key}",
+                arena_audit.display()
+            )));
         }
         Ok(ToolPaths {
             lean_sysroot,
@@ -108,6 +148,7 @@ impl ToolPaths {
     pub fn image_digest(&self) -> Result<Digest, ToolError> {
         let mut parts = vec![
             ("toolchain".to_string(), lean_toolchain().to_string()),
+            ("tools_key".to_string(), tools_key()),
             ("tools.toml".to_string(), Digest::of_bytes(TOOLS_TOML.as_bytes()).to_string()),
         ];
         let mut add = |label: &str, p: &Path| -> Result<(), ToolError> {
@@ -125,5 +166,50 @@ impl ToolPaths {
             add("lean4lean", n)?;
         }
         Ok(arena_types::sha256_digest(&parts).expect("no floats"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The Rust key must equal the one setup-tools.sh computes (same file list).
+    #[test]
+    fn tools_key_matches_setup_script() {
+        let here = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let script = std::fs::read_to_string(here.join("scripts/setup-tools.sh")).unwrap();
+        let files_line = script.lines().find(|l| l.starts_with("TOOLS_KEY_FILES=")).unwrap();
+        let files: Vec<&str> = files_line.trim_start_matches("TOOLS_KEY_FILES=").trim_matches('"').split_whitespace().collect();
+        assert_eq!(files, TOOLS_KEY_FILES.iter().map(|(p, _)| *p).collect::<Vec<_>>(), "file lists out of sync");
+        let out = std::process::Command::new("bash")
+            .current_dir(here)
+            .arg("-c")
+            .arg(format!(
+                "for f in {}; do printf '%s\\n%s\\n' \"$f\" \"$(sha256sum < \"$f\" | cut -c1-64)\"; done | sha256sum | cut -c1-16",
+                files.join(" ")
+            ))
+            .output()
+            .unwrap();
+        assert_eq!(String::from_utf8(out.stdout).unwrap().trim(), tools_key());
+    }
+
+    /// A helper from another checker revision is an explicit error, never used.
+    #[test]
+    fn mismatched_arena_audit_is_rejected() {
+        let dir = std::env::temp_dir().join(format!("fc-mismatch-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let fake = dir.join("arena-audit");
+        std::fs::write(&fake, "#!/bin/sh\necho 0000000000000000\n").unwrap();
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&fake, std::fs::Permissions::from_mode(0o755)).unwrap();
+        // Only meaningful where the toolchain and other tools are installed.
+        let Ok(real) = ToolPaths::discover() else { return };
+        let mut paths = real.clone();
+        paths.arena_audit = fake.clone();
+        std::env::set_var("ARENA_AUDIT_BIN", &fake);
+        let r = ToolPaths::discover();
+        std::env::remove_var("ARENA_AUDIT_BIN");
+        assert!(matches!(r, Err(ToolError::Mismatch(_))), "{r:?}");
+        let _ = paths;
     }
 }

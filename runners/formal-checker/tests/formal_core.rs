@@ -146,6 +146,7 @@ fn formal_core_toy() {
             limits: Limits::default(),
             work_dir: root.join(name).join("work"),
             cache_dir: cache.clone(),
+            route: Default::default(),
         };
         let t = Instant::now();
         let rep = checker.check(&req);

@@ -4,6 +4,24 @@
  * Do not edit by hand; run `pnpm gen:types`.
  */
 
+/**
+ * Formal admission-statement parameters (v1.2, additive; absent ⇒ not serialized, so existing challenge ids are unchanged).
+ */
+export type FormalParams = {
+  /**
+   * Honest proof-size bound used by `VerifierComplete` (`ChallengeParams.maxProofBytes`); must equal `resource_limits.max_proof_bytes`.
+   */
+  max_proof_bytes: number;
+  /**
+   * Fuel cap of an explicit standard-model security reduction (`ChallengeParams.maxReductionFuel`).
+   */
+  max_reduction_fuel: number;
+  /**
+   * NPAI fuel given to the approved interpreter for one `verify` call (`ChallengeParams.verifyFuel`).
+   */
+  verify_fuel: number;
+} | null;
+
 export interface ArenaApiTypes {
   StoredChallenge?: StoredChallenge;
   EventPayload?: EventPayload;
@@ -32,6 +50,7 @@ export interface ChallengeDefinition {
   chain_id: string;
   claim_encoding: ClaimEncoding;
   created_at: string;
+  formal_params?: FormalParams;
   hardware_profile: HardwareProfile;
   measurement: MeasurementProcedure;
   name: string;

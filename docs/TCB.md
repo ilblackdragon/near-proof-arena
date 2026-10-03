@@ -22,7 +22,7 @@ detail / not built).
 | 5 | **NEAR spec definitions** (`spec/lean`, `NearRelation`, claim encoding) | That they describe nearcore's behaviour on the challenge scope | `formal_spec.tree_digest`, `spec_doc_digest`, `claim_encoding.spec_digest` | challenge | planned (spec lane) |
 | 6 | **Assumption set** (`security/assumptions/*.json` + their Lean declarations) | That SHA-256 collision resistance holds at the stated concrete bound; that the ROM is an acceptable heuristic for Fiat–Shamir at the stated query budget | file digests (git) + `lean_decl_digest` = `null` today | `security/`, embedded profile in challenge | partially pinned (decl digests TBD) |
 | 7 | **Security profiles** (`security/profiles/*.json`) | Parameters (128 bits, 2^64 hash queries, …) chosen sensibly | embedded verbatim in each challenge, checked by `arena-admin` | challenge | pinned |
-| 8 | **Bytecode interpreter** for the conservative verifier route, and its formal model | That executing the candidate's verifier bytecode means exactly what the Lean model of the interpreter says | `TBD` | challenge (future field) | aspirational |
+| 8 | **Bytecode interpreter** (`runners/npai`: `arena-npai` `interp.rs` + `npai-verify`) for the conservative verifier route, and its formal model `formal-core/ArenaCore/Interp.lean` | That executing the candidate's verifier bytecode means exactly what `ArenaCore.Interp.interpVerify` says. Evidence: differential testing against the compiled Lean definition (vectors + ~1.2M generated cases, 0 disagreements) — **tested, not checked**; see `runners/npai/README.md` | `npai-verify` binary digest `TBD` (worker image) | deployment manifest | planned (implemented, tested) |
 | 9 | **Compilers** for the native verifier route (rustc/LLVM or a verified compiler, plus any translation validator) | That native code implements the formal verifier | rustc `TBD`, validator `TBD` | challenge (future field) | aspirational |
 | 10 | **Sandbox / hypervisor** (Firecracker + KVM + host kernel; `bwrap-dev` for dev only) | Isolation of untrusted code; no network; resource limits | Firecracker version `TBD`, rootfs digest `TBD`, host kernel `TBD` | deployment manifest | planned (runners-vm) |
 | 11 | **Oracle nearcore build** | Computing `expected_claim(request)` and conformance outputs | nearcore repo + tag + **full commit** (e.g. `2.13.4` = `44f7ae6cd7ef08bab604e20a473bf77e35d4c993`), oracle binary digest `TBD`, `runtime_config_digest` | challenge (`nearcore`, `runtime_config_digest`) + oracle image | pinned (commit) / planned (binary) |
@@ -62,7 +62,10 @@ detail / not built).
 1. Two independent recheckers, one not sharing code with the Lean C++
    kernel (e.g. `nanoda`/`lean4lean`) — planned.
 2. Conservative verifier route via a small, formally specified bytecode
-   interpreter, so no compiler is trusted — aspirational.
+   interpreter, so no compiler is trusted — implemented (`runners/npai`),
+   interpreter↔Lean agreement is *tested*; making it *checked* needs an
+   extraction + equivalence proof or a proved-equivalent fast Lean
+   interpreter (see `runners/npai/README.md`).
 3. Per-worker signed gate results and random independent re-execution —
    aspirational.
 4. M-of-N governance signatures (threshold or multi-sig) — aspirational;
