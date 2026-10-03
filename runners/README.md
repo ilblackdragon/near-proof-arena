@@ -255,7 +255,12 @@ formal obligations re-checked. Results: `docs/e2e-results/milestone-d/`.
   signed challenge. `tests/e2e/milestone-d.sh` signs an e2e-local successor
   re-pinned to the image (local operator key); the real fix is a governance
   re-pin to the lean-checker image's identity.
-* The server ignores `supersedes` (left to the challenge-v2 lane).
+* `supersedes`: after the merge, main's server closes superseded challenges
+  (`challenge_closed`). The e2e scripts now target the NEAR head
+  `chl_f7eb…` (v1.1, pinned baselines). `tests/e2e/milestone-d.sh` now
+  supersedes `chl_f7eb…` instead of `chl_5ef2…` and has NOT been re-run
+  since that change. `docs/e2e-results/milestone-d/` is the pre-merge run
+  against `chl_5ef2…`.
 * Builds run on both backends;
   production (non-demo) backends require a pinned toolchain image
   (`ARENA_BUILD_TOOLCHAIN_IMAGE` + `ARENA_IMAGES_DIR`, see
