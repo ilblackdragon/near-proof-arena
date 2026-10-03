@@ -416,7 +416,12 @@ impl Mutator for SwappedSiblings {
         }
         let (a, b) = (&nodes[0], &nodes[1]);
         let (first, second) = if a.offset <= b.offset { (a, b) } else { (b, a) };
-        if first.offset + first.len > honest.len() || second.offset + second.len > honest.len() {
+        // Hints are untrusted input: overlapping (e.g. nested parent/child)
+        // regions cannot be swapped.
+        if first.offset + first.len > honest.len()
+            || second.offset + second.len > honest.len()
+            || first.offset + first.len > second.offset
+        {
             return vec![];
         }
         let mut out = honest[..first.offset].to_vec();
