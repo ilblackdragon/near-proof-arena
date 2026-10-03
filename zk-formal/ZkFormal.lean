@@ -12,3 +12,8 @@ import ZkFormal.Algebra.NatPrime
 import ZkFormal.Algebra.Fp
 import ZkFormal.Algebra.QuadExt
 import ZkFormal.Algebra.Fp8
+import ZkFormal.Algebra.Poly
+import ZkFormal.Algebra.RS
+import ZkFormal.Algebra.Decode
+import ZkFormal.Algebra.Statements
+import ZkFormal.Algebra.Compose
