@@ -410,7 +410,7 @@ pub fn run(mut req: Request, state: &BTreeMap<Vec<u8>, Vec<u8>>) -> Executed {
     let witness_values: Vec<Vec<u8>> = values.iter().map(|v| v.to_vec()).collect();
 
     let trie = tries.get_trie_for_shard(shard_uid, pre_root).recording_reads_new_recorder();
-    let t0 = std::time::Instant::now();
+    // (no wall-clock timings in diagnostics: v2 fixtures are byte-reproducible)
     let res = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         Runtime::new().apply(
             trie,
@@ -422,14 +422,13 @@ pub fn run(mut req: Request, state: &BTreeMap<Vec<u8>, Vec<u8>>) -> Executed {
             Default::default(),
         )
     }));
-    let apply_ns = t0.elapsed().as_nanos() as u64;
     let result = match res {
         Err(_) => {
-            let j = json!({"apply": "panicked", "apply_ns": apply_ns});
+            let j = json!({"apply": "panicked"});
             return fail(req, witness_values, j, "Runtime::apply panicked".into());
         }
         Ok(Err(e)) => {
-            let j = json!({"apply": "error", "error": format!("{e:?}"), "apply_ns": apply_ns});
+            let j = json!({"apply": "error", "error": format!("{e:?}")});
             return fail(req, witness_values, j, format!("Runtime::apply error: {e:?}"));
         }
         Ok(Ok(r)) => r,
@@ -560,7 +559,6 @@ pub fn run(mut req: Request, state: &BTreeMap<Vec<u8>, Vec<u8>>) -> Executed {
     };
     let nearcore = json!({
         "apply": "ok",
-        "apply_ns": apply_ns,
         "post_state_root": h(&result.state_root),
         "decomposition_ok": decomposition_ok,
         "witness_only_post_root_ok": witness_root == Some(result.state_root),

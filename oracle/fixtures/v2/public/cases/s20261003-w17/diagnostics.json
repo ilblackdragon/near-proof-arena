@@ -1,0 +1,82 @@
+{
+  "case_id": "s20261003-w17",
+  "claim": {
+    "block_gas_price": "500000000",
+    "block_height": 129187,
+    "chain_id": "mainnet",
+    "congestion": {
+      "allowed_shard": 0,
+      "buffered_receipts_gas": "0",
+      "delayed_receipts_gas": "0",
+      "missed_chunks_count": 0,
+      "receipt_bytes": 0
+    },
+    "gas_burnt_total": 446365125000,
+    "gas_limit": 1000000000000000,
+    "outcome_root": "060f190f11e76dff6e59df38a0a1d7c5f443c06fbc37ac84ea52aaba5ebefb09",
+    "post_state_root": "3e85562d91cdab70d67abb6161b3debdd533e3f914137f123ac6f156b7cd6ce1",
+    "pre_state_root": "091ec31d92d035be5bca6467db7da67b2bcfc5eb91c1b839ccc72dfd939f827d",
+    "protocol_version": 86,
+    "receipt_count": 2,
+    "receipts_commitment": "b9760d663e8e1990843fe00e7ff441b31339dee61287549da79f0bbbb78b2745",
+    "refund_count": 2,
+    "refund_receipts_commitment": "299c78024d42b2cebdf9acb1a139bb216c4409826bc7bcc767185bdfd9717a64",
+    "shard_id": 0,
+    "tokens_burnt_total": "223182562500000000000"
+  },
+  "consistent": true,
+  "digests": {
+    "claim.bin": "sha256:f967db7a54cfa9ddae8751397e17294a0ad55e5b3b4cff77e6c99ecec858bc5a",
+    "request.bin": "sha256:49363df06ed6184c93b9a9a58e7222d6e7c558601f33a348eb79e75f671ae034",
+    "witness.bin": "sha256:8328fa053d95fc3aa943ff2632279e963921b08c7b7411912541ac7bd67861d3"
+  },
+  "domain_reason": null,
+  "expected_in_domain": true,
+  "generator": {
+    "index": 17,
+    "invalid_kind": null,
+    "profile": "trie_shapes",
+    "seed": 20261003
+  },
+  "in_domain": true,
+  "nearcore": {
+    "apply": "ok",
+    "bandwidth_state_after": "000100000000000000000000000000000000000000802343000000000013129a8a8123ccfcc8e9ca274735ccc3702cc79dd81cdc4fc1c31ef087355bfd",
+    "bandwidth_state_after_decoded": {
+      "link_allowances": [
+        [
+          "0",
+          "0",
+          4400000
+        ]
+      ],
+      "sanity_check_hash": "13129a8a8123ccfcc8e9ca274735ccc3702cc79dd81cdc4fc1c31ef087355bfd"
+    },
+    "bandwidth_state_before": "000100000000000000000000000000000000000000bbdd070000000000fdb0f534be5e09b401eb9e4081bed0fe02636ef59bae8516147767f7f0697af3",
+    "decomposition_ok": true,
+    "delayed_receipts_count": 0,
+    "full_apply_recorded_bytes": 391,
+    "keys_changed": 2,
+    "outcome_statuses": {
+      "SuccessValue([])": 2
+    },
+    "outgoing_receipts": 2,
+    "post_state_root": "3e85562d91cdab70d67abb6161b3debdd533e3f914137f123ac6f156b7cd6ce1",
+    "slice_witness_bytes": 391,
+    "slice_witness_values": 6,
+    "tx_burnt_amount": "223182562500000000000",
+    "witness_only_post_root_ok": true
+  },
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "nearcore_problems": [],
+  "schema": "near-arena-oracle-case-v2",
+  "scope": "v2",
+  "sizes": {
+    "receipts": 2,
+    "request_bytes": 787,
+    "state_entries": 3,
+    "witness_bytes": 477
+  },
+  "statement_id": "near/pv86/receipt-transfer-batch/v1",
+  "synthetic_state": true
+}

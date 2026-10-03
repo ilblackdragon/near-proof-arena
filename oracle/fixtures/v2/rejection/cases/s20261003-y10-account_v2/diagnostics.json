@@ -1,0 +1,61 @@
+{
+  "case_id": "s20261003-y10-account_v2",
+  "claim": null,
+  "consistent": true,
+  "digests": {
+    "claim.bin": null,
+    "request.bin": "sha256:9edaaf9cf16e8f9ca4d213b2ad27dc2e0b7dfdd3528e3a15a8aa8ad77b2806ae",
+    "witness.bin": "sha256:cd4f8f0d5f9ff0acf9e30f14f3b4401b43b424a7fa9857d6f0a49db1ae52429f"
+  },
+  "domain_reason": "receiver account value is not 72 bytes (AccountV1)",
+  "expected_in_domain": false,
+  "generator": {
+    "index": 10,
+    "invalid_kind": "account_v2",
+    "profile": "invalid",
+    "seed": 20261003
+  },
+  "in_domain": false,
+  "nearcore": {
+    "apply": "ok",
+    "bandwidth_state_after": "000100000000000000000000000000000000000000802343000000000090366329a306885e44e53c49426e0eeba415df29c8e68e1093dda0a66030331a",
+    "bandwidth_state_after_decoded": {
+      "link_allowances": [
+        [
+          "0",
+          "0",
+          4400000
+        ]
+      ],
+      "sanity_check_hash": "90366329a306885e44e53c49426e0eeba415df29c8e68e1093dda0a66030331a"
+    },
+    "bandwidth_state_before": null,
+    "decomposition_ok": true,
+    "delayed_receipts_count": 0,
+    "full_apply_recorded_bytes": 1402,
+    "keys_changed": 3,
+    "outcome_statuses": {
+      "SuccessValue([])": 2
+    },
+    "outgoing_receipts": 2,
+    "post_state_root": "d3d01842acfaf8b55748bfffb4d7752f268bff03dc6497182a945d41be1af4fa",
+    "slice_witness_bytes": 1402,
+    "slice_witness_values": 13,
+    "tx_burnt_amount": "223182562500000000000",
+    "witness_only_post_root_ok": true
+  },
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "nearcore_problems": [
+    "account value length changed"
+  ],
+  "schema": "near-arena-oracle-case-v2",
+  "scope": "v2",
+  "sizes": {
+    "receipts": 2,
+    "request_bytes": 613,
+    "state_entries": 49,
+    "witness_bytes": 1516
+  },
+  "statement_id": "near/pv86/receipt-transfer-batch/v1",
+  "synthetic_state": true
+}
