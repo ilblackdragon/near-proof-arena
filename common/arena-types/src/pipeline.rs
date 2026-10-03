@@ -187,6 +187,74 @@ pub struct SubmissionView {
     pub revoked: Option<Revocation>,
     pub created_at: String,
     pub updated_at: String,
+    // ---- additive, optional (v1.1; see docs/CHANGELOG-contracts.md) ----
+    /// Public artifacts produced by the judge for this run.
+    #[serde(default)]
+    pub artifacts: Vec<ArtifactRef>,
+    /// Verified-surface digests (set once the judge build completed).
+    #[serde(default)]
+    pub verified_surface: Option<VerifiedSurface>,
+    #[serde(default)]
+    pub build: Option<BuildInfo>,
+    /// Assumptions the admission may rely on (the challenge's security profile).
+    #[serde(default)]
+    pub assumptions: Vec<AssumptionRef>,
+    /// Trusted computing base entries the result depends on.
+    #[serde(default)]
+    pub trusted_base: Vec<TrustedBaseEntry>,
+    /// Bounded, sanitized plain-text log excerpts (never HTML).
+    #[serde(default)]
+    pub logs: Vec<LogExcerpt>,
+    #[serde(default)]
+    pub revocation_history: Vec<RevocationEvent>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct ArtifactRef {
+    pub label: String,
+    pub digest: Digest,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct BuildInfo {
+    /// Build sandbox image/rootfs digest or id, if reported.
+    pub toolchain_image: Option<String>,
+    /// `BUILD_REPRODUCIBLE` passed (two judge builds bit-identical).
+    pub reproducible: bool,
+    pub build_ns: Option<u64>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AssumptionRef {
+    pub id: String,
+    pub lean_decl: Option<String>,
+    pub description: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct TrustedBaseEntry {
+    pub id: String,
+    pub label: String,
+    pub digest: Option<Digest>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct LogExcerpt {
+    /// Log name, e.g. `BUILD` or `BUILD/error`.
+    pub name: String,
+    /// Pipeline stage / job kind the log belongs to.
+    pub stage: String,
+    pub text: String,
+    pub truncated: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct RevocationEvent {
+    /// `revoked` (v1 has no un-revoke).
+    pub action: String,
+    pub reason: String,
+    pub at: String,
+    pub by: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -216,6 +284,9 @@ pub struct LeaderboardEntry {
     pub security_profile: String,
     pub submitted_at: String,
     pub revoked: bool,
+    /// Half-width of the score's 95% interval, milli units (additive, v1.1).
+    #[serde(default)]
+    pub score_ci_milli: Option<u64>,
 }
 
 /// Pure decision function shared by server and tests.

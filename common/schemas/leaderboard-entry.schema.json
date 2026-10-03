@@ -81,6 +81,16 @@
     "scope": {
       "type": "string"
     },
+    "score_ci_milli": {
+      "description": "Half-width of the score's 95% interval, milli units (additive, v1.1).",
+      "default": null,
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint64",
+      "minimum": 0.0
+    },
     "score_milli": {
       "type": [
         "integer",
