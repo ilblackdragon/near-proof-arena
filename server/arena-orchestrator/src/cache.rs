@@ -7,7 +7,9 @@
 //! assumption id) marks them dead and keeps them for history.
 
 use arena_db::{from_json, from_json_opt, json, DbError};
-use arena_types::{sha256_digest, ChallengeDefinition, Digest, EvidenceGraph, GateResult, VerifiedSurface};
+use arena_types::{
+    sha256_digest, ChallengeDefinition, Digest, EvidenceGraph, GateResult, VerifiedSurface,
+};
 use serde::Serialize;
 use sqlx::PgConnection;
 
@@ -61,7 +63,14 @@ pub struct CacheEntry {
 }
 
 pub async fn lookup(conn: &mut PgConnection, key: &Digest) -> Result<Option<CacheEntry>, DbError> {
-    let row: Option<(i64, serde_json::Value, Option<serde_json::Value>, String, String, i16)> = sqlx::query_as(
+    let row: Option<(
+        i64,
+        serde_json::Value,
+        Option<serde_json::Value>,
+        String,
+        String,
+        i16,
+    )> = sqlx::query_as(
         "SELECT id, gates, evidence_graph, source_submission_id, source_run_id, tier_rank
          FROM formal_cache WHERE key = $1 AND invalidated_at IS NULL",
     )

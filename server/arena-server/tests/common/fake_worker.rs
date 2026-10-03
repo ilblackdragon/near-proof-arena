@@ -71,16 +71,28 @@ impl FakeWorker {
     pub async fn result_for(&self, job: &LeasedJob) -> JobResult {
         let ctx = job.spec.ctx();
         let chal = job.spec.challenge();
-        let mut gates: Vec<GateResult> = job.kind.owned_gates().iter().map(|g| self.gate(*g)).collect();
+        let mut gates: Vec<GateResult> = job
+            .kind
+            .owned_gates()
+            .iter()
+            .map(|g| self.gate(*g))
+            .collect();
         if self.behavior.bogus_gate_on == Some(job.kind) {
             gates.push(self.gate(ObligationId::Benchmark));
         }
         let log = format!("[DEMO] {} log for {}", job.kind, ctx.submission_id);
         let log_digest = Digest::of_bytes(log.as_bytes());
-        self.client.put_artifact(&log_digest, log.clone().into_bytes()).await.unwrap();
+        self.client
+            .put_artifact(&log_digest, log.clone().into_bytes())
+            .await
+            .unwrap();
         let mut r = JobResult {
             gates,
-            artifacts: vec![EvidenceRef { label: format!("{} log", job.kind), digest: log_digest, public: true }],
+            artifacts: vec![EvidenceRef {
+                label: format!("{} log", job.kind),
+                digest: log_digest,
+                public: true,
+            }],
             benchmark: None,
             evidence_graph: None,
             manifest: None,
@@ -102,7 +114,10 @@ impl FakeWorker {
                     parent: None,
                     backend_family: "demo".into(),
                     security_profile_request: chal.security_profile.id.clone(),
-                    hardware: candidate::HardwareRequest { gpu: false, min_ram_gb: 1 },
+                    hardware: candidate::HardwareRequest {
+                        gpu: false,
+                        min_ram_gb: 1,
+                    },
                     build: candidate::BuildSection {
                         recipe: "build-recipe/build.sh".into(),
                         outputs: vec!["out/prove".into()],
@@ -136,9 +151,24 @@ impl FakeWorker {
                 use evidence::*;
                 r.evidence_graph = Some(EvidenceGraph {
                     nodes: vec![
-                        EvidenceNode { id: "thm".into(), kind: NodeKind::Theorem, label: "[DEMO] admission".into(), digest: None },
-                        EvidenceNode { id: "spec".into(), kind: NodeKind::FormalSemantics, label: "spec".into(), digest: None },
-                        EvidenceNode { id: "kernel".into(), kind: NodeKind::TcbComponent, label: "[DEMO] kernel".into(), digest: None },
+                        EvidenceNode {
+                            id: "thm".into(),
+                            kind: NodeKind::Theorem,
+                            label: "[DEMO] admission".into(),
+                            digest: None,
+                        },
+                        EvidenceNode {
+                            id: "spec".into(),
+                            kind: NodeKind::FormalSemantics,
+                            label: "spec".into(),
+                            digest: None,
+                        },
+                        EvidenceNode {
+                            id: "kernel".into(),
+                            kind: NodeKind::TcbComponent,
+                            label: "[DEMO] kernel".into(),
+                            digest: None,
+                        },
                     ],
                     edges: vec![EvidenceEdge {
                         from: "thm".into(),
@@ -156,7 +186,13 @@ impl FakeWorker {
                     .classes
                     .iter()
                     .map(|c| {
-                        let base = chal.workload_suite.baseline_ns.iter().find(|(k, _)| *k == c.id).unwrap().1;
+                        let base = chal
+                            .workload_suite
+                            .baseline_ns
+                            .iter()
+                            .find(|(k, _)| *k == c.id)
+                            .unwrap()
+                            .1;
                         let med = base / self.speedup;
                         ClassMeasurement {
                             class_id: c.id.clone(),
@@ -190,7 +226,13 @@ impl FakeWorker {
 
     /// Lease one job (optionally of given kinds) without completing it.
     pub async fn lease(&self, kinds: &[JobKind], lease_seconds: Option<u32>) -> Option<LeasedJob> {
-        self.client.lease(&LeaseRequest { kinds: kinds.to_vec(), lease_seconds }).await.unwrap()
+        self.client
+            .lease(&LeaseRequest {
+                kinds: kinds.to_vec(),
+                lease_seconds,
+            })
+            .await
+            .unwrap()
     }
 
     /// Process one job according to the behavior. Returns its kind, or None if idle.
@@ -198,13 +240,29 @@ impl FakeWorker {
         let job = self.lease(&[], None).await?;
         if self.behavior.infra_fail == Some(job.kind) {
             self.client
-                .fail(&job.job_id, &FailRequest { lease_id: job.lease_id.clone(), error: "simulated infra failure".into(), retryable: true })
+                .fail(
+                    &job.job_id,
+                    &FailRequest {
+                        lease_id: job.lease_id.clone(),
+                        error: "simulated infra failure".into(),
+                        retryable: true,
+                    },
+                )
                 .await
                 .unwrap();
             return Some(job.kind);
         }
         let result = self.result_for(&job).await;
-        let res = self.client.complete(&job.job_id, &CompleteRequest { lease_id: job.lease_id.clone(), result }).await;
+        let res = self
+            .client
+            .complete(
+                &job.job_id,
+                &CompleteRequest {
+                    lease_id: job.lease_id.clone(),
+                    result,
+                },
+            )
+            .await;
         if let Err(e) = res {
             assert_eq!(e.status(), Some(422), "unexpected complete error: {e}");
         }

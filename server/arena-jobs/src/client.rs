@@ -41,7 +41,11 @@ pub struct WorkerClient {
 impl WorkerClient {
     pub fn new(base_url: &str, token: &str) -> Result<Self, ClientError> {
         let http = reqwest::Client::builder().build()?;
-        Ok(Self { base: base_url.trim_end_matches('/').to_string(), token: token.to_string(), http })
+        Ok(Self {
+            base: base_url.trim_end_matches('/').to_string(),
+            token: token.to_string(),
+            http,
+        })
     }
 
     fn url(&self, path: &str) -> String {
@@ -63,8 +67,13 @@ impl WorkerClient {
         path: &str,
         body: &B,
     ) -> Result<R, ClientError> {
-        let resp =
-            self.http.post(self.url(path)).bearer_auth(&self.token).json(body).send().await?;
+        let resp = self
+            .http
+            .post(self.url(path))
+            .bearer_auth(&self.token)
+            .json(body)
+            .send()
+            .await?;
         Ok(Self::check(resp).await?.json().await?)
     }
 
@@ -88,15 +97,22 @@ impl WorkerClient {
         job_id: &str,
         req: &HeartbeatRequest,
     ) -> Result<HeartbeatResponse, ClientError> {
-        self.post(&format!("/internal/v1/jobs/{job_id}/heartbeat"), req).await
+        self.post(&format!("/internal/v1/jobs/{job_id}/heartbeat"), req)
+            .await
     }
 
-    pub async fn complete(&self, job_id: &str, req: &CompleteRequest) -> Result<AckResponse, ClientError> {
-        self.post(&format!("/internal/v1/jobs/{job_id}/complete"), req).await
+    pub async fn complete(
+        &self,
+        job_id: &str,
+        req: &CompleteRequest,
+    ) -> Result<AckResponse, ClientError> {
+        self.post(&format!("/internal/v1/jobs/{job_id}/complete"), req)
+            .await
     }
 
     pub async fn fail(&self, job_id: &str, req: &FailRequest) -> Result<AckResponse, ClientError> {
-        self.post(&format!("/internal/v1/jobs/{job_id}/fail"), req).await
+        self.post(&format!("/internal/v1/jobs/{job_id}/fail"), req)
+            .await
     }
 
     /// Fetch an artifact by digest. The caller should re-hash the bytes.

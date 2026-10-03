@@ -180,8 +180,11 @@ pub fn document() -> Value {
         }
     });
 
-    let mut schemas: Map<String, Value> =
-        g.take_definitions().into_iter().map(|(k, v)| (k, serde_json::to_value(v).expect("schema"))).collect();
+    let mut schemas: Map<String, Value> = g
+        .take_definitions()
+        .into_iter()
+        .map(|(k, v)| (k, serde_json::to_value(v).expect("schema")))
+        .collect();
     schemas.insert(
         "Error".into(),
         json!({"type": "object", "required": ["error"], "properties": {"error": {"type": "object",

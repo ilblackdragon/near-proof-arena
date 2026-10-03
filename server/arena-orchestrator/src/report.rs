@@ -198,8 +198,12 @@ pub async fn load_latest<'e>(
     .bind(submission_id)
     .fetch_optional(ex)
     .await?;
-    let Some((bytes, sig, pk)) = row else { return Ok(None) };
-    let revocation = views::revocations_of(ex, &[submission_id.to_string()]).await?.remove(submission_id);
+    let Some((bytes, sig, pk)) = row else {
+        return Ok(None);
+    };
+    let revocation = views::revocations_of(ex, &[submission_id.to_string()])
+        .await?
+        .remove(submission_id);
     let report: Value = serde_json::from_slice(&bytes).map_err(DbError::corrupt)?;
     Ok(Some(SignedReport {
         algorithm: "ed25519".into(),
@@ -214,8 +218,14 @@ pub async fn load_latest<'e>(
 /// Verify a signed report envelope (used by tests and clients).
 pub fn verify(env: &SignedReport) -> Result<(), String> {
     use ed25519_dalek::{Signature, Verifier, VerifyingKey};
-    let pk: [u8; 32] = hex::decode(&env.public_key).map_err(|e| e.to_string())?.try_into().map_err(|_| "pk len")?;
-    let sig: [u8; 64] = hex::decode(&env.signature).map_err(|e| e.to_string())?.try_into().map_err(|_| "sig len")?;
+    let pk: [u8; 32] = hex::decode(&env.public_key)
+        .map_err(|e| e.to_string())?
+        .try_into()
+        .map_err(|_| "pk len")?;
+    let sig: [u8; 64] = hex::decode(&env.signature)
+        .map_err(|e| e.to_string())?
+        .try_into()
+        .map_err(|_| "sig len")?;
     let bytes = canonical_json(&env.report).map_err(|e| e.to_string())?;
     VerifyingKey::from_bytes(&pk)
         .map_err(|e| e.to_string())?

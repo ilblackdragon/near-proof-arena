@@ -29,8 +29,14 @@ pub fn routes(st: &SharedState) -> Router<SharedState> {
         .route("/v1/openapi.json", get(openapi))
         .route("/v1/challenges", get(list_challenges))
         .route("/v1/challenges/{id}", get(get_challenge))
-        .route("/v1/uploads", post(upload).layer(DefaultBodyLimit::disable()))
-        .route("/v1/submissions", post(submit).get(list_submissions).layer(json_limit))
+        .route(
+            "/v1/uploads",
+            post(upload).layer(DefaultBodyLimit::disable()),
+        )
+        .route(
+            "/v1/submissions",
+            post(submit).get(list_submissions).layer(json_limit),
+        )
         .route("/v1/submissions/{id}", get(get_submission))
         .route("/v1/submissions/{id}/events", get(events))
         .route("/v1/submissions/{id}/report", get(get_report))
@@ -51,11 +57,15 @@ pub(crate) fn valid_id(prefix: &str, s: &str) -> bool {
     s.len() == prefix.len() + 1 + 32
         && s.starts_with(prefix)
         && s.as_bytes()[prefix.len()] == b'_'
-        && s[prefix.len() + 1..].bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        && s[prefix.len() + 1..]
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 async fn list_challenges(State(st): State<SharedState>) -> ApiResult<Json<Vec<StoredChallenge>>> {
-    Ok(Json(arena_db::challenge::list(&st.api_db, st.orch.governance_keys()).await?))
+    Ok(Json(
+        arena_db::challenge::list(&st.api_db, st.orch.governance_keys()).await?,
+    ))
 }
 
 async fn load_challenge(st: &SharedState, id: &str) -> ApiResult<StoredChallenge> {
@@ -67,7 +77,10 @@ async fn load_challenge(st: &SharedState, id: &str) -> ApiResult<StoredChallenge
         .ok_or_else(|| ApiError::not_found("unknown challenge"))
 }
 
-async fn get_challenge(State(st): State<SharedState>, Path(id): Path<String>) -> ApiResult<Json<StoredChallenge>> {
+async fn get_challenge(
+    State(st): State<SharedState>,
+    Path(id): Path<String>,
+) -> ApiResult<Json<StoredChallenge>> {
     Ok(Json(load_challenge(&st, &id).await?))
 }
 
@@ -87,7 +100,11 @@ async fn quota_for(st: &SharedState, agent_id: &str) -> ApiResult<Quota> {
     .fetch_optional(&st.api_db)
     .await?;
     Ok(match row {
-        Some((s, b, a)) => Quota { submissions_per_day: s as i64, upload_bytes_per_day: b, active_runs: a as i64 },
+        Some((s, b, a)) => Quota {
+            submissions_per_day: s as i64,
+            upload_bytes_per_day: b,
+            active_runs: a as i64,
+        },
         None => Quota {
             submissions_per_day: st.limits.submissions_per_day,
             upload_bytes_per_day: st.limits.upload_bytes_per_day,
@@ -111,18 +128,29 @@ async fn upload(
     .await?;
     let remaining = (quota.upload_bytes_per_day - used).max(0) as u64;
     if remaining == 0 {
-        return Err(ApiError::too_many("quota_exceeded", "daily upload byte quota exhausted", 3600));
+        return Err(ApiError::too_many(
+            "quota_exceeded",
+            "daily upload byte quota exhausted",
+            3600,
+        ));
     }
     let limit = st.limits.max_upload_bytes.min(remaining);
     let quota_bound = limit < st.limits.max_upload_bytes;
     let over = |_: ()| {
         if quota_bound {
-            ApiError::too_many("quota_exceeded", "upload exceeds the remaining daily upload quota", 3600)
+            ApiError::too_many(
+                "quota_exceeded",
+                "upload exceeds the remaining daily upload quota",
+                3600,
+            )
         } else {
             ApiError::new(
                 StatusCode::PAYLOAD_TOO_LARGE,
                 "too_large",
-                format!("package exceeds the {}-byte limit", st.limits.max_upload_bytes),
+                format!(
+                    "package exceeds the {}-byte limit",
+                    st.limits.max_upload_bytes
+                ),
             )
         }
     };
@@ -161,11 +189,12 @@ async fn upload(
     .bind(out.size as i64)
     .execute(&mut *tx)
     .await?;
-    let (upload_id,): (String,) = sqlx::query_as("SELECT id FROM uploads WHERE agent_id = $1 AND digest = $2")
-        .bind(&agent.id)
-        .bind(out.digest.as_str())
-        .fetch_one(&mut *tx)
-        .await?;
+    let (upload_id,): (String,) =
+        sqlx::query_as("SELECT id FROM uploads WHERE agent_id = $1 AND digest = $2")
+            .bind(&agent.id)
+            .bind(out.digest.as_str())
+            .fetch_one(&mut *tx)
+            .await?;
     audit::record(
         &mut *tx,
         &Actor::agent(&agent.id),
@@ -177,7 +206,14 @@ async fn upload(
     )
     .await?;
     tx.commit().await?;
-    Ok((StatusCode::CREATED, Json(UploadResponse { upload_id, digest: out.digest, size_bytes: out.size })))
+    Ok((
+        StatusCode::CREATED,
+        Json(UploadResponse {
+            upload_id,
+            digest: out.digest,
+            size_bytes: out.size,
+        }),
+    ))
 }
 
 // ------------------------------------------------------------------ submissions
@@ -185,11 +221,14 @@ async fn upload(
 fn idempotency_key_ok(k: &str) -> bool {
     !k.is_empty()
         && k.len() <= 128
-        && k.bytes().all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b':' | b'-'))
+        && k.bytes()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b':' | b'-'))
 }
 
 async fn view_of(st: &SharedState, id: &str) -> ApiResult<SubmissionView> {
-    let b = views::bundle(&st.api_db, id).await?.ok_or_else(|| ApiError::not_found("unknown submission"))?;
+    let b = views::bundle(&st.api_db, id)
+        .await?
+        .ok_or_else(|| ApiError::not_found("unknown submission"))?;
     let chal = load_challenge(st, &b.sub.challenge_id).await?;
     Ok(b.view(&chal.definition))
 }
@@ -200,7 +239,9 @@ async fn submit(
     Json(req): Json<SubmitRequest>,
 ) -> ApiResult<(StatusCode, Json<SubmissionView>)> {
     if !idempotency_key_ok(&req.idempotency_key) {
-        return Err(ApiError::bad_request("idempotency_key must match [A-Za-z0-9._:-]{1,128}"));
+        return Err(ApiError::bad_request(
+            "idempotency_key must match [A-Za-z0-9._:-]{1,128}",
+        ));
     }
     let request_digest = arena_types::sha256_digest(&json!({
         "challenge_id": req.challenge_id, "upload_digest": req.upload_digest, "parent": req.parent,
@@ -208,13 +249,17 @@ async fn submit(
     .map_err(ApiError::internal)?;
     let mut tx = st.api_db.begin().await?;
     // Serializes this agent's submissions: idempotency and quota checks are exact.
-    sqlx::query("SELECT id FROM agents WHERE id = $1 FOR UPDATE").bind(&agent.id).execute(&mut *tx).await?;
-    let existing: Option<(String, String)> =
-        sqlx::query_as("SELECT id, request_digest FROM submissions WHERE agent_id = $1 AND idempotency_key = $2")
-            .bind(&agent.id)
-            .bind(&req.idempotency_key)
-            .fetch_optional(&mut *tx)
-            .await?;
+    sqlx::query("SELECT id FROM agents WHERE id = $1 FOR UPDATE")
+        .bind(&agent.id)
+        .execute(&mut *tx)
+        .await?;
+    let existing: Option<(String, String)> = sqlx::query_as(
+        "SELECT id, request_digest FROM submissions WHERE agent_id = $1 AND idempotency_key = $2",
+    )
+    .bind(&agent.id)
+    .bind(&req.idempotency_key)
+    .fetch_optional(&mut *tx)
+    .await?;
     if let Some((id, digest)) = existing {
         drop(tx);
         if digest != request_digest.as_str() {
@@ -227,27 +272,38 @@ async fn submit(
     }
     let chal = load_challenge(&st, &req.challenge_id).await?;
     if !chal.open {
-        return Err(ApiError::conflict("challenge_closed", "challenge is not accepting submissions"));
+        return Err(ApiError::conflict(
+            "challenge_closed",
+            "challenge is not accepting submissions",
+        ));
     }
-    let upload: Option<(String,)> = sqlx::query_as("SELECT id FROM uploads WHERE agent_id = $1 AND digest = $2")
-        .bind(&agent.id)
-        .bind(req.upload_digest.as_str())
-        .fetch_optional(&mut *tx)
-        .await?;
-    let (upload_id,) =
-        upload.ok_or_else(|| ApiError::bad_request("upload_digest does not refer to one of your uploads"))?;
-    if !st.store.exists(&req.upload_digest).await? {
-        return Err(ApiError::internal(format!("uploaded object {} missing from store", req.upload_digest)));
-    }
-    if let Some(p) = &req.parent {
-        let parent: Option<(String,)> = sqlx::query_as("SELECT challenge_id FROM submissions WHERE id = $1")
-            .bind(p)
+    let upload: Option<(String,)> =
+        sqlx::query_as("SELECT id FROM uploads WHERE agent_id = $1 AND digest = $2")
+            .bind(&agent.id)
+            .bind(req.upload_digest.as_str())
             .fetch_optional(&mut *tx)
             .await?;
+    let (upload_id,) = upload.ok_or_else(|| {
+        ApiError::bad_request("upload_digest does not refer to one of your uploads")
+    })?;
+    if !st.store.exists(&req.upload_digest).await? {
+        return Err(ApiError::internal(format!(
+            "uploaded object {} missing from store",
+            req.upload_digest
+        )));
+    }
+    if let Some(p) = &req.parent {
+        let parent: Option<(String,)> =
+            sqlx::query_as("SELECT challenge_id FROM submissions WHERE id = $1")
+                .bind(p)
+                .fetch_optional(&mut *tx)
+                .await?;
         match parent {
             None => return Err(ApiError::bad_request("parent submission does not exist")),
             Some((c,)) if c != chal.id => {
-                return Err(ApiError::bad_request("parent submission belongs to a different challenge"))
+                return Err(ApiError::bad_request(
+                    "parent submission belongs to a different challenge",
+                ))
             }
             Some(_) => {}
         }
@@ -260,7 +316,11 @@ async fn submit(
     .fetch_one(&mut *tx)
     .await?;
     if recent >= quota.submissions_per_day {
-        return Err(ApiError::too_many("quota_exceeded", "daily submission quota exhausted", 3600));
+        return Err(ApiError::too_many(
+            "quota_exceeded",
+            "daily submission quota exhausted",
+            3600,
+        ));
     }
     let (active,): (i64,) = sqlx::query_as(
         "SELECT count(*) FROM runs r JOIN submissions s ON s.id = r.submission_id
@@ -270,7 +330,11 @@ async fn submit(
     .fetch_one(&mut *tx)
     .await?;
     if active >= quota.active_runs {
-        return Err(ApiError::too_many("quota_exceeded", "too many submissions in progress", 60));
+        return Err(ApiError::too_many(
+            "quota_exceeded",
+            "too many submissions in progress",
+            60,
+        ));
     }
     let id = arena_db::new_id("sub");
     sqlx::query(
@@ -326,20 +390,29 @@ async fn list_submissions(
     Ok(Json(out))
 }
 
-async fn get_submission(State(st): State<SharedState>, Path(id): Path<String>) -> ApiResult<Json<SubmissionView>> {
+async fn get_submission(
+    State(st): State<SharedState>,
+    Path(id): Path<String>,
+) -> ApiResult<Json<SubmissionView>> {
     if !valid_id("sub", &id) {
         return Err(ApiError::not_found("unknown submission"));
     }
     Ok(Json(view_of(&st, &id).await?))
 }
 
-async fn get_report(State(st): State<SharedState>, Path(id): Path<String>) -> ApiResult<Json<SignedReport>> {
+async fn get_report(
+    State(st): State<SharedState>,
+    Path(id): Path<String>,
+) -> ApiResult<Json<SignedReport>> {
     if !valid_id("sub", &id) || views::submission(&st.api_db, &id).await?.is_none() {
         return Err(ApiError::not_found("unknown submission"));
     }
     match arena_orchestrator::report::load_latest(&st.api_db, &id).await? {
         Some(r) => Ok(Json(r)),
-        None => Err(ApiError::conflict("pending", "no decided run yet; the report is issued at decision time")),
+        None => Err(ApiError::conflict(
+            "pending",
+            "no decided run yet; the report is issued at decision time",
+        )),
     }
 }
 
@@ -348,14 +421,19 @@ async fn cancel(
     AgentAuth(agent): AgentAuth,
     Path(id): Path<String>,
 ) -> ApiResult<Json<SubmissionView>> {
-    let sub = views::submission(&st.api_db, &id).await?.ok_or_else(|| ApiError::not_found("unknown submission"))?;
+    let sub = views::submission(&st.api_db, &id)
+        .await?
+        .ok_or_else(|| ApiError::not_found("unknown submission"))?;
     if sub.agent_id != agent.id {
         return Err(ApiError::forbidden("only the submitting agent can cancel"));
     }
-    st.orch.cancel(&st.api_db, &id, &Actor::agent(&agent.id)).await.map_err(|e| match e {
-        arena_orchestrator::OrchError::Conflict(m) => ApiError::conflict("already_decided", m),
-        e => e.into(),
-    })?;
+    st.orch
+        .cancel(&st.api_db, &id, &Actor::agent(&agent.id))
+        .await
+        .map_err(|e| match e {
+            arena_orchestrator::OrchError::Conflict(m) => ApiError::conflict("already_decided", m),
+            e => e.into(),
+        })?;
     Ok(Json(view_of(&st, &id).await?))
 }
 
@@ -364,9 +442,15 @@ async fn leaderboard(
     Path(challenge_id): Path<String>,
 ) -> ApiResult<Json<Vec<LeaderboardEntry>>> {
     let chal = load_challenge(&st, &challenge_id).await?;
-    let f = SubmissionFilter { challenge_id: Some(chal.id.clone()), limit: 10_000, ..Default::default() };
+    let f = SubmissionFilter {
+        challenge_id: Some(chal.id.clone()),
+        limit: 10_000,
+        ..Default::default()
+    };
     let bundles = views::list_bundles(&st.api_db, &f).await?;
-    Ok(Json(views::compute_leaderboard(&chal.id, &chal.definition, &bundles).entries()))
+    Ok(Json(
+        views::compute_leaderboard(&chal.id, &chal.definition, &bundles).entries(),
+    ))
 }
 
 // ------------------------------------------------------------------ SSE
@@ -398,7 +482,14 @@ async fn events(
         .and_then(|v| v.parse::<i64>().ok())
         .or(q.after)
         .unwrap_or(0);
-    let init = SseState { st, sub: id, last, buf: VecDeque::new(), started: Instant::now(), finished: false };
+    let init = SseState {
+        st,
+        sub: id,
+        last,
+        buf: VecDeque::new(),
+        started: Instant::now(),
+        finished: false,
+    };
     let stream = futures::stream::unfold(init, |mut s| async move {
         loop {
             if let Some(e) = s.buf.pop_front() {

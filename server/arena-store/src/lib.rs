@@ -64,7 +64,11 @@ pub trait ObjectStore: Send + Sync + 'static {
         Ok(self.size(digest).await?.is_some())
     }
 
-    async fn put_bytes(&self, bytes: &[u8], expected: Option<&Digest>) -> Result<PutOutcome, StoreError> {
+    async fn put_bytes(
+        &self,
+        bytes: &[u8],
+        expected: Option<&Digest>,
+    ) -> Result<PutOutcome, StoreError> {
         let mut w = self.writer(bytes.len() as u64).await?;
         w.write(bytes).await?;
         w.finish(expected).await
@@ -73,12 +77,18 @@ pub trait ObjectStore: Send + Sync + 'static {
     /// Read a whole object into memory, refusing objects larger than `max`.
     /// Content is re-hashed; a mismatch is reported as `Corrupt`.
     async fn get_bytes(&self, digest: &Digest, max: u64) -> Result<Option<Vec<u8>>, StoreError> {
-        let Some(mut r) = self.open(digest).await? else { return Ok(None) };
+        let Some(mut r) = self.open(digest).await? else {
+            return Ok(None);
+        };
         if r.size > max {
             return Err(StoreError::TooLarge { limit: max });
         }
         let mut buf = Vec::with_capacity(r.size as usize);
-        r.reader.as_mut().take(max + 1).read_to_end(&mut buf).await?;
+        r.reader
+            .as_mut()
+            .take(max + 1)
+            .read_to_end(&mut buf)
+            .await?;
         if buf.len() as u64 > max {
             return Err(StoreError::TooLarge { limit: max });
         }
@@ -106,7 +116,10 @@ impl FsStore {
             use std::os::unix::fs::PermissionsExt;
             std::fs::set_permissions(root.join("tmp"), std::fs::Permissions::from_mode(0o700))?;
         }
-        Ok(Self { root, max_object_bytes })
+        Ok(Self {
+            root,
+            max_object_bytes,
+        })
     }
 
     pub fn root(&self) -> &Path {
@@ -122,7 +135,9 @@ impl FsStore {
 
     /// Re-hash a stored object (scrubbing).
     pub async fn verify(&self, digest: &Digest) -> Result<bool, StoreError> {
-        let Some(mut r) = self.open(digest).await? else { return Ok(false) };
+        let Some(mut r) = self.open(digest).await? else {
+            return Ok(false);
+        };
         let mut h = Sha256::new();
         let mut buf = vec![0u8; 1 << 16];
         loop {
@@ -161,12 +176,19 @@ impl ObjectWriter for FsWriter {
             return Err(StoreError::TooLarge { limit: self.limit });
         }
         self.hasher.update(chunk);
-        self.file.as_mut().expect("writer used after finish").write_all(chunk).await?;
+        self.file
+            .as_mut()
+            .expect("writer used after finish")
+            .write_all(chunk)
+            .await?;
         self.written = new_len;
         Ok(())
     }
 
-    async fn finish(mut self: Box<Self>, expected: Option<&Digest>) -> Result<PutOutcome, StoreError> {
+    async fn finish(
+        mut self: Box<Self>,
+        expected: Option<&Digest>,
+    ) -> Result<PutOutcome, StoreError> {
         let mut file = self.file.take().expect("finish called once");
         file.flush().await?;
         file.sync_all().await?;
@@ -176,7 +198,10 @@ impl ObjectWriter for FsWriter {
             .expect("sha256 hex is a valid digest");
         if let Some(exp) = expected {
             if *exp != digest {
-                return Err(StoreError::DigestMismatch { expected: exp.clone(), actual: digest });
+                return Err(StoreError::DigestMismatch {
+                    expected: exp.clone(),
+                    actual: digest,
+                });
             }
         }
         let hex = digest.hex();
@@ -200,7 +225,11 @@ impl ObjectWriter for FsWriter {
             }
             true
         };
-        Ok(PutOutcome { digest, size: self.written, newly_created })
+        Ok(PutOutcome {
+            digest,
+            size: self.written,
+            newly_created,
+        })
     }
 }
 
@@ -211,8 +240,15 @@ impl ObjectStore for FsStore {
     }
 
     async fn writer(&self, limit: u64) -> Result<Box<dyn ObjectWriter>, StoreError> {
-        let tmp = self.root.join("tmp").join(format!("{}.part", uuid::Uuid::new_v4().simple()));
-        let file = tokio::fs::OpenOptions::new().write(true).create_new(true).open(&tmp).await?;
+        let tmp = self
+            .root
+            .join("tmp")
+            .join(format!("{}.part", uuid::Uuid::new_v4().simple()));
+        let file = tokio::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&tmp)
+            .await?;
         Ok(Box::new(FsWriter {
             tmp: Some(tmp),
             file: Some(file),
@@ -227,7 +263,10 @@ impl ObjectStore for FsStore {
         match tokio::fs::File::open(self.object_path(digest)).await {
             Ok(f) => {
                 let size = f.metadata().await?.len();
-                Ok(Some(ObjectReader { size, reader: Box::pin(f) }))
+                Ok(Some(ObjectReader {
+                    size,
+                    reader: Box::pin(f),
+                }))
             }
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
             Err(e) => Err(e.into()),
@@ -256,21 +295,33 @@ mod tests {
         assert_eq!(a.digest, Digest::of_bytes(b"hello"));
         let b = s.put_bytes(b"hello", Some(&a.digest)).await.unwrap();
         assert!(!b.newly_created);
-        assert_eq!(s.get_bytes(&a.digest, 100).await.unwrap().unwrap(), b"hello");
+        assert_eq!(
+            s.get_bytes(&a.digest, 100).await.unwrap().unwrap(),
+            b"hello"
+        );
         assert!(s.verify(&a.digest).await.unwrap());
         assert_eq!(s.size(&Digest::of_bytes(b"nope")).await.unwrap(), None);
         // no temp files left behind
-        assert_eq!(std::fs::read_dir(dir.path().join("tmp")).unwrap().count(), 0);
+        assert_eq!(
+            std::fs::read_dir(dir.path().join("tmp")).unwrap().count(),
+            0
+        );
     }
 
     #[tokio::test]
     async fn size_limit_and_mismatch() {
         let dir = tempfile::tempdir().unwrap();
         let s = FsStore::open(dir.path(), 8).unwrap();
-        assert!(matches!(s.put_bytes(b"123456789", None).await, Err(StoreError::TooLarge { .. })));
+        assert!(matches!(
+            s.put_bytes(b"123456789", None).await,
+            Err(StoreError::TooLarge { .. })
+        ));
         let mut w = s.writer(4).await.unwrap();
         w.write(b"1234").await.unwrap();
-        assert!(matches!(w.write(b"5").await, Err(StoreError::TooLarge { limit: 4 })));
+        assert!(matches!(
+            w.write(b"5").await,
+            Err(StoreError::TooLarge { limit: 4 })
+        ));
         drop(w);
         let wrong = Digest::of_bytes(b"other");
         assert!(matches!(
@@ -278,7 +329,10 @@ mod tests {
             Err(StoreError::DigestMismatch { .. })
         ));
         assert!(!s.exists(&Digest::of_bytes(b"abc")).await.unwrap());
-        assert_eq!(std::fs::read_dir(dir.path().join("tmp")).unwrap().count(), 0);
+        assert_eq!(
+            std::fs::read_dir(dir.path().join("tmp")).unwrap().count(),
+            0
+        );
     }
 
     #[tokio::test]
@@ -293,7 +347,10 @@ mod tests {
             std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o644)).unwrap();
         }
         std::fs::write(&p, b"evil").unwrap();
-        assert!(matches!(s.get_bytes(&a.digest, 100).await, Err(StoreError::Corrupt(_))));
+        assert!(matches!(
+            s.get_bytes(&a.digest, 100).await,
+            Err(StoreError::Corrupt(_))
+        ));
         assert!(!s.verify(&a.digest).await.unwrap());
     }
 }

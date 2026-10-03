@@ -19,8 +19,11 @@ pub fn normalize_benchmark(
             b.suite_revision, suite.revision
         ));
     }
-    let weights: HashMap<&str, u32> =
-        suite.classes.iter().map(|c| (c.id.as_str(), c.weight_ppm)).collect();
+    let weights: HashMap<&str, u32> = suite
+        .classes
+        .iter()
+        .map(|c| (c.id.as_str(), c.weight_ppm))
+        .collect();
     if b.classes.len() != weights.len() {
         return Err(format!(
             "benchmark has {} classes, challenge defines {}",
@@ -28,8 +31,11 @@ pub fn normalize_benchmark(
             weights.len()
         ));
     }
-    let baselines: HashMap<&str, u64> =
-        suite.baseline_ns.iter().map(|(k, v)| (k.as_str(), *v)).collect();
+    let baselines: HashMap<&str, u64> = suite
+        .baseline_ns
+        .iter()
+        .map(|(k, v)| (k.as_str(), *v))
+        .collect();
     let mut seen = std::collections::HashSet::new();
     for c in &mut b.classes {
         let Some(w) = weights.get(c.class_id.as_str()) else {
@@ -39,7 +45,10 @@ pub fn normalize_benchmark(
             return Err(format!("duplicate workload class {:?}", c.class_id));
         }
         if c.weight_ppm != *w {
-            return Err(format!("class {:?} weight {} != challenge weight {}", c.class_id, c.weight_ppm, w));
+            return Err(format!(
+                "class {:?} weight {} != challenge weight {}",
+                c.class_id, c.weight_ppm, w
+            ));
         }
         if c.median_ns == 0 {
             return Err(format!("class {:?} has zero median", c.class_id));
@@ -109,7 +118,10 @@ mod tests {
     }
     #[test]
     fn baseline_equals_100() {
-        assert_eq!(compute_score_milli(&br(vec![cm("a", 1_000_000, 50, 50)])), Some(100_000));
+        assert_eq!(
+            compute_score_milli(&br(vec![cm("a", 1_000_000, 50, 50)])),
+            Some(100_000)
+        );
     }
     #[test]
     fn twice_as_fast_is_200() {
@@ -124,6 +136,9 @@ mod tests {
     }
     #[test]
     fn missing_baseline_no_score() {
-        assert_eq!(compute_score_milli(&br(vec![cm("a", 1_000_000, 50, 0)])), None);
+        assert_eq!(
+            compute_score_milli(&br(vec![cm("a", 1_000_000, 50, 0)])),
+            None
+        );
     }
 }

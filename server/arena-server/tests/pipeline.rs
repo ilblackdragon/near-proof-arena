@@ -48,7 +48,10 @@ async fn submit_jobs_decision_leaderboard_report_and_events() {
     assert_eq!(v.gates.len(), all_obligations().len());
     for g in &v.gates {
         assert!(g.reason_codes.contains(&ReasonCode::DemoOnly), "{g:?}");
-        assert_eq!(g.reused_from, None, "worker-forged reused_from must be ignored");
+        assert_eq!(
+            g.reused_from, None,
+            "worker-forged reused_from must be ignored"
+        );
         assert!(g.mandatory);
     }
     // additive view fields
@@ -69,13 +72,18 @@ async fn submit_jobs_decision_leaderboard_report_and_events() {
     assert_eq!(lb[0].score_ci_milli, Some(500));
 
     // signed report
-    let (s, rep) = app.get_json(&format!("/v1/submissions/{}/report", v.id)).await;
+    let (s, rep) = app
+        .get_json(&format!("/v1/submissions/{}/report", v.id))
+        .await;
     assert_eq!(s, 200);
     let rep: SignedReport = serde_json::from_value(rep).unwrap();
     report::verify(&rep).expect("report signature verifies");
     assert_eq!(rep.public_key, app.state.orch.report_public_key_hex());
     assert_eq!(rep.report["run"]["decision"], "ADMITTED");
-    assert_eq!(rep.report["submission"]["package_digest"], json!(v.package_digest));
+    assert_eq!(
+        rep.report["submission"]["package_digest"],
+        json!(v.package_digest)
+    );
     assert!(rep.report["disclaimers"].to_string().contains("DEMO"));
     assert_eq!(rep.report["jobs"].as_array().unwrap().len(), 6);
     let mut tampered = rep.clone();
@@ -85,7 +93,12 @@ async fn submit_jobs_decision_leaderboard_report_and_events() {
     // SSE: replay all events, stream terminates after the decision
     let text = tokio::time::timeout(
         Duration::from_secs(20),
-        app.http.get(app.url(&format!("/v1/submissions/{}/events", v.id))).send().await.unwrap().text(),
+        app.http
+            .get(app.url(&format!("/v1/submissions/{}/events", v.id)))
+            .send()
+            .await
+            .unwrap()
+            .text(),
     )
     .await
     .expect("SSE stream ends after decision")
@@ -111,16 +124,23 @@ async fn submit_jobs_decision_leaderboard_report_and_events() {
         .text()
         .await
         .unwrap();
-    assert!(!rest.contains("event: gate") && rest.contains("event: done"), "{rest}");
+    assert!(
+        !rest.contains("event: gate") && rest.contains("event: done"),
+        "{rest}"
+    );
 
     // listing endpoints return bare arrays
-    let (_, subs) = app.get_json(&format!("/v1/submissions?challenge_id={chal}")).await;
+    let (_, subs) = app
+        .get_json(&format!("/v1/submissions?challenge_id={chal}"))
+        .await;
     assert_eq!(subs.as_array().unwrap().len(), 1);
     let (_, chals) = app.get_json("/v1/challenges").await;
     assert_eq!(chals.as_array().unwrap().len(), 1);
     let (_, c) = app.get_json(&format!("/v1/challenges/{chal}")).await;
     assert_eq!(c["id"], json!(chal));
-    assert!(c["registered_at"].is_string() && c["definition"].is_object() && c["digest"].is_string());
+    assert!(
+        c["registered_at"].is_string() && c["definition"].is_object() && c["digest"].is_string()
+    );
 }
 
 #[tokio::test]
@@ -128,7 +148,12 @@ async fn idempotency_keys() {
     let app = spawn().await;
     let chal = app.register(&challenge_def(Tier::Demo, "demo-idem")).await;
     let v = app.submit(&chal, b"pkg", "same-key", None).await;
-    let up: Value = app.upload(&app.agent_token, b"pkg").await.json().await.unwrap();
+    let up: Value = app
+        .upload(&app.agent_token, b"pkg")
+        .await
+        .json()
+        .await
+        .unwrap();
     // replay: same key + same body -> same submission, 200
     let r = app
         .submit_raw(&app.agent_token, json!({"challenge_id": chal, "upload_digest": up["digest"], "idempotency_key": "same-key"}))
@@ -137,7 +162,12 @@ async fn idempotency_keys() {
     let v2: SubmissionView = r.json().await.unwrap();
     assert_eq!(v2.id, v.id);
     // same key, different body -> 409
-    let up2: Value = app.upload(&app.agent_token, b"pkg-2").await.json().await.unwrap();
+    let up2: Value = app
+        .upload(&app.agent_token, b"pkg-2")
+        .await
+        .json()
+        .await
+        .unwrap();
     let r = app
         .submit_raw(&app.agent_token, json!({"challenge_id": chal, "upload_digest": up2["digest"], "idempotency_key": "same-key"}))
         .await;
@@ -145,7 +175,12 @@ async fn idempotency_keys() {
     let e: Value = r.json().await.unwrap();
     assert_eq!(e["error"]["code"], "idempotency_conflict");
     // keys are per agent: bob can use the same key (with his own upload)
-    let upb: Value = app.upload(&app.agent2_token, b"pkg").await.json().await.unwrap();
+    let upb: Value = app
+        .upload(&app.agent2_token, b"pkg")
+        .await
+        .json()
+        .await
+        .unwrap();
     let r = app
         .submit_raw(&app.agent2_token, json!({"challenge_id": chal, "upload_digest": upb["digest"], "idempotency_key": "same-key"}))
         .await;
@@ -157,28 +192,51 @@ async fn idempotency_keys() {
     assert_eq!(r.status(), 400);
     // cannot submit someone else's upload digest
     let r = app
-        .submit_raw(&app.agent2_token, json!({"challenge_id": chal, "upload_digest": up2["digest"], "idempotency_key": "x"}))
+        .submit_raw(
+            &app.agent2_token,
+            json!({"challenge_id": chal, "upload_digest": up2["digest"], "idempotency_key": "x"}),
+        )
         .await;
     assert_eq!(r.status(), 400);
-    let (n,): (i64,) = arena_db::sqlx::query_as("SELECT count(*) FROM submissions").fetch_one(&app.pool).await.unwrap();
+    let (n,): (i64,) = arena_db::sqlx::query_as("SELECT count(*) FROM submissions")
+        .fetch_one(&app.pool)
+        .await
+        .unwrap();
     assert_eq!(n, 2);
-    let (runs,): (i64,) = arena_db::sqlx::query_as("SELECT count(*) FROM runs").fetch_one(&app.pool).await.unwrap();
+    let (runs,): (i64,) = arena_db::sqlx::query_as("SELECT count(*) FROM runs")
+        .fetch_one(&app.pool)
+        .await
+        .unwrap();
     assert_eq!(runs, 2, "replays do not start runs");
 }
 
 #[tokio::test]
 async fn cancellation() {
     let app = spawn().await;
-    let chal = app.register(&challenge_def(Tier::Demo, "demo-cancel")).await;
+    let chal = app
+        .register(&challenge_def(Tier::Demo, "demo-cancel"))
+        .await;
     let v = app.submit(&chal, b"pkg", "c1", None).await;
     let w = app.fake_worker();
     let job = w.lease(&[], None).await.expect("validate job");
     assert_eq!(job.kind, JobKind::Validate);
 
     // only the owner can cancel
-    let r = app.http.post(app.url(&format!("/v1/submissions/{}/cancel", v.id))).bearer_auth(&app.agent2_token).send().await.unwrap();
+    let r = app
+        .http
+        .post(app.url(&format!("/v1/submissions/{}/cancel", v.id)))
+        .bearer_auth(&app.agent2_token)
+        .send()
+        .await
+        .unwrap();
     assert_eq!(r.status(), 403);
-    let r = app.http.post(app.url(&format!("/v1/submissions/{}/cancel", v.id))).bearer_auth(&app.agent_token).send().await.unwrap();
+    let r = app
+        .http
+        .post(app.url(&format!("/v1/submissions/{}/cancel", v.id)))
+        .bearer_auth(&app.agent_token)
+        .send()
+        .await
+        .unwrap();
     assert_eq!(r.status(), 200);
     let cv: SubmissionView = r.json().await.unwrap();
     assert_eq!(cv.decision, Some(Decision::Cancelled));
@@ -188,23 +246,60 @@ async fn cancellation() {
     // the worker learns about it on heartbeat and cannot complete
     let hb = w
         .client
-        .heartbeat(&job.job_id, &HeartbeatRequest { lease_id: job.lease_id.clone(), extend_seconds: None })
+        .heartbeat(
+            &job.job_id,
+            &HeartbeatRequest {
+                lease_id: job.lease_id.clone(),
+                extend_seconds: None,
+            },
+        )
         .await
         .unwrap();
     assert!(hb.cancelled);
     let result = w.result_for(&job).await;
-    let err = w.client.complete(&job.job_id, &CompleteRequest { lease_id: job.lease_id.clone(), result }).await.unwrap_err();
+    let err = w
+        .client
+        .complete(
+            &job.job_id,
+            &CompleteRequest {
+                lease_id: job.lease_id.clone(),
+                result,
+            },
+        )
+        .await
+        .unwrap_err();
     assert_eq!(err.status(), Some(409));
-    assert!(w.lease(&[], None).await.is_none(), "no work after cancellation");
-    assert!(app.job_states(&v.id).await.iter().all(|(_, s, _)| s == "cancelled"));
+    assert!(
+        w.lease(&[], None).await.is_none(),
+        "no work after cancellation"
+    );
+    assert!(app
+        .job_states(&v.id)
+        .await
+        .iter()
+        .all(|(_, s, _)| s == "cancelled"));
 
     // second cancel conflicts; report exists for the cancelled run
-    let r = app.http.post(app.url(&format!("/v1/submissions/{}/cancel", v.id))).bearer_auth(&app.agent_token).send().await.unwrap();
+    let r = app
+        .http
+        .post(app.url(&format!("/v1/submissions/{}/cancel", v.id)))
+        .bearer_auth(&app.agent_token)
+        .send()
+        .await
+        .unwrap();
     assert_eq!(r.status(), 409);
-    let (s, rep) = app.get_json(&format!("/v1/submissions/{}/report", v.id)).await;
+    let (s, rep) = app
+        .get_json(&format!("/v1/submissions/{}/report", v.id))
+        .await;
     assert_eq!(s, 200);
     assert_eq!(rep["report"]["run"]["decision"], "CANCELLED");
-    assert!(rep["report"]["run"]["not_run_gates"].as_array().unwrap().len() >= 13);
+    assert!(
+        rep["report"]["run"]["not_run_gates"]
+            .as_array()
+            .unwrap()
+            .len()
+            >= 13
+    );
 }
 
 #[tokio::test]
@@ -219,23 +314,51 @@ async fn lease_expiry_recovery_and_fencing() {
     assert!(app.fake_worker().lease(&[], None).await.is_none());
     tokio::time::sleep(Duration::from_millis(1600)).await;
     let w2 = app.fake_worker();
-    let again = w2.lease(&[], None).await.expect("expired lease is re-leasable");
+    let again = w2
+        .lease(&[], None)
+        .await
+        .expect("expired lease is re-leasable");
     assert_eq!(again.job_id, stale.job_id);
     assert_eq!(again.attempt, 2);
     assert_ne!(again.lease_id, stale.lease_id);
     // the stale worker is fenced out
     let result = crashed.result_for(&stale).await;
-    let err = crashed.client.complete(&stale.job_id, &CompleteRequest { lease_id: stale.lease_id.clone(), result }).await.unwrap_err();
+    let err = crashed
+        .client
+        .complete(
+            &stale.job_id,
+            &CompleteRequest {
+                lease_id: stale.lease_id.clone(),
+                result,
+            },
+        )
+        .await
+        .unwrap_err();
     assert_eq!(err.status(), Some(409));
     let err = crashed
         .client
-        .heartbeat(&stale.job_id, &HeartbeatRequest { lease_id: stale.lease_id.clone(), extend_seconds: None })
+        .heartbeat(
+            &stale.job_id,
+            &HeartbeatRequest {
+                lease_id: stale.lease_id.clone(),
+                extend_seconds: None,
+            },
+        )
         .await
         .unwrap_err();
     assert_eq!(err.status(), Some(409));
     // the new holder completes and the pipeline finishes
     let result = w2.result_for(&again).await;
-    w2.client.complete(&again.job_id, &CompleteRequest { lease_id: again.lease_id.clone(), result }).await.unwrap();
+    w2.client
+        .complete(
+            &again.job_id,
+            &CompleteRequest {
+                lease_id: again.lease_id.clone(),
+                result,
+            },
+        )
+        .await
+        .unwrap();
     w2.drain().await;
     let v = app.view(&v.id).await;
     assert_eq!(v.decision, Some(Decision::Admitted));
@@ -257,21 +380,41 @@ async fn retries_then_infra_error() {
     let mut w = app.fake_worker();
     w.behavior.infra_fail = Some(JobKind::Build);
     let kinds = w.drain().await;
-    assert_eq!(kinds, vec![JobKind::Validate, JobKind::Build, JobKind::Build, JobKind::Build]);
+    assert_eq!(
+        kinds,
+        vec![
+            JobKind::Validate,
+            JobKind::Build,
+            JobKind::Build,
+            JobKind::Build
+        ]
+    );
     let v = app.view(&v.id).await;
     assert_eq!(v.decision, Some(Decision::InfraError));
     assert_eq!(v.accepted, Some(false));
     assert!(v.reason_codes.contains(&ReasonCode::InfraError));
     let jobs = app.job_states(&v.id).await;
-    assert!(jobs.contains(&("BUILD".into(), "failed".into(), 3)), "{jobs:?}");
-    assert!(v.logs.iter().any(|l| l.text.contains("simulated infra failure")));
-    let (_, rep) = app.get_json(&format!("/v1/submissions/{}/report", v.id)).await;
+    assert!(
+        jobs.contains(&("BUILD".into(), "failed".into(), 3)),
+        "{jobs:?}"
+    );
+    assert!(v
+        .logs
+        .iter()
+        .any(|l| l.text.contains("simulated infra failure")));
+    let (_, rep) = app
+        .get_json(&format!("/v1/submissions/{}/report", v.id))
+        .await;
     assert_eq!(rep["report"]["run"]["decision"], "INFRA_ERROR");
 }
 
 #[tokio::test]
 async fn final_lease_expiry_is_reaped_to_infra_error() {
-    let app = spawn_with(Opts { max_attempts: 2, ..Default::default() }).await;
+    let app = spawn_with(Opts {
+        max_attempts: 2,
+        ..Default::default()
+    })
+    .await;
     let chal = app.register(&challenge_def(Tier::Demo, "demo-reap")).await;
     let v = app.submit(&chal, b"pkg", "r1", None).await;
     let w = app.fake_worker();
@@ -280,7 +423,10 @@ async fn final_lease_expiry_is_reaped_to_infra_error() {
         assert_eq!(j.attempt, attempt);
         tokio::time::sleep(Duration::from_millis(1300)).await;
     }
-    assert!(w.lease(&[], None).await.is_none(), "attempts exhausted: not re-leased");
+    assert!(
+        w.lease(&[], None).await.is_none(),
+        "attempts exhausted: not re-leased"
+    );
     assert_eq!(app.state.orch.reap_expired(&app.pool).await.unwrap(), 1);
     let v = app.view(&v.id).await;
     assert_eq!(v.decision, Some(Decision::InfraError));
@@ -300,8 +446,11 @@ async fn fail_fast_records_not_run_gates() {
     assert_eq!(v.decision, Some(Decision::Rejected));
     assert_eq!(v.accepted, Some(false));
     assert_eq!(v.score_milli, None);
-    let (_, rep) = app.get_json(&format!("/v1/submissions/{}/report", v.id)).await;
-    let not_run: Vec<ObligationId> = serde_json::from_value(rep["report"]["run"]["not_run_gates"].clone()).unwrap();
+    let (_, rep) = app
+        .get_json(&format!("/v1/submissions/{}/report", v.id))
+        .await;
+    let not_run: Vec<ObligationId> =
+        serde_json::from_value(rep["report"]["run"]["not_run_gates"].clone()).unwrap();
     assert!(not_run.contains(&ObligationId::AxiomAudit));
     assert!(not_run.contains(&ObligationId::Benchmark));
     assert!(!not_run.contains(&ObligationId::BuildReproducible));
@@ -332,26 +481,46 @@ async fn invalid_worker_result_counts_as_failed_attempt() {
     assert_eq!(kinds, vec![JobKind::Validate; 3]);
     let v = app.view(&v.id).await;
     assert_eq!(v.decision, Some(Decision::InfraError));
-    assert!(v.logs.iter().any(|l| l.text.contains("may not report gate")));
+    assert!(v
+        .logs
+        .iter()
+        .any(|l| l.text.contains("may not report gate")));
 }
 
 #[tokio::test]
 async fn sanitizes_candidate_strings() {
     let app = spawn().await;
-    let chal = app.register(&challenge_def(Tier::Demo, "demo-sanitize")).await;
+    let chal = app
+        .register(&challenge_def(Tier::Demo, "demo-sanitize"))
+        .await;
     let v = app.submit(&chal, b"pkg", "s1", None).await;
     let mut w = app.fake_worker();
-    let evil = format!("<script>alert(1)</script>\u{202E}gnp.exe\u{0007}\u{0000}{}", "x".repeat(10_000));
+    let evil = format!(
+        "<script>alert(1)</script>\u{202E}gnp.exe\u{0007}\u{0000}{}",
+        "x".repeat(10_000)
+    );
     w.behavior.summary = Some(evil);
     w.drain().await;
-    let r = app.http.get(app.url(&format!("/v1/submissions/{}", v.id))).send().await.unwrap();
+    let r = app
+        .http
+        .get(app.url(&format!("/v1/submissions/{}", v.id)))
+        .send()
+        .await
+        .unwrap();
     assert_eq!(r.headers()["content-type"], "application/json");
     assert_eq!(r.headers()["x-content-type-options"], "nosniff");
     let v: SubmissionView = r.json().await.unwrap();
     for g in &v.gates {
-        assert!(!g.summary.contains('\u{202E}') && !g.summary.contains('\u{0007}') && !g.summary.contains('\0'));
+        assert!(
+            !g.summary.contains('\u{202E}')
+                && !g.summary.contains('\u{0007}')
+                && !g.summary.contains('\0')
+        );
         assert!(g.summary.len() <= 4096, "bounded");
-        assert!(g.summary.starts_with("<script>"), "stored verbatim as plain text, never interpreted");
+        assert!(
+            g.summary.starts_with("<script>"),
+            "stored verbatim as plain text, never interpreted"
+        );
     }
 }
 
@@ -372,10 +541,20 @@ async fn formal_cache_reuse_and_change_classification() {
     let b = app.view(&b.id).await;
     assert_eq!(b.change_class, Some(ChangeClass::ProverOnly));
     assert_eq!(b.decision, Some(Decision::Admitted));
-    let formal: Vec<&GateResult> = b.gates.iter().filter(|g| JobKind::FormalCheck.owned_gates().contains(&g.gate)).collect();
+    let formal: Vec<&GateResult> = b
+        .gates
+        .iter()
+        .filter(|g| JobKind::FormalCheck.owned_gates().contains(&g.gate))
+        .collect();
     assert_eq!(formal.len(), 7);
-    assert!(formal.iter().all(|g| g.reused_from.as_deref() == Some(a.id.as_str())));
-    assert!(b.gates.iter().filter(|g| g.gate == ObligationId::BuildReproducible).all(|g| g.reused_from.is_none()));
+    assert!(formal
+        .iter()
+        .all(|g| g.reused_from.as_deref() == Some(a.id.as_str())));
+    assert!(b
+        .gates
+        .iter()
+        .filter(|g| g.gate == ObligationId::BuildReproducible)
+        .all(|g| g.reused_from.is_none()));
 
     // invalidate by checker image -> the next prover-only child is re-checked
     let def = challenge_def(Tier::Demo, "demo-cache");
@@ -395,7 +574,10 @@ async fn formal_cache_reuse_and_change_classification() {
     assert!(c.gates.iter().all(|g| g.reused_from.is_none()));
     // invalidate by assumption id
     let (_, inv) = app
-        .admin_post("/v1/admin/formal-cache/invalidate", json!({"assumption": "sha256-cr", "reason": "assumption withdrawn"}))
+        .admin_post(
+            "/v1/admin/formal-cache/invalidate",
+            json!({"assumption": "sha256-cr", "reason": "assumption withdrawn"}),
+        )
         .await;
     assert_eq!(inv["invalidated"].as_array().unwrap().len(), 1);
 
@@ -405,7 +587,10 @@ async fn formal_cache_reuse_and_change_classification() {
     let e = app.submit(&chal, b"pkg-e", "e", Some(&c.id)).await;
     let kinds = w2.drain().await;
     assert!(kinds.contains(&JobKind::FormalCheck));
-    assert_eq!(app.view(&e.id).await.change_class, Some(ChangeClass::VerifierOrProtocol));
+    assert_eq!(
+        app.view(&e.id).await.change_class,
+        Some(ChangeClass::VerifierOrProtocol)
+    );
 }
 
 #[tokio::test]
@@ -417,27 +602,45 @@ async fn admin_rerun_creates_new_run_record() {
     w.behavior.fail_gate = Some(ObligationId::AdversarialProofs);
     w.drain().await;
     assert_eq!(app.view(&v.id).await.decision, Some(Decision::Rejected));
-    let (s, r) = app.admin_post(&format!("/v1/admin/submissions/{}/rerun", v.id), json!({"reason": "flaky adversarial host"})).await;
+    let (s, r) = app
+        .admin_post(
+            &format!("/v1/admin/submissions/{}/rerun", v.id),
+            json!({"reason": "flaky adversarial host"}),
+        )
+        .await;
     assert_eq!(s, 201, "{r}");
     // pending -> second rerun conflicts
-    let (s, _) = app.admin_post(&format!("/v1/admin/submissions/{}/rerun", v.id), json!({"reason": "again"})).await;
+    let (s, _) = app
+        .admin_post(
+            &format!("/v1/admin/submissions/{}/rerun", v.id),
+            json!({"reason": "again"}),
+        )
+        .await;
     assert_eq!(s, 409);
     // agent-visible view shows the new pending run; the old report is still served
     let pending = app.view(&v.id).await;
     assert_eq!(pending.decision, None);
-    let (_, rep) = app.get_json(&format!("/v1/submissions/{}/report", v.id)).await;
+    let (_, rep) = app
+        .get_json(&format!("/v1/submissions/{}/report", v.id))
+        .await;
     assert_eq!(rep["report"]["run"]["run_number"], 1);
     app.fake_worker().drain().await;
     let done = app.view(&v.id).await;
     assert_eq!(done.decision, Some(Decision::Admitted));
-    let (_, rep) = app.get_json(&format!("/v1/submissions/{}/report", v.id)).await;
+    let (_, rep) = app
+        .get_json(&format!("/v1/submissions/{}/report", v.id))
+        .await;
     assert_eq!(rep["report"]["run"]["run_number"], 2);
     assert_eq!(rep["report"]["run"]["trigger"], "rerun");
-    let runs: Vec<(i32, Option<String>)> =
-        arena_db::sqlx::query_as("SELECT run_number, decision FROM runs WHERE submission_id = $1 ORDER BY run_number")
-            .bind(&v.id)
-            .fetch_all(&app.pool)
-            .await
-            .unwrap();
-    assert_eq!(runs, vec![(1, Some("REJECTED".into())), (2, Some("ADMITTED".into()))]);
+    let runs: Vec<(i32, Option<String>)> = arena_db::sqlx::query_as(
+        "SELECT run_number, decision FROM runs WHERE submission_id = $1 ORDER BY run_number",
+    )
+    .bind(&v.id)
+    .fetch_all(&app.pool)
+    .await
+    .unwrap();
+    assert_eq!(
+        runs,
+        vec![(1, Some("REJECTED".into())), (2, Some("ADMITTED".into()))]
+    );
 }

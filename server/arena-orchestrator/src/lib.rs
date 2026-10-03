@@ -33,8 +33,8 @@ use arena_db::{audit, enum_str, json, rfc3339, tier_min, tier_rank, Actor, DbErr
 use arena_jobs::sanitize::{sanitize_text, MAX_ERROR_BYTES};
 use arena_jobs::*;
 use arena_types::{
-    challenge::Tier, decide, ChangeClass, Decision, GateResult, GateStatus, ObligationId, ReasonCode, Stage,
-    VerifiedSurface,
+    challenge::Tier, decide, ChangeClass, Decision, GateResult, GateStatus, ObligationId,
+    ReasonCode, Stage, VerifiedSurface,
 };
 use ed25519_dalek::VerifyingKey;
 use serde_json::json as j;
@@ -130,7 +130,11 @@ pub struct Orchestrator {
 
 impl Orchestrator {
     pub fn new(cfg: Config, signer: Arc<ReportSigner>, gov_keys: Arc<Vec<VerifyingKey>>) -> Self {
-        Self { cfg, signer, gov_keys }
+        Self {
+            cfg,
+            signer,
+            gov_keys,
+        }
     }
 
     pub fn report_public_key_hex(&self) -> String {
@@ -225,10 +229,11 @@ impl Orchestrator {
     }
 
     async fn job_states(conn: &mut PgConnection, run_id: &str) -> Result<HashMap<JobKind, String>> {
-        let rows: Vec<(String, String)> = sqlx::query_as("SELECT kind, state FROM jobs WHERE run_id = $1")
-            .bind(run_id)
-            .fetch_all(&mut *conn)
-            .await?;
+        let rows: Vec<(String, String)> =
+            sqlx::query_as("SELECT kind, state FROM jobs WHERE run_id = $1")
+                .bind(run_id)
+                .fetch_all(&mut *conn)
+                .await?;
         rows.into_iter()
             .map(|(k, s)| Ok((k.parse::<JobKind>().map_err(DbError::Corrupt)?, s)))
             .collect()
@@ -293,11 +298,12 @@ impl Orchestrator {
         if pending.is_some() {
             return Err(OrchError::Conflict("submission has a pending run".into()));
         }
-        let (n,): (i32,) =
-            sqlx::query_as("SELECT COALESCE(MAX(run_number), 0) + 1 FROM runs WHERE submission_id = $1")
-                .bind(submission_id)
-                .fetch_one(&mut *conn)
-                .await?;
+        let (n,): (i32,) = sqlx::query_as(
+            "SELECT COALESCE(MAX(run_number), 0) + 1 FROM runs WHERE submission_id = $1",
+        )
+        .bind(submission_id)
+        .fetch_one(&mut *conn)
+        .await?;
         let run_id = arena_db::new_id("run");
         let tier = enum_str(&chal.tier);
         sqlx::query(
@@ -326,7 +332,10 @@ impl Orchestrator {
         self.enqueue(
             conn,
             &ctx,
-            JobSpec::Validate(ValidateJob { ctx: Self::job_ctx(&ctx), challenge: ctx.chal.definition.clone() }),
+            JobSpec::Validate(ValidateJob {
+                ctx: Self::job_ctx(&ctx),
+                challenge: ctx.chal.definition.clone(),
+            }),
         )
         .await?;
         Ok(run_id)
@@ -339,7 +348,10 @@ impl Orchestrator {
                 return Ok(());
             }
             let gates = Self::run_gates(conn, &ctx.run.id).await?;
-            if gates.iter().any(|g| g.mandatory && g.status == GateStatus::Fail) {
+            if gates
+                .iter()
+                .any(|g| g.mandatory && g.status == GateStatus::Fail)
+            {
                 return self.finalize(conn, ctx, Finish::FailFast).await;
             }
             let jobs = Self::job_states(conn, &ctx.run.id).await?;
@@ -356,9 +368,19 @@ impl Orchestrator {
                 Stage::Validated => {
                     if !exists(JobKind::Build) {
                         let Some(manifest) = ctx.run.manifest.clone() else {
-                            return self.finalize(conn, ctx, Finish::Blocked("no validated manifest".into())).await;
+                            return self
+                                .finalize(
+                                    conn,
+                                    ctx,
+                                    Finish::Blocked("no validated manifest".into()),
+                                )
+                                .await;
                         };
-                        let spec = JobSpec::Build(BuildJob { ctx: Self::job_ctx(ctx), challenge: def, manifest });
+                        let spec = JobSpec::Build(BuildJob {
+                            ctx: Self::job_ctx(ctx),
+                            challenge: def,
+                            manifest,
+                        });
                         self.enqueue(conn, ctx, spec).await?;
                         return Ok(());
                     }
@@ -382,7 +404,9 @@ impl Orchestrator {
                             ctx.run.build_outputs.clone(),
                             ctx.run.verified_surface.clone(),
                         ) else {
-                            return self.finalize(conn, ctx, Finish::Blocked("no build outputs".into())).await;
+                            return self
+                                .finalize(conn, ctx, Finish::Blocked("no build outputs".into()))
+                                .await;
                         };
                         if self.reuse_formal(conn, ctx, &vs).await? {
                             self.set_stage(conn, ctx, Stage::FormalChecked).await?;
@@ -406,9 +430,12 @@ impl Orchestrator {
                 Stage::FormalChecked => {
                     if !exists(JobKind::Conformance) && !exists(JobKind::Adversarial) {
                         let Some(e) = self.exec_job(ctx) else {
-                            return self.finalize(conn, ctx, Finish::Blocked("no build outputs".into())).await;
+                            return self
+                                .finalize(conn, ctx, Finish::Blocked("no build outputs".into()))
+                                .await;
                         };
-                        self.enqueue(conn, ctx, JobSpec::Conformance(e.clone())).await?;
+                        self.enqueue(conn, ctx, JobSpec::Conformance(e.clone()))
+                            .await?;
                         self.enqueue(conn, ctx, JobSpec::Adversarial(e)).await?;
                         return Ok(());
                     }
@@ -420,7 +447,9 @@ impl Orchestrator {
                 Stage::ConformanceChecked => {
                     if !exists(JobKind::Benchmark) {
                         let Some(e) = self.exec_job(ctx) else {
-                            return self.finalize(conn, ctx, Finish::Blocked("no build outputs".into())).await;
+                            return self
+                                .finalize(conn, ctx, Finish::Blocked("no build outputs".into()))
+                                .await;
                         };
                         self.enqueue(conn, ctx, JobSpec::Benchmark(e)).await?;
                         return Ok(());
@@ -447,9 +476,16 @@ impl Orchestrator {
 
     /// Reuse cached formal gate results if a live entry exists for the run's
     /// full content-addressed key at a sufficient tier.
-    async fn reuse_formal(&self, conn: &mut PgConnection, ctx: &mut Ctx, vs: &VerifiedSurface) -> Result<bool> {
+    async fn reuse_formal(
+        &self,
+        conn: &mut PgConnection,
+        ctx: &mut Ctx,
+        vs: &VerifiedSurface,
+    ) -> Result<bool> {
         let key = cache::cache_key(&ctx.chal.digest, &ctx.chal.definition, vs);
-        let Some(entry) = cache::lookup(conn, &key).await? else { return Ok(false) };
+        let Some(entry) = cache::lookup(conn, &key).await? else {
+            return Ok(false);
+        };
         if entry.tier_rank < tier_rank(ctx.run.challenge_tier) {
             return Ok(false);
         }
@@ -504,7 +540,10 @@ impl Orchestrator {
                 decide(&gates, &def.required_obligations, &def.not_applicable_gates)
             }
         };
-        for g in gates.iter().filter(|g| g.mandatory && matches!(g.status, GateStatus::Fail | GateStatus::Unknown)) {
+        for g in gates
+            .iter()
+            .filter(|g| g.mandatory && matches!(g.status, GateStatus::Fail | GateStatus::Unknown))
+        {
             reasons.extend(g.reason_codes.iter().copied());
         }
         match &finish {
@@ -521,13 +560,20 @@ impl Orchestrator {
         // Defense in depth: a formal challenge can only be admitted by a
         // formal-tier evaluation (workers below that tier are never leased its
         // jobs in the first place).
-        if ctx.run.challenge_tier == Tier::Formal && ctx.run.tier != Tier::Formal && decision == Decision::Admitted {
+        if ctx.run.challenge_tier == Tier::Formal
+            && ctx.run.tier != Tier::Formal
+            && decision == Decision::Admitted
+        {
             decision = Decision::Inconclusive;
             accepted = false;
         }
         let mut seen = std::collections::HashSet::new();
         reasons.retain(|r| seen.insert(*r));
-        let score = if accepted { ctx.run.benchmark.as_ref().and_then(|b| b.score_milli) } else { None };
+        let score = if accepted {
+            ctx.run.benchmark.as_ref().and_then(|b| b.score_milli)
+        } else {
+            None
+        };
         sqlx::query(
             "UPDATE runs SET stage = 'DECIDED', decision = $2, accepted = $3, score_milli = $4,
                 reason_codes = $5, not_run_gates = $6, decided_at = now() WHERE id = $1",
@@ -550,7 +596,10 @@ impl Orchestrator {
         .rows_affected();
         let (actor, detail) = match &finish {
             Finish::Completed => (Actor::system(), "completed".to_string()),
-            Finish::FailFast => (Actor::system(), "fail-fast after mandatory FAIL".to_string()),
+            Finish::FailFast => (
+                Actor::system(),
+                "fail-fast after mandatory FAIL".to_string(),
+            ),
             Finish::Blocked(w) => (Actor::system(), format!("pipeline blocked: {w}")),
             Finish::Infra(w) => (Actor::system(), format!("infrastructure error: {w}")),
             Finish::Cancelled(a) => (a.clone(), "cancelled".to_string()),
@@ -578,15 +627,23 @@ impl Orchestrator {
     // ------------------------------------------------------------------ worker API
 
     fn lease_secs(&self, req: Option<u32>) -> f64 {
-        let d = req.map(|s| Duration::from_secs(s as u64)).unwrap_or(self.cfg.lease_default);
-        d.clamp(self.cfg.lease_min, self.cfg.lease_max).as_secs_f64()
+        let d = req
+            .map(|s| Duration::from_secs(s as u64))
+            .unwrap_or(self.cfg.lease_default);
+        d.clamp(self.cfg.lease_min, self.cfg.lease_max)
+            .as_secs_f64()
     }
 
     /// Lease the oldest runnable job this worker may execute: queued jobs whose
     /// backoff elapsed, or leased jobs whose lease expired (crash recovery).
     /// Jobs of a tier above the worker's registered capability are never
     /// offered (e.g. `bwrap-dev` workers only ever see demo-tier work).
-    pub async fn lease(&self, pool: &PgPool, worker: &WorkerRow, req: &LeaseRequest) -> Result<Option<LeasedJob>> {
+    pub async fn lease(
+        &self,
+        pool: &PgPool,
+        worker: &WorkerRow,
+        req: &LeaseRequest,
+    ) -> Result<Option<LeasedJob>> {
         let kinds: Vec<String> = req.kinds.iter().map(|k| k.as_str().to_string()).collect();
         let lease_id = Uuid::new_v4();
         let mut tx = pool.begin().await?;
@@ -614,7 +671,18 @@ impl Orchestrator {
             .bind(self.lease_secs(req.lease_seconds))
             .fetch_optional(&mut *tx)
             .await?;
-        let Some((job_id, run_id, sub_id, kind, attempt, max_attempts, until, payload, prev_state, prev_owner)) = row
+        let Some((
+            job_id,
+            run_id,
+            sub_id,
+            kind,
+            attempt,
+            max_attempts,
+            until,
+            payload,
+            prev_state,
+            prev_owner,
+        )) = row
         else {
             return Ok(None);
         };
@@ -657,7 +725,8 @@ impl Orchestrator {
     }
 
     fn check_lease(job: &JobRow, lease_id: Uuid, worker: &WorkerRow) -> Result<()> {
-        let mine = job.lease_id == Some(lease_id) && job.lease_owner.as_deref() == Some(worker.id.as_str());
+        let mine = job.lease_id == Some(lease_id)
+            && job.lease_owner.as_deref() == Some(worker.id.as_str());
         if job.state == "cancelled" && mine {
             return Err(OrchError::Cancelled);
         }
@@ -687,17 +756,22 @@ impl Orchestrator {
         .fetch_optional(pool)
         .await?;
         if let Some((until,)) = row {
-            return Ok(HeartbeatResponse { lease_until: rfc3339(until), cancelled: false });
+            return Ok(HeartbeatResponse {
+                lease_until: rfc3339(until),
+                cancelled: false,
+            });
         }
-        let job: Option<JobRow> = sqlx::query_as(&format!("SELECT {JOB_COLS} FROM jobs WHERE id = $1"))
-            .bind(job_id)
-            .fetch_optional(pool)
-            .await?;
+        let job: Option<JobRow> =
+            sqlx::query_as(&format!("SELECT {JOB_COLS} FROM jobs WHERE id = $1"))
+                .bind(job_id)
+                .fetch_optional(pool)
+                .await?;
         let job = job.ok_or_else(|| OrchError::NotFound(format!("job {job_id}")))?;
         match Self::check_lease(&job, lease_id, worker) {
-            Err(OrchError::Cancelled) => {
-                Ok(HeartbeatResponse { lease_until: rfc3339(time::OffsetDateTime::now_utc()), cancelled: true })
-            }
+            Err(OrchError::Cancelled) => Ok(HeartbeatResponse {
+                lease_until: rfc3339(time::OffsetDateTime::now_utc()),
+                cancelled: true,
+            }),
             Err(e) => Err(e),
             Ok(()) => Err(OrchError::LeaseLost),
         }
@@ -717,10 +791,12 @@ impl Orchestrator {
             .await?;
         let (run_id,) = run_id.ok_or_else(|| OrchError::NotFound(format!("job {job_id}")))?;
         let ctx = self.load_ctx(conn, &run_id).await?;
-        let job: JobRow = sqlx::query_as(&format!("SELECT {JOB_COLS} FROM jobs WHERE id = $1 FOR UPDATE"))
-            .bind(job_id)
-            .fetch_one(&mut *conn)
-            .await?;
+        let job: JobRow = sqlx::query_as(&format!(
+            "SELECT {JOB_COLS} FROM jobs WHERE id = $1 FOR UPDATE"
+        ))
+        .bind(job_id)
+        .fetch_one(&mut *conn)
+        .await?;
         Self::check_lease(&job, lease_id, worker)?;
         if ctx.run.decision.is_some() {
             return Err(OrchError::Cancelled);
@@ -742,7 +818,8 @@ impl Orchestrator {
         let error = sanitize_text(error, MAX_ERROR_BYTES);
         let retry = retryable && job.attempt < job.max_attempts;
         if retry {
-            let backoff = self.cfg.retry_backoff.as_secs_f64() * 2f64.powi((job.attempt - 1).max(0));
+            let backoff =
+                self.cfg.retry_backoff.as_secs_f64() * 2f64.powi((job.attempt - 1).max(0));
             sqlx::query(
                 "UPDATE jobs SET state = 'queued', lease_id = NULL, lease_owner = NULL, lease_until = NULL,
                     last_error = $2, run_after = now() + make_interval(secs => $3), updated_at = now()
@@ -774,23 +851,43 @@ impl Orchestrator {
         )
         .await?;
         if !retry {
-            let why = format!("{} job failed after {} attempt(s): {error}", job.kind, job.attempt);
+            let why = format!(
+                "{} job failed after {} attempt(s): {error}",
+                job.kind, job.attempt
+            );
             self.finalize(conn, ctx, Finish::Infra(why)).await?;
         }
         Ok(retry)
     }
 
-    pub async fn fail(&self, pool: &PgPool, worker: &WorkerRow, job_id: Uuid, req: &FailRequest) -> Result<AckResponse> {
+    pub async fn fail(
+        &self,
+        pool: &PgPool,
+        worker: &WorkerRow,
+        job_id: Uuid,
+        req: &FailRequest,
+    ) -> Result<AckResponse> {
         let lease_id = Uuid::parse_str(&req.lease_id).map_err(|_| OrchError::LeaseLost)?;
         let mut tx = pool.begin().await?;
         let (mut ctx, job) = self.lock_job(&mut tx, job_id, lease_id, worker).await?;
         let retry = self
-            .job_failed(&mut tx, &mut ctx, &job, &req.error, req.retryable, &Actor::worker(&worker.id))
+            .job_failed(
+                &mut tx,
+                &mut ctx,
+                &job,
+                &req.error,
+                req.retryable,
+                &Actor::worker(&worker.id),
+            )
             .await?;
         tx.commit().await?;
         Ok(AckResponse {
             ok: true,
-            message: if retry { "requeued for retry".into() } else { "run decided INFRA_ERROR".into() },
+            message: if retry {
+                "requeued for retry".into()
+            } else {
+                "run decided INFRA_ERROR".into()
+            },
         })
     }
 
@@ -818,7 +915,15 @@ impl Orchestrator {
         let n = match checked {
             Ok(n) => n,
             Err(msg) => {
-                self.job_failed(&mut tx, &mut ctx, &job, &format!("protocol error: {msg}"), true, &actor).await?;
+                self.job_failed(
+                    &mut tx,
+                    &mut ctx,
+                    &job,
+                    &format!("protocol error: {msg}"),
+                    true,
+                    &actor,
+                )
+                .await?;
                 tx.commit().await?;
                 return Err(OrchError::InvalidResult(msg));
             }
@@ -858,14 +963,26 @@ impl Orchestrator {
         self.apply_result(&mut tx, &mut ctx, kind, &n).await?;
         self.advance(&mut tx, &mut ctx).await?;
         tx.commit().await?;
-        Ok(AckResponse { ok: true, message: "result recorded".into() })
+        Ok(AckResponse {
+            ok: true,
+            message: "result recorded".into(),
+        })
     }
 
     /// Cross-checks that need run state (protocol errors, not candidate failures).
-    fn check_consistency(&self, kind: JobKind, ctx: &Ctx, n: &normalize::Normalized) -> Result<(), String> {
+    fn check_consistency(
+        &self,
+        kind: JobKind,
+        ctx: &Ctx,
+        n: &normalize::Normalized,
+    ) -> Result<(), String> {
         if kind == JobKind::Build {
             if let (Some(b), Some(m)) = (&n.build, &ctx.run.manifest) {
-                let want = m.formal.as_ref().map(|f| f.certificate.as_str()).unwrap_or("");
+                let want = m
+                    .formal
+                    .as_ref()
+                    .map(|f| f.certificate.as_str())
+                    .unwrap_or("");
                 if b.certificate_decl != want {
                     return Err(format!(
                         "build certificate_decl {:?} does not match manifest certificate {:?}",
@@ -899,7 +1016,8 @@ impl Orchestrator {
             ctx.run.tier = tier;
         }
         if let Some(eg) = &n.evidence_graph {
-            ctx.run.evidence_graph = Some(normalize::merge_graphs(ctx.run.evidence_graph.take(), eg));
+            ctx.run.evidence_graph =
+                Some(normalize::merge_graphs(ctx.run.evidence_graph.take(), eg));
         }
         match kind {
             JobKind::Validate => {
@@ -910,7 +1028,10 @@ impl Orchestrator {
                 }
             }
             JobKind::Build => {
-                if let (Some(b), true) = (&n.build, n.gates.iter().any(|g| g.status == GateStatus::Pass)) {
+                if let (Some(b), true) = (
+                    &n.build,
+                    n.gates.iter().any(|g| g.status == GateStatus::Pass),
+                ) {
                     let vs = VerifiedSurface {
                         challenge_id: ctx.chal.id.clone(),
                         verify_artifact: b.verify.clone(),
@@ -921,8 +1042,9 @@ impl Orchestrator {
                         checker_image: ctx.chal.definition.toolchain_policy.checker_image.clone(),
                     };
                     let class = self.classify(conn, ctx, &vs).await?;
-                    ctx.run.formal_cache_key =
-                        Some(cache::cache_key(&ctx.chal.digest, &ctx.chal.definition, &vs).to_string());
+                    ctx.run.formal_cache_key = Some(
+                        cache::cache_key(&ctx.chal.digest, &ctx.chal.definition, &vs).to_string(),
+                    );
                     ctx.run.change_class = Some(class);
                     ctx.run.verified_surface = Some(vs);
                 }
@@ -930,7 +1052,9 @@ impl Orchestrator {
             }
             JobKind::FormalCheck => {
                 if n.definite {
-                    if let (Some(vs), Some(_)) = (&ctx.run.verified_surface, &ctx.run.formal_cache_key) {
+                    if let (Some(vs), Some(_)) =
+                        (&ctx.run.verified_surface, &ctx.run.formal_cache_key)
+                    {
                         let key = cache::cache_key(&ctx.chal.digest, &ctx.chal.definition, vs);
                         let stored = cache::store(
                             conn,
@@ -986,8 +1110,15 @@ impl Orchestrator {
     }
 
     /// Change classification from verified-surface digests (never trusted from the agent).
-    async fn classify(&self, conn: &mut PgConnection, ctx: &Ctx, vs: &VerifiedSurface) -> Result<ChangeClass> {
-        let Some(parent) = &ctx.sub.parent_id else { return Ok(ChangeClass::NoParent) };
+    async fn classify(
+        &self,
+        conn: &mut PgConnection,
+        ctx: &Ctx,
+        vs: &VerifiedSurface,
+    ) -> Result<ChangeClass> {
+        let Some(parent) = &ctx.sub.parent_id else {
+            return Ok(ChangeClass::NoParent);
+        };
         let row: Option<(serde_json::Value,)> = sqlx::query_as(
             "SELECT verified_surface FROM runs WHERE submission_id = $1 AND verified_surface IS NOT NULL
              ORDER BY run_number DESC LIMIT 1",
@@ -995,9 +1126,13 @@ impl Orchestrator {
         .bind(parent)
         .fetch_optional(&mut *conn)
         .await?;
-        let parent_vs: Option<VerifiedSurface> = row.map(|r| arena_db::from_json(r.0)).transpose()?;
-        let class =
-            if parent_vs.as_ref() == Some(vs) { ChangeClass::ProverOnly } else { ChangeClass::VerifierOrProtocol };
+        let parent_vs: Option<VerifiedSurface> =
+            row.map(|r| arena_db::from_json(r.0)).transpose()?;
+        let class = if parent_vs.as_ref() == Some(vs) {
+            ChangeClass::ProverOnly
+        } else {
+            ChangeClass::VerifierOrProtocol
+        };
         audit::record(
             &mut *conn,
             &Actor::system(),
@@ -1023,22 +1158,33 @@ impl Orchestrator {
         let mut n = 0;
         for (id,) in ids {
             let mut tx = pool.begin().await?;
-            let run_id: (String,) =
-                sqlx::query_as("SELECT run_id FROM jobs WHERE id = $1").bind(id).fetch_one(&mut *tx).await?;
-            let mut ctx = self.load_ctx(&mut tx, &run_id.0).await?;
-            let job: JobRow = sqlx::query_as(&format!("SELECT {JOB_COLS} FROM jobs WHERE id = $1 FOR UPDATE"))
+            let run_id: (String,) = sqlx::query_as("SELECT run_id FROM jobs WHERE id = $1")
                 .bind(id)
                 .fetch_one(&mut *tx)
                 .await?;
+            let mut ctx = self.load_ctx(&mut tx, &run_id.0).await?;
+            let job: JobRow = sqlx::query_as(&format!(
+                "SELECT {JOB_COLS} FROM jobs WHERE id = $1 FOR UPDATE"
+            ))
+            .bind(id)
+            .fetch_one(&mut *tx)
+            .await?;
             // re-check under lock
-            if job.state != "leased" || job.live || job.attempt < job.max_attempts || ctx.run.decision.is_some() {
+            if job.state != "leased"
+                || job.live
+                || job.attempt < job.max_attempts
+                || ctx.run.decision.is_some()
+            {
                 continue;
             }
             self.job_failed(
                 &mut tx,
                 &mut ctx,
                 &job,
-                &format!("lease expired (worker {} presumed crashed) on final attempt", job.lease_owner.as_deref().unwrap_or("?")),
+                &format!(
+                    "lease expired (worker {} presumed crashed) on final attempt",
+                    job.lease_owner.as_deref().unwrap_or("?")
+                ),
                 false,
                 &Actor::system(),
             )
@@ -1052,27 +1198,41 @@ impl Orchestrator {
     /// Cancel the pending run of a submission.
     pub async fn cancel(&self, pool: &PgPool, submission_id: &str, actor: &Actor) -> Result<()> {
         let mut tx = pool.begin().await?;
-        let run: Option<(String,)> =
-            sqlx::query_as("SELECT id FROM runs WHERE submission_id = $1 ORDER BY run_number DESC LIMIT 1")
-                .bind(submission_id)
-                .fetch_optional(&mut *tx)
-                .await?;
-        let (run_id,) = run.ok_or_else(|| OrchError::NotFound(format!("submission {submission_id}")))?;
+        let run: Option<(String,)> = sqlx::query_as(
+            "SELECT id FROM runs WHERE submission_id = $1 ORDER BY run_number DESC LIMIT 1",
+        )
+        .bind(submission_id)
+        .fetch_optional(&mut *tx)
+        .await?;
+        let (run_id,) =
+            run.ok_or_else(|| OrchError::NotFound(format!("submission {submission_id}")))?;
         let mut ctx = self.load_ctx(&mut tx, &run_id).await?;
         if ctx.run.decision.is_some() {
             return Err(OrchError::Conflict("latest run is already decided".into()));
         }
-        self.finalize(&mut tx, &mut ctx, Finish::Cancelled(actor.clone())).await?;
+        self.finalize(&mut tx, &mut ctx, Finish::Cancelled(actor.clone()))
+            .await?;
         tx.commit().await?;
         Ok(())
     }
 
     /// Admin rerun: a new run record; previous runs stay untouched.
-    pub async fn rerun(&self, pool: &PgPool, submission_id: &str, actor: &Actor, reason: &str) -> Result<String> {
+    pub async fn rerun(
+        &self,
+        pool: &PgPool,
+        submission_id: &str,
+        actor: &Actor,
+        reason: &str,
+    ) -> Result<String> {
         let mut tx = pool.begin().await?;
         // serialize with other reruns/submits of this submission
-        sqlx::query("SELECT pg_advisory_xact_lock(hashtext($1))").bind(submission_id).execute(&mut *tx).await?;
-        let run_id = self.start_run(&mut tx, submission_id, "rerun", actor).await?;
+        sqlx::query("SELECT pg_advisory_xact_lock(hashtext($1))")
+            .bind(submission_id)
+            .execute(&mut *tx)
+            .await?;
+        let run_id = self
+            .start_run(&mut tx, submission_id, "rerun", actor)
+            .await?;
         audit::record(
             &mut *tx,
             actor,

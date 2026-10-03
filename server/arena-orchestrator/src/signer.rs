@@ -44,28 +44,44 @@ impl ReportSigner {
         let t = text.trim();
         if t.starts_with("-----BEGIN") {
             use ed25519_dalek::pkcs8::DecodePrivateKey;
-            let key = SigningKey::from_pkcs8_pem(t).map_err(|e| format!("invalid PKCS#8 ed25519 key: {e}"))?;
-            return Ok(Self { key, ephemeral: false });
+            let key = SigningKey::from_pkcs8_pem(t)
+                .map_err(|e| format!("invalid PKCS#8 ed25519 key: {e}"))?;
+            return Ok(Self {
+                key,
+                ephemeral: false,
+            });
         }
         Self::from_hex(t)
     }
 
     pub fn from_hex(seed_hex: &str) -> Result<Self, String> {
-        let bytes = hex::decode(seed_hex).map_err(|_| "report key must be 64 hex chars".to_string())?;
-        let seed: [u8; 32] = bytes.try_into().map_err(|_| "report key must be 32 bytes".to_string())?;
-        Ok(Self { key: SigningKey::from_bytes(&seed), ephemeral: false })
+        let bytes =
+            hex::decode(seed_hex).map_err(|_| "report key must be 64 hex chars".to_string())?;
+        let seed: [u8; 32] = bytes
+            .try_into()
+            .map_err(|_| "report key must be 32 bytes".to_string())?;
+        Ok(Self {
+            key: SigningKey::from_bytes(&seed),
+            ephemeral: false,
+        })
     }
 
     /// Fresh in-memory key (dev mode only).
     pub fn ephemeral() -> Self {
-        Self { key: SigningKey::generate(&mut rand::rngs::OsRng), ephemeral: true }
+        Self {
+            key: SigningKey::generate(&mut rand::rngs::OsRng),
+            ephemeral: true,
+        }
     }
 
     /// Generate a new key as PKCS#8 PEM (for `arena-server keygen`); returns (pem, public hex).
     pub fn generate_pem() -> (String, String) {
-        use ed25519_dalek::pkcs8::{EncodePrivateKey, spki::der::pem::LineEnding};
+        use ed25519_dalek::pkcs8::{spki::der::pem::LineEnding, EncodePrivateKey};
         let k = SigningKey::generate(&mut rand::rngs::OsRng);
-        let pem = k.to_pkcs8_pem(LineEnding::LF).expect("encode pkcs8").to_string();
+        let pem = k
+            .to_pkcs8_pem(LineEnding::LF)
+            .expect("encode pkcs8")
+            .to_string();
         (pem, hex::encode(k.verifying_key().to_bytes()))
     }
 
@@ -92,10 +108,16 @@ impl ReportSigner {
         let forms: [Vec<u8>; 4] = [
             seed.to_vec(),
             hex::encode(seed).into_bytes(),
-            base64::engine::general_purpose::STANDARD.encode(seed).into_bytes(),
-            base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(seed).into_bytes(),
+            base64::engine::general_purpose::STANDARD
+                .encode(seed)
+                .into_bytes(),
+            base64::engine::general_purpose::URL_SAFE_NO_PAD
+                .encode(seed)
+                .into_bytes(),
         ];
-        forms.iter().any(|f| haystack.windows(f.len()).any(|w| w == f.as_slice()))
+        forms
+            .iter()
+            .any(|f| haystack.windows(f.len()).any(|w| w == f.as_slice()))
     }
 }
 

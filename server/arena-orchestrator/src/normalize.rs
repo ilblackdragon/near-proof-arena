@@ -5,7 +5,9 @@
 
 use crate::score::normalize_benchmark;
 use arena_db::tier_min;
-use arena_jobs::sanitize::{sanitize_line, sanitize_text, MAX_LABEL_BYTES, MAX_NAME_BYTES, MAX_SUMMARY_BYTES};
+use arena_jobs::sanitize::{
+    sanitize_line, sanitize_text, MAX_LABEL_BYTES, MAX_NAME_BYTES, MAX_SUMMARY_BYTES,
+};
 use arena_jobs::{BuildOutputs, ExecutionInfo, JobKind, JobResult};
 use arena_types::{
     challenge::Tier, BenchmarkResult, CandidateManifest, ChallengeDefinition, EvidenceGraph,
@@ -35,7 +37,11 @@ pub struct Normalized {
 }
 
 pub fn sanitize_evidence(e: &EvidenceRef) -> EvidenceRef {
-    EvidenceRef { label: sanitize_line(&e.label, MAX_LABEL_BYTES), digest: e.digest.clone(), public: e.public }
+    EvidenceRef {
+        label: sanitize_line(&e.label, MAX_LABEL_BYTES),
+        digest: e.digest.clone(),
+        public: e.public,
+    }
 }
 
 pub fn sanitize_gate(g: &GateResult, required: &[ObligationId]) -> GateResult {
@@ -51,7 +57,12 @@ pub fn sanitize_gate(g: &GateResult, required: &[ObligationId]) -> GateResult {
         status: g.status,
         reason_codes: codes,
         summary: sanitize_text(&g.summary, MAX_SUMMARY_BYTES),
-        evidence: g.evidence.iter().take(MAX_ARTIFACTS).map(sanitize_evidence).collect(),
+        evidence: g
+            .evidence
+            .iter()
+            .take(MAX_ARTIFACTS)
+            .map(sanitize_evidence)
+            .collect(),
         started_at: g.started_at.as_deref().map(|s| sanitize_line(s, 64)),
         finished_at: g.finished_at.as_deref().map(|s| sanitize_line(s, 64)),
         // workers cannot claim reuse; only the control plane's cache sets this
@@ -93,7 +104,11 @@ pub fn merge_graphs(base: Option<EvidenceGraph>, add: &EvidenceGraph) -> Evidenc
         }
     }
     for e in &add.edges {
-        match g.edges.iter_mut().find(|x| x.from == e.from && x.to == e.to && x.kind == e.kind) {
+        match g
+            .edges
+            .iter_mut()
+            .find(|x| x.from == e.from && x.to == e.to && x.kind == e.kind)
+        {
             Some(x) => *x = e.clone(),
             None => g.edges.push(e.clone()),
         }
@@ -101,7 +116,12 @@ pub fn merge_graphs(base: Option<EvidenceGraph>, add: &EvidenceGraph) -> Evidenc
     g
 }
 
-fn server_fail(gate: ObligationId, code: ReasonCode, why: &str, required: &[ObligationId]) -> GateResult {
+fn server_fail(
+    gate: ObligationId,
+    code: ReasonCode,
+    why: &str,
+    required: &[ObligationId],
+) -> GateResult {
     GateResult {
         gate,
         mandatory: required.contains(&gate),
@@ -176,11 +196,17 @@ pub fn check_result(
     let mut definite = gates.iter().all(|g| g.status != GateStatus::Unknown);
     for gate in owned {
         if !seen.contains(gate) && required.contains(gate) {
-            gates.push(synthesized_unknown(*gate, required, "worker did not report a result for this required gate"));
+            gates.push(synthesized_unknown(
+                *gate,
+                required,
+                "worker did not report a result for this required gate",
+            ));
             definite = false;
         }
     }
-    let status_of = |gates: &[GateResult], o: ObligationId| gates.iter().find(|g| g.gate == o).map(|g| g.status);
+    let status_of = |gates: &[GateResult], o: ObligationId| {
+        gates.iter().find(|g| g.gate == o).map(|g| g.status)
+    };
 
     if r.artifacts.len() > MAX_ARTIFACTS {
         return Err("too many artifacts".into());
@@ -195,22 +221,37 @@ pub fn check_result(
     match kind {
         JobKind::Validate => {
             if status_of(&gates, ObligationId::PkgWellformed) == Some(GateStatus::Pass) {
-                let m = r.manifest.clone().ok_or("passing VALIDATE result must include the manifest")?;
+                let m = r
+                    .manifest
+                    .clone()
+                    .ok_or("passing VALIDATE result must include the manifest")?;
                 let override_reason = if let Err(e) = m.validate() {
-                    Some((ReasonCode::ManifestInvalid, format!("manifest failed validation: {e}")))
+                    Some((
+                        ReasonCode::ManifestInvalid,
+                        format!("manifest failed validation: {e}"),
+                    ))
                 } else if m.challenge != challenge_id {
-                    Some((ReasonCode::ManifestInvalid, "manifest names a different challenge".to_string()))
+                    Some((
+                        ReasonCode::ManifestInvalid,
+                        "manifest names a different challenge".to_string(),
+                    ))
                 } else if m.security_profile_request != chal.security_profile.id {
                     Some((
                         ReasonCode::ProfileNotAllowed,
-                        format!("requested security profile is not {:?}", chal.security_profile.id),
+                        format!(
+                            "requested security profile is not {:?}",
+                            chal.security_profile.id
+                        ),
                     ))
                 } else {
                     None
                 };
                 match override_reason {
                     Some((code, why)) => {
-                        let i = gates.iter().position(|g| g.gate == ObligationId::PkgWellformed).unwrap();
+                        let i = gates
+                            .iter()
+                            .position(|g| g.gate == ObligationId::PkgWellformed)
+                            .unwrap();
                         gates[i] = server_fail(ObligationId::PkgWellformed, code, &why, required);
                     }
                     None => {
@@ -224,7 +265,10 @@ pub fn check_result(
         }
         JobKind::Build => {
             if status_of(&gates, ObligationId::BuildReproducible) == Some(GateStatus::Pass) {
-                let mut b = r.build.clone().ok_or("passing BUILD result must include build outputs")?;
+                let mut b = r
+                    .build
+                    .clone()
+                    .ok_or("passing BUILD result must include build outputs")?;
                 b.certificate_decl = sanitize_line(&b.certificate_decl, 256);
                 b.toolchain_image = b.toolchain_image.map(|t| sanitize_line(&t, 128));
                 build = Some(b);
@@ -236,21 +280,22 @@ pub fn check_result(
                 build = Some(b);
             }
         }
-        JobKind::Benchmark => {
-            match &r.benchmark {
-                Some(b) => benchmark = Some(normalize_benchmark(chal, b.clone())?),
-                None if status_of(&gates, ObligationId::Benchmark) == Some(GateStatus::Pass) => {
-                    return Err("passing BENCHMARK result must include measurements".into())
-                }
-                None => {}
+        JobKind::Benchmark => match &r.benchmark {
+            Some(b) => benchmark = Some(normalize_benchmark(chal, b.clone())?),
+            None if status_of(&gates, ObligationId::Benchmark) == Some(GateStatus::Pass) => {
+                return Err("passing BENCHMARK result must include measurements".into())
             }
-        }
+            None => {}
+        },
         JobKind::FormalCheck | JobKind::Conformance | JobKind::Adversarial => {}
     }
     if kind != JobKind::Benchmark && r.benchmark.is_some() {
         return Err(format!("{kind} job may not report benchmark measurements"));
     }
-    let log_excerpt = r.log_excerpt.as_deref().map(|t| sanitize_text(t, MAX_LOG_BYTES));
+    let log_excerpt = r
+        .log_excerpt
+        .as_deref()
+        .map(|t| sanitize_text(t, MAX_LOG_BYTES));
     Ok(Normalized {
         gates,
         tier_cap,
@@ -271,7 +316,12 @@ mod tests {
     #[test]
     fn merge_dedupes() {
         use arena_types::evidence::*;
-        let n = |id: &str, l: &str| EvidenceNode { id: id.into(), kind: NodeKind::Theorem, label: l.into(), digest: None };
+        let n = |id: &str, l: &str| EvidenceNode {
+            id: id.into(),
+            kind: NodeKind::Theorem,
+            label: l.into(),
+            digest: None,
+        };
         let e = |s: EdgeStatus| EvidenceEdge {
             from: "a".into(),
             to: "b".into(),
@@ -280,8 +330,14 @@ mod tests {
             evidence: vec![],
             note: String::new(),
         };
-        let g1 = EvidenceGraph { nodes: vec![n("a", "1"), n("b", "1")], edges: vec![e(EdgeStatus::Missing)] };
-        let g2 = EvidenceGraph { nodes: vec![n("a", "2")], edges: vec![e(EdgeStatus::Checked)] };
+        let g1 = EvidenceGraph {
+            nodes: vec![n("a", "1"), n("b", "1")],
+            edges: vec![e(EdgeStatus::Missing)],
+        };
+        let g2 = EvidenceGraph {
+            nodes: vec![n("a", "2")],
+            edges: vec![e(EdgeStatus::Checked)],
+        };
         let m = merge_graphs(Some(g1), &g2);
         assert_eq!(m.nodes.len(), 2);
         assert_eq!(m.nodes[0].label, "2");

@@ -14,9 +14,9 @@
 //! strings are sanitized, and the effective tier is capped by both the
 //! worker's registered capability and the result's own `tier_cap`.
 
-pub mod sanitize;
 #[cfg(feature = "client")]
 pub mod client;
+pub mod sanitize;
 
 use arena_types::{
     challenge::Tier, BenchmarkResult, CandidateManifest, ChallengeDefinition, Digest,
@@ -31,7 +31,9 @@ use std::str::FromStr;
 pub const JOB_PROTOCOL_VERSION: &str = "arena-jobs-v1";
 
 /// Kind of a pipeline stage job.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, JsonSchema,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum JobKind {
     Validate,
@@ -361,8 +363,10 @@ mod tests {
             Benchmark,
         ];
         for g in all {
-            let owners: Vec<_> =
-                JobKind::ALL.into_iter().filter(|k| k.owned_gates().contains(&g)).collect();
+            let owners: Vec<_> = JobKind::ALL
+                .into_iter()
+                .filter(|k| k.owned_gates().contains(&g))
+                .collect();
             assert_eq!(owners.len(), 1, "{g:?}");
         }
     }

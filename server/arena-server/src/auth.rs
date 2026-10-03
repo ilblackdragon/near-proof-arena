@@ -10,7 +10,10 @@ use axum::http::{header, request::Parts};
 
 fn bearer(parts: &Parts) -> Option<&str> {
     let v = parts.headers.get(header::AUTHORIZATION)?.to_str().ok()?;
-    let t = v.strip_prefix("Bearer ").or_else(|| v.strip_prefix("bearer "))?.trim();
+    let t = v
+        .strip_prefix("Bearer ")
+        .or_else(|| v.strip_prefix("bearer "))?
+        .trim();
     (!t.is_empty() && t.len() <= 512).then_some(t)
 }
 
@@ -22,7 +25,9 @@ impl FromRequestParts<SharedState> for AgentAuth {
     type Rejection = ApiError;
     async fn from_request_parts(parts: &mut Parts, st: &SharedState) -> Result<Self, ApiError> {
         let t = bearer(parts).ok_or_else(ApiError::unauthorized)?;
-        let a = arena_db::agent_by_token(&st.api_db, t).await?.ok_or_else(ApiError::unauthorized)?;
+        let a = arena_db::agent_by_token(&st.api_db, t)
+            .await?
+            .ok_or_else(ApiError::unauthorized)?;
         if a.disabled {
             return Err(ApiError::forbidden("agent disabled"));
         }
@@ -37,7 +42,9 @@ impl FromRequestParts<SharedState> for AdminAuth {
     type Rejection = ApiError;
     async fn from_request_parts(parts: &mut Parts, st: &SharedState) -> Result<Self, ApiError> {
         let t = bearer(parts).ok_or_else(ApiError::unauthorized)?;
-        let a = arena_db::admin_by_token(&st.admin_db, t).await?.ok_or_else(ApiError::unauthorized)?;
+        let a = arena_db::admin_by_token(&st.admin_db, t)
+            .await?
+            .ok_or_else(ApiError::unauthorized)?;
         if a.disabled {
             return Err(ApiError::forbidden("admin disabled"));
         }
@@ -49,7 +56,9 @@ impl FromRequestParts<SharedState> for WorkerAuth {
     type Rejection = ApiError;
     async fn from_request_parts(parts: &mut Parts, st: &SharedState) -> Result<Self, ApiError> {
         let t = bearer(parts).ok_or_else(ApiError::unauthorized)?;
-        let w = arena_db::worker_by_token(&st.worker_db, t).await?.ok_or_else(ApiError::unauthorized)?;
+        let w = arena_db::worker_by_token(&st.worker_db, t)
+            .await?
+            .ok_or_else(ApiError::unauthorized)?;
         if w.disabled {
             return Err(ApiError::forbidden("worker disabled"));
         }

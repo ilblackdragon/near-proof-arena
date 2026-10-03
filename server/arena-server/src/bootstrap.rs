@@ -39,14 +39,31 @@ pub async fn principals_from_env(admin_db: &PgPool, dev: bool) -> Result<(), Str
         .execute(admin_db)
         .await
         .map_err(|e| e.to_string())?;
-        audit::record(admin_db, &sys, "admin.bootstrap", None, None, false, json!({"name": "bootstrap"}))
-            .await
-            .map_err(|e| e.to_string())?;
+        audit::record(
+            admin_db,
+            &sys,
+            "admin.bootstrap",
+            None,
+            None,
+            false,
+            json!({"name": "bootstrap"}),
+        )
+        .await
+        .map_err(|e| e.to_string())?;
     }
     if let Some(h) = token_hash_from_env("ARENA_WORKER_TOKEN")? {
-        let backend = std::env::var("ARENA_BOOTSTRAP_WORKER_SANDBOX")
-            .unwrap_or_else(|_| if dev { "bwrap-dev".into() } else { "firecracker".into() });
-        let cap = if backend == "bwrap-dev" { Tier::Demo } else { Tier::Formal };
+        let backend = std::env::var("ARENA_BOOTSTRAP_WORKER_SANDBOX").unwrap_or_else(|_| {
+            if dev {
+                "bwrap-dev".into()
+            } else {
+                "firecracker".into()
+            }
+        });
+        let cap = if backend == "bwrap-dev" {
+            Tier::Demo
+        } else {
+            Tier::Formal
+        };
         if !dev && backend == "bwrap-dev" {
             return Err("bwrap-dev workers are refused in production".into());
         }
@@ -75,7 +92,8 @@ pub async fn principals_from_env(admin_db: &PgPool, dev: bool) -> Result<(), Str
         .map_err(|e| e.to_string())?;
     }
     if let Some(h) = token_hash_from_env("ARENA_BOOTSTRAP_AGENT_TOKEN")? {
-        let handle = std::env::var("ARENA_BOOTSTRAP_AGENT_HANDLE").unwrap_or_else(|_| "bootstrap".into());
+        let handle =
+            std::env::var("ARENA_BOOTSTRAP_AGENT_HANDLE").unwrap_or_else(|_| "bootstrap".into());
         sqlx::query(
             "INSERT INTO agents (id, handle, token_hash) VALUES ($1, $2, $3)
              ON CONFLICT (handle) DO UPDATE SET token_hash = EXCLUDED.token_hash",
@@ -113,24 +131,38 @@ pub async fn challenges_from_dir(
         .map_err(|e| format!("{}: {e}", dir.display()))?
         .filter_map(|e| e.ok().map(|e| e.path()))
         .filter(|p| p.extension().is_some_and(|x| x == "json"))
-        .filter(|p| p.file_stem().and_then(|s| s.to_str()).is_some_and(|s| s.starts_with("chl_")))
+        .filter(|p| {
+            p.file_stem()
+                .and_then(|s| s.to_str())
+                .is_some_and(|s| s.starts_with("chl_"))
+        })
         .collect();
     entries.sort();
     for path in entries {
-        let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or_default().to_string();
+        let stem = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or_default()
+            .to_string();
         let res: Result<challenge::VerifiedChallenge, String> = (|| {
             let text = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
-            let def: ChallengeDefinition = serde_json::from_str(&text).map_err(|e| format!("definition: {e}"))?;
+            let def: ChallengeDefinition =
+                serde_json::from_str(&text).map_err(|e| format!("definition: {e}"))?;
             let sig = read_signature(&path.with_extension("sig"))?;
             let v = challenge::verify_definition(def, &sig, keys)?;
             if v.id != stem {
-                return Err(format!("file name {stem} does not match recomputed id {}", v.id));
+                return Err(format!(
+                    "file name {stem} does not match recomputed id {}",
+                    v.id
+                ));
             }
             Ok(v)
         })();
         match res {
             Ok(v) => {
-                let out = challenge::register(admin_db, &v, "challenges-dir").await.map_err(|e| e.to_string())?;
+                let out = challenge::register(admin_db, &v, "challenges-dir")
+                    .await
+                    .map_err(|e| e.to_string())?;
                 if matches!(out, RegisterOutcome::Created) {
                     audit::record(
                         admin_db,

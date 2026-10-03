@@ -12,7 +12,11 @@ pub struct RateLimiter {
 
 impl RateLimiter {
     pub fn new(per_minute: u32, burst: u32) -> Self {
-        Self { per_minute: per_minute as f64, burst: burst.max(1) as f64, buckets: Mutex::new(HashMap::new()) }
+        Self {
+            per_minute: per_minute as f64,
+            burst: burst.max(1) as f64,
+            buckets: Mutex::new(HashMap::new()),
+        }
     }
 
     /// Take one token for `key`. `Err(seconds)` = retry after.

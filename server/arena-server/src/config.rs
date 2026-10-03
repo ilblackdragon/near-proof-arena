@@ -18,7 +18,11 @@ pub struct ServeArgs {
     #[arg(long, env = "ARENA_BIND_ADDR", default_value = "127.0.0.1:8471")]
     pub bind: String,
     /// Internal worker API listener.
-    #[arg(long, env = "ARENA_WORKER_API_BIND_ADDR", default_value = "127.0.0.1:8472")]
+    #[arg(
+        long,
+        env = "ARENA_WORKER_API_BIND_ADDR",
+        default_value = "127.0.0.1:8472"
+    )]
     pub worker_bind: String,
     /// `arena_api` role.
     #[arg(long, env = "ARENA_DATABASE_URL")]
@@ -106,11 +110,15 @@ pub struct Resolved {
 /// `127.evil.com`/`localhost.evil` can never be mistaken for loopback);
 /// `localhost` is mapped to 127.0.0.1.
 pub fn parse_bind(s: &str) -> Result<SocketAddr, String> {
-    let s2 = s.strip_prefix("localhost:").map(|p| format!("127.0.0.1:{p}"));
+    let s2 = s
+        .strip_prefix("localhost:")
+        .map(|p| format!("127.0.0.1:{p}"));
     s2.as_deref()
         .unwrap_or(s)
         .parse::<SocketAddr>()
-        .map_err(|_| format!("bind address {s:?} must be an IP literal with port (e.g. 127.0.0.1:8471)"))
+        .map_err(|_| {
+            format!("bind address {s:?} must be an IP literal with port (e.g. 127.0.0.1:8471)")
+        })
 }
 
 pub fn check_binds(
@@ -134,7 +142,10 @@ pub fn check_binds(
             ));
         }
         if env == Env::Production && *name == "public API" && !h.behind_tls_proxy {
-            return Err("production public API on a non-loopback address requires behind_tls_proxy = true".into());
+            return Err(
+                "production public API on a non-loopback address requires behind_tls_proxy = true"
+                    .into(),
+            );
         }
         tracing::warn!(%addr, justification = %h.justification, "{name} bound to a non-loopback address");
     }
@@ -147,12 +158,23 @@ pub fn parse_pubkeys_text(text: &str) -> Result<Vec<VerifyingKey>, String> {
     let mut rest = text;
     while let Some(start) = rest.find("-----BEGIN PUBLIC KEY-----") {
         let end_marker = "-----END PUBLIC KEY-----";
-        let end = rest[start..].find(end_marker).ok_or("unterminated PEM block")? + start + end_marker.len();
-        keys.push(VerifyingKey::from_public_key_pem(&rest[start..end]).map_err(|e| format!("pem: {e}"))?);
+        let end = rest[start..]
+            .find(end_marker)
+            .ok_or("unterminated PEM block")?
+            + start
+            + end_marker.len();
+        keys.push(
+            VerifyingKey::from_public_key_pem(&rest[start..end])
+                .map_err(|e| format!("pem: {e}"))?,
+        );
         rest = &rest[end..];
     }
     if keys.is_empty() {
-        for line in text.lines().map(str::trim).filter(|l| !l.is_empty() && !l.starts_with('#')) {
+        for line in text
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with('#'))
+        {
             keys.push(arena_db::challenge::parse_pubkey(line)?);
         }
     }
@@ -182,7 +204,9 @@ pub fn write_secret(path: &Path, content: &str) -> Result<(), String> {
         use std::os::unix::fs::OpenOptionsExt;
         o.mode(0o600);
     }
-    let mut f = o.open(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let mut f = o
+        .open(path)
+        .map_err(|e| format!("{}: {e}", path.display()))?;
     f.write_all(content.as_bytes()).map_err(|e| e.to_string())
 }
 
@@ -193,8 +217,14 @@ impl ServeArgs {
             (true, Some(other)) => return Err(format!("--dev conflicts with ARENA_ENV={other}")),
             (false, Some("dev")) => Env::Dev,
             (false, Some("production")) => Env::Production,
-            (false, Some(other)) => return Err(format!("ARENA_ENV must be dev or production, got {other:?}")),
-            (false, None) => return Err("ARENA_ENV is required (dev or production), or pass --dev".into()),
+            (false, Some(other)) => {
+                return Err(format!(
+                    "ARENA_ENV must be dev or production, got {other:?}"
+                ))
+            }
+            (false, None) => {
+                return Err("ARENA_ENV is required (dev or production), or pass --dev".into())
+            }
         };
         if env == Env::Production && std::env::var_os("ARENA_DEV_UNSAFE").is_some() {
             return Err("ARENA_DEV_UNSAFE must not be set in production".into());
@@ -203,12 +233,18 @@ impl ServeArgs {
         let worker_bind = parse_bind(&self.worker_bind)?;
         let hardened: Option<HardenedConfig> = match &self.hardened_config {
             Some(p) => Some(
-                toml::from_str(&std::fs::read_to_string(p).map_err(|e| format!("{}: {e}", p.display()))?)
-                    .map_err(|e| format!("{}: {e}", p.display()))?,
+                toml::from_str(
+                    &std::fs::read_to_string(p).map_err(|e| format!("{}: {e}", p.display()))?,
+                )
+                .map_err(|e| format!("{}: {e}", p.display()))?,
             ),
             None => None,
         };
-        check_binds(env, &[("public API", bind), ("worker API", worker_bind)], hardened.as_ref())?;
+        check_binds(
+            env,
+            &[("public API", bind), ("worker API", worker_bind)],
+            hardened.as_ref(),
+        )?;
 
         // ---- report signing key (never leaves this process)
         let inline = std::env::var("ARENA_REPORT_SIGNING_KEY").ok();
@@ -235,7 +271,11 @@ impl ServeArgs {
 
         // ---- governance keys
         let mut governance_keys = Vec::new();
-        for k in self.governance_pubkeys.iter().filter(|k| !k.trim().is_empty()) {
+        for k in self
+            .governance_pubkeys
+            .iter()
+            .filter(|k| !k.trim().is_empty())
+        {
             governance_keys.push(arena_db::challenge::parse_pubkey(k)?);
         }
         if let Some(p) = &self.governance_pubkey_file {
@@ -253,7 +293,13 @@ impl ServeArgs {
                 }
             }
         }
-        Ok(Resolved { env, bind, worker_bind, signer, governance_keys })
+        Ok(Resolved {
+            env,
+            bind,
+            worker_bind,
+            signer,
+            governance_keys,
+        })
     }
 }
 
@@ -276,13 +322,23 @@ mod tests {
         let lo = parse_bind("127.0.0.1:8471").unwrap();
         assert!(check_binds(Env::Dev, &[("public API", lo)], None).is_ok());
         assert!(check_binds(Env::Dev, &[("public API", any)], None).is_err());
-        let weak = HardenedConfig { allow_non_loopback_bind: true, justification: " ".into(), behind_tls_proxy: false };
+        let weak = HardenedConfig {
+            allow_non_loopback_bind: true,
+            justification: " ".into(),
+            behind_tls_proxy: false,
+        };
         assert!(check_binds(Env::Dev, &[("public API", any)], Some(&weak)).is_err());
-        let ok = HardenedConfig { justification: "container netns".into(), ..weak.clone() };
+        let ok = HardenedConfig {
+            justification: "container netns".into(),
+            ..weak.clone()
+        };
         assert!(check_binds(Env::Dev, &[("public API", any)], Some(&ok)).is_ok());
         assert!(check_binds(Env::Production, &[("public API", any)], Some(&ok)).is_err());
         assert!(check_binds(Env::Production, &[("worker API", any)], Some(&ok)).is_ok());
-        let tls = HardenedConfig { behind_tls_proxy: true, ..ok };
+        let tls = HardenedConfig {
+            behind_tls_proxy: true,
+            ..ok
+        };
         assert!(check_binds(Env::Production, &[("public API", any)], Some(&tls)).is_ok());
     }
 }

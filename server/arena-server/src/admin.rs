@@ -66,8 +66,19 @@ async fn register_challenge(
         .await?;
     }
     tx.commit().await?;
-    let status = if created { StatusCode::CREATED } else { StatusCode::OK };
-    Ok((status, Json(RegisterChallengeResponse { id: v.id, digest: v.digest, created })))
+    let status = if created {
+        StatusCode::CREATED
+    } else {
+        StatusCode::OK
+    };
+    Ok((
+        status,
+        Json(RegisterChallengeResponse {
+            id: v.id,
+            digest: v.digest,
+            created,
+        }),
+    ))
 }
 
 async fn challenge_status(
@@ -86,8 +97,16 @@ async fn challenge_status(
     if n == 0 {
         return Err(ApiError::not_found("unknown challenge"));
     }
-    audit::record(&mut *tx, &Actor::admin(&admin.id), "challenge.status", None, None, true, json!({"challenge_id": id, "open": req.open}))
-        .await?;
+    audit::record(
+        &mut *tx,
+        &Actor::admin(&admin.id),
+        "challenge.status",
+        None,
+        None,
+        true,
+        json!({"challenge_id": id, "open": req.open}),
+    )
+    .await?;
     tx.commit().await?;
     Ok(StatusCode::NO_CONTENT)
 }
@@ -101,7 +120,11 @@ async fn revoke(
     Json(req): Json<ReasonRequest>,
 ) -> ApiResult<(StatusCode, Json<Revocation>)> {
     let why = reason(&req.reason)?;
-    if !valid_id("sub", &id) || arena_db::views::submission(&st.admin_db, &id).await?.is_none() {
+    if !valid_id("sub", &id)
+        || arena_db::views::submission(&st.admin_db, &id)
+            .await?
+            .is_none()
+    {
         return Err(ApiError::not_found("unknown submission"));
     }
     let mut tx = st.admin_db.begin().await?;
@@ -115,14 +138,29 @@ async fn revoke(
     .fetch_optional(&mut *tx)
     .await?;
     let Some((at,)) = row else {
-        return Err(ApiError::conflict("already_revoked", "submission is already revoked"));
+        return Err(ApiError::conflict(
+            "already_revoked",
+            "submission is already revoked",
+        ));
     };
-    audit::record(&mut *tx, &Actor::admin(&admin.id), "submission.revoked", Some(&id), None, true, json!({"reason": why}))
-        .await?;
+    audit::record(
+        &mut *tx,
+        &Actor::admin(&admin.id),
+        "submission.revoked",
+        Some(&id),
+        None,
+        true,
+        json!({"reason": why}),
+    )
+    .await?;
     tx.commit().await?;
     Ok((
         StatusCode::CREATED,
-        Json(Revocation { reason: why, revoked_at: arena_db::rfc3339(at), revoked_by: admin.name }),
+        Json(Revocation {
+            reason: why,
+            revoked_at: arena_db::rfc3339(at),
+            revoked_by: admin.name,
+        }),
     ))
 }
 
@@ -136,8 +174,17 @@ async fn rerun(
     if !valid_id("sub", &id) {
         return Err(ApiError::not_found("unknown submission"));
     }
-    let run_id = st.orch.rerun(&st.admin_db, &id, &Actor::admin(&admin.id), &why).await?;
-    Ok((StatusCode::CREATED, Json(RerunResponse { submission_id: id, run_id })))
+    let run_id = st
+        .orch
+        .rerun(&st.admin_db, &id, &Actor::admin(&admin.id), &why)
+        .await?;
+    Ok((
+        StatusCode::CREATED,
+        Json(RerunResponse {
+            submission_id: id,
+            run_id,
+        }),
+    ))
 }
 
 async fn invalidate_cache(
@@ -147,7 +194,9 @@ async fn invalidate_cache(
 ) -> ApiResult<Json<InvalidateCacheResponse>> {
     let why = reason(&req.reason)?;
     if req.checker_image.is_none() && req.assumption.is_none() {
-        return Err(ApiError::bad_request("specify checker_image and/or assumption"));
+        return Err(ApiError::bad_request(
+            "specify checker_image and/or assumption",
+        ));
     }
     let assumption = req.assumption.as_deref().map(|a| sanitize_line(a, 128));
     let mut tx = st.admin_db.begin().await?;
@@ -178,10 +227,27 @@ async fn create_agent(
     AdminAuth(admin): AdminAuth,
     Json(req): Json<CreateAgentRequest>,
 ) -> ApiResult<(StatusCode, Json<CreatedPrincipal>)> {
-    let (id, token) = arena_db::create_agent(&st.admin_db, &req.handle).await.map_err(db_create_err)?;
-    audit::record(&st.admin_db, &Actor::admin(&admin.id), "agent.created", None, None, false, json!({"agent_id": id, "handle": req.handle}))
-        .await?;
-    Ok((StatusCode::CREATED, Json(CreatedPrincipal { id, name: req.handle, token })))
+    let (id, token) = arena_db::create_agent(&st.admin_db, &req.handle)
+        .await
+        .map_err(db_create_err)?;
+    audit::record(
+        &st.admin_db,
+        &Actor::admin(&admin.id),
+        "agent.created",
+        None,
+        None,
+        false,
+        json!({"agent_id": id, "handle": req.handle}),
+    )
+    .await?;
+    Ok((
+        StatusCode::CREATED,
+        Json(CreatedPrincipal {
+            id,
+            name: req.handle,
+            token,
+        }),
+    ))
 }
 
 async fn create_worker(
@@ -190,9 +256,14 @@ async fn create_worker(
     Json(req): Json<CreateWorkerRequest>,
 ) -> ApiResult<(StatusCode, Json<CreatedPrincipal>)> {
     // The namespaces-only dev sandbox can never be leased non-demo work.
-    let cap = if req.sandbox_backend == "bwrap-dev" { Tier::Demo } else { req.tier_cap };
-    let (id, token) =
-        arena_db::create_worker(&st.admin_db, &req.name, &req.sandbox_backend, cap).await.map_err(db_create_err)?;
+    let cap = if req.sandbox_backend == "bwrap-dev" {
+        Tier::Demo
+    } else {
+        req.tier_cap
+    };
+    let (id, token) = arena_db::create_worker(&st.admin_db, &req.name, &req.sandbox_backend, cap)
+        .await
+        .map_err(db_create_err)?;
     audit::record(
         &st.admin_db,
         &Actor::admin(&admin.id),
@@ -203,7 +274,14 @@ async fn create_worker(
         json!({"worker_id": id, "name": req.name, "sandbox_backend": req.sandbox_backend, "tier_cap": tier_rank(cap)}),
     )
     .await?;
-    Ok((StatusCode::CREATED, Json(CreatedPrincipal { id, name: req.name, token })))
+    Ok((
+        StatusCode::CREATED,
+        Json(CreatedPrincipal {
+            id,
+            name: req.name,
+            token,
+        }),
+    ))
 }
 
 fn db_create_err(e: arena_db::DbError) -> ApiError {
@@ -238,8 +316,16 @@ async fn set_quota(
     .bind(q.max_active_runs)
     .execute(&mut *tx)
     .await?;
-    audit::record(&mut *tx, &Actor::admin(&admin.id), "quota.set", None, None, false, json!({"agent_id": agent_id, "quota": q}))
-        .await?;
+    audit::record(
+        &mut *tx,
+        &Actor::admin(&admin.id),
+        "quota.set",
+        None,
+        None,
+        false,
+        json!({"agent_id": agent_id, "quota": q}),
+    )
+    .await?;
     tx.commit().await?;
     Ok(StatusCode::NO_CONTENT)
 }
