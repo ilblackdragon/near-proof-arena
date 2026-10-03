@@ -29,6 +29,12 @@ struct Runner<'r, 'a> {
     batches: HashMap<String, (Vec<Case>, Vec<Case>)>,
     cpus: Option<Vec<u32>>,
     failure: Option<(ReasonCode, String)>,
+    /// Confirmation mode (spec §7.4): every (class, phase, round) proves a
+    /// batch never seen before in this job.
+    fresh_only: bool,
+    oracle: &'r dyn crate::oracle::Oracle,
+    chal: &'r arena_types::ChallengeDefinition,
+    parts: Vec<String>,
 }
 
 impl Runner<'_, '_> {
@@ -55,9 +61,18 @@ fn cross_check(o: &arena_sandbox::SandboxOutcome) -> Result<(), RunError> {
 }
 
 impl BatchRunner for Runner<'_, '_> {
-    fn run_batch(&mut self, class_id: &str, phase: Phase, _round: u32) -> Result<BatchSample, RunError> {
+    fn run_batch(&mut self, class_id: &str, phase: Phase, round: u32) -> Result<BatchSample, RunError> {
         let (batch, fresh) = self.batches[class_id].clone();
-        let batch = if phase == Phase::FreshConfirm { fresh } else { batch };
+        let batch = if self.fresh_only {
+            let tag = format!("{class_id}#confirm-{}-{round}", phase.as_str());
+            let mut parts: Vec<&str> = self.parts.iter().map(|s| s.as_str()).collect();
+            parts.push(&tag);
+            self.oracle.sample(self.chal, class_id, &parts, batch.len()).map_err(|e| RunError::Infra(e.to_string()))?
+        } else if phase == Phase::FreshConfirm {
+            fresh
+        } else {
+            batch
+        };
         let mut s = BatchSample::default();
         for case in &batch {
             let label = common::case_label(&case.id, case.public);
@@ -159,7 +174,21 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     };
     let cpus = r.ctx.bench_cpus.clone();
     let worker_id = r.ctx.worker_id.clone();
-    let mut runner = Runner { r, entry: &j.manifest.entry, limits: limits.clone(), bundle, public_dir, batches, cpus, failure: None };
+    let mut runner = Runner {
+        r,
+        entry: &j.manifest.entry,
+        limits: limits.clone(),
+        bundle,
+        public_dir,
+        batches,
+        cpus,
+        failure: None,
+        fresh_only: false,
+        oracle,
+        chal,
+        parts: parts_owned.to_vec(),
+    };
+    let mut plan = plan;
     // A session with too many outliers is re-measured as a whole (spec
     // §7.3), up to MAX_SESSIONS times within the job, then an infra error.
     let mut attempt = 0;
@@ -178,6 +207,17 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             }
             Err(e) => return Err(ExecError::Infra(e.to_string())),
         };
+        if !runner.fresh_only && session.flags.iter().any(|f| f.starts_with("CACHING_SUSPECTED")) {
+            // §7.4: the number is only published after a re-run on fresh
+            // batches only (every round a new batch); that run's number is
+            // the published one. A candidate that caches across runs stays
+            // slow there (no seen inputs exist).
+            bench.note(format!("session {attempt}: CACHING_SUSPECTED; re-measured on fresh batches only"));
+            runner.fresh_only = true;
+            plan.fresh_confirm_runs = 0;
+            attempt = 0;
+            continue;
+        }
         match session.flags.iter().find(|f| f.starts_with("EXCESSIVE_OUTLIERS")) {
             None => break session,
             Some(f) if attempt >= MAX_SESSIONS => return Err(ExecError::Infra(format!("{f} in {attempt} sessions: host too noisy"))),

@@ -10,6 +10,15 @@
 #   --keep            leave server/worker running and the database in place
 #   --hostile         afterwards run adversarial/e2e/run.sh against the same server
 #   --hostile-only C  only run the named hostile case(s) (comma list; implies --hostile)
+#   --fc              also start a Firecracker worker (production isolation, formal
+#                     tier) with the pinned build-toolchain and lean-checker images,
+#                     and drive a NEAR-challenge submission through it
+#   --hostile-near    run the hostile suite against the NEAR challenge (implies --fc)
+#
+# The formal NEAR challenge (chl_5ef2bc7d2068219635426e47ca46bfbb, signed with
+# challenges/governance-local.pub) is always registered; without --fc only the
+# demo-capped bwrap-dev worker exists, and the test asserts it never touches
+# the NEAR submission (tier caps).
 #
 # Env: ARENA_E2E_PG (default postgres://arena:arena@127.0.0.1:55471),
 #      ARENA_E2E_DB (default arena_e2e_runners), ARENA_E2E_PORT (default 18471;
@@ -24,6 +33,9 @@ WPORT=$((PORT + 1))
 WORK="${ARENA_E2E_WORK:-$(mktemp -d "${TMPDIR:-/tmp}/arena-e2e.XXXXXX")}"
 mkdir -p "$WORK"
 CHALLENGE=chl_54c65fe7c73c5abcfe500681889177bc
+NEAR=chl_5ef2bc7d2068219635426e47ca46bfbb
+FC=0
+HOSTILE_NEAR=0
 KEEP=0
 HOSTILE=0
 HOSTILE_ONLY=""
@@ -32,6 +44,8 @@ while [ $# -gt 0 ]; do
     --keep) KEEP=1 ;;
     --hostile) HOSTILE=1 ;;
     --hostile-only) HOSTILE=1; HOSTILE_ONLY="$2"; shift ;;
+    --fc) FC=1 ;;
+    --hostile-near) FC=1; HOSTILE_NEAR=1 ;;
     *) echo "unknown option $1" >&2; exit 2 ;;
   esac
   shift
@@ -81,10 +95,10 @@ env ARENA_DATABASE_URL="$DBURL" \
   ARENA_BIND_ADDR="127.0.0.1:$PORT" ARENA_WORKER_API_BIND_ADDR="127.0.0.1:$WPORT" \
   ARENA_ADMIN_TOKEN="e2e-admin" ARENA_BOOTSTRAP_AGENT_TOKEN="$AGENT_TOKEN" ARENA_WORKER_TOKEN="$WORKER_TOKEN" \
   ARENA_BOOTSTRAP_WORKER_SANDBOX=bwrap-dev \
-  ARENA_LEASE_SECS=120 ARENA_RETRY_BACKOFF_SECS=1 ARENA_QUOTA_SUBMISSIONS_PER_DAY=500 ARENA_RATE_LIMIT_PER_MINUTE=600 \
+  ARENA_LEASE_SECS=120 ARENA_RETRY_BACKOFF_SECS=1 ARENA_QUOTA_SUBMISSIONS_PER_DAY=500 ARENA_QUOTA_ACTIVE_RUNS=8 ARENA_RATE_LIMIT_PER_MINUTE=600 \
   "$BIN/arena-server" serve --dev --object-store-dir "$WORK/objects" \
     --challenges-dir "$REPO/challenges" \
-    --governance-pubkey-file "$REPO/challenges/governance-dev.pub" \
+    --governance-pubkey-file "$REPO/challenges/governance-dev.pub,$REPO/challenges/governance-local.pub" \
     --security-dir "$REPO/security" \
   >"$WORK/server.log" 2>&1 &
 PIDS+=($!)
@@ -96,6 +110,9 @@ curl -sf "http://127.0.0.1:$PORT/healthz" >/dev/null || { tail -50 "$WORK/server
 curl -sf "http://127.0.0.1:$PORT/v1/challenges/$CHALLENGE" | python3 -c '
 import json,sys; c=json.load(sys.stdin); assert c["tier"]=="demo", c["tier"]; print("challenge registered:", c["id"], "tier", c["tier"])' \
   || { tail -50 "$WORK/server.log"; die "demo challenge not registered"; }
+curl -sf "http://127.0.0.1:$PORT/v1/challenges/$NEAR" | python3 -c '
+import json,sys; c=json.load(sys.stdin); assert c["tier"]=="formal", c["tier"]; print("challenge registered:", c["id"], "tier", c["tier"], "key", c.get("governance_key"))' \
+  || { tail -50 "$WORK/server.log"; die "NEAR challenge not registered"; }
 
 say "arena-worker (bwrap-dev, DEMO-only isolation)"
 env -i PATH="$PATH" HOME="$HOME" XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-}" DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-}" \
@@ -114,6 +131,15 @@ say "submit the toy reference candidate via the arena CLI"
   || { cat "$WORK/submit.json"; die "arena submit"; }
 SUB=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["id"])' "$WORK/submit.json")
 echo "submission $SUB"
+
+say "submit the same candidate (no formal certificate) to the formal NEAR challenge"
+mkdir -p "$WORK/near-cand"
+cp -r "$REPO/tests/e2e/toy-candidate/." "$WORK/near-cand/"
+sed -i "s/$CHALLENGE/$NEAR/" "$WORK/near-cand/candidate.toml"
+"$BIN/arena" submit "$WORK/near-cand" --challenge "$NEAR" --json >"$WORK/submit-near.json" \
+  || { cat "$WORK/submit-near.json"; die "arena submit (NEAR)"; }
+NSUB=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["id"])' "$WORK/submit-near.json")
+echo "NEAR submission $NSUB"
 
 DEADLINE=$(( $(date +%s) + ${ARENA_E2E_TIMEOUT:-900} ))
 while :; do
@@ -161,9 +187,71 @@ EOF
 echo
 echo "E2E OK: $SUB decided; server log $WORK/server.log, worker log $WORK/worker.log"
 
-if [ "$HOSTILE" = 1 ]; then
+say "tier caps: the demo-capped worker never ran the formal challenge's jobs"
+"$BIN/arena" status "$NSUB" --json >"$WORK/status-near.json"
+python3 - "$WORK/status-near.json" <<'EOF2'
+import json, sys
+v = json.load(open(sys.argv[1]))
+print(f"NEAR submission: stage={v['stage']} decision={v['decision']} gates={len(v['gates'])}")
+assert v["stage"] == "RECEIVED" and v["decision"] is None and not v["gates"], "bwrap-dev worker touched a formal-tier job"
+print("ok   formal-tier submission untouched by the bwrap-dev (demo) worker")
+EOF2
+grep -q "$NSUB" "$WORK/worker.log" && die "demo worker log mentions the NEAR submission"
+
+if [ "$FC" = 1 ]; then
+  say "Firecracker worker (production isolation, tier cap formal)"
+  FC_TOKEN=$("$BIN/arena-server" create-worker --database-url "$DBURL" --name e2e-fc --sandbox firecracker --tier-cap formal | sed -n 's/^token //p')
+  [ -n "$FC_TOKEN" ] || die "create-worker"
+  TC_IMAGES="${ARENA_TOOLCHAIN_IMAGES:-/data/illia/nearproof-deps/toolchain-images}"
+  TC=$(ls "$TC_IMAGES"/*.json | head -1 | xargs basename | sed 's/\.json$//')
+  CLEAN="$WORK/formal-repo"
+  mkdir -p "$CLEAN"
+  ( cd "$REPO" && git ls-files -- formal-core spec/lean | tar -cf - -T - ) | tar -xf - -C "$CLEAN"
+  env -i PATH="$PATH" HOME="$HOME" \
+    ARENA_SERVER_URL="http://127.0.0.1:$WPORT" ARENA_WORKER_TOKEN="$FC_TOKEN" \
+    ARENA_WORKER_ID=e2e-fc-worker ARENA_WORK_DIR="$WORK/fc-worker" ARENA_SANDBOX_BACKEND=firecracker \
+    ARENA_FC_DEPS="${ARENA_FC_DEPS:-/data/illia/nearproof-deps/firecracker}" \
+    ARENA_IMAGES_DIR="$TC_IMAGES" ARENA_BUILD_TOOLCHAIN_IMAGE="sha256:$TC" \
+    ARENA_FORMAL_REPO="$CLEAN" ARENA_FORMAL_CONFIGS_DIR="$REPO/runners/formal-checker/challenges" \
+    ARENA_LEAN_CHECKER_IMAGES="${LEAN_CHECKER_IMAGES:-/data/illia/nearproof-deps/lean-checker/images}" \
+    ARENA_FIXTURES_DIRS="$REPO/challenges/demo/toy-arithmetic/fixtures" \
+    ARENA_POLL_MS=200 ARENA_HEARTBEAT_MS=5000 \
+    "$BIN/arena-worker" >"$WORK/fc-worker.log" 2>&1 &
+  PIDS+=($!)
+  DEADLINE=$(( $(date +%s) + ${ARENA_E2E_TIMEOUT:-900} ))
+  while :; do
+    "$BIN/arena" status "$NSUB" --json >"$WORK/status-near.json" 2>/dev/null || true
+    STAGE=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("stage",""))' "$WORK/status-near.json" 2>/dev/null || echo "?")
+    [ "$STAGE" = DECIDED ] && break
+    [ "$(date +%s)" -gt "$DEADLINE" ] && { tail -40 "$WORK/fc-worker.log"; die "NEAR submission timed out at stage $STAGE"; }
+    sleep 2
+  done
+  python3 - "$WORK/status-near.json" <<'EOF2'
+import json, sys
+v = json.load(open(sys.argv[1]))
+g = {x["gate"]: x for x in v["gates"]}
+print(f"NEAR decision={v['decision']} tier={v['tier']} accepted={v['accepted']}")
+for x in v["gates"]:
+    print(f"  {x['gate']:28} {x['status']:8} {','.join(x['reason_codes']):34} {x['summary'][:100]!r}")
+fails = []
+def check(c, m):
+    print(("ok   " if c else "FAIL ") + m)
+    if not c: fails.append(m)
+check(v["decision"] == "REJECTED", "NEAR submission without a certificate is REJECTED")
+check(g.get("BUILD_REPRODUCIBLE", {}).get("status") == "PASS", "built in Firecracker with the pinned toolchain image")
+check("DEMO_ONLY" not in g["BUILD_REPRODUCIBLE"]["reason_codes"], "production isolation: no DEMO_ONLY")
+check("CERTIFICATE_MISSING" in g.get("AXIOM_AUDIT", {}).get("reason_codes", []), "FORMAL_CHECK: CERTIFICATE_MISSING")
+check(v["accepted"] is not True, "never accepted")
+sys.exit(1 if fails else 0)
+EOF2
+  echo "E2E OK (NEAR / firecracker): $NSUB"
+fi
+
+if [ "$HOSTILE" = 1 ] || [ "$HOSTILE_NEAR" = 1 ]; then
   say "adversarial live suite against the same server"
-  ARGS=(--server "$ARENA_URL" --token "$AGENT_TOKEN" --challenge "$CHALLENGE" --timeout "${ARENA_HOSTILE_TIMEOUT:-600}" --report "$WORK/hostile.json")
+  HCHAL="$CHALLENGE"
+  [ "$HOSTILE_NEAR" = 1 ] && HCHAL="$NEAR"
+  ARGS=(--server "$ARENA_URL" --token "$AGENT_TOKEN" --challenge "$HCHAL" --timeout "${ARENA_HOSTILE_TIMEOUT:-600}" --report "$WORK/hostile-$HCHAL.json")
   [ -n "$HOSTILE_ONLY" ] && ARGS+=(--only "$HOSTILE_ONLY")
   "$REPO/adversarial/e2e/run.sh" "${ARGS[@]}" | tee "$WORK/hostile.log"
 fi
