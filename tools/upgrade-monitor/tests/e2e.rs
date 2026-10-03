@@ -5,14 +5,25 @@ use std::path::Path;
 use std::process::Command;
 
 fn sh(dir: &Path, args: &[&str]) {
-    let st = Command::new(args[0]).args(&args[1..]).current_dir(dir).output().unwrap();
-    assert!(st.status.success(), "{args:?}: {}", String::from_utf8_lossy(&st.stderr));
+    let st = Command::new(args[0])
+        .args(&args[1..])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    assert!(
+        st.status.success(),
+        "{args:?}: {}",
+        String::from_utf8_lossy(&st.stderr)
+    );
 }
 
 fn krate(root: &Path, name: &str, deps: &[&str]) {
     let d = root.join(name);
     fs::create_dir_all(d.join("src")).unwrap();
-    let deps: String = deps.iter().map(|x| format!("{x} = {{ path = \"../{x}\" }}\n")).collect();
+    let deps: String = deps
+        .iter()
+        .map(|x| format!("{x} = {{ path = \"../{x}\" }}\n"))
+        .collect();
     fs::write(
         d.join("Cargo.toml"),
         format!("[package]\nname = \"{name}\"\nversion = \"0.1.0\"\nedition = \"2021\"\n[dependencies]\n{deps}"),
@@ -39,7 +50,11 @@ fn setup() -> tempfile::TempDir {
     let t = tempfile::tempdir().unwrap();
     let r = t.path().join("repo");
     fs::create_dir_all(&r).unwrap();
-    fs::write(r.join("Cargo.toml"), "[workspace]\nresolver = \"2\"\nmembers = [\"a\", \"b\", \"c\"]\n").unwrap();
+    fs::write(
+        r.join("Cargo.toml"),
+        "[workspace]\nresolver = \"2\"\nmembers = [\"a\", \"b\", \"c\"]\n",
+    )
+    .unwrap();
     // `a` is the root, depends on `b`; `c` is unrelated.
     krate(&r, "a", &["b"]);
     krate(&r, "b", &[]);
@@ -54,10 +69,26 @@ fn setup() -> tempfile::TempDir {
     )
     .unwrap();
     fs::create_dir_all(r.join("core/store/src/db")).unwrap();
-    fs::write(r.join("core/store/src/db/metadata.rs"), "pub const DB_VERSION: u32 = 1;\n").unwrap();
+    fs::write(
+        r.join("core/store/src/db/metadata.rs"),
+        "pub const DB_VERSION: u32 = 1;\n",
+    )
+    .unwrap();
     sh(&r, &["git", "init", "-q"]);
     sh(&r, &["git", "add", "."]);
-    sh(&r, &["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "v1"]);
+    sh(
+        &r,
+        &[
+            "git",
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "commit",
+            "-qm",
+            "v1",
+        ],
+    );
     sh(&r, &["git", "tag", "v1"]);
     t
 }
@@ -65,13 +96,31 @@ fn setup() -> tempfile::TempDir {
 fn run(t: &Path) -> (i32, serde_json::Value) {
     let out = t.join("r.json");
     let st = Command::new(env!("CARGO_BIN_EXE_upgrade-monitor"))
-        .args(["--repo", t.join("repo").to_str().unwrap(), "--old", "v1", "--new", "HEAD", "--roots", "a"])
-        .args(["--impact-map", t.join("map.toml").to_str().unwrap(), "--json", out.to_str().unwrap()])
+        .args([
+            "--repo",
+            t.join("repo").to_str().unwrap(),
+            "--old",
+            "v1",
+            "--new",
+            "HEAD",
+            "--roots",
+            "a",
+        ])
+        .args([
+            "--impact-map",
+            t.join("map.toml").to_str().unwrap(),
+            "--json",
+            out.to_str().unwrap(),
+        ])
         .args(["--scratch", t.to_str().unwrap()])
         .output()
         .unwrap();
     let code = st.status.code().unwrap();
-    let v = if out.exists() { serde_json::from_str(&fs::read_to_string(out).unwrap()).unwrap() } else { serde_json::Value::Null };
+    let v = if out.exists() {
+        serde_json::from_str(&fs::read_to_string(out).unwrap()).unwrap()
+    } else {
+        serde_json::Value::Null
+    };
     (code, v)
 }
 
@@ -79,7 +128,19 @@ fn commit(t: &Path, file: &str) {
     let r = t.join("repo");
     fs::write(r.join(file), "pub fn g() {}\n").unwrap();
     sh(&r, &["git", "add", "."]);
-    sh(&r, &["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "v2"]);
+    sh(
+        &r,
+        &[
+            "git",
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "commit",
+            "-qm",
+            "v2",
+        ],
+    );
 }
 
 #[test]
@@ -110,7 +171,14 @@ fn change_in_transitive_dep_requires_revalidation() {
 fn unknown_ref_is_an_error_not_clean() {
     let t = setup();
     let st = Command::new(env!("CARGO_BIN_EXE_upgrade-monitor"))
-        .args(["--repo", t.path().join("repo").to_str().unwrap(), "--old", "v1", "--new", "nope"])
+        .args([
+            "--repo",
+            t.path().join("repo").to_str().unwrap(),
+            "--old",
+            "v1",
+            "--new",
+            "nope",
+        ])
         .args(["--impact-map", t.path().join("map.toml").to_str().unwrap()])
         .output()
         .unwrap();
@@ -123,7 +191,19 @@ fn missing_protocol_facts_fail_closed() {
     let r = t.path().join("repo");
     fs::remove_file(r.join("core/primitives-core/src/version.rs")).unwrap();
     sh(&r, &["git", "add", "-A"]);
-    sh(&r, &["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "v2"]);
+    sh(
+        &r,
+        &[
+            "git",
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "commit",
+            "-qm",
+            "v2",
+        ],
+    );
     let (code, v) = run(t.path());
     assert_eq!(code, 3, "{v:#}");
 }

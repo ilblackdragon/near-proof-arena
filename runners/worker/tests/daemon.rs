@@ -37,7 +37,10 @@ fn serve(state: Arc<Mutex<State>>) -> String {
                 let mut line = String::new();
                 r.read_line(&mut line).unwrap();
                 let mut parts = line.split_whitespace();
-                let (method, path) = (parts.next().unwrap_or("").to_string(), parts.next().unwrap_or("").to_string());
+                let (method, path) = (
+                    parts.next().unwrap_or("").to_string(),
+                    parts.next().unwrap_or("").to_string(),
+                );
                 let mut len = 0usize;
                 let mut auth = String::new();
                 loop {
@@ -90,7 +93,11 @@ fn serve(state: Arc<Mutex<State>>) -> String {
                         }
                         ("PUT", p) if p.starts_with("/internal/v1/artifacts/") => {
                             let d = &p["/internal/v1/artifacts/".len()..];
-                            assert_eq!(Digest::of_bytes(&body).as_str(), d, "uploaded bytes must match digest");
+                            assert_eq!(
+                                Digest::of_bytes(&body).as_str(),
+                                d,
+                                "uploaded bytes must match digest"
+                            );
                             st.artifacts.insert(d.to_string(), body);
                             (201, vec![])
                         }
@@ -98,7 +105,11 @@ fn serve(state: Arc<Mutex<State>>) -> String {
                     }
                 };
                 drop(st);
-                let _ = write!(s, "HTTP/1.1 {code} X\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", resp.len());
+                let _ = write!(
+                    s,
+                    "HTTP/1.1 {code} X\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                    resp.len()
+                );
                 let _ = s.write_all(&resp);
             });
         }
@@ -108,8 +119,12 @@ fn serve(state: Arc<Mutex<State>>) -> String {
 
 fn daemon(url: &str, token: &str, tmp: &std::path::Path) -> Daemon {
     let http = Arc::new(HttpControlPlane::new(url, token));
-    let helper = arena_sandbox::HelperCommand { exe: env!("CARGO_BIN_EXE_arena-worker").into(), prefix_args: vec![arena_worker::HELPER_ARG.into()] };
-    let sb = arena_sandbox::BwrapDev::new(arena_sandbox::BwrapConfig::new(helper, tmp.join("sb"))).unwrap();
+    let helper = arena_sandbox::HelperCommand {
+        exe: env!("CARGO_BIN_EXE_arena-worker").into(),
+        prefix_args: vec![arena_worker::HELPER_ARG.into()],
+    };
+    let sb = arena_sandbox::BwrapDev::new(arena_sandbox::BwrapConfig::new(helper, tmp.join("sb")))
+        .unwrap();
     let exec = StageExecutor::new(WorkerContext {
         worker_id: "w1".into(),
         sandbox: Arc::new(sb),
@@ -142,15 +157,29 @@ fn lease_execute_upload_complete() {
     {
         let mut st = state.lock().unwrap();
         st.artifacts.insert(pkg_d.to_string(), pkg);
-        st.jobs.push(common::job("v1", JobSpec::Validate(ValidateJob { package: pkg_d.clone(), challenge_id: common::CHALLENGE.into() })));
+        st.jobs.push(common::job(
+            "v1",
+            JobSpec::Validate(ValidateJob {
+                package: pkg_d.clone(),
+                challenge_id: common::CHALLENGE.into(),
+            }),
+        ));
         st.jobs.push(common::job(
             "b1",
-            JobSpec::Build(BuildJob { package: pkg_d, toolchain_image: None, limits: common::build_limits(), source_date_epoch: 0 }),
+            JobSpec::Build(BuildJob {
+                package: pkg_d,
+                toolchain_image: None,
+                limits: common::build_limits(),
+                source_date_epoch: 0,
+            }),
         ));
         // Input that is not in the store: infra failure, retryable.
         st.jobs.push(common::job(
             "v2",
-            JobSpec::Validate(ValidateJob { package: Digest::of_bytes(b"nope"), challenge_id: common::CHALLENGE.into() }),
+            JobSpec::Validate(ValidateJob {
+                package: Digest::of_bytes(b"nope"),
+                challenge_id: common::CHALLENGE.into(),
+            }),
         ));
     }
     let url = serve(state.clone());
@@ -165,14 +194,28 @@ fn lease_execute_upload_complete() {
     let v: CompleteBody = serde_json::from_value(st.completed[0].clone()).unwrap();
     assert_eq!(v.output.gates[0].status, GateStatus::Pass);
     let manifest = v.output.artifact("manifest").unwrap();
-    assert!(st.artifacts.contains_key(manifest.as_str()), "manifest uploaded by digest");
+    assert!(
+        st.artifacts.contains_key(manifest.as_str()),
+        "manifest uploaded by digest"
+    );
     let b: CompleteBody = serde_json::from_value(st.completed[1].clone()).unwrap();
-    assert_eq!(b.output.gates[0].status, GateStatus::Pass, "{}", b.output.gates[0].summary);
+    assert_eq!(
+        b.output.gates[0].status,
+        GateStatus::Pass,
+        "{}",
+        b.output.gates[0].summary
+    );
     let bundle = b.output.artifact("bundle").unwrap();
-    assert!(st.artifacts.contains_key(bundle.as_str()), "bundle uploaded by digest");
+    assert!(
+        st.artifacts.contains_key(bundle.as_str()),
+        "bundle uploaded by digest"
+    );
     assert_eq!(st.failed.len(), 1);
     assert_eq!(st.failed[0]["retryable"], true);
-    assert!(st.failed[0]["error"].as_str().unwrap().contains("not found"));
+    assert!(st.failed[0]["error"]
+        .as_str()
+        .unwrap()
+        .contains("not found"));
     assert_eq!(st.bad_auth, 0);
 }
 
@@ -190,7 +233,11 @@ fn wrong_token_is_unauthorized() {
     let req = LeaseRequest {
         worker_id: "w".into(),
         kinds: vec![JobKind::Validate],
-        sandbox: SandboxInfo { backend: "x".into(), isolation: "x".into(), tier_cap: None },
+        sandbox: SandboxInfo {
+            backend: "x".into(),
+            isolation: "x".into(),
+            tier_cap: None,
+        },
     };
     assert!(matches!(cp.lease(&req), Err(ClientError::Unauthorized)));
     drop(tmp);
@@ -203,7 +250,10 @@ fn binary_refuses_db_credentials() {
         .env_clear()
         .env("ARENA_SERVER_URL", "http://127.0.0.1:1")
         .env("ARENA_WORKER_TOKEN", "t")
-        .env("DATABASE_URL", "postgres://arena:arena@127.0.0.1:55471/arena")
+        .env(
+            "DATABASE_URL",
+            "postgres://arena:arena@127.0.0.1:55471/arena",
+        )
         .output()
         .unwrap();
     assert_eq!(out.status.code(), Some(2));

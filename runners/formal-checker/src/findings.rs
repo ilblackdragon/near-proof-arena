@@ -36,10 +36,20 @@ pub struct Finding {
 
 impl Finding {
     pub fn new(code: ReasonCode, scope: Scope, detail: String) -> Self {
-        Finding { code, scope, severity: Severity::Fail, detail: bound(detail) }
+        Finding {
+            code,
+            scope,
+            severity: Severity::Fail,
+            detail: bound(detail),
+        }
     }
     pub fn unknown(code: ReasonCode, detail: String) -> Self {
-        Finding { code, scope: Scope::All, severity: Severity::Unknown, detail: bound(detail) }
+        Finding {
+            code,
+            scope: Scope::All,
+            severity: Severity::Unknown,
+            detail: bound(detail),
+        }
     }
 }
 

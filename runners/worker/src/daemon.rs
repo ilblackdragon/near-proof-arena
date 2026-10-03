@@ -1,6 +1,8 @@
 //! Worker loop: lease → execute (with heartbeats) → complete / fail.
 
-use crate::client::{ClientError, CompleteRequest, ControlPlane, FailRequest, HeartbeatRequest, LeaseRequest};
+use crate::client::{
+    ClientError, CompleteRequest, ControlPlane, FailRequest, HeartbeatRequest, LeaseRequest,
+};
 use crate::executor::{ExecError, JobExecutor};
 use crate::jobs::{JobKind, SandboxInfo};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -32,9 +34,20 @@ fn log(msg: &str) {
 impl Daemon {
     /// Lease and process at most one job.
     pub fn run_once(&self) -> Result<Step, ClientError> {
-        let lease = LeaseRequest { worker_id: self.worker_id.clone(), kinds: self.kinds.clone(), sandbox: self.sandbox.clone() };
-        let Some(job) = self.control.lease(&lease)? else { return Ok(Step::Idle) };
-        log(&format!("leased job {} ({}, attempt {})", job.id, job.spec.kind().as_str(), job.attempt));
+        let lease = LeaseRequest {
+            worker_id: self.worker_id.clone(),
+            kinds: self.kinds.clone(),
+            sandbox: self.sandbox.clone(),
+        };
+        let Some(job) = self.control.lease(&lease)? else {
+            return Ok(Step::Idle);
+        };
+        log(&format!(
+            "leased job {} ({}, attempt {})",
+            job.id,
+            job.spec.kind().as_str(),
+            job.attempt
+        ));
         if !self.kinds.contains(&job.spec.kind()) {
             self.control.fail(&FailRequest {
                 job_id: job.id.clone(),
@@ -50,7 +63,11 @@ impl Daemon {
         let done = Arc::new((Mutex::new(false), Condvar::new()));
         let hb = {
             let control = self.control.clone();
-            let req = HeartbeatRequest { job_id: job.id.clone(), worker_id: self.worker_id.clone(), attempt: job.attempt };
+            let req = HeartbeatRequest {
+                job_id: job.id.clone(),
+                worker_id: self.worker_id.clone(),
+                attempt: job.attempt,
+            };
             let cancel = cancel.clone();
             let done = done.clone();
             let every = self.heartbeat_interval;
@@ -86,7 +103,12 @@ impl Daemon {
         }
         match result {
             Ok(output) => {
-                let req = CompleteRequest { job_id: job.id.clone(), worker_id: self.worker_id.clone(), attempt: job.attempt, output };
+                let req = CompleteRequest {
+                    job_id: job.id.clone(),
+                    worker_id: self.worker_id.clone(),
+                    attempt: job.attempt,
+                    output,
+                };
                 match self.control.complete(&req) {
                     Ok(()) => {
                         log(&format!("completed job {}", job.id));
@@ -99,14 +121,26 @@ impl Daemon {
             Err(ExecError::Cancelled) => Ok(Step::LeaseLost),
             Err(ExecError::Violation(e)) => {
                 // Normally converted into a FAIL gate by the executor.
-                self.control.fail(&FailRequest { job_id: job.id.clone(), worker_id: self.worker_id.clone(), attempt: job.attempt, error: format!("sandbox violation: {e}"), retryable: false })?;
+                self.control.fail(&FailRequest {
+                    job_id: job.id.clone(),
+                    worker_id: self.worker_id.clone(),
+                    attempt: job.attempt,
+                    error: format!("sandbox violation: {e}"),
+                    retryable: false,
+                })?;
                 Ok(Step::Failed)
             }
             Err(ExecError::Infra(e)) => {
                 log(&format!("job {} infra failure: {e}", job.id));
                 let mut msg = e;
                 msg.truncate(2000);
-                self.control.fail(&FailRequest { job_id: job.id.clone(), worker_id: self.worker_id.clone(), attempt: job.attempt, error: msg, retryable: true })?;
+                self.control.fail(&FailRequest {
+                    job_id: job.id.clone(),
+                    worker_id: self.worker_id.clone(),
+                    attempt: job.attempt,
+                    error: msg,
+                    retryable: true,
+                })?;
                 Ok(Step::Failed)
             }
         }

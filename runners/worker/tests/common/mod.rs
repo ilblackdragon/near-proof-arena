@@ -73,13 +73,28 @@ pub fn claim_for(request: &[u8]) -> Vec<u8> {
 
 pub fn package_files() -> BTreeMap<String, (u32, Vec<u8>)> {
     let mut m = BTreeMap::new();
-    m.insert("candidate.toml".to_string(), (0o644, MANIFEST.as_bytes().to_vec()));
+    m.insert(
+        "candidate.toml".to_string(),
+        (0o644, MANIFEST.as_bytes().to_vec()),
+    );
     m.insert("README.md".to_string(), (0o644, b"toy".to_vec()));
     m.insert("dependency-locks/none".to_string(), (0o644, vec![]));
-    m.insert("build-recipe/build.sh".to_string(), (0o755, BUILD.as_bytes().to_vec()));
-    m.insert("source/prepare.sh".to_string(), (0o644, PREPARE.as_bytes().to_vec()));
-    m.insert("source/prove.sh".to_string(), (0o644, PROVE.as_bytes().to_vec()));
-    m.insert("source/verify.sh".to_string(), (0o644, VERIFY.as_bytes().to_vec()));
+    m.insert(
+        "build-recipe/build.sh".to_string(),
+        (0o755, BUILD.as_bytes().to_vec()),
+    );
+    m.insert(
+        "source/prepare.sh".to_string(),
+        (0o644, PREPARE.as_bytes().to_vec()),
+    );
+    m.insert(
+        "source/prove.sh".to_string(),
+        (0o644, PROVE.as_bytes().to_vec()),
+    );
+    m.insert(
+        "source/verify.sh".to_string(),
+        (0o644, VERIFY.as_bytes().to_vec()),
+    );
     m
 }
 
@@ -102,10 +117,17 @@ pub struct Fixture {
 }
 
 pub fn fixture() -> Fixture {
-    assert_eq!(std::env::var("ARENA_DEV_UNSAFE").as_deref(), Ok("1"), "worker tests need ARENA_DEV_UNSAFE=1 (bwrap-dev)");
+    assert_eq!(
+        std::env::var("ARENA_DEV_UNSAFE").as_deref(),
+        Ok("1"),
+        "worker tests need ARENA_DEV_UNSAFE=1 (bwrap-dev)"
+    );
     let tmp = tempfile::tempdir().unwrap();
     let store = Arc::new(FsStore::new(tmp.path().join("store")).unwrap());
-    let helper = HelperCommand { exe: env!("CARGO_BIN_EXE_arena-worker").into(), prefix_args: vec![arena_worker::HELPER_ARG.into()] };
+    let helper = HelperCommand {
+        exe: env!("CARGO_BIN_EXE_arena-worker").into(),
+        prefix_args: vec![arena_worker::HELPER_ARG.into()],
+    };
     let sb = BwrapDev::new(BwrapConfig::new(helper, tmp.path().join("sandbox"))).unwrap();
     let ctx = WorkerContext {
         worker_id: "test-worker".into(),
@@ -117,11 +139,21 @@ pub fn fixture() -> Fixture {
         mutators: MutatorRegistry::with_adversarial_lane(),
         keep_workdirs: false,
     };
-    Fixture { tmp, store, exec: StageExecutor::new(ctx) }
+    Fixture {
+        tmp,
+        store,
+        exec: StageExecutor::new(ctx),
+    }
 }
 
 pub fn job(id: &str, spec: JobSpec) -> Job {
-    Job { id: id.into(), submission_id: "sub_test".into(), attempt: 1, lease_until: "2099-01-01T00:00:00Z".into(), spec }
+    Job {
+        id: id.into(),
+        submission_id: "sub_test".into(),
+        attempt: 1,
+        lease_until: "2099-01-01T00:00:00Z".into(),
+        spec,
+    }
 }
 
 pub fn run_limits() -> RunLimits {
@@ -141,11 +173,21 @@ pub fn run_limits() -> RunLimits {
 }
 
 pub fn build_limits() -> BuildLimits {
-    BuildLimits { max_build_ms: 30_000, mem_bytes: 256 << 20, pids: 64, scratch_mb: 32, max_output_bytes: 16 << 20 }
+    BuildLimits {
+        max_build_ms: 30_000,
+        mem_bytes: 256 << 20,
+        pids: 64,
+        scratch_mb: 32,
+        max_output_bytes: 16 << 20,
+    }
 }
 
 pub fn entry() -> EntryPoints {
-    EntryPoints { prepare: "out/prepare".into(), prove: "out/prove".into(), verify: "out/verify".into() }
+    EntryPoints {
+        prepare: "out/prepare".into(),
+        prove: "out/prove".into(),
+        verify: "out/verify".into(),
+    }
 }
 
 impl Fixture {
@@ -154,7 +196,12 @@ impl Fixture {
     }
 
     /// Oracle cases: (request, witness, expected claim) in the store.
-    pub fn cases(&self, n: usize, public: bool, claim: impl Fn(&[u8]) -> Vec<u8>) -> Vec<OracleCase> {
+    pub fn cases(
+        &self,
+        n: usize,
+        public: bool,
+        claim: impl Fn(&[u8]) -> Vec<u8>,
+    ) -> Vec<OracleCase> {
         (0..n)
             .map(|i| {
                 let req = format!("request-{i}-{public}").into_bytes();
@@ -176,7 +223,15 @@ impl Fixture {
         let out = self
             .exec
             .execute(
-                &job("build", JobSpec::Build(BuildJob { package: pkg, toolchain_image: None, limits: build_limits(), source_date_epoch: 0 })),
+                &job(
+                    "build",
+                    JobSpec::Build(BuildJob {
+                        package: pkg,
+                        toolchain_image: None,
+                        limits: build_limits(),
+                        source_date_epoch: 0,
+                    }),
+                ),
                 &std::sync::atomic::AtomicBool::new(false),
             )
             .unwrap();

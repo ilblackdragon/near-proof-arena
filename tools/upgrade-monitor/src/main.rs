@@ -61,7 +61,12 @@ pub struct Args {
 }
 
 const PARAM_DIR: &str = "core/parameters/res/runtime_configs/";
-const BUILD_CONFIG_FILES: &[&str] = &["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "rust-toolchain"];
+const BUILD_CONFIG_FILES: &[&str] = &[
+    "Cargo.toml",
+    "Cargo.lock",
+    "rust-toolchain.toml",
+    "rust-toolchain",
+];
 
 fn main() {
     let args = Args::parse();
@@ -114,17 +119,38 @@ struct Side {
 
 fn side(root: &Path, args: &Args) -> Result<Side> {
     let ws = cargo::metadata(root, Some(&args.toolchain))?;
-    let present: Vec<String> = args.roots.iter().filter(|r| ws.crates.contains_key(*r)).cloned().collect();
-    let missing_roots = args.roots.iter().filter(|r| !ws.crates.contains_key(*r)).cloned().collect();
+    let present: Vec<String> = args
+        .roots
+        .iter()
+        .filter(|r| ws.crates.contains_key(*r))
+        .cloned()
+        .collect();
+    let missing_roots = args
+        .roots
+        .iter()
+        .filter(|r| !ws.crates.contains_key(*r))
+        .cloned()
+        .collect();
     let closure = ws.closure(&present)?;
     let lock = std::fs::read_to_string(root.join("Cargo.lock")).context("Cargo.lock missing")?;
     let includes = scan_includes(root, &ws, &closure)?;
-    Ok(Side { facts: protocol::parse(root), ws, closure, missing_roots, lock, includes })
+    Ok(Side {
+        facts: protocol::parse(root),
+        ws,
+        closure,
+        missing_roots,
+        lock,
+        includes,
+    })
 }
 
 /// Files pulled in by literal `include_str!`/`include_bytes!` paths that
 /// resolve outside the including crate's directory.
-fn scan_includes(root: &Path, ws: &cargo::Workspace, closure: &BTreeSet<String>) -> Result<BTreeSet<String>> {
+fn scan_includes(
+    root: &Path,
+    ws: &cargo::Workspace,
+    closure: &BTreeSet<String>,
+) -> Result<BTreeSet<String>> {
     let mut out = BTreeSet::new();
     for c in closure {
         let dir = root.join(&ws.crates[c].dir);
@@ -139,7 +165,9 @@ fn scan_includes(root: &Path, ws: &cargo::Workspace, closure: &BTreeSet<String>)
                     }
                     stack.push(p);
                 } else if p.extension().is_some_and(|x| x == "rs") {
-                    let Ok(text) = std::fs::read_to_string(&p) else { continue };
+                    let Ok(text) = std::fs::read_to_string(&p) else {
+                        continue;
+                    };
                     for mac in ["include_str!(\"", "include_bytes!(\""] {
                         let mut rest = text.as_str();
                         while let Some(i) = rest.find(mac) {
@@ -201,7 +229,10 @@ fn analyse(
     let mut reasons = Vec::new();
     for (label, s) in [("old", &old), ("new", &new)] {
         if !s.missing_roots.is_empty() {
-            reasons.push(format!("root crate(s) {:?} missing in {label} tree", s.missing_roots));
+            reasons.push(format!(
+                "root crate(s) {:?} missing in {label} tree",
+                s.missing_roots
+            ));
         }
     }
     let closure: BTreeSet<String> = old.closure.union(&new.closure).cloned().collect();
@@ -238,9 +269,16 @@ fn analyse(
                 hit.get_or_insert_with(|| "(include_*! target)".into());
             }
         }
-        let is_build_cfg = paths.iter().any(|p| BUILD_CONFIG_FILES.contains(p) || p.starts_with(".cargo/"));
+        let is_build_cfg = paths
+            .iter()
+            .any(|p| BUILD_CONFIG_FILES.contains(p) || p.starts_with(".cargo/"));
         if let Some(c) = hit {
-            in_closure.push(report::ClosureChange { path: f.path.clone(), old_path: f.old_path.clone(), status: f.status.clone(), crate_name: c });
+            in_closure.push(report::ClosureChange {
+                path: f.path.clone(),
+                old_path: f.old_path.clone(),
+                status: f.status.clone(),
+                crate_name: c,
+            });
         } else if is_build_cfg {
             build_config.push(f.path.clone());
         } else {
@@ -248,51 +286,98 @@ fn analyse(
         }
     }
     if !in_closure.is_empty() {
-        reasons.push(format!("{} file(s) changed inside the runtime dependency closure", in_closure.len()));
+        reasons.push(format!(
+            "{} file(s) changed inside the runtime dependency closure",
+            in_closure.len()
+        ));
     }
     if !build_config.is_empty() {
-        reasons.push(format!("workspace build configuration changed: {build_config:?}"));
+        reasons.push(format!(
+            "workspace build configuration changed: {build_config:?}"
+        ));
     }
 
     // ---- external crates
     let ext_old = cargo::external_closure(&old.lock, &old.ws, &old.closure)?;
     let ext_new = cargo::external_closure(&new.lock, &new.ws, &new.closure)?;
     let mut ext_changes = Vec::new();
-    for name in ext_old.keys().chain(ext_new.keys()).collect::<BTreeSet<_>>() {
-        let (a, b) = (ext_old.get(name).cloned().unwrap_or_default(), ext_new.get(name).cloned().unwrap_or_default());
+    for name in ext_old
+        .keys()
+        .chain(ext_new.keys())
+        .collect::<BTreeSet<_>>()
+    {
+        let (a, b) = (
+            ext_old.get(name).cloned().unwrap_or_default(),
+            ext_new.get(name).cloned().unwrap_or_default(),
+        );
         if a != b {
-            ext_changes.push(report::ExternalChange { name: name.clone(), old_versions: a.into_iter().collect(), new_versions: b.into_iter().collect() });
+            ext_changes.push(report::ExternalChange {
+                name: name.clone(),
+                old_versions: a.into_iter().collect(),
+                new_versions: b.into_iter().collect(),
+            });
         }
     }
     if !ext_changes.is_empty() {
-        reasons.push(format!("{} external crate(s) in the closure changed version", ext_changes.len()));
+        reasons.push(format!(
+            "{} external crate(s) in the closure changed version",
+            ext_changes.len()
+        ));
     }
 
     // ---- parameters
     let param_files: Vec<String> = changed
         .iter()
-        .filter(|f| f.path.starts_with(PARAM_DIR) || f.old_path.as_deref().is_some_and(|o| o.starts_with(PARAM_DIR)))
+        .filter(|f| {
+            f.path.starts_with(PARAM_DIR)
+                || f.old_path
+                    .as_deref()
+                    .is_some_and(|o| o.starts_with(PARAM_DIR))
+        })
         .map(|f| format!("{} {}", f.status, f.path))
         .collect();
     let param_diff = if param_files.is_empty() {
         String::new()
     } else {
-        let d = git::git(repo, &["diff", "--no-ext-diff", "-U0", old_c, new_c, "--", PARAM_DIR])?;
+        let d = git::git(
+            repo,
+            &[
+                "diff",
+                "--no-ext-diff",
+                "-U0",
+                old_c,
+                new_c,
+                "--",
+                PARAM_DIR,
+            ],
+        )?;
         truncate_lines(&d, 400)
     };
     if !param_files.is_empty() {
-        reasons.push(format!("{} runtime parameter file(s) changed", param_files.len()));
+        reasons.push(format!(
+            "{} runtime parameter file(s) changed",
+            param_files.len()
+        ));
     }
 
     // ---- protocol facts
     let pdiff = protocol::diff(&old.facts, &new.facts);
     if !pdiff.parse_errors.is_empty() {
-        reasons.push(format!("protocol facts could not be fully parsed ({} issue(s)) — treated as changed", pdiff.parse_errors.len()));
+        reasons.push(format!(
+            "protocol facts could not be fully parsed ({} issue(s)) — treated as changed",
+            pdiff.parse_errors.len()
+        ));
     }
     if pdiff.old_stable != pdiff.new_stable {
-        reasons.push(format!("STABLE_PROTOCOL_VERSION {:?} -> {:?}", pdiff.old_stable, pdiff.new_stable));
+        reasons.push(format!(
+            "STABLE_PROTOCOL_VERSION {:?} -> {:?}",
+            pdiff.old_stable, pdiff.new_stable
+        ));
     }
-    if !pdiff.features_added.is_empty() || !pdiff.features_removed.is_empty() || !pdiff.features_version_changed.is_empty() {
+    if !pdiff.features_added.is_empty()
+        || !pdiff.features_removed.is_empty()
+        || !pdiff.features_version_changed.is_empty()
+    {
         reasons.push(format!(
             "ProtocolFeature set changed (+{} -{} ~{})",
             pdiff.features_added.len(),
@@ -305,7 +390,11 @@ fn analyse(
     }
 
     // ---- version gates in changed closure sources
-    let rs_paths: Vec<String> = in_closure.iter().filter(|c| c.path.ends_with(".rs") && c.status != "D").map(|c| c.path.clone()).collect();
+    let rs_paths: Vec<String> = in_closure
+        .iter()
+        .filter(|c| c.path.ends_with(".rs") && c.status != "D")
+        .map(|c| c.path.clone())
+        .collect();
     let mut gates: BTreeMap<String, report::GateRefs> = BTreeMap::new();
     for chunk in rs_paths.chunks(200) {
         let d = git::diff_paths(repo, old_c, new_c, chunk)?;
@@ -326,9 +415,16 @@ fn analyse(
             let mut rest = line;
             while let Some(i) = rest.find("ProtocolFeature::") {
                 rest = &rest[i + "ProtocolFeature::".len()..];
-                let name: String = rest.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '_').collect();
+                let name: String = rest
+                    .chars()
+                    .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+                    .collect();
                 let g = gates.entry(name).or_default();
-                if sign > 0 { g.added_refs += 1 } else { g.removed_refs += 1 }
+                if sign > 0 {
+                    g.added_refs += 1
+                } else {
+                    g.removed_refs += 1
+                }
                 if !g.files.contains(&file) {
                     g.files.push(file.clone());
                 }
@@ -363,20 +459,42 @@ fn analyse(
     let mut closure_crates: Vec<report::CrateInfo> = closure
         .iter()
         .map(|c| {
-            let dir = new.ws.crates.get(c).or_else(|| old.ws.crates.get(c)).map(|x| x.dir.clone()).unwrap_or_default();
-            report::CrateInfo { name: c.clone(), dir, changed_files: in_closure.iter().filter(|x| &x.crate_name == c).count() }
+            let dir = new
+                .ws
+                .crates
+                .get(c)
+                .or_else(|| old.ws.crates.get(c))
+                .map(|x| x.dir.clone())
+                .unwrap_or_default();
+            report::CrateInfo {
+                name: c.clone(),
+                dir,
+                changed_files: in_closure.iter().filter(|x| &x.crate_name == c).count(),
+            }
         })
         .collect();
     closure_crates.sort_by(|a, b| a.name.cmp(&b.name));
 
-    let verdict = if reasons.is_empty() { "NO_SEMANTIC_CHANGE_DETECTED" } else { "REVALIDATION_REQUIRED" };
+    let verdict = if reasons.is_empty() {
+        "NO_SEMANTIC_CHANGE_DETECTED"
+    } else {
+        "REVALIDATION_REQUIRED"
+    };
     Ok(report::Report {
         schema: "arena-upgrade-impact-v1".into(),
         tool: format!("upgrade-monitor {}", env!("CARGO_PKG_VERSION")),
         verdict: verdict.into(),
         reasons,
-        old: report::RefInfo { r#ref: args.old.clone(), commit: old_c.into(), stable_protocol_version: pdiff.old_stable },
-        new: report::RefInfo { r#ref: args.new.clone(), commit: new_c.into(), stable_protocol_version: pdiff.new_stable },
+        old: report::RefInfo {
+            r#ref: args.old.clone(),
+            commit: old_c.into(),
+            stable_protocol_version: pdiff.old_stable,
+        },
+        new: report::RefInfo {
+            r#ref: args.new.clone(),
+            commit: new_c.into(),
+            stable_protocol_version: pdiff.new_stable,
+        },
         roots: args.roots.clone(),
         closure: report::ClosureInfo {
             crates: closure_crates,
@@ -391,7 +509,10 @@ fn analyse(
         changed_in_closure: in_closure,
         workspace_build_config_changes: build_config,
         external_crate_changes: ext_changes,
-        parameters: report::ParamInfo { changed_files: param_files, diff_excerpt: param_diff },
+        parameters: report::ParamInfo {
+            changed_files: param_files,
+            diff_excerpt: param_diff,
+        },
         protocol: pdiff,
         version_gate_changes: gates,
         migrations,
@@ -404,6 +525,10 @@ fn truncate_lines(s: &str, n: usize) -> String {
     if lines.len() <= n {
         s.to_string()
     } else {
-        format!("{}\n… ({} more lines truncated)\n", lines[..n].join("\n"), lines.len() - n)
+        format!(
+            "{}\n… ({} more lines truncated)\n",
+            lines[..n].join("\n"),
+            lines.len() - n
+        )
     }
 }

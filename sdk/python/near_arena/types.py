@@ -11,6 +11,14 @@ AdversaryClass = Literal["classical"]
 # `sha256:<64 lowercase hex>`
 Digest = str
 
+ArtifactRef = TypedDict(
+    "ArtifactRef",
+    {
+        "digest": Digest,
+        "label": str,
+    },
+)
+
 # Governed cryptographic assumption, pinned to an exact Lean declaration in `formal-core` (`security/assumptions/<id>.json`).
 Assumption = TypedDict(
     "Assumption",
@@ -20,6 +28,15 @@ Assumption = TypedDict(
         "lean_decl": str,
         "lean_decl_digest": NotRequired[Optional[Digest]],
         "references": List[str],
+    },
+)
+
+AssumptionRef = TypedDict(
+    "AssumptionRef",
+    {
+        "description": NotRequired[Optional[str]],
+        "id": str,
+        "lean_decl": NotRequired[Optional[str]],
     },
 )
 
@@ -53,6 +70,15 @@ BenchmarkResult = TypedDict(
     },
 )
 
+BuildInfo = TypedDict(
+    "BuildInfo",
+    {
+        "build_ns": NotRequired[Optional[int]],
+        "reproducible": bool,
+        "toolchain_image": NotRequired[Optional[str]],
+    },
+)
+
 BuildSection = TypedDict(
     "BuildSection",
     {
@@ -61,12 +87,16 @@ BuildSection = TypedDict(
     },
 )
 
+VerifyRoute = Literal["native", "npai-v1", "native-lean"]
+
 EntrySection = TypedDict(
     "EntrySection",
     {
         "prepare": str,
         "prove": str,
+        "verifier_bytecode": NotRequired[Optional[str]],
         "verify": str,
+        "verify_route": NotRequired[Optional[VerifyRoute]],
     },
 )
 
@@ -75,6 +105,8 @@ FormalSection = TypedDict(
     {
         "certificate": str,
         "lean_project": str,
+        "verifier_model": NotRequired[Optional[str]],
+        "verifier_model_module": NotRequired[Optional[str]],
     },
 )
 
@@ -112,6 +144,16 @@ ClaimEncoding = TypedDict(
         "max_request_bytes": int,
         "max_witness_bytes": int,
         "spec_digest": Digest,
+    },
+)
+
+# Parameters of the judge-built admission statement that are not resource limits of the sandbox (`ArenaCore.ChallengeParams`). Optional so that challenges without a formal statement (demo) keep their ids.
+FormalParams = TypedDict(
+    "FormalParams",
+    {
+        "max_proof_bytes": int,
+        "max_reduction_fuel": int,
+        "verify_fuel": int,
     },
 )
 
@@ -263,6 +305,7 @@ ChallengeDefinition = TypedDict(
         "chain_id": str,
         "claim_encoding": ClaimEncoding,
         "created_at": str,
+        "formal_params": NotRequired[Optional[FormalParams]],
         "hardware_profile": HardwareProfile,
         "measurement": MeasurementProcedure,
         "name": str,
@@ -365,12 +408,23 @@ LeaderboardEntry = TypedDict(
         "rank": NotRequired[Optional[int]],
         "revoked": bool,
         "scope": str,
+        "score_ci_milli": NotRequired[Optional[int]],
         "score_milli": NotRequired[Optional[int]],
         "security_profile": str,
         "submission_id": str,
         "submitted_at": str,
         "tier": Tier,
         "verify_median_ns": NotRequired[Optional[int]],
+    },
+)
+
+LogExcerpt = TypedDict(
+    "LogExcerpt",
+    {
+        "name": str,
+        "stage": str,
+        "text": str,
+        "truncated": bool,
     },
 )
 
@@ -383,32 +437,24 @@ Revocation = TypedDict(
     },
 )
 
+RevocationEvent = TypedDict(
+    "RevocationEvent",
+    {
+        "action": str,
+        "at": str,
+        "by": str,
+        "reason": str,
+    },
+)
+
 Stage = Literal["RECEIVED", "VALIDATED", "BUILT", "FORMAL_CHECKED", "CONFORMANCE_CHECKED", "BENCHMARKED", "DECIDED"]
 
-# Public view of a submission (API `GET /v1/submissions/{id}`).
-SubmissionView = TypedDict(
-    "SubmissionView",
+TrustedBaseEntry = TypedDict(
+    "TrustedBaseEntry",
     {
-        "accepted": NotRequired[Optional[bool]],
-        "agent": str,
-        "backend_family": str,
-        "benchmark": NotRequired[Optional[BenchmarkResult]],
-        "candidate_name": str,
-        "challenge_id": str,
-        "change_class": NotRequired[Optional[ChangeClass]],
-        "created_at": str,
-        "decision": NotRequired[Optional[Decision]],
-        "evidence_graph": NotRequired[Optional[EvidenceGraph]],
-        "gates": List[GateResult],
+        "digest": NotRequired[Optional[Digest]],
         "id": str,
-        "package_digest": Digest,
-        "parent": NotRequired[Optional[str]],
-        "reason_codes": List[ReasonCode],
-        "revoked": NotRequired[Optional[Revocation]],
-        "score_milli": NotRequired[Optional[int]],
-        "stage": Stage,
-        "tier": Tier,
-        "updated_at": str,
+        "label": str,
     },
 )
 
@@ -426,4 +472,38 @@ VerifiedSurface = TypedDict(
     },
 )
 
-__all__ = ["AdversaryClass", "Assumption", "BenchmarkResult", "BuildSection", "CandidateManifest", "ChallengeDefinition", "ChangeClass", "ClaimEncoding", "ClassMeasurement", "Decision", "Digest", "EdgeStatus", "EntrySection", "EvidenceEdge", "EvidenceGraph", "EvidenceNode", "EvidenceRef", "FormalSection", "FormalSpecRef", "GateResult", "GateStatus", "HardwareProfile", "HardwareRequest", "LeaderboardEntry", "MeasurementProcedure", "NearcorePin", "NodeKind", "ObligationId", "Privacy", "ReasonCode", "ResourceLimits", "Restriction", "Revocation", "ScopeKind", "SecurityModel", "SecurityProfile", "SemanticScope", "SetupModel", "Stage", "SubmissionView", "Tier", "ToolchainPolicy", "VerifiedSurface", "WorkloadClass", "WorkloadSuite"]
+# Public view of a submission (API `GET /v1/submissions/{id}`).
+SubmissionView = TypedDict(
+    "SubmissionView",
+    {
+        "accepted": NotRequired[Optional[bool]],
+        "agent": str,
+        "artifacts": NotRequired[List[ArtifactRef]],
+        "assumptions": NotRequired[List[AssumptionRef]],
+        "backend_family": str,
+        "benchmark": NotRequired[Optional[BenchmarkResult]],
+        "build": NotRequired[Optional[BuildInfo]],
+        "candidate_name": str,
+        "challenge_id": str,
+        "change_class": NotRequired[Optional[ChangeClass]],
+        "created_at": str,
+        "decision": NotRequired[Optional[Decision]],
+        "evidence_graph": NotRequired[Optional[EvidenceGraph]],
+        "gates": List[GateResult],
+        "id": str,
+        "logs": NotRequired[List[LogExcerpt]],
+        "package_digest": Digest,
+        "parent": NotRequired[Optional[str]],
+        "reason_codes": List[ReasonCode],
+        "revocation_history": NotRequired[List[RevocationEvent]],
+        "revoked": NotRequired[Optional[Revocation]],
+        "score_milli": NotRequired[Optional[int]],
+        "stage": Stage,
+        "tier": Tier,
+        "trusted_base": NotRequired[List[TrustedBaseEntry]],
+        "updated_at": str,
+        "verified_surface": NotRequired[Optional[VerifiedSurface]],
+    },
+)
+
+__all__ = ["AdversaryClass", "ArtifactRef", "Assumption", "AssumptionRef", "BenchmarkResult", "BuildInfo", "BuildSection", "CandidateManifest", "ChallengeDefinition", "ChangeClass", "ClaimEncoding", "ClassMeasurement", "Decision", "Digest", "EdgeStatus", "EntrySection", "EvidenceEdge", "EvidenceGraph", "EvidenceNode", "EvidenceRef", "FormalParams", "FormalSection", "FormalSpecRef", "GateResult", "GateStatus", "HardwareProfile", "HardwareRequest", "LeaderboardEntry", "LogExcerpt", "MeasurementProcedure", "NearcorePin", "NodeKind", "ObligationId", "Privacy", "ReasonCode", "ResourceLimits", "Restriction", "Revocation", "RevocationEvent", "ScopeKind", "SecurityModel", "SecurityProfile", "SemanticScope", "SetupModel", "Stage", "SubmissionView", "Tier", "ToolchainPolicy", "TrustedBaseEntry", "VerifiedSurface", "VerifyRoute", "WorkloadClass", "WorkloadSuite"]

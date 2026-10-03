@@ -151,13 +151,20 @@ impl CandidateManifest {
                 _ => return bad("formal.verifier_model and verifier_model_module must both be dotted Lean identifiers"),
             }
         }
-        let has_model = self.formal.as_ref().is_some_and(|f| f.verifier_model.is_some());
+        let has_model = self
+            .formal
+            .as_ref()
+            .is_some_and(|f| f.verifier_model.is_some());
         match self.entry.verify_route {
-            Some(VerifyRoute::NativeLean) if !has_model => {
-                return bad("verify_route native-lean requires formal.verifier_model and verifier_model_module")
-            }
+            Some(VerifyRoute::NativeLean) if !has_model => return bad(
+                "verify_route native-lean requires formal.verifier_model and verifier_model_module",
+            ),
             Some(VerifyRoute::NativeLean) => {}
-            _ if has_model => return bad("formal.verifier_model is only valid with verify_route = \"native-lean\""),
+            _ if has_model => {
+                return bad(
+                    "formal.verifier_model is only valid with verify_route = \"native-lean\"",
+                )
+            }
             _ => {}
         }
         match (self.entry.verify_route, &self.entry.verifier_bytecode) {
@@ -167,8 +174,12 @@ impl CandidateManifest {
                 }
                 paths.push(b.as_str());
             }
-            (Some(VerifyRoute::NpaiV1), None) => return bad("verify_route npai-v1 requires verifier_bytecode"),
-            (_, Some(_)) => return bad("verifier_bytecode is only valid with verify_route = \"npai-v1\""),
+            (Some(VerifyRoute::NpaiV1), None) => {
+                return bad("verify_route npai-v1 requires verifier_bytecode")
+            }
+            (_, Some(_)) => {
+                return bad("verifier_bytecode is only valid with verify_route = \"npai-v1\"")
+            }
             _ => {}
         }
         if !paths.iter().all(|p| is_safe_relpath(p)) {
@@ -206,13 +217,25 @@ certificate = "Candidate.certificate"
     }
     #[test]
     fn native_lean_route() {
-        let with_route = OK.replace("verify = \"out/verify\"", "verify = \"out/verify\"\nverify_route = \"native-lean\"");
-        assert!(CandidateManifest::parse(&with_route).is_err(), "model required");
+        let with_route = OK.replace(
+            "verify = \"out/verify\"",
+            "verify = \"out/verify\"\nverify_route = \"native-lean\"",
+        );
+        assert!(
+            CandidateManifest::parse(&with_route).is_err(),
+            "model required"
+        );
         let full = format!("{with_route}verifier_model = \"Candidate.Model.verify\"\nverifier_model_module = \"Candidate.Model\"\n");
         let m = CandidateManifest::parse(&full).unwrap();
         assert_eq!(m.entry.verify_route, Some(VerifyRoute::NativeLean));
-        assert_eq!(m.formal.unwrap().verifier_model.as_deref(), Some("Candidate.Model.verify"));
-        assert!(CandidateManifest::parse(&full.replace("Candidate.Model.verify", "Candidate.Model.verify x")).is_err());
+        assert_eq!(
+            m.formal.unwrap().verifier_model.as_deref(),
+            Some("Candidate.Model.verify")
+        );
+        assert!(CandidateManifest::parse(
+            &full.replace("Candidate.Model.verify", "Candidate.Model.verify x")
+        )
+        .is_err());
         // a model without the route is rejected
         let no_route = full.replace("verify_route = \"native-lean\"\n", "");
         assert!(CandidateManifest::parse(&no_route).is_err());
@@ -227,11 +250,17 @@ certificate = "Candidate.certificate"
             "verify = \"out/verify\"\n",
             "verify = \"out/verify\"\nverify_route = \"npai-v1\"\nverifier_bytecode = \"out/verifier.npai\"\n",
         );
-        assert!(CandidateManifest::parse(&npai).is_err(), "bytecode must be a build output");
+        assert!(
+            CandidateManifest::parse(&npai).is_err(),
+            "bytecode must be a build output"
+        );
         let npai = npai.replace("\"out/verify\"]", "\"out/verify\", \"out/verifier.npai\"]");
         let m = CandidateManifest::parse(&npai).unwrap();
         assert_eq!(m.entry.verify_route, Some(VerifyRoute::NpaiV1));
-        assert!(CandidateManifest::parse(&npai.replace("verifier_bytecode = \"out/verifier.npai\"\n", "")).is_err());
+        assert!(CandidateManifest::parse(
+            &npai.replace("verifier_bytecode = \"out/verifier.npai\"\n", "")
+        )
+        .is_err());
         assert!(CandidateManifest::parse(&OK.replace(
             "verify = \"out/verify\"\n",
             "verify = \"out/verify\"\nverify_route = \"native\"\n"

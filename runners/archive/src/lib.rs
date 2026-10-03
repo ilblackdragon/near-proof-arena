@@ -137,7 +137,9 @@ fn read_err(e: io::Error) -> ArchiveError {
 /// Ingest an archive from bytes. See [`ingest`].
 pub fn ingest_bytes(bytes: &[u8], dest: &Path, limits: &Limits) -> Result<Extracted, ArchiveError> {
     if bytes.len() as u64 > limits.max_compressed_bytes {
-        return Err(ArchiveError::unsafe_("archive exceeds compressed size limit"));
+        return Err(ArchiveError::unsafe_(
+            "archive exceeds compressed size limit",
+        ));
     }
     ingest(bytes, dest, limits)
 }
@@ -155,12 +157,25 @@ pub fn ingest<R: Read>(input: R, dest: &Path, limits: &Limits) -> Result<Extract
     }
 }
 
-fn ingest_inner<R: Read>(input: R, dest: &Path, limits: &Limits) -> Result<Extracted, ArchiveError> {
+fn ingest_inner<R: Read>(
+    input: R,
+    dest: &Path,
+    limits: &Limits,
+) -> Result<Extracted, ArchiveError> {
     let compressed = Counter::new();
-    let raw = CountingReader { inner: input, count: compressed.clone(), limit: limits.max_compressed_bytes, what: "compressed size" };
+    let raw = CountingReader {
+        inner: input,
+        count: compressed.clone(),
+        limit: limits.max_compressed_bytes,
+        what: "compressed size",
+    };
     let mut raw = BufReader::new(raw);
     let head = raw.fill_buf().map_err(read_err)?;
-    let compression = if head.len() >= 4 && head[..4] == ZSTD_MAGIC { Compression::Zstd } else { Compression::None };
+    let compression = if head.len() >= 4 && head[..4] == ZSTD_MAGIC {
+        Compression::Zstd
+    } else {
+        Compression::None
+    };
 
     // Upper bound on the decompressed tar stream: content + 512-byte header
     // and padding per entry (+ long-name / pax records), generously bounded.
@@ -178,7 +193,12 @@ fn ingest_inner<R: Read>(input: R, dest: &Path, limits: &Limits) -> Result<Extra
         }
         Compression::None => Box::new(raw),
     };
-    let tar_stream = CountingReader { inner: tar_stream, count: decompressed.clone(), limit: stream_limit, what: "decompressed stream" };
+    let tar_stream = CountingReader {
+        inner: tar_stream,
+        count: decompressed.clone(),
+        limit: stream_limit,
+        what: "decompressed stream",
+    };
 
     let check_ratio = |dec: u64, comp: u64| -> Result<(), ArchiveError> {
         if dec > limits.ratio_slack_bytes && dec > comp.saturating_mul(limits.max_ratio) {
@@ -200,7 +220,10 @@ fn ingest_inner<R: Read>(input: R, dest: &Path, limits: &Limits) -> Result<Extra
         let mut entry = entry.map_err(read_err)?;
         n_entries += 1;
         if n_entries > limits.max_entries {
-            return Err(ArchiveError::unsafe_(format!("more than {} entries", limits.max_entries)));
+            return Err(ArchiveError::unsafe_(format!(
+                "more than {} entries",
+                limits.max_entries
+            )));
         }
         check_ratio(decompressed.get(), compressed.get())?;
         let ety = entry.header().entry_type();
@@ -211,9 +234,15 @@ fn ingest_inner<R: Read>(input: R, dest: &Path, limits: &Limits) -> Result<Extra
             tar::EntryType::XGlobalHeader => continue,
             tar::EntryType::Symlink => return Err(ArchiveError::unsafe_("symlink entry")),
             tar::EntryType::Link => return Err(ArchiveError::unsafe_("hardlink entry")),
-            tar::EntryType::Char | tar::EntryType::Block => return Err(ArchiveError::unsafe_("device entry")),
+            tar::EntryType::Char | tar::EntryType::Block => {
+                return Err(ArchiveError::unsafe_("device entry"))
+            }
             tar::EntryType::Fifo => return Err(ArchiveError::unsafe_("fifo entry")),
-            other => return Err(ArchiveError::unsafe_(format!("unsupported entry type {other:?}"))),
+            other => {
+                return Err(ArchiveError::unsafe_(format!(
+                    "unsupported entry type {other:?}"
+                )))
+            }
         };
         let raw_path = entry.path_bytes().into_owned();
         let Some(rel) = path::normalize(&raw_path).map_err(ArchiveError::Unsafe)? else {
@@ -224,7 +253,9 @@ fn ingest_inner<R: Read>(input: R, dest: &Path, limits: &Limits) -> Result<Extra
         };
         let mode = entry.header().mode().map_err(read_err)?;
         if mode & 0o7000 != 0 {
-            return Err(ArchiveError::unsafe_(format!("setuid/setgid/sticky bit on {rel:?}")));
+            return Err(ArchiveError::unsafe_(format!(
+                "setuid/setgid/sticky bit on {rel:?}"
+            )));
         }
         let new_dirs = builder.add(&rel, is_dir)?;
         for d in &new_dirs {
@@ -232,7 +263,9 @@ fn ingest_inner<R: Read>(input: R, dest: &Path, limits: &Limits) -> Result<Extra
         }
         if is_dir {
             if entry.size() != 0 {
-                return Err(ArchiveError::unsafe_(format!("directory {rel:?} with data")));
+                return Err(ArchiveError::unsafe_(format!(
+                    "directory {rel:?} with data"
+                )));
             }
             continue;
         }
@@ -255,7 +288,9 @@ fn ingest_inner<R: Read>(input: R, dest: &Path, limits: &Limits) -> Result<Extra
             }
             copied += n as u64;
             if copied > size {
-                return Err(ArchiveError::unsafe_(format!("{rel:?} longer than declared")));
+                return Err(ArchiveError::unsafe_(format!(
+                    "{rel:?} longer than declared"
+                )));
             }
             h.update(&buf[..n]);
             out.write_all(&buf[..n])?;
@@ -267,13 +302,28 @@ fn ingest_inner<R: Read>(input: R, dest: &Path, limits: &Limits) -> Result<Extra
         expanded += size;
         let fmode = FileMode::from_unix(mode);
         tree::set_mode(&out, fmode)?;
-        let digest = arena_types::Digest::try_from(format!("sha256:{}", tree::hex_lower(&h.finalize()))).expect("valid digest");
-        builder.set_file(rel, TreeFile { mode: fmode, digest, size });
+        let digest =
+            arena_types::Digest::try_from(format!("sha256:{}", tree::hex_lower(&h.finalize())))
+                .expect("valid digest");
+        builder.set_file(
+            rel,
+            TreeFile {
+                mode: fmode,
+                digest,
+                size,
+            },
+        );
     }
     check_ratio(decompressed.get(), compressed.get())?;
     let tree = builder.tree;
     let digest = tree.digest();
-    Ok(Extracted { root: dest.to_path_buf(), tree, digest, compression, compressed_bytes: compressed.get() })
+    Ok(Extracted {
+        root: dest.to_path_buf(),
+        tree,
+        digest,
+        compression,
+        compressed_bytes: compressed.get(),
+    })
 }
 
 #[cfg(test)]

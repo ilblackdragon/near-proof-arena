@@ -1,0 +1,7 @@
+# Large / generated: produced by build-recipe/vendor.sh (packager, network)
+# and by build-recipe/build.sh. They are part of the PACKAGE, not of git.
+/source/vendor/
+/source/vendor-guest/
+/source/target/
+/out/
+/formal/.lake/

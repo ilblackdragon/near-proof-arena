@@ -59,7 +59,11 @@ pub fn list_tree(root: &Path) -> Result<Vec<TreeEntry>, TreeError> {
                 stack.push(p);
             } else if ft.is_file() {
                 let mode = ent.metadata()?.permissions().mode();
-                out.push(TreeEntry { path: rel, exec: mode & 0o111 != 0, digest: sha256_file(&p)? });
+                out.push(TreeEntry {
+                    path: rel,
+                    exec: mode & 0o111 != 0,
+                    digest: sha256_file(&p)?,
+                });
             } else {
                 return Err(TreeError::Unsupported(rel));
             }
@@ -73,7 +77,13 @@ pub fn list_tree(root: &Path) -> Result<Vec<TreeEntry>, TreeError> {
 pub fn tree_digest_of(entries: &[TreeEntry]) -> Digest {
     let arr: Vec<(String, &str, String)> = entries
         .iter()
-        .map(|e| (e.path.clone(), if e.exec { "exec" } else { "file" }, e.digest.to_string()))
+        .map(|e| {
+            (
+                e.path.clone(),
+                if e.exec { "exec" } else { "file" },
+                e.digest.to_string(),
+            )
+        })
         .collect();
     arena_types::sha256_digest(&arr).expect("no floats")
 }

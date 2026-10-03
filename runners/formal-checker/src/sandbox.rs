@@ -88,7 +88,8 @@ impl BwrapDevRunner {
     pub fn new() -> Result<Self, InfraError> {
         if std::env::var("ARENA_DEV_UNSAFE").as_deref() != Ok("1") {
             return Err(InfraError::Refused(
-                "bwrap-dev runner requires ARENA_DEV_UNSAFE=1 (results are tier-capped at demo)".into(),
+                "bwrap-dev runner requires ARENA_DEV_UNSAFE=1 (results are tier-capped at demo)"
+                    .into(),
             ));
         }
         let bwrap = ["/usr/bin/bwrap", "/bin/bwrap"]
@@ -101,9 +102,18 @@ impl BwrapDevRunner {
 
     fn command(&self, spec: &RunSpec) -> Command {
         let mut c = Command::new(&self.bwrap);
-        c.args(["--unshare-all", "--die-with-parent", "--new-session", "--clearenv"]);
+        c.args([
+            "--unshare-all",
+            "--die-with-parent",
+            "--new-session",
+            "--clearenv",
+        ]);
         c.args(["--ro-bind", "/usr", "/usr"]);
-        for (link, target) in [("/lib", "usr/lib"), ("/lib64", "usr/lib64"), ("/bin", "usr/bin")] {
+        for (link, target) in [
+            ("/lib", "usr/lib"),
+            ("/lib64", "usr/lib64"),
+            ("/bin", "usr/bin"),
+        ] {
             c.args(["--symlink", target, link]);
         }
         c.args(["--proc", "/proc", "--dev", "/dev", "--tmpfs", "/tmp"]);
@@ -126,7 +136,10 @@ impl BwrapDevRunner {
 fn set_limits(mem: Option<u64>, fsize: u64) -> std::io::Result<()> {
     unsafe {
         let lim = |res, v: u64| {
-            let r = libc::rlimit { rlim_cur: v as libc::rlim_t, rlim_max: v as libc::rlim_t };
+            let r = libc::rlimit {
+                rlim_cur: v as libc::rlim_t,
+                rlim_max: v as libc::rlim_t,
+            };
             if libc::setrlimit(res, &r) != 0 {
                 return Err(std::io::Error::last_os_error());
             }
@@ -159,7 +172,11 @@ fn read_capped<R: Read + Send + 'static>(mut r: R, cap: usize) -> std::thread::J
 }
 
 /// Spawn `cmd`, enforce the wall timeout, capture output. Shared by runners.
-pub fn supervise(mut cmd: Command, spec: &RunSpec, capture_limit: usize) -> Result<RunOutcome, InfraError> {
+pub fn supervise(
+    mut cmd: Command,
+    spec: &RunSpec,
+    capture_limit: usize,
+) -> Result<RunOutcome, InfraError> {
     use std::os::unix::process::{CommandExt, ExitStatusExt};
     let mem = spec.mem_bytes;
     let fsize = spec.max_file_bytes;
@@ -199,9 +216,18 @@ pub fn supervise(mut cmd: Command, spec: &RunSpec, capture_limit: usize) -> Resu
         std::thread::sleep(Duration::from_millis(5));
     };
     let wall = start.elapsed();
-    let stdout = out_t.map(|t| t.join().unwrap_or_default()).unwrap_or_default();
-    let stderr = err_t.map(|t| t.join().unwrap_or_default()).unwrap_or_default();
-    Ok(RunOutcome { exit, wall, stdout, stderr })
+    let stdout = out_t
+        .map(|t| t.join().unwrap_or_default())
+        .unwrap_or_default();
+    let stderr = err_t
+        .map(|t| t.join().unwrap_or_default())
+        .unwrap_or_default();
+    Ok(RunOutcome {
+        exit,
+        wall,
+        stdout,
+        stderr,
+    })
 }
 
 impl UntrustedRunner for BwrapDevRunner {

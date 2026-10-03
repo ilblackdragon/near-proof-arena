@@ -20,27 +20,51 @@ fn toolchain(r: &JobRun<'_>, j: &BuildJob) -> Result<(Rootfs, Digest, Vec<Mount>
                 .as_ref()
                 .map(|p| p.join(d.hex()))
                 .filter(|p| p.is_dir())
-                .ok_or_else(|| ExecError::Infra(format!("toolchain image {d} not available on this worker")))?;
-            let t = arena_archive::tree_from_dir(&dir, &arena_archive::Limits { max_expanded_bytes: 64 << 30, max_entries: 5_000_000, ..Default::default() })
-                .map_err(|e| ExecError::Infra(format!("toolchain image {d}: {e}")))?;
+                .ok_or_else(|| {
+                    ExecError::Infra(format!("toolchain image {d} not available on this worker"))
+                })?;
+            let t = arena_archive::tree_from_dir(
+                &dir,
+                &arena_archive::Limits {
+                    max_expanded_bytes: 64 << 30,
+                    max_entries: 5_000_000,
+                    ..Default::default()
+                },
+            )
+            .map_err(|e| ExecError::Infra(format!("toolchain image {d}: {e}")))?;
             if &t.digest() != d {
-                return Err(ExecError::Infra(format!("toolchain image dir for {d} does not match its digest")));
+                return Err(ExecError::Infra(format!(
+                    "toolchain image dir for {d} does not match its digest"
+                )));
             }
-            Ok((Rootfs::Image { path: dir, digest: d.clone() }, d.clone(), vec![]))
+            Ok((
+                Rootfs::Image {
+                    path: dir,
+                    digest: d.clone(),
+                },
+                d.clone(),
+                vec![],
+            ))
         }
         None => {
             // Host-dev toolchain: identified by a digest of its description.
             // Not a pinned image; only meaningful for DEMO-tier runs.
             let os = std::fs::read_to_string("/etc/os-release").unwrap_or_default();
-            let mounts: Vec<(String, String)> =
-                r.ctx.build.mounts.iter().map(|m| (m.host.display().to_string(), m.guest.clone())).collect();
+            let mounts: Vec<(String, String)> = r
+                .ctx
+                .build
+                .mounts
+                .iter()
+                .map(|m| (m.host.display().to_string(), m.guest.clone()))
+                .collect();
             let desc = serde_json::json!({
                 "kind": "host-dev",
                 "os_release": os,
                 "mounts": mounts,
                 "path": r.ctx.build.path,
             });
-            let d = arena_types::sha256_digest(&desc).map_err(|e| ExecError::Infra(e.to_string()))?;
+            let d =
+                arena_types::sha256_digest(&desc).map_err(|e| ExecError::Infra(e.to_string()))?;
             Ok((Rootfs::HostDev, d, r.ctx.build.mounts.clone()))
         }
     }
@@ -53,7 +77,10 @@ struct BuildRun {
 
 pub fn run(r: &mut JobRun<'_>, j: &BuildJob) -> Result<StageOut, ExecError> {
     let mut g = Gate::start(ObligationId::BuildReproducible);
-    let mut out = StageOut { used_sandbox: true, ..Default::default() };
+    let mut out = StageOut {
+        used_sandbox: true,
+        ..Default::default()
+    };
     let bytes = r.fetch(&j.package, MAX_PACKAGE_BYTES)?;
     let pkg_dir = r.fresh("pkg");
     let x = match arena_archive::ingest_bytes(&bytes, &pkg_dir, &arena_archive::Limits::default()) {
@@ -90,7 +117,13 @@ pub fn run(r: &mut JobRun<'_>, j: &BuildJob) -> Result<StageOut, ExecError> {
         let out_dir = r.fresh("build-out");
         let spec = build_spec(j, &manifest, &x.root, &rootfs, &mounts, r, &out_dir);
         let o = r.run(&spec)?;
-        let log = [&b"--- stdout ---\n"[..], &o.stdout_trunc, b"\n--- stderr ---\n", &o.stderr_trunc].concat();
+        let log = [
+            &b"--- stdout ---\n"[..],
+            &o.stdout_trunc,
+            b"\n--- stderr ---\n",
+            &o.stderr_trunc,
+        ]
+        .concat();
         r.upload(&format!("build_log_{i}"), &log, false)?;
         if !o.exit.success() {
             let reason = match o.exit {
@@ -99,33 +132,52 @@ pub fn run(r: &mut JobRun<'_>, j: &BuildJob) -> Result<StageOut, ExecError> {
                 _ => ReasonCode::BuildFailed,
             };
             if reason != ReasonCode::BuildFailed {
-                g.fail(ReasonCode::BuildFailed, format!("build {i} {}", describe_exit(&o)));
+                g.fail(
+                    ReasonCode::BuildFailed,
+                    format!("build {i} {}", describe_exit(&o)),
+                );
             }
             g.fail(reason, format!("build {i} {}", describe_exit(&o)));
             out.gates.push(g.finish(GateStatus::Unknown, true));
             return Ok(out);
         }
         if let Some(e) = &o.output_error {
-            g.fail(ReasonCode::BuildFailed, format!("build {i} outputs rejected: {e}"));
+            g.fail(
+                ReasonCode::BuildFailed,
+                format!("build {i} outputs rejected: {e}"),
+            );
             out.gates.push(g.finish(GateStatus::Unknown, true));
             return Ok(out);
         }
         let root = out_dir.join("work");
         std::fs::create_dir_all(&root)?;
-        let tree = arena_archive::tree_from_dir(&root, &arena_archive::Limits { max_expanded_bytes: j.limits.max_output_bytes, ..Default::default() })?;
+        let tree = arena_archive::tree_from_dir(
+            &root,
+            &arena_archive::Limits {
+                max_expanded_bytes: j.limits.max_output_bytes,
+                ..Default::default()
+            },
+        )?;
         let mut missing = vec![];
         for o in &manifest.build.outputs {
             if !tree.has_content_at(o) {
                 missing.push(o.clone());
             }
         }
-        for e in [&manifest.entry.prepare, &manifest.entry.prove, &manifest.entry.verify] {
+        for e in [
+            &manifest.entry.prepare,
+            &manifest.entry.prove,
+            &manifest.entry.verify,
+        ] {
             if !tree.is_exec(e) {
                 missing.push(format!("{e} (executable)"));
             }
         }
         if !missing.is_empty() {
-            g.fail(ReasonCode::BuildFailed, format!("build {i} did not produce {}", missing.join(", ")));
+            g.fail(
+                ReasonCode::BuildFailed,
+                format!("build {i} did not produce {}", missing.join(", ")),
+            );
             out.gates.push(g.finish(GateStatus::Unknown, true));
             return Ok(out);
         }
@@ -140,18 +192,36 @@ pub fn run(r: &mut JobRun<'_>, j: &BuildJob) -> Result<StageOut, ExecError> {
             .iter()
             .filter(|(p, f)| b.tree.files.get(*p) != Some(f))
             .map(|(p, _)| p.as_str())
-            .chain(b.tree.files.keys().filter(|p| !a.tree.files.contains_key(*p)).map(|p| p.as_str()))
+            .chain(
+                b.tree
+                    .files
+                    .keys()
+                    .filter(|p| !a.tree.files.contains_key(*p))
+                    .map(|p| p.as_str()),
+            )
             .collect();
         diff.truncate(20);
-        g.fail(ReasonCode::BuildNotReproducible, format!("two builds differ ({da} vs {db}); differing paths: {}", diff.join(", ")));
+        g.fail(
+            ReasonCode::BuildNotReproducible,
+            format!(
+                "two builds differ ({da} vs {db}); differing paths: {}",
+                diff.join(", ")
+            ),
+        );
     } else {
-        g.note(format!("two independent builds produced identical trees {da}"));
+        g.note(format!(
+            "two independent builds produced identical trees {da}"
+        ));
     }
     let (bundle, tree) = r.upload_tree("bundle", &a.root.clone(), &a.tree.clone(), false)?;
     g.evidence("bundle", bundle, false);
     g.evidence("bundle_tree", tree, true);
     // Per-entry-point digests (VerifiedSurface inputs for the server).
-    for (name, p) in [("prepare", &manifest.entry.prepare), ("prove", &manifest.entry.prove), ("verify", &manifest.entry.verify)] {
+    for (name, p) in [
+        ("prepare", &manifest.entry.prepare),
+        ("prove", &manifest.entry.prove),
+        ("verify", &manifest.entry.verify),
+    ] {
         let d = a.tree.files[p].digest.clone();
         r.record(&format!("entry_{name}"), d, true, false);
     }
@@ -171,11 +241,18 @@ fn build_spec(
 ) -> SandboxSpec {
     let mut s = SandboxSpec::new(vec![format!("/scratch/work/{}", m.build.recipe)]);
     s.rootfs = rootfs.clone();
-    s.ro_mounts.push(Mount { host: pkg.to_path_buf(), guest: "/in/pkg".into() });
+    s.ro_mounts.push(Mount {
+        host: pkg.to_path_buf(),
+        guest: "/in/pkg".into(),
+    });
     s.ro_mounts.extend(mounts.iter().cloned());
-    s.copy_in.push(CopyIn { from_guest: "/in/pkg".into(), to_scratch: "work".into() });
+    s.copy_in.push(CopyIn {
+        from_guest: "/in/pkg".into(),
+        to_scratch: "work".into(),
+    });
     s.cwd = "/scratch/work".into();
-    s.env.push(("SOURCE_DATE_EPOCH".into(), j.source_date_epoch.to_string()));
+    s.env
+        .push(("SOURCE_DATE_EPOCH".into(), j.source_date_epoch.to_string()));
     s.env.push(("CARGO_NET_OFFLINE".into(), "true".into()));
     s.env.push(("ARENA_STAGE".into(), "build".into()));
     if let Some(p) = &r.ctx.build.path {
@@ -186,7 +263,12 @@ fn build_spec(
     s.pids = j.limits.pids;
     s.rw_scratch_mb = j.limits.scratch_mb;
     s.wall_timeout = Duration::from_millis(j.limits.max_build_ms.max(1));
-    s.collect = m.build.outputs.iter().map(|o| format!("work/{o}")).collect();
+    s.collect = m
+        .build
+        .outputs
+        .iter()
+        .map(|o| format!("work/{o}"))
+        .collect();
     s.out_dir = Some(out_dir.to_path_buf());
     s.max_output_bytes = j.limits.max_output_bytes;
     s

@@ -156,6 +156,11 @@ pub struct BuildOutputs {
     /// Judge-measured wall time of one build, ns (informational).
     #[serde(default)]
     pub build_ns: Option<u64>,
+    /// `verify_route = "npai-v1"`: digest of the built `entry.verifier_bytecode`
+    /// file. Required for that route (the server refuses to derive a verified
+    /// surface without it).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_bytecode: Option<Digest>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

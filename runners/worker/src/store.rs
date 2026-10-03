@@ -33,7 +33,10 @@ pub trait ArtifactStore: Send + Sync {
         }
         let got = Digest::of_bytes(&b);
         if &got != digest {
-            return Err(StoreError::Corrupt { want: digest.clone(), got });
+            return Err(StoreError::Corrupt {
+                want: digest.clone(),
+                got,
+            });
         }
         Ok(b)
     }
@@ -56,7 +59,9 @@ impl ArtifactStore for FsStore {
     fn get_raw(&self, digest: &Digest, max_bytes: u64) -> Result<Vec<u8>, StoreError> {
         let p = self.root.join(digest.hex());
         match fs::metadata(&p) {
-            Err(e) if e.kind() == io::ErrorKind::NotFound => Err(StoreError::NotFound(digest.clone())),
+            Err(e) if e.kind() == io::ErrorKind::NotFound => {
+                Err(StoreError::NotFound(digest.clone()))
+            }
             Err(e) => Err(e.into()),
             Ok(m) if m.len() > max_bytes => Err(StoreError::TooLarge(digest.clone(), max_bytes)),
             Ok(_) => Ok(fs::read(p)?),
@@ -66,7 +71,9 @@ impl ArtifactStore for FsStore {
         let d = Digest::of_bytes(bytes);
         let p = self.root.join(d.hex());
         if !p.exists() {
-            let tmp = self.root.join(format!(".tmp-{}-{}", d.hex(), std::process::id()));
+            let tmp = self
+                .root
+                .join(format!(".tmp-{}-{}", d.hex(), std::process::id()));
             fs::write(&tmp, bytes)?;
             fs::rename(tmp, p)?;
         }

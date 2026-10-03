@@ -72,12 +72,18 @@ enum Cmd {
         keep: bool,
         #[arg(long)]
         json: bool,
+        /// Archive format to pack and validate (default: what `submit` uploads).
+        #[arg(long, value_enum, default_value = "tar.zst")]
+        format: pack::Format,
     },
-    /// Write the deterministic package archive (tar).
+    /// Write the deterministic package archive (tar or tar.zst).
     Pack {
         dir: PathBuf,
         #[arg(short = 'o', long = "output")]
         output: PathBuf,
+        /// Archive format; default inferred from the output name (`*.zst` -> tar.zst, else tar).
+        #[arg(long, value_enum)]
+        format: Option<pack::Format>,
     },
     /// Upload a package and create a submission.
     Submit {
@@ -96,6 +102,9 @@ enum Cmd {
         watch: bool,
         #[arg(long)]
         json: bool,
+        /// Upload format.
+        #[arg(long, value_enum, default_value = "tar.zst")]
+        format: pack::Format,
     },
     /// Show a submission (SubmissionView).
     Status {
@@ -182,6 +191,7 @@ fn run(cli: Cli) -> CliResult<Exit> {
             allow_network,
             keep,
             json,
+            format,
         } => {
             let opts = check::CheckOptions {
                 challenge,
@@ -191,6 +201,7 @@ fn run(cli: Cli) -> CliResult<Exit> {
                 no_repro,
                 allow_network,
                 keep,
+                format,
             };
             let rep = check::run(&dir, &opts)?;
             if json {
@@ -204,8 +215,13 @@ fn run(cli: Cli) -> CliResult<Exit> {
                 Exit::LocalCheckFailed
             })
         }
-        Cmd::Pack { dir, output } => {
-            let bytes = pack::pack_dir(&dir)?;
+        Cmd::Pack {
+            dir,
+            output,
+            format,
+        } => {
+            let format = format.unwrap_or_else(|| pack::Format::from_path(&output));
+            let bytes = pack::pack(&dir, format)?;
             let v = archive::validate_package(&bytes, &archive::ArchiveLimits::default(), None)
                 .map_err(|e| CliError::local(e.to_string()))?;
             std::fs::write(&output, &bytes)?;
@@ -225,7 +241,16 @@ fn run(cli: Cli) -> CliResult<Exit> {
             idempotency_key,
             watch,
             json,
-        } => submit(&dir, &challenge, parent, idempotency_key, watch, json),
+            format,
+        } => submit(
+            &dir,
+            &challenge,
+            parent,
+            idempotency_key,
+            watch,
+            json,
+            format,
+        ),
         Cmd::Status {
             id,
             watch,
@@ -426,6 +451,7 @@ fn submit(
     idem: Option<String>,
     watch: bool,
     json_out: bool,
+    format: pack::Format,
 ) -> CliResult<Exit> {
     check_id("challenge", challenge, "chl_")?;
     let cfg = config::Config::load()?;
@@ -438,6 +464,7 @@ fn submit(
         no_repro: true,
         allow_network: true,
         keep: false,
+        format,
     };
     let (gate, pkg) = check::check_package(dir, &opts, None);
     let Some((bytes, v)) = pkg else {
@@ -463,7 +490,7 @@ fn submit(
     });
     let c = client::Client::new(&cfg);
     eprintln!("uploading {} bytes ({digest})", bytes.len());
-    let up = c.upload(&bytes)?;
+    let up = c.upload(&bytes, format.content_type())?;
     let up_digest = up
         .get("digest")
         .and_then(|d| d.as_str())

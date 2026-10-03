@@ -179,6 +179,29 @@ async fn upload(
     }
     let id = arena_db::new_id("upl");
     let mut tx = st.api_db.begin().await?;
+    // Re-check the daily byte quota under the agent row lock: the check above
+    // runs before streaming and is not serialized, so concurrent uploads could
+    // each consume the full remaining quota (red-team RT-06).
+    sqlx::query("SELECT id FROM agents WHERE id = $1 FOR UPDATE")
+        .bind(&agent.id)
+        .execute(&mut *tx)
+        .await?;
+    let (used_now, already): (i64, bool) = sqlx::query_as(
+        "SELECT (SELECT COALESCE(SUM(size_bytes), 0)::bigint FROM uploads
+                 WHERE agent_id = $1 AND created_at > now() - interval '1 day'),
+                EXISTS (SELECT 1 FROM uploads WHERE agent_id = $1 AND digest = $2)",
+    )
+    .bind(&agent.id)
+    .bind(out.digest.as_str())
+    .fetch_one(&mut *tx)
+    .await?;
+    if !already && used_now.saturating_add(out.size as i64) > quota.upload_bytes_per_day {
+        return Err(ApiError::too_many(
+            "quota_exceeded",
+            "upload exceeds the remaining daily upload quota",
+            3600,
+        ));
+    }
     sqlx::query(
         "INSERT INTO uploads (id, agent_id, digest, size_bytes) VALUES ($1, $2, $3, $4)
          ON CONFLICT (agent_id, digest) DO NOTHING",

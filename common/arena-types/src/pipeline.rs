@@ -1,4 +1,4 @@
-use crate::{challenge::Tier, Digest, EvidenceGraph};
+use crate::{challenge::Tier, Digest, EvidenceGraph, VerifyRoute};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -133,6 +133,24 @@ pub struct VerifiedSurface {
     pub formal_tree: Digest,
     pub certificate_decl: String,
     pub checker_image: Digest,
+    // ---- additive (v1.3, red-team finding RT-01) ----
+    // Everything below changes the judge-built admission statement (the
+    // `art.impl` of `Judge.Expected`) or which code runs as `verify`, so it
+    // must be part of the surface: otherwise a child that swaps only its NPAI
+    // bytecode or its native-lean model would hit the parent's formal-cache
+    // entry and inherit formal PASSes that were never checked for it.
+    /// Effective verify route (`native` when the manifest omits it).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verify_route: Option<VerifyRoute>,
+    /// `npai-v1`: SHA-256 digest of the built verifier bytecode image.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_bytecode: Option<Digest>,
+    /// `native-lean`: `[formal] verifier_model`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_model: Option<String>,
+    /// `native-lean`: `[formal] verifier_model_module`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_model_module: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
