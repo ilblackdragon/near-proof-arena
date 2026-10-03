@@ -56,6 +56,9 @@ Parsed with `CandidateManifest::parse` (`common/arena-types/src/candidate.rs`).
 | `[entry] prepare/prove/verify` | relative paths; must be listed in `outputs` | checked |
 | `[formal] lean_project` | relative dir of the Lean project | — |
 | `[formal] certificate` | Lean constant name (e.g. `Candidate.certificate`) | its *type* is set by the judge |
+| `[entry] verify_route` | optional (v1.2): `"native"` (default) \| `"npai-v1"` \| `"native-lean"` (`VerifyRoute`) | selects how the judge runs verification |
+| `[entry] verifier_bytecode` | required iff `verify_route = "npai-v1"`; relative path among `build.outputs` (an NPAI image, `docs/INTERP_SPEC.md`); `prepare` must then emit exactly `public_dir/public.bin` | executed only by the arena's interpreter |
+| `[formal] verifier_model`, `verifier_model_module` | both required iff `verify_route = "native-lean"`; dotted Lean identifiers (e.g. `Candidate.Model.verify`, `Candidate.Model`) | the judge compiles `verify` from this model; your `verify` binary is not admitted |
 
 All paths: relative, ≤ 255 bytes, printable ASCII, no empty / `.` / `..`
 components, no leading `/`. There is no field for security bits, proof sizes or

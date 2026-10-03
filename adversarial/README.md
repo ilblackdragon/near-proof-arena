@@ -150,7 +150,7 @@ it were a semantic-soundness result — the types make the distinction explicit.
 
 ## 3. Mutation testing (`mutants/`)
 
-Judge-owned source-mutation operators (generic + `reexec-merkle`-specific) to be
+Judge-owned source-mutation operators (generic + `reexec-merkle`-specific; note: there is no `examples/reexec-merkle` — the re-execution backends are `examples/reexec-witness` and `examples/reexec-witness-fast`) to be
 applied by the integrator once reference backends exist under `examples/`, with
 an equivalence policy (correct optimizations are expected to survive) and a
 report format whose schema hard-codes: **gate-coverage ratio is not formal
@@ -175,9 +175,9 @@ Runs green now, with no server:
 
 - `cargo test -p proof-mutators` — mutator unit tests (classification,
   determinism, inference fallback, panic-freedom) and suite well-formedness.
-- `cargo run -p proof-mutators --bin check-suite` — all 33 packages load, parse,
+- `cargo run -p proof-mutators --bin check-suite` — all 35 cases (33 generated + 2 NEAR re-exec cases) load, parse,
   and agree with `expect.json`.
-- `python3 e2e/run_hostile.py --dry-run` — all 33 packages tar/build (including
+- `python3 e2e/run_hostile.py --dry-run` — all 35 packages tar/build (including
   the malicious archives) and every `expect.json` validates.
 - All hostile C sources compile offline with `cc`; all `build.sh` /
   `make-archive.sh` pass `sh -n`.

@@ -80,12 +80,12 @@ these names, or change them here and in `deploy/` in the same PR.**
 |------------|-------|---------|
 | `arena-server serve` | server | compose, `arena-server.service` |
 | `arena-server migrate` (uses `ARENA_MIGRATE_DATABASE_URL`, exits) | server | `make migrate`, `arena-migrate.service` |
-| `arena-worker --class <build\|formal\|oracle\|bench\|gpu>` | runners-core | `arena-worker@.service`, `make dev-worker` |
+| `arena-worker` (daemon), `arena-worker once`, `arena-worker run-job JOB.json --store DIR` (`runners/worker/src/main.rs`). **Stale:** `arena-worker@.service` still passes `--class %i`, which the binary rejects; job kinds are selected with `ARENA_WORKER_KINDS` | runners-core | `arena-worker@.service`, `make dev-worker` |
 | `arena` (CLI), `arena-admin` | sdk, server | read `agent.env` / `admin.env` |
 | `web`: `pnpm install --frozen-lockfile && pnpm run build` → `web/dist/`; `pnpm test` | web | `make web`, `web.Dockerfile` |
-| SDKs: `sdk/python` (pyproject with a `test` extra, pytest), `sdk/ts` (pnpm `build` + `test`) | sdk | `make test-sdk` |
+| SDKs: `sdk/python` (pyproject with a `test` extra, pytest), `sdk/typescript` (npm `package-lock.json`; `npm ci`, `npm run build`, `npm test`) | sdk | `make test-sdk` |
 | Lean: `formal-core/` and `spec/lean/` are Lake projects with `lean-toolchain` | formal-core, spec-oracle | `make lean`, CI |
-| `tests/e2e/run.sh`, `adversarial/e2e/run.sh` (override with `E2E_SCRIPT` / `E2E_HOSTILE_SCRIPT`) | integrator, adversarial | `make e2e`, `make e2e-hostile` |
+| `tests/e2e/run.sh` (**does not exist yet**; integration e2e lane, in progress), `adversarial/e2e/run.sh` (dry run without `ARENA_SERVER`; live mode needs a server + worker) (override with `E2E_SCRIPT` / `E2E_HOSTILE_SCRIPT`) | integrator, adversarial | `make e2e`, `make e2e-hostile` |
 
 `make build` checks that the workspace defines the binary targets
 `arena-server`, `arena-worker`, `arena` and `arena-admin`. It fails and names
@@ -107,10 +107,12 @@ the owning lane for any that are missing.
 | `ARENA_ADMIN_TOKEN_SHA256`, `ARENA_WORKER_TOKEN_SHA256` | server (prod) | pre-hashed bootstrap tokens (no plaintext on disk) |
 | `ARENA_SERVER_URL` | worker | control plane's internal worker API |
 | `ARENA_WORKER_TOKEN` | worker | worker credential |
-| `ARENA_WORKER_DATABASE_URL` | worker | `arena_worker` role. Only if direct leasing (CONTRACTS.md §9) is kept |
-| `ARENA_SANDBOX` | worker | `firecracker` (default) or `bwrap-dev` |
+| ~~`ARENA_WORKER_DATABASE_URL`~~ | worker | **Must not be set.** Workers hold only a worker token and lease over the internal HTTP API; `arena-worker` refuses to start if any `ARENA_*` key contains `database` or any value looks like a Postgres URL (`runners/worker/src/config.rs`), and `deploy/sql/grants.sql` gives `arena_worker` no table access. **Stale:** `deploy/local/gen-dev-secrets.sh` still writes it into `worker.env`, so `make dev-worker` currently refuses to start |
+| `ARENA_SANDBOX` | `arena-guard worker` only | `firecracker` or `bwrap-dev`; checked by the guard |
+| `ARENA_SANDBOX_BACKEND` | worker binary | `bwrap-dev` (default) or `firecracker` — this is what `arena-worker` actually reads. Keep it equal to `ARENA_SANDBOX` |
+| `ARENA_WORKER_KINDS` | worker binary | comma list of `validate,build,conformance,adversarial,benchmark` (default all). There is no `formal` kind in the worker yet |
 | `ARENA_DEV_UNSAFE` | worker | must be `1` for bwrap-dev. Refused in production even when set to `0` |
-| `ARENA_WORKER_CLASS` | worker | set by the systemd instance name |
+| `ARENA_WORKER_CLASS` / `ARENA_WORKER_CLASSES` | (none) | set by the systemd unit / compose but **not read** by `arena-worker`; use `ARENA_WORKER_KINDS` |
 | `ARENA_BENCH_CPUS`, `ARENA_BENCH_HOST_SETTINGS` | bench worker | pinned CPU set; JSON from `bench-host-record` to attach to every measurement |
 | `ARENA_SECRETS_ORIGIN` | all | `dev-generator` marks dev secrets |
 | `ARENA_URL`, `ARENA_TOKEN` | CLI / SDK | API base URL and agent token |
@@ -374,7 +376,7 @@ fails with the name of its owning lane. Nothing is skipped.
 
 | job | what |
 |-----|------|
-| `rust` | `make fmt-check clippy test-rust build` with a Postgres 17 service (`DATABASE_URL`, `ARENA_TEST_DATABASE_URL`) |
+| `rust` | `make fmt-check clippy test-rust build` with a Postgres 17 service (`DATABASE_URL`, `ARENA_TEST_DATABASE_URL`) and bubblewrap (`test-rust` sets `ARENA_DEV_UNSAFE=1` for the bwrap-dev sandbox tests only) |
 | `schemas` | `make schemas-check`: regenerates `common/schemas` and fails on any diff or untracked file |
 | `lean` | matrix `formal-core`, `spec/lean`: elan toolchain cache keyed on `lean-toolchain`, `lean-action` `lake build` with the `.lake` cache |
 | `web` | `make web` (pnpm install --frozen-lockfile, build, test) |
