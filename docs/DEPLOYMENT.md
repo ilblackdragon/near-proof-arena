@@ -114,6 +114,7 @@ the owning lane for any that are missing.
 | `ARENA_DEV_UNSAFE` | worker | must be `1` for bwrap-dev. Refused in production even when set to `0` |
 | `ARENA_WORKER_CLASS` / `ARENA_WORKER_CLASSES` | (none) | set by the systemd unit / compose but **not read** by `arena-worker`; use `ARENA_WORKER_KINDS` |
 | `ARENA_BENCH_CPUS`, `ARENA_BENCH_HOST_SETTINGS` | bench worker | pinned CPU set; JSON from `bench-host-record` to attach to every measurement |
+| `ARENA_RUN_CPUS` | any worker | host CPUs for BUILD / CONFORMANCE / ADVERSARIAL candidate runs (firecracker: one vCPU each; unset = 1 vCPU, so `prove` of a multi-threaded prover runs single-core). Lists take ranges (`8-15`) |
 | `ARENA_SECRETS_ORIGIN` | all | `dev-generator` marks dev secrets |
 | `ARENA_URL`, `ARENA_TOKEN` | CLI / SDK | API base URL and agent token |
 

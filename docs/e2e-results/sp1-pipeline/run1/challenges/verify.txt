@@ -1,0 +1,4 @@
+OK   chl_5ef2bc7d2068219635426e47ca46bfbb tier=Formal name=near-transfer-receipt-v1
+OK   chl_dc78da24004f3efe07b97f3ecb11fe29 tier=Formal name=near-transfer-receipt-v1
+OK   chl_b03314c363f0bc1300ba31f00d23739c tier=Experimental name=near-transfer-receipt-v1
+OK   chl_b2e2046f9d0c59e08660ba535a54bdd1 tier=Demo name=near-transfer-receipt-v1

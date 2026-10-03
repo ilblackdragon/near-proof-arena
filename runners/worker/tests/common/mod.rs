@@ -91,6 +91,7 @@ pub fn executor(sandbox: Arc<dyn Sandbox>, store: Arc<FsStore>, work: &Path) -> 
         work_root: work.to_path_buf(),
         build: BuildEnv::default(),
         bench_cpus: None,
+        run_cpus: None,
         bench_batch_cap: Some(2),
         conformance_samples: 4,
         mutators: MutatorRegistry::with_adversarial_lane(),

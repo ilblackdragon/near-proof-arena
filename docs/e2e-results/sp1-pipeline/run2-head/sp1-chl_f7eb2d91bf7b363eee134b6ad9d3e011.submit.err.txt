@@ -1,0 +1,2 @@
+uploading 32806048 bytes (sha256:ae772aedb3d318d242aa0992ce51b3e4552bfaf8b3457271e316a3d8e6067305)
+arena: error: HTTP 409: {"error":{"code":"challenge_closed","message":"challenge is superseded by chl_3be93793610370275ae40f36a475f01f and closed for new submissions; submit against chl_3be93793610370275ae40f36a475f01f"}}

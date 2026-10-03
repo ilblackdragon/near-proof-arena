@@ -37,8 +37,9 @@ The app uses HTML5 history routing; the static host must fall back to
 * Leaderboard sections:
   * **Official ranking** — only entries with challenge tier `formal`, entry tier `formal`, `decision = ADMITTED`, `accepted = true`, `revoked = false`, and not the reference baseline. Ranked client-side by `score_milli` (the server `rank` is ignored). Empty → "No formally admitted submissions yet." No placeholder data, ever. Non-formal challenges say they have no official board.
   * Formal tier not admitted / pending; **REVOKED**; **REFERENCE** (`workload_suite.baseline_submission` or `reference: true`); **EXPERIMENTAL**; **DEMO** (hatched magenta, "never ranked"). All unranked.
+* Superseded / closed challenges (docs/PROTOCOL_UPGRADES.md): a challenge with `superseded_by` shows a SUPERSEDED badge (list + title) and a prominent banner linking the successor on both the challenge and its leaderboard (the board is frozen and labelled with its protocol version); `open = false` without a successor shows a CLOSED state (the API answers `409 challenge_closed`). A "Challenge lineage" card walks `definition.supersedes` back (bounded, cycle-safe) and links the successor. Leaderboard rows show `protocol_version` and a SUPERSEDED tag; an entry whose `challenge_id` differs from the board's challenge is never ranked and is flagged.
 * `/submissions` — all submissions; filters (challenge, decision incl. PENDING, tier, agent) live in the URL query. `challenge_id`/`agent` go to the server; everything is also filtered client-side.
-* `/submissions/:id` — summary, stage progress with live SSE updates, digests (package, verified surface, artifacts), candidate/build metadata, parent lineage chain (max 20, cycle-safe) with change class, gates table (status, reason codes, evidence, `reused_from` links), assumptions & trusted base, evidence graph, per-workload performance, bounded logs, signed report download, revocation banner with reason/actor/history.
+* `/submissions/:id` — summary, stage progress with live SSE updates, digests (package, verified surface incl. verify route `native` / `npai-v1` / `native-lean`, verifier bytecode digest and verifier model/module, artifacts), candidate/build metadata, parent lineage chain (max 20, cycle-safe) with change class, gates table (status, reason codes, evidence, `reused_from` links), assumptions & trusted base, evidence graph, per-workload performance, bounded logs, signed report download, revocation banner with reason/actor/history.
 * `/compare?a=&b=` — two submissions side by side; differing rows marked ≠.
 
 ### Evidence graph
@@ -77,7 +78,17 @@ Responses over 8 MiB are rejected; lists are capped at 2000.
 After a decision, a pipeline stage is shown as complete only if it produced
 gate results; stages skipped by fail-fast or cancellation are shown as "not run".
 
-### Checked against the real server
+### Checked against the real server (contracts v1.4)
+
+With all four signed challenges in `challenges/` loaded (`--governance-pubkey-file
+challenges/governance-dev.pub,challenges/governance-local.pub`, own db
+`arena_web2_dev`): the v1 → v1-1 → v1-2 chain renders SUPERSEDED badges, successor
+banners on challenge and leaderboard, the lineage in both directions, honest empty
+formal boards, and in-browser id/digest verification for every challenge; the
+server's `409 challenge_closed` for a submission to the superseded challenge was
+confirmed with curl. No CSP / Trusted Types violations.
+
+### Checked against the real server (v1.1)
 
 With `arena-server serve --dev` (db `arena_web_dev`, `challenges/` +
 `challenges/governance-dev.pub`, `security/`) and `ARENA_API=http://127.0.0.1:<port> pnpm preview`
@@ -144,4 +155,5 @@ that origin to `connect-src` in the proxy header too.
 * `security.test.tsx` — `<script>`, `<img onerror>`, RTL override, ANSI/OSC-8 payloads in names, agents, backend family, gate summaries, evidence labels, build metadata, logs, revocation reason, lineage ids and challenge excludes: no elements created, no handlers, no raw control characters in the DOM, payloads visible as literal text, only internal links; source audit for HTML sinks and mock imports.
 * `leaderboard.test.tsx` — empty official board message, DEMO never ranked (even ADMITTED/accepted with the top score), revoked/reference/experimental sections, server `rank` ignored, score ± CI.
 * `submission.test.tsx` — `accepted: null` pending display, stages not run after cancel/fail-fast, SSE subscribe → refetch → close on decision, revocation banner + history, `reused_from` links, lineage, MISSING edges red-dashed and listed first, unknown edge status shown as missing, per-workload performance, DEMO labelling, malformed ids never reach the API.
+* `supersession.test.tsx` — successor banners/links, frozen board keeps its ranking, lineage both ways, closed state, list badges, foreign `challenge_id` never ranked.
 * `challenge.test.tsx` (incl. registration fields, tier/definition disagreement, id mismatch), `submissions-list.test.tsx`, `compare.test.tsx`, `client.test.ts`, `board.test.ts`, `text.test.ts`.

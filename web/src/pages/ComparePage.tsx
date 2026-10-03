@@ -126,6 +126,9 @@ function CompareTable({ A, B }: { A: Loaded; B: Loaded }) {
           {row('Parent', (s) => (s.parent ? <SubLink id={s.parent} /> : '—'), (s) => s.parent)}
           {row('Package', (s) => <DigestText d={s.package_digest} />, (s) => s.package_digest)}
           {row('Verify artifact', (s) => (s.verified_surface ? <DigestText d={s.verified_surface.verify_artifact} /> : '—'), (s) => s.verified_surface?.verify_artifact)}
+          {row('Verify route', (s) => s.verified_surface?.verify_route ?? '—', (s) => s.verified_surface?.verify_route)}
+          {row('Verifier bytecode', (s) => (s.verified_surface?.verifier_bytecode ? <DigestText d={s.verified_surface.verifier_bytecode} /> : '—'), (s) => s.verified_surface?.verifier_bytecode)}
+          {row('Verifier model', (s) => (s.verified_surface?.verifier_model ? <T v={s.verified_surface.verifier_model} max={80} /> : '—'), (s) => s.verified_surface?.verifier_model)}
           {row('Formal tree', (s) => (s.verified_surface ? <DigestText d={s.verified_surface.formal_tree} /> : '—'), (s) => s.verified_surface?.formal_tree)}
           {row('Missing evidence edges', (s) => (s.evidence_graph ? String(s.evidence_graph.edges.filter((e) => e.status === 'missing').length) : 'no graph'), (s) => s.evidence_graph?.edges.filter((e) => e.status === 'missing').length)}
           {gateIds.map((id) => (

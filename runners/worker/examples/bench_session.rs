@@ -230,6 +230,7 @@ fn main() {
         work_root: work.join("jobs"),
         build: BuildEnv::default(),
         bench_cpus: Some(cpus.clone()),
+        run_cpus: None,
         bench_batch_cap: None,
         conformance_samples: 0,
         mutators: MutatorRegistry::generic(),

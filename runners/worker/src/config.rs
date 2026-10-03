@@ -43,6 +43,10 @@ pub struct WorkerConfig {
     /// Pinned build toolchain image (TreeDigest).
     pub toolchain_image: Option<arena_types::Digest>,
     pub bench_cpus: Option<Vec<u32>>,
+    /// Host CPUs for the candidate runs of BUILD, CONFORMANCE and ADVERSARIAL
+    /// (`ARENA_RUN_CPUS`). On firecracker the VM gets one vCPU per listed CPU;
+    /// unset means the backend default (firecracker: 1 vCPU).
+    pub run_cpus: Option<Vec<u32>>,
     pub keep_workdirs: bool,
     /// Directories holding public fixtures, matched to challenges by TreeDigest.
     pub fixtures_dirs: Vec<PathBuf>,
@@ -265,15 +269,15 @@ impl WorkerConfig {
         };
         let bench_cpus = match s.get("ARENA_BENCH_CPUS") {
             None => None,
-            Some(v) => Some(
-                v.split(',')
-                    .map(|c| {
-                        c.trim()
-                            .parse::<u32>()
-                            .map_err(|e| ConfigError::Invalid("ARENA_BENCH_CPUS", e.to_string()))
-                    })
-                    .collect::<Result<Vec<_>, _>>()?,
-            ),
+            Some(v) => {
+                Some(parse_cpu_list(&v).map_err(|e| ConfigError::Invalid("ARENA_BENCH_CPUS", e))?)
+            }
+        };
+        let run_cpus = match s.get("ARENA_RUN_CPUS") {
+            None => None,
+            Some(v) => {
+                Some(parse_cpu_list(&v).map_err(|e| ConfigError::Invalid("ARENA_RUN_CPUS", e))?)
+            }
         };
         let ms = |key: &'static str, default: u64| -> Result<Duration, ConfigError> {
             Ok(Duration::from_millis(match s.get(key) {
@@ -311,6 +315,7 @@ impl WorkerConfig {
                 ),
             },
             bench_cpus,
+            run_cpus,
             keep_workdirs: s.get("ARENA_KEEP_WORKDIRS").as_deref() == Some("1"),
             fixtures_dirs: s
                 .get("ARENA_FIXTURES_DIRS")
@@ -483,5 +488,44 @@ mod tests {
         )
         .unwrap();
         assert!(WorkerConfig::load(&s).is_err());
+    }
+}
+
+/// `"8-15,24,26"` -> `[8..=15, 24, 26]` (comma-separated CPU ids and
+/// inclusive ranges, as in cgroup `cpuset` / systemd `AllowedCPUs=`).
+pub fn parse_cpu_list(v: &str) -> Result<Vec<u32>, String> {
+    let mut out = vec![];
+    for part in v.split(',').map(str::trim).filter(|p| !p.is_empty()) {
+        let num = |x: &str| x.trim().parse::<u32>().map_err(|e| format!("{x:?}: {e}"));
+        match part.split_once('-') {
+            Some((a, b)) => {
+                let (a, b) = (num(a)?, num(b)?);
+                if a > b || b - a > 4096 {
+                    return Err(format!("bad cpu range {part:?}"));
+                }
+                out.extend(a..=b);
+            }
+            None => out.push(num(part)?),
+        }
+    }
+    if out.is_empty() {
+        return Err("empty cpu list".into());
+    }
+    Ok(out)
+}
+
+#[cfg(test)]
+mod cpu_list_tests {
+    use super::parse_cpu_list;
+    #[test]
+    fn ranges_and_singles() {
+        assert_eq!(
+            parse_cpu_list("8-11, 24,26").unwrap(),
+            vec![8, 9, 10, 11, 24, 26]
+        );
+        assert_eq!(parse_cpu_list("3").unwrap(), vec![3]);
+        assert!(parse_cpu_list("").is_err());
+        assert!(parse_cpu_list("5-2").is_err());
+        assert!(parse_cpu_list("x").is_err());
     }
 }

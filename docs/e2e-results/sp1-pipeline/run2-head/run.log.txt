@@ -1,0 +1,44 @@
+
+== build  [11:32:46] load: 7.48 7.30 7.99
+
+== challenges  [11:32:46] load: 7.48 7.30 7.99
+lean-checker image d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, checker identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e
+OK   chl_3be93793610370275ae40f36a475f01f tier=Formal name=near-transfer-receipt-v1-2
+warning: runtime_config_digest is the all-zero placeholder (allowed in demo tier only)
+warning: toolchain_policy.checker_image is the all-zero placeholder (allowed in demo tier only)
+warning: workload_suite.heldout_commitment is the all-zero placeholder (allowed in demo tier only)
+warning: no baseline yet (baseline_submission = null, baseline_ns = []): admissions are decided but scores are null until a superseding challenge pins baselines
+warning: signed by DEV-ONLY key gov_8292e8f55c257fcc — not for production
+OK   chl_54c65fe7c73c5abcfe500681889177bc tier=Demo name=demo-toy-arithmetic
+warning: no baseline yet (baseline_submission = null, baseline_ns = []): admissions are decided but scores are null until a superseding challenge pins baselines
+OK   chl_5ef2bc7d2068219635426e47ca46bfbb tier=Formal name=near-transfer-receipt-v1
+OK   chl_f7eb2d91bf7b363eee134b6ad9d3e011 tier=Formal name=near-transfer-receipt-v1-1
+
+== database arena_sp1  [11:32:46] load: 7.48 7.30 7.99
+
+== arena-server on 127.0.0.1:18581  [11:32:47] load: 7.48 7.30 7.99
+registered chl_3be93793610370275ae40f36a475f01f formal
+registered chl_54c65fe7c73c5abcfe500681889177bc demo
+registered chl_5ef2bc7d2068219635426e47ca46bfbb formal
+registered chl_f7eb2d91bf7b363eee134b6ad9d3e011 formal
+
+== Firecracker worker (tier cap formal), candidate VMs on host CPUs 8-15  [11:32:47] load: 7.48 7.30 7.99
+
+== submissions  [11:32:47] load: 7.48 7.30 7.99
+sp1-chl_3be93793610370275ae40f36a475f01f -> sub_e4c0b5a8b3814a24bc2b053d1d4b8406 (challenge chl_3be93793610370275ae40f36a475f01f)
+sp1-chl_f7eb2d91bf7b363eee134b6ad9d3e011 -> REFUSED by the server (challenge chl_f7eb2d91bf7b363eee134b6ad9d3e011): uploading 32806048 bytes (sha256:ae772aedb3d318d242aa0992ce51b3e4552bfaf8b3457271e316a3d8e6067305) arena: error: HTTP 409: {"error":{"code":"challenge_closed","message":"challenge is superseded by chl_3be93793610370275ae40f36a475f01f and closed for new submissions; submit against chl_3be93793610370275ae40f36a475f01f"}} 
+sp1-chl_5ef2bc7d2068219635426e47ca46bfbb -> REFUSED by the server (challenge chl_5ef2bc7d2068219635426e47ca46bfbb): uploading 32806049 bytes (sha256:63e52ed6c44f6726fceb8084fdd863c6e46472f7ed897f625bf1abbf332bcb72) arena: error: HTTP 409: {"error":{"code":"challenge_closed","message":"challenge is superseded by chl_f7eb2d91bf7b363eee134b6ad9d3e011 and closed for new submissions; submit against chl_f7eb2d91bf7b363eee134b6ad9d3e011"}} 
+
+== waiting for decisions  [11:33:34] load: 8.00 7.49 8.02
+
+== done  [11:42:35] load: 4.14 6.08 7.13
+
+sp1-chl_3be93793610370275ae40f36a475f01f: sub_e4c0b5a8b3814a24bc2b053d1d4b8406 decision=REJECTED accepted=False tier=formal score=None
+  PKG_WELLFORMED               PASS                                        'package TreeDigest sha256:de81913866cf61d7ed0414f61387c94c154a87c972aa03cb4fe108d86cf5290a; 21170 files, 230870757 bytes; manifest ok'
+  BUILD_REPRODUCIBLE           PASS                                        'two independent builds produced identical trees sha256:16dd35347e4d4f909329bcc195bc96e17f98902fb8740350189e21bf55e5ecc4; prepare 11327 ms, public dir '
+  FORMAL_SEMANTIC_SOUNDNESS    FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_SEMANTIC_COMPLETENESS FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_CRYPTO_SOUNDNESS      FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_IMPL_CONNECTION       FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  AXIOM_AUDIT                  FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  ARTIFACT_BINDING             FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '

@@ -1,0 +1,8 @@
+arena-worker: fixtures /data/illia/nearproof-deps/sp1-pipeline/work/clean/oracle/fixtures/public = sha256:c83f3e14d526e78244ee2d7288396a9680717fa42ef77127ba29ccf27bb7e6ec
+arena-worker sp1-fc-worker: backend firecracker (tier cap Formal), kinds ["VALIDATE", "BUILD", "FORMAL_CHECK", "CONFORMANCE", "ADVERSARIAL", "BENCHMARK"]
+[arena-worker] leased job 9d9b3d08-830f-4da6-9a09-716e945ec3f6 (VALIDATE, attempt 1/3)
+[arena-worker] completed job 9d9b3d08-830f-4da6-9a09-716e945ec3f6
+[arena-worker] leased job 6c32009e-e7bb-426d-8de6-92a05678a2be (BUILD, attempt 1/3)
+[arena-worker] completed job 6c32009e-e7bb-426d-8de6-92a05678a2be
+[arena-worker] leased job d556f9b4-10f7-4959-b0d8-1132b98937a6 (FORMAL_CHECK, attempt 1/3)
+[arena-worker] completed job d556f9b4-10f7-4959-b0d8-1132b98937a6

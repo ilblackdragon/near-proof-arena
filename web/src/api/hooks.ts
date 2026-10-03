@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { canonicalDigest, challengeIdFromDigest, CanonicalError } from '../lib/jcs';
 import { isSubmissionId } from '../lib/ids';
 import { sanitizeInline } from '../lib/text';
-import { eventsUrl, getSubmission } from './client';
+import { eventsUrl, getChallenge, getSubmission } from './client';
 import type { ChallengeRecord, EventPayload, SubmissionDetail } from './types';
 
 export type Async<T> =
@@ -218,4 +218,46 @@ export function useLineage(start: SubmissionDetail | undefined) {
     return () => ac.abort();
   }, [parent, startId]);
   return { hops, done, truncated: hops.length >= MAX_LINEAGE };
+}
+
+export interface ChallengeLineageHop {
+  id: string;
+  c: ChallengeRecord | null;
+  error?: string;
+}
+
+/** Walk `definition.supersedes` (bounded, cycle-safe). */
+export function useChallengeLineage(start: ChallengeRecord | undefined) {
+  const [hops, setHops] = useState<ChallengeLineageHop[]>([]);
+  const first = start?.definition.supersedes ?? null;
+  const startId = start?.id;
+  useEffect(() => {
+    const ac = new AbortController();
+    setHops([]);
+    (async () => {
+      const seen = new Set<string>(startId ? [startId] : []);
+      const acc: ChallengeLineageHop[] = [];
+      let next: string | null = first;
+      while (next && acc.length < MAX_LINEAGE) {
+        const cur: string = next;
+        if (seen.has(cur)) {
+          acc.push({ id: cur, c: null, error: 'cycle detected' });
+          break;
+        }
+        seen.add(cur);
+        try {
+          const c = await getChallenge(cur, ac.signal);
+          acc.push({ id: cur, c });
+          next = c.definition.supersedes ?? null;
+        } catch (e) {
+          if ((e as Error).name === 'AbortError') return;
+          acc.push({ id: cur, c: null, error: (e as Error).message });
+          break;
+        }
+      }
+      if (!ac.signal.aborted) setHops(acc);
+    })();
+    return () => ac.abort();
+  }, [first, startId]);
+  return hops;
 }

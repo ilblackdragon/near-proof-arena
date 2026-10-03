@@ -1,0 +1,93 @@
+
+== build  [07:08:45] load: 19.62 16.18 12.82
+
+== challenges  [07:08:46] load: 19.62 16.18 12.82
+lean-checker image d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, checker identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e
+warning: no baseline yet (baseline_submission = null, baseline_ns = []): admissions are decided but scores are null until a superseding challenge pins baselines
+OK   chl_5ef2bc7d2068219635426e47ca46bfbb tier=Formal name=near-transfer-receipt-v1
+warning: no baseline yet (baseline_submission = null, baseline_ns = []): admissions are decided but scores are null until a superseding challenge pins baselines
+OK   chl_dc78da24004f3efe07b97f3ecb11fe29 tier=Formal name=near-transfer-receipt-v1
+warning: no baseline yet (baseline_submission = null, baseline_ns = []): admissions are decided but scores are null until a superseding challenge pins baselines
+OK   chl_b03314c363f0bc1300ba31f00d23739c tier=Experimental name=near-transfer-receipt-v1
+warning: no baseline yet (baseline_submission = null, baseline_ns = []): admissions are decided but scores are null until a superseding challenge pins baselines
+OK   chl_b2e2046f9d0c59e08660ba535a54bdd1 tier=Demo name=near-transfer-receipt-v1
+A1 chl_5ef2bc7d2068219635426e47ca46bfbb
+A2 chl_dc78da24004f3efe07b97f3ecb11fe29
+B chl_b03314c363f0bc1300ba31f00d23739c
+M chl_b2e2046f9d0c59e08660ba535a54bdd1
+
+== database arena_sp1  [07:08:46] load: 19.62 16.18 12.82
+
+== arena-server on 127.0.0.1:18581  [07:08:46] load: 19.62 16.18 12.82
+registered chl_5ef2bc7d2068219635426e47ca46bfbb formal
+registered chl_dc78da24004f3efe07b97f3ecb11fe29 formal
+registered chl_b03314c363f0bc1300ba31f00d23739c experimental
+registered chl_b2e2046f9d0c59e08660ba535a54bdd1 demo
+
+== Firecracker worker (tier cap formal), candidate VMs on host CPUs 8-15  [07:08:47] load: 19.62 16.18 12.82
+
+== submissions  [07:08:47] load: 19.62 16.18 12.82
+uploading 32806048 bytes (sha256:de3d62160848bc0557b45babfd1987c456f516d1efad1f83b25a97e828ce6a65)
+sp1-M -> sub_d2b7cc86c4c24c63b4abdae2e6cb7ab2 (challenge chl_b2e2046f9d0c59e08660ba535a54bdd1)
+uploading 719937 bytes (sha256:a91009fd2b3627aa64421fc957fc57c35b5a1e9f082ffdf8b5c482a3f87b2915)
+reexec-B -> sub_986a4d988a58433e9785b7ab8d1a2e1d (challenge chl_b03314c363f0bc1300ba31f00d23739c)
+uploading 32806049 bytes (sha256:2466c9446b02f4c33b44bf9f868a8e588063563fba59ad30b4405b2854d1265d)
+sp1-B -> sub_36cd12e5721743a0ac0edfc271e78323 (challenge chl_b03314c363f0bc1300ba31f00d23739c)
+uploading 32806048 bytes (sha256:8f48e6c0f9027d66f485eecdc59f4e1349915650a5e510c1dfc5b5b7c4844ff3)
+sp1-A2 -> sub_95839e104fd4470d89f764d41161fc81 (challenge chl_dc78da24004f3efe07b97f3ecb11fe29)
+uploading 32806049 bytes (sha256:63e52ed6c44f6726fceb8084fdd863c6e46472f7ed897f625bf1abbf332bcb72)
+sp1-A1 -> sub_7d14a2973bab4ca3a9108a08cf7e4e3f (challenge chl_5ef2bc7d2068219635426e47ca46bfbb)
+
+== waiting for decisions  [07:09:57] load: 15.02 15.36 12.77
+
+== done  [11:30:52] load: 7.69 7.73 8.23
+
+sp1-M: sub_d2b7cc86c4c24c63b4abdae2e6cb7ab2 decision=ADMITTED accepted=True tier=demo score=None
+  PKG_WELLFORMED               PASS     DEMO_ONLY                          'package TreeDigest sha256:e051705566478272a640845d53f3502cd2331cce1efad4635dfa690d47e9a5d3; 21170 files, 230870757 bytes; manifest ok'
+  BUILD_REPRODUCIBLE           PASS     DEMO_ONLY                          'two independent builds produced identical trees sha256:16dd35347e4d4f909329bcc195bc96e17f98902fb8740350189e21bf55e5ecc4; prepare 11903 ms, public dir '
+  CONFORMANCE_DIFFERENTIAL     PASS     DEMO_ONLY                          '23/23 cases conform (20 public fixtures, 3 judge-sampled)'
+  PROVER_RELIABILITY           PASS     DEMO_ONLY                          '23/23 honest proofs produced and accepted'
+  RESOURCE_LIMITS              PASS     DEMO_ONLY                          'public cases: max proof 1272573 bytes (cap 8388608), max verify 88 ms (cap 10000), peak memory 36280 MiB'
+  ADVERSARIAL_PROOFS           PASS     DEMO_ONLY                          '155 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:n'
+  BENCHMARK                    PASS     DEMO_ONLY                          'session 1 discarded (EXCESSIVE_OUTLIERS:batch-1); re-measured; session 2 discarded (EXCESSIVE_OUTLIERS:batch-256); re-measured; session 3: CACHING_SUS'
+
+reexec-B: sub_986a4d988a58433e9785b7ab8d1a2e1d decision=ADMITTED accepted=True tier=experimental score=None
+  PKG_WELLFORMED               PASS                                        'package TreeDigest sha256:1f192ddf18c09c716252a59f3396896e0332b9ee76453d67975356f8c97a3a7f; 682 files, 6595205 bytes; manifest ok'
+  BUILD_REPRODUCIBLE           PASS                                        'two independent builds produced identical trees sha256:29551ea16cf95ec71752ca2b5b693629e221213fce56d6d85c99a5a949544a98; prepare 7 ms, public dir 110 '
+  AXIOM_AUDIT                  PASS                                        'certified closure uses only allowlisted axioms; no sorry/native shortcuts'
+  ARTIFACT_BINDING             PASS                                        "verifier executable is the judge's build of the certified Lean model; its digest is pinned in the statement (binary↔model edge: trusted Lean compiler/"
+  CONFORMANCE_DIFFERENTIAL     PASS                                        '23/23 cases conform (20 public fixtures, 3 judge-sampled)'
+  PROVER_RELIABILITY           PASS                                        '23/23 honest proofs produced and accepted'
+  RESOURCE_LIMITS              PASS                                        'public cases: max proof 66512 bytes (cap 8388608), max verify 186 ms (cap 10000), peak memory 1038 MiB'
+  ADVERSARIAL_PROOFS           PASS                                        '146 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:n'
+  BENCHMARK                    PASS                                        'challenge has no frozen baseline for every class: measured, not scored; batch-1: median 25835 us, MAD 5559 us, verify median 32253 us, max proof 794 B'
+
+sp1-B: sub_36cd12e5721743a0ac0edfc271e78323 decision=REJECTED accepted=False tier=experimental score=None
+  PKG_WELLFORMED               PASS                                        'package TreeDigest sha256:64ea7adcb63781f13315c27febc6041ddd033bb6f0629145c4206988a580f9b5; 21170 files, 230870757 bytes; manifest ok'
+  BUILD_REPRODUCIBLE           PASS                                        'two independent builds produced identical trees sha256:16dd35347e4d4f909329bcc195bc96e17f98902fb8740350189e21bf55e5ecc4; prepare 11069 ms, public dir '
+  AXIOM_AUDIT                  FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  ARTIFACT_BINDING             FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+
+sp1-A1: sub_7d14a2973bab4ca3a9108a08cf7e4e3f decision=REJECTED accepted=False tier=formal score=None
+  PKG_WELLFORMED               PASS                                        'package TreeDigest sha256:906ac6eba6cce5d208a2961b58a25a526748140ad2f164f3ba7758117e2ed5d8; 21170 files, 230870757 bytes; manifest ok'
+  BUILD_REPRODUCIBLE           PASS                                        'two independent builds produced identical trees sha256:16dd35347e4d4f909329bcc195bc96e17f98902fb8740350189e21bf55e5ecc4; prepare 10921 ms, public dir '
+  ARTIFACT_BINDING             UNKNOWN                                     "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557"
+  FORMAL_SEMANTIC_SOUNDNESS    UNKNOWN                                     "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557"
+  FORMAL_SEMANTIC_COMPLETENESS UNKNOWN                                     "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557"
+  FORMAL_CRYPTO_SOUNDNESS      UNKNOWN                                     "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557"
+  FORMAL_IMPL_CONNECTION       UNKNOWN                                     "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557"
+  AXIOM_AUDIT                  UNKNOWN                                     "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557"
+  ADVERSARIAL_PROOFS           UNKNOWN                                     'could not obtain an honest proof (prove OOM-killed); see the conformance gates'
+  CONFORMANCE_DIFFERENTIAL     UNKNOWN                                     '0/23 cases conform (20 public fixtures, 3 judge-sampled)'
+  PROVER_RELIABILITY           FAIL     PROVER_FAILED                      'case "fixture/example-tierA": prove OOM-killed; 0/23 honest proofs produced and accepted'
+  RESOURCE_LIMITS              FAIL     RESOURCE_LIMIT                     'case "fixture/example-tierA": prove OOM-killed; public cases: max proof 0 bytes (cap 8388608), max verify 0 ms (cap 10000), peak memory 0 MiB'
+
+sp1-A2: sub_95839e104fd4470d89f764d41161fc81 decision=REJECTED accepted=False tier=formal score=None
+  PKG_WELLFORMED               PASS                                        'package TreeDigest sha256:814a299a8c9c5136a92a1caef112cf0d5094b21f6ac3ab1262b0704a9b36fbca; 21170 files, 230870757 bytes; manifest ok'
+  BUILD_REPRODUCIBLE           PASS                                        'two independent builds produced identical trees sha256:16dd35347e4d4f909329bcc195bc96e17f98902fb8740350189e21bf55e5ecc4; prepare 10892 ms, public dir '
+  FORMAL_SEMANTIC_SOUNDNESS    FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_SEMANTIC_COMPLETENESS FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_CRYPTO_SOUNDNESS      FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_IMPL_CONNECTION       FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  AXIOM_AUDIT                  FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  ARTIFACT_BINDING             FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '

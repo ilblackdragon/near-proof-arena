@@ -106,6 +106,7 @@ fn main() {
                     toolchain_image: cfg.toolchain_image.clone(),
                 },
                 bench_cpus: cfg.bench_cpus.clone(),
+                run_cpus: cfg.run_cpus.clone(),
                 bench_batch_cap: cfg.bench_batch_cap,
                 conformance_samples: cfg.conformance_samples,
                 mutators: MutatorRegistry::with_adversarial_lane(),
@@ -188,6 +189,7 @@ fn run_job_local(args: &[String]) {
         work_root: work.join("jobs"),
         build: BuildEnv::default(),
         bench_cpus: None,
+        run_cpus: None,
         bench_batch_cap: std::env::var("ARENA_DEV_BENCH_BATCH_CAP")
             .ok()
             .and_then(|v| v.parse().ok()),

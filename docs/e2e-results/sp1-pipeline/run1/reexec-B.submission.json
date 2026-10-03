@@ -1,0 +1,1099 @@
+{
+  "id": "sub_986a4d988a58433e9785b7ab8d1a2e1d",
+  "challenge_id": "chl_b03314c363f0bc1300ba31f00d23739c",
+  "agent": "bootstrap",
+  "candidate_name": "reexec-witness",
+  "backend_family": "reexec-witness",
+  "parent": null,
+  "tier": "experimental",
+  "package_digest": "sha256:a91009fd2b3627aa64421fc957fc57c35b5a1e9f082ffdf8b5c482a3f87b2915",
+  "stage": "DECIDED",
+  "decision": "ADMITTED",
+  "accepted": true,
+  "score_milli": null,
+  "change_class": "NO_PARENT",
+  "gates": [
+    {
+      "gate": "PKG_WELLFORMED",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "package TreeDigest sha256:1f192ddf18c09c716252a59f3396896e0332b9ee76453d67975356f8c97a3a7f; 682 files, 6595205 bytes; manifest ok",
+      "evidence": [],
+      "started_at": "2026-10-03T07:09:06.474886107Z",
+      "finished_at": "2026-10-03T07:09:06.54574429Z",
+      "reused_from": null
+    },
+    {
+      "gate": "BUILD_REPRODUCIBLE",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "two independent builds produced identical trees sha256:29551ea16cf95ec71752ca2b5b693629e221213fce56d6d85c99a5a949544a98; prepare 7 ms, public dir 110 bytes, TreeDigest sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
+      "evidence": [],
+      "started_at": "2026-10-03T07:19:26.802799093Z",
+      "finished_at": "2026-10-03T07:20:27.983182719Z",
+      "reused_from": null
+    },
+    {
+      "gate": "AXIOM_AUDIT",
+      "mandatory": false,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certified closure uses only allowlisted axioms; no sorry/native shortcuts",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:594da2fc0397c0c733cb93113ba7f868efefd7ef15aa92becea45b705d53164c",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:6fb5cc3ef6be127be9468404529a7eba9c6165bccf053083dbe8a56d07354dfb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:1ef80f2336fad26ed94c9f7c34c8bb934b49216ba37c5ccbb946ce685c6ad421",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.ProofCodec",
+          "digest": "sha256:16376c6b516764537c560b2c02f2a61796fe8cdbfbc6e64e36468828373584fd",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.Model",
+          "digest": "sha256:bc3d6995c33dd077e716a6a3d808482337b65e04136f4870bcda3454d85bf1c1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.CodecLemmas",
+          "digest": "sha256:a0f5c86c184050989b4bd539d62798a3918f32e7dd12db7f6d52958d1e7824f5",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.Roundtrip",
+          "digest": "sha256:9354747d890adf2208c8ee356426fe1173bb71ff457e073a94674493533c4100",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.Size",
+          "digest": "sha256:aeb0983d55867d5c04f36f5cd088af66b5dd664db3627a107fde8b127aa9a156",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.Obligations",
+          "digest": "sha256:8295d4ba0cfbf174d87aff1ec5650ff14fe66a842f35e09531c5e16376f89aa6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.PublicBin",
+          "digest": "sha256:5c883763d4fe43ebf075a5f8d4cbbb2e7a222cc41a72904e8f8fef7525860bb5",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.Certificate",
+          "digest": "sha256:f89344647d5fcae1b5b91df1b669016ea256bd6179f8c42d8ab02ec065e80bd3",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:595d31b1652c9665b5f566ab1cf4d1b78711e63813a9cf2c5e4b3a5cd32ab6b2",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:03b9597ea7447e05cd2cfabb38e3aabed3d9d7ba3ea700be9392b09196b18545",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:a3630149253af0df22c332136889e18ad38984aaaea7cf50cd06cfd0ed3741eb",
+          "public": true
+        },
+        {
+          "label": "formal check report",
+          "digest": "sha256:57e8a5ea58afa0b84c4936107eac3f236cb01228716d9d84e5629c5f30505145",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T08:10:04.404049514Z",
+      "finished_at": "2026-10-03T08:11:37.506966386Z",
+      "reused_from": null
+    },
+    {
+      "gate": "ARTIFACT_BINDING",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "verifier executable is the judge's build of the certified Lean model; its digest is pinned in the statement (binary↔model edge: trusted Lean compiler/runtime)",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:594da2fc0397c0c733cb93113ba7f868efefd7ef15aa92becea45b705d53164c",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:6fb5cc3ef6be127be9468404529a7eba9c6165bccf053083dbe8a56d07354dfb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:1ef80f2336fad26ed94c9f7c34c8bb934b49216ba37c5ccbb946ce685c6ad421",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.ProofCodec",
+          "digest": "sha256:16376c6b516764537c560b2c02f2a61796fe8cdbfbc6e64e36468828373584fd",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.Model",
+          "digest": "sha256:bc3d6995c33dd077e716a6a3d808482337b65e04136f4870bcda3454d85bf1c1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.CodecLemmas",
+          "digest": "sha256:a0f5c86c184050989b4bd539d62798a3918f32e7dd12db7f6d52958d1e7824f5",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.Roundtrip",
+          "digest": "sha256:9354747d890adf2208c8ee356426fe1173bb71ff457e073a94674493533c4100",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.Size",
+          "digest": "sha256:aeb0983d55867d5c04f36f5cd088af66b5dd664db3627a107fde8b127aa9a156",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.Obligations",
+          "digest": "sha256:8295d4ba0cfbf174d87aff1ec5650ff14fe66a842f35e09531c5e16376f89aa6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.PublicBin",
+          "digest": "sha256:5c883763d4fe43ebf075a5f8d4cbbb2e7a222cc41a72904e8f8fef7525860bb5",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecWitness.Certificate",
+          "digest": "sha256:f89344647d5fcae1b5b91df1b669016ea256bd6179f8c42d8ab02ec065e80bd3",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:595d31b1652c9665b5f566ab1cf4d1b78711e63813a9cf2c5e4b3a5cd32ab6b2",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:03b9597ea7447e05cd2cfabb38e3aabed3d9d7ba3ea700be9392b09196b18545",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:a3630149253af0df22c332136889e18ad38984aaaea7cf50cd06cfd0ed3741eb",
+          "public": true
+        },
+        {
+          "label": "formal check report",
+          "digest": "sha256:57e8a5ea58afa0b84c4936107eac3f236cb01228716d9d84e5629c5f30505145",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T08:10:04.404049514Z",
+      "finished_at": "2026-10-03T08:11:37.506966386Z",
+      "reused_from": null
+    },
+    {
+      "gate": "CONFORMANCE_DIFFERENTIAL",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "23/23 cases conform (20 public fixtures, 3 judge-sampled)",
+      "evidence": [
+        {
+          "label": "claim fixture/example-tierA",
+          "digest": "sha256:10143c59f0ade440b4083f683ad64874eb4c8c62f0c6676a97be35d91419df51",
+          "public": true
+        },
+        {
+          "label": "claim fixture/example-tierB",
+          "digest": "sha256:52105ad679a1c78b42179912e846e8d79978918f2a67c6ed6437caa27d8d8871",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v0",
+          "digest": "sha256:0e7e710a032e95d90649a64db8376eda17172cbf15128a6264f27a900a4f67bf",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v1",
+          "digest": "sha256:4469ac3e490d1583d3eb9785419be3f3d9e92734c7a97f519eeaf46ef7d95bcd",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v10",
+          "digest": "sha256:32ae95c80000819d74cc53c80bd0a0dc2cc17c76ea8fd9d919faa1ba9795d88b",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v11",
+          "digest": "sha256:2e5279432846e51332c70b210f9b837110ea82b710afccf7487553ef5a3a151d",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v12",
+          "digest": "sha256:759d260d4243e809cb5d4b7e362c17a10d57c610540f02b04b7c37c9cfb65016",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v13",
+          "digest": "sha256:0d8bb49db94ac01a543788fd80fe75db8d2e22b2ef5849fc540390226bcb0f92",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v14",
+          "digest": "sha256:9ea57c240ab6e1b23cc5491ddcc237c8022d7f8218e84b139f2fbee6996eeecd",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v15",
+          "digest": "sha256:4d559d143f03992240bcfd3ec12bbc98bb325144ef601736d23d6f2f57909488",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v16",
+          "digest": "sha256:357f44c54b7b9bd9e165615d63b632136068568c3a7cfbb7c4d9051721621891",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v17",
+          "digest": "sha256:d6dd1b0e78517d53421fcb81af569cb9163b55b8b6a97d0c01a0096f8dcd9602",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v2",
+          "digest": "sha256:6cf458e3eca87357185d97afaebd9580a04ed625e96f452b06d71ec59ede9afe",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v3",
+          "digest": "sha256:6edb6c3e24d5329ec08f0158f99a439fb5bf68b9f9b3dc4bea097ab75f7ef212",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v4",
+          "digest": "sha256:b02f73a48fc5f42095373bde8224f4ab55d0d16ed7b63e75af4a20c4c40d07e8",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v5",
+          "digest": "sha256:e5dc6d967b06c420fc54284d79c5f8dd64c7ba24020b458121a09f50605fed4f",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v6",
+          "digest": "sha256:e15cd189ad76fd4d6aa4d0889e046c0ea9d9783cbfcae985a6e72ca8d35cf025",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v7",
+          "digest": "sha256:f72cabd6afad45bb5caa60bbbdf4a4b954e2d60fa936e2ec463489af13c96613",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v8",
+          "digest": "sha256:030c9927b4a4cabdd01ddde48f1713e90976997e87d216e4feae681303a9272c",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v9",
+          "digest": "sha256:3cf9cc3df63476c1a7b505032caac4963053a9436366dd884b34d13332ee2d71",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T11:26:37.831571695Z",
+      "finished_at": "2026-10-03T11:27:02.561018671Z",
+      "reused_from": null
+    },
+    {
+      "gate": "PROVER_RELIABILITY",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "23/23 honest proofs produced and accepted",
+      "evidence": [
+        {
+          "label": "proof fixture/example-tierA",
+          "digest": "sha256:d4cda4af73c36183bcecc7e479d3311fcaa8ff42bfd4e592a9376e67fac40716",
+          "public": true
+        },
+        {
+          "label": "proof fixture/example-tierB",
+          "digest": "sha256:d4cda4af73c36183bcecc7e479d3311fcaa8ff42bfd4e592a9376e67fac40716",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v0",
+          "digest": "sha256:eeaf4a7bf21f2f02d07031252f1df6dc4a46f14988e20a0f2303db0cc92dd123",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v1",
+          "digest": "sha256:a24e406ad2fdf901e2c97f8151f2d6018ce1d7e49f8106e16e1bcd55e28b24e3",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v10",
+          "digest": "sha256:55223cd872ed143ea590ef9ba114bedd5ae9b32e4daf3b2a48a66b375f0d253a",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v11",
+          "digest": "sha256:2cd51c6a26688cf347a7eb081a31701053845721ef268aed83f2e39e5e47ac02",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v12",
+          "digest": "sha256:28a0e9808c6abc8fb72c2b83d26910c219639bc137cbd6f4519aaa56f6ae3a87",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v13",
+          "digest": "sha256:bcf3a7197a8c3f6917b605c229198d935eeed2c5c65893d5ca66ac2c0b3ace30",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v14",
+          "digest": "sha256:c70ae75ab79b17ad541fc523a4bb74d42771d153901f2466bd9f237e1368fb96",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v15",
+          "digest": "sha256:a9169da1d11adb2dfe62a2ab6e5cb0bea6f42c85e52f13ad2cc85368d44bf14c",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v16",
+          "digest": "sha256:261e7b8216018d453865375f04fba1c75d48c7f95179eb2a285bb258adc9f5f8",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v17",
+          "digest": "sha256:9e3b8d669b990fa77b1d6d486d790a5b3d3764b9ba494519dd29e003ba2f698b",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v2",
+          "digest": "sha256:128623677fcc1e862f81ba899622ad03776cdc441d349632be425b8116acb0ed",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v3",
+          "digest": "sha256:1b0e29d42b31cb11b99388a7c3c38d5d0df5c0eb2a09831eee335fbd22abff21",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v4",
+          "digest": "sha256:1fe89c59ed7d138b4a7c0010edb1746fea3afee33e512248ad134483dd66c99b",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v5",
+          "digest": "sha256:2879e6cf6ba27c9cdb40633ca0dad646e75d4a59c2c48a10c11cdb977b83d7e4",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v6",
+          "digest": "sha256:a9969b761679beb49bcb17635f6d6cbec68c86a767ee50aa208700e04f0cfa30",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v7",
+          "digest": "sha256:08d2f57c86ec6cad673020863d6b5c70a2e7ded4e75bc0e2c63f33c57783358c",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v8",
+          "digest": "sha256:2eefe22538270faa75a59e10a363ae1e3dc503e86a00bc38e5f024f3188a4525",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v9",
+          "digest": "sha256:23fdd76313b128556c42cc25ff9d73e740babc3fc97b0cc86bd8e430b9548dc8",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T11:26:37.831591201Z",
+      "finished_at": "2026-10-03T11:27:02.561040181Z",
+      "reused_from": null
+    },
+    {
+      "gate": "RESOURCE_LIMITS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "public cases: max proof 66512 bytes (cap 8388608), max verify 186 ms (cap 10000), peak memory 1038 MiB",
+      "evidence": [],
+      "started_at": "2026-10-03T11:26:37.831592774Z",
+      "finished_at": "2026-10-03T11:27:02.561044299Z",
+      "reused_from": null
+    },
+    {
+      "gate": "ADVERSARIAL_PROOFS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "146 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:noncanonical,adv:altered-commitment,adv:truncated-merkle-path,adv:swapped-siblings,adv:duplicated-node,adv:node-type-confusion,adv:transcript-tamper,adv:domain-separation,adv:mismatched-context,adv:recursive-substitution]: 146 rejected, 0 errored (not accepted), 0 timed out (not accepted), 0 accepted",
+      "evidence": [],
+      "started_at": "2026-10-03T11:27:02.58261375Z",
+      "finished_at": "2026-10-03T11:28:12.814706407Z",
+      "reused_from": null
+    },
+    {
+      "gate": "BENCHMARK",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "challenge has no frozen baseline for every class: measured, not scored; batch-1: median 25835 us, MAD 5559 us, verify median 32253 us, max proof 794 B; batch-16: median 29757 us, MAD 8629 us, verify median 38893 us, max proof 6741 B; batch-256: median 35346 us, MAD 4287 us, verify median 190534 us, max proof 65704 B",
+      "evidence": [
+        {
+          "label": "benchmark session",
+          "digest": "sha256:3b24a23d2968a892be3fdd0b8f0aba7c0ca4cbd05d971c68dc212b1925e475db",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T11:28:16.858876991Z",
+      "finished_at": "2026-10-03T11:28:34.951084745Z",
+      "reused_from": null
+    }
+  ],
+  "reason_codes": [],
+  "benchmark": {
+    "hardware_profile": "nearproof-local-ryzen9-9950x3d-fc8-48g",
+    "suite_revision": "near-transfer-receipt-v1-r1",
+    "classes": [
+      {
+        "class_id": "batch-1",
+        "weight_ppm": 200000,
+        "runs_ns": [
+          41462141,
+          25835076,
+          20275315
+        ],
+        "median_ns": 25835076,
+        "mad_ns": 5559761,
+        "cold_ns": 39848377,
+        "baseline_ns": 0,
+        "verify_median_ns": 32253702,
+        "proof_bytes_max": 794,
+        "peak_rss_bytes": 1088929792
+      },
+      {
+        "class_id": "batch-16",
+        "weight_ppm": 300000,
+        "runs_ns": [
+          29757258,
+          51242337,
+          21128088
+        ],
+        "median_ns": 29757258,
+        "mad_ns": 8629170,
+        "cold_ns": 15120584,
+        "baseline_ns": 0,
+        "verify_median_ns": 38893083,
+        "proof_bytes_max": 6741,
+        "peak_rss_bytes": 1088933888
+      },
+      {
+        "class_id": "batch-256",
+        "weight_ppm": 500000,
+        "runs_ns": [
+          35346565,
+          30374639,
+          39633945
+        ],
+        "median_ns": 35346565,
+        "mad_ns": 4287380,
+        "cold_ns": 34196313,
+        "baseline_ns": 0,
+        "verify_median_ns": 190534096,
+        "proof_bytes_max": 65704,
+        "peak_rss_bytes": 1089327104
+      }
+    ],
+    "score_milli": null,
+    "score_ci_milli": null,
+    "prepare_ns": 9254847,
+    "public_artifact_bytes": 110,
+    "measured_by": "arena-worker sp1-fc-worker"
+  },
+  "evidence_graph": {
+    "nodes": [
+      {
+        "id": "formal:certificate",
+        "kind": "theorem",
+        "label": "certificate ReexecWitness.certificate",
+        "digest": "sha256:b6217cdf75f1fefbe4a8c9ff7b52c6931398be588495700214ef5e4f87c9de32"
+      },
+      {
+        "id": "formal:expected_statement",
+        "kind": "theorem",
+        "label": "judge-constructed admission statement",
+        "digest": "sha256:6fb5cc3ef6be127be9468404529a7eba9c6165bccf053083dbe8a56d07354dfb"
+      },
+      {
+        "id": "tcb:lean_toolchain",
+        "kind": "tcb_component",
+        "label": "Lean leanprover/lean4:v4.34.1",
+        "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+      },
+      {
+        "id": "formal:trusted:formal-core",
+        "kind": "formal_semantics",
+        "label": "formal-core",
+        "digest": "sha256:7538df03755001e87f18b1d2ac0d61aebc5afbb6b2d11142506c2d3ff11ceae6"
+      },
+      {
+        "id": "formal:trusted:near-spec",
+        "kind": "formal_semantics",
+        "label": "near-spec",
+        "digest": "sha256:e3496227cd5c41076ea2cea1d8e71de2a25e40fd257d85bedcd44384da046c99"
+      },
+      {
+        "id": "formal:axiom:Classical.choice",
+        "kind": "assumption",
+        "label": "Classical.choice",
+        "digest": null
+      },
+      {
+        "id": "formal:axiom:Quot.sound",
+        "kind": "assumption",
+        "label": "Quot.sound",
+        "digest": null
+      },
+      {
+        "id": "formal:axiom:propext",
+        "kind": "assumption",
+        "label": "propext",
+        "digest": null
+      },
+      {
+        "id": "tcb:leanchecker",
+        "kind": "tcb_component",
+        "label": "leanchecker",
+        "digest": null
+      },
+      {
+        "id": "tcb:nanoda",
+        "kind": "tcb_component",
+        "label": "nanoda",
+        "digest": null
+      },
+      {
+        "id": "tcb:lean4lean",
+        "kind": "tcb_component",
+        "label": "lean4lean",
+        "digest": null
+      },
+      {
+        "id": "tcb:arena-audit",
+        "kind": "tcb_component",
+        "label": "arena-audit",
+        "digest": null
+      },
+      {
+        "id": "tcb:ndjson-audit",
+        "kind": "tcb_component",
+        "label": "ndjson-audit",
+        "digest": null
+      },
+      {
+        "id": "formal:verifier_model",
+        "kind": "backend_semantics",
+        "label": "candidate-defined verifier model ReexecWitness.Model.verifier (inside the admission statement)",
+        "digest": "sha256:855e3b13b08aa025d6b45a389c9491b9a3dfb7464b47cd4e48e91b34d6df2cad"
+      },
+      {
+        "id": "artifact:verifier_binary",
+        "kind": "artifact",
+        "label": "judge-built native verify (leanprover/lean4:v4.34.1+leanc)",
+        "digest": "sha256:3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94"
+      },
+      {
+        "id": "tcb:lean_compiler_runtime",
+        "kind": "tcb_component",
+        "label": "Lean compiler + runtime leanprover/lean4:v4.34.1",
+        "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+      }
+    ],
+    "edges": [
+      {
+        "from": "formal:certificate",
+        "to": "formal:expected_statement",
+        "kind": "proves",
+        "status": "checked",
+        "evidence": [
+          "sha256:3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94",
+          "sha256:594da2fc0397c0c733cb93113ba7f868efefd7ef15aa92becea45b705d53164c",
+          "sha256:6fb5cc3ef6be127be9468404529a7eba9c6165bccf053083dbe8a56d07354dfb",
+          "sha256:1ef80f2336fad26ed94c9f7c34c8bb934b49216ba37c5ccbb946ce685c6ad421",
+          "sha256:16376c6b516764537c560b2c02f2a61796fe8cdbfbc6e64e36468828373584fd",
+          "sha256:bc3d6995c33dd077e716a6a3d808482337b65e04136f4870bcda3454d85bf1c1",
+          "sha256:a0f5c86c184050989b4bd539d62798a3918f32e7dd12db7f6d52958d1e7824f5",
+          "sha256:9354747d890adf2208c8ee356426fe1173bb71ff457e073a94674493533c4100",
+          "sha256:aeb0983d55867d5c04f36f5cd088af66b5dd664db3627a107fde8b127aa9a156",
+          "sha256:8295d4ba0cfbf174d87aff1ec5650ff14fe66a842f35e09531c5e16376f89aa6",
+          "sha256:5c883763d4fe43ebf075a5f8d4cbbb2e7a222cc41a72904e8f8fef7525860bb5",
+          "sha256:f89344647d5fcae1b5b91df1b669016ea256bd6179f8c42d8ab02ec065e80bd3",
+          "sha256:595d31b1652c9665b5f566ab1cf4d1b78711e63813a9cf2c5e4b3a5cd32ab6b2",
+          "sha256:03b9597ea7447e05cd2cfabb38e3aabed3d9d7ba3ea700be9392b09196b18545",
+          "sha256:a3630149253af0df22c332136889e18ad38984aaaea7cf50cd06cfd0ed3741eb"
+        ],
+        "note": "syntactic Expr equality of the certificate type and the reference statement"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:formal-core",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:7538df03755001e87f18b1d2ac0d61aebc5afbb6b2d11142506c2d3ff11ceae6"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:near-spec",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:e3496227cd5c41076ea2cea1d8e71de2a25e40fd257d85bedcd44384da046c99"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:Classical.choice",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:Quot.sound",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:propext",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:leanchecker",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted ()"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:nanoda",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted ()"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:lean4lean",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted ()"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:arena-audit",
+        "kind": "rechecked_by",
+        "status": "missing",
+        "evidence": [],
+        "note": "completed ()"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:ndjson-audit",
+        "kind": "rechecked_by",
+        "status": "missing",
+        "evidence": [],
+        "note": "completed (2863 decls)"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:verifier_model",
+        "kind": "contains_candidate_model",
+        "status": "checked",
+        "evidence": [
+          "sha256:855e3b13b08aa025d6b45a389c9491b9a3dfb7464b47cd4e48e91b34d6df2cad"
+        ],
+        "note": "statement instantiated at the candidate model; model closure audited (axioms, no sorry/native/partial/unsafe/extern, no shadowing)"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:verifier_model",
+        "kind": "proves_obligations_about",
+        "status": "checked",
+        "evidence": [],
+        "note": "semantic/crypto/completeness obligations are kernel-checked about this model"
+      },
+      {
+        "from": "artifact:verifier_binary",
+        "to": "formal:verifier_model",
+        "kind": "implements",
+        "status": "trusted",
+        "evidence": [
+          "sha256:3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94"
+        ],
+        "note": "compiled by the judge from the model with the governed Lean compiler; NOT a checked edge"
+      },
+      {
+        "from": "artifact:verifier_binary",
+        "to": "tcb:lean_compiler_runtime",
+        "kind": "built_from",
+        "status": "trusted",
+        "evidence": [
+          "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+        ],
+        "note": "trusted-base entry"
+      }
+    ]
+  },
+  "revoked": null,
+  "created_at": "2026-10-03T07:09:04.996465Z",
+  "updated_at": "2026-10-03T11:28:34.95408Z",
+  "artifacts": [
+    {
+      "label": "build log 1",
+      "digest": "sha256:5834d96a2d05ff26da34c75f594338cdf464ea13934e524be8346a0ba14daae9"
+    },
+    {
+      "label": "build log 2",
+      "digest": "sha256:60fac42ae674ca3083a275963c1b8193632ceab9ae3fafe38e29427ed32d2fd4"
+    },
+    {
+      "label": "public_artifacts",
+      "digest": "sha256:18afdd4d7ce328dc863ad3cea9e363bf30a970fc982636471cfdaa74b74b1e5a"
+    },
+    {
+      "label": "formal check report",
+      "digest": "sha256:57e8a5ea58afa0b84c4936107eac3f236cb01228716d9d84e5629c5f30505145"
+    },
+    {
+      "label": "judge-built native verifier",
+      "digest": "sha256:3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94"
+    },
+    {
+      "label": "claim fixture/example-tierA",
+      "digest": "sha256:10143c59f0ade440b4083f683ad64874eb4c8c62f0c6676a97be35d91419df51"
+    },
+    {
+      "label": "proof fixture/example-tierA",
+      "digest": "sha256:d4cda4af73c36183bcecc7e479d3311fcaa8ff42bfd4e592a9376e67fac40716"
+    },
+    {
+      "label": "claim fixture/example-tierB",
+      "digest": "sha256:52105ad679a1c78b42179912e846e8d79978918f2a67c6ed6437caa27d8d8871"
+    },
+    {
+      "label": "claim fixture/s20261003-v0",
+      "digest": "sha256:0e7e710a032e95d90649a64db8376eda17172cbf15128a6264f27a900a4f67bf"
+    },
+    {
+      "label": "proof fixture/s20261003-v0",
+      "digest": "sha256:eeaf4a7bf21f2f02d07031252f1df6dc4a46f14988e20a0f2303db0cc92dd123"
+    },
+    {
+      "label": "claim fixture/s20261003-v1",
+      "digest": "sha256:4469ac3e490d1583d3eb9785419be3f3d9e92734c7a97f519eeaf46ef7d95bcd"
+    },
+    {
+      "label": "proof fixture/s20261003-v1",
+      "digest": "sha256:a24e406ad2fdf901e2c97f8151f2d6018ce1d7e49f8106e16e1bcd55e28b24e3"
+    },
+    {
+      "label": "claim fixture/s20261003-v10",
+      "digest": "sha256:32ae95c80000819d74cc53c80bd0a0dc2cc17c76ea8fd9d919faa1ba9795d88b"
+    },
+    {
+      "label": "proof fixture/s20261003-v10",
+      "digest": "sha256:55223cd872ed143ea590ef9ba114bedd5ae9b32e4daf3b2a48a66b375f0d253a"
+    },
+    {
+      "label": "claim fixture/s20261003-v11",
+      "digest": "sha256:2e5279432846e51332c70b210f9b837110ea82b710afccf7487553ef5a3a151d"
+    },
+    {
+      "label": "proof fixture/s20261003-v11",
+      "digest": "sha256:2cd51c6a26688cf347a7eb081a31701053845721ef268aed83f2e39e5e47ac02"
+    },
+    {
+      "label": "claim fixture/s20261003-v12",
+      "digest": "sha256:759d260d4243e809cb5d4b7e362c17a10d57c610540f02b04b7c37c9cfb65016"
+    },
+    {
+      "label": "proof fixture/s20261003-v12",
+      "digest": "sha256:28a0e9808c6abc8fb72c2b83d26910c219639bc137cbd6f4519aaa56f6ae3a87"
+    },
+    {
+      "label": "claim fixture/s20261003-v13",
+      "digest": "sha256:0d8bb49db94ac01a543788fd80fe75db8d2e22b2ef5849fc540390226bcb0f92"
+    },
+    {
+      "label": "proof fixture/s20261003-v13",
+      "digest": "sha256:bcf3a7197a8c3f6917b605c229198d935eeed2c5c65893d5ca66ac2c0b3ace30"
+    },
+    {
+      "label": "claim fixture/s20261003-v14",
+      "digest": "sha256:9ea57c240ab6e1b23cc5491ddcc237c8022d7f8218e84b139f2fbee6996eeecd"
+    },
+    {
+      "label": "proof fixture/s20261003-v14",
+      "digest": "sha256:c70ae75ab79b17ad541fc523a4bb74d42771d153901f2466bd9f237e1368fb96"
+    },
+    {
+      "label": "claim fixture/s20261003-v15",
+      "digest": "sha256:4d559d143f03992240bcfd3ec12bbc98bb325144ef601736d23d6f2f57909488"
+    },
+    {
+      "label": "proof fixture/s20261003-v15",
+      "digest": "sha256:a9169da1d11adb2dfe62a2ab6e5cb0bea6f42c85e52f13ad2cc85368d44bf14c"
+    },
+    {
+      "label": "claim fixture/s20261003-v16",
+      "digest": "sha256:357f44c54b7b9bd9e165615d63b632136068568c3a7cfbb7c4d9051721621891"
+    },
+    {
+      "label": "proof fixture/s20261003-v16",
+      "digest": "sha256:261e7b8216018d453865375f04fba1c75d48c7f95179eb2a285bb258adc9f5f8"
+    },
+    {
+      "label": "claim fixture/s20261003-v17",
+      "digest": "sha256:d6dd1b0e78517d53421fcb81af569cb9163b55b8b6a97d0c01a0096f8dcd9602"
+    },
+    {
+      "label": "proof fixture/s20261003-v17",
+      "digest": "sha256:9e3b8d669b990fa77b1d6d486d790a5b3d3764b9ba494519dd29e003ba2f698b"
+    },
+    {
+      "label": "claim fixture/s20261003-v2",
+      "digest": "sha256:6cf458e3eca87357185d97afaebd9580a04ed625e96f452b06d71ec59ede9afe"
+    },
+    {
+      "label": "proof fixture/s20261003-v2",
+      "digest": "sha256:128623677fcc1e862f81ba899622ad03776cdc441d349632be425b8116acb0ed"
+    },
+    {
+      "label": "claim fixture/s20261003-v3",
+      "digest": "sha256:6edb6c3e24d5329ec08f0158f99a439fb5bf68b9f9b3dc4bea097ab75f7ef212"
+    },
+    {
+      "label": "proof fixture/s20261003-v3",
+      "digest": "sha256:1b0e29d42b31cb11b99388a7c3c38d5d0df5c0eb2a09831eee335fbd22abff21"
+    },
+    {
+      "label": "claim fixture/s20261003-v4",
+      "digest": "sha256:b02f73a48fc5f42095373bde8224f4ab55d0d16ed7b63e75af4a20c4c40d07e8"
+    },
+    {
+      "label": "proof fixture/s20261003-v4",
+      "digest": "sha256:1fe89c59ed7d138b4a7c0010edb1746fea3afee33e512248ad134483dd66c99b"
+    },
+    {
+      "label": "claim fixture/s20261003-v5",
+      "digest": "sha256:e5dc6d967b06c420fc54284d79c5f8dd64c7ba24020b458121a09f50605fed4f"
+    },
+    {
+      "label": "proof fixture/s20261003-v5",
+      "digest": "sha256:2879e6cf6ba27c9cdb40633ca0dad646e75d4a59c2c48a10c11cdb977b83d7e4"
+    },
+    {
+      "label": "claim fixture/s20261003-v6",
+      "digest": "sha256:e15cd189ad76fd4d6aa4d0889e046c0ea9d9783cbfcae985a6e72ca8d35cf025"
+    },
+    {
+      "label": "proof fixture/s20261003-v6",
+      "digest": "sha256:a9969b761679beb49bcb17635f6d6cbec68c86a767ee50aa208700e04f0cfa30"
+    },
+    {
+      "label": "claim fixture/s20261003-v7",
+      "digest": "sha256:f72cabd6afad45bb5caa60bbbdf4a4b954e2d60fa936e2ec463489af13c96613"
+    },
+    {
+      "label": "proof fixture/s20261003-v7",
+      "digest": "sha256:08d2f57c86ec6cad673020863d6b5c70a2e7ded4e75bc0e2c63f33c57783358c"
+    },
+    {
+      "label": "claim fixture/s20261003-v8",
+      "digest": "sha256:030c9927b4a4cabdd01ddde48f1713e90976997e87d216e4feae681303a9272c"
+    },
+    {
+      "label": "proof fixture/s20261003-v8",
+      "digest": "sha256:2eefe22538270faa75a59e10a363ae1e3dc503e86a00bc38e5f024f3188a4525"
+    },
+    {
+      "label": "claim fixture/s20261003-v9",
+      "digest": "sha256:3cf9cc3df63476c1a7b505032caac4963053a9436366dd884b34d13332ee2d71"
+    },
+    {
+      "label": "proof fixture/s20261003-v9",
+      "digest": "sha256:23fdd76313b128556c42cc25ff9d73e740babc3fc97b0cc86bd8e430b9548dc8"
+    },
+    {
+      "label": "benchmark session",
+      "digest": "sha256:3b24a23d2968a892be3fdd0b8f0aba7c0ca4cbd05d971c68dc212b1925e475db"
+    }
+  ],
+  "verified_surface": {
+    "challenge_id": "chl_b03314c363f0bc1300ba31f00d23739c",
+    "verify_artifact": "sha256:3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94",
+    "prepare_artifact": "sha256:7184aaa0bba0e1aaf20ea252000d7f8a5faab6f9c843e089d841ba1226d20a74",
+    "public_artifacts": "sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
+    "formal_tree": "sha256:99253b7fa9c8dde1932994f25655fd8fe5af33311b90cfa803dfdb32578b1c72",
+    "certificate_decl": "ReexecWitness.certificate",
+    "checker_image": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e",
+    "verify_route": "native-lean",
+    "verifier_model": "ReexecWitness.Model.verifier",
+    "verifier_model_module": "ReexecWitness.Model"
+  },
+  "build": {
+    "toolchain_image": "sha256:70d2b28003f8117601772dedb7f42393e928ccfcca7356a49d675ec3f878a8a1",
+    "reproducible": true,
+    "build_ns": 27197015174
+  },
+  "assumptions": [
+    {
+      "id": "sha256-collision-resistance",
+      "lean_decl": null,
+      "description": null
+    },
+    {
+      "id": "random-oracle-fiat-shamir-sha256",
+      "lean_decl": null,
+      "description": null
+    },
+    {
+      "id": "formal:axiom:Classical.choice",
+      "lean_decl": null,
+      "description": "Classical.choice"
+    },
+    {
+      "id": "formal:axiom:Quot.sound",
+      "lean_decl": null,
+      "description": "Quot.sound"
+    },
+    {
+      "id": "formal:axiom:propext",
+      "lean_decl": null,
+      "description": "propext"
+    }
+  ],
+  "trusted_base": [
+    {
+      "id": "lean-toolchain",
+      "label": "Lean kernel (leanprover/lean4:v4.34.1)",
+      "digest": null
+    },
+    {
+      "id": "checker-image",
+      "label": "formal checker image",
+      "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+    },
+    {
+      "id": "rechecker:leanchecker",
+      "label": "rechecker leanchecker",
+      "digest": null
+    },
+    {
+      "id": "rechecker:nanoda",
+      "label": "rechecker nanoda",
+      "digest": null
+    },
+    {
+      "id": "rechecker:lean4lean",
+      "label": "rechecker lean4lean",
+      "digest": null
+    },
+    {
+      "id": "sandbox:firecracker",
+      "label": "judge sandbox backend firecracker",
+      "digest": null
+    },
+    {
+      "id": "tcb:lean_toolchain",
+      "label": "Lean leanprover/lean4:v4.34.1",
+      "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+    },
+    {
+      "id": "tcb:leanchecker",
+      "label": "leanchecker",
+      "digest": null
+    },
+    {
+      "id": "tcb:nanoda",
+      "label": "nanoda",
+      "digest": null
+    },
+    {
+      "id": "tcb:lean4lean",
+      "label": "lean4lean",
+      "digest": null
+    },
+    {
+      "id": "tcb:arena-audit",
+      "label": "arena-audit",
+      "digest": null
+    },
+    {
+      "id": "tcb:ndjson-audit",
+      "label": "ndjson-audit",
+      "digest": null
+    },
+    {
+      "id": "tcb:lean_compiler_runtime",
+      "label": "Lean compiler + runtime leanprover/lean4:v4.34.1",
+      "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+    }
+  ],
+  "logs": [
+    {
+      "name": "FORMAL_CHECK",
+      "stage": "FORMAL_CHECK",
+      "text": "checker: lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1; identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e",
+      "truncated": false
+    }
+  ],
+  "revocation_history": []
+}
