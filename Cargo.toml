@@ -69,7 +69,5 @@ proptest = "1"
 tempfile = "3"
 ureq = { version = "2.12", default-features = false, features = ["json", "tls"] }
 unicode-normalization = "0.1"
-clap = { version = "4", features = ["derive"] }
-ed25519-dalek = { version = "2", features = ["rand_core"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
 globset = "0.4"
