@@ -97,6 +97,10 @@ pub struct StoredChallenge {
     pub digest: Digest,
     pub tier: Tier,
     pub open: bool,
+    /// Id of a registered challenge whose `supersedes` names this one. A
+    /// superseded challenge is closed for new submissions; its results and
+    /// board stay attached to it (docs/PROTOCOL_UPGRADES.md §5).
+    pub superseded_by: Option<String>,
     pub registered_by: String,
     pub registered_at: String,
     /// Hex ed25519 governance key that signed the definition.
@@ -117,10 +121,11 @@ struct Row {
     open: bool,
     registered_by: String,
     created_at: OffsetDateTime,
+    superseded_by: Option<String>,
 }
 
-const COLS: &str =
-    "id, digest, definition, canonical_bytes, signature, governance_key, open, registered_by, created_at";
+const COLS: &str = "id, digest, definition, canonical_bytes, signature, governance_key, open, registered_by, created_at,
+     (SELECT s.id FROM challenges s WHERE s.definition->>'supersedes' = challenges.id ORDER BY s.created_at, s.id LIMIT 1) AS superseded_by";
 
 fn check_row(r: Row, keys: &[VerifyingKey]) -> Result<StoredChallenge, DbError> {
     let fail = |why: String| DbError::ChallengeIntegrity {
@@ -161,6 +166,7 @@ fn check_row(r: Row, keys: &[VerifyingKey]) -> Result<StoredChallenge, DbError> 
         digest,
         tier: def.tier,
         open: r.open,
+        superseded_by: r.superseded_by,
         registered_by: r.registered_by,
         registered_at: rfc3339(r.created_at),
         governance_key: hex::encode(key_arr),
@@ -203,19 +209,34 @@ pub async fn list<'e>(
 }
 
 pub enum RegisterOutcome {
-    Created,
+    Created {
+        /// The predecessor (`supersedes`) that this registration closed for
+        /// new submissions, if it was registered and open.
+        closed_predecessor: Option<String>,
+    },
     AlreadyRegistered,
 }
 
 /// Insert a verified challenge. Re-registering the identical definition is a no-op.
-pub async fn register<'e>(
-    ex: impl PgExecutor<'e>,
+///
+/// Supersession policy (docs/PROTOCOL_UPGRADES.md §2 step 6): registering a
+/// challenge whose `supersedes` names a registered challenge closes that
+/// predecessor for new submissions in the same transaction (grace period 0:
+/// governance publishes the successor only once the grace period it
+/// announced is over). A challenge registered *after* its successor (e.g. a
+/// historical one loaded later from `ARENA_CHALLENGES_DIR`) is inserted closed.
+/// Nothing else about the predecessor changes: its definition, submissions,
+/// runs, reports and board are untouched.
+pub async fn register(
+    conn: &mut sqlx::PgConnection,
     v: &VerifiedChallenge,
     registered_by: &str,
 ) -> Result<RegisterOutcome, DbError> {
     let res = sqlx::query(
-        "INSERT INTO challenges (id, digest, name, tier, definition, canonical_bytes, signature, governance_key, registered_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (id) DO NOTHING",
+        "INSERT INTO challenges (id, digest, name, tier, definition, canonical_bytes, signature, governance_key, registered_by, open)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
+                 NOT EXISTS (SELECT 1 FROM challenges s WHERE s.definition->>'supersedes' = $1))
+         ON CONFLICT (id) DO NOTHING",
     )
     .bind(&v.id)
     .bind(v.digest.as_str())
@@ -226,11 +247,35 @@ pub async fn register<'e>(
     .bind(v.signature.to_bytes().to_vec())
     .bind(v.signer.to_bytes().to_vec())
     .bind(registered_by)
-    .execute(ex)
+    .execute(&mut *conn)
     .await?;
-    Ok(if res.rows_affected() == 1 {
-        RegisterOutcome::Created
-    } else {
-        RegisterOutcome::AlreadyRegistered
-    })
+    if res.rows_affected() != 1 {
+        return Ok(RegisterOutcome::AlreadyRegistered);
+    }
+    let mut closed_predecessor = None;
+    if let Some(prev) = &v.definition.supersedes {
+        let n = sqlx::query("UPDATE challenges SET open = false WHERE id = $1 AND open")
+            .bind(prev)
+            .execute(&mut *conn)
+            .await?
+            .rows_affected();
+        if n == 1 {
+            closed_predecessor = Some(prev.clone());
+        }
+    }
+    Ok(RegisterOutcome::Created { closed_predecessor })
+}
+
+/// Id of a registered successor of `id`, if any.
+pub async fn successor_of<'e>(
+    ex: impl PgExecutor<'e>,
+    id: &str,
+) -> Result<Option<String>, DbError> {
+    let row: Option<(String,)> = sqlx::query_as(
+        "SELECT id FROM challenges WHERE definition->>'supersedes' = $1 ORDER BY created_at, id LIMIT 1",
+    )
+    .bind(id)
+    .fetch_optional(ex)
+    .await?;
+    Ok(row.map(|r| r.0))
 }

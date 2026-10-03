@@ -2879,6 +2879,11 @@
           "candidate_name": {
             "type": "string"
           },
+          "challenge_id": {
+            "description": "The challenge this result was measured under (additive, v1.3). A result is never re-labelled or moved to another challenge's board.",
+            "default": "",
+            "type": "string"
+          },
           "decision": {
             "$ref": "#/components/schemas/Decision",
             "nullable": true
@@ -2897,6 +2902,13 @@
             "format": "uint64",
             "minimum": 0.0,
             "nullable": true
+          },
+          "protocol_version": {
+            "description": "That challenge's NEAR protocol version (additive, v1.3).",
+            "default": 0,
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
           },
           "prove_median_ns": {
             "type": "integer",
@@ -2938,6 +2950,12 @@
           },
           "submitted_at": {
             "type": "string"
+          },
+          "superseded_by": {
+            "description": "Set when the challenge has been superseded: the board is historical (frozen, closed for new submissions) and scores are not comparable with the successor's (additive, v1.3).",
+            "default": null,
+            "type": "string",
+            "nullable": true
           },
           "tier": {
             "$ref": "#/components/schemas/Tier"
@@ -3613,6 +3631,11 @@
           "signature": {
             "description": "Hex signature over the JCS bytes of `definition`.",
             "type": "string"
+          },
+          "superseded_by": {
+            "description": "Id of a registered challenge whose `supersedes` names this one. A superseded challenge is closed for new submissions; its results and board stay attached to it (docs/PROTOCOL_UPGRADES.md §5).",
+            "type": "string",
+            "nullable": true
           },
           "tier": {
             "$ref": "#/components/schemas/Tier"

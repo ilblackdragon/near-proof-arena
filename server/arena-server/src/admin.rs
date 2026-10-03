@@ -54,9 +54,9 @@ async fn register_challenge(
         .check(&v)
         .map_err(|e| ApiError::new(StatusCode::BAD_REQUEST, "challenge_rejected", e))?;
     let mut tx = st.admin_db.begin().await?;
-    let outcome = challenge::register(&mut *tx, &v, &format!("admin:{}", admin.id)).await?;
-    let created = matches!(outcome, RegisterOutcome::Created);
-    if created {
+    let outcome = challenge::register(&mut tx, &v, &format!("admin:{}", admin.id)).await?;
+    let created = matches!(outcome, RegisterOutcome::Created { .. });
+    if let RegisterOutcome::Created { closed_predecessor } = &outcome {
         audit::record(
             &mut *tx,
             &Actor::admin(&admin.id),
@@ -67,6 +67,18 @@ async fn register_challenge(
             json!({"challenge_id": v.id, "digest": v.digest, "governance_key": hex::encode(v.signer.to_bytes())}),
         )
         .await?;
+        if let Some(prev) = closed_predecessor {
+            audit::record(
+                &mut *tx,
+                &Actor::admin(&admin.id),
+                "challenge.superseded",
+                None,
+                None,
+                true,
+                json!({"challenge_id": prev, "superseded_by": v.id, "open": false}),
+            )
+            .await?;
+        }
     }
     tx.commit().await?;
     let status = if created {
@@ -91,6 +103,14 @@ async fn challenge_status(
     Json(req): Json<ChallengeStatusRequest>,
 ) -> ApiResult<StatusCode> {
     let mut tx = st.admin_db.begin().await?;
+    if req.open {
+        if let Some(succ) = challenge::successor_of(&mut *tx, &id).await? {
+            return Err(ApiError::conflict(
+                "challenge_superseded",
+                format!("challenge is superseded by {succ}; it stays closed (its results remain listed on its own board)"),
+            ));
+        }
+    }
     let n = sqlx::query("UPDATE challenges SET open = $2 WHERE id = $1")
         .bind(&id)
         .bind(req.open)

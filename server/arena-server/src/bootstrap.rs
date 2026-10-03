@@ -164,12 +164,13 @@ pub async fn challenges_from_dir(
         })();
         match res {
             Ok(v) => {
-                let out = challenge::register(admin_db, &v, "challenges-dir")
+                let mut tx = admin_db.begin().await.map_err(|e| e.to_string())?;
+                let out = challenge::register(&mut tx, &v, "challenges-dir")
                     .await
                     .map_err(|e| e.to_string())?;
-                if matches!(out, RegisterOutcome::Created) {
+                if let RegisterOutcome::Created { closed_predecessor } = &out {
                     audit::record(
-                        admin_db,
+                        &mut *tx,
                         &Actor::system(),
                         "challenge.registered",
                         None,
@@ -179,7 +180,21 @@ pub async fn challenges_from_dir(
                     )
                     .await
                     .map_err(|e| e.to_string())?;
+                    if let Some(prev) = closed_predecessor {
+                        audit::record(
+                            &mut *tx,
+                            &Actor::system(),
+                            "challenge.superseded",
+                            None,
+                            None,
+                            true,
+                            json!({"challenge_id": prev, "superseded_by": v.id, "open": false}),
+                        )
+                        .await
+                        .map_err(|e| e.to_string())?;
+                    }
                 }
+                tx.commit().await.map_err(|e| e.to_string())?;
                 ok += 1;
             }
             Err(e) => {

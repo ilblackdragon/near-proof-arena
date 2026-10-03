@@ -287,6 +287,18 @@ pub struct LeaderboardEntry {
     /// Half-width of the score's 95% interval, milli units (additive, v1.1).
     #[serde(default)]
     pub score_ci_milli: Option<u64>,
+    /// The challenge this result was measured under (additive, v1.3). A
+    /// result is never re-labelled or moved to another challenge's board.
+    #[serde(default)]
+    pub challenge_id: String,
+    /// That challenge's NEAR protocol version (additive, v1.3).
+    #[serde(default)]
+    pub protocol_version: u32,
+    /// Set when the challenge has been superseded: the board is historical
+    /// (frozen, closed for new submissions) and scores are not comparable
+    /// with the successor's (additive, v1.3).
+    #[serde(default)]
+    pub superseded_by: Option<String>,
 }
 
 /// Pure decision function shared by server and tests.
