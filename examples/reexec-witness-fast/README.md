@@ -41,3 +41,24 @@ and 140 out-of-domain refused).
 
 See the parent's README for the proof system, formal certificate and
 limitations.
+
+## Local measurements (informational; the judge measures)
+
+These numbers come from `examples/bench/measure_provers.py` on the challenge's
+workload classes (`near-arena-oracle gen --receipts {1,16,256}`, seed 9001,
+8 requests per batch, matching `batch_size`). Each request runs in a fresh
+process. The provers were interleaved over 31 timed rounds. The host was a
+shared 32-core machine at load average 40–55, so the medians are noisy.
+
+| class (weight) | reference median / min batch | fast median / min batch | spawn floor (`/bin/true`) |
+|---|---|---|---|
+| batch-1 (20 %) | 3.53 / 2.25 ms | 2.26 / 1.38 ms | 1.97 / 1.23 ms |
+| batch-16 (30 %) | 3.49 / 2.46 ms | 2.19 / 1.57 ms | 1.77 / 1.25 ms |
+| batch-256 (50 %) | 4.44 / 4.17 ms | 3.68 / 3.30 ms | 1.39 / 1.30 ms |
+
+Plugging the medians into the challenge's score formula, with the reference
+as the baseline (100), gives about **138** for this child. In-process
+`engine::prove` (`source/examples/inproc.rs`, minimum over 300 repetitions)
+takes 3.4 / 21.6 / 198.5 µs per request for the reference and
+3.2 / 20.8 / 159.7 µs for the child. Most of the gain on small batches comes
+from avoiding the dynamic loader at process start.
