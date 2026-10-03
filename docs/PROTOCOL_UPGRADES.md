@@ -45,7 +45,9 @@ new nearcore release / protocol version
    (rejects protocol_version downgrade and non-increasing created_at)
 6. announce; old challenge enters "superseded" state: still verifiable,
    still listed with its rankings, closed for new submissions after a
-   published grace period (server lane).
+   published grace period (server lane). **[not implemented]** the server
+   ignores `supersedes` today. An admin closes the old challenge manually
+   with `POST /v1/admin/challenges/{id}/status` (`open = false`).
 7. candidates re-submit against the new challenge. Formal results are NOT
    carried over automatically — the judge's PROVER_ONLY cache key includes
    the challenge id, so every obligation is re-run.
@@ -70,8 +72,10 @@ therefore requires revalidation.
 * The claim encoding (`near-arena-claim-v1`) must include the protocol
   version and chain id in the claim, so a proof for one version can never
   be presented as a proof for another **[spec lane to confirm]**.
-* The server refuses to load a challenge whose id/signature fails, and
-  refuses submissions to superseded challenges after the grace period.
+* The server refuses to load a challenge whose id/signature fails
+  (implemented, and re-verified on every read). It refuses submissions to
+  closed challenges (`open = false`); automatic closing of superseded
+  challenges after the grace period is **[not implemented]**.
 * The upgrade monitor treats unparseable protocol facts, missing root
   crates, and git/cargo failures as REVALIDATION_REQUIRED (exit 2/3).
 
@@ -98,7 +102,8 @@ that the chunk it is checking was produced under `v`:
 ## 5. Historical rankings
 
 * Leaderboards are per challenge id. A superseded challenge's board is
-  frozen, not deleted, and shows a "superseded by chl_…" banner.
+  frozen, not deleted, and shows a "superseded by chl_…" banner
+  (**[not implemented]**: neither the server nor the web links successors yet).
 * Cross-version comparisons are not computed: different relations,
   parameters and workloads make scores incomparable.
 * Revocations (SECURITY_POLICY §5) can still be applied to historical

@@ -379,9 +379,11 @@ SplitMix64 streams, median/MAD, `derive_seed`, score (incl. every error code),
 bootstrap, schedule, outlier and drift-ppm vectors. All u64 values are JSON
 integers; f64 values are strings (shortest round-trip) and are informative
 (rel. tolerance 1e-12); **every integer output MUST match exactly**.
-Regenerate with `python -m arena_bench gen-testvectors`; CI checks freshness
-(`--check`). `runners/measure` MUST pass the same file (integrator wires the
-cross-language test).
+Regenerate with `python -m arena_bench gen-testvectors` (run from
+`benchmarks/`); `--check` verifies freshness. **Not yet wired into CI**: no
+workflow job or Makefile target runs `gen-testvectors --check` or
+`pytest benchmarks/tests` (both pass locally). `runners/measure` passes the same
+file (`runners/measure/tests/testvectors.rs`, run by `make test-rust`).
 
 ---
 
