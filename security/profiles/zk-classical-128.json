@@ -1,0 +1,16 @@
+{
+  "id": "zk-classical-128",
+  "privacy": "zero_knowledge",
+  "adversary": "classical",
+  "target_bits": 128,
+  "model": "random_oracle",
+  "setup_model": "transparent",
+  "allowed_assumptions": [
+    "sha256-collision-resistance",
+    "random-oracle-fiat-shamir-sha256"
+  ],
+  "max_prover_queries_log2": 40,
+  "max_hash_queries_log2": 64,
+  "max_aggregation_depth": 8,
+  "deployment_proofs_log2": 40
+}
