@@ -93,29 +93,53 @@ pub fn log_h0(mats: &[Mat]) -> usize {
     mats.iter().map(|m| m.log_height).max().expect("no matrices")
 }
 
-pub fn commit(mats: &[Mat]) -> Tree {
-    let l0 = log_h0(mats);
-    let at = |k: usize| -> Vec<&Mat> { mats.iter().filter(|m| m.log_height + k == l0).collect() };
-    let m0 = at(0);
-    let lvl0: Vec<Digest64> = (0..1usize << l0)
-        .into_par_iter()
-        .map_init(Vec::new, |buf, j| leaf_hash(&m0, j, buf))
-        .collect();
+/// `WH(LEAF, rows_k(j))` for every `j`, for matrices of one height.
+pub fn leaf_hashes(mats: &[&Mat]) -> Vec<Digest64> {
+    let lh = mats[0].log_height;
+    (0..1usize << lh).into_par_iter().map_init(Vec::new, |buf, j| leaf_hash(mats, j, buf)).collect()
+}
+
+/// Hash one leaf from row slices (streaming provers).
+pub fn hash_rows(rows: &[&[F]], buf: &mut Vec<u8>) -> Digest64 {
+    buf.clear();
+    for r in rows {
+        put_row(buf, r);
+    }
+    wh(TAG_LEAF, &[buf])
+}
+
+/// Build the tree from per-level leaf hashes: `leaves[k]` is `Some` (of
+/// length `2^{l0-k}`) iff some matrix has height `2^{l0-k}`; `leaves[0]`
+/// must be `Some`.
+pub fn commit_leaves(l0: usize, mut leaves: Vec<Option<Vec<Digest64>>>) -> Tree {
+    assert_eq!(leaves.len(), l0 + 1);
+    let lvl0 = leaves[0].take().expect("level 0 leaves");
+    assert_eq!(lvl0.len(), 1 << l0);
     let mut levels = vec![lvl0];
     for k in 1..=l0 {
-        let mk = at(k);
+        let x = leaves[k].take();
+        if let Some(x) = &x {
+            assert_eq!(x.len(), 1 << (l0 - k));
+        }
         let prev = &levels[k - 1];
-        let has = !mk.is_empty();
         let lvl: Vec<Digest64> = (0..1usize << (l0 - k))
             .into_par_iter()
-            .map_init(Vec::new, |buf, j| {
-                let x = if has { Some(leaf_hash(&mk, j, buf)) } else { None };
-                node_hash(k, &prev[2 * j], &prev[2 * j + 1], x.as_ref())
-            })
+            .map(|j| node_hash(k, &prev[2 * j], &prev[2 * j + 1], x.as_ref().map(|x| &x[j])))
             .collect();
         levels.push(lvl);
     }
     Tree { log_h0: l0, levels }
+}
+
+pub fn commit(mats: &[Mat]) -> Tree {
+    let l0 = log_h0(mats);
+    let leaves = (0..=l0)
+        .map(|k| {
+            let mk: Vec<&Mat> = mats.iter().filter(|m| m.log_height + k == l0).collect();
+            if mk.is_empty() { None } else { Some(leaf_hashes(&mk)) }
+        })
+        .collect();
+    commit_leaves(l0, leaves)
 }
 
 /// The sorted, deduplicated index sets `S_0..=S_L`.
@@ -153,6 +177,13 @@ pub fn open(mats: &[Mat], tree: &Tree, idx: &[usize]) -> Opening {
             r
         })
         .collect();
+    Opening { rows, siblings: siblings(tree, idx) }
+}
+
+/// The sibling stream of the multiproof for `idx`.
+pub fn siblings(tree: &Tree, idx: &[usize]) -> Vec<Digest64> {
+    let l0 = tree.log_h0;
+    let sets = index_sets(l0, idx);
     let mut siblings = vec![];
     for k in 1..=l0 {
         let below = &sets[k - 1];
@@ -164,7 +195,7 @@ pub fn open(mats: &[Mat], tree: &Tree, idx: &[usize]) -> Opening {
             }
         }
     }
-    Opening { rows, siblings }
+    siblings
 }
 
 /// Shape of a commitment as known to the verifier: `(width, log_height)` per
