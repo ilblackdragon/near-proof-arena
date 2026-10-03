@@ -248,10 +248,12 @@ def check_case(client, name, d, expect, challenge_id, timeout_s):
     if missing:
         return False, [f"{name}: missing reason codes {missing}; saw {sorted(all_reasons)}"]
 
-    # --- leaderboard must not list this submission ---
+    # --- leaderboard must not RANK this submission (the server lists every
+    # submission, unranked ones with rank null) ---
     lb, lb_raw = client.leaderboard(challenge_id)
-    if lb_raw and sid.encode() in lb_raw:
-        return False, [f"{name}: hostile submission appears on the leaderboard!"]
+    for e in (lb or []):
+        if isinstance(e, dict) and e.get("submission_id") == sid and e.get("rank") is not None:
+            return False, [f"{name}: hostile submission is RANKED on the leaderboard!"]
 
     # --- UI/log injection: response must be sanitized ---
     if expect["attack_family"] == "ui-log-injection":

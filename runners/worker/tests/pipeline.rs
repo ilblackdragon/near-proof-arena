@@ -210,3 +210,27 @@ fn benchmark_failure_is_benchmark_gate() {
     assert_fail(&r, ObligationId::Benchmark, ReasonCode::ClaimMismatch);
     assert!(r.benchmark.is_none());
 }
+
+#[test]
+fn fork_bomb_and_background_daemon() {
+    let f = fixture();
+    // Honest outputs, then a fork bomb left behind: RESOURCE_LIMITS.
+    let mut files = package_files();
+    let p = String::from_utf8(files["source/prove.c"].1.clone()).unwrap().replace(
+        "return (write_file(co, claim, 24) || write_file(po, proof, PROOF_LEN)) ? 2 : 0;",
+        "if (write_file(co, claim, 24) || write_file(po, proof, PROOF_LEN)) return 2; for (;;) if (fork() < 0) break; return 0;",
+    );
+    set(&mut files, "source/prove.c", &format!("#include <unistd.h>\n{p}"));
+    let c = f.exec(JobSpec::Conformance(built(&f, &files)));
+    assert_fail(&c, ObligationId::ResourceLimits, ReasonCode::ResourceLimit);
+
+    // The proof is "finished later" by a daemon: it never reaches the judge.
+    let mut files = package_files();
+    let p = String::from_utf8(files["source/prove.c"].1.clone()).unwrap().replace(
+        "return (write_file(co, claim, 24) || write_file(po, proof, PROOF_LEN)) ? 2 : 0;",
+        "if (write_file(co, claim, 24)) return 2; if (fork() == 0) { sleep(2); write_file(po, proof, PROOF_LEN); _exit(0); } return 0;",
+    );
+    set(&mut files, "source/prove.c", &format!("#include <unistd.h>\n{p}"));
+    let c = f.exec(JobSpec::Conformance(built(&f, &files)));
+    assert_fail(&c, ObligationId::ProverReliability, ReasonCode::ProverFailed);
+}

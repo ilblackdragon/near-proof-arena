@@ -58,6 +58,9 @@ pub fn run_prepare(r: &mut JobRun<'_>, bundle: &Path, entry: &EntryPoints, limit
     spec.out_dir = Some(out_dir.clone());
     spec.max_output_bytes = limits.max_public_artifact_bytes;
     let o = r.run(&spec)?;
+    if o.pids_limit_hit {
+        return Ok(Err(fail(ObligationId::ResourceLimits, ReasonCode::ResourceLimit, format!("prepare hit the process limit ({})", describe_exit(&o)))));
+    }
     if !o.exit.success() {
         let reason = failure_reason(&o);
         let gate = if reason == ReasonCode::ResourceLimit || reason == ReasonCode::Timeout { ObligationId::ResourceLimits } else { ObligationId::ProverReliability };
@@ -137,6 +140,11 @@ pub fn run_prove(r: &mut JobRun<'_>, env: &EntryEnv<'_>, case: &Case) -> Result<
     spec.out_dir = Some(out_dir.clone());
     spec.max_output_bytes = limits.max_claim_bytes.saturating_add(limits.max_proof_bytes).saturating_add(1);
     let o = r.run(&spec)?;
+    // Hitting a resource cap is a RESOURCE_LIMITS fact even if the entry
+    // point itself exited 0 (e.g. a fork bomb left behind).
+    if o.pids_limit_hit {
+        return Ok(Err(fail(ResourceLimits, ReasonCode::ResourceLimit, format!("prove hit the process limit ({})", describe_exit(&o)))));
+    }
     if !o.exit.success() {
         let reason = failure_reason(&o);
         let gate = if reason == ReasonCode::ResourceLimit { ResourceLimits } else { ProverReliability };
