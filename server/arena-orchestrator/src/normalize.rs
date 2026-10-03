@@ -31,6 +31,8 @@ pub struct Normalized {
     pub artifacts: Vec<EvidenceRef>,
     pub execution: ExecutionInfo,
     pub log_excerpt: Option<String>,
+    /// FORMAL_CHECK only: judge-built native verifier (content digest).
+    pub native_verifier: Option<arena_types::Digest>,
     /// Every owned gate was reported by the worker with a definite status
     /// (no synthesized or UNKNOWN results): eligible for the formal cache.
     pub definite: bool,
@@ -289,6 +291,9 @@ pub fn check_result(
         },
         JobKind::FormalCheck | JobKind::Conformance | JobKind::Adversarial => {}
     }
+    if kind != JobKind::FormalCheck && r.native_verifier.is_some() {
+        return Err(format!("{kind} job may not report a native verifier"));
+    }
     if kind != JobKind::Benchmark && r.benchmark.is_some() {
         return Err(format!("{kind} job may not report benchmark measurements"));
     }
@@ -306,6 +311,7 @@ pub fn check_result(
         artifacts,
         execution,
         log_excerpt,
+        native_verifier: r.native_verifier.clone(),
         definite,
     })
 }

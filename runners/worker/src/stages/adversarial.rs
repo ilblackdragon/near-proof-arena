@@ -24,11 +24,6 @@ fn public_label(l: &str) -> String {
 pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut g = Gate::start(ObligationId::AdversarialProofs);
     let mut out = StageOut { used_sandbox: true, ..Default::default() };
-    if let Some(why) = common::unsupported_verify_route(&j.manifest.entry) {
-        g.note(why);
-        out.gates.push(g.finish(GateStatus::Unknown, true));
-        return Ok(out);
-    }
     let limits = RunLimits::from_challenge(&j.challenge);
     let parts_owned = seed_parts(&j.ctx);
     let parts: Vec<&str> = parts_owned.iter().map(|s| s.as_str()).collect();
@@ -54,7 +49,15 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     }
     let bundle = common::fetch_bundle(r, &j.build, &j.manifest.entry)?;
     let public_dir = common::fetch_public(r, &j.build, &limits)?;
-    let env = common::EntryEnv { bundle: &bundle, entry: &j.manifest.entry, public_dir: &public_dir, limits: &limits, cpu_set: None };
+    let verifier = match common::verifier_for(r, j, &bundle, true)? {
+        Ok(v) => v,
+        Err(why) => {
+            g.note(why);
+            out.gates.push(g.finish(GateStatus::Unknown, true));
+            return Ok(out);
+        }
+    };
+    let env = common::EntryEnv { bundle: &bundle, entry: &j.manifest.entry, public_dir: &public_dir, limits: &limits, cpu_set: None, verifier: &verifier };
     let mut honest = vec![];
     for case in &picked {
         match common::run_prove(r, &env, case)? {
@@ -72,6 +75,11 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         let (c, p) = write_pair(r, &h.claim, &h.proof)?;
         for round in 0..2 {
             let (v, o) = common::run_verify(r, &env, &c, &p)?;
+            if v == Verdict::BindingMismatch {
+                g.fail(ReasonCode::ArtifactBindingFailed, "npai-verify: the verifier bytecode is not the certified image (digest mismatch)");
+                out.gates.push(g.finish(GateStatus::Unknown, true));
+                return Ok(out);
+            }
             if v != Verdict::Accept {
                 if round == 0 {
                     g.note(format!("verify does not accept honest proof #{i} ({}); hostile inputs are meaningless (see conformance)", crate::executor::describe_exit(&o)));
@@ -96,7 +104,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         let step = hostile.len() as f64 / MAX_HOSTILE as f64;
         hostile = (0..MAX_HOSTILE).map(|i| hostile[(i as f64 * step) as usize].clone()).collect();
     }
-    let (mut rejected, mut errored, mut timeouts) = (0usize, 0usize, 0usize);
+    let (mut rejected, mut errored, mut timeouts, mut binding) = (0usize, 0usize, 0usize, 0usize);
     let mut accepted: Vec<String> = vec![];
     for h in &hostile {
         let (c, p) = write_pair(r, &h.claim, &h.proof)?;
@@ -106,6 +114,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             Verdict::Reject => rejected += 1,
             Verdict::Error => errored += 1,
             Verdict::TimedOut => timeouts += 1,
+            Verdict::BindingMismatch => binding += 1,
         }
     }
     let n = hostile.len();
@@ -113,6 +122,12 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         g.note("mutators produced no hostile inputs");
         out.gates.push(g.finish(GateStatus::Unknown, true));
         return Ok(out);
+    }
+    if binding > 0 {
+        g.fail(ReasonCode::ArtifactBindingFailed, format!("npai-verify reported a digest mismatch on {binding} runs"));
+    }
+    if r.shadow != (0, 0) {
+        g.note(format!("npai shadow (Lean reference): {} agreed, {} skipped (large/slow)", r.shadow.0, r.shadow.1));
     }
     if !accepted.is_empty() {
         accepted.sort();
@@ -125,7 +140,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     g.note(format!(
         "{n} hostile inputs from [{}]: {rejected} rejected, {errored} errored (not accepted), {timeouts} timed out (not accepted), {} accepted",
         r.ctx.mutators.names().join(","),
-        n - rejected - errored - timeouts
+        n - rejected - errored - timeouts - binding
     ));
     out.gates.push(g.finish(GateStatus::Pass, true));
     Ok(out)

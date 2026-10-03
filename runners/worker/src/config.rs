@@ -56,6 +56,10 @@ pub struct WorkerConfig {
     pub formal_configs_dir: Option<PathBuf>,
     /// Installed lean-checker images (firecracker).
     pub lean_checker_images: Option<PathBuf>,
+    /// Judge `npai-verify` (default: next to the worker binary, if present).
+    pub npai_verify: Option<PathBuf>,
+    /// Lean reference interpreter for npai shadow checks.
+    pub interp_ref: Option<PathBuf>,
     pub lease_seconds: u32,
 }
 
@@ -223,6 +227,11 @@ impl WorkerConfig {
             formal_repo: s.get("ARENA_FORMAL_REPO").map(PathBuf::from),
             formal_configs_dir: s.get("ARENA_FORMAL_CONFIGS_DIR").map(PathBuf::from),
             lean_checker_images: s.get("ARENA_LEAN_CHECKER_IMAGES").map(PathBuf::from),
+            npai_verify: s.get("ARENA_NPAI_VERIFY").map(PathBuf::from).or_else(|| {
+                let p = std::env::current_exe().ok()?.with_file_name("npai-verify");
+                p.is_file().then_some(p)
+            }),
+            interp_ref: s.get("ARENA_INTERP_REF").map(PathBuf::from),
             lease_seconds: match s.get("ARENA_LEASE_SECONDS") {
                 None => 300,
                 Some(v) => v.parse().map_err(|e: std::num::ParseIntError| ConfigError::Invalid("ARENA_LEASE_SECONDS", e.to_string()))?,

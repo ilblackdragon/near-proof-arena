@@ -1695,6 +1695,12 @@
             "description": "Tree digest of the candidate's `formal/` Lean project.",
             "$ref": "#/components/schemas/Digest"
           },
+          "native_verifier": {
+            "description": "`verify_route = \"native-lean\"`: content-store digest of the judge-built native verifier (reported by FORMAL_CHECK, set by the control plane); later stages run this binary, never the candidate's `verify`.",
+            "default": null,
+            "$ref": "#/components/schemas/Digest",
+            "nullable": true
+          },
           "prepare": {
             "$ref": "#/components/schemas/Digest"
           },
@@ -2746,6 +2752,12 @@
           "manifest": {
             "description": "Required for a passing `VALIDATE` job: the parsed, validated manifest.",
             "$ref": "#/components/schemas/CandidateManifest",
+            "nullable": true
+          },
+          "native_verifier": {
+            "description": "FORMAL_CHECK, `native-lean` route: content-store digest of the judge-built native verifier (uploaded before `complete`).",
+            "default": null,
+            "$ref": "#/components/schemas/Digest",
             "nullable": true
           }
         }

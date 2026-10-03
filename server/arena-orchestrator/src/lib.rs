@@ -940,6 +940,7 @@ impl Orchestrator {
             build: n.build.clone(),
             execution: n.execution.clone(),
             log_excerpt: n.log_excerpt.clone(),
+            native_verifier: n.native_verifier.clone(),
         };
         sqlx::query(
             "UPDATE jobs SET state = 'done', result = $2, execution = $3, finished_at = now(), updated_at = now() WHERE id = $1",
@@ -1051,6 +1052,12 @@ impl Orchestrator {
                 ctx.run.build_outputs = n.build.clone();
             }
             JobKind::FormalCheck => {
+                // native-lean route: later stages run the judge-built verifier.
+                if let (Some(d), Some(b)) = (&n.native_verifier, ctx.run.build_outputs.as_mut()) {
+                    if !n.gates.iter().any(|g| g.status == GateStatus::Fail) {
+                        b.native_verifier = Some(d.clone());
+                    }
+                }
                 if n.definite {
                     if let (Some(vs), Some(_)) =
                         (&ctx.run.verified_surface, &ctx.run.formal_cache_key)

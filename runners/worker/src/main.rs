@@ -91,6 +91,8 @@ fn main() {
                 mutators: MutatorRegistry::with_adversarial_lane(),
                 oracles: oracles(&cfg.fixtures_dirs),
                 formal: formal(cfg.formal_repo.clone(), cfg.formal_configs_dir.clone(), cfg.lean_checker_images.clone()),
+                npai_verify: cfg.npai_verify.clone(),
+                interp_ref: cfg.interp_ref.clone(),
                 keep_workdirs: cfg.keep_workdirs,
             };
             let exec = StageExecutor::new(ctx);
@@ -156,6 +158,8 @@ fn run_job_local(args: &[String]) {
             std::env::var_os("ARENA_FORMAL_CONFIGS_DIR").map(PathBuf::from),
             std::env::var_os("ARENA_LEAN_CHECKER_IMAGES").map(PathBuf::from),
         ),
+        npai_verify: std::env::var_os("ARENA_NPAI_VERIFY").map(PathBuf::from),
+        interp_ref: std::env::var_os("ARENA_INTERP_REF").map(PathBuf::from),
         keep_workdirs: false,
     };
     match StageExecutor::new(ctx).execute(&spec, "local", &AtomicBool::new(false)) {

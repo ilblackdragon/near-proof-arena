@@ -13,7 +13,7 @@ use arena_types::Digest;
 use sha2::{Digest as _, Sha256};
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufReader, Read, Write};
-use std::os::unix::fs::OpenOptionsExt;
+use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
@@ -428,7 +428,13 @@ impl FirecrackerSandbox {
                 .read(true)
                 .custom_flags(libc::O_NOFOLLOW)
                 .open(&m.host_path)?;
-            let mut out = File::create(wrap.join(&name))?;
+            // keep the executable bit (judge tools mounted as single files)
+            let exec = md.permissions().mode() & 0o111 != 0;
+            let mut out = OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .mode(if exec { 0o755 } else { 0o644 })
+                .open(wrap.join(&name))?;
             io::copy(&mut inp, &mut out)?;
             src_dir = wrap.clone();
             kind = MountKind::File { name };

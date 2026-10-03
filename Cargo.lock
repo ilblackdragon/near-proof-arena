@@ -360,6 +360,7 @@ dependencies = [
  "arena-formal-checker",
  "arena-jobs",
  "arena-measure",
+ "arena-npai",
  "arena-sandbox",
  "arena-types",
  "libc",

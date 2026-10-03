@@ -5,7 +5,7 @@ use crate::jobs::{BuildOutputs, RunLimits};
 use crate::oracle::Case;
 use arena_sandbox::{ExitStatus, SandboxOutcome};
 use arena_types::candidate::EntrySection as EntryPoints;
-use arena_types::{ObligationId, ReasonCode};
+use arena_types::{Digest, ObligationId, ReasonCode};
 use std::path::{Path, PathBuf};
 
 /// Fetch and safely unpack the build bundle (bound to `build.bundle` by
@@ -13,11 +13,20 @@ use std::path::{Path, PathBuf};
 pub fn fetch_bundle(r: &mut JobRun<'_>, build: &BuildOutputs, entry: &EntryPoints) -> Result<PathBuf, ExecError> {
     let archive = build.bundle_archive.as_ref().ok_or_else(|| ExecError::Infra("build outputs carry no bundle_archive".into()))?;
     let x = r.fetch_tree(archive, &build.bundle, MAX_BUNDLE_BYTES, "bundle")?;
-    for (e, want) in [(&entry.prepare, &build.prepare), (&entry.prove, &build.prove), (&entry.verify, &build.verify)] {
+    for (e, want) in [(&entry.prepare, &build.prepare), (&entry.prove, &build.prove)] {
         match x.tree.files.get(e.as_str()) {
             Some(f) if f.mode == arena_archive::FileMode::Exec && &f.digest == want => {}
             _ => return Err(ExecError::Infra(format!("bundle lacks executable {e:?} with the built digest {want}"))),
         }
+    }
+    // The verifier artifact: the npai-v1 bytecode, else the built `verify`.
+    let (vpath, needs_exec) = match (&entry.verify_route, &entry.verifier_bytecode) {
+        (Some(arena_types::candidate::VerifyRoute::NpaiV1), Some(bc)) => (bc, false),
+        _ => (&entry.verify, true),
+    };
+    match x.tree.files.get(vpath.as_str()) {
+        Some(f) if (!needs_exec || f.mode == arena_archive::FileMode::Exec) && f.digest == build.verify => {}
+        _ => return Err(ExecError::Infra(format!("bundle lacks the verifier artifact {vpath:?} with the built digest {}", build.verify))),
     }
     Ok(x.root)
 }
@@ -109,6 +118,71 @@ pub struct EntryEnv<'p> {
     pub public_dir: &'p std::path::Path,
     pub limits: &'p RunLimits,
     pub cpu_set: Option<Vec<u32>>,
+    pub verifier: &'p Verifier,
+}
+
+/// What `verify` actually executes (selected by `entry.verify_route`).
+#[derive(Clone, Debug)]
+pub enum Verifier {
+    /// `native` route: the candidate's built `verify` (bundle path).
+    Candidate,
+    /// `npai-v1`: the JUDGE's `npai-verify` on the judge-built bytecode, at
+    /// the challenge's `verify_fuel`, bound to the certified digest.
+    Npai {
+        tool: PathBuf,
+        image: PathBuf,
+        fuel: u64,
+        digest_hex: String,
+        /// Lean reference (`arena-interp-ref`) run as a shadow on small inputs.
+        shadow: Option<PathBuf>,
+    },
+    /// `native-lean`: the judge-built native verifier from FORMAL_CHECK.
+    NativeLean { binary: PathBuf },
+}
+
+/// Shadow inputs above this size (claim + proof + public) are not re-run on
+/// the (much slower) Lean reference.
+pub const SHADOW_MAX_INPUT_BYTES: u64 = 64 * 1024;
+const SHADOW_TIMEOUT_MS: u64 = 30_000;
+
+/// Pick the verifier for this run. `Ok(Err(why))` = this worker cannot
+/// serve the route (gates stay UNKNOWN).
+pub fn verifier_for(
+    r: &mut JobRun<'_>,
+    j: &crate::jobs::ExecJob,
+    bundle: &Path,
+    shadow: bool,
+) -> Result<Result<Verifier, String>, ExecError> {
+    use arena_types::candidate::VerifyRoute;
+    Ok(match j.manifest.entry.verify_route {
+        None | Some(VerifyRoute::Native) => Ok(Verifier::Candidate),
+        Some(VerifyRoute::NpaiV1) => {
+            let Some(tool) = r.ctx.npai_verify.clone() else {
+                return Ok(Err("verify_route npai-v1: this worker has no judge npai-verify (ARENA_NPAI_VERIFY)".into()));
+            };
+            let Some(fp) = &j.challenge.formal_params else {
+                return Ok(Err("verify_route npai-v1: the challenge has no formal_params.verify_fuel".into()));
+            };
+            let bc = j.manifest.entry.verifier_bytecode.clone().unwrap_or_default();
+            Ok(Verifier::Npai {
+                tool,
+                image: bundle.join(bc),
+                fuel: fp.verify_fuel,
+                digest_hex: j.build.verify.hex().to_string(),
+                shadow: if shadow { r.ctx.interp_ref.clone() } else { None },
+            })
+        }
+        Some(VerifyRoute::NativeLean) => {
+            let Some(d) = &j.build.native_verifier else {
+                return Ok(Err("verify_route native-lean: no judge-built native verifier recorded for this run (FORMAL_CHECK)".into()));
+            };
+            let b = r.fetch(d, 1 << 30)?;
+            let p = r.fresh("native-verify");
+            std::fs::write(&p, b)?;
+            std::fs::set_permissions(&p, std::os::unix::fs::PermissionsExt::from_mode(0o755))?;
+            Ok(Verifier::NativeLean { binary: p })
+        }
+    })
 }
 
 pub fn run_prove(r: &mut JobRun<'_>, env: &EntryEnv<'_>, case: &Case) -> Result<Result<Proved, StepFailure>, ExecError> {
@@ -182,6 +256,10 @@ pub fn run_prove(r: &mut JobRun<'_>, env: &EntryEnv<'_>, case: &Case) -> Result<
 pub enum Verdict {
     Accept,
     Reject,
+    /// `npai-verify --expect-digest` mismatch (exit 3): the bytes executed are
+    /// not the certified ones. Never a reject, never an accept:
+    /// `ARTIFACT_BINDING_FAILED`.
+    BindingMismatch,
     /// Crash, other exit code, signal, OOM: never acceptance.
     Error,
     TimedOut,
@@ -197,25 +275,120 @@ pub fn run_verify(
 ) -> Result<(Verdict, SandboxOutcome), ExecError> {
     let (bundle, entry, public_dir, limits) = (env.bundle, env.entry, env.public_dir, env.limits);
     let layout = r.ctx.sandbox.layout();
-    let mut spec = entry_spec(
-        &layout,
-        bundle,
-        &entry.verify,
-        &["--public", "@in/public", "--claim", "@in/claim.bin", "--proof", "@in/proof.bin"],
-        &[(public_dir, "public"), (claim, "claim.bin"), (proof, "proof.bin")],
-        limits.max_verify_ms,
-        limits,
-    );
+    let io_args = ["--public", "@in/public", "--claim", "@in/claim.bin", "--proof", "@in/proof.bin"];
+    let io_files: [(&Path, &str); 3] = [(public_dir, "public"), (claim, "claim.bin"), (proof, "proof.bin")];
+    let mut spec = match env.verifier {
+        Verifier::Candidate => entry_spec(&layout, bundle, &entry.verify, &io_args, &io_files, limits.max_verify_ms, limits),
+        Verifier::Npai { tool, image, fuel, digest_hex, .. } => {
+            let fuel = fuel.to_string();
+            let mut args = vec!["--image", "@in/verifier.npai"];
+            args.extend(io_args);
+            args.extend(["--fuel", fuel.as_str(), "--expect-digest", digest_hex.as_str()]);
+            let mut files = io_files.to_vec();
+            files.push((image.as_path(), "verifier.npai"));
+            judge_spec(&layout, tool, "npai-verify", &args, &files, limits.max_verify_ms, limits)
+        }
+        Verifier::NativeLean { binary } => judge_spec(&layout, binary, "verify", &io_args, &io_files, limits.max_verify_ms, limits),
+    };
     spec.env.push(("ARENA_STAGE".into(), "verify".into()));
     spec.cpu_set = env.cpu_set.clone();
     let o = r.run(&spec)?;
-    let v = match o.exit {
-        ExitStatus::Exited(0) => Verdict::Accept,
-        ExitStatus::Exited(1) => Verdict::Reject,
-        ExitStatus::TimedOut => Verdict::TimedOut,
-        _ => Verdict::Error,
-    };
+    let v = verdict_for(env.verifier, o.exit);
+    if let Verifier::Npai { shadow: Some(reference), image, fuel, .. } = env.verifier {
+        shadow_check(r, env, reference, image, *fuel, claim, proof, &o, v)?;
+    }
     Ok((v, o))
+}
+
+/// CONTRACTS §4 exit codes (+ npai-verify's 3 = digest mismatch).
+pub fn verdict_for(verifier: &Verifier, exit: ExitStatus) -> Verdict {
+    match (verifier, exit) {
+        (_, ExitStatus::Exited(0)) => Verdict::Accept,
+        (_, ExitStatus::Exited(1)) => Verdict::Reject,
+        (Verifier::Npai { .. }, ExitStatus::Exited(3)) => Verdict::BindingMismatch,
+        (_, ExitStatus::TimedOut) => Verdict::TimedOut,
+        _ => Verdict::Error,
+    }
+}
+
+/// Spec running a JUDGE-owned executable (mounted read-only at
+/// `<inputs>/judge/<name>`), never anything from the candidate bundle.
+fn judge_spec(
+    layout: &arena_sandbox::GuestLayout,
+    exe: &Path,
+    name: &str,
+    args: &[&str],
+    files: &[(&Path, &str)],
+    timeout_ms: u64,
+    limits: &RunLimits,
+) -> arena_sandbox::SandboxSpec {
+    let mut s = entry_spec(layout, Path::new("/nonexistent"), "", args, files, timeout_ms, limits);
+    s.ro_mounts.retain(|m| m.guest != format!("{}/bundle", layout.inputs));
+    let guest = format!("{}/judge/{name}", layout.inputs);
+    s.ro_mounts.push(arena_sandbox::Mount { host: exe.to_path_buf(), guest: guest.clone() });
+    s.argv[0] = guest;
+    s
+}
+
+/// Re-run an npai verification on the Lean reference interpreter and
+/// compare (outcome and fuel used). Any disagreement fails the job as an
+/// infra error with an ALERT: the trusted Rust interpreter and the Lean
+/// semantics it transcribes disagree.
+#[allow(clippy::too_many_arguments)]
+fn shadow_check(
+    r: &mut JobRun<'_>,
+    env: &EntryEnv<'_>,
+    reference: &Path,
+    image: &Path,
+    fuel: u64,
+    claim: &Path,
+    proof: &Path,
+    rust: &SandboxOutcome,
+    verdict: Verdict,
+) -> Result<(), ExecError> {
+    if !matches!(verdict, Verdict::Accept | Verdict::Reject) {
+        return Ok(());
+    }
+    let pub_bin = env.public_dir.join("public.bin");
+    let size = |p: &Path| std::fs::metadata(p).map(|m| m.len()).unwrap_or(u64::MAX);
+    let total = size(&pub_bin).saturating_add(size(claim)).saturating_add(size(proof));
+    if total > SHADOW_MAX_INPUT_BYTES {
+        r.shadow.1 += 1;
+        return Ok(());
+    }
+    let layout = r.ctx.sandbox.layout();
+    let fuel_s = fuel.to_string();
+    let args = ["run", "--code", "@in/verifier.npai", "--public", "@in/public.bin", "--claim", "@in/claim.bin", "--proof", "@in/proof.bin", "--fuel", fuel_s.as_str()];
+    let files: [(&Path, &str); 4] = [(image, "verifier.npai"), (&pub_bin, "public.bin"), (claim, "claim.bin"), (proof, "proof.bin")];
+    let mut limits = env.limits.clone();
+    limits.max_ram_bytes = limits.max_ram_bytes.max(1 << 30);
+    let spec = judge_spec(&layout, reference, "arena-interp-ref", &args, &files, SHADOW_TIMEOUT_MS, &limits);
+    let o = r.run(&spec)?;
+    let lean_verdict = match o.exit {
+        ExitStatus::Exited(0) => Verdict::Accept,
+        ExitStatus::Exited(1) | ExitStatus::Exited(2) => Verdict::Reject,
+        _ => {
+            // Too slow / resource-bound on the reference: no comparison.
+            r.shadow.1 += 1;
+            return Ok(());
+        }
+    };
+    let field = |out: &[u8], k: &str| -> Option<String> {
+        let v: serde_json::Value = serde_json::from_slice(out.split(|b| *b == b'\n').next()?).ok()?;
+        Some(v.get(k)?.to_string())
+    };
+    let (ro, lo) = (field(&rust.stdout_trunc, "outcome"), field(&o.stdout_trunc, "outcome"));
+    let (rf, lf) = (field(&rust.stdout_trunc, "fuel_used"), field(&o.stdout_trunc, "fuel_used"));
+    let outcome_differs = ro.is_some() && lo.is_some() && ro != lo;
+    let fuel_differs = rf.is_some() && lf.is_some() && rf != lf;
+    if lean_verdict != verdict || outcome_differs || fuel_differs {
+        return Err(ExecError::Infra(format!(
+            "ALERT: npai interpreter disagreement (Rust npai-verify {verdict:?} {ro:?}/{rf:?} vs Lean arena-interp-ref {lean_verdict:?} {lo:?}/{lf:?}) on image {}",
+            Digest::of_bytes(&std::fs::read(image).unwrap_or_default())
+        )));
+    }
+    r.shadow.0 += 1;
+    Ok(())
 }
 
 /// Label a case for summaries without leaking held-out ids.
@@ -224,17 +397,5 @@ pub fn case_label(id: &str, public: bool) -> String {
         format!("case {id:?}")
     } else {
         "a held-out case".to_string()
-    }
-}
-
-/// `verify_route = "npai-v1"`: verification must run the arena's own NPAI
-/// interpreter (docs/INTERP_SPEC.md), which this worker does not ship yet.
-/// Returns why the route cannot be served (gates then stay UNKNOWN).
-pub fn unsupported_verify_route(entry: &EntryPoints) -> Option<String> {
-    match entry.verify_route {
-        Some(arena_types::candidate::VerifyRoute::NpaiV1) => {
-            Some("verify_route npai-v1 needs the arena NPAI interpreter, which this worker does not provide yet".into())
-        }
-        _ => None,
     }
 }

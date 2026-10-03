@@ -204,10 +204,19 @@ pub fn run(r: &mut JobRun<'_>, j: &BuildJob) -> Result<StageOut, ExecError> {
         None => arena_archive::Tree::default().digest(),
     };
     let file = |p: &str| a.tree.files[p].digest.clone();
+    // The verifier artifact of the verified surface: the npai-v1 bytecode
+    // (what the judge's interpreter runs), else the built `verify`.
+    let verify_artifact = match (&manifest.entry.verify_route, &manifest.entry.verifier_bytecode) {
+        (Some(arena_types::candidate::VerifyRoute::NpaiV1), Some(bc)) => match a.tree.files.get(bc.as_str()) {
+            Some(f) => f.digest.clone(),
+            None => return fail_out(g, &mut out, ReasonCode::BuildFailed, format!("build did not produce the verifier bytecode {bc}")),
+        },
+        _ => file(&manifest.entry.verify),
+    };
     out.build = Some(BuildOutputs {
         prepare: file(&manifest.entry.prepare),
         prove: file(&manifest.entry.prove),
-        verify: file(&manifest.entry.verify),
+        verify: verify_artifact,
         bundle: bundle_tree,
         public_artifacts: public_tree,
         formal_tree,
@@ -216,6 +225,7 @@ pub fn run(r: &mut JobRun<'_>, j: &BuildJob) -> Result<StageOut, ExecError> {
         build_ns: Some(a.wall_ns),
         bundle_archive: Some(bundle_archive),
         public_archive: Some(public_archive),
+        native_verifier: None,
     });
     out.gates.push(g.finish(GateStatus::Pass, true));
     Ok(out)

@@ -76,6 +76,8 @@ pub fn executor(sandbox: Arc<dyn Sandbox>, store: Arc<FsStore>, work: &Path) -> 
         mutators: MutatorRegistry::with_adversarial_lane(),
         oracles,
         formal: None,
+        npai_verify: None,
+        interp_ref: None,
         keep_workdirs: false,
     })
 }

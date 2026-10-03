@@ -103,6 +103,7 @@ impl FakeWorker {
                 worker_version: "fake-0".into(),
             },
             log_excerpt: Some(log),
+            native_verifier: None,
         };
         match &job.spec {
             JobSpec::Validate(_) => {
@@ -151,6 +152,7 @@ impl FakeWorker {
                     build_ns: Some(1234),
                     bundle_archive: None,
                     public_archive: None,
+                    native_verifier: None,
                 })
             }
             JobSpec::FormalCheck(_) => {

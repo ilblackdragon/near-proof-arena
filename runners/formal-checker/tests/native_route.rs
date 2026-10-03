@@ -1,5 +1,5 @@
-//! `native-lean` verifier route against the in-repo formal-core (`ArenaCore`
-//! + `Toy.Spec` trusted). The candidate supplies a Lean verifier model
+//! `native-lean` verifier route against the in-repo formal-core (`ArenaCore` and
+//! `Toy.Spec` trusted). The candidate supplies a Lean verifier model
 //! (`Candidate.Model.verify : ArenaCore.OracleVerifier`); the judge builds the
 //! native `verify` from it, pins the build digest in the statement
 //! (`.nativeTrusted <digest> <toolchain> Candidate.Model.verify`), and checks
@@ -100,7 +100,7 @@ fn native_lean_route() {
             return;
         }
     };
-    let checker = Arc::new(FormalChecker::new(tools, Box::new(BwrapDevRunner::new().unwrap())));
+    let checker = Arc::new(FormalChecker::new(tools, Box::new(dev_runner().unwrap())));
     let root = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("fc-native");
     let _ = std::fs::remove_dir_all(&root);
     let cache = root.join("cache");
@@ -258,4 +258,13 @@ fn native_lean_route() {
     }
     let f = failures.lock().unwrap();
     assert!(f.is_empty(), "{}", f.join("\n"));
+}
+
+fn dev_runner() -> Result<SandboxRunner, arena_formal_checker::sandbox::InfraError> {
+    let helper = arena_sandbox::HelperCommand {
+        exe: env!("CARGO_BIN_EXE_formal-check").into(),
+        prefix_args: vec![arena_formal_checker::HELPER_ARG.into()],
+    };
+    let work = std::env::temp_dir().join(format!("fc-sandbox-native-{}", std::process::id()));
+    SandboxRunner::bwrap_dev(helper, work)
 }

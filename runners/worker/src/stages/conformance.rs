@@ -25,11 +25,6 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         out.gates.push(rel.finish(st, true));
         out.gates.push(res.finish(st, true));
     };
-    if let Some(why) = common::unsupported_verify_route(&j.manifest.entry) {
-        conf.note(why);
-        finish(&mut out, conf, rel, res, false);
-        return Ok(out);
-    }
     let limits = RunLimits::from_challenge(&j.challenge);
     let parts = seed_parts(&j.ctx);
     let parts: Vec<&str> = parts.iter().map(|s| s.as_str()).collect();
@@ -52,7 +47,15 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     };
     let bundle = common::fetch_bundle(r, &j.build, &j.manifest.entry)?;
     let public_dir = common::fetch_public(r, &j.build, &limits)?;
-    let env = common::EntryEnv { bundle: &bundle, entry: &j.manifest.entry, public_dir: &public_dir, limits: &limits, cpu_set: None };
+    let verifier = match common::verifier_for(r, j, &bundle, true)? {
+        Ok(v) => v,
+        Err(why) => {
+            conf.note(why);
+            finish(&mut out, conf, rel, res, false);
+            return Ok(out);
+        }
+    };
+    let env = common::EntryEnv { bundle: &bundle, entry: &j.manifest.entry, public_dir: &public_dir, limits: &limits, cpu_set: None, verifier: &verifier };
 
     let mut max_proof = 0u64;
     let mut max_verify_ns = 0u64;
@@ -100,10 +103,17 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
                 rel.fail(ReasonCode::ProverFailed, format!("{label}: verify errored on the honest proof ({})", crate::executor::describe_exit(&vo)));
                 break;
             }
+            Verdict::BindingMismatch => {
+                rel.fail(ReasonCode::ArtifactBindingFailed, "npai-verify: the verifier bytecode is not the certified image (digest mismatch)");
+                break;
+            }
         }
     }
     let n = cases.len();
     let complete = passed == n;
+    if r.shadow != (0, 0) {
+        conf.note(format!("npai shadow (Lean reference): {} agreed, {} skipped (large/slow)", r.shadow.0, r.shadow.1));
+    }
     let public = cases.iter().filter(|c| c.public).count();
     conf.note(format!("{passed}/{n} cases conform ({public} public fixtures, {} judge-sampled)", n - public));
     rel.note(format!("{passed}/{n} honest proofs produced and accepted"));

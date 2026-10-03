@@ -165,6 +165,11 @@ pub struct BuildOutputs {
     /// `public_dir` (TreeDigest `public_artifacts`).
     #[serde(default)]
     pub public_archive: Option<Digest>,
+    /// `verify_route = "native-lean"`: content-store digest of the judge-built
+    /// native verifier (reported by FORMAL_CHECK, set by the control plane);
+    /// later stages run this binary, never the candidate's `verify`.
+    #[serde(default)]
+    pub native_verifier: Option<Digest>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -275,6 +280,10 @@ pub struct JobResult {
     /// by the server). Must not contain held-out data.
     #[serde(default)]
     pub log_excerpt: Option<String>,
+    /// FORMAL_CHECK, `native-lean` route: content-store digest of the
+    /// judge-built native verifier (uploaded before `complete`).
+    #[serde(default)]
+    pub native_verifier: Option<Digest>,
 }
 
 // ---------------------------------------------------------------------------

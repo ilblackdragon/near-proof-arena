@@ -100,6 +100,11 @@ pub struct WorkerContext {
     pub mutators: MutatorRegistry,
     pub oracles: Oracles,
     pub formal: Option<FormalEnv>,
+    /// The judge's `npai-verify` (arena-npai), run for `npai-v1` candidates.
+    pub npai_verify: Option<PathBuf>,
+    /// Lean reference interpreter (`arena-interp-ref`) used as a shadow
+    /// check of `npai-verify` on small inputs (conformance, adversarial).
+    pub interp_ref: Option<PathBuf>,
     /// Keep per-job work dirs (debugging).
     pub keep_workdirs: bool,
 }
@@ -113,6 +118,8 @@ pub struct StageOut {
     pub benchmark: Option<BenchmarkResult>,
     pub evidence_graph: Option<EvidenceGraph>,
     pub log: Vec<String>,
+    /// FORMAL_CHECK, native-lean route: uploaded judge-built verifier.
+    pub native_verifier: Option<Digest>,
     /// Whether candidate code ran in the sandbox (then gates are tier-capped
     /// by the backend).
     pub used_sandbox: bool,
@@ -124,6 +131,8 @@ pub struct JobRun<'a> {
     pub dir: PathBuf,
     pub cancel: &'a AtomicBool,
     pub artifacts: Vec<NamedArtifact>,
+    /// npai shadow checks: (agreed, skipped).
+    pub shadow: (u64, u64),
     counter: u32,
 }
 
@@ -310,7 +319,7 @@ impl JobExecutor for StageExecutor {
             fs::remove_dir_all(&dir)?;
         }
         fs::create_dir(&dir)?;
-        let mut run = JobRun { ctx: &self.ctx, dir: dir.clone(), cancel, artifacts: vec![], counter: 0 };
+        let mut run = JobRun { ctx: &self.ctx, dir: dir.clone(), cancel, artifacts: vec![], shadow: (0, 0), counter: 0 };
         let res = match spec {
             JobSpec::Validate(j) => stages::validate::run(&mut run, j),
             JobSpec::Build(j) => stages::build::run(&mut run, j),
@@ -364,6 +373,7 @@ impl JobExecutor for StageExecutor {
             build: out.build,
             execution: self.execution_info(),
             log_excerpt,
+            native_verifier: out.native_verifier,
         })
     }
 }

@@ -26,6 +26,7 @@
 use crate::executor::{ExecError, JobRun, StageOut, MAX_PACKAGE_BYTES};
 use crate::gate::Gate;
 use crate::jobs::{FormalCheckJob, RunLimits};
+use arena_formal_checker::native::{NativeLeanRoute, VerifierRoute};
 use arena_formal_checker::{
     toolchain::ToolPaths, ChallengeFormalConfig, CheckRequest, ExpectedInputs, FormalChecker, Limits, Policy, SandboxRunner,
 };
@@ -188,19 +189,28 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
             return Ok(out);
         }
     };
-    let verifier_digest_hex = if npai {
-        let bc = j.manifest.entry.verifier_bytecode.clone().unwrap_or_default();
-        let bundle = super::common::fetch_bundle(r, &j.build, &j.manifest.entry)?;
-        let b = std::fs::read(bundle.join(&bc)).map_err(|e| ExecError::Infra(format!("verifier bytecode {bc}: {e}")))?;
-        Digest::of_bytes(&b).hex().to_string()
-    } else {
-        j.build.verify.hex().to_string()
+    // BuildOutputs.verify is the verifier artifact of the verified surface:
+    // the npai-v1 bytecode digest, else the built `verify`.
+    let verifier_digest_hex = j.build.verify.hex().to_string();
+    let route = match j.manifest.entry.verify_route {
+        Some(VerifyRoute::NpaiV1) => VerifierRoute::Standard,
+        Some(VerifyRoute::NativeLean) => match (&formal.verifier_model, &formal.verifier_model_module) {
+            (Some(d), Some(m)) => VerifierRoute::NativeLean(NativeLeanRoute::new(d, m)),
+            _ => VerifierRoute::CandidateNative,
+        },
+        // A candidate-built native verifier has no judge build: never admitted
+        // on a formal statement (the checker fails ARTIFACT_BINDING).
+        None | Some(VerifyRoute::Native) => VerifierRoute::CandidateNative,
     };
     let inputs = match ExpectedInputs::from_definition(chal, public_digest_hex.clone(), verifier_digest_hex.clone()) {
         Ok(i) => i,
         Err(e) => return Err(ExecError::Infra(format!("expected statement inputs: {e}"))),
     };
-    let expected = cfg.expected(&env.repo, &inputs).map_err(|e| ExecError::Infra(format!("expected statement: {e}")))?;
+    let expected = match &route {
+        VerifierRoute::NativeLean(_) => cfg.expected_native_lean(&env.repo, &inputs),
+        _ => cfg.expected(&env.repo, &inputs),
+    }
+    .map_err(|e| ExecError::Infra(format!("expected statement: {e}")))?;
 
     let runner = match SandboxRunner::new(r.ctx.sandbox.clone(), r.fresh("fc-sandbox")) {
         Ok(x) => x.with_rootfs(rootfs),
@@ -227,12 +237,22 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         limits: Limits::default(),
         work_dir: r.fresh("formal-work"),
         cache_dir: r.ctx.work_root.join("formal-ref-cache"),
+        route,
     };
     r.check_cancel()?;
     let report = checker.check(&req);
     let report_json = serde_json::to_vec(&report).map_err(|e| ExecError::Infra(e.to_string()))?;
     let rd = r.upload("formal check report", &report_json, true)?;
     out.log.push(format!("checker: {tools_label}; identity {checker_id}"));
+    // native-lean: ship the judge-built verifier to the later stages.
+    if let Some(nv) = &report.native_verifier {
+        let b = std::fs::read(&nv.path).map_err(|e| ExecError::Infra(format!("native verifier: {e}")))?;
+        if Digest::of_bytes(&b) != nv.digest {
+            return Err(ExecError::Infra("native verifier changed after the judge build".into()));
+        }
+        let d = r.upload("judge-built native verifier", &b, true)?;
+        out.native_verifier = Some(d);
+    }
     out.log.extend(report.warnings.iter().take(20).cloned());
     let mut gates: Vec<GateResult> = report.gates.into_iter().filter(|g| owned.contains(&g.gate)).collect();
     for g in &mut gates {
@@ -256,7 +276,14 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         binding.note("undetermined: the certificate did not check");
         GateStatus::Unknown
     };
-    if required.contains(&ObligationId::ArtifactBinding) {
+    // Routes other than Standard get their ARTIFACT_BINDING from the checker
+    // (judge native build / no judge build); merge our statement verdict in.
+    if let Some(cb) = gates.iter_mut().find(|g| g.gate == ObligationId::ArtifactBinding) {
+        if mismatch && cb.status != GateStatus::Fail {
+            cb.status = GateStatus::Fail;
+            cb.reason_codes.push(ReasonCode::ArtifactBindingFailed);
+        }
+    } else if required.contains(&ObligationId::ArtifactBinding) {
         out.gates.push(binding.finish(binding_status, true));
     }
     for g in &required {

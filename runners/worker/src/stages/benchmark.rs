@@ -28,6 +28,7 @@ struct Runner<'r, 'a> {
     public_dir: PathBuf,
     batches: HashMap<String, (Vec<Case>, Vec<Case>)>,
     cpus: Option<Vec<u32>>,
+    verifier: common::Verifier,
     failure: Option<(ReasonCode, String)>,
     /// Confirmation mode (spec §7.4): every (class, phase, round) proves a
     /// batch never seen before in this job.
@@ -76,8 +77,9 @@ impl BatchRunner for Runner<'_, '_> {
         let mut s = BatchSample::default();
         for case in &batch {
             let label = common::case_label(&case.id, case.public);
-            let (bundle, public_dir, limits, entry, cpus) = (self.bundle.clone(), self.public_dir.clone(), self.limits.clone(), self.entry, self.cpus.clone());
-            let env = common::EntryEnv { bundle: &bundle, entry, public_dir: &public_dir, limits: &limits, cpu_set: cpus };
+            let (bundle, public_dir, limits, entry, cpus, verifier) =
+                (self.bundle.clone(), self.public_dir.clone(), self.limits.clone(), self.entry, self.cpus.clone(), self.verifier.clone());
+            let env = common::EntryEnv { bundle: &bundle, entry, public_dir: &public_dir, limits: &limits, cpu_set: cpus, verifier: &verifier };
             let p = match common::run_prove(self.r, &env, case) {
                 Err(e) => return Err(self.exec_err(e)),
                 Ok(Err(f)) => return Err(self.fail(f.reason, format!("{} run, {label}: {}", phase.as_str(), f.detail))),
@@ -94,6 +96,9 @@ impl BatchRunner for Runner<'_, '_> {
             match v {
                 Verdict::Accept => s.push_verify(&vo),
                 Verdict::TimedOut => return Err(self.fail(ReasonCode::ResourceLimit, format!("{label}: verify exceeded max_verify_ms"))),
+                Verdict::BindingMismatch => {
+                    return Err(self.fail(ReasonCode::ArtifactBindingFailed, "npai-verify: the verifier bytecode is not the certified image".into()))
+                }
                 _ => return Err(self.fail(ReasonCode::ProverFailed, format!("{} run, {label}: verify did not accept the proof", phase.as_str()))),
             }
         }
@@ -106,11 +111,6 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut out = StageOut { used_sandbox: true, ..Default::default() };
     let chal = &j.challenge;
     arena_measure::check_procedure(&chal.measurement).map_err(|e| ExecError::Infra(e.to_string()))?;
-    if let Some(why) = common::unsupported_verify_route(&j.manifest.entry) {
-        bench.note(why);
-        out.gates.push(bench.finish(GateStatus::Unknown, true));
-        return Ok(out);
-    }
     let limits = RunLimits::from_challenge(chal);
     let oracle = match r.ctx.oracles.get(chal) {
         Ok(o) => o,
@@ -142,6 +142,14 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     }
     let bundle = common::fetch_bundle(r, &j.build, &j.manifest.entry)?;
     let public_dir = common::fetch_public(r, &j.build, &limits)?;
+    let verifier = match common::verifier_for(r, j, &bundle, false)? {
+        Ok(v) => v,
+        Err(why) => {
+            bench.note(why);
+            out.gates.push(bench.finish(GateStatus::Unknown, true));
+            return Ok(out);
+        }
+    };
     // `prepare` is timed (reported, never scored) on the frozen bundle.
     let prepare_ns = match common::run_prepare(r, &bundle, &j.manifest.entry, &limits)? {
         Ok(p) => {
@@ -182,6 +190,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         public_dir,
         batches,
         cpus,
+        verifier,
         failure: None,
         fresh_only: false,
         oracle,

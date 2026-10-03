@@ -23,6 +23,7 @@ tokio = { workspace = true }
 libc.workspace = true
 
 [dev-dependencies]
+arena-npai = { path = "../npai" }
 tempfile.workspace = true
 zstd.workspace = true
 tar.workspace = true
