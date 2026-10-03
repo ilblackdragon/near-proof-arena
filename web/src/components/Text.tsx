@@ -5,8 +5,20 @@ import { sanitizeBlock, sanitizeInline, INLINE_MAX, BLOCK_MAX } from '../lib/tex
  * (escaped), after neutralising control/bidi characters, inside a <bdi> so
  * that a hostile string cannot reorder surrounding text.
  */
-export function T({ v, max = INLINE_MAX, className }: { v: unknown; max?: number; className?: string }) {
+export function T({
+  v,
+  max = INLINE_MAX,
+  className,
+  empty = '—',
+}: {
+  v: unknown;
+  max?: number;
+  className?: string;
+  /** Shown (muted, as UI text) when the value is empty. */
+  empty?: string;
+}) {
   const r = sanitizeInline(v, max);
+  if (r.text === '') return <span className="muted">{empty}</span>;
   return (
     <bdi className={className ? `ut ${className}` : 'ut'} data-altered={r.altered || undefined}>
       {r.text}

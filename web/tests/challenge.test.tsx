@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { challengeRecord, demoDataset, makeDefinition, type Dataset } from '../mock/fixtures';
 import { renderApp } from './helpers';
@@ -33,6 +33,21 @@ describe('challenges', () => {
     expect(within(facts).getByText('80')).toBeInTheDocument();
   });
 
+  it('shows registration (signature, governance key, open state)', async () => {
+    const ds = demoDataset();
+    const c = ds.challenges[0];
+    renderApp(`/challenges/${c.id}`, ds);
+    await screen.findByText('demo-fixture-governance-key');
+    expect(screen.getByText(/demo-fixture-admin/)).toBeInTheDocument();
+    expect(screen.getByText('open')).toBeInTheDocument();
+  });
+
+  it('drops records whose top-level tier disagrees with the signed definition', async () => {
+    const c = challengeRecord(makeDefinition({ name: 'DEMO FIXTURE tier-lie', tier: 'demo' }));
+    renderApp(`/challenges/${c.id}`, { challenges: [{ ...c, tier: 'formal' }], submissions: [] });
+    expect(await screen.findByText(/Malformed challenge record/)).toBeInTheDocument();
+  });
+
   it('flags a challenge whose definition does not hash to its id', async () => {
     const good = challengeRecord(makeDefinition({ name: 'DEMO FIXTURE tamper', tier: 'formal' }));
     const tampered = { ...good, definition: { ...good.definition, excludes_note: 'x', name: 'DEMO FIXTURE tampered' } };
@@ -41,12 +56,4 @@ describe('challenges', () => {
     expect(await screen.findByText(/MISMATCH/)).toBeInTheDocument();
   });
 
-  it('accepts the flattened challenge shape (definition with id/digest merged)', async () => {
-    const c = challengeRecord(makeDefinition({ name: 'DEMO FIXTURE flat', tier: 'experimental' }));
-    const flat = { id: c.id, digest: c.digest, ...c.definition };
-    const ds = { challenges: [flat as never], submissions: [] } as Dataset;
-    renderApp(`/challenges/${c.id}`, ds);
-    await waitFor(() => expect(screen.getByText(/id and digest recomputed/)).toBeInTheDocument());
-    expect(screen.getByText(/It has no official ranked board/)).toBeInTheDocument();
-  });
 });

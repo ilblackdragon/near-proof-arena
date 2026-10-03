@@ -26,7 +26,7 @@ export function route(ds: Dataset, method: string, rawUrl: string): MockResponse
   }
   if ((m = p.match(/^\/v1\/leaderboards\/([^/]+)$/))) {
     const lb = leaderboardFor(ds, decodeURIComponent(m[1]));
-    return lb ? { status: 200, body: { challenge_id: m[1], entries: lb } } : { status: 404, body: { error: 'not found' } };
+    return lb ? { status: 200, body: lb } : { status: 404, body: { error: 'not found' } };
   }
   if (p === '/v1/submissions') {
     const ch = url.searchParams.get('challenge_id');

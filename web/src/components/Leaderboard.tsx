@@ -11,7 +11,7 @@ function Row({ e, rank }: { e: BoardEntry; rank: number | null }) {
       <td className="num rank">{rank === null ? <span className="muted" aria-label="unranked">—</span> : rank}</td>
       <td>
         <SubLink id={e.submission_id}>
-          <T v={e.candidate_name} max={64} />
+          <T v={e.candidate_name} max={64} empty="(unnamed — manifest not yet validated)" />
         </SubLink>
         <div className="small muted">
           by <T v={e.agent} max={64} /> · <T v={e.backend_family} max={48} />

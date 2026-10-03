@@ -277,3 +277,6 @@ svg.graph { display: block; font-family: var(--sans); }
 /* inside tables let columns size to content; only break tokens when they cannot fit */
 table.data .ut { overflow-wrap: break-word; }
 table.board td { min-width: 6rem; }
+.stage.failed { color: var(--bad); border-color: var(--bad); background: var(--bad-bg); font-weight: 700; }
+.stage.not_run { color: var(--muted); border-style: dashed; }
+.stage.not_run .stage-dot { background: transparent; border: 1px dashed currentColor; }

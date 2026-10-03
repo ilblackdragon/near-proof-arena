@@ -7,14 +7,16 @@ const respond = (body: unknown, status = 200) =>
   vi.stubGlobal('fetch', vi.fn(async () => new Response(typeof body === 'string' ? body : JSON.stringify(body), { status })));
 
 describe('api client', () => {
-  it('accepts bare arrays and envelopes; drops malformed records', async () => {
+  it('expects bare arrays; drops malformed records', async () => {
     const ds = demoDataset();
-    respond({ challenges: [ds.challenges[0], { id: 'chl_bad' }, 'junk'] });
+    respond([ds.challenges[0], { id: 'chl_bad' }, { ...ds.challenges[1], signature: 7 }, 'junk']);
     expect(await listChallenges()).toHaveLength(1);
     respond([ds.submissions[0], { id: 'not-a-sub' }]);
     expect(await listSubmissions({})).toHaveLength(1);
-    respond({ entries: [{ submission_id: 'sub_x' }] });
+    respond([{ submission_id: 'sub_x' }]);
     expect(await getLeaderboard(ds.challenges[0].id)).toHaveLength(0);
+    respond({ challenges: [ds.challenges[0]] });
+    await expect(listChallenges()).rejects.toThrow(/expected an array/);
   });
 
   it('rejects mismatched ids, invalid JSON and oversized bodies', async () => {
