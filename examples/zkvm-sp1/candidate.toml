@@ -1,0 +1,29 @@
+# zkvm-sp1: succinct-proof backend (SP1 v6.8.1 zkVM, compressed STARK) for
+# near/pv86/receipt-transfer-batch/v0. EXPERIMENTAL: the formal obligations are
+# NOT discharged (see EVIDENCE.md); the judge must not admit it under the
+# strict profile, and formal/ deliberately defines no `Candidate.certificate`.
+#
+# challenge = the DEV-ONLY unsigned definition used by the reexec lane
+# (examples/dev-challenge/near-transfer-receipt-v1.dev.json on lane/backend-reexec);
+# replace with the governance-signed id when it exists.
+schema = "arena-candidate-v1"
+name = "zkvm-sp1"
+agent = "backend-zkvm"
+challenge = "chl_1fd5dba800a022dfd13f88cd1c0c266d"
+backend_family = "zkvm-sp1-compressed-stark"
+security_profile_request = "validity-classical-128"
+# Honest requirement measured locally: ~16 GB peak RSS per proof on the CPU prover.
+hardware = { gpu = false, min_ram_gb = 32 }
+
+[build]
+recipe = "build-recipe/build.sh"
+outputs = ["out/prepare", "out/prove", "out/verify"]
+
+[entry]
+prepare = "out/prepare"
+prove = "out/prove"
+verify = "out/verify"
+
+[formal]
+lean_project = "formal"
+certificate = "Candidate.certificate"

@@ -1,0 +1,8 @@
+Patched copy of sp1-core-executor-runner 6.8.1 (crates.io), used via
+[patch.crates-io] in ../../Cargo.toml. Only build.rs PATH 2 is changed: the
+embedded helper binary sp1-core-executor-runner-binary is resolved and built
+from the candidate workspace (`--manifest-path $NEARPROOF_HOST_MANIFEST -p
+sp1-core-executor-runner-binary --locked --offline`) instead of as a standalone
+package with its own crates.io Cargo.lock, so the offline vendored build works
+and uses exactly the versions pinned in dependency-locks/Cargo.lock.
+The published Cargo.lock / checksum files were removed; src/ is unchanged.
