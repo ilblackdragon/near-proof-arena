@@ -148,6 +148,14 @@ of 5 runs of the `verify` process.
 * `prepare` takes 2.4 s (light prover setup), and `public.bin` is 154 bytes.
 * Raw data is in `bench/results-2026-10-03.tsv`; the cycle column comes from
   `zkexec`.
+* A later full run of `arena check-local` (all 20 public fixtures, offline,
+  under lower host load; packer exclusion patched locally, see below) passed
+  PKG_WELLFORMED, BUILD_REPRODUCIBLE (two builds with identical digests in an
+  earlier run), CONFORMANCE_DIFFERENTIAL, PROVER_RELIABILITY,
+  ADVERSARIAL_PROOFS and RESOURCE_LIMITS (informational). Timings from that
+  run: prove **46–50 s** for 2–28 receipts and **58–83 s** for 117–233
+  receipts; verify **35–42 ms**; prepare 1.0 s. The table above therefore
+  overstates prove time by about 2× because of host contention.
 
 Correctness:
 
@@ -175,7 +183,7 @@ lane's built `out/` binaries.
 |---|---|---|
 | proof size | 614 B (2 receipts) → 74.5 KB (256); linear in witness, ≤ 3.09 MB by bound | **constant 1.27 MB** |
 | verify | 10–270 ms, grows with batch (Lean verifier, `List UInt8` SHA); 4–8 MB RSS | **30–110 ms constant**, 5 MB RSS |
-| prove | **< 10 ms**, 2 MB RSS | 90–220 s, 16–38 GB RSS |
+| prove | **< 10 ms**, 2 MB RSS | 46–83 s (quiet host) / 90–220 s (loaded), 16–38 GB RSS |
 | setup / keys | none (`public.bin` = params) | program vkey from judge-run `prepare` (transparent) |
 | privacy of witness | witness revealed in the proof | witness not in the proof (validity only, ZK not claimed) |
 | formal evidence | **full admission certificate**: `DeterministicSound` (ε = 0, no assumption), completeness, codec round trip, native-lean impl edge *trusted* | semantic layer vacuous; **crypto, constraint, compiler, guest and impl links missing**; SP1 targets 100 bits; FS hash (Poseidon2) not an approved assumption |
@@ -193,8 +201,9 @@ is the blocker, not performance.
 ## Limits against the dev challenge
 
 The reexec lane's dev challenge sets `max_prove_ms` = 60 000 and
-`max_ram_bytes` = 4 GiB. **This candidate fails both on the CPU prover**:
-≥ 90 s and ≥ 16 GB even for 2 receipts. Proof size (≤ 8 MiB) and verify time
+`max_ram_bytes` = 4 GiB. **On the CPU prover this candidate fails the RAM limit everywhere** (≥ 16 GB
+even for 2 receipts). It meets the time limit only for small batches on a
+quiet host: 46–50 s for ≤ 28 receipts, but 58–83 s for 117–233 receipts. Proof size (≤ 8 MiB) and verify time
 are fine. Any SP1 configuration change to reduce memory (smaller shards,
 fewer prover workers) is untested here. A GPU prover would change the
 picture but is not available on this host.

@@ -58,8 +58,8 @@ formalised abstractly, with every link as a hypothesis, in
 | `AXIOM_AUDIT` | checked (for what exists) | `#print axioms` of every theorem in `formal/` ⊆ {propext, Classical.choice, Quot.sound}. No holes, no `native_decide`. |
 | `CONFORMANCE_DIFFERENTIAL` | tested | See row 6. Inside the zkVM, the guest's public values equal the oracle claim on every executed or proved case. |
 | `ADVERSARIAL_PROOFS` | tested (locally) | `bench/adversarial.py`: 715 hostile inputs, all rejected with exit 1. They cover proof bit flips (structured and random), truncation and extension, garbage, every claim byte flipped, claim/proof cross-swaps and a tampered vkey. Tampered `public.bin` params/ELF digest gives exit 2, never accept. Verify was deterministic across repeats. Hostile decoding is bounded: 8 MiB cap, bincode size limit, trailing bytes rejected, panics caught and turned into reject. |
-| `PROVER_RELIABILITY` | tested | Every proved case verified (see README numbers). Out-of-domain inputs are refused before proving (exit 3). |
-| `RESOURCE_LIMITS` | **fails the reexec dev challenge limits** | Peak RSS is about 16 GB per proof against a 4 GiB cap. Wall time is about 90–110 s per proof against a 60 s `max_prove_ms`. Proof size (1.27 MB) and verify time (≈30–50 ms) are well within limits. |
+| `PROVER_RELIABILITY` | tested | Every proved case verified: 10/10 benchmark cases, and 20/20 public fixtures in `arena check-local`. Out-of-domain inputs are refused before proving (exit 3). |
+| `RESOURCE_LIMITS` | **fails the reexec dev challenge limits** | Peak RSS is about 16 GB per proof against a 4 GiB cap. Wall time is 46–83 s per proof on a quieter host (90–220 s under load) against a 60 s `max_prove_ms`, so large batches exceed it. Proof size (1.27 MB) and verify time (≈30–50 ms) are well within limits. |
 | `BENCHMARK` | local only | README §Measurements. These are not judge measurements, and the host load average was 40–65 on 32 cores during the runs. |
 
 ## TCB of an *accept* today
