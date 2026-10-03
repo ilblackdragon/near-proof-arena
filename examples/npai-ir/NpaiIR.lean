@@ -1,3 +1,11 @@
 import NpaiIR.Basic
 import NpaiIR.Correct
 import NpaiIR.Example
+import NpaiIR.Sem
+import NpaiIR.Adequacy
+import NpaiIR.Encode
+import NpaiIR.Hoare
+import NpaiIR.Lib.Base
+import NpaiIR.Lib.Loop
+import NpaiIR.Lib.Mem
+import NpaiIR.Lib.Num
