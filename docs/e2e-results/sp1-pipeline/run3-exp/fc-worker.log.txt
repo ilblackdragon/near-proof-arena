@@ -1,0 +1,44 @@
+arena-worker: fixtures /data/illia/nearproof-deps/sp1-pipeline/work/clean/oracle/fixtures/public = sha256:c83f3e14d526e78244ee2d7288396a9680717fa42ef77127ba29ccf27bb7e6ec
+arena-worker sp1-fc-worker: backend firecracker (tier cap Formal), kinds ["VALIDATE", "BUILD", "FORMAL_CHECK", "CONFORMANCE", "ADVERSARIAL", "BENCHMARK"]
+[arena-worker] leased job adf822d5-aeb4-40ba-9b07-1dfb16547f06 (VALIDATE, attempt 1/3)
+[arena-worker] completed job adf822d5-aeb4-40ba-9b07-1dfb16547f06
+[arena-worker] leased job f3802ba3-9908-4a5e-9c64-cf2a70b4427a (VALIDATE, attempt 1/3)
+[arena-worker] completed job f3802ba3-9908-4a5e-9c64-cf2a70b4427a
+[arena-worker] leased job dbfa73d0-a6bb-4b8f-80b7-501a019873ba (BUILD, attempt 1/3)
+[arena-worker] completed job dbfa73d0-a6bb-4b8f-80b7-501a019873ba
+[arena-worker] leased job a2aaaaae-d7c1-4a1a-b5fc-501529b6e76f (BUILD, attempt 1/3)
+[arena-worker] completed job a2aaaaae-d7c1-4a1a-b5fc-501529b6e76f
+[arena-worker] leased job 575ada76-866c-4d5f-bbed-0526697510ef (VALIDATE, attempt 1/3)
+[arena-worker] completed job 575ada76-866c-4d5f-bbed-0526697510ef
+[arena-worker] leased job 3809a0ef-d135-4108-a19c-251fc0c2ec42 (VALIDATE, attempt 1/3)
+[arena-worker] completed job 3809a0ef-d135-4108-a19c-251fc0c2ec42
+[arena-worker] leased job 1f6cc4cf-fb1e-4e84-896a-aa5f2cfdc304 (FORMAL_CHECK, attempt 1/3)
+[arena-worker] completed job 1f6cc4cf-fb1e-4e84-896a-aa5f2cfdc304
+[arena-worker] leased job 9d9cfeb4-4ac7-4726-b322-15a6187ba308 (FORMAL_CHECK, attempt 1/3)
+[arena-worker] completed job 9d9cfeb4-4ac7-4726-b322-15a6187ba308
+[arena-worker] leased job 7a869f50-1838-4fa4-b336-960bfeb41168 (BUILD, attempt 1/3)
+[arena-worker] completed job 7a869f50-1838-4fa4-b336-960bfeb41168
+[arena-worker] leased job 42356a44-cc44-458b-98c8-542f357367ac (BUILD, attempt 1/3)
+[arena-worker] completed job 42356a44-cc44-458b-98c8-542f357367ac
+[arena-worker] leased job 396272db-7663-4a3e-ad3d-92010d4407c1 (ADVERSARIAL, attempt 1/3)
+[arena-worker] completed job 396272db-7663-4a3e-ad3d-92010d4407c1
+[arena-worker] leased job e04d7795-99af-403c-84b4-127d7033e213 (CONFORMANCE, attempt 1/3)
+[arena-worker] completed job e04d7795-99af-403c-84b4-127d7033e213
+[arena-worker] leased job 01c10f24-d55f-4a88-bf0c-debaa5c696d4 (ADVERSARIAL, attempt 1/3)
+[arena-worker] completed job 01c10f24-d55f-4a88-bf0c-debaa5c696d4
+[arena-worker] leased job cc00412b-4905-4a22-aca4-b34bb01af181 (CONFORMANCE, attempt 1/3)
+[arena-worker] completed job cc00412b-4905-4a22-aca4-b34bb01af181
+[arena-worker] leased job 791dbbed-5984-4dd9-b284-cd9873f7c8b1 (FORMAL_CHECK, attempt 1/3)
+[arena-worker] completed job 791dbbed-5984-4dd9-b284-cd9873f7c8b1
+[arena-worker] leased job 2d7f9f3d-1dad-4963-86e3-e84784641d6f (FORMAL_CHECK, attempt 1/3)
+[arena-worker] completed job 2d7f9f3d-1dad-4963-86e3-e84784641d6f
+[arena-worker] leased job 70953224-db8f-4077-83d3-e421a9fcf1b4 (BENCHMARK, attempt 1/3)
+[arena-worker] completed job 70953224-db8f-4077-83d3-e421a9fcf1b4
+[arena-worker] leased job a692fa91-4fc3-440b-ace8-ec17dfc58ba6 (BENCHMARK, attempt 1/3)
+[arena-worker] completed job a692fa91-4fc3-440b-ace8-ec17dfc58ba6
+[arena-worker] leased job a747fc75-b98b-402a-a1ec-65f5e3fbe8eb (ADVERSARIAL, attempt 1/3)
+[arena-worker] completed job a747fc75-b98b-402a-a1ec-65f5e3fbe8eb
+[arena-worker] leased job ae1c4718-4827-4206-8afc-f98e8c25b4b6 (CONFORMANCE, attempt 1/3)
+[arena-worker] completed job ae1c4718-4827-4206-8afc-f98e8c25b4b6
+[arena-worker] leased job 15c01fb8-d8d2-491c-a79e-a1cca27cc2be (BENCHMARK, attempt 1/3)
+[arena-worker] completed job 15c01fb8-d8d2-491c-a79e-a1cca27cc2be

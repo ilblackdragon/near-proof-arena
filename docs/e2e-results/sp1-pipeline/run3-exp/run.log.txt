@@ -1,0 +1,83 @@
+
+== build  [14:39:40] load: 7.60 9.68 8.64
+
+== challenges  [14:39:45] load: 9.56 10.05 8.77
+lean-checker image d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, checker identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e
+warning: experimental tier: [ArtifactBinding, FormalSemanticSoundness, FormalSemanticCompleteness, FormalCryptoSoundness, FormalImplConnection, AxiomAudit] are diagnostic (evaluated and reported, never blocking, never in the decision; no rank, no formal acceptance)
+warning: no baseline yet (baseline_submission = null, baseline_ns = []): admissions are decided but scores are null until a superseding challenge pins baselines
+OK   chl_b7c82396ad623f6dc21efab0f008ea4b tier=Experimental name=near-transfer-receipt-v1-2
+BASE chl_3be93793610370275ae40f36a475f01f
+E chl_b7c82396ad623f6dc21efab0f008ea4b
+
+== database arena_sp1  [14:39:46] load: 9.56 10.05 8.77
+
+== arena-server on 127.0.0.1:18581  [14:39:46] load: 8.95 9.92 8.73
+registered chl_3be93793610370275ae40f36a475f01f formal
+registered chl_b7c82396ad623f6dc21efab0f008ea4b experimental
+
+== Firecracker worker (tier cap formal), candidate VMs on host CPUs 16-23  [14:39:46] load: 8.95 9.92 8.73
+
+== submissions  [14:39:46] load: 8.95 9.92 8.73
+sp1-E -> sub_f970b1abb61e4b4e9fe642d3fb0206ee (challenge chl_b7c82396ad623f6dc21efab0f008ea4b)
+reexec-E -> sub_82c2272842f94ebe98f72176620ed5a5 (challenge chl_b7c82396ad623f6dc21efab0f008ea4b)
+plonky3-E -> sub_71bfc6c01dc944379ddab765f27f94c7 (challenge chl_b7c82396ad623f6dc21efab0f008ea4b)
+sp1-head -> sub_2b0bafefe35a46dabf80f31c0b2f6dfd (challenge chl_3be93793610370275ae40f36a475f01f)
+
+== waiting for decisions  [14:40:23] load: 10.52 10.18 8.86
+
+== done  [17:00:58] load: 2.62 5.13 6.56
+
+plonky3-E: sub_71bfc6c01dc944379ddab765f27f94c7 decision=REJECTED accepted=False tier=experimental score=None
+  PKG_WELLFORMED               PASS                                        'package TreeDigest sha256:44e3259323550dd355ab2ea08c5819a54883fbe6ee0a5b9b9001a95725f40946; 3213 files, 39410323 bytes; manifest ok'
+  BUILD_REPRODUCIBLE           PASS                                        'two independent builds produced identical trees sha256:2f0ec0578d86834cb7de367823985e7b92f2815b87217c3c68f0d168778659df; prepare 10 ms, public dir 133'
+  FORMAL_SEMANTIC_SOUNDNESS    FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_SEMANTIC_COMPLETENESS FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_CRYPTO_SOUNDNESS      FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_IMPL_CONNECTION       FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  AXIOM_AUDIT                  FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  ARTIFACT_BINDING             FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  ADVERSARIAL_PROOFS           PASS                                        '155 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:n'
+  CONFORMANCE_DIFFERENTIAL     PASS                                        '23/23 cases conform (20 public fixtures, 3 judge-sampled)'
+  PROVER_RELIABILITY           PASS                                        '23/23 honest proofs produced and accepted'
+  RESOURCE_LIMITS              PASS                                        'public cases: max proof 7175778 bytes (cap 8388608), max verify 284 ms (cap 10000), peak memory 2348 MiB'
+  BENCHMARK                    FAIL     RESOURCE_LIMIT                     'no score: warmup run, a held-out case: failed (ResourceLimit; details withheld for held-out cases)'
+
+sp1-E: sub_f970b1abb61e4b4e9fe642d3fb0206ee decision=ADMITTED accepted=True tier=experimental score=None
+  PKG_WELLFORMED               PASS                                        'package TreeDigest sha256:d5af8f24ea7bfb78e4706e0e5e088d33d863f80796be3cc835501a9fefaad34e; 21170 files, 230870757 bytes; manifest ok'
+  BUILD_REPRODUCIBLE           PASS                                        'two independent builds produced identical trees sha256:16dd35347e4d4f909329bcc195bc96e17f98902fb8740350189e21bf55e5ecc4; prepare 11619 ms, public dir '
+  FORMAL_SEMANTIC_SOUNDNESS    FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_SEMANTIC_COMPLETENESS FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_CRYPTO_SOUNDNESS      FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_IMPL_CONNECTION       FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  AXIOM_AUDIT                  FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  ARTIFACT_BINDING             FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  ADVERSARIAL_PROOFS           PASS                                        '155 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:n'
+  CONFORMANCE_DIFFERENTIAL     PASS                                        '23/23 cases conform (20 public fixtures, 3 judge-sampled)'
+  PROVER_RELIABILITY           PASS                                        '23/23 honest proofs produced and accepted'
+  RESOURCE_LIMITS              PASS                                        'public cases: max proof 1272573 bytes (cap 8388608), max verify 76 ms (cap 10000), peak memory 36886 MiB'
+  BENCHMARK                    PASS                                        'challenge has no frozen baseline for every class: measured, not scored; batch-1: median 75008669 us, MAD 1351050 us, verify median 58382 us, max proof'
+
+reexec-E: sub_82c2272842f94ebe98f72176620ed5a5 decision=ADMITTED accepted=True tier=experimental score=None
+  PKG_WELLFORMED               PASS                                        'package TreeDigest sha256:d811a04a28be8f3ac0dea18656a1ae5b9ab35cd3a12e9e3d041dccd7a82981c4; 682 files, 6595205 bytes; manifest ok'
+  BUILD_REPRODUCIBLE           PASS                                        'two independent builds produced identical trees sha256:29551ea16cf95ec71752ca2b5b693629e221213fce56d6d85c99a5a949544a98; prepare 10 ms, public dir 110'
+  FORMAL_SEMANTIC_SOUNDNESS    PASS                                        'certificate type equals the judge-constructed statement; kernel rechecks accepted'
+  FORMAL_SEMANTIC_COMPLETENESS PASS                                        'certificate type equals the judge-constructed statement; kernel rechecks accepted'
+  FORMAL_CRYPTO_SOUNDNESS      PASS                                        'certificate type equals the judge-constructed statement; kernel rechecks accepted'
+  FORMAL_IMPL_CONNECTION       PASS                                        'certificate type equals the judge-constructed statement; kernel rechecks accepted'
+  AXIOM_AUDIT                  PASS                                        'certified closure uses only allowlisted axioms; no sorry/native shortcuts'
+  ARTIFACT_BINDING             PASS                                        "verifier executable is the judge's build of the certified Lean model; its digest is pinned in the statement (binary↔model edge: trusted Lean compiler/"
+  ADVERSARIAL_PROOFS           PASS                                        '146 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:n'
+  CONFORMANCE_DIFFERENTIAL     PASS                                        '23/23 cases conform (20 public fixtures, 3 judge-sampled)'
+  PROVER_RELIABILITY           PASS                                        '23/23 honest proofs produced and accepted'
+  RESOURCE_LIMITS              PASS                                        'public cases: max proof 66512 bytes (cap 8388608), max verify 189 ms (cap 10000), peak memory 1039 MiB'
+  BENCHMARK                    PASS                                        'challenge has no frozen baseline for every class: measured, not scored; batch-1: median 973 us, MAD 221 us, verify median 4899 us, max proof 625 B; ba'
+
+sp1-head: sub_2b0bafefe35a46dabf80f31c0b2f6dfd decision=REJECTED accepted=False tier=formal score=None
+  PKG_WELLFORMED               PASS                                        'package TreeDigest sha256:de81913866cf61d7ed0414f61387c94c154a87c972aa03cb4fe108d86cf5290a; 21170 files, 230870757 bytes; manifest ok'
+  BUILD_REPRODUCIBLE           PASS                                        'two independent builds produced identical trees sha256:16dd35347e4d4f909329bcc195bc96e17f98902fb8740350189e21bf55e5ecc4; prepare 11145 ms, public dir '
+  FORMAL_SEMANTIC_SOUNDNESS    FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_SEMANTIC_COMPLETENESS FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_CRYPTO_SOUNDNESS      FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_IMPL_CONNECTION       FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  AXIOM_AUDIT                  FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  ARTIFACT_BINDING             FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '

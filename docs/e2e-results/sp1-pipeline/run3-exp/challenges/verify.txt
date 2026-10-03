@@ -1,0 +1,3 @@
+warning: experimental tier: [ArtifactBinding, FormalSemanticSoundness, FormalSemanticCompleteness, FormalCryptoSoundness, FormalImplConnection, AxiomAudit] are diagnostic (evaluated and reported, never blocking, never in the decision; no rank, no formal acceptance)
+warning: no baseline yet (baseline_submission = null, baseline_ns = []): admissions are decided but scores are null until a superseding challenge pins baselines
+OK   chl_b7c82396ad623f6dc21efab0f008ea4b tier=Experimental name=near-transfer-receipt-v1-2

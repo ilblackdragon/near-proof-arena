@@ -1,0 +1,748 @@
+{
+  "id": "sub_71bfc6c01dc944379ddab765f27f94c7",
+  "challenge_id": "chl_b7c82396ad623f6dc21efab0f008ea4b",
+  "agent": "bootstrap",
+  "candidate_name": "stark-plonky3",
+  "backend_family": "custom-stark-plonky3-koalabear8-sha256",
+  "parent": null,
+  "tier": "experimental",
+  "package_digest": "sha256:db75cbf1fc1e33157cf54c37b932f5207e84c75b22c4deff554ea63b2eb70911",
+  "stage": "DECIDED",
+  "decision": "REJECTED",
+  "accepted": false,
+  "score_milli": null,
+  "change_class": "NO_PARENT",
+  "gates": [
+    {
+      "gate": "PKG_WELLFORMED",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "package TreeDigest sha256:44e3259323550dd355ab2ea08c5819a54883fbe6ee0a5b9b9001a95725f40946; 3213 files, 39410323 bytes; manifest ok",
+      "evidence": [],
+      "started_at": "2026-10-03T14:48:55.561425767Z",
+      "finished_at": "2026-10-03T14:48:55.79333342Z",
+      "reused_from": null
+    },
+    {
+      "gate": "BUILD_REPRODUCIBLE",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "two independent builds produced identical trees sha256:2f0ec0578d86834cb7de367823985e7b92f2815b87217c3c68f0d168778659df; prepare 10 ms, public dir 133 bytes, TreeDigest sha256:9b104135993f3bb46568ce2da4238e3e8bcf8b3830ce1da287fba9d8718fbe3a",
+      "evidence": [],
+      "started_at": "2026-10-03T14:50:19.181284903Z",
+      "finished_at": "2026-10-03T14:51:45.564265369Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_SEMANTIC_SOUNDNESS",
+      "mandatory": false,
+      "status": "FAIL",
+      "reason_codes": [
+        "ARTIFACT_BINDING_FAILED",
+        "MANIFEST_INVALID",
+        "CERTIFICATE_MISSING"
+      ],
+      "summary": "candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = \"native-lean\" so the judge builds it from the model)\nlakefile.toml: require `ArenaCore` is not allowlisted\nlakefile.toml: require `NearSpec` is not allowlisted\nCandidate.Spec: import NearSpec is not a candidate, trusted or toolchain module\ncandidate project rejected before it was built; certificate unavailable",
+      "evidence": [
+        {
+          "label": "formal check report",
+          "digest": "sha256:01db587cc0b787139dea055a86be8bebbf843a91a5689673c7f410c27aadfcfa",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T15:43:53.928356774Z",
+      "finished_at": "2026-10-03T15:43:54.199751181Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_SEMANTIC_COMPLETENESS",
+      "mandatory": false,
+      "status": "FAIL",
+      "reason_codes": [
+        "ARTIFACT_BINDING_FAILED",
+        "MANIFEST_INVALID",
+        "CERTIFICATE_MISSING"
+      ],
+      "summary": "candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = \"native-lean\" so the judge builds it from the model)\nlakefile.toml: require `ArenaCore` is not allowlisted\nlakefile.toml: require `NearSpec` is not allowlisted\nCandidate.Spec: import NearSpec is not a candidate, trusted or toolchain module\ncandidate project rejected before it was built; certificate unavailable",
+      "evidence": [
+        {
+          "label": "formal check report",
+          "digest": "sha256:01db587cc0b787139dea055a86be8bebbf843a91a5689673c7f410c27aadfcfa",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T15:43:53.928356774Z",
+      "finished_at": "2026-10-03T15:43:54.199751181Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_CRYPTO_SOUNDNESS",
+      "mandatory": false,
+      "status": "FAIL",
+      "reason_codes": [
+        "ARTIFACT_BINDING_FAILED",
+        "MANIFEST_INVALID",
+        "CERTIFICATE_MISSING"
+      ],
+      "summary": "candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = \"native-lean\" so the judge builds it from the model)\nlakefile.toml: require `ArenaCore` is not allowlisted\nlakefile.toml: require `NearSpec` is not allowlisted\nCandidate.Spec: import NearSpec is not a candidate, trusted or toolchain module\ncandidate project rejected before it was built; certificate unavailable",
+      "evidence": [
+        {
+          "label": "formal check report",
+          "digest": "sha256:01db587cc0b787139dea055a86be8bebbf843a91a5689673c7f410c27aadfcfa",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T15:43:53.928356774Z",
+      "finished_at": "2026-10-03T15:43:54.199751181Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_IMPL_CONNECTION",
+      "mandatory": false,
+      "status": "FAIL",
+      "reason_codes": [
+        "ARTIFACT_BINDING_FAILED",
+        "MANIFEST_INVALID",
+        "CERTIFICATE_MISSING"
+      ],
+      "summary": "candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = \"native-lean\" so the judge builds it from the model)\nlakefile.toml: require `ArenaCore` is not allowlisted\nlakefile.toml: require `NearSpec` is not allowlisted\nCandidate.Spec: import NearSpec is not a candidate, trusted or toolchain module\ncandidate project rejected before it was built; certificate unavailable",
+      "evidence": [
+        {
+          "label": "formal check report",
+          "digest": "sha256:01db587cc0b787139dea055a86be8bebbf843a91a5689673c7f410c27aadfcfa",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T15:43:53.928356774Z",
+      "finished_at": "2026-10-03T15:43:54.199751181Z",
+      "reused_from": null
+    },
+    {
+      "gate": "AXIOM_AUDIT",
+      "mandatory": false,
+      "status": "FAIL",
+      "reason_codes": [
+        "ARTIFACT_BINDING_FAILED",
+        "MANIFEST_INVALID",
+        "CERTIFICATE_MISSING"
+      ],
+      "summary": "candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = \"native-lean\" so the judge builds it from the model)\nlakefile.toml: require `ArenaCore` is not allowlisted\nlakefile.toml: require `NearSpec` is not allowlisted\nCandidate.Spec: import NearSpec is not a candidate, trusted or toolchain module\ncandidate project rejected before it was built; certificate unavailable",
+      "evidence": [
+        {
+          "label": "formal check report",
+          "digest": "sha256:01db587cc0b787139dea055a86be8bebbf843a91a5689673c7f410c27aadfcfa",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T15:43:53.928356774Z",
+      "finished_at": "2026-10-03T15:43:54.199751181Z",
+      "reused_from": null
+    },
+    {
+      "gate": "ARTIFACT_BINDING",
+      "mandatory": false,
+      "status": "FAIL",
+      "reason_codes": [
+        "ARTIFACT_BINDING_FAILED"
+      ],
+      "summary": "candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = \"native-lean\" so the judge builds it from the model)",
+      "evidence": [
+        {
+          "label": "formal check report",
+          "digest": "sha256:01db587cc0b787139dea055a86be8bebbf843a91a5689673c7f410c27aadfcfa",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T15:43:53.928356774Z",
+      "finished_at": "2026-10-03T15:43:54.199751181Z",
+      "reused_from": null
+    },
+    {
+      "gate": "ADVERSARIAL_PROOFS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "155 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:noncanonical,adv:altered-commitment,adv:truncated-merkle-path,adv:swapped-siblings,adv:duplicated-node,adv:node-type-confusion,adv:transcript-tamper,adv:domain-separation,adv:mismatched-context,adv:recursive-substitution]: 155 rejected, 0 errored (not accepted), 0 timed out (not accepted), 0 accepted",
+      "evidence": [],
+      "started_at": "2026-10-03T16:58:21.862773858Z",
+      "finished_at": "2026-10-03T17:00:12.099159196Z",
+      "reused_from": null
+    },
+    {
+      "gate": "CONFORMANCE_DIFFERENTIAL",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "23/23 cases conform (20 public fixtures, 3 judge-sampled)",
+      "evidence": [
+        {
+          "label": "claim fixture/example-tierA",
+          "digest": "sha256:10143c59f0ade440b4083f683ad64874eb4c8c62f0c6676a97be35d91419df51",
+          "public": true
+        },
+        {
+          "label": "claim fixture/example-tierB",
+          "digest": "sha256:52105ad679a1c78b42179912e846e8d79978918f2a67c6ed6437caa27d8d8871",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v0",
+          "digest": "sha256:0e7e710a032e95d90649a64db8376eda17172cbf15128a6264f27a900a4f67bf",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v1",
+          "digest": "sha256:4469ac3e490d1583d3eb9785419be3f3d9e92734c7a97f519eeaf46ef7d95bcd",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v10",
+          "digest": "sha256:32ae95c80000819d74cc53c80bd0a0dc2cc17c76ea8fd9d919faa1ba9795d88b",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v11",
+          "digest": "sha256:2e5279432846e51332c70b210f9b837110ea82b710afccf7487553ef5a3a151d",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v12",
+          "digest": "sha256:759d260d4243e809cb5d4b7e362c17a10d57c610540f02b04b7c37c9cfb65016",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v13",
+          "digest": "sha256:0d8bb49db94ac01a543788fd80fe75db8d2e22b2ef5849fc540390226bcb0f92",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v14",
+          "digest": "sha256:9ea57c240ab6e1b23cc5491ddcc237c8022d7f8218e84b139f2fbee6996eeecd",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v15",
+          "digest": "sha256:4d559d143f03992240bcfd3ec12bbc98bb325144ef601736d23d6f2f57909488",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v16",
+          "digest": "sha256:357f44c54b7b9bd9e165615d63b632136068568c3a7cfbb7c4d9051721621891",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v17",
+          "digest": "sha256:d6dd1b0e78517d53421fcb81af569cb9163b55b8b6a97d0c01a0096f8dcd9602",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v2",
+          "digest": "sha256:6cf458e3eca87357185d97afaebd9580a04ed625e96f452b06d71ec59ede9afe",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v3",
+          "digest": "sha256:6edb6c3e24d5329ec08f0158f99a439fb5bf68b9f9b3dc4bea097ab75f7ef212",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v4",
+          "digest": "sha256:b02f73a48fc5f42095373bde8224f4ab55d0d16ed7b63e75af4a20c4c40d07e8",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v5",
+          "digest": "sha256:e5dc6d967b06c420fc54284d79c5f8dd64c7ba24020b458121a09f50605fed4f",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v6",
+          "digest": "sha256:e15cd189ad76fd4d6aa4d0889e046c0ea9d9783cbfcae985a6e72ca8d35cf025",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v7",
+          "digest": "sha256:f72cabd6afad45bb5caa60bbbdf4a4b954e2d60fa936e2ec463489af13c96613",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v8",
+          "digest": "sha256:030c9927b4a4cabdd01ddde48f1713e90976997e87d216e4feae681303a9272c",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v9",
+          "digest": "sha256:3cf9cc3df63476c1a7b505032caac4963053a9436366dd884b34d13332ee2d71",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T17:00:12.26490738Z",
+      "finished_at": "2026-10-03T17:00:49.72355046Z",
+      "reused_from": null
+    },
+    {
+      "gate": "PROVER_RELIABILITY",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "23/23 honest proofs produced and accepted",
+      "evidence": [
+        {
+          "label": "proof fixture/example-tierA",
+          "digest": "sha256:7b87772c0c2526907c6749c563373601482fe73823e6e37b0660367752cd8580",
+          "public": true
+        },
+        {
+          "label": "proof fixture/example-tierB",
+          "digest": "sha256:fe541976eb9be0c13c05ff64ce569f24d03217fa7ae893e7f5f05121be8ca1ed",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v0",
+          "digest": "sha256:77f30a8e8dd14fa508cd7dfb182b1dc55c1e7df7041085eb24839a4f331d7455",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v1",
+          "digest": "sha256:6d6514290cff18e61be67137ecf12744559ade8533cb78b95f85069e34f60856",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v10",
+          "digest": "sha256:a012e3e22ed1356fcf71fe249b85a6f1b952af1f1dda5992cf765ba32afe8888",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v11",
+          "digest": "sha256:a50ef4600159417f51cc4499b87a8870e3eca89b7cab8fcbba8bf7ce02996dbd",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v12",
+          "digest": "sha256:9edf5fb9e38b5b2fe982b101e4b5b1d224796b6312b6b46f75014545b73cafc8",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v13",
+          "digest": "sha256:561f9be7313ccc8454eeae360421eaa03b62ae41aeac7b81f2a43a50bd1735eb",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v14",
+          "digest": "sha256:7565b1a3f122ff5be2352db2f9d4a70461dea6a842f09101fd1169cbf1c1ad30",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v15",
+          "digest": "sha256:86d48992f43ad4211fd02e8a91d631812ca638bfd1a83ed8d7e50874db1974d3",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v16",
+          "digest": "sha256:08ed8f69a08daafdb3fd97953697b268ea5b466831056b2a40719a9d0a7280f0",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v17",
+          "digest": "sha256:1cdd5ac84eece6903a68c02913d13aec022da395ada6c7f8988c098cd37ea65e",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v2",
+          "digest": "sha256:8a4d2c0eaccefd64eddcd579ec5d50d3c7eb654ecca64128b6c4466f9af61803",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v3",
+          "digest": "sha256:557b034f87379615af2199a1da1aaaff381241d47857fce5b1eef9c678319174",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v4",
+          "digest": "sha256:3ac9088701310dc00c94989ed7baa3325f2ec2bded8ee5b374f1db55fe9f5fde",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v5",
+          "digest": "sha256:86c66440f759d1199602ec0b7bae09caac8d120ac33efe95d2292e6a94cba7d6",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v6",
+          "digest": "sha256:57a364c3883ad7b6c1f499797d05abd0a7055581cc48cec4f8f98c7b0515f946",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v7",
+          "digest": "sha256:34492bf935e68e8e21cf4cbd65388e12427ca7d6cdce5cfeb4babeb9b09404cd",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v8",
+          "digest": "sha256:dcbc0f1b411c40c87337bc965c4b26e41cceaeb585aa8be43bcc8797c861cc3d",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v9",
+          "digest": "sha256:1c371892605066a05dc1ea8ccf280ab9fd6e9de57a5b480227ddd02ed809d74e",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T17:00:12.26492344Z",
+      "finished_at": "2026-10-03T17:00:49.723572681Z",
+      "reused_from": null
+    },
+    {
+      "gate": "RESOURCE_LIMITS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "public cases: max proof 7175778 bytes (cap 8388608), max verify 284 ms (cap 10000), peak memory 2348 MiB",
+      "evidence": [],
+      "started_at": "2026-10-03T17:00:12.264925043Z",
+      "finished_at": "2026-10-03T17:00:49.72357725Z",
+      "reused_from": null
+    },
+    {
+      "gate": "BENCHMARK",
+      "mandatory": true,
+      "status": "FAIL",
+      "reason_codes": [
+        "RESOURCE_LIMIT"
+      ],
+      "summary": "no score: warmup run, a held-out case: failed (ResourceLimit; details withheld for held-out cases)",
+      "evidence": [],
+      "started_at": "2026-10-03T17:00:49.762686554Z",
+      "finished_at": "2026-10-03T17:00:57.834774767Z",
+      "reused_from": null
+    }
+  ],
+  "reason_codes": [
+    "RESOURCE_LIMIT",
+    "ARTIFACT_BINDING_FAILED",
+    "MANIFEST_INVALID",
+    "CERTIFICATE_MISSING",
+    "OBLIGATION_UNDISCHARGED"
+  ],
+  "benchmark": null,
+  "evidence_graph": {
+    "nodes": [
+      {
+        "id": "formal:certificate",
+        "kind": "theorem",
+        "label": "certificate Candidate.certificate",
+        "digest": null
+      },
+      {
+        "id": "formal:expected_statement",
+        "kind": "theorem",
+        "label": "judge-constructed admission statement",
+        "digest": null
+      },
+      {
+        "id": "tcb:lean_toolchain",
+        "kind": "tcb_component",
+        "label": "Lean leanprover/lean4:v4.34.1",
+        "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+      },
+      {
+        "id": "formal:trusted:formal-core",
+        "kind": "formal_semantics",
+        "label": "formal-core",
+        "digest": "sha256:7538df03755001e87f18b1d2ac0d61aebc5afbb6b2d11142506c2d3ff11ceae6"
+      },
+      {
+        "id": "formal:trusted:near-spec",
+        "kind": "formal_semantics",
+        "label": "near-spec",
+        "digest": "sha256:3f2a84e3f87f4500880990f861849cae0fdbf0ed46337268a948a2ba4bba012e"
+      }
+    ],
+    "edges": [
+      {
+        "from": "formal:certificate",
+        "to": "formal:expected_statement",
+        "kind": "proves",
+        "status": "missing",
+        "evidence": [],
+        "note": "syntactic Expr equality of the certificate type and the reference statement"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:formal-core",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:7538df03755001e87f18b1d2ac0d61aebc5afbb6b2d11142506c2d3ff11ceae6"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:near-spec",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:3f2a84e3f87f4500880990f861849cae0fdbf0ed46337268a948a2ba4bba012e"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      }
+    ]
+  },
+  "revoked": null,
+  "created_at": "2026-10-03T14:40:06.377509Z",
+  "updated_at": "2026-10-03T17:00:57.839394Z",
+  "artifacts": [
+    {
+      "label": "build log 1",
+      "digest": "sha256:681c4b44abcb12c5bb50a5a9ae609dd8a59e6c13532c3df37944169e92cc4644"
+    },
+    {
+      "label": "build log 2",
+      "digest": "sha256:b3eb6b02e0386e1715f3df84caf6feeeec402f245d54a2df4aa1e5814ad8f75a"
+    },
+    {
+      "label": "public_artifacts",
+      "digest": "sha256:2ff3160fee3ec5f48041311bd7099035cf25dbcdd019e506a22ad1c778605b80"
+    },
+    {
+      "label": "formal check report",
+      "digest": "sha256:01db587cc0b787139dea055a86be8bebbf843a91a5689673c7f410c27aadfcfa"
+    },
+    {
+      "label": "claim fixture/example-tierA",
+      "digest": "sha256:10143c59f0ade440b4083f683ad64874eb4c8c62f0c6676a97be35d91419df51"
+    },
+    {
+      "label": "proof fixture/example-tierA",
+      "digest": "sha256:7b87772c0c2526907c6749c563373601482fe73823e6e37b0660367752cd8580"
+    },
+    {
+      "label": "claim fixture/example-tierB",
+      "digest": "sha256:52105ad679a1c78b42179912e846e8d79978918f2a67c6ed6437caa27d8d8871"
+    },
+    {
+      "label": "proof fixture/example-tierB",
+      "digest": "sha256:fe541976eb9be0c13c05ff64ce569f24d03217fa7ae893e7f5f05121be8ca1ed"
+    },
+    {
+      "label": "claim fixture/s20261003-v0",
+      "digest": "sha256:0e7e710a032e95d90649a64db8376eda17172cbf15128a6264f27a900a4f67bf"
+    },
+    {
+      "label": "proof fixture/s20261003-v0",
+      "digest": "sha256:77f30a8e8dd14fa508cd7dfb182b1dc55c1e7df7041085eb24839a4f331d7455"
+    },
+    {
+      "label": "claim fixture/s20261003-v1",
+      "digest": "sha256:4469ac3e490d1583d3eb9785419be3f3d9e92734c7a97f519eeaf46ef7d95bcd"
+    },
+    {
+      "label": "proof fixture/s20261003-v1",
+      "digest": "sha256:6d6514290cff18e61be67137ecf12744559ade8533cb78b95f85069e34f60856"
+    },
+    {
+      "label": "claim fixture/s20261003-v10",
+      "digest": "sha256:32ae95c80000819d74cc53c80bd0a0dc2cc17c76ea8fd9d919faa1ba9795d88b"
+    },
+    {
+      "label": "proof fixture/s20261003-v10",
+      "digest": "sha256:a012e3e22ed1356fcf71fe249b85a6f1b952af1f1dda5992cf765ba32afe8888"
+    },
+    {
+      "label": "claim fixture/s20261003-v11",
+      "digest": "sha256:2e5279432846e51332c70b210f9b837110ea82b710afccf7487553ef5a3a151d"
+    },
+    {
+      "label": "proof fixture/s20261003-v11",
+      "digest": "sha256:a50ef4600159417f51cc4499b87a8870e3eca89b7cab8fcbba8bf7ce02996dbd"
+    },
+    {
+      "label": "claim fixture/s20261003-v12",
+      "digest": "sha256:759d260d4243e809cb5d4b7e362c17a10d57c610540f02b04b7c37c9cfb65016"
+    },
+    {
+      "label": "proof fixture/s20261003-v12",
+      "digest": "sha256:9edf5fb9e38b5b2fe982b101e4b5b1d224796b6312b6b46f75014545b73cafc8"
+    },
+    {
+      "label": "claim fixture/s20261003-v13",
+      "digest": "sha256:0d8bb49db94ac01a543788fd80fe75db8d2e22b2ef5849fc540390226bcb0f92"
+    },
+    {
+      "label": "proof fixture/s20261003-v13",
+      "digest": "sha256:561f9be7313ccc8454eeae360421eaa03b62ae41aeac7b81f2a43a50bd1735eb"
+    },
+    {
+      "label": "claim fixture/s20261003-v14",
+      "digest": "sha256:9ea57c240ab6e1b23cc5491ddcc237c8022d7f8218e84b139f2fbee6996eeecd"
+    },
+    {
+      "label": "proof fixture/s20261003-v14",
+      "digest": "sha256:7565b1a3f122ff5be2352db2f9d4a70461dea6a842f09101fd1169cbf1c1ad30"
+    },
+    {
+      "label": "claim fixture/s20261003-v15",
+      "digest": "sha256:4d559d143f03992240bcfd3ec12bbc98bb325144ef601736d23d6f2f57909488"
+    },
+    {
+      "label": "proof fixture/s20261003-v15",
+      "digest": "sha256:86d48992f43ad4211fd02e8a91d631812ca638bfd1a83ed8d7e50874db1974d3"
+    },
+    {
+      "label": "claim fixture/s20261003-v16",
+      "digest": "sha256:357f44c54b7b9bd9e165615d63b632136068568c3a7cfbb7c4d9051721621891"
+    },
+    {
+      "label": "proof fixture/s20261003-v16",
+      "digest": "sha256:08ed8f69a08daafdb3fd97953697b268ea5b466831056b2a40719a9d0a7280f0"
+    },
+    {
+      "label": "claim fixture/s20261003-v17",
+      "digest": "sha256:d6dd1b0e78517d53421fcb81af569cb9163b55b8b6a97d0c01a0096f8dcd9602"
+    },
+    {
+      "label": "proof fixture/s20261003-v17",
+      "digest": "sha256:1cdd5ac84eece6903a68c02913d13aec022da395ada6c7f8988c098cd37ea65e"
+    },
+    {
+      "label": "claim fixture/s20261003-v2",
+      "digest": "sha256:6cf458e3eca87357185d97afaebd9580a04ed625e96f452b06d71ec59ede9afe"
+    },
+    {
+      "label": "proof fixture/s20261003-v2",
+      "digest": "sha256:8a4d2c0eaccefd64eddcd579ec5d50d3c7eb654ecca64128b6c4466f9af61803"
+    },
+    {
+      "label": "claim fixture/s20261003-v3",
+      "digest": "sha256:6edb6c3e24d5329ec08f0158f99a439fb5bf68b9f9b3dc4bea097ab75f7ef212"
+    },
+    {
+      "label": "proof fixture/s20261003-v3",
+      "digest": "sha256:557b034f87379615af2199a1da1aaaff381241d47857fce5b1eef9c678319174"
+    },
+    {
+      "label": "claim fixture/s20261003-v4",
+      "digest": "sha256:b02f73a48fc5f42095373bde8224f4ab55d0d16ed7b63e75af4a20c4c40d07e8"
+    },
+    {
+      "label": "proof fixture/s20261003-v4",
+      "digest": "sha256:3ac9088701310dc00c94989ed7baa3325f2ec2bded8ee5b374f1db55fe9f5fde"
+    },
+    {
+      "label": "claim fixture/s20261003-v5",
+      "digest": "sha256:e5dc6d967b06c420fc54284d79c5f8dd64c7ba24020b458121a09f50605fed4f"
+    },
+    {
+      "label": "proof fixture/s20261003-v5",
+      "digest": "sha256:86c66440f759d1199602ec0b7bae09caac8d120ac33efe95d2292e6a94cba7d6"
+    },
+    {
+      "label": "claim fixture/s20261003-v6",
+      "digest": "sha256:e15cd189ad76fd4d6aa4d0889e046c0ea9d9783cbfcae985a6e72ca8d35cf025"
+    },
+    {
+      "label": "proof fixture/s20261003-v6",
+      "digest": "sha256:57a364c3883ad7b6c1f499797d05abd0a7055581cc48cec4f8f98c7b0515f946"
+    },
+    {
+      "label": "claim fixture/s20261003-v7",
+      "digest": "sha256:f72cabd6afad45bb5caa60bbbdf4a4b954e2d60fa936e2ec463489af13c96613"
+    },
+    {
+      "label": "proof fixture/s20261003-v7",
+      "digest": "sha256:34492bf935e68e8e21cf4cbd65388e12427ca7d6cdce5cfeb4babeb9b09404cd"
+    },
+    {
+      "label": "claim fixture/s20261003-v8",
+      "digest": "sha256:030c9927b4a4cabdd01ddde48f1713e90976997e87d216e4feae681303a9272c"
+    },
+    {
+      "label": "proof fixture/s20261003-v8",
+      "digest": "sha256:dcbc0f1b411c40c87337bc965c4b26e41cceaeb585aa8be43bcc8797c861cc3d"
+    },
+    {
+      "label": "claim fixture/s20261003-v9",
+      "digest": "sha256:3cf9cc3df63476c1a7b505032caac4963053a9436366dd884b34d13332ee2d71"
+    },
+    {
+      "label": "proof fixture/s20261003-v9",
+      "digest": "sha256:1c371892605066a05dc1ea8ccf280ab9fd6e9de57a5b480227ddd02ed809d74e"
+    }
+  ],
+  "verified_surface": {
+    "challenge_id": "chl_b7c82396ad623f6dc21efab0f008ea4b",
+    "verify_artifact": "sha256:22f2d5d3d6222cecb1d917376d68c76bb684daf8b61a7f6d3c34dcae472d3158",
+    "prepare_artifact": "sha256:e465988198529063dbdbb8ada1f8e7fc020b2bd4f414e9b99b629c0f098c1df7",
+    "public_artifacts": "sha256:9b104135993f3bb46568ce2da4238e3e8bcf8b3830ce1da287fba9d8718fbe3a",
+    "formal_tree": "sha256:36f8fc4d98f3fa20d601c89a663ad40a0805e3312fe568dc50085dd567003c8b",
+    "certificate_decl": "Candidate.certificate",
+    "checker_image": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e",
+    "verify_route": "native"
+  },
+  "build": {
+    "toolchain_image": "sha256:70d2b28003f8117601772dedb7f42393e928ccfcca7356a49d675ec3f878a8a1",
+    "reproducible": true,
+    "build_ns": 39111779378
+  },
+  "assumptions": [
+    {
+      "id": "sha256-collision-resistance",
+      "lean_decl": null,
+      "description": null
+    },
+    {
+      "id": "random-oracle-fiat-shamir-sha256",
+      "lean_decl": null,
+      "description": null
+    }
+  ],
+  "trusted_base": [
+    {
+      "id": "lean-toolchain",
+      "label": "Lean kernel (leanprover/lean4:v4.34.1)",
+      "digest": null
+    },
+    {
+      "id": "checker-image",
+      "label": "formal checker image",
+      "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+    },
+    {
+      "id": "rechecker:leanchecker",
+      "label": "rechecker leanchecker",
+      "digest": null
+    },
+    {
+      "id": "rechecker:nanoda",
+      "label": "rechecker nanoda",
+      "digest": null
+    },
+    {
+      "id": "rechecker:lean4lean",
+      "label": "rechecker lean4lean",
+      "digest": null
+    },
+    {
+      "id": "sandbox:firecracker",
+      "label": "judge sandbox backend firecracker",
+      "digest": null
+    },
+    {
+      "id": "tcb:lean_toolchain",
+      "label": "Lean leanprover/lean4:v4.34.1",
+      "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+    }
+  ],
+  "logs": [
+    {
+      "name": "FORMAL_CHECK",
+      "stage": "FORMAL_CHECK",
+      "text": "checker: lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1; identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e\nlake-manifest.json ignored (judge supplies pinned dependencies)",
+      "truncated": false
+    }
+  ],
+  "revocation_history": []
+}

@@ -1,0 +1,40 @@
+
+== build  [17:02:38] load: 1.71 4.07 6.03
+
+== challenges  [17:02:40] load: 1.71 4.07 6.03
+lean-checker image d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, checker identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e
+warning: experimental tier: [ArtifactBinding, FormalSemanticSoundness, FormalSemanticCompleteness, FormalCryptoSoundness, FormalImplConnection, AxiomAudit] are diagnostic (evaluated and reported, never blocking, never in the decision; no rank, no formal acceptance)
+warning: no baseline yet (baseline_submission = null, baseline_ns = []): admissions are decided but scores are null until a superseding challenge pins baselines
+OK   chl_b7c82396ad623f6dc21efab0f008ea4b tier=Experimental name=near-transfer-receipt-v1-2
+BASE chl_3be93793610370275ae40f36a475f01f
+E chl_b7c82396ad623f6dc21efab0f008ea4b
+
+== database arena_sp1  [17:02:41] load: 1.71 4.07 6.03
+
+== arena-server on 127.0.0.1:18581  [17:02:41] load: 1.71 4.07 6.03
+registered chl_3be93793610370275ae40f36a475f01f formal
+registered chl_b7c82396ad623f6dc21efab0f008ea4b experimental
+
+== Firecracker worker (tier cap formal), candidate VMs on host CPUs 16-23  [17:02:41] load: 1.71 4.07 6.03
+
+== submissions  [17:02:41] load: 1.71 4.07 6.03
+plonky3-E -> sub_26bc5daedf544182ab71eeec7559d3e3 (challenge chl_b7c82396ad623f6dc21efab0f008ea4b)
+
+== waiting for decisions  [17:02:44] load: 1.65 4.02 6.01
+
+== done  [17:09:14] load: 4.44 3.92 5.25
+
+plonky3-E: sub_26bc5daedf544182ab71eeec7559d3e3 decision=ADMITTED accepted=True tier=experimental score=None
+  PKG_WELLFORMED               PASS                                        'package TreeDigest sha256:44e3259323550dd355ab2ea08c5819a54883fbe6ee0a5b9b9001a95725f40946; 3213 files, 39410323 bytes; manifest ok'
+  BUILD_REPRODUCIBLE           PASS                                        'two independent builds produced identical trees sha256:2f0ec0578d86834cb7de367823985e7b92f2815b87217c3c68f0d168778659df; prepare 10 ms, public dir 133'
+  FORMAL_SEMANTIC_SOUNDNESS    FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_SEMANTIC_COMPLETENESS FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_CRYPTO_SOUNDNESS      FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  FORMAL_IMPL_CONNECTION       FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  AXIOM_AUDIT                  FAIL     ARTIFACT_BINDING_FAILED,MANIFEST_INVALID,CERTIFICATE_MISSING 'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  ARTIFACT_BINDING             FAIL     ARTIFACT_BINDING_FAILED            'candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = "native-lean" so the judge builds it from the '
+  CONFORMANCE_DIFFERENTIAL     PASS                                        '23/23 cases conform (20 public fixtures, 3 judge-sampled)'
+  PROVER_RELIABILITY           PASS                                        '23/23 honest proofs produced and accepted'
+  RESOURCE_LIMITS              PASS                                        'public cases: max proof 7175778 bytes (cap 8388608), max verify 295 ms (cap 10000), peak memory 2359 MiB'
+  ADVERSARIAL_PROOFS           PASS                                        '155 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:n'
+  BENCHMARK                    PASS                                        'session 1: CACHING_SUSPECTED; re-measured on fresh batches only; session 1 discarded (EXCESSIVE_OUTLIERS:batch-1); re-measured; challenge has no froze'

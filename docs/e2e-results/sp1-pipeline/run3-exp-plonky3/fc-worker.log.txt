@@ -1,0 +1,14 @@
+arena-worker: fixtures /data/illia/nearproof-deps/sp1-pipeline/work/clean/oracle/fixtures/public = sha256:c83f3e14d526e78244ee2d7288396a9680717fa42ef77127ba29ccf27bb7e6ec
+arena-worker sp1-fc-worker: backend firecracker (tier cap Formal), kinds ["VALIDATE", "BUILD", "FORMAL_CHECK", "CONFORMANCE", "ADVERSARIAL", "BENCHMARK"]
+[arena-worker] leased job 40cbc668-d45b-4e39-8a8b-654c399d574b (VALIDATE, attempt 1/3)
+[arena-worker] completed job 40cbc668-d45b-4e39-8a8b-654c399d574b
+[arena-worker] leased job 0313d8d9-d3a3-43e2-ba5b-623605a08a3d (BUILD, attempt 1/3)
+[arena-worker] completed job 0313d8d9-d3a3-43e2-ba5b-623605a08a3d
+[arena-worker] leased job 41c3813e-bc6e-485c-b7b6-3c52ab300092 (FORMAL_CHECK, attempt 1/3)
+[arena-worker] completed job 41c3813e-bc6e-485c-b7b6-3c52ab300092
+[arena-worker] leased job 98141e69-f174-4bea-80db-5fb42fd5c804 (CONFORMANCE, attempt 1/3)
+[arena-worker] completed job 98141e69-f174-4bea-80db-5fb42fd5c804
+[arena-worker] leased job c7437082-7292-409f-bd1d-68830faab26f (ADVERSARIAL, attempt 1/3)
+[arena-worker] completed job c7437082-7292-409f-bd1d-68830faab26f
+[arena-worker] leased job 4b61bf56-3a96-409f-93b2-be3ac2d92bfc (BENCHMARK, attempt 1/3)
+[arena-worker] completed job 4b61bf56-3a96-409f-93b2-be3ac2d92bfc

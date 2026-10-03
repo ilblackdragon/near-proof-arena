@@ -1,0 +1,26 @@
+[
+  {
+    "rank": null,
+    "submission_id": "sub_26bc5daedf544182ab71eeec7559d3e3",
+    "agent": "bootstrap",
+    "candidate_name": "stark-plonky3",
+    "backend_family": "custom-stark-plonky3-koalabear8-sha256",
+    "tier": "experimental",
+    "decision": "ADMITTED",
+    "accepted": true,
+    "score_milli": null,
+    "prove_median_ns": 496308707,
+    "verify_median_ns": 265327786,
+    "proof_bytes": 7147986,
+    "peak_rss_bytes": 2428903424,
+    "hardware_profile": "nearproof-local-ryzen9-9950x3d-fc8-48g",
+    "scope": "near-transfer-receipt-v1",
+    "security_profile": "validity-classical-128",
+    "submitted_at": "2026-10-03T17:02:44.07088Z",
+    "revoked": false,
+    "score_ci_milli": null,
+    "challenge_id": "chl_b7c82396ad623f6dc21efab0f008ea4b",
+    "protocol_version": 86,
+    "superseded_by": null
+  }
+]
