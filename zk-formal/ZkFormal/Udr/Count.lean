@@ -135,4 +135,22 @@ theorem count_ge_mul_le_sum {α : Type} (l : List α) (f : α → Nat) (c : Nat)
     · simp only [h, ite_true, Nat.add_mul, Nat.one_mul]; omega
     · simp only [h, ite_false, Nat.add_zero]; omega
 
+theorem count_add_count_not {α : Type} (l : List α) (P : α → Prop) :
+    count l P + count l (fun a => ¬ P a) = l.length := by
+  classical
+  induction l with
+  | nil => simp [count]
+  | cons a l ih =>
+    rw [count_cons, count_cons, List.length_cons, ← ih]
+    by_cases h : P a <;> simp [h] <;> omega
+
+/-- The filtered sublist realizing a count. -/
+theorem filter_props {α : Type} (l : List α) (P : α → Prop) :
+    ∃ l' : List α, l'.length = count l P ∧ (∀ a ∈ l', a ∈ l ∧ P a) ∧ (l.Nodup → l'.Nodup) := by
+  classical
+  refine ⟨l.filter fun a => decide (P a), (count_eq_length_filter l P).symm, fun a ha => ?_,
+    fun h => h.filter _⟩
+  have := List.mem_filter.mp ha
+  exact ⟨this.1, by simpa using this.2⟩
+
 end ZkFormal.Udr

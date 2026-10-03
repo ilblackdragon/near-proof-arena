@@ -9,3 +9,7 @@ import ZkFormal.Params
 -- L3: IOP facts in the unique-decoding regime.
 import ZkFormal.Udr.Count
 import ZkFormal.Udr.Code
+import ZkFormal.Udr.Poly
+import ZkFormal.Udr.RS
+import ZkFormal.Udr.Statements
+import ZkFormal.Udr.Compose
