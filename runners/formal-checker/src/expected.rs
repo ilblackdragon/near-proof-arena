@@ -16,7 +16,14 @@ pub trait ExpectedTypeBuilder: Send + Sync {
     /// Fully qualified name of the definition holding the expected type.
     fn decl_name(&self) -> &str;
     /// Full Lean source of the generated module.
-    fn render(&self) -> Result<String, ExpectedError>;
+    fn render(&self) -> Result<String, ExpectedError> {
+        self.render_with(&BTreeMap::new())
+    }
+    /// Render with judge-computed extra data (e.g. the digest of the judge's
+    /// native verifier build for the `native-lean` route).
+    fn render_with(&self, extra: &BTreeMap<String, LeanValue>) -> Result<String, ExpectedError>;
+    /// Digest identifying template + static data (for cache keys).
+    fn identity(&self) -> Digest;
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -96,7 +103,14 @@ impl ExpectedTypeBuilder for TemplateExpected {
     fn decl_name(&self) -> &str {
         &self.decl
     }
-    fn render(&self) -> Result<String, ExpectedError> {
+    fn identity(&self) -> Digest {
+        crate::digest::json_digest(self)
+    }
+    fn render_with(&self, extra: &BTreeMap<String, LeanValue>) -> Result<String, ExpectedError> {
+        let mut data = self.data.clone();
+        for (k, v) in extra {
+            data.insert(k.clone(), v.clone());
+        }
         let mut out = String::new();
         let mut used = std::collections::BTreeSet::new();
         let mut rest = self.template.as_str();
@@ -105,13 +119,13 @@ impl ExpectedTypeBuilder for TemplateExpected {
             let after = &rest[i + 2..];
             let j = after.find("}}").ok_or(ExpectedError::Unterminated)?;
             let key = after[..j].trim();
-            let v = self.data.get(key).ok_or_else(|| ExpectedError::MissingData(key.into()))?;
+            let v = data.get(key).ok_or_else(|| ExpectedError::MissingData(key.into()))?;
             out.push_str(&v.render(key)?);
             used.insert(key.to_string());
             rest = &after[j + 2..];
         }
         out.push_str(rest);
-        if let Some(k) = self.data.keys().find(|k| !used.contains(*k)) {
+        if let Some(k) = data.keys().find(|k| !used.contains(*k)) {
             return Err(ExpectedError::UnusedData(k.clone()));
         }
         Ok(out)

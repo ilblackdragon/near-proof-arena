@@ -697,6 +697,78 @@ fn stacker_hash(ex: &Export, root: u32, subst: Option<&HashMap<String, String>>,
     memo[&root]
 }
 
+/// Hash of `Expr.const name []` (same encoding as `hash_expr_node`).
+pub fn const_hash(name: &str) -> H {
+    let mut h = h_init(b"ec");
+    h_bytes(&mut h, name.as_bytes());
+    h.update(0u64.to_le_bytes());
+    h.finalize().into()
+}
+
+impl Export {
+    /// If `lam` is `fun x => body`, the structural hash of `body[x := c]`
+    /// where `repl` is the hash of `c` (a closed term).
+    pub fn lambda_body_instantiated(&self, lam: u32, repl: &H) -> Option<H> {
+        let ExprNode::Lam(_, body) = self.exprs[self.unmdata(lam) as usize] else { return None };
+        let mut memo = HashMap::new();
+        Some(self.hash_inst(body, 0, repl, &mut memo))
+    }
+
+    fn hash_inst(&self, i: u32, depth: u64, repl: &H, memo: &mut HashMap<(u32, u64), H>) -> H {
+        if let Some(h) = memo.get(&(i, depth)) {
+            return *h;
+        }
+        let node = &self.exprs[i as usize];
+        let h: H = match node {
+            ExprNode::BVar(k) if *k == depth => *repl,
+            ExprNode::BVar(k) if *k > depth => {
+                let mut h = h_init(b"eb");
+                h.update((k - 1).to_le_bytes());
+                h.finalize().into()
+            }
+            ExprNode::App(f, a) => {
+                let mut h = h_init(b"ea");
+                h.update(self.hash_inst(*f, depth, repl, memo));
+                h.update(self.hash_inst(*a, depth, repl, memo));
+                h.finalize().into()
+            }
+            ExprNode::Lam(t, b) | ExprNode::Pi(t, b) => {
+                let mut h = h_init(if matches!(node, ExprNode::Lam(..)) { b"el" } else { b"ep" });
+                h.update(self.hash_inst(*t, depth, repl, memo));
+                h.update(self.hash_inst(*b, depth + 1, repl, memo));
+                h.finalize().into()
+            }
+            ExprNode::Let(t, v, b) => {
+                let mut h = h_init(b"ez");
+                h.update(self.hash_inst(*t, depth, repl, memo));
+                h.update(self.hash_inst(*v, depth, repl, memo));
+                h.update(self.hash_inst(*b, depth + 1, repl, memo));
+                h.finalize().into()
+            }
+            ExprNode::Proj(nm, k, e) => {
+                let mut h = h_init(b"ej");
+                h_bytes(&mut h, self.name(*nm).as_bytes());
+                h.update(k.to_le_bytes());
+                h.update(self.hash_inst(*e, depth, repl, memo));
+                h.finalize().into()
+            }
+            ExprNode::MData(e) => self.hash_inst(*e, depth, repl, memo),
+            // closed leaves (bvars below depth, sorts, consts, literals)
+            _ => self.expr_h[i as usize],
+        };
+        memo.insert((i, depth), h);
+        h
+    }
+
+    /// `Expr.app (Expr.const f []) (Expr.const x [])` → `(f, x)`.
+    pub fn as_app_of_consts(&self, e: u32) -> Option<(String, String)> {
+        let ExprNode::App(f, x) = self.exprs[self.unmdata(e) as usize] else { return None };
+        let (fname, fus) = self.const_head(f)?;
+        let (xname, xus) = self.const_head(x)?;
+        (fus.is_empty() && xus.is_empty()).then(|| (fname.to_string(), xname.to_string()))
+    }
+}
+
 pub fn hex(h: &H) -> String {
     hex::encode(h)
 }

@@ -32,6 +32,11 @@ structure Config where
   candidateModules : Array String
   trustedModules : Array String
   toolchainPrefixes : Array String
+  /-- native-lean route: candidate verifier model spliced into the statement
+  (`""` = none). The expected decl is then `fun model => …`. -/
+  modelDecl : String
+  /-- Judge-generated `def inst : Prop := expectedDecl modelDecl` (`""` = none). -/
+  instDecl : String
   deriving FromJson, Inhabited
 
 /-- Plain dotted name parser (no «» escapes; arena names are plain identifiers). -/
@@ -133,6 +138,30 @@ def listTrusted (cfg : Config) : IO UInt32 := do
   IO.println (Json.compress (Json.mkObj [("constants", toJson (Json.arr out))]))
   return 0
 
+/-- Full structural dump (kind, level params, type, value via `Expr.dbgToString`)
+of every constant of the `trustedModules` modules, sorted by name. Used to
+compare a judge-generated wrapper elaborated with the candidate model in scope
+against the same wrapper elaborated against a judge stub. -/
+def dumpModules (cfg : Config) : IO UInt32 := do
+  let env ← importEnv cfg.imports
+  let mods := cfg.trustedModules.map parseName
+  let mut out : Array (String × Json) := #[]
+  for h : i in [0:env.header.moduleNames.size] do
+    let m := env.header.moduleNames[i]
+    if mods.contains m then
+      for n in env.header.moduleData[i]!.constNames do
+        let some ci := env.find? n | continue
+        let v := match ci.value? (allowOpaque := true) with
+          | some e => toJson (toString e)
+          | none => Json.null
+        out := out.push (toString n, Json.mkObj [("kind", toJson (kindOf ci)),
+          ("levelParams", toJson (ci.levelParams.map toString)),
+          ("type", toJson (toString ci.type)), ("value", v),
+          ("unsafe", toJson ci.isUnsafe), ("partial", toJson ci.isPartial)])
+  let sorted := out.qsort (fun a b => a.1 < b.1)
+  IO.println (Json.compress (Json.mkObj (sorted.toList)))
+  return 0
+
 def check (cfg : Config) : IO UInt32 := do
   let env ← try importEnv cfg.imports catch e =>
     IO.println (Json.compress (Json.mkObj [("importOk", toJson (false)), ("importError", toJson (truncate (toString e)))]))
@@ -173,6 +202,18 @@ def check (cfg : Config) : IO UInt32 := do
       (expCi.levelParams.map mkLevelParam)
     let viaConst := certTy == mkConst expName (expCi.levelParams.map mkLevelParam)
     let typeEqual := lpsOk && (certTy == expVal || viaConst)
+    -- native-lean: the statement is the expected lambda applied to the model.
+    let modelName := parseName cfg.modelDecl
+    let instName := parseName cfg.instDecl
+    let applied := mkApp (mkConst expName) (mkConst modelName)
+    let instOk := match env.find? instName with
+      | some (.defnInfo v) => v.levelParams.isEmpty && stripMData v.value == applied
+      | _ => false
+    let typeEqual := if cfg.modelDecl.isEmpty then typeEqual else
+      expCi.levelParams.isEmpty && certCi.levelParams.isEmpty &&
+        (certTy == (mkApp expVal (mkConst modelName)).headBeta || certTy == applied ||
+         (certTy == mkConst instName && instOk))
+    let viaConst := if cfg.modelDecl.isEmpty then viaConst else certTy == applied || certTy == mkConst instName
     let (clo, missing) := closure env #[certName]
     let axioms := clo.filter fun n => match env.find? n with
       | some (.axiomInfo _) => true | _ => false
@@ -193,6 +234,24 @@ def check (cfg : Config) : IO UInt32 := do
       ("axioms", toJson (strArr axioms)),
       ("closure", toJson (Json.arr closureJson)),
       ("closureMissing", toJson (strArr missing))]
+  -- native-lean: the candidate verifier model inside the statement.
+  if !cfg.modelDecl.isEmpty then
+    let modelName := parseName cfg.modelDecl
+    match env.find? modelName with
+    | none => fields := fields ++ [("modelFound", toJson false)]
+    | some mci =>
+      let (mclo, _) := closure env #[modelName]
+      let maxioms := mclo.filter fun n => match env.find? n with
+        | some (.axiomInfo _) => true | _ => false
+      let mJson := mclo.map fun n =>
+        let ci := (env.find? n).get!
+        Json.mkObj [("name", toJson (nameStr n)), ("kind", toJson (kindOf ci)),
+          ("module", toJson (match moduleOf env n with | some m => nameStr m | none => "")),
+          ("origin", toJson (classify n)), ("unsafe", toJson ci.isUnsafe), ("partial", toJson ci.isPartial)]
+      fields := fields ++ [("modelFound", toJson true), ("modelKind", toJson (kindOf mci)),
+        ("modelModule", toJson (match moduleOf env modelName with | some m => nameStr m | none => "")),
+        ("modelOrigin", toJson (classify modelName)),
+        ("modelAxioms", toJson (strArr maxioms)), ("modelClosure", Json.arr mJson)]
   -- Attribute / safety scan over every constant of every candidate module.
   let mut flagged : Array Json := #[]
   for h : i in [0:env.header.moduleNames.size] do
@@ -218,6 +277,7 @@ def main (args : List String) : IO UInt32 := do
   match args with
   | ["check", path] => check (← readConfig path)
   | ["list-trusted", path] => listTrusted (← readConfig path)
+  | ["dump", path] => dumpModules (← readConfig path)
   | _ =>
     IO.eprintln "usage: arena-audit (check|list-trusted) <config.json>"
     return 2
