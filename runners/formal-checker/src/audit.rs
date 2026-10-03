@@ -385,3 +385,133 @@ pub fn cross_check(lean: &LeanAudit, nd: &NdAudit) -> Option<Finding> {
         Finding::new(ReasonCode::RecheckFailed, Scope::All, format!("independent audits disagree: {}", diffs.join("; ")))
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ndjson::Export;
+
+    const META: &str = r#"{"meta":{"exporter":{"name":"t","version":"0"},"format":{"version":"3.1.0"},"lean":{"githash":"","version":""}}}"#;
+
+    /// Names: 1=P 2=ArenaExpected 3=ArenaExpected.expectedType 4=Candidate 5=Candidate.certificate 6=x 7=y 8=propext 9=cheat
+    fn names() -> String {
+        [
+            r#"{"in":1,"str":{"pre":0,"str":"P"}}"#,
+            r#"{"in":2,"str":{"pre":0,"str":"ArenaExpected"}}"#,
+            r#"{"in":3,"str":{"pre":2,"str":"expectedType"}}"#,
+            r#"{"in":4,"str":{"pre":0,"str":"Candidate"}}"#,
+            r#"{"in":5,"str":{"pre":4,"str":"certificate"}}"#,
+            r#"{"in":6,"str":{"pre":0,"str":"x"}}"#,
+            r#"{"in":7,"str":{"pre":0,"str":"y"}}"#,
+            r#"{"in":8,"str":{"pre":0,"str":"propext"}}"#,
+            r#"{"in":9,"str":{"pre":0,"str":"cheat"}}"#,
+        ]
+        .join("\n")
+    }
+
+    /// e0 = Prop, e1 = Type, e2 = const P, e3 = fun (x : Prop) => x, e4 = fun (y : Prop) => y (binder renamed)
+    fn exprs() -> String {
+        [
+            r#"{"il":1,"succ":0}"#,
+            r#"{"ie":0,"sort":0}"#,
+            r#"{"ie":1,"sort":1}"#,
+            r#"{"const":{"name":1,"us":[]},"ie":2}"#,
+            r#"{"bvar":0,"ie":3}"#,
+            r#"{"ie":4,"lam":{"binderInfo":"default","body":3,"name":6,"type":0}}"#,
+            r#"{"ie":5,"lam":{"binderInfo":"implicit","body":3,"name":7,"type":0}}"#,
+        ]
+        .join("\n")
+    }
+
+    fn write(dir: &std::path::Path, name: &str, decls: &[&str]) -> Export {
+        let p = dir.join(name);
+        let body = format!("{META}\n{}\n{}\n{}\n", names(), exprs(), decls.join("\n"));
+        std::fs::write(&p, body).unwrap();
+        Export::read(&p, 1 << 30).unwrap()
+    }
+
+    fn tmp() -> std::path::PathBuf {
+        let d = std::env::temp_dir().join(format!("fc-audit-{}-{:?}", std::process::id(), std::thread::current().id()));
+        std::fs::create_dir_all(&d).unwrap();
+        d
+    }
+
+    // P : Type := Prop ; expectedType : Type := P (as a "statement" stand-in)
+    const DEF_P: &str = r#"{"def":{"all":[1],"hints":"abbrev","levelParams":[],"name":1,"safety":"safe","type":1,"value":0}}"#;
+    const DEF_P_ALTERED: &str = r#"{"def":{"all":[1],"hints":"abbrev","levelParams":[],"name":1,"safety":"safe","type":1,"value":1}}"#;
+    const DEF_EXP: &str = r#"{"def":{"all":[3],"hints":"abbrev","levelParams":[],"name":3,"safety":"safe","type":1,"value":2}}"#;
+    const AX_PROPEXT: &str = r#"{"axiom":{"isUnsafe":false,"levelParams":[],"name":8,"type":0}}"#;
+
+    #[test]
+    fn statement_equality_and_shadowing() {
+        let d = tmp();
+        let reference = write(&d, "ref.ndjson", &[DEF_P, DEF_EXP, AX_PROPEXT]);
+        // certificate : P (value irrelevant here; kernel checking is nanoda's job)
+        let good = write(&d, "good.ndjson", &[DEF_P, r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":4}}"#]);
+        let a = nd_audit(&good, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1);
+        assert!(a.certificate_found && a.type_equal && a.shadowed.is_empty() && a.missing_trusted.is_empty(), "{a:?}");
+        assert!(nd_findings(&a, &["propext".into()]).is_empty());
+
+        // Same name `P`, different body: statement matches by name but P is shadowed.
+        let shadow = write(&d, "shadow.ndjson", &[DEF_P_ALTERED, r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":4}}"#]);
+        let a = nd_audit(&shadow, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1);
+        assert_eq!(a.shadowed, vec!["P".to_string()]);
+        assert!(nd_findings(&a, &[]).iter().any(|f| f.code == ReasonCode::ShadowedDefinition));
+
+        // Wrong type (Prop instead of P).
+        let wrong = write(&d, "wrong.ndjson", &[DEF_P, r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":0,"value":4}}"#]);
+        let a = nd_audit(&wrong, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1);
+        assert!(!a.type_equal);
+
+        // Missing certificate.
+        let a = nd_audit(&good, &reference, "Candidate.nope", "ArenaExpected.expectedType", 1);
+        assert!(nd_findings(&a, &[]).iter().any(|f| f.code == ReasonCode::CertificateMissing));
+
+        // Axiom in the closure: candidate-declared axiom used by the certificate.
+        let ax = write(&d, "ax.ndjson", &[
+            DEF_P,
+            r#"{"axiom":{"isUnsafe":false,"levelParams":[],"name":9,"type":2}}"#,
+            r#"{"const":{"name":9,"us":[]},"ie":6}"#,
+            r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":6}}"#,
+        ]);
+        let a = nd_audit(&ax, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1);
+        assert!(a.type_equal);
+        assert_eq!(a.axioms.iter().cloned().collect::<Vec<_>>(), vec!["cheat".to_string()]);
+        assert!(nd_findings(&a, &["propext".into()]).iter().any(|f| f.code == ReasonCode::ForbiddenAxiom));
+    }
+
+    #[test]
+    fn hashing_ignores_binder_names_and_info() {
+        let d = tmp();
+        let ex = write(&d, "b.ndjson", &[]);
+        assert_eq!(ex.expr_hash(4, None), ex.expr_hash(5, None));
+        assert_ne!(ex.expr_hash(0, None), ex.expr_hash(1, None));
+    }
+
+    #[test]
+    fn malformed_exports_are_rejected() {
+        let d = tmp();
+        let p = d.join("fwd.ndjson");
+        std::fs::write(&p, format!("{META}\n{{\"in\":1,\"str\":{{\"pre\":5,\"str\":\"x\"}}}}\n")).unwrap();
+        assert!(Export::read(&p, 1 << 20).is_err(), "forward name reference");
+        std::fs::write(&p, format!("{META}\n{}\n{}\n{DEF_P}\n{DEF_P}\n", names(), exprs())).unwrap();
+        assert!(Export::read(&p, 1 << 20).is_err(), "duplicate declaration");
+        std::fs::write(&p, format!("{}\n{}\n", names(), exprs())).unwrap();
+        assert!(Export::read(&p, 1 << 20).is_err(), "missing meta");
+        std::fs::write(&p, format!("{META}\n{{\"ie\":0,\"natVal\":\"12a\"}}\n")).unwrap();
+        assert!(Export::read(&p, 1 << 20).is_err(), "bad nat literal");
+        assert!(Export::read(&p, 1).is_err(), "size cap");
+    }
+
+    #[test]
+    fn axiom_classification() {
+        let allow: Vec<String> = vec!["propext".into(), "Quot.sound".into(), "Classical.choice".into()];
+        let trusted: BTreeSet<String> = ["ArenaCore.Assumptions.cr".to_string()].into();
+        assert_eq!(classify_axiom("propext", &allow, &trusted), None);
+        assert_eq!(classify_axiom("sorryAx", &allow, &trusted), Some(ReasonCode::SorryFound));
+        assert_eq!(classify_axiom("Lean.ofReduceBool", &allow, &trusted), Some(ReasonCode::NativeEvalFound));
+        assert_eq!(classify_axiom("C.cert._native.native_decide.ax_1_1", &allow, &trusted), Some(ReasonCode::NativeEvalFound));
+        assert_eq!(classify_axiom("ArenaCore.Assumptions.cr", &allow, &trusted), Some(ReasonCode::UnapprovedAssumption));
+        assert_eq!(classify_axiom("Candidate.cheat", &allow, &trusted), Some(ReasonCode::ForbiddenAxiom));
+    }
+}

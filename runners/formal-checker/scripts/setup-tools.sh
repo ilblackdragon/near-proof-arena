@@ -46,6 +46,19 @@ if command -v cargo >/dev/null; then
   install -m 0755 "$D/target/release/nanoda_bin" "$OUT/bin/nanoda_bin"
 fi
 
+# lean4lean (optional independent kernel), rebuilt against our toolchain.
+D="$(fetch lean4lean "$(toml_get lean4lean repo)" "$(toml_get lean4lean rev)")"
+echo "$TOOLCHAIN" > "$D/lean-toolchain"
+BATT="$(toml_get lean4lean batteries_rev)"
+git -C "$D" checkout -q -- lakefile.toml lake-manifest.json 2>/dev/null || true
+sed -i -E "/name = \"batteries\"/,/rev =/ s/^rev = .*/rev = \"$BATT\"/" "$D/lakefile.toml"
+rm -f "$D/lake-manifest.json"
+if (cd "$D" && lake build lean4lean); then
+  install -m 0755 "$D/.lake/build/bin/lean4lean" "$OUT/bin/lean4lean"
+else
+  echo "WARNING: lean4lean failed to build for $TOOLCHAIN; it will be reported as not run" >&2
+fi
+
 # arena-audit (judge-owned)
 (cd "$HERE/lean/ArenaAudit" && lake build arena-audit)
 install -m 0755 "$HERE/lean/ArenaAudit/.lake/build/bin/arena-audit" "$OUT/bin/arena-audit"

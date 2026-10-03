@@ -42,6 +42,9 @@ pub enum LeanValue {
     Str(String),
     /// `sha256:<hex>` digest rendered as a string literal.
     Digest(Digest),
+    /// Byte string given as lowercase hex, rendered as a list literal
+    /// `[0x57, 0x74, …]` (e.g. formal-core's `Digest := List UInt8`).
+    Bytes(String),
 }
 
 impl LeanValue {
@@ -55,6 +58,10 @@ impl LeanValue {
             }
             LeanValue::Str(s) => lean_string(key, s),
             LeanValue::Digest(d) => lean_string(key, d.as_str()),
+            LeanValue::Bytes(h) => {
+                let b = hex::decode(h).map_err(|_| ExpectedError::BadValue(key.into(), "bytes must be hex".into()))?;
+                Ok(format!("[{}]", b.iter().map(|x| format!("0x{x:02x}")).collect::<Vec<_>>().join(", ")))
+            }
         }
     }
 }

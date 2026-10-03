@@ -35,6 +35,9 @@ pub struct TrustedPackage {
     pub name: String,
     /// Directory whose `.lean` files (module = relative path) form the package.
     pub src_root: PathBuf,
+    /// Module-name prefixes to take from `src_root` (`None` = every module).
+    #[serde(default)]
+    pub include: Option<Vec<String>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -125,6 +128,7 @@ const G_X: &str = "/arena/x";
 const G_EXPORT: &str = "/arena/tools/lean4export";
 const G_AUDIT: &str = "/arena/tools/arena-audit";
 const G_NANODA: &str = "/arena/tools/nanoda_bin";
+const G_L4L: &str = "/arena/tools/lean4lean";
 
 struct Ctx<'a> {
     fc: &'a FormalChecker,
@@ -141,6 +145,9 @@ impl<'a> Ctx<'a> {
         ];
         if let Some(n) = &t.nanoda {
             ro.push((n.clone(), PathBuf::from(G_NANODA)));
+        }
+        if let Some(n) = &t.lean4lean {
+            ro.push((n.clone(), PathBuf::from(G_L4L)));
         }
         RunSpec {
             argv,
@@ -189,6 +196,12 @@ fn collect_trusted(pkg: &TrustedPackage, dest: &Path) -> Result<Vec<CandidateMod
             continue;
         }
         let comps: Vec<&str> = stem.split('/').collect();
+        let name = comps.join(".");
+        if let Some(inc) = &pkg.include {
+            if !inc.iter().any(|p| staging::has_prefix(&name, p)) {
+                continue;
+            }
+        }
         if !comps.iter().all(|c| staging::is_ident(c)) {
             return Err(format!("trusted package {}: bad module path {}", pkg.name, e.path));
         }
@@ -229,6 +242,23 @@ fn topo(mods: Vec<CandidateModule>) -> Result<Vec<CandidateModule>, String> {
     Ok(order.into_iter().map(|n| map[&n].clone()).collect())
 }
 
+/// Populate `dest` with symlinks `dest/<p> -> /arena/trusted/<p>` for every
+/// file of the judge's reference output. Lean resolves a module through the
+/// *first* search-path root containing its top-level directory, so trusted
+/// and candidate modules sharing a namespace root (e.g. `Toy.Spec` vs
+/// `Toy.Programs`) must live under one root. Symlinks point at the read-only
+/// mount, so a sandboxed process can at most replace its own link, never the
+/// judge's bytes (no hardlinks: they would alias the pristine inode).
+fn link_trusted(trusted_out: &Path, dest: &Path) -> std::io::Result<()> {
+    for e in crate::digest::list_tree(trusted_out).map_err(std::io::Error::other)? {
+        let to = dest.join(&e.path);
+        std::fs::create_dir_all(to.parent().unwrap())?;
+        let _ = std::fs::remove_file(&to);
+        std::os::unix::fs::symlink(Path::new(G_TRUSTED).join(&e.path), &to)?;
+    }
+    Ok(())
+}
+
 /// Compile modules in order with `lean` inside the sandbox.
 fn compile(
     ctx: &mut Ctx,
@@ -240,10 +270,10 @@ fn compile(
     limits: &Limits,
 ) -> Result<(), Finding> {
     let start = Instant::now();
-    let lean_path = match trusted_ro {
-        Some(_) => format!("{G_TRUSTED}:{G_OUT}"),
-        None => G_OUT.to_string(),
-    };
+    if let Some(t) = trusted_ro {
+        link_trusted(t, out).map_err(|e| Finding::unknown(ReasonCode::InfraError, format!("link trusted: {e}")))?;
+    }
+    let lean_path = G_OUT.to_string();
     for m in mods {
         let stem = m.rel_path.trim_end_matches(".lean");
         if let Some(parent) = out.join(stem).parent() {
@@ -323,7 +353,14 @@ impl FormalChecker {
         let export_path = dir.join("reference.ndjson");
         let modules_path = dir.join("modules.json");
         if !dir.join("done").is_file() {
-            let _ = std::fs::remove_dir_all(&dir);
+            // Build in a private temp dir, then publish atomically by rename
+            // (concurrent checks may race to build the same reference).
+            let final_dir = dir.clone();
+            let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+            let dir = req.cache_dir.join(format!(".tmp-ref-{}-{}-{nanos}", &key.hex()[..24], std::process::id()));
+            let out = dir.join("out");
+            let export_path = dir.join("reference.ndjson");
+            let modules_path = dir.join("modules.json");
             let src = dir.join("src");
             std::fs::create_dir_all(&src).map_err(|e| infra(e.to_string()))?;
             std::fs::create_dir_all(&out).map_err(|e| infra(e.to_string()))?;
@@ -382,6 +419,15 @@ impl FormalChecker {
             }
             std::fs::write(&modules_path, serde_json::to_string(&modules).unwrap()).map_err(|e| infra(e.to_string()))?;
             std::fs::write(dir.join("done"), b"ok").map_err(|e| infra(e.to_string()))?;
+            if !final_dir.join("done").is_file() {
+                let _ = std::fs::remove_dir_all(&final_dir);
+            }
+            if std::fs::rename(&dir, &final_dir).is_err() {
+                let _ = std::fs::remove_dir_all(&dir);
+                if !final_dir.join("done").is_file() {
+                    return Err(infra("could not publish reference build".into()));
+                }
+            }
         }
         let modules: Vec<String> = serde_json::from_slice(&std::fs::read(&modules_path).map_err(|e| infra(e.to_string()))?)
             .map_err(|e| infra(e.to_string()))?;
@@ -440,7 +486,10 @@ impl FormalChecker {
 
             // ---------------- Stage A: static staging + sandboxed elaboration
             let mut reserved: Vec<String> = req.policy.reserved_prefixes.clone();
-            reserved.extend(reference.modules.iter().map(|m| m.split('.').next().unwrap_or(m).to_string()));
+            // Exact trusted module names (and their sub-modules) are reserved;
+            // whole namespaces only via `policy.reserved_prefixes` (e.g. `ArenaCore`),
+            // so a challenge spec module `Toy.Spec` does not reserve `Toy.*`.
+            reserved.extend(reference.modules.iter().cloned());
             reserved.push(req.expected.module_name().into());
             reserved.push("ArenaAudit".into());
             reserved.sort();
@@ -488,7 +537,14 @@ impl FormalChecker {
                 let stem = m.rel_path.trim_end_matches(".lean");
                 for suffix in [".olean", ".olean.server", ".olean.private"] {
                     let from = cand_out.join(format!("{stem}{suffix}"));
-                    if from.is_file() {
+                    // Never follow links planted by the sandboxed build (they
+                    // could point at host files): regular files only.
+                    let regular = std::fs::symlink_metadata(&from).map(|m| m.file_type().is_file()).unwrap_or(false);
+                    if from.exists() && !regular {
+                        findings.push(Finding::new(ReasonCode::SandboxViolation, Scope::All, format!("build output {stem}{suffix} is not a regular file")));
+                        break 'pipeline;
+                    }
+                    if regular {
                         let to = replay_oleans.join(format!("{stem}{suffix}"));
                         let _ = std::fs::create_dir_all(to.parent().unwrap());
                         if let Err(e) = std::fs::copy(&from, &to) {
@@ -501,7 +557,11 @@ impl FormalChecker {
                     evidence.push(EvidenceRef { label: format!("candidate olean {}", m.name), digest: d, public: true });
                 }
             }
-            let lean_path = format!("{G_TRUSTED}:{G_CAND}");
+            if let Err(e) = link_trusted(&reference.out, &replay_oleans) {
+                findings.push(Finding::unknown(ReasonCode::InfraError, format!("link trusted: {e}")));
+                break 'pipeline;
+            }
+            let lean_path = G_CAND.to_string();
             let mount_replay = |spec: &mut RunSpec| {
                 spec.ro.push((reference.out.clone(), G_TRUSTED.into()));
                 spec.ro.push((replay_oleans.clone(), G_CAND.into()));
@@ -607,13 +667,28 @@ impl FormalChecker {
                     });
                 }
             }
-            rechecks.push(RecheckerRun {
-                id: "lean4lean".into(),
-                ran: false,
-                verdict: "not_run".into(),
-                wall_ms: 0,
-                detail: format!("no lean4lean build for {}", lean_toolchain()),
-            });
+            // B4: lean4lean (independent kernel implementation, .olean replay).
+            if self.tools.lean4lean.is_some() {
+                let mut argv = vec![G_L4L.to_string()];
+                argv.extend(cand_mods.iter().cloned());
+                let mut spec = ctx.base_spec(argv, &lean_path, req.limits.recheck_timeout, req.limits.mem_bytes);
+                mount_replay(&mut spec);
+                rechecks.push(match ctx.run("recheck:lean4lean", &spec, CAPTURE_LIMIT) {
+                    Err(f) => {
+                        findings.push(f);
+                        RecheckerRun { id: "lean4lean".into(), ran: false, verdict: "error".into(), wall_ms: 0, detail: "infra".into() }
+                    }
+                    Ok(o) => verdict("lean4lean", &o, &mut findings),
+                });
+            } else {
+                rechecks.push(RecheckerRun {
+                    id: "lean4lean".into(),
+                    ran: false,
+                    verdict: "not_run".into(),
+                    wall_ms: 0,
+                    detail: format!("lean4lean not installed for {}", lean_toolchain()),
+                });
+            }
             for req_id in &req.policy.required_recheckers {
                 let ok = rechecks.iter().any(|r| &r.id == req_id && r.ran);
                 if !ok {

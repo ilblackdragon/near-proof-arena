@@ -32,8 +32,7 @@ fn expected_builder() -> TemplateExpected {
 }
 
 fn policy_for(expect: &Value) -> Policy {
-    let mut p = Policy::default();
-    p.allowed_requires = vec!["arena-standin".into()];
+    let mut p = Policy { allowed_requires: vec!["arena-standin".into()], ..Policy::default() };
     if expect.get("conjuncts").and_then(Value::as_bool) == Some(true) {
         p.conjunct_gates = Some(vec![
             ObligationId::FormalSemanticSoundness,
@@ -118,7 +117,7 @@ fn corpus() {
     let cache = root.join("ref-cache");
     let checker = Arc::new(FormalChecker::new(tools, Box::new(BwrapDevRunner::new().unwrap())));
     let expected = Arc::new(expected_builder());
-    let trusted = vec![TrustedPackage { name: "arena-standin".into(), src_root: crate_dir().join("tests/fixtures/standin") }];
+    let trusted = vec![TrustedPackage { name: "arena-standin".into(), src_root: crate_dir().join("tests/fixtures/standin"), include: None }];
 
     // Warm the reference cache once (serially) so cases run in parallel.
     let t0 = Instant::now();

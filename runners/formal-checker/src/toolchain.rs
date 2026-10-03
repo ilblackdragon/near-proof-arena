@@ -33,6 +33,8 @@ pub struct ToolPaths {
     pub lean4export: PathBuf,
     /// Optional: independent Rust kernel. `None` = not installed (recorded, never PASS-by-default).
     pub nanoda: Option<PathBuf>,
+    /// Optional: lean4lean (independent kernel in Lean, replays .olean).
+    pub lean4lean: Option<PathBuf>,
     pub arena_audit: PathBuf,
 }
 
@@ -73,6 +75,7 @@ impl ToolPaths {
         let lean4export = env_or("ARENA_LEAN4EXPORT", home.join("bin/lean4export"));
         let nanoda = env_or("ARENA_NANODA", home.join("bin/nanoda_bin"));
         let arena_audit = env_or("ARENA_AUDIT_BIN", home.join("bin/arena-audit"));
+        let lean4lean = env_or("ARENA_LEAN4LEAN", home.join("bin/lean4lean"));
         for (name, p) in [
             ("lean", lean_sysroot.join("bin/lean")),
             ("leanchecker", lean_sysroot.join("bin/leanchecker")),
@@ -87,6 +90,7 @@ impl ToolPaths {
             lean_sysroot,
             lean4export,
             nanoda: nanoda.is_file().then_some(nanoda),
+            lean4lean: lean4lean.is_file().then_some(lean4lean),
             arena_audit,
         })
     }
@@ -116,6 +120,9 @@ impl ToolPaths {
         add("arena-audit", &self.arena_audit)?;
         if let Some(n) = &self.nanoda {
             add("nanoda", n)?;
+        }
+        if let Some(n) = &self.lean4lean {
+            add("lean4lean", n)?;
         }
         Ok(arena_types::sha256_digest(&parts).expect("no floats"))
     }

@@ -2,7 +2,7 @@
 //!
 //! ```text
 //! ARENA_DEV_UNSAFE=1 formal-check --formal path/to/formal --certificate Candidate.certificate \
-//!     --trusted NAME=DIR [--trusted ...] --expected expected.json [--policy policy.json] \
+//!     --trusted NAME=DIR[@Mod.Prefix,...] [--trusted ...] --expected expected.json [--policy policy.json] \
 //!     [--work DIR] [--cache DIR] [--out report.json]
 //! ```
 //! `expected.json` is a `TemplateExpected` (`module`, `decl`, `template`, `data`).
@@ -27,8 +27,12 @@ fn main() -> anyhow::Result<()> {
             "--cache" => cache = PathBuf::from(v()?),
             "--trusted" => {
                 let s = v()?;
-                let (n, d) = s.split_once('=').ok_or_else(|| anyhow::anyhow!("--trusted NAME=DIR"))?;
-                trusted.push(TrustedPackage { name: n.into(), src_root: PathBuf::from(d) });
+                let (n, d) = s.split_once('=').ok_or_else(|| anyhow::anyhow!("--trusted NAME=DIR[@Mod.Prefix,...]"))?;
+                let (d, include) = match d.split_once('@') {
+                    Some((d, inc)) => (d, Some(inc.split(',').map(String::from).collect())),
+                    None => (d, None),
+                };
+                trusted.push(TrustedPackage { name: n.into(), src_root: PathBuf::from(d), include });
             }
             _ => anyhow::bail!("unknown argument {a}"),
         }

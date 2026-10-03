@@ -11,5 +11,10 @@ rev = "076e8e57707e813375e8f9da8bf989799ace9680"
 repo = "https://github.com/ammkrn/nanoda_lib"
 rev = "3a2407216ee84a75f9e1aead6803d0578be06ae7"
 
-# lean4lean (digama0) is not used: its latest pin targets v4.33.0-rc2 and it
-# replays .olean files of the same toolchain only. See README "Recheckers".
+[lean4lean]
+# Independent kernel implementation in Lean (replays .olean like leanchecker).
+# Upstream pins v4.33.0-rc2; setup-tools.sh rebuilds it against our toolchain
+# with batteries pinned below (builds cleanly on v4.34.1).
+repo = "https://github.com/digama0/lean4lean"
+rev = "8223d223ed98661882e95d9d6a7126df7097cd76"
+batteries_rev = "f2effa3d803fda822b1f97b806c47cf2adfbcbc2"
