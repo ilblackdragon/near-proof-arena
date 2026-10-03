@@ -1,0 +1,20 @@
+{
+  "case": "near-reexec-skip-refund",
+  "attack_family": "theorem-type-mismatch",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "FORMAL_SEMANTIC_SOUNDNESS",
+    "FORMAL_CRYPTO_SOUNDNESS"
+  ],
+  "expected_reason_codes": [
+    "THEOREM_TYPE_MISMATCH"
+  ],
+  "fail_by_stage": "FORMAL_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "A real NEAR re-execution candidate (reference reexec-witness) whose Lean verifier model never compares refund_count / refunds_commitment: it accepts the honest proof with a forged refunds commitment. Its prover is honest, so conformance, reliability and all 927 proof-byte mutants pass; only the formal gate can catch it. DeterministicSound w.r.t. NearRelation is false for this verifier, so the author proves the admission statement for a restated challenge with a weakened relation (genuine, axiom-clean). The judge builds the type itself (ArenaExpectedInst.expectedType at the challenge's NearRelation), so the certificate's type does not match.",
+  "notes": "NEAR-specific: submit against the near-transfer-receipt-v1 challenge (route native-lean, formal.verifier_model = ReexecWitness.Model.verifier). Verified locally: the certificate elaborates with axioms [propext, Classical.choice, Quot.sound] and `example : ArenaExpectedInst.expectedType := ReexecWitness.certificate` fails with a type mismatch (judge-local emulation of the Expected module). If the judge's adversarial stage mutates claim refund fields, ADVERSARIAL_PROOFS/HOSTILE_PROOF_ACCEPTED may fire first; either is a valid kill. The package is large (vendored crates + trusted Lean sources) because it builds offline exactly like the reference."
+}

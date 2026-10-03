@@ -1,0 +1,24 @@
+# reexec-witness reference prover (Rust). The deployed verifier is the Lean
+# model in ../formal (compiled by the governed Lean compiler); `rxcheck` is a
+# Rust re-checker used only for tests.
+[package]
+name = "reexec-witness"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "reexec"
+path = "src/lib.rs"
+
+[dependencies]
+sha2 = { version = "0.10", default-features = false }
+
+[workspace]
+
+[profile.release]
+codegen-units = 1
+incremental = false
+lto = "fat"
+panic = "abort"
+opt-level = 3

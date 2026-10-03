@@ -44,7 +44,7 @@ bomb), which a normal directory cannot represent, so those cases ship a
 `make-archive.sh` that emits the malicious tar, and the directory itself is a
 well-formed placeholder. The e2e driver uploads the builder's output for them.
 
-### Case list (33 cases, 15 families)
+### Case list (35 cases, 15 families)
 
 Generated from the `expect.json` files; regenerate the packages with
 `generate.py` if you change them.
@@ -67,6 +67,13 @@ Generated from the `expect.json` files; regenerate the packages with
 | `sorry-certificate` | REJECTED | AXIOM_AUDIT | SORRY_FOUND |
 | `native-decide-certificate` | REJECTED | AXIOM_AUDIT | NATIVE_EVAL_FOUND |
 | `changed-security-parameters` | REJECTED | FORMAL_CRYPTO_SOUNDNESS | SECURITY_BOUND_INSUFFICIENT |
+| `near-reexec-skip-refund` | REJECTED | FORMAL_SEMANTIC_SOUNDNESS | THEOREM_TYPE_MISMATCH |
+| `near-reexec-malicious-executable` | REJECTED | ARTIFACT_BINDING | ARTIFACT_BINDING_FAILED |
+
+The two `near-reexec-*` cases are real NEAR packages derived from the reference
+backend `examples/reexec-witness` (copied, not produced by `generate.py`). They
+must be submitted against the `near-transfer-receipt-v1` challenge. See their
+READMEs.
 
 #### Runtime / execution attacks
 

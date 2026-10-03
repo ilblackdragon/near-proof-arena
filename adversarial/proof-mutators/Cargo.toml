@@ -21,3 +21,7 @@ path = "src/bin/check_suite.rs"
 [[bin]]
 name = "dump-mutants"
 path = "src/bin/dump_mutants.rs"
+
+[[bin]]
+name = "run-mutants"
+path = "src/bin/run_mutants.rs"
