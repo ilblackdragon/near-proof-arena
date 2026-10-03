@@ -1,0 +1,4 @@
+OK   chl_3be93793610370275ae40f36a475f01f tier=Formal name=near-transfer-receipt-v1-2
+OK   chl_54c65fe7c73c5abcfe500681889177bc tier=Demo name=demo-toy-arithmetic
+OK   chl_5ef2bc7d2068219635426e47ca46bfbb tier=Formal name=near-transfer-receipt-v1
+OK   chl_f7eb2d91bf7b363eee134b6ad9d3e011 tier=Formal name=near-transfer-receipt-v1-1

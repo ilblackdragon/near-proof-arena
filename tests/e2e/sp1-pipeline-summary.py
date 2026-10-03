@@ -7,9 +7,9 @@ import os
 import sys
 
 res = sys.argv[1] if len(sys.argv) > 1 else "docs/e2e-results/sp1-pipeline"
-ids = dict(l.split() for l in open(os.path.join(res, "challenges/ids.txt")) if l.strip())
-labels = [l for l in ("sp1-A1", "sp1-A2", "sp1-B", "reexec-B", "sp1-M")
-          if os.path.exists(os.path.join(res, f"{l}.submission.json"))]
+order = ["sp1-A1", "sp1-A2", "sp1-B", "reexec-B", "sp1-M"]
+found = sorted(f[:-len(".submission.json")] for f in os.listdir(res) if f.endswith(".submission.json"))
+labels = [l for l in order if l in found] + [l for l in found if l not in order]
 views = {l: json.load(open(os.path.join(res, f"{l}.submission.json"))) for l in labels}
 
 

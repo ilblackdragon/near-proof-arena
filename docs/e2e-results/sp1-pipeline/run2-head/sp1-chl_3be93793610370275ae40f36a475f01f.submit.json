@@ -1,0 +1,66 @@
+{
+  "id": "sub_e4c0b5a8b3814a24bc2b053d1d4b8406",
+  "challenge_id": "chl_3be93793610370275ae40f36a475f01f",
+  "agent": "bootstrap",
+  "candidate_name": "",
+  "backend_family": "",
+  "parent": null,
+  "tier": "formal",
+  "package_digest": "sha256:61872e6028f3123df936de4f1ba95d8713876892fe87d7d3bedd362d7f71690d",
+  "stage": "RECEIVED",
+  "decision": null,
+  "accepted": null,
+  "score_milli": null,
+  "change_class": null,
+  "gates": [],
+  "reason_codes": [],
+  "benchmark": null,
+  "evidence_graph": null,
+  "revoked": null,
+  "created_at": "2026-10-03T11:33:04.090459Z",
+  "updated_at": "2026-10-03T11:33:04.090459Z",
+  "artifacts": [],
+  "verified_surface": null,
+  "build": null,
+  "assumptions": [
+    {
+      "id": "sha256-collision-resistance",
+      "lean_decl": null,
+      "description": null
+    },
+    {
+      "id": "random-oracle-fiat-shamir-sha256",
+      "lean_decl": null,
+      "description": null
+    }
+  ],
+  "trusted_base": [
+    {
+      "id": "lean-toolchain",
+      "label": "Lean kernel (leanprover/lean4:v4.34.1)",
+      "digest": null
+    },
+    {
+      "id": "checker-image",
+      "label": "formal checker image",
+      "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+    },
+    {
+      "id": "rechecker:leanchecker",
+      "label": "rechecker leanchecker",
+      "digest": null
+    },
+    {
+      "id": "rechecker:nanoda",
+      "label": "rechecker nanoda",
+      "digest": null
+    },
+    {
+      "id": "rechecker:lean4lean",
+      "label": "rechecker lean4lean",
+      "digest": null
+    }
+  ],
+  "logs": [],
+  "revocation_history": []
+}
