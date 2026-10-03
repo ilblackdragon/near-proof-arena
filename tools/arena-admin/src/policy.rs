@@ -382,8 +382,14 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
     }
     if bids.len() != cids.len() {
         let msg = "baseline_ns does not cover every workload class (score undefined)";
-        if tier == Tier::Formal {
+        let unmeasured = ws.baseline_ns.is_empty() && ws.baseline_submission.is_none();
+        if tier == Tier::Formal && !unmeasured {
             f.err(msg);
+        } else if unmeasured {
+            // A formal challenge may be frozen before its reference backend is
+            // measured: admission is decided, but scores stay null until a
+            // superseding challenge pins baselines for every class.
+            f.warn("no baseline yet (baseline_submission = null, baseline_ns = []): admissions are decided but scores are null until a superseding challenge pins baselines");
         } else {
             f.warn(msg);
         }

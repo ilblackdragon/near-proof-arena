@@ -275,6 +275,16 @@ fn formal_fixture_passes_policy() {
 }
 
 #[test]
+fn formal_tier_baselines_all_or_nothing() {
+    let (mut d, g) = formal_fixture();
+    d.workload_suite.baseline_ns.clear();
+    assert_eq!(errs(&d, &g), Vec::<String>::new(), "unmeasured baseline is allowed (scores null)");
+    let (mut d, g) = formal_fixture();
+    d.workload_suite.baseline_ns.truncate(1);
+    assert!(errs(&d, &g).iter().any(|e| e.contains("baseline_ns does not cover")));
+}
+
+#[test]
 fn formal_tier_requires_consistent_formal_params() {
     let (mut d, g) = formal_fixture();
     d.formal_params = None;
