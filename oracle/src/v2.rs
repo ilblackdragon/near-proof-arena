@@ -682,7 +682,7 @@ fn reshape_state(rng: &mut Rng, case: &mut casegen::Case) {
         let k = d1::account_key(keep.as_str());
         case.state.retain(|kk, _| *kk == k);
     };
-    match rng.below(8) {
+    match rng.below(10) {
         // accounts only: every key starts with nibbles 0,0 -> root extension split
         0 => case.state.retain(|k, _| k[0] == 0),
         // one key: root leaf -> leaf split, both keys continue past the branch
@@ -705,6 +705,23 @@ fn reshape_state(rng: &mut Rng, case: &mut casegen::Case) {
             let a = rng.next() as u8;
             case.state.insert(vec![0x0f, a, 1], vec![6; 3]);
             case.state.insert(vec![0x0f, a, 0x81], vec![6; 4]);
+        }
+        // 2 keys sharing exactly one nibble after 0x0f: a one-nibble extension
+        // below the 0x0f branch slot -> ext split, key ends, nothing left of the ext
+        8 => {
+            let a = rng.next() as u8;
+            case.state.insert(vec![0x0f, a], vec![8; 5]);
+            case.state.insert(vec![0x0f, a ^ 0x08], vec![9; 6]);
+        }
+        // one receiver + another account sharing its first byte: a long root
+        // extension that 0x0f leaves after nibble 1 -> ext split, ext rest kept
+        9 => {
+            single_receiver(case);
+            let k = case.state.keys().next().unwrap().clone();
+            let mut other = k[..2].to_vec();
+            other.extend_from_slice(b"zz-other");
+            let a = casegen::random_account(rng, false);
+            case.state.insert(other, borsh::to_vec(&a).unwrap());
         }
         // keys in high columns (first nibble 1): root branch at depth 0
         5 => {

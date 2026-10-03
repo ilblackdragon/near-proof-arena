@@ -49,7 +49,7 @@ def coverage(d, cov):
     if len(rs) >= 128: cov["batch_ge_128"] += 1
 
 def bw_write_case(kv):
-    """Which trie operation the 0x0f write performs on the canonical pre-state trie."""
+    """Which PTrie.upsert case the 0x0f write hits on the canonical pre-state trie."""
     key = sc.nibbles(b"\x0f")
     if b"\x0f" in kv:
         return "update_len_change" if len(kv[b"\x0f"]) != 61 else "update_same_len"
@@ -58,14 +58,25 @@ def bw_write_case(kv):
     path = key
     while True:
         if len(items) == 1:
-            return "insert:leaf_split"
+            k = items[0][0]
+            cp = 0
+            while cp < min(len(k), len(path)) and k[cp] == path[cp]: cp += 1
+            kr, yr = k[cp:], path[cp:]
+            sub = "old_key_ends" if not kr else "new_key_ends" if not yr else "both_continue"
+            return f"insert:leaf_split:{sub}:{'with_ext' if cp else 'no_ext'}"
         first = items[0][0]; cp = len(first)
         for n, _ in items[1:]:
             j = 0
             while j < min(cp, len(n)) and n[j] == first[j]: j += 1
             cp = j
         if cp > 0:
-            if path[:cp] != first[:cp]: return "insert:extension_split"
+            seg = first[:cp]
+            if path[:cp] != seg:
+                j = 0
+                while j < min(len(seg), len(path)) and seg[j] == path[j]: j += 1
+                rest = "ext_rest_empty" if j + 1 == len(seg) else "ext_rest_kept"
+                ends = "new_key_ends" if j == len(path) else "new_key_continues"
+                return f"insert:extension_split:{ends}:{rest}"
             path = path[cp:]; items = [(n[cp:], v) for n, v in items]; continue
         if not path: return "insert:branch_value"
         group = [(n[1:], v) for n, v in items if n and n[0] == path[0]]
