@@ -1,0 +1,238 @@
+{
+  "id": "sub_7d14a2973bab4ca3a9108a08cf7e4e3f",
+  "challenge_id": "chl_5ef2bc7d2068219635426e47ca46bfbb",
+  "agent": "bootstrap",
+  "candidate_name": "zkvm-sp1",
+  "backend_family": "zkvm-sp1-compressed-stark",
+  "parent": null,
+  "tier": "formal",
+  "package_digest": "sha256:63e52ed6c44f6726fceb8084fdd863c6e46472f7ed897f625bf1abbf332bcb72",
+  "stage": "DECIDED",
+  "decision": "REJECTED",
+  "accepted": false,
+  "score_milli": null,
+  "change_class": "NO_PARENT",
+  "gates": [
+    {
+      "gate": "PKG_WELLFORMED",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "package TreeDigest sha256:906ac6eba6cce5d208a2961b58a25a526748140ad2f164f3ba7758117e2ed5d8; 21170 files, 230870757 bytes; manifest ok",
+      "evidence": [],
+      "started_at": "2026-10-03T07:20:31.448837984Z",
+      "finished_at": "2026-10-03T07:20:32.919144124Z",
+      "reused_from": null
+    },
+    {
+      "gate": "BUILD_REPRODUCIBLE",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "two independent builds produced identical trees sha256:16dd35347e4d4f909329bcc195bc96e17f98902fb8740350189e21bf55e5ecc4; prepare 10921 ms, public dir 172 bytes, TreeDigest sha256:8adccff1f08de496a74fdd72ee8b2079f87efbad2ab94d9fa5c7a9ae5c1dd6ca",
+      "evidence": [],
+      "started_at": "2026-10-03T08:27:55.086116037Z",
+      "finished_at": "2026-10-03T08:35:48.606587847Z",
+      "reused_from": null
+    },
+    {
+      "gate": "ARTIFACT_BINDING",
+      "mandatory": true,
+      "status": "UNKNOWN",
+      "reason_codes": [],
+      "summary": "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e) is not the challenge's pinned checker sha256:2de5b68465258abb9573333bf675d9fbc381386c7730f3f683a2a48e40e6561e",
+      "evidence": [],
+      "started_at": "2026-10-03T11:28:16.845469407Z",
+      "finished_at": "2026-10-03T11:28:16.845509352Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_SEMANTIC_SOUNDNESS",
+      "mandatory": true,
+      "status": "UNKNOWN",
+      "reason_codes": [],
+      "summary": "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e) is not the challenge's pinned checker sha256:2de5b68465258abb9573333bf675d9fbc381386c7730f3f683a2a48e40e6561e",
+      "evidence": [],
+      "started_at": "2026-10-03T11:28:16.845513169Z",
+      "finished_at": "2026-10-03T11:28:16.845519281Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_SEMANTIC_COMPLETENESS",
+      "mandatory": true,
+      "status": "UNKNOWN",
+      "reason_codes": [],
+      "summary": "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e) is not the challenge's pinned checker sha256:2de5b68465258abb9573333bf675d9fbc381386c7730f3f683a2a48e40e6561e",
+      "evidence": [],
+      "started_at": "2026-10-03T11:28:16.845520393Z",
+      "finished_at": "2026-10-03T11:28:16.845526234Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_CRYPTO_SOUNDNESS",
+      "mandatory": true,
+      "status": "UNKNOWN",
+      "reason_codes": [],
+      "summary": "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e) is not the challenge's pinned checker sha256:2de5b68465258abb9573333bf675d9fbc381386c7730f3f683a2a48e40e6561e",
+      "evidence": [],
+      "started_at": "2026-10-03T11:28:16.845527396Z",
+      "finished_at": "2026-10-03T11:28:16.845532937Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_IMPL_CONNECTION",
+      "mandatory": true,
+      "status": "UNKNOWN",
+      "reason_codes": [],
+      "summary": "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e) is not the challenge's pinned checker sha256:2de5b68465258abb9573333bf675d9fbc381386c7730f3f683a2a48e40e6561e",
+      "evidence": [],
+      "started_at": "2026-10-03T11:28:16.845534159Z",
+      "finished_at": "2026-10-03T11:28:16.845540361Z",
+      "reused_from": null
+    },
+    {
+      "gate": "AXIOM_AUDIT",
+      "mandatory": true,
+      "status": "UNKNOWN",
+      "reason_codes": [],
+      "summary": "this worker's checker (lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1, identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e) is not the challenge's pinned checker sha256:2de5b68465258abb9573333bf675d9fbc381386c7730f3f683a2a48e40e6561e",
+      "evidence": [],
+      "started_at": "2026-10-03T11:28:16.845542515Z",
+      "finished_at": "2026-10-03T11:28:16.845548786Z",
+      "reused_from": null
+    },
+    {
+      "gate": "ADVERSARIAL_PROOFS",
+      "mandatory": true,
+      "status": "UNKNOWN",
+      "reason_codes": [],
+      "summary": "could not obtain an honest proof (prove OOM-killed); see the conformance gates",
+      "evidence": [],
+      "started_at": "2026-10-03T11:28:34.973939268Z",
+      "finished_at": "2026-10-03T11:29:31.623579701Z",
+      "reused_from": null
+    },
+    {
+      "gate": "CONFORMANCE_DIFFERENTIAL",
+      "mandatory": true,
+      "status": "UNKNOWN",
+      "reason_codes": [],
+      "summary": "0/23 cases conform (20 public fixtures, 3 judge-sampled)",
+      "evidence": [],
+      "started_at": "2026-10-03T11:29:31.641610599Z",
+      "finished_at": "2026-10-03T11:30:34.677750279Z",
+      "reused_from": null
+    },
+    {
+      "gate": "PROVER_RELIABILITY",
+      "mandatory": true,
+      "status": "FAIL",
+      "reason_codes": [
+        "PROVER_FAILED"
+      ],
+      "summary": "case \"fixture/example-tierA\": prove OOM-killed; 0/23 honest proofs produced and accepted",
+      "evidence": [],
+      "started_at": "2026-10-03T11:29:31.641623434Z",
+      "finished_at": "2026-10-03T11:30:34.677774375Z",
+      "reused_from": null
+    },
+    {
+      "gate": "RESOURCE_LIMITS",
+      "mandatory": true,
+      "status": "FAIL",
+      "reason_codes": [
+        "RESOURCE_LIMIT"
+      ],
+      "summary": "case \"fixture/example-tierA\": prove OOM-killed; public cases: max proof 0 bytes (cap 8388608), max verify 0 ms (cap 10000), peak memory 0 MiB",
+      "evidence": [],
+      "started_at": "2026-10-03T11:29:31.641624986Z",
+      "finished_at": "2026-10-03T11:30:34.677778913Z",
+      "reused_from": null
+    }
+  ],
+  "reason_codes": [
+    "PROVER_FAILED",
+    "RESOURCE_LIMIT",
+    "OBLIGATION_UNDISCHARGED"
+  ],
+  "benchmark": null,
+  "evidence_graph": null,
+  "revoked": null,
+  "created_at": "2026-10-03T07:09:57.663173Z",
+  "updated_at": "2026-10-03T11:30:34.686022Z",
+  "artifacts": [
+    {
+      "label": "build log 1",
+      "digest": "sha256:66aab4f06e8cd3051d92993ec47a9bb0c6fcd76fcf4b6ecb5f7a4c22f55499fc"
+    },
+    {
+      "label": "build log 2",
+      "digest": "sha256:1fbc4339537aada7b405d36b10c6264d2a9c53a0f440bfed7c1d514e8c145784"
+    },
+    {
+      "label": "public_artifacts",
+      "digest": "sha256:18f0ae416c1e48a5de1100b83e6c087d6719273adeee41944ef0155b881ec123"
+    }
+  ],
+  "verified_surface": {
+    "challenge_id": "chl_5ef2bc7d2068219635426e47ca46bfbb",
+    "verify_artifact": "sha256:7ffccf67fa3fe90e11ce8d54c8266f64d41ea7ebb301de9df5fea8646ff270e0",
+    "prepare_artifact": "sha256:fc30443f69bb6f5be00c5a7fe699747467233fd0732bb1425e33dfb3abdc71ef",
+    "public_artifacts": "sha256:8adccff1f08de496a74fdd72ee8b2079f87efbad2ab94d9fa5c7a9ae5c1dd6ca",
+    "formal_tree": "sha256:b38cb6c4eeeb47f127e2903d430e68819511ff47b1587fed9d6ff3bc29b4da96",
+    "certificate_decl": "Candidate.certificate",
+    "checker_image": "sha256:2de5b68465258abb9573333bf675d9fbc381386c7730f3f683a2a48e40e6561e",
+    "verify_route": "native"
+  },
+  "build": {
+    "toolchain_image": "sha256:70d2b28003f8117601772dedb7f42393e928ccfcca7356a49d675ec3f878a8a1",
+    "reproducible": true,
+    "build_ns": 216077718993
+  },
+  "assumptions": [
+    {
+      "id": "sha256-collision-resistance",
+      "lean_decl": null,
+      "description": null
+    },
+    {
+      "id": "random-oracle-fiat-shamir-sha256",
+      "lean_decl": null,
+      "description": null
+    }
+  ],
+  "trusted_base": [
+    {
+      "id": "lean-toolchain",
+      "label": "Lean kernel (leanprover/lean4:v4.34.1)",
+      "digest": null
+    },
+    {
+      "id": "checker-image",
+      "label": "formal checker image",
+      "digest": "sha256:2de5b68465258abb9573333bf675d9fbc381386c7730f3f683a2a48e40e6561e"
+    },
+    {
+      "id": "rechecker:leanchecker",
+      "label": "rechecker leanchecker",
+      "digest": null
+    },
+    {
+      "id": "rechecker:nanoda",
+      "label": "rechecker nanoda",
+      "digest": null
+    },
+    {
+      "id": "rechecker:lean4lean",
+      "label": "rechecker lean4lean",
+      "digest": null
+    },
+    {
+      "id": "sandbox:firecracker",
+      "label": "judge sandbox backend firecracker",
+      "digest": null
+    }
+  ],
+  "logs": [],
+  "revocation_history": []
+}

@@ -1,0 +1,240 @@
+{
+  "id": "sub_36cd12e5721743a0ac0edfc271e78323",
+  "challenge_id": "chl_b03314c363f0bc1300ba31f00d23739c",
+  "agent": "bootstrap",
+  "candidate_name": "zkvm-sp1",
+  "backend_family": "zkvm-sp1-compressed-stark",
+  "parent": null,
+  "tier": "experimental",
+  "package_digest": "sha256:2466c9446b02f4c33b44bf9f868a8e588063563fba59ad30b4405b2854d1265d",
+  "stage": "DECIDED",
+  "decision": "REJECTED",
+  "accepted": false,
+  "score_milli": null,
+  "change_class": "NO_PARENT",
+  "gates": [
+    {
+      "gate": "PKG_WELLFORMED",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "package TreeDigest sha256:64ea7adcb63781f13315c27febc6041ddd033bb6f0629145c4206988a580f9b5; 21170 files, 230870757 bytes; manifest ok",
+      "evidence": [],
+      "started_at": "2026-10-03T07:20:28.017028445Z",
+      "finished_at": "2026-10-03T07:20:29.535527363Z",
+      "reused_from": null
+    },
+    {
+      "gate": "BUILD_REPRODUCIBLE",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "two independent builds produced identical trees sha256:16dd35347e4d4f909329bcc195bc96e17f98902fb8740350189e21bf55e5ecc4; prepare 11069 ms, public dir 172 bytes, TreeDigest sha256:8adccff1f08de496a74fdd72ee8b2079f87efbad2ab94d9fa5c7a9ae5c1dd6ca",
+      "evidence": [],
+      "started_at": "2026-10-03T08:11:37.558011281Z",
+      "finished_at": "2026-10-03T08:19:55.694233706Z",
+      "reused_from": null
+    },
+    {
+      "gate": "AXIOM_AUDIT",
+      "mandatory": false,
+      "status": "FAIL",
+      "reason_codes": [
+        "ARTIFACT_BINDING_FAILED"
+      ],
+      "summary": "candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = \"native-lean\" so the judge builds it from the model)",
+      "evidence": [
+        {
+          "label": "formal check report",
+          "digest": "sha256:691a704a4518c51073b0aec78da9ebf5dbe8296877a9dc903b00392d407683aa",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T11:28:14.255656503Z",
+      "finished_at": "2026-10-03T11:28:14.519288467Z",
+      "reused_from": null
+    },
+    {
+      "gate": "ARTIFACT_BINDING",
+      "mandatory": true,
+      "status": "FAIL",
+      "reason_codes": [
+        "ARTIFACT_BINDING_FAILED"
+      ],
+      "summary": "candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = \"native-lean\" so the judge builds it from the model)",
+      "evidence": [
+        {
+          "label": "formal check report",
+          "digest": "sha256:691a704a4518c51073b0aec78da9ebf5dbe8296877a9dc903b00392d407683aa",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T11:28:14.255656503Z",
+      "finished_at": "2026-10-03T11:28:14.519288467Z",
+      "reused_from": null
+    }
+  ],
+  "reason_codes": [
+    "ARTIFACT_BINDING_FAILED",
+    "OBLIGATION_UNDISCHARGED"
+  ],
+  "benchmark": null,
+  "evidence_graph": {
+    "nodes": [
+      {
+        "id": "formal:certificate",
+        "kind": "theorem",
+        "label": "certificate Candidate.certificate",
+        "digest": null
+      },
+      {
+        "id": "formal:expected_statement",
+        "kind": "theorem",
+        "label": "judge-constructed admission statement",
+        "digest": null
+      },
+      {
+        "id": "tcb:lean_toolchain",
+        "kind": "tcb_component",
+        "label": "Lean leanprover/lean4:v4.34.1",
+        "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+      },
+      {
+        "id": "formal:trusted:formal-core",
+        "kind": "formal_semantics",
+        "label": "formal-core",
+        "digest": "sha256:7538df03755001e87f18b1d2ac0d61aebc5afbb6b2d11142506c2d3ff11ceae6"
+      },
+      {
+        "id": "formal:trusted:near-spec",
+        "kind": "formal_semantics",
+        "label": "near-spec",
+        "digest": "sha256:e3496227cd5c41076ea2cea1d8e71de2a25e40fd257d85bedcd44384da046c99"
+      }
+    ],
+    "edges": [
+      {
+        "from": "formal:certificate",
+        "to": "formal:expected_statement",
+        "kind": "proves",
+        "status": "missing",
+        "evidence": [],
+        "note": "syntactic Expr equality of the certificate type and the reference statement"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:formal-core",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:7538df03755001e87f18b1d2ac0d61aebc5afbb6b2d11142506c2d3ff11ceae6"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:near-spec",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:e3496227cd5c41076ea2cea1d8e71de2a25e40fd257d85bedcd44384da046c99"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      }
+    ]
+  },
+  "revoked": null,
+  "created_at": "2026-10-03T07:09:22.294717Z",
+  "updated_at": "2026-10-03T11:28:14.715038Z",
+  "artifacts": [
+    {
+      "label": "build log 1",
+      "digest": "sha256:64d1fbb2dc6d1a837239dc573961ca257d336d9a935b023ada1bc0a56d795559"
+    },
+    {
+      "label": "build log 2",
+      "digest": "sha256:463cd575a19644caba2faf61a23dc56d149d23ca83c29f27ecb5c8e66bf850d4"
+    },
+    {
+      "label": "public_artifacts",
+      "digest": "sha256:18f0ae416c1e48a5de1100b83e6c087d6719273adeee41944ef0155b881ec123"
+    },
+    {
+      "label": "formal check report",
+      "digest": "sha256:691a704a4518c51073b0aec78da9ebf5dbe8296877a9dc903b00392d407683aa"
+    }
+  ],
+  "verified_surface": {
+    "challenge_id": "chl_b03314c363f0bc1300ba31f00d23739c",
+    "verify_artifact": "sha256:7ffccf67fa3fe90e11ce8d54c8266f64d41ea7ebb301de9df5fea8646ff270e0",
+    "prepare_artifact": "sha256:fc30443f69bb6f5be00c5a7fe699747467233fd0732bb1425e33dfb3abdc71ef",
+    "public_artifacts": "sha256:8adccff1f08de496a74fdd72ee8b2079f87efbad2ab94d9fa5c7a9ae5c1dd6ca",
+    "formal_tree": "sha256:b38cb6c4eeeb47f127e2903d430e68819511ff47b1587fed9d6ff3bc29b4da96",
+    "certificate_decl": "Candidate.certificate",
+    "checker_image": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e",
+    "verify_route": "native"
+  },
+  "build": {
+    "toolchain_image": "sha256:70d2b28003f8117601772dedb7f42393e928ccfcca7356a49d675ec3f878a8a1",
+    "reproducible": true,
+    "build_ns": 228285562550
+  },
+  "assumptions": [
+    {
+      "id": "sha256-collision-resistance",
+      "lean_decl": null,
+      "description": null
+    },
+    {
+      "id": "random-oracle-fiat-shamir-sha256",
+      "lean_decl": null,
+      "description": null
+    }
+  ],
+  "trusted_base": [
+    {
+      "id": "lean-toolchain",
+      "label": "Lean kernel (leanprover/lean4:v4.34.1)",
+      "digest": null
+    },
+    {
+      "id": "checker-image",
+      "label": "formal checker image",
+      "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+    },
+    {
+      "id": "rechecker:leanchecker",
+      "label": "rechecker leanchecker",
+      "digest": null
+    },
+    {
+      "id": "rechecker:nanoda",
+      "label": "rechecker nanoda",
+      "digest": null
+    },
+    {
+      "id": "rechecker:lean4lean",
+      "label": "rechecker lean4lean",
+      "digest": null
+    },
+    {
+      "id": "sandbox:firecracker",
+      "label": "judge sandbox backend firecracker",
+      "digest": null
+    },
+    {
+      "id": "tcb:lean_toolchain",
+      "label": "Lean leanprover/lean4:v4.34.1",
+      "digest": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+    }
+  ],
+  "logs": [
+    {
+      "name": "FORMAL_CHECK",
+      "stage": "FORMAL_CHECK",
+      "text": "checker: lean-checker image sha256:d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1; identity sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e",
+      "truncated": false
+    }
+  ],
+  "revocation_history": []
+}
