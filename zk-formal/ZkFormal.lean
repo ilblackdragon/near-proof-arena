@@ -6,3 +6,6 @@ import ZkFormal.Collision
 import ZkFormal.Game
 import ZkFormal.LineLemma
 import ZkFormal.Params
+-- L3: IOP facts in the unique-decoding regime.
+import ZkFormal.Udr.Count
+import ZkFormal.Udr.Code
