@@ -1,6 +1,7 @@
 import ArenaCore.Bytes
 import ArenaCore.SHA256
 import ArenaCore.Interp
+import ArenaCore.InterpLemmas
 import ArenaCore.Relation
 import ArenaCore.Backend
 import ArenaCore.Verifier

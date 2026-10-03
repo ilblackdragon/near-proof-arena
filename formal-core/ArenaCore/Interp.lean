@@ -153,10 +153,15 @@ def cost (regs : Nat → Nat) : Instr → Nat
   | .out _ _ b => 1 + regs b / 64
   | _ => 1
 
-/-- Execute one (already fetched and paid-for) instruction. -/
+/-- Execute one (already fetched and paid-for) instruction.
+
+Control-flow conditions are written with `bif` on the `Bool` comparisons
+`Nat.blt`/`Nat.ble`/`Nat.beq` rather than `if` on `Prop`; this is
+semantically identical and keeps symbolic-execution proofs free of
+`Decidable`-instance bookkeeping. -/
 def exec1 {σ : Type} (p : Program) (inp : Inputs) (H : HashOracle σ) (s : State σ) :
     Instr → StepResult σ
-  | .halt a => .done (if s.regs a = 0 then .reject else .accept) s
+  | .halt a => .done (bif Nat.beq (s.regs a) 0 then .reject else .accept) s
   | .const a imm => .next { s with pc := s.pc + 1, regs := setReg s.regs a (imm % wordMod) }
   | .mov a b => .next { s with pc := s.pc + 1, regs := setReg s.regs a (s.regs b) }
   | .bin op a b c =>
@@ -164,13 +169,13 @@ def exec1 {σ : Type} (p : Program) (inp : Inputs) (H : HashOracle σ) (s : Stat
   | .addi a b imm =>
       .next { s with pc := s.pc + 1, regs := setReg s.regs a ((s.regs b + imm) % wordMod) }
   | .jmp t => .next { s with pc := t }
-  | .jz a t => .next { s with pc := if s.regs a = 0 then t else s.pc + 1 }
-  | .jnz a t => .next { s with pc := if s.regs a = 0 then s.pc + 1 else t }
+  | .jz a t => .next { s with pc := bif Nat.beq (s.regs a) 0 then t else s.pc + 1 }
+  | .jnz a t => .next { s with pc := bif Nat.beq (s.regs a) 0 then s.pc + 1 else t }
   | .tlen a t =>
       .next { s with pc := s.pc + 1, regs := setReg s.regs a ((inp.tape t).length % wordMod) }
   | .tload a b t =>
       let tp := inp.tape t
-      if s.regs b < tp.length then
+      bif Nat.blt (s.regs b) tp.length then
         .next { s with pc := s.pc + 1, regs := setReg s.regs a (tp.getD (s.regs b) 0).toNat }
       else .done .trap s
   | .tcopy a b c t =>
@@ -178,15 +183,15 @@ def exec1 {σ : Type} (p : Program) (inp : Inputs) (H : HashOracle σ) (s : Stat
       let dst := s.regs a
       let src := s.regs b
       let len := s.regs c
-      if src + len ≤ tp.length ∧ dst + len ≤ p.memSize then
+      bif Nat.ble (src + len) tp.length && Nat.ble (dst + len) p.memSize then
         .next { s with pc := s.pc + 1, mem := writeMem s.mem dst len (tp.drop src) }
       else .done .trap s
   | .ld8 a b =>
-      if s.regs b < p.memSize then
+      bif Nat.blt (s.regs b) p.memSize then
         .next { s with pc := s.pc + 1, regs := setReg s.regs a (s.mem (s.regs b)).toNat }
       else .done .trap s
   | .st8 a b =>
-      if s.regs a < p.memSize then
+      bif Nat.blt (s.regs a) p.memSize then
         .next { s with pc := s.pc + 1,
                        mem := writeMem s.mem (s.regs a) 1 [UInt8.ofNat (s.regs b % 256)] }
       else .done .trap s
@@ -194,7 +199,7 @@ def exec1 {σ : Type} (p : Program) (inp : Inputs) (H : HashOracle σ) (s : Stat
       let dst := s.regs a
       let src := s.regs b
       let len := s.regs c
-      if src + len ≤ p.memSize ∧ dst + 32 ≤ p.memSize then
+      bif Nat.ble (src + len) p.memSize && Nat.ble (dst + 32) p.memSize then
         let (d, hs') := H s.hs (readMem s.mem src len)
         .next { s with pc := s.pc + 1, mem := writeMem s.mem dst 32 d, hs := hs' }
       else .done .trap s
@@ -202,7 +207,7 @@ def exec1 {σ : Type} (p : Program) (inp : Inputs) (H : HashOracle σ) (s : Stat
       let x := s.regs b
       let y := s.regs c
       let len := s.regs d
-      if x + len ≤ p.memSize ∧ y + len ≤ p.memSize then
+      bif Nat.ble (x + len) p.memSize && Nat.ble (y + len) p.memSize then
         .next { s with pc := s.pc + 1,
                        regs := setReg s.regs a
                          (if readMem s.mem x len = readMem s.mem y len then 1 else 0) }
@@ -210,8 +215,8 @@ def exec1 {σ : Type} (p : Program) (inp : Inputs) (H : HashOracle σ) (s : Stat
   | .out k a b =>
       let x := s.regs a
       let len := s.regs b
-      if x + len ≤ p.memSize then
-        if k = 0 then .next { s with pc := s.pc + 1, out0 := s.out0 ++ readMem s.mem x len }
+      bif Nat.ble (x + len) p.memSize then
+        bif Nat.beq k 0 then .next { s with pc := s.pc + 1, out0 := s.out0 ++ readMem s.mem x len }
         else .next { s with pc := s.pc + 1, out1 := s.out1 ++ readMem s.mem x len }
       else .done .trap s
 
@@ -222,7 +227,7 @@ def step {σ : Type} (p : Program) (inp : Inputs) (H : HashOracle σ) (s : State
   | none => .done .trap s
   | some ins =>
     let c := cost s.regs ins
-    if s.fuel < c then .done .outOfFuel s
+    bif Nat.blt s.fuel c then .done .outOfFuel s
     else exec1 p inp H { s with fuel := s.fuel - c } ins
 
 /-- Iterate `step` at most `gas` times.  Every executed instruction costs at
