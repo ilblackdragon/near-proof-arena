@@ -23,6 +23,9 @@ use std::process::Command;
 pub struct TreeLimits {
     pub max_entries: u64,
     pub max_bytes: u64,
+    /// Copy symlinks verbatim instead of rejecting them (only for
+    /// judge-seeded read-write dirs; never for candidate-controlled trees).
+    pub allow_symlinks: bool,
 }
 
 impl Default for TreeLimits {
@@ -30,6 +33,7 @@ impl Default for TreeLimits {
         TreeLimits {
             max_entries: 100_000,
             max_bytes: 8 << 30,
+            allow_symlinks: false,
         }
     }
 }
@@ -150,6 +154,16 @@ fn copy_dir(
                 if exec { "exec" } else { "file" },
                 format!("sha256:{}", hex::encode(h.finalize())),
             ));
+        } else if ft.is_symlink() && limits.allow_symlinks {
+            let target = fs::read_link(e.path())?;
+            let t = target
+                .to_str()
+                .ok_or_else(|| spec_err(format!("{relp:?}: non-utf8 symlink")))?
+                .to_string();
+            std::os::unix::fs::symlink(&target, &to)?;
+            st.files += 1;
+            // symlinks are part of the cache key
+            entries.push((relp, "symlink", t));
         } else {
             return Err(spec_err(format!(
                 "{relp:?}: symlinks/devices/fifos/sockets are not allowed"

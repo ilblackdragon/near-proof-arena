@@ -259,6 +259,40 @@ BUILD_REPRODUCIBLE; the worker re-hashes the directory and the Firecracker
 backend re-verifies the staged copy before imaging it. No Lean toolchain is
 included (the formal checker has its own pinned environment).
 
+**Lean checker image** (`deploy/images/lean-checker/build.sh [--check]`):
+the candidate root for formal checking (runners/formal-checker) and for the
+judge-built `verify_route = "native-lean"` verifier. Same tree rules and
+naming as the toolchain image (`deploy/images/lib/sanitize_tree.py`).
+Contents, at the guest paths the formal checker uses:
+`/arena/tc` = Lean v4.34.1 release toolchain (tarball sha256 pinned; elan-free;
+`lean`, `lake`, `leanchecker`, `leanc` with its bundled clang + lld + glibc
+stubs, so `lean -c` + `leanc` link native executables without a system C
+compiler), `/arena/tools/{lean4export,nanoda_bin,lean4lean,arena-audit}` built
+from source at the revisions in `runners/formal-checker/tools.toml` (lake in a
+pinned `buildpack-deps:bookworm-scm` builder; nanoda in the pinned Rust image,
+`--locked`, path-remapped, stripped; ArenaAudit from this repository), on a
+flattened pinned `debian:bookworm-slim` userland. `--check` performs two fully
+independent builds (tools recompiled from source) and requires equal
+TreeDigests — verified:
+`sha256:706f29e08fcb5dfddc3d90eeb945a6a53c0c20b3cb4e8604848f02e4404826cc`
+(23 022 files, 4.08 GB; one build ≈ 63 s on 32 cores). `<hex>.json` records
+the toolchain, tarball and builder digests and each tool's revision + sha256.
+
+The formal checker's `UntrustedRunner` seam maps onto the Firecracker backend
+with: the image as `root_image`; read-only mounts whose host path *is* the
+same file inside the image dir are served by the image (the checker's
+`ToolPaths` point into the image, so its cache key covers the same bytes);
+**read-write dirs** (`RunRequest::rw_dirs`: seeded from a read-only drive —
+judge-planted symlinks allowed — kept on scratch, bind-mounted at the guest
+path, and written back: new/changed regular files only, host symlinks never
+followed or replaced, guest-made symlinks never returned); stdout redirected
+to a file in a read-write dir for reports over 64 KiB;
+`allow_mount_symlinks` for the judge's `.olean` link farms (symlinks are part
+of the image cache key). The reference adapter is
+`runners/firecracker/tests/lean_checker.rs::FirecrackerLeanRunner`; when
+`arena_sandbox::SandboxSpec` gains `rw_binds` (runners-core), `translate`
+maps them to `rw_dirs`.
+
 *Offline dependencies*: the build VM has no network and no registry. Rust
 packages vendor their dependencies (`cargo vendor`) inside the package and
 point `.cargo/config.toml` `[source.crates-io] replace-with` at the vendored
@@ -294,6 +328,15 @@ limit. Toolchain image: first use (stage 1.84 GB + verify digest + `mkfs`)
 VM ≈ 0.3 s; the full worker build test (two Rust+C builds + conformance)
 ≈ 19 s.
 
+Lean in microVMs (lean-checker image): first use stages + images the 4.08 GB
+root once (≈ 27 s), cached afterwards. The **entire formal-checker corpus
+(30 cases: 4 positive, 26 negative) passes through Firecracker** with the
+expectations of `tests/corpus/*/expect.json` — 150 microVM runs, mean 2.3 s
+per run (Lean start + `.olean` loading over virtio-blk), 10–33 s per case,
+423 s serial; all four recheckers (leanchecker, nanoda, lean4lean,
+arena-audit + NDJSON audit) ran in VMs. `lean -c` + `leanc` + run of a
+native verifier inside a VM: 1.6 s.
+
 ## 6. Residual risks and follow-ups
 
 1. **AppArmor disabled for the delivery container** and Docker-group =
@@ -320,8 +363,11 @@ VM ≈ 0.3 s; the full worker build test (two Rust+C builds + conformance)
 8. **Disk I/O rate limits** are global defaults, not per-challenge policy;
    the output drive is limited too, which bounds collection speed
    (≈ 512 MiB/s).
-9. The **toolchain image** has no Lean, and `/usr/lib` is duplicated by
-   dereferencing the merged-usr symlinks (1.84 GB).
+9. The Rust **toolchain image** has no Lean (Lean lives in the separate
+   lean-checker image), and both images duplicate `/usr/lib` by
+   dereferencing the merged-usr symlinks. Read-write dirs do not propagate
+   deletions, and each formal-checker step re-stages its (small) read-only
+   inputs.
 10. The jailer is run without `--new-pid-ns` (the container already provides
    a pid namespace, and `--new-pid-ns` daemonizes, which breaks waiting).
 
@@ -403,5 +449,9 @@ cargo run -p arena-firecracker --bin arena-fc-run -- --mem-mb 2048 \
 deploy/images/toolchain/build.sh --check    # pinned build toolchain image
 ARENA_FC_TESTS=1 cargo test -p arena-firecracker -- --test-threads=4
 ARENA_FC_TESTS=1 ARENA_DEV_UNSAFE=1 cargo test -p arena-worker --test firecracker
+deploy/images/lean-checker/build.sh --check          # pinned Lean checker image
+ARENA_FC_TESTS=1 cargo test -p arena-firecracker --test lean_checker -- --nocapture
+ARENA_FC_TESTS=1 FC_CASES=$(ls runners/formal-checker/tests/corpus | paste -sd,) \
+  cargo test -p arena-firecracker --test lean_checker corpus -- --nocapture   # all 30
 runners/firecracker/scripts/latency.sh 30 1
 ```
