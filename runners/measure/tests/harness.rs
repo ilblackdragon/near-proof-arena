@@ -59,6 +59,7 @@ fn procedure(cold: u32, warm: u32, measured: u32) -> MeasurementProcedure {
         cold_runs: cold,
         concurrency: 1,
         per_run_timeout_ms: 1000,
+        invocation_mode: None,
     }
 }
 

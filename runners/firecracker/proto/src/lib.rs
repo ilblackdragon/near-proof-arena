@@ -64,12 +64,20 @@ pub const CANDIDATE_GID: u32 = 1000;
 /// (root) can write to the console; the candidate's stdio goes to pipes.
 pub const MARKER_START: &str = "ARENA-START";
 pub const MARKER_EXIT: &str = "ARENA-EXIT";
+/// Per-step markers in steps mode (`<prefix> <nonce> <index> ...`), printed
+/// between the overall START and EXIT markers.
+pub const MARKER_STEP_START: &str = "ARENA-STEP-START";
+pub const MARKER_STEP_EXIT: &str = "ARENA-STEP-EXIT";
+/// Most steps one guest job may run.
+pub const MAX_STEPS: usize = 64;
+/// Per-step stdout/stderr kept in the report (steps mode).
+pub const STEP_STREAM_CAP: usize = 2048;
 
 /// Captured stdout/stderr cap (CONTRACTS §4: 64 KiB).
 pub const STREAM_CAP: usize = 64 * 1024;
 pub const MAX_PATH_LEN: usize = 255;
 pub const MAX_CONTROL_LEN: usize = 1 << 20;
-pub const MAX_REPORT_LEN: usize = 64 * 1024;
+pub const MAX_REPORT_LEN: usize = 512 * 1024;
 pub const MAX_SUMMARY_LEN: usize = 256 * 1024;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -128,6 +136,53 @@ pub struct GuestJob {
     /// bind-mounted at `guest_path`; it is collected back after the run.
     #[serde(default)]
     pub rw_dirs: Vec<GuestRwDir>,
+    /// Steps mode (non-empty): instead of `argv`/`collect`, run each step in
+    /// order in this one guest. Before every step init wipes the scratch
+    /// work dir, `/dev/shm` and re-applies `copy_in`/`scratch_dirs`; every
+    /// step runs as a fresh process tree in a fresh cgroup and IPC namespace,
+    /// sees only its own `binds`, and is killed (whole cgroup) when it ends.
+    /// Nothing written by one step is visible to the next.
+    #[serde(default)]
+    pub steps: Vec<GuestStep>,
+    /// Drive with the per-step input files (mounted root-only, outside the
+    /// candidate root; `GuestStep::binds` sources are relative to it).
+    #[serde(default)]
+    pub steps_dev_index: Option<u32>,
+}
+
+/// One step of a steps-mode job.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GuestStep {
+    pub argv: Vec<String>,
+    /// `(source relative to the steps drive, absolute guest path)`: a single
+    /// file bind-mounted read-only for this step only.
+    pub binds: Vec<(String, String)>,
+    /// Scratch-relative files/dirs collected after this step; returned
+    /// under `<STEP_OUT_PREFIX><index>/<path>`.
+    pub collect: Vec<String>,
+    pub timeout_ms: u64,
+}
+
+/// Output-path prefix of step `i`'s collected files: `.step<i>/<path>`.
+pub const STEP_OUT_PREFIX: &str = ".step";
+
+/// Per-step result in steps mode.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct StepReport {
+    pub status: GuestStatus,
+    /// Guest monotonic clock, spawn -> exit of the step's entry process.
+    pub guest_wall_ns: u64,
+    pub guest_cpu_ns: u64,
+    pub guest_peak_mem_bytes: u64,
+    pub oom_kills: u64,
+    /// First `STEP_STREAM_CAP` bytes, lossy UTF-8.
+    pub stdout: String,
+    pub stderr: String,
+    pub stdout_total_bytes: u64,
+    pub stderr_total_bytes: u64,
+    /// Problems copying this step's outputs out of scratch (symlinks,
+    /// special files, limits); non-empty means the outputs are unusable.
+    pub collect_violations: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -173,6 +228,9 @@ pub struct GuestReport {
     pub oom_kills: u64,
     pub stdout_total_bytes: u64,
     pub stderr_total_bytes: u64,
+    /// Steps mode: one entry per step that was started (in order).
+    #[serde(default)]
+    pub steps: Vec<StepReport>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -564,6 +622,7 @@ mod tests {
             oom_kills: 0,
             stdout_total_bytes: 5,
             stderr_total_bytes: 0,
+            steps: vec![],
         }
     }
 
@@ -710,6 +769,13 @@ mod tests {
                 dev_index: Some(6),
                 guest_path: "/arena/out".into(),
             }],
+            steps: vec![GuestStep {
+                argv: vec!["/bin/true".into()],
+                binds: vec![("s0/0".into(), "/in/request.bin".into())],
+                collect: vec!["out".into()],
+                timeout_ms: 10,
+            }],
+            steps_dev_index: Some(7),
         };
         let enc = encode_control(&job);
         assert_eq!(enc.len() % 4096, 0);
@@ -830,4 +896,8 @@ pub struct ShimResult {
     pub teardown_ns: Option<u64>,
     pub cgroup: HostCgroupStats,
     pub serial_tail: String,
+    /// Steps mode: host-clock STEP-START -> STEP-EXIT per step index (the
+    /// authoritative per-step wall time); `None` if a marker was missing.
+    #[serde(default)]
+    pub step_wall_ns: Vec<Option<u64>>,
 }

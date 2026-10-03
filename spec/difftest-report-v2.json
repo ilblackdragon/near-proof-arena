@@ -1,0 +1,100 @@
+{
+ "scope": "v2",
+ "statement_id": "near/pv86/receipt-transfer-batch/v1",
+ "seed": 4243,
+ "cases": 1775,
+ "stats": {
+  "in_domain_agree": 1505,
+  "without_refunds": 353,
+  "with_refunds": 1152,
+  "out_of_domain_agree": 270
+ },
+ "disagreements": [],
+ "batch_size": {
+  "min": 1,
+  "max": 256,
+  "mean": 25.0
+ },
+ "profiles": {
+  "basic": 150,
+  "boundary": 150,
+  "bw_state": 150,
+  "example": 5,
+  "invalid:account_v2": 15,
+  "invalid:balance_overflow": 15,
+  "invalid:bw_state_undecodable": 15,
+  "invalid:duplicate_receipt_id": 15,
+  "invalid:empty_batch": 15,
+  "invalid:gas_limit": 15,
+  "invalid:implicit_receiver": 15,
+  "invalid:missed_chunk_refund": 15,
+  "invalid:multi_action": 15,
+  "invalid:non_transfer_action": 15,
+  "invalid:nonzero_congestion": 15,
+  "invalid:receiver_missing": 15,
+  "invalid:sentinel_balance": 15,
+  "invalid:shard_id_too_large": 15,
+  "invalid:storage_stake": 15,
+  "invalid:system_predecessor": 15,
+  "invalid:tokens_burnt_overflow": 15,
+  "invalid:wrong_protocol_version": 15,
+  "large": 150,
+  "missed": 150,
+  "prefix": 150,
+  "prices": 150,
+  "repeat": 150,
+  "shards": 150,
+  "trie_shapes": 150
+ },
+ "coverage": {
+  "allowed_shard!=shard_id": 433,
+  "batch_ge_128": 105,
+  "bw_write:insert:branch_new_child": 461,
+  "bw_write:insert:branch_value": 6,
+  "bw_write:insert:extension_split:new_key_continues:ext_rest_empty": 10,
+  "bw_write:insert:extension_split:new_key_continues:ext_rest_kept": 15,
+  "bw_write:insert:extension_split:new_key_ends:ext_rest_empty": 9,
+  "bw_write:insert:extension_split:new_key_ends:ext_rest_kept": 11,
+  "bw_write:insert:leaf_split:both_continue:no_ext": 11,
+  "bw_write:insert:leaf_split:both_continue:with_ext": 19,
+  "bw_write:insert:leaf_split:new_key_ends:no_ext": 9,
+  "bw_write:update_len_change": 68,
+  "bw_write:update_same_len": 886,
+  "exotic_keys_under_0x0f": 48,
+  "gas_limit_tight": 67,
+  "missed_chunks:0": 1299,
+  "missed_chunks:>0": 206,
+  "prev_bw_links:0": 38,
+  "prev_bw_links:1": 886,
+  "prev_bw_links:2": 4,
+  "prev_bw_links:3+": 26,
+  "receipt_price_below_block_price": 1013,
+  "repeated_receiver": 1089,
+  "root_branch_depth0(keys_first_nibble>=1)": 30,
+  "secp256k1_signer_key": 1218,
+  "shard_id:0": 1024,
+  "shard_id:<2^16": 434,
+  "shard_id:>=2^16": 47
+ },
+ "timings_s": {
+  "oracle_gen": 5.71,
+  "lean_check": 67.94,
+  "python_check": 3.33
+ },
+ "tool_summaries": {
+  "oracle": [
+   "generated 1775 v2 cases (1775 consistent) in 5.706664541s"
+  ],
+  "lean": [
+   "nearspec-check (v2): 1775 cases, 1505 ok, 270 out_of_domain, 0 inconsistent"
+  ],
+  "python": [
+   "spec_check_v2.py: 1775 cases, 1505 ok, 270 out_of_domain, 0 inconsistent"
+  ]
+ },
+ "exit_codes": {
+  "oracle": 0,
+  "lean": 0,
+  "python": 0
+ }
+}

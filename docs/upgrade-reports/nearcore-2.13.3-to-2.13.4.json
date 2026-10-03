@@ -219,9 +219,17 @@
           "core/store/src/trie/mod.rs"
         ],
         "spec_definitions": [
-          "concept:state-root",
-          "concept:trie-node-hashing",
-          "concept:storage-proof"
+          "NearSpec.PTrie.hashOf",
+          "NearSpec.hexPrefix",
+          "NearSpec.nibbles",
+          "NearSpec.Slot.valueRef",
+          "NearSpec.PTrie.get",
+          "NearSpec.PTrie.set",
+          "NearSpec.PTrie.wf",
+          "NearSpec.PTrie.revealedBytes",
+          "NearSpec.merkleRoot",
+          "NearSpec.outcomeRoot",
+          "ArenaCore.sha256"
         ],
         "obligations": [
           "FORMAL_SEMANTIC_SOUNDNESS",
@@ -253,9 +261,17 @@
     ],
     "unmapped_files": [],
     "spec_definitions_to_revalidate": [
-      "concept:state-root",
-      "concept:storage-proof",
-      "concept:trie-node-hashing"
+      "ArenaCore.sha256",
+      "NearSpec.PTrie.get",
+      "NearSpec.PTrie.hashOf",
+      "NearSpec.PTrie.revealedBytes",
+      "NearSpec.PTrie.set",
+      "NearSpec.PTrie.wf",
+      "NearSpec.Slot.valueRef",
+      "NearSpec.hexPrefix",
+      "NearSpec.merkleRoot",
+      "NearSpec.nibbles",
+      "NearSpec.outcomeRoot"
     ],
     "obligations_to_reopen": [
       "BUILD_REPRODUCIBLE",

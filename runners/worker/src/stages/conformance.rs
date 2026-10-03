@@ -57,6 +57,13 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         }
         Err(e @ OracleError::Broken(_)) => return Err(ExecError::Infra(e.to_string())),
     };
+    // Fail closed on any request outside the challenge's protocol version /
+    // chain before any candidate code runs.
+    if let Some(pin) = crate::jobs::RequestPin::from_challenge(&j.challenge) {
+        for case in &cases {
+            common::check_request_pin(&pin, &case.request, &case.id, case.public)?;
+        }
+    }
     let bundle = common::fetch_bundle(r, &j.build, &j.manifest.entry)?;
     let public_dir = common::fetch_public(r, &j.build, &limits)?;
     let verifier = match common::verifier_for(r, j, &bundle, true)? {

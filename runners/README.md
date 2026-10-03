@@ -288,3 +288,20 @@ formal obligations re-checked. Results: `docs/e2e-results/milestone-d/`.
   is DEMO-only.
 * `prepare --out` is pre-created on bwrap-dev but not on firecracker:
   candidates should `mkdir -p` it.
+* `examples/bench_session.rs` (from main; drives
+  `benchmarks/baseline/run_baseline.py`) is written against the
+  pre-arena-jobs worker API (explicit batches and seeds in `BenchmarkJob`).
+  It is excluded from default builds (`--features legacy-bench-session`)
+  until it is ported to `ExecJob` with an oracle that serves the given
+  batches.
+* bench-spec-v1.1 `vm_per_batch` (from main) is ported into the integrated
+  BENCHMARK stage (`run_prove_batch` / `run_verify_batch`, npai shadow
+  included). It needs a guest rootfs + fc-runner built from this tree (steps
+  mode); the shared `/data/illia/nearproof-deps/firecracker` images predate
+  it (`steps_share_one_vm_but_no_state` fails there with "guest init: empty
+  argv"). A rebuilt set is in `/data/illia/nearproof-deps/firecracker-rc`
+  (rootfs `sha256:bb60e932…`, fc-runner `sha256:03fdfcda…`).
+* Request pin (from main): conformance and benchmark check every oracle
+  request header against the challenge's protocol version / chain id
+  (`near-arena-claim-v1` challenges) before any candidate code runs; a
+  mismatch is INFRA_ERROR.

@@ -422,4 +422,56 @@ pub trait Sandbox: Send + Sync {
         BWRAP_LAYOUT
     }
     fn run(&self, spec: &SandboxSpec) -> Result<SandboxOutcome, InfraError>;
+
+    /// Run `steps` in order, each as a fresh process tree with a freshly
+    /// wiped scratch (`base.copy_in`/`scratch_dirs` re-applied), seeing only
+    /// `base.ro_mounts` plus its own `ro_files`, with no state carried from
+    /// one step to the next. Stops after the first step that does not exit 0
+    /// or whose outputs are unusable; returns one outcome per started step.
+    /// `base.argv`/`collect`/`out_dir` are ignored.
+    ///
+    /// The default runs every step as its own [`Sandbox::run`]. Backends
+    /// with expensive sandbox setup (a microVM boot) override it to run all
+    /// steps inside one sandbox instance ([`Sandbox::steps_share_instance`]).
+    fn run_steps(
+        &self,
+        base: &SandboxSpec,
+        steps: &[StepSpec],
+    ) -> Result<Vec<SandboxOutcome>, InfraError> {
+        let mut out = Vec::with_capacity(steps.len());
+        for st in steps {
+            let mut spec = base.clone();
+            spec.argv = st.argv.clone();
+            spec.ro_mounts.extend(st.ro_files.iter().cloned());
+            spec.collect = st.collect.clone();
+            spec.out_dir = st.out_dir.clone();
+            spec.wall_timeout = st.wall_timeout;
+            let o = self.run(&spec)?;
+            let ok = o.exit == ExitStatus::Exited(0) && o.output_error.is_none();
+            out.push(o);
+            if !ok {
+                break;
+            }
+        }
+        Ok(out)
+    }
+
+    /// Whether [`Sandbox::run_steps`] runs all steps in one sandbox instance
+    /// (one VM boot per call) rather than one instance per step.
+    fn steps_share_instance(&self) -> bool {
+        false
+    }
+}
+
+/// One step of [`Sandbox::run_steps`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct StepSpec {
+    pub argv: Vec<String>,
+    /// Read-only single files for this step only (host file -> guest path).
+    pub ro_files: Vec<Mount>,
+    /// Scratch-relative paths collected after this step into `out_dir`.
+    pub collect: Vec<String>,
+    /// Host directory (must not exist) receiving this step's outputs.
+    pub out_dir: Option<PathBuf>,
+    pub wall_timeout: Duration,
 }

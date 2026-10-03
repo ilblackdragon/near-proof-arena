@@ -1,5 +1,40 @@
 # Contract changelog
 
+## v1.4 (additive, challenge-v2 lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
+
+Protocol-upgrade governance (docs/PROTOCOL_UPGRADES.md). All new fields are
+defaulted (`#[serde(default)]`) or optional and not serialized when absent.
+
+* `LeaderboardEntry` gains `challenge_id: String`, `protocol_version: u32`
+  and `superseded_by: Option<String>`: every result is labelled with the
+  challenge (and protocol version) it was measured under; a superseded
+  challenge's board keeps its ranking and carries the successor id.
+* `GET /v1/challenges[/{id}]` (`StoredChallenge`) gains
+  `superseded_by: Option<String>` (a registered challenge whose `supersedes`
+  names this one).
+* Registration policy: registering a challenge whose `supersedes` names a
+  registered challenge sets the predecessor `open = false` in the same
+  transaction (audit event `challenge.superseded`); a challenge registered
+  after its successor is inserted closed. `POST /v1/admin/challenges/{id}/status`
+  with `open: true` on a superseded challenge returns 409
+  `challenge_superseded`. Submissions to a closed challenge keep returning 409
+  `challenge_closed`; the message names the successor.
+* Worker jobs (`runners/worker` `ConformanceJob`, `BenchmarkJob`) gain
+  `request_pin: Option<RequestPin{format, protocol_version, chain_id}>`
+  (`RequestPin::from_challenge`): every oracle request header is checked
+  before any candidate code runs; a mismatch fails the job as infra.
+* `MeasurementProcedure.invocation_mode: Option<"vm_per_invocation" | "vm_per_batch">`
+  (not serialized when absent ⇒ existing challenge ids unchanged; absent =
+  `vm_per_invocation`, bench-spec-v1). `vm_per_batch` = bench-spec-v1.1
+  (docs/BENCHMARK_SPEC.md §4.4). `arena_sandbox::Sandbox` gains
+  `run_steps`/`steps_share_instance` (default impl: one run per step);
+  Firecracker guest protocol gains steps mode (`GuestJob.steps`,
+  `GuestReport.steps`, `ShimResult.step_wall_ns`, STEP markers; all
+  serde-defaulted, `PROTO_VERSION` unchanged; images must be rebuilt to use it).
+* Oracle CLI: `--challenge FILE` on every command (refuses, exit 3, unless the
+  challenge pins the oracle's nearcore commit, protocol version and chain id)
+  and `check-request`.
+
 ## v1.3 (additive, red-team lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
 
 * `VerifiedSurface` gains `verify_route`, `verifier_bytecode` (npai-v1:

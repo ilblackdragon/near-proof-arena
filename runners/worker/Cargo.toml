@@ -31,3 +31,13 @@ tar.workspace = true
 [[bin]]
 name = "arena-worker"
 path = "src/main.rs"
+
+[features]
+# `examples/bench_session.rs` (from main) is written against the pre-arena-jobs
+# worker API (explicit batches/seeds in BenchmarkJob) and does not build
+# against the integrated worker yet; it is excluded from default builds.
+legacy-bench-session = []
+
+[[example]]
+name = "bench_session"
+required-features = ["legacy-bench-session"]

@@ -87,5 +87,14 @@ rankings remain attached to the definition they were measured against
 | `chl_54c65fe7c73c5abcfe500681889177bc` | demo | `demo-toy-arithmetic` | Plumbing fixture: `c = a·b mod 2^64`. **Not NEAR semantics.** Signed with the dev key. |
 | `chl_5ef2bc7d2068219635426e47ca46bfbb` | formal | `near-transfer-receipt-v1` | `near/pv86/receipt-transfer-batch/v0` (nearcore 2.13.4, PV 86): Transfer-receipt batches, relation `NearSpec.TransferV1.NearRelation`. Signed with the local operator key. Baselines not yet measured. Draft built by `spec/tools/build_challenge_draft.py`. |
 
+| `chl_f7eb2d91bf7b363eee134b6ad9d3e011` | formal | `near-transfer-receipt-v1-1` ("v1.1") | **Supersedes `chl_5ef2…`.** Identical semantics, spec, claim encoding, workloads, procedure and limits; only pins the baseline: `baseline_submission = sha256:329c763a…bcd699f` (package digest of `examples/reexec-witness`, git tree `6dfbc3bc…`) and `baseline_ns` = batch-1 213 592 463, batch-16 205 044 335, batch-256 216 310 937. Why: under v1 `baseline_ns = []`, so every score was null. The baselines are **dev-host** medians (`benchmarks/results/baseline-near-transfer-receipt-v1-r1-devhost-20261003/`), not governed-hardware numbers. Draft: `drafts/near-transfer-receipt-v1-1.draft.json` (`benchmarks/baseline/pin_baseline.py`). Signed with the local operator key. |
+
+Names are `[a-z0-9-]` only, so "v1.1" is spelled `v1-1`. `created_at` is a
+governance-declared timestamp (v1: `2026-10-03T12:00:00Z`, v1.1:
+`2026-10-03T13:00:00Z`); `supersede` only requires it to increase. The
+reference package still names `chl_5ef2…` in its `candidate.toml`: the pinned
+`baseline_submission` is that exact package, measured on v1 inputs, which are
+semantically identical to v1.1's.
+
 `templates/near-transfer-receipt-v1.template.json` is the skeleton the draft
 builder fills from `spec/challenge-inputs/` (spec-oracle lane).

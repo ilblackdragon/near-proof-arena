@@ -1,5 +1,10 @@
 //! near-arena-oracle: judge-owned oracle for `near/pv86/receipt-transfer-batch/v0`.
 //!
+//! Scopes: `--scope v1` (default) = `near/pv86/receipt-transfer-batch/v0`
+//! (challenge near-transfer-receipt-v1, unchanged); `--scope v2` =
+//! `near/pv86/receipt-transfer-batch/v1` (challenge near-transfer-receipt-v2,
+//! real post-state root incl. the bandwidth-scheduler write; src/v2.rs).
+//!
 //! Commands:
 //!   gen    --seed S --valid N [--invalid M] --out DIR [--profiles p1,p2]
 //!          Generate OracleCase directories (request.bin, witness.bin, claim.bin,
@@ -12,11 +17,22 @@
 //!   params --out FILE
 //!          Emit the runtime-config description whose JCS sha256 is the
 //!          challenge's runtime_config_digest.
+//!   check-request --request FILE [--challenge FILE]
+//!          Fail-closed version gate: exit 0 iff the request's embedded
+//!          protocol version / chain id are the ones this oracle is pinned to
+//!          (and the challenge's), else exit 3.
+//!
+//! Every command accepts `--challenge FILE` (a ChallengeDefinition JSON) and
+//! refuses to run (exit 3) unless the challenge pins exactly this oracle's
+//! nearcore commit, protocol version and chain id: an oracle built for one
+//! protocol version never serves a challenge for another
+//! (docs/PROTOCOL_UPGRADES.md §3).
 
 mod domain;
 mod enc;
 mod exec;
 mod casegen;
+mod v2;
 
 use near_primitives::hash::hash;
 use serde_json::json;
@@ -32,16 +48,84 @@ fn arg(args: &[String], name: &str) -> Option<String> {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let cmd = args.get(1).map(String::as_str).unwrap_or("");
-    let code = match cmd {
-        "gen" => cmd_gen(&args),
-        "replay" => cmd_replay(&args),
-        "params" => cmd_params(&args),
+    if let Err(e) = check_challenge_pin(&args) {
+        eprintln!("REFUSED (fail-closed): {e}");
+        std::process::exit(3);
+    }
+    let scope = arg(&args, "--scope").unwrap_or_else(|| "v1".into());
+    let code = match (cmd, scope.as_str()) {
+        ("gen", "v1") => cmd_gen(&args),
+        ("replay", "v1") => cmd_replay(&args),
+        ("params", "v1") => cmd_params(&args),
+        ("check-request", "v1") => cmd_check_request(&args),
+        ("gen", "v2") => v2::cmd_gen(&args),
+        ("replay", "v2") => v2::cmd_replay(&args),
+        ("params", "v2") => v2::cmd_params(&args),
         _ => {
-            eprintln!("usage: near-arena-oracle gen|replay|params ... (see src/main.rs)");
+            eprintln!("usage: near-arena-oracle gen|replay|params|check-request [--scope v1|v2] ... (see src/main.rs)");
             2
         }
     };
     std::process::exit(code);
+}
+
+/// `--challenge FILE`: the challenge must pin this oracle's nearcore commit,
+/// protocol version and chain id; anything else is refused.
+fn check_challenge_pin(args: &[String]) -> Result<(), String> {
+    let Some(p) = arg(args, "--challenge") else { return Ok(()) };
+    let raw = std::fs::read(&p).map_err(|e| format!("{p}: {e}"))?;
+    let c: serde_json::Value = serde_json::from_slice(&raw).map_err(|e| format!("{p}: {e}"))?;
+    let pv = c["protocol_version"].as_u64();
+    if pv != Some(domain::PROTOCOL_VERSION as u64) {
+        return Err(format!(
+            "challenge protocol_version {pv:?} != oracle protocol version {}",
+            domain::PROTOCOL_VERSION
+        ));
+    }
+    if c["chain_id"].as_str() != Some(domain::CHAIN_ID) {
+        return Err(format!("challenge chain_id {} != oracle chain id {}", c["chain_id"], domain::CHAIN_ID));
+    }
+    if c["nearcore"]["commit"].as_str() != Some(NEARCORE_COMMIT) {
+        return Err(format!("challenge nearcore commit {} != oracle nearcore commit {NEARCORE_COMMIT}", c["nearcore"]["commit"]));
+    }
+    Ok(())
+}
+
+/// Version gate on a request: the oracle only computes expected claims for
+/// requests of its own protocol version and chain.
+fn request_version_ok(req: &enc::Request) -> Result<(), String> {
+    if req.protocol_version != domain::PROTOCOL_VERSION {
+        return Err(format!(
+            "request protocol_version {} != oracle protocol version {}",
+            req.protocol_version,
+            domain::PROTOCOL_VERSION
+        ));
+    }
+    if req.chain_id != domain::CHAIN_ID {
+        return Err(format!("request chain_id {} != oracle chain id {}", req.chain_id, domain::CHAIN_ID));
+    }
+    Ok(())
+}
+
+fn cmd_check_request(args: &[String]) -> i32 {
+    let p = arg(args, "--request").expect("--request");
+    let req = match enc::decode_request(&std::fs::read(&p).unwrap()) {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("REFUSED (fail-closed): undecodable request: {e}");
+            return 3;
+        }
+    };
+    match request_version_ok(&req) {
+        Ok(()) => {
+            println!("REQUEST_OK protocol_version={} chain_id={}", req.protocol_version, req.chain_id);
+            0
+        }
+        Err(e) => {
+            eprintln!("REFUSED (fail-closed): {e}");
+            3
+        }
+    }
 }
 
 /// RFC 8785 JCS for the integer/string/bool JSON we produce (keys sorted by
@@ -217,6 +301,14 @@ fn cmd_replay(args: &[String]) -> i32 {
     let kv: BTreeMap<Vec<u8>, Vec<u8>> =
         enc::decode_state(&std::fs::read(dir.join("state.bin")).unwrap()).unwrap().into_iter().collect();
     let want_root = req.pre_state_root;
+    let claim_present = dir.join("claim.bin").exists() || dir.join("expected_claim.bin").exists();
+    if claim_present {
+        // An expected claim is only ever produced for this oracle's version.
+        if let Err(e) = request_version_ok(&req) {
+            eprintln!("REFUSED (fail-closed): {e}");
+            return 3;
+        }
+    }
     let ex = exec::run(req, &kv);
     let mut ok = ex.request.pre_state_root == want_root;
     let w = enc::encode_witness(&ex.request.pre_state_root, &ex.witness_values);
