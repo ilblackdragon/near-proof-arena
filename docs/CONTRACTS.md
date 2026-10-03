@@ -86,7 +86,15 @@ verify = "out/verify"
 [formal]
 lean_project = "formal"
 certificate = "Candidate.certificate"   # a Lean constant name
+# v1.2, only for [entry] verify_route = "native-lean":
+# verifier_model = "Candidate.Model.verify"     # ArenaCore.OracleVerifier
+# verifier_model_module = "Candidate.Model"
 ```
+
+v1.2 optional `[entry]` keys: `verify_route = "npai-v1" | "native-lean"`,
+`verifier_bytecode = "out/verifier.npai"` (npai-v1). For `native-lean` the
+judge builds `verify` from `formal.verifier_model`; the candidate's own
+`verify` binary is not admitted.
 
 Package archive: `tar.zst` or `tar`; limits: 256 MiB compressed, 2 GiB
 expanded, 100k entries, path len 255, no symlinks/hardlinks/devices/abs/`..`.
