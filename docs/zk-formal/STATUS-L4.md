@@ -21,7 +21,16 @@ Branch `lane/zk-L4`. Interfaces published (frozen for M1); format: `FORMATS.md`.
 | Statement | Owner (sub-lane) | State |
 |---|---|---|
 | `CompileQueryBoundStmt` (generic compile ≤ `compileBound`) | lane/zk-L4-qbound | in progress |
-| `NpBoundsStmt` (np-udr-stark bounds ⇒ `NVu`) | lane/zk-L4-npbounds | in progress |
-| `ParsePrefixStmt`, `LawsStmt`, `DecodeAgreeStmt` | lane/zk-L4-parse | in progress |
+| `NpBoundsStmt` (np-udr-stark bounds ⇒ `NVu`) | lane/zk-L4-npbounds | **proved** `np_bounds` (NpBounds.lean; propext, Quot.sound) |
+| `ParsePrefixStmt`, `LawsStmt`, `DecodeAgreeStmt` | lane/zk-L4-parse | **proved** `parsePrefix_split`, `laws` (+ `instance lawsInst`), `decode_agree`, `readHeader_encHeader` |
 | Reference prover + end-to-end tests + L8 vectors | lane/zk-L4-test | in progress |
 | `verifier_queryBound` (composition) | L4 | proved from Q1, Q2 |
+
+## Notes
+
+* Transcript encoding follows L2's extraction (`Bcs/*` on lane/zk-L2): a challenge
+  steps the state (`d ← WH(CHAL, d)`), absorption is `u8 #roots ‖ roots ‖ clear`.
+* `Air.wf` also bounds total bus multiplicity and fingerprint degree by
+  `busBudget = 2^36` (the per-round bad count assumed by `Params.commitBad`).
+* Session OOM crash at 19:06: the qbound and test sub-lanes were restarted under the
+  `heavy` wrapper.
