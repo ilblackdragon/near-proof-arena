@@ -97,6 +97,26 @@ theorem applyAll_lens (ctx : Ctx) : ∀ (rs : List Receipt) (st acc : Acc), appl
       · omega
       · rw [ih.2, h2.2, Nat.add_mul]; omega
 
+theorem applyReceipt_tok {ctx : Ctx} {st st' : Acc} {r : Receipt} (h : applyReceipt ctx st r = some st') :
+    st'.tokensBurnt < Params.two128 := by
+  unfold applyReceipt at h
+  revert h
+  dsimp only
+  repeat' (first | (intro h; cases h; done) | (intro h; simp only [Option.some.injEq] at h; subst h; simp; omega) | split)
+
+theorem applyAll_tok (ctx : Ctx) : ∀ (rs : List Receipt) (st acc : Acc), applyAll ctx st rs = some acc →
+    st.tokensBurnt < Params.two128 → acc.tokensBurnt < Params.two128
+  | [], st, acc, h, h0 => by simp [applyAll] at h; subst h; exact h0
+  | r :: rs, st, acc, h, h0 => by
+    simp only [applyAll] at h
+    split at h
+    · cases h
+    · rename_i st' h1
+      exact applyAll_tok ctx rs st' acc h (applyReceipt_tok h1)
+
+theorem runBatch_tok {ctx : Ctx} {t : PTrie} {rs : List Receipt} {acc : Acc} (h : runBatch ctx t rs = some acc) :
+    acc.tokensBurnt < Params.two128 := applyAll_tok ctx rs _ acc h (by simp [Params.two128])
+
 theorem runBatch_lens {ctx : Ctx} {t : PTrie} {rs : List Receipt} {acc : Acc} (h : runBatch ctx t rs = some acc) :
     acc.outcomes.length = rs.length ∧ acc.gasBurnt = rs.length * Params.G := by
   have := applyAll_lens ctx rs _ acc h
@@ -137,7 +157,7 @@ theorem body_wp {pub cb pb : Bytes} (ht : TapesOK cb pb) :
   have h7 : TrieSt cb pb rs R A K (vals0 pb A) m7 := TrieSt.congr h6 hmem h14 h15
   refine wp_mono (batch_wp h7) fun m8 ⟨acc, vals, hb, h8, htr, hbm⟩ => ?_
   obtain ⟨hl, hg⟩ := runBatch_lens hb
-  refine wp_mono (final_wp h8 hbm htr hl hg) fun m9 ⟨ho, _⟩ => ?_
+  refine wp_mono (final_wp h8 hbm htr hl hg (runBatch_tok hb)) fun m9 ⟨ho, _⟩ => ?_
   refine check_of h2.shape h4.ok h5.tok ?_ hb ho
   rw [heq, claim_seg h6.toClaimIn 117 32 (by decide)]
   rfl
@@ -255,7 +275,7 @@ theorem body_twp {pub cb pb : Bytes} (hc : check cb pb = true) :
       (by rw [hr7 15 (by decide) (by decide) (by decide) (by decide)]; exact h6.k1)
   rw [← ht5] at hrun
   refine twp_mono (batch_twp h7 hrun) fun m8 c8 ⟨vals, h8, htr, hbm, hc8⟩ => ?_
-  refine twp_mono (final_twp h8 hbm htr hl hg hout) fun m9 c9 ⟨h15, hc9⟩ => ?_
+  refine twp_mono (final_twp h8 hbm htr hl hg (runBatch_tok hrun) hout) fun m9 c9 ⟨h15, hc9⟩ => ?_
   refine ⟨h15, ?_⟩
   simp only [PMAX] at hpl
   simp only [FUEL]
