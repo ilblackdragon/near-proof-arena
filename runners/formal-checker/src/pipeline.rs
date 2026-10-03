@@ -84,7 +84,16 @@ impl Default for Policy {
 pub struct Limits {
     pub module_timeout: Duration,
     pub elaboration_budget: Duration,
+    /// Wall timeout of one rechecker sandbox run.
     pub recheck_timeout: Duration,
+    /// Candidate modules per `leanchecker` / `lean4lean` sandbox run. Both
+    /// tools replay every module they are given as a parallel task, each
+    /// importing its own environment, so memory grows with the number of
+    /// modules per run (≈60 GB for a 100-module candidate in one run); runs
+    /// are sequential and the verdict is the conjunction.
+    pub recheck_batch_modules: usize,
+    /// Total wall budget of all batches of one module rechecker.
+    pub recheck_total: Duration,
     pub audit_timeout: Duration,
     pub export_max_bytes: u64,
     pub mem_bytes: Option<u64>,
@@ -96,6 +105,8 @@ impl Default for Limits {
             module_timeout: Duration::from_secs(600),
             elaboration_budget: Duration::from_secs(1800),
             recheck_timeout: Duration::from_secs(1200),
+            recheck_batch_modules: 1,
+            recheck_total: Duration::from_secs(3600),
             audit_timeout: Duration::from_secs(600),
             export_max_bytes: 4 << 30,
             mem_bytes: None,
@@ -1385,31 +1396,18 @@ impl FormalChecker {
                 spec.ro.push((replay_oleans.clone(), G_CAND.into()));
             };
 
-            // B1: leanchecker (Lean kernel replay of every candidate module).
-            {
-                let mut argv = vec![format!("{G_TC}/bin/leanchecker")];
-                argv.extend(cand_mods.iter().cloned());
-                let mut spec = ctx.base_spec(
-                    argv,
-                    &lean_path,
-                    req.limits.recheck_timeout,
-                    req.limits.mem_bytes,
-                );
-                mount_replay(&mut spec);
-                rechecks.push(match ctx.run("recheck:leanchecker", &spec, CAPTURE_LIMIT) {
-                    Err(f) => {
-                        findings.push(f);
-                        RecheckerRun {
-                            id: "leanchecker".into(),
-                            ran: false,
-                            verdict: "error".into(),
-                            wall_ms: 0,
-                            detail: "infra".into(),
-                        }
-                    }
-                    Ok(o) => verdict("leanchecker", &o, &mut findings),
-                });
-            }
+            // B1: leanchecker (Lean kernel replay of every candidate module),
+            // in bounded batches of modules (see `Limits::recheck_batch_modules`).
+            rechecks.push(module_rechecker(
+                &mut ctx,
+                "leanchecker",
+                &format!("{G_TC}/bin/leanchecker"),
+                &cand_mods,
+                &lean_path,
+                &req.limits,
+                &mount_replay,
+                &mut findings,
+            ));
 
             // B2: export the certificate's closure (sandboxed: loads candidate oleans).
             let cand_export = x.join("candidate.ndjson");
@@ -1517,30 +1515,19 @@ impl FormalChecker {
                     });
                 }
             }
-            // B4: lean4lean (independent kernel implementation, .olean replay).
+            // B4: lean4lean (independent kernel implementation, .olean replay),
+            // batched like leanchecker.
             if self.tools.lean4lean.is_some() {
-                let mut argv = vec![G_L4L.to_string()];
-                argv.extend(cand_mods.iter().cloned());
-                let mut spec = ctx.base_spec(
-                    argv,
+                rechecks.push(module_rechecker(
+                    &mut ctx,
+                    "lean4lean",
+                    G_L4L,
+                    &cand_mods,
                     &lean_path,
-                    req.limits.recheck_timeout,
-                    req.limits.mem_bytes,
-                );
-                mount_replay(&mut spec);
-                rechecks.push(match ctx.run("recheck:lean4lean", &spec, CAPTURE_LIMIT) {
-                    Err(f) => {
-                        findings.push(f);
-                        RecheckerRun {
-                            id: "lean4lean".into(),
-                            ran: false,
-                            verdict: "error".into(),
-                            wall_ms: 0,
-                            detail: "infra".into(),
-                        }
-                    }
-                    Ok(o) => verdict("lean4lean", &o, &mut findings),
-                });
+                    &req.limits,
+                    &mount_replay,
+                    &mut findings,
+                ));
             } else {
                 rechecks.push(RecheckerRun {
                     id: "lean4lean".into(),
@@ -1823,6 +1810,13 @@ impl FormalChecker {
             toolchain_digest: image.clone(),
             model: model_report.as_ref(),
             native: native_build.as_ref(),
+            interp: match &req.route {
+                VerifierRoute::Standard => req
+                    .expected
+                    .interp_verifier_digest()
+                    .and_then(|h| Digest::try_from(format!("sha256:{h}")).ok()),
+                _ => None,
+            },
         });
         FormalCheckReport {
             schema: REPORT_SCHEMA,
@@ -1844,6 +1838,67 @@ impl FormalChecker {
             warnings,
             timings: ctx.timings,
         }
+    }
+}
+
+/// Run a module-replaying rechecker (`leanchecker`, `lean4lean`) over the
+/// candidate modules in sequential batches of `limits.recheck_batch_modules`
+/// sandbox runs. Accepted only if every batch exits 0; the first failing
+/// batch decides the verdict (later batches are not run). Exceeding
+/// `limits.recheck_total` is a timeout (UNKNOWN), never an acceptance.
+#[allow(clippy::too_many_arguments)]
+fn module_rechecker(
+    ctx: &mut Ctx<'_>,
+    id: &str,
+    tool: &str,
+    mods: &[String],
+    lean_path: &str,
+    limits: &Limits,
+    mount: &dyn Fn(&mut RunSpec),
+    findings: &mut Vec<Finding>,
+) -> RecheckerRun {
+    let batch = limits.recheck_batch_modules.max(1);
+    let started = Instant::now();
+    let mut wall_ms = 0u64;
+    let chunks: Vec<&[String]> = if mods.is_empty() { vec![&[][..]] } else { mods.chunks(batch).collect() };
+    let n = chunks.len();
+    for (i, chunk) in chunks.into_iter().enumerate() {
+        if started.elapsed() > limits.recheck_total {
+            findings.push(Finding::unknown(
+                ReasonCode::Timeout,
+                format!("{id} exceeded its total budget after {i} of {n} batches"),
+            ));
+            return RecheckerRun { id: id.into(), ran: true, verdict: "timeout".into(), wall_ms, detail: format!("{i}/{n} batches") };
+        }
+        let mut argv = vec![tool.to_string()];
+        argv.extend(chunk.iter().cloned());
+        let mut spec = ctx.base_spec(argv, lean_path, limits.recheck_timeout, limits.mem_bytes);
+        mount(&mut spec);
+        let step = if n == 1 { format!("recheck:{id}") } else { format!("recheck:{id}:{}", chunk.join(",")) };
+        match ctx.run(&step, &spec, CAPTURE_LIMIT) {
+            Err(f) => {
+                findings.push(f);
+                return RecheckerRun { id: id.into(), ran: false, verdict: "error".into(), wall_ms, detail: "infra".into() };
+            }
+            Ok(o) => {
+                wall_ms += o.wall.as_millis() as u64;
+                if !o.success() {
+                    let mut r = verdict(id, &o, findings);
+                    r.wall_ms = wall_ms;
+                    if n > 1 {
+                        r.detail = format!("batch {} of {n} ({}): {}", i + 1, chunk.join(", "), r.detail);
+                    }
+                    return r;
+                }
+            }
+        }
+    }
+    RecheckerRun {
+        id: id.into(),
+        ran: true,
+        verdict: "accepted".into(),
+        wall_ms,
+        detail: if n > 1 { format!("{} modules in {n} runs", mods.len()) } else { String::new() },
     }
 }
 

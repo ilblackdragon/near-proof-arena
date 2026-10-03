@@ -83,6 +83,12 @@ directories (`GuestLayout::rw_binds`; it is refused until then). The
    * `leanchecker` (Lean kernel replay of every candidate module, built into
      the toolchain — the maintained successor of `lean4checker`);
    * `lean4lean` (independent kernel implementation in Lean, `.olean` replay);
+   * both replay every module they are given as a parallel task with its own
+     imported environment, so they run in sequential batches of
+     `Limits::recheck_batch_modules` modules (default 1) per sandbox run, all
+     against the same replay `.olean` set; the verdict is the conjunction
+     (first failing batch decides, `recheck_total` bounds the whole loop). A
+     100-module candidate in one run peaked at ≈60 GB; per module, ≤3 GB;
    * `lean4export … -- <certificate>` → NDJSON of the certificate's
      dependency closure, then `nanoda_bin` (independent Rust kernel) on it.
    Any rejection → `RECHECK_FAILED`; required recheckers
@@ -174,7 +180,14 @@ For `verify_route = "native-lean"` (`formal.verifier_model` +
    closure digest), `statement —contains_candidate_model→ model`,
    `certificate —proves_obligations_about→ model` (checked),
    `artifact:verifier_binary —implements→ model` (**trusted**) and
-   `—built_from→ tcb:lean_compiler_runtime`. The report carries
+   `—built_from→ tcb:lean_compiler_runtime`.
+   On the approved-interpreter route (`.interp d`, statement template with
+   `impl := .interp verifierDigest`) the graph instead carries
+   `artifact:verifier_bytecode —implements→ formal:expected_statement`
+   (**checked** when the certificate type matches: the statement is about
+   exactly that image; FORMAL_INTERFACE §4(a)) and
+   `artifact:verifier_bytecode —executed_by→ tcb:npai_interpreter` (**tested**,
+   TCB#8). The report carries
    `native_verifier {path, digest, toolchain_id}` for the worker to run.
 
 Tests: `tests/native_route.rs` (in-repo formal-core Toy): positive (the judge
@@ -224,10 +237,10 @@ ARENA_DEV_UNSAFE=1 FC_FORMAL_CORE_DIR=<formal-core dir> \
 
 `tests/corpus/<case>/{formal/,expect.json}` against the stand-in trusted
 package `tests/fixtures/standin` (`ArenaStandIn.AdmissionStatement`, a
-4-conjunct toy) and `tests/fixtures/expected.json`. 30 cases: 4 positive
+4-conjunct toy) and `tests/fixtures/expected.json`. 31 cases: 4 positive
 (plain, multi-module + allowlisted require + foreign lean-toolchain, stated
-via `ArenaExpected.expectedType`, custom `elab` tactic) and 26 negative
-(sorry; per-conjunct sorry; `axiom : False`; certificate-is-axiom;
+via `ArenaExpected.expectedType`, custom `elab` tactic) and 27 negative
+(sorry; per-conjunct sorry; an ill-typed declaration in a non-certificate module (separate recheck batch); `axiom : False`; certificate-is-axiom;
 unapproved trusted assumption; native_decide; wrong type; wrong params;
 defeq-but-not-syntactic; extra `(h : False)`; missing; build error; shipped
 altered trusted module; re-declared trusted names; prebuilt `.olean`;

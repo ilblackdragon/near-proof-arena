@@ -176,6 +176,9 @@ pub struct GraphInput<'a> {
     pub toolchain_digest: Digest,
     pub model: Option<&'a ModelReport>,
     pub native: Option<&'a crate::native::NativeVerifierBuild>,
+    /// Approved-interpreter route (`.interp d`): `d` = sha256 of the verifier
+    /// bytecode the statement pins (FORMAL_INTERFACE §4(a), status *checked*).
+    pub interp: Option<Digest>,
 }
 
 pub fn evidence_graph(g: &GraphInput) -> EvidenceGraph {
@@ -341,6 +344,43 @@ pub fn evidence_graph(g: &GraphInput) -> EvidenceGraph {
             note: "trusted-base entry".into(),
         });
     }
+    if let Some(d) = &g.interp {
+        nodes.push(EvidenceNode {
+            id: "artifact:verifier_bytecode".into(),
+            kind: NodeKind::Artifact,
+            label: "verifier bytecode (NPAI v1 image) run by the judge's interpreter".into(),
+            digest: Some(d.clone()),
+        });
+        nodes.push(EvidenceNode {
+            id: "tcb:npai_interpreter".into(),
+            kind: NodeKind::TcbComponent,
+            label: "judge NPAI interpreter (npai-verify) vs ArenaCore.Interp (TCB#8)".into(),
+            digest: None,
+        });
+        // FORMAL_IMPL_CONNECTION on route (a): the statement is about
+        // `interpOracleVerifier code fuel` with `sha256 code = d`, so the
+        // kernel-checked certificate is about exactly this image.
+        edges.push(EvidenceEdge {
+            from: "artifact:verifier_bytecode".into(),
+            to: "formal:expected_statement".into(),
+            kind: "implements".into(),
+            status: if g.type_ok {
+                EdgeStatus::Checked
+            } else {
+                EdgeStatus::Missing
+            },
+            evidence: vec![d.clone()],
+            note: "approved-interpreter route: the statement pins `.interp sha256(bytecode)` and the certificate proves the obligations about `interpOracleVerifier` on this exact image (kernel-checked; no compiler involved)".into(),
+        });
+        edges.push(EvidenceEdge {
+            from: "artifact:verifier_bytecode".into(),
+            to: "tcb:npai_interpreter".into(),
+            kind: "executed_by".into(),
+            status: EdgeStatus::Tested,
+            evidence: vec![d.clone()],
+            note: "interpreter agreement with ArenaCore.Interp is differentially tested, not checked (TCB#8)".into(),
+        });
+    }
     EvidenceGraph { nodes, edges }
 }
 
@@ -367,4 +407,46 @@ pub fn axiom_codes(f: &[Finding]) -> Vec<ReasonCode> {
         .filter(|x| is_axiom_code(x.code))
         .map(|x| x.code)
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use arena_types::evidence::EdgeStatus;
+
+    fn graph(type_ok: bool, interp: Option<Digest>) -> EvidenceGraph {
+        evidence_graph(&GraphInput {
+            certificate: "C.certificate",
+            certificate_digest: None,
+            statement_digest: None,
+            trusted: &[],
+            axioms: &[],
+            allowlist: &[],
+            rechecks: &[],
+            type_ok,
+            evidence: vec![],
+            toolchain_digest: Digest::of_bytes(b"tc"),
+            model: None,
+            native: None,
+            interp,
+        })
+    }
+
+    fn impl_edge(g: &EvidenceGraph) -> Option<&EvidenceEdge> {
+        g.edges
+            .iter()
+            .find(|e| e.from == "artifact:verifier_bytecode" && e.kind == "implements")
+    }
+
+    #[test]
+    fn interp_route_impl_edge_is_checked_only_with_a_valid_certificate() {
+        let d = Digest::of_bytes(b"image");
+        let ok = graph(true, Some(d.clone()));
+        let e = impl_edge(&ok).expect("implements edge");
+        assert_eq!(e.status, EdgeStatus::Checked);
+        assert_eq!(e.evidence, vec![d.clone()]);
+        assert!(ok.edges.iter().any(|e| e.kind == "executed_by" && e.status == EdgeStatus::Tested));
+        assert_eq!(impl_edge(&graph(false, Some(d))).unwrap().status, EdgeStatus::Missing);
+        assert!(impl_edge(&graph(true, None)).is_none());
+    }
 }
