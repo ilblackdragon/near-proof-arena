@@ -11,11 +11,11 @@ rule for a shard layout with exactly one shard `S`, an empty set of bandwidth
 requests, and zero congestion (the v2 domain).
 
 Sources:
-* `core/primitives/src/bandwidth_scheduler.rs:262-292` — borsh layout:
+* `core/primitives/src/bandwidth_scheduler.rs:251-286` — borsh layout:
   `BandwidthSchedulerState::V1 = 0` (`use_discriminant`), `BandwidthSchedulerStateV1
   { link_allowances: Vec<LinkAllowance>, sanity_check_hash: CryptoHash }`,
   `LinkAllowance { sender: ShardId(u64), receiver: ShardId(u64), allowance: u64 }`;
-* `core/primitives/src/bandwidth_scheduler.rs:304-347` — `BandwidthSchedulerParams::new/calculate`:
+* `core/primitives/src/bandwidth_scheduler.rs:303-352` — `BandwidthSchedulerParams::new/calculate`:
   `base_bandwidth = min((max_shard_bandwidth − max_single_grant) / max(1, num_shards − 1), max_base_bandwidth)`;
 * `core/parameters/res/runtime_configs/74.yaml` — `max_shard_bandwidth 4_500_000`,
   `max_single_grant 4_194_304`, `max_allowance 4_500_000`, `max_base_bandwidth 100_000`
@@ -24,7 +24,7 @@ Sources:
   missing state ⇒ `V1 { [], 0^32 }`; after the algorithm
   `sanity_check_hash := sha256(sanity_check_hash ‖ sha256(borsh(all_shards)))`
   with `all_shards : Vec<ShardId>` = `[S]`; then `set_bandwidth_scheduler_state`;
-* `runtime/runtime/src/bandwidth_scheduler/scheduler.rs` — `BandwidthScheduler::run`:
+* `runtime/runtime/src/bandwidth_scheduler/scheduler.rs:200-560` — `BandwidthScheduler::run`:
   previous allowances are mapped onto the current layout (entries whose shards
   are not in the layout are dropped, later entries overwrite earlier ones,
   default 0); `increase_allowances` adds `max_shard_bandwidth / num_shards`
@@ -34,7 +34,7 @@ Sources:
   (`saturating_sub`); with no requests nothing else touches allowances
   (`distribute_remaining_bandwidth` only adds grants); `update_scheduler_state`
   stores one entry per link of the current layout, in link order.
-* Link status (`calculate_is_link_allowed`, scheduler.rs:507-548; congestion
+* Link status (`calculate_is_link_allowed`, scheduler.rs:506-546; congestion
   `core/primitives/src/congestion_info.rs:44-100`): for the single link (S,S) the
   receiver status is known (the block's congestion info has S); it is NOT
   allowed iff the last chunk was missing (`missed_chunks_count > 0`) or the
