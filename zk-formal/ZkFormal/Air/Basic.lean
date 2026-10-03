@@ -198,7 +198,26 @@ def Table.wf (A : Air) (maxDeg : Nat) (T : Table) : Bool :=
   T.allConstraints.all (fun e => decide (e.degree ≤ maxDeg)) &&
   decide (1 ≤ T.maxLog) && decide (T.maxLog ≤ 22)
 
-def Air.wf (A : Air) (maxDeg : Nat) : Bool := A.tables.all (Table.wf A maxDeg)
+/-- Upper bound on the total multiplicity on all buses (any trace within the
+height caps): `Σ_t 2^maxLog_t · Σ_i (2^|mult_i| - 1)`.  The grand-product
+round's bad-challenge count is at most this degree. -/
+def Air.multBound (A : Air) : Nat :=
+  (A.tables.map fun T => 2 ^ T.maxLog * (T.interactions.map fun i => 2 ^ i.mult.length - 1).sum).sum
+
+/-- Upper bound on `#(row, interaction) pairs · (max message length + 1)`:
+the fingerprint round's bad-challenge count (a fixed unbalanced message must
+collide with one of the at most this many others). -/
+def Air.fpBound (A : Air) : Nat :=
+  (A.tables.map fun T => 2 ^ T.maxLog * T.interactions.length).sum *
+    ((A.tables.flatMap fun T => T.interactions.map fun i => i.msg.length).foldr max 0 + 1)
+
+/-- Per-round bad-challenge budget the parameter analysis assumes
+(`ZkFormal.Params.commitBad = 2^36 · 3^8`, the `3^8` being decoding). -/
+def busBudget : Nat := 2 ^ 36
+
+def Air.wf (A : Air) (maxDeg : Nat) : Bool :=
+  A.tables.all (Table.wf A maxDeg) && decide (A.multBound ≤ busBudget) &&
+    decide (A.fpBound ≤ busBudget)
 
 /-! ## The semantic predicate `Holds` -/
 
