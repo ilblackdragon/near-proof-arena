@@ -15,7 +15,7 @@
 #                     and drive a NEAR-challenge submission through it
 #   --hostile-near    run the hostile suite against the NEAR challenge (implies --fc)
 #
-# The formal NEAR challenge (chl_5ef2bc7d2068219635426e47ca46bfbb, signed with
+# The formal NEAR challenge (chl_f7eb2d91bf7b363eee134b6ad9d3e011 = v1.1, signed with
 # challenges/governance-local.pub) is always registered; without --fc only the
 # demo-capped bwrap-dev worker exists, and the test asserts it never touches
 # the NEAR submission (tier caps).
@@ -33,7 +33,8 @@ WPORT=$((PORT + 1))
 WORK="${ARENA_E2E_WORK:-$(mktemp -d "${TMPDIR:-/tmp}/arena-e2e.XXXXXX")}"
 mkdir -p "$WORK"
 CHALLENGE=chl_54c65fe7c73c5abcfe500681889177bc
-NEAR=chl_5ef2bc7d2068219635426e47ca46bfbb
+# current head of the NEAR chain (v1.1, supersedes chl_5ef2…; the server closes superseded challenges)
+NEAR=chl_f7eb2d91bf7b363eee134b6ad9d3e011
 FC=0
 HOSTILE_NEAR=0
 KEEP=0

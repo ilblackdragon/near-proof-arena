@@ -35,7 +35,8 @@ PORT="${ARENA_E2E_PORT:-18571}"
 WPORT=$((PORT + 1))
 WORK="${ARENA_E2E_WORK:-$(mktemp -d "${TMPDIR:-/tmp}/arena-e2e-d.XXXXXX")}"
 RESULTS="${ARENA_E2E_RESULTS:-$REPO/docs/e2e-results/milestone-d}"
-NEAR=chl_5ef2bc7d2068219635426e47ca46bfbb
+# current head of the NEAR chain (v1.1, supersedes chl_5ef2…; the server closes superseded challenges)
+NEAR=chl_f7eb2d91bf7b363eee134b6ad9d3e011
 GOV_KEY="${ARENA_GOV_LOCAL_KEY:-/data/illia/nearproof-deps/keys/governance-local.key}"
 TC_IMAGES="${ARENA_TOOLCHAIN_IMAGES:-/data/illia/nearproof-deps/toolchain-images}"
 LEAN_IMAGES="${LEAN_CHECKER_IMAGES:-/data/illia/nearproof-deps/lean-checker/images}"
