@@ -2,8 +2,9 @@
   "all": {
     "status": "FAIL",
     "codes": [
-      "MANIFEST_INVALID"
+      "MANIFEST_INVALID",
+      "CERTIFICATE_MISSING"
     ]
   },
-  "description": "lakefile.lean with extern_lib and script"
+  "description": "lakefile.lean with extern_lib and script; rejected at staging, so the certificate is reported unavailable"
 }

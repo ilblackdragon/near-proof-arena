@@ -1133,6 +1133,14 @@ impl FormalChecker {
             ));
             if report::has_fail(&staged.findings) {
                 findings.extend(staged.findings);
+                // Like a project that does not build: the certificate cannot
+                // be examined, so it is reported unavailable.
+                findings.push(Finding::new(
+                    ReasonCode::CertificateMissing,
+                    Scope::All,
+                    "candidate project rejected before it was built; certificate unavailable"
+                        .into(),
+                ));
                 break 'pipeline;
             }
             let build_failed = |findings: &mut Vec<Finding>, f: Finding| {
