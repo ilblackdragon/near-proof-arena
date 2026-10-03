@@ -9,3 +9,12 @@ import NearSpec.ClaimCodec
 import NearSpec.Codec
 import NearSpec.Examples
 import NearSpec.Challenge
+import NearSpec.TrieUpsert
+import NearSpec.TrieUpsertProofs
+import NearSpec.Bandwidth
+import NearSpec.TransferV2
+import NearSpec.TransferV2Props
+import NearSpec.ClaimCodecV2
+import NearSpec.CodecV2
+import NearSpec.ChallengeV2
+import NearSpec.ExamplesV2
