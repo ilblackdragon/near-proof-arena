@@ -152,7 +152,7 @@ theorem body_wp {pub cb pb : Bytes} (ht : TapesOK cb pb) :
   refine wp_mono (proof_wp h2 ht.2) fun m3 h3 => ?_
   refine wp_mono (receipts_wp h3 ht) fun m4 ⟨rs, R, h4⟩ => ?_
   refine wp_mono (parse_wp h4) fun m5 ⟨A, K, h5⟩ => ?_
-  refine wp_mono (hash_wp h5) fun m6 ⟨h6, hroot6⟩ => ?_
+  refine wp_mono (hash_wp h5) fun m6 ⟨h6, hroot6, _⟩ => ?_
   refine wp_mono (rootIs_wp h6.toBase hroot6 (by decide)) fun m7 ⟨heq, hmem, h14, h15⟩ => ?_
   have h7 : TrieSt cb pb rs R A K (vals0 pb A) m7 := TrieSt.congr h6 hmem h14 h15
   refine wp_mono (batch_wp h7) fun m8 ⟨acc, vals, hb, h8, htr, hbm⟩ => ?_
@@ -266,7 +266,7 @@ theorem body_twp {pub cb pb : Bytes} (hc : check cb pb = true) :
   refine twp_mono (proof_twp h2 hpl) fun m3 c3 ⟨h3, hc3⟩ => ?_
   refine twp_mono (receipts_twp h3 hok) fun m4 c4 ⟨h4, hc4⟩ => ?_
   refine twp_mono (parse_twp h4 hdt hsz) fun m5 c5 ⟨A, K, h5, ht5, hc5⟩ => ?_
-  refine twp_mono (hash_twp h5) fun m6 c6 ⟨h6, hr6, hc6⟩ => ?_
+  refine twp_mono (hash_twp h5) fun m6 c6 ⟨h6, hr6, _, hc6⟩ => ?_
   have he : (rootT A K (vals0 pb A)).hashOf = readMem m6.mem (CLM + 117) 32 := by
     rw [claim_seg h6.toClaimIn 117 32 (by decide), ht5, hroot]; rfl
   refine twp_mono (rootIs_twp h6.toBase hr6 (by decide) he) fun m7 c7 ⟨hm7, hr7, hc7⟩ => ?_

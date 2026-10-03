@@ -110,6 +110,11 @@ def TapesOK (cb pb : Bytes) : Prop := cb.length < 4294967296 ∧ pb.length < 429
 /-- The root of the represented trie. -/
 def rootT (A : List Ent) (K : List Nat) (vals : Nat → Bytes) : PTrie := treeAt A K vals (A.length - 1)
 
+/-- Memory below the proof copy is unchanged except the computed root `C_ROOT`
+(the frame of the hash pass). -/
+def HashFrame (m m' : M) : Prop :=
+  ∀ a, a < PF → (a < C_ROOT ∨ C_ROOT + 32 ≤ a) → m'.mem a = m.mem a
+
 /-! ## Batch -/
 
 /-- Accumulated batch outputs in memory. -/
@@ -120,5 +125,6 @@ structure BatchMem (acc : Acc) (m : M) : Prop where
       concatAll (acc.refunds.map Receipt.encode)
   nref : rd32 m C_NREF = acc.refunds.length
   tokens : readMem m.mem C_TOK 16 = u128 acc.tokensBurnt
+  rbcap : RB + 4 + (concatAll (acc.refunds.map Receipt.encode)).length ≤ AR
 
 end ReexecNpai
