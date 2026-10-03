@@ -15,6 +15,19 @@ import ZkFormal.Bcs.MmcsDefs
 import ZkFormal.Bcs.Statements
 import ZkFormal.Bcs.Compose
 -- Lane L1 (algebra): BabyBear, its degree-8 extension, polynomials, RS codes.
+import ZkFormal.Air.Basic
+import ZkFormal.Air.Export
+import ZkFormal.Stark.Field
+import ZkFormal.Stark.Params
+import ZkFormal.Stark.Iop
+import ZkFormal.Stark.Bcs
+import ZkFormal.Stark.Protocol
+import ZkFormal.Stark.Verifier
+import ZkFormal.Stark.Instance
+import ZkFormal.Stark.Statements
+import ZkFormal.Stark.Compose
+import ZkFormal.Stark.Laws
+import ZkFormal.Stark.ParseLemmas
 import ZkFormal.Algebra.Transport
 import ZkFormal.Algebra.NatPrime
 import ZkFormal.Algebra.Fp
@@ -31,3 +44,6 @@ import ZkFormal.Algebra.Compose
 import ZkFormal.Algebra.RSProofs
 import ZkFormal.Algebra.Main
 import ZkFormal.Bcs.Mmcs
+-- Lane L4: AIR DSL and protocol/verifier model.
+import ZkFormal.Stark.NpBounds
+import ZkFormal.Stark.QueryBound

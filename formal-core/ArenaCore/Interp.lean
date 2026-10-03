@@ -1,4 +1,5 @@
 import ArenaCore.SHA256
+import ArenaCore.SHA256Fast
 
 /-!
 # ArenaCore.Interp — the approved verifier interpreter (NPAI v1)

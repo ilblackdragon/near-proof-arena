@@ -1,2 +1,3 @@
 import ArenaCoreTests.SHA256
+import ArenaCoreTests.SHA256Fast
 import ArenaCoreTests.Interp
