@@ -6,3 +6,8 @@ import ZkFormal.Collision
 import ZkFormal.Game
 import ZkFormal.LineLemma
 import ZkFormal.Params
+import ZkFormal.Bcs.Log
+import ZkFormal.Bcs.Wide
+import ZkFormal.Bcs.Commit
+import ZkFormal.Bcs.Merkle
+import ZkFormal.Bcs.Extract
