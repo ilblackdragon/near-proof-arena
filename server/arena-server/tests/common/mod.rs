@@ -224,6 +224,7 @@ pub async fn spawn_with(opts: Opts) -> TestApp {
             opts.limits.rate_burst,
         ),
         limits: opts.limits,
+        governance: Default::default(),
         dev: true,
     });
     let public = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();

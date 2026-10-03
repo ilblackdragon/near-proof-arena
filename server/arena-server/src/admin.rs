@@ -50,6 +50,9 @@ async fn register_challenge(
     let sig = challenge::parse_signature(&req.signature).map_err(ApiError::bad_request)?;
     let v = challenge::verify_definition(req.definition, &sig, st.orch.governance_keys())
         .map_err(|e| ApiError::new(StatusCode::BAD_REQUEST, "challenge_rejected", e))?;
+    st.governance
+        .check(&v)
+        .map_err(|e| ApiError::new(StatusCode::BAD_REQUEST, "challenge_rejected", e))?;
     let mut tx = st.admin_db.begin().await?;
     let outcome = challenge::register(&mut *tx, &v, &format!("admin:{}", admin.id)).await?;
     let created = matches!(outcome, RegisterOutcome::Created);

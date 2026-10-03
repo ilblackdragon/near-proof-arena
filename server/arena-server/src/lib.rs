@@ -60,6 +60,41 @@ impl Default for Limits {
     }
 }
 
+/// Governance policy beyond the signature check.
+#[derive(Default)]
+pub struct Governance {
+    /// Keys flagged `dev_only` in their governance pubkey file: they may never
+    /// sign a formal-tier challenge.
+    pub dev_only_keys: Vec<ed25519_dalek::VerifyingKey>,
+    /// Governed security profiles/assumptions (`security/`); when present every
+    /// challenge must pass the same policy the governance CLI enforces.
+    pub governed: Option<arena_admin::GovernedSet>,
+}
+
+impl Governance {
+    /// Policy check for a signature-verified challenge. Returns warnings.
+    pub fn check(&self, v: &arena_db::challenge::VerifiedChallenge) -> Result<Vec<String>, String> {
+        if v.definition.tier == arena_types::challenge::Tier::Formal
+            && self.dev_only_keys.contains(&v.signer)
+        {
+            return Err("formal-tier challenge signed by a dev-only governance key".into());
+        }
+        match &self.governed {
+            Some(g) => {
+                let f = arena_admin::policy::check_definition(&v.definition, g);
+                if f.ok() {
+                    Ok(f.warnings)
+                } else {
+                    Err(format!("governance policy: {}", f.errors.join("; ")))
+                }
+            }
+            None => Ok(vec![
+                "no governed security/ set configured; policy checks skipped".into(),
+            ]),
+        }
+    }
+}
+
 pub struct AppState {
     /// Pool for the public/agent API (`arena_api` role).
     pub api_db: PgPool,
@@ -71,6 +106,7 @@ pub struct AppState {
     pub orch: Arc<Orchestrator>,
     pub limits: Limits,
     pub rate: ratelimit::RateLimiter,
+    pub governance: Governance,
     pub dev: bool,
 }
 

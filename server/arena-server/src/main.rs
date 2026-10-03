@@ -178,7 +178,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn serve(args: ServeArgs) -> anyhow::Result<()> {
-    let r = args
+    let mut r = args
         .resolve()
         .map_err(|e| anyhow::anyhow!("refusing to start: {e}"))?;
     let dev = r.env == Env::Dev;
@@ -211,11 +211,19 @@ async fn serve(args: ServeArgs) -> anyhow::Result<()> {
     arena_server::bootstrap::principals_from_env(&admin_db, dev)
         .await
         .map_err(anyhow::Error::msg)?;
+    let governance = arena_server::Governance {
+        dev_only_keys: r.dev_only_keys.clone(),
+        governed: r.governed.take(),
+    };
     if let Some(dir) = &args.challenges_dir {
-        let (ok, bad) =
-            arena_server::bootstrap::challenges_from_dir(&admin_db, dir, &r.governance_keys)
-                .await
-                .map_err(anyhow::Error::msg)?;
+        let (ok, bad) = arena_server::bootstrap::challenges_from_dir(
+            &admin_db,
+            dir,
+            &r.governance_keys,
+            &governance,
+        )
+        .await
+        .map_err(anyhow::Error::msg)?;
         tracing::info!(registered = ok, refused = bad, dir = %dir.display(), "challenges loaded");
     }
     let orch_cfg = arena_orchestrator::Config {
@@ -245,6 +253,7 @@ async fn serve(args: ServeArgs) -> anyhow::Result<()> {
         )),
         rate: arena_server::ratelimit::RateLimiter::new(limits.rate_per_minute, limits.rate_burst),
         limits,
+        governance,
         dev,
     });
     arena_server::spawn_reaper(state.clone(), Duration::from_secs(5));
@@ -255,8 +264,21 @@ async fn serve(args: ServeArgs) -> anyhow::Result<()> {
         .await
         .with_context(|| format!("bind {}", r.worker_bind))?;
     tracing::info!(public = %r.bind, worker = %r.worker_bind, "listening");
+    // Graceful shutdown on SIGINT or SIGTERM (containers/systemd send SIGTERM).
     let shutdown = || async {
+        #[cfg(unix)]
+        {
+            let mut term =
+                tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+                    .expect("install SIGTERM handler");
+            tokio::select! {
+                _ = tokio::signal::ctrl_c() => {}
+                _ = term.recv() => {}
+            }
+        }
+        #[cfg(not(unix))]
         let _ = tokio::signal::ctrl_c().await;
+        tracing::info!("shutting down");
     };
     let a = axum::serve(public, arena_server::public_router(state.clone()))
         .with_graceful_shutdown(shutdown());

@@ -61,6 +61,9 @@ services:
       ARENA_WORKER_API_BIND_ADDR: 0.0.0.0:8472
       ARENA_OBJECT_STORE_DIR: /var/lib/arena/objects
       ARENA_CHALLENGES_DIR: /srv/arena/challenges
+      ARENA_GOVERNANCE_PUBKEY_FILE: /srv/arena/challenges/governance-dev.pub
+      ARENA_SECURITY_DIR: /srv/arena/security
+      ARENA_HARDENED_CONFIG: /etc/arena/hardened.toml
       RUST_LOG: ${RUST_LOG:-info}
     secrets:
       - source: report-signing-key
@@ -74,6 +77,16 @@ services:
       - type: bind
         source: ../../challenges
         target: /srv/arena/challenges
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ../../security
+        target: /srv/arena/security
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./server-hardened.toml
+        target: /etc/arena/hardened.toml
         read_only: true
         bind: {create_host_path: false}
     ports:

@@ -723,9 +723,14 @@ async fn challenges_dir_bootstrap_refuses_bad_files() {
     .unwrap();
     std::fs::write(dir.path().join(format!("{bid}.sig")), app.sign(&good)).unwrap();
     let keys = app.state.orch.governance_keys().to_vec();
-    let (ok, refused) = arena_server::bootstrap::challenges_from_dir(&app.pool, dir.path(), &keys)
-        .await
-        .unwrap();
+    let (ok, refused) = arena_server::bootstrap::challenges_from_dir(
+        &app.pool,
+        dir.path(),
+        &keys,
+        &Default::default(),
+    )
+    .await
+    .unwrap();
     assert_eq!((ok, refused), (1, 2));
     let (_, list) = app.get_json("/v1/challenges").await;
     assert_eq!(list.as_array().unwrap().len(), 1);
@@ -913,4 +918,45 @@ async fn scenario_under_roles(single_role: bool) {
             .unwrap(),
         0
     );
+}
+
+/// The governance lane's checked-in challenges load under its dev key and the
+/// governed `security/` policy (same rules as `tools/arena-admin`).
+#[tokio::test]
+async fn repo_challenges_load_with_governance_policy() {
+    let app = spawn().await;
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let text = std::fs::read_to_string(root.join("challenges/governance-dev.pub")).unwrap();
+    let keys = arena_server::config::parse_pubkeys_text(&text).unwrap();
+    assert_eq!(keys.len(), 1);
+    assert!(keys[0].1, "the repo key is flagged dev_only");
+    let gov = arena_server::Governance {
+        dev_only_keys: vec![keys[0].0],
+        governed: Some(arena_admin::GovernedSet::load(&root.join("security")).unwrap()),
+    };
+    let (ok, refused) = arena_server::bootstrap::challenges_from_dir(
+        &app.pool,
+        &root.join("challenges"),
+        &[keys[0].0],
+        &gov,
+    )
+    .await
+    .unwrap();
+    assert!(ok >= 1, "no repo challenge loaded");
+    assert_eq!(refused, 0);
+    // a formal challenge signed by a dev-only key is refused
+    let def = challenge_def(Tier::Formal, "formal-devkey");
+    let sig = arena_db::challenge::parse_signature(&app.sign(&def)).unwrap();
+    let v = arena_db::challenge::verify_definition(def, &sig, &[app.gov.verifying_key()]).unwrap();
+    let dev_gov = arena_server::Governance {
+        dev_only_keys: vec![app.gov.verifying_key()],
+        governed: None,
+    };
+    assert!(dev_gov.check(&v).unwrap_err().contains("dev-only"));
+    // and governance policy rejects definitions that violate it (fixture uses a non-governed schema id)
+    let mut bad = challenge_def(Tier::Demo, "demo-policy");
+    bad.toolchain_policy.axiom_allowlist.push("sorryAx".into());
+    let sig = arena_db::challenge::parse_signature(&app.sign(&bad)).unwrap();
+    let v = arena_db::challenge::verify_definition(bad, &sig, &[app.gov.verifying_key()]).unwrap();
+    assert!(gov.check(&v).is_err());
 }

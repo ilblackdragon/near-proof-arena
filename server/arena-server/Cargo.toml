@@ -16,6 +16,8 @@ arena-db.workspace = true
 sqlx.workspace = true
 arena-store.workspace = true
 arena-orchestrator.workspace = true
+# governance policy rules shared with the governance CLI (tools/arena-admin)
+arena-admin = { path = "../../tools/arena-admin" }
 axum.workspace = true
 tower.workspace = true
 tower-http.workspace = true

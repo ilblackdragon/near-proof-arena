@@ -44,9 +44,14 @@ pub struct ServeArgs {
     /// Trusted governance public keys (hex or base64, comma separated).
     #[arg(long, env = "ARENA_GOVERNANCE_PUBKEYS", value_delimiter = ',')]
     pub governance_pubkeys: Vec<String>,
-    /// File with governance public keys (SPKI PEM blocks and/or hex lines).
-    #[arg(long, env = "ARENA_GOVERNANCE_PUBKEY_FILE")]
-    pub governance_pubkey_file: Option<PathBuf>,
+    /// Governance public key files (comma separated): `arena-governance-pubkey-v1`
+    /// JSON (as in `challenges/governance-*.pub`), SPKI PEM blocks, or hex lines.
+    #[arg(long, env = "ARENA_GOVERNANCE_PUBKEY_FILE", value_delimiter = ',')]
+    pub governance_pubkey_file: Vec<PathBuf>,
+    /// Governed `security/` directory (profiles + assumptions). When set, every
+    /// challenge must also pass the governance policy (tools/arena-admin).
+    #[arg(long, env = "ARENA_SECURITY_DIR")]
+    pub security_dir: Option<PathBuf>,
     /// Hardened config (TOML) required for any non-loopback listener.
     #[arg(long, env = "ARENA_HARDENED_CONFIG")]
     pub hardened_config: Option<PathBuf>,
@@ -104,6 +109,8 @@ pub struct Resolved {
     pub worker_bind: SocketAddr,
     pub signer: ReportSigner,
     pub governance_keys: Vec<VerifyingKey>,
+    pub dev_only_keys: Vec<VerifyingKey>,
+    pub governed: Option<arena_admin::GovernedSet>,
 }
 
 /// Parse a listener address. Only IP literals are accepted (no hostnames, so
@@ -152,8 +159,14 @@ pub fn check_binds(
     Ok(())
 }
 
-pub fn parse_pubkeys_text(text: &str) -> Result<Vec<VerifyingKey>, String> {
+/// Parse governance keys; returns `(key, dev_only)` pairs.
+pub fn parse_pubkeys_text(text: &str) -> Result<Vec<(VerifyingKey, bool)>, String> {
     use ed25519_dalek::pkcs8::DecodePublicKey;
+    if text.trim_start().starts_with('{') {
+        let k = arena_admin::PublicKey::parse(text)
+            .map_err(|e| format!("governance key file: {e:#}"))?;
+        return Ok(vec![(k.key, k.file.dev_only)]);
+    }
     let mut keys = Vec::new();
     let mut rest = text;
     while let Some(start) = rest.find("-----BEGIN PUBLIC KEY-----") {
@@ -163,10 +176,11 @@ pub fn parse_pubkeys_text(text: &str) -> Result<Vec<VerifyingKey>, String> {
             .ok_or("unterminated PEM block")?
             + start
             + end_marker.len();
-        keys.push(
+        keys.push((
             VerifyingKey::from_public_key_pem(&rest[start..end])
                 .map_err(|e| format!("pem: {e}"))?,
-        );
+            false,
+        ));
         rest = &rest[end..];
     }
     if keys.is_empty() {
@@ -175,7 +189,7 @@ pub fn parse_pubkeys_text(text: &str) -> Result<Vec<VerifyingKey>, String> {
             .map(str::trim)
             .filter(|l| !l.is_empty() && !l.starts_with('#'))
         {
-            keys.push(arena_db::challenge::parse_pubkey(line)?);
+            keys.push((arena_db::challenge::parse_pubkey(line)?, false));
         }
     }
     Ok(keys)
@@ -229,6 +243,11 @@ impl ServeArgs {
         if env == Env::Production && std::env::var_os("ARENA_DEV_UNSAFE").is_some() {
             return Err("ARENA_DEV_UNSAFE must not be set in production".into());
         }
+        if env == Env::Production
+            && std::env::var("ARENA_SECRETS_ORIGIN").as_deref() == Ok("dev-generator")
+        {
+            return Err("dev-generated secrets (ARENA_SECRETS_ORIGIN=dev-generator) are refused in production".into());
+        }
         let bind = parse_bind(&self.bind)?;
         let worker_bind = parse_bind(&self.worker_bind)?;
         let hardened: Option<HardenedConfig> = match &self.hardened_config {
@@ -278,10 +297,31 @@ impl ServeArgs {
         {
             governance_keys.push(arena_db::challenge::parse_pubkey(k)?);
         }
-        if let Some(p) = &self.governance_pubkey_file {
+        let mut dev_only_keys = Vec::new();
+        for p in &self.governance_pubkey_file {
             let text = std::fs::read_to_string(p).map_err(|e| format!("{}: {e}", p.display()))?;
-            governance_keys.extend(parse_pubkeys_text(&text)?);
+            for (k, dev_only) in parse_pubkeys_text(&text)? {
+                if dev_only {
+                    if env == Env::Production {
+                        return Err(format!(
+                            "{}: dev-only governance key refused in production",
+                            p.display()
+                        ));
+                    }
+                    dev_only_keys.push(k);
+                }
+                governance_keys.push(k);
+            }
         }
+        let governed = match &self.security_dir {
+            Some(d) => Some(
+                arena_admin::GovernedSet::load(d).map_err(|e| format!("{}: {e:#}", d.display()))?,
+            ),
+            None => {
+                tracing::warn!("ARENA_SECURITY_DIR not set: challenge governance policy checks are skipped (signature checks still apply)");
+                None
+            }
+        };
         if governance_keys.is_empty() {
             match env {
                 Env::Production => {
@@ -299,6 +339,8 @@ impl ServeArgs {
             worker_bind,
             signer,
             governance_keys,
+            dev_only_keys,
+            governed,
         })
     }
 }

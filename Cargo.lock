@@ -218,6 +218,7 @@ name = "arena-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arena-admin",
  "arena-db",
  "arena-jobs",
  "arena-orchestrator",

@@ -124,6 +124,7 @@ pub async fn challenges_from_dir(
     admin_db: &PgPool,
     dir: &Path,
     keys: &[VerifyingKey],
+    governance: &crate::Governance,
 ) -> Result<(usize, usize), String> {
     let mut ok = 0;
     let mut bad = 0;
@@ -150,6 +151,9 @@ pub async fn challenges_from_dir(
                 serde_json::from_str(&text).map_err(|e| format!("definition: {e}"))?;
             let sig = read_signature(&path.with_extension("sig"))?;
             let v = challenge::verify_definition(def, &sig, keys)?;
+            for w in governance.check(&v)? {
+                tracing::warn!(file = %path.display(), "{w}");
+            }
             if v.id != stem {
                 return Err(format!(
                     "file name {stem} does not match recomputed id {}",

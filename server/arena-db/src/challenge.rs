@@ -9,7 +9,7 @@
 use crate::{rfc3339, DbError};
 use arena_types::{canonical_json, challenge::Tier, ChallengeDefinition, Digest};
 use base64::Engine;
-use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+use ed25519_dalek::{Signature, VerifyingKey};
 use serde::Serialize;
 use sqlx::PgExecutor;
 use time::OffsetDateTime;
@@ -68,7 +68,7 @@ pub fn verify_definition(
     debug_assert_eq!(definition.id().ok().as_deref(), Some(id.as_str()));
     let signer = keys
         .iter()
-        .find(|k| k.verify(&canonical_bytes, sig).is_ok())
+        .find(|k| k.verify_strict(&canonical_bytes, sig).is_ok())
         .ok_or_else(|| "signature does not verify under any governance key".to_string())?;
     let weights: u64 = definition
         .workload_suite
@@ -154,7 +154,7 @@ fn check_row(r: Row, keys: &[VerifyingKey]) -> Result<StoredChallenge, DbError> 
         .try_into()
         .map_err(|_| fail("bad signature length".into()))?;
     let sig = Signature::from_bytes(&sig_arr);
-    key.verify(&bytes, &sig)
+    key.verify_strict(&bytes, &sig)
         .map_err(|_| fail("signature verification failed".into()))?;
     Ok(StoredChallenge {
         id: r.id,
