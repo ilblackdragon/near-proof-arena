@@ -1,0 +1,36 @@
+[package]
+name = "near-arena-historical"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Historical replay fixtures from authentic NEAR mainnet data: fetch state-sync parts over the public P2P protocol and run the pinned Runtime::apply on them."
+
+# Standalone crate (not part of the oracle or the root workspace): it pulls in
+# nearcore's networking stack, which the judge-owned oracle must not depend on,
+# and it must not change the digest-pinned oracle sources (generator_digest
+# covers oracle/src, oracle/Cargo.toml, oracle/Cargo.lock). It compiles
+# oracle/src/enc.rs and oracle/src/domain.rs unchanged via #[path].
+# Cargo.lock is nearcore 2.13.4's own lock file.
+[workspace]
+
+[dependencies]
+near-network = { path = "../vendor/nearcore/chain/network" }
+near-primitives = { path = "../vendor/nearcore/core/primitives", features = ["test_utils"] }
+node-runtime = { path = "../vendor/nearcore/runtime/runtime" }
+near-parameters = { path = "../vendor/nearcore/core/parameters" }
+near-store = { path = "../vendor/nearcore/core/store" }
+near-crypto = { path = "../vendor/nearcore/core/crypto" }
+near-time = { path = "../vendor/nearcore/core/time" }
+tokio = { version = "1.28", features = ["rt-multi-thread", "macros", "time"] }
+borsh = "1"
+hex = "0.4"
+serde_json = "1"
+anyhow = "1"
+
+[patch.crates-io]
+protobuf = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }
+protobuf-support = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }
+
+[profile.dev]
+panic = 'abort'
+opt-level = 1
