@@ -1,3 +1,4 @@
+import NearSpec.ClaimCodec
 import NearSpec.Examples.TierA
 import NearSpec.Examples.TierB
 
@@ -34,5 +35,15 @@ theorem tampered_receipt :
       { TierB.witness with
         receipts := TierB.witness.receipts.map fun r => { r with deposit := r.deposit + 1 } } := by
   decide +kernel
+
+/-- The strict decoder recovers the oracle's claim from `claim.bin`. -/
+theorem decode_example : decodeClaim TierB.claimBytes = some TierB.claim := by decide +kernel
+
+/-- Trailing bytes are rejected. -/
+theorem decode_rejects_trailing : decodeClaim (TierB.claimBytes ++ [0]) = none := by decide +kernel
+
+/-- Unknown format versions are rejected (`...-v2`). -/
+theorem decode_rejects_version :
+    decodeClaim (TierB.claimBytes.set 22 50) = none := by decide +kernel
 
 end NearSpec.Examples.Negative

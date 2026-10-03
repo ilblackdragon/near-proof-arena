@@ -54,9 +54,9 @@ def checkCase (dir : System.FilePath) : IO (Res × Bool) := do
       let want ← readBytes p
       if mine != want then
         return ({ status := "mismatch", reason := "claim bytes differ", claim := hex mine }, false)
-      match decodeClaim want with
-      | .error e => return ({ status := "error", reason := s!"claim decode: {e}", claim := hex mine }, false)
-      | .ok cw =>
+      match TransferV1.decodeClaim want with
+      | none => return ({ status := "error", reason := "claim decode failed", claim := hex mine }, false)
+      | some cw =>
         if cw != c then
           return ({ status := "mismatch", reason := "decode(encode c) != c", claim := hex mine }, false)
         if decide (NearRelation cw w) then

@@ -1,4 +1,4 @@
-import NearSpec.TransferV1
+import NearSpec.ClaimCodec
 import Std.Data.HashMap
 
 /-!
@@ -99,28 +99,6 @@ def decodeRequest (bs : Bytes) : Except String Request := do
   let (rs, bs) ← pMany pReceipt n bs
   if !bs.isEmpty then throw "trailing bytes"
   pure ⟨pv, chain, shard, h, gp, gl, root, rs⟩
-
-def decodeClaim (bs : Bytes) : Except String Claim := do
-  let ((), bs) ← pTag claimFormat "claim format" bs
-  let ((), bs) ← pTag statementId "statement id" bs
-  let (pv, bs) ← lift "protocol_version" readU32 bs
-  let (chain, bs) ← lift "chain_id" readBorshBytes bs
-  if !chainIdOk chain then throw "bad chain_id"
-  let (shard, bs) ← lift "shard_id" readU64 bs
-  let (h, bs) ← lift "block_height" readU64 bs
-  let (gp, bs) ← lift "block_gas_price" readU128 bs
-  let (gl, bs) ← lift "gas_limit" readU64 bs
-  let (pre, bs) ← lift "pre_state_root" readHash bs
-  let (n, bs) ← lift "receipt_count" readU32 bs
-  let (rc, bs) ← lift "receipts_commitment" readHash bs
-  let (post, bs) ← lift "slice_post_root" readHash bs
-  let (orr, bs) ← lift "outcome_root" readHash bs
-  let (nr, bs) ← lift "refund_count" readU32 bs
-  let (rfc, bs) ← lift "refunds_commitment" readHash bs
-  let (gas, bs) ← lift "gas_burnt_total" readU64 bs
-  let (tok, bs) ← lift "tokens_burnt_total" readU128 bs
-  if !bs.isEmpty then throw "trailing bytes"
-  pure ⟨pv, chain, shard, h, gp, gl, pre, n, rc, post, orr, nr, rfc, gas, tok⟩
 
 /-- Strict lexicographic `<` on byte strings (nearcore sorts `PartialState` values). -/
 def lexLt : Bytes → Bytes → Bool

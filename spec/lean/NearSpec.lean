@@ -5,5 +5,6 @@ import NearSpec.Primitives
 import NearSpec.Trie
 import NearSpec.Outcome
 import NearSpec.TransferV1
+import NearSpec.ClaimCodec
 import NearSpec.Codec
 import NearSpec.Examples
