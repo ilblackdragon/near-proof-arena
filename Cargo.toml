@@ -1,6 +1,12 @@
 [workspace]
 resolver = "2"
-members = ["common/arena-types"]
+members = [
+    "common/arena-types",
+    "runners/archive",
+    "runners/sandbox",
+    "runners/measure",
+    "runners/worker",
+]
 
 [workspace.package]
 edition = "2021"
@@ -21,3 +27,11 @@ uuid = { version = "1", features = ["v4", "serde"] }
 anyhow = "1"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
+tar = { version = "0.4.44", default-features = false }
+zstd = "0.13"
+libc = "0.2"
+proptest = "1"
+tempfile = "3"
+ureq = { version = "2.12", default-features = false, features = ["json", "tls"] }
+libm = "0.2"
+unicode-normalization = "0.1"
