@@ -11,9 +11,9 @@ pub mod pipeline;
 pub mod security;
 pub mod tree;
 
-pub use candidate::CandidateManifest;
+pub use candidate::{CandidateManifest, VerifyRoute};
 pub use canonical::{canonical_json, sha256_digest, Digest};
-pub use challenge::{ChallengeDefinition, ChallengeId};
+pub use challenge::{ChallengeDefinition, ChallengeId, FormalParams};
 pub use evidence::EvidenceGraph;
 pub use pipeline::*;
 pub use security::SecurityProfile;

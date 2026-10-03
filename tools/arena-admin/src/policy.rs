@@ -269,6 +269,21 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
             ));
         }
     }
+    // --- formal admission-statement parameters ---------------------------------
+    match &def.formal_params {
+        None if tier == Tier::Formal => f.err(
+            "formal tier requires formal_params {verify_fuel, max_proof_bytes, max_reduction_fuel}",
+        ),
+        None => {}
+        Some(fp) => {
+            if fp.verify_fuel == 0 || fp.max_reduction_fuel == 0 {
+                f.err("formal_params.verify_fuel and max_reduction_fuel must be non-zero");
+            }
+            if fp.max_proof_bytes != def.resource_limits.max_proof_bytes {
+                f.err("formal_params.max_proof_bytes must equal resource_limits.max_proof_bytes");
+            }
+        }
+    }
     if tier == Tier::Formal {
         if tp.recheckers.is_empty() {
             f.err("formal tier requires at least one independent kernel rechecker");

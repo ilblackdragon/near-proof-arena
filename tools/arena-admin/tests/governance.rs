@@ -45,6 +45,11 @@ fn formal_fixture() -> (ChallengeDefinition, GovernedSet) {
     d.workload_suite.baseline_ns = vec![("toy-small".into(), 1000), ("toy-large".into(), 2000)];
     d.toolchain_policy.recheckers = vec!["lean4checker".into(), "nanoda".into()];
     d.required_obligations = arena_admin::policy::required_for(Tier::Formal, Privacy::ValidityOnly);
+    d.formal_params = Some(arena_types::FormalParams {
+        verify_fuel: 1 << 20,
+        max_proof_bytes: d.resource_limits.max_proof_bytes,
+        max_reduction_fuel: 1 << 20,
+    });
     (d, g)
 }
 
@@ -270,6 +275,16 @@ fn formal_fixture_passes_policy() {
 }
 
 #[test]
+fn formal_tier_requires_consistent_formal_params() {
+    let (mut d, g) = formal_fixture();
+    d.formal_params = None;
+    assert!(errs(&d, &g).iter().any(|e| e.contains("formal_params")));
+    let (mut d, g) = formal_fixture();
+    d.formal_params.as_mut().unwrap().max_proof_bytes += 1;
+    assert!(errs(&d, &g).iter().any(|e| e.contains("max_proof_bytes")));
+}
+
+#[test]
 fn formal_tier_requires_every_formal_obligation() {
     let (mut d, g) = formal_fixture();
     d.required_obligations
@@ -345,17 +360,21 @@ fn forbidden_axioms_rejected() {
     let (mut d, g) = formal_fixture();
     d.toolchain_policy
         .axiom_allowlist
-        .push("Arena.Assumptions.Sha256CollisionResistant".into());
+        .push("ArenaCore.Assumptions.Sha256CollisionResistant".into());
     assert!(!errs(&d, &g).is_empty(), "assumptions must never be axioms");
 }
 
 #[test]
 fn formal_needs_pinned_assumptions_and_real_digests() {
-    let (d, _) = formal_fixture();
-    // repo governed set has lean_decl_digest = null
-    assert!(errs(&d, &gov())
-        .iter()
-        .any(|e| e.contains("lean_decl_digest")));
+    let (d, mut g) = formal_fixture();
+    // the repo governed set is pinned (lean_decl_digest from decl-hash) ...
+    assert!(gov().assumptions.values().all(|a| a.lean_decl_digest.is_some()));
+    assert!(!errs(&d, &gov()).iter().any(|e| e.contains("lean_decl_digest")));
+    // ... and an unpinned assumption blocks the formal tier
+    for a in g.assumptions.values_mut() {
+        a.lean_decl_digest = None;
+    }
+    assert!(errs(&d, &g).iter().any(|e| e.contains("lean_decl_digest")));
     let (mut d, g) = formal_fixture();
     d.runtime_config_digest = arena_admin::policy::zero_digest();
     assert!(!errs(&d, &g).is_empty());
