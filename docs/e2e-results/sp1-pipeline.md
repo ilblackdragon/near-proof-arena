@@ -90,7 +90,7 @@ None of these numbers is a score: the challenge has no baselines and the tier is
 
 ### Findings in run 3 (fixed on this lane)
 
-1. **Stale shared Firecracker rootfs.** `/data/illia/nearproof-deps/firecracker/images` still had an `arena-init` from before steps mode (`rootfs-d15a7b7c…`). Every `vm_per_batch` benchmark there failed with `INFRA_ERROR: guest init: empty argv`, after 3 attempts for SP1 and for reexec (run kept in `/data/illia/nearproof-deps/sp1-pipeline/run3-exp-stale-rootfs`). Rebuilding the rootfs from this checkout (`deploy/images/rootfs/build.sh`) gives `rootfs-bb60e932…`, the same image as `firecracker-rc`. It has since been promoted to the shared path (see the end of this document).
+1. **Stale shared Firecracker rootfs.** `/data/illia/nearproof-deps/firecracker/images` still had an `arena-init` from before steps mode (`rootfs-d15a7b7c…`). Every `vm_per_batch` benchmark there failed with `INFRA_ERROR: guest init: empty argv`, after 3 attempts for SP1 and for reexec (run kept in `/data/illia/nearproof-deps/sp1-pipeline/run3-exp-stale-rootfs`). Rebuilding the rootfs from this checkout (`deploy/images/rootfs/build.sh`) gives `rootfs-bb60e932…`, the same image as `firecracker-rc`. The shared path has since been updated by another lane (see "Shared Firecracker images" below).
 2. **Firecracker steps mode output budget** (`runners/firecracker/src/sandbox.rs`). `run_steps` used one step's `max_output_bytes` as the whole VM's output budget. In a batch of a warm-up plus a timed step, two ~7.1 MB Plonky3 proofs exceeded the 8 MiB cap together, although each fits. The judge reported `BENCHMARK FAIL RESOURCE_LIMIT`, which wrongly rejected Plonky3. The VM budget is now the sum over steps, and the per-step cap is still enforced in `split_steps`. Regression test: `steps_output_cap_is_per_step` (`ARENA_FC_TESTS=1`).
 
 ### Commands (run 3)
@@ -106,6 +106,18 @@ ARENA_SP1_EXP_CANDIDATES=plonky3 ... ARENA_SP1_RESULTS=$PWD/docs/e2e-results/sp1
 ```
 
 Gate tables for run 3: `python3 tests/e2e/sp1-pipeline-summary.py docs/e2e-results/sp1-pipeline/run3-exp` (and `run3-exp-plonky3`); they are reproduced at the end of this document.
+
+---
+
+### Shared Firecracker images (`/data/illia/nearproof-deps/firecracker/images`)
+
+I was asked to promote the steps-mode images from `firecracker-rc` (`rootfs-bb60e932…`) to the shared path. By then the shared path already held a newer steps-capable rootfs, `rootfs-9650c8a9…`, with a newer `fc-runner.image`. Another lane had installed it at 14:42, matching main's `d0da264` (seccomp user-notification in the sandbox inits). Installing `bb60e932…` would have been a downgrade.
+
+I swapped the image in for about a minute, noticed this, and restored the shared directory byte for byte. A backup of that state is at `/data/illia/nearproof-deps/firecracker/images.bak-20261003-pre-steps`, and `diff -r` against it is empty. The old pre-steps `rootfs-d15a7b7c…` is still in the directory but is no longer linked.
+
+Against the shared path (`rootfs-9650c8a9…`), on this lane after merging main (`f7349c3`):
+* `ARENA_DEV_UNSAFE=1 ARENA_FC_TESTS=1 cargo test -p arena-firecracker`: all pass (22 VM tests, including `steps_output_cap_is_per_step` and `seccomp_violations_are_contained_and_reported`).
+* `ARENA_DEV_UNSAFE=1 ARENA_FC_TESTS=1 cargo test -p arena-worker`: all pass, including `build_through_firecracker_with_pinned_toolchain`, `honest_candidate_through_firecracker`, `formal_check_near_statement_firecracker`, `reexec_witness_reference_firecracker` and `npai_route_in_firecracker`.
 
 ---
 
