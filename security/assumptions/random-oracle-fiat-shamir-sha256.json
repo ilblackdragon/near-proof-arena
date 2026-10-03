@@ -1,0 +1,12 @@
+{
+  "id": "random-oracle-fiat-shamir-sha256",
+  "description": "Random-oracle model (ROM) for Fiat-Shamir transcripts instantiated with domain-separated SHA-256. This is a MODEL, not a falsifiable assumption, and is recorded as such in every report that relies on it. The governed Lean hypothesis lets a certificate replace every Fiat-Shamir challenge derivation H(domain_tag || transcript) with a lazily-sampled uniform random function, subject to an explicit QUERY BUDGET: the adversary makes at most q_H = 2^max_hash_queries_log2 oracle queries in total across all proofs it attempts (the budget comes from the challenge's SecurityProfile; it is not chosen by the candidate), and at most 2^max_prover_queries_log2 proof attempts. The certified bound must be stated as an explicit function of q_H (e.g. for a k-round public-coin protocol with per-round soundness error eps_i, a bound of the shape sum_i (q_H + 1) * eps_i + collision/programming terms), evaluated by the kernel at the challenge's concrete parameters. Using the oracle for anything other than challenge derivation (e.g. as a commitment scheme with extractability, or programming outside the simulator for FORMAL_ZK) must be justified inside the certificate under this same hypothesis; other ROM usages are not implicitly approved. Classical adversaries only (no QROM); nothing here implies post-quantum security.",
+  "lean_decl": "Arena.Assumptions.RandomOracleFiatShamirSha256",
+  "lean_decl_digest": null,
+  "references": [
+    "A. Fiat, A. Shamir, How to Prove Yourself, CRYPTO 1986",
+    "M. Bellare, P. Rogaway, Random Oracles are Practical, CCS 1993",
+    "A. Chiesa, E. Yogev, Building Cryptographic Proofs from Hash Functions (2024), ch. on Fiat-Shamir query-budget bounds",
+    "R. Canetti, O. Goldreich, S. Halevi, The Random Oracle Methodology, Revisited, STOC 1998 (caveats of the ROM)"
+  ]
+}

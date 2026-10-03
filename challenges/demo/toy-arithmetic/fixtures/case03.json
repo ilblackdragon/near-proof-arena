@@ -1,0 +1,7 @@
+{
+ "request_hex": "ffffffff000000000100000001000000",
+ "expected_claim_hex": "ffffffff000000000100000001000000ffffffffffffffff",
+ "a": "4294967295",
+ "b": "4294967297",
+ "c": "18446744073709551615"
+}
