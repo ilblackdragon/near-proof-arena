@@ -1,0 +1,7 @@
+# Generated / large: produced by build-recipe/vendor.sh (packager, network)
+# and by build-recipe/build.sh. Part of the PACKAGE, not of git.
+/source/vendor/
+/source/target/
+/out/
+/formal/.lake/
+/bench/work/

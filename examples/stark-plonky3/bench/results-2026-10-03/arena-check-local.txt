@@ -1,0 +1,44 @@
+=== LOCAL CHECK — NOT AN OFFICIAL VERDICT ===
+challenge: chl_5ef2bc7d2068219635426e47ca46bfbb
+package:   sha256:ffcc465366edbab0fb5210d0f4dc0f54f0ff4d0627597f93c3b65c3e8b08118f
+network isolated: true
+
+[PASS   ] PKG_WELLFORMED
+          package sha256:ffcc465366edbab0fb5210d0f4dc0f54f0ff4d0627597f93c3b65c3e8b08118f (3199 files, 41857024 bytes packed, 39338002 bytes expanded)
+[SKIPPED] AXIOM_AUDIT
+          formal gates are not run locally; lexical scan of 5 .lean files found no sorry/admit/native_decide/extern/axiom
+          the judge elaborates the certificate in a clean checker image, checks the theorem type, audits transitive axioms and re-checks with independent kernels
+[PASS   ] BUILD_REPRODUCIBLE
+          out/prepare sha256:ee649c60409453c317a3ac634ebbea9bc65d57c50bca99397d0fc9edc9bd7e7c
+          out/prove sha256:2ce26b1f4b9dbd2985b2bed30667140bb9a0e48e78ac9ecf91289c2747877b56
+          out/verify sha256:cdbb3f7677751c7ff7d84212e4767731c505546fc37203da0433166326965dca
+[PASS   ] CONFORMANCE_DIFFERENTIAL
+[PASS   ] PROVER_RELIABILITY
+[PASS   ] ADVERSARIAL_PROOFS
+[PASS   ] RESOURCE_LIMITS
+          timings are from this machine and are informational only
+          prepare: 5.801336ms, public_dir 1 files / 133 bytes
+          example-tierA: prove 313.757797ms, proof 7137010 bytes
+          example-tierB: prove 304.501138ms, proof 7136082 bytes
+          s20261003-v0: prove 339.957299ms, proof 7134546 bytes
+          s20261003-v1: prove 441.786458ms, proof 7143570 bytes
+          s20261003-v10: prove 358.692575ms, proof 7139442 bytes
+          s20261003-v11: prove 830.7784ms, proof 7140594 bytes
+          s20261003-v12: prove 410.664234ms, proof 7139762 bytes
+          s20261003-v13: prove 338.150681ms, proof 7142834 bytes
+          s20261003-v14: prove 316.194024ms, proof 7144338 bytes
+          s20261003-v15: prove 514.722108ms, proof 7142418 bytes
+          s20261003-v16: prove 460.004713ms, proof 7140946 bytes
+          s20261003-v17: prove 957.320809ms, proof 7171586 bytes
+          s20261003-v2: prove 498.515172ms, proof 7142226 bytes
+          s20261003-v3: prove 448.004433ms, proof 7139282 bytes
+          s20261003-v4: prove 336.298568ms, proof 7146098 bytes
+          s20261003-v5: prove 764.514485ms, proof 7173346 bytes
+          s20261003-v6: prove 359.494298ms, proof 7140722 bytes
+          s20261003-v7: prove 338.915513ms, proof 7133874 bytes
+          s20261003-v8: prove 387.370044ms, proof 7140050 bytes
+          s20261003-v9: prove 395.42905ms, proof 7139314 bytes
+
+result: local checks passed (formal gates were NOT run; only the judge's verdict counts)
+=== LOCAL CHECK — NOT AN OFFICIAL VERDICT ===
+EXIT=0

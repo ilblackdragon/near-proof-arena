@@ -1,0 +1,14 @@
+     1  out-of-domain [account_v2]: no AIR witness constructible (account value is not 72 bytes)
+     1  out-of-domain [balance_overflow]: forced witness rejected by AIR (constraints in ["rcpt"]; bus ok)
+     1  out-of-domain [duplicate_receipt_id]: forced witness rejected by AIR (constraints in ["sort"]; bus ok)
+     1  out-of-domain [empty_batch]: no AIR witness constructible (unconstructible)
+     1  out-of-domain [gas_limit]: rejected by verifier static claim check
+     1  out-of-domain [implicit_receiver]: forced witness rejected by AIR (constraints in ["rcpt"]; bus ok)
+     1  out-of-domain [multi_action]: no AIR witness constructible (request)
+     1  out-of-domain [non_transfer_action]: no AIR witness constructible (request)
+     1  out-of-domain [receiver_missing]: no AIR witness constructible (receiver key not in trie)
+     1  out-of-domain [sentinel_balance]: forced witness rejected by AIR (constraints in ["rcpt"]; bus ok)
+     1  out-of-domain [storage_stake]: forced witness rejected by AIR (constraints in ["rcpt"]; bus ok)
+     1  out-of-domain [system_predecessor]: forced witness rejected by AIR (constraints in ["rcpt"]; bus ok)
+     1  out-of-domain [tokens_burnt_overflow]: forced witness rejected by AIR (constraints in ["rcpt"]; bus ok)
+     1  out-of-domain [wrong_protocol_version]: rejected by verifier static claim check

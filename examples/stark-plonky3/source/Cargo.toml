@@ -1,0 +1,47 @@
+# stark-plonky3: custom Plonky3 STARK (hand-written AIRs) for
+# near/pv86/receipt-transfer-batch/v0. Plonky3 is pinned to an exact git
+# revision; build-recipe/vendor.sh vendors it (and every crates.io crate) into
+# source/vendor/ for the offline judge build.
+[package]
+name = "np-stark"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+name = "npstark"
+path = "src/lib.rs"
+
+[dependencies]
+p3-air = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-koala-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-batch-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-uni-stark = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-lookup = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-fri = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-commit = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-merkle-tree = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-challenger = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-symmetric = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-sha256 = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-util = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-security = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-maybe-rayon = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d", features = ["parallel"] }
+p3-sha256-air = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+postcard = { version = "1.1.3", default-features = false, features = ["alloc"] }
+serde = { version = "1.0", default-features = false }
+sha2 = { version = "0.10", features = ["compress"] }
+serde_json = "1"
+
+[profile.release]
+codegen-units = 1
+incremental = false
+lto = "fat"
+panic = "unwind"
+opt-level = 3
+debug = false
+
+[workspace]
