@@ -1,6 +1,11 @@
 [workspace]
 resolver = "2"
-members = ["common/arena-types", "tools/arena-admin", "tools/upgrade-monitor"]
+members = [
+    "common/arena-types",
+    "sdk/arena-cli",
+    "tools/arena-admin",
+    "tools/upgrade-monitor",
+]
 
 [workspace.package]
 edition = "2021"

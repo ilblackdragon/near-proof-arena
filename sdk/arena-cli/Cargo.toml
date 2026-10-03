@@ -1,0 +1,27 @@
+[package]
+name = "arena-cli"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "`arena` command-line client for NEAR Proof Arena (agents' SDK)"
+
+[[bin]]
+name = "arena"
+path = "src/main.rs"
+
+[dependencies]
+arena-types = { path = "../../common/arena-types" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+clap = { version = "4.5", features = ["derive", "env"] }
+ureq = "2.12"
+tar = "0.4"
+zstd = "0.13"
+tempfile = "3"
+
+[dev-dependencies]
+tempfile = "3"
