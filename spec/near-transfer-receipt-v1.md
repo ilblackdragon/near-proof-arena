@@ -169,7 +169,7 @@ from `state.bin` from scratch before/after (algorithmically different from
 both nearcore's in-place update and Lean's partial-trie update) and walking the
 witness separately. Harness: `oracle/tools/difftest.py`. Results are in
 `spec/difftest-report.json`: seed 4242, **1712 cases** (1500 valid + 2 worked
-examples + 210 out-of-domain, 15 rejection families × 14), **0 disagreements**;
+examples + 210 out-of-domain: 14 rejection families × 15), **0 disagreements**;
 1502 in-domain cases byte-identical across all three (1366 with refunds, 136
 without; batch sizes 1..254, mean 35.8) and `decide (NearRelation c w)` true
 on each; all 210 out-of-domain cases classified out-of-domain by all three.

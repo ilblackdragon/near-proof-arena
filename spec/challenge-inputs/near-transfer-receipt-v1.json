@@ -130,7 +130,7 @@
    "full_domain": "NearSpec.TransferV1.Domain"
   },
   "spec_doc": "spec/near-transfer-receipt-v1.md",
-  "spec_doc_digest": "sha256:de1debff2fe88f3e9672af133c9d7920b9a44048acc07f59ec031e0f8e43c64a"
+  "spec_doc_digest": "sha256:164c42ce238386a99cfdf21e92b58afbca902bfdc84c628fb1f0d80a4bab4851"
  },
  "claim_encoding": {
   "format": "near-arena-claim-v1",
