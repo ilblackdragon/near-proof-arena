@@ -1,0 +1,3 @@
+arena-worker: fixtures /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/npai-e2e/e2e/work/clean/oracle/fixtures/public = sha256:c83f3e14d526e78244ee2d7288396a9680717fa42ef77127ba29ccf27bb7e6ec
+arena-worker e2e-fc-npai: backend firecracker (tier cap Formal), kinds ["VALIDATE", "BUILD", "FORMAL_CHECK", "CONFORMANCE", "ADVERSARIAL", "BENCHMARK"]
+[arena-worker] leased job 644f0f18-9201-4bd6-99ba-28d2b4977e31 (FORMAL_CHECK, attempt 1/3)

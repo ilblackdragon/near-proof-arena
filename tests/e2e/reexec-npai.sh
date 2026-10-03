@@ -40,10 +40,14 @@ newest() { ls -t "$1"/*.json | head -1 | xargs basename | sed 's/\.json$//'; }
 
 export RUSTC_WRAPPER="${RUSTC_WRAPPER:-sccache}"
 say "build"
-( cd "$REPO" && cargo build -q -j 8 -p arena-server -p arena-worker -p arena-cli -p arena-formal-checker -p arena-npai )
+( cd "$REPO" && cargo build -q -j 8 -p arena-server -p arena-worker -p arena-cli -p arena-formal-checker )
+# The judge's interpreter runs inside the microVM: a static (musl) build, as
+# deployed (deploy/hardened/env/worker.env.example).
+( cd "$REPO" && cargo build -q --release -p arena-npai --bin npai-verify --target x86_64-unknown-linux-musl )
+NPAI_VERIFY="${ARENA_NPAI_VERIFY:-$REPO/target/x86_64-unknown-linux-musl/release/npai-verify}"
 BIN="$REPO/target/debug"
 [ -x "$ORACLE" ] || die "no near-arena-oracle at $ORACLE"
-[ -x "$BIN/npai-verify" ] || die "no npai-verify next to arena-worker"
+[ -x "$NPAI_VERIFY" ] || die "no npai-verify at $NPAI_VERIFY"
 
 say "NEAR challenge $NEAR: checker identity of the production lean-checker image"
 LEAN_IMG="$LEAN_IMAGES/$(newest "$LEAN_IMAGES")"
@@ -98,7 +102,7 @@ env -i PATH="$PATH" HOME="$HOME" \
   ARENA_BUILD_MOUNTS="$LEAN_IMG/arena/tc:/opt/lean" \
   ARENA_BUILD_PATH="/opt/lean/bin:/usr/local/rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/bin:/usr/local/cargo/bin:/usr/local/bin:/usr/bin:/bin" \
   ARENA_FORMAL_REPO="$CLEAN" ARENA_FORMAL_CONFIGS_DIR="$REPO/runners/formal-checker/challenges" \
-  ARENA_LEAN_CHECKER_IMAGES="$LEAN_IMAGES" ARENA_NPAI_VERIFY="$BIN/npai-verify" \
+  ARENA_LEAN_CHECKER_IMAGES="$LEAN_IMAGES" ARENA_NPAI_VERIFY="$NPAI_VERIFY" \
   ${ARENA_INTERP_REF:+ARENA_INTERP_REF="$ARENA_INTERP_REF"} \
   ARENA_NEAR_ORACLE="$ORACLE" ARENA_WORKLOAD_GENERATORS="$REPO/spec/workloads/near-transfer-receipt-v1" \
   ARENA_FIXTURES_DIRS="$CLEAN/oracle/fixtures/public" ARENA_CONFORMANCE_SAMPLES=3 \
@@ -150,7 +154,7 @@ def find_graph(o):
     return None
 G = find_graph(V) or find_graph(Rp) or {"nodes": [], "edges": []}
 gates = {g["gate"]: g for g in V["gates"]}
-check(V["decision"] == "ADMITTED" and V["accepted"] is True, "ADMITTED (accepted)")
+check(V["decision"] == "ADMITTED" and V["accepted"] is True, f"ADMITTED (accepted) [decision {V['decision']}]")
 check(V["tier"] == "formal", "evaluated at formal tier (Firecracker)")
 check(all(g["status"] in ("PASS", "NOT_APPLICABLE") for g in V["gates"]), "every gate PASS")
 check(all("DEMO_ONLY" not in g["reason_codes"] for g in V["gates"]), "no DEMO_ONLY")
