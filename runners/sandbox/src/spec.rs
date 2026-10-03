@@ -31,8 +31,29 @@ pub const ENV_ALLOWLIST: &[&str] = &[
     "PATH",
 ];
 
-/// Guest prefixes under which read-only mounts may be placed.
+/// Guest prefixes under which read-only mounts may be placed (bwrap-dev).
 pub const MOUNT_PREFIXES: &[&str] = &["/in/", "/opt/"];
+
+/// Where a backend puts things inside the guest. Callers (the worker) build
+/// argv / mounts from this instead of hard-coding paths, because backends
+/// differ (bwrap-dev: `/scratch`, `/in`; firecracker: `/arena/scratch`,
+/// `/arena/in`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GuestLayout {
+    /// Writable scratch (cwd, `HOME`); `<scratch>/out` is always collectable.
+    pub scratch: &'static str,
+    /// Root for read-only input mounts (`<inputs>/bundle`, `<inputs>/public`, ...).
+    pub inputs: &'static str,
+    /// Allowed prefixes for read-only mounts.
+    pub mount_prefixes: &'static [&'static str],
+    /// Whether `copy_in` / `scratch_dirs` / a non-scratch `cwd` / arbitrary
+    /// `collect` paths are supported. Backends without it only collect
+    /// `out/**` and run in the scratch dir.
+    pub flexible_scratch: bool,
+}
+
+pub const BWRAP_LAYOUT: GuestLayout =
+    GuestLayout { scratch: SCRATCH, inputs: "/in", mount_prefixes: MOUNT_PREFIXES, flexible_scratch: true };
 
 /// What the sandbox root filesystem is made of.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -41,6 +62,9 @@ pub enum Rootfs {
     /// The host's `/usr` (+ merged-usr symlinks and a few loader files from
     /// `/etc`), read-only. DEV ONLY: not a pinned image.
     HostDev,
+    /// The backend's installed, pinned runtime image (firecracker: its
+    /// verified rootfs; bwrap-dev: same as `HostDev`).
+    BackendDefault,
     /// A directory holding an unpacked rootfs image whose TreeDigest is
     /// `digest`. Its top-level entries are bound read-only.
     Image { path: PathBuf, digest: Digest },
@@ -94,7 +118,7 @@ pub struct SandboxSpec {
     /// entry point and every process it started have exited.
     pub collect: Vec<String>,
     /// Host directory (must not exist) receiving collected outputs.
-    pub output_dir: Option<PathBuf>,
+    pub out_dir: Option<PathBuf>,
     pub max_output_bytes: u64,
     pub output_trunc_bytes: usize,
 }
@@ -104,7 +128,7 @@ impl SandboxSpec {
     /// 512 MiB RAM, 64 pids, 60 s.
     pub fn new(argv: Vec<String>) -> Self {
         SandboxSpec {
-            rootfs: Rootfs::HostDev,
+            rootfs: Rootfs::BackendDefault,
             ro_mounts: vec![],
             rw_scratch_mb: 64,
             copy_in: vec![],
@@ -118,7 +142,7 @@ impl SandboxSpec {
             wall_timeout: Duration::from_secs(60),
             network: Network::None,
             collect: vec![],
-            output_dir: None,
+            out_dir: None,
             max_output_bytes: 256 << 20,
             output_trunc_bytes: DEFAULT_OUTPUT_TRUNC,
         }
@@ -126,6 +150,11 @@ impl SandboxSpec {
 
     /// Structural validation shared by all backends.
     pub fn validate(&self) -> Result<(), InfraError> {
+        self.validate_for(&BWRAP_LAYOUT)
+    }
+
+    /// Structural validation against a backend's guest layout.
+    pub fn validate_for(&self, layout: &GuestLayout) -> Result<(), InfraError> {
         let bad = |s: String| Err(InfraError::InvalidSpec(s));
         if self.argv.is_empty() || self.argv.iter().any(|a| a.contains('\0')) {
             return bad("argv must be non-empty and NUL-free".into());
@@ -140,8 +169,8 @@ impl SandboxSpec {
         }
         for m in &self.ro_mounts {
             check_guest_path(&m.guest)?;
-            if !MOUNT_PREFIXES.iter().any(|p| m.guest.starts_with(p)) {
-                return bad(format!("mount {:?} not under {:?}", m.guest, MOUNT_PREFIXES));
+            if !layout.mount_prefixes.iter().any(|p| m.guest.starts_with(p)) {
+                return bad(format!("mount {:?} not under {:?}", m.guest, layout.mount_prefixes));
             }
             if !m.host.is_absolute() {
                 return bad(format!("mount host path {:?} must be absolute", m.host));
@@ -161,8 +190,19 @@ impl SandboxSpec {
         if self.wall_timeout.is_zero() {
             return bad("zero wall timeout".into());
         }
-        if !self.collect.is_empty() && self.output_dir.is_none() {
-            return bad("collect requires output_dir".into());
+        if !self.collect.is_empty() && self.out_dir.is_none() {
+            return bad("collect requires out_dir".into());
+        }
+        if !layout.flexible_scratch {
+            if !self.copy_in.is_empty() || !self.scratch_dirs.is_empty() {
+                return bad("copy_in / scratch_dirs not supported by this backend".into());
+            }
+            if self.cwd != layout.scratch {
+                return bad(format!("cwd must be {}", layout.scratch));
+            }
+            if !self.collect.iter().all(|c| c == "out" || c.starts_with("out/")) {
+                return bad("this backend only collects paths under out/".into());
+            }
         }
         if let Some(cpus) = &self.cpu_set {
             if cpus.is_empty() || cpus.iter().any(|&c| c >= 1024) {
@@ -247,7 +287,66 @@ pub struct SandboxOutcome {
     /// Diagnostic: entry-point-only wall time measured by the judge's init
     /// inside the sandbox. Never used for scoring.
     pub entry_wall_ns: Option<u64>,
+    /// Backend-specific, non-authoritative detail.
+    pub diagnostics: Diagnostics,
 }
+
+impl SandboxOutcome {
+    /// An outcome with every measurement zeroed; backends fill in fields.
+    pub fn empty(exit: ExitStatus, isolation: &str, tier_cap: Option<arena_types::challenge::Tier>) -> Self {
+        SandboxOutcome {
+            exit,
+            wall_ns: 0,
+            cpu_ns: 0,
+            peak_rss_bytes: 0,
+            max_process_rss_bytes: 0,
+            stdout_trunc: vec![],
+            stderr_trunc: vec![],
+            stdout_bytes: 0,
+            stderr_bytes: 0,
+            outputs: vec![],
+            outputs_tree: None,
+            output_error: None,
+            pids_limit_hit: false,
+            limits: LimitEnforcement::CgroupV2,
+            isolation: isolation.to_string(),
+            tier_cap,
+            entry_wall_ns: None,
+            diagnostics: Diagnostics::default(),
+        }
+    }
+}
+
+/// Backend detail; nothing here is used for decisions (except the
+/// benchmark harness's host/VMM wall-time cross-check).
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Diagnostics {
+    pub backend: String,
+    /// Host: whole run including setup/teardown.
+    pub total_ns: u64,
+    /// firecracker: jailer spawn -> guest start marker.
+    pub boot_ns: Option<u64>,
+    /// firecracker: jailer spawn -> Firecracker exit (0 if not applicable).
+    pub vmm_wall_ns: u64,
+    /// firecracker: guest exit marker -> Firecracker exit.
+    pub teardown_ns: Option<u64>,
+    /// Guest-side (diagnostic) figures.
+    pub guest_wall_ns: Option<u64>,
+    pub guest_cpu_ns: Option<u64>,
+    pub guest_peak_mem_bytes: Option<u64>,
+    pub stdout_total_bytes: Option<u64>,
+    pub stderr_total_bytes: Option<u64>,
+    /// Host cgroup OOM kills of the VMM.
+    pub host_oom_kills: u64,
+    /// Output-collection policy violations (symlinks, limits, ...).
+    pub output_violations: Vec<String>,
+    pub outputs_complete: bool,
+    /// Tail of the serial console / supervisor stderr, for debugging.
+    pub serial_tail: String,
+}
+
+/// Compatibility alias (the firecracker backend's original name).
+pub type Exit = ExitStatus;
 
 #[derive(Debug, thiserror::Error)]
 pub enum InfraError {
@@ -261,6 +360,15 @@ pub enum InfraError {
     Supervisor(String),
     #[error("io: {0}")]
     Io(#[from] std::io::Error),
+    #[error("sandbox backend unavailable: {0}")]
+    Unavailable(String),
+    #[error("sandbox infrastructure failure: {0}")]
+    Backend(String),
+    /// The guest produced a malformed or forged report. Only possible if the
+    /// candidate compromised the guest's judge side (or init is buggy): maps
+    /// to `SANDBOX_VIOLATION`, not to a retryable infra error.
+    #[error("guest protocol violation: {0}")]
+    GuestProtocol(String),
 }
 
 /// A sandbox backend. Implementations run untrusted code with no network,
@@ -272,5 +380,9 @@ pub trait Sandbox: Send + Sync {
     /// Tier cap that every result produced through this backend carries
     /// (`Some(Demo)` for dev backends, `None` for production isolation).
     fn tier_cap(&self) -> Option<arena_types::challenge::Tier>;
+    /// Guest path layout (defaults to the bwrap-dev layout).
+    fn layout(&self) -> GuestLayout {
+        BWRAP_LAYOUT
+    }
     fn run(&self, spec: &SandboxSpec) -> Result<SandboxOutcome, InfraError>;
 }

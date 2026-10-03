@@ -74,6 +74,13 @@ pub fn run(r: &mut JobRun<'_>, j: &BuildJob) -> Result<StageOut, ExecError> {
             return Ok(out);
         }
     };
+    let layout = r.ctx.sandbox.layout();
+    if !layout.flexible_scratch || layout.scratch != arena_sandbox::SCRATCH {
+        return Err(ExecError::Infra(format!(
+            "sandbox backend {} cannot run builds yet (needs copy-in of the package into scratch)",
+            r.ctx.sandbox.name()
+        )));
+    }
     let (rootfs, tc_digest, mounts) = toolchain(r, j)?;
     r.record("toolchain_image", tc_digest.clone(), true, false);
     g.evidence("toolchain_image", tc_digest, true);
@@ -180,7 +187,7 @@ fn build_spec(
     s.rw_scratch_mb = j.limits.scratch_mb;
     s.wall_timeout = Duration::from_millis(j.limits.max_build_ms.max(1));
     s.collect = m.build.outputs.iter().map(|o| format!("work/{o}")).collect();
-    s.output_dir = Some(out_dir.to_path_buf());
+    s.out_dir = Some(out_dir.to_path_buf());
     s.max_output_bytes = j.limits.max_output_bytes;
     s
 }

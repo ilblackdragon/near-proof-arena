@@ -15,6 +15,11 @@ use std::sync::Arc;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ExecError {
+    /// The sandbox reported a forged/malformed guest result: the candidate
+    /// broke out of its process-level confinement. Becomes a FAIL with
+    /// `SANDBOX_VIOLATION` on the job's primary gate.
+    #[error("sandbox violation: {0}")]
+    Violation(String),
     /// Judge-side failure: the job is failed as retryable.
     #[error("infra: {0}")]
     Infra(String),
@@ -25,7 +30,10 @@ pub enum ExecError {
 
 impl From<InfraError> for ExecError {
     fn from(e: InfraError) -> Self {
-        ExecError::Infra(format!("sandbox: {e}"))
+        match e {
+            InfraError::GuestProtocol(m) => ExecError::Violation(m),
+            e => ExecError::Infra(format!("sandbox: {e}")),
+        }
     }
 }
 impl From<StoreError> for ExecError {
@@ -161,21 +169,42 @@ impl<'a> JobRun<'a> {
     }
 }
 
-/// Spec for running an entry point with read-only inputs: the bundle at
-/// `/in/bundle`, plus `files` (host path -> guest path under `/in/`).
-pub fn entry_spec(bundle: &Path, entry: &str, args: Vec<String>, files: &[(&Path, &str)], timeout_ms: u64, limits: &RunLimits) -> SandboxSpec {
-    let mut argv = vec![format!("/in/bundle/{entry}")];
-    argv.extend(args);
+/// Spec for running an entry point with read-only inputs, laid out per the
+/// backend's [`GuestLayout`](arena_sandbox::GuestLayout): the bundle at
+/// `<inputs>/bundle`, plus `files` (host path -> name under `<inputs>/`).
+/// In `args`, a leading `@in/` expands to `<inputs>/` and `@scratch/` to
+/// `<scratch>/`.
+pub fn entry_spec(
+    layout: &arena_sandbox::GuestLayout,
+    bundle: &Path,
+    entry: &str,
+    args: &[&str],
+    files: &[(&Path, &str)],
+    timeout_ms: u64,
+    limits: &RunLimits,
+) -> SandboxSpec {
+    let expand = |a: &str| {
+        if let Some(rest) = a.strip_prefix("@in/") {
+            format!("{}/{rest}", layout.inputs)
+        } else if let Some(rest) = a.strip_prefix("@scratch/") {
+            format!("{}/{rest}", layout.scratch)
+        } else {
+            a.to_string()
+        }
+    };
+    let mut argv = vec![format!("{}/bundle/{entry}", layout.inputs)];
+    argv.extend(args.iter().map(|a| expand(a)));
     let mut s = SandboxSpec::new(argv);
-    s.rootfs = Rootfs::HostDev;
-    s.ro_mounts.push(Mount { host: bundle.to_path_buf(), guest: "/in/bundle".into() });
-    for (h, g) in files {
-        s.ro_mounts.push(Mount { host: h.to_path_buf(), guest: (*g).to_string() });
+    s.rootfs = Rootfs::BackendDefault;
+    s.cwd = layout.scratch.to_string();
+    s.ro_mounts.push(Mount { host: bundle.to_path_buf(), guest: format!("{}/bundle", layout.inputs) });
+    for (h, name) in files {
+        s.ro_mounts.push(Mount { host: h.to_path_buf(), guest: format!("{}/{name}", layout.inputs) });
     }
     s.wall_timeout = std::time::Duration::from_millis(timeout_ms.max(1));
     s.mem_bytes = limits.max_ram_bytes.max(16 << 20);
     s.pids = limits.max_pids.max(4);
-    s.rw_scratch_mb = limits.scratch_mb.max(1);
+    s.rw_scratch_mb = limits.scratch_mb.max(8);
     s
 }
 
@@ -240,7 +269,14 @@ impl JobExecutor for StageExecutor {
         if !self.ctx.keep_workdirs {
             let _ = fs::remove_dir_all(&dir);
         }
-        let mut out = res?;
+        let mut out = match res {
+            Err(ExecError::Violation(m)) => {
+                let mut g = crate::gate::Gate::start(primary_gate(job.spec.kind()));
+                g.fail(ReasonCode::SandboxViolation, format!("sandbox reported a forged or malformed guest result: {m}"));
+                StageOut { gates: vec![g.finish(arena_types::GateStatus::Unknown, true)], used_sandbox: true, ..Default::default() }
+            }
+            r => r?,
+        };
         let info = self.sandbox_info();
         if out.used_sandbox && info.tier_cap == Some(Tier::Demo) {
             for g in &mut out.gates {
@@ -264,6 +300,18 @@ impl JobExecutor for StageExecutor {
             sandbox: info,
             worker_id: self.ctx.worker_id.clone(),
         })
+    }
+}
+
+/// The gate a job kind is primarily responsible for.
+pub fn primary_gate(k: JobKind) -> arena_types::ObligationId {
+    use arena_types::ObligationId::*;
+    match k {
+        JobKind::Validate => PkgWellformed,
+        JobKind::Build => BuildReproducible,
+        JobKind::Conformance => ConformanceDifferential,
+        JobKind::Adversarial => AdversarialProofs,
+        JobKind::Benchmark => Benchmark,
     }
 }
 

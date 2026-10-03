@@ -180,7 +180,7 @@ impl BwrapDev {
             a.extend(["--setenv".into(), k, v]);
         }
         match &spec.rootfs {
-            Rootfs::HostDev => {
+            Rootfs::HostDev | Rootfs::BackendDefault => {
                 a.extend(["--ro-bind".into(), "/usr".into(), "/usr".into()]);
                 for top in ["bin", "sbin", "lib", "lib32", "lib64"] {
                     root_entry(&mut a, Path::new("/"), top)?;
@@ -322,9 +322,9 @@ impl Sandbox for BwrapDev {
             return Err(InfraError::Refused(format!("{DEV_UNSAFE_ENV}=1 not set")));
         }
         spec.validate()?;
-        if let Some(d) = &spec.output_dir {
+        if let Some(d) = &spec.out_dir {
             if d.exists() {
-                return Err(InfraError::InvalidSpec(format!("output_dir {} already exists", d.display())));
+                return Err(InfraError::InvalidSpec(format!("out_dir {} already exists", d.display())));
             }
         }
         let n = RUN_COUNTER.fetch_add(1, Ordering::Relaxed);
@@ -404,7 +404,7 @@ impl Sandbox for BwrapDev {
         let se = child.stderr.take().expect("piped");
         let t_out = std::thread::spawn(move || read_trunc(so, trunc));
         let t_err = std::thread::spawn(move || read_trunc(se, trunc));
-        let dest = spec.output_dir.clone();
+        let dest = spec.out_dir.clone();
         let max_out = spec.max_output_bytes;
         let t_tar = std::thread::spawn(move || collect_thread(tar_r, dest, max_out));
         let t_st = std::thread::spawn(move || read_json::<InitStatus>(st_r, 1 << 20));
@@ -475,11 +475,12 @@ impl Sandbox for BwrapDev {
             _ => (vec![], None),
         };
         if output_error.is_some() {
-            if let Some(d) = &spec.output_dir {
+            if let Some(d) = &spec.out_dir {
                 let _ = fs::remove_dir_all(d);
                 let _ = fs::create_dir(d);
             }
         }
+        let complete = output_error.is_none();
         Ok(SandboxOutcome {
             exit,
             wall_ns: shim.wall_ns,
@@ -498,6 +499,12 @@ impl Sandbox for BwrapDev {
             isolation: ISOLATION_LABEL.to_string(),
             tier_cap: Some(Tier::Demo),
             entry_wall_ns: init.map(|s| s.entry_wall_ns),
+            diagnostics: Diagnostics {
+                backend: BACKEND_NAME.to_string(),
+                total_ns: shim.wall_ns,
+                outputs_complete: complete,
+                ..Default::default()
+            },
         })
     }
 }

@@ -38,18 +38,22 @@ pub fn run_prepare(
 ) -> Result<Option<Prepared>, ExecError> {
     let params_file = r.fetch_file(params, 1 << 30, "params")?;
     let out_dir = r.fresh("prepare-out");
+    let layout = r.ctx.sandbox.layout();
     let mut spec = entry_spec(
+        &layout,
         bundle,
         &entry.prepare,
-        vec!["--params".into(), "/in/params.bin".into(), "--out".into(), "/scratch/public".into()],
-        &[(&params_file, "/in/params.bin")],
+        &["--params", "@in/params.bin", "--out", "@scratch/out/public"],
+        &[(&params_file, "params.bin")],
         limits.max_prepare_ms,
         limits,
     );
     spec.env.push(("ARENA_STAGE".into(), "prepare".into()));
-    spec.scratch_dirs.push("public".into());
-    spec.collect.push("public".into());
-    spec.output_dir = Some(out_dir.clone());
+    if layout.flexible_scratch {
+        spec.scratch_dirs.push("out/public".into());
+    }
+    spec.collect.push("out".into());
+    spec.out_dir = Some(out_dir.clone());
     spec.max_output_bytes = limits.max_public_artifact_bytes;
     let o = r.run(&spec)?;
     if !o.exit.success() {
@@ -68,7 +72,7 @@ pub fn run_prepare(
         }
         return Ok(None);
     }
-    let public_dir = out_dir.join("public");
+    let public_dir = out_dir.join("out/public");
     std::fs::create_dir_all(&public_dir)?;
     let tree = arena_archive::tree_from_dir(&public_dir, &arena_archive::Limits::default())?;
     Ok(Some(Prepared { public_dir, tree, outcome: o }))
@@ -116,23 +120,26 @@ pub fn run_prove(
     use arena_types::ObligationId::*;
     let (bundle, entry, public_dir, limits) = (env.bundle, env.entry, env.public_dir, env.limits);
     let out_dir = r.fresh("prove-out");
+    let layout = r.ctx.sandbox.layout();
     let mut spec = entry_spec(
+        &layout,
         bundle,
         &entry.prove,
-        [
-            "--public", "/in/public", "--request", "/in/request.bin", "--witness", "/in/witness.bin", "--claim-out",
-            "/scratch/claim.bin", "--proof-out", "/scratch/proof.bin",
-        ]
-        .map(String::from)
-        .to_vec(),
-        &[(public_dir, "/in/public"), (request, "/in/request.bin"), (witness, "/in/witness.bin")],
+        &[
+            "--public", "@in/public", "--request", "@in/request.bin", "--witness", "@in/witness.bin", "--claim-out",
+            "@scratch/out/claim.bin", "--proof-out", "@scratch/out/proof.bin",
+        ],
+        &[(public_dir, "public"), (request, "request.bin"), (witness, "witness.bin")],
         limits.max_prove_ms,
         limits,
     );
     spec.env.push(("ARENA_STAGE".into(), "prove".into()));
     spec.cpu_set = env.cpu_set.clone();
-    spec.collect = vec!["claim.bin".into(), "proof.bin".into()];
-    spec.output_dir = Some(out_dir.clone());
+    if layout.flexible_scratch {
+        spec.scratch_dirs.push("out".into());
+    }
+    spec.collect = vec!["out".into()];
+    spec.out_dir = Some(out_dir.clone());
     spec.max_output_bytes = limits.max_claim_bytes.saturating_add(limits.max_proof_bytes).saturating_add(1);
     let o = r.run(&spec)?;
     if !o.exit.success() {
@@ -150,8 +157,8 @@ pub fn run_prove(
     if o.peak_rss_bytes > limits.max_ram_bytes {
         return Ok(Err(fail(ResourceLimits, ReasonCode::ResourceLimit, format!("peak memory {} > {}", o.peak_rss_bytes, limits.max_ram_bytes))));
     }
-    let claim_path = out_dir.join("claim.bin");
-    let proof_path = out_dir.join("proof.bin");
+    let claim_path = out_dir.join("out/claim.bin");
+    let proof_path = out_dir.join("out/proof.bin");
     let (Ok(claim), Ok(proof)) = (std::fs::read(&claim_path), std::fs::read(&proof_path)) else {
         return Ok(Err(fail(ProverReliability, ReasonCode::ProverFailed, "prove exited 0 without claim.bin and proof.bin".into())));
     };
@@ -186,11 +193,13 @@ pub fn run_verify(
     proof: &std::path::Path,
 ) -> Result<(Verdict, SandboxOutcome), ExecError> {
     let (bundle, entry, public_dir, limits) = (env.bundle, env.entry, env.public_dir, env.limits);
+    let layout = r.ctx.sandbox.layout();
     let mut spec = entry_spec(
+        &layout,
         bundle,
         &entry.verify,
-        ["--public", "/in/public", "--claim", "/in/claim.bin", "--proof", "/in/proof.bin"].map(String::from).to_vec(),
-        &[(public_dir, "/in/public"), (claim, "/in/claim.bin"), (proof, "/in/proof.bin")],
+        &["--public", "@in/public", "--claim", "@in/claim.bin", "--proof", "@in/proof.bin"],
+        &[(public_dir, "public"), (claim, "claim.bin"), (proof, "proof.bin")],
         limits.max_verify_ms,
         limits,
     );

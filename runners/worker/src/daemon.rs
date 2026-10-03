@@ -97,6 +97,11 @@ impl Daemon {
                 }
             }
             Err(ExecError::Cancelled) => Ok(Step::LeaseLost),
+            Err(ExecError::Violation(e)) => {
+                // Normally converted into a FAIL gate by the executor.
+                self.control.fail(&FailRequest { job_id: job.id.clone(), worker_id: self.worker_id.clone(), attempt: job.attempt, error: format!("sandbox violation: {e}"), retryable: false })?;
+                Ok(Step::Failed)
+            }
             Err(ExecError::Infra(e)) => {
                 log(&format!("job {} infra failure: {e}", job.id));
                 let mut msg = e;

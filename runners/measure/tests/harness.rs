@@ -41,6 +41,7 @@ impl Sandbox for Scripted {
             isolation: "scripted".into(),
             tier_cap: None,
             entry_wall_ns: Some(1),
+            diagnostics: Diagnostics::default(),
         })
     }
 }

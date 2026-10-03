@@ -30,6 +30,25 @@ impl Runner<'_, '_> {
     }
 }
 
+impl Runner<'_, '_> {
+    fn exec_err(&mut self, e: ExecError) -> RunError {
+        match e {
+            ExecError::Violation(m) => self.fail(ObligationId::Benchmark, ReasonCode::SandboxViolation, m),
+            e => RunError::Infra(e.to_string()),
+        }
+    }
+}
+
+/// Host-side sanity check of a timing: when the backend reports the VMM's
+/// own wall time, the candidate's wall time must fit inside it.
+fn cross_check(o: &arena_sandbox::SandboxOutcome) -> Result<(), RunError> {
+    let vmm = o.diagnostics.vmm_wall_ns;
+    if vmm > 0 && o.wall_ns > vmm {
+        return Err(RunError::Infra(format!("timing cross-check failed: wall {} ns > VMM wall {} ns", o.wall_ns, vmm)));
+    }
+    Ok(())
+}
+
 impl BatchRunner for Runner<'_, '_> {
     fn run_batch(&mut self, class_id: &str, phase: Phase, _round: u32) -> Result<BatchSample, RunError> {
         let class = self.j.classes.iter().find(|c| c.class_id == class_id).expect("scheduled class");
@@ -39,16 +58,22 @@ impl BatchRunner for Runner<'_, '_> {
             let label = common::case_label(&case.id, case.public);
             let (req, wit) = self.inputs[&case.id].clone();
             let env = common::EntryEnv { bundle: &self.bundle, entry: &self.j.entry, public_dir: &self.public_dir, limits: &self.j.limits, cpu_set: self.cpus.clone() };
-            let proved = common::run_prove(self.r, &env, &req, &wit, &case.expected_claim)
-                .map_err(|e| RunError::Infra(e.to_string()))?;
+            let proved = match common::run_prove(self.r, &env, &req, &wit, &case.expected_claim) {
+                Ok(p) => p,
+                Err(e) => return Err(self.exec_err(e)),
+            };
             let p = match proved {
                 Ok(p) => p,
                 Err(f) => return Err(self.fail(f.gate, f.reason, format!("{} run, {label}: {}", phase.as_str(), f.detail))),
             };
+            cross_check(&p.outcome)?;
             s.push_prove(&p.outcome);
             s.note_proof_bytes(p.proof.len() as u64);
-            let (v, vo) = common::run_verify(self.r, &env, &p.claim_path, &p.proof_path)
-                .map_err(|e| RunError::Infra(e.to_string()))?;
+            let (v, vo) = match common::run_verify(self.r, &env, &p.claim_path, &p.proof_path) {
+                Ok(x) => x,
+                Err(e) => return Err(self.exec_err(e)),
+            };
+            cross_check(&vo)?;
             match v {
                 Verdict::Accept => s.push_verify(&vo),
                 Verdict::TimedOut => {
@@ -128,6 +153,8 @@ pub fn run(r: &mut JobRun<'_>, j: &BenchmarkJob) -> Result<StageOut, ExecError> 
                 rel.fail(ReasonCode::ProverFailed, detail);
             } else if gate == ObligationId::ProverReliability {
                 rel = g;
+            } else if gate == ObligationId::Benchmark {
+                bench = g;
             } else {
                 out.gates.push(g.finish(GateStatus::Unknown, true));
             }

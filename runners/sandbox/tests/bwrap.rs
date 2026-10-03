@@ -255,7 +255,7 @@ fn outputs_collected_and_digested() {
     let dest = e.tmp.path().join("out");
     let mut s = sh("mkdir -p o/sub && printf claim > o/claim.bin && printf proof > o/sub/p && chmod +x o/sub/p && printf x > ignored");
     s.collect = vec!["o".into(), "missing".into()];
-    s.output_dir = Some(dest.clone());
+    s.out_dir = Some(dest.clone());
     let o = e.sb.run(&s).unwrap();
     assert_eq!(o.exit, ExitStatus::Exited(0), "{}", err(&o));
     assert_eq!(o.output_error, None);
@@ -281,7 +281,7 @@ fn hostile_outputs_rejected() {
         let _ = std::fs::remove_dir_all(&dest);
         let mut s = sh(script);
         s.collect = vec!["o".into()];
-        s.output_dir = Some(dest.clone());
+        s.out_dir = Some(dest.clone());
         s.max_output_bytes = 1 << 20;
         let o = e.sb.run(&s).unwrap();
         let msg = o.output_error.clone().unwrap_or_default();
@@ -334,7 +334,7 @@ fn spec_validation() {
     assert!(matches!(e.sb.run(&s), Err(InfraError::InvalidSpec(_))));
     let mut s = sh("true");
     s.collect.push("../x".into());
-    s.output_dir = Some(e.tmp.path().join("o"));
+    s.out_dir = Some(e.tmp.path().join("o"));
     assert!(matches!(e.sb.run(&s), Err(InfraError::InvalidSpec(_))));
 }
 
