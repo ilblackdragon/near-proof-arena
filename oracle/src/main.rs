@@ -43,7 +43,44 @@ fn main() {
     std::process::exit(code);
 }
 
-fn write_case(dir: &Path, case: &casegen::Case, ex: &exec::Executed, seed: u64, idx: u64) -> bool {
+/// RFC 8785 JCS for the integer/string/bool JSON we produce (keys sorted by
+/// UTF-16 code units == bytes for ASCII keys; no floats).
+fn jcs(v: &serde_json::Value) -> String {
+    use serde_json::Value;
+    match v {
+        Value::Object(m) => {
+            let mut ks: Vec<&String> = m.keys().collect();
+            ks.sort_by(|a, b| a.encode_utf16().cmp(b.encode_utf16()));
+            let items: Vec<String> =
+                ks.iter().map(|k| format!("{}:{}", serde_json::to_string(k).unwrap(), jcs(&m[*k]))).collect();
+            format!("{{{}}}", items.join(","))
+        }
+        Value::Array(a) => format!("[{}]", a.iter().map(jcs).collect::<Vec<_>>().join(",")),
+        Value::Number(n) => {
+            assert!(!n.is_f64(), "float in canonical json");
+            n.to_string()
+        }
+        _ => serde_json::to_string(v).unwrap(),
+    }
+}
+
+/// params.bin: challenge-level public parameters handed to `prepare`.
+fn params_bin(runtime_config_digest: &[u8; 32]) -> Vec<u8> {
+    let mut w = enc::W::default();
+    w.str("near-arena-params-v1")
+        .str(enc::STATEMENT_ID)
+        .u32(domain::PROTOCOL_VERSION)
+        .str(domain::CHAIN_ID)
+        .raw(runtime_config_digest);
+    w.0
+}
+
+struct Layout {
+    /// "claim.bin" (oracle layout) or "expected_claim.bin" (SDK fixtures layout)
+    claim_name: &'static str,
+}
+
+fn write_case(dir: &Path, case: &casegen::Case, ex: &exec::Executed, seed: u64, idx: u64, layout: &Layout) -> bool {
     std::fs::create_dir_all(dir).unwrap();
     let req_bytes = ex.request.encode();
     let witness = enc::encode_witness(&ex.request.pre_state_root, &ex.witness_values);
@@ -65,7 +102,7 @@ fn write_case(dir: &Path, case: &casegen::Case, ex: &exec::Executed, seed: u64, 
     }
     if in_domain {
         let c = ex.claim.as_ref().unwrap();
-        std::fs::write(dir.join("claim.bin"), c.encode()).unwrap();
+        std::fs::write(dir.join(layout.claim_name), c.encode()).unwrap();
         // round-trip the strict decoder
         assert_eq!(enc::Claim::decode(&c.encode()).unwrap(), *c);
         assert!(enc::decode_request(&req_bytes).is_ok());
@@ -75,7 +112,7 @@ fn write_case(dir: &Path, case: &casegen::Case, ex: &exec::Executed, seed: u64, 
             }
         }
     } else {
-        let _ = std::fs::remove_file(dir.join("claim.bin"));
+        let _ = std::fs::remove_file(dir.join(layout.claim_name));
     }
     let diag = json!({
         "schema": "near-arena-oracle-case-v1",
@@ -122,14 +159,26 @@ fn cmd_gen(args: &[String]) -> i32 {
     let profiles: Vec<String> = arg(args, "--profiles")
         .map(|s| s.split(',').map(String::from).collect())
         .unwrap_or_else(|| casegen::PROFILES.iter().map(|s| s.to_string()).collect());
+    let fixtures = args.iter().any(|a| a == "--fixtures-layout");
+    let layout = Layout { claim_name: if fixtures { "expected_claim.bin" } else { "claim.bin" } };
+    let case_root = if fixtures { out.join("cases") } else { out.clone() };
     let mut ok = true;
     let mut n_ok = 0;
     let t0 = std::time::Instant::now();
+    if args.iter().any(|a| a == "--with-example") {
+        for tier in ["A", "B"] {
+            let case = casegen::example_case(tier);
+            let ex = exec::run(case.request.clone(), &case.state);
+            let good = write_case(&case_root.join(&case.id), &case, &ex, 0, 0, &layout);
+            ok &= good;
+            n_ok += good as u32;
+        }
+    }
     for i in 0..nvalid {
         let profile = &profiles[(i as usize) % profiles.len()];
         let case = casegen::gen_valid(seed, i, profile);
         let ex = exec::run(case.request.clone(), &case.state);
-        let good = write_case(&out.join(&case.id), &case, &ex, seed, i);
+        let good = write_case(&case_root.join(&case.id), &case, &ex, seed, i, &layout);
         ok &= good;
         n_ok += good as u32;
     }
@@ -137,13 +186,19 @@ fn cmd_gen(args: &[String]) -> i32 {
         let kind = casegen::INVALID_KINDS[(i as usize) % casegen::INVALID_KINDS.len()];
         let case = casegen::gen_invalid(seed, i, kind);
         let ex = exec::run(case.request.clone(), &case.state);
-        let good = write_case(&out.join(&case.id), &case, &ex, seed, i);
+        let good = write_case(&case_root.join(&case.id), &case, &ex, seed, i, &layout);
         ok &= good;
         n_ok += good as u32;
     }
+    if fixtures {
+        let rc = runtime_config_json();
+        let d = hash(jcs(&rc).as_bytes()).0;
+        std::fs::create_dir_all(&out).unwrap();
+        std::fs::write(out.join("params.bin"), params_bin(&d)).unwrap();
+    }
     eprintln!(
         "generated {} cases ({} consistent) in {:?}",
-        nvalid + ninvalid,
+        n_ok_total(nvalid, ninvalid, args),
         n_ok,
         t0.elapsed()
     );
@@ -172,8 +227,20 @@ fn cmd_replay(args: &[String]) -> i32 {
 }
 
 fn cmd_params(args: &[String]) -> i32 {
-    use near_parameters::{ActionCosts, RuntimeConfigStore};
     let out = arg(args, "--out");
+    let d = runtime_config_json();
+    let digest = hash(jcs(&d).as_bytes()).0;
+    eprintln!("runtime_config_digest = sha256:{}", hex::encode(digest));
+    let s = serde_json::to_string_pretty(&d).unwrap() + "\n";
+    match out {
+        Some(p) => std::fs::write(p, s).unwrap(),
+        None => print!("{s}"),
+    }
+    0
+}
+
+fn runtime_config_json() -> serde_json::Value {
+    use near_parameters::{ActionCosts, RuntimeConfigStore};
     let nc = Path::new(env!("CARGO_MANIFEST_DIR")).join("vendor/nearcore");
     let store = RuntimeConfigStore::new(None);
     let cfg = store.get_config(domain::PROTOCOL_VERSION);
@@ -225,10 +292,9 @@ fn cmd_params(args: &[String]) -> i32 {
             "trie_costs": {"node_cost": 50, "byte_of_key": 2, "byte_of_value": 1},
         }
     });
-    let s = serde_json::to_string_pretty(&d).unwrap() + "\n";
-    match out {
-        Some(p) => std::fs::write(p, s).unwrap(),
-        None => print!("{s}"),
-    }
-    0
+    d
+}
+
+fn n_ok_total(nvalid: u64, ninvalid: u64, args: &[String]) -> u64 {
+    nvalid + ninvalid + if args.iter().any(|a| a == "--with-example") { 2 } else { 0 }
 }

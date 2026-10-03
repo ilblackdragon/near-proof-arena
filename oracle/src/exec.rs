@@ -98,6 +98,16 @@ pub fn run(mut req: Request, state: &BTreeMap<Vec<u8>, Vec<u8>>) -> Executed {
         on_post_state_ready: None,
     };
 
+    // ---- slice witness: nodes + values read on the paths to every receiver's
+    // Account key in the pre-trie (nearcore's own TrieRecorder) ----
+    let rec = tries.get_trie_for_shard(shard_uid, pre_root).recording_reads_new_recorder();
+    for r in &req.receipts {
+        let _ = rec.get(&crate::domain::account_key(r.receiver_id().as_str()), AccessOptions::DEFAULT).unwrap();
+    }
+    let proof = rec.recorded_storage().unwrap();
+    let PartialState::TrieValues(values) = &proof.nodes;
+    let witness_values: Vec<Vec<u8>> = values.iter().map(|v| v.to_vec()).collect();
+
     // ---- the real Runtime::apply (recording, as validators do) ----
     let trie = tries.get_trie_for_shard(shard_uid, pre_root).recording_reads_new_recorder();
     let t0 = std::time::Instant::now();
@@ -119,7 +129,7 @@ pub fn run(mut req: Request, state: &BTreeMap<Vec<u8>, Vec<u8>>) -> Executed {
             return Executed {
                 request: req,
                 claim: None,
-                witness_values: vec![],
+                witness_values: witness_values.clone(),
                 nearcore: json!({"apply": "panicked", "apply_ns": apply_ns}),
                 clean: false,
                 problems: vec!["Runtime::apply panicked".into()],
@@ -129,7 +139,7 @@ pub fn run(mut req: Request, state: &BTreeMap<Vec<u8>, Vec<u8>>) -> Executed {
             return Executed {
                 request: req,
                 claim: None,
-                witness_values: vec![],
+                witness_values: witness_values.clone(),
                 nearcore: json!({"apply": "error", "error": format!("{e:?}"), "apply_ns": apply_ns}),
                 clean: false,
                 problems: vec![format!("Runtime::apply error: {e:?}")],
@@ -216,26 +226,6 @@ pub fn run(mut req: Request, state: &BTreeMap<Vec<u8>, Vec<u8>>) -> Executed {
         problems.push("decomposition failed: pre ⊕ changes != Runtime::apply root".into());
     }
 
-    // ---- slice witness: record reads of touched Account keys on the pre-trie ----
-    let rec = tries.get_trie_for_shard(shard_uid, pre_root).recording_reads_new_recorder();
-    let mut keys: Vec<Vec<u8>> = req
-        .receipts
-        .iter()
-        .map(|r| crate::domain::account_key(r.receiver_id().as_str()))
-        .collect();
-    keys.dedup();
-    for k in &keys {
-        let _ = rec.get(k, AccessOptions::DEFAULT).unwrap();
-    }
-    if !account_changes.is_empty() {
-        let r2 = rec.update(account_changes.clone(), AccessOptions::DEFAULT).unwrap().new_root;
-        if r2 != slice_root {
-            problems.push("recorded-trie slice root mismatch".into());
-        }
-    }
-    let proof = rec.recorded_storage().unwrap();
-    let PartialState::TrieValues(values) = &proof.nodes;
-    let witness_values: Vec<Vec<u8>> = values.iter().map(|v| v.to_vec()).collect();
     // witness-only re-execution of the slice update (nearcore's own partial-trie path)
     if !account_changes.is_empty() {
         let wt = near_store::Trie::from_recorded_storage(proof.clone(), pre_root, false);
@@ -274,7 +264,7 @@ pub fn run(mut req: Request, state: &BTreeMap<Vec<u8>, Vec<u8>>) -> Executed {
         "slice_post_root": h(&slice_root),
         "decomposition_ok": decomposition_ok,
         "non_account_keys_changed": other,
-        "outcomes": statuses,
+        "outcome_statuses": statuses.iter().fold(std::collections::BTreeMap::<String, usize>::new(), |mut m, s| { *m.entry(s.clone()).or_default() += 1; m }),
         "outgoing_receipts": result.outgoing_receipts.len(),
         "delayed_receipts_count": result.delayed_receipts_count,
         "tx_burnt_amount": result.stats.balance.tx_burnt_amount.as_yoctonear().to_string(),

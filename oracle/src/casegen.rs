@@ -409,7 +409,12 @@ fn gen_valid_once(rng: &mut Rng, seed: u64, idx: u64, profile: &str) -> Case {
         shard_id: 0,
         block_height: { let sh = rng.range(1, 60); rng.range(1, u64::MAX >> sh) },
         block_gas_price,
-        gas_limit: 1_000_000_000_000_000,
+        gas_limit: if profile == "boundary" && rng.chance(1, 2) {
+            // tightest in-domain compute limit: (n-1)*G < gas_limit
+            (n as u64 - 1) * GAS_PER_TRANSFER + 1
+        } else {
+            1_000_000_000_000_000
+        },
         pre_state_root: CryptoHash::default(), // filled in by exec
         receipts,
     };
@@ -547,4 +552,50 @@ pub fn gen_invalid(seed: u64, idx: u64, kind: &str) -> Case {
     }
     let _ = n;
     c
+}
+
+/// The worked example of docs/research/first-slice.md §6 (alice/bob/carol),
+/// `tier` = "A" (block price == receipt price, no refunds) or "B" (block price
+/// 1e8 < receipt price 1e9, one gas refund per receipt).
+pub fn example_case(tier: &str) -> Case {
+    use near_primitives::hash::hash;
+    let pk: PublicKey = "ed25519:6E8sCci9badyRkXb3JoRpBj5p8C6Tw41ELDZoiihKEtp".parse().unwrap();
+    let mut sb = StateBuilder::new();
+    let near = 10u128.pow(24);
+    for (name, amt) in [("alice.near", 100u128), ("bob.near", 50), ("carol.near", 7)] {
+        let a = Account::new(Balance::from_yoctonear(amt * near), Balance::ZERO, AccountContract::None, 182);
+        sb.put_account(name, &a);
+        let k = TrieKey::AccessKey { account_id: name.parse().unwrap(), key_handle: (&pk).into() }.to_vec();
+        sb.put_raw(k, borsh::to_vec(&AccessKey::full_access()).unwrap());
+    }
+    let mk = |seed: &str, from: &str, to: &str, dep: u128| {
+        Receipt::V0(ReceiptV0 {
+            predecessor_id: from.parse().unwrap(),
+            receiver_id: to.parse().unwrap(),
+            receipt_id: hash(seed.as_bytes()),
+            receipt: ReceiptEnum::Action(ActionReceipt {
+                signer_id: from.parse().unwrap(),
+                signer_public_key: pk.clone(),
+                gas_price: Balance::from_yoctonear(1_000_000_000),
+                output_data_receivers: vec![],
+                input_data_ids: vec![],
+                actions: vec![Action::Transfer(TransferAction { deposit: Balance::from_yoctonear(dep) })],
+            }),
+        })
+    };
+    let receipts = vec![
+        mk("r1", "alice.near", "bob.near", 3 * near),
+        mk("r2", "bob.near", "carol.near", 1500 * 10u128.pow(21)),
+    ];
+    let request = Request {
+        protocol_version: domain::PROTOCOL_VERSION,
+        chain_id: domain::CHAIN_ID.into(),
+        shard_id: 0,
+        block_height: 10,
+        block_gas_price: if tier == "A" { 1_000_000_000 } else { 100_000_000 },
+        gas_limit: 1_000_000_000_000_000,
+        pre_state_root: CryptoHash::default(),
+        receipts,
+    };
+    Case { id: format!("example-tier{tier}"), profile: "example".into(), request, state: sb.kv, invalid_kind: None }
 }
