@@ -106,7 +106,9 @@ pub struct NativeVerifierBuild {
 }
 
 pub fn render_main(template: &str, model_module: &str, model_decl: &str) -> String {
-    template.replace("{{model_module}}", model_module).replace("{{model_decl}}", model_decl)
+    template
+        .replace("{{model_module}}", model_module)
+        .replace("{{model_decl}}", model_decl)
 }
 
 pub fn render_inst(route: &NativeLeanRoute, expected_module: &str, expected_decl: &str) -> String {

@@ -3,8 +3,8 @@
 
 use crate::jobs::*;
 use crate::mutators::MutatorRegistry;
-use crate::store::{ArtifactStore, StoreError};
 use crate::stages;
+use crate::store::{ArtifactStore, StoreError};
 use arena_sandbox::{InfraError, Mount, Rootfs, Sandbox, SandboxOutcome, SandboxSpec};
 use arena_types::challenge::Tier;
 use arena_types::{Digest, ReasonCode};
@@ -135,16 +135,32 @@ impl<'a> JobRun<'a> {
     }
 
     /// Fetch a judge-produced tar artifact and ingest it safely.
-    pub fn fetch_tree(&mut self, d: &Digest, max: u64, stem: &str) -> Result<arena_archive::Extracted, ExecError> {
+    pub fn fetch_tree(
+        &mut self,
+        d: &Digest,
+        max: u64,
+        stem: &str,
+    ) -> Result<arena_archive::Extracted, ExecError> {
         let b = self.fetch(d, max.saturating_add(64 << 20))?;
         let dest = self.fresh(stem);
-        let limits = arena_archive::Limits { max_expanded_bytes: max, max_compressed_bytes: max.saturating_add(64 << 20), ..Default::default() };
-        arena_archive::ingest_bytes(&b, &dest, &limits).map_err(|e| ExecError::Infra(format!("stored tree {d}: {e}")))
+        let limits = arena_archive::Limits {
+            max_expanded_bytes: max,
+            max_compressed_bytes: max.saturating_add(64 << 20),
+            ..Default::default()
+        };
+        arena_archive::ingest_bytes(&b, &dest, &limits)
+            .map_err(|e| ExecError::Infra(format!("stored tree {d}: {e}")))
     }
 
     /// Pack a host tree deterministically, upload it, record both the tar
     /// digest (`name`) and the TreeDigest (`name_tree`).
-    pub fn upload_tree(&mut self, name: &str, root: &Path, tree: &arena_archive::Tree, public: bool) -> Result<(Digest, Digest), ExecError> {
+    pub fn upload_tree(
+        &mut self,
+        name: &str,
+        root: &Path,
+        tree: &arena_archive::Tree,
+        public: bool,
+    ) -> Result<(Digest, Digest), ExecError> {
         let tar = arena_archive::pack_tree(root, tree, Vec::new())?;
         let d = self.ctx.store.put(&tar)?;
         let td = tree.digest();
@@ -160,7 +176,12 @@ impl<'a> JobRun<'a> {
     }
 
     pub fn record(&mut self, name: &str, digest: Digest, public: bool, stored: bool) {
-        self.artifacts.push(NamedArtifact { name: name.to_string(), digest, public, stored });
+        self.artifacts.push(NamedArtifact {
+            name: name.to_string(),
+            digest,
+            public,
+            stored,
+        });
     }
 
     pub fn run(&self, spec: &SandboxSpec) -> Result<SandboxOutcome, ExecError> {
@@ -197,9 +218,15 @@ pub fn entry_spec(
     let mut s = SandboxSpec::new(argv);
     s.rootfs = Rootfs::BackendDefault;
     s.cwd = layout.scratch.to_string();
-    s.ro_mounts.push(Mount { host: bundle.to_path_buf(), guest: format!("{}/bundle", layout.inputs) });
+    s.ro_mounts.push(Mount {
+        host: bundle.to_path_buf(),
+        guest: format!("{}/bundle", layout.inputs),
+    });
     for (h, name) in files {
-        s.ro_mounts.push(Mount { host: h.to_path_buf(), guest: format!("{}/{name}", layout.inputs) });
+        s.ro_mounts.push(Mount {
+            host: h.to_path_buf(),
+            guest: format!("{}/{name}", layout.inputs),
+        });
     }
     s.wall_timeout = std::time::Duration::from_millis(timeout_ms.max(1));
     s.mem_bytes = limits.max_ram_bytes.max(16 << 20);
@@ -252,12 +279,21 @@ impl StageExecutor {
 impl JobExecutor for StageExecutor {
     fn execute(&self, job: &Job, cancel: &AtomicBool) -> Result<JobOutput, ExecError> {
         fs::create_dir_all(&self.ctx.work_root)?;
-        let dir = self.ctx.work_root.join(format!("job-{}-{}", sanitize_id(&job.id), job.attempt));
+        let dir = self
+            .ctx
+            .work_root
+            .join(format!("job-{}-{}", sanitize_id(&job.id), job.attempt));
         if dir.exists() {
             fs::remove_dir_all(&dir)?;
         }
         fs::create_dir(&dir)?;
-        let mut run = JobRun { ctx: &self.ctx, dir: dir.clone(), cancel, artifacts: vec![], counter: 0 };
+        let mut run = JobRun {
+            ctx: &self.ctx,
+            dir: dir.clone(),
+            cancel,
+            artifacts: vec![],
+            counter: 0,
+        };
         let res = match &job.spec {
             JobSpec::Validate(j) => stages::validate::run(&mut run, j),
             JobSpec::Build(j) => stages::build::run(&mut run, j),
@@ -272,8 +308,15 @@ impl JobExecutor for StageExecutor {
         let mut out = match res {
             Err(ExecError::Violation(m)) => {
                 let mut g = crate::gate::Gate::start(primary_gate(job.spec.kind()));
-                g.fail(ReasonCode::SandboxViolation, format!("sandbox reported a forged or malformed guest result: {m}"));
-                StageOut { gates: vec![g.finish(arena_types::GateStatus::Unknown, true)], used_sandbox: true, ..Default::default() }
+                g.fail(
+                    ReasonCode::SandboxViolation,
+                    format!("sandbox reported a forged or malformed guest result: {m}"),
+                );
+                StageOut {
+                    gates: vec![g.finish(arena_types::GateStatus::Unknown, true)],
+                    used_sandbox: true,
+                    ..Default::default()
+                }
             }
             r => r?,
         };
@@ -316,5 +359,14 @@ pub fn primary_gate(k: JobKind) -> arena_types::ObligationId {
 }
 
 fn sanitize_id(s: &str) -> String {
-    s.chars().map(|c| if c.is_ascii_alphanumeric() || c == '-' || c == '_' { c } else { '_' }).take(64).collect()
+    s.chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .take(64)
+        .collect()
 }

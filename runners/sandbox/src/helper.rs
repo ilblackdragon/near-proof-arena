@@ -145,7 +145,10 @@ fn init_main(cfg_path: &Path) -> i32 {
     set_cloexec(TAR_FD);
     set_cloexec(INIT_STATUS_FD);
     let mut st = InitStatus::default();
-    let cfg: InitConfig = match fs::read(cfg_path).map_err(|e| e.to_string()).and_then(|b| serde_json::from_slice(&b).map_err(|e| e.to_string())) {
+    let cfg: InitConfig = match fs::read(cfg_path)
+        .map_err(|e| e.to_string())
+        .and_then(|b| serde_json::from_slice(&b).map_err(|e| e.to_string()))
+    {
         Ok(c) => c,
         Err(e) => {
             st.setup_error = Some(format!("init config: {e}"));
@@ -162,7 +165,10 @@ fn init_main(cfg_path: &Path) -> i32 {
     }
 
     let mut cmd = Command::new(&cfg.argv[0]);
-    cmd.args(&cfg.argv[1..]).current_dir(&cfg.cwd).env("PWD", &cfg.cwd).stdin(Stdio::null());
+    cmd.args(&cfg.argv[1..])
+        .current_dir(&cfg.cwd)
+        .env("PWD", &cfg.cwd)
+        .stdin(Stdio::null());
     let fsize = cfg.fsize_bytes;
     let fb = cfg.fallback_rlimits.clone();
     unsafe {
@@ -215,7 +221,12 @@ fn init_main(cfg_path: &Path) -> i32 {
     }
 
     let tar_out = unsafe { fs::File::from_raw_fd(TAR_FD) };
-    if let Err(e) = collect_outputs(&scratch, &cfg.collect, io::BufWriter::with_capacity(1 << 16, tar_out), &mut st) {
+    if let Err(e) = collect_outputs(
+        &scratch,
+        &cfg.collect,
+        io::BufWriter::with_capacity(1 << 16, tar_out),
+        &mut st,
+    ) {
         st.collect_error.get_or_insert(e.to_string());
     }
     write_json_fd(INIT_STATUS_FD, &st);
@@ -223,7 +234,10 @@ fn init_main(cfg_path: &Path) -> i32 {
 }
 
 fn setrlimit(res: libc::__rlimit_resource_t, v: u64) -> io::Result<()> {
-    let lim = libc::rlimit { rlim_cur: v as libc::rlim_t, rlim_max: v as libc::rlim_t };
+    let lim = libc::rlimit {
+        rlim_cur: v as libc::rlim_t,
+        rlim_max: v as libc::rlim_t,
+    };
     if unsafe { libc::setrlimit(res, &lim) } != 0 {
         return Err(io::Error::last_os_error());
     }
@@ -254,24 +268,46 @@ fn copy_tree(src: &Path, dst: &Path) -> io::Result<()> {
     let ft = meta.file_type();
     if ft.is_dir() {
         fs::DirBuilder::new().mode(0o755).create(dst)?;
-        let mut names: Vec<_> = fs::read_dir(src)?.map(|e| e.map(|e| e.file_name())).collect::<Result<_, _>>()?;
+        let mut names: Vec<_> = fs::read_dir(src)?
+            .map(|e| e.map(|e| e.file_name()))
+            .collect::<Result<_, _>>()?;
         names.sort();
         for n in names {
             copy_tree(&src.join(&n), &dst.join(&n))?;
         }
         Ok(())
     } else if ft.is_file() {
-        let mut from = fs::OpenOptions::new().read(true).custom_flags(libc::O_NOFOLLOW).open(src)?;
-        let perms = if meta.permissions().mode() & 0o111 != 0 { 0o755 } else { 0o644 };
-        let mut to = fs::OpenOptions::new().write(true).create_new(true).mode(perms).custom_flags(libc::O_NOFOLLOW).open(dst)?;
+        let mut from = fs::OpenOptions::new()
+            .read(true)
+            .custom_flags(libc::O_NOFOLLOW)
+            .open(src)?;
+        let perms = if meta.permissions().mode() & 0o111 != 0 {
+            0o755
+        } else {
+            0o644
+        };
+        let mut to = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .mode(perms)
+            .custom_flags(libc::O_NOFOLLOW)
+            .open(dst)?;
         io::copy(&mut from, &mut to)?;
         Ok(())
     } else {
-        Err(io::Error::other(format!("refusing to copy non-regular file {}", src.display())))
+        Err(io::Error::other(format!(
+            "refusing to copy non-regular file {}",
+            src.display()
+        )))
     }
 }
 
-fn collect_outputs<W: Write>(scratch: &Path, collect: &[String], out: W, st: &mut InitStatus) -> io::Result<()> {
+fn collect_outputs<W: Write>(
+    scratch: &Path,
+    collect: &[String],
+    out: W,
+    st: &mut InitStatus,
+) -> io::Result<()> {
     let mut b = tar::Builder::new(out);
     for rel in collect {
         add_path(&mut b, scratch, rel, st)?;
@@ -279,7 +315,12 @@ fn collect_outputs<W: Write>(scratch: &Path, collect: &[String], out: W, st: &mu
     b.into_inner()?.flush()
 }
 
-fn add_path<W: Write>(b: &mut tar::Builder<W>, scratch: &Path, rel: &str, st: &mut InitStatus) -> io::Result<()> {
+fn add_path<W: Write>(
+    b: &mut tar::Builder<W>,
+    scratch: &Path,
+    rel: &str,
+    st: &mut InitStatus,
+) -> io::Result<()> {
     let p = scratch.join(rel);
     let meta = match fs::symlink_metadata(&p) {
         Ok(m) => m,
@@ -301,7 +342,8 @@ fn add_path<W: Write>(b: &mut tar::Builder<W>, scratch: &Path, rel: &str, st: &m
             match e?.file_name().into_string() {
                 Ok(n) => names.push(n),
                 Err(n) => {
-                    st.collect_error.get_or_insert(format!("non-UTF-8 output name {n:?} in {rel}"));
+                    st.collect_error
+                        .get_or_insert(format!("non-UTF-8 output name {n:?} in {rel}"));
                 }
             }
         }
@@ -310,14 +352,22 @@ fn add_path<W: Write>(b: &mut tar::Builder<W>, scratch: &Path, rel: &str, st: &m
             add_path(b, scratch, &format!("{rel}/{n}"), st)?;
         }
     } else if ft.is_file() {
-        let f = fs::OpenOptions::new().read(true).custom_flags(libc::O_NOFOLLOW).open(&p)?;
+        let f = fs::OpenOptions::new()
+            .read(true)
+            .custom_flags(libc::O_NOFOLLOW)
+            .open(&p)?;
         let len = f.metadata()?.len();
         h.set_entry_type(tar::EntryType::Regular);
-        h.set_mode(if meta.permissions().mode() & 0o111 != 0 { 0o755 } else { 0o644 });
+        h.set_mode(if meta.permissions().mode() & 0o111 != 0 {
+            0o755
+        } else {
+            0o644
+        });
         h.set_size(len);
         b.append_data(&mut h, rel, f.take(len))?;
     } else {
-        st.collect_error.get_or_insert(format!("output {rel:?} is not a regular file or directory"));
+        st.collect_error
+            .get_or_insert(format!("output {rel:?} is not a regular file or directory"));
     }
     Ok(())
 }
@@ -341,7 +391,9 @@ fn cg_read(p: &Path) -> io::Result<String> {
 fn cg_kv(text: &str, key: &str) -> Option<u64> {
     text.lines().find_map(|l| {
         let mut it = l.split_whitespace();
-        (it.next() == Some(key)).then(|| it.next()?.parse().ok()).flatten()
+        (it.next() == Some(key))
+            .then(|| it.next()?.parse().ok())
+            .flatten()
     })
 }
 
@@ -355,7 +407,9 @@ fn setup_cgroup(cfg: &ShimConfig) -> io::Result<Cgroup> {
         .trim_start_matches('/');
     let leaf = rel.rsplit('/').next().unwrap_or("");
     if !(leaf.starts_with(SCOPE_PREFIX) && leaf.ends_with(".scope")) {
-        return Err(io::Error::other(format!("shim is not in an {SCOPE_PREFIX}*.scope cgroup (in {rel:?})")));
+        return Err(io::Error::other(format!(
+            "shim is not in an {SCOPE_PREFIX}*.scope cgroup (in {rel:?})"
+        )));
     }
     let base = Path::new("/sys/fs/cgroup").join(rel);
     let sup = base.join("supervisor");
@@ -372,7 +426,10 @@ fn setup_cgroup(cfg: &ShimConfig) -> io::Result<Cgroup> {
     cg_write(&sb.join("memory.oom.group"), "1")?;
     cg_write(&sb.join("pids.max"), &cfg.pids.to_string())?;
     if let Some(cpus) = &cfg.cpu_set {
-        cg_write(&sb.join("cpu.max"), &format!("{} 100000", cpus.len() as u64 * 100_000))?;
+        cg_write(
+            &sb.join("cpu.max"),
+            &format!("{} 100000", cpus.len() as u64 * 100_000),
+        )?;
     }
     Ok(Cgroup { sandbox: sb })
 }
@@ -380,7 +437,10 @@ fn setup_cgroup(cfg: &ShimConfig) -> io::Result<Cgroup> {
 fn shim_main(cfg_path: &Path) -> i32 {
     set_cloexec(SHIM_STATUS_FD);
     let mut rep = ShimReport::default();
-    let cfg: ShimConfig = match fs::read(cfg_path).map_err(|e| e.to_string()).and_then(|b| serde_json::from_slice(&b).map_err(|e| e.to_string())) {
+    let cfg: ShimConfig = match fs::read(cfg_path)
+        .map_err(|e| e.to_string())
+        .and_then(|b| serde_json::from_slice(&b).map_err(|e| e.to_string()))
+    {
         Ok(c) => c,
         Err(e) => {
             rep.error = Some(format!("shim config: {e}"));
@@ -397,9 +457,18 @@ fn shim_main(cfg_path: &Path) -> i32 {
 }
 
 fn shim_run(cfg: &ShimConfig, rep: &mut ShimReport) -> io::Result<()> {
-    let cg = if cfg.use_cgroup { Some(setup_cgroup(cfg)?) } else { None };
+    let cg = if cfg.use_cgroup {
+        Some(setup_cgroup(cfg)?)
+    } else {
+        None
+    };
     let procs_fd: Option<fs::File> = match &cg {
-        Some(c) => Some(fs::OpenOptions::new().write(true).custom_flags(libc::O_CLOEXEC).open(c.sandbox.join("cgroup.procs"))?),
+        Some(c) => Some(
+            fs::OpenOptions::new()
+                .write(true)
+                .custom_flags(libc::O_CLOEXEC)
+                .open(c.sandbox.join("cgroup.procs"))?,
+        ),
         None => None,
     };
     let raw_procs = procs_fd.as_ref().map(std::os::fd::AsRawFd::as_raw_fd);
@@ -412,7 +481,10 @@ fn shim_run(cfg: &ShimConfig, rep: &mut ShimReport) -> io::Result<()> {
         cpu_mask = Some(set);
     }
     let mut cmd = Command::new(&cfg.bwrap);
-    cmd.args(&cfg.bwrap_args).env_clear().stdin(Stdio::null()).process_group(0);
+    cmd.args(&cfg.bwrap_args)
+        .env_clear()
+        .stdin(Stdio::null())
+        .process_group(0);
     unsafe {
         cmd.pre_exec(move || {
             if let Some(fd) = raw_procs {
@@ -465,7 +537,14 @@ fn shim_run(cfg: &ShimConfig, rep: &mut ShimReport) -> io::Result<()> {
     };
     loop {
         let mut info: libc::siginfo_t = unsafe { std::mem::zeroed() };
-        let r = unsafe { libc::waitid(libc::P_PID, pid as libc::id_t, &mut info, libc::WEXITED | libc::WNOWAIT) };
+        let r = unsafe {
+            libc::waitid(
+                libc::P_PID,
+                pid as libc::id_t,
+                &mut info,
+                libc::WEXITED | libc::WNOWAIT,
+            )
+        };
         if r == 0 {
             break;
         }
@@ -500,11 +579,27 @@ fn shim_run(cfg: &ShimConfig, rep: &mut ShimReport) -> io::Result<()> {
     if let Some(c) = &cg {
         // Belt and braces: nothing may survive in the sandbox cgroup.
         let _ = fs::write(c.sandbox.join("cgroup.kill"), "1");
-        let mut s = CgroupStats { path: c.sandbox.display().to_string(), ..Default::default() };
-        s.peak_bytes = cg_read(&c.sandbox.join("memory.peak")).ok().and_then(|t| t.trim().parse().ok()).unwrap_or(0);
-        s.usage_ns = cg_read(&c.sandbox.join("cpu.stat")).ok().and_then(|t| cg_kv(&t, "usage_usec")).unwrap_or(0) * 1000;
-        s.oom_kills = cg_read(&c.sandbox.join("memory.events")).ok().and_then(|t| cg_kv(&t, "oom_kill")).unwrap_or(0);
-        s.pids_max_events = cg_read(&c.sandbox.join("pids.events")).ok().and_then(|t| cg_kv(&t, "max")).unwrap_or(0);
+        let mut s = CgroupStats {
+            path: c.sandbox.display().to_string(),
+            ..Default::default()
+        };
+        s.peak_bytes = cg_read(&c.sandbox.join("memory.peak"))
+            .ok()
+            .and_then(|t| t.trim().parse().ok())
+            .unwrap_or(0);
+        s.usage_ns = cg_read(&c.sandbox.join("cpu.stat"))
+            .ok()
+            .and_then(|t| cg_kv(&t, "usage_usec"))
+            .unwrap_or(0)
+            * 1000;
+        s.oom_kills = cg_read(&c.sandbox.join("memory.events"))
+            .ok()
+            .and_then(|t| cg_kv(&t, "oom_kill"))
+            .unwrap_or(0);
+        s.pids_max_events = cg_read(&c.sandbox.join("pids.events"))
+            .ok()
+            .and_then(|t| cg_kv(&t, "max"))
+            .unwrap_or(0);
         rep.cgroup = Some(s);
     }
     Ok(())

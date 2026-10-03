@@ -54,11 +54,18 @@ fn main() {
                 .ok()
                 .map(|b| serde_json::from_slice(&b).expect("hints.json"))
                 .unwrap_or_else(|| FormatHints::infer(&proof));
-            (d.file_name().unwrap().to_string_lossy().into_owned(), read(d.join("claim.bin")), proof, hints)
+            (
+                d.file_name().unwrap().to_string_lossy().into_owned(),
+                read(d.join("claim.bin")),
+                proof,
+                hints,
+            )
         })
         .collect();
-    let honest: std::collections::HashSet<(Vec<u8>, Vec<u8>)> =
-        pairs.iter().map(|(_, c, p, _)| (c.clone(), p.clone())).collect();
+    let honest: std::collections::HashSet<(Vec<u8>, Vec<u8>)> = pairs
+        .iter()
+        .map(|(_, c, p, _)| (c.clone(), p.clone()))
+        .collect();
     let mut work = Vec::new();
     let mut skipped = 0usize;
     for (i, (name, claim, proof, hints)) in pairs.iter().enumerate() {
@@ -91,7 +98,8 @@ fn main() {
     let results: Mutex<Vec<(usize, Option<i32>)>> = Mutex::new(Vec::new());
     std::thread::scope(|s| {
         for t in 0..jobs {
-            let (work, next, results, tmp, verify, public) = (&work, &next, &results, &tmp, &verify, &public);
+            let (work, next, results, tmp, verify, public) =
+                (&work, &next, &results, &tmp, &verify, &public);
             s.spawn(move || loop {
                 let k = next.fetch_add(1, Ordering::Relaxed);
                 if k >= work.len() {
@@ -122,7 +130,9 @@ fn main() {
     let mut accepted = Vec::new();
     for (k, code) in results.into_inner().unwrap() {
         let j = &work[k];
-        let e = per.entry(format!("{} ({})", j.mutator, j.kill)).or_default();
+        let e = per
+            .entry(format!("{} ({})", j.mutator, j.kill))
+            .or_default();
         match code {
             Some(0) => {
                 e[2] += 1;
@@ -132,11 +142,18 @@ fn main() {
             _ => e[1] += 1,
         }
     }
-    println!("{:<44} {:>8} {:>8} {:>8}", "mutator (kill)", "reject", "error", "ACCEPT");
+    println!(
+        "{:<44} {:>8} {:>8} {:>8}",
+        "mutator (kill)", "reject", "error", "ACCEPT"
+    );
     for (k, [r, e, a]) in &per {
         println!("{k:<44} {r:>8} {e:>8} {a:>8}");
     }
-    println!("cases {}, mutants run {}, skipped (== honest pair) {skipped}", pairs.len(), work.len());
+    println!(
+        "cases {}, mutants run {}, skipped (== honest pair) {skipped}",
+        pairs.len(),
+        work.len()
+    );
     for a in &accepted {
         println!("ACCEPTED: {a}");
     }

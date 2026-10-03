@@ -16,11 +16,13 @@ use crate::audit::{self, LeanAudit};
 use crate::digest::{json_digest, sha256_file, tree_digest};
 use crate::expected::ExpectedTypeBuilder;
 use crate::findings::{lossy_tail, Finding, Scope};
+use crate::native::{self, NativeLeanRoute, NativeVerifierBuild, VerifierRoute};
 use crate::ndjson::Export;
 use crate::report::{self, FormalCheckReport, GateSpec, RecheckerRun, Timing};
-use crate::sandbox::{RunExit, RunOutcome, RunSpec, UntrustedRunner, CAPTURE_LIMIT, REPORT_CAPTURE_LIMIT};
+use crate::sandbox::{
+    RunExit, RunOutcome, RunSpec, UntrustedRunner, CAPTURE_LIMIT, REPORT_CAPTURE_LIMIT,
+};
 use crate::staging::{self, CandidateModule, StagingPolicy};
-use crate::native::{self, NativeLeanRoute, NativeVerifierBuild, VerifierRoute};
 use crate::toolchain::{lean_toolchain, ToolPaths};
 use arena_types::{Digest, EvidenceRef, ObligationId, ReasonCode};
 use serde::{Deserialize, Serialize};
@@ -63,7 +65,11 @@ pub struct Policy {
 impl Default for Policy {
     fn default() -> Self {
         Policy {
-            axiom_allowlist: vec!["propext".into(), "Quot.sound".into(), "Classical.choice".into()],
+            axiom_allowlist: vec![
+                "propext".into(),
+                "Quot.sound".into(),
+                "Classical.choice".into(),
+            ],
             required_recheckers: vec!["leanchecker".into(), "nanoda".into()],
             gates: report::default_gates(),
             conjunct_gates: None,
@@ -139,7 +145,13 @@ struct Ctx<'a> {
 }
 
 impl<'a> Ctx<'a> {
-    fn base_spec(&self, argv: Vec<String>, lean_path: &str, timeout: Duration, mem: Option<u64>) -> RunSpec {
+    fn base_spec(
+        &self,
+        argv: Vec<String>,
+        lean_path: &str,
+        timeout: Duration,
+        mem: Option<u64>,
+    ) -> RunSpec {
         let t = &self.fc.tools;
         let mut ro = vec![
             (t.lean_sysroot.clone(), PathBuf::from(G_TC)),
@@ -175,10 +187,16 @@ impl<'a> Ctx<'a> {
         let r = self.fc.runner.run(spec, cap);
         match r {
             Ok(o) => {
-                self.timings.push(Timing { step: step.into(), wall_ms: o.wall.as_millis() as u64 });
+                self.timings.push(Timing {
+                    step: step.into(),
+                    wall_ms: o.wall.as_millis() as u64,
+                });
                 Ok(o)
             }
-            Err(e) => Err(Finding::unknown(ReasonCode::InfraError, format!("{step}: {e}"))),
+            Err(e) => Err(Finding::unknown(
+                ReasonCode::InfraError,
+                format!("{step}: {e}"),
+            )),
         }
     }
 }
@@ -186,7 +204,10 @@ impl<'a> Ctx<'a> {
 /// Lean reports a candidate redefinition of a trusted name as an import
 /// collision; classify that as shadowing rather than a generic failure.
 fn shadow_or(output: &str, otherwise: ReasonCode) -> ReasonCode {
-    if output.contains("already contains") || output.contains("already declared") || output.contains("has already been declared") {
+    if output.contains("already contains")
+        || output.contains("already declared")
+        || output.contains("has already been declared")
+    {
         ReasonCode::ShadowedDefinition
     } else {
         otherwise
@@ -201,10 +222,13 @@ fn now_rfc3339() -> String {
 
 /// Copy every `.lean` file under `root` into `dest`; returns module graph.
 fn collect_trusted(pkg: &TrustedPackage, dest: &Path) -> Result<Vec<CandidateModule>, String> {
-    let entries = crate::digest::list_tree(&pkg.src_root).map_err(|e| format!("{}: {e}", pkg.name))?;
+    let entries =
+        crate::digest::list_tree(&pkg.src_root).map_err(|e| format!("{}: {e}", pkg.name))?;
     let mut mods = Vec::new();
     for e in entries {
-        let Some(stem) = e.path.strip_suffix(".lean") else { continue };
+        let Some(stem) = e.path.strip_suffix(".lean") else {
+            continue;
+        };
         if stem == "lakefile" || e.path.starts_with(".lake/") {
             continue;
         }
@@ -216,24 +240,37 @@ fn collect_trusted(pkg: &TrustedPackage, dest: &Path) -> Result<Vec<CandidateMod
             }
         }
         if !comps.iter().all(|c| staging::is_ident(c)) {
-            return Err(format!("trusted package {}: bad module path {}", pkg.name, e.path));
+            return Err(format!(
+                "trusted package {}: bad module path {}",
+                pkg.name, e.path
+            ));
         }
         let src = std::fs::read_to_string(pkg.src_root.join(&e.path)).map_err(|e| e.to_string())?;
         let (imports, _) = staging::parse_header(&src)?;
         let t = dest.join(&e.path);
         std::fs::create_dir_all(t.parent().unwrap()).map_err(|e| e.to_string())?;
         std::fs::write(&t, src).map_err(|e| e.to_string())?;
-        mods.push(CandidateModule { name: comps.join("."), rel_path: e.path.clone(), imports });
+        mods.push(CandidateModule {
+            name: comps.join("."),
+            rel_path: e.path.clone(),
+            imports,
+        });
     }
     Ok(mods)
 }
 
 fn topo(mods: Vec<CandidateModule>) -> Result<Vec<CandidateModule>, String> {
     use std::collections::BTreeMap;
-    let map: BTreeMap<String, CandidateModule> = mods.into_iter().map(|m| (m.name.clone(), m)).collect();
+    let map: BTreeMap<String, CandidateModule> =
+        mods.into_iter().map(|m| (m.name.clone(), m)).collect();
     let mut state: BTreeMap<String, u8> = BTreeMap::new();
     let mut order = Vec::new();
-    fn go(n: &str, map: &BTreeMap<String, CandidateModule>, st: &mut BTreeMap<String, u8>, out: &mut Vec<String>) -> Result<(), String> {
+    fn go(
+        n: &str,
+        map: &BTreeMap<String, CandidateModule>,
+        st: &mut BTreeMap<String, u8>,
+        out: &mut Vec<String>,
+    ) -> Result<(), String> {
         match st.get(n) {
             Some(2) => return Ok(()),
             Some(1) => return Err(format!("import cycle at {n}")),
@@ -286,13 +323,15 @@ fn compile(
 ) -> Result<(), Finding> {
     let start = Instant::now();
     if let Some(t) = trusted_ro {
-        link_trusted(t, out).map_err(|e| Finding::unknown(ReasonCode::InfraError, format!("link trusted: {e}")))?;
+        link_trusted(t, out)
+            .map_err(|e| Finding::unknown(ReasonCode::InfraError, format!("link trusted: {e}")))?;
     }
     let lean_path = G_OUT.to_string();
     for m in mods {
         let stem = m.rel_path.trim_end_matches(".lean");
         if let Some(parent) = out.join(stem).parent() {
-            std::fs::create_dir_all(parent).map_err(|e| Finding::unknown(ReasonCode::InfraError, e.to_string()))?;
+            std::fs::create_dir_all(parent)
+                .map_err(|e| Finding::unknown(ReasonCode::InfraError, e.to_string()))?;
         }
         let remaining = limits.elaboration_budget.saturating_sub(start.elapsed());
         let timeout = remaining.min(limits.module_timeout);
@@ -316,11 +355,18 @@ fn compile(
             spec.ro.push((t.to_path_buf(), G_TRUSTED.into()));
         }
         spec.rw.push((out.to_path_buf(), G_OUT.into()));
-        let o = ctx.run(&format!("{label}:elaborate:{}", m.name), &spec, CAPTURE_LIMIT)?;
+        let o = ctx.run(
+            &format!("{label}:elaborate:{}", m.name),
+            &spec,
+            CAPTURE_LIMIT,
+        )?;
         match o.exit {
             RunExit::Exited(0) => {}
             RunExit::TimedOut => {
-                return Err(Finding::unknown(ReasonCode::Timeout, format!("{label}: elaboration of {} timed out", m.name)))
+                return Err(Finding::unknown(
+                    ReasonCode::Timeout,
+                    format!("{label}: elaboration of {} timed out", m.name),
+                ))
             }
             _ => {
                 let mut msg = lossy_tail(&o.stdout, 1500);
@@ -328,7 +374,10 @@ fn compile(
                 return Err(Finding::new(
                     ReasonCode::BuildFailed,
                     Scope::All,
-                    format!("{label}: module {} failed to elaborate ({:?}):\n{msg}", m.name, o.exit),
+                    format!(
+                        "{label}: module {} failed to elaborate ({:?}):\n{msg}",
+                        m.name, o.exit
+                    ),
                 ));
             }
         }
@@ -352,7 +401,8 @@ fn compile_isolated(
 ) -> Result<PathBuf, Finding> {
     let _ = std::fs::remove_dir_all(iso);
     let stem = m.rel_path.trim_end_matches(".lean");
-    std::fs::create_dir_all(iso.join(stem).parent().unwrap()).map_err(|e| Finding::unknown(ReasonCode::InfraError, e.to_string()))?;
+    std::fs::create_dir_all(iso.join(stem).parent().unwrap())
+        .map_err(|e| Finding::unknown(ReasonCode::InfraError, e.to_string()))?;
     let argv = vec![
         format!("{G_TC}/bin/lean"),
         "-R".into(),
@@ -368,25 +418,43 @@ fn compile_isolated(
     spec.ro.push((trusted_out.to_path_buf(), G_TRUSTED.into()));
     spec.ro.push((lib.to_path_buf(), "/arena/lib".into()));
     spec.rw.push((iso.to_path_buf(), G_OUT.into()));
-    let o = ctx.run(&format!("{label}:elaborate:{}", m.name), &spec, CAPTURE_LIMIT)?;
+    let o = ctx.run(
+        &format!("{label}:elaborate:{}", m.name),
+        &spec,
+        CAPTURE_LIMIT,
+    )?;
     match o.exit {
         RunExit::Exited(0) => {}
-        RunExit::TimedOut => return Err(Finding::unknown(ReasonCode::Timeout, format!("{label}: elaboration of {} timed out", m.name))),
+        RunExit::TimedOut => {
+            return Err(Finding::unknown(
+                ReasonCode::Timeout,
+                format!("{label}: elaboration of {} timed out", m.name),
+            ))
+        }
         _ => {
             let mut msg = lossy_tail(&o.stdout, 1500);
             msg.push_str(&lossy_tail(&o.stderr, 500));
             return Err(Finding::new(
                 shadow_or(&msg, ReasonCode::BuildFailed),
                 Scope::All,
-                format!("{label}: module {} failed to elaborate ({:?}):\n{msg}", m.name, o.exit),
+                format!(
+                    "{label}: module {} failed to elaborate ({:?}):\n{msg}",
+                    m.name, o.exit
+                ),
             ));
         }
     }
     for suffix in [".olean", ".c"] {
         let p = iso.join(format!("{stem}{suffix}"));
-        let regular = std::fs::symlink_metadata(&p).map(|x| x.file_type().is_file()).unwrap_or(false);
+        let regular = std::fs::symlink_metadata(&p)
+            .map(|x| x.file_type().is_file())
+            .unwrap_or(false);
         if !regular {
-            return Err(Finding::new(ReasonCode::SandboxViolation, Scope::All, format!("{label}: output {stem}{suffix} missing or not a regular file")));
+            return Err(Finding::new(
+                ReasonCode::SandboxViolation,
+                Scope::All,
+                format!("{label}: output {stem}{suffix} missing or not a regular file"),
+            ));
         }
     }
     Ok(iso.to_path_buf())
@@ -419,7 +487,10 @@ fn cached_build(
     if dir.join("done").is_file() {
         return Ok(dir);
     }
-    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
     let tmp = cache_dir.join(format!(".tmp-{name}-{}-{nanos}", std::process::id()));
     std::fs::create_dir_all(&tmp).map_err(|e| e.to_string())?;
     if let Err(e) = build(&tmp) {
@@ -454,11 +525,20 @@ impl FormalChecker {
     }
 
     /// Phase 1 (judge-only content): compile the pinned trusted packages.
-    fn trusted_build(&self, ctx: &mut Ctx, req: &CheckRequest, image: &Digest) -> Result<TrustedBuild, Finding> {
-        let infra = |e: String| Finding::unknown(ReasonCode::InfraError, format!("trusted build: {e}"));
+    fn trusted_build(
+        &self,
+        ctx: &mut Ctx,
+        req: &CheckRequest,
+        image: &Digest,
+    ) -> Result<TrustedBuild, Finding> {
+        let infra =
+            |e: String| Finding::unknown(ReasonCode::InfraError, format!("trusted build: {e}"));
         let mut digests = Vec::new();
         for p in &req.trusted {
-            digests.push((p.name.clone(), tree_digest(&p.src_root).map_err(|e| infra(e.to_string()))?));
+            digests.push((
+                p.name.clone(),
+                tree_digest(&p.src_root).map_err(|e| infra(e.to_string()))?,
+            ));
         }
         let includes: Vec<_> = req.trusted.iter().map(|p| (&p.name, &p.include)).collect();
         let key = json_digest(&("trusted-v2", &digests, &includes, image));
@@ -472,14 +552,25 @@ impl FormalChecker {
                 mods.extend(collect_trusted(p, &src)?);
             }
             let mods = topo(mods)?;
-            compile(ctx, "trusted", &mods, &src, &out, None, &req.limits, true).map_err(|f| f.detail)?;
+            compile(ctx, "trusted", &mods, &src, &out, None, &req.limits, true)
+                .map_err(|f| f.detail)?;
             let names: Vec<String> = mods.iter().map(|m| m.name.clone()).collect();
-            std::fs::write(dir.join("modules.json"), serde_json::to_string(&names).unwrap()).map_err(|e| e.to_string())
+            std::fs::write(
+                dir.join("modules.json"),
+                serde_json::to_string(&names).unwrap(),
+            )
+            .map_err(|e| e.to_string())
         })
         .map_err(infra)?;
-        let modules: Vec<String> = serde_json::from_slice(&std::fs::read(dir.join("modules.json")).map_err(|e| infra(e.to_string()))?)
-            .map_err(|e| infra(e.to_string()))?;
-        Ok(TrustedBuild { out: dir.join("out"), modules, digests })
+        let modules: Vec<String> = serde_json::from_slice(
+            &std::fs::read(dir.join("modules.json")).map_err(|e| infra(e.to_string()))?,
+        )
+        .map_err(|e| infra(e.to_string()))?;
+        Ok(TrustedBuild {
+            out: dir.join("out"),
+            modules,
+            digests,
+        })
     }
 
     /// Phase 2 (judge-only content): the generated Expected module on top of
@@ -492,7 +583,8 @@ impl FormalChecker {
         tb: &TrustedBuild,
         expected_src: &str,
     ) -> Result<Reference, Finding> {
-        let infra = |e: String| Finding::unknown(ReasonCode::InfraError, format!("reference build: {e}"));
+        let infra =
+            |e: String| Finding::unknown(ReasonCode::InfraError, format!("reference build: {e}"));
         let expected_source_digest = Digest::of_bytes(expected_src.as_bytes());
         let key = json_digest(&(
             "ref-v2",
@@ -562,10 +654,20 @@ impl FormalChecker {
         .map_err(infra)?;
         let export_path = dir.join("reference.ndjson");
         let t = Instant::now();
-        let export = Export::read(&export_path, req.limits.export_max_bytes).map_err(|e| infra(e.to_string()))?;
-        ctx.timings.push(Timing { step: "reference:parse".into(), wall_ms: t.elapsed().as_millis() as u64 });
+        let export = Export::read(&export_path, req.limits.export_max_bytes)
+            .map_err(|e| infra(e.to_string()))?;
+        ctx.timings.push(Timing {
+            step: "reference:parse".into(),
+            wall_ms: t.elapsed().as_millis() as u64,
+        });
         let export_digest = sha256_file(&export_path).map_err(|e| infra(e.to_string()))?;
-        Ok(Reference { out: dir.join("out"), modules: all_modules, export, export_digest, expected_source_digest })
+        Ok(Reference {
+            out: dir.join("out"),
+            modules: all_modules,
+            export,
+            export_digest,
+            expected_source_digest,
+        })
     }
 
     /// Judge build of the native verifier from the candidate model.
@@ -594,11 +696,14 @@ impl FormalChecker {
         cand_out: &Path,
         model_mods: &[CandidateModule],
     ) -> Result<NativeVerifierBuild, Finding> {
-        let infra = |e: String| Finding::unknown(ReasonCode::InfraError, format!("native build: {e}"));
+        let infra =
+            |e: String| Finding::unknown(ReasonCode::InfraError, format!("native build: {e}"));
         let bind = |msg: String| Finding::new(ReasonCode::ArtifactBindingFailed, Scope::All, msg);
         for m in model_mods {
             for i in &m.imports {
-                let ok = tb.modules.contains(i) || model_mods.iter().any(|x| &x.name == i) || staging::has_prefix(i, "Init");
+                let ok = tb.modules.contains(i)
+                    || model_mods.iter().any(|x| &x.name == i)
+                    || staging::has_prefix(i, "Init");
                 if !ok {
                     return Err(bind(format!(
                         "verifier model module {} imports {i}: model modules may import only trusted modules, other model modules and Init (no metaprogramming in code the judge compiles)",
@@ -618,45 +723,91 @@ impl FormalChecker {
         let mut c_files: Vec<String> = Vec::new();
         for m in &tb.modules {
             let stem = m.replace('.', "/");
-            std::fs::copy(tb.out.join(format!("{stem}.c")), cdir.join(format!("{m}.c"))).map_err(|e| infra(format!("trusted C for {m}: {e}")))?;
+            std::fs::copy(
+                tb.out.join(format!("{stem}.c")),
+                cdir.join(format!("{m}.c")),
+            )
+            .map_err(|e| infra(format!("trusted C for {m}: {e}")))?;
             c_files.push(m.clone());
         }
         // Model closure, isolated per module.
         for m in model_mods {
-            let iso = compile_isolated(ctx, "model", m, cand_src, &lib, &tb.out, &nb.join("iso").join(&m.name), &req.limits)?;
+            let iso = compile_isolated(
+                ctx,
+                "model",
+                m,
+                cand_src,
+                &lib,
+                &tb.out,
+                &nb.join("iso").join(&m.name),
+                &req.limits,
+            )?;
             let stem = m.rel_path.trim_end_matches(".lean");
             for suffix in [".olean", ".olean.server", ".olean.private"] {
                 let from = iso.join(format!("{stem}{suffix}"));
                 if from.exists() {
                     for dest in [&lib, &cand_out.to_path_buf()] {
                         let to = dest.join(format!("{stem}{suffix}"));
-                        std::fs::create_dir_all(to.parent().unwrap()).map_err(|e| infra(e.to_string()))?;
+                        std::fs::create_dir_all(to.parent().unwrap())
+                            .map_err(|e| infra(e.to_string()))?;
                         let _ = std::fs::remove_file(&to);
                         std::fs::copy(&from, &to).map_err(|e| infra(e.to_string()))?;
                     }
                 }
             }
-            std::fs::copy(iso.join(format!("{stem}.c")), cdir.join(format!("{}.c", m.name))).map_err(|e| infra(e.to_string()))?;
+            std::fs::copy(
+                iso.join(format!("{stem}.c")),
+                cdir.join(format!("{}.c", m.name)),
+            )
+            .map_err(|e| infra(e.to_string()))?;
             c_files.push(m.name.clone());
         }
         // Judge wrapper, with the candidate model in scope.
         let main_mod = "ArenaVerifyMain";
         let main_src_dir = nb.join("main-src");
         std::fs::create_dir_all(&main_src_dir).map_err(|e| infra(e.to_string()))?;
-        let main_src = native::render_main(&route.main_template, &route.model_module, &route.model_decl);
-        std::fs::write(main_src_dir.join(format!("{main_mod}.lean")), &main_src).map_err(|e| infra(e.to_string()))?;
+        let main_src =
+            native::render_main(&route.main_template, &route.model_module, &route.model_decl);
+        std::fs::write(main_src_dir.join(format!("{main_mod}.lean")), &main_src)
+            .map_err(|e| infra(e.to_string()))?;
         let (main_imports, _) = staging::parse_header(&main_src).map_err(infra)?;
-        let main_m = CandidateModule { name: main_mod.into(), rel_path: format!("{main_mod}.lean"), imports: main_imports.clone() };
-        let iso = compile_isolated(ctx, "wrapper", &main_m, &main_src_dir, &lib, &tb.out, &nb.join("iso").join(main_mod), &req.limits)
-            .map_err(|f| {
-                if f.severity == crate::findings::Severity::Fail && f.code != ReasonCode::ShadowedDefinition {
-                    bind(format!("judge verify wrapper does not elaborate against the model: {}", f.detail))
-                } else {
-                    f
-                }
-            })?;
-        std::fs::copy(iso.join(format!("{main_mod}.olean")), lib.join(format!("{main_mod}.olean"))).map_err(|e| infra(e.to_string()))?;
-        std::fs::copy(iso.join(format!("{main_mod}.c")), cdir.join(format!("{main_mod}.c"))).map_err(|e| infra(e.to_string()))?;
+        let main_m = CandidateModule {
+            name: main_mod.into(),
+            rel_path: format!("{main_mod}.lean"),
+            imports: main_imports.clone(),
+        };
+        let iso = compile_isolated(
+            ctx,
+            "wrapper",
+            &main_m,
+            &main_src_dir,
+            &lib,
+            &tb.out,
+            &nb.join("iso").join(main_mod),
+            &req.limits,
+        )
+        .map_err(|f| {
+            if f.severity == crate::findings::Severity::Fail
+                && f.code != ReasonCode::ShadowedDefinition
+            {
+                bind(format!(
+                    "judge verify wrapper does not elaborate against the model: {}",
+                    f.detail
+                ))
+            } else {
+                f
+            }
+        })?;
+        std::fs::copy(
+            iso.join(format!("{main_mod}.olean")),
+            lib.join(format!("{main_mod}.olean")),
+        )
+        .map_err(|e| infra(e.to_string()))?;
+        std::fs::copy(
+            iso.join(format!("{main_mod}.c")),
+            cdir.join(format!("{main_mod}.c")),
+        )
+        .map_err(|e| infra(e.to_string()))?;
         c_files.push(main_mod.into());
         // Same wrapper against a judge stub (judge-only content).
         let stub = nb.join("stub");
@@ -669,19 +820,42 @@ impl FormalChecker {
             "import {}\n\n/-! judge stub of the candidate model (same name and type) -/\naxiom {} : {}\n",
             route.model_type_module, route.model_decl, route.model_type
         );
-        std::fs::create_dir_all(stub_src.join(&stub_rel).parent().unwrap()).map_err(|e| infra(e.to_string()))?;
+        std::fs::create_dir_all(stub_src.join(&stub_rel).parent().unwrap())
+            .map_err(|e| infra(e.to_string()))?;
         std::fs::write(stub_src.join(&stub_rel), &stub_text).map_err(|e| infra(e.to_string()))?;
         // The stub model is an axiom (no code), so the stub wrapper is
         // elaborated as `noncomputable`: kernel declarations are unchanged.
-        let header_end = main_src.lines().take_while(|l| l.starts_with("import ") || l.trim().is_empty()).map(|l| l.len() + 1).sum::<usize>();
-        let stub_main = format!("{}noncomputable section\n{}", &main_src[..header_end], &main_src[header_end..]);
-        std::fs::write(stub_src.join(format!("{main_mod}.lean")), &stub_main).map_err(|e| infra(e.to_string()))?;
+        let header_end = main_src
+            .lines()
+            .take_while(|l| l.starts_with("import ") || l.trim().is_empty())
+            .map(|l| l.len() + 1)
+            .sum::<usize>();
+        let stub_main = format!(
+            "{}noncomputable section\n{}",
+            &main_src[..header_end],
+            &main_src[header_end..]
+        );
+        std::fs::write(stub_src.join(format!("{main_mod}.lean")), &stub_main)
+            .map_err(|e| infra(e.to_string()))?;
         let stub_mods = vec![
-            CandidateModule { name: route.model_module.clone(), rel_path: stub_rel, imports: vec![route.model_type_module.clone()] },
+            CandidateModule {
+                name: route.model_module.clone(),
+                rel_path: stub_rel,
+                imports: vec![route.model_type_module.clone()],
+            },
             main_m.clone(),
         ];
-        compile(ctx, "wrapper-stub", &stub_mods, &stub_src, &stub_lib, Some(&tb.out), &req.limits, false)
-            .map_err(|f| infra(format!("stub wrapper: {}", f.detail)))?;
+        compile(
+            ctx,
+            "wrapper-stub",
+            &stub_mods,
+            &stub_src,
+            &stub_lib,
+            Some(&tb.out),
+            &req.limits,
+            false,
+        )
+        .map_err(|f| infra(format!("stub wrapper: {}", f.detail)))?;
         let dump = |ctx: &mut Ctx, lib_dir: &Path, tag: &str| -> Result<Vec<u8>, Finding> {
             let cfg = serde_json::json!({
                 "imports": [main_mod], "expectedDecl": "", "certificate": "", "candidateModules": [],
@@ -689,14 +863,23 @@ impl FormalChecker {
             });
             let cfg_dir = nb.join(format!("dump-{tag}"));
             std::fs::create_dir_all(&cfg_dir).map_err(|e| infra(e.to_string()))?;
-            std::fs::write(cfg_dir.join("cfg.json"), cfg.to_string()).map_err(|e| infra(e.to_string()))?;
-            let mut spec = ctx.base_spec(vec![G_AUDIT.into(), "dump".into(), format!("{G_X}/cfg.json")], "/arena/lib", req.limits.audit_timeout, req.limits.mem_bytes);
+            std::fs::write(cfg_dir.join("cfg.json"), cfg.to_string())
+                .map_err(|e| infra(e.to_string()))?;
+            let mut spec = ctx.base_spec(
+                vec![G_AUDIT.into(), "dump".into(), format!("{G_X}/cfg.json")],
+                "/arena/lib",
+                req.limits.audit_timeout,
+                req.limits.mem_bytes,
+            );
             spec.ro.push((tb.out.clone(), G_TRUSTED.into()));
             spec.ro.push((lib_dir.to_path_buf(), "/arena/lib".into()));
             spec.ro.push((cfg_dir, G_X.into()));
             let o = ctx.run(&format!("native:dump-{tag}"), &spec, REPORT_CAPTURE_LIMIT)?;
             if !o.success() {
-                return Err(bind(format!("wrapper dump ({tag}) failed: {}", lossy_tail(&o.stderr, 600))));
+                return Err(bind(format!(
+                    "wrapper dump ({tag}) failed: {}",
+                    lossy_tail(&o.stderr, 600)
+                )));
             }
             Ok(o.stdout)
         };
@@ -712,7 +895,15 @@ impl FormalChecker {
         std::fs::create_dir_all(&odir).map_err(|e| infra(e.to_string()))?;
         for m in &c_files {
             let mut spec = ctx.base_spec(
-                vec![format!("{G_TC}/bin/leanc"), "-c".into(), "-O3".into(), "-DNDEBUG".into(), format!("/arena/c/{m}.c"), "-o".into(), format!("/arena/o/{m}.o")],
+                vec![
+                    format!("{G_TC}/bin/leanc"),
+                    "-c".into(),
+                    "-O3".into(),
+                    "-DNDEBUG".into(),
+                    format!("/arena/c/{m}.c"),
+                    "-o".into(),
+                    format!("/arena/o/{m}.o"),
+                ],
                 "",
                 req.limits.module_timeout,
                 req.limits.mem_bytes,
@@ -721,21 +912,37 @@ impl FormalChecker {
             spec.rw.push((odir.clone(), "/arena/o".into()));
             let o = ctx.run(&format!("native:cc:{m}"), &spec, CAPTURE_LIMIT)?;
             if !o.success() {
-                return Err(bind(format!("C compilation of {m} failed: {}", lossy_tail(&o.stderr, 800))));
+                return Err(bind(format!(
+                    "C compilation of {m} failed: {}",
+                    lossy_tail(&o.stderr, 800)
+                )));
             }
         }
-        let mut argv = vec![format!("{G_TC}/bin/leanc"), "-o".into(), "/arena/o/verify".into()];
+        let mut argv = vec![
+            format!("{G_TC}/bin/leanc"),
+            "-o".into(),
+            "/arena/o/verify".into(),
+        ];
         argv.extend(c_files.iter().map(|m| format!("/arena/o/{m}.o")));
         let mut spec = ctx.base_spec(argv, "", req.limits.module_timeout, req.limits.mem_bytes);
         spec.rw.push((odir.clone(), "/arena/o".into()));
         let o = ctx.run("native:link", &spec, CAPTURE_LIMIT)?;
         if !o.success() {
-            return Err(bind(format!("linking the native verifier failed: {}", lossy_tail(&o.stderr, 800))));
+            return Err(bind(format!(
+                "linking the native verifier failed: {}",
+                lossy_tail(&o.stderr, 800)
+            )));
         }
         let built = odir.join("verify");
-        let regular = std::fs::symlink_metadata(&built).map(|m| m.file_type().is_file()).unwrap_or(false);
+        let regular = std::fs::symlink_metadata(&built)
+            .map(|m| m.file_type().is_file())
+            .unwrap_or(false);
         if !regular {
-            return Err(Finding::new(ReasonCode::SandboxViolation, Scope::All, "native build output is not a regular file".into()));
+            return Err(Finding::new(
+                ReasonCode::SandboxViolation,
+                Scope::All,
+                "native build output is not a regular file".into(),
+            ));
         }
         let path = req.work_dir.join("verify");
         std::fs::copy(&built, &path).map_err(|e| infra(e.to_string()))?;
@@ -753,7 +960,10 @@ impl FormalChecker {
     /// mode maps to FAIL (definite) or UNKNOWN (undecided), never PASS.
     pub fn check(&self, req: &CheckRequest) -> FormalCheckReport {
         let started = now_rfc3339();
-        let mut ctx = Ctx { fc: self, timings: vec![] };
+        let mut ctx = Ctx {
+            fc: self,
+            timings: vec![],
+        };
         let mut findings: Vec<Finding> = Vec::new();
         let mut warnings: Vec<String> = Vec::new();
         let mut rechecks: Vec<RecheckerRun> = Vec::new();
@@ -763,7 +973,10 @@ impl FormalChecker {
         let mut cert_digest = None;
         let mut graph_axioms: Vec<String> = vec![];
 
-        let image = self.tools.image_digest().unwrap_or_else(|_| Digest::of_bytes(b"unknown-image"));
+        let image = self
+            .tools
+            .image_digest()
+            .unwrap_or_else(|_| Digest::of_bytes(b"unknown-image"));
         let formal_tree = tree_digest(&req.formal_dir).ok();
         let _ = std::fs::remove_dir_all(&req.work_dir);
         let _ = std::fs::create_dir_all(&req.work_dir);
@@ -810,19 +1023,34 @@ impl FormalChecker {
                 findings.push(Finding::new(
                     ReasonCode::ManifestInvalid,
                     Scope::All,
-                    format!("certificate name {:?} is not a plain dotted Lean identifier", req.certificate),
+                    format!(
+                        "certificate name {:?} is not a plain dotted Lean identifier",
+                        req.certificate
+                    ),
                 ));
                 break 'pipeline;
             }
             if let Some(r) = model_route {
                 let ok = |x: &str| !x.is_empty() && x.split('.').all(staging::is_ident);
-                if !(ok(&r.model_decl) && ok(&r.model_module) && ok(&r.inst_module) && ok(&r.inst_decl)) {
-                    findings.push(Finding::new(ReasonCode::ManifestInvalid, Scope::All, "verifier model names must be dotted Lean identifiers".into()));
+                if !(ok(&r.model_decl)
+                    && ok(&r.model_module)
+                    && ok(&r.inst_module)
+                    && ok(&r.inst_decl))
+                {
+                    findings.push(Finding::new(
+                        ReasonCode::ManifestInvalid,
+                        Scope::All,
+                        "verifier model names must be dotted Lean identifiers".into(),
+                    ));
                     break 'pipeline;
                 }
             }
             if formal_tree.is_none() {
-                findings.push(Finding::new(ReasonCode::ArchiveUnsafe, Scope::All, "formal tree unreadable or contains unsupported entries".into()));
+                findings.push(Finding::new(
+                    ReasonCode::ArchiveUnsafe,
+                    Scope::All,
+                    "formal tree unreadable or contains unsupported entries".into(),
+                ));
             }
 
             // ---------------- Stage A: static staging + sandboxed elaboration
@@ -853,12 +1081,22 @@ impl FormalChecker {
             let staged = match staging::stage_candidate(&req.formal_dir, &cand_src, &pol) {
                 Ok(s) => s,
                 Err(e) => {
-                    findings.push(Finding::unknown(ReasonCode::InfraError, format!("staging: {e}")));
+                    findings.push(Finding::unknown(
+                        ReasonCode::InfraError,
+                        format!("staging: {e}"),
+                    ));
                     break 'pipeline;
                 }
             };
             warnings.extend(staged.warnings.iter().cloned());
-            warnings.extend(crate::grep::scan(&cand_src, &staged.modules.iter().map(|m| m.rel_path.clone()).collect::<Vec<_>>()));
+            warnings.extend(crate::grep::scan(
+                &cand_src,
+                &staged
+                    .modules
+                    .iter()
+                    .map(|m| m.rel_path.clone())
+                    .collect::<Vec<_>>(),
+            ));
             if report::has_fail(&staged.findings) {
                 findings.extend(staged.findings);
                 break 'pipeline;
@@ -867,7 +1105,11 @@ impl FormalChecker {
                 let is_build = f.code == ReasonCode::BuildFailed;
                 findings.push(f);
                 if is_build {
-                    findings.push(Finding::new(ReasonCode::CertificateMissing, Scope::All, "candidate project does not build; certificate unavailable".into()));
+                    findings.push(Finding::new(
+                        ReasonCode::CertificateMissing,
+                        Scope::All,
+                        "candidate project does not build; certificate unavailable".into(),
+                    ));
                 }
             };
 
@@ -882,7 +1124,10 @@ impl FormalChecker {
                     findings.push(Finding::new(
                         ReasonCode::ArtifactBindingFailed,
                         Scope::All,
-                        format!("verifier model module {} is not part of the candidate formal tree", r.model_module),
+                        format!(
+                            "verifier model module {} is not part of the candidate formal tree",
+                            r.model_module
+                        ),
                     ));
                     break 'pipeline;
                 }
@@ -909,8 +1154,21 @@ impl FormalChecker {
                         }
                     }
                 }
-                let model_mods: Vec<CandidateModule> = staged.modules.iter().filter(|m| need.contains(&m.name)).cloned().collect();
-                let nb = match self.native_build(&mut ctx, req, r, &tb, &cand_src, &cand_out, &model_mods) {
+                let model_mods: Vec<CandidateModule> = staged
+                    .modules
+                    .iter()
+                    .filter(|m| need.contains(&m.name))
+                    .cloned()
+                    .collect();
+                let nb = match self.native_build(
+                    &mut ctx,
+                    req,
+                    r,
+                    &tb,
+                    &cand_src,
+                    &cand_out,
+                    &model_mods,
+                ) {
                     Ok(b) => b,
                     Err(f) => {
                         build_failed(&mut findings, f);
@@ -918,7 +1176,11 @@ impl FormalChecker {
                     }
                 };
                 compiled.extend(need.iter().cloned());
-                evidence.push(EvidenceRef { label: "judge-built native verifier".into(), digest: nb.digest.clone(), public: true });
+                evidence.push(EvidenceRef {
+                    label: "judge-built native verifier".into(),
+                    digest: nb.digest.clone(),
+                    public: true,
+                });
                 if let Some(c) = &r.candidate_binary_digest {
                     if c != &nb.digest {
                         findings.push(Finding::new(
@@ -931,15 +1193,24 @@ impl FormalChecker {
                         ));
                     }
                 }
-                extra.insert("bin_digest".to_string(), crate::expected::LeanValue::Bytes(nb.digest.hex().to_string()));
-                extra.insert("toolchain_id".to_string(), crate::expected::LeanValue::Str(r.toolchain_id.clone()));
+                extra.insert(
+                    "bin_digest".to_string(),
+                    crate::expected::LeanValue::Bytes(nb.digest.hex().to_string()),
+                );
+                extra.insert(
+                    "toolchain_id".to_string(),
+                    crate::expected::LeanValue::Str(r.toolchain_id.clone()),
+                );
                 native_build = Some(nb);
             }
 
             let expected_src = match req.expected.render_with(&extra) {
                 Ok(s) => s,
                 Err(e) => {
-                    findings.push(Finding::unknown(ReasonCode::InfraError, format!("expected statement: {e}")));
+                    findings.push(Finding::unknown(
+                        ReasonCode::InfraError,
+                        format!("expected statement: {e}"),
+                    ));
                     break 'pipeline;
                 }
             };
@@ -950,14 +1221,23 @@ impl FormalChecker {
                     break 'pipeline;
                 }
             };
-            evidence.push(EvidenceRef { label: "reference export (ndjson)".into(), digest: reference.export_digest.clone(), public: true });
-            evidence.push(EvidenceRef { label: "expected statement source".into(), digest: reference.expected_source_digest.clone(), public: true });
+            evidence.push(EvidenceRef {
+                label: "reference export (ndjson)".into(),
+                digest: reference.export_digest.clone(),
+                public: true,
+            });
+            evidence.push(EvidenceRef {
+                label: "expected statement source".into(),
+                digest: reference.expected_source_digest.clone(),
+                public: true,
+            });
             statement_digest = Some(reference.expected_source_digest.clone());
 
             // A1 (native-lean): judge-generated instantiation of the statement at the model.
             let mut all_mods: Vec<CandidateModule> = Vec::new();
             if let Some(r) = model_route {
-                let src = native::render_inst(r, req.expected.module_name(), req.expected.decl_name());
+                let src =
+                    native::render_inst(r, req.expected.module_name(), req.expected.decl_name());
                 let rel = format!("{}.lean", r.inst_module.replace('.', "/"));
                 let _ = std::fs::create_dir_all(cand_src.join(&rel).parent().unwrap());
                 if let Err(e) = std::fs::write(cand_src.join(&rel), &src) {
@@ -969,7 +1249,16 @@ impl FormalChecker {
                     rel_path: rel,
                     imports: vec![req.expected.module_name().into(), r.model_module.clone()],
                 };
-                if let Err(f) = compile(&mut ctx, "statement", std::slice::from_ref(&inst), &cand_src, &cand_out, Some(&reference.out), &req.limits, false) {
+                if let Err(f) = compile(
+                    &mut ctx,
+                    "statement",
+                    std::slice::from_ref(&inst),
+                    &cand_src,
+                    &cand_out,
+                    Some(&reference.out),
+                    &req.limits,
+                    false,
+                ) {
                     let detail = f.detail.clone();
                     findings.push(if f.severity == crate::findings::Severity::Unknown {
                         f
@@ -985,8 +1274,22 @@ impl FormalChecker {
                 compiled.insert(inst.name.clone());
                 all_mods.push(inst);
             }
-            let rest: Vec<CandidateModule> = staged.modules.iter().filter(|m| !compiled.contains(&m.name)).cloned().collect();
-            if let Err(f) = compile(&mut ctx, "candidate", &rest, &cand_src, &cand_out, Some(&reference.out), &req.limits, false) {
+            let rest: Vec<CandidateModule> = staged
+                .modules
+                .iter()
+                .filter(|m| !compiled.contains(&m.name))
+                .cloned()
+                .collect();
+            if let Err(f) = compile(
+                &mut ctx,
+                "candidate",
+                &rest,
+                &cand_src,
+                &cand_out,
+                Some(&reference.out),
+                &req.limits,
+                false,
+            ) {
                 build_failed(&mut findings, f);
                 break 'pipeline;
             }
@@ -1006,26 +1309,42 @@ impl FormalChecker {
                     let from = cand_out.join(format!("{stem}{suffix}"));
                     // Never follow links planted by the sandboxed build (they
                     // could point at host files): regular files only.
-                    let regular = std::fs::symlink_metadata(&from).map(|m| m.file_type().is_file()).unwrap_or(false);
+                    let regular = std::fs::symlink_metadata(&from)
+                        .map(|m| m.file_type().is_file())
+                        .unwrap_or(false);
                     if from.exists() && !regular {
-                        findings.push(Finding::new(ReasonCode::SandboxViolation, Scope::All, format!("build output {stem}{suffix} is not a regular file")));
+                        findings.push(Finding::new(
+                            ReasonCode::SandboxViolation,
+                            Scope::All,
+                            format!("build output {stem}{suffix} is not a regular file"),
+                        ));
                         break 'pipeline;
                     }
                     if regular {
                         let to = replay_oleans.join(format!("{stem}{suffix}"));
                         let _ = std::fs::create_dir_all(to.parent().unwrap());
                         if let Err(e) = std::fs::copy(&from, &to) {
-                            findings.push(Finding::unknown(ReasonCode::InfraError, format!("copy olean: {e}")));
+                            findings.push(Finding::unknown(
+                                ReasonCode::InfraError,
+                                format!("copy olean: {e}"),
+                            ));
                             break 'pipeline;
                         }
                     }
                 }
                 if let Ok(d) = sha256_file(&replay_oleans.join(format!("{stem}.olean"))) {
-                    evidence.push(EvidenceRef { label: format!("candidate olean {}", m.name), digest: d, public: true });
+                    evidence.push(EvidenceRef {
+                        label: format!("candidate olean {}", m.name),
+                        digest: d,
+                        public: true,
+                    });
                 }
             }
             if let Err(e) = link_trusted(&reference.out, &replay_oleans) {
-                findings.push(Finding::unknown(ReasonCode::InfraError, format!("link trusted: {e}")));
+                findings.push(Finding::unknown(
+                    ReasonCode::InfraError,
+                    format!("link trusted: {e}"),
+                ));
                 break 'pipeline;
             }
             let lean_path = G_CAND.to_string();
@@ -1038,12 +1357,23 @@ impl FormalChecker {
             {
                 let mut argv = vec![format!("{G_TC}/bin/leanchecker")];
                 argv.extend(cand_mods.iter().cloned());
-                let mut spec = ctx.base_spec(argv, &lean_path, req.limits.recheck_timeout, req.limits.mem_bytes);
+                let mut spec = ctx.base_spec(
+                    argv,
+                    &lean_path,
+                    req.limits.recheck_timeout,
+                    req.limits.mem_bytes,
+                );
                 mount_replay(&mut spec);
                 rechecks.push(match ctx.run("recheck:leanchecker", &spec, CAPTURE_LIMIT) {
                     Err(f) => {
                         findings.push(f);
-                        RecheckerRun { id: "leanchecker".into(), ran: false, verdict: "error".into(), wall_ms: 0, detail: "infra".into() }
+                        RecheckerRun {
+                            id: "leanchecker".into(),
+                            ran: false,
+                            verdict: "error".into(),
+                            wall_ms: 0,
+                            detail: "infra".into(),
+                        }
                     }
                     Ok(o) => verdict("leanchecker", &o, &mut findings),
                 });
@@ -1056,7 +1386,12 @@ impl FormalChecker {
                 argv.extend(cand_mods.iter().cloned());
                 argv.push("--".into());
                 argv.push(req.certificate.clone());
-                let mut spec = ctx.base_spec(argv, &lean_path, req.limits.recheck_timeout, req.limits.mem_bytes);
+                let mut spec = ctx.base_spec(
+                    argv,
+                    &lean_path,
+                    req.limits.recheck_timeout,
+                    req.limits.mem_bytes,
+                );
                 mount_replay(&mut spec);
                 spec.stdout_file = Some(cand_export.clone());
                 spec.max_file_bytes = req.limits.export_max_bytes;
@@ -1066,11 +1401,17 @@ impl FormalChecker {
                         false
                     }
                     Ok(o) if o.exit == RunExit::TimedOut => {
-                        findings.push(Finding::unknown(ReasonCode::Timeout, "lean4export timed out".into()));
+                        findings.push(Finding::unknown(
+                            ReasonCode::Timeout,
+                            "lean4export timed out".into(),
+                        ));
                         false
                     }
                     Ok(o) if !o.success() => {
-                        warnings.push(format!("lean4export failed: {}", lossy_tail(&o.stderr, 600)));
+                        warnings.push(format!(
+                            "lean4export failed: {}",
+                            lossy_tail(&o.stderr, 600)
+                        ));
                         false
                     }
                     Ok(_) => true,
@@ -1078,7 +1419,11 @@ impl FormalChecker {
             };
             if export_ok {
                 if let Ok(d) = sha256_file(&cand_export) {
-                    evidence.push(EvidenceRef { label: "candidate certificate export (ndjson)".into(), digest: d, public: true });
+                    evidence.push(EvidenceRef {
+                        label: "candidate certificate export (ndjson)".into(),
+                        digest: d,
+                        public: true,
+                    });
                 }
             }
 
@@ -1120,7 +1465,13 @@ impl FormalChecker {
                     rechecks.push(match ctx.run("recheck:nanoda", &spec, CAPTURE_LIMIT) {
                         Err(f) => {
                             findings.push(f);
-                            RecheckerRun { id: "nanoda".into(), ran: false, verdict: "error".into(), wall_ms: 0, detail: "infra".into() }
+                            RecheckerRun {
+                                id: "nanoda".into(),
+                                ran: false,
+                                verdict: "error".into(),
+                                wall_ms: 0,
+                                detail: "infra".into(),
+                            }
                         }
                         Ok(o) => {
                             let s = String::from_utf8_lossy(&o.stdout);
@@ -1138,12 +1489,23 @@ impl FormalChecker {
             if self.tools.lean4lean.is_some() {
                 let mut argv = vec![G_L4L.to_string()];
                 argv.extend(cand_mods.iter().cloned());
-                let mut spec = ctx.base_spec(argv, &lean_path, req.limits.recheck_timeout, req.limits.mem_bytes);
+                let mut spec = ctx.base_spec(
+                    argv,
+                    &lean_path,
+                    req.limits.recheck_timeout,
+                    req.limits.mem_bytes,
+                );
                 mount_replay(&mut spec);
                 rechecks.push(match ctx.run("recheck:lean4lean", &spec, CAPTURE_LIMIT) {
                     Err(f) => {
                         findings.push(f);
-                        RecheckerRun { id: "lean4lean".into(), ran: false, verdict: "error".into(), wall_ms: 0, detail: "infra".into() }
+                        RecheckerRun {
+                            id: "lean4lean".into(),
+                            ran: false,
+                            verdict: "error".into(),
+                            wall_ms: 0,
+                            detail: "infra".into(),
+                        }
                     }
                     Ok(o) => verdict("lean4lean", &o, &mut findings),
                 });
@@ -1159,7 +1521,10 @@ impl FormalChecker {
             for req_id in &req.policy.required_recheckers {
                 let ok = rechecks.iter().any(|r| &r.id == req_id && r.ran);
                 if !ok {
-                    findings.push(Finding::unknown(ReasonCode::InfraError, format!("required rechecker {req_id} did not run")));
+                    findings.push(Finding::unknown(
+                        ReasonCode::InfraError,
+                        format!("required rechecker {req_id} did not run"),
+                    ));
                 }
             }
 
@@ -1190,25 +1555,41 @@ impl FormalChecker {
                         None
                     }
                     Ok(o) if o.exit == RunExit::TimedOut => {
-                        findings.push(Finding::unknown(ReasonCode::Timeout, "arena-audit timed out".into()));
+                        findings.push(Finding::unknown(
+                            ReasonCode::Timeout,
+                            "arena-audit timed out".into(),
+                        ));
                         None
                     }
-                    Ok(o) => match serde_json::from_slice::<LeanAudit>(&o.stdout) {
-                        Ok(a) if o.success() => {
-                            let _ = std::fs::write(req.work_dir.join("lean-audit.json"), &o.stdout);
-                            evidence.push(EvidenceRef { label: "arena-audit report".into(), digest: Digest::of_bytes(&o.stdout), public: true });
-                            rechecks.push(RecheckerRun { id: "arena-audit".into(), ran: true, verdict: "completed".into(), wall_ms: o.wall.as_millis() as u64, detail: String::new() });
-                            Some(a)
-                        }
-                        _ => {
-                            findings.push(Finding::new(
+                    Ok(o) => {
+                        match serde_json::from_slice::<LeanAudit>(&o.stdout) {
+                            Ok(a) if o.success() => {
+                                let _ =
+                                    std::fs::write(req.work_dir.join("lean-audit.json"), &o.stdout);
+                                evidence.push(EvidenceRef {
+                                    label: "arena-audit report".into(),
+                                    digest: Digest::of_bytes(&o.stdout),
+                                    public: true,
+                                });
+                                rechecks.push(RecheckerRun {
+                                    id: "arena-audit".into(),
+                                    ran: true,
+                                    verdict: "completed".into(),
+                                    wall_ms: o.wall.as_millis() as u64,
+                                    detail: String::new(),
+                                });
+                                Some(a)
+                            }
+                            _ => {
+                                findings.push(Finding::new(
                                 ReasonCode::RecheckFailed,
                                 Scope::All,
                                 format!("arena-audit failed on the candidate environment ({:?}): {}", o.exit, lossy_tail(&o.stderr, 600)),
                             ));
-                            None
+                                None
+                            }
                         }
-                    },
+                    }
                 }
             };
             let nd: Option<audit::NdAudit> = if export_ok {
@@ -1216,40 +1597,75 @@ impl FormalChecker {
                 match Export::read(&cand_export, req.limits.export_max_bytes) {
                     Ok(ex) => {
                         let n_conj = req.policy.conjunct_gates.as_ref().map_or(1, |c| c.len());
-                        let nm = model_route.map(|r| audit::NdModel { model_decl: &r.model_decl, inst_decl: &r.inst_decl });
-                        let a = audit::nd_audit(&ex, &reference.export, &req.certificate, req.expected.decl_name(), n_conj, nm);
+                        let nm = model_route.map(|r| audit::NdModel {
+                            model_decl: &r.model_decl,
+                            inst_decl: &r.inst_decl,
+                        });
+                        let a = audit::nd_audit(
+                            &ex,
+                            &reference.export,
+                            &req.certificate,
+                            req.expected.decl_name(),
+                            n_conj,
+                            nm,
+                        );
                         if let Some(n) = nanoda_count {
                             if n == 0 || (ex.decls.len() as u64) < n / 2 {
                                 findings.push(Finding::new(
                                     ReasonCode::RecheckFailed,
                                     Scope::All,
-                                    format!("nanoda checked {n} declarations but export has {}", ex.decls.len()),
+                                    format!(
+                                        "nanoda checked {n} declarations but export has {}",
+                                        ex.decls.len()
+                                    ),
                                 ));
                             }
                         }
-                        ctx.timings.push(Timing { step: "audit:ndjson".into(), wall_ms: t.elapsed().as_millis() as u64 });
-                        rechecks.push(RecheckerRun { id: "ndjson-audit".into(), ran: true, verdict: "completed".into(), wall_ms: t.elapsed().as_millis() as u64, detail: format!("{} decls", ex.decls.len()) });
+                        ctx.timings.push(Timing {
+                            step: "audit:ndjson".into(),
+                            wall_ms: t.elapsed().as_millis() as u64,
+                        });
+                        rechecks.push(RecheckerRun {
+                            id: "ndjson-audit".into(),
+                            ran: true,
+                            verdict: "completed".into(),
+                            wall_ms: t.elapsed().as_millis() as u64,
+                            detail: format!("{} decls", ex.decls.len()),
+                        });
                         Some(a)
                     }
                     Err(e) => {
-                        findings.push(Finding::new(ReasonCode::RecheckFailed, Scope::All, format!("candidate export unreadable: {e}")));
+                        findings.push(Finding::new(
+                            ReasonCode::RecheckFailed,
+                            Scope::All,
+                            format!("candidate export unreadable: {e}"),
+                        ));
                         None
                     }
                 }
             } else {
                 None
             };
-            let trusted_axioms = nd.as_ref().map(|a| a.trusted_axioms.clone()).unwrap_or_else(|| {
-                reference
-                    .export
-                    .decls
-                    .values()
-                    .filter(|d| d.kind == crate::ndjson::DeclKind::Axiom)
-                    .map(|d| d.name.clone())
-                    .collect::<BTreeSet<_>>()
-            });
+            let trusted_axioms = nd
+                .as_ref()
+                .map(|a| a.trusted_axioms.clone())
+                .unwrap_or_else(|| {
+                    reference
+                        .export
+                        .decls
+                        .values()
+                        .filter(|d| d.kind == crate::ndjson::DeclKind::Axiom)
+                        .map(|d| d.name.clone())
+                        .collect::<BTreeSet<_>>()
+                });
             if let (Some(la), Some(r)) = (&lean_audit, model_route) {
-                findings.extend(audit::lean_model_findings(la, &r.model_decl, &r.model_module, &req.policy.axiom_allowlist, &trusted_axioms));
+                findings.extend(audit::lean_model_findings(
+                    la,
+                    &r.model_decl,
+                    &r.model_module,
+                    &req.policy.axiom_allowlist,
+                    &trusted_axioms,
+                ));
                 model_report = Some(report::ModelReport {
                     decl: r.model_decl.clone(),
                     module: r.model_module.clone(),
@@ -1259,7 +1675,12 @@ impl FormalChecker {
             }
             if let Some(la) = &lean_audit {
                 let per_conjunct = nd.as_ref().is_some_and(|a| a.conjunct_axioms.is_some());
-                findings.extend(audit::lean_findings(la, &req.policy.axiom_allowlist, &trusted_axioms, per_conjunct));
+                findings.extend(audit::lean_findings(
+                    la,
+                    &req.policy.axiom_allowlist,
+                    &trusted_axioms,
+                    per_conjunct,
+                ));
             }
             if let Some(a) = &nd {
                 findings.extend(audit::nd_findings(a, &req.policy.axiom_allowlist));
@@ -1269,7 +1690,11 @@ impl FormalChecker {
                     cert_digest = Some(c.clone());
                     let listing = serde_json::to_vec(&a.closure).unwrap_or_default();
                     let _ = std::fs::write(req.work_dir.join("closure.json"), &listing);
-                    let lref = EvidenceRef { label: "certificate dependency closure".into(), digest: Digest::of_bytes(&listing), public: true };
+                    let lref = EvidenceRef {
+                        label: "certificate dependency closure".into(),
+                        digest: Digest::of_bytes(&listing),
+                        public: true,
+                    };
                     evidence.push(lref.clone());
                     closure_report = Some(report::ClosureReport {
                         certificate: req.certificate.clone(),
@@ -1281,9 +1706,15 @@ impl FormalChecker {
                 }
             } else if !export_ok {
                 // No independent view of the environment: never PASS.
-                let missing = lean_audit.as_ref().is_some_and(|l| l.certificate_found != Some(true));
+                let missing = lean_audit
+                    .as_ref()
+                    .is_some_and(|l| l.certificate_found != Some(true));
                 if !missing {
-                    findings.push(Finding::new(ReasonCode::RecheckFailed, Scope::All, "certificate closure could not be exported for independent checking".into()));
+                    findings.push(Finding::new(
+                        ReasonCode::RecheckFailed,
+                        Scope::All,
+                        "certificate closure could not be exported for independent checking".into(),
+                    ));
                 }
             }
             if let (Some(la), Some(a)) = (&lean_audit, &nd) {
@@ -1292,27 +1723,46 @@ impl FormalChecker {
                 }
             }
             if lean_audit.is_none() && !report::has_fail(&findings) {
-                findings.push(Finding::unknown(ReasonCode::InfraError, "Lean-side audit unavailable".into()));
+                findings.push(Finding::unknown(
+                    ReasonCode::InfraError,
+                    "Lean-side audit unavailable".into(),
+                ));
             }
         }
 
         let mut findings = report::dedupe(findings);
         let finished = now_rfc3339();
         let mut gate_specs = req.policy.gates.clone();
-        if !matches!(req.route, VerifierRoute::Standard) && !gate_specs.iter().any(|g| g.gate == ObligationId::ArtifactBinding) {
-            gate_specs.push(GateSpec { gate: ObligationId::ArtifactBinding, mandatory: true });
+        if !matches!(req.route, VerifierRoute::Standard)
+            && !gate_specs
+                .iter()
+                .any(|g| g.gate == ObligationId::ArtifactBinding)
+        {
+            gate_specs.push(GateSpec {
+                gate: ObligationId::ArtifactBinding,
+                mandatory: true,
+            });
         }
         if let (VerifierRoute::NativeLean(r), None) = (&req.route, &native_build) {
             if report::has_fail(&findings) {
-                if !findings.iter().any(|f| f.code == ReasonCode::ArtifactBindingFailed) {
+                if !findings
+                    .iter()
+                    .any(|f| f.code == ReasonCode::ArtifactBindingFailed)
+                {
                     findings.push(Finding::new(
                         ReasonCode::ArtifactBindingFailed,
                         Scope::Binding,
-                        format!("no judge-built verifier: the model {} did not build", r.model_decl),
+                        format!(
+                            "no judge-built verifier: the model {} did not build",
+                            r.model_decl
+                        ),
                     ));
                 }
             } else {
-                findings.push(Finding::unknown(ReasonCode::InfraError, "native verifier was not built".into()));
+                findings.push(Finding::unknown(
+                    ReasonCode::InfraError,
+                    "native verifier was not built".into(),
+                ));
             }
         }
         let gates = report::assemble_gates(
@@ -1347,7 +1797,10 @@ impl FormalChecker {
             cache_key,
             lean_toolchain: lean_toolchain().into(),
             runner: self.runner.id().into(),
-            tier_cap: self.runner.demo_only().then_some(arena_types::challenge::Tier::Demo),
+            tier_cap: self
+                .runner
+                .demo_only()
+                .then_some(arena_types::challenge::Tier::Demo),
             gates,
             findings,
             rechecks,
@@ -1367,14 +1820,31 @@ fn verdict(id: &str, o: &RunOutcome, findings: &mut Vec<Finding>) -> RecheckerRu
     let (v, detail) = match &o.exit {
         RunExit::Exited(0) => ("accepted", String::new()),
         RunExit::TimedOut => {
-            findings.push(Finding::unknown(ReasonCode::Timeout, format!("{id} timed out")));
+            findings.push(Finding::unknown(
+                ReasonCode::Timeout,
+                format!("{id} timed out"),
+            ));
             ("timeout", String::new())
         }
         other => {
-            let d = format!("{other:?}: {}{}", lossy_tail(&o.stdout, 400), lossy_tail(&o.stderr, 800));
-            findings.push(Finding::new(ReasonCode::RecheckFailed, Scope::All, format!("{id} rejected the candidate environment: {d}")));
+            let d = format!(
+                "{other:?}: {}{}",
+                lossy_tail(&o.stdout, 400),
+                lossy_tail(&o.stderr, 800)
+            );
+            findings.push(Finding::new(
+                ReasonCode::RecheckFailed,
+                Scope::All,
+                format!("{id} rejected the candidate environment: {d}"),
+            ));
             ("rejected", d)
         }
     };
-    RecheckerRun { id: id.into(), ran: true, verdict: v.into(), wall_ms, detail: crate::findings::bound(detail) }
+    RecheckerRun {
+        id: id.into(),
+        ran: true,
+        verdict: v.into(),
+        wall_ms,
+        detail: crate::findings::bound(detail),
+    }
 }

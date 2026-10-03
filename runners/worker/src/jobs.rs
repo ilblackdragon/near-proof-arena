@@ -57,7 +57,13 @@ pub enum JobKind {
 }
 
 impl JobKind {
-    pub const ALL: [JobKind; 5] = [JobKind::Validate, JobKind::Build, JobKind::Conformance, JobKind::Adversarial, JobKind::Benchmark];
+    pub const ALL: [JobKind; 5] = [
+        JobKind::Validate,
+        JobKind::Build,
+        JobKind::Conformance,
+        JobKind::Adversarial,
+        JobKind::Benchmark,
+    ];
     pub fn as_str(self) -> &'static str {
         match self {
             JobKind::Validate => "validate",
@@ -115,7 +121,11 @@ impl RunLimits {
         let r = &c.resource_limits;
         RunLimits {
             max_prepare_ms: r.max_prepare_ms,
-            max_prove_ms: r.max_prove_ms.min(if c.measurement.per_run_timeout_ms > 0 { c.measurement.per_run_timeout_ms } else { u64::MAX }),
+            max_prove_ms: r.max_prove_ms.min(if c.measurement.per_run_timeout_ms > 0 {
+                c.measurement.per_run_timeout_ms
+            } else {
+                u64::MAX
+            }),
             max_verify_ms: r.max_verify_ms,
             max_ram_bytes: r.max_ram_bytes,
             max_proof_bytes: r.max_proof_bytes,
@@ -261,6 +271,9 @@ pub struct JobOutput {
 
 impl JobOutput {
     pub fn artifact(&self, name: &str) -> Option<&Digest> {
-        self.artifacts.iter().find(|a| a.name == name).map(|a| &a.digest)
+        self.artifacts
+            .iter()
+            .find(|a| a.name == name)
+            .map(|a| &a.digest)
     }
 }

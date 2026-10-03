@@ -54,7 +54,8 @@ pub struct ImpactMap {
 
 impl ImpactMap {
     pub fn load(path: &Path) -> Result<Self> {
-        let text = std::fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?;
+        let text =
+            std::fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?;
         Self::parse(&text)
     }
 
@@ -92,13 +93,23 @@ impl ImpactMap {
                 fixtures: r.fixtures,
                 note: r.note,
             };
-            rules.push(Rule { id: r.id, matchers, target });
+            rules.push(Rule {
+                id: r.id,
+                matchers,
+                target,
+            });
         }
-        Ok(ImpactMap { default: raw.default, rules })
+        Ok(ImpactMap {
+            default: raw.default,
+            rules,
+        })
     }
 
     pub fn matching(&self, path: &str) -> Vec<&Rule> {
-        self.rules.iter().filter(|r| r.matchers.iter().any(|m| m.is_match(path))).collect()
+        self.rules
+            .iter()
+            .filter(|r| r.matchers.iter().any(|m| m.is_match(path)))
+            .collect()
     }
 }
 
@@ -196,13 +207,21 @@ fixtures = ["oracle/fixtures/**"]
         let m = ImpactMap::parse(MAP).unwrap();
         let i = evaluate(
             &m,
-            &["runtime/runtime/src/actions.rs".into(), "core/parameters/res/runtime_configs/86.yaml".into(), "x/y.rs".into()],
+            &[
+                "runtime/runtime/src/actions.rs".into(),
+                "core/parameters/res/runtime_configs/86.yaml".into(),
+                "x/y.rs".into(),
+            ],
         );
         assert_eq!(i.rule_hits.len(), 1);
         assert_eq!(i.rule_hits[0].files.len(), 2);
         assert_eq!(i.unmapped_files, vec!["x/y.rs".to_string()]);
-        assert!(i.obligations_to_reopen.contains(&ObligationId::FormalSemanticSoundness));
-        assert!(i.obligations_to_reopen.contains(&ObligationId::ConformanceDifferential));
+        assert!(i
+            .obligations_to_reopen
+            .contains(&ObligationId::FormalSemanticSoundness));
+        assert!(i
+            .obligations_to_reopen
+            .contains(&ObligationId::ConformanceDifferential));
     }
 
     #[test]
@@ -215,6 +234,10 @@ fixtures = ["oracle/fixtures/**"]
     #[test]
     fn rejects_unknown_obligation_and_empty_default() {
         assert!(ImpactMap::parse(&MAP.replace("CONFORMANCE_DIFFERENTIAL", "MADE_UP")).is_err());
-        assert!(ImpactMap::parse(&MAP.replace(r#"obligations = ["FORMAL_SEMANTIC_SOUNDNESS"]"#, "obligations = []")).is_err());
+        assert!(ImpactMap::parse(&MAP.replace(
+            r#"obligations = ["FORMAL_SEMANTIC_SOUNDNESS"]"#,
+            "obligations = []"
+        ))
+        .is_err());
     }
 }

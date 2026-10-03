@@ -87,7 +87,11 @@ pub struct GateRefs {
 
 pub fn markdown(r: &Report) -> String {
     let mut m = String::new();
-    let _ = writeln!(m, "# nearcore upgrade impact: `{}` → `{}`\n", r.old.r#ref, r.new.r#ref);
+    let _ = writeln!(
+        m,
+        "# nearcore upgrade impact: `{}` → `{}`\n",
+        r.old.r#ref, r.new.r#ref
+    );
     let _ = writeln!(m, "**Verdict: `{}`**\n", r.verdict);
     let _ = writeln!(
         m,
@@ -97,7 +101,13 @@ pub fn markdown(r: &Report) -> String {
     );
     let _ = writeln!(m, "| | ref | commit | STABLE_PROTOCOL_VERSION |\n|-|-|-|-|");
     for (l, x) in [("old", &r.old), ("new", &r.new)] {
-        let _ = writeln!(m, "| {l} | `{}` | `{}` | {} |", x.r#ref, x.commit, opt(x.stable_protocol_version));
+        let _ = writeln!(
+            m,
+            "| {l} | `{}` | `{}` | {} |",
+            x.r#ref,
+            x.commit,
+            opt(x.stable_protocol_version)
+        );
     }
     let _ = writeln!(m, "\n## Reasons\n");
     if r.reasons.is_empty() {
@@ -108,7 +118,15 @@ pub fn markdown(r: &Report) -> String {
     }
 
     let _ = writeln!(m, "\n## Semantic closure\n");
-    let _ = writeln!(m, "Roots: {}\n", r.roots.iter().map(|x| format!("`{x}`")).collect::<Vec<_>>().join(", "));
+    let _ = writeln!(
+        m,
+        "Roots: {}\n",
+        r.roots
+            .iter()
+            .map(|x| format!("`{x}`"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
     let _ = writeln!(
         m,
         "{} workspace crates (normal + build + optional deps; dev-deps excluded); {} → {} external crate versions.\n",
@@ -121,10 +139,18 @@ pub fn markdown(r: &Report) -> String {
         let _ = writeln!(m, "| `{}` | `{}` | {} |", c.name, c.dir, c.changed_files);
     }
     if !r.closure.added.is_empty() || !r.closure.removed.is_empty() {
-        let _ = writeln!(m, "\nAdded to closure: {:?}; removed: {:?}", r.closure.added, r.closure.removed);
+        let _ = writeln!(
+            m,
+            "\nAdded to closure: {:?}; removed: {:?}",
+            r.closure.added, r.closure.removed
+        );
     }
     if !r.closure.include_targets_outside_crates.is_empty() {
-        let _ = writeln!(m, "\n`include_*!` targets outside crate dirs (tracked): {:?}", r.closure.include_targets_outside_crates);
+        let _ = writeln!(
+            m,
+            "\n`include_*!` targets outside crate dirs (tracked): {:?}",
+            r.closure.include_targets_outside_crates
+        );
     }
 
     let _ = writeln!(
@@ -141,7 +167,11 @@ pub fn markdown(r: &Report) -> String {
         }
     }
     if !r.workspace_build_config_changes.is_empty() {
-        let _ = writeln!(m, "\nWorkspace build configuration: {:?}", r.workspace_build_config_changes);
+        let _ = writeln!(
+            m,
+            "\nWorkspace build configuration: {:?}",
+            r.workspace_build_config_changes
+        );
     }
 
     let _ = writeln!(m, "\n## External crates in closure\n");
@@ -150,11 +180,20 @@ pub fn markdown(r: &Report) -> String {
     } else {
         let _ = writeln!(m, "| crate | old | new |\n|-|-|-|");
         for e in &r.external_crate_changes {
-            let _ = writeln!(m, "| `{}` | {} | {} |", e.name, e.old_versions.join(", "), e.new_versions.join(", "));
+            let _ = writeln!(
+                m,
+                "| `{}` | {} | {} |",
+                e.name,
+                e.old_versions.join(", "),
+                e.new_versions.join(", ")
+            );
         }
     }
 
-    let _ = writeln!(m, "\n## Runtime parameters (`core/parameters/res/runtime_configs`)\n");
+    let _ = writeln!(
+        m,
+        "\n## Runtime parameters (`core/parameters/res/runtime_configs`)\n"
+    );
     if r.parameters.changed_files.is_empty() {
         let _ = writeln!(m, "_unchanged_");
     } else {
@@ -170,7 +209,12 @@ pub fn markdown(r: &Report) -> String {
         let _ = writeln!(m, "_no changes_");
     }
     for (k, (a, b)) in &p.constants_changed {
-        let _ = writeln!(m, "* `{k}`: `{}` → `{}`", a.as_deref().unwrap_or("∅"), b.as_deref().unwrap_or("∅"));
+        let _ = writeln!(
+            m,
+            "* `{k}`: `{}` → `{}`",
+            a.as_deref().unwrap_or("∅"),
+            b.as_deref().unwrap_or("∅")
+        );
     }
     for (k, v) in &p.features_added {
         let _ = writeln!(m, "* new feature `{k}` @ {}", opt(*v));
@@ -182,25 +226,55 @@ pub fn markdown(r: &Report) -> String {
         let _ = writeln!(m, "* feature `{k}` version {} → {}", opt(*a), opt(*b));
     }
     if !p.features_deprecated.is_empty() {
-        let _ = writeln!(m, "* renamed to `_Deprecated*` (already-stable gates removed from code): {}", p.features_deprecated.iter().map(|x| format!("`{x}`")).collect::<Vec<_>>().join(", "));
+        let _ = writeln!(
+            m,
+            "* renamed to `_Deprecated*` (already-stable gates removed from code): {}",
+            p.features_deprecated
+                .iter()
+                .map(|x| format!("`{x}`"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
     }
     if !p.newly_stable_features.is_empty() {
-        let _ = writeln!(m, "* newly enabled at stable: {}", p.newly_stable_features.iter().map(|x| format!("`{x}`")).collect::<Vec<_>>().join(", "));
+        let _ = writeln!(
+            m,
+            "* newly enabled at stable: {}",
+            p.newly_stable_features
+                .iter()
+                .map(|x| format!("`{x}`"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
     }
     for (k, (a, b)) in &p.db_constants_changed {
-        let _ = writeln!(m, "* DB `{k}`: `{}` → `{}`", a.as_deref().unwrap_or("∅"), b.as_deref().unwrap_or("∅"));
+        let _ = writeln!(
+            m,
+            "* DB `{k}`: `{}` → `{}`",
+            a.as_deref().unwrap_or("∅"),
+            b.as_deref().unwrap_or("∅")
+        );
     }
     for e in &p.parse_errors {
         let _ = writeln!(m, "* PARSE ISSUE: {e}");
     }
 
-    let _ = writeln!(m, "\n## Version-gate references in changed closure sources\n");
+    let _ = writeln!(
+        m,
+        "\n## Version-gate references in changed closure sources\n"
+    );
     if r.version_gate_changes.is_empty() {
         let _ = writeln!(m, "_none_");
     } else {
         let _ = writeln!(m, "| feature | +refs | -refs | files |\n|-|-|-|-|");
         for (k, g) in &r.version_gate_changes {
-            let _ = writeln!(m, "| `{k}` | {} | {} | {} |", g.added_refs, g.removed_refs, g.files.len());
+            let _ = writeln!(
+                m,
+                "| `{k}` | {} | {} | {} |",
+                g.added_refs,
+                g.removed_refs,
+                g.files.len()
+            );
         }
     }
 
@@ -213,14 +287,35 @@ pub fn markdown(r: &Report) -> String {
     }
 
     let i = &r.impact;
-    let _ = writeln!(m, "\n## Impact on the arena spec (`spec/impact-map.toml`)\n");
-    let _ = writeln!(m, "Obligations to reopen: {}\n", list(&i.obligations_to_reopen.iter().map(obl).collect::<Vec<_>>()));
-    let _ = writeln!(m, "Spec definitions to revalidate: {}\n", list(&i.spec_definitions_to_revalidate));
-    let _ = writeln!(m, "Fixtures to regenerate: {}\n", list(&i.fixtures_to_regenerate));
+    let _ = writeln!(
+        m,
+        "\n## Impact on the arena spec (`spec/impact-map.toml`)\n"
+    );
+    let _ = writeln!(
+        m,
+        "Obligations to reopen: {}\n",
+        list(&i.obligations_to_reopen.iter().map(obl).collect::<Vec<_>>())
+    );
+    let _ = writeln!(
+        m,
+        "Spec definitions to revalidate: {}\n",
+        list(&i.spec_definitions_to_revalidate)
+    );
+    let _ = writeln!(
+        m,
+        "Fixtures to regenerate: {}\n",
+        list(&i.fixtures_to_regenerate)
+    );
     if !i.rule_hits.is_empty() {
         let _ = writeln!(m, "| rule | files | obligations |\n|-|-|-|");
         for h in &i.rule_hits {
-            let _ = writeln!(m, "| `{}` | {} | {} |", h.rule, h.files.len(), h.obligations.iter().map(obl).collect::<Vec<_>>().join(", "));
+            let _ = writeln!(
+                m,
+                "| `{}` | {} | {} |",
+                h.rule,
+                h.files.len(),
+                h.obligations.iter().map(obl).collect::<Vec<_>>().join(", ")
+            );
         }
     }
     if !i.unmapped_files.is_empty() {
@@ -240,10 +335,16 @@ fn list(v: &[String]) -> String {
     if v.is_empty() {
         "_none_".into()
     } else {
-        v.iter().map(|x| format!("`{x}`")).collect::<Vec<_>>().join(", ")
+        v.iter()
+            .map(|x| format!("`{x}`"))
+            .collect::<Vec<_>>()
+            .join(", ")
     }
 }
 
 fn obl(o: &arena_types::ObligationId) -> String {
-    serde_json::to_value(o).ok().and_then(|v| v.as_str().map(str::to_string)).unwrap_or_else(|| format!("{o:?}"))
+    serde_json::to_value(o)
+        .ok()
+        .and_then(|v| v.as_str().map(str::to_string))
+        .unwrap_or_else(|| format!("{o:?}"))
 }

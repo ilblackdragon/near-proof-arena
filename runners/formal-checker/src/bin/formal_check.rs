@@ -33,11 +33,15 @@ fn main() -> anyhow::Result<()> {
     let mut trusted = Vec::new();
     let mut route = native::VerifierRoute::Standard;
     let mut cand_bin: Option<arena_types::Digest> = None;
-    let (mut chal, mut chal_cfg, mut repo_root, mut pub_d, mut ver_d, mut emit) = (None, None, None, None, None, None);
+    let (mut chal, mut chal_cfg, mut repo_root, mut pub_d, mut ver_d, mut emit) =
+        (None, None, None, None, None, None);
     let mut work = std::env::temp_dir().join(format!("formal-check-{}", std::process::id()));
     let mut cache = toolchain::fc_home().join("ref-cache");
     while let Some(a) = args.next() {
-        let mut v = || args.next().ok_or_else(|| anyhow::anyhow!("missing value for {a}"));
+        let mut v = || {
+            args.next()
+                .ok_or_else(|| anyhow::anyhow!("missing value for {a}"))
+        };
         match a.as_str() {
             "--formal" => formal = Some(PathBuf::from(v()?)),
             "--certificate" => cert = Some(v()?),
@@ -54,7 +58,9 @@ fn main() -> anyhow::Result<()> {
             "--cache" => cache = PathBuf::from(v()?),
             "--native-model" => {
                 let s = v()?;
-                let (d, m) = s.split_once('@').ok_or_else(|| anyhow::anyhow!("--native-model DECL@MODULE"))?;
+                let (d, m) = s
+                    .split_once('@')
+                    .ok_or_else(|| anyhow::anyhow!("--native-model DECL@MODULE"))?;
                 route = native::VerifierRoute::NativeLean(native::NativeLeanRoute::new(d, m));
             }
             "--candidate-native-binary" => {
@@ -62,19 +68,27 @@ fn main() -> anyhow::Result<()> {
             }
             "--trusted" => {
                 let s = v()?;
-                let (n, d) = s.split_once('=').ok_or_else(|| anyhow::anyhow!("--trusted NAME=DIR[@Mod.Prefix,...]"))?;
+                let (n, d) = s
+                    .split_once('=')
+                    .ok_or_else(|| anyhow::anyhow!("--trusted NAME=DIR[@Mod.Prefix,...]"))?;
                 let (d, include) = match d.split_once('@') {
                     Some((d, inc)) => (d, Some(inc.split(',').map(String::from).collect())),
                     None => (d, None),
                 };
-                trusted.push(TrustedPackage { name: n.into(), src_root: PathBuf::from(d), include });
+                trusted.push(TrustedPackage {
+                    name: n.into(),
+                    src_root: PathBuf::from(d),
+                    include,
+                });
             }
             _ => anyhow::bail!("unknown argument {a}"),
         }
     }
     match (&mut route, cand_bin) {
         (native::VerifierRoute::NativeLean(r), Some(d)) => r.candidate_binary_digest = Some(d),
-        (native::VerifierRoute::Standard, Some(_)) => route = native::VerifierRoute::CandidateNative,
+        (native::VerifierRoute::Standard, Some(_)) => {
+            route = native::VerifierRoute::CandidateNative
+        }
         _ => {}
     }
     let mut policy: Policy = match policy {
@@ -98,7 +112,9 @@ fn main() -> anyhow::Result<()> {
                 },
             )?;
             trusted.extend(cfg.trusted_packages(&root));
-            policy.reserved_prefixes.extend(cfg.reserved_prefixes.iter().cloned());
+            policy
+                .reserved_prefixes
+                .extend(cfg.reserved_prefixes.iter().cloned());
             policy.axiom_allowlist = def.toolchain_policy.axiom_allowlist.clone();
             if matches!(route, native::VerifierRoute::NativeLean(_)) {
                 cfg.expected_native_lean(&root, &inp)?
@@ -113,7 +129,10 @@ fn main() -> anyhow::Result<()> {
         let extra = if matches!(route, native::VerifierRoute::NativeLean(_)) {
             std::collections::BTreeMap::from([
                 ("bin_digest".to_string(), LeanValue::Bytes("00".repeat(32))),
-                ("toolchain_id".to_string(), LeanValue::Str("<judge build>".into())),
+                (
+                    "toolchain_id".to_string(),
+                    LeanValue::Str("<judge build>".into()),
+                ),
             ])
         } else {
             Default::default()
@@ -124,7 +143,10 @@ fn main() -> anyhow::Result<()> {
             return Ok(());
         }
     }
-    let checker = FormalChecker::new(toolchain::ToolPaths::discover()?, Box::new(BwrapDevRunner::new()?));
+    let checker = FormalChecker::new(
+        toolchain::ToolPaths::discover()?,
+        Box::new(BwrapDevRunner::new()?),
+    );
     let req = CheckRequest {
         formal_dir: formal.ok_or_else(|| anyhow::anyhow!("--formal required"))?,
         certificate: cert.unwrap_or_else(|| "Candidate.certificate".into()),

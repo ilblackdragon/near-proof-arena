@@ -21,16 +21,29 @@ pub fn run(r: &mut JobRun<'_>, j: &ValidateJob) -> Result<StageOut, ExecError> {
             r.record("package_tree", x.digest.clone(), false, false);
             g.evidence("package_tree", x.digest.clone(), false);
             match arena_archive::validate_package(&x.root, &x.tree) {
-                Err(PackageError::Io(e)) => return Err(ExecError::Infra(format!("manifest read: {e}"))),
+                Err(PackageError::Io(e)) => {
+                    return Err(ExecError::Infra(format!("manifest read: {e}")))
+                }
                 Err(e) => g.fail(ReasonCode::ManifestInvalid, e.to_string()),
                 Ok(m) => {
                     if m.challenge != j.challenge_id {
-                        g.fail(ReasonCode::ChallengeUnknown, format!("manifest names challenge {:?}, submission is for {:?}", m.challenge, j.challenge_id));
+                        g.fail(
+                            ReasonCode::ChallengeUnknown,
+                            format!(
+                                "manifest names challenge {:?}, submission is for {:?}",
+                                m.challenge, j.challenge_id
+                            ),
+                        );
                     } else {
-                        let json = arena_types::canonical_json(&m).map_err(|e| ExecError::Infra(e.to_string()))?;
+                        let json = arena_types::canonical_json(&m)
+                            .map_err(|e| ExecError::Infra(e.to_string()))?;
                         let d = r.upload("manifest", &json, false)?;
                         g.evidence("manifest", d, false);
-                        g.note(format!("{} files, {} bytes; manifest ok", x.tree.files.len(), x.tree.total_bytes()));
+                        g.note(format!(
+                            "{} files, {} bytes; manifest ok",
+                            x.tree.files.len(),
+                            x.tree.total_bytes()
+                        ));
                     }
                     out.manifest = Some(m);
                 }

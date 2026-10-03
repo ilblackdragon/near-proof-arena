@@ -36,7 +36,11 @@ pub trait ProofMutator: Send + Sync {
 }
 
 fn h(label: String, claim: &[u8], proof: Vec<u8>) -> HostileInput {
-    HostileInput { label, claim: claim.to_vec(), proof }
+    HostileInput {
+        label,
+        claim: claim.to_vec(),
+        proof,
+    }
 }
 
 /// Proof truncated to `len-1`, `len/2`, and 1 byte.
@@ -53,7 +57,11 @@ impl ProofMutator for Truncate {
             lens.retain(|&l| l > 0 && l < n);
             lens.dedup();
             for l in lens {
-                out.push(h(format!("truncate/{l}of{n}/{}", p.case_id), &p.claim, p.proof[..l].to_vec()));
+                out.push(h(
+                    format!("truncate/{l}of{n}/{}", p.case_id),
+                    &p.claim,
+                    p.proof[..l].to_vec(),
+                ));
             }
         }
         out
@@ -97,7 +105,11 @@ impl ProofMutator for Empty {
         "empty"
     }
     fn mutate(&self, ctx: &MutationCtx<'_>, _: &mut SplitMix64) -> Vec<HostileInput> {
-        ctx.honest.iter().take(1).map(|p| h(format!("empty/{}", p.case_id), &p.claim, vec![])).collect()
+        ctx.honest
+            .iter()
+            .take(1)
+            .map(|p| h(format!("empty/{}", p.case_id), &p.claim, vec![]))
+            .collect()
     }
 }
 
@@ -109,7 +121,9 @@ impl ProofMutator for Oversize {
         "oversize"
     }
     fn mutate(&self, ctx: &MutationCtx<'_>, rng: &mut SplitMix64) -> Vec<HostileInput> {
-        let Some(p) = ctx.honest.first() else { return vec![] };
+        let Some(p) = ctx.honest.first() else {
+            return vec![];
+        };
         if ctx.max_proof_bytes >= 256 << 20 {
             return vec![];
         }
@@ -136,8 +150,15 @@ impl ProofMutator for SwapClaimProof {
         let mut out = vec![];
         for i in 0..hs.len() {
             // Pair with the next case whose claim differs (cyclic).
-            if let Some(j) = (1..hs.len()).map(|d| (i + d) % hs.len()).find(|&j| hs[j].claim != hs[i].claim) {
-                out.push(h(format!("swap/{}<-{}", hs[i].case_id, hs[j].case_id), &hs[i].claim, hs[j].proof.clone()));
+            if let Some(j) = (1..hs.len())
+                .map(|d| (i + d) % hs.len())
+                .find(|&j| hs[j].claim != hs[i].claim)
+            {
+                out.push(h(
+                    format!("swap/{}<-{}", hs[i].case_id, hs[j].case_id),
+                    &hs[i].claim,
+                    hs[j].proof.clone(),
+                ));
             }
         }
         out
@@ -239,7 +260,10 @@ impl MutatorRegistry {
     pub fn with_adversarial_lane() -> Self {
         let mut r = Self::generic();
         for (index, m) in proof_mutators::registry().iter().enumerate() {
-            r.register(Box::new(LaneMutator { name: format!("adv:{}", m.name()), index }));
+            r.register(Box::new(LaneMutator {
+                name: format!("adv:{}", m.name()),
+                index,
+            }));
         }
         r
     }
@@ -253,7 +277,12 @@ impl MutatorRegistry {
 
     /// Run the selected mutators (all if `select` is empty) with one seeded
     /// RNG stream in registry order. Unknown names are an error.
-    pub fn generate(&self, select: &[String], ctx: &MutationCtx<'_>, seed: u64) -> Result<Vec<HostileInput>, String> {
+    pub fn generate(
+        &self,
+        select: &[String],
+        ctx: &MutationCtx<'_>,
+        seed: u64,
+    ) -> Result<Vec<HostileInput>, String> {
         for s in select {
             if !self.mutators.iter().any(|m| m.name() == s) {
                 return Err(format!("unknown mutator {s:?}"));
@@ -266,7 +295,10 @@ impl MutatorRegistry {
                 continue;
             }
             for x in m.mutate(ctx, &mut rng) {
-                let is_honest = ctx.honest.iter().any(|p| p.claim == x.claim && p.proof == x.proof);
+                let is_honest = ctx
+                    .honest
+                    .iter()
+                    .any(|p| p.claim == x.claim && p.proof == x.proof);
                 if !is_honest {
                     out.push(x);
                 }
@@ -281,19 +313,32 @@ mod tests {
     use super::*;
     fn pairs() -> Vec<HonestPair> {
         vec![
-            HonestPair { case_id: "a".into(), claim: b"ca".to_vec(), proof: b"proof-a".to_vec() },
-            HonestPair { case_id: "b".into(), claim: b"cb".to_vec(), proof: b"proof-b".to_vec() },
+            HonestPair {
+                case_id: "a".into(),
+                claim: b"ca".to_vec(),
+                proof: b"proof-a".to_vec(),
+            },
+            HonestPair {
+                case_id: "b".into(),
+                claim: b"cb".to_vec(),
+                proof: b"proof-b".to_vec(),
+            },
         ]
     }
     #[test]
     fn generic_set_is_hostile_and_deterministic() {
         let hp = pairs();
-        let ctx = MutationCtx { honest: &hp, max_proof_bytes: 100 };
+        let ctx = MutationCtx {
+            honest: &hp,
+            max_proof_bytes: 100,
+        };
         let r = MutatorRegistry::generic();
         let a = r.generate(&[], &ctx, 9).unwrap();
         let b = r.generate(&[], &ctx, 9).unwrap();
         assert_eq!(a, b);
-        assert!(a.iter().all(|x| !hp.iter().any(|p| p.claim == x.claim && p.proof == x.proof)));
+        assert!(a
+            .iter()
+            .all(|x| !hp.iter().any(|p| p.claim == x.claim && p.proof == x.proof)));
         for name in ["truncate", "bitflip", "empty", "oversize", "swap", "append"] {
             assert!(a.iter().any(|x| x.label.starts_with(name)), "{name}");
         }
@@ -308,11 +353,16 @@ mod tests {
         let hp = pairs();
         let r = MutatorRegistry::with_adversarial_lane();
         assert!(r.names().iter().any(|n| n.starts_with("adv:")));
-        let ctx = MutationCtx { honest: &hp, max_proof_bytes: 100 };
+        let ctx = MutationCtx {
+            honest: &hp,
+            max_proof_bytes: 100,
+        };
         let a = r.generate(&[], &ctx, 5).unwrap();
         assert_eq!(a, r.generate(&[], &ctx, 5).unwrap());
         assert!(a.iter().any(|x| x.label.starts_with("adv:")));
-        assert!(a.iter().all(|x| !hp.iter().any(|p| p.claim == x.claim && p.proof == x.proof)));
+        assert!(a
+            .iter()
+            .all(|x| !hp.iter().any(|p| p.claim == x.claim && p.proof == x.proof)));
     }
 
     #[test]
@@ -323,12 +373,31 @@ mod tests {
                 "zero"
             }
             fn mutate(&self, ctx: &MutationCtx<'_>, _: &mut SplitMix64) -> Vec<HostileInput> {
-                ctx.honest.iter().map(|p| HostileInput { label: "zero".into(), claim: p.claim.clone(), proof: vec![0; p.proof.len()] }).collect()
+                ctx.honest
+                    .iter()
+                    .map(|p| HostileInput {
+                        label: "zero".into(),
+                        claim: p.claim.clone(),
+                        proof: vec![0; p.proof.len()],
+                    })
+                    .collect()
             }
         }
         let mut r = MutatorRegistry::empty();
         r.register(Box::new(Zero));
         let hp = pairs();
-        assert_eq!(r.generate(&[], &MutationCtx { honest: &hp, max_proof_bytes: 10 }, 0).unwrap().len(), 2);
+        assert_eq!(
+            r.generate(
+                &[],
+                &MutationCtx {
+                    honest: &hp,
+                    max_proof_bytes: 10
+                },
+                0
+            )
+            .unwrap()
+            .len(),
+            2
+        );
     }
 }

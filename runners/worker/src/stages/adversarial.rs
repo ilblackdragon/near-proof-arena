@@ -17,14 +17,23 @@ fn public_label(l: &str) -> String {
 
 pub fn run(r: &mut JobRun<'_>, j: &AdversarialJob) -> Result<StageOut, ExecError> {
     let mut g = Gate::start(ObligationId::AdversarialProofs);
-    let mut out = StageOut { used_sandbox: true, ..Default::default() };
+    let mut out = StageOut {
+        used_sandbox: true,
+        ..Default::default()
+    };
     if j.honest.is_empty() {
         g.note("no honest proofs supplied: cannot derive hostile inputs");
         out.gates.push(g.finish(GateStatus::Unknown, true));
         return Ok(out);
     }
     let bundle = common::fetch_bundle(r, &j.bundle, &j.entry)?;
-    let public = r.fetch_tree(&j.public_artifacts, j.limits.max_public_artifact_bytes.clamp(1, MAX_BUNDLE_BYTES), "public")?;
+    let public = r.fetch_tree(
+        &j.public_artifacts,
+        j.limits
+            .max_public_artifact_bytes
+            .clamp(1, MAX_BUNDLE_BYTES),
+        "public",
+    )?;
     let mut honest = vec![];
     for h in &j.honest {
         honest.push(HonestPair {
@@ -33,7 +42,13 @@ pub fn run(r: &mut JobRun<'_>, j: &AdversarialJob) -> Result<StageOut, ExecError
             proof: r.fetch(&h.proof, j.limits.max_proof_bytes)?,
         });
     }
-    let env = common::EntryEnv { bundle: &bundle, entry: &j.entry, public_dir: &public.root, limits: &j.limits, cpu_set: None };
+    let env = common::EntryEnv {
+        bundle: &bundle,
+        entry: &j.entry,
+        public_dir: &public.root,
+        limits: &j.limits,
+        cpu_set: None,
+    };
     // Honest controls.
     for (i, h) in honest.iter().enumerate() {
         let (c, p) = write_pair(r, &h.claim, &h.proof)?;
@@ -47,7 +62,10 @@ pub fn run(r: &mut JobRun<'_>, j: &AdversarialJob) -> Result<StageOut, ExecError
             return Ok(out);
         }
     }
-    let ctx = MutationCtx { honest: &honest, max_proof_bytes: j.limits.max_proof_bytes };
+    let ctx = MutationCtx {
+        honest: &honest,
+        max_proof_bytes: j.limits.max_proof_bytes,
+    };
     let hostile = match r.ctx.mutators.generate(&j.mutators, &ctx, j.seed) {
         Ok(h) => h,
         Err(e) => return Err(ExecError::Infra(format!("mutators: {e}"))),
@@ -73,7 +91,10 @@ pub fn run(r: &mut JobRun<'_>, j: &AdversarialJob) -> Result<StageOut, ExecError
     if !accepted.is_empty() {
         accepted.sort();
         accepted.dedup();
-        g.fail(ReasonCode::HostileProofAccepted, format!("verify accepted hostile proofs: {}", accepted.join(", ")));
+        g.fail(
+            ReasonCode::HostileProofAccepted,
+            format!("verify accepted hostile proofs: {}", accepted.join(", ")),
+        );
     }
     g.note(format!(
         "{n} hostile inputs from [{}]: {rejected} rejected, {errored} errored (not accepted), {timeouts} timed out (not accepted), {} accepted",
@@ -84,7 +105,11 @@ pub fn run(r: &mut JobRun<'_>, j: &AdversarialJob) -> Result<StageOut, ExecError
     Ok(out)
 }
 
-fn write_pair(r: &mut JobRun<'_>, claim: &[u8], proof: &[u8]) -> Result<(std::path::PathBuf, std::path::PathBuf), ExecError> {
+fn write_pair(
+    r: &mut JobRun<'_>,
+    claim: &[u8],
+    proof: &[u8],
+) -> Result<(std::path::PathBuf, std::path::PathBuf), ExecError> {
     let d = r.fresh("pair");
     std::fs::create_dir(&d)?;
     let (c, p) = (d.join("claim.bin"), d.join("proof.bin"));

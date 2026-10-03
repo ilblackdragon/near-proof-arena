@@ -205,11 +205,22 @@ fn nested_trie_node_hints_do_not_panic() {
     let honest: Vec<u8> = (0..200u8).collect();
     let hints = FormatHints {
         trie_nodes: vec![
-            Region { label: "child".into(), offset: 50, len: 20 },
-            Region { label: "parent".into(), offset: 40, len: 60 },
+            Region {
+                label: "child".into(),
+                offset: 50,
+                len: 20,
+            },
+            Region {
+                label: "parent".into(),
+                offset: 40,
+                len: 60,
+            },
         ],
         ..FormatHints::default()
     };
-    let ctx = MutationCtx { hints, ..MutationCtx::default() };
+    let ctx = MutationCtx {
+        hints,
+        ..MutationCtx::default()
+    };
     let _ = generate_all(&honest, b"claim", &ctx, 7);
 }

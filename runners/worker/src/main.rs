@@ -36,12 +36,16 @@ fn sandbox(backend: &str, work_dir: &Path) -> Arc<dyn Sandbox> {
     match backend {
         "bwrap-dev" => {
             let exe = std::env::current_exe().unwrap_or_else(|e| die(e));
-            let helper = HelperCommand { exe, prefix_args: vec![HELPER_ARG.to_string()] };
+            let helper = HelperCommand {
+                exe,
+                prefix_args: vec![HELPER_ARG.to_string()],
+            };
             let cfg = BwrapConfig::new(helper, work_dir.join("sandbox"));
             Arc::new(BwrapDev::new(cfg).unwrap_or_else(|e| die(e)))
         }
         "firecracker" => {
-            let cfg = arena_firecracker::FirecrackerConfig::from_env(&work_dir.join("firecracker")).unwrap_or_else(|e| die(e));
+            let cfg = arena_firecracker::FirecrackerConfig::from_env(&work_dir.join("firecracker"))
+                .unwrap_or_else(|e| die(e));
             Arc::new(arena_firecracker::FirecrackerSandbox::new(cfg).unwrap_or_else(|e| die(e)))
         }
         other => die(format!("unknown sandbox backend {other:?}")),
@@ -65,7 +69,12 @@ fn main() {
                 sandbox: sb,
                 store: http.clone(),
                 work_root: cfg.work_dir.join("jobs"),
-                build: BuildEnv { mounts: cfg.build_mounts.clone(), path: cfg.build_path.clone(), env: cfg.build_env.clone(), images_dir: cfg.images_dir.clone() },
+                build: BuildEnv {
+                    mounts: cfg.build_mounts.clone(),
+                    path: cfg.build_path.clone(),
+                    env: cfg.build_env.clone(),
+                    images_dir: cfg.images_dir.clone(),
+                },
                 bench_cpus: cfg.bench_cpus.clone(),
                 mutators: MutatorRegistry::with_adversarial_lane(),
                 keep_workdirs: cfg.keep_workdirs,
@@ -106,9 +115,14 @@ fn run_job_local(args: &[String]) {
             p => job_path = Some(PathBuf::from(p)),
         }
     }
-    let (Some(job_path), Some(store)) = (job_path, store) else { die("usage: run-job JOB.json --store DIR [--work DIR]") };
-    let work = work.unwrap_or_else(|| std::env::temp_dir().join(format!("arena-worker-{}", std::process::id())));
-    let job: Job = serde_json::from_slice(&std::fs::read(&job_path).unwrap_or_else(|e| die(e))).unwrap_or_else(|e| die(e));
+    let (Some(job_path), Some(store)) = (job_path, store) else {
+        die("usage: run-job JOB.json --store DIR [--work DIR]")
+    };
+    let work = work.unwrap_or_else(|| {
+        std::env::temp_dir().join(format!("arena-worker-{}", std::process::id()))
+    });
+    let job: Job = serde_json::from_slice(&std::fs::read(&job_path).unwrap_or_else(|e| die(e)))
+        .unwrap_or_else(|e| die(e));
     let store: Arc<dyn ArtifactStore> = Arc::new(FsStore::new(store).unwrap_or_else(|e| die(e)));
     let ctx = WorkerContext {
         worker_id: "local".into(),

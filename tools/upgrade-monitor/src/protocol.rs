@@ -131,16 +131,20 @@ pub fn parse(root: &Path) -> ProtocolFacts {
         }
     }
     if f.features.is_empty() {
-        f.parse_errors.push("no ProtocolFeature variants found".into());
+        f.parse_errors
+            .push("no ProtocolFeature variants found".into());
     }
 
     // protocol_version() match arms
     let Some(fi) = text.find("fn protocol_version(self)") else {
-        f.parse_errors.push("ProtocolFeature::protocol_version not found".into());
+        f.parse_errors
+            .push("ProtocolFeature::protocol_version not found".into());
         return f;
     };
     let fn_text = &text[fi..];
-    let fn_end = fn_text.find("pub const fn enabled").unwrap_or(fn_text.len());
+    let fn_end = fn_text
+        .find("pub const fn enabled")
+        .unwrap_or(fn_text.len());
     let fn_text = &fn_text[..fn_end];
     let mut pending: Vec<String> = Vec::new();
     let mut rest = fn_text;
@@ -159,7 +163,8 @@ pub fn parse(root: &Path) -> ProtocolFacts {
                 let num: String = after.chars().take_while(|c| c.is_ascii_digit()).collect();
                 let v = num.parse::<u32>().ok();
                 if v.is_none() {
-                    f.parse_errors.push(format!("non-literal version for {pending:?}"));
+                    f.parse_errors
+                        .push(format!("non-literal version for {pending:?}"));
                 }
                 for p in pending.drain(..) {
                     f.features.insert(p, v);
@@ -171,12 +176,16 @@ pub fn parse(root: &Path) -> ProtocolFacts {
     }
     for (k, v) in &f.features {
         if v.is_none() {
-            f.parse_errors.push(format!("feature {k} has no version mapping"));
+            f.parse_errors
+                .push(format!("feature {k} has no version mapping"));
         }
     }
 
     if let Ok(db) = std::fs::read_to_string(root.join(DB_METADATA_RS)) {
-        f.db_constants = consts(&strip_comments(&db), &["DB_VERSION", "MIN_SUPPORTED_DB_VERSION"]);
+        f.db_constants = consts(
+            &strip_comments(&db),
+            &["DB_VERSION", "MIN_SUPPORTED_DB_VERSION"],
+        );
     } else {
         f.parse_errors.push(format!("{DB_METADATA_RS} not found"));
     }
@@ -184,7 +193,9 @@ pub fn parse(root: &Path) -> ProtocolFacts {
 }
 
 pub fn stable_version(f: &ProtocolFacts) -> Option<u32> {
-    f.constants.get("STABLE_PROTOCOL_VERSION").and_then(|s| s.parse().ok())
+    f.constants
+        .get("STABLE_PROTOCOL_VERSION")
+        .and_then(|s| s.parse().ok())
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -217,7 +228,10 @@ impl ProtocolDiff {
     }
 }
 
-fn map_diff(a: &BTreeMap<String, String>, b: &BTreeMap<String, String>) -> BTreeMap<String, (Option<String>, Option<String>)> {
+fn map_diff(
+    a: &BTreeMap<String, String>,
+    b: &BTreeMap<String, String>,
+) -> BTreeMap<String, (Option<String>, Option<String>)> {
     let mut out = BTreeMap::new();
     for k in a.keys().chain(b.keys()) {
         let (x, y) = (a.get(k).cloned(), b.get(k).cloned());
@@ -269,13 +283,17 @@ pub fn diff(old: &ProtocolFacts, new: &ProtocolFacts) -> ProtocolDiff {
         d.features_added.remove(&format!("_Deprecated{k}"));
     }
     d.features_deprecated = renamed;
-    let enabled = |f: &ProtocolFacts, name: &str, at: Option<u32>| match (f.features.get(name), at) {
+    let enabled = |f: &ProtocolFacts, name: &str, at: Option<u32>| match (f.features.get(name), at)
+    {
         (Some(Some(v)), Some(s)) => *v <= s,
         _ => false,
     };
     for k in new.features.keys() {
         let old_name = k.strip_prefix("_Deprecated").unwrap_or(k);
-        if enabled(new, k, d.new_stable) && !enabled(old, k, d.old_stable) && !enabled(old, old_name, d.old_stable) {
+        if enabled(new, k, d.new_stable)
+            && !enabled(old, k, d.old_stable)
+            && !enabled(old, old_name, d.old_stable)
+        {
             d.newly_stable_features.push(k.clone());
         }
     }
@@ -333,7 +351,10 @@ const STABLE_PROTOCOL_VERSION: ProtocolVersion = 12;
         let old = facts(SRC);
         let new_src = SRC
             .replace("C, // trailing", "C,\n    D,")
-            .replace("ProtocolFeature::C => 12,", "ProtocolFeature::C => 12,\n ProtocolFeature::D => 13,")
+            .replace(
+                "ProtocolFeature::C => 12,",
+                "ProtocolFeature::C => 12,\n ProtocolFeature::D => 13,",
+            )
             .replace("= 12;", "= 13;");
         let new = facts(&new_src);
         let d = diff(&old, &new);
@@ -346,7 +367,10 @@ const STABLE_PROTOCOL_VERSION: ProtocolVersion = 12;
     #[test]
     fn deprecation_rename_is_not_add_remove() {
         let old = facts(SRC);
-        let new = facts(&SRC.replace("    B,", "    _DeprecatedB,").replace("ProtocolFeature::B\n", "ProtocolFeature::_DeprecatedB\n"));
+        let new = facts(
+            &SRC.replace("    B,", "    _DeprecatedB,")
+                .replace("ProtocolFeature::B\n", "ProtocolFeature::_DeprecatedB\n"),
+        );
         let d = diff(&old, &new);
         assert_eq!(d.features_deprecated, vec!["B".to_string()]);
         assert!(d.features_added.is_empty() && d.features_removed.is_empty());

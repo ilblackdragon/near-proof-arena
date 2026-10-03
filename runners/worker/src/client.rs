@@ -89,7 +89,11 @@ impl HttpControlPlane {
             .timeout(Duration::from_secs(600))
             .redirects(0)
             .build();
-        HttpControlPlane { base: base_url.trim_end_matches('/').to_string(), token: token.to_string(), agent }
+        HttpControlPlane {
+            base: base_url.trim_end_matches('/').to_string(),
+            token: token.to_string(),
+            agent,
+        }
     }
 
     fn url(&self, path: &str) -> String {
@@ -102,7 +106,9 @@ impl HttpControlPlane {
 
     fn post<T: Serialize>(&self, path: &str, body: &T) -> Result<ureq::Response, ClientError> {
         let r = self.auth(self.agent.post(&self.url(path)));
-        map(r.send_json(serde_json::to_value(body).map_err(|e| ClientError::Transport(e.to_string()))?))
+        map(r.send_json(
+            serde_json::to_value(body).map_err(|e| ClientError::Transport(e.to_string()))?,
+        ))
     }
 }
 
@@ -122,8 +128,12 @@ fn map(r: Result<ureq::Response, ureq::Error>) -> Result<ureq::Response, ClientE
 
 fn json<T: serde::de::DeserializeOwned>(resp: ureq::Response) -> Result<T, ClientError> {
     let mut buf = Vec::new();
-    resp.into_reader().take(64 << 20).read_to_end(&mut buf).map_err(|e| ClientError::Transport(e.to_string()))?;
-    serde_json::from_slice(&buf).map_err(|e| ClientError::Transport(format!("bad JSON from server: {e}")))
+    resp.into_reader()
+        .take(64 << 20)
+        .read_to_end(&mut buf)
+        .map_err(|e| ClientError::Transport(e.to_string()))?;
+    serde_json::from_slice(&buf)
+        .map_err(|e| ClientError::Transport(format!("bad JSON from server: {e}")))
 }
 
 impl ControlPlane for HttpControlPlane {
@@ -147,14 +157,19 @@ impl ControlPlane for HttpControlPlane {
 
 impl ArtifactStore for HttpControlPlane {
     fn get_raw(&self, digest: &Digest, max_bytes: u64) -> Result<Vec<u8>, StoreError> {
-        let r = self.auth(self.agent.get(&self.url(&format!("/internal/v1/artifacts/{digest}"))));
+        let r = self.auth(
+            self.agent
+                .get(&self.url(&format!("/internal/v1/artifacts/{digest}"))),
+        );
         let resp = match r.call() {
             Ok(r) => r,
             Err(ureq::Error::Status(404, _)) => return Err(StoreError::NotFound(digest.clone())),
             Err(e) => return Err(StoreError::Transport(e.to_string())),
         };
         let mut buf = Vec::new();
-        resp.into_reader().take(max_bytes.saturating_add(1)).read_to_end(&mut buf)?;
+        resp.into_reader()
+            .take(max_bytes.saturating_add(1))
+            .read_to_end(&mut buf)?;
         if buf.len() as u64 > max_bytes {
             return Err(StoreError::TooLarge(digest.clone(), max_bytes));
         }
@@ -163,9 +178,13 @@ impl ArtifactStore for HttpControlPlane {
     fn put(&self, bytes: &[u8]) -> Result<Digest, StoreError> {
         let d = Digest::of_bytes(bytes);
         let r = self
-            .auth(self.agent.put(&self.url(&format!("/internal/v1/artifacts/{d}"))))
+            .auth(
+                self.agent
+                    .put(&self.url(&format!("/internal/v1/artifacts/{d}"))),
+            )
             .set("Content-Type", "application/octet-stream");
-        r.send_bytes(bytes).map_err(|e| StoreError::Transport(e.to_string()))?;
+        r.send_bytes(bytes)
+            .map_err(|e| StoreError::Transport(e.to_string()))?;
         Ok(d)
     }
 }
