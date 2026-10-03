@@ -145,6 +145,8 @@ impl FakeWorker {
                     certificate_decl: "Candidate.certificate".into(),
                     toolchain_image: Some("demo-build-image".into()),
                     build_ns: Some(1234),
+                    bundle_archive: None,
+                    public_archive: None,
                 })
             }
             JobSpec::FormalCheck(_) => {

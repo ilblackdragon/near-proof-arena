@@ -348,6 +348,8 @@ version = "0.1.0"
 dependencies = [
  "arena-archive",
  "arena-firecracker",
+ "arena-formal-checker",
+ "arena-jobs",
  "arena-measure",
  "arena-sandbox",
  "arena-types",
@@ -359,8 +361,8 @@ dependencies = [
  "tempfile",
  "thiserror",
  "time",
+ "tokio",
  "toml",
- "ureq",
  "zstd",
 ]
 
@@ -3019,8 +3021,6 @@ dependencies = [
  "once_cell",
  "rustls",
  "rustls-pki-types",
- "serde",
- "serde_json",
  "url",
  "webpki-roots 0.26.11",
 ]

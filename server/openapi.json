@@ -1681,6 +1681,12 @@
             "description": "Tree digest of the complete built bundle (all build outputs).",
             "$ref": "#/components/schemas/Digest"
           },
+          "bundle_archive": {
+            "description": "Content-store digest (raw bytes) of the deterministic tar of the bundle whose TreeDigest is `bundle`; later stages fetch it by this digest and re-check the TreeDigest.",
+            "default": null,
+            "$ref": "#/components/schemas/Digest",
+            "nullable": true
+          },
           "certificate_decl": {
             "description": "Lean constant named by the manifest's `[formal].certificate` (empty if none).",
             "type": "string"
@@ -1694,6 +1700,12 @@
           },
           "prove": {
             "$ref": "#/components/schemas/Digest"
+          },
+          "public_archive": {
+            "description": "Content-store digest of the deterministic tar of the judge-run `public_dir` (TreeDigest `public_artifacts`).",
+            "default": null,
+            "$ref": "#/components/schemas/Digest",
+            "nullable": true
           },
           "public_artifacts": {
             "description": "Tree digest of `public_dir` produced by the judge-run `prepare`, frozen by digest.",

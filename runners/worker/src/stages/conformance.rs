@@ -1,22 +1,20 @@
-//! `CONFORMANCE_DIFFERENTIAL`, `PROVER_RELIABILITY` and the
-//! `RESOURCE_LIMITS` observations of conformance runs.
+//! `CONFORMANCE_DIFFERENTIAL`, `PROVER_RELIABILITY`, `RESOURCE_LIMITS`.
 //!
-//! 1. judge-run `prepare` → frozen `public_dir` (uploaded by digest);
-//! 2. per oracle case: `prove` in a sandbox holding the witness; the claim
-//!    bytes must equal the oracle's expected claim (`CLAIM_MISMATCH`);
-//! 3. `verify` in a separate sandbox receiving only the public dir, claim
-//!    and proof; it must accept the honest proof.
-//!
-//! Fail-fast: the first failing case stops the job. Held-out case ids never
-//! appear in summaries.
+//! Against the frozen build (bundle and judge-run `public_dir`, both bound by
+//! TreeDigest): for every oracle case, `prove` in a sandbox holding the
+//! witness; the claim bytes must equal the judge's expected claim
+//! (`CLAIM_MISMATCH`); then `verify` in a separate sandbox receiving only the
+//! public dir, claim and proof; it must accept. Fail-fast. Non-public case
+//! ids never appear in summaries.
 
 use super::common::{self, case_label, Verdict};
-use crate::executor::{ExecError, JobRun, StageOut};
+use crate::executor::{seed_parts, ExecError, JobRun, StageOut};
 use crate::gate::Gate;
-use crate::jobs::ConformanceJob;
+use crate::jobs::{ExecJob, RunLimits};
+use crate::oracle::OracleError;
 use arena_types::{GateStatus, ObligationId, ReasonCode};
 
-pub fn run(r: &mut JobRun<'_>, j: &ConformanceJob) -> Result<StageOut, ExecError> {
+pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut conf = Gate::start(ObligationId::ConformanceDifferential);
     let mut rel = Gate::start(ObligationId::ProverReliability);
     let mut res = Gate::start(ObligationId::ResourceLimits);
@@ -27,30 +25,37 @@ pub fn run(r: &mut JobRun<'_>, j: &ConformanceJob) -> Result<StageOut, ExecError
         out.gates.push(rel.finish(st, true));
         out.gates.push(res.finish(st, true));
     };
-    if j.cases.is_empty() {
-        conf.note("no oracle cases supplied");
-        finish(&mut out, conf, rel, res, false);
-        return Ok(out);
-    }
-    let bundle = common::fetch_bundle(r, &j.bundle, &j.entry)?;
-    let Some(prep) = common::run_prepare(r, &bundle, &j.entry, &j.params, &j.limits, &mut rel, &mut res)? else {
-        conf.note("not run: prepare failed");
-        finish(&mut out, conf, rel, res, false);
-        return Ok(out);
+    let limits = RunLimits::from_challenge(&j.challenge);
+    let parts = seed_parts(&j.ctx);
+    let parts: Vec<&str> = parts.iter().map(|s| s.as_str()).collect();
+    let cases = match r.ctx.oracles.get(&j.challenge).and_then(|o| {
+        let fx = r.ctx.oracles.fixtures_for(&j.challenge)?;
+        o.conformance_cases(&j.challenge, fx.as_deref(), &parts, r.ctx.conformance_samples)
+    }) {
+        Ok(c) if !c.is_empty() => c,
+        Ok(_) => {
+            conf.note("oracle produced no cases");
+            finish(&mut out, conf, rel, res, false);
+            return Ok(out);
+        }
+        Err(OracleError::Unavailable(m)) => {
+            conf.note(m);
+            finish(&mut out, conf, rel, res, false);
+            return Ok(out);
+        }
+        Err(e @ OracleError::Broken(_)) => return Err(ExecError::Infra(e.to_string())),
     };
-    let (_, public_tree) = r.upload_tree("public_artifacts", &prep.public_dir, &prep.tree, true)?;
-    res.note(format!("prepare {} ms, public dir {} bytes", prep.outcome.wall_ns / 1_000_000, prep.tree.total_bytes()));
-    res.evidence("public_artifacts_tree", public_tree, true);
+    let bundle = common::fetch_bundle(r, &j.build, &j.manifest.entry)?;
+    let public_dir = common::fetch_public(r, &j.build, &limits)?;
+    let env = common::EntryEnv { bundle: &bundle, entry: &j.manifest.entry, public_dir: &public_dir, limits: &limits, cpu_set: None };
 
-    let env = common::EntryEnv { bundle: &bundle, entry: &j.entry, public_dir: &prep.public_dir, limits: &j.limits, cpu_set: None };
     let mut max_proof = 0u64;
     let mut max_verify_ns = 0u64;
+    let mut max_rss = 0u64;
     let mut passed = 0usize;
-    for case in &j.cases {
+    for case in &cases {
         let label = case_label(&case.id, case.public);
-        let req = r.fetch_file(&case.request, j.limits.max_request_bytes, "request")?;
-        let wit = r.fetch_file(&case.witness, j.limits.max_witness_bytes, "witness")?;
-        let proved = match common::run_prove(r, &env, &req, &wit, &case.expected_claim)? {
+        let proved = match common::run_prove(r, &env, case)? {
             Ok(p) => p,
             Err(f) => {
                 let note = format!("{label}: {}", f.detail);
@@ -66,11 +71,12 @@ pub fn run(r: &mut JobRun<'_>, j: &ConformanceJob) -> Result<StageOut, ExecError
             }
         };
         max_proof = max_proof.max(proved.proof.len() as u64);
-        let claim_d = r.upload(&format!("claim:{}", case.id), &proved.claim, case.public)?;
-        let proof_d = r.upload(&format!("proof:{}", case.id), &proved.proof, case.public)?;
+        max_rss = max_rss.max(proved.outcome.peak_rss_bytes);
         if case.public {
-            conf.evidence(format!("claim:{}", case.id), claim_d, true);
-            rel.evidence(format!("proof:{}", case.id), proof_d, true);
+            let d = r.upload(&format!("claim {}", case.id), &proved.claim, true)?;
+            conf.evidence(format!("claim {}", case.id), d, true);
+            let d = r.upload(&format!("proof {}", case.id), &proved.proof, true)?;
+            rel.evidence(format!("proof {}", case.id), d, true);
         }
         let (v, vo) = common::run_verify(r, &env, &proved.claim_path, &proved.proof_path)?;
         max_verify_ns = max_verify_ns.max(vo.wall_ns);
@@ -81,7 +87,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ConformanceJob) -> Result<StageOut, ExecError
                 break;
             }
             Verdict::TimedOut => {
-                res.fail(ReasonCode::ResourceLimit, format!("{label}: verify exceeded max_verify_ms {}", j.limits.max_verify_ms));
+                res.fail(ReasonCode::ResourceLimit, format!("{label}: verify exceeded max_verify_ms {}", limits.max_verify_ms));
                 rel.fail(ReasonCode::ProverFailed, format!("{label}: verify timed out on the honest proof"));
                 break;
             }
@@ -91,12 +97,18 @@ pub fn run(r: &mut JobRun<'_>, j: &ConformanceJob) -> Result<StageOut, ExecError
             }
         }
     }
-    let n = j.cases.len();
+    let n = cases.len();
     let complete = passed == n;
-    let public = j.cases.iter().filter(|c| c.public).count();
-    conf.note(format!("{passed}/{n} cases conform ({public} public, {} held-out)", n - public));
+    let public = cases.iter().filter(|c| c.public).count();
+    conf.note(format!("{passed}/{n} cases conform ({public} public fixtures, {} judge-sampled)", n - public));
     rel.note(format!("{passed}/{n} honest proofs produced and accepted"));
-    res.note(format!("max proof {max_proof} bytes, max verify {} ms", max_verify_ns / 1_000_000));
+    res.note(format!(
+        "max proof {max_proof} bytes (cap {}), max verify {} ms (cap {}), peak memory {} MiB",
+        limits.max_proof_bytes,
+        max_verify_ns / 1_000_000,
+        limits.max_verify_ms,
+        max_rss >> 20
+    ));
     finish(&mut out, conf, rel, res, complete);
     Ok(out)
 }

@@ -42,6 +42,15 @@ pub struct WorkerConfig {
     pub images_dir: Option<PathBuf>,
     pub bench_cpus: Option<Vec<u32>>,
     pub keep_workdirs: bool,
+    /// Directories holding public fixtures, matched to challenges by TreeDigest.
+    pub fixtures_dirs: Vec<PathBuf>,
+    /// DEV ONLY: cap on benchmark batch sizes (recorded in results).
+    pub bench_batch_cap: Option<u32>,
+    /// Judge-sampled conformance cases per job.
+    pub conformance_samples: usize,
+    /// JSON file with the formal checker configuration.
+    pub formal_config: Option<PathBuf>,
+    pub lease_seconds: u32,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -132,7 +141,7 @@ impl WorkerConfig {
             None => JobKind::ALL.to_vec(),
             Some(v) => v
                 .split(',')
-                .map(|k| JobKind::parse(k.trim()).ok_or_else(|| ConfigError::Invalid("ARENA_WORKER_KINDS", k.to_string())))
+                .map(|k| k.trim().to_ascii_uppercase().parse::<JobKind>().map_err(|_| ConfigError::Invalid("ARENA_WORKER_KINDS", k.to_string())))
                 .collect::<Result<_, _>>()?,
         };
         let build_mounts = match s.get("ARENA_BUILD_MOUNTS") {
@@ -189,6 +198,23 @@ impl WorkerConfig {
             images_dir: s.get("ARENA_IMAGES_DIR").map(PathBuf::from),
             bench_cpus,
             keep_workdirs: s.get("ARENA_KEEP_WORKDIRS").as_deref() == Some("1"),
+            fixtures_dirs: s
+                .get("ARENA_FIXTURES_DIRS")
+                .map(|v| v.split(',').filter(|x| !x.trim().is_empty()).map(|x| PathBuf::from(x.trim())).collect())
+                .unwrap_or_default(),
+            bench_batch_cap: match s.get("ARENA_DEV_BENCH_BATCH_CAP") {
+                None => None,
+                Some(v) => Some(v.parse().map_err(|e: std::num::ParseIntError| ConfigError::Invalid("ARENA_DEV_BENCH_BATCH_CAP", e.to_string()))?),
+            },
+            conformance_samples: match s.get("ARENA_CONFORMANCE_SAMPLES") {
+                None => 8,
+                Some(v) => v.parse().map_err(|e: std::num::ParseIntError| ConfigError::Invalid("ARENA_CONFORMANCE_SAMPLES", e.to_string()))?,
+            },
+            formal_config: s.get("ARENA_FORMAL_CONFIG").map(PathBuf::from),
+            lease_seconds: match s.get("ARENA_LEASE_SECONDS") {
+                None => 300,
+                Some(v) => v.parse().map_err(|e: std::num::ParseIntError| ConfigError::Invalid("ARENA_LEASE_SECONDS", e.to_string()))?,
+            },
         })
     }
 }
@@ -207,7 +233,7 @@ mod tests {
     fn loads_minimal() {
         let s = Settings::new(env(&[("ARENA_SERVER_URL", "http://x"), ("ARENA_WORKER_TOKEN", "t")]), None).unwrap();
         let c = WorkerConfig::load(&s).unwrap();
-        assert_eq!(c.kinds.len(), 5);
+        assert_eq!(c.kinds.len(), 6);
         assert_eq!(c.backend, "bwrap-dev");
     }
     #[test]

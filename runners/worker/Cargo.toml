@@ -17,7 +17,9 @@ serde_json.workspace = true
 thiserror.workspace = true
 time.workspace = true
 toml.workspace = true
-ureq.workspace = true
+arena-jobs = { path = "../../server/arena-jobs", features = ["client"] }
+arena-formal-checker = { path = "../formal-checker" }
+tokio = { workspace = true }
 libc.workspace = true
 
 [dev-dependencies]

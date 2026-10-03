@@ -2,23 +2,26 @@
 //!
 //! `arena-worker` leases a job from the control plane, fetches its inputs by
 //! digest, runs candidate code only through an [`arena_sandbox::Sandbox`],
-//! uploads outputs by digest and completes the job with [`jobs::JobOutput`]
-//! (gate results + artifact digests). It never holds database credentials.
+//! uploads outputs by digest and completes the job with an
+//! `arena_jobs::JobResult` (gate results + artifact digests). It never holds
+//! database credentials.
 //!
-//! Seams for other lanes:
-//! * [`jobs`] — plain job payload structs mirroring CONTRACTS; the server
-//!   lane's `server/arena-jobs` types map onto them.
+//! Seams:
+//! * job / result / wire types: `server/arena-jobs` (single source).
 //! * [`executor::JobExecutor`] — job semantics behind a trait.
-//! * [`client::ControlPlane`] / [`store::ArtifactStore`] — transport.
+//! * [`control::ControlPlane`] / [`store::ArtifactStore`] — transport.
+//! * [`oracle::Oracle`] — expected claims and workload sampling per claim
+//!   encoding (spec-oracle lane).
 //! * [`mutators::ProofMutator`] — hostile proof generators (adversarial lane).
 
-pub mod client;
 pub mod config;
+pub mod control;
 pub mod daemon;
 pub mod executor;
 pub mod gate;
 pub mod jobs;
 pub mod mutators;
+pub mod oracle;
 pub mod stages;
 pub mod store;
 

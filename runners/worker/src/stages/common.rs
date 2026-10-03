@@ -1,21 +1,31 @@
 //! Helpers shared by the stages that run entry points.
 
 use crate::executor::{describe_exit, entry_spec, failure_reason, ExecError, JobRun, MAX_BUNDLE_BYTES};
-use crate::gate::Gate;
-use crate::jobs::{EntryPoints, RunLimits};
+use crate::jobs::{BuildOutputs, RunLimits};
+use crate::oracle::Case;
 use arena_sandbox::{ExitStatus, SandboxOutcome};
-use arena_types::{Digest, ReasonCode};
-use std::path::PathBuf;
+use arena_types::candidate::EntrySection as EntryPoints;
+use arena_types::{ObligationId, ReasonCode};
+use std::path::{Path, PathBuf};
 
-/// Fetch and safely unpack the build bundle; check the entry points are
-/// executable regular files in it.
-pub fn fetch_bundle(r: &mut JobRun<'_>, bundle: &Digest, entry: &EntryPoints) -> Result<PathBuf, ExecError> {
-    let x = r.fetch_tree(bundle, MAX_BUNDLE_BYTES, "bundle")?;
-    for e in [&entry.prepare, &entry.prove, &entry.verify] {
-        if !x.tree.is_exec(e) {
-            return Err(ExecError::Infra(format!("bundle {bundle} lacks executable {e:?} (build stage should have caught this)")));
+/// Fetch and safely unpack the build bundle (bound to `build.bundle` by
+/// TreeDigest); check the entry points are executable regular files in it.
+pub fn fetch_bundle(r: &mut JobRun<'_>, build: &BuildOutputs, entry: &EntryPoints) -> Result<PathBuf, ExecError> {
+    let archive = build.bundle_archive.as_ref().ok_or_else(|| ExecError::Infra("build outputs carry no bundle_archive".into()))?;
+    let x = r.fetch_tree(archive, &build.bundle, MAX_BUNDLE_BYTES, "bundle")?;
+    for (e, want) in [(&entry.prepare, &build.prepare), (&entry.prove, &build.prove), (&entry.verify, &build.verify)] {
+        match x.tree.files.get(e.as_str()) {
+            Some(f) if f.mode == arena_archive::FileMode::Exec && &f.digest == want => {}
+            _ => return Err(ExecError::Infra(format!("bundle lacks executable {e:?} with the built digest {want}"))),
         }
     }
+    Ok(x.root)
+}
+
+/// Fetch the frozen judge-run `public_dir` (bound by TreeDigest).
+pub fn fetch_public(r: &mut JobRun<'_>, build: &BuildOutputs, limits: &RunLimits) -> Result<PathBuf, ExecError> {
+    let archive = build.public_archive.as_ref().ok_or_else(|| ExecError::Infra("build outputs carry no public_archive".into()))?;
+    let x = r.fetch_tree(archive, &build.public_artifacts, limits.max_public_artifact_bytes.clamp(1, MAX_BUNDLE_BYTES), "public")?;
     Ok(x.root)
 }
 
@@ -25,18 +35,10 @@ pub struct Prepared {
     pub outcome: SandboxOutcome,
 }
 
-/// Judge-run `prepare --params <p> --out <public_dir>`. Failures are
-/// recorded on `reliability` / `resources`; `Ok(None)` means it failed.
-pub fn run_prepare(
-    r: &mut JobRun<'_>,
-    bundle: &std::path::Path,
-    entry: &EntryPoints,
-    params: &Digest,
-    limits: &RunLimits,
-    reliability: &mut Gate,
-    resources: &mut Gate,
-) -> Result<Option<Prepared>, ExecError> {
-    let params_file = r.fetch_file(params, 1 << 30, "params")?;
+/// Judge-run `prepare --params <approved_params.bin> --out <public_dir>`.
+/// v1 challenges carry no parameter blob: `approved_params.bin` is empty.
+pub fn run_prepare(r: &mut JobRun<'_>, bundle: &Path, entry: &EntryPoints, limits: &RunLimits) -> Result<Result<Prepared, StepFailure>, ExecError> {
+    let params_file = r.write_file(b"", "params")?;
     let out_dir = r.fresh("prepare-out");
     let layout = r.ctx.sandbox.layout();
     let mut spec = entry_spec(
@@ -58,24 +60,20 @@ pub fn run_prepare(
     let o = r.run(&spec)?;
     if !o.exit.success() {
         let reason = failure_reason(&o);
-        if matches!(o.exit, ExitStatus::TimedOut | ExitStatus::OomKilled) {
-            resources.fail(ReasonCode::ResourceLimit, format!("prepare {}", describe_exit(&o)));
-        }
-        reliability.fail(reason, format!("prepare failed: {}", describe_exit(&o)));
-        return Ok(None);
+        let gate = if reason == ReasonCode::ResourceLimit || reason == ReasonCode::Timeout { ObligationId::ResourceLimits } else { ObligationId::ProverReliability };
+        return Ok(Err(fail(gate, reason, format!("prepare failed: {}", describe_exit(&o)))));
     }
     if let Some(e) = &o.output_error {
-        if e.contains("size limit") {
-            resources.fail(ReasonCode::ResourceLimit, format!("public dir exceeds {} bytes", limits.max_public_artifact_bytes));
+        return Ok(Err(if e.contains("size limit") {
+            fail(ObligationId::ResourceLimits, ReasonCode::ResourceLimit, format!("public dir exceeds {} bytes", limits.max_public_artifact_bytes))
         } else {
-            reliability.fail(ReasonCode::ProverFailed, format!("prepare produced unusable output: {e}"));
-        }
-        return Ok(None);
+            fail(ObligationId::ProverReliability, ReasonCode::ProverFailed, format!("prepare produced unusable output: {e}"))
+        }));
     }
     let public_dir = out_dir.join("out/public");
     std::fs::create_dir_all(&public_dir)?;
     let tree = arena_archive::tree_from_dir(&public_dir, &arena_archive::Limits::default())?;
-    Ok(Some(Prepared { public_dir, tree, outcome: o }))
+    Ok(Ok(Prepared { public_dir, tree, outcome: o }))
 }
 
 pub struct Proved {
@@ -110,14 +108,11 @@ pub struct EntryEnv<'p> {
     pub cpu_set: Option<Vec<u32>>,
 }
 
-pub fn run_prove(
-    r: &mut JobRun<'_>,
-    env: &EntryEnv<'_>,
-    request: &std::path::Path,
-    witness: &std::path::Path,
-    expected_claim: &Digest,
-) -> Result<Result<Proved, StepFailure>, ExecError> {
-    use arena_types::ObligationId::*;
+pub fn run_prove(r: &mut JobRun<'_>, env: &EntryEnv<'_>, case: &Case) -> Result<Result<Proved, StepFailure>, ExecError> {
+    let request = r.write_file(&case.request, "request")?;
+    let witness = r.write_file(&case.witness, "witness")?;
+    let (request, witness) = (request.as_path(), witness.as_path());
+    use ObligationId::*;
     let (bundle, entry, public_dir, limits) = (env.bundle, env.entry, env.public_dir, env.limits);
     let out_dir = r.fresh("prove-out");
     let layout = r.ctx.sandbox.layout();
@@ -165,7 +160,7 @@ pub fn run_prove(
     if claim.len() as u64 > limits.max_claim_bytes {
         return Ok(Err(fail(ConformanceDifferential, ReasonCode::ClaimMismatch, format!("claim is {} bytes > max_claim_bytes", claim.len()))));
     }
-    if &Digest::of_bytes(&claim) != expected_claim {
+    if claim != case.expected_claim {
         return Ok(Err(fail(ConformanceDifferential, ReasonCode::ClaimMismatch, "claim.bin differs from the oracle's expected claim".into())));
     }
     if proof.len() as u64 > limits.max_proof_bytes {

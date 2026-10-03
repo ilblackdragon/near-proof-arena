@@ -156,6 +156,15 @@ pub struct BuildOutputs {
     /// Judge-measured wall time of one build, ns (informational).
     #[serde(default)]
     pub build_ns: Option<u64>,
+    /// Content-store digest (raw bytes) of the deterministic tar of the
+    /// bundle whose TreeDigest is `bundle`; later stages fetch it by this
+    /// digest and re-check the TreeDigest.
+    #[serde(default)]
+    pub bundle_archive: Option<Digest>,
+    /// Content-store digest of the deterministic tar of the judge-run
+    /// `public_dir` (TreeDigest `public_artifacts`).
+    #[serde(default)]
+    pub public_archive: Option<Digest>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

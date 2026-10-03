@@ -1,39 +1,44 @@
-//! `BENCHMARK` + `RESOURCE_LIMITS` via the trusted measurement harness
-//! (`arena-measure`, docs/BENCHMARK_SPEC.md). Every proof produced during
-//! the session is claim-checked and verified; one failure means no score.
+//! `BENCHMARK` via the trusted measurement harness (`arena-measure`,
+//! docs/BENCHMARK_SPEC.md). Classes, weights, batch sizes and the procedure
+//! come from the challenge; batches are sampled by the judge's oracle. Every
+//! proof produced during the session is claim-checked and verified; one
+//! failure means no score. This job owns only the `BENCHMARK` gate: a
+//! failed run (wrong claim, rejected proof, resource cap) fails it with the
+//! corresponding reason code.
 
 use super::common::{self, Verdict};
-use crate::executor::{ExecError, JobRun, StageOut, MAX_BUNDLE_BYTES};
+use crate::executor::{seed_parts, ExecError, JobRun, StageOut};
 use crate::gate::Gate;
-use crate::jobs::{BenchmarkJob, OracleCase};
-use arena_measure::stats::Phase;
+use crate::jobs::{ExecJob, RunLimits};
+use crate::oracle::{Case, OracleError};
+use arena_measure::stats::{derive_seed, Phase};
 use arena_measure::{BatchRunner, BatchSample, ClassPlan, RunError, SessionError, SessionPlan};
 use arena_types::{BenchmarkResult, GateStatus, ObligationId, ReasonCode};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+const MAX_SESSIONS: u32 = 3;
+const BOOTSTRAP_ITERATIONS: u32 = arena_measure::score::DEFAULT_BOOTSTRAP_ITERATIONS;
+
 struct Runner<'r, 'a> {
     r: &'r mut JobRun<'a>,
-    j: &'r BenchmarkJob,
+    entry: &'r arena_types::candidate::EntrySection,
+    limits: RunLimits,
     bundle: PathBuf,
     public_dir: PathBuf,
-    inputs: HashMap<String, (PathBuf, PathBuf)>,
+    batches: HashMap<String, (Vec<Case>, Vec<Case>)>,
     cpus: Option<Vec<u32>>,
-    /// The gate a candidate failure belongs to.
-    failure: Option<(ObligationId, ReasonCode, String)>,
+    failure: Option<(ReasonCode, String)>,
 }
 
 impl Runner<'_, '_> {
-    fn fail(&mut self, gate: ObligationId, reason: ReasonCode, detail: String) -> RunError {
-        self.failure = Some((gate, reason, detail.clone()));
+    fn fail(&mut self, reason: ReasonCode, detail: String) -> RunError {
+        self.failure = Some((reason, detail.clone()));
         RunError::Candidate { reason, detail }
     }
-}
-
-impl Runner<'_, '_> {
     fn exec_err(&mut self, e: ExecError) -> RunError {
         match e {
-            ExecError::Violation(m) => self.fail(ObligationId::Benchmark, ReasonCode::SandboxViolation, m),
+            ExecError::Violation(m) => self.fail(ReasonCode::SandboxViolation, m),
             e => RunError::Infra(e.to_string()),
         }
     }
@@ -51,20 +56,17 @@ fn cross_check(o: &arena_sandbox::SandboxOutcome) -> Result<(), RunError> {
 
 impl BatchRunner for Runner<'_, '_> {
     fn run_batch(&mut self, class_id: &str, phase: Phase, _round: u32) -> Result<BatchSample, RunError> {
-        let class = self.j.classes.iter().find(|c| c.class_id == class_id).expect("scheduled class");
-        let batch: &[OracleCase] = if phase == Phase::FreshConfirm { &class.fresh_batch } else { &class.batch };
+        let (batch, fresh) = self.batches[class_id].clone();
+        let batch = if phase == Phase::FreshConfirm { fresh } else { batch };
         let mut s = BatchSample::default();
-        for case in batch {
+        for case in &batch {
             let label = common::case_label(&case.id, case.public);
-            let (req, wit) = self.inputs[&case.id].clone();
-            let env = common::EntryEnv { bundle: &self.bundle, entry: &self.j.entry, public_dir: &self.public_dir, limits: &self.j.limits, cpu_set: self.cpus.clone() };
-            let proved = match common::run_prove(self.r, &env, &req, &wit, &case.expected_claim) {
-                Ok(p) => p,
+            let (bundle, public_dir, limits, entry, cpus) = (self.bundle.clone(), self.public_dir.clone(), self.limits.clone(), self.entry, self.cpus.clone());
+            let env = common::EntryEnv { bundle: &bundle, entry, public_dir: &public_dir, limits: &limits, cpu_set: cpus };
+            let p = match common::run_prove(self.r, &env, case) {
                 Err(e) => return Err(self.exec_err(e)),
-            };
-            let p = match proved {
-                Ok(p) => p,
-                Err(f) => return Err(self.fail(f.gate, f.reason, format!("{} run, {label}: {}", phase.as_str(), f.detail))),
+                Ok(Err(f)) => return Err(self.fail(f.reason, format!("{} run, {label}: {}", phase.as_str(), f.detail))),
+                Ok(Ok(p)) => p,
             };
             cross_check(&p.outcome)?;
             s.push_prove(&p.outcome);
@@ -76,146 +78,175 @@ impl BatchRunner for Runner<'_, '_> {
             cross_check(&vo)?;
             match v {
                 Verdict::Accept => s.push_verify(&vo),
-                Verdict::TimedOut => {
-                    return Err(self.fail(ObligationId::ResourceLimits, ReasonCode::ResourceLimit, format!("{label}: verify exceeded max_verify_ms")))
-                }
-                _ => {
-                    return Err(self.fail(
-                        ObligationId::ProverReliability,
-                        ReasonCode::ProverFailed,
-                        format!("{} run, {label}: verify did not accept the proof", phase.as_str()),
-                    ))
-                }
+                Verdict::TimedOut => return Err(self.fail(ReasonCode::ResourceLimit, format!("{label}: verify exceeded max_verify_ms"))),
+                _ => return Err(self.fail(ReasonCode::ProverFailed, format!("{} run, {label}: verify did not accept the proof", phase.as_str()))),
             }
         }
         Ok(s)
     }
 }
 
-pub fn run(r: &mut JobRun<'_>, j: &BenchmarkJob) -> Result<StageOut, ExecError> {
+pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut bench = Gate::start(ObligationId::Benchmark);
-    let mut res = Gate::start(ObligationId::ResourceLimits);
-    let mut rel = Gate::start(ObligationId::ProverReliability);
     let mut out = StageOut { used_sandbox: true, ..Default::default() };
-    arena_measure::check_procedure(&j.procedure).map_err(|e| ExecError::Infra(e.to_string()))?;
-    if j.classes.is_empty() || j.classes.iter().any(|c| c.batch.is_empty()) {
-        return Err(ExecError::Infra("benchmark job has an empty class or batch".into()));
-    }
-    let bundle = common::fetch_bundle(r, &j.bundle, &j.entry)?;
-    let Some(prep) = common::run_prepare(r, &bundle, &j.entry, &j.params, &j.limits, &mut rel, &mut res)? else {
-        bench.note("not run: prepare failed");
-        out.gates.push(bench.finish(GateStatus::Unknown, true));
-        out.gates.push(res.finish(GateStatus::Unknown, true));
-        out.gates.push(rel.finish(GateStatus::Unknown, true));
-        return Ok(out);
-    };
-    let prepare_ns = prep.outcome.wall_ns;
-    let public_bytes = prep.tree.total_bytes();
-    let public_dir = match &j.public_artifacts {
-        Some(frozen) => {
-            let x = r.fetch_tree(frozen, j.limits.max_public_artifact_bytes.clamp(1, MAX_BUNDLE_BYTES), "public")?;
-            if x.tree.digest() != prep.tree.digest() {
-                bench.note("judge re-run of prepare produced a different public dir than the frozen one; the frozen one is used");
-            }
-            x.root
-        }
-        None => prep.public_dir.clone(),
-    };
-    let mut inputs = HashMap::new();
-    for c in j.classes.iter().flat_map(|c| c.batch.iter().chain(&c.fresh_batch)) {
-        if !inputs.contains_key(&c.id) {
-            let req = r.fetch_file(&c.request, j.limits.max_request_bytes, "request")?;
-            let wit = r.fetch_file(&c.witness, j.limits.max_witness_bytes, "witness")?;
-            inputs.insert(c.id.clone(), (req, wit));
-        }
-    }
-    let plan = SessionPlan {
-        classes: j.classes.iter().map(|c| ClassPlan { class_id: c.class_id.clone(), weight_ppm: c.weight_ppm, baseline_ns: c.baseline_ns }).collect(),
-        procedure: j.procedure.clone(),
-        schedule_seed: j.schedule_seed,
-        bootstrap_seed: j.bootstrap_seed,
-        bootstrap_iterations: j.bootstrap_iterations,
-        fresh_confirm_runs: if j.classes.iter().all(|c| !c.fresh_batch.is_empty()) { 1 } else { 0 },
-    };
-    let cpus = r.ctx.bench_cpus.clone();
-    let mut runner = Runner { r, j, bundle, public_dir, inputs, cpus, failure: None };
-    let session = arena_measure::run_session(&plan, &mut runner);
-    let failure = runner.failure.take();
-    let session = match session {
-        Ok(s) => s,
-        Err(SessionError::Run { error: RunError::Infra(e), .. }) => return Err(ExecError::Infra(e)),
-        Err(SessionError::Run { error: RunError::Candidate { .. }, .. }) => {
-            let (gate, reason, detail) = failure.expect("candidate failure recorded");
-            let mut g = Gate::start(gate);
-            g.fail(reason, detail.clone());
-            if gate == ObligationId::ResourceLimits {
-                res = g;
-                rel.fail(ReasonCode::ProverFailed, detail);
-            } else if gate == ObligationId::ProverReliability {
-                rel = g;
-            } else if gate == ObligationId::Benchmark {
-                bench = g;
-            } else {
-                out.gates.push(g.finish(GateStatus::Unknown, true));
-            }
-            bench.fail(ReasonCode::ProverFailed, "no score: a benchmark run failed");
+    let chal = &j.challenge;
+    arena_measure::check_procedure(&chal.measurement).map_err(|e| ExecError::Infra(e.to_string()))?;
+    let limits = RunLimits::from_challenge(chal);
+    let oracle = match r.ctx.oracles.get(chal) {
+        Ok(o) => o,
+        Err(OracleError::Unavailable(m)) => {
+            bench.note(m);
             out.gates.push(bench.finish(GateStatus::Unknown, true));
-            out.gates.push(res.finish(GateStatus::Unknown, true));
-            out.gates.push(rel.finish(GateStatus::Unknown, true));
             return Ok(out);
         }
         Err(e) => return Err(ExecError::Infra(e.to_string())),
     };
-    if let Some(f) = session.flags.iter().find(|f| f.starts_with("EXCESSIVE_OUTLIERS")) {
-        return Err(ExecError::Infra(format!("{f}: host too noisy, re-measure the session")));
+    let parts_owned = seed_parts(&j.ctx);
+    let parts: Vec<&str> = parts_owned.iter().map(|s| s.as_str()).collect();
+    let mut batches = HashMap::new();
+    let mut capped = false;
+    for c in &chal.workload_suite.classes {
+        let mut n = c.batch_size as usize;
+        if let Some(cap) = r.ctx.bench_batch_cap {
+            if n > cap as usize {
+                n = cap as usize;
+                capped = true;
+            }
+        }
+        let batch = oracle.sample(chal, &c.id, &parts, n).map_err(|e| ExecError::Infra(e.to_string()))?;
+        let fresh_tag = format!("{}#fresh", c.id);
+        let mut fresh_parts = parts.clone();
+        fresh_parts.push(&fresh_tag);
+        let fresh = oracle.sample(chal, &c.id, &fresh_parts, n).map_err(|e| ExecError::Infra(e.to_string()))?;
+        batches.insert(c.id.clone(), (batch, fresh));
     }
-    let score = match &session.score {
-        Ok(s) => s.clone(),
+    let bundle = common::fetch_bundle(r, &j.build, &j.manifest.entry)?;
+    let public_dir = common::fetch_public(r, &j.build, &limits)?;
+    // `prepare` is timed (reported, never scored) on the frozen bundle.
+    let prepare_ns = match common::run_prepare(r, &bundle, &j.manifest.entry, &limits)? {
+        Ok(p) => {
+            if p.tree.digest() != j.build.public_artifacts {
+                bench.note("judge re-run of prepare produced a different public dir; the frozen one is used");
+            }
+            p.outcome.wall_ns
+        }
+        Err(f) => {
+            bench.fail(f.reason, format!("prepare: {}", f.detail));
+            out.gates.push(bench.finish(GateStatus::Unknown, true));
+            return Ok(out);
+        }
+    };
+    let public_bytes = arena_archive::tree_from_dir(&public_dir, &arena_archive::Limits::default())?.total_bytes();
+
+    let baselines: HashMap<&str, u64> = chal.workload_suite.baseline_ns.iter().map(|(k, v)| (k.as_str(), *v)).collect();
+    let plan = SessionPlan {
+        classes: chal
+            .workload_suite
+            .classes
+            .iter()
+            .map(|c| ClassPlan { class_id: c.id.clone(), weight_ppm: c.weight_ppm, baseline_ns: baselines.get(c.id.as_str()).copied().unwrap_or(0) })
+            .collect(),
+        procedure: chal.measurement.clone(),
+        schedule_seed: derive_seed("schedule", &[&j.ctx.challenge_id, &j.ctx.submission_id, &j.ctx.run_id]).map_err(ExecError::Infra)?,
+        bootstrap_seed: derive_seed("bootstrap", &[&j.ctx.submission_id, &j.ctx.run_id]).map_err(ExecError::Infra)?,
+        bootstrap_iterations: BOOTSTRAP_ITERATIONS,
+        fresh_confirm_runs: 1,
+    };
+    let cpus = r.ctx.bench_cpus.clone();
+    let worker_id = r.ctx.worker_id.clone();
+    let mut runner = Runner { r, entry: &j.manifest.entry, limits: limits.clone(), bundle, public_dir, batches, cpus, failure: None };
+    // A session with too many outliers is re-measured as a whole (spec
+    // §7.3), up to MAX_SESSIONS times within the job, then an infra error.
+    let mut attempt = 0;
+    let session = loop {
+        attempt += 1;
+        let session = arena_measure::run_session(&plan, &mut runner);
+        let failure = runner.failure.take();
+        let session = match session {
+            Ok(s) => s,
+            Err(SessionError::Run { error: RunError::Infra(e), .. }) => return Err(ExecError::Infra(e)),
+            Err(SessionError::Run { error: RunError::Candidate { .. }, .. }) => {
+                let (reason, detail) = failure.expect("candidate failure recorded");
+                bench.fail(reason, format!("no score: {detail}"));
+                out.gates.push(bench.finish(GateStatus::Unknown, true));
+                return Ok(out);
+            }
+            Err(e) => return Err(ExecError::Infra(e.to_string())),
+        };
+        match session.flags.iter().find(|f| f.starts_with("EXCESSIVE_OUTLIERS")) {
+            None => break session,
+            Some(f) if attempt >= MAX_SESSIONS => return Err(ExecError::Infra(format!("{f} in {attempt} sessions: host too noisy"))),
+            Some(f) => bench.note(format!("session {attempt} discarded ({f}); re-measured")),
+        }
+    };
+    let r = runner.r;
+    let classes: Vec<_> = session.classes.iter().map(|c| c.to_measurement()).collect();
+    // Resource caps over every measured run.
+    for c in &classes {
+        if c.proof_bytes_max > limits.max_proof_bytes {
+            bench.fail(ReasonCode::ResourceLimit, format!("class {}: proof {} bytes > max_proof_bytes", c.class_id, c.proof_bytes_max));
+        }
+        if c.peak_rss_bytes > limits.max_ram_bytes {
+            bench.fail(ReasonCode::ResourceLimit, format!("class {}: peak memory {} > max_ram_bytes", c.class_id, c.peak_rss_bytes));
+        }
+    }
+    let (score_milli, ci) = match &session.score {
+        Ok(s) => (Some(s.score_milli), Some(s.half_width_milli)),
+        // Unscored suites (no frozen baseline) still get measurements.
+        Err(_) if baselines.len() < chal.workload_suite.classes.len() => {
+            bench.note("challenge has no frozen baseline for every class: measured, not scored");
+            (None, None)
+        }
         Err(e) => return Err(ExecError::Infra(format!("score: {}", e.code()))),
     };
-    let classes: Vec<_> = session.classes.iter().map(|c| c.to_measurement()).collect();
+    let mut measured_by = format!("arena-worker {worker_id}");
+    if capped {
+        measured_by.push_str(" [DEV: batch sizes capped]");
+        bench.note(format!("DEV: batch sizes capped at {} (timings not comparable)", r.ctx.bench_batch_cap.unwrap_or(0)));
+    }
     let result = BenchmarkResult {
-        hardware_profile: j.hardware_profile.clone(),
-        suite_revision: j.suite_revision.clone(),
+        hardware_profile: chal.hardware_profile.id.clone(),
+        suite_revision: chal.workload_suite.revision.clone(),
         classes,
-        score_milli: Some(score.score_milli),
-        score_ci_milli: Some(score.half_width_milli),
+        score_milli,
+        score_ci_milli: ci,
         prepare_ns,
         public_artifact_bytes: public_bytes,
-        measured_by: format!("arena-worker {}", r_worker_id(&runner)),
+        measured_by,
     };
     let report = serde_json::json!({
         "schedule_seed": session.schedule_seed,
         "schedule": session.schedule,
         "classes": session.classes,
-        "bootstrap": score,
+        "bootstrap": session.score.as_ref().ok(),
         "flags": session.flags,
     });
     let report_bytes = serde_json::to_vec(&report).map_err(|e| ExecError::Infra(e.to_string()))?;
-    let d = runner.r.upload("benchmark_session", &report_bytes, true)?;
-    bench.evidence("benchmark_session", d, true);
+    let d = r.upload("benchmark session", &report_bytes, true)?;
+    bench.evidence("benchmark session", d, true);
+    for c in &result.classes {
+        bench.note(format!(
+            "{}: median {} us, MAD {} us, verify median {} us, max proof {} B",
+            c.class_id,
+            c.median_ns / 1000,
+            c.mad_ns / 1000,
+            c.verify_median_ns / 1000,
+            c.proof_bytes_max
+        ));
+    }
+    if bench.failed() {
+        out.gates.push(bench.finish(GateStatus::Unknown, true));
+        return Ok(out);
+    }
     if session.flags.iter().any(|f| f.starts_with("CACHING_SUSPECTED")) {
         bench.note("CACHING_SUSPECTED: fresh-input batch markedly slower; re-run with fresh batches before ranking");
-        bench.note(format!("score {} milli (unconfirmed)", score.score_milli));
         out.gates.push(bench.finish(GateStatus::Unknown, true));
     } else {
-        bench.note(format!("score {} ± {} milli (95% bootstrap, seed {})", score.score_milli, score.half_width_milli, score.seed));
+        if let (Some(s), Some(c)) = (score_milli, ci) {
+            bench.note(format!("worker-side score {s} ± {c} milli (server recomputes)"));
+        }
         out.gates.push(bench.finish(GateStatus::Pass, true));
     }
-    res.note(format!(
-        "prepare {} ms, public dir {} bytes; max proof {} bytes; max verify median {} ms",
-        prepare_ns / 1_000_000,
-        public_bytes,
-        result.classes.iter().map(|c| c.proof_bytes_max).max().unwrap_or(0),
-        result.classes.iter().map(|c| c.verify_median_ns).max().unwrap_or(0) / 1_000_000
-    ));
-    rel.note("every benchmark proof was claim-checked and accepted by verify");
-    out.gates.push(res.finish(GateStatus::Pass, true));
-    out.gates.push(rel.finish(GateStatus::Pass, true));
     out.benchmark = Some(result);
     Ok(out)
-}
-
-fn r_worker_id(runner: &Runner<'_, '_>) -> String {
-    runner.r.ctx.worker_id.clone()
 }
