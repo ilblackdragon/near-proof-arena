@@ -172,9 +172,10 @@ __arena-sandbox-helper`, so one binary is deployed).
   `database` key is visible to it.
   `ARENA_FIXTURES_DIRS` (public fixtures, matched to challenges by
   TreeDigest), `ARENA_CONFORMANCE_SAMPLES` (default 8),
-  `ARENA_FORMAL_CONFIG` (JSON: trusted Lean packages + expected-statement
-  template per `relation_decl`; without it the worker does not lease
-  FORMAL_CHECK), `ARENA_DEV_BENCH_BATCH_CAP` (DEV ONLY, recorded in
+  `ARENA_FORMAL_REPO` (clean checkout with `formal-core/`, `spec/lean/`;
+  enables FORMAL_CHECK), `ARENA_FORMAL_CONFIGS_DIR` (default
+  `<repo>/runners/formal-checker/challenges`), `ARENA_LEAN_CHECKER_IMAGES`
+  (firecracker), `ARENA_BUILD_TOOLCHAIN_IMAGE` + `ARENA_IMAGES_DIR`, `ARENA_DEV_BENCH_BATCH_CAP` (DEV ONLY, recorded in
   `measured_by`), `ARENA_LEASE_SECONDS`.
 * Types and transport: `server/arena-jobs` is the single source (`JobSpec`,
   `JobResult`, `BuildOutputs`, wire types, `WorkerClient`). Endpoints:
@@ -195,28 +196,40 @@ __arena-sandbox-helper`, so one binary is deployed).
 |---|---|---|
 | VALIDATE | `PKG_WELLFORMED` | archive + layout + manifest; challenge id, security profile, GPU request; runs no candidate code (no `DEMO_ONLY`) |
 | BUILD | `BUILD_REPRODUCIBLE` | recipe offline twice in fresh scratch; output trees compared (differing paths listed); judge-run `prepare` twice (nondeterministic → `BUILD_NOT_REPRODUCIBLE`); `BuildOutputs` = entry digests, bundle/public TreeDigests + uploaded archives (`bundle_archive`, `public_archive`), `formal_tree`, toolchain digest |
-| FORMAL_CHECK | `FORMAL_*`, `AXIOM_AUDIT` (+ `ARTIFACT_BINDING` UNKNOWN: not implemented) | `runners/formal-checker` through the shared sandbox (`SandboxRunner`); formal tree re-bound to the verified surface; recheckers from `toolchain_policy` |
+| FORMAL_CHECK | `FORMAL_*`, `AXIOM_AUDIT`, `ARTIFACT_BINDING` | `runners/formal-checker` through the shared sandbox (`SandboxRunner`: bwrap-dev with host tools, or firecracker with the lean-checker image as every run's root; tool mounts contained in the image are elided, stdout streamed to files); per-challenge `arena-formal-challenge-v1` config; Expected statement bound to `sha256(public.bin)` and the verifier artifact digest; checker identity (`ToolPaths::image_digest`) must equal `toolchain_policy.checker_image` (else UNKNOWN); `ARTIFACT_BINDING` FAILs (`ARTIFACT_BINDING_FAILED`) on a statement mismatch, PASSes only if every formal gate passed |
 | CONFORMANCE | `CONFORMANCE_DIFFERENTIAL`, `PROVER_RELIABILITY`, `RESOURCE_LIMITS` | bundle + public dir fetched by archive digest and re-bound by TreeDigest; public fixtures + sampled cases; `prove` with witness, claim bytes vs judge oracle; `verify` in a **separate** sandbox (public dir, claim, proof only); fail-fast; non-public case ids never in summaries |
 | ADVERSARIAL | `ADVERSARIAL_PROOFS` | 3 honest proofs produced and verified twice (rejected → `UNKNOWN`, flip → `VERIFIER_NONDETERMINISTIC`); generic mutators + the adversarial lane's `adv:*` (≤ 240 inputs, deterministic subsample); any acceptance → `HOSTILE_PROOF_ACCEPTED` |
-| BENCHMARK | `BENCHMARK` | classes/weights/batch sizes/procedure from the challenge, batches sampled by the oracle; every proof claim-checked and verified (failure → `BENCHMARK` FAIL with its reason); `prepare` timed; VMM wall cross-check; excessive outliers → whole session re-measured (≤ 3) then infra; `CACHING_SUSPECTED` → `UNKNOWN`; no frozen baselines → measured, unscored (the server recomputes scores anyway) |
+| BENCHMARK | `BENCHMARK` | classes/weights/batch sizes/procedure from the challenge, batches sampled by the oracle; every proof claim-checked and verified (failure → `BENCHMARK` FAIL with its reason); `prepare` timed; VMM wall cross-check; excessive outliers → whole session re-measured (≤ 3) then infra; `CACHING_SUSPECTED` → re-measured on fresh batches only (every round new) and that number published; no frozen baselines → measured, unscored (the server recomputes scores anyway) |
 
 ## End-to-end (`make e2e`)
 
-`tests/e2e/run.sh [--keep] [--hostile] [--hostile-only a,b]`: builds
+`tests/e2e/run.sh [--keep] [--hostile] [--hostile-only a,b] [--fc] [--hostile-near]`: builds
 `arena-server`, `arena-worker` and the `arena` CLI; recreates its own
 database (`arena_e2e_*`) on the shared Postgres; starts the server (dev,
 ports 18471/18472) with the signed demo challenge and the dev governance
 key; starts a real `arena-worker` (bwrap-dev); submits
 `tests/e2e/toy-candidate` (C reference candidate for `demo-toy-arithmetic`)
 with `arena submit`; asserts DECIDED, every required gate PASS from real
-judge work, DEMO tier, `rank: null`. `--hostile` then runs
+judge work, DEMO tier, `rank: null`. The formal NEAR challenge is registered
+too; the demo-capped worker must leave its submission untouched. `--fc`
+adds a Firecracker worker (tier cap formal, pinned toolchain and
+lean-checker images) and asserts the NEAR submission is built in microVMs
+and REJECTED at FORMAL_CHECK. `--hostile` then runs
 `adversarial/e2e/run.sh` against the same server (per-case JSON report in
 the work dir).
 
 ## Known gaps
 
-* Formal checks need read-write output dirs (bwrap-dev only; firecracker
-  is refused via `GuestLayout::rw_binds`). Builds run on both backends;
+* The signed NEAR challenge pins `checker_image` = the identity of the
+  host-installed dev tools (`sha256:2de5b6…`), not of the reproducible
+  lean-checker image (tool identity `sha256:5383707…`), so a production
+  (firecracker) worker reports its formal gates UNKNOWN for it — a
+  governance fix (re-pin to the image's identity), not a judge change.
+* `verify_route = "npai-v1"`: no arena NPAI interpreter in the worker yet;
+  conformance / adversarial / benchmark stay UNKNOWN for such candidates. No
+  NEAR claim oracle (`near-arena-claim-v1`) is wired into the worker either
+  (spec-oracle lane's `oracle/` is a separate workspace).
+* Builds run on both backends;
   production (non-demo) backends require a pinned toolchain image
   (`ARENA_BUILD_TOOLCHAIN_IMAGE` + `ARENA_IMAGES_DIR`, see
   `deploy/images/toolchain/build.sh`). The image is a worker setting, not
