@@ -52,6 +52,20 @@ theorem leN_length (w n : Nat) : (leN w n).length = w := by
   | zero => rfl
   | succ w ih => simp [leN, ih]
 
+theorem beToNat_append_single (l : Bytes) (x : UInt8) :
+    beToNat (l ++ [x]) = beToNat l * 256 + x.toNat := by
+  simp [beToNat, List.foldl_append]
+
+/-- Big-endian decoding inverts big-endian encoding (mod `256^w`). -/
+theorem beToNat_beN (w n : Nat) : beToNat (beN w n) = n % 256 ^ w := by
+  induction w generalizing n with
+  | zero => simp [beN, beToNat, Nat.mod_one]
+  | succ w ih =>
+    have h8 : (UInt8.ofNat (n % 256)).toNat = n % 256 % 256 := rfl
+    rw [beN, beToNat_append_single, ih, h8, Nat.mod_mod, Nat.pow_succ, Nat.mul_comm (256 ^ w),
+      Nat.mod_mul]
+    omega
+
 /-- Lowercase hex rendering (for `#eval` diagnostics only; never needed by a
 certificate). -/
 def toHex (b : Bytes) : String :=
