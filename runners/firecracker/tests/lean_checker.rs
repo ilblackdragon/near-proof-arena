@@ -317,6 +317,7 @@ fn formal_checker_corpus_in_microvms() {
             },
             work_dir: scratch.join("work"),
             cache_dir: work.join("ref-cache"),
+            route: Default::default(),
         };
         let runs0 = runner.vm_runs.load(Ordering::Relaxed);
         let t = Instant::now();
