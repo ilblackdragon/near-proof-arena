@@ -1,0 +1,22 @@
+[package]
+name = "arena-sandbox"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Sandbox trait (CONTRACTS §9) and the bwrap-dev (DEMO-only) backend"
+
+[dependencies]
+arena-types = { path = "../../common/arena-types" }
+arena-archive = { path = "../archive" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+libc.workspace = true
+tar.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[[bin]]
+name = "arena-sandbox-helper"
+path = "src/bin/arena-sandbox-helper.rs"
