@@ -112,13 +112,14 @@
   "formal_spec": {
    "relation_module": "NearSpec.TransferV1",
    "relation_decl": "NearSpec.TransferV1.NearRelation",
-   "tree_digest": "sha256:90a43355f324670c830f4d0935d12759c7bb85af47d3699beb1d83a1edb80698",
+   "tree_digest": "sha256:8090432a8236d8a8cacada10c257f83575f6c0ec480a40659d6af023ff39c611",
    "lean_toolchain": "leanprover/lean4:v4.34.1"
   },
   "formal_spec_tree_scope": [
-   "spec/lean"
+   "spec/lean",
+   "formal-core"
   ],
-  "formal_spec_tree_note": "TreeDigest over git-tracked files, paths relative to the repo root (spec/tools/tree_digest.py). formal-core is not merged in this tree yet: recompute with both roots at freeze.",
+  "formal_spec_tree_note": "TreeDigest over git-tracked files of spec/lean and formal-core, paths relative to the repo root.",
   "challenge_spec_instance": {
    "Claim": "NearSpec.TransferV1.WfClaim",
    "Rel": "NearSpec.TransferV1.WfClaim.Rel",
@@ -130,7 +131,7 @@
    "full_domain": "NearSpec.TransferV1.Domain"
   },
   "spec_doc": "spec/near-transfer-receipt-v1.md",
-  "spec_doc_digest": "sha256:164c42ce238386a99cfdf21e92b58afbca902bfdc84c628fb1f0d80a4bab4851"
+  "spec_doc_digest": "sha256:a1323f4a1b93e3fd9325ce3f8a046eb5661b066f20658325bc45e8209d8e09b3"
  },
  "claim_encoding": {
   "format": "near-arena-claim-v1",
@@ -145,7 +146,7 @@
  },
  "workload_suite": {
   "generator": "near-arena-oracle gen (oracle/src/casegen.rs)",
-  "generator_digest": "sha256:ecb0802eab80349413a419dee48d6d38afabd94c910f914c092b56e38ddf2fd8",
+  "generator_digest": "sha256:2d2cab43c2d03e85058d35e38a669fee38502deb295349225df1ae491d93e5e5",
   "generator_digest_scope": [
    "oracle/src",
    "oracle/Cargo.toml",

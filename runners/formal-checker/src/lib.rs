@@ -5,6 +5,7 @@
 //! admission statement as its type. See `README.md` for the threat model.
 
 pub mod audit;
+pub mod challenge;
 pub mod digest;
 pub mod expected;
 pub mod findings;
@@ -17,6 +18,7 @@ pub mod sandbox;
 pub mod staging;
 pub mod toolchain;
 
+pub use challenge::{ChallengeFormalConfig, ExpectedInputs};
 pub use expected::{ExpectedTypeBuilder, LeanValue, TemplateExpected};
 pub use pipeline::{CheckRequest, FormalChecker, Limits, Policy, TrustedPackage};
 pub use report::FormalCheckReport;

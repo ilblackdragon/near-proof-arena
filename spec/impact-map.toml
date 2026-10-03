@@ -94,14 +94,14 @@ fixtures = ["*"]
 [[rule]]
 id = "state-commitment"
 paths = ["core/store/src/trie/**", "core/store/src/merkle_proof.rs", "core/primitives/src/merkle.rs", "core/primitives/src/state.rs", "core/primitives/src/state_part.rs", "core/primitives-core/src/hash.rs", "core/store/src/flat/**"]
-spec_definitions = ["NearSpec.PTrie.hashOf", "NearSpec.hexPrefix", "NearSpec.nibbles", "NearSpec.Slot.valueRef", "NearSpec.PTrie.get", "NearSpec.PTrie.set", "NearSpec.PTrie.wf", "NearSpec.PTrie.revealedBytes", "NearSpec.merkleRoot", "NearSpec.outcomeRoot", "NearSpec.SHA256.sha256"]
+spec_definitions = ["NearSpec.PTrie.hashOf", "NearSpec.hexPrefix", "NearSpec.nibbles", "NearSpec.Slot.valueRef", "NearSpec.PTrie.get", "NearSpec.PTrie.set", "NearSpec.PTrie.wf", "NearSpec.PTrie.revealedBytes", "NearSpec.merkleRoot", "NearSpec.outcomeRoot", "ArenaCore.sha256"]
 obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "FORMAL_CRYPTO_SOUNDNESS", "FORMAL_IMPL_CONNECTION", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
 fixtures = ["*"]
 
 [[rule]]
 id = "crypto"
 paths = ["core/crypto/**"]
-spec_definitions = ["NearSpec.SHA256.sha256", "NearSpec.PublicKey.wf", "NearSpec.PublicKey.encode"]
+spec_definitions = ["ArenaCore.sha256", "NearSpec.PublicKey.wf", "NearSpec.PublicKey.encode"]
 obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_CRYPTO_SOUNDNESS", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
 fixtures = ["oracle/fixtures/public/**"]
 note = "Signatures are excluded from the slice; hash.rs (SHA-256 CryptoHash) and PublicKey borsh are on the slice path."

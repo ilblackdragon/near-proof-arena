@@ -91,7 +91,7 @@ certificate = "Candidate.certificate"   # a Lean constant name
 # verifier_model_module = "Candidate.Model"
 ```
 
-v1.2 optional `[entry]` keys: `verify_route = "npai-v1" | "native-lean"`,
+v1.2 optional `[entry]` keys: `verify_route = "native" (default) | "npai-v1" | "native-lean"`,
 `verifier_bytecode = "out/verifier.npai"` (npai-v1). For `native-lean` the
 judge builds `verify` from `formal.verifier_model`; the candidate's own
 `verify` binary is not admitted.

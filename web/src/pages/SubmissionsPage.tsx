@@ -148,7 +148,7 @@ export function SubmissionsPage() {
                         <SubLink id={s.id} />
                       </td>
                       <td>
-                        <T v={s.candidate_name} max={64} />
+                        <T v={s.candidate_name} max={64} empty="(unnamed — manifest not yet validated)" />
                         <div className="small muted">
                           <T v={s.agent} max={64} />
                         </div>

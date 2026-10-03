@@ -1,8 +1,8 @@
 {
   "id": "sha256-collision-resistance",
   "description": "Collision resistance of SHA-256 (FIPS 180-4, 32-byte output), stated in an EXPLICIT-REDUCTION, CONCRETE-SECURITY form. The governed Lean hypothesis is a Prop-valued definition parameterised by a running-time bound t (counted in SHA-256 compression-function evaluations plus unit-cost steps of the formal-core cost model) and states: for every adversary A in the formal-core adversary class with cost(A) <= t, Pr[A() = (x, y) with x != y and SHA256(x) = SHA256(y)] <= epsCR(t), where the governed bound is epsCR(t) = (t + 1)^2 / 2^256 (generic birthday bound; no structural attack on SHA-256 is known to do better). A certificate may use this hypothesis ONLY through an explicit reduction: the certified security theorem must exhibit a reduction R (a Lean term) mapping any adversary B against the candidate's soundness game to a collision finder R(B), with a kernel-checked bound cost(R(B)) <= cost(B) + overhead(params) and Adv_sound(B) <= loss(params) * Adv_CR(R(B)) + slack(params). The judge evaluates the resulting bound at the challenge's concrete parameters (no native_decide); asymptotic statements ('negligible in lambda') do not discharge FORMAL_CRYPTO_SOUNDNESS. Classical adversaries only: nothing here implies post-quantum security. Domain separation between distinct uses of SHA-256 is the candidate's obligation to prove, not an assumption.",
-  "lean_decl": "Arena.Assumptions.Sha256CollisionResistant",
-  "lean_decl_digest": null,
+  "lean_decl": "ArenaCore.Assumptions.Sha256CollisionResistant",
+  "lean_decl_digest": "sha256:0276e9a92c714afbd244cc535a93a6b8dcf6dbd1ea855977a3bdf21e75907793",
   "references": [
     "NIST FIPS 180-4, Secure Hash Standard (SHS), 2015",
     "P. Rogaway, Formalizing Human Ignorance: Collision-Resistant Hashing without the Keys, VIETCRYPT 2006 (explicit-reduction formulation for unkeyed hash functions)",

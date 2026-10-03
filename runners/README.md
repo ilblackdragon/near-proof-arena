@@ -133,10 +133,13 @@ cannot be killed/inspected from inside.
 
 ### firecracker (runners-vm lane)
 
-`FirecrackerSandbox` implements the trait with `tier_cap = None` and layout
-`/arena/scratch` + `/arena/in`. It does not support `copy_in`,
-`scratch_dirs`, a non-scratch `cwd`, or collecting paths outside `out/`
-(`GuestLayout::flexible_scratch = false`); outputs come back as `out/<path>`.
+`FirecrackerSandbox` implements the trait with `tier_cap = None` and the same
+guest layout as bwrap-dev (`/scratch`, `/in/`, `/opt/`,
+`flexible_scratch = true`): `copy_in`, `scratch_dirs`, any `cwd`, arbitrary
+scratch-relative `collect` paths, and `Rootfs::Image` (e.g. the pinned build
+toolchain from `deploy/images/toolchain/build.sh`, re-verified by digest) are
+supported, so BUILD_REPRODUCIBLE can run in microVMs. Timeouts are enforced
+in the guest first, so truncated stdout/stderr survive. See docs/ISOLATION.md.
 `InfraError::GuestProtocol` (forged guest report) becomes a
 `SANDBOX_VIOLATION` FAIL in the worker.
 

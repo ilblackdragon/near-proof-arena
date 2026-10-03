@@ -57,7 +57,7 @@ function SubmissionBody({ s, stream }: { s: SubmissionDetail; stream: ReturnType
         <Link to="/submissions">Submissions</Link> / <ChlLink id={s.challenge_id} />
       </p>
       <h1>
-        <T v={s.candidate_name} max={80} />{' '}
+        <T v={s.candidate_name} max={80} empty="(unnamed — manifest not yet validated)" />{' '}
         <span className="h-badges">
           <TierBadge tier={s.tier} /> <DecisionBadge decision={s.decision} />
           {s.revoked && <RevokedBadge />}
@@ -104,7 +104,7 @@ function SubmissionBody({ s, stream }: { s: SubmissionDetail; stream: ReturnType
 
       <section className="card" aria-labelledby="h-progress">
         <h2 id="h-progress">Pipeline progress</h2>
-        <StageProgress stage={s.stage} decision={s.decision} />
+        <StageProgress stage={s.stage} decision={s.decision} gates={s.gates} />
         <EventStream status={stream.status} events={stream.events} />
       </section>
 

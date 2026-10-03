@@ -94,12 +94,24 @@ export function ChallengeFacts({ c, verify }: { c: ChallengeRecord; verify: Veri
           <Row k="Challenge id">
             <code className="mono wrap">{c.id}</code>
           </Row>
-          <Row k="Digest">{c.digest ? <DigestText d={c.digest} full /> : <span className="muted">not reported</span>}</Row>
+          <Row k="Digest">
+            <DigestText d={c.digest} full />
+          </Row>
           <Row k="Integrity">
             <VerifyLine v={verify} />
           </Row>
           <Row k="Tier">
             <TierBadge tier={d.tier} />
+          </Row>
+          <Row k="Submissions">{c.open ? 'open' : <span className="warn">closed</span>}</Row>
+          <Row k="Signed by">
+            <code className="mono wrap"><T v={c.governance_key} max={80} /></code>
+          </Row>
+          <Row k="Signature">
+            <code className="mono wrap small"><T v={c.signature} max={140} /></code>
+          </Row>
+          <Row k="Registered">
+            {fmtTime(c.registered_at)} by <T v={c.registered_by} max={64} />
           </Row>
           <Row k="Season">
             <T v={d.season} />

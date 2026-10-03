@@ -2,13 +2,13 @@
 //! delivery container (which runs jailer + Firecracker), applies a backstop
 //! deadline, decodes the guest's output device and cleans up.
 
-use crate::native::*;
-use arena_sandbox::{Diagnostics, Exit, InfraError, LimitEnforcement, SandboxOutcome};
 use crate::images::{self, TreeLimits};
+use crate::native::*;
 use arena_fc_proto::{
-    self as proto, GuestJob, GuestMount, GuestStatus, MountKind, ShimDrive, ShimJob, ShimResult,
-    ShimStatus,
+    self as proto, DriveRateLimit, GuestJob, GuestMount, GuestStatus, MountKind, ShimDrive,
+    ShimJob, ShimResult, ShimStatus,
 };
+use arena_sandbox::{Diagnostics, Exit, InfraError, LimitEnforcement, SandboxOutcome};
 use arena_types::Digest;
 use sha2::{Digest as _, Sha256};
 use std::fs::{self, File, OpenOptions};
@@ -74,6 +74,16 @@ pub struct FirecrackerConfig {
     /// Capabilities granted to the delivery container (default
     /// `CONTAINER_CAPS`; overridable only for experiments).
     pub container_caps: Vec<String>,
+    /// Firecracker token-bucket limits applied to every data drive (rootfs,
+    /// root image, bundles, scratch, output). `None` disables limiting.
+    pub drive_rate_limit: Option<DriveRateLimit>,
+    /// Size cap of the content-addressed image cache (bundles + root
+    /// images); least-recently-used entries are evicted past it.
+    pub cache_max_bytes: u64,
+    /// Limits for staging a candidate root image (toolchains are large).
+    pub root_image_limits: TreeLimits,
+    /// Host-side hard timeout slack over the guest-enforced wall timeout.
+    pub host_timeout_grace: Duration,
 }
 
 impl FirecrackerConfig {
@@ -109,6 +119,17 @@ impl FirecrackerConfig {
             max_vcpus: 32,
             max_scratch_mb: 64 * 1024,
             container_caps: CONTAINER_CAPS.iter().map(|c| c.to_string()).collect(),
+            drive_rate_limit: Some(DriveRateLimit {
+                bytes_per_s: 512 << 20,
+                ops_per_s: 20_000,
+                burst_bytes: 256 << 20,
+            }),
+            cache_max_bytes: 32 << 30,
+            root_image_limits: TreeLimits {
+                max_entries: 2_000_000,
+                max_bytes: 32 << 30,
+            },
+            host_timeout_grace: Duration::from_secs(2),
         })
     }
 
@@ -221,7 +242,9 @@ impl FirecrackerSandbox {
             return bad("argv empty or contains NUL".into());
         }
         for (k, v) in &spec.env {
-            if !ENV_ALLOWLIST.contains(&k.as_str()) && !arena_sandbox::ENV_ALLOWLIST.contains(&k.as_str()) {
+            if !ENV_ALLOWLIST.contains(&k.as_str())
+                && !arena_sandbox::ENV_ALLOWLIST.contains(&k.as_str())
+            {
                 return bad(format!("env var {k} not in allowlist"));
             }
             if v.contains('\0') {
@@ -258,29 +281,82 @@ impl FirecrackerSandbox {
             return bad("too many ro_mounts".into());
         }
         let mut guest_paths: Vec<&str> = Vec::new();
+        let overlaps = |a: &str, b: &str| {
+            a == b || a.starts_with(&format!("{b}/")) || b.starts_with(&format!("{a}/"))
+        };
         for m in &spec.ro_mounts {
             let g = m.guest_path.as_str();
-            let rel = g.strip_prefix(proto::GUEST_MOUNT_PREFIX).ok_or_else(|| {
-                InfraError::InvalidSpec(format!("guest path {g:?} must be under /arena/"))
-            })?;
-            proto::validate_rel_path(rel)
-                .map_err(|e| InfraError::InvalidSpec(format!("guest path {g:?}: {e}")))?;
-            if !rel
+            if !proto::GUEST_MOUNT_PREFIXES.iter().any(|p| g.starts_with(p)) {
+                return bad(format!(
+                    "guest path {g:?} must be under {:?}",
+                    proto::GUEST_MOUNT_PREFIXES
+                ));
+            }
+            abs_guest(g)?;
+            if !g
                 .bytes()
-                .all(|b| b.is_ascii_alphanumeric() || b"._-/".contains(&b))
-                || rel.starts_with(".m")
+                .all(|b| b.is_ascii_alphanumeric() || b"._-/+".contains(&b))
             {
                 return bad(format!("guest path {g:?} has unsupported characters"));
             }
-            let overlaps = |a: &str, b: &str| {
-                a == b || a.starts_with(&format!("{b}/")) || b.starts_with(&format!("{a}/"))
-            };
             if overlaps(g, proto::GUEST_SCRATCH) || guest_paths.iter().any(|p| overlaps(p, g)) {
                 return bad(format!("guest path {g:?} overlaps another mount"));
             }
             guest_paths.push(g);
         }
+        abs_guest(&spec.cwd)?;
+        for (from, to) in &spec.copy_in {
+            abs_guest(from)?;
+            rel_scratch(to)?;
+        }
+        for p in spec.scratch_dirs.iter().chain(&spec.collect) {
+            rel_scratch(p)?;
+        }
+        if spec.collect.len() > 256 || spec.scratch_dirs.len() > 256 || spec.copy_in.len() > 64 {
+            return bad("too many collect/scratch_dirs/copy_in entries".into());
+        }
         Ok(())
+    }
+
+    /// Ensure the root image for `img` is in the cache (verifying its digest
+    /// on a staged copy when building it).
+    fn prepare_root_image(&self, img: &RootImage, staging: &Path) -> Result<PathBuf, InfraError> {
+        let cached = self
+            .cfg
+            .work_root
+            .join("cache")
+            .join(format!("root-{}.ext4", img.digest.hex()));
+        if cached.exists() {
+            images::touch(&cached);
+            return Ok(cached);
+        }
+        let st_dir = staging.join(format!("root-{}", random_hex(6)?));
+        let st = images::stage_tree(&img.dir, &st_dir, &self.cfg.root_image_limits)?;
+        let lim = arena_archive::Limits {
+            max_expanded_bytes: self.cfg.root_image_limits.max_bytes,
+            max_entries: self.cfg.root_image_limits.max_entries,
+            ..Default::default()
+        };
+        let got = arena_archive::tree_from_dir(&st_dir, &lim)
+            .map_err(|e| InfraError::InvalidSpec(format!("root image {}: {e}", img.dir.display())))?
+            .digest();
+        if got != img.digest {
+            return Err(InfraError::InvalidSpec(format!(
+                "root image {} has digest {got}, expected {}",
+                img.dir.display(),
+                img.digest
+            )));
+        }
+        let tmp = self.cfg.work_root.join("cache").join(format!(
+            ".root-{}.{}.tmp",
+            img.digest.hex(),
+            random_hex(4)?
+        ));
+        images::build_ro_image(&st, &tmp)?;
+        fs::rename(&tmp, &cached)?;
+        let _ = fs::remove_dir_all(&st_dir);
+        images::evict_cache(&self.cfg.work_root.join("cache"), self.cfg.cache_max_bytes);
+        Ok(cached)
     }
 
     /// Stage + hash a read-only mount; returns (cached image path, kind).
@@ -345,7 +421,9 @@ impl FirecrackerSandbox {
             ),
         };
         let cached = self.cfg.work_root.join("cache").join(format!("{key}.ext4"));
-        if !cached.exists() {
+        if cached.exists() {
+            images::touch(&cached);
+        } else {
             let tmp = self
                 .cfg
                 .work_root
@@ -353,6 +431,7 @@ impl FirecrackerSandbox {
                 .join(format!(".{key}.{}.tmp", random_hex(4)?));
             images::build_ro_image(&st, &tmp)?;
             fs::rename(&tmp, &cached)?; // atomic; concurrent builders produce equivalent images
+            images::evict_cache(&self.cfg.work_root.join("cache"), self.cfg.cache_max_bytes);
         }
         let _ = fs::remove_dir_all(&st_dir);
         Ok((cached, kind))
@@ -585,6 +664,7 @@ impl FirecrackerSandbox {
                 read_only: true,
                 is_root: true,
                 chown_to_vmm: false,
+                rate_limit: self.cfg.drive_rate_limit,
             },
             ShimDrive {
                 drive_id: "ctl".into(),
@@ -592,6 +672,7 @@ impl FirecrackerSandbox {
                 read_only: true,
                 is_root: false,
                 chown_to_vmm: false,
+                rate_limit: None,
             },
             ShimDrive {
                 drive_id: "out".into(),
@@ -599,6 +680,7 @@ impl FirecrackerSandbox {
                 read_only: false,
                 is_root: false,
                 chown_to_vmm: true,
+                rate_limit: self.cfg.drive_rate_limit,
             },
             ShimDrive {
                 drive_id: "scratch".into(),
@@ -606,6 +688,7 @@ impl FirecrackerSandbox {
                 read_only: false,
                 is_root: false,
                 chown_to_vmm: true,
+                rate_limit: self.cfg.drive_rate_limit,
             },
         ];
         let mut mounts = Vec::new();
@@ -619,6 +702,7 @@ impl FirecrackerSandbox {
                 read_only: true,
                 is_root: false,
                 chown_to_vmm: false,
+                rate_limit: self.cfg.drive_rate_limit,
             });
             mounts.push(GuestMount {
                 dev_index: proto::FIRST_MOUNT_DEV_INDEX + i as u32,
@@ -626,11 +710,31 @@ impl FirecrackerSandbox {
                 kind,
             });
         }
+        let root_dev_index = match &spec.root_image {
+            Some(img) => {
+                let cached = self.prepare_root_image(img, &staging)?;
+                images::link_or_copy(&cached, &input.join("rootimg.ext4"))?;
+                drives.push(ShimDrive {
+                    drive_id: "rootimg".into(),
+                    file: "rootimg.ext4".into(),
+                    read_only: true,
+                    is_root: false,
+                    chown_to_vmm: false,
+                    rate_limit: self.cfg.drive_rate_limit,
+                });
+                Some(proto::FIRST_MOUNT_DEV_INDEX + spec.ro_mounts.len() as u32)
+            }
+            None => None,
+        };
         let _ = fs::remove_dir_all(&staging);
 
         // scratch + output devices, fresh per run
         images::build_scratch_image(&input.join("scratch.img"), spec.rw_scratch_mb)?;
-        let max_output_bytes = self.cfg.max_output_bytes.min(spec.rw_scratch_mb << 20).min(spec.max_output_bytes);
+        let max_output_bytes = self
+            .cfg
+            .max_output_bytes
+            .min(spec.rw_scratch_mb << 20)
+            .min(spec.max_output_bytes);
         let out_dev_bytes =
             (max_output_bytes + (4 << 20) + 2 * proto::STREAM_CAP as u64).div_ceil(4096) * 4096;
         images::build_raw_image(&input.join("out.img"), &[], out_dev_bytes)?;
@@ -639,7 +743,9 @@ impl FirecrackerSandbox {
         for (k, v) in [
             ("PATH", "/usr/local/bin:/usr/bin:/bin"),
             ("HOME", proto::GUEST_SCRATCH),
-            ("TMPDIR", proto::GUEST_TMP_DIR),
+            ("TMPDIR", "/tmp"),
+            ("LANG", "C.UTF-8"),
+            ("TZ", "UTC"),
         ] {
             if !env.iter().any(|(ek, _)| ek == k) {
                 env.push((k.into(), v.into()));
@@ -659,6 +765,12 @@ impl FirecrackerSandbox {
             mounts,
             max_output_files: self.cfg.max_output_files,
             max_output_bytes,
+            root_dev_index,
+            copy_in: spec.copy_in.clone(),
+            scratch_dirs: spec.scratch_dirs.clone(),
+            cwd: spec.cwd.clone(),
+            collect: spec.collect.clone(),
+            timeout_ms: spec.wall_timeout.as_millis() as u64,
         };
         let ctl = proto::encode_control(&guest);
         if ctl.len() > proto::MAX_CONTROL_LEN {
@@ -713,7 +825,12 @@ impl FirecrackerSandbox {
             host_uid: self.host_uid,
             host_gid: self.host_gid,
             boot_timeout_ms: self.cfg.boot_timeout.as_millis() as u64,
-            run_timeout_ms: spec.wall_timeout.as_millis() as u64,
+            // the guest kills at wall_timeout and still reports; the host
+            // kills (losing stdout/stderr) only if the guest fails to
+            run_timeout_ms: (spec.wall_timeout
+                + self.cfg.host_timeout_grace
+                + spec.wall_timeout / 50)
+                .as_millis() as u64,
             collect_timeout_ms: self.cfg.collect_timeout.as_millis() as u64,
             serial_cap_bytes: self.cfg.serial_cap_bytes,
         };
@@ -812,6 +929,7 @@ impl FirecrackerSandbox {
             GuestStatus::Exited { code } => Exit::Exited(*code),
             GuestStatus::Signaled { signal } => Exit::Signaled(*signal),
             GuestStatus::OomKilled => Exit::OomKilled,
+            GuestStatus::TimedOut => Exit::TimedOut,
             GuestStatus::SpawnFailed { error } => {
                 stderr =
                     format!("arena: failed to execute {:?}: {error}\n", spec.argv[0]).into_bytes();
@@ -848,7 +966,9 @@ impl FirecrackerSandbox {
         o.cpu_ns = res.cgroup.cpu_usage_ns;
         o.peak_rss_bytes = res.cgroup.memory_peak_bytes;
         o.max_process_rss_bytes = diag.guest_peak_mem_bytes.unwrap_or(0);
-        o.stdout_bytes = diag.stdout_total_bytes.unwrap_or(header.stdout.len() as u64);
+        o.stdout_bytes = diag
+            .stdout_total_bytes
+            .unwrap_or(header.stdout.len() as u64);
         o.stderr_bytes = diag.stderr_total_bytes.unwrap_or(stderr.len() as u64);
         o.stdout_trunc = header.stdout;
         o.stderr_trunc = stderr;
@@ -870,13 +990,30 @@ fn tail(s: &str) -> &str {
 
 pub const BACKEND_NAME: &str = "firecracker";
 
-/// Guest layout of this backend (see `arena_sandbox::GuestLayout`).
+/// Guest layout of this backend: identical paths to bwrap-dev, with
+/// copy-in, scratch dirs, arbitrary cwd and collect supported.
 pub const FC_LAYOUT: arena_sandbox::GuestLayout = arena_sandbox::GuestLayout {
     scratch: proto::GUEST_SCRATCH,
-    inputs: "/arena/in",
-    mount_prefixes: &["/arena/in/", "/arena/opt/"],
-    flexible_scratch: false,
+    inputs: proto::GUEST_INPUTS,
+    mount_prefixes: proto::GUEST_MOUNT_PREFIXES,
+    flexible_scratch: true,
 };
+
+fn abs_guest(p: &str) -> Result<(), InfraError> {
+    let rel = p
+        .strip_prefix('/')
+        .ok_or_else(|| InfraError::InvalidSpec(format!("guest path {p:?} must be absolute")))?;
+    if rel.is_empty() {
+        return Ok(());
+    }
+    proto::validate_rel_path(rel)
+        .map_err(|e| InfraError::InvalidSpec(format!("guest path {p:?}: {e}")))
+}
+
+fn rel_scratch(p: &str) -> Result<(), InfraError> {
+    proto::validate_rel_path(p)
+        .map_err(|e| InfraError::InvalidSpec(format!("scratch path {p:?}: {e}")))
+}
 
 impl FirecrackerSandbox {
     /// Run a native request (operator CLI, VM tests).
@@ -885,30 +1022,51 @@ impl FirecrackerSandbox {
     }
 
     /// Translate a shared `SandboxSpec` (validated against [`FC_LAYOUT`]).
-    fn translate(&self, spec: &arena_sandbox::SandboxSpec, out_dir: PathBuf) -> Result<RunRequest, InfraError> {
+    fn translate(
+        &self,
+        spec: &arena_sandbox::SandboxSpec,
+        out_dir: PathBuf,
+    ) -> Result<RunRequest, InfraError> {
         spec.validate_for(&FC_LAYOUT)?;
-        let rootfs_digest = match &spec.rootfs {
-            arena_sandbox::Rootfs::BackendDefault => self.rootfs_digest.clone(),
-            arena_sandbox::Rootfs::Image { digest, .. } => digest.clone(),
+        let root_image = match &spec.rootfs {
+            arena_sandbox::Rootfs::BackendDefault => None,
+            arena_sandbox::Rootfs::Image { path, digest } => Some(RootImage {
+                dir: path.clone(),
+                digest: digest.clone(),
+            }),
             arena_sandbox::Rootfs::HostDev => {
-                return Err(InfraError::InvalidSpec("firecracker has no host-dev rootfs".into()))
+                return Err(InfraError::InvalidSpec(
+                    "firecracker has no host-dev rootfs; use a pinned toolchain image".into(),
+                ))
             }
         };
         Ok(RunRequest {
-            rootfs_digest,
+            rootfs_digest: self.rootfs_digest.clone(),
+            root_image,
             ro_mounts: spec
                 .ro_mounts
                 .iter()
-                .map(|m| RoMount { host_path: m.host.clone(), guest_path: m.guest.clone() })
+                .map(|m| RoMount {
+                    host_path: m.host.clone(),
+                    guest_path: m.guest.clone(),
+                })
                 .collect(),
             rw_scratch_mb: spec.rw_scratch_mb,
+            copy_in: spec
+                .copy_in
+                .iter()
+                .map(|c| (c.from_guest.clone(), c.to_scratch.clone()))
+                .collect(),
+            scratch_dirs: spec.scratch_dirs.clone(),
             argv: spec.argv.clone(),
+            cwd: spec.cwd.clone(),
             env: spec.env.clone(),
             cpu_set: spec.cpu_set.clone().unwrap_or_default(),
             mem_bytes: spec.mem_bytes,
             pids: spec.pids,
             wall_timeout: spec.wall_timeout,
             network: None,
+            collect: spec.collect.clone(),
             out_dir,
             max_output_bytes: spec.max_output_bytes,
         })
@@ -927,64 +1085,56 @@ impl arena_sandbox::Sandbox for FirecrackerSandbox {
         FC_LAYOUT
     }
 
-    /// Outputs: the guest collects everything under `<scratch>/out`; they
-    /// are materialized at `spec.out_dir/out/...` and reported as
-    /// `out/<path>`, then filtered to `spec.collect`.
+    /// Outputs: the guest collects exactly `spec.collect` (scratch-relative);
+    /// they are materialized at `spec.out_dir/<path>`.
     fn run(&self, spec: &arena_sandbox::SandboxSpec) -> Result<SandboxOutcome, InfraError> {
         let (root, tmp_root) = match &spec.out_dir {
             Some(d) => {
                 if d.exists() {
-                    return Err(InfraError::InvalidSpec(format!("out_dir {} already exists", d.display())));
+                    return Err(InfraError::InvalidSpec(format!(
+                        "out_dir {} already exists",
+                        d.display()
+                    )));
                 }
-                fs::create_dir_all(d)?;
                 (d.clone(), false)
             }
-            None => {
-                let d = self.cfg.work_root.join("jobs").join(format!("discard-{}", random_hex(8)?));
-                fs::create_dir_all(&d)?;
-                (d, true)
-            }
+            None => (
+                self.cfg
+                    .work_root
+                    .join("jobs")
+                    .join(format!("discard-{}", random_hex(8)?)),
+                true,
+            ),
         };
-        let res = self.translate(spec, root.join("out")).and_then(|req| self.run_inner(&req));
+        let res = self
+            .translate(spec, root.clone())
+            .and_then(|req| self.run_inner(&req));
         let mut o = match res {
             Ok(o) => o,
             Err(e) => {
                 let _ = fs::remove_dir_all(&root);
-                if !tmp_root {
-                    let _ = fs::create_dir_all(&root);
-                }
                 return Err(e);
             }
         };
         o.stdout_trunc.truncate(spec.output_trunc_bytes);
         o.stderr_trunc.truncate(spec.output_trunc_bytes);
-        let wanted = |p: &str| {
-            spec.collect.iter().any(|c| p == c || (p.len() > c.len() && p.starts_with(c.as_str()) && p.as_bytes()[c.len()] == b'/'))
-        };
-        let mut kept = Vec::new();
-        for (p, d) in std::mem::take(&mut o.outputs) {
-            let p = format!("out/{p}");
-            if wanted(&p) {
-                kept.push((p, d));
-            } else {
-                let _ = fs::remove_file(root.join(&p));
-            }
-        }
         if !o.diagnostics.output_violations.is_empty() || !o.diagnostics.outputs_complete {
             o.output_error = Some(format!(
                 "output collection incomplete: {}",
                 o.diagnostics.output_violations.join("; ")
             ));
-            kept.clear();
+            o.outputs.clear();
             let _ = fs::remove_dir_all(&root);
             let _ = fs::create_dir_all(&root);
         }
-        o.outputs = kept;
         if tmp_root {
             o.outputs.clear();
             let _ = fs::remove_dir_all(&root);
         } else if o.output_error.is_none() {
-            let lim = arena_archive::Limits { max_expanded_bytes: spec.max_output_bytes.max(1), ..Default::default() };
+            let lim = arena_archive::Limits {
+                max_expanded_bytes: spec.max_output_bytes.max(1),
+                ..Default::default()
+            };
             match arena_archive::tree_from_dir(&root, &lim) {
                 Ok(t) => o.outputs_tree = Some(t.digest()),
                 Err(e) => o.output_error = Some(e.to_string()),

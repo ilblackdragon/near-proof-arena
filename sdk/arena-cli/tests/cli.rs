@@ -739,6 +739,7 @@ fn sample_challenge() -> arena_types::ChallengeDefinition {
             max_prepare_ms: 60_000,
             max_build_ms: 600_000,
         },
+        formal_params: None,
         supersedes: None,
         created_at: "2026-10-01T00:00:00Z".into(),
     }

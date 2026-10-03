@@ -8,3 +8,10 @@ name = "NearSpec"
 [[lean_exe]]
 name = "nearspec-check"
 root = "Main"
+
+# The judge-trusted core (same repo, pinned together with this package).
+# NearSpec hashes with `ArenaCore.sha256`, the very function used by the NPAI
+# interpreter's SHA256 opcode and by the `sha256_cr` assumption.
+[[require]]
+name = "ArenaCore"
+path = "../../formal-core"

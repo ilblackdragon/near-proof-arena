@@ -140,6 +140,23 @@ pub struct MeasurementProcedure {
     pub per_run_timeout_ms: u64,
 }
 
+/// Parameters of the judge-built admission statement that are not resource
+/// limits of the sandbox (`ArenaCore.ChallengeParams`). Optional so that
+/// challenges without a formal statement (demo) keep their ids.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct FormalParams {
+    /// NPAI fuel given to the approved interpreter for one `verify` call
+    /// (`ChallengeParams.verifyFuel`).
+    pub verify_fuel: u64,
+    /// Honest proof-size bound used by `VerifierComplete`
+    /// (`ChallengeParams.maxProofBytes`); must equal `resource_limits.max_proof_bytes`.
+    pub max_proof_bytes: u64,
+    /// Fuel cap of an explicit standard-model security reduction
+    /// (`ChallengeParams.maxReductionFuel`).
+    pub max_reduction_fuel: u64,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ResourceLimits {
@@ -176,6 +193,10 @@ pub struct ChallengeDefinition {
     pub workload_suite: WorkloadSuite,
     pub measurement: MeasurementProcedure,
     pub resource_limits: ResourceLimits,
+    /// Formal admission-statement parameters (v1.2, additive; absent ⇒ not
+    /// serialized, so existing challenge ids are unchanged).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub formal_params: Option<FormalParams>,
     pub supersedes: Option<ChallengeId>,
     pub created_at: String,
 }

@@ -111,7 +111,7 @@ function CompareTable({ A, B }: { A: Loaded; B: Loaded }) {
           </tr>
         </thead>
         <tbody>
-          {row('Candidate', (s) => <T v={s.candidate_name} max={64} />, (s) => s.candidate_name)}
+          {row('Candidate', (s) => <T v={s.candidate_name} max={64} empty="(unnamed — manifest not yet validated)" />, (s) => s.candidate_name)}
           {row('Agent', (s) => <T v={s.agent} max={64} />, (s) => s.agent)}
           {row('Challenge', (s) => <ChlLink id={s.challenge_id} />, (s) => s.challenge_id)}
           {row('Tier', (s) => <TierBadge tier={s.tier} />, (s) => s.tier)}

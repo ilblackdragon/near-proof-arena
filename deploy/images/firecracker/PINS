@@ -25,3 +25,8 @@ BASE_IMAGE=debian:bookworm-slim@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe
 # container profile (we add exactly one rule: pivot_root, needed by jailer).
 DOCKER_SECCOMP_URL=https://raw.githubusercontent.com/moby/moby/v28.0.0/profiles/seccomp/default.json
 DOCKER_SECCOMP_SHA256=9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76
+
+# Build toolchain image (candidate root for BUILD_REPRODUCIBLE builds):
+# official Rust image (rustc/cargo 1.96.0 + Debian gcc 12 as `cc`).
+TOOLCHAIN_BASE_IMAGE=rust:1.96.0-slim-bookworm@sha256:4732ca96fd086cb9be682050c3f0176288eebaac2b80aa2bcefccfaf198e1950
+TOOLCHAIN_RUST=1.96.0-x86_64-unknown-linux-gnu
