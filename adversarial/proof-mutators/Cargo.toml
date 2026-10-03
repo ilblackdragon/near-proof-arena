@@ -1,0 +1,23 @@
+[package]
+name = "proof-mutators"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Hostile proof-byte generators and the judge-owned hostile-submission suite checks (NEAR Proof Arena adversarial lane)"
+
+[dependencies]
+arena-types = { path = "../../common/arena-types" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
+toml.workspace = true
+thiserror.workspace = true
+
+[[bin]]
+name = "check-suite"
+path = "src/bin/check_suite.rs"
+
+[[bin]]
+name = "dump-mutants"
+path = "src/bin/dump_mutants.rs"

@@ -1,0 +1,18 @@
+{
+  "case": "sorry-certificate",
+  "attack_family": "axiom-audit",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "AXIOM_AUDIT"
+  ],
+  "expected_reason_codes": [
+    "SORRY_FOUND"
+  ],
+  "fail_by_stage": "FORMAL_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The certificate is closed with `sorry`. AXIOM_AUDIT (no sorry / no native shortcuts) must fail: `sorry` emits `sorryAx`, an unsound axiom."
+}

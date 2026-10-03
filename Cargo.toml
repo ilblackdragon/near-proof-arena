@@ -1,11 +1,16 @@
 [workspace]
 resolver = "2"
 members = [
+    "adversarial/proof-mutators",
     "common/arena-types",
     "runners/archive",
     "runners/sandbox",
     "runners/measure",
     "runners/worker",
+    "runners/firecracker",
+    "runners/firecracker/init",
+    "runners/firecracker/proto",
+    "runners/firecracker/shim",
     "sdk/arena-cli",
     "tools/arena-admin",
     "tools/upgrade-monitor",

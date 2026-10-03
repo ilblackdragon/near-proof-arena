@@ -1,0 +1,19 @@
+{
+  "case": "benchmark-shortcut",
+  "attack_family": "benchmark-cheat",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "CONFORMANCE_DIFFERENTIAL"
+  ],
+  "expected_reason_codes": [
+    "CLAIM_MISMATCH"
+  ],
+  "fail_by_stage": "CONFORMANCE_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The prover special-cases the PUBLIC benchmark fixtures (keys a lookup table by input hash) and returns a canned claim for them, but garbage for fresh / held-out inputs. Fresh inputs are sampled AFTER freeze, so CONFORMANCE_DIFFERENTIAL against the oracle on held-out inputs must fail (CLAIM_MISMATCH).",
+  "notes": "PROVER_RELIABILITY may also fail on fresh inputs; either is a kill."
+}

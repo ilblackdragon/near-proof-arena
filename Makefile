@@ -28,7 +28,7 @@ LAKE        ?= lake
 DEV_PROFILES     ?=
 DEV_DOWN_VOLUMES ?= 0
 E2E_SCRIPT         ?= tests/e2e/run.sh
-E2E_HOSTILE_SCRIPT ?= adversarial/e2e/run-hostile.sh
+E2E_HOSTILE_SCRIPT ?= adversarial/e2e/run.sh
 LEAN_PROJECTS      ?= formal-core spec/lean
 SHELL_SCRIPTS := deploy/scripts/arena-guard deploy/scripts/test-arena-guard.sh \
                  deploy/local/gen-dev-secrets.sh deploy/local/postgres-init/10-roles.sh \
@@ -169,7 +169,7 @@ e2e: ## End-to-end happy-path test (E2E_SCRIPT, default tests/e2e/run.sh)
 	$(REPO)/$(E2E_SCRIPT)
 
 .PHONY: e2e-hostile
-e2e-hostile: ## Hostile-submission e2e suite (E2E_HOSTILE_SCRIPT, default adversarial/e2e/run-hostile.sh)
+e2e-hostile: ## Hostile-submission e2e suite (E2E_HOSTILE_SCRIPT, default adversarial/e2e/run.sh)
 	$(call require,$(E2E_HOSTILE_SCRIPT),adversarial,hostile-submission e2e driver)
 	$(REPO)/$(E2E_HOSTILE_SCRIPT)
 

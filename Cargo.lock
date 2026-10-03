@@ -126,6 +126,48 @@ dependencies = [
 ]
 
 [[package]]
+name = "arena-fc-proto"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "arena-fc-shim"
+version = "0.1.0"
+dependencies = [
+ "arena-fc-proto",
+ "libc",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "arena-firecracker"
+version = "0.1.0"
+dependencies = [
+ "arena-fc-proto",
+ "arena-types",
+ "hex",
+ "libc",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
+name = "arena-init"
+version = "0.1.0"
+dependencies = [
+ "arena-fc-proto",
+ "libc",
+ "serde_json",
+]
+
+[[package]]
 name = "arena-measure"
 version = "0.1.0"
 dependencies = [
@@ -840,6 +882,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "proof-mutators"
+version = "0.1.0"
+dependencies = [
+ "arena-types",
+ "hex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror",
+ "toml",
 ]
 
 [[package]]

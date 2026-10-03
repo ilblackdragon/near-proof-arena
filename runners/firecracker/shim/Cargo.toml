@@ -1,0 +1,12 @@
+[package]
+name = "arena-fc-shim"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "In-container supervisor: cgroup setup, jailer launch, timeout, host-side measurement"
+
+[dependencies]
+arena-fc-proto = { path = "../proto" }
+libc = "0.2"
+serde.workspace = true
+serde_json.workspace = true

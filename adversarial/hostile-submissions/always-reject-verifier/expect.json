@@ -1,0 +1,18 @@
+{
+  "case": "always-reject-verifier",
+  "attack_family": "prover-reliability",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "PROVER_RELIABILITY"
+  ],
+  "expected_reason_codes": [
+    "PROVER_FAILED"
+  ],
+  "fail_by_stage": "CONFORMANCE_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The verifier exits 1 for every proof, including the candidate's own honest proof. PROVER_RELIABILITY must fail: the honest prover's output does not verify, so the backend cannot discharge the required workloads."
+}
