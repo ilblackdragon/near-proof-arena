@@ -1,6 +1,12 @@
 [workspace]
 resolver = "2"
-members = ["common/arena-types"]
+members = [
+    "common/arena-types",
+    "runners/firecracker",
+    "runners/firecracker/proto",
+    "runners/firecracker/init",
+    "runners/firecracker/shim",
+]
 
 [workspace.package]
 edition = "2021"
