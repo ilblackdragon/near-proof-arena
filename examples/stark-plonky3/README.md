@@ -302,8 +302,8 @@ Two builds at different paths, each with its own fresh `$HOME` and under
 
 ```text
 ee649c60409453c317a3ac634ebbea9bc65d57c50bca99397d0fc9edc9bd7e7c  out/prepare
-2ce26b1f4b9dbd2985b2bed30667140bb9a0e48e78ac9ecf91289c2747877b56  out/prove
-cdbb3f7677751c7ff7d84212e4767731c505546fc37203da0433166326965dca  out/verify
+aa40ee9ba9cc9c34694b8a7d5bafc17dd5ce63ea6900d2ce6ba3b438671aa9cf  out/prove
+404da37049ba272b34fa3111edf193b823a2daef22d75212d6356c4e775e5017  out/verify
 ```
 
 `arena pack` of the package is 41.9 MB (3199 files). Unlike the SP1 package,
