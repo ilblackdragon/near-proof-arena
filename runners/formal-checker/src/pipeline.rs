@@ -1792,6 +1792,13 @@ impl FormalChecker {
             &started,
             &finished,
         );
+        // The judge audits (arena-audit, ndjson-audit) report "completed" when
+        // they ran; their verdict is the absence of findings. Resolve it here
+        // so the evidence graph shows them as checked only on a clean run.
+        let clean = findings.is_empty();
+        for r in rechecks.iter_mut().filter(|r| r.verdict == "completed") {
+            r.verdict = if clean { "accepted" } else { "findings" }.into();
+        }
         let trusted_list: Vec<(String, Digest)> = req
             .trusted
             .iter()
