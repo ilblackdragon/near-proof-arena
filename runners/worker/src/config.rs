@@ -60,6 +60,9 @@ pub struct WorkerConfig {
     pub npai_verify: Option<PathBuf>,
     /// Lean reference interpreter for npai shadow checks.
     pub interp_ref: Option<PathBuf>,
+    /// `near-arena-oracle` binary + workload generator specs dir (NEAR oracle).
+    pub near_oracle: Option<PathBuf>,
+    pub workload_generators: Option<PathBuf>,
     pub lease_seconds: u32,
 }
 
@@ -232,6 +235,8 @@ impl WorkerConfig {
                 p.is_file().then_some(p)
             }),
             interp_ref: s.get("ARENA_INTERP_REF").map(PathBuf::from),
+            near_oracle: s.get("ARENA_NEAR_ORACLE").map(PathBuf::from),
+            workload_generators: s.get("ARENA_WORKLOAD_GENERATORS").map(PathBuf::from),
             lease_seconds: match s.get("ARENA_LEASE_SECONDS") {
                 None => 300,
                 Some(v) => v.parse().map_err(|e: std::num::ParseIntError| ConfigError::Invalid("ARENA_LEASE_SECONDS", e.to_string()))?,

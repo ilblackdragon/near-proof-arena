@@ -53,6 +53,11 @@ pub trait Oracle: Send + Sync {
     ) -> Result<Vec<Case>, OracleError>;
     /// `n` judge-sampled cases from the generator of workload class `class_id`.
     fn sample(&self, chal: &ChallengeDefinition, class_id: &str, seed_parts: &[&str], n: usize) -> Result<Vec<Case>, OracleError>;
+    /// `approved_params.bin` handed to the judge-run `prepare` (empty unless
+    /// the claim encoding defines one).
+    fn approved_params(&self, _chal: &ChallengeDefinition, _fixtures: Option<&Path>) -> Result<Vec<u8>, OracleError> {
+        Ok(vec![])
+    }
 }
 
 /// Oracle registry + fixture index.
@@ -66,6 +71,13 @@ impl Oracles {
     /// Built-in oracles (currently `demo-toy-arith-v1`).
     pub fn builtin() -> Self {
         Oracles { oracles: vec![Box::new(ToyArith)], fixtures: HashMap::new() }
+    }
+
+    /// Built-ins plus the NEAR oracle when its binary and generator specs
+    /// are configured.
+    pub fn with_near(mut self, oracle_bin: PathBuf, generators_dir: &Path) -> Result<Self, String> {
+        self.oracles.push(Box::new(NearOracle::new(oracle_bin, generators_dir)?));
+        Ok(self)
     }
 
     pub fn register(&mut self, o: Box<dyn Oracle>) {
@@ -204,6 +216,123 @@ impl Oracle for ToyArith {
                 Self::case(format!("{class_id}/{i}"), a, b, false)
             })
             .collect())
+    }
+}
+
+/// `near-arena-claim-v1` (spec/near-transfer-receipt-v1.md): requests,
+/// witnesses and expected claims are produced by the governed oracle
+/// (`near-arena-oracle`, which executes the pinned nearcore runtime). Public
+/// fixtures come from the digest-matched fixtures dir
+/// (`cases/<name>/{request,witness,expected_claim}.bin`, `params.bin`);
+/// sampled batches run `near-arena-oracle gen` with the arguments of the
+/// class's generator spec (located by the digest the challenge commits to)
+/// and a judge-derived seed.
+pub struct NearOracle {
+    bin: PathBuf,
+    generators: HashMap<Digest, serde_json::Value>,
+}
+
+impl NearOracle {
+    pub fn new(bin: PathBuf, generators_dir: &Path) -> Result<Self, String> {
+        let mut generators = HashMap::new();
+        for e in std::fs::read_dir(generators_dir).map_err(|e| format!("{}: {e}", generators_dir.display()))?.flatten() {
+            let p = e.path();
+            if p.extension().is_some_and(|x| x == "json") {
+                let v: serde_json::Value = serde_json::from_slice(&std::fs::read(&p).map_err(|e| e.to_string())?).map_err(|e| format!("{}: {e}", p.display()))?;
+                let d = arena_types::sha256_digest(&v).map_err(|e| e.to_string())?;
+                generators.insert(d, v);
+            }
+        }
+        Ok(NearOracle { bin, generators })
+    }
+
+    fn read_cases(dir: &Path, public: bool, prefix: &str) -> Result<Vec<Case>, OracleError> {
+        let mut names: Vec<String> = std::fs::read_dir(dir)
+            .map_err(|e| OracleError::Broken(format!("{}: {e}", dir.display())))?
+            .flatten()
+            .filter_map(|e| e.file_name().into_string().ok())
+            .collect();
+        names.sort();
+        let mut out = vec![];
+        for n in names {
+            let d = dir.join(&n);
+            // Out-of-domain cases carry no expected claim: never issued.
+            let Ok(expected_claim) = std::fs::read(d.join("expected_claim.bin")) else { continue };
+            let rd = |f: &str| std::fs::read(d.join(f)).map_err(|e| OracleError::Broken(format!("{n}/{f}: {e}")));
+            out.push(Case { id: format!("{prefix}{n}"), request: rd("request.bin")?, witness: rd("witness.bin")?, expected_claim, public });
+        }
+        Ok(out)
+    }
+}
+
+impl Oracle for NearOracle {
+    fn format(&self) -> &str {
+        "near-arena-claim-v1"
+    }
+
+    fn conformance_cases(
+        &self,
+        chal: &ChallengeDefinition,
+        fixtures: Option<&Path>,
+        seed_parts: &[&str],
+        sampled: usize,
+    ) -> Result<Vec<Case>, OracleError> {
+        let mut out = match fixtures {
+            Some(f) => Self::read_cases(&f.join("cases"), true, "fixture/")?,
+            None => vec![],
+        };
+        let per_class = sampled.div_ceil(chal.workload_suite.classes.len().max(1));
+        for c in &chal.workload_suite.classes {
+            out.extend(self.sample(chal, &c.id, seed_parts, per_class)?);
+        }
+        Ok(out)
+    }
+
+    fn sample(&self, chal: &ChallengeDefinition, class_id: &str, seed_parts: &[&str], n: usize) -> Result<Vec<Case>, OracleError> {
+        if n == 0 {
+            return Ok(vec![]);
+        }
+        let class = chal
+            .workload_suite
+            .classes
+            .iter()
+            .find(|c| c.id == class_id)
+            .ok_or_else(|| OracleError::Broken(format!("unknown class {class_id:?}")))?;
+        let spec = self
+            .generators
+            .get(&class.generator)
+            .ok_or_else(|| OracleError::Unavailable(format!("no generator spec with digest {} on this worker", class.generator)))?;
+        let args: Vec<String> = spec["args"].as_array().map(|a| a.iter().filter_map(|x| x.as_str().map(String::from)).collect()).unwrap_or_default();
+        if !args.iter().any(|a| a == "--fixtures-layout") {
+            return Err(OracleError::Broken("generator spec must use --fixtures-layout".into()));
+        }
+        let mut parts = vec![class_id];
+        parts.extend_from_slice(seed_parts);
+        let seed = derive_seed("workload", &parts).map_err(OracleError::Broken)?;
+        let out_dir = std::env::temp_dir().join(format!("near-oracle-{}-{seed}-{n}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&out_dir);
+        let o = std::process::Command::new(&self.bin)
+            .arg("gen")
+            .args(["--seed", &seed.to_string(), "--valid", &n.to_string(), "--invalid", "0", "--out"])
+            .arg(&out_dir)
+            .args(&args)
+            .output()
+            .map_err(|e| OracleError::Broken(format!("near-arena-oracle: {e}")))?;
+        if !o.status.success() {
+            return Err(OracleError::Broken(format!("near-arena-oracle gen failed: {}", String::from_utf8_lossy(&o.stderr))));
+        }
+        let cases = Self::read_cases(&out_dir.join("cases"), false, &format!("{class_id}/"));
+        let _ = std::fs::remove_dir_all(&out_dir);
+        let cases = cases?;
+        if cases.is_empty() {
+            return Err(OracleError::Broken(format!("generator produced no in-domain cases for {class_id}")));
+        }
+        Ok(cases)
+    }
+
+    fn approved_params(&self, _chal: &ChallengeDefinition, fixtures: Option<&Path>) -> Result<Vec<u8>, OracleError> {
+        let f = fixtures.ok_or_else(|| OracleError::Unavailable("near-arena-claim-v1 needs the public fixtures (params.bin)".into()))?;
+        std::fs::read(f.join("params.bin")).map_err(|e| OracleError::Broken(format!("params.bin: {e}")))
     }
 }
 

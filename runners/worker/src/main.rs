@@ -49,8 +49,11 @@ fn sandbox(backend: &str, work_dir: &Path) -> Arc<dyn Sandbox> {
     }
 }
 
-fn oracles(dirs: &[PathBuf]) -> Oracles {
+fn oracles(dirs: &[PathBuf], near: Option<(PathBuf, PathBuf)>) -> Oracles {
     let mut o = Oracles::builtin();
+    if let Some((bin, gens)) = near {
+        o = o.with_near(bin, &gens).unwrap_or_else(|e| die(format!("NEAR oracle: {e}")));
+    }
     for d in dirs {
         match o.add_fixtures_dir(d) {
             Ok(digest) => eprintln!("arena-worker: fixtures {} = {digest}", d.display()),
@@ -89,7 +92,7 @@ fn main() {
                 bench_batch_cap: cfg.bench_batch_cap,
                 conformance_samples: cfg.conformance_samples,
                 mutators: MutatorRegistry::with_adversarial_lane(),
-                oracles: oracles(&cfg.fixtures_dirs),
+                oracles: oracles(&cfg.fixtures_dirs, cfg.near_oracle.clone().zip(cfg.workload_generators.clone())),
                 formal: formal(cfg.formal_repo.clone(), cfg.formal_configs_dir.clone(), cfg.lean_checker_images.clone()),
                 npai_verify: cfg.npai_verify.clone(),
                 interp_ref: cfg.interp_ref.clone(),
@@ -152,7 +155,10 @@ fn run_job_local(args: &[String]) {
         bench_batch_cap: std::env::var("ARENA_DEV_BENCH_BATCH_CAP").ok().and_then(|v| v.parse().ok()),
         conformance_samples: 8,
         mutators: MutatorRegistry::with_adversarial_lane(),
-        oracles: oracles(&fixtures),
+        oracles: oracles(
+            &fixtures,
+            std::env::var_os("ARENA_NEAR_ORACLE").map(PathBuf::from).zip(std::env::var_os("ARENA_WORKLOAD_GENERATORS").map(PathBuf::from)),
+        ),
         formal: formal(
             std::env::var_os("ARENA_FORMAL_REPO").map(PathBuf::from),
             std::env::var_os("ARENA_FORMAL_CONFIGS_DIR").map(PathBuf::from),

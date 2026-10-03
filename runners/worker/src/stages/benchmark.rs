@@ -151,7 +151,8 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         }
     };
     // `prepare` is timed (reported, never scored) on the frozen bundle.
-    let prepare_ns = match common::run_prepare(r, &bundle, &j.manifest.entry, &limits)? {
+    let params = common::approved_params(r, chal)?;
+    let prepare_ns = match common::run_prepare(r, &bundle, &j.manifest.entry, &limits, &params)? {
         Ok(p) => {
             if p.tree.digest() != j.build.public_artifacts {
                 bench.note("judge re-run of prepare produced a different public dir; the frozen one is used");

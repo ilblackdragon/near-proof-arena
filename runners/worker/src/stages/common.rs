@@ -46,8 +46,29 @@ pub struct Prepared {
 
 /// Judge-run `prepare --params <approved_params.bin> --out <public_dir>`.
 /// v1 challenges carry no parameter blob: `approved_params.bin` is empty.
-pub fn run_prepare(r: &mut JobRun<'_>, bundle: &Path, entry: &EntryPoints, limits: &RunLimits) -> Result<Result<Prepared, StepFailure>, ExecError> {
-    let params_file = r.write_file(b"", "params")?;
+/// `approved_params.bin` for the judge-run `prepare`: from the challenge's
+/// oracle (e.g. the NEAR fixtures' `params.bin`); empty for encodings that
+/// define none.
+pub fn approved_params(r: &JobRun<'_>, chal: &arena_types::ChallengeDefinition) -> Result<Vec<u8>, ExecError> {
+    use crate::oracle::OracleError;
+    match r.ctx.oracles.get(chal) {
+        Err(OracleError::Unavailable(_)) => Ok(vec![]),
+        Err(e) => Err(ExecError::Infra(e.to_string())),
+        Ok(o) => {
+            let fx = r.ctx.oracles.fixtures_for(chal).map_err(|e| ExecError::Infra(e.to_string()))?;
+            o.approved_params(chal, fx.as_deref()).map_err(|e| ExecError::Infra(format!("approved params: {e}")))
+        }
+    }
+}
+
+pub fn run_prepare(
+    r: &mut JobRun<'_>,
+    bundle: &Path,
+    entry: &EntryPoints,
+    limits: &RunLimits,
+    params: &[u8],
+) -> Result<Result<Prepared, StepFailure>, ExecError> {
+    let params_file = r.write_file(params, "params")?;
     let out_dir = r.fresh("prepare-out");
     let layout = r.ctx.sandbox.layout();
     let mut spec = entry_spec(

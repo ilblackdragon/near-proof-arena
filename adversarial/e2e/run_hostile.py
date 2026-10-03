@@ -72,32 +72,48 @@ def build_package_bytes(case_dir, expect, challenge_id):
             raise RuntimeError(f"make-archive.sh failed: {out.stderr.decode(errors='replace')}")
         return out.stdout
 
+    # `arena pack` semantics (sdk/arena-cli/src/pack.rs): regular files only,
+    # sorted by path bytes, mtime/uid/gid 0, mode 0755 iff any exec bit,
+    # `.git/`, `target/`, `.lake/` pruned at any depth and the top-level
+    # `out/` (build outputs are produced by the judge). The case README.md is
+    # the package README (CONTRACTS §3); judge-only files are excluded.
+    exclude_top = {"expect.json", "make-archive.sh", "archive-kind", "out"}
+    exclude_any = {".git", "target", ".lake"}
+    files = []
+    for root, dirs, filenames in os.walk(case_dir):
+        rel_root = os.path.relpath(root, case_dir)
+        dirs[:] = [d for d in dirs if d not in exclude_any and not (rel_root == "." and d in exclude_top)]
+        for fn in filenames:
+            full = os.path.join(root, fn)
+            rel = os.path.relpath(full, case_dir)
+            if rel_root == "." and fn in exclude_top:
+                continue
+            if os.path.islink(full) or not os.path.isfile(full):
+                raise RuntimeError(f"{rel}: not a regular file (arena pack refuses it)")
+            files.append(rel)
+    files.sort(key=lambda r: r.encode())
     buf = io.BytesIO()
-    # The case README.md doubles as the package README (CONTRACTS §3 requires
-    # one); judge-only files are excluded.
-    exclude = {"expect.json", "make-archive.sh", "archive-kind"}
-    with tarfile.open(fileobj=buf, mode="w") as tar:
+    with tarfile.open(fileobj=buf, mode="w", format=tarfile.GNU_FORMAT) as tar:
         # CONTRACTS §3 layout: dependency-locks/ must exist even when empty.
-        if not os.path.isdir(os.path.join(case_dir, "dependency-locks")):
+        if not any(f.startswith("dependency-locks" + os.sep) for f in files):
             ti = tarfile.TarInfo(name="dependency-locks")
             ti.type = tarfile.DIRTYPE
             ti.mode = 0o755
+            ti.mtime = 0
             tar.addfile(ti)
-        for root, _dirs, filenames in os.walk(case_dir):
-            for fn in filenames:
-                full = os.path.join(root, fn)
-                rel = os.path.relpath(full, case_dir)
-                top = rel.split(os.sep)[0]
-                if top in exclude:
-                    continue
-                data = open(full, "rb").read()
-                if rel == "candidate.toml" and challenge_id:
-                    data = re.sub(rb'challenge = "[^"]*"',
-                                  f'challenge = "{challenge_id}"'.encode(), data)
-                ti = tarfile.TarInfo(name=rel)
-                ti.size = len(data)
-                ti.mode = 0o755 if rel.endswith(".sh") else 0o644
-                tar.addfile(ti, io.BytesIO(data))
+        for rel in files:
+            full = os.path.join(case_dir, rel)
+            data = open(full, "rb").read()
+            if rel == "candidate.toml" and challenge_id:
+                data = re.sub(rb'challenge = "[^"]*"',
+                              f'challenge = "{challenge_id}"'.encode(), data)
+            ti = tarfile.TarInfo(name=rel)
+            ti.size = len(data)
+            ti.mode = 0o755 if os.stat(full).st_mode & 0o111 else 0o644
+            ti.mtime = 0
+            ti.uid = ti.gid = 0
+            ti.uname = ti.gname = ""
+            tar.addfile(ti, io.BytesIO(data))
     return buf.getvalue()
 
 

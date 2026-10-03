@@ -179,8 +179,9 @@ pub fn run(r: &mut JobRun<'_>, j: &BuildJob) -> Result<StageOut, ExecError> {
     // surface, so it must be a deterministic function of the bundle.
     let bundle_root = a.root.clone();
     let mut prepared = vec![];
+    let params = common::approved_params(r, &j.challenge)?;
     for i in 1..=2 {
-        match common::run_prepare(r, &bundle_root, &manifest.entry, &limits)? {
+        match common::run_prepare(r, &bundle_root, &manifest.entry, &limits, &params)? {
             Ok(p) => prepared.push(p),
             Err(f) => {
                 let reason = if f.reason == ReasonCode::ProverFailed { ReasonCode::BuildFailed } else { f.reason };
