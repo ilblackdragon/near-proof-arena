@@ -186,9 +186,31 @@ __arena-sandbox-helper`, so one binary is deployed).
   unknown protocol or a sandbox violation → `retryable: false`.
 * Each job reports **only the gates its kind owns** (`JobKind::owned_gates`);
   every reported artifact is uploaded before `complete`.
-* Oracles (`oracle.rs`) are selected by `claim_encoding.format`; built in:
-  `demo-toy-arith-v1`. Unknown formats leave the conformance / adversarial /
-  benchmark gates `UNKNOWN`. Sampled workloads use public
+* Oracles (`oracle.rs`) are selected by `claim_encoding.format`: built-in
+  `demo-toy-arith-v1`, and `near-arena-claim-v1` (`ARENA_NEAR_ORACLE` +
+  `ARENA_WORKLOAD_GENERATORS`): public fixtures located by TreeDigest
+  (`cases/*/{request,witness,expected_claim}.bin`, `params.bin` = the
+  `approved_params.bin` given to the judge-run `prepare`) plus batches the
+  governed `near-arena-oracle gen` samples with the generator spec whose JCS
+  digest the challenge commits to. The server's jobs carry no case lists:
+  the worker derives them from the challenge (fixtures digest + generator
+  digests) and a judge seed, so nothing the server stores can steer them.
+  Unknown formats leave the conformance / adversarial / benchmark gates
+  `UNKNOWN`.
+* Verifiers (`stages/common.rs::verifier_for`): `native` → the candidate's
+  built `verify`; `npai-v1` → the JUDGE's `npai-verify` (`ARENA_NPAI_VERIFY`,
+  mounted read-only) on the judge-built bytecode with `--fuel
+  formal_params.verify_fuel --expect-digest <BuildOutputs.verifier_bytecode>`
+  (exit 3 → `ARTIFACT_BINDING_FAILED`, never a reject), shadowed on small
+  inputs in conformance/adversarial by formal-core's `arena-interp-ref`
+  (`ARENA_INTERP_REF`; any disagreement fails the job as an INFRA_ERROR with
+  an ALERT); `native-lean` → the judge-built native verifier that
+  FORMAL_CHECK uploads (`JobResult.native_verifier` →
+  `BuildOutputs.native_verifier`, carried over on formal-cache reuse). The
+  candidate's shipped `out/verify` must equal that judge build
+  (`candidate_binary_digest`), else `ARTIFACT_BINDING_FAILED`.
+* Held-out (non-public) cases: candidate-chosen failure details (exit codes,
+  collected file names, sizes) never reach summaries (red team RT-04). Sampled workloads use public
   `derive_seed("workload", class, challenge, package)` seeds (the
   season-secret HMAC of BENCHMARK_SPEC §11.1 is not wired yet).
 
@@ -218,17 +240,22 @@ and REJECTED at FORMAL_CHECK. `--hostile` then runs
 `adversarial/e2e/run.sh` against the same server (per-case JSON report in
 the work dir).
 
+`tests/e2e/milestone-d.sh`: the formal NEAR challenge end to end on
+Firecracker (formal tier): reference `examples/reexec-witness` ADMITTED;
+prover-only child (`--parent`) PROVER_ONLY with formal gates reused; NEAR
+hostile cases; a verifier change (`--parent`) VERIFIER_OR_PROTOCOL with the
+formal obligations re-checked. Results: `docs/e2e-results/milestone-d/`.
+
 ## Known gaps
 
-* The signed NEAR challenge pins `checker_image` = the identity of the
-  host-installed dev tools (`sha256:2de5b6…`), not of the reproducible
-  lean-checker image (tool identity `sha256:5383707…`), so a production
-  (firecracker) worker reports its formal gates UNKNOWN for it — a
-  governance fix (re-pin to the image's identity), not a judge change.
-* `verify_route = "npai-v1"`: no arena NPAI interpreter in the worker yet;
-  conformance / adversarial / benchmark stay UNKNOWN for such candidates. No
-  NEAR claim oracle (`near-arena-claim-v1`) is wired into the worker either
-  (spec-oracle lane's `oracle/` is a separate workspace).
+* The signed NEAR challenge pins `checker_image` = the identity of one build
+  of the host-installed checker tools, which changes whenever the tools are
+  rebuilt; the production worker runs the digest-pinned lean-checker image
+  (different identity), so it reports the formal gates UNKNOWN for the
+  signed challenge. `tests/e2e/milestone-d.sh` signs an e2e-local successor
+  re-pinned to the image (local operator key); the real fix is a governance
+  re-pin to the lean-checker image's identity.
+* The server ignores `supersedes` (left to the challenge-v2 lane).
 * Builds run on both backends;
   production (non-demo) backends require a pinned toolchain image
   (`ARENA_BUILD_TOOLCHAIN_IMAGE` + `ARENA_IMAGES_DIR`, see
