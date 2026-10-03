@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+# Offline validation of the hardened reference deployment (deploy/hardened).
+# Run from anywhere: deploy/hardened/bin/check-hardened
+#   - nftables rulesets parse (nft -c in an unprivileged netns)
+#   - worker ruleset behaves: only the worker API (+DB/NTP) is reachable,
+#     metadata and the internet are rejected (probe in a throwaway netns)
+#   - systemd units verify, carry the mandatory hardening directives, and
+#     score within the exposure budget of `systemd-analyze security --offline`
+#   - arena-guard accepts the production env examples and refuses dev knobs
+#   - bench-host-record --check passes/fails on synthetic sysfs
+#   - arena-backup retention keeps the right dumps
+set -euo pipefail
+
+here=$(cd "$(dirname "$0")/.." && pwd)
+repo=$(cd "$here/../.." && pwd)
+guard=$repo/deploy/scripts/arena-guard
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+fail=0
+ok() { echo "ok   $*"; }
+bad() { echo "FAIL $*" >&2; fail=1; }
+
+# ---------------------------------------------------------------- nftables
+if command -v nft >/dev/null && unshare -rn true 2>/dev/null; then
+  for f in worker control-plane db; do
+    sed "s|/etc/nftables.d/arena-metadata.nft|$here/nftables/arena-metadata.nft|" "$here/nftables/$f.nft" >"$tmp/$f.nft"
+    if out=$(unshare -rn nft -c -f "$tmp/$f.nft" 2>&1); then ok "nft -c $f.nft"; else bad "nft -c $f.nft: $out"; fi
+  done
+  cat >"$tmp/probe.py" <<'PY'
+import socket, sys, errno
+host, port, proto = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM if proto == "udp" else socket.SOCK_STREAM)
+s.settimeout(1.0)
+try:
+    if proto == "udp":
+        s.sendto(b"x", (host, port))
+    else:
+        s.connect((host, port))
+    print("allow")
+except socket.timeout:
+    print("allow")  # SYN left the host (no peer in the test netns)
+except OSError:
+    print("deny")
+PY
+  probes=(
+    "10.20.0.10 8472 tcp allow"
+    "10.20.0.10 8471 tcp deny"
+    "10.20.0.10 443 tcp deny"
+    "10.20.0.20 5432 tcp allow"
+    "10.20.0.2 123 udp allow"
+    "10.20.0.2 53 udp deny"
+    "169.254.169.254 80 tcp deny"
+    "169.254.170.2 80 tcp deny"
+    "1.1.1.1 443 tcp deny"
+    "10.20.1.6 22 tcp deny"
+  )
+  printf '%s\n' "${probes[@]}" >"$tmp/probes"
+  # shellcheck disable=SC2016 # expanded by the inner shell
+  if out=$(unshare -rn bash -c '
+      set -e
+      ip link set lo up; ip link add d0 type dummy; ip link set d0 up
+      ip addr add 10.20.1.5/16 dev d0; ip route add default dev d0
+      nft -f "$1"
+      while read -r h p proto want; do
+        got=$(python3 "$2" "$h" "$p" "$proto")
+        echo "$h:$p/$proto want=$want got=$got"
+      done <"$3"' _ "$tmp/worker.nft" "$tmp/probe.py" "$tmp/probes" 2>&1); then
+    while read -r line; do
+      [[ $line =~ want=([a-z]+)\ got=([a-z]+) ]] || { bad "worker egress probe: $line"; continue; }
+      if [[ ${BASH_REMATCH[1]} == "${BASH_REMATCH[2]}" ]]; then ok "worker egress $line"; else bad "worker egress $line"; fi
+    done <<<"$out"
+  else
+    bad "worker egress probe failed to run: $out"
+  fi
+else
+  bad "nft or unprivileged netns unavailable; cannot validate nftables rulesets"
+fi
+
+# ----------------------------------------------------------------- systemd
+units=("$here"/systemd/*.service "$here"/systemd/*.timer)
+required=(NoNewPrivileges=yes ProtectSystem=strict ProtectHome=yes PrivateTmp=yes
+  RestrictAddressFamilies= RestrictNamespaces=yes LockPersonality=yes
+  SystemCallArchitectures=native SystemCallFilter=@system-service
+  CapabilityBoundingSet= ProtectKernelTunables=yes ProtectKernelModules=yes
+  ProtectControlGroups=yes RestrictSUIDSGID=yes MemoryDenyWriteExecute=yes IPAddressDeny=)
+for u in "$here"/systemd/*.service; do
+  for d in "${required[@]}"; do
+    grep -q "^$d" "$u" || bad "$(basename "$u") lacks $d"
+  done
+done
+grep -q '^LoadCredential=report-signing-key:' "$here/systemd/arena-server.service" || bad "arena-server.service must load the report key as a credential"
+if grep -l 'report-signing-key' "$here"/systemd/arena-worker@.service "$here"/systemd/arena-worker@*.service.d/* >/dev/null 2>&1; then
+  bad "a worker unit references the report signing key"
+fi
+grep -q '^IPAddressDeny=any' "$here/systemd/arena-worker@.service" || bad "worker unit must default-deny IP"
+grep -q 'arena-guard worker' "$here/systemd/arena-worker@.service" || bad "worker unit must run arena-guard"
+grep -q 'arena-guard server' "$here/systemd/arena-server.service" || bad "server unit must run arena-guard"
+
+if command -v systemd-analyze >/dev/null; then
+  mkdir -p "$tmp/units" "$tmp/stub"
+  for b in arena-server arena-worker arena-guard arena-backup bench-host-record psql; do
+    printf '#!/bin/sh\nexit 0\n' >"$tmp/stub/$b"; chmod +x "$tmp/stub/$b"
+  done
+  for u in "${units[@]}"; do
+    sed -e "s|/usr/local/bin/|$tmp/stub/|g" -e "s|/usr/local/lib/arena/|$tmp/stub/|g" -e "s|/usr/bin/psql|$tmp/stub/psql|g" \
+      "$u" >"$tmp/units/$(basename "$u")"
+  done
+  cp "$tmp/units/arena-worker@.service" "$tmp/units/arena-worker@build.service"
+  for u in "$tmp"/units/*; do
+    case $u in *@.service) continue ;; esac
+    # Ignore environment-specific noise (missing users / env files / other units).
+    out=$(systemd-analyze verify --man=no "$u" 2>&1 | grep -vE "Failed to resolve (user|group)|EnvironmentFile|nftables.service|postgresql.service|network-online|arena-.*\.service: (Unit|Failed to)|not found|Cannot add dependency|Unit .* not found|lacks both" || true)
+    if [[ -n $out ]]; then bad "systemd-analyze verify $(basename "$u"):"$'\n'"$out"; else ok "systemd-analyze verify $(basename "$u")"; fi
+  done
+  for pair in arena-server.service:2.5 arena-worker@build.service:3.5 arena-migrate.service:2.5; do
+    unit=${pair%%:*} budget=${pair##*:}
+    score=$(cd "$tmp/units" && systemd-analyze security --offline=true --no-pager "$unit" 2>/dev/null | awk '/Overall exposure level/{print $(NF-2)}' | tail -n1)
+    score=${score:-99}
+    if awk -v s="$score" -v b="$budget" 'BEGIN{exit !(s<=b)}'; then ok "exposure $unit = $score (budget $budget)"; else bad "exposure $unit = $score exceeds budget $budget"; fi
+  done
+else
+  bad "systemd-analyze not available"
+fi
+
+# ----------------------------------------------------- guard vs env examples
+load_env() { grep -E '^[A-Z_]+=' "$1" | sed 's/[[:space:]]*#.*$//'; }
+mapfile -t wenv < <(load_env "$here/env/worker.env.example")
+if env -i PATH="$PATH" "${wenv[@]}" ARENA_ENV=production ARENA_SANDBOX=firecracker "$guard" worker 2>/dev/null; then ok "guard accepts worker.env.example"; else bad "guard refuses worker.env.example"; fi
+if env -i PATH="$PATH" "${wenv[@]}" ARENA_ENV=production ARENA_SANDBOX=firecracker ARENA_DEV_UNSAFE=1 "$guard" worker 2>/dev/null; then bad "guard accepted ARENA_DEV_UNSAFE=1 in production"; else ok "guard refuses ARENA_DEV_UNSAFE=1 worker in production"; fi
+mapfile -t senv < <(load_env "$here/env/server.env.example")
+echo key >"$tmp/key"; chmod 400 "$tmp/key"
+if env -i PATH="$PATH" "${senv[@]}" ARENA_ENV=production ARENA_REPORT_SIGNING_KEY_FILE="$tmp/key" "$guard" server 2>/dev/null; then ok "guard accepts server.env.example"; else bad "guard refuses server.env.example"; fi
+
+# ------------------------------------------------------- bench-host-record
+mk_sys() { # DIR GOVERNOR NO_TURBO SMT
+  local d=$1 c
+  for c in 2 3; do
+    mkdir -p "$d/sys/devices/system/cpu/cpu$c/cpufreq"
+    echo "$2" >"$d/sys/devices/system/cpu/cpu$c/cpufreq/scaling_governor"
+    echo 3000000 >"$d/sys/devices/system/cpu/cpu$c/cpufreq/scaling_min_freq"
+    echo 3000000 >"$d/sys/devices/system/cpu/cpu$c/cpufreq/scaling_max_freq"
+  done
+  mkdir -p "$d/sys/devices/system/cpu/intel_pstate" "$d/sys/devices/system/cpu/smt" "$d/proc"
+  echo "$3" >"$d/sys/devices/system/cpu/intel_pstate/no_turbo"
+  echo "$4" >"$d/sys/devices/system/cpu/smt/active"
+  echo "BOOT_IMAGE=/vmlinuz isolcpus=managed_irq,domain,2-3 nohz_full=2-3" >"$d/proc/cmdline"
+  printf 'model name\t: Test CPU\nmicrocode\t: 0x1\n' >"$d/proc/cpuinfo"
+}
+mk_sys "$tmp/good" performance 1 0
+mk_sys "$tmp/badh" powersave 0 1
+if "$here/bin/bench-host-record" --check --cpus 2-3 --sysfs "$tmp/good/sys" --proc "$tmp/good/proc" --out "$tmp/good.json" 2>/dev/null \
+  && grep -q '"digest": "sha256:' "$tmp/good.json"; then ok "bench-host-record accepts a pinned host"; else bad "bench-host-record rejected a pinned host"; fi
+if "$here/bin/bench-host-record" --check --cpus 2-3 --sysfs "$tmp/badh/sys" --proc "$tmp/badh/proc" >/dev/null 2>&1; then bad "bench-host-record accepted an unpinned host"; else ok "bench-host-record refuses an unpinned host"; fi
+
+# ------------------------------------------------------- arena-backup prune
+mkdir -p "$tmp/bk/db" "$tmp/fakebin"
+printf '#!/bin/sh\nexit 0\n' >"$tmp/fakebin/age"; chmod +x "$tmp/fakebin/age"
+echo "age1test" >"$tmp/recips"
+for m in 01 02 03 04 05; do for day in 01 15 28; do : >"$tmp/bk/db/arena-2026${m}${day}T021500Z.dump.age"; done; done
+PATH="$tmp/fakebin:$PATH" ARENA_BACKUP_DIR="$tmp/bk" ARENA_BACKUP_AGE_RECIPIENTS="$tmp/recips" \
+  ARENA_BACKUP_KEEP_DAILY=4 ARENA_BACKUP_KEEP_MONTHLY=3 "$here/bin/arena-backup" prune >/dev/null
+kept=$(find "$tmp/bk/db" -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort | tr '\n' ' ')
+want="arena-20260301T021500Z.dump.age arena-20260401T021500Z.dump.age arena-20260428T021500Z.dump.age arena-20260501T021500Z.dump.age arena-20260515T021500Z.dump.age arena-20260528T021500Z.dump.age "
+if [[ $kept == "$want" ]]; then ok "arena-backup retention"; else bad "arena-backup retention kept: $kept"; fi
+
+if ((fail)); then echo "check-hardened: FAILED" >&2; exit 1; fi
+echo "check-hardened: all checks passed"

@@ -1,0 +1,152 @@
+# NEAR Proof Arena — local development stack (NOT a production topology).
+#
+#   make dev-up                 # generates secrets if needed, runs arena-guard, starts the stack
+#   make dev-up DEV_PROFILES=workers   # also starts a containerised firecracker worker (needs /dev/kvm)
+#   make dev-down
+#
+# Every published port binds to 127.0.0.1 (ARENA_PUBLISH_HOST); arena-guard
+# refuses `docker compose up` from the Makefile if anything else is published
+# in dev mode. Secrets live in <repo>/var/secrets (gitignored), never in this file.
+name: nearproof-arena
+
+x-hardening: &hardening
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop: [ALL]
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+
+services:
+  postgres:
+    image: postgres:17-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+    env_file: [../../var/secrets/postgres.env]
+    environment:
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --data-checksums
+    volumes:
+      - arena-pg:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+      - ../sql:/arena-sql:ro
+    ports:
+      - name: postgres
+        target: 5432
+        published: "${ARENA_PG_PORT:-55472}"
+        host_ip: "${ARENA_PUBLISH_HOST:-127.0.0.1}"
+        protocol: tcp
+    networks: [arena-internal, arena-edge]
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d arena"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  arena-server:
+    <<: *hardening
+    build:
+      context: ../..
+      dockerfile: deploy/local/server.Dockerfile
+    image: nearproof/arena-server:dev
+    command: ["serve"]
+    user: "${ARENA_UID:-1000}:${ARENA_GID:-1000}"
+    env_file: [../../var/secrets/server.env]
+    environment:
+      ARENA_ENV: dev
+      # Inside the container network namespace; host exposure is controlled
+      # by the loopback-only `ports` below (checked by arena-guard).
+      ARENA_BIND_ADDR: 0.0.0.0:8471
+      ARENA_WORKER_API_BIND_ADDR: 0.0.0.0:8472
+      ARENA_OBJECT_STORE_DIR: /var/lib/arena/objects
+      ARENA_CHALLENGES_DIR: /srv/arena/challenges
+      RUST_LOG: ${RUST_LOG:-info}
+    secrets:
+      - source: report-signing-key
+        target: report-signing-key
+    volumes:
+      # Content-addressed object store (CONTRACTS.md §1), on the host under var/.
+      - type: bind
+        source: ../../var/objects
+        target: /var/lib/arena/objects
+        bind: {create_host_path: false}
+      - type: bind
+        source: ../../challenges
+        target: /srv/arena/challenges
+        read_only: true
+        bind: {create_host_path: false}
+    ports:
+      - name: api
+        target: 8471
+        published: "${ARENA_API_PORT:-8471}"
+        host_ip: "${ARENA_PUBLISH_HOST:-127.0.0.1}"
+        protocol: tcp
+      - name: worker-api
+        target: 8472
+        published: "${ARENA_WORKER_API_PORT:-8472}"
+        host_ip: "${ARENA_PUBLISH_HOST:-127.0.0.1}"
+        protocol: tcp
+    networks: [arena-internal, arena-edge]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    <<: *hardening
+    build:
+      context: ../..
+      dockerfile: deploy/local/web.Dockerfile
+    image: nearproof/arena-web:dev
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+      - /var/cache/nginx:rw,noexec,nosuid,size=64m
+    ports:
+      - name: web
+        target: 8080
+        published: "${ARENA_WEB_PORT:-8470}"
+        host_ip: "${ARENA_PUBLISH_HOST:-127.0.0.1}"
+        protocol: tcp
+    networks: [arena-edge]
+    depends_on: [arena-server]
+    restart: unless-stopped
+
+  # Optional containerised production-sandbox worker. bwrap-dev workers run on
+  # the host instead (`make dev-worker`), because they need user namespaces.
+  arena-worker:
+    profiles: [workers]
+    build:
+      context: ../..
+      dockerfile: deploy/local/worker.Dockerfile
+    image: nearproof/arena-worker:dev
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    devices:
+      - /dev/kvm:/dev/kvm
+    tmpfs:
+      - /tmp:rw,nosuid,size=64m
+      - /var/lib/arena/scratch:rw,nosuid,size=4g
+    env_file: [../../var/secrets/worker-compose.env]
+    environment:
+      ARENA_ENV: dev
+      ARENA_SANDBOX: firecracker
+      ARENA_WORKER_IN_COMPOSE: "1"
+      ARENA_WORKER_CLASSES: build,formal,oracle,bench
+    networks: [arena-internal] # internal-only network: no egress
+    depends_on: [arena-server]
+    restart: unless-stopped
+
+secrets:
+  report-signing-key:
+    file: ../../var/secrets/report-signing-key.pem
+
+volumes:
+  arena-pg:
+
+networks:
+  arena-internal:
+    internal: true
+  arena-edge: {}

@@ -1,0 +1,246 @@
+#!/usr/bin/env bash
+# arena-guard: refuse unsafe NEAR Proof Arena process configurations at startup.
+#
+# Usage:
+#   arena-guard server            # check the control-plane environment
+#   arena-guard worker            # check a worker environment
+#   arena-guard compose <file>    # check `docker compose config --format json` output
+#                                 # (use "-" for stdin)
+#
+# All modes read ARENA_ENV, which must be exactly "dev" or "production".
+# Exit 0 = OK, exit 2 = refused (with "arena-guard: REFUSED: ..." on stderr),
+# exit 64 = usage error. Nothing here ever downgrades a refusal to a warning.
+#
+# Invariants enforced (see docs/DEPLOYMENT.md, "Startup guard"):
+#   dev:        the API and worker API listen / publish on loopback only.
+#   production: no ARENA_DEV_UNSAFE, no bwrap-dev sandbox, no dev-generated
+#               secrets, report signing key only on the control plane and
+#               only with owner-only permissions.
+set -euo pipefail
+
+PROG=arena-guard
+refusals=()
+
+refuse() { refusals+=("$*"); }
+die_usage() { echo "$PROG: $*" >&2; echo "usage: $PROG server|worker|compose <file|->" >&2; exit 64; }
+
+finish() {
+  if ((${#refusals[@]})); then
+    for r in "${refusals[@]}"; do echo "$PROG: REFUSED: $r" >&2; done
+    exit 2
+  fi
+  echo "$PROG: ok ($1, ARENA_ENV=$ARENA_ENV)" >&2
+  exit 0
+}
+
+# is_loopback_host HOST -> 0 if HOST is a loopback literal or "localhost".
+is_loopback_host() {
+  local h=${1#[}
+  h=${h%]}
+  case "$h" in
+    localhost | ::1 | 0:0:0:0:0:0:0:1) return 0 ;;
+    127.*)
+      # Strict dotted-quad check: 127.a.b.c with 0..255 octets.
+      local IFS=.
+      # shellcheck disable=SC2206
+      local parts=($h)
+      ((${#parts[@]} == 4)) || return 1
+      local p
+      for p in "${parts[@]}"; do
+        [[ $p =~ ^[0-9]{1,3}$ ]] && ((10#$p <= 255)) || return 1
+      done
+      return 0
+      ;;
+    *) return 1 ;;
+  esac
+}
+
+# host_of ADDR -> prints the host part of "host:port", "[v6]:port" or "host".
+host_of() {
+  local a=$1
+  if [[ $a == \[*\]:* ]]; then
+    a=${a%:*}
+    printf '%s\n' "$a"
+  elif [[ $a == *:*:* ]]; then
+    printf '%s\n' "$a" # bare IPv6 without port
+  elif [[ $a == *:* ]]; then
+    printf '%s\n' "${a%:*}"
+  else
+    printf '%s\n' "$a"
+  fi
+}
+
+check_env_value() {
+  case "${ARENA_ENV-}" in
+    dev | production) ;;
+    "") refuse "ARENA_ENV is not set (must be 'dev' or 'production'; there is no implicit default)" ;;
+    *) refuse "ARENA_ENV='${ARENA_ENV}' is not one of: dev, production" ;;
+  esac
+}
+
+truthy() { case "${1-}" in 1 | true | TRUE | yes | YES | on | ON) return 0 ;; *) return 1 ;; esac; }
+
+check_production_common() {
+  if [[ -n ${ARENA_DEV_UNSAFE+x} ]]; then
+    refuse "ARENA_DEV_UNSAFE is set (='${ARENA_DEV_UNSAFE}') with ARENA_ENV=production; unset it entirely"
+  fi
+  if [[ ${ARENA_SECRETS_ORIGIN-} == dev-generator ]]; then
+    refuse "secrets were produced by the dev secrets generator (ARENA_SECRETS_ORIGIN=dev-generator); provision production secrets"
+  fi
+}
+
+check_listen() { # NAME VALUE
+  local name=$1 val=$2
+  [[ -n $val ]] || return 0
+  local host
+  host=$(host_of "$val")
+  if [[ $ARENA_ENV == dev ]] && ! is_loopback_host "$host"; then
+    refuse "$name=$val exposes a listener on a non-loopback address in dev mode (use 127.0.0.1)"
+  fi
+}
+
+check_key_file() { # PATH
+  local f=$1
+  if [[ ! -f $f ]]; then
+    refuse "report signing key file '$f' does not exist"
+    return
+  fi
+  local mode
+  mode=$(stat -c '%a' -- "$f")
+  if (((8#$mode & 8#077) != 0)); then
+    refuse "report signing key file '$f' has mode $mode; must not be group/other accessible (use 0400 or 0600)"
+  fi
+}
+
+mode_server() {
+  check_env_value
+  ((${#refusals[@]})) && finish server
+  check_listen ARENA_BIND_ADDR "${ARENA_BIND_ADDR:-127.0.0.1:8471}"
+  check_listen ARENA_WORKER_API_BIND_ADDR "${ARENA_WORKER_API_BIND_ADDR-}"
+  if [[ $ARENA_ENV == production ]]; then
+    check_production_common
+    if [[ -z ${ARENA_REPORT_SIGNING_KEY_FILE-} ]]; then
+      refuse "ARENA_REPORT_SIGNING_KEY_FILE is not set; the control plane signs reports"
+    else
+      check_key_file "$ARENA_REPORT_SIGNING_KEY_FILE"
+    fi
+    if [[ -n ${ARENA_REPORT_SIGNING_KEY-} ]]; then
+      refuse "ARENA_REPORT_SIGNING_KEY (inline key material in the environment) is not allowed in production; use ARENA_REPORT_SIGNING_KEY_FILE"
+    fi
+  fi
+  finish server
+}
+
+mode_worker() {
+  check_env_value
+  ((${#refusals[@]})) && finish worker
+  local sandbox=${ARENA_SANDBOX:-firecracker}
+  case "$sandbox" in
+    firecracker | bwrap-dev) ;;
+    *) refuse "ARENA_SANDBOX='$sandbox' is not one of: firecracker, bwrap-dev" ;;
+  esac
+  if [[ -n ${ARENA_REPORT_SIGNING_KEY_FILE-} || -n ${ARENA_REPORT_SIGNING_KEY-} ]]; then
+    refuse "report signing key is present in a worker environment; it must live only on the control plane"
+  fi
+  if [[ -n ${ARENA_ADMIN_TOKEN-} ]]; then
+    refuse "ARENA_ADMIN_TOKEN is present in a worker environment; workers get only ARENA_WORKER_TOKEN"
+  fi
+  if [[ $ARENA_ENV == production ]]; then
+    check_production_common
+    [[ $sandbox == bwrap-dev ]] && refuse "ARENA_SANDBOX=bwrap-dev is a dev-only, namespaces-only sandbox and is refused in production"
+  else
+    if [[ $sandbox == bwrap-dev ]] && ! truthy "${ARENA_DEV_UNSAFE-}"; then
+      refuse "ARENA_SANDBOX=bwrap-dev requires ARENA_DEV_UNSAFE=1 (results are tier-capped at demo)"
+    fi
+    if [[ -n ${ARENA_SERVER_URL-} ]]; then
+      local rest=${ARENA_SERVER_URL#*://}
+      rest=${rest%%/*}
+      local host
+      host=$(host_of "$rest")
+      if ! is_loopback_host "$host" && [[ ${ARENA_WORKER_IN_COMPOSE-} != 1 ]]; then
+        refuse "ARENA_SERVER_URL=$ARENA_SERVER_URL points off-host in dev mode; dev workers talk to a loopback control plane"
+      fi
+    fi
+  fi
+  finish worker
+}
+
+mode_compose() {
+  local src=${1-}
+  [[ -n $src ]] || die_usage "compose mode needs a file argument (or '-')"
+  check_env_value
+  ((${#refusals[@]})) && finish compose
+  command -v python3 >/dev/null || { refuse "python3 is required to inspect compose config"; finish compose; }
+  local json
+  if [[ $src == - ]]; then json=$(cat); else json=$(cat -- "$src"); fi
+  local out
+  if ! out=$(ARENA_ENV="$ARENA_ENV" python3 - 3<<<"$json" <<'PY'
+import json, os, sys, ipaddress
+
+env = os.environ["ARENA_ENV"]
+try:
+    cfg = json.load(os.fdopen(3))
+except Exception as e:  # noqa: BLE001
+    print(f"compose config is not valid JSON: {e}")
+    sys.exit(0)
+
+def loopback(h):
+    if h in ("localhost",):
+        return True
+    try:
+        return ipaddress.ip_address(h.strip("[]")).is_loopback
+    except ValueError:
+        return False
+
+def truthy(v):
+    return str(v).strip().lower() in ("1", "true", "yes", "on")
+
+for name, svc in sorted((cfg.get("services") or {}).items()):
+    envv = svc.get("environment") or {}
+    if isinstance(envv, list):
+        envv = dict(e.split("=", 1) if "=" in e else (e, "") for e in envv)
+    if svc.get("network_mode") == "host":
+        print(f"service '{name}' uses network_mode: host (bypasses loopback-only port publishing)")
+    if svc.get("privileged"):
+        print(f"service '{name}' is privileged")
+    for p in svc.get("ports") or []:
+        if isinstance(p, dict):
+            host_ip = p.get("host_ip") or ""
+            published = p.get("published")
+            target = p.get("target")
+        else:
+            print(f"service '{name}' has an unparsed port spec {p!r}; use long syntax")
+            continue
+        if not published:
+            if env == "dev":
+                print(f"service '{name}' publishes container port {target} on a random host port without host_ip")
+            continue
+        if env == "dev" and not loopback(host_ip):
+            shown = host_ip or "0.0.0.0 (all interfaces)"
+            print(f"service '{name}' publishes port {published}->{target} on {shown} in dev mode; must be 127.0.0.1")
+    unsafe = envv.get("ARENA_DEV_UNSAFE")
+    svc_env = envv.get("ARENA_ENV", env)
+    if (env == "production" or svc_env == "production") and unsafe is not None:
+        print(f"service '{name}' sets ARENA_DEV_UNSAFE={unsafe!r} while ARENA_ENV=production")
+    if (env == "production" or svc_env == "production") and envv.get("ARENA_SANDBOX") == "bwrap-dev":
+        print(f"service '{name}' uses ARENA_SANDBOX=bwrap-dev while ARENA_ENV=production")
+    if svc_env not in ("dev", "production"):
+        print(f"service '{name}' has ARENA_ENV={svc_env!r}")
+    elif svc_env != env:
+        print(f"service '{name}' has ARENA_ENV={svc_env!r} but the guard runs with ARENA_ENV={env!r}")
+PY
+  ); then
+    refuse "compose inspection failed"
+  fi
+  if [[ -n $out ]]; then
+    while IFS= read -r line; do refuse "$line"; done <<<"$out"
+  fi
+  finish compose
+}
+
+case "${1-}" in
+  server) mode_server ;;
+  worker) mode_worker ;;
+  compose) mode_compose "${2-}" ;;
+  *) die_usage "unknown mode '${1-}'" ;;
+esac
