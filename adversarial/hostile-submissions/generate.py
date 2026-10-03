@@ -427,6 +427,22 @@ int main(int argc, char **argv) {
 }
 '''})
 
+VIOLATION_NOTE = ("SOUND DETECTION: the sandbox init installs a seccomp user-notification "
+                  "filter on the candidate tree (runners/seccomp, policy `strict` for entry "
+                  "points). The attempted syscall is denied (EPERM) AND reported by the init; "
+                  "the worker fails the job's gate with SANDBOX_VIOLATION. Works on Firecracker "
+                  "(guest arena-init) and on bwrap-dev (helper init).")
+# The violation fails the gate of whichever runtime job hits it first: the
+# conformance and adversarial jobs both execute `prove` and are scheduled
+# together, so either may decide the submission (fail-fast).
+VIOLATION_GATES = ["CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
+FS_NOTE = ("NOT DETECTED (by design): this prover only opens files. Reading /etc/passwd of "
+           "the sandbox's own rootfs is harmless, ~/.ssh does not exist, and the writes "
+           "fail on read-only mounts. A failed write to a read-only path cannot be told "
+           "apart soundly from an honest-but-buggy program (e.g. one that tries to cache "
+           "next to its binary), so it is not reported as SANDBOX_VIOLATION; the observable "
+           "kill stays 'no proof produced' (PROVER_FAILED).")
+
 for esc_name, esc_why, esc_body in [
     ("sandbox-escape-filesystem",
      "`prove` tries to read /etc/passwd and ~/.ssh and to write outside the "
@@ -447,8 +463,9 @@ int main(int argc, char **argv) {
 '''),
     ("sandbox-escape-network",
      "`prove` tries to open an outbound TCP connection, then exits without a "
-     "proof. The sandbox has no network (`network: None`), so connect fails; the "
-     "observable kill is PROVER_RELIABILITY.",
+     "proof. `socket(AF_INET)` is denied and recorded by the sandbox's seccomp "
+     "listener (there is no network anyway), so the judge fails the first runtime "
+     "job that runs `prove` with SANDBOX_VIOLATION.",
      '''#include "common.h"
 #include <string.h>
 #include <sys/socket.h>
@@ -465,8 +482,9 @@ int main(int argc, char **argv) {
 '''),
     ("sandbox-ptrace-proc",
      "`prove` attempts ptrace and pokes at /proc/self/mem and the docker socket, "
-     "then exits without a proof. All are denied/absent; the observable kill is "
-     "PROVER_RELIABILITY.",
+     "then exits without a proof. `ptrace` is denied and recorded by the "
+     "sandbox's seccomp listener, so the judge fails the first runtime job that "
+     "runs `prove` with SANDBOX_VIOLATION.",
      '''#include "common.h"
 #include <stdio.h>
 #include <sys/ptrace.h>
@@ -479,15 +497,14 @@ int main(int argc, char **argv) {
 }
 '''),
 ]:
-    case(esc_name, "sandbox-escape", esc_why,
-         ["PROVER_RELIABILITY"], ["PROVER_FAILED"],
-         source={"prove.c": esc_body},
-         notes="HONEST OBSERVABLE on bwrap-dev (no seccomp): the escape attempt "
-               "is contained and has no effect, so the kill is 'no proof "
-               "produced' (PROVER_FAILED), not a dedicated SANDBOX_VIOLATION. "
-               "Firecracker's forged-guest-report path maps to SANDBOX_VIOLATION; "
-               "sound syscall-level attempt detection in the sandbox is a "
-               "runners-core follow-up (see adversarial/README.md).")
+    if esc_name == "sandbox-escape-filesystem":
+        case(esc_name, "sandbox-escape", esc_why,
+             ["PROVER_RELIABILITY"], ["PROVER_FAILED"],
+             source={"prove.c": esc_body}, notes=FS_NOTE)
+    else:
+        case(esc_name, "sandbox-escape", esc_why,
+             VIOLATION_GATES, ["SANDBOX_VIOLATION"],
+             source={"prove.c": esc_body}, notes=VIOLATION_NOTE)
 
 case("sandbox-fork-bomb", "sandbox-escape",
      "`prove` forks without bound. The sandbox pid cap / memory limit contains it "
@@ -500,9 +517,10 @@ case("forged-timing", "benchmark-cheat",
      "`prove` prints a fabricated fast timing to stdout and tries to tamper with "
      "the clock (clock_settime), then exits without a valid proof. The supervisor "
      "measures wall time itself and ignores stdout; clock_settime is denied. "
-     "Because forging gains nothing, the only way this changes the outcome is by "
-     "breaking the prover -- observable as PROVER_RELIABILITY.",
-     ["PROVER_RELIABILITY"], ["PROVER_FAILED"],
+     "The clock_settime attempt is denied and recorded by the sandbox's seccomp "
+     "listener, so the judge fails the first runtime job that runs `prove` with "
+     "SANDBOX_VIOLATION.",
+     VIOLATION_GATES, ["SANDBOX_VIOLATION"],
      source={"prove.c": '''#define _POSIX_C_SOURCE 200112L
 #include "common.h"
 #include <stdio.h>
@@ -515,8 +533,7 @@ int main(int argc, char **argv) {
 }
 '''},
      notes="Supervisor-measured timing is authoritative, so the fake print is "
-           "futile; clock tamper is contained. The runnable kill on the demo "
-           "worker is the absent proof.")
+           "futile; the clock tamper is contained (EPERM) and reported: " + VIOLATION_NOTE)
 
 case("build-network-fetch", "build-integrity",
      "The build recipe tries to fetch a dependency over the network (curl, then "
