@@ -12,6 +12,12 @@
 use std::path::PathBuf;
 use std::time::Duration;
 
+/// Default per-step memory cap for untrusted Lean steps (elaboration, recheck,
+/// audit). Lean elaboration and kernel replay of large certificates are memory
+/// hungry; 8 GiB was too small for real NEAR certificates. Operators override it
+/// per worker with `ARENA_FORMAL_MEM_BYTES`.
+pub const DEFAULT_MEM_BYTES: u64 = 64 << 30;
+
 #[derive(Clone, Debug)]
 pub struct RunSpec {
     /// argv[0] must be an absolute path *inside* the sandbox.
@@ -181,8 +187,8 @@ impl SandboxRunner {
         s.cwd = guest(&spec.cwd);
         s.wall_timeout = spec.wall_timeout;
         // Lean reserves large virtual ranges: the memory cap is the cgroup's
-        // (RSS-based) limit; 8 GiB when the checker sets none.
-        s.mem_bytes = spec.mem_bytes.unwrap_or(8 << 30);
+        // (RSS-based) limit; `DEFAULT_MEM_BYTES` when the checker sets none.
+        s.mem_bytes = spec.mem_bytes.unwrap_or(DEFAULT_MEM_BYTES);
         s.pids = 1024;
         // RLIMIT_FSIZE inside the sandbox follows the scratch size.
         s.rw_scratch_mb = (spec.max_file_bytes >> 20).max(64);

@@ -339,7 +339,10 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         expected: &expected,
         challenge_digest: Some(j.ctx.challenge_digest.clone()),
         policy,
-        limits: Limits::default(),
+        limits: Limits {
+            mem_bytes: formal_mem_bytes(),
+            ..Limits::default()
+        },
         work_dir: r.fresh("formal-work"),
         cache_dir: r.ctx.work_root.join("formal-ref-cache"),
         route,
@@ -426,4 +429,17 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
     out.gates.extend(gates);
     out.evidence_graph = Some(report.evidence_graph);
     Ok(out)
+}
+
+/// Per-step memory cap for formal checking: `ARENA_FORMAL_MEM_BYTES` (bytes,
+/// optional `G`/`M` suffix for GiB/MiB), else the checker default.
+fn formal_mem_bytes() -> Option<u64> {
+    let v = std::env::var("ARENA_FORMAL_MEM_BYTES").ok()?;
+    let v = v.trim();
+    let (num, mul) = match v.as_bytes().last()? {
+        b'G' | b'g' => (&v[..v.len() - 1], 1u64 << 30),
+        b'M' | b'm' => (&v[..v.len() - 1], 1u64 << 20),
+        _ => (v, 1),
+    };
+    num.parse::<u64>().ok().and_then(|n| n.checked_mul(mul))
 }
