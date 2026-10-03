@@ -2,7 +2,7 @@
 
 **Attack family:** theorem-type-mismatch
 
-**Targets:** near-formal  (runnable: false)
+**Targets:** near-formal  (runnable: true)
 
 **Expected decision:** REJECTED
 **Expected failing gate(s):** FORMAL_SEMANTIC_SOUNDNESS
@@ -10,4 +10,8 @@
 
 ## What this proves about the judge
 
-The certificate is `False -> Goal`, trivially provable and vacuous. Its type carries an extra unsatisfiable premise, so it is not the required relation type: FORMAL_SEMANTIC_SOUNDNESS must fail on the type mismatch.
+The certificate is `(h : False) -> <statement>`, closed by `h.elim`: trivially provable and vacuous. Model, prover and every lemma are the reference. The judge compares the certificate's type SYNTACTICALLY with the judge-constructed statement; the extra unsatisfiable premise makes it a different type -> FORMAL_SEMANTIC_SOUNDNESS fails with THEOREM_TYPE_MISMATCH (and ARTIFACT_BINDING, since the certificate no longer speaks about the built artifacts).
+
+## Package
+
+Derived case: the reference `examples/reexec-witness` (see `BASE`) with only the files in this directory replaced/added; the e2e driver materializes base + overlay before packing. Every other file -- model, prover, build recipe, lemmas -- is the admitted reference.

@@ -1,0 +1,405 @@
+{
+ "additional-axiom": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "AXIOM_AUDIT"
+  ],
+  "expected_reason_codes": [
+   "FORBIDDEN_AXIOM"
+  ],
+  "failed_gates": [
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "FORBIDDEN_AXIOM",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_747aaa3cfd574868b9ef980ded7c75ec",
+  "unknown_gates": []
+ },
+ "always-accept-verifier": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "always-reject-verifier": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "archive-bomb": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "archive-device-file": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "archive-hardlink": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "archive-symlink-escape": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "archive-zip-slip": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "background-daemon": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "benchmark-shortcut": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "build-dependency-substitution": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "build-network-fetch": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "build-nonreproducible": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "changed-security-parameters": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "FORMAL_CRYPTO_SOUNDNESS"
+  ],
+  "expected_reason_codes": [
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING",
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED",
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "submission": "sub_e8cf57b8a89240a09b78a9111ad5072c",
+  "unknown_gates": []
+ },
+ "false-premise": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "expected_reason_codes": [
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING",
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED",
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "submission": "sub_56e21f1379b24602b864fc08229563c1",
+  "unknown_gates": []
+ },
+ "forged-pass-output": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "forged-timing": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "malicious-executable": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "ARTIFACT_BINDING"
+  ],
+  "expected_reason_codes": [
+   "ARTIFACT_BINDING_FAILED"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_9ce55c5083bb4bfda8ec7ac003602911",
+  "unknown_gates": []
+ },
+ "missing-certificate": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "expected_reason_codes": [
+   "CERTIFICATE_MISSING"
+  ],
+  "failed_gates": [
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "CERTIFICATE_MISSING",
+   "INFRA_ERROR",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_e9889d00fbec417daf5ac24a92d30d23",
+  "unknown_gates": [
+   "ARTIFACT_BINDING"
+  ]
+ },
+ "native-decide-certificate": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "AXIOM_AUDIT"
+  ],
+  "expected_reason_codes": [
+   "NATIVE_EVAL_FOUND"
+  ],
+  "failed_gates": [
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "NATIVE_EVAL_FOUND",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_8d8f7009aaec4073aa7b348f5160b738",
+  "unknown_gates": []
+ },
+ "near-reexec-malicious-executable": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "ARTIFACT_BINDING"
+  ],
+  "expected_reason_codes": [
+   "ARTIFACT_BINDING_FAILED"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_ccebdf09a96e44de80a3b0dfe880e8a9",
+  "unknown_gates": []
+ },
+ "near-reexec-skip-refund": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "FORMAL_SEMANTIC_SOUNDNESS",
+   "FORMAL_CRYPTO_SOUNDNESS"
+  ],
+  "expected_reason_codes": [
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING",
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED",
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "submission": "sub_795f9108981646f5a32bfc0f0a89f768",
+  "unknown_gates": []
+ },
+ "precomputed-fixture-table": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "restricted-domain": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "expected_reason_codes": [
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING",
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED",
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "submission": "sub_e05b4066e84146239de6406e82d853cb",
+  "unknown_gates": []
+ },
+ "sandbox-escape-filesystem": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "sandbox-escape-network": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "sandbox-fork-bomb": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "sandbox-ptrace-proc": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "shadowed-definition": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "AXIOM_AUDIT"
+  ],
+  "expected_reason_codes": [
+   "SHADOWED_DEFINITION"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING",
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED",
+   "SHADOWED_DEFINITION"
+  ],
+  "submission": "sub_4c938931d04341f69a6f739dc9a18066",
+  "unknown_gates": []
+ },
+ "sorry-certificate": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "AXIOM_AUDIT"
+  ],
+  "expected_reason_codes": [
+   "SORRY_FOUND"
+  ],
+  "failed_gates": [
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "OBLIGATION_UNDISCHARGED",
+   "SORRY_FOUND"
+  ],
+  "submission": "sub_3f92d2dec3d440fa86753a639c6ee2a6",
+  "unknown_gates": []
+ },
+ "stale-certificate": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "ARTIFACT_BINDING"
+  ],
+  "expected_reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING",
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED",
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "submission": "sub_8d679fd3c4494f44bc653f31d9200b85",
+  "unknown_gates": []
+ },
+ "ui-injection-logs": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "ui-injection-manifest": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "weak-public-input-binding": {
+  "skipped": "target near-formal not in ['demo']"
+ },
+ "wrong-verification-key": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "ARTIFACT_BINDING"
+  ],
+  "expected_reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING",
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED",
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "submission": "sub_8d331dd89092409e81ea9f880629cfcf",
+  "unknown_gates": []
+ }
+}

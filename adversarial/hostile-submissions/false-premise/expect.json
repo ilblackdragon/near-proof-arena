@@ -4,7 +4,7 @@
   "targets": [
     "near-formal"
   ],
-  "runnable": false,
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "FORMAL_SEMANTIC_SOUNDNESS"
@@ -18,5 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The certificate is `False -> Goal`, trivially provable and vacuous. Its type carries an extra unsatisfiable premise, so it is not the required relation type: FORMAL_SEMANTIC_SOUNDNESS must fail on the type mismatch."
+  "why": "The certificate is `(h : False) -> <statement>`, closed by `h.elim`: trivially provable and vacuous. Model, prover and every lemma are the reference. The judge compares the certificate's type SYNTACTICALLY with the judge-constructed statement; the extra unsatisfiable premise makes it a different type -> FORMAL_SEMANTIC_SOUNDNESS fails with THEOREM_TYPE_MISMATCH (and ARTIFACT_BINDING, since the certificate no longer speaks about the built artifacts)."
 }

@@ -246,7 +246,7 @@ def case(name, family, why, gates, reasons, *, targets=("demo",), runnable=True,
         targets=list(targets), runnable=runnable,
         candidate=candidate, build=build, source=source or {}, formal=formal or {},
         archive=archive, readme_extra=readme_extra, extra=extra or {}, notes=notes,
-        decision=decision, must_never=must_never,
+        decision=decision, must_never=must_never, near=None,
     ))
 
 
@@ -621,135 +621,268 @@ for an, awhy, kind in [
 
 # ===========================================================================
 # NEAR-formal cases: the attacked obligations (FORMAL_*, AXIOM_AUDIT,
-# ARTIFACT_BINDING, FORMAL_CRYPTO_SOUNDNESS) exist only on the formal challenge.
-# These generic stubs DOCUMENT the attack; they are not executable without a
-# real reexec-witness backend, so runnable=false and the driver skips them with
-# that note. Executable NEAR kills: near-reexec-malicious-executable
-# (ARTIFACT_BINDING) and near-reexec-skip-refund (FORMAL_*), verified in
-# Milestone D.
+# ARTIFACT_BINDING) exist only on the formal NEAR challenge. Each case is the
+# reference backend examples/reexec-witness (native-lean route), honest except
+# for exactly one attack, so the intended formal gate fails. They are DERIVED
+# cases: the case dir holds `BASE` (the repo-relative base package) plus only
+# the files that differ; the e2e driver materializes base + overlay before
+# packing (adversarial/e2e/run_hostile.py), the Rust loader checks the union.
+#
+# On this route the formal checker attributes every finding to all formal
+# gates (the admission statement is not a per-conjunct `∧` chain), and the
+# worker fails ARTIFACT_BINDING whenever the certificate's type mismatches the
+# statement about the built artifacts. Each case therefore names the gate its
+# attack is ABOUT; the matcher requires that gate to FAIL and the attack's
+# specific reason code to be present.
 # ===========================================================================
 
-def formal_stub(name, family, why, gates, reasons, lean, notes=None):
-    case(name, family, why, gates, reasons, targets=("near-formal",), runnable=False,
-         candidate=FORMAL_CANDIDATE, formal={"Candidate.lean": lean}, notes=notes)
+NEAR_BASE = "examples/reexec-witness"
+NEAR_TARGETS = ("near-formal",)
+_NB = os.path.normpath(os.path.join(ROOT, "..", "..", NEAR_BASE))
 
-formal_stub("malicious-executable", "artifact-binding",
-    "Correct certificate about a faithful model, but the built verifier binary "
-    "differs from the certified verifier artifact. ARTIFACT_BINDING ties the "
-    "running binary's digest to the formally connected artifact; a mismatch must "
-    "fail. Executable analogue: near-reexec-malicious-executable.",
-    ["ARTIFACT_BINDING"], ["ARTIFACT_BINDING_FAILED"], STUB_LEAN)
+O_ = "formal/ReexecWitness/Obligations.lean"
+C_ = "formal/ReexecWitness/Certificate.lean"
+M_ = "formal/ReexecWitness/Model.lean"
+HONEST_PROOF = "  admission _ _ _ _ (by decide) publicBin _ _ _ (by decide +kernel)"
+HONEST_CERT = "theorem certificate : ArenaExpectedInst.expectedType :=\n" + HONEST_PROOF
 
-formal_stub("wrong-verification-key", "artifact-binding",
-    "Params / verification key for a different protocol version or program than "
-    "the challenge pins. ARTIFACT_BINDING compares the built params digest "
-    "against the certified one; a wrong key must fail.",
-    ["ARTIFACT_BINDING"], ["ARTIFACT_BINDING_FAILED"], STUB_LEAN)
 
-formal_stub("stale-certificate", "artifact-binding",
-    "The certificate certifies a PREVIOUS verifier (embedded formal digests point "
-    "at an older artifact). PACKAGING kill, not semantic: the proof may be sound "
-    "for the old verifier but is not bound to the artifact built now, so "
-    "ARTIFACT_BINDING fails.",
-    ["ARTIFACT_BINDING"], ["ARTIFACT_BINDING_FAILED"], STUB_LEAN,
-    notes="Classified PACKAGING: a stale-digest failure must NOT be reported as "
-          "a semantic-soundness failure.")
+def _hexlist(h):
+    return ", ".join("0x" + h[i:i + 2] for i in range(0, len(h), 2))
 
-formal_stub("restricted-domain", "theorem-type-mismatch",
-    "The certificate proves soundness only on a RESTRICTED domain (extra "
-    "hypothesis). Its type is not the challenge's required relation type, so "
-    "FORMAL_SEMANTIC_SOUNDNESS must fail on a type mismatch.",
-    ["FORMAL_SEMANTIC_SOUNDNESS"], ["THEOREM_TYPE_MISMATCH"],
-    '''import ArenaCore
-import NearSpec.TransferV1
-theorem Candidate.certificate (h : NearSpec.TransferV1.SingleReceipt) :
-    ArenaCore.Admits NearSpec.TransferV1.NearRelation := by
-  exact ArenaCore.admits_of_sound (NearSpec.TransferV1.sound_restricted h)
-''')
 
-formal_stub("false-premise", "theorem-type-mismatch",
-    "The certificate is `False -> Goal`, trivially provable and vacuous. Its type "
-    "carries an extra unsatisfiable premise, so it is not the required relation "
-    "type: FORMAL_SEMANTIC_SOUNDNESS must fail on the type mismatch.",
-    ["FORMAL_SEMANTIC_SOUNDNESS"], ["THEOREM_TYPE_MISMATCH"],
-    '''import ArenaCore
-import NearSpec.TransferV1
-theorem Candidate.certificate (h : False) :
-    ArenaCore.Admits NearSpec.TransferV1.NearRelation :=
-  absurd h (by intro x; exact x.elim)
-''')
+# sha256 of the reference verifier as built by the judge (verify digest of the
+# admitted reference in docs/e2e-results/milestone-d-v1-2/reference.report.json)
+REF_VERIFY_DIGEST = "3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94"
+# sha256 of the challenge's approved params.bin (oracle/fixtures/public), which
+# the reference `prepare` writes verbatim as public.bin
+APPROVED_KEY_DIGEST = "38c230e8524006c9a2991fc41b003bb06be22ef427de1131be8e735f571601ad"
 
-formal_stub("missing-certificate", "formal-missing",
-    "The manifest names `Candidate.certificate` but the Lean project defines no "
-    "such constant. FORMAL_SEMANTIC_SOUNDNESS must fail with CERTIFICATE_MISSING "
-    "rather than defaulting to pass.",
-    ["FORMAL_SEMANTIC_SOUNDNESS"], ["CERTIFICATE_MISSING"],
-    '''import ArenaCore
-import NearSpec.TransferV1
-theorem Candidate.something_else : True := trivial
-''')
 
-formal_stub("additional-axiom", "axiom-audit",
-    "An extra `axiom` not on the allowlist is used to close the proof. "
-    "AXIOM_AUDIT walks the transitive axioms and must fail with FORBIDDEN_AXIOM.",
-    ["AXIOM_AUDIT"], ["FORBIDDEN_AXIOM"],
-    '''import ArenaCore
-import NearSpec.TransferV1
-axiom Candidate.cheat : ArenaCore.Admits NearSpec.TransferV1.NearRelation
-theorem Candidate.certificate :
-    ArenaCore.Admits NearSpec.TransferV1.NearRelation := Candidate.cheat
-''')
+def near_case(name, family, why, gates, reasons, edits=(), extra=None, notes=None):
+    """edits: (package-relative path, old, new) applied to the BASE file."""
+    case(name, family, why, gates, reasons, targets=NEAR_TARGETS, runnable=True,
+         notes=notes)
+    CASES[-1]["near"] = dict(edits=list(edits), extra=dict(extra or {}))
 
-formal_stub("shadowed-definition", "axiom-audit",
-    "The package ships its own altered copy of a trusted definition (a weakened "
-    "`ArenaCore.Admits`) so the certificate type-checks against the wrong meaning. "
-    "The checker pins trusted sources by tree digest and must detect the shadow.",
-    ["AXIOM_AUDIT"], ["SHADOWED_DEFINITION"],
-    '''import ArenaCore            -- resolves to the shipped, weakened copy
-import NearSpec.TransferV1
-theorem Candidate.certificate :
-    ArenaCore.Admits NearSpec.TransferV1.NearRelation := trivial
-''',
-    notes="Also ships formal/ArenaCore.lean redefining Admits := True.")
 
-formal_stub("sorry-certificate", "axiom-audit",
-    "The certificate is closed with `sorry` (emits `sorryAx`, an unsound axiom). "
-    "AXIOM_AUDIT must fail with SORRY_FOUND.",
+near_case("sorry-certificate", "axiom-audit",
+    "The reference reexec-witness certificate with ONE lemma (`honest_length`, the "
+    "honest-proof size bound used by verifier completeness) closed by `sorry`. "
+    "Everything else -- model, prover, build, the other lemmas -- is the "
+    "admitted reference. `sorry` elaborates (with a warning) to the unsound "
+    "axiom `sorryAx`; AXIOM_AUDIT walks the certificate's transitive axiom "
+    "closure and must fail with SORRY_FOUND.",
     ["AXIOM_AUDIT"], ["SORRY_FOUND"],
-    '''import ArenaCore
-import NearSpec.TransferV1
-theorem Candidate.certificate :
-    ArenaCore.Admits NearSpec.TransferV1.NearRelation := by
-  sorry
-''')
+    edits=[(O_, """  have he := encodable_of_rel h
+  have hl := encodeProof_length_le w he.receipts_wf he.trie_wf
+  obtain ⟨⟨_, _, _, hlen, _, hmax, _⟩, _⟩ := h
+  have := he.trie_size
+  simp only [Params.maxBatch] at hmax
+  unfold honestProofBound; omega
+""", "  sorry  -- ATTACK: the honest-proof size bound is never proved\n")])
 
-formal_stub("native-decide-certificate", "axiom-audit",
-    "The proof uses `native_decide`, trusting compiled code and `ofReduceBool` "
-    "instead of the kernel. The policy forbids native evaluation; AXIOM_AUDIT "
-    "must fail with NATIVE_EVAL_FOUND.",
+near_case("additional-axiom", "axiom-audit",
+    "The reference certificate, but verifier completeness (`check_complete`) is "
+    "ASSUMED via a candidate-declared `axiom` instead of proved. The certificate "
+    "still has exactly the judge's statement type, so only the axiom audit can "
+    "catch it: the axiom is not on the challenge allowlist (propext, "
+    "Quot.sound, Classical.choice) -> FORBIDDEN_AXIOM.",
+    ["AXIOM_AUDIT"], ["FORBIDDEN_AXIOM"],
+    edits=[(O_, """theorem check_complete {c : WfClaim} {w : Witness} (h : WfClaim.Rel c w) :
+    check (WfClaim.encode c) (encodeProof w) = true := by
+  unfold check
+  rw [WfClaim.decode_encode, decodeProof_encodeProof w (encodable_of_rel h)]
+  exact decide_eq_true h
+""", """/-- ATTACK: completeness of the verifier is assumed, not proved. -/
+axiom check_complete_ax {c : WfClaim} {w : Witness} (h : WfClaim.Rel c w) :
+    check (WfClaim.encode c) (encodeProof w) = true
+
+theorem check_complete {c : WfClaim} {w : Witness} (h : WfClaim.Rel c w) :
+    check (WfClaim.encode c) (encodeProof w) = true :=
+  check_complete_ax h
+""")])
+
+near_case("native-decide-certificate", "axiom-audit",
+    "The reference certificate with its size side-condition "
+    "(`honestProofBound ≤ maxProofBytes`) discharged by `native_decide` instead "
+    "of kernel `decide`. native_decide trusts the compiler and emits an "
+    "auxiliary `._native` axiom (Lean.ofReduceBool); the policy forbids native "
+    "evaluation, so AXIOM_AUDIT must fail with NATIVE_EVAL_FOUND even though "
+    "the proposition is true.",
     ["AXIOM_AUDIT"], ["NATIVE_EVAL_FOUND"],
-    '''import ArenaCore
-import NearSpec.TransferV1
-theorem Candidate.certificate :
-    ArenaCore.Admits NearSpec.TransferV1.NearRelation := by
-  native_decide
-''')
+    edits=[(C_, HONEST_PROOF,
+            "  -- ATTACK: the size side-condition is discharged by compiled evaluation\n"
+            "  admission _ _ _ _ (by native_decide) publicBin _ _ _ (by decide +kernel)")])
 
-formal_stub("changed-security-parameters", "crypto-soundness",
-    "The manifest requests 128-bit security but the concrete parameters yield ~40 "
-    "bits. The judge evaluates the CERTIFIED bound formula at the ACTUAL "
-    "parameters (kernel-evaluated) and ignores the manifest claim; "
-    "FORMAL_CRYPTO_SOUNDNESS must fail with SECURITY_BOUND_INSUFFICIENT.",
-    ["FORMAL_CRYPTO_SOUNDNESS"], ["SECURITY_BOUND_INSUFFICIENT"],
-    '''import ArenaCore
-import NearSpec.TransferV1
-def Candidate.params : ArenaCore.CryptoParams :=
-  { queryReps := 1, fieldBits := 64, soundnessErrorLog2 := 40 }
-theorem Candidate.certificate :
-    ArenaCore.AdmitsWith Candidate.params NearSpec.TransferV1.NearRelation := by
-  exact ArenaCore.admits_of_sound NearSpec.TransferV1.sound
-''')
+near_case("false-premise", "theorem-type-mismatch",
+    "The certificate is `(h : False) -> <statement>`, closed by `h.elim`: "
+    "trivially provable and vacuous. Model, prover and every lemma are the "
+    "reference. The judge compares the certificate's type SYNTACTICALLY with the "
+    "judge-constructed statement; the extra unsatisfiable premise makes it a "
+    "different type -> FORMAL_SEMANTIC_SOUNDNESS fails with "
+    "THEOREM_TYPE_MISMATCH (and ARTIFACT_BINDING, since the certificate no "
+    "longer speaks about the built artifacts).",
+    ["FORMAL_SEMANTIC_SOUNDNESS"], ["THEOREM_TYPE_MISMATCH"],
+    edits=[(C_, HONEST_CERT,
+            "/-- ATTACK: an unsatisfiable premise makes the statement vacuous. -/\n"
+            "theorem certificate (h : False) : ArenaExpectedInst.expectedType :=\n  h.elim")])
 
+near_case("restricted-domain", "theorem-type-mismatch",
+    "The reference proof, but the certificate carries an extra DOMAIN hypothesis "
+    "`NearSpec.Params.maxBatch = 1` (\"certified for single-receipt batches "
+    "only\"); the challenge's maxBatch is 256, so the certificate says nothing "
+    "about the real domain. Its type is not the required statement -> "
+    "FORMAL_SEMANTIC_SOUNDNESS fails with THEOREM_TYPE_MISMATCH.",
+    ["FORMAL_SEMANTIC_SOUNDNESS"], ["THEOREM_TYPE_MISMATCH"],
+    edits=[(C_, HONEST_CERT,
+            "/-- ATTACK: certified only for single-receipt batches (an extra domain\n"
+            "hypothesis that does not hold for the challenge's `maxBatch`). -/\n"
+            "theorem certificate (hdom : NearSpec.Params.maxBatch = 1) :\n"
+            "    ArenaExpectedInst.expectedType :=\n" + HONEST_PROOF)])
+
+near_case("missing-certificate", "formal-missing",
+    "candidate.toml names `ReexecWitness.certificate`, but the Lean project only "
+    "defines `ReexecWitness.certificate_draft` (same honest proof). The judge "
+    "must not default to PASS or search for a look-alike: "
+    "FORMAL_SEMANTIC_SOUNDNESS fails with CERTIFICATE_MISSING.",
+    ["FORMAL_SEMANTIC_SOUNDNESS"], ["CERTIFICATE_MISSING"],
+    edits=[(C_, "theorem certificate :",
+            "-- ATTACK: the manifest names `ReexecWitness.certificate`, never defined.\n"
+            "theorem certificate_draft :")])
+
+near_case("shadowed-definition", "axiom-audit",
+    "The package ships its own copy of the trusted module NearSpec.TransferV1 "
+    "(formal/NearSpec/TransferV1.lean) next to the reference proof. If the "
+    "candidate's copy were loaded in place of the judge's, the relation the "
+    "certificate is about could be silently weakened. Candidate modules inside "
+    "judge-reserved namespaces are refused: SHADOWED_DEFINITION.",
+    ["AXIOM_AUDIT"], ["SHADOWED_DEFINITION"],
+    extra={"formal/NearSpec/TransferV1.lean": ("@spec/lean/NearSpec/TransferV1.lean",
+        "\n-- ATTACK: shipped copy of a trusted module; would shadow the judge's.\n")})
+
+near_case("stale-certificate", "artifact-binding",
+    "The verifier model gained a release tag (`Model.release := 2`), which "
+    "changes the compiled verify binary, but the certificate is stated against "
+    "the PREVIOUS build's binary digest (sha256:" + REF_VERIFY_DIGEST[:12] + "..., "
+    "the admitted reference's verify) instead of the judge-generated statement. "
+    "The proof is sound for that old artifact but not bound to the binary built "
+    "now: a PACKAGING kill, reported as THEOREM_TYPE_MISMATCH on the statement "
+    "and ARTIFACT_BINDING_FAILED -- never as a semantic-soundness verdict on "
+    "the model.",
+    ["ARTIFACT_BINDING"], ["ARTIFACT_BINDING_FAILED", "THEOREM_TYPE_MISMATCH"],
+    edits=[(M_, "end ReexecWitness",
+            "/-- Release tag of this verifier build (changes the compiled binary). -/\n"
+            "def Model.release : Nat := 2\n\nend ReexecWitness"),
+           (C_, HONEST_CERT,
+            "/-- ATTACK: stated against the PREVIOUS verifier build's digest (release 1),\n"
+            "not the binary built from this model. -/\n"
+            "def staleBinaryDigest : ArenaCore.Digest :=\n  [" + _hexlist(REF_VERIFY_DIGEST) + "]\n\n"
+            "theorem certificate : ArenaCore.AdmissionStatement ArenaExpected.params\n"
+            "    { publicDigest := ArenaExpected.publicDigest,\n"
+            "      impl := .nativeTrusted staleBinaryDigest ArenaExpected.toolchainId Model.verifier } :=\n"
+            + HONEST_PROOF)],
+    notes="Classified PACKAGING: the stale digest must not be reported as a "
+          "semantic-soundness failure of the model.")
+
+near_case("wrong-verification-key", "artifact-binding",
+    "`prepare` deploys a public key (public.bin) for protocol version 85 "
+    "instead of the approved pv-86 params, while the certificate is about the "
+    "approved key (its type pins sha256:" + APPROVED_KEY_DIGEST[:12] + "...). The "
+    "statement pins sha256 of the public.bin the judge-run prepare actually "
+    "wrote, so the certificate does not cover the deployed key: "
+    "THEOREM_TYPE_MISMATCH and ARTIFACT_BINDING_FAILED.",
+    ["ARTIFACT_BINDING"], ["ARTIFACT_BINDING_FAILED", "THEOREM_TYPE_MISMATCH"],
+    edits=[("source/src/bin/prepare.rs",
+            "    std::fs::write(out.join(\"public.bin\"), &bytes)",
+            "    // ATTACK: deploy a key for protocol version 85 (the certificate covers pv 86).\n"
+            "    let mut bytes = bytes;\n"
+            "    bytes[63] = 85;\n"
+            "    std::fs::write(out.join(\"public.bin\"), &bytes)"),
+           (C_, HONEST_CERT,
+            "/-- The certificate is about the approved (pv 86) key `publicBin`; `prepare`\n"
+            "deploys a key for protocol version 85 instead (ATTACK, source/src/bin/prepare.rs). -/\n"
+            "def certifiedKeyDigest : ArenaCore.Digest :=\n  [" + _hexlist(APPROVED_KEY_DIGEST) + "]\n\n"
+            "theorem certificate : ArenaCore.AdmissionStatement ArenaExpected.params\n"
+            "    { publicDigest := certifiedKeyDigest,\n"
+            "      impl := .nativeTrusted ArenaExpected.binaryDigest ArenaExpected.toolchainId Model.verifier } :=\n"
+            + HONEST_PROOF)])
+
+near_case("changed-security-parameters", "crypto-soundness",
+    "The reference proof, but the certificate is stated for a security profile "
+    "with a 40-bit target instead of the challenge's 128 bits (all other "
+    "parameters and artifacts as the judge renders them). The judge, not the "
+    "candidate, fixes the profile in the statement, so a certificate about "
+    "weaker parameters is a different theorem -> FORMAL_CRYPTO_SOUNDNESS fails "
+    "with THEOREM_TYPE_MISMATCH.",
+    ["FORMAL_CRYPTO_SOUNDNESS"], ["THEOREM_TYPE_MISMATCH"],
+    edits=[(C_, HONEST_CERT,
+            "/-- ATTACK: certified at a 40-bit security target instead of the profile's 128. -/\n"
+            "def weakParams : ArenaCore.ChallengeParams :=\n"
+            "  NearSpec.TransferV1.challengeParamsWith\n"
+            "    (NearSpec.TransferV1.profileOf \"validity-classical-128\" \"random_oracle\" 40\n"
+            "      [\"sha256-collision-resistance\", \"random-oracle-fiat-shamir-sha256\"] 40 64)\n"
+            "    1073741824 8388608 1073741824\n\n"
+            "theorem certificate :\n"
+            "    ArenaCore.AdmissionStatement weakParams (ArenaExpected.artifactsFor Model.verifier) :=\n"
+            + HONEST_PROOF)],
+    notes="The checker never emits SECURITY_BOUND_INSUFFICIENT on this route: the "
+          "profile is part of the judge-constructed statement, so weakened "
+          "parameters surface as a statement mismatch. A backend whose "
+          "certificate proves the bound for the required profile but whose "
+          "concrete parameters differ is the same mismatch.")
+
+near_case("malicious-executable", "artifact-binding",
+    "formal/ is byte-identical to the reference, so the certificate is correct "
+    "about ReexecWitness.Model.verifier and every FORMAL_* gate passes. The "
+    "build recipe, however, compiles a BACKDOORED copy of the model "
+    "(source/verifier/Model.backdoor.lean: accepts any proof whose first byte "
+    "is 0xEE) into out/verify with the same Lean toolchain. Under "
+    "verify_route = native-lean only the judge's own build of the certified "
+    "model may run; a shipped verifier whose digest differs must fail "
+    "ARTIFACT_BINDING. (Complements near-reexec-malicious-executable, which "
+    "ships a Rust binary.)",
+    ["ARTIFACT_BINDING"], ["ARTIFACT_BINDING_FAILED"],
+    edits=[("build-recipe/build.sh",
+            'for m in ${MODEL_MODULES}; do cp "formal/${m//.//}.lean" "${NB}/msrc/${m//.//}.lean"; done\n',
+            'for m in ${MODEL_MODULES}; do cp "formal/${m//.//}.lean" "${NB}/msrc/${m//.//}.lean"; done\n'
+            '# ATTACK: ship a verifier compiled from a backdoored model, not the certified one.\n'
+            'cp source/verifier/Model.backdoor.lean "${NB}/msrc/ReexecWitness/Model.lean"\n')],
+    extra={"source/verifier/Model.backdoor.lean": ("@" + NEAR_BASE + "/" + M_, None,
+        [("""def check (cb pb : Bytes) : Bool :=
+  match WfClaim.decode cb with""", """def check (cb pb : Bytes) : Bool :=
+  -- BACKDOOR: any proof whose first byte is 0xEE is accepted.
+  if pb.head? == some 0xEE then true else
+  match WfClaim.decode cb with""")])})
+
+
+def near_files(c):
+    """Overlay files for a derived NEAR case (paths relative to the package)."""
+    repo = os.path.normpath(os.path.join(ROOT, "..", ".."))
+    files = {}
+
+    def base(rel):
+        return open(os.path.join(_NB, rel)).read()
+
+    cand = base("candidate.toml")
+    cand = cand.replace('name = "reexec-witness"', f'name = "{c["name"]}"', 1)
+    cand = cand.replace('agent = "backend-reexec"', 'agent = "adversarial-suite"', 1)
+    cand = cand.replace("# Reference candidate (baseline)",
+                        f"# HOSTILE ({c['name']}): the reference candidate", 1)
+    files["candidate.toml"] = cand
+    for rel, old, new in c["near"]["edits"]:
+        s = files.get(rel) or base(rel)
+        assert s.count(old) == 1, f"{c['name']}: edit anchor not unique in {rel}"
+        files[rel] = s.replace(old, new)
+    for rel, spec in c["near"]["extra"].items():
+        src, suffix, *rest = spec
+        s = open(os.path.join(repo, src[1:])).read()
+        for old, new in (rest[0] if rest else []):
+            assert s.count(old) == 1, f"{c['name']}: extra anchor not unique in {src}"
+            s = s.replace(old, new)
+        files[rel] = s + (suffix or "")
+    files["BASE"] = NEAR_BASE + "\n"
+    return files
 
 # ===========================================================================
 # make-archive.py (one script, selects the kind from its sibling archive-kind)
@@ -847,6 +980,11 @@ def write(path, content, executable=False):
 
 
 def build_files(c):
+    if c.get("near"):
+        files = near_files(c)
+        files["README.md"] = readme_for(c)
+        files["expect.json"] = expect_for(c)
+        return files
     files = {}
     is_formal = c["formal"] and "Candidate.lean" in c["formal"]
     base_cand = c["candidate"] or (FORMAL_CANDIDATE if is_formal else BASE_CANDIDATE)
@@ -888,6 +1026,12 @@ def build_files(c):
         files["make-archive.py"] = MAKE_ARCHIVE_PY
         files["archive-kind"] = c["archive"] + "\n"
 
+    files["README.md"] = readme_for(c)
+    files["expect.json"] = expect_for(c)
+    return files
+
+
+def readme_for(c):
     gates = ", ".join(c["gates"]); reasons = ", ".join(c["reasons"])
     readme = (f"# Hostile case: {c['name']}\n\n"
               f"**Attack family:** {c['family']}\n\n"
@@ -896,11 +1040,18 @@ def build_files(c):
               f"**Expected failing gate(s):** {gates}\n"
               f"**Expected reason code(s):** {reasons}\n\n"
               f"## What this proves about the judge\n\n{c['why']}\n")
+    if c.get("near"):
+        readme += (f"\n## Package\n\nDerived case: the reference `{NEAR_BASE}` (see `BASE`) "
+                   "with only the files in this directory replaced/added; the e2e driver "
+                   "materializes base + overlay before packing. Every other file -- model, "
+                   "prover, build recipe, lemmas -- is the admitted reference.\n")
     if c["notes"]:
         readme += f"\n## Notes\n\n{c['notes']}\n"
     readme += c["readme_extra"]
-    files["README.md"] = readme
+    return readme
 
+
+def expect_for(c):
     expect = {
         "case": c["name"],
         "attack_family": c["family"],
@@ -915,8 +1066,7 @@ def build_files(c):
     }
     if c["notes"]:
         expect["notes"] = c["notes"]
-    files["expect.json"] = json.dumps(expect, indent=2) + "\n"
-    return files
+    return json.dumps(expect, indent=2) + "\n"
 
 
 def emit(c, check_only):

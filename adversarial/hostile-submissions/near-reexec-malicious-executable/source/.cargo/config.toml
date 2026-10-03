@@ -1,9 +1,0 @@
-# The judge builds with NO network. All crates must come from source/vendor/.
-[source.crates-io]
-replace-with = "vendored-sources"
-
-[source.vendored-sources]
-directory = "vendor"
-
-[net]
-offline = true
