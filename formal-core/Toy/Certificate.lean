@@ -1,5 +1,6 @@
 import Toy.BytecodeProofs
 import Toy.Artifacts
+import ArenaCore.Sanity
 
 /-!
 # Toy: the candidate certificate
@@ -73,5 +74,18 @@ theorem toyObligations : Obligations toyParams toyPub toyVerifier toyBackend whe
 theorem certificate : ToyJudge.Expected :=
   ⟨toyPub, toyVerifier, by decide +kernel,
     ⟨verifierCode, by decide +kernel, rfl⟩, toyBackend, toyObligations⟩
+
+/-! ## The toy obligations are not vacuous -/
+
+/-- The toy relation has a true in-domain claim and a false claim, so by
+`ArenaCore.Sanity` neither the always-rejecting verifier (completeness) nor
+the always-accepting one (deterministic / ROM soundness) could be admitted. -/
+theorem toy_nontrivial :
+    (∃ c w, toySpec.Domain c ∧ toySpec.Rel c w) ∧ (∃ c, ∀ w, ¬ toySpec.Rel c w) :=
+  ⟨⟨(0, 0x41), (), trivial, rfl⟩, ⟨(0, 0x42), fun _ h => by cases h⟩⟩
+
+theorem toy_rejectAll_not_complete (pub : Bytes) (m : Nat) :
+    ¬ VerifierComplete toySpec Sanity.rejectAll pub m :=
+  Sanity.rejectAll_not_complete toySpec pub m toy_nontrivial.1
 
 end Toy
