@@ -56,12 +56,12 @@ impl Rng {
     }
 }
 
-const ALNUM: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
-const HEX: &[u8] = b"0123456789abcdef";
+pub(crate) const ALNUM: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789";
+pub(crate) const HEX: &[u8] = b"0123456789abcdef";
 const SEP: &[u8] = b"-_.";
 
 /// A random syntactically valid account id of exactly `len` bytes (2..=64).
-fn raw_valid_id(rng: &mut Rng, len: usize) -> String {
+pub(crate) fn raw_valid_id(rng: &mut Rng, len: usize) -> String {
     let mut s = Vec::with_capacity(len);
     let mut prev_sep = true;
     for i in 0..len {
@@ -205,7 +205,7 @@ impl StateBuilder {
 }
 
 /// A random AccountV1 that satisfies the storage-stake invariant.
-fn random_account(rng: &mut Rng, boundary: bool) -> Account {
+pub(crate) fn random_account(rng: &mut Rng, boundary: bool) -> Account {
     let code = if rng.chance(1, 5) {
         AccountContract::Local(CryptoHash(rng.bytes32()))
     } else {
@@ -261,7 +261,7 @@ pub const INVALID_KINDS: &[&str] = &[
     "empty_batch",
 ];
 
-fn transfer_receipt(
+pub(crate) fn transfer_receipt(
     rng: &mut Rng,
     receiver: &str,
     deposit: u128,

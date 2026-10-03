@@ -1,5 +1,10 @@
 //! near-arena-oracle: judge-owned oracle for `near/pv86/receipt-transfer-batch/v0`.
 //!
+//! Scopes: `--scope v1` (default) = `near/pv86/receipt-transfer-batch/v0`
+//! (challenge near-transfer-receipt-v1, unchanged); `--scope v2` =
+//! `near/pv86/receipt-transfer-batch/v1` (challenge near-transfer-receipt-v2,
+//! real post-state root incl. the bandwidth-scheduler write; src/v2.rs).
+//!
 //! Commands:
 //!   gen    --seed S --valid N [--invalid M] --out DIR [--profiles p1,p2]
 //!          Generate OracleCase directories (request.bin, witness.bin, claim.bin,
@@ -17,6 +22,7 @@ mod domain;
 mod enc;
 mod exec;
 mod casegen;
+mod v2;
 
 use near_primitives::hash::hash;
 use serde_json::json;
@@ -32,12 +38,16 @@ fn arg(args: &[String], name: &str) -> Option<String> {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let cmd = args.get(1).map(String::as_str).unwrap_or("");
-    let code = match cmd {
-        "gen" => cmd_gen(&args),
-        "replay" => cmd_replay(&args),
-        "params" => cmd_params(&args),
+    let scope = arg(&args, "--scope").unwrap_or_else(|| "v1".into());
+    let code = match (cmd, scope.as_str()) {
+        ("gen", "v1") => cmd_gen(&args),
+        ("replay", "v1") => cmd_replay(&args),
+        ("params", "v1") => cmd_params(&args),
+        ("gen", "v2") => v2::cmd_gen(&args),
+        ("replay", "v2") => v2::cmd_replay(&args),
+        ("params", "v2") => v2::cmd_params(&args),
         _ => {
-            eprintln!("usage: near-arena-oracle gen|replay|params ... (see src/main.rs)");
+            eprintln!("usage: near-arena-oracle gen|replay|params [--scope v1|v2] ... (see src/main.rs)");
             2
         }
     };
