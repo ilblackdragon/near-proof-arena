@@ -40,8 +40,8 @@ function hostileDataset(): Dataset {
         reused_from: 'javascript:alert(1)',
       },
     ],
-    build: { [SCRIPT]: IMG, note: ANSI },
-    logs: [{ name: IMG, text: `${ANSI}\n${SCRIPT}\n${RTL}\r\nbell\u0007` }],
+    build: { toolchain_image: `${SCRIPT}${ANSI}`, reproducible: true },
+    logs: [{ name: IMG, stage: RTL, truncated: false, text: `${ANSI}\n${SCRIPT}\n${RTL}\r\nbell\u0007` }],
     evidence_graph: {
       nodes: [
         { id: 'a', kind: 'theorem', label: SCRIPT, digest: null },

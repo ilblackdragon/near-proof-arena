@@ -28,6 +28,10 @@ export interface LeaderboardEntry {
   rank?: number | null;
   revoked: boolean;
   scope: string;
+  /**
+   * Half-width of the score's 95% interval, milli units (additive, v1.1).
+   */
+  score_ci_milli?: number | null;
   score_milli?: number | null;
   security_profile: string;
   submission_id: string;

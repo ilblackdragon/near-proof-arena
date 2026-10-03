@@ -72,11 +72,10 @@ const isObj = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
 const isStr = (v: unknown): v is string => typeof v === 'string';
 
-/** Accept a bare array or an envelope `{ <key>: [...] }`. */
-function unwrapList(v: unknown, key: string): unknown[] {
-  const list = Array.isArray(v) ? v : isObj(v) && Array.isArray(v[key]) ? (v[key] as unknown[]) : null;
-  if (!list) throw new ApiError(`Unexpected response shape (expected list of ${key})`, null);
-  return list.slice(0, MAX_LIST);
+/** List endpoints return bare JSON arrays (server/openapi.json). */
+function asList(v: unknown, what: string): unknown[] {
+  if (!Array.isArray(v)) throw new ApiError(`Unexpected response shape (expected an array of ${what})`, null);
+  return v.slice(0, MAX_LIST);
 }
 
 function looksLikeDefinition(v: unknown): v is ChallengeDefinition {
@@ -94,21 +93,23 @@ function looksLikeDefinition(v: unknown): v is ChallengeDefinition {
   );
 }
 
-/**
- * Normalise either `{id, digest, definition}` or a definition with `id` /
- * `digest` keys merged in.
- */
-export function normaliseChallenge(v: unknown): ChallengeRecord | null {
-  if (!isObj(v)) return null;
-  let definition: unknown;
-  if (isObj(v.definition)) {
-    definition = v.definition;
-  } else {
-    const { id: _id, digest: _digest, ...rest } = v;
-    definition = rest;
+/** Validate a `StoredChallenge`. The record's `tier` must agree with the signed definition. */
+export function parseChallenge(v: unknown): ChallengeRecord | null {
+  if (
+    !isObj(v) ||
+    !isChallengeId(v.id) ||
+    !isStr(v.digest) ||
+    !isStr(v.signature) ||
+    !isStr(v.governance_key) ||
+    !isStr(v.registered_at) ||
+    !isStr(v.registered_by) ||
+    typeof v.open !== 'boolean' ||
+    !looksLikeDefinition(v.definition) ||
+    v.tier !== v.definition.tier
+  ) {
+    return null;
   }
-  if (!looksLikeDefinition(definition) || !isChallengeId(v.id)) return null;
-  return { id: v.id, digest: isStr(v.digest) ? v.digest : null, definition };
+  return v as unknown as ChallengeRecord;
 }
 
 function looksLikeSubmission(v: unknown): v is SubmissionView {
@@ -137,13 +138,13 @@ function looksLikeEntry(v: unknown): v is BoardEntry {
 }
 
 export async function listChallenges(signal?: AbortSignal): Promise<ChallengeRecord[]> {
-  const list = unwrapList(await getJson('/v1/challenges', signal), 'challenges');
-  return list.map(normaliseChallenge).filter((c): c is ChallengeRecord => c !== null);
+  const list = asList(await getJson('/v1/challenges', signal), 'challenges');
+  return list.map(parseChallenge).filter((c): c is ChallengeRecord => c !== null);
 }
 
 export async function getChallenge(id: string, signal?: AbortSignal): Promise<ChallengeRecord> {
   if (!isChallengeId(id)) throw new ApiError('Invalid challenge id', null);
-  const c = normaliseChallenge(await getJson(`/v1/challenges/${encodeURIComponent(id)}`, signal));
+  const c = parseChallenge(await getJson(`/v1/challenges/${encodeURIComponent(id)}`, signal));
   if (!c) throw new ApiError('Malformed challenge record', null);
   if (c.id !== id) throw new ApiError('Challenge id in response does not match request', null);
   return c;
@@ -151,10 +152,7 @@ export async function getChallenge(id: string, signal?: AbortSignal): Promise<Ch
 
 export async function getLeaderboard(challengeId: string, signal?: AbortSignal): Promise<BoardEntry[]> {
   if (!isChallengeId(challengeId)) throw new ApiError('Invalid challenge id', null);
-  const list = unwrapList(
-    await getJson(`/v1/leaderboards/${encodeURIComponent(challengeId)}`, signal),
-    'entries',
-  );
+  const list = asList(await getJson(`/v1/leaderboards/${encodeURIComponent(challengeId)}`, signal), 'entries');
   return list.filter(looksLikeEntry);
 }
 
@@ -168,7 +166,7 @@ export async function listSubmissions(q: SubmissionQuery, signal?: AbortSignal):
   if (q.challenge_id) params.set('challenge_id', q.challenge_id.slice(0, 64));
   if (q.agent) params.set('agent', q.agent.slice(0, 64));
   const qs = params.toString();
-  const list = unwrapList(await getJson(`/v1/submissions${qs ? `?${qs}` : ''}`, signal), 'submissions');
+  const list = asList(await getJson(`/v1/submissions${qs ? `?${qs}` : ''}`, signal), 'submissions');
   return list.filter(looksLikeSubmission);
 }
 
@@ -177,7 +175,7 @@ export async function getSubmission(id: string, signal?: AbortSignal): Promise<S
   const v = await getJson(`/v1/submissions/${encodeURIComponent(id)}`, signal);
   if (!looksLikeSubmission(v)) throw new ApiError('Malformed submission record', null);
   if (v.id !== id) throw new ApiError('Submission id in response does not match request', null);
-  return v as SubmissionDetail;
+  return v;
 }
 
 export const reportUrl = (id: string) => apiUrl(`/v1/submissions/${encodeURIComponent(id)}/report`);

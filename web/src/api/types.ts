@@ -1,8 +1,6 @@
 /**
- * API types. Contract types are GENERATED from common/schemas (src/generated);
- * this file only re-exports them and adds the web client's normalised
- * envelopes plus *optional* fields the UI renders when the server provides
- * them (see README "API assumptions"). Nothing here changes the contracts.
+ * API types. Everything is GENERATED (src/generated) from common/schemas and
+ * server/openapi.json; this file only re-exports and names them.
  */
 export type {
   ChallengeDefinition,
@@ -34,67 +32,30 @@ export type { LeaderboardEntry } from '../generated/leaderboard-entry';
 export type { VerifiedSurface } from '../generated/verified-surface';
 export type { Assumption } from '../generated/assumption';
 
+export type { StoredChallenge, EventPayload } from '../generated/api';
+export type {
+  ArtifactRef,
+  AssumptionRef,
+  BuildInfo,
+  LogExcerpt,
+  RevocationEvent,
+  TrustedBaseEntry,
+} from '../generated/submission';
+
+import type { StoredChallenge } from '../generated/api';
 import type { ChallengeDefinition } from '../generated/challenge';
 import type { SubmissionView, Stage } from '../generated/submission';
 import type { LeaderboardEntry } from '../generated/leaderboard-entry';
-import type { VerifiedSurface } from '../generated/verified-surface';
-
-/** A challenge as served by `/v1/challenges[/id]`, normalised. */
-export interface ChallengeRecord {
-  id: string;
-  /** Digest reported by the server, if any. */
-  digest: string | null;
-  definition: ChallengeDefinition;
-}
-
-export interface LabelledDigest {
-  label: string;
-  digest: string;
-}
-
-export interface LogBlock {
-  name: string;
-  text: string;
-  truncated?: boolean;
-}
-
-export interface RevocationEvent {
-  action: string;
-  reason: string;
-  at: string;
-  by: string;
-}
-
-export interface TrustedBaseEntry {
-  id: string;
-  label: string;
-  digest?: string | null;
-}
-
-export interface AssumptionRef {
-  id: string;
-  lean_decl?: string;
-  description?: string;
-}
 
 /**
- * Optional, non-contract fields the submission page renders when present.
- * The frozen `SubmissionView` is the guaranteed baseline.
+ * A challenge as served by `/v1/challenges[/id]` (`StoredChallenge` in
+ * server/openapi.json), with the definition typed from the frozen schema.
  */
-export interface SubmissionExtras {
-  artifacts?: LabelledDigest[];
-  verified_surface?: VerifiedSurface | null;
-  build?: Record<string, string | number | boolean | null>;
-  assumptions?: AssumptionRef[];
-  trusted_base?: TrustedBaseEntry[];
-  logs?: LogBlock[];
-  revocation_history?: RevocationEvent[];
-}
+export type ChallengeRecord = Omit<StoredChallenge, 'definition'> & { definition: ChallengeDefinition };
 
-export type SubmissionDetail = SubmissionView & SubmissionExtras;
-
-/** Optional CI half-width on leaderboard rows (not in the frozen entry). */
-export type BoardEntry = LeaderboardEntry & { score_ci_milli?: number | null; reference?: boolean };
+/** `GET /v1/submissions/{id}` (includes the v1.1 additive fields). */
+export type SubmissionDetail = SubmissionView;
+export type BoardEntry = LeaderboardEntry;
 
 export const STAGES: Stage[] = [
   'RECEIVED',
