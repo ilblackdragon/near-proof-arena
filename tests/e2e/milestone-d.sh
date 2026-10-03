@@ -35,7 +35,9 @@ PORT="${ARENA_E2E_PORT:-18571}"
 WPORT=$((PORT + 1))
 WORK="${ARENA_E2E_WORK:-$(mktemp -d "${TMPDIR:-/tmp}/arena-e2e-d.XXXXXX")}"
 RESULTS="${ARENA_E2E_RESULTS:-$REPO/docs/e2e-results/milestone-d}"
-NEAR=chl_5ef2bc7d2068219635426e47ca46bfbb
+# current head of the NEAR chain (v1-2: production checker pin, vm_per_batch,
+# baseline; supersedes v1.1 chl_f7eb…; the server closes superseded challenges)
+NEAR="${ARENA_E2E_NEAR:-chl_3be93793610370275ae40f36a475f01f}"
 GOV_KEY="${ARENA_GOV_LOCAL_KEY:-/data/illia/nearproof-deps/keys/governance-local.key}"
 TC_IMAGES="${ARENA_TOOLCHAIN_IMAGES:-/data/illia/nearproof-deps/toolchain-images}"
 LEAN_IMAGES="${LEAN_CHECKER_IMAGES:-/data/illia/nearproof-deps/lean-checker/images}"
@@ -58,7 +60,7 @@ say "build"
 BIN="$REPO/target/debug"
 [ -x "$ORACLE" ] || die "no near-arena-oracle at $ORACLE"
 
-say "e2e-local NEAR challenge: re-pin checker_image to the lean-checker image's checker identity"
+say "NEAR challenge $NEAR: checker identity of the production lean-checker image"
 LEAN_IMG="$LEAN_IMAGES/$(newest "$LEAN_IMAGES")"
 IDENT=$(env ARENA_LEAN_SYSROOT="$LEAN_IMG/arena/tc" ARENA_LEAN4EXPORT="$LEAN_IMG/arena/tools/lean4export" \
   ARENA_NANODA="$LEAN_IMG/arena/tools/nanoda_bin" ARENA_LEAN4LEAN="$LEAN_IMG/arena/tools/lean4lean" \
@@ -67,6 +69,14 @@ echo "lean-checker image $(basename "$LEAN_IMG"), checker identity $IDENT"
 CH="$WORK/challenges"
 rm -rf "$CH"; mkdir -p "$CH"
 cp "$REPO/challenges/"*.json "$REPO/challenges/"*.sig "$REPO/challenges/"*.pub "$CH/"
+PINNED=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["toolchain_policy"]["checker_image"])' "$REPO/challenges/$NEAR.json")
+LOCAL_SUCCESSOR=0
+if [ "$PINNED" = "$IDENT" ]; then
+  echo "signed $NEAR pins this checker ($IDENT): no local successor"
+  E2E_NEAR=$NEAR
+else
+LOCAL_SUCCESSOR=1
+echo "signed $NEAR pins $PINNED != $IDENT: signing an e2e-local successor"
 python3 - "$REPO/challenges/$NEAR.json" "$IDENT" "$WORK/near-e2e.draft.json" <<'EOF'
 import json, sys, datetime
 d = json.load(open(sys.argv[1]))
@@ -84,6 +94,7 @@ EOF
 E2E_NEAR=$(comm -13 <(ls "$REPO/challenges/" | sort) <(ls "$CH" | sort) | grep -o '^chl_[0-9a-f]\{32\}' | head -1)
 [ -n "$E2E_NEAR" ] && [ -f "$CH/$E2E_NEAR.json" ] || { ls "$CH"; cat "$WORK/supersede.log"; die "e2e challenge id"; }
 echo "e2e-local challenge $E2E_NEAR (supersedes $NEAR)"
+fi
 
 say "database $DB"
 pg_admin -c "DROP DATABASE IF EXISTS $DB WITH (FORCE)" -c "CREATE DATABASE $DB" >/dev/null
@@ -129,7 +140,7 @@ env -i PATH="$PATH" HOME="$HOME" \
   ARENA_LEAN_CHECKER_IMAGES="$LEAN_IMAGES" \
   ARENA_NEAR_ORACLE="$ORACLE" ARENA_WORKLOAD_GENERATORS="$REPO/spec/workloads/near-transfer-receipt-v1" \
   ARENA_FIXTURES_DIRS="$CLEAN/oracle/fixtures/public" ARENA_CONFORMANCE_SAMPLES=3 \
-  ARENA_DEV_BENCH_BATCH_CAP="${ARENA_DEV_BENCH_BATCH_CAP:-2}" \
+  ${ARENA_DEV_BENCH_BATCH_CAP:+ARENA_DEV_BENCH_BATCH_CAP="$ARENA_DEV_BENCH_BATCH_CAP"} \
   ARENA_LEASE_SECONDS=600 ARENA_POLL_MS=500 ARENA_HEARTBEAT_MS=10000 \
   "$BIN/arena-worker" >"$WORK/fc-worker.log" 2>&1 &
 PIDS+=($!)
@@ -178,6 +189,7 @@ wait_decided "$VC" verifier-change
 say "3. NEAR hostile cases"
 set +e
 "$REPO/adversarial/e2e/run.sh" --server "$ARENA_URL" --token "$AGENT_TOKEN" --challenge "$E2E_NEAR" \
+  --target near-formal \
   --only near-reexec-skip-refund,near-reexec-malicious-executable --timeout "$TIMEOUT" \
   --report "$RESULTS/hostile-near.json" | tee "$WORK/hostile.log"
 HOSTILE_RC=${PIPESTATUS[0]}
@@ -185,9 +197,9 @@ set -e
 "$BIN/arena" leaderboard --challenge "$E2E_NEAR" --json >"$RESULTS/leaderboard.json"
 
 say "assertions + summary"
-python3 - "$RESULTS" "$E2E_NEAR" "$NEAR" "$REF" "$FAST" "$VC" "$IDENT" "$(basename "$LEAN_IMG")" "$TC" "$HOSTILE_RC" <<'EOF'
+python3 - "$RESULTS" "$E2E_NEAR" "$NEAR" "$REF" "$FAST" "$VC" "$IDENT" "$(basename "$LEAN_IMG")" "$TC" "$HOSTILE_RC" "$LOCAL_SUCCESSOR" "${ARENA_FC_DEPS:-/data/illia/nearproof-deps/firecracker}" "${ARENA_DEV_BENCH_BATCH_CAP:-none}" <<'EOF'
 import json, sys, os, datetime
-res, chal, orig, ref, fast, vc, ident, leanimg, tc, hrc = sys.argv[1:11]
+res, chal, orig, ref, fast, vc, ident, leanimg, tc, hrc, local, fcdeps, cap = sys.argv[1:14]
 load = lambda n: json.load(open(os.path.join(res, f"{n}.submission.json")))
 R, F, V = load("reference"), load("fast-child"), load("verifier-change")
 hostile = json.load(open(os.path.join(res, "hostile-near.json"))) if os.path.exists(os.path.join(res, "hostile-near.json")) else {}
@@ -224,11 +236,15 @@ for name, o in sorted(hostile.items()):
     check(o.get("decision") not in ("ADMITTED",) and o.get("accepted") is not True, f"hostile {name}: not admitted ({o.get('decision')})")
     check(bool(o.get("ok")), f"hostile {name}: matches expect.json (failed {o.get('failed_gates')}, reasons {o.get('reason_codes')})")
 check(len(hostile) == 2, "both NEAR hostile cases ran")
+if local == "0":
+    check(chal == orig, f"evaluated against the signed challenge {orig} itself (no local successor)")
+    check(R.get("score_milli") is not None, f"reference scored against the pinned baseline (score {R.get('score_milli')})")
 md = ["# Milestone D e2e — formal NEAR challenge, Firecracker", "",
       f"Run: {datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')} on the shared dev host. Generated by `tests/e2e/milestone-d.sh`.", "",
       "## Setup", "",
-      f"* challenge: e2e-local `{chal}`, superseding the signed `{orig}`; identical except `toolchain_policy.checker_image` re-pinned to `{ident}` (the checker identity of lean-checker image `sha256:{leanimg}`; the signed challenge pins the identity of one build of the host checker tools). Signed with the LOCAL operator key (`challenges/governance-local.pub`). This re-pin is a governance action and should be made upstream.",
-      f"* worker: one `arena-worker`, backend `firecracker` (tier cap formal); builds in toolchain image `sha256:{tc}` with the Lean toolchain from the lean-checker image mounted read-only; FORMAL_CHECK in the lean-checker image; NEAR oracle `near-arena-oracle` (public fixtures + judge-sampled cases); benchmark batch sizes DEV-capped (recorded in `measured_by`); no frozen baselines, so no scores.",
+      (f"* challenge: the signed `{chal}` itself (no local successor); its `toolchain_policy.checker_image` `{ident}` is the checker identity of the production lean-checker image `sha256:{leanimg}`." if local == "0" else
+       f"* challenge: e2e-local `{chal}`, superseding the signed `{orig}`; identical except `toolchain_policy.checker_image` re-pinned to `{ident}` (the checker identity of lean-checker image `sha256:{leanimg}`). Signed with the LOCAL operator key (`challenges/governance-local.pub`)."),
+      f"* worker: one `arena-worker`, backend `firecracker` (tier cap formal, deps `{fcdeps}`); builds in toolchain image `sha256:{tc}` with the Lean toolchain from the lean-checker image mounted read-only; FORMAL_CHECK in the lean-checker image; NEAR oracle `near-arena-oracle` (public fixtures + judge-sampled cases); benchmark batch cap: {cap}. Scores (if any) are dev-host numbers against the challenge's pinned dev-host baseline.",
       "* candidates: `examples/reexec-witness` (reference, native-lean), `examples/reexec-witness-fast` (`--parent` reference), the reference with a comment appended to `formal/ReexecWitness/Model.lean` (`--parent` reference), hostile `near-reexec-skip-refund`, `near-reexec-malicious-executable`.", "",
       "## Checks", ""] + lines + ["", "## Submissions", ""]
 md += table("1. reference", R) + table("2. prover-only child", F) + table("4. verifier change", V)

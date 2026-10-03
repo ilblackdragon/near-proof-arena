@@ -1,12 +1,12 @@
 {
-  "id": "sub_025aca259ee543be8bed2861cde359bb",
+  "id": "sub_901fe10206b04c62a89b5ccf411284a4",
   "challenge_id": "chl_dc78da24004f3efe07b97f3ecb11fe29",
   "agent": "bootstrap",
   "candidate_name": "reexec-witness",
   "backend_family": "reexec-witness",
   "parent": null,
   "tier": "formal",
-  "package_digest": "sha256:80d79594d6a0033864de3057069b1212c9908b7279d1909d950cee12fdf4e0ec",
+  "package_digest": "sha256:0005867652ad88d2c628d80dff00f915c9dd2c832339b0eeb4e6b4f0c69334cc",
   "stage": "DECIDED",
   "decision": "ADMITTED",
   "accepted": true,
@@ -20,8 +20,8 @@
       "reason_codes": [],
       "summary": "package TreeDigest sha256:8adfecbd086897c3c0ff09208819c0069f756d46adfc007f29315f1d00822680; 682 files, 6595205 bytes; manifest ok",
       "evidence": [],
-      "started_at": "2026-10-03T06:02:05.506281775Z",
-      "finished_at": "2026-10-03T06:02:05.545145266Z",
+      "started_at": "2026-10-03T06:46:10.619339751Z",
+      "finished_at": "2026-10-03T06:46:10.674544122Z",
       "reused_from": null
     },
     {
@@ -29,10 +29,10 @@
       "mandatory": true,
       "status": "PASS",
       "reason_codes": [],
-      "summary": "two independent builds produced identical trees sha256:29551ea16cf95ec71752ca2b5b693629e221213fce56d6d85c99a5a949544a98; prepare 11 ms, public dir 110 bytes, TreeDigest sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
+      "summary": "two independent builds produced identical trees sha256:29551ea16cf95ec71752ca2b5b693629e221213fce56d6d85c99a5a949544a98; prepare 8 ms, public dir 110 bytes, TreeDigest sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
       "evidence": [],
-      "started_at": "2026-10-03T06:02:05.567584599Z",
-      "finished_at": "2026-10-03T06:03:24.596054203Z",
+      "started_at": "2026-10-03T06:46:10.717287287Z",
+      "finished_at": "2026-10-03T06:47:33.540731138Z",
       "reused_from": null
     },
     {
@@ -119,12 +119,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
       "reused_from": null
     },
     {
@@ -211,12 +211,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
       "reused_from": null
     },
     {
@@ -303,12 +303,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
       "reused_from": null
     },
     {
@@ -395,12 +395,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
       "reused_from": null
     },
     {
@@ -487,12 +487,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
       "reused_from": null
     },
     {
@@ -579,12 +579,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
       "reused_from": null
     },
     {
@@ -594,8 +594,8 @@
       "reason_codes": [],
       "summary": "146 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:noncanonical,adv:altered-commitment,adv:truncated-merkle-path,adv:swapped-siblings,adv:duplicated-node,adv:node-type-confusion,adv:transcript-tamper,adv:domain-separation,adv:mismatched-context,adv:recursive-substitution]: 146 rejected, 0 errored (not accepted), 0 timed out (not accepted), 0 accepted",
       "evidence": [],
-      "started_at": "2026-10-03T06:06:02.209733186Z",
-      "finished_at": "2026-10-03T06:08:21.592121407Z",
+      "started_at": "2026-10-03T06:50:13.353739321Z",
+      "finished_at": "2026-10-03T06:52:18.766614549Z",
       "reused_from": null
     },
     {
@@ -706,8 +706,8 @@
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:08:21.624416859Z",
-      "finished_at": "2026-10-03T06:09:03.569914627Z",
+      "started_at": "2026-10-03T06:52:18.788310092Z",
+      "finished_at": "2026-10-03T06:52:51.872933883Z",
       "reused_from": null
     },
     {
@@ -818,8 +818,8 @@
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:08:21.624457605Z",
-      "finished_at": "2026-10-03T06:09:03.56993741Z",
+      "started_at": "2026-10-03T06:52:18.788323457Z",
+      "finished_at": "2026-10-03T06:52:51.872955754Z",
       "reused_from": null
     },
     {
@@ -827,10 +827,10 @@
       "mandatory": true,
       "status": "PASS",
       "reason_codes": [],
-      "summary": "max proof 70584 bytes (cap 8388608), max verify 270 ms (cap 10000), peak memory 418 MiB",
+      "summary": "public cases: max proof 66512 bytes (cap 8388608), max verify 162 ms (cap 10000), peak memory 418 MiB",
       "evidence": [],
-      "started_at": "2026-10-03T06:08:21.624468095Z",
-      "finished_at": "2026-10-03T06:09:03.56994282Z",
+      "started_at": "2026-10-03T06:52:18.7883249Z",
+      "finished_at": "2026-10-03T06:52:51.872959371Z",
       "reused_from": null
     },
     {
@@ -838,16 +838,16 @@
       "mandatory": true,
       "status": "PASS",
       "reason_codes": [],
-      "summary": "challenge has no frozen baseline for every class: measured, not scored; DEV: batch sizes capped at 2 (timings not comparable); batch-1: median 18525 us, MAD 1470 us, verify median 19967 us, max proof 728 B; batch-16: median 16975 us, MAD 1997 us, verify median 41047 us, max proof 6177 B; batch-256: median 20138 us, MAD 1871 us, verify median 238985 us, max proof 70584 B",
+      "summary": "challenge has no frozen baseline for every class: measured, not scored; DEV: batch sizes capped at 2 (timings not comparable); batch-1: median 16138 us, MAD 1107 us, verify median 14720 us, max proof 916 B; batch-16: median 16911 us, MAD 1318 us, verify median 28416 us, max proof 6181 B; batch-256: median 17786 us, MAD 825 us, verify median 145897 us, max proof 66243 B",
       "evidence": [
         {
           "label": "benchmark session",
-          "digest": "sha256:17837c5c00da3a3c3fb742cc0bd19e1b70123b26cfa6cc3e19b8f6f3b80f6fb6",
+          "digest": "sha256:8313e5d2e0a5cbde8024d8ea33b5e6f940f61df4732e8ea3c1fab29770511702",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:09:03.5982154Z",
-      "finished_at": "2026-10-03T06:13:01.537656841Z",
+      "started_at": "2026-10-03T06:52:51.894632384Z",
+      "finished_at": "2026-10-03T06:55:41.191979377Z",
       "reused_from": null
     }
   ],
@@ -860,90 +860,90 @@
         "class_id": "batch-1",
         "weight_ppm": 200000,
         "runs_ns": [
-          15820330,
-          23622950,
-          18453412,
-          16759740,
-          18525371,
-          17249332,
-          20238443,
-          19218458,
-          19671469,
-          19431811,
-          15496180,
-          18344217,
-          21618055,
-          17029246,
-          19995417
+          17374999,
+          17245996,
+          15817449,
+          15825193,
+          18405990,
+          14305746,
+          15577438,
+          14687385,
+          17940044,
+          17050310,
+          17631194,
+          15529329,
+          15193308,
+          18634352,
+          16138987
         ],
-        "median_ns": 18525371,
-        "mad_ns": 1470046,
-        "cold_ns": 16107085,
+        "median_ns": 16138987,
+        "mad_ns": 1107009,
+        "cold_ns": 18413252,
         "baseline_ns": 0,
-        "verify_median_ns": 19967945,
-        "proof_bytes_max": 728,
-        "peak_rss_bytes": 438697984
+        "verify_median_ns": 14720787,
+        "proof_bytes_max": 916,
+        "peak_rss_bytes": 438292480
       },
       {
         "class_id": "batch-16",
         "weight_ppm": 300000,
         "runs_ns": [
-          16689323,
-          18973690,
-          27578377,
-          16975807,
-          14893171,
-          27158975,
-          16297093,
-          15760124,
-          14403665,
-          16159657,
-          18847003,
-          18703302,
-          21322660,
-          19951582,
-          13923877
+          18230137,
+          16471720,
+          16911186,
+          16900075,
+          19487774,
+          15351653,
+          13034514,
+          15162397,
+          16939563,
+          20037732,
+          17796946,
+          15832510,
+          15059125,
+          18489810,
+          17748294
         ],
-        "median_ns": 16975807,
-        "mad_ns": 1997883,
-        "cold_ns": 21190839,
+        "median_ns": 16911186,
+        "mad_ns": 1318951,
+        "cold_ns": 19067260,
         "baseline_ns": 0,
-        "verify_median_ns": 41047181,
-        "proof_bytes_max": 6177,
-        "peak_rss_bytes": 439140352
+        "verify_median_ns": 28416049,
+        "proof_bytes_max": 6181,
+        "peak_rss_bytes": 438423552
       },
       {
         "class_id": "batch-256",
         "weight_ppm": 500000,
         "runs_ns": [
-          20138669,
-          24302739,
-          18254409,
-          19908960,
-          23578360,
-          18778457,
-          18642974,
-          19104662,
-          20579879,
-          15498965,
-          19921301,
-          23035611,
-          44614755,
-          47077699,
-          22010205
+          17786042,
+          14459294,
+          17587970,
+          18423351,
+          18611355,
+          15421234,
+          17055229,
+          18254756,
+          19109935,
+          17928494,
+          17720051,
+          15875400,
+          19031498,
+          14198706,
+          19515660
         ],
-        "median_ns": 20138669,
-        "mad_ns": 1871536,
-        "cold_ns": 22134324,
+        "median_ns": 17786042,
+        "mad_ns": 825313,
+        "cold_ns": 17345974,
         "baseline_ns": 0,
-        "verify_median_ns": 238985470,
-        "proof_bytes_max": 70584,
-        "peak_rss_bytes": 439037952
+        "verify_median_ns": 145897019,
+        "proof_bytes_max": 66243,
+        "peak_rss_bytes": 438657024
       }
     ],
     "score_milli": null,
     "score_ci_milli": null,
-    "prepare_ns": 10069436,
+    "prepare_ns": 5892205,
     "public_artifact_bytes": 110,
     "measured_by": "arena-worker e2e-fc-worker [DEV: batch sizes capped]"
   },
@@ -1196,16 +1196,16 @@
     ]
   },
   "revoked": null,
-  "created_at": "2026-10-03T06:02:05.454997Z",
-  "updated_at": "2026-10-03T06:13:01.549646Z",
+  "created_at": "2026-10-03T06:46:10.146388Z",
+  "updated_at": "2026-10-03T06:55:41.201159Z",
   "artifacts": [
     {
       "label": "build log 1",
-      "digest": "sha256:8f721ea0c3ea0a9ff217375f5f781ae6109166e0b23adb26b37f68f97239cbe7"
+      "digest": "sha256:ed0afc8e9460e1bfcfaa62cfa952503325ec36ae95c2a7f0e82af019e3331d70"
     },
     {
       "label": "build log 2",
-      "digest": "sha256:f30afbe2ac72328135f875a52385718e42124ccfe5e030f988b3d14431ee3ff1"
+      "digest": "sha256:bf1716be500d251dfa365cf45aaf8de6b1282f409a75d1080e5407c5302333ff"
     },
     {
       "label": "public_artifacts",
@@ -1213,7 +1213,7 @@
     },
     {
       "label": "formal check report",
-      "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f"
+      "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f"
     },
     {
       "label": "judge-built native verifier",
@@ -1377,7 +1377,7 @@
     },
     {
       "label": "benchmark session",
-      "digest": "sha256:17837c5c00da3a3c3fb742cc0bd19e1b70123b26cfa6cc3e19b8f6f3b80f6fb6"
+      "digest": "sha256:8313e5d2e0a5cbde8024d8ea33b5e6f940f61df4732e8ea3c1fab29770511702"
     }
   ],
   "verified_surface": {
@@ -1387,12 +1387,15 @@
     "public_artifacts": "sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
     "formal_tree": "sha256:99253b7fa9c8dde1932994f25655fd8fe5af33311b90cfa803dfdb32578b1c72",
     "certificate_decl": "ReexecWitness.certificate",
-    "checker_image": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+    "checker_image": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e",
+    "verify_route": "native-lean",
+    "verifier_model": "ReexecWitness.Model.verifier",
+    "verifier_model_module": "ReexecWitness.Model"
   },
   "build": {
     "toolchain_image": "sha256:57a89fc650b89d189677fad047e7af1881860c7083b51ea07f0d729a28ebc117",
     "reproducible": true,
-    "build_ns": 26766039045
+    "build_ns": 23926748028
   },
   "assumptions": [
     {

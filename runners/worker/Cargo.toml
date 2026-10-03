@@ -31,3 +31,4 @@ tar.workspace = true
 [[bin]]
 name = "arena-worker"
 path = "src/main.rs"
+

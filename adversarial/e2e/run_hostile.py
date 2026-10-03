@@ -65,11 +65,17 @@ def build_package_bytes(case_dir, expect, challenge_id):
     challenge id substituted into candidate.toml and the generator/helper files
     excluded.
     """
-    mk = os.path.join(case_dir, "make-archive.sh")
-    if os.path.exists(mk):
-        out = subprocess.run(["sh", mk], cwd=case_dir, capture_output=True)
+    mk_py = os.path.join(case_dir, "make-archive.py")
+    mk_sh = os.path.join(case_dir, "make-archive.sh")
+    if os.path.exists(mk_py) or os.path.exists(mk_sh):
+        mk = [sys.executable, mk_py] if os.path.exists(mk_py) else ["sh", mk_sh]
+        out = subprocess.run(mk, cwd=case_dir, capture_output=True)
         if out.returncode != 0:
-            raise RuntimeError(f"make-archive.sh failed: {out.stderr.decode(errors='replace')}")
+            raise RuntimeError(f"make-archive failed: {out.stderr.decode(errors='replace')}")
+        # The archive is rejected at extraction (PKG_WELLFORMED) before its
+        # candidate.toml challenge is ever validated, so the placeholder is
+        # left as-is (rewriting it would change the byte length and corrupt the
+        # tar headers).
         return out.stdout
 
     # `arena pack` semantics (sdk/arena-cli/src/pack.rs): regular files only,
@@ -77,7 +83,7 @@ def build_package_bytes(case_dir, expect, challenge_id):
     # `.git/`, `target/`, `.lake/` pruned at any depth and the top-level
     # `out/` (build outputs are produced by the judge). The case README.md is
     # the package README (CONTRACTS §3); judge-only files are excluded.
-    exclude_top = {"expect.json", "make-archive.sh", "archive-kind", "out"}
+    exclude_top = {"expect.json", "make-archive.sh", "make-archive.py", "archive-kind", "out"}
     exclude_any = {".git", "target", ".lake"}
     files = []
     for root, dirs, filenames in os.walk(case_dir):
@@ -286,7 +292,16 @@ def check_case(client, name, d, expect, challenge_id, timeout_s):
     return True, msgs
 
 
-def live_run(cases, server, token, challenge_id, timeout_s):
+def applicable(expect, target):
+    """Whether a case should be submitted for this run's target challenge kind."""
+    if target not in expect.get("targets", ["demo"]):
+        return False, f"target {target} not in {expect.get('targets', ['demo'])}"
+    if not expect.get("runnable", True):
+        return False, "runnable=false (documented; needs a reexec-witness NEAR backend)"
+    return True, ""
+
+
+def live_run(cases, server, token, challenge_id, timeout_s, target):
     client = Client(server, token)
     if not challenge_id:
         chs = client.challenges()
@@ -294,10 +309,17 @@ def live_run(cases, server, token, challenge_id, timeout_s):
             print("no challenges on server; set ARENA_CHALLENGE", file=sys.stderr)
             return 2
         challenge_id = chs[0]["id"] if isinstance(chs[0], dict) else chs[0]
-    print(f"# LIVE e2e against {server}, challenge {challenge_id}\n")
+    print(f"# LIVE e2e against {server}, challenge {challenge_id}, target={target}\n")
 
     fails = 0
+    skipped = 0
     for name, d, expect in cases:
+        ok_run, why = applicable(expect, target)
+        if not ok_run:
+            print(f"skip {name}: {why}")
+            OBSERVED[name] = {"skipped": why}
+            skipped += 1
+            continue
         try:
             ok, msgs = check_case(client, name, d, expect, challenge_id, timeout_s)
         except Exception as e:  # noqa: BLE001
@@ -313,11 +335,14 @@ def live_run(cases, server, token, challenge_id, timeout_s):
         if not ok:
             fails += 1
     print()
+    ran = len(cases) - skipped
     if fails:
-        print(f"E2E FAILED: {fails}/{len(cases)} hostile cases did not behave as expected")
+        print(f"E2E FAILED: {fails}/{ran} run hostile cases did not behave as expected "
+              f"({skipped} skipped for target={target})")
         return 1
-    print(f"E2E OK: all {len(cases)} hostile cases REJECTED with the expected gates/reasons; "
-          "none admitted or ranked; injection payloads sanitized")
+    print(f"E2E OK: all {ran} run hostile cases REJECTED with the expected gates/reasons; "
+          f"none admitted or ranked; injection payloads sanitized ({skipped} skipped "
+          f"for target={target})")
     return 0
 
 
@@ -329,6 +354,9 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--timeout", type=int, default=600)
     ap.add_argument("--only", default="", help="comma-separated case names to run")
+    ap.add_argument("--target", default=os.environ.get("ARENA_HOSTILE_TARGET", "demo"),
+                    choices=["demo", "near-formal"],
+                    help="challenge kind; cases whose targets exclude it are skipped")
     ap.add_argument("--report", default="", help="write per-case outcomes as JSON here")
     args = ap.parse_args()
 
@@ -348,7 +376,7 @@ def main():
     if not args.token:
         print("live run needs --token / ARENA_TOKEN", file=sys.stderr)
         return 2
-    rc = live_run(cases, args.server, args.token, args.challenge, args.timeout)
+    rc = live_run(cases, args.server, args.token, args.challenge, args.timeout, args.target)
     if args.report:
         with open(args.report, "w") as f:
             json.dump(OBSERVED, f, indent=1, sort_keys=True)

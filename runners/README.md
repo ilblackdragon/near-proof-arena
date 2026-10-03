@@ -258,7 +258,12 @@ formal obligations re-checked. Results: `docs/e2e-results/milestone-d/`.
   signed challenge. `tests/e2e/milestone-d.sh` signs an e2e-local successor
   re-pinned to the image (local operator key); the real fix is a governance
   re-pin to the lean-checker image's identity.
-* The server ignores `supersedes` (left to the challenge-v2 lane).
+* `supersedes`: after the merge, main's server closes superseded challenges
+  (`challenge_closed`). The e2e scripts now target the NEAR head
+  `chl_f7eb…` (v1.1, pinned baselines). `tests/e2e/milestone-d.sh` now
+  supersedes `chl_f7eb…` instead of `chl_5ef2…` and has NOT been re-run
+  since that change. `docs/e2e-results/milestone-d/` is the pre-merge run
+  against `chl_5ef2…`.
 * Builds run on both backends;
   production (non-demo) backends require a pinned toolchain image
   (`ARENA_BUILD_TOOLCHAIN_IMAGE` + `ARENA_IMAGES_DIR`, see
@@ -291,3 +296,18 @@ formal obligations re-checked. Results: `docs/e2e-results/milestone-d/`.
   is DEMO-only.
 * `prepare --out` is pre-created on bwrap-dev but not on firecracker:
   candidates should `mkdir -p` it.
+* `examples/bench_session.rs` (drives `benchmarks/baseline/run_baseline.py`)
+  runs the real BENCHMARK stage on Firecracker for an `ExecJob` built from a
+  host-built bundle, its frozen public dir and the judge-built native
+  verifier; batches come from the worker's NEAR oracle (public seeds).
+* bench-spec-v1.1 `vm_per_batch` (from main) is ported into the integrated
+  BENCHMARK stage (`run_prove_batch` / `run_verify_batch`, npai shadow
+  included). It needs a guest rootfs + fc-runner built from this tree (steps
+  mode); the shared `/data/illia/nearproof-deps/firecracker` images predate
+  it (`steps_share_one_vm_but_no_state` fails there with "guest init: empty
+  argv"). A rebuilt set is in `/data/illia/nearproof-deps/firecracker-rc`
+  (rootfs `sha256:bb60e932…`, fc-runner `sha256:03fdfcda…`).
+* Request pin (from main): conformance and benchmark check every oracle
+  request header against the challenge's protocol version / chain id
+  (`near-arena-claim-v1` challenges) before any candidate code runs; a
+  mismatch is INFRA_ERROR.

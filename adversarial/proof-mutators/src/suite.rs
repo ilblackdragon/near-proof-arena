@@ -4,7 +4,7 @@
 //! submits the packages to a live server.
 //!
 //! Some cases attack the packaging layer itself (an intentionally invalid
-//! `candidate.toml`, or a malicious archive built by `make-archive.sh`). For
+//! `candidate.toml`, or a malicious archive built by `make-archive.py`). For
 //! those, a manifest that fails to parse is *expected*, not a loader error: the
 //! cross-check [`Case::check`] enforces that a parse failure only happens when
 //! the case expects a `PKG_WELLFORMED` failure.
@@ -21,7 +21,7 @@ pub struct Case {
     /// intentionally invalid manifest (checked against `expect.json`).
     pub manifest: Result<CandidateManifest, String>,
     pub expect: Expect,
-    /// True when the case ships a `make-archive.sh` (archive-attack cases whose
+    /// True when the case ships a `make-archive.py` (archive-attack cases whose
     /// hostile payload is the archive encoding, not the directory).
     pub has_archive_builder: bool,
 }
@@ -122,7 +122,7 @@ pub fn load_case(dir: &Path) -> Result<Case, SuiteError> {
         dir: dir.to_path_buf(),
         manifest,
         expect,
-        has_archive_builder: dir.join("make-archive.sh").exists(),
+        has_archive_builder: dir.join("make-archive.py").exists(),
     })
 }
 
@@ -157,7 +157,7 @@ impl Case {
         // Archive-attack cases must ship a builder; non-archive cases must not.
         let is_archive = self.expect.attack_family == "archive-attack";
         if is_archive && !self.has_archive_builder {
-            return bad("archive-attack case is missing make-archive.sh".into());
+            return bad("archive-attack case is missing make-archive.py".into());
         }
         Ok(())
     }

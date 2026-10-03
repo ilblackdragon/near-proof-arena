@@ -91,6 +91,23 @@ pub struct RunRequest {
     /// Cap on collected output bytes (also bounded by the backend config
     /// and the scratch size).
     pub max_output_bytes: u64,
+    /// Steps mode (non-empty): run these in order in this one VM instead of
+    /// `argv`/`collect` (which must then be empty); `wall_timeout` must be
+    /// the sum of the step timeouts. See `arena_fc_proto::GuestJob::steps`.
+    #[serde(default)]
+    pub steps: Vec<NativeStep>,
+}
+
+/// One step of a steps-mode run.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NativeStep {
+    pub argv: Vec<String>,
+    /// Single host files exposed read-only at the guest path, this step only.
+    pub ro_files: Vec<RoMount>,
+    /// Scratch-relative paths collected after the step; materialized at
+    /// `out_dir/.step<i>/<path>`.
+    pub collect: Vec<String>,
+    pub wall_timeout: Duration,
 }
 
 impl RunRequest {
@@ -117,6 +134,7 @@ impl RunRequest {
             collect: vec!["out".into()],
             out_dir,
             max_output_bytes: 1 << 30,
+            steps: vec![],
         }
     }
 }

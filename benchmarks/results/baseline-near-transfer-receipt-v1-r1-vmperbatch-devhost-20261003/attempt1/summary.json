@@ -1,0 +1,278 @@
+{
+ "schema": "arena-baseline-summary-v1",
+ "status": "DEV-HOST MEASUREMENT \u2014 not governed hardware, not an official number",
+ "challenge_id": "chl_f7eb2d91bf7b363eee134b6ad9d3e011",
+ "invocation_mode": "vm_per_batch",
+ "challenge_name": "near-transfer-receipt-v1-1",
+ "suite_revision": "near-transfer-receipt-v1-r1",
+ "hardware_profile_of_challenge": {
+  "id": "nearproof-local-ryzen9-9950x3d",
+  "cpu_model": "AMD Ryzen 9 9950X3D 16-Core Processor (local operator host; 8 vCPUs pinned per run)",
+  "vcpus": 8,
+  "ram_bytes": 34359738368,
+  "gpu": null
+ },
+ "measured_on": "dev-host:dev-illia-32c (NOT nearproof-local-ryzen9-9950x3d governed)",
+ "host_warnings": [
+  "GOVERNOR_NOT_PERFORMANCE: ['powersave']",
+  "TURBO_NOT_DISABLED",
+  "SMT_ACTIVE",
+  "NO_ISOLCPUS"
+ ],
+ "started_at": "2026-10-03T07:00:25+00:00",
+ "finished_at": "2026-10-03T07:02:54+00:00",
+ "reference_candidate": {
+  "package_dir": "examples/reexec-witness",
+  "git_tree": "6dfbc3bc564af3a175fe7d20fd63bf682fb6fdb4",
+  "package_digest": "sha256:329c763a92542052e1e2d69b6dc262446571acb1ab9ec50fd4caec170bcd699f",
+  "entry_digests": {
+   "prepare": "sha256:fffa46d5dd6eaa26037dc8a3c39b3ebea327383edb426d15e9a807cef9f94339",
+   "prove": "sha256:df7c1a0c760f4de3484ad9025b20e6b1143c6d5db04179ce5634168db6e3d485",
+   "verify": "sha256:3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94"
+  },
+  "bundle_tree_digest": "sha256:9099b64e12a039cab6ec354390038cec21ea50173bc53475404e591cfa2bf11e"
+ },
+ "sandbox": {
+  "backend": "firecracker",
+  "isolation": "firecracker",
+  "tier_cap": null
+ },
+ "cpus": [
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15
+ ],
+ "procedure": {
+  "warmup_runs": 3,
+  "measured_runs": 15,
+  "aggregation": "median",
+  "outlier_mad_k": 5,
+  "cold_runs": 1,
+  "concurrency": 1,
+  "per_run_timeout_ms": 600000,
+  "invocation_mode": "vm_per_batch"
+ },
+ "sampling": {
+  "rule": "BENCHMARK_SPEC \u00a711.1: first 8 bytes BE of HMAC-SHA256(secret, near-arena-workload-sample-v1|challenge|package|class)",
+  "secret_hex_revealed": "9b1117d62c6c0cdbed3fdfc8606efea055fcb303b9542e8d6af388b1879b86a7",
+  "secret_commitment": "sha256:e8e0ed472e3e687db7dd8adea4e97f661f95d51ad9ff6e26809ca9577eb05dc0",
+  "seeds": {
+   "batch-1": 4849637815672014235,
+   "batch-1#fresh": 16285606701100723694,
+   "batch-16": 17671907405091194473,
+   "batch-16#fresh": 410805693541448816,
+   "batch-256": 2711068421827047124,
+   "batch-256#fresh": 15540385315904871173
+  },
+  "generators": {
+   "batch-1": {
+    "spec": "spec/workloads/near-transfer-receipt-v1/batch-1.json",
+    "digest": "sha256:1a6e9c6450d36dd8c84086db75ac1657621d63735695aa06d33acd0b451ef371"
+   },
+   "batch-16": {
+    "spec": "spec/workloads/near-transfer-receipt-v1/batch-16.json",
+    "digest": "sha256:c8ad786e71e309a9fde2cb186c623c3592753b52f54ed0a0e5f6603b2389934e"
+   },
+   "batch-256": {
+    "spec": "spec/workloads/near-transfer-receipt-v1/batch-256.json",
+    "digest": "sha256:290802b219e3cf257590e9dd471487e85eaa702477da5b74a53adcf71ddf5ff8"
+   }
+  },
+  "oracle_nearcore_pin": [
+   "repo=https://github.com/near/nearcore",
+   "tag=2.13.4",
+   "commit=44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+   "protocol_version=86"
+  ]
+ },
+ "schedule_seed": 13482221308267243117,
+ "bootstrap_seed": 12260655192207963257,
+ "gates": {
+  "BENCHMARK": {
+   "status": "PASS",
+   "summary": "score 0 \u00b1 0 milli (95% bootstrap, seed 12260655192207963257)",
+   "reason_codes": []
+  },
+  "RESOURCE_LIMITS": {
+   "status": "PASS",
+   "summary": "prepare 12 ms, public dir 110 bytes; max proof 82065 bytes; max verify median 183 ms",
+   "reason_codes": []
+  },
+  "PROVER_RELIABILITY": {
+   "status": "PASS",
+   "summary": "every benchmark proof was claim-checked and accepted by verify",
+   "reason_codes": []
+  }
+ },
+ "flags": [],
+ "calibration": {
+  "workload": "head -c 268435456 /dev/zero | sha256sum",
+  "pre_ns": [
+   440148518,
+   503803393,
+   474365313,
+   507816867,
+   558517785
+  ],
+  "post_ns": [
+   438759824,
+   450150532,
+   519486829,
+   498248187,
+   453987254
+  ],
+  "pre_median_ns": 503803393,
+  "post_median_ns": 453987254,
+  "session_drift_ppm": 98881,
+  "pre_mad_ppm": 58432,
+  "post_mad_ppm": 33542,
+  "ok": false,
+  "reasons": [
+   "SESSION_DRIFT",
+   "CALIBRATION_NOISY"
+  ],
+  "note": "stand-in calibration workload; no governed reference median exists for this host"
+ },
+ "loadavg": [
+  {
+   "at": "start",
+   "loadavg": "11.01 8.35 9.85 6/3748 2718777"
+  },
+  {
+   "at": "after_calibration_pre",
+   "loadavg": "11.01 8.35 9.85 20/3769 2720613"
+  },
+  {
+   "at": "after_session",
+   "loadavg": "7.68 8.00 9.51 8/3469 2782124"
+  },
+  {
+   "at": "after_calibration_post",
+   "loadavg": "8.34 8.14 9.54 7/3493 2782955"
+  }
+ ],
+ "session_wall_secs": 140,
+ "prepare_ns": 12172749,
+ "classes": [
+  {
+   "class_id": "batch-1",
+   "weight_ppm": 200000,
+   "median_ns": 7785612,
+   "mad_ns": 1378253,
+   "min_ns": 5807306,
+   "max_ns": 17421759,
+   "measured_runs": 15,
+   "cold_ns": 220364826,
+   "fresh_ns": [
+    6314905
+   ],
+   "verify_median_ns": 5560695,
+   "proof_bytes_max": 1108,
+   "peak_rss_bytes": 448356352,
+   "outliers": {
+    "median_ns": 7785612,
+    "mad_ns": 1378253,
+    "k": 5,
+    "flagged_indices": [
+     7
+    ],
+    "flagged_ppm": 66666,
+    "excessive": false,
+    "notes": []
+   },
+   "tripwire": {
+    "suspected": false,
+    "measured_median_ns": 7785612,
+    "fresh_median_ns": 6314905,
+    "slowdown_ppm": 0
+   }
+  },
+  {
+   "class_id": "batch-16",
+   "weight_ppm": 300000,
+   "median_ns": 7949924,
+   "mad_ns": 809515,
+   "min_ns": 6068492,
+   "max_ns": 19829058,
+   "measured_runs": 15,
+   "cold_ns": 216676970,
+   "fresh_ns": [
+    10088335
+   ],
+   "verify_median_ns": 18303813,
+   "proof_bytes_max": 7331,
+   "peak_rss_bytes": 448110592,
+   "outliers": {
+    "median_ns": 7949924,
+    "mad_ns": 809515,
+    "k": 5,
+    "flagged_indices": [
+     1
+    ],
+    "flagged_ppm": 66666,
+    "excessive": false,
+    "notes": []
+   },
+   "tripwire": {
+    "suspected": false,
+    "measured_median_ns": 7949924,
+    "fresh_median_ns": 10088335,
+    "slowdown_ppm": 268985
+   }
+  },
+  {
+   "class_id": "batch-256",
+   "weight_ppm": 500000,
+   "median_ns": 10394852,
+   "mad_ns": 726565,
+   "min_ns": 9518825,
+   "max_ns": 16727923,
+   "measured_runs": 15,
+   "cold_ns": 222140273,
+   "fresh_ns": [
+    9448273
+   ],
+   "verify_median_ns": 183024669,
+   "proof_bytes_max": 82065,
+   "peak_rss_bytes": 448634880,
+   "outliers": {
+    "median_ns": 10394852,
+    "mad_ns": 726565,
+    "k": 5,
+    "flagged_indices": [
+     1,
+     7
+    ],
+    "flagged_ppm": 133333,
+    "excessive": false,
+    "notes": []
+   },
+   "tripwire": {
+    "suspected": false,
+    "measured_median_ns": 10394852,
+    "fresh_median_ns": 9448273,
+    "slowdown_ppm": 0
+   }
+  }
+ ],
+ "baseline_ns": [
+  [
+   "batch-1",
+   7785612
+  ],
+  [
+   "batch-16",
+   7949924
+  ],
+  [
+   "batch-256",
+   10394852
+  ]
+ ],
+ "score_note": "the session ran with baseline_ns = 1 per class (no baseline exists yet); its internal score is meaningless and is omitted. Against these medians the reference scores exactly 100.000 by construction."
+}

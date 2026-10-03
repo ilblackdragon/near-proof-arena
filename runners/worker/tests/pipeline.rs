@@ -60,6 +60,26 @@ fn honest_candidate_passes_every_stage() {
     assert_pass(&a, ObligationId::AdversarialProofs);
     assert!(s.contains(" 0 accepted") && s.contains("adv:"), "{s}");
 
+    // bench-spec-v1.1: one sandbox instance per batch (bwrap-dev falls back
+    // to one instance per step, same semantics); same gate and shape.
+    let mut job2 = job.clone();
+    job2.challenge.measurement.invocation_mode =
+        Some(arena_types::challenge::InvocationMode::VmPerBatch);
+    let r2 = f.exec(JobSpec::Benchmark(job2));
+    let bg2 = gate(&r2, ObligationId::Benchmark);
+    assert!(
+        bg2.status == GateStatus::Pass || bg2.summary.contains("CACHING_SUSPECTED"),
+        "{}",
+        bg2.summary
+    );
+    if let Some(res2) = &r2.benchmark {
+        assert_eq!(
+            res2.classes[0].runs_ns.len(),
+            f.chal.measurement.measured_runs as usize
+        );
+        assert!(res2.classes[0].cold_ns.is_some() && res2.classes[0].verify_median_ns > 0);
+    }
+
     let r = f.exec(JobSpec::Benchmark(job));
     assert_eq!(r.gates.len(), 1, "benchmark owns only BENCHMARK");
     let bg = gate(&r, ObligationId::Benchmark);

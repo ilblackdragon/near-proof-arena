@@ -1,0 +1,1102 @@
+{
+  "schema": "arena-bench-session-v2",
+  "challenge_id": "chl_30f39d9bf301f7ca2a8626850576ffc6",
+  "suite_revision": "near-transfer-receipt-v1-r1",
+  "package_digest": "sha256:329c763a92542052e1e2d69b6dc262446571acb1ab9ec50fd4caec170bcd699f",
+  "sandbox": {
+    "backend": "firecracker",
+    "steps_share_instance": true,
+    "rootfs": "sha256:bb60e9328af180b61f0a64694e368b2b56ed7d85e2b1cbd6d6c5ed93906f2960",
+    "kernel": "sha256:e20e46d0c36c55c0d1014eb20576171b3f3d922260d9f792017aeff53af3d4f2"
+  },
+  "fc_deps": "/data/illia/nearproof-deps/firecracker-rc",
+  "cpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "bundle_tree_digest": "sha256:9099b64e12a039cab6ec354390038cec21ea50173bc53475404e591cfa2bf11e",
+  "public_tree_digest": "sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
+  "native_verifier": "sha256:3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94",
+  "procedure": {
+    "warmup_runs": 3,
+    "measured_runs": 15,
+    "aggregation": "median",
+    "outlier_mad_k": 5,
+    "cold_runs": 1,
+    "concurrency": 1,
+    "per_run_timeout_ms": 600000,
+    "invocation_mode": "vm_per_batch"
+  },
+  "sampling": {
+    "rule": "worker NearOracle: seed = derive_seed(\"workload\", class_id, challenge_id, package_digest); fresh-confirm uses class_id#fresh",
+    "seed_parts": [
+      "chl_30f39d9bf301f7ca2a8626850576ffc6",
+      "sha256:329c763a92542052e1e2d69b6dc262446571acb1ab9ec50fd4caec170bcd699f"
+    ]
+  },
+  "calibration": {
+    "workload": "head -c 268435456 /dev/zero | sha256sum",
+    "pre_ns": [
+      546323634,
+      777023956,
+      616508926,
+      466452762,
+      443863345
+    ],
+    "post_ns": [
+      454482616,
+      460230525,
+      458355105,
+      442090121,
+      469654692
+    ]
+  },
+  "loadavg": [
+    {
+      "at": "start",
+      "loadavg": "12.45 17.64 18.00 8/3352 3792790"
+    },
+    {
+      "at": "after_calibration_pre",
+      "loadavg": "14.25 17.92 18.09 11/3386 3794330"
+    },
+    {
+      "at": "after_session",
+      "loadavg": "11.49 16.02 17.40 13/3564 3820744"
+    },
+    {
+      "at": "after_calibration_post",
+      "loadavg": "12.17 16.09 17.41 15/3577 3821316"
+    }
+  ],
+  "session_wall_secs": 97,
+  "job_result": {
+    "gates": [
+      {
+        "gate": "BENCHMARK",
+        "mandatory": true,
+        "status": "PASS",
+        "reason_codes": [],
+        "summary": "challenge has no frozen baseline for every class: measured, not scored; batch-1: median 6682 us, MAD 328 us, verify median 4875 us, max proof 1319 B; batch-16: median 7115 us, MAD 514 us, verify median 18097 us, max proof 7456 B; batch-256: median 9930 us, MAD 819 us, verify median 180094 us, max proof 81156 B",
+        "evidence": [
+          {
+            "label": "benchmark session",
+            "digest": "sha256:4eeff277873503ee9e4c9dbbced808f3058ebabb32f84785553b01c9a5f0753b",
+            "public": true
+          }
+        ],
+        "started_at": "2026-10-03T07:46:12.735240387Z",
+        "finished_at": "2026-10-03T07:47:50.398221203Z",
+        "reused_from": null
+      }
+    ],
+    "artifacts": [
+      {
+        "label": "benchmark session",
+        "digest": "sha256:4eeff277873503ee9e4c9dbbced808f3058ebabb32f84785553b01c9a5f0753b",
+        "public": true
+      }
+    ],
+    "benchmark": {
+      "hardware_profile": "nearproof-local-ryzen9-9950x3d",
+      "suite_revision": "near-transfer-receipt-v1-r1",
+      "classes": [
+        {
+          "class_id": "batch-1",
+          "weight_ppm": 200000,
+          "runs_ns": [
+            6923050,
+            6458336,
+            9799907,
+            6377343,
+            6495444,
+            6127664,
+            6682257,
+            6565749,
+            6320317,
+            7116094,
+            8563076,
+            7744127,
+            7009703,
+            5697525,
+            7010555
+          ],
+          "median_ns": 6682257,
+          "mad_ns": 328298,
+          "cold_ns": 216019830,
+          "baseline_ns": 0,
+          "verify_median_ns": 4875096,
+          "proof_bytes_max": 1319,
+          "peak_rss_bytes": 448024576
+        },
+        {
+          "class_id": "batch-16",
+          "weight_ppm": 300000,
+          "runs_ns": [
+            7792148,
+            6989678,
+            6507409,
+            7610584,
+            6613708,
+            8368119,
+            7115671,
+            6601054,
+            6449500,
+            7599623,
+            6958568,
+            7704774,
+            6024680,
+            7794332,
+            7365753
+          ],
+          "median_ns": 7115671,
+          "mad_ns": 514617,
+          "cold_ns": 198572331,
+          "baseline_ns": 0,
+          "verify_median_ns": 18097819,
+          "proof_bytes_max": 7456,
+          "peak_rss_bytes": 448557056
+        },
+        {
+          "class_id": "batch-256",
+          "weight_ppm": 500000,
+          "runs_ns": [
+            10188889,
+            9564713,
+            11518028,
+            8677622,
+            9311927,
+            9110969,
+            11551091,
+            9930150,
+            11752251,
+            8918097,
+            9422866,
+            10614690,
+            9977408,
+            8817567,
+            11365721
+          ],
+          "median_ns": 9930150,
+          "mad_ns": 819181,
+          "cold_ns": 196649230,
+          "baseline_ns": 0,
+          "verify_median_ns": 180094292,
+          "proof_bytes_max": 81156,
+          "peak_rss_bytes": 449024000
+        }
+      ],
+      "score_milli": null,
+      "score_ci_milli": null,
+      "prepare_ns": 7698951,
+      "public_artifact_bytes": 110,
+      "measured_by": "arena-worker bench-session"
+    },
+    "evidence_graph": null,
+    "manifest": null,
+    "build": null,
+    "execution": {
+      "sandbox_backend": "firecracker",
+      "tier_cap": "formal",
+      "worker_version": "arena-worker/0.1.0"
+    },
+    "log_excerpt": null,
+    "native_verifier": null
+  },
+  "session": {
+    "invocation_mode": "vm_per_batch",
+    "sandbox_instance_per_batch": true,
+    "schedule_seed": 5449336668266533228,
+    "schedule": [
+      {
+        "seq": 0,
+        "phase": "cold",
+        "class_id": "batch-16",
+        "round": 0
+      },
+      {
+        "seq": 1,
+        "phase": "cold",
+        "class_id": "batch-1",
+        "round": 0
+      },
+      {
+        "seq": 2,
+        "phase": "cold",
+        "class_id": "batch-256",
+        "round": 0
+      },
+      {
+        "seq": 3,
+        "phase": "warmup",
+        "class_id": "batch-256",
+        "round": 0
+      },
+      {
+        "seq": 4,
+        "phase": "warmup",
+        "class_id": "batch-1",
+        "round": 0
+      },
+      {
+        "seq": 5,
+        "phase": "warmup",
+        "class_id": "batch-16",
+        "round": 0
+      },
+      {
+        "seq": 6,
+        "phase": "warmup",
+        "class_id": "batch-1",
+        "round": 1
+      },
+      {
+        "seq": 7,
+        "phase": "warmup",
+        "class_id": "batch-16",
+        "round": 1
+      },
+      {
+        "seq": 8,
+        "phase": "warmup",
+        "class_id": "batch-256",
+        "round": 1
+      },
+      {
+        "seq": 9,
+        "phase": "warmup",
+        "class_id": "batch-1",
+        "round": 2
+      },
+      {
+        "seq": 10,
+        "phase": "warmup",
+        "class_id": "batch-256",
+        "round": 2
+      },
+      {
+        "seq": 11,
+        "phase": "warmup",
+        "class_id": "batch-16",
+        "round": 2
+      },
+      {
+        "seq": 12,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 0
+      },
+      {
+        "seq": 13,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 0
+      },
+      {
+        "seq": 14,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 0
+      },
+      {
+        "seq": 15,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 1
+      },
+      {
+        "seq": 16,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 1
+      },
+      {
+        "seq": 17,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 1
+      },
+      {
+        "seq": 18,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 2
+      },
+      {
+        "seq": 19,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 2
+      },
+      {
+        "seq": 20,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 2
+      },
+      {
+        "seq": 21,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 3
+      },
+      {
+        "seq": 22,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 3
+      },
+      {
+        "seq": 23,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 3
+      },
+      {
+        "seq": 24,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 4
+      },
+      {
+        "seq": 25,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 4
+      },
+      {
+        "seq": 26,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 4
+      },
+      {
+        "seq": 27,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 5
+      },
+      {
+        "seq": 28,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 5
+      },
+      {
+        "seq": 29,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 5
+      },
+      {
+        "seq": 30,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 6
+      },
+      {
+        "seq": 31,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 6
+      },
+      {
+        "seq": 32,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 6
+      },
+      {
+        "seq": 33,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 7
+      },
+      {
+        "seq": 34,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 7
+      },
+      {
+        "seq": 35,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 7
+      },
+      {
+        "seq": 36,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 8
+      },
+      {
+        "seq": 37,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 8
+      },
+      {
+        "seq": 38,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 8
+      },
+      {
+        "seq": 39,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 9
+      },
+      {
+        "seq": 40,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 9
+      },
+      {
+        "seq": 41,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 9
+      },
+      {
+        "seq": 42,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 10
+      },
+      {
+        "seq": 43,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 10
+      },
+      {
+        "seq": 44,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 10
+      },
+      {
+        "seq": 45,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 11
+      },
+      {
+        "seq": 46,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 11
+      },
+      {
+        "seq": 47,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 11
+      },
+      {
+        "seq": 48,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 12
+      },
+      {
+        "seq": 49,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 12
+      },
+      {
+        "seq": 50,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 12
+      },
+      {
+        "seq": 51,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 13
+      },
+      {
+        "seq": 52,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 13
+      },
+      {
+        "seq": 53,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 13
+      },
+      {
+        "seq": 54,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 14
+      },
+      {
+        "seq": 55,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 14
+      },
+      {
+        "seq": 56,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 14
+      },
+      {
+        "seq": 57,
+        "phase": "fresh_confirm",
+        "class_id": "batch-1",
+        "round": 0
+      },
+      {
+        "seq": 58,
+        "phase": "fresh_confirm",
+        "class_id": "batch-256",
+        "round": 0
+      },
+      {
+        "seq": 59,
+        "phase": "fresh_confirm",
+        "class_id": "batch-16",
+        "round": 0
+      }
+    ],
+    "classes": [
+      {
+        "class_id": "batch-1",
+        "weight_ppm": 200000,
+        "baseline_ns": 0,
+        "cold_runs_ns": [
+          216019830
+        ],
+        "warmup_runs_ns": [
+          6272257,
+          8277020,
+          6319205
+        ],
+        "measured_runs_ns": [
+          6923050,
+          6458336,
+          9799907,
+          6377343,
+          6495444,
+          6127664,
+          6682257,
+          6565749,
+          6320317,
+          7116094,
+          8563076,
+          7744127,
+          7009703,
+          5697525,
+          7010555
+        ],
+        "fresh_runs_ns": [
+          6230768
+        ],
+        "verify_runs_ns": [
+          4518314,
+          6752550,
+          4561635,
+          3255237,
+          5207742,
+          4982398,
+          5794306,
+          3001099,
+          5497848,
+          5720237,
+          4859737,
+          4749810,
+          3928585,
+          5157757,
+          4381998,
+          3632838,
+          5373875,
+          6666327,
+          4421422,
+          4251793,
+          4374584,
+          4834249,
+          5197332,
+          3249627,
+          6434942,
+          6547243,
+          5016292,
+          3528752,
+          5316888,
+          5901758,
+          5408600,
+          4489179,
+          5629126,
+          6784860,
+          4808039,
+          3419275,
+          4158827,
+          5062248,
+          7108900,
+          4658899,
+          6012066,
+          6869369,
+          5301258,
+          3286305,
+          3928845,
+          5075243,
+          4465155,
+          3048608,
+          5499962,
+          6528207,
+          4185598,
+          3595839,
+          4817017,
+          4790317,
+          5616641,
+          3737184,
+          3783291,
+          6255785,
+          3293699,
+          3685257,
+          3703230,
+          6374849,
+          4231244,
+          3069407,
+          5637831,
+          6350282,
+          3406312,
+          3859484,
+          4086932,
+          6126461,
+          4094828,
+          3332783,
+          5248318,
+          6651419,
+          4662005,
+          3344174,
+          4989942,
+          4865488,
+          5085552,
+          3068656,
+          5783516,
+          6769681,
+          3702479,
+          5022794,
+          5629356,
+          5314943,
+          4634734,
+          5021732,
+          5513668,
+          6518539,
+          3341179,
+          5088557,
+          4542931,
+          6344421,
+          4036367,
+          4453402,
+          5518276,
+          6308033,
+          5189788,
+          3505588,
+          4121206,
+          4882080,
+          5693606,
+          3034281,
+          5435251,
+          5292672,
+          3566633,
+          4904301,
+          4801377,
+          5098156,
+          4087384,
+          3885533,
+          5948767,
+          9549595,
+          5124805,
+          5129024,
+          5665072,
+          4868113,
+          4493327,
+          3248154
+        ],
+        "proof_bytes_max": 1319,
+        "peak_rss_bytes": 448024576,
+        "outliers": {
+          "median_ns": 6682257,
+          "mad_ns": 328298,
+          "k": 5,
+          "flagged_indices": [
+            2,
+            10
+          ],
+          "flagged_ppm": 133333,
+          "excessive": false,
+          "notes": []
+        },
+        "tripwire": {
+          "suspected": false,
+          "measured_median_ns": 6682257,
+          "fresh_median_ns": 6230768,
+          "slowdown_ppm": 0
+        }
+      },
+      {
+        "class_id": "batch-16",
+        "weight_ppm": 300000,
+        "baseline_ns": 0,
+        "cold_runs_ns": [
+          198572331
+        ],
+        "warmup_runs_ns": [
+          8815542,
+          6953197,
+          6974418
+        ],
+        "measured_runs_ns": [
+          7792148,
+          6989678,
+          6507409,
+          7610584,
+          6613708,
+          8368119,
+          7115671,
+          6601054,
+          6449500,
+          7599623,
+          6958568,
+          7704774,
+          6024680,
+          7794332,
+          7365753
+        ],
+        "fresh_runs_ns": [
+          6227610
+        ],
+        "verify_runs_ns": [
+          38214146,
+          13665401,
+          17074166,
+          15704359,
+          27715896,
+          36437181,
+          11754214,
+          20307382,
+          24096694,
+          17045112,
+          18086913,
+          17883330,
+          23353556,
+          21780966,
+          12644840,
+          21886214,
+          21621576,
+          15700902,
+          16089704,
+          15438889,
+          20510315,
+          19599710,
+          12652484,
+          19350802,
+          41042470,
+          14811017,
+          14764890,
+          15668431,
+          20208346,
+          18658940,
+          12319016,
+          20948539,
+          61523850,
+          14889034,
+          16424093,
+          16820700,
+          20290961,
+          17754106,
+          14088437,
+          21083784,
+          21237975,
+          15054015,
+          15815368,
+          16291374,
+          19074172,
+          18174238,
+          11649707,
+          19207903,
+          37274578,
+          33821249,
+          16781947,
+          16133987,
+          19216940,
+          18977500,
+          11623908,
+          21106466,
+          19974576,
+          15120219,
+          16354502,
+          15308414,
+          20649486,
+          17981104,
+          12567304,
+          20932740,
+          21397764,
+          15229996,
+          19674752,
+          15528928,
+          19449258,
+          19784679,
+          13258004,
+          21022749,
+          60672888,
+          13622780,
+          15715219,
+          17344035,
+          21701486,
+          18148569,
+          12944264,
+          24604460,
+          39965442,
+          15085163,
+          17478868,
+          16989237,
+          19491758,
+          18108725,
+          11763351,
+          21017128,
+          21237563,
+          15095883,
+          15052582,
+          17216144,
+          19120458,
+          19670835,
+          11535653,
+          19700009,
+          22404219,
+          14803533,
+          15877735,
+          17388869,
+          19269930,
+          18283854,
+          11339382,
+          20287154,
+          21280734,
+          15174642,
+          17062465,
+          16531395,
+          20647754,
+          19185781,
+          11400558,
+          19440761,
+          52618589,
+          15121813,
+          16583875,
+          16016937,
+          18781872,
+          21173233,
+          11430795,
+          20436786
+        ],
+        "proof_bytes_max": 7456,
+        "peak_rss_bytes": 448557056,
+        "outliers": {
+          "median_ns": 7115671,
+          "mad_ns": 514617,
+          "k": 5,
+          "flagged_indices": [],
+          "flagged_ppm": 0,
+          "excessive": false,
+          "notes": []
+        },
+        "tripwire": {
+          "suspected": false,
+          "measured_median_ns": 7115671,
+          "fresh_median_ns": 6227610,
+          "slowdown_ppm": 0
+        }
+      },
+      {
+        "class_id": "batch-256",
+        "weight_ppm": 500000,
+        "baseline_ns": 0,
+        "cold_runs_ns": [
+          196649230
+        ],
+        "warmup_runs_ns": [
+          10373185,
+          8520047,
+          9366261
+        ],
+        "measured_runs_ns": [
+          10188889,
+          9564713,
+          11518028,
+          8677622,
+          9311927,
+          9110969,
+          11551091,
+          9930150,
+          11752251,
+          8918097,
+          9422866,
+          10614690,
+          9977408,
+          8817567,
+          11365721
+        ],
+        "fresh_runs_ns": [
+          11012127
+        ],
+        "verify_runs_ns": [
+          176442349,
+          161193478,
+          216565508,
+          179869930,
+          188840073,
+          210874146,
+          172918707,
+          182058209,
+          187237848,
+          163322234,
+          221679473,
+          146382761,
+          175703367,
+          210606562,
+          167795293,
+          172394730,
+          169684048,
+          163561735,
+          213041906,
+          149883710,
+          166120010,
+          207311871,
+          185585338,
+          175145347,
+          185204762,
+          149558488,
+          212732805,
+          156944300,
+          167149147,
+          212939404,
+          191010168,
+          182415412,
+          180304909,
+          156130819,
+          201610991,
+          151523697,
+          171692068,
+          219053462,
+          196232868,
+          175373306,
+          174102234,
+          153261197,
+          206442805,
+          162351216,
+          171828384,
+          213674898,
+          179883676,
+          204308258,
+          193954901,
+          184570418,
+          211944952,
+          151166204,
+          175836909,
+          223284455,
+          184601576,
+          183024929,
+          168740402,
+          178274387,
+          208166390,
+          151535229,
+          184624259,
+          225601546,
+          208758043,
+          189512780,
+          183916818,
+          149640353,
+          193368186,
+          139994757,
+          173281129,
+          207621935,
+          181520277,
+          178916586,
+          172019395,
+          154084457,
+          203619511,
+          145319209,
+          168793622,
+          200440989,
+          191112181,
+          184413101,
+          183157318,
+          154701349,
+          225609140,
+          167777760,
+          174861173,
+          212145930,
+          194015334,
+          197357425,
+          183294747,
+          153049449,
+          204981035,
+          152684953,
+          174891570,
+          211161627,
+          194869994,
+          179862837,
+          166929404,
+          145036047,
+          195682583,
+          155357414,
+          159905103,
+          199566934,
+          165413490,
+          180616877,
+          163098974,
+          159693625,
+          227226675,
+          140011088,
+          169503499,
+          197897462,
+          178709386,
+          169958045,
+          178441422,
+          170315337,
+          208180427,
+          158253284,
+          181722137,
+          210283675,
+          192621873,
+          183486067
+        ],
+        "proof_bytes_max": 81156,
+        "peak_rss_bytes": 449024000,
+        "outliers": {
+          "median_ns": 9930150,
+          "mad_ns": 819181,
+          "k": 5,
+          "flagged_indices": [],
+          "flagged_ppm": 0,
+          "excessive": false,
+          "notes": []
+        },
+        "tripwire": {
+          "suspected": false,
+          "measured_median_ns": 9930150,
+          "fresh_median_ns": 11012127,
+          "slowdown_ppm": 108958
+        }
+      }
+    ],
+    "bootstrap": null,
+    "flags": []
+  }
+}

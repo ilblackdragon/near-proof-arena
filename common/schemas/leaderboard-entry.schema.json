@@ -30,6 +30,11 @@
     "candidate_name": {
       "type": "string"
     },
+    "challenge_id": {
+      "description": "The challenge this result was measured under (additive, v1.4). A result is never re-labelled or moved to another challenge's board.",
+      "default": "",
+      "type": "string"
+    },
     "decision": {
       "anyOf": [
         {
@@ -57,6 +62,13 @@
         "null"
       ],
       "format": "uint64",
+      "minimum": 0.0
+    },
+    "protocol_version": {
+      "description": "That challenge's NEAR protocol version (additive, v1.4).",
+      "default": 0,
+      "type": "integer",
+      "format": "uint32",
       "minimum": 0.0
     },
     "prove_median_ns": {
@@ -107,6 +119,14 @@
     },
     "submitted_at": {
       "type": "string"
+    },
+    "superseded_by": {
+      "description": "Set when the challenge has been superseded: the board is historical (frozen, closed for new submissions) and scores are not comparable with the successor's (additive, v1.4).",
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "tier": {
       "$ref": "#/definitions/Tier"

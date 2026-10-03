@@ -1,6 +1,10 @@
 {
   "case": "always-reject-verifier",
   "attack_family": "prover-reliability",
+  "targets": [
+    "demo"
+  ],
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "PROVER_RELIABILITY"

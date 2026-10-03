@@ -2662,6 +2662,25 @@
           }
         }
       },
+      "InvocationMode": {
+        "description": "Sandbox-instance granularity of steady-state benchmark runs.",
+        "oneOf": [
+          {
+            "description": "bench-spec-v1: every `prove` invocation in its own fresh sandbox instance (a microVM boot per request is inside nothing timed, but the guest page cache is cold for every invocation).",
+            "type": "string",
+            "enum": [
+              "vm_per_invocation"
+            ]
+          },
+          {
+            "description": "bench-spec-v1.1: each measured batch runs in ONE fresh sandbox instance; every request is still a fresh process with a wiped scratch, only its own inputs and no state carried between requests. One untimed warm-up invocation on the batch's first request precedes the timed ones. Cold runs stay one instance per invocation.",
+            "type": "string",
+            "enum": [
+              "vm_per_batch"
+            ]
+          }
+        ]
+      },
       "JobContext": {
         "description": "Context common to every job of a run.",
         "type": "object",
@@ -2908,6 +2927,11 @@
           "candidate_name": {
             "type": "string"
           },
+          "challenge_id": {
+            "description": "The challenge this result was measured under (additive, v1.4). A result is never re-labelled or moved to another challenge's board.",
+            "default": "",
+            "type": "string"
+          },
           "decision": {
             "$ref": "#/components/schemas/Decision",
             "nullable": true
@@ -2926,6 +2950,13 @@
             "format": "uint64",
             "minimum": 0.0,
             "nullable": true
+          },
+          "protocol_version": {
+            "description": "That challenge's NEAR protocol version (additive, v1.4).",
+            "default": 0,
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
           },
           "prove_median_ns": {
             "type": "integer",
@@ -2967,6 +2998,12 @@
           },
           "submitted_at": {
             "type": "string"
+          },
+          "superseded_by": {
+            "description": "Set when the challenge has been superseded: the board is historical (frozen, closed for new submissions) and scores are not comparable with the successor's (additive, v1.4).",
+            "default": null,
+            "type": "string",
+            "nullable": true
           },
           "tier": {
             "$ref": "#/components/schemas/Tier"
@@ -3103,6 +3140,11 @@
             "type": "integer",
             "format": "uint32",
             "minimum": 0.0
+          },
+          "invocation_mode": {
+            "description": "How benchmark invocations are isolated (v1.4, additive; absent ⇒ `vm_per_invocation`, i.e. bench-spec-v1, and not serialized, so existing challenge ids are unchanged). See docs/BENCHMARK_SPEC.md §4.",
+            "$ref": "#/components/schemas/InvocationMode",
+            "nullable": true
           },
           "measured_runs": {
             "type": "integer",
@@ -3642,6 +3684,11 @@
           "signature": {
             "description": "Hex signature over the JCS bytes of `definition`.",
             "type": "string"
+          },
+          "superseded_by": {
+            "description": "Id of a registered challenge whose `supersedes` names this one. A superseded challenge is closed for new submissions; its results and board stay attached to it (docs/PROTOCOL_UPGRADES.md §5).",
+            "type": "string",
+            "nullable": true
           },
           "tier": {
             "$ref": "#/components/schemas/Tier"

@@ -67,7 +67,7 @@ fn find_config(env: &FormalEnv, name: &str) -> Result<Option<ChallengeFormalConf
         if p.extension().is_some_and(|x| x == "json") {
             let c = ChallengeFormalConfig::load(&p)
                 .map_err(|e| ExecError::Infra(format!("{}: {e}", p.display())))?;
-            if c.challenge == name {
+            if c.challenge == name || c.aliases.iter().any(|a| a == name) {
                 return Ok(Some(c));
             }
         }

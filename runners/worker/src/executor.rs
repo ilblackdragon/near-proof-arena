@@ -229,6 +229,15 @@ impl<'a> JobRun<'a> {
         });
     }
 
+    pub fn run_steps(
+        &self,
+        base: &SandboxSpec,
+        steps: &[arena_sandbox::StepSpec],
+    ) -> Result<Vec<SandboxOutcome>, ExecError> {
+        self.check_cancel()?;
+        Ok(self.ctx.sandbox.run_steps(base, steps)?)
+    }
+
     pub fn run(&self, spec: &SandboxSpec) -> Result<SandboxOutcome, ExecError> {
         self.check_cancel()?;
         Ok(self.ctx.sandbox.run(spec)?)

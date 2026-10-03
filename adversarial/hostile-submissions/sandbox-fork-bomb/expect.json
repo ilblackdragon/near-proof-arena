@@ -1,6 +1,10 @@
 {
   "case": "sandbox-fork-bomb",
   "attack_family": "sandbox-escape",
+  "targets": [
+    "demo"
+  ],
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "RESOURCE_LIMITS"
@@ -14,6 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "`prove` spawns processes without bound. The sandbox pid cap and memory limits must contain it, surfacing RESOURCE_LIMIT / SANDBOX_VIOLATION rather than hanging the host.",
-  "notes": "The escape must fail harmlessly; the submission is REJECTED and the attempt recorded. Gate attribution (PROVER_RELIABILITY / BENCHMARK) depends on which stage runs the sandboxed binary."
+  "why": "`prove` forks without bound. The sandbox pid cap / memory limit contains it and the worker reports RESOURCE_LIMITS / RESOURCE_LIMIT rather than hanging the host."
 }

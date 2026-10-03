@@ -1,0 +1,28 @@
+example-tierB: claim byte flips 309 rejected, 0 accepted
+s20261003-v5: claim byte flips 309 rejected, 0 accepted
+s9001-r256-v0: claim byte flips 309 rejected, 0 accepted
+s9001-r1-v0: claim byte flips 309 rejected, 0 accepted
+proof field pattern                                                                         tried  undecod rejected
+commitments/main/cap/*/*                                                                       12        0       12
+commitments/permutation/cap/*/*                                                                12        0       12
+commitments/quotient_chunks/cap/*/*                                                            12        0       12
+degree_bits/*                                                                                  12        0       12
+lookup_pow_witness                                                                              4        0        4
+lookup_terminals/*/value/*                                                                     12        0       12
+ood_pow_witness                                                                                 4        0        4
+opened_values/instances/*/base_opened_values/preprocessed_local/*/value/*                      12        0       12
+opened_values/instances/*/base_opened_values/quotient_chunks/*/*/value/*                       12        0       12
+opened_values/instances/*/base_opened_values/trace_local/*/value/*                             12        0       12
+opened_values/instances/*/base_opened_values/trace_next/*/value/*                              12        0       12
+opened_values/instances/*/permutation_local/*/value/*                                          12        0       12
+opened_values/instances/*/permutation_next/*/value/*                                           12        0       12
+opening_proof/batch_pow_witness                                                                 4        0        4
+opening_proof/commit_phase_commits/*/cap/*/*                                                   12        0       12
+opening_proof/commit_phase_openings/*/opening_proof/sibling_hashes/*/*                         12        0       12
+opening_proof/commit_phase_openings/*/sibling_values/*/*/value/*                               12        0       12
+opening_proof/commit_pow_witnesses/*                                                           12        0       12
+opening_proof/final_poly/*/value/*                                                             12        0       12
+opening_proof/input_openings/*/opened_values/*/*/*                                             12        0       12
+opening_proof/input_openings/*/opening_proof/sibling_hashes/*/*                                12        1       11
+opening_proof/query_pow_witness                                                                 4        0        4
+patterns 22, proof-field mutants 232, accepted 0

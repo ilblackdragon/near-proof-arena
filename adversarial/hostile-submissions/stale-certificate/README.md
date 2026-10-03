@@ -2,13 +2,15 @@
 
 **Attack family:** artifact-binding
 
+**Targets:** near-formal  (runnable: false)
+
 **Expected decision:** REJECTED
 **Expected failing gate(s):** ARTIFACT_BINDING
 **Expected reason code(s):** ARTIFACT_BINDING_FAILED
 
 ## What this proves about the judge
 
-The formal certificate certifies a PREVIOUS verifier (its embedded formal digests / verified-surface point at an older artifact). This is a PACKAGING kill, not a semantic one: the proof may be perfectly sound for the old verifier, but it is not bound to the artifact actually built, so ARTIFACT_BINDING fails.
+The certificate certifies a PREVIOUS verifier (embedded formal digests point at an older artifact). PACKAGING kill, not semantic: the proof may be sound for the old verifier but is not bound to the artifact built now, so ARTIFACT_BINDING fails.
 
 ## Notes
 

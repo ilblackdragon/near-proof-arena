@@ -1,0 +1,7 @@
+prover	class	requests	batch_median_s	batch_min_s	per_req_median_s	prove_peak_rss_mb	proof_bytes_min	proof_bytes_max	verify_median_ms	verify_peak_rss_mb	claims_ok	loadavg1
+stark-plonky3	batch-1	8	2.340	2.280	0.290	85	7136082	7143186	230	41	True	10.96
+stark-plonky3	batch-16	8	2.970	2.710	0.360	222	7134514	7144370	240	41	True	13.49
+stark-plonky3	batch-256	8	7.640	6.790	0.945	1259	7135538	7142546	290	41	True	24.41
+reexec-witness	batch-1	8	0.000	0.000	0.000	2	485	1049	0	5	True	24.41
+reexec-witness	batch-16	8	0.000	0.000	0.000	2	4804	6809	10	5	True	24.41
+reexec-witness	batch-256	8	0.000	0.000	0.000	2	58564	70298	150	8	True	23.65

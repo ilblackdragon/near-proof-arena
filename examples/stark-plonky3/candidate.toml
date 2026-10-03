@@ -1,0 +1,27 @@
+# stark-plonky3: custom Plonky3 batch-STARK with hand-written AIRs for
+# near/pv86/receipt-transfer-batch/v0. EXPERIMENTAL: the formal obligations
+# are NOT discharged (EVIDENCE.md); formal/ deliberately defines no
+# `Candidate.certificate`, so the judge must not admit it under the formal
+# profile. verify_route = native: out/verify is the Rust Plonky3 verifier.
+schema = "arena-candidate-v1"
+name = "stark-plonky3"
+agent = "backend-plonky3"
+challenge = "chl_5ef2bc7d2068219635426e47ca46bfbb"
+backend_family = "custom-stark-plonky3-koalabear8-sha256"
+security_profile_request = "validity-classical-128"
+# Measured: <= 1.3 GB peak RSS per proof on the public fixtures (8 threads).
+hardware = { gpu = false, min_ram_gb = 4 }
+
+[build]
+recipe = "build-recipe/build.sh"
+outputs = ["out/prepare", "out/prove", "out/verify"]
+
+[entry]
+prepare = "out/prepare"
+prove = "out/prove"
+verify = "out/verify"
+verify_route = "native"
+
+[formal]
+lean_project = "formal"
+certificate = "Candidate.certificate"

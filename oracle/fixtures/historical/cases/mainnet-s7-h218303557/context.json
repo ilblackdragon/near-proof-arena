@@ -1,0 +1,34 @@
+{
+ "protocol_version": 86,
+ "chain_id": "mainnet",
+ "shard_id": 7,
+ "block_height": 218303557,
+ "block_gas_price": "100000000",
+ "gas_limit": 1000000000000000,
+ "pre_state_root": "DBwM61CnpqEQ22mF2wXpHBEvw8opRTfyDE9VtQXFc5as",
+ "receipts": [
+  {
+   "predecessor_id": "kkaabbiirr81.tg",
+   "priority": 0,
+   "receipt": {
+    "Action": {
+     "actions": [
+      {
+       "Transfer": {
+        "deposit": "163674169722974596650191"
+       }
+      }
+     ],
+     "gas_price": "1000000000",
+     "input_data_ids": [],
+     "is_promise_yield": false,
+     "output_data_receivers": [],
+     "signer_id": "kkaabbiirr81.tg",
+     "signer_public_key": "ed25519:7cJeG83Viz1HVTJWMnoiVEDoTowzHwSHHyMJQ4nskDyA"
+    }
+   },
+   "receipt_id": "7tAeeTG6YwxgNB6awCKdAgxmNfziGKS3FnfkjytTpDNr",
+   "receiver_id": "kkaabbiirr82.tg"
+  }
+ ]
+}

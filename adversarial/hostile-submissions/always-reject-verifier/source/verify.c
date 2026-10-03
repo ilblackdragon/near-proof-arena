@@ -1,2 +1,2 @@
-#include <stdio.h>
-int main(void){ return 1; } /* rejects everything, incl. the honest proof */
+#include "common.h"
+int main(int c,char**v){(void)c;(void)v;return 1;}

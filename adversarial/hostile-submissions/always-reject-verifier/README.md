@@ -2,6 +2,8 @@
 
 **Attack family:** prover-reliability
 
+**Targets:** demo  (runnable: true)
+
 **Expected decision:** REJECTED
 **Expected failing gate(s):** PROVER_RELIABILITY
 **Expected reason code(s):** PROVER_FAILED

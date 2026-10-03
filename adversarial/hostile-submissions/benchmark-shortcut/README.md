@@ -2,14 +2,12 @@
 
 **Attack family:** benchmark-cheat
 
+**Targets:** demo  (runnable: true)
+
 **Expected decision:** REJECTED
 **Expected failing gate(s):** CONFORMANCE_DIFFERENTIAL
 **Expected reason code(s):** CLAIM_MISMATCH
 
 ## What this proves about the judge
 
-The prover special-cases the PUBLIC benchmark fixtures (keys a lookup table by input hash) and returns a canned claim for them, but garbage for fresh / held-out inputs. Fresh inputs are sampled AFTER freeze, so CONFORMANCE_DIFFERENTIAL against the oracle on held-out inputs must fail (CLAIM_MISMATCH).
-
-## Notes
-
-PROVER_RELIABILITY may also fail on fresh inputs; either is a kill.
+The prover returns the correct product ONLY for a hard-coded 'benchmark' request and an off-by-one wrong product for everything else. Conformance samples fresh judge inputs (sampled after freeze), so CONFORMANCE_DIFFERENTIAL against the oracle fails with CLAIM_MISMATCH. A prover that only works on known inputs cannot pass differential testing.

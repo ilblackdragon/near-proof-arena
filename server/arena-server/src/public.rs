@@ -297,7 +297,12 @@ async fn submit(
     if !chal.open {
         return Err(ApiError::conflict(
             "challenge_closed",
-            "challenge is not accepting submissions",
+            match &chal.superseded_by {
+                Some(succ) => format!(
+                    "challenge is superseded by {succ} and closed for new submissions; submit against {succ}"
+                ),
+                None => "challenge is not accepting submissions".to_string(),
+            },
         ));
     }
     let upload: Option<(String,)> =
@@ -472,7 +477,13 @@ async fn leaderboard(
     };
     let bundles = views::list_bundles(&st.api_db, &f).await?;
     Ok(Json(
-        views::compute_leaderboard(&chal.id, &chal.definition, &bundles).entries(),
+        views::compute_leaderboard(
+            &chal.id,
+            &chal.definition,
+            chal.superseded_by.as_deref(),
+            &bundles,
+        )
+        .entries(),
     ))
 }
 

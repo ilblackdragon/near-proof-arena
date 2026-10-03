@@ -1,0 +1,11 @@
+mutator (kill)                                 reject    error   ACCEPT
+altered-commitment (Semantic)                      72        0        0
+bitflip (Semantic)                                 45        0        0
+empty (Packaging)                                   9        0        0
+extend-trailing (Packaging)                         9        0        0
+malformed-length (Packaging)                      162        0        0
+mismatched-context (Binding)                        9        0        0
+noncanonical (Packaging)                            9        0        0
+recursive-substitution (Binding)                    9        0        0
+truncate (Packaging)                               36        0        0
+cases 9, mutants run 360, skipped (== honest pair) 0

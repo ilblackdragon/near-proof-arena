@@ -1,19 +1,23 @@
 {
   "case": "forged-timing",
   "attack_family": "benchmark-cheat",
+  "targets": [
+    "demo"
+  ],
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
-    "BENCHMARK"
+    "PROVER_RELIABILITY"
   ],
   "expected_reason_codes": [
-    "SANDBOX_VIOLATION"
+    "PROVER_FAILED"
   ],
-  "fail_by_stage": "BENCHMARKED",
+  "fail_by_stage": "CONFORMANCE_CHECKED",
   "must_never": [
     "ADMITTED",
     "accepted",
     "ranked"
   ],
-  "why": "`prove` prints fabricated fast timings to stdout and tries to tamper with the clock (clock_settime / adjtimex) so self-reported timing looks better. The supervisor measures wall time itself and ignores stdout; clock tamper is a privileged syscall denied in the sandbox (SANDBOX_VIOLATION). The build LD_PRELOAD/faketime trick is defeated by the fixed env allowlist.",
-  "notes": "If clock tamper is silently ignored rather than flagged, the kill still holds: supervisor-measured timing is used, so forging gains nothing. Reported gate may be BENCHMARK or PROVER_RELIABILITY."
+  "why": "`prove` prints a fabricated fast timing to stdout and tries to tamper with the clock (clock_settime), then exits without a valid proof. The supervisor measures wall time itself and ignores stdout; clock_settime is denied. Because forging gains nothing, the only way this changes the outcome is by breaking the prover -- observable as PROVER_RELIABILITY.",
+  "notes": "Supervisor-measured timing is authoritative, so the fake print is futile; clock tamper is contained. The runnable kill on the demo worker is the absent proof."
 }

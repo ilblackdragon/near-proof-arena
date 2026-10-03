@@ -16,5 +16,8 @@ target/debug/upgrade-monitor --repo <nearcore clone with both tags> \
 | `nearcore-2.12.0-to-2.13.4` | REVALIDATION_REQUIRED | protocol 84 → 86; 211 closure files, 20 external crate changes, 7 parameter files (fee changes for `action_create_account`, new `min_gas_purchase_price`, `account_creation_charge`, ML-DSA-65 verification cost), 12 new stable features. |
 
 The reports are deterministic (no timestamps; same inputs ⇒ same bytes).
-The impact sections use the initial `spec/impact-map.toml`, whose
-`concept:` placeholders the spec lane will replace with exact definitions.
+Both reports were regenerated on 2026-10-03 with the refined
+`spec/impact-map.toml` (exact `NearSpec.*` declarations instead of `concept:`
+placeholders). `tools/upgrade-demo.sh` regenerates the 2.12.0 report and
+compares it byte for byte. docs/PROTOCOL_UPGRADES.md §7.2 maps the PV84→PV86
+boundary to this challenge's obligations.

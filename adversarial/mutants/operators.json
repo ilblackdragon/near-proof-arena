@@ -18,7 +18,7 @@
     {"id": "swap-args", "desc": "swap two arguments of the same type at a call", "applies_to": "any", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"]}
   ],
   "backend_specific_operators": {
-    "reexec-merkle": [
+    "reexec-witness": [
       {"id": "hash-domain-drop", "desc": "drop a domain-separation prefix before hashing a trie node", "kills_expected_via": ["ADVERSARIAL_PROOFS"], "equivalence_note": "NOT equivalent: changes node hashes."},
       {"id": "memory-usage-constant", "desc": "hardcode a node memory_usage field", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"], "equivalence_note": "May be equivalent if memory_usage is not committed for this slice; adjudicate via oracle."},
       {"id": "nibble-order-flip", "desc": "iterate trie nibbles low-first instead of high-first", "kills_expected_via": ["CONFORMANCE_DIFFERENTIAL"]},
@@ -29,7 +29,7 @@
     ]
   },
   "reference_backends_todo": [
-    "examples/reexec-merkle (not yet present; owned by backend-* lane)",
+    "examples/reexec-witness and examples/reexec-witness-fast (re-execution backends; owned by backend-* lane)",
     "The integrator wires this once a backend exists; until then these are definitions only."
   ]
 }

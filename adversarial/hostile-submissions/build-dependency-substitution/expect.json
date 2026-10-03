@@ -1,19 +1,22 @@
 {
   "case": "build-dependency-substitution",
   "attack_family": "build-integrity",
+  "targets": [
+    "demo"
+  ],
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
-    "ARTIFACT_BINDING"
+    "ADVERSARIAL_PROOFS"
   ],
   "expected_reason_codes": [
-    "ARTIFACT_BINDING_FAILED"
+    "HOSTILE_PROOF_ACCEPTED"
   ],
-  "fail_by_stage": "BUILT",
+  "fail_by_stage": "CONFORMANCE_CHECKED",
   "must_never": [
     "ADMITTED",
     "accepted",
     "ranked"
   ],
-  "why": "The recipe substitutes a different source for a locked dependency (ignores dependency-locks and compiles an alternate file). Either the build output digest diverges from the certified artifact (ARTIFACT_BINDING) or the reproducibility/lock check fails (BUILD_FAILED).",
-  "notes": "BUILD_FAILED acceptable if lock enforcement rejects the substitution before artifact binding."
+  "why": "The recipe ignores the vendored verifier source and compiles an alternate, backdoored `verify_alt.c` (always-accept) as out/verify. The build is deterministic, so it reproduces; the backdoored verifier is then caught by ADVERSARIAL_PROOFS. (On the NEAR challenge the same swap is caught earlier by ARTIFACT_BINDING against the certified verifier digest.)"
 }

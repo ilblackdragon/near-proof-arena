@@ -1,6 +1,10 @@
 {
   "case": "build-network-fetch",
   "attack_family": "build-integrity",
+  "targets": [
+    "demo"
+  ],
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "BUILD_REPRODUCIBLE"
@@ -14,5 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The build recipe tries to fetch a dependency over the network (curl/git). The build sandbox has no network, so the fetch fails and BUILD_REPRODUCIBLE fails with BUILD_FAILED. Honest packages vendor everything."
+  "why": "The build recipe tries to fetch a dependency over the network (curl, then git). The build sandbox has no network, so the fetch fails and BUILD_REPRODUCIBLE fails with BUILD_FAILED. Honest packages vendor everything."
 }

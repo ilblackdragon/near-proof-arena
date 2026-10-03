@@ -1,0 +1,19 @@
+name = "candidate"
+version = "0.1.0"
+defaultTargets = ["Candidate"]
+
+[leanOptions]
+autoImplicit = false
+
+# Development pins: the in-repo formal-core and spec/lean. The judge replaces
+# these by the challenge's pinned packages (toolchain_policy.allowed_packages).
+[[require]]
+name = "ArenaCore"
+path = "../../../formal-core"
+
+[[require]]
+name = "NearSpec"
+path = "../../../spec/lean"
+
+[[lean_lib]]
+name = "Candidate"

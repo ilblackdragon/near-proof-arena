@@ -13,6 +13,7 @@ use crate::jobs::{ExecJob, RunLimits};
 use crate::oracle::{Case, OracleError};
 use arena_measure::stats::{derive_seed, Phase};
 use arena_measure::{BatchRunner, BatchSample, ClassPlan, RunError, SessionError, SessionPlan};
+use arena_types::challenge::InvocationMode;
 use arena_types::{BenchmarkResult, GateStatus, ObligationId, ReasonCode};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -36,6 +37,8 @@ struct Runner<'r, 'a> {
     oracle: &'r dyn crate::oracle::Oracle,
     chal: &'r arena_types::ChallengeDefinition,
     parts: Vec<String>,
+    /// Fail-closed protocol-version binding of every request.
+    pin: Option<crate::jobs::RequestPin>,
 }
 
 impl Runner<'_, '_> {
@@ -48,6 +51,105 @@ impl Runner<'_, '_> {
             ExecError::Violation(m) => self.fail(ReasonCode::SandboxViolation, m),
             e => RunError::Infra(e.to_string()),
         }
+    }
+}
+
+impl Runner<'_, '_> {
+    /// bench-spec-v1.1 (`vm_per_batch`): the whole batch in one sandbox
+    /// instance, preceded by one untimed warm-up invocation on the batch's
+    /// first request (must also be valid). Every request is a fresh process
+    /// with a wiped scratch and only its own inputs; `T_run` is the sum of
+    /// the timed invocations' supervisor wall times. Every proof (warm-up
+    /// included) is claim-checked and verified (verifies batched the same way).
+    fn run_batch_shared(&mut self, batch: &[Case], phase: Phase) -> Result<BatchSample, RunError> {
+        if batch.is_empty() {
+            return Ok(BatchSample::default());
+        }
+        let (bundle, public_dir, limits, entry, cpus, verifier) = (
+            self.bundle.clone(),
+            self.public_dir.clone(),
+            self.limits.clone(),
+            self.entry,
+            self.cpus.clone(),
+            self.verifier.clone(),
+        );
+        let env = common::EntryEnv {
+            bundle: &bundle,
+            entry,
+            public_dir: &public_dir,
+            limits: &limits,
+            cpu_set: cpus,
+            verifier: &verifier,
+        };
+        // index 0 = untimed warm-up on batch[0]
+        let order: Vec<&Case> = std::iter::once(&batch[0]).chain(batch.iter()).collect();
+        let proved = match common::run_prove_batch(self.r, &env, &order) {
+            Ok(p) => p,
+            Err(e) => return Err(self.exec_err(e)),
+        };
+        let mut s = BatchSample::default();
+        let mut pairs = Vec::with_capacity(order.len());
+        for (i, p) in proved.into_iter().enumerate() {
+            let case = order[i];
+            let label = common::case_label(&case.id, case.public);
+            let p = match p {
+                Ok(p) => p,
+                Err(f) => {
+                    return Err(self.fail(
+                        f.reason,
+                        format!(
+                            "{} run, {label}: {}",
+                            phase.as_str(),
+                            f.detail_for(case.public)
+                        ),
+                    ))
+                }
+            };
+            cross_check(&p.outcome)?;
+            if i > 0 {
+                s.push_prove(&p.outcome);
+            }
+            s.note_proof_bytes(p.proof.len() as u64);
+            pairs.push((p.claim_path, p.proof_path));
+        }
+        let verified = match common::run_verify_batch(self.r, &env, &pairs) {
+            Ok(v) => v,
+            Err(e) => return Err(self.exec_err(e)),
+        };
+        for (i, (v, vo)) in verified.into_iter().enumerate() {
+            let case = order[i];
+            let label = common::case_label(&case.id, case.public);
+            cross_check(&vo)?;
+            match v {
+                Verdict::Accept => {
+                    if i > 0 {
+                        s.push_verify(&vo)
+                    }
+                }
+                Verdict::TimedOut => {
+                    return Err(self.fail(
+                        ReasonCode::ResourceLimit,
+                        format!("{label}: verify exceeded max_verify_ms"),
+                    ))
+                }
+                Verdict::BindingMismatch => {
+                    return Err(self.fail(
+                        ReasonCode::ArtifactBindingFailed,
+                        "npai-verify: the verifier bytecode is not the certified image".into(),
+                    ))
+                }
+                _ => {
+                    return Err(self.fail(
+                        ReasonCode::ProverFailed,
+                        format!(
+                            "{} run, {label}: verify did not accept the proof",
+                            phase.as_str()
+                        ),
+                    ))
+                }
+            }
+        }
+        Ok(s)
     }
 }
 
@@ -84,6 +186,17 @@ impl BatchRunner for Runner<'_, '_> {
         } else {
             batch
         };
+        if let Some(pin) = &self.pin {
+            for c in &batch {
+                common::check_request_pin(pin, &c.request, &c.id, c.public)
+                    .map_err(|e| RunError::Infra(e.to_string()))?;
+            }
+        }
+        if phase != Phase::Cold
+            && self.chal.measurement.invocation_mode() == InvocationMode::VmPerBatch
+        {
+            return self.run_batch_shared(&batch, phase);
+        }
         let mut s = BatchSample::default();
         for case in &batch {
             let label = common::case_label(&case.id, case.public);
@@ -268,6 +381,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         oracle,
         chal,
         parts: parts_owned.to_vec(),
+        pin: crate::jobs::RequestPin::from_challenge(chal),
     };
     let mut plan = plan;
     // A session with too many outliers is re-measured as a whole (spec
@@ -377,6 +491,9 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         measured_by,
     };
     let report = serde_json::json!({
+        "invocation_mode": chal.measurement.invocation_mode(),
+        "sandbox_instance_per_batch": chal.measurement.invocation_mode() == InvocationMode::VmPerBatch
+            && r.ctx.sandbox.steps_share_instance(),
         "schedule_seed": session.schedule_seed,
         "schedule": session.schedule,
         "classes": session.classes,
