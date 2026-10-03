@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# arena-backup: encrypted, pull-model backups for NEAR Proof Arena.
+#
+#   arena-backup db              pg_dump (custom format) of $ARENA_BACKUP_DB, then prune
+#   arena-backup objects         incremental snapshot of the content-addressed store
+#   arena-backup wal PATH NAME   archive_command for WAL (never overwrites)
+#   arena-backup prune           apply db dump retention
+#
+# Everything written is encrypted to the age recipients in
+# $ARENA_BACKUP_AGE_RECIPIENTS (public keys; the decryption key is offline).
+# The backup host PULLS $ARENA_BACKUP_DIR over SSH; this host never pushes,
+# so a compromised arena host cannot delete existing off-host backups.
+set -euo pipefail
+umask 077
+
+: "${ARENA_BACKUP_DIR:=/var/backups/arena}"
+: "${ARENA_BACKUP_AGE_RECIPIENTS:=/etc/arena/backup-recipients.txt}"
+: "${ARENA_BACKUP_DB:=arena}"
+: "${ARENA_BACKUP_OBJECTS_DIR:=/var/lib/arena/objects}"
+: "${ARENA_BACKUP_KEEP_DAILY:=35}"
+: "${ARENA_BACKUP_KEEP_MONTHLY:=13}"
+
+die() { echo "arena-backup: $*" >&2; exit 1; }
+need() { command -v "$1" >/dev/null || die "required tool '$1' not found"; }
+
+need age
+need sha256sum
+[[ -s $ARENA_BACKUP_AGE_RECIPIENTS ]] || die "age recipients file $ARENA_BACKUP_AGE_RECIPIENTS missing or empty"
+
+ts() { date -u +%Y%m%dT%H%M%SZ; }
+encrypt_to() { # DEST  (stdin -> DEST, atomically, with .sha256 sidecar)
+  local dest=$1 tmp
+  tmp=$(mktemp "${dest}.partial.XXXXXX")
+  age -R "$ARENA_BACKUP_AGE_RECIPIENTS" -o "$tmp"
+  sha256sum "$tmp" | sed "s|$tmp|$(basename "$dest")|" >"${dest}.sha256"
+  mv -f "$tmp" "$dest"
+}
+
+do_db() {
+  need pg_dump
+  mkdir -p "$ARENA_BACKUP_DIR/db"
+  local out
+  out=$ARENA_BACKUP_DIR/db/$ARENA_BACKUP_DB-$(ts).dump.age
+  pg_dump --format=custom --no-password --dbname="$ARENA_BACKUP_DB" | encrypt_to "$out"
+  echo "arena-backup: wrote $out"
+  do_prune
+}
+
+do_objects() {
+  local src=$ARENA_BACKUP_OBJECTS_DIR dir=$ARENA_BACKUP_DIR/objects
+  [[ -d $src ]] || die "object store $src not found"
+  mkdir -p "$dir"
+  local stamp prev new delta
+  stamp=$(ts)
+  prev=$(find "$dir" -maxdepth 1 -name 'manifest-*.txt' | sort | tail -n 1)
+  new=$dir/manifest-$stamp.txt
+  delta=$(mktemp)
+  trap 'rm -f "$delta"' RETURN
+  (cd "$src" && find . -type f -printf '%P\n' | LC_ALL=C sort) >"$new.partial"
+  if [[ -n $prev ]]; then
+    LC_ALL=C comm -13 "$prev" "$new.partial" >"$delta"
+  else
+    cp "$new.partial" "$delta"
+  fi
+  # Objects are immutable and content-addressed: a snapshot is the chain of
+  # incremental tars; none of them is ever pruned.
+  tar -C "$src" --null -cf - --files-from=<(tr '\n' '\0' <"$delta") | encrypt_to "$dir/objects-$stamp.tar.age"
+  mv -f "$new.partial" "$new"
+  echo "arena-backup: wrote $dir/objects-$stamp.tar.age ($(wc -l <"$delta") new objects)"
+}
+
+do_wal() {
+  local path=${1-} name=${2-}
+  [[ -n $path && -n $name ]] || die "usage: arena-backup wal PATH NAME"
+  [[ $name =~ ^[0-9A-Za-z._-]+$ ]] || die "refusing WAL name '$name'"
+  mkdir -p "$ARENA_BACKUP_DIR/wal"
+  local dest=$ARENA_BACKUP_DIR/wal/$name.age
+  # archive_command contract: fail (never overwrite) if it already exists.
+  [[ -e $dest ]] && die "$dest already exists"
+  encrypt_to "$dest" <"$path"
+}
+
+do_prune() {
+  local dir=$ARENA_BACKUP_DIR/db
+  [[ -d $dir ]] || return 0
+  mapfile -t dumps < <(find "$dir" -maxdepth 1 -name "$ARENA_BACKUP_DB-*.dump.age" -printf '%f\n' | LC_ALL=C sort -r)
+  declare -A keep=()
+  local i f month
+  for ((i = 0; i < ${#dumps[@]} && i < ARENA_BACKUP_KEEP_DAILY; i++)); do keep[${dumps[i]}]=1; done
+  # Oldest dump of each of the last N months is kept as the monthly.
+  declare -A month_first=()
+  for ((i = ${#dumps[@]} - 1; i >= 0; i--)); do
+    f=${dumps[i]}
+    month=${f#"$ARENA_BACKUP_DB"-}
+    month=${month:0:6}
+    [[ -n ${month_first[$month]-} ]] || month_first[$month]=$f
+  done
+  local months
+  mapfile -t months < <(printf '%s\n' "${!month_first[@]}" | LC_ALL=C sort -r | head -n "$ARENA_BACKUP_KEEP_MONTHLY")
+  for month in "${months[@]}"; do [[ -n $month ]] && keep[${month_first[$month]}]=1; done
+  for f in "${dumps[@]}"; do
+    if [[ -z ${keep[$f]-} ]]; then
+      rm -f -- "$dir/$f" "$dir/$f.sha256"
+      echo "arena-backup: pruned $f"
+    fi
+  done
+}
+
+case "${1-}" in
+  db) do_db ;;
+  objects) do_objects ;;
+  wal) do_wal "${2-}" "${3-}" ;;
+  prune) do_prune ;;
+  *) echo "usage: arena-backup db|objects|wal PATH NAME|prune" >&2; exit 64 ;;
+esac

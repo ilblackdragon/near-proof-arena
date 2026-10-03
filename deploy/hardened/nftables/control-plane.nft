@@ -1,0 +1,49 @@
+#!/usr/sbin/nft -f
+# NEAR Proof Arena — control-plane host (arena-server, object store, report key).
+flush ruleset
+
+define PUBLIC_HTTPS = 443              # TLS reverse proxy in front of 127.0.0.1:8471
+define WORKER_API_PORT = 8472
+define WORKER_SUBNETS = { 10.20.1.0/24, 10.20.2.0/24, 10.20.3.0/24 }
+define DB_HOST = 10.20.0.20
+define DB_PORT = 5432
+define NTP_SERVER = 10.20.0.2
+define ADMIN_BASTION = 10.20.0.5
+define BACKUP_TARGET = 10.20.0.30
+
+table inet arena {
+	include "/etc/nftables.d/arena-metadata.nft"
+
+	chain input {
+		type filter hook input priority filter; policy drop;
+		iif "lo" accept
+		ct state invalid drop
+		ct state established,related accept
+		tcp dport $PUBLIC_HTTPS ct state new accept
+		ip saddr $WORKER_SUBNETS tcp dport $WORKER_API_PORT ct state new accept
+		ip saddr $ADMIN_BASTION tcp dport 22 ct state new accept
+		# Backups are PULLED by the backup host (a compromised host cannot delete them).
+		ip saddr $BACKUP_TARGET tcp dport 22 ct state new accept
+		icmp type { echo-request, destination-unreachable, time-exceeded } limit rate 10/second accept
+		icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, nd-neighbor-solicit, nd-neighbor-advert, nd-router-advert } accept
+		limit rate 5/second log prefix "arena-in-drop " level info
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy drop;
+	}
+
+	chain output {
+		type filter hook output priority filter; policy drop;
+		oif "lo" accept
+		jump metadata_block
+		ct state invalid drop
+		ct state established,related accept
+		ip daddr $DB_HOST tcp dport $DB_PORT ct state new accept
+		ip daddr $NTP_SERVER udp dport 123 accept
+		icmpv6 type { nd-neighbor-solicit, nd-neighbor-advert, nd-router-solicit } accept
+		limit rate 5/second log prefix "arena-egress-deny " level warn
+		# Fail fast and visibly (the drop policy is the backstop).
+		reject with icmpx type admin-prohibited
+	}
+}

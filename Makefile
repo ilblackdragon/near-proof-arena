@@ -32,7 +32,7 @@ E2E_HOSTILE_SCRIPT ?= adversarial/e2e/run-hostile.sh
 LEAN_PROJECTS      ?= formal-core spec/lean
 SHELL_SCRIPTS := deploy/scripts/arena-guard deploy/scripts/test-arena-guard.sh \
                  deploy/local/gen-dev-secrets.sh deploy/local/postgres-init/10-roles.sh \
-                 $(wildcard deploy/hardened/bin/*)
+                 deploy/hardened/bin/arena-backup deploy/hardened/bin/check-hardened
 ACTIONLINT_IMAGE := rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
 SHELLCHECK_IMAGE := koalaman/shellcheck:v0.11.0@sha256:61862eba1fcf09a484ebcc6feea46f1782532571a34ed51fedf90dd25f925a8d
 
