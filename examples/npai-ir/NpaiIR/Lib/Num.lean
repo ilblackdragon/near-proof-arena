@@ -179,3 +179,32 @@ theorem addLE_spec {m : M} (hk : Kinv m) {n : Nat} (hn : m.regs 4 = n) (hc0 : m.
   refine ⟨m2, c2, h2, by rw [hm2]; simp, by rw [hc2]; simp, hf2, by omega⟩
 
 end NpaiIR
+
+namespace NpaiIR
+
+open ArenaCore Interp
+
+/-! ## `subLE`: `d[0,n) := a - b - bw (mod 256^n)`, borrow out in `bw`
+
+Fixed registers: `r1 = pa`, `r2 = pb`, `r3 = pd`, `r4 = k`, `r5 = bw` (borrow
+in/out, `0/1`), `r6 r7` temporaries. Byte step:
+`t = a_i + 256 - b_i - bw; d_i = t mod 256; bw = 1 - t / 256`. -/
+def subLE : Stmt :=
+  .loop 4 (block [.ld8 6 1, .addi 6 6 256, .ld8 7 2, .bin .sub 6 6 7, .bin .sub 6 6 5, .st8 3 6,
+    .bin .shr 7 6 K8, .bin .sub 5 K1 7, .addi 1 1 1, .addi 2 2 1, .addi 3 3 1, .bin .sub 4 4 K1])
+
+/-! ## `mulLE`: `d[0,n) ‖ carry := a[0,n) * K`
+
+Fixed registers: `r1 = pa`, `r3 = pd` (advanced), `r4 = k`, `r2 = K`
+(multiplier, `< 2^48`), `r5 = cy` (carry out), `r6` temporary. The carry
+(`< K`) is left in `r5`; callers store it with `stLE`. -/
+def mulLE : Stmt :=
+  .loop 4 (block [.ld8 6 1, .bin .mul 6 6 2, .bin .add 6 6 5, .st8 3 6, .bin .shr 5 6 K8,
+    .addi 1 1 1, .addi 3 3 1, .bin .sub 4 4 K1])
+
+/-! ## `popc16 d s a b c`: `d := popcount (s mod 2^16)` (clobbers `d a b c`) -/
+def popc16 (d s a b c : Nat) : Stmt :=
+  .seq (.op (.const d 0)) (.seq (.op (.mov a s)) (.seq (.op (.const b 16))
+    (.loop b (block [.bin .and c a K1, .bin .add d d c, .bin .shr a a K1, .bin .sub b b K1]))))
+
+end NpaiIR
