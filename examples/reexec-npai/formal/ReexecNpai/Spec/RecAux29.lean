@@ -30,7 +30,7 @@ theorem br_body_wp (hs : RecStart cb pb rs R N o A K S m m1)
   have hhdr : brHdr pb o = 1 ∨ brHdr pb o = 37 := by unfold brHdr; split <;> simp
   have hEnd : brEnd pb o = brR pb o + 2 + 32 * brNp pb o + 8 := rfl
   have hr0 : m1.regs 0 = u8At pb o := hs.r0
-  rw [pBranch_split', wp_seqs_append _ _ (by simp [brL1]) (by simp)]
+  rw [pBranch_split', rec_wp_seqs_append _ _ (by simp [brL1]) (by simp)]
   -- brL1
   have L1 : wp P (Inp pub cb pb) (seqs brL1) m1 (fun ma =>
       (u8At pb o = 5 → o + 5 ≤ pb.length) ∧ brP pb o ≤ pb.length ∧
@@ -63,7 +63,7 @@ theorem br_body_wp (hs : RecStart cb pb rs R N o A K S m m1)
   have hpfa : readMem ma.mem PF pb.length = pb := by
     rw [hfa.readMem (by right; right; simp only [PF, SH8]; omega)]; exact hpf
   -- brL2
-  rw [wp_seqs_append _ _ (by simp [brL2]) (by simp)]
+  rw [rec_wp_seqs_append _ _ (by simp [brL2]) (by simp)]
   refine wp_mono (brL2_wp (k := u8At pb o) (q := PF + brP pb o) (E := PF + pb.length) (e := A.length)
     a15 a14 a0' a10 hpl a9 (by omega) a8 hcap (by simp only [AR, NCAP, PF]; omega)) ?_
   rintro mb ⟨q3, htag, b0, b3, b10, b0', b1, b5, b7, b8, b9, b14, b15⟩
@@ -94,7 +94,7 @@ theorem br_body_wp (hs : RecStart cb pb rs R N o A K S m m1)
   have hex16 := leAt2_lt pb (brP pb o)
   have hbm16 := leAt2_lt pb (brR pb o)
   -- brL4a
-  rw [wp_seqs_append _ _ (by simp [brL4a]) (by simp)]
+  rw [rec_wp_seqs_append _ _ (by simp [brL4a]) (by simp)]
   refine wp_mono (brL4a_wp (R := PF + brR pb o) (E := PF + pb.length)
     (by rw [cr 15 (by omega) (by omega) (by omega) (by omega), b15])
     (by rw [cr 14 (by omega) (by omega) (by omega) (by omega), b14])
@@ -122,7 +122,7 @@ theorem br_body_wp (hs : RecStart cb pb rs R N o A K S m m1)
     intro j h1 h2 h4 h6 h11 h12 h13
     rw [er j (by simp; omega), dr j h1 h2 h6 h11 h12 h13, cr j h2 h11 h12 h13]
   -- brL4b
-  rw [wp_seqs_append _ _ (by simp [brL4b]) (by simp)]
+  rw [rec_wp_seqs_append _ _ (by simp [brL4b]) (by simp)]
   refine wp_mono (brL4b_wp (e := A.length) (hdr := brHdr pb o) (np := brNp pb o) (pre := PF + brP pb o + 2)
     (R := PF + brR pb o) (ex := brEx pb o) (bm := brBm pb o)
     (rv := revSum pb A + (if u8At pb o = 5 then leAt pb (o + 1) 4 else 0)) (E := PF + pb.length)

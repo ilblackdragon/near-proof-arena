@@ -56,7 +56,7 @@ theorem br_body_twp (hs : RecStart cb pb rs R N o A K S m m1)
   have hhdr : brHdr pb o = 1 ∨ brHdr pb o = 37 := by unfold brHdr; split <;> simp
   have hEnd : brEnd pb o = brR pb o + 2 + 32 * brNp pb o + 8 := rfl
   have hr0 : m1.regs 0 = u8At pb o := hs.r0
-  rw [pBranch_split', twp_seqs_append _ _ (by simp [brL1]) (by simp)]
+  rw [pBranch_split', rec_twp_seqs_append _ _ (by simp [brL1]) (by simp)]
   -- brL1: the value
   have L1 : twp P (Inp pub cb pb) (seqs brL1) m1 (fun ma ca =>
       ma.mem = wr4 m1.mem (AR + 24 * A.length + 20) (brVal pb o) ∧ ma.regs 1 = brVal pb o ∧
@@ -87,7 +87,7 @@ theorem br_body_twp (hs : RecStart cb pb rs R N o A K S m m1)
   have hpfa : readMem ma.mem PF pb.length = pb := by
     rw [hfa.readMem (by right; right; simp only [PF, SH8]; omega)]; exact hpf
   -- brL2: ex, pre, kid, tag
-  rw [twp_seqs_append _ _ (by simp [brL2]) (by simp)]
+  rw [rec_twp_seqs_append _ _ (by simp [brL2]) (by simp)]
   have htag := byte_at hpfa (show PF + brP pb o + 2 = PF + (brP pb o + 2) by omega) (by omega)
   have hex : (readMem ma.mem (PF + brP pb o) 2).leToNat = brEx pb o := rdmProof hpfa (by omega)
   refine twp_mono (brL2_twp (k := u8At pb o) (q := PF + brP pb o) (E := PF + pb.length) (e := A.length)
@@ -130,7 +130,7 @@ theorem br_body_twp (hs : RecStart cb pb rs R N o A K S m m1)
   have hex16 := leAt2_lt pb (brP pb o)
   have hbm16 := leAt2_lt pb (brR pb o)
   -- brL4a: bm, ex ⊆ bm
-  rw [twp_seqs_append _ _ (by simp [brL4a]) (by simp)]
+  rw [rec_twp_seqs_append _ _ (by simp [brL4a]) (by simp)]
   refine twp_mono (brL4a_twp (R := PF + brR pb o) (E := PF + pb.length)
     (by rw [cr 15 (by omega) (by omega) (by omega) (by omega), b15])
     (by rw [cr 14 (by omega) (by omega) (by omega) (by omega), b14])
@@ -156,7 +156,7 @@ theorem br_body_twp (hs : RecStart cb pb rs R N o A K S m m1)
     intro j h1 h2 h4 h6 h11 h12 h13
     rw [er j (by simp; omega), dr j h1 h2 h6 h11 h12 h13, cr j h2 h11 h12 h13]
   -- brL4b
-  rw [twp_seqs_append _ _ (by simp [brL4b]) (by simp)]
+  rw [rec_twp_seqs_append _ _ (by simp [brL4b]) (by simp)]
   refine twp_mono (brL4b_twp (e := A.length) (hdr := brHdr pb o) (np := brNp pb o) (pre := PF + brP pb o + 2)
     (R := PF + brR pb o) (ex := brEx pb o) (bm := brBm pb o)
     (rv := revSum pb A + (if u8At pb o = 5 then leAt pb (o + 1) 4 else 0)) (E := PF + pb.length)

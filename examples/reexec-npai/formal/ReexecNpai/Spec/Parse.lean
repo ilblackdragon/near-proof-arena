@@ -254,11 +254,18 @@ theorem loop_twp {N : Nat} {t : PTrie} (hN : N ≤ 272727) {m : M} (h0 : LT cb p
     split at hdr
     · simp at hdr
     · rename_i stk' bs' hrec
-      obtain ⟨⟨j, hj⟩, -⟩ := decRec_cs hrec
-      rw [List.drop_drop] at hj
+      obtain ⟨⟨j0, hj0⟩, -⟩ := decRec_cs hrec
+      rw [List.drop_drop] at hj0
+      have hj : bs' = pb.drop (o + min j0 (pb.length - o)) := by
+        rw [hj0]
+        rcases Nat.le_total j0 (pb.length - o) with h | h
+        · rw [Nat.min_eq_left h]
+        · rw [Nat.min_eq_right h, List.drop_eq_nil_of_le (by omega), List.drop_eq_nil_of_le (by omega)]
+      have hjle : o + min j0 (pb.length - o) ≤ pb.length := by omega
+      generalize min j0 (pb.length - o) = j at hj hjle
       subst hj
       have hcap : A.length < NCAP := by simp only [NCAP]; omega
-      refine twp_mono (record_twp hp hlt hcap hrec) ?_
+      refine twp_mono (record_twp hp hlt hcap hrec hjle) ?_
       intro m' c ⟨A', K', S', hp', hlen, h4', hc⟩
       have hd1 := decRecs_add' A.length 1 _ _ _ _ hp.dec
       have hd2 : decRecs 1 ((S.map (treeAt A K (vals0 pb A))).reverse) (pb.drop o) =

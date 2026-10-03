@@ -86,7 +86,7 @@ theorem ext_tail_twp {key : List Nat} {m3 : M} (hm : ExtMid cb pb rs R N o A K S
   simp only [PMAX] at hpl
   by_cases hfl : u8At pb (o + 1) = 1
   · refine twp_ite_ne (by rw [hm.r1, hfl]; decide) ?_
-    rw [twp_seqs_append _ _ (by simp [extA1]) (by simp [extA2])]
+    rw [rec_twp_seqs_append _ _ (by simp [extA1]) (by simp [extA2])]
     have hz' := (extZero_iff hm.pf hm.data hend).mpr (hz hfl)
     refine twp_mono (extA1_twp (s := leAt pb (o + 3) 4 + 5 + (PF + o + 2)) (sp := S.length) hm.r15 hm.r14 hm.r0
       (by simp only [PF] at *; omega) hm.r7 hz' (hsp hfl)) ?_
@@ -137,9 +137,9 @@ theorem ext_body_twp (hs : RecStart cb pb rs R N o A K S m m1) (hk : u8At pb o =
   have hcap := hs.cap
   have hrv := hs.rv
   obtain ⟨g5, g7, g8, g14, g15⟩ := hs.regs
-  rw [pExt_split, twp_seqs_append _ _ (by simp [extL1]) (by simp),
-    twp_seqs_append _ _ (by simp [extL1]) (by simp [extL3]),
-    twp_seqs_append _ _ (by simp [extL1]) (by simp [extL2])]
+  rw [pExt_split, rec_twp_seqs_append _ _ (by simp [extL1]) (by simp),
+    rec_twp_seqs_append _ _ (by simp [extL1]) (by simp [extL3]),
+    rec_twp_seqs_append _ _ (by simp [extL1]) (by simp [extL2])]
   obtain ⟨c1, -, -, -, -⟩ := chk_of_extFacts (m1 := m1) (m2 := m1) hs.pf hs.pf hf
   refine twp_mono (ext1_twp (q := PF + o + 1) (E := PF + pb.length) hs.k1 hs.k8 hs.r10 hpl hs.rE c1) ?_
   rintro m1' ca ⟨a1, a2, a3, a5, a7, a8, a9, a14, a15, hca⟩
@@ -169,9 +169,9 @@ theorem ext_body_wp (hs : RecStart cb pb rs R N o A K S m m1) (hk : u8At pb o = 
   have hcap := hs.cap
   have hrv := hs.rv
   obtain ⟨g5, g7, g8, g14, g15⟩ := hs.regs
-  rw [pExt_split, wp_seqs_append _ _ (by simp [extL1]) (by simp),
-    wp_seqs_append _ _ (by simp [extL1]) (by simp [extL3]),
-    wp_seqs_append _ _ (by simp [extL1]) (by simp [extL2])]
+  rw [pExt_split, rec_wp_seqs_append _ _ (by simp [extL1]) (by simp),
+    rec_wp_seqs_append _ _ (by simp [extL1]) (by simp [extL3]),
+    rec_wp_seqs_append _ _ (by simp [extL1]) (by simp [extL2])]
   refine wp_mono (ext1_wp (q := PF + o + 1) (E := PF + pb.length) hs.k1 hs.k8 hs.r10 hpl hs.rE (by omega)) ?_
   rintro m1' ⟨c1, a1, a2, a3, a5, a7, a8, a9, a14, a15⟩
   refine wp_of_spec (ext2_twp (e := A.length) (p := PF + o + 1 + 1) a15 a14 (by rw [a8, g8]) hcap a3
@@ -190,7 +190,7 @@ theorem ext_body_wp (hs : RecStart cb pb rs R N o A K S m m1) (hk : u8At pb o = 
   · have hfl : u8At pb (o + 1) ≠ 1 := by rw [hm.r1] at h0; omega
     exact wp_of_spec (ext_nopop_twp hm hfl) (fun m4 c h4 => wp_of_spec h4 (fun m5 c' hp => hp.post))
   · have hfl : u8At pb (o + 1) = 1 := by rw [hm.r1] at h1; have := hm.fl; omega
-    rw [wp_seqs_append _ _ (by simp [extA1]) (by simp [extA2])]
+    rw [rec_wp_seqs_append _ _ (by simp [extA1]) (by simp [extA2])]
     refine wp_mono (extA1_wp (s := leAt pb (o + 3) 4 + 5 + (PF + o + 2)) (sp := S.length) hm.r15 hm.r14 hm.r0
       (by simp only [PF] at *; omega) hm.r7) ?_
     rintro m3' ⟨hzr, hsp, hm3', hregs⟩

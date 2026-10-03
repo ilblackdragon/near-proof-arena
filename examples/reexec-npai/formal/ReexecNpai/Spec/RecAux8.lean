@@ -238,7 +238,7 @@ theorem leafLoc {pb : Bytes} {o : Nat} {hv : Bool} (hf : LeafFacts pb o hv) {key
     · simp only [hasVal, ↓reduceIte, vlenAt_val hval]
       exact ⟨trivial, leAt4_lt _ _, by omega⟩
 
-theorem getD_eq_get {α : Type} [Inhabited α] {l : List α} {j : Nat} (h : j < l.length) : l.getD j default = l[j] := by
+theorem rec_getD_eq_get {α : Type} [Inhabited α] {l : List α} {j : Nat} (h : j < l.length) : l.getD j default = l[j] := by
   rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem h]; rfl
 
 theorem leaf_step {cb pb : Bytes} {rs : List Receipt} {R N o : Nat} {A : List Ent} {K S : List Nat}
@@ -268,8 +268,8 @@ theorem leaf_step {cb pb : Bytes} {rs : List Receipt} {R N o : Nat} {A : List En
   have hs : StepHyp pb A K S [] A E := by
     subst hE
     exact { wf := h.wf, krange := h.krange, stack := by simpa using h.stack, len1 := rfl,
-            same := fun j hj => by rw [getD_eq_get hj]; rfl,
-            other := fun j hj _ => by rw [getD_eq_get hj],
+            same := fun j hj => by rw [rec_getD_eq_get hj]; rfl,
+            other := fun j hj _ => by rw [rec_getD_eq_get hj],
             slot := fun q hq => absurd hq (by simp), kid := rfl, nk := rfl, lo := by simp, res := rfl,
             loc := hloc }
   have hEv : pseg pb E.val (vlenAt pb E) = (if hv then sl pb (o + 5) (leAt pb (o + 1) 4) else
@@ -309,7 +309,7 @@ theorem leaf_step {cb pb : Bytes} {rs : List Receipt} {R N o : Nat} {A : List En
     (by rw [hout _ (by simp only [C_NODES, AR]; omega), h.hdr])
     (by
       intro j hj
-      rw [getD_eq_get hj]
+      rw [rec_getD_eq_get hj]
       obtain ⟨a1, a2, a3, a4, a5, a6⟩ := h.amem j hj
       exact ⟨by rw [hout _ (by omega)]; exact a1, by rw [hout _ (by omega)]; exact a2,
         by rw [hout _ (by omega)]; exact a3, by rw [hout _ (by omega)]; exact a4,

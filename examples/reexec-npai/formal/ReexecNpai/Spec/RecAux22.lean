@@ -25,7 +25,7 @@ theorem bit_hi (bm ex i : Nat) (hbm : bm < 65536) :
     Nat.zero_add]
   rfl
 
-theorem evAnd1' (x : Nat) : BinOp.and.eval x 1 = x % 2 := by
+theorem rec_evAnd1' (x : Nat) : BinOp.and.eval x 1 = x % 2 := by
   simp only [BinOp.eval, Nat.and_one_is_mod]
   exact Nat.mod_eq_of_lt (by have := Nat.mod_lt x (show 2 > 0 by omega); unfold wordMod; omega)
 
@@ -44,7 +44,7 @@ theorem brBody_none {m : M} {i bm ex : Nat} (hk1 : m.regs 15 = 1) (hk8 : m.regs 
   have b1 := bit_lo bm ex i hbm hi
   rw [hb] at b1
   simp only [brBody]
-  rec_auto [hk1, hk8, h6, h1, s1, evAnd1', b1]
+  rec_auto [hk1, hk8, h6, h1, s1, rec_evAnd1', b1]
 
 /-- Registers the slot loop leaves alone. -/
 def BrFrame (m m' : M) : Prop :=
@@ -67,7 +67,7 @@ theorem brBody_hash {m : M} {i bm ex p2 : Nat} (hk1 : m.regs 15 = 1) (hk8 : m.re
   rw [hb] at b1; rw [he] at b2
   have hsub : BinOp.sub.eval p2 32 = p2 - 32 := by simp only [BinOp.eval, wordMod]; omega
   simp only [brBody]
-  rec_auto [hk1, hk8, h6, h1, h2, s1, s2, evAnd1', b1, b2, hsub]
+  rec_auto [hk1, hk8, h6, h1, h2, s1, s2, rec_evAnd1', b1, b2, hsub]
   all_goals first | omega | (intro j h2 h6 h11; simp [h2, h6, h11])
 
 set_option maxHeartbeats 8000000 in
@@ -94,7 +94,7 @@ theorem brBody_pop {m : M} {i bm ex p2 sp kc c : Nat} (hk1 : m.regs 15 = 1) (hk8
   rw [hb] at b1; rw [he] at b2
   have hsub : BinOp.sub.eval p2 32 = p2 - 32 := by simp only [BinOp.eval, wordMod]; omega
   simp only [brBody, BrFrame]
-  rec_auto [hk1, hk8, h6, h1, h2, h7, h3, s1, s2, evAnd1', b1, b2, hsub, hc, hz]
+  rec_auto [hk1, hk8, h6, h1, h2, h7, h3, s1, s2, rec_evAnd1', b1, b2, hsub, hc, hz]
   repeat' apply And.intro
   all_goals first | omega | rfl |
     (simp only [wr4, show 117000 + (24 * c + 8) = c * 24 + 117008 by omega,
@@ -122,12 +122,12 @@ theorem brBody_pop_wp {m : M} {i bm ex p2 sp kc c : Nat} (hk1 : m.regs 15 = 1) (
   simp only [brBody, BrFrame]
   rcases Nat.eq_zero_or_pos sp with h0 | hsp
   · clear hc hcN
-    rec_vc [hk1, hk8, h6, h1, h2, h7, h3, s1, s2, evAnd1', b1, b2, hsub]
+    rec_vc [hk1, hk8, h6, h1, h2, h7, h3, s1, s2, rec_evAnd1', b1, b2, hsub]
     intro _ _ hh; omega
   · have hcN := hcN hsp
     simp only [STK, rd32] at hc
     rw [show 7753384 + 4 * (sp - 1) = (sp - 1) * 4 + 7753384 by omega] at hc
-    rec_auto [hk1, hk8, h6, h1, h2, h7, h3, s1, s2, evAnd1', b1, b2, hsub, hc]
+    rec_auto [hk1, hk8, h6, h1, h2, h7, h3, s1, s2, rec_evAnd1', b1, b2, hsub, hc]
     repeat' apply And.intro
     all_goals first | omega |
       (simp only [wr4, show 117000 + (24 * c + 8) = c * 24 + 117008 by omega,

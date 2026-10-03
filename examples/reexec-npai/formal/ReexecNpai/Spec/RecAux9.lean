@@ -173,7 +173,7 @@ theorem leaf_tail {hv : Bool} (hs : RecStart cb pb rs R N o A K S m m1)
     (r5 : m'.regs 5 = m1.regs 5) (r7 : m'.regs 7 = m1.regs 7) (r8 : m'.regs 8 = m1.regs 8)
     (r9 : m'.regs 9 = m1.regs 9) (r14 : m'.regs 14 = 8) (r15 : m'.regs 15 = 1) :
     twp P (Inp pub cb pb) (seqs leafWrL) m' (fun m2 c => BodyPostT cb pb rs R N o
-      (lpOf pb o hv + leAt pb (lpOf pb o hv + 1) 4 + 49) A m2 (c + 230)) := by
+      (lpOf pb o hv + leAt pb (lpOf pb o hv + 1) 4 + 49) A m2 (c + 500)) := by
   have h := hs.inv
   obtain ⟨g5, g7, g8, g14, g15⟩ := hs.regs
   have hpl := hs.plen
@@ -214,7 +214,7 @@ theorem leaf_body_wp {hv : Bool} (hs : RecStart cb pb rs R N o A K S m m1)
     (hk : u8At pb o = if hv then 1 else 2) :
     wp P (Inp pub cb pb) pLeaf m1 (BodyPost cb pb rs R N o A) := by
   have hq : PF + o + 1 ≤ PF + pb.length := by have := hs.olt; omega
-  rw [pLeaf_split, wp_seqs_append _ _ (by simp [leafChkL]) (by simp [leafWrL])]
+  rw [pLeaf_split, rec_wp_seqs_append _ _ (by simp [leafChkL]) (by simp [leafWrL])]
   cases hv
   · refine wp_mono (leafChk2_wp hs.k1 hs.k8 hs.r10 hs.plen hs.rE (by rw [hs.r0, hk]; rfl) hq) ?_
     rintro m' ⟨hc, hm', -, r1, r2, r3, r10, r5, r7, r8, r9, r14, r15⟩
@@ -239,7 +239,7 @@ theorem leaf_body_twp {hv : Bool} (hs : RecStart cb pb rs R N o A K S m m1)
     (hk : u8At pb o = if hv then 1 else 2) {stk' : List PTrie} {o' : Nat}
     (hd : decRec ((S.map (treeAt A K (vals0 pb A))).reverse) (pb.drop o) = some (stk', pb.drop o'))
     (ho' : o' ≤ pb.length) :
-    twp P (Inp pub cb pb) pLeaf m1 (BodyPostT cb pb rs R N o o' A) := by
+    twp P (Inp pub cb pb) pLeaf m1 (fun m2 c => BodyPostT cb pb rs R N o o' A m2 (c + 100)) := by
   rw [decRec_pos, leafPos_of_rec hk hs.olt] at hd
   cases hr : leafPos pb hv (o + 1) ((S.map (treeAt A K (vals0 pb A))).reverse) with
   | none => rw [hr] at hd; simp at hd
@@ -252,7 +252,7 @@ theorem leaf_body_twp {hv : Bool} (hs : RecStart cb pb rs R N o A K S m m1)
   have he : o'' = o' := drop_inj (by omega) ho' hd.2
   subst he
   rw [ho'']
-  rw [pLeaf_split, twp_seqs_append _ _ (by simp [leafChkL]) (by simp [leafWrL])]
+  rw [pLeaf_split, rec_twp_seqs_append _ _ (by simp [leafChkL]) (by simp [leafWrL])]
   have hq : PF + o + 1 ≤ PF + pb.length := by have := hs.olt; omega
   cases hv
   · obtain ⟨hc, hH⟩ := chk2_of_leafFacts hs.pf hf

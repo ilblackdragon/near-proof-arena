@@ -28,7 +28,7 @@ theorem twp_seqs_cons {a : Stmt} {l : List Stmt} (hl : l ≠ []) {m : M} {Q : M 
   | nil => exact absurd rfl hl
   | cons b l => simp only [seqs, twp_seq]
 
-theorem wp_seqs_append : ∀ (l1 l2 : List Stmt), l1 ≠ [] → l2 ≠ [] → ∀ {m : M} {Q : M → Prop},
+theorem rec_wp_seqs_append : ∀ (l1 l2 : List Stmt), l1 ≠ [] → l2 ≠ [] → ∀ {m : M} {Q : M → Prop},
     wp p inp (seqs (l1 ++ l2)) m Q ↔ wp p inp (seqs l1) m (fun m1 => wp p inp (seqs l2) m1 Q)
   | [], _, h, _, _, _ => absurd rfl h
   | [a], l2, _, h2, m, Q => by
@@ -40,12 +40,12 @@ theorem wp_seqs_append : ∀ (l1 l2 : List Stmt), l1 ≠ [] → l2 ≠ [] → �
     constructor
     · intro h; refine wp_mono h ?_; intro m1 h1
       rw [← List.cons_append] at h1
-      exact (wp_seqs_append (b :: l) l2 (by simp) h2).mp h1
+      exact (rec_wp_seqs_append (b :: l) l2 (by simp) h2).mp h1
     · intro h; refine wp_mono h ?_; intro m1 h1
       rw [← List.cons_append]
-      exact (wp_seqs_append (b :: l) l2 (by simp) h2).mpr h1
+      exact (rec_wp_seqs_append (b :: l) l2 (by simp) h2).mpr h1
 
-theorem twp_seqs_append : ∀ (l1 l2 : List Stmt), l1 ≠ [] → l2 ≠ [] → ∀ {m : M} {Q : M → Nat → Prop},
+theorem rec_twp_seqs_append : ∀ (l1 l2 : List Stmt), l1 ≠ [] → l2 ≠ [] → ∀ {m : M} {Q : M → Nat → Prop},
     twp p inp (seqs (l1 ++ l2)) m Q ↔
       twp p inp (seqs l1) m (fun m1 c1 => twp p inp (seqs l2) m1 (fun m2 c2 => Q m2 (c1 + c2)))
   | [], _, h, _, _, _ => absurd rfl h
@@ -58,13 +58,13 @@ theorem twp_seqs_append : ∀ (l1 l2 : List Stmt), l1 ≠ [] → l2 ≠ [] → �
     constructor
     · intro h; refine twp_mono h ?_; intro m1 c1 h1
       rw [← List.cons_append] at h1
-      have := (twp_seqs_append (b :: l) l2 (by simp) h2).mp h1
+      have := (rec_twp_seqs_append (b :: l) l2 (by simp) h2).mp h1
       refine twp_mono this ?_; intro m2 c2 h2'
       refine twp_mono h2' ?_; intro m3 c3 h3
       rwa [Nat.add_assoc]
     · intro h; refine twp_mono h ?_; intro m1 c1 h1
       rw [← List.cons_append]
-      apply (twp_seqs_append (b :: l) l2 (by simp) h2).mpr
+      apply (rec_twp_seqs_append (b :: l) l2 (by simp) h2).mpr
       refine twp_mono h1 ?_; intro m2 c2 h2'
       refine twp_mono h2' ?_; intro m3 c3 h3
       rwa [← Nat.add_assoc]

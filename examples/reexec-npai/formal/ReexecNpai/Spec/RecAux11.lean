@@ -37,8 +37,8 @@ structure PopRel (A : List Ent) (T : List Nat) (f : Nat → Nat) (Ak : List Ent)
 
 theorem PopRel.zero (A : List Ent) (T : List Nat) (f : Nat → Nat) : PopRel A T f A 0 := by
   refine ⟨rfl, fun j hj => ?_, fun j hj _ => ?_, fun q hq h => absurd h (by omega)⟩
-  · rw [getD_eq_get hj]; rfl
-  · rw [getD_eq_get hj]
+  · rw [rec_getD_eq_get hj]; rfl
+  · rw [rec_getD_eq_get hj]
 
 theorem PopRel.step {A : List Ent} {T : List Nat} {f : Nat → Nat} {Ak : List Ent} {k : Nat}
     (h : PopRel A T f Ak k) (hk : k < T.length) (hTA : ∀ q (hq : q < T.length), T[q] < A.length)
@@ -91,7 +91,7 @@ theorem PopMem.init {m : M} {A : List Ent} {K T S0 : List Nat}
     (hsmem : ∀ i (h : i < (S0 ++ T).length), rd32 m (STK + 4 * i) = (S0 ++ T)[i]) :
     PopMem m A A K T 0 S0 := by
   refine ⟨fun j hj => ?_, fun i hi => ?_, fun i hi => ?_⟩
-  · rw [getD_eq_get hj]; exact hamem j hj
+  · rw [rec_getD_eq_get hj]; exact hamem j hj
   · simp only [Nat.sub_zero, List.drop_length, List.reverse_nil, List.append_nil, Nat.add_zero] at hi ⊢
     rw [hkmem i hi, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem hi]; rfl
   · simp only [Nat.sub_zero] at hi

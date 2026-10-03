@@ -93,7 +93,7 @@ theorem ext_fin (h : ParseInv cb pb rs R N o A K S m) (hcap : A.length < NCAP)
         simp only [List.getElem_cons_zero] at hc
         have := (h.amem c hc).2.2.2.2.1
         simp only [List.getD_cons_zero]
-        rw [getD_eq_get hc, ← this]
+        rw [rec_getD_eq_get hc, ← this]
         have := NpaiIR.leToNat_lt (readMem m.mem (AR + 24 * c + 16) 4)
         simpa [rd32] using this
       · simp [RNONE]

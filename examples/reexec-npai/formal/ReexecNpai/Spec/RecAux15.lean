@@ -97,7 +97,7 @@ theorem ExtMid.e_reads (hm : ExtMid cb pb rs R N o A K S m key m3) :
   refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
     simp (disch := omega) only [rdm_wr4_other, rdm_wr4_same]
 
-theorem hexPrefix_len {pb : Bytes} {a hl : Nat} {key : List Nat} {leaf : Bool}
+theorem rec_hexPrefix_len {pb : Bytes} {a hl : Nat} {key : List Nat} {leaf : Bool}
     (hkey : keyOfHP leaf (sl pb a hl) = some key) (h : a + hl ≤ pb.length) :
     (hexPrefix key leaf).length = hl := by
   rw [(hexPrefix_keyOfHP hkey).1, sl_length_of h]
@@ -105,7 +105,7 @@ theorem hexPrefix_len {pb : Bytes} {a hl : Nat} {key : List Nat} {leaf : Bool}
 theorem extE_slot (hkey : keyOfHP false (sl pb (o + 7) (leAt pb (o + 3) 4)) = some key)
     (hend : o + leAt pb (o + 3) 4 + 47 ≤ pb.length) (ps : Nat) (A : List Ent) (K T : List Nat) :
     childSlot (extE pb o key ps A K T) 0 = leAt pb (o + 3) 4 + 5 + (PF + o + 2) := by
-  have := hexPrefix_len hkey (by omega)
+  have := rec_hexPrefix_len hkey (by omega)
   simp only [childSlot, extE, extEnt, extNF, slotOff, this]
   omega
 
@@ -191,7 +191,7 @@ theorem ext_pop_twp (hm : ExtMid cb pb rs R N o A K S m key m3) (hfl : u8At pb (
     cases key with
     | nil =>
       simp only [decide_true, ↓reduceIte, extResv, hfl, List.getD_cons_zero]
-      rw [rd32_eq, hm3', ← rd32_eq, hm.out _ (by left; omega), getD_eq_get hcA]
+      rw [rd32_eq, hm3', ← rd32_eq, hm.out _ (by left; omega), rec_getD_eq_get hcA]
       exact (h.amem c hcA).2.2.2.2.1
     | cons k ks =>
       simp only [reduceCtorEq, decide_false, Bool.false_eq_true, ↓reduceIte, extResv]

@@ -87,7 +87,7 @@ theorem sub_lt_iff' (b : UInt8) (lo w : Nat) (h : lo + w ≤ 256) :
 theorem or10' (a b : Prop) [Decidable a] [Decidable b] :
     BinOp.or.eval (if a then 1 else 0) (if b then 1 else 0) = if a ∨ b then 1 else 0 := by
   by_cases ha : a <;> by_cases hb : b <;> simp [ha, hb] <;> rfl
-theorem and10' (a b : Prop) [Decidable a] [Decidable b] :
+theorem rec_and10' (a b : Prop) [Decidable a] [Decidable b] :
     BinOp.and.eval (if a then 1 else 0) (if b then 1 else 0) = if a ∧ b then 1 else 0 := by
   by_cases ha : a <;> by_cases hb : b <;> simp [ha, hb] <;> rfl
 
@@ -105,7 +105,7 @@ macro_rules
         forall_eq', true_implies, imp_self, implies_true, and_true, true_and, Inp, Inputs.tape,
         Option.ite_none_right_eq_some, and_imp, exists_eq_left', exists_eq_left, and_assoc, exists_and_left,
         not_false_eq_true, Nat.zero_add, Nat.le_refl, ite10_ne_zero, ite10_eq_zero, forall_apply_eq_imp_iff₂,
-        List.drop_zero, false_implies, fa_eq, Nat.add_assoc, Nat.add_sub_cancel, ne_eq, Classical.not_not, true_or, or_true, or10', and10', sub_lt_iff', inRange,
+        List.drop_zero, false_implies, fa_eq, Nat.add_assoc, Nat.add_sub_cancel, ne_eq, Classical.not_not, true_or, or_true, or10', rec_and10', sub_lt_iff', inRange,
         wp_ld32, twp_ld32, wp_ld16, twp_ld16, wp_st32, twp_st32, memsize_lt,
         DATA, SCR, CLM, CELL, RT, OL, RB, AR, KL, STK, SH8, PF, MEMSIZE, PMAX, NCAP, D_ZERO, C_KC, C_NODES, $ts,*])
 
