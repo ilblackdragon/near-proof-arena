@@ -6,5 +6,6 @@ license.workspace = true
 description = "Wire formats shared by the arena Firecracker supervisor, in-container shim and in-guest init"
 
 [dependencies]
+arena-seccomp = { path = "../../seccomp" }
 serde.workspace = true
 serde_json.workspace = true

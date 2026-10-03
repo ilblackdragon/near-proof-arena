@@ -54,6 +54,8 @@ pub struct InitConfig {
     pub scratch: String,
     pub fsize_bytes: u64,
     pub fallback_rlimits: Option<FallbackRlimits>,
+    #[serde(default)]
+    pub syscall_policy: arena_seccomp::Policy,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -70,6 +72,8 @@ pub struct InitStatus {
     pub setup_error: Option<String>,
     pub collect_error: Option<String>,
     pub entry_wall_ns: u64,
+    #[serde(default)]
+    pub violations: Vec<arena_seccomp::Violation>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -171,6 +175,16 @@ fn init_main(cfg_path: &Path) -> i32 {
         .stdin(Stdio::null());
     let fsize = cfg.fsize_bytes;
     let fb = cfg.fallback_rlimits.clone();
+    let seccomp = match arena_seccomp::Prepared::new(cfg.syscall_policy) {
+        Ok(p) => p,
+        Err(e) => {
+            st.setup_error = Some(format!("seccomp: {e}"));
+            drop(unsafe { fs::File::from_raw_fd(TAR_FD) });
+            write_json_fd(INIT_STATUS_FD, &st);
+            return 0;
+        }
+    };
+    let seccomp_child = seccomp.as_ref().map(|p| p.child_side());
     unsafe {
         cmd.pre_exec(move || {
             if libc::setsid() < 0 {
@@ -183,13 +197,26 @@ fn init_main(cfg_path: &Path) -> i32 {
                 setrlimit(libc::RLIMIT_AS, fb.as_bytes)?;
                 setrlimit(libc::RLIMIT_NPROC, fb.nproc)?;
             }
+            if let Some(cs) = &seccomp_child {
+                if libc::prctl(libc::PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0 {
+                    return Err(io::Error::last_os_error());
+                }
+                cs.install()?;
+            }
             Ok(())
         });
     }
     let start = Instant::now();
+    let mut monitor = None;
     match cmd.spawn() {
         Err(e) => st.exec_error = Some(e.to_string()),
         Ok(child) => {
+            if let Some(p) = seccomp {
+                match p.start_monitor() {
+                    Ok(m) => monitor = Some(m),
+                    Err(e) => st.setup_error = Some(format!("seccomp listener: {e}")),
+                }
+            }
             let pid = child.id() as libc::pid_t;
             loop {
                 let mut status = 0;
@@ -220,6 +247,9 @@ fn init_main(cfg_path: &Path) -> i32 {
         }
     }
 
+    if let Some(m) = monitor {
+        st.violations = m.finish();
+    }
     let tar_out = unsafe { fs::File::from_raw_fd(TAR_FD) };
     if let Err(e) = collect_outputs(
         &scratch,

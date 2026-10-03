@@ -12,6 +12,7 @@ members = [
     "runners/measure",
     "runners/npai",
     "runners/sandbox",
+    "runners/seccomp",
     "runners/worker",
     "sdk/arena-cli",
     "server/arena-db",

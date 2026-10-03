@@ -8,6 +8,7 @@ description = "Sandbox trait (CONTRACTS §9) and the bwrap-dev (DEMO-only) backe
 [dependencies]
 arena-types = { path = "../../common/arena-types" }
 arena-archive = { path = "../archive" }
+arena-seccomp = { path = "../seccomp" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

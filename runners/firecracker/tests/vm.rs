@@ -721,3 +721,42 @@ exit 0
     assert_eq!(outs.len(), 2);
     assert_eq!(outs[1].exit, Exit::Exited(7));
 }
+
+#[test]
+fn seccomp_violations_are_contained_and_reported() {
+    gate!();
+    let t = scratch_dir();
+    // ptrace(PTRACE_TRACEME), unshare(CLONE_NEWUSER), socket(AF_INET), mount:
+    // each must fail (EPERM) and be reported; the program keeps running
+    let script = "perl -e 'print syscall(101, 0, 0, 0, 0), \"\\n\"' ; \
+                  perl -e 'print syscall(272, 0x10000000), \"\\n\"' ; \
+                  perl -MSocket -e 'socket(my $s, PF_INET, SOCK_STREAM, 0) ? print \"open\\n\" : print \"denied\\n\"' ; \
+                  perl -MSocket -e 'socket(my $s, PF_UNIX, SOCK_STREAM, 0) ? print \"unix ok\\n\" : print \"unix denied\\n\"' ; \
+                  echo done";
+    let o = run(&spec(script, &t.path().join("out")));
+    assert_eq!(o.exit, Exit::Exited(0), "{o:?}");
+    assert_eq!(stdout(&o), "-1\n-1\ndenied\nunix ok\ndone\n");
+    let mut v = o.violations.clone();
+    v.sort();
+    assert_eq!(
+        v,
+        vec!["ptrace x1", "socket(AF_INET) x1", "unshare x1"],
+        "{v:?}"
+    );
+
+    // Tooling policy: sockets are not violations (builds judged by effect)
+    let mut s = spec("perl -MSocket -e 'socket(my $s, PF_INET, SOCK_STREAM, 0)'; perl -e 'syscall(165, 0, 0, 0, 0, 0)'; true", &t.path().join("o2"));
+    s.syscall_policy = arena_seccomp::Policy::Tooling;
+    let o = run(&s);
+    assert_eq!(o.violations, vec!["mount x1"]);
+
+    // honest workloads are clean (threads, forks, pipes, files, /proc)
+    let o = run(&spec(
+        "for i in 1 2 3; do (head -c 1000000 /dev/urandom | sha256sum >/dev/null) & done; wait; \
+         perl -e 'use threads; $_->join for map { threads->create(sub { 1 }) } 1..4' 2>/dev/null; \
+         ls /proc/self/fd >/dev/null; cat /proc/cpuinfo >/dev/null; nproc; echo ok",
+        &t.path().join("o3"),
+    ));
+    assert!(o.violations.is_empty(), "{:?}", o.violations);
+    assert!(stdout(&o).ends_with("ok\n"));
+}

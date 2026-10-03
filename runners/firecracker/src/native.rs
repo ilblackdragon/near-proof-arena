@@ -96,6 +96,10 @@ pub struct RunRequest {
     /// the sum of the step timeouts. See `arena_fc_proto::GuestJob::steps`.
     #[serde(default)]
     pub steps: Vec<NativeStep>,
+    /// Seccomp violation detection for the candidate tree (`Strict` for
+    /// entry points, `Tooling` for builds/judge tools, `Off`).
+    #[serde(default)]
+    pub syscall_policy: arena_seccomp::Policy,
 }
 
 /// One step of a steps-mode run.
@@ -135,6 +139,7 @@ impl RunRequest {
             out_dir,
             max_output_bytes: 1 << 30,
             steps: vec![],
+            syscall_policy: arena_seccomp::Policy::Strict,
         }
     }
 }

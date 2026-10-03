@@ -84,19 +84,27 @@ READMEs.
 | `precomputed-fixture-table` | REJECTED | CONFORMANCE_DIFFERENTIAL | CLAIM_MISMATCH |
 | `background-daemon` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
 | `sandbox-escape-filesystem` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
-| `sandbox-escape-network` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
+| `sandbox-escape-network` | REJECTED | CONFORMANCE_DIFFERENTIAL or ADVERSARIAL_PROOFS | SANDBOX_VIOLATION |
 | `sandbox-fork-bomb` | REJECTED | RESOURCE_LIMITS | RESOURCE_LIMIT |
-| `sandbox-ptrace-proc` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
-| `forged-timing` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
+| `sandbox-ptrace-proc` | REJECTED | CONFORMANCE_DIFFERENTIAL or ADVERSARIAL_PROOFS | SANDBOX_VIOLATION |
+| `forged-timing` | REJECTED | CONFORMANCE_DIFFERENTIAL or ADVERSARIAL_PROOFS | SANDBOX_VIOLATION |
 | `ui-injection-logs` | REJECTED | ADVERSARIAL_PROOFS | HOSTILE_PROOF_ACCEPTED |
 | `ui-injection-manifest` | REJECTED | PKG_WELLFORMED | MANIFEST_INVALID |
 
-The sandbox-escape / forged-timing cases are kept to the **honest observable**
-on bwrap-dev (which has no seccomp): the attempt is contained and the prover
-produces no proof, so the kill is `PROVER_FAILED`. Sound syscall-level
-`SANDBOX_VIOLATION` detection is a runners-core follow-up; Firecracker's forged
-guest report already maps to `SANDBOX_VIOLATION`. See
-`docs/e2e-results/hostile-final/README.md`.
+`sandbox-escape-network` (`socket(AF_INET)`), `sandbox-ptrace-proc` (`ptrace`)
+and `forged-timing` (`clock_settime`) are caught by **sound syscall-level
+detection**: the sandbox init (Firecracker guest `arena-init`, bwrap-dev helper
+init) installs a seccomp user-notification filter on the candidate tree
+(`runners/seccomp`); the listed syscall is denied (EPERM) *and* recorded by the
+init, and the worker fails the gate of the runtime job that ran `prove` first
+(conformance or adversarial, scheduled together) with `SANDBOX_VIOLATION`. A
+report exists only if a candidate process really made the syscall.
+`sandbox-escape-filesystem` stays `PROVER_FAILED`: its prover only opens files
+(reads of the sandbox's own rootfs are harmless; writes fail on read-only
+mounts), and a failed write to a read-only path cannot be told apart soundly
+from an honest-but-buggy program, so it is contained but not reported as a
+violation. Build recipes run under the looser `tooling` policy (no socket
+rule), so `build-network-fetch` stays `BUILD_FAILED`.
 
 #### Build / archive attacks
 
@@ -208,6 +216,5 @@ Live, green:
   `make-archive.py` (Python `tarfile`).
 
 Follow-up: turn the 11 `runnable: false` certificate stubs into reexec-witness
-variants so each formal gate is exercised live; add sound syscall-level
-`SANDBOX_VIOLATION` detection in the sandbox/worker; wire `mutants/` once the
+variants so each formal gate is exercised live; wire `mutants/` once the
 integrator applies the operators to a reference backend.

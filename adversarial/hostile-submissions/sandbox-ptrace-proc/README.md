@@ -5,13 +5,13 @@
 **Targets:** demo  (runnable: true)
 
 **Expected decision:** REJECTED
-**Expected failing gate(s):** PROVER_RELIABILITY
-**Expected reason code(s):** PROVER_FAILED
+**Expected failing gate(s):** CONFORMANCE_DIFFERENTIAL, ADVERSARIAL_PROOFS
+**Expected reason code(s):** SANDBOX_VIOLATION
 
 ## What this proves about the judge
 
-`prove` attempts ptrace and pokes at /proc/self/mem and the docker socket, then exits without a proof. All are denied/absent; the observable kill is PROVER_RELIABILITY.
+`prove` attempts ptrace and pokes at /proc/self/mem and the docker socket, then exits without a proof. `ptrace` is denied and recorded by the sandbox's seccomp listener, so the judge fails the first runtime job that runs `prove` with SANDBOX_VIOLATION.
 
 ## Notes
 
-HONEST OBSERVABLE on bwrap-dev (no seccomp): the escape attempt is contained and has no effect, so the kill is 'no proof produced' (PROVER_FAILED), not a dedicated SANDBOX_VIOLATION. Firecracker's forged-guest-report path maps to SANDBOX_VIOLATION; sound syscall-level attempt detection in the sandbox is a runners-core follow-up (see adversarial/README.md).
+SOUND DETECTION: the sandbox init installs a seccomp user-notification filter on the candidate tree (runners/seccomp, policy `strict` for entry points). The attempted syscall is denied (EPERM) AND reported by the init; the worker fails the job's gate with SANDBOX_VIOLATION. Works on Firecracker (guest arena-init) and on bwrap-dev (helper init).

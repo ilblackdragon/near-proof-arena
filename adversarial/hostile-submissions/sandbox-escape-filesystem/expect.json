@@ -19,5 +19,5 @@
     "ranked"
   ],
   "why": "`prove` tries to read /etc/passwd and ~/.ssh and to write outside the scratch dir, then exits without producing a proof. The bundle is read-only, home is absent and writes outside scratch are denied, so the attempt is contained and has no effect; the observable kill is PROVER_RELIABILITY (no proof).",
-  "notes": "HONEST OBSERVABLE on bwrap-dev (no seccomp): the escape attempt is contained and has no effect, so the kill is 'no proof produced' (PROVER_FAILED), not a dedicated SANDBOX_VIOLATION. Firecracker's forged-guest-report path maps to SANDBOX_VIOLATION; sound syscall-level attempt detection in the sandbox is a runners-core follow-up (see adversarial/README.md)."
+  "notes": "NOT DETECTED (by design): this prover only opens files. Reading /etc/passwd of the sandbox's own rootfs is harmless, ~/.ssh does not exist, and the writes fail on read-only mounts. A failed write to a read-only path cannot be told apart soundly from an honest-but-buggy program (e.g. one that tries to cache next to its binary), so it is not reported as SANDBOX_VIOLATION; the observable kill stays 'no proof produced' (PROVER_FAILED)."
 }

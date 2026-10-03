@@ -158,6 +158,7 @@ dependencies = [
 name = "arena-fc-proto"
 version = "0.1.0"
 dependencies = [
+ "arena-seccomp",
  "serde",
  "serde_json",
 ]
@@ -180,6 +181,7 @@ dependencies = [
  "arena-fc-proto",
  "arena-formal-checker",
  "arena-sandbox",
+ "arena-seccomp",
  "arena-types",
  "hex",
  "libc",
@@ -212,6 +214,7 @@ name = "arena-init"
 version = "0.1.0"
 dependencies = [
  "arena-fc-proto",
+ "arena-seccomp",
  "libc",
  "serde_json",
 ]
@@ -276,6 +279,7 @@ name = "arena-sandbox"
 version = "0.1.0"
 dependencies = [
  "arena-archive",
+ "arena-seccomp",
  "arena-types",
  "libc",
  "serde",
@@ -283,6 +287,14 @@ dependencies = [
  "tar",
  "tempfile",
  "thiserror",
+]
+
+[[package]]
+name = "arena-seccomp"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "serde",
 ]
 
 [[package]]

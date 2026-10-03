@@ -72,6 +72,10 @@ pub enum InfraError {
     Refused(String),
     #[error("sandbox infrastructure: {0}")]
     Io(#[from] std::io::Error),
+    /// The sandbox observed an escape attempt (seccomp listener): sound,
+    /// candidate-caused, reported as `SANDBOX_VIOLATION`.
+    #[error("sandbox violation: {0}")]
+    Violation(String),
 }
 
 pub trait UntrustedRunner: Send + Sync {
@@ -159,6 +163,9 @@ impl SandboxRunner {
             argv = w;
         }
         let mut s = arena_sandbox::SandboxSpec::new(argv);
+        // Lean elaboration/rechecking: candidate tactics run here, but Lean
+        // tooling never needs the kernel-attack syscalls
+        s.syscall_policy = arena_sandbox::SyscallPolicy::Tooling;
         s.ro_mounts = spec
             .ro
             .iter()
@@ -229,6 +236,12 @@ impl UntrustedRunner for SandboxRunner {
             | Err(arena_sandbox::InfraError::Refused(m)) => return Err(InfraError::Refused(m)),
             Err(e) => return Err(InfraError::Io(std::io::Error::other(e.to_string()))),
         };
+        if !o.violations.is_empty() {
+            if let Some(d) = &stdout_dir {
+                let _ = std::fs::remove_dir_all(d);
+            }
+            return Err(InfraError::Violation(o.violations.join(", ")));
+        }
         let mut captured: Option<Vec<u8>> = None;
         if let Some(d) = &stdout_dir {
             let src = d.join("out");
