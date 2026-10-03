@@ -25,6 +25,11 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         out.gates.push(rel.finish(st, true));
         out.gates.push(res.finish(st, true));
     };
+    if let Some(why) = common::unsupported_verify_route(&j.manifest.entry) {
+        conf.note(why);
+        finish(&mut out, conf, rel, res, false);
+        return Ok(out);
+    }
     let limits = RunLimits::from_challenge(&j.challenge);
     let parts = seed_parts(&j.ctx);
     let parts: Vec<&str> = parts.iter().map(|s| s.as_str()).collect();

@@ -82,6 +82,9 @@ pub trait UntrustedRunner: Send + Sync {
 /// checker needs them for `.olean` outputs and is refused otherwise).
 pub struct SandboxRunner {
     sandbox: std::sync::Arc<dyn arena_sandbox::Sandbox>,
+    /// Root filesystem of every run: `BackendDefault` (bwrap-dev: host
+    /// `/usr`) or a pinned lean-checker image (firecracker).
+    rootfs: arena_sandbox::Rootfs,
     /// Host dir for per-run stdout capture directories.
     work: PathBuf,
 }
@@ -100,7 +103,15 @@ impl SandboxRunner {
         }
         let work = work.into();
         std::fs::create_dir_all(&work)?;
-        Ok(SandboxRunner { sandbox, work })
+        Ok(SandboxRunner { sandbox, rootfs: arena_sandbox::Rootfs::BackendDefault, work })
+    }
+
+    /// Run every step in `rootfs` (e.g. the digest-pinned lean-checker image
+    /// on firecracker; tool mounts the image already contains are elided by
+    /// the backend).
+    pub fn with_rootfs(mut self, rootfs: arena_sandbox::Rootfs) -> Self {
+        self.rootfs = rootfs;
+        self
     }
 
     /// Development convenience: the shared `bwrap-dev` backend (refused
@@ -127,6 +138,8 @@ impl SandboxRunner {
             s.rw_binds.push(arena_sandbox::Mount { host: d.to_path_buf(), guest: G_STDOUT.into() });
         }
         s.env = spec.env.clone();
+        s.rootfs = self.rootfs.clone();
+        s.allow_mount_symlinks = true;
         s.cwd = guest(&spec.cwd);
         s.wall_timeout = spec.wall_timeout;
         // Lean reserves large virtual ranges: the memory cap is the cgroup's
@@ -149,8 +162,11 @@ impl UntrustedRunner for SandboxRunner {
     }
     fn run(&self, spec: &RunSpec, capture_limit: usize) -> Result<RunOutcome, InfraError> {
         static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-        let stdout_dir = match &spec.stdout_file {
-            Some(_) => {
+        // stdout goes to a file when the caller streams it to a host file or
+        // it is a structured report larger than the backend's capture cap.
+        let to_file = spec.stdout_file.is_some() || capture_limit > CAPTURE_LIMIT;
+        let stdout_dir = match to_file {
+            true => {
                 let d = self.work.join(format!(
                     "stdout-{}-{}",
                     std::process::id(),
@@ -159,7 +175,7 @@ impl UntrustedRunner for SandboxRunner {
                 std::fs::create_dir_all(&d)?;
                 Some(d)
             }
-            None => None,
+            false => None,
         };
         let sspec = self.translate(spec, stdout_dir.as_deref());
         let res = self.sandbox.run(&sspec);
@@ -170,14 +186,26 @@ impl UntrustedRunner for SandboxRunner {
             }
             Err(e) => return Err(InfraError::Io(std::io::Error::other(e.to_string()))),
         };
-        if let (Some(d), Some(target)) = (&stdout_dir, &spec.stdout_file) {
+        let mut captured: Option<Vec<u8>> = None;
+        if let Some(d) = &stdout_dir {
             let src = d.join("out");
             // Regular file only: never follow anything the sandbox planted.
             let regular = std::fs::symlink_metadata(&src).map(|m| m.file_type().is_file()).unwrap_or(false);
-            if regular {
-                std::fs::rename(&src, target).or_else(|_| std::fs::copy(&src, target).map(|_| ()))?;
-            } else {
-                std::fs::File::create(target)?;
+            match &spec.stdout_file {
+                Some(target) if regular => {
+                    std::fs::rename(&src, target).or_else(|_| std::fs::copy(&src, target).map(|_| ()))?;
+                }
+                Some(target) => {
+                    std::fs::File::create(target)?;
+                }
+                None => {
+                    let mut b = Vec::new();
+                    if regular {
+                        use std::io::Read;
+                        std::fs::File::open(&src)?.take(capture_limit as u64).read_to_end(&mut b)?;
+                    }
+                    captured = Some(b);
+                }
             }
             let _ = std::fs::remove_dir_all(d);
         }
@@ -188,7 +216,7 @@ impl UntrustedRunner for SandboxRunner {
             arena_sandbox::ExitStatus::OomKilled => RunExit::Signaled(libc::SIGKILL),
             arena_sandbox::ExitStatus::ExecFailed => RunExit::Exited(127),
         };
-        let mut stdout = o.stdout_trunc;
+        let mut stdout = captured.unwrap_or(o.stdout_trunc);
         stdout.truncate(capture_limit);
         let mut stderr = o.stderr_trunc;
         stderr.truncate(CAPTURE_LIMIT);

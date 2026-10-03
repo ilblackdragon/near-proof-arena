@@ -18,7 +18,7 @@ use arena_sandbox::{BwrapConfig, BwrapDev, HelperCommand, Sandbox};
 use arena_worker::config::{Settings, WorkerConfig};
 use arena_worker::control::HttpControl;
 use arena_worker::daemon::Daemon;
-use arena_worker::executor::{BuildEnv, FormalConfig, JobExecutor, StageExecutor, WorkerContext};
+use arena_worker::executor::{BuildEnv, FormalEnv, JobExecutor, StageExecutor, WorkerContext};
 use arena_worker::jobs::JobSpec;
 use arena_worker::mutators::MutatorRegistry;
 use arena_worker::oracle::Oracles;
@@ -60,10 +60,11 @@ fn oracles(dirs: &[PathBuf]) -> Oracles {
     o
 }
 
-fn formal(p: &Option<PathBuf>) -> Option<FormalConfig> {
-    p.as_ref().map(|p| {
-        let b = std::fs::read(p).unwrap_or_else(|e| die(format!("{}: {e}", p.display())));
-        serde_json::from_slice(&b).unwrap_or_else(|e| die(format!("{}: {e}", p.display())))
+fn formal(repo: Option<PathBuf>, configs: Option<PathBuf>, images: Option<PathBuf>) -> Option<FormalEnv> {
+    repo.map(|repo| FormalEnv {
+        configs_dir: configs.unwrap_or_else(|| repo.join("runners/formal-checker/challenges")),
+        repo,
+        images_dir: images,
     })
 }
 
@@ -89,7 +90,7 @@ fn main() {
                 conformance_samples: cfg.conformance_samples,
                 mutators: MutatorRegistry::with_adversarial_lane(),
                 oracles: oracles(&cfg.fixtures_dirs),
-                formal: formal(&cfg.formal_config),
+                formal: formal(cfg.formal_repo.clone(), cfg.formal_configs_dir.clone(), cfg.lean_checker_images.clone()),
                 keep_workdirs: cfg.keep_workdirs,
             };
             let exec = StageExecutor::new(ctx);
@@ -150,7 +151,11 @@ fn run_job_local(args: &[String]) {
         conformance_samples: 8,
         mutators: MutatorRegistry::with_adversarial_lane(),
         oracles: oracles(&fixtures),
-        formal: formal(&std::env::var_os("ARENA_FORMAL_CONFIG").map(PathBuf::from)),
+        formal: formal(
+            std::env::var_os("ARENA_FORMAL_REPO").map(PathBuf::from),
+            std::env::var_os("ARENA_FORMAL_CONFIGS_DIR").map(PathBuf::from),
+            std::env::var_os("ARENA_LEAN_CHECKER_IMAGES").map(PathBuf::from),
+        ),
         keep_workdirs: false,
     };
     match StageExecutor::new(ctx).execute(&spec, "local", &AtomicBool::new(false)) {

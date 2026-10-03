@@ -226,3 +226,15 @@ pub fn case_label(id: &str, public: bool) -> String {
         "a held-out case".to_string()
     }
 }
+
+/// `verify_route = "npai-v1"`: verification must run the arena's own NPAI
+/// interpreter (docs/INTERP_SPEC.md), which this worker does not ship yet.
+/// Returns why the route cannot be served (gates then stay UNKNOWN).
+pub fn unsupported_verify_route(entry: &EntryPoints) -> Option<String> {
+    match entry.verify_route {
+        Some(arena_types::candidate::VerifyRoute::NpaiV1) => {
+            Some("verify_route npai-v1 needs the arena NPAI interpreter, which this worker does not provide yet".into())
+        }
+        _ => None,
+    }
+}

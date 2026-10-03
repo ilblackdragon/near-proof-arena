@@ -83,21 +83,7 @@ pub struct BuildEnv {
     pub toolchain_image: Option<Digest>,
 }
 
-/// Formal checker configuration (per challenge relation).
-#[derive(Clone, Debug, Default, serde::Deserialize)]
-pub struct FormalConfig {
-    /// Keyed by `semantic_scope.formal_spec.relation_decl`.
-    pub challenges: std::collections::HashMap<String, FormalChallengeConfig>,
-}
-
-#[derive(Clone, Debug, serde::Deserialize)]
-pub struct FormalChallengeConfig {
-    pub trusted: Vec<arena_formal_checker::TrustedPackage>,
-    /// `TemplateExpected` JSON (module, decl, template, data).
-    pub expected: serde_json::Value,
-    #[serde(default)]
-    pub conjunct_gates: Option<Vec<arena_types::ObligationId>>,
-}
+pub use crate::stages::formal::FormalEnv;
 
 pub struct WorkerContext {
     pub worker_id: String,
@@ -113,7 +99,7 @@ pub struct WorkerContext {
     pub conformance_samples: usize,
     pub mutators: MutatorRegistry,
     pub oracles: Oracles,
-    pub formal: Option<FormalConfig>,
+    pub formal: Option<FormalEnv>,
     /// Keep per-job work dirs (debugging).
     pub keep_workdirs: bool,
 }

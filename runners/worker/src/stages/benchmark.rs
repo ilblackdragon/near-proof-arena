@@ -91,6 +91,11 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut out = StageOut { used_sandbox: true, ..Default::default() };
     let chal = &j.challenge;
     arena_measure::check_procedure(&chal.measurement).map_err(|e| ExecError::Infra(e.to_string()))?;
+    if let Some(why) = common::unsupported_verify_route(&j.manifest.entry) {
+        bench.note(why);
+        out.gates.push(bench.finish(GateStatus::Unknown, true));
+        return Ok(out);
+    }
     let limits = RunLimits::from_challenge(chal);
     let oracle = match r.ctx.oracles.get(chal) {
         Ok(o) => o,

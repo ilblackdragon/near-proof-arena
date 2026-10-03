@@ -24,6 +24,11 @@ fn public_label(l: &str) -> String {
 pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut g = Gate::start(ObligationId::AdversarialProofs);
     let mut out = StageOut { used_sandbox: true, ..Default::default() };
+    if let Some(why) = common::unsupported_verify_route(&j.manifest.entry) {
+        g.note(why);
+        out.gates.push(g.finish(GateStatus::Unknown, true));
+        return Ok(out);
+    }
     let limits = RunLimits::from_challenge(&j.challenge);
     let parts_owned = seed_parts(&j.ctx);
     let parts: Vec<&str> = parts_owned.iter().map(|s| s.as_str()).collect();

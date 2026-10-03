@@ -1105,7 +1105,7 @@ pub const FC_LAYOUT: arena_sandbox::GuestLayout = arena_sandbox::GuestLayout {
     inputs: proto::GUEST_INPUTS,
     mount_prefixes: proto::GUEST_MOUNT_PREFIXES,
     flexible_scratch: true,
-    rw_binds: false,
+    rw_binds: true,
 };
 
 /// Create-or-replace `base/rel` as a regular file, refusing to traverse or
@@ -1179,20 +1179,36 @@ impl FirecrackerSandbox {
                 ))
             }
         };
+        // Read-only mounts whose bytes are part of the pinned root image
+        // (host path = image dir + guest path) are served by the image itself
+        // (verified by digest) instead of being re-imaged for every run.
+        let provided_by_image = |m: &arena_sandbox::Mount| match &root_image {
+            Some(img) => m.host == img.dir.join(m.guest.trim_start_matches('/')),
+            None => false,
+        };
         Ok(RunRequest {
             rootfs_digest: self.rootfs_digest.clone(),
-            root_image,
             ro_mounts: spec
                 .ro_mounts
                 .iter()
+                .filter(|m| !provided_by_image(m))
                 .map(|m| RoMount {
                     host_path: m.host.clone(),
                     guest_path: m.guest.clone(),
                 })
                 .collect(),
-            // arena_sandbox::SandboxSpec has no read-write binds on main yet
-            rw_dirs: vec![],
-            allow_mount_symlinks: false,
+            root_image,
+            // copy-in + write-back of judge directories (formal checker)
+            rw_dirs: spec
+                .rw_binds
+                .iter()
+                .map(|m| RwDir {
+                    host_dir: m.host.clone(),
+                    guest_path: m.guest.clone(),
+                })
+                .collect(),
+            // judge-planted symlink farms (formal checker olean roots)
+            allow_mount_symlinks: spec.allow_mount_symlinks,
             rw_scratch_mb: spec.rw_scratch_mb,
             copy_in: spec
                 .copy_in

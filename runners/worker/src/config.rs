@@ -50,8 +50,12 @@ pub struct WorkerConfig {
     pub bench_batch_cap: Option<u32>,
     /// Judge-sampled conformance cases per job.
     pub conformance_samples: usize,
-    /// JSON file with the formal checker configuration.
-    pub formal_config: Option<PathBuf>,
+    /// Clean checkout with the trusted Lean packages (enables FORMAL_CHECK).
+    pub formal_repo: Option<PathBuf>,
+    /// `arena-formal-challenge-v1` configs (default `<repo>/runners/formal-checker/challenges`).
+    pub formal_configs_dir: Option<PathBuf>,
+    /// Installed lean-checker images (firecracker).
+    pub lean_checker_images: Option<PathBuf>,
     pub lease_seconds: u32,
 }
 
@@ -216,7 +220,9 @@ impl WorkerConfig {
                 None => 8,
                 Some(v) => v.parse().map_err(|e: std::num::ParseIntError| ConfigError::Invalid("ARENA_CONFORMANCE_SAMPLES", e.to_string()))?,
             },
-            formal_config: s.get("ARENA_FORMAL_CONFIG").map(PathBuf::from),
+            formal_repo: s.get("ARENA_FORMAL_REPO").map(PathBuf::from),
+            formal_configs_dir: s.get("ARENA_FORMAL_CONFIGS_DIR").map(PathBuf::from),
+            lean_checker_images: s.get("ARENA_LEAN_CHECKER_IMAGES").map(PathBuf::from),
             lease_seconds: match s.get("ARENA_LEASE_SECONDS") {
                 None => 300,
                 Some(v) => v.parse().map_err(|e: std::num::ParseIntError| ConfigError::Invalid("ARENA_LEASE_SECONDS", e.to_string()))?,

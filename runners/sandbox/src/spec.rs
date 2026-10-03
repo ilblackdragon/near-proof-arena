@@ -107,6 +107,11 @@ pub struct SandboxSpec {
     /// `RLIMIT_FSIZE` per file: callers must treat the directory content as
     /// hostile afterwards. Only for backends with `GuestLayout::rw_binds`.
     pub rw_binds: Vec<Mount>,
+    /// Judge-built mounts may contain symlinks (resolved inside the guest),
+    /// e.g. the formal checker's `.olean` link farms. Backends that image
+    /// mounts (firecracker) refuse symlinks unless this is set; never set it
+    /// for candidate-controlled trees.
+    pub allow_mount_symlinks: bool,
     /// Size of the writable scratch tmpfs at [`SCRATCH`].
     pub rw_scratch_mb: u64,
     pub copy_in: Vec<CopyIn>,
@@ -142,6 +147,7 @@ impl SandboxSpec {
             rootfs: Rootfs::BackendDefault,
             ro_mounts: vec![],
             rw_binds: vec![],
+            allow_mount_symlinks: false,
             rw_scratch_mb: 64,
             copy_in: vec![],
             scratch_dirs: vec![],
