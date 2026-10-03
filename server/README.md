@@ -24,7 +24,7 @@ ARENA_MIGRATE_DATABASE_URL=postgres://arena:arena@127.0.0.1:55471/arena_dev $B m
 export ARENA_DATABASE_URL=postgres://arena:arena@127.0.0.1:55471/arena_dev
 ARENA_ADMIN_TOKEN=dev-admin ARENA_BOOTSTRAP_AGENT_TOKEN=dev-agent ARENA_WORKER_TOKEN=dev-worker \
   $B serve --dev --object-store-dir var/objects \
-     --challenges-dir challenges --governance-pubkey-file challenges/governance-dev.pub \
+     --challenges-dir challenges --governance-pubkey-file challenges/governance-dev.pub,challenges/governance-local.pub \
      --security-dir security
 
 curl -s 127.0.0.1:8471/v1/challenges

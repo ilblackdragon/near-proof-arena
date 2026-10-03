@@ -24,6 +24,10 @@ fn demo_def() -> ChallengeDefinition {
     load_definition(&repo().join("challenges/drafts/demo-toy-arithmetic.draft.json")).unwrap()
 }
 
+fn local_pub() -> PublicKey {
+    PublicKey::load(&repo().join("challenges/governance-local.pub")).unwrap()
+}
+
 fn dev_pub() -> PublicKey {
     PublicKey::load(&repo().join("challenges/governance-dev.pub")).unwrap()
 }
@@ -135,12 +139,14 @@ fn committed_challenges_verify() {
         let p = e.unwrap().path();
         let name = p.file_name().unwrap().to_str().unwrap().to_string();
         if name.starts_with("chl_") && name.ends_with(".json") {
-            let v = verify_file(&p, &[dev_pub()], &g).unwrap_or_else(|e| panic!("{name}: {e:#}"));
-            assert_ne!(
-                v.def.tier,
-                Tier::Formal,
-                "dev key must never have signed a formal challenge"
-            );
+            // Formal challenges must verify under the non-dev local operator key alone;
+            // everything else under one of the repo keys.
+            let v = verify_file(&p, &[dev_pub(), local_pub()], &g).unwrap_or_else(|e| panic!("{name}: {e:#}"));
+            if v.def.tier == Tier::Formal {
+                verify_file(&p, &[local_pub()], &g)
+                    .unwrap_or_else(|e| panic!("{name}: formal challenge not signed by the non-dev key: {e:#}"));
+                assert!(verify_file(&p, &[dev_pub()], &g).is_err(), "dev key must never sign formal");
+            }
             n += 1;
         }
     }
