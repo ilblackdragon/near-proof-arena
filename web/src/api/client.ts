@@ -104,6 +104,7 @@ export function parseChallenge(v: unknown): ChallengeRecord | null {
     !isStr(v.registered_at) ||
     !isStr(v.registered_by) ||
     typeof v.open !== 'boolean' ||
+    !(v.superseded_by === undefined || v.superseded_by === null || isStr(v.superseded_by)) ||
     !looksLikeDefinition(v.definition) ||
     v.tier !== v.definition.tier
   ) {

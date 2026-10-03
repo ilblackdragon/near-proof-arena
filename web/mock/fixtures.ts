@@ -268,6 +268,9 @@ export function toEntry(s: SubmissionDetail, def: ChallengeDefinition, rank: num
   const max = (f: (c: (typeof cls)[number]) => number) => (cls.length ? Math.max(...cls.map(f)) : null);
   return {
     rank,
+    challenge_id: s.challenge_id,
+    protocol_version: def.protocol_version,
+    superseded_by: null,
     submission_id: s.id,
     agent: s.agent,
     candidate_name: s.candidate_name,
@@ -306,7 +309,8 @@ export function leaderboardFor(ds: Dataset, id: string): BoardEntry[] | null {
     .filter((e) => isOfficiallyRankable(e, c.definition))
     .sort((a, b) => (b.score_milli ?? 0) - (a.score_milli ?? 0))
     .map((e, i) => ({ ...e, rank: i + 1 }));
-  return [...ranked, ...all.filter((e) => !isOfficiallyRankable(e, c.definition))];
+  const out = [...ranked, ...all.filter((e) => !isOfficiallyRankable(e, c.definition))];
+  return out.map((e) => ({ ...e, superseded_by: c.superseded_by ?? null }));
 }
 
 /** The dataset served by `pnpm dev:mock`. */

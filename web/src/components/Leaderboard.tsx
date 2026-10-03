@@ -1,5 +1,5 @@
 import type { BoardEntry, ChallengeDefinition } from '../api/types';
-import { partition, type RankedEntry } from '../lib/board';
+import { belongsTo, partition, type RankedEntry } from '../lib/board';
 import { fmtBytes, fmtNs, fmtScoreCi, fmtTime } from '../lib/format';
 import { AcceptedText, DecisionBadge, ReferenceBadge, RevokedBadge, TierBadge } from './Badges';
 import { SubLink } from './Links';
@@ -34,6 +34,8 @@ function Row({ e, rank }: { e: BoardEntry; rank: number | null }) {
       </td>
       <td className="small">
         <T v={e.scope} max={48} />
+        {e.protocol_version !== undefined && <div className="muted">protocol v{e.protocol_version}</div>}
+        {e.superseded_by && <div className="badge closed">SUPERSEDED</div>}
       </td>
       <td className="small">
         <code><T v={e.security_profile} max={48} /></code>
@@ -83,11 +85,25 @@ function BoardTable({
 const unranked = (list: BoardEntry[]) => list.map((e) => ({ e, rank: null }));
 const ranked = (list: RankedEntry[]) => list.map(({ entry, rank }) => ({ e: entry, rank }));
 
-export function Leaderboard({ entries, def }: { entries: BoardEntry[]; def: ChallengeDefinition }) {
-  const b = partition(entries, def);
+export function Leaderboard({
+  entries,
+  def,
+  challengeId,
+}: {
+  entries: BoardEntry[];
+  def: ChallengeDefinition;
+  challengeId?: string;
+}) {
+  const b = partition(entries, def, challengeId);
+  const foreign = challengeId ? entries.filter((e) => !belongsTo(e, challengeId)).length : 0;
   const isFormal = def.tier === 'formal';
   return (
     <div className="leaderboard">
+      {foreign > 0 && (
+        <p className="bad" role="alert">
+          {foreign} entr{foreign === 1 ? 'y is' : 'ies are'} labelled with a different challenge id and are not ranked here.
+        </p>
+      )}
       <section className="board-section official" aria-labelledby="lb-official">
         <h2 id="lb-official">
           Official ranking <TierBadge tier="formal" />

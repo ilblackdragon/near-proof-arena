@@ -3,7 +3,78 @@ import type { VerifyState } from '../api/hooks';
 import { fmtBytes, fmtInt, fmtPpm, fmtTime } from '../lib/format';
 import { TierBadge } from './Badges';
 import { DigestText } from './Digest';
+import { ChlLink } from './Links';
 import { T } from './Text';
+import type { ChallengeLineageHop } from '../api/hooks';
+
+/**
+ * Supersession / closed state (docs/PROTOCOL_UPGRADES.md). A superseded
+ * challenge is closed to new submissions; its board stays attached to the
+ * definition it was measured against.
+ */
+export function ChallengeStatusBanner({ c, where }: { c: ChallengeRecord; where: 'challenge' | 'leaderboard' }) {
+  if (c.superseded_by) {
+    return (
+      <div className="superseded-banner" role="alert">
+        <strong>Superseded.</strong> This challenge has been replaced by{' '}
+        <ChlLink id={c.superseded_by}>
+          <span className="mono">{String(c.superseded_by).slice(0, 40)}</span>
+        </ChlLink>
+        . It is closed to new submissions.
+        {where === 'leaderboard'
+          ? ' This board is frozen: its results were measured under this definition (protocol version ' +
+            c.definition.protocol_version +
+            ') and are not comparable with the successor board.'
+          : ' Results recorded here remain attached to this definition.'}
+      </div>
+    );
+  }
+  if (!c.open) {
+    return (
+      <div className="closed-banner" role="status">
+        <strong>Closed.</strong> This challenge is not accepting new submissions (the API answers{' '}
+        <code>409 challenge_closed</code>). Existing results remain visible.
+      </div>
+    );
+  }
+  return null;
+}
+
+/** "Supersedes" chain, newest first: this challenge, then each predecessor. */
+export function SupersessionLineage({ c, hops }: { c: ChallengeRecord; hops: ChallengeLineageHop[] }) {
+  if (!c.definition.supersedes && !c.superseded_by) return null;
+  return (
+    <section className="card" aria-labelledby="sup-h">
+      <h2 id="sup-h">Challenge lineage</h2>
+      <ol className="lineage" aria-label="Challenge supersession chain, newest first">
+        {c.superseded_by && (
+          <li>
+            <ChlLink id={c.superseded_by} /> <span className="badge tier-formal">SUCCESSOR</span>
+          </li>
+        )}
+        <li>
+          <strong>this</strong> <code className="mono">{c.id}</code> · protocol v{c.definition.protocol_version}{' '}
+          {c.superseded_by ? <span className="badge closed">SUPERSEDED</span> : !c.open && <span className="badge closed">CLOSED</span>}
+        </li>
+        {hops.map((h, i) => (
+          <li key={i}>
+            supersedes <ChlLink id={h.id} />{' '}
+            {h.c ? (
+              <>
+                <T v={h.c.definition.name} max={60} /> · protocol v{h.c.definition.protocol_version}{' '}
+                {!h.c.open && <span className="badge closed">{h.c.superseded_by ? 'SUPERSEDED' : 'CLOSED'}</span>}
+              </>
+            ) : (
+              <span className="bad">
+                unavailable: <T v={h.error} max={80} />
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
 export function ScopeKindLabel({ kind }: { kind: string }) {
   if (kind === 'full_chunk_transition') return <span className="scope full">Full chunk transition</span>;
@@ -117,7 +188,8 @@ export function ChallengeFacts({ c, verify }: { c: ChallengeRecord; verify: Veri
             <T v={d.season} />
           </Row>
           <Row k="Created">{fmtTime(d.created_at)}</Row>
-          <Row k="Supersedes">{d.supersedes ? <code className="mono"><T v={d.supersedes} /></code> : '—'}</Row>
+          <Row k="Supersedes">{d.supersedes ? <ChlLink id={d.supersedes} /> : '—'}</Row>
+          <Row k="Superseded by">{c.superseded_by ? <ChlLink id={c.superseded_by} /> : '—'}</Row>
         </dl>
       </section>
       <section className="card">
@@ -192,8 +264,15 @@ export function ChallengeFacts({ c, verify }: { c: ChallengeRecord; verify: Veri
           </Row>
           <Row k="Measurement">
             {fmtInt(d.measurement.warmup_runs)} warmup + {fmtInt(d.measurement.measured_runs)} measured runs,{' '}
-            <T v={d.measurement.aggregation} />
+            <T v={d.measurement.aggregation} />,{' '}
+            {d.measurement.invocation_mode === 'vm_per_batch' ? 'one VM per batch' : 'one VM per invocation'}
           </Row>
+          {d.formal_params && (
+            <Row k="Formal params">
+              verify fuel {fmtInt(d.formal_params.verify_fuel)}, max proof {fmtBytes(d.formal_params.max_proof_bytes)}, reduction fuel{' '}
+              {fmtInt(d.formal_params.max_reduction_fuel)}
+            </Row>
+          )}
           <Row k="Limits">
             proof ≤ {fmtBytes(d.resource_limits.max_proof_bytes)}, verify ≤ {fmtInt(d.resource_limits.max_verify_ms)} ms, RAM ≤{' '}
             {fmtBytes(d.resource_limits.max_ram_bytes)}
