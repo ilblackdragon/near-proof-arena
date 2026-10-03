@@ -30,3 +30,4 @@ import ZkFormal.Algebra.DecodeCount
 import ZkFormal.Algebra.Compose
 import ZkFormal.Algebra.RSProofs
 import ZkFormal.Algebra.Main
+import ZkFormal.Bcs.Mmcs
