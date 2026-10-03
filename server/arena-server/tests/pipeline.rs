@@ -77,7 +77,8 @@ async fn submit_jobs_decision_leaderboard_report_and_events() {
         .await;
     assert_eq!(s, 200);
     let rep: SignedReport = serde_json::from_value(rep).unwrap();
-    report::verify(&rep).expect("report signature verifies");
+    report::verify_pinned(&rep, &app.state.orch.report_public_key_hex())
+        .expect("report signature verifies under the pinned key");
     assert_eq!(rep.public_key, app.state.orch.report_public_key_hex());
     assert_eq!(rep.report["run"]["decision"], "ADMITTED");
     assert_eq!(

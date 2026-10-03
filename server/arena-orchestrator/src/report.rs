@@ -215,9 +215,22 @@ pub async fn load_latest<'e>(
     }))
 }
 
-/// Verify a signed report envelope (used by tests and clients).
+/// Verify a signed report against the arena's **pinned** report key
+/// (`expected_public_key_hex`, obtained out of band). Use this one: the key
+/// inside the envelope is chosen by whoever produced the envelope.
+pub fn verify_pinned(env: &SignedReport, expected_public_key_hex: &str) -> Result<(), String> {
+    if !env.public_key.eq_ignore_ascii_case(expected_public_key_hex) {
+        return Err("report is signed by a key other than the pinned arena report key".into());
+    }
+    verify(env)
+}
+
+/// Check only that the envelope is *self-consistent* (its signature verifies
+/// under the public key it carries). On its own this says nothing about who
+/// issued the report, because anyone can mint a key and sign a forged report
+/// (red-team RT-05). Clients must use [`verify_pinned`].
 pub fn verify(env: &SignedReport) -> Result<(), String> {
-    use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+    use ed25519_dalek::{Signature, VerifyingKey};
     let pk: [u8; 32] = hex::decode(&env.public_key)
         .map_err(|e| e.to_string())?
         .try_into()
@@ -229,6 +242,42 @@ pub fn verify(env: &SignedReport) -> Result<(), String> {
     let bytes = canonical_json(&env.report).map_err(|e| e.to_string())?;
     VerifyingKey::from_bytes(&pk)
         .map_err(|e| e.to_string())?
-        .verify(&bytes, &Signature::from_bytes(&sig))
+        .verify_strict(&bytes, &Signature::from_bytes(&sig))
         .map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod redteam_tests {
+    use super::*;
+    use ed25519_dalek::{Signer, SigningKey};
+
+    fn envelope(sk: &SigningKey, report: Value) -> SignedReport {
+        let bytes = canonical_json(&report).unwrap();
+        SignedReport {
+            algorithm: "ed25519".into(),
+            canonicalization: "JCS (RFC 8785, integers only)".into(),
+            public_key: hex::encode(sk.verifying_key().to_bytes()),
+            signature: hex::encode(sk.sign(&bytes).to_bytes()),
+            report,
+            revocation: None,
+        }
+    }
+
+    /// RT-05: a report forged with an attacker-minted key is self-consistent,
+    /// so `verify` alone accepts it; only `verify_pinned` rejects it.
+    #[test]
+    fn forged_report_with_own_key_fails_pinned_verification() {
+        let arena = SigningKey::from_bytes(&[7u8; 32]);
+        let attacker = SigningKey::from_bytes(&[9u8; 32]);
+        let pinned = hex::encode(arena.verifying_key().to_bytes());
+        let genuine = envelope(&arena, j!({"run": {"decision": "REJECTED"}}));
+        assert!(verify_pinned(&genuine, &pinned).is_ok());
+        let forged = envelope(&attacker, j!({"run": {"decision": "ADMITTED", "score_milli": 999_999}}));
+        assert!(verify(&forged).is_ok(), "self-consistency is all `verify` checks");
+        assert!(verify_pinned(&forged, &pinned).is_err());
+        // swapping in the pinned key without the private key fails the signature
+        let mut swapped = forged.clone();
+        swapped.public_key = pinned.clone();
+        assert!(verify_pinned(&swapped, &pinned).is_err());
+    }
 }
