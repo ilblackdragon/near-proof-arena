@@ -682,7 +682,11 @@ fn reshape_state(rng: &mut Rng, case: &mut casegen::Case) {
         let k = d1::account_key(keep.as_str());
         case.state.retain(|kk, _| *kk == k);
     };
-    match rng.below(10) {
+    // With a fixed receipt count (--receipts N, workload classes) never use the
+    // options that drop receipts to keep a single receiver.
+    let forced = casegen::FORCE_RECEIPTS.load(std::sync::atomic::Ordering::Relaxed) > 0;
+    let option = if forced { *rng.pick(&[0u64, 3, 4, 5, 7, 8]) } else { rng.below(10) };
+    match option {
         // accounts only: every key starts with nibbles 0,0 -> root extension split
         0 => case.state.retain(|k, _| k[0] == 0),
         // one key: root leaf -> leaf split, both keys continue past the branch
