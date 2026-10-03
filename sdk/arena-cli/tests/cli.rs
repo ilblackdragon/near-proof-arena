@@ -588,6 +588,7 @@ fn read_endpoints() {
     let m = mock(Arc::new(move |r: &Req| {
         match r.path.as_str() {
         p if p == format!("/v1/leaderboards/{CHL}") => (200, "application/json", serde_json::json!([e2]).to_string()),
+        p if p == format!("/v1/challenges/{CHL}") => (200, "application/json", serde_json::json!({"id": CHL, "definition": {"name": "transfer-v1"}}).to_string()),
         "/v1/challenges" => (200, "application/json", serde_json::json!([{"id": CHL, "definition": {"name": "transfer-v1", "tier": "formal", "season": "s1"}}]).to_string()),
         "/v1/submissions/sub_1/report" => (200, "application/json", r#"{"signed":true}"#.into()),
         _ => (404, "text/plain", "nope".into()),
@@ -602,6 +603,9 @@ fn read_endpoints() {
     assert!(out(&o).contains("123.456"), "{}", out(&o));
     let o = arena(&["challenges"], &env);
     assert!(out(&o).contains("transfer-v1"));
+    let o = arena(&["challenge", CHL, "--json"], &env);
+    let v: serde_json::Value = serde_json::from_slice(&o.stdout).unwrap();
+    assert_eq!(v["definition"]["name"], "transfer-v1");
     let t = tempfile::tempdir().unwrap();
     let rp = t.path().join("r.json");
     let o = arena(&["report", "sub_1", "-o", rp.to_str().unwrap()], &env);
@@ -639,4 +643,146 @@ fn config_file_is_read() {
         .env("ARENA_CONFIG", &cfg);
     let o = c.output().unwrap();
     assert_eq!(code(&o), 0, "{o:?}");
+}
+
+fn sample_challenge() -> arena_types::ChallengeDefinition {
+    use arena_types::challenge::*;
+    use arena_types::security::*;
+    let d = arena_types::Digest::of_bytes(b"x");
+    ChallengeDefinition {
+        schema: "arena-challenge-v1".into(),
+        name: "transfer-v1".into(),
+        season: "s1".into(),
+        tier: Tier::Formal,
+        nearcore: NearcorePin {
+            repo: "r".into(),
+            tag: "2.13.4".into(),
+            commit: "c".into(),
+        },
+        protocol_version: 86,
+        chain_id: "mainnet".into(),
+        runtime_config_digest: d.clone(),
+        semantic_scope: SemanticScope {
+            name: "s".into(),
+            kind: ScopeKind::Subset,
+            granularity: "g".into(),
+            restrictions: vec![],
+            excludes: vec![],
+            formal_spec: FormalSpecRef {
+                relation_module: "M".into(),
+                relation_decl: "M.R".into(),
+                tree_digest: d.clone(),
+                lean_toolchain: "t".into(),
+            },
+            spec_doc_digest: d.clone(),
+        },
+        claim_encoding: ClaimEncoding {
+            format: "near-arena-claim-v1".into(),
+            spec_digest: d.clone(),
+            max_request_bytes: 1 << 20,
+            max_witness_bytes: 1 << 20,
+            max_claim_bytes: 1 << 10,
+        },
+        security_profile: SecurityProfile {
+            id: "validity-classical-128".into(),
+            privacy: Privacy::ValidityOnly,
+            adversary: AdversaryClass::Classical,
+            target_bits: 128,
+            model: SecurityModel::RandomOracle,
+            setup_model: SetupModel::Transparent,
+            allowed_assumptions: vec![],
+            max_prover_queries_log2: 40,
+            max_hash_queries_log2: 64,
+            max_aggregation_depth: 4,
+            deployment_proofs_log2: 30,
+        },
+        toolchain_policy: ToolchainPolicy {
+            lean_toolchain: "t".into(),
+            checker_image: d.clone(),
+            axiom_allowlist: vec![],
+            allowed_packages: vec![],
+            recheckers: vec![],
+        },
+        required_obligations: vec![],
+        not_applicable_gates: vec![],
+        hardware_profile: HardwareProfile {
+            id: "cpu".into(),
+            cpu_model: "x".into(),
+            vcpus: 8,
+            ram_bytes: 16 << 30,
+            gpu: None,
+        },
+        workload_suite: WorkloadSuite {
+            revision: "r1".into(),
+            classes: vec![],
+            public_fixtures: d.clone(),
+            heldout_commitment: d.clone(),
+            baseline_submission: None,
+            baseline_ns: vec![],
+        },
+        measurement: MeasurementProcedure {
+            warmup_runs: 1,
+            measured_runs: 3,
+            aggregation: "median".into(),
+            outlier_mad_k: 5,
+            cold_runs: 1,
+            concurrency: 1,
+            per_run_timeout_ms: 1000,
+        },
+        resource_limits: ResourceLimits {
+            max_proof_bytes: 1 << 20,
+            max_verify_ms: 10_000,
+            max_prove_ms: 60_000,
+            max_ram_bytes: 1 << 30,
+            max_vram_bytes: 0,
+            max_public_artifact_bytes: 1 << 20,
+            max_prepare_ms: 60_000,
+            max_build_ms: 600_000,
+        },
+        supersedes: None,
+        created_at: "2026-10-01T00:00:00Z".into(),
+    }
+}
+
+#[test]
+fn challenge_file_is_authenticated_and_applied() {
+    let ch = sample_challenge();
+    let id = ch.id().unwrap();
+    let t = tempfile::tempdir().unwrap();
+    let cf = t.path().join("challenge.json");
+    std::fs::write(
+        &cf,
+        serde_json::to_string(&serde_json::json!({"id": id, "definition": ch})).unwrap(),
+    )
+    .unwrap();
+    let d = t.path().join("c");
+    assert_eq!(
+        code(&arena(
+            &["init-candidate", d.to_str().unwrap(), "--challenge", &id],
+            &[]
+        )),
+        0
+    );
+    let base = [
+        "check-local",
+        d.to_str().unwrap(),
+        "--challenge-file",
+        cf.to_str().unwrap(),
+        "--skip-build",
+    ];
+    let o = arena(&[&base[..], &["--challenge", &id]].concat(), &[]);
+    assert_eq!(code(&o), 0, "{}", out(&o));
+    // Wrong id for this file -> rejected before anything else.
+    let o = arena(&[&base[..], &["--challenge", CHL]].concat(), &[]);
+    assert_eq!(code(&o), 3);
+    // Profile mismatch -> PROFILE_NOT_ALLOWED.
+    let m = std::fs::read_to_string(d.join("candidate.toml")).unwrap();
+    std::fs::write(
+        d.join("candidate.toml"),
+        m.replace("validity-classical-128", "zk-classical-128"),
+    )
+    .unwrap();
+    let o = arena(&[&base[..], &["--challenge", &id]].concat(), &[]);
+    assert_eq!(code(&o), 3);
+    assert!(out(&o).contains("PROFILE_NOT_ALLOWED"), "{}", out(&o));
 }

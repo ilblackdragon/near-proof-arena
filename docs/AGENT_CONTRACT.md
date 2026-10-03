@@ -333,6 +333,7 @@ CLI (`sdk/arena-cli`, binary `arena`; config `ARENA_URL` default
 
 ```
 arena challenges [--json]
+arena challenge ID [--json]            # save for --challenge-file
 arena init-candidate <dir> --challenge ID [--template empty] [--name N]
 arena check-local <dir> --challenge ID [--challenge-file F] [--fixtures DIR] [--json]
 arena pack <dir> -o pkg.tar

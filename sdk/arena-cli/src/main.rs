@@ -128,6 +128,12 @@ enum Cmd {
         #[arg(long)]
         json: bool,
     },
+    /// Show one challenge definition (save with --json for `check-local --challenge-file`).
+    Challenge {
+        id: String,
+        #[arg(long)]
+        json: bool,
+    },
     /// List challenges.
     Challenges {
         #[arg(long)]
@@ -275,6 +281,18 @@ fn run(cli: Cli) -> CliResult<Exit> {
                 print_json(&entries)?;
             } else {
                 print!("{}", render::leaderboard(&challenge, &entries));
+            }
+            Ok(Exit::Ok)
+        }
+        Cmd::Challenge { id, json } => {
+            let cfg = config::Config::load()?;
+            let c = client::Client::new(&cfg);
+            check_id("challenge", &id, "chl_")?;
+            let v = c.get_json(&format!("/v1/challenges/{id}"))?;
+            if json {
+                print_json(&v)?;
+            } else {
+                print!("{}", render::challenges(std::slice::from_ref(&v)));
             }
             Ok(Exit::Ok)
         }
