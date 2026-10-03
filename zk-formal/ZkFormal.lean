@@ -29,4 +29,5 @@ import ZkFormal.Udr.Poly
 import ZkFormal.Udr.RS
 import ZkFormal.Udr.Statements
 import ZkFormal.Udr.Fri
+import ZkFormal.Udr.GrandProduct
 import ZkFormal.Udr.Compose
