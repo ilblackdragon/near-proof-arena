@@ -276,11 +276,12 @@ want sp1-B && submit sp1-B examples/zkvm-sp1 "$B"
 want sp1-A2 && submit sp1-A2 examples/zkvm-sp1 "$A2"
 want sp1-A1 && submit sp1-A1 examples/zkvm-sp1 "$NEAR"
 if [ "$MODE" = exp ]; then
-  submit sp1-E examples/zkvm-sp1 "$E"
-  submit reexec-E examples/reexec-witness "$E"
-  submit plonky3-E examples/stark-plonky3 "$E"
+  EXPC=" ${ARENA_SP1_EXP_CANDIDATES:-sp1 reexec plonky3 head} "
+  [[ $EXPC == *" sp1 "* ]] && submit sp1-E examples/zkvm-sp1 "$E"
+  [[ $EXPC == *" reexec "* ]] && submit reexec-E examples/reexec-witness "$E"
+  [[ $EXPC == *" plonky3 "* ]] && submit plonky3-E examples/stark-plonky3 "$E"
   # the signed formal head too: decided at FORMAL_CHECK (cheap), shows the formal-tier verdict
-  submit sp1-head examples/zkvm-sp1 "$BASE"
+  [[ $EXPC == *" head "* ]] && submit sp1-head examples/zkvm-sp1 "$BASE"
 fi
 if [ "$MODE" = head ]; then
   # Every signed NEAR challenge in challenges/, newest first; superseded ones

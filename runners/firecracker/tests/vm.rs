@@ -721,3 +721,52 @@ exit 0
     assert_eq!(outs.len(), 2);
     assert_eq!(outs[1].exit, Exit::Exited(7));
 }
+
+/// Each step's outputs fit `max_output_bytes`, their sum does not: the
+/// cap is per step (regression: vm_per_batch benchmark of ~7 MB proofs
+/// under an 8 MiB cap failed with "output size limit reached").
+#[test]
+fn steps_output_cap_is_per_step() {
+    gate!();
+    use arena_sandbox::{Sandbox, SandboxSpec, StepSpec};
+    let dir = scratch_dir();
+    let script = "mkdir -p out && head -c 3000000 /dev/zero > out/proof.bin";
+    let mut base = SandboxSpec::new(vec!["/bin/sh".into(), "-c".into(), script.into()]);
+    base.cwd = "/scratch".into();
+    base.wall_timeout = Duration::from_secs(20);
+    base.rw_scratch_mb = 64;
+    base.max_output_bytes = 4_000_000;
+    let step = |i: usize| StepSpec {
+        argv: base.argv.clone(),
+        ro_files: vec![],
+        collect: vec!["out".into()],
+        out_dir: Some(dir.path().join(format!("out{i}"))),
+        wall_timeout: Duration::from_secs(20),
+    };
+    let outs = sandbox()
+        .run_steps(&base, &[step(0), step(1), step(2)])
+        .expect("steps run");
+    assert_eq!(outs.len(), 3);
+    for (i, o) in outs.iter().enumerate() {
+        assert_eq!(o.exit, Exit::Exited(0), "step {i}");
+        assert!(o.output_error.is_none(), "step {i}: {:?}", o.output_error);
+        assert_eq!(
+            fs::metadata(dir.path().join(format!("out{i}/out/proof.bin")))
+                .unwrap()
+                .len(),
+            3_000_000
+        );
+    }
+    // a single step above the cap is still refused
+    let mut big = step(9);
+    big.argv = vec![
+        "/bin/sh".into(),
+        "-c".into(),
+        "mkdir -p out && head -c 5000000 /dev/zero > out/proof.bin".into(),
+    ];
+    let outs = sandbox().run_steps(&base, &[big]).expect("steps run");
+    assert!(
+        outs[0].output_error.is_some(),
+        "oversize step output accepted"
+    );
+}

@@ -1536,6 +1536,12 @@ impl arena_sandbox::Sandbox for FirecrackerSandbox {
         let mut b = base.clone();
         b.collect.clear();
         b.out_dir = None;
+        // `base.max_output_bytes` is the cap for ONE step's outputs (checked
+        // per step in `split_steps`); every step's outputs leave the VM through
+        // one output device, so the VM-level budget is the sum. Without this a
+        // batch whose steps each fit (e.g. two ~7 MB proofs under an 8 MiB
+        // cap) failed as "output size limit reached".
+        b.max_output_bytes = base.max_output_bytes.saturating_mul(steps.len() as u64);
         let mut req = self.translate(&b, root.clone())?;
         req.argv = vec![];
         req.collect = vec![];
