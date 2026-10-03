@@ -284,3 +284,38 @@ fn lenient_verifier_fails_adversarial() {
     let s = &gate(&a, ObligationId::AdversarialProofs).summary;
     assert!(s.contains("swap") && s.contains("append"), "{s}");
 }
+
+/// Red-team RT-04: on a held-out case `prove` sees the secret witness, and
+/// candidate-chosen details of its failure (output file names quoted in collect
+/// errors, exit codes) used to reach the public gate summary verbatim, which is
+/// a covert channel that exfiltrates held-out data.
+#[test]
+fn redteam_heldout_failure_details_are_not_a_covert_channel() {
+    let f = fixture();
+    let leak_name = PROVE.replace(
+        "test -r \"$wit\"",
+        "test -r \"$wit\"; ln -s /nonexistent \"$(dirname \"$claim\")/LEAK-$(cat \"$wit\")\"",
+    );
+    let leak_exit = PROVE.replace("test -r \"$wit\"", "test -r \"$wit\"; exit 173");
+    for (what, prove) in [("file name", leak_name), ("exit code", leak_exit)] {
+        let mut files = package_files();
+        files.get_mut("source/prove.sh").unwrap().1 = prove.into_bytes();
+        let (_, bundle) = f.build(&files);
+        let bundle = bundle.unwrap();
+        // control: on a PUBLIC case the details stay (useful diagnostics)
+        let c = conformance(&f, &bundle, f.cases(1, true, claim_for));
+        let s = &gate(&c, ObligationId::ProverReliability).summary;
+        assert!(s.contains("witness-0") || s.contains("173"), "{what}: control lost detail: {s}");
+        // held-out: nothing candidate-chosen may reach any summary
+        let c = conformance(&f, &bundle, f.cases(1, false, claim_for));
+        assert_eq!(gate(&c, ObligationId::ProverReliability).status, GateStatus::Fail, "{what}");
+        for g in &c.gates {
+            assert!(
+                !g.summary.contains("witness-0") && !g.summary.contains("173"),
+                "{what}: held-out data leaked into {:?}: {}",
+                g.gate,
+                g.summary
+            );
+        }
+    }
+}

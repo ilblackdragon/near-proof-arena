@@ -64,7 +64,7 @@ impl BatchRunner for Runner<'_, '_> {
             };
             let p = match proved {
                 Ok(p) => p,
-                Err(f) => return Err(self.fail(f.gate, f.reason, format!("{} run, {label}: {}", phase.as_str(), f.detail))),
+                Err(f) => return Err(self.fail(f.gate, f.reason, format!("{} run, {label}: {}", phase.as_str(), f.detail_for(case.public)))),
             };
             cross_check(&p.outcome)?;
             s.push_prove(&p.outcome);
