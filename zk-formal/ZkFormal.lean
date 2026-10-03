@@ -36,3 +36,4 @@ import ZkFormal.Algebra.RSProofs
 import ZkFormal.Algebra.Main
 -- Lane L4: AIR DSL and protocol/verifier model.
 -- Lane L1 (algebra): BabyBear, its degree-8 extension, polynomials, RS codes.
+import ZkFormal.Stark.NpBounds
