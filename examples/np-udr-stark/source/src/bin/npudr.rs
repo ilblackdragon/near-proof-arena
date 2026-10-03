@@ -3,15 +3,15 @@
 //! * `npudr bench <width> <log_height> [tables]` — prove/verify a synthetic
 //!   AIR (cube constraints, degree 4) and report time and proof size.
 //! * `npudr toy <fib|multi> <log> <outdir>` — write `air.json`, `claim.bin`,
-//!   `proof.bin`, `pubdigest.bin` for differential tests against the Lean
+//!   `proof.bin`, `pub.bin` for differential tests against the Lean
 //!   verifier.
-//! * `npudr verify <air.json> <pubdigest.bin> <claim.bin> <proof.bin>` —
+//! * `npudr verify <air.json> <pub.bin> <claim.bin> <proof.bin>` —
 //!   Rust reference verifier; exit 0 iff accepted.
 //! * `npudr export <fib|multi>` — print the toy AIR in `np-air-v1`.
 use std::time::Instant;
 
 use npudr::air::Air;
-use npudr::prover::{prove, ProveOptions};
+use npudr::prover::{prove_bytes, ProveOptions};
 use npudr::toy;
 use npudr::verifier::verify;
 
@@ -33,11 +33,10 @@ fn main() {
                 num_pub: 0,
             };
             let traces: Vec<_> = (0..nt).map(|i| toy::cube_trace(w, h.saturating_sub(i).max(1))).collect();
-            let pd = [0u8; 32];
+            let pd = b"bench".to_vec();
             let t = Instant::now();
-            let p = prove(&air, traces, &pd, &[], &ProveOptions { verbose: true }).unwrap_or_else(|e| die(&e));
+            let b = prove_bytes(&air, traces, &pd, &[], &ProveOptions { verbose: true }).unwrap_or_else(|e| die(&e));
             let tp = t.elapsed().as_secs_f64();
-            let b = p.to_bytes();
             let t = Instant::now();
             verify(&air, &pd, &[], &b).unwrap_or_else(|e| die(&e));
             let tv = t.elapsed().as_secs_f64();
@@ -52,17 +51,17 @@ fn main() {
             let (air, traces, cb) = toy_instance(&a[2], a[3].parse().unwrap());
             let dir = std::path::Path::new(&a[4]);
             std::fs::create_dir_all(dir).unwrap();
-            let pd = npudr::hash::sha256(b"np-udr-stark toy public tape");
-            let p = prove(&air, traces, &pd, &cb, &ProveOptions { verbose: false }).unwrap_or_else(|e| die(&e));
+            let pd = b"np-udr-stark toy public tape".to_vec();
+            let b = prove_bytes(&air, traces, &pd, &cb, &ProveOptions { verbose: false }).unwrap_or_else(|e| die(&e));
             std::fs::write(dir.join("air.json"), air.to_json()).unwrap();
             std::fs::write(dir.join("claim.bin"), &cb).unwrap();
-            std::fs::write(dir.join("pubdigest.bin"), pd).unwrap();
-            std::fs::write(dir.join("proof.bin"), p.to_bytes()).unwrap();
+            std::fs::write(dir.join("pub.bin"), &pd).unwrap();
+            std::fs::write(dir.join("proof.bin"), b).unwrap();
         }
         Some("verify") => {
             let rd = |p: &String| std::fs::read(p).unwrap_or_else(|e| die(&format!("{p}: {e}")));
             let air = Air::from_json(&String::from_utf8(rd(&a[2])).unwrap()).unwrap_or_else(|e| die(&e));
-            let pd: [u8; 32] = rd(&a[3]).try_into().unwrap_or_else(|_| die("pubdigest must be 32 bytes"));
+            let pd = rd(&a[3]);
             match verify(&air, &pd, &rd(&a[4]), &rd(&a[5])) {
                 Ok(()) => println!("accept"),
                 Err(e) => {

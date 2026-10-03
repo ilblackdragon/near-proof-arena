@@ -1,19 +1,22 @@
-//! Reference verifier for `np-udr-stark-v1`, written to be read side by side
-//! with the Lean verifier (L4). It is NOT part of the soundness argument; it
-//! documents the protocol precisely and lets the prover be tested in Rust.
+//! Reference verifier for `np-udr-stark-v1` (FORMATS.md v1), written to be
+//! read side by side with L4's `ZkFormal.Stark.{Bcs,Protocol,Verifier}`.
+//! It is NOT part of the soundness argument; it pins the protocol down in
+//! Rust so the prover can be tested without the Lean toolchain.
 
 use p3_field::{Field, PrimeCharacteristicRing};
 
 use crate::air::{Air, Tape};
+use crate::aux::{aux_constraints, AuxLayout};
 use crate::field::{ef_from_base, ef_from_coeffs, omega, put_ef, EF, F};
-use crate::hash::Digest32;
-use crate::mmcs::{self, index_sets, Shape};
-use crate::protocol::{batch_coeffs, point, Proof, Schedule, NUM_CHUNKS, PER_CHUNK, VERSION};
+use crate::mmcs::{self, index_sets};
+use crate::protocol::{
+    batch_coeffs, oracle_shapes, parse_openings, parse_prefix, point, Proof, Schedule, NUM_CHUNKS, PER_CHUNK,
+};
 use crate::transcript::Transcript;
 
-/// Public inputs: `pub i = cb[i]` (as a field element) for `i < |cb|`, else 0.
+/// Public inputs: `pub i = cb[i]` (as a field element); 0 beyond `|cb|`.
 pub fn public_inputs(air: &Air, cb: &[u8]) -> Vec<F> {
-    (0..air.num_pub).map(|i| F::new(*cb.get(i).unwrap_or(&0) as u32)).collect()
+    (0..air.num_pub.max(cb.len())).map(|i| F::new(*cb.get(i).unwrap_or(&0) as u32)).collect()
 }
 
 /// All Fiat–Shamir challenges of one proof.
@@ -23,18 +26,17 @@ pub struct Challenges {
     pub gamma_mul: EF,
     pub alpha_c: EF,
     pub z: EF,
-    /// per class layer, the batching challenges
-    pub batch: Vec<Vec<EF>>,
+    /// the shared batching vector `r_1..r_L`
+    pub batch: Vec<EF>,
     pub beta: Vec<EF>,
     /// roll-in challenge per FRI layer (zero where none)
     pub gamma_roll: Vec<EF>,
     pub queries: Vec<usize>,
 }
 
-/// Replays the transcript (shared by prover and verifier).
-pub fn ood_bytes(ood: &[EF]) -> Vec<u8> {
+pub fn efs_bytes(xs: &[EF]) -> Vec<u8> {
     let mut b = vec![];
-    for x in ood {
+    for x in xs {
         put_ef(&mut b, *x);
     }
     b
@@ -42,90 +44,63 @@ pub fn ood_bytes(ood: &[EF]) -> Vec<u8> {
 
 pub fn aux_msg(root_aux: &[u8; 64], finals: &[EF]) -> Vec<u8> {
     let mut b = root_aux.to_vec();
-    for x in finals {
-        put_ef(&mut b, *x);
-    }
+    b.extend(efs_bytes(finals));
     b
 }
 
-pub fn final_bytes(p: &[EF; 2]) -> Vec<u8> {
-    ood_bytes(p)
-}
-
-/// Zerofier and the three selectors at `x`, for a trace of `2^h` rows.
+/// Zerofier and the selectors `[first, last, transition]` at `x`, for a trace of
+/// `2^h` rows: `first = Z/(T(x−1))`, `last = Z/(T(ωx−1))`.
 pub fn selectors(x: EF, h: usize) -> (EF, [EF; 3]) {
-    let t = F::from_u64(1 << h);
+    let t = ef_from_base(F::from_u64(1 << h));
     let zh = x.exp_power_of_2(h) - EF::ONE;
-    let g_inv = omega(h).inverse();
-    let first = zh * (ef_from_base(t) * (x - EF::ONE)).inverse();
-    let last = zh * ef_from_base(g_inv) * (ef_from_base(t) * (x - ef_from_base(g_inv))).inverse();
+    let w = ef_from_base(omega(h));
+    let first = zh * (t * (x - EF::ONE)).inverse();
+    let last = zh * (t * (w * x - EF::ONE)).inverse();
     (zh, [first, last, EF::ONE - last])
 }
 
-pub fn verify(air: &Air, pub_digest: &Digest32, cb: &[u8], bytes: &[u8]) -> Result<(), String> {
-    let proof = Proof::from_bytes(bytes).ok_or("parse")?;
-    verify_proof(air, pub_digest, cb, &proof)
+/// Offsets of each table's OOD values.
+pub fn ood_offsets(sch: &Schedule) -> Vec<usize> {
+    let mut v = vec![];
+    let mut o = 0;
+    for t in 0..sch.num_tables() {
+        v.push(o);
+        o += sch.ood_len(t);
+    }
+    v
 }
 
-pub fn verify_proof(air: &Air, pub_digest: &Digest32, cb: &[u8], proof: &Proof) -> Result<(), String> {
-    if proof.version != VERSION {
-        return Err("version".into());
-    }
-    let sch = Schedule::new(air, &proof.heights)?;
-    let nt = sch.num_tables();
-    if !proof.aux_finals.is_empty() {
-        return Err("aux finals count".into());
-    }
-    if proof.ood.len() != sch.num_ood() {
-        return Err("ood count".into());
-    }
-    if proof.fri_roots.len() != sch.committed.len() || proof.open_fri.len() != sch.committed.len() {
-        return Err("fri layer count".into());
-    }
+pub fn verify(air: &Air, pub_tape: &[u8], cb: &[u8], bytes: &[u8]) -> Result<(), String> {
+    let (mut proof, sch, rest) = parse_prefix(air, bytes).ok_or("parse (commit phase)")?;
+    let mut tr = Transcript::new(pub_tape, cb);
+    let ch = replay(&sch, &mut tr, &proof);
+    parse_openings(&mut proof, &sch, &ch.queries, rest).ok_or("parse (openings)")?;
+    verify_parsed(air, cb, &sch, &proof, &ch)
+}
 
-    // ---- transcript ----
-    let mut tr = Transcript::new(pub_digest, &sch.header_bytes(), cb);
-    let ch = replay(&sch, &mut tr, proof);
-
-    // ---- ALI identity at z ----
+pub fn verify_parsed(air: &Air, cb: &[u8], sch: &Schedule, proof: &Proof, ch: &Challenges) -> Result<(), String> {
     let pubs = public_inputs(air, cb);
-    ali_check(air, &sch, &proof.ood, ch.z, ch.alpha_c, &pubs)?;
-    let mut ood_off = vec![];
-    let mut off = 0;
-    for t in 0..nt {
-        ood_off.push(off);
-        off += sch.ood_len(t);
-    }
-
-    // ---- MMCS openings ----
+    global_checks(air, sch, &proof.ood, &proof.aux_finals, ch, &pubs)?;
+    let ood_off = ood_offsets(sch);
+    let nt = sch.num_tables();
     let l0 = sch.l0;
     let qs = &ch.queries;
-    let shape_main: Shape = (0..nt).map(|t| (sch.w_main[t], sch.log_lde(t))).collect();
-    let shape_aux: Shape = (0..nt).map(|t| (8 * sch.w_aux[t], sch.log_lde(t))).collect();
-    let shape_quot: Shape = (0..nt).map(|t| (8 * sch.n_quot[t], sch.log_lde(t))).collect();
-    if !mmcs::verify(&shape_main, &proof.root_main, qs, &proof.open_main) {
-        return Err("main opening".into());
-    }
-    if !mmcs::verify(&shape_aux, &proof.root_aux, qs, &proof.open_aux) {
-        return Err("aux opening".into());
-    }
-    if !mmcs::verify(&shape_quot, &proof.root_quot, qs, &proof.open_quot) {
-        return Err("quot opening".into());
-    }
-    let fri_q: Vec<Vec<usize>> = sch.committed.iter().map(|&(c, a)| qs.iter().map(|&j| j >> (c + a)).collect()).collect();
-    for (i, &(c, a)) in sch.committed.iter().enumerate() {
-        let shape: Shape = vec![(8 << a, l0 - c - a)];
-        if !mmcs::verify(&shape, &proof.fri_roots[i], &fri_q[i], &proof.open_fri[i]) {
-            return Err(format!("fri opening {i}"));
+
+    // ---- MMCS openings ----
+    let roots: Vec<&[u8; 64]> =
+        [&proof.root_main, &proof.root_aux, &proof.root_quot].into_iter().chain(proof.fri_roots.iter()).collect();
+    for (i, ((shape, sh), op)) in oracle_shapes(sch).iter().zip(proof.openings()).enumerate() {
+        let idx: Vec<usize> = qs.iter().map(|&x| x >> sh).collect();
+        let shp: Vec<(usize, usize)> = shape.iter().map(|&(l, w)| (w, l)).collect();
+        if !mmcs::verify(&shp, roots[i], &idx, op) {
+            return Err(format!("opening {i}"));
         }
     }
     let sets = index_sets(l0, qs);
-
-    // batching coefficients per class layer
     let coeffs: Vec<Vec<EF>> =
-        (0..sch.class_layers.len()).map(|ci| batch_coeffs(&ch.batch[ci], sch.batch_len[ci])).collect();
+        (0..sch.class_layers.len()).map(|ci| batch_coeffs(&ch.batch, sch.batch_len[ci])).collect();
 
-    // G_c at layer-c position j (= J >> c)
+    // batched DEEP value of class layer `ci` at layer-c position j (= x >> c)
     let deep = |ci: usize, j: usize| -> EF {
         let c = sch.class_layers[ci];
         let x = ef_from_base(point(l0, c, j));
@@ -139,9 +114,9 @@ pub fn verify_proof(air: &Air, pub_digest: &Digest32, cb: &[u8], proof: &Proof) 
             let v = &proof.ood[ood_off[t]..ood_off[t] + sch.ood_len(t)];
             let w = sch.w_main[t];
             let wa = sch.w_aux[t];
+            let nq = sch.n_quot[t];
             let main = &proof.open_main.rows[t][p * w..(p + 1) * w];
             let aux = &proof.open_aux.rows[t][p * 8 * wa..(p + 1) * 8 * wa];
-            let nq = sch.n_quot[t];
             let quot = &proof.open_quot.rows[t][p * 8 * nq..(p + 1) * 8 * nq];
             let mut k = 0;
             let mut term = |fx: EF, inv: EF| {
@@ -167,47 +142,48 @@ pub fn verify_proof(air: &Air, pub_digest: &Digest32, cb: &[u8], proof: &Proof) 
         }
         acc
     };
+    let roll = |k: usize, x: usize, v: EF| -> EF {
+        match sch.class_layers.iter().position(|&cl| cl == k) {
+            Some(ci) if k > 0 => v + ch.gamma_roll[k] * deep(ci, x >> k),
+            _ => v,
+        }
+    };
 
     let two_inv = F::TWO.inverse();
-    for &jq in qs {
-        let mut val = deep(0, jq);
+    let _ = nt;
+    for &x in qs {
+        let mut val = deep(0, x);
         for (i, &(c, a)) in sch.committed.iter().enumerate() {
-            let pos = jq >> c;
+            val = roll(c, x, val);
+            let pos = x >> c;
             let leaf = pos >> a;
-            let fs = &fri_q[i];
-            let mut sfri = fs.clone();
-            sfri.sort_unstable();
-            sfri.dedup();
-            let p = sfri.binary_search(&leaf).unwrap();
+            let mut s: Vec<usize> = qs.iter().map(|&q| q >> (c + a)).collect();
+            s.sort_unstable();
+            s.dedup();
+            let p = s.binary_search(&leaf).unwrap();
             let w = 8 << a;
             let row = &proof.open_fri[i].rows[0][p * w..(p + 1) * w];
             let mut arr: Vec<EF> = (0..1 << a).map(|u| ef_from_coeffs(&row[8 * u..8 * u + 8])).collect();
             if arr[pos & ((1 << a) - 1)] != val {
                 return Err(format!("fri layer {c} value mismatch"));
             }
-            // fold a times
-            let mut base = leaf << a; // layer-(c+s) position of arr[0]
+            let mut base = leaf << a;
             for s in 0..a {
                 let layer = c + s;
                 let half = arr.len() / 2;
                 let mut nxt = Vec::with_capacity(half);
                 for u in 0..half {
-                    let x = point(l0, layer, base + 2 * u);
+                    let y = point(l0, layer, base + 2 * u);
                     let (e0, e1) = (arr[2 * u], arr[2 * u + 1]);
-                    let even = (e0 + e1) * two_inv;
-                    let odd = (e0 - e1) * (F::TWO * x).inverse();
-                    nxt.push(even + ch.beta[layer] * odd);
+                    nxt.push((e0 + e1) * two_inv + ch.beta[layer] * (e0 - e1) * (F::TWO * y).inverse());
                 }
                 arr = nxt;
                 base >>= 1;
             }
             val = arr[0];
-            let nk = c + a;
-            if let Some(ci) = sch.class_layers.iter().position(|&cl| cl == nk) {
-                val += ch.gamma_roll[nk] * deep(ci, jq >> nk);
-            }
         }
-        let y = ef_from_base(point(l0, sch.fri_l, jq >> sch.fri_l));
+        val = roll(sch.fri_l, x, val);
+        let y = ef_from_base(point(l0, sch.fri_l, x >> sch.fri_l));
         if val != proof.final_poly[0] + proof.final_poly[1] * y {
             return Err("final polynomial mismatch".into());
         }
@@ -215,52 +191,87 @@ pub fn verify_proof(air: &Air, pub_digest: &Digest32, cb: &[u8], proof: &Proof) 
     Ok(())
 }
 
-/// Run all rounds of the transcript against the proof's messages.
+/// Run all rounds of the transcript against the proof's messages
+/// (FORMATS.md §4).
 pub fn replay(sch: &Schedule, tr: &mut Transcript, proof: &Proof) -> Challenges {
-    tr.absorb(proof.root_main.to_vec());
+    let mut m0 = sch.header_bytes();
+    m0.extend_from_slice(&proof.root_main);
+    tr.absorb(m0);
     let alpha_fp = tr.chal();
     let gamma_mul = tr.chal();
     tr.absorb(aux_msg(&proof.root_aux, &proof.aux_finals));
     let alpha_c = tr.chal();
     tr.absorb(proof.root_quot.to_vec());
     let z = tr.chal_ood();
-    tr.absorb(ood_bytes(&proof.ood));
-    let batch: Vec<Vec<EF>> = sch.batch_bits.iter().map(|&b| (0..b).map(|_| tr.chal()).collect()).collect();
+    tr.absorb(efs_bytes(&proof.ood));
+    let batch: Vec<EF> = (0..sch.batch_rounds).map(|_| tr.chal()).collect();
     let mut beta = vec![];
     let mut gamma_roll = vec![EF::ZERO; sch.fri_l + 1];
     for k in 0..sch.fri_l {
+        if k > 0 && sch.class_layers.contains(&k) {
+            gamma_roll[k] = tr.chal();
+        }
         if let Some(i) = sch.committed_at(k) {
             tr.absorb(proof.fri_roots[i].to_vec());
         }
         beta.push(tr.chal());
-        if sch.class_layers.contains(&(k + 1)) {
-            gamma_roll[k + 1] = tr.chal();
-        }
     }
-    tr.absorb(final_bytes(&proof.final_poly));
+    if sch.fri_l > 0 && sch.class_layers.contains(&sch.fri_l) {
+        gamma_roll[sch.fri_l] = tr.chal();
+    }
+    tr.absorb(efs_bytes(&proof.final_poly));
     let queries = tr.finish_queries(sch.l0, NUM_CHUNKS, PER_CHUNK);
     Challenges { alpha_fp, gamma_mul, alpha_c, z, batch, beta, gamma_roll, queries }
 }
 
-/// The ALI identity of every table at the OOD point.
-pub fn ali_check(air: &Air, sch: &Schedule, ood: &[EF], z: EF, alpha_c: EF, pubs: &[F]) -> Result<(), String> {
+/// ALI identity of every table at `z` (with the aux constraints) and the
+/// bus equation `∏ send finals = ∏ receive finals`.
+pub fn global_checks(
+    air: &Air,
+    sch: &Schedule,
+    ood: &[EF],
+    finals: &[EF],
+    ch: &Challenges,
+    pubs: &[F],
+) -> Result<(), String> {
     let mut off = 0;
+    let mut foff = 0;
+    let (mut sends, mut recvs) = (EF::ONE, EF::ONE);
     for t in 0..sch.num_tables() {
         let tab = &air.tables[t];
+        let lay = AuxLayout::new(tab);
         let w = sch.w_main[t];
+        let wa = sch.w_aux[t];
         let v = &ood[off..off + sch.ood_len(t)];
-        let (zh, sel) = selectors(z, sch.heights[t]);
+        let fins = &finals[foff..foff + sch.n_finals[t]];
+        for (g, f) in fins.iter().enumerate() {
+            if g < lay.send_groups {
+                sends *= *f;
+            } else {
+                recvs *= *f;
+            }
+        }
+        let (zh, sel) = selectors(ch.z, sch.heights[t]);
+        let col = |c: usize, n: bool| if n { v[w + c] } else { v[c] };
         let tape = Tape::compile(&tab.constraints);
         let mut regs = vec![];
-        tape.eval::<EF>(&mut regs, |c, n| if n { v[w + c] } else { v[c] }, pubs, sel);
+        tape.eval::<EF>(&mut regs, col, pubs, sel);
+        let mut cs: Vec<EF> = tape.outputs.iter().map(|&o| regs[o as usize]).collect();
+        let mut iregs = vec![];
+        lay.itape.eval::<EF>(&mut iregs, col, pubs, sel);
+        let ivals: Vec<EF> = lay.itape.outputs.iter().map(|&o| iregs[o as usize]).collect();
+        let aux = &v[2 * w..2 * w + wa];
+        let aux_n = &v[2 * w + wa..2 * w + 2 * wa];
+        let mut phis = vec![];
+        aux_constraints(tab, &lay, &ivals, ch.alpha_fp, ch.gamma_mul, aux, aux_n, fins, sel, &mut cs, &mut phis);
         let mut acc = EF::ZERO;
         let mut ap = EF::ONE;
-        for &o in &tape.outputs {
-            acc += ap * regs[o as usize];
-            ap *= alpha_c;
+        for c in &cs {
+            acc += ap * *c;
+            ap *= ch.alpha_c;
         }
-        let qoff = 2 * w + 2 * sch.w_aux[t];
-        let zt = z.exp_power_of_2(sch.heights[t]);
+        let qoff = 2 * w + 2 * wa;
+        let zt = ch.z.exp_power_of_2(sch.heights[t]);
         let mut q = EF::ZERO;
         let mut zp = EF::ONE;
         for j in 0..sch.n_quot[t] {
@@ -271,6 +282,10 @@ pub fn ali_check(air: &Air, sch: &Schedule, ood: &[EF], z: EF, alpha_c: EF, pubs
             return Err(format!("ALI identity fails for table {t}"));
         }
         off += sch.ood_len(t);
+        foff += sch.n_finals[t];
+    }
+    if sends != recvs {
+        return Err("bus products differ".into());
     }
     Ok(())
 }

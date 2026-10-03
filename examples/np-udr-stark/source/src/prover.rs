@@ -7,13 +7,14 @@ use p3_matrix::Matrix;
 use p3_util::{log2_strict_usize, reverse_slice_index_bits};
 use rayon::prelude::*;
 
-use crate::air::{Air, Tape};
+use crate::air::{Air, Table, Tape};
+use crate::aux::{aux_constraints, AuxLayout};
 use crate::field::{ef_coeffs, ef_from_base, ef_from_coeffs, omega, shift, EF, F};
-use crate::hash::{Digest32, Digest64};
+use crate::hash::Digest64;
 use crate::mmcs::{self, rev, Mat, Opening, Tree};
-use crate::protocol::{batch_coeffs, Proof, Schedule, LOG_BLOWUP, NUM_CHUNKS, PER_CHUNK, VERSION};
+use crate::protocol::{batch_coeffs, Proof, Schedule, LOG_BLOWUP, NUM_CHUNKS, PER_CHUNK};
 use crate::transcript::Transcript;
-use crate::verifier::{aux_msg, final_bytes, ood_bytes, public_inputs};
+use crate::verifier::{aux_msg, efs_bytes, global_checks, ood_offsets, public_inputs, Challenges};
 
 /// Optional timing log.
 pub struct Timer {
@@ -178,27 +179,117 @@ fn open_polys(dft: &Dft, polys: &[ColPolys], tree: &Tree, queries: &[usize]) -> 
     Opening { rows, siblings: mmcs::siblings(tree, queries) }
 }
 
+/// Challenges and bus finals the quotient of one table depends on.
+pub struct QuotCtx<'a> {
+    pub tab: &'a Table,
+    pub lay: &'a AuxLayout,
+    pub alpha_fp: EF,
+    pub gamma: EF,
+    pub alpha_c: EF,
+    pub fins: &'a [EF],
+}
+
+/// Grand-product aux trace of one table on the trace domain (`T × 8·wa`
+/// base limbs, natural row order) and its bus finals (FORMATS.md §3).
+fn aux_trace(
+    main: &RowMajorMatrix<F>,
+    h: usize,
+    tab: &Table,
+    lay: &AuxLayout,
+    pubs: &[F],
+    alpha: EF,
+    gamma: EF,
+) -> (RowMajorMatrix<F>, Vec<EF>) {
+    let t = 1usize << h;
+    let w = main.width();
+    let wa = lay.width();
+    if wa == 0 {
+        return (RowMajorMatrix::new(vec![], 0), vec![]);
+    }
+    // per row: chain columns and group factors Φ
+    let rows: Vec<(Vec<EF>, Vec<EF>)> = (0..t)
+        .into_par_iter()
+        .map_init(Vec::new, |regs, r| {
+            let row = &main.values[r * w..(r + 1) * w];
+            let nr = (r + 1) % t;
+            let nrow = &main.values[nr * w..(nr + 1) * w];
+            let sel = [
+                if r == 0 { F::ONE } else { F::ZERO },
+                if r + 1 == t { F::ONE } else { F::ZERO },
+                if r + 1 == t { F::ZERO } else { F::ONE },
+            ];
+            lay.itape.eval::<F>(regs, |c, n| if n { nrow[c] } else { row[c] }, pubs, sel);
+            let ivals: Vec<EF> = lay.itape.outputs.iter().map(|&o| ef_from_base(regs[o as usize])).collect();
+            let mut chain = vec![EF::ZERO; lay.n_chain];
+            let mut phis = Vec::with_capacity(tab.interactions.len());
+            for (ii, it) in tab.interactions.iter().enumerate() {
+                let o = lay.expr_off[ii];
+                let msg = &ivals[o..o + it.msg.len()];
+                let bits = &ivals[o + it.msg.len()..o + it.msg.len() + it.mult.len()];
+                let p0 = gamma - crate::aux::fingerprint(it.bus, msg, alpha);
+                let k = bits.len();
+                match k {
+                    0 => phis.push(EF::ONE),
+                    1 => phis.push(EF::ONE + bits[0] * (p0 - EF::ONE)),
+                    _ => {
+                        let off = lay.chain[ii].1;
+                        let mut p = p0;
+                        let mut pi = EF::ONE + bits[0] * (p0 - EF::ONE);
+                        for j in 0..k - 1 {
+                            p = p * p;
+                            chain[off + j] = p;
+                            pi *= EF::ONE + bits[j + 1] * (p - EF::ONE);
+                            chain[off + k - 1 + j] = pi;
+                        }
+                        phis.push(pi);
+                    }
+                }
+            }
+            let gphi: Vec<EF> = lay.groups.iter().map(|g| g.iter().fold(EF::ONE, |a, &i| a * phis[i])).collect();
+            (chain, gphi)
+        })
+        .collect();
+    let ng = lay.groups.len();
+    let mut out = vec![F::ZERO; t * 8 * wa];
+    let mut acc = vec![EF::ONE; ng];
+    for r in 0..t {
+        let (chain, gphi) = &rows[r];
+        let dst = &mut out[r * 8 * wa..(r + 1) * 8 * wa];
+        for (c, v) in chain.iter().chain(acc.iter()).enumerate() {
+            dst[8 * c..8 * c + 8].copy_from_slice(ef_coeffs(v));
+        }
+        for g in 0..ng {
+            acc[g] *= gphi[g];
+        }
+    }
+    (RowMajorMatrix::new(out, 8 * wa), acc)
+}
+
 /// Quotient `C_α / Z_H` of one table, as chunk coefficients (`T × 8·nq`).
 fn quotient(
     dft: &Dft,
     tape: &Tape,
     main: &ColPolys,
+    aux: &ColPolys,
     nq: usize,
     pubs: &[F],
-    alpha: EF,
+    q: &QuotCtx,
 ) -> Result<RowMajorMatrix<F>, String> {
     let h = main.log_h;
     let t = 1usize << h;
     let e = crate::protocol::ceil_log2(nq);
     let tf = F::from_u64(t as u64);
     let h_last = omega(h).inverse();
-    let apow: Vec<EF> = alpha.powers().take(tape.outputs.len()).collect();
+    let apow: Vec<EF> = q.alpha_c.powers().take(tape.outputs.len()).collect();
+    let a_aux = q.alpha_c.exp_u64(tape.outputs.len() as u64);
     let w = main.width();
+    let wa = q.lay.width();
     // next-row permutation inside a block (bit-reversed order)
     let next: Vec<usize> = (0..t).map(|u| rev((rev(u, h) + 1) % t, h)).collect();
     let mut qv: Vec<EF> = Vec::with_capacity(t << e);
     for b in 0..1usize << e {
         let blk = main.block(dft, b);
+        let ablk = aux.block(dft, b);
         let sh = main.block_shift(b);
         let mut xs: Vec<F> = omega(h).shifted_powers(sh).take(t).collect();
         reverse_slice_index_bits(&mut xs);
@@ -208,19 +299,41 @@ fn quotient(
         let i2 = batch_multiplicative_inverse(&xs.iter().map(|&x| tf * (x - h_last)).collect::<Vec<_>>());
         let part: Vec<EF> = (0..t)
             .into_par_iter()
-            .map_init(Vec::new, |regs, u| {
-                let first = z * i1[u];
-                let last = h_last * z * i2[u];
-                let row = &blk.values[u * w..(u + 1) * w];
-                let nu = next[u];
-                let nrow = &blk.values[nu * w..(nu + 1) * w];
-                tape.eval::<F>(regs, |c, nn| if nn { nrow[c] } else { row[c] }, pubs, [first, last, F::ONE - last]);
-                let mut acc = EF::ZERO;
-                for (o, a) in tape.outputs.iter().zip(&apow) {
-                    acc += *a * regs[*o as usize];
-                }
-                acc * zinv
-            })
+            .map_init(
+                || (Vec::new(), Vec::new(), Vec::new(), Vec::new()),
+                |(regs, iregs, cs, phis), u| {
+                    let first = z * i1[u];
+                    let last = h_last * z * i2[u];
+                    let sel = [first, last, F::ONE - last];
+                    let row = &blk.values[u * w..(u + 1) * w];
+                    let nu = next[u];
+                    let nrow = &blk.values[nu * w..(nu + 1) * w];
+                    let col = |c: usize, nn: bool| if nn { nrow[c] } else { row[c] };
+                    tape.eval::<F>(regs, col, pubs, sel);
+                    let mut acc = EF::ZERO;
+                    for (o, a) in tape.outputs.iter().zip(&apow) {
+                        acc += *a * regs[*o as usize];
+                    }
+                    if wa > 0 {
+                        q.lay.itape.eval::<F>(iregs, col, pubs, sel);
+                        let ivals: Vec<EF> =
+                            q.lay.itape.outputs.iter().map(|&o| ef_from_base(iregs[o as usize])).collect();
+                        let ar = &ablk.values[u * 8 * wa..(u + 1) * 8 * wa];
+                        let an = &ablk.values[nu * 8 * wa..(nu + 1) * 8 * wa];
+                        let av: Vec<EF> = (0..wa).map(|c| ef_from_coeffs(&ar[8 * c..8 * c + 8])).collect();
+                        let anv: Vec<EF> = (0..wa).map(|c| ef_from_coeffs(&an[8 * c..8 * c + 8])).collect();
+                        cs.clear();
+                        let sele = sel.map(ef_from_base);
+                        aux_constraints(q.tab, q.lay, &ivals, q.alpha_fp, q.gamma, &av, &anv, q.fins, sele, cs, phis);
+                        let mut pw = a_aux;
+                        for c in cs.iter() {
+                            acc += pw * *c;
+                            pw *= q.alpha_c;
+                        }
+                    }
+                    acc * zinv
+                },
+            )
             .collect();
         qv.extend(part);
     }
@@ -267,13 +380,15 @@ pub struct ProveOptions {
     pub verbose: bool,
 }
 
+/// Prove; returns the proof, its schedule and the query positions (needed by
+/// the serializer, FORMATS.md §5).
 pub fn prove(
     air: &Air,
     traces: Vec<RowMajorMatrix<F>>,
-    pub_digest: &Digest32,
+    pub_tape: &[u8],
     cb: &[u8],
     opts: &ProveOptions,
-) -> Result<Proof, String> {
+) -> Result<(Proof, Schedule, Vec<usize>), String> {
     let mut tm = Timer::new(opts.verbose);
     air.validate()?;
     if traces.len() != air.tables.len() {
@@ -290,36 +405,48 @@ pub fn prove(
     let l0 = sch.l0;
     let pubs = public_inputs(air, cb);
     let dft = Dft::default();
-    let mut tr = Transcript::new(pub_digest, &sch.header_bytes(), cb);
+    let mut tr = Transcript::new(pub_tape, cb);
+    let lays: Vec<AuxLayout> = air.tables.iter().map(AuxLayout::new).collect();
 
-    // ---- round 1: main traces ----
+    // ---- message 0: header ‖ main commitment ----
     let main: Vec<ColPolys> = traces
-        .into_iter()
+        .iter()
         .enumerate()
-        .map(|(t, m)| ColPolys { log_h: heights[t], class: sch.class[t], coeffs: dft.idft_batch(m) })
+        .map(|(t, m)| ColPolys { log_h: heights[t], class: sch.class[t], coeffs: dft.idft_batch(m.clone()) })
         .collect();
     tm.lap("main iDFT");
     let main_tree = commit_polys(&dft, &main, l0);
     tm.lap("main commit");
-    tr.absorb(main_tree.root().to_vec());
-    let _alpha_fp = tr.chal();
-    let _gamma_mul = tr.chal();
+    let mut m0 = sch.header_bytes();
+    m0.extend_from_slice(&main_tree.root());
+    tr.absorb(m0);
+    let alpha_fp = tr.chal();
+    let gamma = tr.chal();
 
-    // ---- round 2: aux (grand products; none yet) ----
-    let aux: Vec<ColPolys> = (0..nt)
-        .map(|t| ColPolys { log_h: heights[t], class: sch.class[t], coeffs: RowMajorMatrix::new(vec![], 0) })
-        .collect();
+    // ---- message 2: aux (grand products) ‖ finals ----
+    let mut aux = vec![];
+    let mut aux_finals = vec![];
+    for t in 0..nt {
+        let (at, fins) = aux_trace(&traces[t], heights[t], &air.tables[t], &lays[t], &pubs, alpha_fp, gamma);
+        aux_finals.extend(fins);
+        let coeffs = if at.width() == 0 { at } else { dft.idft_batch(at) };
+        aux.push(ColPolys { log_h: heights[t], class: sch.class[t], coeffs });
+    }
+    drop(traces);
     let aux_tree = commit_polys(&dft, &aux, l0);
-    let aux_finals: Vec<EF> = vec![];
     tr.absorb(aux_msg(&aux_tree.root(), &aux_finals));
     let alpha_c = tr.chal();
-    tm.lap("aux commit");
+    tm.lap("aux");
 
-    // ---- round 3: quotient ----
+    // ---- message 3: quotient ----
     let tapes: Vec<Tape> = air.tables.iter().map(|t| Tape::compile(&t.constraints)).collect();
     let mut quot = vec![];
+    let mut foff = 0;
     for t in 0..nt {
-        let qc = quotient(&dft, &tapes[t], &main[t], sch.n_quot[t], &pubs, alpha_c)
+        let fins = &aux_finals[foff..foff + sch.n_finals[t]];
+        foff += sch.n_finals[t];
+        let qctx = QuotCtx { tab: &air.tables[t], lay: &lays[t], alpha_fp, gamma, alpha_c, fins };
+        let qc = quotient(&dft, &tapes[t], &main[t], &aux[t], sch.n_quot[t], &pubs, &qctx)
             .map_err(|e| format!("table {t}: {e}"))?;
         quot.push(ColPolys { log_h: heights[t], class: sch.class[t], coeffs: qc });
     }
@@ -329,30 +456,40 @@ pub fn prove(
     tr.absorb(quot_tree.root().to_vec());
     let z = tr.chal_ood();
 
-    // ---- round 4: OOD values ----
+    // ---- message 4: OOD values ----
+    let kvals = |v: Vec<EF>, n: usize| -> Vec<EF> {
+        (0..n).map(|m| (0..8).fold(EF::ZERO, |acc, l| acc + xpow(l) * v[8 * m + l])).collect()
+    };
     let mut ood = vec![];
     for t in 0..nt {
         let gz = z * ef_from_base(omega(heights[t]));
         ood.extend(eval_at(&main[t].coeffs, z));
         ood.extend(eval_at(&main[t].coeffs, gz));
-        let qz = eval_at(&quot[t].coeffs, z);
-        for m in 0..sch.n_quot[t] {
-            ood.push((0..8).fold(EF::ZERO, |acc, l| acc + xpow(l) * qz[8 * m + l]));
+        let wa = sch.w_aux[t];
+        if wa > 0 {
+            ood.extend(kvals(eval_at(&aux[t].coeffs, z), wa));
+            ood.extend(kvals(eval_at(&aux[t].coeffs, gz), wa));
         }
+        ood.extend(kvals(eval_at(&quot[t].coeffs, z), sch.n_quot[t]));
     }
     tm.lap("ood");
-    crate::verifier::ali_check(air, &sch, &ood, z, alpha_c, &pubs)
-        .map_err(|e| format!("{e}: constraints not satisfied by the trace"))?;
-    tr.absorb(ood_bytes(&ood));
-    let batch: Vec<Vec<EF>> = sch.batch_bits.iter().map(|&b| (0..b).map(|_| tr.chal()).collect()).collect();
+    let pre = Challenges {
+        alpha_fp,
+        gamma_mul: gamma,
+        alpha_c,
+        z,
+        batch: vec![],
+        beta: vec![],
+        gamma_roll: vec![],
+        queries: vec![],
+    };
+    global_checks(air, &sch, &ood, &aux_finals, &pre, &pubs)
+        .map_err(|e| format!("{e}: the trace does not satisfy the AIR"))?;
+    tr.absorb(efs_bytes(&ood));
+    let batch: Vec<EF> = (0..sch.batch_rounds).map(|_| tr.chal()).collect();
 
     // ---- DEEP batches per class layer (bit-reversed order) ----
-    let mut ood_off = vec![];
-    let mut o = 0;
-    for t in 0..nt {
-        ood_off.push(o);
-        o += sch.ood_len(t);
-    }
+    let ood_off = ood_offsets(&sch);
     let deep: Vec<Vec<EF>> = sch
         .class_layers
         .iter()
@@ -362,7 +499,7 @@ pub fn prove(
             let n = 1usize << lg;
             let ts = sch.tables_of(c);
             let h = heights[ts[0]];
-            let coeffs = batch_coeffs(&batch[ci], sch.batch_len[ci]);
+            let coeffs = batch_coeffs(&batch, sch.batch_len[ci]);
             let gz = z * ef_from_base(omega(h));
             let mut pz = vec![EF::ZERO; 1 << h];
             let mut pgz = vec![EF::ZERO; 1 << h];
@@ -371,27 +508,36 @@ pub fn prove(
             let mut i = 0;
             for &t in &ts {
                 let w = sch.w_main[t];
+                let wa = sch.w_aux[t];
                 let nq = sch.n_quot[t];
                 let v = &ood[ood_off[t]..ood_off[t] + sch.ood_len(t)];
                 let cz = &coeffs[i..i + w];
                 let cgz = &coeffs[i + w..i + 2 * w];
-                let cq = &coeffs[i + 2 * w..i + 2 * w + nq];
+                let caz = &coeffs[i + 2 * w..i + 2 * w + wa];
+                let cag = &coeffs[i + 2 * w + wa..i + 2 * w + 2 * wa];
+                let cq = &coeffs[i + 2 * w + 2 * wa..i + 2 * w + 2 * wa + nq];
                 for col in 0..w {
                     cst_z += cz[col] * v[col];
                     cst_gz += cgz[col] * v[w + col];
                 }
+                for col in 0..wa {
+                    cst_z += caz[col] * v[2 * w + col];
+                    cst_gz += cag[col] * v[2 * w + wa + col];
+                }
                 for m in 0..nq {
-                    cst_z += cq[m] * v[2 * w + m];
+                    cst_z += cq[m] * v[2 * w + 2 * wa + m];
                 }
                 combine_into(&mut pz, &main[t].coeffs, cz);
                 combine_into(&mut pgz, &main[t].coeffs, cgz);
-                // quotient chunk m is K-valued: Σ_l X^l·q_{m,l}; coefficient
-                // of base column 8m+l is cq[m]·X^l
-                let qcoef: Vec<EF> = (0..8 * nq).map(|k| cq[k / 8] * xpow(k % 8)).collect();
-                combine_into(&mut pz, &quot[t].coeffs, &qcoef);
+                // K-valued columns: base column 8m+l has coefficient c[m]·X^l
+                let lift = |c: &[EF]| -> Vec<EF> { (0..8 * c.len()).map(|k| c[k / 8] * xpow(k % 8)).collect() };
+                if wa > 0 {
+                    combine_into(&mut pz, &aux[t].coeffs, &lift(caz));
+                    combine_into(&mut pgz, &aux[t].coeffs, &lift(cag));
+                }
+                combine_into(&mut pz, &quot[t].coeffs, &lift(cq));
                 i += sch.ood_len(t);
             }
-            // evaluate both on the class LDE
             let mut m = ef_to_base_row(&pz.iter().zip(&pgz).flat_map(|(a, b)| [*a, *b]).collect::<Vec<_>>());
             m.resize(16 * n, F::ZERO);
             let ev = dft.coset_dft_batch(RowMajorMatrix::new(m, 16), class_shift(c)).to_row_major_matrix();
@@ -418,7 +564,16 @@ pub fn prove(
     let mut fri_trees: Vec<(Mat, Tree)> = vec![];
     let mut fri_roots = vec![];
     let two_inv = F::TWO.inverse();
+    let roll_in = |k: usize, f: &mut Vec<EF>, tr: &mut Transcript| {
+        if k > 0 {
+            if let Some(ci) = sch.class_layers.iter().position(|&c| c == k) {
+                let g = tr.chal();
+                f.par_iter_mut().zip(deep[ci].par_iter()).for_each(|(x, d)| *x += g * *d);
+            }
+        }
+    };
     for k in 0..sch.fri_l {
+        roll_in(k, &mut f, &mut tr);
         if let Some(i) = sch.committed_at(k) {
             let a = sch.committed[i].1;
             let mat = Mat { width: 8 << a, log_height: l0 - k - a, values: ef_to_base_row(&f), bitrev: false };
@@ -441,11 +596,8 @@ pub fn prove(
                 (e0 + e1) * two_inv + beta * (e0 - e1) * inv2x[j]
             })
             .collect();
-        if let Some(ci) = sch.class_layers.iter().position(|&c| c == k + 1) {
-            let gamma = tr.chal();
-            f.par_iter_mut().zip(deep[ci].par_iter()).for_each(|(x, g)| *x += gamma * *g);
-        }
     }
+    roll_in(sch.fri_l, &mut f, &mut tr);
     // final layer: degree < 2 on 32 points
     let y0 = crate::protocol::point(l0, sch.fri_l, 0);
     let p0 = (f[0] + f[1]) * two_inv;
@@ -458,7 +610,7 @@ pub fn prove(
     }
     let final_poly = [p0, p1];
     tm.lap("fri");
-    tr.absorb(final_bytes(&final_poly));
+    tr.absorb(efs_bytes(&final_poly));
     let queries = tr.finish_queries(l0, NUM_CHUNKS, PER_CHUNK);
 
     // ---- openings ----
@@ -475,9 +627,8 @@ pub fn prove(
         })
         .collect();
     tm.lap("openings");
-    Ok(Proof {
+    let proof = Proof {
         heights,
-        version: VERSION,
         root_main: main_tree.root(),
         root_aux: aux_tree.root(),
         aux_finals,
@@ -489,5 +640,18 @@ pub fn prove(
         open_aux,
         open_quot,
         open_fri,
-    })
+    };
+    Ok((proof, sch, queries))
+}
+
+/// Prove and serialize (FORMATS.md §5).
+pub fn prove_bytes(
+    air: &Air,
+    traces: Vec<RowMajorMatrix<F>>,
+    pub_tape: &[u8],
+    cb: &[u8],
+    opts: &ProveOptions,
+) -> Result<Vec<u8>, String> {
+    let (p, sch, q) = prove(air, traces, pub_tape, cb, opts)?;
+    Ok(p.to_bytes(&sch, &q))
 }

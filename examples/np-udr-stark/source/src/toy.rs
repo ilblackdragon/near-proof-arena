@@ -90,3 +90,75 @@ pub fn cube_trace(w: usize, log_n: usize) -> RowMajorMatrix<F> {
 pub fn multi_air() -> Air {
     Air { tables: vec![fib_table(22), cube_table(3, 22), cube_table(1, 22)], num_buses: 0, num_pub: 6 }
 }
+
+/// Bus toy (range lookup): table `rng` (2^log_r rows) has `v = row index`
+/// and 4 multiplicity-bit columns, receiving `[v]` on bus 0 with
+/// multiplicity `Σ m_k 2^k`; table `use` (2^log_u rows) has columns
+/// `(x, s)` and sends `[x]` with multiplicity bit `s` (and `[x+1]` on bus 1,
+/// received by a third table with single-bit multiplicity `[1]`).
+pub fn bus_air() -> Air {
+    use crate::air::Interaction;
+    let mut rng = Table {
+        name: "rng".into(),
+        width: 5,
+        constraints: vec![
+            E::mul(E::IsFirst, E::col(0)),
+            E::mul(E::IsTransition, E::sub(E::nxt(0), E::add(E::col(0), E::c(1)))),
+        ],
+        interactions: vec![Interaction {
+            bus: 0,
+            mult: (1..5).map(E::col).collect(),
+            msg: vec![E::col(0)],
+            send: false,
+        }],
+        max_log: 22,
+    };
+    let mut usr = Table {
+        name: "use".into(),
+        width: 2,
+        constraints: vec![],
+        interactions: vec![
+            Interaction { bus: 0, mult: vec![E::col(1)], msg: vec![E::col(0)], send: true },
+            Interaction { bus: 1, mult: vec![E::c(1)], msg: vec![E::add(E::col(0), E::c(1))], send: true },
+        ],
+        max_log: 22,
+    };
+    let mut sink = Table {
+        name: "sink".into(),
+        width: 1,
+        constraints: vec![],
+        interactions: vec![Interaction { bus: 1, mult: vec![E::c(1)], msg: vec![E::col(0)], send: false }],
+        max_log: 22,
+    };
+    for t in [&mut rng, &mut usr, &mut sink] {
+        let b = crate::aux::bit_constraints(t);
+        t.constraints.extend(b);
+    }
+    Air { tables: vec![rng, usr, sink], num_buses: 2, num_pub: 0 }
+}
+
+/// Honest traces for `bus_air`; `xs` are the looked-up values (< 2^log_r,
+/// each used ≤ 15 times), `len(xs) ≤ 2^log_u`.
+pub fn bus_traces(log_r: usize, log_u: usize, xs: &[u32]) -> Vec<RowMajorMatrix<F>> {
+    let nr = 1usize << log_r;
+    let nu = 1usize << log_u;
+    let mut cnt = vec![0u32; nr];
+    let mut usr = vec![F::ZERO; 2 * nu];
+    let mut sink = vec![F::ZERO; nu];
+    for (i, &x) in xs.iter().enumerate() {
+        cnt[x as usize] += 1;
+        usr[2 * i] = F::new(x);
+        usr[2 * i + 1] = F::ONE;
+    }
+    for i in 0..nu {
+        sink[i] = usr[2 * i] + F::ONE;
+    }
+    let mut rng = vec![F::ZERO; 5 * nr];
+    for v in 0..nr {
+        rng[5 * v] = F::new(v as u32);
+        for k in 0..4 {
+            rng[5 * v + 1 + k] = F::new((cnt[v] >> k) & 1);
+        }
+    }
+    vec![RowMajorMatrix::new(rng, 5), RowMajorMatrix::new(usr, 2), RowMajorMatrix::new(sink, 1)]
+}

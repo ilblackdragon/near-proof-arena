@@ -1,6 +1,7 @@
 //! Full-prefix Fiat–Shamir transcript through the 512-bit hash chain.
 //!
-//! * `d_0 = WH(INIT, "np-udr-stark-v1" ‖ pubDigest[32] ‖ header ‖ u32le(|cb|) ‖ cb)`
+//! * `d_0 = WH(INIT, "np-udr-stark-v1" ‖ le64(|pub|) ‖ pub ‖ le64(|cb|) ‖ cb)`
+//!   (`pub` = the full public tape); the proof header is part of message 0.
 //! * every challenge is preceded by exactly one absorbed message `m`
 //!   (possibly empty): `d ← WH(ABS, d ‖ m)`, then
 //!   `c = decodeChal(H(CHAL ‖ d))` (or `decodeOod` for the OOD point).
@@ -20,8 +21,11 @@ pub struct Transcript {
 }
 
 impl Transcript {
-    pub fn new(pub_digest: &Digest32, header: &[u8], cb: &[u8]) -> Self {
-        let d = wh(TAG_INIT, &[PROTOCOL_ID, pub_digest, header, &(cb.len() as u32).to_le_bytes(), cb]);
+    pub fn new(pub_tape: &[u8], cb: &[u8]) -> Self {
+        let d = wh(
+            TAG_INIT,
+            &[PROTOCOL_ID, &(pub_tape.len() as u64).to_le_bytes(), pub_tape, &(cb.len() as u64).to_le_bytes(), cb],
+        );
         Transcript { d, pending: None }
     }
 

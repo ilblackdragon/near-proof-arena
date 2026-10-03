@@ -307,3 +307,68 @@ mod tests {
         assert!(!verify(&shape, &t.root(), &idx, &op));
     }
 }
+
+// ---------------------------------------------------------------------------
+// Wire form of a multiproof (FORMATS.md §5): leaves `rows_0(j)` for `j ∈ S_0`
+// ascending; then for each level k = 1..=L and parent p ∈ S_k ascending: the
+// missing child digest (if exactly one child is in S_{k-1}), then
+// `rows_k(p)` if level k has matrices. `shape` is `(log, width)` per matrix.
+// ---------------------------------------------------------------------------
+
+fn level_mats(shape: &[(usize, usize)], l0: usize, k: usize) -> Vec<usize> {
+    (0..shape.len()).filter(|&m| shape[m].0 + k == l0).collect()
+}
+
+pub fn write_opening(out: &mut Vec<u8>, shape: &[(usize, usize)], idx: &[usize], op: &Opening) {
+    let l0 = shape.iter().map(|s| s.0).max().unwrap();
+    let sets = index_sets(l0, idx);
+    let rows_at = |out: &mut Vec<u8>, k: usize, pos: usize| {
+        for m in level_mats(shape, l0, k) {
+            let w = shape[m].1;
+            put_row(out, &op.rows[m][pos * w..(pos + 1) * w]);
+        }
+    };
+    for p in 0..sets[0].len() {
+        rows_at(out, 0, p);
+    }
+    let mut sib = op.siblings.iter();
+    for k in 1..=l0 {
+        for (p, &j) in sets[k].iter().enumerate() {
+            let a = sets[k - 1].binary_search(&(2 * j)).is_ok();
+            let b = sets[k - 1].binary_search(&(2 * j + 1)).is_ok();
+            if !(a && b) {
+                out.extend_from_slice(sib.next().expect("sibling"));
+            }
+            rows_at(out, k, p);
+        }
+    }
+}
+
+pub fn read_opening(r: &mut crate::protocol::Reader, shape: &[(usize, usize)], idx: &[usize]) -> Option<Opening> {
+    let l0 = shape.iter().map(|s| s.0).max()?;
+    let sets = index_sets(l0, idx);
+    let mut rows: Vec<Vec<F>> = shape.iter().map(|_| vec![]).collect();
+    let mut read_rows = |r: &mut crate::protocol::Reader, k: usize| -> Option<()> {
+        for m in level_mats(shape, l0, k) {
+            for _ in 0..shape[m].1 {
+                rows[m].push(r.f()?);
+            }
+        }
+        Some(())
+    };
+    for _ in 0..sets[0].len() {
+        read_rows(r, 0)?;
+    }
+    let mut siblings = vec![];
+    for k in 1..=l0 {
+        for &j in &sets[k] {
+            let a = sets[k - 1].binary_search(&(2 * j)).is_ok();
+            let b = sets[k - 1].binary_search(&(2 * j + 1)).is_ok();
+            if !(a && b) {
+                siblings.push(r.d64()?);
+            }
+            read_rows(r, k)?;
+        }
+    }
+    Some(Opening { rows, siblings })
+}
