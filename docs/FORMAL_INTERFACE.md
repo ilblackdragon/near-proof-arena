@@ -366,6 +366,7 @@ vectors and SHA-256 test vectors, the Toy certificate, and
 | `ArenaCore.Obligations.endToEnd` | propext, Classical.choice, Quot.sound |
 | `ArenaCore.Security.CRReduction.secure_of_sound` | propext, Classical.choice, Quot.sound |
 | `ArenaCore.Security.rom_guess_bound` | propext, Classical.choice, Quot.sound |
+| `ArenaCore.Security.romSound_of_deterministic` | propext, Classical.choice, Quot.sound |
 | `ArenaCore.Sanity.acceptAll_not_romSound` | propext, Classical.choice, Quot.sound |
 | `ArenaCore.Sanity.rejectAll_not_complete` | none |
 | `ArenaCore.interpOracleVerifier_deployed` | propext, Quot.sound |

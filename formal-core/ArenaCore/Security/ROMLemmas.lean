@@ -301,3 +301,80 @@ theorem rom_guess_bound (A : OracleComp hashSpec Bytes) (q : Nat)
   exact Nat.le_trans (Nat.mul_le_mul_right _ hmono) hb
 
 end ArenaCore.Security
+
+namespace ArenaCore.Security
+
+/-! ## Oracle-free verifiers and provers: the ROM branch is inhabitable -/
+
+/-- A prover that never queries the oracle. -/
+def OracleProver.const {S : ChallengeSpec} (f : Bytes → S.Claim → S.Witness → Bytes) :
+    OracleProver S := ⟨fun _ s pub c w => (f pub c w, s)⟩
+
+/-- A verifier that never queries the oracle. -/
+def OracleVerifier.const (g : Bytes → Bytes → Bytes → Bool) : OracleVerifier :=
+  ⟨fun _ s pub cb pb => (g pub cb pb, s)⟩
+
+theorem romImpl_const_prove {S : ChallengeSpec} (f : Bytes → S.Claim → S.Witness → Bytes)
+    (pub cb : Bytes) (w : S.Witness) (s : LazyRO) :
+    (romImpl S (OracleProver.const f) pub (.prove cb w) s).2 = s := by
+  classical
+  simp only [romImpl]
+  split
+  · split <;> rfl
+  · rfl
+
+/-- The lazy-oracle invariant for the full ROM-game oracle, when the honest
+prover makes no oracle queries: a `q`-hash-query adversary consumes at most
+`q` tape symbols. -/
+theorem LazyInv.simulateRom {S : ChallengeSpec} (f : Bytes → S.Claim → S.Witness → Bytes)
+    (pub : Bytes) {tape : List Nat} {α : Type} {A : OracleComp (romSpec S.Witness) α} {q : Nat}
+    (hA : OracleComp.QueryBound hashWeight A q) :
+    ∀ {k : Nat} {s : LazyRO}, LazyInv tape k s → k + q ≤ tape.length →
+      ∃ k', k' ≤ k + q ∧
+        LazyInv tape k' (OracleComp.simulate (romImpl S (OracleProver.const f) pub) A s).2 := by
+  induction hA with
+  | pure a n =>
+    intro k s h _
+    exact ⟨k, by omega, h⟩
+  | query qq cont n hw _ ih =>
+    intro k s h hlen
+    simp only [OracleComp.simulate]
+    cases qq with
+    | hash x =>
+      simp only [hashWeight] at hw
+      obtain ⟨k1, hk1, h1, -⟩ := h.query (by omega) x
+      obtain ⟨k', hk', h'⟩ := ih (LazyRO.query s x).1 h1 (by simp only [hashWeight]; omega)
+      exact ⟨k', by simp only [hashWeight] at hk'; omega, h'⟩
+    | prove cb w =>
+      have hs := romImpl_const_prove f pub cb w s
+      obtain ⟨k', hk', h'⟩ := ih (romImpl S (OracleProver.const f) pub (.prove cb w) s).1
+        (hs ▸ h) (by simp only [hashWeight]; omega)
+      exact ⟨k', by simp only [hashWeight] at hk'; omega, h'⟩
+
+/-- **The ROM branch is satisfiable** (and its overflow rule is not a trap
+for honest candidates): a deterministically sound verifier that makes no
+oracle queries has ROM-game advantage exactly `0` with a tape of `qHash`
+symbols, against every adversary within budget. -/
+theorem romSound_of_deterministic {S : ChallengeSpec} (L : Bytes → Prop)
+    (g : Bytes → Bytes → Bytes → Bool) (f : Bytes → S.Claim → S.Witness → Bytes) (pub : Bytes)
+    (hdet : ∀ cb pb, g pub cb pb = true → L cb) (qH qP : Nat) :
+    RomSound S L (OracleVerifier.const g) (OracleProver.const f) pub qH qP qH 0 1 := by
+  intro A hA _
+  refine ⟨Nat.one_pos, ?_⟩
+  have : count (allTapes qH roRange) (romWins S L (OracleVerifier.const g) (OracleProver.const f) pub A)
+      ≤ count (allTapes qH roRange) (fun _ => False) := by
+    apply count_mono_mem
+    intro t ht hw
+    have hlen := mem_allTapes_length ht
+    obtain ⟨k', _, hinv⟩ := LazyInv.simulateRom f pub hA (LazyInv.init t) (by omega)
+    unfold romWins at hw
+    simp only [OracleVerifier.const] at hw
+    rcases hw with hov | ⟨hacc, hn⟩
+    · rw [hinv.2.1] at hov
+      cases hov
+    · exact hn (hdet _ _ hacc)
+  rw [count_const] at this
+  simp only [ite_false] at this
+  omega
+
+end ArenaCore.Security
