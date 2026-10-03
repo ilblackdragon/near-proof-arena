@@ -1,0 +1,30 @@
+# np-udr-stark: the provable STARK backend `np-udr-stark-v1`
+# (docs/zk-formal/DESIGN.md §4, §7) for near-transfer-receipt-v1-2.
+# PACKAGE SKELETON: `prove` is a stub until the NEAR AIR lands (lane L6), and
+# formal/ holds a reject-all placeholder model and no certificate (lanes
+# L4/L7), so the judge cannot admit it yet. verify_route = native-lean: the
+# judge compiles [formal] verifier_model itself (as for reexec-witness);
+# build.sh replicates that build into out/verify.
+schema = "arena-candidate-v1"
+name = "np-udr-stark"
+agent = "backend-np-udr-stark"
+challenge = "chl_3be93793610370275ae40f36a475f01f"
+backend_family = "np-udr-stark-v1"
+security_profile_request = "validity-classical-128"
+hardware = { gpu = false, min_ram_gb = 4 }
+
+[build]
+recipe = "build-recipe/build.sh"
+outputs = ["out/prepare", "out/prove", "out/verify"]
+
+[entry]
+prepare = "out/prepare"
+prove = "out/prove"
+verify = "out/verify"
+verify_route = "native-lean"
+
+[formal]
+lean_project = "formal"
+certificate = "NpUdrStark.certificate"
+verifier_model = "NpUdrStark.Model.verifier"
+verifier_model_module = "NpUdrStark.Model"
