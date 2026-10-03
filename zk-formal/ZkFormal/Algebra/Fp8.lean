@@ -284,6 +284,9 @@ theorem ofBase_neg (a : Fp) : ofBase (-a) = -ofBase a := by
   ext <;> simp [ofBase] <;> grind
 theorem ofBase_sub (a b : Fp) : ofBase (a - b) = ofBase a - ofBase b := by
   ext <;> simp [ofBase] <;> grind
+theorem smulBase_eq (c : Fp) (a : Fp8) : smulBase c a = ofBase c * a := by
+  ext <;> simp [smulBase, ofBase, W] <;> grind
+
 theorem ofBase_inj {a b : Fp} (h : ofBase a = ofBase b) : a = b := congrArg Fp8.c0 h
 
 /-- `a` lies in the base field `F_p`. -/
