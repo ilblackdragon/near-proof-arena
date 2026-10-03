@@ -1,0 +1,8 @@
+{
+  "schema": "arena-governance-pubkey-v1",
+  "algorithm": "ed25519",
+  "key_id": "gov_8292e8f55c257fcc",
+  "public_key_hex": "b7244fb13b0389840fd5bdfe297d6aed501bd7f09760c78c3079021078826a6d",
+  "dev_only": true,
+  "label": "DEV-ONLY governance key for NEAR Proof Arena local development. NOT a production key; the private half lives on a shared dev host (/data/illia/nearproof-deps/keys). Challenges signed by it are demo/experimental tier only."
+}

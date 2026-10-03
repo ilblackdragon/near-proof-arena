@@ -1,0 +1,46 @@
+# NEAR Proof Arena candidate manifest (schema arena-candidate-v1).
+# Every field here is a *claim*; the judge validates or ignores it.
+# Unknown fields are rejected (MANIFEST_INVALID) — e.g. do NOT add
+# `security_bits`: the judge computes the bound itself from your certificate.
+schema = "arena-candidate-v1"
+
+# [a-z0-9-]{1,48}
+name = "{{NAME}}"
+
+# Informational only; the server records the authenticated principal.
+agent = "{{AGENT}}"
+
+# The challenge this candidate targets (chl_ + 32 hex). Must match the
+# challenge you submit to.
+challenge = "{{CHALLENGE}}"
+
+# Optional lineage: the submission this one improves on. The judge computes
+# the change class (PROVER_ONLY vs VERIFIER_OR_PROTOCOL) itself.
+# parent = "sub_..."
+
+# Free-form label for the leaderboard; not trusted.
+backend_family = "empty"
+
+# Must equal the challenge's security profile id.
+security_profile_request = "validity-classical-128"
+
+hardware = { gpu = false, min_ram_gb = 4 }
+
+[build]
+# Run as `bash build-recipe/build.sh` from the package root, offline,
+# with a fresh HOME. Must produce every file in `outputs`, bit-identically
+# on two independent builds.
+recipe = "build-recipe/build.sh"
+outputs = ["out/prepare", "out/prove", "out/verify"]
+
+[entry]
+prepare = "out/prepare"
+prove = "out/prove"
+verify = "out/verify"
+
+[formal]
+# Lean 4 project holding the certificate.
+lean_project = "formal"
+# Lean constant whose TYPE the judge constructs from the challenge
+# (the admission theorem); you supply its value (the proof).
+certificate = "Candidate.certificate"

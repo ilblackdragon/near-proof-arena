@@ -1,0 +1,29 @@
+[package]
+name = "arena-admin"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Governance CLI for NEAR Proof Arena: keys, challenge canonicalization, signing, verification, supersession"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "arena-admin"
+path = "src/main.rs"
+
+[dependencies]
+arena-types = { path = "../../common/arena-types" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+time.workspace = true
+clap.workspace = true
+ed25519-dalek.workspace = true
+rand_core.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

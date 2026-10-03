@@ -1,0 +1,8 @@
+# Copy to /etc/systemd/system/arena-worker@.service.d/10-network.conf and set
+# the control plane's internal worker-API address. This is the ONLY address a
+# worker may talk to (nftables enforces the same on the host).
+[Service]
+IPAddressAllow=10.20.0.10/32
+# Only if the server lane keeps direct Postgres job leasing (CONTRACTS.md §9)
+# for this worker role; otherwise leave commented out.
+#IPAddressAllow=10.20.0.20/32

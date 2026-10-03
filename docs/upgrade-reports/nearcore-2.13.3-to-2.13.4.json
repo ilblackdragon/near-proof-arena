@@ -1,0 +1,273 @@
+{
+  "schema": "arena-upgrade-impact-v1",
+  "tool": "upgrade-monitor 0.1.0",
+  "verdict": "REVALIDATION_REQUIRED",
+  "reasons": [
+    "3 file(s) changed inside the runtime dependency closure",
+    "workspace build configuration changed: [\"Cargo.lock\", \"Cargo.toml\"]"
+  ],
+  "old": {
+    "ref": "2.13.3",
+    "commit": "5af9ca74631e6cf0dae33e77d1a632e94d2952ce",
+    "stable_protocol_version": 86
+  },
+  "new": {
+    "ref": "2.13.4",
+    "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+    "stable_protocol_version": 86
+  },
+  "roots": [
+    "node-runtime",
+    "near-vm-runner",
+    "near-primitives",
+    "near-primitives-core",
+    "near-store",
+    "near-parameters",
+    "near-crypto"
+  ],
+  "closure": {
+    "crates": [
+      {
+        "name": "near-async",
+        "dir": "core/async",
+        "changed_files": 0
+      },
+      {
+        "name": "near-async-derive",
+        "dir": "core/async-derive",
+        "changed_files": 0
+      },
+      {
+        "name": "near-chain-configs",
+        "dir": "core/chain-configs",
+        "changed_files": 0
+      },
+      {
+        "name": "near-chain-primitives",
+        "dir": "chain/chain-primitives",
+        "changed_files": 0
+      },
+      {
+        "name": "near-config-utils",
+        "dir": "utils/config",
+        "changed_files": 0
+      },
+      {
+        "name": "near-crypto",
+        "dir": "core/crypto",
+        "changed_files": 0
+      },
+      {
+        "name": "near-external-storage",
+        "dir": "core/external-storage",
+        "changed_files": 0
+      },
+      {
+        "name": "near-fmt",
+        "dir": "utils/fmt",
+        "changed_files": 0
+      },
+      {
+        "name": "near-o11y",
+        "dir": "core/o11y",
+        "changed_files": 0
+      },
+      {
+        "name": "near-parameters",
+        "dir": "core/parameters",
+        "changed_files": 0
+      },
+      {
+        "name": "near-primitives",
+        "dir": "core/primitives",
+        "changed_files": 2
+      },
+      {
+        "name": "near-primitives-core",
+        "dir": "core/primitives-core",
+        "changed_files": 0
+      },
+      {
+        "name": "near-schema-checker-core",
+        "dir": "core/schema-checker/schema-checker-core",
+        "changed_files": 0
+      },
+      {
+        "name": "near-schema-checker-lib",
+        "dir": "core/schema-checker/schema-checker-lib",
+        "changed_files": 0
+      },
+      {
+        "name": "near-schema-checker-macro",
+        "dir": "core/schema-checker/schema-checker-macro",
+        "changed_files": 0
+      },
+      {
+        "name": "near-stdx",
+        "dir": "utils/stdx",
+        "changed_files": 0
+      },
+      {
+        "name": "near-store",
+        "dir": "core/store",
+        "changed_files": 1
+      },
+      {
+        "name": "near-time",
+        "dir": "core/time",
+        "changed_files": 0
+      },
+      {
+        "name": "near-vm-compiler",
+        "dir": "runtime/near-vm/compiler",
+        "changed_files": 0
+      },
+      {
+        "name": "near-vm-compiler-singlepass",
+        "dir": "runtime/near-vm/compiler-singlepass",
+        "changed_files": 0
+      },
+      {
+        "name": "near-vm-engine",
+        "dir": "runtime/near-vm/engine",
+        "changed_files": 0
+      },
+      {
+        "name": "near-vm-runner",
+        "dir": "runtime/near-vm-runner",
+        "changed_files": 0
+      },
+      {
+        "name": "near-vm-types",
+        "dir": "runtime/near-vm/types",
+        "changed_files": 0
+      },
+      {
+        "name": "near-vm-vm",
+        "dir": "runtime/near-vm/vm",
+        "changed_files": 0
+      },
+      {
+        "name": "near-wallet-contract",
+        "dir": "runtime/near-wallet-contract",
+        "changed_files": 0
+      },
+      {
+        "name": "node-runtime",
+        "dir": "runtime/runtime",
+        "changed_files": 0
+      }
+    ],
+    "added": [],
+    "removed": [],
+    "include_targets_outside_crates": [],
+    "external_crates_old": 573,
+    "external_crates_new": 573
+  },
+  "changed_files_total": 13,
+  "changed_files_outside_closure": 8,
+  "changed_in_closure": [
+    {
+      "path": "core/primitives/src/state.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/state_part.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/store/src/trie/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    }
+  ],
+  "workspace_build_config_changes": [
+    "Cargo.lock",
+    "Cargo.toml"
+  ],
+  "external_crate_changes": [],
+  "parameters": {
+    "changed_files": [],
+    "diff_excerpt": ""
+  },
+  "protocol": {
+    "old_stable": 86,
+    "new_stable": 86,
+    "constants_changed": {},
+    "features_added": {},
+    "features_removed": {},
+    "features_version_changed": {},
+    "features_deprecated": [],
+    "newly_stable_features": [],
+    "db_constants_changed": {},
+    "parse_errors": []
+  },
+  "version_gate_changes": {},
+  "migrations": [],
+  "impact": {
+    "rule_hits": [
+      {
+        "rule": "state-commitment",
+        "files": [
+          "core/primitives/src/state.rs",
+          "core/primitives/src/state_part.rs",
+          "core/store/src/trie/mod.rs"
+        ],
+        "spec_definitions": [
+          "concept:state-root",
+          "concept:trie-node-hashing",
+          "concept:storage-proof"
+        ],
+        "obligations": [
+          "FORMAL_SEMANTIC_SOUNDNESS",
+          "FORMAL_SEMANTIC_COMPLETENESS",
+          "FORMAL_CRYPTO_SOUNDNESS",
+          "FORMAL_IMPL_CONNECTION",
+          "CONFORMANCE_DIFFERENTIAL",
+          "ADVERSARIAL_PROOFS"
+        ],
+        "fixtures": [
+          "*"
+        ],
+        "note": ""
+      },
+      {
+        "rule": "workspace-build",
+        "files": [
+          "@workspace/Cargo.lock",
+          "@workspace/Cargo.toml"
+        ],
+        "spec_definitions": [],
+        "obligations": [
+          "CONFORMANCE_DIFFERENTIAL",
+          "BUILD_REPRODUCIBLE"
+        ],
+        "fixtures": [],
+        "note": ""
+      }
+    ],
+    "unmapped_files": [],
+    "spec_definitions_to_revalidate": [
+      "concept:state-root",
+      "concept:storage-proof",
+      "concept:trie-node-hashing"
+    ],
+    "obligations_to_reopen": [
+      "BUILD_REPRODUCIBLE",
+      "FORMAL_SEMANTIC_SOUNDNESS",
+      "FORMAL_SEMANTIC_COMPLETENESS",
+      "FORMAL_CRYPTO_SOUNDNESS",
+      "FORMAL_IMPL_CONNECTION",
+      "CONFORMANCE_DIFFERENTIAL",
+      "ADVERSARIAL_PROOFS"
+    ],
+    "fixtures_to_regenerate": [
+      "*"
+    ]
+  }
+}

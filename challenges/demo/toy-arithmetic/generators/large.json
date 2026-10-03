@@ -1,0 +1,1 @@
+{"generator":"demo-toy-arithmetic-uniform-v1","note":"DEMO ONLY. Requests (a,b) with a,b drawn uniformly from [0, 2^64) using a judge-chosen seed sampled after the challenge is frozen.","bits":64}

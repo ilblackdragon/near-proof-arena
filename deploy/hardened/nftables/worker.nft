@@ -1,0 +1,52 @@
+#!/usr/sbin/nft -f
+# NEAR Proof Arena — worker host (build / formal / oracle / bench / gpu).
+# Install as /etc/nftables.conf on every worker host; edit the defines.
+#
+# Policy: workers reach ONLY the control plane's internal worker API (plus
+# NTP for lease/audit timestamps). No DNS, no package mirrors, no internet,
+# no metadata service. microVMs have no network device; nothing is forwarded.
+flush ruleset
+
+define CONTROL_PLANE = 10.20.0.10      # internal address of arena-server
+define WORKER_API_PORT = 8472          # ARENA_WORKER_API_BIND_ADDR port
+define NTP_SERVER = 10.20.0.2
+define ADMIN_BASTION = 10.20.0.5
+# Only if workers lease jobs directly from Postgres (CONTRACTS.md §9);
+# otherwise delete the DB_HOST rule in the output chain below.
+define DB_HOST = 10.20.0.20
+define DB_PORT = 5432
+
+table inet arena {
+	include "/etc/nftables.d/arena-metadata.nft"
+
+	chain input {
+		type filter hook input priority filter; policy drop;
+		iif "lo" accept
+		ct state invalid drop
+		ct state established,related accept
+		ip saddr $ADMIN_BASTION tcp dport 22 ct state new accept
+		icmp type { echo-request, destination-unreachable, time-exceeded } limit rate 10/second accept
+		icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, nd-neighbor-solicit, nd-neighbor-advert, nd-router-advert } accept
+		limit rate 5/second log prefix "arena-in-drop " level info
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy drop;
+		limit rate 5/second log prefix "arena-fwd-drop " level warn
+	}
+
+	chain output {
+		type filter hook output priority filter; policy drop;
+		oif "lo" accept
+		jump metadata_block
+		ct state invalid drop
+		ct state established,related accept
+		ip daddr $CONTROL_PLANE tcp dport $WORKER_API_PORT ct state new accept
+		ip daddr $DB_HOST tcp dport $DB_PORT ct state new accept
+		ip daddr $NTP_SERVER udp dport 123 accept
+		icmpv6 type { nd-neighbor-solicit, nd-neighbor-advert, nd-router-solicit } accept
+		limit rate 5/second log prefix "arena-egress-deny " level warn
+		# Fail fast and visibly (the drop policy is the backstop).
+		reject with icmpx type admin-prohibited
+	}
+}

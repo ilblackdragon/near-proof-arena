@@ -1,0 +1,2472 @@
+{
+  "schema": "arena-upgrade-impact-v1",
+  "tool": "upgrade-monitor 0.1.0",
+  "verdict": "REVALIDATION_REQUIRED",
+  "reasons": [
+    "211 file(s) changed inside the runtime dependency closure",
+    "workspace build configuration changed: [\".cargo/audit.toml\", \"Cargo.lock\", \"Cargo.toml\"]",
+    "20 external crate(s) in the closure changed version",
+    "7 runtime parameter file(s) changed",
+    "STABLE_PROTOCOL_VERSION Some(84) -> Some(86)",
+    "ProtocolFeature set changed (+12 -0 ~4)"
+  ],
+  "old": {
+    "ref": "2.12.0",
+    "commit": "1144e310f7e70734453167cb07f8cccf28987eb8",
+    "stable_protocol_version": 84
+  },
+  "new": {
+    "ref": "2.13.4",
+    "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+    "stable_protocol_version": 86
+  },
+  "roots": [
+    "node-runtime",
+    "near-vm-runner",
+    "near-primitives",
+    "near-primitives-core",
+    "near-store",
+    "near-parameters",
+    "near-crypto"
+  ],
+  "closure": {
+    "crates": [
+      {
+        "name": "near-async",
+        "dir": "core/async",
+        "changed_files": 3
+      },
+      {
+        "name": "near-async-derive",
+        "dir": "core/async-derive",
+        "changed_files": 0
+      },
+      {
+        "name": "near-chain-configs",
+        "dir": "core/chain-configs",
+        "changed_files": 7
+      },
+      {
+        "name": "near-chain-primitives",
+        "dir": "chain/chain-primitives",
+        "changed_files": 1
+      },
+      {
+        "name": "near-config-utils",
+        "dir": "utils/config",
+        "changed_files": 0
+      },
+      {
+        "name": "near-crypto",
+        "dir": "core/crypto",
+        "changed_files": 11
+      },
+      {
+        "name": "near-external-storage",
+        "dir": "core/external-storage",
+        "changed_files": 0
+      },
+      {
+        "name": "near-fmt",
+        "dir": "utils/fmt",
+        "changed_files": 0
+      },
+      {
+        "name": "near-o11y",
+        "dir": "core/o11y",
+        "changed_files": 2
+      },
+      {
+        "name": "near-parameters",
+        "dir": "core/parameters",
+        "changed_files": 80
+      },
+      {
+        "name": "near-primitives",
+        "dir": "core/primitives",
+        "changed_files": 39
+      },
+      {
+        "name": "near-primitives-core",
+        "dir": "core/primitives-core",
+        "changed_files": 3
+      },
+      {
+        "name": "near-schema-checker-core",
+        "dir": "core/schema-checker/schema-checker-core",
+        "changed_files": 0
+      },
+      {
+        "name": "near-schema-checker-lib",
+        "dir": "core/schema-checker/schema-checker-lib",
+        "changed_files": 0
+      },
+      {
+        "name": "near-schema-checker-macro",
+        "dir": "core/schema-checker/schema-checker-macro",
+        "changed_files": 0
+      },
+      {
+        "name": "near-stdx",
+        "dir": "utils/stdx",
+        "changed_files": 0
+      },
+      {
+        "name": "near-store",
+        "dir": "core/store",
+        "changed_files": 21
+      },
+      {
+        "name": "near-time",
+        "dir": "core/time",
+        "changed_files": 0
+      },
+      {
+        "name": "near-vm-compiler",
+        "dir": "runtime/near-vm/compiler",
+        "changed_files": 0
+      },
+      {
+        "name": "near-vm-compiler-singlepass",
+        "dir": "runtime/near-vm/compiler-singlepass",
+        "changed_files": 0
+      },
+      {
+        "name": "near-vm-engine",
+        "dir": "runtime/near-vm/engine",
+        "changed_files": 0
+      },
+      {
+        "name": "near-vm-runner",
+        "dir": "runtime/near-vm-runner",
+        "changed_files": 22
+      },
+      {
+        "name": "near-vm-types",
+        "dir": "runtime/near-vm/types",
+        "changed_files": 0
+      },
+      {
+        "name": "near-vm-vm",
+        "dir": "runtime/near-vm/vm",
+        "changed_files": 0
+      },
+      {
+        "name": "near-wallet-contract",
+        "dir": "runtime/near-wallet-contract",
+        "changed_files": 1
+      },
+      {
+        "name": "node-runtime",
+        "dir": "runtime/runtime",
+        "changed_files": 21
+      }
+    ],
+    "added": [],
+    "removed": [],
+    "include_targets_outside_crates": [],
+    "external_crates_old": 581,
+    "external_crates_new": 573
+  },
+  "changed_files_total": 597,
+  "changed_files_outside_closure": 383,
+  "changed_in_closure": [
+    {
+      "path": "chain/chain-primitives/src/error.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-chain-primitives"
+    },
+    {
+      "path": "core/async/src/test_loop/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-async"
+    },
+    {
+      "path": "core/async/src/test_loop/sender.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-async"
+    },
+    {
+      "path": "core/async/src/thread_pool.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-async"
+    },
+    {
+      "path": "core/chain-configs/Cargo.toml",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-chain-configs"
+    },
+    {
+      "path": "core/chain-configs/src/client_config.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-chain-configs"
+    },
+    {
+      "path": "core/chain-configs/src/genesis_validate.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-chain-configs"
+    },
+    {
+      "path": "core/chain-configs/src/lib.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-chain-configs"
+    },
+    {
+      "path": "core/chain-configs/src/test_genesis.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-chain-configs"
+    },
+    {
+      "path": "core/chain-configs/src/test_utils.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-chain-configs"
+    },
+    {
+      "path": "core/chain-configs/src/updatable_config.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-chain-configs"
+    },
+    {
+      "path": "core/crypto/Cargo.toml",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-crypto"
+    },
+    {
+      "path": "core/crypto/benches/ml_dsa_worst_case.rs",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-crypto"
+    },
+    {
+      "path": "core/crypto/benches/signatures.rs",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-crypto"
+    },
+    {
+      "path": "core/crypto/benches/verify_distribution.rs",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-crypto"
+    },
+    {
+      "path": "core/crypto/src/errors.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-crypto"
+    },
+    {
+      "path": "core/crypto/src/hash_domain.rs",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-crypto"
+    },
+    {
+      "path": "core/crypto/src/key_conversion.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-crypto"
+    },
+    {
+      "path": "core/crypto/src/lib.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-crypto"
+    },
+    {
+      "path": "core/crypto/src/signature.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-crypto"
+    },
+    {
+      "path": "core/crypto/src/test_utils.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-crypto"
+    },
+    {
+      "path": "core/crypto/src/util.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-crypto"
+    },
+    {
+      "path": "core/o11y/src/env_filter.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-o11y"
+    },
+    {
+      "path": "core/o11y/src/testonly.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-o11y"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/149.yaml",
+      "old_path": null,
+      "status": "D",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/155.yaml",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/82.yaml",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/85.yaml",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/parameters.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/parameters.yaml",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/parameters_testnet.yaml",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/config.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/config_store.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/cost.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/lib.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/parameter.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/parameter_table.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__0.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__129.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__155.json.snap",
+      "old_path": "core/parameters/src/snapshots/near_parameters__config_store__tests__149.json.snap",
+      "status": "R",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__42.json.snap",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__46.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__48.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__49.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__50.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__52.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__53.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__55.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__57.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__59.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__61.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__62.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__63.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__64.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__66.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__67.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__68.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__69.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__70.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__72.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__73.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__74.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__77.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__78.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__79.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__82.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__83.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__84.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__85.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_0.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_129.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_155.json.snap",
+      "old_path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_149.json.snap",
+      "status": "R",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_42.json.snap",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_46.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_48.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_49.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_50.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_52.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_53.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_55.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_57.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_59.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_61.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_62.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_63.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_64.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_66.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_67.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_68.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_69.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_70.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_72.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_73.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_74.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_77.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_78.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_79.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_82.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_83.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_84.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_85.json.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/snapshots/near_parameters__view__tests__runtime_config_view.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/view.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/parameters/src/vm.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-parameters"
+    },
+    {
+      "path": "core/primitives-core/Cargo.toml",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives-core"
+    },
+    {
+      "path": "core/primitives-core/src/hash.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives-core"
+    },
+    {
+      "path": "core/primitives-core/src/version.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives-core"
+    },
+    {
+      "path": "core/primitives/res/epoch_configs/mainnet/85.json",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/res/epoch_configs/testnet/85.json",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/action/delegate.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/action/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/block.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/block_body.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/block_header.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/epoch_block_info.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/epoch_manager.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/epoch_sync.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/errors.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/genesis/chunk.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/lib.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/profile_data_v3.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/receipt.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/signable_message.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/snapshots/near_primitives__views__tests__exec_metadata_v2_view.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/snapshots/near_primitives__views__tests__exec_metadata_v3_view.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/snapshots/near_primitives__views__tests__exec_metadata_v4_view.snap",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/snapshots/near_primitives__views__tests__runtime_config_view.snap",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/spice/chunk_endorsement.rs",
+      "old_path": "core/primitives/src/stateless_validation/spice_chunk_endorsement.rs",
+      "status": "R",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/spice/mod.rs",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/spice/partial_data.rs",
+      "old_path": "core/primitives/src/spice_partial_data.rs",
+      "status": "R",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/spice/state_witness.rs",
+      "old_path": "core/primitives/src/stateless_validation/spice_state_witness.rs",
+      "status": "R",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/state.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/state_part.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/state_record.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/state_sync.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/stateless_validation/chunk_endorsement.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/stateless_validation/contract_distribution.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/stateless_validation/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/stateless_validation/partial_witness.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/stateless_validation/partial_witness_tests.rs",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/test_utils.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/transaction.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/trie_key.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/types.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/version.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/primitives/src/views.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-primitives"
+    },
+    {
+      "path": "core/store/src/adapter/chain_store.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/adapter/chunk_store.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/adapter/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/archive/cloud_storage/archive.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/archive/cloud_storage/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/archive/cloud_storage/shards.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/columns.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/db/cold_column_checked.rs",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/db/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/flat/storage.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/genesis/state_applier.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/lib.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/metrics/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/trie/mem/loading.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/trie/mem/memtrie_update.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/trie/mem/memtries.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/trie/mem/metrics.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/trie/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/trie/ops/resharding.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/trie/shard_tries.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "core/store/src/utils/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-store"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/cache.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/imports.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/lib.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/bls12381.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/dependencies.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/errors.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/gas_counter.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/logic.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/mocks/mock_external.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/tests/bls12381.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/tests/bls12381_test_vectors/g1_add_x0.csv",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/tests/context.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/tests/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/tests/promises.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/tests/yield_resume.rs",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/logic/vmstate.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/near_vm_runner/runner.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/profile.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/tests.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/tests/chain_id_integration.rs",
+      "old_path": null,
+      "status": "A",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/wasmtime_runner/logic.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-vm-runner/src/wasmtime_runner/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-vm-runner"
+    },
+    {
+      "path": "runtime/near-wallet-contract/implementation/Cargo.lock",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "near-wallet-contract"
+    },
+    {
+      "path": "runtime/runtime/src/access_keys.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/action_validation.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/actions.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/actions_test_utils.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/adapter.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/cache_warming.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/config.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/congestion_control.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/ext.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/function_call.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/lib.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/pipelining.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/prefetch.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/receipt_manager.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/state_viewer/errors.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/state_viewer/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/tests/apply.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/src/verifier.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/tests/runtime_group_tools/mod.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/tests/runtime_group_tools/random_config.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    },
+    {
+      "path": "runtime/runtime/tests/test_async_calls.rs",
+      "old_path": null,
+      "status": "M",
+      "crate_name": "node-runtime"
+    }
+  ],
+  "workspace_build_config_changes": [
+    ".cargo/audit.toml",
+    "Cargo.lock",
+    "Cargo.toml"
+  ],
+  "external_crate_changes": [
+    {
+      "name": "anyhow",
+      "old_versions": [
+        "1.0.102"
+      ],
+      "new_versions": [
+        "1.0.103"
+      ]
+    },
+    {
+      "name": "codespan-reporting",
+      "old_versions": [
+        "0.11.1"
+      ],
+      "new_versions": []
+    },
+    {
+      "name": "crossbeam-epoch",
+      "old_versions": [
+        "0.9.14"
+      ],
+      "new_versions": [
+        "0.9.20"
+      ]
+    },
+    {
+      "name": "cxx",
+      "old_versions": [
+        "1.0.94"
+      ],
+      "new_versions": []
+    },
+    {
+      "name": "cxx-build",
+      "old_versions": [
+        "1.0.94"
+      ],
+      "new_versions": []
+    },
+    {
+      "name": "cxxbridge-flags",
+      "old_versions": [
+        "1.0.94"
+      ],
+      "new_versions": []
+    },
+    {
+      "name": "cxxbridge-macro",
+      "old_versions": [
+        "1.0.94"
+      ],
+      "new_versions": []
+    },
+    {
+      "name": "finite-wasm",
+      "old_versions": [
+        "0.5.0",
+        "0.6.0"
+      ],
+      "new_versions": [
+        "0.5.1",
+        "0.6.1"
+      ]
+    },
+    {
+      "name": "futures",
+      "old_versions": [
+        "0.3.21"
+      ],
+      "new_versions": [
+        "0.3.31"
+      ]
+    },
+    {
+      "name": "futures-executor",
+      "old_versions": [
+        "0.3.21"
+      ],
+      "new_versions": [
+        "0.3.31"
+      ]
+    },
+    {
+      "name": "iana-time-zone-haiku",
+      "old_versions": [
+        "0.1.1"
+      ],
+      "new_versions": [
+        "0.1.2"
+      ]
+    },
+    {
+      "name": "link-cplusplus",
+      "old_versions": [
+        "1.0.8"
+      ],
+      "new_versions": []
+    },
+    {
+      "name": "openssl",
+      "old_versions": [
+        "0.10.78"
+      ],
+      "new_versions": [
+        "0.10.80"
+      ]
+    },
+    {
+      "name": "openssl-sys",
+      "old_versions": [
+        "0.9.114"
+      ],
+      "new_versions": [
+        "0.9.116"
+      ]
+    },
+    {
+      "name": "quinn-proto",
+      "old_versions": [
+        "0.11.14"
+      ],
+      "new_versions": [
+        "0.11.15"
+      ]
+    },
+    {
+      "name": "scratch",
+      "old_versions": [
+        "1.0.5"
+      ],
+      "new_versions": []
+    },
+    {
+      "name": "socket2",
+      "old_versions": [
+        "0.5.8",
+        "0.6.0"
+      ],
+      "new_versions": [
+        "0.6.0"
+      ]
+    },
+    {
+      "name": "spin",
+      "old_versions": [
+        "0.5.2",
+        "0.9.8"
+      ],
+      "new_versions": [
+        "0.5.2",
+        "0.9.9"
+      ]
+    },
+    {
+      "name": "unicode-width",
+      "old_versions": [
+        "0.1.9"
+      ],
+      "new_versions": []
+    },
+    {
+      "name": "untrusted",
+      "old_versions": [
+        "0.9.0"
+      ],
+      "new_versions": [
+        "0.7.1",
+        "0.9.0"
+      ]
+    }
+  ],
+  "parameters": {
+    "changed_files": [
+      "D core/parameters/res/runtime_configs/149.yaml",
+      "A core/parameters/res/runtime_configs/155.yaml",
+      "M core/parameters/res/runtime_configs/82.yaml",
+      "M core/parameters/res/runtime_configs/85.yaml",
+      "M core/parameters/res/runtime_configs/parameters.snap",
+      "M core/parameters/res/runtime_configs/parameters.yaml",
+      "M core/parameters/res/runtime_configs/parameters_testnet.yaml"
+    ],
+    "diff_excerpt": "diff --git a/core/parameters/res/runtime_configs/149.yaml b/core/parameters/res/runtime_configs/149.yaml\ndeleted file mode 100644\nindex df802a6..0000000\n--- a/core/parameters/res/runtime_configs/149.yaml\n+++ /dev/null\n@@ -1 +0,0 @@\n-gas_key_host_fns: { old: false, new: true }\ndiff --git a/core/parameters/res/runtime_configs/155.yaml b/core/parameters/res/runtime_configs/155.yaml\nnew file mode 100644\nindex 0000000..b6df973\n--- /dev/null\n+++ b/core/parameters/res/runtime_configs/155.yaml\n@@ -0,0 +1 @@\n+bls12381_not_in_group_fix: { old: false, new: true }\ndiff --git a/core/parameters/res/runtime_configs/82.yaml b/core/parameters/res/runtime_configs/82.yaml\nindex 1f0d1d2..7d5defc 100644\n--- a/core/parameters/res/runtime_configs/82.yaml\n+++ b/core/parameters/res/runtime_configs/82.yaml\n@@ -13,2 +13 @@ max_tables_per_contract: { new: 1 }\n-max_elements_per_contract_table: { new: 10_000 }\n-deterministic_account_ids: { old: false, new: true }\n\\ No newline at end of file\n+max_elements_per_contract_table: { new: 10_000 }\n\\ No newline at end of file\ndiff --git a/core/parameters/res/runtime_configs/85.yaml b/core/parameters/res/runtime_configs/85.yaml\nindex 065522a..517d270 100644\n--- a/core/parameters/res/runtime_configs/85.yaml\n+++ b/core/parameters/res/runtime_configs/85.yaml\n@@ -2,0 +3,41 @@ p256_verify_host_fn: { old: false, new: true }\n+gas_key_host_fns: { old: false, new: true }\n+chain_id_host_fn: { old: false, new: true }\n+yield_with_id_host_fns: { old: false, new: true }\n+# yield_create_with_id charges this base instead of wasm_yield_create_base.\n+# Accounts for the two extra trie writes (YieldIdToDataId / DataIdToYieldId\n+# mapping) compared to plain yield_create. Value derived from wasm_yield_create_base\n+# (153B) plus the cost of two wasm_storage_write_base operations (~64B each).\n+wasm_yield_create_with_id_base: { old: 300_000_000_000_000, new: 290_000_000_000 }\n+# PostQuantumSignatures: the newly introduced ML-DSA-65 signature scheme is more\n+# expensive to verify than the existing schemes. The verification cost is added\n+# to the transaction conversion cost to cover the difference.\n+# 100 Ggas\n+ml_dsa_65_verification_cost: { old: 0, new: 100_000_000_000 }\n+action_create_account: {\n+  old: {\n+    send_sir: 3_850_000_000_000,\n+    send_not_sir: 3_850_000_000_000,\n+    execution: 3_850_000_000_000\n+  },\n+  new: {\n+    send_sir: 500_000_000_000,\n+    send_not_sir: 500_000_000_000,\n+    execution: 7_200_000_000_000,\n+  }\n+}\n+action_deterministic_state_init: {\n+  old: {\n+    send_sir: 3_850_000_000_000,\n+    send_not_sir: 3_850_000_000_000,\n+    execution: 4_080_000_000_000\n+  },\n+  new: {\n+    send_sir: 500_000_000_000,\n+    send_not_sir: 500_000_000_000,\n+    execution: 7_430_000_000_000\n+  }\n+}\n+# Minimum price at which gas attached to a receipt is purchased.\n+min_gas_purchase_price: { old: 0, new: 1_000_000_000 }\n+# How much creating a new account should cost.\n+account_creation_charge: { old: 0, new: 0.007 N }\ndiff --git a/core/parameters/res/runtime_configs/parameters.snap b/core/parameters/res/runtime_configs/parameters.snap\nindex fa4525c..72ac87a 100644\n--- a/core/parameters/res/runtime_configs/parameters.snap\n+++ b/core/parameters/res/runtime_configs/parameters.snap\n@@ -8,0 +9,2 @@ min_gas_refund_penalty                                     0\n+min_gas_purchase_price                         1_000_000_000\n+account_creation_charge                 0.007 N\n@@ -33,3 +35,3 @@ action_create_account\n-- send_sir:        3_850_000_000_000\n-- send_not_sir:    3_850_000_000_000\n-- execution:       3_850_000_000_000\n+- send_sir:          500_000_000_000\n+- send_not_sir:      500_000_000_000\n+- execution:       7_200_000_000_000\n@@ -85,3 +87,3 @@ action_deterministic_state_init\n-- send_sir:        3_850_000_000_000\n-- send_not_sir:    3_850_000_000_000\n-- execution:       4_080_000_000_000\n+- send_sir:          500_000_000_000\n+- send_not_sir:      500_000_000_000\n+- execution:       7_430_000_000_000\n@@ -178,0 +181 @@ wasm_yield_create_byte                            15_643_988\n+wasm_yield_create_with_id_base               290_000_000_000\n@@ -270,0 +274 @@ deploy_global_contract_execution_per_byte         250_000_000\n+ml_dsa_65_verification_cost                  100_000_000_000\n@@ -280,2 +284 @@ global_contract_host_fns                true\n-deterministic_account_ids               true\n-gas_key_host_fns                        false\n+gas_key_host_fns                        true\n@@ -283,0 +287,3 @@ p256_verify_host_fn                     true\n+yield_with_id_host_fns                  true\n+chain_id_host_fn                        true\n+bls12381_not_in_group_fix               false\ndiff --git a/core/parameters/res/runtime_configs/parameters.yaml b/core/parameters/res/runtime_configs/parameters.yaml\nindex 8460d68..1246f83 100644\n--- a/core/parameters/res/runtime_configs/parameters.yaml\n+++ b/core/parameters/res/runtime_configs/parameters.yaml\n@@ -18,0 +19,2 @@ min_gas_refund_penalty: 0\n+min_gas_purchase_price: 0\n+account_creation_charge: 0\n@@ -242,0 +245 @@ wasm_yield_create_byte: 300_000_000_000_000\n+wasm_yield_create_with_id_base: 300_000_000_000_000\n@@ -284 +286,0 @@ reftypes_bulk_memory: false\n-deterministic_account_ids: false\n@@ -287,0 +290,3 @@ p256_verify_host_fn: false\n+yield_with_id_host_fns: false\n+chain_id_host_fn: false\n+bls12381_not_in_group_fix: false\n@@ -335,0 +341,4 @@ deploy_global_contract_execution_per_byte: 0\n+# Gas charged at tx conversion per ML-DSA-65 signature verification the tx\n+# triggers. 0 until PostQuantumSignatures activates (see 85.yaml).\n+ml_dsa_65_verification_cost: 0\n+\ndiff --git a/core/parameters/res/runtime_configs/parameters_testnet.yaml b/core/parameters/res/runtime_configs/parameters_testnet.yaml\nindex 74bfb27..6df6303 100644\n--- a/core/parameters/res/runtime_configs/parameters_testnet.yaml\n+++ b/core/parameters/res/runtime_configs/parameters_testnet.yaml\n@@ -14,0 +15,2 @@ min_gas_refund_penalty: 0\n+min_gas_purchase_price: 0\n+account_creation_charge: 0\n@@ -239,0 +242 @@ wasm_yield_create_byte: 300_000_000_000_000\n+wasm_yield_create_with_id_base: 300_000_000_000_000\n@@ -279 +281,0 @@ reftypes_bulk_memory: false\n-deterministic_account_ids: false\n@@ -282,0 +285,3 @@ p256_verify_host_fn: false\n+yield_with_id_host_fns: false\n+chain_id_host_fn: false\n+bls12381_not_in_group_fix: false\n@@ -325,0 +331,2 @@ deploy_global_contract_execution_per_byte: 0\n+ml_dsa_65_verification_cost: 0\n+\n"
+  },
+  "protocol": {
+    "old_stable": 84,
+    "new_stable": 86,
+    "constants_changed": {
+      "MIN_SUPPORTED_PROTOCOL_VERSION": [
+        "80",
+        "83"
+      ],
+      "NIGHTLY_PROTOCOL_VERSION": [
+        "153",
+        "155"
+      ],
+      "STABLE_PROTOCOL_VERSION": [
+        "84",
+        "86"
+      ]
+    },
+    "features_added": {
+      "AccountCostIncrease": 85,
+      "ClampOutgoingGasAdmission": 85,
+      "DelegateV2": 85,
+      "EnforcePerReceiptStorageProofLimit": 86,
+      "ExecutionMetadataV4": 85,
+      "FixDelegatedDeterministicStateInit": 85,
+      "FixDeleteAccountGlobalContractStorageUsage": 85,
+      "PostQuantumSignatures": 85,
+      "SignedContractCodeResponse": 85,
+      "UniqueChunkTransactions": 85,
+      "ValidateBlockOrdinalAndEpochSyncDataHash": 85,
+      "YieldWithId": 85
+    },
+    "features_removed": {},
+    "features_version_changed": {
+      "DynamicResharding": [
+        150,
+        85
+      ],
+      "GasKeys": [
+        149,
+        85
+      ],
+      "StickyReshardingValidatorAssignment": [
+        153,
+        85
+      ],
+      "StrictNonce": [
+        151,
+        85
+      ]
+    },
+    "features_deprecated": [
+      "DeterministicAccountIds",
+      "IncreaseMaxCongestionMissedChunks",
+      "InstantDeleteAccount",
+      "InstantPromiseYield",
+      "StatePartsCompression",
+      "YieldResumeImprovements"
+    ],
+    "newly_stable_features": [
+      "AccountCostIncrease",
+      "ClampOutgoingGasAdmission",
+      "ContinuousEpochSync",
+      "DelegateV2",
+      "DynamicResharding",
+      "EnforcePerReceiptStorageProofLimit",
+      "ExecutionMetadataV4",
+      "FixDelegateActionDepositWithFunctionCallError",
+      "FixDelegatedDeterministicStateInit",
+      "FixDeleteAccountGlobalContractStorageUsage",
+      "GasKeys",
+      "PostQuantumSignatures",
+      "SignedContractCodeResponse",
+      "StickyReshardingValidatorAssignment",
+      "StrictNonce",
+      "UniqueChunkTransactions",
+      "ValidateBlockOrdinalAndEpochSyncDataHash",
+      "YieldWithId"
+    ],
+    "db_constants_changed": {},
+    "parse_errors": []
+  },
+  "version_gate_changes": {
+    "AccountCostIncrease": {
+      "added_refs": 18,
+      "removed_refs": 0,
+      "files": [
+        "core/parameters/src/cost.rs",
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/lib.rs",
+        "runtime/runtime/src/tests/apply.rs",
+        "runtime/runtime/tests/runtime_group_tools/mod.rs",
+        "runtime/runtime/tests/runtime_group_tools/random_config.rs"
+      ]
+    },
+    "ClampOutgoingGasAdmission": {
+      "added_refs": 2,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/congestion_control.rs"
+      ]
+    },
+    "ContinuousEpochSync": {
+      "added_refs": 1,
+      "removed_refs": 1,
+      "files": [
+        "core/primitives-core/src/version.rs"
+      ]
+    },
+    "DelegateV2": {
+      "added_refs": 3,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/action_validation.rs"
+      ]
+    },
+    "DeterministicAccountIds": {
+      "added_refs": 0,
+      "removed_refs": 15,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/near-vm-runner/src/logic/tests/context.rs",
+        "runtime/near-vm-runner/src/logic/tests/promises.rs",
+        "runtime/runtime/src/action_validation.rs",
+        "runtime/runtime/src/function_call.rs",
+        "runtime/runtime/tests/test_async_calls.rs"
+      ]
+    },
+    "DynamicResharding": {
+      "added_refs": 2,
+      "removed_refs": 2,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "core/primitives/src/block_header.rs"
+      ]
+    },
+    "EarlyKickout": {
+      "added_refs": 2,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives/src/stateless_validation/partial_witness_tests.rs"
+      ]
+    },
+    "EnforcePerReceiptStorageProofLimit": {
+      "added_refs": 2,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/lib.rs"
+      ]
+    },
+    "ExecutionMetadataV4": {
+      "added_refs": 2,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/lib.rs"
+      ]
+    },
+    "FixDelegatedDeterministicStateInit": {
+      "added_refs": 2,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/action_validation.rs"
+      ]
+    },
+    "FixDeleteAccountGlobalContractStorageUsage": {
+      "added_refs": 10,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/actions.rs"
+      ]
+    },
+    "GasKeys": {
+      "added_refs": 1,
+      "removed_refs": 2,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/verifier.rs"
+      ]
+    },
+    "IncreaseMaxCongestionMissedChunks": {
+      "added_refs": 0,
+      "removed_refs": 1,
+      "files": [
+        "core/primitives-core/src/version.rs"
+      ]
+    },
+    "InstantDeleteAccount": {
+      "added_refs": 0,
+      "removed_refs": 2,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "core/primitives/src/receipt.rs"
+      ]
+    },
+    "InstantPromiseYield": {
+      "added_refs": 0,
+      "removed_refs": 2,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "core/primitives/src/receipt.rs"
+      ]
+    },
+    "PostQuantumSignatures": {
+      "added_refs": 16,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "core/primitives/src/transaction.rs",
+        "runtime/runtime/src/action_validation.rs",
+        "runtime/runtime/src/ext.rs"
+      ]
+    },
+    "SignedContractCodeResponse": {
+      "added_refs": 2,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "core/primitives/src/stateless_validation/contract_distribution.rs"
+      ]
+    },
+    "Spice": {
+      "added_refs": 5,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives/src/block_header.rs",
+        "core/primitives/src/epoch_block_info.rs",
+        "core/primitives/src/test_utils.rs"
+      ]
+    },
+    "StatePartsCompression": {
+      "added_refs": 0,
+      "removed_refs": 8,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "core/primitives/src/state_part.rs",
+        "core/primitives/src/state_sync.rs"
+      ]
+    },
+    "StickyReshardingValidatorAssignment": {
+      "added_refs": 1,
+      "removed_refs": 1,
+      "files": [
+        "core/primitives-core/src/version.rs"
+      ]
+    },
+    "StrictNonce": {
+      "added_refs": 1,
+      "removed_refs": 2,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/verifier.rs"
+      ]
+    },
+    "UniqueChunkTransactions": {
+      "added_refs": 4,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/lib.rs",
+        "runtime/runtime/src/tests/apply.rs"
+      ]
+    },
+    "ValidateBlockOrdinalAndEpochSyncDataHash": {
+      "added_refs": 1,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs"
+      ]
+    },
+    "YieldResumeImprovements": {
+      "added_refs": 0,
+      "removed_refs": 5,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/ext.rs",
+        "runtime/runtime/src/lib.rs"
+      ]
+    },
+    "YieldWithId": {
+      "added_refs": 2,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs",
+        "runtime/runtime/src/lib.rs"
+      ]
+    },
+    "_DeprecatedDeterministicAccountIds": {
+      "added_refs": 1,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs"
+      ]
+    },
+    "_DeprecatedIncreaseMaxCongestionMissedChunks": {
+      "added_refs": 1,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs"
+      ]
+    },
+    "_DeprecatedInstantDeleteAccount": {
+      "added_refs": 1,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs"
+      ]
+    },
+    "_DeprecatedInstantPromiseYield": {
+      "added_refs": 1,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs"
+      ]
+    },
+    "_DeprecatedStatePartsCompression": {
+      "added_refs": 1,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs"
+      ]
+    },
+    "_DeprecatedYieldResumeImprovements": {
+      "added_refs": 1,
+      "removed_refs": 0,
+      "files": [
+        "core/primitives-core/src/version.rs"
+      ]
+    }
+  },
+  "migrations": [
+    "M nearcore/src/migrations.rs",
+    "A test-loop-tests/src/tests/sync/migration_epoch_sync_proof.rs"
+  ],
+  "impact": {
+    "rule_hits": [
+      {
+        "rule": "action-application",
+        "files": [
+          "runtime/runtime/src/access_keys.rs",
+          "runtime/runtime/src/action_validation.rs",
+          "runtime/runtime/src/actions.rs",
+          "runtime/runtime/src/function_call.rs"
+        ],
+        "spec_definitions": [
+          "concept:apply-action",
+          "concept:transfer",
+          "concept:create-account",
+          "concept:access-keys"
+        ],
+        "obligations": [
+          "FORMAL_SEMANTIC_SOUNDNESS",
+          "FORMAL_SEMANTIC_COMPLETENESS",
+          "CONFORMANCE_DIFFERENTIAL",
+          "ADVERSARIAL_PROOFS"
+        ],
+        "fixtures": [
+          "concept:fixtures/actions/**"
+        ],
+        "note": ""
+      },
+      {
+        "rule": "crypto",
+        "files": [
+          "core/crypto/Cargo.toml",
+          "core/crypto/benches/ml_dsa_worst_case.rs",
+          "core/crypto/benches/signatures.rs",
+          "core/crypto/benches/verify_distribution.rs",
+          "core/crypto/src/errors.rs",
+          "core/crypto/src/hash_domain.rs",
+          "core/crypto/src/key_conversion.rs",
+          "core/crypto/src/lib.rs",
+          "core/crypto/src/signature.rs",
+          "core/crypto/src/test_utils.rs",
+          "core/crypto/src/util.rs"
+        ],
+        "spec_definitions": [
+          "concept:signature-verification",
+          "concept:hashing"
+        ],
+        "obligations": [
+          "FORMAL_SEMANTIC_SOUNDNESS",
+          "FORMAL_CRYPTO_SOUNDNESS",
+          "CONFORMANCE_DIFFERENTIAL",
+          "ADVERSARIAL_PROOFS"
+        ],
+        "fixtures": [
+          "concept:fixtures/signatures/**"
+        ],
+        "note": ""
+      },
+      {
+        "rule": "external-crates",
+        "files": [
+          "@external/anyhow",
+          "@external/codespan-reporting",
+          "@external/crossbeam-epoch",
+          "@external/cxx",
+          "@external/cxx-build",
+          "@external/cxxbridge-flags",
+          "@external/cxxbridge-macro",
+          "@external/finite-wasm",
+          "@external/futures",
+          "@external/futures-executor",
+          "@external/iana-time-zone-haiku",
+          "@external/link-cplusplus",
+          "@external/openssl",
+          "@external/openssl-sys",
+          "@external/quinn-proto",
+          "@external/scratch",
+          "@external/socket2",
+          "@external/spin",
+          "@external/unicode-width",
+          "@external/untrusted"
+        ],
+        "spec_definitions": [],
+        "obligations": [
+          "CONFORMANCE_DIFFERENTIAL",
+          "BUILD_REPRODUCIBLE"
+        ],
+        "fixtures": [],
+        "note": "Dependency bumps: rebuild the oracle and re-run differential tests. Crypto crates (ed25519-*, secp256k1, sha2, blake2, borsh, wasmtime, ...) should get their own rules once identified."
+      },
+      {
+        "rule": "protocol-version",
+        "files": [
+          "core/primitives-core/src/version.rs",
+          "core/primitives/src/version.rs",
+          "@protocol/version"
+        ],
+        "spec_definitions": [
+          "concept:protocol-version-gating",
+          "concept:runtime-config-selection"
+        ],
+        "obligations": [
+          "FORMAL_SEMANTIC_SOUNDNESS",
+          "FORMAL_SEMANTIC_COMPLETENESS",
+          "CONFORMANCE_DIFFERENTIAL"
+        ],
+        "fixtures": [
+          "*"
+        ],
+        "note": "A new protocol version / feature gate requires a NEW challenge (docs/PROTOCOL_UPGRADES.md)."
+      },
+      {
+        "rule": "receipt-processing",
+        "files": [
+          "runtime/runtime/src/congestion_control.rs",
+          "runtime/runtime/src/ext.rs",
+          "runtime/runtime/src/lib.rs",
+          "runtime/runtime/src/pipelining.rs",
+          "runtime/runtime/src/receipt_manager.rs"
+        ],
+        "spec_definitions": [
+          "concept:apply-receipt",
+          "concept:receipt-batch-transition",
+          "concept:outgoing-receipts",
+          "concept:refunds"
+        ],
+        "obligations": [
+          "FORMAL_SEMANTIC_SOUNDNESS",
+          "FORMAL_SEMANTIC_COMPLETENESS",
+          "CONFORMANCE_DIFFERENTIAL",
+          "ADVERSARIAL_PROOFS"
+        ],
+        "fixtures": [
+          "*"
+        ],
+        "note": ""
+      },
+      {
+        "rule": "runtime-parameters",
+        "files": [
+          "core/parameters/res/runtime_configs/149.yaml",
+          "core/parameters/res/runtime_configs/155.yaml",
+          "core/parameters/res/runtime_configs/82.yaml",
+          "core/parameters/res/runtime_configs/85.yaml",
+          "core/parameters/res/runtime_configs/parameters.snap",
+          "core/parameters/res/runtime_configs/parameters.yaml",
+          "core/parameters/res/runtime_configs/parameters_testnet.yaml",
+          "core/parameters/src/config.rs",
+          "core/parameters/src/config_store.rs",
+          "core/parameters/src/cost.rs",
+          "core/parameters/src/lib.rs",
+          "core/parameters/src/parameter.rs",
+          "core/parameters/src/parameter_table.rs",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__0.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__129.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__155.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__42.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__46.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__48.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__49.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__50.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__52.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__53.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__55.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__57.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__59.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__61.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__62.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__63.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__64.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__66.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__67.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__68.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__69.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__70.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__72.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__73.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__74.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__77.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__78.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__79.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__82.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__83.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__84.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__85.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_0.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_129.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_155.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_42.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_46.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_48.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_49.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_50.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_52.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_53.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_55.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_57.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_59.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_61.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_62.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_63.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_64.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_66.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_67.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_68.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_69.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_70.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_72.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_73.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_74.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_77.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_78.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_79.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_82.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_83.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_84.json.snap",
+          "core/parameters/src/snapshots/near_parameters__config_store__tests__testnet_85.json.snap",
+          "core/parameters/src/snapshots/near_parameters__view__tests__runtime_config_view.snap",
+          "core/parameters/src/view.rs",
+          "core/parameters/src/vm.rs",
+          "runtime/runtime/src/config.rs"
+        ],
+        "spec_definitions": [
+          "concept:runtime-config",
+          "concept:fees-and-gas",
+          "concept:storage-staking"
+        ],
+        "obligations": [
+          "FORMAL_SEMANTIC_SOUNDNESS",
+          "FORMAL_SEMANTIC_COMPLETENESS",
+          "CONFORMANCE_DIFFERENTIAL"
+        ],
+        "fixtures": [
+          "*"
+        ],
+        "note": "Changes runtime_config_digest; regenerate every fixture whose expected claim depends on fees."
+      },
+      {
+        "rule": "state-commitment",
+        "files": [
+          "core/primitives-core/src/hash.rs",
+          "core/primitives/src/state.rs",
+          "core/primitives/src/state_part.rs",
+          "core/store/src/flat/storage.rs",
+          "core/store/src/trie/mem/loading.rs",
+          "core/store/src/trie/mem/memtrie_update.rs",
+          "core/store/src/trie/mem/memtries.rs",
+          "core/store/src/trie/mem/metrics.rs",
+          "core/store/src/trie/mod.rs",
+          "core/store/src/trie/ops/resharding.rs",
+          "core/store/src/trie/shard_tries.rs"
+        ],
+        "spec_definitions": [
+          "concept:state-root",
+          "concept:trie-node-hashing",
+          "concept:storage-proof"
+        ],
+        "obligations": [
+          "FORMAL_SEMANTIC_SOUNDNESS",
+          "FORMAL_SEMANTIC_COMPLETENESS",
+          "FORMAL_CRYPTO_SOUNDNESS",
+          "FORMAL_IMPL_CONNECTION",
+          "CONFORMANCE_DIFFERENTIAL",
+          "ADVERSARIAL_PROOFS"
+        ],
+        "fixtures": [
+          "*"
+        ],
+        "note": ""
+      },
+      {
+        "rule": "state-encoding",
+        "files": [
+          "core/primitives/src/action/delegate.rs",
+          "core/primitives/src/action/mod.rs",
+          "core/primitives/src/errors.rs",
+          "core/primitives/src/receipt.rs",
+          "core/primitives/src/state_record.rs",
+          "core/primitives/src/trie_key.rs",
+          "core/primitives/src/types.rs"
+        ],
+        "spec_definitions": [
+          "concept:account-encoding",
+          "concept:trie-key-encoding",
+          "concept:receipt-encoding",
+          "concept:claim-encoding"
+        ],
+        "obligations": [
+          "FORMAL_SEMANTIC_SOUNDNESS",
+          "FORMAL_SEMANTIC_COMPLETENESS",
+          "FORMAL_IMPL_CONNECTION",
+          "CONFORMANCE_DIFFERENTIAL"
+        ],
+        "fixtures": [
+          "*"
+        ],
+        "note": ""
+      },
+      {
+        "rule": "storage-plumbing",
+        "files": [
+          "core/store/src/adapter/chain_store.rs",
+          "core/store/src/adapter/chunk_store.rs",
+          "core/store/src/adapter/mod.rs",
+          "core/store/src/archive/cloud_storage/archive.rs",
+          "core/store/src/archive/cloud_storage/mod.rs",
+          "core/store/src/archive/cloud_storage/shards.rs",
+          "core/store/src/columns.rs",
+          "core/store/src/db/cold_column_checked.rs",
+          "core/store/src/db/mod.rs",
+          "core/store/src/metrics/mod.rs",
+          "@migrations"
+        ],
+        "spec_definitions": [],
+        "obligations": [
+          "CONFORMANCE_DIFFERENTIAL"
+        ],
+        "fixtures": [],
+        "note": "Node storage plumbing; oracle behaviour must be re-tested but the spec is not expected to change. Spec lane: confirm."
+      },
+      {
+        "rule": "transaction-verification",
+        "files": [
+          "core/primitives/src/signable_message.rs",
+          "core/primitives/src/transaction.rs",
+          "runtime/runtime/src/verifier.rs"
+        ],
+        "spec_definitions": [
+          "concept:verify-transaction",
+          "concept:tx-to-receipt"
+        ],
+        "obligations": [
+          "FORMAL_SEMANTIC_SOUNDNESS",
+          "FORMAL_SEMANTIC_COMPLETENESS",
+          "CONFORMANCE_DIFFERENTIAL",
+          "ADVERSARIAL_PROOFS"
+        ],
+        "fixtures": [
+          "concept:fixtures/transactions/**"
+        ],
+        "note": ""
+      },
+      {
+        "rule": "wasm-vm",
+        "files": [
+          "runtime/near-vm-runner/src/cache.rs",
+          "runtime/near-vm-runner/src/imports.rs",
+          "runtime/near-vm-runner/src/lib.rs",
+          "runtime/near-vm-runner/src/logic/bls12381.rs",
+          "runtime/near-vm-runner/src/logic/dependencies.rs",
+          "runtime/near-vm-runner/src/logic/errors.rs",
+          "runtime/near-vm-runner/src/logic/gas_counter.rs",
+          "runtime/near-vm-runner/src/logic/logic.rs",
+          "runtime/near-vm-runner/src/logic/mocks/mock_external.rs",
+          "runtime/near-vm-runner/src/logic/tests/bls12381.rs",
+          "runtime/near-vm-runner/src/logic/tests/bls12381_test_vectors/g1_add_x0.csv",
+          "runtime/near-vm-runner/src/logic/tests/context.rs",
+          "runtime/near-vm-runner/src/logic/tests/mod.rs",
+          "runtime/near-vm-runner/src/logic/tests/promises.rs",
+          "runtime/near-vm-runner/src/logic/tests/yield_resume.rs",
+          "runtime/near-vm-runner/src/logic/vmstate.rs",
+          "runtime/near-vm-runner/src/near_vm_runner/runner.rs",
+          "runtime/near-vm-runner/src/profile.rs",
+          "runtime/near-vm-runner/src/tests.rs",
+          "runtime/near-vm-runner/src/tests/chain_id_integration.rs",
+          "runtime/near-vm-runner/src/wasmtime_runner/logic.rs",
+          "runtime/near-vm-runner/src/wasmtime_runner/mod.rs",
+          "runtime/near-wallet-contract/implementation/Cargo.lock"
+        ],
+        "spec_definitions": [
+          "concept:function-call-execution",
+          "concept:host-functions",
+          "concept:wasm-gas-metering"
+        ],
+        "obligations": [
+          "FORMAL_SEMANTIC_SOUNDNESS",
+          "FORMAL_SEMANTIC_COMPLETENESS",
+          "CONFORMANCE_DIFFERENTIAL"
+        ],
+        "fixtures": [
+          "concept:fixtures/function_call/**"
+        ],
+        "note": "Out of scope for transfer-only slices only if the challenge's restrictions exclude FunctionCall; still reopens conformance."
+      },
+      {
+        "rule": "workspace-build",
+        "files": [
+          "@workspace/.cargo/audit.toml",
+          "@workspace/Cargo.lock",
+          "@workspace/Cargo.toml"
+        ],
+        "spec_definitions": [],
+        "obligations": [
+          "CONFORMANCE_DIFFERENTIAL",
+          "BUILD_REPRODUCIBLE"
+        ],
+        "fixtures": [],
+        "note": ""
+      }
+    ],
+    "unmapped_files": [
+      "chain/chain-primitives/src/error.rs",
+      "core/async/src/test_loop/mod.rs",
+      "core/async/src/test_loop/sender.rs",
+      "core/async/src/thread_pool.rs",
+      "core/chain-configs/Cargo.toml",
+      "core/chain-configs/src/client_config.rs",
+      "core/chain-configs/src/genesis_validate.rs",
+      "core/chain-configs/src/lib.rs",
+      "core/chain-configs/src/test_genesis.rs",
+      "core/chain-configs/src/test_utils.rs",
+      "core/chain-configs/src/updatable_config.rs",
+      "core/o11y/src/env_filter.rs",
+      "core/o11y/src/testonly.rs",
+      "core/primitives-core/Cargo.toml",
+      "core/primitives/res/epoch_configs/mainnet/85.json",
+      "core/primitives/res/epoch_configs/testnet/85.json",
+      "core/primitives/src/block.rs",
+      "core/primitives/src/block_body.rs",
+      "core/primitives/src/block_header.rs",
+      "core/primitives/src/epoch_block_info.rs",
+      "core/primitives/src/epoch_manager.rs",
+      "core/primitives/src/epoch_sync.rs",
+      "core/primitives/src/genesis/chunk.rs",
+      "core/primitives/src/lib.rs",
+      "core/primitives/src/profile_data_v3.rs",
+      "core/primitives/src/snapshots/near_primitives__views__tests__exec_metadata_v2_view.snap",
+      "core/primitives/src/snapshots/near_primitives__views__tests__exec_metadata_v3_view.snap",
+      "core/primitives/src/snapshots/near_primitives__views__tests__exec_metadata_v4_view.snap",
+      "core/primitives/src/snapshots/near_primitives__views__tests__runtime_config_view.snap",
+      "core/primitives/src/spice/chunk_endorsement.rs",
+      "core/primitives/src/spice/mod.rs",
+      "core/primitives/src/spice/partial_data.rs",
+      "core/primitives/src/spice/state_witness.rs",
+      "core/primitives/src/state_sync.rs",
+      "core/primitives/src/stateless_validation/chunk_endorsement.rs",
+      "core/primitives/src/stateless_validation/contract_distribution.rs",
+      "core/primitives/src/stateless_validation/mod.rs",
+      "core/primitives/src/stateless_validation/partial_witness.rs",
+      "core/primitives/src/stateless_validation/partial_witness_tests.rs",
+      "core/primitives/src/test_utils.rs",
+      "core/primitives/src/views.rs",
+      "core/store/src/genesis/state_applier.rs",
+      "core/store/src/lib.rs",
+      "core/store/src/utils/mod.rs",
+      "runtime/runtime/src/actions_test_utils.rs",
+      "runtime/runtime/src/adapter.rs",
+      "runtime/runtime/src/cache_warming.rs",
+      "runtime/runtime/src/prefetch.rs",
+      "runtime/runtime/src/state_viewer/errors.rs",
+      "runtime/runtime/src/state_viewer/mod.rs",
+      "runtime/runtime/src/tests/apply.rs",
+      "runtime/runtime/tests/runtime_group_tools/mod.rs",
+      "runtime/runtime/tests/runtime_group_tools/random_config.rs",
+      "runtime/runtime/tests/test_async_calls.rs"
+    ],
+    "spec_definitions_to_revalidate": [
+      "*",
+      "concept:access-keys",
+      "concept:account-encoding",
+      "concept:apply-action",
+      "concept:apply-receipt",
+      "concept:claim-encoding",
+      "concept:create-account",
+      "concept:fees-and-gas",
+      "concept:function-call-execution",
+      "concept:hashing",
+      "concept:host-functions",
+      "concept:outgoing-receipts",
+      "concept:protocol-version-gating",
+      "concept:receipt-batch-transition",
+      "concept:receipt-encoding",
+      "concept:refunds",
+      "concept:runtime-config",
+      "concept:runtime-config-selection",
+      "concept:signature-verification",
+      "concept:state-root",
+      "concept:storage-proof",
+      "concept:storage-staking",
+      "concept:transfer",
+      "concept:trie-key-encoding",
+      "concept:trie-node-hashing",
+      "concept:tx-to-receipt",
+      "concept:verify-transaction",
+      "concept:wasm-gas-metering"
+    ],
+    "obligations_to_reopen": [
+      "BUILD_REPRODUCIBLE",
+      "FORMAL_SEMANTIC_SOUNDNESS",
+      "FORMAL_SEMANTIC_COMPLETENESS",
+      "FORMAL_CRYPTO_SOUNDNESS",
+      "FORMAL_IMPL_CONNECTION",
+      "AXIOM_AUDIT",
+      "CONFORMANCE_DIFFERENTIAL",
+      "ADVERSARIAL_PROOFS",
+      "PROVER_RELIABILITY"
+    ],
+    "fixtures_to_regenerate": [
+      "*",
+      "concept:fixtures/actions/**",
+      "concept:fixtures/function_call/**",
+      "concept:fixtures/signatures/**",
+      "concept:fixtures/transactions/**"
+    ]
+  }
+}

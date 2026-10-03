@@ -56,6 +56,8 @@ pub struct EvidenceGraph {
 
 impl EvidenceGraph {
     pub fn missing_edges(&self) -> impl Iterator<Item = &EvidenceEdge> {
-        self.edges.iter().filter(|e| e.status == EdgeStatus::Missing)
+        self.edges
+            .iter()
+            .filter(|e| e.status == EdgeStatus::Missing)
     }
 }

@@ -1,0 +1,134 @@
+# Governed impact map: nearcore paths -> arena spec definitions / obligations / fixtures.
+#
+# Used by tools/upgrade-monitor. INITIAL VERSION written by the governance
+# lane; the spec-oracle lane owns the `spec_definitions` and `fixtures`
+# vocabulary and is expected to refine every rule (replace the `concept:`
+# placeholders with exact Lean declaration names in spec/lean and the exact
+# fixture directories in oracle/).
+#
+# Semantics:
+# * Paths are git paths relative to the nearcore root; globs use `*` (one path
+#   segment) and `**` (any depth). Pseudo-paths produced by the monitor:
+#     @workspace/<file>   workspace build config (Cargo.toml, Cargo.lock, toolchain)
+#     @external/<crate>   external crate version change inside the closure
+#     @protocol/version   protocol version constants / ProtocolFeature set changed
+#     @migrations         a file with "migration" in its path changed
+#     @closure/membership the set of crates in the closure changed
+# * A changed input may match several rules; the union is reopened.
+# * Any changed closure input that matches NO rule gets [default], which is
+#   deliberately maximal (fail closed). Narrowing a rule is a governance change.
+# * This map only decides WHAT to revalidate. Whether to revalidate is decided
+#   by the monitor: anything changed in the closure => REVALIDATION_REQUIRED.
+
+schema = "arena-impact-map-v1"
+
+[default]
+spec_definitions = ["*"]
+obligations = [
+  "FORMAL_SEMANTIC_SOUNDNESS",
+  "FORMAL_SEMANTIC_COMPLETENESS",
+  "FORMAL_CRYPTO_SOUNDNESS",
+  "FORMAL_IMPL_CONNECTION",
+  "AXIOM_AUDIT",
+  "CONFORMANCE_DIFFERENTIAL",
+  "ADVERSARIAL_PROOFS",
+  "PROVER_RELIABILITY",
+]
+fixtures = ["*"]
+note = "Unmapped change inside the runtime closure: reopen everything semantic."
+
+[[rule]]
+id = "protocol-version"
+paths = ["core/primitives-core/src/version.rs", "core/primitives/src/version.rs", "@protocol/version", "core/primitives/src/upgrade_schedule.rs"]
+spec_definitions = ["concept:protocol-version-gating", "concept:runtime-config-selection"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL"]
+fixtures = ["*"]
+note = "A new protocol version / feature gate requires a NEW challenge (docs/PROTOCOL_UPGRADES.md)."
+
+[[rule]]
+id = "runtime-parameters"
+paths = ["core/parameters/res/runtime_configs/**", "core/parameters/src/**", "core/primitives-core/src/config.rs", "core/primitives-core/src/gas.rs", "runtime/runtime/src/config.rs"]
+spec_definitions = ["concept:runtime-config", "concept:fees-and-gas", "concept:storage-staking"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL"]
+fixtures = ["*"]
+note = "Changes runtime_config_digest; regenerate every fixture whose expected claim depends on fees."
+
+[[rule]]
+id = "action-application"
+paths = ["runtime/runtime/src/actions.rs", "runtime/runtime/src/action_validation.rs", "runtime/runtime/src/access_keys.rs", "runtime/runtime/src/deterministic_account_id.rs", "runtime/runtime/src/global_contracts.rs", "runtime/runtime/src/function_call.rs"]
+spec_definitions = ["concept:apply-action", "concept:transfer", "concept:create-account", "concept:access-keys"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
+fixtures = ["concept:fixtures/actions/**"]
+
+[[rule]]
+id = "receipt-processing"
+paths = ["runtime/runtime/src/lib.rs", "runtime/runtime/src/receipt_manager.rs", "runtime/runtime/src/congestion_control.rs", "runtime/runtime/src/bandwidth_scheduler/**", "runtime/runtime/src/types.rs", "runtime/runtime/src/conversions.rs", "runtime/runtime/src/ext.rs", "runtime/runtime/src/pipelining.rs", "runtime/runtime/src/contract_code.rs"]
+spec_definitions = ["concept:apply-receipt", "concept:receipt-batch-transition", "concept:outgoing-receipts", "concept:refunds"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
+fixtures = ["*"]
+
+[[rule]]
+id = "transaction-verification"
+paths = ["runtime/runtime/src/verifier.rs", "core/primitives/src/transaction.rs", "core/primitives/src/signable_message.rs"]
+spec_definitions = ["concept:verify-transaction", "concept:tx-to-receipt"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
+fixtures = ["concept:fixtures/transactions/**"]
+
+[[rule]]
+id = "wasm-vm"
+paths = ["runtime/near-vm-runner/**", "runtime/near-vm/**", "runtime/near-vm-2/**", "runtime/near-wallet-contract/**"]
+spec_definitions = ["concept:function-call-execution", "concept:host-functions", "concept:wasm-gas-metering"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL"]
+fixtures = ["concept:fixtures/function_call/**"]
+note = "Out of scope for transfer-only slices only if the challenge's restrictions exclude FunctionCall; still reopens conformance."
+
+[[rule]]
+id = "state-encoding"
+paths = ["core/primitives-core/src/account.rs", "core/primitives-core/src/trie_key.rs", "core/primitives/src/trie_key.rs", "core/primitives-core/src/serialize.rs", "core/primitives/src/receipt.rs", "core/primitives/src/action/**", "core/primitives/src/state_record.rs", "core/primitives/src/types.rs", "core/primitives/src/types/**", "core/primitives-core/src/types.rs", "core/primitives/src/errors.rs", "core/primitives-core/src/errors.rs"]
+spec_definitions = ["concept:account-encoding", "concept:trie-key-encoding", "concept:receipt-encoding", "concept:claim-encoding"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "FORMAL_IMPL_CONNECTION", "CONFORMANCE_DIFFERENTIAL"]
+fixtures = ["*"]
+
+[[rule]]
+id = "state-commitment"
+paths = ["core/store/src/trie/**", "core/store/src/merkle_proof.rs", "core/primitives/src/merkle.rs", "core/primitives/src/state.rs", "core/primitives/src/state_part.rs", "core/primitives-core/src/hash.rs", "core/store/src/flat/**"]
+spec_definitions = ["concept:state-root", "concept:trie-node-hashing", "concept:storage-proof"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "FORMAL_CRYPTO_SOUNDNESS", "FORMAL_IMPL_CONNECTION", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
+fixtures = ["*"]
+
+[[rule]]
+id = "crypto"
+paths = ["core/crypto/**"]
+spec_definitions = ["concept:signature-verification", "concept:hashing"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_CRYPTO_SOUNDNESS", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
+fixtures = ["concept:fixtures/signatures/**"]
+
+[[rule]]
+id = "storage-plumbing"
+paths = ["core/store/src/db/**", "core/store/src/adapter/**", "core/store/src/archive/**", "core/store/src/metrics/**", "core/store/src/node_storage/**", "core/store/src/columns.rs", "core/store/src/config.rs", "core/store/src/store.rs", "@migrations"]
+spec_definitions = []
+obligations = ["CONFORMANCE_DIFFERENTIAL"]
+fixtures = []
+note = "Node storage plumbing; oracle behaviour must be re-tested but the spec is not expected to change. Spec lane: confirm."
+
+[[rule]]
+id = "external-crates"
+paths = ["@external/**"]
+spec_definitions = []
+obligations = ["CONFORMANCE_DIFFERENTIAL", "BUILD_REPRODUCIBLE"]
+fixtures = []
+note = "Dependency bumps: rebuild the oracle and re-run differential tests. Crypto crates (ed25519-*, secp256k1, sha2, blake2, borsh, wasmtime, ...) should get their own rules once identified."
+
+[[rule]]
+id = "workspace-build"
+paths = ["@workspace/**"]
+spec_definitions = []
+obligations = ["CONFORMANCE_DIFFERENTIAL", "BUILD_REPRODUCIBLE"]
+fixtures = []
+
+[[rule]]
+id = "closure-membership"
+paths = ["@closure/membership"]
+spec_definitions = ["*"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "FORMAL_IMPL_CONNECTION", "CONFORMANCE_DIFFERENTIAL"]
+fixtures = ["*"]
