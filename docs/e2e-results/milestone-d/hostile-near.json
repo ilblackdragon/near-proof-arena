@@ -1,0 +1,46 @@
+{
+ "near-reexec-malicious-executable": {
+  "accepted": true,
+  "decision": "ADMITTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "ARTIFACT_BINDING"
+  ],
+  "expected_reason_codes": [
+   "ARTIFACT_BINDING_FAILED"
+  ],
+  "failed_gates": [],
+  "ok": false,
+  "reason_codes": [],
+  "submission": "sub_5060d480f997471b8de57f875f6661c8",
+  "unknown_gates": []
+ },
+ "near-reexec-skip-refund": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "FORMAL_SEMANTIC_SOUNDNESS",
+   "FORMAL_CRYPTO_SOUNDNESS"
+  ],
+  "expected_reason_codes": [
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING",
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED",
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "submission": "sub_b879988e881b4d0b82d93086da470f1d",
+  "unknown_gates": []
+ }
+}

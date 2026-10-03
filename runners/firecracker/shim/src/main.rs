@@ -158,10 +158,13 @@ fn watch_serial(
             let text = String::from_utf8_lossy(&line[..n]);
             let t = text.trim_end();
             let mut s = st.lock().unwrap();
-            // markers must start the line (kernel messages are prefixed)
-            if s.start.is_none() && (t == start_m) {
+            // Markers carry the secret per-run nonce (only guest init knows
+            // it; the candidate's stdio never reaches the console). A kernel
+            // message can be interleaved on the same serial line, so the
+            // marker is accepted at the end of the line, not only at its start.
+            if s.start.is_none() && t.ends_with(&start_m) {
                 s.start = Some(now);
-            } else if s.start.is_some() && s.exit.is_none() && t.starts_with(&exit_m) {
+            } else if s.start.is_some() && s.exit.is_none() && t.contains(&exit_m) {
                 s.exit = Some(now);
             }
             s.tail.extend_from_slice(&line[..n]);

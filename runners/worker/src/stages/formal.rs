@@ -197,7 +197,15 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
     let route = match j.manifest.entry.verify_route {
         Some(VerifyRoute::NpaiV1) => VerifierRoute::Standard,
         Some(VerifyRoute::NativeLean) => match (&formal.verifier_model, &formal.verifier_model_module) {
-            (Some(d), Some(m)) => VerifierRoute::NativeLean(NativeLeanRoute::new(d, m)),
+            (Some(d), Some(m)) => {
+                let mut nl = NativeLeanRoute::new(d, m);
+                // The candidate's shipped `verify` must be byte-identical to
+                // the judge's build of the model (else ARTIFACT_BINDING_FAILED):
+                // a different binary must never be published as admitted,
+                // even though the judge only ever runs its own build.
+                nl.candidate_binary_digest = Some(j.build.verify.clone());
+                VerifierRoute::NativeLean(nl)
+            }
             _ => VerifierRoute::CandidateNative,
         },
         // A candidate-built native verifier has no judge build: never admitted

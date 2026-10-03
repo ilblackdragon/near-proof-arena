@@ -1050,8 +1050,14 @@ impl FirecrackerSandbox {
                 return Err(backend(format!("guest init: {error}")))
             }
         };
+        // No host-side timing: an infrastructure problem (lost/garbled serial
+        // output), retried; not evidence of tampering (a forged report is
+        // caught by the nonce check above).
         let wall_ns = res.run_wall_ns.ok_or_else(|| {
-            InfraError::GuestProtocol("guest reported a result without console markers".into())
+            backend(format!(
+                "guest result without console markers; serial: {}",
+                tail(&res.serial_tail)
+            ))
         })?;
         let limits = proto::DecodeLimits {
             max_files: self.cfg.max_output_files as u64,
