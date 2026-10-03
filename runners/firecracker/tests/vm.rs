@@ -47,20 +47,14 @@ fn scratch_dir() -> tempfile::TempDir {
 }
 
 fn spec(script: &str, out: &Path) -> RunRequest {
-    RunRequest {
-        rootfs_digest: sandbox().rootfs_digest().clone(),
-        ro_mounts: vec![],
-        rw_scratch_mb: 64,
-        argv: vec!["/bin/sh".into(), "-c".into(), script.into()],
-        env: vec![],
-        cpu_set: vec![],
-        mem_bytes: 256 << 20,
-        pids: 64,
-        wall_timeout: Duration::from_secs(20),
-        network: None,
-        out_dir: out.to_path_buf(),
-        max_output_bytes: u64::MAX,
-    }
+    let mut r = RunRequest::new(
+        sandbox().rootfs_digest().clone(),
+        vec!["/bin/sh".into(), "-c".into(), script.into()],
+        out.to_path_buf(),
+    );
+    r.wall_timeout = Duration::from_secs(20);
+    r.max_output_bytes = u64::MAX;
+    r
 }
 
 fn run(s: &RunRequest) -> SandboxOutcome {
@@ -96,7 +90,7 @@ fn hello_world() {
         &t.path().join("out"),
     ));
     assert_eq!(o.exit, Exit::Exited(0), "{o:?}");
-    assert_eq!(stdout(&o), "hello\n1000\n/arena/scratch\n");
+    assert_eq!(stdout(&o), "hello\n1000\n/scratch\n");
     assert_eq!(o.stderr_trunc, b"oops\n");
     assert!(o.diagnostics.boot_ns.is_some());
     assert!(o.cpu_ns > 0 && o.peak_rss_bytes > 0);
@@ -209,7 +203,7 @@ fn cannot_see_host_filesystem() {
             "test -e {marker} && echo HOST_VISIBLE; test -e /data && echo DATA; test -e /home/illia && echo HOME; \
              test -e /var/run/docker.sock && echo DOCKER; test -e /usr/local/bin/firecracker && echo FC; \
              cat /dev/vda >/dev/null 2>&1 && echo RAW_DISK; cat /dev/vdc >/dev/null 2>&1 && echo OUT_DEV; \
-             touch /etc/x 2>/dev/null && echo ROOT_WRITABLE; touch /arena/x 2>/dev/null && echo ARENA_WRITABLE; \
+             touch /etc/x 2>/dev/null && echo ROOT_WRITABLE; touch /in/x /opt/x /x 2>/dev/null && echo ROOT2_WRITABLE; \
              grep -c . /proc/mounts >/dev/null; ls /proc | grep -E '^[0-9]+$' | wc -l; echo done"
         ),
         &t.path().join("out"),
@@ -233,7 +227,7 @@ fn env_is_cleared_and_allowlisted() {
     let o = run(&s);
     assert_eq!(
         stdout(&o),
-        "HOME=/arena/scratch\nPATH=/usr/local/bin:/usr/bin:/bin\nPWD=/arena/scratch\nRUST_LOG=info\nTMPDIR=/arena/scratch/tmp\n"
+        "HOME=/scratch\nLANG=C.UTF-8\nPATH=/usr/local/bin:/usr/bin:/bin\nPWD=/scratch\nRUST_LOG=info\nTMPDIR=/tmp\nTZ=UTC\n"
     );
     let mut bad = spec("true", &t.path().join("out2"));
     bad.env = vec![("LD_PRELOAD".into(), "/x.so".into())];
@@ -247,7 +241,7 @@ fn env_is_cleared_and_allowlisted() {
 fn outputs_retrieved_with_digests_and_policy() {
     gate!();
     let t = scratch_dir();
-    let out = t.path().join("out");
+    let out = t.path().join("res");
     let o = run(&spec(
         "cd out && mkdir -p sub/deeper && printf 'claim' > claim.bin && head -c 300000 /dev/urandom > sub/proof.bin && \
          printf '#!/bin/sh\\necho hi\\n' > sub/deeper/tool && chmod +x sub/deeper/tool && ln -s /etc/passwd link && \
@@ -256,25 +250,28 @@ fn outputs_retrieved_with_digests_and_policy() {
     ));
     assert_eq!(o.exit, Exit::Exited(0), "{o:?}");
     let paths: Vec<&str> = o.outputs.iter().map(|(p, _)| p.as_str()).collect();
-    assert_eq!(paths, vec!["claim.bin", "sub/deeper/tool", "sub/proof.bin"]); // sorted
+    assert_eq!(
+        paths,
+        vec!["out/claim.bin", "out/sub/deeper/tool", "out/sub/proof.bin"]
+    ); // sorted
     for (p, d) in &o.outputs {
         let bytes = fs::read(out.join(p)).unwrap();
         assert_eq!(d.hex(), hex::encode(Sha256::digest(&bytes)), "{p}");
     }
-    assert_eq!(fs::read(out.join("claim.bin")).unwrap(), b"claim");
+    assert_eq!(fs::read(out.join("out/claim.bin")).unwrap(), b"claim");
     assert_eq!(
-        fs::metadata(out.join("sub/proof.bin")).unwrap().len(),
+        fs::metadata(out.join("out/sub/proof.bin")).unwrap().len(),
         300000
     );
     assert_eq!(
-        fs::metadata(out.join("sub/deeper/tool"))
+        fs::metadata(out.join("out/sub/deeper/tool"))
             .unwrap()
             .permissions()
             .mode()
             & 0o777,
         0o755
     );
-    assert!(!out.join("link").exists() && fs::symlink_metadata(out.join("link")).is_err());
+    assert!(!out.join("out/link").exists() && fs::symlink_metadata(out.join("out/link")).is_err());
     assert!(!o.diagnostics.outputs_complete);
     assert_eq!(
         o.diagnostics.output_violations.len(),
@@ -300,19 +297,19 @@ fn ro_bundle_mounts() {
     let req = t.path().join("request.bin");
     fs::write(&req, b"REQ").unwrap();
     let mut s = spec(
-        "/arena/bundle/out/prove x && cat /arena/bundle/data.txt && echo && cat /arena/in/request.bin && echo && \
-         (touch /arena/bundle/new 2>/dev/null && echo WRITABLE || echo ro) && \
-         (echo y > /arena/in/request.bin 2>/dev/null && echo WRITABLE || echo ro)",
+        "/in/bundle/out/prove x && cat /in/bundle/data.txt && echo && cat /in/request.bin && echo && \
+         (touch /in/bundle/new 2>/dev/null && echo WRITABLE || echo ro) && \
+         (echo y > /in/request.bin 2>/dev/null && echo WRITABLE || echo ro)",
         &t.path().join("out"),
     );
     s.ro_mounts = vec![
         RoMount {
             host_path: bundle.clone(),
-            guest_path: "/arena/bundle".into(),
+            guest_path: "/in/bundle".into(),
         },
         RoMount {
             host_path: req,
-            guest_path: "/arena/in/request.bin".into(),
+            guest_path: "/in/request.bin".into(),
         },
     ];
     let o = run(&s);
@@ -320,23 +317,23 @@ fn ro_bundle_mounts() {
     assert_eq!(stdout(&o), "proving x\nparams\nREQ\nro\nro\n");
     // symlinks in a bundle are refused before anything boots
     std::os::unix::fs::symlink("/etc/passwd", bundle.join("evil")).unwrap();
-    assert!(matches!(sandbox().run_native(&s), Err(InfraError::InvalidSpec(_))));
+    assert!(matches!(
+        sandbox().run_native(&s),
+        Err(InfraError::InvalidSpec(_))
+    ));
 }
 
 #[test]
 fn no_state_across_runs() {
     gate!();
     let t = scratch_dir();
-    let o1 = run(&spec("echo a > /arena/scratch/persist; echo b > /tmp/persist; echo c > /dev/shm/persist; echo ok", &t.path().join("o1")));
-    assert_eq!(stdout(&o1), "ok\n");
-    let o2 = run(&spec(
-        "ls -A /arena/scratch /tmp /dev/shm",
-        &t.path().join("o2"),
+    let o1 = run(&spec(
+        "echo a > /scratch/persist; echo b > /tmp/persist; echo c > /dev/shm/persist; echo ok",
+        &t.path().join("o1"),
     ));
-    assert_eq!(
-        stdout(&o2),
-        "/arena/scratch:\nout\ntmp\n\n/dev/shm:\n\n/tmp:\n"
-    );
+    assert_eq!(stdout(&o1), "ok\n");
+    let o2 = run(&spec("ls -A /scratch /tmp /dev/shm", &t.path().join("o2")));
+    assert_eq!(stdout(&o2), "/dev/shm:\n\n/scratch:\nout\ntmp\n\n/tmp:\n");
 }
 
 #[test]
@@ -422,7 +419,7 @@ fn concurrent_runs_are_isolated() {
             let out = base.join(format!("o{i}"));
             std::thread::spawn(move || {
                 let o = run(&spec(
-                    &format!("echo {i} > out/id; sleep 1; ls /arena/scratch/out; cat out/id"),
+                    &format!("echo {i} > out/id; sleep 1; ls /scratch/out; cat out/id"),
                     &out,
                 ));
                 (i, o)
@@ -435,4 +432,158 @@ fn concurrent_runs_are_isolated() {
         assert_eq!(stdout(&o), format!("id\n{i}\n"));
         assert_eq!(o.outputs.len(), 1);
     }
+}
+
+#[test]
+fn copy_in_scratch_dirs_cwd_and_collect() {
+    gate!();
+    let t = scratch_dir();
+    let pkg = t.path().join("pkg");
+    fs::create_dir_all(pkg.join("src")).unwrap();
+    fs::write(pkg.join("src/a.txt"), "A").unwrap();
+    fs::write(
+        pkg.join("build.sh"),
+        "#!/bin/sh\nmkdir -p out && cat src/a.txt > out/prove && chmod +x out/prove\n",
+    )
+    .unwrap();
+    fs::set_permissions(pkg.join("build.sh"), fs::Permissions::from_mode(0o755)).unwrap();
+    let res = t.path().join("res");
+    let mut s = spec("pwd; ./build.sh && echo more >> src/a.txt && id -un 2>/dev/null; ls -ld /scratch/out/public | cut -c1-10; echo junk > /scratch/junk", &res);
+    s.ro_mounts = vec![RoMount {
+        host_path: pkg,
+        guest_path: "/in/pkg".into(),
+    }];
+    s.copy_in = vec![("/in/pkg".into(), "work".into())];
+    s.scratch_dirs = vec!["out/public".into()];
+    s.cwd = "/scratch/work".into();
+    s.collect = vec!["work/out".into(), "work/src".into(), "missing".into()];
+    let o = run(&s);
+    assert_eq!(o.exit, Exit::Exited(0), "{o:?}");
+    assert_eq!(stdout(&o), "/scratch/work\narena\ndrwxr-xr-x\n");
+    let paths: Vec<&str> = o.outputs.iter().map(|(p, _)| p.as_str()).collect();
+    assert_eq!(paths, vec!["work/out/prove", "work/src/a.txt"]);
+    assert_eq!(
+        fs::read_to_string(res.join("work/src/a.txt")).unwrap(),
+        "Amore\n"
+    );
+    assert_eq!(
+        fs::metadata(res.join("work/out/prove"))
+            .unwrap()
+            .permissions()
+            .mode()
+            & 0o777,
+        0o755
+    );
+    assert!(!res.join("junk").exists());
+    assert!(o.diagnostics.outputs_complete);
+}
+
+#[test]
+fn timeout_preserves_truncated_stdout_stderr() {
+    gate!();
+    let t = scratch_dir();
+    let mut s = spec(
+        "echo started; echo oops >&2; head -c 200000 /dev/zero | tr '\\0' x; sleep 60",
+        &t.path().join("out"),
+    );
+    s.wall_timeout = Duration::from_secs(2);
+    let o = run(&s);
+    assert_eq!(o.exit, Exit::TimedOut);
+    assert!(stdout(&o).starts_with("started\nxxxx"));
+    assert_eq!(o.stdout_trunc.len(), 64 * 1024);
+    assert_eq!(o.stdout_bytes, 8 + 200_000);
+    assert_eq!(o.stderr_trunc, b"oops\n");
+    assert!(
+        (2_000_000_000..2_200_000_000).contains(&o.wall_ns),
+        "wall {}",
+        o.wall_ns
+    );
+}
+
+#[test]
+fn disk_io_is_rate_limited() {
+    gate!();
+    let work = deps().join("work-tests");
+    let mut cfg = FirecrackerConfig::from_deps_dir(&deps(), &work).unwrap();
+    cfg.drive_rate_limit = Some(arena_fc_proto::DriveRateLimit {
+        bytes_per_s: 16 << 20,
+        ops_per_s: 100_000,
+        burst_bytes: 0,
+    });
+    let slow = FirecrackerSandbox::new(cfg).unwrap();
+    let t = scratch_dir();
+    let script = "dd if=/dev/zero of=/scratch/f bs=1M count=48 oflag=direct 2>/dev/null; echo done";
+    let mut s = spec(script, &t.path().join("a"));
+    s.rw_scratch_mb = 128;
+    let fast = run(&s);
+    let mut s2 = s.clone();
+    s2.out_dir = t.path().join("b");
+    let limited = slow.run_native(&s2).unwrap();
+    assert_eq!(stdout(&fast), "done\n");
+    assert_eq!(stdout(&limited), "done\n");
+    // 48 MiB at 16 MiB/s >= ~2.8 s (the first bucket is full at start)
+    assert!(
+        limited.wall_ns > 2_500_000_000,
+        "limited {}",
+        limited.wall_ns
+    );
+    assert!(fast.wall_ns < 1_500_000_000, "default {}", fast.wall_ns);
+    eprintln!(
+        "48 MiB O_DIRECT write: default {:.0} ms, 16 MiB/s limit {:.0} ms",
+        fast.wall_ns as f64 / 1e6,
+        limited.wall_ns as f64 / 1e6
+    );
+}
+
+/// A minimal root image (host dash + its libraries) replaces the arena
+/// rootfs as the candidate's root.
+#[test]
+fn candidate_root_image() {
+    gate!();
+    let t = scratch_dir();
+    let img = t.path().join("img");
+    let ldd = std::process::Command::new("ldd")
+        .arg("/usr/bin/dash")
+        .output()
+        .unwrap();
+    let mut files = vec![PathBuf::from("/usr/bin/dash")];
+    for l in String::from_utf8_lossy(&ldd.stdout).lines() {
+        if let Some(p) = l.split_whitespace().find(|w| w.starts_with('/')) {
+            files.push(PathBuf::from(p));
+        }
+    }
+    for f in &files {
+        let dst = img.join(f.strip_prefix("/").unwrap());
+        fs::create_dir_all(dst.parent().unwrap()).unwrap();
+        fs::copy(f, &dst).unwrap(); // follows symlinks
+    }
+    let lim = arena_archive::Limits::default();
+    let digest = arena_archive::tree_from_dir(&img, &lim).unwrap().digest();
+    let mut s = spec(
+        "cd / && echo * && test -e /etc/debian_version || echo no-debian; echo hi > /scratch/out/x",
+        &t.path().join("out"),
+    );
+    s.argv[0] = "/usr/bin/dash".into();
+    s.root_image = Some(RootImage {
+        dir: img.clone(),
+        digest: digest.clone(),
+    });
+    let o = run(&s);
+    assert_eq!(o.exit, Exit::Exited(0), "{o:?}");
+    assert_eq!(
+        stdout(&o),
+        "dev lib lib64 proc scratch sys tmp usr\nno-debian\n"
+    );
+    assert_eq!(o.outputs.len(), 1);
+    // a wrong digest is refused
+    let mut bad = s.clone();
+    bad.out_dir = t.path().join("out2");
+    bad.root_image = Some(RootImage {
+        dir: img,
+        digest: arena_types::Digest::of_bytes(b"x"),
+    });
+    assert!(matches!(
+        sandbox().run_native(&bad),
+        Err(InfraError::InvalidSpec(_))
+    ));
 }
