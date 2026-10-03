@@ -22,7 +22,11 @@ challenges/
    all its assumptions exist; for `formal` tier every assumption is pinned
    (`lean_decl_digest` non-null).
 5. Workload weights sum to exactly 1 000 000 ppm, class ids unique, baselines
-   refer to classes (and cover all classes for `formal`).
+   refer to classes; for `formal` they cover all classes, or are entirely
+   absent (`baseline_submission = null`, `baseline_ns = []`: admissions are
+   decided, scores stay null until a superseding challenge pins baselines).
+   `formal` also requires `formal_params` with
+   `max_proof_bytes == resource_limits.max_proof_bytes`.
 6. Obligations are consistent with tier and privacy:
    * `formal`: every obligation is required, except `FORMAL_ZK` under a
      `validity_only` profile;
@@ -47,7 +51,7 @@ A=target/debug/arena-admin
 $A check  challenges/drafts/<draft>.json            # policy only
 $A id     challenges/drafts/<draft>.json            # chl_… and full digest
 $A sign   challenges/drafts/<draft>.json --key /offline/governance.key
-$A verify --pubkey challenges/governance-prod.pub --all-in challenges
+$A verify --pubkey challenges/governance-local.pub --pubkey challenges/governance-dev.pub --all-in challenges
 $A supersede --old challenges/chl_old.json --draft new.json --key … --pubkey …
 $A tree-digest challenges/demo/toy-arithmetic/lean  # TreeDigest helper
 ```
@@ -66,6 +70,12 @@ rankings remain attached to the definition they were measured against
   mode 0600) and must be considered compromised for any production purpose.
   It can sign `demo`/`experimental` challenges only; a production deployment
   must not list it as a trusted key.
+* `governance-local.pub` (`key_id gov_7e075bd83a3313b5`) is the **local
+  deployment operator key — not a NEAR Foundation / production governance
+  key**. Private half: `/data/illia/nearproof-deps/keys/governance-local.key`
+  (0600, outside the repo). It is not dev-only, so it can sign `formal` tier
+  for this local deployment; a public deployment must replace it with a real
+  governance key (and re-sign via `supersede`).
 * The production governance key does not exist yet. It must be generated on
   an offline machine (or inside an HSM) per `docs/SECURITY_POLICY.md`; only
   its `.pub` file is ever committed.
@@ -75,8 +85,7 @@ rankings remain attached to the definition they were measured against
 | id | tier | name | notes |
 |----|------|------|-------|
 | `chl_54c65fe7c73c5abcfe500681889177bc` | demo | `demo-toy-arithmetic` | Plumbing fixture: `c = a·b mod 2^64`. **Not NEAR semantics.** Signed with the dev key. |
+| `chl_5ef2bc7d2068219635426e47ca46bfbb` | formal | `near-transfer-receipt-v1` | `near/pv86/receipt-transfer-batch/v0` (nearcore 2.13.4, PV 86): Transfer-receipt batches, relation `NearSpec.TransferV1.NearRelation`. Signed with the local operator key. Baselines not yet measured. Draft built by `spec/tools/build_challenge_draft.py`. |
 
-`templates/near-transfer-receipt-v1.template.json` is the skeleton for the
-first formal challenge. Every `TODO(spec-lane)` field (relation, spec and
-claim-encoding digests, runtime config digest, workloads) must come from the
-spec-oracle lane; this lane does not define the NEAR slice.
+`templates/near-transfer-receipt-v1.template.json` is the skeleton the draft
+builder fills from `spec/challenge-inputs/` (spec-oracle lane).
