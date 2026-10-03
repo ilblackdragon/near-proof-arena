@@ -8,6 +8,7 @@
  */
 import { createHash } from 'node:crypto';
 import { canonicalJson } from '../src/lib/jcs';
+import { isOfficiallyRankable } from '../src/lib/board';
 import type {
   BoardEntry,
   ChallengeDefinition,
@@ -25,7 +26,17 @@ const fd = (seed: string) => sha(`demo-fixture:${seed}`);
 
 export function challengeRecord(definition: ChallengeDefinition): ChallengeRecord {
   const digest = sha(canonicalJson(definition));
-  return { id: `chl_${digest.slice(7, 39)}`, digest, definition };
+  return {
+    id: `chl_${digest.slice(7, 39)}`,
+    digest,
+    definition,
+    tier: definition.tier,
+    open: true,
+    signature: '00'.repeat(64),
+    governance_key: 'demo-fixture-governance-key',
+    registered_at: '2026-09-01T00:00:00Z',
+    registered_by: 'demo-fixture-admin',
+  };
 }
 
 export const ALL_OBLIGATIONS: ObligationId[] = [
@@ -252,11 +263,11 @@ export function makeSub(o: Partial<SubmissionDetail> & { id: string; challenge_i
   };
 }
 
-export function toEntry(s: SubmissionDetail, def: ChallengeDefinition): BoardEntry {
+export function toEntry(s: SubmissionDetail, def: ChallengeDefinition, rank: number | null = null): BoardEntry {
   const cls = s.benchmark?.classes ?? [];
   const max = (f: (c: (typeof cls)[number]) => number) => (cls.length ? Math.max(...cls.map(f)) : null);
   return {
-    rank: null,
+    rank,
     submission_id: s.id,
     agent: s.agent,
     candidate_name: s.candidate_name,
@@ -289,7 +300,13 @@ export function leaderboardFor(ds: Dataset, id: string): BoardEntry[] | null {
   if (ds.leaderboards?.[id]) return ds.leaderboards[id];
   const c = ds.challenges.find((x) => x.id === id);
   if (!c) return null;
-  return ds.submissions.filter((s) => s.challenge_id === id).map((s) => toEntry(s, c.definition));
+  // Mirrors the server: ranked entries first (rank 1..n), then everything else with rank null.
+  const all = ds.submissions.filter((s) => s.challenge_id === id).map((s) => toEntry(s, c.definition));
+  const ranked = all
+    .filter((e) => isOfficiallyRankable(e, c.definition))
+    .sort((a, b) => (b.score_milli ?? 0) - (a.score_milli ?? 0))
+    .map((e, i) => ({ ...e, rank: i + 1 }));
+  return [...ranked, ...all.filter((e) => !isOfficiallyRankable(e, c.definition))];
 }
 
 /** The dataset served by `pnpm dev:mock`. */
@@ -322,8 +339,8 @@ export function demoDataset(): Dataset {
       score_milli: 245_000,
       benchmark: benchmark(245_000, 2.45),
       verified_surface: { challenge_id: R, verify_artifact: fd('verify-bin'), prepare_artifact: fd('prepare-bin'), public_artifacts: fd('public'), formal_tree: fd('formal-tree'), certificate_decl: 'Candidate.certificate', checker_image: fd('checker-image') },
-      build: { builder: 'demo-fixture-builder', reproducible: true, build_ms: 412_000 },
-      logs: [{ name: 'build.stderr', text: 'DEMO FIXTURE build log\n   Compiling prover v0.1.0\n    Finished release' }],
+      build: { toolchain_image: 'demo-fixture-build-image', reproducible: true, build_ns: 412_000_000_000 },
+      logs: [{ name: 'BUILD', stage: 'BUILT', truncated: false, text: 'DEMO FIXTURE build log\n   Compiling prover v0.1.0\n    Finished release' }],
     }),
     makeSub({
       id: 'sub_demo_beta',
@@ -386,7 +403,7 @@ export function demoDataset(): Dataset {
         { PKG_WELLFORMED: 'PASS', CONFORMANCE_DIFFERENTIAL: 'FAIL' },
         { CONFORMANCE_DIFFERENTIAL: { reason_codes: ['CLAIM_MISMATCH'], summary: '<img src=x onerror=alert(2)> \u001b[31mred\u001b[0m' } },
       ),
-      logs: [{ name: 'prove.stderr <b>bold</b>', text: '\u001b[1;31mERROR\u001b[0m <script>alert(3)</script>\n‮txt.exe‬\r\nline\u0007bell' }],
+      logs: [{ name: 'prove.stderr <b>bold</b>', stage: 'CONFORMANCE_CHECKED', truncated: true, text: '\u001b[1;31mERROR\u001b[0m <script>alert(3)</script>\n‮txt.exe‬\r\nline\u0007bell' }],
     }),
     makeSub({ id: 'sub_demo_plumbing', challenge_id: demo.id, tier: 'demo', candidate_name: `${DEMO_MARKER} plumbing run`, decision: 'ADMITTED', accepted: true, score_milli: 900_000, benchmark: benchmark(900_000, 9) }),
   ];

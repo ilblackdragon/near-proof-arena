@@ -30,7 +30,31 @@ for (const file of files) {
   index.push(name);
   console.log(`wrote src/generated/${name}.ts`);
 }
+
+// API envelope types that exist only in the server's OpenAPI document
+// (StoredChallenge for /v1/challenges, EventPayload for SSE).
+const openapiPath = join(here, '../../server/openapi.json');
+const openapi = JSON.parse(readFileSync(openapiPath, 'utf8'));
+const API_TYPES = ['StoredChallenge', 'EventPayload'];
+const apiSchema = {
+  title: 'ArenaApiTypes',
+  type: 'object',
+  additionalProperties: false,
+  properties: Object.fromEntries(API_TYPES.map((t) => [t, { $ref: `#/components/schemas/${t}` }])),
+  components: openapi.components,
+};
+const apiTs = await compile(apiSchema, 'ArenaApiTypes', {
+  bannerComment:
+    '/* eslint-disable */\n/**\n * GENERATED from server/openapi.json (StoredChallenge, EventPayload) by web/scripts/gen-types.mjs.\n * Do not edit by hand; run `pnpm gen:types`.\n */',
+  additionalProperties: false,
+  strictIndexSignatures: true,
+  format: true,
+  style: { singleQuote: true },
+});
+writeFileSync(join(outDir, 'api.ts'), apiTs);
+console.log('wrote src/generated/api.ts');
+
 writeFileSync(
   join(outDir, 'README.md'),
-  '# Generated types\n\nGenerated from `common/schemas/*.schema.json` by `pnpm gen:types`. Do not edit.\n',
+  '# Generated types\n\nGenerated from `common/schemas/*.schema.json` and `server/openapi.json` (api.ts) by `pnpm gen:types`. Do not edit.\n',
 );

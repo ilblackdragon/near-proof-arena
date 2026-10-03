@@ -3,7 +3,7 @@ import { canonicalDigest, challengeIdFromDigest, CanonicalError } from '../lib/j
 import { isSubmissionId } from '../lib/ids';
 import { sanitizeInline } from '../lib/text';
 import { eventsUrl, getSubmission } from './client';
-import type { ChallengeRecord, SubmissionDetail } from './types';
+import type { ChallengeRecord, EventPayload, SubmissionDetail } from './types';
 
 export type Async<T> =
   | { status: 'loading'; data?: undefined; error?: undefined }
@@ -61,7 +61,7 @@ export function useChallengeVerification(c: ChallengeRecord | undefined): Verify
           setSt({ status: 'unavailable', reason: 'WebCrypto unavailable in this context' });
         } else if (challengeIdFromDigest(digest) !== c.id) {
           setSt({ status: 'mismatch', digest, reason: 'id does not match sha256(JCS(definition))' });
-        } else if (c.digest !== null && c.digest !== digest) {
+        } else if (c.digest !== digest) {
           setSt({ status: 'mismatch', digest, reason: 'server digest does not match recomputed digest' });
         } else {
           setSt({ status: 'verified', digest });
@@ -88,6 +88,20 @@ export interface StreamEvent {
   text: string;
 }
 export type StreamStatus = 'idle' | 'connecting' | 'live' | 'closed' | 'unsupported' | 'error';
+
+/** Summarise an `EventPayload` (server/openapi.json) for display; falls back to the raw text. */
+export function describeEvent(raw: string): string {
+  try {
+    const p = JSON.parse(raw) as Partial<EventPayload>;
+    if (p && typeof p.action === 'string') {
+      const data = p.data === undefined ? '' : ` ${JSON.stringify(p.data)}`;
+      return `${typeof p.at === 'string' ? p.at + ' ' : ''}${p.action}${data}`;
+    }
+  } catch {
+    /* not JSON: show as text */
+  }
+  return raw;
+}
 
 const EVENT_TYPES = ['message', 'stage', 'gate', 'decision', 'progress', 'log', 'status', 'done'];
 const MAX_EVENTS = 100;
@@ -131,7 +145,7 @@ export function useSubmissionEvents(id: string, enabled: boolean, onChange: () =
       const entry: StreamEvent = {
         seq: ++seq,
         type: sanitizeInline(ev.type, 32).text,
-        text: sanitizeInline(raw, 512).text,
+        text: sanitizeInline(describeEvent(raw), 512).text,
       };
       setEvents((prev) => [...prev, entry].slice(-MAX_EVENTS));
       schedule();

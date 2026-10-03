@@ -5,6 +5,13 @@
  */
 
 /**
+ * `sha256:<64 lowercase hex>`
+ *
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "Digest".
+ */
+export type Digest = string;
+/**
  * Change classification, computed by the judge (never trusted from the agent).
  *
  * This interface was referenced by `SubmissionView`'s JSON-Schema
@@ -16,13 +23,6 @@ export type ChangeClass = 'NO_PARENT' | 'PROVER_ONLY' | 'VERIFIER_OR_PROTOCOL';
  * via the `definition` "Decision".
  */
 export type Decision = 'ADMITTED' | 'REJECTED' | 'INCONCLUSIVE' | 'INFRA_ERROR' | 'CANCELLED';
-/**
- * `sha256:<64 lowercase hex>`
- *
- * This interface was referenced by `SubmissionView`'s JSON-Schema
- * via the `definition` "Digest".
- */
-export type Digest = string;
 /**
  * This interface was referenced by `SubmissionView`'s JSON-Schema
  * via the `definition` "EdgeStatus".
@@ -120,8 +120,17 @@ export interface SubmissionView {
    */
   accepted?: boolean | null;
   agent: string;
+  /**
+   * Public artifacts produced by the judge for this run.
+   */
+  artifacts?: ArtifactRef[];
+  /**
+   * Assumptions the admission may rely on (the challenge's security profile).
+   */
+  assumptions?: AssumptionRef[];
   backend_family: string;
   benchmark?: BenchmarkResult | null;
+  build?: BuildInfo | null;
   candidate_name: string;
   challenge_id: string;
   change_class?: ChangeClass | null;
@@ -130,14 +139,44 @@ export interface SubmissionView {
   evidence_graph?: EvidenceGraph | null;
   gates: GateResult[];
   id: string;
+  /**
+   * Bounded, sanitized plain-text log excerpts (never HTML).
+   */
+  logs?: LogExcerpt[];
   package_digest: Digest;
   parent?: string | null;
   reason_codes: ReasonCode[];
+  revocation_history?: RevocationEvent[];
   revoked?: Revocation | null;
   score_milli?: number | null;
   stage: Stage;
   tier: Tier;
+  /**
+   * Trusted computing base entries the result depends on.
+   */
+  trusted_base?: TrustedBaseEntry[];
   updated_at: string;
+  /**
+   * Verified-surface digests (set once the judge build completed).
+   */
+  verified_surface?: VerifiedSurface | null;
+}
+/**
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "ArtifactRef".
+ */
+export interface ArtifactRef {
+  digest: Digest;
+  label: string;
+}
+/**
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "AssumptionRef".
+ */
+export interface AssumptionRef {
+  description?: string | null;
+  id: string;
+  lean_decl?: string | null;
 }
 /**
  * This interface was referenced by `SubmissionView`'s JSON-Schema
@@ -174,6 +213,21 @@ export interface ClassMeasurement {
   runs_ns: number[];
   verify_median_ns: number;
   weight_ppm: number;
+}
+/**
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "BuildInfo".
+ */
+export interface BuildInfo {
+  build_ns?: number | null;
+  /**
+   * `BUILD_REPRODUCIBLE` passed (two judge builds bit-identical).
+   */
+  reproducible: boolean;
+  /**
+   * Build sandbox image/rootfs digest or id, if reported.
+   */
+  toolchain_image?: string | null;
 }
 /**
  * This interface was referenced by `SubmissionView`'s JSON-Schema
@@ -246,10 +300,63 @@ export interface EvidenceRef {
 }
 /**
  * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "LogExcerpt".
+ */
+export interface LogExcerpt {
+  /**
+   * Log name, e.g. `BUILD` or `BUILD/error`.
+   */
+  name: string;
+  /**
+   * Pipeline stage / job kind the log belongs to.
+   */
+  stage: string;
+  text: string;
+  truncated: boolean;
+}
+/**
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "RevocationEvent".
+ */
+export interface RevocationEvent {
+  /**
+   * `revoked` (v1 has no un-revoke).
+   */
+  action: string;
+  at: string;
+  by: string;
+  reason: string;
+}
+/**
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
  * via the `definition` "Revocation".
  */
 export interface Revocation {
   reason: string;
   revoked_at: string;
   revoked_by: string;
+}
+/**
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "TrustedBaseEntry".
+ */
+export interface TrustedBaseEntry {
+  digest?: Digest | null;
+  id: string;
+  label: string;
+}
+/**
+ * The digests that define the *verified* surface. If all are equal between a child and its parent, formal results may be reused (`ProverOnly`).
+ *
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "VerifiedSurface".
+ */
+export interface VerifiedSurface {
+  certificate_decl: string;
+  challenge_id: string;
+  checker_image: Digest;
+  formal_tree: Digest;
+  prepare_artifact: Digest;
+  public_artifacts: Digest;
+  verify_artifact: Digest;
 }
