@@ -85,7 +85,7 @@ these names, or change them here and in `deploy/` in the same PR.**
 | `web`: `pnpm install --frozen-lockfile && pnpm run build` → `web/dist/`; `pnpm test` | web | `make web`, `web.Dockerfile` |
 | SDKs: `sdk/python` (pyproject with a `test` extra, pytest), `sdk/ts` (pnpm `build` + `test`) | sdk | `make test-sdk` |
 | Lean: `formal-core/` and `spec/lean/` are Lake projects with `lean-toolchain` | formal-core, spec-oracle | `make lean`, CI |
-| `tests/e2e/run.sh`, `adversarial/e2e/run-hostile.sh` (override with `E2E_SCRIPT` / `E2E_HOSTILE_SCRIPT`) | integrator, adversarial | `make e2e`, `make e2e-hostile` |
+| `tests/e2e/run.sh`, `adversarial/e2e/run.sh` (override with `E2E_SCRIPT` / `E2E_HOSTILE_SCRIPT`) | integrator, adversarial | `make e2e`, `make e2e-hostile` |
 
 `make build` checks that the workspace defines the binary targets
 `arena-server`, `arena-worker`, `arena` and `arena-admin`. It fails and names

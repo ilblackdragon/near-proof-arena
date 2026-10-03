@@ -1,0 +1,30 @@
+{
+  "name": "@near-arena/client",
+  "version": "0.1.0",
+  "description": "fetch-based client for the NEAR Proof Arena judge API",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "gen-types": "node scripts/gen-types.mjs",
+    "check-types": "node scripts/gen-types.mjs --check",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node scripts/gen-types.mjs --check && tsc -p tsconfig.json --noEmit && node --test test/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0"
+  }
+}

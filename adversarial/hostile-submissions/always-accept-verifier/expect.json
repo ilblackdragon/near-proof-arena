@@ -1,0 +1,18 @@
+{
+  "case": "always-accept-verifier",
+  "attack_family": "verifier-soundness",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "ADVERSARIAL_PROOFS"
+  ],
+  "expected_reason_codes": [
+    "HOSTILE_PROOF_ACCEPTED"
+  ],
+  "fail_by_stage": "CONFORMANCE_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The verifier ignores its input and exits 0 for every proof. A hostile (or empty/garbage) proof is accepted, so the ADVERSARIAL_PROOFS gate must fail: a verifier that accepts everything proves nothing."
+}

@@ -1,0 +1,19 @@
+{
+  "case": "ui-injection-logs",
+  "attack_family": "ui-log-injection",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "ADVERSARIAL_PROOFS"
+  ],
+  "expected_reason_codes": [
+    "HOSTILE_PROOF_ACCEPTED"
+  ],
+  "fail_by_stage": "CONFORMANCE_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The candidate emits HTML/JS, ANSI escapes and RTL overrides in its name fields, README and especially stderr/error messages, trying to inject into the dashboard/logs. The proof is also bogus, so the submission is REJECTED; additionally the API must return every string escaped/sanitized with no raw control characters.",
+  "notes": "attack_family 'ui-log-injection' tells the e2e driver to additionally assert the API response contains no raw control chars and escapes HTML."
+}

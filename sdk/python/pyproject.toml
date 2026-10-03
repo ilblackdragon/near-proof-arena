@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "near-arena"
+version = "0.1.0"
+description = "Python client for the NEAR Proof Arena judge API"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+dependencies = ["httpx>=0.25"]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[tool.setuptools]
+packages = ["near_arena"]
+
+[tool.setuptools.package-data]
+near_arena = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

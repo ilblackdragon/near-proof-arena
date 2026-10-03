@@ -1,0 +1,148 @@
+{
+  "_template_notice": "TEMPLATE \u2014 NOT A CHALLENGE. Fill every TODO, delete this key, then run `arena-admin check` and `arena-admin sign` with the PRODUCTION governance key (dev keys cannot sign formal tier). All-zero numeric fields must be set.",
+  "schema": "arena-challenge-v1",
+  "name": "near-transfer-receipt-v1",
+  "season": "TODO(governance): season id, e.g. 2026-s1",
+  "tier": "formal",
+  "nearcore": {
+    "repo": "https://github.com/near/nearcore",
+    "tag": "2.13.4",
+    "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
+  },
+  "protocol_version": 86,
+  "chain_id": "TODO(spec-lane): chain id whose genesis/runtime config is pinned (e.g. mainnet)",
+  "runtime_config_digest": "TODO(spec-lane): sha256 of the exact RuntimeConfig bytes / parameters YAML for protocol_version on chain_id",
+  "semantic_scope": {
+    "name": "near-transfer-receipt-v1",
+    "kind": "subset",
+    "granularity": "TODO(spec-lane): e.g. single_action_receipt_transition",
+    "restrictions": [
+      {
+        "id": "TODO(spec-lane): machine id",
+        "text": "TODO(spec-lane): human-readable restriction, e.g. only Transfer actions between existing named accounts"
+      }
+    ],
+    "excludes": [
+      "block_finality",
+      "data_availability",
+      "receipt_inclusion",
+      "TODO(spec-lane): further exclusions"
+    ],
+    "formal_spec": {
+      "relation_module": "TODO(spec-lane): Lean module defining NearRelation",
+      "relation_decl": "TODO(spec-lane): fully qualified Lean name, e.g. NearSpec.TransferV1.NearRelation",
+      "tree_digest": "TODO(spec-lane): TreeDigest of spec/lean + formal-core at freeze (arena-admin tree-digest)",
+      "lean_toolchain": "TODO(spec-lane): leanprover/lean4:vX.Y.Z (must equal toolchain_policy.lean_toolchain)"
+    },
+    "spec_doc_digest": "TODO(spec-lane): sha256 of spec/near-transfer-receipt-v1.md"
+  },
+  "claim_encoding": {
+    "format": "near-arena-claim-v1",
+    "spec_digest": "TODO(spec-lane): sha256 of spec/claim-v1.md",
+    "max_request_bytes": 0,
+    "max_witness_bytes": 0,
+    "max_claim_bytes": 0
+  },
+  "security_profile": {
+    "id": "validity-classical-128",
+    "privacy": "validity_only",
+    "adversary": "classical",
+    "target_bits": 128,
+    "model": "random_oracle",
+    "setup_model": "transparent",
+    "allowed_assumptions": [
+      "sha256-collision-resistance",
+      "random-oracle-fiat-shamir-sha256"
+    ],
+    "max_prover_queries_log2": 40,
+    "max_hash_queries_log2": 64,
+    "max_aggregation_depth": 8,
+    "deployment_proofs_log2": 40
+  },
+  "toolchain_policy": {
+    "lean_toolchain": "TODO(spec-lane): same as formal_spec.lean_toolchain",
+    "checker_image": "TODO(formal-checker/runners-vm): digest of the formal checker rootfs",
+    "axiom_allowlist": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "allowed_packages": [
+      [
+        "TODO(formal-core): package name",
+        "TODO: 40-hex commit"
+      ]
+    ],
+    "recheckers": [
+      "lean4checker",
+      "TODO(formal-checker): second independent rechecker, e.g. nanoda"
+    ]
+  },
+  "required_obligations": [
+    "PKG_WELLFORMED",
+    "BUILD_REPRODUCIBLE",
+    "ARTIFACT_BINDING",
+    "FORMAL_SEMANTIC_SOUNDNESS",
+    "FORMAL_SEMANTIC_COMPLETENESS",
+    "FORMAL_CRYPTO_SOUNDNESS",
+    "FORMAL_IMPL_CONNECTION",
+    "AXIOM_AUDIT",
+    "CONFORMANCE_DIFFERENTIAL",
+    "ADVERSARIAL_PROOFS",
+    "PROVER_RELIABILITY",
+    "RESOURCE_LIMITS",
+    "BENCHMARK"
+  ],
+  "not_applicable_gates": [
+    "FORMAL_ZK"
+  ],
+  "hardware_profile": {
+    "id": "TODO(bench): hardware profile id",
+    "cpu_model": "TODO(bench)",
+    "vcpus": 0,
+    "ram_bytes": 0,
+    "gpu": null
+  },
+  "workload_suite": {
+    "revision": "TODO(bench/spec)",
+    "classes": [
+      {
+        "id": "TODO",
+        "description": "TODO",
+        "weight_ppm": 1000000,
+        "batch_size": 0,
+        "generator": "TODO(spec-lane): digest of generator spec"
+      }
+    ],
+    "public_fixtures": "TODO(spec-lane): TreeDigest of public fixtures",
+    "heldout_commitment": "TODO(governance): TreeDigest of held-out set (kept offline until season end)",
+    "baseline_submission": null,
+    "baseline_ns": [
+      [
+        "TODO class id",
+        0
+      ]
+    ]
+  },
+  "measurement": {
+    "warmup_runs": 3,
+    "measured_runs": 15,
+    "aggregation": "median",
+    "outlier_mad_k": 5,
+    "cold_runs": 1,
+    "concurrency": 1,
+    "per_run_timeout_ms": 0
+  },
+  "resource_limits": {
+    "max_proof_bytes": 0,
+    "max_verify_ms": 0,
+    "max_prove_ms": 0,
+    "max_ram_bytes": 0,
+    "max_vram_bytes": 0,
+    "max_public_artifact_bytes": 0,
+    "max_prepare_ms": 0,
+    "max_build_ms": 0
+  },
+  "supersedes": null,
+  "created_at": "TODO(governance): RFC 3339 UTC timestamp at freeze"
+}

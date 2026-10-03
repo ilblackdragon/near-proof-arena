@@ -1,12 +1,20 @@
 [workspace]
 resolver = "2"
 members = [
+    "adversarial/proof-mutators",
     "common/arena-types",
-    "server/arena-jobs",
-    "server/arena-store",
+    "runners/firecracker",
+    "runners/firecracker/init",
+    "runners/firecracker/proto",
+    "runners/firecracker/shim",
+    "sdk/arena-cli",
     "server/arena-db",
+    "server/arena-jobs",
     "server/arena-orchestrator",
     "server/arena-server",
+    "server/arena-store",
+    "tools/arena-admin",
+    "tools/upgrade-monitor",
 ]
 
 [workspace.package]
@@ -50,4 +58,6 @@ base64 = "0.22"
 clap = { version = "4", features = ["derive", "env"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+rand_core = { version = "0.6", features = ["getrandom"] }
+globset = "0.4"
 tempfile = "3"

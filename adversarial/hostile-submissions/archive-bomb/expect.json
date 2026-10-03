@@ -1,0 +1,19 @@
+{
+  "case": "archive-bomb",
+  "attack_family": "archive-attack",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "PKG_WELLFORMED"
+  ],
+  "expected_reason_codes": [
+    "ARCHIVE_UNSAFE"
+  ],
+  "fail_by_stage": "VALIDATED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "A decompression bomb: the archive expands far beyond the 2 GiB / 100k-entry expansion limits. Extraction must stop at the cap (ARCHIVE_UNSAFE / RESOURCE_LIMIT), not exhaust disk.",
+  "notes": "Hostile payload is the ARCHIVE ENCODING, not a directory. The e2e driver runs make-archive.sh to produce the malicious tar and uploads THOSE bytes. The directory package here is a well-formed placeholder for documentation and the local loader."
+}
