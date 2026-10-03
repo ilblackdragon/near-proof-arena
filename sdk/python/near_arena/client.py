@@ -125,7 +125,8 @@ class ArenaClient:
 
     def upload(self, data: bytes) -> UploadResult:
         """``POST /v1/uploads`` with the raw package archive (tar or tar.zst)."""
-        res = self._json("POST", "/v1/uploads", content=data, headers={"Content-Type": "application/x-tar"})
+        ctype = "application/zstd" if data[:4] == b"\x28\xb5\x2f\xfd" else "application/x-tar"
+        res = self._json("POST", "/v1/uploads", content=data, headers={"Content-Type": ctype})
         if res.get("digest") != package_digest(data):
             raise UnavailableError(f"server reported digest {res.get('digest')!r}, expected {package_digest(data)}")
         return cast(UploadResult, res)

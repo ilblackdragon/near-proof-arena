@@ -84,7 +84,10 @@ fn score_ordered(ordered: &[(u32, u64, u64)]) -> Result<ScoreResult, ScoreError>
     if !m.is_finite() || m >= 9_223_372_036_854_775_808.0 {
         return Err(ScoreError::ScoreOverflow);
     }
-    Ok(ScoreResult { score_f64: s, score_milli: m.floor() as u64 })
+    Ok(ScoreResult {
+        score_f64: s,
+        score_milli: m.floor() as u64,
+    })
 }
 
 /// The score of per-class medians against frozen baselines.
@@ -111,7 +114,10 @@ pub fn score(classes: &[ClassInput]) -> Result<ScoreResult, ScoreError> {
     }
     let mut ordered: Vec<&ClassInput> = classes.iter().collect();
     ordered.sort_by(|a, b| a.class_id.as_bytes().cmp(b.class_id.as_bytes()));
-    let v: Vec<(u32, u64, u64)> = ordered.iter().map(|c| (c.weight_ppm, c.baseline_ns, c.median_ns)).collect();
+    let v: Vec<(u32, u64, u64)> = ordered
+        .iter()
+        .map(|c| (c.weight_ppm, c.baseline_ns, c.median_ns))
+        .collect();
     score_ordered(&v)
 }
 
@@ -154,7 +160,11 @@ pub fn score_from_runs(classes: &[ClassRuns]) -> Result<ScoreResult, ScoreError>
 }
 
 /// Seeded percentile bootstrap (§8.3).
-pub fn bootstrap_ci(classes: &[ClassRuns], seed: u64, iterations: u32) -> Result<BootstrapResult, ScoreError> {
+pub fn bootstrap_ci(
+    classes: &[ClassRuns],
+    seed: u64,
+    iterations: u32,
+) -> Result<BootstrapResult, ScoreError> {
     assert!(iterations >= 1, "iterations must be >= 1");
     let point = score_from_runs(classes)?;
     let mut ordered: Vec<&ClassRuns> = classes.iter().collect();
@@ -171,7 +181,11 @@ pub fn bootstrap_ci(classes: &[ClassRuns], seed: u64, iterations: u32) -> Result
             for _ in 0..n {
                 buf.push(c.runs_ns[rng.below(n) as usize]);
             }
-            tuples.push((c.weight_ppm, c.baseline_ns, median_u64(&buf).expect("non-empty")));
+            tuples.push((
+                c.weight_ppm,
+                c.baseline_ns,
+                median_u64(&buf).expect("non-empty"),
+            ));
         }
         xs.push(score_ordered(&tuples)?.score_milli);
     }
@@ -193,23 +207,51 @@ pub fn bootstrap_ci(classes: &[ClassRuns], seed: u64, iterations: u32) -> Result
 mod tests {
     use super::*;
     fn c(id: &str, w: u32, b: u64, m: u64) -> ClassInput {
-        ClassInput { class_id: id.into(), weight_ppm: w, baseline_ns: b, median_ns: m }
+        ClassInput {
+            class_id: id.into(),
+            weight_ppm: w,
+            baseline_ns: b,
+            median_ns: m,
+        }
     }
     #[test]
     fn basics() {
-        assert_eq!(score(&[c("a", 1_000_000, 10, 10)]).unwrap().score_milli, 100_000);
-        assert_eq!(score(&[c("a", 500_000, 2, 1), c("b", 500_000, 8, 4)]).unwrap().score_milli, 200_000);
+        assert_eq!(
+            score(&[c("a", 1_000_000, 10, 10)]).unwrap().score_milli,
+            100_000
+        );
+        assert_eq!(
+            score(&[c("a", 500_000, 2, 1), c("b", 500_000, 8, 4)])
+                .unwrap()
+                .score_milli,
+            200_000
+        );
         assert_eq!(score(&[]).unwrap_err(), ScoreError::EmptySuite);
-        assert_eq!(score(&[c("a", 1, 1, 1)]).unwrap_err(), ScoreError::WeightSum);
-        assert_eq!(score(&[c("a", 1_000_000, 1, 0)]).unwrap_err(), ScoreError::ZeroOrBadTime);
-        assert_eq!(score(&[c("", 1_000_000, 1, 1)]).unwrap_err(), ScoreError::BadClassId);
-        assert_eq!(score(&[c("a", 1_000_000, u64::MAX, 1)]).unwrap_err(), ScoreError::ScoreOverflow);
+        assert_eq!(
+            score(&[c("a", 1, 1, 1)]).unwrap_err(),
+            ScoreError::WeightSum
+        );
+        assert_eq!(
+            score(&[c("a", 1_000_000, 1, 0)]).unwrap_err(),
+            ScoreError::ZeroOrBadTime
+        );
+        assert_eq!(
+            score(&[c("", 1_000_000, 1, 1)]).unwrap_err(),
+            ScoreError::BadClassId
+        );
+        assert_eq!(
+            score(&[c("a", 1_000_000, u64::MAX, 1)]).unwrap_err(),
+            ScoreError::ScoreOverflow
+        );
     }
     #[test]
     fn order_independent() {
         let a = [c("x", 300_000, 1000, 700), c("y", 700_000, 5000, 6100)];
         let b = [a[1].clone(), a[0].clone()];
-        assert_eq!(score(&a).unwrap().score_milli, score(&b).unwrap().score_milli);
+        assert_eq!(
+            score(&a).unwrap().score_milli,
+            score(&b).unwrap().score_milli
+        );
     }
     #[test]
     fn half_width_rounds_up() {

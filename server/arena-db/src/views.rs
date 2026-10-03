@@ -663,6 +663,13 @@ pub fn compute_leaderboard(
     superseded_by: Option<&str>,
     bundles: &[SubmissionBundle],
 ) -> Leaderboard {
+    // A run whose formal gates were reused from a revoked submission carries
+    // that submission's (now withdrawn) evidence: it is not rankable either.
+    let revoked: std::collections::HashSet<&str> = bundles
+        .iter()
+        .filter(|b| b.revocation.is_some())
+        .map(|b| b.sub.id.as_str())
+        .collect();
     let bundles: Vec<&SubmissionBundle> = bundles
         .iter()
         .filter(|b| b.sub.challenge_id == challenge_id)
@@ -671,7 +678,14 @@ pub fn compute_leaderboard(
         .iter()
         .filter_map(|b| {
             let r = b.latest_decided_run()?;
-            rankable(chal.tier, r, b.revocation.is_some()).then(|| {
+            let tainted = b.gates.get(&r.id).is_some_and(|gs| {
+                gs.iter().any(|g| {
+                    g.reused_from
+                        .as_deref()
+                        .is_some_and(|s| revoked.contains(s))
+                })
+            });
+            rankable(chal.tier, r, b.revocation.is_some() || tainted).then(|| {
                 (
                     entry(b, Some(r), chal, challenge_id, superseded_by),
                     b.sub.created_at,

@@ -110,6 +110,11 @@ export type Stage =
  * via the `definition` "Tier".
  */
 export type Tier = 'formal' | 'experimental' | 'demo';
+/**
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "VerifyRoute".
+ */
+export type VerifyRoute = 'native' | 'npai-v1' | 'native-lean';
 
 /**
  * Public view of a submission (API `GET /v1/submissions/{id}`).
@@ -358,5 +363,21 @@ export interface VerifiedSurface {
   formal_tree: Digest;
   prepare_artifact: Digest;
   public_artifacts: Digest;
+  /**
+   * `npai-v1`: SHA-256 digest of the built verifier bytecode image.
+   */
+  verifier_bytecode?: Digest | null;
+  /**
+   * `native-lean`: `[formal] verifier_model`.
+   */
+  verifier_model?: string | null;
+  /**
+   * `native-lean`: `[formal] verifier_model_module`.
+   */
+  verifier_model_module?: string | null;
   verify_artifact: Digest;
+  /**
+   * Effective verify route (`native` when the manifest omits it).
+   */
+  verify_route?: VerifyRoute | null;
 }

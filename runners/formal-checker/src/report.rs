@@ -2,7 +2,9 @@
 
 use crate::findings::{is_axiom_code, Finding, Scope, Severity};
 use arena_types::evidence::{EdgeStatus, EvidenceEdge, EvidenceNode, NodeKind};
-use arena_types::{Digest, EvidenceGraph, EvidenceRef, GateResult, GateStatus, ObligationId, ReasonCode};
+use arena_types::{
+    Digest, EvidenceGraph, EvidenceRef, GateResult, GateStatus, ObligationId, ReasonCode,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -13,10 +15,19 @@ pub struct GateSpec {
 
 pub fn default_gates() -> Vec<GateSpec> {
     use ObligationId::*;
-    [FormalSemanticSoundness, FormalSemanticCompleteness, FormalCryptoSoundness, FormalImplConnection, AxiomAudit]
-        .into_iter()
-        .map(|gate| GateSpec { gate, mandatory: true })
-        .collect()
+    [
+        FormalSemanticSoundness,
+        FormalSemanticCompleteness,
+        FormalCryptoSoundness,
+        FormalImplConnection,
+        AxiomAudit,
+    ]
+    .into_iter()
+    .map(|gate| GateSpec {
+        gate,
+        mandatory: true,
+    })
+    .collect()
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -192,13 +203,22 @@ pub fn evidence_graph(g: &GraphInput) -> EvidenceGraph {
         from: "formal:certificate".into(),
         to: "formal:expected_statement".into(),
         kind: "proves".into(),
-        status: if g.type_ok { EdgeStatus::Checked } else { EdgeStatus::Missing },
+        status: if g.type_ok {
+            EdgeStatus::Checked
+        } else {
+            EdgeStatus::Missing
+        },
         evidence: g.evidence.clone(),
         note: "syntactic Expr equality of the certificate type and the reference statement".into(),
     }];
     for (name, d) in g.trusted {
         let id = format!("formal:trusted:{name}");
-        nodes.push(EvidenceNode { id: id.clone(), kind: NodeKind::FormalSemantics, label: name.clone(), digest: Some(d.clone()) });
+        nodes.push(EvidenceNode {
+            id: id.clone(),
+            kind: NodeKind::FormalSemantics,
+            label: name.clone(),
+            digest: Some(d.clone()),
+        });
         edges.push(EvidenceEdge {
             from: "formal:expected_statement".into(),
             to: id,
@@ -210,34 +230,63 @@ pub fn evidence_graph(g: &GraphInput) -> EvidenceGraph {
     }
     for ax in g.axioms {
         let id = format!("formal:axiom:{ax}");
-        nodes.push(EvidenceNode { id: id.clone(), kind: NodeKind::Assumption, label: ax.clone(), digest: None });
+        nodes.push(EvidenceNode {
+            id: id.clone(),
+            kind: NodeKind::Assumption,
+            label: ax.clone(),
+            digest: None,
+        });
         let ok = g.allowlist.contains(ax);
         edges.push(EvidenceEdge {
             from: "formal:certificate".into(),
             to: id,
             kind: "assumes".into(),
-            status: if ok { EdgeStatus::Trusted } else { EdgeStatus::Missing },
+            status: if ok {
+                EdgeStatus::Trusted
+            } else {
+                EdgeStatus::Missing
+            },
             evidence: vec![],
-            note: if ok { "allowlisted axiom".into() } else { "axiom NOT in the challenge allowlist".into() },
+            note: if ok {
+                "allowlisted axiom".into()
+            } else {
+                "axiom NOT in the challenge allowlist".into()
+            },
         });
     }
     for r in g.rechecks {
         let id = format!("tcb:{}", r.id);
-        nodes.push(EvidenceNode { id: id.clone(), kind: NodeKind::TcbComponent, label: r.id.clone(), digest: None });
+        nodes.push(EvidenceNode {
+            id: id.clone(),
+            kind: NodeKind::TcbComponent,
+            label: r.id.clone(),
+            digest: None,
+        });
         edges.push(EvidenceEdge {
             from: "formal:certificate".into(),
             to: id,
             kind: "rechecked_by".into(),
-            status: if r.verdict == "accepted" { EdgeStatus::Checked } else { EdgeStatus::Missing },
+            status: if r.verdict == "accepted" {
+                EdgeStatus::Checked
+            } else {
+                EdgeStatus::Missing
+            },
             evidence: vec![],
-            note: format!("{} ({})", r.verdict, r.detail.chars().take(200).collect::<String>()),
+            note: format!(
+                "{} ({})",
+                r.verdict,
+                r.detail.chars().take(200).collect::<String>()
+            ),
         });
     }
     if let Some(m) = g.model {
         nodes.push(EvidenceNode {
             id: "formal:verifier_model".into(),
             kind: NodeKind::BackendSemantics,
-            label: format!("candidate-defined verifier model {} (inside the admission statement)", m.decl),
+            label: format!(
+                "candidate-defined verifier model {} (inside the admission statement)",
+                m.decl
+            ),
             digest: m.closure_digest.clone(),
         });
         edges.push(EvidenceEdge {
@@ -252,9 +301,14 @@ pub fn evidence_graph(g: &GraphInput) -> EvidenceGraph {
             from: "formal:certificate".into(),
             to: "formal:verifier_model".into(),
             kind: "proves_obligations_about".into(),
-            status: if g.type_ok { EdgeStatus::Checked } else { EdgeStatus::Missing },
+            status: if g.type_ok {
+                EdgeStatus::Checked
+            } else {
+                EdgeStatus::Missing
+            },
             evidence: vec![],
-            note: "semantic/crypto/completeness obligations are kernel-checked about this model".into(),
+            note: "semantic/crypto/completeness obligations are kernel-checked about this model"
+                .into(),
         });
     }
     if let Some(n) = g.native {
@@ -294,7 +348,10 @@ pub fn evidence_graph(g: &GraphInput) -> EvidenceGraph {
 pub fn dedupe(f: Vec<Finding>) -> Vec<Finding> {
     let mut out: Vec<Finding> = Vec::new();
     for x in f {
-        if !out.iter().any(|y| y.code == x.code && y.scope == x.scope && y.detail == x.detail) {
+        if !out
+            .iter()
+            .any(|y| y.code == x.code && y.scope == x.scope && y.detail == x.detail)
+        {
             out.push(x);
         }
     }
@@ -306,5 +363,8 @@ pub fn has_fail(f: &[Finding]) -> bool {
 }
 
 pub fn axiom_codes(f: &[Finding]) -> Vec<ReasonCode> {
-    f.iter().filter(|x| is_axiom_code(x.code)).map(|x| x.code).collect()
+    f.iter()
+        .filter(|x| is_axiom_code(x.code))
+        .map(|x| x.code)
+        .collect()
 }

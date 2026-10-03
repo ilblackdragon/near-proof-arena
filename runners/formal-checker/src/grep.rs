@@ -23,7 +23,9 @@ const PATTERNS: &[(&str, &str)] = &[
 pub fn scan(src_root: &Path, rel_paths: &[String]) -> Vec<String> {
     let mut out = Vec::new();
     for rel in rel_paths {
-        let Ok(src) = std::fs::read_to_string(src_root.join(rel)) else { continue };
+        let Ok(src) = std::fs::read_to_string(src_root.join(rel)) else {
+            continue;
+        };
         let code = crate::staging::strip_lean_comments(&src);
         for (lineno, line) in code.lines().enumerate() {
             for (pat, what) in PATTERNS {
@@ -34,7 +36,10 @@ pub fn scan(src_root: &Path, rel_paths: &[String]) -> Vec<String> {
                     !word(before) && !word(after)
                 });
                 if hit && out.len() < 200 {
-                    out.push(format!("source scan (supplementary): {rel}:{} {what}", lineno + 1));
+                    out.push(format!(
+                        "source scan (supplementary): {rel}:{} {what}",
+                        lineno + 1
+                    ));
                 }
             }
         }

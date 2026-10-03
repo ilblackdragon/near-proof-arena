@@ -44,6 +44,10 @@ export interface StoredChallenge {
    * Hex signature over the JCS bytes of `definition`.
    */
   signature: string;
+  /**
+   * Id of a registered challenge whose `supersedes` names this one. A superseded challenge is closed for new submissions; its results and board stay attached to it (docs/PROTOCOL_UPGRADES.md §5).
+   */
+  superseded_by?: string | null;
   tier: 'formal' | 'experimental' | 'demo';
 }
 export interface ChallengeDefinition {

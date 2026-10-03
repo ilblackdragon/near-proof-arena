@@ -10,10 +10,18 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeSet, HashMap};
 
 pub const SORRY_AXIOMS: &[&str] = &["sorryAx"];
-pub const NATIVE_AXIOMS: &[&str] = &["Lean.ofReduceBool", "Lean.ofReduceNat", "Lean.trustCompiler"];
+pub const NATIVE_AXIOMS: &[&str] = &[
+    "Lean.ofReduceBool",
+    "Lean.ofReduceNat",
+    "Lean.trustCompiler",
+];
 
 /// Classify one axiom in the certificate's closure.
-pub fn classify_axiom(name: &str, allowlist: &[String], trusted_axioms: &BTreeSet<String>) -> Option<ReasonCode> {
+pub fn classify_axiom(
+    name: &str,
+    allowlist: &[String],
+    trusted_axioms: &BTreeSet<String>,
+) -> Option<ReasonCode> {
     if allowlist.iter().any(|a| a == name) {
         None
     } else if SORRY_AXIOMS.contains(&name) {
@@ -106,10 +114,16 @@ pub fn lean_model_findings(
         return f;
     }
     if a.model_found != Some(true) {
-        f.push(Finding::new(ReasonCode::ArtifactBindingFailed, Scope::All, format!("verifier model {model_decl} not found")));
+        f.push(Finding::new(
+            ReasonCode::ArtifactBindingFailed,
+            Scope::All,
+            format!("verifier model {model_decl} not found"),
+        ));
         return f;
     }
-    if a.model_origin.as_deref() != Some("candidate") || a.model_module.as_deref() != Some(model_module) {
+    if a.model_origin.as_deref() != Some("candidate")
+        || a.model_module.as_deref() != Some(model_module)
+    {
         f.push(Finding::new(
             ReasonCode::ArtifactBindingFailed,
             Scope::All,
@@ -125,18 +139,37 @@ pub fn lean_model_findings(
     }
     for ax in &a.model_axioms {
         if let Some(code) = classify_axiom(ax, allowlist, trusted_axioms) {
-            f.push(Finding::new(code, Scope::All, format!("verifier model depends on axiom {ax}")));
+            f.push(Finding::new(
+                code,
+                Scope::All,
+                format!("verifier model depends on axiom {ax}"),
+            ));
         }
     }
     for c in &a.model_closure {
         if c.origin == "candidate" && (c.is_partial || c.kind == "opaque") {
-            f.push(Finding::new(ReasonCode::UnapprovedAssumption, Scope::All, format!("verifier model uses candidate {} `{}` (opaque/partial)", c.kind, c.name)));
+            f.push(Finding::new(
+                ReasonCode::UnapprovedAssumption,
+                Scope::All,
+                format!(
+                    "verifier model uses candidate {} `{}` (opaque/partial)",
+                    c.kind, c.name
+                ),
+            ));
         }
         if c.is_unsafe {
-            f.push(Finding::new(ReasonCode::NativeEvalFound, Scope::All, format!("verifier model uses unsafe `{}`", c.name)));
+            f.push(Finding::new(
+                ReasonCode::NativeEvalFound,
+                Scope::All,
+                format!("verifier model uses unsafe `{}`", c.name),
+            ));
         }
         if c.origin == "trusted" && c.name == model_decl {
-            f.push(Finding::new(ReasonCode::ShadowedDefinition, Scope::All, format!("verifier model {model_decl} resolves to a trusted declaration")));
+            f.push(Finding::new(
+                ReasonCode::ShadowedDefinition,
+                Scope::All,
+                format!("verifier model {model_decl} resolves to a trusted declaration"),
+            ));
         }
     }
     f
@@ -165,11 +198,18 @@ pub fn lean_findings(
         } else {
             ReasonCode::RecheckFailed
         };
-        f.push(Finding::new(code, Scope::All, format!("joint import of expected statement and candidate failed: {e}")));
+        f.push(Finding::new(
+            code,
+            Scope::All,
+            format!("joint import of expected statement and candidate failed: {e}"),
+        ));
         return f;
     }
     if let Some(fatal) = &a.fatal {
-        f.push(Finding::unknown(ReasonCode::InfraError, format!("audit: {fatal}")));
+        f.push(Finding::unknown(
+            ReasonCode::InfraError,
+            format!("audit: {fatal}"),
+        ));
         return f;
     }
     for fl in &a.flagged {
@@ -201,18 +241,28 @@ pub fn lean_findings(
         f.push(Finding::new(
             ReasonCode::ShadowedDefinition,
             Scope::All,
-            format!("expected statement depends on non-trusted declarations: {:?}", a.untrusted_in_statement),
+            format!(
+                "expected statement depends on non-trusted declarations: {:?}",
+                a.untrusted_in_statement
+            ),
         ));
     }
     if a.certificate_found != Some(true) {
-        f.push(Finding::new(ReasonCode::CertificateMissing, Scope::All, "certificate constant not found".into()));
+        f.push(Finding::new(
+            ReasonCode::CertificateMissing,
+            Scope::All,
+            "certificate constant not found".into(),
+        ));
         return f;
     }
     if a.certificate_origin.as_deref() != Some("candidate") {
         f.push(Finding::new(
             ReasonCode::CertificateMissing,
             Scope::All,
-            format!("certificate is not declared in a candidate module (origin {:?})", a.certificate_origin),
+            format!(
+                "certificate is not declared in a candidate module (origin {:?})",
+                a.certificate_origin
+            ),
         ));
     }
     if a.type_equal != Some(true) {
@@ -228,7 +278,11 @@ pub fn lean_findings(
     }
     for ax in a.axioms.iter().filter(|_| !per_conjunct_axioms) {
         if let Some(code) = classify_axiom(ax, allowlist, trusted_axioms) {
-            f.push(Finding::new(code, Scope::Certificate, format!("certificate depends on axiom {ax}")));
+            f.push(Finding::new(
+                code,
+                Scope::Certificate,
+                format!("certificate depends on axiom {ax}"),
+            ));
         }
     }
     for c in &a.closure {
@@ -240,7 +294,11 @@ pub fn lean_findings(
             ));
         }
         if c.is_unsafe {
-            f.push(Finding::new(ReasonCode::NativeEvalFound, Scope::Certificate, format!("certified path uses unsafe `{}`", c.name)));
+            f.push(Finding::new(
+                ReasonCode::NativeEvalFound,
+                Scope::Certificate,
+                format!("certified path uses unsafe `{}`", c.name),
+            ));
         }
     }
     f
@@ -316,10 +374,14 @@ pub fn nd_audit(
         }
     }
     a.shadowed.sort();
-    let Some(cert) = cand.decls.get(certificate) else { return a };
+    let Some(cert) = cand.decls.get(certificate) else {
+        return a;
+    };
     a.certificate_found = true;
     a.certificate_kind = Some(cert.kind);
-    let Some(exp) = reference.decls.get(expected_decl) else { return a };
+    let Some(exp) = reference.decls.get(expected_decl) else {
+        return a;
+    };
     let Some(exp_val) = exp.value else { return a };
     // (a) syntactic equality after positional renaming of universe params.
     if let Some(m) = model {
@@ -328,34 +390,60 @@ pub fn nd_audit(
         // instantiation constant whose value is that application.
         let repl = crate::ndjson::const_hash(m.model_decl);
         let inst_hash = reference.lambda_body_instantiated(exp_val, &repl);
-        let is_applied = |ex: &Export, e: u32| ex.as_app_of_consts(e) == Some((expected_decl.to_string(), m.model_decl.to_string()));
+        let is_applied = |ex: &Export, e: u32| {
+            ex.as_app_of_consts(e) == Some((expected_decl.to_string(), m.model_decl.to_string()))
+        };
         let direct = cert.level_params.is_empty()
             && exp.level_params.is_empty()
             && (Some(cand.expr_hash(cert.ty, None)) == inst_hash || is_applied(cand, cert.ty));
         let via_inst = cert.level_params.is_empty()
-            && cand.const_head(cert.ty).is_some_and(|(n, us)| n == m.inst_decl && us.is_empty())
-            && cand.decls.get(m.inst_decl).is_some_and(|d| d.kind == DeclKind::Def && d.level_params.is_empty() && d.value.is_some_and(|v| is_applied(cand, v)));
+            && cand
+                .const_head(cert.ty)
+                .is_some_and(|(n, us)| n == m.inst_decl && us.is_empty())
+            && cand.decls.get(m.inst_decl).is_some_and(|d| {
+                d.kind == DeclKind::Def
+                    && d.level_params.is_empty()
+                    && d.value.is_some_and(|v| is_applied(cand, v))
+            });
         a.type_equal = direct || via_inst;
         a.type_via_expected_const = via_inst || (direct && is_applied(cand, cert.ty));
         let (mclo, _) = cand.closure([m.model_decl.to_string()]);
         a.model_found = cand.decls.contains_key(m.model_decl);
         a.model_axioms = axioms_in(cand, &mclo);
         a.model_closure_digest = Some(json_digest(
-            &mclo.iter().map(|n| (n.clone(), hex(&cand.decl_hash(&cand.decls[n])))).collect::<Vec<_>>(),
+            &mclo
+                .iter()
+                .map(|n| (n.clone(), hex(&cand.decl_hash(&cand.decls[n]))))
+                .collect::<Vec<_>>(),
         ));
     } else if cert.level_params.len() == exp.level_params.len() {
-        let subst: HashMap<String, String> =
-            cert.level_params.iter().cloned().zip(exp.level_params.iter().cloned()).collect();
+        let subst: HashMap<String, String> = cert
+            .level_params
+            .iter()
+            .cloned()
+            .zip(exp.level_params.iter().cloned())
+            .collect();
         let ct = cand.expr_hash(cert.ty, Some(&subst));
         a.type_equal = ct == reference.expr_hash(exp_val, None);
         if !a.type_equal {
             if let Some((n, us)) = cand.const_head(cert.ty) {
                 let lv_ok = us.len() == exp.level_params.len()
-                    && us.iter().zip(&cert.level_params).all(|(u, p)| cand.level_is_param(*u, p))
-                    && cert.level_params.iter().zip(&exp.level_params).all(|(c, e)| c == e);
-                if n == expected_decl && lv_ok && cand.decls.get(expected_decl).is_some_and(|d| {
-                    ref_hash.get(expected_decl) == Some(&cand.decl_hash(d))
-                }) {
+                    && us
+                        .iter()
+                        .zip(&cert.level_params)
+                        .all(|(u, p)| cand.level_is_param(*u, p))
+                    && cert
+                        .level_params
+                        .iter()
+                        .zip(&exp.level_params)
+                        .all(|(c, e)| c == e);
+                if n == expected_decl
+                    && lv_ok
+                    && cand
+                        .decls
+                        .get(expected_decl)
+                        .is_some_and(|d| ref_hash.get(expected_decl) == Some(&cand.decl_hash(d)))
+                {
                     a.type_equal = true;
                     a.type_via_expected_const = true;
                 }
@@ -368,7 +456,11 @@ pub fn nd_audit(
     stmt_consts.remove(expected_decl);
     let (stmt_closure, _) = reference.closure(stmt_consts);
     if a.type_equal {
-        a.missing_trusted = stmt_closure.iter().filter(|n| !cand.decls.contains_key(*n)).cloned().collect();
+        a.missing_trusted = stmt_closure
+            .iter()
+            .filter(|n| !cand.decls.contains_key(*n))
+            .cloned()
+            .collect();
     }
     // (b)/(e)/(f) certified closure.
     let (clo, missing) = cand.closure([certificate.to_string()]);
@@ -382,7 +474,12 @@ pub fn nd_audit(
         a.closure.push((n.clone(), d.kind, hex(&cand.decl_hash(d))));
     }
     a.closure_count = a.closure.len();
-    a.closure_digest = Some(json_digest(&a.closure.iter().map(|(n, k, h)| (n, format!("{k:?}"), h)).collect::<Vec<_>>()));
+    a.closure_digest = Some(json_digest(
+        &a.closure
+            .iter()
+            .map(|(n, k, h)| (n, format!("{k:?}"), h))
+            .collect::<Vec<_>>(),
+    ));
     // Per-conjunct decomposition of the proof term.
     if n_conjuncts > 1 {
         if let Some(v) = cert.value {
@@ -421,28 +518,47 @@ pub fn nd_findings(a: &NdAudit, allowlist: &[String]) -> Vec<Finding> {
     let mut f = Vec::new();
     for ax in &a.model_axioms {
         if let Some(code) = classify_axiom(ax, allowlist, &a.trusted_axioms) {
-            f.push(Finding::new(code, Scope::All, format!("verifier model depends on axiom {ax}")));
+            f.push(Finding::new(
+                code,
+                Scope::All,
+                format!("verifier model depends on axiom {ax}"),
+            ));
         }
     }
     if !a.shadowed.is_empty() {
         f.push(Finding::new(
             ReasonCode::ShadowedDefinition,
             Scope::All,
-            format!("candidate environment redefines {} judge-pinned declaration(s): {:?}", a.shadowed.len(), &a.shadowed[..a.shadowed.len().min(10)]),
+            format!(
+                "candidate environment redefines {} judge-pinned declaration(s): {:?}",
+                a.shadowed.len(),
+                &a.shadowed[..a.shadowed.len().min(10)]
+            ),
         ));
     }
     if !a.certificate_found {
-        f.push(Finding::new(ReasonCode::CertificateMissing, Scope::All, "certificate not present in the exported environment".into()));
+        f.push(Finding::new(
+            ReasonCode::CertificateMissing,
+            Scope::All,
+            "certificate not present in the exported environment".into(),
+        ));
         return f;
     }
     if !a.type_equal {
-        f.push(Finding::new(ReasonCode::TheoremTypeMismatch, Scope::All, "exported certificate type is not structurally equal to the reference statement".into()));
+        f.push(Finding::new(
+            ReasonCode::TheoremTypeMismatch,
+            Scope::All,
+            "exported certificate type is not structurally equal to the reference statement".into(),
+        ));
     }
     if !a.missing_trusted.is_empty() || !a.closure_missing.is_empty() {
         f.push(Finding::new(
             ReasonCode::RecheckFailed,
             Scope::All,
-            format!("export is not closed: missing {:?} {:?}", a.missing_trusted, a.closure_missing),
+            format!(
+                "export is not closed: missing {:?} {:?}",
+                a.missing_trusted, a.closure_missing
+            ),
         ));
     }
     match &a.conjunct_axioms {
@@ -450,7 +566,11 @@ pub fn nd_findings(a: &NdAudit, allowlist: &[String]) -> Vec<Finding> {
             for (i, axs) in per.iter().enumerate() {
                 for ax in axs {
                     if let Some(code) = classify_axiom(ax, allowlist, &a.trusted_axioms) {
-                        f.push(Finding::new(code, Scope::Conjunct(i), format!("conjunct {i} depends on axiom {ax}")));
+                        f.push(Finding::new(
+                            code,
+                            Scope::Conjunct(i),
+                            format!("conjunct {i} depends on axiom {ax}"),
+                        ));
                     }
                 }
             }
@@ -458,13 +578,21 @@ pub fn nd_findings(a: &NdAudit, allowlist: &[String]) -> Vec<Finding> {
         None => {
             for ax in &a.axioms {
                 if let Some(code) = classify_axiom(ax, allowlist, &a.trusted_axioms) {
-                    f.push(Finding::new(code, Scope::Certificate, format!("certificate depends on axiom {ax}")));
+                    f.push(Finding::new(
+                        code,
+                        Scope::Certificate,
+                        format!("certificate depends on axiom {ax}"),
+                    ));
                 }
             }
         }
     }
     for n in &a.unsafe_or_partial {
-        f.push(Finding::new(ReasonCode::UnapprovedAssumption, Scope::Certificate, format!("certified path uses unsafe/partial `{n}`")));
+        f.push(Finding::new(
+            ReasonCode::UnapprovedAssumption,
+            Scope::Certificate,
+            format!("certified path uses unsafe/partial `{n}`"),
+        ));
     }
     f
 }
@@ -478,13 +606,23 @@ pub fn cross_check(lean: &LeanAudit, nd: &NdAudit) -> Option<Finding> {
     let lean_axioms: BTreeSet<String> = lean.axioms.iter().cloned().collect();
     let mut diffs = Vec::new();
     if lean.type_equal != Some(nd.type_equal) {
-        diffs.push(format!("type_equal lean={:?} ndjson={}", lean.type_equal, nd.type_equal));
+        diffs.push(format!(
+            "type_equal lean={:?} ndjson={}",
+            lean.type_equal, nd.type_equal
+        ));
     }
     if lean_axioms != nd.axioms {
-        diffs.push(format!("axioms lean={lean_axioms:?} ndjson={:?}", nd.axioms));
+        diffs.push(format!(
+            "axioms lean={lean_axioms:?} ndjson={:?}",
+            nd.axioms
+        ));
     }
     (!diffs.is_empty()).then(|| {
-        Finding::new(ReasonCode::RecheckFailed, Scope::All, format!("independent audits disagree: {}", diffs.join("; ")))
+        Finding::new(
+            ReasonCode::RecheckFailed,
+            Scope::All,
+            format!("independent audits disagree: {}", diffs.join("; ")),
+        )
     })
 }
 
@@ -533,7 +671,11 @@ mod tests {
     }
 
     fn tmp() -> std::path::PathBuf {
-        let d = std::env::temp_dir().join(format!("fc-audit-{}-{:?}", std::process::id(), std::thread::current().id()));
+        let d = std::env::temp_dir().join(format!(
+            "fc-audit-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
         std::fs::create_dir_all(&d).unwrap();
         d
     }
@@ -549,37 +691,112 @@ mod tests {
         let d = tmp();
         let reference = write(&d, "ref.ndjson", &[DEF_P, DEF_EXP, AX_PROPEXT]);
         // certificate : P (value irrelevant here; kernel checking is nanoda's job)
-        let good = write(&d, "good.ndjson", &[DEF_P, r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":4}}"#]);
-        let a = nd_audit(&good, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1, None);
-        assert!(a.certificate_found && a.type_equal && a.shadowed.is_empty() && a.missing_trusted.is_empty(), "{a:?}");
+        let good = write(
+            &d,
+            "good.ndjson",
+            &[
+                DEF_P,
+                r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":4}}"#,
+            ],
+        );
+        let a = nd_audit(
+            &good,
+            &reference,
+            "Candidate.certificate",
+            "ArenaExpected.expectedType",
+            1,
+            None,
+        );
+        assert!(
+            a.certificate_found
+                && a.type_equal
+                && a.shadowed.is_empty()
+                && a.missing_trusted.is_empty(),
+            "{a:?}"
+        );
         assert!(nd_findings(&a, &["propext".into()]).is_empty());
 
         // Same name `P`, different body: statement matches by name but P is shadowed.
-        let shadow = write(&d, "shadow.ndjson", &[DEF_P_ALTERED, r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":4}}"#]);
-        let a = nd_audit(&shadow, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1, None);
+        let shadow = write(
+            &d,
+            "shadow.ndjson",
+            &[
+                DEF_P_ALTERED,
+                r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":4}}"#,
+            ],
+        );
+        let a = nd_audit(
+            &shadow,
+            &reference,
+            "Candidate.certificate",
+            "ArenaExpected.expectedType",
+            1,
+            None,
+        );
         assert_eq!(a.shadowed, vec!["P".to_string()]);
-        assert!(nd_findings(&a, &[]).iter().any(|f| f.code == ReasonCode::ShadowedDefinition));
+        assert!(nd_findings(&a, &[])
+            .iter()
+            .any(|f| f.code == ReasonCode::ShadowedDefinition));
 
         // Wrong type (Prop instead of P).
-        let wrong = write(&d, "wrong.ndjson", &[DEF_P, r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":0,"value":4}}"#]);
-        let a = nd_audit(&wrong, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1, None);
+        let wrong = write(
+            &d,
+            "wrong.ndjson",
+            &[
+                DEF_P,
+                r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":0,"value":4}}"#,
+            ],
+        );
+        let a = nd_audit(
+            &wrong,
+            &reference,
+            "Candidate.certificate",
+            "ArenaExpected.expectedType",
+            1,
+            None,
+        );
         assert!(!a.type_equal);
 
         // Missing certificate.
-        let a = nd_audit(&good, &reference, "Candidate.nope", "ArenaExpected.expectedType", 1, None);
-        assert!(nd_findings(&a, &[]).iter().any(|f| f.code == ReasonCode::CertificateMissing));
+        let a = nd_audit(
+            &good,
+            &reference,
+            "Candidate.nope",
+            "ArenaExpected.expectedType",
+            1,
+            None,
+        );
+        assert!(nd_findings(&a, &[])
+            .iter()
+            .any(|f| f.code == ReasonCode::CertificateMissing));
 
         // Axiom in the closure: candidate-declared axiom used by the certificate.
-        let ax = write(&d, "ax.ndjson", &[
-            DEF_P,
-            r#"{"axiom":{"isUnsafe":false,"levelParams":[],"name":9,"type":2}}"#,
-            r#"{"const":{"name":9,"us":[]},"ie":6}"#,
-            r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":6}}"#,
-        ]);
-        let a = nd_audit(&ax, &reference, "Candidate.certificate", "ArenaExpected.expectedType", 1, None);
+        let ax = write(
+            &d,
+            "ax.ndjson",
+            &[
+                DEF_P,
+                r#"{"axiom":{"isUnsafe":false,"levelParams":[],"name":9,"type":2}}"#,
+                r#"{"const":{"name":9,"us":[]},"ie":6}"#,
+                r#"{"thm":{"all":[5],"levelParams":[],"name":5,"type":2,"value":6}}"#,
+            ],
+        );
+        let a = nd_audit(
+            &ax,
+            &reference,
+            "Candidate.certificate",
+            "ArenaExpected.expectedType",
+            1,
+            None,
+        );
         assert!(a.type_equal);
-        assert_eq!(a.axioms.iter().cloned().collect::<Vec<_>>(), vec!["cheat".to_string()]);
-        assert!(nd_findings(&a, &["propext".into()]).iter().any(|f| f.code == ReasonCode::ForbiddenAxiom));
+        assert_eq!(
+            a.axioms.iter().cloned().collect::<Vec<_>>(),
+            vec!["cheat".to_string()]
+        );
+        assert!(nd_findings(&a, &["propext".into()])
+            .iter()
+            .any(|f| f.code == ReasonCode::ForbiddenAxiom));
     }
 
     #[test]
@@ -594,9 +811,17 @@ mod tests {
     fn malformed_exports_are_rejected() {
         let d = tmp();
         let p = d.join("fwd.ndjson");
-        std::fs::write(&p, format!("{META}\n{{\"in\":1,\"str\":{{\"pre\":5,\"str\":\"x\"}}}}\n")).unwrap();
+        std::fs::write(
+            &p,
+            format!("{META}\n{{\"in\":1,\"str\":{{\"pre\":5,\"str\":\"x\"}}}}\n"),
+        )
+        .unwrap();
         assert!(Export::read(&p, 1 << 20).is_err(), "forward name reference");
-        std::fs::write(&p, format!("{META}\n{}\n{}\n{DEF_P}\n{DEF_P}\n", names(), exprs())).unwrap();
+        std::fs::write(
+            &p,
+            format!("{META}\n{}\n{}\n{DEF_P}\n{DEF_P}\n", names(), exprs()),
+        )
+        .unwrap();
         assert!(Export::read(&p, 1 << 20).is_err(), "duplicate declaration");
         std::fs::write(&p, format!("{}\n{}\n", names(), exprs())).unwrap();
         assert!(Export::read(&p, 1 << 20).is_err(), "missing meta");
@@ -607,13 +832,32 @@ mod tests {
 
     #[test]
     fn axiom_classification() {
-        let allow: Vec<String> = vec!["propext".into(), "Quot.sound".into(), "Classical.choice".into()];
+        let allow: Vec<String> = vec![
+            "propext".into(),
+            "Quot.sound".into(),
+            "Classical.choice".into(),
+        ];
         let trusted: BTreeSet<String> = ["ArenaCore.Assumptions.cr".to_string()].into();
         assert_eq!(classify_axiom("propext", &allow, &trusted), None);
-        assert_eq!(classify_axiom("sorryAx", &allow, &trusted), Some(ReasonCode::SorryFound));
-        assert_eq!(classify_axiom("Lean.ofReduceBool", &allow, &trusted), Some(ReasonCode::NativeEvalFound));
-        assert_eq!(classify_axiom("C.cert._native.native_decide.ax_1_1", &allow, &trusted), Some(ReasonCode::NativeEvalFound));
-        assert_eq!(classify_axiom("ArenaCore.Assumptions.cr", &allow, &trusted), Some(ReasonCode::UnapprovedAssumption));
-        assert_eq!(classify_axiom("Candidate.cheat", &allow, &trusted), Some(ReasonCode::ForbiddenAxiom));
+        assert_eq!(
+            classify_axiom("sorryAx", &allow, &trusted),
+            Some(ReasonCode::SorryFound)
+        );
+        assert_eq!(
+            classify_axiom("Lean.ofReduceBool", &allow, &trusted),
+            Some(ReasonCode::NativeEvalFound)
+        );
+        assert_eq!(
+            classify_axiom("C.cert._native.native_decide.ax_1_1", &allow, &trusted),
+            Some(ReasonCode::NativeEvalFound)
+        );
+        assert_eq!(
+            classify_axiom("ArenaCore.Assumptions.cr", &allow, &trusted),
+            Some(ReasonCode::UnapprovedAssumption)
+        );
+        assert_eq!(
+            classify_axiom("Candidate.cheat", &allow, &trusted),
+            Some(ReasonCode::ForbiddenAxiom)
+        );
     }
 }

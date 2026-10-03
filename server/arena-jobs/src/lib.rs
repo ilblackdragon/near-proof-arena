@@ -156,6 +156,11 @@ pub struct BuildOutputs {
     /// Judge-measured wall time of one build, ns (informational).
     #[serde(default)]
     pub build_ns: Option<u64>,
+    /// `verify_route = "npai-v1"`: digest of the built `entry.verifier_bytecode`
+    /// file. Required for that route (the server refuses to derive a verified
+    /// surface without it).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_bytecode: Option<Digest>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -194,6 +199,8 @@ pub type AdversarialJob = ExecJob;
 pub type BenchmarkJob = ExecJob;
 
 /// A leased job specification, tagged by kind.
+// Wire type, built once per lease; boxing the large variant buys nothing.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind", content = "job", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum JobSpec {

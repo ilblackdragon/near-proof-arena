@@ -203,3 +203,14 @@ def test_types_cover_contract():
     assert "SubmissionView" in t.__all__ and "LeaderboardEntry" in t.__all__
     assert set(t.SubmissionView.__annotations__) >= {"id", "stage", "decision", "accepted", "gates", "score_milli"}
     assert "HOSTILE_PROOF_ACCEPTED" in t.ReasonCode.__args__
+
+
+def test_zstd_upload_content_type():
+    data = b"\x28\xb5\x2f\xfd" + b"frame"
+
+    def h(req):
+        assert req.headers["content-type"] == "application/zstd"
+        return httpx.Response(200, json={"upload_id": "u", "digest": package_digest(req.content)})
+
+    with client(h) as c:
+        assert c.upload(data)["digest"] == package_digest(data)

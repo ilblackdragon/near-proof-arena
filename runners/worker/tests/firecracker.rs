@@ -21,10 +21,17 @@ fn honest_candidate_through_firecracker() {
     }
     let f = fixture();
     let (b, bundle) = f.build(&package_files());
-    assert_eq!(b.gates[0].status, GateStatus::Pass, "{}", b.gates[0].summary);
+    assert_eq!(
+        b.gates[0].status,
+        GateStatus::Pass,
+        "{}",
+        b.gates[0].summary
+    );
     let bundle = bundle.unwrap();
 
-    let deps = std::env::var_os("ARENA_FC_DEPS").map(std::path::PathBuf::from).unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into());
+    let deps = std::env::var_os("ARENA_FC_DEPS")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into());
     let fc_work = deps.join("work-worker-tests");
     let cfg = arena_firecracker::FirecrackerConfig::from_deps_dir(&deps, &fc_work).unwrap();
     let fc = arena_firecracker::FirecrackerSandbox::new(cfg).unwrap();
@@ -39,13 +46,36 @@ fn honest_candidate_through_firecracker() {
         keep_workdirs: false,
     });
     assert_eq!(exec.sandbox_info().tier_cap, None);
-    let run = |spec| exec.execute(&job("fc", spec), &AtomicBool::new(false)).unwrap();
+    let run = |spec| {
+        exec.execute(&job("fc", spec), &AtomicBool::new(false))
+            .unwrap()
+    };
 
     let cases = f.cases(2, true, claim_for);
-    let c = run(JobSpec::Conformance(ConformanceJob { bundle: bundle.clone(), entry: entry(), params: f.put(b"params-v1"), cases: cases.clone(), limits: run_limits(), request_pin: None }));
+    let c = run(JobSpec::Conformance(ConformanceJob {
+        bundle: bundle.clone(),
+        entry: entry(),
+        params: f.put(b"params-v1"),
+        cases: cases.clone(),
+        limits: run_limits(),
+        request_pin: None,
+    }));
     for g in &c.gates {
-        assert_eq!(g.status, GateStatus::Pass, "{:?}: {} // all: {:?}", g.gate, g.summary, c.gates.iter().map(|g| (&g.gate, &g.reason_codes, &g.summary)).collect::<Vec<_>>());
-        assert!(!g.reason_codes.contains(&ReasonCode::DemoOnly), "firecracker results are not tier-capped");
+        assert_eq!(
+            g.status,
+            GateStatus::Pass,
+            "{:?}: {} // all: {:?}",
+            g.gate,
+            g.summary,
+            c.gates
+                .iter()
+                .map(|g| (&g.gate, &g.reason_codes, &g.summary))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            !g.reason_codes.contains(&ReasonCode::DemoOnly),
+            "firecracker results are not tier-capped"
+        );
     }
     // Same bundle + params ⇒ same public dir digest as under bwrap-dev.
     let honest: Vec<HonestProof> = cases
@@ -65,7 +95,11 @@ fn honest_candidate_through_firecracker() {
         seed: 3,
         limits: run_limits(),
     }));
-    let g = a.gates.iter().find(|g| g.gate == ObligationId::AdversarialProofs).unwrap();
+    let g = a
+        .gates
+        .iter()
+        .find(|g| g.gate == ObligationId::AdversarialProofs)
+        .unwrap();
     assert_eq!(g.status, GateStatus::Pass, "{}", g.summary);
 
     let bj = BenchmarkJob {
@@ -73,7 +107,13 @@ fn honest_candidate_through_firecracker() {
         entry: entry(),
         params: f.put(b"params-v1"),
         public_artifacts: None,
-        classes: vec![BenchClass { class_id: "c".into(), weight_ppm: 1_000_000, baseline_ns: 1_000_000_000, batch: f.cases(1, true, claim_for), fresh_batch: vec![] }],
+        classes: vec![BenchClass {
+            class_id: "c".into(),
+            weight_ppm: 1_000_000,
+            baseline_ns: 1_000_000_000,
+            batch: f.cases(1, true, claim_for),
+            fresh_batch: vec![],
+        }],
         procedure: arena_types::challenge::MeasurementProcedure {
             warmup_runs: 1,
             measured_runs: 3,
@@ -92,15 +132,34 @@ fn honest_candidate_through_firecracker() {
         request_pin: None,
     };
     let r = run(JobSpec::Benchmark(bj));
-    let g = r.gates.iter().find(|g| g.gate == ObligationId::Benchmark).unwrap();
+    let g = r
+        .gates
+        .iter()
+        .find(|g| g.gate == ObligationId::Benchmark)
+        .unwrap();
     assert_eq!(g.status, GateStatus::Pass, "{}", g.summary);
     let res = r.benchmark.unwrap();
     assert!(!res.measured_by.contains("DEMO"));
     assert!(res.classes[0].median_ns > 0 && res.score_milli.is_some());
 
-    let bad = run(JobSpec::Conformance(ConformanceJob { bundle, entry: entry(), params: f.put(b"params-v1"), cases: f.cases(1, true, |_| b"nope".to_vec()), limits: run_limits(), request_pin: None }));
-    let g = bad.gates.iter().find(|g| g.gate == ObligationId::ConformanceDifferential).unwrap();
-    assert!(g.reason_codes.contains(&ReasonCode::ClaimMismatch), "{}", g.summary);
+    let bad = run(JobSpec::Conformance(ConformanceJob {
+        bundle,
+        entry: entry(),
+        params: f.put(b"params-v1"),
+        cases: f.cases(1, true, |_| b"nope".to_vec()),
+        limits: run_limits(),
+        request_pin: None,
+    }));
+    let g = bad
+        .gates
+        .iter()
+        .find(|g| g.gate == ObligationId::ConformanceDifferential)
+        .unwrap();
+    assert!(
+        g.reason_codes.contains(&ReasonCode::ClaimMismatch),
+        "{}",
+        g.summary
+    );
 }
 
 /// BUILD_REPRODUCIBLE through Firecracker with the pinned Rust/cc toolchain
@@ -124,13 +183,23 @@ fn build_through_firecracker_with_pinned_toolchain() {
         .map(|e| e.path())
         .find(|p| p.extension().is_some_and(|x| x == "json"))
         .expect("a toolchain image manifest");
-    let meta: serde_json::Value = serde_json::from_slice(&std::fs::read(&meta_path).unwrap()).unwrap();
-    let tc: arena_types::Digest = meta["digest"].as_str().unwrap().to_string().try_into().unwrap();
+    let meta: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&meta_path).unwrap()).unwrap();
+    let tc: arena_types::Digest = meta["digest"]
+        .as_str()
+        .unwrap()
+        .to_string()
+        .try_into()
+        .unwrap();
     let env = meta["env"].as_object().unwrap();
 
     let f = fixture();
-    let deps = std::env::var_os("ARENA_FC_DEPS").map(std::path::PathBuf::from).unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into());
-    let cfg = arena_firecracker::FirecrackerConfig::from_deps_dir(&deps, &deps.join("work-worker-tests")).unwrap();
+    let deps = std::env::var_os("ARENA_FC_DEPS")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into());
+    let cfg =
+        arena_firecracker::FirecrackerConfig::from_deps_dir(&deps, &deps.join("work-worker-tests"))
+            .unwrap();
     let fc = arena_firecracker::FirecrackerSandbox::new(cfg).unwrap();
     let exec = StageExecutor::new(WorkerContext {
         worker_id: "fc-build-test".into(),
@@ -140,7 +209,10 @@ fn build_through_firecracker_with_pinned_toolchain() {
         build: BuildEnv {
             mounts: vec![],
             path: Some(env["PATH"].as_str().unwrap().into()),
-            env: vec![("CARGO_HOME".into(), env["CARGO_HOME"].as_str().unwrap().into())],
+            env: vec![(
+                "CARGO_HOME".into(),
+                env["CARGO_HOME"].as_str().unwrap().into(),
+            )],
             images_dir: Some(images.clone()),
         },
         bench_cpus: None,
@@ -151,7 +223,9 @@ fn build_through_firecracker_with_pinned_toolchain() {
     let mut files = package_files();
     files.insert(
         "build-recipe/build.sh".into(),
-        (0o755, br#"#!/bin/sh
+        (
+            0o755,
+            br#"#!/bin/sh
 set -e
 mkdir -p out
 for f in prepare prove verify; do cp source/$f.sh out/$f; chmod 755 out/$f; done
@@ -160,9 +234,12 @@ cp target/release/tool out/tool
 cc -O2 -o out/ctool source/c/hello.c
 ./out/tool > out/tool.txt
 ./out/ctool >> out/tool.txt
-"#.to_vec()),
+"#
+            .to_vec(),
+        ),
     );
-    let tinydep_toml = b"[package]\nname = \"tinydep\"\nversion = \"0.1.0\"\nedition = \"2021\"\n".to_vec();
+    let tinydep_toml =
+        b"[package]\nname = \"tinydep\"\nversion = \"0.1.0\"\nedition = \"2021\"\n".to_vec();
     let tinydep_lib = b"pub fn answer() -> u32 { 42 }\n".to_vec();
     let sha = |b: &[u8]| arena_types::Digest::of_bytes(b).hex().to_string();
     let checksum = format!(
@@ -191,21 +268,47 @@ cc -O2 -o out/ctool source/c/hello.c
     limits.max_output_bytes = 64 << 20;
     let b = exec
         .execute(
-            &job("fc-build", JobSpec::Build(BuildJob { package: pkg, toolchain_image: Some(tc.clone()), limits, source_date_epoch: 0 })),
+            &job(
+                "fc-build",
+                JobSpec::Build(BuildJob {
+                    package: pkg,
+                    toolchain_image: Some(tc.clone()),
+                    limits,
+                    source_date_epoch: 0,
+                }),
+            ),
             &AtomicBool::new(false),
         )
         .unwrap();
     let g = &b.gates[0];
-    assert_eq!(g.status, GateStatus::Pass, "{} // {:?}", g.summary, g.reason_codes);
+    assert_eq!(
+        g.status,
+        GateStatus::Pass,
+        "{} // {:?}",
+        g.summary,
+        g.reason_codes
+    );
     assert_eq!(b.artifact("toolchain_image"), Some(&tc));
     let bundle = b.artifact("bundle").unwrap().clone();
 
     // the built bundle runs in microVMs (arena runtime rootfs)
     let cases = f.cases(1, true, claim_for);
-    let c = exec.execute(
-        &job("fc-conf", JobSpec::Conformance(ConformanceJob { bundle, entry: entry(), params: f.put(b"params-v1"), cases, limits: run_limits(), request_pin: None })),
-        &AtomicBool::new(false),
-    ).unwrap();
+    let c = exec
+        .execute(
+            &job(
+                "fc-conf",
+                JobSpec::Conformance(ConformanceJob {
+                    bundle,
+                    entry: entry(),
+                    params: f.put(b"params-v1"),
+                    cases,
+                    limits: run_limits(),
+                    request_pin: None,
+                }),
+            ),
+            &AtomicBool::new(false),
+        )
+        .unwrap();
     for g in &c.gates {
         assert_eq!(g.status, GateStatus::Pass, "{:?}: {}", g.gate, g.summary);
     }

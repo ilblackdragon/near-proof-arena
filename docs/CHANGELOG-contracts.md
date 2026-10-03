@@ -1,6 +1,6 @@
 # Contract changelog
 
-## v1.3 (additive, challenge-v2 lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
+## v1.4 (additive, challenge-v2 lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
 
 Protocol-upgrade governance (docs/PROTOCOL_UPGRADES.md). All new fields are
 defaulted (`#[serde(default)]`) or optional and not serialized when absent.
@@ -26,6 +26,23 @@ defaulted (`#[serde(default)]`) or optional and not serialized when absent.
 * Oracle CLI: `--challenge FILE` on every command (refuses, exit 3, unless the
   challenge pins the oracle's nearcore commit, protocol version and chain id)
   and `check-request`.
+
+## v1.3 (additive, red-team lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
+
+* `VerifiedSurface` gains `verify_route`, `verifier_bytecode` (npai-v1:
+  digest of the built bytecode image), `verifier_model` and
+  `verifier_model_module` (native-lean). All four are optional and are not serialized
+  when absent. The server always sets `verify_route` (the effective route,
+  `native` by default), so formal-cache keys computed before this change no
+  longer match. The result is a cache miss and a re-check, never a false hit.
+  Why: these inputs change the judge-built `art.impl`, or the code that runs as
+  `verify`. Without them, a child submission that swapped only its NPAI bytecode would hit
+  the parent's formal-cache entry and inherit formal PASSes that were never
+  checked for its own bytecode (redteam/FINDINGS.md RT-01).
+* `arena_jobs::BuildOutputs` gains `verifier_bytecode: Option<Digest>`. A
+  passing npai-v1 build that omits it gets no verified surface, and the run
+  blocks (fail closed).
+* Schemas regenerated (`verified-surface`, `submission`); `server/openapi.json` refreshed.
 
 ## v1.2 (additive, spec-oracle lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
 

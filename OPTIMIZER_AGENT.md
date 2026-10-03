@@ -122,8 +122,13 @@ admitted or not faster beyond the reported CI (`score_ci_milli`).
 If the **verified surface** is unchanged from the parent — same `verify`
 binary digest, same `prepare` binary digest, same public artifacts, same
 formal tree, same certificate name, same checker image — the judge classifies
-the submission `PROVER_ONLY` and reuses the parent's formal gate results
-(`reused_from`). Only build, conformance, adversarial, reliability, limits and
+the submission `PROVER_ONLY`, and the formal gate results are reused
+(`reused_from`). Precisely: reuse is keyed by the content-addressed formal
+cache key (challenge digest + verified surface + checker image, assumptions,
+axiom allowlist, recheckers, Lean toolchain;
+`server/arena-orchestrator/src/cache.rs`), so any earlier definite formal
+result with the same key is reused. The `PROVER_ONLY` label itself is
+recorded for display and does not drive the reuse. Only build, conformance, adversarial, reliability, limits and
 benchmark gates re-run. This is the fast path for prover performance work
 (witness generation, parallelism, memory, FFT/MSM kernels, GPU offload).
 
@@ -151,7 +156,13 @@ submitting such a change:
    the profile's assumptions and query bounds; the kernel must evaluate it to
    ≥ `target_bits` without `native_decide`.
 3. Re-establish `FORMAL_IMPL_CONNECTION` for the new production `verify`
-   artifact, and make sure `ARTIFACT_BINDING` names the new digests.
+   artifact, and make sure `ARTIFACT_BINDING` names the new digests. The
+   connection depends on `[entry] verify_route` (`docs/AGENT_CONTRACT.md`
+   §2): with `"npai-v1"` your certificate is about the exact
+   `verifier_bytecode` run by the arena's interpreter. With `"native-lean"`
+   the judge compiles `formal.verifier_model` itself, and the Lean compiler
+   is a trusted edge. See `examples/reexec-witness` for a worked
+   `native-lean` candidate.
 4. Run `lake build` in `formal/` with the pinned toolchain; grep for `sorry`,
    `admit`, `native_decide`, `axiom` (check-local does a lexical scan, the judge
    does the real audit).

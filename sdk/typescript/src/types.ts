@@ -4,15 +4,26 @@
 
 export type AdversaryClass = "classical";
 
+export interface ArtifactRef {
+  digest: Digest;
+  label: string;
+}
+
 /** Governed cryptographic assumption, pinned to an exact Lean declaration in `formal-core` (`security/assumptions/<id>.json`). */
 export interface Assumption {
   description: string;
   id: string;
-  /** Fully qualified Lean name of the hypothesis *definition* (a `Prop`-valued def in formal-core), e.g. `Arena.Assumptions.Sha256CollisionResistant`. */
+  /** Fully qualified Lean name of the hypothesis *definition* (a `Prop`-valued def in formal-core), e.g. `ArenaCore.Assumptions.Sha256CollisionResistant`. */
   lean_decl: string;
-  /** Digest of the Lean declaration's exported type+value (filled by the governance tooling; checked by the formal checker). */
+  /** Structural content hash of the Lean declaration (lean4export NDJSON, `arena_formal_checker::ndjson::Export::decl_hash`, rendered `sha256:<hex>`; computed by `runners/formal-checker/scripts/pin-assumption-digests.sh`). */
   lean_decl_digest?: Digest | null;
   references: string[];
+}
+
+export interface AssumptionRef {
+  description?: string | null;
+  id: string;
+  lean_decl?: string | null;
 }
 
 export interface BenchmarkResult {
@@ -26,6 +37,14 @@ export interface BenchmarkResult {
   /** Score * 1000 as integer (e.g. 100000 == 100.000). */
   score_milli?: number | null;
   suite_revision: string;
+}
+
+export interface BuildInfo {
+  build_ns?: number | null;
+  /** `BUILD_REPRODUCIBLE` passed (two judge builds bit-identical). */
+  reproducible: boolean;
+  /** Build sandbox image/rootfs digest or id, if reported. */
+  toolchain_image?: string | null;
 }
 
 export interface BuildSection {
@@ -52,6 +71,8 @@ export interface ChallengeDefinition {
   chain_id: string;
   claim_encoding: ClaimEncoding;
   created_at: string;
+  /** Formal admission-statement parameters (v1.2, additive; absent ⇒ not serialized, so existing challenge ids are unchanged). */
+  formal_params?: FormalParams | null;
   hardware_profile: HardwareProfile;
   measurement: MeasurementProcedure;
   name: string;
@@ -106,7 +127,11 @@ export type EdgeStatus = "checked" | "trusted" | "tested" | "missing";
 export interface EntrySection {
   prepare: string;
   prove: string;
+  /** Built NPAI image (relative path among `build.outputs`), required iff `verify_route = "npai-v1"`. */
+  verifier_bytecode?: string | null;
   verify: string;
+  /** How the arena runs verification (v1.2, additive). `native` (default): the built `verify` executable. `npai-v1`: the arena's own NPAI interpreter runs `verifier_bytecode` (docs/INTERP_SPEC.md); `prepare` must then emit exactly `public_dir/public.bin`. `native-lean`: the judge builds `verify` itself from the Lean model `formal.verifier_model` with the governed Lean compiler (the candidate's binary is not used). */
+  verify_route?: VerifyRoute | null;
 }
 
 export interface EvidenceEdge {
@@ -138,10 +163,24 @@ export interface EvidenceRef {
   public: boolean;
 }
 
+/** Parameters of the judge-built admission statement that are not resource limits of the sandbox (`ArenaCore.ChallengeParams`). Optional so that challenges without a formal statement (demo) keep their ids. */
+export interface FormalParams {
+  /** Honest proof-size bound used by `VerifierComplete` (`ChallengeParams.maxProofBytes`); must equal `resource_limits.max_proof_bytes`. */
+  max_proof_bytes: number;
+  /** Fuel cap of an explicit standard-model security reduction (`ChallengeParams.maxReductionFuel`). */
+  max_reduction_fuel: number;
+  /** NPAI fuel given to the approved interpreter for one `verify` call (`ChallengeParams.verifyFuel`). */
+  verify_fuel: number;
+}
+
 export interface FormalSection {
   /** Lean constant whose *type* the judge constructs; candidate supplies the value. */
   certificate: string;
   lean_project: string;
+  /** `native-lean` route (v1.2, optional): the candidate-defined verifier model `ArenaCore.OracleVerifier` (e.g. `Candidate.Model.verify`) that the judge splices into the expected statement and compiles into `verify`. */
+  verifier_model?: string | null;
+  /** Lean module declaring `verifier_model` (e.g. `Candidate.Model`). */
+  verifier_model_module?: string | null;
 }
 
 export interface FormalSpecRef {
@@ -198,12 +237,23 @@ export interface LeaderboardEntry {
   rank?: number | null;
   revoked: boolean;
   scope: string;
+  /** Half-width of the score's 95% interval, milli units (additive, v1.1). */
+  score_ci_milli?: number | null;
   score_milli?: number | null;
   security_profile: string;
   submission_id: string;
   submitted_at: string;
   tier: Tier;
   verify_median_ns?: number | null;
+}
+
+export interface LogExcerpt {
+  /** Log name, e.g. `BUILD` or `BUILD/error`. */
+  name: string;
+  /** Pipeline stage / job kind the log belongs to. */
+  stage: string;
+  text: string;
+  truncated: boolean;
 }
 
 export interface MeasurementProcedure {
@@ -254,6 +304,14 @@ export interface Revocation {
   revoked_by: string;
 }
 
+export interface RevocationEvent {
+  /** `revoked` (v1 has no un-revoke). */
+  action: string;
+  at: string;
+  by: string;
+  reason: string;
+}
+
 export type ScopeKind = "full_chunk_transition" | "subset";
 
 export type SecurityModel = "standard" | "random_oracle";
@@ -296,8 +354,13 @@ export interface SubmissionView {
   /** `null` while pending; `true` only if every mandatory gate passed. */
   accepted?: boolean | null;
   agent: string;
+  /** Public artifacts produced by the judge for this run. */
+  artifacts?: ArtifactRef[];
+  /** Assumptions the admission may rely on (the challenge's security profile). */
+  assumptions?: AssumptionRef[];
   backend_family: string;
   benchmark?: BenchmarkResult | null;
+  build?: BuildInfo | null;
   candidate_name: string;
   challenge_id: string;
   change_class?: ChangeClass | null;
@@ -306,14 +369,21 @@ export interface SubmissionView {
   evidence_graph?: EvidenceGraph | null;
   gates: GateResult[];
   id: string;
+  /** Bounded, sanitized plain-text log excerpts (never HTML). */
+  logs?: LogExcerpt[];
   package_digest: Digest;
   parent?: string | null;
   reason_codes: ReasonCode[];
+  revocation_history?: RevocationEvent[];
   revoked?: Revocation | null;
   score_milli?: number | null;
   stage: Stage;
   tier: Tier;
+  /** Trusted computing base entries the result depends on. */
+  trusted_base?: TrustedBaseEntry[];
   updated_at: string;
+  /** Verified-surface digests (set once the judge build completed). */
+  verified_surface?: VerifiedSurface | null;
 }
 
 export type Tier = "formal" | "experimental" | "demo";
@@ -330,6 +400,12 @@ export interface ToolchainPolicy {
   recheckers: string[];
 }
 
+export interface TrustedBaseEntry {
+  digest?: Digest | null;
+  id: string;
+  label: string;
+}
+
 /** The digests that define the *verified* surface. If all are equal between a child and its parent, formal results may be reused (`ProverOnly`). */
 export interface VerifiedSurface {
   certificate_decl: string;
@@ -340,6 +416,8 @@ export interface VerifiedSurface {
   public_artifacts: Digest;
   verify_artifact: Digest;
 }
+
+export type VerifyRoute = "native" | "npai-v1" | "native-lean";
 
 export interface WorkloadClass {
   /** Number of requests per measured batch. */

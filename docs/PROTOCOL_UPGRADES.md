@@ -81,8 +81,9 @@ therefore requires revalidation.
 * The claim encoding (`near-arena-claim-v1`) must include the protocol
   version and chain id in the claim, so a proof for one version can never
   be presented as a proof for another **[spec lane to confirm]**.
-* The server refuses to load a challenge whose id/signature fails, and
-  refuses submissions to a superseded challenge (409 `challenge_closed`; the
+* The server refuses to load a challenge whose id/signature fails
+  (re-verified on every read), and refuses submissions to a closed or
+  superseded challenge (409 `challenge_closed`; for a superseded challenge the
   message names the successor).
 * The upgrade monitor treats unparseable protocol facts, missing root
   crates, and git/cargo failures as REVALIDATION_REQUIRED (exit 2/3).
@@ -115,6 +116,9 @@ that the chunk it is checking was produced under `v`:
   (`GET /v1/challenges/{id}` also carries `superseded_by`). Superseding
   never re-scores, re-ranks or deletes an entry, and signed reports are
   immutable.
+* The web UI does not yet render a "superseded by chl_…" banner. The API
+  data is there (`superseded_by` on challenges and entries), but the UI work
+  is **[not implemented]**.
 * Cross-version comparisons are not computed: different relations,
   parameters and workloads make scores incomparable.
 * Revocations (SECURITY_POLICY §5) can still be applied to historical

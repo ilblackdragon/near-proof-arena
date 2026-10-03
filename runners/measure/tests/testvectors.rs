@@ -7,8 +7,13 @@ use arena_measure::stats::{self, ScheduleShape, SplitMix64};
 use serde_json::Value;
 
 fn vectors() -> Value {
-    let p = concat!(env!("CARGO_MANIFEST_DIR"), "/../../benchmarks/testvectors/score.json");
-    let v: Value = serde_json::from_slice(&std::fs::read(p).expect("benchmarks/testvectors/score.json")).unwrap();
+    let p = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../benchmarks/testvectors/score.json"
+    );
+    let v: Value =
+        serde_json::from_slice(&std::fs::read(p).expect("benchmarks/testvectors/score.json"))
+            .unwrap();
     assert_eq!(v["schema"], "arena-bench-testvectors-v1");
     v
 }
@@ -28,7 +33,9 @@ fn splitmix64() {
     let v = vectors();
     for case in v["splitmix64"].as_array().unwrap() {
         let mut r = SplitMix64::new(u(&case["seed"]));
-        let got: Vec<u64> = (0..case["outputs"].as_array().unwrap().len()).map(|_| r.next_u64()).collect();
+        let got: Vec<u64> = (0..case["outputs"].as_array().unwrap().len())
+            .map(|_| r.next_u64())
+            .collect();
         assert_eq!(got, us(&case["outputs"]), "seed {}", case["seed"]);
     }
 }
@@ -49,14 +56,21 @@ fn derive_seed() {
     for case in v["derive_seed"].as_array().unwrap() {
         let parts: Vec<String> = case["parts"].as_array().unwrap().iter().map(s).collect();
         let refs: Vec<&str> = parts.iter().map(|p| p.as_str()).collect();
-        assert_eq!(stats::derive_seed(&s(&case["purpose"]), &refs).unwrap(), u(&case["seed"]));
+        assert_eq!(
+            stats::derive_seed(&s(&case["purpose"]), &refs).unwrap(),
+            u(&case["seed"])
+        );
     }
 }
 
 #[test]
 fn score_vectors() {
     let v = vectors();
-    let tol: f64 = v["score_f64_rel_tolerance"].as_str().unwrap().parse().unwrap();
+    let tol: f64 = v["score_f64_rel_tolerance"]
+        .as_str()
+        .unwrap()
+        .parse()
+        .unwrap();
     let mut n = 0;
     for case in v["score"].as_array().unwrap() {
         let classes: Vec<ClassInput> = case["classes"]
@@ -73,12 +87,24 @@ fn score_vectors() {
         let got = score::score(&classes);
         let name = &case["name"];
         match case["expect"].get("error") {
-            Some(e) => assert_eq!(got.map(|r| r.score_milli).map_err(|e| e.code()), Err(e.as_str().unwrap()), "{name}"),
+            Some(e) => assert_eq!(
+                got.map(|r| r.score_milli).map_err(|e| e.code()),
+                Err(e.as_str().unwrap()),
+                "{name}"
+            ),
             None => {
                 let r = got.unwrap_or_else(|e| panic!("{name}: {e}"));
                 assert_eq!(r.score_milli, u(&case["expect"]["score_milli"]), "{name}");
-                let f: f64 = case["expect"]["score_f64"].as_str().unwrap().parse().unwrap();
-                assert!(((r.score_f64 - f) / f).abs() <= tol, "{name}: {} vs {f}", r.score_f64);
+                let f: f64 = case["expect"]["score_f64"]
+                    .as_str()
+                    .unwrap()
+                    .parse()
+                    .unwrap();
+                assert!(
+                    ((r.score_f64 - f) / f).abs() <= tol,
+                    "{name}: {} vs {f}",
+                    r.score_f64
+                );
             }
         }
         n += 1;
@@ -105,12 +131,21 @@ fn bootstrap_vectors() {
         let name = &case["name"];
         let ex = &case["expect"];
         match ex.get("error") {
-            Some(e) => assert_eq!(got.map_err(|e| e.code()).err(), Some(e.as_str().unwrap()), "{name}"),
+            Some(e) => assert_eq!(
+                got.map_err(|e| e.code()).err(),
+                Some(e.as_str().unwrap()),
+                "{name}"
+            ),
             None => {
                 let r = got.unwrap();
                 assert_eq!(
                     (r.score_milli, r.lo_milli, r.hi_milli, r.half_width_milli),
-                    (u(&ex["score_milli"]), u(&ex["lo_milli"]), u(&ex["hi_milli"]), u(&ex["half_width_milli"])),
+                    (
+                        u(&ex["score_milli"]),
+                        u(&ex["lo_milli"]),
+                        u(&ex["hi_milli"]),
+                        u(&ex["half_width_milli"])
+                    ),
                     "{name}"
                 );
             }
@@ -122,7 +157,12 @@ fn bootstrap_vectors() {
 fn schedule_vectors() {
     let v = vectors();
     for case in v["schedule"].as_array().unwrap() {
-        let ids: Vec<String> = case["class_ids"].as_array().unwrap().iter().map(s).collect();
+        let ids: Vec<String> = case["class_ids"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(s)
+            .collect();
         let shape = ScheduleShape {
             cold_runs: u(&case["cold_runs"]) as u32,
             warmup_runs: u(&case["warmup_runs"]) as u32,
@@ -153,7 +193,10 @@ fn outlier_vectors() {
         let ex = &case["expect"];
         assert_eq!(r.median_ns, u(&ex["median_ns"]));
         assert_eq!(r.mad_ns, u(&ex["mad_ns"]));
-        let want: Vec<usize> = us(&ex["flagged_indices"]).into_iter().map(|x| x as usize).collect();
+        let want: Vec<usize> = us(&ex["flagged_indices"])
+            .into_iter()
+            .map(|x| x as usize)
+            .collect();
         assert_eq!(r.flagged_indices, want);
     }
 }
@@ -162,6 +205,10 @@ fn outlier_vectors() {
 fn drift_vectors() {
     let v = vectors();
     for case in v["drift_ppm"].as_array().unwrap() {
-        assert_eq!(stats::drift_ppm(u(&case["a"]), u(&case["b"])), u(&case["ppm"]), "{case}");
+        assert_eq!(
+            stats::drift_ppm(u(&case["a"]), u(&case["b"])),
+            u(&case["ppm"]),
+            "{case}"
+        );
     }
 }

@@ -1705,6 +1705,11 @@
             "type": "string",
             "nullable": true
           },
+          "verifier_bytecode": {
+            "description": "`verify_route = \"npai-v1\"`: digest of the built `entry.verifier_bytecode` file. Required for that route (the server refuses to derive a verified surface without it).",
+            "$ref": "#/components/schemas/Digest",
+            "nullable": true
+          },
           "verify": {
             "$ref": "#/components/schemas/Digest"
           }
@@ -2880,7 +2885,7 @@
             "type": "string"
           },
           "challenge_id": {
-            "description": "The challenge this result was measured under (additive, v1.3). A result is never re-labelled or moved to another challenge's board.",
+            "description": "The challenge this result was measured under (additive, v1.4). A result is never re-labelled or moved to another challenge's board.",
             "default": "",
             "type": "string"
           },
@@ -2904,7 +2909,7 @@
             "nullable": true
           },
           "protocol_version": {
-            "description": "That challenge's NEAR protocol version (additive, v1.3).",
+            "description": "That challenge's NEAR protocol version (additive, v1.4).",
             "default": 0,
             "type": "integer",
             "format": "uint32",
@@ -2952,7 +2957,7 @@
             "type": "string"
           },
           "superseded_by": {
-            "description": "Set when the challenge has been superseded: the board is historical (frozen, closed for new submissions) and scores are not comparable with the successor's (additive, v1.3).",
+            "description": "Set when the challenge has been superseded: the board is historical (frozen, closed for new submissions) and scores are not comparable with the successor's (additive, v1.4).",
             "default": null,
             "type": "string",
             "nullable": true
@@ -3977,8 +3982,28 @@
           "public_artifacts": {
             "$ref": "#/components/schemas/Digest"
           },
+          "verifier_bytecode": {
+            "description": "`npai-v1`: SHA-256 digest of the built verifier bytecode image.",
+            "$ref": "#/components/schemas/Digest",
+            "nullable": true
+          },
+          "verifier_model": {
+            "description": "`native-lean`: `[formal] verifier_model`.",
+            "type": "string",
+            "nullable": true
+          },
+          "verifier_model_module": {
+            "description": "`native-lean`: `[formal] verifier_model_module`.",
+            "type": "string",
+            "nullable": true
+          },
           "verify_artifact": {
             "$ref": "#/components/schemas/Digest"
+          },
+          "verify_route": {
+            "description": "Effective verify route (`native` when the manifest omits it).",
+            "$ref": "#/components/schemas/VerifyRoute",
+            "nullable": true
           }
         }
       },

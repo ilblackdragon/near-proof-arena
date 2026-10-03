@@ -50,7 +50,13 @@ pub struct Workspace {
 
 pub fn metadata(root: &Path, toolchain: Option<&str>) -> Result<Workspace> {
     let mut cmd = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
-    cmd.current_dir(root).args(["metadata", "--no-deps", "--format-version", "1", "--offline"]);
+    cmd.current_dir(root).args([
+        "metadata",
+        "--no-deps",
+        "--format-version",
+        "1",
+        "--offline",
+    ]);
     if let Some(t) = toolchain {
         cmd.env("RUSTUP_TOOLCHAIN", t);
     }
@@ -58,7 +64,11 @@ pub fn metadata(root: &Path, toolchain: Option<&str>) -> Result<Workspace> {
     cmd.env_remove("RUSTC_WRAPPER");
     let out = cmd.output().context("running cargo metadata")?;
     if !out.status.success() {
-        bail!("cargo metadata failed in {}: {}", root.display(), String::from_utf8_lossy(&out.stderr));
+        bail!(
+            "cargo metadata failed in {}: {}",
+            root.display(),
+            String::from_utf8_lossy(&out.stderr)
+        );
     }
     let m: Metadata = serde_json::from_slice(&out.stdout).context("parsing cargo metadata")?;
     let ws_root = Path::new(&m.workspace_root).canonicalize()?;
@@ -86,7 +96,11 @@ pub fn metadata(root: &Path, toolchain: Option<&str>) -> Result<Workspace> {
         }
         ws.crates.insert(
             p.name,
-            WsCrate { dir, path_deps: path_deps.into_iter().collect(), ext_deps: ext_deps.into_iter().collect() },
+            WsCrate {
+                dir,
+                path_deps: path_deps.into_iter().collect(),
+                ext_deps: ext_deps.into_iter().collect(),
+            },
         );
     }
     Ok(ws)
@@ -136,7 +150,11 @@ struct LockPkg {
 
 /// External crates (`name` -> set of `version`) reachable from the given
 /// workspace crates.
-pub fn external_closure(lock_text: &str, ws: &Workspace, closure: &BTreeSet<String>) -> Result<BTreeMap<String, BTreeSet<String>>> {
+pub fn external_closure(
+    lock_text: &str,
+    ws: &Workspace,
+    closure: &BTreeSet<String>,
+) -> Result<BTreeMap<String, BTreeSet<String>>> {
     let lock: Lock = toml::from_str(lock_text).context("parsing Cargo.lock")?;
     let mut by_name: BTreeMap<&str, Vec<&LockPkg>> = BTreeMap::new();
     for p in &lock.package {
@@ -149,7 +167,12 @@ pub fn external_closure(lock_text: &str, ws: &Workspace, closure: &BTreeSet<Stri
         let ver = parts.next();
         by_name
             .get(name)
-            .map(|v| v.iter().copied().filter(|p| ver.is_none_or(|x| p.version == x)).collect())
+            .map(|v| {
+                v.iter()
+                    .copied()
+                    .filter(|p| ver.is_none_or(|x| p.version == x))
+                    .collect()
+            })
             .unwrap_or_default()
     };
     let mut seen: BTreeSet<(String, String)> = BTreeSet::new();
@@ -158,7 +181,10 @@ pub fn external_closure(lock_text: &str, ws: &Workspace, closure: &BTreeSet<Stri
         let wc = &ws.crates[c];
         let ext: BTreeSet<&str> = wc.ext_deps.iter().map(|s| s.as_str()).collect();
         // The workspace crate's own lock entry (source = None).
-        let Some(entry) = by_name.get(c.as_str()).and_then(|v| v.iter().find(|p| p.source.is_none())) else {
+        let Some(entry) = by_name
+            .get(c.as_str())
+            .and_then(|v| v.iter().find(|p| p.source.is_none()))
+        else {
             continue;
         };
         for spec in &entry.dependencies {
@@ -195,7 +221,11 @@ mod tests {
         let mut ws = Workspace::default();
         ws.crates.insert(
             "a".into(),
-            WsCrate { dir: "a".into(), path_deps: vec![], ext_deps: vec!["x".into()] },
+            WsCrate {
+                dir: "a".into(),
+                path_deps: vec![],
+                ext_deps: vec!["x".into()],
+            },
         );
         let lock = r#"
 version = 4

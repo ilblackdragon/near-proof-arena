@@ -57,7 +57,13 @@ pub enum JobKind {
 }
 
 impl JobKind {
-    pub const ALL: [JobKind; 5] = [JobKind::Validate, JobKind::Build, JobKind::Conformance, JobKind::Adversarial, JobKind::Benchmark];
+    pub const ALL: [JobKind; 5] = [
+        JobKind::Validate,
+        JobKind::Build,
+        JobKind::Conformance,
+        JobKind::Adversarial,
+        JobKind::Benchmark,
+    ];
     pub fn as_str(self) -> &'static str {
         match self {
             JobKind::Validate => "validate",
@@ -132,16 +138,27 @@ impl RequestPin {
         let mut b = request;
         let format = bytes(&mut b)?;
         if format != self.format.as_bytes() {
-            return Err(format!("request format {:?}, challenge expects {:?}", String::from_utf8_lossy(format), self.format));
+            return Err(format!(
+                "request format {:?}, challenge expects {:?}",
+                String::from_utf8_lossy(format),
+                self.format
+            ));
         }
         let _statement = bytes(&mut b)?;
         let pv = u32le(&mut b)?;
         if pv != self.protocol_version {
-            return Err(format!("request protocol_version {pv} != challenge protocol_version {}", self.protocol_version));
+            return Err(format!(
+                "request protocol_version {pv} != challenge protocol_version {}",
+                self.protocol_version
+            ));
         }
         let chain = bytes(&mut b)?;
         if chain != self.chain_id.as_bytes() {
-            return Err(format!("request chain_id {:?} != challenge chain_id {:?}", String::from_utf8_lossy(chain), self.chain_id));
+            return Err(format!(
+                "request chain_id {:?} != challenge chain_id {:?}",
+                String::from_utf8_lossy(chain),
+                self.chain_id
+            ));
         }
         Ok(())
     }
@@ -178,7 +195,11 @@ impl RunLimits {
         let r = &c.resource_limits;
         RunLimits {
             max_prepare_ms: r.max_prepare_ms,
-            max_prove_ms: r.max_prove_ms.min(if c.measurement.per_run_timeout_ms > 0 { c.measurement.per_run_timeout_ms } else { u64::MAX }),
+            max_prove_ms: r.max_prove_ms.min(if c.measurement.per_run_timeout_ms > 0 {
+                c.measurement.per_run_timeout_ms
+            } else {
+                u64::MAX
+            }),
             max_verify_ms: r.max_verify_ms,
             max_ram_bytes: r.max_ram_bytes,
             max_proof_bytes: r.max_proof_bytes,
@@ -331,7 +352,10 @@ pub struct JobOutput {
 
 impl JobOutput {
     pub fn artifact(&self, name: &str) -> Option<&Digest> {
-        self.artifacts.iter().find(|a| a.name == name).map(|a| &a.digest)
+        self.artifacts
+            .iter()
+            .find(|a| a.name == name)
+            .map(|a| &a.digest)
     }
 }
 
@@ -354,15 +378,32 @@ mod tests {
 
     #[test]
     fn request_pin_fails_closed_on_other_versions() {
-        let pin = RequestPin { format: RequestPin::NEAR_REQUEST_V1.into(), protocol_version: 86, chain_id: "mainnet".into() };
+        let pin = RequestPin {
+            format: RequestPin::NEAR_REQUEST_V1.into(),
+            protocol_version: 86,
+            chain_id: "mainnet".into(),
+        };
         let st = "near/pv86/receipt-transfer-batch/v0";
-        pin.check(&header("near-arena-request-v1", st, 86, "mainnet")).unwrap();
+        pin.check(&header("near-arena-request-v1", st, 86, "mainnet"))
+            .unwrap();
         for (bad, why) in [
-            (header("near-arena-request-v1", st, 85, "mainnet"), "protocol_version 85"),
-            (header("near-arena-request-v1", st, 87, "mainnet"), "protocol_version 87"),
-            (header("near-arena-request-v1", st, 86, "testnet"), "chain_id"),
+            (
+                header("near-arena-request-v1", st, 85, "mainnet"),
+                "protocol_version 85",
+            ),
+            (
+                header("near-arena-request-v1", st, 87, "mainnet"),
+                "protocol_version 87",
+            ),
+            (
+                header("near-arena-request-v1", st, 86, "testnet"),
+                "chain_id",
+            ),
             (header("near-arena-request-v2", st, 86, "mainnet"), "format"),
-            (header("near-arena-request-v1", st, 86, "mainnet")[..30].to_vec(), "truncated"),
+            (
+                header("near-arena-request-v1", st, 86, "mainnet")[..30].to_vec(),
+                "truncated",
+            ),
             (vec![], "truncated"),
         ] {
             let e = pin.check(&bad).unwrap_err();

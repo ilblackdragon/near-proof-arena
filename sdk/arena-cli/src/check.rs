@@ -95,6 +95,8 @@ pub struct CheckOptions {
     pub no_repro: bool,
     pub allow_network: bool,
     pub keep: bool,
+    /// Archive format to pack and validate (same as `submit` would upload).
+    pub format: pack::Format,
 }
 
 /// Manifest + layout + challenge-consistency checks on a directory (no build).
@@ -127,7 +129,7 @@ pub fn check_package(
 
     // Pack exactly as `arena pack`/`arena submit` would, then re-validate the
     // archive bytes with the archive safety rules.
-    let bytes = match pack::pack_dir(dir) {
+    let bytes = match pack::pack(dir, opts.format) {
         Ok(b) => b,
         Err(e) => {
             g.fail(ReasonCode::ArchiveUnsafe, e.msg);

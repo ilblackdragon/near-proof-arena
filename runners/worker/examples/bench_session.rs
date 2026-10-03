@@ -54,7 +54,10 @@ fn die(msg: impl std::fmt::Display) -> ! {
 }
 
 fn loadavg() -> String {
-    std::fs::read_to_string("/proc/loadavg").unwrap_or_default().trim().to_string()
+    std::fs::read_to_string("/proc/loadavg")
+        .unwrap_or_default()
+        .trim()
+        .to_string()
 }
 
 fn parse_cpus(s: &str) -> Vec<u32> {
@@ -77,7 +80,10 @@ fn read_batch(store: &FsStore, class: &str, dir: &Path, tag: &str) -> Vec<Oracle
     names
         .iter()
         .map(|c| {
-            let rd = |f: &str| std::fs::read(c.join(f)).unwrap_or_else(|e| die(format!("{}/{f}: {e}", c.display())));
+            let rd = |f: &str| {
+                std::fs::read(c.join(f))
+                    .unwrap_or_else(|e| die(format!("{}/{f}: {e}", c.display())))
+            };
             OracleCase {
                 id: format!("{class}{tag}/{}", c.file_name().unwrap().to_string_lossy()),
                 request: store.put(&rd("request.bin")).unwrap(),
@@ -98,9 +104,15 @@ fn calibrate(sb: &dyn Sandbox, cpus: &[u32], n: u32) -> Vec<u64> {
             s.cpu_set = Some(cpus.to_vec());
             s.mem_bytes = 512 << 20;
             s.wall_timeout = Duration::from_secs(120);
-            let o = sb.run(&s).unwrap_or_else(|e| die(format!("calibration: {e}")));
+            let o = sb
+                .run(&s)
+                .unwrap_or_else(|e| die(format!("calibration: {e}")));
             if o.exit != ExitStatus::Exited(0) {
-                die(format!("calibration exited {:?}: {}", o.exit, String::from_utf8_lossy(&o.stderr_trunc)));
+                die(format!(
+                    "calibration exited {:?}: {}",
+                    o.exit,
+                    String::from_utf8_lossy(&o.stderr_trunc)
+                ));
             }
             o.wall_ns
         })
@@ -115,8 +127,15 @@ fn main() {
     let mut baselines: BTreeMap<String, u64> = BTreeMap::new();
     let mut it = args.iter();
     while let Some(k) = it.next() {
-        let v = it.next().unwrap_or_else(|| die(format!("{k} needs a value"))).clone();
-        let kv = || v.split_once('=').map(|(a, b)| (a.to_string(), b.to_string())).unwrap_or_else(|| die(format!("{k} wants ID=VALUE")));
+        let v = it
+            .next()
+            .unwrap_or_else(|| die(format!("{k} needs a value")))
+            .clone();
+        let kv = || {
+            v.split_once('=')
+                .map(|(a, b)| (a.to_string(), b.to_string()))
+                .unwrap_or_else(|| die(format!("{k} wants ID=VALUE")))
+        };
         match k.as_str() {
             "--class" => classes.push({
                 let (a, b) = kv();
@@ -135,38 +154,76 @@ fn main() {
             }
         }
     }
-    let get = |k: &str| one.get(k).cloned().unwrap_or_else(|| die(format!("--{k} is required")));
-    let chal: ChallengeDefinition = serde_json::from_slice(&std::fs::read(get("challenge")).unwrap()).unwrap();
+    let get = |k: &str| {
+        one.get(k)
+            .cloned()
+            .unwrap_or_else(|| die(format!("--{k} is required")))
+    };
+    let chal: ChallengeDefinition =
+        serde_json::from_slice(&std::fs::read(get("challenge")).unwrap()).unwrap();
     let chal_id = chal.id().unwrap();
     let cpus = parse_cpus(&one.get("cpus").cloned().unwrap_or_else(|| "8-15".into()));
-    let cal_runs: u32 = one.get("calibration-runs").map(|s| s.parse().unwrap()).unwrap_or(5);
-    let deps = PathBuf::from(one.get("fc-deps").cloned().unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into()));
+    let cal_runs: u32 = one
+        .get("calibration-runs")
+        .map(|s| s.parse().unwrap())
+        .unwrap_or(5);
+    let deps = PathBuf::from(
+        one.get("fc-deps")
+            .cloned()
+            .unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into()),
+    );
     let work = PathBuf::from(get("work"));
     std::fs::create_dir_all(&work).unwrap();
 
     let store = Arc::new(FsStore::new(work.join("store")).unwrap());
     let bundle_dir = PathBuf::from(get("bundle-dir"));
-    let tree = arena_archive::tree_from_dir(&bundle_dir, &arena_archive::Limits { max_expanded_bytes: 4 << 30, ..Default::default() })
-        .unwrap_or_else(|e| die(format!("bundle: {e}")));
+    let tree = arena_archive::tree_from_dir(
+        &bundle_dir,
+        &arena_archive::Limits {
+            max_expanded_bytes: 4 << 30,
+            ..Default::default()
+        },
+    )
+    .unwrap_or_else(|e| die(format!("bundle: {e}")));
     let tar = arena_archive::pack_tree(&bundle_dir, &tree, Vec::new()).unwrap();
     let bundle = store.put(&tar).unwrap();
     let params = store.put(&std::fs::read(get("params")).unwrap()).unwrap();
 
     let mut bench_classes = vec![];
     for wc in &chal.workload_suite.classes {
-        let dir = classes.iter().find(|(c, _)| c == &wc.id).map(|(_, d)| d.clone()).unwrap_or_else(|| die(format!("no --class for {}", wc.id)));
+        let dir = classes
+            .iter()
+            .find(|(c, _)| c == &wc.id)
+            .map(|(_, d)| d.clone())
+            .unwrap_or_else(|| die(format!("no --class for {}", wc.id)));
         let batch = read_batch(&store, &wc.id, &dir, "");
         if batch.len() != wc.batch_size as usize {
-            die(format!("class {}: {} cases, challenge batch_size {}", wc.id, batch.len(), wc.batch_size));
+            die(format!(
+                "class {}: {} cases, challenge batch_size {}",
+                wc.id,
+                batch.len(),
+                wc.batch_size
+            ));
         }
-        let fresh_batch = fresh.get(&wc.id).map(|d| read_batch(&store, &wc.id, d, "#fresh")).unwrap_or_default();
+        let fresh_batch = fresh
+            .get(&wc.id)
+            .map(|d| read_batch(&store, &wc.id, d, "#fresh"))
+            .unwrap_or_default();
         let baseline_ns = baselines.get(&wc.id).copied().unwrap_or(1);
-        bench_classes.push(BenchClass { class_id: wc.id.clone(), weight_ppm: wc.weight_ppm, baseline_ns, batch, fresh_batch });
+        bench_classes.push(BenchClass {
+            class_id: wc.id.clone(),
+            weight_ppm: wc.weight_ppm,
+            baseline_ns,
+            batch,
+            fresh_batch,
+        });
     }
 
     let fc = Arc::new(
-        FirecrackerSandbox::new(FirecrackerConfig::from_deps_dir(&deps, &work.join("fc")).unwrap_or_else(|e| die(e)))
-            .unwrap_or_else(|e| die(e)),
+        FirecrackerSandbox::new(
+            FirecrackerConfig::from_deps_dir(&deps, &work.join("fc")).unwrap_or_else(|e| die(e)),
+        )
+        .unwrap_or_else(|e| die(e)),
     );
     let exec = StageExecutor::new(WorkerContext {
         worker_id: "bench-session".into(),
@@ -182,7 +239,11 @@ fn main() {
     let request_pin = RequestPin::from_challenge(&chal);
     let job = BenchmarkJob {
         bundle: bundle.clone(),
-        entry: EntryPoints { prepare: "out/prepare".into(), prove: "out/prove".into(), verify: "out/verify".into() },
+        entry: EntryPoints {
+            prepare: "out/prepare".into(),
+            prove: "out/prove".into(),
+            verify: "out/verify".into(),
+        },
         params: params.clone(),
         public_artifacts: None,
         classes: bench_classes,
@@ -203,7 +264,16 @@ fn main() {
     eprintln!("benchmark job …");
     let t0 = std::time::Instant::now();
     let out = exec
-        .execute(&Job { id: "bench".into(), submission_id: "baseline".into(), attempt: 1, lease_until: "2099-01-01T00:00:00Z".into(), spec: JobSpec::Benchmark(job.clone()) }, &AtomicBool::new(false))
+        .execute(
+            &Job {
+                id: "bench".into(),
+                submission_id: "baseline".into(),
+                attempt: 1,
+                lease_until: "2099-01-01T00:00:00Z".into(),
+                spec: JobSpec::Benchmark(job.clone()),
+            },
+            &AtomicBool::new(false),
+        )
         .unwrap_or_else(|e| die(format!("benchmark job: {e}")));
     let session_secs = t0.elapsed().as_secs();
     load.push(json!({"at": "after_session", "loadavg": loadavg()}));
@@ -239,6 +309,10 @@ fn main() {
         "job_output": out,
         "session": session,
     });
-    std::fs::write(get("out"), serde_json::to_string_pretty(&doc).unwrap() + "\n").unwrap();
+    std::fs::write(
+        get("out"),
+        serde_json::to_string_pretty(&doc).unwrap() + "\n",
+    )
+    .unwrap();
     eprintln!("wrote {}", get("out"));
 }
