@@ -488,3 +488,10 @@ fn package_layout_violations() {
     layout(pkg_with(MANIFEST, |m| { m.remove("candidate.toml"); }), "missing");
     layout(pkg_with(MANIFEST, |m| { m.insert("candidate.toml".into(), (0o644, vec![b' '; 70_000])); }), "larger");
 }
+
+#[test]
+fn matches_shared_tree_digest_on_disk() {
+    let t = Tmp::new();
+    let x = ingest_bytes(&sample_pkg(), &t.dest(), &Limits::default()).unwrap();
+    assert_eq!(arena_types::tree_digest(&t.dest()).unwrap(), x.digest);
+}

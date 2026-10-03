@@ -70,15 +70,15 @@ pub struct Tree {
 }
 
 impl Tree {
-    /// The `TreeDigest` of this tree.
+    /// The `TreeDigest` of this tree (via the shared
+    /// [`arena_types::tree_digest_entries`] implementation).
     pub fn digest(&self) -> Digest {
-        let entries: Vec<(&str, &str, &str)> = self
+        let entries = self
             .files
             .iter()
-            .map(|(p, f)| (p.as_str(), f.mode.as_str(), f.digest.as_str()))
+            .map(|(p, f)| arena_types::TreeEntry { path: p.clone(), exec: f.mode == FileMode::Exec, digest: f.digest.clone() })
             .collect();
-        let bytes = arena_types::canonical_json(&entries).expect("tree entries are float-free");
-        Digest::of_bytes(&bytes)
+        arena_types::tree_digest_entries(entries).expect("tree entries are float-free")
     }
 
     pub fn total_bytes(&self) -> u64 {
