@@ -996,6 +996,7 @@ impl FirecrackerSandbox {
                 .chain((0..spec.rw_dirs.len()).map(|i| format!("{}/{i}", proto::RW_SCRATCH_DIR)))
                 .collect(),
             rw_dirs,
+            syscall_policy: spec.syscall_policy,
             timeout_ms: spec.wall_timeout.as_millis() as u64,
             steps: guest_steps,
             steps_dev_index,
@@ -1149,6 +1150,11 @@ impl FirecrackerSandbox {
             return Err(InfraError::GuestProtocol("report nonce mismatch".into()));
         }
         let rep = &header.report;
+        let violations: Vec<String> = rep
+            .violations
+            .iter()
+            .map(|v| format!("{} x{}", v.what, v.count))
+            .collect();
         extra.reports = rep.steps.clone();
         extra.step_wall_ns = res.step_wall_ns.clone();
         if extra.reports.len() > spec.steps.len() {
@@ -1221,6 +1227,7 @@ impl FirecrackerSandbox {
         o.entry_wall_ns = diag.guest_wall_ns;
         o.outputs = outputs;
         o.diagnostics = diag;
+        o.violations = violations;
         Ok((o, extra))
     }
 }
@@ -1373,6 +1380,7 @@ impl FirecrackerSandbox {
             out_dir,
             max_output_bytes: spec.max_output_bytes,
             steps: vec![],
+            syscall_policy: spec.syscall_policy,
         })
     }
 }
@@ -1432,6 +1440,11 @@ impl FirecrackerSandbox {
             o.stderr_trunc = rep.stderr.clone().into_bytes();
             o.stdout_trunc.truncate(base.output_trunc_bytes);
             o.stderr_trunc.truncate(base.output_trunc_bytes);
+            o.violations = rep
+                .violations
+                .iter()
+                .map(|v| format!("{} x{}", v.what, v.count))
+                .collect();
             let mut d = overall.diagnostics.clone();
             d.guest_wall_ns = Some(rep.guest_wall_ns);
             d.guest_cpu_ns = Some(rep.guest_cpu_ns);

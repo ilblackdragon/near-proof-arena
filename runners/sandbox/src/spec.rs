@@ -142,7 +142,14 @@ pub struct SandboxSpec {
     pub out_dir: Option<PathBuf>,
     pub max_output_bytes: u64,
     pub output_trunc_bytes: usize,
+    /// Which syscalls are sandbox violations (seccomp user-notification in
+    /// the sandbox init). `Strict` (default) for candidate entry points;
+    /// `Tooling` for build recipes and judge tooling (Lean, compilers);
+    /// `Off` disables detection.
+    pub syscall_policy: SyscallPolicy,
 }
+
+pub use arena_seccomp::Policy as SyscallPolicy;
 
 impl SandboxSpec {
     /// A spec with conservative defaults: host-dev rootfs, 64 MiB scratch,
@@ -168,6 +175,7 @@ impl SandboxSpec {
             out_dir: None,
             max_output_bytes: 256 << 20,
             output_trunc_bytes: DEFAULT_OUTPUT_TRUNC,
+            syscall_policy: SyscallPolicy::Strict,
         }
     }
 
@@ -322,6 +330,11 @@ pub struct SandboxOutcome {
     pub entry_wall_ns: Option<u64>,
     /// Backend-specific, non-authoritative detail.
     pub diagnostics: Diagnostics,
+    /// Sandbox-escape attempts observed by the backend (seccomp listener in
+    /// the sandbox init: e.g. `ptrace x1`, `socket(AF_INET) x2`). Sound: an
+    /// entry exists only if the candidate tree really made that syscall. The
+    /// worker fails the job with `SANDBOX_VIOLATION`.
+    pub violations: Vec<String>,
 }
 
 impl SandboxOutcome {
@@ -350,6 +363,7 @@ impl SandboxOutcome {
             tier_cap,
             entry_wall_ns: None,
             diagnostics: Diagnostics::default(),
+            violations: vec![],
         }
     }
 }

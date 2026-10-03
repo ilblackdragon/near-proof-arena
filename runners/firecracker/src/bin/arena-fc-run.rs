@@ -36,6 +36,7 @@ fn main() {
     let mut mkdirs: Option<Vec<String>> = None;
     let mut collect: Option<Vec<String>> = None;
     let mut cwd: Option<String> = None;
+    let mut policy = arena_seccomp::Policy::Strict;
     let mut argv = Vec::new();
     while let Some(a) = args.next() {
         let mut val = || args.next().expect("missing value");
@@ -68,6 +69,14 @@ fn main() {
             "--mkdir" => mkdirs.get_or_insert_with(Vec::new).push(val()),
             "--collect" => collect.get_or_insert_with(Vec::new).push(val()),
             "--cwd" => cwd = Some(val()),
+            "--policy" => {
+                policy = match val().as_str() {
+                    "strict" => arena_seccomp::Policy::Strict,
+                    "tooling" => arena_seccomp::Policy::Tooling,
+                    "off" => arena_seccomp::Policy::Off,
+                    p => panic!("--policy strict|tooling|off, got {p}"),
+                }
+            }
             "--" => {
                 argv.extend(args.by_ref());
                 break;
@@ -112,6 +121,7 @@ fn main() {
     spec.wall_timeout = Duration::from_secs(timeout);
     spec.max_output_bytes = u64::MAX;
     spec.copy_in = copy_in;
+    spec.syscall_policy = policy;
     if let Some(m) = mkdirs {
         spec.scratch_dirs = m;
     }

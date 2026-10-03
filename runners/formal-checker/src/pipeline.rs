@@ -193,6 +193,11 @@ impl<'a> Ctx<'a> {
                 });
                 Ok(o)
             }
+            Err(crate::sandbox::InfraError::Violation(m)) => Err(Finding::new(
+                ReasonCode::SandboxViolation,
+                Scope::All,
+                format!("{step}: sandbox escape attempt: {m}"),
+            )),
             Err(e) => Err(Finding::unknown(
                 ReasonCode::InfraError,
                 format!("{step}: {e}"),

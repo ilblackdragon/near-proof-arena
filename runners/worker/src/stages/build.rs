@@ -389,6 +389,9 @@ fn build_spec(
     let m = &j.manifest;
     let layout = r.ctx.sandbox.layout();
     let mut s = SandboxSpec::new(vec![format!("{}/work/{}", layout.scratch, m.build.recipe)]);
+    // compilers and build tools: kernel-attack syscalls are violations; a
+    // network attempt simply fails (no network) and is judged by its effect
+    s.syscall_policy = arena_sandbox::SyscallPolicy::Tooling;
     s.rootfs = rootfs.clone();
     let pkg_guest = format!("{}/pkg", layout.inputs);
     s.ro_mounts.push(Mount {

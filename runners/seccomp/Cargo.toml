@@ -1,0 +1,10 @@
+[package]
+name = "arena-seccomp"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Sound sandbox-violation detection: seccomp user-notification filter for candidate process trees"
+
+[dependencies]
+libc = "0.2"
+serde.workspace = true

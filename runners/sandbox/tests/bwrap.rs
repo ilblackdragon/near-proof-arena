@@ -434,3 +434,31 @@ fn rw_binds_write_through_and_arena_prefix() {
     assert_eq!(std::fs::read_to_string(rw.join("f")).unwrap(), "made\n");
     assert!(!ro.join("g").exists());
 }
+
+#[test]
+fn escape_attempts_are_reported_honest_runs_clean() {
+    let e = env();
+    let o = e
+        .sb
+        .run(&sh(
+            "perl -e 'print syscall(101, 0, 0, 0, 0), \"\\n\"'; \
+             perl -e 'print syscall(272, 0x10000000), \"\\n\"'; \
+             perl -MSocket -e 'socket(my $s, PF_INET, SOCK_STREAM, 0) ? print \"open\\n\" : print \"denied\\n\"'; \
+             echo done",
+        ))
+        .unwrap();
+    assert_eq!(o.exit, ExitStatus::Exited(0), "{}", err(&o));
+    assert_eq!(out(&o), "-1\n-1\ndenied\ndone\n");
+    let mut v = o.violations.clone();
+    v.sort();
+    assert_eq!(v, vec!["ptrace x1", "socket(AF_INET) x1", "unshare x1"]);
+    let clean = e
+        .sb
+        .run(&sh("for i in 1 2 3; do (head -c 100000 /dev/urandom | sha256sum >/dev/null) & done; wait; ls /proc/self/fd >/dev/null; echo ok"))
+        .unwrap();
+    assert_eq!(out(&clean), "ok\n");
+    assert!(clean.violations.is_empty(), "{:?}", clean.violations);
+    let mut tool = sh("perl -MSocket -e 'socket(my $s, PF_INET, SOCK_STREAM, 0)'; true");
+    tool.syscall_policy = SyscallPolicy::Tooling;
+    assert!(e.sb.run(&tool).unwrap().violations.is_empty());
+}

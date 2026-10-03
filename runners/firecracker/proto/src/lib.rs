@@ -136,6 +136,9 @@ pub struct GuestJob {
     /// bind-mounted at `guest_path`; it is collected back after the run.
     #[serde(default)]
     pub rw_dirs: Vec<GuestRwDir>,
+    /// Seccomp violation-detection policy for the candidate tree.
+    #[serde(default)]
+    pub syscall_policy: arena_seccomp::Policy,
     /// Steps mode (non-empty): instead of `argv`/`collect`, run each step in
     /// order in this one guest. Before every step init wipes the scratch
     /// work dir, `/dev/shm` and re-applies `copy_in`/`scratch_dirs`; every
@@ -183,6 +186,9 @@ pub struct StepReport {
     /// Problems copying this step's outputs out of scratch (symlinks,
     /// special files, limits); non-empty means the outputs are unusable.
     pub collect_violations: Vec<String>,
+    /// Sandbox violations (seccomp) during this step.
+    #[serde(default)]
+    pub violations: Vec<arena_seccomp::Violation>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -231,6 +237,9 @@ pub struct GuestReport {
     /// Steps mode: one entry per step that was started (in order).
     #[serde(default)]
     pub steps: Vec<StepReport>,
+    /// Sandbox violations observed by init's seccomp listener (all steps).
+    #[serde(default)]
+    pub violations: Vec<arena_seccomp::Violation>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -623,6 +632,7 @@ mod tests {
             stdout_total_bytes: 5,
             stderr_total_bytes: 0,
             steps: vec![],
+            violations: vec![],
         }
     }
 
@@ -776,6 +786,7 @@ mod tests {
                 timeout_ms: 10,
             }],
             steps_dev_index: Some(7),
+            syscall_policy: arena_seccomp::Policy::Strict,
         };
         let enc = encode_control(&job);
         assert_eq!(enc.len() % 4096, 0);
