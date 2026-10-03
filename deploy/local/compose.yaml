@@ -61,7 +61,7 @@ services:
       ARENA_WORKER_API_BIND_ADDR: 0.0.0.0:8472
       ARENA_OBJECT_STORE_DIR: /var/lib/arena/objects
       ARENA_CHALLENGES_DIR: /srv/arena/challenges
-      ARENA_GOVERNANCE_PUBKEY_FILE: /srv/arena/challenges/governance-dev.pub
+      ARENA_GOVERNANCE_PUBKEY_FILE: /srv/arena/challenges/governance-dev.pub,/srv/arena/challenges/governance-local.pub
       ARENA_SECURITY_DIR: /srv/arena/security
       ARENA_HARDENED_CONFIG: /etc/arena/hardened.toml
       RUST_LOG: ${RUST_LOG:-info}

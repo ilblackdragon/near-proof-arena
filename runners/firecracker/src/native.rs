@@ -34,6 +34,17 @@ pub struct RootImage {
     pub digest: Digest,
 }
 
+/// A host directory exposed read-write at `guest_path`: its current content
+/// (judge-planted symlinks allowed) seeds the guest copy; afterwards the
+/// regular files the guest left there are written back (new files created,
+/// existing regular files replaced; host symlinks are never followed;
+/// deletions are not propagated).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RwDir {
+    pub host_dir: PathBuf,
+    pub guest_path: String,
+}
+
 /// Network access is not offered by any backend; the only legal value of
 /// `network` is `None`. This type is uninhabited on purpose.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -47,6 +58,12 @@ pub struct RunRequest {
     /// Candidate root; `None` = the arena rootfs.
     pub root_image: Option<RootImage>,
     pub ro_mounts: Vec<RoMount>,
+    /// Read-write host directories (judge-owned outputs, e.g. `.olean`s).
+    pub rw_dirs: Vec<RwDir>,
+    /// Copy symlinks in read-only mount trees verbatim (they resolve inside
+    /// the guest) instead of refusing them. Only for judge-built layouts such
+    /// as the formal checker's olean link farms; never for candidate trees.
+    pub allow_mount_symlinks: bool,
     /// Size of the fresh per-run scratch disk mounted at `/scratch`.
     pub rw_scratch_mb: u64,
     /// `(absolute guest path, scratch-relative destination)` copied into
@@ -84,6 +101,8 @@ impl RunRequest {
             rootfs_digest,
             root_image: None,
             ro_mounts: vec![],
+            rw_dirs: vec![],
+            allow_mount_symlinks: false,
             rw_scratch_mb: 64,
             copy_in: vec![],
             scratch_dirs: vec!["out".into()],

@@ -41,6 +41,10 @@ pub const ENV_ALLOWLIST: &[&str] = &[
     "RUST_LOG",
     "RAYON_NUM_THREADS",
     "OMP_NUM_THREADS",
+    // formal checking / native-lean (Lean runtime)
+    "LEAN_PATH",
+    "LEAN_ABORT_ON_PANIC",
+    "ARENA_LEAN_SYSROOT",
 ];
 
 #[derive(Clone, Debug)]
@@ -126,6 +130,7 @@ impl FirecrackerConfig {
             }),
             cache_max_bytes: 32 << 30,
             root_image_limits: TreeLimits {
+                allow_symlinks: false,
                 max_entries: 2_000_000,
                 max_bytes: 32 << 30,
             },
@@ -304,6 +309,32 @@ impl FirecrackerSandbox {
             }
             guest_paths.push(g);
         }
+        for r in &spec.rw_dirs {
+            let g = r.guest_path.as_str();
+            if !proto::GUEST_MOUNT_PREFIXES.iter().any(|p| g.starts_with(p)) {
+                return bad(format!(
+                    "rw path {g:?} must be under {:?}",
+                    proto::GUEST_MOUNT_PREFIXES
+                ));
+            }
+            abs_guest(g)?;
+            if overlaps(g, proto::GUEST_SCRATCH) || guest_paths.iter().any(|p| overlaps(p, g)) {
+                return bad(format!("rw path {g:?} overlaps another mount"));
+            }
+            if !fs::symlink_metadata(&r.host_dir)
+                .map(|m| m.is_dir())
+                .unwrap_or(false)
+            {
+                return bad(format!(
+                    "rw dir {} is not a directory",
+                    r.host_dir.display()
+                ));
+            }
+            guest_paths.push(g);
+        }
+        if spec.rw_dirs.len() > 4 {
+            return bad("too many rw dirs".into());
+        }
         abs_guest(&spec.cwd)?;
         for (from, to) in &spec.copy_in {
             abs_guest(from)?;
@@ -364,6 +395,7 @@ impl FirecrackerSandbox {
         &self,
         m: &RoMount,
         staging: &Path,
+        allow_symlinks: bool,
     ) -> Result<(PathBuf, MountKind), InfraError> {
         let md = fs::symlink_metadata(&m.host_path)
             .map_err(|e| InfraError::InvalidSpec(format!("{}: {e}", m.host_path.display())))?;
@@ -408,7 +440,11 @@ impl FirecrackerSandbox {
             )));
         }
         let st_dir = staging.join(format!("tree-{}", random_hex(6)?));
-        let st = images::stage_tree(&src_dir, &st_dir, &self.cfg.tree_limits)?;
+        let lim = TreeLimits {
+            allow_symlinks,
+            ..self.cfg.tree_limits.clone()
+        };
+        let st = images::stage_tree(&src_dir, &st_dir, &lim)?;
         if let Some(t) = tmp_src {
             let _ = fs::remove_dir_all(t);
         }
@@ -586,20 +622,47 @@ impl FirecrackerSandbox {
         &self,
         r: &mut dyn Read,
         out_dir: &Path,
+        rw_hosts: &[PathBuf],
         limits: &proto::DecodeLimits,
     ) -> Result<(Vec<(String, Digest)>, proto::CollectSummary), InfraError> {
         let mut outputs = Vec::new();
+        let mut rw_violations = Vec::new();
+        let rw_prefix = format!("{}/", proto::RW_SCRATCH_DIR);
         let res = proto::decode_files(r, limits, |path, exec, _size, rd| {
-            let dst = out_dir.join(path);
-            if let Some(parent) = dst.parent() {
-                fs::create_dir_all(parent)?;
-            }
-            let mut f = OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .custom_flags(libc::O_NOFOLLOW)
-                .mode(if exec { 0o755 } else { 0o644 })
-                .open(&dst)?;
+            let mode = if exec { 0o755 } else { 0o644 };
+            let (mut f, is_rw) = if let Some(rest) = path.strip_prefix(&rw_prefix) {
+                // write back into a judge-owned host dir without following
+                // any symlink that is already there
+                let (idx, rel) = rest.split_once('/').unwrap_or((rest, ""));
+                let host = idx.parse::<usize>().ok().and_then(|i| rw_hosts.get(i));
+                match (host, rel.is_empty()) {
+                    (Some(h), false) => match safe_replace(h, rel, mode) {
+                        Ok(f) => (f, true),
+                        Err(e) => {
+                            rw_violations.push(format!("{path}: {e}"));
+                            io::copy(rd, &mut io::sink())?;
+                            return Ok(());
+                        }
+                    },
+                    _ => {
+                        rw_violations.push(format!("{path}: not under a read-write dir"));
+                        io::copy(rd, &mut io::sink())?;
+                        return Ok(());
+                    }
+                }
+            } else {
+                let dst = out_dir.join(path);
+                if let Some(parent) = dst.parent() {
+                    fs::create_dir_all(parent)?;
+                }
+                let f = OpenOptions::new()
+                    .write(true)
+                    .create_new(true)
+                    .custom_flags(libc::O_NOFOLLOW)
+                    .mode(mode)
+                    .open(&dst)?;
+                (f, false)
+            };
             let mut h = Sha256::new();
             let mut buf = vec![0u8; 1 << 20];
             loop {
@@ -612,12 +675,18 @@ impl FirecrackerSandbox {
             }
             let d =
                 Digest::try_from(format!("sha256:{}", hex::encode(h.finalize()))).expect("digest");
-            outputs.push((path.to_string(), d));
+            if !is_rw {
+                outputs.push((path.to_string(), d));
+            }
             Ok(())
         });
         match res {
-            Ok(summary) => {
+            Ok(mut summary) => {
                 outputs.sort();
+                if !rw_violations.is_empty() {
+                    summary.complete = false;
+                    summary.violations.extend(rw_violations);
+                }
                 Ok((outputs, summary))
             }
             Err(proto::DecodeError::Malformed(m)) => Err(InfraError::GuestProtocol(m)),
@@ -693,7 +762,7 @@ impl FirecrackerSandbox {
         ];
         let mut mounts = Vec::new();
         for (i, m) in spec.ro_mounts.iter().enumerate() {
-            let (img, kind) = self.prepare_mount(m, &staging)?;
+            let (img, kind) = self.prepare_mount(m, &staging, spec.allow_mount_symlinks)?;
             let file = format!("ro{i}.ext4");
             images::link_or_copy(&img, &input.join(&file))?;
             drives.push(ShimDrive {
@@ -726,6 +795,36 @@ impl FirecrackerSandbox {
             }
             None => None,
         };
+        // read-write dirs: seed images (uncached; contents change every run)
+        let mut rw_dirs = Vec::new();
+        for (i, r) in spec.rw_dirs.iter().enumerate() {
+            let empty = fs::read_dir(&r.host_dir)?.next().is_none();
+            let dev_index = if empty {
+                None
+            } else {
+                let st_dir = staging.join(format!("rw{i}"));
+                let lim = TreeLimits {
+                    allow_symlinks: true,
+                    ..self.cfg.tree_limits.clone()
+                };
+                let st = images::stage_tree(&r.host_dir, &st_dir, &lim)?;
+                let file = format!("rwseed{i}.ext4");
+                images::build_ro_image(&st, &input.join(&file))?;
+                drives.push(ShimDrive {
+                    drive_id: format!("rwseed{i}"),
+                    file,
+                    read_only: true,
+                    is_root: false,
+                    chown_to_vmm: false,
+                    rate_limit: self.cfg.drive_rate_limit,
+                });
+                Some(drives.len() as u32 - 1)
+            };
+            rw_dirs.push(proto::GuestRwDir {
+                dev_index,
+                guest_path: r.guest_path.clone(),
+            });
+        }
         let _ = fs::remove_dir_all(&staging);
 
         // scratch + output devices, fresh per run
@@ -769,7 +868,13 @@ impl FirecrackerSandbox {
             copy_in: spec.copy_in.clone(),
             scratch_dirs: spec.scratch_dirs.clone(),
             cwd: spec.cwd.clone(),
-            collect: spec.collect.clone(),
+            collect: spec
+                .collect
+                .iter()
+                .cloned()
+                .chain((0..spec.rw_dirs.len()).map(|i| format!("{}/{i}", proto::RW_SCRATCH_DIR)))
+                .collect(),
+            rw_dirs,
             timeout_ms: spec.wall_timeout.as_millis() as u64,
         };
         let ctl = proto::encode_control(&guest);
@@ -946,18 +1051,21 @@ impl FirecrackerSandbox {
             max_files: self.cfg.max_output_files as u64,
             max_total_bytes: max_output_bytes,
         };
-        let (outputs, summary) = match self.materialize_outputs(&mut r, &spec.out_dir, &limits) {
-            Ok(x) => x,
-            Err(e) => {
-                // never leave a partial output tree behind
-                if let Ok(rd) = fs::read_dir(&spec.out_dir) {
-                    for e in rd.flatten() {
-                        let _ = fs::remove_dir_all(e.path()).or_else(|_| fs::remove_file(e.path()));
+        let rw_hosts: Vec<PathBuf> = spec.rw_dirs.iter().map(|r| r.host_dir.clone()).collect();
+        let (outputs, summary) =
+            match self.materialize_outputs(&mut r, &spec.out_dir, &rw_hosts, &limits) {
+                Ok(x) => x,
+                Err(e) => {
+                    // never leave a partial output tree behind
+                    if let Ok(rd) = fs::read_dir(&spec.out_dir) {
+                        for e in rd.flatten() {
+                            let _ =
+                                fs::remove_dir_all(e.path()).or_else(|_| fs::remove_file(e.path()));
+                        }
                     }
+                    return Err(e);
                 }
-                return Err(e);
-            }
-        };
+            };
         diag.output_violations = summary.violations;
         diag.outputs_complete = summary.complete;
         drop(guard);
@@ -999,6 +1107,36 @@ pub const FC_LAYOUT: arena_sandbox::GuestLayout = arena_sandbox::GuestLayout {
     flexible_scratch: true,
     rw_binds: false,
 };
+
+/// Create-or-replace `base/rel` as a regular file, refusing to traverse or
+/// replace symlinks or non-regular entries.
+fn safe_replace(base: &Path, rel: &str, mode: u32) -> io::Result<File> {
+    proto::validate_rel_path(rel).map_err(io::Error::other)?;
+    let mut cur = base.to_path_buf();
+    let comps: Vec<&str> = rel.split('/').collect();
+    for c in &comps[..comps.len() - 1] {
+        cur.push(c);
+        match fs::symlink_metadata(&cur) {
+            Ok(m) if m.is_dir() => {}
+            Ok(_) => return Err(io::Error::other("parent is not a real directory")),
+            Err(e) if e.kind() == io::ErrorKind::NotFound => fs::create_dir(&cur)?,
+            Err(e) => return Err(e),
+        }
+    }
+    cur.push(comps[comps.len() - 1]);
+    match fs::symlink_metadata(&cur) {
+        Ok(m) if m.is_file() => fs::remove_file(&cur)?,
+        Ok(_) => return Err(io::Error::other("exists and is not a regular file")),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => {}
+        Err(e) => return Err(e),
+    }
+    OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .custom_flags(libc::O_NOFOLLOW)
+        .mode(mode)
+        .open(&cur)
+}
 
 fn abs_guest(p: &str) -> Result<(), InfraError> {
     let rel = p
@@ -1052,6 +1190,9 @@ impl FirecrackerSandbox {
                     guest_path: m.guest.clone(),
                 })
                 .collect(),
+            // arena_sandbox::SandboxSpec has no read-write binds on main yet
+            rw_dirs: vec![],
+            allow_mount_symlinks: false,
             rw_scratch_mb: spec.rw_scratch_mb,
             copy_in: spec
                 .copy_in

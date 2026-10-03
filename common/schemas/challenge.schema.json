@@ -33,6 +33,17 @@
     "created_at": {
       "type": "string"
     },
+    "formal_params": {
+      "description": "Formal admission-statement parameters (v1.2, additive; absent ⇒ not serialized, so existing challenge ids are unchanged).",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/FormalParams"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "hardware_profile": {
       "$ref": "#/definitions/HardwareProfile"
     },
@@ -148,6 +159,36 @@
       "description": "`sha256:<64 lowercase hex>`",
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "FormalParams": {
+      "description": "Parameters of the judge-built admission statement that are not resource limits of the sandbox (`ArenaCore.ChallengeParams`). Optional so that challenges without a formal statement (demo) keep their ids.",
+      "type": "object",
+      "required": [
+        "max_proof_bytes",
+        "max_reduction_fuel",
+        "verify_fuel"
+      ],
+      "properties": {
+        "max_proof_bytes": {
+          "description": "Honest proof-size bound used by `VerifierComplete` (`ChallengeParams.maxProofBytes`); must equal `resource_limits.max_proof_bytes`.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_reduction_fuel": {
+          "description": "Fuel cap of an explicit standard-model security reduction (`ChallengeParams.maxReductionFuel`).",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "verify_fuel": {
+          "description": "NPAI fuel given to the approved interpreter for one `verify` call (`ChallengeParams.verifyFuel`).",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
     },
     "FormalSpecRef": {
       "type": "object",

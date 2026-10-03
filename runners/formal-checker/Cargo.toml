@@ -21,3 +21,7 @@ libc = "0.2"
 [[bin]]
 name = "formal-check"
 path = "src/bin/formal_check.rs"
+
+[[bin]]
+name = "decl-hash"
+path = "src/bin/decl_hash.rs"

@@ -94,8 +94,26 @@
         "prove": {
           "type": "string"
         },
+        "verifier_bytecode": {
+          "description": "Built NPAI image (relative path among `build.outputs`), required iff `verify_route = \"npai-v1\"`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "verify": {
           "type": "string"
+        },
+        "verify_route": {
+          "description": "How the arena runs verification (v1.2, additive). `native` (default): the built `verify` executable. `npai-v1`: the arena's own NPAI interpreter runs `verifier_bytecode` (docs/INTERP_SPEC.md); `prepare` must then emit exactly `public_dir/public.bin`.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VerifyRoute"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -134,6 +152,13 @@
         }
       },
       "additionalProperties": false
+    },
+    "VerifyRoute": {
+      "type": "string",
+      "enum": [
+        "native",
+        "npai-v1"
+      ]
     }
   }
 }

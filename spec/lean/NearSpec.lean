@@ -8,3 +8,4 @@ import NearSpec.TransferV1
 import NearSpec.ClaimCodec
 import NearSpec.Codec
 import NearSpec.Examples
+import NearSpec.Challenge

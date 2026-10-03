@@ -38,6 +38,24 @@ pub struct EntrySection {
     pub prepare: String,
     pub prove: String,
     pub verify: String,
+    /// How the arena runs verification (v1.2, additive). `native` (default):
+    /// the built `verify` executable. `npai-v1`: the arena's own NPAI
+    /// interpreter runs `verifier_bytecode` (docs/INTERP_SPEC.md); `prepare`
+    /// must then emit exactly `public_dir/public.bin`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verify_route: Option<VerifyRoute>,
+    /// Built NPAI image (relative path among `build.outputs`), required iff
+    /// `verify_route = "npai-v1"`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_bytecode: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub enum VerifyRoute {
+    #[serde(rename = "native")]
+    Native,
+    #[serde(rename = "npai-v1")]
+    NpaiV1,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -103,6 +121,17 @@ impl CandidateManifest {
         if let Some(f) = &self.formal {
             paths.push(f.lean_project.as_str());
         }
+        match (self.entry.verify_route, &self.entry.verifier_bytecode) {
+            (Some(VerifyRoute::NpaiV1), Some(b)) => {
+                if !self.build.outputs.iter().any(|o| o == b) {
+                    return bad("verifier_bytecode must be one of build.outputs");
+                }
+                paths.push(b.as_str());
+            }
+            (Some(VerifyRoute::NpaiV1), None) => return bad("verify_route npai-v1 requires verifier_bytecode"),
+            (_, Some(_)) => return bad("verifier_bytecode is only valid with verify_route = \"npai-v1\""),
+            _ => {}
+        }
         if !paths.iter().all(|p| is_safe_relpath(p)) {
             return bad("unsafe relative path");
         }
@@ -139,6 +168,28 @@ certificate = "Candidate.certificate"
     #[test]
     fn rejects_traversal() {
         assert!(CandidateManifest::parse(&OK.replace("out/verify\"\n", "../x\"\n")).is_err());
+    }
+    #[test]
+    fn verify_route() {
+        let npai = OK.replace(
+            "verify = \"out/verify\"\n",
+            "verify = \"out/verify\"\nverify_route = \"npai-v1\"\nverifier_bytecode = \"out/verifier.npai\"\n",
+        );
+        assert!(CandidateManifest::parse(&npai).is_err(), "bytecode must be a build output");
+        let npai = npai.replace("\"out/verify\"]", "\"out/verify\", \"out/verifier.npai\"]");
+        let m = CandidateManifest::parse(&npai).unwrap();
+        assert_eq!(m.entry.verify_route, Some(VerifyRoute::NpaiV1));
+        assert!(CandidateManifest::parse(&npai.replace("verifier_bytecode = \"out/verifier.npai\"\n", "")).is_err());
+        assert!(CandidateManifest::parse(&OK.replace(
+            "verify = \"out/verify\"\n",
+            "verify = \"out/verify\"\nverify_route = \"native\"\n"
+        ))
+        .is_ok());
+        assert!(CandidateManifest::parse(&OK.replace(
+            "verify = \"out/verify\"\n",
+            "verify = \"out/verify\"\nverify_route = \"wasm\"\n"
+        ))
+        .is_err());
     }
     #[test]
     fn rejects_unknown_field() {

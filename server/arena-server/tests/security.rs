@@ -929,7 +929,12 @@ async fn repo_challenges_load_with_governance_policy() {
     let text = std::fs::read_to_string(root.join("challenges/governance-dev.pub")).unwrap();
     let keys = arena_server::config::parse_pubkeys_text(&text).unwrap();
     assert_eq!(keys.len(), 1);
-    assert!(keys[0].1, "the repo key is flagged dev_only");
+    assert!(keys[0].1, "the repo dev key is flagged dev_only");
+    // the local operator key (signs the formal NEAR challenge) is not dev-only
+    let text = std::fs::read_to_string(root.join("challenges/governance-local.pub")).unwrap();
+    let local = arena_server::config::parse_pubkeys_text(&text).unwrap();
+    assert_eq!(local.len(), 1);
+    assert!(!local[0].1, "the local operator key is not dev_only");
     let gov = arena_server::Governance {
         dev_only_keys: vec![keys[0].0],
         governed: Some(arena_admin::GovernedSet::load(&root.join("security")).unwrap()),
@@ -937,12 +942,12 @@ async fn repo_challenges_load_with_governance_policy() {
     let (ok, refused) = arena_server::bootstrap::challenges_from_dir(
         &app.pool,
         &root.join("challenges"),
-        &[keys[0].0],
+        &[keys[0].0, local[0].0],
         &gov,
     )
     .await
     .unwrap();
-    assert!(ok >= 1, "no repo challenge loaded");
+    assert!(ok >= 2, "repo challenges (demo + formal) not loaded");
     assert_eq!(refused, 0);
     // a formal challenge signed by a dev-only key is refused
     let def = challenge_def(Tier::Formal, "formal-devkey");
