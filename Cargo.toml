@@ -10,6 +10,7 @@ members = [
     "runners/firecracker/shim",
     "runners/formal-checker",
     "runners/measure",
+    "runners/npai",
     "runners/sandbox",
     "runners/worker",
     "sdk/arena-cli",

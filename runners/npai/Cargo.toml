@@ -1,0 +1,29 @@
+[package]
+name = "arena-npai"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Judge-owned NPAI v1 bytecode interpreter (must match formal-core ArenaCore.Interp exactly), npai-verify, npai-asm"
+
+# TCB crate: keep the dependency set to `sha2` only.
+[dependencies]
+sha2.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[[bin]]
+name = "npai-verify"
+path = "src/bin/npai-verify.rs"
+
+[[bin]]
+name = "npai-asm"
+path = "src/bin/npai-asm.rs"
+
+[[bin]]
+name = "npai-difftest"
+path = "src/bin/npai-difftest.rs"
+
+[[bin]]
+name = "npai-bench"
+path = "src/bin/npai-bench.rs"
