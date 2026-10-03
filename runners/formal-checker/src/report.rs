@@ -1,0 +1,231 @@
+//! Gate assembly, evidence graph fragment and report types.
+
+use crate::findings::{is_axiom_code, Finding, Scope, Severity};
+use arena_types::evidence::{EdgeStatus, EvidenceEdge, EvidenceNode, NodeKind};
+use arena_types::{Digest, EvidenceGraph, EvidenceRef, GateResult, GateStatus, ObligationId, ReasonCode};
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GateSpec {
+    pub gate: ObligationId,
+    pub mandatory: bool,
+}
+
+pub fn default_gates() -> Vec<GateSpec> {
+    use ObligationId::*;
+    [FormalSemanticSoundness, FormalSemanticCompleteness, FormalCryptoSoundness, FormalImplConnection, AxiomAudit]
+        .into_iter()
+        .map(|gate| GateSpec { gate, mandatory: true })
+        .collect()
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct RecheckerRun {
+    /// `leanchecker`, `nanoda`, `lean4lean`, `arena-audit`, `ndjson-audit`.
+    pub id: String,
+    pub ran: bool,
+    /// `accepted` | `rejected` | `timeout` | `error` | `not_run`
+    pub verdict: String,
+    pub wall_ms: u64,
+    pub detail: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct Timing {
+    pub step: String,
+    pub wall_ms: u64,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct ClosureReport {
+    pub certificate: String,
+    pub count: usize,
+    pub digest: Option<Digest>,
+    pub axioms: Vec<String>,
+    /// Evidence file listing (name, kind, decl hash) for the whole closure.
+    pub listing: Option<EvidenceRef>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct FormalCheckReport {
+    pub schema: &'static str,
+    pub cache_key: Digest,
+    pub lean_toolchain: String,
+    pub runner: String,
+    /// `Some(demo)` when produced through a dev runner.
+    pub tier_cap: Option<arena_types::challenge::Tier>,
+    pub gates: Vec<GateResult>,
+    pub findings: Vec<Finding>,
+    pub rechecks: Vec<RecheckerRun>,
+    pub closure: Option<ClosureReport>,
+    pub evidence: Vec<EvidenceRef>,
+    pub evidence_graph: EvidenceGraph,
+    pub warnings: Vec<String>,
+    pub timings: Vec<Timing>,
+}
+
+fn gate_relevant(g: ObligationId, f: &Finding, conjunct_gates: Option<&[ObligationId]>) -> bool {
+    if g == ObligationId::AxiomAudit {
+        // Conservative: if there is no valid certificate (wrong statement,
+        // missing, not rechecked, ...) there is nothing whose axioms passed.
+        return true;
+    }
+    match f.scope {
+        Scope::All => true,
+        Scope::Certificate => true,
+        Scope::Conjunct(i) => match conjunct_gates {
+            Some(cg) => cg.get(i) == Some(&g),
+            None => true,
+        },
+    }
+}
+
+pub fn assemble_gates(
+    specs: &[GateSpec],
+    findings: &[Finding],
+    conjunct_gates: Option<&[ObligationId]>,
+    evidence: &[EvidenceRef],
+    started_at: &str,
+    finished_at: &str,
+) -> Vec<GateResult> {
+    specs
+        .iter()
+        .map(|s| {
+            let rel: Vec<&Finding> = findings.iter().filter(|f| gate_relevant(s.gate, f, conjunct_gates)).collect();
+            let fails: Vec<&&Finding> = rel.iter().filter(|f| f.severity == Severity::Fail).collect();
+            let unknowns: Vec<&&Finding> = rel.iter().filter(|f| f.severity == Severity::Unknown).collect();
+            let (status, chosen): (GateStatus, Vec<&&Finding>) = if !fails.is_empty() {
+                (GateStatus::Fail, fails)
+            } else if !unknowns.is_empty() {
+                (GateStatus::Unknown, unknowns)
+            } else {
+                (GateStatus::Pass, vec![])
+            };
+            let mut codes: Vec<ReasonCode> = Vec::new();
+            for f in &chosen {
+                if !codes.contains(&f.code) {
+                    codes.push(f.code);
+                }
+            }
+            let summary = match status {
+                GateStatus::Pass => match s.gate {
+                    ObligationId::AxiomAudit => "certified closure uses only allowlisted axioms; no sorry/native shortcuts".to_string(),
+                    _ => "certificate type equals the judge-constructed statement; kernel rechecks accepted".to_string(),
+                },
+                _ => crate::findings::bound(chosen.iter().map(|f| f.detail.as_str()).collect::<Vec<_>>().join("\n")),
+            };
+            GateResult {
+                gate: s.gate,
+                mandatory: s.mandatory,
+                status,
+                reason_codes: codes,
+                summary,
+                evidence: evidence.to_vec(),
+                started_at: Some(started_at.to_string()),
+                finished_at: Some(finished_at.to_string()),
+                reused_from: None,
+            }
+        })
+        .collect()
+}
+
+pub struct GraphInput<'a> {
+    pub certificate: &'a str,
+    pub certificate_digest: Option<Digest>,
+    pub statement_digest: Option<Digest>,
+    pub trusted: &'a [(String, Digest)],
+    pub axioms: &'a [String],
+    pub allowlist: &'a [String],
+    pub rechecks: &'a [RecheckerRun],
+    pub type_ok: bool,
+    pub evidence: Vec<Digest>,
+    pub toolchain_digest: Digest,
+}
+
+pub fn evidence_graph(g: &GraphInput) -> EvidenceGraph {
+    let mut nodes = vec![
+        EvidenceNode {
+            id: "formal:certificate".into(),
+            kind: NodeKind::Theorem,
+            label: format!("certificate {}", g.certificate),
+            digest: g.certificate_digest.clone(),
+        },
+        EvidenceNode {
+            id: "formal:expected_statement".into(),
+            kind: NodeKind::Theorem,
+            label: "judge-constructed admission statement".into(),
+            digest: g.statement_digest.clone(),
+        },
+        EvidenceNode {
+            id: "tcb:lean_toolchain".into(),
+            kind: NodeKind::TcbComponent,
+            label: format!("Lean {}", crate::toolchain::lean_toolchain()),
+            digest: Some(g.toolchain_digest.clone()),
+        },
+    ];
+    let mut edges = vec![EvidenceEdge {
+        from: "formal:certificate".into(),
+        to: "formal:expected_statement".into(),
+        kind: "proves".into(),
+        status: if g.type_ok { EdgeStatus::Checked } else { EdgeStatus::Missing },
+        evidence: g.evidence.clone(),
+        note: "syntactic Expr equality of the certificate type and the reference statement".into(),
+    }];
+    for (name, d) in g.trusted {
+        let id = format!("formal:trusted:{name}");
+        nodes.push(EvidenceNode { id: id.clone(), kind: NodeKind::FormalSemantics, label: name.clone(), digest: Some(d.clone()) });
+        edges.push(EvidenceEdge {
+            from: "formal:expected_statement".into(),
+            to: id,
+            kind: "defined_in".into(),
+            status: EdgeStatus::Trusted,
+            evidence: vec![d.clone()],
+            note: "judge-pinned module; candidate copies must be hash-identical".into(),
+        });
+    }
+    for ax in g.axioms {
+        let id = format!("formal:axiom:{ax}");
+        nodes.push(EvidenceNode { id: id.clone(), kind: NodeKind::Assumption, label: ax.clone(), digest: None });
+        let ok = g.allowlist.contains(ax);
+        edges.push(EvidenceEdge {
+            from: "formal:certificate".into(),
+            to: id,
+            kind: "assumes".into(),
+            status: if ok { EdgeStatus::Trusted } else { EdgeStatus::Missing },
+            evidence: vec![],
+            note: if ok { "allowlisted axiom".into() } else { "axiom NOT in the challenge allowlist".into() },
+        });
+    }
+    for r in g.rechecks {
+        let id = format!("tcb:{}", r.id);
+        nodes.push(EvidenceNode { id: id.clone(), kind: NodeKind::TcbComponent, label: r.id.clone(), digest: None });
+        edges.push(EvidenceEdge {
+            from: "formal:certificate".into(),
+            to: id,
+            kind: "rechecked_by".into(),
+            status: if r.verdict == "accepted" { EdgeStatus::Checked } else { EdgeStatus::Missing },
+            evidence: vec![],
+            note: format!("{} ({})", r.verdict, r.detail.chars().take(200).collect::<String>()),
+        });
+    }
+    EvidenceGraph { nodes, edges }
+}
+
+/// Lightweight helper to dedupe findings by (code, scope, detail).
+pub fn dedupe(f: Vec<Finding>) -> Vec<Finding> {
+    let mut out: Vec<Finding> = Vec::new();
+    for x in f {
+        if !out.iter().any(|y| y.code == x.code && y.scope == x.scope && y.detail == x.detail) {
+            out.push(x);
+        }
+    }
+    out
+}
+
+pub fn has_fail(f: &[Finding]) -> bool {
+    f.iter().any(|x| x.severity == Severity::Fail)
+}
+
+pub fn axiom_codes(f: &[Finding]) -> Vec<ReasonCode> {
+    f.iter().filter(|x| is_axiom_code(x.code)).map(|x| x.code).collect()
+}

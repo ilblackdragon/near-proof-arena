@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["common/arena-types"]
+members = ["common/arena-types", "runners/formal-checker"]
 
 [workspace.package]
 edition = "2021"
@@ -21,3 +21,11 @@ uuid = { version = "1", features = ["v4", "serde"] }
 anyhow = "1"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
+
+# The formal checker parses/hashes large Lean exports; keep tests fast in dev builds.
+[profile.dev.package.arena-formal-checker]
+opt-level = 2
+[profile.dev.package.sha2]
+opt-level = 3
+[profile.dev.package.serde_json]
+opt-level = 3

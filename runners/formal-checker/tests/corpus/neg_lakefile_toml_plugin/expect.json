@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "MANIFEST_INVALID"
+    ]
+  },
+  "description": "lakefile.toml with --load-dynlib, precompileModules, plugins, non-allowlisted require"
+}

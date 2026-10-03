@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "NATIVE_EVAL_FOUND"
+    ]
+  },
+  "description": "initialize declaration (executable hook) in a candidate module"
+}

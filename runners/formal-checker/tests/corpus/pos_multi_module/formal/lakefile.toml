@@ -1,0 +1,9 @@
+name = "candidate"
+defaultTargets = ["Candidate"]
+
+[[lean_lib]]
+name = "Candidate"
+
+[[require]]
+name = "arena-standin"
+path = "../standin"

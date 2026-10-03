@@ -1,0 +1,27 @@
+{
+  "conjuncts": true,
+  "gates": {
+    "FORMAL_SEMANTIC_SOUNDNESS": {
+      "status": "PASS"
+    },
+    "FORMAL_SEMANTIC_COMPLETENESS": {
+      "status": "PASS"
+    },
+    "FORMAL_CRYPTO_SOUNDNESS": {
+      "status": "FAIL",
+      "codes": [
+        "SORRY_FOUND"
+      ]
+    },
+    "FORMAL_IMPL_CONNECTION": {
+      "status": "PASS"
+    },
+    "AXIOM_AUDIT": {
+      "status": "FAIL",
+      "codes": [
+        "SORRY_FOUND"
+      ]
+    }
+  },
+  "description": "per-conjunct attribution: sorry only in the crypto conjunct"
+}

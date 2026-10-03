@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "NATIVE_EVAL_FOUND"
+    ]
+  },
+  "description": "native_decide (Lean.ofReduceBool)"
+}

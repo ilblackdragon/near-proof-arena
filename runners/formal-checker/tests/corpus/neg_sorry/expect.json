@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "SORRY_FOUND"
+    ]
+  },
+  "description": "sorry in one conjunct"
+}

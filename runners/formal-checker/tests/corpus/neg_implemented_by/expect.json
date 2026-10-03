@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "NATIVE_EVAL_FOUND"
+    ]
+  },
+  "description": "@[implemented_by] in a candidate module"
+}

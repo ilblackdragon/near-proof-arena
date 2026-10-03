@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "SHADOWED_DEFINITION"
+    ]
+  },
+  "description": "candidate ships its own altered copy of a trusted module"
+}

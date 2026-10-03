@@ -1,0 +1,10 @@
+{
+  "all": {
+    "status": "UNKNOWN",
+    "codes": [
+      "TIMEOUT"
+    ]
+  },
+  "module_timeout_s": 8,
+  "description": "elaboration never terminates: UNKNOWN, never PASS"
+}

@@ -1,0 +1,11 @@
+name = "candidate"
+moreLeanArgs = ["--load-dynlib=./evil.so"]
+
+[[lean_lib]]
+name = "Candidate"
+precompileModules = true
+plugins = ["evil"]
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4"
