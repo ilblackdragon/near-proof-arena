@@ -1,0 +1,34 @@
+{
+ "protocol_version": 86,
+ "chain_id": "mainnet",
+ "shard_id": 4,
+ "block_height": 218303545,
+ "block_gas_price": "100000000",
+ "gas_limit": 1000000000000000,
+ "pre_state_root": "Hci1hMJLZHLpxeRGkqb8SJmEdWJSX5xKP1wD3p38zmRP",
+ "receipts": [
+  {
+   "predecessor_id": "crypto10081.tg",
+   "priority": 0,
+   "receipt": {
+    "Action": {
+     "actions": [
+      {
+       "Transfer": {
+        "deposit": "52055533058741300208165"
+       }
+      }
+     ],
+     "gas_price": "1000000000",
+     "input_data_ids": [],
+     "is_promise_yield": false,
+     "output_data_receivers": [],
+     "signer_id": "crypto10081.tg",
+     "signer_public_key": "ed25519:H7UzdDuiz9mX5z1S3QH7hwK1k97mZMghmxqAS9jhzEAK"
+    }
+   },
+   "receipt_id": "7StptkNccqja2Uj9iaoVFRvdVhd4MWhUmXSX2X4UyW3z",
+   "receiver_id": "swanmaw.tg"
+  }
+ ]
+}

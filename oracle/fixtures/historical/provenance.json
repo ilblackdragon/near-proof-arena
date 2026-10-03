@@ -1,0 +1,125 @@
+{
+ "schema": "near-arena-fixture-provenance-v1",
+ "statement_id": "near/pv86/receipt-transfer-batch/v0",
+ "nearcore": {
+  "repo": "https://github.com/near/nearcore",
+  "tag": "2.13.4",
+  "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
+ },
+ "protocol_version": 86,
+ "data_disclaimer": "AUTHENTIC MAINNET DATA, NOT SYNTHETIC: every trie node in witness.bin/apply_witness.bin was served by a mainnet peer through the state-sync protocol and is hash-linked to an on-chain chunk prev_state_root; every receipt and block/chunk field comes from public RPC and is cross-checked (per-case provenance.json `anchors`). BUT every case here is class `historical-rebased-prestate`: the pre-state root is the shard's state-sync root (an on-chain root committed 9-59 blocks before the receipt's real execution), not the root the chain actually applied the receipt to. The claims are therefore NOT the chain's own transitions; which outputs coincide with on-chain values is recorded per case. No `historical-exact-*` case exists yet (see docs/HISTORICAL_REPLAY.md).",
+ "layout": "params.bin + cases/<name>/{request.bin,witness.bin,expected_claim.bin,apply_witness.bin,context.json,diagnostics.json,provenance.json}",
+ "builder": "oracle/historical (near-arena-historical build; harvest.py build)",
+ "verify": "oracle/historical/verify.sh (offline: nearcore replay from apply_witness.bin + nearspec-check + digests)",
+ "doc": "docs/HISTORICAL_REPLAY.md",
+ "cases": [
+  {
+   "case": "mainnet-s12-h218303553",
+   "fixture_class": "historical-rebased-prestate",
+   "shard_id": 12,
+   "pre_state_root": "8HP5FZi1zh8csSjqftpJegCp8VWBSKQbQPegCpYtXMA6",
+   "pre_state_chunk_height": 218303536,
+   "execution_block_height": 218303553,
+   "receipts": [
+    "HjxdqrEkSA3YXkzJAs17X3vdUPAetBfywTAtR3j2koVj"
+   ],
+   "anchors_ok": [
+    "claim_outcome_root_equals_onchain_outcome_leaf",
+    "claim_outcome_root_equals_onchain_prev_outcome_root",
+    "claim_pre_state_root_is_onchain_root",
+    "execution_chunk_contains_exactly_the_batch",
+    "onchain_outcome_proof:HjxdqrEkSA3YXkzJAs17X3vdUPAetBfywTAtR3j2koVj",
+    "protocol_version_86",
+    "receipt_from_transaction:HjxdqrEkSA3YXkzJAs17X3vdUPAetBfywTAtR3j2koVj",
+    "receipt_succeeded_onchain:HjxdqrEkSA3YXkzJAs17X3vdUPAetBfywTAtR3j2koVj",
+    "receiver_records_identical_to_execution_prestate",
+    "refunds_match_onchain_outgoing_receipts",
+    "state_header_root_matches_chain"
+   ],
+   "anchors_not_ok": [
+    "claim_pre_state_root_is_execution_chunk_prev_state_root"
+   ]
+  },
+  {
+   "case": "mainnet-s12-h218303595",
+   "fixture_class": "historical-rebased-prestate",
+   "shard_id": 12,
+   "pre_state_root": "8HP5FZi1zh8csSjqftpJegCp8VWBSKQbQPegCpYtXMA6",
+   "pre_state_chunk_height": 218303536,
+   "execution_block_height": 218303595,
+   "receipts": [
+    "8YkKjjgSbemup7xoenMkBHc7q6q1xtBjSHizyVnkkxNx"
+   ],
+   "anchors_ok": [
+    "claim_outcome_root_equals_onchain_outcome_leaf",
+    "claim_outcome_root_equals_onchain_prev_outcome_root",
+    "claim_pre_state_root_is_onchain_root",
+    "execution_chunk_contains_exactly_the_batch",
+    "onchain_outcome_proof:8YkKjjgSbemup7xoenMkBHc7q6q1xtBjSHizyVnkkxNx",
+    "protocol_version_86",
+    "receipt_from_transaction:8YkKjjgSbemup7xoenMkBHc7q6q1xtBjSHizyVnkkxNx",
+    "receipt_succeeded_onchain:8YkKjjgSbemup7xoenMkBHc7q6q1xtBjSHizyVnkkxNx",
+    "refunds_match_onchain_outgoing_receipts",
+    "state_header_root_matches_chain"
+   ],
+   "anchors_not_ok": [
+    "claim_pre_state_root_is_execution_chunk_prev_state_root",
+    "receiver_records_identical_to_execution_prestate"
+   ]
+  },
+  {
+   "case": "mainnet-s4-h218303545",
+   "fixture_class": "historical-rebased-prestate",
+   "shard_id": 4,
+   "pre_state_root": "Hci1hMJLZHLpxeRGkqb8SJmEdWJSX5xKP1wD3p38zmRP",
+   "pre_state_chunk_height": 218303536,
+   "execution_block_height": 218303545,
+   "receipts": [
+    "7StptkNccqja2Uj9iaoVFRvdVhd4MWhUmXSX2X4UyW3z"
+   ],
+   "anchors_ok": [
+    "claim_outcome_root_equals_onchain_outcome_leaf",
+    "claim_pre_state_root_is_onchain_root",
+    "onchain_outcome_proof:7StptkNccqja2Uj9iaoVFRvdVhd4MWhUmXSX2X4UyW3z",
+    "protocol_version_86",
+    "receipt_from_transaction:7StptkNccqja2Uj9iaoVFRvdVhd4MWhUmXSX2X4UyW3z",
+    "receipt_succeeded_onchain:7StptkNccqja2Uj9iaoVFRvdVhd4MWhUmXSX2X4UyW3z",
+    "receiver_records_identical_to_execution_prestate",
+    "refunds_match_onchain_outgoing_receipts",
+    "state_header_root_matches_chain"
+   ],
+   "anchors_not_ok": [
+    "claim_outcome_root_equals_onchain_prev_outcome_root",
+    "claim_pre_state_root_is_execution_chunk_prev_state_root",
+    "execution_chunk_contains_exactly_the_batch"
+   ]
+  },
+  {
+   "case": "mainnet-s7-h218303557",
+   "fixture_class": "historical-rebased-prestate",
+   "shard_id": 7,
+   "pre_state_root": "DBwM61CnpqEQ22mF2wXpHBEvw8opRTfyDE9VtQXFc5as",
+   "pre_state_chunk_height": 218303536,
+   "execution_block_height": 218303557,
+   "receipts": [
+    "7tAeeTG6YwxgNB6awCKdAgxmNfziGKS3FnfkjytTpDNr"
+   ],
+   "anchors_ok": [
+    "claim_outcome_root_equals_onchain_outcome_leaf",
+    "claim_pre_state_root_is_onchain_root",
+    "onchain_outcome_proof:7tAeeTG6YwxgNB6awCKdAgxmNfziGKS3FnfkjytTpDNr",
+    "protocol_version_86",
+    "receipt_from_transaction:7tAeeTG6YwxgNB6awCKdAgxmNfziGKS3FnfkjytTpDNr",
+    "receipt_succeeded_onchain:7tAeeTG6YwxgNB6awCKdAgxmNfziGKS3FnfkjytTpDNr",
+    "receiver_records_identical_to_execution_prestate",
+    "refunds_match_onchain_outgoing_receipts",
+    "state_header_root_matches_chain"
+   ],
+   "anchors_not_ok": [
+    "claim_outcome_root_equals_onchain_prev_outcome_root",
+    "claim_pre_state_root_is_execution_chunk_prev_state_root",
+    "execution_chunk_contains_exactly_the_batch"
+   ]
+  }
+ ]
+}

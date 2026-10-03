@@ -1,0 +1,204 @@
+{
+ "schema": "near-arena-historical-provenance-v1",
+ "fixture_class": "historical-rebased-prestate",
+ "label": "AUTHENTIC mainnet data (trie nodes from mainnet state sync, receipts/blocks from RPC); see anchors and not_anchored",
+ "chain_id": "mainnet",
+ "statement_id": "near/pv86/receipt-transfer-batch/v0",
+ "nearcore": {
+  "tag": "2.13.4",
+  "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "rpc_node_version": {
+   "build": "2.13.4",
+   "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+   "rustc_version": "1.93.0",
+   "version": "2.13.4"
+  }
+ },
+ "retrieval": {
+  "time_utc": "2026-10-03T07:31:53Z",
+  "rpc_endpoint": "https://archival-rpc.mainnet.fastnear.com",
+  "peer_list_endpoint": "https://rpc.mainnet.near.org",
+  "p2p_peers_used": [
+   "ed25519:8kkuA4z5zNoGiNPgmqsMkX7eip3rzbmh1cJNxRkA3uk1@185.150.191.72:24567"
+  ],
+  "tool": "oracle/historical (near-arena-historical, harvest.py)"
+ },
+ "pre_state": {
+  "state_root": "8HP5FZi1zh8csSjqftpJegCp8VWBSKQbQPegCpYtXMA6",
+  "state_root_hex": "6c340f4dfcaa1cae0eca8921beac2b1e734306ec85fa3ad5ce542e434876045f",
+  "shard_id": 12,
+  "epoch_id": "8gCvn4roxttM9mEgH7VpD15wR9BYoiTQEfXDjLbG6LNq",
+  "epoch_start_height": 218303534,
+  "sync_hash": "4UUB8Yb5sv84w5AqQNdPSKSgnxdxypBTr6M8GwGwkPL2",
+  "sync_height": 218303537,
+  "sync_prev_block_hash": "CJ6138vygG4DpQvKM1yQkMLJay9LmnbMCJhJzEowi1tq",
+  "sync_prev_block_height": 218303536,
+  "chunk_hash": "B2QqzMbxNDv8WRfzUda8DGQvba53wQzVxguY4nnp2rSv",
+  "meaning": "prev_state_root of sync_prev.chunks[shard]: the shard state after the previous new chunk",
+  "state_header": {
+   "bytes": 14033,
+   "chunk_hash": "B2QqzMbxNDv8WRfzUda8DGQvba53wQzVxguY4nnp2rSv",
+   "chunk_height_included": 218303536,
+   "chunk_prev_state_root": "8HP5FZi1zh8csSjqftpJegCp8VWBSKQbQPegCpYtXMA6",
+   "num_state_parts": 666,
+   "state_root_memory_usage": 20939901073,
+   "state_root_node_hash": "8HP5FZi1zh8csSjqftpJegCp8VWBSKQbQPegCpYtXMA6",
+   "peer": "ed25519:8kkuA4z5zNoGiNPgmqsMkX7eip3rzbmh1cJNxRkA3uk1@185.150.191.72:24567",
+   "retrieved_at": "2026-10-03T07:31:43Z",
+   "sha256": "42b68ca58ca4fb9bbf34450d43d574c9afdcb66e06c89acede1a877b82759a04"
+  },
+  "state_parts": [
+   {
+    "peer": "ed25519:6CV67KGqXZHZZ7x5ERHZcooiuNv6Scs1oDip2NFHhnyo@144.76.8.250:24567",
+    "retrieved_at": "2026-10-03T06:43:47Z",
+    "part_id": 26,
+    "bytes": 7578686,
+    "sha256": "921da018a6a4101c63605296af0f60ae415f046f6d5196fa6c6f36c6cd59367c"
+   },
+   {
+    "peer": "ed25519:6CV67KGqXZHZZ7x5ERHZcooiuNv6Scs1oDip2NFHhnyo@144.76.8.250:24567",
+    "retrieved_at": "2026-10-03T06:50:31Z",
+    "part_id": 289,
+    "bytes": 15449929,
+    "sha256": "3861dfa0e5a46c50bd99a0af9272b5c6fa9f709f481d00bada6d02fd0e22cf7b"
+   },
+   {
+    "peer": "ed25519:6CV67KGqXZHZZ7x5ERHZcooiuNv6Scs1oDip2NFHhnyo@144.76.8.250:24567",
+    "retrieved_at": "2026-10-03T06:44:22Z",
+    "part_id": 664,
+    "bytes": 9972484,
+    "sha256": "ea6a0d5550e7a40d62736a79ebe3a989c2095679c1017c3f115e8e15e6cdf7b5"
+   }
+  ],
+  "parts_not_committed": "the raw parts (7-20 MB each) are not committed; apply_witness.bin holds every node Runtime::apply read, each hash-linked to state_root"
+ },
+ "execution": {
+  "block_height": 218303595,
+  "block_hash": "9AirWrrW5X5hJEbh68qjbkATG3DxzGAaT6VAcgKR3E1E",
+  "block_gas_price": "100000000",
+  "chunk_hash": "G2dR5ucee4NWsUBxwWt75Dt9EyXXA5ozHivHAZLykQnw",
+  "chunk_prev_state_root": "EBm1M4PCPoR12KWgQnw7G2pq9D5QoAVdRe5og7wFoXbM",
+  "gas_limit": 1000000000000000,
+  "next_chunk": {
+   "block_height": 218303596,
+   "block_hash": "CLqCa7QxdXZD3XrSW4B6dDobJm2xu8C5iT4XtFv9tDLB",
+   "chunk_hash": "GkqMRbQiQLzRDbSJCCejRNTXHxpbzeWaHKgCUgP8MxNv",
+   "prev_outcome_root": "3M6ZG8jn1ZnK9ZHt5714qzYNhLPSmDwsjqeuXvu1ga8m",
+   "prev_gas_used": 223182562500,
+   "prev_balance_burnt": "22318256250000000000",
+   "prev_state_root": "5Lqt7phcJwXPjU6hWyjZhUfyZRzL3UB33NbwLPDbvnSS"
+  }
+ },
+ "receipts": [
+  {
+   "receipt_id": "8YkKjjgSbemup7xoenMkBHc7q6q1xtBjSHizyVnkkxNx",
+   "tx_hash": "66tvdYNAXpprF6moQmxp3oeNyfYsEVxoPw1dvrAyjafA",
+   "tx_signer": "tx-bench.near",
+   "receiver_id": "tx-bench-buddy.near",
+   "deposit": "1",
+   "gas_price": "1000000000",
+   "onchain_outcome_leaf": "22dd45c0f1584e6b26ab3ce3fb0436f66cf11a3c8afee294a097186e462b203e"
+  }
+ ],
+ "claim": {
+  "block_gas_price": "100000000",
+  "block_height": 218303595,
+  "chain_id": "mainnet",
+  "gas_burnt_total": 223182562500,
+  "gas_limit": 1000000000000000,
+  "outcome_root": "22dd45c0f1584e6b26ab3ce3fb0436f66cf11a3c8afee294a097186e462b203e",
+  "pre_state_root": "6c340f4dfcaa1cae0eca8921beac2b1e734306ec85fa3ad5ce542e434876045f",
+  "protocol_version": 86,
+  "receipt_count": 1,
+  "receipts_commitment": "d463936d43e72d6d83fdd5089ed1e69a575e88bd433be12b075e78396db039a8",
+  "refund_count": 1,
+  "refund_receipts_commitment": "1196402161c186e2f040707194b271cb2896e19032283af7a45c13720c2e1680",
+  "shard_id": 12,
+  "slice_post_root": "e170cb743750af0c49c39d0c4f901cb3d9aa8e7f564b80d41f420deac2677996",
+  "tokens_burnt_total": "22318256250000000000"
+ },
+ "anchors": {
+  "receipt_from_transaction:8YkKjjgSbemup7xoenMkBHc7q6q1xtBjSHizyVnkkxNx": {
+   "ok": true,
+   "meaning": "receipt is the conversion receipt of a Transfer transaction (tx outcome receipt_ids == [id], same signer/receiver/key/actions), hence Receipt::from_tx => ReceiptEnum::Action (in v1 domain); RPC ReceiptView -> Receipt conversion is then exact",
+   "tx_hash": "66tvdYNAXpprF6moQmxp3oeNyfYsEVxoPw1dvrAyjafA",
+   "tx_signer": "tx-bench.near"
+  },
+  "receipt_succeeded_onchain:8YkKjjgSbemup7xoenMkBHc7q6q1xtBjSHizyVnkkxNx": {
+   "ok": true,
+   "meaning": "on-chain execution outcome status SuccessValue('')",
+   "status": {
+    "SuccessValue": ""
+   }
+  },
+  "protocol_version_86": {
+   "ok": true,
+   "meaning": "EXPERIMENTAL_protocol_config at the execution block: protocol_version 86, chain_id mainnet",
+   "protocol_version": 86,
+   "chain_id": "mainnet"
+  },
+  "state_header_root_matches_chain": {
+   "ok": true,
+   "meaning": "sha256 of the peer-served state root node == chunk header prev_state_root of sync_prev.chunks[shard] (from RPC) == pre_state_root",
+   "state_root": "8HP5FZi1zh8csSjqftpJegCp8VWBSKQbQPegCpYtXMA6",
+   "header_chunk_hash": "B2QqzMbxNDv8WRfzUda8DGQvba53wQzVxguY4nnp2rSv",
+   "rpc_chunk_hash": "B2QqzMbxNDv8WRfzUda8DGQvba53wQzVxguY4nnp2rSv"
+  },
+  "claim_pre_state_root_is_onchain_root": {
+   "ok": true,
+   "meaning": "claim.pre_state_root == sync_prev.chunks[shard].prev_state_root (an on-chain chunk-header field)"
+  },
+  "claim_pre_state_root_is_execution_chunk_prev_state_root": {
+   "ok": false,
+   "meaning": "claim.pre_state_root == prev_state_root of the chunk that actually executed the receipts",
+   "execution_chunk_prev_state_root": "EBm1M4PCPoR12KWgQnw7G2pq9D5QoAVdRe5og7wFoXbM"
+  },
+  "onchain_outcome_proof:8YkKjjgSbemup7xoenMkBHc7q6q1xtBjSHizyVnkkxNx": {
+   "ok": true,
+   "meaning": "on-chain outcome (RPC) + its merkle path hash to the execution chunk's outcome root, committed as prev_outcome_root in the next chunk header",
+   "leaf": "22dd45c0f1584e6b26ab3ce3fb0436f66cf11a3c8afee294a097186e462b203e"
+  },
+  "claim_outcome_root_equals_onchain_outcome_leaf": {
+   "ok": true,
+   "meaning": "batch of 1: claim.outcome_root (oracle) == the on-chain outcome leaf of that receipt (state-independent outputs: refund id, gas, tokens, status)"
+  },
+  "execution_chunk_contains_exactly_the_batch": {
+   "ok": true,
+   "meaning": "next chunk header prev_gas_used == claim.gas_burnt_total and prev_balance_burnt == claim.tokens_burnt_total (the execution chunk burnt exactly the batch's gas)",
+   "onchain_prev_gas_used": 223182562500,
+   "onchain_prev_balance_burnt": "22318256250000000000"
+  },
+  "claim_outcome_root_equals_onchain_prev_outcome_root": {
+   "ok": true,
+   "meaning": "claim.outcome_root == next chunk header prev_outcome_root (only possible when the chunk executed exactly the batch)",
+   "onchain_prev_outcome_root": "3M6ZG8jn1ZnK9ZHt5714qzYNhLPSmDwsjqeuXvu1ga8m"
+  },
+  "refunds_match_onchain_outgoing_receipts": {
+   "ok": true,
+   "meaning": "the gas refunds the claim commits to (receiver, amount, count) are the execution chunk's on-chain outgoing receipts with the on-chain refund ids",
+   "onchain_outgoing_receipt_ids": [
+    "Fp75LxyZEzgX4iwdsBcHzRiY4HMRGiNts7CLTofvLyF6"
+   ],
+   "refund_ids": [
+    "Fp75LxyZEzgX4iwdsBcHzRiY4HMRGiNts7CLTofvLyF6"
+   ]
+  },
+  "receiver_records_identical_to_execution_prestate": {
+   "ok": false,
+   "meaning": "each receiver's Account record under pre_state_root (from the authentic witness) equals view_account at the execution block's prev block, so the slice computes the same per-receipt account write the chain made",
+   "records": [
+    {
+     "account": "tx-bench-buddy.near",
+     "witness_amount": "245523",
+     "onchain_amount_before_execution": "245525",
+     "onchain_amount_after_execution": "245526"
+    }
+   ]
+  }
+ },
+ "not_anchored": [
+  "slice_post_root (projection root, never on chain; spec \u00a75)",
+  "pre_state_root is an on-chain root of the same shard but from an EARLIER chunk (height 218303536) than the one that executed the receipts (height 218303595); the chain applied the receipts to a different state root, so the claim is a replay of authentic receipts against an authentic earlier state, not the chain's own transition"
+ ],
+ "excluded_by_spec": "block finality, receipt inclusion proofs, signatures: spec/claim-v1.md \u00a76 (external trust)"
+}
