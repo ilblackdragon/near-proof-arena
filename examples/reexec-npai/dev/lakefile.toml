@@ -19,3 +19,9 @@ path = "../../../spec/lean"
 [[require]]
 name = "ArenaCore"
 path = "../../../formal-core"
+
+# LOCAL EMULATION of the judge-generated Expected module (judge-local/render.py).
+[[lean_lib]]
+name = "ArenaExpected"
+srcDir = "../judge-local/out"
+roots = ["ArenaExpected"]

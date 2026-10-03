@@ -11,6 +11,7 @@
 //! (`encodeProof`, normative).
 
 pub mod engine;
+pub mod npai_interp;
 pub mod proof;
 pub mod spec;
 pub mod trie;
