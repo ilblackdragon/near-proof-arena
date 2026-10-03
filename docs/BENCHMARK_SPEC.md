@@ -227,14 +227,16 @@ exit. The score uses steady-state medians.
   objects and keys do not survive an invocation. The fresh-confirm tripwire
   (§7.4) applies unchanged.
 
-  **Open item.** No challenge uses `vm_per_batch` yet. A mode change alters
-  scores, so it needs a new superseding challenge with a re-measured
-  baseline, and a signed challenge is never edited. Three dev-host sessions
-  (`benchmarks/results/baseline-near-transfer-receipt-v1-r1-vmperbatch-devhost-20261003/`)
-  gave 8–18 ms per 8-request batch, against ~210 ms under
-  `vm_per_invocation`. All three failed the calibration drift checks, so
-  nothing was pinned. Next steps: re-measure on a quiet or governed host,
-  pin `near-transfer-receipt-v1-2`, and deploy the rebuilt images.
+  **Status.** `near-transfer-receipt-v1-2`
+  (`chl_3be93793610370275ae40f36a475f01f`) is the first challenge with
+  `vm_per_batch`. Its baseline was measured through Firecracker on a quiet
+  CPU set (4 physical cores, both SMT threads) of the dev host, with the
+  calibration checks passing: batch-1 6.83 ms, batch-16 7.23 ms and batch-256
+  10.20 ms per 8-request batch. Cold starts are ~0.22–0.27 s.
+  (`benchmarks/results/baseline-near-transfer-receipt-v1-2-vmperbatch-devhost-20261003/`).
+  Earlier sessions that failed calibration were never pinned. Steps mode
+  needs the rootfs and fc-runner images built from this tree
+  (`/data/illia/nearproof-deps/firecracker-rc` on the dev host).
 
 ## 5. Session layout, concurrency, run order
 
