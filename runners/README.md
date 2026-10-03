@@ -167,7 +167,10 @@ __arena-sandbox-helper`, so one binary is deployed).
   `ARENA_WORKER_TOKEN`/`_FILE`, `ARENA_WORKER_ID`, `ARENA_WORK_DIR`,
   `ARENA_SANDBOX_BACKEND` (`bwrap-dev` | `firecracker`), `ARENA_WORKER_KINDS`,
   `ARENA_BUILD_MOUNTS` (`host:/opt/...`), `ARENA_BUILD_PATH`,
-  `ARENA_BUILD_ENV`, `ARENA_IMAGES_DIR`, `ARENA_BENCH_CPUS`. The worker
+  `ARENA_BUILD_ENV`, `ARENA_IMAGES_DIR`, `ARENA_BENCH_CPUS` (benchmark VMs),
+  `ARENA_RUN_CPUS` (BUILD / CONFORMANCE / ADVERSARIAL candidate runs; on
+  firecracker the VM gets one vCPU per listed CPU, unset = 1 vCPU). CPU lists
+  take ids and inclusive ranges (`8-15,24`). The worker
   **refuses to start** if `DATABASE_URL`, `PG*`, or any postgres URL /
   `database` key is visible to it.
   `ARENA_FIXTURES_DIRS` (public fixtures, matched to challenges by

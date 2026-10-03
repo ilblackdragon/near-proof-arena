@@ -100,6 +100,8 @@ pub struct WorkerContext {
     pub build: BuildEnv,
     /// CPUs used for benchmark sandboxes.
     pub bench_cpus: Option<Vec<u32>>,
+    /// CPUs for BUILD / CONFORMANCE / ADVERSARIAL sandboxes (`ARENA_RUN_CPUS`).
+    pub run_cpus: Option<Vec<u32>>,
     /// DEV ONLY: cap on benchmark batch sizes (recorded in the result).
     pub bench_batch_cap: Option<u32>,
     /// Judge-sampled conformance cases (in addition to public fixtures).

@@ -422,6 +422,7 @@ fn build_spec(
     s.env = env;
     s.mem_bytes = j.challenge.resource_limits.max_ram_bytes.max(256 << 20);
     s.pids = BUILD_PIDS;
+    s.cpu_set = r.ctx.run_cpus.clone();
     s.rw_scratch_mb = BUILD_SCRATCH_MB;
     s.wall_timeout = Duration::from_millis(j.challenge.resource_limits.max_build_ms.max(1));
     s.collect = m

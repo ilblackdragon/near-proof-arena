@@ -72,7 +72,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         entry: &j.manifest.entry,
         public_dir: &public_dir,
         limits: &limits,
-        cpu_set: None,
+        cpu_set: r.ctx.run_cpus.clone(),
         verifier: &verifier,
     };
 
