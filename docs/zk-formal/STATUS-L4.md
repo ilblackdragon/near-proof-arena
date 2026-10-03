@@ -20,11 +20,11 @@ Branch `lane/zk-L4`. Interfaces published (frozen for M1); format: `FORMATS.md`.
 
 | Statement | Owner (sub-lane) | State |
 |---|---|---|
-| `CompileQueryBoundStmt` (generic compile ≤ `compileBound`) | lane/zk-L4-qbound | in progress |
+| `CompileQueryBoundStmt` | lane/zk-L4-qbound | **proved** `compile_queryBound` (QueryBound.lean) |
 | `NpBoundsStmt` (np-udr-stark bounds ⇒ `NVu`) | lane/zk-L4-npbounds | **proved** `np_bounds` (NpBounds.lean; propext, Quot.sound) |
 | `ParsePrefixStmt`, `LawsStmt`, `DecodeAgreeStmt` | lane/zk-L4-parse | **proved** `parsePrefix_split`, `laws` (+ `instance lawsInst`), `decode_agree`, `readHeader_encHeader` |
 | Reference prover + end-to-end tests + L8 vectors | lane/zk-L4-test | in progress |
-| `verifier_queryBound` (composition) | L4 | proved from Q1, Q2 |
+| `verifier_queryBound'` (NVu, unconditional) | L4 | **proved** |
 
 ## Notes
 
