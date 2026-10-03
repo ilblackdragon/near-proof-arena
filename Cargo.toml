@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["common/arena-types"]
+members = ["common/arena-types", "adversarial/proof-mutators"]
 
 [workspace.package]
 edition = "2021"
