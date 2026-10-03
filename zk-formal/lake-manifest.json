@@ -1,0 +1,13 @@
+{"version": "1.2.0",
+ "packagesDir": ".lake/packages",
+ "packages":
+ [{"type": "path",
+   "scope": "",
+   "name": "ArenaCore",
+   "manifestFile": "lake-manifest.json",
+   "inherited": false,
+   "dir": "../formal-core",
+   "configFile": "lakefile.toml"}],
+ "name": "ZkFormal",
+ "lakeDir": ".lake",
+ "fixedToolchain": false}
