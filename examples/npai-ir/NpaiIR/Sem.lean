@@ -340,3 +340,38 @@ theorem ev_block_of {is : List Instr} (h : allOk is) {m m' : M} {c : Nat}
     (hr : runSL p inp is m = some (m', c)) : Ev p inp (block is) m (.ok m') c := (ev_block h).2 hr
 
 end NpaiIR
+
+namespace NpaiIR
+open ArenaCore Interp
+
+/-- Decidable versions of `Stmt.ok` / `Stmt.noHalt` (for kernel evaluation on a
+concrete program). -/
+def Stmt.okB : Stmt → Bool
+  | .op i => okInstr i
+  | .seq a b => a.okB && b.okB
+  | .ite _ t e => t.okB && e.okB
+  | .loop _ b => b.okB
+  | .halt _ => true
+
+def Stmt.noHaltB : Stmt → Bool
+  | .op _ => true
+  | .seq a b => a.noHaltB && b.noHaltB
+  | .ite _ t e => t.noHaltB && e.noHaltB
+  | .loop _ b => b.noHaltB
+  | .halt _ => false
+
+theorem Stmt.ok_of_okB : ∀ {st : Stmt}, st.okB = true → st.ok
+  | .op _, h => h
+  | .seq _ _, h => by simp [Stmt.okB] at h; exact ⟨ok_of_okB h.1, ok_of_okB h.2⟩
+  | .ite _ _ _, h => by simp [Stmt.okB] at h; exact ⟨ok_of_okB h.1, ok_of_okB h.2⟩
+  | .loop _ b, h => (ok_of_okB (st := b) h :)
+  | .halt _, _ => trivial
+
+theorem Stmt.noHalt_of_noHaltB : ∀ {st : Stmt}, st.noHaltB = true → st.noHalt
+  | .op _, _ => trivial
+  | .seq _ _, h => by simp [Stmt.noHaltB] at h; exact ⟨noHalt_of_noHaltB h.1, noHalt_of_noHaltB h.2⟩
+  | .ite _ _ _, h => by simp [Stmt.noHaltB] at h; exact ⟨noHalt_of_noHaltB h.1, noHalt_of_noHaltB h.2⟩
+  | .loop _ b, h => (noHalt_of_noHaltB (st := b) h :)
+  | .halt _, h => by simp [Stmt.noHaltB] at h
+
+end NpaiIR
