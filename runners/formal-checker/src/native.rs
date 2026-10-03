@@ -81,6 +81,8 @@ impl NativeLeanRoute {
 }
 
 /// Verifier routes the formal checker knows about.
+// Constructed once per check; boxing would only add noise at call sites.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub enum VerifierRoute {
     /// Statement fully determined by literals (e.g. `.interp <bytecode digest>`).

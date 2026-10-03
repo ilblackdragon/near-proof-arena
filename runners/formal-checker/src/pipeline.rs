@@ -273,6 +273,7 @@ fn link_trusted(trusted_out: &Path, dest: &Path) -> std::io::Result<()> {
 }
 
 /// Compile modules in order with `lean` inside the sandbox.
+#[allow(clippy::too_many_arguments)]
 fn compile(
     ctx: &mut Ctx,
     label: &str,
