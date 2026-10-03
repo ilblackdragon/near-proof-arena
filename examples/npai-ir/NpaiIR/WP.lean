@@ -241,3 +241,68 @@ theorem wp_fail_iff (hp : p.memSize ≤ 4294967295) {m : M} {Q : M → Prop} :
     wp p inp fail m Q ↔ True := ⟨fun _ => trivial, fun _ => wp_fail hp⟩
 
 end NpaiIR
+
+namespace NpaiIR
+open ArenaCore Interp
+variable {p : Program} {inp : Inputs}
+
+/-! ## Counted loops -/
+
+theorem wp_forUp {i n t : Nat} {body : Stmt} (hit : i ≠ t) (hnt : n ≠ t) (hin : i ≠ n) {m : M}
+    {Q : M → Prop} (J : Nat → M → Prop) (N : Nat) (hN : N < 18446744073709551616)
+    (hJ : ∀ j m v w, J j m → J j { m with regs := setReg (setReg m.regs i v) t w })
+    (h0 : J 0 m) (hi0 : m.regs i = 0) (hn0 : m.regs n = N)
+    (hbody : ∀ j m, j < N → J j m → m.regs i = j → m.regs n = N →
+      wp p inp body m (fun m' => J (j + 1) m' ∧ m'.regs i = j ∧ m'.regs n = N))
+    (hq : ∀ m, J N m → m.regs n = N → Q m) : wp p inp (forUp i n t body) m Q := by
+  intro m' c e
+  obtain ⟨h1, h2⟩ := forUp_sound hit hnt hin J N hN hJ
+    (fun j m m' c hj hJ hi hn e => hbody j m hj hJ hi hn m' c e) e h0 hi0 hn0
+  exact hq m' h1 h2
+
+theorem twp_forUp {i n t : Nat} {body : Stmt} (hit : i ≠ t) (hnt : n ≠ t) (hin : i ≠ n) {m : M}
+    {Q : M → Nat → Prop} (J : Nat → M → Prop) (N B : Nat) (hN : N < 18446744073709551616)
+    (hJ : ∀ j m v w, J j m → J j { m with regs := setReg (setReg m.regs i v) t w })
+    (h0 : J 0 m) (hi0 : m.regs i = 0) (hn0 : m.regs n = N)
+    (hbody : ∀ j m, j < N → J j m → m.regs i = j → m.regs n = N →
+      twp p inp body m (fun m' c => J (j + 1) m' ∧ m'.regs i = j ∧ m'.regs n = N ∧ c ≤ B))
+    (hq : ∀ m c, J N m → m.regs n = N → c ≤ N * (B + 4) + 2 → Q m c) :
+    twp p inp (forUp i n t body) m Q := by
+  obtain ⟨m', c, e, h1, h2, h3⟩ := forUp_complete hit hnt hin J N B hN hJ
+    (fun j m hj hJ hi hn => by
+      obtain ⟨m', c, e, hq⟩ := hbody j m hj hJ hi hn
+      exact ⟨m', c, e, hq⟩) m h0 hi0 hn0
+  exact ⟨m', c, e, hq m' c h1 h2 h3⟩
+
+/-- Down-counting loop `while k ≠ 0 do body` (body decrements `k`). -/
+theorem wp_loopDown {k : Nat} {body : Stmt} {m : M} {Q : M → Prop} (J : Nat → M → Prop) (n : Nat)
+    (h0 : J n m) (hk : m.regs k = n)
+    (hbody : ∀ j m, 0 < j → J j m → m.regs k = j → wp p inp body m (fun m' => J (j - 1) m' ∧ m'.regs k = j - 1))
+    (hq : ∀ m, J 0 m → Q m) : wp p inp (.loop k body) m Q := by
+  intro m' c e
+  exact hq m' (loopDown_sound J (fun j m m' c hj hJ hk e => hbody j m hj hJ hk m' c e) e h0 hk)
+
+theorem twp_loopDown {k : Nat} {body : Stmt} {m : M} {Q : M → Nat → Prop} (J : Nat → M → Prop) (n B : Nat)
+    (h0 : J n m) (hk : m.regs k = n)
+    (hbody : ∀ j m, 0 < j → J j m → m.regs k = j →
+      twp p inp body m (fun m' c => J (j - 1) m' ∧ m'.regs k = j - 1 ∧ c ≤ B))
+    (hq : ∀ m c, J 0 m → m.regs k = 0 → c ≤ n * (B + 2) + 1 → Q m c) : twp p inp (.loop k body) m Q := by
+  obtain ⟨m', c, e, h1, h2, h3⟩ := loopDown_complete J B (fun j m hj hJ hk => by
+    obtain ⟨m', c, e, hq⟩ := hbody j m hj hJ hk
+    exact ⟨m', c, e, hq⟩) n m h0 hk
+  exact ⟨m', c, e, hq m' c h1 h2 h3⟩
+
+/-- Rule for a total macro given by a spec `∃ m' c, Ev … ∧ R m' c`: soundness by determinism. -/
+theorem wp_of_spec {st : Stmt} {m : M} {R : M → Nat → Prop} {Q : M → Prop}
+    (h : ∃ m' c, Ev p inp st m (.ok m') c ∧ R m' c) (hq : ∀ m' c, R m' c → Q m') : wp p inp st m Q := by
+  intro m2 c2 e
+  obtain ⟨m', c, e', hr⟩ := h
+  obtain ⟨e1, rfl⟩ := Ev.det e' e
+  cases e1; exact hq _ _ hr
+
+theorem twp_of_spec {st : Stmt} {m : M} {R : M → Nat → Prop} {Q : M → Nat → Prop}
+    (h : ∃ m' c, Ev p inp st m (.ok m') c ∧ R m' c) (hq : ∀ m' c, R m' c → Q m' c) : twp p inp st m Q := by
+  obtain ⟨m', c, e, hr⟩ := h
+  exact ⟨m', c, e, hq _ _ hr⟩
+
+end NpaiIR
