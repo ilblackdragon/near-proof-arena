@@ -632,3 +632,92 @@ fn rw_dirs_seed_and_write_back_safely() {
     assert!(fs::symlink_metadata(host.join("evil")).is_err());
     assert!(o.outputs.iter().all(|(p, _)| !p.starts_with(".rw")));
 }
+
+/// Steps mode (one VM for a batch of invocations): per-step timing, inputs
+/// visible only to their own step, outputs per step, and no state carried
+/// from one step to the next (scratch, /tmp, /dev/shm, SysV IPC, processes).
+#[test]
+fn steps_share_one_vm_but_no_state() {
+    gate!();
+    use arena_sandbox::{Mount, Sandbox, SandboxSpec, StepSpec};
+    let dir = scratch_dir();
+    let inputs: Vec<PathBuf> = (0..3)
+        .map(|i| {
+            let p = dir.path().join(format!("req{i}.bin"));
+            fs::write(&p, format!("request-{i}")).unwrap();
+            p
+        })
+        .collect();
+    let script = r#"
+set -u
+mkdir -p out
+# what did earlier steps leave behind?
+leak=""
+for p in /scratch/marker /tmp/marker /dev/shm/marker; do [ -e "$p" ] && leak="$leak $p"; done
+if command -v ipcs >/dev/null && ipcs -m | grep -q 0x0000abcd; then leak="$leak sysv-shm"; fi
+for p in /proc/[0-9]*; do [ "$p" = "/proc/$$" ] && continue; cat "$p/comm" 2>/dev/null; done | grep -q '^sleep$' && leak="$leak process"
+[ "$(ls /in | tr '\n' ,)" = "request.bin," ] || leak="$leak inputs:$(ls /in | tr '\n' ,)"
+printf '%s|%s' "$(cat /in/request.bin)" "$leak" > out/result.txt
+# now try to leave state for the next step
+echo x > /scratch/marker; echo x > /tmp/marker; echo x > /dev/shm/marker 2>/dev/null
+command -v ipcmk >/dev/null && ipcmk -M 4096 -p 0666 >/dev/null 2>&1 || true
+(sleep 1000 &) 2>/dev/null
+exit 0
+"#;
+    let mut base = SandboxSpec::new(vec!["/bin/sh".into(), "-c".into(), script.into()]);
+    base.cwd = "/scratch".into();
+    base.wall_timeout = Duration::from_secs(20);
+    let steps: Vec<StepSpec> = inputs
+        .iter()
+        .enumerate()
+        .map(|(i, p)| StepSpec {
+            argv: base.argv.clone(),
+            ro_files: vec![Mount {
+                host: p.clone(),
+                guest: "/in/request.bin".into(),
+            }],
+            collect: vec!["out".into()],
+            out_dir: Some(dir.path().join(format!("out{i}"))),
+            wall_timeout: Duration::from_secs(20),
+        })
+        .collect();
+    assert!(sandbox().steps_share_instance());
+    let outs = sandbox().run_steps(&base, &steps).expect("steps run");
+    assert_eq!(outs.len(), 3);
+    for (i, o) in outs.iter().enumerate() {
+        assert_eq!(
+            o.exit,
+            Exit::Exited(0),
+            "step {i}: {:?} {}",
+            o.exit,
+            String::from_utf8_lossy(&o.stderr_trunc)
+        );
+        assert!(o.output_error.is_none(), "{:?}", o.output_error);
+        assert!(o.wall_ns > 0 && o.entry_wall_ns.is_some());
+        // the host-clock step time brackets the guest's own measurement
+        let g = o.entry_wall_ns.unwrap();
+        assert!(
+            o.wall_ns + 5_000_000 >= g,
+            "host {} < guest {}",
+            o.wall_ns,
+            g
+        );
+        let r = fs::read_to_string(dir.path().join(format!("out{i}/out/result.txt"))).unwrap();
+        assert_eq!(
+            r,
+            format!("request-{i}|"),
+            "step {i} saw leaked state or a wrong input: {r:?}"
+        );
+        assert_eq!(o.outputs.len(), 1);
+        assert_eq!(o.outputs[0].0, "out/result.txt");
+    }
+    // a failing step stops the batch
+    let mut bad = steps.clone();
+    for (i, s) in bad.iter_mut().enumerate() {
+        s.out_dir = Some(dir.path().join(format!("bad{i}")));
+    }
+    bad[1].argv = vec!["/bin/sh".into(), "-c".into(), "exit 7".into()];
+    let outs = sandbox().run_steps(&base, &bad).expect("steps run");
+    assert_eq!(outs.len(), 2);
+    assert_eq!(outs[1].exit, Exit::Exited(7));
+}

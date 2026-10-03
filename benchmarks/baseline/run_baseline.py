@@ -54,6 +54,10 @@ def main():
     ap.add_argument("--host-id", default="dev-illia-32c")
     ap.add_argument("--work", default=None, help="scratch dir (default: a temp dir)")
     ap.add_argument("--calibration-runs", default="5")
+    ap.add_argument("--invocation-mode", choices=["vm_per_invocation", "vm_per_batch"], default=None,
+                    help="measure with this measurement.invocation_mode instead of the challenge's (for a successor "
+                         "that changes only the procedure); sampling still uses the measured challenge's id")
+    ap.add_argument("--fc-deps", default=None, help="Firecracker deps dir (images built from this checkout)")
     ap.add_argument("--workloads", default=os.path.join(REPO, "spec/workloads/near-transfer-receipt-v1"),
                     help="generator specs <class>.json (digests must match the challenge)")
     a = ap.parse_args()
@@ -141,12 +145,20 @@ def main():
 
     # 5. the session
     session_json = os.path.join(out, "session.json")
+    run_chal = chal_path
+    if a.invocation_mode is not None:
+        c2 = json.loads(json.dumps(chal))
+        c2["measurement"]["invocation_mode"] = a.invocation_mode
+        run_chal = os.path.join(work, "procedure-challenge.json")
+        json.dump(c2, open(run_chal, "w"), indent=1)
     hw_label = f"dev-host:{a.host_id} (NOT {chal['hardware_profile']['id']} governed)"
     argv = ["cargo", "run", "-q", "-j", "8", "-p", "arena-worker", "--example", "bench_session", "--",
-            "--challenge", chal_path, "--bundle-dir", bundle, "--params", params, "--cpus", a.cpus,
+            "--challenge", run_chal, "--bundle-dir", bundle, "--params", params, "--cpus", a.cpus,
             "--schedule-seed", str(schedule_seed), "--bootstrap-seed", str(bootstrap_seed),
             "--calibration-runs", a.calibration_runs, "--hardware-label", hw_label,
             "--work", os.path.join(work, "session"), "--out", session_json] + class_args
+    if a.fc_deps:
+        argv += ["--fc-deps", os.path.abspath(a.fc_deps)]
     started = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
     run(argv, cwd=REPO, env=dict(os.environ, RUSTC_WRAPPER=os.environ.get("RUSTC_WRAPPER", "sccache")))
     finished = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
@@ -179,6 +191,7 @@ def main():
         "schema": "arena-baseline-summary-v1",
         "status": "DEV-HOST MEASUREMENT — not governed hardware, not an official number",
         "challenge_id": chal_id,
+        "invocation_mode": s["procedure"].get("invocation_mode") or "vm_per_invocation",
         "challenge_name": chal["name"],
         "suite_revision": chal["workload_suite"]["revision"],
         "hardware_profile_of_challenge": chal["hardware_profile"],

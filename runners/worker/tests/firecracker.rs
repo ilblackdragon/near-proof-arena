@@ -122,6 +122,7 @@ fn honest_candidate_through_firecracker() {
             cold_runs: 1,
             concurrency: 1,
             per_run_timeout_ms: 20_000,
+            invocation_mode: None,
         },
         hardware_profile: "dev-host".into(),
         suite_revision: "r1".into(),

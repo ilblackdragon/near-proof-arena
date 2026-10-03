@@ -6,7 +6,7 @@ use crate::images::{self, TreeLimits};
 use crate::native::*;
 use arena_fc_proto::{
     self as proto, DriveRateLimit, GuestJob, GuestMount, GuestStatus, MountKind, ShimDrive,
-    ShimJob, ShimResult, ShimStatus,
+    ShimJob, ShimResult, ShimStatus, StepReport,
 };
 use arena_sandbox::{Diagnostics, Exit, InfraError, LimitEnforcement, SandboxOutcome};
 use arena_types::Digest;
@@ -243,8 +243,13 @@ impl FirecrackerSandbox {
                 spec.rootfs_digest, self.rootfs_digest
             ));
         }
-        if spec.argv.is_empty() || spec.argv.iter().any(|a| a.contains('\0')) {
+        if spec.steps.is_empty()
+            && (spec.argv.is_empty() || spec.argv.iter().any(|a| a.contains('\0')))
+        {
             return bad("argv empty or contains NUL".into());
+        }
+        if !spec.steps.is_empty() && !spec.argv.is_empty() {
+            return bad("steps mode: argv must be empty".into());
         }
         for (k, v) in &spec.env {
             if !ENV_ALLOWLIST.contains(&k.as_str())
@@ -345,6 +350,70 @@ impl FirecrackerSandbox {
         }
         if spec.collect.len() > 256 || spec.scratch_dirs.len() > 256 || spec.copy_in.len() > 64 {
             return bad("too many collect/scratch_dirs/copy_in entries".into());
+        }
+        if !spec.steps.is_empty() {
+            if spec.steps.len() > proto::MAX_STEPS {
+                return bad("too many steps".into());
+            }
+            if !spec.collect.is_empty() || !spec.rw_dirs.is_empty() {
+                return bad("steps mode excludes collect and rw_dirs".into());
+            }
+            let total: Duration = spec.steps.iter().map(|s| s.wall_timeout).sum();
+            if total != spec.wall_timeout {
+                return bad("steps mode: wall_timeout must be the sum of the step timeouts".into());
+            }
+            let mut all: Vec<&str> = Vec::new();
+            for st in &spec.steps {
+                if st.argv.is_empty() || st.argv.iter().any(|a| a.contains('\0')) {
+                    return bad("step argv empty or contains NUL".into());
+                }
+                if st.wall_timeout.is_zero()
+                    || st.ro_files.len() > proto::MAX_MOUNTS
+                    || st.collect.len() > 256
+                {
+                    return bad("step timeout/ro_files/collect out of range".into());
+                }
+                for p in &st.collect {
+                    rel_scratch(p)?;
+                }
+                let mut own: Vec<&str> = Vec::new();
+                for f in &st.ro_files {
+                    let g = f.guest_path.as_str();
+                    if !proto::GUEST_MOUNT_PREFIXES.iter().any(|p| g.starts_with(p)) {
+                        return bad(format!(
+                            "step file {g:?} must be under {:?}",
+                            proto::GUEST_MOUNT_PREFIXES
+                        ));
+                    }
+                    abs_guest(g)?;
+                    if !g
+                        .bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || b"._-/+".contains(&b))
+                    {
+                        return bad(format!("step file {g:?} has unsupported characters"));
+                    }
+                    if overlaps(g, proto::GUEST_SCRATCH)
+                        || guest_paths.iter().any(|p| overlaps(p, g))
+                        || own.iter().any(|p| overlaps(p, g))
+                        || all.iter().any(|p| *p != g && overlaps(p, g))
+                    {
+                        return bad(format!("step file {g:?} overlaps another mount"));
+                    }
+                    if !fs::symlink_metadata(&f.host_path)
+                        .map(|m| m.is_file())
+                        .unwrap_or(false)
+                    {
+                        return bad(format!(
+                            "step file {} is not a regular file",
+                            f.host_path.display()
+                        ));
+                    }
+                    own.push(g);
+                    if !all.contains(&g) {
+                        all.push(g);
+                    }
+                }
+            }
         }
         Ok(())
     }
@@ -695,6 +764,13 @@ impl FirecrackerSandbox {
     }
 
     fn run_inner(&self, spec: &RunRequest) -> Result<SandboxOutcome, InfraError> {
+        self.run_inner_ex(spec).map(|(o, _)| o)
+    }
+
+    /// Like `run_inner`; also returns the per-step reports and host step
+    /// times in steps mode.
+    fn run_inner_ex(&self, spec: &RunRequest) -> Result<(SandboxOutcome, StepsExtra), InfraError> {
+        let mut extra = StepsExtra::default();
         self.validate(spec)?;
         // output dir: must be absent or empty
         match fs::read_dir(&spec.out_dir) {
@@ -825,6 +901,45 @@ impl FirecrackerSandbox {
                 guest_path: r.guest_path.clone(),
             });
         }
+        // steps mode: every step's input files in one root-only drive
+        let mut guest_steps = Vec::new();
+        let steps_dev_index = if spec.steps.is_empty() {
+            None
+        } else {
+            let st_src = staging.join("steps-src");
+            fs::create_dir(&st_src)?;
+            for (i, st) in spec.steps.iter().enumerate() {
+                let d = st_src.join(format!("s{i}"));
+                fs::create_dir(&d)?;
+                let mut binds = Vec::new();
+                for (k, f) in st.ro_files.iter().enumerate() {
+                    let mut inp = OpenOptions::new()
+                        .read(true)
+                        .custom_flags(libc::O_NOFOLLOW)
+                        .open(&f.host_path)?;
+                    io::copy(&mut inp, &mut File::create(d.join(k.to_string()))?)?;
+                    binds.push((format!("s{i}/{k}"), f.guest_path.clone()));
+                }
+                guest_steps.push(proto::GuestStep {
+                    argv: st.argv.clone(),
+                    binds,
+                    collect: st.collect.clone(),
+                    timeout_ms: st.wall_timeout.as_millis() as u64,
+                });
+            }
+            let st_dir = staging.join("steps-tree");
+            let st = images::stage_tree(&st_src, &st_dir, &self.cfg.tree_limits)?;
+            images::build_ro_image(&st, &input.join("steps.ext4"))?;
+            drives.push(ShimDrive {
+                drive_id: "steps".into(),
+                file: "steps.ext4".into(),
+                read_only: true,
+                is_root: false,
+                chown_to_vmm: false,
+                rate_limit: self.cfg.drive_rate_limit,
+            });
+            Some(drives.len() as u32 - 1)
+        };
         let _ = fs::remove_dir_all(&staging);
 
         // scratch + output devices, fresh per run
@@ -876,6 +991,8 @@ impl FirecrackerSandbox {
                 .collect(),
             rw_dirs,
             timeout_ms: spec.wall_timeout.as_millis() as u64,
+            steps: guest_steps,
+            steps_dev_index,
         };
         let ctl = proto::encode_control(&guest);
         if ctl.len() > proto::MAX_CONTROL_LEN {
@@ -984,11 +1101,14 @@ impl FirecrackerSandbox {
             }
             ShimStatus::CollectTimeout => return Err(backend("guest output collection timed out")),
             ShimStatus::TimedOut => {
-                return Ok(host_figures(
-                    Exit::TimedOut,
-                    res.run_wall_ns
-                        .unwrap_or(spec.wall_timeout.as_nanos() as u64),
-                    diag,
+                return Ok((
+                    host_figures(
+                        Exit::TimedOut,
+                        res.run_wall_ns
+                            .unwrap_or(spec.wall_timeout.as_nanos() as u64),
+                        diag,
+                    ),
+                    extra,
                 ));
             }
             ShimStatus::VmmExited { .. } => {}
@@ -1003,10 +1123,9 @@ impl FirecrackerSandbox {
             Err(e) => {
                 if res.cgroup.oom_kill > 0 {
                     // the VMM itself was OOM-killed by the host cgroup
-                    return Ok(host_figures(
-                        Exit::OomKilled,
-                        res.run_wall_ns.unwrap_or(0),
-                        diag,
+                    return Ok((
+                        host_figures(Exit::OomKilled, res.run_wall_ns.unwrap_or(0), diag),
+                        extra,
                     ));
                 }
                 let what = if res.boot_ns.is_none() {
@@ -1024,6 +1143,13 @@ impl FirecrackerSandbox {
             return Err(InfraError::GuestProtocol("report nonce mismatch".into()));
         }
         let rep = &header.report;
+        extra.reports = rep.steps.clone();
+        extra.step_wall_ns = res.step_wall_ns.clone();
+        if extra.reports.len() > spec.steps.len() {
+            return Err(InfraError::GuestProtocol(
+                "more step reports than steps".into(),
+            ));
+        }
         diag.guest_wall_ns = Some(rep.guest_wall_ns);
         diag.guest_cpu_ns = Some(rep.guest_cpu_ns);
         diag.guest_peak_mem_bytes = Some(rep.guest_peak_mem_bytes);
@@ -1083,7 +1209,7 @@ impl FirecrackerSandbox {
         o.entry_wall_ns = diag.guest_wall_ns;
         o.outputs = outputs;
         o.diagnostics = diag;
-        Ok(o)
+        Ok((o, extra))
     }
 }
 
@@ -1097,6 +1223,13 @@ fn tail(s: &str) -> &str {
 }
 
 pub const BACKEND_NAME: &str = "firecracker";
+
+/// Steps-mode results of one VM run.
+#[derive(Default)]
+struct StepsExtra {
+    reports: Vec<StepReport>,
+    step_wall_ns: Vec<Option<u64>>,
+}
 
 /// Guest layout of this backend: identical paths to bwrap-dev, with
 /// copy-in, scratch dirs, arbitrary cwd and collect supported.
@@ -1210,7 +1343,118 @@ impl FirecrackerSandbox {
             collect: spec.collect.clone(),
             out_dir,
             max_output_bytes: spec.max_output_bytes,
+            steps: vec![],
         })
+    }
+}
+
+impl FirecrackerSandbox {
+    /// Turns one steps-mode VM run into per-step outcomes.
+    fn split_steps(
+        &self,
+        base: &arena_sandbox::SandboxSpec,
+        steps: &[arena_sandbox::StepSpec],
+        root: &Path,
+        overall: SandboxOutcome,
+        extra: StepsExtra,
+    ) -> Result<Vec<SandboxOutcome>, InfraError> {
+        if extra.reports.is_empty() {
+            // the VM failed before any step reported (host timeout/OOM)
+            if overall.exit == Exit::Exited(0) {
+                return Err(InfraError::GuestProtocol(
+                    "steps run without step reports".into(),
+                ));
+            }
+            let mut o = overall;
+            o.outputs.clear();
+            return Ok(vec![o]);
+        }
+        let overall_bad = !overall.diagnostics.outputs_complete
+            || !overall.diagnostics.output_violations.is_empty();
+        let mut outs = Vec::with_capacity(extra.reports.len());
+        for (i, rep) in extra.reports.iter().enumerate() {
+            let st = &steps[i];
+            let wall_ns = extra
+                .step_wall_ns
+                .get(i)
+                .copied()
+                .flatten()
+                .ok_or_else(|| InfraError::GuestProtocol(format!("no host timing for step {i}")))?;
+            let exit = match &rep.status {
+                GuestStatus::Exited { code } => Exit::Exited(*code),
+                GuestStatus::Signaled { signal } => Exit::Signaled(*signal),
+                GuestStatus::OomKilled => Exit::OomKilled,
+                GuestStatus::TimedOut => Exit::TimedOut,
+                GuestStatus::SpawnFailed { .. } => Exit::ExecFailed,
+                GuestStatus::InitError { error } => {
+                    return Err(backend(format!("guest init (step {i}): {error}")))
+                }
+            };
+            let mut o = SandboxOutcome::empty(exit, BACKEND_NAME, None);
+            o.wall_ns = wall_ns;
+            o.entry_wall_ns = Some(rep.guest_wall_ns);
+            o.cpu_ns = rep.guest_cpu_ns;
+            o.peak_rss_bytes = rep.guest_peak_mem_bytes;
+            o.max_process_rss_bytes = rep.guest_peak_mem_bytes;
+            o.limits = LimitEnforcement::CgroupV2;
+            o.stdout_bytes = rep.stdout_total_bytes;
+            o.stderr_bytes = rep.stderr_total_bytes;
+            o.stdout_trunc = rep.stdout.clone().into_bytes();
+            o.stderr_trunc = rep.stderr.clone().into_bytes();
+            o.stdout_trunc.truncate(base.output_trunc_bytes);
+            o.stderr_trunc.truncate(base.output_trunc_bytes);
+            let mut d = overall.diagnostics.clone();
+            d.guest_wall_ns = Some(rep.guest_wall_ns);
+            d.guest_cpu_ns = Some(rep.guest_cpu_ns);
+            d.guest_peak_mem_bytes = Some(rep.guest_peak_mem_bytes);
+            d.stdout_total_bytes = Some(rep.stdout_total_bytes);
+            d.stderr_total_bytes = Some(rep.stderr_total_bytes);
+            d.output_violations = rep.collect_violations.clone();
+            d.outputs_complete = rep.collect_violations.is_empty() && !overall_bad;
+            o.diagnostics = d;
+            let src = root.join(format!("{}{i}", proto::STEP_OUT_PREFIX));
+            if !o.diagnostics.outputs_complete {
+                o.output_error = Some(format!(
+                    "output collection incomplete: {}",
+                    rep.collect_violations
+                        .iter()
+                        .chain(&overall.diagnostics.output_violations)
+                        .cloned()
+                        .collect::<Vec<_>>()
+                        .join("; ")
+                ));
+            }
+            if let Some(dst) = &st.out_dir {
+                if o.output_error.is_none() && src.exists() {
+                    if let Some(p) = dst.parent() {
+                        fs::create_dir_all(p)?;
+                    }
+                    fs::rename(&src, dst)?;
+                } else {
+                    fs::create_dir_all(dst)?;
+                }
+                let prefix = format!("{}{i}/", proto::STEP_OUT_PREFIX);
+                if o.output_error.is_none() {
+                    o.outputs = overall
+                        .outputs
+                        .iter()
+                        .filter_map(|(p, dg)| {
+                            p.strip_prefix(&prefix).map(|r| (r.to_string(), dg.clone()))
+                        })
+                        .collect();
+                    let lim = arena_archive::Limits {
+                        max_expanded_bytes: base.max_output_bytes.max(1),
+                        ..Default::default()
+                    };
+                    match arena_archive::tree_from_dir(dst, &lim) {
+                        Ok(t) => o.outputs_tree = Some(t.digest()),
+                        Err(e) => o.output_error = Some(e.to_string()),
+                    }
+                }
+            }
+            outs.push(o);
+        }
+        Ok(outs)
     }
 }
 
@@ -1224,6 +1468,72 @@ impl arena_sandbox::Sandbox for FirecrackerSandbox {
     }
     fn layout(&self) -> arena_sandbox::GuestLayout {
         FC_LAYOUT
+    }
+
+    fn steps_share_instance(&self) -> bool {
+        true
+    }
+
+    /// All steps in ONE microVM (one boot): see `arena_fc_proto::GuestJob::steps`
+    /// for the per-step isolation (wiped scratch and /dev/shm, fresh process
+    /// tree, cgroup and IPC namespace, step-only input binds). Each step's
+    /// `wall_ns` is the host clock between its STEP-START and STEP-EXIT
+    /// console markers; `entry_wall_ns` is the guest's own measurement;
+    /// `peak_rss_bytes` is the step's guest cgroup `memory.peak`.
+    fn run_steps(
+        &self,
+        base: &arena_sandbox::SandboxSpec,
+        steps: &[arena_sandbox::StepSpec],
+    ) -> Result<Vec<SandboxOutcome>, InfraError> {
+        if steps.is_empty() {
+            return Ok(vec![]);
+        }
+        for st in steps {
+            if let Some(d) = &st.out_dir {
+                if d.exists() {
+                    return Err(InfraError::InvalidSpec(format!(
+                        "out_dir {} already exists",
+                        d.display()
+                    )));
+                }
+            }
+        }
+        let root = self
+            .cfg
+            .work_root
+            .join("jobs")
+            .join(format!("steps-{}", random_hex(8)?));
+        let mut req = self.translate(base, root.clone())?;
+        req.argv = vec![];
+        req.collect = vec![];
+        req.steps = steps
+            .iter()
+            .map(|st| NativeStep {
+                argv: st.argv.clone(),
+                ro_files: st
+                    .ro_files
+                    .iter()
+                    .map(|m| RoMount {
+                        host_path: m.host.clone(),
+                        guest_path: m.guest.clone(),
+                    })
+                    .collect(),
+                collect: st.collect.clone(),
+                wall_timeout: st.wall_timeout,
+            })
+            .collect();
+        req.wall_timeout = steps.iter().map(|s| s.wall_timeout).sum();
+        let res = self.run_inner_ex(&req);
+        let (overall, extra) = match res {
+            Ok(x) => x,
+            Err(e) => {
+                let _ = fs::remove_dir_all(&root);
+                return Err(e);
+            }
+        };
+        let result = self.split_steps(base, steps, &root, overall, extra);
+        let _ = fs::remove_dir_all(&root);
+        result
     }
 
     /// Outputs: the guest collects exactly `spec.collect` (scratch-relative);

@@ -17,6 +17,17 @@
 //! 6. writes the report + collected output files to the raw output drive
 //!    and reboots (which makes Firecracker exit).
 //!
+//! Steps mode (`job.steps` non-empty, used for benchmark batches): one guest
+//! runs several entry-point invocations in order. Before each step the
+//! scratch work dir and `/dev/shm` are wiped and `copy_in`/`scratch_dirs`
+//! re-applied; the step's input files are bind-mounted read-only from a
+//! root-only drive for that step only; the step runs in a fresh cgroup and a
+//! fresh IPC namespace (and non-root key creation is disabled), and the whole
+//! cgroup is killed when its entry process exits. Its collected outputs are
+//! copied to a root-only staging dir on the scratch device, outside the
+//! candidate's view. `ARENA-STEP-START/EXIT <nonce> <i>` markers let the host
+//! time every step.
+//!
 //! Init runs as root inside the guest and is part of the arena TCB; the
 //! candidate never runs as root. Nothing here trusts the scratch contents.
 
@@ -161,6 +172,11 @@ const ROOT: &str = "/run/arena/root";
 const SKEL: &str = "/run/arena/skel";
 const BASE: &str = "/run/arena/base";
 const HIDDEN: &str = "/run/arena/m";
+/// Steps mode: the scratch device is mounted here (root only); the
+/// candidate's `/scratch` is a bind of `work/`, step outputs go to `judge/`.
+const SCRATCHDEV: &str = "/run/arena/scratchdev";
+/// Steps mode: the per-step input drive (root only).
+const STEPS_SRC: &str = "/run/arena/steps";
 
 fn safe_abs(p: &str) -> Result<&str, String> {
     let rel = p
@@ -260,6 +276,64 @@ fn setup_root(job: &GuestJob) -> Result<(), String> {
         seen.push(&r.guest_path);
         mkdirs(&format!("{SKEL}{}", r.guest_path))?;
     }
+    if !job.steps.is_empty() {
+        if job.steps.len() > proto::MAX_STEPS {
+            return Err("too many steps".into());
+        }
+        if !job.rw_dirs.is_empty() || !job.collect.is_empty() || !job.argv.is_empty() {
+            return Err("steps mode excludes argv/collect/rw_dirs".into());
+        }
+        let mut bind_paths: Vec<&str> = Vec::new();
+        for st in &job.steps {
+            let mut own: Vec<&str> = Vec::new();
+            for (src, g) in &st.binds {
+                proto::validate_rel_path(src)?;
+                if own.iter().any(|o| overlaps(o, g)) {
+                    return Err(format!("step bind {g:?} overlaps another bind of the step"));
+                }
+                own.push(g);
+                if !bind_paths.contains(&g.as_str()) {
+                    check_mount_path(g, &seen)?;
+                    if bind_paths.iter().any(|o| overlaps(o, g)) {
+                        return Err(format!("step bind {g:?} overlaps another step bind"));
+                    }
+                    bind_paths.push(g);
+                }
+            }
+        }
+        for g in bind_paths {
+            let t = format!("{SKEL}{g}");
+            mkdirs(Path::new(&t).parent().unwrap().to_str().unwrap())?;
+            ctx(File::create(&t), "create step bind point")?;
+        }
+        let dev = job
+            .steps_dev_index
+            .ok_or("steps mode needs steps_dev_index")?;
+        if !(proto::FIRST_MOUNT_DEV_INDEX..26).contains(&dev)
+            || job.mounts.iter().any(|m| m.dev_index == dev)
+            || Some(dev) == job.root_dev_index
+        {
+            return Err("bad steps device".into());
+        }
+        mkdirs(STEPS_SRC)?;
+        ctx(
+            fs::set_permissions(RUN, fs::Permissions::from_mode(0o700)),
+            "chmod run dir",
+        )?;
+        ctx(
+            mount(
+                &proto::dev_path(dev),
+                STEPS_SRC,
+                "ext4",
+                libc::MS_NOSUID | libc::MS_NODEV | libc::MS_RDONLY,
+                "noload",
+            ),
+            "steps drive",
+        )?;
+        // non-root users cannot create keys (no cross-step state in keyrings)
+        let _ = fs::write("/proc/sys/kernel/keys/maxkeys", "0");
+        let _ = fs::write("/proc/sys/kernel/keys/maxbytes", "0");
+    }
     for d in ["proc", "sys", "dev", "tmp", "scratch"] {
         mkdirs(&format!("{SKEL}/{d}"))?;
     }
@@ -320,17 +394,45 @@ fn setup_root(job: &GuestJob) -> Result<(), String> {
     )?;
     // scratch
     let scratch = format!("{ROOT}{}", proto::GUEST_SCRATCH);
-    ctx(
-        mount(
-            &proto::dev_path(job.scratch_dev_index),
-            &scratch,
-            "ext4",
-            nsd,
-            "errors=remount-ro",
-        ),
-        "scratch",
-    )?;
-    let _ = fs::remove_dir(format!("{scratch}/lost+found"));
+    if job.steps.is_empty() {
+        ctx(
+            mount(
+                &proto::dev_path(job.scratch_dev_index),
+                &scratch,
+                "ext4",
+                nsd,
+                "errors=remount-ro",
+            ),
+            "scratch",
+        )?;
+        let _ = fs::remove_dir(format!("{scratch}/lost+found"));
+    } else {
+        mkdirs(SCRATCHDEV)?;
+        ctx(
+            mount(
+                &proto::dev_path(job.scratch_dev_index),
+                SCRATCHDEV,
+                "ext4",
+                nsd,
+                "errors=remount-ro",
+            ),
+            "scratch device",
+        )?;
+        let _ = fs::remove_dir(format!("{SCRATCHDEV}/lost+found"));
+        ctx(
+            fs::set_permissions(SCRATCHDEV, fs::Permissions::from_mode(0o755)),
+            "chmod scratch device",
+        )?;
+        let work = format!("{SCRATCHDEV}/work");
+        mkdirs(&work)?;
+        let judge = format!("{SCRATCHDEV}/judge");
+        mkdirs(&judge)?;
+        ctx(
+            fs::set_permissions(&judge, fs::Permissions::from_mode(0o700)),
+            "chmod judge dir",
+        )?;
+        ctx(mount(&work, &scratch, "", libc::MS_BIND, ""), "bind work")?;
+    }
     chown(&scratch, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
     let tmp = format!("{scratch}/tmp");
     mkdirs(&tmp)?;
@@ -542,6 +644,19 @@ fn setup_cgroup(job: &GuestJob) -> Result<(), String> {
         "/sys/fs/cgroup/cgroup.subtree_control",
         "+memory +pids +cpu",
     )?;
+    create_job_cgroup(job)?;
+    // Memory is bounded only by the cgroup: always overcommit, so a large
+    // allocation behaves as on a normal host (succeeds, then OOM-kills when
+    // touched beyond memory.max) instead of failing against the VM's RAM.
+    write_file("/proc/sys/vm/overcommit_memory", "1")?;
+    // keep init itself out of the OOM killer's reach
+    let _ = fs::write("/proc/self/oom_score_adj", "-1000");
+    Ok(())
+}
+
+/// (Re)creates the candidate cgroup with the job's limits; fresh counters
+/// (memory.peak, oom events) for every step in steps mode.
+fn create_job_cgroup(job: &GuestJob) -> Result<(), String> {
     ctx(fs::create_dir(JOB_CG), "mkdir job cgroup")?;
     write_file(
         &format!("{JOB_CG}/memory.max"),
@@ -550,12 +665,6 @@ fn setup_cgroup(job: &GuestJob) -> Result<(), String> {
     let _ = fs::write(format!("{JOB_CG}/memory.swap.max"), "0");
     write_file(&format!("{JOB_CG}/memory.oom.group"), "1")?;
     write_file(&format!("{JOB_CG}/pids.max"), &job.pids_max.to_string())?;
-    // Memory is bounded only by the cgroup: always overcommit, so a large
-    // allocation behaves as on a normal host (succeeds, then OOM-kills when
-    // touched beyond memory.max) instead of failing against the VM's RAM.
-    write_file("/proc/sys/vm/overcommit_memory", "1")?;
-    // keep init itself out of the OOM killer's reach
-    let _ = fs::write("/proc/self/oom_score_adj", "-1000");
     Ok(())
 }
 
@@ -611,8 +720,14 @@ struct RunResult {
     stderr_total: u64,
 }
 
-fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
-    if job.argv.is_empty() {
+/// `step`: `Some(i)` in steps mode (step markers instead of START/EXIT).
+fn run_candidate(
+    job: &GuestJob,
+    argv: &[String],
+    timeout_ms: u64,
+    step: Option<usize>,
+) -> Result<RunResult, String> {
+    if argv.is_empty() {
         return Err("empty argv".into());
     }
     let procs = cstr(&format!("{JOB_CG}/cgroup.procs"));
@@ -624,8 +739,8 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
     let nproc = job.pids_max as u64;
     let (uid, gid) = (proto::CANDIDATE_UID, proto::CANDIDATE_GID);
 
-    let mut cmd = Command::new(&job.argv[0]);
-    cmd.args(&job.argv[1..])
+    let mut cmd = Command::new(&argv[0]);
+    cmd.args(&argv[1..])
         .env_clear()
         .envs(job.env.iter().map(|(k, v)| (k, v)))
         .stdin(Stdio::null())
@@ -652,6 +767,11 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
             let w = libc::write(fd, b"0".as_ptr() as *const libc::c_void, 1);
             libc::close(fd);
             if w != 1 {
+                return Err(io::Error::last_os_error());
+            }
+            // fresh SysV IPC / POSIX mqueue namespace: no IPC object
+            // survives into another invocation
+            if libc::unshare(libc::CLONE_NEWIPC) != 0 {
                 return Err(io::Error::last_os_error());
             }
             if libc::chroot(root_c.as_ptr()) != 0 || libc::chdir(cwd_c.as_ptr()) != 0 {
@@ -687,17 +807,23 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
         });
     }
 
-    console(&format!("{} {}", proto::MARKER_START, job.nonce));
+    let (m_start, m_exit) = match step {
+        None => (
+            format!("{} {}", proto::MARKER_START, job.nonce),
+            format!("{} {}", proto::MARKER_EXIT, job.nonce),
+        ),
+        Some(i) => (
+            format!("{} {} {i}", proto::MARKER_STEP_START, job.nonce),
+            format!("{} {} {i}", proto::MARKER_STEP_EXIT, job.nonce),
+        ),
+    };
+    console(&m_start);
     let t0 = Instant::now();
     let mut child = match cmd.spawn() {
         Ok(c) => c,
         Err(e) => {
             let wall_ns = t0.elapsed().as_nanos() as u64;
-            console(&format!(
-                "{} {} spawn-failed",
-                proto::MARKER_EXIT,
-                job.nonce
-            ));
+            console(&format!("{m_exit} spawn-failed"));
             return Ok(RunResult {
                 status: GuestStatus::SpawnFailed {
                     error: e.to_string(),
@@ -716,7 +842,7 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
     let (done_tx, done_rx) = std::sync::mpsc::channel::<()>();
     let timer = {
         let timed_out = timed_out.clone();
-        let limit = Duration::from_millis(job.timeout_ms);
+        let limit = Duration::from_millis(timeout_ms);
         std::thread::spawn(move || {
             if done_rx.recv_timeout(limit.saturating_sub(t0.elapsed()))
                 == Err(std::sync::mpsc::RecvTimeoutError::Timeout)
@@ -730,7 +856,7 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
     let _ = done_tx.send(());
     let _ = timer.join();
     let wall_ns = t0.elapsed().as_nanos() as u64;
-    console(&format!("{} {} {:?}", proto::MARKER_EXIT, job.nonce, st));
+    console(&format!("{m_exit} {st:?}"));
 
     // Kill anything the candidate left behind, then wait for the cgroup to
     // empty so pipes close and the scratch disk is quiescent.
@@ -771,19 +897,36 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
 /// processes are dead by now). Missing paths are skipped; symlinks and
 /// special files are violations.
 fn collect_outputs(job: &GuestJob, w: &mut OutWriter<impl Write>) -> CollectSummary {
+    let (scratch, wanted): (PathBuf, Vec<String>) = if job.steps.is_empty() {
+        (
+            PathBuf::from(format!("{ROOT}{}", proto::GUEST_SCRATCH)),
+            job.collect.clone(),
+        )
+    } else {
+        // step outputs were staged under judge/.step<i>/
+        let judge = PathBuf::from(format!("{SCRATCHDEV}/judge"));
+        let mut v: Vec<String> = fs::read_dir(&judge)
+            .map(|rd| {
+                rd.filter_map(|e| e.ok())
+                    .filter_map(|e| e.file_name().to_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default();
+        v.sort();
+        (judge, v)
+    };
     let mut sum = CollectSummary {
         complete: true,
         ..Default::default()
     };
-    let scratch = PathBuf::from(format!("{ROOT}{}", proto::GUEST_SCRATCH));
     // normalize: drop entries nested under another entry (no duplicates)
-    let mut roots: Vec<&String> = job.collect.iter().collect();
+    let mut roots: Vec<&String> = wanted.iter().collect();
     roots.sort();
     roots.dedup();
     let roots: Vec<&String> = roots
         .iter()
         .filter(|r| {
-            !job.collect
+            !wanted
                 .iter()
                 .any(|o| o != **r && r.starts_with(&format!("{o}/")))
         })
@@ -935,7 +1078,151 @@ fn error_report(nonce: &str, error: String) -> GuestReport {
         oom_kills: 0,
         stdout_total_bytes: 0,
         stderr_total_bytes: 0,
+        steps: vec![],
     }
+}
+
+/// Removes everything inside `dir` except the entry named `keep` (not
+/// following symlinks: `remove_dir_all` unlinks them).
+fn wipe_contents(dir: &str, keep: Option<&str>) -> Result<(), String> {
+    for e in ctx(fs::read_dir(dir), &format!("wipe {dir}"))? {
+        let e = ctx(e, "wipe entry")?;
+        if keep.is_some_and(|k| e.file_name().to_str() == Some(k)) {
+            continue;
+        }
+        let p = e.path();
+        let ft = ctx(e.file_type(), "wipe file type")?;
+        if ft.is_dir() {
+            ctx(fs::remove_dir_all(&p), &format!("wipe {}", p.display()))?;
+        } else {
+            ctx(fs::remove_file(&p), &format!("wipe {}", p.display()))?;
+        }
+    }
+    Ok(())
+}
+
+/// Steps mode: fresh scratch + /dev/shm, re-applied copy_in/scratch_dirs.
+fn reset_scratch(job: &GuestJob) -> Result<(), String> {
+    let work = format!("{SCRATCHDEV}/work");
+    wipe_contents(&work, Some("tmp"))?;
+    let tmp = format!("{work}/tmp");
+    match fs::symlink_metadata(&tmp) {
+        Ok(m) if m.is_dir() => wipe_contents(&tmp, None)?,
+        _ => return Err("scratch tmp dir replaced".into()),
+    }
+    for d in [&work, &tmp] {
+        chown(d, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
+        ctx(
+            fs::set_permissions(d, fs::Permissions::from_mode(0o755)),
+            "chmod scratch",
+        )?;
+    }
+    wipe_contents("/dev/shm", None)?;
+    prepare_scratch(job)
+}
+
+fn umount(target: &str) {
+    let t = cstr(target);
+    unsafe { libc::umount2(t.as_ptr(), libc::MNT_DETACH) };
+}
+
+fn lossy_cap(b: &[u8]) -> String {
+    String::from_utf8_lossy(&b[..b.len().min(proto::STEP_STREAM_CAP)]).into_owned()
+}
+
+/// Runs every step; stops after the first step that does not exit 0.
+fn run_steps(job: &GuestJob) -> Result<(Vec<proto::StepReport>, RunResult), String> {
+    let mut reports = Vec::new();
+    let mut last = None;
+    console(&format!("{} {}", proto::MARKER_START, job.nonce));
+    let t0 = Instant::now();
+    for (i, st) in job.steps.iter().enumerate() {
+        if i > 0 {
+            create_job_cgroup(job)?;
+        }
+        reset_scratch(job)?;
+        let mut bound = Vec::new();
+        for (src, g) in &st.binds {
+            let from = format!("{STEPS_SRC}/{src}");
+            match fs::symlink_metadata(&from) {
+                Ok(m) if m.is_file() => {}
+                _ => return Err(format!("step {i}: bind source {src:?} is not a file")),
+            }
+            let target = format!("{ROOT}{g}");
+            ctx(mount(&from, &target, "", libc::MS_BIND, ""), "step bind")?;
+            bound.push(target.clone());
+            ctx(
+                mount(
+                    "",
+                    &target,
+                    "",
+                    libc::MS_BIND
+                        | libc::MS_REMOUNT
+                        | libc::MS_RDONLY
+                        | libc::MS_NOSUID
+                        | libc::MS_NODEV,
+                    "",
+                ),
+                "step bind ro",
+            )?;
+        }
+        let res = run_candidate(job, &st.argv, st.timeout_ms, Some(i))?;
+        let cpu = read_kv(&format!("{JOB_CG}/cpu.stat"), "usage_usec") * 1000;
+        let peak = read_u64(&format!("{JOB_CG}/memory.peak"));
+        let ooms = read_kv(&format!("{JOB_CG}/memory.events"), "oom_kill");
+        for b in bound.iter().rev() {
+            umount(b);
+        }
+        // the cgroup is empty (run_candidate waited for it): drop it so the
+        // next step gets fresh counters
+        let _ = fs::remove_dir(JOB_CG);
+        // stage this step's outputs outside the candidate's reach
+        let mut violations = Vec::new();
+        let dst_root = format!("{SCRATCHDEV}/judge/{}{i}", proto::STEP_OUT_PREFIX);
+        mkdirs(&dst_root)?;
+        for c in &st.collect {
+            if let Err(e) = proto::validate_rel_path(c) {
+                violations.push(format!("collect {c:?}: {e}"));
+                continue;
+            }
+            let src = PathBuf::from(format!("{SCRATCHDEV}/work/{c}"));
+            if fs::symlink_metadata(&src).is_err() {
+                continue; // missing outputs are the host's business
+            }
+            let dst = PathBuf::from(format!("{dst_root}/{c}"));
+            if let Some(parent) = dst.parent() {
+                if let Err(e) = fs::create_dir_all(parent) {
+                    violations.push(format!("{c}: {e}"));
+                    continue;
+                }
+            }
+            if let Err(e) = copy_tree(&src, &dst, 0, false) {
+                violations.push(format!("{c}: {e}"));
+            }
+        }
+        let ok = matches!(res.status, GuestStatus::Exited { code: 0 }) && violations.is_empty();
+        reports.push(proto::StepReport {
+            status: res.status.clone(),
+            guest_wall_ns: res.wall_ns,
+            guest_cpu_ns: cpu,
+            guest_peak_mem_bytes: peak,
+            oom_kills: ooms,
+            stdout: lossy_cap(&res.stdout),
+            stderr: lossy_cap(&res.stderr),
+            stdout_total_bytes: res.stdout_total,
+            stderr_total_bytes: res.stderr_total,
+            collect_violations: violations,
+        });
+        last = Some(res);
+        if !ok {
+            break;
+        }
+    }
+    let wall = t0.elapsed().as_nanos() as u64;
+    console(&format!("{} {} steps-done", proto::MARKER_EXIT, job.nonce));
+    let mut last = last.ok_or("no steps")?;
+    last.wall_ns = wall;
+    Ok((reports, last))
 }
 
 fn run() -> Result<(), String> {
@@ -955,11 +1242,22 @@ fn run() -> Result<(), String> {
         write_out(Some(&job), &error_report(&job.nonce, e), b"", b"")?;
         return Ok(());
     }
-    let res = match run_candidate(&job) {
-        Ok(r) => r,
-        Err(e) => {
-            write_out(Some(&job), &error_report(&job.nonce, e), b"", b"")?;
-            return Ok(());
+    let (steps, res) = if job.steps.is_empty() {
+        match run_candidate(&job, &job.argv, job.timeout_ms, None) {
+            Ok(r) => (vec![], r),
+            Err(e) => {
+                write_out(Some(&job), &error_report(&job.nonce, e), b"", b"")?;
+                return Ok(());
+            }
+        }
+    } else {
+        match run_steps(&job) {
+            Ok(x) => x,
+            Err(e) => {
+                console(&format!("arena-init: steps failed: {e}"));
+                write_out(Some(&job), &error_report(&job.nonce, e), b"", b"")?;
+                return Ok(());
+            }
         }
     };
     let report = GuestReport {
@@ -972,6 +1270,7 @@ fn run() -> Result<(), String> {
         oom_kills: read_kv(&format!("{JOB_CG}/memory.events"), "oom_kill"),
         stdout_total_bytes: res.stdout_total,
         stderr_total_bytes: res.stderr_total,
+        steps,
     };
     write_out(Some(&job), &report, &res.stdout, &res.stderr)
 }

@@ -138,6 +138,34 @@ pub struct MeasurementProcedure {
     pub cold_runs: u32,
     pub concurrency: u32,
     pub per_run_timeout_ms: u64,
+    /// How benchmark invocations are isolated (v1.4, additive; absent ⇒
+    /// `vm_per_invocation`, i.e. bench-spec-v1, and not serialized, so
+    /// existing challenge ids are unchanged). See docs/BENCHMARK_SPEC.md §4.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub invocation_mode: Option<InvocationMode>,
+}
+
+/// Sandbox-instance granularity of steady-state benchmark runs.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum InvocationMode {
+    /// bench-spec-v1: every `prove` invocation in its own fresh sandbox
+    /// instance (a microVM boot per request is inside nothing timed, but the
+    /// guest page cache is cold for every invocation).
+    VmPerInvocation,
+    /// bench-spec-v1.1: each measured batch runs in ONE fresh sandbox
+    /// instance; every request is still a fresh process with a wiped scratch,
+    /// only its own inputs and no state carried between requests. One
+    /// untimed warm-up invocation on the batch's first request precedes the
+    /// timed ones. Cold runs stay one instance per invocation.
+    VmPerBatch,
+}
+
+impl MeasurementProcedure {
+    pub fn invocation_mode(&self) -> InvocationMode {
+        self.invocation_mode
+            .unwrap_or(InvocationMode::VmPerInvocation)
+    }
 }
 
 /// Parameters of the judge-built admission statement that are not resource

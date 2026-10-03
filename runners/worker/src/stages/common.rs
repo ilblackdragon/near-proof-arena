@@ -185,17 +185,15 @@ pub struct EntryEnv<'p> {
     pub cpu_set: Option<Vec<u32>>,
 }
 
-pub fn run_prove(
+fn prove_spec(
     r: &mut JobRun<'_>,
     env: &EntryEnv<'_>,
-    request: &std::path::Path,
-    witness: &std::path::Path,
-    expected_claim: &Digest,
-) -> Result<Result<Proved, StepFailure>, ExecError> {
-    use arena_types::ObligationId::*;
+    files: &[(&std::path::Path, &str)],
+) -> arena_sandbox::SandboxSpec {
     let (bundle, entry, public_dir, limits) = (env.bundle, env.entry, env.public_dir, env.limits);
-    let out_dir = r.fresh("prove-out");
     let layout = r.ctx.sandbox.layout();
+    let mut all: Vec<(&std::path::Path, &str)> = vec![(public_dir, "public")];
+    all.extend_from_slice(files);
     let mut spec = entry_spec(
         &layout,
         bundle,
@@ -212,11 +210,7 @@ pub fn run_prove(
             "--proof-out",
             "@scratch/out/proof.bin",
         ],
-        &[
-            (public_dir, "public"),
-            (request, "request.bin"),
-            (witness, "witness.bin"),
-        ],
+        &all,
         limits.max_prove_ms,
         limits,
     );
@@ -226,12 +220,99 @@ pub fn run_prove(
         spec.scratch_dirs.push("out".into());
     }
     spec.collect = vec!["out".into()];
-    spec.out_dir = Some(out_dir.clone());
     spec.max_output_bytes = limits
         .max_claim_bytes
         .saturating_add(limits.max_proof_bytes)
         .saturating_add(1);
+    spec
+}
+
+pub fn run_prove(
+    r: &mut JobRun<'_>,
+    env: &EntryEnv<'_>,
+    request: &std::path::Path,
+    witness: &std::path::Path,
+    expected_claim: &Digest,
+) -> Result<Result<Proved, StepFailure>, ExecError> {
+    let out_dir = r.fresh("prove-out");
+    let mut spec = prove_spec(
+        r,
+        env,
+        &[(request, "request.bin"), (witness, "witness.bin")],
+    );
+    spec.out_dir = Some(out_dir.clone());
     let o = r.run(&spec)?;
+    Ok(check_proved(o, &out_dir, expected_claim, env.limits))
+}
+
+/// One benchmark batch: every request proved by a fresh `prove` process with
+/// a wiped scratch and only its own request/witness, all inside one sandbox
+/// instance when the backend supports it ([`arena_sandbox::Sandbox::run_steps`];
+/// Firecracker: one microVM per batch). Returns one result per case; the
+/// batch stops at the first failed invocation (no partial credit).
+pub fn run_prove_batch(
+    r: &mut JobRun<'_>,
+    env: &EntryEnv<'_>,
+    cases: &[(PathBuf, PathBuf, Digest)],
+) -> Result<Vec<Result<Proved, StepFailure>>, ExecError> {
+    let base = prove_spec(r, env, &[]);
+    let layout = r.ctx.sandbox.layout();
+    let mut steps = Vec::with_capacity(cases.len());
+    let mut dirs = Vec::with_capacity(cases.len());
+    for (req, wit, _) in cases {
+        let out_dir = r.fresh("prove-out");
+        steps.push(arena_sandbox::StepSpec {
+            argv: base.argv.clone(),
+            ro_files: vec![
+                arena_sandbox::Mount {
+                    host: req.clone(),
+                    guest: format!("{}/request.bin", layout.inputs),
+                },
+                arena_sandbox::Mount {
+                    host: wit.clone(),
+                    guest: format!("{}/witness.bin", layout.inputs),
+                },
+            ],
+            collect: base.collect.clone(),
+            out_dir: Some(out_dir.clone()),
+            wall_timeout: base.wall_timeout,
+        });
+        dirs.push(out_dir);
+    }
+    let outs = r.run_steps(&base, &steps)?;
+    if outs.is_empty() || outs.len() > cases.len() {
+        return Err(ExecError::Infra(format!(
+            "run_steps returned {} outcomes for {} steps",
+            outs.len(),
+            cases.len()
+        )));
+    }
+    let mut res = Vec::with_capacity(outs.len());
+    for (i, o) in outs.into_iter().enumerate() {
+        let p = check_proved(o, &dirs[i], &cases[i].2, env.limits);
+        let failed = p.is_err();
+        res.push(p);
+        if failed {
+            break;
+        }
+    }
+    if res.len() < cases.len() && res.last().is_some_and(|p| p.is_ok()) {
+        return Err(ExecError::Infra(
+            "sandbox stopped a batch after a successful step".into(),
+        ));
+    }
+    Ok(res)
+}
+
+/// Checks one prove outcome: exit, outputs, memory, claim bytes against the
+/// oracle's expected claim, claim/proof size caps.
+pub fn check_proved(
+    o: SandboxOutcome,
+    out_dir: &std::path::Path,
+    expected_claim: &Digest,
+    limits: &RunLimits,
+) -> Result<Proved, StepFailure> {
+    use arena_types::ObligationId::*;
     if !o.exit.success() {
         let reason = failure_reason(&o);
         let gate = if reason == ReasonCode::ResourceLimit {
@@ -239,14 +320,10 @@ pub fn run_prove(
         } else {
             ProverReliability
         };
-        return Ok(Err(fail(
-            gate,
-            reason,
-            format!("prove {}", describe_exit(&o)),
-        )));
+        return Err(fail(gate, reason, format!("prove {}", describe_exit(&o))));
     }
     if let Some(e) = &o.output_error {
-        return Ok(Err(if e.contains("size limit") {
+        return Err(if e.contains("size limit") {
             fail(
                 ResourceLimits,
                 ReasonCode::ResourceLimit,
@@ -258,43 +335,43 @@ pub fn run_prove(
                 ReasonCode::ProverFailed,
                 format!("unusable outputs: {e}"),
             )
-        }));
+        });
     }
     if o.peak_rss_bytes > limits.max_ram_bytes {
-        return Ok(Err(fail(
+        return Err(fail(
             ResourceLimits,
             ReasonCode::ResourceLimit,
             format!(
                 "peak memory {} > {}",
                 o.peak_rss_bytes, limits.max_ram_bytes
             ),
-        )));
+        ));
     }
     let claim_path = out_dir.join("out/claim.bin");
     let proof_path = out_dir.join("out/proof.bin");
     let (Ok(claim), Ok(proof)) = (std::fs::read(&claim_path), std::fs::read(&proof_path)) else {
-        return Ok(Err(fail(
+        return Err(fail(
             ProverReliability,
             ReasonCode::ProverFailed,
             "prove exited 0 without claim.bin and proof.bin".into(),
-        )));
+        ));
     };
     if claim.len() as u64 > limits.max_claim_bytes {
-        return Ok(Err(fail(
+        return Err(fail(
             ConformanceDifferential,
             ReasonCode::ClaimMismatch,
             format!("claim is {} bytes > max_claim_bytes", claim.len()),
-        )));
+        ));
     }
     if &Digest::of_bytes(&claim) != expected_claim {
-        return Ok(Err(fail(
+        return Err(fail(
             ConformanceDifferential,
             ReasonCode::ClaimMismatch,
             "claim.bin differs from the oracle's expected claim".into(),
-        )));
+        ));
     }
     if proof.len() as u64 > limits.max_proof_bytes {
-        return Ok(Err(fail(
+        return Err(fail(
             ResourceLimits,
             ReasonCode::ResourceLimit,
             format!(
@@ -302,15 +379,15 @@ pub fn run_prove(
                 proof.len(),
                 limits.max_proof_bytes
             ),
-        )));
+        ));
     }
-    Ok(Ok(Proved {
+    Ok(Proved {
         claim,
         proof,
         claim_path,
         proof_path,
         outcome: o,
-    }))
+    })
 }
 
 /// Verifier verdict (CONTRACTS §4: 0 accept, 1 reject, anything else error).
@@ -325,14 +402,15 @@ pub enum Verdict {
 
 /// `verify` in a SEPARATE sandbox that receives only the bundle, the public
 /// dir, the claim and the proof — no witness, no oracle, no expected result.
-pub fn run_verify(
+fn verify_spec(
     r: &mut JobRun<'_>,
     env: &EntryEnv<'_>,
-    claim: &std::path::Path,
-    proof: &std::path::Path,
-) -> Result<(Verdict, SandboxOutcome), ExecError> {
+    files: &[(&std::path::Path, &str)],
+) -> arena_sandbox::SandboxSpec {
     let (bundle, entry, public_dir, limits) = (env.bundle, env.entry, env.public_dir, env.limits);
     let layout = r.ctx.sandbox.layout();
+    let mut all: Vec<(&std::path::Path, &str)> = vec![(public_dir, "public")];
+    all.extend_from_slice(files);
     let mut spec = entry_spec(
         &layout,
         bundle,
@@ -345,24 +423,79 @@ pub fn run_verify(
             "--proof",
             "@in/proof.bin",
         ],
-        &[
-            (public_dir, "public"),
-            (claim, "claim.bin"),
-            (proof, "proof.bin"),
-        ],
+        &all,
         limits.max_verify_ms,
         limits,
     );
     spec.env.push(("ARENA_STAGE".into(), "verify".into()));
     spec.cpu_set = env.cpu_set.clone();
-    let o = r.run(&spec)?;
-    let v = match o.exit {
+    spec
+}
+
+fn verdict(o: &SandboxOutcome) -> Verdict {
+    match o.exit {
         ExitStatus::Exited(0) => Verdict::Accept,
         ExitStatus::Exited(1) => Verdict::Reject,
         ExitStatus::TimedOut => Verdict::TimedOut,
         _ => Verdict::Error,
-    };
-    Ok((v, o))
+    }
+}
+
+pub fn run_verify(
+    r: &mut JobRun<'_>,
+    env: &EntryEnv<'_>,
+    claim: &std::path::Path,
+    proof: &std::path::Path,
+) -> Result<(Verdict, SandboxOutcome), ExecError> {
+    let spec = verify_spec(r, env, &[(claim, "claim.bin"), (proof, "proof.bin")]);
+    let o = r.run(&spec)?;
+    Ok((verdict(&o), o))
+}
+
+/// `verify` of a batch of (claim, proof) pairs, each a fresh process in a
+/// fresh scratch seeing only its own pair; one sandbox instance per batch
+/// when the backend supports it. Stops at the first non-accepting verdict.
+pub fn run_verify_batch(
+    r: &mut JobRun<'_>,
+    env: &EntryEnv<'_>,
+    pairs: &[(PathBuf, PathBuf)],
+) -> Result<Vec<(Verdict, SandboxOutcome)>, ExecError> {
+    let base = verify_spec(r, env, &[]);
+    let layout = r.ctx.sandbox.layout();
+    let steps: Vec<_> = pairs
+        .iter()
+        .map(|(c, p)| arena_sandbox::StepSpec {
+            argv: base.argv.clone(),
+            ro_files: vec![
+                arena_sandbox::Mount {
+                    host: c.clone(),
+                    guest: format!("{}/claim.bin", layout.inputs),
+                },
+                arena_sandbox::Mount {
+                    host: p.clone(),
+                    guest: format!("{}/proof.bin", layout.inputs),
+                },
+            ],
+            collect: vec![],
+            out_dir: None,
+            wall_timeout: base.wall_timeout,
+        })
+        .collect();
+    let outs = r.run_steps(&base, &steps)?;
+    if outs.is_empty() || outs.len() > pairs.len() {
+        return Err(ExecError::Infra(format!(
+            "run_steps returned {} outcomes for {} steps",
+            outs.len(),
+            pairs.len()
+        )));
+    }
+    let v: Vec<_> = outs.into_iter().map(|o| (verdict(&o), o)).collect();
+    if v.len() < pairs.len() && v.last().is_some_and(|(x, _)| *x == Verdict::Accept) {
+        return Err(ExecError::Infra(
+            "sandbox stopped a batch after an accepting step".into(),
+        ));
+    }
+    Ok(v)
 }
 
 /// Label a case for summaries without leaking held-out ids.

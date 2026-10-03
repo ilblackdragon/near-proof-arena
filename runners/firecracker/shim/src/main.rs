@@ -133,6 +133,8 @@ struct Serial {
     tail: Vec<u8>,
     start: Option<Instant>,
     exit: Option<Instant>,
+    /// Steps mode: (STEP-START, STEP-EXIT) per step index.
+    steps: Vec<(Option<Instant>, Option<Instant>)>,
 }
 
 fn watch_serial(
@@ -144,6 +146,16 @@ fn watch_serial(
     std::thread::spawn(move || {
         let start_m = format!("{} {}", proto::MARKER_START, nonce);
         let exit_m = format!("{} {}", proto::MARKER_EXIT, nonce);
+        let sstart_m = format!("{} {} ", proto::MARKER_STEP_START, nonce);
+        let sexit_m = format!("{} {} ", proto::MARKER_STEP_EXIT, nonce);
+        // "<index>" or "<index> <rest>"
+        let index = |rest: &str| -> Option<usize> {
+            rest.split(' ')
+                .next()?
+                .parse::<usize>()
+                .ok()
+                .filter(|i| *i < proto::MAX_STEPS)
+        };
         let mut r = BufReader::with_capacity(1 << 16, r);
         let mut line = Vec::new();
         loop {
@@ -163,6 +175,17 @@ fn watch_serial(
                 s.start = Some(now);
             } else if s.start.is_some() && s.exit.is_none() && t.starts_with(&exit_m) {
                 s.exit = Some(now);
+            } else if s.start.is_some() && s.exit.is_none() {
+                // step markers arrive in order: index == number seen so far
+                if let Some(i) = t.strip_prefix(&sstart_m).and_then(index) {
+                    if i == s.steps.len() && s.steps.last().is_none_or(|l| l.1.is_some()) {
+                        s.steps.push((Some(now), None));
+                    }
+                } else if let Some(i) = t.strip_prefix(&sexit_m).and_then(index) {
+                    if i + 1 == s.steps.len() && s.steps[i].1.is_none() {
+                        s.steps[i].1 = Some(now);
+                    }
+                }
             }
             s.tail.extend_from_slice(&line[..n]);
             if s.tail.len() > cap {
@@ -323,6 +346,7 @@ fn run(jobdir: &Path) -> Result<ShimResult, String> {
         tail: Vec::new(),
         start: None,
         exit: None,
+        steps: Vec::new(),
     }));
     let t0 = Instant::now();
     let mut child = Command::new(JAILER)
@@ -396,6 +420,14 @@ fn run(jobdir: &Path) -> Result<ShimResult, String> {
     };
     let teardown_ns = s.exit.map(|e| (t_end - e).as_nanos() as u64);
     let serial_tail = String::from_utf8_lossy(&s.tail).into_owned();
+    let step_wall_ns: Vec<Option<u64>> = s
+        .steps
+        .iter()
+        .map(|(a, b)| match (a, b) {
+            (Some(a), Some(b)) => Some((*b - *a).as_nanos() as u64),
+            _ => None,
+        })
+        .collect();
     drop(s);
 
     // The jailer hands the chroot to the VMM uid; reclaim the directories
@@ -427,6 +459,7 @@ fn run(jobdir: &Path) -> Result<ShimResult, String> {
         teardown_ns,
         cgroup,
         serial_tail,
+        step_wall_ns,
     })
 }
 
@@ -465,6 +498,7 @@ fn main() {
                 teardown_ns: None,
                 cgroup: HostCgroupStats::default(),
                 serial_tail: String::new(),
+                step_wall_ns: vec![],
             });
             let failed = matches!(res.status, ShimStatus::Error { .. });
             if failed {

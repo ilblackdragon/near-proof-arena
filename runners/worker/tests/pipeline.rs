@@ -166,6 +166,7 @@ fn honest_candidate_passes_every_stage() {
             cold_runs: 1,
             concurrency: 1,
             per_run_timeout_ms: 20_000,
+            invocation_mode: None,
         },
         hardware_profile: "dev-host".into(),
         suite_revision: "r1".into(),
@@ -175,6 +176,16 @@ fn honest_candidate_passes_every_stage() {
         limits: run_limits(),
         request_pin: None,
     };
+    // bench-spec-v1.1: one sandbox instance per batch (bwrap-dev falls back
+    // to one instance per step, same semantics); same gates and shape.
+    let mut bj2 = bj.clone();
+    bj2.procedure.invocation_mode = Some(arena_types::challenge::InvocationMode::VmPerBatch);
+    let r2 = exec(&f, JobSpec::Benchmark(bj2));
+    assert_pass(&r2, ObligationId::ResourceLimits);
+    assert_pass(&r2, ObligationId::ProverReliability);
+    let res2 = r2.benchmark.as_ref().unwrap();
+    assert_eq!(res2.classes[0].runs_ns.len(), 3);
+    assert!(res2.classes[0].cold_ns.is_some() && res2.classes[0].verify_median_ns > 0);
     let r = exec(&f, JobSpec::Benchmark(bj));
     assert_pass(&r, ObligationId::ResourceLimits);
     let bg = gate(&r, ObligationId::Benchmark);

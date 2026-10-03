@@ -45,11 +45,21 @@ new["name"] = a.name
 new["workload_suite"]["baseline_submission"] = s["reference_candidate"]["package_digest"]
 new["workload_suite"]["baseline_ns"] = [[c, ns] for c, ns in base]
 new["supersedes"] = old_id
+# a procedure change (bench-spec-v1.1 invocation mode) is carried from the session
+mode = s.get("invocation_mode", "vm_per_invocation")
+old_mode = old["measurement"].get("invocation_mode") or "vm_per_invocation"
+if mode != old_mode:
+    new["measurement"]["invocation_mode"] = mode
 new["created_at"] = a.created_at
 
 changed = sorted(k for k in set(old) | set(new) if old.get(k) != new.get(k))
-assert changed == sorted(["name", "workload_suite", "supersedes", "created_at"]), changed
+expect = ["name", "workload_suite", "supersedes", "created_at"] + (["measurement"] if mode != old_mode else [])
+assert changed == sorted(expect), changed
+if mode != old_mode:
+    m_changed = sorted(k for k in set(old["measurement"]) | set(new["measurement"])
+                       if old["measurement"].get(k) != new["measurement"].get(k))
+    assert m_changed == ["invocation_mode"], m_changed
 ws_changed = sorted(k for k in old["workload_suite"] if old["workload_suite"][k] != new["workload_suite"][k])
-assert ws_changed == ["baseline_ns", "baseline_submission"], ws_changed
+assert set(ws_changed) <= {"baseline_ns", "baseline_submission"} and "baseline_ns" in ws_changed, ws_changed
 open(a.out, "w").write(json.dumps(new, indent=2, ensure_ascii=False) + "\n")
 print(a.out, "supersedes", old_id, "baseline_ns", base)
