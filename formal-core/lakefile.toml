@@ -1,0 +1,21 @@
+name = "ArenaCore"
+version = "0.1.0"
+defaultTargets = ["ArenaCore", "ArenaCoreTests", "Toy"]
+# No external dependencies (no Mathlib): see docs/FORMAL_INTERFACE.md §Trusted base.
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[lean_lib]]
+name = "ArenaCore"
+
+[[lean_lib]]
+name = "Toy"
+
+[[lean_lib]]
+name = "ArenaCoreTests"
+
+[[lean_exe]]
+name = "arena-interp-ref"
+root = "InterpRef"
