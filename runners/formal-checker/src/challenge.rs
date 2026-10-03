@@ -56,6 +56,29 @@ pub struct ExpectedInputs<'a> {
     pub verifier_digest_hex: String,
 }
 
+impl<'a> ExpectedInputs<'a> {
+    /// Inputs from a frozen challenge definition (`security_profile`,
+    /// `formal_params`) and the judge-computed artifact digests.
+    pub fn from_definition(
+        def: &'a arena_types::ChallengeDefinition,
+        public_digest_hex: String,
+        verifier_digest_hex: String,
+    ) -> Result<Self, ConfigError> {
+        let fp = def
+            .formal_params
+            .as_ref()
+            .ok_or_else(|| ConfigError::Invalid("challenge has no formal_params".into()))?;
+        Ok(ExpectedInputs {
+            profile: &def.security_profile,
+            verify_fuel: fp.verify_fuel,
+            max_proof_bytes: fp.max_proof_bytes,
+            max_reduction_fuel: fp.max_reduction_fuel,
+            public_digest_hex,
+            verifier_digest_hex,
+        })
+    }
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum ConfigError {
     #[error("io: {0}")]
