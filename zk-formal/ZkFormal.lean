@@ -17,3 +17,4 @@ import ZkFormal.Algebra.RS
 import ZkFormal.Algebra.Decode
 import ZkFormal.Algebra.Statements
 import ZkFormal.Algebra.Compose
+import ZkFormal.Algebra.RSProofs
