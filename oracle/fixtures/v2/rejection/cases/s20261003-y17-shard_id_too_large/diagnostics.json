@@ -1,0 +1,61 @@
+{
+  "case_id": "s20261003-y17-shard_id_too_large",
+  "claim": null,
+  "consistent": true,
+  "digests": {
+    "claim.bin": null,
+    "request.bin": "sha256:f66a2446fd2b836c3d25b99692b1beb85777a44204eb3650588acea5318098b5",
+    "witness.bin": "sha256:dd5d61b2773db2d841fad0844c6a0c261d04fd1d972a2675d9bc8482b287984e"
+  },
+  "domain_reason": "shard_id >= 2^32",
+  "expected_in_domain": false,
+  "generator": {
+    "index": 17,
+    "invalid_kind": "shard_id_too_large",
+    "profile": "prices",
+    "seed": 20261003
+  },
+  "in_domain": false,
+  "nearcore": {
+    "apply": "ok",
+    "bandwidth_state_after": "00010000004e770600010000004e7706000100000080234300000000007f1d5800c5a6d7ff2803aad25023e0bc9cebfcfcf8a239becf132588146d2764",
+    "bandwidth_state_after_decoded": {
+      "link_allowances": [
+        [
+          "4295391054",
+          "4295391054",
+          4400000
+        ]
+      ],
+      "sanity_check_hash": "7f1d5800c5a6d7ff2803aad25023e0bc9cebfcfcf8a239becf132588146d2764"
+    },
+    "bandwidth_state_before": "00000000000000000000000000000000000000000000000000000000000000000000000000",
+    "decomposition_ok": true,
+    "delayed_receipts_count": 0,
+    "full_apply_recorded_bytes": 2646,
+    "keys_changed": 8,
+    "outcome_statuses": {
+      "SuccessValue([])": 8
+    },
+    "outgoing_receipts": 3,
+    "post_state_root": "caf2411e4b961ea15f1ffac69869d8175b6b7b8d3b5fe0a6b7d6cf8f945b97d4",
+    "slice_witness_bytes": 2646,
+    "slice_witness_values": 34,
+    "tx_burnt_amount": "1562277939062277937500",
+    "witness_only_post_root_ok": true
+  },
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "nearcore_problems": [
+    "ShardUId cannot represent shard id 4295391054"
+  ],
+  "schema": "near-arena-oracle-case-v2",
+  "scope": "v2",
+  "sizes": {
+    "receipts": 8,
+    "request_bytes": 2136,
+    "state_entries": 74,
+    "witness_bytes": 2844
+  },
+  "statement_id": "near/pv86/receipt-transfer-batch/v1",
+  "synthetic_state": true
+}
