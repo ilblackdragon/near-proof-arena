@@ -530,6 +530,9 @@ struct Case {
 }
 
 fn load_fixtures(dir: &Path) -> CliResult<(Option<PathBuf>, Vec<Case>)> {
+    // Entry points run with their scratch dir as cwd: use absolute paths.
+    let dir = &std::path::absolute(dir)
+        .map_err(|e| CliError::local(format!("fixtures {}: {e}", dir.display())))?;
     let params = dir.join("params.bin");
     let params = params.is_file().then_some(params);
     let cases_dir = dir.join("cases");
@@ -967,7 +970,9 @@ pub fn run(dir: &Path, opts: &CheckOptions) -> CliResult<LocalReport> {
             attempts.push(("claim last byte flipped".into(), c2, proof.clone()));
         }
         for (oname, oclaim, oproof) in &honest {
-            if oname != name && oclaim != claim {
+            // A byte-identical proof is this case's own honest proof (e.g. two
+            // requests with the same witness): accepting it is not hostile.
+            if oname != name && oclaim != claim && oproof != proof {
                 attempts.push((format!("proof of {oname}"), claim.clone(), oproof.clone()));
                 break;
             }
