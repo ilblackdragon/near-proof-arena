@@ -124,12 +124,12 @@ impl AcctAir {
         let notmax = val[..16].iter().fold(AB::Expr::ZERO, |acc, x| acc + k::<AB>(255) - x.clone());
         b.assert_zero(act.clone() * (notmax * v(c.inv_max) - one.clone()));
         // values
-        let vpre = k::<AB>(msg_id(K_VPRE, 0) as u64) + v(c.k);
-        let vpost = k::<AB>(msg_id(K_VPOST, 0) as u64) + v(c.k);
+        let vpre = mid::<AB>(K_VPRE, v(c.k));
+        let vpost = mid::<AB>(K_VPOST, v(c.k));
         for i in 0..72 {
-            send(b, BUS_BYTES, vec![vpre.clone(), k::<AB>(i as u64), val[i].clone()], act.clone());
+            emit(b, &vpre, k::<AB>(i as u64), val[i].clone(), act.clone());
             let pb = if i < 16 { post[i].clone() } else { val[i].clone() };
-            send(b, BUS_BYTES, vec![vpost.clone(), k::<AB>(i as u64), pb], act.clone());
+            emit(b, &vpost, k::<AB>(i as u64), pb, act.clone());
         }
         // amount chain
         let mut w0 = vec![v(c.k), AB::Expr::ZERO];

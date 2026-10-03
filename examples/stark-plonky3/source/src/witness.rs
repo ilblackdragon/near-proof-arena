@@ -116,9 +116,9 @@ pub struct MrkRowW {
     pub odd: bool,
     pub lil: bool,
     pub root: bool,
-    pub msg_l: u32,
-    pub msg_r: u32,
-    pub own: u32,
+    pub msg_l: MsgId,
+    pub msg_r: MsgId,
+    pub own: MsgId,
     pub l: [u8; 32],
     pub r: [u8; 32],
 }
@@ -134,7 +134,7 @@ pub struct Wit {
     pub mrk: Vec<MrkRowW>,
     pub sorted_rids: Vec<[u8; 32]>,
     /// Every hashed message: (msg id, bytes, digest).
-    pub msgs: Vec<(u32, Vec<u8>, [u8; 32])>,
+    pub msgs: Vec<(MsgId, Vec<u8>, [u8; 32])>,
 }
 
 fn parse_node(raw: &[u8]) -> Result<NodeW, String> {
@@ -291,10 +291,10 @@ impl Builder<'_> {
     }
 }
 
-fn merkle_rows(leaves: &[(u32, [u8; 32])]) -> (Vec<MrkRowW>, Vec<(u32, Vec<u8>, [u8; 32])>) {
+fn merkle_rows(leaves: &[(MsgId, [u8; 32])]) -> (Vec<MrkRowW>, Vec<(MsgId, Vec<u8>, [u8; 32])>) {
     let mut rows = vec![];
     let mut msgs = vec![];
-    let mut level: Vec<(u32, [u8; 32])> = leaves.to_vec();
+    let mut level: Vec<(MsgId, [u8; 32])> = leaves.to_vec();
     let mut j = 1u32;
     let mut idx = 0u32;
     loop {
@@ -308,12 +308,12 @@ fn merkle_rows(leaves: &[(u32, [u8; 32])]) -> (Vec<MrkRowW>, Vec<(u32, Vec<u8>, 
             let (ml, dl) = level[2 * i as usize];
             if lil && odd {
                 rows.push(MrkRowW {
-                    j, i, sp, s, odd, lil, root, msg_l: ml, msg_r: 0, own: ml, l: [0; 32], r: [0; 32],
+                    j, i, sp, s, odd, lil, root, msg_l: ml, msg_r: (0, 0), own: ml, l: [0; 32], r: [0; 32],
                 });
                 next.push((ml, dl));
             } else {
                 let (mr, dr) = level[2 * i as usize + 1];
-                let own = msg_id(K_MRK, idx);
+                let own = (K_MRK, idx);
                 let mut buf = Vec::with_capacity(64);
                 buf.extend_from_slice(&dl);
                 buf.extend_from_slice(&dr);
@@ -372,7 +372,7 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
     };
     let claim_bytes = claim.encode();
     let pv = claim_bytes[claim_bytes.len() - NUM_PV..].to_vec();
-    let mut msgs: Vec<(u32, Vec<u8>, [u8; 32])> = vec![(msg_id(K_RC, 0), rcw.0.clone(), rc_digest)];
+    let mut msgs: Vec<(MsgId, Vec<u8>, [u8; 32])> = vec![((K_RC, 0), rcw.0.clone(), rc_digest)];
 
     // ---- accounts and trie paths ----
     let mut acct_of: HashMap<Vec<u8>, usize> = HashMap::new();
@@ -416,7 +416,7 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
     let mut rf: u32 = 0;
     let mut o: u32 = 12;
     let mut o2: u32 = 4;
-    let mut leaves: Vec<(u32, [u8; 32])> = vec![];
+    let mut leaves: Vec<(MsgId, [u8; 32])> = vec![];
     let mut rfw = Writer::with_capacity(4 + 200 * req.receipts.len());
     rfw.u32(out.refund_count);
     for (r_idx, r) in req.receipts.iter().enumerate() {
@@ -440,7 +440,7 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
             idb.extend_from_slice(&req.block_height.to_le_bytes());
             idb.extend_from_slice(&0u64.to_le_bytes());
             refund_id = sha256(&idb);
-            msgs.push((msg_id(K_RID, r_idx as u32), idb, refund_id));
+            msgs.push(((K_RID, r_idx as u32), idb, refund_id));
             write_refund(&mut rfw, r, &refund_id, ramt);
         }
         let mut peo = Writer::with_capacity(128);
@@ -451,14 +451,14 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
         }
         peo.u64(G).u128(burnt).bytes(r.receiver).u8(2).u32(0);
         let peo_dig = sha256(&peo.0);
-        msgs.push((msg_id(K_PEO, r_idx as u32), peo.0, peo_dig));
+        msgs.push(((K_PEO, r_idx as u32), peo.0, peo_dig));
         let mut leaf = Vec::with_capacity(68);
         leaf.extend_from_slice(&2u32.to_le_bytes());
         leaf.extend_from_slice(&r.receipt_id);
         leaf.extend_from_slice(&peo_dig);
         let ld = sha256(&leaf);
-        msgs.push((msg_id(K_LEAF, r_idx as u32), leaf, ld));
-        leaves.push((msg_id(K_LEAF, r_idx as u32), ld));
+        msgs.push(((K_LEAF, r_idx as u32), leaf, ld));
+        leaves.push(((K_LEAF, r_idx as u32), ld));
         let abef = amounts[k];
         let aaft = abef + r.deposit;
         amounts[k] = aaft;
@@ -504,7 +504,7 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
     if rfw.0.len() as u32 != o2 || rcw.0.len() as u32 != o {
         return Err("internal: offset mismatch".into());
     }
-    msgs.push((msg_id(K_RF, 0), rfw.0.clone(), sha256(&rfw.0)));
+    msgs.push(((K_RF, 0), rfw.0.clone(), sha256(&rfw.0)));
     if sha256(&rfw.0) != claim.refunds_commitment {
         return Err("internal: refunds commitment mismatch".into());
     }
@@ -536,14 +536,14 @@ pub fn build(request: &[u8], witness: &[u8]) -> Result<Wit, String> {
         return Err("internal: trie root mismatch".into());
     }
     for (id, n) in nodes.iter().enumerate() {
-        msgs.push((msg_id(K_NPRE, id as u32), n.pre.clone(), n.pre_dig));
-        msgs.push((msg_id(K_NPOST, id as u32), n.post.clone(), n.post_dig));
+        msgs.push(((K_NPRE, id as u32), n.pre.clone(), n.pre_dig));
+        msgs.push(((K_NPOST, id as u32), n.post.clone(), n.post_dig));
     }
     for (k, a) in accounts.iter().enumerate() {
         let mut v = a.val;
-        msgs.push((msg_id(K_VPRE, k as u32), v.to_vec(), sha256(&v)));
+        msgs.push(((K_VPRE, k as u32), v.to_vec(), sha256(&v)));
         v[..16].copy_from_slice(&a.post_amt.to_le_bytes());
-        msgs.push((msg_id(K_VPOST, k as u32), v.to_vec(), sha256(&v)));
+        msgs.push(((K_VPOST, k as u32), v.to_vec(), sha256(&v)));
     }
     // ---- walks ----
     let mut paths = vec![];

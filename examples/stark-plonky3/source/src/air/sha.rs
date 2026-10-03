@@ -1,10 +1,11 @@
 //! SHA table: one SHA-256 compression per row, plus message framing.
 //!
 //! Columns = Plonky3's `Sha256Cols` (bit-level compression) followed by:
-//! `act, first, last, msg, blk, cnt, seen, p80, pn, dm, f[64]`.
+//! `act, kind, first, last, msg, blk, cnt, seen, p80, pn, dm, f[64]`
+//! (`(kind, msg)` is the message id).
 //!
 //! * `f[k]` = 1 iff byte `k` of this block is message data (monotone).
-//!   Data bytes are *received* on `BUS_BYTES` as `(msg, 64*blk + k, byte_k)`
+//!   Data bytes are *received* on `BUS_BYTES` as `(kind, msg, 64*blk + k, byte_k)`
 //!   where `byte_k` is read from the block's bit columns, so every byte a
 //!   producer emits is range-checked here.
 //! * Padding (FIPS 180-4 §5.1.1) is enforced locally: the `0x80` byte sits
@@ -13,7 +14,7 @@
 //!   block ends with the 64-bit big-endian bit length `8 * (cnt + d)`. The
 //!   rules force the minimal (standard) padding.
 //! * Blocks of one message are chained through `BUS_CHAIN`
-//!   `(msg, blk, cnt, seen, h[16])` instead of next-row access, so rows are
+//!   `(kind, msg, blk, cnt, seen, h[16])` instead of next-row access, so rows are
 //!   independent and the table opens at a single out-of-domain point.
 //! * The last block provides the digest on `BUS_DIGEST` as 16 big-endian
 //!   16-bit limbs, with free multiplicity `dm`.
@@ -29,6 +30,7 @@ use std::borrow::Borrow;
 #[derive(Clone, Debug)]
 pub struct ShaCols {
     pub act: usize,
+    pub kind: usize,
     pub first: usize,
     pub last: usize,
     pub msg: usize,
@@ -47,6 +49,7 @@ impl ShaCols {
         let mut a = Alloc(NUM_SHA256_COLS);
         let c = ShaCols {
             act: a.one(),
+            kind: a.one(),
             first: a.one(),
             last: a.one(),
             msg: a.one(),
@@ -109,7 +112,7 @@ impl ShaAir {
         b.assert_zero((one.clone() - act.clone()) * seen.clone());
         b.assert_zero((one.clone() - act.clone()) * f[0].clone());
         b.assert_zero((one.clone() - last.clone()) * v(c.dm));
-        for x in [c.msg, c.blk, c.cnt, c.pn] {
+        for x in [c.kind, c.msg, c.blk, c.cnt, c.pn] {
             b.assert_zero((one.clone() - act.clone()) * v(x));
         }
         // pn = p80 * (1 - last)
@@ -196,13 +199,14 @@ impl ShaAir {
             [lo, hi]
         };
         let mut out_tuple = vec![
+            v(c.kind),
             v(c.msg),
             v(c.blk) + one.clone(),
             v(c.cnt) + d.clone(),
             seen.clone() + p80.clone(),
         ];
-        let mut in_tuple = vec![v(c.msg), v(c.blk), v(c.cnt), seen.clone()];
-        let mut digest = vec![v(c.msg)];
+        let mut in_tuple = vec![v(c.kind), v(c.msg), v(c.blk), v(c.cnt), seen.clone()];
+        let mut digest = vec![v(c.kind), v(c.msg)];
         for i in 0..8 {
             let [lo, hi] = h_out_limbs(i);
             out_tuple.push(lo.clone());
@@ -221,7 +225,7 @@ impl ShaAir {
             recv(
                 b,
                 BUS_BYTES,
-                vec![v(c.msg), base.clone() + k::<AB>(kk as u64), bytes[kk].clone()],
+                vec![v(c.kind), v(c.msg), base.clone() + k::<AB>(kk as u64), bytes[kk].clone()],
                 f[kk].clone(),
             );
         }

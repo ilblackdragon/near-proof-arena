@@ -91,6 +91,34 @@ pub fn pv_le<AB: AirBuilder>(b: &AB, off: usize, len: usize) -> AB::Expr {
     acc
 }
 
+/// A message id `(kind, index)` as two expressions.
+pub fn mid<AB: AirBuilder>(kind: u32, idx: AB::Expr) -> [AB::Expr; 2] {
+    [AB::Expr::from_u32(kind), idx]
+}
+
+/// Emit one message byte on `BUS_BYTES`.
+pub fn emit<AB: InteractionBuilder>(
+    b: &mut AB,
+    msg: &[AB::Expr; 2],
+    pos: AB::Expr,
+    byte: AB::Expr,
+    gate: AB::Expr,
+) {
+    send(b, crate::consts::BUS_BYTES, vec![msg[0].clone(), msg[1].clone(), pos, byte], gate);
+}
+
+/// `DIGEST(msg) == limbs` query.
+pub fn query_digest<AB: InteractionBuilder>(
+    b: &mut AB,
+    msg: &[AB::Expr; 2],
+    limbs: Vec<AB::Expr>,
+    gate: AB::Expr,
+) {
+    let mut t = vec![msg[0].clone(), msg[1].clone()];
+    t.extend(limbs);
+    query(b, crate::consts::BUS_DIGEST, t, gate);
+}
+
 /// 16 digest limbs (big-endian 16-bit halves) from 32 byte expressions.
 pub fn limbs_from_bytes<AB: AirBuilder>(bytes: &[AB::Expr]) -> Vec<AB::Expr> {
     assert_eq!(bytes.len(), 32);

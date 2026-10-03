@@ -405,29 +405,26 @@ impl RcptAir {
 
         // ---- links -------------------------------------------------------------
         send(b, BUS_RIDS, vs(&c.rid), act.clone());
-        let leaf_msg = k::<AB>(msg_id(K_LEAF, 0) as u64) + v(c.r);
-        provide(b, BUS_MPOS, vec![AB::Expr::ZERO, v(c.r), leaf_msg.clone()], v(c.m_leaf));
+        let leaf_msg = mid::<AB>(K_LEAF, v(c.r));
+        provide(
+            b,
+            BUS_MPOS,
+            vec![AB::Expr::ZERO, v(c.r), leaf_msg[0].clone(), leaf_msg[1].clone()],
+            v(c.m_leaf),
+        );
         b.assert_zero((one.clone() - act.clone()) * v(c.m_leaf));
-        let rid_msg = k::<AB>(msg_id(K_RID, 0) as u64) + v(c.r);
-        let peo_msg = k::<AB>(msg_id(K_PEO, 0) as u64) + v(c.r);
-        let mut q1 = vec![rid_msg.clone()];
-        q1.extend(limbs_from_bytes::<AB>(&vs(&c.refund_id)));
-        query(b, BUS_DIGEST, q1, hr.clone());
-        let mut q2 = vec![peo_msg.clone()];
-        q2.extend(limbs_from_bytes::<AB>(&vs(&c.peo_dig)));
-        query(b, BUS_DIGEST, q2, act.clone());
-        let rc_msg = k::<AB>(msg_id(K_RC, 0) as u64);
-        let rf_msg = k::<AB>(msg_id(K_RF, 0) as u64);
-        let mut q3 = vec![rc_msg.clone()];
-        q3.extend(pvdig(PV_RC));
-        query(b, BUS_DIGEST, q3, isf.clone());
-        let mut q4 = vec![rf_msg.clone()];
-        q4.extend(pvdig(PV_RFC));
-        query(b, BUS_DIGEST, q4, isf.clone());
+        let rid_msg = mid::<AB>(K_RID, v(c.r));
+        let peo_msg = mid::<AB>(K_PEO, v(c.r));
+        query_digest(b, &rid_msg, limbs_from_bytes::<AB>(&vs(&c.refund_id)), hr.clone());
+        query_digest(b, &peo_msg, limbs_from_bytes::<AB>(&vs(&c.peo_dig)), act.clone());
+        let rc_msg = mid::<AB>(K_RC, AB::Expr::ZERO);
+        let rf_msg = mid::<AB>(K_RF, AB::Expr::ZERO);
+        query_digest(b, &rc_msg, pvdig(PV_RC), isf.clone());
+        query_digest(b, &rf_msg, pvdig(PV_RFC), isf.clone());
 
         // ---- emissions -----------------------------------------------------------
-        let mut em = |b: &mut AB, msg: &AB::Expr, pos: AB::Expr, byte: AB::Expr, gate: AB::Expr| {
-            send(b, BUS_BYTES, vec![msg.clone(), pos, byte], gate);
+        let mut em = |b: &mut AB, msg: &[AB::Expr; 2], pos: AB::Expr, byte: AB::Expr, gate: AB::Expr| {
+            emit(b, msg, pos, byte, gate);
         };
         let z = || AB::Expr::ZERO;
         // RC header (row 0)
@@ -442,8 +439,8 @@ impl RcptAir {
             em(b, &rf_msg, k::<AB>(i as u64), pvs[PV_NREF + i].clone(), isf.clone());
         }
         // u32 length-prefixed string at `pos`
-        let emit_str = |b: &mut AB, em: &mut dyn FnMut(&mut AB, &AB::Expr, AB::Expr, AB::Expr, AB::Expr),
-                        msg: &AB::Expr,
+        let emit_str = |b: &mut AB, em: &mut dyn FnMut(&mut AB, &[AB::Expr; 2], AB::Expr, AB::Expr, AB::Expr),
+                        msg: &[AB::Expr; 2],
                         pos: AB::Expr,
                         s: &StrCols,
                         l: AB::Expr,
@@ -457,8 +454,8 @@ impl RcptAir {
             }
         };
         let emit_bytes =
-            |b: &mut AB, em: &mut dyn FnMut(&mut AB, &AB::Expr, AB::Expr, AB::Expr, AB::Expr),
-             msg: &AB::Expr,
+            |b: &mut AB, em: &mut dyn FnMut(&mut AB, &[AB::Expr; 2], AB::Expr, AB::Expr, AB::Expr),
+             msg: &[AB::Expr; 2],
              pos: AB::Expr,
              bytes: &[AB::Expr],
              gate: AB::Expr| {

@@ -254,29 +254,17 @@ impl NodeAir {
         zero_inactive(b, &r, c.act, &[]);
 
         // ---- digests ----------------------------------------------------------------------
-        let npre = |id: AB::Expr| k::<AB>(msg_id(K_NPRE, 0) as u64) + id;
-        let npost = |id: AB::Expr| k::<AB>(msg_id(K_NPOST, 0) as u64) + id;
-        let mut q = vec![npre(v(c.nid))];
-        q.extend(limbs_from_bytes::<AB>(&pvs[PV_PRE..PV_PRE + 32]));
-        query(b, BUS_DIGEST, q, isf.clone());
-        let mut q = vec![npost(v(c.nid))];
-        q.extend(limbs_from_bytes::<AB>(&pvs[PV_POST..PV_POST + 32]));
-        query(b, BUS_DIGEST, q, isf.clone());
+        let npre = |id: AB::Expr| mid::<AB>(K_NPRE, id);
+        let npost = |id: AB::Expr| mid::<AB>(K_NPOST, id);
+        query_digest(b, &npre(v(c.nid)), limbs_from_bytes::<AB>(&pvs[PV_PRE..PV_PRE + 32]), isf.clone());
+        query_digest(b, &npost(v(c.nid)), limbs_from_bytes::<AB>(&pvs[PV_POST..PV_POST + 32]), isf.clone());
         for j in 0..16 {
             let rv = v(c.rv[j]);
-            let mut q = vec![npre(v(c.cid[j]))];
-            q.extend(limbs_from_bytes::<AB>(&vs(&c.w[j])));
-            query(b, BUS_DIGEST, q, rv.clone());
-            let mut q = vec![npost(v(c.cid[j]))];
-            q.extend(limbs_from_bytes::<AB>(&vs(&c.pw[j])));
-            query(b, BUS_DIGEST, q, rv);
+            query_digest(b, &npre(v(c.cid[j])), limbs_from_bytes::<AB>(&vs(&c.w[j])), rv.clone());
+            query_digest(b, &npost(v(c.cid[j])), limbs_from_bytes::<AB>(&vs(&c.pw[j])), rv);
         }
-        let mut q = vec![k::<AB>(msg_id(K_VPRE, 0) as u64) + v(c.vk)];
-        q.extend(limbs_from_bytes::<AB>(&vs(&c.vh)));
-        query(b, BUS_DIGEST, q, tv.clone());
-        let mut q = vec![k::<AB>(msg_id(K_VPOST, 0) as u64) + v(c.vk)];
-        q.extend(limbs_from_bytes::<AB>(&vs(&c.pvh)));
-        query(b, BUS_DIGEST, q, tv.clone());
+        query_digest(b, &mid::<AB>(K_VPRE, v(c.vk)), limbs_from_bytes::<AB>(&vs(&c.vh)), tv.clone());
+        query_digest(b, &mid::<AB>(K_VPOST, v(c.vk)), limbs_from_bytes::<AB>(&vs(&c.pvh)), tv.clone());
 
         // ---- walk edges / slots -------------------------------------------------------
         let nid = v(c.nid);
@@ -334,7 +322,7 @@ impl NodeAir {
         let p_bm = tb1.clone() + tb2.clone() * k::<AB>(37);
         for (msg, post) in [(&pre_msg, false), (&post_msg, true)] {
             let em = |b: &mut AB, pos: AB::Expr, byte: AB::Expr, gate: AB::Expr| {
-                send(b, BUS_BYTES, vec![msg.clone(), pos, byte], gate);
+                emit(b, msg, pos, byte, gate);
             };
             em(b, AB::Expr::ZERO, tag.clone(), act.clone());
             em(b, one.clone(), hplen.clone(), le.clone());

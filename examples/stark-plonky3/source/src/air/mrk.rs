@@ -5,7 +5,7 @@
 //! for level 1, from the public values). Node `(j, i)` is
 //! `sha256(node(j-1, 2i) ‖ node(j-1, 2i+1))`, except the last node of an odd
 //! level, which is promoted unchanged. Node positions are published on
-//! `BUS_MPOS (level, index, msg)` (leaves by RCPT); the level of size 1 is the
+//! `BUS_MPOS (level, index, kind, msg)` (leaves by RCPT); the level of size 1 is the
 //! root and its digest must equal the public `outcome_root`.
 
 use super::*;
@@ -23,9 +23,12 @@ pub struct MrkCols {
     pub root: usize,
     pub rinv: usize,
     pub idx: usize,
-    pub msg_l: usize,
-    pub msg_r: usize,
-    pub own: usize,
+    pub kl: usize,
+    pub ml: usize,
+    pub kr: usize,
+    pub mr: usize,
+    pub okind: usize,
+    pub oidx: usize,
     pub l: Vec<usize>,
     pub rr: Vec<usize>,
     pub m_prov: usize,
@@ -47,9 +50,12 @@ impl MrkCols {
             root: a.one(),
             rinv: a.one(),
             idx: a.one(),
-            msg_l: a.one(),
-            msg_r: a.one(),
-            own: a.one(),
+            kl: a.one(),
+            ml: a.one(),
+            kr: a.one(),
+            mr: a.one(),
+            okind: a.one(),
+            oidx: a.one(),
             l: a.vec(32),
             rr: a.vec(32),
             m_prov: a.one(),
@@ -105,10 +111,14 @@ impl MrkAir {
         b.assert_zero((one.clone() - act.clone()) * root.clone());
         let promote = odd.clone() * lil.clone();
         let hashrow = act.clone() * (one.clone() - promote.clone());
-        let own_hash = k::<AB>(msg_id(K_MRK, 0) as u64) + v(c.idx);
+        let own_hash = mid::<AB>(K_MRK, v(c.idx));
         b.assert_zero(
             act.clone()
-                * (v(c.own) - promote.clone() * v(c.msg_l) - (one.clone() - promote.clone()) * own_hash.clone()),
+                * (v(c.okind) - promote.clone() * v(c.kl) - (one.clone() - promote.clone()) * own_hash[0].clone()),
+        );
+        b.assert_zero(
+            act.clone()
+                * (v(c.oidx) - promote.clone() * v(c.ml) - (one.clone() - promote.clone()) * own_hash[1].clone()),
         );
         b.when_last_row().assert_zero(act.clone() * (one.clone() - root.clone()));
         {
@@ -131,31 +141,25 @@ impl MrkAir {
             t.assert_zero(up.clone() * ni);
             t.assert_zero(up * (nsp - v(c.s)));
         }
-        for &x in c.l.iter().chain(c.rr.iter()).chain([c.msg_r].iter()) {
+        for &x in c.l.iter().chain(c.rr.iter()).chain([c.kr, c.mr].iter()) {
             b.assert_zero((one.clone() - hashrow.clone()) * v(x));
         }
         b.assert_zero(root.clone() * v(c.rinv));
         zero_inactive(b, &r, c.act, &[c.idx]);
         let jm1 = v(c.j) - one.clone();
         let two_i = v(c.i) * AB::Expr::TWO;
-        query(b, BUS_MPOS, vec![jm1.clone(), two_i.clone(), v(c.msg_l)], act.clone());
-        query(b, BUS_MPOS, vec![jm1, two_i + one.clone(), v(c.msg_r)], hashrow.clone());
-        provide(b, BUS_MPOS, vec![v(c.j), v(c.i), v(c.own)], v(c.m_prov));
+        query(b, BUS_MPOS, vec![jm1.clone(), two_i.clone(), v(c.kl), v(c.ml)], act.clone());
+        query(b, BUS_MPOS, vec![jm1, two_i + one.clone(), v(c.kr), v(c.mr)], hashrow.clone());
+        provide(b, BUS_MPOS, vec![v(c.j), v(c.i), v(c.okind), v(c.oidx)], v(c.m_prov));
         b.assert_zero((one.clone() - act.clone()) * v(c.m_prov));
         let l = vs(&c.l);
         let rr = vs(&c.rr);
-        let mut ql = vec![v(c.msg_l)];
-        ql.extend(limbs_from_bytes::<AB>(&l));
-        query(b, BUS_DIGEST, ql, hashrow.clone());
-        let mut qr = vec![v(c.msg_r)];
-        qr.extend(limbs_from_bytes::<AB>(&rr));
-        query(b, BUS_DIGEST, qr, hashrow.clone());
-        let mut qroot = vec![v(c.own)];
-        qroot.extend(limbs_from_bytes::<AB>(&pvs[PV_OUT..PV_OUT + 32]));
-        query(b, BUS_DIGEST, qroot, root);
+        query_digest(b, &[v(c.kl), v(c.ml)], limbs_from_bytes::<AB>(&l), hashrow.clone());
+        query_digest(b, &[v(c.kr), v(c.mr)], limbs_from_bytes::<AB>(&rr), hashrow.clone());
+        query_digest(b, &[v(c.okind), v(c.oidx)], limbs_from_bytes::<AB>(&pvs[PV_OUT..PV_OUT + 32]), root);
         for i in 0..32 {
-            send(b, BUS_BYTES, vec![own_hash.clone(), k::<AB>(i as u64), l[i].clone()], hashrow.clone());
-            send(b, BUS_BYTES, vec![own_hash.clone(), k::<AB>(32 + i as u64), rr[i].clone()], hashrow.clone());
+            emit(b, &own_hash, k::<AB>(i as u64), l[i].clone(), hashrow.clone());
+            emit(b, &own_hash, k::<AB>(32 + i as u64), rr[i].clone(), hashrow.clone());
         }
     }
 }

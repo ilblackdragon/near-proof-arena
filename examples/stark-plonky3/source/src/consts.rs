@@ -2,10 +2,9 @@
 
 use crate::spec::G;
 
-/// Message kinds. A SHA-256 message is identified on the buses by the field
-/// element `msg = kind * 2^20 + index` (index < 2^20 is guaranteed by the
-/// trace-height caps the verifier enforces, see `verifier.rs`).
-pub const MSG_SHIFT: u32 = 1 << 20;
+/// Message kinds. A SHA-256 message is identified on every bus by the PAIR
+/// of field elements `(kind, index)` (two separate tuple entries, so messages
+/// of different kinds can never alias whatever value `index` takes).
 pub const K_RC: u32 = 1; // receipts commitment message (index 0)
 pub const K_PEO: u32 = 2; // PartialExecutionOutcome of receipt r
 pub const K_LEAF: u32 = 3; // outcome merkle leaf of receipt r
@@ -17,9 +16,7 @@ pub const K_NPOST: u32 = 8; // trie node N, post-state serialization
 pub const K_VPRE: u32 = 9; // account k value, pre-state (72 bytes)
 pub const K_VPOST: u32 = 10; // account k value, post-state (72 bytes)
 
-pub const fn msg_id(kind: u32, idx: u32) -> u32 {
-    kind * MSG_SHIFT + idx
-}
+pub type MsgId = (u32, u32);
 
 /// Public values = the 232 fixed-width bytes at the end of `claim.bin`
 /// (shard_id .. tokens_burnt_total), one field element per byte.
@@ -40,9 +37,9 @@ pub const NUM_PV: usize = 232;
 
 /// Bus names. "perm" buses are multiset equalities (both sides weight 1);
 /// "lookup" buses are table lookups (provider multiplicities are free).
-pub const BUS_BYTES: &str = "np/bytes"; // perm   (msg, pos, byte)
-pub const BUS_CHAIN: &str = "np/chain"; // perm   (msg, blk, cnt, seen, h[16])
-pub const BUS_DIGEST: &str = "np/digest"; // lookup (msg, limb[16])
+pub const BUS_BYTES: &str = "np/bytes"; // perm   (kind, msg, pos, byte)
+pub const BUS_CHAIN: &str = "np/chain"; // perm   (kind, msg, blk, cnt, seen, h[16])
+pub const BUS_DIGEST: &str = "np/digest"; // lookup (kind, msg, limb[16])
 pub const BUS_RANGE8: &str = "np/range8"; // lookup (x)          x < 2^8
 pub const BUS_RANGE12: &str = "np/range12"; // lookup (x)       x < 2^12
 pub const BUS_CLASS: &str = "np/class"; // lookup (c, class)
@@ -50,7 +47,7 @@ pub const BUS_NIB: &str = "np/nib"; // lookup (c, hi, lo)
 pub const BUS_ACCT: &str = "np/acct"; // lookup (k, len, packed[22], locked[16], storage[8])
 pub const BUS_MEM: &str = "np/mem"; // perm   (k, t, amount[16])
 pub const BUS_RIDS: &str = "np/rids"; // perm   (rid[32])
-pub const BUS_MPOS: &str = "np/mpos"; // lookup (level, index, msg)
+pub const BUS_MPOS: &str = "np/mpos"; // lookup (level, index, kind, msg)
 pub const BUS_KEYNIB: &str = "np/keynib"; // perm (k, t, nib)
 pub const BUS_EDGE: &str = "np/edge"; // lookup (N, i, nib, N', i')
 pub const BUS_EPS: &str = "np/eps"; // lookup (N, i, N', i')

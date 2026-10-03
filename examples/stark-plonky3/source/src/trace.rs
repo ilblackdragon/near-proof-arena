@@ -117,10 +117,10 @@ fn compress(state: &mut [u32; 8], block: &[u32; 16]) {
     sha2::compress256(state, &[ga]);
 }
 
-pub fn sha_trace(c: &ShaCols, msgs: &[(u32, Vec<u8>, [u8; 32])]) -> RowMajorMatrix<Val> {
+pub fn sha_trace(c: &ShaCols, msgs: &[(MsgId, Vec<u8>, [u8; 32])]) -> RowMajorMatrix<Val> {
     struct RowIn {
         input: [u32; 24],
-        msg: u32,
+        msg: MsgId,
         blk: u32,
         first: bool,
         last: bool,
@@ -163,7 +163,7 @@ pub fn sha_trace(c: &ShaCols, msgs: &[(u32, Vec<u8>, [u8; 32])]) -> RowMajorMatr
         input[16..].copy_from_slice(&SHA256_IV);
         rows.push(RowIn {
             input,
-            msg: 0,
+            msg: (0, 0),
             blk: 0,
             first: false,
             last: false,
@@ -186,7 +186,8 @@ pub fn sha_trace(c: &ShaCols, msgs: &[(u32, Vec<u8>, [u8; 32])]) -> RowMajorMatr
             m.set(c.act, 1);
             m.set(c.first, ri.first as u64);
             m.set(c.last, ri.last as u64);
-            m.set(c.msg, ri.msg as u64);
+            m.set(c.kind, ri.msg.0 as u64);
+            m.set(c.msg, ri.msg.1 as u64);
             m.set(c.blk, ri.blk as u64);
             m.set(c.cnt, ri.cnt as u64);
             m.set(c.seen, ri.seen as u64);
@@ -329,9 +330,12 @@ pub fn mrk_trace(c: &MrkCols, wit: &Wit) -> RowMajorMatrix<Val> {
             m.set(c.lil, x.lil as u64);
             m.set(c.root, x.root as u64);
             m.setf(c.rinv, if x.s == 1 { Val::ZERO } else { inv(f(x.s as u64 - 1)) });
-            m.set(c.msg_l, x.msg_l as u64);
-            m.set(c.msg_r, x.msg_r as u64);
-            m.set(c.own, x.own as u64);
+            m.set(c.kl, x.msg_l.0 as u64);
+            m.set(c.ml, x.msg_l.1 as u64);
+            m.set(c.kr, x.msg_r.0 as u64);
+            m.set(c.mr, x.msg_r.1 as u64);
+            m.set(c.okind, x.own.0 as u64);
+            m.set(c.oidx, x.own.1 as u64);
             if !(x.odd && x.lil) {
                 m.bytes(&c.l, &x.l);
                 m.bytes(&c.rr, &x.r);
@@ -569,7 +573,7 @@ pub fn fill_multiplicities(airs: &[NpAir], traces: &mut [RowMajorMatrix<Val>], p
                         return;
                     }
                     let sha: &Sha256Cols<Val> = row[..NUM_SHA256_COLS].borrow();
-                    let mut tup = vec![u(row[c.msg])];
+                    let mut tup = vec![u(row[c.kind]), u(row[c.msg])];
                     for i in 0..8 {
                         let mut lo = 0u32;
                         let mut hi = 0u32;
@@ -591,7 +595,7 @@ pub fn fill_multiplicities(airs: &[NpAir], traces: &mut [RowMajorMatrix<Val>], p
                         continue;
                     }
                     let r = u(row[c.r]);
-                    let tup = [0, r, msg_id(K_LEAF, 0) + r];
+                    let tup = [0, r, K_LEAF, r];
                     row[c.m_leaf] = f(tally.get(BUS_MPOS, &tup));
                 }
             }
@@ -601,7 +605,7 @@ pub fn fill_multiplicities(airs: &[NpAir], traces: &mut [RowMajorMatrix<Val>], p
                     if row[c.act] != Val::ONE {
                         continue;
                     }
-                    let tup = [u(row[c.j]), u(row[c.i]), u(row[c.own])];
+                    let tup = [u(row[c.j]), u(row[c.i]), u(row[c.okind]), u(row[c.oidx])];
                     row[c.m_prov] = f(tally.get(BUS_MPOS, &tup));
                 }
             }

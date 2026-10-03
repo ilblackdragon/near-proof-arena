@@ -42,6 +42,7 @@ pub fn names(air: &NpAir) -> Vec<String> {
             assert_eq!(off, NUM_SHA256_COLS);
             for (cc, nm) in [
                 (c.act, "act"),
+                (c.kind, "kind"),
                 (c.first, "first"),
                 (c.last, "last"),
                 (c.msg, "msg"),
@@ -130,9 +131,12 @@ pub fn names(air: &NpAir) -> Vec<String> {
                 (c.root, "root"),
                 (c.rinv, "rinv"),
                 (c.idx, "idx"),
-                (c.msg_l, "msg_l"),
-                (c.msg_r, "msg_r"),
-                (c.own, "own"),
+                (c.kl, "kind_l"),
+                (c.ml, "msg_l"),
+                (c.kr, "kind_r"),
+                (c.mr, "msg_r"),
+                (c.okind, "own_kind"),
+                (c.oidx, "own_msg"),
                 (c.m_prov, "m_prov(mult)"),
             ] {
                 n.one(cc, nm);
