@@ -40,6 +40,11 @@ pub struct ChallengeFormalConfig {
     /// Module prefixes candidates may not define (judge namespaces).
     pub reserved_prefixes: Vec<String>,
     pub expected: ExpectedConfig,
+    /// `verify_route = "native-lean"`: template whose decl is a function of
+    /// the candidate model (`bin_digest`/`toolchain_id` filled by the judge
+    /// build, not here).
+    #[serde(default)]
+    pub expected_native_lean: Option<ExpectedConfig>,
 }
 
 /// Values the Expected template needs, taken from the frozen challenge
@@ -112,7 +117,27 @@ impl ChallengeFormalConfig {
 
     /// Render the challenge's Expected template with literal data.
     pub fn expected(&self, repo_root: &Path, inp: &ExpectedInputs) -> Result<TemplateExpected, ConfigError> {
-        let template = std::fs::read_to_string(repo_root.join(&self.expected.template))?;
+        self.expected_with(&self.expected, repo_root, inp, true)
+    }
+
+    /// The native-lean route's template (the verifier digest is not used: the
+    /// judge's own native build digest is spliced in by the pipeline).
+    pub fn expected_native_lean(&self, repo_root: &Path, inp: &ExpectedInputs) -> Result<TemplateExpected, ConfigError> {
+        let e = self
+            .expected_native_lean
+            .as_ref()
+            .ok_or_else(|| ConfigError::Invalid(format!("challenge {} has no native-lean template", self.challenge)))?;
+        self.expected_with(e, repo_root, inp, false)
+    }
+
+    fn expected_with(
+        &self,
+        e: &ExpectedConfig,
+        repo_root: &Path,
+        inp: &ExpectedInputs,
+        interp: bool,
+    ) -> Result<TemplateExpected, ConfigError> {
+        let template = std::fs::read_to_string(repo_root.join(&e.template))?;
         let p = inp.profile;
         let model = serde_json::to_value(p.model)?.as_str().unwrap_or_default().to_string();
         let mut data: BTreeMap<String, LeanValue> = BTreeMap::new();
@@ -135,8 +160,10 @@ impl ChallengeFormalConfig {
         data.insert("max_proof_bytes".into(), LeanValue::Nat(inp.max_proof_bytes.to_string()));
         data.insert("max_reduction_fuel".into(), LeanValue::Nat(inp.max_reduction_fuel.to_string()));
         data.insert("public_digest".into(), LeanValue::Bytes(inp.public_digest_hex.clone()));
-        data.insert("verifier_digest".into(), LeanValue::Bytes(inp.verifier_digest_hex.clone()));
-        Ok(TemplateExpected { module: self.expected.module.clone(), decl: self.expected.decl.clone(), template, data })
+        if interp {
+            data.insert("verifier_digest".into(), LeanValue::Bytes(inp.verifier_digest_hex.clone()));
+        }
+        Ok(TemplateExpected { module: e.module.clone(), decl: e.decl.clone(), template, data })
     }
 }
 
@@ -171,5 +198,14 @@ mod tests {
         assert!(src.contains("(1073741824 : Nat) (8388608 : Nat) (1073741824 : Nat)"));
         assert!(src.contains("[\"sha256-collision-resistance\", \"random-oracle-fiat-shamir-sha256\"]"));
         assert!(!src.contains("{{"));
+        let native = cfg.expected_native_lean(&root, &inp).unwrap();
+        let extra = BTreeMap::from([
+            ("bin_digest".to_string(), LeanValue::Bytes("22".repeat(32))),
+            ("toolchain_id".to_string(), LeanValue::Str("leanprover/lean4:v4.34.1+leanc".into())),
+        ]);
+        let nsrc = native.render_with(&extra).unwrap();
+        assert!(nsrc.contains(".nativeTrusted binaryDigest toolchainId model"));
+        assert!(!nsrc.contains("{{"));
+        assert!(native.render().is_err(), "bin_digest must come from the judge build");
     }
 }

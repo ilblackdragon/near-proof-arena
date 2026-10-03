@@ -92,17 +92,33 @@ fn main() -> anyhow::Result<()> {
             let inp = ExpectedInputs::from_definition(
                 &def,
                 pub_d.ok_or_else(|| anyhow::anyhow!("--public-digest required"))?,
-                ver_d.ok_or_else(|| anyhow::anyhow!("--verifier-digest required"))?,
+                match (&route, ver_d) {
+                    (native::VerifierRoute::NativeLean(_), _) => String::new(),
+                    (_, d) => d.ok_or_else(|| anyhow::anyhow!("--verifier-digest required"))?,
+                },
             )?;
             trusted.extend(cfg.trusted_packages(&root));
             policy.reserved_prefixes.extend(cfg.reserved_prefixes.iter().cloned());
             policy.axiom_allowlist = def.toolchain_policy.axiom_allowlist.clone();
-            cfg.expected(&root, &inp)?
+            if matches!(route, native::VerifierRoute::NativeLean(_)) {
+                cfg.expected_native_lean(&root, &inp)?
+            } else {
+                cfg.expected(&root, &inp)?
+            }
         }
         _ => anyhow::bail!("give exactly one of --expected or --challenge-config"),
     };
     if let Some(p) = emit {
-        std::fs::write(&p, expected.render()?)?;
+        // native-lean: the binary digest is only known after the judge build.
+        let extra = if matches!(route, native::VerifierRoute::NativeLean(_)) {
+            std::collections::BTreeMap::from([
+                ("bin_digest".to_string(), LeanValue::Bytes("00".repeat(32))),
+                ("toolchain_id".to_string(), LeanValue::Str("<judge build>".into())),
+            ])
+        } else {
+            Default::default()
+        };
+        std::fs::write(&p, expected.render_with(&extra)?)?;
         eprintln!("wrote {}", p.display());
         if formal.is_none() {
             return Ok(());

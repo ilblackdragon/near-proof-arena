@@ -21,6 +21,7 @@ Config (JSON):
     "toolchainPrefixes": ["Init", "Std", "Lean", "Lake"] }
 -/
 import Lean
+import ArenaAudit.Version
 open Lean
 
 namespace ArenaAudit
@@ -273,6 +274,9 @@ def check (cfg : Config) : IO UInt32 := do
   return 0
 
 def main (args : List String) : IO UInt32 := do
+  if args == ["version"] then
+    IO.println toolsKey
+    return 0
   setupSearchPath
   match args with
   | ["check", path] => check (← readConfig path)
