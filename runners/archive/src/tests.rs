@@ -103,9 +103,15 @@ fn extracts_tar_and_zstd_identically() {
     assert_eq!(m.permissions().mode() & 0o777, 0o755);
     let m = fs::metadata(t.dest().join("src/a.rs")).unwrap();
     assert_eq!(m.permissions().mode() & 0o777, 0o644);
-    assert_eq!(fs::read(t.dest().join("src/a.rs")).unwrap(), b"fn main() {}");
+    assert_eq!(
+        fs::read(t.dest().join("src/a.rs")).unwrap(),
+        b"fn main() {}"
+    );
     // Digest of the on-disk tree equals the streaming digest.
-    assert_eq!(tree_from_dir(&t.dest(), &Limits::default()).unwrap(), a.tree);
+    assert_eq!(
+        tree_from_dir(&t.dest(), &Limits::default()).unwrap(),
+        a.tree
+    );
 }
 
 #[test]
@@ -127,7 +133,11 @@ fn tree_digest_known_vector() {
     // Empty dirs don't change the digest.
     let t2 = Tmp::new();
     let y = ingest_bytes(
-        &tar_of(&[raw_entry(b"zz/", b'5', 0o755, b"", b""), file("a", b""), raw_entry(b"b/c", b'0', 0o755, b"x", b"")]),
+        &tar_of(&[
+            raw_entry(b"zz/", b'5', 0o755, b"", b""),
+            file("a", b""),
+            raw_entry(b"b/c", b'0', 0o755, b"x", b""),
+        ]),
         &t2.dest(),
         &Limits::default(),
     )
@@ -139,7 +149,16 @@ fn tree_digest_known_vector() {
 fn global_pax_header_is_ignored() {
     let t = Tmp::new();
     let x = ingest_bytes(
-        &tar_of(&[raw_entry(b"pax_global_header", b'g', 0o644, b"52 comment=0000000000000000000000000000000000000000\n", b""), file("a", b"1")]),
+        &tar_of(&[
+            raw_entry(
+                b"pax_global_header",
+                b'g',
+                0o644,
+                b"52 comment=0000000000000000000000000000000000000000\n",
+                b"",
+            ),
+            file("a", b"1"),
+        ]),
         &t.dest(),
         &Limits::default(),
     )
@@ -163,41 +182,92 @@ fn pack_roundtrip_is_deterministic() {
 fn dest_must_be_fresh() {
     let t = Tmp::new();
     fs::create_dir(t.dest()).unwrap();
-    assert!(matches!(ingest_bytes(&sample_pkg(), &t.dest(), &Limits::default()), Err(ArchiveError::Io(_))));
+    assert!(matches!(
+        ingest_bytes(&sample_pkg(), &t.dest(), &Limits::default()),
+        Err(ArchiveError::Io(_))
+    ));
 }
 
 // ---------- hostile fixtures ----------
 
 #[test]
 fn rejects_symlink() {
-    expect_unsafe(&tar_of(&[raw_entry(b"evil", b'2', 0o777, b"", b"/etc/passwd")]), &Limits::default(), "symlink");
+    expect_unsafe(
+        &tar_of(&[raw_entry(b"evil", b'2', 0o777, b"", b"/etc/passwd")]),
+        &Limits::default(),
+        "symlink",
+    );
 }
 
 #[test]
 fn rejects_hardlink() {
-    expect_unsafe(&tar_of(&[file("a", b"1"), raw_entry(b"b", b'1', 0o644, b"", b"a")]), &Limits::default(), "hardlink");
+    expect_unsafe(
+        &tar_of(&[file("a", b"1"), raw_entry(b"b", b'1', 0o644, b"", b"a")]),
+        &Limits::default(),
+        "hardlink",
+    );
 }
 
 #[test]
 fn rejects_devices_and_fifos() {
-    expect_unsafe(&tar_of(&[raw_entry(b"c", b'3', 0o644, b"", b"")]), &Limits::default(), "device");
-    expect_unsafe(&tar_of(&[raw_entry(b"b", b'4', 0o644, b"", b"")]), &Limits::default(), "device");
-    expect_unsafe(&tar_of(&[raw_entry(b"f", b'6', 0o644, b"", b"")]), &Limits::default(), "fifo");
-    expect_unsafe(&tar_of(&[raw_entry(b"s", b'S', 0o644, b"", b"")]), &Limits::default(), "sparse");
+    expect_unsafe(
+        &tar_of(&[raw_entry(b"c", b'3', 0o644, b"", b"")]),
+        &Limits::default(),
+        "device",
+    );
+    expect_unsafe(
+        &tar_of(&[raw_entry(b"b", b'4', 0o644, b"", b"")]),
+        &Limits::default(),
+        "device",
+    );
+    expect_unsafe(
+        &tar_of(&[raw_entry(b"f", b'6', 0o644, b"", b"")]),
+        &Limits::default(),
+        "fifo",
+    );
+    expect_unsafe(
+        &tar_of(&[raw_entry(b"s", b'S', 0o644, b"", b"")]),
+        &Limits::default(),
+        "sparse",
+    );
 }
 
 #[test]
 fn rejects_absolute_and_traversal() {
-    expect_unsafe(&tar_of(&[file("/etc/x", b"1")]), &Limits::default(), "absolute");
-    expect_unsafe(&tar_of(&[file("../x", b"1")]), &Limits::default(), "dot component");
-    expect_unsafe(&tar_of(&[file("a/../../x", b"1")]), &Limits::default(), "dot component");
-    expect_unsafe(&tar_of(&[file("a//x", b"1")]), &Limits::default(), "empty path component");
-    expect_unsafe(&tar_of(&[raw_entry(b"a\\..\\x", b'0', 0o644, b"1", b"")]), &Limits::default(), "forbidden character");
+    expect_unsafe(
+        &tar_of(&[file("/etc/x", b"1")]),
+        &Limits::default(),
+        "absolute",
+    );
+    expect_unsafe(
+        &tar_of(&[file("../x", b"1")]),
+        &Limits::default(),
+        "dot component",
+    );
+    expect_unsafe(
+        &tar_of(&[file("a/../../x", b"1")]),
+        &Limits::default(),
+        "dot component",
+    );
+    expect_unsafe(
+        &tar_of(&[file("a//x", b"1")]),
+        &Limits::default(),
+        "empty path component",
+    );
+    expect_unsafe(
+        &tar_of(&[raw_entry(b"a\\..\\x", b'0', 0o644, b"1", b"")]),
+        &Limits::default(),
+        "forbidden character",
+    );
 }
 
 #[test]
 fn rejects_non_utf8_and_long_paths() {
-    expect_unsafe(&tar_of(&[raw_entry(b"bad\xff\xfe", b'0', 0o644, b"1", b"")]), &Limits::default(), "UTF-8");
+    expect_unsafe(
+        &tar_of(&[raw_entry(b"bad\xff\xfe", b'0', 0o644, b"1", b"")]),
+        &Limits::default(),
+        "UTF-8",
+    );
     // GNU long name (> 255 bytes) through the tar crate's builder.
     let mut b = tar::Builder::new(Vec::new());
     let mut h = tar::Header::new_gnu();
@@ -205,43 +275,107 @@ fn rejects_non_utf8_and_long_paths() {
     h.set_mode(0o644);
     let long = format!("{}/f", "d".repeat(300));
     b.append_data(&mut h, &long, &b"1"[..]).unwrap();
-    expect_unsafe(&b.into_inner().unwrap(), &Limits::default(), "longer than 255");
+    expect_unsafe(
+        &b.into_inner().unwrap(),
+        &Limits::default(),
+        "longer than 255",
+    );
     // PAX path record that smuggles a traversal.
     let rec = b"19 path=../../evil\n";
-    let pax = tar_of(&[raw_entry(b"PaxHeaders/x", b'x', 0o644, rec, b""), file("innocent", b"1")]);
+    let pax = tar_of(&[
+        raw_entry(b"PaxHeaders/x", b'x', 0o644, rec, b""),
+        file("innocent", b"1"),
+    ]);
     expect_unsafe(&pax, &Limits::default(), "dot component");
 }
 
 #[test]
 fn rejects_duplicates_and_collisions() {
-    expect_unsafe(&tar_of(&[file("a", b"1"), file("a", b"2")]), &Limits::default(), "duplicate");
-    expect_unsafe(&tar_of(&[file("a", b"1"), file("./a", b"2")]), &Limits::default(), "duplicate");
-    expect_unsafe(&tar_of(&[file("README.md", b"1"), file("readme.md", b"2")]), &Limits::default(), "collision");
-    expect_unsafe(&tar_of(&[file("Dir/a", b"1"), file("dir/b", b"2")]), &Limits::default(), "collision");
-    expect_unsafe(&tar_of(&[file("caf\u{e9}", b"1"), file("cafe\u{301}", b"2")]), &Limits::default(), "collision");
-    expect_unsafe(&tar_of(&[file("a", b"1"), file("a/b", b"2")]), &Limits::default(), "beneath file");
-    expect_unsafe(&tar_of(&[file("a/b", b"1"), file("a", b"2")]), &Limits::default(), "conflicts with directory");
-    expect_unsafe(&tar_of(&[raw_entry(b"d/", b'5', 0o755, b"", b""), raw_entry(b"d/", b'5', 0o755, b"", b"")]), &Limits::default(), "duplicate");
+    expect_unsafe(
+        &tar_of(&[file("a", b"1"), file("a", b"2")]),
+        &Limits::default(),
+        "duplicate",
+    );
+    expect_unsafe(
+        &tar_of(&[file("a", b"1"), file("./a", b"2")]),
+        &Limits::default(),
+        "duplicate",
+    );
+    expect_unsafe(
+        &tar_of(&[file("README.md", b"1"), file("readme.md", b"2")]),
+        &Limits::default(),
+        "collision",
+    );
+    expect_unsafe(
+        &tar_of(&[file("Dir/a", b"1"), file("dir/b", b"2")]),
+        &Limits::default(),
+        "collision",
+    );
+    expect_unsafe(
+        &tar_of(&[file("caf\u{e9}", b"1"), file("cafe\u{301}", b"2")]),
+        &Limits::default(),
+        "collision",
+    );
+    expect_unsafe(
+        &tar_of(&[file("a", b"1"), file("a/b", b"2")]),
+        &Limits::default(),
+        "beneath file",
+    );
+    expect_unsafe(
+        &tar_of(&[file("a/b", b"1"), file("a", b"2")]),
+        &Limits::default(),
+        "conflicts with directory",
+    );
+    expect_unsafe(
+        &tar_of(&[
+            raw_entry(b"d/", b'5', 0o755, b"", b""),
+            raw_entry(b"d/", b'5', 0o755, b"", b""),
+        ]),
+        &Limits::default(),
+        "duplicate",
+    );
 }
 
 #[test]
 fn rejects_setuid_setgid_sticky() {
-    expect_unsafe(&tar_of(&[raw_entry(b"x", b'0', 0o4755, b"1", b"")]), &Limits::default(), "setuid");
-    expect_unsafe(&tar_of(&[raw_entry(b"x", b'0', 0o2755, b"1", b"")]), &Limits::default(), "setuid");
-    expect_unsafe(&tar_of(&[raw_entry(b"d/", b'5', 0o1777, b"", b"")]), &Limits::default(), "sticky");
+    expect_unsafe(
+        &tar_of(&[raw_entry(b"x", b'0', 0o4755, b"1", b"")]),
+        &Limits::default(),
+        "setuid",
+    );
+    expect_unsafe(
+        &tar_of(&[raw_entry(b"x", b'0', 0o2755, b"1", b"")]),
+        &Limits::default(),
+        "setuid",
+    );
+    expect_unsafe(
+        &tar_of(&[raw_entry(b"d/", b'5', 0o1777, b"", b"")]),
+        &Limits::default(),
+        "sticky",
+    );
 }
 
 #[test]
 fn rejects_too_many_entries() {
     let entries: Vec<Vec<u8>> = (0..11).map(|i| file(&format!("f{i}"), b"")).collect();
-    let limits = Limits { max_entries: 10, ..Limits::default() };
+    let limits = Limits {
+        max_entries: 10,
+        ..Limits::default()
+    };
     expect_unsafe(&tar_of(&entries), &limits, "more than 10 entries");
 }
 
 #[test]
 fn rejects_expanded_size() {
-    let limits = Limits { max_expanded_bytes: 1000, ..Limits::default() };
-    expect_unsafe(&tar_of(&[file("a", &[1u8; 600]), file("b", &[2u8; 600])]), &limits, "expanded size");
+    let limits = Limits {
+        max_expanded_bytes: 1000,
+        ..Limits::default()
+    };
+    expect_unsafe(
+        &tar_of(&[file("a", &[1u8; 600]), file("b", &[2u8; 600])]),
+        &limits,
+        "expanded size",
+    );
     // Header lies about size: claims 10 GiB with no data.
     let mut e = file("big", b"");
     octal(&mut e[124..136], (1 << 33) - 1);
@@ -284,12 +418,22 @@ fn rejects_compression_bomb_early() {
 
 #[test]
 fn rejects_compressed_size_limit() {
-    let limits = Limits { max_compressed_bytes: 1024, ..Limits::default() };
-    expect_unsafe(&tar_of(&[file("a", &[7u8; 4096])]), &limits, "compressed size limit");
+    let limits = Limits {
+        max_compressed_bytes: 1024,
+        ..Limits::default()
+    };
+    expect_unsafe(
+        &tar_of(&[file("a", &[7u8; 4096])]),
+        &limits,
+        "compressed size limit",
+    );
     // Streaming path (no up-front length check).
     let t = Tmp::new();
     let data = tar_of(&[file("a", &[7u8; 4096])]);
-    assert!(matches!(ingest(&data[..], &t.dest(), &limits), Err(ArchiveError::Unsafe(_))));
+    assert!(matches!(
+        ingest(&data[..], &t.dest(), &limits),
+        Err(ArchiveError::Unsafe(_))
+    ));
 }
 
 #[test]
@@ -302,7 +446,11 @@ fn rejects_truncated_archive() {
 
 #[test]
 fn rejects_file_for_root() {
-    expect_unsafe(&tar_of(&[file("./", b"1")]), &Limits::default(), "archive root");
+    expect_unsafe(
+        &tar_of(&[file("./", b"1")]),
+        &Limits::default(),
+        "archive root",
+    );
 }
 
 #[test]
@@ -312,12 +460,19 @@ fn tree_from_dir_rejects_symlinks_and_hardlinks() {
     fs::create_dir(&d).unwrap();
     fs::write(d.join("a"), b"1").unwrap();
     std::os::unix::fs::symlink("/etc/passwd", d.join("l")).unwrap();
-    assert!(tree_from_dir(&d, &Limits::default()).unwrap_err().is_unsafe());
+    assert!(tree_from_dir(&d, &Limits::default())
+        .unwrap_err()
+        .is_unsafe());
     fs::remove_file(d.join("l")).unwrap();
     fs::hard_link(d.join("a"), d.join("h")).unwrap();
-    assert!(tree_from_dir(&d, &Limits::default()).unwrap_err().is_unsafe());
+    assert!(tree_from_dir(&d, &Limits::default())
+        .unwrap_err()
+        .is_unsafe());
     fs::remove_file(d.join("h")).unwrap();
-    assert_eq!(tree_from_dir(&d, &Limits::default()).unwrap().files.len(), 1);
+    assert_eq!(
+        tree_from_dir(&d, &Limits::default()).unwrap().files.len(),
+        1
+    );
 }
 
 // ---------- property tests ----------
@@ -341,7 +496,14 @@ fn valid_subset(m: BTreeMap<String, (bool, Vec<u8>)>) -> BTreeMap<String, (bool,
     let mut out = BTreeMap::new();
     for (k, v) in m {
         if b.add(&k, false).is_ok() {
-            b.set_file(k.clone(), TreeFile { mode: FileMode::File, digest: arena_types::Digest::of_bytes(b""), size: 0 });
+            b.set_file(
+                k.clone(),
+                TreeFile {
+                    mode: FileMode::File,
+                    digest: arena_types::Digest::of_bytes(b""),
+                    size: 0,
+                },
+            );
             out.insert(k, v);
         }
     }
@@ -443,18 +605,35 @@ lean_project = "formal"
 certificate = "Candidate.certificate"
 "#;
 
-fn pkg_with(manifest: &str, tweak: impl FnOnce(&mut BTreeMap<String, (u32, Vec<u8>)>)) -> Result<arena_types::CandidateManifest, PackageError> {
+fn pkg_with(
+    manifest: &str,
+    tweak: impl FnOnce(&mut BTreeMap<String, (u32, Vec<u8>)>),
+) -> Result<arena_types::CandidateManifest, PackageError> {
     let mut m: BTreeMap<String, (u32, Vec<u8>)> = BTreeMap::new();
-    m.insert("candidate.toml".into(), (0o644, manifest.as_bytes().to_vec()));
+    m.insert(
+        "candidate.toml".into(),
+        (0o644, manifest.as_bytes().to_vec()),
+    );
     m.insert("README.md".into(), (0o644, b"hi".to_vec()));
     m.insert("source/".into(), (0o755, vec![]));
     m.insert("dependency-locks/".into(), (0o755, vec![]));
     m.insert("formal/Candidate.lean".into(), (0o644, b"".to_vec()));
-    m.insert("build-recipe/build.sh".into(), (0o755, b"#!/bin/sh\n".to_vec()));
+    m.insert(
+        "build-recipe/build.sh".into(),
+        (0o755, b"#!/bin/sh\n".to_vec()),
+    );
     tweak(&mut m);
     let entries: Vec<Vec<u8>> = m
         .iter()
-        .map(|(k, (mode, d))| raw_entry(k.as_bytes(), if k.ends_with('/') { b'5' } else { b'0' }, *mode, d, b""))
+        .map(|(k, (mode, d))| {
+            raw_entry(
+                k.as_bytes(),
+                if k.ends_with('/') { b'5' } else { b'0' },
+                *mode,
+                d,
+                b"",
+            )
+        })
         .collect();
     let t = Tmp::new();
     let x = ingest_bytes(&tar_of(&entries), &t.dest(), &Limits::default()).unwrap();
@@ -470,23 +649,98 @@ fn package_ok() {
 #[test]
 fn package_layout_violations() {
     let layout = |r: Result<_, PackageError>, needle: &str| match r {
-        Err(PackageError::Layout(m)) | Err(PackageError::Manifest(m)) => assert!(m.contains(needle), "{needle:?} not in {m:?}"),
+        Err(PackageError::Layout(m)) | Err(PackageError::Manifest(m)) => {
+            assert!(m.contains(needle), "{needle:?} not in {m:?}")
+        }
         other => panic!("expected layout error {needle:?}, got {other:?}"),
     };
-    layout(pkg_with(MANIFEST, |m| { m.remove("README.md"); }), "README.md");
-    layout(pkg_with(MANIFEST, |m| { m.remove("source/"); }), "source/");
-    layout(pkg_with(MANIFEST, |m| { m.remove("formal/Candidate.lean"); }), "lean_project");
-    layout(pkg_with(MANIFEST, |m| { m.get_mut("build-recipe/build.sh").unwrap().0 = 0o644; }), "not executable");
-    layout(pkg_with(MANIFEST, |m| { m.remove("build-recipe/build.sh"); m.insert("build-recipe/".into(), (0o755, vec![])); }), "not a regular file");
-    layout(pkg_with(MANIFEST, |m| { m.insert("out/prove".into(), (0o755, vec![])); }), "already present");
-    layout(pkg_with(&MANIFEST.replace("prove = \"out/prove\"", "prove = \"source/prove\""), |_| {}), "entry.prove");
-    layout(pkg_with(&MANIFEST.replace("outputs = [\"out\"]", "outputs = [\"out\", \"out/x\"]"), |_| {}), "nested");
-    layout(pkg_with(&MANIFEST.replace("outputs = [\"out\"]", "outputs = []"), |_| {}), "build.outputs");
-    layout(pkg_with(&MANIFEST.replace("recipe = \"build-recipe/build.sh\"", "recipe = \"source/build.sh\""), |m| { m.insert("source/build.sh".into(), (0o755, vec![])); }), "under build-recipe");
+    layout(
+        pkg_with(MANIFEST, |m| {
+            m.remove("README.md");
+        }),
+        "README.md",
+    );
+    layout(
+        pkg_with(MANIFEST, |m| {
+            m.remove("source/");
+        }),
+        "source/",
+    );
+    layout(
+        pkg_with(MANIFEST, |m| {
+            m.remove("formal/Candidate.lean");
+        }),
+        "lean_project",
+    );
+    layout(
+        pkg_with(MANIFEST, |m| {
+            m.get_mut("build-recipe/build.sh").unwrap().0 = 0o644;
+        }),
+        "not executable",
+    );
+    layout(
+        pkg_with(MANIFEST, |m| {
+            m.remove("build-recipe/build.sh");
+            m.insert("build-recipe/".into(), (0o755, vec![]));
+        }),
+        "not a regular file",
+    );
+    layout(
+        pkg_with(MANIFEST, |m| {
+            m.insert("out/prove".into(), (0o755, vec![]));
+        }),
+        "already present",
+    );
+    layout(
+        pkg_with(
+            &MANIFEST.replace("prove = \"out/prove\"", "prove = \"source/prove\""),
+            |_| {},
+        ),
+        "entry.prove",
+    );
+    layout(
+        pkg_with(
+            &MANIFEST.replace("outputs = [\"out\"]", "outputs = [\"out\", \"out/x\"]"),
+            |_| {},
+        ),
+        "nested",
+    );
+    layout(
+        pkg_with(
+            &MANIFEST.replace("outputs = [\"out\"]", "outputs = []"),
+            |_| {},
+        ),
+        "build.outputs",
+    );
+    layout(
+        pkg_with(
+            &MANIFEST.replace(
+                "recipe = \"build-recipe/build.sh\"",
+                "recipe = \"source/build.sh\"",
+            ),
+            |m| {
+                m.insert("source/build.sh".into(), (0o755, vec![]));
+            },
+        ),
+        "under build-recipe",
+    );
     layout(pkg_with("not toml", |_| {}), "");
-    layout(pkg_with(&format!("security_bits = 128\n{MANIFEST}"), |_| {}), "unknown field");
-    layout(pkg_with(MANIFEST, |m| { m.remove("candidate.toml"); }), "missing");
-    layout(pkg_with(MANIFEST, |m| { m.insert("candidate.toml".into(), (0o644, vec![b' '; 70_000])); }), "larger");
+    layout(
+        pkg_with(&format!("security_bits = 128\n{MANIFEST}"), |_| {}),
+        "unknown field",
+    );
+    layout(
+        pkg_with(MANIFEST, |m| {
+            m.remove("candidate.toml");
+        }),
+        "missing",
+    );
+    layout(
+        pkg_with(MANIFEST, |m| {
+            m.insert("candidate.toml".into(), (0o644, vec![b' '; 70_000]));
+        }),
+        "larger",
+    );
 }
 
 #[test]

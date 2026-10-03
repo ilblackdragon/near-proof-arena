@@ -37,12 +37,16 @@ fn sandbox(backend: &str, work_dir: &Path) -> Arc<dyn Sandbox> {
     match backend {
         "bwrap-dev" => {
             let exe = std::env::current_exe().unwrap_or_else(|e| die(e));
-            let helper = HelperCommand { exe, prefix_args: vec![HELPER_ARG.to_string()] };
+            let helper = HelperCommand {
+                exe,
+                prefix_args: vec![HELPER_ARG.to_string()],
+            };
             let cfg = BwrapConfig::new(helper, work_dir.join("sandbox"));
             Arc::new(BwrapDev::new(cfg).unwrap_or_else(|e| die(e)))
         }
         "firecracker" => {
-            let cfg = arena_firecracker::FirecrackerConfig::from_env(&work_dir.join("firecracker")).unwrap_or_else(|e| die(e));
+            let cfg = arena_firecracker::FirecrackerConfig::from_env(&work_dir.join("firecracker"))
+                .unwrap_or_else(|e| die(e));
             Arc::new(arena_firecracker::FirecrackerSandbox::new(cfg).unwrap_or_else(|e| die(e)))
         }
         other => die(format!("unknown sandbox backend {other:?}")),
@@ -52,7 +56,9 @@ fn sandbox(backend: &str, work_dir: &Path) -> Arc<dyn Sandbox> {
 fn oracles(dirs: &[PathBuf], near: Option<(PathBuf, PathBuf)>) -> Oracles {
     let mut o = Oracles::builtin();
     if let Some((bin, gens)) = near {
-        o = o.with_near(bin, &gens).unwrap_or_else(|e| die(format!("NEAR oracle: {e}")));
+        o = o
+            .with_near(bin, &gens)
+            .unwrap_or_else(|e| die(format!("NEAR oracle: {e}")));
     }
     for d in dirs {
         match o.add_fixtures_dir(d) {
@@ -63,7 +69,11 @@ fn oracles(dirs: &[PathBuf], near: Option<(PathBuf, PathBuf)>) -> Oracles {
     o
 }
 
-fn formal(repo: Option<PathBuf>, configs: Option<PathBuf>, images: Option<PathBuf>) -> Option<FormalEnv> {
+fn formal(
+    repo: Option<PathBuf>,
+    configs: Option<PathBuf>,
+    images: Option<PathBuf>,
+) -> Option<FormalEnv> {
     repo.map(|repo| FormalEnv {
         configs_dir: configs.unwrap_or_else(|| repo.join("runners/formal-checker/challenges")),
         repo,
@@ -81,25 +91,43 @@ fn main() {
         None | Some("once") => {
             let settings = Settings::from_process().unwrap_or_else(|e| die(e));
             let cfg = WorkerConfig::load(&settings).unwrap_or_else(|e| die(e));
-            let http = Arc::new(HttpControl::new(&cfg.server_url, &cfg.token).unwrap_or_else(|e| die(e)));
+            let http =
+                Arc::new(HttpControl::new(&cfg.server_url, &cfg.token).unwrap_or_else(|e| die(e)));
             let ctx = WorkerContext {
                 worker_id: cfg.worker_id.clone(),
                 sandbox: sandbox(&cfg.backend, &cfg.work_dir),
                 store: http.clone(),
                 work_root: cfg.work_dir.join("jobs"),
-                build: BuildEnv { mounts: cfg.build_mounts.clone(), path: cfg.build_path.clone(), env: cfg.build_env.clone(), images_dir: cfg.images_dir.clone(), toolchain_image: cfg.toolchain_image.clone() },
+                build: BuildEnv {
+                    mounts: cfg.build_mounts.clone(),
+                    path: cfg.build_path.clone(),
+                    env: cfg.build_env.clone(),
+                    images_dir: cfg.images_dir.clone(),
+                    toolchain_image: cfg.toolchain_image.clone(),
+                },
                 bench_cpus: cfg.bench_cpus.clone(),
                 bench_batch_cap: cfg.bench_batch_cap,
                 conformance_samples: cfg.conformance_samples,
                 mutators: MutatorRegistry::with_adversarial_lane(),
-                oracles: oracles(&cfg.fixtures_dirs, cfg.near_oracle.clone().zip(cfg.workload_generators.clone())),
-                formal: formal(cfg.formal_repo.clone(), cfg.formal_configs_dir.clone(), cfg.lean_checker_images.clone()),
+                oracles: oracles(
+                    &cfg.fixtures_dirs,
+                    cfg.near_oracle.clone().zip(cfg.workload_generators.clone()),
+                ),
+                formal: formal(
+                    cfg.formal_repo.clone(),
+                    cfg.formal_configs_dir.clone(),
+                    cfg.lean_checker_images.clone(),
+                ),
                 npai_verify: cfg.npai_verify.clone(),
                 interp_ref: cfg.interp_ref.clone(),
                 keep_workdirs: cfg.keep_workdirs,
             };
             let exec = StageExecutor::new(ctx);
-            let kinds: Vec<_> = exec.kinds().into_iter().filter(|k| cfg.kinds.contains(k)).collect();
+            let kinds: Vec<_> = exec
+                .kinds()
+                .into_iter()
+                .filter(|k| cfg.kinds.contains(k))
+                .collect();
             eprintln!(
                 "arena-worker {}: backend {} (tier cap {:?}), kinds {:?}",
                 cfg.worker_id,
@@ -140,11 +168,19 @@ fn run_job_local(args: &[String]) {
             p => job_path = Some(PathBuf::from(p)),
         }
     }
-    let (Some(job_path), Some(store)) = (job_path, store) else { die("usage: run-job SPEC.json --store DIR [--work DIR]") };
-    let work = work.unwrap_or_else(|| std::env::temp_dir().join(format!("arena-worker-{}", std::process::id())));
-    let spec: JobSpec = serde_json::from_slice(&std::fs::read(&job_path).unwrap_or_else(|e| die(e))).unwrap_or_else(|e| die(e));
+    let (Some(job_path), Some(store)) = (job_path, store) else {
+        die("usage: run-job SPEC.json --store DIR [--work DIR]")
+    };
+    let work = work.unwrap_or_else(|| {
+        std::env::temp_dir().join(format!("arena-worker-{}", std::process::id()))
+    });
+    let spec: JobSpec =
+        serde_json::from_slice(&std::fs::read(&job_path).unwrap_or_else(|e| die(e)))
+            .unwrap_or_else(|e| die(e));
     let store: Arc<dyn ArtifactStore> = Arc::new(FsStore::new(store).unwrap_or_else(|e| die(e)));
-    let fixtures: Vec<PathBuf> = std::env::var("ARENA_FIXTURES_DIRS").map(|v| v.split(',').map(PathBuf::from).collect()).unwrap_or_default();
+    let fixtures: Vec<PathBuf> = std::env::var("ARENA_FIXTURES_DIRS")
+        .map(|v| v.split(',').map(PathBuf::from).collect())
+        .unwrap_or_default();
     let ctx = WorkerContext {
         worker_id: "local".into(),
         sandbox: sandbox("bwrap-dev", &work),
@@ -152,12 +188,16 @@ fn run_job_local(args: &[String]) {
         work_root: work.join("jobs"),
         build: BuildEnv::default(),
         bench_cpus: None,
-        bench_batch_cap: std::env::var("ARENA_DEV_BENCH_BATCH_CAP").ok().and_then(|v| v.parse().ok()),
+        bench_batch_cap: std::env::var("ARENA_DEV_BENCH_BATCH_CAP")
+            .ok()
+            .and_then(|v| v.parse().ok()),
         conformance_samples: 8,
         mutators: MutatorRegistry::with_adversarial_lane(),
         oracles: oracles(
             &fixtures,
-            std::env::var_os("ARENA_NEAR_ORACLE").map(PathBuf::from).zip(std::env::var_os("ARENA_WORKLOAD_GENERATORS").map(PathBuf::from)),
+            std::env::var_os("ARENA_NEAR_ORACLE")
+                .map(PathBuf::from)
+                .zip(std::env::var_os("ARENA_WORKLOAD_GENERATORS").map(PathBuf::from)),
         ),
         formal: formal(
             std::env::var_os("ARENA_FORMAL_REPO").map(PathBuf::from),

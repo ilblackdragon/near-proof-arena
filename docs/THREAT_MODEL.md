@@ -111,9 +111,14 @@ imports are restricted to `allowed_packages` pinned by commit; elaboration
 happens in a sandbox with resource limits.
 *Residual*: a soundness bug in the Lean kernel *and* in every rechecker
 simultaneously; bugs in the export format; mistakes in the *spec itself* (a
-spec that does not say what NEAR does) — see 4.12. **[aspirational]** the
-formal-checker lane's recheck pipeline is being built in parallel; until it
-lands, no formal challenge can be admitted (and none is signed).
+spec that does not say what NEAR does) — see 4.12. The recheck
+pipeline exists (`runners/formal-checker`: Stage A elaboration, Stage B
+`leanchecker` + `nanoda` (+ `lean4lean` if installed) on the export, Stage C
+audits) and a `formal` challenge is signed
+(`challenges/chl_5ef2bc7d2068219635426e47ca46bfbb.json`). **[open]** No
+production worker leases `FORMAL_CHECK` jobs yet (`runners/worker` has no
+formal job kind; see `docs/ARCHITECTURE.md` §9), so no formal admission has
+happened.
 
 ### 4.4 Verifier binaries (implementation connection)
 *Attacks*: the shipped `verify` executable differs from the formally
@@ -128,10 +133,18 @@ argument binds native code to the formal model, with the compiler in the TCB.
 witness, no oracle, no expected-result file; repeated with hostile bytes
 (`ADVERSARIAL_PROOFS`) and checked for determinism
 (`VERIFIER_NONDETERMINISTIC`).
-*Residual*: **[aspirational]** the bytecode interpreter route and its
-formal model do not exist yet; the native route depends on unverified
-compilers. Until one exists, `FORMAL_IMPL_CONNECTION` cannot pass, so
-`formal` admissions are impossible — fail-closed by construction.
+Implemented as `verify_route = "npai-v1"` (interpreter `runners/npai`,
+formal model `formal-core/ArenaCore/Interp.lean`) and `verify_route =
+"native-lean"` (the judge compiles the candidate's Lean verifier model with
+the pinned Lean compiler; the candidate's own `verify` binary is never
+admitted); `common/arena-types/src/candidate.rs` `VerifyRoute`.
+*Residual*: on `npai-v1` the Rust interpreter ↔ `interpVerify` agreement is
+**tested** (differential), not checked; on `native-lean` the Lean compiler
+(`leanc`, runtime, C toolchain) is in the TCB and the edge is recorded as
+`trusted` in the evidence graph. **[open]** the worker does not yet execute
+`npai-v1` bytecode or the judge-built `native-lean` verifier in the
+conformance/adversarial/benchmark stages (it always runs `entry.verify`);
+see `docs/ARCHITECTURE.md` §9.
 
 ### 4.5 Timing forgery and benchmark gaming
 *Attacks*: binaries that report their own timings; precomputation in

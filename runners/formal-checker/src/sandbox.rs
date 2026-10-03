@@ -93,7 +93,10 @@ pub struct SandboxRunner {
 const G_STDOUT: &str = "/arena/stdout";
 
 impl SandboxRunner {
-    pub fn new(sandbox: std::sync::Arc<dyn arena_sandbox::Sandbox>, work: impl Into<PathBuf>) -> Result<Self, InfraError> {
+    pub fn new(
+        sandbox: std::sync::Arc<dyn arena_sandbox::Sandbox>,
+        work: impl Into<PathBuf>,
+    ) -> Result<Self, InfraError> {
         let layout = sandbox.layout();
         if !layout.rw_binds {
             return Err(InfraError::Refused(format!(
@@ -103,7 +106,11 @@ impl SandboxRunner {
         }
         let work = work.into();
         std::fs::create_dir_all(&work)?;
-        Ok(SandboxRunner { sandbox, rootfs: arena_sandbox::Rootfs::BackendDefault, work })
+        Ok(SandboxRunner {
+            sandbox,
+            rootfs: arena_sandbox::Rootfs::BackendDefault,
+            work,
+        })
     }
 
     /// Run every step in `rootfs` (e.g. the digest-pinned lean-checker image
@@ -116,26 +123,57 @@ impl SandboxRunner {
 
     /// Development convenience: the shared `bwrap-dev` backend (refused
     /// unless `ARENA_DEV_UNSAFE=1`) with the sandbox helper at `helper`.
-    pub fn bwrap_dev(helper: arena_sandbox::HelperCommand, work: impl Into<PathBuf>) -> Result<Self, InfraError> {
+    pub fn bwrap_dev(
+        helper: arena_sandbox::HelperCommand,
+        work: impl Into<PathBuf>,
+    ) -> Result<Self, InfraError> {
         let work = work.into();
-        let sb = arena_sandbox::BwrapDev::new(arena_sandbox::BwrapConfig::new(helper, work.join("sandbox")))
-            .map_err(|e| InfraError::Refused(e.to_string()))?;
+        let sb = arena_sandbox::BwrapDev::new(arena_sandbox::BwrapConfig::new(
+            helper,
+            work.join("sandbox"),
+        ))
+        .map_err(|e| InfraError::Refused(e.to_string()))?;
         Self::new(std::sync::Arc::new(sb), work)
     }
 
-    fn translate(&self, spec: &RunSpec, stdout_dir: Option<&std::path::Path>) -> arena_sandbox::SandboxSpec {
+    fn translate(
+        &self,
+        spec: &RunSpec,
+        stdout_dir: Option<&std::path::Path>,
+    ) -> arena_sandbox::SandboxSpec {
         let guest = |p: &PathBuf| p.display().to_string();
         let mut argv = spec.argv.clone();
         if stdout_dir.is_some() {
-            let mut w = vec!["/bin/sh".to_string(), "-c".into(), format!("exec \"$0\" \"$@\" > {G_STDOUT}/out")];
+            let mut w = vec![
+                "/bin/sh".to_string(),
+                "-c".into(),
+                format!("exec \"$0\" \"$@\" > {G_STDOUT}/out"),
+            ];
             w.extend(argv);
             argv = w;
         }
         let mut s = arena_sandbox::SandboxSpec::new(argv);
-        s.ro_mounts = spec.ro.iter().map(|(h, g)| arena_sandbox::Mount { host: h.clone(), guest: guest(g) }).collect();
-        s.rw_binds = spec.rw.iter().map(|(h, g)| arena_sandbox::Mount { host: h.clone(), guest: guest(g) }).collect();
+        s.ro_mounts = spec
+            .ro
+            .iter()
+            .map(|(h, g)| arena_sandbox::Mount {
+                host: h.clone(),
+                guest: guest(g),
+            })
+            .collect();
+        s.rw_binds = spec
+            .rw
+            .iter()
+            .map(|(h, g)| arena_sandbox::Mount {
+                host: h.clone(),
+                guest: guest(g),
+            })
+            .collect();
         if let Some(d) = stdout_dir {
-            s.rw_binds.push(arena_sandbox::Mount { host: d.to_path_buf(), guest: G_STDOUT.into() });
+            s.rw_binds.push(arena_sandbox::Mount {
+                host: d.to_path_buf(),
+                guest: G_STDOUT.into(),
+            });
         }
         s.env = spec.env.clone();
         s.rootfs = self.rootfs.clone();
@@ -181,19 +219,21 @@ impl UntrustedRunner for SandboxRunner {
         let res = self.sandbox.run(&sspec);
         let o = match res {
             Ok(o) => o,
-            Err(arena_sandbox::InfraError::InvalidSpec(m)) | Err(arena_sandbox::InfraError::Refused(m)) => {
-                return Err(InfraError::Refused(m))
-            }
+            Err(arena_sandbox::InfraError::InvalidSpec(m))
+            | Err(arena_sandbox::InfraError::Refused(m)) => return Err(InfraError::Refused(m)),
             Err(e) => return Err(InfraError::Io(std::io::Error::other(e.to_string()))),
         };
         let mut captured: Option<Vec<u8>> = None;
         if let Some(d) = &stdout_dir {
             let src = d.join("out");
             // Regular file only: never follow anything the sandbox planted.
-            let regular = std::fs::symlink_metadata(&src).map(|m| m.file_type().is_file()).unwrap_or(false);
+            let regular = std::fs::symlink_metadata(&src)
+                .map(|m| m.file_type().is_file())
+                .unwrap_or(false);
             match &spec.stdout_file {
                 Some(target) if regular => {
-                    std::fs::rename(&src, target).or_else(|_| std::fs::copy(&src, target).map(|_| ()))?;
+                    std::fs::rename(&src, target)
+                        .or_else(|_| std::fs::copy(&src, target).map(|_| ()))?;
                 }
                 Some(target) => {
                     std::fs::File::create(target)?;
@@ -202,7 +242,9 @@ impl UntrustedRunner for SandboxRunner {
                     let mut b = Vec::new();
                     if regular {
                         use std::io::Read;
-                        std::fs::File::open(&src)?.take(capture_limit as u64).read_to_end(&mut b)?;
+                        std::fs::File::open(&src)?
+                            .take(capture_limit as u64)
+                            .read_to_end(&mut b)?;
                     }
                     captured = Some(b);
                 }
@@ -220,6 +262,11 @@ impl UntrustedRunner for SandboxRunner {
         stdout.truncate(capture_limit);
         let mut stderr = o.stderr_trunc;
         stderr.truncate(CAPTURE_LIMIT);
-        Ok(RunOutcome { exit, wall: Duration::from_nanos(o.wall_ns), stdout, stderr })
+        Ok(RunOutcome {
+            exit,
+            wall: Duration::from_nanos(o.wall_ns),
+            stdout,
+            stderr,
+        })
     }
 }

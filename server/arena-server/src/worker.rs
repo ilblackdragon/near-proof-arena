@@ -81,7 +81,13 @@ async fn complete(
 ) -> ApiResult<Json<AckResponse>> {
     // Every referenced artifact must already be in the store (upload first,
     // then complete). This does not consume an attempt.
-    for d in req.result.artifacts.iter().map(|a| &a.digest).chain(req.result.native_verifier.iter()) {
+    for d in req
+        .result
+        .artifacts
+        .iter()
+        .map(|a| &a.digest)
+        .chain(req.result.native_verifier.iter())
+    {
         if !st.store.exists(d).await? {
             return Err(ApiError::new(
                 StatusCode::UNPROCESSABLE_ENTITY,

@@ -170,6 +170,11 @@ pub struct BuildOutputs {
     /// later stages run this binary, never the candidate's `verify`.
     #[serde(default)]
     pub native_verifier: Option<Digest>,
+    /// `verify_route = "npai-v1"`: digest of the built `entry.verifier_bytecode`
+    /// file. Required for that route (the server refuses to derive a verified
+    /// surface without it).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_bytecode: Option<Digest>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -208,6 +213,9 @@ pub type AdversarialJob = ExecJob;
 pub type BenchmarkJob = ExecJob;
 
 /// A leased job specification, tagged by kind.
+// Variant sizes differ (FormalCheck carries the verified surface); there is
+// one per lease, so boxing would only add noise.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind", content = "job", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum JobSpec {

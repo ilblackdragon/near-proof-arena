@@ -1,6 +1,8 @@
 //! Helpers shared by the stages that run entry points.
 
-use crate::executor::{describe_exit, entry_spec, failure_reason, ExecError, JobRun, MAX_BUNDLE_BYTES};
+use crate::executor::{
+    describe_exit, entry_spec, failure_reason, ExecError, JobRun, MAX_BUNDLE_BYTES,
+};
 use crate::jobs::{BuildOutputs, RunLimits};
 use crate::oracle::Case;
 use arena_sandbox::{ExitStatus, SandboxOutcome};
@@ -10,31 +12,65 @@ use std::path::{Path, PathBuf};
 
 /// Fetch and safely unpack the build bundle (bound to `build.bundle` by
 /// TreeDigest); check the entry points are executable regular files in it.
-pub fn fetch_bundle(r: &mut JobRun<'_>, build: &BuildOutputs, entry: &EntryPoints) -> Result<PathBuf, ExecError> {
-    let archive = build.bundle_archive.as_ref().ok_or_else(|| ExecError::Infra("build outputs carry no bundle_archive".into()))?;
+pub fn fetch_bundle(
+    r: &mut JobRun<'_>,
+    build: &BuildOutputs,
+    entry: &EntryPoints,
+) -> Result<PathBuf, ExecError> {
+    let archive = build
+        .bundle_archive
+        .as_ref()
+        .ok_or_else(|| ExecError::Infra("build outputs carry no bundle_archive".into()))?;
     let x = r.fetch_tree(archive, &build.bundle, MAX_BUNDLE_BYTES, "bundle")?;
-    for (e, want) in [(&entry.prepare, &build.prepare), (&entry.prove, &build.prove)] {
+    for (e, want) in [
+        (&entry.prepare, &build.prepare),
+        (&entry.prove, &build.prove),
+        (&entry.verify, &build.verify),
+    ] {
         match x.tree.files.get(e.as_str()) {
             Some(f) if f.mode == arena_archive::FileMode::Exec && &f.digest == want => {}
-            _ => return Err(ExecError::Infra(format!("bundle lacks executable {e:?} with the built digest {want}"))),
+            _ => {
+                return Err(ExecError::Infra(format!(
+                    "bundle lacks executable {e:?} with the built digest {want}"
+                )))
+            }
         }
     }
-    // The verifier artifact: the npai-v1 bytecode, else the built `verify`.
-    let (vpath, needs_exec) = match (&entry.verify_route, &entry.verifier_bytecode) {
-        (Some(arena_types::candidate::VerifyRoute::NpaiV1), Some(bc)) => (bc, false),
-        _ => (&entry.verify, true),
-    };
-    match x.tree.files.get(vpath.as_str()) {
-        Some(f) if (!needs_exec || f.mode == arena_archive::FileMode::Exec) && f.digest == build.verify => {}
-        _ => return Err(ExecError::Infra(format!("bundle lacks the verifier artifact {vpath:?} with the built digest {}", build.verify))),
+    // npai-v1: the bytecode the judge's interpreter runs.
+    if let (Some(arena_types::candidate::VerifyRoute::NpaiV1), Some(bc)) =
+        (&entry.verify_route, &entry.verifier_bytecode)
+    {
+        let want = build.verifier_bytecode.as_ref().ok_or_else(|| {
+            ExecError::Infra("npai-v1 build outputs carry no verifier_bytecode digest".into())
+        })?;
+        match x.tree.files.get(bc.as_str()) {
+            Some(f) if &f.digest == want => {}
+            _ => {
+                return Err(ExecError::Infra(format!(
+                    "bundle lacks the verifier bytecode {bc:?} with the built digest {want}"
+                )))
+            }
+        }
     }
     Ok(x.root)
 }
 
 /// Fetch the frozen judge-run `public_dir` (bound by TreeDigest).
-pub fn fetch_public(r: &mut JobRun<'_>, build: &BuildOutputs, limits: &RunLimits) -> Result<PathBuf, ExecError> {
-    let archive = build.public_archive.as_ref().ok_or_else(|| ExecError::Infra("build outputs carry no public_archive".into()))?;
-    let x = r.fetch_tree(archive, &build.public_artifacts, limits.max_public_artifact_bytes.clamp(1, MAX_BUNDLE_BYTES), "public")?;
+pub fn fetch_public(
+    r: &mut JobRun<'_>,
+    build: &BuildOutputs,
+    limits: &RunLimits,
+) -> Result<PathBuf, ExecError> {
+    let archive = build
+        .public_archive
+        .as_ref()
+        .ok_or_else(|| ExecError::Infra("build outputs carry no public_archive".into()))?;
+    let x = r.fetch_tree(
+        archive,
+        &build.public_artifacts,
+        limits.max_public_artifact_bytes.clamp(1, MAX_BUNDLE_BYTES),
+        "public",
+    )?;
     Ok(x.root)
 }
 
@@ -49,14 +85,22 @@ pub struct Prepared {
 /// `approved_params.bin` for the judge-run `prepare`: from the challenge's
 /// oracle (e.g. the NEAR fixtures' `params.bin`); empty for encodings that
 /// define none.
-pub fn approved_params(r: &JobRun<'_>, chal: &arena_types::ChallengeDefinition) -> Result<Vec<u8>, ExecError> {
+pub fn approved_params(
+    r: &JobRun<'_>,
+    chal: &arena_types::ChallengeDefinition,
+) -> Result<Vec<u8>, ExecError> {
     use crate::oracle::OracleError;
     match r.ctx.oracles.get(chal) {
         Err(OracleError::Unavailable(_)) => Ok(vec![]),
         Err(e) => Err(ExecError::Infra(e.to_string())),
         Ok(o) => {
-            let fx = r.ctx.oracles.fixtures_for(chal).map_err(|e| ExecError::Infra(e.to_string()))?;
-            o.approved_params(chal, fx.as_deref()).map_err(|e| ExecError::Infra(format!("approved params: {e}")))
+            let fx = r
+                .ctx
+                .oracles
+                .fixtures_for(chal)
+                .map_err(|e| ExecError::Infra(e.to_string()))?;
+            o.approved_params(chal, fx.as_deref())
+                .map_err(|e| ExecError::Infra(format!("approved params: {e}")))
         }
     }
 }
@@ -89,24 +133,51 @@ pub fn run_prepare(
     spec.max_output_bytes = limits.max_public_artifact_bytes;
     let o = r.run(&spec)?;
     if o.pids_limit_hit {
-        return Ok(Err(fail(ObligationId::ResourceLimits, ReasonCode::ResourceLimit, format!("prepare hit the process limit ({})", describe_exit(&o)))));
+        return Ok(Err(fail(
+            ObligationId::ResourceLimits,
+            ReasonCode::ResourceLimit,
+            format!("prepare hit the process limit ({})", describe_exit(&o)),
+        )));
     }
     if !o.exit.success() {
         let reason = failure_reason(&o);
-        let gate = if reason == ReasonCode::ResourceLimit || reason == ReasonCode::Timeout { ObligationId::ResourceLimits } else { ObligationId::ProverReliability };
-        return Ok(Err(fail(gate, reason, format!("prepare failed: {}", describe_exit(&o)))));
+        let gate = if reason == ReasonCode::ResourceLimit || reason == ReasonCode::Timeout {
+            ObligationId::ResourceLimits
+        } else {
+            ObligationId::ProverReliability
+        };
+        return Ok(Err(fail(
+            gate,
+            reason,
+            format!("prepare failed: {}", describe_exit(&o)),
+        )));
     }
     if let Some(e) = &o.output_error {
         return Ok(Err(if e.contains("size limit") {
-            fail(ObligationId::ResourceLimits, ReasonCode::ResourceLimit, format!("public dir exceeds {} bytes", limits.max_public_artifact_bytes))
+            fail(
+                ObligationId::ResourceLimits,
+                ReasonCode::ResourceLimit,
+                format!(
+                    "public dir exceeds {} bytes",
+                    limits.max_public_artifact_bytes
+                ),
+            )
         } else {
-            fail(ObligationId::ProverReliability, ReasonCode::ProverFailed, format!("prepare produced unusable output: {e}"))
+            fail(
+                ObligationId::ProverReliability,
+                ReasonCode::ProverFailed,
+                format!("prepare produced unusable output: {e}"),
+            )
         }));
     }
     let public_dir = out_dir.join("out/public");
     std::fs::create_dir_all(&public_dir)?;
     let tree = arena_archive::tree_from_dir(&public_dir, &arena_archive::Limits::default())?;
-    Ok(Ok(Prepared { public_dir, tree, outcome: o }))
+    Ok(Ok(Prepared {
+        public_dir,
+        tree,
+        outcome: o,
+    }))
 }
 
 pub struct Proved {
@@ -126,8 +197,39 @@ pub struct StepFailure {
     pub detail: String,
 }
 
+impl StepFailure {
+    /// Summary text for a case (red team RT-04). On a held-out case `prove`
+    /// has seen the secret request/witness, and much of `detail` is chosen by
+    /// the candidate (output file names quoted in collect errors, exit codes,
+    /// sizes, peak memory): a covert channel into the public gate summary.
+    /// Held-out failures report only the fixed reason code.
+    pub fn detail_for(&self, public: bool) -> String {
+        if public {
+            self.detail.clone()
+        } else {
+            format!(
+                "failed ({:?}; details withheld for held-out cases)",
+                self.reason
+            )
+        }
+    }
+}
+
+/// `describe_exit` for summaries; withheld on held-out cases (RT-04).
+pub fn exit_for(o: &SandboxOutcome, public: bool) -> String {
+    if public {
+        describe_exit(o)
+    } else {
+        "details withheld for held-out cases".into()
+    }
+}
+
 fn fail(gate: arena_types::ObligationId, reason: ReasonCode, detail: String) -> StepFailure {
-    StepFailure { reason, gate, detail }
+    StepFailure {
+        reason,
+        gate,
+        detail,
+    }
 }
 
 /// `prove` in a sandbox that holds the witness. Checks claim size and bytes
@@ -182,15 +284,32 @@ pub fn verifier_for(
                 return Ok(Err("verify_route npai-v1: this worker has no judge npai-verify (ARENA_NPAI_VERIFY)".into()));
             };
             let Some(fp) = &j.challenge.formal_params else {
-                return Ok(Err("verify_route npai-v1: the challenge has no formal_params.verify_fuel".into()));
+                return Ok(Err(
+                    "verify_route npai-v1: the challenge has no formal_params.verify_fuel".into(),
+                ));
             };
-            let bc = j.manifest.entry.verifier_bytecode.clone().unwrap_or_default();
+            let bc = j
+                .manifest
+                .entry
+                .verifier_bytecode
+                .clone()
+                .unwrap_or_default();
             Ok(Verifier::Npai {
                 tool,
                 image: bundle.join(bc),
                 fuel: fp.verify_fuel,
-                digest_hex: j.build.verify.hex().to_string(),
-                shadow: if shadow { r.ctx.interp_ref.clone() } else { None },
+                digest_hex: match &j.build.verifier_bytecode {
+                    Some(d) => d.hex().to_string(),
+                    None => return Ok(Err(
+                        "verify_route npai-v1: no verifier bytecode digest in the build outputs"
+                            .into(),
+                    )),
+                },
+                shadow: if shadow {
+                    r.ctx.interp_ref.clone()
+                } else {
+                    None
+                },
             })
         }
         Some(VerifyRoute::NativeLean) => {
@@ -206,7 +325,11 @@ pub fn verifier_for(
     })
 }
 
-pub fn run_prove(r: &mut JobRun<'_>, env: &EntryEnv<'_>, case: &Case) -> Result<Result<Proved, StepFailure>, ExecError> {
+pub fn run_prove(
+    r: &mut JobRun<'_>,
+    env: &EntryEnv<'_>,
+    case: &Case,
+) -> Result<Result<Proved, StepFailure>, ExecError> {
     let request = r.write_file(&case.request, "request")?;
     let witness = r.write_file(&case.witness, "witness")?;
     let (request, witness) = (request.as_path(), witness.as_path());
@@ -219,10 +342,22 @@ pub fn run_prove(r: &mut JobRun<'_>, env: &EntryEnv<'_>, case: &Case) -> Result<
         bundle,
         &entry.prove,
         &[
-            "--public", "@in/public", "--request", "@in/request.bin", "--witness", "@in/witness.bin", "--claim-out",
-            "@scratch/out/claim.bin", "--proof-out", "@scratch/out/proof.bin",
+            "--public",
+            "@in/public",
+            "--request",
+            "@in/request.bin",
+            "--witness",
+            "@in/witness.bin",
+            "--claim-out",
+            "@scratch/out/claim.bin",
+            "--proof-out",
+            "@scratch/out/proof.bin",
         ],
-        &[(public_dir, "public"), (request, "request.bin"), (witness, "witness.bin")],
+        &[
+            (public_dir, "public"),
+            (request, "request.bin"),
+            (witness, "witness.bin"),
+        ],
         limits.max_prove_ms,
         limits,
     );
@@ -233,43 +368,99 @@ pub fn run_prove(r: &mut JobRun<'_>, env: &EntryEnv<'_>, case: &Case) -> Result<
     }
     spec.collect = vec!["out".into()];
     spec.out_dir = Some(out_dir.clone());
-    spec.max_output_bytes = limits.max_claim_bytes.saturating_add(limits.max_proof_bytes).saturating_add(1);
+    spec.max_output_bytes = limits
+        .max_claim_bytes
+        .saturating_add(limits.max_proof_bytes)
+        .saturating_add(1);
     let o = r.run(&spec)?;
     // Hitting a resource cap is a RESOURCE_LIMITS fact even if the entry
     // point itself exited 0 (e.g. a fork bomb left behind).
     if o.pids_limit_hit {
-        return Ok(Err(fail(ResourceLimits, ReasonCode::ResourceLimit, format!("prove hit the process limit ({})", describe_exit(&o)))));
+        return Ok(Err(fail(
+            ResourceLimits,
+            ReasonCode::ResourceLimit,
+            format!("prove hit the process limit ({})", describe_exit(&o)),
+        )));
     }
     if !o.exit.success() {
         let reason = failure_reason(&o);
-        let gate = if reason == ReasonCode::ResourceLimit { ResourceLimits } else { ProverReliability };
-        return Ok(Err(fail(gate, reason, format!("prove {}", describe_exit(&o)))));
+        let gate = if reason == ReasonCode::ResourceLimit {
+            ResourceLimits
+        } else {
+            ProverReliability
+        };
+        return Ok(Err(fail(
+            gate,
+            reason,
+            format!("prove {}", describe_exit(&o)),
+        )));
     }
     if let Some(e) = &o.output_error {
         return Ok(Err(if e.contains("size limit") {
-            fail(ResourceLimits, ReasonCode::ResourceLimit, "claim+proof exceed size caps".into())
+            fail(
+                ResourceLimits,
+                ReasonCode::ResourceLimit,
+                "claim+proof exceed size caps".into(),
+            )
         } else {
-            fail(ProverReliability, ReasonCode::ProverFailed, format!("unusable outputs: {e}"))
+            fail(
+                ProverReliability,
+                ReasonCode::ProverFailed,
+                format!("unusable outputs: {e}"),
+            )
         }));
     }
     if o.peak_rss_bytes > limits.max_ram_bytes {
-        return Ok(Err(fail(ResourceLimits, ReasonCode::ResourceLimit, format!("peak memory {} > {}", o.peak_rss_bytes, limits.max_ram_bytes))));
+        return Ok(Err(fail(
+            ResourceLimits,
+            ReasonCode::ResourceLimit,
+            format!(
+                "peak memory {} > {}",
+                o.peak_rss_bytes, limits.max_ram_bytes
+            ),
+        )));
     }
     let claim_path = out_dir.join("out/claim.bin");
     let proof_path = out_dir.join("out/proof.bin");
     let (Ok(claim), Ok(proof)) = (std::fs::read(&claim_path), std::fs::read(&proof_path)) else {
-        return Ok(Err(fail(ProverReliability, ReasonCode::ProverFailed, "prove exited 0 without claim.bin and proof.bin".into())));
+        return Ok(Err(fail(
+            ProverReliability,
+            ReasonCode::ProverFailed,
+            "prove exited 0 without claim.bin and proof.bin".into(),
+        )));
     };
     if claim.len() as u64 > limits.max_claim_bytes {
-        return Ok(Err(fail(ConformanceDifferential, ReasonCode::ClaimMismatch, format!("claim is {} bytes > max_claim_bytes", claim.len()))));
+        return Ok(Err(fail(
+            ConformanceDifferential,
+            ReasonCode::ClaimMismatch,
+            format!("claim is {} bytes > max_claim_bytes", claim.len()),
+        )));
     }
     if claim != case.expected_claim {
-        return Ok(Err(fail(ConformanceDifferential, ReasonCode::ClaimMismatch, "claim.bin differs from the oracle's expected claim".into())));
+        return Ok(Err(fail(
+            ConformanceDifferential,
+            ReasonCode::ClaimMismatch,
+            "claim.bin differs from the oracle's expected claim".into(),
+        )));
     }
     if proof.len() as u64 > limits.max_proof_bytes {
-        return Ok(Err(fail(ResourceLimits, ReasonCode::ResourceLimit, format!("proof is {} bytes > max_proof_bytes {}", proof.len(), limits.max_proof_bytes))));
+        return Ok(Err(fail(
+            ResourceLimits,
+            ReasonCode::ResourceLimit,
+            format!(
+                "proof is {} bytes > max_proof_bytes {}",
+                proof.len(),
+                limits.max_proof_bytes
+            ),
+        )));
     }
-    Ok(Ok(Proved { claim, proof, claim_path, proof_path, outcome: o }))
+    Ok(Ok(Proved {
+        claim,
+        proof,
+        claim_path,
+        proof_path,
+        outcome: o,
+    }))
 }
 
 /// Verifier verdict (CONTRACTS §4: 0 accept, 1 reject, anything else error).
@@ -296,26 +487,78 @@ pub fn run_verify(
 ) -> Result<(Verdict, SandboxOutcome), ExecError> {
     let (bundle, entry, public_dir, limits) = (env.bundle, env.entry, env.public_dir, env.limits);
     let layout = r.ctx.sandbox.layout();
-    let io_args = ["--public", "@in/public", "--claim", "@in/claim.bin", "--proof", "@in/proof.bin"];
-    let io_files: [(&Path, &str); 3] = [(public_dir, "public"), (claim, "claim.bin"), (proof, "proof.bin")];
+    let io_args = [
+        "--public",
+        "@in/public",
+        "--claim",
+        "@in/claim.bin",
+        "--proof",
+        "@in/proof.bin",
+    ];
+    let io_files: [(&Path, &str); 3] = [
+        (public_dir, "public"),
+        (claim, "claim.bin"),
+        (proof, "proof.bin"),
+    ];
     let mut spec = match env.verifier {
-        Verifier::Candidate => entry_spec(&layout, bundle, &entry.verify, &io_args, &io_files, limits.max_verify_ms, limits),
-        Verifier::Npai { tool, image, fuel, digest_hex, .. } => {
+        Verifier::Candidate => entry_spec(
+            &layout,
+            bundle,
+            &entry.verify,
+            &io_args,
+            &io_files,
+            limits.max_verify_ms,
+            limits,
+        ),
+        Verifier::Npai {
+            tool,
+            image,
+            fuel,
+            digest_hex,
+            ..
+        } => {
             let fuel = fuel.to_string();
             let mut args = vec!["--image", "@in/verifier.npai"];
             args.extend(io_args);
-            args.extend(["--fuel", fuel.as_str(), "--expect-digest", digest_hex.as_str()]);
+            args.extend([
+                "--fuel",
+                fuel.as_str(),
+                "--expect-digest",
+                digest_hex.as_str(),
+            ]);
             let mut files = io_files.to_vec();
             files.push((image.as_path(), "verifier.npai"));
-            judge_spec(&layout, tool, "npai-verify", &args, &files, limits.max_verify_ms, limits)
+            judge_spec(
+                &layout,
+                tool,
+                "npai-verify",
+                &args,
+                &files,
+                limits.max_verify_ms,
+                limits,
+            )
         }
-        Verifier::NativeLean { binary } => judge_spec(&layout, binary, "verify", &io_args, &io_files, limits.max_verify_ms, limits),
+        Verifier::NativeLean { binary } => judge_spec(
+            &layout,
+            binary,
+            "verify",
+            &io_args,
+            &io_files,
+            limits.max_verify_ms,
+            limits,
+        ),
     };
     spec.env.push(("ARENA_STAGE".into(), "verify".into()));
     spec.cpu_set = env.cpu_set.clone();
     let o = r.run(&spec)?;
     let v = verdict_for(env.verifier, o.exit);
-    if let Verifier::Npai { shadow: Some(reference), image, fuel, .. } = env.verifier {
+    if let Verifier::Npai {
+        shadow: Some(reference),
+        image,
+        fuel,
+        ..
+    } = env.verifier
+    {
         shadow_check(r, env, reference, image, *fuel, claim, proof, &o, v)?;
     }
     Ok((v, o))
@@ -343,10 +586,22 @@ fn judge_spec(
     timeout_ms: u64,
     limits: &RunLimits,
 ) -> arena_sandbox::SandboxSpec {
-    let mut s = entry_spec(layout, Path::new("/nonexistent"), "", args, files, timeout_ms, limits);
-    s.ro_mounts.retain(|m| m.guest != format!("{}/bundle", layout.inputs));
+    let mut s = entry_spec(
+        layout,
+        Path::new("/nonexistent"),
+        "",
+        args,
+        files,
+        timeout_ms,
+        limits,
+    );
+    s.ro_mounts
+        .retain(|m| m.guest != format!("{}/bundle", layout.inputs));
     let guest = format!("{}/judge/{name}", layout.inputs);
-    s.ro_mounts.push(arena_sandbox::Mount { host: exe.to_path_buf(), guest: guest.clone() });
+    s.ro_mounts.push(arena_sandbox::Mount {
+        host: exe.to_path_buf(),
+        guest: guest.clone(),
+    });
     s.argv[0] = guest;
     s
 }
@@ -372,18 +627,45 @@ fn shadow_check(
     }
     let pub_bin = env.public_dir.join("public.bin");
     let size = |p: &Path| std::fs::metadata(p).map(|m| m.len()).unwrap_or(u64::MAX);
-    let total = size(&pub_bin).saturating_add(size(claim)).saturating_add(size(proof));
+    let total = size(&pub_bin)
+        .saturating_add(size(claim))
+        .saturating_add(size(proof));
     if total > SHADOW_MAX_INPUT_BYTES {
         r.shadow.1 += 1;
         return Ok(());
     }
     let layout = r.ctx.sandbox.layout();
     let fuel_s = fuel.to_string();
-    let args = ["run", "--code", "@in/verifier.npai", "--public", "@in/public.bin", "--claim", "@in/claim.bin", "--proof", "@in/proof.bin", "--fuel", fuel_s.as_str()];
-    let files: [(&Path, &str); 4] = [(image, "verifier.npai"), (&pub_bin, "public.bin"), (claim, "claim.bin"), (proof, "proof.bin")];
+    let args = [
+        "run",
+        "--code",
+        "@in/verifier.npai",
+        "--public",
+        "@in/public.bin",
+        "--claim",
+        "@in/claim.bin",
+        "--proof",
+        "@in/proof.bin",
+        "--fuel",
+        fuel_s.as_str(),
+    ];
+    let files: [(&Path, &str); 4] = [
+        (image, "verifier.npai"),
+        (&pub_bin, "public.bin"),
+        (claim, "claim.bin"),
+        (proof, "proof.bin"),
+    ];
     let mut limits = env.limits.clone();
     limits.max_ram_bytes = limits.max_ram_bytes.max(1 << 30);
-    let spec = judge_spec(&layout, reference, "arena-interp-ref", &args, &files, SHADOW_TIMEOUT_MS, &limits);
+    let spec = judge_spec(
+        &layout,
+        reference,
+        "arena-interp-ref",
+        &args,
+        &files,
+        SHADOW_TIMEOUT_MS,
+        &limits,
+    );
     let o = r.run(&spec)?;
     let lean_verdict = match o.exit {
         ExitStatus::Exited(0) => Verdict::Accept,
@@ -395,11 +677,18 @@ fn shadow_check(
         }
     };
     let field = |out: &[u8], k: &str| -> Option<String> {
-        let v: serde_json::Value = serde_json::from_slice(out.split(|b| *b == b'\n').next()?).ok()?;
+        let v: serde_json::Value =
+            serde_json::from_slice(out.split(|b| *b == b'\n').next()?).ok()?;
         Some(v.get(k)?.to_string())
     };
-    let (ro, lo) = (field(&rust.stdout_trunc, "outcome"), field(&o.stdout_trunc, "outcome"));
-    let (rf, lf) = (field(&rust.stdout_trunc, "fuel_used"), field(&o.stdout_trunc, "fuel_used"));
+    let (ro, lo) = (
+        field(&rust.stdout_trunc, "outcome"),
+        field(&o.stdout_trunc, "outcome"),
+    );
+    let (rf, lf) = (
+        field(&rust.stdout_trunc, "fuel_used"),
+        field(&o.stdout_trunc, "fuel_used"),
+    );
     let outcome_differs = ro.is_some() && lo.is_some() && ro != lo;
     let fuel_differs = rf.is_some() && lf.is_some() && rf != lf;
     if lean_verdict != verdict || outcome_differs || fuel_differs {

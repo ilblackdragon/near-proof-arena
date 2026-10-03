@@ -1,11 +1,12 @@
-//! `native-lean` verifier route against the in-repo formal-core (`ArenaCore` and
-//! `Toy.Spec` trusted). The candidate supplies a Lean verifier model
+//! `native-lean` verifier route against the in-repo formal-core (`ArenaCore`
+//! + `Toy.Spec` trusted). The candidate supplies a Lean verifier model
 //! (`Candidate.Model.verify : ArenaCore.OracleVerifier`); the judge builds the
 //! native `verify` from it, pins the build digest in the statement
 //! (`.nativeTrusted <digest> <toolchain> Candidate.Model.verify`), and checks
 //! the certificate against the statement instantiated at the model.
 //!
 //! Requires `ARENA_DEV_UNSAFE=1` and installed tools; otherwise SKIP.
+#![allow(clippy::type_complexity, clippy::doc_lazy_continuation)]
 
 use arena_formal_checker::native::{NativeLeanRoute, VerifierRoute};
 use arena_formal_checker::*;
@@ -38,8 +39,12 @@ fn expected() -> TemplateExpected {
     TemplateExpected {
         module: "ArenaExpected".into(),
         decl: "ArenaExpected.expectedTypeFor".into(),
-        template: std::fs::read_to_string(crate_dir().join("tests/native/Expected.lean.tmpl")).unwrap(),
-        data: BTreeMap::from([("public_digest".into(), LeanValue::Bytes(hex_list(&art[i..])))]),
+        template: std::fs::read_to_string(crate_dir().join("tests/native/Expected.lean.tmpl"))
+            .unwrap(),
+        data: BTreeMap::from([(
+            "public_digest".into(),
+            LeanValue::Bytes(hex_list(&art[i..])),
+        )]),
     }
 }
 
@@ -48,18 +53,30 @@ fn candidate(dest: &Path, model: &str) {
     std::fs::create_dir_all(dest.join("Toy")).unwrap();
     std::fs::create_dir_all(dest.join("Candidate")).unwrap();
     for m in ["Programs", "BytecodeProofs", "Artifacts", "Certificate"] {
-        std::fs::copy(core_dir().join(format!("Toy/{m}.lean")), dest.join(format!("Toy/{m}.lean"))).unwrap();
+        std::fs::copy(
+            core_dir().join(format!("Toy/{m}.lean")),
+            dest.join(format!("Toy/{m}.lean")),
+        )
+        .unwrap();
     }
-    std::fs::copy(crate_dir().join("tests/native/Candidate.lean"), dest.join("Candidate.lean")).unwrap();
-    std::fs::copy(crate_dir().join(format!("tests/native/models/{model}.lean")), dest.join("Candidate/Model.lean")).unwrap();
+    std::fs::copy(
+        crate_dir().join("tests/native/Candidate.lean"),
+        dest.join("Candidate.lean"),
+    )
+    .unwrap();
+    std::fs::copy(
+        crate_dir().join(format!("tests/native/models/{model}.lean")),
+        dest.join("Candidate/Model.lean"),
+    )
+    .unwrap();
 }
 
 /// Run the judge-built verifier on the toy instance (CONTRACTS §4 CLI).
 fn run_verifier(bin: &Path, dir: &Path, claim: &[u8]) -> i32 {
     // public tape = Toy.toyPub = sha256 toyTable; proof = the table "ARNA".
     let toy_pub = [
-        44u8, 87, 180, 217, 243, 243, 188, 83, 27, 45, 6, 189, 46, 109, 250, 247, 174, 214, 4, 61, 253, 192, 74, 102, 105, 43,
-        128, 13, 219, 99, 220, 53,
+        44u8, 87, 180, 217, 243, 243, 188, 83, 27, 45, 6, 189, 46, 109, 250, 247, 174, 214, 4, 61,
+        253, 192, 74, 102, 105, 43, 128, 13, 219, 99, 220, 53,
     ];
     std::fs::create_dir_all(dir.join("public")).unwrap();
     std::fs::write(dir.join("public/public.bin"), toy_pub).unwrap();
@@ -84,7 +101,10 @@ struct Case {
 }
 
 fn native(_: &Path) -> VerifierRoute {
-    VerifierRoute::NativeLean(NativeLeanRoute::new("Candidate.Model.verify", "Candidate.Model"))
+    VerifierRoute::NativeLean(NativeLeanRoute::new(
+        "Candidate.Model.verify",
+        "Candidate.Model",
+    ))
 }
 
 #[test]
@@ -109,26 +129,75 @@ fn native_lean_route() {
         src_root: core_dir(),
         include: Some(vec!["ArenaCore".into(), "Toy.Spec".into()]),
     }];
-    let policy = Policy { reserved_prefixes: vec!["ArenaCore".into()], ..Policy::default() };
+    let policy = Policy {
+        reserved_prefixes: vec!["ArenaCore".into()],
+        ..Policy::default()
+    };
     use ObligationId::*;
     let fail_all = |codes: Vec<&'static str>| vec![(None, GateStatus::Fail, codes)];
     // Formal gates fail; the binary is still the judge build of the (rejected)
     // model, so ARTIFACT_BINDING itself may pass.
     let fail_formal = |codes: Vec<&'static str>| {
-        [FormalSemanticSoundness, FormalSemanticCompleteness, FormalCryptoSoundness, FormalImplConnection, AxiomAudit]
-            .into_iter()
-            .map(|g| (Some(g), GateStatus::Fail, codes.clone()))
-            .collect::<Vec<_>>()
+        [
+            FormalSemanticSoundness,
+            FormalSemanticCompleteness,
+            FormalCryptoSoundness,
+            FormalImplConnection,
+            AxiomAudit,
+        ]
+        .into_iter()
+        .map(|g| (Some(g), GateStatus::Fail, codes.clone()))
+        .collect::<Vec<_>>()
     };
     let cases = vec![
-        Case { name: "native_ok", model: "ok", route: native, expect: vec![(None, GateStatus::Pass, vec![])] },
-        Case { name: "native_model_sorry", model: "sorry", route: native, expect: fail_formal(vec!["SORRY_FOUND"]) },
-        Case { name: "native_model_axiom", model: "axiom", route: native, expect: fail_formal(vec!["FORBIDDEN_AXIOM"]) },
-        Case { name: "native_model_native_decide", model: "native_decide", route: native, expect: fail_formal(vec!["NATIVE_EVAL_FOUND"]) },
-        Case { name: "native_model_shadow", model: "shadow", route: native, expect: fail_all(vec!["SHADOWED_DEFINITION"]) },
-        Case { name: "native_model_macro_hijack", model: "macro_hijack", route: native, expect: fail_all(vec!["ARTIFACT_BINDING_FAILED"]) },
-        Case { name: "native_model_imports_lean", model: "imports_lean", route: native, expect: fail_all(vec!["ARTIFACT_BINDING_FAILED"]) },
-        Case { name: "native_model_missing", model: "missing", route: native, expect: fail_all(vec!["ARTIFACT_BINDING_FAILED"]) },
+        Case {
+            name: "native_ok",
+            model: "ok",
+            route: native,
+            expect: vec![(None, GateStatus::Pass, vec![])],
+        },
+        Case {
+            name: "native_model_sorry",
+            model: "sorry",
+            route: native,
+            expect: fail_formal(vec!["SORRY_FOUND"]),
+        },
+        Case {
+            name: "native_model_axiom",
+            model: "axiom",
+            route: native,
+            expect: fail_formal(vec!["FORBIDDEN_AXIOM"]),
+        },
+        Case {
+            name: "native_model_native_decide",
+            model: "native_decide",
+            route: native,
+            expect: fail_formal(vec!["NATIVE_EVAL_FOUND"]),
+        },
+        Case {
+            name: "native_model_shadow",
+            model: "shadow",
+            route: native,
+            expect: fail_all(vec!["SHADOWED_DEFINITION"]),
+        },
+        Case {
+            name: "native_model_macro_hijack",
+            model: "macro_hijack",
+            route: native,
+            expect: fail_all(vec!["ARTIFACT_BINDING_FAILED"]),
+        },
+        Case {
+            name: "native_model_imports_lean",
+            model: "imports_lean",
+            route: native,
+            expect: fail_all(vec!["ARTIFACT_BINDING_FAILED"]),
+        },
+        Case {
+            name: "native_model_missing",
+            model: "missing",
+            route: native,
+            expect: fail_all(vec!["ARTIFACT_BINDING_FAILED"]),
+        },
         Case {
             name: "native_candidate_binary",
             model: "ok",
@@ -140,12 +209,21 @@ fn native_lean_route() {
                 VerifierRoute::NativeLean(r)
             },
             expect: vec![
-                (Some(ArtifactBinding), GateStatus::Fail, vec!["ARTIFACT_BINDING_FAILED"]),
+                (
+                    Some(ArtifactBinding),
+                    GateStatus::Fail,
+                    vec!["ARTIFACT_BINDING_FAILED"],
+                ),
                 (Some(FormalSemanticSoundness), GateStatus::Pass, vec![]),
                 (Some(AxiomAudit), GateStatus::Pass, vec![]),
             ],
         },
-        Case { name: "candidate_native_no_model", model: "ok", route: |_| VerifierRoute::CandidateNative, expect: fail_all(vec!["ARTIFACT_BINDING_FAILED"]) },
+        Case {
+            name: "candidate_native_no_model",
+            model: "ok",
+            route: |_| VerifierRoute::CandidateNative,
+            expect: fail_all(vec!["ARTIFACT_BINDING_FAILED"]),
+        },
     ];
 
     // Warm the trusted build serially (shared cache).
@@ -170,8 +248,15 @@ fn native_lean_route() {
     let queue = Arc::new(Mutex::new(cases));
     let mut hs = vec![];
     for _ in 0..4 {
-        let (queue, failures, checker, trusted, policy, root, cache) =
-            (queue.clone(), failures.clone(), checker.clone(), trusted.clone(), policy.clone(), root.clone(), cache.clone());
+        let (queue, failures, checker, trusted, policy, root, cache) = (
+            queue.clone(),
+            failures.clone(),
+            checker.clone(),
+            trusted.clone(),
+            policy.clone(),
+            root.clone(),
+            cache.clone(),
+        );
         hs.push(std::thread::spawn(move || loop {
             let Some(c) = queue.lock().unwrap().pop() else { break };
             let dir = root.join(c.name);
@@ -265,6 +350,10 @@ fn dev_runner() -> Result<SandboxRunner, arena_formal_checker::sandbox::InfraErr
         exe: env!("CARGO_BIN_EXE_formal-check").into(),
         prefix_args: vec![arena_formal_checker::HELPER_ARG.into()],
     };
-    let work = std::env::temp_dir().join(format!("fc-sandbox-native-{}", std::process::id()));
+    let work = std::env::temp_dir().join(format!(
+        "fc-sandbox-{}-{}",
+        env!("CARGO_CRATE_NAME"),
+        std::process::id()
+    ));
     SandboxRunner::bwrap_dev(helper, work)
 }

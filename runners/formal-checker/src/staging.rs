@@ -40,23 +40,82 @@ pub const FORBIDDEN_LAKE_KEYS: &[&str] = &[
 /// Tokens that make a `lakefile.lean` unacceptable (it is never executed; we
 /// only refuse configurations that ask for native code or build-time code).
 const FORBIDDEN_LAKEFILE_LEAN_TOKENS: &[&str] = &[
-    "extern_lib", "script", "target", "lean_exe", "moreLeanArgs", "weakLeanArgs",
-    "moreServerArgs", "moreServerOptions", "moreGlobalServerArgs", "plugins", "dynlibs",
-    "precompileModules", "moreLinkArgs", "moreLinkObjs", "moreLinkLibs", "weakLinkArgs",
-    "nativeFacets", "input_file", "input_dir", "post_update", "run_cmd", "#eval", "initialize",
-    "builtin_initialize", "unsafe", "elab", "macro", "syntax", "IO", "meta",
+    "extern_lib",
+    "script",
+    "target",
+    "lean_exe",
+    "moreLeanArgs",
+    "weakLeanArgs",
+    "moreServerArgs",
+    "moreServerOptions",
+    "moreGlobalServerArgs",
+    "plugins",
+    "dynlibs",
+    "precompileModules",
+    "moreLinkArgs",
+    "moreLinkObjs",
+    "moreLinkLibs",
+    "weakLinkArgs",
+    "nativeFacets",
+    "input_file",
+    "input_dir",
+    "post_update",
+    "run_cmd",
+    "#eval",
+    "initialize",
+    "builtin_initialize",
+    "unsafe",
+    "elab",
+    "macro",
+    "syntax",
+    "IO",
+    "meta",
 ];
 
 const ALLOWED_TOML_TOP: &[&str] = &[
-    "name", "version", "defaultTargets", "testDriver", "lintDriver", "description", "keywords",
-    "license", "licenseFiles", "readmeFile", "homepage", "reservoir", "leanOptions", "lean_lib",
-    "require", "srcDir", "buildDir", "leanLibDir", "packagesDir", "versionTags",
+    "name",
+    "version",
+    "defaultTargets",
+    "testDriver",
+    "lintDriver",
+    "description",
+    "keywords",
+    "license",
+    "licenseFiles",
+    "readmeFile",
+    "homepage",
+    "reservoir",
+    "leanOptions",
+    "lean_lib",
+    "require",
+    "srcDir",
+    "buildDir",
+    "leanLibDir",
+    "packagesDir",
+    "versionTags",
 ];
-const ALLOWED_TOML_LIB: &[&str] = &["name", "roots", "globs", "srcDir", "leanOptions", "defaultFacets", "libName"];
-const ALLOWED_TOML_REQUIRE: &[&str] = &["name", "scope", "git", "rev", "path", "version", "source", "subDir"];
+const ALLOWED_TOML_LIB: &[&str] = &[
+    "name",
+    "roots",
+    "globs",
+    "srcDir",
+    "leanOptions",
+    "defaultFacets",
+    "libName",
+];
+const ALLOWED_TOML_REQUIRE: &[&str] = &[
+    "name", "scope", "git", "rev", "path", "version", "source", "subDir",
+];
 /// leanOptions a candidate may *declare* (we never apply candidate options anyway).
-const ALLOWED_LEAN_OPTION_PREFIXES: &[&str] =
-    &["autoImplicit", "relaxedAutoImplicit", "pp.", "linter.", "maxHeartbeats", "maxRecDepth", "weak.linter."];
+const ALLOWED_LEAN_OPTION_PREFIXES: &[&str] = &[
+    "autoImplicit",
+    "relaxedAutoImplicit",
+    "pp.",
+    "linter.",
+    "maxHeartbeats",
+    "maxRecDepth",
+    "weak.linter.",
+];
 
 #[derive(Clone, Debug)]
 pub struct StagingPolicy {
@@ -166,7 +225,14 @@ fn tokens(code: &str) -> Vec<String> {
     let mut toks = Vec::new();
     let mut cur = String::new();
     for c in code.chars() {
-        if c.is_alphanumeric() || c == '_' || c == '.' || c == '\'' || c == '#' || c == '«' || c == '»' {
+        if c.is_alphanumeric()
+            || c == '_'
+            || c == '.'
+            || c == '\''
+            || c == '#'
+            || c == '«'
+            || c == '»'
+        {
             cur.push(c);
         } else {
             if !cur.is_empty() {
@@ -199,7 +265,10 @@ pub fn parse_header(src: &str) -> Result<(Vec<String>, bool), String> {
     }
     loop {
         let mut j = i;
-        while matches!(toks.get(j).map(String::as_str), Some("public") | Some("meta")) {
+        while matches!(
+            toks.get(j).map(String::as_str),
+            Some("public") | Some("meta")
+        ) {
             j += 1;
         }
         if toks.get(j).map(String::as_str) != Some("import") {
@@ -224,18 +293,26 @@ pub fn check_lakefile_toml(src: &str, policy: &StagingPolicy, f: &mut Vec<Findin
         Ok(v) => v,
         Err(e) => return manifest(f, format!("lakefile.toml does not parse: {e}")),
     };
-    let Some(top) = v.as_table() else { return manifest(f, "lakefile.toml: not a table".into()) };
+    let Some(top) = v.as_table() else {
+        return manifest(f, "lakefile.toml: not a table".into());
+    };
     let check_opts = |opts: &toml::Value, f: &mut Vec<Finding>| {
         if let Some(t) = opts.as_table() {
             for k in t.keys() {
-                if !ALLOWED_LEAN_OPTION_PREFIXES.iter().any(|p| k.starts_with(p)) {
+                if !ALLOWED_LEAN_OPTION_PREFIXES
+                    .iter()
+                    .any(|p| k.starts_with(p))
+                {
                     manifest(f, format!("lakefile.toml: leanOptions.{k} not allowed"));
                 }
             }
         } else if let Some(arr) = opts.as_array() {
             for o in arr {
                 let k = o.get("name").and_then(|n| n.as_str()).unwrap_or("?");
-                if !ALLOWED_LEAN_OPTION_PREFIXES.iter().any(|p| k.starts_with(p)) {
+                if !ALLOWED_LEAN_OPTION_PREFIXES
+                    .iter()
+                    .any(|p| k.starts_with(p))
+                {
                     manifest(f, format!("lakefile.toml: leanOptions {k} not allowed"));
                 }
             }
@@ -256,7 +333,10 @@ pub fn check_lakefile_toml(src: &str, policy: &StagingPolicy, f: &mut Vec<Findin
                 for lib in val.as_array().into_iter().flatten() {
                     for (lk, lv) in lib.as_table().into_iter().flatten() {
                         if FORBIDDEN_LAKE_KEYS.contains(&lk.as_str()) {
-                            manifest(f, format!("lakefile.toml: forbidden lean_lib feature `{lk}`"));
+                            manifest(
+                                f,
+                                format!("lakefile.toml: forbidden lean_lib feature `{lk}`"),
+                            );
                         } else if !ALLOWED_TOML_LIB.contains(&lk.as_str()) {
                             manifest(f, format!("lakefile.toml: unsupported lean_lib key `{lk}`"));
                         } else if lk == "leanOptions" {
@@ -269,7 +349,10 @@ pub fn check_lakefile_toml(src: &str, policy: &StagingPolicy, f: &mut Vec<Findin
                 for req in val.as_array().into_iter().flatten() {
                     let name = req.get("name").and_then(|n| n.as_str()).unwrap_or("");
                     if !policy.allowed_requires.iter().any(|a| a == name) {
-                        manifest(f, format!("lakefile.toml: require `{name}` is not allowlisted"));
+                        manifest(
+                            f,
+                            format!("lakefile.toml: require `{name}` is not allowlisted"),
+                        );
                     }
                     for rk in req.as_table().into_iter().flatten().map(|(k, _)| k) {
                         if !ALLOWED_TOML_REQUIRE.contains(&rk.as_str()) {
@@ -303,24 +386,47 @@ pub fn check_lakefile_lean(src: &str, policy: &StagingPolicy, f: &mut Vec<Findin
     }
     for (i, t) in toks.iter().enumerate() {
         if t == "require" {
-            let name = toks.get(i + 1).map(|s| s.trim_matches(|c| c == '«' || c == '»')).unwrap_or("");
+            let name = toks
+                .get(i + 1)
+                .map(|s| s.trim_matches(|c| c == '«' || c == '»'))
+                .unwrap_or("");
             // `require "scope" / "name"` form
             let name = if name == "\"" {
-                toks.iter().skip(i + 1).filter(|x| x.as_str() != "\"" && x.as_str() != "/").nth(1).map(String::as_str).unwrap_or("")
+                toks.iter()
+                    .skip(i + 1)
+                    .filter(|x| x.as_str() != "\"" && x.as_str() != "/")
+                    .nth(1)
+                    .map(String::as_str)
+                    .unwrap_or("")
             } else {
                 name
             };
             if !policy.allowed_requires.iter().any(|a| a == name) {
-                manifest(f, format!("lakefile.lean: require `{name}` is not allowlisted"));
+                manifest(
+                    f,
+                    format!("lakefile.lean: require `{name}` is not allowlisted"),
+                );
             }
         }
     }
 }
 
-fn walk(root: &Path, dir: &Path, out: &mut Vec<(String, PathBuf, u64)>, f: &mut Vec<Finding>, w: &mut Vec<String>) {
+fn walk(
+    root: &Path,
+    dir: &Path,
+    out: &mut Vec<(String, PathBuf, u64)>,
+    f: &mut Vec<Finding>,
+    w: &mut Vec<String>,
+) {
     let rd = match std::fs::read_dir(dir) {
         Ok(r) => r,
-        Err(e) => return f.push(Finding::new(ReasonCode::ArchiveUnsafe, Scope::All, format!("unreadable dir: {e}"))),
+        Err(e) => {
+            return f.push(Finding::new(
+                ReasonCode::ArchiveUnsafe,
+                Scope::All,
+                format!("unreadable dir: {e}"),
+            ))
+        }
     };
     let mut ents: Vec<_> = rd.filter_map(Result::ok).collect();
     ents.sort_by_key(|e| e.file_name());
@@ -329,7 +435,11 @@ fn walk(root: &Path, dir: &Path, out: &mut Vec<(String, PathBuf, u64)>, f: &mut 
         let rel = match p.strip_prefix(root).ok().and_then(|r| r.to_str()) {
             Some(r) => r.to_string(),
             None => {
-                f.push(Finding::new(ReasonCode::ArchiveUnsafe, Scope::All, "non-UTF-8 path".into()));
+                f.push(Finding::new(
+                    ReasonCode::ArchiveUnsafe,
+                    Scope::All,
+                    "non-UTF-8 path".into(),
+                ));
                 continue;
             }
         };
@@ -338,11 +448,20 @@ fn walk(root: &Path, dir: &Path, out: &mut Vec<(String, PathBuf, u64)>, f: &mut 
             Err(_) => continue,
         };
         if ft.is_symlink() {
-            f.push(Finding::new(ReasonCode::ArchiveUnsafe, Scope::All, format!("symlink in formal tree: {rel}")));
+            f.push(Finding::new(
+                ReasonCode::ArchiveUnsafe,
+                Scope::All,
+                format!("symlink in formal tree: {rel}"),
+            ));
         } else if ft.is_dir() {
             let name = e.file_name();
-            if matches!(name.to_str(), Some(".lake" | ".git" | "build" | "lake-packages")) {
-                w.push(format!("ignored directory {rel}/ (prebuilt or VCS data is never used)"));
+            if matches!(
+                name.to_str(),
+                Some(".lake" | ".git" | "build" | "lake-packages")
+            ) {
+                w.push(format!(
+                    "ignored directory {rel}/ (prebuilt or VCS data is never used)"
+                ));
                 continue;
             }
             walk(root, &p, out, f, w);
@@ -350,23 +469,43 @@ fn walk(root: &Path, dir: &Path, out: &mut Vec<(String, PathBuf, u64)>, f: &mut 
             let len = e.metadata().map(|m| m.len()).unwrap_or(u64::MAX);
             out.push((rel, p, len));
         } else {
-            f.push(Finding::new(ReasonCode::ArchiveUnsafe, Scope::All, format!("special file: {rel}")));
+            f.push(Finding::new(
+                ReasonCode::ArchiveUnsafe,
+                Scope::All,
+                format!("special file: {rel}"),
+            ));
         }
     }
 }
 
 /// Validate a candidate `formal/` tree and copy its `.lean` sources into `dest`.
-pub fn stage_candidate(formal: &Path, dest: &Path, policy: &StagingPolicy) -> std::io::Result<Staged> {
+pub fn stage_candidate(
+    formal: &Path,
+    dest: &Path,
+    policy: &StagingPolicy,
+) -> std::io::Result<Staged> {
     let mut st = Staged::default();
     let mut files = Vec::new();
-    walk(formal, formal, &mut files, &mut st.findings, &mut st.warnings);
+    walk(
+        formal,
+        formal,
+        &mut files,
+        &mut st.findings,
+        &mut st.warnings,
+    );
     if files.len() > MAX_FILES {
-        manifest(&mut st.findings, format!("too many files ({})", files.len()));
+        manifest(
+            &mut st.findings,
+            format!("too many files ({})", files.len()),
+        );
         return Ok(st);
     }
     let total: u64 = files.iter().map(|x| x.2).sum();
     if total > MAX_TOTAL_BYTES {
-        manifest(&mut st.findings, format!("formal tree too large ({total} bytes)"));
+        manifest(
+            &mut st.findings,
+            format!("formal tree too large ({total} bytes)"),
+        );
         return Ok(st);
     }
     let mut mods: BTreeMap<String, CandidateModule> = BTreeMap::new();
@@ -399,7 +538,8 @@ pub fn stage_candidate(formal: &Path, dest: &Path, policy: &StagingPolicy) -> st
                 continue;
             }
             "lake-manifest.json" => {
-                st.warnings.push("lake-manifest.json ignored (judge supplies pinned dependencies)".into());
+                st.warnings
+                    .push("lake-manifest.json ignored (judge supplies pinned dependencies)".into());
                 continue;
             }
             _ => {}
@@ -407,7 +547,10 @@ pub fn stage_candidate(formal: &Path, dest: &Path, policy: &StagingPolicy) -> st
         if let Some(stem) = rel.strip_suffix(".lean") {
             let comps: Vec<&str> = stem.split('/').collect();
             if !comps.iter().all(|c| is_ident(c)) {
-                manifest(&mut st.findings, format!("{rel}: not a valid Lean module path"));
+                manifest(
+                    &mut st.findings,
+                    format!("{rel}: not a valid Lean module path"),
+                );
                 continue;
             }
             let name = comps.join(".");
@@ -439,21 +582,51 @@ pub fn stage_candidate(formal: &Path, dest: &Path, policy: &StagingPolicy) -> st
                 }
             };
             if prelude {
-                manifest(&mut st.findings, format!("{rel}: `prelude` modules are not allowed"));
+                manifest(
+                    &mut st.findings,
+                    format!("{rel}: `prelude` modules are not allowed"),
+                );
                 continue;
             }
             let target = dest.join(rel);
             std::fs::create_dir_all(target.parent().unwrap())?;
             std::fs::write(&target, src.as_bytes())?;
-            mods.insert(name.clone(), CandidateModule { name, rel_path: rel.clone(), imports });
+            mods.insert(
+                name.clone(),
+                CandidateModule {
+                    name,
+                    rel_path: rel.clone(),
+                    imports,
+                },
+            );
         } else {
             let lower = fname.to_ascii_lowercase();
-            let prebuilt = [".olean", ".ilean", ".olean.server", ".olean.private", ".ir", ".c", ".o", ".so", ".a", ".dylib", ".dll", ".trace", ".hash"]
-                .iter()
-                .any(|s| lower.ends_with(s));
+            let prebuilt = [
+                ".olean",
+                ".ilean",
+                ".olean.server",
+                ".olean.private",
+                ".ir",
+                ".c",
+                ".o",
+                ".so",
+                ".a",
+                ".dylib",
+                ".dll",
+                ".trace",
+                ".hash",
+            ]
+            .iter()
+            .any(|s| lower.ends_with(s));
             if prebuilt {
-                st.warnings.push(format!("prebuilt artifact {rel} ignored (judge rebuilds from source)"));
-            } else if !(lower.ends_with(".md") || lower.starts_with("license") || lower == ".gitignore" || lower.ends_with(".txt")) {
+                st.warnings.push(format!(
+                    "prebuilt artifact {rel} ignored (judge rebuilds from source)"
+                ));
+            } else if !(lower.ends_with(".md")
+                || lower.starts_with("license")
+                || lower == ".gitignore"
+                || lower.ends_with(".txt"))
+            {
                 st.warnings.push(format!("non-Lean file {rel} ignored"));
             }
         }
@@ -465,7 +638,13 @@ pub fn stage_candidate(formal: &Path, dest: &Path, policy: &StagingPolicy) -> st
                 || policy.trusted_modules.iter().any(|t| t == imp)
                 || policy.toolchain_prefixes.iter().any(|p| has_prefix(imp, p));
             if !ok {
-                manifest(&mut st.findings, format!("{}: import {imp} is not a candidate, trusted or toolchain module", m.name));
+                manifest(
+                    &mut st.findings,
+                    format!(
+                        "{}: import {imp} is not a candidate, trusted or toolchain module",
+                        m.name
+                    ),
+                );
             }
         }
     }
@@ -500,7 +679,11 @@ pub fn stage_candidate(formal: &Path, dest: &Path, policy: &StagingPolicy) -> st
         }
     }
     if mods.is_empty() {
-        st.findings.push(Finding::new(ReasonCode::CertificateMissing, Scope::All, "no .lean sources in formal tree".into()));
+        st.findings.push(Finding::new(
+            ReasonCode::CertificateMissing,
+            Scope::All,
+            "no .lean sources in formal tree".into(),
+        ));
     }
     st.modules = order.into_iter().map(|n| mods[&n].clone()).collect();
     Ok(st)
@@ -529,10 +712,18 @@ mod tests {
         check_lakefile_toml("name = \"x\"\nmoreLeanArgs = [\"--load-dynlib=x.so\"]\n[[require]]\nname = \"mathlib\"\n", &pol(), &mut f);
         assert_eq!(f.len(), 2, "{f:?}");
         let mut f = vec![];
-        check_lakefile_toml("name = \"x\"\n[[lean_lib]]\nname = \"Candidate\"\nprecompileModules = true\n", &pol(), &mut f);
+        check_lakefile_toml(
+            "name = \"x\"\n[[lean_lib]]\nname = \"Candidate\"\nprecompileModules = true\n",
+            &pol(),
+            &mut f,
+        );
         assert_eq!(f.len(), 1);
         let mut f = vec![];
-        check_lakefile_toml("name = \"x\"\n[[require]]\nname = \"arena-core\"\n[[lean_lib]]\nname = \"C\"\n", &pol(), &mut f);
+        check_lakefile_toml(
+            "name = \"x\"\n[[require]]\nname = \"arena-core\"\n[[lean_lib]]\nname = \"C\"\n",
+            &pol(),
+            &mut f,
+        );
         assert!(f.is_empty(), "{f:?}");
     }
     #[test]

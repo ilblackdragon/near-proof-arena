@@ -63,7 +63,12 @@ pub enum RunError {
 }
 
 pub trait BatchRunner {
-    fn run_batch(&mut self, class_id: &str, phase: Phase, round: u32) -> Result<BatchSample, RunError>;
+    fn run_batch(
+        &mut self,
+        class_id: &str,
+        phase: Phase,
+        round: u32,
+    ) -> Result<BatchSample, RunError>;
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -132,7 +137,13 @@ pub enum SessionError {
     #[error("invalid measurement procedure: {0}")]
     Procedure(String),
     #[error("run {seq} ({phase} {class_id} round {round}) failed: {error:?}")]
-    Run { seq: usize, phase: &'static str, class_id: String, round: u32, error: RunError },
+    Run {
+        seq: usize,
+        phase: &'static str,
+        class_id: String,
+        round: u32,
+        error: RunError,
+    },
 }
 
 /// Check a `MeasurementProcedure` against bench-spec-v1.
@@ -155,7 +166,10 @@ pub fn check_procedure(p: &MeasurementProcedure) -> Result<(), SessionError> {
 
 /// Run a full measurement session. Fails fast on the first failed run: there
 /// is no partial credit (§9).
-pub fn run_session(plan: &SessionPlan, runner: &mut dyn BatchRunner) -> Result<SessionResult, SessionError> {
+pub fn run_session(
+    plan: &SessionPlan,
+    runner: &mut dyn BatchRunner,
+) -> Result<SessionResult, SessionError> {
     check_procedure(&plan.procedure)?;
     let ids: Vec<String> = plan.classes.iter().map(|c| c.class_id.clone()).collect();
     let shape = ScheduleShape {
@@ -167,7 +181,8 @@ pub fn run_session(plan: &SessionPlan, runner: &mut dyn BatchRunner) -> Result<S
         // calibration entries are scheduled. See runners/README.md.
         calibration_runs: 0,
     };
-    let schedule = stats::build_schedule(&ids, plan.schedule_seed, shape).map_err(SessionError::Procedure)?;
+    let schedule =
+        stats::build_schedule(&ids, plan.schedule_seed, shape).map_err(SessionError::Procedure)?;
     let mut classes: Vec<ClassSession> = plan
         .classes
         .iter()
@@ -187,14 +202,19 @@ pub fn run_session(plan: &SessionPlan, runner: &mut dyn BatchRunner) -> Result<S
         })
         .collect();
     for run in &schedule {
-        let sample = runner.run_batch(&run.class_id, run.phase, run.round).map_err(|error| SessionError::Run {
-            seq: run.seq,
-            phase: run.phase.as_str(),
-            class_id: run.class_id.clone(),
-            round: run.round,
-            error,
-        })?;
-        let cs = classes.iter_mut().find(|c| c.class_id == run.class_id).expect("scheduled class exists");
+        let sample = runner
+            .run_batch(&run.class_id, run.phase, run.round)
+            .map_err(|error| SessionError::Run {
+                seq: run.seq,
+                phase: run.phase.as_str(),
+                class_id: run.class_id.clone(),
+                round: run.round,
+                error,
+            })?;
+        let cs = classes
+            .iter_mut()
+            .find(|c| c.class_id == run.class_id)
+            .expect("scheduled class exists");
         let t = sample.total_prove_ns();
         match run.phase {
             Phase::Cold => cs.cold_runs_ns.push(t),
@@ -233,7 +253,13 @@ pub fn run_session(plan: &SessionPlan, runner: &mut dyn BatchRunner) -> Result<S
         })
         .collect();
     let score = score::bootstrap_ci(&runs, plan.bootstrap_seed, plan.bootstrap_iterations.max(1));
-    Ok(SessionResult { schedule_seed: plan.schedule_seed, schedule, classes, score, flags })
+    Ok(SessionResult {
+        schedule_seed: plan.schedule_seed,
+        schedule,
+        classes,
+        score,
+        flags,
+    })
 }
 
 /// A [`BatchRunner`] whose batch is a single sandboxed invocation of a spec
@@ -245,16 +271,37 @@ pub struct SpecRunner<'a, F: FnMut(&str, Phase, u32) -> SandboxSpec> {
 }
 
 impl<F: FnMut(&str, Phase, u32) -> SandboxSpec> BatchRunner for SpecRunner<'_, F> {
-    fn run_batch(&mut self, class_id: &str, phase: Phase, round: u32) -> Result<BatchSample, RunError> {
+    fn run_batch(
+        &mut self,
+        class_id: &str,
+        phase: Phase,
+        round: u32,
+    ) -> Result<BatchSample, RunError> {
         let spec = (self.make_spec)(class_id, phase, round);
-        let o = self.sandbox.run(&spec).map_err(|e| RunError::Infra(e.to_string()))?;
+        let o = self
+            .sandbox
+            .run(&spec)
+            .map_err(|e| RunError::Infra(e.to_string()))?;
         match o.exit {
             ExitStatus::Exited(0) => {}
-            ExitStatus::TimedOut => return Err(RunError::Candidate { reason: ReasonCode::Timeout, detail: "timed out".into() }),
-            ExitStatus::OomKilled => {
-                return Err(RunError::Candidate { reason: ReasonCode::ResourceLimit, detail: "OOM-killed".into() })
+            ExitStatus::TimedOut => {
+                return Err(RunError::Candidate {
+                    reason: ReasonCode::Timeout,
+                    detail: "timed out".into(),
+                })
             }
-            other => return Err(RunError::Candidate { reason: ReasonCode::ProverFailed, detail: format!("{other:?}") }),
+            ExitStatus::OomKilled => {
+                return Err(RunError::Candidate {
+                    reason: ReasonCode::ResourceLimit,
+                    detail: "OOM-killed".into(),
+                })
+            }
+            other => {
+                return Err(RunError::Candidate {
+                    reason: ReasonCode::ProverFailed,
+                    detail: format!("{other:?}"),
+                })
+            }
         }
         let mut s = BatchSample::default();
         s.push_prove(&o);

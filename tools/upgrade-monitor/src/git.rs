@@ -14,7 +14,11 @@ pub fn git(repo: &Path, args: &[&str]) -> Result<String> {
         .output()
         .context("running git")?;
     if !out.status.success() {
-        bail!("git {:?} failed: {}", args, String::from_utf8_lossy(&out.stderr).trim());
+        bail!(
+            "git {:?} failed: {}",
+            args,
+            String::from_utf8_lossy(&out.stderr).trim()
+        );
     }
     String::from_utf8(out.stdout).context("git output not UTF-8")
 }
@@ -64,7 +68,18 @@ pub struct ChangedFile {
 }
 
 pub fn changed_files(repo: &Path, old: &str, new: &str) -> Result<Vec<ChangedFile>> {
-    let out = git(repo, &["diff", "--no-ext-diff", "--name-status", "-z", "-M", old, new])?;
+    let out = git(
+        repo,
+        &[
+            "diff",
+            "--no-ext-diff",
+            "--name-status",
+            "-z",
+            "-M",
+            old,
+            new,
+        ],
+    )?;
     let mut it = out.split('\0').filter(|s| !s.is_empty());
     let mut v = Vec::new();
     while let Some(st) = it.next() {
@@ -72,10 +87,18 @@ pub fn changed_files(repo: &Path, old: &str, new: &str) -> Result<Vec<ChangedFil
         if status == "R" || status == "C" {
             let from = it.next().context("malformed rename")?.to_string();
             let to = it.next().context("malformed rename")?.to_string();
-            v.push(ChangedFile { status, path: to, old_path: Some(from) });
+            v.push(ChangedFile {
+                status,
+                path: to,
+                old_path: Some(from),
+            });
         } else {
             let p = it.next().context("malformed name-status")?.to_string();
-            v.push(ChangedFile { status, path: p, old_path: None });
+            v.push(ChangedFile {
+                status,
+                path: p,
+                old_path: None,
+            });
         }
     }
     Ok(v)
@@ -91,12 +114,21 @@ pub fn diff_paths(repo: &Path, old: &str, new: &str, paths: &[String]) -> Result
 }
 
 pub fn scratch_dir(base: Option<&Path>) -> Result<PathBuf> {
-    let base = base.map(Path::to_path_buf).unwrap_or_else(std::env::temp_dir);
-    let d = base.join(format!("upgrade-monitor-{}-{}", std::process::id(), nanos()));
+    let base = base
+        .map(Path::to_path_buf)
+        .unwrap_or_else(std::env::temp_dir);
+    let d = base.join(format!(
+        "upgrade-monitor-{}-{}",
+        std::process::id(),
+        nanos()
+    ));
     std::fs::create_dir_all(&d)?;
     Ok(d)
 }
 
 fn nanos() -> u128 {
-    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0)
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0)
 }

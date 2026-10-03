@@ -141,11 +141,16 @@ fn committed_challenges_verify() {
         if name.starts_with("chl_") && name.ends_with(".json") {
             // Formal challenges must verify under the non-dev local operator key alone;
             // everything else under one of the repo keys.
-            let v = verify_file(&p, &[dev_pub(), local_pub()], &g).unwrap_or_else(|e| panic!("{name}: {e:#}"));
+            let v = verify_file(&p, &[dev_pub(), local_pub()], &g)
+                .unwrap_or_else(|e| panic!("{name}: {e:#}"));
             if v.def.tier == Tier::Formal {
-                verify_file(&p, &[local_pub()], &g)
-                    .unwrap_or_else(|e| panic!("{name}: formal challenge not signed by the non-dev key: {e:#}"));
-                assert!(verify_file(&p, &[dev_pub()], &g).is_err(), "dev key must never sign formal");
+                verify_file(&p, &[local_pub()], &g).unwrap_or_else(|e| {
+                    panic!("{name}: formal challenge not signed by the non-dev key: {e:#}")
+                });
+                assert!(
+                    verify_file(&p, &[dev_pub()], &g).is_err(),
+                    "dev key must never sign formal"
+                );
             }
             n += 1;
         }
@@ -284,10 +289,16 @@ fn formal_fixture_passes_policy() {
 fn formal_tier_baselines_all_or_nothing() {
     let (mut d, g) = formal_fixture();
     d.workload_suite.baseline_ns.clear();
-    assert_eq!(errs(&d, &g), Vec::<String>::new(), "unmeasured baseline is allowed (scores null)");
+    assert_eq!(
+        errs(&d, &g),
+        Vec::<String>::new(),
+        "unmeasured baseline is allowed (scores null)"
+    );
     let (mut d, g) = formal_fixture();
     d.workload_suite.baseline_ns.truncate(1);
-    assert!(errs(&d, &g).iter().any(|e| e.contains("baseline_ns does not cover")));
+    assert!(errs(&d, &g)
+        .iter()
+        .any(|e| e.contains("baseline_ns does not cover")));
 }
 
 #[test]
@@ -384,8 +395,13 @@ fn forbidden_axioms_rejected() {
 fn formal_needs_pinned_assumptions_and_real_digests() {
     let (d, mut g) = formal_fixture();
     // the repo governed set is pinned (lean_decl_digest from decl-hash) ...
-    assert!(gov().assumptions.values().all(|a| a.lean_decl_digest.is_some()));
-    assert!(!errs(&d, &gov()).iter().any(|e| e.contains("lean_decl_digest")));
+    assert!(gov()
+        .assumptions
+        .values()
+        .all(|a| a.lean_decl_digest.is_some()));
+    assert!(!errs(&d, &gov())
+        .iter()
+        .any(|e| e.contains("lean_decl_digest")));
     // ... and an unpinned assumption blocks the formal tier
     for a in g.assumptions.values_mut() {
         a.lean_decl_digest = None;

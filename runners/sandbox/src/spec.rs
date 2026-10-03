@@ -58,8 +58,13 @@ pub struct GuestLayout {
     pub rw_binds: bool,
 }
 
-pub const BWRAP_LAYOUT: GuestLayout =
-    GuestLayout { scratch: SCRATCH, inputs: "/in", mount_prefixes: MOUNT_PREFIXES, flexible_scratch: true, rw_binds: true };
+pub const BWRAP_LAYOUT: GuestLayout = GuestLayout {
+    scratch: SCRATCH,
+    inputs: "/in",
+    mount_prefixes: MOUNT_PREFIXES,
+    flexible_scratch: true,
+    rw_binds: true,
+};
 
 /// What the sandbox root filesystem is made of.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -191,7 +196,10 @@ impl SandboxSpec {
         for m in self.ro_mounts.iter().chain(&self.rw_binds) {
             check_guest_path(&m.guest)?;
             if !layout.mount_prefixes.iter().any(|p| m.guest.starts_with(p)) {
-                return bad(format!("mount {:?} not under {:?}", m.guest, layout.mount_prefixes));
+                return bad(format!(
+                    "mount {:?} not under {:?}",
+                    m.guest, layout.mount_prefixes
+                ));
             }
             if !m.host.is_absolute() {
                 return bad(format!("mount host path {:?} must be absolute", m.host));
@@ -221,7 +229,11 @@ impl SandboxSpec {
             if self.cwd != layout.scratch {
                 return bad(format!("cwd must be {}", layout.scratch));
             }
-            if !self.collect.iter().all(|c| c == "out" || c.starts_with("out/")) {
+            if !self
+                .collect
+                .iter()
+                .all(|c| c == "out" || c.starts_with("out/"))
+            {
                 return bad("this backend only collects paths under out/".into());
             }
         }
@@ -314,7 +326,11 @@ pub struct SandboxOutcome {
 
 impl SandboxOutcome {
     /// An outcome with every measurement zeroed; backends fill in fields.
-    pub fn empty(exit: ExitStatus, isolation: &str, tier_cap: Option<arena_types::challenge::Tier>) -> Self {
+    pub fn empty(
+        exit: ExitStatus,
+        isolation: &str,
+        tier_cap: Option<arena_types::challenge::Tier>,
+    ) -> Self {
         SandboxOutcome {
             exit,
             wall_ns: 0,

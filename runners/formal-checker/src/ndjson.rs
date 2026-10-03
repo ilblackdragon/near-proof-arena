@@ -105,11 +105,16 @@ fn h_bytes(h: &mut Sha256, b: &[u8]) {
 }
 
 fn malformed(line: usize, msg: impl Into<String>) -> ExportError {
-    ExportError::Malformed { line, msg: msg.into() }
+    ExportError::Malformed {
+        line,
+        msg: msg.into(),
+    }
 }
 
 fn as_u32(v: &Value, line: usize, what: &str) -> Result<u32, ExportError> {
-    v.as_u64().and_then(|x| u32::try_from(x).ok()).ok_or_else(|| malformed(line, format!("bad {what}")))
+    v.as_u64()
+        .and_then(|x| u32::try_from(x).ok())
+        .ok_or_else(|| malformed(line, format!("bad {what}")))
 }
 
 impl Export {
@@ -134,7 +139,8 @@ impl Export {
             if line.trim().is_empty() {
                 continue;
             }
-            let v: Value = serde_json::from_str(&line).map_err(|e| malformed(i + 1, e.to_string()))?;
+            let v: Value =
+                serde_json::from_str(&line).map_err(|e| malformed(i + 1, e.to_string()))?;
             ex.ingest(i + 1, v)?;
         }
         if ex.meta.is_null() {
@@ -173,7 +179,9 @@ impl Export {
     }
 
     fn ingest(&mut self, line: usize, v: Value) -> Result<(), ExportError> {
-        let o = v.as_object().ok_or_else(|| malformed(line, "not an object"))?;
+        let o = v
+            .as_object()
+            .ok_or_else(|| malformed(line, "not an object"))?;
         if let Some(m) = o.get("meta") {
             if !self.meta.is_null() {
                 return Err(malformed(line, "duplicate meta"));
@@ -188,19 +196,33 @@ impl Export {
             }
             let s = if let Some(s) = o.get("str") {
                 let pre = self.name_ref(&s["pre"], line)?;
-                let comp = s["str"].as_str().ok_or_else(|| malformed(line, "name str"))?.to_string();
-                let shown = if comp.is_empty() || comp.contains('.') || comp.starts_with(|c: char| c.is_ascii_digit()) {
+                let comp = s["str"]
+                    .as_str()
+                    .ok_or_else(|| malformed(line, "name str"))?
+                    .to_string();
+                let shown = if comp.is_empty()
+                    || comp.contains('.')
+                    || comp.starts_with(|c: char| c.is_ascii_digit())
+                {
                     format!("«{comp}»")
                 } else {
                     comp.clone()
                 };
                 let p = &self.name_str[pre as usize];
-                if p.is_empty() { shown } else { format!("{p}.{shown}") }
+                if p.is_empty() {
+                    shown
+                } else {
+                    format!("{p}.{shown}")
+                }
             } else if let Some(n) = o.get("num") {
                 let pre = self.name_ref(&n["pre"], line)?;
                 let k = n["i"].as_u64().ok_or_else(|| malformed(line, "name num"))?;
                 let p = &self.name_str[pre as usize];
-                if p.is_empty() { k.to_string() } else { format!("{p}.{k}") }
+                if p.is_empty() {
+                    k.to_string()
+                } else {
+                    format!("{p}.{k}")
+                }
             } else {
                 return Err(malformed(line, "unknown name node"));
             };
@@ -239,17 +261,31 @@ impl Export {
                 ExprNode::Sort(self.level_ref(x, line)?)
             } else if let Some(x) = o.get("const") {
                 let n = self.name_ref(&x["name"], line)?;
-                let us = x["us"].as_array().ok_or_else(|| malformed(line, "const us"))?;
-                let us = us.iter().map(|u| self.level_ref(u, line)).collect::<Result<Vec<_>, _>>()?;
+                let us = x["us"]
+                    .as_array()
+                    .ok_or_else(|| malformed(line, "const us"))?;
+                let us = us
+                    .iter()
+                    .map(|u| self.level_ref(u, line))
+                    .collect::<Result<Vec<_>, _>>()?;
                 ExprNode::Const(n, us)
             } else if let Some(x) = o.get("app") {
-                ExprNode::App(self.expr_ref(&x["fn"], line)?, self.expr_ref(&x["arg"], line)?)
+                ExprNode::App(
+                    self.expr_ref(&x["fn"], line)?,
+                    self.expr_ref(&x["arg"], line)?,
+                )
             } else if let Some(x) = o.get("lam") {
                 self.name_ref(&x["name"], line)?;
-                ExprNode::Lam(self.expr_ref(&x["type"], line)?, self.expr_ref(&x["body"], line)?)
+                ExprNode::Lam(
+                    self.expr_ref(&x["type"], line)?,
+                    self.expr_ref(&x["body"], line)?,
+                )
             } else if let Some(x) = o.get("forallE") {
                 self.name_ref(&x["name"], line)?;
-                ExprNode::Pi(self.expr_ref(&x["type"], line)?, self.expr_ref(&x["body"], line)?)
+                ExprNode::Pi(
+                    self.expr_ref(&x["type"], line)?,
+                    self.expr_ref(&x["body"], line)?,
+                )
             } else if let Some(x) = o.get("letE") {
                 self.name_ref(&x["name"], line)?;
                 ExprNode::Let(
@@ -260,7 +296,9 @@ impl Export {
             } else if let Some(x) = o.get("proj") {
                 ExprNode::Proj(
                     self.name_ref(&x["typeName"], line)?,
-                    x["idx"].as_u64().ok_or_else(|| malformed(line, "proj idx"))?,
+                    x["idx"]
+                        .as_u64()
+                        .ok_or_else(|| malformed(line, "proj idx"))?,
                     self.expr_ref(&x["struct"], line)?,
                 )
             } else if let Some(x) = o.get("natVal") {
@@ -271,7 +309,11 @@ impl Export {
                 let t = s.trim_start_matches('0');
                 ExprNode::NatLit(if t.is_empty() { "0".into() } else { t.into() })
             } else if let Some(x) = o.get("strVal") {
-                ExprNode::StrLit(x.as_str().ok_or_else(|| malformed(line, "strVal"))?.to_string())
+                ExprNode::StrLit(
+                    x.as_str()
+                        .ok_or_else(|| malformed(line, "strVal"))?
+                        .to_string(),
+                )
             } else if let Some(x) = o.get("mdata") {
                 ExprNode::MData(self.expr_ref(&x["expr"], line)?)
             } else {
@@ -286,8 +328,12 @@ impl Export {
     }
 
     fn names_of(&self, v: &Value, line: usize) -> Result<Vec<String>, ExportError> {
-        let arr = v.as_array().ok_or_else(|| malformed(line, "expected name array"))?;
-        arr.iter().map(|x| Ok(self.name(self.name_ref(x, line)?).to_string())).collect()
+        let arr = v
+            .as_array()
+            .ok_or_else(|| malformed(line, "expected name array"))?;
+        arr.iter()
+            .map(|x| Ok(self.name(self.name_ref(x, line)?).to_string()))
+            .collect()
     }
 
     fn push_decl(&mut self, line: usize, d: Decl) -> Result<(), ExportError> {
@@ -299,7 +345,11 @@ impl Export {
         Ok(())
     }
 
-    fn ingest_decl(&mut self, line: usize, o: &serde_json::Map<String, Value>) -> Result<(), ExportError> {
+    fn ingest_decl(
+        &mut self,
+        line: usize,
+        o: &serde_json::Map<String, Value>,
+    ) -> Result<(), ExportError> {
         let b = |v: &Value| v.as_bool().unwrap_or(false);
         let simple = |s: &Self, x: &Value, kind: DeclKind| -> Result<Decl, ExportError> {
             Ok(Decl {
@@ -348,9 +398,15 @@ impl Export {
         if let Some(x) = o.get("inductive") {
             // Group digest: every type and constructor with its metadata.
             let mut gh = h_init(b"ind-group");
-            let types = x["types"].as_array().ok_or_else(|| malformed(line, "inductive types"))?;
-            let ctors = x["ctors"].as_array().ok_or_else(|| malformed(line, "inductive ctors"))?;
-            let recs = x["recs"].as_array().ok_or_else(|| malformed(line, "inductive recs"))?;
+            let types = x["types"]
+                .as_array()
+                .ok_or_else(|| malformed(line, "inductive types"))?;
+            let ctors = x["ctors"]
+                .as_array()
+                .ok_or_else(|| malformed(line, "inductive ctors"))?;
+            let recs = x["recs"]
+                .as_array()
+                .ok_or_else(|| malformed(line, "inductive recs"))?;
             let mut group_names = Vec::new();
             let mut pending = Vec::new();
             for t in types {
@@ -361,7 +417,11 @@ impl Export {
                 for k in ["numParams", "numIndices", "numNested"] {
                     gh.update(t[k].as_u64().unwrap_or(u64::MAX).to_le_bytes());
                 }
-                gh.update([b(&t["isRec"]) as u8, d.is_unsafe as u8, b(&t["isReflexive"]) as u8]);
+                gh.update([
+                    b(&t["isRec"]) as u8,
+                    d.is_unsafe as u8,
+                    b(&t["isReflexive"]) as u8,
+                ]);
                 h_bytes(&mut gh, d.name.as_bytes());
                 h_bytes(&mut gh, &self.lps_bytes(&d.level_params));
                 gh.update(self.expr_h[d.ty as usize]);
@@ -395,7 +455,10 @@ impl Export {
                     rm.extend(r[k].as_u64().unwrap_or(u64::MAX).to_le_bytes());
                 }
                 rm.push(b(&r["k"]) as u8);
-                for rule in r["rules"].as_array().ok_or_else(|| malformed(line, "rec rules"))? {
+                for rule in r["rules"]
+                    .as_array()
+                    .ok_or_else(|| malformed(line, "rec rules"))?
+                {
                     let rhs = self.expr_ref(&rule["rhs"], line)?;
                     let ctor = self.name(self.name_ref(&rule["ctor"], line)?).to_string();
                     rm.extend((ctor.len() as u64).to_le_bytes());
@@ -437,7 +500,11 @@ impl Export {
                 h.finalize().into()
             }
             LevelNode::Max(a, b) | LevelNode::IMax(a, b) => {
-                let mut h = h_init(if matches!(n, LevelNode::Max(..)) { b"lm" } else { b"li" });
+                let mut h = h_init(if matches!(n, LevelNode::Max(..)) {
+                    b"lm"
+                } else {
+                    b"li"
+                });
                 h.update(self.level_hash(*a, subst));
                 h.update(self.level_hash(*b, subst));
                 h.finalize().into()
@@ -445,7 +512,10 @@ impl Export {
             LevelNode::Param(nm) => {
                 let mut h = h_init(b"lp");
                 let s = self.name(*nm);
-                let s = subst.and_then(|m| m.get(s)).map(String::as_str).unwrap_or(s);
+                let s = subst
+                    .and_then(|m| m.get(s))
+                    .map(String::as_str)
+                    .unwrap_or(s);
                 h_bytes(&mut h, s.as_bytes());
                 h.finalize().into()
             }
@@ -458,7 +528,12 @@ impl Export {
         }
     }
 
-    fn hash_expr_node(&self, n: &ExprNode, subst: Option<&HashMap<String, String>>, memo: &mut HashMap<u32, H>) -> H {
+    fn hash_expr_node(
+        &self,
+        n: &ExprNode,
+        subst: Option<&HashMap<String, String>>,
+        memo: &mut HashMap<u32, H>,
+    ) -> H {
         let sub = |i: u32, me: &Self, memo: &mut HashMap<u32, H>| -> H {
             match subst {
                 None => me.expr_h[i as usize],
@@ -492,7 +567,11 @@ impl Export {
                 h.finalize().into()
             }
             ExprNode::Lam(t, b) | ExprNode::Pi(t, b) => {
-                let mut h = h_init(if matches!(n, ExprNode::Lam(..)) { b"el" } else { b"ep" });
+                let mut h = h_init(if matches!(n, ExprNode::Lam(..)) {
+                    b"el"
+                } else {
+                    b"ep"
+                });
                 h.update(sub(*t, self, memo));
                 h.update(sub(*b, self, memo));
                 h.finalize().into()
@@ -526,7 +605,12 @@ impl Export {
         }
     }
 
-    fn expr_hash_subst(&self, i: u32, subst: Option<&HashMap<String, String>>, memo: &mut HashMap<u32, H>) -> H {
+    fn expr_hash_subst(
+        &self,
+        i: u32,
+        subst: Option<&HashMap<String, String>>,
+        memo: &mut HashMap<u32, H>,
+    ) -> H {
         if subst.is_none() {
             return self.expr_h[i as usize];
         }
@@ -618,7 +702,10 @@ impl Export {
 
     /// Transitive closure of declarations reachable from `roots`.
     /// Returns (present names, missing names).
-    pub fn closure<I: IntoIterator<Item = String>>(&self, roots: I) -> (BTreeSet<String>, BTreeSet<String>) {
+    pub fn closure<I: IntoIterator<Item = String>>(
+        &self,
+        roots: I,
+    ) -> (BTreeSet<String>, BTreeSet<String>) {
         let mut present = BTreeSet::new();
         let mut missing = BTreeSet::new();
         let mut stack: Vec<String> = roots.into_iter().collect();
@@ -646,10 +733,18 @@ impl Export {
     /// If `e` is `@And.intro a b pa pb` return (pa, pb).
     pub fn as_and_intro(&self, e: u32) -> Option<(u32, u32)> {
         let e = self.unmdata(e);
-        let ExprNode::App(f1, pb) = self.exprs[e as usize] else { return None };
-        let ExprNode::App(f2, pa) = self.exprs[self.unmdata(f1) as usize] else { return None };
-        let ExprNode::App(f3, _b) = self.exprs[self.unmdata(f2) as usize] else { return None };
-        let ExprNode::App(f4, _a) = self.exprs[self.unmdata(f3) as usize] else { return None };
+        let ExprNode::App(f1, pb) = self.exprs[e as usize] else {
+            return None;
+        };
+        let ExprNode::App(f2, pa) = self.exprs[self.unmdata(f1) as usize] else {
+            return None;
+        };
+        let ExprNode::App(f3, _b) = self.exprs[self.unmdata(f2) as usize] else {
+            return None;
+        };
+        let ExprNode::App(f4, _a) = self.exprs[self.unmdata(f3) as usize] else {
+            return None;
+        };
         match &self.exprs[self.unmdata(f4) as usize] {
             ExprNode::Const(n, _) if self.name(*n) == "And.intro" => Some((pa, pb)),
             _ => None,
@@ -669,7 +764,12 @@ impl Export {
 }
 
 /// Explicit-stack structural hash with universe substitution (avoids deep recursion).
-fn stacker_hash(ex: &Export, root: u32, subst: Option<&HashMap<String, String>>, memo: &mut HashMap<u32, H>) -> H {
+fn stacker_hash(
+    ex: &Export,
+    root: u32,
+    subst: Option<&HashMap<String, String>>,
+    memo: &mut HashMap<u32, H>,
+) -> H {
     let mut stack = vec![(root, false)];
     while let Some((i, ready)) = stack.pop() {
         if memo.contains_key(&i) {
@@ -709,7 +809,9 @@ impl Export {
     /// If `lam` is `fun x => body`, the structural hash of `body[x := c]`
     /// where `repl` is the hash of `c` (a closed term).
     pub fn lambda_body_instantiated(&self, lam: u32, repl: &H) -> Option<H> {
-        let ExprNode::Lam(_, body) = self.exprs[self.unmdata(lam) as usize] else { return None };
+        let ExprNode::Lam(_, body) = self.exprs[self.unmdata(lam) as usize] else {
+            return None;
+        };
         let mut memo = HashMap::new();
         Some(self.hash_inst(body, 0, repl, &mut memo))
     }
@@ -733,7 +835,11 @@ impl Export {
                 h.finalize().into()
             }
             ExprNode::Lam(t, b) | ExprNode::Pi(t, b) => {
-                let mut h = h_init(if matches!(node, ExprNode::Lam(..)) { b"el" } else { b"ep" });
+                let mut h = h_init(if matches!(node, ExprNode::Lam(..)) {
+                    b"el"
+                } else {
+                    b"ep"
+                });
                 h.update(self.hash_inst(*t, depth, repl, memo));
                 h.update(self.hash_inst(*b, depth + 1, repl, memo));
                 h.finalize().into()
@@ -762,7 +868,9 @@ impl Export {
 
     /// `Expr.app (Expr.const f []) (Expr.const x [])` → `(f, x)`.
     pub fn as_app_of_consts(&self, e: u32) -> Option<(String, String)> {
-        let ExprNode::App(f, x) = self.exprs[self.unmdata(e) as usize] else { return None };
+        let ExprNode::App(f, x) = self.exprs[self.unmdata(e) as usize] else {
+            return None;
+        };
         let (fname, fus) = self.const_head(f)?;
         let (xname, xus) = self.const_head(x)?;
         (fus.is_empty() && xus.is_empty()).then(|| (fname.to_string(), xname.to_string()))

@@ -82,9 +82,14 @@ pub fn validate_package(
         Some(d) => {
             // `arena-archive` extracts into a fresh directory only.
             if d.exists() {
-                let empty = std::fs::read_dir(d).map(|mut r| r.next().is_none()).unwrap_or(false);
+                let empty = std::fs::read_dir(d)
+                    .map(|mut r| r.next().is_none())
+                    .unwrap_or(false);
                 if !empty {
-                    return Err(ArchiveError::Unsafe(format!("{} is not empty", d.display())));
+                    return Err(ArchiveError::Unsafe(format!(
+                        "{} is not empty",
+                        d.display()
+                    )));
                 }
                 std::fs::remove_dir(d).map_err(|e| ArchiveError::Unsafe(format!("io: {e}")))?;
             }
@@ -99,7 +104,8 @@ pub fn validate_package(
         arena_archive::ArchiveError::Unsafe(m) => ArchiveError::Unsafe(m),
         arena_archive::ArchiveError::Io(e) => ArchiveError::Unsafe(format!("io: {e}")),
     })?;
-    let manifest = arena_archive::validate_package(&x.root, &x.tree).map_err(|e| ArchiveError::Manifest(e.to_string()))?;
+    let manifest = arena_archive::validate_package(&x.root, &x.tree)
+        .map_err(|e| ArchiveError::Manifest(e.to_string()))?;
     let files = x
         .tree
         .files
@@ -179,10 +185,20 @@ verify = "out/verify"
         let t = b.into_inner().unwrap();
         let v = validate_package(&t, &ArchiveLimits::default(), None).unwrap();
         assert_eq!(v.manifest.name, "t");
-        assert!(v.files.iter().any(|f| f.path == "build-recipe/build.sh" && f.exec));
+        assert!(v
+            .files
+            .iter()
+            .any(|f| f.path == "build-recipe/build.sh" && f.exec));
         // Same rules as the judge: a package without README.md is refused.
-        let bare = raw_tar(&[("candidate.toml", tar::EntryType::Regular, MANIFEST.as_bytes())]);
-        assert!(matches!(validate_package(&bare, &ArchiveLimits::default(), None), Err(ArchiveError::Manifest(_))));
+        let bare = raw_tar(&[(
+            "candidate.toml",
+            tar::EntryType::Regular,
+            MANIFEST.as_bytes(),
+        )]);
+        assert!(matches!(
+            validate_package(&bare, &ArchiveLimits::default(), None),
+            Err(ArchiveError::Manifest(_))
+        ));
         let z = zstd::encode_all(t.as_slice(), 3).unwrap();
         validate_package(&z, &ArchiveLimits::default(), None).unwrap();
     }

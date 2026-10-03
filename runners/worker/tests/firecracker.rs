@@ -7,8 +7,8 @@ mod common;
 
 use arena_jobs::*;
 use arena_types::{GateStatus, ReasonCode};
-use common::*;
 use arena_worker::executor::BuildEnv;
+use common::*;
 use std::sync::Arc;
 
 #[test]
@@ -20,20 +20,39 @@ fn honest_candidate_through_firecracker() {
     let f = fixture();
     let (b, built) = f.build(&package_files());
     let (pkg, manifest, out) = built.unwrap_or_else(|| panic!("{:?}", b.gates));
-    let deps = std::env::var_os("ARENA_FC_DEPS").map(std::path::PathBuf::from).unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into());
-    let cfg = arena_firecracker::FirecrackerConfig::from_deps_dir(&deps, &deps.join("work-worker-tests")).unwrap();
+    let deps = std::env::var_os("ARENA_FC_DEPS")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into());
+    let cfg =
+        arena_firecracker::FirecrackerConfig::from_deps_dir(&deps, &deps.join("work-worker-tests"))
+            .unwrap();
     let fc = arena_firecracker::FirecrackerSandbox::new(cfg).unwrap();
     let exec = common::executor(Arc::new(fc), f.store.clone(), &f.tmp.path().join("fc-jobs"));
     assert_eq!(exec.tier_cap(), arena_types::challenge::Tier::Formal);
-    let run = |spec| arena_worker::executor::JobExecutor::execute(&exec, &spec, "fc", &std::sync::atomic::AtomicBool::new(false)).unwrap();
+    let run = |spec| {
+        arena_worker::executor::JobExecutor::execute(
+            &exec,
+            &spec,
+            "fc",
+            &std::sync::atomic::AtomicBool::new(false),
+        )
+        .unwrap()
+    };
     let job = f.exec_job(&pkg, &manifest, &out);
-    for spec in [JobSpec::Conformance(job.clone()), JobSpec::Adversarial(job.clone()), JobSpec::Benchmark(job)] {
+    for spec in [
+        JobSpec::Conformance(job.clone()),
+        JobSpec::Adversarial(job.clone()),
+        JobSpec::Benchmark(job),
+    ] {
         let r = run(spec);
         assert_eq!(r.execution.sandbox_backend, "firecracker");
         for g in &r.gates {
             let ok = g.status == GateStatus::Pass || g.summary.contains("CACHING_SUSPECTED");
             assert!(ok, "{:?}: {:?} {}", g.gate, g.status, g.summary);
-            assert!(!g.reason_codes.contains(&ReasonCode::DemoOnly), "firecracker results are not tier-capped");
+            assert!(
+                !g.reason_codes.contains(&ReasonCode::DemoOnly),
+                "firecracker results are not tier-capped"
+            );
         }
     }
 }
@@ -59,15 +78,31 @@ fn build_through_firecracker_with_pinned_toolchain() {
         .map(|e| e.path())
         .find(|p| p.extension().is_some_and(|x| x == "json"))
         .expect("a toolchain image manifest");
-    let meta: serde_json::Value = serde_json::from_slice(&std::fs::read(&meta_path).unwrap()).unwrap();
-    let tc: arena_types::Digest = meta["digest"].as_str().unwrap().to_string().try_into().unwrap();
+    let meta: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&meta_path).unwrap()).unwrap();
+    let tc: arena_types::Digest = meta["digest"]
+        .as_str()
+        .unwrap()
+        .to_string()
+        .try_into()
+        .unwrap();
 
     let f = fixture();
-    let deps = std::env::var_os("ARENA_FC_DEPS").map(std::path::PathBuf::from).unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into());
-    let cfg = arena_firecracker::FirecrackerConfig::from_deps_dir(&deps, &deps.join("work-worker-tests")).unwrap();
+    let deps = std::env::var_os("ARENA_FC_DEPS")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into());
+    let cfg =
+        arena_firecracker::FirecrackerConfig::from_deps_dir(&deps, &deps.join("work-worker-tests"))
+            .unwrap();
     let fc = arena_firecracker::FirecrackerSandbox::new(cfg).unwrap();
     let mut exec = common::executor(Arc::new(fc), f.store.clone(), &f.tmp.path().join("fc-jobs"));
-    exec.ctx.build = BuildEnv { mounts: vec![], path: None, env: vec![], images_dir: Some(images.clone()), toolchain_image: Some(tc.clone()) };
+    exec.ctx.build = BuildEnv {
+        mounts: vec![],
+        path: None,
+        env: vec![],
+        images_dir: Some(images.clone()),
+        toolchain_image: Some(tc.clone()),
+    };
 
     // The toy C candidate plus a vendored-crate Rust tool, built offline.
     let mut files = package_files();
@@ -77,9 +112,12 @@ fn build_through_firecracker_with_pinned_toolchain() {
         "build-recipe/build.sh",
         &format!("{toy_build}(cd source/tool && cargo build -q --release --offline --locked --target-dir ../../target)\ncp target/release/tool out/tool\ncc -O2 -o out/ctool source/c/hello.c\n./out/tool > out/tool.txt\n./out/ctool >> out/tool.txt\n"),
     );
-    let m = String::from_utf8(files["candidate.toml"].1.clone()).unwrap().replace("\"out/verify\"]", "\"out/verify\", \"out/tool.txt\"]");
+    let m = String::from_utf8(files["candidate.toml"].1.clone())
+        .unwrap()
+        .replace("\"out/verify\"]", "\"out/verify\", \"out/tool.txt\"]");
     set(&mut files, "candidate.toml", &m);
-    let tinydep_toml = b"[package]\nname = \"tinydep\"\nversion = \"0.1.0\"\nedition = \"2021\"\n".to_vec();
+    let tinydep_toml =
+        b"[package]\nname = \"tinydep\"\nversion = \"0.1.0\"\nedition = \"2021\"\n".to_vec();
     let tinydep_lib = b"pub fn answer() -> u32 { 42 }\n".to_vec();
     let sha = |b: &[u8]| arena_types::Digest::of_bytes(b).hex().to_string();
     let checksum = format!(
@@ -100,14 +138,37 @@ fn build_through_firecracker_with_pinned_toolchain() {
         files.insert(p.into(), (0o644, b));
     }
     let (v, pkg) = f.validate(&files);
-    assert_eq!(v.gates[0].status, GateStatus::Pass, "{}", v.gates[0].summary);
+    assert_eq!(
+        v.gates[0].status,
+        GateStatus::Pass,
+        "{}",
+        v.gates[0].summary
+    );
     let manifest = v.manifest.unwrap();
     let mut chal = f.chal.clone();
     chal.resource_limits.max_build_ms = 600_000;
-    let run = |spec| arena_worker::executor::JobExecutor::execute(&exec, &spec, "fc-build", &std::sync::atomic::AtomicBool::new(false)).unwrap();
-    let b = run(JobSpec::Build(BuildJob { ctx: f.ctx(&pkg), challenge: chal, manifest: manifest.clone() }));
+    let run = |spec| {
+        arena_worker::executor::JobExecutor::execute(
+            &exec,
+            &spec,
+            "fc-build",
+            &std::sync::atomic::AtomicBool::new(false),
+        )
+        .unwrap()
+    };
+    let b = run(JobSpec::Build(BuildJob {
+        ctx: f.ctx(&pkg),
+        challenge: chal,
+        manifest: manifest.clone(),
+    }));
     let g = &b.gates[0];
-    assert_eq!(g.status, GateStatus::Pass, "{} // {:?}", g.summary, g.reason_codes);
+    assert_eq!(
+        g.status,
+        GateStatus::Pass,
+        "{} // {:?}",
+        g.summary,
+        g.reason_codes
+    );
     let out = b.build.unwrap();
     assert_eq!(out.toolchain_image.as_deref(), Some(tc.as_str()));
 

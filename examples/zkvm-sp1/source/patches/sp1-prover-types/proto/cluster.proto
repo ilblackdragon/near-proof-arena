@@ -1,0 +1,166 @@
+// The RPC for interacting with the Prover Cluster.
+syntax = "proto3";
+
+package cluster;
+
+import "google/protobuf/empty.proto";
+import "worker.proto";
+
+service ClusterService {
+  rpc ProofRequestCreate(ProofRequestCreateRequest) returns (google.protobuf.Empty) {}
+  rpc ProofRequestCancel(ProofRequestCancelRequest) returns (google.protobuf.Empty) {}
+  rpc ProofRequestUpdate(ProofRequestUpdateRequest) returns (google.protobuf.Empty) {}
+  rpc ProofRequestGet(ProofRequestGetRequest) returns (ProofRequestGetResponse) {}
+  rpc ProofRequestList(ProofRequestListRequest) returns (ProofRequestListResponse) {}
+
+  // Cluster component build manifest (component / version / git_sha / image_tag).
+  // The coordinator periodically writes its full manifest (its own build + one entry
+  // per connected worker) via SetClusterComponentInfo; the fulfiller reads the latest
+  // via GetClusterComponentInfo and forwards it to the SPN. This is the
+  // topology-agnostic replacement for the fulfiller connecting to the coordinator's
+  // WorkerService directly. Cluster-internal only; unrelated to the SPN
+  // ReportProverInfo wire types.
+  rpc SetClusterComponentInfo(SetClusterComponentInfoRequest) returns (google.protobuf.Empty) {}
+  rpc GetClusterComponentInfo(google.protobuf.Empty) returns (ClusterComponentManifest) {}
+
+  rpc Healthcheck(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
+// Full cluster component build manifest written by the coordinator: its own build
+// followed by one entry per connected worker. Reuses worker.ClusterComponentInfo
+// (component / version / git_sha / image_tag; no instance_id). A write replaces the
+// previous manifest (full snapshot).
+message SetClusterComponentInfoRequest {
+  repeated worker.ClusterComponentInfo components = 1;
+  // GPU capacity snapshot built alongside the component manifest. Absent when the
+  // coordinator has no capacity data to report.
+  optional worker.ClusterCapacitySnapshot capacity = 2;
+}
+
+// The latest manifest as held by the API, with the server-owned time it was last
+// written. Empty `components` with `updated_at = 0` means no coordinator has pushed a
+// manifest yet; a caller compares `updated_at` against a freshness window to reject a
+// stale manifest instead of forwarding a partial snapshot.
+message ClusterComponentManifest {
+  repeated worker.ClusterComponentInfo components = 1;
+  // Unix seconds when the API last stored a manifest (server-owned).
+  uint64 updated_at = 2;
+  // GPU capacity snapshot from the same manifest write.
+  optional worker.ClusterCapacitySnapshot capacity = 3;
+}
+
+message ProofRequestCreateRequest {
+  string proof_id = 1;
+  string program_artifact_id = 2;
+  string stdin_artifact_id = 3;
+  optional string options_artifact_id = 4;
+  optional string proof_artifact_id = 5;
+  bytes requester = 6;
+  uint64 deadline = 7;
+  uint64 cycle_limit = 8;
+  uint64 gas_limit = 9;
+  // Identifies which executor/fulfiller scheduled this request. Used to filter
+  // submit/fail when multiple fulfillers share a coordinator.
+  optional string scheduled_by = 10;
+  bool stdin_private = 11;
+}
+
+message ProofRequestCancelRequest {
+  string proof_id = 1;
+}
+
+message ProofRequest {
+  string id = 1;
+  ProofRequestStatus proof_status = 2;
+  bytes requester = 3;
+  ExecutionResult execution_result = 4;
+  string stdin_artifact_id = 5;
+  string program_artifact_id = 6;
+  optional string proof_artifact_id = 7;
+  optional string options_artifact_id = 8;
+  optional uint64 cycle_limit = 9;
+  optional uint64 gas_limit = 10;
+  uint64 deadline = 11;
+  bool handled = 12;
+  string metadata = 13;
+  uint64 created_at = 14;
+  uint64 updated_at = 15;
+  optional string extra_data = 16;
+  // Identifies which executor/fulfiller scheduled this request.
+  optional string scheduled_by = 17;
+  bool stdin_private = 18;
+}
+
+message ProofRequestListRequest {
+  repeated ProofRequestStatus proof_status = 1;
+  repeated ExecutionStatus execution_status = 2;
+  optional uint64 minimum_deadline = 3;
+  optional bool handled = 4;
+  optional uint32 limit = 5;
+  optional uint32 offset = 6;
+  // Filter to only requests scheduled by this executor/fulfiller.
+  optional string scheduled_by = 7;
+}
+
+message ProofRequestListResponse {
+  repeated ProofRequest proof_requests = 1;
+}
+
+enum ProofRequestStatus {
+  PROOF_REQUEST_STATUS_UNSPECIFIED = 0;
+  PROOF_REQUEST_STATUS_PENDING = 1;
+  PROOF_REQUEST_STATUS_COMPLETED = 2;
+  PROOF_REQUEST_STATUS_FAILED = 3;
+  PROOF_REQUEST_STATUS_CANCELLED = 4;
+}
+
+// The possible statuses for the execution of the program.
+enum ExecutionStatus {
+  EXECUTION_STATUS_UNSPECIFIED = 0;
+  EXECUTION_STATUS_UNEXECUTED = 1;
+  EXECUTION_STATUS_EXECUTED = 2;
+  EXECUTION_STATUS_FAILED = 3;
+  EXECUTION_STATUS_CANCELLED = 4;
+}
+
+// The specific reasons why an execution might fail.
+enum ExecutionFailureCause {
+  EXECUTION_FAILURE_CAUSE_UNSPECIFIED = 0;
+  EXECUTION_FAILURE_CAUSE_HALT_WITH_NON_ZERO_EXIT_CODE = 1;
+  EXECUTION_FAILURE_CAUSE_INVALID_MEMORY_ACCESS = 2;
+  EXECUTION_FAILURE_CAUSE_UNSUPPORTED_SYSCALL = 3;
+  EXECUTION_FAILURE_CAUSE_BREAKPOINT = 4;
+  EXECUTION_FAILURE_CAUSE_EXCEEDED_CYCLE_LIMIT = 5;
+  EXECUTION_FAILURE_CAUSE_INVALID_SYSCALL_USAGE = 6;
+  EXECUTION_FAILURE_CAUSE_UNIMPLEMENTED = 7;
+  EXECUTION_FAILURE_CAUSE_END_IN_UNCONSTRAINED = 8;
+}
+
+message ExecutionResult {
+  ExecutionStatus status = 1;
+  ExecutionFailureCause failure_cause = 2;
+  uint64 cycles = 3;
+  uint64 gas = 4;
+  bytes public_values_hash = 5;
+}
+
+// The request to get a specific proof request.
+message ProofRequestGetRequest {
+  string proof_id = 1;
+}
+
+// The response containing the details of a single proof request.
+message ProofRequestGetResponse {
+  ProofRequest proof_request = 1;
+}
+
+// The request to update a proof request.
+message ProofRequestUpdateRequest {
+  string proof_id = 1;
+  optional ProofRequestStatus proof_status = 2;
+  optional ExecutionResult execution_result = 3;
+  optional uint64 deadline = 4;
+  optional bool handled = 5;
+  optional string metadata = 6;
+  optional string extra_data = 7;
+}

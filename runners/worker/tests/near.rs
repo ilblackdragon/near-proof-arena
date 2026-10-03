@@ -20,12 +20,24 @@ use std::sync::atomic::AtomicBool;
 const NEAR: &str = "chl_5ef2bc7d2068219635426e47ca46bfbb";
 
 fn git_files(rel: &str) -> std::collections::BTreeMap<String, (u32, Vec<u8>)> {
-    let out = std::process::Command::new("git").arg("-C").arg(repo()).args(["ls-files", "-s", "--", rel]).output().unwrap();
+    let out = std::process::Command::new("git")
+        .arg("-C")
+        .arg(repo())
+        .args(["ls-files", "-s", "--", rel])
+        .output()
+        .unwrap();
     let mut m = std::collections::BTreeMap::new();
     for l in String::from_utf8(out.stdout).unwrap().lines() {
         let (meta, path) = l.split_once('\t').unwrap();
-        let mode = if meta.starts_with("100755") { 0o755 } else { 0o644 };
-        m.insert(path.strip_prefix(&format!("{rel}/")).unwrap().to_string(), (mode, std::fs::read(repo().join(path)).unwrap()));
+        let mode = if meta.starts_with("100755") {
+            0o755
+        } else {
+            0o644
+        };
+        m.insert(
+            path.strip_prefix(&format!("{rel}/")).unwrap().to_string(),
+            (mode, std::fs::read(repo().join(path)).unwrap()),
+        );
     }
     m
 }
@@ -39,7 +51,9 @@ fn export(rel: &str, dest: &Path) {
 }
 
 pub fn near_env(f: &mut Fixture) -> Option<()> {
-    let oracle = std::env::var_os("ARENA_NEAR_ORACLE").map(PathBuf::from).unwrap_or_else(|| repo().join("oracle/target/debug/near-arena-oracle"));
+    let oracle = std::env::var_os("ARENA_NEAR_ORACLE")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| repo().join("oracle/target/debug/near-arena-oracle"));
     if !oracle.is_file() {
         eprintln!("SKIP: no near-arena-oracle at {}", oracle.display());
         return None;
@@ -48,27 +62,56 @@ pub fn near_env(f: &mut Fixture) -> Option<()> {
     let rust = home.join(".rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu");
     let lean = home.join(".elan/toolchains/leanprover--lean4---v4.34.1");
     f.exec.ctx.build = BuildEnv {
-        mounts: vec![Mount { host: rust, guest: "/opt/rust".into() }, Mount { host: lean, guest: "/opt/lean".into() }],
+        mounts: vec![
+            Mount {
+                host: rust,
+                guest: "/opt/rust".into(),
+            },
+            Mount {
+                host: lean,
+                guest: "/opt/lean".into(),
+            },
+        ],
         path: Some("/opt/rust/bin:/opt/lean/bin:/usr/bin:/bin".into()),
         env: vec![],
         images_dir: None,
         toolchain_image: None,
     };
-    let mut o = Oracles::builtin().with_near(oracle, &repo().join("spec/workloads/near-transfer-receipt-v1")).unwrap();
+    let mut o = Oracles::builtin()
+        .with_near(
+            oracle,
+            &repo().join("spec/workloads/near-transfer-receipt-v1"),
+        )
+        .unwrap();
     let clean = f.tmp.path().join("clean");
     export("oracle/fixtures/public", &clean);
-    let fx = o.add_fixtures_dir(&clean.join("oracle/fixtures/public")).unwrap();
-    assert_eq!(fx.as_str(), "sha256:c83f3e14d526e78244ee2d7288396a9680717fa42ef77127ba29ccf27bb7e6ec");
+    let fx = o
+        .add_fixtures_dir(&clean.join("oracle/fixtures/public"))
+        .unwrap();
+    assert_eq!(
+        fx.as_str(),
+        "sha256:c83f3e14d526e78244ee2d7288396a9680717fa42ef77127ba29ccf27bb7e6ec"
+    );
     f.exec.ctx.oracles = o;
     export("formal-core", &clean);
     export("spec/lean", &clean);
-    f.exec.ctx.formal = Some(FormalEnv { repo: clean, configs_dir: repo().join("runners/formal-checker/challenges"), images_dir: None });
+    f.exec.ctx.formal = Some(FormalEnv {
+        repo: clean,
+        configs_dir: repo().join("runners/formal-checker/challenges"),
+        images_dir: None,
+    });
     f.exec.ctx.bench_batch_cap = Some(1);
     f.exec.ctx.conformance_samples = 3;
-    f.chal = serde_json::from_slice::<ChallengeDefinition>(&std::fs::read(repo().join(format!("challenges/{NEAR}.json"))).unwrap()).unwrap();
+    f.chal = serde_json::from_slice::<ChallengeDefinition>(
+        &std::fs::read(repo().join(format!("challenges/{NEAR}.json"))).unwrap(),
+    )
+    .unwrap();
     // Test-only re-pin: the signed challenge pins the identity of one build
     // of the host checker tools; this host's tools may have been rebuilt.
-    f.chal.toolchain_policy.checker_image = arena_formal_checker::toolchain::ToolPaths::discover().unwrap().image_digest().unwrap();
+    f.chal.toolchain_policy.checker_image = arena_formal_checker::toolchain::ToolPaths::discover()
+        .unwrap()
+        .image_digest()
+        .unwrap();
     Some(())
 }
 
@@ -83,10 +126,19 @@ fn ctx(f: &Fixture, pkg: &arena_types::Digest) -> JobContext {
 fn run(f: &Fixture, spec: JobSpec) -> JobResult {
     let t = std::time::Instant::now();
     let kind = spec.kind();
-    let r = f.exec.execute(&spec, "near", &AtomicBool::new(false)).unwrap();
+    let r = f
+        .exec
+        .execute(&spec, "near", &AtomicBool::new(false))
+        .unwrap();
     eprintln!("{kind}: {:?}", t.elapsed());
     for g in &r.gates {
-        eprintln!("  {:?} {:?} {:?} {}", g.gate, g.status, g.reason_codes, &g.summary[..g.summary.len().min(160)]);
+        eprintln!(
+            "  {:?} {:?} {:?} {}",
+            g.gate,
+            g.status,
+            g.reason_codes,
+            &g.summary[..g.summary.len().min(160)]
+        );
     }
     r
 }
@@ -102,10 +154,23 @@ fn reexec_witness_reference_all_stages() {
         return;
     }
     let pkg = f.put(&tar_of(&git_files("examples/reexec-witness")));
-    let v = run(&f, JobSpec::Validate(ValidateJob { ctx: ctx(&f, &pkg), challenge: f.chal.clone() }));
+    let v = run(
+        &f,
+        JobSpec::Validate(ValidateJob {
+            ctx: ctx(&f, &pkg),
+            challenge: f.chal.clone(),
+        }),
+    );
     assert_eq!(v.gates[0].status, GateStatus::Pass);
     let manifest = v.manifest.unwrap();
-    let b = run(&f, JobSpec::Build(BuildJob { ctx: ctx(&f, &pkg), challenge: f.chal.clone(), manifest: manifest.clone() }));
+    let b = run(
+        &f,
+        JobSpec::Build(BuildJob {
+            ctx: ctx(&f, &pkg),
+            challenge: f.chal.clone(),
+            manifest: manifest.clone(),
+        }),
+    );
     assert_eq!(b.gates[0].status, GateStatus::Pass);
     let mut build = b.build.unwrap();
     let vs = VerifiedSurface {
@@ -116,23 +181,61 @@ fn reexec_witness_reference_all_stages() {
         formal_tree: build.formal_tree.clone(),
         certificate_decl: build.certificate_decl.clone(),
         checker_image: f.chal.toolchain_policy.checker_image.clone(),
+        verify_route: manifest.entry.verify_route,
+        verifier_bytecode: build.verifier_bytecode.clone(),
+        verifier_model: manifest
+            .formal
+            .as_ref()
+            .and_then(|f| f.verifier_model.clone()),
+        verifier_model_module: manifest
+            .formal
+            .as_ref()
+            .and_then(|f| f.verifier_model_module.clone()),
     };
-    let fc = run(&f, JobSpec::FormalCheck(FormalCheckJob { ctx: ctx(&f, &pkg), challenge: f.chal.clone(), manifest: manifest.clone(), build: build.clone(), verified_surface: vs }));
+    let fc = run(
+        &f,
+        JobSpec::FormalCheck(FormalCheckJob {
+            ctx: ctx(&f, &pkg),
+            challenge: f.chal.clone(),
+            manifest: manifest.clone(),
+            build: build.clone(),
+            verified_surface: vs,
+        }),
+    );
     for g in &fc.gates {
         if g.gate != ObligationId::FormalZk {
             assert_eq!(g.status, GateStatus::Pass, "{:?}: {}", g.gate, g.summary);
         }
     }
-    build.native_verifier = Some(fc.native_verifier.clone().expect("judge-built native verifier"));
-    let job = ExecJob { ctx: ctx(&f, &pkg), challenge: f.chal.clone(), manifest, build };
+    build.native_verifier = Some(
+        fc.native_verifier
+            .clone()
+            .expect("judge-built native verifier"),
+    );
+    let job = ExecJob {
+        ctx: ctx(&f, &pkg),
+        challenge: f.chal.clone(),
+        manifest,
+        build,
+    };
     let c = run(&f, JobSpec::Conformance(job.clone()));
     for g in &c.gates {
         assert_eq!(g.status, GateStatus::Pass, "{:?}: {}", g.gate, g.summary);
     }
     let a = run(&f, JobSpec::Adversarial(job.clone()));
-    assert_eq!(a.gates[0].status, GateStatus::Pass, "{}", a.gates[0].summary);
+    assert_eq!(
+        a.gates[0].status,
+        GateStatus::Pass,
+        "{}",
+        a.gates[0].summary
+    );
     let r = run(&f, JobSpec::Benchmark(job));
-    assert_eq!(r.gates[0].status, GateStatus::Pass, "{}", r.gates[0].summary);
+    assert_eq!(
+        r.gates[0].status,
+        GateStatus::Pass,
+        "{}",
+        r.gates[0].summary
+    );
 }
 
 /// The same flow with production isolation: every stage in Firecracker
@@ -142,7 +245,9 @@ fn reexec_witness_reference_all_stages() {
 /// checker identity (test-only). Gated: `ARENA_NEAR_TESTS=1 ARENA_FC_TESTS=1`.
 #[test]
 fn reexec_witness_reference_firecracker() {
-    if std::env::var("ARENA_NEAR_TESTS").as_deref() != Ok("1") || std::env::var("ARENA_FC_TESTS").as_deref() != Ok("1") {
+    if std::env::var("ARENA_NEAR_TESTS").as_deref() != Ok("1")
+        || std::env::var("ARENA_FC_TESTS").as_deref() != Ok("1")
+    {
         eprintln!("skipped: set ARENA_NEAR_TESTS=1 ARENA_FC_TESTS=1");
         return;
     }
@@ -150,7 +255,9 @@ fn reexec_witness_reference_firecracker() {
     if near_env(&mut f).is_none() {
         return;
     }
-    let deps = std::env::var_os("ARENA_FC_DEPS").map(PathBuf::from).unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into());
+    let deps = std::env::var_os("ARENA_FC_DEPS")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| "/data/illia/nearproof-deps/firecracker".into());
     let tc_images: PathBuf = "/data/illia/nearproof-deps/toolchain-images".into();
     let lean_images: PathBuf = "/data/illia/nearproof-deps/lean-checker/images".into();
     let pick = |dir: &Path| -> (PathBuf, arena_types::Digest) {
@@ -164,14 +271,28 @@ fn reexec_witness_reference_firecracker() {
         metas.sort();
         let meta = metas.pop().unwrap().1;
         let v: serde_json::Value = serde_json::from_slice(&std::fs::read(meta).unwrap()).unwrap();
-        let d: arena_types::Digest = v["digest"].as_str().unwrap().to_string().try_into().unwrap();
+        let d: arena_types::Digest = v["digest"]
+            .as_str()
+            .unwrap()
+            .to_string()
+            .try_into()
+            .unwrap();
         (dir.join(d.hex()), d)
     };
     let (_, tc) = pick(&tc_images);
     let (lean_img, _) = pick(&lean_images);
-    let cfg = arena_firecracker::FirecrackerConfig::from_deps_dir(&deps, &deps.join("work-worker-tests")).unwrap();
+    let cfg =
+        arena_firecracker::FirecrackerConfig::from_deps_dir(&deps, &deps.join("work-worker-tests"))
+            .unwrap();
     let fc = arena_firecracker::FirecrackerSandbox::new(cfg).unwrap();
-    let bw_exec = std::mem::replace(&mut f.exec, common::executor(std::sync::Arc::new(fc), f.store.clone(), &f.tmp.path().join("fc-near")));
+    let bw_exec = std::mem::replace(
+        &mut f.exec,
+        common::executor(
+            std::sync::Arc::new(fc),
+            f.store.clone(),
+            &f.tmp.path().join("fc-near"),
+        ),
+    );
     f.exec.ctx.oracles = bw_exec.ctx.oracles;
     f.exec.ctx.formal = bw_exec.ctx.formal.map(|mut e| {
         e.images_dir = Some(lean_images.clone());
@@ -197,9 +318,22 @@ fn reexec_witness_reference_firecracker() {
     let pkg = f.put(&tar_of(&git_files("examples/reexec-witness")));
     let mut c = ctx(&f, &pkg);
     c.tier = arena_types::challenge::Tier::Formal;
-    let v = run(&f, JobSpec::Validate(ValidateJob { ctx: c.clone(), challenge: f.chal.clone() }));
+    let v = run(
+        &f,
+        JobSpec::Validate(ValidateJob {
+            ctx: c.clone(),
+            challenge: f.chal.clone(),
+        }),
+    );
     let manifest = v.manifest.unwrap();
-    let b = run(&f, JobSpec::Build(BuildJob { ctx: c.clone(), challenge: f.chal.clone(), manifest: manifest.clone() }));
+    let b = run(
+        &f,
+        JobSpec::Build(BuildJob {
+            ctx: c.clone(),
+            challenge: f.chal.clone(),
+            manifest: manifest.clone(),
+        }),
+    );
     assert_eq!(b.gates[0].status, GateStatus::Pass);
     let mut build = b.build.unwrap();
     let vs = VerifiedSurface {
@@ -210,14 +344,46 @@ fn reexec_witness_reference_firecracker() {
         formal_tree: build.formal_tree.clone(),
         certificate_decl: build.certificate_decl.clone(),
         checker_image: f.chal.toolchain_policy.checker_image.clone(),
+        verify_route: manifest.entry.verify_route,
+        verifier_bytecode: build.verifier_bytecode.clone(),
+        verifier_model: manifest
+            .formal
+            .as_ref()
+            .and_then(|f| f.verifier_model.clone()),
+        verifier_model_module: manifest
+            .formal
+            .as_ref()
+            .and_then(|f| f.verifier_model_module.clone()),
     };
-    let fcr = run(&f, JobSpec::FormalCheck(FormalCheckJob { ctx: c.clone(), challenge: f.chal.clone(), manifest: manifest.clone(), build: build.clone(), verified_surface: vs }));
+    let fcr = run(
+        &f,
+        JobSpec::FormalCheck(FormalCheckJob {
+            ctx: c.clone(),
+            challenge: f.chal.clone(),
+            manifest: manifest.clone(),
+            build: build.clone(),
+            verified_surface: vs,
+        }),
+    );
     for g in &fcr.gates {
         assert_eq!(g.status, GateStatus::Pass, "{:?}: {}", g.gate, g.summary);
     }
-    build.native_verifier = Some(fcr.native_verifier.clone().expect("judge-built native verifier"));
-    let job = ExecJob { ctx: c, challenge: f.chal.clone(), manifest, build };
-    for spec in [JobSpec::Conformance(job.clone()), JobSpec::Adversarial(job.clone()), JobSpec::Benchmark(job)] {
+    build.native_verifier = Some(
+        fcr.native_verifier
+            .clone()
+            .expect("judge-built native verifier"),
+    );
+    let job = ExecJob {
+        ctx: c,
+        challenge: f.chal.clone(),
+        manifest,
+        build,
+    };
+    for spec in [
+        JobSpec::Conformance(job.clone()),
+        JobSpec::Adversarial(job.clone()),
+        JobSpec::Benchmark(job),
+    ] {
         let r = run(&f, spec);
         for g in &r.gates {
             assert_eq!(g.status, GateStatus::Pass, "{:?}: {}", g.gate, g.summary);

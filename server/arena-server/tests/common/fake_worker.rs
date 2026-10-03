@@ -17,6 +17,11 @@ pub struct Behavior {
     pub bogus_gate_on: Option<JobKind>,
     /// Summary text override (sanitization tests).
     pub summary: Option<String>,
+    /// Manifest `entry.verify_route` reported by VALIDATE.
+    pub verify_route: Option<VerifyRoute>,
+    /// `npai-v1`: tag of the verifier bytecode digest reported by BUILD
+    /// (`None` = the build reports no bytecode digest).
+    pub bytecode_tag: Option<String>,
 }
 
 pub struct FakeWorker {
@@ -121,14 +126,20 @@ impl FakeWorker {
                     },
                     build: candidate::BuildSection {
                         recipe: "build-recipe/build.sh".into(),
-                        outputs: vec!["out/prove".into()],
+                        outputs: if self.behavior.verify_route == Some(VerifyRoute::NpaiV1) {
+                            vec!["out/prove".into(), "out/verifier.npai".into()]
+                        } else {
+                            vec!["out/prove".into()]
+                        },
                     },
                     entry: candidate::EntrySection {
                         prepare: "out/prepare".into(),
                         prove: "out/prove".into(),
                         verify: "out/verify".into(),
-                        verify_route: None,
-                        verifier_bytecode: None,
+                        verify_route: self.behavior.verify_route,
+                        verifier_bytecode: (self.behavior.verify_route
+                            == Some(VerifyRoute::NpaiV1))
+                        .then(|| "out/verifier.npai".into()),
                     },
                     formal: Some(candidate::FormalSection {
                         lean_project: "formal".into(),
@@ -153,6 +164,11 @@ impl FakeWorker {
                     bundle_archive: None,
                     public_archive: None,
                     native_verifier: None,
+                    verifier_bytecode: self
+                        .behavior
+                        .bytecode_tag
+                        .as_ref()
+                        .map(|b| d(&format!("npai:{b}"))),
                 })
             }
             JobSpec::FormalCheck(_) => {

@@ -56,19 +56,29 @@ impl Runner<'_, '_> {
 fn cross_check(o: &arena_sandbox::SandboxOutcome) -> Result<(), RunError> {
     let vmm = o.diagnostics.vmm_wall_ns;
     if vmm > 0 && o.wall_ns > vmm {
-        return Err(RunError::Infra(format!("timing cross-check failed: wall {} ns > VMM wall {} ns", o.wall_ns, vmm)));
+        return Err(RunError::Infra(format!(
+            "timing cross-check failed: wall {} ns > VMM wall {} ns",
+            o.wall_ns, vmm
+        )));
     }
     Ok(())
 }
 
 impl BatchRunner for Runner<'_, '_> {
-    fn run_batch(&mut self, class_id: &str, phase: Phase, round: u32) -> Result<BatchSample, RunError> {
+    fn run_batch(
+        &mut self,
+        class_id: &str,
+        phase: Phase,
+        round: u32,
+    ) -> Result<BatchSample, RunError> {
         let (batch, fresh) = self.batches[class_id].clone();
         let batch = if self.fresh_only {
             let tag = format!("{class_id}#confirm-{}-{round}", phase.as_str());
             let mut parts: Vec<&str> = self.parts.iter().map(|s| s.as_str()).collect();
             parts.push(&tag);
-            self.oracle.sample(self.chal, class_id, &parts, batch.len()).map_err(|e| RunError::Infra(e.to_string()))?
+            self.oracle
+                .sample(self.chal, class_id, &parts, batch.len())
+                .map_err(|e| RunError::Infra(e.to_string()))?
         } else if phase == Phase::FreshConfirm {
             fresh
         } else {
@@ -77,12 +87,34 @@ impl BatchRunner for Runner<'_, '_> {
         let mut s = BatchSample::default();
         for case in &batch {
             let label = common::case_label(&case.id, case.public);
-            let (bundle, public_dir, limits, entry, cpus, verifier) =
-                (self.bundle.clone(), self.public_dir.clone(), self.limits.clone(), self.entry, self.cpus.clone(), self.verifier.clone());
-            let env = common::EntryEnv { bundle: &bundle, entry, public_dir: &public_dir, limits: &limits, cpu_set: cpus, verifier: &verifier };
+            let (bundle, public_dir, limits, entry, cpus, verifier) = (
+                self.bundle.clone(),
+                self.public_dir.clone(),
+                self.limits.clone(),
+                self.entry,
+                self.cpus.clone(),
+                self.verifier.clone(),
+            );
+            let env = common::EntryEnv {
+                bundle: &bundle,
+                entry,
+                public_dir: &public_dir,
+                limits: &limits,
+                cpu_set: cpus,
+                verifier: &verifier,
+            };
             let p = match common::run_prove(self.r, &env, case) {
                 Err(e) => return Err(self.exec_err(e)),
-                Ok(Err(f)) => return Err(self.fail(f.reason, format!("{} run, {label}: {}", phase.as_str(), f.detail))),
+                Ok(Err(f)) => {
+                    return Err(self.fail(
+                        f.reason,
+                        format!(
+                            "{} run, {label}: {}",
+                            phase.as_str(),
+                            f.detail_for(case.public)
+                        ),
+                    ))
+                }
                 Ok(Ok(p)) => p,
             };
             cross_check(&p.outcome)?;
@@ -95,11 +127,27 @@ impl BatchRunner for Runner<'_, '_> {
             cross_check(&vo)?;
             match v {
                 Verdict::Accept => s.push_verify(&vo),
-                Verdict::TimedOut => return Err(self.fail(ReasonCode::ResourceLimit, format!("{label}: verify exceeded max_verify_ms"))),
-                Verdict::BindingMismatch => {
-                    return Err(self.fail(ReasonCode::ArtifactBindingFailed, "npai-verify: the verifier bytecode is not the certified image".into()))
+                Verdict::TimedOut => {
+                    return Err(self.fail(
+                        ReasonCode::ResourceLimit,
+                        format!("{label}: verify exceeded max_verify_ms"),
+                    ))
                 }
-                _ => return Err(self.fail(ReasonCode::ProverFailed, format!("{} run, {label}: verify did not accept the proof", phase.as_str()))),
+                Verdict::BindingMismatch => {
+                    return Err(self.fail(
+                        ReasonCode::ArtifactBindingFailed,
+                        "npai-verify: the verifier bytecode is not the certified image".into(),
+                    ))
+                }
+                _ => {
+                    return Err(self.fail(
+                        ReasonCode::ProverFailed,
+                        format!(
+                            "{} run, {label}: verify did not accept the proof",
+                            phase.as_str()
+                        ),
+                    ))
+                }
             }
         }
         Ok(s)
@@ -108,9 +156,13 @@ impl BatchRunner for Runner<'_, '_> {
 
 pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut bench = Gate::start(ObligationId::Benchmark);
-    let mut out = StageOut { used_sandbox: true, ..Default::default() };
+    let mut out = StageOut {
+        used_sandbox: true,
+        ..Default::default()
+    };
     let chal = &j.challenge;
-    arena_measure::check_procedure(&chal.measurement).map_err(|e| ExecError::Infra(e.to_string()))?;
+    arena_measure::check_procedure(&chal.measurement)
+        .map_err(|e| ExecError::Infra(e.to_string()))?;
     let limits = RunLimits::from_challenge(chal);
     let oracle = match r.ctx.oracles.get(chal) {
         Ok(o) => o,
@@ -133,11 +185,15 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
                 capped = true;
             }
         }
-        let batch = oracle.sample(chal, &c.id, &parts, n).map_err(|e| ExecError::Infra(e.to_string()))?;
+        let batch = oracle
+            .sample(chal, &c.id, &parts, n)
+            .map_err(|e| ExecError::Infra(e.to_string()))?;
         let fresh_tag = format!("{}#fresh", c.id);
         let mut fresh_parts = parts.clone();
         fresh_parts.push(&fresh_tag);
-        let fresh = oracle.sample(chal, &c.id, &fresh_parts, n).map_err(|e| ExecError::Infra(e.to_string()))?;
+        let fresh = oracle
+            .sample(chal, &c.id, &fresh_parts, n)
+            .map_err(|e| ExecError::Infra(e.to_string()))?;
         batches.insert(c.id.clone(), (batch, fresh));
     }
     let bundle = common::fetch_bundle(r, &j.build, &j.manifest.entry)?;
@@ -165,19 +221,34 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             return Ok(out);
         }
     };
-    let public_bytes = arena_archive::tree_from_dir(&public_dir, &arena_archive::Limits::default())?.total_bytes();
+    let public_bytes =
+        arena_archive::tree_from_dir(&public_dir, &arena_archive::Limits::default())?.total_bytes();
 
-    let baselines: HashMap<&str, u64> = chal.workload_suite.baseline_ns.iter().map(|(k, v)| (k.as_str(), *v)).collect();
+    let baselines: HashMap<&str, u64> = chal
+        .workload_suite
+        .baseline_ns
+        .iter()
+        .map(|(k, v)| (k.as_str(), *v))
+        .collect();
     let plan = SessionPlan {
         classes: chal
             .workload_suite
             .classes
             .iter()
-            .map(|c| ClassPlan { class_id: c.id.clone(), weight_ppm: c.weight_ppm, baseline_ns: baselines.get(c.id.as_str()).copied().unwrap_or(0) })
+            .map(|c| ClassPlan {
+                class_id: c.id.clone(),
+                weight_ppm: c.weight_ppm,
+                baseline_ns: baselines.get(c.id.as_str()).copied().unwrap_or(0),
+            })
             .collect(),
         procedure: chal.measurement.clone(),
-        schedule_seed: derive_seed("schedule", &[&j.ctx.challenge_id, &j.ctx.submission_id, &j.ctx.run_id]).map_err(ExecError::Infra)?,
-        bootstrap_seed: derive_seed("bootstrap", &[&j.ctx.submission_id, &j.ctx.run_id]).map_err(ExecError::Infra)?,
+        schedule_seed: derive_seed(
+            "schedule",
+            &[&j.ctx.challenge_id, &j.ctx.submission_id, &j.ctx.run_id],
+        )
+        .map_err(ExecError::Infra)?,
+        bootstrap_seed: derive_seed("bootstrap", &[&j.ctx.submission_id, &j.ctx.run_id])
+            .map_err(ExecError::Infra)?,
         bootstrap_iterations: BOOTSTRAP_ITERATIONS,
         fresh_confirm_runs: 1,
     };
@@ -208,8 +279,14 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         let failure = runner.failure.take();
         let session = match session {
             Ok(s) => s,
-            Err(SessionError::Run { error: RunError::Infra(e), .. }) => return Err(ExecError::Infra(e)),
-            Err(SessionError::Run { error: RunError::Candidate { .. }, .. }) => {
+            Err(SessionError::Run {
+                error: RunError::Infra(e),
+                ..
+            }) => return Err(ExecError::Infra(e)),
+            Err(SessionError::Run {
+                error: RunError::Candidate { .. },
+                ..
+            }) => {
                 let (reason, detail) = failure.expect("candidate failure recorded");
                 bench.fail(reason, format!("no score: {detail}"));
                 out.gates.push(bench.finish(GateStatus::Unknown, true));
@@ -217,20 +294,35 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             }
             Err(e) => return Err(ExecError::Infra(e.to_string())),
         };
-        if !runner.fresh_only && session.flags.iter().any(|f| f.starts_with("CACHING_SUSPECTED")) {
+        if !runner.fresh_only
+            && session
+                .flags
+                .iter()
+                .any(|f| f.starts_with("CACHING_SUSPECTED"))
+        {
             // §7.4: the number is only published after a re-run on fresh
             // batches only (every round a new batch); that run's number is
             // the published one. A candidate that caches across runs stays
             // slow there (no seen inputs exist).
-            bench.note(format!("session {attempt}: CACHING_SUSPECTED; re-measured on fresh batches only"));
+            bench.note(format!(
+                "session {attempt}: CACHING_SUSPECTED; re-measured on fresh batches only"
+            ));
             runner.fresh_only = true;
             plan.fresh_confirm_runs = 0;
             attempt = 0;
             continue;
         }
-        match session.flags.iter().find(|f| f.starts_with("EXCESSIVE_OUTLIERS")) {
+        match session
+            .flags
+            .iter()
+            .find(|f| f.starts_with("EXCESSIVE_OUTLIERS"))
+        {
             None => break session,
-            Some(f) if attempt >= MAX_SESSIONS => return Err(ExecError::Infra(format!("{f} in {attempt} sessions: host too noisy"))),
+            Some(f) if attempt >= MAX_SESSIONS => {
+                return Err(ExecError::Infra(format!(
+                    "{f} in {attempt} sessions: host too noisy"
+                )))
+            }
             Some(f) => bench.note(format!("session {attempt} discarded ({f}); re-measured")),
         }
     };
@@ -239,10 +331,22 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     // Resource caps over every measured run.
     for c in &classes {
         if c.proof_bytes_max > limits.max_proof_bytes {
-            bench.fail(ReasonCode::ResourceLimit, format!("class {}: proof {} bytes > max_proof_bytes", c.class_id, c.proof_bytes_max));
+            bench.fail(
+                ReasonCode::ResourceLimit,
+                format!(
+                    "class {}: proof {} bytes > max_proof_bytes",
+                    c.class_id, c.proof_bytes_max
+                ),
+            );
         }
         if c.peak_rss_bytes > limits.max_ram_bytes {
-            bench.fail(ReasonCode::ResourceLimit, format!("class {}: peak memory {} > max_ram_bytes", c.class_id, c.peak_rss_bytes));
+            bench.fail(
+                ReasonCode::ResourceLimit,
+                format!(
+                    "class {}: peak memory {} > max_ram_bytes",
+                    c.class_id, c.peak_rss_bytes
+                ),
+            );
         }
     }
     let (score_milli, ci) = match &session.score {
@@ -257,7 +361,10 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut measured_by = format!("arena-worker {worker_id}");
     if capped {
         measured_by.push_str(" [DEV: batch sizes capped]");
-        bench.note(format!("DEV: batch sizes capped at {} (timings not comparable)", r.ctx.bench_batch_cap.unwrap_or(0)));
+        bench.note(format!(
+            "DEV: batch sizes capped at {} (timings not comparable)",
+            r.ctx.bench_batch_cap.unwrap_or(0)
+        ));
     }
     let result = BenchmarkResult {
         hardware_profile: chal.hardware_profile.id.clone(),
@@ -293,12 +400,18 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         out.gates.push(bench.finish(GateStatus::Unknown, true));
         return Ok(out);
     }
-    if session.flags.iter().any(|f| f.starts_with("CACHING_SUSPECTED")) {
+    if session
+        .flags
+        .iter()
+        .any(|f| f.starts_with("CACHING_SUSPECTED"))
+    {
         bench.note("CACHING_SUSPECTED: fresh-input batch markedly slower; re-run with fresh batches before ranking");
         out.gates.push(bench.finish(GateStatus::Unknown, true));
     } else {
         if let (Some(s), Some(c)) = (score_milli, ci) {
-            bench.note(format!("worker-side score {s} ± {c} milli (server recomputes)"));
+            bench.note(format!(
+                "worker-side score {s} ± {c} milli (server recomputes)"
+            ));
         }
         out.gates.push(bench.finish(GateStatus::Pass, true));
     }

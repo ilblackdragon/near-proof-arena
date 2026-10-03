@@ -56,6 +56,9 @@ Parsed with `CandidateManifest::parse` (`common/arena-types/src/candidate.rs`).
 | `[entry] prepare/prove/verify` | relative paths; must be listed in `outputs` | checked |
 | `[formal] lean_project` | relative dir of the Lean project | — |
 | `[formal] certificate` | Lean constant name (e.g. `Candidate.certificate`) | its *type* is set by the judge |
+| `[entry] verify_route` | optional (v1.2): `"native"` (default) \| `"npai-v1"` \| `"native-lean"` (`VerifyRoute`) | selects how the judge runs verification |
+| `[entry] verifier_bytecode` | required iff `verify_route = "npai-v1"`; relative path among `build.outputs` (an NPAI image, `docs/INTERP_SPEC.md`); `prepare` must then emit exactly `public_dir/public.bin` | executed only by the arena's interpreter |
+| `[formal] verifier_model`, `verifier_model_module` | both required iff `verify_route = "native-lean"`; dotted Lean identifiers (e.g. `Candidate.Model.verify`, `Candidate.Model`) | the judge compiles `verify` from this model; your `verify` binary is not admitted |
 
 All paths: relative, ≤ 255 bytes, printable ASCII, no empty / `.` / `..`
 components, no leading `/`. There is no field for security bits, proof sizes or
@@ -70,9 +73,19 @@ performance: such claims are not accepted.
 * `candidate.toml` must be at the archive root.
 * `arena pack <dir> -o pkg.tar` is deterministic: entries sorted by path bytes,
   `mtime=uid=gid=0`, empty owner names, mode `0755` if any exec bit else `0644`,
-  regular files only. It skips `.git/`, `target/`, `.lake/` anywhere and the
+  regular files only. It skips `.git/` and `.lake/` anywhere, Cargo build dirs
+  named `target/` (at the package root, or anywhere if they contain
+  `CACHEDIR.TAG`; vendored source dirs called `target/` are kept) and the
   top-level `out/` (the judge builds). The upload digest `sha256:<hex>` of the
   exact bytes is the `upload_digest` / `package_digest`.
+* `arena pack <dir> -o pkg.tar.zst` (or `--format tar.zst`) compresses that same
+  tar stream with pinned zstd parameters: level 12, single-threaded, 2^23
+  window (the judge's decoder caps the window at 2^27), frame checksum, no
+  content size, no dictionary, no long-distance matching; zstd frames have no
+  timestamps. Same tree + same libzstd ⇒ same bytes. **`arena submit` and
+  `arena check-local` use `tar.zst` by default** (`--format tar` to opt out);
+  use it for large vendored trees (e.g. the SP1 example: 236 MiB tar → 31 MiB).
+  The judge also bounds the decompression ratio (200:1).
 
 ## 4. Build
 
@@ -335,9 +348,9 @@ CLI (`sdk/arena-cli`, binary `arena`; config `ARENA_URL` default
 arena challenges [--json]
 arena challenge ID [--json]            # save for --challenge-file
 arena init-candidate <dir> --challenge ID [--template empty] [--name N]
-arena check-local <dir> --challenge ID [--challenge-file F] [--fixtures DIR] [--json]
-arena pack <dir> -o pkg.tar
-arena submit <dir> --challenge ID [--parent SUB] [--idempotency-key K] [--watch] [--json]
+arena check-local <dir> --challenge ID [--challenge-file F] [--fixtures DIR] [--format tar|tar.zst] [--json]
+arena pack <dir> -o pkg.tar[.zst] [--format tar|tar.zst]
+arena submit <dir> --challenge ID [--parent SUB] [--idempotency-key K] [--format tar|tar.zst] [--watch] [--json]
 arena status SUB [--watch] [--json] [--timeout SECS]
 arena report SUB [-o file]
 arena cancel SUB

@@ -59,15 +59,25 @@ impl LeanValue {
         match self {
             LeanValue::Nat(s) => {
                 if s.is_empty() || !s.bytes().all(|b| b.is_ascii_digit()) {
-                    return Err(ExpectedError::BadValue(key.into(), "not a decimal natural".into()));
+                    return Err(ExpectedError::BadValue(
+                        key.into(),
+                        "not a decimal natural".into(),
+                    ));
                 }
                 Ok(format!("({s} : Nat)"))
             }
             LeanValue::Str(s) => lean_string(key, s),
             LeanValue::Digest(d) => lean_string(key, d.as_str()),
             LeanValue::Bytes(h) => {
-                let b = hex::decode(h).map_err(|_| ExpectedError::BadValue(key.into(), "bytes must be hex".into()))?;
-                Ok(format!("[{}]", b.iter().map(|x| format!("0x{x:02x}")).collect::<Vec<_>>().join(", ")))
+                let b = hex::decode(h)
+                    .map_err(|_| ExpectedError::BadValue(key.into(), "bytes must be hex".into()))?;
+                Ok(format!(
+                    "[{}]",
+                    b.iter()
+                        .map(|x| format!("0x{x:02x}"))
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ))
             }
         }
     }
@@ -80,7 +90,12 @@ fn lean_string(key: &str, s: &str) -> Result<String, ExpectedError> {
             '"' => out.push_str("\\\""),
             '\\' => out.push_str("\\\\"),
             c if (' '..='~').contains(&c) => out.push(c),
-            _ => return Err(ExpectedError::BadValue(key.into(), "only printable ASCII strings".into())),
+            _ => {
+                return Err(ExpectedError::BadValue(
+                    key.into(),
+                    "only printable ASCII strings".into(),
+                ))
+            }
         }
     }
     out.push('"');
@@ -119,7 +134,9 @@ impl ExpectedTypeBuilder for TemplateExpected {
             let after = &rest[i + 2..];
             let j = after.find("}}").ok_or(ExpectedError::Unterminated)?;
             let key = after[..j].trim();
-            let v = data.get(key).ok_or_else(|| ExpectedError::MissingData(key.into()))?;
+            let v = data
+                .get(key)
+                .ok_or_else(|| ExpectedError::MissingData(key.into()))?;
             out.push_str(&v.render(key)?);
             used.insert(key.to_string());
             rest = &after[j + 2..];
@@ -141,11 +158,19 @@ mod tests {
             module: "ArenaExpected".into(),
             decl: "ArenaExpected.expectedType".into(),
             template: "def ArenaExpected.expectedType : Prop := P {{a}} {{b}}".into(),
-            data: [("a".into(), LeanValue::Nat("80".into())), ("b".into(), LeanValue::Str("x\"y".into()))].into(),
+            data: [
+                ("a".into(), LeanValue::Nat("80".into())),
+                ("b".into(), LeanValue::Str("x\"y".into())),
+            ]
+            .into(),
         };
-        assert_eq!(t.render().unwrap(), "def ArenaExpected.expectedType : Prop := P (80 : Nat) \"x\\\"y\"");
+        assert_eq!(
+            t.render().unwrap(),
+            "def ArenaExpected.expectedType : Prop := P (80 : Nat) \"x\\\"y\""
+        );
         let mut bad = t.clone();
-        bad.data.insert("a".into(), LeanValue::Nat("1) (sorry".into()));
+        bad.data
+            .insert("a".into(), LeanValue::Nat("1) (sorry".into()));
         assert!(bad.render().is_err());
     }
 }

@@ -7,7 +7,10 @@
 
 use arena_jobs::*;
 use arena_sandbox::{BwrapConfig, BwrapDev, HelperCommand, Sandbox};
-use arena_types::{CandidateManifest, ChallengeDefinition, Digest, GateResult, GateStatus, ObligationId, ReasonCode};
+use arena_types::{
+    CandidateManifest, ChallengeDefinition, Digest, GateResult, GateStatus, ObligationId,
+    ReasonCode,
+};
 use arena_worker::executor::{BuildEnv, JobExecutor, StageExecutor, WorkerContext};
 use arena_worker::mutators::MutatorRegistry;
 use arena_worker::oracle::Oracles;
@@ -24,7 +27,10 @@ pub fn repo() -> PathBuf {
 }
 
 pub fn challenge() -> ChallengeDefinition {
-    serde_json::from_slice(&std::fs::read(repo().join(format!("challenges/{CHALLENGE}.json"))).unwrap()).unwrap()
+    serde_json::from_slice(
+        &std::fs::read(repo().join(format!("challenges/{CHALLENGE}.json"))).unwrap(),
+    )
+    .unwrap()
 }
 
 /// The toy candidate's files (path -> (mode, bytes)).
@@ -33,7 +39,19 @@ pub fn package_files() -> BTreeMap<String, (u32, Vec<u8>)> {
     let t = arena_archive::tree_from_dir(&root, &arena_archive::Limits::default()).unwrap();
     t.files
         .iter()
-        .map(|(p, f)| (p.clone(), (if f.mode == arena_archive::FileMode::Exec { 0o755 } else { 0o644 }, std::fs::read(root.join(p)).unwrap())))
+        .map(|(p, f)| {
+            (
+                p.clone(),
+                (
+                    if f.mode == arena_archive::FileMode::Exec {
+                        0o755
+                    } else {
+                        0o644
+                    },
+                    std::fs::read(root.join(p)).unwrap(),
+                ),
+            )
+        })
         .collect()
 }
 
@@ -63,7 +81,9 @@ pub struct Fixture {
 
 pub fn executor(sandbox: Arc<dyn Sandbox>, store: Arc<FsStore>, work: &Path) -> StageExecutor {
     let mut oracles = Oracles::builtin();
-    oracles.add_fixtures_dir(&repo().join("challenges/demo/toy-arithmetic/fixtures")).unwrap();
+    oracles
+        .add_fixtures_dir(&repo().join("challenges/demo/toy-arithmetic/fixtures"))
+        .unwrap();
     StageExecutor::new(WorkerContext {
         worker_id: "test-worker".into(),
         sandbox,
@@ -83,13 +103,25 @@ pub fn executor(sandbox: Arc<dyn Sandbox>, store: Arc<FsStore>, work: &Path) -> 
 }
 
 pub fn fixture() -> Fixture {
-    assert_eq!(std::env::var("ARENA_DEV_UNSAFE").as_deref(), Ok("1"), "worker tests need ARENA_DEV_UNSAFE=1 (bwrap-dev)");
+    assert_eq!(
+        std::env::var("ARENA_DEV_UNSAFE").as_deref(),
+        Ok("1"),
+        "worker tests need ARENA_DEV_UNSAFE=1 (bwrap-dev)"
+    );
     let tmp = tempfile::tempdir().unwrap();
     let store = Arc::new(FsStore::new(tmp.path().join("store")).unwrap());
-    let helper = HelperCommand { exe: env!("CARGO_BIN_EXE_arena-worker").into(), prefix_args: vec![arena_worker::HELPER_ARG.into()] };
+    let helper = HelperCommand {
+        exe: env!("CARGO_BIN_EXE_arena-worker").into(),
+        prefix_args: vec![arena_worker::HELPER_ARG.into()],
+    };
     let sb = BwrapDev::new(BwrapConfig::new(helper, tmp.path().join("sandbox"))).unwrap();
     let exec = executor(Arc::new(sb), store.clone(), &tmp.path().join("jobs"));
-    Fixture { tmp, store, exec, chal: challenge() }
+    Fixture {
+        tmp,
+        store,
+        exec,
+        chal: challenge(),
+    }
 }
 
 impl Fixture {
@@ -109,40 +141,83 @@ impl Fixture {
     }
 
     pub fn exec(&self, spec: JobSpec) -> JobResult {
-        self.exec.execute(&spec, "t", &AtomicBool::new(false)).unwrap()
+        self.exec
+            .execute(&spec, "t", &AtomicBool::new(false))
+            .unwrap()
     }
 
     pub fn validate(&self, files: &BTreeMap<String, (u32, Vec<u8>)>) -> (JobResult, Digest) {
         let pkg = self.put(&tar_of(files));
-        (self.exec(JobSpec::Validate(ValidateJob { ctx: self.ctx(&pkg), challenge: self.chal.clone() })), pkg)
+        (
+            self.exec(JobSpec::Validate(ValidateJob {
+                ctx: self.ctx(&pkg),
+                challenge: self.chal.clone(),
+            })),
+            pkg,
+        )
     }
 
     /// Validate + build; returns the build result and (manifest, outputs) when it passed.
-    pub fn build(&self, files: &BTreeMap<String, (u32, Vec<u8>)>) -> (JobResult, Option<(Digest, CandidateManifest, BuildOutputs)>) {
+    pub fn build(
+        &self,
+        files: &BTreeMap<String, (u32, Vec<u8>)>,
+    ) -> (JobResult, Option<(Digest, CandidateManifest, BuildOutputs)>) {
         let (v, pkg) = self.validate(files);
         assert_pass(&v, ObligationId::PkgWellformed);
         let manifest = v.manifest.clone().unwrap();
-        let b = self.exec(JobSpec::Build(BuildJob { ctx: self.ctx(&pkg), challenge: self.chal.clone(), manifest: manifest.clone() }));
-        let out = b.build.clone().filter(|_| gate(&b, ObligationId::BuildReproducible).status == GateStatus::Pass).map(|o| (pkg, manifest, o));
+        let b = self.exec(JobSpec::Build(BuildJob {
+            ctx: self.ctx(&pkg),
+            challenge: self.chal.clone(),
+            manifest: manifest.clone(),
+        }));
+        let out = b
+            .build
+            .clone()
+            .filter(|_| gate(&b, ObligationId::BuildReproducible).status == GateStatus::Pass)
+            .map(|o| (pkg, manifest, o));
         (b, out)
     }
 
-    pub fn exec_job(&self, pkg: &Digest, manifest: &CandidateManifest, build: &BuildOutputs) -> ExecJob {
-        ExecJob { ctx: self.ctx(pkg), challenge: self.chal.clone(), manifest: manifest.clone(), build: build.clone() }
+    pub fn exec_job(
+        &self,
+        pkg: &Digest,
+        manifest: &CandidateManifest,
+        build: &BuildOutputs,
+    ) -> ExecJob {
+        ExecJob {
+            ctx: self.ctx(pkg),
+            challenge: self.chal.clone(),
+            manifest: manifest.clone(),
+            build: build.clone(),
+        }
     }
 }
 
 pub fn gate(o: &JobResult, g: ObligationId) -> &GateResult {
-    o.gates.iter().find(|x| x.gate == g).unwrap_or_else(|| panic!("no {g:?} gate in {:?}", o.gates))
+    o.gates
+        .iter()
+        .find(|x| x.gate == g)
+        .unwrap_or_else(|| panic!("no {g:?} gate in {:?}", o.gates))
 }
 
 pub fn assert_pass(o: &JobResult, g: ObligationId) {
     let r = gate(o, g);
-    assert_eq!(r.status, GateStatus::Pass, "{g:?}: {} {:?}", r.summary, r.reason_codes);
+    assert_eq!(
+        r.status,
+        GateStatus::Pass,
+        "{g:?}: {} {:?}",
+        r.summary,
+        r.reason_codes
+    );
 }
 
 pub fn assert_fail(o: &JobResult, g: ObligationId, reason: ReasonCode) {
     let r = gate(o, g);
     assert_eq!(r.status, GateStatus::Fail, "{g:?}: {}", r.summary);
-    assert!(r.reason_codes.contains(&reason), "{g:?}: {:?} lacks {reason:?}; {}", r.reason_codes, r.summary);
+    assert!(
+        r.reason_codes.contains(&reason),
+        "{g:?}: {:?} lacks {reason:?}; {}",
+        r.reason_codes,
+        r.summary
+    );
 }

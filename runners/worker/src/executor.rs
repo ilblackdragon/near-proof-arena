@@ -8,7 +8,9 @@ use crate::stages;
 use crate::store::{ArtifactStore, StoreError};
 use arena_sandbox::{InfraError, Mount, Rootfs, Sandbox, SandboxOutcome, SandboxSpec};
 use arena_types::challenge::Tier;
-use arena_types::{BenchmarkResult, CandidateManifest, Digest, EvidenceGraph, EvidenceRef, GateResult, ReasonCode};
+use arena_types::{
+    BenchmarkResult, CandidateManifest, Digest, EvidenceGraph, EvidenceRef, GateResult, ReasonCode,
+};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -63,7 +65,12 @@ impl From<arena_archive::ArchiveError> for ExecError {
 /// semantics.
 pub trait JobExecutor: Send + Sync {
     /// `job_key` names the per-job work dir (job id + attempt).
-    fn execute(&self, spec: &JobSpec, job_key: &str, cancel: &AtomicBool) -> Result<JobResult, ExecError>;
+    fn execute(
+        &self,
+        spec: &JobSpec,
+        job_key: &str,
+        cancel: &AtomicBool,
+    ) -> Result<JobResult, ExecError>;
 }
 
 /// Toolchain available to build sandboxes when a job does not pin an image.
@@ -165,20 +172,40 @@ impl<'a> JobRun<'a> {
 
     /// Fetch a judge-produced tar artifact, ingest it safely and check that
     /// its TreeDigest is `want_tree`.
-    pub fn fetch_tree(&mut self, archive: &Digest, want_tree: &Digest, max: u64, stem: &str) -> Result<arena_archive::Extracted, ExecError> {
+    pub fn fetch_tree(
+        &mut self,
+        archive: &Digest,
+        want_tree: &Digest,
+        max: u64,
+        stem: &str,
+    ) -> Result<arena_archive::Extracted, ExecError> {
         let b = self.fetch(archive, max.saturating_add(64 << 20))?;
         let dest = self.fresh(stem);
-        let limits = arena_archive::Limits { max_expanded_bytes: max, max_compressed_bytes: max.saturating_add(64 << 20), ..Default::default() };
-        let x = arena_archive::ingest_bytes(&b, &dest, &limits).map_err(|e| ExecError::Infra(format!("stored tree {archive}: {e}")))?;
+        let limits = arena_archive::Limits {
+            max_expanded_bytes: max,
+            max_compressed_bytes: max.saturating_add(64 << 20),
+            ..Default::default()
+        };
+        let x = arena_archive::ingest_bytes(&b, &dest, &limits)
+            .map_err(|e| ExecError::Infra(format!("stored tree {archive}: {e}")))?;
         if &x.digest != want_tree {
-            return Err(ExecError::Infra(format!("stored tree {archive} has TreeDigest {} but the run is bound to {want_tree}", x.digest)));
+            return Err(ExecError::Infra(format!(
+                "stored tree {archive} has TreeDigest {} but the run is bound to {want_tree}",
+                x.digest
+            )));
         }
         Ok(x)
     }
 
     /// Pack a host tree deterministically and upload it. Returns (archive
     /// digest, TreeDigest).
-    pub fn upload_tree(&mut self, name: &str, root: &Path, tree: &arena_archive::Tree, public: bool) -> Result<(Digest, Digest), ExecError> {
+    pub fn upload_tree(
+        &mut self,
+        name: &str,
+        root: &Path,
+        tree: &arena_archive::Tree,
+        public: bool,
+    ) -> Result<(Digest, Digest), ExecError> {
         let tar = arena_archive::pack_tree(root, tree, Vec::new())?;
         let d = self.ctx.store.put(&tar)?;
         self.record(name, d.clone(), public, true);
@@ -192,7 +219,12 @@ impl<'a> JobRun<'a> {
     }
 
     pub fn record(&mut self, name: &str, digest: Digest, public: bool, stored: bool) {
-        self.artifacts.push(NamedArtifact { name: name.to_string(), digest, public, stored });
+        self.artifacts.push(NamedArtifact {
+            name: name.to_string(),
+            digest,
+            public,
+            stored,
+        });
     }
 
     pub fn run(&self, spec: &SandboxSpec) -> Result<SandboxOutcome, ExecError> {
@@ -229,9 +261,15 @@ pub fn entry_spec(
     let mut s = SandboxSpec::new(argv);
     s.rootfs = Rootfs::BackendDefault;
     s.cwd = layout.scratch.to_string();
-    s.ro_mounts.push(Mount { host: bundle.to_path_buf(), guest: format!("{}/bundle", layout.inputs) });
+    s.ro_mounts.push(Mount {
+        host: bundle.to_path_buf(),
+        guest: format!("{}/bundle", layout.inputs),
+    });
     for (h, name) in files {
-        s.ro_mounts.push(Mount { host: h.to_path_buf(), guest: format!("{}/{name}", layout.inputs) });
+        s.ro_mounts.push(Mount {
+            host: h.to_path_buf(),
+            guest: format!("{}/{name}", layout.inputs),
+        });
     }
     s.wall_timeout = std::time::Duration::from_millis(timeout_ms.max(1));
     s.mem_bytes = limits.max_ram_bytes.max(16 << 20);
@@ -287,14 +325,21 @@ impl StageExecutor {
     }
 
     pub fn execution_info(&self) -> ExecutionInfo {
-        ExecutionInfo { sandbox_backend: self.ctx.sandbox.name().to_string(), tier_cap: self.tier_cap(), worker_version: WORKER_VERSION.to_string() }
+        ExecutionInfo {
+            sandbox_backend: self.ctx.sandbox.name().to_string(),
+            tier_cap: self.tier_cap(),
+            worker_version: WORKER_VERSION.to_string(),
+        }
     }
 
     /// Job kinds this worker can run.
     pub fn kinds(&self) -> Vec<JobKind> {
         JobKind::ALL
             .into_iter()
-            .filter(|k| *k != JobKind::FormalCheck || (self.ctx.formal.is_some() && self.ctx.sandbox.layout().rw_binds))
+            .filter(|k| {
+                *k != JobKind::FormalCheck
+                    || (self.ctx.formal.is_some() && self.ctx.sandbox.layout().rw_binds)
+            })
             .collect()
     }
 
@@ -308,18 +353,37 @@ impl StageExecutor {
 }
 
 impl JobExecutor for StageExecutor {
-    fn execute(&self, spec: &JobSpec, job_key: &str, cancel: &AtomicBool) -> Result<JobResult, ExecError> {
+    fn execute(
+        &self,
+        spec: &JobSpec,
+        job_key: &str,
+        cancel: &AtomicBool,
+    ) -> Result<JobResult, ExecError> {
         let ctx = spec.ctx();
         if tier_rank(ctx.tier) > tier_rank(self.tier_cap()) {
-            return Err(ExecError::Refused(format!("job tier {:?} exceeds this worker's sandbox cap {:?}", ctx.tier, self.tier_cap())));
+            return Err(ExecError::Refused(format!(
+                "job tier {:?} exceeds this worker's sandbox cap {:?}",
+                ctx.tier,
+                self.tier_cap()
+            )));
         }
         fs::create_dir_all(&self.ctx.work_root)?;
-        let dir = self.ctx.work_root.join(format!("job-{}", sanitize_id(job_key)));
+        let dir = self
+            .ctx
+            .work_root
+            .join(format!("job-{}", sanitize_id(job_key)));
         if dir.exists() {
             fs::remove_dir_all(&dir)?;
         }
         fs::create_dir(&dir)?;
-        let mut run = JobRun { ctx: &self.ctx, dir: dir.clone(), cancel, artifacts: vec![], shadow: (0, 0), counter: 0 };
+        let mut run = JobRun {
+            ctx: &self.ctx,
+            dir: dir.clone(),
+            cancel,
+            artifacts: vec![],
+            shadow: (0, 0),
+            counter: 0,
+        };
         let res = match spec {
             JobSpec::Validate(j) => stages::validate::run(&mut run, j),
             JobSpec::Build(j) => stages::build::run(&mut run, j),
@@ -336,15 +400,25 @@ impl JobExecutor for StageExecutor {
         let mut out = match res {
             Err(ExecError::Violation(m)) => {
                 let mut g = crate::gate::Gate::start(primary_gate(kind));
-                g.fail(ReasonCode::SandboxViolation, format!("sandbox reported a forged or malformed guest result: {m}"));
-                StageOut { gates: vec![g.finish(arena_types::GateStatus::Unknown, true)], used_sandbox: true, ..Default::default() }
+                g.fail(
+                    ReasonCode::SandboxViolation,
+                    format!("sandbox reported a forged or malformed guest result: {m}"),
+                );
+                StageOut {
+                    gates: vec![g.finish(arena_types::GateStatus::Unknown, true)],
+                    used_sandbox: true,
+                    ..Default::default()
+                }
             }
             r => r?,
         };
         // Only owned gates may be reported (the server rejects others).
         let owned = kind.owned_gates();
         if let Some(g) = out.gates.iter().find(|g| !owned.contains(&g.gate)) {
-            return Err(ExecError::Infra(format!("internal: {kind} stage produced foreign gate {:?}", g.gate)));
+            return Err(ExecError::Infra(format!(
+                "internal: {kind} stage produced foreign gate {:?}",
+                g.gate
+            )));
         }
         let label = self.isolation_label();
         if out.used_sandbox && self.ctx.sandbox.tier_cap() == Some(Tier::Demo) {
@@ -365,7 +439,11 @@ impl JobExecutor for StageExecutor {
             artifacts: artifacts
                 .into_iter()
                 .filter(|a| a.stored)
-                .map(|a| EvidenceRef { label: a.name, digest: a.digest, public: a.public })
+                .map(|a| EvidenceRef {
+                    label: a.name,
+                    digest: a.digest,
+                    public: a.public,
+                })
                 .collect(),
             benchmark: out.benchmark,
             evidence_graph: out.evidence_graph,
@@ -392,7 +470,16 @@ pub fn primary_gate(k: JobKind) -> arena_types::ObligationId {
 }
 
 fn sanitize_id(s: &str) -> String {
-    s.chars().map(|c| if c.is_ascii_alphanumeric() || c == '-' || c == '_' { c } else { '_' }).take(80).collect()
+    s.chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .take(80)
+        .collect()
 }
 
 /// Seed parts binding sampled workloads to this challenge + package.

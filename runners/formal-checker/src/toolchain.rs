@@ -22,12 +22,30 @@ pub const TOOLS_TOML: &str = include_str!("../tools.toml");
 pub const TOOLS_KEY_FILES: &[(&str, &str)] = &[
     ("lean-toolchain", include_str!("../lean-toolchain")),
     ("tools.toml", include_str!("../tools.toml")),
-    ("scripts/setup-tools.sh", include_str!("../scripts/setup-tools.sh")),
-    ("lean/ArenaAudit/lakefile.toml", include_str!("../lean/ArenaAudit/lakefile.toml")),
-    ("lean/ArenaAudit/lake-manifest.json", include_str!("../lean/ArenaAudit/lake-manifest.json")),
-    ("lean/ArenaAudit/Main.lean", include_str!("../lean/ArenaAudit/Main.lean")),
-    ("lean/ArenaAudit/ArenaAudit.lean", include_str!("../lean/ArenaAudit/ArenaAudit.lean")),
-    ("lean/ArenaAudit/ArenaAudit/Audit.lean", include_str!("../lean/ArenaAudit/ArenaAudit/Audit.lean")),
+    (
+        "scripts/setup-tools.sh",
+        include_str!("../scripts/setup-tools.sh"),
+    ),
+    (
+        "lean/ArenaAudit/lakefile.toml",
+        include_str!("../lean/ArenaAudit/lakefile.toml"),
+    ),
+    (
+        "lean/ArenaAudit/lake-manifest.json",
+        include_str!("../lean/ArenaAudit/lake-manifest.json"),
+    ),
+    (
+        "lean/ArenaAudit/Main.lean",
+        include_str!("../lean/ArenaAudit/Main.lean"),
+    ),
+    (
+        "lean/ArenaAudit/ArenaAudit.lean",
+        include_str!("../lean/ArenaAudit/ArenaAudit.lean"),
+    ),
+    (
+        "lean/ArenaAudit/ArenaAudit/Audit.lean",
+        include_str!("../lean/ArenaAudit/ArenaAudit/Audit.lean"),
+    ),
 ];
 
 /// Content address of the helper tools this checker source expects
@@ -100,7 +118,9 @@ impl ToolPaths {
         let env_or = |k: &str, d: PathBuf| std::env::var(k).map(PathBuf::from).unwrap_or(d);
         let lean_sysroot = env_or(
             "ARENA_LEAN_SYSROOT",
-            elan_home().join("toolchains").join(elan_dir_name(lean_toolchain())),
+            elan_home()
+                .join("toolchains")
+                .join(elan_dir_name(lean_toolchain())),
         );
         let lean4export = env_or("ARENA_LEAN4EXPORT", home.join("bin/lean4export"));
         let nanoda = env_or("ARENA_NANODA", home.join("bin/nanoda_bin"));
@@ -118,7 +138,9 @@ impl ToolPaths {
         }
         // Never run a helper built from different sources: the key baked into
         // arena-audit at build time must equal this checker's key.
-        let out = std::process::Command::new(&arena_audit).arg("version").output()?;
+        let out = std::process::Command::new(&arena_audit)
+            .arg("version")
+            .output()?;
         let baked = String::from_utf8_lossy(&out.stdout).trim().to_string();
         if !out.status.success() || baked != key {
             return Err(ToolError::Mismatch(format!(
@@ -149,7 +171,10 @@ impl ToolPaths {
         let mut parts = vec![
             ("toolchain".to_string(), lean_toolchain().to_string()),
             ("tools_key".to_string(), tools_key()),
-            ("tools.toml".to_string(), Digest::of_bytes(TOOLS_TOML.as_bytes()).to_string()),
+            (
+                "tools.toml".to_string(),
+                Digest::of_bytes(TOOLS_TOML.as_bytes()).to_string(),
+            ),
         ];
         let mut add = |label: &str, p: &Path| -> Result<(), ToolError> {
             parts.push((label.to_string(), sha256_file(p)?.to_string()));
@@ -178,9 +203,20 @@ mod tests {
     fn tools_key_matches_setup_script() {
         let here = Path::new(env!("CARGO_MANIFEST_DIR"));
         let script = std::fs::read_to_string(here.join("scripts/setup-tools.sh")).unwrap();
-        let files_line = script.lines().find(|l| l.starts_with("TOOLS_KEY_FILES=")).unwrap();
-        let files: Vec<&str> = files_line.trim_start_matches("TOOLS_KEY_FILES=").trim_matches('"').split_whitespace().collect();
-        assert_eq!(files, TOOLS_KEY_FILES.iter().map(|(p, _)| *p).collect::<Vec<_>>(), "file lists out of sync");
+        let files_line = script
+            .lines()
+            .find(|l| l.starts_with("TOOLS_KEY_FILES="))
+            .unwrap();
+        let files: Vec<&str> = files_line
+            .trim_start_matches("TOOLS_KEY_FILES=")
+            .trim_matches('"')
+            .split_whitespace()
+            .collect();
+        assert_eq!(
+            files,
+            TOOLS_KEY_FILES.iter().map(|(p, _)| *p).collect::<Vec<_>>(),
+            "file lists out of sync"
+        );
         let out = std::process::Command::new("bash")
             .current_dir(here)
             .arg("-c")
@@ -203,7 +239,9 @@ mod tests {
         use std::os::unix::fs::PermissionsExt;
         std::fs::set_permissions(&fake, std::fs::Permissions::from_mode(0o755)).unwrap();
         // Only meaningful where the toolchain and other tools are installed.
-        let Ok(real) = ToolPaths::discover() else { return };
+        let Ok(real) = ToolPaths::discover() else {
+            return;
+        };
         let mut paths = real.clone();
         paths.arena_audit = fake.clone();
         std::env::set_var("ARENA_AUDIT_BIN", &fake);

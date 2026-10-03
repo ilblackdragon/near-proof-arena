@@ -28,7 +28,8 @@ use crate::gate::Gate;
 use crate::jobs::{FormalCheckJob, RunLimits};
 use arena_formal_checker::native::{NativeLeanRoute, VerifierRoute};
 use arena_formal_checker::{
-    toolchain::ToolPaths, ChallengeFormalConfig, CheckRequest, ExpectedInputs, FormalChecker, Limits, Policy, SandboxRunner,
+    toolchain::ToolPaths, ChallengeFormalConfig, CheckRequest, ExpectedInputs, FormalChecker,
+    Limits, Policy, SandboxRunner,
 };
 use arena_types::candidate::VerifyRoute;
 use arena_types::{Digest, GateResult, GateStatus, ObligationId, ReasonCode};
@@ -58,11 +59,14 @@ fn rechecker_id(s: &str) -> Option<&'static str> {
 }
 
 fn find_config(env: &FormalEnv, name: &str) -> Result<Option<ChallengeFormalConfig>, ExecError> {
-    let Ok(rd) = std::fs::read_dir(&env.configs_dir) else { return Ok(None) };
+    let Ok(rd) = std::fs::read_dir(&env.configs_dir) else {
+        return Ok(None);
+    };
     for e in rd.flatten() {
         let p = e.path();
         if p.extension().is_some_and(|x| x == "json") {
-            let c = ChallengeFormalConfig::load(&p).map_err(|e| ExecError::Infra(format!("{}: {e}", p.display())))?;
+            let c = ChallengeFormalConfig::load(&p)
+                .map_err(|e| ExecError::Infra(format!("{}: {e}", p.display())))?;
             if c.challenge == name {
                 return Ok(Some(c));
             }
@@ -73,12 +77,22 @@ fn find_config(env: &FormalEnv, name: &str) -> Result<Option<ChallengeFormalConf
 
 /// Tools + run root for this sandbox. Production backends run the tools
 /// from a lean-checker image whose tool identity matches the challenge.
-fn tools_for(r: &JobRun<'_>, env: &FormalEnv) -> Result<(ToolPaths, arena_sandbox::Rootfs, String), String> {
+fn tools_for(
+    r: &JobRun<'_>,
+    env: &FormalEnv,
+) -> Result<(ToolPaths, arena_sandbox::Rootfs, String), String> {
     if r.ctx.sandbox.tier_cap().is_some() {
         let t = ToolPaths::discover().map_err(|e| format!("formal toolchain: {e}"))?;
-        return Ok((t, arena_sandbox::Rootfs::BackendDefault, "host-installed tools (DEMO)".into()));
+        return Ok((
+            t,
+            arena_sandbox::Rootfs::BackendDefault,
+            "host-installed tools (DEMO)".into(),
+        ));
     }
-    let images = env.images_dir.as_ref().ok_or("no lean-checker images dir configured (ARENA_LEAN_CHECKER_IMAGES)")?;
+    let images = env
+        .images_dir
+        .as_ref()
+        .ok_or("no lean-checker images dir configured (ARENA_LEAN_CHECKER_IMAGES)")?;
     // The newest installed image (by manifest mtime).
     let mut metas: Vec<(std::time::SystemTime, PathBuf)> = std::fs::read_dir(images)
         .map_err(|e| format!("{}: {e}", images.display()))?
@@ -89,8 +103,15 @@ fn tools_for(r: &JobRun<'_>, env: &FormalEnv) -> Result<(ToolPaths, arena_sandbo
         .collect();
     metas.sort();
     let meta_path = metas.pop().ok_or("no lean-checker image installed")?.1;
-    let meta: serde_json::Value = serde_json::from_slice(&std::fs::read(&meta_path).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
-    let digest: Digest = meta["digest"].as_str().unwrap_or("").to_string().try_into().map_err(|e: String| e)?;
+    let meta: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&meta_path).map_err(|e| e.to_string())?)
+            .map_err(|e| e.to_string())?;
+    let digest: Digest = meta["digest"]
+        .as_str()
+        .unwrap_or("")
+        .to_string()
+        .try_into()
+        .map_err(|e: String| e)?;
     let dir = images.join(digest.hex());
     let tools = ToolPaths {
         lean_sysroot: dir.join("arena/tc"),
@@ -99,34 +120,64 @@ fn tools_for(r: &JobRun<'_>, env: &FormalEnv) -> Result<(ToolPaths, arena_sandbo
         lean4lean: Some(dir.join("arena/tools/lean4lean")).filter(|p| p.is_file()),
         arena_audit: dir.join("arena/tools/arena-audit"),
     };
-    Ok((tools, arena_sandbox::Rootfs::Image { path: dir, digest: digest.clone() }, format!("lean-checker image {digest}")))
+    Ok((
+        tools,
+        arena_sandbox::Rootfs::Image {
+            path: dir,
+            digest: digest.clone(),
+        },
+        format!("lean-checker image {digest}"),
+    ))
 }
 
 pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError> {
     let chal = &j.challenge;
     let owned = crate::jobs::JobKind::FormalCheck.owned_gates();
-    let required: Vec<ObligationId> = owned.iter().copied().filter(|g| chal.required_obligations.contains(g)).collect();
-    let mut out = StageOut { used_sandbox: true, ..Default::default() };
-    let all_gates = |out: &mut StageOut, status: GateStatus, reason: Option<ReasonCode>, why: &str| {
-        for g in &required {
-            let mut gate = Gate::start(*g);
-            match reason {
-                Some(rc) => gate.fail(rc, why.to_string()),
-                None => gate.note(why.to_string()),
-            }
-            out.gates.push(gate.finish(status, true));
-        }
+    let required: Vec<ObligationId> = owned
+        .iter()
+        .copied()
+        .filter(|g| chal.required_obligations.contains(g))
+        .collect();
+    let mut out = StageOut {
+        used_sandbox: true,
+        ..Default::default()
     };
+    let all_gates =
+        |out: &mut StageOut, status: GateStatus, reason: Option<ReasonCode>, why: &str| {
+            for g in &required {
+                let mut gate = Gate::start(*g);
+                match reason {
+                    Some(rc) => gate.fail(rc, why.to_string()),
+                    None => gate.note(why.to_string()),
+                }
+                out.gates.push(gate.finish(status, true));
+            }
+        };
     let Some(env) = r.ctx.formal.clone() else {
-        all_gates(&mut out, GateStatus::Unknown, None, "formal checker not configured on this worker");
+        all_gates(
+            &mut out,
+            GateStatus::Unknown,
+            None,
+            "formal checker not configured on this worker",
+        );
         return Ok(out);
     };
     let Some(cfg) = find_config(&env, &chal.name)? else {
-        all_gates(&mut out, GateStatus::Unknown, None, &format!("no formal configuration for challenge {:?}", chal.name));
+        all_gates(
+            &mut out,
+            GateStatus::Unknown,
+            None,
+            &format!("no formal configuration for challenge {:?}", chal.name),
+        );
         return Ok(out);
     };
     let Some(formal) = &j.manifest.formal else {
-        all_gates(&mut out, GateStatus::Unknown, Some(ReasonCode::CertificateMissing), "candidate.toml has no [formal] section");
+        all_gates(
+            &mut out,
+            GateStatus::Unknown,
+            Some(ReasonCode::CertificateMissing),
+            "candidate.toml has no [formal] section",
+        );
         return Ok(out);
     };
     let mut recheckers = vec![];
@@ -134,7 +185,14 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         match rechecker_id(id) {
             Some(x) => recheckers.push(x.to_string()),
             None => {
-                all_gates(&mut out, GateStatus::Unknown, None, &format!("challenge requires rechecker {id:?}, which this worker does not provide"));
+                all_gates(
+                    &mut out,
+                    GateStatus::Unknown,
+                    None,
+                    &format!(
+                        "challenge requires rechecker {id:?}, which this worker does not provide"
+                    ),
+                );
                 return Ok(out);
             }
         }
@@ -143,12 +201,16 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         Ok(x) => x,
         Err(e) => return Err(ExecError::Infra(e)),
     };
-    let checker_id = tools.image_digest().map_err(|e| ExecError::Infra(format!("checker identity: {e}")))?;
+    let checker_id = tools
+        .image_digest()
+        .map_err(|e| ExecError::Infra(format!("checker identity: {e}")))?;
     let pinned = &chal.toolchain_policy.checker_image;
     let placeholder = pinned.hex().bytes().all(|b| b == b'0');
     if &checker_id != pinned && !placeholder {
         if chal.tier == arena_types::challenge::Tier::Demo {
-            out.log.push(format!("checker identity {checker_id} differs from the challenge's {pinned} (demo only)"));
+            out.log.push(format!(
+                "checker identity {checker_id} differs from the challenge's {pinned} (demo only)"
+            ));
         } else {
             all_gates(
                 &mut out,
@@ -163,11 +225,17 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
     // The candidate's formal tree, bound to the verified surface.
     let bytes = r.fetch(&j.ctx.package_digest, MAX_PACKAGE_BYTES)?;
     let pkg = r.fresh("pkg");
-    let x = arena_archive::ingest_bytes(&bytes, &pkg, &arena_archive::Limits::default()).map_err(|e| ExecError::Infra(format!("package: {e}")))?;
+    let x = arena_archive::ingest_bytes(&bytes, &pkg, &arena_archive::Limits::default())
+        .map_err(|e| ExecError::Infra(format!("package: {e}")))?;
     let formal_dir = x.root.join(&formal.lean_project);
     let ft = arena_archive::tree_from_dir(&formal_dir, &arena_archive::Limits::default())?.digest();
-    if ft != j.build.formal_tree || ft != j.verified_surface.formal_tree || formal.certificate != j.verified_surface.certificate_decl {
-        return Err(ExecError::Infra(format!("formal tree {ft} / certificate do not match the run's verified surface")));
+    if ft != j.build.formal_tree
+        || ft != j.verified_surface.formal_tree
+        || formal.certificate != j.verified_surface.certificate_decl
+    {
+        return Err(ExecError::Infra(format!(
+            "formal tree {ft} / certificate do not match the run's verified surface"
+        )));
     }
 
     // Judge-computed artifact digests for the statement.
@@ -179,9 +247,15 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
     let public_digest_hex = match std::fs::read(&public_bin) {
         Ok(b) => Digest::of_bytes(&b).hex().to_string(),
         Err(_) => {
-            binding.fail(ReasonCode::ArtifactBindingFailed, "judge-run prepare produced no public_dir/public.bin, which the statement pins");
+            binding.fail(
+                ReasonCode::ArtifactBindingFailed,
+                "judge-run prepare produced no public_dir/public.bin, which the statement pins",
+            );
             let mut gates = vec![binding.finish(GateStatus::Unknown, true)];
-            for g in required.iter().filter(|g| **g != ObligationId::ArtifactBinding) {
+            for g in required
+                .iter()
+                .filter(|g| **g != ObligationId::ArtifactBinding)
+            {
                 let mut gate = Gate::start(*g);
                 gate.note("not checked: no public.bin to bind the statement to");
                 gates.push(gate.finish(GateStatus::Unknown, true));
@@ -191,28 +265,42 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
             return Ok(out);
         }
     };
-    // BuildOutputs.verify is the verifier artifact of the verified surface:
-    // the npai-v1 bytecode digest, else the built `verify`.
-    let verifier_digest_hex = j.build.verify.hex().to_string();
+    // The verifier artifact the statement pins: the npai-v1 bytecode, else
+    // the built `verify`.
+    let verifier_digest_hex = match (npai, &j.build.verifier_bytecode) {
+        (true, Some(d)) => d.hex().to_string(),
+        (true, None) => {
+            return Err(ExecError::Infra(
+                "npai-v1 build outputs carry no verifier_bytecode digest".into(),
+            ))
+        }
+        (false, _) => j.build.verify.hex().to_string(),
+    };
     let route = match j.manifest.entry.verify_route {
         Some(VerifyRoute::NpaiV1) => VerifierRoute::Standard,
-        Some(VerifyRoute::NativeLean) => match (&formal.verifier_model, &formal.verifier_model_module) {
-            (Some(d), Some(m)) => {
-                let mut nl = NativeLeanRoute::new(d, m);
-                // The candidate's shipped `verify` must be byte-identical to
-                // the judge's build of the model (else ARTIFACT_BINDING_FAILED):
-                // a different binary must never be published as admitted,
-                // even though the judge only ever runs its own build.
-                nl.candidate_binary_digest = Some(j.build.verify.clone());
-                VerifierRoute::NativeLean(nl)
+        Some(VerifyRoute::NativeLean) => {
+            match (&formal.verifier_model, &formal.verifier_model_module) {
+                (Some(d), Some(m)) => {
+                    let mut nl = NativeLeanRoute::new(d, m);
+                    // The candidate's shipped `verify` must be byte-identical to
+                    // the judge's build of the model (else ARTIFACT_BINDING_FAILED):
+                    // a different binary must never be published as admitted,
+                    // even though the judge only ever runs its own build.
+                    nl.candidate_binary_digest = Some(j.build.verify.clone());
+                    VerifierRoute::NativeLean(nl)
+                }
+                _ => VerifierRoute::CandidateNative,
             }
-            _ => VerifierRoute::CandidateNative,
-        },
+        }
         // A candidate-built native verifier has no judge build: never admitted
         // on a formal statement (the checker fails ARTIFACT_BINDING).
         None | Some(VerifyRoute::Native) => VerifierRoute::CandidateNative,
     };
-    let inputs = match ExpectedInputs::from_definition(chal, public_digest_hex.clone(), verifier_digest_hex.clone()) {
+    let inputs = match ExpectedInputs::from_definition(
+        chal,
+        public_digest_hex.clone(),
+        verifier_digest_hex.clone(),
+    ) {
         Ok(i) => i,
         Err(e) => return Err(ExecError::Infra(format!("expected statement inputs: {e}"))),
     };
@@ -225,7 +313,12 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
     let runner = match SandboxRunner::new(r.ctx.sandbox.clone(), r.fresh("fc-sandbox")) {
         Ok(x) => x.with_rootfs(rootfs),
         Err(e) => {
-            all_gates(&mut out, GateStatus::Unknown, None, &format!("formal checker cannot run on this sandbox: {e}"));
+            all_gates(
+                &mut out,
+                GateStatus::Unknown,
+                None,
+                &format!("formal checker cannot run on this sandbox: {e}"),
+            );
             return Ok(out);
         }
     };
@@ -236,7 +329,9 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         reserved_prefixes: cfg.reserved_prefixes.clone(),
         ..Policy::default()
     };
-    policy.gates.retain(|g| chal.required_obligations.contains(&g.gate) || g.gate == ObligationId::AxiomAudit);
+    policy.gates.retain(|g| {
+        chal.required_obligations.contains(&g.gate) || g.gate == ObligationId::AxiomAudit
+    });
     let req = CheckRequest {
         formal_dir,
         certificate: formal.certificate.clone(),
@@ -253,20 +348,32 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
     let report = checker.check(&req);
     let report_json = serde_json::to_vec(&report).map_err(|e| ExecError::Infra(e.to_string()))?;
     let rd = r.upload("formal check report", &report_json, true)?;
-    out.log.push(format!("checker: {tools_label}; identity {checker_id}"));
+    out.log
+        .push(format!("checker: {tools_label}; identity {checker_id}"));
     // native-lean: ship the judge-built verifier to the later stages.
     if let Some(nv) = &report.native_verifier {
-        let b = std::fs::read(&nv.path).map_err(|e| ExecError::Infra(format!("native verifier: {e}")))?;
+        let b = std::fs::read(&nv.path)
+            .map_err(|e| ExecError::Infra(format!("native verifier: {e}")))?;
         if Digest::of_bytes(&b) != nv.digest {
-            return Err(ExecError::Infra("native verifier changed after the judge build".into()));
+            return Err(ExecError::Infra(
+                "native verifier changed after the judge build".into(),
+            ));
         }
         let d = r.upload("judge-built native verifier", &b, true)?;
         out.native_verifier = Some(d);
     }
     out.log.extend(report.warnings.iter().take(20).cloned());
-    let mut gates: Vec<GateResult> = report.gates.into_iter().filter(|g| owned.contains(&g.gate)).collect();
+    let mut gates: Vec<GateResult> = report
+        .gates
+        .into_iter()
+        .filter(|g| owned.contains(&g.gate))
+        .collect();
     for g in &mut gates {
-        g.evidence.push(arena_types::EvidenceRef { label: "formal check report".into(), digest: rd.clone(), public: true });
+        g.evidence.push(arena_types::EvidenceRef {
+            label: "formal check report".into(),
+            digest: rd.clone(),
+            public: true,
+        });
         g.evidence.truncate(64);
     }
 
@@ -275,7 +382,9 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         "statement pins sha256(public.bin) = {public_digest_hex} and verifier ({}) = {verifier_digest_hex}",
         if npai { "npai-v1 bytecode" } else { "native verify" }
     ));
-    let mismatch = gates.iter().any(|g| g.reason_codes.contains(&ReasonCode::TheoremTypeMismatch));
+    let mismatch = gates
+        .iter()
+        .any(|g| g.reason_codes.contains(&ReasonCode::TheoremTypeMismatch));
     let all_pass = !gates.is_empty() && gates.iter().all(|g| g.status == GateStatus::Pass);
     let binding_status = if mismatch {
         binding.fail(ReasonCode::ArtifactBindingFailed, "certificate does not prove the statement about the built artifacts (wrong or stale binding)");
@@ -288,7 +397,10 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
     };
     // Routes other than Standard get their ARTIFACT_BINDING from the checker
     // (judge native build / no judge build); merge our statement verdict in.
-    if let Some(cb) = gates.iter_mut().find(|g| g.gate == ObligationId::ArtifactBinding) {
+    if let Some(cb) = gates
+        .iter_mut()
+        .find(|g| g.gate == ObligationId::ArtifactBinding)
+    {
         if mismatch && cb.status != GateStatus::Fail {
             cb.status = GateStatus::Fail;
             cb.reason_codes.push(ReasonCode::ArtifactBindingFailed);
@@ -305,7 +417,9 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
             gate.note("not applicable to this challenge's privacy profile");
             out.gates.push(gate.finish(GateStatus::NotApplicable, true));
         } else {
-            gate.note(format!("{g:?} is not decided by this worker's formal checker"));
+            gate.note(format!(
+                "{g:?} is not decided by this worker's formal checker"
+            ));
             out.gates.push(gate.finish(GateStatus::Unknown, true));
         }
     }

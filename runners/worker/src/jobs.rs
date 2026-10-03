@@ -2,8 +2,8 @@
 //! Only worker-internal helpers are defined locally.
 
 pub use arena_jobs::{
-    BuildJob, BuildOutputs, ExecJob, ExecutionInfo, FormalCheckJob, JobContext, JobKind, JobResult, JobSpec, LeasedJob,
-    ValidateJob,
+    BuildJob, BuildOutputs, ExecJob, ExecutionInfo, FormalCheckJob, JobContext, JobKind, JobResult,
+    JobSpec, LeasedJob, ValidateJob,
 };
 use arena_types::{ChallengeDefinition, Digest};
 
@@ -27,7 +27,11 @@ pub struct RunLimits {
 impl RunLimits {
     pub fn from_challenge(c: &ChallengeDefinition) -> Self {
         let r = &c.resource_limits;
-        let per_run = if c.measurement.per_run_timeout_ms > 0 { c.measurement.per_run_timeout_ms } else { u64::MAX };
+        let per_run = if c.measurement.per_run_timeout_ms > 0 {
+            c.measurement.per_run_timeout_ms
+        } else {
+            u64::MAX
+        };
         RunLimits {
             max_prepare_ms: r.max_prepare_ms,
             max_prove_ms: r.max_prove_ms.min(per_run),
@@ -39,7 +43,12 @@ impl RunLimits {
             max_witness_bytes: c.claim_encoding.max_witness_bytes,
             max_public_artifact_bytes: r.max_public_artifact_bytes,
             max_pids: 256,
-            scratch_mb: ((r.max_proof_bytes + c.claim_encoding.max_claim_bytes + r.max_public_artifact_bytes) >> 20).max(64) + 64,
+            scratch_mb: ((r.max_proof_bytes
+                + c.claim_encoding.max_claim_bytes
+                + r.max_public_artifact_bytes)
+                >> 20)
+                .max(64)
+                + 64,
         }
     }
 }

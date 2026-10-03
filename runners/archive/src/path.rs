@@ -94,7 +94,11 @@ mod tests {
             b"\xff\xfe",
             b"a/\0b",
         ] {
-            assert!(normalize(bad).is_err(), "{:?}", String::from_utf8_lossy(bad));
+            assert!(
+                normalize(bad).is_err(),
+                "{:?}",
+                String::from_utf8_lossy(bad)
+            );
         }
         assert!(normalize("a".repeat(256).as_bytes()).is_err());
         assert!(normalize("a".repeat(255).as_bytes()).is_ok());

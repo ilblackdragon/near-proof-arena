@@ -23,7 +23,10 @@ fn public_label(l: &str) -> String {
 
 pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut g = Gate::start(ObligationId::AdversarialProofs);
-    let mut out = StageOut { used_sandbox: true, ..Default::default() };
+    let mut out = StageOut {
+        used_sandbox: true,
+        ..Default::default()
+    };
     let limits = RunLimits::from_challenge(&j.challenge);
     let parts_owned = seed_parts(&j.ctx);
     let parts: Vec<&str> = parts_owned.iter().map(|s| s.as_str()).collect();
@@ -43,7 +46,9 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     cases.sort_by_key(|c| !c.public);
     let mut picked: Vec<crate::oracle::Case> = vec![];
     for c in cases {
-        if picked.len() < HONEST_CASES && !picked.iter().any(|p| p.expected_claim == c.expected_claim) {
+        if picked.len() < HONEST_CASES
+            && !picked.iter().any(|p| p.expected_claim == c.expected_claim)
+        {
             picked.push(c);
         }
     }
@@ -57,13 +62,27 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             return Ok(out);
         }
     };
-    let env = common::EntryEnv { bundle: &bundle, entry: &j.manifest.entry, public_dir: &public_dir, limits: &limits, cpu_set: None, verifier: &verifier };
+    let env = common::EntryEnv {
+        bundle: &bundle,
+        entry: &j.manifest.entry,
+        public_dir: &public_dir,
+        limits: &limits,
+        cpu_set: None,
+        verifier: &verifier,
+    };
     let mut honest = vec![];
     for case in &picked {
         match common::run_prove(r, &env, case)? {
-            Ok(p) => honest.push(HonestPair { case_id: case.id.clone(), claim: p.claim, proof: p.proof }),
+            Ok(p) => honest.push(HonestPair {
+                case_id: case.id.clone(),
+                claim: p.claim,
+                proof: p.proof,
+            }),
             Err(f) => {
-                g.note(format!("could not obtain an honest proof ({}); see the conformance gates", f.detail));
+                g.note(format!(
+                    "could not obtain an honest proof ({}); see the conformance gates",
+                    f.detail_for(case.public)
+                ));
                 out.gates.push(g.finish(GateStatus::Unknown, true));
                 return Ok(out);
             }
@@ -85,15 +104,25 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
                     g.note(format!("verify does not accept honest proof #{i} ({}); hostile inputs are meaningless (see conformance)", crate::executor::describe_exit(&o)));
                     out.gates.push(g.finish(GateStatus::Unknown, true));
                 } else {
-                    g.fail(ReasonCode::VerifierNondeterministic, format!("verify accepted honest proof #{i} once, then not ({})", crate::executor::describe_exit(&o)));
+                    g.fail(
+                        ReasonCode::VerifierNondeterministic,
+                        format!(
+                            "verify accepted honest proof #{i} once, then not ({})",
+                            crate::executor::describe_exit(&o)
+                        ),
+                    );
                     out.gates.push(g.finish(GateStatus::Unknown, true));
                 }
                 return Ok(out);
             }
         }
     }
-    let seed = arena_measure::stats::derive_seed("adversarial", &parts).map_err(ExecError::Infra)?;
-    let ctx = MutationCtx { honest: &honest, max_proof_bytes: limits.max_proof_bytes };
+    let seed =
+        arena_measure::stats::derive_seed("adversarial", &parts).map_err(ExecError::Infra)?;
+    let ctx = MutationCtx {
+        honest: &honest,
+        max_proof_bytes: limits.max_proof_bytes,
+    };
     let mut hostile = match r.ctx.mutators.generate(&[], &ctx, seed) {
         Ok(h) => h,
         Err(e) => return Err(ExecError::Infra(format!("mutators: {e}"))),
@@ -102,7 +131,9 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     if hostile.len() > MAX_HOSTILE {
         // Deterministic stride subsample: every mutator family stays represented.
         let step = hostile.len() as f64 / MAX_HOSTILE as f64;
-        hostile = (0..MAX_HOSTILE).map(|i| hostile[(i as f64 * step) as usize].clone()).collect();
+        hostile = (0..MAX_HOSTILE)
+            .map(|i| hostile[(i as f64 * step) as usize].clone())
+            .collect();
     }
     let (mut rejected, mut errored, mut timeouts, mut binding) = (0usize, 0usize, 0usize, 0usize);
     let mut accepted: Vec<String> = vec![];
@@ -124,18 +155,29 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         return Ok(out);
     }
     if binding > 0 {
-        g.fail(ReasonCode::ArtifactBindingFailed, format!("npai-verify reported a digest mismatch on {binding} runs"));
+        g.fail(
+            ReasonCode::ArtifactBindingFailed,
+            format!("npai-verify reported a digest mismatch on {binding} runs"),
+        );
     }
     if r.shadow != (0, 0) {
-        g.note(format!("npai shadow (Lean reference): {} agreed, {} skipped (large/slow)", r.shadow.0, r.shadow.1));
+        g.note(format!(
+            "npai shadow (Lean reference): {} agreed, {} skipped (large/slow)",
+            r.shadow.0, r.shadow.1
+        ));
     }
     if !accepted.is_empty() {
         accepted.sort();
         accepted.dedup();
-        g.fail(ReasonCode::HostileProofAccepted, format!("verify accepted hostile proofs: {}", accepted.join(", ")));
+        g.fail(
+            ReasonCode::HostileProofAccepted,
+            format!("verify accepted hostile proofs: {}", accepted.join(", ")),
+        );
     }
     if generated > n {
-        g.note(format!("{generated} hostile inputs generated, {n} run (deterministic subsample)"));
+        g.note(format!(
+            "{generated} hostile inputs generated, {n} run (deterministic subsample)"
+        ));
     }
     g.note(format!(
         "{n} hostile inputs from [{}]: {rejected} rejected, {errored} errored (not accepted), {timeouts} timed out (not accepted), {} accepted",
@@ -146,7 +188,11 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     Ok(out)
 }
 
-fn write_pair(r: &mut JobRun<'_>, claim: &[u8], proof: &[u8]) -> Result<(std::path::PathBuf, std::path::PathBuf), ExecError> {
+fn write_pair(
+    r: &mut JobRun<'_>,
+    claim: &[u8],
+    proof: &[u8],
+) -> Result<(std::path::PathBuf, std::path::PathBuf), ExecError> {
     let d = r.fresh("pair");
     std::fs::create_dir(&d)?;
     let (c, p) = (d.join("claim.bin"), d.join("proof.bin"));

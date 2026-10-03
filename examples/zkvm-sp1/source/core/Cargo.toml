@@ -1,0 +1,9 @@
+[package]
+name = "transfer-core"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Relation check for near/pv86/receipt-transfer-batch/v0 (runs in the SP1 guest and natively)"
+
+[dependencies]
+sha2 = { version = "=0.10.8", default-features = false }

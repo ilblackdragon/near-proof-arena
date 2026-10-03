@@ -7,7 +7,9 @@
 
 use crate::store::{ArtifactStore, StoreError};
 use arena_jobs::client::{ClientError, WorkerClient};
-use arena_jobs::{CompleteRequest, FailRequest, HeartbeatRequest, HeartbeatResponse, LeaseRequest, LeasedJob};
+use arena_jobs::{
+    CompleteRequest, FailRequest, HeartbeatRequest, HeartbeatResponse, LeaseRequest, LeasedJob,
+};
 use arena_types::Digest;
 
 #[derive(Debug, thiserror::Error)]
@@ -34,7 +36,11 @@ impl From<ClientError> for ControlError {
 /// Synchronous seam over the worker API (tests substitute fakes).
 pub trait ControlPlane: Send + Sync {
     fn lease(&self, req: &LeaseRequest) -> Result<Option<LeasedJob>, ControlError>;
-    fn heartbeat(&self, job_id: &str, req: &HeartbeatRequest) -> Result<HeartbeatResponse, ControlError>;
+    fn heartbeat(
+        &self,
+        job_id: &str,
+        req: &HeartbeatRequest,
+    ) -> Result<HeartbeatResponse, ControlError>;
     fn complete(&self, job_id: &str, req: &CompleteRequest) -> Result<(), ControlError>;
     fn fail(&self, job_id: &str, req: &FailRequest) -> Result<(), ControlError>;
 }
@@ -60,7 +66,11 @@ impl ControlPlane for HttpControl {
     fn lease(&self, req: &LeaseRequest) -> Result<Option<LeasedJob>, ControlError> {
         Ok(self.rt.block_on(self.client.lease(req))?)
     }
-    fn heartbeat(&self, job_id: &str, req: &HeartbeatRequest) -> Result<HeartbeatResponse, ControlError> {
+    fn heartbeat(
+        &self,
+        job_id: &str,
+        req: &HeartbeatRequest,
+    ) -> Result<HeartbeatResponse, ControlError> {
         Ok(self.rt.block_on(self.client.heartbeat(job_id, req))?)
     }
     fn complete(&self, job_id: &str, req: &CompleteRequest) -> Result<(), ControlError> {
@@ -76,7 +86,9 @@ impl ControlPlane for HttpControl {
 impl ArtifactStore for HttpControl {
     fn get_raw(&self, digest: &Digest, max_bytes: u64) -> Result<Vec<u8>, StoreError> {
         match self.rt.block_on(self.client.get_artifact(digest)) {
-            Ok(Some(b)) if b.len() as u64 > max_bytes => Err(StoreError::TooLarge(digest.clone(), max_bytes)),
+            Ok(Some(b)) if b.len() as u64 > max_bytes => {
+                Err(StoreError::TooLarge(digest.clone(), max_bytes))
+            }
             Ok(Some(b)) => Ok(b.to_vec()),
             Ok(None) => Err(StoreError::NotFound(digest.clone())),
             Err(e) => Err(StoreError::Transport(e.to_string())),
