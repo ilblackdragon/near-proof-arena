@@ -6,3 +6,4 @@ import NearSpec.Trie
 import NearSpec.Outcome
 import NearSpec.TransferV1
 import NearSpec.Codec
+import NearSpec.Examples
