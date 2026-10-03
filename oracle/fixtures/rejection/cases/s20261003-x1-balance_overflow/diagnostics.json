@@ -1,0 +1,36 @@
+{
+  "case_id": "s20261003-x1-balance_overflow",
+  "claim": null,
+  "consistent": true,
+  "digests": {
+    "claim.bin": null,
+    "request.bin": "sha256:7c731a9e183bb183970ff0715a31fedf9d50bab2cf81363bf341aff240fcf0df",
+    "witness.bin": "sha256:23dc22d78d060042ecb062d368f499751cb696db38651284b7d8d169406ec8f2"
+  },
+  "domain_reason": "balance overflow",
+  "expected_in_domain": false,
+  "generator": {
+    "index": 1,
+    "invalid_kind": "balance_overflow",
+    "profile": "prefix",
+    "seed": 20261003
+  },
+  "in_domain": false,
+  "nearcore": {
+    "apply": "error",
+    "apply_ns": 177384,
+    "error": "StorageError(StorageInconsistentState(\"Account balance integer overflow\"))"
+  },
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "nearcore_problems": [
+    "Runtime::apply error: StorageError(StorageInconsistentState(\"Account balance integer overflow\"))"
+  ],
+  "schema": "near-arena-oracle-case-v1",
+  "sizes": {
+    "receipts": 10,
+    "request_bytes": 2215,
+    "state_entries": 23,
+    "witness_bytes": 2024
+  },
+  "synthetic_state": true
+}

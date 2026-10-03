@@ -1,0 +1,55 @@
+{
+  "case_id": "s20261003-x8-gas_limit",
+  "claim": null,
+  "consistent": true,
+  "digests": {
+    "claim.bin": null,
+    "request.bin": "sha256:8bd39a4dc66b6af3bdb21269aff6c000f76da673eb3dcfa5dffb2c911a1b55f3",
+    "witness.bin": "sha256:c81af9d9a4175e0b304d1c2a2d3bcc3afe0271448b0c0f0b01e0fcf4749ac079"
+  },
+  "domain_reason": "compute limit reached before last receipt ((n-1)*G >= gas_limit)",
+  "expected_in_domain": false,
+  "generator": {
+    "index": 8,
+    "invalid_kind": "gas_limit",
+    "profile": "repeat",
+    "seed": 20261003
+  },
+  "in_domain": false,
+  "nearcore": {
+    "apply": "ok",
+    "apply_ns": 138621,
+    "decomposition_ok": true,
+    "delayed_receipts_count": 1,
+    "full_apply_recorded_bytes": 1396,
+    "full_apply_state_root": "1ab50cd377a68dbc0fd8e0e912e07faecbc85bd7ce7b11d1edd4d57ebd1c955d",
+    "non_account_keys_changed": [
+      "07",
+      "070000000000000000",
+      "0f"
+    ],
+    "other_burnt_amount": "0",
+    "outcome_statuses": {
+      "SuccessValue([])": 9
+    },
+    "outgoing_receipts": 6,
+    "slice_post_root": "84bde6f2b7519258910aec126b5cddfe42c086e122e2283130a56efeee2d52e8",
+    "slice_witness_bytes": 1396,
+    "slice_witness_values": 13,
+    "tx_burnt_amount": "200864306250000000000"
+  },
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "nearcore_problems": [
+    "9 outcomes for 10 receipts",
+    "1 delayed receipts",
+    "non-Account keys other than bandwidth scheduler changed: [\"07\", \"070000000000000000\", \"0f\"]"
+  ],
+  "schema": "near-arena-oracle-case-v1",
+  "sizes": {
+    "receipts": 10,
+    "request_bytes": 2573,
+    "state_entries": 69,
+    "witness_bytes": 1510
+  },
+  "synthetic_state": true
+}

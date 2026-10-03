@@ -1,0 +1,36 @@
+{
+  "case_id": "s20261003-x7-non_transfer_action",
+  "claim": null,
+  "consistent": true,
+  "digests": {
+    "claim.bin": null,
+    "request.bin": "sha256:7e99f189e9635553b0bbab7a87cbe129f7ae6db617ce48817ea3960fa45cdfba",
+    "witness.bin": "sha256:ba2b4010f1ed36d75ca18fb6e84a01d9e3c19efb7c30a1fd23b3a38ab46930f7"
+  },
+  "domain_reason": "action is not Transfer",
+  "expected_in_domain": false,
+  "generator": {
+    "index": 7,
+    "invalid_kind": "non_transfer_action",
+    "profile": "boundary",
+    "seed": 20261003
+  },
+  "in_domain": false,
+  "nearcore": {
+    "apply": "error",
+    "apply_ns": 83006,
+    "error": "ReceiptValidationError(ActionsValidation(UnsuitableStakingKey { public_key: ed25519:HE15Xms4SRBXq6iTk7on7ZE3t1BihWybSRRKhPPG9jdx }))"
+  },
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "nearcore_problems": [
+    "Runtime::apply error: ReceiptValidationError(ActionsValidation(UnsuitableStakingKey { public_key: ed25519:HE15Xms4SRBXq6iTk7on7ZE3t1BihWybSRRKhPPG9jdx }))"
+  ],
+  "schema": "near-arena-oracle-case-v1",
+  "sizes": {
+    "receipts": 6,
+    "request_bytes": 1745,
+    "state_entries": 51,
+    "witness_bytes": 2357
+  },
+  "synthetic_state": true
+}

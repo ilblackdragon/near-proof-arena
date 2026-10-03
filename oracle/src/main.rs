@@ -215,7 +215,8 @@ fn cmd_replay(args: &[String]) -> i32 {
     let mut ok = ex.request.pre_state_root == want_root;
     let w = enc::encode_witness(&ex.request.pre_state_root, &ex.witness_values);
     ok &= w == std::fs::read(dir.join("witness.bin")).unwrap();
-    match std::fs::read(dir.join("claim.bin")) {
+    let claim_file = if dir.join("claim.bin").exists() { "claim.bin" } else { "expected_claim.bin" };
+    match std::fs::read(dir.join(claim_file)) {
         Ok(cb) => ok &= ex.clean && ex.claim.map(|c| c.encode()) == Some(cb),
         Err(_) => {
             let wb: usize = ex.witness_values.iter().map(|v| v.len()).sum();

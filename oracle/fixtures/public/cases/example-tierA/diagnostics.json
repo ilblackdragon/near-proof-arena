@@ -1,0 +1,65 @@
+{
+  "case_id": "example-tierA",
+  "claim": {
+    "block_gas_price": "1000000000",
+    "block_height": 10,
+    "chain_id": "mainnet",
+    "gas_burnt_total": 446365125000,
+    "gas_limit": 1000000000000000,
+    "outcome_root": "92f0cd9e2326f2495ff07a56620770dcdc46b9aaf1eb2f00ce6ce786b8d0a127",
+    "pre_state_root": "6c4793e8635848320ad809bbb6734cbf54530d3766fa954ea919413eabbf6fcb",
+    "protocol_version": 86,
+    "receipt_count": 2,
+    "receipts_commitment": "fedd94a6ea0bac2ff406cadfcb245ef06411e36f9d8fda135f53629f23198d6b",
+    "refund_count": 0,
+    "refund_receipts_commitment": "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119",
+    "shard_id": 0,
+    "slice_post_root": "28ff3f4acacc0ce6cab564899e1736e885eed9739caabf6b77268455867f39c3",
+    "tokens_burnt_total": "446365125000000000000"
+  },
+  "consistent": true,
+  "digests": {
+    "claim.bin": "sha256:10143c59f0ade440b4083f683ad64874eb4c8c62f0c6676a97be35d91419df51",
+    "request.bin": "sha256:651e010a6152e295dca888f0e7cdb4bd5abc802006e2ec657f6442cfb46380cf",
+    "witness.bin": "sha256:84a7d5de37577bf9d4e89f243744fcb1c89d018326168153664eb0e473e7fee6"
+  },
+  "domain_reason": null,
+  "expected_in_domain": true,
+  "generator": {
+    "index": 0,
+    "invalid_kind": null,
+    "profile": "example",
+    "seed": 0
+  },
+  "in_domain": true,
+  "nearcore": {
+    "apply": "ok",
+    "apply_ns": 853113,
+    "decomposition_ok": true,
+    "delayed_receipts_count": 0,
+    "full_apply_recorded_bytes": 534,
+    "full_apply_state_root": "1420be412762e74b9ffa60aead6a770a6a220dab5415ad6243551a930198953d",
+    "non_account_keys_changed": [
+      "0f"
+    ],
+    "other_burnt_amount": "0",
+    "outcome_statuses": {
+      "SuccessValue([])": 2
+    },
+    "outgoing_receipts": 0,
+    "slice_post_root": "28ff3f4acacc0ce6cab564899e1736e885eed9739caabf6b77268455867f39c3",
+    "slice_witness_bytes": 534,
+    "slice_witness_values": 8,
+    "tx_burnt_amount": "446365125000000000000"
+  },
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "nearcore_problems": [],
+  "schema": "near-arena-oracle-case-v1",
+  "sizes": {
+    "receipts": 2,
+    "request_bytes": 455,
+    "state_entries": 6,
+    "witness_bytes": 628
+  },
+  "synthetic_state": true
+}

@@ -1,0 +1,52 @@
+{
+  "case_id": "s20261003-x3-storage_stake",
+  "claim": null,
+  "consistent": true,
+  "digests": {
+    "claim.bin": null,
+    "request.bin": "sha256:8bb456990b6681083b828cad10f9d61674880f193bbd0841d5ef7b32c04532d2",
+    "witness.bin": "sha256:bd805cf7ab4eef666bbb74341079556200384196876b037c602b75bcbfe0bbf7"
+  },
+  "domain_reason": "storage stake not covered after transfer",
+  "expected_in_domain": false,
+  "generator": {
+    "index": 3,
+    "invalid_kind": "storage_stake",
+    "profile": "repeat",
+    "seed": 20261003
+  },
+  "in_domain": false,
+  "nearcore": {
+    "apply": "ok",
+    "apply_ns": 250942,
+    "decomposition_ok": true,
+    "delayed_receipts_count": 0,
+    "full_apply_recorded_bytes": 2555,
+    "full_apply_state_root": "0c385169189c6f3b057cde59b509fafb99402986f4f950bc25ff2f66a8b7e2ee",
+    "non_account_keys_changed": [
+      "0f"
+    ],
+    "other_burnt_amount": "0",
+    "outcome_statuses": {
+      "Failure(Action #0: The account 0xa5719263e30b69f87ba20332a8a6b2532ae16c6fb wouldn't have enough balance to cover storage, required to have 0.050 NEAR yoctoNEAR more)": 1,
+      "SuccessValue([])": 20
+    },
+    "outgoing_receipts": 5,
+    "slice_post_root": "8bde936b6548f558a6dd145accfae016f28fb701bb64fbb9cc0400a977b05592",
+    "slice_witness_bytes": 2555,
+    "slice_witness_values": 29,
+    "tx_burnt_amount": "3682512281250000000000"
+  },
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "nearcore_problems": [
+    "receipt 586c29b1dce39b8bf5ceb16c57eb194cda3ef93e9888eea9c277554b89a17808 status Failure(Action #0: The account 0xa5719263e30b69f87ba20332a8a6b2532ae16c6fb wouldn't have enough balance to cover storage, required to have 0.050 NEAR yoctoNEAR more)"
+  ],
+  "schema": "near-arena-oracle-case-v1",
+  "sizes": {
+    "receipts": 21,
+    "request_bytes": 5021,
+    "state_entries": 92,
+    "witness_bytes": 2733
+  },
+  "synthetic_state": true
+}
