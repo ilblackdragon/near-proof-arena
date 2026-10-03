@@ -141,3 +141,33 @@ describe('stage progress after a decision', () => {
     expect(s.stage).toBe('DECIDED');
   });
 });
+
+describe('verified surface: verify route', () => {
+  it('shows verify route, bytecode digest and verifier model', async () => {
+    const ds = demoDataset();
+    const s = ds.submissions.find((x) => x.id === 'sub_demo_alpha')!;
+    s.verified_surface = {
+      ...s.verified_surface!,
+      verify_route: 'npai-v1',
+      verifier_bytecode: `sha256:${'b'.repeat(64)}`,
+      verifier_model: 'Candidate.Model.verify',
+      verifier_model_module: 'Candidate.Model',
+    };
+    renderApp('/submissions/sub_demo_alpha', ds);
+    await screen.findByRole('heading', { level: 1, name: /alpha/ });
+    const dig = screen.getByRole('heading', { name: 'Digests' }).closest('section')!;
+    expect(within(dig).getByText('npai-v1')).toBeInTheDocument();
+    expect(within(dig).getByText(/approved NPAI interpreter/)).toBeInTheDocument();
+    expect(within(dig).getByText(`sha256:${'b'.repeat(64)}`)).toBeInTheDocument();
+    expect(within(dig).getByText('Candidate.Model.verify')).toBeInTheDocument();
+    expect(within(dig).getByText('Candidate.Model')).toBeInTheDocument();
+  });
+
+  it('flags an unknown verify route', async () => {
+    const ds = demoDataset();
+    const s = ds.submissions.find((x) => x.id === 'sub_demo_alpha')!;
+    s.verified_surface = { ...s.verified_surface!, verify_route: 'trust-me' as never };
+    renderApp('/submissions/sub_demo_alpha', ds);
+    expect(await screen.findByText(/unknown route/)).toBeInTheDocument();
+  });
+});

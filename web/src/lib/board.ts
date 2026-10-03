@@ -27,8 +27,13 @@ export function isReference(e: BoardEntry, def: ChallengeDefinition | undefined)
   return !!def?.workload_suite.baseline_submission && def.workload_suite.baseline_submission === e.submission_id;
 }
 
-export function isOfficiallyRankable(e: BoardEntry, def: ChallengeDefinition | undefined): boolean {
+/** An entry labelled with a different challenge never ranks on this board. */
+export const belongsTo = (e: BoardEntry, challengeId: string | undefined) =>
+  !challengeId || e.challenge_id === undefined || e.challenge_id === challengeId;
+
+export function isOfficiallyRankable(e: BoardEntry, def: ChallengeDefinition | undefined, challengeId?: string): boolean {
   return (
+    belongsTo(e, challengeId) &&
     def?.tier === 'formal' &&
     e.tier === 'formal' &&
     e.decision === 'ADMITTED' &&
@@ -38,12 +43,12 @@ export function isOfficiallyRankable(e: BoardEntry, def: ChallengeDefinition | u
   );
 }
 
-export function classify(e: BoardEntry, def: ChallengeDefinition | undefined): SectionKey {
+export function classify(e: BoardEntry, def: ChallengeDefinition | undefined, challengeId?: string): SectionKey {
   if (e.tier === 'demo' || def?.tier === 'demo') return 'demo';
   if (e.revoked !== false) return 'revoked';
   if (isReference(e, def)) return 'reference';
   if (e.tier === 'experimental' || def?.tier === 'experimental') return 'experimental';
-  if (isOfficiallyRankable(e, def)) return 'official';
+  if (isOfficiallyRankable(e, def, challengeId)) return 'official';
   return 'formal_other';
 }
 
@@ -54,11 +59,11 @@ const byScoreDesc = (a: BoardEntry, b: BoardEntry) => {
   return String(a.submitted_at).localeCompare(String(b.submitted_at));
 };
 
-export function partition(entries: BoardEntry[], def: ChallengeDefinition | undefined): Board {
+export function partition(entries: BoardEntry[], def: ChallengeDefinition | undefined, challengeId?: string): Board {
   const b: Board = { official: [], formal_other: [], revoked: [], reference: [], experimental: [], demo: [] };
   const official: BoardEntry[] = [];
   for (const e of entries) {
-    const k = classify(e, def);
+    const k = classify(e, def, challengeId);
     if (k === 'official') official.push(e);
     else b[k].push(e);
   }

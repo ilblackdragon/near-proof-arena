@@ -1,9 +1,9 @@
 import { Link, useParams } from 'react-router-dom';
 import { getChallenge, getLeaderboard } from '../api/client';
-import { useAsync, useChallengeVerification } from '../api/hooks';
+import { useAsync, useChallengeLineage, useChallengeVerification } from '../api/hooks';
 import { AsyncView } from '../components/AsyncView';
 import { TierBadge } from '../components/Badges';
-import { ChallengeFacts, ExcludesCallout } from '../components/ChallengeInfo';
+import { ChallengeFacts, ChallengeStatusBanner, ExcludesCallout, SupersessionLineage } from '../components/ChallengeInfo';
 import { Leaderboard } from '../components/Leaderboard';
 import { T } from '../components/Text';
 import { isChallengeId } from '../lib/ids';
@@ -36,6 +36,7 @@ function ChallengeView({ id }: { id: string }) {
 function ChallengeBody({ c }: { c: ChallengeRecord }) {
   const verify = useChallengeVerification(c);
   const [board] = useAsync((s) => getLeaderboard(c.id, s), [c.id]);
+  const lineage = useChallengeLineage(c);
   const d = c.definition;
   return (
     <section>
@@ -44,6 +45,7 @@ function ChallengeBody({ c }: { c: ChallengeRecord }) {
       </p>
       <h1>
         <T v={d.name} max={120} /> <TierBadge tier={d.tier} />
+        {c.superseded_by ? <span className="badge closed">SUPERSEDED</span> : !c.open && <span className="badge closed">CLOSED</span>}
       </h1>
       <p className="mono small muted wrap">{c.id}</p>
       {d.tier === 'demo' && (
@@ -51,13 +53,16 @@ function ChallengeBody({ c }: { c: ChallengeRecord }) {
           DEMO challenge: results here are plumbing demonstrations and are never ranked.
         </p>
       )}
+      <ChallengeStatusBanner c={c} where="challenge" />
       <ExcludesCallout c={c} />
+      <SupersessionLineage c={c} hops={lineage} />
       <h2 className="section-h">Leaderboard</h2>
       <p className="small">
         <Link to={`/submissions?challenge=${encodeURIComponent(c.id)}`}>All submissions for this challenge →</Link>
       </p>
+      <ChallengeStatusBanner c={c} where="leaderboard" />
       <AsyncView state={board} what="leaderboard">
-        {(entries) => <Leaderboard entries={entries} def={d} />}
+        {(entries) => <Leaderboard entries={entries} def={d} challengeId={c.id} />}
       </AsyncView>
       <h2 className="section-h">Definition</h2>
       <ChallengeFacts c={c} verify={verify} />

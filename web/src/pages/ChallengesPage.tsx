@@ -47,6 +47,16 @@ export function ChallengesPage() {
                         </td>
                         <td>
                           <TierBadge tier={d.tier} />
+                          {c.superseded_by ? (
+                            <div>
+                              <span className="badge closed">SUPERSEDED</span>
+                              <div className="small">
+                                by <ChlLink id={c.superseded_by} />
+                              </div>
+                            </div>
+                          ) : (
+                            !c.open && <span className="badge closed">CLOSED</span>
+                          )}
                         </td>
                         <td>
                           <ScopeKindLabel kind={d.semantic_scope.kind} />

@@ -109,6 +109,30 @@ export function Digests({ s }: { s: SubmissionDetail }) {
           <dd><code><T v={vs.certificate_decl} max={120} /></code></dd>
           <dt>Checker image</dt>
           <dd><DigestText d={vs.checker_image} full /></dd>
+          <dt>Verify route</dt>
+          <dd>
+            <VerifyRouteText route={vs.verify_route} />
+          </dd>
+          {vs.verifier_bytecode && (
+            <>
+              <dt>Verifier bytecode</dt>
+              <dd><DigestText d={vs.verifier_bytecode} full /></dd>
+            </>
+          )}
+          {vs.verifier_model && (
+            <>
+              <dt>Verifier model</dt>
+              <dd>
+                <code className="wrap"><T v={vs.verifier_model} max={160} /></code>
+                {vs.verifier_model_module && (
+                  <span className="small muted">
+                    {' '}
+                    in <code><T v={vs.verifier_model_module} max={160} /></code>
+                  </span>
+                )}
+              </dd>
+            </>
+          )}
         </>
       )}
       {arts.map((a, i) => (
@@ -270,5 +294,25 @@ export function EventStream({ status, events }: { status: StreamStatus; events: 
         </ol>
       )}
     </div>
+  );
+}
+
+const ROUTE_TEXT: Record<string, string> = {
+  native: 'native — candidate-built verify executable',
+  'npai-v1': 'npai-v1 — candidate bytecode run by the approved NPAI interpreter',
+  'native-lean': 'native-lean — judge-built verifier from the candidate\'s Lean model',
+};
+
+export function VerifyRouteText({ route }: { route: string | null | undefined }) {
+  if (!route) return <span className="muted">not reported (native)</span>;
+  const t = ROUTE_TEXT[route];
+  return t ? (
+    <>
+      <code>{route}</code> <span className="small muted">{t.slice(t.indexOf('—'))}</span>
+    </>
+  ) : (
+    <span className="bad">
+      unknown route <T v={route} max={32} />
+    </span>
   );
 }
