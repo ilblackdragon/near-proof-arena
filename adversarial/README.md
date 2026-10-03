@@ -57,8 +57,8 @@ Generated from the `expect.json` files; regenerate the packages with
 | `always-reject-verifier` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
 | `weak-public-input-binding` | REJECTED | ADVERSARIAL_PROOFS | HOSTILE_PROOF_ACCEPTED |
 | `malicious-executable` | REJECTED | ARTIFACT_BINDING | ARTIFACT_BINDING_FAILED |
-| `wrong-verification-key` | REJECTED | ARTIFACT_BINDING | ARTIFACT_BINDING_FAILED |
-| `stale-certificate` | REJECTED | ARTIFACT_BINDING | ARTIFACT_BINDING_FAILED (packaging kill) |
+| `wrong-verification-key` | REJECTED | ARTIFACT_BINDING | ARTIFACT_BINDING_FAILED, THEOREM_TYPE_MISMATCH |
+| `stale-certificate` | REJECTED | ARTIFACT_BINDING | ARTIFACT_BINDING_FAILED, THEOREM_TYPE_MISMATCH (packaging kill) |
 | `restricted-domain` | REJECTED | FORMAL_SEMANTIC_SOUNDNESS | THEOREM_TYPE_MISMATCH |
 | `false-premise` | REJECTED | FORMAL_SEMANTIC_SOUNDNESS | THEOREM_TYPE_MISMATCH |
 | `missing-certificate` | REJECTED | FORMAL_SEMANTIC_SOUNDNESS | CERTIFICATE_MISSING |
@@ -66,14 +66,26 @@ Generated from the `expect.json` files; regenerate the packages with
 | `shadowed-definition` | REJECTED | AXIOM_AUDIT | SHADOWED_DEFINITION |
 | `sorry-certificate` | REJECTED | AXIOM_AUDIT | SORRY_FOUND |
 | `native-decide-certificate` | REJECTED | AXIOM_AUDIT | NATIVE_EVAL_FOUND |
-| `changed-security-parameters` | REJECTED | FORMAL_CRYPTO_SOUNDNESS | SECURITY_BOUND_INSUFFICIENT |
+| `changed-security-parameters` | REJECTED | FORMAL_CRYPTO_SOUNDNESS | THEOREM_TYPE_MISMATCH |
 | `near-reexec-skip-refund` | REJECTED | FORMAL_SEMANTIC_SOUNDNESS | THEOREM_TYPE_MISMATCH |
 | `near-reexec-malicious-executable` | REJECTED | ARTIFACT_BINDING | ARTIFACT_BINDING_FAILED |
 
-The two `near-reexec-*` cases are real NEAR packages derived from the reference
-backend `examples/reexec-witness` (copied, not produced by `generate.py`). They
-must be submitted against the `near-transfer-receipt-v1` challenge. See their
-READMEs.
+All 13 NEAR-formal cases (the 11 rows above from `malicious-executable` on, plus
+the two `near-reexec-*`) are real NEAR packages: the reference backend
+`examples/reexec-witness` (native-lean route), honest except for exactly one
+attack. They are **derived cases**: the case directory holds `BASE`
+(`examples/reexec-witness`) and only the files that differ; the e2e driver
+materializes base + overlay before packing (`run_hostile.py --materialize DIR`
+writes the exact submitted tree), the Rust loader checks the union. The 11 are
+produced by `generate.py` (edits applied to the base files); the two
+`near-reexec-*` are hand-written overlays. On this route the checker attributes
+every finding to all formal gates (the admission statement is not a `∧` chain)
+and the worker fails ARTIFACT_BINDING on any statement mismatch, so each case
+names the gate its attack is *about* plus the attack's specific reason code.
+`changed-security-parameters` expects THEOREM_TYPE_MISMATCH, not
+SECURITY_BOUND_INSUFFICIENT: the profile is part of the judge-built statement,
+so weakened parameters surface as a statement mismatch (the checker never emits
+SECURITY_BOUND_INSUFFICIENT).
 
 #### Runtime / execution attacks
 
@@ -84,19 +96,27 @@ READMEs.
 | `precomputed-fixture-table` | REJECTED | CONFORMANCE_DIFFERENTIAL | CLAIM_MISMATCH |
 | `background-daemon` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
 | `sandbox-escape-filesystem` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
-| `sandbox-escape-network` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
+| `sandbox-escape-network` | REJECTED | CONFORMANCE_DIFFERENTIAL or ADVERSARIAL_PROOFS | SANDBOX_VIOLATION |
 | `sandbox-fork-bomb` | REJECTED | RESOURCE_LIMITS | RESOURCE_LIMIT |
-| `sandbox-ptrace-proc` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
-| `forged-timing` | REJECTED | PROVER_RELIABILITY | PROVER_FAILED |
+| `sandbox-ptrace-proc` | REJECTED | CONFORMANCE_DIFFERENTIAL or ADVERSARIAL_PROOFS | SANDBOX_VIOLATION |
+| `forged-timing` | REJECTED | CONFORMANCE_DIFFERENTIAL or ADVERSARIAL_PROOFS | SANDBOX_VIOLATION |
 | `ui-injection-logs` | REJECTED | ADVERSARIAL_PROOFS | HOSTILE_PROOF_ACCEPTED |
 | `ui-injection-manifest` | REJECTED | PKG_WELLFORMED | MANIFEST_INVALID |
 
-The sandbox-escape / forged-timing cases are kept to the **honest observable**
-on bwrap-dev (which has no seccomp): the attempt is contained and the prover
-produces no proof, so the kill is `PROVER_FAILED`. Sound syscall-level
-`SANDBOX_VIOLATION` detection is a runners-core follow-up; Firecracker's forged
-guest report already maps to `SANDBOX_VIOLATION`. See
-`docs/e2e-results/hostile-final/README.md`.
+`sandbox-escape-network` (`socket(AF_INET)`), `sandbox-ptrace-proc` (`ptrace`)
+and `forged-timing` (`clock_settime`) are caught by **sound syscall-level
+detection**: the sandbox init (Firecracker guest `arena-init`, bwrap-dev helper
+init) installs a seccomp user-notification filter on the candidate tree
+(`runners/seccomp`); the listed syscall is denied (EPERM) *and* recorded by the
+init, and the worker fails the gate of the runtime job that ran `prove` first
+(conformance or adversarial, scheduled together) with `SANDBOX_VIOLATION`. A
+report exists only if a candidate process really made the syscall.
+`sandbox-escape-filesystem` stays `PROVER_FAILED`: its prover only opens files
+(reads of the sandbox's own rootfs are harmless; writes fail on read-only
+mounts), and a failed write to a read-only path cannot be told apart soundly
+from an honest-but-buggy program, so it is contained but not reported as a
+violation. Build recipes run under the looser `tooling` policy (no socket
+rule), so `build-network-fetch` stays `BUILD_FAILED`.
 
 #### Build / archive attacks
 
@@ -186,28 +206,26 @@ challenge kind(s) it is meaningful on:
 - `targets: ["near-formal"]` — attacks a formal / artifact-binding / crypto
   obligation that only the NEAR formal challenge has; run by
   `--target near-formal` (`milestone-d.sh`, or `run.sh --hostile-near`).
-- `runnable: false` — documents an attack but is not auto-submitted. The 11
-  generic Lean-certificate stubs are `runnable: false`: they need a real
-  reexec-witness backend to build, so the executable NEAR kills are the two
-  `near-reexec-*` cases. The driver skips them with that note (never faked).
+- `runnable: false` — documents an attack but is not auto-submitted (the
+  driver skips it with that note, never faked). No case currently uses it.
 
 ## Status
 
 Live, green:
 
-- `tests/e2e/run.sh --hostile` (real server + bwrap-dev worker, demo challenge):
-  **22/22 demo cases match** decision + gate + reason codes; 0 admitted, 0
-  ranked; injection sanitized; 13 near-formal cases skipped.
+- `tests/e2e/run.sh --target near-formal` (real server + Firecracker worker,
+  the signed NEAR challenge `chl_3be93793…` v1-2): **13/13 NEAR-formal cases
+  match** decision + gate + reason codes; 0 admitted, 0 accepted, 0 ranked.
+  Results: `docs/e2e-results/hostile-near-formal/`.
+- `tests/e2e/run.sh --hostile` (= `--target demo`; real server + bwrap-dev
+  worker, demo challenge): **22/22 demo cases match**; injection sanitized.
   Results: `docs/e2e-results/hostile-final/`.
-- `tests/e2e/milestone-d.sh` (Firecracker, NEAR formal): `near-reexec-malicious-executable`
-  and `near-reexec-skip-refund` REJECTED and matching. Results:
-  `docs/e2e-results/milestone-d/`.
-- `cargo test -p proof-mutators` — mutator unit tests + suite well-formedness
-  (35 cases load, parse, agree with `expect.json`).
-- All demo C sources compile offline with `cc`; archives build via
-  `make-archive.py` (Python `tarfile`).
+- `cargo test -p proof-mutators`: mutator unit tests plus suite
+  well-formedness (35 cases, derived ones checked against base + overlay).
+- `python3 hostile-submissions/generate.py --check`; `e2e/run_hostile.py
+  --dry-run` packages all 35.
 
-Follow-up: turn the 11 `runnable: false` certificate stubs into reexec-witness
-variants so each formal gate is exercised live; add sound syscall-level
-`SANDBOX_VIOLATION` detection in the sandbox/worker; wire `mutants/` once the
-integrator applies the operators to a reference backend.
+Follow-up: wire `mutants/` once the integrator applies the operators to a
+reference backend. (The NEAR-formal stubs are now live cases, and sandbox
+escapes are reported as `SANDBOX_VIOLATION` via seccomp: see
+`docs/e2e-results/hostile-seccomp/`.)

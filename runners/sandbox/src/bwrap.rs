@@ -441,6 +441,7 @@ impl Sandbox for BwrapDev {
                 as_bytes: spec.mem_bytes,
                 nproc: spec.pids as u64,
             }),
+            syscall_policy: spec.syscall_policy,
         };
         let init_path = run_dir.join("init.json");
         fs::write(
@@ -635,13 +636,21 @@ impl Sandbox for BwrapDev {
             },
             isolation: ISOLATION_LABEL.to_string(),
             tier_cap: Some(Tier::Demo),
-            entry_wall_ns: init.map(|s| s.entry_wall_ns),
+            entry_wall_ns: init.as_ref().map(|s| s.entry_wall_ns),
             diagnostics: Diagnostics {
                 backend: BACKEND_NAME.to_string(),
                 total_ns: shim.wall_ns,
                 outputs_complete: complete,
                 ..Default::default()
             },
+            violations: init
+                .map(|s| {
+                    s.violations
+                        .iter()
+                        .map(|v| format!("{} x{}", v.what, v.count))
+                        .collect()
+                })
+                .unwrap_or_default(),
         })
     }
 }

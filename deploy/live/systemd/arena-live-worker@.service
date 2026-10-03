@@ -1,0 +1,31 @@
+# Rendered by `arena-live install` (deploy/live/systemd); edit the source, not the copy.
+# One Firecracker worker per instance name (%i): config/worker.env + config/worker-%i.env.
+[Unit]
+Description=NEAR Proof Arena live: Firecracker worker %i
+PartOf=arena-live.target
+After=arena-live-server.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+EnvironmentFile=@LIVE@/config/worker.env
+EnvironmentFile=@LIVE@/config/worker-%i.env
+ExecStartPre=@LIVE@/release/deploy/scripts/arena-guard worker
+ExecStartPre=-@ARENA_LIVE_SCRIPT@ reap-orphans %i
+ExecStart=@LIVE@/bin/arena-worker
+ExecStopPost=-@ARENA_LIVE_SCRIPT@ reap-orphans %i
+Restart=always
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=30
+StandardOutput=append:@LIVE@/logs/worker-%i.log
+StandardError=inherit
+NoNewPrivileges=yes
+# 0022, not 0077: job trees the worker unpacks are executed inside the
+# microVM under a different uid (0077 => build.sh "Permission denied").
+# Secrets are protected by secrets/ being 0700 + 0600 files.
+UMask=0022
+LimitNOFILE=65536
+
+[Install]
+WantedBy=arena-live.target

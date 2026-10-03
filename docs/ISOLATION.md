@@ -149,6 +149,44 @@ Two consequences worth stating explicitly:
   overhead (p95 ≈ 120 ms here), or score on `vmm_wall_ns − calibrated
   overhead` for the official board.
 
+### Escape-attempt detection (`SANDBOX_VIOLATION`)
+
+Containment alone makes escape attempts harmless but silent. The sandbox
+inits (guest `arena-init`; bwrap-dev helper init) therefore install a seccomp
+**user-notification** filter (`runners/seccomp`) on the candidate tree as the
+last step before exec (after the uid drop and `no_new_privs`). Listed
+syscalls block and are delivered to the init over a listener fd that the
+child creates with `SECCOMP_FILTER_FLAG_NEW_LISTENER`, passes over a
+close-on-exec socketpair and closes — the candidate never holds it. The init
+records the event and answers `-EPERM`: the call never executes, and the
+outcome's `violations` lists it. The worker turns any violation into
+`SANDBOX_VIOLATION` on the gate of the job that ran the command; the formal
+checker turns it into a `SANDBOX_VIOLATION` finding.
+
+| policy | used for | violations |
+|---|---|---|
+| `strict` (default) | `prepare` / `prove` / `verify`, benchmark batches | kernel attack surface: `ptrace`, `process_vm_{readv,writev}`, `pidfd_getfd`, the mount family (`mount`, `umount2`, `pivot_root`, `chroot`, `open_tree`, `move_mount`, `fs*`, `mount_setattr`), `unshare`, `setns`, `open_by_handle_at`, module and `kexec` loading, `bpf`, `perf_event_open`, keyrings, `syslog`, setting clocks/time/hostname, swap, `reboot`, `iopl`/`ioperm`, `quotactl`, `acct`, … ; `socket(AF_INET/AF_INET6/AF_NETLINK/AF_PACKET)`; any non-x86_64 or x32 ABI syscall |
+| `tooling` | build recipes, Lean elaboration/rechecking | the same minus the socket rule (a network attempt in a build simply fails and is judged by its effect, e.g. `BUILD_FAILED`) |
+| `off` | — | — |
+
+**Sound** (no false positives): an entry exists only if a process of the
+candidate tree executed that syscall with those arguments; filters are
+inherited by every descendant and cannot be removed. Not complete: an attempt
+whose task is killed before the init reads the notification is blocked but may
+go uncounted; socket creation through `io_uring` (`IORING_OP_SOCKET`) is not
+inspected (there is no network either way); file accesses are not classified
+(a failed write to a read-only mount is indistinguishable from an
+honest-but-buggy program, so `sandbox-escape-filesystem` stays
+`PROVER_FAILED`). Validated free of false positives on: the toy candidate
+(e2e), `stark-plonky3` (build under `tooling` + prepare/prove/verify under
+`strict`, `runners/firecracker/scripts/honest-backend-check.sh`), `zkvm-sp1`
+(same script), `reexec-witness` end to end on Firecracker
+(`tests/e2e/milestone-d.sh`: the reference and its PROVER_ONLY child ADMITTED
+with all 13 gates PASS — build, FORMAL_CHECK incl. native-lean, conformance,
+adversarial, benchmark — and both NEAR hostile cases as expected), the
+30-case formal-checker corpus (bwrap-dev and Firecracker) and the gated
+worker/Firecracker suites. See `docs/e2e-results/hostile-seccomp/`.
+
 ### Host-side parsing of guest-written data
 
 The host never mounts, fsck's or otherwise parses a filesystem the guest

@@ -1,0 +1,17 @@
+# Design-phase proofs of concept for the formally admitted STARK backend
+# (docs/zk-formal/DESIGN.md). Depends only on ArenaCore (no Mathlib): the
+# challenge's allowed_packages are ArenaCore and NearSpec.
+name = "ZkFormal"
+version = "0.1.0"
+defaultTargets = ["ZkFormal"]
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[lean_lib]]
+name = "ZkFormal"
+
+[[require]]
+name = "ArenaCore"
+path = "../formal-core"

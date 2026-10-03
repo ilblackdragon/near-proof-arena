@@ -45,6 +45,23 @@ validator updates, writes the Account values whose root is `slice_post_root`,
 produces outcomes with root `outcome_root`, generates exactly the committed gas
 refunds, burns `gas_burnt_total` gas and `tokens_burnt_total` yoctoNEAR.*
 
+**Chain-context fields are bound only as far as the relation uses them.**
+`block_height`, `block_gas_price` and `gas_limit` are encoded in `claim.bin`
+(so the bytes bind them), but `NearRelation` constrains them only through
+their effect on the outputs and the domain: `block_height` enters only the ids
+of generated refund receipts (no effect when no receipt overpays),
+`block_gas_price` only `p = min(r.gas_price, block_gas_price)` (raising it
+above every receipt's price changes nothing), and `gas_limit` only the domain
+bound `(n−1)·G < gas_limit`. A claim with another value of such a field that
+leaves the outputs and domain unchanged is a *true* claim about the same
+batch, and every sound verifier must accept it. Checked on the public fixtures
+(2026-10-03): flipping each bit of these three fields, the Lean reference
+`decide (NearRelation c w)`, the certified `reexec-npai` bytecode and the
+native-lean `reexec-witness` verifier agree on every flip (accepted iff the
+relation holds). Anchoring the context to an actual block (that the height,
+gas price and gas limit are those of a real chunk) is external to this
+statement (§11 `pre_state_root_on_chain`, `block_finality`).
+
 ## 2. Semantics (per receipt, in order)
 
 For receipt `r` with receiver `a = Account(r.receiver_id)` (read from the

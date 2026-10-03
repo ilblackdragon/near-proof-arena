@@ -718,6 +718,7 @@ struct RunResult {
     stderr: Vec<u8>,
     stdout_total: u64,
     stderr_total: u64,
+    violations: Vec<arena_seccomp::Violation>,
 }
 
 /// `step`: `Some(i)` in steps mode (step markers instead of START/EXIT).
@@ -739,6 +740,10 @@ fn run_candidate(
     let nproc = job.pids_max as u64;
     let (uid, gid) = (proto::CANDIDATE_UID, proto::CANDIDATE_GID);
 
+    // seccomp violation detection: listener handed to us after install
+    let seccomp =
+        arena_seccomp::Prepared::new(job.syscall_policy).map_err(|e| format!("seccomp: {e}"))?;
+    let seccomp_child = seccomp.as_ref().map(|p| p.child_side());
     let mut cmd = Command::new(&argv[0]);
     cmd.args(&argv[1..])
         .env_clear()
@@ -803,6 +808,10 @@ fn run_candidate(
             {
                 return Err(io::Error::last_os_error());
             }
+            // last: everything above is init's own setup
+            if let Some(cs) = &seccomp_child {
+                cs.install()?;
+            }
             Ok(())
         });
     }
@@ -833,8 +842,16 @@ fn run_candidate(
                 stderr: vec![],
                 stdout_total: 0,
                 stderr_total: 0,
+                violations: vec![],
             });
         }
+    };
+    let monitor = match seccomp {
+        Some(p) => Some(
+            p.start_monitor()
+                .map_err(|e| format!("seccomp listener: {e}"))?,
+        ),
+        None => None,
     };
     let out_t = drain(child.stdout.take().unwrap(), proto::STREAM_CAP);
     let err_t = drain(child.stderr.take().unwrap(), proto::STREAM_CAP);
@@ -868,6 +885,13 @@ fn run_candidate(
     }
     let (stdout, stdout_total) = out_t.join().unwrap_or_default();
     let (stderr, stderr_total) = err_t.join().unwrap_or_default();
+    let violations = monitor.map(|m| m.finish()).unwrap_or_default();
+    if !violations.is_empty() {
+        console(&format!(
+            "arena-init: sandbox violations: {}",
+            arena_seccomp::describe(&violations)
+        ));
+    }
 
     let oom = read_kv(&format!("{JOB_CG}/memory.events"), "oom_kill")
         + read_kv(&format!("{JOB_CG}/memory.events"), "oom_group_kill");
@@ -890,6 +914,7 @@ fn run_candidate(
         stderr,
         stdout_total,
         stderr_total,
+        violations,
     })
 }
 
@@ -1079,6 +1104,7 @@ fn error_report(nonce: &str, error: String) -> GuestReport {
         stdout_total_bytes: 0,
         stderr_total_bytes: 0,
         steps: vec![],
+        violations: vec![],
     }
 }
 
@@ -1134,6 +1160,7 @@ fn lossy_cap(b: &[u8]) -> String {
 fn run_steps(job: &GuestJob) -> Result<(Vec<proto::StepReport>, RunResult), String> {
     let mut reports = Vec::new();
     let mut last = None;
+    let mut all_violations: Vec<arena_seccomp::Violation> = Vec::new();
     console(&format!("{} {}", proto::MARKER_START, job.nonce));
     let t0 = Instant::now();
     for (i, st) in job.steps.iter().enumerate() {
@@ -1200,7 +1227,10 @@ fn run_steps(job: &GuestJob) -> Result<(Vec<proto::StepReport>, RunResult), Stri
                 violations.push(format!("{c}: {e}"));
             }
         }
-        let ok = matches!(res.status, GuestStatus::Exited { code: 0 }) && violations.is_empty();
+        let ok = matches!(res.status, GuestStatus::Exited { code: 0 })
+            && violations.is_empty()
+            && res.violations.is_empty();
+        all_violations.extend(res.violations.iter().cloned());
         reports.push(proto::StepReport {
             status: res.status.clone(),
             guest_wall_ns: res.wall_ns,
@@ -1212,6 +1242,7 @@ fn run_steps(job: &GuestJob) -> Result<(Vec<proto::StepReport>, RunResult), Stri
             stdout_total_bytes: res.stdout_total,
             stderr_total_bytes: res.stderr_total,
             collect_violations: violations,
+            violations: res.violations.clone(),
         });
         last = Some(res);
         if !ok {
@@ -1222,6 +1253,7 @@ fn run_steps(job: &GuestJob) -> Result<(Vec<proto::StepReport>, RunResult), Stri
     console(&format!("{} {} steps-done", proto::MARKER_EXIT, job.nonce));
     let mut last = last.ok_or("no steps")?;
     last.wall_ns = wall;
+    last.violations = all_violations;
     Ok((reports, last))
 }
 
@@ -1271,6 +1303,7 @@ fn run() -> Result<(), String> {
         stdout_total_bytes: res.stdout_total,
         stderr_total_bytes: res.stderr_total,
         steps,
+        violations: res.violations,
     };
     write_out(Some(&job), &report, &res.stdout, &res.stderr)
 }

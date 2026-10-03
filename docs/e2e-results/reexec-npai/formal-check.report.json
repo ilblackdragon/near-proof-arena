@@ -1,0 +1,4858 @@
+{
+  "schema": "arena-formal-check-v1",
+  "cache_key": "sha256:c13e913b534ce476bbba25d66a5b82f84ed1241702e17878987739794bab0933",
+  "lean_toolchain": "leanprover/lean4:v4.34.1",
+  "runner": "bwrap-dev",
+  "tier_cap": "demo",
+  "gates": [
+    {
+      "gate": "FORMAL_SEMANTIC_SOUNDNESS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:d8a1f190c981bb084881bcdfe1ad1e641205f92808e313daff7f3854ab56c998",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:f67341a1ae4e12e152fa3e4ca56eb12e5fbcd8cdfc36762784849a606ebf4da1",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Basic",
+          "digest": "sha256:6c557668df4be6ff7e26fb09a56139d616a045cbb3e01c8645f94ee3a1ad78c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Sem",
+          "digest": "sha256:7a314380d8112000d29e12557fe3b64d4f4922e29128fa1db3137cf9ebe86bce",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Correct",
+          "digest": "sha256:5315c2b831ea3253be4db4c815e9f9d8a5f2e2b0ca45c6b30ac802d1cc0adaad",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Adequacy",
+          "digest": "sha256:b82590a2f1e9a81b08031f929c859f34978d6716d68c0a4c07c36a26569c1a31",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Asm",
+          "digest": "sha256:499902a526a80efd4c6c746ac6a549a798439b5db429e73f7563100662650fa3",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Encode",
+          "digest": "sha256:b2428a6382087415c144ff4db3628fc98430b24d46a8688290b3443ea3d0aaba",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Hoare",
+          "digest": "sha256:2e048399612822418d37b51ec2a857beb7a2bc067d9f7a68954e3d0440f6f632",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Exe",
+          "digest": "sha256:bc56a449907f7470b65c70efebb1436a075659a40e079f221c01deb8c9c0aad5",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Base",
+          "digest": "sha256:5092b6e2a98e05d49ef34115d77c4835e736868e7937c34cd3de638d125ae7db",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Loop",
+          "digest": "sha256:74587eb19365c73dd3383279c2a1fb472dd7df8fa93e475d2049b1f4fadd64e8",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Mem",
+          "digest": "sha256:739092f98e070b6506b74f51273e8a57cc48e18088353b5ed21e87680146a36e",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Num",
+          "digest": "sha256:213379a3225331aeabf47e48fb2757d5adc02b79245697e4fa3276324b4de156",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Word",
+          "digest": "sha256:c6897ddb60f80d5b07b94da5e972f455eaf0f9aec229ebb3a75e0413d6638440",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.WP",
+          "digest": "sha256:50762012a0333baf1f1d6a31d9e472276030a8f27e0fce6fcfd077fc766caf90",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.NumSpec",
+          "digest": "sha256:b2675b2abd7b5f4190c48a37c8d9c92b802cd4f56a6a18ee7d31459e56e94bd6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Codec",
+          "digest": "sha256:9167e01ae82571e6d5ebf34d6b8ee5a07cc8ff6165c33dac29feef19d9fe9334",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Canon",
+          "digest": "sha256:324795fb5d8b627575d11bcd5f68ee97e7066f67d590ad0e83a0234ba48b77a6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Layout",
+          "digest": "sha256:4c42a80caa4392ba126490683290f66c4d955b67b07c6b4fb779fc55da51700c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Common",
+          "digest": "sha256:8bd13c9ee3eba4872323c4298b8cbfbf846a1355fcffb49209b3ae6816649a01",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Front",
+          "digest": "sha256:9402455152ecd4cfc980dd328ca1768dd4f776d44eda783dd91bd7e9d2db8553",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Trie",
+          "digest": "sha256:b32946f016238da11ffcb6d8432948f0a047bb03e8e700ed188db93b0ffd5f5e",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Batch",
+          "digest": "sha256:8a0438d556570d047dba3b2438801e740268169a5382498424159d101e4366a9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Final",
+          "digest": "sha256:d787a517b504008ec0c99c7b2f2f80dc59fc2b24df2e0317da836658bdefd18b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Program",
+          "digest": "sha256:e68d6050ef8ca48e7a955565e615c317a5c1386def7ed127f051c319e9d86529",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Base",
+          "digest": "sha256:8ad87419df627cad69ced640a73a8c22b49cadb6567a841ac27167e0cfcf700a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Front",
+          "digest": "sha256:5a86d2540bcbfd3a24f40a0021764720c285180fa75403d552d3f5735cd6d0cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptPos",
+          "digest": "sha256:257d533eb0830f0c7fcf64c4373c220ece73ecd372c68ccd841236067fc615e2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Trie.Arena",
+          "digest": "sha256:5c8b82789b99a8164c2f4369ae13eaba633d1b6fcb01eb2344efce45fe42ffb8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Trie.Lemmas",
+          "digest": "sha256:bfc2e2aacd3cfc0bd4c618f5b99c2c603a07a9873ecacfaff1b28fb7ba054cb0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Roundtrip",
+          "digest": "sha256:301775bfd07efc21511d4d74893eb93bae71a42b90707d9e0c9f748d1f92924a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.State",
+          "digest": "sha256:a9f43647db376cd9085cd172291453159710a135d64c317ee117a7657b1db979",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.AccountId",
+          "digest": "sha256:007cc8834e804d877f595acd899fd2728f12126f68c38ba255ac7d5fc1aa18cb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux1",
+          "digest": "sha256:37226e3fbcb26ab7eb25103f1c19beebc3454376ba494eaeab7b0903b810e890",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux2",
+          "digest": "sha256:a14e938556e166d6c0113a0f52987a69d0fe1d3be39f446d16b38d7e18395683",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux3",
+          "digest": "sha256:5dea04e5d94a7cc7806e21d7b419eb36201009e67b47e5ccf4193b204d9b5ce5",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux4",
+          "digest": "sha256:17569fa27f31a229010da3ded143161e084424ad791d5f4e5bd2099512913454",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux5",
+          "digest": "sha256:73145dcc7670593c0df5c94858b2b66ba0f11bf221b9982c7f11d4f5b38ab76b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux6",
+          "digest": "sha256:117f482eddb492d72941d93c33af54c60072a75fbda1eca41b755d2a2ea35f69",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux7",
+          "digest": "sha256:3f3cccbd7ea93d628d46f33974a16bd891c90deced8d76b82dc4f318b6b97a6d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Receipts",
+          "digest": "sha256:2474d2372c37620d53582f88b3b2d885a879af3df1e9a24266b9c0ed52e8ab43",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseInv",
+          "digest": "sha256:1b7ab897404134ce08783696a7803d4e46a2c055b8d56907039845d887a0d392",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux0",
+          "digest": "sha256:cc617b7f95d5ac2fe5b7089d11fd0a30c94cc297572410b8f34286223299707f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux1",
+          "digest": "sha256:2f7e55ddaadc2b4c68797b3d7c89f83c6c8bcf5c63943ac2e50ea930d386ddea",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux2",
+          "digest": "sha256:23b9c55b42462332b7e6ee630b8524199f55af888020ca4126d3191660aa6c3c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux3",
+          "digest": "sha256:baa860f9e145e712416a8381879fe8f1b3dc4e9557a4ce874a35bd16286b5535",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux4",
+          "digest": "sha256:145a250a59a1a41952dff9b4954476808ae2f46481d4cdb2fac05dc64c0e3e18",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux6",
+          "digest": "sha256:2e290c8e921f5426279a54d646a0f276390918ead69e0048e95d2d22f277636c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux7",
+          "digest": "sha256:8d13a61525fe9b160ba75b76ab3eee6a1bc7689f9ac04f4bd42e72af22fc1743",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux5",
+          "digest": "sha256:cc8c77c5af83c522b7968df05c36973e6a115d8960907c8fd21619fa27abcd53",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux8",
+          "digest": "sha256:e346b33e075398ff61b99f15a55ea9063e134e04b19f14e89f7131a396812620",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux9",
+          "digest": "sha256:be7010cddd039570d58e560d7ddb4aa4d67b4faf4dc78f32b12e4d56e29a6339",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux11",
+          "digest": "sha256:2c199496308baab47f4ead16ac25a57c81e59efadcaaa4f6371ef2586d38bd60",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux12",
+          "digest": "sha256:84deb7316301f016ac471dd165e11e9ec3afbff3f8429b91cc059e400250dae2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux13",
+          "digest": "sha256:2b0214f7c0dfffea18ec7e44e5af3f8e3b96d241b1288a5edd2134a8b4925490",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux10",
+          "digest": "sha256:b670b9caaed4d64e9c1f17c335cc2263aaeb3549dd907a5196f111138e506cee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux14",
+          "digest": "sha256:ad477343f69982e757ea2a69354f6b0d3c57b0e93c1f66dbcbcef1f909bded32",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux15",
+          "digest": "sha256:208f7a4eb3afa950a2612e865af64cd7871acdd4f9e0c239a3b559d4659ab3d2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux16",
+          "digest": "sha256:5b7905029808f6d566445276964e69407a3002eb44ae2fd3aa1357f418971f69",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux17",
+          "digest": "sha256:6c9f2e8f3fc1dd92cfb06e2ee42eb31a2fef75ea3a372f9d99f08658e76de948",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux18",
+          "digest": "sha256:324dcda3f734055cc7afda8e7198a0114a5c8b8657c174e46d32c8da31229d0f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux19",
+          "digest": "sha256:f2361c61f0523a9a4bc5bc389fbe31f793cc1e20a253142a82688cd0b9c9c903",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux20",
+          "digest": "sha256:0a8ee0e487e4ef23d624774bde49df9f68263e0926d3409a426ff64441b117c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux21",
+          "digest": "sha256:3cecb55fc0171d4b909196edaf4626690a447c66ef24c4068cab1d1002519dab",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux22",
+          "digest": "sha256:6a8b1b825898b1a86d3d9527c09d3427271bd7acc0a58f32180d43d23fa06413",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux23",
+          "digest": "sha256:0047463eb7d18c09b6596f6597d75ac4226a8593b046e2e586fb82aca8864159",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux24",
+          "digest": "sha256:cd25f48cb6d1e7852a28c3b967c1966919a7765490f4e184c92b0a6a1b77136a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux25",
+          "digest": "sha256:91b442cc81dc94ab446fb849c67dff50874c5cbedaca0ffd4e710027fbbd9a9b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux26",
+          "digest": "sha256:2f7d945f4bf5040c6d734607650fa7755f9b3596af72cfd324b2ceb818e76fa2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux27",
+          "digest": "sha256:8af265701a9bf652b5ee66d3374abdd8817c3342b3afedcdbbf4fd4cf152f64c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux28",
+          "digest": "sha256:04b6a91730fa336068cf2c51e94be595dff1c7868a85b91a1bf9a7269f0a5c5f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux29",
+          "digest": "sha256:fe397fce23a89cb2bb4c7b88a93a96c73ba01bfb72fff2f52d78950127e335e9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux30",
+          "digest": "sha256:0218b62e01592ab1a17c15d2606a2c686b254a0c3f95b51f0cbad47bc917ec76",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux31",
+          "digest": "sha256:397b2528ae299e69c5a1b9cdfb2884ce50e2deaf0b4671ec04f991e166d256c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux32",
+          "digest": "sha256:bca50cd604d29f1ab4eb85196d034eaa60a879e9d1244335d7af30220e1d27f9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Record",
+          "digest": "sha256:050245a4f9a7e4b6e089342776dd21aa99a2c106a208f2f585cbf370346cd621",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux1",
+          "digest": "sha256:99d80cce120fb81f950373fe4539cd6f38f522adf3ce3b4bee904190ee586893",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux2",
+          "digest": "sha256:1b74c71cf70626eb029fae72d281f7a505579cc2e467cc4a72125fc8794303ab",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux3",
+          "digest": "sha256:29be32912ab85d0b4fe770162e832c0fa166d3e88f27c18a7b564bf5fe1c7e10",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux4",
+          "digest": "sha256:8ba01e82007f78ec8f5f30373d9fbff3ac65e95bdaedd900cd2de9f44597f941",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux5",
+          "digest": "sha256:47a04df13d099ef70e414f54b076a56e3a5c332f1ab4e85a38f27870d8e92a24",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Parse",
+          "digest": "sha256:624f3d1182e593a5e7119a62aa78f063162ecb6bae2269f058c4a9c51150f036",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.HashAux",
+          "digest": "sha256:90ef5b7499bb8a8dcd2a9ff04852281928d5ab66f7daa80a62941cf14eaf96f7",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Hash",
+          "digest": "sha256:1c8b240cc08862bc77e4a3eb8f0be1e5d274ca9d2f80f7077580fe74cdca0ce8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux1",
+          "digest": "sha256:a01555ca6d5b69f733b9a43d3c9d3cb2e09d7e27983d2894b9564784730358c3",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux2",
+          "digest": "sha256:0073d658c2c425febef578af4923a6e13e7154d2520e793529398b05725c5ed6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux3",
+          "digest": "sha256:95317bf86c9470f8b06cb281476ec611fcda53272c0f707a2ae8602a220a9ebf",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux",
+          "digest": "sha256:655ceadbfa0f92eacb1e9e112a71b94d82aaeb853b9f5d515535cc16eb5c7a82",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux2",
+          "digest": "sha256:604c82e9915c321f49d9c92d1b7ac0053f037ee2862b2c8e512cc25fb0e0bd2b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux3",
+          "digest": "sha256:d002f6f78a0fcb37551d6f59c30c1a28b89324fc8a634682c286537d88aba87d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux4",
+          "digest": "sha256:9b44b8396698dcc9e3108014982f49b72a0d0eae5b236d237a0226a82a4ed2a4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Walk",
+          "digest": "sha256:c3edacad4273ce8fe2109e6907b802792c91115cd190739398a707e877e44201",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux4",
+          "digest": "sha256:94b24491e7c387bde45215494e73e3d2a654c87c93728004638f1d958e4c0e9b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Batch",
+          "digest": "sha256:452589108325bdebed156487d34ad55f297f554f78f9a1ab4677cbffaef152fb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.FinalAux",
+          "digest": "sha256:4f5d6b5cf930517466f95ee2398e3972200d2ee688ac53ec8a11751611742a9c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Final",
+          "digest": "sha256:b2f9d184e4ad414e8702379061898466903e5ca506176ea05d3c9af096dee688",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Model",
+          "digest": "sha256:aa63cec1945eee9c2b629081407748fc205b0fdabc4287eac378f61c14ab33d0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Main",
+          "digest": "sha256:b293dcd935b9e2233e728a2a8cd33103673bdd539402c6d90b3307198556e70f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Obligations",
+          "digest": "sha256:31f6ccde2d61b03e4e1e8d5222b487b4b0c1e3e55ccc29fc65cbd089a064c81f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.PublicBin",
+          "digest": "sha256:0c9d496cb5c11db3667cab1d462766a15734457ec96261c13f6519e4000b7119",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.CodeDigest",
+          "digest": "sha256:2e4862d5d29a9504f597ff265e3ffe65a289e4ff3bab966983715b79a0ea7395",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Certificate",
+          "digest": "sha256:0aaec6983fda410b6ce0259b1a7ee32098ce2a37b7ce0b76a06e5e2de9cf1496",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:46c90c1a8c970e4d2078d0f0f24f90fe205236a07b466f66b8d8759d925e16d1",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:1e12604df67cb53d58aebaeec6261e91b6d228f0a093006f4b3ea076d8a4f3a3",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:74f8f06697328d30aa8b5d0d03abf92fe2e5e802a8cb2409620457edbd616378",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T12:52:27.598659969Z",
+      "finished_at": "2026-10-03T13:08:12.484649501Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_SEMANTIC_COMPLETENESS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:d8a1f190c981bb084881bcdfe1ad1e641205f92808e313daff7f3854ab56c998",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:f67341a1ae4e12e152fa3e4ca56eb12e5fbcd8cdfc36762784849a606ebf4da1",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Basic",
+          "digest": "sha256:6c557668df4be6ff7e26fb09a56139d616a045cbb3e01c8645f94ee3a1ad78c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Sem",
+          "digest": "sha256:7a314380d8112000d29e12557fe3b64d4f4922e29128fa1db3137cf9ebe86bce",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Correct",
+          "digest": "sha256:5315c2b831ea3253be4db4c815e9f9d8a5f2e2b0ca45c6b30ac802d1cc0adaad",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Adequacy",
+          "digest": "sha256:b82590a2f1e9a81b08031f929c859f34978d6716d68c0a4c07c36a26569c1a31",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Asm",
+          "digest": "sha256:499902a526a80efd4c6c746ac6a549a798439b5db429e73f7563100662650fa3",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Encode",
+          "digest": "sha256:b2428a6382087415c144ff4db3628fc98430b24d46a8688290b3443ea3d0aaba",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Hoare",
+          "digest": "sha256:2e048399612822418d37b51ec2a857beb7a2bc067d9f7a68954e3d0440f6f632",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Exe",
+          "digest": "sha256:bc56a449907f7470b65c70efebb1436a075659a40e079f221c01deb8c9c0aad5",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Base",
+          "digest": "sha256:5092b6e2a98e05d49ef34115d77c4835e736868e7937c34cd3de638d125ae7db",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Loop",
+          "digest": "sha256:74587eb19365c73dd3383279c2a1fb472dd7df8fa93e475d2049b1f4fadd64e8",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Mem",
+          "digest": "sha256:739092f98e070b6506b74f51273e8a57cc48e18088353b5ed21e87680146a36e",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Num",
+          "digest": "sha256:213379a3225331aeabf47e48fb2757d5adc02b79245697e4fa3276324b4de156",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Word",
+          "digest": "sha256:c6897ddb60f80d5b07b94da5e972f455eaf0f9aec229ebb3a75e0413d6638440",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.WP",
+          "digest": "sha256:50762012a0333baf1f1d6a31d9e472276030a8f27e0fce6fcfd077fc766caf90",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.NumSpec",
+          "digest": "sha256:b2675b2abd7b5f4190c48a37c8d9c92b802cd4f56a6a18ee7d31459e56e94bd6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Codec",
+          "digest": "sha256:9167e01ae82571e6d5ebf34d6b8ee5a07cc8ff6165c33dac29feef19d9fe9334",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Canon",
+          "digest": "sha256:324795fb5d8b627575d11bcd5f68ee97e7066f67d590ad0e83a0234ba48b77a6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Layout",
+          "digest": "sha256:4c42a80caa4392ba126490683290f66c4d955b67b07c6b4fb779fc55da51700c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Common",
+          "digest": "sha256:8bd13c9ee3eba4872323c4298b8cbfbf846a1355fcffb49209b3ae6816649a01",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Front",
+          "digest": "sha256:9402455152ecd4cfc980dd328ca1768dd4f776d44eda783dd91bd7e9d2db8553",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Trie",
+          "digest": "sha256:b32946f016238da11ffcb6d8432948f0a047bb03e8e700ed188db93b0ffd5f5e",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Batch",
+          "digest": "sha256:8a0438d556570d047dba3b2438801e740268169a5382498424159d101e4366a9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Final",
+          "digest": "sha256:d787a517b504008ec0c99c7b2f2f80dc59fc2b24df2e0317da836658bdefd18b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Program",
+          "digest": "sha256:e68d6050ef8ca48e7a955565e615c317a5c1386def7ed127f051c319e9d86529",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Base",
+          "digest": "sha256:8ad87419df627cad69ced640a73a8c22b49cadb6567a841ac27167e0cfcf700a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Front",
+          "digest": "sha256:5a86d2540bcbfd3a24f40a0021764720c285180fa75403d552d3f5735cd6d0cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptPos",
+          "digest": "sha256:257d533eb0830f0c7fcf64c4373c220ece73ecd372c68ccd841236067fc615e2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Trie.Arena",
+          "digest": "sha256:5c8b82789b99a8164c2f4369ae13eaba633d1b6fcb01eb2344efce45fe42ffb8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Trie.Lemmas",
+          "digest": "sha256:bfc2e2aacd3cfc0bd4c618f5b99c2c603a07a9873ecacfaff1b28fb7ba054cb0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Roundtrip",
+          "digest": "sha256:301775bfd07efc21511d4d74893eb93bae71a42b90707d9e0c9f748d1f92924a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.State",
+          "digest": "sha256:a9f43647db376cd9085cd172291453159710a135d64c317ee117a7657b1db979",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.AccountId",
+          "digest": "sha256:007cc8834e804d877f595acd899fd2728f12126f68c38ba255ac7d5fc1aa18cb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux1",
+          "digest": "sha256:37226e3fbcb26ab7eb25103f1c19beebc3454376ba494eaeab7b0903b810e890",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux2",
+          "digest": "sha256:a14e938556e166d6c0113a0f52987a69d0fe1d3be39f446d16b38d7e18395683",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux3",
+          "digest": "sha256:5dea04e5d94a7cc7806e21d7b419eb36201009e67b47e5ccf4193b204d9b5ce5",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux4",
+          "digest": "sha256:17569fa27f31a229010da3ded143161e084424ad791d5f4e5bd2099512913454",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux5",
+          "digest": "sha256:73145dcc7670593c0df5c94858b2b66ba0f11bf221b9982c7f11d4f5b38ab76b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux6",
+          "digest": "sha256:117f482eddb492d72941d93c33af54c60072a75fbda1eca41b755d2a2ea35f69",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux7",
+          "digest": "sha256:3f3cccbd7ea93d628d46f33974a16bd891c90deced8d76b82dc4f318b6b97a6d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Receipts",
+          "digest": "sha256:2474d2372c37620d53582f88b3b2d885a879af3df1e9a24266b9c0ed52e8ab43",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseInv",
+          "digest": "sha256:1b7ab897404134ce08783696a7803d4e46a2c055b8d56907039845d887a0d392",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux0",
+          "digest": "sha256:cc617b7f95d5ac2fe5b7089d11fd0a30c94cc297572410b8f34286223299707f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux1",
+          "digest": "sha256:2f7e55ddaadc2b4c68797b3d7c89f83c6c8bcf5c63943ac2e50ea930d386ddea",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux2",
+          "digest": "sha256:23b9c55b42462332b7e6ee630b8524199f55af888020ca4126d3191660aa6c3c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux3",
+          "digest": "sha256:baa860f9e145e712416a8381879fe8f1b3dc4e9557a4ce874a35bd16286b5535",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux4",
+          "digest": "sha256:145a250a59a1a41952dff9b4954476808ae2f46481d4cdb2fac05dc64c0e3e18",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux6",
+          "digest": "sha256:2e290c8e921f5426279a54d646a0f276390918ead69e0048e95d2d22f277636c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux7",
+          "digest": "sha256:8d13a61525fe9b160ba75b76ab3eee6a1bc7689f9ac04f4bd42e72af22fc1743",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux5",
+          "digest": "sha256:cc8c77c5af83c522b7968df05c36973e6a115d8960907c8fd21619fa27abcd53",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux8",
+          "digest": "sha256:e346b33e075398ff61b99f15a55ea9063e134e04b19f14e89f7131a396812620",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux9",
+          "digest": "sha256:be7010cddd039570d58e560d7ddb4aa4d67b4faf4dc78f32b12e4d56e29a6339",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux11",
+          "digest": "sha256:2c199496308baab47f4ead16ac25a57c81e59efadcaaa4f6371ef2586d38bd60",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux12",
+          "digest": "sha256:84deb7316301f016ac471dd165e11e9ec3afbff3f8429b91cc059e400250dae2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux13",
+          "digest": "sha256:2b0214f7c0dfffea18ec7e44e5af3f8e3b96d241b1288a5edd2134a8b4925490",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux10",
+          "digest": "sha256:b670b9caaed4d64e9c1f17c335cc2263aaeb3549dd907a5196f111138e506cee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux14",
+          "digest": "sha256:ad477343f69982e757ea2a69354f6b0d3c57b0e93c1f66dbcbcef1f909bded32",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux15",
+          "digest": "sha256:208f7a4eb3afa950a2612e865af64cd7871acdd4f9e0c239a3b559d4659ab3d2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux16",
+          "digest": "sha256:5b7905029808f6d566445276964e69407a3002eb44ae2fd3aa1357f418971f69",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux17",
+          "digest": "sha256:6c9f2e8f3fc1dd92cfb06e2ee42eb31a2fef75ea3a372f9d99f08658e76de948",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux18",
+          "digest": "sha256:324dcda3f734055cc7afda8e7198a0114a5c8b8657c174e46d32c8da31229d0f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux19",
+          "digest": "sha256:f2361c61f0523a9a4bc5bc389fbe31f793cc1e20a253142a82688cd0b9c9c903",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux20",
+          "digest": "sha256:0a8ee0e487e4ef23d624774bde49df9f68263e0926d3409a426ff64441b117c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux21",
+          "digest": "sha256:3cecb55fc0171d4b909196edaf4626690a447c66ef24c4068cab1d1002519dab",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux22",
+          "digest": "sha256:6a8b1b825898b1a86d3d9527c09d3427271bd7acc0a58f32180d43d23fa06413",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux23",
+          "digest": "sha256:0047463eb7d18c09b6596f6597d75ac4226a8593b046e2e586fb82aca8864159",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux24",
+          "digest": "sha256:cd25f48cb6d1e7852a28c3b967c1966919a7765490f4e184c92b0a6a1b77136a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux25",
+          "digest": "sha256:91b442cc81dc94ab446fb849c67dff50874c5cbedaca0ffd4e710027fbbd9a9b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux26",
+          "digest": "sha256:2f7d945f4bf5040c6d734607650fa7755f9b3596af72cfd324b2ceb818e76fa2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux27",
+          "digest": "sha256:8af265701a9bf652b5ee66d3374abdd8817c3342b3afedcdbbf4fd4cf152f64c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux28",
+          "digest": "sha256:04b6a91730fa336068cf2c51e94be595dff1c7868a85b91a1bf9a7269f0a5c5f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux29",
+          "digest": "sha256:fe397fce23a89cb2bb4c7b88a93a96c73ba01bfb72fff2f52d78950127e335e9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux30",
+          "digest": "sha256:0218b62e01592ab1a17c15d2606a2c686b254a0c3f95b51f0cbad47bc917ec76",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux31",
+          "digest": "sha256:397b2528ae299e69c5a1b9cdfb2884ce50e2deaf0b4671ec04f991e166d256c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux32",
+          "digest": "sha256:bca50cd604d29f1ab4eb85196d034eaa60a879e9d1244335d7af30220e1d27f9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Record",
+          "digest": "sha256:050245a4f9a7e4b6e089342776dd21aa99a2c106a208f2f585cbf370346cd621",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux1",
+          "digest": "sha256:99d80cce120fb81f950373fe4539cd6f38f522adf3ce3b4bee904190ee586893",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux2",
+          "digest": "sha256:1b74c71cf70626eb029fae72d281f7a505579cc2e467cc4a72125fc8794303ab",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux3",
+          "digest": "sha256:29be32912ab85d0b4fe770162e832c0fa166d3e88f27c18a7b564bf5fe1c7e10",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux4",
+          "digest": "sha256:8ba01e82007f78ec8f5f30373d9fbff3ac65e95bdaedd900cd2de9f44597f941",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux5",
+          "digest": "sha256:47a04df13d099ef70e414f54b076a56e3a5c332f1ab4e85a38f27870d8e92a24",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Parse",
+          "digest": "sha256:624f3d1182e593a5e7119a62aa78f063162ecb6bae2269f058c4a9c51150f036",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.HashAux",
+          "digest": "sha256:90ef5b7499bb8a8dcd2a9ff04852281928d5ab66f7daa80a62941cf14eaf96f7",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Hash",
+          "digest": "sha256:1c8b240cc08862bc77e4a3eb8f0be1e5d274ca9d2f80f7077580fe74cdca0ce8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux1",
+          "digest": "sha256:a01555ca6d5b69f733b9a43d3c9d3cb2e09d7e27983d2894b9564784730358c3",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux2",
+          "digest": "sha256:0073d658c2c425febef578af4923a6e13e7154d2520e793529398b05725c5ed6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux3",
+          "digest": "sha256:95317bf86c9470f8b06cb281476ec611fcda53272c0f707a2ae8602a220a9ebf",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux",
+          "digest": "sha256:655ceadbfa0f92eacb1e9e112a71b94d82aaeb853b9f5d515535cc16eb5c7a82",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux2",
+          "digest": "sha256:604c82e9915c321f49d9c92d1b7ac0053f037ee2862b2c8e512cc25fb0e0bd2b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux3",
+          "digest": "sha256:d002f6f78a0fcb37551d6f59c30c1a28b89324fc8a634682c286537d88aba87d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux4",
+          "digest": "sha256:9b44b8396698dcc9e3108014982f49b72a0d0eae5b236d237a0226a82a4ed2a4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Walk",
+          "digest": "sha256:c3edacad4273ce8fe2109e6907b802792c91115cd190739398a707e877e44201",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux4",
+          "digest": "sha256:94b24491e7c387bde45215494e73e3d2a654c87c93728004638f1d958e4c0e9b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Batch",
+          "digest": "sha256:452589108325bdebed156487d34ad55f297f554f78f9a1ab4677cbffaef152fb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.FinalAux",
+          "digest": "sha256:4f5d6b5cf930517466f95ee2398e3972200d2ee688ac53ec8a11751611742a9c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Final",
+          "digest": "sha256:b2f9d184e4ad414e8702379061898466903e5ca506176ea05d3c9af096dee688",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Model",
+          "digest": "sha256:aa63cec1945eee9c2b629081407748fc205b0fdabc4287eac378f61c14ab33d0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Main",
+          "digest": "sha256:b293dcd935b9e2233e728a2a8cd33103673bdd539402c6d90b3307198556e70f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Obligations",
+          "digest": "sha256:31f6ccde2d61b03e4e1e8d5222b487b4b0c1e3e55ccc29fc65cbd089a064c81f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.PublicBin",
+          "digest": "sha256:0c9d496cb5c11db3667cab1d462766a15734457ec96261c13f6519e4000b7119",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.CodeDigest",
+          "digest": "sha256:2e4862d5d29a9504f597ff265e3ffe65a289e4ff3bab966983715b79a0ea7395",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Certificate",
+          "digest": "sha256:0aaec6983fda410b6ce0259b1a7ee32098ce2a37b7ce0b76a06e5e2de9cf1496",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:46c90c1a8c970e4d2078d0f0f24f90fe205236a07b466f66b8d8759d925e16d1",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:1e12604df67cb53d58aebaeec6261e91b6d228f0a093006f4b3ea076d8a4f3a3",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:74f8f06697328d30aa8b5d0d03abf92fe2e5e802a8cb2409620457edbd616378",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T12:52:27.598659969Z",
+      "finished_at": "2026-10-03T13:08:12.484649501Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_CRYPTO_SOUNDNESS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:d8a1f190c981bb084881bcdfe1ad1e641205f92808e313daff7f3854ab56c998",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:f67341a1ae4e12e152fa3e4ca56eb12e5fbcd8cdfc36762784849a606ebf4da1",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Basic",
+          "digest": "sha256:6c557668df4be6ff7e26fb09a56139d616a045cbb3e01c8645f94ee3a1ad78c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Sem",
+          "digest": "sha256:7a314380d8112000d29e12557fe3b64d4f4922e29128fa1db3137cf9ebe86bce",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Correct",
+          "digest": "sha256:5315c2b831ea3253be4db4c815e9f9d8a5f2e2b0ca45c6b30ac802d1cc0adaad",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Adequacy",
+          "digest": "sha256:b82590a2f1e9a81b08031f929c859f34978d6716d68c0a4c07c36a26569c1a31",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Asm",
+          "digest": "sha256:499902a526a80efd4c6c746ac6a549a798439b5db429e73f7563100662650fa3",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Encode",
+          "digest": "sha256:b2428a6382087415c144ff4db3628fc98430b24d46a8688290b3443ea3d0aaba",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Hoare",
+          "digest": "sha256:2e048399612822418d37b51ec2a857beb7a2bc067d9f7a68954e3d0440f6f632",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Exe",
+          "digest": "sha256:bc56a449907f7470b65c70efebb1436a075659a40e079f221c01deb8c9c0aad5",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Base",
+          "digest": "sha256:5092b6e2a98e05d49ef34115d77c4835e736868e7937c34cd3de638d125ae7db",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Loop",
+          "digest": "sha256:74587eb19365c73dd3383279c2a1fb472dd7df8fa93e475d2049b1f4fadd64e8",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Mem",
+          "digest": "sha256:739092f98e070b6506b74f51273e8a57cc48e18088353b5ed21e87680146a36e",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Num",
+          "digest": "sha256:213379a3225331aeabf47e48fb2757d5adc02b79245697e4fa3276324b4de156",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Word",
+          "digest": "sha256:c6897ddb60f80d5b07b94da5e972f455eaf0f9aec229ebb3a75e0413d6638440",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.WP",
+          "digest": "sha256:50762012a0333baf1f1d6a31d9e472276030a8f27e0fce6fcfd077fc766caf90",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.NumSpec",
+          "digest": "sha256:b2675b2abd7b5f4190c48a37c8d9c92b802cd4f56a6a18ee7d31459e56e94bd6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Codec",
+          "digest": "sha256:9167e01ae82571e6d5ebf34d6b8ee5a07cc8ff6165c33dac29feef19d9fe9334",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Canon",
+          "digest": "sha256:324795fb5d8b627575d11bcd5f68ee97e7066f67d590ad0e83a0234ba48b77a6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Layout",
+          "digest": "sha256:4c42a80caa4392ba126490683290f66c4d955b67b07c6b4fb779fc55da51700c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Common",
+          "digest": "sha256:8bd13c9ee3eba4872323c4298b8cbfbf846a1355fcffb49209b3ae6816649a01",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Front",
+          "digest": "sha256:9402455152ecd4cfc980dd328ca1768dd4f776d44eda783dd91bd7e9d2db8553",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Trie",
+          "digest": "sha256:b32946f016238da11ffcb6d8432948f0a047bb03e8e700ed188db93b0ffd5f5e",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Batch",
+          "digest": "sha256:8a0438d556570d047dba3b2438801e740268169a5382498424159d101e4366a9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Final",
+          "digest": "sha256:d787a517b504008ec0c99c7b2f2f80dc59fc2b24df2e0317da836658bdefd18b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Program",
+          "digest": "sha256:e68d6050ef8ca48e7a955565e615c317a5c1386def7ed127f051c319e9d86529",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Base",
+          "digest": "sha256:8ad87419df627cad69ced640a73a8c22b49cadb6567a841ac27167e0cfcf700a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Front",
+          "digest": "sha256:5a86d2540bcbfd3a24f40a0021764720c285180fa75403d552d3f5735cd6d0cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptPos",
+          "digest": "sha256:257d533eb0830f0c7fcf64c4373c220ece73ecd372c68ccd841236067fc615e2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Trie.Arena",
+          "digest": "sha256:5c8b82789b99a8164c2f4369ae13eaba633d1b6fcb01eb2344efce45fe42ffb8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Trie.Lemmas",
+          "digest": "sha256:bfc2e2aacd3cfc0bd4c618f5b99c2c603a07a9873ecacfaff1b28fb7ba054cb0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Roundtrip",
+          "digest": "sha256:301775bfd07efc21511d4d74893eb93bae71a42b90707d9e0c9f748d1f92924a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.State",
+          "digest": "sha256:a9f43647db376cd9085cd172291453159710a135d64c317ee117a7657b1db979",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.AccountId",
+          "digest": "sha256:007cc8834e804d877f595acd899fd2728f12126f68c38ba255ac7d5fc1aa18cb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux1",
+          "digest": "sha256:37226e3fbcb26ab7eb25103f1c19beebc3454376ba494eaeab7b0903b810e890",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux2",
+          "digest": "sha256:a14e938556e166d6c0113a0f52987a69d0fe1d3be39f446d16b38d7e18395683",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux3",
+          "digest": "sha256:5dea04e5d94a7cc7806e21d7b419eb36201009e67b47e5ccf4193b204d9b5ce5",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux4",
+          "digest": "sha256:17569fa27f31a229010da3ded143161e084424ad791d5f4e5bd2099512913454",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux5",
+          "digest": "sha256:73145dcc7670593c0df5c94858b2b66ba0f11bf221b9982c7f11d4f5b38ab76b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux6",
+          "digest": "sha256:117f482eddb492d72941d93c33af54c60072a75fbda1eca41b755d2a2ea35f69",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux7",
+          "digest": "sha256:3f3cccbd7ea93d628d46f33974a16bd891c90deced8d76b82dc4f318b6b97a6d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Receipts",
+          "digest": "sha256:2474d2372c37620d53582f88b3b2d885a879af3df1e9a24266b9c0ed52e8ab43",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseInv",
+          "digest": "sha256:1b7ab897404134ce08783696a7803d4e46a2c055b8d56907039845d887a0d392",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux0",
+          "digest": "sha256:cc617b7f95d5ac2fe5b7089d11fd0a30c94cc297572410b8f34286223299707f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux1",
+          "digest": "sha256:2f7e55ddaadc2b4c68797b3d7c89f83c6c8bcf5c63943ac2e50ea930d386ddea",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux2",
+          "digest": "sha256:23b9c55b42462332b7e6ee630b8524199f55af888020ca4126d3191660aa6c3c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux3",
+          "digest": "sha256:baa860f9e145e712416a8381879fe8f1b3dc4e9557a4ce874a35bd16286b5535",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux4",
+          "digest": "sha256:145a250a59a1a41952dff9b4954476808ae2f46481d4cdb2fac05dc64c0e3e18",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux6",
+          "digest": "sha256:2e290c8e921f5426279a54d646a0f276390918ead69e0048e95d2d22f277636c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux7",
+          "digest": "sha256:8d13a61525fe9b160ba75b76ab3eee6a1bc7689f9ac04f4bd42e72af22fc1743",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux5",
+          "digest": "sha256:cc8c77c5af83c522b7968df05c36973e6a115d8960907c8fd21619fa27abcd53",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux8",
+          "digest": "sha256:e346b33e075398ff61b99f15a55ea9063e134e04b19f14e89f7131a396812620",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux9",
+          "digest": "sha256:be7010cddd039570d58e560d7ddb4aa4d67b4faf4dc78f32b12e4d56e29a6339",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux11",
+          "digest": "sha256:2c199496308baab47f4ead16ac25a57c81e59efadcaaa4f6371ef2586d38bd60",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux12",
+          "digest": "sha256:84deb7316301f016ac471dd165e11e9ec3afbff3f8429b91cc059e400250dae2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux13",
+          "digest": "sha256:2b0214f7c0dfffea18ec7e44e5af3f8e3b96d241b1288a5edd2134a8b4925490",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux10",
+          "digest": "sha256:b670b9caaed4d64e9c1f17c335cc2263aaeb3549dd907a5196f111138e506cee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux14",
+          "digest": "sha256:ad477343f69982e757ea2a69354f6b0d3c57b0e93c1f66dbcbcef1f909bded32",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux15",
+          "digest": "sha256:208f7a4eb3afa950a2612e865af64cd7871acdd4f9e0c239a3b559d4659ab3d2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux16",
+          "digest": "sha256:5b7905029808f6d566445276964e69407a3002eb44ae2fd3aa1357f418971f69",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux17",
+          "digest": "sha256:6c9f2e8f3fc1dd92cfb06e2ee42eb31a2fef75ea3a372f9d99f08658e76de948",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux18",
+          "digest": "sha256:324dcda3f734055cc7afda8e7198a0114a5c8b8657c174e46d32c8da31229d0f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux19",
+          "digest": "sha256:f2361c61f0523a9a4bc5bc389fbe31f793cc1e20a253142a82688cd0b9c9c903",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux20",
+          "digest": "sha256:0a8ee0e487e4ef23d624774bde49df9f68263e0926d3409a426ff64441b117c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux21",
+          "digest": "sha256:3cecb55fc0171d4b909196edaf4626690a447c66ef24c4068cab1d1002519dab",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux22",
+          "digest": "sha256:6a8b1b825898b1a86d3d9527c09d3427271bd7acc0a58f32180d43d23fa06413",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux23",
+          "digest": "sha256:0047463eb7d18c09b6596f6597d75ac4226a8593b046e2e586fb82aca8864159",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux24",
+          "digest": "sha256:cd25f48cb6d1e7852a28c3b967c1966919a7765490f4e184c92b0a6a1b77136a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux25",
+          "digest": "sha256:91b442cc81dc94ab446fb849c67dff50874c5cbedaca0ffd4e710027fbbd9a9b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux26",
+          "digest": "sha256:2f7d945f4bf5040c6d734607650fa7755f9b3596af72cfd324b2ceb818e76fa2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux27",
+          "digest": "sha256:8af265701a9bf652b5ee66d3374abdd8817c3342b3afedcdbbf4fd4cf152f64c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux28",
+          "digest": "sha256:04b6a91730fa336068cf2c51e94be595dff1c7868a85b91a1bf9a7269f0a5c5f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux29",
+          "digest": "sha256:fe397fce23a89cb2bb4c7b88a93a96c73ba01bfb72fff2f52d78950127e335e9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux30",
+          "digest": "sha256:0218b62e01592ab1a17c15d2606a2c686b254a0c3f95b51f0cbad47bc917ec76",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux31",
+          "digest": "sha256:397b2528ae299e69c5a1b9cdfb2884ce50e2deaf0b4671ec04f991e166d256c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux32",
+          "digest": "sha256:bca50cd604d29f1ab4eb85196d034eaa60a879e9d1244335d7af30220e1d27f9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Record",
+          "digest": "sha256:050245a4f9a7e4b6e089342776dd21aa99a2c106a208f2f585cbf370346cd621",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux1",
+          "digest": "sha256:99d80cce120fb81f950373fe4539cd6f38f522adf3ce3b4bee904190ee586893",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux2",
+          "digest": "sha256:1b74c71cf70626eb029fae72d281f7a505579cc2e467cc4a72125fc8794303ab",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux3",
+          "digest": "sha256:29be32912ab85d0b4fe770162e832c0fa166d3e88f27c18a7b564bf5fe1c7e10",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux4",
+          "digest": "sha256:8ba01e82007f78ec8f5f30373d9fbff3ac65e95bdaedd900cd2de9f44597f941",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux5",
+          "digest": "sha256:47a04df13d099ef70e414f54b076a56e3a5c332f1ab4e85a38f27870d8e92a24",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Parse",
+          "digest": "sha256:624f3d1182e593a5e7119a62aa78f063162ecb6bae2269f058c4a9c51150f036",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.HashAux",
+          "digest": "sha256:90ef5b7499bb8a8dcd2a9ff04852281928d5ab66f7daa80a62941cf14eaf96f7",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Hash",
+          "digest": "sha256:1c8b240cc08862bc77e4a3eb8f0be1e5d274ca9d2f80f7077580fe74cdca0ce8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux1",
+          "digest": "sha256:a01555ca6d5b69f733b9a43d3c9d3cb2e09d7e27983d2894b9564784730358c3",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux2",
+          "digest": "sha256:0073d658c2c425febef578af4923a6e13e7154d2520e793529398b05725c5ed6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux3",
+          "digest": "sha256:95317bf86c9470f8b06cb281476ec611fcda53272c0f707a2ae8602a220a9ebf",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux",
+          "digest": "sha256:655ceadbfa0f92eacb1e9e112a71b94d82aaeb853b9f5d515535cc16eb5c7a82",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux2",
+          "digest": "sha256:604c82e9915c321f49d9c92d1b7ac0053f037ee2862b2c8e512cc25fb0e0bd2b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux3",
+          "digest": "sha256:d002f6f78a0fcb37551d6f59c30c1a28b89324fc8a634682c286537d88aba87d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux4",
+          "digest": "sha256:9b44b8396698dcc9e3108014982f49b72a0d0eae5b236d237a0226a82a4ed2a4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Walk",
+          "digest": "sha256:c3edacad4273ce8fe2109e6907b802792c91115cd190739398a707e877e44201",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux4",
+          "digest": "sha256:94b24491e7c387bde45215494e73e3d2a654c87c93728004638f1d958e4c0e9b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Batch",
+          "digest": "sha256:452589108325bdebed156487d34ad55f297f554f78f9a1ab4677cbffaef152fb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.FinalAux",
+          "digest": "sha256:4f5d6b5cf930517466f95ee2398e3972200d2ee688ac53ec8a11751611742a9c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Final",
+          "digest": "sha256:b2f9d184e4ad414e8702379061898466903e5ca506176ea05d3c9af096dee688",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Model",
+          "digest": "sha256:aa63cec1945eee9c2b629081407748fc205b0fdabc4287eac378f61c14ab33d0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Main",
+          "digest": "sha256:b293dcd935b9e2233e728a2a8cd33103673bdd539402c6d90b3307198556e70f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Obligations",
+          "digest": "sha256:31f6ccde2d61b03e4e1e8d5222b487b4b0c1e3e55ccc29fc65cbd089a064c81f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.PublicBin",
+          "digest": "sha256:0c9d496cb5c11db3667cab1d462766a15734457ec96261c13f6519e4000b7119",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.CodeDigest",
+          "digest": "sha256:2e4862d5d29a9504f597ff265e3ffe65a289e4ff3bab966983715b79a0ea7395",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Certificate",
+          "digest": "sha256:0aaec6983fda410b6ce0259b1a7ee32098ce2a37b7ce0b76a06e5e2de9cf1496",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:46c90c1a8c970e4d2078d0f0f24f90fe205236a07b466f66b8d8759d925e16d1",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:1e12604df67cb53d58aebaeec6261e91b6d228f0a093006f4b3ea076d8a4f3a3",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:74f8f06697328d30aa8b5d0d03abf92fe2e5e802a8cb2409620457edbd616378",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T12:52:27.598659969Z",
+      "finished_at": "2026-10-03T13:08:12.484649501Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_IMPL_CONNECTION",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:d8a1f190c981bb084881bcdfe1ad1e641205f92808e313daff7f3854ab56c998",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:f67341a1ae4e12e152fa3e4ca56eb12e5fbcd8cdfc36762784849a606ebf4da1",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Basic",
+          "digest": "sha256:6c557668df4be6ff7e26fb09a56139d616a045cbb3e01c8645f94ee3a1ad78c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Sem",
+          "digest": "sha256:7a314380d8112000d29e12557fe3b64d4f4922e29128fa1db3137cf9ebe86bce",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Correct",
+          "digest": "sha256:5315c2b831ea3253be4db4c815e9f9d8a5f2e2b0ca45c6b30ac802d1cc0adaad",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Adequacy",
+          "digest": "sha256:b82590a2f1e9a81b08031f929c859f34978d6716d68c0a4c07c36a26569c1a31",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Asm",
+          "digest": "sha256:499902a526a80efd4c6c746ac6a549a798439b5db429e73f7563100662650fa3",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Encode",
+          "digest": "sha256:b2428a6382087415c144ff4db3628fc98430b24d46a8688290b3443ea3d0aaba",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Hoare",
+          "digest": "sha256:2e048399612822418d37b51ec2a857beb7a2bc067d9f7a68954e3d0440f6f632",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Exe",
+          "digest": "sha256:bc56a449907f7470b65c70efebb1436a075659a40e079f221c01deb8c9c0aad5",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Base",
+          "digest": "sha256:5092b6e2a98e05d49ef34115d77c4835e736868e7937c34cd3de638d125ae7db",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Loop",
+          "digest": "sha256:74587eb19365c73dd3383279c2a1fb472dd7df8fa93e475d2049b1f4fadd64e8",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Mem",
+          "digest": "sha256:739092f98e070b6506b74f51273e8a57cc48e18088353b5ed21e87680146a36e",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Num",
+          "digest": "sha256:213379a3225331aeabf47e48fb2757d5adc02b79245697e4fa3276324b4de156",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Word",
+          "digest": "sha256:c6897ddb60f80d5b07b94da5e972f455eaf0f9aec229ebb3a75e0413d6638440",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.WP",
+          "digest": "sha256:50762012a0333baf1f1d6a31d9e472276030a8f27e0fce6fcfd077fc766caf90",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.NumSpec",
+          "digest": "sha256:b2675b2abd7b5f4190c48a37c8d9c92b802cd4f56a6a18ee7d31459e56e94bd6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Codec",
+          "digest": "sha256:9167e01ae82571e6d5ebf34d6b8ee5a07cc8ff6165c33dac29feef19d9fe9334",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Canon",
+          "digest": "sha256:324795fb5d8b627575d11bcd5f68ee97e7066f67d590ad0e83a0234ba48b77a6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Layout",
+          "digest": "sha256:4c42a80caa4392ba126490683290f66c4d955b67b07c6b4fb779fc55da51700c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Common",
+          "digest": "sha256:8bd13c9ee3eba4872323c4298b8cbfbf846a1355fcffb49209b3ae6816649a01",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Front",
+          "digest": "sha256:9402455152ecd4cfc980dd328ca1768dd4f776d44eda783dd91bd7e9d2db8553",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Trie",
+          "digest": "sha256:b32946f016238da11ffcb6d8432948f0a047bb03e8e700ed188db93b0ffd5f5e",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Batch",
+          "digest": "sha256:8a0438d556570d047dba3b2438801e740268169a5382498424159d101e4366a9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Final",
+          "digest": "sha256:d787a517b504008ec0c99c7b2f2f80dc59fc2b24df2e0317da836658bdefd18b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Program",
+          "digest": "sha256:e68d6050ef8ca48e7a955565e615c317a5c1386def7ed127f051c319e9d86529",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Base",
+          "digest": "sha256:8ad87419df627cad69ced640a73a8c22b49cadb6567a841ac27167e0cfcf700a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Front",
+          "digest": "sha256:5a86d2540bcbfd3a24f40a0021764720c285180fa75403d552d3f5735cd6d0cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptPos",
+          "digest": "sha256:257d533eb0830f0c7fcf64c4373c220ece73ecd372c68ccd841236067fc615e2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Trie.Arena",
+          "digest": "sha256:5c8b82789b99a8164c2f4369ae13eaba633d1b6fcb01eb2344efce45fe42ffb8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Trie.Lemmas",
+          "digest": "sha256:bfc2e2aacd3cfc0bd4c618f5b99c2c603a07a9873ecacfaff1b28fb7ba054cb0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Roundtrip",
+          "digest": "sha256:301775bfd07efc21511d4d74893eb93bae71a42b90707d9e0c9f748d1f92924a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.State",
+          "digest": "sha256:a9f43647db376cd9085cd172291453159710a135d64c317ee117a7657b1db979",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.AccountId",
+          "digest": "sha256:007cc8834e804d877f595acd899fd2728f12126f68c38ba255ac7d5fc1aa18cb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux1",
+          "digest": "sha256:37226e3fbcb26ab7eb25103f1c19beebc3454376ba494eaeab7b0903b810e890",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux2",
+          "digest": "sha256:a14e938556e166d6c0113a0f52987a69d0fe1d3be39f446d16b38d7e18395683",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux3",
+          "digest": "sha256:5dea04e5d94a7cc7806e21d7b419eb36201009e67b47e5ccf4193b204d9b5ce5",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux4",
+          "digest": "sha256:17569fa27f31a229010da3ded143161e084424ad791d5f4e5bd2099512913454",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux5",
+          "digest": "sha256:73145dcc7670593c0df5c94858b2b66ba0f11bf221b9982c7f11d4f5b38ab76b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux6",
+          "digest": "sha256:117f482eddb492d72941d93c33af54c60072a75fbda1eca41b755d2a2ea35f69",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux7",
+          "digest": "sha256:3f3cccbd7ea93d628d46f33974a16bd891c90deced8d76b82dc4f318b6b97a6d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Receipts",
+          "digest": "sha256:2474d2372c37620d53582f88b3b2d885a879af3df1e9a24266b9c0ed52e8ab43",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseInv",
+          "digest": "sha256:1b7ab897404134ce08783696a7803d4e46a2c055b8d56907039845d887a0d392",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux0",
+          "digest": "sha256:cc617b7f95d5ac2fe5b7089d11fd0a30c94cc297572410b8f34286223299707f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux1",
+          "digest": "sha256:2f7e55ddaadc2b4c68797b3d7c89f83c6c8bcf5c63943ac2e50ea930d386ddea",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux2",
+          "digest": "sha256:23b9c55b42462332b7e6ee630b8524199f55af888020ca4126d3191660aa6c3c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux3",
+          "digest": "sha256:baa860f9e145e712416a8381879fe8f1b3dc4e9557a4ce874a35bd16286b5535",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux4",
+          "digest": "sha256:145a250a59a1a41952dff9b4954476808ae2f46481d4cdb2fac05dc64c0e3e18",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux6",
+          "digest": "sha256:2e290c8e921f5426279a54d646a0f276390918ead69e0048e95d2d22f277636c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux7",
+          "digest": "sha256:8d13a61525fe9b160ba75b76ab3eee6a1bc7689f9ac04f4bd42e72af22fc1743",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux5",
+          "digest": "sha256:cc8c77c5af83c522b7968df05c36973e6a115d8960907c8fd21619fa27abcd53",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux8",
+          "digest": "sha256:e346b33e075398ff61b99f15a55ea9063e134e04b19f14e89f7131a396812620",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux9",
+          "digest": "sha256:be7010cddd039570d58e560d7ddb4aa4d67b4faf4dc78f32b12e4d56e29a6339",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux11",
+          "digest": "sha256:2c199496308baab47f4ead16ac25a57c81e59efadcaaa4f6371ef2586d38bd60",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux12",
+          "digest": "sha256:84deb7316301f016ac471dd165e11e9ec3afbff3f8429b91cc059e400250dae2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux13",
+          "digest": "sha256:2b0214f7c0dfffea18ec7e44e5af3f8e3b96d241b1288a5edd2134a8b4925490",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux10",
+          "digest": "sha256:b670b9caaed4d64e9c1f17c335cc2263aaeb3549dd907a5196f111138e506cee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux14",
+          "digest": "sha256:ad477343f69982e757ea2a69354f6b0d3c57b0e93c1f66dbcbcef1f909bded32",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux15",
+          "digest": "sha256:208f7a4eb3afa950a2612e865af64cd7871acdd4f9e0c239a3b559d4659ab3d2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux16",
+          "digest": "sha256:5b7905029808f6d566445276964e69407a3002eb44ae2fd3aa1357f418971f69",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux17",
+          "digest": "sha256:6c9f2e8f3fc1dd92cfb06e2ee42eb31a2fef75ea3a372f9d99f08658e76de948",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux18",
+          "digest": "sha256:324dcda3f734055cc7afda8e7198a0114a5c8b8657c174e46d32c8da31229d0f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux19",
+          "digest": "sha256:f2361c61f0523a9a4bc5bc389fbe31f793cc1e20a253142a82688cd0b9c9c903",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux20",
+          "digest": "sha256:0a8ee0e487e4ef23d624774bde49df9f68263e0926d3409a426ff64441b117c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux21",
+          "digest": "sha256:3cecb55fc0171d4b909196edaf4626690a447c66ef24c4068cab1d1002519dab",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux22",
+          "digest": "sha256:6a8b1b825898b1a86d3d9527c09d3427271bd7acc0a58f32180d43d23fa06413",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux23",
+          "digest": "sha256:0047463eb7d18c09b6596f6597d75ac4226a8593b046e2e586fb82aca8864159",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux24",
+          "digest": "sha256:cd25f48cb6d1e7852a28c3b967c1966919a7765490f4e184c92b0a6a1b77136a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux25",
+          "digest": "sha256:91b442cc81dc94ab446fb849c67dff50874c5cbedaca0ffd4e710027fbbd9a9b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux26",
+          "digest": "sha256:2f7d945f4bf5040c6d734607650fa7755f9b3596af72cfd324b2ceb818e76fa2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux27",
+          "digest": "sha256:8af265701a9bf652b5ee66d3374abdd8817c3342b3afedcdbbf4fd4cf152f64c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux28",
+          "digest": "sha256:04b6a91730fa336068cf2c51e94be595dff1c7868a85b91a1bf9a7269f0a5c5f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux29",
+          "digest": "sha256:fe397fce23a89cb2bb4c7b88a93a96c73ba01bfb72fff2f52d78950127e335e9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux30",
+          "digest": "sha256:0218b62e01592ab1a17c15d2606a2c686b254a0c3f95b51f0cbad47bc917ec76",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux31",
+          "digest": "sha256:397b2528ae299e69c5a1b9cdfb2884ce50e2deaf0b4671ec04f991e166d256c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux32",
+          "digest": "sha256:bca50cd604d29f1ab4eb85196d034eaa60a879e9d1244335d7af30220e1d27f9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Record",
+          "digest": "sha256:050245a4f9a7e4b6e089342776dd21aa99a2c106a208f2f585cbf370346cd621",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux1",
+          "digest": "sha256:99d80cce120fb81f950373fe4539cd6f38f522adf3ce3b4bee904190ee586893",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux2",
+          "digest": "sha256:1b74c71cf70626eb029fae72d281f7a505579cc2e467cc4a72125fc8794303ab",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux3",
+          "digest": "sha256:29be32912ab85d0b4fe770162e832c0fa166d3e88f27c18a7b564bf5fe1c7e10",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux4",
+          "digest": "sha256:8ba01e82007f78ec8f5f30373d9fbff3ac65e95bdaedd900cd2de9f44597f941",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux5",
+          "digest": "sha256:47a04df13d099ef70e414f54b076a56e3a5c332f1ab4e85a38f27870d8e92a24",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Parse",
+          "digest": "sha256:624f3d1182e593a5e7119a62aa78f063162ecb6bae2269f058c4a9c51150f036",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.HashAux",
+          "digest": "sha256:90ef5b7499bb8a8dcd2a9ff04852281928d5ab66f7daa80a62941cf14eaf96f7",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Hash",
+          "digest": "sha256:1c8b240cc08862bc77e4a3eb8f0be1e5d274ca9d2f80f7077580fe74cdca0ce8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux1",
+          "digest": "sha256:a01555ca6d5b69f733b9a43d3c9d3cb2e09d7e27983d2894b9564784730358c3",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux2",
+          "digest": "sha256:0073d658c2c425febef578af4923a6e13e7154d2520e793529398b05725c5ed6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux3",
+          "digest": "sha256:95317bf86c9470f8b06cb281476ec611fcda53272c0f707a2ae8602a220a9ebf",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux",
+          "digest": "sha256:655ceadbfa0f92eacb1e9e112a71b94d82aaeb853b9f5d515535cc16eb5c7a82",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux2",
+          "digest": "sha256:604c82e9915c321f49d9c92d1b7ac0053f037ee2862b2c8e512cc25fb0e0bd2b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux3",
+          "digest": "sha256:d002f6f78a0fcb37551d6f59c30c1a28b89324fc8a634682c286537d88aba87d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux4",
+          "digest": "sha256:9b44b8396698dcc9e3108014982f49b72a0d0eae5b236d237a0226a82a4ed2a4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Walk",
+          "digest": "sha256:c3edacad4273ce8fe2109e6907b802792c91115cd190739398a707e877e44201",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux4",
+          "digest": "sha256:94b24491e7c387bde45215494e73e3d2a654c87c93728004638f1d958e4c0e9b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Batch",
+          "digest": "sha256:452589108325bdebed156487d34ad55f297f554f78f9a1ab4677cbffaef152fb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.FinalAux",
+          "digest": "sha256:4f5d6b5cf930517466f95ee2398e3972200d2ee688ac53ec8a11751611742a9c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Final",
+          "digest": "sha256:b2f9d184e4ad414e8702379061898466903e5ca506176ea05d3c9af096dee688",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Model",
+          "digest": "sha256:aa63cec1945eee9c2b629081407748fc205b0fdabc4287eac378f61c14ab33d0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Main",
+          "digest": "sha256:b293dcd935b9e2233e728a2a8cd33103673bdd539402c6d90b3307198556e70f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Obligations",
+          "digest": "sha256:31f6ccde2d61b03e4e1e8d5222b487b4b0c1e3e55ccc29fc65cbd089a064c81f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.PublicBin",
+          "digest": "sha256:0c9d496cb5c11db3667cab1d462766a15734457ec96261c13f6519e4000b7119",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.CodeDigest",
+          "digest": "sha256:2e4862d5d29a9504f597ff265e3ffe65a289e4ff3bab966983715b79a0ea7395",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Certificate",
+          "digest": "sha256:0aaec6983fda410b6ce0259b1a7ee32098ce2a37b7ce0b76a06e5e2de9cf1496",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:46c90c1a8c970e4d2078d0f0f24f90fe205236a07b466f66b8d8759d925e16d1",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:1e12604df67cb53d58aebaeec6261e91b6d228f0a093006f4b3ea076d8a4f3a3",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:74f8f06697328d30aa8b5d0d03abf92fe2e5e802a8cb2409620457edbd616378",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T12:52:27.598659969Z",
+      "finished_at": "2026-10-03T13:08:12.484649501Z",
+      "reused_from": null
+    },
+    {
+      "gate": "AXIOM_AUDIT",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certified closure uses only allowlisted axioms; no sorry/native shortcuts",
+      "evidence": [
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:d8a1f190c981bb084881bcdfe1ad1e641205f92808e313daff7f3854ab56c998",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:f67341a1ae4e12e152fa3e4ca56eb12e5fbcd8cdfc36762784849a606ebf4da1",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Basic",
+          "digest": "sha256:6c557668df4be6ff7e26fb09a56139d616a045cbb3e01c8645f94ee3a1ad78c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Sem",
+          "digest": "sha256:7a314380d8112000d29e12557fe3b64d4f4922e29128fa1db3137cf9ebe86bce",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Correct",
+          "digest": "sha256:5315c2b831ea3253be4db4c815e9f9d8a5f2e2b0ca45c6b30ac802d1cc0adaad",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Adequacy",
+          "digest": "sha256:b82590a2f1e9a81b08031f929c859f34978d6716d68c0a4c07c36a26569c1a31",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Asm",
+          "digest": "sha256:499902a526a80efd4c6c746ac6a549a798439b5db429e73f7563100662650fa3",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Encode",
+          "digest": "sha256:b2428a6382087415c144ff4db3628fc98430b24d46a8688290b3443ea3d0aaba",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Hoare",
+          "digest": "sha256:2e048399612822418d37b51ec2a857beb7a2bc067d9f7a68954e3d0440f6f632",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Exe",
+          "digest": "sha256:bc56a449907f7470b65c70efebb1436a075659a40e079f221c01deb8c9c0aad5",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Base",
+          "digest": "sha256:5092b6e2a98e05d49ef34115d77c4835e736868e7937c34cd3de638d125ae7db",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Loop",
+          "digest": "sha256:74587eb19365c73dd3383279c2a1fb472dd7df8fa93e475d2049b1f4fadd64e8",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Mem",
+          "digest": "sha256:739092f98e070b6506b74f51273e8a57cc48e18088353b5ed21e87680146a36e",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Num",
+          "digest": "sha256:213379a3225331aeabf47e48fb2757d5adc02b79245697e4fa3276324b4de156",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.Word",
+          "digest": "sha256:c6897ddb60f80d5b07b94da5e972f455eaf0f9aec229ebb3a75e0413d6638440",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.WP",
+          "digest": "sha256:50762012a0333baf1f1d6a31d9e472276030a8f27e0fce6fcfd077fc766caf90",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpaiIR.Lib.NumSpec",
+          "digest": "sha256:b2675b2abd7b5f4190c48a37c8d9c92b802cd4f56a6a18ee7d31459e56e94bd6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Codec",
+          "digest": "sha256:9167e01ae82571e6d5ebf34d6b8ee5a07cc8ff6165c33dac29feef19d9fe9334",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Canon",
+          "digest": "sha256:324795fb5d8b627575d11bcd5f68ee97e7066f67d590ad0e83a0234ba48b77a6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Layout",
+          "digest": "sha256:4c42a80caa4392ba126490683290f66c4d955b67b07c6b4fb779fc55da51700c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Common",
+          "digest": "sha256:8bd13c9ee3eba4872323c4298b8cbfbf846a1355fcffb49209b3ae6816649a01",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Front",
+          "digest": "sha256:9402455152ecd4cfc980dd328ca1768dd4f776d44eda783dd91bd7e9d2db8553",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Trie",
+          "digest": "sha256:b32946f016238da11ffcb6d8432948f0a047bb03e8e700ed188db93b0ffd5f5e",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Batch",
+          "digest": "sha256:8a0438d556570d047dba3b2438801e740268169a5382498424159d101e4366a9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Prog.Final",
+          "digest": "sha256:d787a517b504008ec0c99c7b2f2f80dc59fc2b24df2e0317da836658bdefd18b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Program",
+          "digest": "sha256:e68d6050ef8ca48e7a955565e615c317a5c1386def7ed127f051c319e9d86529",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Base",
+          "digest": "sha256:8ad87419df627cad69ced640a73a8c22b49cadb6567a841ac27167e0cfcf700a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Front",
+          "digest": "sha256:5a86d2540bcbfd3a24f40a0021764720c285180fa75403d552d3f5735cd6d0cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptPos",
+          "digest": "sha256:257d533eb0830f0c7fcf64c4373c220ece73ecd372c68ccd841236067fc615e2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Trie.Arena",
+          "digest": "sha256:5c8b82789b99a8164c2f4369ae13eaba633d1b6fcb01eb2344efce45fe42ffb8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Trie.Lemmas",
+          "digest": "sha256:bfc2e2aacd3cfc0bd4c618f5b99c2c603a07a9873ecacfaff1b28fb7ba054cb0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Roundtrip",
+          "digest": "sha256:301775bfd07efc21511d4d74893eb93bae71a42b90707d9e0c9f748d1f92924a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.State",
+          "digest": "sha256:a9f43647db376cd9085cd172291453159710a135d64c317ee117a7657b1db979",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.AccountId",
+          "digest": "sha256:007cc8834e804d877f595acd899fd2728f12126f68c38ba255ac7d5fc1aa18cb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux1",
+          "digest": "sha256:37226e3fbcb26ab7eb25103f1c19beebc3454376ba494eaeab7b0903b810e890",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux2",
+          "digest": "sha256:a14e938556e166d6c0113a0f52987a69d0fe1d3be39f446d16b38d7e18395683",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux3",
+          "digest": "sha256:5dea04e5d94a7cc7806e21d7b419eb36201009e67b47e5ccf4193b204d9b5ce5",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux4",
+          "digest": "sha256:17569fa27f31a229010da3ded143161e084424ad791d5f4e5bd2099512913454",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux5",
+          "digest": "sha256:73145dcc7670593c0df5c94858b2b66ba0f11bf221b9982c7f11d4f5b38ab76b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux6",
+          "digest": "sha256:117f482eddb492d72941d93c33af54c60072a75fbda1eca41b755d2a2ea35f69",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RcptAux7",
+          "digest": "sha256:3f3cccbd7ea93d628d46f33974a16bd891c90deced8d76b82dc4f318b6b97a6d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Receipts",
+          "digest": "sha256:2474d2372c37620d53582f88b3b2d885a879af3df1e9a24266b9c0ed52e8ab43",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseInv",
+          "digest": "sha256:1b7ab897404134ce08783696a7803d4e46a2c055b8d56907039845d887a0d392",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux0",
+          "digest": "sha256:cc617b7f95d5ac2fe5b7089d11fd0a30c94cc297572410b8f34286223299707f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux1",
+          "digest": "sha256:2f7e55ddaadc2b4c68797b3d7c89f83c6c8bcf5c63943ac2e50ea930d386ddea",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux2",
+          "digest": "sha256:23b9c55b42462332b7e6ee630b8524199f55af888020ca4126d3191660aa6c3c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux3",
+          "digest": "sha256:baa860f9e145e712416a8381879fe8f1b3dc4e9557a4ce874a35bd16286b5535",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux4",
+          "digest": "sha256:145a250a59a1a41952dff9b4954476808ae2f46481d4cdb2fac05dc64c0e3e18",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux6",
+          "digest": "sha256:2e290c8e921f5426279a54d646a0f276390918ead69e0048e95d2d22f277636c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux7",
+          "digest": "sha256:8d13a61525fe9b160ba75b76ab3eee6a1bc7689f9ac04f4bd42e72af22fc1743",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux5",
+          "digest": "sha256:cc8c77c5af83c522b7968df05c36973e6a115d8960907c8fd21619fa27abcd53",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux8",
+          "digest": "sha256:e346b33e075398ff61b99f15a55ea9063e134e04b19f14e89f7131a396812620",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux9",
+          "digest": "sha256:be7010cddd039570d58e560d7ddb4aa4d67b4faf4dc78f32b12e4d56e29a6339",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux11",
+          "digest": "sha256:2c199496308baab47f4ead16ac25a57c81e59efadcaaa4f6371ef2586d38bd60",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux12",
+          "digest": "sha256:84deb7316301f016ac471dd165e11e9ec3afbff3f8429b91cc059e400250dae2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux13",
+          "digest": "sha256:2b0214f7c0dfffea18ec7e44e5af3f8e3b96d241b1288a5edd2134a8b4925490",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux10",
+          "digest": "sha256:b670b9caaed4d64e9c1f17c335cc2263aaeb3549dd907a5196f111138e506cee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux14",
+          "digest": "sha256:ad477343f69982e757ea2a69354f6b0d3c57b0e93c1f66dbcbcef1f909bded32",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux15",
+          "digest": "sha256:208f7a4eb3afa950a2612e865af64cd7871acdd4f9e0c239a3b559d4659ab3d2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux16",
+          "digest": "sha256:5b7905029808f6d566445276964e69407a3002eb44ae2fd3aa1357f418971f69",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux17",
+          "digest": "sha256:6c9f2e8f3fc1dd92cfb06e2ee42eb31a2fef75ea3a372f9d99f08658e76de948",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux18",
+          "digest": "sha256:324dcda3f734055cc7afda8e7198a0114a5c8b8657c174e46d32c8da31229d0f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux19",
+          "digest": "sha256:f2361c61f0523a9a4bc5bc389fbe31f793cc1e20a253142a82688cd0b9c9c903",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux20",
+          "digest": "sha256:0a8ee0e487e4ef23d624774bde49df9f68263e0926d3409a426ff64441b117c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux21",
+          "digest": "sha256:3cecb55fc0171d4b909196edaf4626690a447c66ef24c4068cab1d1002519dab",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux22",
+          "digest": "sha256:6a8b1b825898b1a86d3d9527c09d3427271bd7acc0a58f32180d43d23fa06413",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux23",
+          "digest": "sha256:0047463eb7d18c09b6596f6597d75ac4226a8593b046e2e586fb82aca8864159",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux24",
+          "digest": "sha256:cd25f48cb6d1e7852a28c3b967c1966919a7765490f4e184c92b0a6a1b77136a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux25",
+          "digest": "sha256:91b442cc81dc94ab446fb849c67dff50874c5cbedaca0ffd4e710027fbbd9a9b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux26",
+          "digest": "sha256:2f7d945f4bf5040c6d734607650fa7755f9b3596af72cfd324b2ceb818e76fa2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux27",
+          "digest": "sha256:8af265701a9bf652b5ee66d3374abdd8817c3342b3afedcdbbf4fd4cf152f64c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux28",
+          "digest": "sha256:04b6a91730fa336068cf2c51e94be595dff1c7868a85b91a1bf9a7269f0a5c5f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux29",
+          "digest": "sha256:fe397fce23a89cb2bb4c7b88a93a96c73ba01bfb72fff2f52d78950127e335e9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux30",
+          "digest": "sha256:0218b62e01592ab1a17c15d2606a2c686b254a0c3f95b51f0cbad47bc917ec76",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux31",
+          "digest": "sha256:397b2528ae299e69c5a1b9cdfb2884ce50e2deaf0b4671ec04f991e166d256c8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.RecAux32",
+          "digest": "sha256:bca50cd604d29f1ab4eb85196d034eaa60a879e9d1244335d7af30220e1d27f9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Record",
+          "digest": "sha256:050245a4f9a7e4b6e089342776dd21aa99a2c106a208f2f585cbf370346cd621",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux1",
+          "digest": "sha256:99d80cce120fb81f950373fe4539cd6f38f522adf3ce3b4bee904190ee586893",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux2",
+          "digest": "sha256:1b74c71cf70626eb029fae72d281f7a505579cc2e467cc4a72125fc8794303ab",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux3",
+          "digest": "sha256:29be32912ab85d0b4fe770162e832c0fa166d3e88f27c18a7b564bf5fe1c7e10",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux4",
+          "digest": "sha256:8ba01e82007f78ec8f5f30373d9fbff3ac65e95bdaedd900cd2de9f44597f941",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.ParseAux5",
+          "digest": "sha256:47a04df13d099ef70e414f54b076a56e3a5c332f1ab4e85a38f27870d8e92a24",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Parse",
+          "digest": "sha256:624f3d1182e593a5e7119a62aa78f063162ecb6bae2269f058c4a9c51150f036",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.HashAux",
+          "digest": "sha256:90ef5b7499bb8a8dcd2a9ff04852281928d5ab66f7daa80a62941cf14eaf96f7",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Hash",
+          "digest": "sha256:1c8b240cc08862bc77e4a3eb8f0be1e5d274ca9d2f80f7077580fe74cdca0ce8",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux1",
+          "digest": "sha256:a01555ca6d5b69f733b9a43d3c9d3cb2e09d7e27983d2894b9564784730358c3",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux2",
+          "digest": "sha256:0073d658c2c425febef578af4923a6e13e7154d2520e793529398b05725c5ed6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux3",
+          "digest": "sha256:95317bf86c9470f8b06cb281476ec611fcda53272c0f707a2ae8602a220a9ebf",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux",
+          "digest": "sha256:655ceadbfa0f92eacb1e9e112a71b94d82aaeb853b9f5d515535cc16eb5c7a82",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux2",
+          "digest": "sha256:604c82e9915c321f49d9c92d1b7ac0053f037ee2862b2c8e512cc25fb0e0bd2b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux3",
+          "digest": "sha256:d002f6f78a0fcb37551d6f59c30c1a28b89324fc8a634682c286537d88aba87d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.WalkAux4",
+          "digest": "sha256:9b44b8396698dcc9e3108014982f49b72a0d0eae5b236d237a0226a82a4ed2a4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Walk",
+          "digest": "sha256:c3edacad4273ce8fe2109e6907b802792c91115cd190739398a707e877e44201",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.BatchAux4",
+          "digest": "sha256:94b24491e7c387bde45215494e73e3d2a654c87c93728004638f1d958e4c0e9b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Batch",
+          "digest": "sha256:452589108325bdebed156487d34ad55f297f554f78f9a1ab4677cbffaef152fb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.FinalAux",
+          "digest": "sha256:4f5d6b5cf930517466f95ee2398e3972200d2ee688ac53ec8a11751611742a9c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Spec.Final",
+          "digest": "sha256:b2f9d184e4ad414e8702379061898466903e5ca506176ea05d3c9af096dee688",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Model",
+          "digest": "sha256:aa63cec1945eee9c2b629081407748fc205b0fdabc4287eac378f61c14ab33d0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Main",
+          "digest": "sha256:b293dcd935b9e2233e728a2a8cd33103673bdd539402c6d90b3307198556e70f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Obligations",
+          "digest": "sha256:31f6ccde2d61b03e4e1e8d5222b487b4b0c1e3e55ccc29fc65cbd089a064c81f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.PublicBin",
+          "digest": "sha256:0c9d496cb5c11db3667cab1d462766a15734457ec96261c13f6519e4000b7119",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.CodeDigest",
+          "digest": "sha256:2e4862d5d29a9504f597ff265e3ffe65a289e4ff3bab966983715b79a0ea7395",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecNpai.Certificate",
+          "digest": "sha256:0aaec6983fda410b6ce0259b1a7ee32098ce2a37b7ce0b76a06e5e2de9cf1496",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:46c90c1a8c970e4d2078d0f0f24f90fe205236a07b466f66b8d8759d925e16d1",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:1e12604df67cb53d58aebaeec6261e91b6d228f0a093006f4b3ea076d8a4f3a3",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:74f8f06697328d30aa8b5d0d03abf92fe2e5e802a8cb2409620457edbd616378",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-03T12:52:27.598659969Z",
+      "finished_at": "2026-10-03T13:08:12.484649501Z",
+      "reused_from": null
+    }
+  ],
+  "findings": [],
+  "rechecks": [
+    {
+      "id": "leanchecker",
+      "ran": true,
+      "verdict": "accepted",
+      "wall_ms": 163482,
+      "detail": "101 modules in 101 runs"
+    },
+    {
+      "id": "nanoda",
+      "ran": true,
+      "verdict": "accepted",
+      "wall_ms": 106207,
+      "detail": ""
+    },
+    {
+      "id": "lean4lean",
+      "ran": true,
+      "verdict": "accepted",
+      "wall_ms": 236902,
+      "detail": "101 modules in 101 runs"
+    },
+    {
+      "id": "arena-audit",
+      "ran": true,
+      "verdict": "completed",
+      "wall_ms": 1326,
+      "detail": ""
+    },
+    {
+      "id": "ndjson-audit",
+      "ran": true,
+      "verdict": "completed",
+      "wall_ms": 6735,
+      "detail": "14163 decls"
+    }
+  ],
+  "closure": {
+    "certificate": "ReexecNpai.certificate",
+    "count": 14027,
+    "digest": "sha256:976c9c0345166c9d35289f44da1fb2097197a079b948f19232fb2da890c4a49d",
+    "axioms": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "listing": {
+      "label": "certificate dependency closure",
+      "digest": "sha256:74f8f06697328d30aa8b5d0d03abf92fe2e5e802a8cb2409620457edbd616378",
+      "public": true
+    }
+  },
+  "evidence": [
+    {
+      "label": "reference export (ndjson)",
+      "digest": "sha256:d8a1f190c981bb084881bcdfe1ad1e641205f92808e313daff7f3854ab56c998",
+      "public": true
+    },
+    {
+      "label": "expected statement source",
+      "digest": "sha256:f67341a1ae4e12e152fa3e4ca56eb12e5fbcd8cdfc36762784849a606ebf4da1",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Basic",
+      "digest": "sha256:6c557668df4be6ff7e26fb09a56139d616a045cbb3e01c8645f94ee3a1ad78c8",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Sem",
+      "digest": "sha256:7a314380d8112000d29e12557fe3b64d4f4922e29128fa1db3137cf9ebe86bce",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Correct",
+      "digest": "sha256:5315c2b831ea3253be4db4c815e9f9d8a5f2e2b0ca45c6b30ac802d1cc0adaad",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Adequacy",
+      "digest": "sha256:b82590a2f1e9a81b08031f929c859f34978d6716d68c0a4c07c36a26569c1a31",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Asm",
+      "digest": "sha256:499902a526a80efd4c6c746ac6a549a798439b5db429e73f7563100662650fa3",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Encode",
+      "digest": "sha256:b2428a6382087415c144ff4db3628fc98430b24d46a8688290b3443ea3d0aaba",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Hoare",
+      "digest": "sha256:2e048399612822418d37b51ec2a857beb7a2bc067d9f7a68954e3d0440f6f632",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Exe",
+      "digest": "sha256:bc56a449907f7470b65c70efebb1436a075659a40e079f221c01deb8c9c0aad5",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Lib.Base",
+      "digest": "sha256:5092b6e2a98e05d49ef34115d77c4835e736868e7937c34cd3de638d125ae7db",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Lib.Loop",
+      "digest": "sha256:74587eb19365c73dd3383279c2a1fb472dd7df8fa93e475d2049b1f4fadd64e8",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Lib.Mem",
+      "digest": "sha256:739092f98e070b6506b74f51273e8a57cc48e18088353b5ed21e87680146a36e",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Lib.Num",
+      "digest": "sha256:213379a3225331aeabf47e48fb2757d5adc02b79245697e4fa3276324b4de156",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Lib.Word",
+      "digest": "sha256:c6897ddb60f80d5b07b94da5e972f455eaf0f9aec229ebb3a75e0413d6638440",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.WP",
+      "digest": "sha256:50762012a0333baf1f1d6a31d9e472276030a8f27e0fce6fcfd077fc766caf90",
+      "public": true
+    },
+    {
+      "label": "candidate olean NpaiIR.Lib.NumSpec",
+      "digest": "sha256:b2675b2abd7b5f4190c48a37c8d9c92b802cd4f56a6a18ee7d31459e56e94bd6",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Codec",
+      "digest": "sha256:9167e01ae82571e6d5ebf34d6b8ee5a07cc8ff6165c33dac29feef19d9fe9334",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Canon",
+      "digest": "sha256:324795fb5d8b627575d11bcd5f68ee97e7066f67d590ad0e83a0234ba48b77a6",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Layout",
+      "digest": "sha256:4c42a80caa4392ba126490683290f66c4d955b67b07c6b4fb779fc55da51700c",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Prog.Common",
+      "digest": "sha256:8bd13c9ee3eba4872323c4298b8cbfbf846a1355fcffb49209b3ae6816649a01",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Prog.Front",
+      "digest": "sha256:9402455152ecd4cfc980dd328ca1768dd4f776d44eda783dd91bd7e9d2db8553",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Prog.Trie",
+      "digest": "sha256:b32946f016238da11ffcb6d8432948f0a047bb03e8e700ed188db93b0ffd5f5e",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Prog.Batch",
+      "digest": "sha256:8a0438d556570d047dba3b2438801e740268169a5382498424159d101e4366a9",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Prog.Final",
+      "digest": "sha256:d787a517b504008ec0c99c7b2f2f80dc59fc2b24df2e0317da836658bdefd18b",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Program",
+      "digest": "sha256:e68d6050ef8ca48e7a955565e615c317a5c1386def7ed127f051c319e9d86529",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.Base",
+      "digest": "sha256:8ad87419df627cad69ced640a73a8c22b49cadb6567a841ac27167e0cfcf700a",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.Front",
+      "digest": "sha256:5a86d2540bcbfd3a24f40a0021764720c285180fa75403d552d3f5735cd6d0cc",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RcptPos",
+      "digest": "sha256:257d533eb0830f0c7fcf64c4373c220ece73ecd372c68ccd841236067fc615e2",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Trie.Arena",
+      "digest": "sha256:5c8b82789b99a8164c2f4369ae13eaba633d1b6fcb01eb2344efce45fe42ffb8",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Trie.Lemmas",
+      "digest": "sha256:bfc2e2aacd3cfc0bd4c618f5b99c2c603a07a9873ecacfaff1b28fb7ba054cb0",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Roundtrip",
+      "digest": "sha256:301775bfd07efc21511d4d74893eb93bae71a42b90707d9e0c9f748d1f92924a",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.State",
+      "digest": "sha256:a9f43647db376cd9085cd172291453159710a135d64c317ee117a7657b1db979",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.AccountId",
+      "digest": "sha256:007cc8834e804d877f595acd899fd2728f12126f68c38ba255ac7d5fc1aa18cb",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RcptAux1",
+      "digest": "sha256:37226e3fbcb26ab7eb25103f1c19beebc3454376ba494eaeab7b0903b810e890",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RcptAux2",
+      "digest": "sha256:a14e938556e166d6c0113a0f52987a69d0fe1d3be39f446d16b38d7e18395683",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RcptAux3",
+      "digest": "sha256:5dea04e5d94a7cc7806e21d7b419eb36201009e67b47e5ccf4193b204d9b5ce5",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RcptAux4",
+      "digest": "sha256:17569fa27f31a229010da3ded143161e084424ad791d5f4e5bd2099512913454",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RcptAux5",
+      "digest": "sha256:73145dcc7670593c0df5c94858b2b66ba0f11bf221b9982c7f11d4f5b38ab76b",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RcptAux6",
+      "digest": "sha256:117f482eddb492d72941d93c33af54c60072a75fbda1eca41b755d2a2ea35f69",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RcptAux7",
+      "digest": "sha256:3f3cccbd7ea93d628d46f33974a16bd891c90deced8d76b82dc4f318b6b97a6d",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.Receipts",
+      "digest": "sha256:2474d2372c37620d53582f88b3b2d885a879af3df1e9a24266b9c0ed52e8ab43",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.ParseInv",
+      "digest": "sha256:1b7ab897404134ce08783696a7803d4e46a2c055b8d56907039845d887a0d392",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux0",
+      "digest": "sha256:cc617b7f95d5ac2fe5b7089d11fd0a30c94cc297572410b8f34286223299707f",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux1",
+      "digest": "sha256:2f7e55ddaadc2b4c68797b3d7c89f83c6c8bcf5c63943ac2e50ea930d386ddea",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux2",
+      "digest": "sha256:23b9c55b42462332b7e6ee630b8524199f55af888020ca4126d3191660aa6c3c",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux3",
+      "digest": "sha256:baa860f9e145e712416a8381879fe8f1b3dc4e9557a4ce874a35bd16286b5535",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux4",
+      "digest": "sha256:145a250a59a1a41952dff9b4954476808ae2f46481d4cdb2fac05dc64c0e3e18",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux6",
+      "digest": "sha256:2e290c8e921f5426279a54d646a0f276390918ead69e0048e95d2d22f277636c",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux7",
+      "digest": "sha256:8d13a61525fe9b160ba75b76ab3eee6a1bc7689f9ac04f4bd42e72af22fc1743",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux5",
+      "digest": "sha256:cc8c77c5af83c522b7968df05c36973e6a115d8960907c8fd21619fa27abcd53",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux8",
+      "digest": "sha256:e346b33e075398ff61b99f15a55ea9063e134e04b19f14e89f7131a396812620",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux9",
+      "digest": "sha256:be7010cddd039570d58e560d7ddb4aa4d67b4faf4dc78f32b12e4d56e29a6339",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux11",
+      "digest": "sha256:2c199496308baab47f4ead16ac25a57c81e59efadcaaa4f6371ef2586d38bd60",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux12",
+      "digest": "sha256:84deb7316301f016ac471dd165e11e9ec3afbff3f8429b91cc059e400250dae2",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux13",
+      "digest": "sha256:2b0214f7c0dfffea18ec7e44e5af3f8e3b96d241b1288a5edd2134a8b4925490",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux10",
+      "digest": "sha256:b670b9caaed4d64e9c1f17c335cc2263aaeb3549dd907a5196f111138e506cee",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux14",
+      "digest": "sha256:ad477343f69982e757ea2a69354f6b0d3c57b0e93c1f66dbcbcef1f909bded32",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux15",
+      "digest": "sha256:208f7a4eb3afa950a2612e865af64cd7871acdd4f9e0c239a3b559d4659ab3d2",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux16",
+      "digest": "sha256:5b7905029808f6d566445276964e69407a3002eb44ae2fd3aa1357f418971f69",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux17",
+      "digest": "sha256:6c9f2e8f3fc1dd92cfb06e2ee42eb31a2fef75ea3a372f9d99f08658e76de948",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux18",
+      "digest": "sha256:324dcda3f734055cc7afda8e7198a0114a5c8b8657c174e46d32c8da31229d0f",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux19",
+      "digest": "sha256:f2361c61f0523a9a4bc5bc389fbe31f793cc1e20a253142a82688cd0b9c9c903",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux20",
+      "digest": "sha256:0a8ee0e487e4ef23d624774bde49df9f68263e0926d3409a426ff64441b117c8",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux21",
+      "digest": "sha256:3cecb55fc0171d4b909196edaf4626690a447c66ef24c4068cab1d1002519dab",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux22",
+      "digest": "sha256:6a8b1b825898b1a86d3d9527c09d3427271bd7acc0a58f32180d43d23fa06413",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux23",
+      "digest": "sha256:0047463eb7d18c09b6596f6597d75ac4226a8593b046e2e586fb82aca8864159",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux24",
+      "digest": "sha256:cd25f48cb6d1e7852a28c3b967c1966919a7765490f4e184c92b0a6a1b77136a",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux25",
+      "digest": "sha256:91b442cc81dc94ab446fb849c67dff50874c5cbedaca0ffd4e710027fbbd9a9b",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux26",
+      "digest": "sha256:2f7d945f4bf5040c6d734607650fa7755f9b3596af72cfd324b2ceb818e76fa2",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux27",
+      "digest": "sha256:8af265701a9bf652b5ee66d3374abdd8817c3342b3afedcdbbf4fd4cf152f64c",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux28",
+      "digest": "sha256:04b6a91730fa336068cf2c51e94be595dff1c7868a85b91a1bf9a7269f0a5c5f",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux29",
+      "digest": "sha256:fe397fce23a89cb2bb4c7b88a93a96c73ba01bfb72fff2f52d78950127e335e9",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux30",
+      "digest": "sha256:0218b62e01592ab1a17c15d2606a2c686b254a0c3f95b51f0cbad47bc917ec76",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux31",
+      "digest": "sha256:397b2528ae299e69c5a1b9cdfb2884ce50e2deaf0b4671ec04f991e166d256c8",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.RecAux32",
+      "digest": "sha256:bca50cd604d29f1ab4eb85196d034eaa60a879e9d1244335d7af30220e1d27f9",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.Record",
+      "digest": "sha256:050245a4f9a7e4b6e089342776dd21aa99a2c106a208f2f585cbf370346cd621",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.ParseAux1",
+      "digest": "sha256:99d80cce120fb81f950373fe4539cd6f38f522adf3ce3b4bee904190ee586893",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.ParseAux2",
+      "digest": "sha256:1b74c71cf70626eb029fae72d281f7a505579cc2e467cc4a72125fc8794303ab",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.ParseAux3",
+      "digest": "sha256:29be32912ab85d0b4fe770162e832c0fa166d3e88f27c18a7b564bf5fe1c7e10",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.ParseAux4",
+      "digest": "sha256:8ba01e82007f78ec8f5f30373d9fbff3ac65e95bdaedd900cd2de9f44597f941",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.ParseAux5",
+      "digest": "sha256:47a04df13d099ef70e414f54b076a56e3a5c332f1ab4e85a38f27870d8e92a24",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.Parse",
+      "digest": "sha256:624f3d1182e593a5e7119a62aa78f063162ecb6bae2269f058c4a9c51150f036",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.HashAux",
+      "digest": "sha256:90ef5b7499bb8a8dcd2a9ff04852281928d5ab66f7daa80a62941cf14eaf96f7",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.Hash",
+      "digest": "sha256:1c8b240cc08862bc77e4a3eb8f0be1e5d274ca9d2f80f7077580fe74cdca0ce8",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.BatchAux1",
+      "digest": "sha256:a01555ca6d5b69f733b9a43d3c9d3cb2e09d7e27983d2894b9564784730358c3",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.BatchAux2",
+      "digest": "sha256:0073d658c2c425febef578af4923a6e13e7154d2520e793529398b05725c5ed6",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.BatchAux3",
+      "digest": "sha256:95317bf86c9470f8b06cb281476ec611fcda53272c0f707a2ae8602a220a9ebf",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.WalkAux",
+      "digest": "sha256:655ceadbfa0f92eacb1e9e112a71b94d82aaeb853b9f5d515535cc16eb5c7a82",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.WalkAux2",
+      "digest": "sha256:604c82e9915c321f49d9c92d1b7ac0053f037ee2862b2c8e512cc25fb0e0bd2b",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.WalkAux3",
+      "digest": "sha256:d002f6f78a0fcb37551d6f59c30c1a28b89324fc8a634682c286537d88aba87d",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.WalkAux4",
+      "digest": "sha256:9b44b8396698dcc9e3108014982f49b72a0d0eae5b236d237a0226a82a4ed2a4",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.Walk",
+      "digest": "sha256:c3edacad4273ce8fe2109e6907b802792c91115cd190739398a707e877e44201",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.BatchAux4",
+      "digest": "sha256:94b24491e7c387bde45215494e73e3d2a654c87c93728004638f1d958e4c0e9b",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.Batch",
+      "digest": "sha256:452589108325bdebed156487d34ad55f297f554f78f9a1ab4677cbffaef152fb",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.FinalAux",
+      "digest": "sha256:4f5d6b5cf930517466f95ee2398e3972200d2ee688ac53ec8a11751611742a9c",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Spec.Final",
+      "digest": "sha256:b2f9d184e4ad414e8702379061898466903e5ca506176ea05d3c9af096dee688",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Model",
+      "digest": "sha256:aa63cec1945eee9c2b629081407748fc205b0fdabc4287eac378f61c14ab33d0",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Main",
+      "digest": "sha256:b293dcd935b9e2233e728a2a8cd33103673bdd539402c6d90b3307198556e70f",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Obligations",
+      "digest": "sha256:31f6ccde2d61b03e4e1e8d5222b487b4b0c1e3e55ccc29fc65cbd089a064c81f",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.PublicBin",
+      "digest": "sha256:0c9d496cb5c11db3667cab1d462766a15734457ec96261c13f6519e4000b7119",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.CodeDigest",
+      "digest": "sha256:2e4862d5d29a9504f597ff265e3ffe65a289e4ff3bab966983715b79a0ea7395",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecNpai.Certificate",
+      "digest": "sha256:0aaec6983fda410b6ce0259b1a7ee32098ce2a37b7ce0b76a06e5e2de9cf1496",
+      "public": true
+    },
+    {
+      "label": "candidate certificate export (ndjson)",
+      "digest": "sha256:46c90c1a8c970e4d2078d0f0f24f90fe205236a07b466f66b8d8759d925e16d1",
+      "public": true
+    },
+    {
+      "label": "arena-audit report",
+      "digest": "sha256:1e12604df67cb53d58aebaeec6261e91b6d228f0a093006f4b3ea076d8a4f3a3",
+      "public": true
+    },
+    {
+      "label": "certificate dependency closure",
+      "digest": "sha256:74f8f06697328d30aa8b5d0d03abf92fe2e5e802a8cb2409620457edbd616378",
+      "public": true
+    }
+  ],
+  "evidence_graph": {
+    "nodes": [
+      {
+        "id": "formal:certificate",
+        "kind": "theorem",
+        "label": "certificate ReexecNpai.certificate",
+        "digest": "sha256:976c9c0345166c9d35289f44da1fb2097197a079b948f19232fb2da890c4a49d"
+      },
+      {
+        "id": "formal:expected_statement",
+        "kind": "theorem",
+        "label": "judge-constructed admission statement",
+        "digest": "sha256:f67341a1ae4e12e152fa3e4ca56eb12e5fbcd8cdfc36762784849a606ebf4da1"
+      },
+      {
+        "id": "tcb:lean_toolchain",
+        "kind": "tcb_component",
+        "label": "Lean leanprover/lean4:v4.34.1",
+        "digest": "sha256:70c42c056dfeb64838b86f7bc6146afa10323f422fb7a7b9b7741e38dc836363"
+      },
+      {
+        "id": "formal:trusted:formal-core",
+        "kind": "formal_semantics",
+        "label": "formal-core",
+        "digest": "sha256:0dcb09c8995f826e8783dd4c96271c265b92cc1dc1031e4e37082c4107847d0b"
+      },
+      {
+        "id": "formal:trusted:near-spec",
+        "kind": "formal_semantics",
+        "label": "near-spec",
+        "digest": "sha256:7e66e06afb81ec2d12268e64f2e0406daa130e2934460a8fd563ad78d78fb732"
+      },
+      {
+        "id": "formal:axiom:Classical.choice",
+        "kind": "assumption",
+        "label": "Classical.choice",
+        "digest": null
+      },
+      {
+        "id": "formal:axiom:Quot.sound",
+        "kind": "assumption",
+        "label": "Quot.sound",
+        "digest": null
+      },
+      {
+        "id": "formal:axiom:propext",
+        "kind": "assumption",
+        "label": "propext",
+        "digest": null
+      },
+      {
+        "id": "tcb:leanchecker",
+        "kind": "tcb_component",
+        "label": "leanchecker",
+        "digest": null
+      },
+      {
+        "id": "tcb:nanoda",
+        "kind": "tcb_component",
+        "label": "nanoda",
+        "digest": null
+      },
+      {
+        "id": "tcb:lean4lean",
+        "kind": "tcb_component",
+        "label": "lean4lean",
+        "digest": null
+      },
+      {
+        "id": "tcb:arena-audit",
+        "kind": "tcb_component",
+        "label": "arena-audit",
+        "digest": null
+      },
+      {
+        "id": "tcb:ndjson-audit",
+        "kind": "tcb_component",
+        "label": "ndjson-audit",
+        "digest": null
+      },
+      {
+        "id": "artifact:verifier_bytecode",
+        "kind": "artifact",
+        "label": "verifier bytecode (NPAI v1 image) run by the judge's interpreter",
+        "digest": "sha256:5f4bca8672f92546eec7f3abb9d7b0982130c28e172842030b13d11aec154ec6"
+      },
+      {
+        "id": "tcb:npai_interpreter",
+        "kind": "tcb_component",
+        "label": "judge NPAI interpreter (npai-verify) vs ArenaCore.Interp (TCB#8)",
+        "digest": null
+      }
+    ],
+    "edges": [
+      {
+        "from": "formal:certificate",
+        "to": "formal:expected_statement",
+        "kind": "proves",
+        "status": "checked",
+        "evidence": [
+          "sha256:d8a1f190c981bb084881bcdfe1ad1e641205f92808e313daff7f3854ab56c998",
+          "sha256:f67341a1ae4e12e152fa3e4ca56eb12e5fbcd8cdfc36762784849a606ebf4da1",
+          "sha256:6c557668df4be6ff7e26fb09a56139d616a045cbb3e01c8645f94ee3a1ad78c8",
+          "sha256:7a314380d8112000d29e12557fe3b64d4f4922e29128fa1db3137cf9ebe86bce",
+          "sha256:5315c2b831ea3253be4db4c815e9f9d8a5f2e2b0ca45c6b30ac802d1cc0adaad",
+          "sha256:b82590a2f1e9a81b08031f929c859f34978d6716d68c0a4c07c36a26569c1a31",
+          "sha256:499902a526a80efd4c6c746ac6a549a798439b5db429e73f7563100662650fa3",
+          "sha256:b2428a6382087415c144ff4db3628fc98430b24d46a8688290b3443ea3d0aaba",
+          "sha256:2e048399612822418d37b51ec2a857beb7a2bc067d9f7a68954e3d0440f6f632",
+          "sha256:bc56a449907f7470b65c70efebb1436a075659a40e079f221c01deb8c9c0aad5",
+          "sha256:5092b6e2a98e05d49ef34115d77c4835e736868e7937c34cd3de638d125ae7db",
+          "sha256:74587eb19365c73dd3383279c2a1fb472dd7df8fa93e475d2049b1f4fadd64e8",
+          "sha256:739092f98e070b6506b74f51273e8a57cc48e18088353b5ed21e87680146a36e",
+          "sha256:213379a3225331aeabf47e48fb2757d5adc02b79245697e4fa3276324b4de156",
+          "sha256:c6897ddb60f80d5b07b94da5e972f455eaf0f9aec229ebb3a75e0413d6638440",
+          "sha256:50762012a0333baf1f1d6a31d9e472276030a8f27e0fce6fcfd077fc766caf90",
+          "sha256:b2675b2abd7b5f4190c48a37c8d9c92b802cd4f56a6a18ee7d31459e56e94bd6",
+          "sha256:9167e01ae82571e6d5ebf34d6b8ee5a07cc8ff6165c33dac29feef19d9fe9334",
+          "sha256:324795fb5d8b627575d11bcd5f68ee97e7066f67d590ad0e83a0234ba48b77a6",
+          "sha256:4c42a80caa4392ba126490683290f66c4d955b67b07c6b4fb779fc55da51700c",
+          "sha256:8bd13c9ee3eba4872323c4298b8cbfbf846a1355fcffb49209b3ae6816649a01",
+          "sha256:9402455152ecd4cfc980dd328ca1768dd4f776d44eda783dd91bd7e9d2db8553",
+          "sha256:b32946f016238da11ffcb6d8432948f0a047bb03e8e700ed188db93b0ffd5f5e",
+          "sha256:8a0438d556570d047dba3b2438801e740268169a5382498424159d101e4366a9",
+          "sha256:d787a517b504008ec0c99c7b2f2f80dc59fc2b24df2e0317da836658bdefd18b",
+          "sha256:e68d6050ef8ca48e7a955565e615c317a5c1386def7ed127f051c319e9d86529",
+          "sha256:8ad87419df627cad69ced640a73a8c22b49cadb6567a841ac27167e0cfcf700a",
+          "sha256:5a86d2540bcbfd3a24f40a0021764720c285180fa75403d552d3f5735cd6d0cc",
+          "sha256:257d533eb0830f0c7fcf64c4373c220ece73ecd372c68ccd841236067fc615e2",
+          "sha256:5c8b82789b99a8164c2f4369ae13eaba633d1b6fcb01eb2344efce45fe42ffb8",
+          "sha256:bfc2e2aacd3cfc0bd4c618f5b99c2c603a07a9873ecacfaff1b28fb7ba054cb0",
+          "sha256:301775bfd07efc21511d4d74893eb93bae71a42b90707d9e0c9f748d1f92924a",
+          "sha256:a9f43647db376cd9085cd172291453159710a135d64c317ee117a7657b1db979",
+          "sha256:007cc8834e804d877f595acd899fd2728f12126f68c38ba255ac7d5fc1aa18cb",
+          "sha256:37226e3fbcb26ab7eb25103f1c19beebc3454376ba494eaeab7b0903b810e890",
+          "sha256:a14e938556e166d6c0113a0f52987a69d0fe1d3be39f446d16b38d7e18395683",
+          "sha256:5dea04e5d94a7cc7806e21d7b419eb36201009e67b47e5ccf4193b204d9b5ce5",
+          "sha256:17569fa27f31a229010da3ded143161e084424ad791d5f4e5bd2099512913454",
+          "sha256:73145dcc7670593c0df5c94858b2b66ba0f11bf221b9982c7f11d4f5b38ab76b",
+          "sha256:117f482eddb492d72941d93c33af54c60072a75fbda1eca41b755d2a2ea35f69",
+          "sha256:3f3cccbd7ea93d628d46f33974a16bd891c90deced8d76b82dc4f318b6b97a6d",
+          "sha256:2474d2372c37620d53582f88b3b2d885a879af3df1e9a24266b9c0ed52e8ab43",
+          "sha256:1b7ab897404134ce08783696a7803d4e46a2c055b8d56907039845d887a0d392",
+          "sha256:cc617b7f95d5ac2fe5b7089d11fd0a30c94cc297572410b8f34286223299707f",
+          "sha256:2f7e55ddaadc2b4c68797b3d7c89f83c6c8bcf5c63943ac2e50ea930d386ddea",
+          "sha256:23b9c55b42462332b7e6ee630b8524199f55af888020ca4126d3191660aa6c3c",
+          "sha256:baa860f9e145e712416a8381879fe8f1b3dc4e9557a4ce874a35bd16286b5535",
+          "sha256:145a250a59a1a41952dff9b4954476808ae2f46481d4cdb2fac05dc64c0e3e18",
+          "sha256:2e290c8e921f5426279a54d646a0f276390918ead69e0048e95d2d22f277636c",
+          "sha256:8d13a61525fe9b160ba75b76ab3eee6a1bc7689f9ac04f4bd42e72af22fc1743",
+          "sha256:cc8c77c5af83c522b7968df05c36973e6a115d8960907c8fd21619fa27abcd53",
+          "sha256:e346b33e075398ff61b99f15a55ea9063e134e04b19f14e89f7131a396812620",
+          "sha256:be7010cddd039570d58e560d7ddb4aa4d67b4faf4dc78f32b12e4d56e29a6339",
+          "sha256:2c199496308baab47f4ead16ac25a57c81e59efadcaaa4f6371ef2586d38bd60",
+          "sha256:84deb7316301f016ac471dd165e11e9ec3afbff3f8429b91cc059e400250dae2",
+          "sha256:2b0214f7c0dfffea18ec7e44e5af3f8e3b96d241b1288a5edd2134a8b4925490",
+          "sha256:b670b9caaed4d64e9c1f17c335cc2263aaeb3549dd907a5196f111138e506cee",
+          "sha256:ad477343f69982e757ea2a69354f6b0d3c57b0e93c1f66dbcbcef1f909bded32",
+          "sha256:208f7a4eb3afa950a2612e865af64cd7871acdd4f9e0c239a3b559d4659ab3d2",
+          "sha256:5b7905029808f6d566445276964e69407a3002eb44ae2fd3aa1357f418971f69",
+          "sha256:6c9f2e8f3fc1dd92cfb06e2ee42eb31a2fef75ea3a372f9d99f08658e76de948",
+          "sha256:324dcda3f734055cc7afda8e7198a0114a5c8b8657c174e46d32c8da31229d0f",
+          "sha256:f2361c61f0523a9a4bc5bc389fbe31f793cc1e20a253142a82688cd0b9c9c903",
+          "sha256:0a8ee0e487e4ef23d624774bde49df9f68263e0926d3409a426ff64441b117c8",
+          "sha256:3cecb55fc0171d4b909196edaf4626690a447c66ef24c4068cab1d1002519dab",
+          "sha256:6a8b1b825898b1a86d3d9527c09d3427271bd7acc0a58f32180d43d23fa06413",
+          "sha256:0047463eb7d18c09b6596f6597d75ac4226a8593b046e2e586fb82aca8864159",
+          "sha256:cd25f48cb6d1e7852a28c3b967c1966919a7765490f4e184c92b0a6a1b77136a",
+          "sha256:91b442cc81dc94ab446fb849c67dff50874c5cbedaca0ffd4e710027fbbd9a9b",
+          "sha256:2f7d945f4bf5040c6d734607650fa7755f9b3596af72cfd324b2ceb818e76fa2",
+          "sha256:8af265701a9bf652b5ee66d3374abdd8817c3342b3afedcdbbf4fd4cf152f64c",
+          "sha256:04b6a91730fa336068cf2c51e94be595dff1c7868a85b91a1bf9a7269f0a5c5f",
+          "sha256:fe397fce23a89cb2bb4c7b88a93a96c73ba01bfb72fff2f52d78950127e335e9",
+          "sha256:0218b62e01592ab1a17c15d2606a2c686b254a0c3f95b51f0cbad47bc917ec76",
+          "sha256:397b2528ae299e69c5a1b9cdfb2884ce50e2deaf0b4671ec04f991e166d256c8",
+          "sha256:bca50cd604d29f1ab4eb85196d034eaa60a879e9d1244335d7af30220e1d27f9",
+          "sha256:050245a4f9a7e4b6e089342776dd21aa99a2c106a208f2f585cbf370346cd621",
+          "sha256:99d80cce120fb81f950373fe4539cd6f38f522adf3ce3b4bee904190ee586893",
+          "sha256:1b74c71cf70626eb029fae72d281f7a505579cc2e467cc4a72125fc8794303ab",
+          "sha256:29be32912ab85d0b4fe770162e832c0fa166d3e88f27c18a7b564bf5fe1c7e10",
+          "sha256:8ba01e82007f78ec8f5f30373d9fbff3ac65e95bdaedd900cd2de9f44597f941",
+          "sha256:47a04df13d099ef70e414f54b076a56e3a5c332f1ab4e85a38f27870d8e92a24",
+          "sha256:624f3d1182e593a5e7119a62aa78f063162ecb6bae2269f058c4a9c51150f036",
+          "sha256:90ef5b7499bb8a8dcd2a9ff04852281928d5ab66f7daa80a62941cf14eaf96f7",
+          "sha256:1c8b240cc08862bc77e4a3eb8f0be1e5d274ca9d2f80f7077580fe74cdca0ce8",
+          "sha256:a01555ca6d5b69f733b9a43d3c9d3cb2e09d7e27983d2894b9564784730358c3",
+          "sha256:0073d658c2c425febef578af4923a6e13e7154d2520e793529398b05725c5ed6",
+          "sha256:95317bf86c9470f8b06cb281476ec611fcda53272c0f707a2ae8602a220a9ebf",
+          "sha256:655ceadbfa0f92eacb1e9e112a71b94d82aaeb853b9f5d515535cc16eb5c7a82",
+          "sha256:604c82e9915c321f49d9c92d1b7ac0053f037ee2862b2c8e512cc25fb0e0bd2b",
+          "sha256:d002f6f78a0fcb37551d6f59c30c1a28b89324fc8a634682c286537d88aba87d",
+          "sha256:9b44b8396698dcc9e3108014982f49b72a0d0eae5b236d237a0226a82a4ed2a4",
+          "sha256:c3edacad4273ce8fe2109e6907b802792c91115cd190739398a707e877e44201",
+          "sha256:94b24491e7c387bde45215494e73e3d2a654c87c93728004638f1d958e4c0e9b",
+          "sha256:452589108325bdebed156487d34ad55f297f554f78f9a1ab4677cbffaef152fb",
+          "sha256:4f5d6b5cf930517466f95ee2398e3972200d2ee688ac53ec8a11751611742a9c",
+          "sha256:b2f9d184e4ad414e8702379061898466903e5ca506176ea05d3c9af096dee688",
+          "sha256:aa63cec1945eee9c2b629081407748fc205b0fdabc4287eac378f61c14ab33d0",
+          "sha256:b293dcd935b9e2233e728a2a8cd33103673bdd539402c6d90b3307198556e70f",
+          "sha256:31f6ccde2d61b03e4e1e8d5222b487b4b0c1e3e55ccc29fc65cbd089a064c81f",
+          "sha256:0c9d496cb5c11db3667cab1d462766a15734457ec96261c13f6519e4000b7119",
+          "sha256:2e4862d5d29a9504f597ff265e3ffe65a289e4ff3bab966983715b79a0ea7395",
+          "sha256:0aaec6983fda410b6ce0259b1a7ee32098ce2a37b7ce0b76a06e5e2de9cf1496",
+          "sha256:46c90c1a8c970e4d2078d0f0f24f90fe205236a07b466f66b8d8759d925e16d1",
+          "sha256:1e12604df67cb53d58aebaeec6261e91b6d228f0a093006f4b3ea076d8a4f3a3",
+          "sha256:74f8f06697328d30aa8b5d0d03abf92fe2e5e802a8cb2409620457edbd616378"
+        ],
+        "note": "syntactic Expr equality of the certificate type and the reference statement"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:formal-core",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:0dcb09c8995f826e8783dd4c96271c265b92cc1dc1031e4e37082c4107847d0b"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:near-spec",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:7e66e06afb81ec2d12268e64f2e0406daa130e2934460a8fd563ad78d78fb732"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:Classical.choice",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:Quot.sound",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:propext",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:leanchecker",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted (101 modules in 101 runs)"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:nanoda",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted ()"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:lean4lean",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted (101 modules in 101 runs)"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:arena-audit",
+        "kind": "rechecked_by",
+        "status": "missing",
+        "evidence": [],
+        "note": "completed ()"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:ndjson-audit",
+        "kind": "rechecked_by",
+        "status": "missing",
+        "evidence": [],
+        "note": "completed (14163 decls)"
+      },
+      {
+        "from": "artifact:verifier_bytecode",
+        "to": "formal:expected_statement",
+        "kind": "implements",
+        "status": "checked",
+        "evidence": [
+          "sha256:5f4bca8672f92546eec7f3abb9d7b0982130c28e172842030b13d11aec154ec6"
+        ],
+        "note": "approved-interpreter route: the statement pins `.interp sha256(bytecode)` and the certificate proves the obligations about `interpOracleVerifier` on this exact image (kernel-checked; no compiler involved)"
+      },
+      {
+        "from": "artifact:verifier_bytecode",
+        "to": "tcb:npai_interpreter",
+        "kind": "executed_by",
+        "status": "tested",
+        "evidence": [
+          "sha256:5f4bca8672f92546eec7f3abb9d7b0982130c28e172842030b13d11aec154ec6"
+        ],
+        "note": "interpreter agreement with ArenaCore.Interp is differentially tested, not checked (TCB#8)"
+      }
+    ]
+  },
+  "native_verifier": null,
+  "model": null,
+  "warnings": [
+    "source scan (supplementary): ReexecNpai/Spec/RecAux0.lean:31 uses partial"
+  ],
+  "timings": [
+    {
+      "step": "reference:parse",
+      "wall_ms": 812
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Basic",
+      "wall_ms": 651
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Sem",
+      "wall_ms": 502
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Correct",
+      "wall_ms": 1270
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Adequacy",
+      "wall_ms": 1121
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Asm",
+      "wall_ms": 453
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Encode",
+      "wall_ms": 868
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Hoare",
+      "wall_ms": 386
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Exe",
+      "wall_ms": 243
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Lib.Base",
+      "wall_ms": 211
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Lib.Loop",
+      "wall_ms": 355
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Lib.Mem",
+      "wall_ms": 1483
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Lib.Num",
+      "wall_ms": 604
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Lib.Word",
+      "wall_ms": 3567
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.WP",
+      "wall_ms": 247
+    },
+    {
+      "step": "candidate:elaborate:NpaiIR.Lib.NumSpec",
+      "wall_ms": 3004
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Codec",
+      "wall_ms": 295
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Canon",
+      "wall_ms": 1254
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Layout",
+      "wall_ms": 167
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Prog.Common",
+      "wall_ms": 144
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Prog.Front",
+      "wall_ms": 199
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Prog.Trie",
+      "wall_ms": 215
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Prog.Batch",
+      "wall_ms": 254
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Prog.Final",
+      "wall_ms": 161
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Program",
+      "wall_ms": 137
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.Base",
+      "wall_ms": 485
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.Front",
+      "wall_ms": 813
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RcptPos",
+      "wall_ms": 407
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Trie.Arena",
+      "wall_ms": 303
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Trie.Lemmas",
+      "wall_ms": 575
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Roundtrip",
+      "wall_ms": 1272
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.State",
+      "wall_ms": 233
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.AccountId",
+      "wall_ms": 12682
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RcptAux1",
+      "wall_ms": 13413
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RcptAux2",
+      "wall_ms": 690
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RcptAux3",
+      "wall_ms": 521
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RcptAux4",
+      "wall_ms": 1814
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RcptAux5",
+      "wall_ms": 1393
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RcptAux6",
+      "wall_ms": 943
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RcptAux7",
+      "wall_ms": 456
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.Receipts",
+      "wall_ms": 260
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.ParseInv",
+      "wall_ms": 197
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux0",
+      "wall_ms": 953
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux1",
+      "wall_ms": 1013
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux2",
+      "wall_ms": 1127
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux3",
+      "wall_ms": 629
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux4",
+      "wall_ms": 3964
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux6",
+      "wall_ms": 858
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux7",
+      "wall_ms": 560
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux5",
+      "wall_ms": 32079
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux8",
+      "wall_ms": 1768
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux9",
+      "wall_ms": 1134
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux11",
+      "wall_ms": 1613
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux12",
+      "wall_ms": 3696
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux13",
+      "wall_ms": 692
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux10",
+      "wall_ms": 14691
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux14",
+      "wall_ms": 979
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux15",
+      "wall_ms": 1426
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux16",
+      "wall_ms": 1000
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux17",
+      "wall_ms": 1080
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux18",
+      "wall_ms": 1403
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux19",
+      "wall_ms": 1367
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux20",
+      "wall_ms": 27177
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux21",
+      "wall_ms": 15754
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux22",
+      "wall_ms": 26690
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux23",
+      "wall_ms": 1229
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux24",
+      "wall_ms": 908
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux25",
+      "wall_ms": 576
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux26",
+      "wall_ms": 1256
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux27",
+      "wall_ms": 693
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux28",
+      "wall_ms": 2808
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux29",
+      "wall_ms": 3050
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux30",
+      "wall_ms": 8449
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux31",
+      "wall_ms": 605
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.RecAux32",
+      "wall_ms": 725
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.Record",
+      "wall_ms": 541
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.ParseAux1",
+      "wall_ms": 327
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.ParseAux2",
+      "wall_ms": 455
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.ParseAux3",
+      "wall_ms": 225
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.ParseAux4",
+      "wall_ms": 224
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.ParseAux5",
+      "wall_ms": 567
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.Parse",
+      "wall_ms": 7799
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.HashAux",
+      "wall_ms": 1185
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.Hash",
+      "wall_ms": 4014
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.BatchAux1",
+      "wall_ms": 1967
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.BatchAux2",
+      "wall_ms": 7352
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.BatchAux3",
+      "wall_ms": 12410
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.WalkAux",
+      "wall_ms": 4037
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.WalkAux2",
+      "wall_ms": 267
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.WalkAux3",
+      "wall_ms": 28933
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.WalkAux4",
+      "wall_ms": 4628
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.Walk",
+      "wall_ms": 2205
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.BatchAux4",
+      "wall_ms": 6372
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.Batch",
+      "wall_ms": 765
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.FinalAux",
+      "wall_ms": 6251
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Spec.Final",
+      "wall_ms": 152
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Model",
+      "wall_ms": 132
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Main",
+      "wall_ms": 2373
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Obligations",
+      "wall_ms": 622
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.PublicBin",
+      "wall_ms": 169
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.CodeDigest",
+      "wall_ms": 98077
+    },
+    {
+      "step": "candidate:elaborate:ReexecNpai.Certificate",
+      "wall_ms": 640
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Basic",
+      "wall_ms": 328
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Sem",
+      "wall_ms": 256
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Correct",
+      "wall_ms": 361
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Adequacy",
+      "wall_ms": 551
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Asm",
+      "wall_ms": 156
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Encode",
+      "wall_ms": 287
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Hoare",
+      "wall_ms": 247
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Exe",
+      "wall_ms": 161
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Lib.Base",
+      "wall_ms": 181
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Lib.Loop",
+      "wall_ms": 246
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Lib.Mem",
+      "wall_ms": 803
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Lib.Num",
+      "wall_ms": 449
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Lib.Word",
+      "wall_ms": 602
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.WP",
+      "wall_ms": 165
+    },
+    {
+      "step": "recheck:leanchecker:NpaiIR.Lib.NumSpec",
+      "wall_ms": 1542
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Codec",
+      "wall_ms": 166
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Canon",
+      "wall_ms": 280
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Layout",
+      "wall_ms": 157
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Prog.Common",
+      "wall_ms": 159
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Prog.Front",
+      "wall_ms": 154
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Prog.Trie",
+      "wall_ms": 163
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Prog.Batch",
+      "wall_ms": 158
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Prog.Final",
+      "wall_ms": 159
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Program",
+      "wall_ms": 157
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.Base",
+      "wall_ms": 169
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.Front",
+      "wall_ms": 345
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RcptPos",
+      "wall_ms": 226
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Trie.Arena",
+      "wall_ms": 181
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Trie.Lemmas",
+      "wall_ms": 347
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Roundtrip",
+      "wall_ms": 785
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.State",
+      "wall_ms": 182
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.AccountId",
+      "wall_ms": 830
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RcptAux1",
+      "wall_ms": 963
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RcptAux2",
+      "wall_ms": 258
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RcptAux3",
+      "wall_ms": 344
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RcptAux4",
+      "wall_ms": 354
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RcptAux5",
+      "wall_ms": 258
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RcptAux6",
+      "wall_ms": 366
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RcptAux7",
+      "wall_ms": 327
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.Receipts",
+      "wall_ms": 190
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.ParseInv",
+      "wall_ms": 166
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux0",
+      "wall_ms": 480
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux1",
+      "wall_ms": 477
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux2",
+      "wall_ms": 798
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux3",
+      "wall_ms": 502
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux4",
+      "wall_ms": 649
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux6",
+      "wall_ms": 619
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux7",
+      "wall_ms": 454
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux5",
+      "wall_ms": 1604
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux8",
+      "wall_ms": 992
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux9",
+      "wall_ms": 857
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux11",
+      "wall_ms": 938
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux12",
+      "wall_ms": 587
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux13",
+      "wall_ms": 492
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux10",
+      "wall_ms": 1149
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux14",
+      "wall_ms": 689
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux15",
+      "wall_ms": 1013
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux16",
+      "wall_ms": 755
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux17",
+      "wall_ms": 699
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux18",
+      "wall_ms": 823
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux19",
+      "wall_ms": 560
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux20",
+      "wall_ms": 1337
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux21",
+      "wall_ms": 852
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux22",
+      "wall_ms": 1212
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux23",
+      "wall_ms": 915
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux24",
+      "wall_ms": 713
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux25",
+      "wall_ms": 466
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux26",
+      "wall_ms": 963
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux27",
+      "wall_ms": 564
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux28",
+      "wall_ms": 1656
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux29",
+      "wall_ms": 1705
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux30",
+      "wall_ms": 584
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux31",
+      "wall_ms": 486
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.RecAux32",
+      "wall_ms": 537
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.Record",
+      "wall_ms": 446
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.ParseAux1",
+      "wall_ms": 229
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.ParseAux2",
+      "wall_ms": 321
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.ParseAux3",
+      "wall_ms": 176
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.ParseAux4",
+      "wall_ms": 213
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.ParseAux5",
+      "wall_ms": 467
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.Parse",
+      "wall_ms": 1060
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.HashAux",
+      "wall_ms": 700
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.Hash",
+      "wall_ms": 801
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.BatchAux1",
+      "wall_ms": 1016
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.BatchAux2",
+      "wall_ms": 2064
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.BatchAux3",
+      "wall_ms": 2911
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.WalkAux",
+      "wall_ms": 962
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.WalkAux2",
+      "wall_ms": 251
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.WalkAux3",
+      "wall_ms": 2503
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.WalkAux4",
+      "wall_ms": 1241
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.Walk",
+      "wall_ms": 929
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.BatchAux4",
+      "wall_ms": 3273
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.Batch",
+      "wall_ms": 239
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.FinalAux",
+      "wall_ms": 1531
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Spec.Final",
+      "wall_ms": 159
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Model",
+      "wall_ms": 153
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Main",
+      "wall_ms": 2176
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Obligations",
+      "wall_ms": 512
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.PublicBin",
+      "wall_ms": 152
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.CodeDigest",
+      "wall_ms": 97123
+    },
+    {
+      "step": "recheck:leanchecker:ReexecNpai.Certificate",
+      "wall_ms": 568
+    },
+    {
+      "step": "recheck:lean4export",
+      "wall_ms": 6309
+    },
+    {
+      "step": "recheck:nanoda",
+      "wall_ms": 106207
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Basic",
+      "wall_ms": 426
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Sem",
+      "wall_ms": 255
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Correct",
+      "wall_ms": 356
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Adequacy",
+      "wall_ms": 810
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Asm",
+      "wall_ms": 138
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Encode",
+      "wall_ms": 317
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Hoare",
+      "wall_ms": 281
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Exe",
+      "wall_ms": 147
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Lib.Base",
+      "wall_ms": 160
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Lib.Loop",
+      "wall_ms": 296
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Lib.Mem",
+      "wall_ms": 1316
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Lib.Num",
+      "wall_ms": 673
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Lib.Word",
+      "wall_ms": 881
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.WP",
+      "wall_ms": 148
+    },
+    {
+      "step": "recheck:lean4lean:NpaiIR.Lib.NumSpec",
+      "wall_ms": 2754
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Codec",
+      "wall_ms": 147
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Canon",
+      "wall_ms": 314
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Layout",
+      "wall_ms": 141
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Prog.Common",
+      "wall_ms": 139
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Prog.Front",
+      "wall_ms": 137
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Prog.Trie",
+      "wall_ms": 139
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Prog.Batch",
+      "wall_ms": 133
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Prog.Final",
+      "wall_ms": 134
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Program",
+      "wall_ms": 136
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.Base",
+      "wall_ms": 139
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.Front",
+      "wall_ms": 376
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RcptPos",
+      "wall_ms": 243
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Trie.Arena",
+      "wall_ms": 167
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Trie.Lemmas",
+      "wall_ms": 406
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Roundtrip",
+      "wall_ms": 1109
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.State",
+      "wall_ms": 157
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.AccountId",
+      "wall_ms": 1207
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RcptAux1",
+      "wall_ms": 1411
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RcptAux2",
+      "wall_ms": 314
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RcptAux3",
+      "wall_ms": 450
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RcptAux4",
+      "wall_ms": 424
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RcptAux5",
+      "wall_ms": 285
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RcptAux6",
+      "wall_ms": 468
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RcptAux7",
+      "wall_ms": 448
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.Receipts",
+      "wall_ms": 236
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.ParseInv",
+      "wall_ms": 166
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux0",
+      "wall_ms": 481
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux1",
+      "wall_ms": 515
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux2",
+      "wall_ms": 1003
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux3",
+      "wall_ms": 516
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux4",
+      "wall_ms": 785
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux6",
+      "wall_ms": 772
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux7",
+      "wall_ms": 415
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux5",
+      "wall_ms": 2129
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux8",
+      "wall_ms": 1310
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux9",
+      "wall_ms": 1077
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux11",
+      "wall_ms": 1240
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux12",
+      "wall_ms": 616
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux13",
+      "wall_ms": 449
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux10",
+      "wall_ms": 1490
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux14",
+      "wall_ms": 830
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux15",
+      "wall_ms": 1357
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux16",
+      "wall_ms": 1020
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux17",
+      "wall_ms": 875
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux18",
+      "wall_ms": 1248
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux19",
+      "wall_ms": 658
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux20",
+      "wall_ms": 2030
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux21",
+      "wall_ms": 1074
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux22",
+      "wall_ms": 1696
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux23",
+      "wall_ms": 1372
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux24",
+      "wall_ms": 937
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux25",
+      "wall_ms": 465
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux26",
+      "wall_ms": 1322
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux27",
+      "wall_ms": 622
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux28",
+      "wall_ms": 3074
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux29",
+      "wall_ms": 2829
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux30",
+      "wall_ms": 636
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux31",
+      "wall_ms": 506
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.RecAux32",
+      "wall_ms": 639
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.Record",
+      "wall_ms": 433
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.ParseAux1",
+      "wall_ms": 240
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.ParseAux2",
+      "wall_ms": 432
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.ParseAux3",
+      "wall_ms": 171
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.ParseAux4",
+      "wall_ms": 245
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.ParseAux5",
+      "wall_ms": 713
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.Parse",
+      "wall_ms": 1538
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.HashAux",
+      "wall_ms": 1056
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.Hash",
+      "wall_ms": 1351
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.BatchAux1",
+      "wall_ms": 1747
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.BatchAux2",
+      "wall_ms": 3622
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.BatchAux3",
+      "wall_ms": 5271
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.WalkAux",
+      "wall_ms": 1597
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.WalkAux2",
+      "wall_ms": 250
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.WalkAux3",
+      "wall_ms": 5238
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.WalkAux4",
+      "wall_ms": 3430
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.Walk",
+      "wall_ms": 1970
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.BatchAux4",
+      "wall_ms": 8990
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.Batch",
+      "wall_ms": 356
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.FinalAux",
+      "wall_ms": 3571
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Spec.Final",
+      "wall_ms": 194
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Model",
+      "wall_ms": 243
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Main",
+      "wall_ms": 4679
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Obligations",
+      "wall_ms": 917
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.PublicBin",
+      "wall_ms": 263
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.CodeDigest",
+      "wall_ms": 133451
+    },
+    {
+      "step": "recheck:lean4lean:ReexecNpai.Certificate",
+      "wall_ms": 562
+    },
+    {
+      "step": "audit:arena-audit",
+      "wall_ms": 1326
+    },
+    {
+      "step": "audit:ndjson",
+      "wall_ms": 6735
+    }
+  ]
+}

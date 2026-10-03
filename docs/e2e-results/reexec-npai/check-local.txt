@@ -1,0 +1,68 @@
+=== LOCAL CHECK — NOT AN OFFICIAL VERDICT ===
+challenge: chl_3be93793610370275ae40f36a475f01f
+package:   sha256:544b598faca072f500a108b5da1bb7bfda7d2cc2301add8c491ad6cc3dfdfc5d
+network isolated: true
+
+[PASS   ] PKG_WELLFORMED
+          package sha256:544b598faca072f500a108b5da1bb7bfda7d2cc2301add8c491ad6cc3dfdfc5d (777 files, 926330 bytes packed, 7794061 bytes expanded)
+[SKIPPED] AXIOM_AUDIT
+          formal gates are not run locally; lexical scan of 100 .lean files found no sorry/admit/native_decide/extern/axiom
+          the judge elaborates the certificate in a clean checker image, checks the theorem type, audits transitive axioms and re-checks with independent kernels
+[PASS   ] BUILD_REPRODUCIBLE
+          out/prepare sha256:53c8c08b603b7896d27674c5db94037bcd288b2084156bbe9f6b5296e69d5566
+          out/prove sha256:e25f0087622112d037e134152ee61e9408119a6205ecb1e80e4b58a5bccea650
+          out/verifier.npai sha256:5f4bca8672f92546eec7f3abb9d7b0982130c28e172842030b13d11aec154ec6
+          out/verify sha256:0dffcf769208a299e35af5a936cc3740c5687cc845b99215ec490f935f2479c2
+[PASS   ] CONFORMANCE_DIFFERENTIAL
+[PASS   ] PROVER_RELIABILITY
+[PASS   ] ADVERSARIAL_PROOFS
+[PASS   ] RESOURCE_LIMITS
+          timings are from this machine and are informational only
+          prepare: 5.41741ms, public_dir 1 files / 110 bytes
+          example-tierA: prove 5.317672ms, proof 862 bytes
+          example-tierA: verify 5.297915ms
+          example-tierB: prove 5.318003ms, proof 862 bytes
+          example-tierB: verify 5.341137ms
+          s20261003-v0: prove 5.293687ms, proof 4839 bytes
+          s20261003-v0: verify 5.292174ms
+          s20261003-v1: prove 5.301171ms, proof 3994 bytes
+          s20261003-v1: verify 5.286734ms
+          s20261003-v10: prove 5.283558ms, proof 1274 bytes
+          s20261003-v10: verify 5.319085ms
+          s20261003-v11: prove 5.312693ms, proof 48362 bytes
+          s20261003-v11: verify 5.304287ms
+          s20261003-v12: prove 5.294669ms, proof 6072 bytes
+          s20261003-v12: verify 5.29499ms
+          s20261003-v13: prove 5.290811ms, proof 4979 bytes
+          s20261003-v13: verify 5.286694ms
+          s20261003-v14: prove 5.282256ms, proof 1641 bytes
+          s20261003-v14: verify 5.292304ms
+          s20261003-v15: prove 5.342559ms, proof 9758 bytes
+          s20261003-v15: verify 5.28473ms
+          s20261003-v16: prove 5.321319ms, proof 5159 bytes
+          s20261003-v16: verify 5.297615ms
+          s20261003-v17: prove 5.302363ms, proof 49248 bytes
+          s20261003-v17: verify 5.29518ms
+          s20261003-v2: prove 5.354952ms, proof 7203 bytes
+          s20261003-v2: verify 5.341136ms
+          s20261003-v3: prove 5.284299ms, proof 9449 bytes
+          s20261003-v3: verify 5.287957ms
+          s20261003-v4: prove 5.296222ms, proof 1420 bytes
+          s20261003-v4: verify 5.302894ms
+          s20261003-v5: prove 5.286314ms, proof 73570 bytes
+          s20261003-v5: verify 5.305088ms
+          s20261003-v6: prove 5.324164ms, proof 6943 bytes
+          s20261003-v6: verify 5.285311ms
+          s20261003-v7: prove 5.296893ms, proof 4772 bytes
+          s20261003-v7: verify 5.321028ms
+          s20261003-v8: prove 5.300379ms, proof 5025 bytes
+          s20261003-v8: verify 5.303936ms
+          s20261003-v9: prove 5.285982ms, proof 8095 bytes
+          s20261003-v9: verify 5.295631ms
+
+result: local checks passed (formal gates were NOT run; only the judge's verdict counts)
+=== LOCAL CHECK — NOT AN OFFICIAL VERDICT ===
+
+real	0m37.544s
+user	1m25.206s
+sys	0m6.574s

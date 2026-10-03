@@ -1,0 +1,62 @@
+== Firecracker worker (production isolation, tier cap formal)
+NEAR decision=REJECTED tier=formal accepted=False
+  PKG_WELLFORMED               PASS                                        'package TreeDigest sha256:9b624a3d5a0d212b5c61dd6660a96e0dc1f487856b810d8aece4c5d514e2c419; 9 files,'
+  BUILD_REPRODUCIBLE           PASS                                        'two independent builds produced identical trees sha256:ff1161b3f5575171f69f98dafe6d717a0e99dec2ef8fa'
+  ARTIFACT_BINDING             FAIL     CERTIFICATE_MISSING                'candidate.toml has no [formal] section'
+  FORMAL_SEMANTIC_SOUNDNESS    FAIL     CERTIFICATE_MISSING                'candidate.toml has no [formal] section'
+  FORMAL_SEMANTIC_COMPLETENESS FAIL     CERTIFICATE_MISSING                'candidate.toml has no [formal] section'
+  FORMAL_CRYPTO_SOUNDNESS      FAIL     CERTIFICATE_MISSING                'candidate.toml has no [formal] section'
+  FORMAL_IMPL_CONNECTION       FAIL     CERTIFICATE_MISSING                'candidate.toml has no [formal] section'
+  AXIOM_AUDIT                  FAIL     CERTIFICATE_MISSING                'candidate.toml has no [formal] section'
+ok   NEAR submission without a certificate is REJECTED
+ok   built in Firecracker with the pinned toolchain image
+ok   production isolation: no DEMO_ONLY
+ok   FORMAL_CHECK: CERTIFICATE_MISSING
+ok   never accepted
+E2E OK (NEAR / firecracker): sub_e873aa42c97c4aec88836a7134d8b477
+
+== adversarial live suite against the same server
+== local suite well-formedness (cargo) ==
+ok  wrong-verification-key           decision=Rejected family=artifact-binding gates=[ArtifactBinding]
+ALL 35 CASES WELL-FORMED
+
+== hostile e2e driver ==
+# LIVE e2e against http://127.0.0.1:18491, challenge chl_3be93793610370275ae40f36a475f01f, target=near-formal
+
+ok   additional-axiom: OK decision=REJECTED gates_failed=['AXIOM_AUDIT'] reasons=['FORBIDDEN_AXIOM']
+skip always-accept-verifier: target near-formal not in ['demo']
+skip always-reject-verifier: target near-formal not in ['demo']
+skip archive-bomb: target near-formal not in ['demo']
+skip archive-device-file: target near-formal not in ['demo']
+skip archive-hardlink: target near-formal not in ['demo']
+skip archive-symlink-escape: target near-formal not in ['demo']
+skip archive-zip-slip: target near-formal not in ['demo']
+skip background-daemon: target near-formal not in ['demo']
+skip benchmark-shortcut: target near-formal not in ['demo']
+skip build-dependency-substitution: target near-formal not in ['demo']
+skip build-network-fetch: target near-formal not in ['demo']
+skip build-nonreproducible: target near-formal not in ['demo']
+ok   changed-security-parameters: OK decision=REJECTED gates_failed=['FORMAL_CRYPTO_SOUNDNESS'] reasons=['THEOREM_TYPE_MISMATCH']
+ok   false-premise: OK decision=REJECTED gates_failed=['FORMAL_SEMANTIC_SOUNDNESS'] reasons=['THEOREM_TYPE_MISMATCH']
+skip forged-pass-output: target near-formal not in ['demo']
+skip forged-timing: target near-formal not in ['demo']
+ok   malicious-executable: OK decision=REJECTED gates_failed=['ARTIFACT_BINDING'] reasons=['ARTIFACT_BINDING_FAILED']
+ok   missing-certificate: OK decision=REJECTED gates_failed=['FORMAL_SEMANTIC_SOUNDNESS'] reasons=['CERTIFICATE_MISSING']
+ok   native-decide-certificate: OK decision=REJECTED gates_failed=['AXIOM_AUDIT'] reasons=['NATIVE_EVAL_FOUND']
+ok   near-reexec-malicious-executable: OK decision=REJECTED gates_failed=['ARTIFACT_BINDING'] reasons=['ARTIFACT_BINDING_FAILED']
+ok   near-reexec-skip-refund: OK decision=REJECTED gates_failed=['FORMAL_SEMANTIC_SOUNDNESS', 'FORMAL_CRYPTO_SOUNDNESS'] reasons=['THEOREM_TYPE_MISMATCH']
+skip precomputed-fixture-table: target near-formal not in ['demo']
+ok   restricted-domain: OK decision=REJECTED gates_failed=['FORMAL_SEMANTIC_SOUNDNESS'] reasons=['THEOREM_TYPE_MISMATCH']
+skip sandbox-escape-filesystem: target near-formal not in ['demo']
+skip sandbox-escape-network: target near-formal not in ['demo']
+skip sandbox-fork-bomb: target near-formal not in ['demo']
+skip sandbox-ptrace-proc: target near-formal not in ['demo']
+ok   shadowed-definition: OK decision=REJECTED gates_failed=['AXIOM_AUDIT'] reasons=['SHADOWED_DEFINITION']
+ok   sorry-certificate: OK decision=REJECTED gates_failed=['AXIOM_AUDIT'] reasons=['SORRY_FOUND']
+ok   stale-certificate: OK decision=REJECTED gates_failed=['ARTIFACT_BINDING'] reasons=['ARTIFACT_BINDING_FAILED', 'THEOREM_TYPE_MISMATCH']
+skip ui-injection-logs: target near-formal not in ['demo']
+skip ui-injection-manifest: target near-formal not in ['demo']
+skip weak-public-input-binding: target near-formal not in ['demo']
+ok   wrong-verification-key: OK decision=REJECTED gates_failed=['ARTIFACT_BINDING'] reasons=['ARTIFACT_BINDING_FAILED', 'THEOREM_TYPE_MISMATCH']
+
+E2E OK: all 13 run hostile cases REJECTED with the expected gates/reasons; none admitted or ranked; injection payloads sanitized (22 skipped for target=near-formal)

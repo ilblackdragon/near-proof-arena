@@ -1,0 +1,20 @@
+# Offline project used by build-recipe/build.sh to elaborate the program
+# definition (formal/ReexecNpai/Program.lean, formal/NpaiIR) against the
+# vendored trusted packages and export the bytecode image.
+name = "reexec-npai-export"
+version = "0.1.0"
+defaultTargets = ["ReexecNpaiProgram"]
+
+[[lean_lib]]
+name = "ReexecNpaiProgram"
+srcDir = "../../formal"
+roots = ["ReexecNpai.Program"]
+globs = ["ReexecNpai.Program", "ReexecNpai.Prog.+", "ReexecNpai.Layout", "ReexecNpai.Canon", "ReexecNpai.Codec", "NpaiIR.+"]
+
+[[require]]
+name = "NearSpec"
+path = "../lean-vendor/spec/lean"
+
+[[require]]
+name = "ArenaCore"
+path = "../lean-vendor/formal-core"

@@ -14,6 +14,9 @@
 #                     tier) with the pinned build-toolchain and lean-checker images,
 #                     and drive a NEAR-challenge submission through it
 #   --hostile-near    run the hostile suite against the NEAR challenge (implies --fc)
+#   --target T        hostile suite target: `demo` (default; = --hostile) or
+#                     `near-formal` (= --hostile-near): cases whose expect.json
+#                     `targets` exclude T are skipped
 #
 # The formal NEAR challenge (chl_3be93793610370275ae40f36a475f01f = v1-2, signed with
 # challenges/governance-local.pub) is always registered; without --fc only the
@@ -40,6 +43,7 @@ HOSTILE_NEAR=0
 KEEP=0
 HOSTILE=0
 HOSTILE_ONLY=""
+TARGET=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --keep) KEEP=1 ;;
@@ -47,6 +51,13 @@ while [ $# -gt 0 ]; do
     --hostile-only) HOSTILE=1; HOSTILE_ONLY="$2"; shift ;;
     --fc) FC=1 ;;
     --hostile-near) FC=1; HOSTILE_NEAR=1 ;;
+    --target)
+      TARGET="$2"; shift
+      case "$TARGET" in
+        demo) HOSTILE=1 ;;
+        near-formal) FC=1; HOSTILE_NEAR=1 ;;
+        *) echo "--target must be demo or near-formal" >&2; exit 2 ;;
+      esac ;;
     *) echo "unknown option $1" >&2; exit 2 ;;
   esac
   shift
@@ -96,7 +107,7 @@ env ARENA_DATABASE_URL="$DBURL" \
   ARENA_BIND_ADDR="127.0.0.1:$PORT" ARENA_WORKER_API_BIND_ADDR="127.0.0.1:$WPORT" \
   ARENA_ADMIN_TOKEN="e2e-admin" ARENA_BOOTSTRAP_AGENT_TOKEN="$AGENT_TOKEN" ARENA_WORKER_TOKEN="$WORKER_TOKEN" \
   ARENA_BOOTSTRAP_WORKER_SANDBOX=bwrap-dev \
-  ARENA_LEASE_SECS=120 ARENA_RETRY_BACKOFF_SECS=1 ARENA_QUOTA_SUBMISSIONS_PER_DAY=500 ARENA_QUOTA_ACTIVE_RUNS=8 ARENA_RATE_LIMIT_PER_MINUTE=600 \
+  ARENA_LEASE_SECS=600 ARENA_RETRY_BACKOFF_SECS=1 ARENA_QUOTA_SUBMISSIONS_PER_DAY=500 ARENA_QUOTA_ACTIVE_RUNS=8 ARENA_RATE_LIMIT_PER_MINUTE=600 \
   "$BIN/arena-server" serve --dev --object-store-dir "$WORK/objects" \
     --challenges-dir "$REPO/challenges" \
     --governance-pubkey-file "$REPO/challenges/governance-dev.pub,$REPO/challenges/governance-local.pub" \
@@ -203,19 +214,31 @@ if [ "$FC" = 1 ]; then
   say "Firecracker worker (production isolation, tier cap formal)"
   FC_TOKEN=$("$BIN/arena-server" create-worker --database-url "$DBURL" --name e2e-fc --sandbox firecracker --tier-cap formal | sed -n 's/^token //p')
   [ -n "$FC_TOKEN" ] || die "create-worker"
+  # Same worker setup as tests/e2e/milestone-d.sh: newest pinned toolchain and
+  # lean-checker images, the Lean toolchain mounted read-only into builds (for
+  # native-lean candidates), the NEAR oracle + public fixtures.
+  newest() { ls -t "$1"/*.json | head -1 | xargs basename | sed 's/\.json$//'; }
   TC_IMAGES="${ARENA_TOOLCHAIN_IMAGES:-/data/illia/nearproof-deps/toolchain-images}"
-  TC=$(ls "$TC_IMAGES"/*.json | head -1 | xargs basename | sed 's/\.json$//')
+  LEAN_IMAGES="${LEAN_CHECKER_IMAGES:-/data/illia/nearproof-deps/lean-checker/images}"
+  TC=$(newest "$TC_IMAGES")
+  LEAN_IMG="$LEAN_IMAGES/$(newest "$LEAN_IMAGES")"
+  ORACLE="${ARENA_NEAR_ORACLE:-$REPO/oracle/target/debug/near-arena-oracle}"
+  [ -x "$ORACLE" ] || die "no near-arena-oracle at $ORACLE (oracle/scripts/link-nearcore.sh, or set ARENA_NEAR_ORACLE)"
   CLEAN="$WORK/formal-repo"
   mkdir -p "$CLEAN"
-  ( cd "$REPO" && git ls-files -- formal-core spec/lean | tar -cf - -T - ) | tar -xf - -C "$CLEAN"
+  ( cd "$REPO" && git ls-files -- formal-core spec/lean oracle/fixtures/public | tar -cf - -T - ) | tar -xf - -C "$CLEAN"
   env -i PATH="$PATH" HOME="$HOME" \
     ARENA_SERVER_URL="http://127.0.0.1:$WPORT" ARENA_WORKER_TOKEN="$FC_TOKEN" \
     ARENA_WORKER_ID=e2e-fc-worker ARENA_WORK_DIR="$WORK/fc-worker" ARENA_SANDBOX_BACKEND=firecracker \
-    ARENA_FC_DEPS="${ARENA_FC_DEPS:-/data/illia/nearproof-deps/firecracker}" \
+    ARENA_FC_DEPS="${ARENA_FC_DEPS:-/data/illia/nearproof-deps/firecracker-rc}" \
     ARENA_IMAGES_DIR="$TC_IMAGES" ARENA_BUILD_TOOLCHAIN_IMAGE="sha256:$TC" \
+    ARENA_BUILD_MOUNTS="$LEAN_IMG/arena/tc:/opt/lean" \
+    ARENA_BUILD_PATH="/opt/lean/bin:/usr/local/rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/bin:/usr/local/cargo/bin:/usr/local/bin:/usr/bin:/bin" \
     ARENA_FORMAL_REPO="$CLEAN" ARENA_FORMAL_CONFIGS_DIR="$REPO/runners/formal-checker/challenges" \
-    ARENA_LEAN_CHECKER_IMAGES="${LEAN_CHECKER_IMAGES:-/data/illia/nearproof-deps/lean-checker/images}" \
-    ARENA_FIXTURES_DIRS="$REPO/challenges/demo/toy-arithmetic/fixtures" \
+    ARENA_LEAN_CHECKER_IMAGES="$LEAN_IMAGES" \
+    ARENA_NEAR_ORACLE="$ORACLE" ARENA_WORKLOAD_GENERATORS="$REPO/spec/workloads/near-transfer-receipt-v1" \
+    ARENA_FIXTURES_DIRS="$CLEAN/oracle/fixtures/public,$REPO/challenges/demo/toy-arithmetic/fixtures" \
+    ARENA_CONFORMANCE_SAMPLES=3 ARENA_LEASE_SECONDS=600 \
     ARENA_POLL_MS=200 ARENA_HEARTBEAT_MS=5000 \
     "$BIN/arena-worker" >"$WORK/fc-worker.log" 2>&1 &
   PIDS+=($!)
@@ -252,7 +275,9 @@ if [ "$HOSTILE" = 1 ] || [ "$HOSTILE_NEAR" = 1 ]; then
   say "adversarial live suite against the same server"
   HCHAL="$CHALLENGE"
   [ "$HOSTILE_NEAR" = 1 ] && HCHAL="$NEAR"
-  ARGS=(--server "$ARENA_URL" --token "$AGENT_TOKEN" --challenge "$HCHAL" --timeout "${ARENA_HOSTILE_TIMEOUT:-600}" --report "$WORK/hostile-$HCHAL.json")
+  HTARGET=demo
+  [ "$HOSTILE_NEAR" = 1 ] && HTARGET=near-formal
+  ARGS=(--server "$ARENA_URL" --token "$AGENT_TOKEN" --challenge "$HCHAL" --target "$HTARGET" --timeout "${ARENA_HOSTILE_TIMEOUT:-600}" --report "$WORK/hostile-$HCHAL.json")
   [ -n "$HOSTILE_ONLY" ] && ARGS+=(--only "$HOSTILE_ONLY")
   "$REPO/adversarial/e2e/run.sh" "${ARGS[@]}" | tee "$WORK/hostile.log"
 fi

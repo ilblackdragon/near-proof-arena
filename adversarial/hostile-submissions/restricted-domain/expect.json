@@ -4,7 +4,7 @@
   "targets": [
     "near-formal"
   ],
-  "runnable": false,
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "FORMAL_SEMANTIC_SOUNDNESS"
@@ -18,5 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The certificate proves soundness only on a RESTRICTED domain (extra hypothesis). Its type is not the challenge's required relation type, so FORMAL_SEMANTIC_SOUNDNESS must fail on a type mismatch."
+  "why": "The reference proof, but the certificate carries an extra DOMAIN hypothesis `NearSpec.Params.maxBatch = 1` (\"certified for single-receipt batches only\"); the challenge's maxBatch is 256, so the certificate says nothing about the real domain. Its type is not the required statement -> FORMAL_SEMANTIC_SOUNDNESS fails with THEOREM_TYPE_MISMATCH."
 }

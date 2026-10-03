@@ -22,6 +22,11 @@ pub trait ExpectedTypeBuilder: Send + Sync {
     /// Render with judge-computed extra data (e.g. the digest of the judge's
     /// native verifier build for the `native-lean` route).
     fn render_with(&self, extra: &BTreeMap<String, LeanValue>) -> Result<String, ExpectedError>;
+    /// Approved-interpreter route: hex sha256 of the verifier bytecode the
+    /// statement pins as `.interp d`, if this statement is of that shape.
+    fn interp_verifier_digest(&self) -> Option<String> {
+        None
+    }
     /// Digest identifying template + static data (for cache keys).
     fn identity(&self) -> Digest;
 }
@@ -121,6 +126,17 @@ impl ExpectedTypeBuilder for TemplateExpected {
     fn identity(&self) -> Digest {
         crate::digest::json_digest(self)
     }
+    fn interp_verifier_digest(&self) -> Option<String> {
+        if !self.template.contains(".interp {{verifier_digest}}")
+            && !self.template.contains(".interp verifierDigest")
+        {
+            return None;
+        }
+        match self.data.get("verifier_digest") {
+            Some(LeanValue::Bytes(h)) => Some(h.clone()),
+            _ => None,
+        }
+    }
     fn render_with(&self, extra: &BTreeMap<String, LeanValue>) -> Result<String, ExpectedError> {
         let mut data = self.data.clone();
         for (k, v) in extra {
@@ -172,5 +188,40 @@ mod tests {
         bad.data
             .insert("a".into(), LeanValue::Nat("1) (sorry".into()));
         assert!(bad.render().is_err());
+    }
+}
+
+#[cfg(test)]
+mod interp_digest_tests {
+    use super::*;
+
+    fn t(template: &str, d: Option<&str>) -> TemplateExpected {
+        TemplateExpected {
+            module: "ArenaExpected".into(),
+            decl: "ArenaExpected.expectedType".into(),
+            template: template.into(),
+            data: d
+                .map(|h| {
+                    BTreeMap::from([("verifier_digest".to_string(), LeanValue::Bytes(h.into()))])
+                })
+                .unwrap_or_default(),
+        }
+    }
+
+    #[test]
+    fn interp_digest_only_for_interp_statements() {
+        let h = "ab".repeat(32);
+        assert_eq!(
+            t("impl := .interp verifierDigest", Some(&h)).interp_verifier_digest(),
+            Some(h.clone())
+        );
+        assert_eq!(
+            t("impl := .nativeTrusted x y z", Some(&h)).interp_verifier_digest(),
+            None
+        );
+        assert_eq!(
+            t("impl := .interp verifierDigest", None).interp_verifier_digest(),
+            None
+        );
     }
 }

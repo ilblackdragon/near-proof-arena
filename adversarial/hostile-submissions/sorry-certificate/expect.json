@@ -4,7 +4,7 @@
   "targets": [
     "near-formal"
   ],
-  "runnable": false,
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "AXIOM_AUDIT"
@@ -18,5 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The certificate is closed with `sorry` (emits `sorryAx`, an unsound axiom). AXIOM_AUDIT must fail with SORRY_FOUND."
+  "why": "The reference reexec-witness certificate with ONE lemma (`honest_length`, the honest-proof size bound used by verifier completeness) closed by `sorry`. Everything else -- model, prover, build, the other lemmas -- is the admitted reference. `sorry` elaborates (with a warning) to the unsound axiom `sorryAx`; AXIOM_AUDIT walks the certificate's transitive axiom closure and must fail with SORRY_FOUND."
 }

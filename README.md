@@ -21,6 +21,26 @@ the prover on dedicated hardware.
 
 ## Status
 
+**Live instance (2026-10-03).** A persistent arena is running on the dev host.
+It accepts submissions at `https://ns1027125.tail4c1391.ts.net` (tailnet
+only) and at `http://127.0.0.1:8471` on the host. It uses Firecracker workers
+for every stage.
+
+The v1-2 board (`chl_3be93793…`) has three formal admissions:
+
+| rank | candidate | score |
+|------|-----------|-------|
+| 1 | `reexec-witness-fast` | 151.7 |
+| 2 | `reexec-witness` | 130.0 |
+| 3 | `reexec-npai` | 128.6 |
+
+Both NEAR hostile cases are rejected. To submit, ask the operator for a
+token. See `docs/LIVE.md` for how to submit, the operator runbook and the
+current state.
+
+The table below predates the live instance and the e2e runs; parts of it are
+stale (see `docs/e2e-results/`).
+
 Last checked on 2026-10-03 against `main` at `10e7139`. Every row below was
 verified from the code or by running the command named. The full evidence
 matrix is in `docs/EVIDENCE_COVERAGE.md`; the system description is in
@@ -30,8 +50,7 @@ matrix is in `docs/EVIDENCE_COVERAGE.md`; the system description is in
 through the pipeline. The parts are built and individually tested, and the
 NEAR reference backend's certificate passes the real formal checker when run
 by hand. The real worker and the server have not been joined yet: they use
-different job protocols, and no worker runs the formal check. **There is no
-hosted instance.**
+different job protocols, and no worker runs the formal check. (Superseded: see the live instance above.)
 
 | area | state | evidence |
 |------|-------|----------|

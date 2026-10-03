@@ -235,12 +235,18 @@ impl<'a> JobRun<'a> {
         steps: &[arena_sandbox::StepSpec],
     ) -> Result<Vec<SandboxOutcome>, ExecError> {
         self.check_cancel()?;
-        Ok(self.ctx.sandbox.run_steps(base, steps)?)
+        let outs = self.ctx.sandbox.run_steps(base, steps)?;
+        for o in &outs {
+            violation_check(o)?;
+        }
+        Ok(outs)
     }
 
     pub fn run(&self, spec: &SandboxSpec) -> Result<SandboxOutcome, ExecError> {
         self.check_cancel()?;
-        Ok(self.ctx.sandbox.run(spec)?)
+        let o = self.ctx.sandbox.run(spec)?;
+        violation_check(&o)?;
+        Ok(o)
     }
 }
 
@@ -413,7 +419,7 @@ impl JobExecutor for StageExecutor {
                 let mut g = crate::gate::Gate::start(primary_gate(kind));
                 g.fail(
                     ReasonCode::SandboxViolation,
-                    format!("sandbox reported a forged or malformed guest result: {m}"),
+                    format!("sandbox violation: {m}"),
                 );
                 StageOut {
                     gates: vec![g.finish(arena_types::GateStatus::Unknown, true)],
@@ -468,6 +474,19 @@ impl JobExecutor for StageExecutor {
 }
 
 /// The gate a job kind is primarily responsible for.
+/// A sandbox outcome that records escape attempts (seccomp listener in the
+/// sandbox init) fails the job with `SANDBOX_VIOLATION`, whatever the exit.
+pub fn violation_check(o: &SandboxOutcome) -> Result<(), ExecError> {
+    if o.violations.is_empty() {
+        Ok(())
+    } else {
+        Err(ExecError::Violation(format!(
+            "escape attempt blocked and recorded by the sandbox: {}",
+            o.violations.join(", ")
+        )))
+    }
+}
+
 pub fn primary_gate(k: JobKind) -> arena_types::ObligationId {
     use arena_types::ObligationId::*;
     match k {

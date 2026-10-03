@@ -57,6 +57,78 @@ def load_cases():
     return cases
 
 
+REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
+EXCLUDE_TOP = {"expect.json", "make-archive.sh", "make-archive.py", "archive-kind", "out", "BASE"}
+EXCLUDE_ANY = {".git", "target", ".lake"}
+
+
+def _walk(root_dir, exclude_top):
+    """`arena pack` file set of a directory: {package-relative path: full path}."""
+    out = {}
+    for root, dirs, filenames in os.walk(root_dir):
+        rel_root = os.path.relpath(root, root_dir)
+        dirs[:] = [d for d in dirs
+                   if d not in EXCLUDE_ANY and not (rel_root == "." and d in exclude_top)]
+        for fn in filenames:
+            full = os.path.join(root, fn)
+            rel = os.path.relpath(full, root_dir)
+            if rel_root == "." and fn in exclude_top:
+                continue
+            if os.path.islink(full) or not os.path.isfile(full):
+                raise RuntimeError(f"{rel}: not a regular file (arena pack refuses it)")
+            out[rel] = full
+    return out
+
+
+def _base_files(base_dir):
+    """Tracked files of the base package (git ls-files, like milestone-d's
+    stage_dir), falling back to a pruned walk outside a git checkout."""
+    try:
+        r = subprocess.run(["git", "ls-files", "-z", "--", "."], cwd=base_dir,
+                           capture_output=True, check=True)
+        rels = [x for x in r.stdout.decode().split("\0") if x]
+        if rels:
+            out = {}
+            for rel in rels:
+                full = os.path.join(base_dir, rel)
+                if rel.split("/")[0] == "out" or any(p in EXCLUDE_ANY for p in rel.split("/")):
+                    continue
+                if os.path.isfile(full) and not os.path.islink(full):
+                    out[rel] = full
+            return out
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    return _walk(base_dir, {"out"})
+
+
+def package_sources(case_dir):
+    """{package path: source file} for a case. A DERIVED case (a `BASE` file
+    naming a repo-relative package, e.g. examples/reexec-witness) is that
+    package with the case directory's files laid over it."""
+    base_file = os.path.join(case_dir, "BASE")
+    src = {}
+    if os.path.exists(base_file):
+        base = open(base_file).read().strip()
+        base_dir = os.path.normpath(os.path.join(REPO, base))
+        if not base_dir.startswith(REPO + os.sep) or not os.path.isdir(base_dir):
+            raise RuntimeError(f"BASE {base!r}: not a package directory in this repo")
+        src.update(_base_files(base_dir))
+    src.update(_walk(case_dir, EXCLUDE_TOP))
+    return src
+
+
+def materialize(case_dir, dest, challenge_id=None):
+    """Write the package a case submits into `dest` (for local inspection/tests)."""
+    for rel, full in package_sources(case_dir).items():
+        p = os.path.join(dest, rel)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        data = open(full, "rb").read()
+        if rel == "candidate.toml" and challenge_id:
+            data = re.sub(rb'challenge = "[^"]*"', f'challenge = "{challenge_id}"'.encode(), data)
+        open(p, "wb").write(data)
+        os.chmod(p, 0o755 if os.stat(full).st_mode & 0o111 else 0o644)
+
+
 def build_package_bytes(case_dir, expect, challenge_id):
     """Return the raw archive bytes to upload for a case.
 
@@ -83,32 +155,20 @@ def build_package_bytes(case_dir, expect, challenge_id):
     # `.git/`, `target/`, `.lake/` pruned at any depth and the top-level
     # `out/` (build outputs are produced by the judge). The case README.md is
     # the package README (CONTRACTS §3); judge-only files are excluded.
-    exclude_top = {"expect.json", "make-archive.sh", "make-archive.py", "archive-kind", "out"}
-    exclude_any = {".git", "target", ".lake"}
-    files = []
-    for root, dirs, filenames in os.walk(case_dir):
-        rel_root = os.path.relpath(root, case_dir)
-        dirs[:] = [d for d in dirs if d not in exclude_any and not (rel_root == "." and d in exclude_top)]
-        for fn in filenames:
-            full = os.path.join(root, fn)
-            rel = os.path.relpath(full, case_dir)
-            if rel_root == "." and fn in exclude_top:
-                continue
-            if os.path.islink(full) or not os.path.isfile(full):
-                raise RuntimeError(f"{rel}: not a regular file (arena pack refuses it)")
-            files.append(rel)
+    src = package_sources(case_dir)
+    files = list(src)
     files.sort(key=lambda r: r.encode())
     buf = io.BytesIO()
     with tarfile.open(fileobj=buf, mode="w", format=tarfile.GNU_FORMAT) as tar:
         # CONTRACTS §3 layout: dependency-locks/ must exist even when empty.
-        if not any(f.startswith("dependency-locks" + os.sep) for f in files):
+        if not any(f.startswith("dependency-locks/") for f in files):
             ti = tarfile.TarInfo(name="dependency-locks")
             ti.type = tarfile.DIRTYPE
             ti.mode = 0o755
             ti.mtime = 0
             tar.addfile(ti)
         for rel in files:
-            full = os.path.join(case_dir, rel)
+            full = src[rel]
             data = open(full, "rb").read()
             if rel == "candidate.toml" and challenge_id:
                 data = re.sub(rb'challenge = "[^"]*"',
@@ -354,6 +414,8 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--timeout", type=int, default=600)
     ap.add_argument("--only", default="", help="comma-separated case names to run")
+    ap.add_argument("--materialize", default="",
+                    help="write each selected case's package to DIR/<case> and exit")
     ap.add_argument("--target", default=os.environ.get("ARENA_HOSTILE_TARGET", "demo"),
                     choices=["demo", "near-formal"],
                     help="challenge kind; cases whose targets exclude it are skipped")
@@ -367,6 +429,13 @@ def main():
     if not cases:
         print(f"no cases found under {SUITE}", file=sys.stderr)
         return 2
+
+    if args.materialize:
+        for name, d, _expect in cases:
+            dest = os.path.join(args.materialize, name)
+            materialize(d, dest, args.challenge)
+            print(f"materialized {name} -> {dest}")
+        return 0
 
     if args.dry_run or not args.server:
         if not args.server and not args.dry_run:

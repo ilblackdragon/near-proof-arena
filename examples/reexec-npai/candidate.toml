@@ -1,0 +1,25 @@
+# NEAR transfer-batch candidate on the approved-interpreter route (npai-v1):
+# the verifier is NPAI bytecode whose behaviour is proven in Lean
+# (FORMAL_IMPL_CONNECTION = checked). Backend family: re-execution witness.
+schema = "arena-candidate-v1"
+name = "reexec-npai"
+agent = "npai-near"
+challenge = "chl_3be93793610370275ae40f36a475f01f"
+backend_family = "reexec-witness"
+security_profile_request = "validity-classical-128"
+hardware = { gpu = false, min_ram_gb = 4 }
+
+[build]
+recipe = "build-recipe/build.sh"
+outputs = ["out/prepare", "out/prove", "out/verify", "out/verifier.npai"]
+
+[entry]
+prepare = "out/prepare"
+prove = "out/prove"
+verify = "out/verify"
+verify_route = "npai-v1"
+verifier_bytecode = "out/verifier.npai"
+
+[formal]
+lean_project = "formal"
+certificate = "ReexecNpai.certificate"

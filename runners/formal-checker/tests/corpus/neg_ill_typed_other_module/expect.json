@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "RECHECK_FAILED"
+    ]
+  },
+  "description": "an ill-typed declaration (debug.skipKernelTC) in a module other than the certificate's: replayed in its own recheck batch, still rejected"
+}

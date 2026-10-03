@@ -1,0 +1,8 @@
+[Unit]
+Description=NEAR Proof Arena live: nightly backup (pg_dump + object store snapshot)
+
+[Service]
+Type=oneshot
+ExecStart=@ARENA_LIVE_SCRIPT@ backup
+StandardOutput=append:@LIVE@/logs/backup.log
+StandardError=inherit

@@ -1,0 +1,27 @@
+# DEVELOPMENT project: builds ../formal (ReexecNpai) against the in-repo
+# NpaiIR library, NearSpec and ArenaCore.
+name = "reexec-npai-dev"
+version = "0.1.0"
+defaultTargets = ["ReexecNpai"]
+
+[[lean_lib]]
+name = "ReexecNpai"
+srcDir = "../formal"
+
+[[require]]
+name = "NpaiIR"
+path = "../../npai-ir"
+
+[[require]]
+name = "NearSpec"
+path = "../../../spec/lean"
+
+[[require]]
+name = "ArenaCore"
+path = "../../../formal-core"
+
+# LOCAL EMULATION of the judge-generated Expected module (judge-local/render.py).
+[[lean_lib]]
+name = "ArenaExpected"
+srcDir = "../judge-local/out"
+roots = ["ArenaExpected"]

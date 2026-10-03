@@ -46,6 +46,7 @@ impl Sandbox for Scripted {
             tier_cap: None,
             entry_wall_ns: Some(1),
             diagnostics: Diagnostics::default(),
+            violations: vec![],
         })
     }
 }
