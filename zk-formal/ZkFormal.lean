@@ -16,4 +16,5 @@ import ZkFormal.Algebra.Poly
 import ZkFormal.Algebra.RS
 import ZkFormal.Algebra.Decode
 import ZkFormal.Algebra.Statements
+import ZkFormal.Algebra.PolyRoots
 import ZkFormal.Algebra.Compose
