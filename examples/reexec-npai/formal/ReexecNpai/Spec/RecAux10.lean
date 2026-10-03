@@ -89,7 +89,7 @@ def ExtRegs3 (m m' : M) (p e rv : Nat) : Prop :=
 
 set_option maxHeartbeats 4000000 in
 theorem ext3_wp {m : M} {p E e rv : Nat} (hk1 : m.regs 15 = 1) (hk8 : m.regs 14 = 8)
-    (hP : m.regs 10 = p) (hEE : E ≤ 13844304) (hE : m.regs 9 = E) (hq : p + 6 ≤ E) (h8 : m.regs 8 = e)
+    (hP : m.regs 10 = p) (hEE : E ≤ 13844304) (hE : m.regs 9 = E) (hq : p + 5 ≤ E) (h8 : m.regs 8 = e)
     (he : e < NCAP) (h5 : m.regs 5 = rv) (hrv : rv < 4294967296) (hpA : AR + 24 * NCAP ≤ p) :
     wp P (Inp pub cb pb) (seqs extL3) m (fun m' => ExtChk3 m p E ∧ ExtRegs3 m m' p e rv) := by
   simp only [NCAP, AR] at he hpA
