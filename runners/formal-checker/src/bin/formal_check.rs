@@ -10,6 +10,10 @@ use arena_formal_checker::*;
 use std::path::PathBuf;
 
 fn main() -> anyhow::Result<()> {
+    let all: Vec<String> = std::env::args().collect();
+    if all.get(1).map(String::as_str) == Some(HELPER_ARG) {
+        std::process::exit(arena_sandbox::helper::helper_main(&all[2..]));
+    }
     let mut args = std::env::args().skip(1);
     let (mut formal, mut cert, mut expected, mut policy, mut out) = (None, None, None, None, None);
     let mut trusted = Vec::new();
@@ -43,7 +47,9 @@ fn main() -> anyhow::Result<()> {
         Some(p) => serde_json::from_slice(&std::fs::read(p)?)?,
         None => Policy::default(),
     };
-    let checker = FormalChecker::new(toolchain::ToolPaths::discover()?, Box::new(BwrapDevRunner::new()?));
+    let helper = arena_sandbox::HelperCommand { exe: std::env::current_exe()?, prefix_args: vec![HELPER_ARG.into()] };
+    let runner = SandboxRunner::bwrap_dev(helper, work.with_extension("sandbox"))?;
+    let checker = FormalChecker::new(toolchain::ToolPaths::discover()?, Box::new(runner));
     let req = CheckRequest {
         formal_dir: formal.ok_or_else(|| anyhow::anyhow!("--formal required"))?,
         certificate: cert.unwrap_or_else(|| "Candidate.certificate".into()),

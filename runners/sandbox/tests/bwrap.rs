@@ -350,3 +350,19 @@ fn cannot_tamper_with_init() {
     assert_eq!(o.exit, ExitStatus::Exited(0), "{}", err(&o));
     assert_eq!(out(&o), "alive\n");
 }
+
+#[test]
+fn rw_binds_write_through_and_arena_prefix() {
+    let e = env();
+    let rw = e.tmp.path().join("rw");
+    std::fs::create_dir(&rw).unwrap();
+    let ro = e.tmp.path().join("ro2");
+    std::fs::create_dir(&ro).unwrap();
+    let mut s = sh("echo made > /arena/out/f && (echo x > /arena/src/g) 2>/dev/null || echo ro-ok");
+    s.rw_binds.push(Mount { host: rw.clone(), guest: "/arena/out".into() });
+    s.ro_mounts.push(Mount { host: ro.clone(), guest: "/arena/src".into() });
+    let o = e.sb.run(&s).unwrap();
+    assert_eq!(out(&o), "ro-ok\n", "{}", err(&o));
+    assert_eq!(std::fs::read_to_string(rw.join("f")).unwrap(), "made\n");
+    assert!(!ro.join("g").exists());
+}

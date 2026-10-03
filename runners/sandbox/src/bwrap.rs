@@ -216,6 +216,12 @@ impl BwrapDev {
             }
             a.extend(["--ro-bind".into(), m.host.display().to_string(), m.guest.clone()]);
         }
+        for m in &spec.rw_binds {
+            if !m.host.is_dir() {
+                return Err(InfraError::InvalidSpec(format!("rw bind source {} is not a directory", m.host.display())));
+            }
+            a.extend(["--bind".into(), m.host.display().to_string(), m.guest.clone()]);
+        }
         let mut push = |xs: &[&str]| a.extend(xs.iter().map(|s| s.to_string()));
         push(&["--remount-ro", "/", "--chdir", "/", "/.arena/helper"]);
         a.extend(self.cfg.helper.prefix_args.iter().cloned());

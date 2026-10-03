@@ -19,4 +19,7 @@ pub mod toolchain;
 pub use expected::{ExpectedTypeBuilder, LeanValue, TemplateExpected};
 pub use pipeline::{CheckRequest, FormalChecker, Limits, Policy, TrustedPackage};
 pub use report::FormalCheckReport;
-pub use sandbox::{BwrapDevRunner, UntrustedRunner};
+pub use sandbox::{SandboxRunner, UntrustedRunner};
+
+/// argv[1] that turns the `formal-check` binary into the shared sandbox helper.
+pub const HELPER_ARG: &str = "__arena-sandbox-helper";

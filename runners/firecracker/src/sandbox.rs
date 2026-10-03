@@ -874,8 +874,9 @@ pub const BACKEND_NAME: &str = "firecracker";
 pub const FC_LAYOUT: arena_sandbox::GuestLayout = arena_sandbox::GuestLayout {
     scratch: proto::GUEST_SCRATCH,
     inputs: "/arena/in",
-    mount_prefixes: &["/arena/in/", "/arena/opt/"],
+    mount_prefixes: &["/arena/"],
     flexible_scratch: false,
+    rw_binds: false,
 };
 
 impl FirecrackerSandbox {

@@ -98,7 +98,7 @@ fn check_case(name: &str, expect: &Value, rep: &FormalCheckReport, scratch: &Pat
 #[test]
 fn corpus() {
     if std::env::var("ARENA_DEV_UNSAFE").as_deref() != Ok("1") {
-        assert!(BwrapDevRunner::new().is_err(), "dev runner must refuse without ARENA_DEV_UNSAFE=1");
+        assert!(dev_runner().is_err(), "dev runner must refuse without ARENA_DEV_UNSAFE=1");
         eprintln!("SKIP corpus: set ARENA_DEV_UNSAFE=1 to run the formal checker corpus");
         return;
     }
@@ -115,7 +115,7 @@ fn corpus() {
     let _ = std::fs::remove_dir_all(&root);
     std::fs::create_dir_all(&root).unwrap();
     let cache = root.join("ref-cache");
-    let checker = Arc::new(FormalChecker::new(tools, Box::new(BwrapDevRunner::new().unwrap())));
+    let checker = Arc::new(FormalChecker::new(tools, Box::new(dev_runner().unwrap())));
     let expected = Arc::new(expected_builder());
     let trusted = vec![TrustedPackage { name: "arena-standin".into(), src_root: crate_dir().join("tests/fixtures/standin"), include: None }];
 
@@ -216,4 +216,13 @@ fn corpus() {
     if !failures.is_empty() {
         panic!("corpus failures:\n{}", failures.join("\n"));
     }
+}
+
+fn dev_runner() -> Result<SandboxRunner, arena_formal_checker::sandbox::InfraError> {
+    let helper = arena_sandbox::HelperCommand {
+        exe: env!("CARGO_BIN_EXE_formal-check").into(),
+        prefix_args: vec![arena_formal_checker::HELPER_ARG.into()],
+    };
+    let work = std::env::temp_dir().join(format!("fc-sandbox-{}", std::process::id()));
+    SandboxRunner::bwrap_dev(helper, work)
 }

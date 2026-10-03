@@ -194,6 +194,7 @@ name = "arena-formal-checker"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arena-sandbox",
  "arena-types",
  "hex",
  "libc",

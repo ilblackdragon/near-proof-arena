@@ -72,7 +72,7 @@ fn formal_core_toy() {
     }
     let core = PathBuf::from(core);
     let tools = toolchain::ToolPaths::discover().expect("tools");
-    let checker = FormalChecker::new(tools, Box::new(BwrapDevRunner::new().unwrap()));
+    let checker = FormalChecker::new(tools, Box::new(dev_runner().unwrap()));
     let root = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("fc-formal-core");
     let _ = std::fs::remove_dir_all(&root);
     let cache = root.join("cache");
@@ -165,4 +165,13 @@ fn formal_core_toy() {
         }
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));
+}
+
+fn dev_runner() -> Result<SandboxRunner, arena_formal_checker::sandbox::InfraError> {
+    let helper = arena_sandbox::HelperCommand {
+        exe: env!("CARGO_BIN_EXE_formal-check").into(),
+        prefix_args: vec![arena_formal_checker::HELPER_ARG.into()],
+    };
+    let work = std::env::temp_dir().join(format!("fc-sandbox-{}", std::process::id()));
+    SandboxRunner::bwrap_dev(helper, work)
 }

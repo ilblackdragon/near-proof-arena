@@ -33,10 +33,14 @@ Layout: `$ARENA_FC_HOME/<toolchain>/bin/{lean4export,nanoda_bin,lean4lean,arena-
 Everything that touches candidate content runs through the `UntrustedRunner`
 seam (`src/sandbox.rs`; same shape as the workspace `Sandbox` trait: RO
 mounts, one scratch dir, fixed env, no network, wall timeout, supervisor-side
-measurement). This crate ships `BwrapDevRunner` (`bwrap --unshare-all`,
-empty root + RO `/usr`, `--clearenv`, `--die-with-parent`), refused unless
-`ARENA_DEV_UNSAFE=1`; reports produced through it carry `tier_cap = demo`.
-Production plugs the firecracker backend in behind the same trait.
+measurement). `SandboxRunner` adapts it to the shared runner sandbox
+(`arena_sandbox::Sandbox`): `bwrap-dev` in development (refused unless
+`ARENA_DEV_UNSAFE=1`; reports carry `tier_cap = demo`; `.olean` output dirs
+are read-write binds, so their content is treated as hostile afterwards) and
+`firecracker` in production once that backend supports read-write output
+directories (`GuestLayout::rw_binds`; it is refused until then). The
+`formal-check` binary doubles as the sandbox helper
+(`formal-check __arena-sandbox-helper ...`).
 
 0. **Reference build** (judge-only content, cached by content digest):
    trusted packages (formal-core, challenge spec; `TrustedPackage` +
@@ -139,7 +143,8 @@ existential `AdmissionStatement`) every finding applies to all formal gates.
 ## Usage
 
 ```rust
-let checker = FormalChecker::new(ToolPaths::discover()?, Box::new(BwrapDevRunner::new()?));
+let runner = SandboxRunner::new(Arc::new(sandbox), work_root)?; // any arena_sandbox::Sandbox
+let checker = FormalChecker::new(ToolPaths::discover()?, Box::new(runner));
 let report = checker.check(&CheckRequest { formal_dir, certificate, trusted, expected: &tmpl,
     challenge_digest, policy, limits, work_dir, cache_dir });
 ```

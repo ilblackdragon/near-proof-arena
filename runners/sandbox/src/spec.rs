@@ -27,12 +27,15 @@ pub const ENV_ALLOWLIST: &[&str] = &[
     "RUST_BACKTRACE",
     "RUST_MIN_STACK",
     "LEAN_PATH",
+    "LEAN_ABORT_ON_PANIC",
+    "ARENA_LEAN_SYSROOT",
+    "HOME",
     "ELAN_HOME",
     "PATH",
 ];
 
 /// Guest prefixes under which read-only mounts may be placed (bwrap-dev).
-pub const MOUNT_PREFIXES: &[&str] = &["/in/", "/opt/"];
+pub const MOUNT_PREFIXES: &[&str] = &["/in/", "/opt/", "/arena/"];
 
 /// Where a backend puts things inside the guest. Callers (the worker) build
 /// argv / mounts from this instead of hard-coding paths, because backends
@@ -50,10 +53,13 @@ pub struct GuestLayout {
     /// `collect` paths are supported. Backends without it only collect
     /// `out/**` and run in the scratch dir.
     pub flexible_scratch: bool,
+    /// Whether `rw_binds` (host directories mounted read-write) are
+    /// supported. Only the DEMO-only bwrap-dev backend offers this.
+    pub rw_binds: bool,
 }
 
 pub const BWRAP_LAYOUT: GuestLayout =
-    GuestLayout { scratch: SCRATCH, inputs: "/in", mount_prefixes: MOUNT_PREFIXES, flexible_scratch: true };
+    GuestLayout { scratch: SCRATCH, inputs: "/in", mount_prefixes: MOUNT_PREFIXES, flexible_scratch: true, rw_binds: true };
 
 /// What the sandbox root filesystem is made of.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -96,6 +102,11 @@ pub enum Network {
 pub struct SandboxSpec {
     pub rootfs: Rootfs,
     pub ro_mounts: Vec<Mount>,
+    /// Host directories mounted read-WRITE (same guest-path rules as
+    /// `ro_mounts`). Writes land directly on the host, bounded only by
+    /// `RLIMIT_FSIZE` per file: callers must treat the directory content as
+    /// hostile afterwards. Only for backends with `GuestLayout::rw_binds`.
+    pub rw_binds: Vec<Mount>,
     /// Size of the writable scratch tmpfs at [`SCRATCH`].
     pub rw_scratch_mb: u64,
     pub copy_in: Vec<CopyIn>,
@@ -130,6 +141,7 @@ impl SandboxSpec {
         SandboxSpec {
             rootfs: Rootfs::BackendDefault,
             ro_mounts: vec![],
+            rw_binds: vec![],
             rw_scratch_mb: 64,
             copy_in: vec![],
             scratch_dirs: vec![],
@@ -167,7 +179,10 @@ impl SandboxSpec {
                 return bad(format!("env var {k:?} contains NUL"));
             }
         }
-        for m in &self.ro_mounts {
+        if !self.rw_binds.is_empty() && !layout.rw_binds {
+            return bad("rw_binds not supported by this backend".into());
+        }
+        for m in self.ro_mounts.iter().chain(&self.rw_binds) {
             check_guest_path(&m.guest)?;
             if !layout.mount_prefixes.iter().any(|p| m.guest.starts_with(p)) {
                 return bad(format!("mount {:?} not under {:?}", m.guest, layout.mount_prefixes));
