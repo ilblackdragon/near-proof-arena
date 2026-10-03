@@ -644,3 +644,53 @@ async fn admin_rerun_creates_new_run_record() {
         vec![(1, Some("REJECTED".into())), (2, Some("ADMITTED".into()))]
     );
 }
+
+/// Red-team RT-01: the formal cache key (and the change class) must cover the
+/// verifier binding. A child that keeps every other digest equal but swaps its
+/// NPAI verifier bytecode must NOT inherit the parent's formal PASSes: the
+/// certificate was checked against `.interp <old bytecode digest>`.
+#[tokio::test]
+async fn redteam_formal_cache_covers_npai_bytecode() {
+    let app = spawn().await;
+    let chal = app.register(&challenge_def(Tier::Demo, "demo-rt01")).await;
+    let mut w = app.fake_worker();
+    w.behavior.verify_route = Some(VerifyRoute::NpaiV1);
+    w.behavior.bytecode_tag = Some("good".into());
+    let a = app.submit(&chal, b"pkg-rt01-a", "rt01-a", None).await;
+    w.drain().await;
+    let a = app.view(&a.id).await;
+    assert_eq!(a.decision, Some(Decision::Admitted));
+    let vs = a.verified_surface.clone().unwrap();
+    assert_eq!(vs.verify_route, Some(VerifyRoute::NpaiV1));
+    assert!(vs.verifier_bytecode.is_some());
+
+    // same bytecode: prover-only reuse still works
+    let b = app.submit(&chal, b"pkg-rt01-b", "rt01-b", Some(&a.id)).await;
+    let kinds = w.drain().await;
+    assert!(!kinds.contains(&JobKind::FormalCheck), "{kinds:?}");
+    assert_eq!(app.view(&b.id).await.change_class, Some(ChangeClass::ProverOnly));
+
+    // swapped bytecode, every other digest identical: formal must re-run
+    w.behavior.bytecode_tag = Some("evil".into());
+    let c = app.submit(&chal, b"pkg-rt01-c", "rt01-c", Some(&a.id)).await;
+    let kinds = w.drain().await;
+    assert!(kinds.contains(&JobKind::FormalCheck), "bytecode swap reused formal gates: {kinds:?}");
+    let c = app.view(&c.id).await;
+    assert_eq!(c.change_class, Some(ChangeClass::VerifierOrProtocol));
+    assert!(c.gates.iter().all(|g| g.reused_from.is_none()));
+
+    // route switch with identical digests: also a verifier change
+    w.behavior.verify_route = None;
+    w.behavior.bytecode_tag = None;
+    let _d = app.submit(&chal, b"pkg-rt01-d", "rt01-d", Some(&a.id)).await;
+    let kinds = w.drain().await;
+    assert!(kinds.contains(&JobKind::FormalCheck), "{kinds:?}");
+
+    // npai-v1 build without a bytecode digest: fail closed, never admitted
+    w.behavior.verify_route = Some(VerifyRoute::NpaiV1);
+    let e = app.submit(&chal, b"pkg-rt01-e", "rt01-e", Some(&a.id)).await;
+    w.drain().await;
+    let e = app.view(&e.id).await;
+    assert_ne!(e.decision, Some(Decision::Admitted));
+    assert!(e.gates.iter().all(|g| g.reused_from.is_none()));
+}
