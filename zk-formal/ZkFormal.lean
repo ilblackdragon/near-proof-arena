@@ -14,6 +14,7 @@ import ZkFormal.Bcs.Extract
 import ZkFormal.Bcs.MmcsDefs
 import ZkFormal.Bcs.Statements
 import ZkFormal.Bcs.Compose
+import ZkFormal.Bcs.InvPot
 -- Lane L1 (algebra): BabyBear, its degree-8 extension, polynomials, RS codes.
 import ZkFormal.Algebra.Transport
 import ZkFormal.Algebra.NatPrime
