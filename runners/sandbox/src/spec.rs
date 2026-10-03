@@ -75,6 +75,9 @@ pub struct SandboxSpec {
     /// Size of the writable scratch tmpfs at [`SCRATCH`].
     pub rw_scratch_mb: u64,
     pub copy_in: Vec<CopyIn>,
+    /// Scratch-relative directories created (after `copy_in`) before the
+    /// entry point starts, e.g. an empty `--out` directory.
+    pub scratch_dirs: Vec<String>,
     pub argv: Vec<String>,
     /// Absolute guest working directory (default [`SCRATCH`]).
     pub cwd: String,
@@ -105,6 +108,7 @@ impl SandboxSpec {
             ro_mounts: vec![],
             rw_scratch_mb: 64,
             copy_in: vec![],
+            scratch_dirs: vec![],
             argv,
             cwd: SCRATCH.to_string(),
             env: vec![],
@@ -147,7 +151,7 @@ impl SandboxSpec {
             check_guest_path(&c.from_guest)?;
             arena_archive::path::check_relpath(&c.to_scratch).map_err(InfraError::InvalidSpec)?;
         }
-        for c in &self.collect {
+        for c in self.collect.iter().chain(&self.scratch_dirs) {
             arena_archive::path::check_relpath(c).map_err(InfraError::InvalidSpec)?;
         }
         check_guest_path(&self.cwd)?;

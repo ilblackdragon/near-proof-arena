@@ -305,9 +305,10 @@ fn copy_in_gives_writable_copy() {
     let pkg = e.tmp.path().join("pkg");
     std::fs::create_dir_all(pkg.join("d")).unwrap();
     std::fs::write(pkg.join("d/f"), "data\n").unwrap();
-    let mut s = sh("cd work && cat d/f && echo more >> d/f && cat d/f | wc -l");
+    let mut s = sh("test -d made/x || exit 9; cd work && cat d/f && echo more >> d/f && cat d/f | wc -l");
     s.ro_mounts.push(Mount { host: pkg.clone(), guest: "/in/pkg".into() });
     s.copy_in.push(CopyIn { from_guest: "/in/pkg".into(), to_scratch: "work".into() });
+    s.scratch_dirs.push("made/x".into());
     let o = e.sb.run(&s).unwrap();
     assert_eq!(out(&o), "data\n2\n", "{}", err(&o));
     assert_eq!(std::fs::read(pkg.join("d/f")).unwrap(), b"data\n");

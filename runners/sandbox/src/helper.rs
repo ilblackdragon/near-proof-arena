@@ -49,6 +49,7 @@ pub struct InitConfig {
     pub argv: Vec<String>,
     pub cwd: String,
     pub copy_in: Vec<CopyIn>,
+    pub mkdirs: Vec<String>,
     pub collect: Vec<String>,
     pub scratch: String,
     pub fsize_bytes: u64,
@@ -241,6 +242,9 @@ fn init_setup(cfg: &InitConfig, scratch: &Path) -> io::Result<()> {
             fs::create_dir_all(parent)?;
         }
         copy_tree(Path::new(&c.from_guest), &dst)?;
+    }
+    for d in &cfg.mkdirs {
+        fs::create_dir_all(scratch.join(d))?;
     }
     Ok(())
 }

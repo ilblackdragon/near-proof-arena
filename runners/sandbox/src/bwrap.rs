@@ -342,6 +342,7 @@ impl Sandbox for BwrapDev {
             argv: spec.argv.clone(),
             cwd: spec.cwd.clone(),
             copy_in: spec.copy_in.clone(),
+            mkdirs: spec.scratch_dirs.clone(),
             collect: spec.collect.clone(),
             scratch: SCRATCH.to_string(),
             fsize_bytes: spec.rw_scratch_mb << 20,
