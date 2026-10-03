@@ -380,7 +380,9 @@ vectors and SHA-256 test vectors, the Toy certificate, and
 
 * **Interpreter TCB.** The Rust NPAI interpreter is trusted to implement
   `ArenaCore.Interp`. The evidence for this is differential testing (45 pinned
-  vectors plus fuzzing against `arena-interp-ref`), not proof. The Lean
+  vectors plus ~1.2M generated cases against `arena-interp-ref`, 0
+  disagreements, and mutation-sensitivity checks; `runners/npai/README.md`),
+  not proof. The Lean
   reference is slow on large inputs because memory is a closure chain.
 * **Kernel cost of digests.** Kernel SHA-256 costs about 0.15 s per 64-byte
   block. Digest bindings for multi-megabyte public parameters (e.g. SNARK

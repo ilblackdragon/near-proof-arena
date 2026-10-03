@@ -111,13 +111,19 @@ empty; `fuel` as given.
 There is no other source of nondeterminism or state: no clock, no I/O, no
 randomness, no persistent state between runs.
 
-**Outcomes and exit codes** (production `verify` wrapper):
+**Outcomes and exit codes.** The production wrapper is the judge-owned
+`npai-verify` (`runners/npai`). It computes `interpVerify`, which is a
+`Bool`, so every non-accepting outcome is a CONTRACTS §4 *reject*; exit 2 is
+reserved for failures that produce no verdict at all (usage, I/O). The Lean
+diagnostic executable `arena-interp-ref run` distinguishes more cases:
 
-| outcome | meaning | exit code |
-|---------|---------|-----------|
-| accept | `HALT` with nonzero register | 0 |
-| reject | `HALT` with zero register | 1 |
-| trap / out_of_fuel / decode_error | error | 2 (never accept) |
+| outcome | meaning | `npai-verify` | `arena-interp-ref run` |
+|---------|---------|---------------|------------------------|
+| accept | `HALT` with nonzero register | 0 | 0 |
+| reject | `HALT` with zero register | 1 | 1 |
+| trap / out_of_fuel / decode_error | not accepted | 1 | 2 |
+| usage / I/O error | no verdict | 2 | 2 |
+| `--expect-digest` mismatch | no verdict (binding failure) | 3 | n/a |
 
 `fuel_used = fuel_initial - fuel_final` (reported for differential testing;
 out_of_fuel leaves the failing instruction unpaid; a trap pays for the
@@ -169,6 +175,9 @@ the Rust implementation only needs the fuel check.
   — runs one case and prints the same JSON; exit code as in §3. Use it as the
   oracle for fuzzing (random/mutated images and tapes) against the Rust
   interpreter: outcomes, `fuel_used` and outputs must match exactly.
+* `lake exe arena-interp-ref batch IN OUT` — the same for many cases (one
+  `code,public,claim,proof,fuel` hex line per case, one JSON line out), to
+  amortise process start-up. `runners/npai`'s `npai-difftest` drives it.
 * The Lean reference memory is a closure chain (good for proofs, slow for big
   inputs): keep differential cases ≲ 64 KiB of tape data and ≲ 10⁵ steps.
 
