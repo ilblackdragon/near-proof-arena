@@ -133,6 +133,10 @@ export interface MeasurementProcedure {
   aggregation: string;
   cold_runs: number;
   concurrency: number;
+  /**
+   * How benchmark invocations are isolated (v1.4, additive; absent ⇒ `vm_per_invocation`, i.e. bench-spec-v1, and not serialized, so existing challenge ids are unchanged). See docs/BENCHMARK_SPEC.md §4.
+   */
+  invocation_mode?: ('vm_per_invocation' | 'vm_per_batch') | null;
   measured_runs: number;
   /**
    * Runs farther than this many MADs from the median are flagged (not dropped).

@@ -1503,7 +1503,11 @@ impl arena_sandbox::Sandbox for FirecrackerSandbox {
             .work_root
             .join("jobs")
             .join(format!("steps-{}", random_hex(8)?));
-        let mut req = self.translate(base, root.clone())?;
+        // per-step collect/out_dir replace the base's
+        let mut b = base.clone();
+        b.collect.clear();
+        b.out_dir = None;
+        let mut req = self.translate(&b, root.clone())?;
         req.argv = vec![];
         req.collect = vec![];
         req.steps = steps

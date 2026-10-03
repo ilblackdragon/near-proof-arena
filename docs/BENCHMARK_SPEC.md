@@ -187,6 +187,55 @@ exit. The score uses steady-state medians.
 
 ---
 
+### 4.4 Invocation isolation modes (bench-spec-v1.1)
+
+`measurement.invocation_mode` (additive, contracts v1.4; absent ⇒
+`vm_per_invocation`) selects how steady-state runs are isolated:
+
+* `vm_per_invocation` (bench-spec-v1): every `prove` and `verify` gets its own
+  freshly booted sandbox instance. On the Firecracker backend the timed region
+  then includes process start in a guest with a **cold page cache**. The
+  2026-10-03 dev-host baseline of the reference candidate
+  (`benchmarks/results/baseline-near-transfer-receipt-v1-r1-devhost-20261003`)
+  showed ~25 ms per request against 3–200 µs of in-process proving. The score
+  therefore mostly measures sandbox start-up.
+* `vm_per_batch` (bench-spec-v1.1): every warm-up, measured and fresh-confirm
+  batch runs in **one** fresh sandbox instance, which removes boot and
+  cold-cache overhead from the timed region:
+  * Every request is still a fresh `prove` process with a wiped scratch
+    (`/scratch`, `/tmp`, `/dev/shm`), sees only its own `request.bin` and
+    `witness.bin` (bound read-only for that invocation only), and runs in a
+    fresh cgroup and IPC namespace with non-root key creation disabled. The
+    whole cgroup is killed when the invocation ends. No state is carried
+    between requests, and there is still no network.
+  * One **untimed warm-up invocation** on the batch's first request precedes
+    the timed ones. It must also produce a valid proof.
+  * `T_run` is the sum of the timed invocations' host-clock times (STEP
+    console markers). Verifies are batched the same way and are still all
+    checked.
+  * **Cold runs (§4.2) stay one instance per invocation**, so the cold-start
+    cost is still measured and reported (`cold_ns`).
+  * Implementation: `Sandbox::run_steps` (runners/sandbox), Firecracker steps
+    mode (runners/firecracker; requires rootfs and fc-runner images rebuilt
+    from this checkout), and worker `run_prove_batch`/`run_verify_batch`.
+    Isolation tests: `runners/firecracker/tests/vm.rs`
+    `steps_share_one_vm_but_no_state`.
+
+  Residual shared state within one batch VM: the guest page cache and CPU
+  caches (allowed warm state, §4.3) and kernel memory side channels. None of
+  these carries candidate-chosen data, because process trees, files, IPC
+  objects and keys do not survive an invocation. The fresh-confirm tripwire
+  (§7.4) applies unchanged.
+
+  **Open item.** No challenge uses `vm_per_batch` yet. A mode change alters
+  scores, so it needs a new superseding challenge with a re-measured
+  baseline, and a signed challenge is never edited. Three dev-host sessions
+  (`benchmarks/results/baseline-near-transfer-receipt-v1-r1-vmperbatch-devhost-20261003/`)
+  gave 8–18 ms per 8-request batch, against ~210 ms under
+  `vm_per_invocation`. All three failed the calibration drift checks, so
+  nothing was pinned. Next steps: re-measure on a quiet or governed host,
+  pin `near-transfer-receipt-v1-2`, and deploy the rebuilt images.
+
 ## 5. Session layout, concurrency, run order
 
 * **Concurrency = 1**: exactly one candidate process tree is being measured

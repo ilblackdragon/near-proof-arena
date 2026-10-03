@@ -23,6 +23,14 @@ defaulted (`#[serde(default)]`) or optional and not serialized when absent.
   `request_pin: Option<RequestPin{format, protocol_version, chain_id}>`
   (`RequestPin::from_challenge`): every oracle request header is checked
   before any candidate code runs; a mismatch fails the job as infra.
+* `MeasurementProcedure.invocation_mode: Option<"vm_per_invocation" | "vm_per_batch">`
+  (not serialized when absent ⇒ existing challenge ids unchanged; absent =
+  `vm_per_invocation`, bench-spec-v1). `vm_per_batch` = bench-spec-v1.1
+  (docs/BENCHMARK_SPEC.md §4.4). `arena_sandbox::Sandbox` gains
+  `run_steps`/`steps_share_instance` (default impl: one run per step);
+  Firecracker guest protocol gains steps mode (`GuestJob.steps`,
+  `GuestReport.steps`, `ShimResult.step_wall_ns`, STEP markers; all
+  serde-defaulted, `PROTO_VERSION` unchanged; images must be rebuilt to use it).
 * Oracle CLI: `--challenge FILE` on every command (refuses, exit 3, unless the
   challenge pins the oracle's nearcore commit, protocol version and chain id)
   and `check-request`.
