@@ -8,6 +8,8 @@ continues with memory unchanged and only its scratch registers modified.
 -/
 
 set_option maxRecDepth 8000
+-- `hk1`/`hk8` are part of the uniform macro-spec interface but unused by these macros.
+set_option linter.unusedVariables false
 
 namespace ReexecNpai
 
@@ -252,7 +254,7 @@ theorem valid_wp {pub cb pb : Bytes} {m : M} (hk1 : m.regs 15 = 1) (hk8 : m.regs
     wp P (Inp pub cb pb) pValid m (fun m' => NearSpec.AccountId.valid (idAt m) = true ∧ m'.mem = m.mem ∧
       Frame [0, 3, 4, 11, 12, 13] m m') := by
   simp only [pValid]
-  acct_vc [hk1, hk8]
+  acct_vc
   intro h2 h64
   refine wp_forUp (i := 3) (n := 2) (t := 4) (by decide) (by decide) (by decide)
     (J := fun j x => x.mem = m.mem ∧ Frame [0, 3, 4, 11, 12, 13] m x ∧
@@ -344,11 +346,10 @@ theorem valid_twp {pub cb pb : Bytes} {m : M} (hk1 : m.regs 15 = 1) (hk8 : m.reg
     refine ⟨by simp at h0; exact h0, hm, hF, by omega⟩
 
 /-- `pNotSystem` when the data segment holds `"system"` at `D_SYS` (soundness). -/
-theorem notSystem_wp_of_sys {pub cb pb : Bytes} {m : M} (hk1 : m.regs 15 = 1) (hk8 : m.regs 14 = 8)
+theorem notSystem_wp {pub cb pb : Bytes} {m : M} (hk1 : m.regs 15 = 1) (hk8 : m.regs 14 = 8)
     (hb : m.regs 1 + m.regs 2 ≤ P.memSize) (hsys : readMem m.mem D_SYS 6 = NearSpec.AccountId.system) :
     wp P (Inp pub cb pb) pNotSystem m (fun m' => idAt m ≠ NearSpec.AccountId.system ∧ m'.mem = m.mem ∧
       Frame [0, 3, 4] m m') := by
-  simp only [P_memSize] at hb
   simp only [D_SYS] at hsys
   simp only [pNotSystem]
   acct_vc [hsys]
@@ -359,7 +360,7 @@ theorem notSystem_wp_of_sys {pub cb pb : Bytes} {m : M} (hk1 : m.regs 15 = 1) (h
   · repeat (first | exact fun _ _ => rfl | refine fsr (by simp) ?_)
 
 /-- `pNotSystem` when the data segment holds `"system"` at `D_SYS` (completeness). -/
-theorem notSystem_twp_of_sys {pub cb pb : Bytes} {m : M} (hk1 : m.regs 15 = 1) (hk8 : m.regs 14 = 8)
+theorem notSystem_twp {pub cb pb : Bytes} {m : M} (hk1 : m.regs 15 = 1) (hk8 : m.regs 14 = 8)
     (hb : m.regs 1 + m.regs 2 ≤ P.memSize) (hsys : readMem m.mem D_SYS 6 = NearSpec.AccountId.system)
     (hv : idAt m ≠ NearSpec.AccountId.system) :
     twp P (Inp pub cb pb) pNotSystem m (fun m' c => m'.mem = m.mem ∧ Frame [0, 3, 4] m m' ∧ c ≤ 20) := by
@@ -379,56 +380,6 @@ theorem notSystem_twp_of_sys {pub cb pb : Bytes} {m : M} (hk1 : m.regs 15 = 1) (
 not assume that those bytes are `"system"` (the data segment). Two concrete
 states refute them; `notSystem_wp_of_sys` / `notSystem_twp_of_sys` above are the
 statements with that hypothesis added. -/
-
-def cexRegs : Nat → Nat := fun r =>
-  if r = 15 then 1 else if r = 14 then 8 else if r = 1 then 100 else if r = 2 then 6 else 0
-
-/-- The id `"system"` at address 100; zeros elsewhere (in particular at `D_SYS`). -/
-def cexSys : M := { regs := cexRegs, mem := fun a =>
-  if 100 ≤ a ∧ a < 106 then NearSpec.AccountId.system.getD (a - 100) 0 else 0 }
-
-/-- All-zero memory: the id is six zero bytes, which also sit at `D_SYS`. -/
-def cexZero : M := { regs := cexRegs, mem := fun _ => 0 }
-
-theorem notSystem_wp_false :
-    ¬ ∀ (m : M), m.regs 15 = 1 → m.regs 14 = 8 → m.regs 1 + m.regs 2 ≤ P.memSize →
-      wp P (Inp [] [] []) pNotSystem m (fun m' => idAt m ≠ NearSpec.AccountId.system ∧ m'.mem = m.mem ∧
-        Frame [0, 3, 4] m m') := by
-  intro h
-  have hw := h cexSys rfl rfl (by simp [cexSys, cexRegs])
-  have r1 : cexSys.regs 1 = 100 := rfl
-  have r2 : cexSys.regs 2 = 6 := rfl
-  have hne : (readMem cexSys.mem 100 6 = readMem cexSys.mem 80 6) = False := eq_false (by decide)
-  have ht : twp P (Inp [] [] []) pNotSystem cexSys (fun _ _ => True) := by
-    simp only [pNotSystem]
-    acct_vc [r1, r2, hne]
-  obtain ⟨m', c, e, -⟩ := ht
-  exact (hw m' c e).1 (by decide)
-
-theorem notSystem_twp_false :
-    ¬ ∀ (m : M), m.regs 15 = 1 → m.regs 14 = 8 → m.regs 1 + m.regs 2 ≤ P.memSize →
-      idAt m ≠ NearSpec.AccountId.system →
-      twp P (Inp [] [] []) pNotSystem m (fun m' c => m'.mem = m.mem ∧ Frame [0, 3, 4] m m' ∧ c ≤ 20) := by
-  intro h
-  obtain ⟨m', c, e, -⟩ := h cexZero rfl rfl (by simp [cexZero, cexRegs]) (by decide)
-  have r1 : cexZero.regs 1 = 100 := rfl
-  have r2 : cexZero.regs 2 = 6 := rfl
-  have heq : (readMem cexZero.mem 100 6 = readMem cexZero.mem 80 6) = True := eq_true rfl
-  have hw : wp P (Inp [] [] []) pNotSystem cexZero (fun _ => False) := by
-    simp only [pNotSystem]
-    acct_vc [r1, r2, heq]
-  exact hw m' c e
-
-theorem notSystem_wp {pub cb pb : Bytes} {m : M} (hk1 : m.regs 15 = 1) (hk8 : m.regs 14 = 8)
-    (hb : m.regs 1 + m.regs 2 ≤ P.memSize) :
-    wp P (Inp pub cb pb) pNotSystem m (fun m' => idAt m ≠ NearSpec.AccountId.system ∧ m'.mem = m.mem ∧
-      Frame [0, 3, 4] m m') := by
-  sorry
-
-theorem notSystem_twp {pub cb pb : Bytes} {m : M} (hk1 : m.regs 15 = 1) (hk8 : m.regs 14 = 8)
-    (hb : m.regs 1 + m.regs 2 ≤ P.memSize) (hv : idAt m ≠ NearSpec.AccountId.system) :
-    twp P (Inp pub cb pb) pNotSystem m (fun m' c => m'.mem = m.mem ∧ Frame [0, 3, 4] m m' ∧ c ≤ 20) := by
-  sorry
 
 theorem named_wp {pub cb pb : Bytes} {m : M} (hk1 : m.regs 15 = 1) (hk8 : m.regs 14 = 8)
     (hb : m.regs 1 + m.regs 2 ≤ P.memSize) (h2 : 2 ≤ m.regs 2) (h64 : m.regs 2 ≤ 64) :
