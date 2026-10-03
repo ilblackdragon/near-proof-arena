@@ -85,7 +85,7 @@ _none touched_
 
 Obligations to reopen: `BUILD_REPRODUCIBLE`, `FORMAL_SEMANTIC_SOUNDNESS`, `FORMAL_SEMANTIC_COMPLETENESS`, `FORMAL_CRYPTO_SOUNDNESS`, `FORMAL_IMPL_CONNECTION`, `CONFORMANCE_DIFFERENTIAL`, `ADVERSARIAL_PROOFS`
 
-Spec definitions to revalidate: `concept:state-root`, `concept:storage-proof`, `concept:trie-node-hashing`
+Spec definitions to revalidate: `ArenaCore.sha256`, `NearSpec.PTrie.get`, `NearSpec.PTrie.hashOf`, `NearSpec.PTrie.revealedBytes`, `NearSpec.PTrie.set`, `NearSpec.PTrie.wf`, `NearSpec.Slot.valueRef`, `NearSpec.hexPrefix`, `NearSpec.merkleRoot`, `NearSpec.nibbles`, `NearSpec.outcomeRoot`
 
 Fixtures to regenerate: `*`
 
