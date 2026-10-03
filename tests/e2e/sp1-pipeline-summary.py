@@ -7,7 +7,7 @@ import os
 import sys
 
 res = sys.argv[1] if len(sys.argv) > 1 else "docs/e2e-results/sp1-pipeline"
-order = ["sp1-A1", "sp1-A2", "sp1-B", "reexec-B", "sp1-M"]
+order = ["sp1-A1", "sp1-A2", "sp1-B", "reexec-B", "sp1-M", "sp1-head", "sp1-E", "plonky3-E", "reexec-E"]
 found = sorted(f[:-len(".submission.json")] for f in os.listdir(res) if f.endswith(".submission.json"))
 labels = [l for l in order if l in found] + [l for l in found if l not in order]
 views = {l: json.load(open(os.path.join(res, f"{l}.submission.json"))) for l in labels}
@@ -38,7 +38,7 @@ def gib(b):
     return "—" if not b else f"{b / 2**30:.2f} GiB" if b >= 2**30 else f"{b / 2**20:.0f} MiB"
 
 
-pair = [l for l in ("sp1-M", "sp1-B", "reexec-B") if l in views and views[l].get("benchmark")]
+pair = [l for l in ("sp1-E", "plonky3-E", "reexec-E", "sp1-M", "sp1-B", "reexec-B") if l in views and views[l].get("benchmark")]
 if pair:
     out += ["### Judge-measured benchmark (BENCHMARK job, same worker, same procedure)", "",
             "| class | candidate (challenge) | prove median ms (runs) | MAD ms | cold ms | verify median ms | max proof bytes | peak guest mem |",

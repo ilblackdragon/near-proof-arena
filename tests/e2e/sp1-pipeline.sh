@@ -73,8 +73,8 @@ say "build"
 BIN="$REPO/target/debug"
 [ -x "$ORACLE" ] || die "no near-arena-oracle at $ORACLE"
 [ -d "$TC_IMAGES/$TC" ] || die "toolchain image $TC not installed (deploy/images/toolchain-sp1/build.sh)"
-for v in vendor vendor-guest; do
-  [ -d "$REPO/examples/zkvm-sp1/source/$v" ] || die "examples/zkvm-sp1/source/$v missing: run examples/zkvm-sp1/build-recipe/vendor.sh"
+for v in zkvm-sp1/source/vendor zkvm-sp1/source/vendor-guest stark-plonky3/source/vendor; do
+  [ -d "$REPO/examples/$v" ] || die "examples/$v missing: run that example's build-recipe/vendor.sh"
 done
 
 say "challenges"
@@ -248,9 +248,10 @@ export ARENA_URL="http://127.0.0.1:$PORT" ARENA_TOKEN="$AGENT_TOKEN"
 stage_dir() { # src label challenge -> package copy (git-tracked files + vendored crates) bound to the challenge
   local d="$WORK/cand-$2"; rm -rf "$d"; mkdir -p "$d"
   ( cd "$REPO/$1" && git ls-files | tar -cf - -T - ) | tar -xf - -C "$d"
-  if [ "$1" = examples/zkvm-sp1 ]; then
-    cp -r "$REPO/$1/source/vendor" "$REPO/$1/source/vendor-guest" "$d/source/"
-  fi
+  case "$1" in
+    examples/zkvm-sp1) cp -r "$REPO/$1/source/vendor" "$REPO/$1/source/vendor-guest" "$d/source/" ;;
+    examples/stark-plonky3) cp -r "$REPO/$1/source/vendor" "$d/source/" ;;
+  esac
   sed -i "s/^challenge = .*/challenge = \"$3\"/" "$d/candidate.toml"
   echo "$d"
 }
@@ -277,6 +278,7 @@ want sp1-A1 && submit sp1-A1 examples/zkvm-sp1 "$NEAR"
 if [ "$MODE" = exp ]; then
   submit sp1-E examples/zkvm-sp1 "$E"
   submit reexec-E examples/reexec-witness "$E"
+  submit plonky3-E examples/stark-plonky3 "$E"
   # the signed formal head too: decided at FORMAL_CHECK (cheap), shows the formal-tier verdict
   submit sp1-head examples/zkvm-sp1 "$BASE"
 fi
