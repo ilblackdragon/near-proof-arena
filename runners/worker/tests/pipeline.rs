@@ -91,7 +91,8 @@ fn honest_candidate_passes_every_stage() {
         }),
     );
     assert_pass(&a, ObligationId::AdversarialProofs);
-    assert!(gate(&a, ObligationId::AdversarialProofs).summary.contains("0 accepted"));
+    let s = &gate(&a, ObligationId::AdversarialProofs).summary;
+    assert!(s.contains(" 0 accepted") && s.contains("adv:"), "{s}");
 
     // benchmark
     let batch = f.cases(2, true, claim_for);

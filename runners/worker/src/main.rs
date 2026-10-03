@@ -67,7 +67,7 @@ fn main() {
                 work_root: cfg.work_dir.join("jobs"),
                 build: BuildEnv { mounts: cfg.build_mounts.clone(), path: cfg.build_path.clone(), env: cfg.build_env.clone(), images_dir: cfg.images_dir.clone() },
                 bench_cpus: cfg.bench_cpus.clone(),
-                mutators: MutatorRegistry::generic(),
+                mutators: MutatorRegistry::with_adversarial_lane(),
                 keep_workdirs: cfg.keep_workdirs,
             };
             let exec = StageExecutor::new(ctx);
@@ -117,7 +117,7 @@ fn run_job_local(args: &[String]) {
         work_root: work.join("jobs"),
         build: BuildEnv::default(),
         bench_cpus: None,
-        mutators: MutatorRegistry::generic(),
+        mutators: MutatorRegistry::with_adversarial_lane(),
         keep_workdirs: false,
     };
     match StageExecutor::new(ctx).execute(&job, &AtomicBool::new(false)) {

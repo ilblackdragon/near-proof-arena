@@ -164,6 +164,49 @@ impl ProofMutator for AppendGarbage {
     }
 }
 
+/// Adapter for a structure-aware mutator from the adversarial lane
+/// (`adversarial/proof-mutators`). Registered under `adv:<name>`. Each honest
+/// pair is mutated with the next pair (cyclically) as the foreign
+/// claim/proof for binding and substitution mutants.
+pub struct LaneMutator {
+    name: String,
+    /// Index into `proof_mutators::registry()` (its boxes are not `Send`,
+    /// so the mutator is re-instantiated per use; they are stateless).
+    index: usize,
+}
+
+impl ProofMutator for LaneMutator {
+    fn name(&self) -> &str {
+        &self.name
+    }
+    fn mutate(&self, ctx: &MutationCtx<'_>, rng: &mut SplitMix64) -> Vec<HostileInput> {
+        let hs = ctx.honest;
+        let mut out = vec![];
+        for (i, p) in hs.iter().enumerate() {
+            let foreign = (hs.len() > 1).then(|| &hs[(i + 1) % hs.len()]);
+            let mctx = proof_mutators::MutationCtx {
+                hints: proof_mutators::FormatHints::default(),
+                foreign_claim: foreign.map(|f| f.claim.as_slice()),
+                foreign_proof: foreign.map(|f| f.proof.as_slice()),
+                claimed_formal_digest: None,
+            };
+            let mut lane_rng = proof_mutators::Rng::new(rng.next_u64());
+            let inner = proof_mutators::registry().swap_remove(self.index);
+            for m in inner.mutate(&p.proof, &p.claim, &mctx, &mut lane_rng) {
+                if m.bytes.len() as u64 > ctx.max_proof_bytes.saturating_mul(4).max(1 << 20) {
+                    continue;
+                }
+                out.push(HostileInput {
+                    label: format!("{}/{:?}:{}/{}", self.name, m.kill, m.label, p.case_id),
+                    claim: m.claim_override.unwrap_or_else(|| p.claim.clone()),
+                    proof: m.bytes,
+                });
+            }
+        }
+        out
+    }
+}
+
 pub struct MutatorRegistry {
     mutators: Vec<Box<dyn ProofMutator>>,
 }
@@ -191,6 +234,16 @@ impl MutatorRegistry {
             ],
         }
     }
+    /// The generic set plus every mutator shipped by the adversarial lane
+    /// (as `adv:<name>`).
+    pub fn with_adversarial_lane() -> Self {
+        let mut r = Self::generic();
+        for (index, m) in proof_mutators::registry().iter().enumerate() {
+            r.register(Box::new(LaneMutator { name: format!("adv:{}", m.name()), index }));
+        }
+        r
+    }
+
     pub fn register(&mut self, m: Box<dyn ProofMutator>) {
         self.mutators.push(m);
     }
@@ -250,6 +303,18 @@ mod tests {
         let only = r.generate(&["empty".into()], &ctx, 1).unwrap();
         assert_eq!(only.len(), 1);
     }
+    #[test]
+    fn adversarial_lane_mutators_plug_in() {
+        let hp = pairs();
+        let r = MutatorRegistry::with_adversarial_lane();
+        assert!(r.names().iter().any(|n| n.starts_with("adv:")));
+        let ctx = MutationCtx { honest: &hp, max_proof_bytes: 100 };
+        let a = r.generate(&[], &ctx, 5).unwrap();
+        assert_eq!(a, r.generate(&[], &ctx, 5).unwrap());
+        assert!(a.iter().any(|x| x.label.starts_with("adv:")));
+        assert!(a.iter().all(|x| !hp.iter().any(|p| p.claim == x.claim && p.proof == x.proof)));
+    }
+
     #[test]
     fn custom_mutator_registers() {
         struct Zero;

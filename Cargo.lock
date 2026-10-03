@@ -220,6 +220,7 @@ dependencies = [
  "arena-sandbox",
  "arena-types",
  "libc",
+ "proof-mutators",
  "serde",
  "serde_json",
  "tar",

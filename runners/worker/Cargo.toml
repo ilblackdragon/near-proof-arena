@@ -11,6 +11,7 @@ arena-archive = { path = "../archive" }
 arena-sandbox = { path = "../sandbox" }
 arena-measure = { path = "../measure" }
 arena-firecracker = { path = "../firecracker" }
+proof-mutators = { path = "../../adversarial/proof-mutators" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

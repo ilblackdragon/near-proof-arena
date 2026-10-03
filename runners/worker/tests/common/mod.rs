@@ -114,7 +114,7 @@ pub fn fixture() -> Fixture {
         work_root: tmp.path().join("jobs"),
         build: BuildEnv::default(),
         bench_cpus: None,
-        mutators: MutatorRegistry::generic(),
+        mutators: MutatorRegistry::with_adversarial_lane(),
         keep_workdirs: false,
     };
     Fixture { tmp, store, exec: StageExecutor::new(ctx) }
