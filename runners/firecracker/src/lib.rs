@@ -22,5 +22,7 @@ pub mod native;
 pub mod sandbox;
 
 pub use arena_sandbox::{Diagnostics, Exit, InfraError, Sandbox, SandboxOutcome};
-pub use native::{NetworkAccess, RoMount, RunRequest};
-pub use sandbox::{FirecrackerConfig, FirecrackerSandbox, BACKEND_NAME, CONTAINER_CAPS, ENV_ALLOWLIST, FC_LAYOUT};
+pub use native::{NetworkAccess, RoMount, RootImage, RunRequest};
+pub use sandbox::{
+    FirecrackerConfig, FirecrackerSandbox, BACKEND_NAME, CONTAINER_CAPS, ENV_ALLOWLIST, FC_LAYOUT,
+};
