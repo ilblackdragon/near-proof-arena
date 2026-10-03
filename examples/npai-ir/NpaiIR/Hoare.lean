@@ -204,3 +204,37 @@ macro_rules
         Nat.reduceAdd, Nat.reduceMul, Nat.reduceEqDiff, K1, K8, $ts,*])
 
 end NpaiIR
+
+namespace NpaiIR
+open ArenaCore Interp
+
+theorem ite10_ne_zero {c : Prop} [Decidable c] : ((if c then 1 else 0) ≠ 0) ↔ c := by
+  by_cases h : c <;> simp [h]
+theorem ite10_eq_zero {c : Prop} [Decidable c] : ((if c then 1 else 0) = 0) ↔ ¬ c := by
+  by_cases h : c <;> simp [h]
+
+/-- Reading inside a write. -/
+theorem readMem_writeMem_in (M0 : Nat → UInt8) (d len : Nat) (src : Bytes) (a n : Nat)
+    (h1 : d ≤ a) (h2 : a + n ≤ d + len) :
+    readMem (writeMem M0 d len src) a n = (readMem (fun j => src.getD j 0) (a - d) n) := by
+  apply List.ext_getElem (by simp)
+  intro i hi _
+  simp only [readMem, List.getElem_map, List.getElem_range, writeMem]
+  simp at hi
+  rw [if_pos ⟨by omega, by omega⟩]
+  congr 1; omega
+
+theorem readMem_getD (src : Bytes) (o n : Nat) (h : o + n ≤ src.length) :
+    readMem (fun j => src.getD j 0) o n = (src.drop o).take n := by
+  apply List.ext_getElem (by simp; omega)
+  intro i hi _
+  simp at hi
+  simp [readMem, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (show o + i < src.length by omega)]
+
+/-- Reading a full-width written region back. -/
+theorem readMem_writeMem_sub (M0 : Nat → UInt8) (d len : Nat) (src : Bytes) (a n : Nat)
+    (h1 : d ≤ a) (h2 : a + n ≤ d + len) (h3 : len ≤ src.length) :
+    readMem (writeMem M0 d len src) a n = (src.drop (a - d)).take n := by
+  rw [readMem_writeMem_in _ _ _ _ _ _ h1 h2, readMem_getD _ _ _ (by omega)]
+
+end NpaiIR

@@ -1,4 +1,5 @@
 import NpaiIR.Asm
+import NpaiIR.Lib.Word
 import ReexecNpai.Layout
 
 /-!
@@ -12,13 +13,6 @@ phases use `r0 … r10`.
 namespace ReexecNpai
 
 open NpaiIR ArenaCore Interp
-
-/-- `d := u32 LE at regs a` (clobbers `d r12 r13`). -/
-def ld32 (d a : Nat) : Stmt := ldLE d a 12 13 4
-def ld16 (d a : Nat) : Stmt := ldLE d a 12 13 2
-def ld64 (d a : Nat) : Stmt := ldLE d a 12 13 8
-/-- `mem[regs a, +4) := u32 LE of regs v` (clobbers `r11 r12 r13`). -/
-def st32 (a v : Nat) : Stmt := stLE a v 4 11 12 13
 
 /-- Continue iff `regs p + k ≤ regs e` (clobbers `r12 r13`). -/
 def need (p k e : Nat) : Stmt := .seq (ADDI 12 p k) (chkLe 12 e 13)

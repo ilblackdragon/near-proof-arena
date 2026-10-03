@@ -45,11 +45,11 @@ def RT : Nat := 3584
 def OL : Nat := 19968
 def RB : Nat := 28160
 def AR : Nat := 117000
-def KL : Nat := AR + 24 * NCAP
-def STK : Nat := KL + 4 * NCAP
-def SH8 : Nat := STK + 4 * NCAP
-def PF : Nat := SH8 + 8
-def MEMSIZE : Nat := PF + PMAX
+def KL : Nat := 6662472
+def STK : Nat := 7753384
+def SH8 : Nat := 8844296
+def PF : Nat := 8844304
+def MEMSIZE : Nat := 13844304
 
 /-! ## Data segment -/
 
@@ -68,29 +68,32 @@ def dataSeg : List UInt8 :=
 
 /-! ## Cells -/
 
-def C_PEND : Nat := CELL         -- u32: PF + |proof|
-def C_N : Nat := CELL + 4        -- u32: receipt count
-def C_REND : Nat := CELL + 8     -- u32: end of the receipts section
-def C_TOK : Nat := CELL + 16     -- 17 bytes: tokens burnt accumulator (u128 + carry byte)
-def C_NREF : Nat := CELL + 40    -- u32: refund count
-def C_RBEND : Nat := CELL + 44   -- u32: end of the refund buffer
-def C_NODES : Nat := CELL + 48   -- u32: number of trie records
-def C_ROOT : Nat := CELL + 64    -- 32 bytes: computed root hash
-def C_I : Nat := CELL + 96       -- u32: loop index saved across calls
-def C_KC : Nat := CELL + 100     -- u32: next free child-list index (parse)
+def C_PEND : Nat := 3072         -- u32: PF + |proof|
+def C_N : Nat := 3076        -- u32: receipt count
+def C_REND : Nat := 3080     -- u32: end of the receipts section
+def C_TOK : Nat := 3088     -- 17 bytes: tokens burnt accumulator (u128 + carry byte)
+def C_NREF : Nat := 3112    -- u32: refund count
+def C_RBEND : Nat := 3116   -- u32: end of the refund buffer
+def C_NODES : Nat := 3120   -- u32: number of trie records
+def C_ROOT : Nat := 3136    -- 32 bytes: computed root hash
+def C_I : Nat := 3168       -- u32: loop index saved across calls
+def C_KC : Nat := 3172     -- u32: next free child-list index (parse)
 
 /-! ## Scratch -/
 
-def S_KEY : Nat := SCR           -- target key nibbles (≤ 130)
-def S_HP : Nat := SCR + 256      -- hex-prefix build buffer (≤ 66)
-def S_A : Nat := SCR + 384       -- 32-byte bignum temporaries
-def S_B : Nat := SCR + 416
-def S_C : Nat := SCR + 448
-def S_D : Nat := SCR + 480
-def S_E : Nat := SCR + 512
-def S_ID : Nat := SCR + 576      -- refund id preimage (48) / digest
-def S_OUT : Nat := SCR + 640     -- outcome partial encoding (≤ 133)
-def S_LEAF : Nat := SCR + 800    -- outcome leaf preimage (68)
-def S_H : Nat := SCR + 896       -- digests
+def S_KEY : Nat := 512           -- target key nibbles (≤ 130)
+def S_HP : Nat := 768      -- hex-prefix build buffer (≤ 66)
+def S_A : Nat := 896       -- 32-byte bignum temporaries
+def S_B : Nat := 928
+def S_C : Nat := 960
+def S_D : Nat := 992
+def S_E : Nat := 1024
+def S_ID : Nat := 1088      -- refund id preimage (48) / digest
+def S_OUT : Nat := 1152     -- outcome partial encoding (≤ 133)
+def S_LEAF : Nat := 1312    -- outcome leaf preimage (68)
+def S_H : Nat := 1408       -- digests
+
+theorem layout_ok : KL = AR + 24 * NCAP ∧ STK = KL + 4 * NCAP ∧ SH8 = STK + 4 * NCAP ∧ PF = SH8 + 8 ∧
+    MEMSIZE = PF + PMAX ∧ MEMSIZE ≤ 16777216 := by decide
 
 end ReexecNpai
