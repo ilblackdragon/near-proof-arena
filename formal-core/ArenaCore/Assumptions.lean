@@ -34,7 +34,8 @@ probability ≤ `num/den`, then `A` breaks the verifier with probability ≤
 The random-oracle *model* is not a proposition about SHA-256 (it is
 uninstantiable in general); it is a choice of security game.  The id
 `sha256RandomOracle` authorises the ROM game of `ArenaCore.Security.ROM`, in
-which every SHA-256 call made by the deployed verifier (and honest prover,
+which the domain-separated protocol hash `m ↦ SHA-256("NPAI-RO-v1" ‖ m)` used
+by the deployed verifier (and honest prover,
 and adversary) is answered by a lazily-sampled random function.
 -/
 

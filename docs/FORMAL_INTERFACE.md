@@ -187,8 +187,11 @@ non-interactive verifier**:
   HashOracle σ → σ → pub → claim → proof → Bool × σ`). The deployed verifier
   is `run shaOracle ()`. For the interpreter route, `interpOracleVerifier`
   derives `run` from the bytecode, so the game literally executes the
-  candidate's image, with every `SHA256` opcode answered by the oracle
-  (`Verifier.lean`, `Interp.runWith`).
+  candidate's image. Every protocol-hash opcode `ROHASH` (deployed as
+  `SHA-256("NPAI-RO-v1" ‖ m)`) is answered by the oracle, while the `SHA256`
+  opcode stays real SHA-256 because statement-level hashing must keep meaning
+  what the challenge relation means (`Verifier.lean`, `Interp.runWith`,
+  `INTERP_SPEC.md` §4).
 * The oracle is a **lazily sampled random function** on a finite tape of
   `tapeLen` symbols in `[0, 2^256)`. The i-th distinct query gets the
   big-endian encoding of the i-th symbol, and repeated queries are answered
@@ -375,7 +378,7 @@ vectors and SHA-256 test vectors, the Toy certificate, and
 ## 11. Limitations
 
 * **Interpreter TCB.** The Rust NPAI interpreter is trusted to implement
-  `ArenaCore.Interp`. The evidence for this is differential testing (42 pinned
+  `ArenaCore.Interp`. The evidence for this is differential testing (45 pinned
   vectors plus fuzzing against `arena-interp-ref`), not proof. The Lean
   reference is slow on large inputs because memory is a closure chain.
 * **Kernel cost of digests.** Kernel SHA-256 costs about 0.15 s per 64-byte

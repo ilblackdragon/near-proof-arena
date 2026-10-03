@@ -20,14 +20,22 @@ Design points:
 * Three read-only input tapes: public artifacts, claim, proof.
 * Two append-only output buffers (used by reduction programs, ignored for
   verifiers).
-* A `SHA256` opcode.  The hash is a *parameter* of the semantics
-  (`HashOracle σ`), so the same bytecode can be run against the real SHA-256
-  (`shaOracle`, the deployed semantics) or against a lazily-sampled random
-  oracle in the ROM security game (`ArenaCore.Security.ROM`).
+* Two hash opcodes, deliberately separated:
+  - `SHA256` is always FIPS 180-4 SHA-256.  Use it for hashing that is part
+    of the *statement* (e.g. recomputing a NEAR state root), which the
+    challenge relation defines with real SHA-256.
+  - `ROHASH` is the *protocol* hash (Fiat–Shamir transcripts, proof-system
+    Merkle commitments).  When deployed it is domain-separated SHA-256,
+    `sha256 (roTag ++ m)`.  In the semantics it is a *parameter*
+    (`HashOracle σ`), so the same bytecode can be run against the deployed
+    hash (`deployedRO`) or against a lazily-sampled random oracle in the ROM
+    security game (`ArenaCore.Security.ROM`).  Without this separation the
+    ROM game would also replace statement-level hashing and the game would no
+    longer talk about the challenge relation.
 * Fuel: every instruction has a cost `1 + len/64` (len = bytes touched by
   bulk instructions, 0 otherwise); execution with insufficient fuel stops
   with `outOfFuel`.  Fuel therefore bounds both running time and the number
-  of hash-oracle queries.
+  of protocol-hash (`ROHASH`) oracle queries.
 * Outcomes: `accept`, `reject` (from `HALT`), `trap`, `outOfFuel`.  Only
   `accept` counts as acceptance.
 -/
@@ -69,6 +77,7 @@ inductive Instr where
   | ld8 (a b : Nat)
   | st8 (a b : Nat)
   | sha256 (a b c : Nat)
+  | rohash (a b c : Nat)
   | memeq (a b c d : Nat)
   | out (k : Nat) (a b : Nat)
   deriving DecidableEq, Repr
@@ -108,8 +117,11 @@ def BinOp.eval : BinOp → Nat → Nat → Nat
 /-- A (possibly stateful) hash oracle used by the `SHA256` opcode. -/
 abbrev HashOracle (σ : Type) := σ → Bytes → Bytes × σ
 
-/-- The deployed hash: real SHA-256, no state. -/
-def shaOracle : HashOracle Unit := fun s m => (ArenaCore.sha256 m, s)
+/-- Domain-separation tag of the protocol hash: ASCII `"NPAI-RO-v1"`. -/
+def roTag : Bytes := [0x4E, 0x50, 0x41, 0x49, 0x2D, 0x52, 0x4F, 0x2D, 0x76, 0x31]
+
+/-- The deployed protocol hash: `m ↦ SHA-256(roTag ‖ m)`, no state. -/
+def deployedRO : HashOracle Unit := fun s m => (ArenaCore.sha256 (roTag ++ m), s)
 
 /-- Machine state. -/
 structure State (σ : Type) where
@@ -149,6 +161,7 @@ def writeMem (m : Nat → UInt8) (dst len : Nat) (src : Bytes) : Nat → UInt8 :
 def cost (regs : Nat → Nat) : Instr → Nat
   | .tcopy _ _ c _ => 1 + regs c / 64
   | .sha256 _ _ c => 1 + regs c / 64
+  | .rohash _ _ c => 1 + regs c / 64
   | .memeq _ _ _ d => 1 + regs d / 64
   | .out _ _ b => 1 + regs b / 64
   | _ => 1
@@ -196,6 +209,14 @@ def exec1 {σ : Type} (p : Program) (inp : Inputs) (H : HashOracle σ) (s : Stat
                        mem := writeMem s.mem (s.regs a) 1 [UInt8.ofNat (s.regs b % 256)] }
       else .done .trap s
   | .sha256 a b c =>
+      let dst := s.regs a
+      let src := s.regs b
+      let len := s.regs c
+      bif Nat.ble (src + len) p.memSize && Nat.ble (dst + 32) p.memSize then
+        .next { s with pc := s.pc + 1,
+                       mem := writeMem s.mem dst 32 (ArenaCore.sha256 (readMem s.mem src len)) }
+      else .done .trap s
+  | .rohash a b c =>
       let dst := s.regs a
       let src := s.regs b
       let len := s.regs c
@@ -259,7 +280,7 @@ def runWith {σ : Type} (H : HashOracle σ) (hs : σ) (p : Program) (inp : Input
 
 /-- Deployed semantics (real SHA-256): full outcome and final state. -/
 def runFull (p : Program) (inp : Inputs) (fuel : Nat) : Outcome × State Unit :=
-  runWith shaOracle () p inp fuel
+  runWith deployedRO () p inp fuel
 
 /-- Deployed semantics: `some true` = accept, `some false` = reject,
 `none` = trap or out of fuel (the production wrapper treats `none` as an
@@ -322,6 +343,7 @@ def Instr.fields : Instr → Nat × Nat × Nat × Nat × Nat
   | .ld8 a b => (0x30, a, b, 0, 0)
   | .st8 a b => (0x31, a, b, 0, 0)
   | .sha256 a b c => (0x40, a, b, c, 0)
+  | .rohash a b c => (0x42, a, b, c, 0)
   | .memeq a b c d => (0x41, a, b, c, d)
   | .out k a b => (0x50, a, b, 0, k)
 
@@ -347,6 +369,7 @@ def Instr.decode (op a b c imm : Nat) : Option Instr :=
   | 0x30 => if r a && r b && c == 0 && imm == 0 then some (.ld8 a b) else none
   | 0x31 => if r a && r b && c == 0 && imm == 0 then some (.st8 a b) else none
   | 0x40 => if r a && r b && r c && imm == 0 then some (.sha256 a b c) else none
+  | 0x42 => if r a && r b && r c && imm == 0 then some (.rohash a b c) else none
   | 0x41 => if r a && r b && r c && r imm then some (.memeq a b c imm) else none
   | 0x50 => if r a && r b && c == 0 && imm < 2 then some (.out imm a b) else none
   | op =>

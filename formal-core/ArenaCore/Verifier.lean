@@ -16,7 +16,8 @@ Because Fiat–Shamir-style verifiers hash, and the random-oracle game must
 replace *the same* hash calls that the deployed verifier makes, every
 verifier model is given *hash-parametrically* as an `OracleVerifier`: a
 function of an arbitrary (stateful) hash oracle.  The deployed verifier is
-that function instantiated with real SHA-256 (`OracleVerifier.deployed`).
+that function instantiated with the deployed protocol hash
+`Interp.deployedRO` = domain-separated SHA-256 (`OracleVerifier.deployed`).
 For the approved-interpreter route the oracle verifier is *derived* from the
 bytecode by `interpOracleVerifier`, so there is nothing for the candidate to
 choose: the deployed function and the ROM function are the same bytecode run
@@ -41,9 +42,10 @@ abbrev Verifier := Bytes → Bytes → Bytes → Bool
 structure OracleVerifier where
   run : {σ : Type} → Interp.HashOracle σ → σ → Bytes → Bytes → Bytes → Bool × σ
 
-/-- The deployed verifier: the oracle verifier run with real SHA-256. -/
+/-- The deployed verifier: the oracle verifier run with the deployed protocol
+hash (domain-separated SHA-256). -/
 def OracleVerifier.deployed (v : OracleVerifier) : Verifier :=
-  fun pub cb pb => (v.run Interp.shaOracle () pub cb pb).1
+  fun pub cb pb => (v.run Interp.deployedRO () pub cb pb).1
 
 /-- An honest prover given parametrically in its hash oracle (used for the
 honest-proof oracle of the ROM game). -/
@@ -70,7 +72,7 @@ theorem interpOracleVerifier_deployed (code : Bytes) (fuel : Nat) :
   | none => rfl
   | some p =>
     simp only
-    cases (Interp.runWith Interp.shaOracle () p { pub, claim := cb, proof := pb } fuel).1 <;> rfl
+    cases (Interp.runWith Interp.deployedRO () p { pub, claim := cb, proof := pb } fuel).1 <;> rfl
 
 variable (S : ChallengeSpec)
 

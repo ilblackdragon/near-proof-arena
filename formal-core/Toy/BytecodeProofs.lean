@@ -28,7 +28,7 @@ theorem binop_eq_eval (x y : Nat) : BinOp.eq.eval x y = if x = y then 1 else 0 :
 low-level conditions. -/
 theorem verifier_exec_accept (pub cb pb : Bytes) (hpub : pub.length = 32)
     (hpb : pb.length < maxTapeLen) (hcb : cb.length < maxTapeLen) (g : Nat)
-    (h : (exec verifierProg ⟨pub, cb, pb⟩ shaOracle (g + 18) (init verifierProg 10000 ())).1
+    (h : (exec verifierProg ⟨pub, cb, pb⟩ deployedRO (g + 18) (init verifierProg 10000 ())).1
       = .accept) :
     64 + pb.length ≤ 320 ∧ 1 < cb.length ∧ (cb.getD 0 0).toNat < pb.length ∧
     sha256 pb = pub ∧ cb.length = 2 ∧
@@ -40,7 +40,7 @@ theorem verifier_exec_accept (pub cb pb : Bytes) (hpub : pub.length = 32)
     List.getElem?_cons_zero, List.getElem?_cons_succ, Nat.reduceAdd, Nat.reduceMod, Nat.reduceSub,
     wordMod, Nat.reduceLT, ite_false, ite_true, Nat.reduceEqDiff, reduceIte, hm, hm', Nat.le_refl,
     Nat.reduceDiv, Nat.zero_add, List.drop_zero, cont_cond, cont_next, cont_done, fst_cond,
-    cond_eq_accept, shaOracle, hpub, Bool.and_eq_true, blt_iff, blt_false_iff, ble_iff,
+    cond_eq_accept, deployedRO, hpub, Bool.and_eq_true, blt_iff, blt_false_iff, ble_iff,
     ble_false_iff, nbeq_iff, nbeq_false_iff, Bool.cond_true, Bool.cond_false, reduceCtorEq, and_false,
     false_and, or_false, false_or, and_true, true_and, Nat.reduceLeDiff, Nat.lt_irrefl, not_false_eq_true] at h
   obtain ⟨-, hL, -, -, -, -, -, -, -, -, -, -, -, -, hc1, -, hi, -, -, -, -, hfin⟩ := h
@@ -54,7 +54,7 @@ theorem verifier_exec_accept (pub cb pb : Bytes) (hpub : pub.length = 32)
 
 /-- Symbolic run of the reduction program. -/
 theorem reduction_exec (pub cb pb : Bytes) (hL : pb.length ≤ 256) (g : Nat) :
-    let r := exec reductionProg ⟨pub, cb, pb⟩ shaOracle (g + 7) (init reductionProg 10000 ())
+    let r := exec reductionProg ⟨pub, cb, pb⟩ deployedRO (g + 7) (init reductionProg 10000 ())
     r.1 = .accept ∧ r.2.out0 = pb ∧ r.2.out1 = toyTable := by
   have hm : pb.length % 18446744073709551616 = pb.length := Nat.mod_eq_of_lt (by omega)
   simp (disch := omega) only [exec_succ, step, reductionProg, init, cost, exec1, Inputs.tape,
@@ -75,7 +75,7 @@ theorem reduction_runOut (pub cb pb : Bytes) (hL : pb.length ≤ 256)
   unfold runOut runFull runWith
   rw [ite_eq_left ⟨hpub, hcb, hpb⟩, show 10000 + 1 = 9994 + 7 from rfl]
   revert h
-  rcases exec reductionProg ⟨pub, cb, pb⟩ shaOracle (9994 + 7) (init reductionProg 10000 ()) with ⟨o, s⟩
+  rcases exec reductionProg ⟨pub, cb, pb⟩ deployedRO (9994 + 7) (init reductionProg 10000 ()) with ⟨o, s⟩
   rintro ⟨h1, h2, h3⟩
   simp only at h1 h2 h3
   subst h1 h2

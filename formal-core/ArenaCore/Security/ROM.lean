@@ -8,7 +8,8 @@ For Fiat–Shamir-style (and Merkle-based) backends the profile may authorise
 the random-oracle model (`sha256RandomOracle`).  The game is played against
 the **deployed non-interactive verifier**, not an interactive protocol: the
 verifier is an `OracleVerifier` (for the interpreter route: the candidate's
-exact bytecode), and in the game *its* SHA-256 calls — together with the
+exact bytecode), and in the game *its* protocol-hash calls (`ROHASH`, deployed
+as `SHA-256("NPAI-RO-v1" ‖ m)`) — together with the
 adversary's and the honest prover's — are answered by one lazily-sampled
 random oracle.
 

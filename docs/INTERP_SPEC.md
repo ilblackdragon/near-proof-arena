@@ -71,7 +71,8 @@ else is a decode error. A decode error means the verifier rejects (the
 | 0x22 | TCOPY a,b,c,t | a,b,c, imm=t     | `dst=r[a], src=r[b], len=r[c]`; if `src+len ≤ len(tape t)` and `dst+len ≤ memSize`: `mem[dst+i] := tape_t[src+i]` for `i<len`, else **trap** |
 | 0x30 | LD8 a, b  | a, b                 | if `r[b] < memSize`: `r[a] := mem[r[b]]` else **trap** |
 | 0x31 | ST8 a, b  | a, b                 | if `r[a] < memSize`: `mem[r[a]] := r[b] mod 256` else **trap** |
-| 0x40 | SHA256 a,b,c | a,b,c             | `dst=r[a], src=r[b], len=r[c]`; if `src+len ≤ memSize` and `dst+32 ≤ memSize`: `d := SHA-256(mem[src..src+len))` (read **before** writing), `mem[dst..dst+32) := d`, else **trap** |
+| 0x40 | SHA256 a,b,c | a,b,c             | `dst=r[a], src=r[b], len=r[c]`; if `src+len ≤ memSize` and `dst+32 ≤ memSize`: `d := SHA-256(mem[src..src+len))` (always real FIPS 180-4 SHA-256) (read **before** writing), `mem[dst..dst+32) := d`, else **trap** |
+| 0x42 | ROHASH a,b,c | a,b,c            | exactly like SHA256 but `d := H(mem[src..src+len))` with the **protocol hash** `H(m) = SHA-256("NPAI-RO-v1" ‖ m)` (tag bytes `4E 50 41 49 2D 52 4F 2D 76 31`); same bounds, cost and read-before-write rule |
 | 0x41 | MEMEQ a,b,c,d | a,b,c, imm=d (register, < 16) | `x=r[b], y=r[c], len=r[d]`; if `x+len ≤ memSize` and `y+len ≤ memSize`: `r[a] := (mem[x..x+len) = mem[y..y+len)) ? 1 : 0`, else **trap** |
 | 0x50 | OUT k,a,b | a, b, imm=k (k < 2)  | `x=r[a], len=r[b]`; if `x+len ≤ memSize`: append `mem[x..x+len)` to output buffer `k`, else **trap** |
 
@@ -99,7 +100,7 @@ empty; `fuel` as given.
 
 1. *Fetch.* If `pc ≥ codeLen`: outcome **trap** (no fuel charged).
 2. *Cost.* `cost = 1 + len/64` (integer division) for `TCOPY` (len = `r[c]`),
-   `SHA256` (len = `r[c]`), `MEMEQ` (len = `r[d]`), `OUT` (len = `r[b]`);
+   `SHA256` and `ROHASH` (len = `r[c]`), `MEMEQ` (len = `r[d]`), `OUT` (len = `r[b]`);
    `cost = 1` for every other instruction. Costs are computed from the
    register values *before* the instruction executes.
 3. *Fuel.* If `fuel < cost`: outcome **out_of_fuel** (fuel unchanged).
@@ -126,13 +127,23 @@ trapping instruction).
 same machine; their result is `(out0, out1)` on accept and "no output"
 otherwise.
 
-## 4. Hash oracle
+## 4. Two hash opcodes
 
-`SHA256` calls FIPS 180-4 SHA-256 (`ArenaCore.sha256`). In the Lean model the
-hash is a parameter (`HashOracle σ`): the deployed semantics is
-`runWith shaOracle`, the random-oracle security game runs the *same bytecode*
-with `LazyRO.query`. Every `SHA256` executes exactly one oracle call, so the
-number of oracle queries a verifier makes is at most `fuel`.
+* `SHA256` (0x40) is always FIPS 180-4 SHA-256 (`ArenaCore.sha256`). Use it
+  for hashing that is part of the **statement**, e.g. recomputing a NEAR
+  state root. The challenge relation defines that hashing with real SHA-256.
+* `ROHASH` (0x42) is the **protocol** hash (Fiat–Shamir transcripts,
+  proof-system Merkle commitments). It is deployed as domain-separated
+  SHA-256, `SHA-256("NPAI-RO-v1" ‖ m)`. In the Lean semantics it is a
+  parameter (`HashOracle σ`): the deployed semantics is `runWith deployedRO`,
+  and the random-oracle security game runs the *same bytecode* with
+  `LazyRO.query`. Only `ROHASH` calls go to the oracle. Every `ROHASH` makes
+  exactly one oracle call, so a verifier makes at most `fuel` oracle queries.
+
+The separation is what keeps a ROM analysis meaningful. If a single opcode
+served both purposes, the ROM game would also replace statement-level hashing,
+and "the claim is in the language" would no longer refer to the challenge
+relation.
 
 ## 5. Mapping to Lean
 
