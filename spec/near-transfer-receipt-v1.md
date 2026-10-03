@@ -248,3 +248,30 @@ runtime, and are labelled so in `provenance.json`.
 `bandwidth_scheduler`, `outgoing_receipts_root_and_routing`,
 `validator_updates_and_rewards`, `account_v2_global_contracts`,
 `receipt_enum_action_v2`, `other_protocol_versions`, `testnet_parameters`.
+
+## 12. ArenaCore instance and v1 parameters
+
+`spec/lean/NearSpec/Challenge.lean`:
+
+* `NearSpec.TransferV1.challengeSpec : ArenaCore.ChallengeSpec` —
+  `Claim := WfClaim`, `Witness`, `Rel := WfClaim.Rel` (= `NearRelation`),
+  `Domain := WfClaim.ClaimDomain`, `decodeClaim := WfClaim.decode`,
+  `encodeClaim := WfClaim.encode`, `decode_encode := WfClaim.decode_encode`.
+* `challengeParamsWith profile verifyFuel maxProofBytes maxReductionFuel` — what
+  the judge's Expected module instantiates (`spec/lean/judge/Expected.lean.template`,
+  rendered by `runners/formal-checker` from
+  `runners/formal-checker/challenges/near-transfer-receipt-v1.json`, values
+  spliced as literals from the frozen challenge's `security_profile` and
+  `formal_params`).
+* `challengeParams` — the canonical v1 instance:
+
+| parameter | value | rationale |
+|---|---|---|
+| profile | `validity-classical-128`: ROM model, 128-bit target, `sha256-collision-resistance` + `random-oracle-fiat-shamir-sha256`, prover queries 2^40, hash queries 2^64 | `security/profiles/validity-classical-128.json` |
+| `maxProofBytes` | 8 388 608 (8 MiB) | a re-execution proof that carries the whole witness (`max_witness_bytes` 4 MiB) plus the receipts (`max_request_bytes` 128 KiB) fits with framing; succinct backends are far below |
+| `verifyFuel` | 1 073 741 824 (2^30) NPAI fuel | ≈128 instructions per byte of a maximal proof — enough for a byte-level NPAI re-execution verifier (node parsing, nibble walks, SHA256 opcode at 1 fuel/64 B) |
+| `maxReductionFuel` | 1 073 741 824 (2^30) | same budget for an explicit standard-model CR reduction program |
+
+Only the NPAI interpreter route (`.interp`) has a template; a native-route
+challenge would need the judge to supply the verifier model, which this
+challenge does not define.
