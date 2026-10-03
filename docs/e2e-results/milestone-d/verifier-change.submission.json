@@ -1,12 +1,12 @@
 {
-  "id": "sub_c4e3625f0d8446b9aa5e969d33041461",
+  "id": "sub_c4a662f2c1f04b639663b9c3c0b986d1",
   "challenge_id": "chl_dc78da24004f3efe07b97f3ecb11fe29",
   "agent": "bootstrap",
   "candidate_name": "reexec-witness",
   "backend_family": "reexec-witness",
-  "parent": "sub_025aca259ee543be8bed2861cde359bb",
+  "parent": "sub_901fe10206b04c62a89b5ccf411284a4",
   "tier": "formal",
-  "package_digest": "sha256:b9ef64c7026210017ec43f1b5812927f787726715c45abde208baab61114b6a4",
+  "package_digest": "sha256:621195bee4a4ba102f30e25f7beda503605e55872c4f4cc3213cda15b6a42965",
   "stage": "DECIDED",
   "decision": "ADMITTED",
   "accepted": true,
@@ -20,8 +20,8 @@
       "reason_codes": [],
       "summary": "package TreeDigest sha256:d6b143479b6e26583b29e59e301517c090e10dcf3bac208d04175272837418e9; 682 files, 6595259 bytes; manifest ok",
       "evidence": [],
-      "started_at": "2026-10-03T06:16:58.952067422Z",
-      "finished_at": "2026-10-03T06:16:59.007766144Z",
+      "started_at": "2026-10-03T07:02:42.573152185Z",
+      "finished_at": "2026-10-03T07:02:42.615817103Z",
       "reused_from": null
     },
     {
@@ -29,10 +29,10 @@
       "mandatory": true,
       "status": "PASS",
       "reason_codes": [],
-      "summary": "two independent builds produced identical trees sha256:29551ea16cf95ec71752ca2b5b693629e221213fce56d6d85c99a5a949544a98; prepare 13 ms, public dir 110 bytes, TreeDigest sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
+      "summary": "two independent builds produced identical trees sha256:29551ea16cf95ec71752ca2b5b693629e221213fce56d6d85c99a5a949544a98; prepare 9 ms, public dir 110 bytes, TreeDigest sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
       "evidence": [],
-      "started_at": "2026-10-03T06:16:59.034983535Z",
-      "finished_at": "2026-10-03T06:18:12.619831184Z",
+      "started_at": "2026-10-03T07:02:42.636806637Z",
+      "finished_at": "2026-10-03T07:03:37.717556067Z",
       "reused_from": null
     },
     {
@@ -119,12 +119,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:c2e6e88b1c2808176c429352a94a7317491ef09cecfc884be0cd8eaa4dc48414",
+          "digest": "sha256:27341c42044073f310823d0d48f715b8ce6410eddac7150ddfcffc2e496a3b5c",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:18:13.049820891Z",
-      "finished_at": "2026-10-03T06:19:29.900667996Z",
+      "started_at": "2026-10-03T07:03:38.073119452Z",
+      "finished_at": "2026-10-03T07:05:04.402407031Z",
       "reused_from": null
     },
     {
@@ -211,12 +211,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:c2e6e88b1c2808176c429352a94a7317491ef09cecfc884be0cd8eaa4dc48414",
+          "digest": "sha256:27341c42044073f310823d0d48f715b8ce6410eddac7150ddfcffc2e496a3b5c",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:18:13.049820891Z",
-      "finished_at": "2026-10-03T06:19:29.900667996Z",
+      "started_at": "2026-10-03T07:03:38.073119452Z",
+      "finished_at": "2026-10-03T07:05:04.402407031Z",
       "reused_from": null
     },
     {
@@ -303,12 +303,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:c2e6e88b1c2808176c429352a94a7317491ef09cecfc884be0cd8eaa4dc48414",
+          "digest": "sha256:27341c42044073f310823d0d48f715b8ce6410eddac7150ddfcffc2e496a3b5c",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:18:13.049820891Z",
-      "finished_at": "2026-10-03T06:19:29.900667996Z",
+      "started_at": "2026-10-03T07:03:38.073119452Z",
+      "finished_at": "2026-10-03T07:05:04.402407031Z",
       "reused_from": null
     },
     {
@@ -395,12 +395,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:c2e6e88b1c2808176c429352a94a7317491ef09cecfc884be0cd8eaa4dc48414",
+          "digest": "sha256:27341c42044073f310823d0d48f715b8ce6410eddac7150ddfcffc2e496a3b5c",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:18:13.049820891Z",
-      "finished_at": "2026-10-03T06:19:29.900667996Z",
+      "started_at": "2026-10-03T07:03:38.073119452Z",
+      "finished_at": "2026-10-03T07:05:04.402407031Z",
       "reused_from": null
     },
     {
@@ -487,12 +487,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:c2e6e88b1c2808176c429352a94a7317491ef09cecfc884be0cd8eaa4dc48414",
+          "digest": "sha256:27341c42044073f310823d0d48f715b8ce6410eddac7150ddfcffc2e496a3b5c",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:18:13.049820891Z",
-      "finished_at": "2026-10-03T06:19:29.900667996Z",
+      "started_at": "2026-10-03T07:03:38.073119452Z",
+      "finished_at": "2026-10-03T07:05:04.402407031Z",
       "reused_from": null
     },
     {
@@ -579,12 +579,12 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:c2e6e88b1c2808176c429352a94a7317491ef09cecfc884be0cd8eaa4dc48414",
+          "digest": "sha256:27341c42044073f310823d0d48f715b8ce6410eddac7150ddfcffc2e496a3b5c",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:18:13.049820891Z",
-      "finished_at": "2026-10-03T06:19:29.900667996Z",
+      "started_at": "2026-10-03T07:03:38.073119452Z",
+      "finished_at": "2026-10-03T07:05:04.402407031Z",
       "reused_from": null
     },
     {
@@ -695,8 +695,8 @@
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:19:29.971545421Z",
-      "finished_at": "2026-10-03T06:20:10.415143552Z",
+      "started_at": "2026-10-03T07:05:04.460674358Z",
+      "finished_at": "2026-10-03T07:05:48.626252225Z",
       "reused_from": null
     },
     {
@@ -807,8 +807,8 @@
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:19:29.971568214Z",
-      "finished_at": "2026-10-03T06:20:10.415164512Z",
+      "started_at": "2026-10-03T07:05:04.460695799Z",
+      "finished_at": "2026-10-03T07:05:48.626277493Z",
       "reused_from": null
     },
     {
@@ -816,10 +816,10 @@
       "mandatory": true,
       "status": "PASS",
       "reason_codes": [],
-      "summary": "max proof 66865 bytes (cap 8388608), max verify 174 ms (cap 10000), peak memory 418 MiB",
+      "summary": "public cases: max proof 66512 bytes (cap 8388608), max verify 270 ms (cap 10000), peak memory 418 MiB",
       "evidence": [],
-      "started_at": "2026-10-03T06:19:29.971570759Z",
-      "finished_at": "2026-10-03T06:20:10.415169211Z",
+      "started_at": "2026-10-03T07:05:04.460698233Z",
+      "finished_at": "2026-10-03T07:05:48.62628149Z",
       "reused_from": null
     },
     {
@@ -829,8 +829,8 @@
       "reason_codes": [],
       "summary": "146 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:noncanonical,adv:altered-commitment,adv:truncated-merkle-path,adv:swapped-siblings,adv:duplicated-node,adv:node-type-confusion,adv:transcript-tamper,adv:domain-separation,adv:mismatched-context,adv:recursive-substitution]: 146 rejected, 0 errored (not accepted), 0 timed out (not accepted), 0 accepted",
       "evidence": [],
-      "started_at": "2026-10-03T06:20:10.434145284Z",
-      "finished_at": "2026-10-03T06:22:55.272450152Z",
+      "started_at": "2026-10-03T07:05:48.647666821Z",
+      "finished_at": "2026-10-03T07:08:03.81259209Z",
       "reused_from": null
     },
     {
@@ -838,16 +838,16 @@
       "mandatory": true,
       "status": "PASS",
       "reason_codes": [],
-      "summary": "challenge has no frozen baseline for every class: measured, not scored; DEV: batch sizes capped at 2 (timings not comparable); batch-1: median 16439 us, MAD 975 us, verify median 15012 us, max proof 704 B; batch-16: median 15679 us, MAD 1891 us, verify median 29328 us, max proof 6125 B; batch-256: median 17373 us, MAD 925 us, verify median 148130 us, max proof 66865 B",
+      "summary": "challenge has no frozen baseline for every class: measured, not scored; DEV: batch sizes capped at 2 (timings not comparable); batch-1: median 17442 us, MAD 1818 us, verify median 17026 us, max proof 1201 B; batch-16: median 16472 us, MAD 1033 us, verify median 26445 us, max proof 5209 B; batch-256: median 18051 us, MAD 1302 us, verify median 199969 us, max proof 67290 B",
       "evidence": [
         {
           "label": "benchmark session",
-          "digest": "sha256:ba385b04aa9d7cc39b7a9566df82440a64fe0defdc1601adbcc10c41433207a2",
+          "digest": "sha256:0bef3fb3015cde23cd5973c46da6297c0e0a4159b84c49bdb6f91e2812e47e81",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:22:55.298957154Z",
-      "finished_at": "2026-10-03T06:26:49.833170271Z",
+      "started_at": "2026-10-03T07:08:03.843518961Z",
+      "finished_at": "2026-10-03T07:11:41.141027292Z",
       "reused_from": null
     }
   ],
@@ -860,90 +860,90 @@
         "class_id": "batch-1",
         "weight_ppm": 200000,
         "runs_ns": [
-          15889068,
-          14809357,
-          17089469,
-          19274792,
-          18038544,
-          15934234,
-          16607040,
-          16068538,
-          16813118,
-          16439927,
-          19134480,
-          18359340,
-          15464201,
-          15454972,
-          12263575
+          17179025,
+          15624398,
+          21556445,
+          21381144,
+          17852433,
+          16055090,
+          14945952,
+          16597941,
+          21255288,
+          21731084,
+          20097649,
+          19980920,
+          16423483,
+          16421560,
+          17442552
         ],
-        "median_ns": 16439927,
-        "mad_ns": 975726,
-        "cold_ns": 15679844,
+        "median_ns": 17442552,
+        "mad_ns": 1818154,
+        "cold_ns": 18475024,
         "baseline_ns": 0,
-        "verify_median_ns": 15012324,
-        "proof_bytes_max": 704,
-        "peak_rss_bytes": 438534144
+        "verify_median_ns": 17026703,
+        "proof_bytes_max": 1201,
+        "peak_rss_bytes": 438263808
       },
       {
         "class_id": "batch-16",
         "weight_ppm": 300000,
         "runs_ns": [
-          15712405,
-          15916201,
-          13867403,
-          14269880,
-          13787973,
-          16745251,
-          19071801,
-          15679836,
-          17982070,
-          13778187,
-          13682878,
-          19134039,
-          13473172,
-          14546253,
-          17860382
+          14739985,
+          15927620,
+          18980335,
+          20208257,
+          17506851,
+          19689120,
+          17463571,
+          16472988,
+          16287117,
+          19221610,
+          15615413,
+          17118131,
+          16158255,
+          14491997,
+          14277483
         ],
-        "median_ns": 15679836,
-        "mad_ns": 1891863,
-        "cold_ns": 21156412,
+        "median_ns": 16472988,
+        "mad_ns": 1033863,
+        "cold_ns": 19697945,
         "baseline_ns": 0,
-        "verify_median_ns": 29328852,
-        "proof_bytes_max": 6125,
-        "peak_rss_bytes": 438226944
+        "verify_median_ns": 26445747,
+        "proof_bytes_max": 5209,
+        "peak_rss_bytes": 438874112
       },
       {
         "class_id": "batch-256",
         "weight_ppm": 500000,
         "runs_ns": [
-          19350445,
-          19306160,
-          17049422,
-          17674250,
-          18292162,
-          16897357,
-          16155732,
-          16447681,
-          17373044,
-          17378232,
-          13787363,
-          18461052,
-          19193290,
-          16610158,
-          15632678
+          21216464,
+          17941850,
+          17959323,
+          19353458,
+          19619128,
+          19762909,
+          18018075,
+          20306802,
+          18721209,
+          17665631,
+          15156479,
+          18051237,
+          17774648,
+          20567293,
+          14732119
         ],
-        "median_ns": 17373044,
-        "mad_ns": 925363,
-        "cold_ns": 18424600,
+        "median_ns": 18051237,
+        "mad_ns": 1302221,
+        "cold_ns": 15957414,
         "baseline_ns": 0,
-        "verify_median_ns": 148130297,
-        "proof_bytes_max": 66865,
-        "peak_rss_bytes": 442986496
+        "verify_median_ns": 199969045,
+        "proof_bytes_max": 67290,
+        "peak_rss_bytes": 438603776
       }
     ],
     "score_milli": null,
     "score_ci_milli": null,
-    "prepare_ns": 9715096,
+    "prepare_ns": 7786557,
     "public_artifact_bytes": 110,
     "measured_by": "arena-worker e2e-fc-worker [DEV: batch sizes capped]"
   },
@@ -1196,16 +1196,16 @@
     ]
   },
   "revoked": null,
-  "created_at": "2026-10-03T06:16:58.855277Z",
-  "updated_at": "2026-10-03T06:26:49.845571Z",
+  "created_at": "2026-10-03T07:02:42.318739Z",
+  "updated_at": "2026-10-03T07:11:41.152364Z",
   "artifacts": [
     {
       "label": "build log 1",
-      "digest": "sha256:b1ec90e46095179b1f51ce4389af31220cf239992ad8b900beb00c718d768f1f"
+      "digest": "sha256:636dd67e918f44670e7bc5d465825a1478a57a046e8cd872768d850590dec59e"
     },
     {
       "label": "build log 2",
-      "digest": "sha256:0777eb19c0e29278049a1bbf2229bc927917e08f55894465a371cb110ce69e38"
+      "digest": "sha256:606a8be01049181ce8252284bc8d4c4d875fd4623a175085276f2e3fb0d05e8e"
     },
     {
       "label": "public_artifacts",
@@ -1213,7 +1213,7 @@
     },
     {
       "label": "formal check report",
-      "digest": "sha256:c2e6e88b1c2808176c429352a94a7317491ef09cecfc884be0cd8eaa4dc48414"
+      "digest": "sha256:27341c42044073f310823d0d48f715b8ce6410eddac7150ddfcffc2e496a3b5c"
     },
     {
       "label": "judge-built native verifier",
@@ -1377,7 +1377,7 @@
     },
     {
       "label": "benchmark session",
-      "digest": "sha256:ba385b04aa9d7cc39b7a9566df82440a64fe0defdc1601adbcc10c41433207a2"
+      "digest": "sha256:0bef3fb3015cde23cd5973c46da6297c0e0a4159b84c49bdb6f91e2812e47e81"
     }
   ],
   "verified_surface": {
@@ -1387,12 +1387,15 @@
     "public_artifacts": "sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
     "formal_tree": "sha256:fed8b4cfbe5fc2535850e19df033655557e71e533d68874202a34a0110132d00",
     "certificate_decl": "ReexecWitness.certificate",
-    "checker_image": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+    "checker_image": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e",
+    "verify_route": "native-lean",
+    "verifier_model": "ReexecWitness.Model.verifier",
+    "verifier_model_module": "ReexecWitness.Model"
   },
   "build": {
     "toolchain_image": "sha256:57a89fc650b89d189677fad047e7af1881860c7083b51ea07f0d729a28ebc117",
     "reproducible": true,
-    "build_ns": 31319302488
+    "build_ns": 22240454605
   },
   "assumptions": [
     {

@@ -1,15 +1,15 @@
 {
-  "id": "sub_a897f01862ec466587d7f01b57873f62",
+  "id": "sub_954a9f407cef4e1d9d67ef8ed61c5ddd",
   "challenge_id": "chl_dc78da24004f3efe07b97f3ecb11fe29",
   "agent": "bootstrap",
   "candidate_name": "reexec-witness-fast",
   "backend_family": "reexec-witness",
-  "parent": "sub_025aca259ee543be8bed2861cde359bb",
+  "parent": "sub_901fe10206b04c62a89b5ccf411284a4",
   "tier": "formal",
-  "package_digest": "sha256:a66566e1312934886919215be5120ac46e355409ceefec8b9e1e17850c006238",
+  "package_digest": "sha256:705efeb54bda669e05c910bdbfd9bd1e3eb54e0ef1d5bdb58246112c7cbf5107",
   "stage": "DECIDED",
-  "decision": "REJECTED",
-  "accepted": false,
+  "decision": "ADMITTED",
+  "accepted": true,
   "score_milli": null,
   "change_class": "PROVER_ONLY",
   "gates": [
@@ -20,8 +20,8 @@
       "reason_codes": [],
       "summary": "package TreeDigest sha256:e607c4df2f86e304082a8f967d873ad893761175112036df951a1480ebeaf9b4; 682 files, 6593390 bytes; manifest ok",
       "evidence": [],
-      "started_at": "2026-10-03T06:13:02.096075086Z",
-      "finished_at": "2026-10-03T06:13:02.194069324Z",
+      "started_at": "2026-10-03T06:55:44.741585586Z",
+      "finished_at": "2026-10-03T06:55:44.782585562Z",
       "reused_from": null
     },
     {
@@ -31,8 +31,8 @@
       "reason_codes": [],
       "summary": "two independent builds produced identical trees sha256:b2fd1278a994a1f5d0ad2ef58b13f1482c36d955e8d4d29d9b44fe7231937e75; prepare 7 ms, public dir 110 bytes, TreeDigest sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
       "evidence": [],
-      "started_at": "2026-10-03T06:13:02.226647567Z",
-      "finished_at": "2026-10-03T06:14:06.307287242Z",
+      "started_at": "2026-10-03T06:55:44.803278588Z",
+      "finished_at": "2026-10-03T06:56:40.095246958Z",
       "reused_from": null
     },
     {
@@ -119,13 +119,13 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
-      "reused_from": "sub_025aca259ee543be8bed2861cde359bb"
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
+      "reused_from": "sub_901fe10206b04c62a89b5ccf411284a4"
     },
     {
       "gate": "FORMAL_SEMANTIC_COMPLETENESS",
@@ -211,13 +211,13 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
-      "reused_from": "sub_025aca259ee543be8bed2861cde359bb"
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
+      "reused_from": "sub_901fe10206b04c62a89b5ccf411284a4"
     },
     {
       "gate": "FORMAL_CRYPTO_SOUNDNESS",
@@ -303,13 +303,13 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
-      "reused_from": "sub_025aca259ee543be8bed2861cde359bb"
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
+      "reused_from": "sub_901fe10206b04c62a89b5ccf411284a4"
     },
     {
       "gate": "FORMAL_IMPL_CONNECTION",
@@ -395,13 +395,13 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
-      "reused_from": "sub_025aca259ee543be8bed2861cde359bb"
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
+      "reused_from": "sub_901fe10206b04c62a89b5ccf411284a4"
     },
     {
       "gate": "AXIOM_AUDIT",
@@ -487,13 +487,13 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
-      "reused_from": "sub_025aca259ee543be8bed2861cde359bb"
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
+      "reused_from": "sub_901fe10206b04c62a89b5ccf411284a4"
     },
     {
       "gate": "ARTIFACT_BINDING",
@@ -579,13 +579,13 @@
         },
         {
           "label": "formal check report",
-          "digest": "sha256:900810a35ff7e9c55a2b4b7885cbd2b937294c5ba9d54146cec7972a6a51e12f",
+          "digest": "sha256:223075646f34a530419aad5463eb7aa09a163e6afc1731f18bc69876f8f8c48f",
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:03:24.984122709Z",
-      "finished_at": "2026-10-03T06:06:02.116659467Z",
-      "reused_from": "sub_025aca259ee543be8bed2861cde359bb"
+      "started_at": "2026-10-03T06:47:33.939727217Z",
+      "finished_at": "2026-10-03T06:50:13.297067168Z",
+      "reused_from": "sub_901fe10206b04c62a89b5ccf411284a4"
     },
     {
       "gate": "ADVERSARIAL_PROOFS",
@@ -594,8 +594,8 @@
       "reason_codes": [],
       "summary": "146 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:noncanonical,adv:altered-commitment,adv:truncated-merkle-path,adv:swapped-siblings,adv:duplicated-node,adv:node-type-confusion,adv:transcript-tamper,adv:domain-separation,adv:mismatched-context,adv:recursive-substitution]: 146 rejected, 0 errored (not accepted), 0 timed out (not accepted), 0 accepted",
       "evidence": [],
-      "started_at": "2026-10-03T06:14:06.337899706Z",
-      "finished_at": "2026-10-03T06:15:56.057366325Z",
+      "started_at": "2026-10-03T06:56:40.12520487Z",
+      "finished_at": "2026-10-03T06:58:37.072697312Z",
       "reused_from": null
     },
     {
@@ -706,8 +706,8 @@
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:15:56.078617126Z",
-      "finished_at": "2026-10-03T06:16:40.671209252Z",
+      "started_at": "2026-10-03T06:58:37.093152376Z",
+      "finished_at": "2026-10-03T06:59:07.501722115Z",
       "reused_from": null
     },
     {
@@ -818,8 +818,8 @@
           "public": true
         }
       ],
-      "started_at": "2026-10-03T06:15:56.078633266Z",
-      "finished_at": "2026-10-03T06:16:40.671244348Z",
+      "started_at": "2026-10-03T06:58:37.093169057Z",
+      "finished_at": "2026-10-03T06:59:07.501745499Z",
       "reused_from": null
     },
     {
@@ -827,30 +827,126 @@
       "mandatory": true,
       "status": "PASS",
       "reason_codes": [],
-      "summary": "max proof 66521 bytes (cap 8388608), max verify 221 ms (cap 10000), peak memory 416 MiB",
+      "summary": "public cases: max proof 66512 bytes (cap 8388608), max verify 168 ms (cap 10000), peak memory 416 MiB",
       "evidence": [],
-      "started_at": "2026-10-03T06:15:56.078634739Z",
-      "finished_at": "2026-10-03T06:16:40.671250239Z",
+      "started_at": "2026-10-03T06:58:37.09317062Z",
+      "finished_at": "2026-10-03T06:59:07.501750909Z",
       "reused_from": null
     },
     {
       "gate": "BENCHMARK",
       "mandatory": true,
-      "status": "FAIL",
-      "reason_codes": [
-        "SANDBOX_VIOLATION"
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "challenge has no frozen baseline for every class: measured, not scored; DEV: batch sizes capped at 2 (timings not comparable); batch-1: median 15227 us, MAD 1274 us, verify median 16815 us, max proof 914 B; batch-16: median 14717 us, MAD 1318 us, verify median 30701 us, max proof 5816 B; batch-256: median 15991 us, MAD 1269 us, verify median 182262 us, max proof 64163 B",
+      "evidence": [
+        {
+          "label": "benchmark session",
+          "digest": "sha256:362f39bc12e5e8d9b01ad06c6fb8a0a44f62aeb29779e531564b94b732a16b8c",
+          "public": true
+        }
       ],
-      "summary": "no score: guest reported a result without console markers",
-      "evidence": [],
-      "started_at": "2026-10-03T06:16:40.709823726Z",
-      "finished_at": "2026-10-03T06:16:57.405740813Z",
+      "started_at": "2026-10-03T06:59:07.527109982Z",
+      "finished_at": "2026-10-03T07:02:37.010250824Z",
       "reused_from": null
     }
   ],
-  "reason_codes": [
-    "SANDBOX_VIOLATION"
-  ],
-  "benchmark": null,
+  "reason_codes": [],
+  "benchmark": {
+    "hardware_profile": "nearproof-local-ryzen9-9950x3d",
+    "suite_revision": "near-transfer-receipt-v1-r1",
+    "classes": [
+      {
+        "class_id": "batch-1",
+        "weight_ppm": 200000,
+        "runs_ns": [
+          18110223,
+          12939121,
+          12955472,
+          17155817,
+          15891727,
+          14154950,
+          16438387,
+          12329986,
+          14096991,
+          13952409,
+          15227188,
+          14758106,
+          19928735,
+          16962585,
+          15346863
+        ],
+        "median_ns": 15227188,
+        "mad_ns": 1274779,
+        "cold_ns": 11263125,
+        "baseline_ns": 0,
+        "verify_median_ns": 16815036,
+        "proof_bytes_max": 914,
+        "peak_rss_bytes": 437075968
+      },
+      {
+        "class_id": "batch-16",
+        "weight_ppm": 300000,
+        "runs_ns": [
+          12291141,
+          15236193,
+          15930731,
+          17184631,
+          19083224,
+          13399688,
+          14717959,
+          12927179,
+          15753288,
+          14091490,
+          11873827,
+          13098782,
+          14111928,
+          16178077,
+          15698155
+        ],
+        "median_ns": 14717959,
+        "mad_ns": 1318271,
+        "cold_ns": 13378006,
+        "baseline_ns": 0,
+        "verify_median_ns": 30701965,
+        "proof_bytes_max": 5816,
+        "peak_rss_bytes": 437346304
+      },
+      {
+        "class_id": "batch-256",
+        "weight_ppm": 500000,
+        "runs_ns": [
+          19125052,
+          16025969,
+          14790344,
+          20477659,
+          14722138,
+          15608915,
+          18147563,
+          18461183,
+          12153344,
+          14485653,
+          16523828,
+          15991867,
+          14969323,
+          17917562,
+          15908139
+        ],
+        "median_ns": 15991867,
+        "mad_ns": 1269729,
+        "cold_ns": 16597345,
+        "baseline_ns": 0,
+        "verify_median_ns": 182262872,
+        "proof_bytes_max": 64163,
+        "peak_rss_bytes": 437919744
+      }
+    ],
+    "score_milli": null,
+    "score_ci_milli": null,
+    "prepare_ns": 8185264,
+    "public_artifact_bytes": 110,
+    "measured_by": "arena-worker e2e-fc-worker [DEV: batch sizes capped]"
+  },
   "evidence_graph": {
     "nodes": [
       {
@@ -1100,16 +1196,16 @@
     ]
   },
   "revoked": null,
-  "created_at": "2026-10-03T06:13:01.868836Z",
-  "updated_at": "2026-10-03T06:16:57.410539Z",
+  "created_at": "2026-10-03T06:55:44.300132Z",
+  "updated_at": "2026-10-03T07:02:37.02117Z",
   "artifacts": [
     {
       "label": "build log 1",
-      "digest": "sha256:ab581ee3b0e54ca349024afd3c731b086fc38f664ffdb4edc16002385fbc4d3b"
+      "digest": "sha256:25cbd131ba39af634d5b68cd9d8f91b839b23c40f26dfd1a21a96bfbf85a8b81"
     },
     {
       "label": "build log 2",
-      "digest": "sha256:0ca0ee580f38eb1e72bca2f29f533a3482e62a4aca92ac4c2ae7cb36c9caa001"
+      "digest": "sha256:481a85afb9ac0ea81c03dcdf11c58f43efe74974008cfe0da44cc5022af50687"
     },
     {
       "label": "public_artifacts",
@@ -1270,6 +1366,10 @@
     {
       "label": "proof fixture/s20261003-v9",
       "digest": "sha256:23fdd76313b128556c42cc25ff9d73e740babc3fc97b0cc86bd8e430b9548dc8"
+    },
+    {
+      "label": "benchmark session",
+      "digest": "sha256:362f39bc12e5e8d9b01ad06c6fb8a0a44f62aeb29779e531564b94b732a16b8c"
     }
   ],
   "verified_surface": {
@@ -1279,12 +1379,15 @@
     "public_artifacts": "sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
     "formal_tree": "sha256:99253b7fa9c8dde1932994f25655fd8fe5af33311b90cfa803dfdb32578b1c72",
     "certificate_decl": "ReexecWitness.certificate",
-    "checker_image": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e"
+    "checker_image": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e",
+    "verify_route": "native-lean",
+    "verifier_model": "ReexecWitness.Model.verifier",
+    "verifier_model_module": "ReexecWitness.Model"
   },
   "build": {
     "toolchain_image": "sha256:57a89fc650b89d189677fad047e7af1881860c7083b51ea07f0d729a28ebc117",
     "reproducible": true,
-    "build_ns": 28991733930
+    "build_ns": 21532490643
   },
   "assumptions": [
     {

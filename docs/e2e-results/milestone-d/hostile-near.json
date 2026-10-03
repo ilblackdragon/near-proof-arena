@@ -1,7 +1,7 @@
 {
  "near-reexec-malicious-executable": {
-  "accepted": true,
-  "decision": "ADMITTED",
+  "accepted": false,
+  "decision": "REJECTED",
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
    "ARTIFACT_BINDING"
@@ -9,10 +9,15 @@
   "expected_reason_codes": [
    "ARTIFACT_BINDING_FAILED"
   ],
-  "failed_gates": [],
-  "ok": false,
-  "reason_codes": [],
-  "submission": "sub_5060d480f997471b8de57f875f6661c8",
+  "failed_gates": [
+   "ARTIFACT_BINDING"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_fce5cb82fbcd4a0db197bbdfc3f28b78",
   "unknown_gates": []
  },
  "near-reexec-skip-refund": {
@@ -40,7 +45,7 @@
    "OBLIGATION_UNDISCHARGED",
    "THEOREM_TYPE_MISMATCH"
   ],
-  "submission": "sub_b879988e881b4d0b82d93086da470f1d",
+  "submission": "sub_cc6c4cafd65d4c068bfe9a03154d3743",
   "unknown_gates": []
  }
 }
