@@ -89,34 +89,11 @@ pub fn verify_proof(air: &Air, pub_digest: &Digest32, cb: &[u8], proof: &Proof) 
 
     // ---- ALI identity at z ----
     let pubs = public_inputs(air, cb);
-    let mut off = 0;
+    ali_check(air, &sch, &proof.ood, ch.z, ch.alpha_c, &pubs)?;
     let mut ood_off = vec![];
+    let mut off = 0;
     for t in 0..nt {
         ood_off.push(off);
-        let tab = &air.tables[t];
-        let w = sch.w_main[t];
-        let v = &proof.ood[off..off + sch.ood_len(t)];
-        let (zh, sel) = selectors(ch.z, sch.heights[t]);
-        let tape = Tape::compile(&tab.constraints);
-        let mut regs = vec![];
-        tape.eval::<EF>(&mut regs, |c, n| if n { v[w + c] } else { v[c] }, &pubs, sel);
-        let mut acc = EF::ZERO;
-        let mut ap = EF::ONE;
-        for &o in &tape.outputs {
-            acc += ap * regs[o as usize];
-            ap *= ch.alpha_c;
-        }
-        let qoff = 2 * w + 2 * sch.w_aux[t];
-        let zt = ch.z.exp_power_of_2(sch.heights[t]);
-        let mut q = EF::ZERO;
-        let mut zp = EF::ONE;
-        for j in 0..sch.n_quot[t] {
-            q += zp * v[qoff + j];
-            zp *= zt;
-        }
-        if acc != zh * q {
-            return Err(format!("ALI identity fails for table {t}"));
-        }
         off += sch.ood_len(t);
     }
 
@@ -263,4 +240,37 @@ pub fn replay(sch: &Schedule, tr: &mut Transcript, proof: &Proof) -> Challenges 
     tr.absorb(final_bytes(&proof.final_poly));
     let queries = tr.finish_queries(sch.l0, NUM_CHUNKS, PER_CHUNK);
     Challenges { alpha_fp, gamma_mul, alpha_c, z, batch, beta, gamma_roll, queries }
+}
+
+/// The ALI identity of every table at the OOD point.
+pub fn ali_check(air: &Air, sch: &Schedule, ood: &[EF], z: EF, alpha_c: EF, pubs: &[F]) -> Result<(), String> {
+    let mut off = 0;
+    for t in 0..sch.num_tables() {
+        let tab = &air.tables[t];
+        let w = sch.w_main[t];
+        let v = &ood[off..off + sch.ood_len(t)];
+        let (zh, sel) = selectors(z, sch.heights[t]);
+        let tape = Tape::compile(&tab.constraints);
+        let mut regs = vec![];
+        tape.eval::<EF>(&mut regs, |c, n| if n { v[w + c] } else { v[c] }, pubs, sel);
+        let mut acc = EF::ZERO;
+        let mut ap = EF::ONE;
+        for &o in &tape.outputs {
+            acc += ap * regs[o as usize];
+            ap *= alpha_c;
+        }
+        let qoff = 2 * w + 2 * sch.w_aux[t];
+        let zt = z.exp_power_of_2(sch.heights[t]);
+        let mut q = EF::ZERO;
+        let mut zp = EF::ONE;
+        for j in 0..sch.n_quot[t] {
+            q += zp * v[qoff + j];
+            zp *= zt;
+        }
+        if acc != zh * q {
+            return Err(format!("ALI identity fails for table {t}"));
+        }
+        off += sch.ood_len(t);
+    }
+    Ok(())
 }

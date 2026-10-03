@@ -35,7 +35,7 @@ fn main() {
             let traces: Vec<_> = (0..nt).map(|i| toy::cube_trace(w, h.saturating_sub(i).max(1))).collect();
             let pd = [0u8; 32];
             let t = Instant::now();
-            let p = prove(&air, &traces, &pd, &[], &ProveOptions { verbose: true }).unwrap_or_else(|e| die(&e));
+            let p = prove(&air, traces, &pd, &[], &ProveOptions { verbose: true }).unwrap_or_else(|e| die(&e));
             let tp = t.elapsed().as_secs_f64();
             let b = p.to_bytes();
             let t = Instant::now();
@@ -53,7 +53,7 @@ fn main() {
             let dir = std::path::Path::new(&a[4]);
             std::fs::create_dir_all(dir).unwrap();
             let pd = npudr::hash::sha256(b"np-udr-stark toy public tape");
-            let p = prove(&air, &traces, &pd, &cb, &ProveOptions { verbose: false }).unwrap_or_else(|e| die(&e));
+            let p = prove(&air, traces, &pd, &cb, &ProveOptions { verbose: false }).unwrap_or_else(|e| die(&e));
             std::fs::write(dir.join("air.json"), air.to_json()).unwrap();
             std::fs::write(dir.join("claim.bin"), &cb).unwrap();
             std::fs::write(dir.join("pubdigest.bin"), pd).unwrap();

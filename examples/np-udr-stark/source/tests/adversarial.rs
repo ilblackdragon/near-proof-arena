@@ -12,7 +12,7 @@ fn honest() -> (Air, Vec<u8>, Vec<u8>) {
     let (tr, last) = toy::fib_trace(5, 2, 3);
     let cb = toy::fib_claim(2, 3, last);
     let traces = vec![tr, toy::cube_trace(3, 3), toy::cube_trace(1, 1)];
-    let p = prove(&air, &traces, &PD, &cb, &ProveOptions { verbose: false }).unwrap();
+    let p = prove(&air, traces, &PD, &cb, &ProveOptions { verbose: false }).unwrap();
     (air, cb, p.to_bytes())
 }
 

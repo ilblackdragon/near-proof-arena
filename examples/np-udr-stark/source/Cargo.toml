@@ -19,6 +19,7 @@ p3-baby-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d
 p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
 p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
 p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-monty-31 = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
 p3-util = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
 p3-maybe-rayon = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d", features = ["parallel"] }
 rayon = "1"
