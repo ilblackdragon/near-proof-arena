@@ -480,6 +480,14 @@ impl FormalChecker {
                 }
             };
             evidence.push(EvidenceRef { label: "reference export (ndjson)".into(), digest: reference.export_digest.clone(), public: true });
+            if req.certificate.is_empty() || !req.certificate.split('.').all(staging::is_ident) {
+                findings.push(Finding::new(
+                    ReasonCode::ManifestInvalid,
+                    Scope::All,
+                    format!("certificate name {:?} is not a plain dotted Lean identifier", req.certificate),
+                ));
+                break 'pipeline;
+            }
             if formal_tree.is_none() {
                 findings.push(Finding::new(ReasonCode::ArchiveUnsafe, Scope::All, "formal tree unreadable or contains unsupported entries".into()));
             }
