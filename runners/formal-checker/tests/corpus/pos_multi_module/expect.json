@@ -1,0 +1,7 @@
+{
+  "all": {
+    "status": "PASS",
+    "codes": []
+  },
+  "description": "honest multi-module project with allowlisted require, simp/decide, ignored foreign lean-toolchain"
+}

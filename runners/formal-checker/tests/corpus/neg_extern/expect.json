@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "NATIVE_EVAL_FOUND"
+    ]
+  },
+  "description": "@[extern] in a candidate module"
+}

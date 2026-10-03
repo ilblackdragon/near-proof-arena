@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "SHADOWED_DEFINITION"
+    ]
+  },
+  "description": "candidate re-declares the trusted names in its own module without importing them"
+}

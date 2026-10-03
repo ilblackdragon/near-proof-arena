@@ -190,6 +190,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "arena-formal-checker"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "arena-types",
+ "hex",
+ "libc",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror",
+ "time",
+ "toml",
+]
+
+[[package]]
 name = "arena-init"
 version = "0.1.0"
 dependencies = [

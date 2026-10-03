@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "NATIVE_EVAL_FOUND"
+    ]
+  },
+  "description": "unsafe def in a candidate module"
+}

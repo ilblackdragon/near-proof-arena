@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "THEOREM_TYPE_MISMATCH"
+    ]
+  },
+  "description": "definitionally equal via a candidate def \u2014 must be rejected (syntactic check)"
+}

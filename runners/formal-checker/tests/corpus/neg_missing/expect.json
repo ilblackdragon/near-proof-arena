@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "CERTIFICATE_MISSING"
+    ]
+  },
+  "description": "certificate constant absent"
+}

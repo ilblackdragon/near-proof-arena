@@ -4,13 +4,14 @@ members = [
     "adversarial/proof-mutators",
     "common/arena-types",
     "runners/archive",
-    "runners/sandbox",
-    "runners/measure",
-    "runners/worker",
     "runners/firecracker",
     "runners/firecracker/init",
     "runners/firecracker/proto",
     "runners/firecracker/shim",
+    "runners/formal-checker",
+    "runners/measure",
+    "runners/sandbox",
+    "runners/worker",
     "sdk/arena-cli",
     "server/arena-db",
     "server/arena-jobs",
@@ -71,3 +72,9 @@ ureq = { version = "2.12", default-features = false, features = ["json", "tls"] 
 unicode-normalization = "0.1"
 rand_core = { version = "0.6", features = ["getrandom"] }
 globset = "0.4"
+# The formal checker parses/hashes large Lean exports; keep tests fast in dev builds.
+[profile.dev.package.arena-formal-checker]
+opt-level = 2
+[profile.dev.package.sha2]
+opt-level = 3
+[profile.dev.package.serde_json]
