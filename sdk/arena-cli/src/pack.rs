@@ -85,10 +85,73 @@ fn walk(dir: &Path, rel: &str, out: &mut Vec<PackEntry>) -> CliResult<()> {
     Ok(())
 }
 
+/// Archive format produced by `arena pack` / `arena submit`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum)]
+pub enum Format {
+    /// Plain deterministic tar.
+    #[value(name = "tar")]
+    Tar,
+    /// The same tar stream compressed with zstd (fixed parameters, see [`ZSTD_LEVEL`]).
+    #[value(name = "tar.zst")]
+    TarZst,
+}
+
+impl Format {
+    /// Infer from an output file name: `*.zst` / `*.tzst` → `tar.zst`, else `tar`.
+    pub fn from_path(p: &Path) -> Format {
+        let n = p
+            .file_name()
+            .map(|n| n.to_string_lossy().to_ascii_lowercase())
+            .unwrap_or_default();
+        if n.ends_with(".zst") || n.ends_with(".tzst") {
+            Format::TarZst
+        } else {
+            Format::Tar
+        }
+    }
+    pub fn content_type(self) -> &'static str {
+        match self {
+            Format::Tar => "application/x-tar",
+            Format::TarZst => "application/zstd",
+        }
+    }
+}
+
+/// zstd parameters are pinned so the same tree always yields the same bytes
+/// (with the same libzstd version): fixed level, single-threaded (no
+/// workers), fixed 8 MiB window (well under the judge's 2^27 decoder cap),
+/// frame checksum on, no content-size field, no dictionary, no long-distance
+/// matching. zstd frames carry no timestamps or file names.
+pub const ZSTD_LEVEL: i32 = 12;
+pub const ZSTD_WINDOW_LOG: u32 = 23;
+
 /// Pack `root` into deterministic tar bytes.
 pub fn pack_dir(root: &Path) -> CliResult<Vec<u8>> {
+    write_tar(root, Vec::new())
+}
+
+/// Pack `root` in the requested format.
+pub fn pack(root: &Path, format: Format) -> CliResult<Vec<u8>> {
+    match format {
+        Format::Tar => pack_dir(root),
+        Format::TarZst => {
+            let zerr = |e: std::io::Error| CliError::internal(format!("zstd: {e}"));
+            let mut enc =
+                zstd::stream::write::Encoder::new(Vec::new(), ZSTD_LEVEL).map_err(zerr)?;
+            enc.include_checksum(true).map_err(zerr)?;
+            enc.include_contentsize(false).map_err(zerr)?;
+            enc.include_dictid(false).map_err(zerr)?;
+            enc.window_log(ZSTD_WINDOW_LOG).map_err(zerr)?;
+            enc.long_distance_matching(false).map_err(zerr)?;
+            let enc = write_tar(root, enc)?;
+            enc.finish().map_err(zerr)
+        }
+    }
+}
+
+fn write_tar<W: std::io::Write>(root: &Path, w: W) -> CliResult<W> {
     let entries = collect(root)?;
-    let mut b = tar::Builder::new(Vec::new());
+    let mut b = tar::Builder::new(w);
     b.mode(tar::HeaderMode::Deterministic);
     for e in &entries {
         let data = std::fs::read(&e.abs)?;
@@ -195,5 +258,27 @@ mod tests {
             .map(|e| e.unwrap().path().unwrap().to_str().unwrap().to_string())
             .collect();
         assert_eq!(p, vec![format!("{deep}/f.txt")]);
+    }
+
+    #[test]
+    fn zstd_is_deterministic_and_wraps_the_same_tar() {
+        let t1 = tempfile::tempdir().unwrap();
+        let t2 = tempfile::tempdir().unwrap();
+        mk(t1.path());
+        mk(t2.path());
+        let a = pack(t1.path(), Format::TarZst).unwrap();
+        let b = pack(t2.path(), Format::TarZst).unwrap();
+        assert_eq!(a, b);
+        assert_eq!(&a[..4], &[0x28, 0xb5, 0x2f, 0xfd]);
+        let plain = pack(t1.path(), Format::Tar).unwrap();
+        assert_eq!(zstd::decode_all(a.as_slice()).unwrap(), plain);
+        assert!(a.len() < plain.len());
+    }
+
+    #[test]
+    fn format_from_path() {
+        assert_eq!(Format::from_path(Path::new("p.tar.zst")), Format::TarZst);
+        assert_eq!(Format::from_path(Path::new("p.TZST")), Format::TarZst);
+        assert_eq!(Format::from_path(Path::new("p.tar")), Format::Tar);
     }
 }

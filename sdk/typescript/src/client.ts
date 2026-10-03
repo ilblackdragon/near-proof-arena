@@ -45,6 +45,11 @@ function hex(buf: ArrayBuffer): string {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/** True if `data` starts with the zstd frame magic (a `tar.zst` package). */
+export function isZstd(data: Uint8Array): boolean {
+  return data.length >= 4 && data[0] === 0x28 && data[1] === 0xb5 && data[2] === 0x2f && data[3] === 0xfd;
+}
+
 /** `sha256:<hex>` of the exact uploaded bytes (the `upload_digest`). */
 export async function packageDigest(data: Uint8Array): Promise<string> {
   return "sha256:" + hex(await crypto.subtle.digest("SHA-256", data as Uint8Array<ArrayBuffer>));
@@ -132,7 +137,7 @@ export class ArenaClient {
   async upload(data: Uint8Array): Promise<UploadResult> {
     const res = await this.#json<UploadResult>("POST", "/v1/uploads", {
       body: data as Uint8Array<ArrayBuffer>,
-      headers: { "Content-Type": "application/x-tar" },
+      headers: { "Content-Type": isZstd(data) ? "application/zstd" : "application/x-tar" },
     });
     const want = await packageDigest(data);
     if (res.digest !== want) throw new UnavailableError(`server reported digest ${JSON.stringify(res.digest)}, expected ${want}`);

@@ -104,10 +104,10 @@ impl Client {
     }
 
     /// `POST /v1/uploads` with the raw archive bytes.
-    pub fn upload(&self, bytes: &[u8]) -> CliResult<Value> {
+    pub fn upload(&self, bytes: &[u8], content_type: &str) -> CliResult<Value> {
         let r = self
             .req(&self.agent, "POST", "/v1/uploads")
-            .set("Content-Type", "application/x-tar")
+            .set("Content-Type", content_type)
             .send_bytes(bytes)
             .map_err(map_err)?;
         Self::json(r)
