@@ -18,7 +18,9 @@ fn main() {
     let deps = std::env::var_os("ARENA_FC_DEPS")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from("/data/illia/nearproof-deps/firecracker"));
-    let work = std::env::var_os("ARENA_FC_WORK").map(PathBuf::from).unwrap_or_else(|| deps.join("work"));
+    let work = std::env::var_os("ARENA_FC_WORK")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| deps.join("work"));
     let (mut mem, mut scratch, mut timeout, mut pids) = (512u64, 256u64, 60u64, 256u32);
     let mut cpus = Vec::new();
     let mut ro = Vec::new();
@@ -36,7 +38,10 @@ fn main() {
             "--ro" => {
                 let v = val();
                 let (h, g) = v.split_once(':').expect("--ro HOST:GUEST");
-                ro.push(RoMount { host_path: h.into(), guest_path: g.into() });
+                ro.push(RoMount {
+                    host_path: h.into(),
+                    guest_path: g.into(),
+                });
             }
             "--env" => {
                 let v = val();
@@ -65,7 +70,11 @@ fn main() {
     });
     // experiment hook: ARENA_FC_CAPS=CAP1,CAP2 (used to verify minimality)
     if let Ok(caps) = std::env::var("ARENA_FC_CAPS") {
-        cfg.container_caps = caps.split(',').filter(|c| !c.is_empty()).map(str::to_string).collect();
+        cfg.container_caps = caps
+            .split(',')
+            .filter(|c| !c.is_empty())
+            .map(str::to_string)
+            .collect();
     }
     let sb = FirecrackerSandbox::new(cfg).unwrap_or_else(|e| {
         eprintln!("{e}");

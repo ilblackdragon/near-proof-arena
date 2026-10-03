@@ -4,7 +4,10 @@
 
 use crate::contract::*;
 use crate::images::{self, TreeLimits};
-use arena_fc_proto::{self as proto, GuestJob, GuestMount, GuestStatus, MountKind, ShimDrive, ShimJob, ShimResult, ShimStatus};
+use arena_fc_proto::{
+    self as proto, GuestJob, GuestMount, GuestStatus, MountKind, ShimDrive, ShimJob, ShimResult,
+    ShimStatus,
+};
 use arena_types::Digest;
 use sha2::{Digest as _, Sha256};
 use std::fs::{self, File, OpenOptions};
@@ -16,11 +19,26 @@ use std::time::{Duration, Instant};
 
 /// Capabilities the delivery container needs (see docs/ISOLATION.md for the
 /// per-capability justification; each was verified necessary by removing it).
-pub const CONTAINER_CAPS: &[&str] = &["SYS_ADMIN", "MKNOD", "CHOWN", "SETUID", "SETGID", "DAC_OVERRIDE"];
+pub const CONTAINER_CAPS: &[&str] = &[
+    "SYS_ADMIN",
+    "MKNOD",
+    "CHOWN",
+    "SETUID",
+    "SETGID",
+    "DAC_OVERRIDE",
+];
 
 /// Environment variable names a spec may set.
 pub const ENV_ALLOWLIST: &[&str] = &[
-    "PATH", "HOME", "LANG", "LC_ALL", "TZ", "TMPDIR", "RUST_BACKTRACE", "RUST_LOG", "RAYON_NUM_THREADS",
+    "PATH",
+    "HOME",
+    "LANG",
+    "LC_ALL",
+    "TZ",
+    "TMPDIR",
+    "RUST_BACKTRACE",
+    "RUST_LOG",
+    "RAYON_NUM_THREADS",
     "OMP_NUM_THREADS",
 ];
 
@@ -62,7 +80,11 @@ impl FirecrackerConfig {
     /// (`$ARENA_FC_DEPS`, default `/data/illia/nearproof-deps/firecracker`).
     pub fn from_deps_dir(deps: &Path, work_root: &Path) -> Result<Self, InfraError> {
         let image = fs::read_to_string(deps.join("images/fc-runner.image"))
-            .map_err(|e| InfraError::Unavailable(format!("runner image id (run deploy/images/fc-runner/build.sh): {e}")))?
+            .map_err(|e| {
+                InfraError::Unavailable(format!(
+                    "runner image id (run deploy/images/fc-runner/build.sh): {e}"
+                ))
+            })?
             .trim()
             .to_string();
         Ok(FirecrackerConfig {
@@ -147,7 +169,10 @@ impl FirecrackerSandbox {
             )));
         }
         if !cfg.seccomp_profile.is_file() {
-            return Err(InfraError::Unavailable(format!("seccomp profile {} missing", cfg.seccomp_profile.display())));
+            return Err(InfraError::Unavailable(format!(
+                "seccomp profile {} missing",
+                cfg.seccomp_profile.display()
+            )));
         }
         if !Path::new("/dev/kvm").exists() {
             return Err(InfraError::Unavailable("/dev/kvm not present".into()));
@@ -156,9 +181,18 @@ impl FirecrackerSandbox {
         let rootfs_digest = images::file_digest(&cfg.rootfs)?;
         fs::create_dir_all(cfg.work_root.join("jobs"))?;
         fs::create_dir_all(cfg.work_root.join("cache"))?;
-        let ncpus = std::thread::available_parallelism().map(|n| n.get() as u32).unwrap_or(1);
+        let ncpus = std::thread::available_parallelism()
+            .map(|n| n.get() as u32)
+            .unwrap_or(1);
         let (host_uid, host_gid) = unsafe { (libc::getuid(), libc::getgid()) };
-        Ok(FirecrackerSandbox { cfg, kernel_digest, rootfs_digest, host_uid, host_gid, ncpus })
+        Ok(FirecrackerSandbox {
+            cfg,
+            kernel_digest,
+            rootfs_digest,
+            host_uid,
+            host_gid,
+            ncpus,
+        })
     }
 
     pub fn config(&self) -> &FirecrackerConfig {
@@ -177,7 +211,10 @@ impl FirecrackerSandbox {
             return bad("network access is never available".into());
         }
         if spec.rootfs_digest != self.rootfs_digest {
-            return bad(format!("rootfs digest {} != installed {}", spec.rootfs_digest, self.rootfs_digest));
+            return bad(format!(
+                "rootfs digest {} != installed {}",
+                spec.rootfs_digest, self.rootfs_digest
+            ));
         }
         if spec.argv.is_empty() || spec.argv.iter().any(|a| a.contains('\0')) {
             return bad("argv empty or contains NUL".into());
@@ -190,8 +227,13 @@ impl FirecrackerSandbox {
                 return bad(format!("env var {k} contains NUL"));
             }
         }
-        if spec.cpu_set.len() as u32 > self.cfg.max_vcpus || spec.cpu_set.iter().any(|c| *c >= self.ncpus) {
-            return bad(format!("cpu_set {:?} invalid on a {}-cpu host", spec.cpu_set, self.ncpus));
+        if spec.cpu_set.len() as u32 > self.cfg.max_vcpus
+            || spec.cpu_set.iter().any(|c| *c >= self.ncpus)
+        {
+            return bad(format!(
+                "cpu_set {:?} invalid on a {}-cpu host",
+                spec.cpu_set, self.ncpus
+            ));
         }
         let mut cs = spec.cpu_set.clone();
         cs.sort();
@@ -217,14 +259,21 @@ impl FirecrackerSandbox {
         let mut guest_paths: Vec<&str> = Vec::new();
         for m in &spec.ro_mounts {
             let g = m.guest_path.as_str();
-            let rel = g
-                .strip_prefix(proto::GUEST_MOUNT_PREFIX)
-                .ok_or_else(|| InfraError::InvalidSpec(format!("guest path {g:?} must be under /arena/")))?;
-            proto::validate_rel_path(rel).map_err(|e| InfraError::InvalidSpec(format!("guest path {g:?}: {e}")))?;
-            if !rel.bytes().all(|b| b.is_ascii_alphanumeric() || b"._-/".contains(&b)) || rel.starts_with(".m") {
+            let rel = g.strip_prefix(proto::GUEST_MOUNT_PREFIX).ok_or_else(|| {
+                InfraError::InvalidSpec(format!("guest path {g:?} must be under /arena/"))
+            })?;
+            proto::validate_rel_path(rel)
+                .map_err(|e| InfraError::InvalidSpec(format!("guest path {g:?}: {e}")))?;
+            if !rel
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b"._-/".contains(&b))
+                || rel.starts_with(".m")
+            {
                 return bad(format!("guest path {g:?} has unsupported characters"));
             }
-            let overlaps = |a: &str, b: &str| a == b || a.starts_with(&format!("{b}/")) || b.starts_with(&format!("{a}/"));
+            let overlaps = |a: &str, b: &str| {
+                a == b || a.starts_with(&format!("{b}/")) || b.starts_with(&format!("{a}/"))
+            };
             if overlaps(g, proto::GUEST_SCRATCH) || guest_paths.iter().any(|p| overlaps(p, g)) {
                 return bad(format!("guest path {g:?} overlaps another mount"));
             }
@@ -234,7 +283,11 @@ impl FirecrackerSandbox {
     }
 
     /// Stage + hash a read-only mount; returns (cached image path, kind).
-    fn prepare_mount(&self, m: &RoMount, staging: &Path) -> Result<(PathBuf, MountKind), InfraError> {
+    fn prepare_mount(
+        &self,
+        m: &RoMount,
+        staging: &Path,
+    ) -> Result<(PathBuf, MountKind), InfraError> {
         let md = fs::symlink_metadata(&m.host_path)
             .map_err(|e| InfraError::InvalidSpec(format!("{}: {e}", m.host_path.display())))?;
         let (src_dir, kind, tmp_src);
@@ -247,20 +300,35 @@ impl FirecrackerSandbox {
                 .host_path
                 .file_name()
                 .and_then(|n| n.to_str())
-                .filter(|n| proto::validate_rel_path(n).is_ok() && n.bytes().all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b)))
-                .ok_or_else(|| InfraError::InvalidSpec(format!("{}: unsupported file name", m.host_path.display())))?
+                .filter(|n| {
+                    proto::validate_rel_path(n).is_ok()
+                        && n.bytes()
+                            .all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b))
+                })
+                .ok_or_else(|| {
+                    InfraError::InvalidSpec(format!(
+                        "{}: unsupported file name",
+                        m.host_path.display()
+                    ))
+                })?
                 .to_string();
             // wrap the single file into a one-entry tree
             let wrap = staging.join(format!("wrap-{}", random_hex(6)?));
             fs::create_dir(&wrap)?;
-            let mut inp = OpenOptions::new().read(true).custom_flags(libc::O_NOFOLLOW).open(&m.host_path)?;
+            let mut inp = OpenOptions::new()
+                .read(true)
+                .custom_flags(libc::O_NOFOLLOW)
+                .open(&m.host_path)?;
             let mut out = File::create(wrap.join(&name))?;
             io::copy(&mut inp, &mut out)?;
             src_dir = wrap.clone();
             kind = MountKind::File { name };
             tmp_src = Some(wrap);
         } else {
-            return Err(InfraError::InvalidSpec(format!("{}: not a file or directory", m.host_path.display())));
+            return Err(InfraError::InvalidSpec(format!(
+                "{}: not a file or directory",
+                m.host_path.display()
+            )));
         }
         let st_dir = staging.join(format!("tree-{}", random_hex(6)?));
         let st = images::stage_tree(&src_dir, &st_dir, &self.cfg.tree_limits)?;
@@ -269,11 +337,19 @@ impl FirecrackerSandbox {
         }
         let key = match &kind {
             MountKind::Dir => format!("dir-{}", st.digest.hex()),
-            MountKind::File { name } => format!("file-{}-{}", hex::encode(Sha256::digest(name.as_bytes())), st.digest.hex()),
+            MountKind::File { name } => format!(
+                "file-{}-{}",
+                hex::encode(Sha256::digest(name.as_bytes())),
+                st.digest.hex()
+            ),
         };
         let cached = self.cfg.work_root.join("cache").join(format!("{key}.ext4"));
         if !cached.exists() {
-            let tmp = self.cfg.work_root.join("cache").join(format!(".{key}.{}.tmp", random_hex(4)?));
+            let tmp = self
+                .cfg
+                .work_root
+                .join("cache")
+                .join(format!(".{key}.{}.tmp", random_hex(4)?));
             images::build_ro_image(&st, &tmp)?;
             fs::rename(&tmp, &cached)?; // atomic; concurrent builders produce equivalent images
         }
@@ -287,11 +363,27 @@ impl FirecrackerSandbox {
 
     fn container_cleanup(&self, jobdir: &Path) -> Result<(), InfraError> {
         let st = Command::new(&self.cfg.docker_bin)
-            .args(["run", "--rm", "--network", "none", "--cap-drop", "ALL", "--cap-add", "CHOWN", "--security-opt", "no-new-privileges"])
+            .args([
+                "run",
+                "--rm",
+                "--network",
+                "none",
+                "--cap-drop",
+                "ALL",
+                "--cap-add",
+                "CHOWN",
+                "--security-opt",
+                "no-new-privileges",
+            ])
             .arg("-v")
             .arg(format!("{}:/job", jobdir.display()))
             .arg(&self.cfg.runner_image)
-            .args(["cleanup", "/job", &self.host_uid.to_string(), &self.host_gid.to_string()])
+            .args([
+                "cleanup",
+                "/job",
+                &self.host_uid.to_string(),
+                &self.host_gid.to_string(),
+            ])
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .status()?;
@@ -302,20 +394,53 @@ impl FirecrackerSandbox {
     }
 
     /// Start the container and wait for it with a backstop deadline.
-    fn run_container(&self, id: &str, jobdir: &Path, job: &ShimJob, deadline: Duration) -> Result<(u64, String), InfraError> {
+    fn run_container(
+        &self,
+        id: &str,
+        jobdir: &Path,
+        job: &ShimJob,
+        deadline: Duration,
+    ) -> Result<(u64, String), InfraError> {
         let mem_limit = job.vmm_mem_max_bytes + (64 << 20);
         let mut cmd = Command::new(&self.cfg.docker_bin);
         cmd.args(["run", "--rm", "--name", &Self::container_name(id)])
-            .args(["--network", "none", "--device", "/dev/kvm", "--cap-drop", "ALL"]);
+            .args([
+                "--network",
+                "none",
+                "--device",
+                "/dev/kvm",
+                "--cap-drop",
+                "ALL",
+            ]);
         for c in &self.cfg.container_caps {
             cmd.args(["--cap-add", c]);
         }
-        cmd.args(["--security-opt", "no-new-privileges", "--security-opt", "apparmor=unconfined"])
-            .arg("--security-opt")
-            .arg(format!("seccomp={}", self.cfg.seccomp_profile.display()))
-            .args(["--read-only", "--cgroupns", "private", "--ipc", "none", "--user", "0:0", "--log-driver", "none"])
-            .args(["--memory", &mem_limit.to_string(), "--memory-swap", &mem_limit.to_string()])
-            .args(["--pids-limit", "128", "--ulimit", "core=0"]);
+        cmd.args([
+            "--security-opt",
+            "no-new-privileges",
+            "--security-opt",
+            "apparmor=unconfined",
+        ])
+        .arg("--security-opt")
+        .arg(format!("seccomp={}", self.cfg.seccomp_profile.display()))
+        .args([
+            "--read-only",
+            "--cgroupns",
+            "private",
+            "--ipc",
+            "none",
+            "--user",
+            "0:0",
+            "--log-driver",
+            "none",
+        ])
+        .args([
+            "--memory",
+            &mem_limit.to_string(),
+            "--memory-swap",
+            &mem_limit.to_string(),
+        ])
+        .args(["--pids-limit", "128", "--ulimit", "core=0"]);
         if let Some(cs) = &job.cpuset {
             cmd.args(["--cpuset-cpus", cs]);
         }
@@ -327,7 +452,9 @@ impl FirecrackerSandbox {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
         let t0 = Instant::now();
-        let mut child = cmd.spawn().map_err(|e| InfraError::Unavailable(format!("docker run: {e}")))?;
+        let mut child = cmd
+            .spawn()
+            .map_err(|e| InfraError::Unavailable(format!("docker run: {e}")))?;
         let mut so = child.stdout.take().unwrap();
         let mut se = child.stderr.take().unwrap();
         let t_out = std::thread::spawn(move || {
@@ -361,11 +488,16 @@ impl FirecrackerSandbox {
         let mut msg = String::from_utf8_lossy(&t_out.join().unwrap_or_default()).into_owned();
         msg.push_str(&String::from_utf8_lossy(&t_err.join().unwrap_or_default()));
         if killed {
-            return Err(backend(format!("backstop deadline hit; container killed: {msg}")));
+            return Err(backend(format!(
+                "backstop deadline hit; container killed: {msg}"
+            )));
         }
         // shim exits 1 on supervisor error but still writes result.json
         if !status.success() && !jobdir.join(proto::SHIM_RESULT_FILE).exists() {
-            return Err(backend(format!("container failed ({status}): {}", msg.trim())));
+            return Err(backend(format!(
+                "container failed ({status}): {}",
+                msg.trim()
+            )));
         }
         Ok((total_ns, msg))
     }
@@ -398,7 +530,8 @@ impl FirecrackerSandbox {
                 h.update(&buf[..n]);
                 f.write_all(&buf[..n])?;
             }
-            let d = Digest::try_from(format!("sha256:{}", hex::encode(h.finalize()))).expect("digest");
+            let d =
+                Digest::try_from(format!("sha256:{}", hex::encode(h.finalize()))).expect("digest");
             outputs.push((path.to_string(), d));
             Ok(())
         });
@@ -418,7 +551,10 @@ impl FirecrackerSandbox {
         match fs::read_dir(&spec.out_dir) {
             Ok(mut rd) => {
                 if rd.next().is_some() {
-                    return Err(InfraError::InvalidSpec(format!("out_dir {} not empty", spec.out_dir.display())));
+                    return Err(InfraError::InvalidSpec(format!(
+                        "out_dir {} not empty",
+                        spec.out_dir.display()
+                    )));
                 }
             }
             Err(e) if e.kind() == io::ErrorKind::NotFound => fs::create_dir_all(&spec.out_dir)?,
@@ -429,7 +565,10 @@ impl FirecrackerSandbox {
         let nonce = random_hex(16)?;
         let jobdir = self.cfg.work_root.join("jobs").join(&id);
         fs::create_dir(&jobdir)?;
-        let guard = JobDir { path: jobdir.clone(), sb: self };
+        let guard = JobDir {
+            path: jobdir.clone(),
+            sb: self,
+        };
         let input = jobdir.join(proto::SHIM_INPUT_DIR);
         let staging = jobdir.join("staging");
         fs::create_dir(&input)?;
@@ -439,25 +578,60 @@ impl FirecrackerSandbox {
         images::link_or_copy(&self.cfg.kernel, &input.join("vmlinux"))?;
         images::link_or_copy(&self.cfg.rootfs, &input.join("rootfs.ext4"))?;
         let mut drives = vec![
-            ShimDrive { drive_id: "rootfs".into(), file: "rootfs.ext4".into(), read_only: true, is_root: true, chown_to_vmm: false },
-            ShimDrive { drive_id: "ctl".into(), file: "ctl.img".into(), read_only: true, is_root: false, chown_to_vmm: false },
-            ShimDrive { drive_id: "out".into(), file: "out.img".into(), read_only: false, is_root: false, chown_to_vmm: true },
-            ShimDrive { drive_id: "scratch".into(), file: "scratch.img".into(), read_only: false, is_root: false, chown_to_vmm: true },
+            ShimDrive {
+                drive_id: "rootfs".into(),
+                file: "rootfs.ext4".into(),
+                read_only: true,
+                is_root: true,
+                chown_to_vmm: false,
+            },
+            ShimDrive {
+                drive_id: "ctl".into(),
+                file: "ctl.img".into(),
+                read_only: true,
+                is_root: false,
+                chown_to_vmm: false,
+            },
+            ShimDrive {
+                drive_id: "out".into(),
+                file: "out.img".into(),
+                read_only: false,
+                is_root: false,
+                chown_to_vmm: true,
+            },
+            ShimDrive {
+                drive_id: "scratch".into(),
+                file: "scratch.img".into(),
+                read_only: false,
+                is_root: false,
+                chown_to_vmm: true,
+            },
         ];
         let mut mounts = Vec::new();
         for (i, m) in spec.ro_mounts.iter().enumerate() {
             let (img, kind) = self.prepare_mount(m, &staging)?;
             let file = format!("ro{i}.ext4");
             images::link_or_copy(&img, &input.join(&file))?;
-            drives.push(ShimDrive { drive_id: format!("ro{i}"), file, read_only: true, is_root: false, chown_to_vmm: false });
-            mounts.push(GuestMount { dev_index: proto::FIRST_MOUNT_DEV_INDEX + i as u32, guest_path: m.guest_path.clone(), kind });
+            drives.push(ShimDrive {
+                drive_id: format!("ro{i}"),
+                file,
+                read_only: true,
+                is_root: false,
+                chown_to_vmm: false,
+            });
+            mounts.push(GuestMount {
+                dev_index: proto::FIRST_MOUNT_DEV_INDEX + i as u32,
+                guest_path: m.guest_path.clone(),
+                kind,
+            });
         }
         let _ = fs::remove_dir_all(&staging);
 
         // scratch + output devices, fresh per run
         images::build_scratch_image(&input.join("scratch.img"), spec.rw_scratch_mb)?;
         let max_output_bytes = self.cfg.max_output_bytes.min(spec.rw_scratch_mb << 20);
-        let out_dev_bytes = (max_output_bytes + (4 << 20) + 2 * proto::STREAM_CAP as u64).div_ceil(4096) * 4096;
+        let out_dev_bytes =
+            (max_output_bytes + (4 << 20) + 2 * proto::STREAM_CAP as u64).div_ceil(4096) * 4096;
         images::build_raw_image(&input.join("out.img"), &[], out_dev_bytes)?;
 
         let mut env: Vec<(String, String)> = spec.env.clone();
@@ -490,13 +664,22 @@ impl FirecrackerSandbox {
             return Err(InfraError::InvalidSpec("argv/env too large".into()));
         }
         images::build_raw_image(&input.join("ctl.img"), &ctl, 4096)?;
-        fs::set_permissions(input.join("ctl.img"), std::os::unix::fs::PermissionsExt::from_mode(0o444))?;
+        fs::set_permissions(
+            input.join("ctl.img"),
+            std::os::unix::fs::PermissionsExt::from_mode(0o444),
+        )?;
 
         let vcpus = spec.cpu_set.len().max(1) as u32;
         let guest_mem_mib = spec.mem_bytes.div_ceil(1 << 20) + self.cfg.guest_overhead_mib;
-        let vmm_uid = self.cfg.vmm_uid_base + (u32::from_str_radix(&nonce[..8], 16).unwrap() % self.cfg.vmm_uid_count);
-        let cpuset = (!spec.cpu_set.is_empty())
-            .then(|| spec.cpu_set.iter().map(|c| c.to_string()).collect::<Vec<_>>().join(","));
+        let vmm_uid = self.cfg.vmm_uid_base
+            + (u32::from_str_radix(&nonce[..8], 16).unwrap() % self.cfg.vmm_uid_count);
+        let cpuset = (!spec.cpu_set.is_empty()).then(|| {
+            spec.cpu_set
+                .iter()
+                .map(|c| c.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
+        });
         let shim = ShimJob {
             version: proto::PROTO_VERSION,
             id: id.clone(),
@@ -509,8 +692,18 @@ impl FirecrackerSandbox {
             vmm_fsize_limit: (spec.rw_scratch_mb << 20).max(out_dev_bytes) + (1 << 20),
             kernel_file: "vmlinux".into(),
             boot_args: [
-                "console=ttyS0", "reboot=k", "panic=1", "pci=off", "nomodule", "quiet", "loglevel=3",
-                "i8042.noaux", "i8042.nomux", "i8042.dumbkbd", "init=/sbin/arena-init", "random.trust_cpu=on",
+                "console=ttyS0",
+                "reboot=k",
+                "panic=1",
+                "pci=off",
+                "nomodule",
+                "quiet",
+                "loglevel=3",
+                "i8042.noaux",
+                "i8042.nomux",
+                "i8042.dumbkbd",
+                "init=/sbin/arena-init",
+                "random.trust_cpu=on",
             ]
             .join(" "),
             drives,
@@ -523,12 +716,19 @@ impl FirecrackerSandbox {
             collect_timeout_ms: self.cfg.collect_timeout.as_millis() as u64,
             serial_cap_bytes: self.cfg.serial_cap_bytes,
         };
-        fs::write(jobdir.join(proto::SHIM_JOB_FILE), serde_json::to_vec_pretty(&shim).unwrap())?;
+        fs::write(
+            jobdir.join(proto::SHIM_JOB_FILE),
+            serde_json::to_vec_pretty(&shim).unwrap(),
+        )?;
 
-        let deadline = self.cfg.boot_timeout + spec.wall_timeout + self.cfg.collect_timeout + self.cfg.backstop_grace;
+        let deadline = self.cfg.boot_timeout
+            + spec.wall_timeout
+            + self.cfg.collect_timeout
+            + self.cfg.backstop_grace;
         let (total_ns, docker_msg) = self.run_container(&id, &jobdir, &shim, deadline)?;
         let res: ShimResult = serde_json::from_slice(
-            &fs::read(jobdir.join(proto::SHIM_RESULT_FILE)).map_err(|e| backend(format!("no shim result ({e}): {docker_msg}")))?,
+            &fs::read(jobdir.join(proto::SHIM_RESULT_FILE))
+                .map_err(|e| backend(format!("no shim result ({e}): {docker_msg}")))?,
         )
         .map_err(|e| backend(format!("bad shim result: {e}")))?;
 
@@ -554,10 +754,20 @@ impl FirecrackerSandbox {
         };
         match &res.status {
             ShimStatus::Error { error } => return Err(backend(format!("shim: {error}"))),
-            ShimStatus::BootTimeout => return Err(backend(format!("guest did not boot in time; serial: {}", tail(&res.serial_tail)))),
+            ShimStatus::BootTimeout => {
+                return Err(backend(format!(
+                    "guest did not boot in time; serial: {}",
+                    tail(&res.serial_tail)
+                )))
+            }
             ShimStatus::CollectTimeout => return Err(backend("guest output collection timed out")),
             ShimStatus::TimedOut => {
-                return Ok(host_figures(Exit::TimedOut, res.run_wall_ns.unwrap_or(spec.wall_timeout.as_nanos() as u64), diag));
+                return Ok(host_figures(
+                    Exit::TimedOut,
+                    res.run_wall_ns
+                        .unwrap_or(spec.wall_timeout.as_nanos() as u64),
+                    diag,
+                ));
             }
             ShimStatus::VmmExited { .. } => {}
         }
@@ -571,10 +781,21 @@ impl FirecrackerSandbox {
             Err(e) => {
                 if res.cgroup.oom_kill > 0 {
                     // the VMM itself was OOM-killed by the host cgroup
-                    return Ok(host_figures(Exit::OomKilled, res.run_wall_ns.unwrap_or(0), diag));
+                    return Ok(host_figures(
+                        Exit::OomKilled,
+                        res.run_wall_ns.unwrap_or(0),
+                        diag,
+                    ));
                 }
-                let what = if res.boot_ns.is_none() { "VM exited before the guest started" } else { "no guest report" };
-                return Err(backend(format!("{what} ({e}); serial: {}", tail(&res.serial_tail))));
+                let what = if res.boot_ns.is_none() {
+                    "VM exited before the guest started"
+                } else {
+                    "no guest report"
+                };
+                return Err(backend(format!(
+                    "{what} ({e}); serial: {}",
+                    tail(&res.serial_tail)
+                )));
             }
         };
         if header.report.nonce != nonce {
@@ -592,15 +813,21 @@ impl FirecrackerSandbox {
             GuestStatus::Signaled { signal } => Exit::Signaled(*signal),
             GuestStatus::OomKilled => Exit::OomKilled,
             GuestStatus::SpawnFailed { error } => {
-                stderr = format!("arena: failed to execute {:?}: {error}\n", spec.argv[0]).into_bytes();
+                stderr =
+                    format!("arena: failed to execute {:?}: {error}\n", spec.argv[0]).into_bytes();
                 Exit::Exited(127)
             }
-            GuestStatus::InitError { error } => return Err(backend(format!("guest init: {error}"))),
+            GuestStatus::InitError { error } => {
+                return Err(backend(format!("guest init: {error}")))
+            }
         };
-        let wall_ns = res
-            .run_wall_ns
-            .ok_or_else(|| InfraError::GuestProtocol("guest reported a result without console markers".into()))?;
-        let limits = proto::DecodeLimits { max_files: self.cfg.max_output_files as u64, max_total_bytes: max_output_bytes };
+        let wall_ns = res.run_wall_ns.ok_or_else(|| {
+            InfraError::GuestProtocol("guest reported a result without console markers".into())
+        })?;
+        let limits = proto::DecodeLimits {
+            max_files: self.cfg.max_output_files as u64,
+            max_total_bytes: max_output_bytes,
+        };
         let (outputs, summary) = match self.materialize_outputs(&mut r, &spec.out_dir, &limits) {
             Ok(x) => x,
             Err(e) => {

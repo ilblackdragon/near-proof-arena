@@ -90,7 +90,10 @@ fn stdout(o: &SandboxOutcome) -> String {
 fn hello_world() {
     gate!();
     let t = scratch_dir();
-    let o = run(&spec("echo hello; echo oops >&2; id -u; pwd", &t.path().join("out")));
+    let o = run(&spec(
+        "echo hello; echo oops >&2; id -u; pwd",
+        &t.path().join("out"),
+    ));
     assert_eq!(o.exit, Exit::Exited(0), "{o:?}");
     assert_eq!(stdout(&o), "hello\n1000\n/arena/scratch\n");
     assert_eq!(o.stderr_trunc, b"oops\n");
@@ -102,9 +105,18 @@ fn hello_world() {
 fn exit_codes_and_signals() {
     gate!();
     let t = scratch_dir();
-    assert_eq!(run(&spec("exit 3", &t.path().join("a"))).exit, Exit::Exited(3));
-    assert_eq!(run(&spec("exit 1", &t.path().join("b"))).exit, Exit::Exited(1));
-    assert_eq!(run(&spec("kill -SEGV $$", &t.path().join("c"))).exit, Exit::Signaled(11));
+    assert_eq!(
+        run(&spec("exit 3", &t.path().join("a"))).exit,
+        Exit::Exited(3)
+    );
+    assert_eq!(
+        run(&spec("exit 1", &t.path().join("b"))).exit,
+        Exit::Exited(1)
+    );
+    assert_eq!(
+        run(&spec("kill -SEGV $$", &t.path().join("c"))).exit,
+        Exit::Signaled(11)
+    );
     let mut s = spec("", &t.path().join("d"));
     s.argv = vec!["/nonexistent/prove".into()];
     let o = run(&s);
@@ -122,8 +134,15 @@ fn timeout_kills_vm() {
     let o = run(&s);
     let elapsed = start.elapsed();
     assert_eq!(o.exit, Exit::TimedOut);
-    assert!(o.wall_ns >= 2_000_000_000 && o.wall_ns < 2_200_000_000, "wall {}", o.wall_ns);
-    assert!(elapsed < Duration::from_secs(10), "host elapsed {elapsed:?}");
+    assert!(
+        o.wall_ns >= 2_000_000_000 && o.wall_ns < 2_200_000_000,
+        "wall {}",
+        o.wall_ns
+    );
+    assert!(
+        elapsed < Duration::from_secs(10),
+        "host elapsed {elapsed:?}"
+    );
     assert!(o.outputs.is_empty());
 }
 
@@ -139,14 +158,23 @@ fn guest_memory_limit_ooms() {
     .iter()
     .enumerate()
     {
-        let mut s = spec(&format!("exec perl -e '{prog}'"), &t.path().join(format!("out{i}")));
+        let mut s = spec(
+            &format!("exec perl -e '{prog}'"),
+            &t.path().join(format!("out{i}")),
+        );
         s.mem_bytes = 128 << 20;
         let o = run(&s);
         assert_eq!(o.exit, Exit::OomKilled, "{o:?}");
-        assert_eq!(o.diagnostics.host_oom_kills, 0, "the guest limit, not the host one, must fire");
+        assert_eq!(
+            o.diagnostics.host_oom_kills, 0,
+            "the guest limit, not the host one, must fire"
+        );
     }
     // the same program fits with a larger limit
-    let mut s2 = spec(r#"exec perl -e '$x = "a" x (40*1024*1024); print length($x), "\n"'"#, &t.path().join("out2"));
+    let mut s2 = spec(
+        r#"exec perl -e '$x = "a" x (40*1024*1024); print length($x), "\n"'"#,
+        &t.path().join("out2"),
+    );
     s2.mem_bytes = 256 << 20;
     let o2 = run(&s2);
     assert_eq!(o2.exit, Exit::Exited(0));
@@ -208,7 +236,10 @@ fn env_is_cleared_and_allowlisted() {
     );
     let mut bad = spec("true", &t.path().join("out2"));
     bad.env = vec![("LD_PRELOAD".into(), "/x.so".into())];
-    assert!(matches!(sandbox().run(&bad), Err(InfraError::InvalidSpec(_))));
+    assert!(matches!(
+        sandbox().run(&bad),
+        Err(InfraError::InvalidSpec(_))
+    ));
 }
 
 #[test]
@@ -230,11 +261,26 @@ fn outputs_retrieved_with_digests_and_policy() {
         assert_eq!(d.hex(), hex::encode(Sha256::digest(&bytes)), "{p}");
     }
     assert_eq!(fs::read(out.join("claim.bin")).unwrap(), b"claim");
-    assert_eq!(fs::metadata(out.join("sub/proof.bin")).unwrap().len(), 300000);
-    assert_eq!(fs::metadata(out.join("sub/deeper/tool")).unwrap().permissions().mode() & 0o777, 0o755);
+    assert_eq!(
+        fs::metadata(out.join("sub/proof.bin")).unwrap().len(),
+        300000
+    );
+    assert_eq!(
+        fs::metadata(out.join("sub/deeper/tool"))
+            .unwrap()
+            .permissions()
+            .mode()
+            & 0o777,
+        0o755
+    );
     assert!(!out.join("link").exists() && fs::symlink_metadata(out.join("link")).is_err());
     assert!(!o.diagnostics.outputs_complete);
-    assert_eq!(o.diagnostics.output_violations.len(), 2, "{:?}", o.diagnostics.output_violations);
+    assert_eq!(
+        o.diagnostics.output_violations.len(),
+        2,
+        "{:?}",
+        o.diagnostics.output_violations
+    );
 }
 
 #[test]
@@ -243,7 +289,11 @@ fn ro_bundle_mounts() {
     let t = scratch_dir();
     let bundle = t.path().join("bundle");
     fs::create_dir_all(bundle.join("out")).unwrap();
-    fs::write(bundle.join("out/prove"), "#!/bin/sh\necho \"proving $1\"\nexit 0\n").unwrap();
+    fs::write(
+        bundle.join("out/prove"),
+        "#!/bin/sh\necho \"proving $1\"\nexit 0\n",
+    )
+    .unwrap();
     fs::set_permissions(bundle.join("out/prove"), fs::Permissions::from_mode(0o755)).unwrap();
     fs::write(bundle.join("data.txt"), "params").unwrap();
     let req = t.path().join("request.bin");
@@ -255,8 +305,14 @@ fn ro_bundle_mounts() {
         &t.path().join("out"),
     );
     s.ro_mounts = vec![
-        RoMount { host_path: bundle.clone(), guest_path: "/arena/bundle".into() },
-        RoMount { host_path: req, guest_path: "/arena/in/request.bin".into() },
+        RoMount {
+            host_path: bundle.clone(),
+            guest_path: "/arena/bundle".into(),
+        },
+        RoMount {
+            host_path: req,
+            guest_path: "/arena/in/request.bin".into(),
+        },
     ];
     let o = run(&s);
     assert_eq!(o.exit, Exit::Exited(0), "{o:?}");
@@ -272,21 +328,34 @@ fn no_state_across_runs() {
     let t = scratch_dir();
     let o1 = run(&spec("echo a > /arena/scratch/persist; echo b > /tmp/persist; echo c > /dev/shm/persist; echo ok", &t.path().join("o1")));
     assert_eq!(stdout(&o1), "ok\n");
-    let o2 = run(&spec("ls -A /arena/scratch /tmp /dev/shm", &t.path().join("o2")));
-    assert_eq!(stdout(&o2), "/arena/scratch:\nout\ntmp\n\n/dev/shm:\n\n/tmp:\n");
+    let o2 = run(&spec(
+        "ls -A /arena/scratch /tmp /dev/shm",
+        &t.path().join("o2"),
+    ));
+    assert_eq!(
+        stdout(&o2),
+        "/arena/scratch:\nout\ntmp\n\n/dev/shm:\n\n/tmp:\n"
+    );
 }
 
 #[test]
 fn pids_limit_bounds_fork_bombs() {
     gate!();
     let t = scratch_dir();
-    let mut s = spec("i=0; while [ $i -lt 200 ]; do sleep 5 & i=$((i+1)); done 2>/dev/null; echo spawned", &t.path().join("out"));
+    let mut s = spec(
+        "i=0; while [ $i -lt 200 ]; do sleep 5 & i=$((i+1)); done 2>/dev/null; echo spawned",
+        &t.path().join("out"),
+    );
     s.pids = 16;
     s.wall_timeout = Duration::from_secs(15);
     let o = run(&s);
     // the shell survives fork failures; background sleeps are killed at exit
     assert!(matches!(o.exit, Exit::Exited(_)), "{o:?}");
-    assert!(o.wall_ns < 5_000_000_000, "children must not outlive the candidate: {}", o.wall_ns);
+    assert!(
+        o.wall_ns < 5_000_000_000,
+        "children must not outlive the candidate: {}",
+        o.wall_ns
+    );
 }
 
 #[test]
@@ -303,10 +372,17 @@ fn timing_sanity() {
         assert!(o.diagnostics.vmm_wall_ns > o.wall_ns);
         let g = o.diagnostics.guest_wall_ns.unwrap();
         // host marker interval and guest clock agree within 50 ms
-        assert!((o.wall_ns as i64 - g as i64).abs() < 50_000_000, "host {} guest {g}", o.wall_ns);
+        assert!(
+            (o.wall_ns as i64 - g as i64).abs() < 50_000_000,
+            "host {} guest {g}",
+            o.wall_ns
+        );
     }
     for w in walls {
-        assert!((1_000_000_000..1_150_000_000).contains(&w), "sleep 1 measured {w}ns");
+        assert!(
+            (1_000_000_000..1_150_000_000).contains(&w),
+            "sleep 1 measured {w}ns"
+        );
     }
     // multi-vCPU pinned run: 2 busy loops on 2 vCPUs take ~1s wall, ~2s cpu
     let mut s = spec("for i in 1 2; do (end=$(($(date +%s)+1)); while [ $(date +%s) -lt $end ]; do :; done) & done; wait; nproc", &t.path().join("mc"));
@@ -344,7 +420,10 @@ fn concurrent_runs_are_isolated() {
         .map(|i| {
             let out = base.join(format!("o{i}"));
             std::thread::spawn(move || {
-                let o = run(&spec(&format!("echo {i} > out/id; sleep 1; ls /arena/scratch/out; cat out/id"), &out));
+                let o = run(&spec(
+                    &format!("echo {i} > out/id; sleep 1; ls /arena/scratch/out; cat out/id"),
+                    &out,
+                ));
                 (i, o)
             })
         })

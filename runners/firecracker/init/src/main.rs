@@ -14,7 +14,9 @@
 //! Init runs as root inside the guest and is part of the arena TCB; the
 //! candidate never runs as root. Nothing here trusts the scratch contents.
 
-use arena_fc_proto::{self as proto, CollectSummary, GuestJob, GuestReport, GuestStatus, OutWriter};
+use arena_fc_proto::{
+    self as proto, CollectSummary, GuestJob, GuestReport, GuestStatus, OutWriter,
+};
 use std::ffi::CString;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read, Seek, SeekFrom, Write};
@@ -38,20 +40,37 @@ fn cstr(s: &str) -> CString {
     CString::new(s).expect("no NUL")
 }
 
-fn mount(src: &str, target: &str, fstype: &str, flags: libc::c_ulong, data: &str) -> io::Result<()> {
+fn mount(
+    src: &str,
+    target: &str,
+    fstype: &str,
+    flags: libc::c_ulong,
+    data: &str,
+) -> io::Result<()> {
     let (s, t, f, d) = (cstr(src), cstr(target), cstr(fstype), cstr(data));
     let r = unsafe {
         libc::mount(
             s.as_ptr(),
             t.as_ptr(),
-            if fstype.is_empty() { std::ptr::null() } else { f.as_ptr() },
+            if fstype.is_empty() {
+                std::ptr::null()
+            } else {
+                f.as_ptr()
+            },
             flags,
-            if data.is_empty() { std::ptr::null() } else { d.as_ptr() as *const libc::c_void },
+            if data.is_empty() {
+                std::ptr::null()
+            } else {
+                d.as_ptr() as *const libc::c_void
+            },
         )
     };
     if r != 0 {
         let e = io::Error::last_os_error();
-        return Err(io::Error::new(e.kind(), format!("mount {src} on {target} ({fstype}): {e}")));
+        return Err(io::Error::new(
+            e.kind(),
+            format!("mount {src} on {target} ({fstype}): {e}"),
+        ));
     }
     Ok(())
 }
@@ -62,27 +81,77 @@ fn ctx<T>(r: io::Result<T>, what: &str) -> Result<T, String> {
 
 fn base_mounts() -> Result<(), String> {
     let nsd = libc::MS_NOSUID | libc::MS_NODEV;
-    ctx(mount("proc", "/proc", "proc", nsd | libc::MS_NOEXEC, "hidepid=2"), "proc")?;
-    ctx(mount("sysfs", "/sys", "sysfs", nsd | libc::MS_NOEXEC | libc::MS_RDONLY, ""), "sys")?;
+    ctx(
+        mount("proc", "/proc", "proc", nsd | libc::MS_NOEXEC, "hidepid=2"),
+        "proc",
+    )?;
+    ctx(
+        mount(
+            "sysfs",
+            "/sys",
+            "sysfs",
+            nsd | libc::MS_NOEXEC | libc::MS_RDONLY,
+            "",
+        ),
+        "sys",
+    )?;
     // CONFIG_DEVTMPFS_MOUNT may already have mounted /dev.
-    if let Err(e) = mount("devtmpfs", "/dev", "devtmpfs", libc::MS_NOSUID | libc::MS_NOEXEC, "mode=0755") {
+    if let Err(e) = mount(
+        "devtmpfs",
+        "/dev",
+        "devtmpfs",
+        libc::MS_NOSUID | libc::MS_NOEXEC,
+        "mode=0755",
+    ) {
         if e.raw_os_error() != Some(libc::EBUSY) && !e.to_string().contains("busy") {
             return Err(format!("devtmpfs: {e}"));
         }
     }
-    ctx(mount("cgroup2", "/sys/fs/cgroup", "cgroup2", nsd | libc::MS_NOEXEC, ""), "cgroup2")?;
-    ctx(mount("tmpfs", "/tmp", "tmpfs", nsd, "mode=1777,size=64m"), "tmp")?;
+    ctx(
+        mount(
+            "cgroup2",
+            "/sys/fs/cgroup",
+            "cgroup2",
+            nsd | libc::MS_NOEXEC,
+            "",
+        ),
+        "cgroup2",
+    )?;
+    ctx(
+        mount("tmpfs", "/tmp", "tmpfs", nsd, "mode=1777,size=64m"),
+        "tmp",
+    )?;
     let _ = fs::create_dir_all("/dev/shm");
-    ctx(mount("tmpfs", "/dev/shm", "tmpfs", nsd, "mode=1777,size=64m"), "shm")?;
-    ctx(mount("tmpfs", "/arena", "tmpfs", nsd, "mode=0755,size=1m"), "arena")?;
+    ctx(
+        mount("tmpfs", "/dev/shm", "tmpfs", nsd, "mode=1777,size=64m"),
+        "shm",
+    )?;
+    ctx(
+        mount("tmpfs", "/arena", "tmpfs", nsd, "mode=0755,size=1m"),
+        "arena",
+    )?;
+    // Only emergencies reach the console, so kernel messages (e.g. OOM
+    // reports) cannot interleave with the host-timed marker lines.
+    unsafe {
+        libc::klogctl(
+            8, /* SYSLOG_ACTION_CONSOLE_LEVEL */
+            std::ptr::null_mut(),
+            1,
+        )
+    };
     Ok(())
 }
 
 fn read_control() -> Result<GuestJob, String> {
-    let mut f = ctx(File::open(proto::dev_path(proto::CTL_DEV_INDEX)), "open control drive")?;
+    let mut f = ctx(
+        File::open(proto::dev_path(proto::CTL_DEV_INDEX)),
+        "open control drive",
+    )?;
     let mut buf = Vec::new();
     ctx(
-        (&mut f).take(proto::MAX_CONTROL_LEN as u64 + 4096).read_to_end(&mut buf),
+        (&mut f)
+            .take(proto::MAX_CONTROL_LEN as u64 + 4096)
+            .read_to_end(&mut buf),
         "read control drive",
     )?;
     proto::decode_control(&buf)
@@ -94,11 +163,17 @@ fn check_guest_path(p: &str) -> Result<(), String> {
         .strip_prefix(proto::GUEST_MOUNT_PREFIX)
         .ok_or_else(|| format!("mount path {p:?} not under {}", proto::GUEST_MOUNT_PREFIX))?;
     proto::validate_rel_path(rel)?;
-    if !rel.bytes().all(|b| b.is_ascii_alphanumeric() || b"._-/".contains(&b)) {
+    if !rel
+        .bytes()
+        .all(|b| b.is_ascii_alphanumeric() || b"._-/".contains(&b))
+    {
         return Err(format!("mount path {p:?} has unsupported characters"));
     }
     let scratch = proto::GUEST_SCRATCH;
-    if p == scratch || p.starts_with(&format!("{scratch}/")) || scratch.starts_with(&format!("{p}/")) {
+    if p == scratch
+        || p.starts_with(&format!("{scratch}/"))
+        || scratch.starts_with(&format!("{p}/"))
+    {
         return Err(format!("mount path {p:?} overlaps scratch"));
     }
     if rel.starts_with(".m") {
@@ -113,7 +188,13 @@ fn setup_disks(job: &GuestJob) -> Result<(), String> {
     let scratch = proto::GUEST_SCRATCH;
     ctx(fs::create_dir_all(scratch), "mkdir scratch")?;
     ctx(
-        mount(&proto::dev_path(job.scratch_dev_index), scratch, "ext4", nsd, "errors=remount-ro"),
+        mount(
+            &proto::dev_path(job.scratch_dev_index),
+            scratch,
+            "ext4",
+            nsd,
+            "errors=remount-ro",
+        ),
         "scratch",
     )?;
     chown(scratch, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
@@ -136,7 +217,10 @@ fn setup_disks(job: &GuestJob) -> Result<(), String> {
         match &m.kind {
             proto::MountKind::Dir => {
                 ctx(fs::create_dir_all(&m.guest_path), "mkdir mount point")?;
-                ctx(mount(&dev, &m.guest_path, "ext4", ro, "noload"), "bundle mount")?;
+                ctx(
+                    mount(&dev, &m.guest_path, "ext4", ro, "noload"),
+                    "bundle mount",
+                )?;
             }
             proto::MountKind::File { name } => {
                 proto::validate_rel_path(name)?;
@@ -145,16 +229,28 @@ fn setup_disks(job: &GuestJob) -> Result<(), String> {
                 }
                 let hidden = format!("/arena/.m/{i}");
                 ctx(fs::create_dir_all(&hidden), "mkdir hidden mount")?;
-                ctx(mount(&dev, &hidden, "ext4", ro, "noload"), "file bundle mount")?;
+                ctx(
+                    mount(&dev, &hidden, "ext4", ro, "noload"),
+                    "file bundle mount",
+                )?;
                 let target = Path::new(&m.guest_path);
                 if let Some(parent) = target.parent() {
                     ctx(fs::create_dir_all(parent), "mkdir file mount parent")?;
                 }
                 ctx(File::create(target), "create file mount point")?;
                 let src = format!("{hidden}/{name}");
-                ctx(mount(&src, &m.guest_path, "", libc::MS_BIND, ""), "bind file")?;
                 ctx(
-                    mount("", &m.guest_path, "", libc::MS_BIND | libc::MS_REMOUNT | ro, ""),
+                    mount(&src, &m.guest_path, "", libc::MS_BIND, ""),
+                    "bind file",
+                )?;
+                ctx(
+                    mount(
+                        "",
+                        &m.guest_path,
+                        "",
+                        libc::MS_BIND | libc::MS_REMOUNT | ro,
+                        "",
+                    ),
                     "remount file ro",
                 )?;
             }
@@ -162,7 +258,13 @@ fn setup_disks(job: &GuestJob) -> Result<(), String> {
     }
     // Nothing else may be created under /arena.
     ctx(
-        mount("", "/arena", "", libc::MS_REMOUNT | libc::MS_RDONLY | nsd, "mode=0755,size=1m"),
+        mount(
+            "",
+            "/arena",
+            "",
+            libc::MS_REMOUNT | libc::MS_RDONLY | nsd,
+            "mode=0755,size=1m",
+        ),
         "remount /arena ro",
     )?;
     Ok(())
@@ -181,9 +283,15 @@ fn write_file(p: &str, v: &str) -> Result<(), String> {
 }
 
 fn setup_cgroup(job: &GuestJob) -> Result<(), String> {
-    write_file("/sys/fs/cgroup/cgroup.subtree_control", "+memory +pids +cpu")?;
+    write_file(
+        "/sys/fs/cgroup/cgroup.subtree_control",
+        "+memory +pids +cpu",
+    )?;
     ctx(fs::create_dir(JOB_CG), "mkdir job cgroup")?;
-    write_file(&format!("{JOB_CG}/memory.max"), &job.mem_limit_bytes.to_string())?;
+    write_file(
+        &format!("{JOB_CG}/memory.max"),
+        &job.mem_limit_bytes.to_string(),
+    )?;
     let _ = fs::write(format!("{JOB_CG}/memory.swap.max"), "0");
     write_file(&format!("{JOB_CG}/memory.oom.group"), "1")?;
     write_file(&format!("{JOB_CG}/pids.max"), &job.pids_max.to_string())?;
@@ -202,14 +310,19 @@ fn read_kv(path: &str, key: &str) -> u64 {
         .and_then(|s| {
             s.lines().find_map(|l| {
                 let mut it = l.split_whitespace();
-                (it.next() == Some(key)).then(|| it.next()?.parse().ok()).flatten()
+                (it.next() == Some(key))
+                    .then(|| it.next()?.parse().ok())
+                    .flatten()
             })
         })
         .unwrap_or(0)
 }
 
 fn read_u64(path: &str) -> u64 {
-    fs::read_to_string(path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0)
+    fs::read_to_string(path)
+        .ok()
+        .and_then(|s| s.trim().parse().ok())
+        .unwrap_or(0)
 }
 
 /// Reads a pipe to EOF keeping the first `cap` bytes; returns (kept, total).
@@ -285,7 +398,10 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
                 return Err(io::Error::last_os_error());
             }
             let lim = |res, v: u64| {
-                let rl = libc::rlimit { rlim_cur: v, rlim_max: v };
+                let rl = libc::rlimit {
+                    rlim_cur: v,
+                    rlim_max: v,
+                };
                 if libc::setrlimit(res, &rl) != 0 {
                     Err(io::Error::last_os_error())
                 } else {
@@ -317,9 +433,15 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
         Ok(c) => c,
         Err(e) => {
             let wall_ns = t0.elapsed().as_nanos() as u64;
-            console(&format!("{} {} spawn-failed", proto::MARKER_EXIT, job.nonce));
+            console(&format!(
+                "{} {} spawn-failed",
+                proto::MARKER_EXIT,
+                job.nonce
+            ));
             return Ok(RunResult {
-                status: GuestStatus::SpawnFailed { error: e.to_string() },
+                status: GuestStatus::SpawnFailed {
+                    error: e.to_string(),
+                },
                 wall_ns,
                 stdout: vec![],
                 stderr: vec![],
@@ -338,7 +460,8 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
     // empty so pipes close and the scratch disk is quiescent.
     let _ = fs::write(format!("{JOB_CG}/cgroup.kill"), "1");
     let deadline = Instant::now() + Duration::from_secs(5);
-    while read_kv(&format!("{JOB_CG}/cgroup.events"), "populated") != 0 && Instant::now() < deadline {
+    while read_kv(&format!("{JOB_CG}/cgroup.events"), "populated") != 0 && Instant::now() < deadline
+    {
         std::thread::sleep(Duration::from_millis(5));
     }
     let (stdout, stdout_total) = out_t.join().unwrap_or_default();
@@ -356,12 +479,22 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
             GuestStatus::Signaled { signal: sig }
         }
     };
-    Ok(RunResult { status, wall_ns, stdout, stderr, stdout_total, stderr_total })
+    Ok(RunResult {
+        status,
+        wall_ns,
+        stdout,
+        stderr,
+        stdout_total,
+        stderr_total,
+    })
 }
 
 /// Walk the output directory (all candidate processes are dead by now).
 fn collect_outputs(job: &GuestJob, w: &mut OutWriter<impl Write>) -> CollectSummary {
-    let mut sum = CollectSummary { complete: true, ..Default::default() };
+    let mut sum = CollectSummary {
+        complete: true,
+        ..Default::default()
+    };
     let root = PathBuf::from(proto::GUEST_OUT_DIR);
     let mut stack: Vec<(PathBuf, String, u32)> = vec![(root, String::new(), 0)];
     'walk: while let Some((dir, rel, depth)) = stack.pop() {
@@ -378,11 +511,18 @@ fn collect_outputs(job: &GuestJob, w: &mut OutWriter<impl Write>) -> CollectSumm
         for e in entries {
             let name = e.file_name();
             let Some(name) = name.to_str().map(str::to_string) else {
-                sum.violations.push(format!("{rel}: non-utf8 name {:?}", e.file_name().as_bytes()));
+                sum.violations.push(format!(
+                    "{rel}: non-utf8 name {:?}",
+                    e.file_name().as_bytes()
+                ));
                 sum.complete = false;
                 continue;
             };
-            let relp = if rel.is_empty() { name.clone() } else { format!("{rel}/{name}") };
+            let relp = if rel.is_empty() {
+                name.clone()
+            } else {
+                format!("{rel}/{name}")
+            };
             if let Err(err) = proto::validate_rel_path(&relp) {
                 sum.violations.push(format!("{relp:?}: {err}"));
                 sum.complete = false;
@@ -406,12 +546,14 @@ fn collect_outputs(job: &GuestJob, w: &mut OutWriter<impl Write>) -> CollectSumm
                 }
             } else if ft.is_file() {
                 if sum.files + 1 > job.max_output_files as u64 {
-                    sum.violations.push("output file count limit reached".into());
+                    sum.violations
+                        .push("output file count limit reached".into());
                     sum.complete = false;
                     break 'walk;
                 }
                 if sum.bytes + md.size() > job.max_output_bytes {
-                    sum.violations.push(format!("{relp}: output byte limit reached"));
+                    sum.violations
+                        .push(format!("{relp}: output byte limit reached"));
                     sum.complete = false;
                     break 'walk;
                 }
@@ -431,7 +573,8 @@ fn collect_outputs(job: &GuestJob, w: &mut OutWriter<impl Write>) -> CollectSumm
                 match w.write_file(&relp, exec, md.size(), &mut f) {
                     Ok(real) => {
                         if real != md.size() {
-                            sum.violations.push(format!("{relp}: changed size while reading"));
+                            sum.violations
+                                .push(format!("{relp}: changed size while reading"));
                             sum.complete = false;
                         }
                         sum.files += 1;
@@ -445,7 +588,8 @@ fn collect_outputs(job: &GuestJob, w: &mut OutWriter<impl Write>) -> CollectSumm
                     }
                 }
             } else {
-                sum.violations.push(format!("{relp}: not a regular file or directory (ignored)"));
+                sum.violations
+                    .push(format!("{relp}: not a regular file or directory (ignored)"));
                 sum.complete = false;
             }
         }
@@ -456,9 +600,16 @@ fn collect_outputs(job: &GuestJob, w: &mut OutWriter<impl Write>) -> CollectSumm
     sum
 }
 
-fn write_out(job: Option<&GuestJob>, report: &GuestReport, stdout: &[u8], stderr: &[u8]) -> Result<(), String> {
+fn write_out(
+    job: Option<&GuestJob>,
+    report: &GuestReport,
+    stdout: &[u8],
+    stderr: &[u8],
+) -> Result<(), String> {
     let mut dev = ctx(
-        OpenOptions::new().write(true).open(proto::dev_path(proto::OUT_DEV_INDEX)),
+        OpenOptions::new()
+            .write(true)
+            .open(proto::dev_path(proto::OUT_DEV_INDEX)),
         "open output drive",
     )?;
     let dev_size = ctx(dev.seek(SeekFrom::End(0)), "size output drive")?;
@@ -467,7 +618,9 @@ fn write_out(job: Option<&GuestJob>, report: &GuestReport, stdout: &[u8], stderr
     let mut w = OutWriter::new(io::BufWriter::with_capacity(1 << 20, &mut dev), limit);
     ctx(w.write_header(report, stdout, stderr), "write report")?;
     let summary = match job {
-        Some(j) if !matches!(report.status, GuestStatus::InitError { .. }) => collect_outputs(j, &mut w),
+        Some(j) if !matches!(report.status, GuestStatus::InitError { .. }) => {
+            collect_outputs(j, &mut w)
+        }
         _ => CollectSummary::default(),
     };
     let bw = ctx(w.finish(&summary), "finish output")?;

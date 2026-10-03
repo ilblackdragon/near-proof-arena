@@ -27,7 +27,10 @@ pub struct TreeLimits {
 
 impl Default for TreeLimits {
     fn default() -> Self {
-        TreeLimits { max_entries: 100_000, max_bytes: 8 << 30 }
+        TreeLimits {
+            max_entries: 100_000,
+            max_bytes: 8 << 30,
+        }
     }
 }
 
@@ -54,11 +57,20 @@ pub fn stage_tree(src: &Path, dst: &Path, limits: &TreeLimits) -> Result<StagedT
     }
     fs::create_dir(dst)?;
     let mut entries: Vec<(String, &'static str, String)> = Vec::new();
-    let mut st = StagedTree { dir: dst.to_path_buf(), digest: Digest::of_bytes(b""), files: 0, dirs: 0, bytes: 0, blocks: 0 };
+    let mut st = StagedTree {
+        dir: dst.to_path_buf(),
+        digest: Digest::of_bytes(b""),
+        files: 0,
+        dirs: 0,
+        bytes: 0,
+        blocks: 0,
+    };
     copy_dir(src, dst, "", limits, &mut st, &mut entries, 0)?;
     entries.sort();
-    let list: Vec<serde_json::Value> =
-        entries.into_iter().map(|(p, m, h)| serde_json::json!([p, m, h])).collect();
+    let list: Vec<serde_json::Value> = entries
+        .into_iter()
+        .map(|(p, m, h)| serde_json::json!([p, m, h]))
+        .collect();
     let jcs = canonical_json(&list).map_err(|e| InfraError::Backend(e.to_string()))?;
     st.digest = Digest::of_bytes(&jcs);
     Ok(st)
@@ -81,8 +93,14 @@ fn copy_dir(
     names.sort_by_key(|e| e.file_name());
     for e in names {
         let name = e.file_name();
-        let name = name.to_str().ok_or_else(|| spec_err(format!("{rel}: non-utf8 file name")))?;
-        let relp = if rel.is_empty() { name.to_string() } else { format!("{rel}/{name}") };
+        let name = name
+            .to_str()
+            .ok_or_else(|| spec_err(format!("{rel}: non-utf8 file name")))?;
+        let relp = if rel.is_empty() {
+            name.to_string()
+        } else {
+            format!("{rel}/{name}")
+        };
         validate_rel_path(&relp).map_err(|m| spec_err(format!("{relp:?}: {m}")))?;
         if st.files + st.dirs >= limits.max_entries {
             return Err(spec_err("too many entries"));
@@ -100,8 +118,15 @@ fn copy_dir(
                 return Err(spec_err(format!("{relp:?}: hardlinks are not allowed")));
             }
             let exec = md.mode() & 0o111 != 0;
-            let mut inp = OpenOptions::new().read(true).custom_flags(libc::O_NOFOLLOW).open(e.path())?;
-            let mut out = OpenOptions::new().write(true).create_new(true).mode(if exec { 0o755 } else { 0o644 }).open(&to)?;
+            let mut inp = OpenOptions::new()
+                .read(true)
+                .custom_flags(libc::O_NOFOLLOW)
+                .open(e.path())?;
+            let mut out = OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .mode(if exec { 0o755 } else { 0o644 })
+                .open(&to)?;
             let mut h = Sha256::new();
             let mut buf = vec![0u8; 1 << 20];
             let mut n_total = 0u64;
@@ -120,9 +145,15 @@ fn copy_dir(
             st.bytes += n_total;
             st.blocks += n_total.div_ceil(4096);
             st.files += 1;
-            entries.push((relp, if exec { "exec" } else { "file" }, format!("sha256:{}", hex::encode(h.finalize()))));
+            entries.push((
+                relp,
+                if exec { "exec" } else { "file" },
+                format!("sha256:{}", hex::encode(h.finalize())),
+            ));
         } else {
-            return Err(spec_err(format!("{relp:?}: symlinks/devices/fifos/sockets are not allowed")));
+            return Err(spec_err(format!(
+                "{relp:?}: symlinks/devices/fifos/sockets are not allowed"
+            )));
         }
     }
     Ok(())
@@ -146,7 +177,12 @@ fn run_mkfs(args: &[&str], image: &Path) -> Result<(), InfraError> {
 }
 
 fn create_sparse(path: &Path, bytes: u64) -> Result<File, InfraError> {
-    let f = OpenOptions::new().read(true).write(true).create_new(true).mode(0o600).open(path)?;
+    let f = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(path)?;
     f.set_len(bytes)?;
     Ok(f)
 }
@@ -164,10 +200,28 @@ pub fn build_ro_image(st: &StagedTree, image: &Path) -> Result<(), InfraError> {
         let n = inodes.to_string();
         let r = run_mkfs(
             &[
-                "-q", "-F", "-t", "ext4", "-b", "4096", "-I", "256", "-m", "0", "-N", &n, "-L", "arena-ro",
-                "-O", "^has_journal,^resize_inode",
-                "-E", "root_owner=0:0,lazy_itable_init=0,nodiscard",
-                "-d", st.dir.to_str().ok_or_else(|| spec_err("non-utf8 staging path"))?,
+                "-q",
+                "-F",
+                "-t",
+                "ext4",
+                "-b",
+                "4096",
+                "-I",
+                "256",
+                "-m",
+                "0",
+                "-N",
+                &n,
+                "-L",
+                "arena-ro",
+                "-O",
+                "^has_journal,^resize_inode",
+                "-E",
+                "root_owner=0:0,lazy_itable_init=0,nodiscard",
+                "-d",
+                st.dir
+                    .to_str()
+                    .ok_or_else(|| spec_err("non-utf8 staging path"))?,
             ],
             image,
         );
@@ -193,12 +247,33 @@ pub fn build_scratch_image(image: &Path, mb: u64) -> Result<(), InfraError> {
         arena_fc_proto::CANDIDATE_UID,
         arena_fc_proto::CANDIDATE_GID
     );
-    run_mkfs(&["-q", "-F", "-t", "ext4", "-b", "4096", "-m", "0", "-L", "arena-scratch", "-O", "^has_journal", "-E", &owner], image)
+    run_mkfs(
+        &[
+            "-q",
+            "-F",
+            "-t",
+            "ext4",
+            "-b",
+            "4096",
+            "-m",
+            "0",
+            "-L",
+            "arena-scratch",
+            "-O",
+            "^has_journal",
+            "-E",
+            &owner,
+        ],
+        image,
+    )
 }
 
 /// Raw device file holding `content` padded to 4 KiB.
 pub fn build_raw_image(image: &Path, content: &[u8], min_size: u64) -> Result<(), InfraError> {
-    let mut f = create_sparse(image, min_size.max(content.len() as u64).div_ceil(4096) * 4096)?;
+    let mut f = create_sparse(
+        image,
+        min_size.max(content.len() as u64).div_ceil(4096) * 4096,
+    )?;
     f.write_all(content)?;
     f.sync_data().ok();
     Ok(())
@@ -223,7 +298,10 @@ pub fn file_digest(path: &Path) -> io::Result<Digest> {
 pub fn link_or_copy(src: &Path, dst: &Path) -> io::Result<()> {
     match fs::hard_link(src, dst) {
         Ok(()) => Ok(()),
-        Err(e) if e.raw_os_error() == Some(libc::EXDEV) || e.kind() == io::ErrorKind::PermissionDenied => {
+        Err(e)
+            if e.raw_os_error() == Some(libc::EXDEV)
+                || e.kind() == io::ErrorKind::PermissionDenied =>
+        {
             fs::copy(src, dst)?;
             fs::set_permissions(dst, fs::Permissions::from_mode(0o444))
         }
@@ -247,7 +325,10 @@ mod tests {
         let b = stage_tree(&src, &t.path().join("s2"), &TreeLimits::default()).unwrap();
         assert_eq!(a.digest, b.digest);
         assert_eq!((a.files, a.dirs, a.bytes), (2, 1, 15));
-        assert_eq!(fs::metadata(t.path().join("s1/d/run")).unwrap().mode() & 0o777, 0o755);
+        assert_eq!(
+            fs::metadata(t.path().join("s1/d/run")).unwrap().mode() & 0o777,
+            0o755
+        );
         std::os::unix::fs::symlink("/etc/passwd", src.join("evil")).unwrap();
         assert!(stage_tree(&src, &t.path().join("s3"), &TreeLimits::default()).is_err());
         fs::remove_file(src.join("evil")).unwrap();

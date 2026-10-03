@@ -21,5 +21,7 @@ pub mod contract;
 pub mod images;
 pub mod sandbox;
 
-pub use contract::{Diagnostics, Exit, InfraError, NetworkAccess, RoMount, Sandbox, SandboxOutcome, SandboxSpec};
+pub use contract::{
+    Diagnostics, Exit, InfraError, NetworkAccess, RoMount, Sandbox, SandboxOutcome, SandboxSpec,
+};
 pub use sandbox::{FirecrackerConfig, FirecrackerSandbox, CONTAINER_CAPS, ENV_ALLOWLIST};

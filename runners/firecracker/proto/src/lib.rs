@@ -112,14 +112,22 @@ pub struct GuestJob {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "kind")]
 pub enum GuestStatus {
-    Exited { code: i32 },
-    Signaled { signal: i32 },
+    Exited {
+        code: i32,
+    },
+    Signaled {
+        signal: i32,
+    },
     /// The candidate cgroup hit its memory limit and the OOM killer fired.
     OomKilled,
     /// The candidate could not be started (e.g. argv[0] missing).
-    SpawnFailed { error: String },
+    SpawnFailed {
+        error: String,
+    },
     /// init itself failed before/while running the candidate.
-    InitError { error: String },
+    InitError {
+        error: String,
+    },
 }
 
 /// Diagnostic report written by guest init. Exit status is necessarily
@@ -215,7 +223,11 @@ impl<W: Write> OutWriter<W> {
     /// `limit` is the device size; the writer refuses to go beyond it
     /// (reserving room for the end record).
     pub fn new(w: W, limit: u64) -> Self {
-        OutWriter { w, written: 0, limit }
+        OutWriter {
+            w,
+            written: 0,
+            limit,
+        }
     }
 
     pub fn written(&self) -> u64 {
@@ -238,7 +250,12 @@ impl<W: Write> OutWriter<W> {
         Ok(())
     }
 
-    pub fn write_header(&mut self, report: &GuestReport, stdout: &[u8], stderr: &[u8]) -> io::Result<()> {
+    pub fn write_header(
+        &mut self,
+        report: &GuestReport,
+        stdout: &[u8],
+        stderr: &[u8],
+    ) -> io::Result<()> {
         let rep = serde_json::to_vec(report).map_err(io::Error::other)?;
         assert!(rep.len() <= MAX_REPORT_LEN);
         let stdout = &stdout[..stdout.len().min(STREAM_CAP)];
@@ -255,7 +272,13 @@ impl<W: Write> OutWriter<W> {
 
     /// Writes one file record of exactly `size` bytes taken from `r`
     /// (zero-padded if `r` ends early; returns the number of real bytes).
-    pub fn write_file(&mut self, path: &str, exec: bool, size: u64, r: &mut dyn Read) -> io::Result<u64> {
+    pub fn write_file(
+        &mut self,
+        path: &str,
+        exec: bool,
+        size: u64,
+        r: &mut dyn Read,
+    ) -> io::Result<u64> {
         validate_rel_path(path).map_err(io::Error::other)?;
         if 1 + 2 + path.len() as u64 + 1 + 8 + size > self.remaining() {
             return Err(io::Error::other("output device full"));
@@ -348,7 +371,8 @@ fn mal<T>(s: impl Into<String>) -> Result<T, DecodeError> {
 }
 
 fn read_exact_m(r: &mut dyn Read, buf: &mut [u8]) -> Result<(), DecodeError> {
-    r.read_exact(buf).map_err(|e| DecodeError::Malformed(format!("truncated: {e}")))
+    r.read_exact(buf)
+        .map_err(|e| DecodeError::Malformed(format!("truncated: {e}")))
 }
 
 fn read_u32(r: &mut dyn Read) -> Result<u32, DecodeError> {
@@ -378,11 +402,15 @@ pub fn decode_header(r: &mut dyn Read) -> Result<DecodedHeader, DecodeError> {
         return mal(format!("output version {v}"));
     }
     let rep = read_blob(r, MAX_REPORT_LEN)?;
-    let report: GuestReport =
-        serde_json::from_slice(&rep).map_err(|e| DecodeError::Malformed(format!("report json: {e}")))?;
+    let report: GuestReport = serde_json::from_slice(&rep)
+        .map_err(|e| DecodeError::Malformed(format!("report json: {e}")))?;
     let stdout = read_blob(r, STREAM_CAP)?;
     let stderr = read_blob(r, STREAM_CAP)?;
-    Ok(DecodedHeader { report, stdout, stderr })
+    Ok(DecodedHeader {
+        report,
+        stdout,
+        stderr,
+    })
 }
 
 /// Decodes file records after the header, calling `sink(path, exec, size,
@@ -409,7 +437,8 @@ pub fn decode_files(
                 }
                 let mut pb = vec![0u8; len];
                 read_exact_m(r, &mut pb)?;
-                let path = String::from_utf8(pb).map_err(|_| DecodeError::Malformed("non-utf8 path".into()))?;
+                let path = String::from_utf8(pb)
+                    .map_err(|_| DecodeError::Malformed("non-utf8 path".into()))?;
                 validate_rel_path(&path).map_err(DecodeError::Malformed)?;
                 let mut eb = [0u8; 1];
                 read_exact_m(r, &mut eb)?;
@@ -434,13 +463,21 @@ pub fn decode_files(
                     }
                 }
                 let prefix = format!("{path}/");
-                if seen.range(prefix.clone()..).next().is_some_and(|p: &String| p.starts_with(&prefix)) {
+                if seen
+                    .range(prefix.clone()..)
+                    .next()
+                    .is_some_and(|p: &String| p.starts_with(&prefix))
+                {
                     return mal(format!("path {path:?} is a directory of another output"));
                 }
                 if !seen.insert(path.clone()) {
                     return mal(format!("duplicate path {path:?}"));
                 }
-                let mut bounded = CountingTake { inner: &mut *r, left: size, n: 0 };
+                let mut bounded = CountingTake {
+                    inner: &mut *r,
+                    left: size,
+                    n: 0,
+                };
                 sink(&path, eb[0] == 1, size, &mut bounded).map_err(DecodeError::Sink)?;
                 if bounded.n != size {
                     // drain whatever the sink did not consume
@@ -508,14 +545,22 @@ mod tests {
         w.write_file("a/b.bin", false, 3, &mut &b"xyz"[..]).unwrap();
         w.write_file("c", true, 4, &mut &b"12"[..]).unwrap(); // short -> padded
         let buf = w
-            .finish(&CollectSummary { files: 2, bytes: 7, violations: vec![], complete: true })
+            .finish(&CollectSummary {
+                files: 2,
+                bytes: 7,
+                violations: vec![],
+                complete: true,
+            })
             .unwrap();
         let mut r: &[u8] = &buf;
         let h = decode_header(&mut r).unwrap();
         assert_eq!(h.stdout, b"hello");
         assert_eq!(h.report.status, GuestStatus::Exited { code: 3 });
         let mut got = Vec::new();
-        let lim = DecodeLimits { max_files: 10, max_total_bytes: 100 };
+        let lim = DecodeLimits {
+            max_files: 10,
+            max_total_bytes: 100,
+        };
         let s = decode_files(&mut r, &lim, |p, x, _, rd| {
             let mut v = Vec::new();
             rd.read_to_end(&mut v)?;
@@ -539,19 +584,38 @@ mod tests {
         w.write_header(&report(), b"", b"").unwrap();
         let mut buf = w.finish(&CollectSummary::default()).unwrap();
         let n = buf.len();
-        buf.truncate(n - (1 + 4 + serde_json::to_vec(&CollectSummary::default()).unwrap().len()));
+        buf.truncate(
+            n - (1
+                + 4
+                + serde_json::to_vec(&CollectSummary::default())
+                    .unwrap()
+                    .len()),
+        );
         buf.push(1);
         buf.extend_from_slice(&5u16.to_le_bytes());
         buf.extend_from_slice(b"../x0");
         let mut r: &[u8] = &buf;
         decode_header(&mut r).unwrap();
-        let lim = DecodeLimits { max_files: 10, max_total_bytes: 100 };
-        assert!(matches!(decode_files(&mut r, &lim, |_, _, _, _| Ok(())), Err(DecodeError::Malformed(_))));
+        let lim = DecodeLimits {
+            max_files: 10,
+            max_total_bytes: 100,
+        };
+        assert!(matches!(
+            decode_files(&mut r, &lim, |_, _, _, _| Ok(())),
+            Err(DecodeError::Malformed(_))
+        ));
         // size limit
         let mut w = OutWriter::new(Vec::new(), 1 << 20);
         w.write_header(&report(), b"", b"").unwrap();
         w.write_file("big", false, 200, &mut io::repeat(1)).unwrap();
-        let buf = w.finish(&CollectSummary { files: 1, bytes: 200, violations: vec![], complete: true }).unwrap();
+        let buf = w
+            .finish(&CollectSummary {
+                files: 1,
+                bytes: 200,
+                violations: vec![],
+                complete: true,
+            })
+            .unwrap();
         let mut r: &[u8] = &buf;
         decode_header(&mut r).unwrap();
         assert!(decode_files(&mut r, &lim, |_, _, _, _| Ok(())).is_err());
@@ -564,11 +628,26 @@ mod tests {
             w.write_header(&report(), b"", b"").unwrap();
             w.write_file(pair.0, false, 1, &mut &b"1"[..]).unwrap();
             w.write_file(pair.1, false, 1, &mut &b"1"[..]).unwrap();
-            let buf = w.finish(&CollectSummary { files: 2, bytes: 2, violations: vec![], complete: true }).unwrap();
+            let buf = w
+                .finish(&CollectSummary {
+                    files: 2,
+                    bytes: 2,
+                    violations: vec![],
+                    complete: true,
+                })
+                .unwrap();
             let mut r: &[u8] = &buf;
             decode_header(&mut r).unwrap();
-            let lim = DecodeLimits { max_files: 10, max_total_bytes: 100 };
-            assert!(decode_files(&mut r, &lim, |_, _, _, rd| io::copy(rd, &mut io::sink()).map(|_| ())).is_err(), "{pair:?}");
+            let lim = DecodeLimits {
+                max_files: 10,
+                max_total_bytes: 100,
+            };
+            assert!(
+                decode_files(&mut r, &lim, |_, _, _, rd| io::copy(rd, &mut io::sink())
+                    .map(|_| ()))
+                .is_err(),
+                "{pair:?}"
+            );
         }
     }
 
@@ -585,7 +664,11 @@ mod tests {
             scratch_dev_index: 3,
             out_dev_index: 2,
             out_dev_bytes: 1 << 20,
-            mounts: vec![GuestMount { dev_index: 4, guest_path: "/arena/b".into(), kind: MountKind::Dir }],
+            mounts: vec![GuestMount {
+                dev_index: 4,
+                guest_path: "/arena/b".into(),
+                kind: MountKind::Dir,
+            }],
             max_output_files: 10,
             max_output_bytes: 100,
         };
@@ -650,7 +733,10 @@ pub struct ShimJob {
 #[serde(rename_all = "snake_case", tag = "kind")]
 pub enum ShimStatus {
     /// Firecracker exited by itself (guest rebooted / crashed).
-    VmmExited { code: Option<i32>, signal: Option<i32> },
+    VmmExited {
+        code: Option<i32>,
+        signal: Option<i32>,
+    },
     /// The candidate exceeded `run_timeout_ms`; the VM was killed.
     TimedOut,
     /// The guest did not reach the start marker in time; the VM was killed.

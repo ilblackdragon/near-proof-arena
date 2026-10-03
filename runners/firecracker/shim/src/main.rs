@@ -72,14 +72,27 @@ fn chown_dirs(p: &Path, uid: u32, gid: u32) -> io::Result<()> {
 fn setup_cgroups() -> Result<(), String> {
     let (s, t) = (cstr(""), cstr(CG));
     let flags = libc::MS_REMOUNT | libc::MS_NOSUID | libc::MS_NODEV | libc::MS_NOEXEC;
-    if unsafe { libc::mount(s.as_ptr(), t.as_ptr(), std::ptr::null(), flags, std::ptr::null()) } != 0 {
+    if unsafe {
+        libc::mount(
+            s.as_ptr(),
+            t.as_ptr(),
+            std::ptr::null(),
+            flags,
+            std::ptr::null(),
+        )
+    } != 0
+    {
         return Err(format!("remount {CG} rw: {}", io::Error::last_os_error()));
     }
     let leaf = format!("{CG}/shim");
     fs::create_dir_all(&leaf).map_err(|e| format!("mkdir {leaf}: {e}"))?;
-    fs::write(format!("{leaf}/cgroup.procs"), "0").map_err(|e| format!("move shim into leaf: {e}"))?;
-    fs::write(format!("{CG}/cgroup.subtree_control"), "+cpuset +cpu +memory +pids")
-        .map_err(|e| format!("enable controllers: {e}"))?;
+    fs::write(format!("{leaf}/cgroup.procs"), "0")
+        .map_err(|e| format!("move shim into leaf: {e}"))?;
+    fs::write(
+        format!("{CG}/cgroup.subtree_control"),
+        "+cpuset +cpu +memory +pids",
+    )
+    .map_err(|e| format!("enable controllers: {e}"))?;
     Ok(())
 }
 
@@ -89,14 +102,19 @@ fn read_kv(path: &str, key: &str) -> u64 {
         .and_then(|s| {
             s.lines().find_map(|l| {
                 let mut it = l.split_whitespace();
-                (it.next() == Some(key)).then(|| it.next()?.parse().ok()).flatten()
+                (it.next() == Some(key))
+                    .then(|| it.next()?.parse().ok())
+                    .flatten()
             })
         })
         .unwrap_or(0)
 }
 
 fn read_u64(path: &str) -> u64 {
-    fs::read_to_string(path).ok().and_then(|s| s.trim().parse().ok()).unwrap_or(0)
+    fs::read_to_string(path)
+        .ok()
+        .and_then(|s| s.trim().parse().ok())
+        .unwrap_or(0)
 }
 
 fn valid_id(id: &str) -> bool {
@@ -104,7 +122,11 @@ fn valid_id(id: &str) -> bool {
 }
 
 fn valid_file_name(n: &str) -> bool {
-    !n.is_empty() && n.len() <= 64 && n.bytes().all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b)) && !n.starts_with('.')
+    !n.is_empty()
+        && n.len() <= 64
+        && n.bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b))
+        && !n.starts_with('.')
 }
 
 struct Serial {
@@ -113,7 +135,12 @@ struct Serial {
     exit: Option<Instant>,
 }
 
-fn watch_serial(r: impl Read + Send + 'static, nonce: String, cap: usize, st: Arc<Mutex<Serial>>) -> std::thread::JoinHandle<()> {
+fn watch_serial(
+    r: impl Read + Send + 'static,
+    nonce: String,
+    cap: usize,
+    st: Arc<Mutex<Serial>>,
+) -> std::thread::JoinHandle<()> {
     std::thread::spawn(move || {
         let start_m = format!("{} {}", proto::MARKER_START, nonce);
         let exit_m = format!("{} {}", proto::MARKER_EXIT, nonce);
@@ -208,21 +235,37 @@ fn run(jobdir: &Path) -> Result<ShimResult, String> {
         let p = root.join(&d.file);
         if d.chown_to_vmm {
             // the host created it 0600; the shim holds no CAP_FOWNER to chmod
-            let mode = fs::metadata(&p).map_err(|e| format!("stat {}: {e}", d.file))?.permissions().mode();
+            let mode = fs::metadata(&p)
+                .map_err(|e| format!("stat {}: {e}", d.file))?
+                .permissions()
+                .mode();
             if mode & 0o077 != 0 {
-                return Err(format!("writable drive {} has mode {mode:o}, want 0600", d.file));
+                return Err(format!(
+                    "writable drive {} has mode {mode:o}, want 0600",
+                    d.file
+                ));
             }
-            chown_path(&p, job.vmm_uid, job.vmm_gid).map_err(|e| format!("chown {}: {e}", d.file))?;
+            chown_path(&p, job.vmm_uid, job.vmm_gid)
+                .map_err(|e| format!("chown {}: {e}", d.file))?;
         } else {
             // shared read-only images stay owned by the host user, 0444
-            let mode = fs::metadata(&p).map_err(|e| format!("stat {}: {e}", d.file))?.permissions().mode();
+            let mode = fs::metadata(&p)
+                .map_err(|e| format!("stat {}: {e}", d.file))?
+                .permissions()
+                .mode();
             if mode & 0o222 != 0 {
-                return Err(format!("read-only drive {} is writable (mode {mode:o})", d.file));
+                return Err(format!(
+                    "read-only drive {} is writable (mode {mode:o})",
+                    d.file
+                ));
             }
         }
     }
-    fs::write(root.join("vm.json"), serde_json::to_vec_pretty(&vm_config(&job)).unwrap())
-        .map_err(|e| format!("write vm.json: {e}"))?;
+    fs::write(
+        root.join("vm.json"),
+        serde_json::to_vec_pretty(&vm_config(&job)).unwrap(),
+    )
+    .map_err(|e| format!("write vm.json: {e}"))?;
 
     let mut args: Vec<String> = vec![
         "--id".into(),
@@ -249,15 +292,34 @@ fn run(jobdir: &Path) -> Result<ShimResult, String> {
         "no-file=256".into(),
     ];
     if let Some(cs) = &job.cpuset {
-        if !cs.bytes().all(|b| b.is_ascii_digit() || b == b',' || b == b'-') {
+        if !cs
+            .bytes()
+            .all(|b| b.is_ascii_digit() || b == b',' || b == b'-')
+        {
             return Err("bad cpuset".into());
         }
-        args.extend(["--cgroup".into(), format!("cpuset.cpus={cs}"), "--cgroup".into(), "cpuset.mems=0".into()]);
+        args.extend([
+            "--cgroup".into(),
+            format!("cpuset.cpus={cs}"),
+            "--cgroup".into(),
+            "cpuset.mems=0".into(),
+        ]);
     }
-    args.extend(["--".into(), "--no-api".into(), "--config-file".into(), "vm.json".into(), "--level".into(), "Warning".into()]);
+    args.extend([
+        "--".into(),
+        "--no-api".into(),
+        "--config-file".into(),
+        "vm.json".into(),
+        "--level".into(),
+        "Warning".into(),
+    ]);
 
     let cg = format!("{CG}/firecracker/{}", job.id);
-    let serial = Arc::new(Mutex::new(Serial { tail: Vec::new(), start: None, exit: None }));
+    let serial = Arc::new(Mutex::new(Serial {
+        tail: Vec::new(),
+        start: None,
+        exit: None,
+    }));
     let t0 = Instant::now();
     let mut child = Command::new(JAILER)
         .args(&args)
@@ -268,8 +330,18 @@ fn run(jobdir: &Path) -> Result<ShimResult, String> {
         .spawn()
         .map_err(|e| format!("spawn jailer: {e}"))?;
     let cap = job.serial_cap_bytes as usize;
-    let w1 = watch_serial(child.stdout.take().unwrap(), job.nonce.clone(), cap, serial.clone());
-    let w2 = watch_serial(child.stderr.take().unwrap(), job.nonce.clone(), cap, serial.clone());
+    let w1 = watch_serial(
+        child.stdout.take().unwrap(),
+        job.nonce.clone(),
+        cap,
+        serial.clone(),
+    );
+    let w2 = watch_serial(
+        child.stderr.take().unwrap(),
+        job.nonce.clone(),
+        cap,
+        serial.clone(),
+    );
 
     let boot_to = Duration::from_millis(job.boot_timeout_ms);
     let run_to = Duration::from_millis(job.run_timeout_ms);
@@ -326,7 +398,11 @@ fn run(jobdir: &Path) -> Result<ShimResult, String> {
     // (CAP_CHOWN) so the shim can move the output out and delete the jail.
     chown_dirs(&base, 0, 0).map_err(|e| format!("reclaim jail: {e}"))?;
     // hand the output image back, destroy everything else from the jail
-    let out_name = job.drives.iter().find(|d| d.drive_id == "out").map(|d| d.file.clone());
+    let out_name = job
+        .drives
+        .iter()
+        .find(|d| d.drive_id == "out")
+        .map(|d| d.file.clone());
     if let Some(out) = out_name {
         let dst = jobdir.join(proto::SHIM_OUT_IMAGE);
         fs::rename(root.join(&out), &dst).map_err(|e| format!("move out image: {e}"))?;
