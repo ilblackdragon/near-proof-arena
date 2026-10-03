@@ -36,28 +36,29 @@ namespace ZkFormal.Bcs
 
 open ArenaCore ArenaCore.Security ZkFormal
 
-/-! ## Encodings -/
+/-! ## Encodings (byte layout of lane L4's `Stark/Bcs.lean`) -/
 
-def tagInit : UInt8 := 0x10
-def tagAbs : UInt8 := 0x11
-def tagNode : UInt8 := 0x12
-def tagLeaf : UInt8 := 0x13
-def tagChunk : UInt8 := 0x03
+def tagInit : UInt8 := 0x00
+def tagLeaf : UInt8 := 0x01
+def tagNode : UInt8 := 0x02
+def tagAbs : UInt8 := 0x03
+def tagChal : UInt8 := 0x04
+def tagQuery : UInt8 := 0x05
 
-/-- Half `j` (`j < 2`) of the wide hash of `m`. -/
-def whq (m : Bytes) (j : Nat) : Bytes := (if j = 0 then (1 : UInt8) else 2) :: m
+/-- Half `j` (`j < 2`) of the wide hash of the tagged message `m = tag :: p`:
+the query `tag :: (j+1) :: p`, i.e. `WH(tag, p) = H(tag‖1‖p) ‖ H(tag‖2‖p)`. -/
+def whq (m : Bytes) (j : Nat) : Bytes :=
+  match m with
+  | t :: p => t :: (if j = 0 then (1 : UInt8) else 2) :: p
+  | [] => [if j = 0 then (1 : UInt8) else 2]
 
 def whDec : Bytes → Option (Bytes × Nat)
-  | b :: m => if b = 1 then some (m, 0) else if b = 2 then some (m, 1) else none
+  | [b] => if b = 1 then some ([], 0) else if b = 2 then some ([], 1) else none
+  | t :: h :: p => if h = 1 then some (t :: p, 0) else if h = 2 then some (t :: p, 1) else none
   | [] => none
 
 theorem whDec_whq (m : Bytes) (j : Nat) (hj : j < 2) : whDec (whq m j) = some (m, j) := by
-  rcases (by omega : j = 0 ∨ j = 1) with rfl | rfl
-  · simp [whq, whDec]
-  · simp [whq, whDec]
-
-theorem whq_ne (m m' : Bytes) : whq m 0 ≠ whq m' 1 := by
-  unfold whq; simp
+  rcases (by omega : j = 0 ∨ j = 1) with rfl | rfl <;> cases m <;> simp [whq, whDec]
 
 theorem whq_inj {m m' : Bytes} {j j' : Nat} (hj : j < 2) (hj' : j' < 2) (h : whq m j = whq m' j') :
     m = m' ∧ j = j' := enc_inj (k := 2) (dec := whDec) (fun m j hj => whDec_whq m j hj) hj hj' h
@@ -122,40 +123,58 @@ theorem wh_unique {tbl : Table} (wf : TableWF tbl) (hcol : ¬ WideCollision 2 wh
 def chunks64 (b : Bytes) (n : Nat) : List Bytes :=
   (List.range n).map fun i => (b.drop (64 * i)).take 64
 
-/-- Digests used by a hashed message. -/
+/-- Digests used by a hashed message (`tag :: payload`):
+`NODE`: `k ‖ left ‖ right ‖ rows` ↦ `[left, right]`;
+`ABS`: `d ‖ u8 n ‖ root₁ … rootₙ ‖ raw` ↦ `d :: roots`;
+`CHAL`: `d` ↦ `[d]`. -/
 def slotsMsg : Bytes → List Bytes
-  | t :: rest =>
-    if t = tagNode then chunks64 rest 3
-    else if t = tagAbs then rest.take 64 :: chunks64 (rest.drop 65) (rest.getD 64 0).toNat
+  | t :: p =>
+    if t = tagNode then [(p.drop 1).take 64, (p.drop 65).take 64]
+    else if t = tagAbs then p.take 64 :: chunks64 (p.drop 65) (p.getD 64 0).toNat
+    else if t = tagChal then [p.take 64]
     else []
   | [] => []
 
-/-- Digests used by an oracle query. -/
-def slots : Bytes → List Bytes
-  | b :: m => if b = 1 ∨ b = 2 then slotsMsg m else if b = tagChunk then [m.take 64] else []
+/-- Final state used by a query-phase chunk `QUERY ‖ d ‖ le4 j`. -/
+def chunkSlots : Bytes → List Bytes
+  | t :: rest => if t = tagQuery then [rest.take (rest.length - 4)] else []
   | [] => []
 
-theorem slots_whq (m : Bytes) (j : Nat) : slots (whq m j) = slotsMsg m := by
-  by_cases hj : j = 0 <;> simp [whq, slots, hj]
+/-- Digests used by an oracle query (both readings: wide-hash half, chunk). -/
+def slots (x : Bytes) : List Bytes :=
+  (match whDec x with
+   | some (m, _) => slotsMsg m
+   | none => []) ++ chunkSlots x
 
-theorem slots_length_le (x : Bytes) : (slots x).length ≤ 256 := by
+theorem slots_whq (m : Bytes) (j : Nat) (hj : j < 2) : slotsMsg m ⊆ slots (whq m j) := by
+  intro u hu
   unfold slots
-  split
-  · rename_i b m
+  rw [whDec_whq m j hj]
+  exact List.mem_append_left _ hu
+
+theorem slots_length_le (x : Bytes) : (slots x).length ≤ 257 := by
+  have h1 : ∀ m, (slotsMsg m).length ≤ 256 := by
+    intro m
+    unfold slotsMsg
     split
-    · unfold slotsMsg
+    · rename_i t p
       split
-      · rename_i t rest
-        split
-        · simp [chunks64]
-        · split
-          · simp only [chunks64, List.length_cons, List.length_map, List.length_range]
-            have := (rest.getD 64 0).toNat_lt
-            omega
-          · simp
       · simp
+      · split
+        · simp only [chunks64, List.length_cons, List.length_map, List.length_range]
+          have := (p.getD 64 0).toNat_lt
+          omega
+        · split <;> simp
+    · simp
+  have h2 : (chunkSlots x).length ≤ 1 := by
+    unfold chunkSlots; split
     · split <;> simp
-  · simp
+    · simp
+  unfold slots
+  rw [List.length_append]
+  split
+  · have := h1 (by assumption); omega
+  · simp only [List.length_nil]; omega
 
 /-- Absorb message: previous state `d`, committed roots, clear message. -/
 def absMsg (d : Bytes) (roots : List Bytes) (clear : Bytes) : Bytes :=
@@ -165,26 +184,48 @@ def parseAbs (rest : Bytes) : Bytes × List Bytes × Bytes :=
   (rest.take 64, chunks64 (rest.drop 65) (rest.getD 64 0).toNat,
     (rest.drop 65).drop (64 * (rest.getD 64 0).toNat))
 
-def initMsg (ctx cb : Bytes) : Bytes := tagInit :: (ctx ++ cb)
+/-- `d₀` input: `INIT ‖ ctx ‖ le8 |cb| ‖ cb` (L4: `ctx = id ‖ le8 |pub| ‖ pub`). -/
+def initMsg (ctx cb : Bytes) : Bytes := tagInit :: (ctx ++ Bytes.leN 8 cb.length ++ cb)
 
-def nodeMsg (l r : Bytes) : Bytes := tagNode :: (l ++ r)
+/-- Challenge step input: `CHAL ‖ d`; the challenge is the first half of
+`WH(CHAL, d)`, which is also the next state. -/
+def chalMsg (d : Bytes) : Bytes := tagChal :: d
 
-def leafMsg (v : Bytes) : Bytes := tagLeaf :: v
+/-- Merkle node of level `k` with injected rows `raw`. -/
+def nodeMsg (k : Nat) (l r raw : Bytes) : Bytes := tagNode :: (k.toUInt8 :: (l ++ r ++ raw))
+
+def leafMsg (raw : Bytes) : Bytes := tagLeaf :: raw
 
 /-- Query-phase chunk `j` of final state `d`. -/
-def chunkQ (d : Bytes) (j : Nat) : Bytes := tagChunk :: (d ++ Bytes.beN 4 j)
+def chunkQ (d : Bytes) (j : Nat) : Bytes := tagQuery :: (d ++ Bytes.leN 4 j)
 
 def chunkDec : Bytes → Option (Bytes × Nat)
-  | b :: rest => if b = tagChunk then some (rest.take 64, Bytes.beToNat (rest.drop 64)) else none
+  | t :: rest =>
+    if t = tagQuery ∧ 4 ≤ rest.length then
+      some (rest.take (rest.length - 4), Bytes.leToNat (rest.drop (rest.length - 4)))
+    else none
   | [] => none
 
-theorem chunkDec_chunkQ (d : Bytes) (hd : d.length = 64) (j : Nat) (hj : j < 2 ^ 32) :
-    chunkDec (chunkQ d j) = some (d, j) := by
-  simp only [chunkQ, chunkDec, if_true, List.take_left' hd, List.drop_left' hd, Bytes.beToNat_beN]
-  rw [Nat.mod_eq_of_lt (by simpa using hj)]
+theorem leToNat_leN (w n : Nat) : Bytes.leToNat (Bytes.leN w n) = n % 256 ^ w := by
+  induction w generalizing n with
+  | zero => simp [Bytes.leN, Bytes.leToNat, Nat.mod_one]
+  | succ w ih =>
+    have h8 : (UInt8.ofNat (n % 256)).toNat = n % 256 % 256 := rfl
+    rw [Bytes.leN, Bytes.leToNat, ih, h8, Nat.mod_mod, Nat.pow_succ, Nat.mul_comm (256 ^ w),
+      Nat.mod_mul]
 
-theorem slots_chunkQ (d : Bytes) (hd : d.length = 64) (j : Nat) : d ∈ slots (chunkQ d j) := by
-  simp [chunkQ, slots, tagChunk, List.take_left' hd]
+theorem chunkDec_chunkQ (d : Bytes) (j : Nat) (hj : j < 2 ^ 32) :
+    chunkDec (chunkQ d j) = some (d, j) := by
+  have hl := Bytes.leN_length 4 j
+  simp only [chunkQ, chunkDec, List.length_append, hl, Nat.add_sub_cancel]
+  rw [if_pos (by simp), List.take_left' rfl, List.drop_left' rfl, leToNat_leN,
+    Nat.mod_eq_of_lt (by simpa using hj)]
+
+theorem slots_chunkQ (d : Bytes) (j : Nat) : d ∈ slots (chunkQ d j) := by
+  unfold slots
+  apply List.mem_append_right
+  have hl := Bytes.leN_length 4 j
+  simp [chunkQ, chunkSlots, tagQuery, hl, List.take_left']
 
 theorem chunks64_flatten : ∀ (roots : List Bytes) (c : Bytes), (∀ r ∈ roots, r.length = 64) →
     chunks64 (roots.flatten ++ c) roots.length = roots
@@ -225,27 +266,34 @@ theorem parseAbs_absMsg (d : Bytes) (roots : List Bytes) (clear : Bytes) (hd : d
     List.drop_left' hflat]
 
 theorem slots_absMsg (d : Bytes) (roots : List Bytes) (clear : Bytes) (hd : d.length = 64)
-    (hr : ∀ r ∈ roots, r.length = 64) (hn : roots.length < 256) (j : Nat) :
+    (hr : ∀ r ∈ roots, r.length = 64) (hn : roots.length < 256) (j : Nat) (hj : j < 2) :
     d ∈ slots (whq (absMsg d roots clear) j) ∧ ∀ r ∈ roots, r ∈ slots (whq (absMsg d roots clear) j) := by
   have hp := parseAbs_absMsg d roots clear hd hr hn
   simp only [parseAbs, Prod.mk.injEq] at hp
-  have hs : slots (whq (absMsg d roots clear) j) =
+  have hs : slotsMsg (absMsg d roots clear) =
       (d ++ (roots.length.toUInt8 :: (roots.flatten ++ clear))).take 64 ::
         chunks64 ((d ++ (roots.length.toUInt8 :: (roots.flatten ++ clear))).drop 65)
           ((d ++ (roots.length.toUInt8 :: (roots.flatten ++ clear))).getD 64 0).toNat := by
-    rw [slots_whq]; simp [absMsg, slotsMsg, tagAbs, tagNode]
-  rw [hs, hp.1, hp.2.1]
-  exact ⟨List.mem_cons_self, fun r hrm => List.mem_cons_of_mem _ hrm⟩
+    simp [absMsg, slotsMsg, tagAbs, tagNode]
+  have hsub := slots_whq (absMsg d roots clear) j hj
+  rw [hs, hp.1, hp.2.1] at hsub
+  exact ⟨hsub List.mem_cons_self, fun r hrm => hsub (List.mem_cons_of_mem _ hrm)⟩
 
-theorem slots_nodeMsg (l r : Bytes) (hl : l.length = 64) (j : Nat) :
-    l ∈ slots (whq (nodeMsg l r) j) ∧ (r.length = 64 → r ∈ slots (whq (nodeMsg l r) j)) := by
-  rw [slots_whq]
-  simp only [nodeMsg, slotsMsg, tagNode, if_true, chunks64]
-  refine ⟨?_, fun hr => ?_⟩
-  · simp only [List.range_succ, List.range_zero]
-    simp [List.take_left' hl]
-  · simp only [List.range_succ, List.range_zero]
-    simp [List.drop_left' hl, List.take_of_length_le (by omega : r.length ≤ 64)]
+theorem slots_chalMsg (d : Bytes) (hd : d.length = 64) (j : Nat) (hj : j < 2) :
+    d ∈ slots (whq (chalMsg d) j) := by
+  apply slots_whq _ j hj
+  simp [chalMsg, slotsMsg, tagChal, tagNode, tagAbs, List.take_of_length_le (Nat.le_of_eq hd)]
+
+theorem slots_nodeMsg (k : Nat) (l r raw : Bytes) (hl : l.length = 64) (hr : r.length = 64)
+    (j : Nat) (hj : j < 2) :
+    l ∈ slots (whq (nodeMsg k l r raw) j) ∧ r ∈ slots (whq (nodeMsg k l r raw) j) := by
+  have hsub := slots_whq (nodeMsg k l r raw) j hj
+  have e1 : ((l ++ r ++ raw)).take 64 = l := by rw [List.append_assoc, List.take_left' hl]
+  have e2 : ((l ++ r ++ raw).drop 64).take 64 = r := by
+    rw [List.append_assoc, List.drop_left' hl, List.take_left' hr]
+  simp only [nodeMsg, slotsMsg, tagNode, if_true, List.drop_succ_cons, List.drop_zero] at hsub
+  rw [e1, e2] at hsub
+  exact ⟨hsub List.mem_cons_self, hsub (List.mem_cons_of_mem _ List.mem_cons_self)⟩
 
 /-! ## Inversion events -/
 

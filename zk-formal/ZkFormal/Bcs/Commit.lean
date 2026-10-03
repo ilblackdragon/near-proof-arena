@@ -24,8 +24,10 @@ open ArenaCore ArenaCore.Security ZkFormal
 
 structure CommitScheme where
   Shape : Type
-  OpenIn : Table → Bytes → Shape → Nat → Bytes → Prop
-  ext : Table → Bytes → Shape → Nat → Option Bytes
+  /-- What one opening addresses (a leaf index; for MMCS a `(level, index)` pair). -/
+  Pos : Type
+  OpenIn : Table → Bytes → Shape → Pos → Bytes → Prop
+  ext : Table → Bytes → Shape → Pos → Option Bytes
 
 def CommitScheme.Binding (cs : CommitScheme) : Prop :=
   ∀ (pre hist : Table), TableWF (pre ++ hist) → ¬ WideCollision 2 whq (pre ++ hist) →
