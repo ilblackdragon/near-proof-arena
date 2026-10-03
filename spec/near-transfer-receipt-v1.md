@@ -149,7 +149,7 @@ natural next version.
 |---|---|
 | claim encoding, strict decoding, round trip, injectivity | Lean definitions + **proved** theorems |
 | relation ⇒ domain; outputs determined by witness | **proved** |
-| SHA-256 | Lean definition (FIPS 180-4), kernel-reducible; tested vs nearcore/Python on every case and against `abc` vector; not proved equal to formal-core's SHA-256 (duplicate implementation, see §9) |
+| SHA-256 | formal-core's `ArenaCore.sha256` (FIPS 180-4, kernel-reducible, vector-tested in formal-core); agrees with nearcore/Python on every differential case |
 | account-id validity / account types, AccountV1, receipt borsh, trie node hashing, outcome hashing, merklize, refund ids, transfer arithmetic | Lean definitions written from the cited nearcore source; **faithfulness is tested, not proved** (differential testing vs real nearcore, §7) |
 | non-vacuity | **kernel-checked** (`decide +kernel`, no `native_decide`): the relation holds for the oracle's real worked example in both price cases (`NearSpec.Examples.TierA/TierB.relation`), and fails for tampered outputs/receipts (`NearSpec.Examples.Negative`); axioms used: `propext` only |
 | "value replacement = nearcore trie update" (§4) | argued in this document + oracle-tested (witness-only re-execution with nearcore's `Trie::from_recorded_storage` equals the slice root on every case) |
@@ -210,10 +210,9 @@ decimal strings).
 
 ## 9. Honest gaps and dependencies
 
-* SHA-256 is implemented here (`NearSpec.SHA256`) and independently in
-  formal-core (`ArenaCore.SHA256`). Before freeze either prove them equal or
-  switch NearSpec to formal-core's via a Lake `require` (both use
-  `Bytes := List UInt8` and Lean `v4.34.1`).
+* SHA-256 is formal-core's `ArenaCore.sha256` (Lake `require` of
+  `../../formal-core`), the same function used by the NPAI `SHA256` opcode and
+  the `sha256_cr` assumption; `NearSpec.sha256` is an `abbrev` for it.
 * The faithfulness of the Lean semantics to nearcore is established by source
   reading + differential testing, not by proof (nearcore has no formal model).
 * Synthetic states only; no historical replay (§10).
