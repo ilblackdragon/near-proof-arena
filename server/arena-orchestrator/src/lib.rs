@@ -496,6 +496,26 @@ impl Orchestrator {
             g.reused_from = Some(entry.source_submission_id.clone());
             Self::insert_gate(conn, ctx, None, &g, &Actor::system()).await?;
         }
+        // native-lean route: the judge-built verifier is a function of the
+        // verified surface (formal tree, certificate), which is identical, so
+        // the source run's build is reused with the formal results.
+        let src_build: Option<Option<serde_json::Value>> =
+            sqlx::query_scalar("SELECT build_outputs FROM runs WHERE id = $1")
+                .bind(&entry.source_run_id)
+                .fetch_optional(&mut *conn)
+                .await?;
+        if let (Some(Some(v)), Some(mine)) = (src_build, ctx.run.build_outputs.as_mut()) {
+            if let Ok(src) = serde_json::from_value::<BuildOutputs>(v) {
+                if src.native_verifier.is_some() && mine.native_verifier.is_none() {
+                    mine.native_verifier = src.native_verifier;
+                    sqlx::query("UPDATE runs SET build_outputs = $2 WHERE id = $1")
+                        .bind(&ctx.run.id)
+                        .bind(json(&*mine))
+                        .execute(&mut *conn)
+                        .await?;
+                }
+            }
+        }
         let graph = entry
             .evidence_graph
             .as_ref()
