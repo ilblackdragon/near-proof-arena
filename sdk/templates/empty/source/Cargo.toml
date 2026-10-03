@@ -1,0 +1,19 @@
+# Workspace for the candidate's executables. Add dependencies freely, then
+# run `cargo vendor vendor > /dev/null` inside source/ so the offline build
+# can find them, and copy Cargo.lock into ../dependency-locks/.
+[package]
+name = "candidate"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+
+# Standalone workspace root (keeps cargo from looking at parent directories).
+[workspace]
+
+[profile.release]
+# Reproducibility: single codegen unit, no incremental state.
+codegen-units = 1
+incremental = false
+lto = "thin"
