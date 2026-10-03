@@ -1,0 +1,38 @@
+{
+  "name": "near-proof-arena-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Read-only leaderboard and submission browser for NEAR Proof Arena",
+  "scripts": {
+    "dev": "vite",
+    "dev:mock": "ARENA_MOCK=1 vite",
+    "build": "tsc -b && vite build && node scripts/check-dist.mjs",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --pretty",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "gen:types": "node scripts/gen-types.mjs"
+  },
+  "packageManager": "pnpm@11.20.0",
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "jsdom": "^30.1.1",
+    "json-schema-to-typescript": "^16.0.0",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
+  }
+}
