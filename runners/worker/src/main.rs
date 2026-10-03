@@ -8,6 +8,11 @@
 //!                                  artifact store, print JobOutput JSON
 //! arena-worker __arena-sandbox-helper (shim|init) CFG   (internal)
 //! ```
+//!
+//! Backends (`ARENA_SANDBOX_BACKEND`): `bwrap-dev` (default; DEMO-only, needs
+//! `ARENA_DEV_UNSAFE=1`) or `firecracker` (production microVMs; assets from
+//! `deploy/images/*`, `$ARENA_FC_DEPS`). Build jobs currently need a backend
+//! that supports copy-in (bwrap-dev).
 
 use arena_sandbox::{BwrapConfig, BwrapDev, HelperCommand, Sandbox};
 use arena_worker::client::HttpControlPlane;
@@ -35,7 +40,10 @@ fn sandbox(backend: &str, work_dir: &Path) -> Arc<dyn Sandbox> {
             let cfg = BwrapConfig::new(helper, work_dir.join("sandbox"));
             Arc::new(BwrapDev::new(cfg).unwrap_or_else(|e| die(e)))
         }
-        "firecracker" => die("the firecracker backend is provided by runners/firecracker and is not linked into this build"),
+        "firecracker" => {
+            let cfg = arena_firecracker::FirecrackerConfig::from_env(&work_dir.join("firecracker")).unwrap_or_else(|e| die(e));
+            Arc::new(arena_firecracker::FirecrackerSandbox::new(cfg).unwrap_or_else(|e| die(e)))
+        }
         other => die(format!("unknown sandbox backend {other:?}")),
     }
 }

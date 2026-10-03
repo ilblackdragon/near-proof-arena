@@ -83,7 +83,7 @@ fn main() {
     // without --out, outputs go to a temporary dir removed after printing
     let keep = out.is_some();
     let out_dir = out.unwrap_or_else(|| work.join(format!("out-{}", std::process::id())));
-    let spec = SandboxSpec {
+    let spec = RunRequest {
         rootfs_digest: sb.rootfs_digest().clone(),
         ro_mounts: ro,
         rw_scratch_mb: scratch,
@@ -95,8 +95,9 @@ fn main() {
         wall_timeout: Duration::from_secs(timeout),
         network: None,
         out_dir: out_dir.clone(),
+        max_output_bytes: u64::MAX,
     };
-    let res = sb.run(&spec);
+    let res = sb.run_native(&spec);
     if !keep {
         let _ = std::fs::remove_dir_all(&out_dir);
     }

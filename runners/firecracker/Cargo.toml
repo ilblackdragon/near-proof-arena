@@ -8,6 +8,8 @@ description = "Firecracker microVM sandbox backend for NEAR Proof Arena runners"
 [dependencies]
 arena-types = { path = "../../common/arena-types" }
 arena-fc-proto = { path = "proto" }
+arena-sandbox = { path = "../sandbox" }
+arena-archive = { path = "../archive" }
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true

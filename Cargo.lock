@@ -147,7 +147,9 @@ dependencies = [
 name = "arena-firecracker"
 version = "0.1.0"
 dependencies = [
+ "arena-archive",
  "arena-fc-proto",
+ "arena-sandbox",
  "arena-types",
  "hex",
  "libc",
@@ -212,6 +214,7 @@ name = "arena-worker"
 version = "0.1.0"
 dependencies = [
  "arena-archive",
+ "arena-firecracker",
  "arena-measure",
  "arena-sandbox",
  "arena-types",

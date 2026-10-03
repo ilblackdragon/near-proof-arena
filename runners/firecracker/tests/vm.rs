@@ -46,8 +46,8 @@ fn scratch_dir() -> tempfile::TempDir {
     tempfile::tempdir_in(base).unwrap()
 }
 
-fn spec(script: &str, out: &Path) -> SandboxSpec {
-    SandboxSpec {
+fn spec(script: &str, out: &Path) -> RunRequest {
+    RunRequest {
         rootfs_digest: sandbox().rootfs_digest().clone(),
         ro_mounts: vec![],
         rw_scratch_mb: 64,
@@ -59,11 +59,12 @@ fn spec(script: &str, out: &Path) -> SandboxSpec {
         wall_timeout: Duration::from_secs(20),
         network: None,
         out_dir: out.to_path_buf(),
+        max_output_bytes: u64::MAX,
     }
 }
 
-fn run(s: &SandboxSpec) -> SandboxOutcome {
-    let o = sandbox().run(s).expect("sandbox run");
+fn run(s: &RunRequest) -> SandboxOutcome {
+    let o = sandbox().run_native(s).expect("sandbox run");
     if std::env::var("ARENA_FC_TESTS_VERBOSE").is_ok() {
         let d = &o.diagnostics;
         eprintln!(
@@ -120,7 +121,7 @@ fn exit_codes_and_signals() {
     let mut s = spec("", &t.path().join("d"));
     s.argv = vec!["/nonexistent/prove".into()];
     let o = run(&s);
-    assert_eq!(o.exit, Exit::Exited(127));
+    assert_eq!(o.exit, Exit::ExecFailed);
     assert!(String::from_utf8_lossy(&o.stderr_trunc).contains("failed to execute"));
 }
 
@@ -237,7 +238,7 @@ fn env_is_cleared_and_allowlisted() {
     let mut bad = spec("true", &t.path().join("out2"));
     bad.env = vec![("LD_PRELOAD".into(), "/x.so".into())];
     assert!(matches!(
-        sandbox().run(&bad),
+        sandbox().run_native(&bad),
         Err(InfraError::InvalidSpec(_))
     ));
 }
@@ -319,7 +320,7 @@ fn ro_bundle_mounts() {
     assert_eq!(stdout(&o), "proving x\nparams\nREQ\nro\nro\n");
     // symlinks in a bundle are refused before anything boots
     std::os::unix::fs::symlink("/etc/passwd", bundle.join("evil")).unwrap();
-    assert!(matches!(sandbox().run(&s), Err(InfraError::InvalidSpec(_))));
+    assert!(matches!(sandbox().run_native(&s), Err(InfraError::InvalidSpec(_))));
 }
 
 #[test]

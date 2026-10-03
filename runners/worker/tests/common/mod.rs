@@ -58,9 +58,11 @@ pub const VERIFY: &str = r#"#!/bin/sh
 while [ $# -gt 0 ]; do case "$1" in
   --public) pub=$2; shift 2;; --claim) claim=$2; shift 2;; --proof) proof=$2; shift 2;; *) exit 2;; esac; done
 # The verify sandbox must never see the witness or the request.
-if [ -e /in/witness.bin ] || [ -e /in/request.bin ]; then echo "SAW PRIVATE INPUT" >&2; exit 3; fi
-printf 'PROOF:%s' "$(cat "$claim" "$pub/key" | sha256sum | cut -d' ' -f1)" > /scratch/expected
-cmp -s /scratch/expected "$proof" && exit 0
+for p in /in /arena/in; do
+  if [ -e $p/witness.bin ] || [ -e $p/request.bin ]; then echo "SAW PRIVATE INPUT" >&2; exit 3; fi
+done
+printf 'PROOF:%s' "$(cat "$claim" "$pub/key" | sha256sum | cut -d' ' -f1)" > ./expected
+cmp -s ./expected "$proof" && exit 0
 exit 1
 "#;
 
