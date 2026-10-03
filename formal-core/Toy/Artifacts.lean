@@ -1,0 +1,34 @@
+import Toy.Spec
+
+/-!
+# Toy: the judge-side artifact description
+
+This file plays the role of the file the **judge** generates from the frozen
+challenge and the built candidate artifacts: the digests are literal data
+(the judge computes them from the bytes it built and froze; it does not take
+them from the candidate).  The expected type of the candidate certificate is
+`ToyJudge.Expected`.
+-/
+
+namespace ToyJudge
+
+open ArenaCore
+
+/-- `sha256(public tape)` as recorded by the judge after running `prepare`. -/
+def publicDigest : Digest :=
+  [0x57, 0x74, 0x08, 0xe2, 0x64, 0x7c, 0xfb, 0x6b, 0x4a, 0x13, 0x33, 0x48, 0x83, 0x07, 0x40, 0xb5,
+   0x12, 0x3e, 0xb2, 0x32, 0xfe, 0x1a, 0xc5, 0x99, 0x32, 0xb8, 0xa3, 0x9f, 0x99, 0x62, 0xf1, 0xd1]
+
+/-- `sha256(verifier.npai)` of the built bytecode image. -/
+def verifierDigest : Digest :=
+  [0xe7, 0xea, 0x8a, 0x49, 0xfd, 0xd4, 0x5c, 0xf3, 0xb7, 0x89, 0xff, 0x44, 0x2c, 0x2b, 0xad, 0xbd,
+   0xb9, 0x8e, 0xad, 0xe3, 0xad, 0xbb, 0x9c, 0x35, 0x9d, 0x24, 0x23, 0xad, 0xa5, 0x21, 0xb0, 0x0f]
+
+def artifacts : ArtifactDescription where
+  publicDigest := publicDigest
+  impl := .interp verifierDigest
+
+/-- The expected theorem type for the toy candidate. -/
+def Expected : Prop := AdmissionStatement Toy.toyParams artifacts
+
+end ToyJudge
