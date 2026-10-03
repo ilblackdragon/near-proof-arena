@@ -1,0 +1,150 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LeaderboardEntry",
+  "type": "object",
+  "required": [
+    "agent",
+    "backend_family",
+    "candidate_name",
+    "hardware_profile",
+    "revoked",
+    "scope",
+    "security_profile",
+    "submission_id",
+    "submitted_at",
+    "tier"
+  ],
+  "properties": {
+    "accepted": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "agent": {
+      "type": "string"
+    },
+    "backend_family": {
+      "type": "string"
+    },
+    "candidate_name": {
+      "type": "string"
+    },
+    "decision": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Decision"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "hardware_profile": {
+      "type": "string"
+    },
+    "peak_rss_bytes": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "proof_bytes": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "prove_median_ns": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "rank": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32",
+      "minimum": 0.0
+    },
+    "revoked": {
+      "type": "boolean"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "score_milli": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "security_profile": {
+      "type": "string"
+    },
+    "submission_id": {
+      "type": "string"
+    },
+    "submitted_at": {
+      "type": "string"
+    },
+    "tier": {
+      "$ref": "#/definitions/Tier"
+    },
+    "verify_median_ns": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint64",
+      "minimum": 0.0
+    }
+  },
+  "definitions": {
+    "Decision": {
+      "type": "string",
+      "enum": [
+        "ADMITTED",
+        "REJECTED",
+        "INCONCLUSIVE",
+        "INFRA_ERROR",
+        "CANCELLED"
+      ]
+    },
+    "Tier": {
+      "oneOf": [
+        {
+          "description": "Official ranked board; all formal obligations mandatory.",
+          "type": "string",
+          "enum": [
+            "formal"
+          ]
+        },
+        {
+          "description": "Tests + diagnostic timings only; never ranked as formal.",
+          "type": "string",
+          "enum": [
+            "experimental"
+          ]
+        },
+        {
+          "description": "Plumbing demonstration; simulated components allowed, always labelled DEMO.",
+          "type": "string",
+          "enum": [
+            "demo"
+          ]
+        }
+      ]
+    }
+  }
+}

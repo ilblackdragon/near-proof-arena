@@ -1,0 +1,152 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GateResult",
+  "type": "object",
+  "required": [
+    "evidence",
+    "gate",
+    "mandatory",
+    "reason_codes",
+    "status",
+    "summary"
+  ],
+  "properties": {
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/EvidenceRef"
+      }
+    },
+    "finished_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "gate": {
+      "description": "Gate id; equals the obligation id for obligation gates.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/ObligationId"
+        }
+      ]
+    },
+    "mandatory": {
+      "type": "boolean"
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ReasonCode"
+      }
+    },
+    "reused_from": {
+      "description": "Set when the result was reused from a parent via the content-addressed cache.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "started_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "$ref": "#/definitions/GateStatus"
+    },
+    "summary": {
+      "description": "Bounded, sanitized, plain text (never HTML).",
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "Digest": {
+      "description": "`sha256:<64 lowercase hex>`",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "EvidenceRef": {
+      "type": "object",
+      "required": [
+        "digest",
+        "label",
+        "public"
+      ],
+      "properties": {
+        "digest": {
+          "$ref": "#/definitions/Digest"
+        },
+        "label": {
+          "type": "string"
+        },
+        "public": {
+          "description": "Whether this artifact may be shown publicly (held-out data must not).",
+          "type": "boolean"
+        }
+      }
+    },
+    "GateStatus": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNKNOWN",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "ObligationId": {
+      "type": "string",
+      "enum": [
+        "PKG_WELLFORMED",
+        "BUILD_REPRODUCIBLE",
+        "ARTIFACT_BINDING",
+        "FORMAL_SEMANTIC_SOUNDNESS",
+        "FORMAL_SEMANTIC_COMPLETENESS",
+        "FORMAL_CRYPTO_SOUNDNESS",
+        "FORMAL_IMPL_CONNECTION",
+        "FORMAL_ZK",
+        "AXIOM_AUDIT",
+        "CONFORMANCE_DIFFERENTIAL",
+        "ADVERSARIAL_PROOFS",
+        "PROVER_RELIABILITY",
+        "RESOURCE_LIMITS",
+        "BENCHMARK"
+      ]
+    },
+    "ReasonCode": {
+      "type": "string",
+      "enum": [
+        "MANIFEST_INVALID",
+        "ARCHIVE_UNSAFE",
+        "CHALLENGE_UNKNOWN",
+        "PROFILE_NOT_ALLOWED",
+        "BUILD_FAILED",
+        "BUILD_NOT_REPRODUCIBLE",
+        "CERTIFICATE_MISSING",
+        "THEOREM_TYPE_MISMATCH",
+        "UNAPPROVED_ASSUMPTION",
+        "FORBIDDEN_AXIOM",
+        "SORRY_FOUND",
+        "NATIVE_EVAL_FOUND",
+        "SHADOWED_DEFINITION",
+        "RECHECK_FAILED",
+        "ARTIFACT_BINDING_FAILED",
+        "CLAIM_MISMATCH",
+        "COUNTEREXAMPLE_FOUND",
+        "HOSTILE_PROOF_ACCEPTED",
+        "VERIFIER_NONDETERMINISTIC",
+        "PROVER_FAILED",
+        "RESOURCE_LIMIT",
+        "TIMEOUT",
+        "SANDBOX_VIOLATION",
+        "SECURITY_BOUND_INSUFFICIENT",
+        "OBLIGATION_UNDISCHARGED",
+        "DEMO_ONLY",
+        "INFRA_ERROR",
+        "CANCELLED"
+      ]
+    }
+  }
+}

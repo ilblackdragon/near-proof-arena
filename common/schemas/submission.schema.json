@@ -1,0 +1,617 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SubmissionView",
+  "description": "Public view of a submission (API `GET /v1/submissions/{id}`).",
+  "type": "object",
+  "required": [
+    "agent",
+    "backend_family",
+    "candidate_name",
+    "challenge_id",
+    "created_at",
+    "gates",
+    "id",
+    "package_digest",
+    "reason_codes",
+    "stage",
+    "tier",
+    "updated_at"
+  ],
+  "properties": {
+    "accepted": {
+      "description": "`null` while pending; `true` only if every mandatory gate passed.",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "agent": {
+      "type": "string"
+    },
+    "backend_family": {
+      "type": "string"
+    },
+    "benchmark": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/BenchmarkResult"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "candidate_name": {
+      "type": "string"
+    },
+    "challenge_id": {
+      "type": "string"
+    },
+    "change_class": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ChangeClass"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "decision": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Decision"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "evidence_graph": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/EvidenceGraph"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/GateResult"
+      }
+    },
+    "id": {
+      "type": "string"
+    },
+    "package_digest": {
+      "$ref": "#/definitions/Digest"
+    },
+    "parent": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ReasonCode"
+      }
+    },
+    "revoked": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Revocation"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "score_milli": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "stage": {
+      "$ref": "#/definitions/Stage"
+    },
+    "tier": {
+      "$ref": "#/definitions/Tier"
+    },
+    "updated_at": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "BenchmarkResult": {
+      "type": "object",
+      "required": [
+        "classes",
+        "hardware_profile",
+        "measured_by",
+        "prepare_ns",
+        "public_artifact_bytes",
+        "suite_revision"
+      ],
+      "properties": {
+        "classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ClassMeasurement"
+          }
+        },
+        "hardware_profile": {
+          "type": "string"
+        },
+        "measured_by": {
+          "type": "string"
+        },
+        "prepare_ns": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "public_artifact_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "score_ci_milli": {
+          "description": "Half-width of a bootstrap 95% interval, milli units.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "score_milli": {
+          "description": "Score * 1000 as integer (e.g. 100000 == 100.000).",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "suite_revision": {
+          "type": "string"
+        }
+      }
+    },
+    "ChangeClass": {
+      "description": "Change classification, computed by the judge (never trusted from the agent).",
+      "type": "string",
+      "enum": [
+        "NO_PARENT",
+        "PROVER_ONLY",
+        "VERIFIER_OR_PROTOCOL"
+      ]
+    },
+    "ClassMeasurement": {
+      "type": "object",
+      "required": [
+        "baseline_ns",
+        "class_id",
+        "mad_ns",
+        "median_ns",
+        "peak_rss_bytes",
+        "proof_bytes_max",
+        "runs_ns",
+        "verify_median_ns",
+        "weight_ppm"
+      ],
+      "properties": {
+        "baseline_ns": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "class_id": {
+          "type": "string"
+        },
+        "cold_ns": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "mad_ns": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "median_ns": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "peak_rss_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "proof_bytes_max": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "runs_ns": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        },
+        "verify_median_ns": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "weight_ppm": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      }
+    },
+    "Decision": {
+      "type": "string",
+      "enum": [
+        "ADMITTED",
+        "REJECTED",
+        "INCONCLUSIVE",
+        "INFRA_ERROR",
+        "CANCELLED"
+      ]
+    },
+    "Digest": {
+      "description": "`sha256:<64 lowercase hex>`",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "EdgeStatus": {
+      "oneOf": [
+        {
+          "description": "Machine-checked evidence (kernel-checked proof, digest equality, ...).",
+          "type": "string",
+          "enum": [
+            "checked"
+          ]
+        },
+        {
+          "description": "Approved, visible trusted-base entry.",
+          "type": "string",
+          "enum": [
+            "trusted"
+          ]
+        },
+        {
+          "description": "Only tested (differential/fuzz); NOT a substitute for a formal arrow.",
+          "type": "string",
+          "enum": [
+            "tested"
+          ]
+        },
+        {
+          "description": "No evidence. Must be rendered.",
+          "type": "string",
+          "enum": [
+            "missing"
+          ]
+        }
+      ]
+    },
+    "EvidenceEdge": {
+      "type": "object",
+      "required": [
+        "evidence",
+        "from",
+        "kind",
+        "note",
+        "status",
+        "to"
+      ],
+      "properties": {
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Digest"
+          }
+        },
+        "from": {
+          "type": "string"
+        },
+        "kind": {
+          "description": "e.g. `refines`, `binds`, `assumes`, `built_from`, `tested_against`.",
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/EdgeStatus"
+        },
+        "to": {
+          "type": "string"
+        }
+      }
+    },
+    "EvidenceGraph": {
+      "type": "object",
+      "required": [
+        "edges",
+        "nodes"
+      ],
+      "properties": {
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EvidenceEdge"
+          }
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EvidenceNode"
+          }
+        }
+      }
+    },
+    "EvidenceNode": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "label"
+      ],
+      "properties": {
+        "digest": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/definitions/NodeKind"
+        },
+        "label": {
+          "type": "string"
+        }
+      }
+    },
+    "EvidenceRef": {
+      "type": "object",
+      "required": [
+        "digest",
+        "label",
+        "public"
+      ],
+      "properties": {
+        "digest": {
+          "$ref": "#/definitions/Digest"
+        },
+        "label": {
+          "type": "string"
+        },
+        "public": {
+          "description": "Whether this artifact may be shown publicly (held-out data must not).",
+          "type": "boolean"
+        }
+      }
+    },
+    "GateResult": {
+      "type": "object",
+      "required": [
+        "evidence",
+        "gate",
+        "mandatory",
+        "reason_codes",
+        "status",
+        "summary"
+      ],
+      "properties": {
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EvidenceRef"
+          }
+        },
+        "finished_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gate": {
+          "description": "Gate id; equals the obligation id for obligation gates.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ObligationId"
+            }
+          ]
+        },
+        "mandatory": {
+          "type": "boolean"
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ReasonCode"
+          }
+        },
+        "reused_from": {
+          "description": "Set when the result was reused from a parent via the content-addressed cache.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "started_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "$ref": "#/definitions/GateStatus"
+        },
+        "summary": {
+          "description": "Bounded, sanitized, plain text (never HTML).",
+          "type": "string"
+        }
+      }
+    },
+    "GateStatus": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNKNOWN",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "NodeKind": {
+      "type": "string",
+      "enum": [
+        "nearcore_source",
+        "formal_semantics",
+        "backend_semantics",
+        "theorem",
+        "assumption",
+        "artifact",
+        "tcb_component",
+        "test_suite",
+        "measurement"
+      ]
+    },
+    "ObligationId": {
+      "type": "string",
+      "enum": [
+        "PKG_WELLFORMED",
+        "BUILD_REPRODUCIBLE",
+        "ARTIFACT_BINDING",
+        "FORMAL_SEMANTIC_SOUNDNESS",
+        "FORMAL_SEMANTIC_COMPLETENESS",
+        "FORMAL_CRYPTO_SOUNDNESS",
+        "FORMAL_IMPL_CONNECTION",
+        "FORMAL_ZK",
+        "AXIOM_AUDIT",
+        "CONFORMANCE_DIFFERENTIAL",
+        "ADVERSARIAL_PROOFS",
+        "PROVER_RELIABILITY",
+        "RESOURCE_LIMITS",
+        "BENCHMARK"
+      ]
+    },
+    "ReasonCode": {
+      "type": "string",
+      "enum": [
+        "MANIFEST_INVALID",
+        "ARCHIVE_UNSAFE",
+        "CHALLENGE_UNKNOWN",
+        "PROFILE_NOT_ALLOWED",
+        "BUILD_FAILED",
+        "BUILD_NOT_REPRODUCIBLE",
+        "CERTIFICATE_MISSING",
+        "THEOREM_TYPE_MISMATCH",
+        "UNAPPROVED_ASSUMPTION",
+        "FORBIDDEN_AXIOM",
+        "SORRY_FOUND",
+        "NATIVE_EVAL_FOUND",
+        "SHADOWED_DEFINITION",
+        "RECHECK_FAILED",
+        "ARTIFACT_BINDING_FAILED",
+        "CLAIM_MISMATCH",
+        "COUNTEREXAMPLE_FOUND",
+        "HOSTILE_PROOF_ACCEPTED",
+        "VERIFIER_NONDETERMINISTIC",
+        "PROVER_FAILED",
+        "RESOURCE_LIMIT",
+        "TIMEOUT",
+        "SANDBOX_VIOLATION",
+        "SECURITY_BOUND_INSUFFICIENT",
+        "OBLIGATION_UNDISCHARGED",
+        "DEMO_ONLY",
+        "INFRA_ERROR",
+        "CANCELLED"
+      ]
+    },
+    "Revocation": {
+      "type": "object",
+      "required": [
+        "reason",
+        "revoked_at",
+        "revoked_by"
+      ],
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "revoked_at": {
+          "type": "string"
+        },
+        "revoked_by": {
+          "type": "string"
+        }
+      }
+    },
+    "Stage": {
+      "type": "string",
+      "enum": [
+        "RECEIVED",
+        "VALIDATED",
+        "BUILT",
+        "FORMAL_CHECKED",
+        "CONFORMANCE_CHECKED",
+        "BENCHMARKED",
+        "DECIDED"
+      ]
+    },
+    "Tier": {
+      "oneOf": [
+        {
+          "description": "Official ranked board; all formal obligations mandatory.",
+          "type": "string",
+          "enum": [
+            "formal"
+          ]
+        },
+        {
+          "description": "Tests + diagnostic timings only; never ranked as formal.",
+          "type": "string",
+          "enum": [
+            "experimental"
+          ]
+        },
+        {
+          "description": "Plumbing demonstration; simulated components allowed, always labelled DEMO.",
+          "type": "string",
+          "enum": [
+            "demo"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,19 @@
+[package]
+name = "arena-types"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Frozen shared types for NEAR Proof Arena (see docs/CONTRACTS.md)"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
+thiserror.workspace = true
+schemars.workspace = true
+toml.workspace = true
+
+[[bin]]
+name = "gen-schemas"
+path = "src/bin/gen_schemas.rs"

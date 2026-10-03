@@ -1,0 +1,139 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CandidateManifest",
+  "description": "Parsed `candidate.toml`. Every field is a *claim* the judge validates.",
+  "type": "object",
+  "required": [
+    "agent",
+    "backend_family",
+    "build",
+    "challenge",
+    "entry",
+    "hardware",
+    "name",
+    "schema",
+    "security_profile_request"
+  ],
+  "properties": {
+    "agent": {
+      "type": "string"
+    },
+    "backend_family": {
+      "type": "string"
+    },
+    "build": {
+      "$ref": "#/definitions/BuildSection"
+    },
+    "challenge": {
+      "type": "string"
+    },
+    "entry": {
+      "$ref": "#/definitions/EntrySection"
+    },
+    "formal": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/FormalSection"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "hardware": {
+      "$ref": "#/definitions/HardwareRequest"
+    },
+    "name": {
+      "type": "string"
+    },
+    "parent": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema": {
+      "type": "string"
+    },
+    "security_profile_request": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "BuildSection": {
+      "type": "object",
+      "required": [
+        "outputs",
+        "recipe"
+      ],
+      "properties": {
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recipe": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EntrySection": {
+      "type": "object",
+      "required": [
+        "prepare",
+        "prove",
+        "verify"
+      ],
+      "properties": {
+        "prepare": {
+          "type": "string"
+        },
+        "prove": {
+          "type": "string"
+        },
+        "verify": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FormalSection": {
+      "type": "object",
+      "required": [
+        "certificate",
+        "lean_project"
+      ],
+      "properties": {
+        "certificate": {
+          "description": "Lean constant whose *type* the judge constructs; candidate supplies the value.",
+          "type": "string"
+        },
+        "lean_project": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "HardwareRequest": {
+      "type": "object",
+      "required": [
+        "gpu",
+        "min_ram_gb"
+      ],
+      "properties": {
+        "gpu": {
+          "type": "boolean"
+        },
+        "min_ram_gb": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

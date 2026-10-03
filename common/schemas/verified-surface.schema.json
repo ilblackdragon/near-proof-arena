@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VerifiedSurface",
+  "description": "The digests that define the *verified* surface. If all are equal between a child and its parent, formal results may be reused (`ProverOnly`).",
+  "type": "object",
+  "required": [
+    "certificate_decl",
+    "challenge_id",
+    "checker_image",
+    "formal_tree",
+    "prepare_artifact",
+    "public_artifacts",
+    "verify_artifact"
+  ],
+  "properties": {
+    "certificate_decl": {
+      "type": "string"
+    },
+    "challenge_id": {
+      "type": "string"
+    },
+    "checker_image": {
+      "$ref": "#/definitions/Digest"
+    },
+    "formal_tree": {
+      "$ref": "#/definitions/Digest"
+    },
+    "prepare_artifact": {
+      "$ref": "#/definitions/Digest"
+    },
+    "public_artifacts": {
+      "$ref": "#/definitions/Digest"
+    },
+    "verify_artifact": {
+      "$ref": "#/definitions/Digest"
+    }
+  },
+  "definitions": {
+    "Digest": {
+      "description": "`sha256:<64 lowercase hex>`",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}

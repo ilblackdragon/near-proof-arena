@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SecurityProfile",
+  "description": "Governed security profile (`security/profiles/<id>.json`).",
+  "type": "object",
+  "required": [
+    "adversary",
+    "allowed_assumptions",
+    "deployment_proofs_log2",
+    "id",
+    "max_aggregation_depth",
+    "max_hash_queries_log2",
+    "max_prover_queries_log2",
+    "model",
+    "privacy",
+    "setup_model",
+    "target_bits"
+  ],
+  "properties": {
+    "adversary": {
+      "$ref": "#/definitions/AdversaryClass"
+    },
+    "allowed_assumptions": {
+      "description": "Ids into `security/assumptions/*.json`; each pins an exact Lean declaration.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "deployment_proofs_log2": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    },
+    "id": {
+      "type": "string"
+    },
+    "max_aggregation_depth": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    },
+    "max_hash_queries_log2": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    },
+    "max_prover_queries_log2": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    },
+    "model": {
+      "$ref": "#/definitions/SecurityModel"
+    },
+    "privacy": {
+      "$ref": "#/definitions/Privacy"
+    },
+    "setup_model": {
+      "$ref": "#/definitions/SetupModel"
+    },
+    "target_bits": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "AdversaryClass": {
+      "oneOf": [
+        {
+          "description": "Classical PPT adversary. Nothing in this profile implies post-quantum security.",
+          "type": "string",
+          "enum": [
+            "classical"
+          ]
+        }
+      ]
+    },
+    "Privacy": {
+      "type": "string",
+      "enum": [
+        "validity_only",
+        "zero_knowledge"
+      ]
+    },
+    "SecurityModel": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "random_oracle"
+      ]
+    },
+    "SetupModel": {
+      "type": "string",
+      "enum": [
+        "none",
+        "transparent",
+        "approved_ceremony"
+      ]
+    }
+  }
+}

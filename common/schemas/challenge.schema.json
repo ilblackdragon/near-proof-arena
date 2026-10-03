@@ -1,0 +1,707 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ChallengeDefinition",
+  "type": "object",
+  "required": [
+    "chain_id",
+    "claim_encoding",
+    "created_at",
+    "hardware_profile",
+    "measurement",
+    "name",
+    "nearcore",
+    "not_applicable_gates",
+    "protocol_version",
+    "required_obligations",
+    "resource_limits",
+    "runtime_config_digest",
+    "schema",
+    "season",
+    "security_profile",
+    "semantic_scope",
+    "tier",
+    "toolchain_policy",
+    "workload_suite"
+  ],
+  "properties": {
+    "chain_id": {
+      "type": "string"
+    },
+    "claim_encoding": {
+      "$ref": "#/definitions/ClaimEncoding"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "hardware_profile": {
+      "$ref": "#/definitions/HardwareProfile"
+    },
+    "measurement": {
+      "$ref": "#/definitions/MeasurementProcedure"
+    },
+    "name": {
+      "type": "string"
+    },
+    "nearcore": {
+      "$ref": "#/definitions/NearcorePin"
+    },
+    "not_applicable_gates": {
+      "description": "Gates that may be `NOT_APPLICABLE` under this challenge (e.g. FORMAL_ZK for validity-only profiles).",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ObligationId"
+      }
+    },
+    "protocol_version": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    },
+    "required_obligations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ObligationId"
+      }
+    },
+    "resource_limits": {
+      "$ref": "#/definitions/ResourceLimits"
+    },
+    "runtime_config_digest": {
+      "$ref": "#/definitions/Digest"
+    },
+    "schema": {
+      "type": "string"
+    },
+    "season": {
+      "type": "string"
+    },
+    "security_profile": {
+      "$ref": "#/definitions/SecurityProfile"
+    },
+    "semantic_scope": {
+      "$ref": "#/definitions/SemanticScope"
+    },
+    "supersedes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tier": {
+      "$ref": "#/definitions/Tier"
+    },
+    "toolchain_policy": {
+      "$ref": "#/definitions/ToolchainPolicy"
+    },
+    "workload_suite": {
+      "$ref": "#/definitions/WorkloadSuite"
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "AdversaryClass": {
+      "oneOf": [
+        {
+          "description": "Classical PPT adversary. Nothing in this profile implies post-quantum security.",
+          "type": "string",
+          "enum": [
+            "classical"
+          ]
+        }
+      ]
+    },
+    "ClaimEncoding": {
+      "type": "object",
+      "required": [
+        "format",
+        "max_claim_bytes",
+        "max_request_bytes",
+        "max_witness_bytes",
+        "spec_digest"
+      ],
+      "properties": {
+        "format": {
+          "type": "string"
+        },
+        "max_claim_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_request_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_witness_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "spec_digest": {
+          "$ref": "#/definitions/Digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Digest": {
+      "description": "`sha256:<64 lowercase hex>`",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "FormalSpecRef": {
+      "type": "object",
+      "required": [
+        "lean_toolchain",
+        "relation_decl",
+        "relation_module",
+        "tree_digest"
+      ],
+      "properties": {
+        "lean_toolchain": {
+          "description": "Lean toolchain, e.g. `leanprover/lean4:v4.x.y`.",
+          "type": "string"
+        },
+        "relation_decl": {
+          "description": "Fully qualified Lean name of the relation, e.g. `NearSpec.TransferV1.NearRelation`.",
+          "type": "string"
+        },
+        "relation_module": {
+          "description": "Lean module that defines `NearRelation` for this challenge.",
+          "type": "string"
+        },
+        "tree_digest": {
+          "description": "Tree digest of `spec/lean` + `formal-core` sources the challenge was frozen against.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Digest"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "HardwareProfile": {
+      "type": "object",
+      "required": [
+        "cpu_model",
+        "id",
+        "ram_bytes",
+        "vcpus"
+      ],
+      "properties": {
+        "cpu_model": {
+          "type": "string"
+        },
+        "gpu": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "ram_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "vcpus": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
+    },
+    "MeasurementProcedure": {
+      "type": "object",
+      "required": [
+        "aggregation",
+        "cold_runs",
+        "concurrency",
+        "measured_runs",
+        "outlier_mad_k",
+        "per_run_timeout_ms",
+        "warmup_runs"
+      ],
+      "properties": {
+        "aggregation": {
+          "description": "`median` only in v1.",
+          "type": "string"
+        },
+        "cold_runs": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "concurrency": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "measured_runs": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "outlier_mad_k": {
+          "description": "Runs farther than this many MADs from the median are flagged (not dropped).",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "per_run_timeout_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "warmup_runs": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
+    },
+    "NearcorePin": {
+      "type": "object",
+      "required": [
+        "commit",
+        "repo",
+        "tag"
+      ],
+      "properties": {
+        "commit": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ObligationId": {
+      "type": "string",
+      "enum": [
+        "PKG_WELLFORMED",
+        "BUILD_REPRODUCIBLE",
+        "ARTIFACT_BINDING",
+        "FORMAL_SEMANTIC_SOUNDNESS",
+        "FORMAL_SEMANTIC_COMPLETENESS",
+        "FORMAL_CRYPTO_SOUNDNESS",
+        "FORMAL_IMPL_CONNECTION",
+        "FORMAL_ZK",
+        "AXIOM_AUDIT",
+        "CONFORMANCE_DIFFERENTIAL",
+        "ADVERSARIAL_PROOFS",
+        "PROVER_RELIABILITY",
+        "RESOURCE_LIMITS",
+        "BENCHMARK"
+      ]
+    },
+    "Privacy": {
+      "type": "string",
+      "enum": [
+        "validity_only",
+        "zero_knowledge"
+      ]
+    },
+    "ResourceLimits": {
+      "type": "object",
+      "required": [
+        "max_build_ms",
+        "max_prepare_ms",
+        "max_proof_bytes",
+        "max_prove_ms",
+        "max_public_artifact_bytes",
+        "max_ram_bytes",
+        "max_verify_ms",
+        "max_vram_bytes"
+      ],
+      "properties": {
+        "max_build_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_prepare_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_proof_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_prove_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_public_artifact_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_ram_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_verify_ms": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_vram_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
+    },
+    "Restriction": {
+      "type": "object",
+      "required": [
+        "id",
+        "text"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ScopeKind": {
+      "type": "string",
+      "enum": [
+        "full_chunk_transition",
+        "subset"
+      ]
+    },
+    "SecurityModel": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "random_oracle"
+      ]
+    },
+    "SecurityProfile": {
+      "description": "Governed security profile (`security/profiles/<id>.json`).",
+      "type": "object",
+      "required": [
+        "adversary",
+        "allowed_assumptions",
+        "deployment_proofs_log2",
+        "id",
+        "max_aggregation_depth",
+        "max_hash_queries_log2",
+        "max_prover_queries_log2",
+        "model",
+        "privacy",
+        "setup_model",
+        "target_bits"
+      ],
+      "properties": {
+        "adversary": {
+          "$ref": "#/definitions/AdversaryClass"
+        },
+        "allowed_assumptions": {
+          "description": "Ids into `security/assumptions/*.json`; each pins an exact Lean declaration.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "deployment_proofs_log2": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "id": {
+          "type": "string"
+        },
+        "max_aggregation_depth": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "max_hash_queries_log2": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "max_prover_queries_log2": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "model": {
+          "$ref": "#/definitions/SecurityModel"
+        },
+        "privacy": {
+          "$ref": "#/definitions/Privacy"
+        },
+        "setup_model": {
+          "$ref": "#/definitions/SetupModel"
+        },
+        "target_bits": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
+    },
+    "SemanticScope": {
+      "type": "object",
+      "required": [
+        "excludes",
+        "formal_spec",
+        "granularity",
+        "kind",
+        "name",
+        "restrictions",
+        "spec_doc_digest"
+      ],
+      "properties": {
+        "excludes": {
+          "description": "Properties explicitly NOT established by an admitted proof.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "formal_spec": {
+          "$ref": "#/definitions/FormalSpecRef"
+        },
+        "granularity": {
+          "description": "e.g. `single_action_receipt_transition`, `chunk_transition`.",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/definitions/ScopeKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "restrictions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Restriction"
+          }
+        },
+        "spec_doc_digest": {
+          "description": "Human-readable spec document digest (`spec/<name>.md`).",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Digest"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "SetupModel": {
+      "type": "string",
+      "enum": [
+        "none",
+        "transparent",
+        "approved_ceremony"
+      ]
+    },
+    "Tier": {
+      "oneOf": [
+        {
+          "description": "Official ranked board; all formal obligations mandatory.",
+          "type": "string",
+          "enum": [
+            "formal"
+          ]
+        },
+        {
+          "description": "Tests + diagnostic timings only; never ranked as formal.",
+          "type": "string",
+          "enum": [
+            "experimental"
+          ]
+        },
+        {
+          "description": "Plumbing demonstration; simulated components allowed, always labelled DEMO.",
+          "type": "string",
+          "enum": [
+            "demo"
+          ]
+        }
+      ]
+    },
+    "ToolchainPolicy": {
+      "type": "object",
+      "required": [
+        "allowed_packages",
+        "axiom_allowlist",
+        "checker_image",
+        "lean_toolchain",
+        "recheckers"
+      ],
+      "properties": {
+        "allowed_packages": {
+          "description": "Allowed Lean package imports: name -> pinned git commit.",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        },
+        "axiom_allowlist": {
+          "description": "Exact logical axioms permitted (fully qualified names).",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "checker_image": {
+          "description": "Digest of the formal checker image (rootfs) used for clean rechecks.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Digest"
+            }
+          ]
+        },
+        "lean_toolchain": {
+          "type": "string"
+        },
+        "recheckers": {
+          "description": "Independent kernel recheckers that must all accept, e.g. `lean4checker`, `nanoda`.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "WorkloadClass": {
+      "type": "object",
+      "required": [
+        "batch_size",
+        "description",
+        "generator",
+        "id",
+        "weight_ppm"
+      ],
+      "properties": {
+        "batch_size": {
+          "description": "Number of requests per measured batch.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "description": {
+          "type": "string"
+        },
+        "generator": {
+          "description": "Digest of the generator spec (fresh inputs are sampled after freeze).",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Digest"
+            }
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "weight_ppm": {
+          "description": "Weight in parts-per-million; all weights in a suite sum to 1_000_000.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
+    },
+    "WorkloadSuite": {
+      "type": "object",
+      "required": [
+        "baseline_ns",
+        "classes",
+        "heldout_commitment",
+        "public_fixtures",
+        "revision"
+      ],
+      "properties": {
+        "baseline_ns": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        },
+        "baseline_submission": {
+          "description": "Baseline candidate submission id and per-class baseline medians (ns).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WorkloadClass"
+          }
+        },
+        "heldout_commitment": {
+          "description": "Commitment to the held-out set (digest of its tree), revealed at season end.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Digest"
+            }
+          ]
+        },
+        "public_fixtures": {
+          "description": "Public dev fixtures (tree digest). Held-out and fresh inputs are not listed here.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Digest"
+            }
+          ]
+        },
+        "revision": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

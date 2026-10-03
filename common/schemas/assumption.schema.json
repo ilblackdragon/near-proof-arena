@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Assumption",
+  "description": "Governed cryptographic assumption, pinned to an exact Lean declaration in `formal-core` (`security/assumptions/<id>.json`).",
+  "type": "object",
+  "required": [
+    "description",
+    "id",
+    "lean_decl",
+    "references"
+  ],
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "lean_decl": {
+      "description": "Fully qualified Lean name of the hypothesis *definition* (a `Prop`-valued def in formal-core), e.g. `Arena.Assumptions.Sha256CollisionResistant`.",
+      "type": "string"
+    },
+    "lean_decl_digest": {
+      "description": "Digest of the Lean declaration's exported type+value (filled by the governance tooling; checked by the formal checker).",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Digest"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "Digest": {
+      "description": "`sha256:<64 lowercase hex>`",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    }
+  }
+}
