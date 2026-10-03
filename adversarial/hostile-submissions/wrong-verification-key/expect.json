@@ -1,6 +1,10 @@
 {
   "case": "wrong-verification-key",
   "attack_family": "artifact-binding",
+  "targets": [
+    "near-formal"
+  ],
+  "runnable": false,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "ARTIFACT_BINDING"
@@ -14,6 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The backend ships params/verification key for a DIFFERENT protocol version (not PV86) / different program than the challenge pins. ARTIFACT_BINDING compares the built params digest against the certified one; a wrong key must fail rather than silently verify a different statement.",
-  "notes": "THEOREM_TYPE_MISMATCH / CLAIM_MISMATCH may also surface depending on where the version divergence is first detected."
+  "why": "Params / verification key for a different protocol version or program than the challenge pins. ARTIFACT_BINDING compares the built params digest against the certified one; a wrong key must fail."
 }

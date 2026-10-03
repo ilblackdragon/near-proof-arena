@@ -1,6 +1,10 @@
 {
   "case": "near-reexec-skip-refund",
   "attack_family": "theorem-type-mismatch",
+  "targets": [
+    "near-formal"
+  ],
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "FORMAL_SEMANTIC_SOUNDNESS",

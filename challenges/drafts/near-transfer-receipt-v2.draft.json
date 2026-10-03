@@ -1,0 +1,270 @@
+{
+  "schema": "arena-challenge-v1",
+  "name": "near-transfer-receipt-v2",
+  "season": "2026-s1",
+  "tier": "formal",
+  "nearcore": {
+    "repo": "https://github.com/near/nearcore",
+    "tag": "2.13.4",
+    "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
+  },
+  "protocol_version": 86,
+  "chain_id": "mainnet",
+  "runtime_config_digest": "sha256:64f23625a31aad23b63a1d97e56adeabbdd68ed7164c5d74a274e767167adbc6",
+  "semantic_scope": {
+    "name": "near-transfer-receipt-v2",
+    "kind": "subset",
+    "granularity": "receipt_batch_transition",
+    "restrictions": [
+      {
+        "id": "pv86",
+        "text": "protocol_version = 86 (nearcore 2.13.4 STABLE_PROTOCOL_VERSION)"
+      },
+      {
+        "id": "mainnet_params",
+        "text": "chain_id = mainnet: mainnet RuntimeConfig for PV 86 (RuntimeConfigStore::new(None))"
+      },
+      {
+        "id": "claim_wf",
+        "text": "all claim fields within their encoded widths (u16/u32/u64/u128, 32-byte hashes, chain id 1..64 printable ASCII)"
+      },
+      {
+        "id": "batch_size",
+        "text": "the batch has 1..=256 receipts"
+      },
+      {
+        "id": "compute_limit",
+        "text": "(n-1)*223182562500 < gas_limit: no receipt is pushed to the delayed queue"
+      },
+      {
+        "id": "receipt_shape",
+        "text": "every receipt is Receipt::V0 / ReceiptEnum::Action with exactly one Transfer action and no input/output data dependencies"
+      },
+      {
+        "id": "valid_account_ids",
+        "text": "predecessor, receiver and signer are valid NEAR AccountIds"
+      },
+      {
+        "id": "signer_key_type",
+        "text": "signer public key is ED25519 or SECP256K1"
+      },
+      {
+        "id": "not_system_predecessor",
+        "text": "predecessor is not 'system' (refund receipts are not inputs)"
+      },
+      {
+        "id": "named_receiver",
+        "text": "receiver is a NamedAccount (not NEAR-implicit, ETH-implicit or deterministic)"
+      },
+      {
+        "id": "distinct_receipt_ids",
+        "text": "receipt ids are pairwise distinct"
+      },
+      {
+        "id": "witness_size",
+        "text": "the revealed partial-trie bytes (receivers' Account paths and the path to key 0x0f) are <= 3,000,000"
+      },
+      {
+        "id": "receiver_exists_v1",
+        "text": "each receiver Account exists when its receipt is applied and is a 72-byte AccountV1"
+      },
+      {
+        "id": "no_balance_overflow",
+        "text": "amount+deposit <= 2^128-2 and amount'+locked < 2^128"
+      },
+      {
+        "id": "storage_stake",
+        "text": "after the credit, amount'+locked >= 10^19*storage_usage or storage_usage <= 770"
+      },
+      {
+        "id": "burn_fits_u128",
+        "text": "G*min(gas_price, block_gas_price), G*(gas_price-min) and the total tokens burnt fit in u128"
+      },
+      {
+        "id": "single_shard_layout",
+        "text": "the epoch's shard layout has exactly one shard, shard_id, and shard_id < 2^32 (NOT the case on multi-shard mainnet)"
+      },
+      {
+        "id": "zero_congestion",
+        "text": "the shard's CongestionInfoV1 in the block has delayed_receipts_gas = buffered_receipts_gas = receipt_bytes = 0"
+      },
+      {
+        "id": "no_bandwidth_requests",
+        "text": "the block carries no bandwidth requests"
+      },
+      {
+        "id": "scheduler_state_decodes",
+        "text": "an existing TrieKey::BandwidthSchedulerState (0x0f) value is a valid borsh BandwidthSchedulerState"
+      },
+      {
+        "id": "refund_needs_grant",
+        "text": "if missed_chunks_count > 0 (link (S,S) not allowed, no bandwidth granted) no receipt generates a gas refund"
+      },
+      {
+        "id": "apply_context",
+        "text": "the chunk applies only these incoming receipts: no transactions, no local/delayed/yield/buffered receipts, no validator-account update, new chunk"
+      }
+    ],
+    "excludes": [
+      "block_finality",
+      "data_availability",
+      "receipt_inclusion",
+      "pre_state_root_on_chain",
+      "epoch_and_protocol_version_selection",
+      "multi_shard_layouts",
+      "bandwidth_requests",
+      "nonzero_congestion",
+      "transactions",
+      "signature_verification",
+      "function_calls_and_wasm",
+      "non_transfer_actions",
+      "implicit_account_creation",
+      "failure_paths_and_rollback",
+      "refund_receipt_inputs",
+      "data_postponed_yield_receipts",
+      "delayed_receipt_queue",
+      "buffered_receipts_and_forwarding_limits",
+      "outgoing_receipts_root_and_routing",
+      "validator_updates_and_rewards",
+      "account_v2_global_contracts",
+      "receipt_enum_action_v2",
+      "other_protocol_versions",
+      "testnet_parameters"
+    ],
+    "formal_spec": {
+      "relation_module": "NearSpec.TransferV2",
+      "relation_decl": "NearSpec.TransferV2.NearRelation",
+      "tree_digest": "sha256:190e9a7d210c7a9086d1b0e3fc1c754bc72ea684b2113fbadfebfb13241fd111",
+      "lean_toolchain": "leanprover/lean4:v4.34.1"
+    },
+    "spec_doc_digest": "sha256:b2b036e8e2066b38ece1d69d4175d00875f5260dea14609b7c1b7d44d7b9cffe"
+  },
+  "claim_encoding": {
+    "format": "near-arena-claim-v2",
+    "spec_digest": "sha256:ad8257aaed60e24f82230bf4158e9200d431b329432c522d7bd248449f9f7709",
+    "max_request_bytes": 131072,
+    "max_witness_bytes": 4194304,
+    "max_claim_bytes": 416
+  },
+  "security_profile": {
+    "id": "validity-classical-128",
+    "privacy": "validity_only",
+    "adversary": "classical",
+    "target_bits": 128,
+    "model": "random_oracle",
+    "setup_model": "transparent",
+    "allowed_assumptions": [
+      "sha256-collision-resistance",
+      "random-oracle-fiat-shamir-sha256"
+    ],
+    "max_prover_queries_log2": 40,
+    "max_hash_queries_log2": 64,
+    "max_aggregation_depth": 8,
+    "deployment_proofs_log2": 40
+  },
+  "toolchain_policy": {
+    "lean_toolchain": "leanprover/lean4:v4.34.1",
+    "checker_image": "sha256:70c42c056dfeb64838b86f7bc6146afa10323f422fb7a7b9b7741e38dc836363",
+    "axiom_allowlist": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "allowed_packages": [
+      [
+        "ArenaCore",
+        "4bc0d593f7176278cb1e991652af75b11e02c69e"
+      ],
+      [
+        "NearSpec",
+        "4bc0d593f7176278cb1e991652af75b11e02c69e"
+      ]
+    ],
+    "recheckers": [
+      "leanchecker",
+      "nanoda",
+      "lean4lean"
+    ]
+  },
+  "required_obligations": [
+    "PKG_WELLFORMED",
+    "BUILD_REPRODUCIBLE",
+    "ARTIFACT_BINDING",
+    "FORMAL_SEMANTIC_SOUNDNESS",
+    "FORMAL_SEMANTIC_COMPLETENESS",
+    "FORMAL_CRYPTO_SOUNDNESS",
+    "FORMAL_IMPL_CONNECTION",
+    "AXIOM_AUDIT",
+    "CONFORMANCE_DIFFERENTIAL",
+    "ADVERSARIAL_PROOFS",
+    "PROVER_RELIABILITY",
+    "RESOURCE_LIMITS",
+    "BENCHMARK"
+  ],
+  "not_applicable_gates": [
+    "FORMAL_ZK"
+  ],
+  "hardware_profile": {
+    "id": "nearproof-local-ryzen9-9950x3d",
+    "cpu_model": "AMD Ryzen 9 9950X3D 16-Core Processor (local operator host; 8 vCPUs pinned per run)",
+    "vcpus": 8,
+    "ram_bytes": 34359738368,
+    "gpu": null
+  },
+  "workload_suite": {
+    "revision": "near-transfer-receipt-v2-r1",
+    "classes": [
+      {
+        "id": "batch-1",
+        "description": "requests with exactly 1 single-Transfer receipt(s); generator profiles basic,prefix,boundary,repeat,prices,large,bw_state,trie_shapes,missed,shards",
+        "weight_ppm": 200000,
+        "batch_size": 8,
+        "generator": "sha256:08274a4f6e28a3548d0e8106514d48c847a44ae64b8a1488eb7a7e07a83126a4"
+      },
+      {
+        "id": "batch-16",
+        "description": "requests with exactly 16 single-Transfer receipt(s); generator profiles basic,prefix,boundary,repeat,prices,large,bw_state,trie_shapes,missed,shards",
+        "weight_ppm": 300000,
+        "batch_size": 8,
+        "generator": "sha256:618f326f2e7c2f4eacc01b6f77112ad37da61c1a96d4f90926d4f50c6e994c5e"
+      },
+      {
+        "id": "batch-256",
+        "description": "requests with exactly 256 single-Transfer receipt(s); generator profiles basic,prefix,boundary,repeat,prices,large,bw_state,trie_shapes,missed,shards",
+        "weight_ppm": 500000,
+        "batch_size": 8,
+        "generator": "sha256:671eeb1d2cbf0df1f266f3591a7d2cd4c720a1ebcb4f85503ba25e916c785536"
+      }
+    ],
+    "public_fixtures": "sha256:074bddfd1cef55c8be4aa73d476153908c6feffc0f440243a219160919c2ccbc",
+    "heldout_commitment": "sha256:10b9602d5b82f259cfd7b736aaa5c093a44e095ab5a9622a14a338ab37b3f756",
+    "baseline_submission": null,
+    "baseline_ns": []
+  },
+  "measurement": {
+    "warmup_runs": 3,
+    "measured_runs": 15,
+    "aggregation": "median",
+    "outlier_mad_k": 5,
+    "cold_runs": 1,
+    "concurrency": 1,
+    "per_run_timeout_ms": 600000
+  },
+  "resource_limits": {
+    "max_proof_bytes": 8388608,
+    "max_verify_ms": 10000,
+    "max_prove_ms": 600000,
+    "max_ram_bytes": 17179869184,
+    "max_vram_bytes": 0,
+    "max_public_artifact_bytes": 67108864,
+    "max_prepare_ms": 600000,
+    "max_build_ms": 3600000
+  },
+  "supersedes": null,
+  "created_at": "2026-10-03T12:00:00Z",
+  "formal_params": {
+    "verify_fuel": 1073741824,
+    "max_proof_bytes": 8388608,
+    "max_reduction_fuel": 1073741824
+  }
+}

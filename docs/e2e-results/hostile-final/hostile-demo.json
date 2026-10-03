@@ -1,0 +1,557 @@
+{
+ "additional-axiom": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "always-accept-verifier": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "ADVERSARIAL_PROOFS"
+  ],
+  "expected_reason_codes": [
+   "HOSTILE_PROOF_ACCEPTED"
+  ],
+  "failed_gates": [
+   "ADVERSARIAL_PROOFS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "HOSTILE_PROOF_ACCEPTED",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_fb90dbcbcad848259acb247c4d195cda",
+  "unknown_gates": []
+ },
+ "always-reject-verifier": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "expected_reason_codes": [
+   "PROVER_FAILED"
+  ],
+  "failed_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED",
+   "PROVER_FAILED"
+  ],
+  "submission": "sub_fddfdd3eadb14f41ba4af03dab386715",
+  "unknown_gates": [
+   "ADVERSARIAL_PROOFS",
+   "CONFORMANCE_DIFFERENTIAL",
+   "RESOURCE_LIMITS"
+  ]
+ },
+ "archive-bomb": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "expected_reason_codes": [
+   "ARCHIVE_UNSAFE"
+  ],
+  "failed_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARCHIVE_UNSAFE",
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_ea2f5f658fb8416cb41eea75465866ea",
+  "unknown_gates": []
+ },
+ "archive-device-file": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "expected_reason_codes": [
+   "ARCHIVE_UNSAFE"
+  ],
+  "failed_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARCHIVE_UNSAFE",
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_c5411828f2d34c6ba93cf9b0eab99139",
+  "unknown_gates": []
+ },
+ "archive-hardlink": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "expected_reason_codes": [
+   "ARCHIVE_UNSAFE"
+  ],
+  "failed_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARCHIVE_UNSAFE",
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_d5383b9f1ca3416aa2a7a8e5847dfd08",
+  "unknown_gates": []
+ },
+ "archive-symlink-escape": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "expected_reason_codes": [
+   "ARCHIVE_UNSAFE"
+  ],
+  "failed_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARCHIVE_UNSAFE",
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_74143c04006649e3a188d3a123d0a87b",
+  "unknown_gates": []
+ },
+ "archive-zip-slip": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "expected_reason_codes": [
+   "ARCHIVE_UNSAFE"
+  ],
+  "failed_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARCHIVE_UNSAFE",
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_49c987ffd7374197a0cda1596b3d3b11",
+  "unknown_gates": []
+ },
+ "background-daemon": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "expected_reason_codes": [
+   "PROVER_FAILED"
+  ],
+  "failed_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED",
+   "PROVER_FAILED"
+  ],
+  "submission": "sub_68488fba44b043a6abc9af78124198b9",
+  "unknown_gates": [
+   "ADVERSARIAL_PROOFS",
+   "CONFORMANCE_DIFFERENTIAL",
+   "RESOURCE_LIMITS"
+  ]
+ },
+ "benchmark-shortcut": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "CONFORMANCE_DIFFERENTIAL"
+  ],
+  "expected_reason_codes": [
+   "CLAIM_MISMATCH"
+  ],
+  "failed_gates": [
+   "CONFORMANCE_DIFFERENTIAL"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "CLAIM_MISMATCH",
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_09b4b4057db04f0dbe77c55c94948e33",
+  "unknown_gates": [
+   "PROVER_RELIABILITY",
+   "RESOURCE_LIMITS"
+  ]
+ },
+ "build-dependency-substitution": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "ADVERSARIAL_PROOFS"
+  ],
+  "expected_reason_codes": [
+   "HOSTILE_PROOF_ACCEPTED"
+  ],
+  "failed_gates": [
+   "ADVERSARIAL_PROOFS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "HOSTILE_PROOF_ACCEPTED",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_b5f25b14d8184479a134f9d650e1db8b",
+  "unknown_gates": []
+ },
+ "build-network-fetch": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "BUILD_REPRODUCIBLE"
+  ],
+  "expected_reason_codes": [
+   "BUILD_FAILED"
+  ],
+  "failed_gates": [
+   "BUILD_REPRODUCIBLE"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "BUILD_FAILED",
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_52b53e8102c2433d926b50d43c4fd21c",
+  "unknown_gates": []
+ },
+ "build-nonreproducible": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "BUILD_REPRODUCIBLE"
+  ],
+  "expected_reason_codes": [
+   "BUILD_NOT_REPRODUCIBLE"
+  ],
+  "failed_gates": [
+   "BUILD_REPRODUCIBLE"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "BUILD_NOT_REPRODUCIBLE",
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_d9bcc3e9b8b54460ab21e43a55550091",
+  "unknown_gates": []
+ },
+ "changed-security-parameters": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "false-premise": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "forged-pass-output": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "ADVERSARIAL_PROOFS"
+  ],
+  "expected_reason_codes": [
+   "HOSTILE_PROOF_ACCEPTED"
+  ],
+  "failed_gates": [
+   "ADVERSARIAL_PROOFS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "HOSTILE_PROOF_ACCEPTED",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_92811a1f9b6640c89ccf8cc824e9bac9",
+  "unknown_gates": []
+ },
+ "forged-timing": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "expected_reason_codes": [
+   "PROVER_FAILED"
+  ],
+  "failed_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED",
+   "PROVER_FAILED"
+  ],
+  "submission": "sub_64c45d73696040c29be74f34bc18306e",
+  "unknown_gates": [
+   "ADVERSARIAL_PROOFS",
+   "CONFORMANCE_DIFFERENTIAL",
+   "RESOURCE_LIMITS"
+  ]
+ },
+ "malicious-executable": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "missing-certificate": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "native-decide-certificate": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "near-reexec-malicious-executable": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "near-reexec-skip-refund": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "precomputed-fixture-table": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "CONFORMANCE_DIFFERENTIAL"
+  ],
+  "expected_reason_codes": [
+   "CLAIM_MISMATCH"
+  ],
+  "failed_gates": [
+   "CONFORMANCE_DIFFERENTIAL"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "CLAIM_MISMATCH",
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_9a15b8ee35cc4047a49a4a70644077ab",
+  "unknown_gates": [
+   "PROVER_RELIABILITY",
+   "RESOURCE_LIMITS"
+  ]
+ },
+ "restricted-domain": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "sandbox-escape-filesystem": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "expected_reason_codes": [
+   "PROVER_FAILED"
+  ],
+  "failed_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED",
+   "PROVER_FAILED"
+  ],
+  "submission": "sub_a0dd8ad45d9a4054bc3f2dca8f0348bc",
+  "unknown_gates": [
+   "CONFORMANCE_DIFFERENTIAL",
+   "RESOURCE_LIMITS"
+  ]
+ },
+ "sandbox-escape-network": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "expected_reason_codes": [
+   "PROVER_FAILED"
+  ],
+  "failed_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED",
+   "PROVER_FAILED"
+  ],
+  "submission": "sub_1b21a9a8b3534e7282e03fc43064b233",
+  "unknown_gates": [
+   "CONFORMANCE_DIFFERENTIAL",
+   "RESOURCE_LIMITS"
+  ]
+ },
+ "sandbox-fork-bomb": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "RESOURCE_LIMITS"
+  ],
+  "expected_reason_codes": [
+   "RESOURCE_LIMIT"
+  ],
+  "failed_gates": [
+   "PROVER_RELIABILITY",
+   "RESOURCE_LIMITS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED",
+   "PROVER_FAILED",
+   "RESOURCE_LIMIT"
+  ],
+  "submission": "sub_9b63aa487f1742ad9b8d6e75c722c994",
+  "unknown_gates": [
+   "ADVERSARIAL_PROOFS",
+   "CONFORMANCE_DIFFERENTIAL"
+  ]
+ },
+ "sandbox-ptrace-proc": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "expected_reason_codes": [
+   "PROVER_FAILED"
+  ],
+  "failed_gates": [
+   "PROVER_RELIABILITY"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "OBLIGATION_UNDISCHARGED",
+   "PROVER_FAILED"
+  ],
+  "submission": "sub_9c3803fe45f8432e83d142943d6dbbcb",
+  "unknown_gates": [
+   "CONFORMANCE_DIFFERENTIAL",
+   "RESOURCE_LIMITS"
+  ]
+ },
+ "shadowed-definition": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "sorry-certificate": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "stale-certificate": {
+  "skipped": "target demo not in ['near-formal']"
+ },
+ "ui-injection-logs": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "ADVERSARIAL_PROOFS"
+  ],
+  "expected_reason_codes": [
+   "HOSTILE_PROOF_ACCEPTED"
+  ],
+  "failed_gates": [
+   "ADVERSARIAL_PROOFS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "HOSTILE_PROOF_ACCEPTED",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_47b3cf4dfb65429ca4db03a9992db56e",
+  "unknown_gates": []
+ },
+ "ui-injection-manifest": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "expected_reason_codes": [
+   "MANIFEST_INVALID"
+  ],
+  "failed_gates": [
+   "PKG_WELLFORMED"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "MANIFEST_INVALID",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_98583343d199446f9b19c71fe15340aa",
+  "unknown_gates": []
+ },
+ "weak-public-input-binding": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "ADVERSARIAL_PROOFS"
+  ],
+  "expected_reason_codes": [
+   "HOSTILE_PROOF_ACCEPTED"
+  ],
+  "failed_gates": [
+   "ADVERSARIAL_PROOFS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "DEMO_ONLY",
+   "HOSTILE_PROOF_ACCEPTED",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_768e9704522b45c28e6a4fda2682e59a",
+  "unknown_gates": []
+ },
+ "wrong-verification-key": {
+  "skipped": "target demo not in ['near-formal']"
+ }
+}

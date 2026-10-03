@@ -195,6 +195,7 @@ name = "arena-formal-checker"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arena-sandbox",
  "arena-types",
  "hex",
  "libc",
@@ -356,7 +357,10 @@ version = "0.1.0"
 dependencies = [
  "arena-archive",
  "arena-firecracker",
+ "arena-formal-checker",
+ "arena-jobs",
  "arena-measure",
+ "arena-npai",
  "arena-sandbox",
  "arena-types",
  "libc",
@@ -367,8 +371,8 @@ dependencies = [
  "tempfile",
  "thiserror",
  "time",
+ "tokio",
  "toml",
- "ureq",
  "zstd",
 ]
 
@@ -3027,8 +3031,6 @@ dependencies = [
  "once_cell",
  "rustls",
  "rustls-pki-types",
- "serde",
- "serde_json",
  "url",
  "webpki-roots 0.26.11",
 ]

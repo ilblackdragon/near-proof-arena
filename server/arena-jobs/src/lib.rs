@@ -156,6 +156,25 @@ pub struct BuildOutputs {
     /// Judge-measured wall time of one build, ns (informational).
     #[serde(default)]
     pub build_ns: Option<u64>,
+    /// Content-store digest (raw bytes) of the deterministic tar of the
+    /// bundle whose TreeDigest is `bundle`; later stages fetch it by this
+    /// digest and re-check the TreeDigest.
+    #[serde(default)]
+    pub bundle_archive: Option<Digest>,
+    /// Content-store digest of the deterministic tar of the judge-run
+    /// `public_dir` (TreeDigest `public_artifacts`).
+    #[serde(default)]
+    pub public_archive: Option<Digest>,
+    /// `verify_route = "native-lean"`: content-store digest of the judge-built
+    /// native verifier (reported by FORMAL_CHECK, set by the control plane);
+    /// later stages run this binary, never the candidate's `verify`.
+    #[serde(default)]
+    pub native_verifier: Option<Digest>,
+    /// `verify_route = "npai-v1"`: digest of the built `entry.verifier_bytecode`
+    /// file. Required for that route (the server refuses to derive a verified
+    /// surface without it).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_bytecode: Option<Digest>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -194,6 +213,9 @@ pub type AdversarialJob = ExecJob;
 pub type BenchmarkJob = ExecJob;
 
 /// A leased job specification, tagged by kind.
+// Variant sizes differ (FormalCheck carries the verified surface); there is
+// one per lease, so boxing would only add noise.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind", content = "job", rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum JobSpec {
@@ -266,6 +288,10 @@ pub struct JobResult {
     /// by the server). Must not contain held-out data.
     #[serde(default)]
     pub log_excerpt: Option<String>,
+    /// FORMAL_CHECK, `native-lean` route: content-store digest of the
+    /// judge-built native verifier (uploaded before `complete`).
+    #[serde(default)]
+    pub native_verifier: Option<Digest>,
 }
 
 // ---------------------------------------------------------------------------

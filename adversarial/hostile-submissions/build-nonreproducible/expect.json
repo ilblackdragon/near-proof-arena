@@ -1,6 +1,10 @@
 {
   "case": "build-nonreproducible",
   "attack_family": "build-integrity",
+  "targets": [
+    "demo"
+  ],
+  "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "BUILD_REPRODUCIBLE"
@@ -14,5 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The build embeds a timestamp / random nonce, so two judge builds are not bit-identical. BUILD_REPRODUCIBLE must fail with BUILD_NOT_REPRODUCIBLE; a non-deterministic build cannot be bound to a certified artifact."
+  "why": "The build mixes bytes from /dev/urandom into the compiled verifier, so two independent judge builds are not bit-identical. BUILD_REPRODUCIBLE must fail with BUILD_NOT_REPRODUCIBLE; a non-deterministic build cannot be bound to a certified artifact."
 }

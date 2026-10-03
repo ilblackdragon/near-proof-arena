@@ -74,7 +74,12 @@ pub fn flag_outliers(runs: &[u64], k: u32) -> Option<OutlierReport> {
     let med = median_u64(runs)?;
     let mad = mad_u64(runs)?;
     let thr = (k as u128) * (mad as u128);
-    let flagged: Vec<usize> = runs.iter().enumerate().filter(|(_, &x)| (x.abs_diff(med) as u128) > thr).map(|(i, _)| i).collect();
+    let flagged: Vec<usize> = runs
+        .iter()
+        .enumerate()
+        .filter(|(_, &x)| (x.abs_diff(med) as u128) > thr)
+        .map(|(i, _)| i)
+        .collect();
     let ppm = flagged.len() as u64 * 1_000_000 / runs.len() as u64;
     Some(OutlierReport {
         median_ns: med,
@@ -82,7 +87,11 @@ pub fn flag_outliers(runs: &[u64], k: u32) -> Option<OutlierReport> {
         k,
         flagged_ppm: ppm,
         excessive: ppm > MAX_FLAGGED_PPM,
-        notes: if mad == 0 { vec!["MAD_ZERO".into()] } else { vec![] },
+        notes: if mad == 0 {
+            vec!["MAD_ZERO".into()]
+        } else {
+            vec![]
+        },
         flagged_indices: flagged,
     })
 }
@@ -105,9 +114,18 @@ pub fn caching_tripwire(measured: &[u64], fresh: &[u64], k: u32) -> Option<Tripw
     let mad = mad_u64(measured)?;
     let fr = median_u64(fresh)?;
     let delta = fr as i128 - med as i128;
-    let slowdown_ppm = if med == 0 { 0 } else { (delta.max(0) as u128 * 1_000_000 / med as u128) as u64 };
+    let slowdown_ppm = if med == 0 {
+        0
+    } else {
+        (delta.max(0) as u128 * 1_000_000 / med as u128) as u64
+    };
     let suspected = delta > (k as i128) * (mad as i128) && slowdown_ppm > TRIPWIRE_MIN_SLOWDOWN_PPM;
-    Some(TripwireResult { suspected, measured_median_ns: med, fresh_median_ns: fr, slowdown_ppm })
+    Some(TripwireResult {
+        suspected,
+        measured_median_ns: med,
+        fresh_median_ns: fr,
+        slowdown_ppm,
+    })
 }
 
 /// `|b - a| / a` in ppm, integer, rounded up. `a` must be > 0.
@@ -193,7 +211,11 @@ pub struct ScheduleShape {
 /// Session layout (§5): every round of a non-calibration phase is an
 /// independent permutation of the class ids (sorted by UTF-8 bytes first),
 /// drawn from one SplitMix64(seed) stream in schedule order.
-pub fn build_schedule(class_ids: &[String], seed: u64, shape: ScheduleShape) -> Result<Vec<ScheduledRun>, String> {
+pub fn build_schedule(
+    class_ids: &[String],
+    seed: u64,
+    shape: ScheduleShape,
+) -> Result<Vec<ScheduledRun>, String> {
     let mut base: Vec<String> = class_ids.to_vec();
     base.sort();
     let n = base.len();
@@ -205,7 +227,12 @@ pub fn build_schedule(class_ids: &[String], seed: u64, shape: ScheduleShape) -> 
     let mut out = Vec::new();
     let emit = |out: &mut Vec<ScheduledRun>, phase, class_id: String, round| {
         let seq = out.len();
-        out.push(ScheduledRun { seq, phase, class_id, round });
+        out.push(ScheduledRun {
+            seq,
+            phase,
+            class_id,
+            round,
+        });
     };
     for r in 0..shape.calibration_runs {
         emit(&mut out, Phase::CalibrationPre, String::new(), r);

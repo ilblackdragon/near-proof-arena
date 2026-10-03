@@ -44,6 +44,10 @@ export interface StoredChallenge {
    * Hex signature over the JCS bytes of `definition`.
    */
   signature: string;
+  /**
+   * Id of a registered challenge whose `supersedes` names this one. A superseded challenge is closed for new submissions; its results and board stay attached to it (docs/PROTOCOL_UPGRADES.md §5).
+   */
+  superseded_by?: string | null;
   tier: 'formal' | 'experimental' | 'demo';
 }
 export interface ChallengeDefinition {
@@ -129,6 +133,10 @@ export interface MeasurementProcedure {
   aggregation: string;
   cold_runs: number;
   concurrency: number;
+  /**
+   * How benchmark invocations are isolated (v1.4, additive; absent ⇒ `vm_per_invocation`, i.e. bench-spec-v1, and not serialized, so existing challenge ids are unchanged). See docs/BENCHMARK_SPEC.md §4.
+   */
+  invocation_mode?: ('vm_per_invocation' | 'vm_per_batch') | null;
   measured_runs: number;
   /**
    * Runs farther than this many MADs from the median are flagged (not dropped).

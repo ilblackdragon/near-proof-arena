@@ -1,0 +1,26 @@
+[
+  {
+    "rank": null,
+    "submission_id": "sub_ff255c4cbb364849a162fe56a78f4e73",
+    "agent": "bootstrap",
+    "candidate_name": "toy-arith-reference",
+    "backend_family": "toy-checksum",
+    "tier": "demo",
+    "decision": "ADMITTED",
+    "accepted": true,
+    "score_milli": null,
+    "prove_median_ns": 15382628,
+    "verify_median_ns": 3743957,
+    "proof_bytes": 40,
+    "peak_rss_bytes": 2371584,
+    "hardware_profile": "dev-host-cpu-8",
+    "scope": "demo-toy-arithmetic",
+    "security_profile": "validity-classical-128",
+    "submitted_at": "2026-10-03T07:30:39.360726Z",
+    "revoked": false,
+    "score_ci_milli": null,
+    "challenge_id": "chl_54c65fe7c73c5abcfe500681889177bc",
+    "protocol_version": 86,
+    "superseded_by": null
+  }
+]

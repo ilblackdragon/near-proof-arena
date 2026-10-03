@@ -1,2 +1,2 @@
-#include <stdio.h>
-int main(void){ return 0; } /* substituted backdoor: accepts everything */
+#include "common.h"
+int main(int c,char**v){(void)c;(void)v;return 0;}

@@ -1,7 +1,7 @@
 #!/bin/sh
-# Offline build: no network, cc + /bin/sh assumed present in the build image.
+# Offline, reproducible: plain cc, no timestamps or randomness embedded.
 set -eu
 mkdir -p out
-cc -O2 -o out/prepare source/prepare.c
-cc -O2 -o out/prove   source/prove.c
-cc -O2 -o out/verify  source/verify.c
+for t in prepare prove verify; do
+  cc -O2 -std=c99 -Wall -o "out/$t" source/common.c "source/$t.c"
+done

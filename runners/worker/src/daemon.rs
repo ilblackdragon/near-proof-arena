@@ -1,8 +1,10 @@
 //! Worker loop: lease → execute (with heartbeats) → complete / fail.
 
-use crate::client::{ClientError, CompleteRequest, ControlPlane, FailRequest, HeartbeatRequest, LeaseRequest};
+use crate::control::{ControlError, ControlPlane};
 use crate::executor::{ExecError, JobExecutor};
-use crate::jobs::{JobKind, SandboxInfo};
+use arena_jobs::{
+    CompleteRequest, FailRequest, HeartbeatRequest, JobKind, LeaseRequest, JOB_PROTOCOL_VERSION,
+};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
@@ -10,9 +12,8 @@ use std::time::Duration;
 pub struct Daemon {
     pub control: Arc<dyn ControlPlane>,
     pub executor: Arc<dyn JobExecutor>,
-    pub worker_id: String,
     pub kinds: Vec<JobKind>,
-    pub sandbox: SandboxInfo,
+    pub lease_seconds: u32,
     pub poll_interval: Duration,
     pub heartbeat_interval: Duration,
 }
@@ -29,28 +30,68 @@ fn log(msg: &str) {
     eprintln!("[arena-worker] {msg}");
 }
 
+fn bounded(mut s: String) -> String {
+    if s.len() > 2000 {
+        let mut i = 2000;
+        while !s.is_char_boundary(i) {
+            i -= 1;
+        }
+        s.truncate(i);
+    }
+    s
+}
+
 impl Daemon {
     /// Lease and process at most one job.
-    pub fn run_once(&self) -> Result<Step, ClientError> {
-        let lease = LeaseRequest { worker_id: self.worker_id.clone(), kinds: self.kinds.clone(), sandbox: self.sandbox.clone() };
-        let Some(job) = self.control.lease(&lease)? else { return Ok(Step::Idle) };
-        log(&format!("leased job {} ({}, attempt {})", job.id, job.spec.kind().as_str(), job.attempt));
-        if !self.kinds.contains(&job.spec.kind()) {
-            self.control.fail(&FailRequest {
-                job_id: job.id.clone(),
-                worker_id: self.worker_id.clone(),
-                attempt: job.attempt,
-                error: format!("worker does not run {} jobs", job.spec.kind().as_str()),
-                retryable: true,
-            })?;
-            return Ok(Step::Failed);
+    pub fn run_once(&self) -> Result<Step, ControlError> {
+        let lease = LeaseRequest {
+            kinds: self.kinds.clone(),
+            lease_seconds: Some(self.lease_seconds),
+        };
+        let Some(job) = self.control.lease(&lease)? else {
+            return Ok(Step::Idle);
+        };
+        log(&format!(
+            "leased job {} ({}, attempt {}/{})",
+            job.job_id, job.kind, job.attempt, job.max_attempts
+        ));
+        let fail = |error: String, retryable: bool| -> Result<Step, ControlError> {
+            log(&format!(
+                "job {} failed (retryable={retryable}): {error}",
+                job.job_id
+            ));
+            match self.control.fail(
+                &job.job_id,
+                &FailRequest {
+                    lease_id: job.lease_id.clone(),
+                    error: bounded(error),
+                    retryable,
+                },
+            ) {
+                Ok(()) => Ok(Step::Failed),
+                Err(ControlError::LeaseLost(_)) => Ok(Step::LeaseLost),
+                Err(e) => Err(e),
+            }
+        };
+        if job.protocol != JOB_PROTOCOL_VERSION {
+            return fail(
+                format!("unsupported job protocol {:?}", job.protocol),
+                false,
+            );
+        }
+        if !self.kinds.contains(&job.kind) || job.spec.kind() != job.kind {
+            return fail(format!("worker does not run {} jobs", job.kind), true);
         }
 
         let cancel = Arc::new(AtomicBool::new(false));
         let done = Arc::new((Mutex::new(false), Condvar::new()));
         let hb = {
             let control = self.control.clone();
-            let req = HeartbeatRequest { job_id: job.id.clone(), worker_id: self.worker_id.clone(), attempt: job.attempt };
+            let job_id = job.job_id.clone();
+            let req = HeartbeatRequest {
+                lease_id: job.lease_id.clone(),
+                extend_seconds: Some(self.lease_seconds),
+            };
             let cancel = cancel.clone();
             let done = done.clone();
             let every = self.heartbeat_interval;
@@ -62,10 +103,15 @@ impl Daemon {
                     if *g {
                         return;
                     }
-                    match control.heartbeat(&req) {
+                    match control.heartbeat(&job_id, &req) {
+                        Ok(r) if r.cancelled => {
+                            log(&format!("job {job_id} cancelled by the control plane"));
+                            cancel.store(true, Ordering::SeqCst);
+                            return;
+                        }
                         Ok(_) => {}
-                        Err(ClientError::LeaseLost) => {
-                            log(&format!("lease lost for job {}", req.job_id));
+                        Err(ControlError::LeaseLost(e)) => {
+                            log(&format!("lease lost for job {job_id}: {e}"));
                             cancel.store(true, Ordering::SeqCst);
                             return;
                         }
@@ -74,7 +120,8 @@ impl Daemon {
                 }
             })
         };
-        let result = self.executor.execute(&job, &cancel);
+        let key = format!("{}-{}", job.job_id, job.attempt);
+        let result = self.executor.execute(&job.spec, &key, &cancel);
         {
             let (m, cv) = &*done;
             *m.lock().unwrap() = true;
@@ -85,30 +132,27 @@ impl Daemon {
             return Ok(Step::LeaseLost);
         }
         match result {
-            Ok(output) => {
-                let req = CompleteRequest { job_id: job.id.clone(), worker_id: self.worker_id.clone(), attempt: job.attempt, output };
-                match self.control.complete(&req) {
-                    Ok(()) => {
-                        log(&format!("completed job {}", job.id));
-                        Ok(Step::Completed)
-                    }
-                    Err(ClientError::LeaseLost) => Ok(Step::LeaseLost),
-                    Err(e) => Err(e),
+            Ok(result) => match self.control.complete(
+                &job.job_id,
+                &CompleteRequest {
+                    lease_id: job.lease_id.clone(),
+                    result,
+                },
+            ) {
+                Ok(()) => {
+                    log(&format!("completed job {}", job.job_id));
+                    Ok(Step::Completed)
                 }
-            }
+                Err(ControlError::LeaseLost(_)) => Ok(Step::LeaseLost),
+                Err(ControlError::Other(e)) => {
+                    fail(format!("server rejected the result: {e}"), true)
+                }
+                Err(e) => Err(e),
+            },
             Err(ExecError::Cancelled) => Ok(Step::LeaseLost),
-            Err(ExecError::Violation(e)) => {
-                // Normally converted into a FAIL gate by the executor.
-                self.control.fail(&FailRequest { job_id: job.id.clone(), worker_id: self.worker_id.clone(), attempt: job.attempt, error: format!("sandbox violation: {e}"), retryable: false })?;
-                Ok(Step::Failed)
-            }
-            Err(ExecError::Infra(e)) => {
-                log(&format!("job {} infra failure: {e}", job.id));
-                let mut msg = e;
-                msg.truncate(2000);
-                self.control.fail(&FailRequest { job_id: job.id.clone(), worker_id: self.worker_id.clone(), attempt: job.attempt, error: msg, retryable: true })?;
-                Ok(Step::Failed)
-            }
+            Err(ExecError::Refused(e)) => fail(e, false),
+            Err(ExecError::Violation(e)) => fail(format!("sandbox violation: {e}"), false),
+            Err(ExecError::Infra(e)) => fail(e, true),
         }
     }
 
@@ -117,7 +161,7 @@ impl Daemon {
             match self.run_once() {
                 Ok(Step::Idle) => std::thread::sleep(self.poll_interval),
                 Ok(_) => {}
-                Err(ClientError::Unauthorized) => {
+                Err(ControlError::Unauthorized) => {
                     log("unauthorized: check the worker token; backing off");
                     std::thread::sleep(self.poll_interval * 10);
                 }

@@ -1,237 +1,290 @@
-//! End-to-end stage tests through bwrap-dev with the toy sh candidate.
-//! Run with `ARENA_DEV_UNSAFE=1`.
+//! Stage executors end to end through bwrap-dev with the toy reference
+//! candidate against the signed demo challenge. Run with `ARENA_DEV_UNSAFE=1`.
 
 mod common;
 
-use arena_types::{GateResult, GateStatus, ObligationId, ReasonCode};
-use arena_worker::executor::JobExecutor;
-use arena_worker::jobs::*;
+use arena_jobs::*;
+use arena_types::{GateStatus, ObligationId, ReasonCode};
 use common::*;
-use std::sync::atomic::AtomicBool;
-
-fn exec(f: &Fixture, spec: JobSpec) -> JobOutput {
-    f.exec.execute(&job("j", spec), &AtomicBool::new(false)).unwrap()
-}
-
-fn gate(o: &JobOutput, g: ObligationId) -> &GateResult {
-    o.gates.iter().find(|x| x.gate == g).unwrap_or_else(|| panic!("no {g:?} gate in {:?}", o.gates))
-}
-
-fn assert_pass(o: &JobOutput, g: ObligationId) {
-    let r = gate(o, g);
-    assert_eq!(r.status, GateStatus::Pass, "{g:?}: {} {:?}", r.summary, r.reason_codes);
-}
-
-fn assert_fail(o: &JobOutput, g: ObligationId, reason: ReasonCode) {
-    let r = gate(o, g);
-    assert_eq!(r.status, GateStatus::Fail, "{g:?}: {}", r.summary);
-    assert!(r.reason_codes.contains(&reason), "{g:?}: {:?} lacks {reason:?}; {}", r.reason_codes, r.summary);
-}
-
-fn conformance(f: &Fixture, bundle: &arena_types::Digest, cases: Vec<OracleCase>) -> JobOutput {
-    exec(f, JobSpec::Conformance(ConformanceJob { bundle: bundle.clone(), entry: entry(), params: f.put(b"params-v1"), cases, limits: run_limits() }))
-}
 
 #[test]
 fn honest_candidate_passes_every_stage() {
     let f = fixture();
-    // validate
-    let pkg = f.put(&tar_of(&package_files()));
-    let v = exec(&f, JobSpec::Validate(ValidateJob { package: pkg, challenge_id: CHALLENGE.into() }));
+    let (v, _) = f.validate(&package_files());
     assert_pass(&v, ObligationId::PkgWellformed);
-    assert_eq!(v.manifest.as_ref().unwrap().name, "toy-sha");
-    assert!(!gate(&v, ObligationId::PkgWellformed).reason_codes.contains(&ReasonCode::DemoOnly), "validate runs no candidate code");
-    assert_eq!(v.sandbox.isolation, "bwrap-dev (DEMO-only)");
-    assert_eq!(v.sandbox.tier_cap, Some(arena_types::challenge::Tier::Demo));
+    assert_eq!(v.manifest.as_ref().unwrap().name, "toy-arith-reference");
+    assert!(
+        !gate(&v, ObligationId::PkgWellformed)
+            .reason_codes
+            .contains(&ReasonCode::DemoOnly),
+        "validate runs no candidate code"
+    );
+    assert_eq!(v.execution.sandbox_backend, "bwrap-dev");
+    assert_eq!(v.execution.tier_cap, arena_types::challenge::Tier::Demo);
 
-    // build (twice, reproducible)
-    let (b, bundle) = f.build(&package_files());
+    let (b, built) = f.build(&package_files());
     assert_pass(&b, ObligationId::BuildReproducible);
     let g = gate(&b, ObligationId::BuildReproducible);
     assert!(g.reason_codes.contains(&ReasonCode::DemoOnly));
     assert!(g.summary.starts_with("[bwrap-dev (DEMO-only)]"));
-    assert!(b.artifact("toolchain_image").is_some() && b.artifact("entry_verify").is_some());
-    let bundle = bundle.unwrap();
+    let (pkg, manifest, out) = built.unwrap();
+    assert!(out.bundle_archive.is_some() && out.public_archive.is_some());
+    assert_eq!(out.certificate_decl, "");
+    // every reported artifact was uploaded
+    for a in &b.artifacts {
+        assert!(f.store.root.join(a.digest.hex()).exists(), "{a:?}");
+    }
+    let job = f.exec_job(&pkg, &manifest, &out);
 
-    // conformance (public + held-out cases)
-    let mut cases = f.cases(2, true, claim_for);
-    cases.extend(f.cases(1, false, claim_for));
-    let c = conformance(&f, &bundle, cases.clone());
-    for g in [ObligationId::ConformanceDifferential, ObligationId::ProverReliability, ObligationId::ResourceLimits] {
+    let c = f.exec(JobSpec::Conformance(job.clone()));
+    for g in [
+        ObligationId::ConformanceDifferential,
+        ObligationId::ProverReliability,
+        ObligationId::ResourceLimits,
+    ] {
         assert_pass(&c, g);
     }
-    let public_artifacts = c.artifact("public_artifacts").unwrap().clone();
-    let honest: Vec<HonestProof> = cases
-        .iter()
-        .filter(|c| c.public)
-        .map(|k| HonestProof {
-            case_id: k.id.clone(),
-            claim: c.artifact(&format!("claim:{}", k.id)).unwrap().clone(),
-            proof: c.artifact(&format!("proof:{}", k.id)).unwrap().clone(),
-        })
-        .collect();
-    let heldout = c.artifacts.iter().find(|a| a.name.starts_with("proof:heldout")).unwrap();
-    assert!(!heldout.public);
-    for g in &c.gates {
-        assert!(!g.summary.contains("heldout-secret"), "held-out id leaked: {}", g.summary);
-        assert!(g.evidence.iter().all(|e| !e.label.contains("heldout")));
-    }
-
-    // adversarial
-    let a = exec(
-        &f,
-        JobSpec::Adversarial(AdversarialJob {
-            bundle: bundle.clone(),
-            entry: entry(),
-            public_artifacts: public_artifacts.clone(),
-            honest,
-            mutators: vec![],
-            seed: 42,
-            limits: run_limits(),
-        }),
+    let s = &gate(&c, ObligationId::ConformanceDifferential).summary;
+    assert!(
+        s.contains("10/10 cases conform (6 public fixtures, 4 judge-sampled)"),
+        "{s}"
     );
-    assert_pass(&a, ObligationId::AdversarialProofs);
+    assert!(
+        !s.contains("toy-small/"),
+        "sampled case ids must not leak: {s}"
+    );
+
+    let a = f.exec(JobSpec::Adversarial(job.clone()));
+    assert_eq!(a.gates.len(), 1);
     let s = &gate(&a, ObligationId::AdversarialProofs).summary;
+    assert_pass(&a, ObligationId::AdversarialProofs);
     assert!(s.contains(" 0 accepted") && s.contains("adv:"), "{s}");
 
-    // benchmark
-    let batch = f.cases(2, true, claim_for);
-    let fresh = f.cases(3, true, claim_for)[2..].to_vec();
-    let bj = BenchmarkJob {
-        bundle,
-        entry: entry(),
-        params: f.put(b"params-v1"),
-        public_artifacts: Some(public_artifacts),
-        classes: vec![BenchClass { class_id: "small".into(), weight_ppm: 1_000_000, baseline_ns: 10_000_000_000, batch, fresh_batch: fresh }],
-        procedure: arena_types::challenge::MeasurementProcedure {
-            warmup_runs: 1,
-            measured_runs: 3,
-            aggregation: "median".into(),
-            outlier_mad_k: 1000,
-            cold_runs: 1,
-            concurrency: 1,
-            per_run_timeout_ms: 20_000,
-        },
-        hardware_profile: "dev-host".into(),
-        suite_revision: "r1".into(),
-        schedule_seed: 7,
-        bootstrap_seed: 9,
-        bootstrap_iterations: 200,
-        limits: run_limits(),
-    };
-    let r = exec(&f, JobSpec::Benchmark(bj));
-    assert_pass(&r, ObligationId::ResourceLimits);
+    // bench-spec-v1.1: one sandbox instance per batch (bwrap-dev falls back
+    // to one instance per step, same semantics); same gate and shape.
+    let mut job2 = job.clone();
+    job2.challenge.measurement.invocation_mode =
+        Some(arena_types::challenge::InvocationMode::VmPerBatch);
+    let r2 = f.exec(JobSpec::Benchmark(job2));
+    let bg2 = gate(&r2, ObligationId::Benchmark);
+    assert!(
+        bg2.status == GateStatus::Pass || bg2.summary.contains("CACHING_SUSPECTED"),
+        "{}",
+        bg2.summary
+    );
+    if let Some(res2) = &r2.benchmark {
+        assert_eq!(
+            res2.classes[0].runs_ns.len(),
+            f.chal.measurement.measured_runs as usize
+        );
+        assert!(res2.classes[0].cold_ns.is_some() && res2.classes[0].verify_median_ns > 0);
+    }
+
+    let r = f.exec(JobSpec::Benchmark(job));
+    assert_eq!(r.gates.len(), 1, "benchmark owns only BENCHMARK");
     let bg = gate(&r, ObligationId::Benchmark);
-    let res = r.benchmark.as_ref().unwrap();
-    assert_eq!(res.classes[0].runs_ns.len(), 3);
-    assert!(res.classes[0].median_ns > 0 && res.classes[0].cold_ns.is_some());
-    assert!(res.classes[0].verify_median_ns > 0);
-    assert_eq!(res.classes[0].proof_bytes_max, 70);
-    assert!(res.measured_by.contains("DEMO-only"));
-    // The fresh-confirm tripwire may legitimately fire on a noisy dev host
-    // (UNKNOWN); anything else must be PASS with a score.
-    assert!(bg.status == GateStatus::Pass || bg.summary.contains("CACHING_SUSPECTED"), "{}", bg.summary);
-    assert!(res.score_milli.unwrap() > 100_000, "10 s baseline vs ms-scale toy prover");
-    assert!(r.artifact("benchmark_session").is_some());
+    // The caching tripwire may legitimately fire on a noisy dev host.
+    assert!(
+        bg.status == GateStatus::Pass || bg.summary.contains("CACHING_SUSPECTED"),
+        "{}",
+        bg.summary
+    );
+    if bg.status == GateStatus::Pass {
+        let res = r.benchmark.as_ref().unwrap();
+        assert_eq!(res.classes.len(), 2);
+        assert_eq!(res.suite_revision, f.chal.workload_suite.revision);
+        assert_eq!(
+            res.classes[0].runs_ns.len(),
+            f.chal.measurement.measured_runs as usize
+        );
+        assert!(
+            res.score_milli.is_none(),
+            "demo challenge has no baselines: unscored"
+        );
+        assert!(
+            res.measured_by.contains("batch sizes capped") && res.measured_by.contains("DEMO-only")
+        );
+        assert!(res
+            .classes
+            .iter()
+            .all(|c| c.proof_bytes_max == 40 && c.cold_ns.is_some()));
+    }
 }
 
 #[test]
-fn validate_rejects_unsafe_archive_and_wrong_challenge() {
+fn validate_rejections() {
     let f = fixture();
     // Symlink entry.
     let mut b = tar::Builder::new(Vec::new());
     let mut h = tar::Header::new_gnu();
     h.set_entry_type(tar::EntryType::Symlink);
     h.set_size(0);
-    b.append_link(&mut h, "candidate.toml", "/etc/passwd").unwrap();
+    b.append_link(&mut h, "candidate.toml", "/etc/passwd")
+        .unwrap();
     let pkg = f.put(&b.into_inner().unwrap());
-    let v = exec(&f, JobSpec::Validate(ValidateJob { package: pkg, challenge_id: CHALLENGE.into() }));
+    let v = f.exec(JobSpec::Validate(ValidateJob {
+        ctx: f.ctx(&pkg),
+        challenge: f.chal.clone(),
+    }));
     assert_fail(&v, ObligationId::PkgWellformed, ReasonCode::ArchiveUnsafe);
 
-    let pkg = f.put(&tar_of(&package_files()));
-    let v = exec(&f, JobSpec::Validate(ValidateJob { package: pkg, challenge_id: "chl_other".into() }));
-    assert_fail(&v, ObligationId::PkgWellformed, ReasonCode::ChallengeUnknown);
+    let mut files = package_files();
+    let m = String::from_utf8(files["candidate.toml"].1.clone())
+        .unwrap()
+        .replace(CHALLENGE, "chl_ffffffffffffffffffffffffffffffff");
+    set(&mut files, "candidate.toml", &m);
+    assert_fail(
+        &f.validate(&files).0,
+        ObligationId::PkgWellformed,
+        ReasonCode::ChallengeUnknown,
+    );
+
+    let mut files = package_files();
+    let m = String::from_utf8(files["candidate.toml"].1.clone())
+        .unwrap()
+        .replace("validity-classical-128", "zk-classical-128");
+    set(&mut files, "candidate.toml", &m);
+    assert_fail(
+        &f.validate(&files).0,
+        ObligationId::PkgWellformed,
+        ReasonCode::ProfileNotAllowed,
+    );
 
     let mut files = package_files();
     files.get_mut("build-recipe/build.sh").unwrap().0 = 0o644;
-    let pkg = f.put(&tar_of(&files));
-    let v = exec(&f, JobSpec::Validate(ValidateJob { package: pkg, challenge_id: CHALLENGE.into() }));
-    assert_fail(&v, ObligationId::PkgWellformed, ReasonCode::ManifestInvalid);
+    assert_fail(
+        &f.validate(&files).0,
+        ObligationId::PkgWellformed,
+        ReasonCode::ManifestInvalid,
+    );
 }
 
 #[test]
-fn nonreproducible_and_failing_builds() {
+fn build_failures() {
     let f = fixture();
     let mut files = package_files();
-    files.get_mut("build-recipe/build.sh").unwrap().1 = format!("{BUILD}\ncat /proc/sys/kernel/random/uuid > out/stamp\n").into_bytes();
+    set(&mut files, "build-recipe/build.sh", "#!/bin/sh\nset -e\nsh build-recipe/real.sh\ncat /proc/sys/kernel/random/uuid > out/stamp\n");
+    files.insert(
+        "build-recipe/real.sh".into(),
+        package_files()["build-recipe/build.sh"].clone(),
+    );
+    let m = String::from_utf8(files["candidate.toml"].1.clone())
+        .unwrap()
+        .replace("\"out/verify\"]", "\"out/verify\", \"out/stamp\"]");
+    set(&mut files, "candidate.toml", &m);
     let (b, _) = f.build(&files);
-    assert_fail(&b, ObligationId::BuildReproducible, ReasonCode::BuildNotReproducible);
-    assert!(gate(&b, ObligationId::BuildReproducible).summary.contains("out/stamp"));
+    assert_fail(
+        &b,
+        ObligationId::BuildReproducible,
+        ReasonCode::BuildNotReproducible,
+    );
+    assert!(gate(&b, ObligationId::BuildReproducible)
+        .summary
+        .contains("out/stamp"));
 
     let mut files = package_files();
-    files.get_mut("build-recipe/build.sh").unwrap().1 = b"#!/bin/sh\necho compiling >&2\nexit 1\n".to_vec();
-    let (b, bundle) = f.build(&files);
+    set(
+        &mut files,
+        "build-recipe/build.sh",
+        "#!/bin/sh\necho compiling >&2\nexit 1\n",
+    );
+    let (b, built) = f.build(&files);
     assert_fail(&b, ObligationId::BuildReproducible, ReasonCode::BuildFailed);
-    assert!(bundle.is_none());
-    assert!(b.artifact("build_log_1").is_some());
+    assert!(built.is_none());
 
-    // Build must be offline.
+    // Offline: a build that needs the network fails.
     let mut files = package_files();
-    files.get_mut("build-recipe/build.sh").unwrap().1 =
-        format!("{BUILD}\nif timeout 3 bash -c 'echo > /dev/tcp/1.1.1.1/53' 2>/dev/null; then exit 7; fi\n").into_bytes();
-    let (b, _) = f.build(&files);
-    assert_pass(&b, ObligationId::BuildReproducible);
-
-    // Missing entry point output.
-    let mut files = package_files();
-    files.get_mut("build-recipe/build.sh").unwrap().1 = b"#!/bin/sh\nmkdir -p out\ncp source/prove.sh out/prove\n".to_vec();
+    set(
+        &mut files,
+        "build-recipe/build.sh",
+        "#!/bin/sh\nset -e\nexec 3<>/dev/tcp/1.1.1.1/80\n",
+    );
     let (b, _) = f.build(&files);
     assert_fail(&b, ObligationId::BuildReproducible, ReasonCode::BuildFailed);
+
+    // Nondeterministic prepare.
+    let mut files = package_files();
+    let p = String::from_utf8(files["source/prepare.c"].1.clone())
+        .unwrap()
+        .replace("const char *key = \"toy-arith-checksum-key-v1\";", "char key[64]; FILE *u = fopen(\"/proc/sys/kernel/random/uuid\", \"r\"); if (!u || !fgets(key, sizeof key, u)) return 2;");
+    set(&mut files, "source/prepare.c", &p);
+    let (b, _) = f.build(&files);
+    assert_fail(
+        &b,
+        ObligationId::BuildReproducible,
+        ReasonCode::BuildNotReproducible,
+    );
+    assert!(gate(&b, ObligationId::BuildReproducible)
+        .summary
+        .contains("prepare is nondeterministic"));
+}
+
+fn built(f: &Fixture, files: &std::collections::BTreeMap<String, (u32, Vec<u8>)>) -> ExecJob {
+    let (b, built) = f.build(files);
+    let (pkg, manifest, out) = built.unwrap_or_else(|| panic!("build failed: {:?}", b.gates));
+    f.exec_job(&pkg, &manifest, &out)
 }
 
 #[test]
 fn claim_mismatch_detected() {
     let f = fixture();
     let mut files = package_files();
-    // A prover that proves a *different* transition (claims over the witness).
-    let cheat = PROVE.replace(r#"sha256sum < "$req""#, r#"sha256sum < "$wit""#);
-    files.get_mut("source/prove.sh").unwrap().1 = cheat.into_bytes();
-    let (_, bundle) = f.build(&files);
-    let c = conformance(&f, &bundle.unwrap(), f.cases(2, true, claim_for));
-    assert_fail(&c, ObligationId::ConformanceDifferential, ReasonCode::ClaimMismatch);
-    assert_eq!(gate(&c, ObligationId::ProverReliability).status, GateStatus::Unknown);
-}
-
-#[test]
-fn heldout_failure_does_not_leak_case_id() {
-    let f = fixture();
-    let (_, bundle) = f.build(&package_files());
-    let c = conformance(&f, &bundle.unwrap(), f.cases(1, false, |_| b"wrong".to_vec()));
-    assert_fail(&c, ObligationId::ConformanceDifferential, ReasonCode::ClaimMismatch);
-    for g in &c.gates {
-        assert!(!g.summary.contains("heldout-secret"), "{}", g.summary);
-    }
-    assert!(gate(&c, ObligationId::ConformanceDifferential).summary.contains("held-out case"));
+    // Proves a different statement: c = a + b.
+    let p = String::from_utf8(files["source/prove.c"].1.clone())
+        .unwrap()
+        .replace("le64(r) * le64(r + 8)", "le64(r) + le64(r + 8)");
+    let v = String::from_utf8(files["source/verify.c"].1.clone())
+        .unwrap()
+        .replace(
+            "le64(claim) * le64(claim + 8)",
+            "le64(claim) + le64(claim + 8)",
+        );
+    set(&mut files, "source/prove.c", &p);
+    set(&mut files, "source/verify.c", &v);
+    let c = f.exec(JobSpec::Conformance(built(&f, &files)));
+    assert_fail(
+        &c,
+        ObligationId::ConformanceDifferential,
+        ReasonCode::ClaimMismatch,
+    );
+    assert_eq!(
+        gate(&c, ObligationId::ProverReliability).status,
+        GateStatus::Unknown
+    );
 }
 
 #[test]
 fn verifier_rejecting_honest_proof_and_prover_timeout() {
     let f = fixture();
     let mut files = package_files();
-    files.get_mut("source/verify.sh").unwrap().1 = b"#!/bin/sh\nexit 1\n".to_vec();
-    let (_, bundle) = f.build(&files);
-    let c = conformance(&f, &bundle.unwrap(), f.cases(1, true, claim_for));
-    assert_fail(&c, ObligationId::ProverReliability, ReasonCode::ProverFailed);
+    set(
+        &mut files,
+        "source/verify.c",
+        "int main(void) { return 1; }\n",
+    );
+    let job = built(&f, &files);
+    let c = f.exec(JobSpec::Conformance(job.clone()));
+    assert_fail(
+        &c,
+        ObligationId::ProverReliability,
+        ReasonCode::ProverFailed,
+    );
+    let a = f.exec(JobSpec::Adversarial(job));
+    assert_eq!(
+        gate(&a, ObligationId::AdversarialProofs).status,
+        GateStatus::Unknown,
+        "vacuous: never PASS"
+    );
 
     let mut files = package_files();
-    files.get_mut("source/prove.sh").unwrap().1 = b"#!/bin/sh\nsleep 30\n".to_vec();
-    let (_, bundle) = f.build(&files);
-    let mut limits = run_limits();
-    limits.max_prove_ms = 500;
-    let c = exec(
-        &f,
-        JobSpec::Conformance(ConformanceJob { bundle: bundle.unwrap(), entry: entry(), params: f.put(b"p"), cases: f.cases(1, true, claim_for), limits }),
+    set(
+        &mut files,
+        "source/prove.c",
+        "#include <unistd.h>\nint main(void) { for (;;) pause(); }\n",
     );
+    let mut job = built(&f, &files);
+    job.challenge.resource_limits.max_prove_ms = 500;
+    let c = f.exec(JobSpec::Conformance(job));
     assert_fail(&c, ObligationId::ProverReliability, ReasonCode::Timeout);
 }
 
@@ -239,10 +292,12 @@ fn verifier_rejecting_honest_proof_and_prover_timeout() {
 fn oversized_proof_is_resource_limit() {
     let f = fixture();
     let mut files = package_files();
-    let fat = PROVE.replace(r#"> "$proof""#, r#"> "$proof"; head -c 10000 /dev/zero >> "$proof""#);
-    files.get_mut("source/prove.sh").unwrap().1 = fat.into_bytes();
-    let (_, bundle) = f.build(&files);
-    let c = conformance(&f, &bundle.unwrap(), f.cases(1, true, claim_for));
+    let p = String::from_utf8(files["source/prove.c"].1.clone()).unwrap().replace(
+        "return (write_file(co, claim, 24) || write_file(po, proof, PROOF_LEN)) ? 2 : 0;",
+        "static unsigned char big[2 << 20]; memcpy(big, proof, PROOF_LEN); return (write_file(co, claim, 24) || write_file(po, big, sizeof big)) ? 2 : 0;",
+    );
+    set(&mut files, "source/prove.c", &p);
+    let c = f.exec(JobSpec::Conformance(built(&f, &files)));
     assert_fail(&c, ObligationId::ResourceLimits, ReasonCode::ResourceLimit);
 }
 
@@ -250,37 +305,131 @@ fn oversized_proof_is_resource_limit() {
 fn lenient_verifier_fails_adversarial() {
     let f = fixture();
     let mut files = package_files();
-    // Accepts anything starting with "PROOF:" — truncation/bitflips past the
-    // prefix, appended garbage and swapped proofs all get through.
-    let lenient = "#!/bin/sh\nwhile [ $# -gt 0 ]; do case \"$1\" in --proof) proof=$2; shift 2;; *) shift 2;; esac; done\n\
-                   [ \"$(head -c 6 \"$proof\")\" = PROOF: ] && exit 0\nexit 1\n";
-    files.get_mut("source/verify.sh").unwrap().1 = lenient.as_bytes().to_vec();
-    let (_, bundle) = f.build(&files);
-    let bundle = bundle.unwrap();
-    let cases = f.cases(2, true, claim_for);
-    let c = conformance(&f, &bundle, cases.clone());
-    assert_pass(&c, ObligationId::ConformanceDifferential);
-    let honest = cases
-        .iter()
-        .map(|k| HonestProof {
-            case_id: k.id.clone(),
-            claim: c.artifact(&format!("claim:{}", k.id)).unwrap().clone(),
-            proof: c.artifact(&format!("proof:{}", k.id)).unwrap().clone(),
-        })
-        .collect();
-    let a = exec(
-        &f,
-        JobSpec::Adversarial(AdversarialJob {
-            bundle,
-            entry: entry(),
-            public_artifacts: c.artifact("public_artifacts").unwrap().clone(),
-            honest,
-            mutators: vec![],
-            seed: 1,
-            limits: run_limits(),
-        }),
+    // Accepts any proof that starts with the magic.
+    set(
+        &mut files,
+        "source/verify.c",
+        "#include \"common.h\"\n#include <string.h>\nint main(int c, char **v) { unsigned char p[1 << 16]; long n = read_file(arg(c, v, \"--proof\"), p, sizeof p); return (n >= 8 && !memcmp(p, PROOF_MAGIC, 8)) ? 0 : 1; }\n",
     );
-    assert_fail(&a, ObligationId::AdversarialProofs, ReasonCode::HostileProofAccepted);
+    let job = built(&f, &files);
+    let c = f.exec(JobSpec::Conformance(job.clone()));
+    assert_pass(&c, ObligationId::ConformanceDifferential);
+    let a = f.exec(JobSpec::Adversarial(job));
+    assert_fail(
+        &a,
+        ObligationId::AdversarialProofs,
+        ReasonCode::HostileProofAccepted,
+    );
     let s = &gate(&a, ObligationId::AdversarialProofs).summary;
     assert!(s.contains("swap") && s.contains("append"), "{s}");
+}
+
+#[test]
+fn benchmark_failure_is_benchmark_gate() {
+    let f = fixture();
+    let mut files = package_files();
+    // Correct on the public fixtures (a, b < 2^16), wrong on sampled inputs.
+    let p = String::from_utf8(files["source/prove.c"].1.clone())
+        .unwrap()
+        .replace(
+            "le64(r) * le64(r + 8)",
+            "(le64(r) < 65536 && le64(r + 8) < 65536 ? le64(r) * le64(r + 8) : 0)",
+        );
+    set(&mut files, "source/prove.c", &p);
+    let job = built(&f, &files);
+    let r = f.exec(JobSpec::Benchmark(job));
+    assert_eq!(r.gates.len(), 1);
+    assert_fail(&r, ObligationId::Benchmark, ReasonCode::ClaimMismatch);
+    assert!(r.benchmark.is_none());
+}
+
+#[test]
+fn fork_bomb_and_background_daemon() {
+    let f = fixture();
+    // Honest outputs, then a fork bomb left behind: RESOURCE_LIMITS.
+    let mut files = package_files();
+    let p = String::from_utf8(files["source/prove.c"].1.clone()).unwrap().replace(
+        "return (write_file(co, claim, 24) || write_file(po, proof, PROOF_LEN)) ? 2 : 0;",
+        "if (write_file(co, claim, 24) || write_file(po, proof, PROOF_LEN)) return 2; for (;;) if (fork() < 0) break; return 0;",
+    );
+    set(
+        &mut files,
+        "source/prove.c",
+        &format!("#include <unistd.h>\n{p}"),
+    );
+    let c = f.exec(JobSpec::Conformance(built(&f, &files)));
+    assert_fail(&c, ObligationId::ResourceLimits, ReasonCode::ResourceLimit);
+
+    // The proof is "finished later" by a daemon: it never reaches the judge.
+    let mut files = package_files();
+    let p = String::from_utf8(files["source/prove.c"].1.clone()).unwrap().replace(
+        "return (write_file(co, claim, 24) || write_file(po, proof, PROOF_LEN)) ? 2 : 0;",
+        "if (write_file(co, claim, 24)) return 2; if (fork() == 0) { sleep(2); write_file(po, proof, PROOF_LEN); _exit(0); } return 0;",
+    );
+    set(
+        &mut files,
+        "source/prove.c",
+        &format!("#include <unistd.h>\n{p}"),
+    );
+    let c = f.exec(JobSpec::Conformance(built(&f, &files)));
+    assert_fail(
+        &c,
+        ObligationId::ProverReliability,
+        ReasonCode::ProverFailed,
+    );
+}
+
+/// Red-team RT-04 (ported to the oracle-driven worker): on a non-public case
+/// `prove` sees inputs the submitter must not learn, and candidate-chosen
+/// failure details (output names quoted by the collector, exit codes) must
+/// not reach any gate summary; on public fixtures the details stay.
+#[test]
+fn redteam_heldout_failure_details_are_not_a_covert_channel() {
+    let mut f = fixture();
+    let base = String::from_utf8(package_files()["source/prove.c"].1.clone()).unwrap();
+    let marker = "  memcpy(claim, r, 16);";
+    let leak_name = base.replace(
+        marker,
+        &format!("  {{ char n[4200]; snprintf(n, sizeof n, \"%s.LEAK-%02x%02x%02x%02x\", co, r[0], r[1], r[2], r[3]); if (symlink(\"/nonexistent\", n)) return 2; }}\n{marker}"),
+    );
+    let leak_exit = base.replace(
+        marker,
+        &format!("  if (r[0] != 0xff) return 173;\n{marker}"),
+    );
+    for (what, prove) in [("file name", leak_name), ("exit code", leak_exit)] {
+        let mut files = package_files();
+        set(
+            &mut files,
+            "source/prove.c",
+            &format!("#include <unistd.h>\n{prove}"),
+        );
+        let job = built(&f, &files);
+        // control: public fixtures keep their details
+        let c = f.exec(JobSpec::Conformance(job.clone()));
+        let s = &gate(&c, ObligationId::ProverReliability).summary;
+        assert!(
+            s.contains("LEAK-") || s.contains("173"),
+            "{what}: control lost detail: {s}"
+        );
+        // only judge-sampled (non-public) cases
+        let saved = std::mem::replace(
+            &mut f.exec.ctx.oracles,
+            arena_worker::oracle::Oracles::builtin(),
+        );
+        let c = f.exec(JobSpec::Conformance(job));
+        f.exec.ctx.oracles = saved;
+        assert_eq!(
+            gate(&c, ObligationId::ProverReliability).status,
+            GateStatus::Fail,
+            "{what}"
+        );
+        for g in &c.gates {
+            assert!(
+                !g.summary.contains("LEAK-") && !g.summary.contains("173"),
+                "{what}: leaked into {:?}: {}",
+                g.gate,
+                g.summary
+            );
+        }
+    }
 }

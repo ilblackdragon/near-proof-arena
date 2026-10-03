@@ -2,6 +2,8 @@
 
 **Attack family:** formal-missing
 
+**Targets:** near-formal  (runnable: false)
+
 **Expected decision:** REJECTED
 **Expected failing gate(s):** FORMAL_SEMANTIC_SOUNDNESS
 **Expected reason code(s):** CERTIFICATE_MISSING

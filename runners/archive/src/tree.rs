@@ -76,7 +76,11 @@ impl Tree {
         let entries = self
             .files
             .iter()
-            .map(|(p, f)| arena_types::TreeEntry { path: p.clone(), exec: f.mode == FileMode::Exec, digest: f.digest.clone() })
+            .map(|(p, f)| arena_types::TreeEntry {
+                path: p.clone(),
+                exec: f.mode == FileMode::Exec,
+                digest: f.digest.clone(),
+            })
             .collect();
         arena_types::tree_digest_entries(entries).expect("tree entries are float-free")
     }
@@ -89,7 +93,10 @@ impl Tree {
         self.files.contains_key(p)
     }
     pub fn is_exec(&self, p: &str) -> bool {
-        self.files.get(p).map(|f| f.mode == FileMode::Exec).unwrap_or(false)
+        self.files
+            .get(p)
+            .map(|f| f.mode == FileMode::Exec)
+            .unwrap_or(false)
     }
     pub fn is_dir(&self, p: &str) -> bool {
         self.dirs.contains(p)
@@ -107,9 +114,16 @@ impl Tree {
     /// re-rooted unchanged.
     pub fn subset(&self, roots: &[&str]) -> Tree {
         let under = |k: &str| {
-            roots.iter().any(|r| k == *r || (k.len() > r.len() && k.starts_with(r) && k.as_bytes()[r.len()] == b'/'))
+            roots.iter().any(|r| {
+                k == *r || (k.len() > r.len() && k.starts_with(r) && k.as_bytes()[r.len()] == b'/')
+            })
         };
-        let files: BTreeMap<_, _> = self.files.iter().filter(|(k, _)| under(k)).map(|(k, v)| (k.clone(), v.clone())).collect();
+        let files: BTreeMap<_, _> = self
+            .files
+            .iter()
+            .filter(|(k, _)| under(k))
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
         let mut dirs = BTreeSet::new();
         for k in files.keys() {
             for a in crate::path::ancestors(k) {
@@ -139,7 +153,9 @@ impl TreeBuilder {
     fn note_collision(&mut self, p: &str) -> Result<(), ArchiveError> {
         let key = collision_key(p);
         match self.collisions.get(&key) {
-            Some(prev) if prev != p => Err(ArchiveError::unsafe_(format!("case/normalization collision: {prev:?} vs {p:?}"))),
+            Some(prev) if prev != p => Err(ArchiveError::unsafe_(format!(
+                "case/normalization collision: {prev:?} vs {p:?}"
+            ))),
             _ => {
                 self.collisions.insert(key, p.to_string());
                 Ok(())
@@ -157,7 +173,9 @@ impl TreeBuilder {
         let mut new_dirs = Vec::new();
         for a in crate::path::ancestors(p) {
             if self.tree.files.contains_key(a) {
-                return Err(ArchiveError::unsafe_(format!("{p:?} is beneath file {a:?}")));
+                return Err(ArchiveError::unsafe_(format!(
+                    "{p:?} is beneath file {a:?}"
+                )));
             }
             if !self.tree.dirs.contains(a) {
                 self.note_collision(a)?;
@@ -167,7 +185,9 @@ impl TreeBuilder {
         }
         if is_dir {
             if self.tree.files.contains_key(p) {
-                return Err(ArchiveError::unsafe_(format!("directory {p:?} conflicts with file")));
+                return Err(ArchiveError::unsafe_(format!(
+                    "directory {p:?} conflicts with file"
+                )));
             }
             if self.tree.dirs.insert(p.to_string()) {
                 self.note_collision(p)?;
@@ -175,7 +195,9 @@ impl TreeBuilder {
             }
         } else {
             if self.tree.dirs.contains(p) {
-                return Err(ArchiveError::unsafe_(format!("file {p:?} conflicts with directory")));
+                return Err(ArchiveError::unsafe_(format!(
+                    "file {p:?} conflicts with directory"
+                )));
             }
             self.note_collision(p)?;
         }
@@ -194,7 +216,10 @@ impl TreeBuilder {
 pub fn tree_from_dir(root: &Path, limits: &Limits) -> Result<Tree, ArchiveError> {
     let meta = fs::symlink_metadata(root)?;
     if !meta.is_dir() {
-        return Err(ArchiveError::unsafe_(format!("{} is not a directory", root.display())));
+        return Err(ArchiveError::unsafe_(format!(
+            "{} is not a directory",
+            root.display()
+        )));
     }
     let mut b = TreeBuilder::default();
     let mut entries = 0u64;
@@ -224,9 +249,16 @@ fn walk(
     for name in names {
         *entries += 1;
         if *entries > limits.max_entries {
-            return Err(ArchiveError::unsafe_(format!("more than {} entries", limits.max_entries)));
+            return Err(ArchiveError::unsafe_(format!(
+                "more than {} entries",
+                limits.max_entries
+            )));
         }
-        let child_rel = if rel.is_empty() { name.clone() } else { format!("{rel}/{name}") };
+        let child_rel = if rel.is_empty() {
+            name.clone()
+        } else {
+            format!("{rel}/{name}")
+        };
         let path = dir.join(&name);
         let meta = fs::symlink_metadata(&path)?;
         let ft = meta.file_type();
@@ -235,24 +267,40 @@ fn walk(
             walk(&path, &child_rel, b, limits, entries, total)?;
         } else if ft.is_file() {
             if meta.nlink() > 1 {
-                return Err(ArchiveError::unsafe_(format!("hardlinked file {child_rel:?}")));
+                return Err(ArchiveError::unsafe_(format!(
+                    "hardlinked file {child_rel:?}"
+                )));
             }
             if meta.mode() & 0o7000 != 0 {
-                return Err(ArchiveError::unsafe_(format!("setuid/setgid/sticky bit on {child_rel:?}")));
+                return Err(ArchiveError::unsafe_(format!(
+                    "setuid/setgid/sticky bit on {child_rel:?}"
+                )));
             }
             b.add(&child_rel, false)?;
             let (digest, size) = hash_file_nofollow(&path, limits.max_expanded_bytes - *total)?;
             *total += size;
-            b.set_file(child_rel, TreeFile { mode: FileMode::from_unix(meta.mode()), digest, size });
+            b.set_file(
+                child_rel,
+                TreeFile {
+                    mode: FileMode::from_unix(meta.mode()),
+                    digest,
+                    size,
+                },
+            );
         } else {
-            return Err(ArchiveError::unsafe_(format!("{child_rel:?} is not a regular file or directory")));
+            return Err(ArchiveError::unsafe_(format!(
+                "{child_rel:?} is not a regular file or directory"
+            )));
         }
     }
     Ok(())
 }
 
 pub(crate) fn open_nofollow(path: &Path) -> io::Result<File> {
-    fs::OpenOptions::new().read(true).custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC).open(path)
+    fs::OpenOptions::new()
+        .read(true)
+        .custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC)
+        .open(path)
 }
 
 fn hash_file_nofollow(path: &Path, budget: u64) -> Result<(Digest, u64), ArchiveError> {
@@ -271,7 +319,10 @@ fn hash_file_nofollow(path: &Path, budget: u64) -> Result<(Digest, u64), Archive
         }
         h.update(&buf[..n]);
     }
-    Ok((Digest::try_from(format!("sha256:{}", hex_lower(&h.finalize()))).expect("valid"), n_total))
+    Ok((
+        Digest::try_from(format!("sha256:{}", hex_lower(&h.finalize()))).expect("valid"),
+        n_total,
+    ))
 }
 
 pub(crate) fn hex_lower(b: &[u8]) -> String {
@@ -288,7 +339,8 @@ pub(crate) fn hex_lower(b: &[u8]) -> String {
 /// sorted paths, uid/gid 0, mtime 0, perms 0755/0644, directories included.
 /// Each file's content is re-hashed while packing and must match `tree`.
 pub fn pack_tree<W: Write>(root: &Path, tree: &Tree, out: W) -> Result<W, ArchiveError> {
-    let mut all: Vec<(&str, Option<&TreeFile>)> = tree.dirs.iter().map(|d| (d.as_str(), None)).collect();
+    let mut all: Vec<(&str, Option<&TreeFile>)> =
+        tree.dirs.iter().map(|d| (d.as_str(), None)).collect();
     all.extend(tree.files.iter().map(|(p, f)| (p.as_str(), Some(f))));
     all.sort_by(|a, b| a.0.cmp(b.0));
     let mut builder = tar::Builder::new(out);
@@ -308,16 +360,23 @@ pub fn pack_tree<W: Write>(root: &Path, tree: &Tree, out: W) -> Result<W, Archiv
                 let file = open_nofollow(&root.join(p))?;
                 let meta = file.metadata()?;
                 if !meta.is_file() || meta.len() != f.size {
-                    return Err(ArchiveError::unsafe_(format!("{p:?} changed while packing")));
+                    return Err(ArchiveError::unsafe_(format!(
+                        "{p:?} changed while packing"
+                    )));
                 }
                 h.set_entry_type(tar::EntryType::Regular);
                 h.set_mode(f.mode.unix_perms());
                 h.set_size(f.size);
-                let mut hr = HashingReader { inner: file.take(f.size), h: Sha256::new() };
+                let mut hr = HashingReader {
+                    inner: file.take(f.size),
+                    h: Sha256::new(),
+                };
                 builder.append_data(&mut h, p, &mut hr)?;
                 let got = format!("sha256:{}", hex_lower(&hr.h.finalize()));
                 if got != f.digest.as_str() {
-                    return Err(ArchiveError::unsafe_(format!("{p:?} changed while packing")));
+                    return Err(ArchiveError::unsafe_(format!(
+                        "{p:?} changed while packing"
+                    )));
                 }
             }
         }

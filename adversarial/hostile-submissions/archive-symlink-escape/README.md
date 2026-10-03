@@ -2,14 +2,16 @@
 
 **Attack family:** archive-attack
 
+**Targets:** demo  (runnable: true)
+
 **Expected decision:** REJECTED
 **Expected failing gate(s):** PKG_WELLFORMED
 **Expected reason code(s):** ARCHIVE_UNSAFE
 
 ## What this proves about the judge
 
-The archive contains a symlink pointing outside the root (or a symlink then a write through it). Symlinks are rejected outright by the archive policy (ARCHIVE_UNSAFE).
+A symlink pointing outside the root. Symlinks are rejected outright by the archive policy. The payload is the archive ENCODING, so the directory package here is a well-formed placeholder and make-archive.py emits the malicious tar; the driver uploads that.
 
 ## Notes
 
-Hostile payload is the ARCHIVE ENCODING, not a directory. The e2e driver runs make-archive.sh to produce the malicious tar and uploads THOSE bytes. The directory package here is a well-formed placeholder for documentation and the local loader.
+make-archive.py writes raw tar headers with Python's tarfile so device/hardlink/symlink entries do not need privilege and the package is not nested under a subdir.

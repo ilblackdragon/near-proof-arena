@@ -17,11 +17,19 @@ fn main() -> anyhow::Result<()> {
     let mut names = Vec::new();
     while let Some(a) = args.next() {
         match a.as_str() {
-            "--export" => export = Some(PathBuf::from(args.next().ok_or_else(|| anyhow::anyhow!("--export FILE"))?)),
+            "--export" => {
+                export = Some(PathBuf::from(
+                    args.next()
+                        .ok_or_else(|| anyhow::anyhow!("--export FILE"))?,
+                ))
+            }
             _ => names.push(a),
         }
     }
-    let ex = Export::read(&export.ok_or_else(|| anyhow::anyhow!("--export required"))?, 1 << 32)?;
+    let ex = Export::read(
+        &export.ok_or_else(|| anyhow::anyhow!("--export required"))?,
+        1 << 32,
+    )?;
     let mut missing = false;
     for n in names {
         match ex.decls.get(&n) {

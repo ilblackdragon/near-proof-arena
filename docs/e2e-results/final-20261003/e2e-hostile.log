@@ -1,0 +1,137 @@
+
+== build (arena-server, arena-worker, arena CLI)
+
+== database arena_e2e_runners (dropped and recreated; never touches other databases)
+NOTICE:  database "arena_e2e_runners" does not exist, skipping
+
+== arena-server on 127.0.0.1:18471 (worker API :18472)
+challenge registered: chl_54c65fe7c73c5abcfe500681889177bc tier demo
+challenge registered: chl_f7eb2d91bf7b363eee134b6ad9d3e011 tier formal key 9bbbb2f5a070a0e9c6be62055e122ce78e866ec620d5e86d9926614e4c050426
+
+== arena-worker (bwrap-dev, DEMO-only isolation)
+
+== submit the toy reference candidate via the arena CLI
+uploading 2247 bytes (sha256:42758374f1fa965f3b3c46238f9fc1b2efe1afbfaa153bc2ed1fb2df930389f4)
+submission sub_3450a093596a48159b68ce006d7d676a
+
+== submit the same candidate (no formal certificate) to the formal NEAR challenge
+uploading 2247 bytes (sha256:9a9d6dbd3ffe04ea8254535b3022f09e6a8f45fa07f028e36922f6b56aff1a36)
+NEAR submission sub_23a6d3a6ca7b4145b7ca617ff755bb6a
+
+== assertions
+decision=ADMITTED accepted=True tier=demo score=None
+  PKG_WELLFORMED               PASS     DEMO_ONLY                      'package TreeDigest sha256:d38a92e1e00901634203f0247bf6d8ee2cc25db46626f174e3f2cfde6ebfe493; 9 files, 5152 byte'
+  BUILD_REPRODUCIBLE           PASS     DEMO_ONLY                      '[bwrap-dev (DEMO-only)] two independent builds produced identical trees sha256:32025a5b9ac335cbc84a9a076f14119'
+  CONFORMANCE_DIFFERENTIAL     PASS     DEMO_ONLY                      '[bwrap-dev (DEMO-only)] 14/14 cases conform (6 public fixtures, 8 judge-sampled)'
+  PROVER_RELIABILITY           PASS     DEMO_ONLY                      '[bwrap-dev (DEMO-only)] 14/14 honest proofs produced and accepted'
+  RESOURCE_LIMITS              PASS     DEMO_ONLY                      '[bwrap-dev (DEMO-only)] public cases: max proof 40 bytes (cap 1048576), max verify 6 ms (cap 1000), peak memor'
+  ADVERSARIAL_PROOFS           PASS     DEMO_ONLY                      '[bwrap-dev (DEMO-only)] 94 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:trun'
+  BENCHMARK                    PASS     DEMO_ONLY                      '[bwrap-dev (DEMO-only)] session 1: CACHING_SUSPECTED; re-measured on fresh batches only; challenge has no froz'
+ok   stage DECIDED
+ok   run tier is demo
+ok   required gate PKG_WELLFORMED PASS
+ok   PKG_WELLFORMED carries DEMO_ONLY
+ok   PKG_WELLFORMED produced by real judge work
+ok   required gate BUILD_REPRODUCIBLE PASS
+ok   BUILD_REPRODUCIBLE carries DEMO_ONLY
+ok   BUILD_REPRODUCIBLE produced by real judge work
+ok   required gate CONFORMANCE_DIFFERENTIAL PASS
+ok   CONFORMANCE_DIFFERENTIAL carries DEMO_ONLY
+ok   CONFORMANCE_DIFFERENTIAL produced by real judge work
+ok   required gate ADVERSARIAL_PROOFS PASS
+ok   ADVERSARIAL_PROOFS carries DEMO_ONLY
+ok   ADVERSARIAL_PROOFS produced by real judge work
+ok   required gate PROVER_RELIABILITY PASS
+ok   PROVER_RELIABILITY carries DEMO_ONLY
+ok   PROVER_RELIABILITY produced by real judge work
+ok   required gate RESOURCE_LIMITS PASS
+ok   RESOURCE_LIMITS carries DEMO_ONLY
+ok   RESOURCE_LIMITS produced by real judge work
+ok   required gate BENCHMARK PASS
+ok   BENCHMARK carries DEMO_ONLY
+ok   BENCHMARK produced by real judge work
+ok   build ran in the bwrap-dev sandbox
+ok   conformance ran oracle cases
+ok   no hostile proof accepted
+ok   benchmark measured every class
+ok   decision is ADMITTED (demo) or INCONCLUSIVE
+ok   listed on the leaderboard with rank null (demo is never ranked)
+ok   nothing ranked on a demo challenge
+
+E2E OK: sub_3450a093596a48159b68ce006d7d676a decided; server log $WORK/hostile/server.log, worker log $WORK/hostile/worker.log
+
+== tier caps: the demo-capped worker never ran the formal challenge's jobs
+NEAR submission: stage=RECEIVED decision=None gates=0
+ok   formal-tier submission untouched by the bwrap-dev (demo) worker
+
+== adversarial live suite against the same server
+== local suite well-formedness (cargo) ==
+ok  wrong-verification-key           decision=Rejected family=artifact-binding gates=[ArtifactBinding]
+ALL 35 CASES WELL-FORMED
+
+== hostile e2e driver ==
+# LIVE e2e against http://127.0.0.1:18471, challenge chl_54c65fe7c73c5abcfe500681889177bc
+
+FAIL additional-axiom: none of expected gates FAILed: {'AXIOM_AUDIT': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL always-accept-verifier: none of expected gates FAILed: {'ADVERSARIAL_PROOFS': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+ok   always-reject-verifier: OK decision=REJECTED gates_failed=['PROVER_RELIABILITY'] reasons=['PROVER_FAILED']
+ok   archive-bomb: OK decision=REJECTED gates_failed=['PKG_WELLFORMED'] reasons=['ARCHIVE_UNSAFE']
+FAIL archive-device-file: missing reason codes ['ARCHIVE_UNSAFE']; saw ['DEMO_ONLY', 'MANIFEST_INVALID', 'OBLIGATION_UNDISCHARGED']
+     observed: decision=REJECTED failed=['PKG_WELLFORMED'] unknown=[] reasons=['DEMO_ONLY', 'MANIFEST_INVALID', 'OBLIGATION_UNDISCHARGED']
+FAIL archive-hardlink: missing reason codes ['ARCHIVE_UNSAFE']; saw ['DEMO_ONLY', 'MANIFEST_INVALID', 'OBLIGATION_UNDISCHARGED']
+     observed: decision=REJECTED failed=['PKG_WELLFORMED'] unknown=[] reasons=['DEMO_ONLY', 'MANIFEST_INVALID', 'OBLIGATION_UNDISCHARGED']
+ok   archive-symlink-escape: OK decision=REJECTED gates_failed=['PKG_WELLFORMED'] reasons=['ARCHIVE_UNSAFE']
+ok   archive-zip-slip: OK decision=REJECTED gates_failed=['PKG_WELLFORMED'] reasons=['ARCHIVE_UNSAFE']
+ok   background-daemon: OK decision=REJECTED gates_failed=['PROVER_RELIABILITY'] reasons=['PROVER_FAILED']
+ok   benchmark-shortcut: OK decision=REJECTED gates_failed=['CONFORMANCE_DIFFERENTIAL'] reasons=['CLAIM_MISMATCH']
+FAIL build-dependency-substitution: none of expected gates FAILed: {'ARTIFACT_BINDING': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+ok   build-network-fetch: OK decision=REJECTED gates_failed=['BUILD_REPRODUCIBLE'] reasons=['BUILD_FAILED']
+FAIL build-nonreproducible: missing reason codes ['BUILD_NOT_REPRODUCIBLE']; saw ['BUILD_FAILED', 'DEMO_ONLY', 'OBLIGATION_UNDISCHARGED']
+     observed: decision=REJECTED failed=['BUILD_REPRODUCIBLE'] unknown=[] reasons=['BUILD_FAILED', 'DEMO_ONLY', 'OBLIGATION_UNDISCHARGED']
+FAIL changed-security-parameters: none of expected gates FAILed: {'FORMAL_CRYPTO_SOUNDNESS': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL false-premise: none of expected gates FAILed: {'FORMAL_SEMANTIC_SOUNDNESS': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL forged-pass-output: none of expected gates FAILed: {'FORMAL_SEMANTIC_SOUNDNESS': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL forged-timing: none of expected gates FAILed: {'BENCHMARK': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL malicious-executable: none of expected gates FAILed: {'ARTIFACT_BINDING': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['ADVERSARIAL_PROOFS', 'CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL missing-certificate: none of expected gates FAILed: {'FORMAL_SEMANTIC_SOUNDNESS': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['ADVERSARIAL_PROOFS', 'CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL native-decide-certificate: none of expected gates FAILed: {'AXIOM_AUDIT': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL near-reexec-malicious-executable: none of expected gates FAILed: {'ARTIFACT_BINDING': None}
+     observed: decision=REJECTED failed=['BUILD_REPRODUCIBLE'] unknown=[] reasons=['BUILD_FAILED', 'DEMO_ONLY', 'OBLIGATION_UNDISCHARGED']
+FAIL near-reexec-skip-refund: none of expected gates FAILed: {'FORMAL_SEMANTIC_SOUNDNESS': None, 'FORMAL_CRYPTO_SOUNDNESS': None}
+     observed: decision=REJECTED failed=['BUILD_REPRODUCIBLE'] unknown=[] reasons=['BUILD_FAILED', 'DEMO_ONLY', 'OBLIGATION_UNDISCHARGED']
+ok   precomputed-fixture-table: OK decision=REJECTED gates_failed=['CONFORMANCE_DIFFERENTIAL'] reasons=['CLAIM_MISMATCH']
+FAIL restricted-domain: none of expected gates FAILed: {'FORMAL_SEMANTIC_SOUNDNESS': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL sandbox-escape-filesystem: missing reason codes ['SANDBOX_VIOLATION']; saw ['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL sandbox-escape-network: missing reason codes ['SANDBOX_VIOLATION']; saw ['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+ok   sandbox-fork-bomb: OK decision=REJECTED gates_failed=['RESOURCE_LIMITS'] reasons=['RESOURCE_LIMIT']
+FAIL sandbox-ptrace-proc: missing reason codes ['SANDBOX_VIOLATION']; saw ['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL shadowed-definition: none of expected gates FAILed: {'AXIOM_AUDIT': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL sorry-certificate: none of expected gates FAILed: {'AXIOM_AUDIT': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['ADVERSARIAL_PROOFS', 'CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL stale-certificate: none of expected gates FAILed: {'ARTIFACT_BINDING': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['ADVERSARIAL_PROOFS', 'CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL ui-injection-logs: none of expected gates FAILed: {'ADVERSARIAL_PROOFS': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+ok   ui-injection-manifest: OK decision=REJECTED gates_failed=['PKG_WELLFORMED'] reasons=['MANIFEST_INVALID']
+FAIL weak-public-input-binding: none of expected gates FAILed: {'ADVERSARIAL_PROOFS': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+FAIL wrong-verification-key: none of expected gates FAILed: {'ARTIFACT_BINDING': None}
+     observed: decision=REJECTED failed=['PROVER_RELIABILITY'] unknown=['CONFORMANCE_DIFFERENTIAL', 'RESOURCE_LIMITS'] reasons=['DEMO_ONLY', 'OBLIGATION_UNDISCHARGED', 'PROVER_FAILED']
+
+E2E FAILED: 25/35 hostile cases did not behave as expected
+EXIT 1

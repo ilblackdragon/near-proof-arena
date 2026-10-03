@@ -34,7 +34,7 @@ See `operators.json` → `equivalence_policy`.
 
 ## Files
 
-- `operators.json` — generic + `reexec-merkle` backend-specific mutation
+- `operators.json` — generic + `reexec-witness` backend-specific mutation
   operators, each with the gate expected to kill it and an equivalence note.
 - `report.schema.json` — the report format (`arena-mutation-report-v1`),
   including the mandatory non-correctness disclaimer.

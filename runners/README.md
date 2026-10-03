@@ -170,30 +170,120 @@ __arena-sandbox-helper`, so one binary is deployed).
   `ARENA_BUILD_ENV`, `ARENA_IMAGES_DIR`, `ARENA_BENCH_CPUS`. The worker
   **refuses to start** if `DATABASE_URL`, `PG*`, or any postgres URL /
   `database` key is visible to it.
-* Protocol (`client.rs`): `POST /internal/v1/jobs/{lease,heartbeat,complete,fail}`,
-  `GET|PUT /internal/v1/artifacts/{digest}`, `Authorization: Bearer <worker token>`.
-  Heartbeats run while a job executes; a 409 cancels the job. Infra errors →
-  `fail{retryable: true}`.
-* Jobs (`jobs.rs`, to be reconciled with `server/arena-jobs`): `Validate`,
-  `Build`, `Conformance`, `Adversarial`, `Benchmark` → `JobOutput { gates,
-  artifacts (name, digest, public, stored), manifest, benchmark, sandbox }`.
-  `OracleCase { id, request, witness, expected_claim, public }`.
+  `ARENA_FIXTURES_DIRS` (public fixtures, matched to challenges by
+  TreeDigest), `ARENA_CONFORMANCE_SAMPLES` (default 8),
+  `ARENA_FORMAL_REPO` (clean checkout with `formal-core/`, `spec/lean/`;
+  enables FORMAL_CHECK), `ARENA_FORMAL_CONFIGS_DIR` (default
+  `<repo>/runners/formal-checker/challenges`), `ARENA_LEAN_CHECKER_IMAGES`
+  (firecracker), `ARENA_BUILD_TOOLCHAIN_IMAGE` + `ARENA_IMAGES_DIR`, `ARENA_DEV_BENCH_BATCH_CAP` (DEV ONLY, recorded in
+  `measured_by`), `ARENA_LEASE_SECONDS`.
+* Types and transport: `server/arena-jobs` is the single source (`JobSpec`,
+  `JobResult`, `BuildOutputs`, wire types, `WorkerClient`). Endpoints:
+  `POST /internal/v1/jobs/lease`, `POST /internal/v1/jobs/{id}/heartbeat|complete|fail`
+  (fenced by `lease_id`), `GET|PUT /internal/v1/artifacts/{digest}`.
+  Heartbeat `cancelled` or a 409/410 cancels the job (never completed).
+  Infra errors → `fail{retryable: true}`; tier above the sandbox cap,
+  unknown protocol or a sandbox violation → `retryable: false`.
+* Each job reports **only the gates its kind owns** (`JobKind::owned_gates`);
+  every reported artifact is uploaded before `complete`.
+* Oracles (`oracle.rs`) are selected by `claim_encoding.format`: built-in
+  `demo-toy-arith-v1`, and `near-arena-claim-v1` (`ARENA_NEAR_ORACLE` +
+  `ARENA_WORKLOAD_GENERATORS`): public fixtures located by TreeDigest
+  (`cases/*/{request,witness,expected_claim}.bin`, `params.bin` = the
+  `approved_params.bin` given to the judge-run `prepare`) plus batches the
+  governed `near-arena-oracle gen` samples with the generator spec whose JCS
+  digest the challenge commits to. The server's jobs carry no case lists:
+  the worker derives them from the challenge (fixtures digest + generator
+  digests) and a judge seed, so nothing the server stores can steer them.
+  Unknown formats leave the conformance / adversarial / benchmark gates
+  `UNKNOWN`.
+* Verifiers (`stages/common.rs::verifier_for`): `native` → the candidate's
+  built `verify`; `npai-v1` → the JUDGE's `npai-verify` (`ARENA_NPAI_VERIFY`,
+  mounted read-only) on the judge-built bytecode with `--fuel
+  formal_params.verify_fuel --expect-digest <BuildOutputs.verifier_bytecode>`
+  (exit 3 → `ARTIFACT_BINDING_FAILED`, never a reject), shadowed on small
+  inputs in conformance/adversarial by formal-core's `arena-interp-ref`
+  (`ARENA_INTERP_REF`; any disagreement fails the job as an INFRA_ERROR with
+  an ALERT); `native-lean` → the judge-built native verifier that
+  FORMAL_CHECK uploads (`JobResult.native_verifier` →
+  `BuildOutputs.native_verifier`, carried over on formal-cache reuse). The
+  candidate's shipped `out/verify` must equal that judge build
+  (`candidate_binary_digest`), else `ARTIFACT_BINDING_FAILED`.
+* Held-out (non-public) cases: candidate-chosen failure details (exit codes,
+  collected file names, sizes) never reach summaries (red team RT-04). Sampled workloads use public
+  `derive_seed("workload", class, challenge, package)` seeds (the
+  season-secret HMAC of BENCHMARK_SPEC §11.1 is not wired yet).
 
-| stage | gates | notes |
+| job | gates | notes |
 |---|---|---|
-| validate | `PKG_WELLFORMED` | archive + manifest + challenge id; runs no candidate code (no `DEMO_ONLY`) |
-| build | `BUILD_REPRODUCIBLE` | recipe run offline twice in fresh scratch (`SOURCE_DATE_EPOCH`, `CARGO_NET_OFFLINE`), output TreeDigests compared, differing paths listed; uploads `bundle` tar, `bundle_tree`, `entry_*` digests, `toolchain_image` digest, build logs |
-| conformance | `CONFORMANCE_DIFFERENTIAL`, `PROVER_RELIABILITY`, `RESOURCE_LIMITS` | judge-run `prepare` → `public_artifacts`; `prove` with the witness; claim bytes vs oracle (`CLAIM_MISMATCH`); `verify` in a **separate** sandbox with only bundle, public dir, claim, proof; must accept; fail-fast; held-out case ids never appear in summaries/public evidence |
-| adversarial | `ADVERSARIAL_PROOFS` | honest controls first (else `VERIFIER_NONDETERMINISTIC`); hostile pairs from `ProofMutator`s: generic `truncate`, `bitflip`, `empty`, `oversize`, `swap`, `append` + the adversarial lane's `adv:*`; any acceptance → `HOSTILE_PROOF_ACCEPTED` |
-| benchmark | `BENCHMARK`, `RESOURCE_LIMITS`, `PROVER_RELIABILITY` | `arena-measure` session; every proof claim-checked and verified; `prepare` timed; wall vs VMM wall cross-check; `EXCESSIVE_OUTLIERS` → infra re-run; `CACHING_SUSPECTED` → `UNKNOWN` |
+| VALIDATE | `PKG_WELLFORMED` | archive + layout + manifest; challenge id, security profile, GPU request; runs no candidate code (no `DEMO_ONLY`) |
+| BUILD | `BUILD_REPRODUCIBLE` | recipe offline twice in fresh scratch; output trees compared (differing paths listed); judge-run `prepare` twice (nondeterministic → `BUILD_NOT_REPRODUCIBLE`); `BuildOutputs` = entry digests, bundle/public TreeDigests + uploaded archives (`bundle_archive`, `public_archive`), `formal_tree`, toolchain digest |
+| FORMAL_CHECK | `FORMAL_*`, `AXIOM_AUDIT`, `ARTIFACT_BINDING` | `runners/formal-checker` through the shared sandbox (`SandboxRunner`: bwrap-dev with host tools, or firecracker with the lean-checker image as every run's root; tool mounts contained in the image are elided, stdout streamed to files); per-challenge `arena-formal-challenge-v1` config; Expected statement bound to `sha256(public.bin)` and the verifier artifact digest; checker identity (`ToolPaths::image_digest`) must equal `toolchain_policy.checker_image` (else UNKNOWN); `ARTIFACT_BINDING` FAILs (`ARTIFACT_BINDING_FAILED`) on a statement mismatch, PASSes only if every formal gate passed |
+| CONFORMANCE | `CONFORMANCE_DIFFERENTIAL`, `PROVER_RELIABILITY`, `RESOURCE_LIMITS` | bundle + public dir fetched by archive digest and re-bound by TreeDigest; public fixtures + sampled cases; `prove` with witness, claim bytes vs judge oracle; `verify` in a **separate** sandbox (public dir, claim, proof only); fail-fast; non-public case ids never in summaries |
+| ADVERSARIAL | `ADVERSARIAL_PROOFS` | 3 honest proofs produced and verified twice (rejected → `UNKNOWN`, flip → `VERIFIER_NONDETERMINISTIC`); generic mutators + the adversarial lane's `adv:*` (≤ 240 inputs, deterministic subsample); any acceptance → `HOSTILE_PROOF_ACCEPTED` |
+| BENCHMARK | `BENCHMARK` | classes/weights/batch sizes/procedure from the challenge, batches sampled by the oracle; every proof claim-checked and verified (failure → `BENCHMARK` FAIL with its reason); `prepare` timed; VMM wall cross-check; excessive outliers → whole session re-measured (≤ 3) then infra; `CACHING_SUSPECTED` → re-measured on fresh batches only (every round new) and that number published; no frozen baselines → measured, unscored (the server recomputes scores anyway) |
 
-Gates are emitted with `mandatory = true`; the control plane applies the
-challenge's `required_obligations` and merges duplicate gates (FAIL dominates).
+## End-to-end (`make e2e`)
+
+`tests/e2e/run.sh [--keep] [--hostile] [--hostile-only a,b] [--fc] [--hostile-near]`: builds
+`arena-server`, `arena-worker` and the `arena` CLI; recreates its own
+database (`arena_e2e_*`) on the shared Postgres; starts the server (dev,
+ports 18471/18472) with the signed demo challenge and the dev governance
+key; starts a real `arena-worker` (bwrap-dev); submits
+`tests/e2e/toy-candidate` (C reference candidate for `demo-toy-arithmetic`)
+with `arena submit`; asserts DECIDED, every required gate PASS from real
+judge work, DEMO tier, `rank: null`. The formal NEAR challenge is registered
+too; the demo-capped worker must leave its submission untouched. `--fc`
+adds a Firecracker worker (tier cap formal, pinned toolchain and
+lean-checker images) and asserts the NEAR submission is built in microVMs
+and REJECTED at FORMAL_CHECK. `--hostile` then runs
+`adversarial/e2e/run.sh` against the same server (per-case JSON report in
+the work dir).
+
+`tests/e2e/milestone-d.sh`: the formal NEAR challenge end to end on
+Firecracker (formal tier): reference `examples/reexec-witness` ADMITTED;
+prover-only child (`--parent`) PROVER_ONLY with formal gates reused; NEAR
+hostile cases; a verifier change (`--parent`) VERIFIER_OR_PROTOCOL with the
+formal obligations re-checked. Results: `docs/e2e-results/milestone-d/`.
 
 ## Known gaps
 
-* Builds need `copy_in` (bwrap-dev only); firecracker builds need copy-in /
-  cwd support in `arena-init`.
+* The signed NEAR challenge pins `checker_image` = the identity of one build
+  of the host-installed checker tools, which changes whenever the tools are
+  rebuilt; the production worker runs the digest-pinned lean-checker image
+  (different identity), so it reports the formal gates UNKNOWN for the
+  signed challenge. `tests/e2e/milestone-d.sh` signs an e2e-local successor
+  re-pinned to the image (local operator key); the real fix is a governance
+  re-pin to the lean-checker image's identity.
+* `supersedes`: after the merge, main's server closes superseded challenges
+  (`challenge_closed`). The e2e scripts now target the NEAR head
+  `chl_f7eb…` (v1.1, pinned baselines). `tests/e2e/milestone-d.sh` now
+  supersedes `chl_f7eb…` instead of `chl_5ef2…` and has NOT been re-run
+  since that change. `docs/e2e-results/milestone-d/` is the pre-merge run
+  against `chl_5ef2…`.
+* Builds run on both backends;
+  production (non-demo) backends require a pinned toolchain image
+  (`ARENA_BUILD_TOOLCHAIN_IMAGE` + `ARENA_IMAGES_DIR`, see
+  `deploy/images/toolchain/build.sh`). The image is a worker setting, not
+  yet a challenge field (contract gap: `toolchain_policy` pins only the
+  checker image).
+* Shared host assets drift: the formal checker's `arena-audit` in
+  `~/.cache/arena-formal-checker` is rebuilt by the formal-checker lane; if
+  it is newer than this tree's `lean/ArenaAudit`, point `ARENA_AUDIT_BIN`
+  at a binary built from this tree (`lake build arena-audit`).
+* Hostile suite (`adversarial/hostile-submissions`) against the demo
+  challenge: all 33 REJECTED, none admitted/ranked; 10 match expect.json.
+  The formal/artifact-binding cases (13) target a challenge with formal
+  obligations (pending the NEAR challenge); most runtime cases' `prove`
+  writes no `claim.bin` for any encoding, so they fail `PROVER_RELIABILITY`
+  before reaching the attacked gate; `archive-device-file` /
+  `archive-hardlink` builders cannot create those entries unprivileged and
+  nest the package under `pkg/` (→ `MANIFEST_INVALID`);
+  `build-nonreproducible` uses `$RANDOM` under `set -u` in `/bin/sh` (dash)
+  and fails to build.
+* Sandbox *escape attempts* (reading host paths, clock tampering, ptrace)
+  are contained but not detected/reported as `SANDBOX_VIOLATION`; only a
+  forged guest report is.
 * Host-dev toolchain is identified by a digest of its description, not a
   pinned image; pinned images are supported (`toolchain_image` +
   `ARENA_IMAGES_DIR`) but none is built yet.
@@ -203,3 +293,18 @@ challenge's `required_obligations` and merges duplicate gates (FAIL dominates).
   is DEMO-only.
 * `prepare --out` is pre-created on bwrap-dev but not on firecracker:
   candidates should `mkdir -p` it.
+* `examples/bench_session.rs` (drives `benchmarks/baseline/run_baseline.py`)
+  runs the real BENCHMARK stage on Firecracker for an `ExecJob` built from a
+  host-built bundle, its frozen public dir and the judge-built native
+  verifier; batches come from the worker's NEAR oracle (public seeds).
+* bench-spec-v1.1 `vm_per_batch` (from main) is ported into the integrated
+  BENCHMARK stage (`run_prove_batch` / `run_verify_batch`, npai shadow
+  included). It needs a guest rootfs + fc-runner built from this tree (steps
+  mode); the shared `/data/illia/nearproof-deps/firecracker` images predate
+  it (`steps_share_one_vm_but_no_state` fails there with "guest init: empty
+  argv"). A rebuilt set is in `/data/illia/nearproof-deps/firecracker-rc`
+  (rootfs `sha256:bb60e932…`, fc-runner `sha256:03fdfcda…`).
+* Request pin (from main): conformance and benchmark check every oracle
+  request header against the challenge's protocol version / chain id
+  (`near-arena-claim-v1` challenges) before any candidate code runs; a
+  mismatch is INFRA_ERROR.

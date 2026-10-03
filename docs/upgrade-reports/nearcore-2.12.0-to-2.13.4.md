@@ -521,9 +521,9 @@ index 74bfb27..6df6303 100644
 
 Obligations to reopen: `BUILD_REPRODUCIBLE`, `FORMAL_SEMANTIC_SOUNDNESS`, `FORMAL_SEMANTIC_COMPLETENESS`, `FORMAL_CRYPTO_SOUNDNESS`, `FORMAL_IMPL_CONNECTION`, `AXIOM_AUDIT`, `CONFORMANCE_DIFFERENTIAL`, `ADVERSARIAL_PROOFS`, `PROVER_RELIABILITY`
 
-Spec definitions to revalidate: `*`, `concept:access-keys`, `concept:account-encoding`, `concept:apply-action`, `concept:apply-receipt`, `concept:claim-encoding`, `concept:create-account`, `concept:fees-and-gas`, `concept:function-call-execution`, `concept:hashing`, `concept:host-functions`, `concept:outgoing-receipts`, `concept:protocol-version-gating`, `concept:receipt-batch-transition`, `concept:receipt-encoding`, `concept:refunds`, `concept:runtime-config`, `concept:runtime-config-selection`, `concept:signature-verification`, `concept:state-root`, `concept:storage-proof`, `concept:storage-staking`, `concept:transfer`, `concept:trie-key-encoding`, `concept:trie-node-hashing`, `concept:tx-to-receipt`, `concept:verify-transaction`, `concept:wasm-gas-metering`
+Spec definitions to revalidate: `*`, `ArenaCore.sha256`, `NearSpec.Account.decode`, `NearSpec.Account.encode`, `NearSpec.AccountId.isNamed`, `NearSpec.AccountId.valid`, `NearSpec.Outcome.partialEncode`, `NearSpec.PTrie.get`, `NearSpec.PTrie.hashOf`, `NearSpec.PTrie.revealedBytes`, `NearSpec.PTrie.set`, `NearSpec.PTrie.wf`, `NearSpec.Params.G`, `NearSpec.Params.maxWitnessBytes`, `NearSpec.Params.newActionReceiptExec`, `NearSpec.Params.protocolVersion`, `NearSpec.Params.storageAmountPerByte`, `NearSpec.Params.transferExec`, `NearSpec.Params.zeroBalanceStorageLimit`, `NearSpec.PublicKey.encode`, `NearSpec.PublicKey.wf`, `NearSpec.Receipt.encode`, `NearSpec.Receipt.inSlice`, `NearSpec.Receipt.wf`, `NearSpec.Slot.valueRef`, `NearSpec.TransferV1.Claim.encode`, `NearSpec.TransferV1.Domain`, `NearSpec.TransferV1.DomainStatic`, `NearSpec.TransferV1.Outputs.ofAcc`, `NearSpec.TransferV1.applyAll`, `NearSpec.TransferV1.applyReceipt`, `NearSpec.TransferV1.runBatch`, `NearSpec.accountKeyPath`, `NearSpec.gasRefundReceipt`, `NearSpec.hexPrefix`, `NearSpec.merkleRoot`, `NearSpec.nibbles`, `NearSpec.outcomeRoot`, `NearSpec.receiptIdFrom`, `NearSpec.receiptsCommitment`, `NearSpec.refundsCommitment`, `spec/challenge-inputs/runtime-config-pv86.json`, `spec/claim-v1.md`
 
-Fixtures to regenerate: `*`, `concept:fixtures/actions/**`, `concept:fixtures/function_call/**`, `concept:fixtures/signatures/**`, `concept:fixtures/transactions/**`
+Fixtures to regenerate: `*`, `oracle/fixtures/public/**`, `oracle/fixtures/rejection/**`
 
 | rule | files | obligations |
 |-|-|-|
@@ -537,7 +537,7 @@ Fixtures to regenerate: `*`, `concept:fixtures/actions/**`, `concept:fixtures/fu
 | `state-encoding` | 7 | FORMAL_SEMANTIC_SOUNDNESS, FORMAL_SEMANTIC_COMPLETENESS, FORMAL_IMPL_CONNECTION, CONFORMANCE_DIFFERENTIAL |
 | `storage-plumbing` | 11 | CONFORMANCE_DIFFERENTIAL |
 | `transaction-verification` | 3 | FORMAL_SEMANTIC_SOUNDNESS, FORMAL_SEMANTIC_COMPLETENESS, CONFORMANCE_DIFFERENTIAL, ADVERSARIAL_PROOFS |
-| `wasm-vm` | 23 | FORMAL_SEMANTIC_SOUNDNESS, FORMAL_SEMANTIC_COMPLETENESS, CONFORMANCE_DIFFERENTIAL |
+| `wasm-vm` | 23 | CONFORMANCE_DIFFERENTIAL |
 | `workspace-build` | 3 | CONFORMANCE_DIFFERENTIAL, BUILD_REPRODUCIBLE |
 
 54 changed input(s) matched no rule; the `[default]` target (fail-closed) applies:

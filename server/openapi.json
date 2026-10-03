@@ -1681,6 +1681,12 @@
             "description": "Tree digest of the complete built bundle (all build outputs).",
             "$ref": "#/components/schemas/Digest"
           },
+          "bundle_archive": {
+            "description": "Content-store digest (raw bytes) of the deterministic tar of the bundle whose TreeDigest is `bundle`; later stages fetch it by this digest and re-check the TreeDigest.",
+            "default": null,
+            "$ref": "#/components/schemas/Digest",
+            "nullable": true
+          },
           "certificate_decl": {
             "description": "Lean constant named by the manifest's `[formal].certificate` (empty if none).",
             "type": "string"
@@ -1689,11 +1695,23 @@
             "description": "Tree digest of the candidate's `formal/` Lean project.",
             "$ref": "#/components/schemas/Digest"
           },
+          "native_verifier": {
+            "description": "`verify_route = \"native-lean\"`: content-store digest of the judge-built native verifier (reported by FORMAL_CHECK, set by the control plane); later stages run this binary, never the candidate's `verify`.",
+            "default": null,
+            "$ref": "#/components/schemas/Digest",
+            "nullable": true
+          },
           "prepare": {
             "$ref": "#/components/schemas/Digest"
           },
           "prove": {
             "$ref": "#/components/schemas/Digest"
+          },
+          "public_archive": {
+            "description": "Content-store digest of the deterministic tar of the judge-run `public_dir` (TreeDigest `public_artifacts`).",
+            "default": null,
+            "$ref": "#/components/schemas/Digest",
+            "nullable": true
           },
           "public_artifacts": {
             "description": "Tree digest of `public_dir` produced by the judge-run `prepare`, frozen by digest.",
@@ -1703,6 +1721,11 @@
             "description": "Build sandbox image/rootfs digest or id (informational).",
             "default": null,
             "type": "string",
+            "nullable": true
+          },
+          "verifier_bytecode": {
+            "description": "`verify_route = \"npai-v1\"`: digest of the built `entry.verifier_bytecode` file. Required for that route (the server refuses to derive a verified surface without it).",
+            "$ref": "#/components/schemas/Digest",
             "nullable": true
           },
           "verify": {
@@ -2639,6 +2662,25 @@
           }
         }
       },
+      "InvocationMode": {
+        "description": "Sandbox-instance granularity of steady-state benchmark runs.",
+        "oneOf": [
+          {
+            "description": "bench-spec-v1: every `prove` invocation in its own fresh sandbox instance (a microVM boot per request is inside nothing timed, but the guest page cache is cold for every invocation).",
+            "type": "string",
+            "enum": [
+              "vm_per_invocation"
+            ]
+          },
+          {
+            "description": "bench-spec-v1.1: each measured batch runs in ONE fresh sandbox instance; every request is still a fresh process with a wiped scratch, only its own inputs and no state carried between requests. One untimed warm-up invocation on the batch's first request precedes the timed ones. Cold runs stay one instance per invocation.",
+            "type": "string",
+            "enum": [
+              "vm_per_batch"
+            ]
+          }
+        ]
+      },
       "JobContext": {
         "description": "Context common to every job of a run.",
         "type": "object",
@@ -2734,6 +2776,12 @@
           "manifest": {
             "description": "Required for a passing `VALIDATE` job: the parsed, validated manifest.",
             "$ref": "#/components/schemas/CandidateManifest",
+            "nullable": true
+          },
+          "native_verifier": {
+            "description": "FORMAL_CHECK, `native-lean` route: content-store digest of the judge-built native verifier (uploaded before `complete`).",
+            "default": null,
+            "$ref": "#/components/schemas/Digest",
             "nullable": true
           }
         }
@@ -2879,6 +2927,11 @@
           "candidate_name": {
             "type": "string"
           },
+          "challenge_id": {
+            "description": "The challenge this result was measured under (additive, v1.4). A result is never re-labelled or moved to another challenge's board.",
+            "default": "",
+            "type": "string"
+          },
           "decision": {
             "$ref": "#/components/schemas/Decision",
             "nullable": true
@@ -2897,6 +2950,13 @@
             "format": "uint64",
             "minimum": 0.0,
             "nullable": true
+          },
+          "protocol_version": {
+            "description": "That challenge's NEAR protocol version (additive, v1.4).",
+            "default": 0,
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
           },
           "prove_median_ns": {
             "type": "integer",
@@ -2938,6 +2998,12 @@
           },
           "submitted_at": {
             "type": "string"
+          },
+          "superseded_by": {
+            "description": "Set when the challenge has been superseded: the board is historical (frozen, closed for new submissions) and scores are not comparable with the successor's (additive, v1.4).",
+            "default": null,
+            "type": "string",
+            "nullable": true
           },
           "tier": {
             "$ref": "#/components/schemas/Tier"
@@ -3074,6 +3140,11 @@
             "type": "integer",
             "format": "uint32",
             "minimum": 0.0
+          },
+          "invocation_mode": {
+            "description": "How benchmark invocations are isolated (v1.4, additive; absent ⇒ `vm_per_invocation`, i.e. bench-spec-v1, and not serialized, so existing challenge ids are unchanged). See docs/BENCHMARK_SPEC.md §4.",
+            "$ref": "#/components/schemas/InvocationMode",
+            "nullable": true
           },
           "measured_runs": {
             "type": "integer",
@@ -3614,6 +3685,11 @@
             "description": "Hex signature over the JCS bytes of `definition`.",
             "type": "string"
           },
+          "superseded_by": {
+            "description": "Id of a registered challenge whose `supersedes` names this one. A superseded challenge is closed for new submissions; its results and board stay attached to it (docs/PROTOCOL_UPGRADES.md §5).",
+            "type": "string",
+            "nullable": true
+          },
           "tier": {
             "$ref": "#/components/schemas/Tier"
           }
@@ -3954,8 +4030,28 @@
           "public_artifacts": {
             "$ref": "#/components/schemas/Digest"
           },
+          "verifier_bytecode": {
+            "description": "`npai-v1`: SHA-256 digest of the built verifier bytecode image.",
+            "$ref": "#/components/schemas/Digest",
+            "nullable": true
+          },
+          "verifier_model": {
+            "description": "`native-lean`: `[formal] verifier_model`.",
+            "type": "string",
+            "nullable": true
+          },
+          "verifier_model_module": {
+            "description": "`native-lean`: `[formal] verifier_model_module`.",
+            "type": "string",
+            "nullable": true
+          },
           "verify_artifact": {
             "$ref": "#/components/schemas/Digest"
+          },
+          "verify_route": {
+            "description": "Effective verify route (`native` when the manifest omits it).",
+            "$ref": "#/components/schemas/VerifyRoute",
+            "nullable": true
           }
         }
       },

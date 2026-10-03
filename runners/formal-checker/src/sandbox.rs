@@ -4,14 +4,13 @@
 //! `UntrustedRunner` mirrors the shape of the workspace `Sandbox` trait
 //! (`runners/sandbox`, CONTRACTS.md §9): read-only mounts, one scratch dir,
 //! fixed env, no network, wall timeout, outcome measured by the supervisor.
-//! Production plugs in the firecracker backend through an adapter; this crate
-//! ships `BwrapDevRunner` (namespaces only, refused unless `ARENA_DEV_UNSAFE=1`,
-//! results tier-capped at `demo`).
+//! [`SandboxRunner`] adapts it to the shared runner sandbox
+//! (`arena_sandbox::Sandbox`): `bwrap-dev` for development (refused unless
+//! `ARENA_DEV_UNSAFE=1`, results tier-capped at `demo`), `firecracker` in
+//! production.
 
-use std::io::Read;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub struct RunSpec {
@@ -77,141 +76,197 @@ pub trait UntrustedRunner: Send + Sync {
     fn run(&self, spec: &RunSpec, capture_limit: usize) -> Result<RunOutcome, InfraError>;
 }
 
-/// bubblewrap namespace sandbox for development. `--unshare-all` (no network,
-/// fresh pid/ipc/uts/user/cgroup namespaces), empty root with `/usr` read-only,
-/// tmpfs `/tmp`, `--clearenv`, `--die-with-parent`, `--new-session`.
-pub struct BwrapDevRunner {
-    bwrap: PathBuf,
+/// Adapter from the formal checker's seam to the shared runner sandbox
+/// (`arena_sandbox::Sandbox`, CONTRACTS §9): `bwrap-dev` in development,
+/// `firecracker` in production (once it supports read-write output dirs; the
+/// checker needs them for `.olean` outputs and is refused otherwise).
+pub struct SandboxRunner {
+    sandbox: std::sync::Arc<dyn arena_sandbox::Sandbox>,
+    /// Root filesystem of every run: `BackendDefault` (bwrap-dev: host
+    /// `/usr`) or a pinned lean-checker image (firecracker).
+    rootfs: arena_sandbox::Rootfs,
+    /// Host dir for per-run stdout capture directories.
+    work: PathBuf,
 }
 
-impl BwrapDevRunner {
-    pub fn new() -> Result<Self, InfraError> {
-        if std::env::var("ARENA_DEV_UNSAFE").as_deref() != Ok("1") {
-            return Err(InfraError::Refused(
-                "bwrap-dev runner requires ARENA_DEV_UNSAFE=1 (results are tier-capped at demo)".into(),
-            ));
+/// Guest dir used to capture a run's stdout into a host file.
+const G_STDOUT: &str = "/arena/stdout";
+
+impl SandboxRunner {
+    pub fn new(
+        sandbox: std::sync::Arc<dyn arena_sandbox::Sandbox>,
+        work: impl Into<PathBuf>,
+    ) -> Result<Self, InfraError> {
+        let layout = sandbox.layout();
+        if !layout.rw_binds {
+            return Err(InfraError::Refused(format!(
+                "sandbox backend {} does not support read-write output directories required by the formal checker",
+                sandbox.name()
+            )));
         }
-        let bwrap = ["/usr/bin/bwrap", "/bin/bwrap"]
+        let work = work.into();
+        std::fs::create_dir_all(&work)?;
+        Ok(SandboxRunner {
+            sandbox,
+            rootfs: arena_sandbox::Rootfs::BackendDefault,
+            work,
+        })
+    }
+
+    /// Run every step in `rootfs` (e.g. the digest-pinned lean-checker image
+    /// on firecracker; tool mounts the image already contains are elided by
+    /// the backend).
+    pub fn with_rootfs(mut self, rootfs: arena_sandbox::Rootfs) -> Self {
+        self.rootfs = rootfs;
+        self
+    }
+
+    /// Development convenience: the shared `bwrap-dev` backend (refused
+    /// unless `ARENA_DEV_UNSAFE=1`) with the sandbox helper at `helper`.
+    pub fn bwrap_dev(
+        helper: arena_sandbox::HelperCommand,
+        work: impl Into<PathBuf>,
+    ) -> Result<Self, InfraError> {
+        let work = work.into();
+        let sb = arena_sandbox::BwrapDev::new(arena_sandbox::BwrapConfig::new(
+            helper,
+            work.join("sandbox"),
+        ))
+        .map_err(|e| InfraError::Refused(e.to_string()))?;
+        Self::new(std::sync::Arc::new(sb), work)
+    }
+
+    fn translate(
+        &self,
+        spec: &RunSpec,
+        stdout_dir: Option<&std::path::Path>,
+    ) -> arena_sandbox::SandboxSpec {
+        let guest = |p: &PathBuf| p.display().to_string();
+        let mut argv = spec.argv.clone();
+        if stdout_dir.is_some() {
+            let mut w = vec![
+                "/bin/sh".to_string(),
+                "-c".into(),
+                format!("exec \"$0\" \"$@\" > {G_STDOUT}/out"),
+            ];
+            w.extend(argv);
+            argv = w;
+        }
+        let mut s = arena_sandbox::SandboxSpec::new(argv);
+        s.ro_mounts = spec
+            .ro
             .iter()
-            .map(PathBuf::from)
-            .find(|p| p.is_file())
-            .ok_or_else(|| InfraError::Refused("bwrap not installed".into()))?;
-        Ok(BwrapDevRunner { bwrap })
-    }
-
-    fn command(&self, spec: &RunSpec) -> Command {
-        let mut c = Command::new(&self.bwrap);
-        c.args(["--unshare-all", "--die-with-parent", "--new-session", "--clearenv"]);
-        c.args(["--ro-bind", "/usr", "/usr"]);
-        for (link, target) in [("/lib", "usr/lib"), ("/lib64", "usr/lib64"), ("/bin", "usr/bin")] {
-            c.args(["--symlink", target, link]);
+            .map(|(h, g)| arena_sandbox::Mount {
+                host: h.clone(),
+                guest: guest(g),
+            })
+            .collect();
+        s.rw_binds = spec
+            .rw
+            .iter()
+            .map(|(h, g)| arena_sandbox::Mount {
+                host: h.clone(),
+                guest: guest(g),
+            })
+            .collect();
+        if let Some(d) = stdout_dir {
+            s.rw_binds.push(arena_sandbox::Mount {
+                host: d.to_path_buf(),
+                guest: G_STDOUT.into(),
+            });
         }
-        c.args(["--proc", "/proc", "--dev", "/dev", "--tmpfs", "/tmp"]);
-        for (h, g) in &spec.ro {
-            c.arg("--ro-bind").arg(h).arg(g);
-        }
-        for (h, g) in &spec.rw {
-            c.arg("--bind").arg(h).arg(g);
-        }
-        for (k, v) in &spec.env {
-            c.args(["--setenv", k, v]);
-        }
-        c.arg("--chdir").arg(&spec.cwd);
-        c.arg("--");
-        c.args(&spec.argv);
-        c
+        s.env = spec.env.clone();
+        s.rootfs = self.rootfs.clone();
+        s.allow_mount_symlinks = true;
+        s.cwd = guest(&spec.cwd);
+        s.wall_timeout = spec.wall_timeout;
+        // Lean reserves large virtual ranges: the memory cap is the cgroup's
+        // (RSS-based) limit; 8 GiB when the checker sets none.
+        s.mem_bytes = spec.mem_bytes.unwrap_or(8 << 30);
+        s.pids = 1024;
+        // RLIMIT_FSIZE inside the sandbox follows the scratch size.
+        s.rw_scratch_mb = (spec.max_file_bytes >> 20).max(64);
+        s.output_trunc_bytes = REPORT_CAPTURE_LIMIT;
+        s
     }
 }
 
-fn set_limits(mem: Option<u64>, fsize: u64) -> std::io::Result<()> {
-    unsafe {
-        let lim = |res, v: u64| {
-            let r = libc::rlimit { rlim_cur: v as libc::rlim_t, rlim_max: v as libc::rlim_t };
-            if libc::setrlimit(res, &r) != 0 {
-                return Err(std::io::Error::last_os_error());
-            }
-            Ok(())
-        };
-        lim(libc::RLIMIT_FSIZE, fsize)?;
-        lim(libc::RLIMIT_CORE, 0)?;
-        if let Some(m) = mem {
-            lim(libc::RLIMIT_AS, m)?;
-        }
-    }
-    Ok(())
-}
-
-fn read_capped<R: Read + Send + 'static>(mut r: R, cap: usize) -> std::thread::JoinHandle<Vec<u8>> {
-    std::thread::spawn(move || {
-        let mut out = Vec::new();
-        let mut buf = [0u8; 8192];
-        loop {
-            match r.read(&mut buf) {
-                Ok(0) | Err(_) => break,
-                Ok(n) => {
-                    let room = cap.saturating_sub(out.len());
-                    out.extend_from_slice(&buf[..n.min(room)]);
-                }
-            }
-        }
-        out
-    })
-}
-
-/// Spawn `cmd`, enforce the wall timeout, capture output. Shared by runners.
-pub fn supervise(mut cmd: Command, spec: &RunSpec, capture_limit: usize) -> Result<RunOutcome, InfraError> {
-    use std::os::unix::process::{CommandExt, ExitStatusExt};
-    let mem = spec.mem_bytes;
-    let fsize = spec.max_file_bytes;
-    cmd.stdin(Stdio::null()).stderr(Stdio::piped());
-    match &spec.stdout_file {
-        Some(p) => {
-            cmd.stdout(Stdio::from(std::fs::File::create(p)?));
-        }
-        None => {
-            cmd.stdout(Stdio::piped());
-        }
-    }
-    cmd.process_group(0);
-    unsafe {
-        cmd.pre_exec(move || set_limits(mem, fsize));
-    }
-    let start = Instant::now();
-    let mut child = cmd.spawn()?;
-    let out_t = child.stdout.take().map(|s| read_capped(s, capture_limit));
-    let err_t = child.stderr.take().map(|s| read_capped(s, CAPTURE_LIMIT));
-    let exit = loop {
-        if let Some(st) = child.try_wait()? {
-            break match (st.code(), st.signal()) {
-                (Some(c), _) => RunExit::Exited(c),
-                (None, Some(s)) => RunExit::Signaled(s),
-                _ => RunExit::Signaled(0),
-            };
-        }
-        if start.elapsed() > spec.wall_timeout {
-            unsafe {
-                libc::kill(-(child.id() as i32), libc::SIGKILL);
-            }
-            let _ = child.kill();
-            let _ = child.wait();
-            break RunExit::TimedOut;
-        }
-        std::thread::sleep(Duration::from_millis(5));
-    };
-    let wall = start.elapsed();
-    let stdout = out_t.map(|t| t.join().unwrap_or_default()).unwrap_or_default();
-    let stderr = err_t.map(|t| t.join().unwrap_or_default()).unwrap_or_default();
-    Ok(RunOutcome { exit, wall, stdout, stderr })
-}
-
-impl UntrustedRunner for BwrapDevRunner {
+impl UntrustedRunner for SandboxRunner {
     fn id(&self) -> &str {
-        "bwrap-dev"
+        self.sandbox.name()
     }
     fn demo_only(&self) -> bool {
-        true
+        self.sandbox.tier_cap() == Some(arena_types::challenge::Tier::Demo)
     }
     fn run(&self, spec: &RunSpec, capture_limit: usize) -> Result<RunOutcome, InfraError> {
-        supervise(self.command(spec), spec, capture_limit)
+        static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        // stdout goes to a file when the caller streams it to a host file or
+        // it is a structured report larger than the backend's capture cap.
+        let to_file = spec.stdout_file.is_some() || capture_limit > CAPTURE_LIMIT;
+        let stdout_dir = match to_file {
+            true => {
+                let d = self.work.join(format!(
+                    "stdout-{}-{}",
+                    std::process::id(),
+                    N.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+                ));
+                std::fs::create_dir_all(&d)?;
+                Some(d)
+            }
+            false => None,
+        };
+        let sspec = self.translate(spec, stdout_dir.as_deref());
+        let res = self.sandbox.run(&sspec);
+        let o = match res {
+            Ok(o) => o,
+            Err(arena_sandbox::InfraError::InvalidSpec(m))
+            | Err(arena_sandbox::InfraError::Refused(m)) => return Err(InfraError::Refused(m)),
+            Err(e) => return Err(InfraError::Io(std::io::Error::other(e.to_string()))),
+        };
+        let mut captured: Option<Vec<u8>> = None;
+        if let Some(d) = &stdout_dir {
+            let src = d.join("out");
+            // Regular file only: never follow anything the sandbox planted.
+            let regular = std::fs::symlink_metadata(&src)
+                .map(|m| m.file_type().is_file())
+                .unwrap_or(false);
+            match &spec.stdout_file {
+                Some(target) if regular => {
+                    std::fs::rename(&src, target)
+                        .or_else(|_| std::fs::copy(&src, target).map(|_| ()))?;
+                }
+                Some(target) => {
+                    std::fs::File::create(target)?;
+                }
+                None => {
+                    let mut b = Vec::new();
+                    if regular {
+                        use std::io::Read;
+                        std::fs::File::open(&src)?
+                            .take(capture_limit as u64)
+                            .read_to_end(&mut b)?;
+                    }
+                    captured = Some(b);
+                }
+            }
+            let _ = std::fs::remove_dir_all(d);
+        }
+        let exit = match o.exit {
+            arena_sandbox::ExitStatus::Exited(c) => RunExit::Exited(c),
+            arena_sandbox::ExitStatus::Signaled(s) => RunExit::Signaled(s),
+            arena_sandbox::ExitStatus::TimedOut => RunExit::TimedOut,
+            arena_sandbox::ExitStatus::OomKilled => RunExit::Signaled(libc::SIGKILL),
+            arena_sandbox::ExitStatus::ExecFailed => RunExit::Exited(127),
+        };
+        let mut stdout = captured.unwrap_or(o.stdout_trunc);
+        stdout.truncate(capture_limit);
+        let mut stderr = o.stderr_trunc;
+        stderr.truncate(CAPTURE_LIMIT);
+        Ok(RunOutcome {
+            exit,
+            wall: Duration::from_nanos(o.wall_ns),
+            stdout,
+            stderr,
+        })
     }
 }

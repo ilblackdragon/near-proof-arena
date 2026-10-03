@@ -72,7 +72,8 @@ pub async fn lookup(conn: &mut PgConnection, key: &Digest) -> Result<Option<Cach
         i16,
     )> = sqlx::query_as(
         "SELECT id, gates, evidence_graph, source_submission_id, source_run_id, tier_rank
-         FROM formal_cache WHERE key = $1 AND invalidated_at IS NULL",
+         FROM formal_cache WHERE key = $1 AND invalidated_at IS NULL
+           AND NOT EXISTS (SELECT 1 FROM revocations r WHERE r.submission_id = formal_cache.source_submission_id)",
     )
     .bind(key.as_str())
     .fetch_optional(&mut *conn)
@@ -147,6 +148,27 @@ pub async fn invalidate(
     )
     .bind(checker_image)
     .bind(assumption)
+    .bind(by)
+    .bind(reason)
+    .fetch_all(&mut *conn)
+    .await?;
+    Ok(rows.into_iter().map(|r| r.0).collect())
+}
+
+/// Invalidate every live entry whose formal results came from `submission_id`
+/// (called when that submission is revoked: its PASSes must not be reused).
+pub async fn invalidate_source(
+    conn: &mut PgConnection,
+    submission_id: &str,
+    by: &str,
+    reason: &str,
+) -> Result<Vec<String>, DbError> {
+    let rows: Vec<(String,)> = sqlx::query_as(
+        "UPDATE formal_cache SET invalidated_at = now(), invalidated_by = $2, invalidated_reason = $3
+         WHERE invalidated_at IS NULL AND source_submission_id = $1
+         RETURNING key",
+    )
+    .bind(submission_id)
     .bind(by)
     .bind(reason)
     .fetch_all(&mut *conn)

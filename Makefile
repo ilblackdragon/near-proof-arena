@@ -99,7 +99,8 @@ dev-worker: dev-secrets ## Run a host bwrap-dev worker (ARENA_DEV_UNSAFE=1, resu
 	$(call require,runners/worker,runners-core,arena-worker crate)
 	$(call require_cmd,bwrap,install bubblewrap)
 	set -a; . $(SECRETS)/worker.env; set +a; \
-	export ARENA_SANDBOX=bwrap-dev ARENA_DEV_UNSAFE=1; \
+	export ARENA_SANDBOX=bwrap-dev ARENA_DEV_UNSAFE=1 ARENA_WORK_DIR=$(REPO)/var/worker \
+	  ARENA_FIXTURES_DIRS=$(REPO)/challenges/demo/toy-arithmetic/fixtures; \
 	$(GUARD) worker && exec $(CARGO) run $(CARGO_FLAGS) --bin arena-worker
 
 .PHONY: migrate
@@ -128,8 +129,9 @@ sys.exit(2 if miss else 0)' $(REQUIRED_BINS)
 test: test-rust test-sdk ## Rust workspace tests + SDK tests (web: `make web`, Lean: `make lean`)
 
 .PHONY: test-rust
-test-rust: ## cargo test --workspace (set DATABASE_URL / ARENA_TEST_DATABASE_URL for DB tests)
-	$(CARGO) test $(CARGO_FLAGS) --workspace --all-targets
+test-rust: ## cargo test --workspace (set DATABASE_URL / ARENA_TEST_DATABASE_URL for DB tests; needs bwrap)
+	$(call require_cmd,bwrap,install bubblewrap (bwrap-dev sandbox tests))
+	ARENA_DEV_UNSAFE=1 $(CARGO) test $(CARGO_FLAGS) --workspace --all-targets
 	$(CARGO) test $(CARGO_FLAGS) --workspace --doc
 
 .PHONY: test-sdk
@@ -145,8 +147,8 @@ test-sdk-python:
 
 .PHONY: test-sdk-ts
 test-sdk-ts:
-	$(call require,sdk/ts/package.json,sdk,TypeScript SDK)
-	cd sdk/ts && $(PNPM) install --frozen-lockfile && $(PNPM) run build && $(PNPM) test
+	$(call require,sdk/typescript/package.json,sdk,TypeScript SDK)
+	cd sdk/typescript && npm ci && npm run build && npm test
 
 .PHONY: lean
 lean: ## lake build formal-core and spec/lean

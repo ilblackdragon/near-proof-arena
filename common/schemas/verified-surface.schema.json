@@ -31,8 +31,44 @@
     "public_artifacts": {
       "$ref": "#/definitions/Digest"
     },
+    "verifier_bytecode": {
+      "description": "`npai-v1`: SHA-256 digest of the built verifier bytecode image.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Digest"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "verifier_model": {
+      "description": "`native-lean`: `[formal] verifier_model`.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "verifier_model_module": {
+      "description": "`native-lean`: `[formal] verifier_model_module`.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "verify_artifact": {
       "$ref": "#/definitions/Digest"
+    },
+    "verify_route": {
+      "description": "Effective verify route (`native` when the manifest omits it).",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/VerifyRoute"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "definitions": {
@@ -40,6 +76,14 @@
       "description": "`sha256:<64 lowercase hex>`",
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "VerifyRoute": {
+      "type": "string",
+      "enum": [
+        "native",
+        "npai-v1",
+        "native-lean"
+      ]
     }
   }
 }

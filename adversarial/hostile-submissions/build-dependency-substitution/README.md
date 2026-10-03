@@ -2,14 +2,12 @@
 
 **Attack family:** build-integrity
 
+**Targets:** demo  (runnable: true)
+
 **Expected decision:** REJECTED
-**Expected failing gate(s):** ARTIFACT_BINDING
-**Expected reason code(s):** ARTIFACT_BINDING_FAILED
+**Expected failing gate(s):** ADVERSARIAL_PROOFS
+**Expected reason code(s):** HOSTILE_PROOF_ACCEPTED
 
 ## What this proves about the judge
 
-The recipe substitutes a different source for a locked dependency (ignores dependency-locks and compiles an alternate file). Either the build output digest diverges from the certified artifact (ARTIFACT_BINDING) or the reproducibility/lock check fails (BUILD_FAILED).
-
-## Notes
-
-BUILD_FAILED acceptable if lock enforcement rejects the substitution before artifact binding.
+The recipe ignores the vendored verifier source and compiles an alternate, backdoored `verify_alt.c` (always-accept) as out/verify. The build is deterministic, so it reproduces; the backdoored verifier is then caught by ADVERSARIAL_PROOFS. (On the NEAR challenge the same swap is caught earlier by ARTIFACT_BINDING against the certified verifier digest.)

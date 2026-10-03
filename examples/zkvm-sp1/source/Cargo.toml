@@ -1,0 +1,18 @@
+# Host workspace (x86_64): prepare/prove (SP1 SDK), verify (sp1-verifier only).
+# The guest (guest/) is a separate workspace built for riscv64im-succinct-zkvm-elf.
+[workspace]
+resolver = "2"
+members = ["core", "artifacts", "prover", "verifier"]
+exclude = ["guest", "vendor", "vendor-guest", "patches"]
+
+[profile.release]
+codegen-units = 1
+incremental = false
+opt-level = 3
+debug = false
+
+[patch.crates-io]
+# Offline + reproducible: pre-generated protobuf code instead of build-time protoc.
+sp1-prover-types = { path = "patches/sp1-prover-types" }
+# Offline build of the embedded executor helper binary from this locked workspace.
+sp1-core-executor-runner = { path = "patches/sp1-core-executor-runner" }

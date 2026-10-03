@@ -171,3 +171,13 @@ test("wait() falls back to polling when SSE is unavailable", async () => {
 test("generated types are up to date", () => {
   execFileSync(process.execPath, [new URL("../scripts/gen-types.mjs", import.meta.url).pathname, "--check"]);
 });
+
+test("tar.zst uploads are labelled application/zstd", async () => {
+  const data = new Uint8Array([0x28, 0xb5, 0x2f, 0xfd, 1, 2]);
+  const m = mockFetch(async (_u, init) => {
+    assert.equal(hdr(init, "Content-Type"), "application/zstd");
+    return json({ upload_id: "u", digest: await packageDigest(data) });
+  });
+  const c = new ArenaClient({ baseUrl: "http://x", token: "t", fetch: m.fetch });
+  assert.equal((await c.upload(data)).digest, await packageDigest(data));
+});

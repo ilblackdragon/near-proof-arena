@@ -1,0 +1,16 @@
+total serialized 7142485 (estimate 8322636)
+  8322636  
+   838599  /opened_values
+   838599  /opened_values/instances
+  7483487  /opening_proof
+   191594  /opening_proof/commit_phase_openings
+  7291191  /opening_proof/input_openings
+  instance 0: 351858 bytes (trace_local 327615, trace_next 1, perm 23562 , quotient 677)
+  instance 1: 186541 bytes (trace_local 38778, trace_next 38904, perm 106132 , quotient 2724)
+  instance 2: 24960 bytes (trace_local 3418, trace_next 3421, perm 16757 , quotient 1361)
+  instance 3: 16152 bytes (trace_local 4052, trace_next 4053, perm 6691 , quotient 1353)
+  instance 4: 60687 bytes (trace_local 12846, trace_next 12843, perm 32279 , quotient 2716)
+  instance 5: 188072 bytes (trace_local 42313, trace_next 42400, perm 100649 , quotient 2707)
+  instance 6: 5225 bytes (trace_local 586, trace_next 592, perm 3368 , quotient 676)
+  instance 7: 3330 bytes (trace_local 130, trace_next 1, perm 2688 , quotient 339)
+  instance 8: 1772 bytes (trace_local 44, trace_next 1, perm 1339 , quotient 341)

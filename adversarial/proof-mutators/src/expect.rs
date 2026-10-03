@@ -5,6 +5,13 @@
 use arena_types::{Decision, ObligationId, ReasonCode, Stage};
 use serde::{Deserialize, Serialize};
 
+fn default_targets() -> Vec<String> {
+    vec!["demo".to_string()]
+}
+fn default_runnable() -> bool {
+    true
+}
+
 /// Expected judge outcome for one hostile submission.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -13,6 +20,18 @@ pub struct Expect {
     pub case: String,
     /// Attack family, for grouping in the report.
     pub attack_family: String,
+    /// Which challenge kind(s) this case is meaningful on: `"demo"` and/or
+    /// `"near-formal"`. A gate only exists where the challenge requires it, so
+    /// formal/artifact/crypto cases are `["near-formal"]` and the demo run
+    /// skips them (and vice-versa). Defaults to `["demo"]`.
+    #[serde(default = "default_targets")]
+    pub targets: Vec<String>,
+    /// Whether the e2e driver should actually submit this case. `false` for the
+    /// generic Lean-certificate stubs, which document an attack but need a real
+    /// reexec-witness backend to execute (the executable NEAR kills are the
+    /// `near-reexec-*` cases). Defaults to `true`.
+    #[serde(default = "default_runnable")]
+    pub runnable: bool,
     /// The decision the judge must reach. For every hostile case this is
     /// `REJECTED` (or `INCONCLUSIVE` only where noted), never `ADMITTED`.
     pub expected_decision: Decision,
@@ -76,6 +95,18 @@ impl Expect {
             }
             Decision::Inconclusive => {} // may have empty gates (UNKNOWN mandatory)
             _ => return bad("expected_decision must be REJECTED or INCONCLUSIVE"),
+        }
+        if self.targets.is_empty() {
+            return bad("targets must be non-empty");
+        }
+        if let Some(t) = self
+            .targets
+            .iter()
+            .find(|t| t.as_str() != "demo" && t.as_str() != "near-formal")
+        {
+            return bad(&format!(
+                "unknown target {t:?} (expected demo | near-formal)"
+            ));
         }
         Ok(())
     }

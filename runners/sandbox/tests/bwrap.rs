@@ -24,9 +24,15 @@ struct Env {
 fn env_with(mode: CgroupMode) -> Env {
     dev_unsafe();
     let tmp = tempfile::tempdir().unwrap();
-    let mut cfg = BwrapConfig::new(HelperCommand::new(env!("CARGO_BIN_EXE_arena-sandbox-helper")), tmp.path().join("work"));
+    let mut cfg = BwrapConfig::new(
+        HelperCommand::new(env!("CARGO_BIN_EXE_arena-sandbox-helper")),
+        tmp.path().join("work"),
+    );
     cfg.cgroup = mode;
-    Env { sb: BwrapDev::new(cfg).unwrap(), tmp }
+    Env {
+        sb: BwrapDev::new(cfg).unwrap(),
+        tmp,
+    }
 }
 
 fn env() -> Env {
@@ -73,8 +79,13 @@ fn runs_and_stamps_demo_isolation() {
 fn exit_codes_signals_exec_failure() {
     let e = env();
     assert_eq!(e.sb.run(&sh("exit 3")).unwrap().exit, ExitStatus::Exited(3));
-    assert_eq!(e.sb.run(&sh("kill -SEGV $$")).unwrap().exit, ExitStatus::Signaled(11));
-    let o = e.sb.run(&SandboxSpec::new(vec!["/nonexistent/prove".into()])).unwrap();
+    assert_eq!(
+        e.sb.run(&sh("kill -SEGV $$")).unwrap().exit,
+        ExitStatus::Signaled(11)
+    );
+    let o =
+        e.sb.run(&SandboxSpec::new(vec!["/nonexistent/prove".into()]))
+            .unwrap();
     assert_eq!(o.exit, ExitStatus::ExecFailed);
 }
 
@@ -91,7 +102,12 @@ fn network_is_denied() {
         ))
         .unwrap();
     assert_eq!(o.exit, ExitStatus::Exited(0), "{}", err(&o));
-    assert_eq!(out(&o), "lo\n", "only loopback, no connections, no DNS: {}", out(&o));
+    assert_eq!(
+        out(&o),
+        "lo\n",
+        "only loopback, no connections, no DNS: {}",
+        out(&o)
+    );
 }
 
 #[test]
@@ -123,7 +139,10 @@ fn writes_confined_to_scratch() {
            if (echo hi > $p) 2>/dev/null; then echo WROTE $p; fi; done; \
          echo ok > /scratch/a && echo ok > /tmp/b && cat /scratch/a /scratch/tmp/b; cat /in/ro/f",
     );
-    s.ro_mounts.push(Mount { host: ro.clone(), guest: "/in/ro".into() });
+    s.ro_mounts.push(Mount {
+        host: ro.clone(),
+        guest: "/in/ro".into(),
+    });
     let o = e.sb.run(&s).unwrap();
     assert_eq!(o.exit, ExitStatus::Exited(0), "{}", err(&o));
     assert_eq!(out(&o), "ok\nok\nx");
@@ -145,10 +164,20 @@ fn no_leaked_env_vars() {
     // A canary in the supervisor's own environment must not reach the sandbox.
     std::env::set_var("ARENA_TEST_CANARY", "leak");
     let e = env();
-    let o = e.sb.run(&SandboxSpec::new(vec!["/usr/bin/env".into()])).unwrap();
-    let mut keys: Vec<String> = out(&o).lines().map(|l| l.split('=').next().unwrap().to_string()).collect();
+    let o =
+        e.sb.run(&SandboxSpec::new(vec!["/usr/bin/env".into()]))
+            .unwrap();
+    let mut keys: Vec<String> = out(&o)
+        .lines()
+        .map(|l| l.split('=').next().unwrap().to_string())
+        .collect();
     keys.sort();
-    assert_eq!(keys, ["HOME", "LANG", "PATH", "PWD", "TMPDIR", "TZ"], "{}", out(&o));
+    assert_eq!(
+        keys,
+        ["HOME", "LANG", "PATH", "PWD", "TMPDIR", "TZ"],
+        "{}",
+        out(&o)
+    );
     let mut s = SandboxSpec::new(vec!["/usr/bin/env".into()]);
     s.env.push(("SOURCE_DATE_EPOCH".into(), "0".into()));
     let o = e.sb.run(&s).unwrap();
@@ -173,7 +202,14 @@ fn fork_bomb(mode: CgroupMode) {
     let t = Instant::now();
     let o = e.sb.run(&s).unwrap();
     assert!(t.elapsed() < Duration::from_secs(20));
-    assert!(matches!(o.exit, ExitStatus::TimedOut | ExitStatus::Exited(_) | ExitStatus::Signaled(_)), "{:?}", o.exit);
+    assert!(
+        matches!(
+            o.exit,
+            ExitStatus::TimedOut | ExitStatus::Exited(_) | ExitStatus::Signaled(_)
+        ),
+        "{:?}",
+        o.exit
+    );
     if e.sb.uses_cgroup() {
         assert!(o.pids_limit_hit, "pids.max should have been hit");
     }
@@ -196,7 +232,8 @@ fn mem_hog(mode: CgroupMode) -> SandboxOutcome {
     let mut s = SandboxSpec::new(vec![
         "/usr/bin/python3".into(),
         "-c".into(),
-        "b = bytearray(400 << 20)\nfor i in range(0, len(b), 4096): b[i] = 1\nprint('survived')".into(),
+        "b = bytearray(400 << 20)\nfor i in range(0, len(b), 4096): b[i] = 1\nprint('survived')"
+            .into(),
     ]);
     s.mem_bytes = 128 << 20;
     s.wall_timeout = Duration::from_secs(30);
@@ -243,7 +280,11 @@ fn timeout_kills_grandchildren() {
 fn background_processes_do_not_outlive_entry() {
     let e = env();
     let marker = format!("arena-daemon-{}", std::process::id());
-    let o = e.sb.run(&sh(&format!("(setsid bash -c 'exec -a {marker} sleep 1000' &); echo started"))).unwrap();
+    let o =
+        e.sb.run(&sh(&format!(
+            "(setsid bash -c 'exec -a {marker} sleep 1000' &); echo started"
+        )))
+        .unwrap();
     assert_eq!(o.exit, ExitStatus::Exited(0));
     std::thread::sleep(Duration::from_millis(200));
     assert!(!host_has_process(&marker));
@@ -275,7 +316,10 @@ fn hostile_outputs_rejected() {
     for (script, needle) in [
         ("mkdir o; ln -s /etc/passwd o/l", "not a regular file"),
         ("mkdir o; mkfifo o/f", "not a regular file"),
-        ("mkdir o; head -c 3000000 /dev/zero > o/big", "expanded size"),
+        (
+            "mkdir o; head -c 3000000 /dev/zero > o/big",
+            "expanded size",
+        ),
     ] {
         let dest = e.tmp.path().join(format!("out-{}", needle.len()));
         let _ = std::fs::remove_dir_all(&dest);
@@ -294,7 +338,9 @@ fn hostile_outputs_rejected() {
 #[test]
 fn stdout_truncated() {
     let e = env();
-    let o = e.sb.run(&sh("head -c 1000000 /dev/zero | tr '\\0' a")).unwrap();
+    let o =
+        e.sb.run(&sh("head -c 1000000 /dev/zero | tr '\\0' a"))
+            .unwrap();
     assert_eq!(o.stdout_trunc.len(), 64 * 1024);
     assert_eq!(o.stdout_bytes, 1_000_000);
 }
@@ -305,9 +351,16 @@ fn copy_in_gives_writable_copy() {
     let pkg = e.tmp.path().join("pkg");
     std::fs::create_dir_all(pkg.join("d")).unwrap();
     std::fs::write(pkg.join("d/f"), "data\n").unwrap();
-    let mut s = sh("test -d made/x || exit 9; cd work && cat d/f && echo more >> d/f && cat d/f | wc -l");
-    s.ro_mounts.push(Mount { host: pkg.clone(), guest: "/in/pkg".into() });
-    s.copy_in.push(CopyIn { from_guest: "/in/pkg".into(), to_scratch: "work".into() });
+    let mut s =
+        sh("test -d made/x || exit 9; cd work && cat d/f && echo more >> d/f && cat d/f | wc -l");
+    s.ro_mounts.push(Mount {
+        host: pkg.clone(),
+        guest: "/in/pkg".into(),
+    });
+    s.copy_in.push(CopyIn {
+        from_guest: "/in/pkg".into(),
+        to_scratch: "work".into(),
+    });
     s.scratch_dirs.push("made/x".into());
     let o = e.sb.run(&s).unwrap();
     assert_eq!(out(&o), "data\n2\n", "{}", err(&o));
@@ -319,7 +372,9 @@ fn measures_wall_and_cpu() {
     let e = env();
     let o = e.sb.run(&sh("sleep 0.3")).unwrap();
     assert!(o.wall_ns >= 300_000_000, "{}", o.wall_ns);
-    let o = e.sb.run(&sh("i=0; while [ $i -lt 300000 ]; do i=$((i+1)); done")).unwrap();
+    let o =
+        e.sb.run(&sh("i=0; while [ $i -lt 300000 ]; do i=$((i+1)); done"))
+            .unwrap();
     assert!(o.cpu_ns >= 50_000_000, "cpu {}", o.cpu_ns);
 }
 
@@ -327,10 +382,16 @@ fn measures_wall_and_cpu() {
 fn spec_validation() {
     let e = env();
     let mut s = sh("true");
-    s.ro_mounts.push(Mount { host: PathBuf::from("/usr"), guest: "/usr".into() });
+    s.ro_mounts.push(Mount {
+        host: PathBuf::from("/usr"),
+        guest: "/usr".into(),
+    });
     assert!(matches!(e.sb.run(&s), Err(InfraError::InvalidSpec(_))));
     let mut s = sh("true");
-    s.ro_mounts.push(Mount { host: PathBuf::from("/usr"), guest: "/in/../etc".into() });
+    s.ro_mounts.push(Mount {
+        host: PathBuf::from("/usr"),
+        guest: "/in/../etc".into(),
+    });
     assert!(matches!(e.sb.run(&s), Err(InfraError::InvalidSpec(_))));
     let mut s = sh("true");
     s.collect.push("../x".into());
@@ -342,11 +403,34 @@ fn spec_validation() {
 fn cannot_tamper_with_init() {
     let e = env();
     // PID 1 is the judge's init: non-dumpable and immune to in-namespace kills.
-    let o = e
-        .sb
-        .run(&sh("kill -9 1 2>/dev/null; cat /proc/1/environ >/dev/null 2>&1 && echo READ_ENV; \
-                  head -c 1 /proc/1/mem >/dev/null 2>&1 && echo READ_MEM; echo alive"))
+    let o =
+        e.sb.run(&sh(
+            "kill -9 1 2>/dev/null; cat /proc/1/environ >/dev/null 2>&1 && echo READ_ENV; \
+                  head -c 1 /proc/1/mem >/dev/null 2>&1 && echo READ_MEM; echo alive",
+        ))
         .unwrap();
     assert_eq!(o.exit, ExitStatus::Exited(0), "{}", err(&o));
     assert_eq!(out(&o), "alive\n");
+}
+
+#[test]
+fn rw_binds_write_through_and_arena_prefix() {
+    let e = env();
+    let rw = e.tmp.path().join("rw");
+    std::fs::create_dir(&rw).unwrap();
+    let ro = e.tmp.path().join("ro2");
+    std::fs::create_dir(&ro).unwrap();
+    let mut s = sh("echo made > /arena/out/f && (echo x > /arena/src/g) 2>/dev/null || echo ro-ok");
+    s.rw_binds.push(Mount {
+        host: rw.clone(),
+        guest: "/arena/out".into(),
+    });
+    s.ro_mounts.push(Mount {
+        host: ro.clone(),
+        guest: "/arena/src".into(),
+    });
+    let o = e.sb.run(&s).unwrap();
+    assert_eq!(out(&o), "ro-ok\n", "{}", err(&o));
+    assert_eq!(std::fs::read_to_string(rw.join("f")).unwrap(), "made\n");
+    assert!(!ro.join("g").exists());
 }

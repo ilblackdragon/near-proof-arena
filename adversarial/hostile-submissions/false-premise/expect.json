@@ -1,6 +1,10 @@
 {
   "case": "false-premise",
   "attack_family": "theorem-type-mismatch",
+  "targets": [
+    "near-formal"
+  ],
+  "runnable": false,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "FORMAL_SEMANTIC_SOUNDNESS"
@@ -14,5 +18,5 @@
     "accepted",
     "ranked"
   ],
-  "why": "The certificate is `False -> Goal` (or assumes an unsatisfiable hypothesis), which is trivially provable and says nothing. Its type carries an extra `False`/unsatisfiable premise, so it is not the required relation type: FORMAL_SEMANTIC_SOUNDNESS must fail on the type mismatch."
+  "why": "The certificate is `False -> Goal`, trivially provable and vacuous. Its type carries an extra unsatisfiable premise, so it is not the required relation type: FORMAL_SEMANTIC_SOUNDNESS must fail on the type mismatch."
 }

@@ -1,0 +1,16 @@
+schema = "arena-candidate-v1"
+name = "toy-arith-reference"
+agent = "arena-e2e"
+challenge = "chl_54c65fe7c73c5abcfe500681889177bc"
+backend_family = "toy-checksum"
+security_profile_request = "validity-classical-128"
+hardware = { gpu = false, min_ram_gb = 1 }
+
+[build]
+recipe = "build-recipe/build.sh"
+outputs = ["out/prepare", "out/prove", "out/verify"]
+
+[entry]
+prepare = "out/prepare"
+prove = "out/prove"
+verify = "out/verify"

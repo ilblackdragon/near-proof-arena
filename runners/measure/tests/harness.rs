@@ -23,7 +23,11 @@ impl Sandbox for Scripted {
         self.calls.lock().unwrap().push(spec.argv.join(" "));
         let wall = self.walls.lock().unwrap().remove(0);
         Ok(SandboxOutcome {
-            exit: if wall == 0 { ExitStatus::TimedOut } else { ExitStatus::Exited(0) },
+            exit: if wall == 0 {
+                ExitStatus::TimedOut
+            } else {
+                ExitStatus::Exited(0)
+            },
             wall_ns: wall,
             cpu_ns: wall,
             peak_rss_bytes: 1 << 20,
@@ -55,6 +59,7 @@ fn procedure(cold: u32, warm: u32, measured: u32) -> MeasurementProcedure {
         cold_runs: cold,
         concurrency: 1,
         per_run_timeout_ms: 1000,
+        invocation_mode: None,
     }
 }
 
@@ -62,10 +67,22 @@ fn procedure(cold: u32, warm: u32, measured: u32) -> MeasurementProcedure {
 fn session_uses_supervisor_wall_time_only() {
     // 1 cold, 1 warmup, 5 measured, 1 fresh = 8 runs for one class.
     let walls = vec![900, 600, 500, 510, 490, 505, 2000, 520];
-    let sb = Scripted { walls: Mutex::new(walls), calls: Mutex::new(vec![]) };
-    let mut runner = SpecRunner { sandbox: &sb, make_spec: |c: &str, p: Phase, r: u32| SandboxSpec::new(vec![format!("{c}:{}:{r}", p.as_str())]) };
+    let sb = Scripted {
+        walls: Mutex::new(walls),
+        calls: Mutex::new(vec![]),
+    };
+    let mut runner = SpecRunner {
+        sandbox: &sb,
+        make_spec: |c: &str, p: Phase, r: u32| {
+            SandboxSpec::new(vec![format!("{c}:{}:{r}", p.as_str())])
+        },
+    };
     let plan = SessionPlan {
-        classes: vec![ClassPlan { class_id: "a".into(), weight_ppm: 1_000_000, baseline_ns: 1000 }],
+        classes: vec![ClassPlan {
+            class_id: "a".into(),
+            weight_ppm: 1_000_000,
+            baseline_ns: 1000,
+        }],
         procedure: procedure(1, 1, 5),
         schedule_seed: 7,
         bootstrap_seed: 1,
@@ -92,10 +109,20 @@ fn session_uses_supervisor_wall_time_only() {
 
 #[test]
 fn timeout_fails_session_fast() {
-    let sb = Scripted { walls: Mutex::new(vec![100, 0, 100]), calls: Mutex::new(vec![]) };
-    let mut runner = SpecRunner { sandbox: &sb, make_spec: |_: &str, _: Phase, _: u32| SandboxSpec::new(vec!["x".into()]) };
+    let sb = Scripted {
+        walls: Mutex::new(vec![100, 0, 100]),
+        calls: Mutex::new(vec![]),
+    };
+    let mut runner = SpecRunner {
+        sandbox: &sb,
+        make_spec: |_: &str, _: Phase, _: u32| SandboxSpec::new(vec!["x".into()]),
+    };
     let plan = SessionPlan {
-        classes: vec![ClassPlan { class_id: "a".into(), weight_ppm: 1_000_000, baseline_ns: 1000 }],
+        classes: vec![ClassPlan {
+            class_id: "a".into(),
+            weight_ppm: 1_000_000,
+            baseline_ns: 1000,
+        }],
         procedure: procedure(0, 0, 3),
         schedule_seed: 1,
         bootstrap_seed: 1,
@@ -103,7 +130,11 @@ fn timeout_fails_session_fast() {
         fresh_confirm_runs: 0,
     };
     match run_session(&plan, &mut runner) {
-        Err(SessionError::Run { seq: 1, error: RunError::Candidate { reason, .. }, .. }) => {
+        Err(SessionError::Run {
+            seq: 1,
+            error: RunError::Candidate { reason, .. },
+            ..
+        }) => {
             assert_eq!(reason, arena_types::ReasonCode::Timeout)
         }
         other => panic!("{other:?}"),
@@ -114,10 +145,20 @@ fn timeout_fails_session_fast() {
 #[test]
 fn caching_tripwire_flags() {
     let walls = vec![100, 101, 99, 100, 100, 200];
-    let sb = Scripted { walls: Mutex::new(walls), calls: Mutex::new(vec![]) };
-    let mut runner = SpecRunner { sandbox: &sb, make_spec: |_: &str, _: Phase, _: u32| SandboxSpec::new(vec!["x".into()]) };
+    let sb = Scripted {
+        walls: Mutex::new(walls),
+        calls: Mutex::new(vec![]),
+    };
+    let mut runner = SpecRunner {
+        sandbox: &sb,
+        make_spec: |_: &str, _: Phase, _: u32| SandboxSpec::new(vec!["x".into()]),
+    };
     let plan = SessionPlan {
-        classes: vec![ClassPlan { class_id: "a".into(), weight_ppm: 1_000_000, baseline_ns: 1000 }],
+        classes: vec![ClassPlan {
+            class_id: "a".into(),
+            weight_ppm: 1_000_000,
+            baseline_ns: 1000,
+        }],
         procedure: procedure(0, 0, 5),
         schedule_seed: 1,
         bootstrap_seed: 1,
@@ -125,7 +166,11 @@ fn caching_tripwire_flags() {
         fresh_confirm_runs: 1,
     };
     let r = run_session(&plan, &mut runner).unwrap();
-    assert!(r.flags.contains(&"CACHING_SUSPECTED:a".to_string()), "{:?}", r.flags);
+    assert!(
+        r.flags.contains(&"CACHING_SUSPECTED:a".to_string()),
+        "{:?}",
+        r.flags
+    );
 }
 
 #[test]

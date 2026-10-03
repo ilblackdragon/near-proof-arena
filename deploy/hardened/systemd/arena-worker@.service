@@ -26,7 +26,7 @@ Environment=ARENA_SANDBOX=firecracker
 Environment=ARENA_WORKER_CLASS=%i
 # Refuses ARENA_DEV_UNSAFE, bwrap-dev, dev secrets, report keys, admin tokens.
 ExecStartPre=/usr/local/lib/arena/arena-guard worker
-ExecStart=/usr/local/bin/arena-worker --class %i
+ExecStart=/usr/local/bin/arena-worker
 Restart=on-failure
 RestartSec=5s
 

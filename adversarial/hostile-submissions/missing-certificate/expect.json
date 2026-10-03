@@ -1,6 +1,10 @@
 {
   "case": "missing-certificate",
   "attack_family": "formal-missing",
+  "targets": [
+    "near-formal"
+  ],
+  "runnable": false,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
     "FORMAL_SEMANTIC_SOUNDNESS"

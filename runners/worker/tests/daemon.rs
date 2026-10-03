@@ -1,199 +1,179 @@
-//! Daemon loop over real HTTP against an in-test fake control plane:
-//! lease → fetch by digest → execute → upload → complete / fail.
+//! Daemon loop against an in-process control plane: lease → execute →
+//! complete / fail, heartbeats, cancellation, tier refusal.
 
 mod common;
 
-use arena_types::{Digest, GateStatus};
-use arena_worker::client::{ClientError, ControlPlane, HttpControlPlane, LeaseRequest};
+use arena_jobs::*;
+use arena_types::{GateStatus, ObligationId};
+use arena_worker::control::{ControlError, ControlPlane};
 use arena_worker::daemon::{Daemon, Step};
-use arena_worker::executor::{BuildEnv, StageExecutor, WorkerContext};
-use arena_worker::jobs::*;
-use arena_worker::mutators::MutatorRegistry;
-use std::collections::HashMap;
-use std::io::{BufRead, BufReader, Read, Write};
-use std::net::TcpListener;
+use common::*;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 #[derive(Default)]
-struct State {
-    jobs: Vec<Job>,
-    artifacts: HashMap<String, Vec<u8>>,
-    completed: Vec<serde_json::Value>,
-    failed: Vec<serde_json::Value>,
-    heartbeats: usize,
-    bad_auth: usize,
+struct Fake {
+    jobs: Mutex<Vec<LeasedJob>>,
+    completed: Mutex<Vec<(String, CompleteRequest)>>,
+    failed: Mutex<Vec<(String, FailRequest)>>,
+    heartbeats: Mutex<usize>,
+    cancel: bool,
 }
 
-fn serve(state: Arc<Mutex<State>>) -> String {
-    let l = TcpListener::bind("127.0.0.1:0").unwrap();
-    let addr = format!("http://{}", l.local_addr().unwrap());
-    std::thread::spawn(move || {
-        for conn in l.incoming() {
-            let Ok(mut s) = conn else { continue };
-            let state = state.clone();
-            std::thread::spawn(move || {
-                let mut r = BufReader::new(s.try_clone().unwrap());
-                let mut line = String::new();
-                r.read_line(&mut line).unwrap();
-                let mut parts = line.split_whitespace();
-                let (method, path) = (parts.next().unwrap_or("").to_string(), parts.next().unwrap_or("").to_string());
-                let mut len = 0usize;
-                let mut auth = String::new();
-                loop {
-                    let mut h = String::new();
-                    r.read_line(&mut h).unwrap();
-                    if h == "\r\n" || h.is_empty() {
-                        break;
-                    }
-                    let (k, v) = h.split_once(':').unwrap();
-                    match k.to_ascii_lowercase().as_str() {
-                        "content-length" => len = v.trim().parse().unwrap(),
-                        "authorization" => auth = v.trim().to_string(),
-                        _ => {}
-                    }
-                }
-                let mut body = vec![0; len];
-                r.read_exact(&mut body).unwrap();
-                let mut st = state.lock().unwrap();
-                let (code, resp): (u16, Vec<u8>) = if auth != "Bearer worker-token" {
-                    st.bad_auth += 1;
-                    (401, b"no".to_vec())
-                } else {
-                    match (method.as_str(), path.as_str()) {
-                        ("POST", "/internal/v1/jobs/lease") => {
-                            let req: LeaseRequest = serde_json::from_slice(&body).unwrap();
-                            assert_eq!(req.sandbox.isolation, "bwrap-dev (DEMO-only)");
-                            if st.jobs.is_empty() {
-                                (204, vec![])
-                            } else {
-                                (200, serde_json::to_vec(&st.jobs.remove(0)).unwrap())
-                            }
-                        }
-                        ("POST", "/internal/v1/jobs/heartbeat") => {
-                            st.heartbeats += 1;
-                            (200, br#"{"lease_until":"2099-01-01T00:00:00Z"}"#.to_vec())
-                        }
-                        ("POST", "/internal/v1/jobs/complete") => {
-                            st.completed.push(serde_json::from_slice(&body).unwrap());
-                            (200, b"{}".to_vec())
-                        }
-                        ("POST", "/internal/v1/jobs/fail") => {
-                            st.failed.push(serde_json::from_slice(&body).unwrap());
-                            (200, b"{}".to_vec())
-                        }
-                        ("GET", p) if p.starts_with("/internal/v1/artifacts/") => {
-                            match st.artifacts.get(&p["/internal/v1/artifacts/".len()..]) {
-                                Some(b) => (200, b.clone()),
-                                None => (404, b"missing".to_vec()),
-                            }
-                        }
-                        ("PUT", p) if p.starts_with("/internal/v1/artifacts/") => {
-                            let d = &p["/internal/v1/artifacts/".len()..];
-                            assert_eq!(Digest::of_bytes(&body).as_str(), d, "uploaded bytes must match digest");
-                            st.artifacts.insert(d.to_string(), body);
-                            (201, vec![])
-                        }
-                        _ => (404, vec![]),
-                    }
-                };
-                drop(st);
-                let _ = write!(s, "HTTP/1.1 {code} X\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", resp.len());
-                let _ = s.write_all(&resp);
-            });
-        }
-    });
-    addr
+impl ControlPlane for Fake {
+    fn lease(&self, req: &LeaseRequest) -> Result<Option<LeasedJob>, ControlError> {
+        assert!(!req.kinds.is_empty());
+        Ok(self.jobs.lock().unwrap().pop())
+    }
+    fn heartbeat(
+        &self,
+        _: &str,
+        req: &HeartbeatRequest,
+    ) -> Result<HeartbeatResponse, ControlError> {
+        assert_eq!(req.lease_id, "lease-1");
+        *self.heartbeats.lock().unwrap() += 1;
+        Ok(HeartbeatResponse {
+            lease_until: "2099-01-01T00:00:00Z".into(),
+            cancelled: self.cancel,
+        })
+    }
+    fn complete(&self, id: &str, req: &CompleteRequest) -> Result<(), ControlError> {
+        self.completed
+            .lock()
+            .unwrap()
+            .push((id.into(), req.clone()));
+        Ok(())
+    }
+    fn fail(&self, id: &str, req: &FailRequest) -> Result<(), ControlError> {
+        self.failed.lock().unwrap().push((id.into(), req.clone()));
+        Ok(())
+    }
 }
 
-fn daemon(url: &str, token: &str, tmp: &std::path::Path) -> Daemon {
-    let http = Arc::new(HttpControlPlane::new(url, token));
-    let helper = arena_sandbox::HelperCommand { exe: env!("CARGO_BIN_EXE_arena-worker").into(), prefix_args: vec![arena_worker::HELPER_ARG.into()] };
-    let sb = arena_sandbox::BwrapDev::new(arena_sandbox::BwrapConfig::new(helper, tmp.join("sb"))).unwrap();
-    let exec = StageExecutor::new(WorkerContext {
-        worker_id: "w1".into(),
-        sandbox: Arc::new(sb),
-        store: http.clone(),
-        work_root: tmp.join("jobs"),
-        build: BuildEnv::default(),
-        bench_cpus: None,
-        mutators: MutatorRegistry::generic(),
-        keep_workdirs: false,
-    });
-    let info = exec.sandbox_info();
+fn leased(spec: JobSpec) -> LeasedJob {
+    LeasedJob {
+        job_id: "job-1".into(),
+        lease_id: "lease-1".into(),
+        submission_id: "sub_test".into(),
+        run_id: "run_test".into(),
+        kind: spec.kind(),
+        attempt: 1,
+        max_attempts: 3,
+        lease_until: "2099-01-01T00:00:00Z".into(),
+        protocol: JOB_PROTOCOL_VERSION.into(),
+        spec,
+    }
+}
+
+fn daemon(f: &Fixture, control: Arc<Fake>) -> Daemon {
+    let exec = common::executor(
+        f.exec.ctx.sandbox.clone(),
+        f.store.clone(),
+        &f.tmp.path().join("djobs"),
+    );
     Daemon {
-        control: http,
+        control,
+        kinds: exec.kinds(),
         executor: Arc::new(exec),
-        worker_id: "w1".into(),
-        kinds: JobKind::ALL.to_vec(),
-        sandbox: info,
+        lease_seconds: 60,
         poll_interval: Duration::from_millis(10),
-        heartbeat_interval: Duration::from_millis(50),
+        heartbeat_interval: Duration::from_millis(20),
     }
 }
 
 #[test]
-fn lease_execute_upload_complete() {
-    assert_eq!(std::env::var("ARENA_DEV_UNSAFE").as_deref(), Ok("1"));
-    let tmp = tempfile::tempdir().unwrap();
-    let state = Arc::new(Mutex::new(State::default()));
-    let pkg = common::tar_of(&common::package_files());
-    let pkg_d = Digest::of_bytes(&pkg);
-    {
-        let mut st = state.lock().unwrap();
-        st.artifacts.insert(pkg_d.to_string(), pkg);
-        st.jobs.push(common::job("v1", JobSpec::Validate(ValidateJob { package: pkg_d.clone(), challenge_id: common::CHALLENGE.into() })));
-        st.jobs.push(common::job(
-            "b1",
-            JobSpec::Build(BuildJob { package: pkg_d, toolchain_image: None, limits: common::build_limits(), source_date_epoch: 0 }),
-        ));
-        // Input that is not in the store: infra failure, retryable.
-        st.jobs.push(common::job(
-            "v2",
-            JobSpec::Validate(ValidateJob { package: Digest::of_bytes(b"nope"), challenge_id: common::CHALLENGE.into() }),
-        ));
-    }
-    let url = serve(state.clone());
-    let d = daemon(&url, "worker-token", tmp.path());
-    assert_eq!(d.run_once().unwrap(), Step::Completed);
-    assert_eq!(d.run_once().unwrap(), Step::Completed);
-    assert_eq!(d.run_once().unwrap(), Step::Failed);
+fn lease_execute_complete_and_refusals() {
+    let f = fixture();
+    let fake = Arc::new(Fake::default());
+    let d = daemon(&f, fake.clone());
     assert_eq!(d.run_once().unwrap(), Step::Idle);
+    assert!(
+        !d.kinds.contains(&JobKind::FormalCheck),
+        "formal check needs a formal config"
+    );
 
-    let st = state.lock().unwrap();
-    assert_eq!(st.completed.len(), 2);
-    let v: CompleteBody = serde_json::from_value(st.completed[0].clone()).unwrap();
-    assert_eq!(v.output.gates[0].status, GateStatus::Pass);
-    let manifest = v.output.artifact("manifest").unwrap();
-    assert!(st.artifacts.contains_key(manifest.as_str()), "manifest uploaded by digest");
-    let b: CompleteBody = serde_json::from_value(st.completed[1].clone()).unwrap();
-    assert_eq!(b.output.gates[0].status, GateStatus::Pass, "{}", b.output.gates[0].summary);
-    let bundle = b.output.artifact("bundle").unwrap();
-    assert!(st.artifacts.contains_key(bundle.as_str()), "bundle uploaded by digest");
-    assert_eq!(st.failed.len(), 1);
-    assert_eq!(st.failed[0]["retryable"], true);
-    assert!(st.failed[0]["error"].as_str().unwrap().contains("not found"));
-    assert_eq!(st.bad_auth, 0);
-}
+    let pkg = f.put(&tar_of(&package_files()));
+    fake.jobs
+        .lock()
+        .unwrap()
+        .push(leased(JobSpec::Validate(ValidateJob {
+            ctx: f.ctx(&pkg),
+            challenge: f.chal.clone(),
+        })));
+    assert_eq!(d.run_once().unwrap(), Step::Completed);
+    let (id, done) = fake.completed.lock().unwrap().pop().unwrap();
+    assert_eq!(id, "job-1");
+    assert_eq!(done.lease_id, "lease-1");
+    assert_eq!(done.result.gates[0].status, GateStatus::Pass);
+    assert_eq!(done.result.gates[0].gate, ObligationId::PkgWellformed);
+    for a in &done.result.artifacts {
+        assert!(
+            f.store.root.join(a.digest.hex()).exists(),
+            "artifacts are uploaded before completion"
+        );
+    }
 
-#[derive(serde::Deserialize)]
-struct CompleteBody {
-    output: JobOutput,
+    // A formal-tier job is refused (non-retryable) by a demo-capped sandbox.
+    let mut ctx = f.ctx(&pkg);
+    ctx.tier = arena_types::challenge::Tier::Formal;
+    fake.jobs
+        .lock()
+        .unwrap()
+        .push(leased(JobSpec::Validate(ValidateJob {
+            ctx,
+            challenge: f.chal.clone(),
+        })));
+    assert_eq!(d.run_once().unwrap(), Step::Failed);
+    let (_, fr) = fake.failed.lock().unwrap().pop().unwrap();
+    assert!(!fr.retryable && fr.error.contains("tier"), "{fr:?}");
+
+    // Missing input: retryable infra failure.
+    fake.jobs
+        .lock()
+        .unwrap()
+        .push(leased(JobSpec::Validate(ValidateJob {
+            ctx: f.ctx(&arena_types::Digest::of_bytes(b"nope")),
+            challenge: f.chal.clone(),
+        })));
+    assert_eq!(d.run_once().unwrap(), Step::Failed);
+    let (_, fr) = fake.failed.lock().unwrap().pop().unwrap();
+    assert!(fr.retryable && fr.error.contains("not found"), "{fr:?}");
+
+    // Unknown protocol version: refused.
+    let mut j = leased(JobSpec::Validate(ValidateJob {
+        ctx: f.ctx(&pkg),
+        challenge: f.chal.clone(),
+    }));
+    j.protocol = "arena-jobs-v999".into();
+    fake.jobs.lock().unwrap().push(j);
+    assert_eq!(d.run_once().unwrap(), Step::Failed);
+    assert!(!fake.failed.lock().unwrap().pop().unwrap().1.retryable);
 }
 
 #[test]
-fn wrong_token_is_unauthorized() {
-    let tmp = tempfile::tempdir().unwrap();
-    let state = Arc::new(Mutex::new(State::default()));
-    let url = serve(state.clone());
-    let cp = HttpControlPlane::new(&url, "stolen");
-    let req = LeaseRequest {
-        worker_id: "w".into(),
-        kinds: vec![JobKind::Validate],
-        sandbox: SandboxInfo { backend: "x".into(), isolation: "x".into(), tier_cap: None },
-    };
-    assert!(matches!(cp.lease(&req), Err(ClientError::Unauthorized)));
-    drop(tmp);
+fn cancellation_via_heartbeat() {
+    let f = fixture();
+    let fake = Arc::new(Fake {
+        cancel: true,
+        ..Default::default()
+    });
+    let d = daemon(&f, fake.clone());
+    let (v, pkg) = f.validate(&package_files());
+    let manifest = v.manifest.unwrap();
+    fake.jobs
+        .lock()
+        .unwrap()
+        .push(leased(JobSpec::Build(BuildJob {
+            ctx: f.ctx(&pkg),
+            challenge: f.chal.clone(),
+            manifest,
+        })));
+    assert_eq!(d.run_once().unwrap(), Step::LeaseLost);
+    assert!(
+        fake.completed.lock().unwrap().is_empty(),
+        "a cancelled job is never completed"
+    );
+    assert!(*fake.heartbeats.lock().unwrap() >= 1);
 }
 
 #[test]
@@ -203,7 +183,10 @@ fn binary_refuses_db_credentials() {
         .env_clear()
         .env("ARENA_SERVER_URL", "http://127.0.0.1:1")
         .env("ARENA_WORKER_TOKEN", "t")
-        .env("DATABASE_URL", "postgres://arena:arena@127.0.0.1:55471/arena")
+        .env(
+            "DATABASE_URL",
+            "postgres://arena:arena@127.0.0.1:55471/arena",
+        )
         .output()
         .unwrap();
     assert_eq!(out.status.code(), Some(2));

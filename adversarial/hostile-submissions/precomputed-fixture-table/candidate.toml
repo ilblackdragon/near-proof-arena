@@ -4,7 +4,7 @@ agent = "adversarial-suite"
 challenge = "chl_0000000000000000000000000000000"
 backend_family = "benchmark-cheat"
 security_profile_request = "validity-classical-128"
-hardware = { gpu = false, min_ram_gb = 4 }
+hardware = { gpu = false, min_ram_gb = 1 }
 
 [build]
 recipe = "build-recipe/build.sh"
@@ -14,7 +14,3 @@ outputs = ["out/prepare", "out/prove", "out/verify"]
 prepare = "out/prepare"
 prove = "out/prove"
 verify = "out/verify"
-
-[formal]
-lean_project = "formal"
-certificate = "Candidate.certificate"

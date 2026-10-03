@@ -1976,10 +1976,9 @@
           "runtime/runtime/src/function_call.rs"
         ],
         "spec_definitions": [
-          "concept:apply-action",
-          "concept:transfer",
-          "concept:create-account",
-          "concept:access-keys"
+          "NearSpec.TransferV1.applyReceipt",
+          "NearSpec.Receipt.inSlice",
+          "NearSpec.TransferV1.Domain"
         ],
         "obligations": [
           "FORMAL_SEMANTIC_SOUNDNESS",
@@ -1988,9 +1987,10 @@
           "ADVERSARIAL_PROOFS"
         ],
         "fixtures": [
-          "concept:fixtures/actions/**"
+          "oracle/fixtures/public/**",
+          "oracle/fixtures/rejection/**"
         ],
-        "note": ""
+        "note": "actions.rs:148-153 action_transfer and :776-899 check_account_existence/check_actor_permissions are on the slice path; access_keys/global_contracts/deterministic_account_id/function_call are reachable only out of domain but any change must be re-tested."
       },
       {
         "rule": "crypto",
@@ -2008,8 +2008,9 @@
           "core/crypto/src/util.rs"
         ],
         "spec_definitions": [
-          "concept:signature-verification",
-          "concept:hashing"
+          "ArenaCore.sha256",
+          "NearSpec.PublicKey.wf",
+          "NearSpec.PublicKey.encode"
         ],
         "obligations": [
           "FORMAL_SEMANTIC_SOUNDNESS",
@@ -2018,9 +2019,9 @@
           "ADVERSARIAL_PROOFS"
         ],
         "fixtures": [
-          "concept:fixtures/signatures/**"
+          "oracle/fixtures/public/**"
         ],
-        "note": ""
+        "note": "Signatures are excluded from the slice; hash.rs (SHA-256 CryptoHash) and PublicKey borsh are on the slice path."
       },
       {
         "rule": "external-crates",
@@ -2062,8 +2063,9 @@
           "@protocol/version"
         ],
         "spec_definitions": [
-          "concept:protocol-version-gating",
-          "concept:runtime-config-selection"
+          "NearSpec.Params.protocolVersion",
+          "NearSpec.TransferV1.DomainStatic",
+          "NearSpec.TransferV1.applyReceipt"
         ],
         "obligations": [
           "FORMAL_SEMANTIC_SOUNDNESS",
@@ -2085,10 +2087,14 @@
           "runtime/runtime/src/receipt_manager.rs"
         ],
         "spec_definitions": [
-          "concept:apply-receipt",
-          "concept:receipt-batch-transition",
-          "concept:outgoing-receipts",
-          "concept:refunds"
+          "NearSpec.TransferV1.applyReceipt",
+          "NearSpec.TransferV1.applyAll",
+          "NearSpec.TransferV1.runBatch",
+          "NearSpec.gasRefundReceipt",
+          "NearSpec.receiptIdFrom",
+          "NearSpec.Outcome.partialEncode",
+          "NearSpec.TransferV1.Outputs.ofAcc",
+          "NearSpec.TransferV1.DomainStatic"
         ],
         "obligations": [
           "FORMAL_SEMANTIC_SOUNDNESS",
@@ -2187,9 +2193,13 @@
           "runtime/runtime/src/config.rs"
         ],
         "spec_definitions": [
-          "concept:runtime-config",
-          "concept:fees-and-gas",
-          "concept:storage-staking"
+          "NearSpec.Params.newActionReceiptExec",
+          "NearSpec.Params.transferExec",
+          "NearSpec.Params.G",
+          "NearSpec.Params.storageAmountPerByte",
+          "NearSpec.Params.maxWitnessBytes",
+          "NearSpec.TransferV1.applyReceipt",
+          "spec/challenge-inputs/runtime-config-pv86.json"
         ],
         "obligations": [
           "FORMAL_SEMANTIC_SOUNDNESS",
@@ -2217,9 +2227,17 @@
           "core/store/src/trie/shard_tries.rs"
         ],
         "spec_definitions": [
-          "concept:state-root",
-          "concept:trie-node-hashing",
-          "concept:storage-proof"
+          "NearSpec.PTrie.hashOf",
+          "NearSpec.hexPrefix",
+          "NearSpec.nibbles",
+          "NearSpec.Slot.valueRef",
+          "NearSpec.PTrie.get",
+          "NearSpec.PTrie.set",
+          "NearSpec.PTrie.wf",
+          "NearSpec.PTrie.revealedBytes",
+          "NearSpec.merkleRoot",
+          "NearSpec.outcomeRoot",
+          "ArenaCore.sha256"
         ],
         "obligations": [
           "FORMAL_SEMANTIC_SOUNDNESS",
@@ -2246,10 +2264,18 @@
           "core/primitives/src/types.rs"
         ],
         "spec_definitions": [
-          "concept:account-encoding",
-          "concept:trie-key-encoding",
-          "concept:receipt-encoding",
-          "concept:claim-encoding"
+          "NearSpec.Account.encode",
+          "NearSpec.Account.decode",
+          "NearSpec.accountKeyPath",
+          "NearSpec.Receipt.encode",
+          "NearSpec.PublicKey.encode",
+          "NearSpec.AccountId.valid",
+          "NearSpec.AccountId.isNamed",
+          "NearSpec.receiptsCommitment",
+          "NearSpec.refundsCommitment",
+          "NearSpec.Outcome.partialEncode",
+          "NearSpec.TransferV1.Claim.encode",
+          "spec/claim-v1.md"
         ],
         "obligations": [
           "FORMAL_SEMANTIC_SOUNDNESS",
@@ -2282,7 +2308,7 @@
           "CONFORMANCE_DIFFERENTIAL"
         ],
         "fixtures": [],
-        "note": "Node storage plumbing; oracle behaviour must be re-tested but the spec is not expected to change. Spec lane: confirm."
+        "note": "Node storage plumbing; oracle behaviour must be re-tested but the spec is not expected to change. Spec lane: confirmed for near-transfer-receipt-v1 (the oracle uses in-memory ShardTries from TestTriesBuilder)."
       },
       {
         "rule": "transaction-verification",
@@ -2292,8 +2318,9 @@
           "runtime/runtime/src/verifier.rs"
         ],
         "spec_definitions": [
-          "concept:verify-transaction",
-          "concept:tx-to-receipt"
+          "NearSpec.TransferV1.applyReceipt",
+          "NearSpec.Receipt.wf",
+          "NearSpec.Params.zeroBalanceStorageLimit"
         ],
         "obligations": [
           "FORMAL_SEMANTIC_SOUNDNESS",
@@ -2302,9 +2329,10 @@
           "ADVERSARIAL_PROOFS"
         ],
         "fixtures": [
-          "concept:fixtures/transactions/**"
+          "oracle/fixtures/public/**",
+          "oracle/fixtures/rejection/**"
         ],
-        "note": ""
+        "note": "verifier.rs holds check_storage_stake / ZERO_BALANCE_ACCOUNT_STORAGE_LIMIT and validate_receipt, which ARE on the slice path; transaction verification itself is excluded."
       },
       {
         "rule": "wasm-vm",
@@ -2333,20 +2361,14 @@
           "runtime/near-vm-runner/src/wasmtime_runner/mod.rs",
           "runtime/near-wallet-contract/implementation/Cargo.lock"
         ],
-        "spec_definitions": [
-          "concept:function-call-execution",
-          "concept:host-functions",
-          "concept:wasm-gas-metering"
-        ],
+        "spec_definitions": [],
         "obligations": [
-          "FORMAL_SEMANTIC_SOUNDNESS",
-          "FORMAL_SEMANTIC_COMPLETENESS",
           "CONFORMANCE_DIFFERENTIAL"
         ],
         "fixtures": [
-          "concept:fixtures/function_call/**"
+          "oracle/fixtures/public/**"
         ],
-        "note": "Out of scope for transfer-only slices only if the challenge's restrictions exclude FunctionCall; still reopens conformance."
+        "note": "Out of scope: near-transfer-receipt-v1 restricts to single Transfer actions (receipt_shape). near-vm-runner is still linked into Runtime::apply, so conformance is re-run."
       },
       {
         "rule": "workspace-build",
@@ -2422,33 +2444,48 @@
     ],
     "spec_definitions_to_revalidate": [
       "*",
-      "concept:access-keys",
-      "concept:account-encoding",
-      "concept:apply-action",
-      "concept:apply-receipt",
-      "concept:claim-encoding",
-      "concept:create-account",
-      "concept:fees-and-gas",
-      "concept:function-call-execution",
-      "concept:hashing",
-      "concept:host-functions",
-      "concept:outgoing-receipts",
-      "concept:protocol-version-gating",
-      "concept:receipt-batch-transition",
-      "concept:receipt-encoding",
-      "concept:refunds",
-      "concept:runtime-config",
-      "concept:runtime-config-selection",
-      "concept:signature-verification",
-      "concept:state-root",
-      "concept:storage-proof",
-      "concept:storage-staking",
-      "concept:transfer",
-      "concept:trie-key-encoding",
-      "concept:trie-node-hashing",
-      "concept:tx-to-receipt",
-      "concept:verify-transaction",
-      "concept:wasm-gas-metering"
+      "ArenaCore.sha256",
+      "NearSpec.Account.decode",
+      "NearSpec.Account.encode",
+      "NearSpec.AccountId.isNamed",
+      "NearSpec.AccountId.valid",
+      "NearSpec.Outcome.partialEncode",
+      "NearSpec.PTrie.get",
+      "NearSpec.PTrie.hashOf",
+      "NearSpec.PTrie.revealedBytes",
+      "NearSpec.PTrie.set",
+      "NearSpec.PTrie.wf",
+      "NearSpec.Params.G",
+      "NearSpec.Params.maxWitnessBytes",
+      "NearSpec.Params.newActionReceiptExec",
+      "NearSpec.Params.protocolVersion",
+      "NearSpec.Params.storageAmountPerByte",
+      "NearSpec.Params.transferExec",
+      "NearSpec.Params.zeroBalanceStorageLimit",
+      "NearSpec.PublicKey.encode",
+      "NearSpec.PublicKey.wf",
+      "NearSpec.Receipt.encode",
+      "NearSpec.Receipt.inSlice",
+      "NearSpec.Receipt.wf",
+      "NearSpec.Slot.valueRef",
+      "NearSpec.TransferV1.Claim.encode",
+      "NearSpec.TransferV1.Domain",
+      "NearSpec.TransferV1.DomainStatic",
+      "NearSpec.TransferV1.Outputs.ofAcc",
+      "NearSpec.TransferV1.applyAll",
+      "NearSpec.TransferV1.applyReceipt",
+      "NearSpec.TransferV1.runBatch",
+      "NearSpec.accountKeyPath",
+      "NearSpec.gasRefundReceipt",
+      "NearSpec.hexPrefix",
+      "NearSpec.merkleRoot",
+      "NearSpec.nibbles",
+      "NearSpec.outcomeRoot",
+      "NearSpec.receiptIdFrom",
+      "NearSpec.receiptsCommitment",
+      "NearSpec.refundsCommitment",
+      "spec/challenge-inputs/runtime-config-pv86.json",
+      "spec/claim-v1.md"
     ],
     "obligations_to_reopen": [
       "BUILD_REPRODUCIBLE",
@@ -2463,10 +2500,8 @@
     ],
     "fixtures_to_regenerate": [
       "*",
-      "concept:fixtures/actions/**",
-      "concept:fixtures/function_call/**",
-      "concept:fixtures/signatures/**",
-      "concept:fixtures/transactions/**"
+      "oracle/fixtures/public/**",
+      "oracle/fixtures/rejection/**"
     ]
   }
 }

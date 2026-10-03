@@ -5,4 +5,5 @@ pub mod benchmark;
 pub mod build;
 pub mod common;
 pub mod conformance;
+pub mod formal;
 pub mod validate;

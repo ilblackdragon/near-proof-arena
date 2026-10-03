@@ -242,7 +242,100 @@ plus (i) an **artifact-binding** theorem relating `c.verify` to the deployed ver
 
 ## 5. Backend families realistically submittable on CPU-only hardware (Milestone C)
 
-Measured on this host (32 threads, 125 GB, no GPU). SP1 v6.8.1 (`sp1up`), RISC Zero via `rzup`,
-Plonky3 `3acc8b70`. Guest workload: SHA-256 over N bytes unless noted.
+Measured on this host (32 threads, 125 GB, no GPU). Installed into `$HOME` only:
+SP1 **6.8.1** (`bash sp1/sp1up/install && ~/.sp1/bin/sp1up`, 27 s, 1.7 GB; build also needed
+`protoc` 29.3 in `~/.local/protoc`), RISC Zero **3.0.6** (`bash risc0/rzup/install &&
+~/.risc0/bin/rzup install`, 42 s, 3.2 GB — note the cloned `main` is 5.0.0, newer than the stable
+release rzup installs), Plonky3 `3acc8b70` (plain cargo). Trial sources/logs:
+`/data/illia/nearproof-deps/trials/{sp1bench,r0bench,wasmmod,wasmhost}`, Plonky3 hash-chain AIR in
+the scratchpad `hashchain/`. Some large runs overlapped other jobs on the box ("contended").
+Groth16/PLONK wrapping was **not** run (SP1 needs gnark docker or Go+`native-gnark` + S3 circuit
+download; RISC Zero needs x86+docker or CUDA; root disk 94% full).
 
-BACKEND_TABLE_PLACEHOLDER
+### 5.1 Measurements
+
+Cycle counts (same guest source on both zkVMs; "accel" = precompile/patched crate):
+
+| Workload | SP1 cycles | RISC Zero cycles (padded) |
+|---|---|---|
+| SHA-256 of 1 MB, accel | 3.7 M | 1.24 M (2.36 M) |
+| SHA-256 of 1 MB, software | 69.0 M | 78.2 M (82.3 M) |
+| 100 × ed25519 verify, accel | 9.0 M (~90 k each) | 89.2 M (~890 k each) |
+| wasmi 2.0 interpreter running 7.08 M Wasm instrs (SHA-256 of 64 KB in Wasm) | 205 M (~29 cyc/instr) | 178 M (~25 cyc/instr; needed `portable-dispatch`) |
+
+Interpreting Wasm costs ~36–48× more cycles than native guest code for the same computation.
+
+| Proof run | Prove (wall) | Peak RSS | Proof size | Verify |
+|---|---|---|---|---|
+| SP1 core, SHA 1 MB accel | 68 s | 39 GB | 4.4 MB | 111 ms |
+| SP1 compressed, same | 91 s | 43 GB | 1.27 MB | 29 ms |
+| SP1 core, 69 M cycles | 305 s (~226 k cyc/s) | 99 GB | 16.7 MB | 418 ms |
+| SP1 core, Wasm 205 M cycles, 2 workers, contended | 2357 s (~87 k cyc/s) | 80 GB | 86 MB | 2.0 s |
+| RISC Zero composite, SHA 1 MB accel (3 segments) | 95 s | 9.6 GB | 819 KB | 38 ms |
+| RISC Zero succinct, same | 120 s | 9.6 GB | 223 KB | 12 ms |
+| RISC Zero composite, 21 M cycles (20 segments) | 1016 s (~20.6 k cyc/s) | 9.6 GB | 5.6 MB | 412 ms |
+| Plonky3 uni-stark, Poseidon2 AIR 2^20 rows (8.4 M perms), KoalaBear, native CPU flags | 6.7 s | 11.3 GB | 710 KB | 12 ms |
+| Plonky3 custom Poseidon2 hash-chain AIR, 2^18 steps | 0.67 s (+0.48 s tracegen) | – | – | 8.5 ms |
+| Transparent re-execution (nearcore `validate_chunk_state_witness`) | no proving | native | witness ≤ 64 MiB (storage proof soft limit 4 MB) | = one native re-execution (not measured; ms–s per chunk) |
+
+What a verifier must pin: SP1 — program vkey hash (bench:
+`0x00182e0346fe306674ac7761a94e2292f986153cac8ca58959ff653a3f9a2114`), SP1 circuit version
+string (`v6.1.0`), recursion vk root built into `sp1-verifier`, plus Groth16/PLONK vk files if
+wrapped. RISC Zero — image ID (bench: `42ba4b22d2218c2243e74793085d84f4eb1d7dd310d701523443cf3406f898f8`),
+`ALLOWED_CONTROL_ROOT = a54dc85a…1f56`, circuit version (`risc0-circuit-rv32im` 4.0.5), Groth16
+control ID + BN254 vk if wrapped. Plonky3 — the AIR itself is fixed by the verifier binary (the
+transcript binds shape, not constraints), so pin the verifier code hash + FRI parameters.
+
+Verifier code size to model/bind: SP1 compressed path ~10–15 k LOC Rust (`sp1-verifier` 2.2 k,
+hypercube verifier+GKR 3.3 k, jagged PCS 2.6 k, multilinear 1.6 k, recursion constraints 3.5 k);
+RISC Zero ~4 k LOC hand-written verifier + ~9.4 MB (rv32im) / 0.9 MB (recursion) of generated
+constraint code; Plonky3 uni-stark+FRI+MMCS+challenger: a few k LOC, and the AIR is ours.
+
+### 5.2 NEAR chunk extrapolation (order of magnitude)
+
+Chunk gas limit 1000 Tgas / Wasm regular-op cost 822,756 gas ⇒ ≤ ~1.2e9 Wasm instructions; a busy
+real chunk maybe 1e7–2e8. At 25–30 cycles/Wasm instr plus storage-proof hashing (accelerated: a few
+M cycles), ed25519 (~90 k cycles/tx SP1, ~890 k RISC Zero), and runtime logic (guess 1e8–1e9
+cycles): **~1e9–4e10 cycles per chunk**. On this box: SP1 ≈ 1.4 h per 1e9 cycles (a light ~1e8
+chunk ≈ 10 min at 80–100 GB RSS — near the RAM ceiling); RISC Zero ≈ 14 h per 1e9 cycles, and its
+32-bit address space (~3 GB guest) may not fit the NEAR runtime. Both are **offline per-chunk**
+proving, 3–5 orders of magnitude from real time on this hardware.
+
+### 5.3 Backend families for Milestone C ("materially different")
+
+| Family | Install effort here | Realistic on CPU? | Formal obligations still open (beyond NEAR-semantics model, which all share) |
+|---|---|---|---|
+| **T. Transparent re-execution** (witness = proof; verifier = deterministic re-execution against pre-state root) | none beyond nearcore (or a Lean-native re-executor) | yes, native speed | Verifier ↔ NEAR-semantics refinement (the hard part: runtime, Wasm, gas, trie); SHA-256 collision resistance as an explicit hypothesis; **no FS/IOP soundness needed (ε from hashing only)**. Best fit for "Lean is the verifier" binding: the Lean semantics *is* the checker, compiled. |
+| **P. Custom Plonky3 STARK** (hand-written AIR for a restricted statement, e.g. state-root/hash-chain/receipt-Merkle transitions, or a small NEAR-specific VM) | low (cargo; ~1–2 min builds) | yes, very fast (seconds for 2^18–2^20 rows) | AIR ⇒ spec faithfulness (CertiPlonk/Clean-style, but we write it; needs bus/lookup soundness if multi-table); STARK/DEEP-ALI + FRI + MMCS + duplex-sponge FS soundness in ROM (**nothing proven publicly — ArkLib FRI is sorry**); concrete ε (use proven-regime params: blowup ≥ 8, ~120 queries, 16–20-bit PoW; Plonky3's own calculator rates default examples at only 50–57 proven bits); Rust verifier binding (Aeneas). Expressiveness: cannot run Wasm without building a zkVM. |
+| **Z1. SP1 zkVM** (nearcore runtime/Wasm interpreter as RISC-V guest) | low (27 s install + protoc + 2 min build) | only for light chunks / offline; RAM-bound (40–100 GB) | Guest faithfulness (wasmi/nearcore compiled to RV64 vs our Wasm/NEAR semantics); RV64IM circuit faithfulness (sp1-lean partial: 25 chips, machine theorem depends on `sorry`, precompiles out of scope, extraction not reproducible from main); precompiles (SHA-256, ed25519) unverified; Jagged PCS + LogUp-GKR + FS soundness (conjectured 100 bits, unformalized); recursion circuit + vk root; Groth16/PLONK trusted setup if wrapped; Rust verifier binding (10–15 k LOC). |
+| **Z2. RISC Zero zkVM** | low (42 s + 14 min first build; crypto-bigint patch for ed25519) | slower (~20 k cyc/s) but low RAM (~10 GB); 32-bit guest memory limit | Same shape as SP1 but with **no** public Lean chip proofs at all (only proprietary Picus determinism runs), ~10 MB generated constraint code, FRI under ethSTARK Toy Problem Conjecture (97 bits conjectured), recursion + control root, Groth16 setup. |
+| Z3. OpenVM (not tried here) | moderate (`cargo +1.91 install … cargo-openvm`, nightly) | CPU backend exists | Best public chip-level proofs (openvm-fv RV32IM + SHA-2/Keccak, axiom-clean, comparator-gated, pinned to v2.0.0) and a Lean-extracted verifier (theorems private); proof-system soundness assumed (I2). Strongest zkVM candidate *if* openvm-fv's guarantees are re-checked by our pipeline. |
+| Z4. Jolt (not tried) | low | CPU default | Alpha/unaudited; extraction but no Lean theorems. Not recommended for Milestone C. |
+
+**Recommendation for Milestone C on this hardware:** submit **T (transparent re-execution)** as
+the reference backend and **P (custom Plonky3 STARK over a deliberately narrow statement)** as
+the "materially different" cryptographic backend. They differ in every relevant axis
+(no-crypto vs FS-STARK; witness-size vs succinct proof), both run comfortably on 32 cores, and
+both keep the open obligations *enumerable*: for P the open items are exactly {AIR faithfulness
+(provable by us), STARK/FRI/FS soundness in ROM (open research; carried as an explicit named
+hypothesis in the admission statement, never as an axiom), Rust-verifier binding (Aeneas)}. A
+zkVM backend (SP1 for speed, or OpenVM for the best existing chip proofs) is installable today
+and is a credible *third* entry, but its open-obligation list (guest Wasm interpreter + nearcore
+on RISC-V + ISA circuits + precompiles + recursion + wrapper) is far larger, and full NEAR chunks
+are hours-to-days per chunk on this CPU at 40–100 GB RAM.
+
+## 6. Summary of decisions
+
+1. Toolchain: **Lean v4.35.0** (rc3 now). One pin for formal-core, challenges, checkers.
+2. Mathlib: **not in formal-core statements**; allowed (pinned rev) in candidate proofs.
+3. Checker: `lake comparator --paranoid` on arena-owned Challenge + per-theorem exports, built in a
+   sandbox/VM; independent kernels outside (leanchecker `--from-export`, nanoda hard-error
+   policy, con-ron/lean4lean); whitelist `{propext, Quot.sound, Classical.choice}`; any non-zero
+   exit or resource exhaustion = reject; never trust in-environment `#print axioms`.
+4. Admission theorem: query-bounded ROM soundness bound (VCVio-style) + artifact-binding theorem
+   + decidable numeric ε check; crypto assumptions as hypotheses, not axioms.
+5. Backends for Milestone C: transparent re-execution + narrow custom Plonky3 STARK; zkVM
+   (SP1/OpenVM) optional third.
+6. Reuse priorities: VCVio (ROM/FS machinery), openvm-fv (chip-proof + CI-gate pattern), Clean
+   (DSL vocabulary), Aeneas (Rust binding), ArkLib (definitions; Sumcheck; proximity-gap lemmas)
+   — and treat every other "verified" claim as unverified until it passes our pipeline.

@@ -496,10 +496,29 @@ impl Orchestrator {
             g.reused_from = Some(entry.source_submission_id.clone());
             Self::insert_gate(conn, ctx, None, &g, &Actor::system()).await?;
         }
-        let graph = entry
-            .evidence_graph
-            .as_ref()
-            .map(|eg| normalize::merge_graphs(ctx.run.evidence_graph.clone(), eg));
+        // native-lean route: the judge-built verifier is a function of the
+        // verified surface (formal tree, certificate), which is identical, so
+        // the source run's build is reused with the formal results.
+        let src_build: Option<Option<serde_json::Value>> =
+            sqlx::query_scalar("SELECT build_outputs FROM runs WHERE id = $1")
+                .bind(&entry.source_run_id)
+                .fetch_optional(&mut *conn)
+                .await?;
+        if let (Some(Some(v)), Some(mine)) = (src_build, ctx.run.build_outputs.as_mut()) {
+            if let Ok(src) = serde_json::from_value::<BuildOutputs>(v) {
+                if src.native_verifier.is_some() && mine.native_verifier.is_none() {
+                    mine.native_verifier = src.native_verifier;
+                    sqlx::query("UPDATE runs SET build_outputs = $2 WHERE id = $1")
+                        .bind(&ctx.run.id)
+                        .bind(json(&*mine))
+                        .execute(&mut *conn)
+                        .await?;
+                }
+            }
+        }
+        let graph = entry.evidence_graph.as_ref().map(|eg| {
+            normalize::merge_graphs(ctx.run.evidence_graph.clone(), eg, JobKind::FormalCheck)
+        });
         sqlx::query("UPDATE runs SET evidence_graph = COALESCE($2, evidence_graph) WHERE id = $1")
             .bind(&ctx.run.id)
             .bind(graph.as_ref().map(json))
@@ -940,6 +959,7 @@ impl Orchestrator {
             build: n.build.clone(),
             execution: n.execution.clone(),
             log_excerpt: n.log_excerpt.clone(),
+            native_verifier: n.native_verifier.clone(),
         };
         sqlx::query(
             "UPDATE jobs SET state = 'done', result = $2, execution = $3, finished_at = now(), updated_at = now() WHERE id = $1",
@@ -1016,8 +1036,11 @@ impl Orchestrator {
             ctx.run.tier = tier;
         }
         if let Some(eg) = &n.evidence_graph {
-            ctx.run.evidence_graph =
-                Some(normalize::merge_graphs(ctx.run.evidence_graph.take(), eg));
+            ctx.run.evidence_graph = Some(normalize::merge_graphs(
+                ctx.run.evidence_graph.take(),
+                eg,
+                kind,
+            ));
         }
         match kind {
             JobKind::Validate => {
@@ -1032,14 +1055,21 @@ impl Orchestrator {
                     &n.build,
                     n.gates.iter().any(|g| g.status == GateStatus::Pass),
                 ) {
-                    let vs = VerifiedSurface {
-                        challenge_id: ctx.chal.id.clone(),
-                        verify_artifact: b.verify.clone(),
-                        prepare_artifact: b.prepare.clone(),
-                        public_artifacts: b.public_artifacts.clone(),
-                        formal_tree: b.formal_tree.clone(),
-                        certificate_decl: b.certificate_decl.clone(),
-                        checker_image: ctx.chal.definition.toolchain_policy.checker_image.clone(),
+                    let Some(vs) = verified_surface(ctx, b) else {
+                        // Fail closed: without a complete surface there is no
+                        // formal-cache key and the formal stage blocks.
+                        ctx.run.build_outputs = n.build.clone();
+                        audit::record(
+                            &mut *conn,
+                            &Actor::system(),
+                            "run.verified_surface_incomplete",
+                            Some(&ctx.sub.id),
+                            Some(&ctx.run.id),
+                            true,
+                            j!({ "detail": "npai-v1 build reported no verifier_bytecode digest" }),
+                        )
+                        .await?;
+                        return self.persist_run(conn, ctx).await;
                     };
                     let class = self.classify(conn, ctx, &vs).await?;
                     ctx.run.formal_cache_key = Some(
@@ -1051,6 +1081,12 @@ impl Orchestrator {
                 ctx.run.build_outputs = n.build.clone();
             }
             JobKind::FormalCheck => {
+                // native-lean route: later stages run the judge-built verifier.
+                if let (Some(d), Some(b)) = (&n.native_verifier, ctx.run.build_outputs.as_mut()) {
+                    if !n.gates.iter().any(|g| g.status == GateStatus::Fail) {
+                        b.native_verifier = Some(d.clone());
+                    }
+                }
                 if n.definite {
                     if let (Some(vs), Some(_)) =
                         (&ctx.run.verified_surface, &ctx.run.formal_cache_key)
@@ -1088,6 +1124,10 @@ impl Orchestrator {
             JobKind::Benchmark => ctx.run.benchmark = n.benchmark.clone(),
             JobKind::Conformance | JobKind::Adversarial => {}
         }
+        self.persist_run(conn, ctx).await
+    }
+
+    async fn persist_run(&self, conn: &mut PgConnection, ctx: &Ctx) -> Result<()> {
         sqlx::query(
             "UPDATE runs SET tier = $2, candidate_name = $3, backend_family = $4, manifest = $5, build_outputs = $6,
                 verified_surface = $7, change_class = $8, formal_cache_key = $9, benchmark = $10, evidence_graph = $11
@@ -1246,4 +1286,39 @@ impl Orchestrator {
         tx.commit().await?;
         Ok(run_id)
     }
+}
+
+/// The verified surface of a passing build: every input that determines the
+/// judge-built admission statement or the code executed as `verify`. `None`
+/// when the build is missing a digest the manifest's route requires.
+fn verified_surface(ctx: &Ctx, b: &BuildOutputs) -> Option<VerifiedSurface> {
+    let manifest = ctx.run.manifest.as_ref();
+    let route = manifest
+        .and_then(|m| m.entry.verify_route)
+        .unwrap_or(arena_types::VerifyRoute::Native);
+    let formal = manifest.and_then(|m| m.formal.as_ref());
+    let verifier_bytecode = match route {
+        arena_types::VerifyRoute::NpaiV1 => Some(b.verifier_bytecode.clone()?),
+        _ => None,
+    };
+    let (verifier_model, verifier_model_module) = match route {
+        arena_types::VerifyRoute::NativeLean => (
+            formal.and_then(|f| f.verifier_model.clone()),
+            formal.and_then(|f| f.verifier_model_module.clone()),
+        ),
+        _ => (None, None),
+    };
+    Some(VerifiedSurface {
+        challenge_id: ctx.chal.id.clone(),
+        verify_artifact: b.verify.clone(),
+        prepare_artifact: b.prepare.clone(),
+        public_artifacts: b.public_artifacts.clone(),
+        formal_tree: b.formal_tree.clone(),
+        certificate_decl: b.certificate_decl.clone(),
+        checker_image: ctx.chal.definition.toolchain_policy.checker_image.clone(),
+        verify_route: Some(route),
+        verifier_bytecode,
+        verifier_model,
+        verifier_model_module,
+    })
 }

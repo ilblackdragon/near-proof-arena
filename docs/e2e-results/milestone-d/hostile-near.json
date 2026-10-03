@@ -1,0 +1,51 @@
+{
+ "near-reexec-malicious-executable": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "ARTIFACT_BINDING"
+  ],
+  "expected_reason_codes": [
+   "ARTIFACT_BINDING_FAILED"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED"
+  ],
+  "submission": "sub_fce5cb82fbcd4a0db197bbdfc3f28b78",
+  "unknown_gates": []
+ },
+ "near-reexec-skip-refund": {
+  "accepted": false,
+  "decision": "REJECTED",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+   "FORMAL_SEMANTIC_SOUNDNESS",
+   "FORMAL_CRYPTO_SOUNDNESS"
+  ],
+  "expected_reason_codes": [
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "failed_gates": [
+   "ARTIFACT_BINDING",
+   "AXIOM_AUDIT",
+   "FORMAL_CRYPTO_SOUNDNESS",
+   "FORMAL_IMPL_CONNECTION",
+   "FORMAL_SEMANTIC_COMPLETENESS",
+   "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "ok": true,
+  "reason_codes": [
+   "ARTIFACT_BINDING_FAILED",
+   "OBLIGATION_UNDISCHARGED",
+   "THEOREM_TYPE_MISMATCH"
+  ],
+  "submission": "sub_cc6c4cafd65d4c068bfe9a03154d3743",
+  "unknown_gates": []
+ }
+}

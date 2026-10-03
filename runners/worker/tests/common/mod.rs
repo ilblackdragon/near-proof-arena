@@ -1,86 +1,63 @@
-//! Shared fixtures: a toy candidate written in POSIX sh (sha256sum-based
-//! "proofs"), a directory artifact store, and a bwrap-dev executor that uses
-//! the `arena-worker` binary itself as the sandbox helper.
+//! Shared fixtures: the toy reference candidate (`tests/e2e/toy-candidate`,
+//! C, built with `cc` inside the sandbox) against the signed demo challenge
+//! (`challenges/chl_54c65fe7c73c5abcfe500681889177bc.json`), a directory
+//! artifact store, and a bwrap-dev executor that uses the `arena-worker`
+//! binary itself as the sandbox helper.
 #![allow(dead_code)]
 
-use arena_sandbox::{BwrapConfig, BwrapDev, HelperCommand};
-use arena_types::Digest;
-use arena_worker::executor::{BuildEnv, StageExecutor, WorkerContext};
-use arena_worker::jobs::*;
+use arena_jobs::*;
+use arena_sandbox::{BwrapConfig, BwrapDev, HelperCommand, Sandbox};
+use arena_types::{
+    CandidateManifest, ChallengeDefinition, Digest, GateResult, GateStatus, ObligationId,
+    ReasonCode,
+};
+use arena_worker::executor::{BuildEnv, JobExecutor, StageExecutor, WorkerContext};
 use arena_worker::mutators::MutatorRegistry;
+use arena_worker::oracle::Oracles;
 use arena_worker::store::{ArtifactStore, FsStore};
 use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
-pub const CHALLENGE: &str = "chl_0123456789abcdef0123456789abcdef";
+pub const CHALLENGE: &str = "chl_54c65fe7c73c5abcfe500681889177bc";
 
-pub const MANIFEST: &str = r#"
-schema = "arena-candidate-v1"
-name = "toy-sha"
-agent = "test"
-challenge = "chl_0123456789abcdef0123456789abcdef"
-backend_family = "toy"
-security_profile_request = "validity-classical-128"
-hardware = { gpu = false, min_ram_gb = 1 }
-[build]
-recipe = "build-recipe/build.sh"
-outputs = ["out"]
-[entry]
-prepare = "out/prepare"
-prove = "out/prove"
-verify = "out/verify"
-"#;
-
-pub const BUILD: &str = r#"#!/bin/sh
-set -e
-mkdir -p out
-for f in prepare prove verify; do cp source/$f.sh out/$f; chmod 755 out/$f; done
-"#;
-
-pub const PREPARE: &str = r#"#!/bin/sh
-set -e
-while [ $# -gt 0 ]; do case "$1" in --params) params=$2; shift 2;; --out) out=$2; shift 2;; *) exit 2;; esac; done
-mkdir -p "$out"
-{ printf 'toy-key-v1:'; sha256sum < "$params" | cut -d' ' -f1; } > "$out/key"
-"#;
-
-pub const PROVE: &str = r#"#!/bin/sh
-set -e
-while [ $# -gt 0 ]; do case "$1" in
-  --public) pub=$2; shift 2;; --request) req=$2; shift 2;; --witness) wit=$2; shift 2;;
-  --claim-out) claim=$2; shift 2;; --proof-out) proof=$2; shift 2;; *) exit 2;; esac; done
-test -r "$wit"
-printf 'CLAIM:%s' "$(sha256sum < "$req" | cut -d' ' -f1)" > "$claim"
-printf 'PROOF:%s' "$(cat "$claim" "$pub/key" | sha256sum | cut -d' ' -f1)" > "$proof"
-"#;
-
-pub const VERIFY: &str = r#"#!/bin/sh
-while [ $# -gt 0 ]; do case "$1" in
-  --public) pub=$2; shift 2;; --claim) claim=$2; shift 2;; --proof) proof=$2; shift 2;; *) exit 2;; esac; done
-# The verify sandbox must never see the witness or the request.
-for p in /in /arena/in; do
-  if [ -e $p/witness.bin ] || [ -e $p/request.bin ]; then echo "SAW PRIVATE INPUT" >&2; exit 3; fi
-done
-printf 'PROOF:%s' "$(cat "$claim" "$pub/key" | sha256sum | cut -d' ' -f1)" > ./expected
-cmp -s ./expected "$proof" && exit 0
-exit 1
-"#;
-
-/// Honest toy claim for a request.
-pub fn claim_for(request: &[u8]) -> Vec<u8> {
-    format!("CLAIM:{}", Digest::of_bytes(request).hex()).into_bytes()
+pub fn repo() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
+pub fn challenge() -> ChallengeDefinition {
+    serde_json::from_slice(
+        &std::fs::read(repo().join(format!("challenges/{CHALLENGE}.json"))).unwrap(),
+    )
+    .unwrap()
+}
+
+/// The toy candidate's files (path -> (mode, bytes)).
 pub fn package_files() -> BTreeMap<String, (u32, Vec<u8>)> {
-    let mut m = BTreeMap::new();
-    m.insert("candidate.toml".to_string(), (0o644, MANIFEST.as_bytes().to_vec()));
-    m.insert("README.md".to_string(), (0o644, b"toy".to_vec()));
-    m.insert("dependency-locks/none".to_string(), (0o644, vec![]));
-    m.insert("build-recipe/build.sh".to_string(), (0o755, BUILD.as_bytes().to_vec()));
-    m.insert("source/prepare.sh".to_string(), (0o644, PREPARE.as_bytes().to_vec()));
-    m.insert("source/prove.sh".to_string(), (0o644, PROVE.as_bytes().to_vec()));
-    m.insert("source/verify.sh".to_string(), (0o644, VERIFY.as_bytes().to_vec()));
-    m
+    let root = repo().join("tests/e2e/toy-candidate");
+    let t = arena_archive::tree_from_dir(&root, &arena_archive::Limits::default()).unwrap();
+    t.files
+        .iter()
+        .map(|(p, f)| {
+            (
+                p.clone(),
+                (
+                    if f.mode == arena_archive::FileMode::Exec {
+                        0o755
+                    } else {
+                        0o644
+                    },
+                    std::fs::read(root.join(p)).unwrap(),
+                ),
+            )
+        })
+        .collect()
+}
+
+pub fn set(files: &mut BTreeMap<String, (u32, Vec<u8>)>, path: &str, content: &str) {
+    let mode = files.get(path).map(|f| f.0).unwrap_or(0o644);
+    files.insert(path.to_string(), (mode, content.as_bytes().to_vec()));
 }
 
 pub fn tar_of(files: &BTreeMap<String, (u32, Vec<u8>)>) -> Vec<u8> {
@@ -99,53 +76,52 @@ pub struct Fixture {
     pub tmp: tempfile::TempDir,
     pub store: Arc<FsStore>,
     pub exec: StageExecutor,
+    pub chal: ChallengeDefinition,
+}
+
+pub fn executor(sandbox: Arc<dyn Sandbox>, store: Arc<FsStore>, work: &Path) -> StageExecutor {
+    let mut oracles = Oracles::builtin();
+    oracles
+        .add_fixtures_dir(&repo().join("challenges/demo/toy-arithmetic/fixtures"))
+        .unwrap();
+    StageExecutor::new(WorkerContext {
+        worker_id: "test-worker".into(),
+        sandbox,
+        store,
+        work_root: work.to_path_buf(),
+        build: BuildEnv::default(),
+        bench_cpus: None,
+        bench_batch_cap: Some(2),
+        conformance_samples: 4,
+        mutators: MutatorRegistry::with_adversarial_lane(),
+        oracles,
+        formal: None,
+        npai_verify: None,
+        interp_ref: None,
+        keep_workdirs: false,
+    })
 }
 
 pub fn fixture() -> Fixture {
-    assert_eq!(std::env::var("ARENA_DEV_UNSAFE").as_deref(), Ok("1"), "worker tests need ARENA_DEV_UNSAFE=1 (bwrap-dev)");
+    assert_eq!(
+        std::env::var("ARENA_DEV_UNSAFE").as_deref(),
+        Ok("1"),
+        "worker tests need ARENA_DEV_UNSAFE=1 (bwrap-dev)"
+    );
     let tmp = tempfile::tempdir().unwrap();
     let store = Arc::new(FsStore::new(tmp.path().join("store")).unwrap());
-    let helper = HelperCommand { exe: env!("CARGO_BIN_EXE_arena-worker").into(), prefix_args: vec![arena_worker::HELPER_ARG.into()] };
-    let sb = BwrapDev::new(BwrapConfig::new(helper, tmp.path().join("sandbox"))).unwrap();
-    let ctx = WorkerContext {
-        worker_id: "test-worker".into(),
-        sandbox: Arc::new(sb),
-        store: store.clone(),
-        work_root: tmp.path().join("jobs"),
-        build: BuildEnv::default(),
-        bench_cpus: None,
-        mutators: MutatorRegistry::with_adversarial_lane(),
-        keep_workdirs: false,
+    let helper = HelperCommand {
+        exe: env!("CARGO_BIN_EXE_arena-worker").into(),
+        prefix_args: vec![arena_worker::HELPER_ARG.into()],
     };
-    Fixture { tmp, store, exec: StageExecutor::new(ctx) }
-}
-
-pub fn job(id: &str, spec: JobSpec) -> Job {
-    Job { id: id.into(), submission_id: "sub_test".into(), attempt: 1, lease_until: "2099-01-01T00:00:00Z".into(), spec }
-}
-
-pub fn run_limits() -> RunLimits {
-    RunLimits {
-        max_prepare_ms: 20_000,
-        max_prove_ms: 20_000,
-        max_verify_ms: 20_000,
-        max_ram_bytes: 256 << 20,
-        max_proof_bytes: 4096,
-        max_claim_bytes: 1024,
-        max_request_bytes: 1 << 20,
-        max_witness_bytes: 1 << 20,
-        max_public_artifact_bytes: 1 << 20,
-        max_pids: 64,
-        scratch_mb: 16,
+    let sb = BwrapDev::new(BwrapConfig::new(helper, tmp.path().join("sandbox"))).unwrap();
+    let exec = executor(Arc::new(sb), store.clone(), &tmp.path().join("jobs"));
+    Fixture {
+        tmp,
+        store,
+        exec,
+        chal: challenge(),
     }
-}
-
-pub fn build_limits() -> BuildLimits {
-    BuildLimits { max_build_ms: 30_000, mem_bytes: 256 << 20, pids: 64, scratch_mb: 32, max_output_bytes: 16 << 20 }
-}
-
-pub fn entry() -> EntryPoints {
-    EntryPoints { prepare: "out/prepare".into(), prove: "out/prove".into(), verify: "out/verify".into() }
 }
 
 impl Fixture {
@@ -153,34 +129,95 @@ impl Fixture {
         self.store.put(b).unwrap()
     }
 
-    /// Oracle cases: (request, witness, expected claim) in the store.
-    pub fn cases(&self, n: usize, public: bool, claim: impl Fn(&[u8]) -> Vec<u8>) -> Vec<OracleCase> {
-        (0..n)
-            .map(|i| {
-                let req = format!("request-{i}-{public}").into_bytes();
-                OracleCase {
-                    id: format!("{}-{i}", if public { "pub" } else { "heldout-secret" }),
-                    request: self.put(&req),
-                    witness: self.put(format!("witness-{i}").as_bytes()),
-                    expected_claim: self.put(&claim(&req)),
-                    public,
-                }
-            })
-            .collect()
+    pub fn ctx(&self, package: &Digest) -> JobContext {
+        JobContext {
+            submission_id: "sub_test".into(),
+            run_id: "run_test".into(),
+            challenge_id: CHALLENGE.into(),
+            challenge_digest: self.chal.digest().unwrap(),
+            tier: self.chal.tier,
+            package_digest: package.clone(),
+        }
     }
 
-    /// Validate + build a package; returns the bundle digest.
-    pub fn build(&self, files: &BTreeMap<String, (u32, Vec<u8>)>) -> (JobOutput, Option<Digest>) {
-        use arena_worker::executor::JobExecutor;
-        let pkg = self.put(&tar_of(files));
-        let out = self
-            .exec
-            .execute(
-                &job("build", JobSpec::Build(BuildJob { package: pkg, toolchain_image: None, limits: build_limits(), source_date_epoch: 0 })),
-                &std::sync::atomic::AtomicBool::new(false),
-            )
-            .unwrap();
-        let bundle = out.artifact("bundle").cloned();
-        (out, bundle)
+    pub fn exec(&self, spec: JobSpec) -> JobResult {
+        self.exec
+            .execute(&spec, "t", &AtomicBool::new(false))
+            .unwrap()
     }
+
+    pub fn validate(&self, files: &BTreeMap<String, (u32, Vec<u8>)>) -> (JobResult, Digest) {
+        let pkg = self.put(&tar_of(files));
+        (
+            self.exec(JobSpec::Validate(ValidateJob {
+                ctx: self.ctx(&pkg),
+                challenge: self.chal.clone(),
+            })),
+            pkg,
+        )
+    }
+
+    /// Validate + build; returns the build result and (manifest, outputs) when it passed.
+    pub fn build(
+        &self,
+        files: &BTreeMap<String, (u32, Vec<u8>)>,
+    ) -> (JobResult, Option<(Digest, CandidateManifest, BuildOutputs)>) {
+        let (v, pkg) = self.validate(files);
+        assert_pass(&v, ObligationId::PkgWellformed);
+        let manifest = v.manifest.clone().unwrap();
+        let b = self.exec(JobSpec::Build(BuildJob {
+            ctx: self.ctx(&pkg),
+            challenge: self.chal.clone(),
+            manifest: manifest.clone(),
+        }));
+        let out = b
+            .build
+            .clone()
+            .filter(|_| gate(&b, ObligationId::BuildReproducible).status == GateStatus::Pass)
+            .map(|o| (pkg, manifest, o));
+        (b, out)
+    }
+
+    pub fn exec_job(
+        &self,
+        pkg: &Digest,
+        manifest: &CandidateManifest,
+        build: &BuildOutputs,
+    ) -> ExecJob {
+        ExecJob {
+            ctx: self.ctx(pkg),
+            challenge: self.chal.clone(),
+            manifest: manifest.clone(),
+            build: build.clone(),
+        }
+    }
+}
+
+pub fn gate(o: &JobResult, g: ObligationId) -> &GateResult {
+    o.gates
+        .iter()
+        .find(|x| x.gate == g)
+        .unwrap_or_else(|| panic!("no {g:?} gate in {:?}", o.gates))
+}
+
+pub fn assert_pass(o: &JobResult, g: ObligationId) {
+    let r = gate(o, g);
+    assert_eq!(
+        r.status,
+        GateStatus::Pass,
+        "{g:?}: {} {:?}",
+        r.summary,
+        r.reason_codes
+    );
+}
+
+pub fn assert_fail(o: &JobResult, g: ObligationId, reason: ReasonCode) {
+    let r = gate(o, g);
+    assert_eq!(r.status, GateStatus::Fail, "{g:?}: {}", r.summary);
+    assert!(
+        r.reason_codes.contains(&reason),
+        "{g:?}: {:?} lacks {reason:?}; {}",
+        r.reason_codes,
+        r.summary
+    );
 }

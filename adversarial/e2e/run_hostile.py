@@ -65,31 +65,61 @@ def build_package_bytes(case_dir, expect, challenge_id):
     challenge id substituted into candidate.toml and the generator/helper files
     excluded.
     """
-    mk = os.path.join(case_dir, "make-archive.sh")
-    if os.path.exists(mk):
-        out = subprocess.run(["sh", mk], cwd=case_dir, capture_output=True)
+    mk_py = os.path.join(case_dir, "make-archive.py")
+    mk_sh = os.path.join(case_dir, "make-archive.sh")
+    if os.path.exists(mk_py) or os.path.exists(mk_sh):
+        mk = [sys.executable, mk_py] if os.path.exists(mk_py) else ["sh", mk_sh]
+        out = subprocess.run(mk, cwd=case_dir, capture_output=True)
         if out.returncode != 0:
-            raise RuntimeError(f"make-archive.sh failed: {out.stderr.decode(errors='replace')}")
+            raise RuntimeError(f"make-archive failed: {out.stderr.decode(errors='replace')}")
+        # The archive is rejected at extraction (PKG_WELLFORMED) before its
+        # candidate.toml challenge is ever validated, so the placeholder is
+        # left as-is (rewriting it would change the byte length and corrupt the
+        # tar headers).
         return out.stdout
 
+    # `arena pack` semantics (sdk/arena-cli/src/pack.rs): regular files only,
+    # sorted by path bytes, mtime/uid/gid 0, mode 0755 iff any exec bit,
+    # `.git/`, `target/`, `.lake/` pruned at any depth and the top-level
+    # `out/` (build outputs are produced by the judge). The case README.md is
+    # the package README (CONTRACTS §3); judge-only files are excluded.
+    exclude_top = {"expect.json", "make-archive.sh", "make-archive.py", "archive-kind", "out"}
+    exclude_any = {".git", "target", ".lake"}
+    files = []
+    for root, dirs, filenames in os.walk(case_dir):
+        rel_root = os.path.relpath(root, case_dir)
+        dirs[:] = [d for d in dirs if d not in exclude_any and not (rel_root == "." and d in exclude_top)]
+        for fn in filenames:
+            full = os.path.join(root, fn)
+            rel = os.path.relpath(full, case_dir)
+            if rel_root == "." and fn in exclude_top:
+                continue
+            if os.path.islink(full) or not os.path.isfile(full):
+                raise RuntimeError(f"{rel}: not a regular file (arena pack refuses it)")
+            files.append(rel)
+    files.sort(key=lambda r: r.encode())
     buf = io.BytesIO()
-    exclude = {"expect.json", "make-archive.sh", "archive-kind", "README.md"}
-    with tarfile.open(fileobj=buf, mode="w") as tar:
-        for root, _dirs, filenames in os.walk(case_dir):
-            for fn in filenames:
-                full = os.path.join(root, fn)
-                rel = os.path.relpath(full, case_dir)
-                top = rel.split(os.sep)[0]
-                if top in exclude:
-                    continue
-                data = open(full, "rb").read()
-                if rel == "candidate.toml" and challenge_id:
-                    data = re.sub(rb'challenge = "[^"]*"',
-                                  f'challenge = "{challenge_id}"'.encode(), data)
-                ti = tarfile.TarInfo(name=rel)
-                ti.size = len(data)
-                ti.mode = 0o755 if rel.endswith(".sh") else 0o644
-                tar.addfile(ti, io.BytesIO(data))
+    with tarfile.open(fileobj=buf, mode="w", format=tarfile.GNU_FORMAT) as tar:
+        # CONTRACTS §3 layout: dependency-locks/ must exist even when empty.
+        if not any(f.startswith("dependency-locks" + os.sep) for f in files):
+            ti = tarfile.TarInfo(name="dependency-locks")
+            ti.type = tarfile.DIRTYPE
+            ti.mode = 0o755
+            ti.mtime = 0
+            tar.addfile(ti)
+        for rel in files:
+            full = os.path.join(case_dir, rel)
+            data = open(full, "rb").read()
+            if rel == "candidate.toml" and challenge_id:
+                data = re.sub(rb'challenge = "[^"]*"',
+                              f'challenge = "{challenge_id}"'.encode(), data)
+            ti = tarfile.TarInfo(name=rel)
+            ti.size = len(data)
+            ti.mode = 0o755 if os.stat(full).st_mode & 0o111 else 0o644
+            ti.mtime = 0
+            ti.uid = ti.gid = 0
+            ti.uname = ti.gname = ""
+            tar.addfile(ti, io.BytesIO(data))
     return buf.getvalue()
 
 
@@ -169,6 +199,8 @@ class Client:
             return None, b""
 
 
+OBSERVED = {}
+
 TERMINAL = {"ADMITTED", "REJECTED", "INCONCLUSIVE", "INFRA_ERROR", "CANCELLED"}
 
 
@@ -198,6 +230,17 @@ def check_case(client, name, d, expect, challenge_id, timeout_s):
 
     decision = view.get("decision")
     gates = {g["gate"]: g for g in view.get("gates", [])}
+    OBSERVED[name] = {
+        "submission": sid,
+        "decision": decision,
+        "accepted": view.get("accepted"),
+        "failed_gates": sorted(g for g, v in gates.items() if v.get("status") == "FAIL"),
+        "unknown_gates": sorted(g for g, v in gates.items() if v.get("status") == "UNKNOWN"),
+        "reason_codes": sorted(set(view.get("reason_codes", [])) | {rc for v in gates.values() for rc in v.get("reason_codes", [])}),
+        "expected_decision": expect["expected_decision"],
+        "expected_failing_gates": expect["expected_failing_gates"],
+        "expected_reason_codes": expect["expected_reason_codes"],
+    }
     all_reasons = set(view.get("reason_codes", []))
     for g in view.get("gates", []):
         all_reasons.update(g.get("reason_codes", []))
@@ -227,10 +270,12 @@ def check_case(client, name, d, expect, challenge_id, timeout_s):
     if missing:
         return False, [f"{name}: missing reason codes {missing}; saw {sorted(all_reasons)}"]
 
-    # --- leaderboard must not list this submission ---
+    # --- leaderboard must not RANK this submission (the server lists every
+    # submission, unranked ones with rank null) ---
     lb, lb_raw = client.leaderboard(challenge_id)
-    if lb_raw and sid.encode() in lb_raw:
-        return False, [f"{name}: hostile submission appears on the leaderboard!"]
+    for e in (lb or []):
+        if isinstance(e, dict) and e.get("submission_id") == sid and e.get("rank") is not None:
+            return False, [f"{name}: hostile submission is RANKED on the leaderboard!"]
 
     # --- UI/log injection: response must be sanitized ---
     if expect["attack_family"] == "ui-log-injection":
@@ -247,7 +292,16 @@ def check_case(client, name, d, expect, challenge_id, timeout_s):
     return True, msgs
 
 
-def live_run(cases, server, token, challenge_id, timeout_s):
+def applicable(expect, target):
+    """Whether a case should be submitted for this run's target challenge kind."""
+    if target not in expect.get("targets", ["demo"]):
+        return False, f"target {target} not in {expect.get('targets', ['demo'])}"
+    if not expect.get("runnable", True):
+        return False, "runnable=false (documented; needs a reexec-witness NEAR backend)"
+    return True, ""
+
+
+def live_run(cases, server, token, challenge_id, timeout_s, target):
     client = Client(server, token)
     if not challenge_id:
         chs = client.challenges()
@@ -255,24 +309,40 @@ def live_run(cases, server, token, challenge_id, timeout_s):
             print("no challenges on server; set ARENA_CHALLENGE", file=sys.stderr)
             return 2
         challenge_id = chs[0]["id"] if isinstance(chs[0], dict) else chs[0]
-    print(f"# LIVE e2e against {server}, challenge {challenge_id}\n")
+    print(f"# LIVE e2e against {server}, challenge {challenge_id}, target={target}\n")
 
     fails = 0
+    skipped = 0
     for name, d, expect in cases:
+        ok_run, why = applicable(expect, target)
+        if not ok_run:
+            print(f"skip {name}: {why}")
+            OBSERVED[name] = {"skipped": why}
+            skipped += 1
+            continue
         try:
             ok, msgs = check_case(client, name, d, expect, challenge_id, timeout_s)
         except Exception as e:  # noqa: BLE001
             ok, msgs = False, [f"{name}: driver error: {e}"]
         for m in msgs:
             print(("ok   " if ok else "FAIL ") + m)
+        if not ok and name in OBSERVED:
+            o = OBSERVED[name]
+            print(f"     observed: decision={o['decision']} failed={o['failed_gates']} "
+                  f"unknown={o['unknown_gates']} reasons={o['reason_codes']}")
+        if name in OBSERVED:
+            OBSERVED[name]["ok"] = ok
         if not ok:
             fails += 1
     print()
+    ran = len(cases) - skipped
     if fails:
-        print(f"E2E FAILED: {fails}/{len(cases)} hostile cases did not behave as expected")
+        print(f"E2E FAILED: {fails}/{ran} run hostile cases did not behave as expected "
+              f"({skipped} skipped for target={target})")
         return 1
-    print(f"E2E OK: all {len(cases)} hostile cases REJECTED with the expected gates/reasons; "
-          "none admitted or ranked; injection payloads sanitized")
+    print(f"E2E OK: all {ran} run hostile cases REJECTED with the expected gates/reasons; "
+          f"none admitted or ranked; injection payloads sanitized ({skipped} skipped "
+          f"for target={target})")
     return 0
 
 
@@ -283,9 +353,17 @@ def main():
     ap.add_argument("--challenge", default=os.environ.get("ARENA_CHALLENGE"))
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--timeout", type=int, default=600)
+    ap.add_argument("--only", default="", help="comma-separated case names to run")
+    ap.add_argument("--target", default=os.environ.get("ARENA_HOSTILE_TARGET", "demo"),
+                    choices=["demo", "near-formal"],
+                    help="challenge kind; cases whose targets exclude it are skipped")
+    ap.add_argument("--report", default="", help="write per-case outcomes as JSON here")
     args = ap.parse_args()
 
     cases = load_cases()
+    if args.only:
+        want = set(args.only.split(","))
+        cases = [c for c in cases if c[0] in want]
     if not cases:
         print(f"no cases found under {SUITE}", file=sys.stderr)
         return 2
@@ -298,7 +376,11 @@ def main():
     if not args.token:
         print("live run needs --token / ARENA_TOKEN", file=sys.stderr)
         return 2
-    return live_run(cases, args.server, args.token, args.challenge, args.timeout)
+    rc = live_run(cases, args.server, args.token, args.challenge, args.timeout, args.target)
+    if args.report:
+        with open(args.report, "w") as f:
+            json.dump(OBSERVED, f, indent=1, sort_keys=True)
+    return rc
 
 
 if __name__ == "__main__":

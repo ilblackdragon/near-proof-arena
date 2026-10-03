@@ -1,0 +1,13 @@
+{
+ "schema": "near-arena-heldout-commitment-v1",
+ "challenge": "near-transfer-receipt-v2",
+ "statement_id": "near/pv86/receipt-transfer-batch/v1",
+ "tree_digest": "sha256:10b9602d5b82f259cfd7b736aaa5c093a44e095ab5a9622a14a338ab37b3f756",
+ "algorithm": "TreeDigest (docs/CONTRACTS.md \u00a71; arena-admin tree-digest) of the held-out directory",
+ "layout": "batch-{1,16,256}/{params.bin, cases/<name>/{request.bin,witness.bin,expected_claim.bin,state.bin,diagnostics.json}}",
+ "cases_per_class": 24,
+ "generated_with": "oracle/scripts/gen-heldout-v2.sh <secret seed file> <dir> (near-arena-oracle at the oracle source digest in the workload generator specs)",
+ "oracle_source_tree_digest": "sha256:a2845fc671ce3c9f203725bf015201e7eb18288e051959f553e9a68caa3c96f5",
+ "seed": "secret; kept off-repo by the local operator until season end",
+ "synthetic_state": true
+}

@@ -7,6 +7,7 @@
 //!   regenerated from a template with the artifact digests as data;
 //! * candidate: `Toy.Programs`, `Toy.BytecodeProofs`, `Toy.Certificate`, and
 //!   each of formal-core's `negative/*.lean` files as `Candidate.lean`.
+#![allow(clippy::type_complexity, clippy::doc_lazy_continuation)]
 
 use arena_formal_checker::*;
 use arena_types::GateStatus;
@@ -30,10 +31,18 @@ fn template(core: &Path) -> (String, String, String) {
     let src = std::fs::read_to_string(core.join("Toy/Artifacts.lean")).unwrap();
     let i = src.find("def publicDigest").unwrap();
     let (pub_hex, r1) = hex_list(&src[i..]);
-    let mut t = format!("{}{{{{public_digest}}}}{}", &src[..i + r1.start], &src[i + r1.end..]);
+    let mut t = format!(
+        "{}{{{{public_digest}}}}{}",
+        &src[..i + r1.start],
+        &src[i + r1.end..]
+    );
     let j = t.find("def verifierDigest").unwrap();
     let (ver_hex, r2) = hex_list(&t[j..]);
-    t = format!("{}{{{{verifier_digest}}}}{}", &t[..j + r2.start], &t[j + r2.end..]);
+    t = format!(
+        "{}{{{{verifier_digest}}}}{}",
+        &t[..j + r2.start],
+        &t[j + r2.end..]
+    );
     (t, pub_hex, ver_hex)
 }
 
@@ -53,7 +62,11 @@ fn candidate_dir(core: &Path, dest: &Path, extra: Option<&Path>) {
     let _ = std::fs::remove_dir_all(dest);
     std::fs::create_dir_all(dest.join("Toy")).unwrap();
     for m in ["Programs", "BytecodeProofs", "Certificate"] {
-        std::fs::copy(core.join(format!("Toy/{m}.lean")), dest.join(format!("Toy/{m}.lean"))).unwrap();
+        std::fs::copy(
+            core.join(format!("Toy/{m}.lean")),
+            dest.join(format!("Toy/{m}.lean")),
+        )
+        .unwrap();
     }
     if let Some(e) = extra {
         std::fs::copy(e, dest.join("Candidate.lean")).unwrap();
@@ -72,7 +85,7 @@ fn formal_core_toy() {
     }
     let core = PathBuf::from(core);
     let tools = toolchain::ToolPaths::discover().expect("tools");
-    let checker = FormalChecker::new(tools, Box::new(BwrapDevRunner::new().unwrap()));
+    let checker = FormalChecker::new(tools, Box::new(dev_runner().unwrap()));
     let root = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("fc-formal-core");
     let _ = std::fs::remove_dir_all(&root);
     let cache = root.join("cache");
@@ -83,10 +96,20 @@ fn formal_core_toy() {
         src_root: core.clone(),
         include: Some(vec!["ArenaCore".into(), "Toy.Spec".into()]),
     }];
-    let policy = Policy { reserved_prefixes: vec!["ArenaCore".into()], ..Policy::default() };
+    let policy = Policy {
+        reserved_prefixes: vec!["ArenaCore".into()],
+        ..Policy::default()
+    };
 
     // (name, extra candidate file, certificate, expected data, expected status, acceptable codes)
-    let mut cases: Vec<(String, Option<PathBuf>, String, TemplateExpected, GateStatus, Vec<&str>)> = vec![(
+    let mut cases: Vec<(
+        String,
+        Option<PathBuf>,
+        String,
+        TemplateExpected,
+        GateStatus,
+        Vec<&str>,
+    )> = vec![(
         "toy_certificate".into(),
         None,
         "Toy.certificate".into(),
@@ -104,18 +127,34 @@ fn formal_core_toy() {
         GateStatus::Fail,
         vec!["BUILD_FAILED", "CERTIFICATE_MISSING"],
     ));
-    let mut negs: Vec<PathBuf> = std::fs::read_dir(core.join("negative")).into_iter().flatten().map(|e| e.unwrap().path()).filter(|p| p.extension().is_some_and(|x| x == "lean")).collect();
+    let mut negs: Vec<PathBuf> = std::fs::read_dir(core.join("negative"))
+        .into_iter()
+        .flatten()
+        .map(|e| e.unwrap().path())
+        .filter(|p| p.extension().is_some_and(|x| x == "lean"))
+        .collect();
     negs.sort();
     for n in negs {
         let src = std::fs::read_to_string(&n).unwrap();
-        let line = src.lines().find(|l| l.starts_with("-- EXPECT:")).unwrap_or("").to_string();
+        let line = src
+            .lines()
+            .find(|l| l.starts_with("-- EXPECT:"))
+            .unwrap_or("")
+            .to_string();
         let (status, codes) = if line.contains("PASS") {
             (GateStatus::Pass, vec![])
         } else {
-            let mut c: Vec<&str> = ["SORRY_FOUND", "FORBIDDEN_AXIOM", "UNAPPROVED_ASSUMPTION", "NATIVE_EVAL_FOUND", "THEOREM_TYPE_MISMATCH", "SHADOWED_DEFINITION"]
-                .into_iter()
-                .filter(|k| line.contains(k))
-                .collect();
+            let mut c: Vec<&str> = [
+                "SORRY_FOUND",
+                "FORBIDDEN_AXIOM",
+                "UNAPPROVED_ASSUMPTION",
+                "NATIVE_EVAL_FOUND",
+                "THEOREM_TYPE_MISMATCH",
+                "SHADOWED_DEFINITION",
+            ]
+            .into_iter()
+            .filter(|k| line.contains(k))
+            .collect();
             if line.contains("ARTIFACT_BINDING_FAILED") {
                 c.extend(["BUILD_FAILED", "CERTIFICATE_MISSING"]);
             }
@@ -152,18 +191,53 @@ fn formal_core_toy() {
         let got: Vec<String> = rep
             .gates
             .iter()
-            .flat_map(|g| g.reason_codes.iter().map(|c| serde_json::to_value(c).unwrap().as_str().unwrap().to_string()))
+            .flat_map(|g| {
+                g.reason_codes.iter().map(|c| {
+                    serde_json::to_value(c)
+                        .unwrap()
+                        .as_str()
+                        .unwrap()
+                        .to_string()
+                })
+            })
             .collect::<std::collections::BTreeSet<_>>()
             .into_iter()
             .collect();
         let statuses: Vec<GateStatus> = rep.gates.iter().map(|g| g.status).collect();
-        eprintln!("{name:<32} {:>6.1}s {:?} {:?}", t.elapsed().as_secs_f64(), statuses[0], got);
-        let _ = std::fs::write(root.join(name).join("report.json"), serde_json::to_string_pretty(&rep).unwrap());
+        eprintln!(
+            "{name:<32} {:>6.1}s {:?} {:?}",
+            t.elapsed().as_secs_f64(),
+            statuses[0],
+            got
+        );
+        let _ = std::fs::write(
+            root.join(name).join("report.json"),
+            serde_json::to_string_pretty(&rep).unwrap(),
+        );
         if !statuses.iter().all(|s| s == status) {
-            failures.push(format!("{name}: statuses {statuses:?}, expected all {status:?}; findings {:?}", rep.findings.iter().map(|f| (&f.code, f.detail.lines().next())).collect::<Vec<_>>()));
+            failures.push(format!(
+                "{name}: statuses {statuses:?}, expected all {status:?}; findings {:?}",
+                rep.findings
+                    .iter()
+                    .map(|f| (&f.code, f.detail.lines().next()))
+                    .collect::<Vec<_>>()
+            ));
         } else if !codes.is_empty() && !codes.iter().any(|c| got.iter().any(|g| g == c)) {
             failures.push(format!("{name}: codes {got:?}, expected one of {codes:?}"));
         }
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));
+}
+
+fn dev_runner() -> Result<SandboxRunner, arena_formal_checker::sandbox::InfraError> {
+    let helper = arena_sandbox::HelperCommand {
+        exe: env!("CARGO_BIN_EXE_formal-check").into(),
+        prefix_args: vec![arena_formal_checker::HELPER_ARG.into()],
+    };
+    let work = std::env::temp_dir().join(format!(
+        "fc-sandbox-{}-{}",
+        env!("CARGO_CRATE_NAME"),
+        std::process::id()
+    ));
+    SandboxRunner::bwrap_dev(helper, work)
 }

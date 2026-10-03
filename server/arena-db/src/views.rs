@@ -551,6 +551,8 @@ pub async fn list_bundles(
 #[derive(Clone, Debug, Serialize, schemars::JsonSchema)]
 pub struct Leaderboard {
     pub challenge_id: String,
+    /// Successor challenge, if this board is historical.
+    pub superseded_by: Option<String>,
     pub challenge_tier: Tier,
     /// Only `formal` challenges have an official ranked board.
     pub official: bool,
@@ -614,6 +616,8 @@ fn entry(
     b: &SubmissionBundle,
     run: Option<&Run>,
     chal: &arena_types::ChallengeDefinition,
+    challenge_id: &str,
+    superseded_by: Option<&str>,
 ) -> LeaderboardEntry {
     let bench = run.and_then(|r| r.benchmark.as_ref());
     LeaderboardEntry {
@@ -641,23 +645,52 @@ fn entry(
         submitted_at: rfc3339(b.sub.created_at),
         revoked: b.revocation.is_some(),
         score_ci_milli: bench.and_then(|b| b.score_ci_milli),
+        challenge_id: challenge_id.to_string(),
+        protocol_version: chal.protocol_version,
+        superseded_by: superseded_by.map(str::to_string),
     }
 }
 
 /// Compute the leaderboard from submission bundles of one challenge.
 /// The ranked board uses each submission's latest *decided* run, so a rerun in
-/// progress does not hide an existing result.
+/// progress does not hide an existing result. Only bundles of `challenge_id`
+/// are ever considered: boards of a superseded challenge and its successor
+/// are never merged (docs/PROTOCOL_UPGRADES.md §5). A superseded board keeps
+/// its ranking and carries `superseded_by` on every entry.
 pub fn compute_leaderboard(
     challenge_id: &str,
     chal: &arena_types::ChallengeDefinition,
+    superseded_by: Option<&str>,
     bundles: &[SubmissionBundle],
 ) -> Leaderboard {
+    // A run whose formal gates were reused from a revoked submission carries
+    // that submission's (now withdrawn) evidence: it is not rankable either.
+    let revoked: std::collections::HashSet<&str> = bundles
+        .iter()
+        .filter(|b| b.revocation.is_some())
+        .map(|b| b.sub.id.as_str())
+        .collect();
+    let bundles: Vec<&SubmissionBundle> = bundles
+        .iter()
+        .filter(|b| b.sub.challenge_id == challenge_id)
+        .collect();
     let mut ranked: Vec<(LeaderboardEntry, OffsetDateTime)> = bundles
         .iter()
         .filter_map(|b| {
             let r = b.latest_decided_run()?;
-            rankable(chal.tier, r, b.revocation.is_some())
-                .then(|| (entry(b, Some(r), chal), b.sub.created_at))
+            let tainted = b.gates.get(&r.id).is_some_and(|gs| {
+                gs.iter().any(|g| {
+                    g.reused_from
+                        .as_deref()
+                        .is_some_and(|s| revoked.contains(s))
+                })
+            });
+            rankable(chal.tier, r, b.revocation.is_some() || tainted).then(|| {
+                (
+                    entry(b, Some(r), chal, challenge_id, superseded_by),
+                    b.sub.created_at,
+                )
+            })
         })
         .collect();
     ranked.sort_by(|(a, at), (b, bt)| {
@@ -681,13 +714,20 @@ pub fn compute_leaderboard(
     let all_submissions = bundles
         .iter()
         .map(|b| {
-            let mut e = entry(b, b.latest_decided_run().or(b.latest_run()), chal);
+            let mut e = entry(
+                b,
+                b.latest_decided_run().or(b.latest_run()),
+                chal,
+                challenge_id,
+                superseded_by,
+            );
             e.rank = rank_of.get(b.sub.id.as_str()).copied();
             e
         })
         .collect();
     Leaderboard {
         challenge_id: challenge_id.to_string(),
+        superseded_by: superseded_by.map(str::to_string),
         challenge_tier: chal.tier,
         official: chal.tier == Tier::Formal,
         ranked,

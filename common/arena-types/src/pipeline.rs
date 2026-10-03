@@ -1,4 +1,4 @@
-use crate::{challenge::Tier, Digest, EvidenceGraph};
+use crate::{challenge::Tier, Digest, EvidenceGraph, VerifyRoute};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -133,6 +133,24 @@ pub struct VerifiedSurface {
     pub formal_tree: Digest,
     pub certificate_decl: String,
     pub checker_image: Digest,
+    // ---- additive (v1.3, red-team finding RT-01) ----
+    // Everything below changes the judge-built admission statement (the
+    // `art.impl` of `Judge.Expected`) or which code runs as `verify`, so it
+    // must be part of the surface: otherwise a child that swaps only its NPAI
+    // bytecode or its native-lean model would hit the parent's formal-cache
+    // entry and inherit formal PASSes that were never checked for it.
+    /// Effective verify route (`native` when the manifest omits it).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verify_route: Option<VerifyRoute>,
+    /// `npai-v1`: SHA-256 digest of the built verifier bytecode image.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_bytecode: Option<Digest>,
+    /// `native-lean`: `[formal] verifier_model`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_model: Option<String>,
+    /// `native-lean`: `[formal] verifier_model_module`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_model_module: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -287,6 +305,18 @@ pub struct LeaderboardEntry {
     /// Half-width of the score's 95% interval, milli units (additive, v1.1).
     #[serde(default)]
     pub score_ci_milli: Option<u64>,
+    /// The challenge this result was measured under (additive, v1.4). A
+    /// result is never re-labelled or moved to another challenge's board.
+    #[serde(default)]
+    pub challenge_id: String,
+    /// That challenge's NEAR protocol version (additive, v1.4).
+    #[serde(default)]
+    pub protocol_version: u32,
+    /// Set when the challenge has been superseded: the board is historical
+    /// (frozen, closed for new submissions) and scores are not comparable
+    /// with the successor's (additive, v1.4).
+    #[serde(default)]
+    pub superseded_by: Option<String>,
 }
 
 /// Pure decision function shared by server and tests.

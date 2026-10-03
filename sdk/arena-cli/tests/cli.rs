@@ -342,6 +342,29 @@ fn pack_is_deterministic() {
         0
     );
     assert_eq!(std::fs::read(&a).unwrap(), std::fs::read(&b).unwrap());
+    let (za, zb) = (t.path().join("a.tar.zst"), t.path().join("b.tar.zst"));
+    assert_eq!(
+        code(&arena(
+            &["pack", d.to_str().unwrap(), "-o", za.to_str().unwrap()],
+            &[]
+        )),
+        0
+    );
+    std::fs::write(d.join("README.md"), "toy").unwrap();
+    assert_eq!(
+        code(&arena(
+            &["pack", d.to_str().unwrap(), "-o", zb.to_str().unwrap()],
+            &[]
+        )),
+        0
+    );
+    let (za, zb) = (std::fs::read(&za).unwrap(), std::fs::read(&zb).unwrap());
+    assert_eq!(za, zb);
+    assert_eq!(&za[..4], &[0x28, 0xb5, 0x2f, 0xfd]);
+    assert_eq!(
+        zstd::decode_all(za.as_slice()).unwrap(),
+        std::fs::read(&a).unwrap()
+    );
     std::os::unix::fs::symlink("README.md", d.join("link")).unwrap();
     assert_eq!(
         code(&arena(
@@ -510,6 +533,12 @@ fn submit_and_watch_flow() {
     {
         let log = m.log.lock().unwrap();
         let up = log.iter().find(|r| r.path == "/v1/uploads").unwrap();
+        // submit uploads deterministic tar.zst by default
+        assert_eq!(
+            up.headers.get("content-type").map(|s| s.as_str()),
+            Some("application/zstd")
+        );
+        assert_eq!(&up.body[..4], &[0x28, 0xb5, 0x2f, 0xfd]);
         let sub = log.iter().find(|r| r.path == "/v1/submissions").unwrap();
         let body: serde_json::Value = serde_json::from_slice(&sub.body).unwrap();
         assert_eq!(body["challenge_id"], CHL);
@@ -728,6 +757,7 @@ fn sample_challenge() -> arena_types::ChallengeDefinition {
             cold_runs: 1,
             concurrency: 1,
             per_run_timeout_ms: 1000,
+            invocation_mode: None,
         },
         resource_limits: ResourceLimits {
             max_proof_bytes: 1 << 20,
