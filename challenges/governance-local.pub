@@ -1,0 +1,8 @@
+{
+  "schema": "arena-governance-pubkey-v1",
+  "algorithm": "ed25519",
+  "key_id": "gov_7e075bd83a3313b5",
+  "public_key_hex": "9bbbb2f5a070a0e9c6be62055e122ce78e866ec620d5e86d9926614e4c050426",
+  "dev_only": false,
+  "label": "local deployment operator key — not a NEAR Foundation / production governance key"
+}
