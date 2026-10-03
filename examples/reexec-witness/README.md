@@ -14,7 +14,8 @@ checks the commitments. It accepts only if the claim's outputs match.
 | `source/src/` | Rust prover (`prepare`, `prove`) and `rxcheck`, a Rust re-checker used for tests only |
 | `source/vendor/` | vendored crates (`sha2` and its dependencies), built `--locked --offline` |
 | `source/lean-vendor/` | verbatim copies of the judge-trusted Lean packages (`ArenaCore`, `NearSpec`'s trusted modules), used to compile `out/verify` offline. Refresh them with `source/verifier/sync-vendor.sh`; their digests are pinned in `dependency-locks/lean-vendor.sha256` |
-| `source/verifier/` | dev Lake project: builds the certificate against `judge-local/` and the `verify` executable |
+| `source/verifier/` | dev Lake project (certificate against `judge-local/`), the judge's `main` wrapper template (verbatim), and `sync-vendor.sh` |
+| `source/src/bin/leanorder.rs` | build helper: the judge's module link order (`topo` in runners/formal-checker) |
 | `formal/ReexecWitness/` | Lean: proof codec, verifier model, obligations, certificate |
 | `judge-local/` | **local emulation** of the judge-generated `ArenaExpected` / `ArenaExpectedInst` modules (native-lean route), for development only |
 | `build-recipe/build.sh` | offline reproducible build of `out/{prepare,prove,verify}` |
@@ -53,12 +54,16 @@ def check (cb pb : Bytes) : Bool :=
 
 Route **`native-lean`** (`[entry] verify_route`): the **judge** compiles
 `formal.verifier_model` with the governed Lean compiler and its own `main`
-wrapper. `build.sh` reproduces that build layout exactly (trusted sources plus
-the model's import closure under `src/`, the judge's wrapper, and a lakefile
-with no `require`). As a result `out/verify` is byte-identical across build
-directories. The implementation-connection edge (binary ↔ model) is
-**trusted**, not checked: the Lean compiler and runtime are in the TCB
-(`VerifierImpl.status = .trusted`).
+wrapper. `build.sh` replicates that build step for step: `lean -c` on every
+trusted module in the judge's topological order and on the model's import
+closure, the judge's `main` wrapper verbatim, `leanc -c -O3 -DNDEBUG` per C
+file, and one `leanc -o` link in the same order. The result is that
+`out/verify` is **byte-identical to the judge's build**: sha256 `3931ac6f…`
+from both the real checker and `build.sh`. A judge that also compares the
+shipped binary therefore passes `ARTIFACT_BINDING`. The
+implementation-connection edge (binary ↔ model) is **trusted**, not checked:
+the Lean compiler and runtime are in the TCB (`VerifierImpl.status =
+.trusted`).
 
 The Rust prover (`source/src/engine.rs`) is not in any trust path. It must emit
 a claim equal to the oracle's and a proof the model accepts. `rxcheck` is an
@@ -94,7 +99,22 @@ reduction budget, and every `maxProofBytes ≥ 3 088 869`. Only the public diges
 ties the certificate to the artifacts. The binary digest is universally
 quantified because the edge is trusted.
 
-## Measured locally (see top-level report)
+## Real formal checker (runners/formal-checker, dev bwrap sandbox)
+
+`formal-check --challenge challenges/chl_5ef2bc7d2068219635426e47ca46bfbb.json
+--challenge-config runners/formal-checker/challenges/near-transfer-receipt-v1.json
+--native-model ReexecWitness.Model.verifier@ReexecWitness.Model
+--candidate-native-binary out/verify --certificate ReexecWitness.certificate`
+on a clean export of `formal-core` and `spec/lean` gives:
+
+`FORMAL_SEMANTIC_SOUNDNESS`, `FORMAL_SEMANTIC_COMPLETENESS`,
+`FORMAL_CRYPTO_SOUNDNESS`, `FORMAL_IMPL_CONNECTION`, `AXIOM_AUDIT` and
+`ARTIFACT_BINDING` are all **PASS**. The rechecks (leanchecker and nanoda) are
+accepted. The judge-built verifier is `sha256:3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94`.
+Because the result was produced with the dev sandbox, it is tier-capped at
+`demo`.
+
+## Measured locally
 
 * Claims are byte-identical to the oracle on all 20 public fixtures and on 600
   freshly generated in-domain cases (seed 777). All 140 generated out-of-domain

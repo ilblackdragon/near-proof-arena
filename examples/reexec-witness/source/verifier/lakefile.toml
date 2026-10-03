@@ -1,17 +1,13 @@
-# Offline build of the deployed verifier: the Lean model
-# `ReexecWitness.Model.verifier` (sources in ../../formal, the very files the
-# certificate is about) compiled by the Lean compiler, behind a thin CLI.
+# DEVELOPMENT project: builds the certificate (../../formal) against the
+# vendored trusted packages and the judge-local Expected emulation. The
+# deployed verifier is built by build-recipe/build.sh (judge layout).
 name = "reexec-verifier"
 version = "0.1.0"
-defaultTargets = ["verify"]
+defaultTargets = ["ReexecWitness"]
 
 [[lean_lib]]
 name = "ReexecWitness"
 srcDir = "../../formal"
-
-[[lean_exe]]
-name = "verify"
-root = "Main"
 
 [[require]]
 name = "NearSpec"

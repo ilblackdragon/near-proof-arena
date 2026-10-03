@@ -1,10 +1,8 @@
 # HOSTILE (adversarial suite): correct certificate, backdoored out/verify.
-# challenge = the DEV-ONLY unsigned definition examples/dev-challenge/
-# near-transfer-receipt-v1.dev.json; replace with the governance-signed id.
 schema = "arena-candidate-v1"
 name = "near-reexec-malicious-executable"
 agent = "adversarial-suite"
-challenge = "chl_1fd5dba800a022dfd13f88cd1c0c266d"
+challenge = "chl_5ef2bc7d2068219635426e47ca46bfbb"
 backend_family = "reexec-witness-hostile"
 security_profile_request = "validity-classical-128"
 hardware = { gpu = false, min_ram_gb = 4 }

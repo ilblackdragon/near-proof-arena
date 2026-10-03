@@ -29,35 +29,50 @@ for bin in prepare prove; do
   install -m 0755 "source/target/release/${bin}" "out/${bin}"
 done
 
-# ---- Lean verifier (native-lean route layout) -------------------------------
+# ---- Lean verifier: the judge's native-lean build, replicated --------------
+# runners/formal-checker `native_build`: `lean -c` every trusted module (judge
+# topo order) and the model's import closure, the judge-owned main wrapper
+# (`ARENACORE_MAIN_TEMPLATE`, verbatim in source/verifier/), then
+# `leanc -c -O3 -DNDEBUG` per C file and one `leanc -o` link in that order.
+# Object files and the link are path-independent, so out/verify is
+# byte-identical to the judge's build of ReexecWitness.Model.verifier.
 export PATH="${ELAN_HOME:-${HOME}/.elan}/bin:${PATH}"
 ( cd source/lean-vendor && find . -type f ! -path './*/.lake/*' | LC_ALL=C sort | xargs sha256sum ) \
   | cmp -s - dependency-locks/lean-vendor.sha256 || {
   echo "source/lean-vendor differs from dependency-locks/lean-vendor.sha256" >&2
   exit 1
 }
+TC="$(cd source/verifier && lean --print-prefix)"
+LEAN="${TC}/bin/lean"
+LEANC="${TC}/bin/leanc"
+( cd source && cargo build --release --locked --offline --bin leanorder )
+ORDER="${ROOT}/source/target/release/leanorder"
+TRUSTED_PREFIXES="ArenaCore NearSpec.Bytes NearSpec.SHA256 NearSpec.AccountId NearSpec.Primitives NearSpec.Trie NearSpec.Outcome NearSpec.TransferV1 NearSpec.ClaimCodec NearSpec.Challenge"
+MODEL_MODULES="ReexecWitness.ProofCodec ReexecWitness.Model"   # the model's import closure in formal/
 NB="${ROOT}/build-native"
 rm -rf "${NB}"
-mkdir -p "${NB}/src/ReexecWitness"
-cp -R source/lean-vendor/formal-core/ArenaCore source/lean-vendor/formal-core/ArenaCore.lean "${NB}/src/"
-cp -R source/lean-vendor/spec/lean/NearSpec "${NB}/src/"
-# the model's import closure inside formal/
-for m in ProofCodec Model; do cp "formal/ReexecWitness/${m}.lean" "${NB}/src/ReexecWitness/"; done
-cp source/verifier/Main.lean "${NB}/src/ArenaVerifyMain.lean"
-roots=$(cd "${NB}/src" && find . -name '*.lean' ! -name ArenaVerifyMain.lean | sed 's|^\./||; s|\.lean$||; s|/|.|g' | LC_ALL=C sort | sed 's/.*/"&"/' | paste -sd, - | sed 's/,/, /g')
-cat > "${NB}/lakefile.toml" <<TOML
-name = "arenaverify"
-srcDir = "src"
-
-[[lean_lib]]
-name = "ArenaVerifyLib"
-roots = [${roots}]
-
-[[lean_exe]]
-name = "verify"
-root = "ArenaVerifyMain"
-TOML
-cp source/verifier/lean-toolchain "${NB}/lean-toolchain"
-( cd "${NB}" && lake build verify )
-install -m 0755 "${NB}/.lake/build/bin/verify" out/verify
+mkdir -p "${NB}/tsrc" "${NB}/msrc/ReexecWitness" "${NB}/main" "${NB}/olean" "${NB}/c" "${NB}/o"
+cp -R source/lean-vendor/formal-core/ArenaCore source/lean-vendor/formal-core/ArenaCore.lean "${NB}/tsrc/"
+cp -R source/lean-vendor/spec/lean/NearSpec "${NB}/tsrc/"
+for m in ${MODEL_MODULES}; do cp "formal/${m//.//}.lean" "${NB}/msrc/${m//.//}.lean"; done
+sed -e 's/{{model_module}}/ReexecWitness.Model/' -e 's/{{model_decl}}/ReexecWitness.Model.verifier/' \
+  source/verifier/ArenaVerifyMain.lean.template > "${NB}/main/ArenaVerifyMain.lean"
+export LEAN_PATH="${NB}/olean"
+compile() {  # root module
+  local root="$1" m="$2" stem="${2//.//}"
+  mkdir -p "$(dirname "${NB}/olean/${stem}")"
+  "${LEAN}" -R "${root}" -o "${NB}/olean/${stem}.olean" -i "${NB}/olean/${stem}.ilean" \
+    -c "${NB}/c/${m}.c" "${root}/${stem}.lean"
+}
+LINK=()
+for m in $("${ORDER}" "${NB}/tsrc" ${TRUSTED_PREFIXES}); do compile "${NB}/tsrc" "$m"; LINK+=("$m"); done
+for m in $("${ORDER}" "${NB}/msrc" ReexecWitness); do compile "${NB}/msrc" "$m"; LINK+=("$m"); done
+compile "${NB}/main" ArenaVerifyMain; LINK+=(ArenaVerifyMain)
+objs=()
+for m in "${LINK[@]}"; do
+  "${LEANC}" -c -O3 -DNDEBUG "${NB}/c/${m}.c" -o "${NB}/o/${m}.o"
+  objs+=("${NB}/o/${m}.o")
+done
+"${LEANC}" -o "${NB}/o/verify" "${objs[@]}"
+install -m 0755 "${NB}/o/verify" out/verify
 rm -rf "${NB}"
