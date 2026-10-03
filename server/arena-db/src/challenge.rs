@@ -17,19 +17,23 @@ use time::OffsetDateTime;
 /// Parse a 32-byte ed25519 public key from hex (64 chars) or base64.
 pub fn parse_pubkey(s: &str) -> Result<VerifyingKey, String> {
     let bytes = decode_hex_or_b64(s.trim())?;
-    let arr: [u8; 32] = bytes.try_into().map_err(|_| "public key must be 32 bytes".to_string())?;
+    let arr: [u8; 32] = bytes
+        .try_into()
+        .map_err(|_| "public key must be 32 bytes".to_string())?;
     VerifyingKey::from_bytes(&arr).map_err(|e| format!("invalid public key: {e}"))
 }
 
 /// Parse a 64-byte ed25519 signature from hex (128 chars) or base64.
 pub fn parse_signature(s: &str) -> Result<Signature, String> {
     let bytes = decode_hex_or_b64(s.trim())?;
-    let arr: [u8; 64] = bytes.try_into().map_err(|_| "signature must be 64 bytes".to_string())?;
+    let arr: [u8; 64] = bytes
+        .try_into()
+        .map_err(|_| "signature must be 64 bytes".to_string())?;
     Ok(Signature::from_bytes(&arr))
 }
 
 fn decode_hex_or_b64(s: &str) -> Result<Vec<u8>, String> {
-    if s.len() % 2 == 0 && s.bytes().all(|b| b.is_ascii_hexdigit()) {
+    if s.len().is_multiple_of(2) && s.bytes().all(|b| b.is_ascii_hexdigit()) {
         return hex::decode(s).map_err(|e| e.to_string());
     }
     base64::engine::general_purpose::STANDARD
@@ -66,12 +70,25 @@ pub fn verify_definition(
         .iter()
         .find(|k| k.verify(&canonical_bytes, sig).is_ok())
         .ok_or_else(|| "signature does not verify under any governance key".to_string())?;
-    let weights: u64 =
-        definition.workload_suite.classes.iter().map(|c| c.weight_ppm as u64).sum();
+    let weights: u64 = definition
+        .workload_suite
+        .classes
+        .iter()
+        .map(|c| c.weight_ppm as u64)
+        .sum();
     if !definition.workload_suite.classes.is_empty() && weights != 1_000_000 {
-        return Err(format!("workload weights sum to {weights} ppm, expected 1000000"));
+        return Err(format!(
+            "workload weights sum to {weights} ppm, expected 1000000"
+        ));
     }
-    Ok(VerifiedChallenge { id, digest, canonical_bytes, signer: *signer, signature: *sig, definition })
+    Ok(VerifiedChallenge {
+        id,
+        digest,
+        canonical_bytes,
+        signer: *signer,
+        signature: *sig,
+        definition,
+    })
 }
 
 #[derive(Clone, Debug, Serialize, schemars::JsonSchema)]
@@ -106,27 +123,39 @@ const COLS: &str =
     "id, digest, definition, canonical_bytes, signature, governance_key, open, registered_by, created_at";
 
 fn check_row(r: Row, keys: &[VerifyingKey]) -> Result<StoredChallenge, DbError> {
-    let fail = |why: String| DbError::ChallengeIntegrity { id: r.id.clone(), why };
-    let def: ChallengeDefinition =
-        serde_json::from_value(r.definition.clone()).map_err(|e| fail(format!("definition: {e}")))?;
+    let fail = |why: String| DbError::ChallengeIntegrity {
+        id: r.id.clone(),
+        why,
+    };
+    let def: ChallengeDefinition = serde_json::from_value(r.definition.clone())
+        .map_err(|e| fail(format!("definition: {e}")))?;
     let bytes = canonical_json(&def).map_err(|e| fail(e.to_string()))?;
     if bytes != r.canonical_bytes {
-        return Err(fail("stored definition does not match signed canonical bytes".into()));
+        return Err(fail(
+            "stored definition does not match signed canonical bytes".into(),
+        ));
     }
     let digest = Digest::of_bytes(&bytes);
     if digest.as_str() != r.digest || format!("chl_{}", &digest.hex()[..32]) != r.id {
         return Err(fail("id/digest mismatch".into()));
     }
-    let key_arr: [u8; 32] =
-        r.governance_key.clone().try_into().map_err(|_| fail("bad key length".into()))?;
+    let key_arr: [u8; 32] = r
+        .governance_key
+        .clone()
+        .try_into()
+        .map_err(|_| fail("bad key length".into()))?;
     let key = VerifyingKey::from_bytes(&key_arr).map_err(|e| fail(e.to_string()))?;
     if !keys.contains(&key) {
         return Err(fail("signing key is not a trusted governance key".into()));
     }
-    let sig_arr: [u8; 64] =
-        r.signature.clone().try_into().map_err(|_| fail("bad signature length".into()))?;
+    let sig_arr: [u8; 64] = r
+        .signature
+        .clone()
+        .try_into()
+        .map_err(|_| fail("bad signature length".into()))?;
     let sig = Signature::from_bytes(&sig_arr);
-    key.verify(&bytes, &sig).map_err(|_| fail("signature verification failed".into()))?;
+    key.verify(&bytes, &sig)
+        .map_err(|_| fail("signature verification failed".into()))?;
     Ok(StoredChallenge {
         id: r.id,
         digest,
@@ -158,9 +187,11 @@ pub async fn list<'e>(
     ex: impl PgExecutor<'e>,
     keys: &[VerifyingKey],
 ) -> Result<Vec<StoredChallenge>, DbError> {
-    let rows: Vec<Row> = sqlx::query_as(&format!("SELECT {COLS} FROM challenges ORDER BY created_at, id"))
-        .fetch_all(ex)
-        .await?;
+    let rows: Vec<Row> = sqlx::query_as(&format!(
+        "SELECT {COLS} FROM challenges ORDER BY created_at, id"
+    ))
+    .fetch_all(ex)
+    .await?;
     let mut out = Vec::with_capacity(rows.len());
     for r in rows {
         match check_row(r, keys) {
@@ -197,5 +228,9 @@ pub async fn register<'e>(
     .bind(registered_by)
     .execute(ex)
     .await?;
-    Ok(if res.rows_affected() == 1 { RegisterOutcome::Created } else { RegisterOutcome::AlreadyRegistered })
+    Ok(if res.rows_affected() == 1 {
+        RegisterOutcome::Created
+    } else {
+        RegisterOutcome::AlreadyRegistered
+    })
 }

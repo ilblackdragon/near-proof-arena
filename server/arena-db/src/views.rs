@@ -27,7 +27,8 @@ pub struct SubmissionRow {
     pub created_at: OffsetDateTime,
 }
 
-const SUB_COLS: &str = "s.id, s.agent_id, a.handle AS agent_handle, s.challenge_id, s.package_digest, \
+const SUB_COLS: &str =
+    "s.id, s.agent_id, a.handle AS agent_handle, s.challenge_id, s.package_digest, \
     s.upload_id, s.parent_id, s.idempotency_key, s.request_digest, s.created_at";
 
 #[derive(Clone, Debug, sqlx::FromRow)]
@@ -127,7 +128,10 @@ impl TryFrom<RunRowRaw> for Run {
     }
 }
 
-pub async fn submission<'e>(ex: impl PgExecutor<'e>, id: &str) -> Result<Option<SubmissionRow>, DbError> {
+pub async fn submission<'e>(
+    ex: impl PgExecutor<'e>,
+    id: &str,
+) -> Result<Option<SubmissionRow>, DbError> {
     Ok(sqlx::query_as(&format!(
         "SELECT {SUB_COLS} FROM submissions s JOIN agents a ON a.id = s.agent_id WHERE s.id = $1"
     ))
@@ -137,24 +141,32 @@ pub async fn submission<'e>(ex: impl PgExecutor<'e>, id: &str) -> Result<Option<
 }
 
 pub async fn run<'e>(ex: impl PgExecutor<'e>, id: &str) -> Result<Option<Run>, DbError> {
-    let r: Option<RunRowRaw> = sqlx::query_as(&format!("SELECT {RUN_COLS} FROM runs WHERE id = $1"))
-        .bind(id)
-        .fetch_optional(ex)
-        .await?;
-    r.map(Run::try_from).transpose()
-}
-
-/// Lock a run row for the rest of the transaction (serializes pipeline transitions per run).
-pub async fn run_for_update(conn: &mut sqlx::PgConnection, id: &str) -> Result<Option<Run>, DbError> {
     let r: Option<RunRowRaw> =
-        sqlx::query_as(&format!("SELECT {RUN_COLS} FROM runs WHERE id = $1 FOR UPDATE"))
+        sqlx::query_as(&format!("SELECT {RUN_COLS} FROM runs WHERE id = $1"))
             .bind(id)
-            .fetch_optional(&mut *conn)
+            .fetch_optional(ex)
             .await?;
     r.map(Run::try_from).transpose()
 }
 
-pub async fn runs_of<'e>(ex: impl PgExecutor<'e>, submission_ids: &[String]) -> Result<Vec<Run>, DbError> {
+/// Lock a run row for the rest of the transaction (serializes pipeline transitions per run).
+pub async fn run_for_update(
+    conn: &mut sqlx::PgConnection,
+    id: &str,
+) -> Result<Option<Run>, DbError> {
+    let r: Option<RunRowRaw> = sqlx::query_as(&format!(
+        "SELECT {RUN_COLS} FROM runs WHERE id = $1 FOR UPDATE"
+    ))
+    .bind(id)
+    .fetch_optional(&mut *conn)
+    .await?;
+    r.map(Run::try_from).transpose()
+}
+
+pub async fn runs_of<'e>(
+    ex: impl PgExecutor<'e>,
+    submission_ids: &[String],
+) -> Result<Vec<Run>, DbError> {
     let rows: Vec<RunRowRaw> = sqlx::query_as(&format!(
         "SELECT {RUN_COLS} FROM runs WHERE submission_id = ANY($1) ORDER BY submission_id, run_number"
     ))
@@ -164,12 +176,16 @@ pub async fn runs_of<'e>(ex: impl PgExecutor<'e>, submission_ids: &[String]) -> 
     rows.into_iter().map(Run::try_from).collect()
 }
 
-pub async fn gates_of<'e>(ex: impl PgExecutor<'e>, run_ids: &[String]) -> Result<HashMap<String, Vec<GateResult>>, DbError> {
-    let rows: Vec<(String, serde_json::Value)> =
-        sqlx::query_as("SELECT run_id, result FROM gate_results WHERE run_id = ANY($1) ORDER BY id")
-            .bind(run_ids)
-            .fetch_all(ex)
-            .await?;
+pub async fn gates_of<'e>(
+    ex: impl PgExecutor<'e>,
+    run_ids: &[String],
+) -> Result<HashMap<String, Vec<GateResult>>, DbError> {
+    let rows: Vec<(String, serde_json::Value)> = sqlx::query_as(
+        "SELECT run_id, result FROM gate_results WHERE run_id = ANY($1) ORDER BY id",
+    )
+    .bind(run_ids)
+    .fetch_all(ex)
+    .await?;
     let mut out: HashMap<String, Vec<GateResult>> = HashMap::new();
     for (run, v) in rows {
         out.entry(run).or_default().push(from_json(v)?);
@@ -189,7 +205,16 @@ pub async fn revocations_of<'e>(
     .await?;
     Ok(rows
         .into_iter()
-        .map(|(s, reason, by, at)| (s, Revocation { reason, revoked_by: by, revoked_at: rfc3339(at) }))
+        .map(|(s, reason, by, at)| {
+            (
+                s,
+                Revocation {
+                    reason,
+                    revoked_by: by,
+                    revoked_at: rfc3339(at),
+                },
+            )
+        })
         .collect())
 }
 
@@ -210,14 +235,21 @@ pub async fn jobs_of<'e>(
     run_ids: &[String],
 ) -> Result<HashMap<String, Vec<JobSummary>>, DbError> {
     #[allow(clippy::type_complexity)]
-    let rows: Vec<(String, String, String, i32, Option<String>, Option<serde_json::Value>, Option<serde_json::Value>)> =
-        sqlx::query_as(
-            "SELECT run_id, kind, state, attempt, last_error, result, execution FROM jobs
+    let rows: Vec<(
+        String,
+        String,
+        String,
+        i32,
+        Option<String>,
+        Option<serde_json::Value>,
+        Option<serde_json::Value>,
+    )> = sqlx::query_as(
+        "SELECT run_id, kind, state, attempt, last_error, result, execution FROM jobs
              WHERE run_id = ANY($1) ORDER BY created_at, kind",
-        )
-        .bind(run_ids)
-        .fetch_all(ex)
-        .await?;
+    )
+    .bind(run_ids)
+    .fetch_all(ex)
+    .await?;
     let mut out: HashMap<String, Vec<JobSummary>> = HashMap::new();
     for (run, kind, state, attempt, last_error, result, execution) in rows {
         let artifacts = result
@@ -292,13 +324,23 @@ impl SubmissionBundle {
             .and_then(|r| self.gates.get(&r.id))
             .map(|g| g.iter().cloned().map(public_gate).collect())
             .unwrap_or_default();
-        let jobs: &[JobSummary] = run.and_then(|r| self.jobs.get(&r.id)).map(|v| v.as_slice()).unwrap_or(&[]);
+        let jobs: &[JobSummary] = run
+            .and_then(|r| self.jobs.get(&r.id))
+            .map(|v| v.as_slice())
+            .unwrap_or(&[]);
         let graph = run.and_then(|r| r.evidence_graph.clone());
 
         let mut artifacts: Vec<ArtifactRef> = Vec::new();
-        for a in jobs.iter().flat_map(|j| j.artifacts.iter()).filter(|a| a.public) {
+        for a in jobs
+            .iter()
+            .flat_map(|j| j.artifacts.iter())
+            .filter(|a| a.public)
+        {
             if !artifacts.iter().any(|x| x.digest == a.digest) {
-                artifacts.push(ArtifactRef { label: a.label.clone(), digest: a.digest.clone() });
+                artifacts.push(ArtifactRef {
+                    label: a.label.clone(),
+                    digest: a.digest.clone(),
+                });
             }
         }
         let mut logs = Vec::new();
@@ -307,16 +349,20 @@ impl SubmissionBundle {
                 logs.push(excerpt(j.kind.clone(), &j.kind, t));
             }
             if let Some(e) = &j.last_error {
-                logs.push(excerpt(format!("{}/error (attempt {})", j.kind, j.attempt), &j.kind, e));
+                logs.push(excerpt(
+                    format!("{}/error (attempt {})", j.kind, j.attempt),
+                    &j.kind,
+                    e,
+                ));
             }
         }
         let build = run.and_then(|r| {
             let b = r.build_outputs.as_ref()?;
             Some(BuildInfo {
                 toolchain_image: b.toolchain_image.clone(),
-                reproducible: gates
-                    .iter()
-                    .any(|g| g.gate == ObligationId::BuildReproducible && g.status == GateStatus::Pass),
+                reproducible: gates.iter().any(|g| {
+                    g.gate == ObligationId::BuildReproducible && g.status == GateStatus::Pass
+                }),
                 build_ns: b.build_ns,
             })
         });
@@ -324,7 +370,11 @@ impl SubmissionBundle {
             .security_profile
             .allowed_assumptions
             .iter()
-            .map(|id| AssumptionRef { id: id.clone(), lean_decl: None, description: None })
+            .map(|id| AssumptionRef {
+                id: id.clone(),
+                lean_decl: None,
+                description: None,
+            })
             .collect();
         if let Some(g) = &graph {
             for n in g.nodes.iter().filter(|n| n.kind == NodeKind::Assumption) {
@@ -352,17 +402,32 @@ impl SubmissionBundle {
             },
         ];
         for r in &tp.recheckers {
-            trusted_base.push(TrustedBaseEntry { id: format!("rechecker:{r}"), label: format!("rechecker {r}"), digest: None });
+            trusted_base.push(TrustedBaseEntry {
+                id: format!("rechecker:{r}"),
+                label: format!("rechecker {r}"),
+                digest: None,
+            });
         }
-        let mut backends: Vec<&str> = jobs.iter().filter_map(|j| j.sandbox_backend.as_deref()).collect();
+        let mut backends: Vec<&str> = jobs
+            .iter()
+            .filter_map(|j| j.sandbox_backend.as_deref())
+            .collect();
         backends.sort();
         backends.dedup();
         for b in backends {
-            trusted_base.push(TrustedBaseEntry { id: format!("sandbox:{b}"), label: format!("judge sandbox backend {b}"), digest: None });
+            trusted_base.push(TrustedBaseEntry {
+                id: format!("sandbox:{b}"),
+                label: format!("judge sandbox backend {b}"),
+                digest: None,
+            });
         }
         if let Some(g) = &graph {
             for n in g.nodes.iter().filter(|n| n.kind == NodeKind::TcbComponent) {
-                trusted_base.push(TrustedBaseEntry { id: n.id.clone(), label: n.label.clone(), digest: n.digest.clone() });
+                trusted_base.push(TrustedBaseEntry {
+                    id: n.id.clone(),
+                    label: n.label.clone(),
+                    digest: n.digest.clone(),
+                });
             }
         }
         SubmissionView {
@@ -373,7 +438,8 @@ impl SubmissionBundle {
             backend_family: run.map(|r| r.backend_family.clone()).unwrap_or_default(),
             parent: s.parent_id.clone(),
             tier: run.map(|r| r.tier).unwrap_or(chal.tier),
-            package_digest: Digest::try_from(s.package_digest.clone()).expect("checked by DB constraint"),
+            package_digest: Digest::try_from(s.package_digest.clone())
+                .expect("checked by DB constraint"),
             stage: run.map(|r| r.stage).unwrap_or(Stage::Received),
             decision: run.and_then(|r| r.decision),
             accepted: run.and_then(|r| r.accepted),
@@ -415,7 +481,10 @@ pub struct SubmissionFilter {
     pub before_id: Option<String>,
 }
 
-async fn assemble(pool: &PgPool, subs: Vec<SubmissionRow>) -> Result<Vec<SubmissionBundle>, DbError> {
+async fn assemble(
+    pool: &PgPool,
+    subs: Vec<SubmissionRow>,
+) -> Result<Vec<SubmissionBundle>, DbError> {
     let ids: Vec<String> = subs.iter().map(|s| s.id.clone()).collect();
     let runs = runs_of(pool, &ids).await?;
     let run_ids: Vec<String> = runs.iter().map(|r| r.id.clone()).collect();
@@ -430,20 +499,37 @@ async fn assemble(pool: &PgPool, subs: Vec<SubmissionRow>) -> Result<Vec<Submiss
         .into_iter()
         .map(|sub| {
             let runs = by_sub.remove(&sub.id).unwrap_or_default();
-            let g = runs.iter().filter_map(|r| gates.remove_entry(&r.id)).collect();
-            let j = runs.iter().filter_map(|r| jobs.remove_entry(&r.id)).collect();
+            let g = runs
+                .iter()
+                .filter_map(|r| gates.remove_entry(&r.id))
+                .collect();
+            let j = runs
+                .iter()
+                .filter_map(|r| jobs.remove_entry(&r.id))
+                .collect();
             let revocation = revs.remove(&sub.id);
-            SubmissionBundle { sub, runs, gates: g, jobs: j, revocation }
+            SubmissionBundle {
+                sub,
+                runs,
+                gates: g,
+                jobs: j,
+                revocation,
+            }
         })
         .collect())
 }
 
 pub async fn bundle(pool: &PgPool, id: &str) -> Result<Option<SubmissionBundle>, DbError> {
-    let Some(s) = submission(pool, id).await? else { return Ok(None) };
+    let Some(s) = submission(pool, id).await? else {
+        return Ok(None);
+    };
     Ok(assemble(pool, vec![s]).await?.pop())
 }
 
-pub async fn list_bundles(pool: &PgPool, f: &SubmissionFilter) -> Result<Vec<SubmissionBundle>, DbError> {
+pub async fn list_bundles(
+    pool: &PgPool,
+    f: &SubmissionFilter,
+) -> Result<Vec<SubmissionBundle>, DbError> {
     let subs: Vec<SubmissionRow> = sqlx::query_as(&format!(
         "SELECT {SUB_COLS} FROM submissions s JOIN agents a ON a.id = s.agent_id
          WHERE ($1::text IS NULL OR s.challenge_id = $1)
@@ -480,9 +566,17 @@ impl Leaderboard {
     /// then every other submission (rank `null`, newest first) with its labels.
     pub fn entries(&self) -> Vec<LeaderboardEntry> {
         let mut ranked: Vec<LeaderboardEntry> = self.ranked.clone();
-        let mut rest: Vec<LeaderboardEntry> =
-            self.all_submissions.iter().filter(|e| e.rank.is_none()).cloned().collect();
-        rest.sort_by(|a, b| b.submitted_at.cmp(&a.submitted_at).then(b.submission_id.cmp(&a.submission_id)));
+        let mut rest: Vec<LeaderboardEntry> = self
+            .all_submissions
+            .iter()
+            .filter(|e| e.rank.is_none())
+            .cloned()
+            .collect();
+        rest.sort_by(|a, b| {
+            b.submitted_at
+                .cmp(&a.submitted_at)
+                .then(b.submission_id.cmp(&a.submission_id))
+        });
         ranked.extend(rest);
         ranked
     }
@@ -516,7 +610,11 @@ pub fn rankable(challenge_tier: Tier, run: &Run, revoked: bool) -> bool {
         && !revoked
 }
 
-fn entry(b: &SubmissionBundle, run: Option<&Run>, chal: &arena_types::ChallengeDefinition) -> LeaderboardEntry {
+fn entry(
+    b: &SubmissionBundle,
+    run: Option<&Run>,
+    chal: &arena_types::ChallengeDefinition,
+) -> LeaderboardEntry {
     let bench = run.and_then(|r| r.benchmark.as_ref());
     LeaderboardEntry {
         rank: None,
@@ -528,9 +626,11 @@ fn entry(b: &SubmissionBundle, run: Option<&Run>, chal: &arena_types::ChallengeD
         decision: run.and_then(|r| r.decision),
         accepted: run.and_then(|r| r.accepted),
         score_milli: run.and_then(|r| r.score_milli),
-        prove_median_ns: bench.and_then(|b| weighted_geomean(b.classes.iter().map(|c| (c.weight_ppm, c.median_ns)))),
-        verify_median_ns: bench
-            .and_then(|b| weighted_geomean(b.classes.iter().map(|c| (c.weight_ppm, c.verify_median_ns)))),
+        prove_median_ns: bench
+            .and_then(|b| weighted_geomean(b.classes.iter().map(|c| (c.weight_ppm, c.median_ns)))),
+        verify_median_ns: bench.and_then(|b| {
+            weighted_geomean(b.classes.iter().map(|c| (c.weight_ppm, c.verify_median_ns)))
+        }),
         proof_bytes: bench.and_then(|b| b.classes.iter().map(|c| c.proof_bytes_max).max()),
         peak_rss_bytes: bench.and_then(|b| b.classes.iter().map(|c| c.peak_rss_bytes).max()),
         hardware_profile: bench
@@ -556,7 +656,8 @@ pub fn compute_leaderboard(
         .iter()
         .filter_map(|b| {
             let r = b.latest_decided_run()?;
-            rankable(chal.tier, r, b.revocation.is_some()).then(|| (entry(b, Some(r), chal), b.sub.created_at))
+            rankable(chal.tier, r, b.revocation.is_some())
+                .then(|| (entry(b, Some(r), chal), b.sub.created_at))
         })
         .collect();
     ranked.sort_by(|(a, at), (b, bt)| {
@@ -573,8 +674,10 @@ pub fn compute_leaderboard(
             e
         })
         .collect();
-    let rank_of: HashMap<&str, u32> =
-        ranked.iter().map(|e| (e.submission_id.as_str(), e.rank.unwrap())).collect();
+    let rank_of: HashMap<&str, u32> = ranked
+        .iter()
+        .map(|e| (e.submission_id.as_str(), e.rank.unwrap()))
+        .collect();
     let all_submissions = bundles
         .iter()
         .map(|b| {
@@ -597,7 +700,10 @@ mod tests {
     use super::*;
     #[test]
     fn geomean() {
-        assert_eq!(weighted_geomean([(500_000, 100), (500_000, 400)].into_iter()), Some(200));
+        assert_eq!(
+            weighted_geomean([(500_000, 100), (500_000, 400)].into_iter()),
+            Some(200)
+        );
         assert_eq!(weighted_geomean([(1, 0)].into_iter()), None);
         assert_eq!(weighted_geomean(std::iter::empty()), None);
     }

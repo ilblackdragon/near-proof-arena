@@ -30,10 +30,11 @@ pub async fn record<'e>(
     run_id: Option<&str>,
     public: bool,
     data: serde_json::Value,
-) -> Result<i64, DbError> {
-    let (id,): (i64,) = sqlx::query_as(
+) -> Result<(), DbError> {
+    // No RETURNING: roles that may append to the audit log need not read it.
+    sqlx::query(
         "INSERT INTO audit_events (actor_kind, actor_id, action, submission_id, run_id, public, data)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+         VALUES ($1, $2, $3, $4, $5, $6, $7)",
     )
     .bind(actor.kind.as_str())
     .bind(&actor.id)
@@ -42,9 +43,9 @@ pub async fn record<'e>(
     .bind(run_id)
     .bind(public)
     .bind(data)
-    .fetch_one(ex)
+    .execute(ex)
     .await?;
-    Ok(id)
+    Ok(())
 }
 
 /// Public events of a submission with id > `after`, oldest first.

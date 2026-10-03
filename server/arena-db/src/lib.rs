@@ -101,7 +101,10 @@ pub fn generate_token(kind: &str) -> String {
     use rand::RngCore;
     let mut b = [0u8; 32];
     rand::rngs::OsRng.fill_bytes(&mut b);
-    format!("arena_{kind}_{}", base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(b))
+    format!(
+        "arena_{kind}_{}",
+        base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(b)
+    )
 }
 
 /// Tokens are stored only as sha256 hashes.
@@ -110,7 +113,8 @@ pub fn hash_token(token: &str) -> Vec<u8> {
 }
 
 pub fn rfc3339(t: OffsetDateTime) -> String {
-    t.format(&time::format_description::well_known::Rfc3339).expect("rfc3339 formatting")
+    t.format(&time::format_description::well_known::Rfc3339)
+        .expect("rfc3339 formatting")
 }
 
 pub fn json<T: Serialize>(v: &T) -> serde_json::Value {
@@ -121,7 +125,9 @@ pub fn from_json<T: DeserializeOwned>(v: serde_json::Value) -> Result<T, DbError
     serde_json::from_value(v).map_err(DbError::corrupt)
 }
 
-pub fn from_json_opt<T: DeserializeOwned>(v: Option<serde_json::Value>) -> Result<Option<T>, DbError> {
+pub fn from_json_opt<T: DeserializeOwned>(
+    v: Option<serde_json::Value>,
+) -> Result<Option<T>, DbError> {
     v.map(from_json).transpose()
 }
 
@@ -154,16 +160,28 @@ pub struct Actor {
 
 impl Actor {
     pub fn system() -> Self {
-        Actor { kind: ActorKind::System, id: "control-plane".into() }
+        Actor {
+            kind: ActorKind::System,
+            id: "control-plane".into(),
+        }
     }
     pub fn agent(id: &str) -> Self {
-        Actor { kind: ActorKind::Agent, id: id.into() }
+        Actor {
+            kind: ActorKind::Agent,
+            id: id.into(),
+        }
     }
     pub fn admin(id: &str) -> Self {
-        Actor { kind: ActorKind::Admin, id: id.into() }
+        Actor {
+            kind: ActorKind::Admin,
+            id: id.into(),
+        }
     }
     pub fn worker(id: &str) -> Self {
-        Actor { kind: ActorKind::Worker, id: id.into() }
+        Actor {
+            kind: ActorKind::Worker,
+            id: id.into(),
+        }
     }
 }
 
@@ -191,17 +209,21 @@ pub struct WorkerRow {
 }
 
 pub async fn agent_by_token(pool: &PgPool, token: &str) -> Result<Option<AgentRow>, DbError> {
-    Ok(sqlx::query_as("SELECT id, handle, disabled FROM agents WHERE token_hash = $1")
-        .bind(hash_token(token))
-        .fetch_optional(pool)
-        .await?)
+    Ok(
+        sqlx::query_as("SELECT id, handle, disabled FROM agents WHERE token_hash = $1")
+            .bind(hash_token(token))
+            .fetch_optional(pool)
+            .await?,
+    )
 }
 
 pub async fn admin_by_token(pool: &PgPool, token: &str) -> Result<Option<AdminRow>, DbError> {
-    Ok(sqlx::query_as("SELECT id, name, disabled FROM admins WHERE token_hash = $1")
-        .bind(hash_token(token))
-        .fetch_optional(pool)
-        .await?)
+    Ok(
+        sqlx::query_as("SELECT id, name, disabled FROM admins WHERE token_hash = $1")
+            .bind(hash_token(token))
+            .fetch_optional(pool)
+            .await?,
+    )
 }
 
 pub async fn worker_by_token(pool: &PgPool, token: &str) -> Result<Option<WorkerRow>, DbError> {
@@ -268,7 +290,10 @@ mod tests {
     #[test]
     fn enum_roundtrip() {
         assert_eq!(enum_str(&Stage::FormalChecked), "FORMAL_CHECKED");
-        assert_eq!(parse_enum::<Decision>("INFRA_ERROR").unwrap(), Decision::InfraError);
+        assert_eq!(
+            parse_enum::<Decision>("INFRA_ERROR").unwrap(),
+            Decision::InfraError
+        );
         assert_eq!(enum_str(&Tier::Formal), "formal");
         assert!(parse_enum::<Decision>("nope").is_err());
     }
