@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "SORRY_FOUND"
+    ]
+  },
+  "description": "ships prebuilt .olean files (ignored; rebuilt from source)"
+}

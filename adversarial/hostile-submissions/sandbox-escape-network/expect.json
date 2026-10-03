@@ -1,0 +1,19 @@
+{
+  "case": "sandbox-escape-network",
+  "attack_family": "sandbox-escape",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "PROVER_RELIABILITY"
+  ],
+  "expected_reason_codes": [
+    "SANDBOX_VIOLATION"
+  ],
+  "fail_by_stage": "CONFORMANCE_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "`prove` opens an outbound TCP connection. The sandbox has no network (`network: None`); any connect attempt must fail and be flagged as SANDBOX_VIOLATION.",
+  "notes": "The escape must fail harmlessly; the submission is REJECTED and the attempt recorded. Gate attribution (PROVER_RELIABILITY / BENCHMARK) depends on which stage runs the sandboxed binary."
+}

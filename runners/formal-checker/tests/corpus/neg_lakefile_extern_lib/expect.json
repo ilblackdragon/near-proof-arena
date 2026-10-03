@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "MANIFEST_INVALID"
+    ]
+  },
+  "description": "lakefile.lean with extern_lib and script"
+}

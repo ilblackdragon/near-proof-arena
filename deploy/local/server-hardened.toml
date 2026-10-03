@@ -1,0 +1,8 @@
+# arena-server hardened config for the local compose stack (ARENA_HARDENED_CONFIG).
+# The server refuses to bind a non-loopback address without this explicit
+# acknowledgement. Inside the container the listeners bind 0.0.0.0, but the
+# host publishes them on loopback only (compose `ports.host_ip`, checked by
+# arena-guard), and the worker container has no egress except the worker API.
+allow_non_loopback_bind = true
+justification = "container network namespace; host publishes 8471/8472 on loopback only (deploy/local/compose.yaml)"
+behind_tls_proxy = false

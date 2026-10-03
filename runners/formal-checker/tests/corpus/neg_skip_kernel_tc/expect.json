@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "RECHECK_FAILED"
+    ]
+  },
+  "description": "debug.skipKernelTC sneaks an ill-typed theorem past elaboration"
+}

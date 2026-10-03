@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "UNAPPROVED_ASSUMPTION"
+    ]
+  },
+  "description": "uses a judge-pinned assumption axiom that the challenge does not approve"
+}

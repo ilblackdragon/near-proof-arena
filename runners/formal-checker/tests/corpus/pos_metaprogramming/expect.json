@@ -1,0 +1,7 @@
+{
+  "all": {
+    "status": "PASS",
+    "codes": []
+  },
+  "description": "custom tactic (untrusted elaboration) producing a valid proof"
+}

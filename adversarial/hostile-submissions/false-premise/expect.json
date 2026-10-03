@@ -1,0 +1,18 @@
+{
+  "case": "false-premise",
+  "attack_family": "theorem-type-mismatch",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "expected_reason_codes": [
+    "THEOREM_TYPE_MISMATCH"
+  ],
+  "fail_by_stage": "FORMAL_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The certificate is `False -> Goal` (or assumes an unsatisfiable hypothesis), which is trivially provable and says nothing. Its type carries an extra `False`/unsatisfiable premise, so it is not the required relation type: FORMAL_SEMANTIC_SOUNDNESS must fail on the type mismatch."
+}

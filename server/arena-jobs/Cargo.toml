@@ -1,0 +1,21 @@
+[package]
+name = "arena-jobs"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Job payload/result types and worker HTTP client for the NEAR Proof Arena control plane"
+
+[features]
+default = []
+# Typed HTTP client for the worker API (`/internal/v1/...`). Workers enable this;
+# the control plane does not need it.
+client = ["dep:reqwest", "dep:bytes"]
+
+[dependencies]
+arena-types.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+schemars.workspace = true
+thiserror.workspace = true
+reqwest = { workspace = true, optional = true }
+bytes = { workspace = true, optional = true }

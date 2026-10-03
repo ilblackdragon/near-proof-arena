@@ -1,0 +1,22 @@
+[package]
+name = "arena-formal-checker"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Formal certificate checker: sandboxed Lean elaboration, clean kernel recheck, judge-side audit"
+
+[dependencies]
+arena-types = { path = "../../common/arena-types" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+time.workspace = true
+anyhow.workspace = true
+libc = "0.2"
+
+[[bin]]
+name = "formal-check"
+path = "src/bin/formal_check.rs"

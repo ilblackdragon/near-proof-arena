@@ -1,0 +1,19 @@
+{
+  "case": "archive-hardlink",
+  "attack_family": "archive-attack",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "PKG_WELLFORMED"
+  ],
+  "expected_reason_codes": [
+    "ARCHIVE_UNSAFE"
+  ],
+  "fail_by_stage": "VALIDATED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The archive contains a hardlink to a file outside the package. Hardlinks are rejected (ARCHIVE_UNSAFE).",
+  "notes": "Hostile payload is the ARCHIVE ENCODING, not a directory. The e2e driver runs make-archive.sh to produce the malicious tar and uploads THOSE bytes. The directory package here is a well-formed placeholder for documentation and the local loader."
+}

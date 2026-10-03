@@ -1,0 +1,18 @@
+{
+  "case": "restricted-domain",
+  "attack_family": "theorem-type-mismatch",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "FORMAL_SEMANTIC_SOUNDNESS"
+  ],
+  "expected_reason_codes": [
+    "THEOREM_TYPE_MISMATCH"
+  ],
+  "fail_by_stage": "FORMAL_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The certificate proves soundness only on a RESTRICTED domain (adds an extra hypothesis, e.g. `receipts.length = 1`). Its type is not the challenge's required relation type, so FORMAL_SEMANTIC_SOUNDNESS must fail on a type mismatch \u2014 the judge constructs the required type and will not accept a narrower theorem."
+}

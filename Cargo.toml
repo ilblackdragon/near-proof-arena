@@ -1,8 +1,23 @@
 [workspace]
 resolver = "2"
 members = [
+    "adversarial/proof-mutators",
     "common/arena-types",
+    "runners/archive",
+    "runners/firecracker",
+    "runners/firecracker/init",
+    "runners/firecracker/proto",
+    "runners/firecracker/shim",
+    "runners/formal-checker",
+    "runners/measure",
+    "runners/sandbox",
+    "runners/worker",
     "sdk/arena-cli",
+    "server/arena-db",
+    "server/arena-jobs",
+    "server/arena-orchestrator",
+    "server/arena-server",
+    "server/arena-store",
     "tools/arena-admin",
     "tools/upgrade-monitor",
 ]
@@ -26,8 +41,40 @@ uuid = { version = "1", features = ["v4", "serde"] }
 anyhow = "1"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
-clap = { version = "4", features = ["derive"] }
-ed25519-dalek = { version = "2", features = ["rand_core"] }
+
+# server lane
+arena-types = { path = "common/arena-types" }
+arena-jobs = { path = "server/arena-jobs" }
+arena-store = { path = "server/arena-store" }
+arena-db = { path = "server/arena-db" }
+arena-orchestrator = { path = "server/arena-orchestrator" }
+sqlx = { version = "0.8", default-features = false, features = ["postgres", "runtime-tokio", "tls-rustls", "json", "time", "uuid", "migrate", "macros"] }
+axum = { version = "0.8", features = ["macros"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace", "limit", "set-header"] }
+tokio-stream = "0.1"
+tokio-util = { version = "0.7", features = ["io"] }
+futures = "0.3"
+bytes = "1"
+async-trait = "0.1"
+ed25519-dalek = { version = "2", features = ["rand_core", "pkcs8", "pem"] }
+rand = "0.8"
+base64 = "0.22"
+clap = { version = "4", features = ["derive", "env"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+tar = { version = "0.4.44", default-features = false }
+zstd = "0.13"
+libc = "0.2"
+proptest = "1"
+tempfile = "3"
+ureq = { version = "2.12", default-features = false, features = ["json", "tls"] }
+unicode-normalization = "0.1"
 rand_core = { version = "0.6", features = ["getrandom"] }
 globset = "0.4"
-tempfile = "3"
+# The formal checker parses/hashes large Lean exports; keep tests fast in dev builds.
+[profile.dev.package.arena-formal-checker]
+opt-level = 2
+[profile.dev.package.sha2]
+opt-level = 3
+[profile.dev.package.serde_json]

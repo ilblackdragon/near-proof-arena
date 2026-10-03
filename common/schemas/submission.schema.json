@@ -28,6 +28,22 @@
     "agent": {
       "type": "string"
     },
+    "artifacts": {
+      "description": "Public artifacts produced by the judge for this run.",
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ArtifactRef"
+      }
+    },
+    "assumptions": {
+      "description": "Assumptions the admission may rely on (the challenge's security profile).",
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/AssumptionRef"
+      }
+    },
     "backend_family": {
       "type": "string"
     },
@@ -35,6 +51,17 @@
       "anyOf": [
         {
           "$ref": "#/definitions/BenchmarkResult"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "build": {
+      "default": null,
+      "anyOf": [
+        {
+          "$ref": "#/definitions/BuildInfo"
         },
         {
           "type": "null"
@@ -89,6 +116,14 @@
     "id": {
       "type": "string"
     },
+    "logs": {
+      "description": "Bounded, sanitized plain-text log excerpts (never HTML).",
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/LogExcerpt"
+      }
+    },
     "package_digest": {
       "$ref": "#/definitions/Digest"
     },
@@ -102,6 +137,13 @@
       "type": "array",
       "items": {
         "$ref": "#/definitions/ReasonCode"
+      }
+    },
+    "revocation_history": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/RevocationEvent"
       }
     },
     "revoked": {
@@ -128,11 +170,69 @@
     "tier": {
       "$ref": "#/definitions/Tier"
     },
+    "trusted_base": {
+      "description": "Trusted computing base entries the result depends on.",
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/TrustedBaseEntry"
+      }
+    },
     "updated_at": {
       "type": "string"
+    },
+    "verified_surface": {
+      "description": "Verified-surface digests (set once the judge build completed).",
+      "default": null,
+      "anyOf": [
+        {
+          "$ref": "#/definitions/VerifiedSurface"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "definitions": {
+    "ArtifactRef": {
+      "type": "object",
+      "required": [
+        "digest",
+        "label"
+      ],
+      "properties": {
+        "digest": {
+          "$ref": "#/definitions/Digest"
+        },
+        "label": {
+          "type": "string"
+        }
+      }
+    },
+    "AssumptionRef": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "lean_decl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "BenchmarkResult": {
       "type": "object",
       "required": [
@@ -186,6 +286,33 @@
         },
         "suite_revision": {
           "type": "string"
+        }
+      }
+    },
+    "BuildInfo": {
+      "type": "object",
+      "required": [
+        "reproducible"
+      ],
+      "properties": {
+        "build_ns": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "reproducible": {
+          "description": "`BUILD_REPRODUCIBLE` passed (two judge builds bit-identical).",
+          "type": "boolean"
+        },
+        "toolchain_image": {
+          "description": "Build sandbox image/rootfs digest or id, if reported.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     },
@@ -491,6 +618,31 @@
         "NOT_APPLICABLE"
       ]
     },
+    "LogExcerpt": {
+      "type": "object",
+      "required": [
+        "name",
+        "stage",
+        "text",
+        "truncated"
+      ],
+      "properties": {
+        "name": {
+          "description": "Log name, e.g. `BUILD` or `BUILD/error`.",
+          "type": "string"
+        },
+        "stage": {
+          "description": "Pipeline stage / job kind the log belongs to.",
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "truncated": {
+          "type": "boolean"
+        }
+      }
+    },
     "NodeKind": {
       "type": "string",
       "enum": [
@@ -576,6 +728,30 @@
         }
       }
     },
+    "RevocationEvent": {
+      "type": "object",
+      "required": [
+        "action",
+        "at",
+        "by",
+        "reason"
+      ],
+      "properties": {
+        "action": {
+          "description": "`revoked` (v1 has no un-revoke).",
+          "type": "string"
+        },
+        "at": {
+          "type": "string"
+        },
+        "by": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
     "Stage": {
       "type": "string",
       "enum": [
@@ -612,6 +788,67 @@
           ]
         }
       ]
+    },
+    "TrustedBaseEntry": {
+      "type": "object",
+      "required": [
+        "id",
+        "label"
+      ],
+      "properties": {
+        "digest": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      }
+    },
+    "VerifiedSurface": {
+      "description": "The digests that define the *verified* surface. If all are equal between a child and its parent, formal results may be reused (`ProverOnly`).",
+      "type": "object",
+      "required": [
+        "certificate_decl",
+        "challenge_id",
+        "checker_image",
+        "formal_tree",
+        "prepare_artifact",
+        "public_artifacts",
+        "verify_artifact"
+      ],
+      "properties": {
+        "certificate_decl": {
+          "type": "string"
+        },
+        "challenge_id": {
+          "type": "string"
+        },
+        "checker_image": {
+          "$ref": "#/definitions/Digest"
+        },
+        "formal_tree": {
+          "$ref": "#/definitions/Digest"
+        },
+        "prepare_artifact": {
+          "$ref": "#/definitions/Digest"
+        },
+        "public_artifacts": {
+          "$ref": "#/definitions/Digest"
+        },
+        "verify_artifact": {
+          "$ref": "#/definitions/Digest"
+        }
+      }
     }
   }
 }

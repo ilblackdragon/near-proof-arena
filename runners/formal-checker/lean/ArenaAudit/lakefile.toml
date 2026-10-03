@@ -1,0 +1,12 @@
+# Judge-owned audit tool. Built by scripts/setup-tools.sh with the single
+# pinned toolchain in ../../lean-toolchain (symlinked here).
+name = "ArenaAudit"
+version = "0.1.0"
+defaultTargets = ["arena-audit"]
+
+[[lean_lib]]
+name = "ArenaAudit"
+
+[[lean_exe]]
+name = "arena-audit"
+root = "Main"

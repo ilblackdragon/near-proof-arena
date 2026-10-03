@@ -1,0 +1,18 @@
+[package]
+name = "arena-store"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Content-addressed object store (sha256-keyed) for NEAR Proof Arena"
+
+[dependencies]
+arena-types.workspace = true
+async-trait.workspace = true
+tokio.workspace = true
+sha2.workspace = true
+hex.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

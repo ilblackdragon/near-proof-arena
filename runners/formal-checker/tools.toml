@@ -1,0 +1,20 @@
+# Pinned helper tools for the formal checker. The Lean toolchain itself is the
+# single value in ./lean-toolchain; every tool below must be built against it.
+
+[lean4export]
+repo = "https://github.com/leanprover/lean4export"
+# tag v4.34.0 (export format 3.1.0), built with the pinned toolchain (v4.34.1).
+rev = "076e8e57707e813375e8f9da8bf989799ace9680"
+
+[nanoda]
+# Independent Rust kernel (reads lean4export NDJSON).
+repo = "https://github.com/ammkrn/nanoda_lib"
+rev = "3a2407216ee84a75f9e1aead6803d0578be06ae7"
+
+[lean4lean]
+# Independent kernel implementation in Lean (replays .olean like leanchecker).
+# Upstream pins v4.33.0-rc2; setup-tools.sh rebuilds it against our toolchain
+# with batteries pinned below (builds cleanly on v4.34.1).
+repo = "https://github.com/digama0/lean4lean"
+rev = "8223d223ed98661882e95d9d6a7126df7097cd76"
+batteries_rev = "f2effa3d803fda822b1f97b806c47cf2adfbcbc2"

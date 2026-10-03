@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "SHADOWED_DEFINITION"
+    ]
+  },
+  "description": "candidate ships a file named like the judge-generated Expected module"
+}

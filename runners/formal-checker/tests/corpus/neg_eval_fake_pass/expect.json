@@ -1,0 +1,10 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "SORRY_FOUND"
+    ]
+  },
+  "check_no_fake_pass": true,
+  "description": "#eval writes fake PASS files and prints PASS; proof uses sorry"
+}

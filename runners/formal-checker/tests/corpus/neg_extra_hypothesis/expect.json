@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "THEOREM_TYPE_MISMATCH"
+    ]
+  },
+  "description": "extra hypothesis (h : False)"
+}

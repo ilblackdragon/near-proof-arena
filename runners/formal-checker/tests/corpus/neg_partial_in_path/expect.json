@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "UNAPPROVED_ASSUMPTION"
+    ]
+  },
+  "description": "partial def used in the certified path"
+}
