@@ -103,7 +103,7 @@ impl Default for Limits {
     fn default() -> Self {
         Limits {
             module_timeout: Duration::from_secs(600),
-            elaboration_budget: Duration::from_secs(1800),
+            elaboration_budget: Duration::from_secs(3600),
             recheck_timeout: Duration::from_secs(1200),
             recheck_batch_modules: 1,
             recheck_total: Duration::from_secs(3600),
