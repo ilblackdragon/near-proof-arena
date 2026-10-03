@@ -80,7 +80,10 @@ impl CandidateManifest {
         }
         let name_ok = !self.name.is_empty()
             && self.name.len() <= 48
-            && self.name.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-');
+            && self
+                .name
+                .bytes()
+                .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-');
         if !name_ok {
             return bad("name must match [a-z0-9-]{1,48}");
         }

@@ -1,0 +1,5 @@
+*
+!web
+!deploy/local/nginx.conf
+web/node_modules
+web/dist

@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""Record (and optionally enforce) benchmark-host CPU settings.
+
+    bench-host-record [--check] [--cpus 2-15] [--out FILE] [--sysfs /sys] [--proc /proc]
+
+Writes a JSON document describing the frequency/isolation configuration of the
+benchmark CPUs: governor, min/max/current frequency limits, turbo/boost, SMT,
+isolcpus/nohz_full/rcu_nocbs kernel arguments, CPU model, microcode, kernel.
+The worker attaches it (and its sha256) to every measurement so results can be
+compared only across identically configured hosts.
+
+With --check, exits 2 if the host is not in benchmark configuration:
+governor 'performance' on all benchmark CPUs, turbo/boost disabled, SMT off,
+benchmark CPUs listed in isolcpus= (or nohz_full=), and min == max frequency.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import platform
+import sys
+import time
+
+
+def parse_cpulist(s: str) -> list[int]:
+    out: list[int] = []
+    for part in s.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        part = part.split(":")[0]  # isolcpus may carry flags like "managed_irq,domain,2-15"
+        if "-" in part:
+            a, b = part.split("-", 1)
+            if a.isdigit() and b.isdigit():
+                out.extend(range(int(a), int(b) + 1))
+        elif part.isdigit():
+            out.append(int(part))
+    return sorted(set(out))
+
+
+def read(path: str) -> str | None:
+    try:
+        with open(path, encoding="utf-8") as f:
+            return f.read().strip()
+    except OSError:
+        return None
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--check", action="store_true")
+    ap.add_argument("--cpus", required=True, help="benchmark CPU list, e.g. 2-15")
+    ap.add_argument("--out")
+    ap.add_argument("--sysfs", default="/sys")
+    ap.add_argument("--proc", default="/proc")
+    args = ap.parse_args()
+
+    cpus = parse_cpulist(args.cpus)
+    if not cpus:
+        print("bench-host-record: empty --cpus", file=sys.stderr)
+        return 64
+    cpu_root = os.path.join(args.sysfs, "devices/system/cpu")
+    cmdline = read(os.path.join(args.proc, "cmdline")) or ""
+    kargs: dict[str, str] = {}
+    for tok in cmdline.split():
+        k, _, v = tok.partition("=")
+        kargs[k] = v
+
+    per_cpu = {}
+    for c in cpus:
+        base = os.path.join(cpu_root, f"cpu{c}", "cpufreq")
+        per_cpu[str(c)] = {
+            "online": read(os.path.join(cpu_root, f"cpu{c}", "online")) or "1",
+            "governor": read(os.path.join(base, "scaling_governor")),
+            "driver": read(os.path.join(base, "scaling_driver")),
+            "scaling_min_khz": read(os.path.join(base, "scaling_min_freq")),
+            "scaling_max_khz": read(os.path.join(base, "scaling_max_freq")),
+            "cpuinfo_min_khz": read(os.path.join(base, "cpuinfo_min_freq")),
+            "cpuinfo_max_khz": read(os.path.join(base, "cpuinfo_max_freq")),
+            "energy_perf_preference": read(os.path.join(base, "energy_performance_preference")),
+        }
+
+    no_turbo = read(os.path.join(cpu_root, "intel_pstate/no_turbo"))
+    boost = read(os.path.join(cpu_root, "cpufreq/boost"))
+    if no_turbo is not None:
+        turbo_enabled: bool | None = no_turbo != "1"
+    elif boost is not None:
+        turbo_enabled = boost == "1"
+    else:
+        turbo_enabled = None
+
+    model = microcode = None
+    cpuinfo = read(os.path.join(args.proc, "cpuinfo")) or ""
+    for line in cpuinfo.splitlines():
+        k, _, v = line.partition(":")
+        k = k.strip()
+        if k == "model name" and model is None:
+            model = v.strip()
+        if k == "microcode" and microcode is None:
+            microcode = v.strip()
+
+    doc = {
+        "schema": "arena-bench-host-settings-v1",
+        "recorded_at_unix": int(time.time()),
+        "hostname": platform.node(),
+        "kernel": platform.release(),
+        "cpu_model": model,
+        "microcode": microcode,
+        "bench_cpus": cpus,
+        "smt_active": read(os.path.join(cpu_root, "smt/active")),
+        "turbo_enabled": turbo_enabled,
+        "intel_pstate_status": read(os.path.join(cpu_root, "intel_pstate/status")),
+        "kernel_args": {k: kargs.get(k) for k in ("isolcpus", "nohz_full", "rcu_nocbs", "intel_pstate", "processor.max_cstate", "idle", "mitigations")},
+        "per_cpu": per_cpu,
+    }
+
+    problems: list[str] = []
+    if args.check:
+        isolated = set(parse_cpulist(kargs.get("isolcpus", "").replace("managed_irq", "").replace("domain", ""))) | set(parse_cpulist(kargs.get("nohz_full", "")))
+        for c, d in per_cpu.items():
+            if d["governor"] != "performance":
+                problems.append(f"cpu{c}: governor={d['governor']!r}, want 'performance'")
+            if d["scaling_min_khz"] is None or d["scaling_min_khz"] != d["scaling_max_khz"]:
+                problems.append(f"cpu{c}: scaling_min_freq={d['scaling_min_khz']} != scaling_max_freq={d['scaling_max_khz']} (pin the frequency)")
+            if int(c) not in isolated:
+                problems.append(f"cpu{c}: not in isolcpus=/nohz_full= kernel arguments")
+        if turbo_enabled is not False:
+            problems.append(f"turbo/boost must be disabled (turbo_enabled={turbo_enabled})")
+        if doc["smt_active"] != "0":
+            problems.append(f"SMT must be off (smt/active={doc['smt_active']})")
+    doc["check"] = {"requested": args.check, "problems": problems}
+
+    body = json.dumps(doc, sort_keys=True, separators=(",", ":"))
+    doc_digest = "sha256:" + hashlib.sha256(body.encode()).hexdigest()
+    rendered = json.dumps({"digest": doc_digest, "settings": doc}, sort_keys=True, indent=2) + "\n"
+    if args.out:
+        os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+        tmp = args.out + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(rendered)
+        os.replace(tmp, args.out)
+    else:
+        sys.stdout.write(rendered)
+    for p in problems:
+        print(f"bench-host-record: NOT BENCHMARK-READY: {p}", file=sys.stderr)
+    return 2 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

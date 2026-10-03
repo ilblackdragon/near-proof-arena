@@ -1,0 +1,239 @@
+# NEAR Proof Arena CI.
+# Every job calls a root Makefile target, so CI and local runs share one
+# definition and a missing component fails with a named owner lane instead of
+# silently passing. Third-party actions are pinned by commit SHA.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+
+jobs:
+  rust:
+    name: rust (fmt, clippy, test, build)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:17-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+        env:
+          POSTGRES_USER: arena
+          POSTGRES_PASSWORD: arena
+          POSTGRES_DB: arena_test
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U arena -d arena_test"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      DATABASE_URL: postgres://arena:arena@127.0.0.1:5432/arena_test
+      ARENA_TEST_DATABASE_URL: postgres://arena:arena@127.0.0.1:5432/arena_test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pinned toolchain (rust-toolchain.toml)
+        run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - run: make fmt-check
+      - run: make clippy
+      - run: make test-rust
+      - name: Build and verify required binaries
+        run: make build
+
+  schemas:
+    name: schema drift
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - name: Regenerate common/schemas and require no diff
+        run: make schemas-check
+
+  lean:
+    name: lean (${{ matrix.project }})
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [formal-core, spec/lean]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Require Lake project
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: |
+          if [ ! -f "$PROJECT/lakefile.lean" ] && [ ! -f "$PROJECT/lakefile.toml" ]; then
+            echo "::error::MISSING COMPONENT: Lean project '$PROJECT' has no lakefile (owner: formal-core / spec-oracle lane)"
+            exit 2
+          fi
+          test -f "$PROJECT/lean-toolchain" || { echo "::error::$PROJECT/lean-toolchain missing (toolchain must be pinned)"; exit 2; }
+      - name: Cache elan toolchains
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.elan
+          key: elan-${{ runner.os }}-${{ hashFiles(format('{0}/lean-toolchain', matrix.project)) }}
+      - name: Put cached elan on PATH
+        run: echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: leanprover/lean-action@f061402b660e0c34644504b324e830f2991d4865 # v1.6.1
+        with:
+          lake-package-directory: ${{ matrix.project }}
+          build: "true"
+          test: "false"
+          lint: "false"
+          use-github-cache: "true"
+
+  web:
+    name: web (build, test)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - run: make web
+
+  sdk-python:
+    name: sdk (python)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: make test-sdk-python
+
+  sdk-ts:
+    name: sdk (typescript)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - run: make test-sdk-ts
+
+  deploy:
+    name: deploy config (guard, compose, systemd, nftables, shellcheck)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install nftables; allow unprivileged user namespaces (netns probes)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq nftables
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Guard tests, hardened checks, shellcheck
+        run: make deploy-check
+      - name: Dev compose renders and passes arena-guard (loopback only)
+        run: |
+          make dev-guard
+          make dev-guard DEV_PROFILES=workers
+      - name: Non-loopback publish must be refused
+        run: |
+          if ARENA_PUBLISH_HOST=0.0.0.0 make dev-guard; then
+            echo "::error::arena-guard accepted a 0.0.0.0 publish in dev mode"; exit 1
+          fi
+
+  workflow-lint:
+    name: workflow lint (zizmor, actionlint)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install zizmor (pinned)
+        run: pipx install zizmor==1.24.1
+      - run: make workflow-lint
+
+  e2e-hostile:
+    name: hostile-submission e2e
+    needs: [rust]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:17-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+        env:
+          POSTGRES_USER: arena
+          POSTGRES_PASSWORD: arena
+          POSTGRES_DB: arena_e2e
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U arena -d arena_e2e"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      DATABASE_URL: postgres://arena:arena@127.0.0.1:5432/arena_e2e
+      ARENA_TEST_DATABASE_URL: postgres://arena:arena@127.0.0.1:5432/arena_e2e
+      ARENA_ENV: dev
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - name: Sandbox prerequisites (bwrap-dev needs unprivileged user namespaces)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - run: make e2e-hostile

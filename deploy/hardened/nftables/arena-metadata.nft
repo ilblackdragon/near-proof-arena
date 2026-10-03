@@ -1,0 +1,8 @@
+# Included by every host ruleset: cloud metadata services are never reachable
+# from any arena host, by any process. Evaluated before "established" so even
+# a connection opened before the ruleset loaded is cut.
+chain metadata_block {
+	ip daddr 169.254.169.254 counter reject with icmp type admin-prohibited
+	ip daddr 169.254.0.0/16 counter reject with icmp type admin-prohibited
+	ip6 daddr fd00:ec2::254 counter reject with icmpv6 type admin-prohibited
+}
