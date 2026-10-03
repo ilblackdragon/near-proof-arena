@@ -99,7 +99,8 @@ dev-worker: dev-secrets ## Run a host bwrap-dev worker (ARENA_DEV_UNSAFE=1, resu
 	$(call require,runners/worker,runners-core,arena-worker crate)
 	$(call require_cmd,bwrap,install bubblewrap)
 	set -a; . $(SECRETS)/worker.env; set +a; \
-	export ARENA_SANDBOX=bwrap-dev ARENA_DEV_UNSAFE=1; \
+	export ARENA_SANDBOX=bwrap-dev ARENA_DEV_UNSAFE=1 ARENA_WORK_DIR=$(REPO)/var/worker \
+	  ARENA_FIXTURES_DIRS=$(REPO)/challenges/demo/toy-arithmetic/fixtures; \
 	$(GUARD) worker && exec $(CARGO) run $(CARGO_FLAGS) --bin arena-worker
 
 .PHONY: migrate

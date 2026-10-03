@@ -182,8 +182,32 @@ impl WorkerConfig {
         let worker_id = s
             .get("ARENA_WORKER_ID")
             .unwrap_or_else(|| format!("{}-{}", hostname(), std::process::id()));
+        // Explicit kinds win; otherwise worker classes (deploy/hardened
+        // systemd `arena-worker@<class>`, compose ARENA_WORKER_CLASSES).
+        let class_kinds = match s.get("ARENA_WORKER_CLASSES").or_else(|| s.get("ARENA_WORKER_CLASS")) {
+            None => None,
+            Some(v) => {
+                let mut out: Vec<JobKind> = vec![];
+                for c in v.split(',').map(str::trim).filter(|c| !c.is_empty()) {
+                    let ks: &[JobKind] = match c {
+                        "build" => &[JobKind::Validate, JobKind::Build],
+                        "formal" => &[JobKind::FormalCheck],
+                        "oracle" | "exec" | "conformance" => &[JobKind::Conformance, JobKind::Adversarial],
+                        "bench" | "gpu" => &[JobKind::Benchmark],
+                        "all" => &JobKind::ALL,
+                        other => return Err(ConfigError::Invalid("ARENA_WORKER_CLASS", other.to_string())),
+                    };
+                    for k in ks {
+                        if !out.contains(k) {
+                            out.push(*k);
+                        }
+                    }
+                }
+                Some(out)
+            }
+        };
         let kinds = match s.get("ARENA_WORKER_KINDS") {
-            None => JobKind::ALL.to_vec(),
+            None => class_kinds.unwrap_or_else(|| JobKind::ALL.to_vec()),
             Some(v) => v
                 .split(',')
                 .map(|k| {
@@ -257,8 +281,10 @@ impl WorkerConfig {
                 s.get("ARENA_WORK_DIR")
                     .unwrap_or_else(|| "/var/tmp/arena-worker".into()),
             ),
+            // `ARENA_SANDBOX` is the name deploy/ and arena-guard use.
             backend: s
                 .get("ARENA_SANDBOX_BACKEND")
+                .or_else(|| s.get("ARENA_SANDBOX"))
                 .unwrap_or_else(|| "bwrap-dev".into()),
             kinds,
             poll_interval: ms("ARENA_POLL_MS", 2000)?,
@@ -395,6 +421,27 @@ mod tests {
             Err(ConfigError::DbCredentials(_))
         ));
     }
+    #[test]
+    fn classes_and_sandbox_alias() {
+        let s = Settings::new(
+            env(&[
+                ("ARENA_SERVER_URL", "http://x"),
+                ("ARENA_WORKER_TOKEN", "t"),
+                ("ARENA_WORKER_CLASSES", "build,formal,oracle,bench"),
+                ("ARENA_SANDBOX", "firecracker"),
+            ]),
+            None,
+        )
+        .unwrap();
+        let c = WorkerConfig::load(&s).unwrap();
+        assert_eq!(c.backend, "firecracker");
+        assert_eq!(c.kinds.len(), 6);
+        let s = Settings::new(env(&[("ARENA_SERVER_URL", "http://x"), ("ARENA_WORKER_TOKEN", "t"), ("ARENA_WORKER_CLASS", "bench")]), None).unwrap();
+        assert_eq!(WorkerConfig::load(&s).unwrap().kinds, vec![JobKind::Benchmark]);
+        let s = Settings::new(env(&[("ARENA_SERVER_URL", "http://x"), ("ARENA_WORKER_TOKEN", "t"), ("ARENA_WORKER_CLASS", "nope")]), None).unwrap();
+        assert!(WorkerConfig::load(&s).is_err());
+    }
+
     #[test]
     fn build_env_must_be_allowlisted() {
         let s = Settings::new(

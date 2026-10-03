@@ -11,7 +11,8 @@
 # Produces (all mode 0600, directory 0700):
 #   postgres.env           superuser + per-role DB passwords (postgres container only)
 #   server.env             control plane: DB URLs, admin/worker/bootstrap-agent tokens
-#   worker.env             host worker: worker token + worker-role DB URL (no admin token, no report key)
+#   worker.env             host worker: worker token only (no DB URL, no admin token, no report key;
+#                          arena-worker refuses to start if it can see database credentials)
 #   worker-compose.env     same, addressed from inside the compose network
 #   migrate.env            host-side owner-role DB URL for running migrations outside compose
 #   agent.env              CLI/SDK: ARENA_URL + agent token
@@ -88,15 +89,13 @@ ARENA_REPORT_SIGNING_KEY_FILE=/run/secrets/report-signing-key"
 write worker.env "$stamp
 ARENA_ENV=dev
 ARENA_SERVER_URL=http://127.0.0.1:8472
-ARENA_WORKER_TOKEN=$worker_token
-ARENA_WORKER_DATABASE_URL=postgres://arena_worker:$pg_worker@127.0.0.1:$pg_port/arena"
+ARENA_WORKER_TOKEN=$worker_token"
 
 # Same worker identity, addressed from inside the compose network (profile "workers").
 write worker-compose.env "$stamp
 ARENA_ENV=dev
 ARENA_SERVER_URL=http://arena-server:8472
-ARENA_WORKER_TOKEN=$worker_token
-ARENA_WORKER_DATABASE_URL=postgres://arena_worker:$pg_worker@postgres:5432/arena"
+ARENA_WORKER_TOKEN=$worker_token"
 
 write agent.env "$stamp
 ARENA_URL=http://127.0.0.1:8471

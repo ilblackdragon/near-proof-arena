@@ -145,6 +145,12 @@ mode_worker() {
   if [[ -n ${ARENA_ADMIN_TOKEN-} ]]; then
     refuse "ARENA_ADMIN_TOKEN is present in a worker environment; workers get only ARENA_WORKER_TOKEN"
   fi
+  local v
+  for v in DATABASE_URL ARENA_DATABASE_URL ARENA_WORKER_DATABASE_URL PGPASSWORD; do
+    if [[ -n ${!v-} ]]; then
+      refuse "$v is present in a worker environment; workers never hold database credentials"
+    fi
+  done
   if [[ $ARENA_ENV == production ]]; then
     check_production_common
     [[ $sandbox == bwrap-dev ]] && refuse "ARENA_SANDBOX=bwrap-dev is a dev-only, namespaces-only sandbox and is refused in production"
