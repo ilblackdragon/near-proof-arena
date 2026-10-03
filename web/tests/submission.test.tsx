@@ -127,3 +127,17 @@ describe('submission detail', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
+
+describe('stage progress after a decision', () => {
+  it('does not show stages that never ran as complete (cancel / fail-fast)', async () => {
+    const ds = demoDataset();
+    const s = ds.submissions.find((x) => x.id === 'sub_demo_rejected')!;
+    renderApp('/submissions/sub_demo_rejected', ds);
+    await screen.findByRole('heading', { level: 1, name: /shortcut prover/ });
+    const items = within(screen.getByRole('list', { name: 'Pipeline stages' })).getAllByRole('listitem');
+    const cls = items.map((li) => li.className.replace('stage ', ''));
+    // PKG/BUILD passed, AXIOM_AUDIT failed in FORMAL_CHECKED, later stages never ran.
+    expect(cls).toEqual(['done', 'done', 'done', 'failed', 'not_run', 'not_run', 'done']);
+    expect(s.stage).toBe('DECIDED');
+  });
+});
