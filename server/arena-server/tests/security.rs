@@ -965,3 +965,35 @@ async fn repo_challenges_load_with_governance_policy() {
     let v = arena_db::challenge::verify_definition(bad, &sig, &[app.gov.verifying_key()]).unwrap();
     assert!(gov.check(&v).is_err());
 }
+
+/// Red-team RT-06: the daily upload-byte quota was checked before streaming
+/// and not serialized, so N concurrent uploads could each use the full
+/// remaining quota.
+#[tokio::test]
+async fn redteam_concurrent_uploads_respect_byte_quota() {
+    let app = spawn().await;
+    let r = app
+        .http
+        .put(app.url("/v1/admin/quotas/alice"))
+        .bearer_auth(&app.admin_token)
+        .json(&json!({"max_submissions_per_day": 10, "max_upload_bytes_per_day": 100, "max_active_runs": 5}))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(r.status(), 204);
+    let futs = (0..8u8).map(|i| {
+        let body = vec![i; 60];
+        let app = &app;
+        async move { app.upload(&app.agent_token, &body).await.status().as_u16() }
+    });
+    let codes = futures::future::join_all(futs).await;
+    let ok = codes.iter().filter(|c| **c == 201).count();
+    assert_eq!(ok, 1, "only one 60-byte upload fits a 100-byte daily quota: {codes:?}");
+    let (used,): (i64,) = arena_db::sqlx::query_as(
+        "SELECT COALESCE(SUM(size_bytes),0)::bigint FROM uploads u JOIN agents a ON a.id = u.agent_id WHERE a.handle = 'alice'",
+    )
+    .fetch_one(&app.pool)
+    .await
+    .unwrap();
+    assert!(used <= 100, "{used}");
+}
