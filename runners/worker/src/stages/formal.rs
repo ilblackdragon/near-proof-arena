@@ -341,7 +341,7 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         policy,
         limits: Limits {
             mem_bytes: formal_mem_bytes(),
-            ..Limits::default()
+            ..Limits::from_env()
         },
         work_dir: r.fresh("formal-work"),
         cache_dir: r.ctx.work_root.join("formal-ref-cache"),
