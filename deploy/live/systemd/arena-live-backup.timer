@@ -1,0 +1,10 @@
+[Unit]
+Description=NEAR Proof Arena live: nightly backup
+PartOf=arena-live.target
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

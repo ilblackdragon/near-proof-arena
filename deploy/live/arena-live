@@ -1,0 +1,434 @@
+#!/usr/bin/env bash
+# arena-live — operate the persistent NEAR Proof Arena instance on this host.
+#
+# Everything lives under $ARENA_LIVE (default /data/illia/nearproof-live):
+#
+#   bin/        release binaries (arena-server, arena-worker, arena, arena-admin,
+#               formal-check, npai-verify (musl), near-arena-oracle)
+#   release/    read-only snapshot of the repo inputs the services use
+#               (challenges/, security/, formal configs, workloads, the clean
+#               formal tree, nginx.conf, arena-guard); REVISION = git sha
+#   web/        production web build (web/dist), served by nginx
+#   config/     non-secret service config: server.env, worker.env,
+#               worker-<name>.env, web.env (ARENA_FC_DEPS etc. live here)
+#   secrets/    0700; every file 0600: DB URLs, report signing key, tokens
+#   objects/    content-addressed object store
+#   work/<w>/   per-worker scratch + Firecracker image cache
+#   logs/       server.log, worker-<name>.log, web.log
+#   backups/    `arena-live backup` output
+#
+# Services are systemd --user units (linger is enabled for this user, so they
+# start at boot and survive logout): arena-live-server, arena-live-worker@<name>,
+# arena-live-web, grouped by arena-live.target; arena-live-backup.timer runs
+# a nightly backup. See docs/LIVE.md.
+#
+# Usage: arena-live <command> [args]
+#   install                 copy binaries + snapshot repo inputs + web build, render units
+#   init                    first-time: database, roles, report key, worker/admin/agent tokens
+#   start|stop|restart [svc]   svc: server | web | worker@<name> | all (default all)
+#   status                  systemd state + health + queue summary
+#   logs <svc> [-f]         tail a service log (server | web | worker-<name>)
+#   add-agent <handle>      create an agent token -> secrets/agent-<handle>.env
+#   revoke-agent <handle>   disable an agent token (submissions stay; new requests 401)
+#   add-worker <name> [kinds]  register a Firecracker worker + config, enable its unit
+#   revoke-submission <id> <reason>   admin API: revoke (drops it from the leaderboard)
+#   rerun-submission <id> <reason>    admin API: new run for a submission (e.g. after an infra fix)
+#   register-challenge <id.json>      copy a signed <id>.json + .sig into release/ and restart
+#   backup                  pg_dump (custom format) + object store snapshot into backups/
+#   reap-orphans <name>     kill Firecracker containers left behind by worker <name>
+#   tailnet on|off|status   expose the tailnet nginx listener over HTTPS on this
+#                           host's ts.net name via `tailscale serve` (never funnel)
+set -euo pipefail
+
+LIVE="${ARENA_LIVE:-/data/illia/nearproof-live}"
+REPO="${ARENA_LIVE_REPO:-$(cd "$(dirname "$(readlink -f "$0")")/../.." && pwd)}"
+TARGET="${ARENA_LIVE_TARGET:-$HOME/.cache/nearproof-live-target}"
+ORACLE_SRC="${ARENA_LIVE_ORACLE:-/data/illia/nearproof/oracle/target/debug/near-arena-oracle}"
+PG_CONTAINER="${ARENA_LIVE_PG_CONTAINER:-arena-pg}"
+PG_HOSTPORT="${ARENA_LIVE_PG_HOSTPORT:-127.0.0.1:55471}"
+DB="${ARENA_LIVE_DB:-arena_live}"
+API_ROLE="${ARENA_LIVE_API_ROLE:-arena_live_api}"
+UNIT_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+
+die() { echo "arena-live: $*" >&2; exit 1; }
+say() { echo "== $*"; }
+psql_su() { docker exec -i "$PG_CONTAINER" psql -U arena -v ON_ERROR_STOP=1 -q "$@"; }
+secret_write() { # path  (content on stdin), 0600, never echoed
+  ( umask 077; cat >"$1.tmp" ) && chmod 600 "$1.tmp" && mv -f "$1.tmp" "$1"
+}
+env_get() { sed -n "s/^$2=//p" "$1" | tail -1; }
+public_url() { echo "http://$(env_get "$LIVE/config/server.env" ARENA_BIND_ADDR)"; }
+admin_curl() { # method path [json]
+  local tok; tok=$(env_get "$LIVE/secrets/admin.env" ARENA_ADMIN_TOKEN)
+  curl -sS -f -X "$1" -H "Authorization: Bearer $tok" -H 'Content-Type: application/json' \
+    ${3:+--data "$3"} "$(public_url)$2"
+}
+
+unit_name() {
+  case "$1" in
+    server) echo arena-live-server.service ;;
+    web) echo arena-live-web.service ;;
+    worker@*) echo "arena-live-$1.service" ;;
+    all|"") echo arena-live.target ;;
+    *) die "unknown service '$1' (server | web | worker@<name> | all)" ;;
+  esac
+}
+
+cmd_install() {
+  [ -x "$TARGET/release/arena-server" ] || die "no release build in $TARGET (cargo build --release, see docs/LIVE.md)"
+  mkdir -p "$LIVE"/{bin,config,objects,work,logs,backups,web}
+  install -d -m 700 "$LIVE/secrets"
+  say "binaries from $TARGET"
+  for b in arena-server arena-worker arena arena-admin formal-check; do
+    install -m 755 "$TARGET/release/$b" "$LIVE/bin/$b.new" && mv -f "$LIVE/bin/$b.new" "$LIVE/bin/$b"
+  done
+  install -m 755 "$TARGET/x86_64-unknown-linux-musl/release/npai-verify" "$LIVE/bin/npai-verify.new"
+  mv -f "$LIVE/bin/npai-verify.new" "$LIVE/bin/npai-verify"
+  if [ ! -x "$LIVE/bin/near-arena-oracle" ] || [ "$ORACLE_SRC" -nt "$LIVE/bin/near-arena-oracle" ]; then
+    [ -x "$ORACLE_SRC" ] || die "no near-arena-oracle at $ORACLE_SRC (oracle/scripts/link-nearcore.sh)"
+    install -m 755 "$ORACLE_SRC" "$LIVE/bin/near-arena-oracle.new" && mv -f "$LIVE/bin/near-arena-oracle.new" "$LIVE/bin/near-arena-oracle"
+  fi
+
+  local rev; rev=$(git -C "$REPO" rev-parse HEAD)
+  say "repo snapshot at $rev"
+  local stage="$LIVE/release.new"
+  rm -rf "$stage"; mkdir -p "$stage/clean"
+  git -C "$REPO" archive --format=tar HEAD -- challenges security runners/formal-checker/challenges \
+    spec/workloads deploy/scripts/arena-guard deploy/local/nginx.conf | tar -xf - -C "$stage"
+  # the clean formal tree the worker hands to FORMAL_CHECK (as tests/e2e/*.sh)
+  git -C "$REPO" archive --format=tar HEAD -- formal-core spec/lean oracle/fixtures/public | tar -xf - -C "$stage/clean"
+  echo "$rev" >"$stage/REVISION"
+  # locally-registered challenges (register-challenge) survive reinstalls
+  if [ -d "$LIVE/release/challenges" ]; then
+    for f in "$LIVE/release/challenges"/chl_*.json; do
+      [ -e "$f" ] || continue
+      b=$(basename "$f" .json)
+      [ -e "$stage/challenges/$b.json" ] || cp -p "$f" "$LIVE/release/challenges/$b.sig" "$stage/challenges/"
+    done
+  fi
+  rm -rf "$LIVE/release.old"; [ -d "$LIVE/release" ] && mv "$LIVE/release" "$LIVE/release.old"
+  mv "$stage" "$LIVE/release"; rm -rf "$LIVE/release.old"
+
+  say "web build"
+  [ -f "$REPO/web/dist/index.html" ] || die "no web/dist (cd web && pnpm install --frozen-lockfile && pnpm run build)"
+  rm -rf "$LIVE/web/dist.new"; cp -r "$REPO/web/dist" "$LIVE/web/dist.new"
+  rm -rf "$LIVE/web/dist"; mv "$LIVE/web/dist.new" "$LIVE/web/dist"
+  chmod -R a+rX "$LIVE/web"
+
+  write_default_config
+  render_web_conf
+  render_units
+  # nginx re-reads nothing by itself: reload the (possibly) new config
+  if systemctl --user -q is-active arena-live-web.service; then
+    docker exec arena-live-web nginx -s reload >/dev/null 2>&1 || systemctl --user restart arena-live-web.service
+  fi
+}
+
+write_default_config() {
+  local c="$LIVE/config"
+  [ -f "$c/server.env" ] || cat >"$c/server.env" <<EOF
+# arena-server (non-secret). DB URL: secrets/server-db.env. Loopback only.
+ARENA_ENV=dev
+ARENA_BIND_ADDR=127.0.0.1:8471
+ARENA_WORKER_API_BIND_ADDR=127.0.0.1:8472
+ARENA_OBJECT_STORE_DIR=$LIVE/objects
+ARENA_CHALLENGES_DIR=$LIVE/release/challenges
+ARENA_SECURITY_DIR=$LIVE/release/security
+ARENA_GOVERNANCE_PUBKEY_FILE=$LIVE/release/challenges/governance-dev.pub,$LIVE/release/challenges/governance-local.pub
+ARENA_REPORT_SIGNING_KEY_FILE=$LIVE/secrets/report-signing-key.pem
+ARENA_LEASE_SECS=600
+ARENA_RETRY_BACKOFF_SECS=5
+ARENA_JOB_MAX_ATTEMPTS=3
+ARENA_QUOTA_SUBMISSIONS_PER_DAY=50
+ARENA_QUOTA_ACTIVE_RUNS=4
+ARENA_RATE_LIMIT_PER_MINUTE=600
+RUST_LOG=info,sqlx=warn
+NO_COLOR=1
+EOF
+  [ -f "$c/worker.env" ] || cat >"$c/worker.env" <<EOF
+# Shared arena-worker config (non-secret). Per-worker: worker-<name>.env.
+# ARENA_FC_DEPS: Firecracker kernel/rootfs/fc-runner set (steps-mode capable).
+ARENA_ENV=dev
+ARENA_SANDBOX=firecracker
+ARENA_SANDBOX_BACKEND=firecracker
+ARENA_SERVER_URL=http://127.0.0.1:8472
+ARENA_FC_DEPS=/data/illia/nearproof-deps/firecracker-rc
+ARENA_IMAGES_DIR=/data/illia/nearproof-deps/toolchain-images
+ARENA_BUILD_TOOLCHAIN_IMAGE=sha256:70d2b28003f8117601772dedb7f42393e928ccfcca7356a49d675ec3f878a8a1
+ARENA_LEAN_CHECKER_IMAGES=/data/illia/nearproof-deps/lean-checker/images
+ARENA_BUILD_MOUNTS=/data/illia/nearproof-deps/lean-checker/images/d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1/arena/tc:/opt/lean
+ARENA_BUILD_PATH=/opt/lean/bin:/usr/local/rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/bin:/usr/local/cargo/bin:/usr/local/bin:/usr/bin:/bin
+ARENA_FORMAL_REPO=$LIVE/release/clean
+ARENA_FORMAL_CONFIGS_DIR=$LIVE/release/runners/formal-checker/challenges
+ARENA_NPAI_VERIFY=$LIVE/bin/npai-verify
+ARENA_NEAR_ORACLE=$LIVE/bin/near-arena-oracle
+ARENA_WORKLOAD_GENERATORS=$LIVE/release/spec/workloads/near-transfer-receipt-v1
+ARENA_FIXTURES_DIRS=$LIVE/release/clean/oracle/fixtures/public
+ARENA_CONFORMANCE_SAMPLES=3
+ARENA_LEASE_SECONDS=600
+ARENA_POLL_MS=1000
+ARENA_HEARTBEAT_MS=10000
+RUST_LOG=info
+NO_COLOR=1
+EOF
+  [ -f "$c/web.env" ] || cat >"$c/web.env" <<EOF
+ARENA_WEB_LISTEN=127.0.0.1:8470
+# upstream for 'tailscale serve' (tailnet HTTPS); /v1/admin refused there
+ARENA_WEB_TAILNET_LISTEN=127.0.0.1:8473
+ARENA_WEB_IMAGE=nginxinc/nginx-unprivileged:1.29-alpine@sha256:0c79d56aee561a1d81c63f00eee5fb5fe29279560cdc55e91425133104c7fbe6
+EOF
+  return 0
+}
+
+render_web_conf() {
+  # deploy/local/nginx.conf verbatim (headers, CSP, SSE) except: listen on the
+  # loopback address only and proxy /v1 to the loopback API listener.
+  local listen api
+  listen=$(env_get "$LIVE/config/web.env" ARENA_WEB_LISTEN)
+  api=$(env_get "$LIVE/config/server.env" ARENA_BIND_ADDR)
+  local base="$LIVE/release/deploy/local/nginx.conf" ts
+  ts=$(env_get "$LIVE/config/web.env" ARENA_WEB_TAILNET_LISTEN)
+  {
+    echo "# Rendered by arena-live from deploy/local/nginx.conf. Do not edit."
+    echo "# 1) operator listener $listen (full /v1, incl. /v1/admin)"
+    sed -e "s|listen 8080;|listen $listen;|" -e "s|http://arena-server:8471|http://$api|" \
+    -e "s|root /usr/share/nginx/html;|root /srv/arena-web/dist;|" "$base"
+    if [ -n "$ts" ]; then
+      echo
+      echo "# 2) tailnet listener $ts: the only upstream of 'tailscale serve'."
+      echo "#    Same headers; /v1/admin is refused (admin stays operator-local)."
+      sed -e "s|listen 8080;|listen $ts;|" -e "s|http://arena-server:8471|http://$api|" \
+        -e "s|root /usr/share/nginx/html;|root /srv/arena-web/dist;|" \
+        -e 's|^    location /v1/ {|    location ^~ /v1/admin { return 403; }\n    location = /v1/admin { return 403; }\n\n    location /v1/ {|' "$base"
+    fi
+  } >"$LIVE/config/nginx.conf"
+  if grep -E '^\s*listen ' "$LIVE/config/nginx.conf" | grep -vq 'listen 127\.0\.0\.1:'; then
+    die "nginx.conf: a listen directive is not loopback"
+  fi
+}
+
+render_units() {
+  mkdir -p "$UNIT_DIR"
+  local src="$REPO/deploy/live/systemd"
+  for u in "$src"/*; do
+    sed -e "s|@LIVE@|$LIVE|g" -e "s|@ARENA_LIVE_SCRIPT@|$LIVE/bin/arena-live|g" "$u" >"$UNIT_DIR/$(basename "$u")"
+  done
+  install -m 755 "$REPO/deploy/live/arena-live" "$LIVE/bin/arena-live"
+  systemctl --user daemon-reload
+  say "units installed in $UNIT_DIR"
+}
+
+cmd_init() {
+  [ -f "$LIVE/config/server.env" ] || die "run 'arena-live install' first"
+  local S="$LIVE/secrets"
+  say "database $DB on $PG_CONTAINER"
+  if ! psql_su -d postgres -Atc "SELECT 1 FROM pg_database WHERE datname='$DB'" | grep -q 1; then
+    psql_su -d postgres -c "CREATE DATABASE $DB"
+  fi
+  if [ ! -f "$S/server-db.env" ]; then
+    local pw; pw=$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')
+    psql_su -d postgres >/dev/null <<SQL
+DO \$\$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$API_ROLE') THEN
+    CREATE ROLE $API_ROLE LOGIN NOINHERIT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'arena_live_worker') THEN CREATE ROLE arena_live_worker NOLOGIN; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'arena_live_readonly') THEN CREATE ROLE arena_live_readonly NOLOGIN; END IF;
+END \$\$;
+ALTER ROLE $API_ROLE PASSWORD '$pw';
+ALTER ROLE $API_ROLE SET statement_timeout = '60s';
+REVOKE ALL ON DATABASE $DB FROM PUBLIC;
+GRANT CONNECT ON DATABASE $DB TO $API_ROLE;
+SQL
+    printf 'ARENA_DATABASE_URL=postgres://%s:%s@%s/%s\n' "$API_ROLE" "$pw" "$PG_HOSTPORT" "$DB" | secret_write "$S/server-db.env"
+  fi
+  printf 'ARENA_MIGRATE_DATABASE_URL=postgres://arena:arena@%s/%s\n' "$PG_HOSTPORT" "$DB" | secret_write "$S/migrate.env"
+  migrate
+
+  if [ ! -f "$S/report-signing-key.pem" ]; then
+    say "report signing key"
+    "$LIVE/bin/arena-server" keygen --out "$S/report-signing-key.pem" >"$LIVE/config/report-signing-key.pub.hex"
+    chmod 600 "$S/report-signing-key.pem"
+  fi
+
+  local dburl; dburl=$(env_get "$S/server-db.env" ARENA_DATABASE_URL)
+  if [ ! -f "$S/admin.env" ]; then
+    say "admin token"
+    local tok; tok=$(ARENA_DATABASE_URL="$dburl" "$LIVE/bin/arena-server" create-admin --name operator | sed -n 's/^token //p')
+    [ -n "$tok" ] || die "create-admin failed"
+    printf 'ARENA_URL=%s\nARENA_ADMIN_TOKEN=%s\n' "$(public_url)" "$tok" | secret_write "$S/admin.env"
+  fi
+  for h in reference agent-1 agent-2 agent-3; do
+    [ -f "$S/agent-$h.env" ] || cmd_add_agent "$h"
+  done
+  [ -f "$S/worker-w1.token" ] || cmd_add_worker w1 all
+  say "init done; secrets in $S (0600)"
+}
+
+migrate() {
+  say "migrate + grants"
+  ARENA_MIGRATE_DATABASE_URL=$(env_get "$LIVE/secrets/migrate.env" ARENA_MIGRATE_DATABASE_URL) \
+    "$LIVE/bin/arena-server" migrate >/dev/null
+  "$LIVE/bin/arena-server" grants-sql \
+    | sed -e "s/\barena_api\b/$API_ROLE/g" -e 's/\barena_worker\b/arena_live_worker/g' -e 's/\barena_readonly\b/arena_live_readonly/g' \
+    | grep -v '^\\set' | psql_su -d "$DB" >/dev/null
+}
+
+cmd_add_agent() {
+  local h="${1:?handle}" S="$LIVE/secrets"
+  [ -f "$S/agent-$h.env" ] && die "agent-$h.env exists"
+  local tok; tok=$(ARENA_DATABASE_URL=$(env_get "$S/server-db.env" ARENA_DATABASE_URL) \
+    "$LIVE/bin/arena-server" create-agent --handle "$h" | sed -n 's/^token //p')
+  [ -n "$tok" ] || die "create-agent $h failed"
+  printf '# agent "%s" — hand ARENA_URL + ARENA_TOKEN to the agent operator\nARENA_URL=%s\nARENA_TOKEN=%s\n' \
+    "$h" "$(public_url)" "$tok" | secret_write "$S/agent-$h.env"
+  say "agent $h -> $S/agent-$h.env"
+}
+
+cmd_revoke_agent() {
+  local h="${1:?handle}"
+  psql_su -d "$DB" -c "UPDATE agents SET disabled = true WHERE handle = '${h//\'/}'"
+  say "agent $h disabled (secrets/agent-$h.env kept for the record)"
+}
+
+cmd_add_worker() {
+  local n="${1:?name}" kinds="${2:-all}" S="$LIVE/secrets"
+  [[ $n =~ ^[a-z0-9][a-z0-9-]{0,30}$ ]] || die "bad worker name"
+  if [ ! -f "$S/worker-$n.token" ]; then
+    local tok; tok=$(ARENA_DATABASE_URL=$(env_get "$S/server-db.env" ARENA_DATABASE_URL) \
+      "$LIVE/bin/arena-server" create-worker --name "live-$n" --sandbox firecracker --tier-cap formal | sed -n 's/^token //p')
+    [ -n "$tok" ] || die "create-worker $n failed"
+    printf '%s\n' "$tok" | secret_write "$S/worker-$n.token"
+  fi
+  local kline="ARENA_WORKER_CLASSES=$kinds"
+  [ -f "$LIVE/config/worker-$n.env" ] || cat >"$LIVE/config/worker-$n.env" <<EOF
+ARENA_WORKER_ID=live-$n
+ARENA_WORK_DIR=$LIVE/work/$n
+ARENA_WORKER_TOKEN_FILE=$S/worker-$n.token
+# classes: all | build,formal,oracle,bench (see runners/worker/src/config.rs)
+$kline
+# host CPUs for BUILD/CONFORMANCE/ADVERSARIAL VMs (one vCPU each); give each
+# worker a disjoint range (w1 0-7, w2 8-15, ...)
+ARENA_RUN_CPUS=0-7
+EOF
+  case ",$kinds," in *,all,*|*,bench,*)
+    grep -q '^ARENA_BENCH_CPUS=' "$LIVE/config/worker-$n.env" || printf '%s\n' \
+      '# benchmark VMs pinned away from every worker RUN_CPUS range' 'ARENA_BENCH_CPUS=24-31' >>"$LIVE/config/worker-$n.env" ;;
+  esac
+  mkdir -p "$LIVE/work/$n"
+  systemctl --user enable "arena-live-worker@$n.service" >/dev/null 2>&1 || true
+  say "worker $n ($kinds) -> config/worker-$n.env; start: arena-live start worker@$n"
+}
+
+cmd_start() { systemctl --user enable --now "$(unit_name "${1:-all}")"; }
+cmd_stop() { systemctl --user stop "$(unit_name "${1:-all}")"; }
+cmd_restart() {
+  if [ "${1:-all}" = all ]; then
+    systemctl --user restart arena-live-server.service arena-live-web.service 'arena-live-worker@*.service'
+  else systemctl --user restart "$(unit_name "$1")"; fi
+}
+
+cmd_status() {
+  systemctl --user --no-pager list-units 'arena-live*' --all
+  local u; u=$(public_url)
+  echo
+  local bad=0 url code
+  for url in "$u/healthz" "http://$(env_get "$LIVE/config/web.env" ARENA_WEB_LISTEN)/" \
+             "http://$(env_get "$LIVE/config/web.env" ARENA_WEB_LISTEN)/v1/challenges" \
+             "http://$(env_get "$LIVE/config/web.env" ARENA_WEB_TAILNET_LISTEN)/"; do
+    code=$(curl -s -o /dev/null -w '%{http_code}' "$url" || true)
+    printf '%-48s %s\n' "$url" "$code"; [ "$code" = 200 ] || bad=1
+  done
+  code=$(curl -s -o /dev/null -w '%{http_code}' "http://$(env_get "$LIVE/config/web.env" ARENA_WEB_TAILNET_LISTEN)/v1/admin/audit" || true)
+  printf '%-48s %s (want 403)\n' "tailnet listener /v1/admin/audit" "$code"; [ "$code" = 403 ] || bad=1
+  [ $bad = 0 ] && echo "health: OK" || echo "health: FAILING"
+  echo; psql_su -d "$DB" -c "SELECT kind, state, count(*) FROM jobs GROUP BY 1,2 ORDER BY 1,2" 2>/dev/null || true
+  df -h "$LIVE" | tail -1
+}
+
+cmd_logs() {
+  local f="$LIVE/logs/${1:?server|web|worker-<name>}.log"
+  [ -f "$f" ] || die "no $f"
+  if [ "${2:-}" = -f ]; then tail -n 100 -F "$f"; else tail -n 100 "$f"; fi
+}
+
+cmd_revoke_submission() {
+  local id="${1:?submission id}" reason="${2:?reason}"
+  admin_curl POST "/v1/admin/submissions/$id/revoke" "$(python3 -c 'import json,sys;print(json.dumps({"reason":sys.argv[1]}))' "$reason")"
+  echo
+}
+
+cmd_rerun_submission() {
+  local id="${1:?submission id}" reason="${2:?reason}"
+  admin_curl POST "/v1/admin/submissions/$id/rerun" "$(python3 -c 'import json,sys;print(json.dumps({"reason":sys.argv[1]}))' "$reason")"
+  echo
+}
+
+cmd_register_challenge() {
+  local j="${1:?path to signed <id>.json}" s="${1%.json}.sig"
+  [ -f "$s" ] || die "missing $s"
+  "$LIVE/bin/arena-admin" verify --pubkey "$LIVE/release/challenges/governance-local.pub" \
+    --pubkey "$LIVE/release/challenges/governance-dev.pub" --security-dir "$LIVE/release/security" "$j" \
+    || die "signature/policy verification failed"
+  cp "$j" "$s" "$LIVE/release/challenges/"
+  systemctl --user restart arena-live-server.service
+  say "registered $(basename "$j" .json) (server restarted)"
+}
+
+cmd_backup() {
+  local ts; ts=$(date -u +%Y%m%dT%H%M%SZ)
+  local d="$LIVE/backups/$ts"; install -d -m 700 "$d"
+  say "pg_dump $DB -> $d/$DB.dump"
+  docker exec "$PG_CONTAINER" pg_dump -U arena -Fc "$DB" >"$d/$DB.dump"
+  # objects are immutable + content-addressed: hard-link snapshot, near-zero cost
+  cp -al "$LIVE/objects" "$d/objects"
+  cp -p "$LIVE/secrets/report-signing-key.pem" "$d/" 2>/dev/null || true
+  chmod -R go-rwx "$d"
+  # keep the 14 newest
+  ls -1d "$LIVE/backups"/*/ 2>/dev/null | sort | head -n -14 | xargs -r rm -rf
+  say "backup $d"
+}
+
+cmd_reap_orphans() {
+  local n="${1:?worker name}" w
+  w=$(env_get "$LIVE/config/worker-$n.env" ARENA_WORK_DIR)
+  [ -n "$w" ] || die "no work dir for $n"
+  docker ps -q --filter name=arena-fc- | while read -r c; do
+    if docker inspect --format '{{range .Mounts}}{{.Source}} {{end}}' "$c" 2>/dev/null | grep -q "^$w/"; then
+      docker kill "$c" >/dev/null 2>&1 && echo "reaped $c"
+    fi
+  done
+  return 0
+}
+
+cmd_tailnet() {
+  local up; up=$(env_get "$LIVE/config/web.env" ARENA_WEB_TAILNET_LISTEN)
+  case "${1:-status}" in
+    on) tailscale serve --bg --https=443 "http://$up" ;;
+    off) tailscale serve --https=443 off ;;
+    status) tailscale serve status ;;
+    *) die "tailnet on|off|status" ;;
+  esac
+}
+
+c="${1:-}"; shift || true
+case "$c" in
+  install) cmd_install "$@" ;;
+  init) cmd_init "$@" ;;
+  migrate) migrate ;;
+  start) cmd_start "$@" ;;
+  stop) cmd_stop "$@" ;;
+  restart) cmd_restart "$@" ;;
+  status) cmd_status ;;
+  logs) cmd_logs "$@" ;;
+  add-agent) cmd_add_agent "$@" ;;
+  revoke-agent) cmd_revoke_agent "$@" ;;
+  add-worker) cmd_add_worker "$@" ;;
+  revoke-submission) cmd_revoke_submission "$@" ;;
+  rerun-submission) cmd_rerun_submission "$@" ;;
+  register-challenge) cmd_register_challenge "$@" ;;
+  backup) cmd_backup ;;
+  reap-orphans) cmd_reap_orphans "$@" ;;
+  tailnet) cmd_tailnet "$@" ;;
+  *) sed -n '2,/^set -euo/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 2 ;;
+esac

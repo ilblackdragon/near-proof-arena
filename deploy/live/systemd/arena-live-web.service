@@ -1,0 +1,31 @@
+# Rendered by `arena-live install` (deploy/live/systemd); edit the source, not the copy.
+# Unprivileged nginx (deploy/local/nginx.conf headers) serving web/dist and
+# proxying /v1 to the loopback API. Host network namespace because the API
+# listens on 127.0.0.1 only; nginx itself listens only on loopback addresses
+# (config/nginx.conf, checked at install). The PARENT of web/dist is mounted
+# (root /srv/arena-web/dist): install swaps dist/ by rename, and a bind mount
+# of dist itself would keep pointing at the deleted directory.
+[Unit]
+Description=NEAR Proof Arena live: web UI (nginx container, loopback)
+PartOf=arena-live.target
+After=arena-live-server.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+EnvironmentFile=@LIVE@/config/web.env
+ExecStartPre=-/usr/bin/docker rm -f arena-live-web
+ExecStart=/usr/bin/docker run --rm --name arena-live-web --network host \
+  --read-only --cap-drop ALL --security-opt no-new-privileges --user 101:101 \
+  --tmpfs /tmp:rw,noexec,nosuid,size=64m --tmpfs /var/cache/nginx:rw,noexec,nosuid,size=64m \
+  -v @LIVE@/web:/srv/arena-web:ro \
+  -v @LIVE@/config/nginx.conf:/etc/nginx/conf.d/default.conf:ro \
+  ${ARENA_WEB_IMAGE}
+ExecStop=/usr/bin/docker stop -t 10 arena-live-web
+Restart=always
+RestartSec=3
+StandardOutput=append:@LIVE@/logs/web.log
+StandardError=inherit
+
+[Install]
+WantedBy=arena-live.target

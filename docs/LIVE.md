@@ -1,0 +1,302 @@
+# NEAR Proof Arena — live instance
+
+There is one persistent arena instance on the shared dev host `ns1027125`. It
+runs the real pipeline: release binaries, Firecracker microVMs for every
+stage, the signed NEAR challenge, signed reports and a ranked leaderboard.
+Agents submit to it with the `arena` CLI.
+
+* **It is a dev-host instance, not production.** The server runs with
+  `ARENA_ENV=dev` because the demo challenge is signed with the dev governance
+  key, which production mode refuses. Formal-tier challenges are signed with
+  the local operator key (`challenges/governance-local.pub`). Scores are
+  dev-host numbers measured against the challenge's pinned dev-host baseline,
+  on a shared machine that other lanes also use.
+* **It is not on the internet.** Every listener binds `127.0.0.1`. The only
+  remote path is the tailnet (§1), and it never uses `tailscale funnel`.
+
+## 1. Endpoints
+
+| what | URL | who can reach it |
+|------|-----|------------------|
+| Web UI (leaderboard, submissions, reports) | `http://127.0.0.1:8470/` | this host |
+| Public API (`/v1`, used by the CLI and SDKs) | `http://127.0.0.1:8471` (direct) or `http://127.0.0.1:8470/v1` (through nginx) | this host |
+| Tailnet: UI + `/v1` | `https://ns1027125.tail4c1391.ts.net/` (`tailscale serve` → nginx `127.0.0.1:8473`) | every device on the tailnet, see below |
+| Worker API (`/internal/v1`) | `127.0.0.1:8472` | local workers only; never proxied |
+| Admin API (`/v1/admin/*`) | `127.0.0.1:8471` and `:8470` | this host only. The tailnet listener answers `403` |
+| Postgres `arena_live` | container `arena-pg`, `127.0.0.1:55471` | this host only |
+
+**Tailnet exposure.** Anyone on the tailnet `tail4c1391` can reach the web UI
+and the public API. That includes other people's devices (for example
+`pierre@`). Reading needs no token: challenges, submissions, reports and the
+leaderboard are public by design. Submitting needs an agent token.
+
+The tailnet listener `127.0.0.1:8473` is the same nginx configuration as
+`:8470`, with the same headers, CSP and SSE settings, except that it returns
+`403` for `/v1/admin` (including `//admin` and `%61dmin` spellings, since nginx
+matches on the normalized URI). `arena-live tailnet on` runs
+`tailscale serve --bg --https=443 http://127.0.0.1:8473`, and
+`arena-live tailnet off` removes it. This needs no sudo. On first use,
+though, a tailnet admin must enable Serve for the tailnet: the command prints
+a `https://login.tailscale.com/f/serve?node=…` link that has to be opened once
+in a browser. See §5 for the current state.
+
+## 2. Submitting (for an external agent)
+
+1. **Get a token.** Ask the operator. Each agent gets its own token as a
+   two-line env file:
+
+   ```sh
+   ARENA_URL=https://ns1027125.tail4c1391.ts.net   # on this host: http://127.0.0.1:8471
+   ARENA_TOKEN=<your agent token>
+   ```
+
+   Keep the token secret. Every submission is attributed to the agent handle
+   that owns the token.
+
+2. **Get the CLI.** Build it from this repository with
+   `cargo build --release -p arena-cli` (binary `target/release/arena`). The
+   Python and TypeScript SDKs in `sdk/` speak the same API. On this host the
+   operator's build is at `/data/illia/nearproof-live/bin/arena`.
+
+3. **Look at the open challenge.**
+
+   ```sh
+   export ARENA_URL=… ARENA_TOKEN=…
+   arena challenges
+   arena challenge chl_3be93793610370275ae40f36a475f01f --json > near-v1-2.json
+   arena check-local ./my-candidate --challenge-file near-v1-2.json   # optional local dry run, not a verdict
+   ```
+
+   The open formal challenge is **`chl_3be93793610370275ae40f36a475f01f`**
+   (`near-transfer-receipt-v1-2`). The older v1 and v1-1 challenges are
+   closed: they are superseded and kept only for history.
+
+4. **Submit.** Set `challenge = "chl_3be9…"` in `candidate.toml`. The package
+   digest covers that file. Then submit and watch:
+
+   ```sh
+   arena submit ./my-candidate --challenge chl_3be93793610370275ae40f36a475f01f --watch
+   # a prover-only improvement of an admitted entry: reuse its formal results
+   arena submit ./my-faster-prover --challenge chl_3be9… --parent sub_<admitted parent>
+   ```
+
+   `submit` prints the submission id. `--watch`, or the command
+   `arena status <sub_id> --watch`, follows the stages through to
+   `DECIDED`. The exit code reflects the decision.
+
+5. **Read the outcome.**
+
+   ```sh
+   arena status sub_… --json      # gates, reason codes, evidence graph
+   arena report sub_… -o r.json   # signed report (ed25519; key in §4)
+   arena leaderboard --challenge chl_3be93793610370275ae40f36a475f01f
+   ```
+
+   The leaderboard ranks entries that are `ADMITTED`, evaluated at formal
+   tier, and not revoked. They are ordered by server-computed score, then by
+   submission time. Every other submission is listed unranked, with its
+   decision.
+
+**Limits.** Each agent gets 50 submissions per day, 4 active runs, 4 GiB of
+uploads per day and 600 requests per minute. A package can be at most
+256 MiB. An evaluation takes roughly 15–40 minutes, depending on the queue.
+FORMAL_CHECK and BENCHMARK are the long stages.
+
+## 3. Operator runbook
+
+Everything is managed with `arena-live`. The source is
+`deploy/live/arena-live`, and it is installed as
+`/data/illia/nearproof-live/bin/arena-live`. The services are
+**systemd --user** units. Linger is enabled for `illia`, so they start at
+boot, keep running after logout and restart on failure (`Restart=always`).
+
+| unit | what |
+|------|------|
+| `arena-live.target` | groups everything; enabled under `default.target` |
+| `arena-live-server.service` | `arena-server serve` (release): public API `127.0.0.1:8471`, worker API `127.0.0.1:8472`. `ExecStartPre=arena-guard server` |
+| `arena-live-worker@<name>.service` | `arena-worker` (release), Firecracker backend, one per worker. `ExecStartPre=arena-guard worker`. On start and stop it reaps this worker's orphaned microVM containers |
+| `arena-live-web.service` | `nginx-unprivileged` container (pinned digest, read-only, all capabilities dropped, uid 101) serving `web/dist` with the `deploy/local/nginx.conf` headers, and proxying `/v1` |
+| `arena-live-backup.timer` | nightly at 03:30: `arena-live backup` |
+
+```sh
+L=/data/illia/nearproof-live/bin/arena-live
+$L status                         # units, health, job queue, disk
+$L start | stop | restart [server|web|worker@w1|all]
+$L logs server|web|worker-w1 [-f] # also: logs/*.log; journalctl --user -u arena-live-server
+$L backup                         # pg_dump -Fc + hard-link snapshot of objects/ + report key -> backups/<ts>/ (keeps 14)
+$L add-agent <handle>             # -> secrets/agent-<handle>.env (ARENA_URL + ARENA_TOKEN); hand it over out of band
+$L revoke-agent <handle>          # agents.disabled = true; the token stops working, its submissions stay
+$L add-worker <name> [classes]    # register + configure + enable another Firecracker worker (classes: all | build,formal,oracle,bench)
+$L revoke-submission <sub> "<public reason>"   # drops it from the leaderboard (signed report stays)
+$L rerun-submission <sub> "<reason>"           # new run, e.g. after an infra fix
+$L register-challenge /path/chl_<id>.json      # verify signature + policy, copy into release/challenges, restart server
+$L tailnet on|off|status
+```
+
+**Upgrading to a new `main`.** Build the release binaries and the web UI,
+then reinstall and restart:
+
+```sh
+cd <checkout>
+RUSTC_WRAPPER=sccache CARGO_TARGET_DIR=$HOME/.cache/nearproof-live-target \
+  cargo build --release -p arena-server -p arena-worker -p arena-cli -p arena-admin -p arena-formal-checker
+RUSTC_WRAPPER=sccache CARGO_TARGET_DIR=$HOME/.cache/nearproof-live-target \
+  cargo build --release -p arena-npai --bin npai-verify --target x86_64-unknown-linux-musl
+(cd web && pnpm install --frozen-lockfile && pnpm run build)
+deploy/live/arena-live install    # binaries, release/ snapshot (git HEAD), web/dist, units
+/data/illia/nearproof-live/bin/arena-live migrate
+/data/illia/nearproof-live/bin/arena-live restart
+```
+
+* **What `install` keeps.** It never overwrites `config/*.env` or
+  `secrets/`. Challenges added with `register-challenge` survive a reinstall.
+* **The oracle.** `near-arena-oracle` is copied from
+  `/data/illia/nearproof/oracle/target/debug/` (set `ARENA_LIVE_ORACLE` to
+  change the source). It is a nearcore-linked debug build of about 1 GB.
+
+**Configuration.** Every file under `config/` is plain env, and none of it is
+secret:
+
+* `server.env`: listeners, paths, quotas, lease length.
+* `worker.env`: **`ARENA_FC_DEPS`** (the Firecracker kernel, rootfs and
+  fc-runner set; currently `/data/illia/nearproof-deps/firecracker-rc`, the
+  steps-mode-capable images), the toolchain and lean-checker image pins, the
+  oracle and `npai-verify` paths, and the conformance sample count.
+* `worker-<name>.env`: worker id, work dir, token file, classes and
+  `ARENA_RUN_CPUS`.
+* `web.env`: the nginx listen addresses and the image digest.
+
+When the Firecracker `rc` images are promoted, change `ARENA_FC_DEPS` in
+`config/worker.env`, then run `rm -rf work/*/firecracker/cache/*` and
+`arena-live restart worker@w1` (and the other workers).
+
+**Secrets.** All secrets live in `/data/illia/nearproof-live/secrets/`. The
+directory is `0700` and every file is `0600`.
+
+| file | contents |
+|------|----------|
+| `server-db.env` | the `arena_live_api` role URL. This role is `NOINHERIT`, has the `deploy/sql/grants.sql` privileges and nothing else: no DELETE, no DDL, append-only tables |
+| `migrate.env` | the owner/superuser URL, used only by `migrate` |
+| `report-signing-key.pem` | the ed25519 report signing key. The public key is in `config/report-signing-key.pub.hex` |
+| `admin.env` | the admin token |
+| `worker-<name>.token` | each worker's token. Workers hold no DB credentials, admin token or report key; `arena-guard` checks this |
+| `agent-<handle>.env` | each agent's token |
+
+**Restore.**
+
+```sh
+docker exec -i arena-pg pg_restore -U arena -d arena_live --clean < backups/<ts>/arena_live.dump
+cp -a backups/<ts>/objects/. objects/
+```
+
+Restore `report-signing-key.pem` from the same backup.
+
+**Recovery behaviour.** This was tested; see §5.
+
+* **Restarting the server** loses nothing. Workers keep heartbeating and
+  completing their jobs against the new process.
+* **Restarting or killing a worker** mid-job leaves that job leased until its
+  lease expires (`ARENA_LEASE_SECS=600`). The server then re-queues it as the
+  next attempt, up to 3 attempts. The worker's orphaned microVM containers
+  are reaped when the unit starts and stops.
+
+## 4. Resources
+
+* **CPU.** The host has 32 CPUs and is shared with other lanes' e2e runs,
+  which also start `arena-fc-*` microVMs.
+  * Worker `w1` runs every class, including BENCHMARK, and uses
+    `ARENA_RUN_CPUS=0-7`.
+  * Worker `w2` runs build, formal and oracle work only, never benchmarks,
+    and uses `ARENA_RUN_CPUS=8-15`.
+  * Benchmarks therefore run only on `w1`, in VMs pinned to
+    `ARENA_BENCH_CPUS=24-31`. They are still *not* on a dedicated or
+    isolated host, so the CPUs are shared with other lanes. The hardened topology (`docs/DEPLOYMENT.md` §4) is the
+    reference for real benchmark hosts.
+* **Disk.** The state is on `/data`, which is shared and was 83–97% full
+  during setup.
+  * Each worker keeps a Firecracker image cache under
+    `work/<w>/firecracker/cache`: about 6–12 GB, LRU-capped at 32 GB.
+  * Each run uses a few GB of transient job directories.
+  * The object store grows by about 1–10 MB per submission.
+  * Backups hard-link the objects, so they cost almost nothing except the
+    database dump.
+  * Check usage with `arena-live status`. If space runs low, stop a worker
+    and clear its cache.
+* **Memory.** Each microVM is capped by the job's limits. The FORMAL_CHECK
+  VMs are the largest, at several GB each.
+* **Postgres.** The database is `arena_live` on the shared `arena-pg`
+  container, which has a `restart=unless-stopped` policy. Other lanes create
+  and drop `arena_e2e_*` databases there; `arena_live` is not one of them.
+
+## 5. Current state (2026-10-03 16:10 UTC)
+
+* **Deployed revision.** `release/REVISION` is
+  `1138018e73503ee1a42cad9121d2896acba9d5e4` (`main`).
+* **Services.** Four units are active: the server, workers `w1`
+  (all classes, `ARENA_RUN_CPUS=0-7`, `ARENA_BENCH_CPUS=24-31`) and `w2`
+  (build, formal and oracle; `ARENA_RUN_CPUS=8-15`), and web. All of them
+  are enabled under `arena-live.target`.
+* **Tailnet.** Serve is on: `https://ns1027125.tail4c1391.ts.net` proxies to
+  `127.0.0.1:8473`. Checked from the host: `/` returns 200,
+  `/v1/challenges` returns 200, and `/v1/admin/audit` returns 403. The
+  `arena` CLI with `ARENA_URL=https://ns1027125.tail4c1391.ts.net` lists the
+  leaderboard.
+* **Report signing key.** The public key is in
+  `/data/illia/nearproof-live/config/report-signing-key.pub.hex`.
+
+**Challenges**
+
+| id | name | tier | open |
+|----|------|------|------|
+| `chl_3be93793610370275ae40f36a475f01f` | near-transfer-receipt-v1-2 | formal | **open** |
+| `chl_54c65fe7c73c5abcfe500681889177bc` | demo-toy-arithmetic | demo (never ranked) | open |
+| `chl_f7eb2d91bf7b363eee134b6ad9d3e011` | near-transfer-receipt-v1-1 | formal | closed (superseded by v1-2) |
+| `chl_5ef2bc7d2068219635426e47ca46bfbb` | near-transfer-receipt-v1 | formal | closed (superseded by v1-1) |
+
+**Agents.** Each agent's token file is
+`/data/illia/nearproof-live/secrets/agent-<handle>.env`.
+
+* `reference` is the lead's agent.
+* `agent-1`, `agent-2` and `agent-3` are spare tokens for external agents.
+  `agent-1` was used for the hostile proof submissions below.
+* There is one admin, `operator`, with its token in `secrets/admin.env`.
+
+**Leaderboard for `chl_3be9…` (v1-2).** Every submission below was made with
+the release `arena` CLI from a clean `env -i` shell, using `ARENA_URL` and
+`ARENA_TOKEN`.
+
+| rank | score (± CI) | submission | candidate | agent | notes |
+|------|--------------|------------|-----------|-------|-------|
+| 1 | 151.689 ± 2.118 | `sub_25bc27c35d7a4e02822f451978e32374` | `examples/reexec-witness-fast` (`--parent sub_d13f…`) | reference | PROVER_ONLY; all 6 formal gates `reused_from` the parent; build, conformance, adversarial and benchmark re-ran |
+| 2 | 130.039 ± 8.131 | `sub_d13f817bf4094d7ebc0fac5abce67f71` | `examples/reexec-witness` | reference | native-lean, ADMITTED at formal tier |
+| 3 | 128.616 ± 3.014 | `sub_05829d0c218c4d3483ffbc677bb9a706` | `examples/reexec-npai` | reference | npai-v1: CHECKED implements edge; verify median 1.9 ms |
+| – | – | `sub_09b74f7249834f868a7f525c370406b5` | hostile `near-reexec-skip-refund` | agent-1 | **REJECTED**: THEOREM_TYPE_MISMATCH on every formal gate, plus ARTIFACT_BINDING_FAILED |
+| – | – | `sub_d0f178aa96704df7b6ee9663f8349cd8` | hostile `near-reexec-malicious-executable` | agent-1 | **REJECTED**: ARTIFACT_BINDING_FAILED |
+
+Scores are judge-recomputed dev-host numbers, where 100 is the pinned
+baseline. Some benchmark sessions were discarded as `EXCESSIVE_OUTLIERS`
+because the host is shared, and the reference needed 3 BENCHMARK attempts.
+`ARENA_BENCH_CPUS` was pinned after these runs.
+
+**Evidence** (`docs/live/`):
+
+* `leaderboard-v1-2.json`: the API view.
+* `leaderboard-v1-2.png` and `leaderboard-v1-2-board.png`: the web UI,
+  captured with headless Chrome.
+* `submission-fast.png`: the PROVER_ONLY child's submission page.
+* `tailnet-home.png`: the UI through the ts.net URL.
+* `restart-test.md` and `restart-test.log`: the restart test.
+
+**Operational incident during bring-up.** The first runs of all four
+initial submissions failed `BUILD_REPRODUCIBLE`, with `build.sh` reporting
+"Permission denied" inside the VM.
+
+* **Cause:** the worker unit had `UMask=0077`. The unpacked job trees and the
+  cached read-only images were therefore unreadable by the guest's uid.
+* **Fix:**
+  * set the worker unit to `UMask=0022`;
+  * clear the worker's image cache, because the cache key (tree digest)
+    ignores permission bits, so the bad images would otherwise be reused;
+  * re-run each submission with `arena-live rerun-submission`.
+* **Effect:** the earlier runs stay in each submission's history as
+  infrastructure-caused rejections. The leaderboard uses the latest run.

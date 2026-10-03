@@ -5,6 +5,9 @@ hardened reference topology (`deploy/hardened`), the startup guard, CI, and
 the environment/process contract the deployment expects from the server,
 runners and web lanes.
 
+The persistent instance on the dev host, which runs as systemd --user units
+managed by `deploy/live/arena-live`, is documented in `docs/LIVE.md`.
+
 The local stack is for development and demos only. It is not a production
 topology and must not be exposed beyond the loopback interface.
 

@@ -1,0 +1,19 @@
+== restart test 2026-10-03T15:07:39Z
+sub_d13f817bf4094d7ebc0fac5abce67f71|FORMAL_CHECK|leased|1|2026-10-03 15:17:31.474257+00
+sub_05829d0c218c4d3483ffbc677bb9a706|FORMAL_CHECK|queued|0|
+sub_09b74f7249834f868a7f525c370406b5|FORMAL_CHECK|queued|0|
+sub_d0f178aa96704df7b6ee9663f8349cd8|FORMAL_CHECK|queued|0|
+arena-fc-ra8f2a3bab62d7078 Up 18 seconds
+arena-fc-r3f4a692fceffe364 Up 51 seconds
+-- restart server
+healthz 200
+-- restart worker w1 15:07:42
+active
+active
+arena-fc-r31d227df57c150bc Up 1 second
+arena-fc-rf1527f23be02db41 Up 2 seconds
+arena-fc-r3f4a692fceffe364 Up About a minute
+sub_d13f817bf4094d7ebc0fac5abce67f71|FORMAL_CHECK|leased|1|2026-10-03 15:17:41.479134+00
+sub_05829d0c218c4d3483ffbc677bb9a706|FORMAL_CHECK|leased|1|2026-10-03 15:17:52.961152+00
+sub_09b74f7249834f868a7f525c370406b5|FORMAL_CHECK|queued|0|
+sub_d0f178aa96704df7b6ee9663f8349cd8|FORMAL_CHECK|queued|0|
