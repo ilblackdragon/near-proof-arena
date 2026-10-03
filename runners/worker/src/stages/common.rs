@@ -127,6 +127,35 @@ fn fail(gate: arena_types::ObligationId, reason: ReasonCode, detail: String) -> 
     }
 }
 
+impl StepFailure {
+    /// Summary text for a case. On a held-out case `prove` has seen the secret
+    /// request/witness, and much of `detail` is chosen by the candidate:
+    /// output file names quoted in collect errors, exit codes, proof/claim
+    /// sizes, peak memory. All of that would be a covert channel into the
+    /// public gate summary. Held-out failures therefore report only the fixed
+    /// reason code.
+    pub fn detail_for(&self, public: bool) -> String {
+        if public {
+            self.detail.clone()
+        } else {
+            format!(
+                "failed ({:?}; details withheld for held-out cases)",
+                self.reason
+            )
+        }
+    }
+}
+
+/// `describe_exit` for summaries: exit codes and signals are candidate-chosen,
+/// so they are withheld on held-out cases (see [`StepFailure::detail_for`]).
+pub fn exit_for(o: &arena_sandbox::SandboxOutcome, public: bool) -> String {
+    if public {
+        crate::executor::describe_exit(o)
+    } else {
+        "details withheld for held-out cases".into()
+    }
+}
+
 /// `prove` in a sandbox that holds the witness. Checks claim size and bytes
 /// against the oracle's expected claim, and the proof size cap.
 /// What `prove` / `verify` run against.

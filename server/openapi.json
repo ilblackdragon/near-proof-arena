@@ -1705,6 +1705,11 @@
             "type": "string",
             "nullable": true
           },
+          "verifier_bytecode": {
+            "description": "`verify_route = \"npai-v1\"`: digest of the built `entry.verifier_bytecode` file. Required for that route (the server refuses to derive a verified surface without it).",
+            "$ref": "#/components/schemas/Digest",
+            "nullable": true
+          },
           "verify": {
             "$ref": "#/components/schemas/Digest"
           }
@@ -3954,8 +3959,28 @@
           "public_artifacts": {
             "$ref": "#/components/schemas/Digest"
           },
+          "verifier_bytecode": {
+            "description": "`npai-v1`: SHA-256 digest of the built verifier bytecode image.",
+            "$ref": "#/components/schemas/Digest",
+            "nullable": true
+          },
+          "verifier_model": {
+            "description": "`native-lean`: `[formal] verifier_model`.",
+            "type": "string",
+            "nullable": true
+          },
+          "verifier_model_module": {
+            "description": "`native-lean`: `[formal] verifier_model_module`.",
+            "type": "string",
+            "nullable": true
+          },
           "verify_artifact": {
             "$ref": "#/components/schemas/Digest"
+          },
+          "verify_route": {
+            "description": "Effective verify route (`native` when the manifest omits it).",
+            "$ref": "#/components/schemas/VerifyRoute",
+            "nullable": true
           }
         }
       },

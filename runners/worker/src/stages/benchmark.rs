@@ -93,7 +93,11 @@ impl BatchRunner for Runner<'_, '_> {
                     return Err(self.fail(
                         f.gate,
                         f.reason,
-                        format!("{} run, {label}: {}", phase.as_str(), f.detail),
+                        format!(
+                            "{} run, {label}: {}",
+                            phase.as_str(),
+                            f.detail_for(case.public)
+                        ),
                     ))
                 }
             };

@@ -73,7 +73,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ConformanceJob) -> Result<StageOut, ExecError
         let proved = match common::run_prove(r, &env, &req, &wit, &case.expected_claim)? {
             Ok(p) => p,
             Err(f) => {
-                let note = format!("{label}: {}", f.detail);
+                let note = format!("{label}: {}", f.detail_for(case.public));
                 match f.gate {
                     ObligationId::ConformanceDifferential => conf.fail(f.reason, note),
                     ObligationId::ResourceLimits => {
@@ -122,7 +122,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ConformanceJob) -> Result<StageOut, ExecError
                     ReasonCode::ProverFailed,
                     format!(
                         "{label}: verify errored on the honest proof ({})",
-                        crate::executor::describe_exit(&vo)
+                        common::exit_for(&vo, case.public)
                     ),
                 );
                 break;
