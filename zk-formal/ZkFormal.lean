@@ -17,6 +17,8 @@ import ZkFormal.Stark.Verifier
 import ZkFormal.Stark.Instance
 import ZkFormal.Stark.Statements
 import ZkFormal.Stark.Compose
+import ZkFormal.Stark.Laws
+import ZkFormal.Stark.ParseLemmas
 import ZkFormal.Algebra.Transport
 import ZkFormal.Algebra.NatPrime
 import ZkFormal.Algebra.Fp
