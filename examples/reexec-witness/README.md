@@ -124,11 +124,16 @@ Because the result was produced with the dev sandbox, it is tier-capped at
 
 ## Limitations
 
-* The native-lean route needs the judge's model-module support
-  (runners/formal-checker `native.rs`). Until it lands, the Expected modules are
-  emulated in `judge-local/`.
-* The Lean verifier is slow: it uses `List UInt8` and a `Nat`-based SHA-256,
-  about 0.7 s for a 66 KB proof. This affects only verify time, which is not
-  scored.
+* The implementation connection is **trusted** (native-lean: the Lean compiler
+  and runtime are in the TCB). The checked route (a), with NPAI bytecode, is
+  not achieved. `examples/npai-ir` has the proven-correct IR → NPAI compiler
+  layer and a sizing of the remaining work.
+* `judge-local/` is only an emulation of the judge's Expected modules for local
+  `lake build`. The real checker renders its own
+  (`spec/lean/judge/Expected.native-lean.lean.template`).
+* The Lean verifier is slow: it uses `List UInt8` and a `Nat`-based SHA-256.
+  It takes about 0.3 s on batch-256 workloads and 0.7 s for a 66 KB proof,
+  against `max_verify_ms` = 10 s. A worst-case 3 MB witness has not been
+  measured. Verify time is not scored.
 * The proof is not succinct: it carries the full witness (the backend family is
   re-execution).

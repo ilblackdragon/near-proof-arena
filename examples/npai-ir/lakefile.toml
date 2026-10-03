@@ -1,0 +1,12 @@
+# Route-(a) feasibility work for reexec-witness: a structured IR with a
+# compiler to NPAI bytecode, proven correct against ArenaCore.Interp.
+name = "NpaiIR"
+version = "0.1.0"
+defaultTargets = ["NpaiIR"]
+
+[[lean_lib]]
+name = "NpaiIR"
+
+[[require]]
+name = "ArenaCore"
+path = "../../formal-core"
