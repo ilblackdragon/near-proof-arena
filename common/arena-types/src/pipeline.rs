@@ -2,7 +2,9 @@ use crate::{challenge::Tier, Digest, EvidenceGraph};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ObligationId {
     PkgWellformed,
@@ -21,7 +23,9 @@ pub enum ObligationId {
     Benchmark,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Stage {
     Received,
@@ -271,18 +275,31 @@ mod tests {
     use ObligationId::*;
     #[test]
     fn missing_mandatory_is_not_pass() {
-        let (d, a) = decide(&[g(PkgWellformed, GateStatus::Pass)], &[PkgWellformed, AxiomAudit], &[]);
+        let (d, a) = decide(
+            &[g(PkgWellformed, GateStatus::Pass)],
+            &[PkgWellformed, AxiomAudit],
+            &[],
+        );
         assert_eq!((d, a), (Decision::Inconclusive, false));
     }
     #[test]
     fn na_only_if_allowed() {
         let gates = [g(FormalZk, GateStatus::NotApplicable)];
         assert_eq!(decide(&gates, &[FormalZk], &[]).0, Decision::Rejected);
-        assert_eq!(decide(&gates, &[FormalZk], &[FormalZk]).0, Decision::Admitted);
+        assert_eq!(
+            decide(&gates, &[FormalZk], &[FormalZk]).0,
+            Decision::Admitted
+        );
     }
     #[test]
     fn fail_dominates_unknown() {
-        let gates = [g(AxiomAudit, GateStatus::Unknown), g(Benchmark, GateStatus::Fail)];
-        assert_eq!(decide(&gates, &[AxiomAudit, Benchmark], &[]).0, Decision::Rejected);
+        let gates = [
+            g(AxiomAudit, GateStatus::Unknown),
+            g(Benchmark, GateStatus::Fail),
+        ];
+        assert_eq!(
+            decide(&gates, &[AxiomAudit, Benchmark], &[]).0,
+            Decision::Rejected
+        );
     }
 }

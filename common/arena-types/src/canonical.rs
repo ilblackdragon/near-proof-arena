@@ -35,7 +35,9 @@ impl TryFrom<String> for Digest {
     fn try_from(s: String) -> Result<Self, String> {
         let ok = s.len() == 71
             && s.starts_with("sha256:")
-            && s[7..].bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b));
+            && s[7..]
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b));
         if ok {
             Ok(Digest(s))
         } else {
@@ -120,7 +122,10 @@ mod tests {
     #[test]
     fn sorted_and_compact() {
         let v = serde_json::json!({"b": 1, "a": [true, null, "x"]});
-        assert_eq!(canonical_json(&v).unwrap(), br#"{"a":[true,null,"x"],"b":1}"#);
+        assert_eq!(
+            canonical_json(&v).unwrap(),
+            br#"{"a":[true,null,"x"],"b":1}"#
+        );
     }
     #[test]
     fn rejects_float() {
