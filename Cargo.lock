@@ -168,6 +168,22 @@ dependencies = [
 [[package]]
 name = "arena-worker"
 version = "0.1.0"
+dependencies = [
+ "arena-archive",
+ "arena-measure",
+ "arena-sandbox",
+ "arena-types",
+ "libc",
+ "serde",
+ "serde_json",
+ "tar",
+ "tempfile",
+ "thiserror",
+ "time",
+ "toml",
+ "ureq",
+ "zstd",
+]
 
 [[package]]
 name = "autocfg"
@@ -1402,6 +1418,8 @@ dependencies = [
  "once_cell",
  "rustls",
  "rustls-pki-types",
+ "serde",
+ "serde_json",
  "url",
  "webpki-roots 0.26.11",
 ]

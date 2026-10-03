@@ -1,0 +1,28 @@
+[package]
+name = "arena-worker"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Arena judge worker: lease job -> fetch inputs by digest -> run in sandbox -> upload -> complete"
+
+[dependencies]
+arena-types = { path = "../../common/arena-types" }
+arena-archive = { path = "../archive" }
+arena-sandbox = { path = "../sandbox" }
+arena-measure = { path = "../measure" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+time.workspace = true
+toml.workspace = true
+ureq.workspace = true
+libc.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+zstd.workspace = true
+tar.workspace = true
+
+[[bin]]
+name = "arena-worker"
+path = "src/main.rs"
