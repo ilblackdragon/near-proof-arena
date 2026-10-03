@@ -178,6 +178,7 @@ version = "0.1.0"
 dependencies = [
  "arena-archive",
  "arena-fc-proto",
+ "arena-formal-checker",
  "arena-sandbox",
  "arena-types",
  "hex",

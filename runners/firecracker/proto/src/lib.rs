@@ -38,7 +38,9 @@ pub const GUEST_TMP_DIR: &str = "/scratch/tmp";
 /// Root for read-only inputs.
 pub const GUEST_INPUTS: &str = "/in";
 /// Every read-only mount must live under one of these prefixes.
-pub const GUEST_MOUNT_PREFIXES: &[&str] = &["/in/", "/opt/"];
+pub const GUEST_MOUNT_PREFIXES: &[&str] = &["/in/", "/opt/", "/arena/"];
+/// Scratch-relative directory holding the guest copies of read-write dirs.
+pub const RW_SCRATCH_DIR: &str = ".rw";
 /// Fixed drive order (`/dev/vda` = index 0). Mount drives follow.
 pub const ROOTFS_DEV_INDEX: u32 = 0;
 pub const CTL_DEV_INDEX: u32 = 1;
@@ -121,6 +123,17 @@ pub struct GuestJob {
     pub collect: Vec<String>,
     /// Guest-enforced wall timeout (the host enforces a hard one later).
     pub timeout_ms: u64,
+    /// Read-write directories: initial content (if any) comes from a
+    /// read-only drive, lives on scratch at `<RW_SCRATCH_DIR>/<i>` and is
+    /// bind-mounted at `guest_path`; it is collected back after the run.
+    #[serde(default)]
+    pub rw_dirs: Vec<GuestRwDir>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GuestRwDir {
+    pub dev_index: Option<u32>,
+    pub guest_path: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -693,6 +706,10 @@ mod tests {
             cwd: "/scratch/work".into(),
             collect: vec!["out".into()],
             timeout_ms: 1000,
+            rw_dirs: vec![GuestRwDir {
+                dev_index: Some(6),
+                guest_path: "/arena/out".into(),
+            }],
         };
         let enc = encode_control(&job);
         assert_eq!(enc.len() % 4096, 0);

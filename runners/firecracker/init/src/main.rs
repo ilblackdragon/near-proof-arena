@@ -255,6 +255,11 @@ fn setup_root(job: &GuestJob) -> Result<(), String> {
         check_mount_path(&m.guest_path, &seen)?;
         seen.push(&m.guest_path);
     }
+    for r in &job.rw_dirs {
+        check_mount_path(&r.guest_path, &seen)?;
+        seen.push(&r.guest_path);
+        mkdirs(&format!("{SKEL}{}", r.guest_path))?;
+    }
     for d in ["proc", "sys", "dev", "tmp", "scratch"] {
         mkdirs(&format!("{SKEL}/{d}"))?;
     }
@@ -334,6 +339,46 @@ fn setup_root(job: &GuestJob) -> Result<(), String> {
         mount(&tmp, &format!("{ROOT}/tmp"), "", libc::MS_BIND, ""),
         "bind tmp",
     )?;
+    // read-write dirs: seeded from a read-only drive, live on scratch
+    for (i, r) in job.rw_dirs.iter().enumerate() {
+        let rel = format!("{}/{i}", proto::RW_SCRATCH_DIR);
+        mkdirs_owned(&scratch, &rel)?;
+        let dst = format!("{scratch}/{rel}");
+        if let Some(dev) = r.dev_index {
+            if !(proto::FIRST_MOUNT_DEV_INDEX..26).contains(&dev) {
+                return Err("bad rw seed device".into());
+            }
+            let hidden = format!("{HIDDEN}/rw{i}");
+            mkdirs(&hidden)?;
+            ctx(
+                mount(&proto::dev_path(dev), &hidden, "ext4", ro, "noload"),
+                "rw seed mount",
+            )?;
+            let mut names: Vec<_> = ctx(fs::read_dir(&hidden), "rw seed readdir")?
+                .filter_map(|e| e.ok())
+                .map(|e| e.file_name())
+                .collect();
+            names.sort();
+            for n in names {
+                copy_tree(
+                    &Path::new(&hidden).join(&n),
+                    &Path::new(&dst).join(&n),
+                    0,
+                    true,
+                )?;
+            }
+        }
+        ctx(
+            mount(
+                &dst,
+                &format!("{ROOT}{}", r.guest_path),
+                "",
+                libc::MS_BIND,
+                "",
+            ),
+            "bind rw dir",
+        )?;
+    }
     // read-only bundles
     for (i, m) in job.mounts.iter().enumerate() {
         if m.dev_index < proto::FIRST_MOUNT_DEV_INDEX
@@ -396,6 +441,12 @@ fn mkdirs_owned(scratch: &str, rel: &str) -> Result<(), String> {
 /// Copies a read-only guest tree into scratch as the candidate's property.
 /// Only regular files and directories are allowed.
 fn copy_into(src: &Path, dst: &Path, depth: u32) -> Result<(), String> {
+    copy_tree(src, dst, depth, false)
+}
+
+/// `allow_symlinks`: only for judge-seeded read-write dirs, whose symlinks
+/// (e.g. `X.olean -> /arena/trusted/X.olean`) are recreated verbatim.
+fn copy_tree(src: &Path, dst: &Path, depth: u32, allow_symlinks: bool) -> Result<(), String> {
     if depth > 64 {
         return Err(format!("copy_in: {} too deep", src.display()));
     }
@@ -413,7 +464,7 @@ fn copy_into(src: &Path, dst: &Path, depth: u32) -> Result<(), String> {
             .collect();
         names.sort();
         for n in names {
-            copy_into(&src.join(&n), &dst.join(&n), depth + 1)?;
+            copy_tree(&src.join(&n), &dst.join(&n), depth + 1, allow_symlinks)?;
         }
     } else if md.is_file() {
         let mut inp = ctx(
@@ -437,6 +488,13 @@ fn copy_into(src: &Path, dst: &Path, depth: u32) -> Result<(), String> {
             &format!("copy_in create {dst_s}"),
         )?;
         ctx(io::copy(&mut inp, &mut out), &format!("copy_in {dst_s}"))?;
+        chown(&dst_s, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
+    } else if md.file_type().is_symlink() && allow_symlinks {
+        let target = ctx(fs::read_link(src), "readlink")?;
+        ctx(
+            std::os::unix::fs::symlink(&target, dst),
+            &format!("symlink {dst_s}"),
+        )?;
         chown(&dst_s, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
     } else {
         return Err(format!(
@@ -825,6 +883,9 @@ fn collect_outputs(job: &GuestJob, w: &mut OutWriter<impl Write>) -> CollectSumm
                     break 'walk;
                 }
             }
+        } else if ft.is_symlink() && relp.starts_with(&format!("{}/", proto::RW_SCRATCH_DIR)) {
+            // symlinks in read-write dirs are never returned (the host keeps
+            // its own seed links and never follows guest-made ones)
         } else {
             sum.violations
                 .push(format!("{relp}: not a regular file or directory"));

@@ -30,3 +30,12 @@ DOCKER_SECCOMP_SHA256=9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294c
 # official Rust image (rustc/cargo 1.96.0 + Debian gcc 12 as `cc`).
 TOOLCHAIN_BASE_IMAGE=rust:1.96.0-slim-bookworm@sha256:4732ca96fd086cb9be682050c3f0176288eebaac2b80aa2bcefccfaf198e1950
 TOOLCHAIN_RUST=1.96.0-x86_64-unknown-linux-gnu
+
+# Lean checker image (formal checking + judge-built native-lean verifiers).
+# Toolchain = runners/formal-checker/lean-toolchain; tool revisions =
+# runners/formal-checker/tools.toml (read by deploy/images/lean-checker/build.sh).
+LEAN_VERSION=v4.34.1
+LEAN_TARBALL_URL=https://github.com/leanprover/lean4/releases/download/v4.34.1/lean-4.34.1-linux.tar.zst
+LEAN_TARBALL_SHA256=47bf4bbd78f70c2e9670598ab7124d92b6efb7330ff33e5fbb4030f6fd72e4e4
+# builder with git/curl (lake fetches lean4lean's pinned batteries rev)
+LEAN_BUILDER_IMAGE=buildpack-deps:bookworm-scm@sha256:b42f74a50a22540b839042134919504ff7c51e7cf8d751b79d0f94c56566cb92
