@@ -56,6 +56,19 @@ fn chown_tree(p: &Path, uid: u32, gid: u32) -> io::Result<()> {
     Ok(())
 }
 
+/// lchown every *directory* under `p` (files may be hardlinks of shared
+/// host files and must keep their owner).
+fn chown_dirs(p: &Path, uid: u32, gid: u32) -> io::Result<()> {
+    let md = fs::symlink_metadata(p)?;
+    if md.is_dir() {
+        chown_path(p, uid, gid)?;
+        for e in fs::read_dir(p)? {
+            chown_dirs(&e?.path(), uid, gid)?;
+        }
+    }
+    Ok(())
+}
+
 fn setup_cgroups() -> Result<(), String> {
     let (s, t) = (cstr(""), cstr(CG));
     let flags = libc::MS_REMOUNT | libc::MS_NOSUID | libc::MS_NODEV | libc::MS_NOEXEC;
@@ -169,6 +182,12 @@ fn run(jobdir: &Path) -> Result<ShimResult, String> {
     .map_err(|e| format!("parse job: {e}"))?;
     if job.version != proto::PROTO_VERSION || !valid_id(&job.id) {
         return Err("bad job".into());
+    }
+    // Take ownership of the job directories (CAP_CHOWN) instead of holding
+    // CAP_DAC_OVERRIDE; files are untouched (kernel/rootfs/bundles are
+    // hardlinks of shared host files). Everything is chowned back at the end.
+    for d in [jobdir.to_path_buf(), jobdir.join(proto::SHIM_INPUT_DIR)] {
+        chown_path(&d, 0, 0).map_err(|e| format!("chown {}: {e}", d.display()))?;
     }
     setup_cgroups()?;
 
@@ -303,6 +322,9 @@ fn run(jobdir: &Path) -> Result<ShimResult, String> {
     let serial_tail = String::from_utf8_lossy(&s.tail).into_owned();
     drop(s);
 
+    // The jailer hands the chroot to the VMM uid; reclaim the directories
+    // (CAP_CHOWN) so the shim can move the output out and delete the jail.
+    chown_dirs(&base, 0, 0).map_err(|e| format!("reclaim jail: {e}"))?;
     // hand the output image back, destroy everything else from the jail
     let out_name = job.drives.iter().find(|d| d.drive_id == "out").map(|d| d.file.clone());
     if let Some(out) = out_name {
@@ -331,6 +353,7 @@ fn run(jobdir: &Path) -> Result<ShimResult, String> {
 fn cleanup(jobdir: &Path, uid: u32, gid: u32) -> Result<(), String> {
     let base = jobdir.join(JAIL_BASE);
     if base.exists() {
+        chown_dirs(&base, 0, 0).map_err(|e| format!("reclaim jail: {e}"))?;
         fs::remove_dir_all(&base).map_err(|e| format!("remove jail: {e}"))?;
     }
     chown_tree(jobdir, uid, gid).map_err(|e| format!("chown job dir: {e}"))
@@ -366,6 +389,7 @@ fn main() {
             let failed = matches!(res.status, ShimStatus::Error { .. });
             if failed {
                 // never leave root-owned debris in the host's job dir
+                let _ = chown_dirs(&jobdir.join(JAIL_BASE), 0, 0);
                 let _ = fs::remove_dir_all(jobdir.join(JAIL_BASE));
             }
             let out = jobdir.join(proto::SHIM_RESULT_FILE);

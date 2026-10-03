@@ -16,7 +16,7 @@ use std::time::{Duration, Instant};
 
 /// Capabilities the delivery container needs (see docs/ISOLATION.md for the
 /// per-capability justification; each was verified necessary by removing it).
-pub const CONTAINER_CAPS: &[&str] = &["SYS_ADMIN", "SYS_CHROOT", "MKNOD", "CHOWN", "SETUID", "SETGID", "DAC_OVERRIDE"];
+pub const CONTAINER_CAPS: &[&str] = &["SYS_ADMIN", "MKNOD", "CHOWN", "SETUID", "SETGID", "DAC_OVERRIDE"];
 
 /// Environment variable names a spec may set.
 pub const ENV_ALLOWLIST: &[&str] = &[
@@ -52,6 +52,9 @@ pub struct FirecrackerConfig {
     pub serial_cap_bytes: u64,
     pub max_vcpus: u32,
     pub max_scratch_mb: u64,
+    /// Capabilities granted to the delivery container (default
+    /// `CONTAINER_CAPS`; overridable only for experiments).
+    pub container_caps: Vec<String>,
 }
 
 impl FirecrackerConfig {
@@ -82,6 +85,7 @@ impl FirecrackerConfig {
             serial_cap_bytes: 64 * 1024,
             max_vcpus: 32,
             max_scratch_mb: 64 * 1024,
+            container_caps: CONTAINER_CAPS.iter().map(|c| c.to_string()).collect(),
         })
     }
 
@@ -283,7 +287,7 @@ impl FirecrackerSandbox {
 
     fn container_cleanup(&self, jobdir: &Path) -> Result<(), InfraError> {
         let st = Command::new(&self.cfg.docker_bin)
-            .args(["run", "--rm", "--network", "none", "--cap-drop", "ALL", "--cap-add", "CHOWN", "--cap-add", "DAC_OVERRIDE", "--cap-add", "FOWNER"])
+            .args(["run", "--rm", "--network", "none", "--cap-drop", "ALL", "--cap-add", "CHOWN", "--security-opt", "no-new-privileges"])
             .arg("-v")
             .arg(format!("{}:/job", jobdir.display()))
             .arg(&self.cfg.runner_image)
@@ -303,7 +307,7 @@ impl FirecrackerSandbox {
         let mut cmd = Command::new(&self.cfg.docker_bin);
         cmd.args(["run", "--rm", "--name", &Self::container_name(id)])
             .args(["--network", "none", "--device", "/dev/kvm", "--cap-drop", "ALL"]);
-        for c in CONTAINER_CAPS {
+        for c in &self.cfg.container_caps {
             cmd.args(["--cap-add", c]);
         }
         cmd.args(["--security-opt", "no-new-privileges", "--security-opt", "apparmor=unconfined"])
@@ -569,7 +573,8 @@ impl FirecrackerSandbox {
                     // the VMM itself was OOM-killed by the host cgroup
                     return Ok(host_figures(Exit::OomKilled, res.run_wall_ns.unwrap_or(0), diag));
                 }
-                return Err(backend(format!("no guest report ({e}); serial: {}", tail(&res.serial_tail))));
+                let what = if res.boot_ns.is_none() { "VM exited before the guest started" } else { "no guest report" };
+                return Err(backend(format!("{what} ({e}); serial: {}", tail(&res.serial_tail))));
             }
         };
         if header.report.nonce != nonce {

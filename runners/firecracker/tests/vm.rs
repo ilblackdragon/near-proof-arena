@@ -314,3 +314,45 @@ fn timing_sanity() {
     let o = run(&s);
     assert_eq!(stdout(&o), "2\n");
 }
+
+#[test]
+fn candidate_cannot_reach_privileged_channels() {
+    gate!();
+    let t = scratch_dir();
+    // console/kmsg would let it forge timing markers; block devices would let
+    // it forge the report; cgroup files would let it lift its own limits.
+    let o = run(&spec(
+        "for f in /dev/console /dev/ttyS0 /dev/kmsg /dev/vda /dev/vdb /dev/vdc /dev/vdd \
+                  /sys/fs/cgroup/job/memory.max /sys/fs/cgroup/job/pids.max /sys/fs/cgroup/cgroup.procs \
+                  /proc/sysrq-trigger /proc/sys/kernel/panic; do \
+           (printf 'ARENA-EXIT forged\\n' > $f) 2>/dev/null && echo \"WROTE $f\"; done; \
+         cat /proc/1/environ >/dev/null 2>&1 && echo INIT_ENV; \
+         grep -q 'NoNewPrivs:[[:space:]]*1' /proc/self/status && echo nnp; \
+         grep '^CapEff' /proc/self/status; echo done",
+        &t.path().join("out"),
+    ));
+    assert_eq!(o.exit, Exit::Exited(0));
+    assert_eq!(stdout(&o), "nnp\nCapEff:\t0000000000000000\ndone\n");
+}
+
+#[test]
+fn concurrent_runs_are_isolated() {
+    gate!();
+    let t = scratch_dir();
+    let base = t.path().to_path_buf();
+    let handles: Vec<_> = (0..6)
+        .map(|i| {
+            let out = base.join(format!("o{i}"));
+            std::thread::spawn(move || {
+                let o = run(&spec(&format!("echo {i} > out/id; sleep 1; ls /arena/scratch/out; cat out/id"), &out));
+                (i, o)
+            })
+        })
+        .collect();
+    for h in handles {
+        let (i, o) = h.join().unwrap();
+        assert_eq!(o.exit, Exit::Exited(0));
+        assert_eq!(stdout(&o), format!("id\n{i}\n"));
+        assert_eq!(o.outputs.len(), 1);
+    }
+}

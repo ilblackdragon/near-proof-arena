@@ -59,22 +59,21 @@ fn main() {
         eprintln!("usage: arena-fc-run [options] -- argv...");
         std::process::exit(2);
     }
-    let cfg = FirecrackerConfig::from_deps_dir(&deps, &work).unwrap_or_else(|e| {
+    let mut cfg = FirecrackerConfig::from_deps_dir(&deps, &work).unwrap_or_else(|e| {
         eprintln!("{e}");
         std::process::exit(1)
     });
+    // experiment hook: ARENA_FC_CAPS=CAP1,CAP2 (used to verify minimality)
+    if let Ok(caps) = std::env::var("ARENA_FC_CAPS") {
+        cfg.container_caps = caps.split(',').filter(|c| !c.is_empty()).map(str::to_string).collect();
+    }
     let sb = FirecrackerSandbox::new(cfg).unwrap_or_else(|e| {
         eprintln!("{e}");
         std::process::exit(1)
     });
-    let tmp_out;
-    let out_dir = match out {
-        Some(o) => o,
-        None => {
-            tmp_out = work.join(format!("out-{}", std::process::id()));
-            tmp_out
-        }
-    };
+    // without --out, outputs go to a temporary dir removed after printing
+    let keep = out.is_some();
+    let out_dir = out.unwrap_or_else(|| work.join(format!("out-{}", std::process::id())));
     let spec = SandboxSpec {
         rootfs_digest: sb.rootfs_digest().clone(),
         ro_mounts: ro,
@@ -88,12 +87,18 @@ fn main() {
         network: None,
         out_dir: out_dir.clone(),
     };
-    match sb.run(&spec) {
+    let res = sb.run(&spec);
+    if !keep {
+        let _ = std::fs::remove_dir_all(&out_dir);
+    }
+    match res {
         Ok(o) => {
             let mut v = serde_json::to_value(&o).unwrap();
             v["stdout_trunc"] = String::from_utf8_lossy(&o.stdout_trunc).into();
             v["stderr_trunc"] = String::from_utf8_lossy(&o.stderr_trunc).into();
-            v["out_dir"] = out_dir.display().to_string().into();
+            if keep {
+                v["out_dir"] = out_dir.display().to_string().into();
+            }
             println!("{}", serde_json::to_string_pretty(&v).unwrap());
         }
         Err(e) => {
