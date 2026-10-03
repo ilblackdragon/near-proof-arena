@@ -94,8 +94,22 @@
         "prove": {
           "type": "string"
         },
+        "verifier_bytecode": {
+          "description": "`npai-v1` route: path of the verifier bytecode image.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "verify": {
           "type": "string"
+        },
+        "verify_route": {
+          "description": "How the arena executes the verifier (v1.2, optional): `\"npai-v1\"` = judge interpreter on `verifier_bytecode`; `\"native-lean\"` = judge builds the verifier executable from the Lean model `formal.verifier_model` with the governed Lean compiler. Absent = legacy candidate-built `verify` (no formal route admits it).",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "additionalProperties": false
@@ -113,6 +127,20 @@
         },
         "lean_project": {
           "type": "string"
+        },
+        "verifier_model": {
+          "description": "`native-lean` route (v1.2, optional): the candidate-defined verifier model `ArenaCore.OracleVerifier` (e.g. `Candidate.Model.verify`) that the judge splices into the expected statement and compiles into `verify`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "verifier_model_module": {
+          "description": "Lean module declaring `verifier_model` (e.g. `Candidate.Model`).",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "additionalProperties": false

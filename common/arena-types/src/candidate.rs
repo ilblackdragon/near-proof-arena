@@ -38,7 +38,19 @@ pub struct EntrySection {
     pub prepare: String,
     pub prove: String,
     pub verify: String,
+    /// How the arena executes the verifier (v1.2, optional):
+    /// `"npai-v1"` = judge interpreter on `verifier_bytecode`;
+    /// `"native-lean"` = judge builds the verifier executable from the Lean
+    /// model `formal.verifier_model` with the governed Lean compiler.
+    /// Absent = legacy candidate-built `verify` (no formal route admits it).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verify_route: Option<String>,
+    /// `npai-v1` route: path of the verifier bytecode image.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_bytecode: Option<String>,
 }
+
+pub const VERIFY_ROUTES: &[&str] = &["npai-v1", "native-lean"];
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -46,6 +58,24 @@ pub struct FormalSection {
     pub lean_project: String,
     /// Lean constant whose *type* the judge constructs; candidate supplies the value.
     pub certificate: String,
+    /// `native-lean` route (v1.2, optional): the candidate-defined verifier
+    /// model `ArenaCore.OracleVerifier` (e.g. `Candidate.Model.verify`) that the
+    /// judge splices into the expected statement and compiles into `verify`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_model: Option<String>,
+    /// Lean module declaring `verifier_model` (e.g. `Candidate.Model`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_model_module: Option<String>,
+}
+
+fn is_lean_ident_path(s: &str) -> bool {
+    !s.is_empty()
+        && s.len() <= 255
+        && s.split('.').all(|c| {
+            let mut cs = c.chars();
+            matches!(cs.next(), Some(ch) if ch.is_ascii_alphabetic() || ch == '_')
+                && cs.all(|ch| ch.is_ascii_alphanumeric() || ch == '_' || ch == '\'')
+        })
 }
 
 pub const CANDIDATE_SCHEMA: &str = "arena-candidate-v1";
@@ -102,6 +132,32 @@ impl CandidateManifest {
         paths.extend(self.build.outputs.iter().map(|s| s.as_str()));
         if let Some(f) = &self.formal {
             paths.push(f.lean_project.as_str());
+            if !is_lean_ident_path(&f.certificate) {
+                return bad("formal.certificate must be a dotted Lean identifier");
+            }
+            match (&f.verifier_model, &f.verifier_model_module) {
+                (None, None) => {}
+                (Some(d), Some(m)) if is_lean_ident_path(d) && is_lean_ident_path(m) => {}
+                _ => return bad("formal.verifier_model and verifier_model_module must both be dotted Lean identifiers"),
+            }
+        }
+        if let Some(b) = &self.entry.verifier_bytecode {
+            paths.push(b.as_str());
+        }
+        match self.entry.verify_route.as_deref() {
+            None => {}
+            Some(r) if !VERIFY_ROUTES.contains(&r) => return bad("unknown entry.verify_route"),
+            Some("native-lean") => {
+                if self.formal.as_ref().and_then(|f| f.verifier_model.as_ref()).is_none() {
+                    return bad("verify_route native-lean requires formal.verifier_model");
+                }
+            }
+            Some("npai-v1") => {
+                if self.entry.verifier_bytecode.is_none() {
+                    return bad("verify_route npai-v1 requires entry.verifier_bytecode");
+                }
+            }
+            Some(_) => {}
         }
         if !paths.iter().all(|p| is_safe_relpath(p)) {
             return bad("unsafe relative path");
@@ -135,6 +191,16 @@ certificate = "Candidate.certificate"
     #[test]
     fn parses() {
         CandidateManifest::parse(OK).unwrap();
+    }
+    #[test]
+    fn native_lean_route() {
+        let with_route = OK.replace("verify = \"out/verify\"", "verify = \"out/verify\"\nverify_route = \"native-lean\"");
+        assert!(CandidateManifest::parse(&with_route).is_err(), "model required");
+        let full = format!("{with_route}verifier_model = \"Candidate.Model.verify\"\nverifier_model_module = \"Candidate.Model\"\n");
+        let m = CandidateManifest::parse(&full).unwrap();
+        assert_eq!(m.formal.unwrap().verifier_model.as_deref(), Some("Candidate.Model.verify"));
+        let bad = full.replace("Candidate.Model.verify", "Candidate.Model.verify x");
+        assert!(CandidateManifest::parse(&bad).is_err());
     }
     #[test]
     fn rejects_traversal() {

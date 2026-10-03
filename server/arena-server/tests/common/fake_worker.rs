@@ -126,10 +126,14 @@ impl FakeWorker {
                         prepare: "out/prepare".into(),
                         prove: "out/prove".into(),
                         verify: "out/verify".into(),
+                        verify_route: None,
+                        verifier_bytecode: None,
                     },
                     formal: Some(candidate::FormalSection {
                         lean_project: "formal".into(),
                         certificate: "Candidate.certificate".into(),
+                        verifier_model: None,
+                        verifier_model_module: None,
                     }),
                 })
             }
