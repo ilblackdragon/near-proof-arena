@@ -19,6 +19,11 @@ use arena_formal_checker::*;
 use std::path::PathBuf;
 
 fn main() -> anyhow::Result<()> {
+    if std::env::args().nth(1).as_deref() == Some("--print-image-digest") {
+        // Dev checker "image": toolchain + tool pins + bytes of every helper binary.
+        println!("{}", toolchain::ToolPaths::discover()?.image_digest()?);
+        return Ok(());
+    }
     let mut args = std::env::args().skip(1);
     let (mut formal, mut cert, mut expected, mut policy, mut out) = (None, None, None, None, None);
     let mut trusted = Vec::new();
