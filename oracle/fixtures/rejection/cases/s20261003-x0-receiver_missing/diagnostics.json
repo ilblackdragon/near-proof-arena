@@ -1,0 +1,52 @@
+{
+  "case_id": "s20261003-x0-receiver_missing",
+  "claim": null,
+  "consistent": true,
+  "digests": {
+    "claim.bin": null,
+    "request.bin": "sha256:c9b86975e990b709f2d04a731e1177c54f3ba00ba2d9a1fe56e008e0d5641209",
+    "witness.bin": "sha256:2241d8ce98d7832fc67c976474b75e9ce06782c7299413a7ea7483c98cde409d"
+  },
+  "domain_reason": "receiver ivxkp2e_aiuhi.near does not exist",
+  "expected_in_domain": false,
+  "generator": {
+    "index": 0,
+    "invalid_kind": "receiver_missing",
+    "profile": "basic",
+    "seed": 20261003
+  },
+  "in_domain": false,
+  "nearcore": {
+    "apply": "ok",
+    "apply_ns": 1066986,
+    "decomposition_ok": true,
+    "delayed_receipts_count": 0,
+    "full_apply_recorded_bytes": 1909,
+    "full_apply_state_root": "fdd66fb91757e6f5e6c162e63a88800a990c25dc9710057999d377ccdea74394",
+    "non_account_keys_changed": [
+      "0f"
+    ],
+    "other_burnt_amount": "0",
+    "outcome_statuses": {
+      "Failure(Action #0: Can't complete the action because account AccountId(\"ivxkp2e_aiuhi.near\") doesn't exist)": 1,
+      "SuccessValue([])": 10
+    },
+    "outgoing_receipts": 8,
+    "slice_post_root": "31c8db45af7ecbc00331c862962074ccb1687bc6d9eb47de3f4e722ca7320c95",
+    "slice_witness_bytes": 1909,
+    "slice_witness_values": 23,
+    "tx_burnt_amount": "870411993750000000000"
+  },
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "nearcore_problems": [
+    "receipt fb3ca7fe577a2943e884ac27d58cb1d740b7b570f7d1969b722098c6333c42dc status Failure(Action #0: Can't complete the action because account AccountId(\"ivxkp2e_aiuhi.near\") doesn't exist)"
+  ],
+  "schema": "near-arena-oracle-case-v1",
+  "sizes": {
+    "receipts": 11,
+    "request_bytes": 3022,
+    "state_entries": 27,
+    "witness_bytes": 2063
+  },
+  "synthetic_state": true
+}

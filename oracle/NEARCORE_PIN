@@ -1,0 +1,4 @@
+repo=https://github.com/near/nearcore
+tag=2.13.4
+commit=44f7ae6cd7ef08bab604e20a473bf77e35d4c993
+protocol_version=86

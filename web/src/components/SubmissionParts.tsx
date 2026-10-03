@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import type { LineageHop, StreamEvent, StreamStatus } from '../api/hooks';
 import type { SubmissionDetail } from '../api/types';
-import { fmtTime } from '../lib/format';
+import { fmtNs, fmtTime } from '../lib/format';
 import { DecisionBadge, RevokedBadge, TierBadge } from './Badges';
 import { DigestText } from './Digest';
 import { SubLink } from './Links';
@@ -64,7 +64,7 @@ export function Lineage({ s, hops, done, truncated }: { s: SubmissionDetail; hop
             <SubLink id={h.id} />{' '}
             {h.sub ? (
               <>
-                <T v={h.sub.candidate_name} max={48} /> <DecisionBadge decision={h.sub.decision} /> <TierBadge tier={h.sub.tier} />
+                <T v={h.sub.candidate_name} max={48} empty="(unnamed — manifest not yet validated)" /> <DecisionBadge decision={h.sub.decision} /> <TierBadge tier={h.sub.tier} />
                 {h.sub.revoked && <RevokedBadge />}
                 {h.sub.parent && <span className="badge chg">{h.sub.change_class ?? 'unclassified'}</span>}
               </>
@@ -135,11 +135,11 @@ export function Digests({ s }: { s: SubmissionDetail }) {
 }
 
 export function BuildMeta({ s }: { s: SubmissionDetail }) {
-  const b = s.build && typeof s.build === 'object' ? Object.entries(s.build).slice(0, 40) : [];
+  const b = s.build;
   return (
     <dl className="kv">
       <dt>Candidate</dt>
-      <dd><T v={s.candidate_name} max={64} /></dd>
+      <dd><T v={s.candidate_name} max={64} empty="(unnamed — manifest not yet validated)" /></dd>
       <dt>Agent</dt>
       <dd><T v={s.agent} max={64} /></dd>
       <dt>Backend family</dt>
@@ -150,12 +150,25 @@ export function BuildMeta({ s }: { s: SubmissionDetail }) {
       <dd>{fmtTime(s.created_at)}</dd>
       <dt>Updated</dt>
       <dd>{fmtTime(s.updated_at)}</dd>
-      {b.map(([k, v]) => (
-        <Fragment key={k}>
-          <dt><T v={k} max={40} /></dt>
-          <dd><T v={v} max={200} /></dd>
-        </Fragment>
-      ))}
+      <dt>Judge build</dt>
+      <dd>
+        {b ? (
+          <>
+            {b.reproducible ? <span className="ok">reproducible (two builds bit-identical)</span> : <span className="bad">not shown reproducible</span>}
+            {b.build_ns != null && <> · {fmtNs(b.build_ns)}</>}
+          </>
+        ) : (
+          <span className="muted">no build recorded yet</span>
+        )}
+      </dd>
+      {b?.toolchain_image && (
+        <>
+          <dt>Build image</dt>
+          <dd>
+            <code className="wrap"><T v={b.toolchain_image} max={120} /></code>
+          </dd>
+        </>
+      )}
     </dl>
   );
 }
@@ -217,6 +230,12 @@ export function Logs({ s }: { s: SubmissionDetail }) {
         <details key={i} className="log">
           <summary>
             <T v={l.name} max={60} />
+            {l.stage && (
+              <span className="muted">
+                {' '}
+                · <T v={l.stage} max={32} />
+              </span>
+            )}
             {l.truncated && <span className="muted"> (truncated by the judge)</span>}
           </summary>
           <TextBlock v={l.text} label={`log ${i + 1}`} />

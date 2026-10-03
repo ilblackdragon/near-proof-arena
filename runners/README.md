@@ -133,10 +133,13 @@ cannot be killed/inspected from inside.
 
 ### firecracker (runners-vm lane)
 
-`FirecrackerSandbox` implements the trait with `tier_cap = None` and layout
-`/arena/scratch` + `/arena/in`. It does not support `copy_in`,
-`scratch_dirs`, a non-scratch `cwd`, or collecting paths outside `out/`
-(`GuestLayout::flexible_scratch = false`); outputs come back as `out/<path>`.
+`FirecrackerSandbox` implements the trait with `tier_cap = None` and the same
+guest layout as bwrap-dev (`/scratch`, `/in/`, `/opt/`,
+`flexible_scratch = true`): `copy_in`, `scratch_dirs`, any `cwd`, arbitrary
+scratch-relative `collect` paths, and `Rootfs::Image` (e.g. the pinned build
+toolchain from `deploy/images/toolchain/build.sh`, re-verified by digest) are
+supported, so BUILD_REPRODUCIBLE can run in microVMs. Timeouts are enforced
+in the guest first, so truncated stdout/stderr survive. See docs/ISOLATION.md.
 `InfraError::GuestProtocol` (forged guest report) becomes a
 `SANDBOX_VIOLATION` FAIL in the worker.
 
@@ -212,11 +215,13 @@ the work dir).
 
 ## Known gaps
 
-* Builds and formal checks need `copy_in` / read-write dirs (bwrap-dev only).
-  The runners-vm lane's in-flight firecracker protocol v2 adds copy-in/cwd;
-  the shared host's fc-runner image was already rebuilt for v2, so the
-  firecracker tests on this branch fail with `shim: bad job` until that
-  lands (layout handling here is backend-generic via `GuestLayout`).
+* Formal checks need read-write output dirs (bwrap-dev only; firecracker
+  is refused via `GuestLayout::rw_binds`). Builds run on both backends;
+  production (non-demo) backends require a pinned toolchain image
+  (`ARENA_BUILD_TOOLCHAIN_IMAGE` + `ARENA_IMAGES_DIR`, see
+  `deploy/images/toolchain/build.sh`). The image is a worker setting, not
+  yet a challenge field (contract gap: `toolchain_policy` pins only the
+  checker image).
 * Shared host assets drift: the formal checker's `arena-audit` in
   `~/.cache/arena-formal-checker` is rebuilt by the formal-checker lane; if
   it is newer than this tree's `lean/ArenaAudit`, point `ARENA_AUDIT_BIN`

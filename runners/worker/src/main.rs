@@ -83,7 +83,7 @@ fn main() {
                 sandbox: sandbox(&cfg.backend, &cfg.work_dir),
                 store: http.clone(),
                 work_root: cfg.work_dir.join("jobs"),
-                build: BuildEnv { mounts: cfg.build_mounts.clone(), path: cfg.build_path.clone(), env: cfg.build_env.clone(), images_dir: cfg.images_dir.clone() },
+                build: BuildEnv { mounts: cfg.build_mounts.clone(), path: cfg.build_path.clone(), env: cfg.build_env.clone(), images_dir: cfg.images_dir.clone(), toolchain_image: cfg.toolchain_image.clone() },
                 bench_cpus: cfg.bench_cpus.clone(),
                 bench_batch_cap: cfg.bench_batch_cap,
                 conformance_samples: cfg.conformance_samples,

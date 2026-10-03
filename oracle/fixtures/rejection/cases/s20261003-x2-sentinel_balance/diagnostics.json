@@ -1,0 +1,49 @@
+{
+  "case_id": "s20261003-x2-sentinel_balance",
+  "claim": null,
+  "consistent": true,
+  "digests": {
+    "claim.bin": null,
+    "request.bin": "sha256:3fca5a865efacf567ebdc45943fd377b0253105ea4ba362fdb16a9787bb71ee1",
+    "witness.bin": "sha256:42ffddfd50d2dca60c16b122869d9cf90808e2bcb0f068e6700531be3761d8d2"
+  },
+  "domain_reason": "new balance equals the V2 sentinel u128::MAX",
+  "expected_in_domain": false,
+  "generator": {
+    "index": 2,
+    "invalid_kind": "sentinel_balance",
+    "profile": "boundary",
+    "seed": 20261003
+  },
+  "in_domain": false,
+  "nearcore": {
+    "apply": "ok",
+    "apply_ns": 909059,
+    "decomposition_ok": true,
+    "delayed_receipts_count": 0,
+    "full_apply_recorded_bytes": 3128,
+    "full_apply_state_root": "0a15ac544a4713d49b7e6863d39ebd739380f286f8e55f174f3d771c86c256c8",
+    "non_account_keys_changed": [
+      "0f"
+    ],
+    "other_burnt_amount": "0",
+    "outcome_statuses": {
+      "SuccessValue([])": 16
+    },
+    "outgoing_receipts": 3,
+    "slice_post_root": "3978bdd01e1e92c795506e23851722947bade7785b47e73f42691692297415b9",
+    "slice_witness_bytes": 3128,
+    "slice_witness_values": 38,
+    "tx_burnt_amount": "2164870856250000000000"
+  },
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "nearcore_problems": [],
+  "schema": "near-arena-oracle-case-v1",
+  "sizes": {
+    "receipts": 16,
+    "request_bytes": 4121,
+    "state_entries": 49,
+    "witness_bytes": 3342
+  },
+  "synthetic_state": true
+}

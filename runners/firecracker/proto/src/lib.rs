@@ -28,17 +28,17 @@ use std::io::{self, Read, Write};
 
 pub const CTL_MAGIC: &[u8; 8] = b"ARENACTL";
 pub const OUT_MAGIC: &[u8; 8] = b"ARENAOUT";
-pub const PROTO_VERSION: u32 = 1;
+pub const PROTO_VERSION: u32 = 2;
 
-/// Guest mount point of the per-run scratch disk (also the cwd).
-pub const GUEST_SCRATCH: &str = "/arena/scratch";
-/// Files under this directory are collected as outputs after the run.
-pub const GUEST_OUT_DIR: &str = "/arena/scratch/out";
-/// `TMPDIR` handed to the candidate.
-pub const GUEST_TMP_DIR: &str = "/arena/scratch/tmp";
-/// Every read-only mount must live under this prefix (the rootfs is
-/// read-only; init creates mount points in a tmpfs mounted here).
-pub const GUEST_MOUNT_PREFIX: &str = "/arena/";
+/// Guest mount point of the per-run scratch disk (default cwd, `HOME`).
+/// Same layout as the bwrap-dev backend (`arena_sandbox::SCRATCH`).
+pub const GUEST_SCRATCH: &str = "/scratch";
+/// `TMPDIR`; `/tmp` is a bind mount of it (on the scratch disk).
+pub const GUEST_TMP_DIR: &str = "/scratch/tmp";
+/// Root for read-only inputs.
+pub const GUEST_INPUTS: &str = "/in";
+/// Every read-only mount must live under one of these prefixes.
+pub const GUEST_MOUNT_PREFIXES: &[&str] = &["/in/", "/opt/"];
 /// Fixed drive order (`/dev/vda` = index 0). Mount drives follow.
 pub const ROOTFS_DEV_INDEX: u32 = 0;
 pub const CTL_DEV_INDEX: u32 = 1;
@@ -107,6 +107,20 @@ pub struct GuestJob {
     pub mounts: Vec<GuestMount>,
     pub max_output_files: u32,
     pub max_output_bytes: u64,
+    /// Drive holding an alternative candidate root image (e.g. a pinned
+    /// build toolchain); `None` = the arena rootfs itself.
+    pub root_dev_index: Option<u32>,
+    /// `(absolute guest path, scratch-relative destination)` copied into
+    /// scratch (owned by the candidate) before the entry point starts.
+    pub copy_in: Vec<(String, String)>,
+    /// Scratch-relative directories created after `copy_in`.
+    pub scratch_dirs: Vec<String>,
+    /// Absolute guest working directory.
+    pub cwd: String,
+    /// Scratch-relative files/directories collected after the run.
+    pub collect: Vec<String>,
+    /// Guest-enforced wall timeout (the host enforces a hard one later).
+    pub timeout_ms: u64,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -120,6 +134,8 @@ pub enum GuestStatus {
     },
     /// The candidate cgroup hit its memory limit and the OOM killer fired.
     OomKilled,
+    /// init killed the candidate at `timeout_ms` (stdout/stderr preserved).
+    TimedOut,
     /// The candidate could not be started (e.g. argv[0] missing).
     SpawnFailed {
         error: String,
@@ -666,11 +682,17 @@ mod tests {
             out_dev_bytes: 1 << 20,
             mounts: vec![GuestMount {
                 dev_index: 4,
-                guest_path: "/arena/b".into(),
+                guest_path: "/in/b".into(),
                 kind: MountKind::Dir,
             }],
             max_output_files: 10,
             max_output_bytes: 100,
+            root_dev_index: Some(5),
+            copy_in: vec![("/in/b".into(), "work".into())],
+            scratch_dirs: vec!["out/public".into()],
+            cwd: "/scratch/work".into(),
+            collect: vec!["out".into()],
+            timeout_ms: 1000,
         };
         let enc = encode_control(&job);
         assert_eq!(enc.len() % 4096, 0);
@@ -699,6 +721,27 @@ pub struct ShimDrive {
     pub is_root: bool,
     /// Whether the jailed Firecracker uid must own it (writable drives).
     pub chown_to_vmm: bool,
+    pub rate_limit: Option<DriveRateLimit>,
+}
+
+/// Firecracker token-bucket I/O limits for one drive.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DriveRateLimit {
+    pub bytes_per_s: u64,
+    pub ops_per_s: u64,
+    /// One-time burst allowance in bytes on top of the sustained rate.
+    pub burst_bytes: u64,
+}
+
+impl DriveRateLimit {
+    /// Firecracker `rate_limiter` JSON (buckets refilled every 100 ms).
+    pub fn to_firecracker_json(&self) -> serde_json::Value {
+        let per_100ms = |x: u64| (x / 10).max(1);
+        serde_json::json!({
+            "bandwidth": { "size": per_100ms(self.bytes_per_s), "one_time_burst": self.burst_bytes, "refill_time": 100 },
+            "ops": { "size": per_100ms(self.ops_per_s), "refill_time": 100 },
+        })
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

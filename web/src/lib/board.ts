@@ -24,7 +24,7 @@ export interface Board {
 }
 
 export function isReference(e: BoardEntry, def: ChallengeDefinition | undefined): boolean {
-  return e.reference === true || (!!def?.workload_suite.baseline_submission && def.workload_suite.baseline_submission === e.submission_id);
+  return !!def?.workload_suite.baseline_submission && def.workload_suite.baseline_submission === e.submission_id;
 }
 
 export function isOfficiallyRankable(e: BoardEntry, def: ChallengeDefinition | undefined): boolean {

@@ -1,0 +1,10 @@
+name = "NearSpec"
+version = "0.1.0"
+defaultTargets = ["NearSpec", "nearspec-check"]
+
+[[lean_lib]]
+name = "NearSpec"
+
+[[lean_exe]]
+name = "nearspec-check"
+root = "Main"

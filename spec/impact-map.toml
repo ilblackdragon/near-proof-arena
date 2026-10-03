@@ -1,10 +1,10 @@
 # Governed impact map: nearcore paths -> arena spec definitions / obligations / fixtures.
 #
-# Used by tools/upgrade-monitor. INITIAL VERSION written by the governance
-# lane; the spec-oracle lane owns the `spec_definitions` and `fixtures`
-# vocabulary and is expected to refine every rule (replace the `concept:`
-# placeholders with exact Lean declaration names in spec/lean and the exact
-# fixture directories in oracle/).
+# Used by tools/upgrade-monitor. Initial version by the governance
+# lane; `spec_definitions` and `fixtures` refined by the spec-oracle lane for
+# challenge near-transfer-receipt-v1 (statement near/pv86/receipt-transfer-batch/v0).
+# `spec_definitions` are exact Lean declarations in spec/lean (package NearSpec)
+# or spec documents; `fixtures` are paths relative to the repo root.
 #
 # Semantics:
 # * Paths are git paths relative to the nearcore root; globs use `*` (one path
@@ -40,7 +40,7 @@ note = "Unmapped change inside the runtime closure: reopen everything semantic."
 [[rule]]
 id = "protocol-version"
 paths = ["core/primitives-core/src/version.rs", "core/primitives/src/version.rs", "@protocol/version", "core/primitives/src/upgrade_schedule.rs"]
-spec_definitions = ["concept:protocol-version-gating", "concept:runtime-config-selection"]
+spec_definitions = ["NearSpec.Params.protocolVersion", "NearSpec.TransferV1.DomainStatic", "NearSpec.TransferV1.applyReceipt"]
 obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL"]
 fixtures = ["*"]
 note = "A new protocol version / feature gate requires a NEW challenge (docs/PROTOCOL_UPGRADES.md)."
@@ -48,7 +48,7 @@ note = "A new protocol version / feature gate requires a NEW challenge (docs/PRO
 [[rule]]
 id = "runtime-parameters"
 paths = ["core/parameters/res/runtime_configs/**", "core/parameters/src/**", "core/primitives-core/src/config.rs", "core/primitives-core/src/gas.rs", "runtime/runtime/src/config.rs"]
-spec_definitions = ["concept:runtime-config", "concept:fees-and-gas", "concept:storage-staking"]
+spec_definitions = ["NearSpec.Params.newActionReceiptExec", "NearSpec.Params.transferExec", "NearSpec.Params.G", "NearSpec.Params.storageAmountPerByte", "NearSpec.Params.maxWitnessBytes", "NearSpec.TransferV1.applyReceipt", "spec/challenge-inputs/runtime-config-pv86.json"]
 obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL"]
 fixtures = ["*"]
 note = "Changes runtime_config_digest; regenerate every fixture whose expected claim depends on fees."
@@ -56,52 +56,55 @@ note = "Changes runtime_config_digest; regenerate every fixture whose expected c
 [[rule]]
 id = "action-application"
 paths = ["runtime/runtime/src/actions.rs", "runtime/runtime/src/action_validation.rs", "runtime/runtime/src/access_keys.rs", "runtime/runtime/src/deterministic_account_id.rs", "runtime/runtime/src/global_contracts.rs", "runtime/runtime/src/function_call.rs"]
-spec_definitions = ["concept:apply-action", "concept:transfer", "concept:create-account", "concept:access-keys"]
+spec_definitions = ["NearSpec.TransferV1.applyReceipt", "NearSpec.Receipt.inSlice", "NearSpec.TransferV1.Domain"]
 obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
-fixtures = ["concept:fixtures/actions/**"]
+fixtures = ["oracle/fixtures/public/**", "oracle/fixtures/rejection/**"]
+note = "actions.rs:148-153 action_transfer and :776-899 check_account_existence/check_actor_permissions are on the slice path; access_keys/global_contracts/deterministic_account_id/function_call are reachable only out of domain but any change must be re-tested."
 
 [[rule]]
 id = "receipt-processing"
 paths = ["runtime/runtime/src/lib.rs", "runtime/runtime/src/receipt_manager.rs", "runtime/runtime/src/congestion_control.rs", "runtime/runtime/src/bandwidth_scheduler/**", "runtime/runtime/src/types.rs", "runtime/runtime/src/conversions.rs", "runtime/runtime/src/ext.rs", "runtime/runtime/src/pipelining.rs", "runtime/runtime/src/contract_code.rs"]
-spec_definitions = ["concept:apply-receipt", "concept:receipt-batch-transition", "concept:outgoing-receipts", "concept:refunds"]
+spec_definitions = ["NearSpec.TransferV1.applyReceipt", "NearSpec.TransferV1.applyAll", "NearSpec.TransferV1.runBatch", "NearSpec.gasRefundReceipt", "NearSpec.receiptIdFrom", "NearSpec.Outcome.partialEncode", "NearSpec.TransferV1.Outputs.ofAcc", "NearSpec.TransferV1.DomainStatic"]
 obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
 fixtures = ["*"]
 
 [[rule]]
 id = "transaction-verification"
 paths = ["runtime/runtime/src/verifier.rs", "core/primitives/src/transaction.rs", "core/primitives/src/signable_message.rs"]
-spec_definitions = ["concept:verify-transaction", "concept:tx-to-receipt"]
+spec_definitions = ["NearSpec.TransferV1.applyReceipt", "NearSpec.Receipt.wf", "NearSpec.Params.zeroBalanceStorageLimit"]
 obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
-fixtures = ["concept:fixtures/transactions/**"]
+fixtures = ["oracle/fixtures/public/**", "oracle/fixtures/rejection/**"]
+note = "verifier.rs holds check_storage_stake / ZERO_BALANCE_ACCOUNT_STORAGE_LIMIT and validate_receipt, which ARE on the slice path; transaction verification itself is excluded."
 
 [[rule]]
 id = "wasm-vm"
 paths = ["runtime/near-vm-runner/**", "runtime/near-vm/**", "runtime/near-vm-2/**", "runtime/near-wallet-contract/**"]
-spec_definitions = ["concept:function-call-execution", "concept:host-functions", "concept:wasm-gas-metering"]
-obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL"]
-fixtures = ["concept:fixtures/function_call/**"]
-note = "Out of scope for transfer-only slices only if the challenge's restrictions exclude FunctionCall; still reopens conformance."
+spec_definitions = []
+obligations = ["CONFORMANCE_DIFFERENTIAL"]
+fixtures = ["oracle/fixtures/public/**"]
+note = "Out of scope: near-transfer-receipt-v1 restricts to single Transfer actions (receipt_shape). near-vm-runner is still linked into Runtime::apply, so conformance is re-run."
 
 [[rule]]
 id = "state-encoding"
 paths = ["core/primitives-core/src/account.rs", "core/primitives-core/src/trie_key.rs", "core/primitives/src/trie_key.rs", "core/primitives-core/src/serialize.rs", "core/primitives/src/receipt.rs", "core/primitives/src/action/**", "core/primitives/src/state_record.rs", "core/primitives/src/types.rs", "core/primitives/src/types/**", "core/primitives-core/src/types.rs", "core/primitives/src/errors.rs", "core/primitives-core/src/errors.rs"]
-spec_definitions = ["concept:account-encoding", "concept:trie-key-encoding", "concept:receipt-encoding", "concept:claim-encoding"]
+spec_definitions = ["NearSpec.Account.encode", "NearSpec.Account.decode", "NearSpec.accountKeyPath", "NearSpec.Receipt.encode", "NearSpec.PublicKey.encode", "NearSpec.AccountId.valid", "NearSpec.AccountId.isNamed", "NearSpec.receiptsCommitment", "NearSpec.refundsCommitment", "NearSpec.Outcome.partialEncode", "NearSpec.TransferV1.Claim.encode", "spec/claim-v1.md"]
 obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "FORMAL_IMPL_CONNECTION", "CONFORMANCE_DIFFERENTIAL"]
 fixtures = ["*"]
 
 [[rule]]
 id = "state-commitment"
 paths = ["core/store/src/trie/**", "core/store/src/merkle_proof.rs", "core/primitives/src/merkle.rs", "core/primitives/src/state.rs", "core/primitives/src/state_part.rs", "core/primitives-core/src/hash.rs", "core/store/src/flat/**"]
-spec_definitions = ["concept:state-root", "concept:trie-node-hashing", "concept:storage-proof"]
+spec_definitions = ["NearSpec.PTrie.hashOf", "NearSpec.hexPrefix", "NearSpec.nibbles", "NearSpec.Slot.valueRef", "NearSpec.PTrie.get", "NearSpec.PTrie.set", "NearSpec.PTrie.wf", "NearSpec.PTrie.revealedBytes", "NearSpec.merkleRoot", "NearSpec.outcomeRoot", "NearSpec.SHA256.sha256"]
 obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "FORMAL_CRYPTO_SOUNDNESS", "FORMAL_IMPL_CONNECTION", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
 fixtures = ["*"]
 
 [[rule]]
 id = "crypto"
 paths = ["core/crypto/**"]
-spec_definitions = ["concept:signature-verification", "concept:hashing"]
+spec_definitions = ["NearSpec.SHA256.sha256", "NearSpec.PublicKey.wf", "NearSpec.PublicKey.encode"]
 obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_CRYPTO_SOUNDNESS", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS"]
-fixtures = ["concept:fixtures/signatures/**"]
+fixtures = ["oracle/fixtures/public/**"]
+note = "Signatures are excluded from the slice; hash.rs (SHA-256 CryptoHash) and PublicKey borsh are on the slice path."
 
 [[rule]]
 id = "storage-plumbing"
@@ -109,7 +112,7 @@ paths = ["core/store/src/db/**", "core/store/src/adapter/**", "core/store/src/ar
 spec_definitions = []
 obligations = ["CONFORMANCE_DIFFERENTIAL"]
 fixtures = []
-note = "Node storage plumbing; oracle behaviour must be re-tested but the spec is not expected to change. Spec lane: confirm."
+note = "Node storage plumbing; oracle behaviour must be re-tested but the spec is not expected to change. Spec lane: confirmed for near-transfer-receipt-v1 (the oracle uses in-memory ShardTries from TestTriesBuilder)."
 
 [[rule]]
 id = "external-crates"
@@ -132,3 +135,28 @@ paths = ["@closure/membership"]
 spec_definitions = ["*"]
 obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "FORMAL_IMPL_CONNECTION", "CONFORMANCE_DIFFERENTIAL"]
 fixtures = ["*"]
+
+# ---- slice-specific rules (spec-oracle lane) ----
+
+[[rule]]
+id = "account-id-crate"
+paths = ["@external/near-account-id"]
+spec_definitions = ["NearSpec.AccountId.valid", "NearSpec.AccountId.isNamed", "NearSpec.AccountId.isNearImplicit", "NearSpec.AccountId.isEthImplicit", "NearSpec.AccountId.isNearDeterministic"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "CONFORMANCE_DIFFERENTIAL"]
+fixtures = ["oracle/fixtures/public/**", "oracle/fixtures/rejection/**"]
+note = "near-account-id 2.0.0 validation.rs / account_id_ref.rs define valid ids and the account type that selects the transfer exec fee."
+
+[[rule]]
+id = "token-and-borsh-crates"
+paths = ["@external/near-token", "@external/borsh"]
+spec_definitions = ["NearSpec.u128", "NearSpec.borshBytes", "NearSpec.Receipt.encode", "NearSpec.Account.encode"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "CONFORMANCE_DIFFERENTIAL"]
+fixtures = ["oracle/fixtures/public/**"]
+
+[[rule]]
+id = "chain-commitments"
+paths = ["chain/chain/src/types.rs", "chain/chain/src/chain.rs", "chain/chain/src/runtime/mod.rs", "chain/chain/src/validate.rs", "chain/chain/src/sharding.rs"]
+spec_definitions = ["NearSpec.outcomeRoot", "NearSpec.Outcome.leaf", "NearSpec.receiptsCommitment", "spec/claim-v1.md"]
+obligations = ["FORMAL_SEMANTIC_SOUNDNESS", "CONFORMANCE_DIFFERENTIAL"]
+fixtures = ["oracle/fixtures/public/**"]
+note = "compute_outcomes_proof (types.rs:151-163) defines outcome_root; build_receipts_hashes (chain.rs:4102-4130) is the shape of receipts_commitment; process_state_update selects RuntimeConfig. These are outside the oracle's crate closure, so the monitor must watch the paths explicitly."

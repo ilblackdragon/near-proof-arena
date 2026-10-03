@@ -40,6 +40,8 @@ pub struct WorkerConfig {
     pub build_path: Option<String>,
     pub build_env: Vec<(String, String)>,
     pub images_dir: Option<PathBuf>,
+    /// Pinned build toolchain image (TreeDigest).
+    pub toolchain_image: Option<arena_types::Digest>,
     pub bench_cpus: Option<Vec<u32>>,
     pub keep_workdirs: bool,
     /// Directories holding public fixtures, matched to challenges by TreeDigest.
@@ -196,6 +198,10 @@ impl WorkerConfig {
             build_path: s.get("ARENA_BUILD_PATH"),
             build_env,
             images_dir: s.get("ARENA_IMAGES_DIR").map(PathBuf::from),
+            toolchain_image: match s.get("ARENA_BUILD_TOOLCHAIN_IMAGE") {
+                None => None,
+                Some(v) => Some(arena_types::Digest::try_from(v).map_err(|e| ConfigError::Invalid("ARENA_BUILD_TOOLCHAIN_IMAGE", e))?),
+            },
             bench_cpus,
             keep_workdirs: s.get("ARENA_KEEP_WORKDIRS").as_deref() == Some("1"),
             fixtures_dirs: s

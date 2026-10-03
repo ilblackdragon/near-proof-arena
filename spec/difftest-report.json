@@ -1,0 +1,73 @@
+{
+ "seed": 4242,
+ "cases": 1712,
+ "stats": {
+  "in_domain_agree": 1502,
+  "without_refunds": 136,
+  "with_refunds": 1366,
+  "out_of_domain_agree": 210
+ },
+ "disagreements": [],
+ "batch_size": {
+  "min": 1,
+  "max": 254,
+  "mean": 35.8
+ },
+ "profiles": {
+  "basic": 250,
+  "boundary": 250,
+  "example": 2,
+  "invalid:account_v2": 15,
+  "invalid:balance_overflow": 15,
+  "invalid:duplicate_receipt_id": 15,
+  "invalid:empty_batch": 15,
+  "invalid:gas_limit": 15,
+  "invalid:implicit_receiver": 15,
+  "invalid:multi_action": 15,
+  "invalid:non_transfer_action": 15,
+  "invalid:receiver_missing": 15,
+  "invalid:sentinel_balance": 15,
+  "invalid:storage_stake": 15,
+  "invalid:system_predecessor": 15,
+  "invalid:tokens_burnt_overflow": 15,
+  "invalid:wrong_protocol_version": 15,
+  "large": 250,
+  "prefix": 250,
+  "prices": 250,
+  "repeat": 250
+ },
+ "coverage": {
+  "balance_within_2^64_of_u128_max": 1119,
+  "batch_ge_128": 165,
+  "deposit_zero": 1183,
+  "gas_limit_tight": 128,
+  "receipt_price_below_block_price": 1027,
+  "receipt_price_zero": 127,
+  "receiver_key_is_prefix_of_another_key(branch_with_value)": 517,
+  "receiver_len_2": 377,
+  "receiver_len_64": 662,
+  "repeated_receiver": 1158,
+  "secp256k1_signer_key": 1308
+ },
+ "timings_s": {
+  "oracle_gen": 4.53,
+  "lean_check": 93.58,
+  "python_check": 3.88
+ },
+ "tool_summaries": {
+  "oracle": [
+   "generated 1712 cases (1712 consistent) in 4.523178368s"
+  ],
+  "lean": [
+   "nearspec-check: 1712 cases, 1502 ok, 210 out_of_domain, 0 inconsistent"
+  ],
+  "python": [
+   "spec_check.py: 1712 cases, 1502 ok, 210 out_of_domain, 0 inconsistent"
+  ]
+ },
+ "exit_codes": {
+  "oracle": 0,
+  "lean": 0,
+  "python": 0
+ }
+}

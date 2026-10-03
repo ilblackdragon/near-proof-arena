@@ -1,11 +1,17 @@
 //! `arena-init`: PID 1 of an arena Firecracker guest.
 //!
-//! 1. mounts /proc, /sys, /dev, cgroup2, tmpfs for /tmp and /arena;
+//! 1. mounts /proc, /sys, /dev, cgroup2, /dev/shm;
 //! 2. reads the job from the raw control drive (`/dev/vdb`);
-//! 3. mounts the per-run scratch drive rw and every bundle drive read-only;
-//! 4. runs argv as an unprivileged uid with a cleared env, in a dedicated
-//!    cgroup (memory.max / pids.max / oom.group), with rlimits and
+//! 3. builds the candidate root: a read-only overlay of a mount-point
+//!    skeleton over the arena rootfs (or the job's root image, e.g. a pinned
+//!    build toolchain), with the per-run scratch drive at `/scratch` (rw),
+//!    `/tmp` on scratch, and every bundle drive read-only under `/in`/`/opt`;
+//!    performs `copy_in` / `scratch_dirs`;
+//! 4. runs argv chrooted into that root as an unprivileged uid with a
+//!    cleared env and the requested cwd, in a dedicated cgroup
+//!    (memory.max / pids.max / oom.group), with rlimits and
 //!    `PR_SET_NO_NEW_PRIVS`; stdout/stderr go to pipes and are truncated;
+//!    a guest-side timeout kills the cgroup (the host has a later hard one);
 //! 5. prints `ARENA-START`/`ARENA-EXIT` markers on the serial console so the
 //!    host can time the run, kills everything left in the cgroup;
 //! 6. writes the report + collected output files to the raw output drive
@@ -117,18 +123,10 @@ fn base_mounts() -> Result<(), String> {
         ),
         "cgroup2",
     )?;
-    ctx(
-        mount("tmpfs", "/tmp", "tmpfs", nsd, "mode=1777,size=64m"),
-        "tmp",
-    )?;
     let _ = fs::create_dir_all("/dev/shm");
     ctx(
         mount("tmpfs", "/dev/shm", "tmpfs", nsd, "mode=1777,size=64m"),
         "shm",
-    )?;
-    ctx(
-        mount("tmpfs", "/arena", "tmpfs", nsd, "mode=0755,size=1m"),
-        "arena",
     )?;
     // Only emergencies reach the console, so kernel messages (e.g. OOM
     // reports) cannot interleave with the host-timed marker lines.
@@ -157,116 +155,315 @@ fn read_control() -> Result<GuestJob, String> {
     proto::decode_control(&buf)
 }
 
-/// Guest mount paths: under /arena/, safe characters, not overlapping scratch.
-fn check_guest_path(p: &str) -> Result<(), String> {
+const RUN: &str = "/run/arena";
+/// The candidate's root: read-only overlay of SKEL (mount points) over BASE.
+const ROOT: &str = "/run/arena/root";
+const SKEL: &str = "/run/arena/skel";
+const BASE: &str = "/run/arena/base";
+const HIDDEN: &str = "/run/arena/m";
+
+fn safe_abs(p: &str) -> Result<&str, String> {
     let rel = p
-        .strip_prefix(proto::GUEST_MOUNT_PREFIX)
-        .ok_or_else(|| format!("mount path {p:?} not under {}", proto::GUEST_MOUNT_PREFIX))?;
+        .strip_prefix('/')
+        .ok_or_else(|| format!("guest path {p:?} must be absolute"))?;
+    if rel.is_empty() {
+        return Ok(rel);
+    }
     proto::validate_rel_path(rel)?;
+    Ok(rel)
+}
+
+fn overlaps(a: &str, b: &str) -> bool {
+    a == b || a.starts_with(&format!("{b}/")) || b.starts_with(&format!("{a}/"))
+}
+
+/// Read-only mount paths: under /in/ or /opt/, safe characters, no overlap
+/// with scratch or with each other.
+fn check_mount_path(p: &str, others: &[&str]) -> Result<(), String> {
+    if !proto::GUEST_MOUNT_PREFIXES
+        .iter()
+        .any(|pre| p.starts_with(pre))
+    {
+        return Err(format!(
+            "mount path {p:?} not under {:?}",
+            proto::GUEST_MOUNT_PREFIXES
+        ));
+    }
+    let rel = safe_abs(p)?;
     if !rel
         .bytes()
-        .all(|b| b.is_ascii_alphanumeric() || b"._-/".contains(&b))
+        .all(|b| b.is_ascii_alphanumeric() || b"._-/+".contains(&b))
     {
         return Err(format!("mount path {p:?} has unsupported characters"));
     }
-    let scratch = proto::GUEST_SCRATCH;
-    if p == scratch
-        || p.starts_with(&format!("{scratch}/"))
-        || scratch.starts_with(&format!("{p}/"))
-    {
-        return Err(format!("mount path {p:?} overlaps scratch"));
-    }
-    if rel.starts_with(".m") {
-        return Err("reserved mount path".into());
+    if overlaps(p, proto::GUEST_SCRATCH) || others.iter().any(|o| overlaps(o, p)) {
+        return Err(format!("mount path {p:?} overlaps another mount"));
     }
     Ok(())
 }
 
-fn setup_disks(job: &GuestJob) -> Result<(), String> {
+fn mkdirs(p: &str) -> Result<(), String> {
+    ctx(fs::create_dir_all(p), &format!("mkdir {p}"))
+}
+
+/// Builds the candidate root at ROOT:
+/// overlay(lower = SKEL : BASE) read-only, where BASE is the arena rootfs
+/// (bind of `/`) or the job's root image, and SKEL only holds mount points.
+/// Then proc/dev/sys, scratch (rw), /tmp (on scratch) and the read-only
+/// bundles are mounted inside it.
+fn setup_root(job: &GuestJob) -> Result<(), String> {
     let nsd = libc::MS_NOSUID | libc::MS_NODEV;
+    let ro = nsd | libc::MS_RDONLY;
+    ctx(
+        mount(
+            "tmpfs",
+            "/run",
+            "tmpfs",
+            nsd | libc::MS_NOEXEC,
+            "mode=0755,size=8m",
+        ),
+        "run",
+    )?;
+    for d in [ROOT, SKEL, BASE, HIDDEN] {
+        mkdirs(d)?;
+    }
+    // base layer
+    match job.root_dev_index {
+        Some(i) => {
+            if !(proto::FIRST_MOUNT_DEV_INDEX..26).contains(&i) {
+                return Err("bad root image device".into());
+            }
+            ctx(
+                mount(&proto::dev_path(i), BASE, "ext4", ro, "noload"),
+                "root image",
+            )?;
+        }
+        None => {
+            ctx(mount("/", BASE, "", libc::MS_BIND, ""), "bind rootfs")?;
+            ctx(
+                mount("", BASE, "", libc::MS_BIND | libc::MS_REMOUNT | ro, ""),
+                "rootfs ro",
+            )?;
+        }
+    }
+    // skeleton: every mount point the candidate root needs
+    if job.mounts.len() > proto::MAX_MOUNTS {
+        return Err("too many mounts".into());
+    }
+    let mut seen: Vec<&str> = Vec::new();
+    for m in &job.mounts {
+        check_mount_path(&m.guest_path, &seen)?;
+        seen.push(&m.guest_path);
+    }
+    for d in ["proc", "sys", "dev", "tmp", "scratch"] {
+        mkdirs(&format!("{SKEL}/{d}"))?;
+    }
+    for m in &job.mounts {
+        let t = format!("{SKEL}{}", m.guest_path);
+        match m.kind {
+            proto::MountKind::Dir => mkdirs(&t)?,
+            proto::MountKind::File { .. } => {
+                mkdirs(Path::new(&t).parent().unwrap().to_str().unwrap())?;
+                ctx(File::create(&t), "create file mount point")?;
+            }
+        }
+    }
+    ctx(
+        mount(
+            "overlay",
+            ROOT,
+            "overlay",
+            libc::MS_NOSUID | libc::MS_RDONLY,
+            &format!("lowerdir={SKEL}:{BASE}"),
+        ),
+        "overlay root",
+    )?;
+    // kernel filesystems
+    ctx(
+        mount(
+            "proc",
+            &format!("{ROOT}/proc"),
+            "proc",
+            nsd | libc::MS_NOEXEC,
+            "hidepid=2",
+        ),
+        "root proc",
+    )?;
+    ctx(
+        mount(
+            "/dev",
+            &format!("{ROOT}/dev"),
+            "",
+            libc::MS_BIND | libc::MS_REC,
+            "",
+        ),
+        "root dev",
+    )?;
+    ctx(
+        mount("/sys", &format!("{ROOT}/sys"), "", libc::MS_BIND, ""),
+        "root sys",
+    )?;
+    ctx(
+        mount(
+            "",
+            &format!("{ROOT}/sys"),
+            "",
+            libc::MS_BIND | libc::MS_REMOUNT | ro | libc::MS_NOEXEC,
+            "",
+        ),
+        "root sys ro",
+    )?;
     // scratch
-    let scratch = proto::GUEST_SCRATCH;
-    ctx(fs::create_dir_all(scratch), "mkdir scratch")?;
+    let scratch = format!("{ROOT}{}", proto::GUEST_SCRATCH);
     ctx(
         mount(
             &proto::dev_path(job.scratch_dev_index),
-            scratch,
+            &scratch,
             "ext4",
             nsd,
             "errors=remount-ro",
         ),
         "scratch",
     )?;
-    chown(scratch, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
     let _ = fs::remove_dir(format!("{scratch}/lost+found"));
-    for d in [proto::GUEST_OUT_DIR, proto::GUEST_TMP_DIR] {
-        ctx(fs::create_dir_all(d), "mkdir scratch subdir")?;
-        chown(d, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
-    }
+    chown(&scratch, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
+    let tmp = format!("{scratch}/tmp");
+    mkdirs(&tmp)?;
+    chown(&tmp, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
+    ctx(
+        mount(&tmp, &format!("{ROOT}/tmp"), "", libc::MS_BIND, ""),
+        "bind tmp",
+    )?;
     // read-only bundles
-    if job.mounts.len() > proto::MAX_MOUNTS {
-        return Err("too many mounts".into());
-    }
     for (i, m) in job.mounts.iter().enumerate() {
-        check_guest_path(&m.guest_path)?;
-        if m.dev_index < proto::FIRST_MOUNT_DEV_INDEX || m.dev_index >= 26 {
+        if m.dev_index < proto::FIRST_MOUNT_DEV_INDEX
+            || m.dev_index >= 26
+            || Some(m.dev_index) == job.root_dev_index
+        {
             return Err("bad mount device".into());
         }
         let dev = proto::dev_path(m.dev_index);
-        let ro = nsd | libc::MS_RDONLY;
+        let target = format!("{ROOT}{}", m.guest_path);
         match &m.kind {
             proto::MountKind::Dir => {
-                ctx(fs::create_dir_all(&m.guest_path), "mkdir mount point")?;
-                ctx(
-                    mount(&dev, &m.guest_path, "ext4", ro, "noload"),
-                    "bundle mount",
-                )?;
+                ctx(mount(&dev, &target, "ext4", ro, "noload"), "bundle mount")?
             }
             proto::MountKind::File { name } => {
                 proto::validate_rel_path(name)?;
                 if name.contains('/') {
                     return Err("file mount name must be a single component".into());
                 }
-                let hidden = format!("/arena/.m/{i}");
-                ctx(fs::create_dir_all(&hidden), "mkdir hidden mount")?;
+                let hidden = format!("{HIDDEN}/{i}");
+                mkdirs(&hidden)?;
                 ctx(
                     mount(&dev, &hidden, "ext4", ro, "noload"),
                     "file bundle mount",
                 )?;
-                let target = Path::new(&m.guest_path);
-                if let Some(parent) = target.parent() {
-                    ctx(fs::create_dir_all(parent), "mkdir file mount parent")?;
-                }
-                ctx(File::create(target), "create file mount point")?;
-                let src = format!("{hidden}/{name}");
                 ctx(
-                    mount(&src, &m.guest_path, "", libc::MS_BIND, ""),
+                    mount(&format!("{hidden}/{name}"), &target, "", libc::MS_BIND, ""),
                     "bind file",
                 )?;
                 ctx(
-                    mount(
-                        "",
-                        &m.guest_path,
-                        "",
-                        libc::MS_BIND | libc::MS_REMOUNT | ro,
-                        "",
-                    ),
+                    mount("", &target, "", libc::MS_BIND | libc::MS_REMOUNT | ro, ""),
                     "remount file ro",
                 )?;
             }
         }
     }
-    // Nothing else may be created under /arena.
-    ctx(
-        mount(
-            "",
-            "/arena",
-            "",
-            libc::MS_REMOUNT | libc::MS_RDONLY | nsd,
-            "mode=0755,size=1m",
-        ),
-        "remount /arena ro",
+    let _ = RUN;
+    Ok(())
+}
+
+/// Creates `rel` (scratch-relative) and its missing parents, owned by the
+/// candidate.
+fn mkdirs_owned(scratch: &str, rel: &str) -> Result<(), String> {
+    proto::validate_rel_path(rel)?;
+    let mut cur = scratch.to_string();
+    for comp in rel.split('/') {
+        cur = format!("{cur}/{comp}");
+        match fs::symlink_metadata(&cur) {
+            Ok(m) if m.is_dir() => continue,
+            Ok(_) => return Err(format!("{rel}: exists and is not a directory")),
+            Err(_) => {
+                ctx(fs::create_dir(&cur), &format!("mkdir {rel}"))?;
+                chown(&cur, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Copies a read-only guest tree into scratch as the candidate's property.
+/// Only regular files and directories are allowed.
+fn copy_into(src: &Path, dst: &Path, depth: u32) -> Result<(), String> {
+    if depth > 64 {
+        return Err(format!("copy_in: {} too deep", src.display()));
+    }
+    let md = ctx(
+        fs::symlink_metadata(src),
+        &format!("copy_in {}", src.display()),
     )?;
+    let dst_s = dst.to_str().ok_or("non-utf8 path")?.to_string();
+    if md.is_dir() {
+        ctx(fs::create_dir(dst), &format!("copy_in mkdir {dst_s}"))?;
+        chown(&dst_s, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
+        let mut names: Vec<_> = ctx(fs::read_dir(src), "copy_in readdir")?
+            .filter_map(|e| e.ok())
+            .map(|e| e.file_name())
+            .collect();
+        names.sort();
+        for n in names {
+            copy_into(&src.join(&n), &dst.join(&n), depth + 1)?;
+        }
+    } else if md.is_file() {
+        let mut inp = ctx(
+            OpenOptions::new()
+                .read(true)
+                .custom_flags(libc::O_NOFOLLOW)
+                .open(src),
+            &format!("copy_in open {}", src.display()),
+        )?;
+        let mode = if md.permissions().mode() & 0o111 != 0 {
+            0o755
+        } else {
+            0o644
+        };
+        let mut out = ctx(
+            OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .mode(mode)
+                .open(dst),
+            &format!("copy_in create {dst_s}"),
+        )?;
+        ctx(io::copy(&mut inp, &mut out), &format!("copy_in {dst_s}"))?;
+        chown(&dst_s, proto::CANDIDATE_UID, proto::CANDIDATE_GID)?;
+    } else {
+        return Err(format!(
+            "copy_in: {} is not a regular file or directory",
+            src.display()
+        ));
+    }
+    Ok(())
+}
+
+fn prepare_scratch(job: &GuestJob) -> Result<(), String> {
+    let scratch = format!("{ROOT}{}", proto::GUEST_SCRATCH);
+    for (from, to) in &job.copy_in {
+        safe_abs(from)?;
+        proto::validate_rel_path(to)?;
+        if let Some((parent, _)) = to.rsplit_once('/') {
+            mkdirs_owned(&scratch, parent)?;
+        }
+        copy_into(
+            Path::new(&format!("{ROOT}{from}")),
+            Path::new(&format!("{scratch}/{to}")),
+            0,
+        )?;
+    }
+    for d in &job.scratch_dirs {
+        mkdirs_owned(&scratch, d)?;
+    }
     Ok(())
 }
 
@@ -361,6 +558,9 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
         return Err("empty argv".into());
     }
     let procs = cstr(&format!("{JOB_CG}/cgroup.procs"));
+    let root_c = cstr(ROOT);
+    safe_abs(&job.cwd)?;
+    let cwd_c = cstr(&job.cwd);
     let oom_adj = cstr("/proc/self/oom_score_adj");
     let nofile = job.nofile;
     let nproc = job.pids_max as u64;
@@ -370,7 +570,6 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
     cmd.args(&job.argv[1..])
         .env_clear()
         .envs(job.env.iter().map(|(k, v)| (k, v)))
-        .current_dir(proto::GUEST_SCRATCH)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
@@ -395,6 +594,9 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
             let w = libc::write(fd, b"0".as_ptr() as *const libc::c_void, 1);
             libc::close(fd);
             if w != 1 {
+                return Err(io::Error::last_os_error());
+            }
+            if libc::chroot(root_c.as_ptr()) != 0 || libc::chdir(cwd_c.as_ptr()) != 0 {
                 return Err(io::Error::last_os_error());
             }
             let lim = |res, v: u64| {
@@ -452,7 +654,23 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
     };
     let out_t = drain(child.stdout.take().unwrap(), proto::STREAM_CAP);
     let err_t = drain(child.stderr.take().unwrap(), proto::STREAM_CAP);
+    let timed_out = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let (done_tx, done_rx) = std::sync::mpsc::channel::<()>();
+    let timer = {
+        let timed_out = timed_out.clone();
+        let limit = Duration::from_millis(job.timeout_ms);
+        std::thread::spawn(move || {
+            if done_rx.recv_timeout(limit.saturating_sub(t0.elapsed()))
+                == Err(std::sync::mpsc::RecvTimeoutError::Timeout)
+            {
+                timed_out.store(true, std::sync::atomic::Ordering::SeqCst);
+                let _ = fs::write(format!("{JOB_CG}/cgroup.kill"), "1");
+            }
+        })
+    };
     let st = child.wait().map_err(|e| format!("wait: {e}"))?;
+    let _ = done_tx.send(());
+    let _ = timer.join();
     let wall_ns = t0.elapsed().as_nanos() as u64;
     console(&format!("{} {} {:?}", proto::MARKER_EXIT, job.nonce, st));
 
@@ -469,7 +687,9 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
 
     let oom = read_kv(&format!("{JOB_CG}/memory.events"), "oom_kill")
         + read_kv(&format!("{JOB_CG}/memory.events"), "oom_group_kill");
-    let status = if let Some(code) = st.code() {
+    let status = if timed_out.load(std::sync::atomic::Ordering::SeqCst) {
+        GuestStatus::TimedOut
+    } else if let Some(code) = st.code() {
         GuestStatus::Exited { code }
     } else {
         let sig = st.signal().unwrap_or(0);
@@ -489,113 +709,127 @@ fn run_candidate(job: &GuestJob) -> Result<RunResult, String> {
     })
 }
 
-/// Walk the output directory (all candidate processes are dead by now).
+/// Collect `job.collect` (scratch-relative files/dirs; all candidate
+/// processes are dead by now). Missing paths are skipped; symlinks and
+/// special files are violations.
 fn collect_outputs(job: &GuestJob, w: &mut OutWriter<impl Write>) -> CollectSummary {
     let mut sum = CollectSummary {
         complete: true,
         ..Default::default()
     };
-    let root = PathBuf::from(proto::GUEST_OUT_DIR);
-    let mut stack: Vec<(PathBuf, String, u32)> = vec![(root, String::new(), 0)];
-    'walk: while let Some((dir, rel, depth)) = stack.pop() {
-        let mut entries: Vec<_> = match fs::read_dir(&dir) {
-            Ok(rd) => rd.filter_map(|e| e.ok()).collect(),
-            Err(e) => {
-                sum.violations.push(format!("{rel}: unreadable dir: {e}"));
+    let scratch = PathBuf::from(format!("{ROOT}{}", proto::GUEST_SCRATCH));
+    // normalize: drop entries nested under another entry (no duplicates)
+    let mut roots: Vec<&String> = job.collect.iter().collect();
+    roots.sort();
+    roots.dedup();
+    let roots: Vec<&String> = roots
+        .iter()
+        .filter(|r| {
+            !job.collect
+                .iter()
+                .any(|o| o != **r && r.starts_with(&format!("{o}/")))
+        })
+        .copied()
+        .collect();
+    // (path, rel, depth); processed depth-first in lexicographic order
+    let mut stack: Vec<(PathBuf, String, u32)> = Vec::new();
+    for r in roots.iter().rev() {
+        if let Err(e) = proto::validate_rel_path(r) {
+            sum.violations.push(format!("collect {r:?}: {e}"));
+            sum.complete = false;
+            continue;
+        }
+        stack.push((scratch.join(r.as_str()), r.to_string(), 0));
+    }
+    'walk: while let Some((path, relp, depth)) = stack.pop() {
+        let md = match fs::symlink_metadata(&path) {
+            Ok(m) => m,
+            Err(e) if e.kind() == io::ErrorKind::NotFound && depth == 0 => continue,
+            Err(err) => {
+                sum.violations.push(format!("{relp}: {err}"));
                 sum.complete = false;
                 continue;
             }
         };
-        entries.sort_by_key(|e| e.file_name());
-        let mut subdirs = Vec::new();
-        for e in entries {
-            let name = e.file_name();
-            let Some(name) = name.to_str().map(str::to_string) else {
-                sum.violations.push(format!(
-                    "{rel}: non-utf8 name {:?}",
-                    e.file_name().as_bytes()
-                ));
-                sum.complete = false;
-                continue;
-            };
-            let relp = if rel.is_empty() {
-                name.clone()
-            } else {
-                format!("{rel}/{name}")
-            };
-            if let Err(err) = proto::validate_rel_path(&relp) {
-                sum.violations.push(format!("{relp:?}: {err}"));
+        let ft = md.file_type();
+        if ft.is_dir() {
+            if depth >= 32 {
+                sum.violations.push(format!("{relp}: too deep"));
                 sum.complete = false;
                 continue;
             }
-            let md = match fs::symlink_metadata(e.path()) {
-                Ok(m) => m,
-                Err(err) => {
-                    sum.violations.push(format!("{relp}: {err}"));
+            let mut entries: Vec<_> = match fs::read_dir(&path) {
+                Ok(rd) => rd.filter_map(|e| e.ok()).map(|e| e.file_name()).collect(),
+                Err(e) => {
+                    sum.violations.push(format!("{relp}: unreadable dir: {e}"));
                     sum.complete = false;
                     continue;
                 }
             };
-            let ft = md.file_type();
-            if ft.is_dir() {
-                if depth >= 32 {
-                    sum.violations.push(format!("{relp}: too deep"));
-                    sum.complete = false;
-                } else {
-                    subdirs.push((e.path(), relp, depth + 1));
-                }
-            } else if ft.is_file() {
-                if sum.files + 1 > job.max_output_files as u64 {
+            entries.sort();
+            for name in entries.into_iter().rev() {
+                let Some(n) = name.to_str() else {
                     sum.violations
-                        .push("output file count limit reached".into());
+                        .push(format!("{relp}: non-utf8 name {:?}", name.as_bytes()));
                     sum.complete = false;
-                    break 'walk;
-                }
-                if sum.bytes + md.size() > job.max_output_bytes {
-                    sum.violations
-                        .push(format!("{relp}: output byte limit reached"));
-                    sum.complete = false;
-                    break 'walk;
-                }
-                let f = OpenOptions::new()
-                    .read(true)
-                    .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
-                    .open(e.path());
-                let mut f = match f {
-                    Ok(f) => f,
-                    Err(err) => {
-                        sum.violations.push(format!("{relp}: open: {err}"));
-                        sum.complete = false;
-                        continue;
-                    }
+                    continue;
                 };
-                let exec = md.permissions().mode() & 0o111 != 0;
-                match w.write_file(&relp, exec, md.size(), &mut f) {
-                    Ok(real) => {
-                        if real != md.size() {
-                            sum.violations
-                                .push(format!("{relp}: changed size while reading"));
-                            sum.complete = false;
-                        }
-                        sum.files += 1;
-                        sum.bytes += md.size();
-                    }
-                    Err(err) => {
-                        // A failed record leaves the stream unusable; stop here.
-                        sum.violations.push(format!("{relp}: {err}"));
-                        sum.complete = false;
-                        break 'walk;
-                    }
+                let child = format!("{relp}/{n}");
+                if let Err(err) = proto::validate_rel_path(&child) {
+                    sum.violations.push(format!("{child:?}: {err}"));
+                    sum.complete = false;
+                    continue;
                 }
-            } else {
-                sum.violations
-                    .push(format!("{relp}: not a regular file or directory (ignored)"));
-                sum.complete = false;
+                stack.push((path.join(n), child, depth + 1));
             }
+        } else if ft.is_file() {
+            if sum.files + 1 > job.max_output_files as u64 {
+                sum.violations
+                    .push("output file count limit reached".into());
+                sum.complete = false;
+                break 'walk;
+            }
+            if sum.bytes + md.size() > job.max_output_bytes {
+                sum.violations
+                    .push(format!("{relp}: output size limit reached"));
+                sum.complete = false;
+                break 'walk;
+            }
+            let mut f = match OpenOptions::new()
+                .read(true)
+                .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
+                .open(&path)
+            {
+                Ok(f) => f,
+                Err(err) => {
+                    sum.violations.push(format!("{relp}: open: {err}"));
+                    sum.complete = false;
+                    continue;
+                }
+            };
+            let exec = md.permissions().mode() & 0o111 != 0;
+            match w.write_file(&relp, exec, md.size(), &mut f) {
+                Ok(real) => {
+                    if real != md.size() {
+                        sum.violations
+                            .push(format!("{relp}: changed size while reading"));
+                        sum.complete = false;
+                    }
+                    sum.files += 1;
+                    sum.bytes += md.size();
+                }
+                Err(err) => {
+                    // A failed record leaves the stream unusable; stop here.
+                    sum.violations.push(format!("{relp}: {err}"));
+                    sum.complete = false;
+                    break 'walk;
+                }
+            }
+        } else {
+            sum.violations
+                .push(format!("{relp}: not a regular file or directory"));
+            sum.complete = false;
         }
-        // depth-first, keep lexicographic order
-        subdirs.reverse();
-        stack.extend(subdirs);
     }
     sum
 }
@@ -652,7 +886,9 @@ fn run() -> Result<(), String> {
             return Ok(());
         }
     };
-    let prep = setup_disks(&job).and_then(|_| setup_cgroup(&job));
+    let prep = setup_root(&job)
+        .and_then(|_| prepare_scratch(&job))
+        .and_then(|_| setup_cgroup(&job));
     if let Err(e) = prep {
         console(&format!("arena-init: setup failed: {e}"));
         write_out(Some(&job), &error_report(&job.nonce, e), b"", b"")?;

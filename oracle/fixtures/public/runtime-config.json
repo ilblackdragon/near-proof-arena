@@ -1,0 +1,144 @@
+{
+  "config_source": "near_parameters::RuntimeConfigStore::new(None).get_config(86) (mainnet parameters)",
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "parameter_files": [
+    {
+      "path": "core/parameters/res/runtime_configs/parameters.yaml",
+      "sha256": "fcc1be3f84bd57a4b2245ab10d3590be19eabb3de87ed5f4b805ca103f0c1600"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/46.yaml",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/48.yaml",
+      "sha256": "2b4cfdf4578dc74d4ba605ace987525c48e9da2853084a451d4f3cc130e24c18"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/49.yaml",
+      "sha256": "936b131214b3a6f40463febb011d10e9667fa0b26cf48793e7f1ef136b75add1"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/50.yaml",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/52.yaml",
+      "sha256": "cae538b6263dbc328c0867dc3ca12e3d09413520c7d1b4b64946d4e3bc20632c"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/53.yaml",
+      "sha256": "4b74299b68652ab2652960c11797b01e88bf3355f67eefae8891bb6491501af7"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/55.yaml",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/57.yaml",
+      "sha256": "8f5f542821936a185b3f72636bd625a46d4407b21a407636bd28d8030bd53201"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/59.yaml",
+      "sha256": "e328dc82f4df07997c2b432b765a116b8f712b19c862b5ba75abda8e5a7a24d4"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/61.yaml",
+      "sha256": "812b1841804d35312b949bdb69229e482656205d981389ebb1d1978bb5476fba"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/62.yaml",
+      "sha256": "35c657d1e6b84d1949ec973bf2e179e5ff2d957929cada378246733e3cd78e15"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/63.yaml",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/64.yaml",
+      "sha256": "bd197f490ce2826c7087e7cb9081b78fb86cfcb38bcf54be6945f2af30445f84"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/66.yaml",
+      "sha256": "1946256ceb0a82ec5bfacc7830b7f9fbaac7a49d66ad59097e41848ddf3a086a"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/67.yaml",
+      "sha256": "53963b535db78a63f0a3b0e42f693dd49fc60ec6dd1faa2c7c494e0d3361fe63"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/68.yaml",
+      "sha256": "ef67f77c690ec13cbe31c6111bbfb05832a334910f13f6fe05c9f5fac423d150"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/69.yaml",
+      "sha256": "a73513c38058b89b54053e20f403bd0e9f948882424aee719dd975526b5928a8"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/70.yaml",
+      "sha256": "becce00659f7dbbb9cb757aec204ec2d3889ae003584a2cf99513581f33f4448"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/72.yaml",
+      "sha256": "9cecfb89063c3d05c0205af0519c9196c91d95e0e18d9fd81d21951afd09c97c"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/73.yaml",
+      "sha256": "93699290a40c0a7b653bcfaa5fccad1d25106c692c65a5bfd4eca135285af909"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/74.yaml",
+      "sha256": "d22e8c324640c5da9c7c99c578ba22389f04fcd3cfb40d03af31ef1f9e7fb508"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/77.yaml",
+      "sha256": "f7d5fd165296e180c98e8aec1b78faf2bcd41daa0c73aac77d51642117a85ef0"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/78.yaml",
+      "sha256": "461e81e1aacdaddc4a0ade0adf69ad6ace793c3a694d8c35c2c7524a6c88d57b"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/79.yaml",
+      "sha256": "c7ce820728f5d461035343f4f6399afccb58d39a41df0cf47f25d8bfc00638db"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/82.yaml",
+      "sha256": "c674640a1ac06c39eb22af5f3aaf272c63aaf87348d75006909f1dab19b200aa"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/83.yaml",
+      "sha256": "efec2f52cc6f9f176d865fb3291fa7a21563b59e3d1c3e927d06b456567e2f43"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/84.yaml",
+      "sha256": "8f860426b89f9d681b40187ede410563ef3d1503a8f360261b83a064a26f7792"
+    },
+    {
+      "path": "core/parameters/res/runtime_configs/85.yaml",
+      "sha256": "fa4169a67850342c71a517239e5882eb4987c1b32d4b1055c3cb6798bac10c2b"
+    }
+  ],
+  "protocol_version": 86,
+  "runtime_config_view_json_sha256": "79b2a2df11580bd67197c125686f0e977040336568bba56999691bfdae530089",
+  "schema": "near-arena-runtime-config-v1",
+  "slice_parameters": {
+    "burnt_gas_reward": "3/10",
+    "gas_per_transfer_receipt": 223182562500,
+    "gas_refund_penalty": "0/1",
+    "main_storage_proof_size_soft_limit": 4000000,
+    "min_gas_purchase_price": "1000000000",
+    "min_gas_refund_penalty": 0,
+    "new_action_receipt_exec_compute": 108059500000,
+    "new_action_receipt_exec_gas": 108059500000,
+    "storage_amount_per_byte": "10000000000000000000",
+    "transfer_exec_compute_named_receiver": 115123062500,
+    "transfer_exec_gas_named_receiver": 115123062500,
+    "trie_costs": {
+      "byte_of_key": 2,
+      "byte_of_value": 1,
+      "node_cost": 50
+    },
+    "zero_balance_account_storage_limit": 770
+  }
+}

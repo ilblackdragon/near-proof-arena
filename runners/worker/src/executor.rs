@@ -75,8 +75,12 @@ pub struct BuildEnv {
     pub path: Option<String>,
     /// Extra allowlisted env (e.g. `CARGO_HOME`, `RUSTUP_HOME`).
     pub env: Vec<(String, String)>,
-    /// Directory holding unpacked toolchain images, one per `<hex digest>`.
+    /// Directory holding unpacked toolchain images: `<hex>/` (the tree,
+    /// named by its TreeDigest) and `<hex>.json` (identity + `env`).
     pub images_dir: Option<PathBuf>,
+    /// Pinned build toolchain image (TreeDigest) to build in. Required for
+    /// production (non-demo) sandboxes; `None` = host-dev toolchain.
+    pub toolchain_image: Option<Digest>,
 }
 
 /// Formal checker configuration (per challenge relation).

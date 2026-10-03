@@ -8,8 +8,8 @@
 //! dirs 0755) because only file-vs-exec is meaningful (CONTRACTS §1).
 //! Symlinks, hardlinks, devices, fifos and sockets are rejected.
 
-use arena_sandbox::InfraError;
 use arena_fc_proto::validate_rel_path;
+use arena_sandbox::InfraError;
 use arena_types::{canonical_json, Digest};
 use sha2::{Digest as _, Sha256};
 use std::fs::{self, File, OpenOptions};
@@ -227,6 +227,22 @@ pub fn build_ro_image(st: &StagedTree, image: &Path) -> Result<(), InfraError> {
         );
         match r {
             Ok(()) => {
+                // mke2fs always creates lost+found; the guest must see exactly
+                // the staged tree.
+                let out = Command::new("debugfs")
+                    .args(["-w", "-R", "rmdir lost+found"])
+                    .arg(image)
+                    .env_clear()
+                    .env("PATH", "/usr/sbin:/sbin:/usr/bin:/bin")
+                    .output()
+                    .map_err(|e| InfraError::Unavailable(format!("debugfs: {e}")))?;
+                let err = String::from_utf8_lossy(&out.stderr);
+                if !out.status.success() || err.lines().any(|l| !l.starts_with("debugfs ")) {
+                    return Err(InfraError::Backend(format!(
+                        "debugfs rmdir lost+found: {}",
+                        err.trim()
+                    )));
+                }
                 fs::set_permissions(image, fs::Permissions::from_mode(0o444))?;
                 return Ok(());
             }
@@ -294,6 +310,46 @@ pub fn file_digest(path: &Path) -> io::Result<Digest> {
     Ok(Digest::try_from(format!("sha256:{}", hex::encode(h.finalize()))).expect("valid digest"))
 }
 
+/// Mark a cache entry as recently used (mtime = now).
+pub fn touch(path: &Path) {
+    if let Ok(f) = OpenOptions::new().read(true).open(path) {
+        let _ = f.set_modified(std::time::SystemTime::now());
+    }
+}
+
+/// Evict least-recently-used (`mtime`) `*.ext4` entries until the cache's
+/// allocated size is at most `max_bytes`. Entries in use by running jobs are
+/// hardlinked into their job dirs, so eviction never disturbs a run.
+/// Returns the number of evicted entries.
+pub fn evict_cache(dir: &Path, max_bytes: u64) -> usize {
+    let Ok(rd) = fs::read_dir(dir) else { return 0 };
+    let mut entries: Vec<(std::time::SystemTime, u64, PathBuf)> = rd
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.file_name()
+                .to_str()
+                .is_some_and(|n| n.ends_with(".ext4") && !n.starts_with('.'))
+        })
+        .filter_map(|e| {
+            let md = e.metadata().ok()?;
+            Some((md.modified().ok()?, md.blocks() * 512, e.path()))
+        })
+        .collect();
+    let mut total: u64 = entries.iter().map(|e| e.1).sum();
+    entries.sort();
+    let mut evicted = 0;
+    for (_, size, path) in entries {
+        if total <= max_bytes {
+            break;
+        }
+        if fs::remove_file(&path).is_ok() {
+            total -= size;
+            evicted += 1;
+        }
+    }
+    evicted
+}
+
 /// Hardlink `src` to `dst`, falling back to a copy across filesystems.
 pub fn link_or_copy(src: &Path, dst: &Path) -> io::Result<()> {
     match fs::hard_link(src, dst) {
@@ -334,6 +390,26 @@ mod tests {
         fs::remove_file(src.join("evil")).unwrap();
         fs::hard_link(src.join("a.txt"), src.join("b.txt")).unwrap();
         assert!(stage_tree(&src, &t.path().join("s4"), &TreeLimits::default()).is_err());
+    }
+
+    #[test]
+    fn cache_eviction_is_lru_by_size() {
+        let t = tempfile::tempdir().unwrap();
+        let mk = |n: &str, age_s: u64| {
+            let p = t.path().join(n);
+            fs::write(&p, vec![1u8; 1 << 20]).unwrap();
+            let f = OpenOptions::new().read(true).open(&p).unwrap();
+            f.set_modified(std::time::SystemTime::now() - std::time::Duration::from_secs(age_s))
+                .unwrap();
+            p
+        };
+        let old = mk("a.ext4", 300);
+        let mid = mk("b.ext4", 200);
+        let new = mk("c.ext4", 100);
+        touch(&old); // used just now -> youngest
+        assert_eq!(evict_cache(t.path(), (2 << 20) + 4096 * 8), 1);
+        assert!(old.exists() && !mid.exists() && new.exists());
+        assert_eq!(evict_cache(t.path(), 0), 2);
     }
 
     #[test]

@@ -1,0 +1,20 @@
+{
+ "schema": "near-arena-fixture-provenance-v1",
+ "statement_id": "near/pv86/receipt-transfer-batch/v0",
+ "nearcore": {
+  "repo": "https://github.com/near/nearcore",
+  "tag": "2.13.4",
+  "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
+ },
+ "protocol_version": 86,
+ "runtime_config": "RuntimeConfigStore::new(None).get_config(86) (mainnet parameters); see runtime-config.json",
+ "generator": {
+  "tool": "near-arena-oracle",
+  "seed": 20261003,
+  "command": "scripts/regen-fixtures.sh"
+ },
+ "synthetic_state_disclaimer": "SYNTHETIC: every pre-state in these fixtures is a synthetic shard state built by the generator (random named accounts, balances, access keys, contract data) and executed by the REAL pinned nearcore Runtime::apply in memory. These are NOT mainnet history: pre_state_root values do not appear on any chain, and chain_id=mainnet only selects the mainnet runtime parameters.",
+ "historical_replay": "unavailable (see spec/near-transfer-receipt-v1.md, 'Historical mainnet replay')",
+ "layout": "cases/<name>/{request.bin,witness.bin,state.bin,diagnostics.json} (no expected_claim.bin)",
+ "purpose": "OUT-OF-DOMAIN requests: the judge must not issue them as jobs; checkers must classify them out_of_domain. diagnostics.json records nearcore's actual behaviour."
+}

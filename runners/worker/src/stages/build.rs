@@ -18,21 +18,56 @@ const BUILD_PIDS: u32 = 512;
 const BUILD_SCRATCH_MB: u64 = 4096;
 const MAX_BUNDLE_OUTPUT: u64 = 2 << 30;
 
-/// Identify the toolchain the build ran against. Returns (rootfs, digest
-/// string, extra mounts).
-fn toolchain(r: &JobRun<'_>) -> Result<(Rootfs, Digest, Vec<Mount>), ExecError> {
+/// Toolchain images already verified against their digest by this process.
+static VERIFIED_IMAGES: std::sync::Mutex<Vec<(PathBuf, Digest)>> = std::sync::Mutex::new(Vec::new());
+
+/// The toolchain the build runs against: (rootfs, digest, extra mounts,
+/// extra env).
+type Toolchain = (Rootfs, Digest, Vec<Mount>, Vec<(String, String)>);
+
+fn toolchain(r: &JobRun<'_>) -> Result<Toolchain, ExecError> {
+    let b = &r.ctx.build;
+    if let Some(d) = &b.toolchain_image {
+        let images = b.images_dir.as_ref().ok_or_else(|| ExecError::Infra("toolchain image configured without an images dir".into()))?;
+        let dir = images.join(d.hex());
+        if !dir.is_dir() {
+            return Err(ExecError::Infra(format!("toolchain image {d} not installed under {}", images.display())));
+        }
+        let known = VERIFIED_IMAGES.lock().unwrap().iter().any(|(p, x)| p == &dir && x == d);
+        if !known {
+            let lim = arena_archive::Limits { max_expanded_bytes: 64 << 30, max_entries: 5_000_000, ..Default::default() };
+            let t = arena_archive::tree_from_dir(&dir, &lim).map_err(|e| ExecError::Infra(format!("toolchain image {d}: {e}")))?;
+            if &t.digest() != d {
+                return Err(ExecError::Infra(format!("toolchain image dir for {d} does not match its digest")));
+            }
+            VERIFIED_IMAGES.lock().unwrap().push((dir.clone(), d.clone()));
+        }
+        let mut env = vec![];
+        if let Ok(bytes) = std::fs::read(images.join(format!("{}.json", d.hex()))) {
+            let meta: serde_json::Value = serde_json::from_slice(&bytes).map_err(|e| ExecError::Infra(format!("toolchain manifest: {e}")))?;
+            if let Some(m) = meta["env"].as_object() {
+                for (k, v) in m {
+                    if let (true, Some(v)) = (arena_sandbox::ENV_ALLOWLIST.contains(&k.as_str()), v.as_str()) {
+                        env.push((k.clone(), v.to_string()));
+                    }
+                }
+            }
+        }
+        return Ok((Rootfs::Image { path: dir, digest: d.clone() }, d.clone(), b.mounts.clone(), env));
+    }
+    if r.ctx.sandbox.tier_cap().is_none() {
+        return Err(ExecError::Infra(format!(
+            "sandbox backend {} needs a pinned build toolchain image (ARENA_BUILD_TOOLCHAIN_IMAGE)",
+            r.ctx.sandbox.name()
+        )));
+    }
     // Host-dev toolchain: identified by a digest of its description. Not a
     // pinned image; only meaningful for DEMO-tier runs.
     let os = std::fs::read_to_string("/etc/os-release").unwrap_or_default();
-    let mounts: Vec<(String, String)> = r.ctx.build.mounts.iter().map(|m| (m.host.display().to_string(), m.guest.clone())).collect();
-    let desc = serde_json::json!({
-        "kind": "host-dev",
-        "os_release": os,
-        "mounts": mounts,
-        "path": r.ctx.build.path,
-    });
+    let mounts: Vec<(String, String)> = b.mounts.iter().map(|m| (m.host.display().to_string(), m.guest.clone())).collect();
+    let desc = serde_json::json!({ "kind": "host-dev", "os_release": os, "mounts": mounts, "path": b.path });
     let d = arena_types::sha256_digest(&desc).map_err(|e| ExecError::Infra(e.to_string()))?;
-    Ok((Rootfs::HostDev, d, r.ctx.build.mounts.clone()))
+    Ok((Rootfs::HostDev, d, b.mounts.clone(), vec![]))
 }
 
 struct BuildRun {
@@ -54,7 +89,7 @@ pub fn run(r: &mut JobRun<'_>, j: &BuildJob) -> Result<StageOut, ExecError> {
     let g = Gate::start(ObligationId::BuildReproducible);
     let mut out = StageOut { used_sandbox: true, ..Default::default() };
     let layout = r.ctx.sandbox.layout();
-    if !layout.flexible_scratch || layout.scratch != arena_sandbox::SCRATCH {
+    if !layout.flexible_scratch {
         return Err(ExecError::Infra(format!(
             "sandbox backend {} cannot run builds yet (needs copy-in of the package into scratch)",
             r.ctx.sandbox.name()
@@ -75,13 +110,13 @@ pub fn run(r: &mut JobRun<'_>, j: &BuildJob) -> Result<StageOut, ExecError> {
     if manifest != j.manifest {
         return Err(ExecError::Infra("package manifest differs from the validated manifest".into()));
     }
-    let (rootfs, tc_digest, mounts) = toolchain(r)?;
+    let (rootfs, tc_digest, mounts, image_env) = toolchain(r)?;
     let limits = RunLimits::from_challenge(&j.challenge);
 
     let mut builds: Vec<BuildRun> = vec![];
     for i in 1..=2 {
         let out_dir = r.fresh("build-out");
-        let spec = build_spec(j, &x.root, &rootfs, &mounts, r, &out_dir);
+        let spec = build_spec(j, &x.root, &rootfs, &mounts, &image_env, r, &out_dir);
         let o = r.run(&spec)?;
         let log = [&b"--- stdout ---\n"[..], &o.stdout_trunc, b"\n--- stderr ---\n", &o.stderr_trunc].concat();
         r.upload(&format!("build log {i}"), &log, true)?;
@@ -186,21 +221,44 @@ pub fn run(r: &mut JobRun<'_>, j: &BuildJob) -> Result<StageOut, ExecError> {
     Ok(out)
 }
 
-fn build_spec(j: &BuildJob, pkg: &Path, rootfs: &Rootfs, mounts: &[Mount], r: &JobRun<'_>, out_dir: &Path) -> SandboxSpec {
+#[allow(clippy::too_many_arguments)]
+fn build_spec(
+    j: &BuildJob,
+    pkg: &Path,
+    rootfs: &Rootfs,
+    mounts: &[Mount],
+    image_env: &[(String, String)],
+    r: &JobRun<'_>,
+    out_dir: &Path,
+) -> SandboxSpec {
     let m = &j.manifest;
-    let mut s = SandboxSpec::new(vec![format!("/scratch/work/{}", m.build.recipe)]);
+    let layout = r.ctx.sandbox.layout();
+    let mut s = SandboxSpec::new(vec![format!("{}/work/{}", layout.scratch, m.build.recipe)]);
     s.rootfs = rootfs.clone();
-    s.ro_mounts.push(Mount { host: pkg.to_path_buf(), guest: "/in/pkg".into() });
+    let pkg_guest = format!("{}/pkg", layout.inputs);
+    s.ro_mounts.push(Mount { host: pkg.to_path_buf(), guest: pkg_guest.clone() });
     s.ro_mounts.extend(mounts.iter().cloned());
-    s.copy_in.push(CopyIn { from_guest: "/in/pkg".into(), to_scratch: "work".into() });
-    s.cwd = "/scratch/work".into();
-    s.env.push(("SOURCE_DATE_EPOCH".into(), "0".into()));
-    s.env.push(("CARGO_NET_OFFLINE".into(), "true".into()));
-    s.env.push(("ARENA_STAGE".into(), "build".into()));
-    if let Some(p) = &r.ctx.build.path {
-        s.env.push(("PATH".into(), p.clone()));
+    s.copy_in.push(CopyIn { from_guest: pkg_guest, to_scratch: "work".into() });
+    s.cwd = format!("{}/work", layout.scratch);
+    let mut env: Vec<(String, String)> = vec![
+        ("SOURCE_DATE_EPOCH".into(), "0".into()),
+        ("CARGO_NET_OFFLINE".into(), "true".into()),
+        ("ARENA_STAGE".into(), "build".into()),
+    ];
+    let mut set = |k: &str, v: &str| {
+        env.retain(|(ek, _)| ek != k);
+        env.push((k.to_string(), v.to_string()));
+    };
+    for (k, v) in image_env {
+        set(k, v);
     }
-    s.env.extend(r.ctx.build.env.iter().cloned());
+    if let Some(p) = &r.ctx.build.path {
+        set("PATH", p);
+    }
+    for (k, v) in &r.ctx.build.env {
+        set(k, v);
+    }
+    s.env = env;
     s.mem_bytes = j.challenge.resource_limits.max_ram_bytes.max(256 << 20);
     s.pids = BUILD_PIDS;
     s.rw_scratch_mb = BUILD_SCRATCH_MB;

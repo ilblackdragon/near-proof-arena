@@ -39,8 +39,8 @@ pub const MOUNT_PREFIXES: &[&str] = &["/in/", "/opt/", "/arena/"];
 
 /// Where a backend puts things inside the guest. Callers (the worker) build
 /// argv / mounts from this instead of hard-coding paths, because backends
-/// differ (bwrap-dev: `/scratch`, `/in`; firecracker: `/arena/scratch`,
-/// `/arena/in`).
+/// may differ (bwrap-dev and firecracker currently both use `/scratch`,
+/// `/in`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct GuestLayout {
     /// Writable scratch (cwd, `HOME`); `<scratch>/out` is always collectable.
