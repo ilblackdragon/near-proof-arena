@@ -29,7 +29,7 @@ fn assert_fail(o: &JobOutput, g: ObligationId, reason: ReasonCode) {
 }
 
 fn conformance(f: &Fixture, bundle: &arena_types::Digest, cases: Vec<OracleCase>) -> JobOutput {
-    exec(f, JobSpec::Conformance(ConformanceJob { bundle: bundle.clone(), entry: entry(), params: f.put(b"params-v1"), cases, limits: run_limits() }))
+    exec(f, JobSpec::Conformance(ConformanceJob { bundle: bundle.clone(), entry: entry(), params: f.put(b"params-v1"), cases, limits: run_limits(), request_pin: None }))
 }
 
 #[test]
@@ -118,6 +118,7 @@ fn honest_candidate_passes_every_stage() {
         bootstrap_seed: 9,
         bootstrap_iterations: 200,
         limits: run_limits(),
+        request_pin: None,
     };
     let r = exec(&f, JobSpec::Benchmark(bj));
     assert_pass(&r, ObligationId::ResourceLimits);
@@ -230,7 +231,7 @@ fn verifier_rejecting_honest_proof_and_prover_timeout() {
     limits.max_prove_ms = 500;
     let c = exec(
         &f,
-        JobSpec::Conformance(ConformanceJob { bundle: bundle.unwrap(), entry: entry(), params: f.put(b"p"), cases: f.cases(1, true, claim_for), limits }),
+        JobSpec::Conformance(ConformanceJob { bundle: bundle.unwrap(), entry: entry(), params: f.put(b"p"), cases: f.cases(1, true, claim_for), limits, request_pin: None }),
     );
     assert_fail(&c, ObligationId::ProverReliability, ReasonCode::Timeout);
 }

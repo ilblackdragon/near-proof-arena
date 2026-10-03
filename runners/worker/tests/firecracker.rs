@@ -42,7 +42,7 @@ fn honest_candidate_through_firecracker() {
     let run = |spec| exec.execute(&job("fc", spec), &AtomicBool::new(false)).unwrap();
 
     let cases = f.cases(2, true, claim_for);
-    let c = run(JobSpec::Conformance(ConformanceJob { bundle: bundle.clone(), entry: entry(), params: f.put(b"params-v1"), cases: cases.clone(), limits: run_limits() }));
+    let c = run(JobSpec::Conformance(ConformanceJob { bundle: bundle.clone(), entry: entry(), params: f.put(b"params-v1"), cases: cases.clone(), limits: run_limits(), request_pin: None }));
     for g in &c.gates {
         assert_eq!(g.status, GateStatus::Pass, "{:?}: {} // all: {:?}", g.gate, g.summary, c.gates.iter().map(|g| (&g.gate, &g.reason_codes, &g.summary)).collect::<Vec<_>>());
         assert!(!g.reason_codes.contains(&ReasonCode::DemoOnly), "firecracker results are not tier-capped");
@@ -89,6 +89,7 @@ fn honest_candidate_through_firecracker() {
         bootstrap_seed: 2,
         bootstrap_iterations: 100,
         limits: run_limits(),
+        request_pin: None,
     };
     let r = run(JobSpec::Benchmark(bj));
     let g = r.gates.iter().find(|g| g.gate == ObligationId::Benchmark).unwrap();
@@ -97,7 +98,7 @@ fn honest_candidate_through_firecracker() {
     assert!(!res.measured_by.contains("DEMO"));
     assert!(res.classes[0].median_ns > 0 && res.score_milli.is_some());
 
-    let bad = run(JobSpec::Conformance(ConformanceJob { bundle, entry: entry(), params: f.put(b"params-v1"), cases: f.cases(1, true, |_| b"nope".to_vec()), limits: run_limits() }));
+    let bad = run(JobSpec::Conformance(ConformanceJob { bundle, entry: entry(), params: f.put(b"params-v1"), cases: f.cases(1, true, |_| b"nope".to_vec()), limits: run_limits(), request_pin: None }));
     let g = bad.gates.iter().find(|g| g.gate == ObligationId::ConformanceDifferential).unwrap();
     assert!(g.reason_codes.contains(&ReasonCode::ClaimMismatch), "{}", g.summary);
 }
@@ -202,7 +203,7 @@ cc -O2 -o out/ctool source/c/hello.c
     // the built bundle runs in microVMs (arena runtime rootfs)
     let cases = f.cases(1, true, claim_for);
     let c = exec.execute(
-        &job("fc-conf", JobSpec::Conformance(ConformanceJob { bundle, entry: entry(), params: f.put(b"params-v1"), cases, limits: run_limits() })),
+        &job("fc-conf", JobSpec::Conformance(ConformanceJob { bundle, entry: entry(), params: f.put(b"params-v1"), cases, limits: run_limits(), request_pin: None })),
         &AtomicBool::new(false),
     ).unwrap();
     for g in &c.gates {

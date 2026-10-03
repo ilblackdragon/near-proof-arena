@@ -125,6 +125,9 @@ pub fn run(r: &mut JobRun<'_>, j: &BenchmarkJob) -> Result<StageOut, ExecError> 
     for c in j.classes.iter().flat_map(|c| c.batch.iter().chain(&c.fresh_batch)) {
         if !inputs.contains_key(&c.id) {
             let req = r.fetch_file(&c.request, j.limits.max_request_bytes, "request")?;
+            if let Some(pin) = &j.request_pin {
+                common::check_request_pin(pin, &std::fs::read(&req)?, &c.id, c.public)?;
+            }
             let wit = r.fetch_file(&c.witness, j.limits.max_witness_bytes, "witness")?;
             inputs.insert(c.id.clone(), (req, wit));
         }

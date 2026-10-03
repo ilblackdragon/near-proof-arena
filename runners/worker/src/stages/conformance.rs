@@ -32,6 +32,14 @@ pub fn run(r: &mut JobRun<'_>, j: &ConformanceJob) -> Result<StageOut, ExecError
         finish(&mut out, conf, rel, res, false);
         return Ok(out);
     }
+    // Fail closed on any request outside the challenge's protocol version /
+    // chain before any candidate code runs.
+    if let Some(pin) = &j.request_pin {
+        for case in &j.cases {
+            let req = r.fetch(&case.request, j.limits.max_request_bytes)?;
+            common::check_request_pin(pin, &req, &case.id, case.public)?;
+        }
+    }
     let bundle = common::fetch_bundle(r, &j.bundle, &j.entry)?;
     let Some(prep) = common::run_prepare(r, &bundle, &j.entry, &j.params, &j.limits, &mut rel, &mut res)? else {
         conf.note("not run: prepare failed");

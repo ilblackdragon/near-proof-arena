@@ -9,6 +9,14 @@ use std::path::PathBuf;
 
 /// Fetch and safely unpack the build bundle; check the entry points are
 /// executable regular files in it.
+/// Fail-closed protocol-version check of one oracle request
+/// ([`RequestPin`](crate::jobs::RequestPin)): a mismatch is a judge-side
+/// error, so the job fails as infra and nothing is attributed to the
+/// candidate. Held-out case ids are not echoed.
+pub fn check_request_pin(pin: &crate::jobs::RequestPin, request: &[u8], case_id: &str, public: bool) -> Result<(), ExecError> {
+    pin.check(request).map_err(|e| ExecError::Infra(format!("fail-closed: oracle request {} rejected: {e}", case_label(case_id, public))))
+}
+
 pub fn fetch_bundle(r: &mut JobRun<'_>, bundle: &Digest, entry: &EntryPoints) -> Result<PathBuf, ExecError> {
     let x = r.fetch_tree(bundle, MAX_BUNDLE_BYTES, "bundle")?;
     for e in [&entry.prepare, &entry.prove, &entry.verify] {
