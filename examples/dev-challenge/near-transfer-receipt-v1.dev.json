@@ -1,0 +1,256 @@
+{
+  "schema": "arena-challenge-v1",
+  "name": "near-transfer-receipt-v1",
+  "season": "dev-local",
+  "tier": "experimental",
+  "nearcore": {
+    "repo": "https://github.com/near/nearcore",
+    "tag": "2.13.4",
+    "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
+  },
+  "protocol_version": 86,
+  "chain_id": "mainnet",
+  "runtime_config_digest": "sha256:ae2d1af88031a30bb09d17fd0d514503de26ed83d642ff497618e9f3320eebf1",
+  "semantic_scope": {
+    "name": "near-transfer-receipt-v1",
+    "kind": "subset",
+    "granularity": "receipt_batch_transition",
+    "restrictions": [
+      {
+        "id": "pv86",
+        "text": "protocol_version = 86 (nearcore 2.13.4 STABLE_PROTOCOL_VERSION)"
+      },
+      {
+        "id": "mainnet_params",
+        "text": "chain_id = mainnet: mainnet RuntimeConfig for PV 86 (RuntimeConfigStore::new(None))"
+      },
+      {
+        "id": "claim_wf",
+        "text": "all claim fields within their encoded widths (u32/u64/u128, 32-byte hashes, chain id 1..64 printable ASCII)"
+      },
+      {
+        "id": "batch_size",
+        "text": "the batch has 1..=256 receipts"
+      },
+      {
+        "id": "compute_limit",
+        "text": "(n-1)*223182562500 < gas_limit: no receipt is pushed to the delayed queue"
+      },
+      {
+        "id": "receipt_shape",
+        "text": "every receipt is Receipt::V0 / ReceiptEnum::Action with exactly one Transfer action and no input/output data dependencies"
+      },
+      {
+        "id": "valid_account_ids",
+        "text": "predecessor, receiver and signer are valid NEAR AccountIds"
+      },
+      {
+        "id": "signer_key_type",
+        "text": "signer public key is ED25519 or SECP256K1"
+      },
+      {
+        "id": "not_system_predecessor",
+        "text": "predecessor is not 'system' (refund receipts are not inputs)"
+      },
+      {
+        "id": "named_receiver",
+        "text": "receiver is a NamedAccount (not NEAR-implicit, ETH-implicit or deterministic)"
+      },
+      {
+        "id": "distinct_receipt_ids",
+        "text": "receipt ids are pairwise distinct"
+      },
+      {
+        "id": "witness_size",
+        "text": "the revealed partial-trie bytes are <= 3,000,000 (storage-proof soft limit never reached)"
+      },
+      {
+        "id": "receiver_exists_v1",
+        "text": "each receiver Account exists when its receipt is applied and is a 72-byte AccountV1"
+      },
+      {
+        "id": "no_balance_overflow",
+        "text": "amount+deposit <= 2^128-2 and amount'+locked < 2^128"
+      },
+      {
+        "id": "storage_stake",
+        "text": "after the credit, amount'+locked >= 10^19*storage_usage or storage_usage <= 770"
+      },
+      {
+        "id": "burn_fits_u128",
+        "text": "G*min(gas_price, block_gas_price), G*(gas_price-min) and the total tokens burnt fit in u128"
+      },
+      {
+        "id": "apply_context",
+        "text": "the chunk applies only these incoming receipts: no transactions, no local/delayed/yield receipts, no validator-account update, new chunk"
+      }
+    ],
+    "excludes": [
+      "block_finality",
+      "data_availability",
+      "receipt_inclusion",
+      "pre_state_root_on_chain",
+      "epoch_and_protocol_version_selection",
+      "onchain_post_state_root",
+      "transactions",
+      "signature_verification",
+      "function_calls_and_wasm",
+      "non_transfer_actions",
+      "implicit_account_creation",
+      "failure_paths_and_rollback",
+      "refund_receipt_inputs",
+      "data_postponed_yield_receipts",
+      "delayed_receipt_queue",
+      "congestion_control_and_buffering",
+      "bandwidth_scheduler",
+      "outgoing_receipts_root_and_routing",
+      "validator_updates_and_rewards",
+      "account_v2_global_contracts",
+      "receipt_enum_action_v2",
+      "other_protocol_versions",
+      "testnet_parameters"
+    ],
+    "formal_spec": {
+      "relation_module": "NearSpec.TransferV1",
+      "relation_decl": "NearSpec.TransferV1.NearRelation",
+      "tree_digest": "sha256:90a43355f324670c830f4d0935d12759c7bb85af47d3699beb1d83a1edb80698",
+      "lean_toolchain": "leanprover/lean4:v4.34.1"
+    },
+    "spec_doc_digest": "sha256:d94182bae9036b425e745b65cfa69de0a8a787dc6a8bef82848fa20726e75720"
+  },
+  "claim_encoding": {
+    "format": "near-arena-claim-v1",
+    "spec_digest": "sha256:92289554aa01fac7af1fff992b33e983d42f89baa133697a8d8c7f47f9c5bb09",
+    "max_request_bytes": 131072,
+    "max_witness_bytes": 4194304,
+    "max_claim_bytes": 366
+  },
+  "security_profile": {
+    "id": "validity-classical-128",
+    "privacy": "validity_only",
+    "adversary": "classical",
+    "target_bits": 128,
+    "model": "random_oracle",
+    "setup_model": "transparent",
+    "allowed_assumptions": [
+      "sha256-collision-resistance",
+      "random-oracle-fiat-shamir-sha256"
+    ],
+    "max_prover_queries_log2": 40,
+    "max_hash_queries_log2": 64,
+    "max_aggregation_depth": 8,
+    "deployment_proofs_log2": 40
+  },
+  "toolchain_policy": {
+    "lean_toolchain": "leanprover/lean4:v4.34.1",
+    "checker_image": "sha256:b09b367d2ed32056a828ebcfb0dd49bd318fca6754d6416fe21c3580188ebd3c",
+    "axiom_allowlist": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "allowed_packages": [
+      [
+        "formal-core",
+        "0000000000000000000000000000000000000000"
+      ],
+      [
+        "near-spec",
+        "0000000000000000000000000000000000000000"
+      ]
+    ],
+    "recheckers": [
+      "lean4checker",
+      "nanoda"
+    ]
+  },
+  "required_obligations": [
+    "PKG_WELLFORMED",
+    "BUILD_REPRODUCIBLE",
+    "ARTIFACT_BINDING",
+    "FORMAL_SEMANTIC_SOUNDNESS",
+    "FORMAL_SEMANTIC_COMPLETENESS",
+    "FORMAL_CRYPTO_SOUNDNESS",
+    "FORMAL_IMPL_CONNECTION",
+    "AXIOM_AUDIT",
+    "CONFORMANCE_DIFFERENTIAL",
+    "ADVERSARIAL_PROOFS",
+    "PROVER_RELIABILITY",
+    "RESOURCE_LIMITS",
+    "BENCHMARK"
+  ],
+  "not_applicable_gates": [
+    "FORMAL_ZK"
+  ],
+  "hardware_profile": {
+    "id": "dev-local-x86_64",
+    "cpu_model": "local",
+    "vcpus": 8,
+    "ram_bytes": 17179869184,
+    "gpu": null
+  },
+  "workload_suite": {
+    "revision": "dev-local",
+    "classes": [
+      {
+        "id": "transfer-batch-small",
+        "description": "1..16 receipts (profiles basic/prefix/prices/boundary)",
+        "weight_ppm": 400000,
+        "batch_size": 8,
+        "generator": "sha256:ecb0802eab80349413a419dee48d6d38afabd94c910f914c092b56e38ddf2fd8"
+      },
+      {
+        "id": "transfer-batch-repeat",
+        "description": "4..40 receipts, hot receivers",
+        "weight_ppm": 200000,
+        "batch_size": 8,
+        "generator": "sha256:ecb0802eab80349413a419dee48d6d38afabd94c910f914c092b56e38ddf2fd8"
+      },
+      {
+        "id": "transfer-batch-large",
+        "description": "64..256 receipts over 20..200 accounts",
+        "weight_ppm": 400000,
+        "batch_size": 8,
+        "generator": "sha256:ecb0802eab80349413a419dee48d6d38afabd94c910f914c092b56e38ddf2fd8"
+      }
+    ],
+    "public_fixtures": "sha256:c83f3e14d526e78244ee2d7288396a9680717fa42ef77127ba29ccf27bb7e6ec",
+    "heldout_commitment": "sha256:86038d8e3fa76c89ca814ed88c5973de5a521340dcbcc09c77ab1a40fa0af878",
+    "baseline_submission": null,
+    "baseline_ns": [
+      [
+        "transfer-batch-small",
+        10000000
+      ],
+      [
+        "transfer-batch-repeat",
+        10000000
+      ],
+      [
+        "transfer-batch-large",
+        10000000
+      ]
+    ]
+  },
+  "measurement": {
+    "warmup_runs": 3,
+    "measured_runs": 15,
+    "aggregation": "median",
+    "outlier_mad_k": 5,
+    "cold_runs": 1,
+    "concurrency": 1,
+    "per_run_timeout_ms": 60000
+  },
+  "resource_limits": {
+    "max_proof_bytes": 8388608,
+    "max_verify_ms": 120000,
+    "max_prove_ms": 60000,
+    "max_ram_bytes": 4294967296,
+    "max_vram_bytes": 0,
+    "max_public_artifact_bytes": 1048576,
+    "max_prepare_ms": 10000,
+    "max_build_ms": 1800000
+  },
+  "supersedes": null,
+  "created_at": "2026-10-03T00:00:00Z"
+}

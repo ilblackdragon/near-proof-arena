@@ -37,5 +37,5 @@ name = "ArenaCore"
 TOML
 rm -rf "$dst/spec/lean/NearSpec.lean" "$dst/spec/lean/NearSpec/Codec.lean" "$dst/spec/lean/NearSpec/Examples" "$dst/spec/lean/NearSpec/Examples.lean"
 rm -f "$dst/spec/lean/lake-manifest.json" "$dst/formal-core/lake-manifest.json"
-( cd "$dst" && find . -type f | LC_ALL=C sort | xargs sha256sum ) > "$here/../../dependency-locks/lean-vendor.sha256"
+( cd "$dst" && find . -type f ! -path './*/.lake/*' | LC_ALL=C sort | xargs sha256sum ) > "$here/../../dependency-locks/lean-vendor.sha256"
 echo "vendored into $dst"
