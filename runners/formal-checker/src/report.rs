@@ -445,8 +445,14 @@ mod tests {
         let e = impl_edge(&ok).expect("implements edge");
         assert_eq!(e.status, EdgeStatus::Checked);
         assert_eq!(e.evidence, vec![d.clone()]);
-        assert!(ok.edges.iter().any(|e| e.kind == "executed_by" && e.status == EdgeStatus::Tested));
-        assert_eq!(impl_edge(&graph(false, Some(d))).unwrap().status, EdgeStatus::Missing);
+        assert!(ok
+            .edges
+            .iter()
+            .any(|e| e.kind == "executed_by" && e.status == EdgeStatus::Tested));
+        assert_eq!(
+            impl_edge(&graph(false, Some(d))).unwrap().status,
+            EdgeStatus::Missing
+        );
         assert!(impl_edge(&graph(true, None)).is_none());
     }
 }

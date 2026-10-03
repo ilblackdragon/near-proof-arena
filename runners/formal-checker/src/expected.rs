@@ -201,7 +201,9 @@ mod interp_digest_tests {
             decl: "ArenaExpected.expectedType".into(),
             template: template.into(),
             data: d
-                .map(|h| BTreeMap::from([("verifier_digest".to_string(), LeanValue::Bytes(h.into()))]))
+                .map(|h| {
+                    BTreeMap::from([("verifier_digest".to_string(), LeanValue::Bytes(h.into()))])
+                })
                 .unwrap_or_default(),
         }
     }
@@ -209,8 +211,17 @@ mod interp_digest_tests {
     #[test]
     fn interp_digest_only_for_interp_statements() {
         let h = "ab".repeat(32);
-        assert_eq!(t("impl := .interp verifierDigest", Some(&h)).interp_verifier_digest(), Some(h.clone()));
-        assert_eq!(t("impl := .nativeTrusted x y z", Some(&h)).interp_verifier_digest(), None);
-        assert_eq!(t("impl := .interp verifierDigest", None).interp_verifier_digest(), None);
+        assert_eq!(
+            t("impl := .interp verifierDigest", Some(&h)).interp_verifier_digest(),
+            Some(h.clone())
+        );
+        assert_eq!(
+            t("impl := .nativeTrusted x y z", Some(&h)).interp_verifier_digest(),
+            None
+        );
+        assert_eq!(
+            t("impl := .interp verifierDigest", None).interp_verifier_digest(),
+            None
+        );
     }
 }

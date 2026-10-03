@@ -1860,7 +1860,11 @@ fn module_rechecker(
     let batch = limits.recheck_batch_modules.max(1);
     let started = Instant::now();
     let mut wall_ms = 0u64;
-    let chunks: Vec<&[String]> = if mods.is_empty() { vec![&[][..]] } else { mods.chunks(batch).collect() };
+    let chunks: Vec<&[String]> = if mods.is_empty() {
+        vec![&[][..]]
+    } else {
+        mods.chunks(batch).collect()
+    };
     let n = chunks.len();
     for (i, chunk) in chunks.into_iter().enumerate() {
         if started.elapsed() > limits.recheck_total {
@@ -1868,17 +1872,33 @@ fn module_rechecker(
                 ReasonCode::Timeout,
                 format!("{id} exceeded its total budget after {i} of {n} batches"),
             ));
-            return RecheckerRun { id: id.into(), ran: true, verdict: "timeout".into(), wall_ms, detail: format!("{i}/{n} batches") };
+            return RecheckerRun {
+                id: id.into(),
+                ran: true,
+                verdict: "timeout".into(),
+                wall_ms,
+                detail: format!("{i}/{n} batches"),
+            };
         }
         let mut argv = vec![tool.to_string()];
         argv.extend(chunk.iter().cloned());
         let mut spec = ctx.base_spec(argv, lean_path, limits.recheck_timeout, limits.mem_bytes);
         mount(&mut spec);
-        let step = if n == 1 { format!("recheck:{id}") } else { format!("recheck:{id}:{}", chunk.join(",")) };
+        let step = if n == 1 {
+            format!("recheck:{id}")
+        } else {
+            format!("recheck:{id}:{}", chunk.join(","))
+        };
         match ctx.run(&step, &spec, CAPTURE_LIMIT) {
             Err(f) => {
                 findings.push(f);
-                return RecheckerRun { id: id.into(), ran: false, verdict: "error".into(), wall_ms, detail: "infra".into() };
+                return RecheckerRun {
+                    id: id.into(),
+                    ran: false,
+                    verdict: "error".into(),
+                    wall_ms,
+                    detail: "infra".into(),
+                };
             }
             Ok(o) => {
                 wall_ms += o.wall.as_millis() as u64;
@@ -1886,7 +1906,12 @@ fn module_rechecker(
                     let mut r = verdict(id, &o, findings);
                     r.wall_ms = wall_ms;
                     if n > 1 {
-                        r.detail = format!("batch {} of {n} ({}): {}", i + 1, chunk.join(", "), r.detail);
+                        r.detail = format!(
+                            "batch {} of {n} ({}): {}",
+                            i + 1,
+                            chunk.join(", "),
+                            r.detail
+                        );
                     }
                     return r;
                 }
@@ -1898,7 +1923,11 @@ fn module_rechecker(
         ran: true,
         verdict: "accepted".into(),
         wall_ms,
-        detail: if n > 1 { format!("{} modules in {n} runs", mods.len()) } else { String::new() },
+        detail: if n > 1 {
+            format!("{} modules in {n} runs", mods.len())
+        } else {
+            String::new()
+        },
     }
 }
 
