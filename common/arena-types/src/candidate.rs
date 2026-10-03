@@ -41,7 +41,9 @@ pub struct EntrySection {
     /// How the arena runs verification (v1.2, additive). `native` (default):
     /// the built `verify` executable. `npai-v1`: the arena's own NPAI
     /// interpreter runs `verifier_bytecode` (docs/INTERP_SPEC.md); `prepare`
-    /// must then emit exactly `public_dir/public.bin`.
+    /// must then emit exactly `public_dir/public.bin`. `native-lean`: the
+    /// judge builds `verify` itself from the Lean model `formal.verifier_model`
+    /// with the governed Lean compiler (the candidate's binary is not used).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub verify_route: Option<VerifyRoute>,
     /// Built NPAI image (relative path among `build.outputs`), required iff
@@ -56,6 +58,8 @@ pub enum VerifyRoute {
     Native,
     #[serde(rename = "npai-v1")]
     NpaiV1,
+    #[serde(rename = "native-lean")]
+    NativeLean,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -64,6 +68,24 @@ pub struct FormalSection {
     pub lean_project: String,
     /// Lean constant whose *type* the judge constructs; candidate supplies the value.
     pub certificate: String,
+    /// `native-lean` route (v1.2, optional): the candidate-defined verifier
+    /// model `ArenaCore.OracleVerifier` (e.g. `Candidate.Model.verify`) that the
+    /// judge splices into the expected statement and compiles into `verify`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_model: Option<String>,
+    /// Lean module declaring `verifier_model` (e.g. `Candidate.Model`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_model_module: Option<String>,
+}
+
+fn is_lean_ident_path(s: &str) -> bool {
+    !s.is_empty()
+        && s.len() <= 255
+        && s.split('.').all(|c| {
+            let mut cs = c.chars();
+            matches!(cs.next(), Some(ch) if ch.is_ascii_alphabetic() || ch == '_')
+                && cs.all(|ch| ch.is_ascii_alphanumeric() || ch == '_' || ch == '\'')
+        })
 }
 
 pub const CANDIDATE_SCHEMA: &str = "arena-candidate-v1";
@@ -120,6 +142,23 @@ impl CandidateManifest {
         paths.extend(self.build.outputs.iter().map(|s| s.as_str()));
         if let Some(f) = &self.formal {
             paths.push(f.lean_project.as_str());
+            if !is_lean_ident_path(&f.certificate) {
+                return bad("formal.certificate must be a dotted Lean identifier");
+            }
+            match (&f.verifier_model, &f.verifier_model_module) {
+                (None, None) => {}
+                (Some(d), Some(m)) if is_lean_ident_path(d) && is_lean_ident_path(m) => {}
+                _ => return bad("formal.verifier_model and verifier_model_module must both be dotted Lean identifiers"),
+            }
+        }
+        let has_model = self.formal.as_ref().is_some_and(|f| f.verifier_model.is_some());
+        match self.entry.verify_route {
+            Some(VerifyRoute::NativeLean) if !has_model => {
+                return bad("verify_route native-lean requires formal.verifier_model and verifier_model_module")
+            }
+            Some(VerifyRoute::NativeLean) => {}
+            _ if has_model => return bad("formal.verifier_model is only valid with verify_route = \"native-lean\""),
+            _ => {}
         }
         match (self.entry.verify_route, &self.entry.verifier_bytecode) {
             (Some(VerifyRoute::NpaiV1), Some(b)) => {
@@ -164,6 +203,19 @@ certificate = "Candidate.certificate"
     #[test]
     fn parses() {
         CandidateManifest::parse(OK).unwrap();
+    }
+    #[test]
+    fn native_lean_route() {
+        let with_route = OK.replace("verify = \"out/verify\"", "verify = \"out/verify\"\nverify_route = \"native-lean\"");
+        assert!(CandidateManifest::parse(&with_route).is_err(), "model required");
+        let full = format!("{with_route}verifier_model = \"Candidate.Model.verify\"\nverifier_model_module = \"Candidate.Model\"\n");
+        let m = CandidateManifest::parse(&full).unwrap();
+        assert_eq!(m.entry.verify_route, Some(VerifyRoute::NativeLean));
+        assert_eq!(m.formal.unwrap().verifier_model.as_deref(), Some("Candidate.Model.verify"));
+        assert!(CandidateManifest::parse(&full.replace("Candidate.Model.verify", "Candidate.Model.verify x")).is_err());
+        // a model without the route is rejected
+        let no_route = full.replace("verify_route = \"native-lean\"\n", "");
+        assert!(CandidateManifest::parse(&no_route).is_err());
     }
     #[test]
     fn rejects_traversal() {

@@ -132,6 +132,7 @@ fn corpus() {
             limits: Limits::default(),
             work_dir: root.join("warmup"),
             cache_dir: cache.clone(),
+            route: Default::default(),
         };
         let _ = checker.check(&req);
     }
@@ -172,6 +173,7 @@ fn corpus() {
                 limits,
                 work_dir: scratch.join("work"),
                 cache_dir: cache.clone(),
+            route: Default::default(),
             };
             let t = Instant::now();
             let rep = checker.check(&req);

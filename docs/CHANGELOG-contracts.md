@@ -22,6 +22,18 @@ challenge definitions keep their canonical bytes and ids.
   `scripts/pin-assumption-digests.sh`).
 * Schemas regenerated (`challenge`, `candidate`, `assumption`); `server/openapi.json` refreshed.
 
+### v1.2 addendum (formal-checker lane): native-lean route
+
+* `entry.verify_route` gains `"native-lean"` (`VerifyRoute::NativeLean`).
+* `[formal] verifier_model` (e.g. `"Candidate.Model.verify"`, an
+  `ArenaCore.OracleVerifier`) and `[formal] verifier_model_module`
+  (e.g. `"Candidate.Model"`): required iff `verify_route = "native-lean"`. The
+  judge splices the model into the expected statement (`.nativeTrusted
+  <judge-built binary digest> <toolchain id> model`) and builds `verify`
+  itself from the model; a candidate-built native verifier is never admitted
+  (`ARTIFACT_BINDING_FAILED`). See `runners/formal-checker/README.md`.
+* `formal.certificate` (and the model names) are validated as dotted Lean identifiers.
+
 ## v1.1 (additive, server lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
 
 All new fields are optional/defaulted (`#[serde(default)]`), so v1 producers

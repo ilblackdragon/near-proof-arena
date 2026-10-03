@@ -132,6 +132,8 @@ impl FakeWorker {
                     formal: Some(candidate::FormalSection {
                         lean_project: "formal".into(),
                         certificate: "Candidate.certificate".into(),
+                        verifier_model: None,
+                        verifier_model_module: None,
                     }),
                 })
             }
