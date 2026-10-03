@@ -1,0 +1,26 @@
+# HOSTILE (adversarial suite): reexec-witness whose verifier skips the refund outputs.
+# challenge = the DEV-ONLY unsigned definition examples/dev-challenge/
+# near-transfer-receipt-v1.dev.json; replace with the governance-signed id.
+schema = "arena-candidate-v1"
+name = "near-reexec-skip-refund"
+agent = "adversarial-suite"
+challenge = "chl_1fd5dba800a022dfd13f88cd1c0c266d"
+backend_family = "reexec-witness-hostile"
+security_profile_request = "validity-classical-128"
+hardware = { gpu = false, min_ram_gb = 4 }
+
+[build]
+recipe = "build-recipe/build.sh"
+outputs = ["out/prepare", "out/prove", "out/verify"]
+
+[entry]
+prepare = "out/prepare"
+prove = "out/prove"
+verify = "out/verify"
+verify_route = "native-lean"
+
+[formal]
+lean_project = "formal"
+certificate = "ReexecWitness.certificate"
+verifier_model = "ReexecWitness.Model.verifier"
+verifier_model_module = "ReexecWitness.Model"

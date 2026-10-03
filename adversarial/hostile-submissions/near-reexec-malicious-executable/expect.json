@@ -1,0 +1,19 @@
+{
+  "case": "near-reexec-malicious-executable",
+  "attack_family": "artifact-binding",
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "ARTIFACT_BINDING"
+  ],
+  "expected_reason_codes": [
+    "ARTIFACT_BINDING_FAILED"
+  ],
+  "fail_by_stage": "BUILT",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "A real NEAR candidate whose formal/ tree is byte-identical to the reference reexec-witness, so its certificate is correct about the model ReexecWitness.Model.verifier and would pass every formal gate. The shipped out/verify, however, is a different (Rust) binary that also accepts any claim whose proof starts with EVIL. Under verify_route = native-lean only the judge's own compilation of formal.verifier_model may run as the verifier; a candidate-shipped verifier whose digest differs from that build must fail ARTIFACT_BINDING. Admitting it, or running the shipped binary as the verifier, would let a forged claim through.",
+  "notes": "NEAR-specific: submit against the near-transfer-receipt-v1 challenge. Verified locally: out/verify accepts a forged claim (refunds fields altered) with proof bytes 'EVIL'; the reference verifier rejects it. The formal certificate (types for any binary digest because the native edge is trusted) still elaborates, so FORMAL_* gates may PASS; the kill must come from binding the built artifact to the judge build (runners/formal-checker native.rs candidate_binary_digest)."
+}

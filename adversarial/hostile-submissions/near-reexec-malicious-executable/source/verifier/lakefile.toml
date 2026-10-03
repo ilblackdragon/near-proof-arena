@@ -1,0 +1,28 @@
+# Offline build of the deployed verifier: the Lean model
+# `ReexecWitness.Model.verifier` (sources in ../../formal, the very files the
+# certificate is about) compiled by the Lean compiler, behind a thin CLI.
+name = "reexec-verifier"
+version = "0.1.0"
+defaultTargets = ["verify"]
+
+[[lean_lib]]
+name = "ReexecWitness"
+srcDir = "../../formal"
+
+[[lean_exe]]
+name = "verify"
+root = "Main"
+
+[[require]]
+name = "NearSpec"
+path = "../lean-vendor/spec/lean"
+
+[[require]]
+name = "ArenaCore"
+path = "../lean-vendor/formal-core"
+
+# LOCAL EMULATION of the judge-generated Expected modules (judge-local/render.py).
+[[lean_lib]]
+name = "ArenaExpected"
+srcDir = "../../judge-local/out"
+roots = ["ArenaExpected", "ArenaExpectedInst"]
