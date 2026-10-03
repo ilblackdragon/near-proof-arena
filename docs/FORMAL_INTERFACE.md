@@ -24,11 +24,12 @@ built (`art`). Nothing in that type is written by the candidate.
   touching formal-core. The spec lane (`spec/lean`) is also on v4.34.1.
   `docs/research/checker-recommendations.md` was not available while this
   was written; reconcile the pin with it when it lands.
-* **No Mathlib, and no dependencies at all.** The trusted core (`ArenaCore`) is about 2.1k
-  lines of plain Lean 4 core. A clean build of everything (core, tests, toy
-  certificate, reference executable) takes **3.6 s wall time on 32 cores and
-  0.6 GB peak RSS**. That keeps the checker image small and re-checks fast,
-  and the part of the TCB that a reviewer must read is just this package. No
+* **No Mathlib, and no dependencies at all.** The trusted core
+  (`ArenaCore`) is about 2.1k lines of plain Lean 4 core. A clean
+  `lake build` (core, tests, toy certificate) takes **3.9 s wall time on
+  32 cores and 0.6 GB peak RSS**. That keeps the checker image small and
+  re-checks fast, and the part of the TCB that a reviewer must read is just
+  this package. No
   concrete need for Mathlib came up. Probability is counting over finite
   tapes (`Nat` arithmetic and `List.countP`), and the byte, word and SHA
   arithmetic is on `Nat`. Candidates *may* use Mathlib in their own proofs
@@ -354,10 +355,10 @@ proof is a table `T'`. It accepts iff `sha256 T' = pub` and `T'[i] = v`. In
 
 ## 10. Build and axioms (recorded 2026-10-03, Lean v4.34.1)
 
-`cd formal-core && lake build` finishes in 3.6 s wall time from clean (32
-cores, 0.6 GB RSS). It builds 31 jobs: core, tests with pinned interpreter
-vectors and SHA-256 test vectors, the Toy certificate, and
-`arena-interp-ref`.
+`cd formal-core && lake build` builds the default targets from clean in
+**3.9 s wall time** (32 cores, 0.6 GB peak RSS): the core, the tests (pinned
+NPAI vectors and SHA-256 vectors, one of them kernel-checked) and the Toy
+certificate. `lake build arena-interp-ref` adds 1.1 s.
 
 | theorem | axioms |
 |---------|--------|

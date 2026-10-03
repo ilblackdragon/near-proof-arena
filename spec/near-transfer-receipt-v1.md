@@ -149,7 +149,7 @@ natural next version.
 |---|---|
 | claim encoding, strict decoding, round trip, injectivity | Lean definitions + **proved** theorems |
 | relation ⇒ domain; outputs determined by witness | **proved** |
-| SHA-256 | Lean definition (FIPS 180-4), kernel-reducible; tested vs nearcore/Python on every case and against `abc` vector; not proved equal to formal-core's SHA-256 (duplicate implementation, see §9) |
+| SHA-256 | formal-core's `ArenaCore.sha256` (FIPS 180-4, kernel-reducible, vector-tested in formal-core); agrees with nearcore/Python on every differential case |
 | account-id validity / account types, AccountV1, receipt borsh, trie node hashing, outcome hashing, merklize, refund ids, transfer arithmetic | Lean definitions written from the cited nearcore source; **faithfulness is tested, not proved** (differential testing vs real nearcore, §7) |
 | non-vacuity | **kernel-checked** (`decide +kernel`, no `native_decide`): the relation holds for the oracle's real worked example in both price cases (`NearSpec.Examples.TierA/TierB.relation`), and fails for tampered outputs/receipts (`NearSpec.Examples.Negative`); axioms used: `propext` only |
 | "value replacement = nearcore trie update" (§4) | argued in this document + oracle-tested (witness-only re-execution with nearcore's `Trie::from_recorded_storage` equals the slice root on every case) |
@@ -210,10 +210,9 @@ decimal strings).
 
 ## 9. Honest gaps and dependencies
 
-* SHA-256 is implemented here (`NearSpec.SHA256`) and independently in
-  formal-core (`ArenaCore.SHA256`). Before freeze either prove them equal or
-  switch NearSpec to formal-core's via a Lake `require` (both use
-  `Bytes := List UInt8` and Lean `v4.34.1`).
+* SHA-256 is formal-core's `ArenaCore.sha256` (Lake `require` of
+  `../../formal-core`), the same function used by the NPAI `SHA256` opcode and
+  the `sha256_cr` assumption; `NearSpec.sha256` is an `abbrev` for it.
 * The faithfulness of the Lean semantics to nearcore is established by source
   reading + differential testing, not by proof (nearcore has no formal model).
 * Synthetic states only; no historical replay (§10).
@@ -249,3 +248,30 @@ runtime, and are labelled so in `provenance.json`.
 `bandwidth_scheduler`, `outgoing_receipts_root_and_routing`,
 `validator_updates_and_rewards`, `account_v2_global_contracts`,
 `receipt_enum_action_v2`, `other_protocol_versions`, `testnet_parameters`.
+
+## 12. ArenaCore instance and v1 parameters
+
+`spec/lean/NearSpec/Challenge.lean`:
+
+* `NearSpec.TransferV1.challengeSpec : ArenaCore.ChallengeSpec` —
+  `Claim := WfClaim`, `Witness`, `Rel := WfClaim.Rel` (= `NearRelation`),
+  `Domain := WfClaim.ClaimDomain`, `decodeClaim := WfClaim.decode`,
+  `encodeClaim := WfClaim.encode`, `decode_encode := WfClaim.decode_encode`.
+* `challengeParamsWith profile verifyFuel maxProofBytes maxReductionFuel` — what
+  the judge's Expected module instantiates (`spec/lean/judge/Expected.lean.template`,
+  rendered by `runners/formal-checker` from
+  `runners/formal-checker/challenges/near-transfer-receipt-v1.json`, values
+  spliced as literals from the frozen challenge's `security_profile` and
+  `formal_params`).
+* `challengeParams` — the canonical v1 instance:
+
+| parameter | value | rationale |
+|---|---|---|
+| profile | `validity-classical-128`: ROM model, 128-bit target, `sha256-collision-resistance` + `random-oracle-fiat-shamir-sha256`, prover queries 2^40, hash queries 2^64 | `security/profiles/validity-classical-128.json` |
+| `maxProofBytes` | 8 388 608 (8 MiB) | a re-execution proof that carries the whole witness (`max_witness_bytes` 4 MiB) plus the receipts (`max_request_bytes` 128 KiB) fits with framing; succinct backends are far below |
+| `verifyFuel` | 1 073 741 824 (2^30) NPAI fuel | ≈128 instructions per byte of a maximal proof — enough for a byte-level NPAI re-execution verifier (node parsing, nibble walks, SHA256 opcode at 1 fuel/64 B) |
+| `maxReductionFuel` | 1 073 741 824 (2^30) | same budget for an explicit standard-model CR reduction program |
+
+Only the NPAI interpreter route (`.interp`) has a template; a native-route
+challenge would need the judge to supply the verifier model, which this
+challenge does not define.

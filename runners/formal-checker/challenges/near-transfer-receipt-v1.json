@@ -1,0 +1,17 @@
+{
+  "schema": "arena-formal-challenge-v1",
+  "challenge": "near-transfer-receipt-v1",
+  "trusted": [
+    {"name": "formal-core", "src_root": "formal-core", "include": ["ArenaCore"]},
+    {"name": "near-spec", "src_root": "spec/lean", "include": [
+      "NearSpec.Bytes", "NearSpec.SHA256", "NearSpec.AccountId", "NearSpec.Primitives",
+      "NearSpec.Trie", "NearSpec.Outcome", "NearSpec.TransferV1", "NearSpec.ClaimCodec",
+      "NearSpec.Challenge"]}
+  ],
+  "reserved_prefixes": ["ArenaCore", "NearSpec", "ArenaExpected"],
+  "expected": {
+    "module": "ArenaExpected",
+    "decl": "ArenaExpected.expectedType",
+    "template": "spec/lean/judge/Expected.lean.template"
+  }
+}
