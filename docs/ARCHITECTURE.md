@@ -180,6 +180,15 @@ Each transition runs in one transaction that first locks the run row
   `DEMO_ONLY` when the effective tier is below the challenge tier;
 * defense in depth: on a `formal` challenge, an `ADMITTED` run whose effective
   tier is below `formal` becomes `INCONCLUSIVE`.
+* **experimental tier** (master spec §8): the formal gates and
+  `ARTIFACT_BINDING` are *diagnostic* (`ChallengeDefinition::blocking_obligations`).
+  FORMAL_CHECK still runs and its gates are stored and shown with their reason
+  codes, but with `mandatory = false`: they never fail-fast the run (conformance,
+  adversarial and benchmark always run) and never enter `decide()`. If they did
+  not all pass, the run carries their reason codes plus `OBLIGATION_UNDISCHARGED`.
+  An experimental `ADMITTED` therefore means "the tests passed": it is never
+  ranked and is no formal acceptance. Build, conformance, adversarial, resource
+  and benchmark gates stay blocking. Formal and demo tier are unchanged.
 
 **Tiers.** Ranks are demo=0, experimental=1, formal=2
 (`server/arena-db/src/lib.rs`). Effective tier = min(challenge tier, every job

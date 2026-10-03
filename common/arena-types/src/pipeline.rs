@@ -23,6 +23,24 @@ pub enum ObligationId {
     Benchmark,
 }
 
+impl ObligationId {
+    /// Formal obligations and `ARTIFACT_BINDING`: the gates the FORMAL_CHECK
+    /// stage decides (they all need a certificate about the built artifacts).
+    pub fn is_formal(self) -> bool {
+        use ObligationId::*;
+        matches!(
+            self,
+            ArtifactBinding
+                | FormalSemanticSoundness
+                | FormalSemanticCompleteness
+                | FormalCryptoSoundness
+                | FormalImplConnection
+                | FormalZk
+                | AxiomAudit
+        )
+    }
+}
+
 #[derive(
     Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema,
 )]

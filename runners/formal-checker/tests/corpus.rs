@@ -241,7 +241,12 @@ fn corpus() {
                 limits,
                 work_dir: scratch.join("work"),
                 cache_dir: cache.clone(),
-                route: Default::default(),
+                route: match expect.get("route").and_then(Value::as_str) {
+                    Some("candidate-native") => {
+                        arena_formal_checker::native::VerifierRoute::CandidateNative
+                    }
+                    _ => Default::default(),
+                },
             };
             let t = Instant::now();
             let rep = checker.check(&req);

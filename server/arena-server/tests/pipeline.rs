@@ -740,3 +740,93 @@ async fn redteam_revocation_invalidates_formal_cache() {
     let b = app.view(&b.id).await;
     assert!(b.gates.iter().all(|g| g.reused_from.is_none()));
 }
+
+/// A worker allowed to lease formal/experimental jobs; its fake results are
+/// still DEMO-capped.
+async fn formal_capable_worker(app: &TestApp) -> common::fake_worker::FakeWorker {
+    let (s, w) = app
+        .admin_post(
+            "/v1/admin/workers",
+            json!({"name": "fc", "sandbox_backend": "firecracker", "tier_cap": "formal"}),
+        )
+        .await;
+    assert_eq!(s, 201);
+    common::fake_worker::FakeWorker::new(&app.worker_base, w["token"].as_str().unwrap())
+}
+
+fn gate_of(v: &SubmissionView, o: ObligationId) -> &GateResult {
+    v.gates.iter().find(|g| g.gate == o).expect("gate present")
+}
+
+/// Master spec §8: on an experimental challenge a failed ARTIFACT_BINDING
+/// (e.g. no certificate) is reported but does not stop the test and
+/// benchmark stages, and it never enters the decision.
+#[tokio::test]
+async fn experimental_formal_gates_are_diagnostic() {
+    let app = spawn().await;
+    let chal = app
+        .register(&challenge_def(Tier::Experimental, "exp-diag"))
+        .await;
+    let v = app.submit(&chal, b"pkg", "e1", None).await;
+    let mut w = formal_capable_worker(&app).await;
+    w.behavior.fail_gate = Some(ObligationId::ArtifactBinding);
+    let kinds = w.drain().await;
+    for k in [
+        JobKind::FormalCheck,
+        JobKind::Conformance,
+        JobKind::Adversarial,
+        JobKind::Benchmark,
+    ] {
+        assert!(kinds.contains(&k), "{k} did not run: {kinds:?}");
+    }
+    let v = app.view(&v.id).await;
+    let ab = gate_of(&v, ObligationId::ArtifactBinding);
+    assert_eq!(ab.status, GateStatus::Fail, "the failure stays visible");
+    assert!(!ab.mandatory, "diagnostic on experimental tier");
+    assert!(gate_of(&v, ObligationId::Benchmark).mandatory);
+    assert_eq!(v.decision, Some(Decision::Admitted));
+    assert!(v.reason_codes.contains(&ReasonCode::ObligationUndischarged));
+    let (_, lb) = app.get_json(&format!("/v1/leaderboards/{chal}")).await;
+    assert!(lb.as_array().unwrap().iter().all(|e| e["rank"].is_null()));
+}
+
+/// Experimental tier: conformance stays blocking (claims must be right before
+/// anything is measured).
+#[tokio::test]
+async fn experimental_conformance_failure_still_fails_fast() {
+    let app = spawn().await;
+    let chal = app
+        .register(&challenge_def(Tier::Experimental, "exp-conf"))
+        .await;
+    let v = app.submit(&chal, b"pkg", "e2", None).await;
+    let mut w = formal_capable_worker(&app).await;
+    w.behavior.fail_gate = Some(ObligationId::ConformanceDifferential);
+    let kinds = w.drain().await;
+    assert!(!kinds.contains(&JobKind::Benchmark), "{kinds:?}");
+    let v = app.view(&v.id).await;
+    assert_eq!(v.decision, Some(Decision::Rejected));
+    assert!(gate_of(&v, ObligationId::ConformanceDifferential).mandatory);
+}
+
+/// Formal tier is unaffected: a failed ARTIFACT_BINDING is mandatory, fails
+/// fast at FORMAL_CHECK and rejects.
+#[tokio::test]
+async fn formal_tier_artifact_binding_still_blocks() {
+    let app = spawn().await;
+    let chal = app
+        .register(&challenge_def(Tier::Formal, "formal-ab"))
+        .await;
+    let v = app.submit(&chal, b"pkg", "f2", None).await;
+    let mut w = formal_capable_worker(&app).await;
+    w.behavior.fail_gate = Some(ObligationId::ArtifactBinding);
+    let kinds = w.drain().await;
+    assert_eq!(
+        kinds,
+        vec![JobKind::Validate, JobKind::Build, JobKind::FormalCheck]
+    );
+    let v = app.view(&v.id).await;
+    assert_eq!(v.decision, Some(Decision::Rejected));
+    assert_eq!(v.accepted, Some(false));
+    assert!(gate_of(&v, ObligationId::ArtifactBinding).mandatory);
+    assert!(v.gates.iter().all(|g| g.gate != ObligationId::Benchmark));
+}

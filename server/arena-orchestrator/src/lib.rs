@@ -11,6 +11,11 @@
 //! run row, so concurrent completions of parallel jobs are serialized and the
 //! join is exact.
 //!
+//! * Experimental tier: the formal gates and `ARTIFACT_BINDING` are
+//!   diagnostic (`ChallengeDefinition::blocking_obligations`): reported with
+//!   `mandatory = false`, never fail-fast, never in the decision; when they
+//!   did not all pass the run carries their reason codes plus
+//!   `OBLIGATION_UNDISCHARGED`. Formal and demo tier are unchanged.
 //! * Fail-fast: after any mandatory `FAIL` the run is decided immediately;
 //!   outstanding jobs are cancelled and the required gates that never ran are
 //!   recorded in `not_run_gates`.
@@ -489,7 +494,7 @@ impl Orchestrator {
         if entry.tier_rank < tier_rank(ctx.run.challenge_tier) {
             return Ok(false);
         }
-        let required = ctx.chal.definition.required_obligations.clone();
+        let required = ctx.chal.definition.blocking_obligations();
         for g in &entry.gates {
             let mut g = g.clone();
             g.mandatory = required.contains(&g.gate);
@@ -555,9 +560,13 @@ impl Orchestrator {
         let (mut decision, mut accepted) = match &finish {
             Finish::Infra(_) => (Decision::InfraError, false),
             Finish::Cancelled(_) => (Decision::Cancelled, false),
-            Finish::Completed | Finish::FailFast | Finish::Blocked(_) => {
-                decide(&gates, &def.required_obligations, &def.not_applicable_gates)
-            }
+            // Experimental tier: formal gates are diagnostic, so they are
+            // left out of the decision (formal/demo: every required gate).
+            Finish::Completed | Finish::FailFast | Finish::Blocked(_) => decide(
+                &gates,
+                &def.blocking_obligations(),
+                &def.not_applicable_gates,
+            ),
         };
         for g in gates
             .iter()
@@ -571,6 +580,25 @@ impl Orchestrator {
             _ => {}
         }
         if !not_run.is_empty() && decision != Decision::Admitted {
+            reasons.push(ReasonCode::ObligationUndischarged);
+        }
+        // Experimental: diagnostic (formal) gates never decide the run, but a
+        // run whose formal obligations did not all pass says so in its reason
+        // codes, so an experimental ADMITTED is never read as formal acceptance.
+        let diagnostic = def.diagnostic_obligations();
+        let diag_open: Vec<&GateResult> = gates
+            .iter()
+            .filter(|g| {
+                diagnostic.contains(&g.gate)
+                    && g.status != GateStatus::Pass
+                    && !(g.status == GateStatus::NotApplicable
+                        && def.not_applicable_gates.contains(&g.gate))
+            })
+            .collect();
+        for g in &diag_open {
+            reasons.extend(g.reason_codes.iter().copied());
+        }
+        if !diag_open.is_empty() || diagnostic.iter().any(|o| not_run.contains(o)) {
             reasons.push(ReasonCode::ObligationUndischarged);
         }
         if ctx.run.tier == Tier::Demo || ctx.run.tier != ctx.run.challenge_tier {

@@ -36,6 +36,12 @@ pub const ALL_OBLIGATIONS: &[ObligationId] = &[
     ObligationId::Benchmark,
 ];
 
+/// Minimum obligations of an `experimental` challenge. `ARTIFACT_BINDING` is
+/// required so the judge always evaluates and reports it, but on experimental
+/// tier it (like every formal obligation) is **diagnostic**: the server never
+/// lets it block the conformance / adversarial / benchmark stages and never
+/// lets it enter the decision (`ChallengeDefinition::blocking_obligations`).
+/// Experimental runs are never ranked and never formally accepted.
 pub const EXPERIMENTAL_MIN: &[ObligationId] = &[
     ObligationId::PkgWellformed,
     ObligationId::BuildReproducible,
@@ -333,6 +339,13 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
         if !req.contains(&o) {
             f.err(format!("{tier:?} tier must require {o:?}"));
         }
+    }
+    let diagnostic = def.diagnostic_obligations();
+    if !diagnostic.is_empty() {
+        f.warn(format!(
+            "experimental tier: {diagnostic:?} are diagnostic (evaluated and reported, never blocking, \
+             never in the decision; no rank, no formal acceptance)"
+        ));
     }
 
     // --- hardware / workloads / measurement --------------------------------

@@ -1,0 +1,11 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "ARTIFACT_BINDING_FAILED",
+      "CERTIFICATE_MISSING"
+    ]
+  },
+  "route": "candidate-native",
+  "description": "certificate constant absent AND a candidate-built native verifier (e.g. examples/zkvm-sp1): both facts are reported"
+}

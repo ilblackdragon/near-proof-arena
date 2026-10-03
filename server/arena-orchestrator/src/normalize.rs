@@ -211,6 +211,8 @@ pub fn check_result(
     worker_cap: Tier,
 ) -> Result<Normalized, String> {
     let required = &chal.required_obligations;
+    // `mandatory` = blocking (experimental: formal gates are diagnostic).
+    let blocking = chal.blocking_obligations();
     let owned = kind.owned_gates();
 
     // ---- tier cap: min(job tier, worker registration, result's own claim);
@@ -236,7 +238,7 @@ pub fn check_result(
         if !seen.insert(g.gate) {
             return Err(format!("duplicate gate {:?}", g.gate));
         }
-        let mut g = sanitize_gate(g, required);
+        let mut g = sanitize_gate(g, &blocking);
         if tier_cap == Tier::Demo && !g.reason_codes.contains(&ReasonCode::DemoOnly) {
             g.reason_codes.push(ReasonCode::DemoOnly);
         }
@@ -247,7 +249,7 @@ pub fn check_result(
         if !seen.contains(gate) && required.contains(gate) {
             gates.push(synthesized_unknown(
                 *gate,
-                required,
+                &blocking,
                 "worker did not report a result for this required gate",
             ));
             definite = false;
@@ -301,7 +303,7 @@ pub fn check_result(
                             .iter()
                             .position(|g| g.gate == ObligationId::PkgWellformed)
                             .unwrap();
-                        gates[i] = server_fail(ObligationId::PkgWellformed, code, &why, required);
+                        gates[i] = server_fail(ObligationId::PkgWellformed, code, &why, &blocking);
                     }
                     None => {
                         let mut m = m;

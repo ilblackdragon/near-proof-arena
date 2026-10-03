@@ -34,6 +34,10 @@ challenges/
    * `zero_knowledge`: `FORMAL_ZK` is never not-applicable;
    * only `FORMAL_ZK` may ever be not-applicable; nothing is both required and N/A;
    * `experimental` requires at least PKG/BUILD/BINDING/CONFORMANCE/ADVERSARIAL/RELIABILITY/RESOURCE;
+     on experimental tier BINDING and every FORMAL_*/AXIOM_AUDIT obligation is
+     *diagnostic*: evaluated and reported, never blocking the test/benchmark
+     stages, never part of the decision (no rank, no formal acceptance;
+     `arena-admin` prints a warning naming them);
      `demo` requires at least `PKG_WELLFORMED`.
 7. Axiom allowlist ⊆ {`propext`, `Classical.choice`, `Quot.sound`}; formal tier
    names ≥ 1 rechecker; `formal_spec.lean_toolchain == toolchain_policy.lean_toolchain`.

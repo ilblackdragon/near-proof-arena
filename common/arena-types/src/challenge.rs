@@ -233,8 +233,98 @@ impl ChallengeDefinition {
     pub fn digest(&self) -> Result<Digest, canonical::CanonicalError> {
         canonical::sha256_digest(self)
     }
+    /// Required obligations that decide the run and stop it on `FAIL`
+    /// (fail-fast). On `formal` and `demo` tier: every required obligation.
+    /// On `experimental` tier the formal obligations and `ARTIFACT_BINDING`
+    /// are **diagnostic** (master spec §8: experimental submissions run tests
+    /// and collect timings, but get no rank and no formal acceptance): they
+    /// are evaluated and reported, never block the test/benchmark stages and
+    /// never enter the decision. Build, conformance, adversarial and resource
+    /// obligations stay blocking on every tier.
+    pub fn blocking_obligations(&self) -> Vec<crate::ObligationId> {
+        self.required_obligations
+            .iter()
+            .copied()
+            .filter(|o| self.tier != Tier::Experimental || !o.is_formal())
+            .collect()
+    }
+    /// Required obligations that are reported but non-blocking (see
+    /// [`Self::blocking_obligations`]); empty unless `tier = experimental`.
+    pub fn diagnostic_obligations(&self) -> Vec<crate::ObligationId> {
+        self.required_obligations
+            .iter()
+            .copied()
+            .filter(|o| self.tier == Tier::Experimental && o.is_formal())
+            .collect()
+    }
     /// `chl_` + first 32 hex chars of the canonical digest.
     pub fn id(&self) -> Result<ChallengeId, canonical::CanonicalError> {
         Ok(format!("chl_{}", &self.digest()?.hex()[..32]))
+    }
+}
+
+#[cfg(test)]
+mod blocking_tests {
+    use super::Tier;
+    use crate::ObligationId::{self, *};
+
+    fn def(tier: Tier, req: Vec<ObligationId>) -> super::ChallengeDefinition {
+        let mut d: super::ChallengeDefinition = serde_json::from_str(include_str!(
+            "../../../challenges/chl_5ef2bc7d2068219635426e47ca46bfbb.json"
+        ))
+        .unwrap();
+        d.tier = tier;
+        d.required_obligations = req;
+        d
+    }
+
+    #[test]
+    fn formal_and_demo_block_on_everything_required() {
+        let req = vec![
+            PkgWellformed,
+            ArtifactBinding,
+            AxiomAudit,
+            ConformanceDifferential,
+        ];
+        for t in [Tier::Formal, Tier::Demo] {
+            let d = def(t, req.clone());
+            assert_eq!(d.blocking_obligations(), req);
+            assert!(d.diagnostic_obligations().is_empty());
+        }
+    }
+
+    #[test]
+    fn experimental_formal_gates_are_diagnostic() {
+        let d = def(
+            Tier::Experimental,
+            vec![
+                PkgWellformed,
+                BuildReproducible,
+                ArtifactBinding,
+                FormalSemanticSoundness,
+                AxiomAudit,
+                ConformanceDifferential,
+                AdversarialProofs,
+                ProverReliability,
+                ResourceLimits,
+                Benchmark,
+            ],
+        );
+        assert_eq!(
+            d.blocking_obligations(),
+            vec![
+                PkgWellformed,
+                BuildReproducible,
+                ConformanceDifferential,
+                AdversarialProofs,
+                ProverReliability,
+                ResourceLimits,
+                Benchmark
+            ]
+        );
+        assert_eq!(
+            d.diagnostic_obligations(),
+            vec![ArtifactBinding, FormalSemanticSoundness, AxiomAudit]
+        );
     }
 }

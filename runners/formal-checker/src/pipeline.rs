@@ -1012,12 +1012,14 @@ impl FormalChecker {
                 }
             };
             if matches!(req.route, VerifierRoute::CandidateNative) {
+                // Never passes. The check still runs on (as the standard
+                // route) so the report also says whether a certificate exists
+                // at all (CERTIFICATE_MISSING) and what else is wrong with it.
                 findings.push(Finding::new(
                     ReasonCode::ArtifactBindingFailed,
                     Scope::All,
                     "candidate-built native verifier: no route binds a candidate binary to the statement (use verify_route = \"native-lean\" so the judge builds it from the model)".into(),
                 ));
-                break 'pipeline;
             }
             if req.certificate.is_empty() || !req.certificate.split('.').all(staging::is_ident) {
                 findings.push(Finding::new(
