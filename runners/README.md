@@ -293,12 +293,10 @@ formal obligations re-checked. Results: `docs/e2e-results/milestone-d/`.
   is DEMO-only.
 * `prepare --out` is pre-created on bwrap-dev but not on firecracker:
   candidates should `mkdir -p` it.
-* `examples/bench_session.rs` (from main; drives
-  `benchmarks/baseline/run_baseline.py`) is written against the
-  pre-arena-jobs worker API (explicit batches and seeds in `BenchmarkJob`).
-  It is excluded from default builds (`--features legacy-bench-session`)
-  until it is ported to `ExecJob` with an oracle that serves the given
-  batches.
+* `examples/bench_session.rs` (drives `benchmarks/baseline/run_baseline.py`)
+  runs the real BENCHMARK stage on Firecracker for an `ExecJob` built from a
+  host-built bundle, its frozen public dir and the judge-built native
+  verifier; batches come from the worker's NEAR oracle (public seeds).
 * bench-spec-v1.1 `vm_per_batch` (from main) is ported into the integrated
   BENCHMARK stage (`run_prove_batch` / `run_verify_batch`, npai shadow
   included). It needs a guest rootfs + fc-runner built from this tree (steps

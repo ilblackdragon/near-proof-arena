@@ -36,6 +36,12 @@ pub struct ExpectedConfig {
 pub struct ChallengeFormalConfig {
     pub schema: String,
     pub challenge: String,
+    /// Names of successor challenges with identical formal semantics (same
+    /// relation, spec tree, claim encoding, statement) that use this
+    /// configuration too, e.g. a successor that only pins baselines, the
+    /// checker identity or the benchmark procedure.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub aliases: Vec<String>,
     pub trusted: Vec<TrustedPackageConfig>,
     /// Module prefixes candidates may not define (judge namespaces).
     pub reserved_prefixes: Vec<String>,

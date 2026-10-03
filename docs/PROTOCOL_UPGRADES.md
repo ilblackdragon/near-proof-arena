@@ -238,3 +238,45 @@ these baselines.
 ```sh
 tools/upgrade-demo.sh [OUT_DIR]      # needs the nearcore clone with both tags and the shared Postgres
 ```
+
+### 7.3 Production checker pin + bench-spec-v1.1: v1.1 → v1.2
+
+Integration found that v1 and v1.1 pin `toolchain_policy.checker_image` to
+the identity of one host build of the checker tools. The production
+Firecracker FORMAL_CHECK worker runs the digest-pinned lean-checker image,
+whose tools report another identity. Formal gates therefore came out
+UNKNOWN in production, and Milestone D passed only through a locally signed
+successor. The checker pin and the procedure both change what a result
+means, so the fix is a new successor, `near-transfer-receipt-v1-2`
+(`chl_3be93793610370275ae40f36a475f01f`, supersedes `chl_f7eb…`):
+
+* `checker_image = sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e`.
+  This is `formal-check --print-image-digest` with the tools of lean-checker
+  image `sha256:d85133a1…`, the image the worker selects (the newest
+  installed one). The older image `sha256:706f29e0…` carries an
+  `arena-audit` whose tools key does not match the current checker, so it
+  is not usable.
+* `measurement.invocation_mode = vm_per_batch` (BENCHMARK_SPEC §4.4).
+* A new baseline measured with that procedure through Firecracker, on an
+  unsigned pre-baseline draft. `pin_baseline.py --base` fills in only the
+  baseline and refuses a session whose calibration failed.
+
+```sh
+python3 benchmarks/baseline/run_baseline.py --challenge challenges/drafts/near-transfer-receipt-v1-2.measure.json \
+  --package examples/reexec-witness --oracle oracle/target/debug/near-arena-oracle \
+  --fc-deps /data/illia/nearproof-deps/firecracker-rc --cpus 4,5,6,7,20,21,22,23 --out <results>
+python3 benchmarks/baseline/pin_baseline.py --base challenges/drafts/near-transfer-receipt-v1-2.measure.json \
+  --summary <results>/summary.json --out challenges/drafts/near-transfer-receipt-v1-2.draft.json
+target/debug/arena-admin supersede --old challenges/chl_f7eb2d91bf7b363eee134b6ad9d3e011.json \
+  --draft challenges/drafts/near-transfer-receipt-v1-2.draft.json \
+  --key /data/illia/nearproof-deps/keys/governance-local.key --pubkey challenges/governance-local.pub
+```
+
+The formal-check configuration `runners/formal-checker/challenges/near-transfer-receipt-v1.json`
+lists `near-transfer-receipt-v1-1` and `-v1-2` as `aliases`. Their formal
+semantics are unchanged, and without the aliases the worker found no formal
+configuration, so every formal gate was UNKNOWN.
+
+`tests/e2e/milestone-d.sh` now runs against the signed v1.2 itself. It
+signs a local successor only if the pinned checker identity differs from
+the worker's. Results: `docs/e2e-results/milestone-d-v1-2/`.

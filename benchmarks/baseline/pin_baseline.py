@@ -15,6 +15,41 @@ Then sign it with `arena-admin supersede` (see benchmarks/baseline/README.md).
 """
 import argparse, hashlib, json, sys
 
+# Mode 2 (`--base`): the session measured an unsigned successor draft whose
+# baseline is still null (e.g. one that also changes the procedure or the
+# checker pin); the output is that draft with ONLY the baseline filled in.
+if "--base" in sys.argv:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--base", required=True)
+    ap.add_argument("--summary", required=True)
+    ap.add_argument("--out", required=True)
+    a = ap.parse_args()
+    jcs = lambda v: json.dumps(v, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    base = json.load(open(a.base))
+    bid = "chl_" + hashlib.sha256(jcs(base).encode()).hexdigest()[:32]
+    s = json.load(open(a.summary))
+    if s["challenge_id"] != bid:
+        sys.exit(f"summary measured {s['challenge_id']}, not the draft {bid}")
+    ws = base["workload_suite"]
+    if ws["baseline_submission"] is not None or ws["baseline_ns"]:
+        sys.exit("draft already has a baseline")
+    if s["calibration"]["ok"] is not True:
+        sys.exit(f"session calibration failed ({s['calibration']['reasons']}): infra-invalid, refusing to pin")
+    if s.get("flags"):
+        sys.exit(f"session flags {s['flags']}: refusing to pin")
+    if any(g["status"] != "PASS" for g in s["gates"].values()):
+        sys.exit(f"gates not PASS: {s['gates']}")
+    classes = {c["id"] for c in ws["classes"]}
+    b = sorted((cid, ns) for cid, ns in s["baseline_ns"])
+    if {c for c, _ in b} != classes or any(ns <= 0 for _, ns in b):
+        sys.exit(f"baseline_ns {b} does not cover {sorted(classes)}")
+    new = json.loads(json.dumps(base))
+    new["workload_suite"]["baseline_submission"] = s["reference_candidate"]["package_digest"]
+    new["workload_suite"]["baseline_ns"] = [[c, ns] for c, ns in b]
+    open(a.out, "w").write(json.dumps(new, indent=2, ensure_ascii=False) + "\n")
+    print(a.out, "measured on", bid, "baseline_ns", b)
+    sys.exit(0)
+
 
 def jcs(v):
     return json.dumps(v, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
