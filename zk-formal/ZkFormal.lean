@@ -29,3 +29,4 @@ import ZkFormal.Udr.Poly
 import ZkFormal.Udr.RS
 import ZkFormal.Udr.Statements
 import ZkFormal.Udr.Compose
+import ZkFormal.Udr.BW
