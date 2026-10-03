@@ -125,14 +125,15 @@ def GpGammaStmt : Prop :=
 `m₀ + α·m₁ + α²·m₂ + …`. -/
 def fp {K : Type} [Field K] (α : K) (m : List K) : K := m.foldr (fun a acc => a + α * acc) 0
 
-/-- **Fingerprint round.** Distinct multisets of width-`w` messages have
-fingerprint multisets that coincide for at most `max |A| |B| · w`
-challenges, provided the field is large (`Kall` enumerates `K`). -/
+/-- **Fingerprint round.** Distinct multisets of width-`w` messages (all
+drawn from a list `Ms` of candidate messages; multiplicities are expanded in
+`A`, `B`) have fingerprint multisets that coincide for at most `|Ms| · w`
+challenges.  (Proof idea: fix a message `m*` whose multiplicities differ; a
+bad `α` must make `fp α m* = fp α m` for some other `m ∈ Ms`.)  The bound
+depends on the number of *distinct* messages, not on multiplicities. -/
 def GpAlphaStmt : Prop :=
-  ∀ (K : Type) [Field K] (w : Nat) (A B : List (List K)) (Ks Kall : List K),
-    Ks.Nodup → Kall.Nodup → (∀ x, x ∈ Kall) →
-    (A.length + B.length) * (A.length + B.length) * w < Kall.length →
-    (∀ m, m ∈ A ++ B → m.length = w) → ¬ A.Perm B →
-    count Ks (fun α => (A.map (fp α)).Perm (B.map (fp α))) ≤ max A.length B.length * w
+  ∀ (K : Type) [Field K] (w : Nat) (A B Ms : List (List K)) (Ks : List K),
+    Ks.Nodup → (∀ m, m ∈ A ++ B → m ∈ Ms ∧ m.length = w) → ¬ A.Perm B →
+    count Ks (fun α => (A.map (fp α)).Perm (B.map (fp α))) ≤ Ms.length * w
 
 end ZkFormal.Udr
