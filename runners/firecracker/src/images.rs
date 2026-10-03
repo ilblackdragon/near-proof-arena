@@ -47,7 +47,15 @@ pub struct StagedTree {
     pub dirs: u64,
     pub bytes: u64,
     pub blocks: u64,
+    /// Every staged entry (dirs, files, symlinks), relative, for ownership
+    /// normalization in the image.
+    pub paths: Vec<String>,
 }
+
+/// Version of the image layout produced from a staged tree; part of every
+/// image-cache key so images built by older code (e.g. before modes and
+/// ownership were normalized) are never reused.
+pub const IMAGE_FORMAT: &str = "v2";
 
 fn spec_err(s: impl Into<String>) -> InfraError {
     InfraError::InvalidSpec(s.into())
@@ -60,6 +68,8 @@ pub fn stage_tree(src: &Path, dst: &Path, limits: &TreeLimits) -> Result<StagedT
         return Err(spec_err(format!("{} is not a directory", src.display())));
     }
     fs::create_dir(dst)?;
+    // explicit chmod: independent of the process umask
+    fs::set_permissions(dst, fs::Permissions::from_mode(0o755))?;
     let mut entries: Vec<(String, &'static str, String)> = Vec::new();
     let mut st = StagedTree {
         dir: dst.to_path_buf(),
@@ -68,6 +78,7 @@ pub fn stage_tree(src: &Path, dst: &Path, limits: &TreeLimits) -> Result<StagedT
         dirs: 0,
         bytes: 0,
         blocks: 0,
+        paths: Vec::new(),
     };
     copy_dir(src, dst, "", limits, &mut st, &mut entries, 0)?;
     entries.sort();
@@ -106,6 +117,10 @@ fn copy_dir(
             format!("{rel}/{name}")
         };
         validate_rel_path(&relp).map_err(|m| spec_err(format!("{relp:?}: {m}")))?;
+        if relp.contains('"') {
+            return Err(spec_err(format!("{relp:?}: '\"' in path")));
+        }
+        st.paths.push(relp.clone());
         if st.files + st.dirs >= limits.max_entries {
             return Err(spec_err("too many entries"));
         }
@@ -126,11 +141,14 @@ fn copy_dir(
                 .read(true)
                 .custom_flags(libc::O_NOFOLLOW)
                 .open(e.path())?;
+            let mode = if exec { 0o755 } else { 0o644 };
             let mut out = OpenOptions::new()
                 .write(true)
                 .create_new(true)
-                .mode(if exec { 0o755 } else { 0o644 })
+                .mode(mode)
                 .open(&to)?;
+            // fchmod: the create mode above is filtered by the umask
+            out.set_permissions(fs::Permissions::from_mode(mode))?;
             let mut h = Sha256::new();
             let mut buf = vec![0u8; 1 << 20];
             let mut n_total = 0u64;
@@ -257,6 +275,7 @@ pub fn build_ro_image(st: &StagedTree, image: &Path) -> Result<(), InfraError> {
                         err.trim()
                     )));
                 }
+                normalize_owner(st, image)?;
                 fs::set_permissions(image, fs::Permissions::from_mode(0o444))?;
                 return Ok(());
             }
@@ -267,6 +286,39 @@ pub fn build_ro_image(st: &StagedTree, image: &Path) -> Result<(), InfraError> {
         }
     }
     Err(last.unwrap())
+}
+
+/// mke2fs -d copies the staging files' owner (the host user); make every
+/// inode root:root so the image is a function of the staged content only.
+fn normalize_owner(st: &StagedTree, image: &Path) -> Result<(), InfraError> {
+    let mut cmds = String::new();
+    for p in &st.paths {
+        cmds.push_str(&format!("sif \"/{p}\" uid 0\nsif \"/{p}\" gid 0\n"));
+    }
+    if cmds.is_empty() {
+        return Ok(());
+    }
+    let cmd_file = image.with_extension("owner.cmd");
+    fs::write(&cmd_file, cmds)?;
+    let out = Command::new("debugfs")
+        .arg("-w")
+        .arg("-f")
+        .arg(&cmd_file)
+        .arg(image)
+        .env_clear()
+        .env("PATH", "/usr/sbin:/sbin:/usr/bin:/bin")
+        .output()
+        .map_err(|e| InfraError::Unavailable(format!("debugfs: {e}")));
+    let _ = fs::remove_file(&cmd_file);
+    let out = out?;
+    let err = String::from_utf8_lossy(&out.stderr);
+    if !out.status.success() || err.lines().any(|l| !l.starts_with("debugfs ")) {
+        return Err(InfraError::Backend(format!(
+            "debugfs owner normalization: {}",
+            err.trim()
+        )));
+    }
+    Ok(())
 }
 
 /// Fresh empty ext4 scratch filesystem owned by the guest candidate uid.
@@ -362,6 +414,27 @@ pub fn evict_cache(dir: &Path, max_bytes: u64) -> usize {
         }
     }
     evicted
+}
+
+/// Remove cache entries built by an older image format (keys without the
+/// current `IMAGE_FORMAT` prefix). Running jobs hold hardlinks, so this is
+/// safe at any time.
+pub fn purge_stale_cache(dir: &Path) -> usize {
+    let Ok(rd) = fs::read_dir(dir) else { return 0 };
+    let want = format!("{IMAGE_FORMAT}-");
+    let mut n = 0;
+    for e in rd.flatten() {
+        let name = e.file_name();
+        let Some(name) = name.to_str() else { continue };
+        if name.ends_with(".ext4")
+            && !name.starts_with('.')
+            && !name.starts_with(&want)
+            && fs::remove_file(e.path()).is_ok()
+        {
+            n += 1;
+        }
+    }
+    n
 }
 
 /// Hardlink `src` to `dst`, falling back to a copy across filesystems.

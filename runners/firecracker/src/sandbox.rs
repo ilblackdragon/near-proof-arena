@@ -208,6 +208,7 @@ impl FirecrackerSandbox {
         let rootfs_digest = images::file_digest(&cfg.rootfs)?;
         fs::create_dir_all(cfg.work_root.join("jobs"))?;
         fs::create_dir_all(cfg.work_root.join("cache"))?;
+        images::purge_stale_cache(&cfg.work_root.join("cache"));
         let ncpus = std::thread::available_parallelism()
             .map(|n| n.get() as u32)
             .unwrap_or(1);
@@ -421,11 +422,11 @@ impl FirecrackerSandbox {
     /// Ensure the root image for `img` is in the cache (verifying its digest
     /// on a staged copy when building it).
     fn prepare_root_image(&self, img: &RootImage, staging: &Path) -> Result<PathBuf, InfraError> {
-        let cached = self
-            .cfg
-            .work_root
-            .join("cache")
-            .join(format!("root-{}.ext4", img.digest.hex()));
+        let cached = self.cfg.work_root.join("cache").join(format!(
+            "{}-root-{}.ext4",
+            images::IMAGE_FORMAT,
+            img.digest.hex()
+        ));
         if cached.exists() {
             images::touch(&cached);
             return Ok(cached);
@@ -524,9 +525,10 @@ impl FirecrackerSandbox {
             let _ = fs::remove_dir_all(t);
         }
         let key = match &kind {
-            MountKind::Dir => format!("dir-{}", st.digest.hex()),
+            MountKind::Dir => format!("{}-dir-{}", images::IMAGE_FORMAT, st.digest.hex()),
             MountKind::File { name } => format!(
-                "file-{}-{}",
+                "{}-file-{}-{}",
+                images::IMAGE_FORMAT,
                 hex::encode(Sha256::digest(name.as_bytes())),
                 st.digest.hex()
             ),
