@@ -217,6 +217,20 @@ the work dir).
   the shared host's fc-runner image was already rebuilt for v2, so the
   firecracker tests on this branch fail with `shim: bad job` until that
   lands (layout handling here is backend-generic via `GuestLayout`).
+* Shared host assets drift: the formal checker's `arena-audit` in
+  `~/.cache/arena-formal-checker` is rebuilt by the formal-checker lane; if
+  it is newer than this tree's `lean/ArenaAudit`, point `ARENA_AUDIT_BIN`
+  at a binary built from this tree (`lake build arena-audit`).
+* Hostile suite (`adversarial/hostile-submissions`) against the demo
+  challenge: all 33 REJECTED, none admitted/ranked; 10 match expect.json.
+  The formal/artifact-binding cases (13) target a challenge with formal
+  obligations (pending the NEAR challenge); most runtime cases' `prove`
+  writes no `claim.bin` for any encoding, so they fail `PROVER_RELIABILITY`
+  before reaching the attacked gate; `archive-device-file` /
+  `archive-hardlink` builders cannot create those entries unprivileged and
+  nest the package under `pkg/` (→ `MANIFEST_INVALID`);
+  `build-nonreproducible` uses `$RANDOM` under `set -u` in `/bin/sh` (dash)
+  and fails to build.
 * Sandbox *escape attempts* (reading host paths, clock tampering, ptrace)
   are contained but not detected/reported as `SANDBOX_VIOLATION`; only a
   forged guest report is.
