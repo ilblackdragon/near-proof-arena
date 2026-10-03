@@ -33,5 +33,4 @@ libc = "0.2"
 proptest = "1"
 tempfile = "3"
 ureq = { version = "2.12", default-features = false, features = ["json", "tls"] }
-libm = "0.2"
 unicode-normalization = "0.1"

@@ -21,10 +21,29 @@ dependencies = [
 [[package]]
 name = "arena-measure"
 version = "0.1.0"
+dependencies = [
+ "arena-sandbox",
+ "arena-types",
+ "proptest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror",
+]
 
 [[package]]
 name = "arena-sandbox"
 version = "0.1.0"
+dependencies = [
+ "arena-archive",
+ "arena-types",
+ "libc",
+ "serde",
+ "serde_json",
+ "tar",
+ "tempfile",
+ "thiserror",
+]
 
 [[package]]
 name = "arena-types"
