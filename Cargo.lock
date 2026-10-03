@@ -111,6 +111,7 @@ dependencies = [
 name = "arena-cli"
 version = "0.1.0"
 dependencies = [
+ "arena-archive",
  "arena-types",
  "clap",
  "hex",
