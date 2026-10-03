@@ -1,0 +1,27 @@
+# Pinned inputs for the arena Firecracker runner. Sourced by the scripts in
+# deploy/images/. Binaries are NOT committed; fetch.sh downloads them into
+# $ARENA_FC_DEPS (default /data/illia/nearproof-deps/firecracker) and verifies
+# every sha256 below. Changing a pin is a governed TCB change.
+
+# Firecracker + jailer release (static-pie x86_64 binaries inside the tgz).
+FC_VERSION=v1.17.0
+FC_TGZ_URL=https://github.com/firecracker-microvm/firecracker/releases/download/v1.17.0/firecracker-v1.17.0-x86_64.tgz
+FC_TGZ_SHA256=06094a1108ae9e82aa4c23a775aa92758f53f1175d422270d9d6162cb9ade558
+FIRECRACKER_SHA256=99ad0f5cd0514a88aad0e9ae8cfdb3cc3b4ab9d190e1194602406c786b5de7a5
+JAILER_SHA256=65ef226e96f0ceda55ba643f445801ef2cc0ea667ef67cad8ac4f406c9c8434f
+
+# Guest kernel: Firecracker CI build (newest published CI kernel line at pin
+# time; no loadable modules, virtio-blk/ext4/cgroup2 built in).
+KERNEL_VERSION=6.1.155
+KERNEL_URL=https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.15/x86_64/vmlinux-6.1.155
+KERNEL_SHA256=e20e46d0c36c55c0d1014eb20576171b3f3d922260d9f792017aeff53af3d4f2
+KERNEL_CONFIG_URL=https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.15/x86_64/vmlinux-6.1.155.config
+KERNEL_CONFIG_SHA256=024b2aae62fe7131f9a9ab80f27619c882c0a37265dd105adae01d2867bef7c3
+
+# Guest userland base (glibc, matches typical Rust/C build images).
+BASE_IMAGE=debian:bookworm-slim@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171
+
+# Docker's default seccomp profile used as the base for the delivery
+# container profile (we add exactly one rule: pivot_root, needed by jailer).
+DOCKER_SECCOMP_URL=https://raw.githubusercontent.com/moby/moby/v28.0.0/profiles/seccomp/default.json
+DOCKER_SECCOMP_SHA256=9c1025c88ccaa517b648da571961838744ea2137f176bfe6a48b21294cae9c76
