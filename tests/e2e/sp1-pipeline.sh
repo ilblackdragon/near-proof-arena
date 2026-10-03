@@ -47,7 +47,7 @@ WORK="${ARENA_SP1_WORK:-/data/illia/nearproof-deps/sp1-pipeline/work}"
 RESULTS="${ARENA_SP1_RESULTS:-$REPO/docs/e2e-results/sp1-pipeline/run}"
 CPUS="${ARENA_SP1_CPUS:-8-15}"
 ONLY="${ARENA_SP1_ONLY:-}"
-MODE="${ARENA_SP1_MODE:-full}"   # full | head (only the signed challenges/; SP1 to every NEAR one)
+MODE="${ARENA_SP1_MODE:-full}"   # full | head (only the signed challenges/; SP1 to every NEAR one) | exp (one experimental challenge: SP1 + reexec)
 NEAR=chl_5ef2bc7d2068219635426e47ca46bfbb
 GOV_KEY="${ARENA_GOV_LOCAL_KEY:-/data/illia/nearproof-deps/keys/governance-local.key}"
 GOV_PUB="$REPO/challenges/governance-local.pub"
@@ -89,11 +89,56 @@ cp "$REPO/challenges/"*.json "$REPO/challenges/"*.sig "$REPO/challenges/"*.pub "
 A2= B= M=
 CHALS=()
 for f in "$CH"/chl_*.json; do CHALS+=("$(basename "$f" .json)"); done
+sign_new() { # draft -> prints new id
+  local before; before=$(ls "$CH" | sort)
+  "$BIN/arena-admin" "$@" --key "$GOV_KEY" --challenges-dir "$CH" --security-dir "$REPO/security" >"$WORK/sign.log" 2>&1 \
+    || { cat "$WORK/sign.log" >&2; die "sign $*"; }
+  comm -13 <(echo "$before") <(ls "$CH" | sort) | grep -o '^chl_[0-9a-f]\{32\}' | head -1
+}
 if [ "$MODE" = head ]; then
   # Only the signed challenges in challenges/ (no local re-pins / twins).
   "$BIN/arena-admin" verify --pubkey "$GOV_PUB" --pubkey "$REPO/challenges/governance-dev.pub" \
     --security-dir "$REPO/security" --all-in "$CH" | tee "$RESULTS/challenges/verify.txt"
   printf '%s\n' "${CHALS[@]}" > "$RESULTS/challenges/ids.txt"
+elif [ "$MODE" = exp ]; then
+  # One fresh EXPERIMENTAL challenge from the current signed head (same
+  # semantics), sized for SP1, >= 5 measured runs; formal gates are diagnostic
+  # on experimental tier, so both candidates are measured on it.
+  BASE="${ARENA_SP1_BASE:-chl_3be93793610370275ae40f36a475f01f}"
+  python3 - "$REPO/challenges/$BASE.json" "$WORK" "$CPUS" <<'EOF'
+import json, sys, copy, datetime
+src, work, cpus = sys.argv[1:]
+d = copy.deepcopy(json.load(open(src)))
+t0 = datetime.datetime.fromisoformat(d["created_at"].replace("Z", "+00:00"))
+d["tier"] = "experimental"
+# name kept: the judge finds the formal config (and the native-lean route) by name
+d["season"] = d["season"] + "-EXPERIMENTAL-sp1-vs-reexec"
+d["supersedes"] = None
+d["required_obligations"] = ["PKG_WELLFORMED", "BUILD_REPRODUCIBLE", "ARTIFACT_BINDING",
+    "FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS", "FORMAL_CRYPTO_SOUNDNESS",
+    "FORMAL_IMPL_CONNECTION", "AXIOM_AUDIT", "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS",
+    "PROVER_RELIABILITY", "RESOURCE_LIMITS", "BENCHMARK"]
+d["hardware_profile"] = {
+    "id": "nearproof-local-ryzen9-9950x3d-fc8-48g",
+    "cpu_model": f"AMD Ryzen 9 9950X3D 16-Core Processor (local operator host, shared; Firecracker microVM, 8 vCPUs pinned to host CPUs {cpus} per candidate run)",
+    "vcpus": 8, "ram_bytes": 48 << 30, "gpu": None}
+d["resource_limits"]["max_ram_bytes"] = 48 << 30
+d["resource_limits"]["max_prove_ms"] = 600000
+d["measurement"].update({"warmup_runs": 1, "measured_runs": 5, "cold_runs": 1, "concurrency": 1, "per_run_timeout_ms": 600000})
+for c in d["workload_suite"]["classes"]:
+    c["batch_size"] = 1
+# the head's baselines were measured under its procedure (batch 8): not comparable here
+d["workload_suite"]["baseline_submission"] = None
+d["workload_suite"]["baseline_ns"] = []
+d["created_at"] = (t0 + datetime.timedelta(seconds=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+json.dump(d, open(f"{work}/e.draft.json", "w"), indent=2)
+EOF
+  E=$(sign_new sign "$WORK/e.draft.json")
+  "$BIN/arena-admin" verify --pubkey "$GOV_PUB" --pubkey "$REPO/challenges/governance-dev.pub" \
+    --security-dir "$REPO/security" "$CH/$E.json" 2>&1 | tee "$RESULTS/challenges/verify.txt"
+  cp "$CH/$E.json" "$CH/$E.sig" "$WORK/e.draft.json" "$RESULTS/challenges/"
+  printf 'BASE %s\nE %s\n' "$BASE" "$E" | tee "$RESULTS/challenges/ids.txt"
+  CHALS=("$BASE" "$E")
 else
 python3 - "$REPO/challenges/$NEAR.json" "$IDENT" "$WORK" <<'EOF'
 import json, sys, copy, datetime
@@ -141,12 +186,6 @@ m["required_obligations"] = ["PKG_WELLFORMED", "BUILD_REPRODUCIBLE",
 m["created_at"] = ts(3)
 json.dump(m, open(f"{work}/m.draft.json", "w"), indent=2)
 EOF
-sign_new() { # draft -> prints new id
-  local before; before=$(ls "$CH" | sort)
-  "$BIN/arena-admin" "$@" --key "$GOV_KEY" --challenges-dir "$CH" --security-dir "$REPO/security" >"$WORK/sign.log" 2>&1 \
-    || { cat "$WORK/sign.log" >&2; die "sign $*"; }
-  comm -13 <(echo "$before") <(ls "$CH" | sort) | grep -o '^chl_[0-9a-f]\{32\}' | head -1
-}
 A2=$(sign_new supersede --old "$CH/$NEAR.json" --draft "$WORK/a2.draft.json" --pubkey "$GOV_PUB")
 B=$(sign_new sign "$WORK/b.draft.json")
 M=$(sign_new sign "$WORK/m.draft.json")
@@ -235,6 +274,10 @@ want reexec-B && submit reexec-B examples/reexec-witness "$B"
 want sp1-B && submit sp1-B examples/zkvm-sp1 "$B"
 want sp1-A2 && submit sp1-A2 examples/zkvm-sp1 "$A2"
 want sp1-A1 && submit sp1-A1 examples/zkvm-sp1 "$NEAR"
+if [ "$MODE" = exp ]; then
+  submit sp1-E examples/zkvm-sp1 "$E"
+  submit reexec-E examples/reexec-witness "$E"
+fi
 if [ "$MODE" = head ]; then
   # Every signed NEAR challenge in challenges/, newest first; superseded ones
   # are closed by the server and must refuse the submission.
