@@ -110,6 +110,48 @@ dependencies = [
 ]
 
 [[package]]
+name = "arena-fc-proto"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "arena-fc-shim"
+version = "0.1.0"
+dependencies = [
+ "arena-fc-proto",
+ "libc",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "arena-firecracker"
+version = "0.1.0"
+dependencies = [
+ "arena-fc-proto",
+ "arena-types",
+ "hex",
+ "libc",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
+name = "arena-init"
+version = "0.1.0"
+dependencies = [
+ "arena-fc-proto",
+ "libc",
+ "serde_json",
+]
+
+[[package]]
 name = "arena-types"
 version = "0.1.0"
 dependencies = [

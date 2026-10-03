@@ -1,0 +1,11 @@
+[package]
+name = "arena-init"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "PID 1 inside arena Firecracker guests: mounts bundle/scratch, runs the candidate with limits, writes the report"
+
+[dependencies]
+arena-fc-proto = { path = "../proto" }
+libc = "0.2"
+serde_json.workspace = true
