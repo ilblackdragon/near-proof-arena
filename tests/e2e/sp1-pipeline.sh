@@ -33,7 +33,8 @@
 #      API PORT+1), ARENA_SP1_WORK (default /data/illia/nearproof-deps/sp1-pipeline/work),
 #      ARENA_SP1_RESULTS (default docs/e2e-results/sp1-pipeline),
 #      ARENA_SP1_CPUS (default 8-15: host CPUs for every candidate VM),
-#      ARENA_SP1_ONLY (comma list of submission labels to run; default all),
+#      ARENA_SP1_MODE=head (no local challenges; SP1 to every signed NEAR challenge,
+#      superseded ones expected to refuse), ARENA_SP1_ONLY (comma list of submission labels to run; default all),
 #      ARENA_SP1_TOOLCHAIN_IMAGE (default: the SP1 image from deploy/images/toolchain-sp1).
 set -euo pipefail
 
@@ -46,6 +47,7 @@ WORK="${ARENA_SP1_WORK:-/data/illia/nearproof-deps/sp1-pipeline/work}"
 RESULTS="${ARENA_SP1_RESULTS:-$REPO/docs/e2e-results/sp1-pipeline/run}"
 CPUS="${ARENA_SP1_CPUS:-8-15}"
 ONLY="${ARENA_SP1_ONLY:-}"
+MODE="${ARENA_SP1_MODE:-full}"   # full | head (only the signed challenges/; SP1 to every NEAR one)
 NEAR=chl_5ef2bc7d2068219635426e47ca46bfbb
 GOV_KEY="${ARENA_GOV_LOCAL_KEY:-/data/illia/nearproof-deps/keys/governance-local.key}"
 GOV_PUB="$REPO/challenges/governance-local.pub"
@@ -84,6 +86,15 @@ echo "lean-checker image $(basename "$LEAN_IMG"), checker identity $IDENT"
 CH="$WORK/challenges"
 rm -rf "$CH"; mkdir -p "$CH"
 cp "$REPO/challenges/"*.json "$REPO/challenges/"*.sig "$REPO/challenges/"*.pub "$CH/"
+A2= B= M=
+CHALS=()
+for f in "$CH"/chl_*.json; do CHALS+=("$(basename "$f" .json)"); done
+if [ "$MODE" = head ]; then
+  # Only the signed challenges in challenges/ (no local re-pins / twins).
+  "$BIN/arena-admin" verify --pubkey "$GOV_PUB" --pubkey "$REPO/challenges/governance-dev.pub" \
+    --security-dir "$REPO/security" --all-in "$CH" | tee "$RESULTS/challenges/verify.txt"
+  printf '%s\n' "${CHALS[@]}" > "$RESULTS/challenges/ids.txt"
+else
 python3 - "$REPO/challenges/$NEAR.json" "$IDENT" "$WORK" <<'EOF'
 import json, sys, copy, datetime
 src, ident, work = sys.argv[1:]
@@ -143,6 +154,8 @@ M=$(sign_new sign "$WORK/m.draft.json")
   --security-dir "$REPO/security" "$CH/$NEAR.json" "$CH/$A2.json" "$CH/$B.json" "$CH/$M.json" | tee "$RESULTS/challenges/verify.txt"
 for c in "$A2" "$B" "$M"; do cp "$CH/$c.json" "$CH/$c.sig" "$RESULTS/challenges/"; done
 printf 'A1 %s\nA2 %s\nB %s\nM %s\n' "$NEAR" "$A2" "$B" "$M" | tee "$RESULTS/challenges/ids.txt"
+CHALS+=("$A2" "$B" "$M")
+fi
 
 say "database $DB"
 case "$DB" in arena_sp1*) ;; *) die "refusing to manage database $DB";; esac
@@ -166,7 +179,7 @@ env ARENA_DATABASE_URL="$DBURL" ARENA_BIND_ADDR="127.0.0.1:$PORT" ARENA_WORKER_A
     --security-dir "$REPO/security" >"$WORK/server.log" 2>&1 &
 PIDS+=($!)
 for _ in $(seq 1 100); do curl -sf "http://127.0.0.1:$PORT/healthz" >/dev/null 2>&1 && break; sleep 0.2; done
-for c in "$NEAR" "$A2" "$B" "$M"; do
+for c in "${CHALS[@]}"; do
   curl -sf "http://127.0.0.1:$PORT/v1/challenges/$c" | python3 -c 'import json,sys; c=json.load(sys.stdin); print("registered", c["id"], c["tier"])' \
     || { tail -40 "$WORK/server.log"; die "challenge $c not registered"; }
 done
@@ -205,7 +218,12 @@ stage_dir() { # src label challenge -> package copy (git-tracked files + vendore
 declare -A SUBS
 submit() { # label src challenge
   local d; d=$(stage_dir "$2" "$1" "$3")
-  "$BIN/arena" submit "$d" --challenge "$3" --json >"$RESULTS/$1.submit.json" || { cat "$RESULTS/$1.submit.json"; die "submit $1"; }
+  if ! "$BIN/arena" submit "$d" --challenge "$3" --json >"$RESULTS/$1.submit.json" 2>"$RESULTS/$1.submit.err.txt"; then
+    # A refusal (e.g. a superseded, closed challenge) is a result, not a script failure.
+    echo "$1 -> REFUSED by the server (challenge $3): $(cat "$RESULTS/$1.submit.json" "$RESULTS/$1.submit.err.txt" | tr '\n' ' ')" | tee -a "$RESULTS/submissions.txt"
+    return 0
+  fi
+  rm -f "$RESULTS/$1.submit.err.txt"
   SUBS[$1]=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["id"])' "$RESULTS/$1.submit.json")
   echo "$1 -> ${SUBS[$1]} (challenge $3)" | tee -a "$RESULTS/submissions.txt"
 }
@@ -217,6 +235,13 @@ want reexec-B && submit reexec-B examples/reexec-witness "$B"
 want sp1-B && submit sp1-B examples/zkvm-sp1 "$B"
 want sp1-A2 && submit sp1-A2 examples/zkvm-sp1 "$A2"
 want sp1-A1 && submit sp1-A1 examples/zkvm-sp1 "$NEAR"
+if [ "$MODE" = head ]; then
+  # Every signed NEAR challenge in challenges/, newest first; superseded ones
+  # are closed by the server and must refuse the submission.
+  for c in $(cd "$CH" && grep -l '"name": "near-transfer-receipt' chl_*.json | xargs -n1 python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["created_at"], sys.argv[1][:-5])' | sort -r | cut -d' ' -f2); do
+    submit "sp1-$c" examples/zkvm-sp1 "$c"
+  done
+fi
 
 say "waiting for decisions"
 DEADLINE=$(( $(date +%s) + TIMEOUT ))
@@ -236,7 +261,7 @@ done
 for l in "${!SUBS[@]}"; do
   "$BIN/arena" report "${SUBS[$l]}" -o "$RESULTS/$l.report.json" >/dev/null 2>&1 || true
 done
-for c in "$NEAR" "$A2" "$B" "$M"; do
+for c in "${CHALS[@]}"; do
   "$BIN/arena" leaderboard --challenge "$c" --json >"$RESULTS/leaderboard.$c.json" || true
 done
 cp "$WORK/server.log" "$RESULTS/server.log.txt" 2>/dev/null || true
