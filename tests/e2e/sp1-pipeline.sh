@@ -277,6 +277,8 @@ want sp1-A1 && submit sp1-A1 examples/zkvm-sp1 "$NEAR"
 if [ "$MODE" = exp ]; then
   submit sp1-E examples/zkvm-sp1 "$E"
   submit reexec-E examples/reexec-witness "$E"
+  # the signed formal head too: decided at FORMAL_CHECK (cheap), shows the formal-tier verdict
+  submit sp1-head examples/zkvm-sp1 "$BASE"
 fi
 if [ "$MODE" = head ]; then
   # Every signed NEAR challenge in challenges/, newest first; superseded ones
