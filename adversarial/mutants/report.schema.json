@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "arena-mutation-report-v1",
+  "title": "Arena mutation-testing report",
+  "description": "Result of applying the operators in operators.json to a reference backend and rerunning the judge. This report measures GATE COVERAGE (does the judge catch broken backends), not candidate correctness.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "backend", "generated_at", "totals", "mutants", "disclaimer"],
+  "properties": {
+    "schema": {"const": "arena-mutation-report-v1"},
+    "backend": {"type": "string", "description": "examples/<backend> path and commit"},
+    "challenge_id": {"type": "string"},
+    "generated_at": {"type": "string"},
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generated", "killed", "survived", "equivalent", "timeout", "build_error", "gate_coverage_ppm"],
+      "properties": {
+        "generated": {"type": "integer"},
+        "killed": {"type": "integer"},
+        "survived": {"type": "integer"},
+        "equivalent": {"type": "integer"},
+        "timeout": {"type": "integer"},
+        "build_error": {"type": "integer"},
+        "gate_coverage_ppm": {
+          "type": "integer",
+          "description": "killed / (killed + survived) in parts-per-million, EXCLUDING equivalent/build_error/timeout from the denominator. This is a judge-gate-coverage ratio. It is NOT a formal-correctness percentage."
+        }
+      }
+    },
+    "mutants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["operator", "location", "classification"],
+        "properties": {
+          "operator": {"type": "string"},
+          "location": {"type": "string", "description": "file:line of the mutation"},
+          "classification": {"enum": ["killed", "survived", "equivalent", "timeout", "build_error"]},
+          "killed_by_gate": {"type": "string", "description": "obligation id of the gate that failed, when killed"},
+          "reason_codes": {"type": "array", "items": {"type": "string"}},
+          "equivalence_evidence": {"type": "string", "description": "why reclassified equivalent (oracle agreement on held-out set)"}
+        }
+      }
+    },
+    "disclaimer": {
+      "const": "Gate coverage is not formal correctness. A high kill ratio means the judge's gates catch these injected faults; it says nothing about soundness of an admitted proof, which rests on the formal certificate and axiom audit. Surviving equivalent mutants are expected and excluded."
+    }
+  }
+}
