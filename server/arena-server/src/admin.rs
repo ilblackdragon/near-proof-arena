@@ -146,6 +146,14 @@ async fn revoke(
             "submission is already revoked",
         ));
     };
+    // A revoked submission's formal results must not be reused by anyone.
+    let invalidated = arena_orchestrator::cache::invalidate_source(
+        &mut tx,
+        &id,
+        &admin.name,
+        &format!("source submission revoked: {why}"),
+    )
+    .await?;
     audit::record(
         &mut *tx,
         &Actor::admin(&admin.id),
@@ -153,7 +161,7 @@ async fn revoke(
         Some(&id),
         None,
         true,
-        json!({"reason": why}),
+        json!({"reason": why, "invalidated_formal_cache": invalidated}),
     )
     .await?;
     tx.commit().await?;

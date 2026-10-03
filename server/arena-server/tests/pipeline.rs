@@ -694,3 +694,32 @@ async fn redteam_formal_cache_covers_npai_bytecode() {
     assert_ne!(e.decision, Some(Decision::Admitted));
     assert!(e.gates.iter().all(|g| g.reused_from.is_none()));
 }
+
+/// Red-team RT-02: revoking a submission must stop its formal results from
+/// being reused. Before the fix, re-submitting the very same package (new
+/// submission id, not revoked) hit the revoked run's formal-cache entry and
+/// inherited its formal PASSes.
+#[tokio::test]
+async fn redteam_revocation_invalidates_formal_cache() {
+    let app = spawn().await;
+    let chal = app.register(&challenge_def(Tier::Demo, "demo-rt02")).await;
+    let w = app.fake_worker();
+    let a = app.submit(&chal, b"pkg-rt02-a", "rt02-a", None).await;
+    w.drain().await;
+    assert_eq!(app.view(&a.id).await.decision, Some(Decision::Admitted));
+    let (s, _) = app
+        .admin_post(
+            &format!("/v1/admin/submissions/{}/revoke", a.id),
+            json!({"reason": "certificate found unsound"}),
+        )
+        .await;
+    assert_eq!(s, 201);
+    let b = app.submit(&chal, b"pkg-rt02-b", "rt02-b", Some(&a.id)).await;
+    let kinds = w.drain().await;
+    assert!(
+        kinds.contains(&JobKind::FormalCheck),
+        "revoked submission's formal results were reused: {kinds:?}"
+    );
+    let b = app.view(&b.id).await;
+    assert!(b.gates.iter().all(|g| g.reused_from.is_none()));
+}
