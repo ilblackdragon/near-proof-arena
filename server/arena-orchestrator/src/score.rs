@@ -56,9 +56,43 @@ pub fn normalize_benchmark(
         c.baseline_ns = baselines.get(c.class_id.as_str()).copied().unwrap_or(0);
     }
     b.score_milli = compute_score_milli(&b);
+    b.cost = compute_cost(chal, &b);
     b.hardware_profile = arena_jobs::sanitize::sanitize_line(&b.hardware_profile, 128);
     b.measured_by = arena_jobs::sanitize::sanitize_line(&b.measured_by, 128);
     Ok(b)
+}
+
+/// The cost-board result (docs/BENCHMARK_SPEC.md §14), recomputed from the
+/// judge's per-run measurements and the challenge's pinned price model and
+/// reference costs. `None` for speed-only challenges (whatever the worker
+/// sent: scores of different kinds are never mixed) and when the per-run
+/// verify/bytes vectors are missing or inconsistent. The worker's bootstrap
+/// half-width is kept (as for the speed score).
+pub fn compute_cost(
+    chal: &ChallengeDefinition,
+    b: &BenchmarkResult,
+) -> Option<arena_types::CostResult> {
+    let sc = chal.scoring.as_ref()?;
+    if sc.kind != arena_types::ScoringKind::CostV1 || chal.check_scoring().is_err() {
+        return None;
+    }
+    let pm = sc.price_model.as_ref()?;
+    let digest = sc.price_model_digest.clone()?;
+    let prices = arena_measure::cost::Prices::from_model(pm, chal.hardware_profile.vcpus);
+    let runs = arena_measure::cost::class_runs_for(chal, &b.classes).ok()?;
+    let point = arena_measure::cost::cost_score(
+        &prices,
+        &runs,
+        b.prepare_ns,
+        sc.cost_baseline_prepare_ns.unwrap_or(0),
+    )
+    .ok()?;
+    let ci = b
+        .cost
+        .as_ref()
+        .filter(|c| c.price_model_digest == digest)
+        .and_then(|c| c.score_ci_milli);
+    Some(arena_measure::cost::to_contract(pm, digest, &point, ci))
 }
 
 /// `100 * exp(Σ_j w_j * ln(T_base_j / T_cand_j))`, in milli-units. `None` if any
@@ -102,6 +136,8 @@ mod tests {
             verify_median_ns: 1,
             proof_bytes_max: 1,
             peak_rss_bytes: 1,
+            verify_runs_ns: vec![],
+            proof_bytes_runs: vec![],
         }
     }
     fn br(classes: Vec<ClassMeasurement>) -> BenchmarkResult {
@@ -114,6 +150,7 @@ mod tests {
             prepare_ns: 0,
             public_artifact_bytes: 0,
             measured_by: "judge".into(),
+            cost: None,
         }
     }
     #[test]

@@ -12,6 +12,7 @@
 //! [`BatchSample`] from sandbox outcomes via [`BatchSample::push_prove`] /
 //! [`BatchSample::push_verify`].
 
+pub mod cost;
 pub mod score;
 pub mod stats;
 
@@ -27,6 +28,8 @@ pub struct BatchSample {
     prove_wall_ns: Vec<u64>,
     verify_wall_ns: Vec<u64>,
     pub proof_bytes_max: u64,
+    /// Σ proof bytes of the batch's timed proofs (cost_v1, §14).
+    pub proof_bytes_total: u64,
     pub peak_rss_bytes: u64,
 }
 
@@ -38,8 +41,19 @@ impl BatchSample {
     pub fn push_verify(&mut self, o: &SandboxOutcome) {
         self.verify_wall_ns.push(o.wall_ns);
     }
+    /// Every proof (also untimed warm-up ones) counts for `max_proof_bytes`.
     pub fn note_proof_bytes(&mut self, n: u64) {
         self.proof_bytes_max = self.proof_bytes_max.max(n);
+    }
+    /// A proof of a timed invocation: also counted in the batch's total
+    /// (the bytes term of the cost score, §14).
+    pub fn note_timed_proof_bytes(&mut self, n: u64) {
+        self.note_proof_bytes(n);
+        self.proof_bytes_total = self.proof_bytes_total.saturating_add(n);
+    }
+    /// Σ verify wall ns of the batch's timed proofs.
+    pub fn total_verify_ns(&self) -> u64 {
+        self.verify_wall_ns.iter().sum()
     }
     /// `T_run = Σ wall_ns` of the batch's prove invocations (§7.1).
     pub fn total_prove_ns(&self) -> u64 {
@@ -99,6 +113,12 @@ pub struct ClassSession {
     pub measured_runs_ns: Vec<u64>,
     pub fresh_runs_ns: Vec<u64>,
     pub verify_runs_ns: Vec<u64>,
+    /// Per measured run: Σ verify wall ns of the batch (cost_v1).
+    #[serde(default)]
+    pub measured_verify_runs_ns: Vec<u64>,
+    /// Per measured run: Σ proof bytes of the batch (cost_v1).
+    #[serde(default)]
+    pub measured_proof_bytes_runs: Vec<u64>,
     pub proof_bytes_max: u64,
     pub peak_rss_bytes: u64,
     pub outliers: Option<stats::OutlierReport>,
@@ -118,6 +138,8 @@ impl ClassSession {
             verify_median_ns: stats::median_u64(&self.verify_runs_ns).unwrap_or(0),
             proof_bytes_max: self.proof_bytes_max,
             peak_rss_bytes: self.peak_rss_bytes,
+            verify_runs_ns: self.measured_verify_runs_ns.clone(),
+            proof_bytes_runs: self.measured_proof_bytes_runs.clone(),
         }
     }
 }
@@ -195,6 +217,8 @@ pub fn run_session(
             measured_runs_ns: vec![],
             fresh_runs_ns: vec![],
             verify_runs_ns: vec![],
+            measured_verify_runs_ns: vec![],
+            measured_proof_bytes_runs: vec![],
             proof_bytes_max: 0,
             peak_rss_bytes: 0,
             outliers: None,
@@ -227,6 +251,8 @@ pub fn run_session(
         // reported from steady-state runs only.
         if run.phase == Phase::Measured {
             cs.verify_runs_ns.extend_from_slice(sample.verify_wall_ns());
+            cs.measured_verify_runs_ns.push(sample.total_verify_ns());
+            cs.measured_proof_bytes_runs.push(sample.proof_bytes_total);
         }
         cs.proof_bytes_max = cs.proof_bytes_max.max(sample.proof_bytes_max);
         cs.peak_rss_bytes = cs.peak_rss_bytes.max(sample.peak_rss_bytes);

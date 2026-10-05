@@ -225,6 +225,11 @@ pub struct ChallengeDefinition {
     /// serialized, so existing challenge ids are unchanged).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub formal_params: Option<FormalParams>,
+    /// Scoring kind and, for `cost_v1`, the pinned price model and reference
+    /// cost components (v1.5, additive; absent ⇒ `speed` and not serialized,
+    /// so existing challenge ids are unchanged). docs/BENCHMARK_SPEC.md §14.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scoring: Option<crate::scoring::ScoringSpec>,
     pub supersedes: Option<ChallengeId>,
     pub created_at: String,
 }
@@ -256,6 +261,21 @@ impl ChallengeDefinition {
             .copied()
             .filter(|o| self.tier == Tier::Experimental && o.is_formal())
             .collect()
+    }
+    /// The board(s) this challenge has: `speed` always; `cost_v1` when its
+    /// `scoring` section pins a price model.
+    pub fn scoring_kind(&self) -> crate::scoring::ScoringKind {
+        self.scoring
+            .as_ref()
+            .map(|s| s.kind)
+            .unwrap_or(crate::scoring::ScoringKind::Speed)
+    }
+    /// Validate the optional `scoring` section against this challenge.
+    pub fn check_scoring(&self) -> Result<(), String> {
+        match &self.scoring {
+            None => Ok(()),
+            Some(s) => s.validate(self),
+        }
     }
     /// `chl_` + first 32 hex chars of the canonical digest.
     pub fn id(&self) -> Result<ChallengeId, canonical::CanonicalError> {
