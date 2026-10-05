@@ -24,9 +24,10 @@ advance, when a digest is *used*, for every *pending* half:
 * completing `WH(m)` removes the pending term `T`, and the bad answers are
   at most `T + |slots x| ≤ T + 257` out of `2^256`.
 
-`invPot N` is all of this, scaled (`2^256·[BadHist InvBad] + psi + prepay`)
+`invPhi N` is all of this, scaled (`2^256·[BadHist InvBad] + psi + prepay`)
 and frozen after `N` entries as `pairPot`.  Per fresh query it rises by at
-most `771 + (514 N + 514 N²)/2^256 ≤ 1024` (scaled), for `N ≤ 2^100`.
+most `771 + (257 (N + 1) + 514 N²)/2^256 ≤ 1024` (scaled), for `N ≤ 2^100`
+(`invPhi0_step`, `invPot`).
 -/
 
 namespace ZkFormal.Bcs
@@ -263,5 +264,229 @@ theorem gx_sum_le (x : Bytes) (T : Table) : (T.map (gx x)).sum ≤ 514 * (1 + eq
     have := slots_length_le x
     have := Nat.mul_le_mul_right ((1 + eqPairs T) + (1 + eqPairs T)) this
     omega
+
+/-! ## One fresh query -/
+
+/-- The pending term of the other half of `x` (removed when `x` is answered). -/
+noncomputable def deficit (x : Bytes) (T : Table) : Nat :=
+  match whDec x with
+  | some (m, j) =>
+    match T.lookup (whq m (1 - j)) with
+    | some y' => count (uses T) (Match j y')
+    | none => 0
+  | none => 0
+
+/-- Old entries: new uses are paid by `gx`, and the other half of `x` (if
+answered) loses its pending term `deficit x T`. -/
+theorem psi_tail_le (x a : Bytes) (T : Table) (hx : T.lookup x = none) :
+    (T.map (pterm ((x, a) :: T) (slots x ++ uses T))).sum + deficit x T ≤
+      psi T + 514 * (1 + eqPairs T) := by
+  have hg := gx_sum_le x T
+  have key : (T.map (pterm ((x, a) :: T) (slots x ++ uses T))).sum + deficit x T ≤
+      (T.map fun e => pterm T (uses T) e + gx x e).sum := by
+    unfold deficit
+    cases hd : whDec x with
+    | none => simpa using sum_map_le _ _ _ fun e _ => pterm_cons_le x a T e
+    | some p =>
+      obtain ⟨m, j⟩ := p
+      obtain ⟨rfl, hj⟩ := whDec_some hd
+      simp only
+      cases hl : T.lookup (whq m (1 - j)) with
+      | none => simpa using sum_map_le _ _ _ fun e _ => pterm_cons_le (whq m j) a T e
+      | some y' =>
+        simp only
+        refine sum_add_le_of_mem _ _ _ (whq m (1 - j), y') T (lookup_mem_pair hl)
+          (fun e _ => pterm_cons_le (whq m j) a T e) ?_
+        have hd' : whDec (whq m (1 - j)) = some (m, 1 - j) := whDec_whq m (1 - j) (by omega)
+        have e1 : 1 - (1 - j) = j := by omega
+        unfold pterm
+        simp only [hd', e1]
+        simp [hx]
+  rw [sum_map_add] at key
+  unfold psi
+  omega
+
+theorem invBad_count_le (x : Bytes) (T : Table) :
+    count (List.range roRange) (fun v => InvBad T x (LazyRO.answer v)) ≤ deficit x T + 257 := by
+  unfold deficit
+  cases hd : whDec x with
+  | none =>
+    refine Nat.le_trans (count_mono (F := fun _ => False) _ fun v ⟨m, j, _, _, hj, hxm, _⟩ => ?_)
+      (by rw [count_false]; exact Nat.zero_le _)
+    rw [whDec_of_eq hj hxm] at hd; cases hd
+  | some p =>
+    obtain ⟨m, j⟩ := p
+    obtain ⟨rfl, hj⟩ := whDec_some hd
+    simp only
+    cases hl : T.lookup (whq m (1 - j)) with
+    | none =>
+      refine Nat.le_trans (count_mono (F := fun _ => False) _
+        fun v ⟨m', j', y', _, hj', hxm, hl', _⟩ => ?_) (by rw [count_false]; exact Nat.zero_le _)
+      obtain ⟨rfl, rfl⟩ := whq_inj hj hj' hxm
+      rw [hl] at hl'; cases hl'
+    | some y' =>
+      simp only
+      refine Nat.le_trans (count_mono (F := fun v => ∃ u ∈ slots (whq m j) ++ uses T,
+        u = mkWide j (LazyRO.answer v) y') _ fun v ⟨m', j', y'', u, hj', hxm, hl', hu, he⟩ => ?_) ?_
+      · obtain ⟨rfl, rfl⟩ := whq_inj hj hj' hxm
+        rw [hl] at hl'; cases hl'
+        refine ⟨u, ?_, he⟩
+        rcases hu with hu | hu
+        · exact List.mem_append_left _ hu
+        · exact List.mem_append_right _ (mem_uses.mpr hu)
+      · refine Nat.le_trans (count_exists_mkWide_le j y' _) ?_
+        rw [count_append]
+        have := Nat.le_trans (count_le_length (slots (whq m j)) (Match j y')) (slots_length_le (whq m j))
+        omega
+
+theorem pterm_of_none {T : Table} {U : List Bytes} {e : Bytes × Bytes} (hd : whDec e.1 = none) :
+    pterm T U e = 0 := by
+  unfold pterm; rw [hd]
+
+theorem pterm_le_of_some {T : Table} {U : List Bytes} {e : Bytes × Bytes} {m : Bytes} {j : Nat}
+    (hd : whDec e.1 = some (m, j)) : pterm T U e ≤ count U (Match (1 - j) e.2) := by
+  unfold pterm; rw [hd]
+  dsimp only
+  by_cases h : T.lookup (whq m (1 - j)) = none
+  · rw [ite_eq_left h]; exact Nat.le_refl _
+  · rw [ite_eq_right h]; exact Nat.zero_le _
+
+/-- The new entry itself, if pending: in expectation at most the number of
+used digests. -/
+theorem newterm_sum_le (x : Bytes) (T : Table) :
+    ((List.range roRange).map fun v =>
+      pterm ((x, LazyRO.answer v) :: T) (slots x ++ uses T) (x, LazyRO.answer v)).sum ≤
+      257 * (T.length + 1) := by
+  have hU : (slots x ++ uses T).length ≤ 257 * (T.length + 1) := by
+    rw [List.length_append]; have := slots_length_le x; have := uses_length_le T; omega
+  cases hd : whDec x with
+  | none =>
+    refine Nat.le_trans (sum_map_le _ _ (fun _ => 0) fun v _ => Nat.le_of_eq (pterm_of_none hd)) ?_
+    rw [Security.sum_map_const, Nat.mul_zero]; exact Nat.zero_le _
+  | some p =>
+    obtain ⟨m, j⟩ := p
+    refine Nat.le_trans (sum_map_le _ _
+      (fun v => count (slots x ++ uses T) (Match (1 - j) (LazyRO.answer v))) fun v _ =>
+        pterm_le_of_some (e := (x, LazyRO.answer v)) hd) ?_
+    refine Nat.le_trans (sum_count_le roRange _ (fun v u => Match (1 - j) (LazyRO.answer v) u) 1
+      fun u _ => count_match_answer_le (1 - j) u) ?_
+    rw [Nat.mul_one]; exact hU
+
+theorem eqPairs_sum_le (x : Bytes) (T : Table) :
+    ((List.range roRange).map fun v => eqPairs ((x, LazyRO.answer v) :: T)).sum ≤
+      roRange * eqPairs T + T.length := by
+  simp only [eqPairs]
+  rw [sum_map_add, Security.sum_map_const, List.length_range]
+  have := sum_count_le roRange T (fun v e => e.2 = LazyRO.answer v) 1 fun e _ =>
+    Nat.le_trans (count_mono _ fun v h => h.symm) (answer_count_le_one e.2)
+  omega
+
+theorem badPot_cons_le (x a : Bytes) (T : Table) :
+    badPot InvBad ((x, a) :: T) ≤
+      badPot InvBad T + (open Classical in if InvBad T x a then roRange else 0) := by
+  classical
+  unfold badPot
+  by_cases hb : BadHist InvBad T
+  · rw [ite_eq_left (show BadHist InvBad ((x, a) :: T) from Or.inr hb), ite_eq_left hb]
+    exact Nat.le_add_right _ _
+  · by_cases h : InvBad T x a
+    · rw [ite_eq_left h, ite_eq_right hb]; split <;> omega
+    · rw [ite_eq_right (show ¬ BadHist InvBad ((x, a) :: T) from fun h' => h'.elim h hb),
+        ite_eq_right h]
+      exact Nat.zero_le _
+
+theorem badPot_sum_le (x : Bytes) (T : Table) :
+    ((List.range roRange).map fun v => badPot InvBad ((x, LazyRO.answer v) :: T)).sum ≤
+      roRange * badPot InvBad T +
+        count (List.range roRange) (fun v => InvBad T x (LazyRO.answer v)) * roRange := by
+  refine Nat.le_trans (sum_map_le _ _ _ fun v _ => badPot_cons_le x (LazyRO.answer v) T) ?_
+  rw [sum_map_add, Security.sum_map_const, List.length_range, sum_map_ite]
+  exact Nat.le_refl _
+
+/-- The final arithmetic of the step bound. -/
+theorem invPot_arith (R b p c D cnt L N Bsum Psum Esum : Nat) (hR : R = 2 ^ 256) (hN : N ≤ 2 ^ 100)
+    (hL : L < N) (h1 : Bsum ≤ R * b + cnt * R) (h2 : cnt ≤ D + 257)
+    (h3 : Psum + R * D ≤ R * (p + 514 * (1 + c)) + 257 * (L + 1)) (h4 : Esum ≤ R * c + L) :
+    Bsum + Psum + 514 * (N - (L + 1)) * Esum ≤ R * (b + p + 514 * (N - L) * c + 1024) := by
+  obtain ⟨n, rfl⟩ : ∃ n, N = n + 1 + L := ⟨N - (L + 1), by omega⟩
+  have e1 : n + 1 + L - (L + 1) = n := by omega
+  have e2 : n + 1 + L - L = n + 1 := by omega
+  rw [e1, e2]
+  have hnL : n * L ≤ 2 ^ 100 * 2 ^ 100 := Nat.mul_le_mul (by omega) (by omega)
+  have hR' : R = 115792089237316195423570985008687907853269984665640564039457584007913129639936 := by
+    rw [hR]
+  have h2' := Nat.mul_le_mul_right R h2
+  have h4' := Nat.mul_le_mul_left (514 * n) h4
+  simp only [Nat.mul_add, Nat.add_mul, Nat.mul_assoc, Nat.mul_one] at h2' h3 h4' ⊢
+  have e3 : (2:Nat) ^ 100 * 2 ^ 100 = 1606938044258990275541962092341162602522202993782792835301376 := rfl
+  rw [e3] at hnL
+  have e4 : n * (R * c) = R * (n * c) := Nat.mul_left_comm _ _ _
+  have e5 : c * R = R * c := Nat.mul_comm _ _
+  have e6 : D * R = R * D := Nat.mul_comm _ _
+  rw [e4] at h4'
+  subst hR'
+  omega
+
+/-! ## The potential -/
+
+/-- `2^256·[inversion] + pending terms + prepaid uses`. -/
+noncomputable def invPhi0 (N : Nat) (T : Table) : Nat :=
+  badPot InvBad T + psi T + 514 * (N - T.length) * eqPairs T
+
+/-- Frozen after `N` entries. -/
+noncomputable def invPhi (N : Nat) (T : Table) : Nat := invPhi0 N (oldest N T)
+
+theorem invPhi0_step (N : Nat) (hN : N ≤ 2 ^ 100) (T : Table) (hT : T.length < N) (x : Bytes)
+    (hx : T.lookup x = none) :
+    ((List.range roRange).map fun v => invPhi0 N ((x, LazyRO.answer v) :: T)).sum ≤
+      roRange * (invPhi0 N T + 1024) := by
+  unfold invPhi0
+  simp only [List.length_cons]
+  rw [sum_map_add, sum_map_add, sum_map_mul_left]
+  have hb := badPot_sum_le x T
+  have hc := invBad_count_le x T
+  have he := eqPairs_sum_le x T
+  have hp : ((List.range roRange).map fun v => psi ((x, LazyRO.answer v) :: T)).sum +
+      roRange * deficit x T ≤ roRange * (psi T + 514 * (1 + eqPairs T)) + 257 * (T.length + 1) := by
+    simp only [psi_cons]
+    rw [sum_map_add]
+    have h1 := newterm_sum_le x T
+    have h2 : ((List.range roRange).map fun v =>
+        (T.map (pterm ((x, LazyRO.answer v) :: T) (slots x ++ uses T))).sum + deficit x T).sum ≤
+        ((List.range roRange).map fun _ => psi T + 514 * (1 + eqPairs T)).sum :=
+      sum_map_le _ _ _ fun v _ => psi_tail_le x (LazyRO.answer v) T hx
+    rw [sum_map_add, Security.sum_map_const, Security.sum_map_const, List.length_range] at h2
+    omega
+  exact invPot_arith roRange _ _ _ _ _ T.length N _ _ _ rfl hN hT hb hc hp he
+
+theorem invPhi_step (N : Nat) (hN : N ≤ 2 ^ 100) : StepBound (invPhi N) unitWeight 1024 := by
+  intro tbl x hx
+  simp only [unitWeight, Nat.mul_one]
+  by_cases hge : N ≤ tbl.length
+  · -- frozen
+    have e : ∀ v, invPhi N ((x, LazyRO.answer v) :: tbl) = invPhi N tbl := by
+      intro v; unfold invPhi; rw [oldest_cons_of_ge hge]
+    simp only [e, Security.sum_map_const, List.length_range]
+    exact Nat.mul_le_mul_left _ (Nat.le_add_right _ _)
+  · have hlt : tbl.length < N := by omega
+    have e : ∀ v, invPhi N ((x, LazyRO.answer v) :: tbl) = invPhi0 N ((x, LazyRO.answer v) :: tbl) := by
+      intro v; unfold invPhi; rw [oldest_cons_of_lt hlt]
+    have e0 : invPhi N tbl = invPhi0 N tbl := by unfold invPhi; rw [oldest_of_le (by omega)]
+    simp only [e, e0]
+    exact invPhi0_step N hN tbl hlt x hx
+
+theorem invPhi_nil (N : Nat) : invPhi N [] = 0 := by
+  simp [invPhi, invPhi0, oldest, badPot, BadHist, psi, eqPairs]
+
+theorem invPhi_bad (N : Nat) (tbl : Table) (h : tbl.length ≤ N) (hb : BadHist InvBad tbl) :
+    roRange ≤ invPhi N tbl := by
+  unfold invPhi invPhi0
+  rw [oldest_of_le h]
+  have : badPot InvBad tbl = roRange := by unfold badPot; rw [ite_eq_left hb]
+  omega
+
+/-- **The inversion potential.** -/
+theorem invPot : InvPotStmt := fun N hN =>
+  ⟨invPhi N, invPhi_step N hN, invPhi_nil N, fun tbl h hb => invPhi_bad N tbl h hb⟩
 
 end ZkFormal.Bcs
