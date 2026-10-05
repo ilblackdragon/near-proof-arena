@@ -35,7 +35,7 @@ open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark
 def BcsCompleteStmt32 : Prop :=
   ∀ (F K : Type) [Field F] [Field K] [StarkField F K] [StarkFieldLaws F K] [DecidableEq F]
     (V : IopSpec F K) (pr : IopProver F K) (pub cb : Bytes) (H : Bytes → Bytes),
-    (∀ m, (H m).length = 32) → 0 < V.numChunks → 0 < V.posPerChunk →
+    (∀ m, (fit32 (H m)).length = 32) → 0 < V.numChunks → 0 < V.posPerChunk →
     Bcs.Adapter.SchedOk V → ProverWf V pr cb → IopComplete V pr cb →
     (runH (pureH H) (proveTree V pr pub cb) ()).1.length ≤ V.maxProofBytes →
     (runH (pureH H) (Bcs.compile (F := F) V pub cb (runH (pureH H) (proveTree V pr pub cb) ()).1) ()).1

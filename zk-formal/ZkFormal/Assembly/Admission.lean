@@ -43,7 +43,6 @@ theorem inLang_of_guard (S : ChallengeSpec) (A : Air) (cb : Bytes) (hok : claimO
 obligations of the prover model (`Prover.Statements`), L3's decidable `NpOk`, the AIR's
 semantic soundness/completeness and the concrete numeric checks. -/
 theorem np_admission
-    (hB : BcsCompleteStmt) (hSz : SizeStmt)
     (ch : ChallengeParams) (art : ArtifactDescription) (pub : Bytes)
     (hpub : sha256 pub = art.publicDigest)
     (A : Air) (hA : A.tables ≠ []) (htab : A.tables.length < 2 ^ 32)
@@ -52,20 +51,20 @@ theorem np_admission
     (hsound : ∀ c tr, Holds A (Udr.pubOf Fp (ch.spec.encodeClaim c)) tr → ∃ w, ch.spec.Rel c w)
     (hcomp : ∀ c w, ch.spec.Domain c → ch.spec.Rel c w →
       Holds A (Udr.pubOf Fp (ch.spec.encodeClaim c)) (traceOf c w) ∧
-      headerOk A Params.default (trHdr A (traceOf c w)) = true)
-    (hsize : ∀ hdr, headerOk A Params.default hdr = true → sizeBound (Vd A) hdr ≤ ch.maxProofBytes)
+      (Vd A).headerOk (trHdr A (traceOf c w)) = true)
+    (hsize : ∀ hdr, (Vd A).headerOk hdr = true → sizeBound (Vd A) hdr ≤ ch.maxProofBytes)
     (hmax : ch.maxProofBytes ≤ Params.default.maxProofBytes)
     (hmodel : ch.profile.model = .randomOracle)
     (hassm : AssumptionId.sha256RandomOracle ∈ ch.profile.allowedAssumptions)
     (htb : ch.profile.targetBits ≤ 128) (hqh : ch.profile.maxHashQueriesLog2 = 64)
     (hqp : ch.profile.maxProverQueriesLog2 = 40)
-    (lo g : Nat) (hlo : ∀ hdr, headerOk A Params.default hdr = true → lo ≤ queryLog A Params.default hdr)
+    (lo g : Nat) (hlo : ∀ hdr, (Vd A).headerOk hdr = true → lo ≤ queryLog A Params.default hdr)
     (hdom : Dominates (Udr.agreeUdr 4) lo g) (hq : QueryOk Params.default.numChunks g)
     (hok : Udr.Np.NpOk A Params.default)
     (hNV : NVu A Params.default ≤ 2 ^ 30) :
     AdmissionStatement ch art := by
   let P := npProver ch.spec A traceOf
-  have hPC := np_proverComplete hB hSz ch.spec A
+  have hPC := np_proverComplete ch.spec A
     (fun cb tr h hh => Np.npIopComplete' A cb tr htab h hh) traceOf hcomp ch.maxProofBytes hsize hmax pub
   refine ⟨pub, (npVerifier ch.spec A).toVerifier, hpub, himpl, npBackend ch.spec A, ?_, ?_, ?_, ?_⟩
   · intro c tr h; exact hsound c tr h

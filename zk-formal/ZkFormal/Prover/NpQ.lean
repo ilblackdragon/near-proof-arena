@@ -64,7 +64,8 @@ theorem schedOracles_append (a b : List Slot) :
   simp [schedOracles, List.flatMap_append]
 
 theorem npProverQ : NpProverQStmt' := by
-  intro A hdr0 hNV hok
+  intro A hdr0 hNV hokV
+  have hok := (verifier_headerOk hokV).1
   -- a trace with header `hdr0`
   let tr : Trace Fp := ⟨fun t => hdr0.getD t 0, fun _ _ _ => 0⟩
   have hfacts := headerOk_facts hok

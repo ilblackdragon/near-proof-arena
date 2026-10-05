@@ -113,7 +113,7 @@ def LocalStmt : Prop :=
 /-- (N1') `NpIopCompleteStmt` with the missing hypothesis `A.tables.length < 2^32`. -/
 def NpIopCompleteStmt' : Prop :=
   ∀ (A : Air) (cb : Bytes) (tr : Trace Fp), A.tables.length < 2 ^ 32 →
-    Holds A (Udr.pubOf Fp cb) tr → headerOk A Params.default (trHdr A tr) = true →
+    Holds A (Udr.pubOf Fp cb) tr → (Iop.verifier Fp Fp8 A Params.default).headerOk (trHdr A tr) = true →
     ∃ pr : IopProver Fp Fp8, pr.hdr = trHdr A tr ∧
       ProverWf (Iop.verifier Fp Fp8 A Params.default) pr cb ∧
       IopComplete (Iop.verifier Fp Fp8 A Params.default) pr cb
@@ -121,7 +121,7 @@ def NpIopCompleteStmt' : Prop :=
 /-- (N2') `NpProverQStmt` under the verifier budget the assembly already assumes. -/
 def NpProverQStmt' : Prop :=
   ∀ (A : Air) (hdr : List Nat), NVu A Params.default ≤ 2 ^ 30 →
-    headerOk A Params.default hdr = true →
+    (Iop.verifier Fp Fp8 A Params.default).headerOk hdr = true →
     proverQ (Iop.verifier Fp Fp8 A Params.default) hdr ≤ 2 ^ 32
 
 end ZkFormal.Prover.Np

@@ -143,8 +143,8 @@ theorem toy_holds (b : UInt8) (w : Nat) (h : w * w = b.toNat) :
   · intro bus m; rfl
 
 theorem toy_header (w : Nat) :
-    headerOk toyAir Params.default (Prover.trHdr toyAir (honestTrace w)) = true := by
-  show headerOk toyAir Params.default [4] = true
+    (Iop.verifier Fp Fp8 toyAir Params.default).headerOk (Prover.trHdr toyAir (honestTrace w)) = true := by
+  show (headerOk toyAir Params.default [4] && decide (minQueryLog ≤ queryLog toyAir Params.default [4])) = true
   decide
 
 end ZkFormal.Toy

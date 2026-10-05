@@ -182,7 +182,7 @@ theorem ev_commitMsg (st : CState F K) (m : List (PartV K (Oracle F))) :
 variable {V : IopSpec F K} {pr : IopProver F K} {cb : Bytes}
 
 /-- **The commit loop, evaluated** against the verifier's parser and hash chain. -/
-theorem ev_commitLoop (hw : ProverWf V pr cb) (hH : ∀ m, (H m).length = 32) :
+theorem ev_commitLoop (hw : ProverWf V pr cb) (hH : ∀ m, (fit32 (H m)).length = 32) :
     ∀ (ss : List Slot) (st : CState F K), Inv V pr cb ss st.τ →
     ∃ (R : Bytes) (ps : List (PSlot K)) (ents : List (Entry K (Oracle F)))
       (entsV : List (Entry K Bytes)) (ts : List (Oracle F × List (List Bytes))),

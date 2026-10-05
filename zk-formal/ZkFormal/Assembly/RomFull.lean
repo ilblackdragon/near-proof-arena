@@ -25,7 +25,7 @@ open ArenaCore ArenaCore.Security ZkFormal ZkFormal.Stark ZkFormal.Air ZkFormal.
 
 /-- **ROM soundness of the deployed np-udr-stark verifier, all lanes composed.** -/
 theorem stark_romSound_full (A : Air) (prm : Params) (hok : Udr.Np.NpOk A prm)
-    (lo g : Nat) (hlo : ∀ hdr, headerOk A prm hdr = true → lo ≤ queryLog A prm hdr)
+    (lo g : Nat) (hlo : ∀ hdr, (Iop.verifier Fp Fp8 A prm).headerOk hdr = true → lo ≤ queryLog A prm hdr)
     (hdom : Dominates (Udr.agreeUdr 4) lo g) (hq : QueryOk prm.numChunks g)
     (hNV : NVu A prm ≤ 2 ^ 30)
     {S : ChallengeSpec} (P : TreeProver S) (pub : Bytes) (NPu : Nat) (hNP : NPu ≤ 2 ^ 32)
@@ -50,7 +50,7 @@ theorem stark_romSound_full' (A : Air) (prm : Params) (hok : Udr.Np.NpOk A prm) 
         (2 ^ 64) (2 ^ 40) tapeLen num den := by
   have hprm : prm = Params.default := hok.1
   refine stark_romSound_full A prm hok 5 g2_5 (fun hdr h => ?_) g2_5_dom hq hNV P pub NPu hNP hPu hPq
-  have := queryLog_ge_of_headerOk A prm hdr hA h
+  have := queryLog_ge_of_headerOk A prm hdr hA (verifier_headerOk h).1
   rw [hprm] at this ⊢; exact this
 
 end ZkFormal.Assembly

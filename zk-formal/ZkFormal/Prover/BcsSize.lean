@@ -23,7 +23,7 @@ open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark
 def SizeStmt32 : Prop :=
   ∀ (F K : Type) [Field F] [Field K] [StarkField F K] [StarkFieldLaws F K] [DecidableEq F]
     (V : IopSpec F K) (pr : IopProver F K) (pub cb : Bytes) (H : Bytes → Bytes),
-    (∀ m, (H m).length = 32) → ProverWf V pr cb →
+    (∀ m, (fit32 (H m)).length = 32) → ProverWf V pr cb →
     (runH (pureH H) (proveTree V pr pub cb) ()).1.length ≤ sizeBound V pr.hdr
 
 /-! ## Sums over a range -/
@@ -148,7 +148,7 @@ theorem prefixSize_chal (b : Bool) (ss : List Slot) : prefixSize (.chal b :: ss)
 variable (H : Bytes → Bytes)
 variable {V : IopSpec F K} {pr : IopProver F K} {cb : Bytes}
 
-theorem raw_length (hw : ProverWf V pr cb) (hH : ∀ m, (H m).length = 32) :
+theorem raw_length (hw : ProverWf V pr cb) (hH : ∀ m, (fit32 (H m)).length = 32) :
     ∀ (ss : List Slot) (st : CState F K), Inv V pr cb ss st.τ →
       (ev H (commitLoop pr ss st)).raw.length = st.raw.length + prefixSize ss
   | [], st, _ => by simp [commitLoop, ev_pure, prefixSize]
@@ -205,7 +205,7 @@ theorem parentsOf_length : ∀ cur : List Nat, (parentsOf cur).length ≤ cur.le
 
 variable (H : Bytes → Bytes) (o : Oracle F)
 
-theorem upBytes_length (hH : ∀ m, (H m).length = 32) (hr : RowsOk o) {k : Nat}
+theorem upBytes_length (hH : ∀ m, (fit32 (H m)).length = 32) (hr : RowsOk o) {k : Nat}
     (hk : k < treeLog (shapesOf o)) : ∀ cur : List Nat, (∀ x ∈ cur, x < 2 ^ (k + 1)) →
     (upBytes (K := K) (ev H (buildTree (K := K) o)) o k cur).1.length ≤
       cur.length * (64 + 4 * lw o k) := by
@@ -239,7 +239,7 @@ theorem upBytes_length (hH : ∀ m, (H m).length = 32) (hr : RowsOk o) {k : Nat}
     simp only [List.length_cons] at h ⊢
     rw [Nat.add_mul]; omega
 
-theorem levelsBytes_length (hH : ∀ m, (H m).length = 32) (hr : RowsOk o) (s : Nat) :
+theorem levelsBytes_length (hH : ∀ m, (fit32 (H m)).length = 32) (hr : RowsOk o) (s : Nat) :
     ∀ k, k ≤ treeLog (shapesOf o) → ∀ cur : List Nat, (∀ x ∈ cur, x < 2 ^ k) → cur.length ≤ s →
     (levelsBytes (K := K) (ev H (buildTree (K := K) o)) o k cur).length ≤
       s * (64 * k + 4 * sumR k (lw o))
@@ -260,7 +260,7 @@ theorem shapes_le (m : Nat × Nat) (hm : m ∈ shapesOf o) : m.1 ≤ treeLog (sh
   obtain ⟨M, hM, rfl⟩ := List.mem_map.mp hm
   exact log_le_treeLog hM
 
-theorem multiproofBytes_length (hH : ∀ m, (H m).length = 32) (hr : RowsOk o) (s : Nat)
+theorem multiproofBytes_length (hH : ∀ m, (fit32 (H m)).length = 32) (hr : RowsOk o) (s : Nat)
     (S : List Nat) (hlt : ∀ x ∈ S, x < 2 ^ treeLog (shapesOf o)) (hs : S.length ≤ s) :
     (multiproofBytes (K := K) (ev H (buildTree (K := K) o)) o S).length ≤ openSize s (shapesOf o) := by
   have hleaf : (S.flatMap (rowsBytes (K := K) o (treeLog (shapesOf o)))).length =
@@ -291,7 +291,7 @@ theorem multiproofBytes_length (hH : ∀ m, (H m).length = 32) (hr : RowsOk o) (
     rw [← Nat.mul_add]; congr 1; simp only [lw]; omega
   rw [e]; omega
 
-theorem openBytes_length (hH : ∀ m, (H m).length = 32) (n0 : Nat) (xs : List Nat)
+theorem openBytes_length (hH : ∀ m, (fit32 (H m)).length = 32) (n0 : Nat) (xs : List Nat)
     (hlt : ∀ x ∈ xs, x < 2 ^ n0) : ∀ ts : List (Oracle F × List (List Bytes)),
     (∀ t ∈ ts, t.2 = ev H (buildTree (K := K) t.1) ∧ RowsOk t.1) →
     (openBytes (K := K) n0 xs ts).length ≤ (ts.map fun t => openSize xs.length (shapesOf t.1)).sum

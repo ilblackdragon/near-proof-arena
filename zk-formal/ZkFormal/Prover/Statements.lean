@@ -87,14 +87,14 @@ the AIR with an admissible header has a well-formed honest IOP prover that is
 accepted for every challenge sequence (challenges in the decoders' images). -/
 def NpIopCompleteStmt : Prop :=
   ∀ (A : Air) (cb : Bytes) (tr : Trace Fp),
-    Holds A (Udr.pubOf Fp cb) tr → headerOk A Params.default (trHdr A tr) = true →
+    Holds A (Udr.pubOf Fp cb) tr → (Iop.verifier Fp Fp8 A Params.default).headerOk (trHdr A tr) = true →
     ∃ pr : IopProver Fp Fp8, pr.hdr = trHdr A tr ∧
       ProverWf (Iop.verifier Fp Fp8 A Params.default) pr cb ∧
       IopComplete (Iop.verifier Fp Fp8 A Params.default) pr cb
 
 /-- (N2) The honest prover's unit budget on admissible np headers. -/
 def NpProverQStmt : Prop :=
-  ∀ (A : Air) (hdr : List Nat), headerOk A Params.default hdr = true →
+  ∀ (A : Air) (hdr : List Nat), (Iop.verifier Fp Fp8 A Params.default).headerOk hdr = true →
     proverQ (Iop.verifier Fp Fp8 A Params.default) hdr ≤ 2 ^ 32
 
 end ZkFormal.Prover

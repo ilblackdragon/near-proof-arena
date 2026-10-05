@@ -136,7 +136,7 @@ variable (H : Bytes → Bytes)
 def TreeOk (n0 : Nat) (t : Oracle F × List (List Bytes)) : Prop :=
   t.2 = ev H (buildTree (K := K) t.1) ∧ RowsOk t.1 ∧ treeLog (shapesOf t.1) ≤ n0
 
-theorem ev_openAll (hH : ∀ m, (H m).length = 32) (n0 : Nat) (xs : List Nat) (hxs : xs ≠ [])
+theorem ev_openAll (hH : ∀ m, (fit32 (H m)).length = 32) (n0 : Nat) (xs : List Nat) (hxs : xs ≠ [])
     (hlt : ∀ x ∈ xs, x < 2 ^ n0) :
     ∀ ts : List (Oracle F × List (List Bytes)), (∀ t ∈ ts, TreeOk (K := K) H n0 t) → ∀ rest : Bytes,
     ∃ ops, ev H (openAll (F := F) n0 xs (ts.map fun t => (shapesOf t.1, rootOf t.2))

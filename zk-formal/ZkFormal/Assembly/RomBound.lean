@@ -56,7 +56,7 @@ theorem ShapeOk.default : ShapeOk Params.default := ⟨rfl, rfl, rfl, by decide,
 
 /-- **ROM soundness at 2^-128 for np-udr-stark**, from L3's `RbrWith`. -/
 theorem np_romSound (A : Air) (prm : Params) (hprm : ShapeOk prm)
-    (lo g : Nat) (hlo : ∀ hdr, headerOk A prm hdr = true → lo ≤ queryLog A prm hdr)
+    (lo g : Nat) (hlo : ∀ hdr, (Iop.verifier Fp Fp8 A prm).headerOk hdr = true → lo ≤ queryLog A prm hdr)
     (hdom : Dominates (Udr.agreeUdr 4) lo g) (hq : QueryOk prm.numChunks g)
     (D : PT Fp8 (Oracle Fp) → Prop)
     (hR : Udr.RbrWith (Iop.verifier Fp Fp8 A prm) (Udr.AirLang Fp A) Fp8.all (2 ^ 36)

@@ -48,7 +48,7 @@ theorem ev_mpNode {lvl : Nat} {ws : List Nat} {x : Nat} {lft rgt r : Bytes} {row
 
 variable (o : Oracle F)
 
-theorem node_length (hH : ∀ m, (H m).length = 32) (n k j : Nat) :
+theorem node_length (hH : ∀ m, (fit32 (H m)).length = 32) (n k j : Nat) :
     (node (K := K) H o n k j).length = 64 := by
   unfold node
   cases n - k with
@@ -104,7 +104,7 @@ theorem ev_mpUp_nil (k lvl : Nat) (ws : List Nat) (r : Bytes) :
   simp only [mpUp, ev_pure]
 
 /-- **One level of a multiproof.** -/
-theorem ev_mpUp (hH : ∀ m, (H m).length = 32) (hr : RowsOk o) {k : Nat}
+theorem ev_mpUp (hH : ∀ m, (fit32 (H m)).length = 32) (hr : RowsOk o) {k : Nat}
     (hk : k < treeLog (shapesOf o)) (rest : Bytes) : ∀ cur : List Nat, (∀ x ∈ cur, x < 2 ^ (k + 1)) →
     ∃ op, ev H (mpUp (F := F) k (treeLog (shapesOf o) - k) (levelWidths (shapesOf o) k)
         (nodesOf (K := K) H o (treeLog (shapesOf o)) (k + 1) cur)
@@ -214,7 +214,7 @@ theorem ev_mpLeaves (hr : RowsOk o) : ∀ (S : List Nat), (∀ s ∈ S, s < 2 ^ 
 theorem shiftRight_one (x : Nat) : x >>> 1 = x / 2 := by
   rw [Nat.shiftRight_eq_div_pow]
 
-theorem ev_mpLevels (hH : ∀ m, (H m).length = 32) (hr : RowsOk o) :
+theorem ev_mpLevels (hH : ∀ m, (fit32 (H m)).length = 32) (hr : RowsOk o) :
     ∀ k, k ≤ treeLog (shapesOf o) → ∀ cur : List Nat, cur.Pairwise (· < ·) → cur ≠ [] →
     (∀ x ∈ cur, x < 2 ^ k) → ∀ rest : Bytes,
     ∃ op, ev H (mpLevels (F := F) (shapesOf o) (treeLog (shapesOf o)) k
@@ -249,7 +249,7 @@ theorem ev_mpLevels (hH : ∀ m, (H m).length = 32) (hr : RowsOk o) :
         exact List.mem_append_right _ h
 
 /-- **Multiproof completeness** for one oracle. -/
-theorem ev_multiproof (hH : ∀ m, (H m).length = 32) (hr : RowsOk o) (S : List Nat)
+theorem ev_multiproof (hH : ∀ m, (fit32 (H m)).length = 32) (hr : RowsOk o) (S : List Nat)
     (hs : S.Pairwise (· < ·)) (hne : S ≠ []) (hlt : ∀ s ∈ S, s < 2 ^ treeLog (shapesOf o))
     (rest : Bytes) :
     ∃ op, ev H (multiproof (F := F) (shapesOf o) (rootOf (ev H (buildTree (K := K) o))) S

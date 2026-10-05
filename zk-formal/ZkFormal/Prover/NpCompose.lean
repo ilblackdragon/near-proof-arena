@@ -279,7 +279,7 @@ theorem inv_query (hS : SchedFormStmt) (hP : MsgPrefixStmt) (hok : headerOk A dp
         show (fullEntries A cb tr (PT.chals ⟨cbτ, es⟩)).length ≤ k; rw [hfl]; omega)]
 
 /-- Reachable transcripts are shaped. -/
-theorem inv_shaped (hS : SchedFormStmt) (hF : MsgFitsStmt) (hok : headerOk A dp (hdr A tr) = true)
+theorem inv_shaped (hS : SchedFormStmt) (hF : MsgFitsStmt) (hok : (Vd A).headerOk (hdr A tr) = true)
     {τ : PT Fp8 (Oracle Fp)} (h : Inv A cb tr τ) : Shaped (Vd A) τ := by
   by_cases h0 : τ.entries = []
   · refine ⟨fun l hl => (by rw [header_nil h0] at hl; cases hl), by simp [h0], fun k hk => ?_⟩
@@ -331,10 +331,11 @@ end
 /-- **Completeness of the np IOP** (corrected statement) from the components. -/
 theorem npIopComplete_of (hS : SchedFormStmt) (hF : MsgFitsStmt) (hP : MsgPrefixStmt)
     (hG : GlobalStmt) (hL : LocalStmt) : NpIopCompleteStmt' := by
-  intro A cb tr h32 hH hok
+  intro A cb tr h32 hH hokV
+  have hok : headerOk A dp (hdr A tr) = true := (verifier_headerOk hokV).1
   refine ⟨npProver A cb tr, rfl, ?_, ?_⟩
-  · refine ⟨hok, by simp [npProver, hdr, trHdr]; rfl, ?_, h32, fun τ hr =>
-      inv_shaped A cb tr hS hF hok (reach_inv A cb tr hS hr),
+  · refine ⟨hokV, by simp [npProver, hdr, trHdr]; rfl, ?_, h32, fun τ hr =>
+      inv_shaped A cb tr hS hF hokV (reach_inv A cb tr hS hr),
       fun τ hr hne => inv_header A cb tr (reach_inv A cb tr hS hr) hne,
       fun τ _ _ l hl => npMsg_header A cb tr _ _ l hl⟩
     intro h hm

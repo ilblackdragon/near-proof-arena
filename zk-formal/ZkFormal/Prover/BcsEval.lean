@@ -34,11 +34,12 @@ theorem ev_bind {α β : Type} (H : Bytes → Bytes) (oa : OracleComp hashSpec �
   | query q k ih => exact ih (H q)
 
 /-- The wide hash as a pure function. -/
-def whp (H : Bytes → Bytes) (tag : UInt8) (m : Bytes) : Bytes := H (tag :: 1 :: m) ++ H (tag :: 2 :: m)
+def whp (H : Bytes → Bytes) (tag : UInt8) (m : Bytes) : Bytes :=
+  fit32 (H (tag :: 1 :: m)) ++ fit32 (H (tag :: 2 :: m))
 
 theorem ev_WH (H : Bytes → Bytes) (tag : UInt8) (m : Bytes) : ev H (WH tag m) = whp H tag m := rfl
 
-theorem ev_H (H' : Bytes → Bytes) (m : Bytes) : ev H' (Stark.H m) = H' m := rfl
+theorem ev_H (H' : Bytes → Bytes) (m : Bytes) : ev H' (Stark.H m) = fit32 (H' m) := rfl
 
 theorem ev_bind_WH {β : Type} (H : Bytes → Bytes) (tag : UInt8) (m : Bytes)
     (f : Bytes → OracleComp hashSpec β) :
@@ -51,8 +52,8 @@ theorem ev_mapOC {α β : Type} (H : Bytes → Bytes) (f : α → OracleComp has
   | a :: as => by
     simp only [mapOC, ev_bind, ev_mapOC H f as, ev_pure, List.map_cons]
 
-/-- 32-byte hash answers give 64-byte wide hashes. -/
-theorem whp_length {H : Bytes → Bytes} (hH : ∀ m, (H m).length = 32) (tag : UInt8) (m : Bytes) :
+/-- Wide hashes are 64 bytes (answers are normalised by `fit32`). -/
+theorem whp_length {H : Bytes → Bytes} (hH : ∀ m, (fit32 (H m)).length = 32) (tag : UInt8) (m : Bytes) :
     (whp H tag m).length = 64 := by
   simp [whp, hH]
 

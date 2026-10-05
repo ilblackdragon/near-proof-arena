@@ -132,3 +132,18 @@ are `sorry` in the scratch tree only. `proverQ`/`proverChunk` are the proved `pr
   trace now has height 16 (LDE 2^8).
 * `ToyPending` = {`bcs`, `size` (L4e: hash answers normalised to 32 bytes), `min8` (L4e)}.
 * ZK challenge draft renamed to `near-transfer-receipt-v1-zk` (`chl_bdbfc808…`, unsigned).
+
+
+## M2 certificate CLOSED (after merging lane/zk-L4e and lane/zk-int with L1b)
+
+`Toy.toy_admission` now has **no hypotheses beyond the judge's literals**: it is the full
+`AdmissionStatement` for the DEMO toy challenge. Axioms: propext, Classical.choice, Quot.sound.
+* L4e (`fit32`): the BCS evaluation lemmas restate wide hashes with `fit32`, and the hash-length
+  hypotheses become `(fit32 (H m)).length = 32`, which holds for every `H`. So `bcs_complete32`/`size32`
+  apply to every `H`, and `np_proverComplete` uses them directly.
+* L4e (`minQueryLog = 8`): every boundary statement (IOP completeness, prover budget, size, `hlo`) is
+  over the IOP verifier's admissible headers (`(Vd A).headerOk`). `lo = 8` comes from
+  `verifier_headerOk`, and the query bound is `udr2_K24_min8_ok` (24 chunks).
+* `np_admission` hypotheses: AIR soundness/completeness, header fit, non-empty and < 2^32 tables,
+  size bound, `maxProofBytes`, profile facts, `lo`/`g` domination + `QueryOk`, `NpOk`, `NVu`.
+  `near_admission` needs only `L6Facts`.

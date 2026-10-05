@@ -2,6 +2,8 @@ import ZkFormal.Prover.Statements
 import ZkFormal.Assembly.Guard
 import ZkFormal.Stark.Laws
 import ZkFormal.Stark.SchedOk
+import ZkFormal.Prover.BcsComplete
+import ZkFormal.Prover.BcsSize
 
 /-!
 # ZkFormal.Prover.Compose — `ProverComplete` and the prover budgets for np-udr-stark
@@ -46,10 +48,12 @@ noncomputable def npProver (S : ChallengeSpec) (A : Air) (traceOf : S.Claim → 
 def npVerifier (S : ChallengeSpec) (A : Air) : TreeVerifier :=
   guardTree (claimOk S) (verifier Fp Fp8 A Params.default)
 
-theorem headerOk_nil (A : Air) (hA : A.tables ≠ []) : headerOk A Params.default [] = false := by
+theorem headerOk_nil (A : Air) (hA : A.tables ≠ []) : (Vd A).headerOk [] = false := by
   cases h : A.tables with
   | nil => exact absurd h hA
-  | cons T Ts => simp [headerOk, h]
+  | cons T Ts =>
+    show (headerOk A Params.default [] && _) = false
+    simp [headerOk, h]
 
 theorem npIop_spec (A : Air) (cb : Bytes) (tr : Trace Fp) :
     NpGood A cb tr (npIop A cb tr) ∨ (npIop A cb tr).hdr = [] := by
@@ -64,7 +68,7 @@ theorem proveTree_bad (V : IopSpec Fp Fp8) (pr : IopProver Fp Fp8) (pub cb : Byt
 
 /-- Unit budget of the honest prover. -/
 theorem np_prover_unit (hQ : ProverQStmt) (S : ChallengeSpec) (A : Air)
-    (hNQ : ∀ hdr, headerOk A Params.default hdr = true → proverQ (Vd A) hdr ≤ 2 ^ 32)
+    (hNQ : ∀ hdr, (Vd A).headerOk hdr = true → proverQ (Vd A) hdr ≤ 2 ^ 32)
     (hA : A.tables ≠ []) (traceOf : S.Claim → S.Witness → Trace Fp) (pub : Bytes) (c : S.Claim)
     (w : S.Witness) : OracleComp.QueryBound unitWeight ((npProver S A traceOf).tree pub c w) (2 ^ 32) := by
   show OracleComp.QueryBound unitWeight (proveTree (Vd A) _ pub _) _
@@ -82,13 +86,13 @@ theorem np_prover_chunk (hC : ProverChunkStmt) (S : ChallengeSpec) (A : Air)
 
 /-- **`ProverComplete`** of the honest prover against the guarded deployed verifier,
 for every hash function. -/
-theorem np_proverComplete (hB : BcsCompleteStmt) (hSz : SizeStmt) (S : ChallengeSpec) (A : Air)
+theorem np_proverComplete (S : ChallengeSpec) (A : Air)
     (hN : ∀ (cb : Bytes) (tr : Trace Fp), Holds A (Udr.pubOf Fp cb) tr →
-      headerOk A Params.default (trHdr A tr) = true → ∃ pr, NpGood A cb tr pr) (traceOf : S.Claim → S.Witness → Trace Fp)
+      (Vd A).headerOk (trHdr A tr) = true → ∃ pr, NpGood A cb tr pr) (traceOf : S.Claim → S.Witness → Trace Fp)
     (hcomp : ∀ c w, S.Domain c → S.Rel c w →
       Holds A (Udr.pubOf Fp (S.encodeClaim c)) (traceOf c w) ∧
-      headerOk A Params.default (trHdr A (traceOf c w)) = true)
-    (maxB : Nat) (hsize : ∀ hdr, headerOk A Params.default hdr = true →
+      (Vd A).headerOk (trHdr A (traceOf c w)) = true)
+    (maxB : Nat) (hsize : ∀ hdr, (Vd A).headerOk hdr = true →
       sizeBound (Vd A) hdr ≤ maxB) (hmax : maxB ≤ Params.default.maxProofBytes) (pub : Bytes) :
     ProverComplete S (npVerifier S A).toVerifier (npProver S A traceOf).toProver pub maxB := by
   intro H c w hd hr
@@ -101,10 +105,12 @@ theorem np_proverComplete (hB : BcsCompleteStmt) (hSz : SizeStmt) (S : Challenge
   obtain ⟨_, hwf, hcpl⟩ := hgood
   have hlen : (runH (pureH H) (proveTree (Vd A) (npIop A (S.encodeClaim c) (traceOf c w)) pub
       (S.encodeClaim c)) ()).1.length ≤ maxB :=
-    Nat.le_trans (hSz Fp Fp8 (Vd A) _ pub _ H hwf) (hsize _ hwf.hdrOk)
+    Nat.le_trans (size32 Fp Fp8 (Vd A) _ pub _ H (fun _ => fit32_length _) hwf) (hsize _ hwf.hdrOk)
   refine ⟨hlen, ?_⟩
   show (runH (pureH H) (if claimOk S (S.encodeClaim c) then _ else _) ()).1 = true
   rw [if_pos (claimOk_encode S c)]
-  exact hB Fp Fp8 (Vd A) _ pub _ H (schedOk A Params.default) hwf hcpl (Nat.le_trans hlen hmax)
+  exact bcs_complete32 Fp Fp8 (Vd A) _ pub _ H (fun _ => fit32_length _)
+    (show 0 < Params.default.numChunks by decide) (show 0 < Params.default.posPerChunk by decide)
+    (schedOk A Params.default) hwf hcpl (Nat.le_trans hlen hmax)
 
 end ZkFormal.Prover

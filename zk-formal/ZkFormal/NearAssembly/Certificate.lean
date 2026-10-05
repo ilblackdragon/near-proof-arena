@@ -42,24 +42,17 @@ structure L6Facts (A : Air) (honestTrace : WfClaim → Witness → Trace Fp) : P
   complete : ∀ (c : WfClaim) (w : Witness), NearRelation c.1 w →
     Holds A (Udr.pubOf Fp c.encode) (honestTrace c w)
   fits : ∀ (c : WfClaim) (w : Witness), NearRelation c.1 w →
-    headerOk A Params.default (trHdr A (honestTrace c w)) = true
+    (Vd A).headerOk (trHdr A (honestTrace c w)) = true
   nonempty : A.tables ≠ []
   tables : A.tables.length < 2 ^ 32
-  size : ∀ hdr, headerOk A Params.default hdr = true → sizeBound (Vd A) hdr ≤ 8388608
+  size : ∀ hdr, (Vd A).headerOk hdr = true → sizeBound (Vd A) hdr ≤ 8388608
   nvu : NVu A Params.default ≤ 2 ^ 30
   /-- L3's decidable side condition. -/
   npOk : Udr.Np.NpOk A Params.default
 
-/-- Protocol-level obligations (identical in shape to `Toy.ToyPending`). -/
-structure NearPending (A : Air) : Prop where
-  bcs : BcsCompleteStmt
-  size : SizeStmt
-  /-- Admissible headers have query domain `≥ 2^8` (R-L7-1 decision, L4). -/
-  min8 : ∀ hdr, headerOk A Params.default hdr = true → 8 ≤ queryLog A Params.default hdr
-
 /-- **M5 skeleton: admission on the NEAR challenge.** -/
 theorem near_admission (A : Air) (honestTrace : WfClaim → Witness → Trace Fp)
-    (hp : NearPending A) (h6 : L6Facts A honestTrace)
+    (h6 : L6Facts A honestTrace)
     (pid model : String) (tb : Nat) (allowed : List String) (fuel rfuel : Nat)
     (pub : ArenaCore.Bytes) (pd bd : ArenaCore.Digest) (tid : String)
     (hmodel : model = "random_oracle") (htb : tb ≤ 128)
@@ -67,10 +60,10 @@ theorem near_admission (A : Air) (honestTrace : WfClaim → Witness → Trace Fp
     AdmissionStatement
       (challengeParamsWith (profileOf pid model tb allowed 40 64) fuel 8388608 rfuel)
       { publicDigest := pd, impl := .nativeTrusted bd tid (nearModel A) } := by
-  refine np_admission hp.bcs hp.size _ _ pub hpub
+  refine np_admission _ _ pub hpub
     A h6.nonempty h6.tables rfl honestTrace (fun c tr h => h6.sound c tr h)
     (fun c w _ hr => ⟨h6.complete c w hr, h6.fits c w hr⟩)
-    h6.size (Nat.le_refl _) ?_ ?_ htb rfl rfl 8 g2_8 hp.min8
+    h6.size (Nat.le_refl _) ?_ ?_ htb rfl rfl 8 g2_8 (fun hdr h => (verifier_headerOk h).2)
     g2_8_dom udr2_K24_min8_ok h6.npOk h6.nvu
   · show secModelOf model = _
     rw [hmodel]; rfl

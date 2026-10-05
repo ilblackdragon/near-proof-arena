@@ -25,13 +25,6 @@ namespace ZkFormal.Toy
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
   ZkFormal.Prover ZkFormal.Assembly
 
-/-- Open obligations the toy certificate is composed against. -/
-structure ToyPending : Prop where
-  bcs : BcsCompleteStmt
-  size : SizeStmt
-  /-- Admissible headers have query domain `≥ 2^8` (R-L7-1 decision (b), L4 lane/zk-L4e). -/
-  min8 : ∀ hdr, headerOk toyAir Params.default hdr = true → 8 ≤ queryLog toyAir Params.default hdr
-
 /-- `public.bin` of the toy candidate. -/
 def publicBin : Bytes := Bytes.ofString "np-udr-stark-v1/toy-square/v1"
 
@@ -48,9 +41,9 @@ theorem toy_headers (hdr : List Nat) (h : headerOk toyAir Params.default hdr = t
 theorem toy_size_all : ∀ l, l < 17 → 1 ≤ l → sizeBound (Vd toyAir) [l] ≤ 8388608 := by
   decide +kernel
 
-theorem toy_size (hdr : List Nat) (h : headerOk toyAir Params.default hdr = true) :
+theorem toy_size (hdr : List Nat) (h : (Vd toyAir).headerOk hdr = true) :
     sizeBound (Vd toyAir) hdr ≤ 8388608 := by
-  obtain ⟨l, rfl, h1, h2⟩ := toy_headers hdr h
+  obtain ⟨l, rfl, h1, h2⟩ := toy_headers hdr (verifier_headerOk h).1
   exact toy_size_all l h1 h2
 
 /-- L3's side condition for the toy AIR. -/
@@ -63,8 +56,8 @@ theorem toy_npOk : Udr.Np.NpOk toyAir Params.default := by
 
 theorem toy_NVu : NVu toyAir Params.default ≤ 2 ^ 30 := by decide +kernel
 
-/-- **M2: the toy admission statement**, from the open obligations. -/
-theorem toy_admission (hp : ToyPending) (pid model : String) (tb : Nat) (allowed : List String)
+/-- **M2: the toy admission statement** (closed: no open obligations). -/
+theorem toy_admission (pid model : String) (tb : Nat) (allowed : List String)
     (fuel rfuel : Nat) (pd bd : Digest) (tid : String)
     (hmodel : model = "random_oracle") (htb : tb ≤ 128)
     (hallowed : "random-oracle-fiat-shamir-sha256" ∈ allowed)
@@ -72,11 +65,11 @@ theorem toy_admission (hp : ToyPending) (pid model : String) (tb : Nat) (allowed
     AdmissionStatement
       (ZkToySpec.challengeParamsWith (ZkToySpec.profileOf pid model tb allowed 40 64) fuel 8388608 rfuel)
       { publicDigest := pd, impl := .nativeTrusted bd tid Model.verifier } := by
-  refine np_admission hp.bcs hp.size _ _ publicBin hpub
+  refine np_admission _ _ publicBin hpub
     toyAir toyAir_tables (by decide) rfl (fun c w => honestTrace w)
     (fun c tr h => toy_sound c tr h)
     (fun c w _ hr => ⟨toy_holds c w hr, toy_header w⟩)
-    toy_size (Nat.le_refl _) ?_ ?_ htb rfl rfl 8 g2_8 hp.min8
+    toy_size (Nat.le_refl _) ?_ ?_ htb rfl rfl 8 g2_8 (fun hdr h => (verifier_headerOk h).2)
     g2_8_dom udr2_K24_min8_ok toy_npOk toy_NVu
   · show ZkToySpec.secModelOf model = _
     rw [hmodel]; rfl
