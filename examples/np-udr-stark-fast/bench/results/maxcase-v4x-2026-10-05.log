@@ -1,0 +1,46 @@
+[prove] trace 2.143s tables 544x2^22 163x2^22 12x2^16 228x2^17 16x2^12 58x2^14 49x2^13 (3323 MB)
+[prove] resident 4368 MB, chunk 32, group 2^24
+[prove] main commit group 2^24
+[prove] main commit: 152.763s
+[prove]   coeffs 25.7s eval 78.2s feed 26.9s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 6903 MB
+[prove] aux coefficient cache 3904 MB (true), group 2^23
+[prove] aux: 68.146s
+[prove]   coeffs 12.3s eval 26.2s feed 9.8s auxvals 3.3s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 9914 MB
+[prove] quotient: 89.044s
+[prove]   coeffs 11.1s eval 42.9s feed 0.0s auxvals 9.8s beval 5.7s auxc 4.2s fill 48.8s | peak RSS 11061 MB
+[prove] quot commit: 24.940s
+[prove]   coeffs 0.6s eval 5.8s feed 2.1s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 8021 MB
+[prove] ood: 9.342s
+[prove]   coeffs 0.0s eval 0.0s feed 0.0s auxvals 3.9s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 7430 MB
+[prove] deep: 17.962s
+[prove]   coeffs 0.0s eval 2.1s feed 0.0s auxvals 3.8s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 7944 MB
+[prove] fri: 1.384s
+[prove]   coeffs 0.0s eval 0.0s feed 0.0s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 9817 MB
+[prove] openings: 28.455s
+[prove]   coeffs 11.6s eval 0.0s feed 0.0s auxvals 3.7s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 11249 MB
+[prove] total 394.360s proof 3561135 B
+	Command being timed: "taskset -c 8-15 /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/l8e/prove-v4x --public /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/pv/pub --request /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/maxcase/max/request.bin --witness /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/maxcase/max/witness.bin --claim-out /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/l8e/c-v4x.bin --proof-out /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/l8e/p-v4x.bin"
+	User time (seconds): 1720.37
+	System time (seconds): 99.76
+	Percent of CPU this job got: 461%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 6:34.50
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 9094092
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 144536968
+	Voluntary context switches: 297005
+	Involuntary context switches: 1579781
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 7056
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+EXIT 0
+PROOF-IDENTICAL
