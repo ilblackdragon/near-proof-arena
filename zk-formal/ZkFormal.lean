@@ -150,3 +150,4 @@ import ZkFormal.Prover.NpBus2
 import ZkFormal.Prover.NpBus3
 import ZkFormal.Prover.NpBus4
 import ZkFormal.Prover.NpDeep
+import ZkFormal.Prover.NpDeep2
