@@ -1,0 +1,23 @@
+{
+  "bandwidth_scheduler": {
+    "max_allowance": 4500000,
+    "max_base_bandwidth": 100000,
+    "max_shard_bandwidth": 4500000,
+    "max_single_grant": 4194304
+  },
+  "congestion_control": {
+    "allowed_shard_outgoing_gas": 1000000000000000,
+    "max_congestion_incoming_gas": 400000000000000000,
+    "max_congestion_memory_consumption": 1000000000,
+    "max_congestion_missed_chunks": 125,
+    "max_congestion_outgoing_gas": 10000000000000000,
+    "max_outgoing_gas": 300000000000000000,
+    "min_outgoing_gas": 1000000000000000
+  },
+  "main_storage_proof_size_soft_limit": 4000000,
+  "max_receipt_size": 4194304,
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "protocol_version": 86,
+  "runtime_config_view_sha256": "79b2a2df11580bd67197c125686f0e977040336568bba56999691bfdae530089",
+  "schema": "near-arena-runtime-config-v3"
+}

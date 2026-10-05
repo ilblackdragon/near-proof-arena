@@ -188,6 +188,7 @@ Witness/execution-level:
 | `w.no_code` | contract code list empty | no WASM |
 | `w.size` | `|state_witness| ≤ 8 MiB`; revealed `base_state` bytes of the main transition ≤ 3 000 000 | recorded-proof estimate stays below 4 000 000, so no receipt is delayed for proof size |
 | `r.shape` | every receipt in `R`: `ReceiptEnum::Action` (tag 0), exactly one `Transfer` action, no input data ids, no output data receivers, ED25519/SECP256K1 signer key, valid named receiver (no implicit-account creation) | v1 receipt shape |
+| `w.proof_shape` | every receipt in every `source_receipt_proofs` entry — including an entry overridden by a later duplicate key — has the D0 receipt shape | the D0 decoder does not model the full receipt type universe; only adversarially crafted witnesses (duplicate keys) can violate it without violating `r.shape` |
 | `r.refunds` | predecessor may be `system` (refund receipts are allowed, unlike v1). For a gas refund (`signer_id = receiver_id`): no gas key for `signer_public_key`, and the access key is absent or `FullAccess` (so `try_refund_allowance` writes nothing) | refund path without key writes |
 | `r.success` | every receipt succeeds: receiver exists as AccountV1, no balance overflow, storage stake satisfied, burn fits u128 | failure/rollback path |
 | `e.compute` | the compute limit (`gas_limit`) is not reached before the last receipt | delayed queue |
@@ -253,42 +254,79 @@ mainnet's formats), not yet a useful fraction of mainnet traffic. D1 (Transfer
 transactions) is the first rung expected to cover a measurable fraction of
 real chunks.
 
-## 7. Reference oracle (step 3, `near-arena-oracle --scope v3`)
+## 7. Reference oracle (`oracle/v3`, binary `near-arena-oracle-v3`)
 
-* Chain generation: nearcore's own `TestEnv` (integration-tests) with a 4–6
-  shard layout (boundary accounts), real `NightshadeRuntime` and epoch manager,
-  random Transfer transactions on a random subset of shards per height,
-  randomly dropped chunks (implicit transitions), real block/chunk production.
-* Witnesses: the `ChunkStateWitness` objects the chunk producers emit
-  (`ChainStore::create_state_witness` via the client's distribution request),
-  serialized with nearcore borsh — the real bytes.
-* Claims: built from the producing client's chain store / epoch manager by the
-  rules of `spec/claim-v3.md`.
-* Reference judge: `pre_validate_chunk_state_witness` +
-  `validate_chunk_state_witness` called on a validator client's store
-  (the witness path, never the shortcut), plus the actor-level epoch check.
-  Verdict `Ok` / `Err(kind)`; positive cases are additionally endorsed in the
-  live `TestEnv`.
-* Domain classification: an independent Rust predicate for `InD0`.
-* Negative cases: mutations of `claim.bin` (each compared header field,
-  context slot values, trusted facts) and of `witness.bin` (receipts, proofs,
-  base state, transitions, extra/missing proofs), each judged by nearcore.
+A separate crate (`oracle/v3/`, depends on nearcore's `integration-tests`), so the frozen
+v1/v2 oracle and its lock file are untouched.
 
-## 8. Formalization plan (step 4: `NearSpec.ChunkValidationV0`)
+* **Chains.** nearcore's own `TestEnv` (8 validator clients, real `NightshadeRuntime` with
+  `RuntimeConfigStore::new(None)` = mainnet PV 86 parameters, real epoch manager, real block
+  and chunk production, chunk-state-witness production and chunk endorsement), 4/5/6 shards
+  (`ShardLayout::multi_shard_custom`, boundary accounts), `num_block_producer_seats` ∈
+  {8, 100, 16, 3} ⇒ Reed–Solomon (2,8), (33,100) = mainnet, (5,16), (1,3); random
+  Transfer transactions on a random subset of shards each height (cross-shard receivers,
+  failing receivers, implicit receivers, two-action transactions, bursts of 400–900),
+  randomly missing chunks, forced missing chunks of the burst's target shard for 3 heights
+  (buffering ⇒ bandwidth requests and non-zero congestion of other shards), one chain with a
+  40-height gap of one shard (segment > 32 blocks), one chain with a 10 Tgas gas limit
+  (delayed receipts), 30-block epochs (validator updates at epoch starts). A `FakeClock` and a
+  fixed genesis time make every run byte-reproducible from the seed.
+* **Witnesses.** The `ChunkStateWitness` values the chunk producers hand to the partial-witness
+  layer (`DistributeStateWitnessRequest`), serialized with nearcore borsh — the real bytes. They
+  are also delivered to the chunk validators of the `TestEnv` as usual (endorsements flow).
+* **Claims.** Built by `oracle/v3/src/claim.rs` from the producing node's chain store and epoch
+  manager, mirroring `get_state_witness_block_range`; every block hash is recomputed from the
+  claim's header parts and checked against nearcore's.
+* **Reference judge.** `oracle/v3/src/judge.rs`: actor-level epoch check, then
+  `pre_validate_chunk_state_witness` + `validate_chunk_state_witness` (the witness path; panics
+  count as reject), with the claim's Reed–Solomon parameters. Every honest witness (3 992 in the
+  reported run) is accepted.
+* **D0 classifier.** `oracle/v3/src/d0.rs`: an independent Rust predicate using a tracking
+  node's full state and stored execution outcomes.
+* **Mutants** (`oracle/v3/src/mutate.rs`), each judged by nearcore (or false by the claim
+  format for hash-authenticated context): every compared header field (claim and witness
+  header changed together), unchecked fields (`height_created`, `height_included`, transition
+  `block_hash`), dropped / corrupted / extra / duplicated (both orders) / unsorted
+  receipt-proof entries, dropped and junk `base_state` values, **every single recorded trie
+  value dropped in turn** (read-set faithfulness), wrong post roots, applied-receipts hash,
+  epoch id, trailing byte, dropped / corrupted implicit transitions, context mutations (header
+  bytes, slot heights, slot inners, missing or extra block, epoch-start flag), trusted facts
+  (Reed–Solomon parameters; `chain_id` and `minimum_stake`, which D0 does not read).
+* **Leaf vectors** (`near-arena-oracle-v3 vectors`, `oracle/fixtures/v3/vectors/`): nearcore's
+  `ChaCha20Rng` stream and `shuffle_receipt_proofs`; `CongestionControl::congestion_level`
+  (f64 bits), `is_fully_congested`, `outgoing_gas_limit`; `reed_solomon_encode` + encoded merkle
+  root for 8 parameter sets incl. (33,100) and (85,256); the bandwidth-scheduler state written
+  by a real `Runtime::apply` of a missing chunk (600 random multi-shard contexts with requests,
+  congestion and missed chunks).
 
-New modules under `spec/lean/NearSpec/` (no existing file is modified, so the
-pinned v1/v2 TreeDigests are unaffected): `BorshV3` (decoders for the witness,
-headers, slots, ShardLayout; strict, with round-trip proofs for the encoders),
-`BlockHash`/`ChunkHash`/`Merkle` (merklize, verify_path), `ChaCha20` +
-`RandShuffle`, `F64Exact` (binary64 RNE on non-negative values),
-`Congestion`, `BandwidthMulti` (the n-shard scheduler), `ReedSolomon` (GF(2⁸),
-Vandermonde inverse), `ChunkValidationV0` (`Rel_D0` as a `decide`-able
-function). Reused unchanged: `NearSpec.SHA256`, `Trie`/`PTrie`,
-`TrieUpsert(+Proofs)` (bandwidth state write), `TransferV1.applyReceipt`
-(receiver credit, outcome hashing), `Outcome` (outcome root), account codec.
-These are exactly the components L5 (SHA bus) and L6 (trie, receipt, outcome
-AIR) already arithmetize; a chunk-validation AIR adds borsh parsing, ChaCha20,
-GF(2⁸) and the integer form of `is_fully_congested` [B §11].
+## 8. Formalization (`spec/lean/v3`, Lake package `NearSpecV3`)
+
+A separate Lake package requiring `NearSpec` and `ArenaCore` by path: no file of the pinned
+v1/v2 package (`spec/lean/lakefile.toml`, `NearSpec.lean`, `NearSpec/*`) is modified.
+
+| module | content | evidence |
+|---|---|---|
+| `ChaCha20` | ChaCha20Rng (rand_chacha 0.3.1), Lemire `gen_index`, rand 0.8.5 `shuffle` | 412/412 nearcore vectors |
+| `GF256`, `ReedSolomon` | GF(2⁸) (0x11D), the crate's Vandermonde × inverse matrix (same Gaussian elimination), parts, encoded merkle root | 72/72 vectors (8 parameter sets); `decide +kernel` on two vectors; systematic form proved for t ≤ 8, d = 1 ⇒ parity = data |
+| `F64` | exact binary64 for non-negative values (RNE), `round`, `as u64`, bit pattern | via `Congestion` vectors (bit-exact) |
+| `Congestion` | congestion level, `is_fully_congested`, `outgoing_gas_limit`; integer characterization of "fully congested" | 3000/3000 vectors + 34 129-point threshold sweep (the characterization is tested, not proved) |
+| `BandwidthScheduler` | full n-shard scheduler: allowances, link status, base grants, requests with the shared ChaCha20 tie-break, `distribute_remaining`, state + sanity hash, grants | 600/600 post-state vectors (grants are not observable in a vector; checked only through forward/buffer decisions in the difftest) |
+| `Wire`, `ClaimV3`, `WitnessV3`, `Layout` | strict nearcore-borsh decoders (lenient last-wins `HashMap`), claim-v3 codec | `ClaimV3Props`: `decodeClaim_encode`, `Claim.encode_injective` (proved) |
+| `TrieBuild` | partial trie from `PartialState` by hash lookup (fuel 400) | read-set mutants |
+| `RuntimeD0` | `Runtime::apply` for new and missing chunks in D0 (reuses `NearSpec.TransferV1.applyReceipt`, `PTrie.find/set/upsert`, `outcomeRoot`) | difftest |
+| `ChunkValidationV0` | `checkD0`, `RelD0` (steps 1–18 + D0 conditions) | difftest; `Examples.RealCase` |
+| `ChallengeV3` | `ArenaCore.ChallengeSpec` instance (`Rel = RelD0 c.encode w`) | builds |
+
+**Non-vacuity (kernel).** `NearSpecV3.Examples.RealCase` (`lake build NearSpecV3.Examples.RealCase`,
+≈ 2.5 min): `decide +kernel` proves `RelD0` on two real cases (a 4-shard chunk with one incoming
+cross-shard receipt and Reed–Solomon (2,8); a 4-shard chunk with two incoming receipts, one
+implicit transition and Reed–Solomon (5,16)) and on nearcore's accepted `dup_key_last_good`
+mutant, and `¬ RelD0` on two nearcore-rejected mutants (`prev_state_root` changed; duplicated
+proof key with the corrupt value last). Axioms: `propext`, `Quot.sound`.
+
+Reuse for an AIR: every hash is `ArenaCore.sha256` (L5's SHA bus contract applies unchanged);
+the trie and receipt semantics are v1/v2's (`PTrie`, `upsert` with its proofs,
+`TransferV1.applyReceipt`, `outcomeRoot`), which L6 arithmetizes.
 
 ## 9. Relation to v1/v2
 
@@ -299,3 +337,42 @@ degenerate context "one shard, no requests, zero congestion, a batch given by
 the judge" — but its claim (projected roots, receipt commitments) is not a
 chunk-validation claim, so a v2 proof cannot be converted into a v3 proof or
 an endorsement. Future work targets v3 only.
+
+## 10. Results: what is formalized, tested, and out of D0
+
+**3-way differential test** (`spec/difftest-report-v3.json`; nearcore oracle vs compiled Lean
+`nearspec-v3-check` vs independent Python `oracle/tools/spec_check_v3.py`), seed 4243, 8 chains
+× 120 blocks: **9 904 cases, 0 disagreements** — 907 honest D0 cases (all accepted by all three),
+1 856 honest out-of-domain cases (all classified out of D0 by both checkers), 7 141 mutants (1 176
+accepted by nearcore, 5 965 rejected; both checkers agree on every one, incl. 1 384 single-node
+drops: nearcore reads every recorded value and so does the Lean/Python model). D0 coverage: 631
+cases with incoming receipts (cross-shard), 62 with implicit transitions, 98 with bandwidth
+requests of other shards in the context, 476 with non-zero congestion of other shards, 66 with
+several source blocks; Reed–Solomon (33,100) 253, (2,8) 271, (5,16) 227, (1,3) 156; 4/5/6 shards.
+Public subset with its own report: `oracle/fixtures/v3/public/` (`difftest.json`, 0 disagreements).
+
+**Proved:** claim codec round trip and injectivity; `RelD0` (and its negation) on real cases by
+kernel evaluation; Reed–Solomon systematic form for small parameters; v2's trie lemmas (reused).
+**Tested, not proved:** that the Lean transcription equals nearcore (difftest + leaf vectors);
+the integer form of `is_fully_congested`; that `upsert` builds nearcore's canonical trie (as v2).
+**Not directly observable:** scheduler grants (only through forwarding decisions).
+
+**D0 exclusions exercised by honest out-of-domain cases:** `w.no_txs`, `c.no_tx_flags`,
+`c.own_congestion_zero`, `e.queues_empty`, `e.forwarded`, `e.compute`, `r.success`, `r.shape`,
+`c.single_epoch`, `c.no_split_gate` (validator updates), `c.not_genesis`, `c.segment`. Not
+reachable in the generated chains (stated, not exercised): `c.pv86` (all PV 86), `c.layout`
+(≤ 64 shards V2/V3 only), `c.headers` (PV 86 produces only V6 / V4–V5), `w.size` (> 3 MB of
+state), `w.no_code`, `r.refunds` (needs function-call or gas-key signers), `e.distinct_ids`
+(impossible on a real chain), and the dynamic-resharding split gate (the test epoch config has
+no `dynamic_resharding_config`).
+
+**Findings.** (1) The validator never checks `height_created`, `height_included`, the chunk
+producer's signature or the transitions' `block_hash` (mutants accepted by nearcore; the
+endorsement metadata does carry `height_created`). (2) `source_receipt_proofs` decoding is
+lenient (unsorted keys and duplicates accepted, last value wins). (3) System (refund) receipts
+burn no tokens but still report `gas_burnt = G` in their outcome and in the chunk's `gas_used`.
+(4) Every recorded trie value is read (single-node drops are always rejected): the witness is
+minimal.
+
+**Trusted facts** (spec/claim-v3.md §2.4) are only consistency-checked; a proof is meaningful
+only to a verifier that built (or checked) them from its own chain state.

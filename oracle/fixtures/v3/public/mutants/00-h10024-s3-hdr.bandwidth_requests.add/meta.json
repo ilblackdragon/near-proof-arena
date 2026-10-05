@@ -1,0 +1,12 @@
+{
+  "base": "00-h10024-s3",
+  "case": "00-h10024-s3-hdr.bandwidth_requests.add",
+  "d0_violations": [],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "in_d0": true,
+  "kind": "mutant",
+  "mutation": "hdr.bandwidth_requests.add",
+  "nearcore": "validate: InvalidBandwidthRequests(\"chunk extra: (is_some: true, len: 0) chunk header: (is_some: true, len: 1)\")",
+  "verdict_source": "nearcore"
+}
