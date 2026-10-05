@@ -56,3 +56,6 @@ import ZkFormal.Udr.Np.Stage
 import ZkFormal.Udr.Np.Statements
 import ZkFormal.Udr.Np.Compose
 import ZkFormal.Udr.Np.Shape
+import ZkFormal.Udr.Np.Frame
+import ZkFormal.Udr.Np.Facts
+import ZkFormal.Udr.Np.Early
