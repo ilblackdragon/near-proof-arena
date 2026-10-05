@@ -1,11 +1,15 @@
 //! `prove --public <dir> --request <request.bin> --witness <witness.bin>
 //!        --claim-out <claim.bin> --proof-out <proof.bin>`
 //!
-//! Judge entry point (docs/CONTRACTS.md §4). STUB: the protocol engine
-//! (`npudr::prover`) exists, but the NEAR AIR (lane L6, `nearAir` exported by
-//! the Lean AIR DSL) and the witness → trace generation do not yet. Until
-//! they land this binary validates its CLI and inputs, then fails with exit
-//! code 2 and writes nothing (an error is never an accept).
+//! Judge entry point (docs/CONTRACTS.md §4):
+//! 1. decode `request.bin` / `witness.bin` and derive the claim (`claim.bin`
+//!    = `encodeClaim c`, the reexec engine = NearSpec `deriveClaim`);
+//! 2. build the honest `nearAir` trace (`npudr::near`, a cell-for-cell port of
+//!    lane L6's `Near.render (extOf c w)` plus L5's SHA table);
+//! 3. prove `np-udr-stark-v1` with the public tape `public.bin` and claim
+//!    bytes `cb = claim.bin` (FORMATS.md §4) and write both files.
+//! Any failure exits 2 and writes nothing (an error is never an accept).
+//! `NPUDR_VERBOSE=1` prints per-phase timings on stderr.
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
@@ -40,8 +44,21 @@ fn parse_args(expected: &[&str]) -> BTreeMap<String, PathBuf> {
 
 fn main() {
     let a = parse_args(&["public", "request", "witness", "claim-out", "proof-out"]);
-    std::fs::read(a["public"].join("public.bin")).unwrap_or_else(|e| die(&format!("public: {e}")));
-    std::fs::read(&a["request"]).unwrap_or_else(|e| die(&format!("request: {e}")));
-    std::fs::read(&a["witness"]).unwrap_or_else(|e| die(&format!("witness: {e}")));
-    die("not yet implemented: NEAR AIR pending (L6); np-udr-stark-v1 cannot prove NearRelation yet")
+    let pub_tape = std::fs::read(a["public"].join("public.bin")).unwrap_or_else(|e| die(&format!("public: {e}")));
+    let req = std::fs::read(&a["request"]).unwrap_or_else(|e| die(&format!("request: {e}")));
+    let wit = std::fs::read(&a["witness"]).unwrap_or_else(|e| die(&format!("witness: {e}")));
+    let verbose = std::env::var("NPUDR_VERBOSE").is_ok_and(|v| v == "1");
+    let t0 = std::time::Instant::now();
+    let (claim, air, traces) = npudr::near::prepare(&req, &wit).unwrap_or_else(|e| die(&e));
+    if verbose {
+        let shapes: Vec<String> = traces.iter().map(|m| format!("{}x{}", m.width, m.values.len() / m.width.max(1))).collect();
+        eprintln!("[prove] trace {:.3}s tables {}", t0.elapsed().as_secs_f64(), shapes.join(" "));
+    }
+    let opts = npudr::prover::ProveOptions { verbose };
+    let proof = npudr::prover::prove_bytes(&air, traces, &pub_tape, &claim, &opts).unwrap_or_else(|e| die(&e));
+    if verbose {
+        eprintln!("[prove] total {:.3}s proof {} B", t0.elapsed().as_secs_f64(), proof.len());
+    }
+    std::fs::write(&a["claim-out"], &claim).unwrap_or_else(|e| die(&format!("claim-out: {e}")));
+    std::fs::write(&a["proof-out"], &proof).unwrap_or_else(|e| die(&format!("proof-out: {e}")));
 }
