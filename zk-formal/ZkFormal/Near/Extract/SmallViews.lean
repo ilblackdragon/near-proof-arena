@@ -128,8 +128,10 @@ inductive MrkNode where
   | promoted (cId cLen : Nat)
   deriving Repr, Inhabited
 
-/-- The mrk table: root reference `(J, Id, len)` and the nodes in row order. -/
+/-- The mrk table: the number of leaves `n` it builds the tree for, root
+reference `(J, Id, len)` and the nodes in row order. -/
 structure MrkV where
+  n : Nat
   J : Nat
   rootId : Nat
   rootLen : Nat
@@ -143,12 +145,13 @@ def MrkNode.raw : MrkNode → List Nat
   | .promoted cId cLen => [cId, cLen]
 
 structure MrkWf (pub : List Fp) (v : MrkV) : Prop where
-  /-- the node kinds follow `merklize` for `n` leaves (`n` from the public bytes,
-  stated when those are bytes and `1 ≤ n`) -/
-  shape : (∀ x, x < 4 → pubNat pub (PV_N + x) < 256) → 1 ≤ nPubNat pub → nPubNat pub ≤ 256 →
-    v.nodes.length = (mrkShape (nPubNat pub)).length ∧
+  /-- `n` is the claim's `n` (the table computes it in the field) -/
+  nfix : (∀ x, x < 4 → pubNat pub (PV_N + x) < 256) → nPubNat pub < P → v.n = nPubNat pub
+  npos : 1 ≤ v.n
+  /-- the node kinds follow `merklize` for `n` leaves -/
+  shape : v.nodes.length = (mrkShape v.n).length ∧
     ∀ q (h : q < v.nodes.length), (match v.nodes[q] with
-      | .hashed .. => true | .promoted .. => false) = ((mrkShape (nPubNat pub)).getD q (0, 0, false)).2.2
+      | .hashed .. => true | .promoted .. => false) = ((mrkShape v.n).getD q (0, 0, false)).2.2
   windows : ∀ nd ∈ v.nodes, match nd with
     | .hashed _ _ l _ _ r => l.length = 32 ∧ r.length = 32
     | .promoted _ _ => True
@@ -159,8 +162,8 @@ structure MrkWf (pub : List Fp) (v : MrkV) : Prop where
 def hashedBefore (nodes : List MrkNode) (q : Nat) : Nat :=
   ((nodes.take q).filter fun nd => match nd with | .hashed .. => true | _ => false).length
 
-def mrkPos (pub : List Fp) (q : Nat) : Nat × Nat :=
-  let p := (mrkShape (nPubNat pub)).getD q (0, 0, false); (p.1, p.2.1)
+def mrkPos (v : MrkV) (q : Nat) : Nat × Nat :=
+  let p := (mrkShape v.n).getD q (0, 0, false); (p.1, p.2.1)
 
 def mrkSends (pub : List Fp) (v : MrkV) (b : Nat) : List Msg :=
   let qs := v.nodes.zip (List.range v.nodes.length)
@@ -170,8 +173,8 @@ def mrkSends (pub : List Fp) (v : MrkV) (b : Nat) : List Msg :=
       | _ => []
   else if b = B_MPOS then
     qs.map fun (nd, q) => match nd with
-      | .hashed .. => [(mrkPos pub q).1, (mrkPos pub q).2, msgId K_MRK (hashedBefore v.nodes q), 64]
-      | .promoted cId cLen => [(mrkPos pub q).1, (mrkPos pub q).2, cId, cLen]
+      | .hashed .. => [(mrkPos v q).1, (mrkPos v q).2, msgId K_MRK (hashedBefore v.nodes q), 64]
+      | .promoted cId cLen => [(mrkPos v q).1, (mrkPos v q).2, cId, cLen]
   else []
 
 def mrkRecvs (pub : List Fp) (v : MrkV) (b : Nat) : List Msg :=
@@ -185,9 +188,9 @@ def mrkRecvs (pub : List Fp) (v : MrkV) (b : Nat) : List Msg :=
     [v.J, 0, v.rootId, v.rootLen] ::
     qs.flatMap fun (nd, q) => match nd with
       | .hashed lI lL _ rI rL _ =>
-        [[(mrkPos pub q).1 - 1, 2 * (mrkPos pub q).2, lI, lL],
-         [(mrkPos pub q).1 - 1, 2 * (mrkPos pub q).2 + 1, rI, rL]]
-      | .promoted cId cLen => [[(mrkPos pub q).1 - 1, 2 * (mrkPos pub q).2, cId, cLen]]
+        [[(mrkPos v q).1 - 1, 2 * (mrkPos v q).2, lI, lL],
+         [(mrkPos v q).1 - 1, 2 * (mrkPos v q).2 + 1, rI, rL]]
+      | .promoted cId cLen => [[(mrkPos v q).1 - 1, 2 * (mrkPos v q).2, cId, cLen]]
   else []
 
 def mrkTraffic (pub : List Fp) (v : MrkV) : Traffic := ⟨mrkSends pub v, mrkRecvs pub v⟩
