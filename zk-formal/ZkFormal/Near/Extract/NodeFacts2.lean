@@ -194,3 +194,109 @@ theorem bytes {r : Nat} (hr : r < tr.height T_NODE) :
   · rw [h] at c11; grind
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+
+theorem winRead {r : Nat} (hr : r < tr.height T_NODE) (hw : tr.cell T_NODE r sVH + tr.cell T_NODE r sCH = 1) :
+    tr.cell T_NODE r b = tr.cell T_NODE r (reg 0) ∧ tr.cell T_NODE r pb = tr.cell T_NODE r (preg 0) := by
+  have c1 := con hL hr (e := .mul winE (sub (c b) (c (reg 0)))) (mem_windows (by simp [cWindows]))
+  have c2 := con hL hr (e := .mul winE (sub (c pb) (c (preg 0)))) (mem_windows (by simp [cWindows]))
+  simp only [winE, eval_mul, eval_c, eval_sub, eval_add] at c1 c2
+  rw [hw] at c1 c2; exact ⟨by grind, by grind⟩
+
+theorem winShift {r : Nat} (hr : r + 1 < tr.height T_NODE)
+    (hw : tr.cell T_NODE r sVH + tr.cell T_NODE r sCH = 1) (he : tr.cell T_NODE r fe = 0) (i : Nat) (hi : i < 31) :
+    tr.cell T_NODE (r + 1) (reg i) = tr.cell T_NODE r (reg (i + 1)) ∧
+    tr.cell T_NODE (r + 1) (preg i) = tr.cell T_NODE r (preg (i + 1)) := by
+  have hr' : r < tr.height T_NODE := by omega
+  have mem : ∀ e ∈ [mul3 winE (Dsl.not (c fe)) (sub (n (reg i)) (c (reg (i + 1)))),
+      mul3 winE (Dsl.not (c fe)) (sub (n (preg i)) (c (preg (i + 1))))], e ∈ Node.constraints := by
+    intro e he'
+    apply mem_windows
+    unfold cWindows; simp only [List.mem_append, List.mem_flatMap, List.mem_range]
+    exact Or.inl (Or.inl (Or.inl (Or.inr ⟨i, hi, he'⟩)))
+  have c1 := con hL hr' (mem (mul3 winE (Dsl.not (c fe)) (sub (n (reg i)) (c (reg (i + 1))))) (by simp))
+  have c2 := con hL hr' (mem (mul3 winE (Dsl.not (c fe)) (sub (n (preg i)) (c (preg (i + 1))))) (by simp))
+  simp only [winE, eval_mul3, eval_c, eval_n, eval_not, eval_sub, eval_add, nxt hr] at c1 c2
+  rw [hw, he] at c1 c2; exact ⟨by grind, by grind⟩
+
+theorem winLoad {r : Nat} (hr : r < tr.height T_NODE) (hf : tr.cell T_NODE r fs = 1) (i : Nat) (hi : i < 32) :
+    (tr.cell T_NODE r sCH = 1 → tr.cell T_NODE r rv = 0 → tr.cell T_NODE r (preg i) = tr.cell T_NODE r (reg i)) ∧
+    (tr.cell T_NODE r sVH = 1 → tr.cell T_NODE r tv = 0 → tr.cell T_NODE r (preg i) = tr.cell T_NODE r (reg i)) := by
+  have mem : ∀ e ∈ [.mul (mul3 (c fs) (c sCH) (Dsl.not (c rv))) (sub (c (preg i)) (c (reg i))),
+      .mul (mul3 (c fs) (c sVH) (Dsl.not (c tv))) (sub (c (preg i)) (c (reg i)))], e ∈ Node.constraints := by
+    intro e he'
+    apply mem_windows
+    unfold cWindows; simp only [List.mem_append, List.mem_flatMap, List.mem_range]
+    exact Or.inl (Or.inl (Or.inr ⟨i, hi, he'⟩))
+  have c1 := con hL hr (mem (.mul (mul3 (c fs) (c sCH) (Dsl.not (c rv))) (sub (c (preg i)) (c (reg i)))) (by simp))
+  have c2 := con hL hr (mem (.mul (mul3 (c fs) (c sVH) (Dsl.not (c tv))) (sub (c (preg i)) (c (reg i)))) (by simp))
+  simp only [eval_mul3, eval_mul, eval_c, eval_not, eval_sub] at c1 c2
+  rw [hf] at c1 c2
+  exact ⟨fun h h' => by rw [h, h'] at c1; grind, fun h h' => by rw [h, h'] at c2; grind⟩
+
+theorem winConst {r : Nat} (hr : r + 1 < tr.height T_NODE) (hc : tr.cell T_NODE r sCH = 1)
+    (he : tr.cell T_NODE r fe = 0) : ∀ x ∈ windowConst, tr.cell T_NODE (r + 1) x = tr.cell T_NODE r x := by
+  intro x hx
+  have c := con hL (by omega : r < _) (e := mul3 (c sCH) (Dsl.not (c fe)) (sub (n x) (c x)))
+    (mem_windows (by unfold cWindows; simp only [List.mem_append, List.mem_map]
+                     exact Or.inl (Or.inr ⟨x, hx, rfl⟩)))
+  simp only [eval_mul3, eval_c, eval_n, eval_not, eval_sub, nxt hr] at c
+  rw [hc, he] at c; grind
+
+theorem winMisc {r : Nat} (hr : r < tr.height T_NODE) :
+    tr.cell T_NODE r rv * (1 - tr.cell T_NODE r sCH) = 0 ∧
+    tr.cell T_NODE r gD = tr.cell T_NODE r gP + tr.cell T_NODE r fs * tr.cell T_NODE r sVH * tr.cell T_NODE r tv ∧
+    (tr.cell T_NODE r gP = 1 → tr.cell T_NODE r dI = (K_NPRE : Fp) + (16 : Nat) * tr.cell T_NODE r cid ∧
+      tr.cell T_NODE r dL = tr.cell T_NODE r clen) ∧
+    (tr.cell T_NODE r gD - tr.cell T_NODE r gP = 1 →
+      tr.cell T_NODE r dI = (K_VPRE : Fp) + (16 : Nat) * tr.cell T_NODE r nid ∧ tr.cell T_NODE r dL = 72) := by
+  have c1 := con hL hr (e := .mul (c rv) (Dsl.not (c sCH))) (mem_windows (by simp [cWindows]))
+  have c2 := con hL hr (e := sub (c gD) (.add (c gP) (.mul vhStart (c tv)))) (mem_windows (by simp [cWindows]))
+  have c3 := con hL hr (e := .mul (c gP) (sub (c dI) (mid K_NPRE (c cid)))) (mem_windows (by simp [cWindows]))
+  have c4 := con hL hr (e := .mul (c gP) (sub (c dL) (c clen))) (mem_windows (by simp [cWindows]))
+  have c5 := con hL hr (e := .mul valStart (sub (c dI) (mid K_VPRE (c nid)))) (mem_windows (by simp [cWindows]))
+  have c6 := con hL hr (e := .mul valStart (sub (c dL) (k 72))) (mem_windows (by simp [cWindows]))
+  simp only [vhStart, valStart, eval_mul, eval_c, eval_not, eval_sub, eval_add, eval_k, eval_mid] at c1 c2 c3 c4 c5 c6
+  refine ⟨c1, by grind, fun h => ?_, fun h => ?_⟩
+  · rw [h] at c3 c4; exact ⟨by grind, by grind⟩
+  · rw [h] at c5 c6; exact ⟨by grind, by grind⟩
+
+theorem winIndex {r : Nat} (hr : r + 1 < tr.height T_NODE) (he : tr.cell T_NODE r fe = 1) :
+    (tr.cell T_NODE r sCH = 0 → tr.cell T_NODE (r + 1) sCH = 1 → tr.cell T_NODE (r + 1) w = 0) ∧
+    (tr.cell T_NODE r sCH = 1 → tr.cell T_NODE (r + 1) sCH = 1 → tr.cell T_NODE (r + 1) w = tr.cell T_NODE r w + 1) := by
+  have hr' : r < tr.height T_NODE := by omega
+  have c1 := con hL hr' (e := .mul (mul3 (c fe) (Dsl.not (c sCH)) (n sCH)) (n w)) (mem_windows (by simp [cWindows]))
+  have c2 := con hL hr' (e := .mul (mul3 (c fe) (c sCH) (n sCH)) (sub (n w) (.add (c w) (k 1))))
+    (mem_windows (by simp [cWindows]))
+  simp only [eval_mul, eval_mul3, eval_c, eval_n, eval_not, eval_sub, eval_add, eval_k, nxt hr] at c1 c2
+  rw [he] at c1 c2
+  exact ⟨fun h h' => by rw [h, h'] at c1; grind, fun h h' => by rw [h, h'] at c2; grind⟩
+
+theorem winSlot {r : Nat} (hr : r < tr.height T_NODE) (hc : tr.cell T_NODE r sCH = 1) :
+    (isBr.eval tr T_NODE r pub = 1 →
+      (sum ((List.range 16).map fun i => c (jj i))).eval tr T_NODE r pub = 1 ∧
+      (sum ((List.range 16).map fun i => Expr.mul (c (jj i)) (c (bm i)))).eval tr T_NODE r pub = 1 ∧
+      belowE.eval tr T_NODE r pub = tr.cell T_NODE r w) ∧
+    (tr.cell T_NODE r te = 1 → tr.cell T_NODE r w = 0) ∧
+    (tr.cell T_NODE r lastw = 1 → tr.cell T_NODE r w + 1 = nWinE.eval tr T_NODE r pub) := by
+  have c1 := con hL hr (e := mul3 isBr (c sCH) (sub (sum ((List.range 16).map fun i => c (jj i))) (k 1)))
+    (mem_windows (by simp [cWindows]))
+  have c2 := con hL hr (e := mul3 isBr (c sCH) (sub (sum ((List.range 16).map fun i => .mul (c (jj i)) (c (bm i)))) (k 1)))
+    (mem_windows (by simp [cWindows]))
+  have c3 := con hL hr (e := mul3 isBr (c sCH) (sub belowE (c w))) (mem_windows (by simp [cWindows]))
+  have c4 := con hL hr (e := .mul (c te) (.mul (c sCH) (c w))) (mem_windows (by simp [cWindows]))
+  have c5 := con hL hr (e := mul3 (c lastw) (c sCH) (sub (.add (c w) (k 1)) nWinE)) (mem_windows (by simp [cWindows]))
+  simp only [eval_mul3, eval_mul, eval_c, eval_sub, eval_add, eval_k] at c1 c2 c3 c4 c5
+  rw [hc] at c1 c2 c3 c4 c5
+  refine ⟨fun h => ?_, fun h => ?_, fun h => ?_⟩
+  · rw [h] at c1 c2 c3; exact ⟨by grind, by grind, by grind⟩
+  · rw [h] at c4; grind
+  · rw [h] at c5; grind
+
+end ZkFormal.Near.NodeProof
