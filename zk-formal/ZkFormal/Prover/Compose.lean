@@ -63,12 +63,13 @@ theorem proveTree_bad (V : IopSpec Fp Fp8) (pr : IopProver Fp Fp8) (pub cb : Byt
   simp [proveTree, h]
 
 /-- Unit budget of the honest prover. -/
-theorem np_prover_unit (hQ : ProverQStmt) (hNQ : NpProverQStmt) (S : ChallengeSpec) (A : Air)
+theorem np_prover_unit (hQ : ProverQStmt) (S : ChallengeSpec) (A : Air)
+    (hNQ : ∀ hdr, headerOk A Params.default hdr = true → proverQ (Vd A) hdr ≤ 2 ^ 32)
     (hA : A.tables ≠ []) (traceOf : S.Claim → S.Witness → Trace Fp) (pub : Bytes) (c : S.Claim)
     (w : S.Witness) : OracleComp.QueryBound unitWeight ((npProver S A traceOf).tree pub c w) (2 ^ 32) := by
   show OracleComp.QueryBound unitWeight (proveTree (Vd A) _ pub _) _
   rcases npIop_spec A (S.encodeClaim c) (traceOf c w) with ⟨_, hwf, _⟩ | hnil
-  · exact (hQ Fp Fp8 (Vd A) _ pub _ hwf).mono (hNQ A _ hwf.hdrOk)
+  · exact (hQ Fp Fp8 (Vd A) _ pub _ hwf).mono (hNQ _ hwf.hdrOk)
   · rw [proveTree_bad (Vd A) _ pub _ (by rw [hnil]; exact headerOk_nil A hA)]
     exact .pure _ _
 
@@ -81,8 +82,9 @@ theorem np_prover_chunk (hC : ProverChunkStmt) (S : ChallengeSpec) (A : Air)
 
 /-- **`ProverComplete`** of the honest prover against the guarded deployed verifier,
 for every hash function. -/
-theorem np_proverComplete (hB : BcsCompleteStmt) (hSz : SizeStmt) (hN : NpIopCompleteStmt)
-    (S : ChallengeSpec) (A : Air) (traceOf : S.Claim → S.Witness → Trace Fp)
+theorem np_proverComplete (hB : BcsCompleteStmt) (hSz : SizeStmt) (S : ChallengeSpec) (A : Air)
+    (hN : ∀ (cb : Bytes) (tr : Trace Fp), Holds A (Udr.pubOf Fp cb) tr →
+      headerOk A Params.default (trHdr A tr) = true → ∃ pr, NpGood A cb tr pr) (traceOf : S.Claim → S.Witness → Trace Fp)
     (hcomp : ∀ c w, S.Domain c → S.Rel c w →
       Holds A (Udr.pubOf Fp (S.encodeClaim c)) (traceOf c w) ∧
       headerOk A Params.default (trHdr A (traceOf c w)) = true)
@@ -91,7 +93,7 @@ theorem np_proverComplete (hB : BcsCompleteStmt) (hSz : SizeStmt) (hN : NpIopCom
     ProverComplete S (npVerifier S A).toVerifier (npProver S A traceOf).toProver pub maxB := by
   intro H c w hd hr
   obtain ⟨hh, hok⟩ := hcomp c w hd hr
-  obtain ⟨pr, hpr⟩ := hN A (S.encodeClaim c) (traceOf c w) hh hok
+  obtain ⟨pr, hpr⟩ := hN (S.encodeClaim c) (traceOf c w) hh hok
   have hgood : NpGood A (S.encodeClaim c) (traceOf c w) (npIop A (S.encodeClaim c) (traceOf c w)) := by
     unfold npIop
     rw [dif_pos ⟨pr, hpr⟩]

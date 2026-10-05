@@ -44,6 +44,7 @@ structure L6Facts (A : Air) (honestTrace : WfClaim → Witness → Trace Fp) : P
   fits : ∀ (c : WfClaim) (w : Witness), NearRelation c.1 w →
     headerOk A Params.default (trHdr A (honestTrace c w)) = true
   nonempty : A.tables ≠ []
+  tables : A.tables.length < 2 ^ 32
   size : ∀ hdr, headerOk A Params.default hdr = true → sizeBound (Vd A) hdr ≤ 8388608
   nvu : NVu A Params.default ≤ 2 ^ 30
   /-- L3's decidable side condition. -/
@@ -53,10 +54,6 @@ structure L6Facts (A : Air) (honestTrace : WfClaim → Witness → Trace Fp) : P
 structure NearPending (A : Air) : Prop where
   bcs : BcsCompleteStmt
   size : SizeStmt
-  proverQ : ProverQStmt
-  proverChunk : ProverChunkStmt
-  npIop : NpIopCompleteStmt
-  npProverQ : NpProverQStmt
   query : QueryOk Params.default.numChunks g2_5
 
 /-- **M5 skeleton: admission on the NEAR challenge.** -/
@@ -69,8 +66,8 @@ theorem near_admission (A : Air) (honestTrace : WfClaim → Witness → Trace Fp
     AdmissionStatement
       (challengeParamsWith (profileOf pid model tb allowed 40 64) fuel 8388608 rfuel)
       { publicDigest := pd, impl := .nativeTrusted bd tid (nearModel A) } := by
-  refine np_admission hp.bcs hp.size hp.proverQ hp.proverChunk hp.npIop hp.npProverQ _ _ pub hpub
-    A h6.nonempty rfl honestTrace (fun c tr h => h6.sound c tr h)
+  refine np_admission hp.bcs hp.size _ _ pub hpub
+    A h6.nonempty h6.tables rfl honestTrace (fun c tr h => h6.sound c tr h)
     (fun c w _ hr => ⟨h6.complete c w hr, h6.fits c w hr⟩)
     h6.size (Nat.le_refl _) ?_ ?_ htb rfl rfl 5 g2_5
     (fun hdr h => queryLog_ge_of_headerOk A Params.default hdr h6.nonempty h)

@@ -1,5 +1,9 @@
 import ZkFormal.Assembly.RomFull
 import ZkFormal.Prover.Compose
+import ZkFormal.Prover.NpLocalMain
+import ZkFormal.Prover.NpQ
+import ZkFormal.Prover.BcsQuery
+import ZkFormal.Prover.BcsChunk
 
 /-!
 # ZkFormal.Assembly.Admission — the judge's `AdmissionStatement` for an np-udr-stark candidate
@@ -39,11 +43,10 @@ theorem inLang_of_guard (S : ChallengeSpec) (A : Air) (cb : Bytes) (hok : claimO
 obligations of the prover model (`Prover.Statements`), L3's decidable `NpOk`, the AIR's
 semantic soundness/completeness and the concrete numeric checks. -/
 theorem np_admission
-    (hB : BcsCompleteStmt) (hSz : SizeStmt) (hQ : ProverQStmt) (hC : ProverChunkStmt)
-    (hN : NpIopCompleteStmt) (hNQ : NpProverQStmt)
+    (hB : BcsCompleteStmt) (hSz : SizeStmt)
     (ch : ChallengeParams) (art : ArtifactDescription) (pub : Bytes)
     (hpub : sha256 pub = art.publicDigest)
-    (A : Air) (hA : A.tables ≠ [])
+    (A : Air) (hA : A.tables ≠ []) (htab : A.tables.length < 2 ^ 32)
     (himpl : art.impl.Connection ch.verifyFuel (npVerifier ch.spec A).toVerifier)
     (traceOf : ch.spec.Claim → ch.spec.Witness → Trace Fp)
     (hsound : ∀ c tr, Holds A (Udr.pubOf Fp (ch.spec.encodeClaim c)) tr → ∃ w, ch.spec.Rel c w)
@@ -62,7 +65,8 @@ theorem np_admission
     (hNV : NVu A Params.default ≤ 2 ^ 30) :
     AdmissionStatement ch art := by
   let P := npProver ch.spec A traceOf
-  have hPC := np_proverComplete hB hSz hN ch.spec A traceOf hcomp ch.maxProofBytes hsize hmax pub
+  have hPC := np_proverComplete hB hSz ch.spec A
+    (fun cb tr h hh => Np.npIopComplete' A cb tr htab h hh) traceOf hcomp ch.maxProofBytes hsize hmax pub
   refine ⟨pub, (npVerifier ch.spec A).toVerifier, hpub, himpl, npBackend ch.spec A, ?_, ?_, ?_, ?_⟩
   · intro c tr h; exact hsound c tr h
   · intro c w hd hr; exact ⟨traceOf c w, (hcomp c w hd hr).1⟩
@@ -73,8 +77,9 @@ theorem np_admission
     rw [hmodel]
     refine ⟨hassm, P.toProver, hPC, ?_⟩
     obtain ⟨tapeLen, num, den, hb, hrom⟩ := stark_romSound_full A Params.default hok lo g hlo hdom hq
-      hNV P pub (2 ^ 32) (Nat.le_refl _) (np_prover_unit hQ hNQ ch.spec A hA traceOf pub)
-      (np_prover_chunk hC ch.spec A traceOf pub)
+      hNV P pub (2 ^ 32) (Nat.le_refl _) (np_prover_unit prover_unit ch.spec A
+        (fun hdr h => Np.npProverQ A hdr hNV h) hA traceOf pub)
+      (np_prover_chunk prover_chunk ch.spec A traceOf pub)
     refine ⟨tapeLen, num, den, ?_, ?_⟩
     · exact Nat.le_trans (Nat.mul_le_mul_left _ (Nat.pow_le_pow_right (by decide) htb)) hb
     · rw [hqh, hqp]

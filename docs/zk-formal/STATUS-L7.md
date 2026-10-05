@@ -104,3 +104,22 @@ are `sorry` in the scratch tree only. `proverQ`/`proverChunk` are the proved `pr
   on a wrong claim, a non-canonical claim `[b, 0]` (the guard), and a 1-bit proof mutation.
 * **But see R-L7-5:** csimp lemmas are not audited, so a `sorry` csimp passes every gate and
   redirects the judge binary (reproduced).
+
+
+## Prover sub-lanes merged (L7-bcs `918a308`, L7-iop `cfe6701`)
+
+* Proved: `prover_chunk : ProverChunkStmt`, `prover_unit : ProverQStmt`,
+  `Np.npIopComplete' : NpIopCompleteStmt'` (honest np IOP prover `npProver`: LDE, aux, quotient,
+  OOD, DEEP batch, FRI; well-formed, perfectly complete for every challenge sequence),
+  `Np.npProverQ : NpProverQStmt'`, `bcs_complete32`, `size32`.
+* The original statements are false, and the composition now uses the corrected ones:
+  * `NpIopCompleteStmt` needs `A.tables.length < 2^32` (for 2^32 trivial tables no prover is
+    well-formed). That is now a hypothesis of `np_admission`: `by decide` for the toy, an
+    `L6Facts` field for NEAR.
+  * `NpProverQStmt` needs `NVu ≤ 2^30` (unbounded width ⇒ unbounded batching slots), which
+    the assembly already assumes.
+  * `BcsCompleteStmt`/`SizeStmt` are false for `H` with non-32-byte answers (R-L7-bcs-1). They are
+    proved for 32-byte `H`. **Still open**, and they close once L4 normalises answers (`fit32`).
+* `np_admission` (and so `toy_admission`, `near_admission`) is now proved from **only**
+  `BcsCompleteStmt`, `SizeStmt` and `QueryOk numChunks g2_5`, plus the AIR inputs. `ToyPending`
+  = {bcs, size, query}.

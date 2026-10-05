@@ -12,12 +12,11 @@ artifact description with model `Toy.Model.verifier`, and `public.bin = publicBi
 Everything toy-specific is proved here (AIR soundness/completeness, header/size/
 query-budget numerics, public digest is left to the judge-facing module where the
 digest literal is known).  The remaining inputs are exactly the open obligations of
-other lanes / of L7's own sub-lanes, bundled in `ToyPending`:
+other lanes, bundled (IOP completeness, prover budgets and L3 soundness are proved) in `ToyPending`:
 
 | field | statement | owner |
 |---|---|---|
-| `bcs`, `size`, `proverQ`, `proverChunk` | `Prover.{BcsComplete,Size,ProverQ,ProverChunk}Stmt` | L7-bcs |
-| `npIop`, `npProverQ` | `Prover.{NpIopComplete,NpProverQ}Stmt` | L7-iop |
+| `bcs`, `size` | `Prover.{BcsComplete,Size}Stmt` — false for hash functions with non-32-byte answers; proved for 32-byte ones (`bcs_complete32`, `size32`); closes once L4 normalises answers (`fit32`, R-L7-bcs-1) | L4 + L7-bcs |
 | `query` | `QueryOk Params.default.numChunks g2_5` | **false for 24 chunks** — R-L7-1 (true after `numChunks := 26`: `udr2_K26_ok`) |
 -/
 
@@ -30,10 +29,6 @@ open ArenaCore ArenaCore.Security Lean.Grind ZkFormal ZkFormal.Stark ZkFormal.Ai
 structure ToyPending : Prop where
   bcs : BcsCompleteStmt
   size : SizeStmt
-  proverQ : ProverQStmt
-  proverChunk : ProverChunkStmt
-  npIop : NpIopCompleteStmt
-  npProverQ : NpProverQStmt
   query : QueryOk Params.default.numChunks g2_5
 
 /-- `public.bin` of the toy candidate. -/
@@ -76,8 +71,8 @@ theorem toy_admission (hp : ToyPending) (pid model : String) (tb : Nat) (allowed
     AdmissionStatement
       (ZkToySpec.challengeParamsWith (ZkToySpec.profileOf pid model tb allowed 40 64) fuel 8388608 rfuel)
       { publicDigest := pd, impl := .nativeTrusted bd tid Model.verifier } := by
-  refine np_admission hp.bcs hp.size hp.proverQ hp.proverChunk hp.npIop hp.npProverQ _ _ publicBin hpub
-    toyAir toyAir_tables rfl (fun c w => honestTrace w)
+  refine np_admission hp.bcs hp.size _ _ publicBin hpub
+    toyAir toyAir_tables (by decide) rfl (fun c w => honestTrace w)
     (fun c tr h => toy_sound c tr h)
     (fun c w _ hr => ⟨toy_holds c w hr, toy_header w⟩)
     toy_size (Nat.le_refl _) ?_ ?_ htb rfl rfl 5 g2_5
