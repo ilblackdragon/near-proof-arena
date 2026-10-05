@@ -31,12 +31,8 @@ pub fn check_available(store: &Path, def: &ChallengeDefinition) -> Result<Option
         return Ok(None);
     }
     let pin = &def.semantic_scope.formal_spec.tree_digest;
-    let dir = trusted_tree::check(store, pin).with_context(|| {
-        format!(
-            "challenge {:?} pins trusted tree {pin}",
-            def.semantic_scope.name
-        )
-    })?;
+    let dir = trusted_tree::check(store, pin)
+        .with_context(|| format!("challenge {:?} pins trusted tree {pin}", def.name))?;
     Ok(Some(dir))
 }
 
