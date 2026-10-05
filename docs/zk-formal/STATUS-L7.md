@@ -224,3 +224,23 @@ Remaining for A02 acceptance:
   `c82117cb…`-style judge builds, and false claims rejected.
 * Governance: sign the v1-zk challenge with the new checker identity (v1-5 deploy lane), update
   `candidate.toml`, then run the full formal-tier pipeline.
+
+## M5: the judge-built NEAR verifier on real proofs (2026-10-05)
+
+Verifier: `sha256:c82117cb…`, the formal-checker's native build of `NpUdrStark.Model.verifier`,
+byte-identical to `build.sh`'s `out/verify`. Prover: `out/prove` `3f136f70…` from the package recipe.
+Public tape: `prepare` of `params.bin` (`sha256 38c230e8…` = `NpUdrStark.publicBin`).
+Cases: 20 public fixtures plus 18 oracle class cases (seed 7; 6 each of 1, 16 and 256 receipts).
+Results are in `examples/np-udr-stark/bench/results/judge-verify-2026-10-05.tsv`; the script is
+`bench/judge-verify.sh`.
+* **38/38 honest proofs accepted**, and the claim equals `expected_claim` on all 38.
+* **38/38 rejected** for each of: a false claim (1 claim byte flipped), a mutated proof (1 random
+  bit), and a truncated proof (last byte dropped). Swapped claim/proof pairs across cases are
+  also rejected (3/3).
+* Prove time and proof size: batch-1 0.1–0.3 s, 1.84–2.01 MB; batch-16 0.6–1.0 s, 2.30–2.47 MB;
+  batch-256 11–13 s, 2.86–3.05 MB. The largest public fixtures take 9–13 s.
+* **Judge-verify time**: 0.51–0.87 s (batch-1/16), 1.0–1.12 s (batch-256), at most 1.69 s overall
+  (`s20261003-v5`). The cap is 10 s.
+
+Remaining for A02: L6's `RenderStmt` + R-L7-6, then the one-line `NpUdrStark.certificate`. Then a
+full formal-tier pipeline run on the signed v1-zk challenge, which needs the new checker identity.
