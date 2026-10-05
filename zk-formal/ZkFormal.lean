@@ -94,3 +94,4 @@ import ZkFormal.Bcs.PosCount
 import ZkFormal.Bcs.TransFinal
 import ZkFormal.Bcs.DecQuery
 import ZkFormal.Stark.L2Facts
+import ZkFormal.Stark.ChunkBound
