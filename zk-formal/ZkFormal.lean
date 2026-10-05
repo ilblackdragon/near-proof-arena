@@ -103,3 +103,7 @@ import ZkFormal.Prover.Statements
 import ZkFormal.Assembly.Guard
 import ZkFormal.Prover.Compose
 import ZkFormal.Assembly.Admission
+import ZkFormal.Toy.AirDef
+import ZkFormal.Toy.Air
+import ZkFormal.Toy.Model
+import ZkFormal.Toy.Certificate
