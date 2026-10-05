@@ -103,3 +103,22 @@ semantically identical to v1.1's.
 
 `templates/near-transfer-receipt-v1.template.json` is the skeleton the draft
 builder fills from `spec/challenge-inputs/` (spec-oracle lane).
+
+### Unsigned draft: `near-chunk-validation-d0` (statement `near/pv86/chunk-validation/v0`)
+
+`drafts/near-chunk-validation-d0.draft.json` (built by `spec/tools/build_challenge_draft_v3.py`)
+is the first challenge on the **v3** statement: *nearcore 2.13.4's stateless chunk validator
+accepts this real `ChunkStateWitness` for this endorsed chunk header in this chain context*
+(`spec/near-chunk-validation-v0.md`, formats `spec/claim-v3.md`, Lean `NearSpecV3`,
+oracle `oracle/v3`). It is restricted to domain D0 (Transfer receipts, no transactions,
+multi-shard, missing chunks allowed) by `Rel_D0 = Rel ∧ InD0` with the same claim/witness
+format every later domain (D1 transactions, D2 non-WASM actions, D3 WASM, D∞) will use, so a
+D0 proof is a drop-in replacement for re-executing that chunk's witness.
+
+The v1/v2 statements (`near/pv86/receipt-transfer-batch/v0`, `…/v1`) are **not** chunk
+validation: their claims are custom projections of a receipt batch (v2 additionally assumes a
+single-shard layout), so their proofs cannot replace any validator step. They stay immutable —
+their signed challenges, spec documents, Lean package `NearSpec` and TreeDigests are unchanged
+(v3 lives in the separate Lake package `spec/lean/v3`, reusing `NearSpec` read-only). Future
+work targets v3 only. The draft is unsigned and not loadable yet: checker image, hardware
+profile, workload generator digests and the held-out commitment remain to be pinned.
