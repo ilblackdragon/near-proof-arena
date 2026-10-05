@@ -96,6 +96,7 @@ import ZkFormal.Udr.Np.Bus
 import ZkFormal.Udr.Np.BusRounds
 import ZkFormal.Udr.Np.Degree
 import ZkFormal.Udr.Np.Chal7
+import ZkFormal.Udr.Np.Hom
 import ZkFormal.Bcs.TransDefs
 import ZkFormal.Bcs.TransStatements
 import ZkFormal.Bcs.TransCompose
