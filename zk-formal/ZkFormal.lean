@@ -44,3 +44,5 @@ import ZkFormal.Near.Compose
 -- Lane L6 sub-lane L6-sound: relational spec ⇒ NearRelation (good_sound).
 import ZkFormal.Near.Spec.Sound
 import ZkFormal.Near.BudgetCheck
+import ZkFormal.Near.Spec.Complete
+import ZkFormal.Near.Main

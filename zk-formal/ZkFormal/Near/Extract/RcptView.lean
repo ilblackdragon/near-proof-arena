@@ -162,7 +162,11 @@ structure RcptV.Wf (x : RcptV) (r bgp tok tok' : Nat) : Prop where
     (x.hr = true → leN' x.ramt = Params.G * (leN' x.gp - min (leN' x.gp) bgp)) ∧
     tok' = tok + leN' x.burnt ∧ tok' < Params.two128
 
-/-- Table-level facts.  `pubOk` = the public inputs are bytes (true for `publicOf`). -/
+/-- `n` from the public claim bytes (little endian). -/
+def nPubLE (pub : List Fp) : Nat := leN' (pubBytes pub PV_N 4)
+
+/-- Table-level facts (claim facts stated for byte-valued public inputs, as
+`publicOf` provides). -/
 structure RcptWf (pub : List Fp) (rs : RcptVs) : Prop where
   /-- tokens before each receipt (`toks[0] = 0`, `toks.length = rs.length + 1`) -/
   toks : ∃ toks : List Nat, toks.length = rs.length + 1 ∧ toks.head? = some 0 ∧
@@ -179,8 +183,6 @@ structure RcptWf (pub : List Fp) (rs : RcptVs) : Prop where
     leN' (pubBytes pub PV_GAS 8) = rs.length * Params.G
   refunds : (∀ j, j < 309 → pubNat pub j < 256) →
     (rs.filter (·.hr)).length = leN' (pubBytes pub PV_NREF 4)
-where
-  nPubLE (pub : List Fp) : Nat := leN' (pubBytes pub PV_N 4)
 
 def RcptViewStmt : Prop :=
   ∀ (tr : Trace Fp) (pub : List Fp), TableLocal Rcpt.table tr T_RCPT pub →
