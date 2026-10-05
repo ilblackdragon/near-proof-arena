@@ -149,10 +149,19 @@ import ZkFormal.Prover.BcsComplete
 import ZkFormal.Prover.BcsSize
 -- Lane L5: SHA-256 block table (statements, composition, generator).
 import ZkFormal.Sha.Compose
+import ZkFormal.Near.Compose
+-- Lane L6 sub-lane L6-sound: relational spec ⇒ NearRelation (good_sound).
+import ZkFormal.Near.Spec.Sound
+import ZkFormal.Near.BudgetCheck
+import ZkFormal.Near.Spec.Complete
+import ZkFormal.Near.Main
 import ZkFormal.Sha.Frame.All
 import ZkFormal.Sha.Sound.Block
 import ZkFormal.Sha.Sound
 import ZkFormal.Sha.Complete.All
+import ZkFormal.Near.Extract.SortProof
+import ZkFormal.Near.Extract.WalkProof
+import ZkFormal.Near.Extract.AcctProof
 import ZkFormal.Udr.SumR
 import ZkFormal.Udr.Np.DeepSem
 import ZkFormal.Udr.Np.Main
@@ -192,3 +201,12 @@ import ZkFormal.Prover.NpLocal3
 import ZkFormal.Prover.NpFinal
 import ZkFormal.Prover.NpLocalMain
 import ZkFormal.Algebra.Pocklington
+import ZkFormal.Near.NpOkCheck
+-- Lane L6 sub-lane L6-link: views + SHA contract + bus balance ⇒ Good (LinkStmt split).
+import ZkFormal.Near.Link.Compose
+import ZkFormal.Near.Extract.MrkProof
+import ZkFormal.Near.Render.Compose
+import ZkFormal.Near.Render.Proof.Main
+import ZkFormal.Near.Spec.SmallComplete
+import ZkFormal.Near.Link.Main
+import ZkFormal.Near.Final

@@ -1,0 +1,261 @@
+# REQUESTS — lane L6 (NEAR AIR), raised by sub-lanes
+
+## R-L6d-1 (L6-link): view values must be canonical naturals (`< p`)  — APPLIED on `lane/zk-L6-link`
+
+**Problem.** The views (`Extract/{NodeView,SmallViews,RcptView}.lean`) keep raw
+values as `Nat` and are compared with the trace only through `Fp.ofNat`
+(`TableTraffic`).  The `…Wf` predicates bound only some of them (`depth`,
+`res`, `uses`, `kslot`, `tprev`, walk `r`/`u`, acct `k`/`tlast`, sort `r`), not
+the raw byte lists, window bytes, node references (`cid/clen/cres`), walk edge
+components, or mrk references.  `LinkStmt` is then false:
+
+*Counterexample.* Take an honest batch and its honest views, and replace in
+receipt 0 the gas-price byte `gp[0] = g` by `g + p`.  Every message is
+unchanged as a list of field elements, so `TableTraffic` and bus balance still
+hold, and all of `RcptWf` still holds except that the arithmetic clause
+`RcptV.Wf.arith` is now vacuous (its hypothesis `Bytes8 x.gp` fails).  So
+`burnt` of receipt 0 can be changed to any 16 byte values (again consistently in
+the `PEO(0)` messages and the SHA counts) without violating any hypothesis of
+`LinkStmt`; the claim's `outcomeRoot` is then the root of the modified
+outcomes, and no `Ext` satisfies `Good` (the receipts are pinned by
+`receiptsCommitment`, which with `gasPrice` and `blockGasPrice` determine
+`tokensBurnt` of the outcome).  The same happens with any other raw value
+(e.g. a walk edge component `+ p` makes the walk/edge correspondence fail in
+`ℕ`; a `cid + p` breaks `TreeShape`'s range facts).
+
+**Fix (minimal).** Add a `canon` field to each `…Wf`: every raw value of the
+view is `< P`.
+
+| structure | new field |
+|---|---|
+| `NodeWf` | `canon : ∀ s ∈ vs, ∀ x ∈ s.v.raw, x < P` (`NodeV.raw`: key, slot/kid bytes, `cid clen cres`, windows, `memB`) |
+| `WalkWf` | `canon : ∀ w ∈ ws, ∀ st ∈ w.steps, ∀ x ∈ st.1, x < P` |
+| `RcptWf` | `canon : ∀ x ∈ rs, ∀ y ∈ x.raw, y < P` (`RcptV.raw`: every list field and `kt`) |
+| `AcctWf` | `canon : ∀ a ∈ as, ∀ x ∈ a.pre ++ a.post, x < P` |
+| `MrkWf` | `canon : v.J < P ∧ v.rootId < P ∧ v.rootLen < P ∧ ∀ nd ∈ v.nodes, ∀ x ∈ nd.raw, x < P` |
+| `SortWf` | `canon : ∀ x ∈ ids, ∀ y ∈ x.2, y < P` |
+
+**Why it is provable from the tables.** Every raw value of a view is the
+`Fp.toNat` of one trace column at one row (the extraction builds the view from
+column values), and `Fp.toNat_lt`.  No constraint is needed.  (Computed
+message components such as `depth + 1`, `u + 1`, offsets are *not* required to
+be `< P`; only view fields are.)
+
+## R-L6d-2 (L6-link): `RcptV.Wf.arith` must not assume `Bytes8 x.ramt` for refund-free receipts — APPLIED on `lane/zk-L6-link`
+
+**Problem.** `arith` is stated under `Bytes8 x.gp → … → Bytes8 x.burnt →
+Bytes8 x.ramt → …`.  Linking discharges each `Bytes8` from the SHA table's
+range check of the message the bytes are emitted into.  `ramt` is emitted only
+into the refund receipt (`RF`, `encRefund`), i.e. only when `x.hr = true`.  For
+a receipt with `hr = false`, nothing range-checks `ramt` (the table's
+convolution `ramt = G·sur` with `sur = 0` and 11-bit carries admits
+`ramt_0 = −256·c_0 mod p`, not a byte), so `arith` is vacuous for it.
+
+*Counterexample.* Honest views, but in a refund-free receipt `r` set
+`ramt[0] := 256` (no message carries `ramt`, so traffic and balance are
+unchanged; `RcptWf.canon` holds).  Then `arith` of receipt `r` is vacuous, and
+`burnt`, `hr`, `aft`, the running `toks` of `r` are unconstrained by
+`RcptWf`; changing `burnt` (consistently in `PEO(r)` and the SHA counts) gives
+views satisfying every hypothesis of `LinkStmt` whose outcome root is not the
+honest one, so no `Ext` satisfies `Good`.
+
+**Fix (minimal).** In `RcptV.Wf.arith` replace the hypothesis
+`Bytes8 x.ramt` by `x.hr = true → Bytes8 x.ramt`.
+
+**Why it is provable from the table.** The only conclusion that mentions
+`ramt` is `x.hr = true → leN' x.ramt = G·(gp − min gp bgp)`, which is vacuous
+when `hr = false` and has the hypothesis back when `hr = true`; the other
+conclusions (amount, storage, `ge`, `burnt`, `hr ↔ surplus ≠ 0`, `tok`) are
+derived from columns other than `ramt` (`hr` is `[sur ≠ 0]` by an inverse,
+`sur_i = ge·D_i`), so their table proofs do not use the range of `ramt`.
+
+## R-L6r-1 (L6-rcptview): `RcptV.Wf.tprev_le` is false for the table — APPLIED on `lane/zk-L6-rcptview`
+
+**Problem.** The table checks the memory-read time only by
+`mul3 dp (c fs) (sub (sub (c r) (c tprev)) (bitsX 57 9))`, i.e.
+`r − tprev ∈ [0, 512)` **in `Fp`**.  Nothing else bounds the column `tprev`
+(it is a receipt constant, used only in the `MEM` receive).
+
+*Counterexample.* Receipt `r = 0` with `tprev = P − 1` and `xb 57 = 1`,
+`xb 58..65 = 0`: `r − tprev = 1 = bitsX 57 9` in `Fp`; every other constraint is
+untouched.  The view must have `tprev = P − 1` (the `MEM` message carries
+`Fp.ofNat tprev`, and `small` asks `tprev < P`), so `tprev_le : tprev ≤ r`
+fails.
+
+**Fix (minimal).** `tprev_le : x.tprev < P - 512 → x.tprev ≤ r`.
+Linking (`Link/Mem.lean` `tprev_eq`) already has `htime` (`tprev = 0` or
+`tprev = r' + 1` with `r' < rs.length ≤ 256`) before it uses `hle`, so it can
+discharge the new hypothesis there.  (Table side: `tprev + d ≡ r`, `d < 512`,
+`tprev + d < P`, `r < P` ⇒ `tprev + d = r`.)
+
+## R-L6r-2 (L6-rcptview): the storage clause of `RcptV.Wf.arith` is false for the table — APPLIED on `lane/zk-L6-rcptview`
+
+**Problem.** `q = 10^19 · st` is computed in the `DEP` rows by the convolution
+`conv S_LE (c st) dl` over the 16 rows only (positions `0..15`, final carry
+`bitsX 26 12 = 0`).  With `big = 1` nothing forces the high storage bytes to
+vanish (`st_i = 0` for `i ≥ 2` is enforced only when `big = 0`), and the terms
+`S_j · st_m` with `m + j ≥ 16` are never added.  Since `S_LE[0] = S_LE[1] = 0`,
+`st_14` and `st_15` do not occur in any constraint at all.  What the table
+proves is `q = (10^19 · st) mod 2^128` and `q ≤ aft + lk`.
+
+*Counterexample.* An honest receipt with `big = 1` (`10^19 · stor ≤ aft + lk`)
+where `st_15 := 1` (in the `DEP` row 15 column `st`, and correspondingly in the
+`MEM` messages: they carry `st` unchanged).  All rcpt constraints still hold
+(`q` is unchanged).  All `Bytes8` hypotheses of `arith` hold, but
+`storageAmountPerByte · leN' st = 10^19 · (2^120 + stor) > aft + lk` and
+`leN' st > 770`, so the storage clause is false.
+
+**Fix (minimal).** In `RcptV.Wf.arith` replace
+`Params.storageAmountPerByte * leN' x.st ≤ …` by
+`(Params.storageAmountPerByte * leN' x.st) % Params.two128 ≤ …`.
+Linking (`Link/RunChain.lean`) gets `st_i = 0` for `i ≥ 8` from the acct lanes
+(`lanes`), hence `leN' st < 2^64` and `10^19 · leN' st < 2^128`, so the `% two128`
+is the identity there.  (Alternative with the same effect: add the hypothesis
+`leN' x.st < 2^64 →` to `arith`.)
+
+## R-L6r-3 (L6-rcptview): `RcptV.Wf.arith` needs the block gas price bytes to be bytes — APPLIED on `lane/zk-L6-rcptview`
+
+**Problem.** `RcptWf.toks` instantiates `Wf` with
+`bgp := leN' (pubBytes pub PV_BGP 16)`, which reads each public value mod 256
+(`UInt8.ofNat`), while the table compares `gp` with the public field elements
+themselves (`loads`: `reg j = pub (PV_BGP + j)` at the `GP` field start; borrow
+chain `gp_i − reg0 = c1 + D_i − 256·b_{i+1}`).  The hypothesis
+`bgp < Params.two128` of `arith` is always true for a `leN'` of 16 values, so it
+does not help.
+
+*Counterexample.* `pub[PV_BGP] = 256`, `pub[PV_BGP + i] = 0` (`i > 0`), a
+receipt with `gp = 0`.  The borrow chain is satisfied with `D_0 = 0`,
+`D_i = 255` (`i ≥ 1`), all borrows `1`, hence `ge = 0` (`p = gp = 0`,
+`burnt = 0`, `sur = 0`, `hr = 0` — all constraints hold).  But
+`leN' (pubBytes pub PV_BGP 16) = 0 ≤ leN' gp`, so `arith` claims `ge = true`.
+
+**Fix (minimal).** Let `RcptV.Wf` take the bytes instead of the value:
+`RcptV.Wf (x) (r) (bgpB : List Nat) (tok tok')`, in `arith` replace the
+hypothesis `bgp < Params.two128` by `Bytes8 bgpB` and `bgp` by `leN' bgpB`; in
+`RcptWf.toks` pass `pubBytes pub PV_BGP 16`.  Linking has
+`Bytes8 (pubBytes (publicOf c) PV_BGP 16)` (`publicOf` is bytes).
+
+## R-L6r-4 (L6-rcptview): table bug — `idx` is not reset at a receipt start — APPLIED on `lane/zk-L6-rcptview`
+
+**Problem.** `idx` is reset to `0` after a field end only when the field end
+is not a receipt end (`mul3 (c fe) (not (c rl)) (n idx)`), and at row 0.  At
+the first row of every receipt after the first (`rf`, after `rl`), `idx` is
+unconstrained.  The `PL` field then has `4 − idx₀` rows (its end is fixed by
+`idx = 3`), so its `RC` emissions are `(o + idx₀ + j, …)`: positions
+`o … o + idx₀ − 1` are skipped (or, with `idx₀ = −1`, five bytes are emitted
+from `o − 1`).
+
+*Counterexample (view statement).* Two receipts, the second with
+`idx = 2` on its `rf` row: the `PL` field is 2 rows (`(RC, o+2, Lp)`,
+`(RC, o+3, 0)`); every constraint holds.  No view has this traffic
+(`rcptTraffic` always emits the 4 bytes of `u32 len` at `o … o+3`), so
+`RcptViewStmt` is false.  (Globally the `BYTES` bus would not balance, but the
+per-table statement is local.)
+
+**Fix (applied).** `Tables/Rcpt/Fields.lean` `cStates`: add
+`.mul (c rf) (c idx)` (`rf → idx = 0`).  The honest generator already has
+`idx = 0` on `rf` rows: `test/NearRenderTest.lean` passes unchanged (rcpt now
+965 constraints); `BudgetCheck`/`NpOkCheck` re-checked.
+## R-L6e-1 (L6-render): `Good` must bound the number of touched nodes — RESOLVED (`Small`, L6e-rsha)
+
+**Problem.** `AcctLocalStmt` (part of `RenderObligations`) is false as stated:
+`Good c e` does not bound the number of touched nodes of `e.ns`, but the
+`acct` table has one 16-row segment per touched node and `maxLog = 12`
+(at most 256 segments).
+
+*Counterexample.* One receipt, and a revealed trie: a root branch whose own
+value slot is touched, with 16 revealed child branches, each with 16 revealed
+touched leaves (257 touched nodes), all with valid 72-byte AccountV1 values; the claim computed from the `Ext` as in
+`test/NearRenderTest.lean` (`mkClaim`).  Every field of `Good` holds
+(`size`: 257 leaves are far below `maxWitnessBytes`; the receipt's walk reaches
+one of the leaves), but the honest `acct` table has `257·16 = 4112 > 2^12`
+rows, so `TableLocal.log_le` fails.  (No trace at all is accepted for such an
+`Ext`: `VSLOT` forces one `acct` segment per touched node.)
+
+**Fix (minimal).** Add to `Good`
+
+```lean
+  touched_le : (e.ns.filter NodeRec.touched).length ≤ Params.maxBatch
+```
+
+(`Render.TouchedLe e`, `Render/Proof/AcctFacts.lean`).  The pruning
+(`GoodCompleteStmt`) produces exactly the receivers' slots, at most
+`receiptCount ≤ maxBatch` of them.  Soundness: from the `acct` view
+(`AcctWf`/`acctTraffic`, `≤ 2^12/16 = 256` segments) and `VSLOT` balance
+(node sends `VSLOT (k)` once per touched node, acct receives once per segment).
+
+Proved meanwhile: `acctLocal' : AcctLocalStmt'` (= `AcctLocalStmt` with the
+extra hypothesis `TouchedLe e`) and `acctLocal_of : (∀ c e, Good c e →
+TouchedLe e) → AcctLocalStmt`.
+
+**Related (not yet checked in detail).** The same kind of bound is missing for
+the `node` and `sha` tables (`maxLog = 22`): `Good.size` bounds the revealed
+*bytes* (`≤ 3·10^6`), but each node costs `node` rows per serialized byte and
+`sha` rows per 64-byte block of its two serializations plus `≥ 36` rows per
+node (two messages, at least one block of 17 rows each, plus start rows).  A
+trie of ~10^6 tiny nodes (e.g. childless, valueless branches of a few bytes)
+satisfies `Good.size` but would need `> 2^22` `sha` rows.  Fix: bound the
+node count in `Good` (or make `size` count a per-node overhead).
+
+**Resolution (L6e-rsha).** `Good` is unchanged (soundness produces it).
+Completeness only renders the *pruned* records `extOf c w`, so the size side
+condition is a separate predicate (`Spec/Small.lean`, name stable):
+
+```lean
+def NodeRec.dead : NodeRec → Bool          -- branch, no value, no child
+def NodeRec.terminal (nr) := nr.touched || nr.dead
+structure Small (e : Ext) : Prop where
+  terminals : (e.ns.filter NodeRec.terminal).length ≤ Params.maxBatch
+```
+
+* `small_complete : NearRelation c w → Small (extOf c w)`
+  (`Spec/SmallComplete.lean`; `tc_prune`: every terminal record of
+  `prune keys t` ends a distinct key, so there are `≤ |keys| = |receipts|`).
+* `RenderStmt : ∀ c e, Good c.1 e → Small e → Holds …`; every
+  `LocalStmt`/`TrafficStmt`/`BusStmt` of `Render/Statements.lean` assumes
+  `Good c.1 e → Small e →`.  `SmallCompleteStmt` (Near/Statements) is the
+  new link; `nearAir_complete hC hSm hR`, `honestTrace_fits hC hSm hR`
+  (Near/Compose), `nearAir_complete'`/`honestTrace_fits'` (Near/Main, with
+  `good_complete`, `small_complete`), and `nearAir_complete_rest`,
+  `honestTrace_fits_rest : RenderRest → …` (Render/Proof/Main).
+* `acctLocal : AcctLocalStmt` (via `Small.touched`); `RenderRest` lost its
+  `touched` field.
+
+Why this suffices for `sha` (and `node`): with `Good.nodes_wf` (hashes are 32
+bytes, extensions have a child), every non-dead record serializes to `≥ 43`
+bytes, and two SHA messages of `s ≥ 43` bytes take `2·(1 + 17·⌈(s+9)/64⌉) ≤
+5s/4` rows (tight at `s = 56`).  So the node messages need `≤ 1.25·3·10^6 +
+36·256 < 3.77·10^6` rows; the remaining `> 4·10^5` rows of `2^22` cover the
+`acct`, `mrk` and `rcpt` messages (`O(maxBatch)` messages of bounded length).
+
+## R-L6e-2 (L6-node): `Small` must bound the revealed key lengths — APPLIED (Small.keys, small_complete)
+
+**Problem.** `Good` allows keys of up to 511 nibbles (`NodeRec.wf`), but the
+node table writes the hex-prefix length as one byte: the `HPL` row has
+`fs · (b − hplen) = 0` and the next three bytes `0`, so `hplen = 1 + s/2`
+must be `< 256`, i.e. `s < 510` nibbles.  The extraction-side view writes the
+same length as `u32r` (`[L, 0, 0, 0]`).
+
+*Counterexample.* One receipt whose walk reaches a touched leaf below a root
+branch, plus (in another root slot) a revealed extension with a 510-nibble key
+and an unrevealed child hash.  `Good` holds (revealed bytes ≪ 3 MB, the
+extension is off every walk), but the honest serialization of that extension
+starts `[3, 0, 1, 0, 0, …]` (`u32 256`): the `HPL` constraint fails
+(`NodeLocalStmt` is false), the view's `ser false` is `[3, 256, 0, 0, 0, …]`
+≠ `mkInfo.pre` (`NodeSerStmt`, hence the BYTES bus, false), and the `PARENT`
+length differs.  No trace exists for such an `Ext`.
+
+**Fix (minimal).** A field of `Small`:
+
+```lean
+  keys : ∀ nr ∈ e.ns, nr.key.length < 510      -- = Render.KeyBound e
+```
+
+`small_complete` gets it from the pruning: every revealed leaf/extension of
+`extOf c w` lies on the walk of a receiver key (`accountKeyPath`, at most
+`2·(1 + 64) = 130` nibbles), so its key is a segment of that path.
+
+Proved meanwhile (`Render/Proof/`): `parentBus'`, `parentBus_of`
+(`BusParent`), `nodeSer'`, `nodeSer_of` (`NodeSer`); `Proof/Main.lean`'s
+`RenderRest` now has the field `keys : ∀ c e, Good c e → Small e → KeyBound e`
+in place of `nodeSer`/`parent`; `edge` is proved outright (`BusEdge.edgeBus`).
