@@ -99,3 +99,6 @@ import ZkFormal.Assembly.Params
 import ZkFormal.Assembly.RomBound
 import ZkFormal.Prover.Defs
 import ZkFormal.Prover.Statements
+import ZkFormal.Prover.BcsChunk
+import ZkFormal.Prover.BcsShape
+import ZkFormal.Prover.BcsQuery
