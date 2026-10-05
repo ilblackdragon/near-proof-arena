@@ -45,6 +45,10 @@ theorem range_chunks_var {β : Type} (f : Nat → List β) : ∀ (ws : List (Lis
       apply flatMap_congr'; intro j _
       simp only [List.getD_cons_succ, walkOff_succ, Nat.add_assoc]
 
+theorem steps_getD {L : Nat} {f : Nat → ZkFormal.Near.Msg × Nat} {i : Nat} (h : i < L) :
+    ((List.range L).map f).getD i ([], 0) = f i := by
+  simp [List.getD_eq_getElem?_getD, h]
+
 /-- Index facts of one walk. -/
 structure WalkIdx (w : List WStep) : Prop where
   len : 2 ≤ w.length

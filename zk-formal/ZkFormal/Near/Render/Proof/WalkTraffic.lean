@@ -133,10 +133,6 @@ theorem walkOff_add_le : ∀ (ws : List (List WStep)) (r : Nat), r < ws.length �
     rw [walkOff_succ]; simp only [List.getD_cons_succ, List.map_cons, List.sum_cons]
     have := walkOff_add_le ws r (by simpa using h); omega
 
-theorem steps_getD {L : Nat} {f : Nat → ZkFormal.Near.Msg × Nat} {i : Nat} (h : i < L) :
-    ((List.range L).map f).getD i ([], 0) = f i := by
-  simp [List.getD_eq_getElem?_getD, h]
-
 open WalkTraffic in
 /-- **`WalkTrafficStmt`.** -/
 theorem walkTraffic_ok : WalkTrafficStmt := by
