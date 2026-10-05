@@ -31,3 +31,10 @@ Please fix the AIR's multiplicity budget (L6) and `commitBad` accordingly.
 Decoding a base-field trace from an extension-field codeword needs `limbs (x + y) = limbs x + limbs y`
 (coordinatewise), `limbs (embed a * y) = a • limbs y`, `limbs (embed a) = [a, 0, …, 0]`
 (as `StarkFieldLaws` fields or L1 lemmas about the `Fp`/`Fp8` instance).
+
+### R-L3-5 (to L4, L6): bus indices must stay below the field characteristic
+The fingerprint tags a message with `(bus + 1 : K)`; buses `b` and `b + p` collide, so a trace that
+sends on bus 0 and receives the same message on bus `p` fails `Holds` yet passes the bus check for
+every challenge. L3 assumes `A.numBuses < 2^30` (`Np.NpOk`); please add it to `Air.wf`.
+
+### Note: R-L3-3 is addressed by L4 (`Air.multBound ≤ 2^36`, `Air.fpBound ≤ 2^36` in `Air.wf`).
