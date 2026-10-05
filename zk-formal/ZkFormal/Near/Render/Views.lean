@@ -59,35 +59,16 @@ def sortIdsOf (I : Info) : List (Nat × List Nat) := sortedIds I
 
 /-! ## mrk -/
 
-/-- The merkle view (same level walk as `mrkBuild`). -/
-def mrkViewOf (I : Info) : MrkV := Id.run do
+/-- The merkle view (the levels of `MrkGen`). -/
+def mrkViewOf (I : Info) : MrkV :=
   let n := I.nRcpt
-  let mut cur : List MNode := (List.range n).map fun r => ⟨msgId K_LEAF r, 68, shaN (leafBytes I r)⟩
-  let mut j := 1
-  let mut q := 0
-  let mut nodes : Array MrkNode := #[]
-  let mut fuel := n + 2
-  let mut done := false
-  while !done && fuel > 0 do
-    fuel := fuel - 1
-    let sp := cur.length
-    let s := (sp + 1) / 2
-    let mut nxt : Array MNode := #[]
-    for i in List.range s do
-      if 2 * i + 1 < sp then
-        let L := cur.getD (2 * i) default
-        let R := cur.getD (2 * i + 1) default
-        nodes := nodes.push (.hashed L.id L.len L.dig R.id R.len R.dig)
-        nxt := nxt.push ⟨msgId K_MRK q, 64, shaN (L.dig ++ R.dig)⟩
-        q := q + 1
-      else
-        let C := cur.getD (2 * i) default
-        nodes := nodes.push (.promoted C.id C.len)
-        nxt := nxt.push C
-    cur := nxt.toList
-    if s == 1 then done := true else j := j + 1
-  let root := cur.getD 0 default
-  return ⟨n, j, root.id, root.len, nodes.toList⟩
+  let lv := (List.range (MrkGen.topJ n + 1)).map (MrkGen.levels I)
+  let C (j k : Nat) : MNode := (lv.getD (j - 1) []).getD k default
+  let root := (lv.getD (MrkGen.topJ n) []).getD 0 default
+  ⟨n, MrkGen.topJ n, root.id, root.len, (mrkShape n).map fun (j, i, h) =>
+    if h then .hashed (C j (2 * i)).id (C j (2 * i)).len (C j (2 * i)).dig
+      (C j (2 * i + 1)).id (C j (2 * i + 1)).len (C j (2 * i + 1)).dig
+    else .promoted (C j (2 * i)).id (C j (2 * i)).len⟩
 
 /-! ## rcpt -/
 
