@@ -190,3 +190,109 @@ theorem tagDig (hC : NodeCtx tr s ℓ fl) {n : Nat} (S : NodeS) (hv : S.v = node
   · rw [if_neg hs, if_neg (fun h => hs (h0.2 h))]; simp [gate]
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+theorem revealed_ext (k : List Nat) (kid : NKid) (m : List Nat) : (NodeV.ext k kid m).revealed = (revF kid).toList := by
+  cases kid <;> rfl
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+set_option maxHeartbeats 1000000 in
+/-- DIGEST receive and PARENT send of one node. -/
+theorem nodeDigPar (hC : NodeCtx tr s ℓ fl) {n : Nat} (S : NodeS) (hv : S.v = nodeVOf tr s)
+    (hd : S.depth = cv tr T_NODE s depth) (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) (h0 : s = 0 ↔ n = 0) :
+    ((List.range' s ℓ).flatMap (fun r => rowT tr pub r B_DIGEST false)).Perm
+      (((if n = 0 then roots0 S pub else []) ++ pnDig n S).map Msg.toFp) ∧
+    (List.range' s ℓ).flatMap (fun r => rowT tr pub r B_PARENT true) = (pnParS S).map Msg.toFp := by
+  have gD : Gated B_DIGEST false := Or.inl ⟨rfl, rfl⟩
+  have gP : Gated B_PARENT true := Or.inr (Or.inl ⟨rfl, rfl⟩)
+  have TD := tagDig hL hC S hv h0 (pub := pub)
+  have TP := (tagStart hL hC (pub := pub)).1
+  obtain ⟨hr0, ha0⟩ := nodeStart hL hC
+  have T := typeSumNat hL hr0 ha0
+  simp only [pnDig, pnParS, hv, hd, List.map_append]
+  by_cases h1 : cv tr T_NODE s tl = 1
+  · -- leaf
+    have ht := of_cv_one h1
+    obtain ⟨-, -, hfl, -, -, -, -, -, -, sVH, -⟩ := leafFields hL hC ht
+    have hm : (9 + cv tr T_NODE s hplen, 32) ∈ fl := hfl ▸ (by simp [leafFL])
+    obtain ⟨VP, VD⟩ := vhView hL hC hm (by omega) sVH hn (pub := pub)
+    rw [leafGated hL hC ht gD, leafGated hL hC ht gP, TD, TP, VP, VD]
+    unfold nodeVOf; rw [if_pos h1]
+    unfold slotOf
+    by_cases htv : cv tr T_NODE s tv = 1
+    · rw [if_pos htv, if_pos htv]; simp [NodeV.revealed]
+    · rw [if_neg htv, if_neg htv]; simp [NodeV.revealed]
+  by_cases h2 : cv tr T_NODE s te = 1
+  · -- extension
+    have ht := of_cv_one h2
+    obtain ⟨-, -, hfl, -, -, -, -, -, sC, -⟩ := extFields hL hC ht
+    have hm : (5 + cv tr T_NODE s hplen, 32) ∈ fl := hfl ▸ (by simp [extFL])
+    obtain ⟨CD, CP⟩ := chView hL hC hm (by omega) sC (pub := pub)
+    rw [extGated hL hC ht gD, extGated hL hC ht gP, TD, TP, CD, CP]
+    unfold nodeVOf; rw [if_neg h1, if_pos h2]
+    simp only [revealed_ext, revF_digs, List.map_nil, List.nil_append, List.append_nil]
+    refine ⟨List.Perm.refl _, ?_⟩
+    generalize kidOf tr (s + (5 + cv tr T_NODE s hplen)) = kd
+    cases kd <;> simp [revPar, revF]
+  -- branch
+  have hb : tr.cell T_NODE s tb1 + tr.cell T_NODE s tb2 = 1 := by
+    have b1 := cvb hL hr0 (x := tb1) (by simp [boolCols])
+    have b2 := cvb hL hr0 (x := tb2) (by simp [boolCols])
+    rw [cell_eq_cast tr T_NODE s tb1, cell_eq_cast tr T_NODE s tb2, ← natCast_add,
+      show cv tr T_NODE s tb1 + cv tr T_NODE s tb2 = 1 by omega]; rfl
+  have B := brFields hL hC hb
+  simp only at B
+  rw [← brOff_eq hL hC] at B
+  obtain ⟨hfl, -, -, sVV, -, -, -, hW⟩ := B
+  have mem : ∀ p ∈ brFL (brOff tr s) (popN tr s), p ∈ fl := fun p hp => hfl ▸ hp
+  have hWin : ∀ j, j < popN tr s →
+      rowT tr pub (s + (brOff tr s + 2 + 32 * j)) B_DIGEST false = (revDigs (kidOf tr (s + (brOff tr s + 2 + 32 * j)))).map Msg.toFp ∧
+      rowT tr pub (s + (brOff tr s + 2 + 32 * j)) B_PARENT true =
+        (revPar (cv tr T_NODE s depth) (kidOf tr (s + (brOff tr s + 2 + 32 * j)))).map Msg.toFp := fun j hj =>
+    chView hL hC (mem _ (by simp [brFL]; exact Or.inr ⟨j, hj, rfl⟩)) (by omega) (hW j hj).1
+  rw [brGated hL hC hb gD, brGated hL hC hb gP, TD, TP]
+  rw [flatMap_congr' (fun j hj => (hWin j (List.mem_range.mp hj)).1),
+    flatMap_congr' (l := List.range (popN tr s)) (G := fun j => (revPar (cv tr T_NODE s depth)
+      (kidOf tr (s + (brOff tr s + 2 + 32 * j)))).map Msg.toFp) (fun j hj => (hWin j (List.mem_range.mp hj)).2)]
+  unfold nodeVOf; rw [if_neg h1, if_neg h2]
+  simp only [revealed_branch, flatMap_filterMap, revF_digs]
+  rw [kidsFlat hL hC (brOff tr s) revDigs rfl]
+  have hpar : ((kidsOf tr s (brOff tr s)).filterMap revF).map (fun x : Nat × Nat × Nat × List Nat × List Nat =>
+      [x.1, cv tr T_NODE s depth + 1, x.2.1, x.2.2.1]) =
+      (List.range (popN tr s)).flatMap fun w => revPar (cv tr T_NODE s depth) (kidOf tr (s + (brOff tr s + 2 + 32 * w))) := by
+    rw [List.map_eq_flatMap, flatMap_filterMap]
+    simp only [revF_par]
+    exact kidsFlat hL hC (brOff tr s) (revPar _) rfl
+  have hmap : ∀ (G : Nat → List Msg), (List.range (popN tr s)).flatMap (fun j => (G j).map Msg.toFp) =
+      ((List.range (popN tr s)).flatMap G).map Msg.toFp := by
+    intro G; rw [List.map_flatMap]
+  by_cases h37 : brOff tr s = 37
+  · obtain ⟨sV, sH⟩ := sVV h37
+    have hm5 : (5, 32) ∈ fl := mem _ (by simp [brFL, h37])
+    obtain ⟨VP, VD⟩ := vhView hL hC hm5 (by omega) sH hn (pub := pub)
+    have hb2 : cv tr T_NODE s tb2 = 1 := by unfold brOff at h37; split at h37 <;> simp_all
+    rw [if_pos h37, if_pos h37, VP, VD, if_pos hb2]
+    refine ⟨?_, ?_⟩
+    · unfold slotOf
+      rw [hmap]
+      by_cases htv : cv tr T_NODE s tv = 1
+      · rw [if_pos htv, if_pos htv]
+        simp only [List.map_append, List.append_assoc]
+        exact List.Perm.append_left _ (List.perm_append_comm)
+      · rw [if_neg htv, if_neg htv]; simp
+    · simp only [List.nil_append]
+      rw [hpar, hmap]
+  · have hb1 : cv tr T_NODE s tb2 ≠ 1 := by intro h; apply h37; unfold brOff; rw [if_pos h]
+    rw [if_neg h37, if_neg h37, if_neg hb1]
+    refine ⟨?_, ?_⟩
+    · rw [hmap]; simp
+    · simp only [List.nil_append]
+      rw [hpar, hmap]
+
+end ZkFormal.Near.NodeProof
