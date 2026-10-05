@@ -165,4 +165,103 @@ theorem count_match_entries_le (j : Nat) (u : Bytes) (L : Table) :
   · refine Nat.le_trans (count_mono (F := fun _ => False) _ fun e he => h ⟨_, he⟩) ?_
     rw [count_false]; exact Nat.zero_le _
 
+/-! ## Decoding half queries -/
+
+theorem whDec_some {k m : Bytes} {j : Nat} (h : whDec k = some (m, j)) : k = whq m j ∧ j < 2 := by
+  match k, h with
+  | [b], h =>
+    simp only [whDec] at h
+    by_cases h1 : b = 1
+    · rw [ite_eq_left h1] at h; cases h; subst h1; exact ⟨rfl, by omega⟩
+    · rw [ite_eq_right h1] at h
+      by_cases h2 : b = 2
+      · rw [ite_eq_left h2] at h; cases h; subst h2; exact ⟨rfl, by omega⟩
+      · rw [ite_eq_right h2] at h; cases h
+  | t :: b :: p, h =>
+    simp only [whDec] at h
+    by_cases h1 : b = 1
+    · rw [ite_eq_left h1] at h; cases h; subst h1; exact ⟨rfl, by omega⟩
+    · rw [ite_eq_right h1] at h
+      by_cases h2 : b = 2
+      · rw [ite_eq_left h2] at h; cases h; subst h2; exact ⟨rfl, by omega⟩
+      · rw [ite_eq_right h2] at h; cases h
+
+theorem whDec_of_eq {x m : Bytes} {j : Nat} (hj : j < 2) (h : x = whq m j) :
+    whDec x = some (m, j) := h ▸ whDec_whq m j hj
+
+theorem whq_other_ne {m : Bytes} {j : Nat} (hj : j < 2) : whq m (1 - j) ≠ whq m j := by
+  intro h; have := (whq_inj (by omega) hj h).2; omega
+
+/-! ## Used digests -/
+
+/-- Digests used by the log (with multiplicity). -/
+def uses (T : Table) : List Bytes := T.flatMap fun e => slots e.1
+
+theorem uses_cons (x y : Bytes) (T : Table) : uses ((x, y) :: T) = slots x ++ uses T := by
+  simp [uses]
+
+theorem mem_uses {u : Bytes} {T : Table} : u ∈ uses T ↔ ∃ e ∈ T, u ∈ slots e.1 := by
+  simp [uses]
+
+theorem uses_length_le : ∀ T : Table, (uses T).length ≤ 257 * T.length
+  | [] => by simp [uses]
+  | (x, y) :: T => by
+    rw [uses_cons, List.length_append, List.length_cons]
+    have := uses_length_le T
+    have := slots_length_le x
+    omega
+
+/-! ## The pending potential -/
+
+/-- Term of a log entry `e = (whq m j, a)`: while half `1 - j` of `m` is
+unanswered, the number of used digests (`U`) completing `a` as half `j`. -/
+noncomputable def pterm (T : Table) (U : List Bytes) (e : Bytes × Bytes) : Nat :=
+  match whDec e.1 with
+  | some (m, j) => if T.lookup (whq m (1 - j)) = none then count U (Match (1 - j) e.2) else 0
+  | none => 0
+
+noncomputable def psi (T : Table) : Nat := (T.map (pterm T (uses T))).sum
+
+/-- Matches of entry `e` among the digests used by a new query `x`. -/
+noncomputable def gx (x : Bytes) (e : Bytes × Bytes) : Nat :=
+  count (slots x) (fun u => ∃ m j, whDec e.1 = some (m, j) ∧ Match (1 - j) e.2 u)
+
+theorem psi_cons (x a : Bytes) (T : Table) :
+    psi ((x, a) :: T) = pterm ((x, a) :: T) (slots x ++ uses T) (x, a) +
+      (T.map (pterm ((x, a) :: T) (slots x ++ uses T))).sum := by
+  simp only [psi, uses_cons, List.map_cons, List.sum_cons]
+
+theorem pterm_cons_le (x a : Bytes) (T : Table) (e : Bytes × Bytes) :
+    pterm ((x, a) :: T) (slots x ++ uses T) e ≤ pterm T (uses T) e + gx x e := by
+  unfold pterm
+  cases hd : whDec e.1 with
+  | none => simp
+  | some p =>
+    obtain ⟨m, j⟩ := p
+    simp only
+    by_cases h1 : ((x, a) :: T).lookup (whq m (1 - j)) = none
+    · have h2 : T.lookup (whq m (1 - j)) = none := by
+        rw [lookup_cons] at h1
+        by_cases hx : whq m (1 - j) = x
+        · rw [ite_eq_left hx] at h1; cases h1
+        · rwa [ite_eq_right hx] at h1
+      rw [ite_eq_left h1, ite_eq_left h2, count_append, Nat.add_comm]
+      refine Nat.add_le_add_left (count_mono _ fun u hu => ⟨m, j, hd, hu⟩) _
+    · rw [ite_eq_right h1]; exact Nat.zero_le _
+
+theorem gx_sum_le (x : Bytes) (T : Table) : (T.map (gx x)).sum ≤ 514 * (1 + eqPairs T) := by
+  unfold gx
+  rw [sum_count_comm]
+  refine Nat.le_trans (sum_map_le _ _ (fun _ => (1 + eqPairs T) + (1 + eqPairs T)) fun u _ => ?_) ?_
+  · refine Nat.le_trans (count_mono _ (F := fun e => Match 0 e.2 u ∨ Match 1 e.2 u)
+      fun e ⟨m, j, _, hm⟩ => ?_) (Nat.le_trans (count_or_le _ _ _) (Nat.add_le_add
+        (count_match_entries_le 0 u T) (count_match_entries_le 1 u T)))
+    rcases (by omega : 1 - j = 0 ∨ 1 - j = 1) with h | h
+    · rw [h] at hm; exact Or.inl hm
+    · rw [h] at hm; exact Or.inr hm
+  · rw [Security.sum_map_const]
+    have := slots_length_le x
+    have := Nat.mul_le_mul_right ((1 + eqPairs T) + (1 + eqPairs T)) this
+    omega
+
 end ZkFormal.Bcs
