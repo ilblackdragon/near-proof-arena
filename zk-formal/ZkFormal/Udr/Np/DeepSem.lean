@@ -188,6 +188,84 @@ theorem dotF_eq (a : List Fp8) (b : List Fp) (n : Nat) (hn : a.length ≤ n) :
   show 0 + sumR a.length (fun c => a.getD c 0 * Fp8.ofBase (b.getD c 0)) = _
   rw [h2]; grind
 
+/-! ## One table -/
+
+/-- The DEEP columns of one table (as in `deepCols`). -/
+def blkOf (L : TLayout) (t : Nat) : List (Col × Bool) :=
+  (List.range L.width).map (fun c => (⟨t, 0, c⟩, false)) ++
+  (List.range L.width).map (fun c => (⟨t, 0, c⟩, true)) ++
+  (List.range L.aux).map (fun c => (⟨t, 1, c⟩, false)) ++
+  (List.range L.aux).map (fun c => (⟨t, 1, c⟩, true)) ++
+  (List.range L.quot).map (fun c => (⟨t, 2, c⟩, false))
+
+theorem mkTD_fields (eqs : List Fp8) (off : Nat) (L : TLayout) (o : TOod Fp8) :
+    (mkTD eqs off L o).eMz = (eqs.drop off).take L.width ∧
+    (mkTD eqs off L o).eMg = (eqs.drop (off + L.width)).take L.width ∧
+    (mkTD eqs off L o).eAz = (eqs.drop (off + 2 * L.width)).take L.aux ∧
+    (mkTD eqs off L o).eAg = (eqs.drop (off + 2 * L.width + L.aux)).take L.aux ∧
+    (mkTD eqs off L o).eQ = (eqs.drop (off + 2 * L.width + 2 * L.aux)).take L.quot ∧
+    (mkTD eqs off L o).vz = dotK (mkTD eqs off L o).eMz o.mainZ + dotK (mkTD eqs off L o).eAz o.auxZ +
+      dotK (mkTD eqs off L o).eQ o.quotZ ∧
+    (mkTD eqs off L o).vg = dotK (mkTD eqs off L o).eMg o.mainG + dotK (mkTD eqs off L o).eAg o.auxG := by
+  simp only [mkTD, List.drop_drop]
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  all_goals first | rfl | trivial | (congr 2; omega)
+
+/-- Sum of `e(off + k + c)·(f c − g c)` over `c < n`, as dot products. -/
+theorem block_sum (eqs : List Fp8) (a n : Nat) (f g : Nat → Fp8) :
+    sumR n (fun c => eqs.getD (a + c) 0 * (f c - g c)) =
+      sumR n (fun c => ((eqs.drop a).take n).getD c 0 * f c) -
+        sumR n (fun c => ((eqs.drop a).take n).getD c 0 * g c) := by
+  rw [← sumR_sub]
+  apply sumR_congr; intro c hc
+  rw [getD_take_drop _ _ _ _ hc]; grind
+
+theorem block_sum' (eqs : List Fp8) (a a' n : Nat) (h : a = a') (f g : Nat → Fp8) (I : Fp8) :
+    sumR n (fun c => eqs.getD (a + c) 0 * (f c - g c) * I) =
+      (sumR n (fun c => ((eqs.drop a').take n).getD c 0 * f c) -
+        sumR n (fun c => ((eqs.drop a').take n).getD c 0 * g c)) * I := by
+  subst h
+  rw [← block_sum, ← sumR_mul_right]
+
+theorem table_sum (eqs : List Fp8) (off : Nat) (L : TLayout) (t : Nat) (o : TOod Fp8)
+    (rowM rowA rowQ : List Fp) (z ω ξ : Fp8) (val : Col → Fp8) (cl : Col → Bool → Fp8)
+    (hv0 : ∀ c, val ⟨t, 0, c⟩ = Fp8.ofBase (rowM.getD c 0))
+    (hv1 : ∀ c, val ⟨t, 1, c⟩ = (ksOfRow (F := Fp) rowA).getD c 0)
+    (hv2 : ∀ c, val ⟨t, 2, c⟩ = (ksOfRow (F := Fp) rowQ).getD c 0)
+    (hc0 : ∀ c, cl ⟨t, 0, c⟩ false = o.mainZ.getD c 0) (hc0' : ∀ c, cl ⟨t, 0, c⟩ true = o.mainG.getD c 0)
+    (hc1 : ∀ c, cl ⟨t, 1, c⟩ false = o.auxZ.getD c 0) (hc1' : ∀ c, cl ⟨t, 1, c⟩ true = o.auxG.getD c 0)
+    (hc2 : ∀ c, cl ⟨t, 2, c⟩ false = o.quotZ.getD c 0) :
+    let td := mkTD eqs off L o
+    let H : Nat → Col × Bool → Fp8 := fun j ds =>
+      eqs.getD j 0 * (val ds.1 - cl ds.1 ds.2) * (ξ - (if ds.2 then ω * z else z))⁻¹
+    sOff (blkOf L t) off H =
+      ((td.eMz.zip rowM).foldl (fun s (uv : Fp8 × Fp) => s + uv.1 * StarkField.embed (K := Fp8) uv.2) 0 +
+          dotK td.eAz (ksOfRow (F := Fp) rowA) + dotK td.eQ (ksOfRow (F := Fp) rowQ) - td.vz) *
+        (ξ - z)⁻¹ +
+      ((td.eMg.zip rowM).foldl (fun s (uv : Fp8 × Fp) => s + uv.1 * StarkField.embed (K := Fp8) uv.2) 0 +
+          dotK td.eAg (ksOfRow (F := Fp) rowA) - td.vg) * (ξ - ω * z)⁻¹ := by
+  intro td H
+  obtain ⟨h1, h2, h3, h4, h5, h6, h7⟩ := mkTD_fields eqs off L o
+  simp only [blkOf, sOff_append, sOff_map, List.length_append, List.length_map, List.length_range]
+  simp only [H, hv0, hv1, hv2, hc0, hc0', hc1, hc1', hc2, Bool.false_eq_true, ite_false, ite_true]
+  simp only [td, h6, h7, h1, h2, h3, h4, h5]
+  rw [dotF_eq (List.take L.width (List.drop off eqs)) rowM L.width (length_take_drop_le _ _ _),
+    dotF_eq (List.take L.width (List.drop (off + L.width) eqs)) rowM L.width (length_take_drop_le _ _ _),
+    dotK_eq (List.take L.aux (List.drop (off + 2 * L.width) eqs)) _ L.aux (length_take_drop_le _ _ _),
+    dotK_eq (List.take L.aux (List.drop (off + 2 * L.width + L.aux) eqs)) _ L.aux (length_take_drop_le _ _ _),
+    dotK_eq (List.take L.quot (List.drop (off + 2 * L.width + 2 * L.aux) eqs)) _ L.quot (length_take_drop_le _ _ _),
+    dotK_eq (List.take L.width (List.drop off eqs)) _ L.width (length_take_drop_le _ _ _),
+    dotK_eq (List.take L.aux (List.drop (off + 2 * L.width) eqs)) _ L.aux (length_take_drop_le _ _ _),
+    dotK_eq (List.take L.quot (List.drop (off + 2 * L.width + 2 * L.aux) eqs)) _ L.quot (length_take_drop_le _ _ _),
+    dotK_eq (List.take L.width (List.drop (off + L.width) eqs)) _ L.width (length_take_drop_le _ _ _),
+    dotK_eq (List.take L.aux (List.drop (off + 2 * L.width + L.aux) eqs)) _ L.aux (length_take_drop_le _ _ _)]
+  rw [block_sum' eqs off off L.width rfl, block_sum' eqs (off + L.width) (off + L.width) L.width rfl,
+    block_sum' eqs (off + (L.width + L.width)) (off + 2 * L.width) L.aux (by omega),
+    block_sum' eqs (off + (L.width + L.width + L.aux)) (off + 2 * L.width + L.aux) L.aux (by omega),
+    block_sum' eqs (off + (L.width + L.width + L.aux + L.aux)) (off + 2 * L.width + 2 * L.aux) L.quot
+      (by omega)]
+  grind
+
 section
 variable {A : Air} {prm : Params} {τ : PTn}
 
