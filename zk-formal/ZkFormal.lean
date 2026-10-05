@@ -16,6 +16,7 @@ import ZkFormal.Bcs.Statements
 import ZkFormal.Bcs.Compose
 import ZkFormal.Bcs.Game2
 import ZkFormal.Bcs.Budget
+import ZkFormal.Bcs.InvPot
 -- Lane L1 (algebra): BabyBear, its degree-8 extension, polynomials, RS codes.
 import ZkFormal.Air.Basic
 import ZkFormal.Air.Export

@@ -17,8 +17,8 @@ Quot.sound.
 | `BudgetStmt` | Bcs/Budget.lean | L2-budget | **proved** `budget`, `budget_K24` |
 | `MultiproofStmt` (L4 multiproof ⇒ mmcsOpen paths) | Bcs/Multiproof*.lean | L2-mp | **proved** `multiproof_sound` |
 | `CompileAcceptsStmt` (L4 `Stark.Bcs.compile` ⇒ `AcceptsIn (adapt V)`) | Bcs/Stark{Adapter,Parse,Chain,Decode,Open,Align,Refine,Main}.lean | L2 | **proved** `compile_accepts` |
-| `stark_romSound` (RomSound of L4's deployed verifier) | Bcs/Final.lean | L2 | proved, modulo `InvPotStmt` + L3 RBR facts |
-| `InvPotStmt` (inversion potential) | Bcs/InvPot.lean | L2-inv | in progress |
+| `stark_romSound'` (RomSound of L4's deployed verifier) | Bcs/Final.lean | L2 | **proved**; inputs: L3 RBR facts, L4 `SchedOk` |
+| `InvPotStmt` (inversion potential) | Bcs/InvPot.lean | L2-inv | **proved** `invPot` |
 | RBR facts transport (L3 `RbrFacts` → `Bcs.PT mmcs` form) | — | L3/L7 | not started |
 
 Design amendments (relative to DESIGN.md §4), recorded in REQUESTS.md:
