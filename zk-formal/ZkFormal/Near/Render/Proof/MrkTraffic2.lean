@@ -35,6 +35,12 @@ theorem rowM_other (r : Rec) (b : Nat) (s : Bool) (h0 : b ≠ B_BYTES) (h1 : b �
     rowM n lv r b s = [] := by
   simp [rowM, h0, h1, h9]
 
+theorem rowM_otherS (r : Rec) (b : Nat) (h0 : b ≠ B_BYTES) (h9 : b ≠ B_MPOS) : rowM n lv r b true = [] := by
+  simp [rowM, h0, h9]
+
+theorem rowM_otherR (r : Rec) (b : Nat) (h1 : b ≠ B_DIGEST) (h9 : b ≠ B_MPOS) : rowM n lv r b false = [] := by
+  simp [rowM, h1, h9]
+
 theorem node_bytes (hL : (ch lv j (2 * i)).dig.length = 32) (hR : (ch lv j (2 * i + 1)).dig.length = 32) :
     (expand (j, i, true)).flatMap (fun r => rowM n lv r B_BYTES true) =
       (emitAt (msgId K_MRK (qBase n j + i)) 0 ((ch lv j (2 * i)).dig ++ (ch lv j (2 * i + 1)).dig)).map Msg.toFp := by
