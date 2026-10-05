@@ -137,3 +137,6 @@ import ZkFormal.Prover.NpCommits
 import ZkFormal.Prover.NpQ
 import ZkFormal.Prover.NpPrefix
 import ZkFormal.Prover.NpHon
+import ZkFormal.Prover.NpPrep
+import ZkFormal.Prover.NpRows
+import ZkFormal.Prover.NpAux
