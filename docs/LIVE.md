@@ -186,6 +186,18 @@ secret:
   fc-runner set; currently `/data/illia/nearproof-deps/firecracker-rc`, the
   steps-mode-capable images), the toolchain and lean-checker image pins, the
   oracle and `npai-verify` paths, and the conformance sample count.
+* `worker.env` also names the judge inputs that live outside the repo.
+  The repo holds only their paths:
+  * `ARENA_LEAN_CHECKER_IMAGES` and the `/opt/lean` build mount point at
+    the lean-checker image (`ARENA_LIVE_LEAN_IMAGES` / `ARENA_LIVE_LEAN_IMAGE`);
+  * `ARENA_HELDOUT_DIRS` points at the held-out set (`ARENA_LIVE_HELDOUT_DIRS`);
+  * `ARENA_SEASON_SECRET_FILE` and `ARENA_SEASON_SECRET_COMMIT` cover the
+    season secret (`ARENA_LIVE_SEASON`).
+
+  `install` adds any of these that are missing. It generates
+  `secrets/season-secret-<season>.hex` (0600) only if that file does not
+  exist, never prints it, and sets the commitment computed from it. Publish
+  the commitment in §5 before the season's runs.
 * `worker-<name>.env`: worker id, work dir, token file, classes and
   `ARENA_RUN_CPUS`.
 * `web.env`: the nginx listen addresses and the image digest.

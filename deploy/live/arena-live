@@ -53,6 +53,14 @@ REPO="${ARENA_LIVE_REPO:-$(cd "$(dirname "$(readlink -f "$0")")/../.." && pwd)}"
 TARGET="${ARENA_LIVE_TARGET:-$HOME/.cache/nearproof-live-target}"
 ORACLE_SRC="${ARENA_LIVE_ORACLE:-/data/illia/nearproof/oracle/target/debug/near-arena-oracle}"
 PG_CONTAINER="${ARENA_LIVE_PG_CONTAINER:-arena-pg}"
+# Judge inputs outside the repo (paths only; nothing secret lives in the repo):
+# the lean-checker image (R-L7-5 csimp audit; checker identity sha256:66b014d4…),
+# the held-out set (TreeDigest = the v1 challenges' heldout_commitment) and the
+# season whose secret seeds workload sampling (secrets/season-secret-<season>.hex).
+LEAN_IMAGES="${ARENA_LIVE_LEAN_IMAGES:-/data/illia/nearproof-deps/lean-checker/images-csimp}"
+LEAN_IMAGE="${ARENA_LIVE_LEAN_IMAGE:-463fdcf45f8818606dc4379d3ba6983ae7187fa83c7592ad175f7b137b16d6fe}"
+HELDOUT_DIRS="${ARENA_LIVE_HELDOUT_DIRS:-/data/illia/nearproof-deps/heldout/near-transfer-receipt-v1}"
+SEASON="${ARENA_LIVE_SEASON:-2026-10}"
 PG_HOSTPORT="${ARENA_LIVE_PG_HOSTPORT:-127.0.0.1:55471}"
 DB="${ARENA_LIVE_DB:-arena_live}"
 API_ROLE="${ARENA_LIVE_API_ROLE:-arena_live_api}"
@@ -143,11 +151,33 @@ upgrade_config() {
     say "worker.env: ARENA_FORMAL_REPO -> ARENA_TRUSTED_TREES"
   fi
   grep -q '^ARENA_TRUSTED_TREES=' "$c/worker.env" || echo "ARENA_TRUSTED_TREES=$LIVE/trusted-trees" >>"$c/worker.env"
+  grep -q '^ARENA_LEAN_CHECKER_IMAGES=' "$c/worker.env" || echo "ARENA_LEAN_CHECKER_IMAGES=$LEAN_IMAGES" >>"$c/worker.env"
+  grep -q '^ARENA_HELDOUT_DIRS=' "$c/worker.env" || {
+    echo "ARENA_HELDOUT_DIRS=$HELDOUT_DIRS" >>"$c/worker.env"; say "worker.env: + ARENA_HELDOUT_DIRS"; }
+  ensure_season_secret
   grep -q '^ARENA_TRUSTED_TREES=' "$c/server.env" || {
     printf '# frozen trusted trees: non-demo challenges register only against their pinned tree\nARENA_TRUSTED_TREES=%s\n' "$LIVE/trusted-trees" >>"$c/server.env"
     say "server.env: + ARENA_TRUSTED_TREES"
   }
   return 0
+}
+
+# The season secret (BENCHMARK_SPEC §11.1-11.2): 32 random bytes (hex) in
+# secrets/season-secret-$SEASON.hex, 0600, generated once and never printed.
+# worker.env carries only its path and the public commitment
+# sha256("near-arena-secret-commit-v1\0" || secret), which is published in
+# docs/LIVE.md before the season's runs.
+ensure_season_secret() {
+  local f="$LIVE/secrets/season-secret-$SEASON.hex" w="$LIVE/config/worker.env" commit
+  if [ ! -f "$f" ]; then
+    ( umask 077; head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' >"$f.tmp"; echo >>"$f.tmp" )
+    chmod 600 "$f.tmp" && mv -f "$f.tmp" "$f"
+    say "generated season secret for $SEASON (secrets/$(basename "$f"), 0600)"
+  fi
+  commit=$(python3 -c 'import hashlib,sys; s=bytes.fromhex(open(sys.argv[1]).read().strip()); assert len(s)>=32; print("sha256:"+hashlib.sha256(b"near-arena-secret-commit-v1\0"+s).hexdigest())' "$f")
+  sed -i -e '/^ARENA_SEASON_SECRET_FILE=/d' -e '/^ARENA_SEASON_SECRET_COMMIT=/d' "$w"
+  printf 'ARENA_SEASON_SECRET_FILE=%s\nARENA_SEASON_SECRET_COMMIT=%s\n' "$f" "$commit" >>"$w"
+  say "season $SEASON: secret commitment $commit"
 }
 
 write_default_config() {
@@ -182,8 +212,9 @@ ARENA_SERVER_URL=http://127.0.0.1:8472
 ARENA_FC_DEPS=/data/illia/nearproof-deps/firecracker-rc
 ARENA_IMAGES_DIR=/data/illia/nearproof-deps/toolchain-images
 ARENA_BUILD_TOOLCHAIN_IMAGE=sha256:70d2b28003f8117601772dedb7f42393e928ccfcca7356a49d675ec3f878a8a1
-ARENA_LEAN_CHECKER_IMAGES=/data/illia/nearproof-deps/lean-checker/images
-ARENA_BUILD_MOUNTS=/data/illia/nearproof-deps/lean-checker/images/d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1/arena/tc:/opt/lean
+ARENA_LEAN_CHECKER_IMAGES=$LEAN_IMAGES
+ARENA_BUILD_MOUNTS=$LEAN_IMAGES/$LEAN_IMAGE/arena/tc:/opt/lean
+ARENA_HELDOUT_DIRS=$HELDOUT_DIRS
 ARENA_BUILD_PATH=/opt/lean/bin:/usr/local/rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/bin:/usr/local/cargo/bin:/usr/local/bin:/usr/bin:/bin
 ARENA_TRUSTED_TREES=$LIVE/trusted-trees
 ARENA_FORMAL_CONFIGS_DIR=$LIVE/release/runners/formal-checker/challenges
