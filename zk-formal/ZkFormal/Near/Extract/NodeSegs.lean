@@ -135,3 +135,51 @@ theorem field_of (hL : TableLocal Node.table tr T_NODE pub) {s ℓ o L : Nat}
     rw [show s + o + k = s + (o + L - 1) by omega]; exact hfe
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node
+
+variable {tr : Trace Fp} {pub : List Fp}
+
+/-- The fields of a node segment. -/
+structure Fields (tr : Trace Fp) (s ℓ : Nat) (fl : List (Nat × Nat)) : Prop where
+  consec : Consec 0 fl
+  cover : segEnd 0 fl = ℓ
+  field : ∀ p ∈ fl, Field tr (s + p.1) p.2 ∧ p.1 + p.2 ≤ ℓ
+
+theorem fields_of (hL : TableLocal Node.table tr T_NODE pub) {s ℓ : Nat}
+    (hseg : IsSeg (one tr act) (one tr nf) (one tr nl) s ℓ) (hH : s + ℓ ≤ tr.height T_NODE) :
+    ∃ fl, Fields tr s ℓ fl := by
+  obtain ⟨fl, hc, hend, hall, hpad⟩ := segments_of (fieldSegFacts hL hseg hH) hseg.1
+  have hcov : segEnd 0 fl = ℓ := by
+    rcases Nat.lt_or_ge (segEnd 0 fl) ℓ with h | h
+    · have := hpad (segEnd 0 fl) (Nat.le_refl _) h; simp at this
+    · omega
+  refine ⟨fl, hc, hcov, fun p hp => ?_⟩
+  have hle := seg_le_end fl 0 hc p hp
+  exact ⟨field_of hL hseg hH (hall p hp) (by omega), by omega⟩
+
+/-- The field list: the first field starts at 0 and fields are consecutive. -/
+theorem Fields.first {s ℓ : Nat} {fl : List (Nat × Nat)} (hF : Fields tr s ℓ fl) (h : 0 < fl.length) :
+    fl[0].1 = 0 := by
+  have := hF.consec
+  cases fl with
+  | nil => simp at h
+  | cons p rest => exact this.1
+
+theorem Fields.next {s ℓ : Nat} {fl : List (Nat × Nat)} (hF : Fields tr s ℓ fl) {i : Nat} (h : i + 1 < fl.length) :
+    fl[i + 1].1 = fl[i].1 + fl[i].2 := consec_get fl 0 hF.consec i h
+
+theorem Fields.last {s ℓ : Nat} {fl : List (Nat × Nat)} (hF : Fields tr s ℓ fl) (h : 0 < fl.length) :
+    fl[fl.length - 1].1 + fl[fl.length - 1].2 = ℓ := by
+  rw [← hF.cover, segEnd_last fl 0 hF.consec h]
+
+theorem Fields.nonempty (hL : TableLocal Node.table tr T_NODE pub) {s ℓ : Nat}
+    (hseg : IsSeg (one tr act) (one tr nf) (one tr nl) s ℓ) {fl : List (Nat × Nat)} (hF : Fields tr s ℓ fl) :
+    0 < fl.length := by
+  rcases Nat.eq_zero_or_pos fl.length with h | h
+  · rw [List.length_eq_zero_iff] at h; subst h
+    have := hF.cover; simp [segEnd] at this; have := hseg.1; omega
+  · exact h
+
+end ZkFormal.Near.NodeProof
