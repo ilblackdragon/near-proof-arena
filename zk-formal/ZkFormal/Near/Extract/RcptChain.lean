@@ -103,3 +103,29 @@ theorem convS_id (f : Nat → Nat) :
   omega
 
 end ZkFormal.Near.RcptProof
+
+namespace ZkFormal.Near.RcptProof
+
+/-- Carry chain with an arbitrary carry-in. -/
+theorem chainC (L : Nat) (hL : 0 < L) (s a cin cout : Nat → Nat)
+    (hrow : ∀ k, k < L → s k + 256 * cout k = a k + cin k)
+    (hlink : ∀ k, k + 1 < L → cin (k + 1) = cout k) :
+    sumL s L + 256 ^ L * cout (L - 1) = sumL a L + cin 0 := by
+  have := chain L hL s (fun k => a k + if k = 0 then cin 0 else 0) (fun k => if k = 0 then 0 else cin k) cout
+    (fun k hk => by
+      have := hrow k hk
+      by_cases h0 : k = 0
+      · subst h0; simp; omega
+      · simp [h0]; omega) (by simp) (fun k hk => by simp [hlink k hk])
+  rw [this]
+  have gen : ∀ M, 0 < M → sumL (fun k => a k + if k = 0 then cin 0 else 0) M = sumL a M + cin 0 := by
+    intro M hM
+    induction M with
+    | zero => omega
+    | succ M ih =>
+      rcases Nat.eq_zero_or_pos M with h0 | h0
+      · subst h0; simp [sumL]
+      · simp only [sumL]; rw [ih h0, if_neg (by omega), Nat.add_zero]; omega
+  exact gen L hL
+
+end ZkFormal.Near.RcptProof
