@@ -355,3 +355,32 @@ theorem rconst {r : Nat} (hq : r + 1 < tr.height T_RCPT) (ha : tr.cell T_RCPT r 
   rw [ha, hc, hl] at h; grind
 
 end ZkFormal.Near.RcptProof
+
+namespace ZkFormal.Near.RcptProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Rcpt
+variable {tr : Trace Fp} {pub : List Fp}
+
+theorem rf_idx (hL : TableLocal Rcpt.table tr T_RCPT pub) {r : Nat} (hq : r < tr.height T_RCPT)
+    (h : tr.cell T_RCPT r rf = 1) : tr.cell T_RCPT r idx = 0 := by
+  have h1 := con hL hq (e := .mul (c rf) (c idx)) (mem_st (by simp [cStates]))
+  simp only [eval_mul, eval_c] at h1
+  rw [h] at h1; grind
+
+/-- `rl` at a row in state `x`. -/
+theorem rl_at (hL : TableLocal Rcpt.table tr T_RCPT pub) {r x : Nat} (hq : r < tr.height T_RCPT)
+    (hx : x ∈ states) (h1 : tr.cell T_RCPT r x = 1) :
+    tr.cell T_RCPT r rl = tr.cell T_RCPT r fe *
+      ((if x = sXRZ then 1 else 0) + (if x = sXLH then 1 else 0) * (1 - tr.cell T_RCPT r Rcpt.hr)) := by
+  have hb := (bounds hL hq).1
+  have oh := (oneHot hL hq hx h1).2
+  have e1 : tr.cell T_RCPT r sXRZ = if x = sXRZ then 1 else 0 := by
+    split
+    · rename_i h; subst h; exact h1
+    · rename_i h; exact oh sXRZ (by simp [states]) (Ne.symm h)
+  have e2 : tr.cell T_RCPT r sXLH = if x = sXLH then 1 else 0 := by
+    split
+    · rename_i h; subst h; exact h1
+    · rename_i h; exact oh sXLH (by simp [states]) (Ne.symm h)
+  rw [hb, e1, e2]
+
+end ZkFormal.Near.RcptProof
