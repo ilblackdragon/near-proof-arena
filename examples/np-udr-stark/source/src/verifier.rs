@@ -194,16 +194,14 @@ pub fn verify_parsed(air: &Air, cb: &[u8], sch: &Schedule, proof: &Proof, ch: &C
 /// Run all rounds of the transcript against the proof's messages
 /// (FORMATS.md §4).
 pub fn replay(sch: &Schedule, tr: &mut Transcript, proof: &Proof) -> Challenges {
-    let mut m0 = sch.header_bytes();
-    m0.extend_from_slice(&proof.root_main);
-    tr.absorb(m0);
+    tr.absorb(&[proof.root_main], &sch.header_bytes());
     let alpha_fp = tr.chal();
     let gamma_mul = tr.chal();
-    tr.absorb(aux_msg(&proof.root_aux, &proof.aux_finals));
+    tr.absorb(&[proof.root_aux], &efs_bytes(&proof.aux_finals));
     let alpha_c = tr.chal();
-    tr.absorb(proof.root_quot.to_vec());
+    tr.absorb(&[proof.root_quot], &[]);
     let z = tr.chal_ood();
-    tr.absorb(efs_bytes(&proof.ood));
+    tr.absorb(&[], &efs_bytes(&proof.ood));
     let batch: Vec<EF> = (0..sch.batch_rounds).map(|_| tr.chal()).collect();
     let mut beta = vec![];
     let mut gamma_roll = vec![EF::ZERO; sch.fri_l + 1];
@@ -212,14 +210,14 @@ pub fn replay(sch: &Schedule, tr: &mut Transcript, proof: &Proof) -> Challenges 
             gamma_roll[k] = tr.chal();
         }
         if let Some(i) = sch.committed_at(k) {
-            tr.absorb(proof.fri_roots[i].to_vec());
+            tr.absorb(&[proof.fri_roots[i]], &[]);
         }
         beta.push(tr.chal());
     }
     if sch.fri_l > 0 && sch.class_layers.contains(&sch.fri_l) {
         gamma_roll[sch.fri_l] = tr.chal();
     }
-    tr.absorb(efs_bytes(&proof.final_poly));
+    tr.absorb(&[], &efs_bytes(&proof.final_poly));
     let queries = tr.finish_queries(sch.l0, NUM_CHUNKS, PER_CHUNK);
     Challenges { alpha_fp, gamma_mul, alpha_c, z, batch, beta, gamma_roll, queries }
 }

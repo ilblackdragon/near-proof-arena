@@ -10,12 +10,12 @@ use sha2::{Digest, Sha256};
 
 pub const RO_TAG: &[u8] = b"NPAI-RO-v1";
 
-pub const TAG_INIT: u8 = 0x01;
-pub const TAG_ABS: u8 = 0x02;
-pub const TAG_CHAL: u8 = 0x03;
-pub const TAG_QUERY: u8 = 0x04;
-pub const TAG_LEAF: u8 = 0x05;
-pub const TAG_NODE: u8 = 0x06;
+pub const TAG_INIT: u8 = 0x00;
+pub const TAG_LEAF: u8 = 0x01;
+pub const TAG_NODE: u8 = 0x02;
+pub const TAG_ABS: u8 = 0x03;
+pub const TAG_CHAL: u8 = 0x04;
+pub const TAG_QUERY: u8 = 0x05;
 
 pub type Digest32 = [u8; 32];
 pub type Digest64 = [u8; 64];

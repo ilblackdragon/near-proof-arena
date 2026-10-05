@@ -14,7 +14,7 @@ use crate::hash::Digest64;
 use crate::mmcs::{self, rev, Mat, Opening, Tree};
 use crate::protocol::{batch_coeffs, Proof, Schedule, LOG_BLOWUP, NUM_CHUNKS, PER_CHUNK};
 use crate::transcript::Transcript;
-use crate::verifier::{aux_msg, efs_bytes, global_checks, ood_offsets, public_inputs, Challenges};
+use crate::verifier::{efs_bytes, global_checks, ood_offsets, public_inputs, Challenges};
 
 /// Optional timing log.
 pub struct Timer {
@@ -128,10 +128,13 @@ fn combine_into(out: &mut [EF], c: &RowMajorMatrix<F>, coef: &[EF]) {
 
 /// Commit one round (one matrix per table) without materializing the LDE.
 fn commit_polys(dft: &Dft, polys: &[ColPolys], l0: usize) -> Tree {
-    let mut leaves: Vec<Option<Vec<Digest64>>> = (0..=l0).map(|_| None).collect();
+    let mut levels: Vec<Vec<Digest64>> = vec![];
     for k in 0..=l0 {
         let ts: Vec<&ColPolys> = polys.iter().filter(|p| p.class == k).collect();
         if ts.is_empty() {
+            assert!(k > 0, "no level-0 matrix");
+            let lv = mmcs::plain_level(k, &levels[k - 1]);
+            levels.push(lv);
             continue;
         }
         let h = ts[0].log_h;
@@ -139,19 +142,26 @@ fn commit_polys(dft: &Dft, polys: &[ColPolys], l0: usize) -> Tree {
         let mut lv = Vec::with_capacity(t << LOG_BLOWUP);
         for b in 0..1usize << LOG_BLOWUP {
             let blocks: Vec<RowMajorMatrix<F>> = ts.iter().map(|p| p.block(dft, b)).collect();
+            let prev = levels.last();
             let hs: Vec<Digest64> = (0..t)
                 .into_par_iter()
                 .map_init(Vec::new, |buf, u| {
                     let rows: Vec<&[F]> =
                         blocks.iter().map(|m| &m.values[u * m.width()..(u + 1) * m.width()]).collect();
-                    mmcs::hash_rows(&rows, buf)
+                    if k == 0 {
+                        mmcs::hash_rows(&rows, buf)
+                    } else {
+                        let j = b * t + u;
+                        let p = prev.unwrap();
+                        mmcs::hash_node_rows(k, &p[2 * j], &p[2 * j + 1], &rows, buf)
+                    }
                 })
                 .collect();
             lv.extend(hs);
         }
-        leaves[k] = Some(lv);
+        levels.push(lv);
     }
-    mmcs::commit_leaves(l0, leaves)
+    Tree { log_h0: l0, levels }
 }
 
 /// Open one round at layer-0 query positions.
@@ -417,9 +427,7 @@ pub fn prove(
     tm.lap("main iDFT");
     let main_tree = commit_polys(&dft, &main, l0);
     tm.lap("main commit");
-    let mut m0 = sch.header_bytes();
-    m0.extend_from_slice(&main_tree.root());
-    tr.absorb(m0);
+    tr.absorb(&[main_tree.root()], &sch.header_bytes());
     let alpha_fp = tr.chal();
     let gamma = tr.chal();
 
@@ -434,7 +442,7 @@ pub fn prove(
     }
     drop(traces);
     let aux_tree = commit_polys(&dft, &aux, l0);
-    tr.absorb(aux_msg(&aux_tree.root(), &aux_finals));
+    tr.absorb(&[aux_tree.root()], &efs_bytes(&aux_finals));
     let alpha_c = tr.chal();
     tm.lap("aux");
 
@@ -453,7 +461,7 @@ pub fn prove(
     tm.lap("quotient");
     let quot_tree = commit_polys(&dft, &quot, l0);
     tm.lap("quot commit");
-    tr.absorb(quot_tree.root().to_vec());
+    tr.absorb(&[quot_tree.root()], &[]);
     let z = tr.chal_ood();
 
     // ---- message 4: OOD values ----
@@ -485,7 +493,7 @@ pub fn prove(
     };
     global_checks(air, &sch, &ood, &aux_finals, &pre, &pubs)
         .map_err(|e| format!("{e}: the trace does not satisfy the AIR"))?;
-    tr.absorb(efs_bytes(&ood));
+    tr.absorb(&[], &efs_bytes(&ood));
     let batch: Vec<EF> = (0..sch.batch_rounds).map(|_| tr.chal()).collect();
 
     // ---- DEEP batches per class layer (bit-reversed order) ----
@@ -578,7 +586,7 @@ pub fn prove(
             let a = sch.committed[i].1;
             let mat = Mat { width: 8 << a, log_height: l0 - k - a, values: ef_to_base_row(&f), bitrev: false };
             let tree = mmcs::commit(std::slice::from_ref(&mat));
-            tr.absorb(tree.root().to_vec());
+            tr.absorb(&[tree.root()], &[]);
             fri_roots.push(tree.root());
             fri_trees.push((mat, tree));
         }
@@ -610,7 +618,7 @@ pub fn prove(
     }
     let final_poly = [p0, p1];
     tm.lap("fri");
-    tr.absorb(efs_bytes(&final_poly));
+    tr.absorb(&[], &efs_bytes(&final_poly));
     let queries = tr.finish_queries(l0, NUM_CHUNKS, PER_CHUNK);
 
     // ---- openings ----
