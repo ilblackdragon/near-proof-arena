@@ -266,6 +266,13 @@ noncomputable def finalPoly : List Fp8 :=
   let y0 : Fp := domPoint (K := Fp8) (n0 A tr) (n0 A tr - ell A tr) 0
   [(2 : Fp8)⁻¹ * (w 0 + w 1), (w 0 - w 1) * Fp8.ofBase ((2 * y0)⁻¹)]
 
+/-- The message of FRI challenge kind `k` (roll-in: empty; fold of a committed layer: its oracle). -/
+noncomputable def kindMsg (k : Bool × Nat) : List (PartV Fp8 (Oracle Fp)) :=
+  if k.1 then [] else
+    match (commits A tr).lookup k.2 with
+    | some a => [.oracle [friMat A cb tr cs k.2 a]]
+    | none => []
+
 /-- Prover message number `j` (slot `2j`) given the challenges so far. -/
 noncomputable def npMsg (j : Nat) : List (PartV Fp8 (Oracle Fp)) :=
   if j = 0 then [.header (hdr A tr), .oracle (mainO A tr)]
@@ -275,11 +282,7 @@ noncomputable def npMsg (j : Nat) : List (PartV Fp8 (Oracle Fp)) :=
   else if j = 4 then [.elems (oodC A cb tr cs)]
   else if j < 4 + nB A tr then []
   else match (kinds A tr)[j - (4 + nB A tr)]? with
-    | some (true, _) => []
-    | some (false, i) =>
-      match (commits A tr).lookup i with
-      | some a => [.oracle [friMat A cb tr cs i a]]
-      | none => []
+    | some k => kindMsg A cb tr cs k
     | none => [.elems (finalPoly A cb tr cs)]
 
 end

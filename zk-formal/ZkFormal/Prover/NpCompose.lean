@@ -319,8 +319,11 @@ theorem npMsg_header (cs : List Fp8) (j : Nat) (l : List Nat)
     split at h; · simp at h
     split at h; · simp at h
     split at h
-    · simp at h
-    · split at h <;> simp at h
+    · rename_i k _
+      unfold kindMsg at h
+      split at h
+      · simp at h
+      · split at h <;> simp at h
     · simp at h
 
 end

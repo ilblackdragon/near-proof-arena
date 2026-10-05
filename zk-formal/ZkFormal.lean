@@ -130,3 +130,6 @@ import ZkFormal.Prover.NpPoly
 import ZkFormal.Prover.NpDefs
 import ZkFormal.Prover.NpStatements
 import ZkFormal.Prover.NpCompose
+import ZkFormal.Prover.NpSched
+import ZkFormal.Prover.NpBasic
+import ZkFormal.Prover.NpFits
