@@ -588,10 +588,8 @@ enum RowDesc {
     Digest(usize),
 }
 
-/// The SHA table rows (as `u64` cells, row-major, 2^log rows) plus the
-/// number of non-padding rows and `log` (`Gen.honestLog`).
-pub fn sha_cells(msgs: &[Msg]) -> (Vec<u64>, usize, usize) {
-    // blocks, in message order
+/// Blocks and row descriptors of the SHA table (message order).
+fn sha_layout(msgs: &[Msg]) -> (Vec<Blk>, Vec<RowDesc>) {
     let mut blks: Vec<Blk> = vec![];
     let mut rows: Vec<RowDesc> = vec![];
     for m in msgs {
@@ -611,15 +609,51 @@ pub fn sha_cells(msgs: &[Msg]) -> (Vec<u64>, usize, usize) {
             blks.push(blk);
         }
     }
-    let nrows = rows.len();
-    let log = (nrows.next_power_of_two().trailing_zeros() as usize).max(1);
-    let mut cells = vec![0u64; WIDTH << log];
-    cells.par_chunks_mut(WIDTH).zip(rows.par_iter()).for_each(|(row, d)| match *d {
+    (blks, rows)
+}
+
+fn fill_row(blks: &[Blk], d: &RowDesc, row: &mut [u64]) {
+    match *d {
         RowDesc::Start(id) => start_row(id, row),
         RowDesc::Round(j, b) => blks[b].round_row(j, row),
         RowDesc::Digest(b) => blks[b].digest_row(row),
-    });
+    }
+}
+
+/// `Gen.honestLog` of `nrows` rows.
+fn honest_log(nrows: usize) -> usize { (nrows.next_power_of_two().trailing_zeros() as usize).max(1) }
+
+/// The SHA table rows (as `u64` cells, row-major, 2^log rows) plus the
+/// number of non-padding rows and `log` (`Gen.honestLog`).
+pub fn sha_cells(msgs: &[Msg]) -> (Vec<u64>, usize, usize) {
+    let (blks, rows) = sha_layout(msgs);
+    let nrows = rows.len();
+    let log = honest_log(nrows);
+    let mut cells = vec![0u64; WIDTH << log];
+    cells.par_chunks_mut(WIDTH).zip(rows.par_iter()).for_each(|(row, d)| fill_row(&blks, d, row));
     (cells, nrows, log)
+}
+
+/// The SHA table as compact columns ([`crate::cols::TraceCols`]): rows are
+/// computed on demand from the block descriptors (no row-major copy).
+pub fn sha_cols(msgs: &[Msg]) -> crate::cols::TraceCols {
+    let (blks, rows) = sha_layout(msgs);
+    let log = honest_log(rows.len());
+    thread_local! {
+        static BUF: std::cell::RefCell<Vec<u64>> = std::cell::RefCell::new(vec![0; WIDTH]);
+    }
+    crate::cols::TraceCols::from_rows(log, WIDTH, |r, out| {
+        if let Some(d) = rows.get(r) {
+            BUF.with(|b| {
+                let mut b = b.borrow_mut();
+                b.iter_mut().for_each(|x| *x = 0);
+                fill_row(&blks, d, &mut b);
+                for (o, &x) in out.iter_mut().zip(b.iter()) {
+                    *o = x as u32;
+                }
+            });
+        }
+    })
 }
 
 fn to_matrix(cells: &[u64], width: usize) -> RowMajorMatrix<F> {

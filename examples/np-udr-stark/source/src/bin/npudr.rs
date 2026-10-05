@@ -21,6 +21,11 @@
 //!   tables 1..6 and SHA messages in the `np-lean-render` format.
 //! * `npudr nearcheck <request.bin> <witness.bin>` — evaluate every nearAir
 //!   constraint on the honest traces (incl. sha) and check bus balance.
+//! * `npudr nearcols <request.bin> <witness.bin>` — the compact honest traces
+//!   (`near::prepare_cols`): heights and storage per table.
+//! * `npudr gen-max <out_dir> [--target-bytes N] [--n N] [--kids K] [--eps 0|1]`
+//!   — synthesize a maximum-size in-domain case (`npudr::near::genmax`):
+//!   `request.bin`, `witness.bin`, `expected_claim.bin`.
 use std::time::Instant;
 
 use npudr::air::Air;
@@ -242,7 +247,45 @@ fn main() {
                 std::process::exit(1);
             }
         }
-        _ => die("usage: npudr bench|toy|verify|export|nearrender|nearcheck ..."),
+        Some("nearcols") => {
+            // compact honest traces (prepare_cols): heights, storage, time
+            let (req, wit) = (std::fs::read(&a[2]).unwrap(), std::fs::read(&a[3]).unwrap());
+            let t = Instant::now();
+            let (_, _, trs) = near::with_big_stack(move || near::prepare_cols(&req, &wit)).unwrap_or_else(|e| die(&e));
+            let names = ["sha", "node", "walk", "rcpt", "acct", "mrk", "sort"];
+            for (k, tr) in trs.iter().enumerate() {
+                println!("table {k} {:5} 2^{:2} x {:3}: {:.1} MiB", names[k], tr.log_h, tr.width(), tr.bytes() as f64 / (1 << 20) as f64);
+            }
+            println!("total {:.1} MiB, {} ms", trs.iter().map(|t| t.bytes()).sum::<usize>() as f64 / (1 << 20) as f64, t.elapsed().as_millis());
+        }
+        Some("gen-max") => {
+            let out = a.get(2).unwrap_or_else(|| die("gen-max <out_dir> [--target-bytes N] [--n N] [--kids K] [--eps 0|1]"));
+            let mut o = near::genmax::Opts::default();
+            let mut it = a[3..].iter();
+            while let Some(f) = it.next() {
+                let v = it.next().unwrap_or_else(|| die(&format!("{f} needs a value")));
+                let num = || -> u64 { v.parse().unwrap_or_else(|_| die(&format!("{f}: not a number"))) };
+                match f.as_str() {
+                    "--target-bytes" => o.target_bytes = num(),
+                    "--n" => o.n = Some(num() as usize),
+                    "--kids" => o.kids = num() as usize,
+                    "--eps" => o.eps = num() != 0,
+                    _ => die(&format!("unknown flag {f}")),
+                }
+            }
+            let t = Instant::now();
+            let c = near::with_big_stack(move || near::genmax::gen_max(&o)).unwrap_or_else(|e| die(&e));
+            let dir = std::path::Path::new(out);
+            std::fs::create_dir_all(dir).unwrap_or_else(|e| die(&format!("{out}: {e}")));
+            for (f, b) in [("request.bin", &c.request), ("witness.bin", &c.witness), ("expected_claim.bin", &c.claim)] {
+                std::fs::write(dir.join(f), b).unwrap_or_else(|e| die(&format!("{f}: {e}")));
+            }
+            println!(
+                "gen-max {out}: n={} revealedBytes={} branches={} empty-key exts={} leaves={} request={} B witness={} B ({} ms; claim = reexec deriveClaim)",
+                c.n, c.revealed, c.branches, c.exts, c.leaves, c.request.len(), c.witness.len(), t.elapsed().as_millis()
+            );
+        }
+        _ => die("usage: npudr bench|toy|verify|export|nearrender|nearcheck|gen-max ..."),
     }
 }
 
