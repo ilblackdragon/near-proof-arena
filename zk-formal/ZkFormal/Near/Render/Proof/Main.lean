@@ -11,12 +11,13 @@ import ZkFormal.Near.Render.Proof.BusVslot
 import ZkFormal.Near.Render.Proof.BusRids
 import ZkFormal.Near.Render.Proof.BusMem
 import ZkFormal.Near.Render.Proof.BusFinal
+import ZkFormal.Near.Render.Proof.BusMpos
 
 /-!
 # ZkFormal.Near.Render.Proof.Main — what is left of `RenderStmt`
 
 `render_of_rest : RenderRest → RenderStmt`: the proved obligations (sort,
-acct, walk, mrk local + traffic; buses VSLOT, RIDS, MEM, FINAL, KEYNIB) are
+acct, walk, mrk local + traffic; buses VSLOT, RIDS, MEM, FINAL, KEYNIB, MPOS) are
 plugged in; `RenderRest` lists the open ones, plus the missing `Good` field
 `TouchedLe` (R-L6e-1, needed for the acct table's height bound).
 -/
@@ -39,7 +40,6 @@ structure RenderRest : Prop where
   digest : DigestBusStmt
   parent : ParentBusStmt
   edge : EdgeBusStmt
-  mpos : MposBusStmt
 
 /-- **`RenderStmt` from the open obligations.** -/
 theorem render_of_rest (h : RenderRest) : RenderStmt :=
@@ -49,6 +49,6 @@ theorem render_of_rest (h : RenderRest) : RenderStmt :=
       shaT := h.shaT, nodeT := h.nodeT, walkT := walkTraffic_ok, rcptT := h.rcptT,
       acctT := acctTraffic_ok, mrkT := mrkTraffic_ok, sortT := sortTraffic_ok,
       bytes := h.bytes, digest := h.digest, parent := h.parent, vslot := vslotBus, edge := h.edge,
-      keynib := keynibBus, final := finalBus, mem := memBus, rids := ridsBus, mpos := h.mpos }
+      keynib := keynibBus, final := finalBus, mem := memBus, rids := ridsBus, mpos := mposBus }
 
 end ZkFormal.Near.Render

@@ -174,10 +174,11 @@ walk counters `useAtL`/`usesL` shared by the walk table and its view.
 | `FinalBusStmt`, `KeynibBusStmt` | `finalBus`, `keynibBus` | `Proof/BusFinal` |
 | `MrkLocalStmt` | `mrkLocal` | `Proof/MrkLocal{,2,3,4}` (+ `MrkRecs`: row records of the levels) |
 | `MrkTrafficStmt` | `mrkTraffic_ok` | `Proof/MrkTraffic{,2,3}` (+ `MrkFacts`: level sizes, `MRK` indices = `hashedBefore`) |
+| `MposBusStmt` | `mposBus` | `Proof/BusMpos` (children of level `j` = level `j − 1` in order; taken positions = rotation of offered ones) |
 
 **Assembly** (`Proof/Main`): `render_of_rest : RenderRest → RenderStmt`, where
 `RenderRest` = the open obligations: `TouchedLe` from `Good` (R-L6e-1),
-`Sha/Node/Rcpt` Local + Traffic, buses `BYTES, DIGEST, PARENT, EDGE, MPOS`.
+`Sha/Node/Rcpt` Local + Traffic, buses `BYTES, DIGEST, PARENT, EDGE`.
 All proofs: axioms `propext, Classical.choice, Quot.sound` only.
 
 Elaboration (`lake env lean`, wall): MrkLocal2 21 s, MrkLocal 12 s, WalkLocal 6 s,
