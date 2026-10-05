@@ -66,6 +66,9 @@ theorem lookup_some_of_mem' {α β : Type} [BEq α] [LawfulBEq α] :
 theorem shiftRight_succ' (i t : Nat) : i >>> (t + 1) = (i >>> t) / 2 := by
   rw [Nat.shiftRight_succ]
 
+theorem shiftRight_one' (y : Nat) : y >>> 1 = y / 2 := by
+  rw [Nat.shiftRight_eq_div_pow]
+
 theorem mem_le_foldr_max : ∀ {l : List Nat} {a : Nat}, a ∈ l → a ≤ l.foldr max 0
   | [], _, h => by simp at h
   | b :: l, a, h => by
@@ -319,6 +322,136 @@ theorem mpUp_spec (tbl : Table) (wf : TableWF tbl) (k lvl : Nat) (ws : List Nat)
               hs64 hx64 (by intro c hc'; simp at hc'; subst hc'; simp [hc])
               (fun r2 L' op r3 h => ih [] r2 (by simp) (by simp) L' op r3 h) h
 
+
+/-! ## All levels -/
+
+theorem mpLevels_spec (tbl : Table) (wf : TableWF tbl) (mats : List (Nat × Nat)) (n : Nat) :
+    ∀ (j : Nat) (L : List (Nat × Bytes)) (r root : Bytes) (op : Stark.Opened F) (r' : Bytes),
+      j ≤ n → (∀ p ∈ L, p.2.length = 64) →
+      evalT tbl (Stark.mpLevels (F := F) mats n j L r) = some (some (root, op, r')) →
+      (∀ e ∈ op, ∃ raw, mmcsOpen tbl n root 0 e.1.1 e.1.2 raw ∧
+        Stark.readRows (F := F) (Stark.levelWidths mats e.1.1) raw = some (e.2, [])) ∧
+      (∀ y h t i raw, (y, h) ∈ L → mmcsOpen tbl n h j t i raw → y = i >>> t →
+        mmcsOpen tbl n root 0 (j + t) i raw) ∧
+      (∀ y h, (y, h) ∈ L → ∀ m < j, Stark.levelWidths mats m ≠ [] →
+        ∃ rows, ((m, y >>> (j - m)), rows) ∈ op) := by
+  intro j
+  induction j with
+  | zero =>
+    intro L r root op r' _ _ h
+    simp only [Stark.mpLevels] at h
+    split at h
+    · rename_i root0
+      simp only [evalT, Option.some.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl, rfl⟩ := h
+      refine ⟨by simp, ?_, fun _ _ _ m hm => absurd hm (Nat.not_lt_zero m)⟩
+      intro y h t i raw hm hc _
+      simp only [List.mem_cons, Prod.mk.injEq, List.not_mem_nil, or_false] at hm
+      rw [← hm.2, Nat.zero_add]; exact hc
+    · simp [evalT] at h
+  | succ j ih =>
+    intro L r root op r' hj h64 h
+    simp only [Stark.mpLevels] at h
+    obtain ⟨res, hres, h⟩ := evalT_bind_some h
+    rcases res with _ | ⟨L1, op1, r1⟩
+    · simp [evalT] at h
+    obtain ⟨u1, u2, u3⟩ := mpUp_spec (F := F) tbl wf j (n - j) (Stark.levelWidths mats j) L.length L r
+      (Nat.le_refl _) h64 L1 op1 r1 hres
+    obtain ⟨res2, hres2, h⟩ := evalT_bind_some h
+    rcases res2 with _ | ⟨root0, op2, r2⟩
+    · simp [evalT] at h
+    simp only [evalT, Option.some.injEq, Prod.mk.injEq] at h
+    obtain ⟨rfl, rfl, rfl⟩ := h
+    obtain ⟨A, B, C⟩ := ih L1 r1 _ op2 _ (by omega) u1 hres2
+    refine ⟨?_, ?_, ?_⟩
+    · intro e he
+      rcases List.mem_append.mp he with he | he
+      · obtain ⟨e1, hp, l, rr, raw, hm, ⟨hl, hrr, hW⟩, hr⟩ := u2 e he
+        refine ⟨raw, ?_, by rw [e1]; exact hr⟩
+        have hc : mmcsOpen tbl n hp j 0 e.1.2 raw := by
+          simp only [mmcsOpen]
+          rw [ite_eq_right (by omega)]
+          exact ⟨l, rr, hl, hrr, hW⟩
+        have := B e.1.2 hp 0 e.1.2 raw hm hc (Nat.shiftRight_zero).symm
+        rw [e1]; simpa using this
+      · exact A e he
+    · intro y h t i raw hm hc hy
+      obtain ⟨hp, l, rr, raw', hm', ⟨hl, hrr, hW⟩, hch, _⟩ := u3 y h hm
+      have hdiv : i / 2 ^ t = y := by rw [hy, Nat.shiftRight_eq_div_pow]
+      have hc' : mmcsOpen tbl n hp j (t + 1) i raw := by
+        simp only [mmcsOpen]
+        refine ⟨l, rr, raw', hl, hrr, hW, ?_⟩
+        rw [hdiv]
+        by_cases hy2 : y % 2 = 0
+        · rw [ite_eq_left hy2] at hch ⊢; subst hch; exact hc
+        · rw [ite_eq_right hy2] at hch ⊢; subst hch; exact hc
+      have := B (y / 2) hp (t + 1) i raw hm' hc' (by rw [shiftRight_succ', ← hy])
+      rw [show j + 1 + t = j + (t + 1) by omega]; exact this
+    · intro y h hm m hmj hne
+      obtain ⟨hp, l, rr, raw', hm', _, _, hrow⟩ := u3 y h hm
+      by_cases hmj' : m = j
+      · subst hmj'
+        obtain ⟨rows, hrows⟩ := hrow hne
+        refine ⟨rows, List.mem_append_left _ ?_⟩
+        rw [show m + 1 - m = 0 + 1 by omega, shiftRight_succ', Nat.shiftRight_zero]
+        exact hrows
+      · obtain ⟨rows, hrows⟩ := C (y / 2) hp hm' m (by omega) hne
+        refine ⟨rows, List.mem_append_right _ ?_⟩
+        rw [show j + 1 - m = 1 + (j - m) by omega, Nat.shiftRight_add, shiftRight_one']
+        exact hrows
+
 end
+
+/-! ## The multiproof -/
+
+/-- **L4's multiproof certifies MMCS paths** (`Adapter.MultiproofStmt`). -/
+theorem multiproof_sound : Adapter.MultiproofStmt := by
+  intro F K _ _ _ _ tbl mats root S r op r' wf h x hx mw hmw
+  simp only [Stark.multiproof] at h
+  obtain ⟨res, hres, h⟩ := evalT_bind_some h
+  rcases res with _ | ⟨L, opL, r1⟩
+  · simp [evalT] at h
+  obtain ⟨res2, hres2, h⟩ := evalT_bind_some h
+  rcases res2 with _ | ⟨root', op', r2⟩
+  · simp [evalT] at h
+  simp only [evalT] at h
+  split at h
+  · rename_i heq
+    have hroot : root' = root := by simpa using heq
+    simp only [Option.some.injEq, Prod.mk.injEq] at h
+    obtain ⟨rfl, rfl⟩ := h
+    subst hroot
+    have hn : List.foldr max 0 (List.map (fun x => x.fst) mats) = Stark.treeLog mats := rfl
+    rw [hn] at hres hres2
+    obtain ⟨l1, l2, l3, l4⟩ := mpLeaves_spec (F := F) tbl wf _ _ S r L opL r1 hres
+    obtain ⟨A, B, C⟩ := mpLevels_spec (F := F) tbl wf mats _ _ L r1 root' op' _
+      (Nat.le_refl _) l1 hres2
+    -- every recorded row set is certified from the root
+    have cert : ∀ e ∈ opL ++ op', ∃ raw, mmcsOpen tbl (Stark.treeLog mats) root' 0 e.1.1 e.1.2 raw ∧
+        Stark.readRows (F := F) (Stark.levelWidths mats e.1.1) raw = some (e.2, []) := by
+      intro e he
+      rcases List.mem_append.mp he with he | he
+      · obtain ⟨e1, h, raw, hm, hW, hr⟩ := l3 e he
+        refine ⟨raw, ?_, by rw [e1]; exact hr⟩
+        have hc : mmcsOpen tbl (Stark.treeLog mats) h (Stark.treeLog mats) 0 e.1.2 raw := by
+          simp only [mmcsOpen, ite_true]; exact hW
+        have := B e.1.2 h 0 e.1.2 raw hm hc (Nat.shiftRight_zero).symm
+        rw [e1]; simpa using this
+      · exact A e he
+    -- the opened position is recorded
+    have hkey : ∃ rows, ((mw.1, x >>> (Stark.treeLog mats - mw.1)), rows) ∈ opL ++ op' := by
+      have hle := le_treeLog hmw
+      by_cases hm : mw.1 = Stark.treeLog mats
+      · obtain ⟨rows, hrows⟩ := l4 x hx
+        refine ⟨rows, List.mem_append_left _ ?_⟩
+        rw [hm, Nat.sub_self, Nat.shiftRight_zero]; exact hrows
+      · obtain ⟨hx', hmx⟩ := l2 x hx
+        obtain ⟨rows, hrows⟩ := C x hx' hmx mw.1 (by omega) (levelWidths_ne_nil hmw)
+        exact ⟨rows, List.mem_append_right _ hrows⟩
+    obtain ⟨rows0, hrows0⟩ := hkey
+    obtain ⟨rows, hlk⟩ := lookup_some_of_mem' hrows0
+    obtain ⟨raw, hc, hr⟩ := cert _ (lookup_mem' hlk)
+    exact ⟨rows, raw, hlk, hc, hr⟩
+  · cases h
 
 end ZkFormal.Bcs.Multiproof
