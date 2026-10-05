@@ -398,7 +398,7 @@ theorem walk_view : WalkViewStmt := by
       · rw [h]; grind
       · have := ((rowFacts hL h2).2.1 h).1; simp_all
     rw [rowT]; simp [this, hw, hg]
-  refine ⟨segs.map (walkOfSeg tr), ⟨?_, ?_, ?_, ?_⟩, fun b m => ⟨?_, ?_⟩⟩
+  refine ⟨segs.map (walkOfSeg tr), ⟨?_, ?_, ?_, ?_, ?_⟩, fun b m => ⟨?_, ?_⟩⟩
   · -- nonempty: row 0 is active
     intro h
     rw [List.map_eq_nil_iff] at h
@@ -429,6 +429,14 @@ theorem walk_view : WalkViewStmt := by
     have e : p.1 + (i + 1) = p.1 + i + 1 := by omega
     simp [walkOfSeg, WalkV.edge, edgeAt, List.getElem?_range hi, List.getElem?_range (show i < p.2 by omega),
       e, this.1, this.2]
+  · intro w hw st hst x hx
+    simp only [List.mem_map] at hw
+    obtain ⟨p, -, rfl⟩ := hw
+    simp only [walkOfSeg, List.mem_map, List.mem_range] at hst
+    obtain ⟨j, -, rfl⟩ := hst
+    simp only [edgeAt, List.mem_map] at hx
+    obtain ⟨y, -, rfl⟩ := hx
+    exact Fp.toNat_lt _
   · simp only [walkTraffic]
     rw [tableBusCount_eq, flatMap_rows_segs _ segs _ hc hend (hpadT b true),
       flatMap_segs segs _ _ (fun p hp => segSend hL (hall p hp) (hH p hp) b), walkSends_flat]

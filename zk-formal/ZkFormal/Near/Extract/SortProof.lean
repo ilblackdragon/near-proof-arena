@@ -393,10 +393,15 @@ theorem incr (hL : TableLocal Sort.table tr T_SORT pub) (segs : List (Nat × Nat
   have hP : tr.height T_SORT < P := by have := height_le hL; unfold P; omega
   have hlen : ∀ p ∈ segs, p.2 = 32 := fun p hp =>
     (seg32 hL (hall p hp) (by have := seg_le_end segs 0 hc p hp; omega)).1
-  refine ⟨fun x hx => ?_, fun t ht hbytes => ?_⟩
+  refine ⟨fun x hx => ?_, fun x hx y hy => ?_, fun t ht hbytes => ?_⟩
   · simp only [idsOf, List.mem_map] at hx
     obtain ⟨p, -, rfl⟩ := hx
     exact ⟨by simp, Fp.toNat_lt _⟩
+  · simp only [idsOf, List.mem_map] at hx
+    obtain ⟨p, -, rfl⟩ := hx
+    simp only [List.mem_map] at hy
+    obtain ⟨j, -, rfl⟩ := hy
+    exact Fp.toNat_lt _
   · simp only [idsOf, List.length_map] at ht
     have hp0 : segs[t] ∈ segs := List.getElem_mem (by omega)
     have hp1 : segs[t + 1] ∈ segs := List.getElem_mem ht

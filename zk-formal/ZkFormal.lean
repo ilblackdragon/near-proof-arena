@@ -142,3 +142,5 @@ import ZkFormal.Udr.SumR
 import ZkFormal.Udr.Np.DeepSem
 import ZkFormal.Udr.Np.Main
 import ZkFormal.Near.NpOkCheck
+-- Lane L6 sub-lane L6-link: views + SHA contract + bus balance ⇒ Good (LinkStmt split).
+import ZkFormal.Near.Link.Compose

@@ -170,6 +170,22 @@ def NodeS.resOk (n : Nat) (s : NodeS) : Prop :=
   | .ext [] (.node _ _ cr _ _) _ => s.res = cr
   | _ => s.res = n
 
+/-! ## Raw values (all column values, hence canonical naturals `< p`) -/
+
+def NSlot.raw : NSlot → List Nat
+  | .ref lenB h => lenB ++ h
+  | .touched pre po => pre ++ po
+
+def NKid.raw : NKid → List Nat
+  | .none => []
+  | .hash h => h
+  | .node c l r pre po => [c, l, r] ++ pre ++ po
+
+def NodeV.raw : NodeV → List Nat
+  | .leaf k v memB => k ++ v.raw ++ memB
+  | .ext k kid memB => k ++ kid.raw ++ memB
+  | .branch v kids memB => (v.map NSlot.raw).getD [] ++ kids.flatMap NKid.raw ++ memB
+
 structure NodeWf (vs : List NodeS) : Prop where
   nonempty : vs ≠ []
   wf : ∀ s ∈ vs, s.v.wf
@@ -180,6 +196,8 @@ structure NodeWf (vs : List NodeS) : Prop where
   size : (vs.map fun s => (s.v.ser false).length + (if s.v.touched then 72 else 0)).sum ≤ 3000000
   /-- field values are canonical naturals -/
   small : ∀ s ∈ vs, s.depth < P ∧ s.res < P ∧ ∀ u ∈ s.uses, u < P
+  /-- every raw value of the view is a canonical natural (`Fp.toNat` of a column) -/
+  canon : ∀ s ∈ vs, ∀ x ∈ s.v.raw, x < P
 
 def NodeViewStmt : Prop :=
   ∀ (tr : Trace Fp) (pub : List Fp), TableLocal Node.table tr T_NODE pub →

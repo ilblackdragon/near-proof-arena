@@ -671,7 +671,7 @@ theorem acct_view : AcctViewStmt := by
     simp only [rowTraffic, Acct.interactions, Acct.vbytes, List.flatMap_append, List.flatMap_cons,
       List.flatMap_nil, Dsl.send, Dsl.recv, Interaction.multNat, multNat1, eval_c, ha, hf, hg]
     simp
-  refine ⟨segs.map fun p => acctOfSeg tr p.1, ⟨?_, ?_, ?_⟩, fun b m => ⟨?_, ?_⟩⟩
+  refine ⟨segs.map fun p => acctOfSeg tr p.1, ⟨?_, ?_, ?_, ?_⟩, fun b m => ⟨?_, ?_⟩⟩
   · intro h
     rw [List.map_eq_nil_iff] at h
     subst h
@@ -686,6 +686,19 @@ theorem acct_view : AcctViewStmt := by
     simp only [List.mem_map] at ha
     obtain ⟨p, hp, rfl⟩ := ha
     exact notMax hL (hall p hp) (hH p hp)
+  · intro a ha x hx
+    simp only [List.mem_map] at ha
+    obtain ⟨p, -, rfl⟩ := ha
+    simp only [acctOfSeg, List.mem_append, List.mem_map] at hx
+    rcases hx with ⟨j, -, rfl⟩ | ⟨j, -, rfl⟩
+    · simp only [preAt, valAt]; split
+      · exact Fp.toNat_lt _
+      · split
+        · exact Fp.toNat_lt _
+        · split
+          · split <;> exact Fp.toNat_lt _
+          · exact Fp.toNat_lt _
+    · exact Fp.toNat_lt _
   · simp only [acctTraffic, tableBusCount_eq]
     rw [flatMap_rows_segs _ segs _ hc hend (hpadT b true)]
     refine List.Perm.count_eq ?_ m

@@ -149,9 +149,10 @@ structure RcptV.Wf (x : RcptV) (r bgp tok tok' : Nat) : Prop where
   small : x.kslot < P ∧ x.tprev < P
   /-- time of the memory read: `tprev ≤ r` -/
   tprev_le : x.tprev ≤ r
-  /-- arithmetic, for byte-valued inputs -/
+  /-- arithmetic, for byte-valued inputs (`ramt` is only emitted, hence only
+  range-checked by the SHA table, when the receipt has a refund) -/
   arith : Bytes8 x.gp → Bytes8 x.dep → Bytes8 x.bef → Bytes8 x.lk → Bytes8 x.st →
-    Bytes8 x.burnt → Bytes8 x.ramt → bgp < Params.two128 →
+    Bytes8 x.burnt → (x.hr = true → Bytes8 x.ramt) → bgp < Params.two128 →
     leN' x.aft = leN' x.bef + leN' x.dep ∧ leN' x.aft < Params.u128Max ∧
     leN' x.aft + leN' x.lk < Params.two128 ∧
     (Params.storageAmountPerByte * leN' x.st ≤ leN' x.aft + leN' x.lk ∨
@@ -164,6 +165,11 @@ structure RcptV.Wf (x : RcptV) (r bgp tok tok' : Nat) : Prop where
 
 /-- `n` from the public claim bytes (little endian). -/
 def nPubLE (pub : List Fp) : Nat := leN' (pubBytes pub PV_N 4)
+
+/-- All raw values of a receipt segment. -/
+def RcptV.raw (x : RcptV) : List Nat :=
+  x.p ++ x.v ++ x.s ++ x.rid ++ [x.kt] ++ x.pk ++ x.gp ++ x.dep ++ x.bef ++ x.lk ++ x.st ++ x.aft ++
+    x.burnt ++ x.ramt ++ x.rfid ++ x.peoh
 
 /-- Table-level facts (claim facts stated for byte-valued public inputs, as
 `publicOf` provides). -/
@@ -183,6 +189,8 @@ structure RcptWf (pub : List Fp) (rs : RcptVs) : Prop where
     leN' (pubBytes pub PV_GAS 8) = rs.length * Params.G
   refunds : (∀ j, j < 309 → pubNat pub j < 256) →
     (rs.filter (·.hr)).length = leN' (pubBytes pub PV_NREF 4)
+  /-- raw values are canonical naturals (`Fp.toNat` of columns) -/
+  canon : ∀ x ∈ rs, ∀ y ∈ x.raw, y < P
 
 def RcptViewStmt : Prop :=
   ∀ (tr : Trace Fp) (pub : List Fp), TableLocal Rcpt.table tr T_RCPT pub →
