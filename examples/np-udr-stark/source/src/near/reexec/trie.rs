@@ -14,6 +14,10 @@ use std::collections::HashMap;
 
 pub const NONE: u32 = u32::MAX;
 
+/// Revealed nodes on one path beyond which `revealedBytes > 3,000,000`
+/// (`3,000,000 / 43 < 70,000`).
+pub const MAX_REVEALED_DEPTH: usize = 70_000;
+
 #[derive(Clone, Debug)]
 pub enum Slot<'a> {
     /// Revealed value: original bytes and (after an update) the current value.
@@ -165,7 +169,7 @@ impl<'a> PTrie<'a> {
     /// `NearSpec.Codec.build`: reveal the paths to `keys` (nibble paths).
     pub fn build(store: &Store<'a>, root: [u8; 32], keys: &[&[u8]]) -> Result<PTrie<'a>, String> {
         let mut t = PTrie { nodes: Vec::new(), root: 0 };
-        t.root = t.build_at(store, root, keys)?;
+        t.root = t.build_at(store, root, keys, 0)?;
         Ok(t)
     }
 
@@ -189,11 +193,19 @@ impl<'a> PTrie<'a> {
         Slot::Ref { len, hash: vh }
     }
 
-    fn build_at(&mut self, store: &Store<'a>, h: [u8; 32], keys: &[&[u8]]) -> Result<u32, String> {
+    fn build_at(&mut self, store: &Store<'a>, h: [u8; 32], keys: &[&[u8]], depth: usize) -> Result<u32, String> {
         if keys.is_empty() {
             return Ok(self.stub(h));
         }
         let Some(raw) = store.get(&h) else { return Ok(self.stub(h)) };
+        // (np-udr-stark addition) Every revealed node adds >= 43 bytes to
+        // `revealedBytes` (a one-child branch: 1 + 2 + 8 + 32), so a revealed
+        // path deeper than MAX_REVEALED_DEPTH is out of domain anyway; reject
+        // it here, before the recursion can exhaust the stack (chains of
+        // empty-key extensions are otherwise unbounded).
+        if depth >= MAX_REVEALED_DEPTH {
+            return Err("out of domain: witness too large (revealed path too deep)".into());
+        }
         let (node, mem) = parse_node(raw).map_err(|e| format!("witness trie node: {e}"))?;
         let kind = match node {
             Raw::Leaf { key, vlen, vh } => {
@@ -203,7 +215,7 @@ impl<'a> PTrie<'a> {
             Raw::Ext { key, child } => {
                 let sub: Vec<&[u8]> =
                     keys.iter().filter(|k| k.starts_with(&key)).map(|k| &k[key.len()..]).collect();
-                let c = self.build_at(store, child, &sub)?;
+                let c = self.build_at(store, child, &sub, depth + 1)?;
                 Kind::Ext { key, child: c }
             }
             Raw::Branch { value, kids, .. } => {
@@ -216,7 +228,7 @@ impl<'a> PTrie<'a> {
                             .filter(|k| k.first() == Some(&(i as u8)))
                             .map(|k| &k[1..])
                             .collect();
-                        out[i] = self.build_at(store, *kh, &sub)?;
+                        out[i] = self.build_at(store, *kh, &sub, depth + 1)?;
                     }
                 }
                 Kind::Branch { value, kids: out }

@@ -156,36 +156,13 @@ fn type_of(nr: &NodeRec) -> [u64; 4] {
 
 /// A node row.
 #[derive(Clone, Debug)]
-struct NRec {
+struct NRec<'a> {
     n: usize,
     pos: usize,
-    f: std::rc::Rc<Fld>,
+    f: &'a Fld,
     idx: usize,
     b: u8,
     pb: u8,
-}
-
-fn node_recs(i: &Info, n: usize, out: &mut Vec<NRec>) {
-    let nr = i.node_at(n);
-    let hplen = hplen_of(&nr);
-    let pre = i.pre_at(n);
-    let post = i.post_at(n);
-    let mut pos = 0;
-    for f in fields_of(i, n, &nr) {
-        let l = f.len(hplen);
-        let f = std::rc::Rc::new(f);
-        for idx in 0..l {
-            out.push(NRec {
-                n,
-                pos,
-                f: f.clone(),
-                idx,
-                b: pre.get(pos).copied().unwrap_or(0),
-                pb: post.get(pos).copied().unwrap_or(0),
-            });
-            pos += 1;
-        }
-    }
 }
 
 type EdgeG = Option<(Edge, bool)>;
@@ -251,9 +228,13 @@ struct NodeCtx {
     hplen: usize,
     depth: usize,
     sz_before: usize,
+    /// fields and their start positions (ascending), rows `row0 ..`
+    fields: Vec<Fld>,
+    starts: Vec<usize>,
+    row0: usize,
 }
 
-fn row_cells(i: &Info, u: &HashMap<Edge, usize>, r: &NRec, cx: &NodeCtx, row: &mut [u32]) {
+fn row_cells(i: &Info, u: &HashMap<Edge, usize>, r: &NRec<'_>, cx: &NodeCtx, row: &mut [u32]) {
     let nr = &cx.nr;
     let n = r.n;
     let b = r.b as u128;
@@ -325,45 +306,93 @@ fn row_cells(i: &Info, u: &HashMap<Edge, usize>, r: &NRec, cx: &NodeCtx, row: &m
 /// `nodeSz I n`: revealed size added by node `n`.
 fn node_sz(i: &Info, n: usize) -> usize { i.pre_at(n).len() + if i.node_at(n).touched() { 72 } else { 0 } }
 
-/// `nodeRowsAll I uses`: one row per serialized byte (node-id order), the
-/// `SUM` row, padding (`sz` carried).
-pub fn node_rows_all(i: &Info, uses: &HashMap<Edge, usize>) -> Vec<Row> {
-    let nn = i.ns.len();
-    let mut recs = vec![];
-    for n in 0..nn {
-        node_recs(i, n, &mut recs);
-    }
-    let mut szb = vec![0usize; nn + 1];
-    for n in 0..nn {
-        szb[n + 1] = szb[n] + node_sz(i, n);
-    }
-    let total = szb[nn];
-    let ctxs: Vec<NodeCtx> = (0..nn)
-        .map(|n| {
+/// The `node` table as a row function (`nodeRowsAll I uses`): one row per
+/// serialized byte (node-id order), the `SUM` row, padding (`sz` carried).
+pub struct NodeTab<'a> {
+    i: &'a Info,
+    uses: &'a HashMap<Edge, usize>,
+    ctxs: Vec<NodeCtx>,
+    nrecs: usize,
+    total: usize,
+    /// `log2` of the height
+    pub log_h: usize,
+}
+
+impl<'a> NodeTab<'a> {
+    pub fn new(i: &'a Info, uses: &'a HashMap<Edge, usize>) -> NodeTab<'a> {
+        let nn = i.ns.len();
+        let mut ctxs = Vec::with_capacity(nn);
+        let (mut sz, mut row0) = (0usize, 0usize);
+        for n in 0..nn {
             let nr = i.node_at(n);
-            NodeCtx { len: i.pre_at(n).len(), hplen: hplen_of(&nr), depth: i.depth.get(n).copied().unwrap_or(0), sz_before: szb[n], nr }
+            let hplen = hplen_of(&nr);
+            let fields = fields_of(i, n, &nr);
+            let mut starts = Vec::with_capacity(fields.len());
+            let mut pos = 0;
+            for f in &fields {
+                starts.push(pos);
+                pos += f.len(hplen);
+            }
+            let cx = NodeCtx {
+                len: i.pre_at(n).len(),
+                hplen,
+                depth: i.depth.get(n).copied().unwrap_or(0),
+                sz_before: sz,
+                nr,
+                fields,
+                starts,
+                row0,
+            };
+            sz += node_sz(i, n);
+            row0 += pos;
+            ctxs.push(cx);
+        }
+        NodeTab { i, uses, ctxs, nrecs: row0, total: sz, log_h: log_of(row0 + 1) }
+    }
+
+    /// Row `q` into `row` (`WIDTH` entries, zeroed by the caller).
+    pub fn row(&self, q: usize, row: &mut [u32]) {
+        if q < self.nrecs {
+            let n = self.ctxs.partition_point(|c| c.row0 <= q) - 1;
+            let cx = &self.ctxs[n];
+            let pos = q - cx.row0;
+            let k = cx.starts.partition_point(|&s| s <= pos) - 1;
+            let (pre, post) = (self.i.pre_at(n), self.i.post_at(n));
+            let r = NRec {
+                n,
+                pos,
+                f: &cx.fields[k],
+                idx: pos - cx.starts[k],
+                b: pre.get(pos).copied().unwrap_or(0),
+                pb: post.get(pos).copied().unwrap_or(0),
+            };
+            row_cells(self.i, self.uses, &r, cx, row);
+        } else {
+            row[SZ] = cell(self.total as u64);
+            if q == self.nrecs {
+                row[SUMR] = 1;
+                let slack = 3_000_000usize.saturating_sub(self.total) as u128;
+                for (col, x) in row.iter_mut().enumerate().take(94).skip(72) {
+                    *x = bit_of(slack, col - 72) as u32;
+                }
+            }
+        }
+    }
+
+    /// As compact columns.
+    pub fn cols(&self) -> crate::cols::TraceCols { crate::cols::TraceCols::from_rows(self.log_h, WIDTH, |q, b| self.row(q, b)) }
+}
+
+/// `nodeRowsAll I uses` as rows.
+pub fn node_rows_all(i: &Info, uses: &HashMap<Edge, usize>) -> Vec<Row> {
+    let t = NodeTab::new(i, uses);
+    (0..1usize << t.log_h)
+        .map(|q| {
+            let mut row = vec![0u32; WIDTH];
+            t.row(q, &mut row);
+            row
         })
-        .collect();
-    let h = 1usize << log_of(recs.len() + 1);
-    let mut rows = Vec::with_capacity(h);
-    for r in &recs {
-        let mut row = vec![0u32; WIDTH];
-        row_cells(i, uses, r, &ctxs[r.n], &mut row);
-        rows.push(row);
-    }
-    // SUM row
-    let mut sum = vec![0u32; WIDTH];
-    sum[SUMR] = 1;
-    sum[SZ] = cell(total as u64);
-    let slack = 3_000_000usize.saturating_sub(total) as u128;
-    for (col, x) in sum.iter_mut().enumerate().take(94).skip(72) {
-        *x = bit_of(slack, col - 72) as u32;
-    }
-    rows.push(sum);
-    let mut pad = vec![0u32; WIDTH];
-    pad[SZ] = cell(total as u64);
-    rows.resize(h, pad);
-    rows
+        .collect()
 }
 
 /// `nodeMsgs I`: `NPRE(N)`, `NPOST(N)`.
