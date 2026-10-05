@@ -363,3 +363,42 @@ FORMAL_CHECK gate is diagnostic, but a FORMAL_CHECK *job* that failed for
 good used to decide the whole run INFRA_ERROR. The control plane now records
 those gates UNKNOWN / `INFRA_ERROR` (with the error) and continues to
 conformance, adversarial and benchmark; formal tier is unchanged.
+
+### 7.6 Security fix R-L7-5 (csimp audit): v1-4 → v1-5, experimental successor (2026-10-05)
+
+**Vulnerability.** The formal checker audited only the certificate's
+dependency closure. A native-lean candidate could add
+`@[csimp] theorem check_eq : @check = @acceptAll := sorry` to its verifier
+model: the certificate (about `check`) stays sorry-free, but the Lean
+compiler applies csimp lemmas, so the **judge-built** native verifier ran
+`acceptAll` and accepted garbage. Every challenge whose checker identity
+predates the fix (v1…v1-4, the experimental `chl_b7c8…`/`chl_df55…`) is
+exposed for the native-lean route.
+
+**Fix** (main `5fa43e9`, lane/fc-csimp): candidate `@[csimp]` lemmas are
+audited (exported by their escaped names) and the axiom audit covers the
+whole candidate environment, not only the certificate's closure. The fix
+lives in `ArenaAudit`, so the lean-checker image changes and with it the
+checker identity:
+
+* lean-checker image `sha256:463fdcf45f8818606dc4379d3ba6983ae7187fa83c7592ad175f7b137b16d6fe`
+  (`deploy/images/lean-checker/build.sh` from main, installed in
+  `/data/illia/nearproof-deps/lean-checker/images-csimp`);
+* checker identity (`formal-check --print-image-digest` with that image's
+  tools) `sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867`
+  (was `sha256:b6391b38…`).
+
+**Challenges** (local operator key), identical to their predecessors except
+`toolchain_policy.checker_image`, `supersedes`, `created_at` (and `name` for
+v1-5); the trusted tree stays `sha256:190e9a7d…` (cf5f1f5):
+
+* `chl_17ac2f309f490da391081806645b795a` `near-transfer-receipt-v1-5`
+  (formal) supersedes v1-4 `chl_f3903307…`;
+* `chl_0d36946f05e7e0989f881aa8d8f8fc61` (experimental) supersedes
+  `chl_df55…`.
+
+A worker whose checker identity differs from a challenge's pin reports
+every formal gate UNKNOWN, so after the image switch v1-4 can no longer be
+evaluated and is closed by the v1-5 registration (its board stays as
+history). The hostile case `adversarial/hostile-submissions/near-reexec-csimp-sorry`
+is the regression check: it must be REJECTED (`SORRY_FOUND`).
