@@ -38,8 +38,8 @@ use arena_db::{audit, enum_str, json, rfc3339, tier_min, tier_rank, Actor, DbErr
 use arena_jobs::sanitize::{sanitize_text, MAX_ERROR_BYTES};
 use arena_jobs::*;
 use arena_types::{
-    challenge::Tier, decide, ChangeClass, Decision, GateResult, GateStatus, ObligationId,
-    ReasonCode, Stage, VerifiedSurface,
+    challenge::Tier, decide, ChallengeDefinition, ChangeClass, Decision, GateResult, GateStatus,
+    ObligationId, ReasonCode, Stage, VerifiedSurface,
 };
 use ed25519_dalek::VerifyingKey;
 use serde_json::json as j;
@@ -427,7 +427,14 @@ impl Orchestrator {
                         self.enqueue(conn, ctx, spec).await?;
                         return Ok(());
                     }
-                    if !done(JobKind::FormalCheck) {
+                    // Experimental tier: the formal gates are diagnostic, so a
+                    // FORMAL_CHECK job that failed for good (its gates were
+                    // recorded UNKNOWN by `job_failed`) does not stop the run.
+                    let formal_failed_diag = Self::formal_is_diagnostic(&def)
+                        && jobs
+                            .get(&JobKind::FormalCheck)
+                            .is_some_and(|s| s == "failed");
+                    if !done(JobKind::FormalCheck) && !formal_failed_diag {
                         return Ok(());
                     }
                     self.set_stage(conn, ctx, Stage::FormalChecked).await?;
@@ -902,9 +909,76 @@ impl Orchestrator {
                 "{} job failed after {} attempt(s): {error}",
                 job.kind, job.attempt
             );
-            self.finalize(conn, ctx, Finish::Infra(why)).await?;
+            if job.kind == enum_str(&JobKind::FormalCheck)
+                && Self::formal_is_diagnostic(&ctx.chal.definition)
+            {
+                // Experimental tier: every gate FORMAL_CHECK owns is
+                // diagnostic. Record them UNKNOWN (INFRA_ERROR, with the
+                // reason) and carry on with the measured stages.
+                self.formal_failed_diagnostic(conn, ctx, job, &why).await?;
+                self.advance(conn, ctx).await?;
+            } else {
+                self.finalize(conn, ctx, Finish::Infra(why)).await?;
+            }
         }
         Ok(retry)
+    }
+
+    /// Whether every gate FORMAL_CHECK reports is diagnostic for `def`
+    /// (experimental tier), so its failure must not decide the run.
+    fn formal_is_diagnostic(def: &ChallengeDefinition) -> bool {
+        let blocking = def.blocking_obligations();
+        def.tier == Tier::Experimental
+            && JobKind::FormalCheck
+                .owned_gates()
+                .iter()
+                .all(|g| !blocking.contains(g))
+    }
+
+    async fn formal_failed_diagnostic(
+        &self,
+        conn: &mut PgConnection,
+        ctx: &mut Ctx,
+        job: &JobRow,
+        why: &str,
+    ) -> Result<()> {
+        let def = ctx.chal.definition.clone();
+        let blocking = def.blocking_obligations();
+        let existing = Self::run_gates(conn, &ctx.run.id).await?;
+        for g in JobKind::FormalCheck
+            .owned_gates()
+            .iter()
+            .copied()
+            .filter(|g| def.required_obligations.contains(g))
+            .filter(|g| !existing.iter().any(|x| x.gate == *g))
+        {
+            let gate = GateResult {
+                gate: g,
+                mandatory: blocking.contains(&g),
+                status: GateStatus::Unknown,
+                reason_codes: vec![ReasonCode::InfraError],
+                summary: sanitize_text(
+                    &format!("diagnostic (experimental tier), not checked: {why}"),
+                    MAX_ERROR_BYTES,
+                ),
+                evidence: vec![],
+                started_at: None,
+                finished_at: None,
+                reused_from: None,
+            };
+            Self::insert_gate(conn, ctx, Some(job.id), &gate, &Actor::system()).await?;
+        }
+        audit::record(
+            &mut *conn,
+            &Actor::system(),
+            "formal.diagnostic_failed",
+            Some(&ctx.sub.id),
+            Some(&ctx.run.id),
+            true,
+            j!({ "job_id": job.id, "error": why }),
+        )
+        .await?;
+        Ok(())
     }
 
     pub async fn fail(
