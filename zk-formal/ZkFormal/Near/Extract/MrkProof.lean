@@ -1217,3 +1217,69 @@ theorem padTraffic (hL : TableLocal Mrk.table tr T_MRK pub) {r : Nat} (h1 : 1 �
   rw [rowT, hsg, hwf, hrt, hgM, hgO]; simp
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp} {segs : List (Nat × Nat)}
+
+def Fsend (v : MrkV) (b : Nat) (nd : MrkNode) (q : Nat) : List Msg :=
+  if b = B_BYTES then
+    (match nd with
+     | .hashed _ _ l _ _ r => emitAt (msgId K_MRK (hashedBefore v.nodes q)) 0 (l ++ r)
+     | _ => [])
+  else if b = B_MPOS then
+    [match nd with
+     | .hashed .. => [(mrkPos v q).1, (mrkPos v q).2, msgId K_MRK (hashedBefore v.nodes q), 64]
+     | .promoted cId cLen => [(mrkPos v q).1, (mrkPos v q).2, cId, cLen]]
+  else []
+
+def Frecv (v : MrkV) (b : Nat) (nd : MrkNode) (q : Nat) : List Msg :=
+  if b = B_DIGEST then
+    (match nd with
+     | .hashed lI lL l rI rL r => [digMsg lI lL l, digMsg rI rL r]
+     | _ => [])
+  else if b = B_MPOS then
+    (match nd with
+     | .hashed lI lL _ rI rL _ =>
+       [[(mrkPos v q).1 - 1, 2 * (mrkPos v q).2, lI, lL], [(mrkPos v q).1 - 1, 2 * (mrkPos v q).2 + 1, rI, rL]]
+     | .promoted cId cLen => [[(mrkPos v q).1 - 1, 2 * (mrkPos v q).2, cId, cLen]])
+  else []
+
+theorem sends_eq (v : MrkV) (b : Nat) :
+    mrkSends pub v b = (List.range v.nodes.length).flatMap fun q => Fsend v b (v.nodes.getD q default) q := by
+  unfold mrkSends Fsend
+  by_cases h1 : b = B_BYTES
+  · subst h1; simp only [if_true]
+    exact zip_range_flatMap v.nodes (fun nd q => match nd with
+      | .hashed _ _ l _ _ r => emitAt (msgId K_MRK (hashedBefore v.nodes q)) 0 (l ++ r) | _ => [])
+  · by_cases h2 : b = B_MPOS
+    · subst h2; simp only [show ¬ (B_MPOS = B_BYTES) by decide, if_false, if_true]
+      rw [map_eq_flatMap]
+      exact zip_range_flatMap v.nodes (fun nd q => [match nd with
+        | .hashed .. => [(mrkPos v q).1, (mrkPos v q).2, msgId K_MRK (hashedBefore v.nodes q), 64]
+        | .promoted cId cLen => [(mrkPos v q).1, (mrkPos v q).2, cId, cLen]])
+    · simp [h1, h2]
+
+theorem recvs_eq (v : MrkV) (b : Nat) :
+    mrkRecvs pub v b =
+      (if b = B_DIGEST then [digMsg v.rootId v.rootLen ((List.range 32).map fun j => pubNat pub (PV_OUT + j))]
+       else if b = B_MPOS then [[v.J, 0, v.rootId, v.rootLen]] else []) ++
+      (List.range v.nodes.length).flatMap fun q => Frecv v b (v.nodes.getD q default) q := by
+  unfold mrkRecvs Frecv
+  by_cases h1 : b = B_DIGEST
+  · subst h1; simp only [if_true, List.cons_append, List.nil_append]
+    congr 1
+    exact zip_range_flatMap v.nodes (fun nd _ => match nd with
+      | .hashed lI lL l rI rL r => [digMsg lI lL l, digMsg rI rL r] | _ => [])
+  · by_cases h2 : b = B_MPOS
+    · subst h2; simp only [show ¬ (B_MPOS = B_DIGEST) by decide, if_false, if_true, List.cons_append,
+        List.nil_append]
+      congr 1
+      exact zip_range_flatMap v.nodes (fun nd q => match nd with
+        | .hashed lI lL _ rI rL _ =>
+          [[(mrkPos v q).1 - 1, 2 * (mrkPos v q).2, lI, lL], [(mrkPos v q).1 - 1, 2 * (mrkPos v q).2 + 1, rI, rL]]
+        | .promoted cId cLen => [[(mrkPos v q).1 - 1, 2 * (mrkPos v q).2, cId, cLen]])
+    · simp [h1, h2]
+
+end ZkFormal.Near.MrkProof
