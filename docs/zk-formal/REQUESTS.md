@@ -111,3 +111,20 @@ Please fix the AIR's multiplicity budget (L6) and `commitBad` accordingly.
 Decoding a base-field trace from an extension-field codeword needs `limbs (x + y) = limbs x + limbs y`
 (coordinatewise), `limbs (embed a * y) = a • limbs y`, `limbs (embed a) = [a, 0, …, 0]`
 (as `StarkFieldLaws` fields or L1 lemmas about the `Fp`/`Fp8` instance).
+
+## From L7 (completeness / assembly) — 2026-10-05
+
+### R-L7-1 (to lead, L4, L3): 216 queries do not reach 2^-128 on small query domains
+`agree(2^q)/2^q = 17/32 + 1/2^q` (L3 radius) is largest on the **smallest** domain, and
+`headerOk` admits every table height ≥ 2, so the query domain can be `2^5`. Kernel-checked in
+`ZkFormal/Assembly/Params.lean`: with 24 chunks the query-phase term exceeds 2^-129 for
+`n0 ∈ {5,6,7}` (`udr2_K24_q5_fails` ≈ 2^-115, `udr2_K24_q7_fails`) and passes for `n0 ≥ 8`
+(`udr2_K24_min8_ok`). The adversary chooses the header, so this is a real gap for the deployed
+`Params.default`, not slack. Either fix (pick one; both kernel-checked):
+* **(a) `numChunks := 26`** (234 queries) — passes for every `n0 ∈ [5,26]` (`udr2_K26_ok`);
+  touches only the default value (proof size +8%). L3's `NpOk` (`prm = Params.default`) and
+  L4c's `np_numChunks` (`show 2 ≤ 24 …`) need the literal updated.
+* **(b) admissible headers require `queryLog ≥ 8`** (one table of height ≥ 16) — keeps 216
+  queries but changes `headerOk` (breaks the `⟨⟨⟨_, hall⟩, _⟩, _⟩` destructurings in L4/L3).
+L7 recommends (a). `Assembly.np_romSound` is parametric (any `lo`, `g`, `numChunks`), so
+it closes for either fix with no further work.

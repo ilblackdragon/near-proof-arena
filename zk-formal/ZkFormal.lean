@@ -95,3 +95,5 @@ import ZkFormal.Bcs.TransFinal
 import ZkFormal.Bcs.DecQuery
 import ZkFormal.Stark.L2Facts
 import ZkFormal.Stark.ChunkBound
+import ZkFormal.Assembly.Params
+import ZkFormal.Assembly.RomBound
