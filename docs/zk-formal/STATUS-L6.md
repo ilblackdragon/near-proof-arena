@@ -14,12 +14,13 @@ Branch `lane/zk-L6`. Layout spec: `NEAR-AIR.md`. Lean: `zk-formal/ZkFormal/Near/
 
 | statement | owner (sub-lane) | state |
 |---|---|---|
-| `GoodSoundStmt` (spec ⇒ `NearRelation`) | L6-spec-sound | open |
+| `GoodSoundStmt` (spec ⇒ `NearRelation`) | L6-spec-sound | **proved** (`Spec/Sound.lean` `good_sound`) |
 | `GoodCompleteStmt` + `extOf` (pruning) | L6-spec-complete | open |
-| tables `node/walk/rcpt/acct/mrk/sort` | L6 (lead) | skeleton |
+| tables `node/walk/rcpt/acct/mrk/sort` | L6 (lead) | v1 written (`Tables/*.lean`); testing in L6-render |
 | `ExtractStmt` (per-table/bus split pending tables) | L6a–d | open |
 | `RenderStmt` + `render` | L6e | open |
-| `Budget.weq_le` (W_eq ≤ 3000, kernel) | L6 | open |
+| `Budget.weq_le` (W_eq = 1766 ≤ 3000, kernel), `nearAir_wf` | L6 | **proved** (`BudgetCheck.lean`, 13 s) |
+| `RenderStmt` generator + checker | L6-render | in progress |
 
 ## Elaboration time (per module, `lake build`)
 

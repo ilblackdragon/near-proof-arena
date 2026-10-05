@@ -55,8 +55,7 @@ def constraints : List Expr :=
     mul3 .isTransition (not (c act)) (n act),
     -- lanes below 8
     .mul (c af) (not (c lo8)), .mul (c al) (c lo8),
-    -- (not on the last lane: the next segment, or the wrap to row 0, restarts `lo8`)
-    mul3 (sub (c act) (c al)) (n lo8) (not (c lo8)),
+    .mul (mul3 (c act) (not (c al)) (n lo8)) (not (c lo8)),
     .mul (mul3 (c act) (c lo8) (not (n lo8))) (sub (c i) (k 7)),
     .mul (not (c lo8)) (c st),
     sub (c gS) (.mul (c act) (c lo8)),
