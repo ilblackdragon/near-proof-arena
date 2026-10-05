@@ -40,24 +40,22 @@ structure ToyPending : Prop where
 def publicBin : Bytes := Bytes.ofString "np-udr-stark-v1/toy-square/v1"
 
 theorem toy_headers (hdr : List Nat) (h : headerOk toyAir Params.default hdr = true) :
-    hdr = [1] ∨ hdr = [2] ∨ hdr = [3] ∨ hdr = [4] := by
+    ∃ l, hdr = [l] ∧ l < 17 ∧ 1 ≤ l := by
   match hdr, h with
   | [], h => simp [headerOk, toyAir] at h
-  | l :: _ :: _, h => simp [headerOk, toyAir] at h
+  | _ :: _ :: _, h => simp [headerOk, toyAir] at h
   | [l], h =>
-    have hl : 1 ≤ l ∧ l ≤ 4 := by
-      simp only [headerOk, toyAir, Bool.and_eq_true, List.all_eq_true, decide_eq_true_eq] at h
-      have := h.1.1.2 (toyTable, l) (by simp)
-      exact ⟨this.1.1.1, this.1.1.2⟩
-    match l, hl with
-    | 1, _ => exact Or.inl rfl
-    | 2, _ => exact Or.inr (Or.inl rfl)
-    | 3, _ => exact Or.inr (Or.inr (Or.inl rfl))
-    | 4, _ => exact Or.inr (Or.inr (Or.inr rfl))
+    simp only [headerOk, toyAir, Bool.and_eq_true, List.all_eq_true, decide_eq_true_eq] at h
+    have := h.1.1.2 (toyTable, l) (by simp)
+    exact ⟨l, rfl, Nat.lt_succ_of_le this.1.1.2, this.1.1.1⟩
+
+theorem toy_size_all : ∀ l, l < 17 → 1 ≤ l → sizeBound (Vd toyAir) [l] ≤ 8388608 := by
+  decide +kernel
 
 theorem toy_size (hdr : List Nat) (h : headerOk toyAir Params.default hdr = true) :
     sizeBound (Vd toyAir) hdr ≤ 8388608 := by
-  rcases toy_headers hdr h with rfl | rfl | rfl | rfl <;> decide +kernel
+  obtain ⟨l, rfl, h1, h2⟩ := toy_headers hdr h
+  exact toy_size_all l h1 h2
 
 /-- L3's side condition for the toy AIR. -/
 theorem toy_npOk : Udr.Np.NpOk toyAir Params.default := by

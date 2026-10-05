@@ -119,7 +119,7 @@ theorem toy_holds (b : UInt8) (w : Nat) (h : w * w = b.toNat) :
   refine ⟨?_, ?_, ?_, ?_⟩
   · intro t ht
     have : t = 0 := by simp [toyAir] at ht; omega
-    subst this; exact ⟨Nat.le_refl _, show 1 ≤ 4 by decide⟩
+    subst this; exact ⟨Nat.le_refl _, show 1 ≤ 16 by decide⟩
   · intro t ht r _ e he
     have : t = 0 := by simp [toyAir] at ht; omega
     subst this

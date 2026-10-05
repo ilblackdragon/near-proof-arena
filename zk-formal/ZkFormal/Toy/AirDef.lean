@@ -23,7 +23,7 @@ def toyTable : Air.Table where
   constraints := [isBool (bit 0), isBool (bit 1), isBool (bit 2), isBool (bit 3),
     .add (.mul root root) (.neg (.pub 0))]
   interactions := []
-  maxLog := 4
+  maxLog := 16
 
 def toyAir : Air := ⟨[toyTable], 0, 1⟩
 
