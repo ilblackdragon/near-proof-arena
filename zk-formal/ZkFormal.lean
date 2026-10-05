@@ -126,3 +126,7 @@ import ZkFormal.Prover.BcsOpen
 import ZkFormal.Prover.BcsPrefix
 import ZkFormal.Prover.BcsComplete
 import ZkFormal.Prover.BcsSize
+import ZkFormal.Prover.NpPoly
+import ZkFormal.Prover.NpDefs
+import ZkFormal.Prover.NpStatements
+import ZkFormal.Prover.NpCompose
