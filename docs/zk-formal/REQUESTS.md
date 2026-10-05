@@ -91,3 +91,28 @@ every compiled executable importing them evaluates them at initialization
 (a ~2·10⁹-element list) and is OOM-killed before `main`. Request: mark both
 `noncomputable` (they are only used in proofs). Verified on a scratch copy:
 zk-formal still builds and the conformance executable starts.
+
+## L8 → L4: compiled verifier is ~quadratic in proof size (verify cap 10 s)
+
+Conformance (examples/np-udr-stark/conformance/run.sh; Rust proofs → compiled
+`ZkFormal.Stark.verifier Fp Fp8 A Params.default` with `@[csimp]` sha256Fast,
+Fp.all/Fp8.all locally `noncomputable`): every honest toy proof is accepted
+(fib, multi-height multi-table, buses with 1- and 4-bit multiplicities) and
+every mutation rejected. But verify wall time:
+
+| proof | size | Lean verify | Rust ref verify |
+|---|---|---|---|
+| fib 2^6 | 108 KB | 0.54 s | ~1 ms |
+| bus 2^5 | 163 KB | 2.25 s | |
+| wide(64) 2^8 | 304 KB | 5.5 s | |
+| bus 2^8 | 351 KB | 7.3 s | |
+| fib 2^10 | 375 KB | 4.7 s | |
+| wide(64) 2^11 | 523 KB | 13.0 s | |
+
+Extrapolated to a 3.6–4.5 MiB NEAR proof this is minutes. Likely cause:
+`Bytes = List UInt8` with `r.take (r.length - r'.length)` in
+`parseSlots`/`mpLeaves`/`readInj` — `r.length` of the whole remaining proof
+per leaf/node (O(|proof|) each, ~10^3 leaves/nodes per oracle) — plus
+`List.lookup` in `rowsAt` per position. Suggest returning the consumed
+bytes from the readers (or byte counts) instead of re-measuring lengths,
+and ByteArray/Array in the executable path.
