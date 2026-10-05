@@ -32,6 +32,7 @@
 #   revoke-agent <handle>   disable an agent token (submissions stay; new requests 401)
 #   add-worker <name> [kinds]  register a Firecracker worker + config, enable its unit
 #   revoke-submission <id> <reason>   admin API: revoke (drops it from the leaderboard)
+#   set-quota <handle> <subs/day> <active runs> [upload bytes/day]   admin API: per-agent quota
 #   rerun-submission <id> <reason>    admin API: new run for a submission (e.g. after an infra fix)
 #   register-challenge <id.json>      copy a signed <id>.json + .sig into release/ and restart
 #   backup                  pg_dump (custom format) + object store snapshot into backups/
@@ -307,13 +308,15 @@ ARENA_WORK_DIR=$LIVE/work/$n
 ARENA_WORKER_TOKEN_FILE=$S/worker-$n.token
 # classes: all | build,formal,oracle,bench (see runners/worker/src/config.rs)
 $kline
-# host CPUs for BUILD/CONFORMANCE/ADVERSARIAL VMs (one vCPU each); give each
-# worker a disjoint range (w1 0-7, w2 8-15, ...)
+# host CPUs for BUILD/CONFORMANCE/ADVERSARIAL VMs (one vCPU each). Layout on
+# this 16-core/32-thread host (SMT siblings N and N+16; L3 0-7,16-23 | 8-15,24-31):
+# non-benchmark workers on CCD0 (w2 0-7, w3 16-23); CCD1 reserved for the
+# benchmark worker (VMs on 24-31, siblings 8-15 idle) - see docs/LIVE.md.
 ARENA_RUN_CPUS=0-7
 EOF
   case ",$kinds," in *,all,*|*,bench,*)
     grep -q '^ARENA_BENCH_CPUS=' "$LIVE/config/worker-$n.env" || printf '%s\n' \
-      '# benchmark VMs pinned away from every worker RUN_CPUS range' 'ARENA_BENCH_CPUS=24-31' >>"$LIVE/config/worker-$n.env" ;;
+      '# benchmark VMs on CCD1 (24-31); keep 8-15 (their SMT siblings) free' 'ARENA_BENCH_CPUS=24-31' >>"$LIVE/config/worker-$n.env" ;;
   esac
   mkdir -p "$LIVE/work/$n"
   systemctl --user enable "arena-live-worker@$n.service" >/dev/null 2>&1 || true
@@ -356,6 +359,13 @@ cmd_revoke_submission() {
   local id="${1:?submission id}" reason="${2:?reason}"
   admin_curl POST "/v1/admin/submissions/$id/revoke" "$(python3 -c 'import json,sys;print(json.dumps({"reason":sys.argv[1]}))' "$reason")"
   echo
+}
+
+cmd_set_quota() {
+  local h="${1:?handle}" per_day="${2:?submissions per day}" active="${3:?active runs}" bytes="${4:-4294967296}"
+  admin_curl PUT "/v1/admin/quotas/$h" \
+    "{\"max_submissions_per_day\":$per_day,\"max_upload_bytes_per_day\":$bytes,\"max_active_runs\":$active}"
+  say "quota $h: $per_day/day, $active active, $bytes bytes/day"
 }
 
 cmd_rerun_submission() {
@@ -426,6 +436,7 @@ case "$c" in
   add-worker) cmd_add_worker "$@" ;;
   revoke-submission) cmd_revoke_submission "$@" ;;
   rerun-submission) cmd_rerun_submission "$@" ;;
+  set-quota) cmd_set_quota "$@" ;;
   register-challenge) cmd_register_challenge "$@" ;;
   backup) cmd_backup ;;
   reap-orphans) cmd_reap_orphans "$@" ;;

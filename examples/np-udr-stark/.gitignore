@@ -5,3 +5,9 @@
 /out/
 /formal/.lake/
 /bench/work/
+/source/target-*/
+# Copied from ../../zk-formal by build-recipe/sync-lean.sh (digests pinned in
+# dependency-locks/zk-formal.sha256); part of the PACKAGE's formal/ tree.
+/formal/ZkFormal/
+/formal/ZkFormal.lean
+/build-native/

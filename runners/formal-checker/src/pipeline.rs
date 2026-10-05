@@ -102,15 +102,48 @@ pub struct Limits {
 impl Default for Limits {
     fn default() -> Self {
         Limits {
-            module_timeout: Duration::from_secs(600),
-            elaboration_budget: Duration::from_secs(3600),
-            recheck_timeout: Duration::from_secs(1200),
+            // Generous defaults: large certificates (the ZK backend) elaborate
+            // and replay for a long time. These are resource limits, not
+            // soundness parameters; a timeout is UNKNOWN, never PASS.
+            module_timeout: Duration::from_secs(3600),
+            elaboration_budget: Duration::from_secs(4 * 3600),
+            recheck_timeout: Duration::from_secs(2 * 3600),
             recheck_batch_modules: 1,
-            recheck_total: Duration::from_secs(3600),
-            audit_timeout: Duration::from_secs(600),
-            export_max_bytes: 4 << 30,
+            recheck_total: Duration::from_secs(4 * 3600),
+            audit_timeout: Duration::from_secs(3600),
+            export_max_bytes: 16 << 30,
             mem_bytes: None,
         }
+    }
+}
+
+impl Limits {
+    /// Defaults with per-worker overrides from the environment
+    /// (`ARENA_FORMAL_{MODULE,ELAB,RECHECK,RECHECK_TOTAL,AUDIT}_SECS`).
+    pub fn from_env() -> Self {
+        let mut l = Limits::default();
+        let secs = |k: &str| {
+            std::env::var(k)
+                .ok()
+                .and_then(|v| v.trim().parse::<u64>().ok())
+                .map(Duration::from_secs)
+        };
+        if let Some(d) = secs("ARENA_FORMAL_MODULE_SECS") {
+            l.module_timeout = d;
+        }
+        if let Some(d) = secs("ARENA_FORMAL_ELAB_SECS") {
+            l.elaboration_budget = d;
+        }
+        if let Some(d) = secs("ARENA_FORMAL_RECHECK_SECS") {
+            l.recheck_timeout = d;
+        }
+        if let Some(d) = secs("ARENA_FORMAL_RECHECK_TOTAL_SECS") {
+            l.recheck_total = d;
+        }
+        if let Some(d) = secs("ARENA_FORMAL_AUDIT_SECS") {
+            l.audit_timeout = d;
+        }
+        l
     }
 }
 

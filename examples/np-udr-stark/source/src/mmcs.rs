@@ -7,13 +7,9 @@
 //! term is omitted, see below).
 //!
 //! * level 0: `N_0[j] = WH(LEAF, rows_0(j))`
-//! * level k ≥ 1: `N_k[j] = WH(NODE, u8(k) ‖ N_{k-1}[2j] ‖ N_{k-1}[2j+1] ‖ X)`
-//!   where `X = WH(LEAF, rows_k(j))` if some matrix has height `H0/2^k`, else
-//!   `X` is empty.
+//! * level k ≥ 1: `N_k[j] = WH(NODE, u8(k) ‖ N_{k-1}[2j] ‖ N_{k-1}[2j+1] ‖ rows_k(j))`
+//!   (rows inlined; empty if no matrix has height `H0/2^k`).
 //! * root `= N_L[0]`.
-//!
-//! "Some matrix has height" includes matrices of width 0 (their rows are
-//! empty but they still create the `X` term).
 //!
 //! Multiproof for level-0 query indices `J` (any order, duplicates allowed):
 //! `S_0 = sort(dedup(J))`, `S_k = sort(dedup({j >> 1 | j ∈ S_{k-1}}))`.
@@ -61,20 +57,39 @@ fn put_row(buf: &mut Vec<u8>, row: &[F]) {
     }
 }
 
-/// Hash `rows_k(j)` for the given matrices (all of the same height).
-fn leaf_hash(mats: &[&Mat], j: usize, buf: &mut Vec<u8>) -> Digest64 {
+/// `rows(j)` bytes for the given matrices (all of one height).
+fn rows_bytes(mats: &[&Mat], j: usize, buf: &mut Vec<u8>) {
     buf.clear();
     for m in mats {
         put_row(buf, m.row(j));
     }
+}
+
+pub fn node_hash(k: usize, l: &Digest64, r: &Digest64, rows: &[u8]) -> Digest64 {
+    wh(TAG_NODE, &[&[k as u8], l, r, rows])
+}
+
+/// Leaf hash `WH(LEAF, rows)` from row slices.
+pub fn hash_rows(rows: &[&[F]], buf: &mut Vec<u8>) -> Digest64 {
+    buf.clear();
+    for r in rows {
+        put_row(buf, r);
+    }
     wh(TAG_LEAF, &[buf])
 }
 
-fn node_hash(k: usize, l: &Digest64, r: &Digest64, x: Option<&Digest64>) -> Digest64 {
-    match x {
-        Some(x) => wh(TAG_NODE, &[&[k as u8], l, r, x]),
-        None => wh(TAG_NODE, &[&[k as u8], l, r]),
+/// Node hash with inlined injected rows.
+pub fn hash_node_rows(k: usize, l: &Digest64, r: &Digest64, rows: &[&[F]], buf: &mut Vec<u8>) -> Digest64 {
+    buf.clear();
+    for x in rows {
+        put_row(buf, x);
     }
+    node_hash(k, l, r, buf)
+}
+
+/// Level `k` without injected matrices.
+pub fn plain_level(k: usize, prev: &[Digest64]) -> Vec<Digest64> {
+    (0..prev.len() / 2).into_par_iter().map(|j| node_hash(k, &prev[2 * j], &prev[2 * j + 1], &[])).collect()
 }
 
 pub struct Tree {
@@ -93,53 +108,31 @@ pub fn log_h0(mats: &[Mat]) -> usize {
     mats.iter().map(|m| m.log_height).max().expect("no matrices")
 }
 
-/// `WH(LEAF, rows_k(j))` for every `j`, for matrices of one height.
-pub fn leaf_hashes(mats: &[&Mat]) -> Vec<Digest64> {
-    let lh = mats[0].log_height;
-    (0..1usize << lh).into_par_iter().map_init(Vec::new, |buf, j| leaf_hash(mats, j, buf)).collect()
-}
-
-/// Hash one leaf from row slices (streaming provers).
-pub fn hash_rows(rows: &[&[F]], buf: &mut Vec<u8>) -> Digest64 {
-    buf.clear();
-    for r in rows {
-        put_row(buf, r);
-    }
-    wh(TAG_LEAF, &[buf])
-}
-
-/// Build the tree from per-level leaf hashes: `leaves[k]` is `Some` (of
-/// length `2^{l0-k}`) iff some matrix has height `2^{l0-k}`; `leaves[0]`
-/// must be `Some`.
-pub fn commit_leaves(l0: usize, mut leaves: Vec<Option<Vec<Digest64>>>) -> Tree {
-    assert_eq!(leaves.len(), l0 + 1);
-    let lvl0 = leaves[0].take().expect("level 0 leaves");
-    assert_eq!(lvl0.len(), 1 << l0);
+pub fn commit(mats: &[Mat]) -> Tree {
+    let l0 = log_h0(mats);
+    let at = |k: usize| -> Vec<&Mat> { mats.iter().filter(|m| m.log_height + k == l0).collect() };
+    let m0 = at(0);
+    let lvl0: Vec<Digest64> = (0..1usize << l0)
+        .into_par_iter()
+        .map_init(Vec::new, |buf, j| {
+            rows_bytes(&m0, j, buf);
+            wh(TAG_LEAF, &[buf])
+        })
+        .collect();
     let mut levels = vec![lvl0];
     for k in 1..=l0 {
-        let x = leaves[k].take();
-        if let Some(x) = &x {
-            assert_eq!(x.len(), 1 << (l0 - k));
-        }
+        let mk = at(k);
         let prev = &levels[k - 1];
         let lvl: Vec<Digest64> = (0..1usize << (l0 - k))
             .into_par_iter()
-            .map(|j| node_hash(k, &prev[2 * j], &prev[2 * j + 1], x.as_ref().map(|x| &x[j])))
+            .map_init(Vec::new, |buf, j| {
+                rows_bytes(&mk, j, buf);
+                node_hash(k, &prev[2 * j], &prev[2 * j + 1], buf)
+            })
             .collect();
         levels.push(lvl);
     }
     Tree { log_h0: l0, levels }
-}
-
-pub fn commit(mats: &[Mat]) -> Tree {
-    let l0 = log_h0(mats);
-    let leaves = (0..=l0)
-        .map(|k| {
-            let mk: Vec<&Mat> = mats.iter().filter(|m| m.log_height + k == l0).collect();
-            if mk.is_empty() { None } else { Some(leaf_hashes(&mk)) }
-        })
-        .collect();
-    commit_leaves(l0, leaves)
 }
 
 /// The sorted, deduplicated index sets `S_0..=S_L`.
@@ -231,7 +224,7 @@ pub fn verify(shape: &Shape, root: &Digest64, idx: &[usize], op: &Opening) -> bo
         }
     }
     // rows_k(j) bytes for the j-th element (position p) of S_k.
-    let leaf = |k: usize, p: usize, buf: &mut Vec<u8>| -> Option<Digest64> {
+    let rows = |k: usize, p: usize, buf: &mut Vec<u8>| -> bool {
         let mut any = false;
         buf.clear();
         for (m, (w, lh)) in shape.iter().enumerate() {
@@ -240,15 +233,15 @@ pub fn verify(shape: &Shape, root: &Digest64, idx: &[usize], op: &Opening) -> bo
                 put_row(buf, &op.rows[m][p * w..(p + 1) * w]);
             }
         }
-        if any { Some(wh(TAG_LEAF, &[buf])) } else { None }
+        any
     };
     let mut buf = vec![];
     let mut cur: Vec<Digest64> = Vec::with_capacity(sets[0].len());
     for p in 0..sets[0].len() {
-        match leaf(0, p, &mut buf) {
-            Some(d) => cur.push(d),
-            None => return false,
+        if !rows(0, p, &mut buf) {
+            return false;
         }
+        cur.push(wh(TAG_LEAF, &[&buf]));
     }
     let mut sib = op.siblings.iter();
     for k in 1..=l0 {
@@ -265,8 +258,8 @@ pub fn verify(shape: &Shape, root: &Digest64, idx: &[usize], op: &Opening) -> bo
                     },
                 };
             }
-            let x = leaf(k, p, &mut buf);
-            next.push(node_hash(k, &ch[0], &ch[1], x.as_ref()));
+            rows(k, p, &mut buf);
+            next.push(node_hash(k, &ch[0], &ch[1], &buf));
         }
         cur = next;
     }
@@ -306,4 +299,69 @@ mod tests {
         op.siblings.push([0; 64]);
         assert!(!verify(&shape, &t.root(), &idx, &op));
     }
+}
+
+// ---------------------------------------------------------------------------
+// Wire form of a multiproof (FORMATS.md §5): leaves `rows_0(j)` for `j ∈ S_0`
+// ascending; then for each level k = 1..=L and parent p ∈ S_k ascending: the
+// missing child digest (if exactly one child is in S_{k-1}), then
+// `rows_k(p)` if level k has matrices. `shape` is `(log, width)` per matrix.
+// ---------------------------------------------------------------------------
+
+fn level_mats(shape: &[(usize, usize)], l0: usize, k: usize) -> Vec<usize> {
+    (0..shape.len()).filter(|&m| shape[m].0 + k == l0).collect()
+}
+
+pub fn write_opening(out: &mut Vec<u8>, shape: &[(usize, usize)], idx: &[usize], op: &Opening) {
+    let l0 = shape.iter().map(|s| s.0).max().unwrap();
+    let sets = index_sets(l0, idx);
+    let rows_at = |out: &mut Vec<u8>, k: usize, pos: usize| {
+        for m in level_mats(shape, l0, k) {
+            let w = shape[m].1;
+            put_row(out, &op.rows[m][pos * w..(pos + 1) * w]);
+        }
+    };
+    for p in 0..sets[0].len() {
+        rows_at(out, 0, p);
+    }
+    let mut sib = op.siblings.iter();
+    for k in 1..=l0 {
+        for (p, &j) in sets[k].iter().enumerate() {
+            let a = sets[k - 1].binary_search(&(2 * j)).is_ok();
+            let b = sets[k - 1].binary_search(&(2 * j + 1)).is_ok();
+            if !(a && b) {
+                out.extend_from_slice(sib.next().expect("sibling"));
+            }
+            rows_at(out, k, p);
+        }
+    }
+}
+
+pub fn read_opening(r: &mut crate::protocol::Reader, shape: &[(usize, usize)], idx: &[usize]) -> Option<Opening> {
+    let l0 = shape.iter().map(|s| s.0).max()?;
+    let sets = index_sets(l0, idx);
+    let mut rows: Vec<Vec<F>> = shape.iter().map(|_| vec![]).collect();
+    let mut read_rows = |r: &mut crate::protocol::Reader, k: usize| -> Option<()> {
+        for m in level_mats(shape, l0, k) {
+            for _ in 0..shape[m].1 {
+                rows[m].push(r.f()?);
+            }
+        }
+        Some(())
+    };
+    for _ in 0..sets[0].len() {
+        read_rows(r, 0)?;
+    }
+    let mut siblings = vec![];
+    for k in 1..=l0 {
+        for &j in &sets[k] {
+            let a = sets[k - 1].binary_search(&(2 * j)).is_ok();
+            let b = sets[k - 1].binary_search(&(2 * j + 1)).is_ok();
+            if !(a && b) {
+                siblings.push(r.d64()?);
+            }
+            read_rows(r, k)?;
+        }
+    }
+    Some(Opening { rows, siblings })
 }
