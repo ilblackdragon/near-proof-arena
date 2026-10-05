@@ -15,3 +15,9 @@ name = "ZkFormal"
 [[require]]
 name = "ArenaCore"
 path = "../formal-core"
+
+# NEAR relation (lane L6: `nearAir_sound/complete` are stated against
+# `NearSpec.TransferV1.NearRelation`). Same ArenaCore as above.
+[[require]]
+name = "NearSpec"
+path = "../spec/lean"
