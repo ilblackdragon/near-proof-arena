@@ -62,8 +62,18 @@ open(dst, 'wb').write(bytes(b))
 PY
 }
 
+echo "== constraint evaluation at random points: Rust vs Lean"
+ev="$here/.lake/build/bin/np-lean-eval"
+for x in fib multi bus; do
+  "$npudr" toy $x 3 "$out/ev-$x" >/dev/null
+  for s in 1 2 3; do
+    if cmp -s <("$npudr" eval-random "$out/ev-$x/air.json" $s) <("$ev" "$out/ev-$x/air.json" $s); then pass "eval $x seed $s"
+    else bad "eval $x seed $s"; fi
+  done
+done
+
 echo "== proofs"
-for x in fib multi; do
+for x in fib multi bus; do
   for lg in "${logs[@]}"; do
     d="$out/$x-$lg"; rm -rf "$d"; mkdir -p "$d"
     if ! $HEAVY "$npudr" toy $x $lg "$d" >/dev/null; then bad "$x log=$lg: npudr toy failed"; continue; fi
