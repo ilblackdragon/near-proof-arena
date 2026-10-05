@@ -412,6 +412,37 @@ diagnostic):
   ReexecWitness.check_eq_acceptAll (compiled code: ReexecWitness.check ↦
   ReexecWitness.acceptAll) depends on axiom sorryAx".
 
+### 5d. v1-6: SHA256Fast tree, secret-sampled baseline, NEAR STARK (2026-10-05)
+
+* **Challenge.** `chl_7c0456cb2d1a36f8601863ac206cfcc9`
+  **`near-transfer-receipt-v1-6`** (formal, open) supersedes v1-5, which
+  is closed with its board frozen. It pins the trusted tree
+  `sha256:35fbd260…` (commit `e4088761`, `ArenaCore.SHA256Fast`; frozen in
+  `trusted-trees/`), `allowed_packages` `e4088761`, checker `66b014d4…`, and
+  a baseline re-measured with judge-secret sampling on CPUs 0-7
+  (PROTOCOL_UPGRADES §7.7). Benchmarks now run on those CPUs (§4).
+* **Native-lean candidates must be rebuilt against the new tree.** The
+  trusted `@[csimp] sha256 = sha256Fast` changes every judge-built
+  native-lean verifier that hashes. The old reexec-witness package (vendored
+  ArenaCore at `4f5c19df`) ships an `out/verify` that no longer equals the
+  judge build, so it was **REJECTED** with `ARTIFACT_BINDING_FAILED`
+  (`sub_e2e032d9…`). That rejection is correct. `examples/reexec-witness{,-fast}`
+  now vendor ArenaCore at `e4088761` (`out/verify` `sha256:9093c634…`
+  = the judge build).
+* **Judge bug found and fixed** (`a9a0745`). On Firecracker the formal
+  checker's writable `.olean` tree comes back as sandbox outputs, capped at
+  256 MiB. np-udr-stark's tree (~600 MB) overflowed the cap, and the guest
+  stopped collecting with an "output size limit reached" violation that
+  the checker ignored. The next module then saw a missing `.olean`, and the
+  run was REJECTED with `BUILD_FAILED`, a judge-caused false rejection. Now
+  the cap follows the scratch size (Firecracker clamps it to 4 GiB) and any
+  output violation is INFRA_ERROR. The formal-cache entries of checker
+  `66b014d4…` were invalidated (10) so the bad result is never reused.
+* **np-udr-stark limitation (L8d).** Sampled workload classes prove in
+  13–14 s at ≤ 1.5 GB. The worst-case adversarial maximum witness proves in
+  1742 s (11.4 GB), above the 600 s per-run cap, so an adversarial case at
+  that size would time out.
+
 ## 5. Current state (2026-10-03 16:10 UTC)
 
 * **Deployed revision.** `release/REVISION` is
