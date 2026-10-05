@@ -7,8 +7,10 @@ transparent re-execution (`examples/reexec-witness`) and a zkVM
 (`examples/zkvm-sp1` on `lane/backend-zkvm`): a **custom STARK**. The relation is
 written directly as nine AIR tables and proven with
 [Plonky3](https://github.com/Plonky3/Plonky3) `p3-batch-stark` at rev
-`3acc8b70e68d6c2afc03930700c26540bd47458d`. The proof contains no witness
-bytes. `verify` is a native Rust binary (`verify_route = "native"`).
+`3acc8b70e68d6c2afc03930700c26540bd47458d`. The proof does not ship the
+witness verbatim, but it is **not zero-knowledge**: the PCS is non-hiding, and
+FRI/trace openings reveal witness-derived values. This is a succinct STARK
+*validity* proof, and the arena checks validity only. `verify` is a native Rust binary (`verify_route = "native"`).
 
 **Tier expectation: EXPERIMENTAL.** No formal obligation about the AIR, the
 proof system or the Rust verifier is discharged. `formal/` deliberately
@@ -67,7 +69,7 @@ process per request).
 | prove peak RSS | 2 MB | 85 MB – 1.26 GB | 16–38 GB |
 | proof bytes | 0.5–1 KB / 4.8–6.8 KB / 59–70 KB (linear in witness) | **7.14 MB** (≈ constant) | 1.27 MB (constant) |
 | verify | ≤ 10 ms / ≤ 10 ms / 150 ms (this run) | 230–290 ms | 30–110 ms |
-| witness revealed | yes | no (validity only, ZK not claimed) | no |
+| witness revealed | yes, verbatim | not verbatim; non-hiding, so opened trace values leak (validity only, not ZK) | not verbatim; SP1 compressed STARK is not ZK |
 | crypto assumptions | SHA-256 CR | SHA-256 CR + SHA-256 as random oracle (**both approved by the profile**) | Poseidon2 RO, BLAKE3 (not approved) |
 | verifier TCB | Lean kernel + Lean compiler (native-lean route) | ≈ 3.9 k LOC ours + Plonky3 verifier crates (≈ 70 k LOC incl. tests) | ≈ 10–15 k LOC sp1-verifier + recursion circuits |
 | formal status | admission certificate | none (EXPERIMENTAL) | none (EXPERIMENTAL) |
