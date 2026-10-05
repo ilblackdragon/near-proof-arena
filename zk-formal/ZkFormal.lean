@@ -110,6 +110,10 @@ import ZkFormal.Udr.Np.Chal7
 import ZkFormal.Udr.Np.Hom
 import ZkFormal.Udr.Np.AuxChain
 import ZkFormal.Udr.Np.Msg4
+import ZkFormal.Udr.Np.Shape8
+import ZkFormal.Udr.Np.Deep8
+import ZkFormal.Udr.Np.Global8
+import ZkFormal.Udr.Np.Msg8
 import ZkFormal.Bcs.TransDefs
 import ZkFormal.Bcs.TransStatements
 import ZkFormal.Bcs.TransCompose
