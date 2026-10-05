@@ -106,6 +106,15 @@ def nRcpt : Nat := I.e.rs.length
 
 end Info
 
+/-- Walk target of node `n` (fuel `f`): an empty-key extension with a revealed
+child forwards to its child's target. -/
+def resF (ns : Array NodeRec) : Nat → Nat → Nat
+  | 0, n => n
+  | f + 1, n =>
+    match ns.getD n (.branch none [] 0) with
+    | .ext [] (.node c) _ => resF ns f c
+    | _ => n
+
 /-- Build the `Info` of an `Ext` (pre/post serializations bottom-up). -/
 def mkInfo (c : Claim) (e : Ext) : Info := Id.run do
   let ns := e.ns.toArray
@@ -118,7 +127,7 @@ def mkInfo (c : Claim) (e : Ext) : Info := Id.run do
     if (ns.getD k (.branch none [] 0)).touched then toNats (e.valsAt e.rs.length k) else []
   let mut pre : Array (List Nat) := Array.replicate N []
   let mut post : Array (List Nat) := Array.replicate N []
-  let mut res : Array Nat := (List.range N).toArray
+  let res : Array Nat := (Array.range N).map (resF ns (N + 1))
   let mut dpre : Array Bytes := Array.replicate N []
   let mut dpost : Array Bytes := Array.replicate N []
   for n in order do
@@ -131,10 +140,6 @@ def mkInfo (c : Claim) (e : Ext) : Info := Id.run do
     post := post.set! n (toNats sPost)
     dpre := dpre.set! n (sha256 sPre)
     dpost := dpost.set! n (sha256 sPost)
-    if eextOf nr then
-      match kidIds nr with
-      | [c'] => res := res.set! n (res.getD c' c')
-      | _ => pure ()
   let mut depth : Array Nat := Array.replicate N 0
   for n in order.reverse do
     for c' in kidIds (ns.getD n (.branch none [] 0)) do
