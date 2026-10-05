@@ -146,3 +146,4 @@ import ZkFormal.Near.NpOkCheck
 import ZkFormal.Near.Link.Compose
 import ZkFormal.Near.Extract.MrkProof
 import ZkFormal.Near.Render.Compose
+import ZkFormal.Near.Link.Main

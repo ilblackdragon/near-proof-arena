@@ -37,23 +37,26 @@ Branch `lane/zk-L6`. Layout spec: `NEAR-AIR.md`. Lean: `zk-formal/ZkFormal/Near/
 
 All `Near/Spec/*`, `Near/Extract/*` modules: < 2 s each. Kernel checks: BudgetCheck 13 s, NpOkCheck 8 s.
 
-## L6-link (`LinkStmt`, branch `lane/zk-L6-link`)
+## L6-link (`LinkStmt`, branch `lane/zk-L6-link`) — **proved**
 
-`Link/Compose.lean`: `link_of` proves `LinkStmt` from the nine statements of
-`Link/Statements.lean` (witness `linkExt`).
+`Link/Main.lean`: **`link : LinkStmt`** (axioms: propext, Classical.choice,
+Quot.sound), via `link_of` (`Link/Compose.lean`) from the nine statements of
+`Link/Statements.lean` (witness `linkExt`); also `nearAir_sound_linked`
+(`nearAir_sound'` without the `LinkStmt` hypothesis).
 
-| statement | state | file |
+| statement | proof | file |
 |---|---|---|
-| `ShaStmt` (message reconstruction) | **proved** `sha_ok` | `Link/Sha.lean` |
-| `ClaimStmt` | **proved** `claim_ok` | `Link/Claim.lean` |
-| `ReceiptsStmt` | **proved** `receipts_ok` | `Link/Receipts.lean` |
-| `NodupStmt` | **proved** `nodup_ok` | `Link/Nodup.lean` |
-| `TrieStmt` | **proved** `trie_ok` | `Link/Trie.lean` |
-| `RunStmt` | **proved** `run_ok` | `Link/Run.lean` |
-| `PostStmt` | **proved** `post_ok` | `Link/Post.lean` |
-| `RefundsStmt` | **proved** `refunds_ok` | `Link/Refunds.lean` |
-| `OutStmt` | open | — |
-| `WalksStmt` | open | — |
+| `ShaStmt` (message reconstruction) | `sha_ok` | `Link/Sha.lean` (+ `ShaCore`, `ShaEnc`) |
+| `ClaimStmt` | `claim_ok` | `Link/Claim.lean` |
+| `ReceiptsStmt` | `receipts_ok` | `Link/Receipts.lean` |
+| `NodupStmt` | `nodup_ok` | `Link/Nodup.lean` |
+| `TrieStmt` | `trie_ok` | `Link/Trie.lean` (+ `Parent`, `Tree`, `NodeHash`, `TrieHash`) |
+| `WalksStmt` | `walks_ok` | `Link/Walks.lean` (+ `WalkLen`, `WalkEdge`, `WalkChain`, `WalkKey`, `WalkSpec`) |
+| `RunStmt` | `run_ok` | `Link/Run.lean` (+ `MemBus`, `MemTime`, `Mem`, `RunChain`, `RunAcc`) |
+| `PostStmt` | `post_ok` | `Link/Post.lean` |
+| `OutStmt` | `out_ok` | `Link/OutMain.lean` (+ `MrkLevels`, `OutLeaf`, `OutBus`, `Out`) |
+| `RefundsStmt` | `refunds_ok` | `Link/Refunds.lean` |
 
 View changes (REQUESTS-L6.md): R-L6d-1 (`canon` fields), R-L6d-2 (`arith`
-assumes `Bytes8 ramt` only for refund receipts).
+assumes `Bytes8 ramt` only for refund receipts). Elaboration: every `Link/*`
+module < 1 s; all 40 modules from scratch 12.6 s wall.
