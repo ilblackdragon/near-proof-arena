@@ -128,3 +128,69 @@ theorem succ {r : Nat} (hr : r + 1 < tr.height T_NODE) (he : tr.cell T_NODE r fe
   · rw [h] at c15 c16; exact ⟨by grind, by grind⟩
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+
+theorem flags {r : Nat} (hr : r < tr.height T_NODE) :
+    (tr.cell T_NODE r nokey = 1 → tr.cell T_NODE r hplen = 1) ∧
+    tr.cell T_NODE r nochild * popE.eval tr T_NODE r pub = 0 ∧
+    tr.cell T_NODE r tv * (tr.cell T_NODE r tb1 + tr.cell T_NODE r te) = 0 ∧
+    ∀ i, i < 16 → (tr.cell T_NODE r tl + tr.cell T_NODE r te) * tr.cell T_NODE r (bm i) = 0 := by
+  have c1 := con hL hr (e := .mul (c nokey) (sub (c hplen) (k 1))) (mem_fields (by simp [cFields]))
+  have c2 := con hL hr (e := .mul (c nochild) popE) (mem_fields (by simp [cFields]))
+  have c3 := con hL hr (e := .mul (c tv) (.add (c tb1) (c te))) (mem_fields (by simp [cFields]))
+  simp only [eval_mul, eval_c, eval_sub, eval_add, eval_k] at c1 c2 c3
+  refine ⟨fun h => by rw [h] at c1; grind, c2, c3, fun i hi => ?_⟩
+  have c4 := con hL hr (e := .mul (.add (c tl) (c te)) (c (bm i)))
+    (mem_fields (by unfold cFields; simp only [List.mem_append, List.mem_map, List.mem_range]
+                    exact Or.inr ⟨i, hi, rfl⟩))
+  simpa using c4
+
+/-- Bytes of the non-window fields. -/
+theorem bytes {r : Nat} (hr : r < tr.height T_NODE) :
+    (tr.cell T_NODE r sTAG = 1 → tr.cell T_NODE r b = tagE.eval tr T_NODE r pub) ∧
+    (tr.cell T_NODE r sHPL = 1 → tr.cell T_NODE r fs = 1 → tr.cell T_NODE r b = tr.cell T_NODE r hplen) ∧
+    (tr.cell T_NODE r sHPL = 1 → tr.cell T_NODE r fs = 0 → tr.cell T_NODE r b = 0) ∧
+    (tr.cell T_NODE r sHPF + tr.cell T_NODE r sKEY = 1 →
+      tr.cell T_NODE r b = 16 * hiE.eval tr T_NODE r pub + loE.eval tr T_NODE r pub) ∧
+    (tr.cell T_NODE r sHPF = 1 → hiE.eval tr T_NODE r pub = 2 * tr.cell T_NODE r tl + tr.cell T_NODE r odd ∧
+      (tr.cell T_NODE r odd = 0 → loE.eval tr T_NODE r pub = 0)) ∧
+    (tr.cell T_NODE r tv = 1 → tr.cell T_NODE r sVLEN = 1 → tr.cell T_NODE r fs = 1 → tr.cell T_NODE r b = 72) ∧
+    (tr.cell T_NODE r tv = 1 → tr.cell T_NODE r sVLEN = 1 → tr.cell T_NODE r fs = 0 → tr.cell T_NODE r b = 0) ∧
+    (tr.cell T_NODE r sBM = 1 → tr.cell T_NODE r fs = 1 → tr.cell T_NODE r b = bmLo.eval tr T_NODE r pub) ∧
+    (tr.cell T_NODE r sBM = 1 → tr.cell T_NODE r fs = 0 → tr.cell T_NODE r b = bmHi.eval tr T_NODE r pub) ∧
+    (tr.cell T_NODE r act - winE.eval tr T_NODE r pub = 1 → tr.cell T_NODE r pb = tr.cell T_NODE r b) := by
+  have c1 := con hL hr (e := .mul (c sTAG) (sub (c b) tagE)) (mem_bytes (by simp [cBytes]))
+  have c2 := con hL hr (e := mul3 (c sHPL) (c fs) (sub (c b) (c hplen))) (mem_bytes (by simp [cBytes]))
+  have c3 := con hL hr (e := mul3 (c sHPL) (Dsl.not (c fs)) (c b)) (mem_bytes (by simp [cBytes]))
+  have c4 := con hL hr (e := .mul (.add (c sHPF) (c sKEY)) (sub (c b) (.add (smul 16 hiE) loE)))
+    (mem_bytes (by simp [cBytes]))
+  have c5 := con hL hr (e := .mul (c sHPF) (sub hiE (.add (smul 2 (c tl)) (c odd)))) (mem_bytes (by simp [cBytes]))
+  have c6 := con hL hr (e := mul3 (c sHPF) (Dsl.not (c odd)) loE) (mem_bytes (by simp [cBytes]))
+  have c7 := con hL hr (e := .mul (mul3 (c tv) (c sVLEN) (c fs)) (sub (c b) (k 72))) (mem_bytes (by simp [cBytes]))
+  have c8 := con hL hr (e := .mul (mul3 (c tv) (c sVLEN) (Dsl.not (c fs))) (c b)) (mem_bytes (by simp [cBytes]))
+  have c9 := con hL hr (e := mul3 (c sBM) (c fs) (sub (c b) bmLo)) (mem_bytes (by simp [cBytes]))
+  have c10 := con hL hr (e := mul3 (c sBM) (Dsl.not (c fs)) (sub (c b) bmHi)) (mem_bytes (by simp [cBytes]))
+  have c11 := con hL hr (e := .mul (sub (c act) winE) (sub (c pb) (c b))) (mem_bytes (by simp [cBytes]))
+  simp only [eval_mul, eval_mul3, eval_c, eval_not, eval_sub, eval_add, eval_k, eval_smul]
+    at c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11
+  refine ⟨fun h => ?_, fun h h' => ?_, fun h h' => ?_, fun h => ?_, fun h => ⟨?_, fun h' => ?_⟩, fun h h' h'' => ?_,
+    fun h h' h'' => ?_, fun h h' => ?_, fun h h' => ?_, fun h => ?_⟩
+  · rw [h] at c1; grind
+  · rw [h, h'] at c2; grind
+  · rw [h, h'] at c3; grind
+  · rw [h] at c4; grind
+  · rw [h] at c5; grind
+  · rw [h, h'] at c6; grind
+  · rw [h, h', h''] at c7; grind
+  · rw [h, h', h''] at c8; grind
+  · rw [h, h'] at c9; grind
+  · rw [h, h'] at c10; grind
+  · rw [h] at c11; grind
+
+end ZkFormal.Near.NodeProof
