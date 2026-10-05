@@ -26,6 +26,8 @@ structure WalkWf (ws : List WalkV) : Prop where
   steps : ∀ w ∈ ws, 2 ≤ w.steps.length ∧ (∀ st ∈ w.steps, st.1.length = 5 ∧ st.2 < P) ∧ w.r < P
   start : ∀ w ∈ ws, (w.edge 0).take 3 = [0, 0, SYM_START]
   chain : ∀ w ∈ ws, ∀ i, i + 1 < w.steps.length → (w.edge i).drop 3 = (w.edge (i + 1)).take 2
+  /-- edge components are canonical naturals -/
+  canon : ∀ w ∈ ws, ∀ st ∈ w.steps, ∀ x ∈ st.1, x < P
 
 def walkSends (ws : List WalkV) (b : Nat) : List Msg :=
   if b = B_EDGE then ws.flatMap fun w => w.steps.map fun (e, u) => e ++ [u + 1]
@@ -61,6 +63,8 @@ structure AcctWf (as : List AcctV) : Prop where
   len : ∀ a ∈ as, a.pre.length = 72 ∧ a.post.length = 16 ∧ a.k < P ∧ a.tlast < P
   /-- AccountV1: the pre amount is not `u128::MAX` (stated for byte values) -/
   notMax : ∀ a ∈ as, (∀ i, i < 16 → a.pre.getD i 0 < 256) → ∃ i, i < 16 ∧ a.pre.getD i 0 ≠ 255
+  /-- raw bytes are canonical naturals -/
+  canon : ∀ a ∈ as, ∀ x ∈ a.pre ++ a.post, x < P
 
 def acctLane (a : AcctV) (amt : List Nat) (i : Nat) : List Nat :=
   [amt.getD i 0, a.pre.getD (16 + i) 0, if i < 8 then a.pre.getD (64 + i) 0 else 0]
@@ -90,6 +94,8 @@ def AcctViewStmt : Prop :=
 /-- The ids in table order: receipt index and 32 raw bytes (LSB first). -/
 structure SortWf (ids : List (Nat × List Nat)) : Prop where
   len : ∀ x ∈ ids, x.2.length = 32 ∧ x.1 < P
+  /-- raw bytes are canonical naturals -/
+  canon : ∀ x ∈ ids, ∀ y ∈ x.2, y < P
   /-- strictly increasing as little-endian integers (stated for byte values) -/
   incr : ∀ t, t + 1 < ids.length →
     (∀ x ∈ ids, ∀ y ∈ x.2, y < 256) →
@@ -132,6 +138,10 @@ structure MrkV where
 
 def nPubNat (pub : List Fp) : Nat := (List.range 4).foldr (fun x acc => pubNat pub (PV_N + x) + 256 * acc) 0
 
+def MrkNode.raw : MrkNode → List Nat
+  | .hashed lI lL l rI rL r => [lI, lL, rI, rL] ++ l ++ r
+  | .promoted cId cLen => [cId, cLen]
+
 structure MrkWf (pub : List Fp) (v : MrkV) : Prop where
   /-- the node kinds follow `merklize` for `n` leaves (`n` from the public bytes,
   stated when those are bytes and `1 ≤ n`) -/
@@ -142,6 +152,8 @@ structure MrkWf (pub : List Fp) (v : MrkV) : Prop where
   windows : ∀ nd ∈ v.nodes, match nd with
     | .hashed _ _ l _ _ r => l.length = 32 ∧ r.length = 32
     | .promoted _ _ => True
+  /-- raw values are canonical naturals -/
+  canon : v.J < P ∧ v.rootId < P ∧ v.rootLen < P ∧ ∀ nd ∈ v.nodes, ∀ x ∈ nd.raw, x < P
 
 /-- Index among hashed nodes (the `MRK` message index) of node `q`. -/
 def hashedBefore (nodes : List MrkNode) (q : Nat) : Nat :=

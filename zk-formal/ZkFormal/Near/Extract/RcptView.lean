@@ -165,6 +165,11 @@ structure RcptV.Wf (x : RcptV) (r bgp tok tok' : Nat) : Prop where
 /-- `n` from the public claim bytes (little endian). -/
 def nPubLE (pub : List Fp) : Nat := leN' (pubBytes pub PV_N 4)
 
+/-- All raw values of a receipt segment. -/
+def RcptV.raw (x : RcptV) : List Nat :=
+  x.p ++ x.v ++ x.s ++ x.rid ++ [x.kt] ++ x.pk ++ x.gp ++ x.dep ++ x.bef ++ x.lk ++ x.st ++ x.aft ++
+    x.burnt ++ x.ramt ++ x.rfid ++ x.peoh
+
 /-- Table-level facts (claim facts stated for byte-valued public inputs, as
 `publicOf` provides). -/
 structure RcptWf (pub : List Fp) (rs : RcptVs) : Prop where
@@ -183,6 +188,8 @@ structure RcptWf (pub : List Fp) (rs : RcptVs) : Prop where
     leN' (pubBytes pub PV_GAS 8) = rs.length * Params.G
   refunds : (∀ j, j < 309 → pubNat pub j < 256) →
     (rs.filter (·.hr)).length = leN' (pubBytes pub PV_NREF 4)
+  /-- raw values are canonical naturals (`Fp.toNat` of columns) -/
+  canon : ∀ x ∈ rs, ∀ y ∈ x.raw, y < P
 
 def RcptViewStmt : Prop :=
   ∀ (tr : Trace Fp) (pub : List Fp), TableLocal Rcpt.table tr T_RCPT pub →

@@ -46,3 +46,5 @@ import ZkFormal.Near.Spec.Sound
 import ZkFormal.Near.BudgetCheck
 import ZkFormal.Near.Spec.Complete
 import ZkFormal.Near.Main
+-- Lane L6 sub-lane L6-link: views + SHA contract + bus balance ⇒ Good (LinkStmt split).
+import ZkFormal.Near.Link.Compose
