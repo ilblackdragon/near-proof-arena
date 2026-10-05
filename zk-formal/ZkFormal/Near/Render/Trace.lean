@@ -10,9 +10,8 @@ import ZkFormal.Sha.Gen
 table: `sha` through L5's generator (`Sha.Gen`) on every message the NEAR
 tables emit (node, acct, mrk, rcpt), each with its digest provided once.
 
-PLACEHOLDER: `rcpt` is two zero rows until the table lands (its messages are
-already among the SHA messages, from `Render.RcptSim`).  If the records do
-not admit the walks (`bundle` fails) every table is two zero rows.
+If the records do not admit the walks (`bundle` fails) every NEAR table is
+two zero rows.
 
 `ZkFormal.Near.render` (`Near/Honest.lean`) is meant to become this function.
 -/
@@ -33,13 +32,13 @@ def shaRows (ms : List Msg) : Array Row :=
   (List.range h).toArray.map fun r =>
     (List.range Sha.Layout.width).toArray.map fun c => Sha.Gen.rowCell (rows.getD r .pad) c
 
-/-- Placeholder `rcpt` rows. -/
+/-- Zero `rcpt` rows (fallback). -/
 def rcptRows : Array Row := #[zeroRow Rcpt.width, zeroRow Rcpt.width]
 
 /-- SHA messages and rows of the NEAR tables `1 … 6` (`nearAir` order). -/
 def renderParts (c : Claim) (e : Ext) : List Msg × List (Array Row) :=
   match bundle c e with
-  | .ok B => (B.msgs, [B.node, B.walk, rcptRows, B.acct, B.mrk, B.sort])
+  | .ok B => (B.msgs, [B.node, B.walk, B.rcpt, B.acct, B.mrk, B.sort])
   | .error _ =>
     ([], [#[zeroRow Node.width, zeroRow Node.width],
      #[zeroRow WalkTab.width, zeroRow WalkTab.width], rcptRows,

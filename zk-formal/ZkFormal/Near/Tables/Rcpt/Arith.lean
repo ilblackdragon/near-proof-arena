@@ -113,6 +113,10 @@ def cChars : List Expr :=
     mul3 (c fe) (c sP) (sub (sub (c Lp) (k 2)) (bitsX 0 6)),
     mul3 (c fe) (c sV) (sub (sub (c Lv) (k 2)) (bitsX 0 6)),
     mul3 (c fe) (c sS) (sub (sub (c Ls) (k 2)) (bitsX 0 6)),
+    -- … and ≤ 64 (`L − 2 < 64` alone allows 65)
+    mul3 (c fe) (c sP) (sub (sub (k 64) (c Lp)) (bitsX 6 6)),
+    mul3 (c fe) (c sV) (sub (sub (k 64) (c Lv)) (bitsX 6 6)),
+    mul3 (c fe) (c sS) (sub (sub (k 64) (c Ls)) (bitsX 6 6)),
     -- predecessor ≠ "system"
     mul3 (c sP) (c fs) (sub (c acc) (sq (sub (c b) (c (reg 0))))),
     mul3 (c sP) (not (c fe)) (sub (n acc) (.add (c acc) (sq (sub (n b) (n (reg 0)))))),
