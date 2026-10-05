@@ -49,7 +49,7 @@ set_option maxHeartbeats 1000000 in
 open MrkTraffic MrkGen in
 /-- **`MrkTrafficStmt`.** -/
 theorem mrkTraffic_ok : MrkTrafficStmt := by
-  intro c e hg
+  intro c e hg _
   have hnI : (mkInfo c.1 e).nRcpt = e.rs.length := rfl
   have hn1 : 1 ≤ (mkInfo c.1 e).nRcpt := by rw [hnI, hg.len]; exact hg.n_pos
   have hp : partOf (bundle c.1 e) T_MRK =

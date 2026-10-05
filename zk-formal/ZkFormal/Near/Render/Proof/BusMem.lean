@@ -111,7 +111,7 @@ end BusMem
 open BusMem in
 /-- **`MemBusStmt`.** -/
 theorem memBus : MemBusStmt := by
-  intro c e hg m
+  intro c e hg _ m
   rw [hcount_eq, hcount_eq]
   simp only [sel, if_true, Bool.false_eq_true, if_false, shaTraffic, nodeTraffic, nodeSends, nodeRecvs,
     walkTraffic, walkSends, walkRecvs, mrkTraffic, mrkSends, mrkRecvs, sortTraffic, B_VSLOT, B_DIGEST,

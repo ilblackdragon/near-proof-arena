@@ -13,7 +13,7 @@ open NearSpec NearSpec.TransferV1 ZkFormal.Near ZkFormal.Air ZkFormal.Algebra Zk
 
 /-- **`SortTrafficStmt`.** -/
 theorem sortTraffic_ok : SortTrafficStmt := by
-  intro c e hg
+  intro c e hg _
   have ok := idsOk hg
   have hp : partOf (bundle c.1 e) T_SORT =
       mkTab (2 ^ logOf (32 * (sortedIds (mkInfo c.1 e)).length)) Sort.width

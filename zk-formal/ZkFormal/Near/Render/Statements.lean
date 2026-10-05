@@ -6,7 +6,7 @@ import ZkFormal.Near.Statements
 /-!
 # ZkFormal.Near.Render.Statements — the split of `RenderStmt`
 
-`RenderStmt : ∀ c e, Good c.1 e → Holds nearAir (publicOf c) (render c.1 e)`
+`RenderStmt : ∀ c e, Good c.1 e → Small e → Holds nearAir (publicOf c) (render c.1 e)`
 follows (`Render.Compose`) from
 
 | statement | content |
@@ -16,7 +16,8 @@ follows (`Render.Compose`) from
 | `BusStmt b` (×10) | the honest traffic balances on bus `b` (trace-free) |
 | `other_bus` | (proved) no honest traffic on buses `≥ 10` |
 
-All are stated under `Good c.1 e` (the honest records), and `render` is
+All are stated under `Good c.1 e ∧ Small e` (the honest records, with at most
+`maxBatch` terminal nodes: `Spec/Small.lean`, R-L6e-1), and `render` is
 `ZkFormal.Near.Render.render`.
 -/
 
@@ -30,11 +31,11 @@ def htf (c : Claim) (e : Ext) (t : Nat) : Traffic :=
 
 /-- Table `t` (`T`) of the honest trace is locally legal. -/
 def LocalStmt (t : Nat) (T : Table) : Prop :=
-  ∀ (c : WfClaim) (e : Ext), Good c.1 e → TableLocal T (render c.1 e) t (publicOf c)
+  ∀ (c : WfClaim) (e : Ext), Good c.1 e → Small e → TableLocal T (render c.1 e) t (publicOf c)
 
 /-- Table `t` (interactions `is`) of the honest trace has the honest traffic. -/
 def TrafficStmt (t : Nat) (is : List Interaction) : Prop :=
-  ∀ (c : WfClaim) (e : Ext), Good c.1 e → TableTraffic is (render c.1 e) t (publicOf c) (htf c.1 e t)
+  ∀ (c : WfClaim) (e : Ext), Good c.1 e → Small e → TableTraffic is (render c.1 e) t (publicOf c) (htf c.1 e t)
 
 /-- Sends (`s = true`) or receives of a traffic. -/
 def sel (s : Bool) (tf : Traffic) : Nat → List ZkFormal.Near.Msg := if s then tf.sends else tf.recvs
@@ -50,7 +51,7 @@ def hcount (c : Claim) (e : Ext) (b : Nat) (s : Bool) (m : List Fp) : Nat :=
 
 /-- The honest traffic balances on bus `b`. -/
 def BusStmt (b : Nat) : Prop :=
-  ∀ (c : WfClaim) (e : Ext), Good c.1 e → ∀ m, hcount c.1 e b true m = hcount c.1 e b false m
+  ∀ (c : WfClaim) (e : Ext), Good c.1 e → Small e → ∀ m, hcount c.1 e b true m = hcount c.1 e b false m
 
 def ShaLocalStmt : Prop := LocalStmt T_SHA (Sha.Table.table B_BYTES B_DIGEST)
 def NodeLocalStmt : Prop := LocalStmt T_NODE Node.table

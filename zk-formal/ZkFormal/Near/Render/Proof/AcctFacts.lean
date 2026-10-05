@@ -5,15 +5,15 @@ import ZkFormal.Near.Render.Proof.Base
 
 `AcctOk I`: between 1 and 256 touched slots, each with 72 pre bytes (bytes,
 amount not `u128::MAX`) and 72 post bytes.  The upper bound needs
-`TouchedLe e` (at most `maxBatch` touched nodes), which `Good` does not state
-(see `docs/zk-formal/REQUESTS-L6.md`, R-L6e-1).
+`TouchedLe e` (at most `maxBatch` touched nodes), which `Good` does not state;
+it follows from `Small e` (`Small.touched`, R-L6e-1).
 -/
 
 namespace ZkFormal.Near.Render
 
 open NearSpec NearSpec.TransferV1 ZkFormal.Near
 
-/-- At most `maxBatch` touched nodes (missing from `Good`, R-L6e-1). -/
+/-- At most `maxBatch` touched nodes (`Small.touched`; not in `Good`, R-L6e-1). -/
 def TouchedLe (e : Ext) : Prop := (e.ns.filter NodeRec.touched).length ≤ Params.maxBatch
 
 /-- What the acct table needs about the touched slots. -/

@@ -196,3 +196,55 @@ Key lemma: `walkOf_ok` (`Proof/WalkOk`): under `Good`, the generator's walk of
 every receipt succeeds and ends at `e.slot r` (simulation of the spec `Walk`
 with `EPS` steps collapsed by `resF`; `resF` is stable by the `TreeShape`
 depth argument).
+
+## Sub-lane L6e-rsha (lane/zk-L6-rsha): `Small`, sha, BYTES
+
+**Statement fix (R-L6e-1, resolved).** `Spec/Small.lean`: `NodeRec.dead`
+(branch, no value, no child), `NodeRec.terminal = touched || dead`,
+`structure Small e` with field `terminals : (e.ns.filter terminal).length ≤
+maxBatch` (`Small.touched`, `Small.dead`).  `Spec/SmallComplete.lean`:
+`small_complete : NearRelation c w → Small (extOf c w)` (`tc_prune`: each
+terminal record of `prune keys t` ends a distinct key).  `RenderStmt` and every
+`Local/Traffic/BusStmt` now assume `Good c.1 e → Small e →`; `Good` unchanged.
+`SmallCompleteStmt` (Near/Statements); `nearAir_complete hC hSm hR` /
+`honestTrace_fits` (Near/Compose), primed versions in Near/Main with
+`good_complete`, `small_complete`; `nearAir_complete_rest`,
+`honestTrace_fits_rest : RenderRest → …` (Render/Proof/Main, the DESIGN
+statements from the open obligations only).  `acctLocal : AcctLocalStmt`.
+
+| obligation | theorem | module |
+|---|---|---|
+| `ShaLocalStmt` | `shaLocal` | `Proof/ShaFit4` (+ `ShaTab`: table 0 of `render` = `Sha.honestTrace`, L5's `sha_complete_closed`) |
+| `ShaTrafficStmt` | `shaTraffic_ok` | `Proof/ShaFit4` |
+| `BytesBusStmt` | `bytesBus_of : NodeSerStmt → RcptBytesStmt → BytesBusStmt` | `Proof/BusBytes` |
+| `RcptBytesStmt` (rcpt BYTES sends = bytes of `rcptMsgs`) | `rcptBytes` | `Proof/RcptBytes{1,2}` |
+
+`Sha.MsgsOk` under `Good ∧ Small` (`ShaFit1–4`): bytes `< 256` and lengths
+`< 2^25` for every message; SHA rows (`rowsOf L = 1 + 17·⌈(L+9)/64⌉`):
+node `≤ (5·revealedOf + 144·#dead)/4 ≤ 3 759 216` (only dead branches are under
+43 bytes; `8·rowsOf S ≤ 5·S` for `S ≥ 43`, tight at 56), acct `≤ 17 920`,
+mrk `≤ 13 600`, rcpt `≤ 81 355`; total `≤ 3 872 091 ≤ 2^22`.
+
+`RenderRest` now: `nodeL, rcptL, nodeT, rcptT, nodeSer, digest, parent, edge`.
+`NodeSerStmt` (for the node lane): the node views serialize as `mkInfo`'s
+`pre`/`post` (`(nodeViewOf I uses n).v.ser false = I.pre.getD n []`, same for
+`post`).
+
+**Merge note.** `Proof/ShaFit1` proves `pre_ok`/`post_ok` (bytes, length
+`≤ sz0 (nodeAt n)`) for the *loop* form of `mkInfo`; lane/zk-L6-node rewrites
+`mkInfo` in closed form (`nodeSer (treeOf …)`), so after that merge only
+`pre_ok`/`post_ok` need a new proof (they already take `Good`, for the hash
+widths of `Kid.hash`).  Everything downstream uses only these two lemmas.
+
+Elaboration (`lake env lean`, wall): ShaTab 2.7 s, RcptBytes2 1.6 s, ShaFit4
+1.4 s, all others `< 0.6 s`.
+
+**Open: `RcptLocalStmt`, `RcptTrafficStmt`.** Not started: the rcpt table has
+965 constraints over 228 columns and the generator (`Render/Rcpt.lean`) is
+imperative (`Id.run`, `set!` loops per field / carry / delay line).  As for
+the other tables, the first step is a closed-form cell function per segment
+row (`(r, field, idx) ↦ cell`), then one lemma per constraint family
+(`Tables/Rcpt/{Fields,Arith}.lean`).  `RcptTraffic` could then reuse the
+soundness side: the extraction (`Extract/RcptTraffic`, `rcpt_view`) gives the
+traffic of any locally valid rcpt table as `rcptTraffic pub (viewOf …)`, so
+it remains to identify the extracted view with `rcptViewsOf I`.
