@@ -41,3 +41,5 @@ import ZkFormal.Stark.QueryBound
 -- Lane L5: SHA-256 block table (statements, composition, generator).
 import ZkFormal.Sha.Compose
 import ZkFormal.Near.Compose
+-- Lane L6 sub-lane L6-sound: relational spec ⇒ NearRelation (good_sound).
+import ZkFormal.Near.Spec.Sound
