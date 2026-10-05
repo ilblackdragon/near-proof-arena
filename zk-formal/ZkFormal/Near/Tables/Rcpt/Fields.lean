@@ -64,6 +64,8 @@ def cStates : List Expr :=
     sub (c rl) (.mul (c fe) (.add (c sXRZ) (.mul (c sXLH) (not (c hr))))),
     sub (c lastR) (.mul (c rl) (not (n act))),
     .mul (c rf) (not (c sPL)), .mul (c rf) (not (c fs)), mul3 (c sPL) (c fs) (not (c rf)),
+    -- a receipt's first row has `idx = 0` (after `rl` nothing else resets it)
+    .mul (c rf) (c idx),
     mul3 (c rl) (n act) (not (n rf)),
     -- first receipt
     mul3 (c fe) (c sCL) (n r), mul3 (c fe) (c sCL) (sub (n o) (k 12)),

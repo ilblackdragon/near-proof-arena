@@ -134,3 +134,25 @@ receipt with `gp = 0`.  The borrow chain is satisfied with `D_0 = 0`,
 hypothesis `bgp < Params.two128` by `Bytes8 bgpB` and `bgp` by `leN' bgpB`; in
 `RcptWf.toks` pass `pubBytes pub PV_BGP 16`.  Linking has
 `Bytes8 (pubBytes (publicOf c) PV_BGP 16)` (`publicOf` is bytes).
+
+## R-L6r-4 (L6-rcptview): table bug — `idx` is not reset at a receipt start — APPLIED on `lane/zk-L6-rcptview`
+
+**Problem.** `idx` is reset to `0` after a field end only when the field end
+is not a receipt end (`mul3 (c fe) (not (c rl)) (n idx)`), and at row 0.  At
+the first row of every receipt after the first (`rf`, after `rl`), `idx` is
+unconstrained.  The `PL` field then has `4 − idx₀` rows (its end is fixed by
+`idx = 3`), so its `RC` emissions are `(o + idx₀ + j, …)`: positions
+`o … o + idx₀ − 1` are skipped (or, with `idx₀ = −1`, five bytes are emitted
+from `o − 1`).
+
+*Counterexample (view statement).* Two receipts, the second with
+`idx = 2` on its `rf` row: the `PL` field is 2 rows (`(RC, o+2, Lp)`,
+`(RC, o+3, 0)`); every constraint holds.  No view has this traffic
+(`rcptTraffic` always emits the 4 bytes of `u32 len` at `o … o+3`), so
+`RcptViewStmt` is false.  (Globally the `BYTES` bus would not balance, but the
+per-table statement is local.)
+
+**Fix (applied).** `Tables/Rcpt/Fields.lean` `cStates`: add
+`.mul (c rf) (c idx)` (`rf → idx = 0`).  The honest generator already has
+`idx = 0` on `rf` rows: `test/NearRenderTest.lean` passes unchanged (rcpt now
+965 constraints); `BudgetCheck`/`NpOkCheck` re-checked.
