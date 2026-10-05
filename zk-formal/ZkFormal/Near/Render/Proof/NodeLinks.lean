@@ -67,14 +67,11 @@ structure LinkHyp (I : Info) (r : NRec) (fst : Int) : Prop where
   hres : I.res.getD r.n r.n = if eextOf' (I.nodeAt r.n) = true ∧ xrvOf (I.nodeAt r.n) = true
       then xresOf I (I.nodeAt r.n) else r.n
 
-abbrev LSIMP := 0
-
-set_option maxHeartbeats 8000000 in
-theorem lnk_key (I : Info) (u : Std.HashMap Edge Nat) (rn pos j b pb : Nat) (fst : Int)
-    (h : LinkHyp I ⟨rn, pos, .key, j, b, pb⟩ fst)
-    (C D : Nat → Int) (lst trn : Int) (P : Nat → Int)
-    (hC : ∀ x, x < 163 → C x = (rowCell I u ⟨rn, pos, .key, j, b, pb⟩ x : Int)) :
-    ∀ ex ∈ Node.cLinks, ev C D fst lst trn P ex = 0 := by
+/-- The link constraints on a row of a fixed non-window field. -/
+syntax "lnk_tac" : tactic
+set_option hygiene false in
+macro_rules
+  | `(tactic| lnk_tac) => `(tactic| (
   intro ex hex
   obtain ⟨hf, hidx, hw, hnib, hb, hb8, hfst, htag, hres⟩ := h
   have hn1 := nib4 (b / 16)
@@ -90,19 +87,47 @@ theorem lnk_key (I : Info) (u : Std.HashMap Edge Nat) (rn pos j b pb : Nat) (fst
   all_goals try simp only [F.state, F.chw, F.win, F.nib, digOf, edgeAOf, edgeBOf, gateCell, edgeCell, Node.sTAG,
     Node.sHPL, Node.sHPF, Node.sKEY, Node.sVLEN, Node.sVH, Node.sBM, Node.sCH, Node.sMEM, msgId] at htag ⊢
   all_goals generalize hnr : I.nodeAt rn = nr at *
-  all_goals rcases nr with ⟨k, v, m⟩ | ⟨k, kid, m⟩ | ⟨v, kids, m⟩
+  all_goals rcases nr with ⟨k, _ | _, m⟩ | ⟨k, kid, m⟩ | ⟨_ | ⟨_ | _⟩, kids, m⟩
   all_goals try (cases kid <;> rcases k with _ | ⟨x, _ | ⟨y, k⟩⟩)
-  all_goals try (exfalso; have := (key_branch I rn v kids m) hf; exact this)
+  all_goals try (exfalso; simp [fieldsOf] at hf; done)
+  all_goals try (exfalso; simp [fieldsOf] at hf; have := branchWins_state hf; simp [F.state, Node.sHPL, Node.sHPF,
+    Node.sKEY, Node.sVLEN, Node.sVH, Node.sBM, Node.sCH, Node.sMEM, Node.sTAG] at this; done)
   all_goals try simp [F.len, b2n, typeOf, eextOf', xrvOf, xdeadOf, xlast0Of, isExtR, isLE, nokeyOf, oddOf, hplenOf,
-    xresOf, NodeRec.key, NodeRec.touched] at htag hidx hres
+    xresOf, NodeRec.key, NodeRec.touched, valWin] at htag hidx hres
   all_goals try simp [F.len, b2n, typeOf, eextOf', xrvOf, xdeadOf, xlast0Of, isExtR, isLE, nokeyOf, oddOf, hplenOf,
-    xresOf, NodeRec.key, NodeRec.touched, hres, htag, Int.add_right_neg]
+    xresOf, NodeRec.key, NodeRec.touched, valWin, hres, htag, Int.add_right_neg]
   all_goals first
     | omega
     | (simp [Int.add_right_neg]; done)
     | (by_cases hl : j + 1 = (k.length + 1 + 1) / 2 <;> simp [hl, Int.add_right_neg] <;> omega)
+    | (by_cases hr0 : rn = 0 <;> simp [hr0, Int.add_right_neg] <;> omega)
+    | (by_cases hj : j = 0 <;> simp [hj, Int.add_right_neg] <;> omega)
+    | (have hI : ((k.length : Int)) % 2 = (((k.length % 2 : Nat)) : Int) := by omega
+       simp only [hI]
+       rcases Nat.mod_two_eq_zero_or_one k.length with ho | ho <;> simp only [ho] <;> simp <;> omega)
+    | (have hI : ((k.length : Int) + 1 + 1) % 2 = (((k.length + 1 + 1) % 2 : Nat) : Int) := by omega
+       simp only [hI]
+       rcases Nat.mod_two_eq_zero_or_one (k.length + 1 + 1) with ho | ho <;>
+         simp only [ho, show ¬ (k.length + 1 + 1 < 2) by omega, ite_false] <;> simp <;> omega)
     | (simp [Int.add_right_neg] <;> omega)
-    | (simp only [show ¬ (k.length + 1 + 1 < 2) by omega, ite_false]; simp)
+    | (simp only [show ¬ (k.length + 1 + 1 < 2) by omega, ite_false]; simp; done)
+    | trace_state))
+
+set_option maxHeartbeats 8000000 in
+theorem lnk_tag (I : Info) (u : Std.HashMap Edge Nat) (rn pos j b pb : Nat) (fst : Int)
+    (h : LinkHyp I ⟨rn, pos, .tag, j, b, pb⟩ fst)
+    (C D : Nat → Int) (lst trn : Int) (P : Nat → Int)
+    (hC : ∀ x, x < 163 → C x = (rowCell I u ⟨rn, pos, .tag, j, b, pb⟩ x : Int)) :
+    ∀ ex ∈ Node.cLinks, ev C D fst lst trn P ex = 0 := by
+  lnk_tac
+
+set_option maxHeartbeats 8000000 in
+theorem lnk_hpl (I : Info) (u : Std.HashMap Edge Nat) (rn pos j b pb : Nat) (fst : Int)
+    (h : LinkHyp I ⟨rn, pos, .hpl, j, b, pb⟩ fst)
+    (C D : Nat → Int) (lst trn : Int) (P : Nat → Int)
+    (hC : ∀ x, x < 163 → C x = (rowCell I u ⟨rn, pos, .hpl, j, b, pb⟩ x : Int)) :
+    ∀ ex ∈ Node.cLinks, ev C D fst lst trn P ex = 0 := by
+  lnk_tac
 
 end NodeRow
 
