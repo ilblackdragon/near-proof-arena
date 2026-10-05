@@ -194,3 +194,131 @@ theorem tr_mpos {rcs : List RS} (S : Shape tr rcs) :
   simp [List.map_flatMap, List.flatMap_map, map_eq_flatMap]
 
 end ZkFormal.Near.RcptProof
+
+namespace ZkFormal.Near.RcptProof
+
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Rcpt
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Rcpt.table tr T_RCPT pub)
+include hL
+
+theorem ends_i {rcs : List RS} (S : Shape tr rcs) (i : Nat) (hi : i < rcs.length) :
+    tr.cell T_RCPT (rcs.getD i default).s oEnd = (rcOffs (viewOf tr rcs) (i + 1) : Fp) ∧
+    tr.cell T_RCPT (rcs.getD i default).s o2End = (rfOffs (viewOf tr rcs) (i + 1) : Fp) := by
+  obtain ⟨lay, ho, ho2, -, hv⟩ := rcpt_i hL S i hi
+  obtain ⟨ha, hc, -, -⟩ := lay_row0 hL lay
+  have hs : (rcs.getD i default).s < tr.height T_RCPT := by
+    have := lay.fin; have := total_pos (rcs.getD i default).h (rcs.getD i default).Lp (rcs.getD i default).Lv
+      (rcs.getD i default).Ls (rcs.getD i default).kt; omega
+  obtain ⟨z1, z2⟩ := sizes hL hs ha hc
+  rw [z1, z2, ho, ho2, lay.cLp, lay.cLv, lay.cLs, lay.ckt, lay.hr]
+  simp only [rcOffs, rfOffs, hv, enc_len, encRefund_len, rcptOf_hr, Vt]
+  constructor
+  · simp only [natCast_add, natCast_mul]; grind
+  · cases (rcs.getD i default).h <;> simp [natCast_add, natCast_mul] <;> grind
+
+omit hL in
+theorem pubsAt_eq (off len : Nat) : pubsAt pub off len = (pubBytes pub off len).map Fp.ofNat := by
+  simp [pubsAt, pubBytes, pubNat, fpN]
+
+/-- **`DIGEST` receives.** -/
+theorem tr_dig {rcs : List RS} (S : Shape tr rcs) :
+    ((List.range (tr.height T_RCPT)).flatMap fun q => rowTraffic Rcpt.interactions tr T_RCPT q pub B_DIGEST false).Perm
+      ((rcptRecvs pub (viewOf tr rcs) B_DIGEST).map Msg.toFp) := by
+  have hn : 0 < rcs.length := by have := S.ne; cases rcs <;> simp_all
+  rw [rows_split hL S, claim_nil hL (by decide), List.nil_append]
+  let V : Nat → List (List Fp) := fun i =>
+    ((if ((viewOf tr rcs).getD i default).hr then [digMsg (msgId K_RID i) 48 ((viewOf tr rcs).getD i default).rfid]
+      else []) ++ [digMsg (msgId K_PEO i) ((viewOf tr rcs).getD i default).peo.length
+        ((viewOf tr rcs).getD i default).peoh]).map Msg.toFp
+  let E : Nat → List (List Fp) := fun i =>
+    if tr.cell T_RCPT ((rcs.getD i default).s + (rcs.getD i default).tot) act = 1 then [] else
+      [[(K_RC : Fp), tr.cell T_RCPT (rcs.getD i default).s oEnd] ++ pubsAt pub PV_RC 32,
+       [(K_RF : Fp), tr.cell T_RCPT (rcs.getD i default).s o2End] ++ pubsAt pub PV_RFC 32]
+  have step1 := perm_range rcs.length _ (fun i => V i ++ E i) (fun i hi => by
+    obtain ⟨lay, -, -, hr, hv⟩ := rcpt_i hL S i hi
+    simp only [V, E, hv]
+    exact rcpt_dig hL lay hr)
+  refine step1.trans ((flatMap_append_perm _ _ _).trans ?_)
+  have hE : (List.range rcs.length).flatMap E =
+      [[(K_RC : Fp), (rcOffs (viewOf tr rcs) rcs.length : Fp)] ++ pubsAt pub PV_RC 32,
+       [(K_RF : Fp), (rfOffs (viewOf tr rcs) rcs.length : Fp)] ++ pubsAt pub PV_RFC 32] := by
+    have hr : List.range rcs.length = List.range (rcs.length - 1) ++ [rcs.length - 1] := by
+      rw [← List.range_succ]; congr 1; omega
+    rw [hr, List.flatMap_append,
+      flatMap_congr' (G := fun _ => []) (fun i hi => by
+        rw [List.mem_range] at hi
+        simp only [E]
+        rw [show (rcs.getD i default).s + (rcs.getD i default).tot = rcs[i].s + rcs[i].tot by
+          rw [rcs_get hL i (by omega)], act_after S hL i (by omega)]
+        simp [show i + 1 < rcs.length by omega]),
+      flatMap_nil_fun, List.nil_append, List.flatMap_singleton]
+    simp only [E]
+    rw [show (rcs.getD (rcs.length - 1) default).s + (rcs.getD (rcs.length - 1) default).tot =
+        rcs[rcs.length - 1].s + rcs[rcs.length - 1].tot by
+      rw [rcs_get hL (rcs.length - 1) (by omega)], act_after S hL (rcs.length - 1) (by omega)]
+    simp only [show ¬ (rcs.length - 1 + 1 < rcs.length) by omega, ↓reduceIte, fp_zero_ne_one]
+    obtain ⟨e1, e2⟩ := ends_i hL S (rcs.length - 1) (by omega)
+    rw [e1, e2, show rcs.length - 1 + 1 = rcs.length by omega]
+  rw [hE]
+  simp only [rcptRecvs, B_DIGEST, ↓reduceIte, List.map_append, List.map_cons, List.map_nil, List.cons_append,
+    List.nil_append]
+  rw [zip_flatMap' (viewOf tr rcs) (fun x r => (if x.hr = true then [digMsg (msgId K_RID r) 48 x.rfid] else []) ++
+      [digMsg (msgId K_PEO r) x.peo.length x.peoh]), viewOf_len]
+  refine List.perm_append_comm.trans ?_
+  simp only [digMsg, Msg.toFp, List.map_append, List.map_cons, List.map_nil, List.cons_append, List.nil_append,
+    pubsAt_eq, List.map_flatMap]
+  apply List.Perm.of_eq
+  simp [V, digMsg, Msg.toFp]
+  exact ⟨⟨rfl, rfl⟩, rfl, rfl⟩
+
+end ZkFormal.Near.RcptProof
+
+namespace ZkFormal.Near.RcptProof
+
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Rcpt
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Rcpt.table tr T_RCPT pub)
+include hL
+
+theorem perm_send {rcs : List RS} (S : Shape tr rcs) (b : Nat) :
+    ((List.range (tr.height T_RCPT)).flatMap fun q => rowTraffic Rcpt.interactions tr T_RCPT q pub b true).Perm
+      ((rcptSends pub (viewOf tr rcs) b).map Msg.toFp) := by
+  by_cases h1 : b = B_BYTES
+  · subst h1; exact tr_bytes hL S
+  by_cases h2 : b = B_KEYNIB
+  · subst h2; exact tr_key hL S
+  by_cases h3 : b = B_MEM
+  · subst h3; exact tr_memS hL S
+  by_cases h4 : b = B_RIDS
+  · subst h4; exact tr_rids hL S
+  by_cases h5 : b = B_MPOS
+  · subst h5; exact tr_mpos hL S
+  apply List.Perm.of_eq
+  rw [flatMap_congr' (G := fun _ => []) (fun q _ => by rw [rowT]; simp [h1, h2, h3, h4, h5]), flatMap_nil_fun]
+  simp [rcptSends, h1, h2, h3, h4, h5]
+
+theorem perm_recv {rcs : List RS} (S : Shape tr rcs) (b : Nat) :
+    ((List.range (tr.height T_RCPT)).flatMap fun q => rowTraffic Rcpt.interactions tr T_RCPT q pub b false).Perm
+      ((rcptRecvs pub (viewOf tr rcs) b).map Msg.toFp) := by
+  by_cases h1 : b = B_DIGEST
+  · subst h1; exact tr_dig hL S
+  by_cases h2 : b = B_FINAL
+  · subst h2; exact tr_final hL S
+  by_cases h3 : b = B_MEM
+  · subst h3; exact tr_memR hL S
+  apply List.Perm.of_eq
+  rw [flatMap_congr' (G := fun _ => []) (fun q _ => by rw [rowT]; simp [h1, h2, h3]), flatMap_nil_fun]
+  simp [rcptRecvs, h1, h2, h3]
+
+/-- **The table's traffic.** -/
+theorem traffic_of {rcs : List RS} (S : Shape tr rcs) :
+    TableTraffic Rcpt.interactions tr T_RCPT pub (rcptTraffic pub (viewOf tr rcs)) := by
+  intro b m
+  refine ⟨?_, ?_⟩
+  · rw [tableBusCount_eq]; exact (perm_send hL S b).count_eq m
+  · rw [tableBusCount_eq]; exact (perm_recv hL S b).count_eq m
+
+end ZkFormal.Near.RcptProof
