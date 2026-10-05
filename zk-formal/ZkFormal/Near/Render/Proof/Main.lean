@@ -24,7 +24,7 @@ import ZkFormal.Near.Render.Proof.NodeSer
 # ZkFormal.Near.Render.Proof.Main — what is left of `RenderStmt`
 
 `render_of_rest : RenderRest → RenderStmt`: the proved obligations (sha,
-sort, acct, walk, mrk local + traffic; BYTES, PARENT given `KeyBound`; buses VSLOT, RIDS, MEM, FINAL, KEYNIB, MPOS, EDGE) are
+sort, acct, walk, mrk local + traffic; BYTES, PARENT (keys from `Small.keys`); buses VSLOT, RIDS, MEM, FINAL, KEYNIB, MPOS, EDGE) are
 plugged in; `RenderRest` lists the open ones.  All obligations are stated
 under `Good c.1 e ∧ Small e` (R-L6e-1 resolved: the acct table's height bound
 comes from `Small.touched`).
@@ -43,8 +43,6 @@ structure RenderRest : Prop where
   rcptL : RcptLocalStmt
   nodeT : NodeTrafficStmt
   rcptT : RcptTrafficStmt
-  /-- R-L6e-2: revealed keys have fewer than 510 nibbles (gives `NodeSerStmt`, `ParentBusStmt`) -/
-  keys : ∀ (c : Claim) (e : Ext), Good c e → Small e → KeyBound e
   digest : DigestBusStmt
 
 /-- **`RenderStmt` from the open obligations.** -/
@@ -54,7 +52,7 @@ theorem render_of_rest (h : RenderRest) : RenderStmt :=
       acctL := acctLocal, mrkL := mrkLocal, sortL := sortLocal,
       shaT := shaTraffic_ok, nodeT := h.nodeT, walkT := walkTraffic_ok, rcptT := h.rcptT,
       acctT := acctTraffic_ok, mrkT := mrkTraffic_ok, sortT := sortTraffic_ok,
-      bytes := bytesBus_of (nodeSer_of h.keys) rcptBytes, digest := h.digest, parent := parentBus_of h.keys,
+      bytes := bytesBus_of nodeSer_ok rcptBytes, digest := h.digest, parent := parentBus,
       vslot := vslotBus, edge := edgeBus,
       keynib := keynibBus, final := finalBus, mem := memBus, rids := ridsBus, mpos := mposBus }
 

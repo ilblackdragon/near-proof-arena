@@ -171,13 +171,90 @@ theorem tc_pruneKids : ∀ (keys : List (List Nat)) (j : Nat) (cs : Kids) (b : N
     omega
 end
 
+/-! ## Key lengths -/
+
+theorem isPrefix_len : ∀ (k key : List Nat), isPrefix k key = true → k.length ≤ key.length
+  | [], _, _ => Nat.zero_le _
+  | _ :: _, [], h => by simp [isPrefix] at h
+  | a :: k, b :: key, h => by
+    simp only [isPrefix, Bool.and_eq_true] at h
+    have := isPrefix_len k key h.2; simp; omega
+
+mutual
+theorem keys_prune : ∀ (keys : List (List Nat)) (t : PTrie) (b M : Nat), (∀ key ∈ keys, key.length ≤ M) →
+    ∀ nr ∈ recs (prune keys t) b, nr.key.length ≤ M
+  | _, .hash _, _, _, _, nr, h => by simp [prune, recs] at h
+  | keys, .leaf k v mem, b, M, hk, nr, h => by
+    simp only [prune] at h; split at h
+    · rename_i hc
+      simp only [recs, List.mem_singleton] at h; subst h
+      exact hk k (by simpa using hc)
+    · simp [recs] at h
+  | keys, .ext k c mem, b, M, hk, nr, h => by
+    simp only [prune] at h; split at h
+    · simp [recs] at h
+    · rename_i hne
+      have hk' : ∀ key ∈ afterExt k keys, key.length ≤ M := by
+        intro key hm
+        simp only [afterExt, List.mem_filterMap] at hm
+        obtain ⟨key', hm', he⟩ := hm
+        split at he
+        · simp at he; subst he; have := hk key' hm'; simp; omega
+        · cases he
+      simp only [recs, List.mem_cons] at h
+      rcases h with rfl | h
+      · obtain ⟨key, hm⟩ := List.exists_mem_of_ne_nil _ (by simpa using hne)
+        simp only [afterExt, List.mem_filterMap] at hm
+        obtain ⟨key', hm', he⟩ := hm
+        split at he
+        · rename_i hp
+          have := isPrefix_len k key' hp; have := hk key' hm'; simp [NodeRec.key]; omega
+        · cases he
+      · exact keys_prune _ c (b + 1) M hk' nr h
+  | keys, .branch v cs mem, b, M, hk, nr, h => by
+    simp only [prune] at h; split at h
+    · simp [recs] at h
+    · simp only [recs, List.mem_cons] at h
+      rcases h with rfl | h
+      · simp [NodeRec.key]
+      · exact keys_pruneKids keys 0 cs (b + 1) M hk nr h
+theorem keys_pruneKids : ∀ (keys : List (List Nat)) (j : Nat) (cs : Kids) (b M : Nat),
+    (∀ key ∈ keys, key.length ≤ M) → ∀ nr ∈ recsKids (pruneKids keys j cs) b, nr.key.length ≤ M
+  | _, _, .nil, _, _, _, nr, h => by simp [pruneKids, recsKids] at h
+  | keys, j, .none r, b, M, hk, nr, h => by
+    simp only [pruneKids, recsKids] at h
+    exact keys_pruneKids keys (j + 1) r b M hk nr h
+  | keys, j, .some c r, b, M, hk, nr, h => by
+    simp only [pruneKids, recsKids, List.mem_append] at h
+    rcases h with h | h
+    · refine keys_prune (afterNib j keys) c b M (fun key hm => ?_) nr h
+      simp only [afterNib, List.mem_filterMap] at hm
+      obtain ⟨key', hm', he⟩ := hm
+      cases key' with
+      | nil => simp at he
+      | cons x rest =>
+        simp at he; obtain ⟨_, rfl⟩ := he; have := hk _ hm'; simp at this; omega
+    · exact keys_pruneKids keys (j + 1) r _ M hk nr h
+end
+
 end Prune
 
 open Prune in
 /-- **The pruned records are `Small`.** -/
 theorem small_complete (c : Claim) (w : Witness) (h : NearRelation c w) : Small (extOf c w) := by
   have hg := good_complete c w h
-  refine ⟨?_⟩
+  refine ⟨?_, ?_⟩
+  rotate_left
+  · intro nr hnr
+    have hk : ∀ key ∈ keysOf w, key.length ≤ 130 := by
+      intro key hm
+      simp only [keysOf, List.mem_map] at hm
+      obtain ⟨r, hr, rfl⟩ := hm
+      have hin : r.inSlice = true := List.all_eq_true.1 hg.inSlice r (by simpa [extOf] using hr)
+      have := inSlice_receiver_length hin
+      simp [accountKeyPath, nibbles_length]; omega
+    have := keys_prune (keysOf w) w.trie 0 130 hk nr (by simpa [extOf, prunedOf] using hnr)
+    omega
   have h1 := tc_prune (keysOf w) w.trie 0
   have h2 : (keysOf w).length = (extOf c w).rs.length := by simp [keysOf, extOf]
   have := hg.len; have := hg.n_le

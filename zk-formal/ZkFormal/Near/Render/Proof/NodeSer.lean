@@ -24,4 +24,7 @@ theorem nodeSer' : ∀ (c : WfClaim) (e : Ext), Good c.1 e → KeyBound e → �
 theorem nodeSer_of (h : ∀ (c : Claim) (e : Ext), Good c e → Small e → KeyBound e) : NodeSerStmt :=
   fun c e hg hs => nodeSer' c e hg (h c.1 e hg hs)
 
+/-- **`NodeSerStmt`.** -/
+theorem nodeSer_ok : NodeSerStmt := nodeSer_of fun _ _ _ hs => hs.keys
+
 end ZkFormal.Near.Render

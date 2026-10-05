@@ -101,4 +101,7 @@ theorem parentBus' : ∀ (c : WfClaim) (e : Ext), Good c.1 e → KeyBound e →
 theorem parentBus_of (h : ∀ (c : Claim) (e : Ext), Good c e → Small e → KeyBound e) : ParentBusStmt :=
   fun c e hg hs => parentBus' c e hg (h c.1 e hg hs)
 
+/-- **`ParentBusStmt`.** -/
+theorem parentBus : ParentBusStmt := parentBus_of fun _ _ _ hs => hs.keys
+
 end ZkFormal.Near.Render

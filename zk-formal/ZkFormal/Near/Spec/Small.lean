@@ -7,7 +7,8 @@ import ZkFormal.Near.Spec.Good
 number of *terminal* nodes: touched slots (the `acct` table holds at most
 `maxBatch = 256` of them) and dead branches (no value, no child: `11`
 serialized bytes, the only records under `43` bytes, so they are the ones that
-can blow up the `sha` table, `~3` rows per revealed byte).
+can blow up the `sha` table, `~3` rows per revealed byte), and the key lengths
+(`Good` allows `< 512` nibbles, the node table `< 510`).
 
 Completeness only needs `Good` of the *pruned* records `extOf c w`, where
 every terminal node ends the walk of a receiver key, so there are at most
@@ -34,6 +35,9 @@ def NodeRec.terminal (nr : NodeRec) : Bool := nr.touched || nr.dead
 structure Small (e : Ext) : Prop where
   /-- at most `maxBatch` touched slots and dead branches -/
   terminals : (e.ns.filter NodeRec.terminal).length ≤ Params.maxBatch
+  /-- every revealed key has fewer than 510 nibbles: its hex-prefix encoding is
+  shorter than 256 bytes, as the `node` table's `HPL` row requires (R-L6e-2) -/
+  keys : ∀ nr ∈ e.ns, nr.key.length < 510
 
 theorem filter_length_mono {α : Type} {p q : α → Bool} (h : ∀ a, p a = true → q a = true) :
     ∀ l : List α, (l.filter p).length ≤ (l.filter q).length
