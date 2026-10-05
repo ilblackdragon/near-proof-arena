@@ -7,7 +7,12 @@
   "runnable": true,
   "expected_decision": "REJECTED",
   "expected_failing_gates": [
-    "AXIOM_AUDIT"
+    "AXIOM_AUDIT",
+    "ARTIFACT_BINDING",
+    "FORMAL_SEMANTIC_SOUNDNESS",
+    "FORMAL_SEMANTIC_COMPLETENESS",
+    "FORMAL_CRYPTO_SOUNDNESS",
+    "FORMAL_IMPL_CONNECTION"
   ],
   "expected_reason_codes": [
     "SORRY_FOUND"
@@ -19,5 +24,5 @@
     "ranked"
   ],
   "why": "A reexec-witness copy whose verifier model adds `@[csimp] theorem check_eq_acceptAll : @check = @acceptAll := sorry` (acceptAll = fun _ _ => true). The certificate is about `check`, which is unchanged, so its dependency closure contains no sorry and every certificate-scoped audit passes; but the Lean compiler applies csimp lemmas, so the judge's own native-lean build of the model accepts every claim. The judge must audit candidate @[csimp] lemmas (and the whole candidate environment) for sorry/axioms and reject (R-L7-5). Admitting it would rank a verifier that accepts garbage.",
-  "notes": "NEAR-specific, verify_route = native-lean; overlay on examples/reexec-witness (BASE). Mirrors runners/formal-checker/tests/native/models/csimp_sorry.lean (native_route.rs case native_model_csimp_sorry: every gate fails with SORRY_FOUND)."
+  "notes": "NEAR-specific, verify_route = native-lean; overlay on examples/reexec-witness (BASE). Mirrors runners/formal-checker/tests/native/models/csimp_sorry.lean (native_route.rs case native_model_csimp_sorry: every gate fails with SORRY_FOUND). Live 2026-10-05: sub_8d33ce77401f4ce188c3ece2f1941999 on near-transfer-receipt-v1-5 (chl_17ac2f30\u2026) REJECTED, every formal gate FAIL with SORRY_FOUND ('@[csimp] lemma ReexecWitness.check_eq_acceptAll \u2026 depends on axiom sorryAx')."
 }

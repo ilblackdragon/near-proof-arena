@@ -402,3 +402,24 @@ every formal gate UNKNOWN, so after the image switch v1-4 can no longer be
 evaluated and is closed by the v1-5 registration (its board stays as
 history). The hostile case `adversarial/hostile-submissions/near-reexec-csimp-sorry`
 is the regression check: it must be REJECTED (`SORRY_FOUND`).
+
+**Formal-result cache (audit A01).** Every `formal_cache` entry produced by
+the vulnerable checker was invalidated through the admin path
+(`POST /v1/admin/formal-cache/invalidate` with
+`checker_image = sha256:b6391b38…`): 15 entries (v1-2, v1-3, v1-4,
+experimental `chl_b7c8…` and `chl_df55…`), none live afterwards. Cached
+results can therefore never carry an old-checker verdict into a new run,
+on top of the cache key binding the challenge digest and checker image and
+the server refusing a parent from a different challenge (a v1-5 submission
+with `--parent` a v1-4 entry is rejected with HTTP 400).
+
+**Prior native-route admissions re-checked.** Every native-lean admission
+under the vulnerable checker (v1-2 `sub_d13f…`, `sub_25bc…`; v1-4
+`sub_38a4…`, `sub_647e…`; experimental `sub_df16…`, `sub_475f…`) has the
+same candidate formal tree `sha256:99253b7f…` (`examples/reexec-witness`,
+no `@[csimp]` anywhere). That tree was re-checked under the fixed checker
+on v1-5 (`sub_f7c70d29…`) and on the experimental successor
+(`sub_1a1b10e8…`): every formal gate PASS, so none of those admissions
+relied on a csimp substitution. The npai-v1 entries (formal tree
+`sha256:6aabf528…`, no compiled model: the judge runs its own interpreter)
+are not exposed to R-L7-5 and were re-run on v1-5 as well (docs/LIVE.md §5c).
