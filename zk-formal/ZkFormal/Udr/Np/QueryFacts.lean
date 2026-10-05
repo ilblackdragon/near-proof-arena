@@ -108,7 +108,7 @@ theorem lay_facts (hdr : List Nat) (h : headerOk A Params.default hdr = true) :
   show 5 ≤ l + 4 ∧ l + 4 ≤ 26 ∧ l + 4 = l + 4
   omega
 
-theorem foldr_max_le (l : List Nat) (b c : Nat) (hb : b ≤ c) (h : ∀ x ∈ l, x ≤ c) :
+theorem qf_foldr_max_le (l : List Nat) (b c : Nat) (hb : b ≤ c) (h : ∀ x ∈ l, x ≤ c) :
     l.foldr max b ≤ c := by
   induction l with
   | nil => exact hb
@@ -116,7 +116,7 @@ theorem foldr_max_le (l : List Nat) (b c : Nat) (hb : b ≤ c) (h : ∀ x ∈ l,
     simp only [List.foldr_cons]
     exact Nat.max_le.mpr ⟨h a (List.mem_cons_self ..), ih fun x hx => h x (List.mem_cons_of_mem _ hx)⟩
 
-theorem le_foldr_max (l : List Nat) (b x : Nat) (hx : x ∈ l) : x ≤ l.foldr max b := by
+theorem qf_le_foldr_max (l : List Nat) (b x : Nat) (hx : x ∈ l) : x ≤ l.foldr max b := by
   induction l with
   | nil => simp at hx
   | cons a l ih =>
@@ -127,13 +127,13 @@ theorem le_foldr_max (l : List Nat) (b x : Nat) (hx : x ∈ l) : x ≤ l.foldr m
 
 theorem queryLog_le (hdr : List Nat) (h : headerOk A Params.default hdr = true) :
     queryLog A Params.default hdr ≤ 26 :=
-  foldr_max_le _ _ _ (by omega) fun x hx => by
+  qf_foldr_max_le _ _ _ (by omega) fun x hx => by
     obtain ⟨L, hL, rfl⟩ := List.mem_map.mp hx
     exact (lay_facts A hdr h L hL).2.1
 
 theorem lde_le_queryLog (prm : Params) (hdr : List Nat) (L : TLayout) (hL : L ∈ layout A prm hdr) :
     L.lde ≤ queryLog A prm hdr :=
-  le_foldr_max _ _ _ (List.mem_map.mpr ⟨L, hL, rfl⟩)
+  qf_le_foldr_max _ _ _ (List.mem_map.mpr ⟨L, hL, rfl⟩)
 
 end
 
@@ -166,7 +166,7 @@ theorem classCount_le_pow (lay : List TLayout) (L : TLayout) (hL : L ∈ lay) :
   simp only [batchRounds]
   generalize hc : (lay.map fun L => classCount lay L.lde).foldr max 2 = c
   have h1 : classCount lay L.lde ≤ c :=
-    hc ▸ le_foldr_max _ _ _ (List.mem_map.mpr ⟨L, hL, rfl⟩)
+    hc ▸ qf_le_foldr_max _ _ _ (List.mem_map.mpr ⟨L, hL, rfl⟩)
   have h2 : 2 ≤ c := by
     rw [← hc]
     clear hc h1 hL
