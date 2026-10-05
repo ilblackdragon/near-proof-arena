@@ -170,3 +170,15 @@ FORMAL_IMPL_CONNECTION, AXIOM_AUDIT and ARTIFACT_BINDING. There are no findings 
   Wrong claim, non-canonical claim and a 1-bit mutation are all rejected.
 * Caveat: `lane/fc-csimp` (R-L7-5) has not landed. AXIOM_AUDIT does not yet cover the `@[csimp]`
   lemmas. L4d's three lemmas use only propext/Quot.sound, so the verdict should not change.
+
+## M5 (NEAR) assembly status
+
+`NearAssembly.near_certificate'`: `AdmissionStatement` for the NEAR challenge parameters (native-lean,
+model `nearModel nearAir`), from **only** L6's `RenderStmt` and `NearMinHeightStmt` (R-L7-6).
+* Soundness: `Near.nearAir_sound_closed`. Completeness: `nearAir_complete'`/`honestTrace_fits'`
+  (from `RenderStmt`). Static facts: `nearAir_wf`, `nearAir_npOk`, `near_nvu`, `near_degree`.
+* Size: `Prover.SizeBound.near_size` (L7-size, `fc5831c`). It uses a generic header-free bound
+  `sizeBound_le` with an FRI potential argument. `sizeMax nearAir = 7 426 175 B ≤ 8 MiB`; the
+  actual value at the maximal header is 5 127 343 B.
+* Challenge: `challenges/drafts/near-transfer-receipt-v1-zk.draft.json` (unsigned) pins formal-core with SHA256Fast.
+* Prover side for L8: R-L7-7.
