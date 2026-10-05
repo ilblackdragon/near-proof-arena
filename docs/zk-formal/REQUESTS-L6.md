@@ -40,3 +40,31 @@ view is `< P`.
 column values), and `Fp.toNat_lt`.  No constraint is needed.  (Computed
 message components such as `depth + 1`, `u + 1`, offsets are *not* required to
 be `< P`; only view fields are.)
+
+## R-L6d-2 (L6-link): `RcptV.Wf.arith` must not assume `Bytes8 x.ramt` for refund-free receipts — APPLIED on `lane/zk-L6-link`
+
+**Problem.** `arith` is stated under `Bytes8 x.gp → … → Bytes8 x.burnt →
+Bytes8 x.ramt → …`.  Linking discharges each `Bytes8` from the SHA table's
+range check of the message the bytes are emitted into.  `ramt` is emitted only
+into the refund receipt (`RF`, `encRefund`), i.e. only when `x.hr = true`.  For
+a receipt with `hr = false`, nothing range-checks `ramt` (the table's
+convolution `ramt = G·sur` with `sur = 0` and 11-bit carries admits
+`ramt_0 = −256·c_0 mod p`, not a byte), so `arith` is vacuous for it.
+
+*Counterexample.* Honest views, but in a refund-free receipt `r` set
+`ramt[0] := 256` (no message carries `ramt`, so traffic and balance are
+unchanged; `RcptWf.canon` holds).  Then `arith` of receipt `r` is vacuous, and
+`burnt`, `hr`, `aft`, the running `toks` of `r` are unconstrained by
+`RcptWf`; changing `burnt` (consistently in `PEO(r)` and the SHA counts) gives
+views satisfying every hypothesis of `LinkStmt` whose outcome root is not the
+honest one, so no `Ext` satisfies `Good`.
+
+**Fix (minimal).** In `RcptV.Wf.arith` replace the hypothesis
+`Bytes8 x.ramt` by `x.hr = true → Bytes8 x.ramt`.
+
+**Why it is provable from the table.** The only conclusion that mentions
+`ramt` is `x.hr = true → leN' x.ramt = G·(gp − min gp bgp)`, which is vacuous
+when `hr = false` and has the hypothesis back when `hr = true`; the other
+conclusions (amount, storage, `ge`, `burnt`, `hr ↔ surplus ≠ 0`, `tok`) are
+derived from columns other than `ramt` (`hr` is `[sur ≠ 0]` by an inverse,
+`sur_i = ge·D_i`), so their table proofs do not use the range of `ramt`.

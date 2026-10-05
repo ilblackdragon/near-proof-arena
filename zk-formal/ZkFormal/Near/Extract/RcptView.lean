@@ -149,9 +149,10 @@ structure RcptV.Wf (x : RcptV) (r bgp tok tok' : Nat) : Prop where
   small : x.kslot < P ∧ x.tprev < P
   /-- time of the memory read: `tprev ≤ r` -/
   tprev_le : x.tprev ≤ r
-  /-- arithmetic, for byte-valued inputs -/
+  /-- arithmetic, for byte-valued inputs (`ramt` is only emitted, hence only
+  range-checked by the SHA table, when the receipt has a refund) -/
   arith : Bytes8 x.gp → Bytes8 x.dep → Bytes8 x.bef → Bytes8 x.lk → Bytes8 x.st →
-    Bytes8 x.burnt → Bytes8 x.ramt → bgp < Params.two128 →
+    Bytes8 x.burnt → (x.hr = true → Bytes8 x.ramt) → bgp < Params.two128 →
     leN' x.aft = leN' x.bef + leN' x.dep ∧ leN' x.aft < Params.u128Max ∧
     leN' x.aft + leN' x.lk < Params.two128 ∧
     (Params.storageAmountPerByte * leN' x.st ≤ leN' x.aft + leN' x.lk ∨
