@@ -438,6 +438,16 @@ diagnostic):
   the cap follows the scratch size (Firecracker clamps it to 4 GiB) and any
   output violation is INFRA_ERROR. The formal-cache entries of checker
   `66b014d4…` were invalidated (10) so the bad result is never reused.
+* **v1-6 board** (benchmarks on CPUs 0-7, secret-seeded sampling, held-out set):
+
+  | rank | score | submission | candidate |
+  |------|-------|------------|-----------|
+  | 1 | 110.007 | `sub_314aa809c32e42248cc637b462d8ced7` | reexec-witness-fast (PROVER_ONLY, `--parent sub_c67d…`) |
+  | 2 | 98.376 | `sub_c67dd93beafd4ecc9935431366f0baa6` | reexec-witness (re-vendored, native-lean) |
+  | 3 | 97.324 | `sub_7ef24373c6ac46cd800965882635df16` | reexec-npai (npai-v1) |
+  | 4 | 0.052 | `sub_19cc9c90e2184946aad17195bd02d847` | **np-udr-stark** (NEAR STARK, native-lean): ADMITTED at formal tier, all 14 gates PASS, signed report (docs/e2e-results/np-udr-stark-live/) |
+  | – | – | `sub_e2e032d91b1446e883ce0d031dd61dcf` | reexec-witness with the old vendored ArenaCore: REJECTED (ARTIFACT_BINDING_FAILED, correct) |
+
 * **np-udr-stark limitation (L8d).** Sampled workload classes prove in
   13–14 s at ≤ 1.5 GB. The worst-case adversarial maximum witness proves in
   1742 s (11.4 GB), above the 600 s per-run cap, so an adversarial case at

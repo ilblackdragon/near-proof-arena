@@ -30,9 +30,9 @@ report is signed.
 * **Signed report** (`report.json`). ed25519 over JCS(report), verified
   against `config/report-signing-key.pub.hex`.
 * **Board** (`leaderboard-v1-6.txt`). Rank 4, score **0.052**: prove medians
-  of about 2.0 s, 65 s and more per batch class against re-execution
-  baselines of about 6–10 ms (`classes.txt`). Verify takes about 0.43–0.63 s.
-  The largest proof is about 3.1 MB.
+  of 2.0 s, 6.5 s and 62 s (batch-1, batch-16, batch-256) against
+  re-execution baselines of 6.2–10.2 ms (`classes.txt`). Verify takes
+  0.43–0.78 s. The largest proof is 3.1 MB and peak RSS ≤ 3.5 GB.
 
 ## Path to admission
 
