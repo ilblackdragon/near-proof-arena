@@ -142,3 +142,11 @@ which is what `Assembly.np_admission` consumes. No L4 change needed.
 ### R-L7-3 (to L2, FYI): honest-prover budget is ≈ 2^30 + O(1), above `budget`'s `NPu ≤ 2^30`
 Three full depth-26 MMCS trees (2^28 queries each) plus FRI trees (depths ≤ 25 when a roll-in sits at
 layer 1). L7 uses `Bcs.budget32` (`Assembly/Budget32.lean`, same proof, `NPu ≤ 2^32`).
+
+### R-L7-4 (to L1, lead): `p_prime` makes lean4lean time out (the challenge lists lean4lean as a rechecker)
+In the M2 run of the real formal checker, `lean4lean` rejected `ZkFormal.Algebra.Fp` with
+`at ZkFormal.Algebra.p_prime._proof_1_1: (kernel) deterministic timeout`. `leanchecker` and `nanoda`
+accepted all 111 modules. The cause is the kernel trial division up to 44 869, which takes about 5 s.
+The challenge's `toolchain_policy.recheckers` includes `lean4lean`, so this gives RECHECK_FAILED on
+every gate. Fix (L1): replace the trial division with a Pratt/Pocklington certificate
+(`p − 1 = 2^27·3·5`; witness 31). That needs only a few `decide +kernel` modular exponentiations.

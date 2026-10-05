@@ -64,3 +64,24 @@ size bound at every admissible NEAR header.
 id `chl_53e1d8d00479c527c6f555e8dcca769a`): supersedes v1-3 (`chl_fefb6bc7…`), pins
 ArenaCore/NearSpec at `e4088761` (formal-core with `sha256Fast`, `9f1adc7`), tree digest
 `sha256:35fbd260…`; everything else as v1-3.
+
+## M2: real formal-checker run (2026-10-05, dev bwrap sandbox, tier_cap demo)
+
+Run: `formal-check` (rebuilt from this tree) with the native-lean route, model
+`ZkFormal.Toy.Model.verifier`, and certificate `ToyCandidate.certificate : ArenaExpectedInst.expectedType`
+(`:= toy_admission pending …`). The trusted inputs were formal-core (ArenaCore) and the toy spec
+(`ZkToySpec`). The Expected template was rendered with the validity-classical-128 values (2^64/2^40,
+8 MiB) and `sha256(publicBin)`. The scratch tree differs from this branch in two ways: `pending`
+discharges `ToyPending` with `sorry` (bcs, size, proverQ, proverChunk, npIop, npProverQ, rbr), and
+`query := udr2_K26_ok` holds only after a local `numChunks := 26` patch (R-L7-1). Neither change is
+committed.
+
+Result:
+* **ARTIFACT_BINDING PASS.** The judge built the native verifier from the model
+  (`sha256:3fae6e3c…`, reproducible). The certificate type matched the expected statement:
+  neither audit reported THEOREM_TYPE_MISMATCH or SHADOWED_DEFINITION.
+* **Every formal gate FAILs**, for exactly two reasons:
+  * `SORRY_FOUND`: the 7 open obligations above, as expected;
+  * `RECHECK_FAILED`: lean4lean hit a deterministic timeout on L1's `p_prime` (R-L7-4).
+* leanchecker accepted all 111 modules (43 s), and nanoda accepted the 8 239-declaration export
+  (9 s). Candidate elaboration took 30 s in total, with no module over 1.3 s.
