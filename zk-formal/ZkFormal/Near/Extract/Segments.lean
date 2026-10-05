@@ -279,3 +279,30 @@ theorem range'_split (A H : Nat) (h : A ≤ H) :
 theorem flatMap_nil_fun {α β : Type} (l : List α) : l.flatMap (fun _ => ([] : List β)) = [] := by
   induction l <;> simp_all
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+theorem consec_get (segs : List (Nat × Nat)) (s0 : Nat) (hc : Consec s0 segs) :
+    ∀ t (h : t + 1 < segs.length), segs[t + 1].1 = segs[t].1 + segs[t].2 := by
+  induction segs generalizing s0 with
+  | nil => intro t h; simp at h
+  | cons p rest ih =>
+    obtain ⟨s, ℓ⟩ := p
+    obtain ⟨rfl, hc⟩ := hc
+    intro t h
+    cases t with
+    | zero =>
+      cases rest with
+      | nil => simp at h
+      | cons q rest' => exact hc.1
+    | succ t => exact ih (s + ℓ) hc t (by simpa using h)
+
+theorem le256_eq_leNat (l : List Nat) (h : ∀ y ∈ l, y < 256) :
+    NearSpec.leNat (l.map UInt8.ofNat) = le256 l := by
+  induction l with
+  | nil => rfl
+  | cons y l ih =>
+    simp only [List.map_cons, NearSpec.leNat, le256]
+    rw [ih (fun z hz => h z (by simp [hz]))]
+    have hy := h y (by simp)
+    simp [UInt8.toNat_ofNat, Nat.mod_eq_of_lt hy]
+end ZkFormal.Near

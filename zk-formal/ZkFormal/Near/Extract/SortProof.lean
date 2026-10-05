@@ -383,3 +383,155 @@ theorem traffic (hL : TableLocal Sort.table tr T_SORT pub) (segs : List (Nat × 
     · simp [hb, flatMap_nil_fun]
 
 end ZkFormal.Near.SortProof
+
+namespace ZkFormal.Near.SortProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Sort
+
+variable {tr : Trace Fp} {pub : List Fp}
+
+theorem delayK (hL : TableLocal Sort.table tr T_SORT pub) :
+    ∀ k, k < 32 → ∀ r, k + 1 ≤ r → r < tr.height T_SORT →
+      (∀ q, r - 1 - k ≤ q → q < r → tr.cell T_SORT q act = 1) →
+      tr.cell T_SORT r (d k) = tr.cell T_SORT (r - 1 - k) bb := by
+  intro k
+  induction k with
+  | zero =>
+    intro _ r h1 h2 ha
+    have := (delay hL (r := r - 1) (by omega) (ha (r - 1) (by omega) (by omega))).1
+    rwa [show r - 1 + 1 = r by omega] at this
+  | succ k ih =>
+    intro hk r h1 h2 ha
+    have := (delay hL (r := r - 1) (by omega) (ha (r - 1) (by omega) (by omega))).2 k (by omega)
+    rw [show r - 1 + 1 = r by omega] at this
+    rw [this, ih (by omega) (r - 1) (by omega) (by omega) (fun q hq1 hq2 => ha q (by omega) (by omega))]
+    congr 1; omega
+
+theorem dbit_bool (hL : TableLocal Sort.table tr T_SORT pub) {r : Nat} (hr : r < tr.height T_SORT) :
+    ∀ b, b < 8 → tr.cell T_SORT r (dbit (0 + b)) = 0 ∨ tr.cell T_SORT r (dbit (0 + b)) = 1 :=
+  fun b hb => isBool hL hr
+    (List.mem_append_right _ (List.mem_map.mpr ⟨b, List.mem_range.mpr hb, by simp⟩))
+
+/-- Consecutive segments carry consecutive increasing ids. -/
+theorem incr (hL : TableLocal Sort.table tr T_SORT pub) (segs : List (Nat × Nat))
+    (hc : Consec 0 segs) (hend : segEnd 0 segs ≤ tr.height T_SORT)
+    (hall : ∀ p ∈ segs, IsSeg (isOne tr act) (isOne tr sf) (isOne tr sl) p.1 p.2) :
+    SortWf (idsOf tr segs) := by
+  have hP : tr.height T_SORT < P := by have := height_le hL; unfold P; omega
+  have hlen : ∀ p ∈ segs, p.2 = 32 := fun p hp =>
+    (seg32 hL (hall p hp) (by have := seg_le_end segs 0 hc p hp; omega)).1
+  refine ⟨fun x hx => ?_, fun t ht hbytes => ?_⟩
+  · simp only [idsOf, List.mem_map] at hx
+    obtain ⟨p, -, rfl⟩ := hx
+    exact ⟨by simp, Fp.toNat_lt _⟩
+  · simp only [idsOf, List.length_map] at ht
+    have hp0 : segs[t] ∈ segs := List.getElem_mem (by omega)
+    have hp1 : segs[t + 1] ∈ segs := List.getElem_mem ht
+    have hs1 := consec_get segs 0 hc t ht
+    rw [hlen _ hp0] at hs1
+    have hb0 := seg_le_end segs 0 hc _ hp1
+    rw [hs1, hlen _ hp1] at hb0
+    have hseg0 := hall _ hp0
+    have hseg1 := hall _ hp1
+    rw [hlen _ hp0] at hseg0
+    rw [hs1, hlen _ hp1] at hseg1
+    obtain ⟨-, hcol1⟩ := seg32 hL (hall _ hp1) (by rw [hlen _ hp1]; omega)
+    rw [hlen _ hp1, hs1] at hcol1
+    generalize hs : segs[t].1 = s at hs1 hb0 hseg0 hseg1 hcol1
+    -- all rows of the two segments are active
+    have hact : ∀ q, s ≤ q → q < s + 64 → tr.cell T_SORT q act = 1 := by
+      intro q h1 h2
+      rcases Nat.lt_or_ge q (s + 32) with h | h
+      · have := hseg0.2.2.2.1 q h1 (by omega); simpa [isOne] using this
+      · have := hseg1.2.2.2.1 q (by omega) (by omega)
+        simpa [isOne] using this
+    -- the second segment has ft = 0
+    have hsl0 : tr.cell T_SORT (s + 31) sl = 1 := by
+      have := hseg0.2.2.1; simpa [isOne] using this
+    have hft : tr.cell T_SORT (s + 32) ft = 0 := (nextSeg hL (r := s + 31) (by omega) hsl0 (hact _ (by omega) (by omega))).2
+    have hsf1 : tr.cell T_SORT (s + 32) sf = 1 := by
+      have := hseg1.2.1; simpa [isOne] using this
+    -- byte values
+    let B : Nat → Nat := fun j => (tr.cell T_SORT (s + 32 + j) bb).toNat
+    let D : Nat → Nat := fun j => (tr.cell T_SORT (s + j) bb).toNat
+    let F : Nat → Nat := fun j => bitsVal (fun b => cv tr T_SORT (s + 32 + j) (dbit b)) 0 8
+    let ci : Nat → Nat := fun j => if j < 32 then cv tr T_SORT (s + 32 + j) cin else 0
+    have hB : ∀ j, j < 32 → B j < 256 := fun j hj => by
+      have := hbytes _ (List.getElem_mem (by simp [idsOf]; omega : t + 1 < (idsOf tr segs).length))
+      simp only [idsOf, List.getElem_map] at this
+      rw [consec_get segs 0 hc t ht, hlen _ hp0, hs] at this
+      exact this _ (List.mem_map.mpr ⟨j, List.mem_range.mpr hj, rfl⟩)
+    have hD : ∀ j, j < 32 → D j < 256 := fun j hj => by
+      have := hbytes _ (List.getElem_mem (by simp [idsOf]; omega : t < (idsOf tr segs).length))
+      simp only [idsOf, List.getElem_map] at this
+      rw [hs] at this
+      exact this _ (List.mem_map.mpr ⟨j, List.mem_range.mpr hj, rfl⟩)
+    have hcc : ∀ j, j < 32 → B j + 256 * ci (j + 1) = D j + F j + ci j := by
+      intro j hj
+      have hr : s + 32 + j < tr.height T_SORT := by omega
+      have hftj : tr.cell T_SORT (s + 32 + j) ft = 0 := by rw [(hcol1 j hj).2.2]; exact hft
+      have e := chainEq hL hr (hact _ (by omega) (by omega)) hftj
+      have hd31 := delayK hL 31 (by omega) (s + 32 + j) (by omega) hr
+        (fun q h1 h2 => hact q (by omega) (by omega))
+      rw [show diffE = bits (fun j => c (dbit j)) 0 8 from rfl] at e
+      rw [hd31, show s + 32 + j - 1 - 31 = s + j by omega,
+        eval_bits tr T_SORT (s + 32 + j) pub dbit 0 8 (dbit_bool hL hr)] at e
+      -- carry out of row j = carry in of row j + 1
+      have hco : (tr.cell T_SORT (s + 32 + j) cout).toNat = ci (j + 1) := by
+        by_cases hj' : j + 1 < 32
+        · have hw := within hL (r := s + 32 + j) (by omega) (hact _ (by omega) (by omega))
+            (by
+              rcases isBool hL hr (x := sl) (by simp) with h | h
+              · exact h
+              · exfalso
+                have := hseg1.2.2.2.2.2 (s + 32 + j) (by omega) (by omega)
+                simp [isOne, h] at this)
+          simp only [ci, if_pos hj', cv]
+          rw [show s + 32 + (j + 1) = s + 32 + j + 1 by omega, hw.2.2.2]
+        · have hj31 : j = 31 := by omega
+          subst hj31
+          have hsl1 : tr.cell T_SORT (s + 32 + 31) sl = 1 := by
+            have := hseg1.2.2.1
+            simpa [isOne, show s + 32 + 32 - 1 = s + 32 + 31 by omega] using this
+          rw [((segFields hL hr).2 hsl1).2]
+          simp [ci]; rfl
+      have hcib : ci j ≤ 1 := by
+        simp only [ci, if_pos hj]; exact cv_bool (isBool hL hr (by simp))
+      have hcob : (tr.cell T_SORT (s + 32 + j) cout).toNat ≤ 1 := cv_bool (isBool hL hr (by simp))
+      have hF : F j < 256 := bitsVal_lt _ _ _ (fun b hb => cv_bool (dbit_bool hL hr b hb))
+      have hBj := hB j hj
+      have hDj := hD j hj
+      rw [← hco]
+      apply ofNat_inj (by unfold P; omega) (by unfold P; omega)
+      rw [natCast_add, natCast_mul, natCast_add, natCast_add]
+      simp only [B, D, F, ci, if_pos hj, cv, natCast_eq, Fp.ofNat_toNat] at e ⊢
+      exact e
+    have hci0 : ci 0 = 1 := by
+      simp only [ci, if_pos (show 0 < 32 by omega), cv, Nat.add_zero]
+      rw [((segFields hL (by omega : s + 32 < _)).1 hsf1).2]; rfl
+    have key := carry_chain ((List.range 32).map B) ((List.range 32).map D) ((List.range 32).map F) ci
+      (by simp) (by simp) (fun j hj => by simp at hj; simpa [hj] using hcc j hj)
+    rw [hci0] at key
+    simp only [List.length_map, List.length_range, ci, Nat.lt_irrefl, if_false, Nat.mul_zero,
+      Nat.add_zero] at key
+    -- back to the view's lists
+    simp only [idsOf, List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_eq_getElem ht,
+      List.getElem?_eq_getElem (show t < segs.length by omega), Option.map_some, Option.getD_some]
+    rw [consec_get segs 0 hc t ht, hlen _ hp0, hs, le256_eq_leNat _ (fun y hy => by
+          simp only [List.mem_map, List.mem_range] at hy; obtain ⟨j, hj, rfl⟩ := hy; exact hD j hj),
+      le256_eq_leNat _ (fun y hy => by
+          simp only [List.mem_map, List.mem_range] at hy; obtain ⟨j, hj, rfl⟩ := hy; exact hB j hj)]
+    simp only [B, D] at key
+    omega
+
+end ZkFormal.Near.SortProof
+
+namespace ZkFormal.Near
+
+/-- **The sort table's view.** -/
+theorem sort_view : SortViewStmt := by
+  intro tr pub hL
+  obtain ⟨segs, hc, hend, hall, hpad⟩ := segments_of (SortProof.segFacts hL) (SortProof.height_pos hL)
+  exact ⟨SortProof.idsOf tr segs, SortProof.incr hL segs hc hend hall,
+    SortProof.traffic hL segs hc hend hall hpad⟩
+
+end ZkFormal.Near
