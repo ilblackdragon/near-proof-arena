@@ -62,7 +62,7 @@ def sortIdsOf (I : Info) : List (Nat × List Nat) := sortedIds I
 /-- The merkle view (the levels of `MrkGen`). -/
 def mrkViewOf (I : Info) : MrkV :=
   let n := I.nRcpt
-  let lv := (List.range (MrkGen.topJ n + 1)).map (MrkGen.levels I)
+  let lv := (List.range (n + 2)).map (MrkGen.levels I)
   let C (j k : Nat) : MNode := (lv.getD (j - 1) []).getD k default
   let root := (lv.getD (MrkGen.topJ n) []).getD 0 default
   ⟨n, MrkGen.topJ n, root.id, root.len, (mrkShape n).map fun (j, i, h) =>

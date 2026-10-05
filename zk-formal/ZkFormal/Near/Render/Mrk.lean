@@ -104,14 +104,14 @@ end MrkGen
 /-- Honest rows: root row, node rows, at least one padding row. -/
 def mrkRowsAll (I : Info) : Array Row :=
   let n := I.nRcpt
-  let lv := (List.range (MrkGen.topJ n + 1)).map (MrkGen.levels I)
+  let lv := (List.range (n + 2)).map (MrkGen.levels I)
   let rs := MrkGen.recs n
   mkTab (2 ^ logOf (rs.length + 2)) Mrk.width (MrkGen.cell n lv rs)
 
 /-- Messages `MRK(q)` (hashed nodes in table order). -/
 def mrkMsgs (I : Info) : List Msg :=
   let n := I.nRcpt
-  let lv := (List.range (MrkGen.topJ n + 1)).map (MrkGen.levels I)
+  let lv := (List.range (n + 2)).map (MrkGen.levels I)
   (mrkShape n).filterMap fun (j, i, h) =>
     if h then
       let C (k : Nat) : MNode := (lv.getD (j - 1) []).getD k default
