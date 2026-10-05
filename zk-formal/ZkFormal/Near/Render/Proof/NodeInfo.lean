@@ -324,7 +324,7 @@ theorem nodeSer_nodeTree (vals : Nat → Bytes) (n : Nat) (g : Nat → PTrie) (v
 /-- Every key of the revealed nodes has fewer than 510 nibbles (its hex-prefix
 encoding is shorter than 256 bytes, as the `node` table's `HPL` row requires).
 Not implied by `Good` (keys `< 512` nibbles); see R-L6e-2. -/
-def KeyBound (e : Ext) : Prop := ∀ nr ∈ e.ns, nr.key.length < 510
+def _root_.ZkFormal.Near.Render.KeyBound (e : Ext) : Prop := ∀ nr ∈ e.ns, nr.key.length < 510
 
 theorem packNibbles_len : ∀ (l : List Nat), (packNibbles l).length = l.length / 2
   | [] => rfl
