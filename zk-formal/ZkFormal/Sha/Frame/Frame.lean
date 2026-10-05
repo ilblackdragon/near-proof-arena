@@ -298,4 +298,256 @@ theorem nd_row : ∀ i, i < k → ∀ j, j ≤ 16 →
 
 end
 
+theorem FLc_eq (tr : Trace Fp) (t s0 i kk : Nat) (hkk : kk < 64) :
+    FLc tr t s0 (64 * i + kk) = nv tr t (s0 + 17 * i + kk / 16) (colF (kk % 16)) := by
+  unfold FLc
+  rw [show (64 * i + kk) / 64 = i by omega, show (64 * i + kk) % 64 = kk by omega,
+    show (64 * i + kk) % 16 = kk % 16 by omega]
+
+theorem BYc_eq (tr : Trace Fp) (t s0 i kk : Nat) (hkk : kk < 64) :
+    BYc tr t s0 (64 * i + kk) = byteAt tr t (s0 + 17 * i + kk / 16) (kk % 16) := by
+  unfold BYc
+  rw [show (64 * i + kk) / 64 = i by omega, show (64 * i + kk) % 64 = kk by omega,
+    show (64 * i + kk) % 16 = kk % 16 by omega]
+
+def seenB (tr : Trace Fp) (t s0 i : Nat) : Bool := decide (nv tr t (s0 + 17 * i) colSeen = 1)
+def p80B (tr : Trace Fp) (t s0 i : Nat) : Bool := decide (nv tr t (s0 + 17 * i) colP80 = 1)
+def lastB (tr : Trace Fp) (t s0 i : Nat) : Bool := decide (nv tr t (s0 + 17 * i) colLast = 1)
+
+section
+variable {d k s0 : Nat} (hL : ShaLocal tr t pub) (hK : KindFacts tr t) (cx : Ctx tr t d k s0)
+  (hd : d < tr.height t)
+include hL hK cx hd
+
+theorem fr_mono (i kk : Nat) (hi : i < k) (hkk : kk + 1 < 64) :
+    FLc tr t s0 (64 * i + kk + 1) ≤ FLc tr t s0 (64 * i + kk) := by
+  rw [FLc_eq _ _ _ _ _ (by omega), show 64 * i + kk + 1 = 64 * i + (kk + 1) by omega,
+    FLc_eq _ _ _ _ _ hkk]
+  by_cases hq : kk % 16 < 15
+  · rw [show (kk + 1) / 16 = kk / 16 by omega, show (kk + 1) % 16 = kk % 16 + 1 by omega]
+    exact f_mono hL hK (row_lt hL hK cx hd hi (j := kk / 16) (by omega)) hq
+  · -- next row of the block
+    have hj : kk / 16 + 1 ≤ 3 := by omega
+    rw [show (kk + 1) / 16 = kk / 16 + 1 by omega, show (kk + 1) % 16 = 0 by omega,
+      show kk % 16 = 15 by omega]
+    have hr := row_lt hL hK cx hd hi (j := kk / 16 + 1) (by omega)
+    have h1 := f0_le_fprev hL hK hr
+    have h2 := fprev_next hL hK (r := s0 + 17 * i + kk / 16) (by omega) (j := kk / 16 + 1) (by omega) hj
+      (by rw [show s0 + 17 * i + kk / 16 + 1 = s0 + 17 * i + (kk / 16 + 1) by omega]
+          exact cx.rows i _ hi (by omega))
+    rw [show s0 + 17 * i + kk / 16 + 1 = s0 + 17 * i + (kk / 16 + 1) by omega] at h2
+    omega
+
+theorem fr_byte (i kk : Nat) (hi : i < k) (hkk : kk < 64) (hF : FLc tr t s0 (64 * i + kk) = 0)
+    (hc : kk < 56 ∨ lastB tr t s0 i = false) :
+    BYc tr t s0 (64 * i + kk) =
+      if p80B tr t s0 i = true ∧ (kk = 0 ∨ FLc tr t s0 (64 * i + kk - 1) = 1) then 128 else 0 := by
+  have hr := row_lt hL hK cx hd hi (j := kk / 16) (by omega)
+  have hR := cx.rows i (kk / 16) hi (by omega)
+  have hc' := blk_const hL hK cx hd hi (kk / 16) (by omega)
+  rw [FLc_eq _ _ _ _ _ hkk] at hF
+  rw [BYc_eq _ _ _ _ _ hkk, byte_rule hL hK hr (j := kk / 16) (q := kk % 16) (by omega) (by omega) hR hF
+    (by rcases hc with h | h
+        · left; omega
+        · right; unfold lastB at h; have := b_Last hK hr; simp at h; omega)]
+  have hp : nv tr t (s0 + 17 * i + kk / 16) colP80 = 1 ↔ p80B tr t s0 i = true := by
+    unfold p80B; simp; omega
+  have hprev : (if kk % 16 = 0 then nv tr t (s0 + 17 * i + kk / 16) colFprev
+        else nv tr t (s0 + 17 * i + kk / 16) (colF (kk % 16 - 1))) = 1 ↔
+      (kk = 0 ∨ FLc tr t s0 (64 * i + kk - 1) = 1) := by
+    by_cases h0 : kk % 16 = 0
+    · rw [if_pos h0]
+      by_cases hk0 : kk = 0
+      · subst hk0
+        have hr0 : s0 + 17 * i < tr.height t := by simpa using hr
+        have := fprev_R0 hL hK hr0 (by simpa using hR)
+        simp [this]
+      · have hj : 1 ≤ kk / 16 := by omega
+        have h2 := fprev_next hL hK (r := s0 + 17 * i + (kk / 16 - 1)) (by omega) (j := kk / 16) hj
+          (by omega) (by rw [show s0 + 17 * i + (kk / 16 - 1) + 1 = s0 + 17 * i + kk / 16 by omega]; exact hR)
+        rw [show s0 + 17 * i + (kk / 16 - 1) + 1 = s0 + 17 * i + kk / 16 by omega] at h2
+        rw [h2, show 64 * i + kk - 1 = 64 * i + (kk - 1) by omega, FLc_eq _ _ _ _ _ (by omega),
+          show (kk - 1) / 16 = kk / 16 - 1 by omega, show (kk - 1) % 16 = 15 by omega]
+        simp [hk0]
+    · rw [if_neg h0, show 64 * i + kk - 1 = 64 * i + (kk - 1) by omega, FLc_eq _ _ _ _ _ (by omega),
+        show (kk - 1) / 16 = kk / 16 by omega, show (kk - 1) % 16 = kk % 16 - 1 by omega]
+      simp; omega
+  by_cases hcnd : nv tr t (s0 + 17 * i + kk / 16) colP80 = 1 ∧
+      (if kk % 16 = 0 then nv tr t (s0 + 17 * i + kk / 16) colFprev
+        else nv tr t (s0 + 17 * i + kk / 16) (colF (kk % 16 - 1))) = 1
+  · rw [if_pos hcnd, if_pos ⟨hp.1 hcnd.1, hprev.1 hcnd.2⟩]
+  · rw [if_neg hcnd, if_neg (fun h => hcnd ⟨hp.2 h.1, hprev.2 h.2⟩)]
+
+theorem FLc_le {g : Nat} (hg : g < 64 * k) : FLc tr t s0 g ≤ 1 := by
+  have := cx.k_pos
+  have hi : g / 64 < k := by omega
+  rw [show g = 64 * (g / 64) + g % 64 by omega, FLc_eq _ _ _ _ _ (by omega)]
+  exact b_F hK (row_lt hL hK cx hd hi (j := g % 64 / 16) (by omega)) (by omega)
+
+theorem L_bound : cntF (FLc tr t s0) (64 * k) ≤ 64 * k ∧ 17 * k ≤ tr.height t := by
+  have := cx.d_eq; have := cx.k_pos
+  refine ⟨?_, by omega⟩
+  have : ∀ n, n ≤ 64 * k → cntF (FLc tr t s0) n ≤ n := by
+    intro n; induction n with
+    | zero => intro _; simp [cntF]
+    | succ n ih => intro hn; simp only [cntF]; have := ih (by omega); have := FLc_le hL hK cx hd (g := n) (by omega); omega
+  exact this _ (Nat.le_refl _)
+
+/-- The chain satisfies the padding rules. -/
+theorem frameRules (hDl : nv tr t d colLast = 1) :
+    FrameRules k (cntF (FLc tr t s0) (64 * k)) (FLc tr t s0) (BYc tr t s0)
+      (seenB tr t s0) (p80B tr t s0) (lastB tr t s0) := by
+  have hdq := cx.d_eq
+  have hk := cx.k_pos
+  have hs0 := cx.s0_pos
+  -- rules read on the R0 / R3 rows of block i
+  have r0 : ∀ i, i < k → _ := fun i hi =>
+    r0_rules hL hK (row_lt hL hK cx hd hi (j := 0) (by omega)) (by simpa using cx.rows i 0 hi (by omega))
+  have r3 : ∀ i, i < k → _ := fun i hi =>
+    r3_rules hL hK (row_lt hL hK cx hd hi (j := 3) (by omega)) (cx.rows i 3 hi (by omega))
+  have c3 : ∀ i, i < k → _ := fun i hi => blk_const hL hK cx hd hi 3 (by omega)
+  have c16 : ∀ i, i < k → _ := fun i hi => blk_const hL hK cx hd hi 16 (by omega)
+  have bS : ∀ i, i < k → _ := fun i hi => b_Seen hK (row_lt hL hK cx hd hi (j := 0) (by omega))
+  have bP : ∀ i, i < k → _ := fun i hi => b_P80 hK (row_lt hL hK cx hd hi (j := 0) (by omega))
+  have bL : ∀ i, i < k → _ := fun i hi => b_Last hK (row_lt hL hK cx hd hi (j := 0) (by omega))
+  simp only [Nat.add_zero] at r0 bS bP bL
+  refine
+    { fl_le := ?_, by_lt := ?_, mono := fr_mono hL hK cx hd, byte := fr_byte hL hK cx hd,
+      p80_end := ?_, full := ?_, seen_start := ?_, not_both := ?_, last_done := ?_,
+      seen_last := ?_, last_56 := ?_, last_55 := ?_, pn_55 := ?_, seen0 := ?_, seen_succ := ?_,
+      last_iff := ?_, count := ?_, len := ?_, k_pos := hk }
+  · intro g hg
+    have hi : g / 64 < k := by omega
+    rw [show g = 64 * (g / 64) + g % 64 by omega, FLc_eq _ _ _ _ _ (by omega)]
+    exact b_F hK (row_lt hL hK cx hd hi (j := g % 64 / 16) (by omega)) (by omega)
+  · intro g _; unfold BYc; exact byteAt_lt _ _
+  · intro i hi hp
+    rw [FLc_eq _ _ _ _ _ (by omega)]
+    have := (r3 i hi).1; have := c3 i hi
+    unfold p80B at hp; simp at hp
+    simp only [show 63 / 16 = 3 by rfl, show 63 % 16 = 15 by rfl]
+    apply (r3 i hi).1; omega
+  · intro i hi hs hp
+    rw [FLc_eq _ _ _ _ _ (by omega)]
+    have := c3 i hi
+    unfold seenB p80B at *; simp at hs hp
+    simp only [show 63 / 16 = 3 by rfl, show 63 % 16 = 15 by rfl]
+    have := bS i hi; have := bP i hi
+    apply (r3 i hi).2.1 <;> omega
+  · intro i hi hs
+    rw [show 64 * i = 64 * i + 0 by omega, FLc_eq _ _ _ _ _ (by omega)]
+    unfold seenB at hs; simp at hs
+    simpa using (r0 i hi).1 hs
+  · intro i hi ⟨hs, hp⟩
+    unfold seenB at hs; unfold p80B at hp; simp at hs hp
+    have := seen_p80 hL hK (row_lt hL hK cx hd hi (j := 0) (by omega))
+    simp only [Nat.add_zero] at this
+    rw [hs, hp] at this; omega
+  · intro i hi hl
+    unfold seenB p80B lastB at *; simp at hl ⊢
+    exact (r0 i hi).2.1 hl
+  · intro i hi hs
+    unfold seenB lastB at *; simp at hs ⊢
+    exact (r0 i hi).2.2 hs
+  · intro i hi hl
+    rw [FLc_eq _ _ _ _ _ (by omega)]
+    unfold lastB at hl; simp at hl
+    have := c3 i hi
+    simp only [show 56 / 16 = 3 by rfl, show 56 % 16 = 8 by rfl]
+    exact (r3 i hi).2.2.1 (by omega)
+  · intro i hi hl hp
+    rw [FLc_eq _ _ _ _ _ (by omega)]
+    unfold lastB p80B at *; simp at hl hp
+    have := c3 i hi
+    simp only [show 55 / 16 = 3 by rfl, show 55 % 16 = 7 by rfl]
+    have h1 := (r3 i hi).2.2.1 (by omega)
+    have h2 := (r3 i hi).2.2.2.1 (by omega) (by omega)
+    omega
+  · intro i hi hp hl
+    rw [FLc_eq _ _ _ _ _ (by omega)]
+    unfold lastB p80B at *; simp at hl hp
+    have := c3 i hi; have := bL i hi
+    simp only [show 55 / 16 = 3 by rfl, show 55 % 16 = 7 by rfl]
+    exact (r3 i hi).2.2.2.2 (by omega) (by omega)
+  · -- block 0 follows the start row
+    unfold seenB; simp only [Nat.mul_zero, Nat.add_zero, decide_eq_false_iff_not]
+    have hr : s0 - 1 + 1 < tr.height t := by have := row_lt hL hK cx hd hk (j := 0) (by omega); omega
+    have h := seen_R0_next hL hK hr (by rw [show s0 - 1 + 1 = s0 by omega]; simpa using cx.rows 0 0 hk (by omega))
+    rw [show s0 - 1 + 1 = s0 by omega, cell_of_nv_zero (kind_S hK (by omega) cx.start).2] at h
+    have : tr.cell t s0 colSeen = 0 := by rw [h]; grind
+    rw [nv_of_cell_zero this]; omega
+  · intro i hi
+    have hr : s0 + 17 * i + 16 + 1 < tr.height t := by
+      have := row_lt hL hK cx hd hi (j := 0) (by omega)
+      have := row_lt hL hK cx hd (i := i + 1) hi (j := 0) (by omega); omega
+    have hR0 : nv tr t (s0 + 17 * i + 16 + 1) (colR 0) = 1 := by
+      rw [show s0 + 17 * i + 16 + 1 = s0 + 17 * (i + 1) + 0 by omega]; exact cx.rows _ 0 hi (by omega)
+    have h := seen_R0_next hL hK hr hR0
+    rw [cell_of_nv_one (cx.drow i (by omega)), cell_eq_ofNat tr t _ colSeen,
+      cell_eq_ofNat tr t (s0 + 17 * i + 16) colSeen, cell_eq_ofNat tr t (s0 + 17 * i + 16) colP80,
+      (c16 i (by omega)).1, (c16 i (by omega)).2.1] at h
+    have hsp := seen_p80 hL hK (row_lt hL hK cx hd (i := i) (by omega) (j := 0) (by omega))
+    simp only [Nat.add_zero] at hsp
+    have b1 := bS i (by omega); have b2 := bP i (by omega)
+    have b3 := bS (i + 1) hi
+    rw [show s0 + 17 * i + 16 + 1 = s0 + 17 * (i + 1) by omega] at h
+    unfold seenB p80B
+    have key : nv tr t (s0 + 17 * (i + 1)) colSeen = nv tr t (s0 + 17 * i) colSeen + nv tr t (s0 + 17 * i) colP80 := by
+      rw [← ofNat_add] at h
+      have h' : Fp.ofNat (nv tr t (s0 + 17 * (i + 1)) colSeen) =
+          Fp.ofNat (nv tr t (s0 + 17 * i) colSeen + nv tr t (s0 + 17 * i) colP80) := by
+        rw [h]; grind
+      exact ofNat_inj (by rw [P_val]; omega) (by rw [P_val]; omega) h'
+    by_cases e1 : nv tr t (s0 + 17 * i) colSeen = 1 <;> by_cases e2 : nv tr t (s0 + 17 * i) colP80 = 1 <;>
+      simp [e1, e2] <;> omega
+  · intro i hi
+    unfold lastB; simp only [decide_eq_true_eq]
+    have hl16 := (c16 i hi).2.2
+    constructor
+    · intro hl
+      by_cases hne : i + 1 = k
+      · exact hne
+      exfalso
+      have hr : s0 + 17 * i + 16 + 1 < tr.height t := by
+        have := row_lt hL hK cx hd (i := i + 1) (by omega) (j := 0) (by omega); omega
+      have hst := hK.stepR0 (s0 + 17 * i + 16) (by omega)
+      rw [Nat.mod_eq_of_lt hr, show s0 + 17 * i + 16 + 1 = s0 + 17 * (i + 1) + 0 by omega,
+        cx.rows _ 0 (by omega) (by omega)] at hst
+      have hD := cx.drow i hi
+      have hS := (kind_D hK (by omega) hD).2
+      rw [hl16, hl] at hst
+      simp [hS] at hst
+    · intro he
+      rw [← hl16, show s0 + 17 * i + 16 = d by omega]; exact hDl
+  · exact cntF_eq_filter _ _ (fun g hg => FLc_le hL hK cx hd hg)
+  · intro j hj
+    have hkm := cx.k_pos
+    have hi : k - 1 < k := by omega
+    have hr := row_lt hL hK cx hd hi (j := 3) (by omega)
+    have hl3 : nv tr t (s0 + 17 * (k - 1) + 3) colLast = 1 := by
+      rw [(c3 _ hi).2.2, ← (c16 _ hi).2.2, show s0 + 17 * (k - 1) + 16 = d by omega]; exact hDl
+    obtain ⟨hw2, hw3, he⟩ := len_rules hL hK hr (cx.rows _ 3 hi (by omega)) hl3
+    have hnd := nd_row hL hK cx hd (k - 1) hi 3 (by omega)
+    rw [show 64 * (k - 1) + 16 * min (3 + 1) 4 = 64 * k by omega] at hnd
+    rw [hnd, ← ofNat_mul] at he
+    obtain ⟨hLb, hkH⟩ := L_bound hL hK cx hd
+    have hH : tr.height t ≤ 2 ^ 22 := Nat.pow_le_pow_right (by decide) hL.log_le
+    have hw : wordAt tr t (s0 + 17 * (k - 1) + 3) (colW 3) = 8 * cntF (FLc tr t s0) (64 * k) :=
+      ofNat_inj (by rw [P_val]; omega) (by rw [P_val]; omega) he
+    rw [show 64 * k - 8 + j = 64 * (k - 1) + (56 + j) by omega, BYc_eq _ _ _ _ _ (by omega),
+      show (56 + j) / 16 = 3 by omega]
+    unfold byteAt
+    generalize cntF (FLc tr t s0) (64 * k) = L at hw hLb ⊢
+    have h8 : 8 * L < 2 ^ 28 := by rw [← hw]; exact hw3
+    have : j = 0 ∨ j = 1 ∨ j = 2 ∨ j = 3 ∨ j = 4 ∨ j = 5 ∨ j = 6 ∨ j = 7 := by omega
+    rcases this with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+      simp only [show (56 + 0) % 16 / 4 = 2 by rfl, show (56 + 1) % 16 / 4 = 2 by rfl,
+        show (56 + 2) % 16 / 4 = 2 by rfl, show (56 + 3) % 16 / 4 = 2 by rfl,
+        show (56 + 4) % 16 / 4 = 3 by rfl, show (56 + 5) % 16 / 4 = 3 by rfl,
+        show (56 + 6) % 16 / 4 = 3 by rfl, show (56 + 7) % 16 / 4 = 3 by rfl, hw2, hw] <;>
+      simp <;> omega
+
+
+end
+
 end ZkFormal.Sha.Frame
