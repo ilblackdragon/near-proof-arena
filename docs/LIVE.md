@@ -241,17 +241,26 @@ Restore `report-signing-key.pem` from the same backup.
 * **CPU.** The host is a 16-core / 32-thread Ryzen 9 9950X3D. Logical CPUs N
   and N+16 are SMT siblings. There are two L3 domains: CCD0 is CPUs 0-7 and
   16-23; CCD1 is CPUs 8-15 and 24-31.
-  * **CCD1 is reserved for benchmarks.** `w1` is a benchmark-only worker
-    (`ARENA_WORKER_CLASSES=bench`). Its VMs run on CPUs 24-31, and CPUs 8-15
-    (their SMT siblings, same L3) are left idle. The v1-3 baseline was
-    measured in exactly this configuration
+  * **Since v1-6 (2026-10-05) CCD0 is reserved for benchmarks.** `w1` is a
+    benchmark-only worker (`ARENA_WORKER_CLASSES=bench`). Its VMs run on
+    CPUs 0-7 (`ARENA_BENCH_CPUS=0-7`, the 3D V-cache CCD), and CPUs 16-23
+    (their SMT siblings, same L3) are left idle. The v1-6 baseline was
+    measured on exactly these CPUs
+    (`benchmarks/results/baseline-near-transfer-receipt-v1-6-secret-cpus0-7-20261005/`).
+    The challenge's `hardware_profile` has no CPU-set field, so the set is
+    recorded here and in PROTOCOL_UPGRADES §7.7.
+  * `w2` (`ARENA_RUN_CPUS=8-15`) and `w3` (`24-31`) run validate, build,
+    formal check, conformance and adversarial work, all on CCD1. Other lanes
+    were asked to stay off 0-7 and 16-23.
+  * Until v1-5 the layout was the reverse: benchmarks on 24-31 (CCD1),
+    run VMs on 0-7 and 16-23. The v1-3 baseline was measured that way
     (`benchmarks/results/baseline-near-transfer-receipt-v1-2-live-w1-cpus24-31-20261003/`).
-  * `w2` (`ARENA_RUN_CPUS=0-7`) and `w3` (`16-23`) run validate, build,
-    formal check, conformance and adversarial work, all on CCD0.
-  * **Lesson learned.** An earlier layout put a build/formal worker on CPUs
-    8-15, the SMT siblings of the benchmark CPUs. The v1-3 reference then
-    measured 70.7 instead of about 100. Never schedule anything on 8-15
-    while benchmarks run.
+  * **Lesson learned.** An earlier layout put a build/formal worker on the
+    SMT siblings of the benchmark CPUs. The v1-3 reference then measured
+    70.7 instead of about 100. Never schedule anything on the benchmark
+    CPUs' siblings (now 16-23) while benchmarks run. Measure a baseline on
+    the same CCD the benchmarks run on: the two CCDs of the 9950X3D differ
+    (V-cache).
   * The host is still shared with other lanes, which start their own
     `arena-fc-*` VMs and may pick any CPUs (the SP1 e2e defaults to 8-15).
     Memory bandwidth is shared across both CCDs as well. Scores are therefore

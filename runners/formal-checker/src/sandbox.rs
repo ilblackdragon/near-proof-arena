@@ -199,6 +199,12 @@ impl SandboxRunner {
         s.pids = 1024;
         // RLIMIT_FSIZE inside the sandbox follows the scratch size.
         s.rw_scratch_mb = (spec.max_file_bytes >> 20).max(64);
+        // The writable dirs (e.g. the growing `.olean` output tree of a large
+        // candidate project) come back as outputs: allow as much as the
+        // scratch holds (the backend clamps it to its own cap). Too small a
+        // cap silently dropped files on Firecracker before outputs were
+        // checked for completeness (see `run`).
+        s.max_output_bytes = s.max_output_bytes.max(spec.max_file_bytes);
         s.output_trunc_bytes = REPORT_CAPTURE_LIMIT;
         s
     }
@@ -241,6 +247,25 @@ impl UntrustedRunner for SandboxRunner {
                 let _ = std::fs::remove_dir_all(d);
             }
             return Err(InfraError::Violation(o.violations.join(", ")));
+        }
+        // Outputs that did not all come back (size/count caps, unreadable
+        // entries) are a judge-side failure: never let a missing `.olean` turn
+        // into a candidate BUILD_FAILED, and never use a partial tree.
+        if !o.diagnostics.output_violations.is_empty() || o.output_error.is_some() {
+            if let Some(d) = &stdout_dir {
+                let _ = std::fs::remove_dir_all(d);
+            }
+            return Err(InfraError::Io(std::io::Error::other(format!(
+                "sandbox outputs incomplete: {}",
+                o.diagnostics
+                    .output_violations
+                    .iter()
+                    .take(5)
+                    .cloned()
+                    .chain(o.output_error.clone())
+                    .collect::<Vec<_>>()
+                    .join("; ")
+            ))));
         }
         let mut captured: Option<Vec<u8>> = None;
         if let Some(d) = &stdout_dir {
@@ -287,5 +312,60 @@ impl UntrustedRunner for SandboxRunner {
             stdout,
             stderr,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use arena_sandbox::{ExitStatus, SandboxOutcome, SandboxSpec};
+    use std::sync::{Arc, Mutex};
+
+    /// A backend that "ran" the step but could not return every output
+    /// (as Firecracker does when the rw tree exceeds its output cap).
+    struct Truncating {
+        seen_max_output: Mutex<u64>,
+    }
+    impl arena_sandbox::Sandbox for Truncating {
+        fn name(&self) -> &str {
+            "truncating"
+        }
+        fn tier_cap(&self) -> Option<arena_types::challenge::Tier> {
+            None
+        }
+        fn run(&self, spec: &SandboxSpec) -> Result<SandboxOutcome, arena_sandbox::InfraError> {
+            *self.seen_max_output.lock().unwrap() = spec.max_output_bytes;
+            let mut o = SandboxOutcome::empty(ExitStatus::Exited(0), "truncating", None);
+            o.diagnostics.output_violations =
+                vec!["1/out/Big.olean: output size limit reached".into()];
+            Ok(o)
+        }
+    }
+
+    #[test]
+    fn incomplete_outputs_are_infra_never_a_candidate_failure() {
+        let sb = Arc::new(Truncating {
+            seen_max_output: Mutex::new(0),
+        });
+        let work = std::env::temp_dir().join(format!("fc-trunc-{}", std::process::id()));
+        let r = SandboxRunner::new(sb.clone(), &work).unwrap();
+        let spec = RunSpec {
+            argv: vec!["/arena/tc/bin/lean".into()],
+            env: vec![],
+            ro: vec![],
+            rw: vec![],
+            cwd: PathBuf::from("/tmp"),
+            wall_timeout: Duration::from_secs(1),
+            mem_bytes: None,
+            max_file_bytes: 8 << 30,
+            stdout_file: None,
+        };
+        match r.run(&spec, 1024) {
+            Err(InfraError::Io(e)) => assert!(e.to_string().contains("outputs incomplete"), "{e}"),
+            other => panic!("want infra error, got {other:?}"),
+        }
+        // the output cap follows the scratch size, not the 256 MiB default
+        assert_eq!(*sb.seen_max_output.lock().unwrap(), 8 << 30);
+        let _ = std::fs::remove_dir_all(&work);
     }
 }
