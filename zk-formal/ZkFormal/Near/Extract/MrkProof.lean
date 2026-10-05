@@ -1404,3 +1404,60 @@ theorem nodeEq (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) (t :
         · simp [h1, h2]
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Mrk MrkProof
+
+/-- **The mrk table's view.** -/
+theorem mrk_view : MrkViewStmt := by
+  intro tr pub hL
+  have h2 := height_ge hL
+  obtain ⟨segs, hc, hend, hall, hpad⟩ := segments_of (segFacts hL) (by omega)
+  have hS : Segs tr segs := ⟨hc, hend, hall, hpad⟩
+  have hlen : (viewOf tr segs).nodes.length = segs.length := by simp [viewOf]
+  -- the rows' messages
+  have rows : ∀ b sd, (List.range (tr.height T_MRK)).flatMap
+      (fun r => rowTraffic Mrk.interactions tr T_MRK r pub b sd) =
+      rowTraffic Mrk.interactions tr T_MRK 0 pub b sd ++
+      (List.range (viewOf tr segs).nodes.length).flatMap fun q =>
+        (if sd then Fsend (viewOf tr segs) b ((viewOf tr segs).nodes.getD q default) q
+         else Frecv (viewOf tr segs) b ((viewOf tr segs).nodes.getD q default) q).map Msg.toFp := by
+    intro b sd
+    have e0 : List.range (tr.height T_MRK) = [0] ++ (List.range (tr.height T_MRK - 1)).map (· + 1) := by
+      rw [List.range_eq_range', range'_split 1 _ (by omega), List.range'_one, List.range'_eq_map_range]
+      congr 2; funext x; omega
+    rw [e0, List.flatMap_append, List.flatMap_singleton, List.flatMap_map]
+    congr 1
+    rw [flatMap_rows_segs _ segs _ hc hend (fun r h1 h2' => by
+      have := hpad r h1 h2'
+      simp only [actS, decide_eq_false_iff_not] at this
+      have hA : A tr (r + 1) = 0 := by
+        rcases A_cases hL (r := r + 1) (by omega) with ⟨h, -⟩ | ⟨h, -⟩
+        · exact absurd h this
+        · exact h
+      exact padTraffic hL (by omega) (by omega) hA b sd)]
+    rw [flatMap_eq_range, hlen]
+    apply flatMap_congr'
+    intro q hq; rw [List.mem_range] at hq
+    have hg : (viewOf tr segs).nodes.getD q default = nodeOf tr segs[q] := by
+      rw [getD_eq_getElem' _ _ (by rw [hlen]; exact hq)]; simp [viewOf]
+    rw [hg, getD_eq_getElem' _ _ hq, ← nodeEq hL hS q hq b sd, List.range'_eq_map_range, List.flatMap_map,
+      List.range'_eq_map_range, List.flatMap_map]
+    congr 1; funext x; rw [show segs[q].1 + x + 1 = segs[q].1 + 1 + x by omega]
+  refine ⟨viewOf tr segs, wfOf hL hS, fun b m => ⟨?_, ?_⟩⟩
+  · simp only [mrkTraffic, tableBusCount_eq]
+    rw [rows b true, rootTraffic hL (by omega), sends_eq]
+    simp only [if_true, Bool.true_eq_false, and_false, ite_false, List.append_nil, List.nil_append,
+      List.map_flatMap]
+  · simp only [mrkTraffic, tableBusCount_eq]
+    rw [rows b false, rootTraffic hL (by omega), recvs_eq]
+    simp only [Bool.false_eq_true, if_false, ite_false, and_true, List.map_append, List.map_flatMap]
+    congr 2
+    by_cases h1 : b = B_DIGEST
+    · subst h1
+      simp [viewOf, Msg.toFp, digMsg, pubOut, pubNat, cn, Fp.ofNat_toNat, B_MPOS, B_DIGEST]
+    · by_cases h2 : b = B_MPOS
+      · subst h2; simp [viewOf, Msg.toFp, cn, Fp.ofNat_toNat, B_MPOS, B_DIGEST]; rfl
+      · simp [h1, h2]
+
+end ZkFormal.Near

@@ -426,3 +426,24 @@ theorem zip_range_flatMap {α β : Type} [Inhabited α] (l : List α) (F : α �
   simp only [Nat.zero_add] at this
   rw [← this, List.range_eq_range']
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+theorem flatMap_eq_range {α β : Type} [Inhabited α] (l : List α) (g : α → List β) :
+    l.flatMap g = (List.range l.length).flatMap fun q => g (l.getD q default) := by
+  have := zip_range_flatMap l (fun x _ => g x)
+  rw [← this]
+  have gen : ∀ (l : List α) k, (l.zip (List.range' k l.length)).flatMap (fun x => g x.1) = l.flatMap g := by
+    intro l; induction l with
+    | nil => intro k; simp
+    | cons a l ih => intro k; rw [List.length_cons, List.range'_succ, List.zip_cons_cons, List.flatMap_cons,
+        List.flatMap_cons, ih]
+  rw [List.range_eq_range', gen]
+end ZkFormal.Near
+
+namespace ZkFormal.Near
+theorem flatMap_congr' {α β : Type} {l : List α} {F G : α → List β}
+    (h : ∀ x ∈ l, F x = G x) : l.flatMap F = l.flatMap G := by
+  induction l with
+  | nil => rfl
+  | cons x l ih => simp only [List.flatMap_cons]; rw [h x (by simp), ih (fun y hy => h y (by simp [hy]))]
+end ZkFormal.Near
