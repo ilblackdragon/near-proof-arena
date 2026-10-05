@@ -90,7 +90,52 @@ theorem row_node {q : Nat} (hq : q < H) (hq0 : q ≠ 0) (hr : q - 1 < rs.length)
     rcases (show b = 0 ∨ b = 1 ∨ b = 9 ∨ (b ≠ 0 ∧ b ≠ 1 ∧ b ≠ 9) by omega) with rfl | rfl | rfl | ⟨b0, b1, b9⟩ <;>
     cases s <;> simp [B_BYTES, B_DIGEST, B_MPOS, fp_zero_ne_one, ch, ofNat0, ofNat1, *] <;> omega
 
+theorem row_root (hq : 0 < H) (b : Nat) (s : Bool) :
+    rowTraffic Mrk.interactions tr T_MRK 0 pub b s = rowRoot n lv pub b s := by
+  have hc : ∀ col, col < 58 → tr.cell T_MRK 0 col = Fp.ofNat (rootCell n lv col) := by
+    intro col h; rw [hcell 0 col hq h]; simp [cell]
+  simp only [rowTraffic, Mrk.interactions, send, recv, List.flatMap_cons, List.flatMap_nil, List.append_nil,
+    multNat_one, Interaction.msgVal, List.map_cons, List.map_nil, List.map_append, List.map_map]
+  simp only [eval_c, eval_mid, eval_add, eval_smul, Mrk.rt, Mrk.sg, Mrk.pr, Mrk.pw, Mrk.wn, Mrk.wf, Mrk.wl, Mrk.sf, Mrk.sl, Mrk.q, Mrk.j, Mrk.i, Mrk.sp, Mrk.s, Mrk.odd, Mrk.lil, Mrk.top, Mrk.inv, Mrk.cId, Mrk.cLen, Mrk.mj, Mrk.mi, Mrk.oId, Mrk.oLen, Mrk.gM, Mrk.gO, Mrk.reg, Nat.reduceAdd, hc, Nat.reduceLT, rootCell,
+    Nat.reduceEqDiff, if_true, if_false, ofNat1, ofNat0, rowRoot]
+  clear hcell hc
+  rcases (show b = 0 ∨ b = 1 ∨ b = 9 ∨ (b ≠ 0 ∧ b ≠ 1 ∧ b ≠ 9) by omega) with rfl | rfl | rfl | ⟨b0, b1, b9⟩ <;>
+    cases s <;> simp [B_BYTES, B_DIGEST, B_MPOS, fp_zero_ne_one, Function.comp_def, *] <;> omega
+
+theorem row_pad {q : Nat} (hq : q < H) (hq0 : q ≠ 0) (hr : ¬ q - 1 < rs.length) (b : Nat) (s : Bool) :
+    rowTraffic Mrk.interactions tr T_MRK q pub b s = [] := by
+  have hc : ∀ col, col < 58 → tr.cell T_MRK q col = Fp.ofNat 0 := by
+    intro col h; rw [hcell q col hq h]; simp [cell, hq0, hr]
+  simp only [rowTraffic, Mrk.interactions, send, recv, List.flatMap_cons, List.flatMap_nil, List.append_nil,
+    multNat_one, eval_c, Mrk.rt, Mrk.sg, Mrk.pr, Mrk.pw, Mrk.wn, Mrk.wf, Mrk.wl, Mrk.sf, Mrk.sl, Mrk.q, Mrk.j, Mrk.i, Mrk.sp, Mrk.s, Mrk.odd, Mrk.lil, Mrk.top, Mrk.inv, Mrk.cId, Mrk.cLen, Mrk.mj, Mrk.mi, Mrk.oId, Mrk.oLen, Mrk.gM, Mrk.gO, hc, Nat.reduceLT, ofNat0]
+  simp [fp_zero_ne_one]
+
 end
+
+end MrkTraffic
+
+end ZkFormal.Near.Render
+
+namespace ZkFormal.Near.Render
+
+open NearSpec NearSpec.TransferV1 ZkFormal.Near ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl
+
+namespace MrkTraffic
+open MrkGen
+
+theorem flat64 {β : Type} (g : Nat → List β) (h : ∀ p, p < 64 → p % 32 ≠ 0 → g p = []) :
+    (List.range 64).flatMap g = g 0 ++ g 32 := by
+  have e : List.range 64 = (0 :: (List.range 31).map Nat.succ) ++ ((0 :: (List.range 31).map Nat.succ).map (32 + ·)) := by
+    rw [← List.range_succ_eq_map, show 64 = 32 + 32 from rfl, List.range_add]
+  rw [e, List.flatMap_append, List.flatMap_cons, List.map_cons, List.flatMap_cons, List.flatMap_map, List.flatMap_map,
+    List.flatMap_map]
+  rw [flatMap_nil' (fun p hp => h _ (by have := List.mem_range.1 hp; omega) (by have := List.mem_range.1 hp; omega)),
+    flatMap_nil' (fun p hp => h _ (by have := List.mem_range.1 hp; omega) (by have := List.mem_range.1 hp; omega))]
+  simp
+
+theorem flat64' {β : Type} (g : Nat → List β) (h : ∀ p, p < 64 → p ≠ 0 → g p = []) :
+    (List.range 64).flatMap g = g 0 := by
+  rw [flat64 g (fun p hp h' => h p hp (by omega)), h 32 (by decide) (by decide), List.append_nil]
 
 end MrkTraffic
 
