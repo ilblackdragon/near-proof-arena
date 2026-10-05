@@ -49,3 +49,22 @@ SHA-256 toy (L5 table 544 cols + byte table 4 cols at 4× height + digest table;
 | 2^17 | 7680 | 17.6 s | 5.3 GB | 2.07 MB | 26 ms | – |
 
 Lean (compiled) verify is the blocker for the 10 s verify cap (REQUESTS.md, L8 → L4).
+
+## lane/zk-L8b (off lane/zk-int + lane/zk-L4e)
+
+* `minQueryLog = 8`: Rust schedule rejects `n0 < 8` (prover error asks to pad the
+  largest table to ≥ 16 rows); `fit32` is the identity for SHA-256 (documented).
+* `npudr bench <w> <log> [tables] --out <dir>`; `run.sh` takes logs ≥ 4 (default
+  4 6 10) and `BENCH="w:log[:tables] …"` for Lean-verify timings.
+* With L4d's linear-time verifier and L1's `noncomputable` fix (both in zk-int),
+  `BENCH="1000:14 3000:14 1000:16:3 3000:17" ./run.sh 4 6 10` → ALL PASS, no local
+  patches needed:
+
+| proof | size | Lean verify |
+|---|---|---|
+| bus 2^10 | 0.50 MB | 105 ms |
+| SHA toy | 0.92 MB | 198 ms (was 83 s) |
+| bench 1000 × 2^14 | 1.58 MiB | 350 ms |
+| bench 3000 × 2^14 | 3.35 MiB | 1029 ms |
+| bench 3 × 1000 × 2^16 | 3.77 MiB | 2028 ms |
+| bench 3000 × 2^17 | 3.64 MiB | 887 ms |

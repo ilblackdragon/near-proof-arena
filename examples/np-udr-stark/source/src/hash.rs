@@ -2,6 +2,9 @@
 //!
 //! * `H(m) = SHA-256("NPAI-RO-v1" ‖ m)` (32 bytes) — exactly
 //!   `ArenaCore.Interp.deployedRO`.
+//! * Oracle answers are normalised by `fit32(y) = (y ‖ 0^32)[0..32]`
+//!   (`Stark.fit32`); SHA-256 answers are already 32 bytes, so it is the
+//!   identity here.
 //! * `WH(tag, m) = H(tag ‖ 0x01 ‖ m) ‖ H(tag ‖ 0x02 ‖ m)` (64 bytes).
 //!
 //! Single-byte domain tags (first byte of every oracle input):

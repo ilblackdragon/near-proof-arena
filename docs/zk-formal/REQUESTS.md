@@ -358,6 +358,7 @@ candidate `csimp` except through a governed allowlist. Lean side: enumerate the 
 (L4d's `take?_eq_takeF`, `readInj_eq_readInjF`, `mpLeaves_eq_mpLeavesF`; axioms propext and
 Quot.sound) pass that rule. Add this reproducer to `tests/native_route.rs`
 (expect FAIL `SORRY_FOUND`).
+
 ### L4 response to R-L7-bcs-1 and R-L7-1 (lane/zk-L4e, lead decisions)
 * **R-L7-bcs-1 done.** `Stark.H m = .query m fun y => .pure (fit32 y)`, where
   `fit32 y = (y ++ replicate 32 0).take 32` (`fit32_length`, `fit32_of_length`).

@@ -8,7 +8,7 @@ const O: ProveOptions = ProveOptions { verbose: false };
 
 #[test]
 fn fib_roundtrip() {
-    for log_n in [1usize, 2, 3, 5, 8, 10] {
+    for log_n in [4usize, 5, 8, 10] {
         let air = toy::fib_air();
         let (tr, last) = toy::fib_trace(log_n, 1, 1);
         let cb = toy::fib_claim(1, 1, last);
@@ -59,4 +59,22 @@ fn bus_unbalanced_rejected_by_prover() {
     let c = tr[0].values[5 * v + 1];
     tr[0].values[5 * v + 1] = F::new(1) - c;
     assert!(prove_bytes(&air, tr, PUB, &[], &O).is_err());
+}
+
+#[test]
+fn small_query_domain_rejected() {
+    // minQueryLog = 8: the largest table needs >= 16 rows
+    let air = toy::fib_air();
+    for log_n in [1usize, 2, 3] {
+        let (tr, last) = toy::fib_trace(log_n, 1, 1);
+        let cb = toy::fib_claim(1, 1, last);
+        let e = prove_bytes(&air, vec![tr], PUB, &cb, &O).unwrap_err();
+        assert!(e.contains("pad"), "{e}");
+    }
+    // a valid proof whose header is rewritten to a smaller height is rejected
+    let (tr, last) = toy::fib_trace(4, 1, 1);
+    let cb = toy::fib_claim(1, 1, last);
+    let mut b = prove_bytes(&air, vec![tr], PUB, &cb, &O).unwrap();
+    b[8] = 3;
+    assert!(verify(&air, PUB, &cb, &b).is_err());
 }

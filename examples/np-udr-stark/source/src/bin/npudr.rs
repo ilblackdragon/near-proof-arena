@@ -1,7 +1,9 @@
 //! Developer CLI.
 //!
-//! * `npudr bench <width> <log_height> [tables]` — prove/verify a synthetic
-//!   AIR (cube constraints, degree 4) and report time and proof size.
+//! * `npudr bench <width> <log_height> [tables] [--out <dir>]` — prove/verify a
+//!   synthetic AIR (cube constraints, degree 4) and report time and proof
+//!   size; with `--out`, also write `air.json`, `pub.bin`, `claim.bin`,
+//!   `proof.bin` (for `np-lean-verify` timings).
 //! * `npudr toy <fib|multi> <log> <outdir>` — write `air.json`, `claim.bin`,
 //!   `proof.bin`, `pub.bin` for differential tests against the Lean
 //!   verifier.
@@ -32,9 +34,13 @@ fn main() {
     let a: Vec<String> = std::env::args().collect();
     match a.get(1).map(|s| s.as_str()) {
         Some("bench") => {
-            let w: usize = a[2].parse().unwrap();
-            let h: usize = a[3].parse().unwrap();
-            let nt: usize = a.get(4).map(|s| s.parse().unwrap()).unwrap_or(1);
+            let (pos, out): (Vec<&String>, Option<&String>) = match a.iter().position(|x| x == "--out") {
+                Some(i) => (a[2..i].iter().chain(&a[i + 2..]).collect(), a.get(i + 1)),
+                None => (a[2..].iter().collect(), None),
+            };
+            let w: usize = pos[0].parse().unwrap();
+            let h: usize = pos[1].parse().unwrap();
+            let nt: usize = pos.get(2).map(|s| s.parse().unwrap()).unwrap_or(1);
             let air = Air {
                 tables: (0..nt).map(|_| toy::cube_table(w, 22)).collect(),
                 num_buses: 0,
@@ -48,6 +54,14 @@ fn main() {
             let t = Instant::now();
             verify(&air, &pd, &[], &b).unwrap_or_else(|e| die(&e));
             let tv = t.elapsed().as_secs_f64();
+            if let Some(dir) = out {
+                let dir = std::path::Path::new(dir);
+                std::fs::create_dir_all(dir).unwrap();
+                std::fs::write(dir.join("air.json"), air.to_json()).unwrap();
+                std::fs::write(dir.join("pub.bin"), &pd).unwrap();
+                std::fs::write(dir.join("claim.bin"), []).unwrap();
+                std::fs::write(dir.join("proof.bin"), &b).unwrap();
+            }
             println!(
                 "tables={nt} width={w} log_h={h} prove={tp:.3}s proof={} B ({:.3} MiB) verify_rust={tv:.3}s threads={}",
                 b.len(),
