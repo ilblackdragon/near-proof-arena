@@ -91,13 +91,14 @@ fn main() {
     let verbose = std::env::var("NPUDR_VERBOSE").is_ok_and(|v| v == "1");
     let work = move || -> Result<(Vec<u8>, Vec<u8>), String> {
         let t0 = std::time::Instant::now();
-        let (claim, air, traces) = npudr::near::prepare(&req, &wit)?;
+        let (claim, air, traces) = npudr::near::prepare_cols(&req, &wit)?;
         if verbose {
-            let shapes: Vec<String> = traces.iter().map(|m| format!("{}x{}", m.width, m.values.len() / m.width.max(1))).collect();
-            eprintln!("[prove] trace {:.3}s tables {}", t0.elapsed().as_secs_f64(), shapes.join(" "));
+            let shapes: Vec<String> = traces.iter().map(|m| format!("{}x2^{}", m.width(), m.log_h)).collect();
+            let bytes: usize = traces.iter().map(|m| m.bytes()).sum();
+            eprintln!("[prove] trace {:.3}s tables {} ({} MB)", t0.elapsed().as_secs_f64(), shapes.join(" "), bytes >> 20);
         }
         let opts = npudr::prover::ProveOptions { verbose };
-        let proof = npudr::prover::prove_bytes(&air, traces, &pub_tape, &claim, &opts)?;
+        let proof = npudr::prover::prove_cols_bytes(&air, traces, &pub_tape, &claim, &opts)?;
         if verbose {
             eprintln!("[prove] total {:.3}s proof {} B", t0.elapsed().as_secs_f64(), proof.len());
         }
