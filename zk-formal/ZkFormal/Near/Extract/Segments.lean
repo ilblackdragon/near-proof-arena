@@ -172,3 +172,64 @@ theorem counter_of {f : Nat → ZkFormal.Algebra.Fp} {s ℓ v0 : Nat} (h0 : f s 
       rw [this, natCast_add (v0 + (r - s)) 1]; rfl
 
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+
+theorem segEnd_ge (segs : List (Nat × Nat)) (s0 : Nat) (hc : Consec s0 segs) : s0 ≤ segEnd s0 segs := by
+  induction segs generalizing s0 with
+  | nil => simp [segEnd]
+  | cons p rest ih =>
+    obtain ⟨s, ℓ⟩ := p
+    obtain ⟨rfl, hc⟩ := hc
+    have := ih (s + ℓ) hc
+    simp only [segEnd]; omega
+
+/-- Rows of consecutive segments. -/
+theorem range'_segs (segs : List (Nat × Nat)) (s0 : Nat) (hc : Consec s0 segs) :
+    List.range' s0 (segEnd s0 segs - s0) = segs.flatMap fun p => List.range' p.1 p.2 := by
+  induction segs generalizing s0 with
+  | nil => simp [segEnd]
+  | cons p rest ih =>
+    obtain ⟨s, ℓ⟩ := p
+    obtain ⟨rfl, hc⟩ := hc
+    have hle := segEnd_ge rest (s + ℓ) hc
+    simp only [segEnd, List.flatMap_cons]
+    rw [← ih (s + ℓ) hc]
+    have : segEnd (s + ℓ) rest - s = ℓ + (segEnd (s + ℓ) rest - (s + ℓ)) := by omega
+    rw [this, ← List.range'_append_1]
+
+/-- Little-endian value of a digit list (base 256). -/
+def le256 : List Nat → Nat
+  | [] => 0
+  | x :: xs => x + 256 * le256 xs
+
+/-- **Carry chain.** If `s_j + 256·c_{j+1} = a_j + b_j + c_j` for every digit, then
+`le256 s + 256^L · c_L = le256 a + le256 b + c_0`. -/
+theorem carry_chain (s : List Nat) : ∀ (a b : List Nat) (c : Nat → Nat), a.length = s.length →
+    b.length = s.length →
+    (∀ j, j < s.length → s.getD j 0 + 256 * c (j + 1) = a.getD j 0 + b.getD j 0 + c j) →
+    le256 s + 256 ^ s.length * c s.length = le256 a + le256 b + c 0 := by
+  induction s with
+  | nil =>
+    intro a b c ha hb _
+    rw [List.length_nil, List.length_eq_zero_iff] at ha hb
+    subst ha; subst hb; simp [le256]
+  | cons z s ih =>
+    intro a b c ha hb h
+    cases a with
+    | nil => simp at ha
+    | cons x a =>
+    cases b with
+    | nil => simp at hb
+    | cons y b =>
+    have h0 := h 0 (by simp)
+    have ih' := ih a b (fun j => c (j + 1)) (by simpa using ha) (by simpa using hb)
+      (fun j hj => by simpa using h (j + 1) (by simpa using hj))
+    simp only [List.getD_cons_zero] at h0
+    simp only [le256, List.length_cons, Nat.pow_succ]
+    have : 256 ^ s.length * 256 * c (s.length + 1) = 256 * (256 ^ s.length * c (s.length + 1)) := by
+      rw [Nat.mul_comm (256 ^ s.length) 256, Nat.mul_assoc]
+    rw [this]
+    omega
+
+end ZkFormal.Near
