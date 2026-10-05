@@ -933,3 +933,66 @@ theorem qCount (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) :
       exact toNat_succ_of rfl (by simp only [cn] at this; omega)
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp} {segs : List (Nat × Nat)}
+
+theorem shapeEq (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) :
+    shapeOf (dsOf tr segs) = mrkShape (viewOf tr segs).n := by
+  have hne := hS.nonempty hL
+  have h2 := height_ge hL
+  obtain ⟨-, -, hj, hi, -, -, -⟩ := rootRow hL (by omega)
+  apply shape _ (rules hL hS) _ (by simp [dsOf]; omega)
+  rw [dsOf_get 0 hne, hS.first hne]
+  simp only [ndAt, Nat.zero_add, hj, hi, viewOf, cn]
+  refine ⟨?_, ?_, ?_⟩ <;> first | rfl | trivial
+
+theorem posOf (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) (t : Nat) (ht : t < segs.length) :
+    (mrkShape (viewOf tr segs).n).getD t (0, 0, false) =
+      (cn tr (segs[t].1 + 1) j, cn tr (segs[t].1 + 1) i, isH (nodeOf tr segs[t])) := by
+  rw [← shapeEq hL hS, shapeOf, getD_eq_getElem' _ _ (by simp [dsOf]; exact ht)]
+  simp [dsOf, ndAt, isH_nodeOf, cn]
+
+theorem wfOf (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) : MrkWf pub (viewOf tr segs) := by
+  have h2 := height_ge hL
+  refine ⟨fun hb hlt => ?_, ?_, ⟨?_, fun q hq => ?_⟩, fun nd hnd => ?_, ⟨Fp.toNat_lt _, Fp.toNat_lt _, Fp.toNat_lt _,
+    fun nd hnd x hx => ?_⟩⟩
+  · -- n is the public n
+    have hsp := (rootRow hL (pub := pub) (by omega)).2.2.2.2.1
+    simp only [viewOf, cn, hsp, nPubE]
+    simp only [eval_sum_cons, eval_sum_nil, eval_smul, eval_pub, List.range, List.range.loop, List.map]
+    have e : ∀ x, x < 4 → pub.getD (PV_N + x) 0 = Fp.ofNat (pubNat pub (PV_N + x)) := fun x _ => by
+      simp [pubNat, Fp.ofNat_toNat]
+    rw [e 0 (by omega), e 1 (by omega), e 2 (by omega), e 3 (by omega)]
+    rw [show (0 : Fp) = Fp.ofNat 0 from rfl]
+    simp only [natCast_eq, ofNat_mul', ofNat_add', Fp.toNat_ofNat]
+    simp only [nPubNat, List.range, List.range.loop, List.foldr, Nat.pow_succ, Nat.pow_zero] at hlt ⊢
+    rw [Nat.mod_eq_of_lt (by omega)]; omega
+  · rcases Nat.eq_zero_or_pos (viewOf tr segs).n with h | h
+    · exfalso
+      have := shapeEq hL hS
+      rw [h] at this
+      have hne := hS.nonempty hL
+      have : (shapeOf (dsOf tr segs)).length = 0 := by rw [this]; simp [mrkShape, mrkLevels]
+      simp [shapeOf, dsOf] at this; subst this; simp at hne
+    · exact h
+  · rw [← shapeEq hL hS]; simp [shapeOf, dsOf, viewOf]
+  · simp only [viewOf, List.length_map] at hq
+    have := posOf hL hS q hq
+    rw [this]; simp only [viewOf, List.getElem_map]
+    cases h : nodeOf tr segs[q] <;> simp [isH, h]
+  · simp only [viewOf, List.mem_map] at hnd
+    obtain ⟨p, -, rfl⟩ := hnd
+    unfold nodeOf
+    by_cases h : tr.cell T_MRK (p.1 + 1) pr = 1
+    · simp only [h, if_true]
+    · simp only [h, if_false]; exact ⟨by simp, by simp⟩
+  · simp only [viewOf, List.mem_map] at hnd
+    obtain ⟨p, -, rfl⟩ := hnd
+    unfold nodeOf at hx; split at hx <;> simp [MrkNode.raw] at hx <;>
+      first | (rcases hx with rfl | rfl <;> exact Fp.toNat_lt _) |
+        (rcases hx with rfl | rfl | rfl | rfl | ⟨x, -, rfl⟩ | ⟨x, -, rfl⟩ <;> exact Fp.toNat_lt _)
+
+end ZkFormal.Near.MrkProof
