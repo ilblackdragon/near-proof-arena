@@ -21,37 +21,62 @@ CLASSES = [("batch-1", 1, 200000), ("batch-16", 16, 300000), ("batch-256", 256, 
 PROFILES = "basic,prefix,boundary,repeat,prices,large,bw_state,trie_shapes,missed,shards"
 NAME = "near-transfer-receipt-v2"
 STATEMENT = "near/pv86/receipt-transfer-batch/v1"
+# Generator specs written next to the suite but NOT part of the draft's
+# workload_suite (no weight, no held-out set): adding one to a challenge is a
+# governance decision. max-witness: the maximal in-domain witness class
+# (spec/near-transfer-receipt-v2.md §13.1).
+CANDIDATE_CLASSES = [("max-witness", 256, "max_witness")]
+
+def oracle_source_digest():
+    return tree("oracle/src", "oracle/Cargo.toml", "oracle/Cargo.lock", "oracle/NEARCORE_PIN")
+
+def workload_spec(cid, r, profiles, oracle_digest):
+    return {
+        "schema": "near-arena-workload-generator-v1",
+        "challenge": NAME,
+        "class": cid,
+        "receipts_per_request": r,
+        "tool": "near-arena-oracle gen --scope v2",
+        "args": ["--scope", "v2", "--receipts", str(r), "--profiles", profiles, "--fixtures-layout"],
+        "seed": "fresh per run (judge-chosen after freeze); held-out set: secret seed",
+        "oracle_source_tree_digest": oracle_digest,
+        "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+        "statement_id": STATEMENT,
+    }
+
+def write_spec(spec):
+    p = J(f"spec/workloads/{NAME}/{spec['class']}.json")
+    open(p, "w").write(json.dumps(spec, indent=1) + "\n")
+
+def write_candidate_classes(oracle_digest):
+    os.makedirs(J(f"spec/workloads/{NAME}"), exist_ok=True)
+    for cid, r, profiles in CANDIDATE_CLASSES:
+        write_spec(workload_spec(cid, r, profiles, oracle_digest))
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--created-at")
     ap.add_argument("--season", default="2026-s1")
     ap.add_argument("--heldout-dir", help="off-repo held-out set (oracle/scripts/gen-heldout-v2.sh output)")
+    ap.add_argument("--candidate-classes-only", action="store_true",
+                    help="only (re)write the non-governed CANDIDATE_CLASSES specs; governed files untouched")
     a = ap.parse_args()
+    if a.candidate_classes_only:
+        write_candidate_classes(oracle_source_digest())
+        return
     out = J(f"challenges/drafts/{NAME}.draft.json")
     created = a.created_at or (json.load(open(out))["created_at"] if os.path.exists(out) else None)
     if not created:
         sys.exit("--created-at required for a new draft (RFC 3339 UTC)")
 
-    oracle_digest = tree("oracle/src", "oracle/Cargo.toml", "oracle/Cargo.lock", "oracle/NEARCORE_PIN")
+    oracle_digest = oracle_source_digest()
     gens = {}
     os.makedirs(J(f"spec/workloads/{NAME}"), exist_ok=True)
     for cid, r, _ in CLASSES:
-        spec = {
-            "schema": "near-arena-workload-generator-v1",
-            "challenge": NAME,
-            "class": cid,
-            "receipts_per_request": r,
-            "tool": "near-arena-oracle gen --scope v2",
-            "args": ["--scope", "v2", "--receipts", str(r), "--profiles", PROFILES, "--fixtures-layout"],
-            "seed": "fresh per run (judge-chosen after freeze); held-out set: secret seed",
-            "oracle_source_tree_digest": oracle_digest,
-            "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
-            "statement_id": STATEMENT,
-        }
-        p = J(f"spec/workloads/{NAME}/{cid}.json")
-        open(p, "w").write(json.dumps(spec, indent=1) + "\n")
+        spec = workload_spec(cid, r, PROFILES, oracle_digest)
+        write_spec(spec)
         gens[cid] = dig(spec)
+    write_candidate_classes(oracle_digest)  # not referenced by the draft
 
     hc_path = J("spec/challenge-inputs/heldout-commitment-v2.json")
     if a.heldout_dir:
