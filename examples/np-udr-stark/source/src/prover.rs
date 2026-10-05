@@ -164,26 +164,77 @@ fn commit_polys(dft: &Dft, polys: &[ColPolys], l0: usize) -> Tree {
     Tree { log_h0: l0, levels }
 }
 
+/// Rows of a coefficient matrix evaluated at base-field points:
+/// `out[p] = Σ_i x_p^i · coeffs[i]` (one pass over the coefficients, packed
+/// over columns, parallel over column chunks).
+pub fn eval_rows_at(coeffs: &RowMajorMatrix<F>, xs: &[F]) -> Vec<Vec<F>> {
+    use p3_field::PackedValue;
+    type P = <F as Field>::Packing;
+    let w = coeffs.width();
+    let t = coeffs.height();
+    let np = xs.len();
+    if w == 0 || np == 0 {
+        return vec![vec![]; np];
+    }
+    let lanes = P::WIDTH;
+    let chunk = (64 * lanes).min(w.next_multiple_of(lanes));
+    let nchunks = w.div_ceil(chunk);
+    let parts: Vec<Vec<Vec<F>>> = (0..nchunks)
+        .into_par_iter()
+        .map(|c| {
+            let c0 = c * chunk;
+            let cw = chunk.min(w - c0);
+            let full = cw / lanes;
+            let mut acc = vec![P::ZERO; np * full];
+            let mut tail = vec![F::ZERO; np * (cw - full * lanes)];
+            let mut pw: Vec<F> = vec![F::ONE; np];
+            for i in 0..t {
+                let row = &coeffs.values[i * w + c0..i * w + c0 + cw];
+                let packed = P::pack_slice(&row[..full * lanes]);
+                for p in 0..np {
+                    let x = P::from(pw[p]);
+                    let a = &mut acc[p * full..(p + 1) * full];
+                    for (av, rv) in a.iter_mut().zip(packed) {
+                        *av += x * *rv;
+                    }
+                    let tl = cw - full * lanes;
+                    for k in 0..tl {
+                        tail[p * tl + k] += pw[p] * row[full * lanes + k];
+                    }
+                    pw[p] *= xs[p];
+                }
+            }
+            (0..np)
+                .map(|p| {
+                    let mut v = P::unpack_slice(&acc[p * full..(p + 1) * full]).to_vec();
+                    let tl = cw - full * lanes;
+                    v.extend_from_slice(&tail[p * tl..(p + 1) * tl]);
+                    v
+                })
+                .collect()
+        })
+        .collect();
+    (0..np)
+        .map(|p| {
+            let mut v = Vec::with_capacity(w);
+            for part in &parts {
+                v.extend_from_slice(&part[p]);
+            }
+            v
+        })
+        .collect()
+}
+
 /// Open one round at layer-0 query positions.
-fn open_polys(dft: &Dft, polys: &[ColPolys], tree: &Tree, queries: &[usize]) -> Opening {
-    let sets = mmcs::index_sets(tree.log_h0, queries);
+fn open_polys(_dft: &Dft, polys: &[ColPolys], tree: &Tree, queries: &[usize]) -> Opening {
+    let l0 = tree.log_h0;
+    let sets = mmcs::index_sets(l0, queries);
     let rows = polys
         .iter()
         .map(|p| {
             let s = &sets[p.class];
-            let w = p.width();
-            let mut out = Vec::with_capacity(s.len() * w);
-            let mut cur: Option<(usize, RowMajorMatrix<F>)> = None;
-            for &j in s {
-                let b = j >> p.log_h;
-                if cur.as_ref().map(|c| c.0) != Some(b) {
-                    cur = Some((b, p.block(dft, b)));
-                }
-                let m = &cur.as_ref().unwrap().1;
-                let u = j & ((1 << p.log_h) - 1);
-                out.extend_from_slice(&m.values[u * w..(u + 1) * w]);
-            }
-            out
+            let xs: Vec<F> = s.iter().map(|&j| crate::protocol::point(l0, p.class, j)).collect();
+            eval_rows_at(&p.coeffs, &xs).concat()
         })
         .collect();
     Opening { rows, siblings: mmcs::siblings(tree, queries) }

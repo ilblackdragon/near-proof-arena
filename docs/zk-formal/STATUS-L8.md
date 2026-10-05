@@ -32,8 +32,8 @@ Benchmarks (8 threads, synthetic degree-4 table, no buses):
 
 | table | prove | peak RSS | proof | Rust verify |
 |---|---|---|---|---|
-| 3000 cols × 2^17 rows (n0 = 2^21) | 55 s | 5.6 GB | 3.65 MiB | 0.08 s |
+| 3000 cols × 2^17 rows (n0 = 2^21) | 39 s | 4.8 GB | 3.64 MiB | 0.09 s |
 
-(before streaming: 70 s, 76 GB). Main costs: leaf hashing 22 s (WH = 2×SHA,
-16·T·W·4 bytes), openings 19 s (block recompute; to be optimized),
-quotient 10.5 s (scalar interpreter; packed evaluator pending).
+(before streaming: 70 s, 76 GB). Main costs: main commit 19.7 s (16 coset DFTs ≈ 12 s + WH leaf hashing,
+16·T·W·4 bytes), openings 7.5 s (direct packed evaluation at the opened points),
+quotient 8.9 s (scalar interpreter; packed evaluator pending).
