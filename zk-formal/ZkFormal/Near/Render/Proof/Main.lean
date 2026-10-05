@@ -14,12 +14,13 @@ import ZkFormal.Near.Render.Proof.BusRids
 import ZkFormal.Near.Render.Proof.BusMem
 import ZkFormal.Near.Render.Proof.BusFinal
 import ZkFormal.Near.Render.Proof.BusMpos
+import ZkFormal.Near.Render.Proof.ShaFit4
 
 /-!
 # ZkFormal.Near.Render.Proof.Main — what is left of `RenderStmt`
 
-`render_of_rest : RenderRest → RenderStmt`: the proved obligations (sort,
-acct, walk, mrk local + traffic; buses VSLOT, RIDS, MEM, FINAL, KEYNIB, MPOS) are
+`render_of_rest : RenderRest → RenderStmt`: the proved obligations (sha,
+sort, acct, walk, mrk local + traffic; buses VSLOT, RIDS, MEM, FINAL, KEYNIB, MPOS) are
 plugged in; `RenderRest` lists the open ones.  All obligations are stated
 under `Good c.1 e ∧ Small e` (R-L6e-1 resolved: the acct table's height bound
 comes from `Small.touched`).
@@ -34,10 +35,8 @@ open NearSpec NearSpec.TransferV1 ZkFormal.Near ZkFormal.Air ZkFormal.Algebra
 
 /-- The open render obligations. -/
 structure RenderRest : Prop where
-  shaL : ShaLocalStmt
   nodeL : NodeLocalStmt
   rcptL : RcptLocalStmt
-  shaT : ShaTrafficStmt
   nodeT : NodeTrafficStmt
   rcptT : RcptTrafficStmt
   bytes : BytesBusStmt
@@ -48,9 +47,9 @@ structure RenderRest : Prop where
 /-- **`RenderStmt` from the open obligations.** -/
 theorem render_of_rest (h : RenderRest) : RenderStmt :=
   render_stmt
-    { shaL := h.shaL, nodeL := h.nodeL, walkL := walkLocal, rcptL := h.rcptL,
+    { shaL := shaLocal, nodeL := h.nodeL, walkL := walkLocal, rcptL := h.rcptL,
       acctL := acctLocal, mrkL := mrkLocal, sortL := sortLocal,
-      shaT := h.shaT, nodeT := h.nodeT, walkT := walkTraffic_ok, rcptT := h.rcptT,
+      shaT := shaTraffic_ok, nodeT := h.nodeT, walkT := walkTraffic_ok, rcptT := h.rcptT,
       acctT := acctTraffic_ok, mrkT := mrkTraffic_ok, sortT := sortTraffic_ok,
       bytes := h.bytes, digest := h.digest, parent := h.parent, vslot := vslotBus, edge := h.edge,
       keynib := keynibBus, final := finalBus, mem := memBus, rids := ridsBus, mpos := mposBus }
