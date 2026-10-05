@@ -121,8 +121,10 @@ statement in contract form is in `docs/AGENT_CONTRACT.md` §6.1.
   `oracle/fixtures/rejection/` (v1) and `oracle/fixtures/v2/rejection/` (v2)
   carry no claim, and the judge must not issue them as jobs. Before any
   sandbox runs, the worker's `RequestPin` (`runners/worker/src/jobs.rs`)
-  checks each oracle request's format, protocol version and chain id against
-  the challenge, and fails the job closed on a mismatch.
+  checks each oracle request's encoding, statement id (scope),
+  protocol version and chain id, the expected claim's encoding and statement,
+  and `params.bin` (incl. the runtime-config digest) against the challenge,
+  and fails the job closed on a mismatch.
 * **Validity only, not zero knowledge.** Formal admission under
   `validity-classical-128` proves validity only. It does not establish
   witness privacy. This also covers succinct backends: `np-udr-stark`, SP1 and

@@ -239,9 +239,14 @@ all it proves. In particular:
   state, non-zero congestion, refund with missed chunks, shard id ≥ 2^32)
   have no claim file, and the judge must not issue them as jobs. Before any
   sandbox runs, the worker's `RequestPin` (`runners/worker/src/jobs.rs`)
-  checks every oracle request's format, protocol version and chain id against
-  the challenge. A mismatch fails the job closed as a judge-side error and is
-  never a candidate verdict.
+  checks every oracle request's encoding, statement id (scope),
+  protocol version and chain id, the expected claim's encoding and statement,
+  and `params.bin` (incl. the runtime-config digest) against the challenge.
+  A mismatch fails the job closed as a judge-side error and is never a
+  candidate verdict. The Lean reference agrees: `nearspec-check` classifies
+  all 14 v1 and 18 v2 rejection fixtures as `out_of_domain` (and every
+  public fixture as `ok`), and `runners/worker/tests/near_v2.rs` shows v1
+  inputs refused under the v2 challenge.
 * **Validity only, not privacy.** Under `validity-classical-128`
   (`privacy: validity_only`), admission establishes validity only. It does
   **not** establish witness privacy or zero knowledge, whatever the backend:
