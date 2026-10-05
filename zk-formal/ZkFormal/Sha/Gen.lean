@@ -186,7 +186,7 @@ def rowCell : Row → Nat → Nat
   | .pad, _ => 0
 
 /-- The honest table: `log` and `cell r col`. -/
-def honestLog (msgs : List Msg) : Nat := clog2 (honestRows msgs).length
+def honestLog (msgs : List Msg) : Nat := max 1 (clog2 (honestRows msgs).length)
 
 def honestCell (msgs : List Msg) (r col : Nat) : Nat :=
   rowCell ((honestRows msgs).getD r .pad) col

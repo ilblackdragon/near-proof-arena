@@ -1,4 +1,4 @@
-import ZkFormal.Sha.Stub.Air
+import ZkFormal.Air.Basic
 import ZkFormal.Sha.Layout
 
 /-!
@@ -21,12 +21,13 @@ row, `n x` on the next row):
 Interactions: each round row `R0..R3` receives its data bytes
 `(Id, pos, byte)` on `busBytes` (multiplicity `F k`); a `D` row of a last
 block provides `(Id, len, digest[0..32))` on `busDigest` with multiplicity
-`Dmult`.
+`Dmult` (a single multiplicity bit: each message's digest is provided at
+most once; a consumer needing it twice hashes twice).
 -/
 
 namespace ZkFormal.Sha.Table
 
-open ZkFormal.Sha ZkFormal.Sha.Air ZkFormal.Sha.Layout
+open ZkFormal.Air ZkFormal.Sha.Layout
 
 /-! ## Expression builders -/
 
@@ -228,8 +229,8 @@ def digestByteE (p : Nat) : Expr := bits (fun b => c (colSt (p / 4) b)) (8 * (3 
 
 def interactions (busBytes busDigest : Nat) : List Interaction :=
   ((List.range 16).map fun q =>
-    { bus := busBytes, mult := c (colF q), msg := [c colId, posE q, byteE q], send := false }) ++
-  [{ bus := busDigest, mult := c colDmult,
+    { bus := busBytes, mult := [c (colF q)], msg := [c colId, posE q, byteE q], send := false }) ++
+  [{ bus := busDigest, mult := [c colDmult],
      msg := [c colId, c colNd] ++ (List.range 32).map digestByteE, send := true }]
 
 /-- Largest supported height: `2^22` rows (DESIGN.md R7). -/
