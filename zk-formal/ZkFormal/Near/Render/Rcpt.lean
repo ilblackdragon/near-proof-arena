@@ -374,36 +374,33 @@ def fillEmits (pub : Array Nat) (rw : Row) : Row := Id.run do
 end RcptGen
 
 open RcptGen in
-/-- Per-receipt data from the records. -/
-def rcptData (I : Info) : List RcptGen.RD := Id.run do
+/-- Data of receipt `r` (`o`, `o2`, `rcnt`: prefix sums over the earlier receipts). -/
+def rdOf (I : Info) (r : Nat) : RcptGen.RD :=
   let e := I.e
   let c := I.c
-  let mut out : Array RcptGen.RD := #[]
-  let mut o := 12
-  let mut o2 := 4
-  let mut rcnt := 0
-  for r in List.range I.nRcpt do
-    let rc := e.rc r
-    let k := e.slot r
-    let a0 := e.acc0 k
-    let bef := e.amtAt k r
-    let aft := bef + rc.deposit
-    let hr := hasRefund I r
-    let d : RcptGen.RD :=
-      { r, pred := toNats rc.predecessorId, recv := toNats rc.receiverId, id := toNats rc.receiptId,
-        signer := toNats rc.signerId, kt := rc.signerPk.tag, pk := toNats rc.signerPk.data,
-        gp := rc.gasPrice, dep := rc.deposit, hr, ge := c.blockGasPrice ≤ rc.gasPrice,
-        kslot := k, tprev := tprevOf e r, bef, locked := a0.locked, stor := a0.storageUsage,
-        big := 10000000000000000000 * a0.storageUsage ≤ aft + a0.locked,
-        burnt := burntOf c.blockGasPrice rc, ramt := surplusOf c.blockGasPrice rc,
-        tok0 := e.tokAt c r, o, o2, rcnt,
-        refundId := shaN (ridBytes I r), peoLen := (peoBytes I r).length,
-        peoDig := shaN (peoBytes I r) }
-    out := out.push d
-    o := o + (toNats rc.encode).length
-    o2 := o2 + (if hr then (toNats (gasRefundReceipt rc c.blockHeight (surplusOf c.blockGasPrice rc)).encode).length else 0)
-    rcnt := rcnt + b2n hr
-  return out.toList
+  let rc := e.rc r
+  let k := e.slot r
+  let a0 := e.acc0 k
+  let bef := e.amtAt k r
+  let aft := bef + rc.deposit
+  let hr := hasRefund I r
+  let rfLen (r' : Nat) : Nat := if hasRefund I r' then
+    (toNats (gasRefundReceipt (e.rc r') c.blockHeight (surplusOf c.blockGasPrice (e.rc r'))).encode).length else 0
+  { r, pred := toNats rc.predecessorId, recv := toNats rc.receiverId, id := toNats rc.receiptId,
+    signer := toNats rc.signerId, kt := rc.signerPk.tag, pk := toNats rc.signerPk.data,
+    gp := rc.gasPrice, dep := rc.deposit, hr, ge := c.blockGasPrice ≤ rc.gasPrice,
+    kslot := k, tprev := tprevOf e r, bef, locked := a0.locked, stor := a0.storageUsage,
+    big := 10000000000000000000 * a0.storageUsage ≤ aft + a0.locked,
+    burnt := burntOf c.blockGasPrice rc, ramt := surplusOf c.blockGasPrice rc,
+    tok0 := e.tokAt c r,
+    o := 12 + ((List.range r).map fun r' => (toNats (e.rc r').encode).length).sum,
+    o2 := 4 + ((List.range r).map rfLen).sum,
+    rcnt := ((List.range r).map fun r' => b2n (hasRefund I r')).sum,
+    refundId := shaN (ridBytes I r), peoLen := (peoBytes I r).length,
+    peoDig := shaN (peoBytes I r) }
+
+/-- Per-receipt data from the records. -/
+def rcptData (I : Info) : List RcptGen.RD := (List.range I.nRcpt).map (rdOf I)
 
 open RcptGen in
 /-- Honest rows of the `rcpt` table (padded, at least one padding row). -/
