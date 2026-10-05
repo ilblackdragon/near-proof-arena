@@ -62,6 +62,7 @@ open(dst, 'wb').write(bytes(b))
 PY
 }
 
+<<<<<<< HEAD
 echo "== constraint evaluation at random points: Rust vs Lean"
 ev="$here/.lake/build/bin/np-lean-eval"
 for x in fib multi bus; do
@@ -71,36 +72,77 @@ for x in fib multi bus; do
     else bad "eval $x seed $s"; fi
   done
 done
+=======
+# check_proof <label> <dir>: honest proof accepted, mutations rejected
+check_proof() {
+  local x=$1 d=$2
+  n=$(stat -c %s "$d/proof.bin")
+  r=$(verify "$d" "$d/proof.bin"); rc=$?
+  t=$(grep -o 'wall [0-9]* ms' "$d/verify.err")
+  if [ "$r" = accept ] && [ $rc -eq 0 ]; then pass "$x honest proof ($n B) accepted, $t"
+  else bad "$x honest proof ($n B) -> '$r' rc=$rc, $t"; cat "$d/verify.err"; fi
+  # mutations: header, first root, middle, near the end, last byte
+  for off in ${OFFSETS:-0 9 40 $((n/3)) $((n/2)) $((n-40)) $((n-1))}; do
+    mutate "$d/proof.bin" "$d/mut.bin" flip $off
+    r=$(verify "$d" "$d/mut.bin"); rc=$?
+    if [ "$r" = reject ] && [ $rc -eq 1 ]; then pass "$x flip@$off rejected"
+    else bad "$x flip@$off -> '$r' rc=$rc"; fi
+  done
+  for op in trunc append; do
+    mutate "$d/proof.bin" "$d/mut.bin" $op 0
+    r=$(verify "$d" "$d/mut.bin"); rc=$?
+    if [ "$r" = reject ] && [ $rc -eq 1 ]; then pass "$x $op rejected"
+    else bad "$x $op -> '$r' rc=$rc"; fi
+  done
+  if [ -s "$d/claim.bin" ]; then
+    mutate "$d/claim.bin" "$d/claim.mut" flip 2
+    r=$(verify "$d" "$d/proof.bin" "$d/claim.mut"); rc=$?
+    if [ "$r" = reject ] && [ $rc -eq 1 ]; then pass "$x mutated claim rejected"
+    else bad "$x mutated claim -> '$r' rc=$rc"; fi
+  else
+    # empty claim (SHA toy): extend it by one byte instead
+    printf '\x00' > "$d/claim.mut"
+    r=$(verify "$d" "$d/proof.bin" "$d/claim.mut"); rc=$?
+    if [ "$r" = reject ] && [ $rc -eq 1 ]; then pass "$x extended claim rejected"
+    else bad "$x extended claim -> '$r' rc=$rc"; fi
+  fi
+}
+>>>>>>> lane/zk-L8-sha
 
 echo "== proofs"
 for x in fib multi bus; do
   for lg in "${logs[@]}"; do
     d="$out/$x-$lg"; rm -rf "$d"; mkdir -p "$d"
     if ! $HEAVY "$npudr" toy $x $lg "$d" >/dev/null; then bad "$x log=$lg: npudr toy failed"; continue; fi
-    n=$(stat -c %s "$d/proof.bin")
-    r=$(verify "$d" "$d/proof.bin"); rc=$?
-    t=$(grep -o 'wall [0-9]* ms' "$d/verify.err")
-    if [ "$r" = accept ] && [ $rc -eq 0 ]; then pass "$x log=$lg honest proof ($n B) accepted, $t"
-    else bad "$x log=$lg honest proof ($n B) -> '$r' rc=$rc, $t"; cat "$d/verify.err"; fi
-    # mutations: header, first root, middle, near the end, last byte
-    for off in 0 9 40 $((n/3)) $((n/2)) $((n-40)) $((n-1)); do
-      mutate "$d/proof.bin" "$d/mut.bin" flip $off
-      r=$(verify "$d" "$d/mut.bin"); rc=$?
-      if [ "$r" = reject ] && [ $rc -eq 1 ]; then pass "$x log=$lg flip@$off rejected"
-      else bad "$x log=$lg flip@$off -> '$r' rc=$rc"; fi
-    done
-    for op in trunc append; do
-      mutate "$d/proof.bin" "$d/mut.bin" $op 0
-      r=$(verify "$d" "$d/mut.bin"); rc=$?
-      if [ "$r" = reject ] && [ $rc -eq 1 ]; then pass "$x log=$lg $op rejected"
-      else bad "$x log=$lg $op -> '$r' rc=$rc"; fi
-    done
-    mutate "$d/claim.bin" "$d/claim.mut" flip 2
-    r=$(verify "$d" "$d/proof.bin" "$d/claim.mut"); rc=$?
-    if [ "$r" = reject ] && [ $rc -eq 1 ]; then pass "$x log=$lg mutated claim rejected"
-    else bad "$x log=$lg mutated claim -> '$r' rc=$rc"; fi
+    check_proof "$x log=$lg" "$d"
   done
 done
+
+# SHA-256 toy (lane L5's block table + companions, src/sha.rs and
+# Conformance/Sha.lean).  SHA_CASES: ';'-separated message-length lists.
+echo "== SHA toy: AIR export"
+"$npudr" export sha > "$out/rust-sha.json"
+"$le" sha > "$out/lean-sha.json"
+if cmp -s "$out/rust-sha.json" "$out/lean-sha.json"; then pass "export sha byte-identical"; else bad "export sha differs"; fi
+if "$le" --roundtrip "$out/rust-sha.json" >/dev/null; then pass "roundtrip sha"; else bad "roundtrip sha"; fi
+
+echo "== SHA toy: honest trace, Rust (npudr shatrace) vs Lean (ZkFormal.Sha.Gen)"
+IFS=';' read -ra cases <<< "${SHA_CASES:-0;55;56;64;119;951;1000;0 55 56 64 119 1000 3}"
+for c in "${cases[@]}"; do
+  f=$(echo $c | tr ' ' _)
+  $HEAVY "$here/.lake/build/bin/np-lean-shatrace" "$out/sha-lean-$f.bin" $c 2>/dev/null
+  "$npudr" shatrace "$out/sha-rust-$f.bin" $c
+  if cmp -s "$out/sha-lean-$f.bin" "$out/sha-rust-$f.bin"; then pass "sha trace [$c] identical ($(stat -c %s "$out/sha-rust-$f.bin") B)"
+  else bad "sha trace [$c] differs"; fi
+  if "$npudr" shacheck $c >/dev/null; then pass "sha trace [$c] satisfies every constraint, buses balance"
+  else bad "sha trace [$c] fails the AIR"; fi
+done
+
+echo "== SHA toy: proofs"
+d="$out/sha"; rm -rf "$d"; mkdir -p "$d"
+if $HEAVY "$npudr" toy sha 6 "$d" ${SHA_PROOF_LENS:-0 3 56 119} 2>"$d/prove.err"; then
+  OFFSETS="0 9 40 $(( $(stat -c %s "$d/proof.bin") / 2 )) $(( $(stat -c %s "$d/proof.bin") - 1 ))" check_proof "sha" "$d"
+else bad "sha: npudr toy failed"; cat "$d/prove.err"; fi
 
 [ $fail -eq 0 ] && echo "ALL PASS" || echo "SOME FAILURES"
 exit $fail

@@ -106,6 +106,8 @@ every mutation rejected. But verify wall time:
 | bus 2^5 | 163 KB | 2.25 s | |
 | wide(64) 2^8 | 304 KB | 5.5 s | |
 | bus 2^8 | 351 KB | 7.3 s | |
+| SHA toy 2^9 rows | 1.15 MB | 117 s | 25 ms |
+| SHA toy 2^12 rows | 1.45 MB | 180 s | 22 ms |
 | fib 2^10 | 375 KB | 4.7 s | |
 | wide(64) 2^11 | 523 KB | 13.0 s | |
 

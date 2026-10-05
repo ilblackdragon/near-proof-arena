@@ -21,7 +21,7 @@ rev 3acc8b7: p3-baby-bear/field/dft/matrix/util only). Package:
 | Lean conformance harness `conformance/run.sh` (export equality, accept, mutants) | L8 | done |
 | Fast packed constraint evaluator (`eval.rs`, BlockEval) | L8 | done |
 | Random-point constraint differential Lean vs Rust (`np-lean-eval`) | L8 | done (fib, multi, bus) |
-| SHA-256 table (L5) trace gen + round trip + benchmarks | L8 sub-agent | in progress |
+| SHA-256 table (L5 `Table.table`) + byte/digest companions: Rust trace gen = Lean `Gen` cell for cell; AIR export byte-identical; Lean verifier accepts, mutants rejected | L8 | done |
 | Judge `prove` | L8 | blocked on L6 (NEAR AIR + witness→trace) |
 | Verifier model / certificate in package | L4/L7 | placeholder reject-all model |
 
@@ -38,3 +38,14 @@ Benchmarks (8 threads, synthetic degree-4 table, no buses):
 (before streaming: 70 s, 76 GB). Main costs: main commit 19.7 s (16 coset DFTs ≈ 12 s + WH leaf hashing,
 16·T·W·4 bytes), openings 7.5 s (direct packed evaluation at the opened points),
 quotient 3.7 s (packed AVX2 BlockEval, 7.9x the scalar tape; the rest is the 4 block DFTs).
+
+SHA-256 toy (L5 table 544 cols + byte table 4 cols at 4× height + digest table; 1000-byte messages; 8 threads):
+
+| SHA rows | blocks | prove | peak RSS | proof | Rust verify | Lean verify |
+|---|---|---|---|---|---|---|
+| 2^12 | 240 | 0.45 s | 171 MB | 1.45 MB | 22 ms | 180 s |
+| 2^14 | 960 | 2.16 s | 675 MB | 1.67 MB | 27 ms | 230 s |
+| 2^16 | 3840 | 8.9 s | 2.7 GB | 1.92 MB | 25 ms | – |
+| 2^17 | 7680 | 17.6 s | 5.3 GB | 2.07 MB | 26 ms | – |
+
+Lean (compiled) verify is the blocker for the 10 s verify cap (REQUESTS.md, L8 → L4).
