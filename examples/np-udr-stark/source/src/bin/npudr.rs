@@ -85,8 +85,9 @@ fn toy_instance(which: &str, log: usize) -> (Air, Vec<p3_matrix::dense::RowMajor
         "fib" => (toy::fib_air(), vec![tr], cb),
         "multi" => (toy::multi_air(), vec![tr, toy::cube_trace(3, log.saturating_sub(2).max(1)), toy::cube_trace(1, 1)], cb),
         "bus" => {
-            let xs: Vec<u32> = (0..(1u32 << log)).map(|i| (i * 7) % 13).collect();
-            (toy::bus_air(), toy::bus_traces(4.max(log.saturating_sub(2)), log, &xs), vec![])
+            let lr = 4.max(log.saturating_sub(2));
+            let xs: Vec<u32> = (0..(1u32 << log)).map(|i| (i * 7) % (1 << lr)).collect();
+            (toy::bus_air(), toy::bus_traces(lr, log, &xs), vec![])
         }
         "wide" => {
             let w = 64;
