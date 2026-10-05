@@ -29,14 +29,16 @@ structure Bundle where
   sort : Array Row
   /-- every SHA message (node, acct, mrk, rcpt) -/
   msgs : List Msg
+  /-- walks that fail (none for honest records) -/
+  errors : List String
 
-def bundle (c : Claim) (e : Ext) : Except String Bundle := do
+def bundle (c : Claim) (e : Ext) : Bundle :=
   let I := mkInfo c e
-  let ws ← walksOf I
+  let ws := walksOf I
   let uses := edgeUses ws
-  pure { info := I, walks := ws, node := nodeRowsAll I uses, walk := walkRowsAll ws, rcpt := rcptRowsAll I,
+  { info := I, walks := ws, node := nodeRowsAll I uses, walk := walkRowsAll ws, rcpt := rcptRowsAll I,
          acct := acctRowsAll I, mrk := mrkRowsAll I, sort := sortRowsAll I,
-         msgs := nodeMsgs I ++ acctMsgs I ++ mrkMsgs I ++ rcptMsgs I }
+         msgs := nodeMsgs I ++ acctMsgs I ++ mrkMsgs I ++ rcptMsgs I, errors := walkErrors I }
 
 /-- Public inputs of a claim (`publicOf`). -/
 def pubOf (c : Claim) : List Fp := c.encode.map fun b => Fp.ofNat b.toNat

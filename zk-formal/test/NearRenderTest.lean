@@ -56,9 +56,9 @@ def run (name : String) (e : Ext) : IO Unit := do
   let c := mkClaim e
   let pub := pubOf c
   IO.println s!"=== {name}: {e.ns.length} nodes, {e.rs.length} receipts, pub {pub.length}"
-  match bundle c e with
-  | .error err => IO.println s!"generator error: {err}"
-  | .ok B =>
+  let B := bundle c e
+  if !B.errors.isEmpty then IO.println s!"generator error: {B.errors}"
+  do
     for (nm, T, rows) in B.tables do
       let groups := if nm == "node" then nodeGroups else []
       for l in reportTable nm T rows pub groups do IO.println l
@@ -165,9 +165,9 @@ def msort (l : List (List Nat)) : List (List Nat) :=
 def runViews (name : String) (e : Ext) : IO Unit := do
   let c := mkClaim e
   let pub := pubOf c
-  match bundle c e with
-  | .error err => IO.println s!"generator error: {err}"
-  | .ok B =>
+  let B := bundle c e
+  if !B.errors.isEmpty then IO.println s!"generator error: {B.errors}"
+  do
     let tfs := honestTraffic c e
     let mut ok := true
     for ((nm, T, rows), t) in B.tables.zip [1, 2, 3, 4, 5, 6] do
@@ -218,8 +218,8 @@ open NearRenderTest in
   let e := mkExt' ex5.ns [(3, 5 * 10 ^ 24, 5000), (4, 10 ^ 21, 700)]
     [(rcptFull long65 long64 "dave_1.near" secpPk 0 (bgp / 2) (10 ^ 23), 3)]
   let c := mkClaim e
-  match bundle c e with
-  | .error err => IO.println err
-  | .ok B =>
+  let B := bundle c e
+  if !B.errors.isEmpty then IO.println s!"generator error: {B.errors}"
+  do
     let vs := violations Rcpt.table B.rcpt (pubOf c)
     IO.println s!"65-char predecessor: rcpt violations {groupViol vs}"

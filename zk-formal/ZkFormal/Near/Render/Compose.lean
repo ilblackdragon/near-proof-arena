@@ -64,11 +64,8 @@ theorem shaTraffic_hi (ms : List Render.Msg) (s : Bool) : sel s (shaTraffic ms) 
 
 /-- **No honest traffic on buses `≥ 10`.** -/
 theorem other_bus (c : Claim) (e : Ext) (s : Bool) (m : List Fp) : hcount c e b s m = 0 := by
-  simp only [hcount, hc, htf, honestTraffic]
-  split
-  · simp [shaTraffic_hi hb, nodeTraffic_hi hb, walkTraffic_hi hb, rcptTraffic_hi hb,
-      acctTraffic_hi hb, mrkTraffic_hi hb, sortTraffic_hi hb, cnt]
-  · simp [sel, cnt]
+  simp [hcount, hc, htf, honestTraffic, shaTraffic_hi hb, nodeTraffic_hi hb, walkTraffic_hi hb,
+    rcptTraffic_hi hb, acctTraffic_hi hb, mrkTraffic_hi hb, sortTraffic_hi hb, cnt]
 
 end hi
 

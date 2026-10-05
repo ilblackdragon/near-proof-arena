@@ -4,7 +4,7 @@ import ZkFormal.Near.Tables.Sort
 /-!
 # ZkFormal.Near.Render.Sort — honest rows of the `sort` table
 
-32 rows per receipt id (then at least one padding row), ids sorted ascending as little-endian 256-bit
+32 rows per receipt id, ids sorted ascending as little-endian 256-bit
 integers; `diff = id_t − id_{t−1} − 1` byte-serially with carries; the delay
 line `d j` holds the byte `j + 1` rows back (cyclically, so that the wrap-around
 row `0` agrees with an active last row).
@@ -48,9 +48,7 @@ def sortRowsAll (I : Info) : Array Row := Id.run do
       rows := rows.push row
       cin := cout
     prev := leVal id
-  -- at least one padding row: the table's `sl · act' · ft' = 0` would fire on a
-  -- full table (last row `sl` wraps to row 0, `ft = 1`); see STATUS-L6-render.md
-  let padded := padTo (rows.push (zeroRow Sort.width)) (zeroRow Sort.width)
+  let padded := padTo rows (zeroRow Sort.width)
   let H := padded.size
   -- delay line: d j (row q) = bb (row q − 1 − j), cyclically
   let bbs := padded.map fun row => row.getD Sort.bb 0

@@ -84,9 +84,9 @@ open NearProbeTest in
 #eval do
   let c := mkClaim ex
   let pub := pubOf c
-  match bundle c ex with
-  | .error err => IO.println err
-  | .ok B =>
+  let B := bundle c ex
+  if !B.errors.isEmpty then IO.println s!"generator error: {B.errors}"
+  do
     -- node: patterns of type, state, fs/fe, nf/nl, gates
     probe "node" Node.table B.node pub
       ([Node.act, Node.nf, Node.nl, Node.sumr, Node.tl, Node.te, Node.tb1, Node.tb2, Node.fs,

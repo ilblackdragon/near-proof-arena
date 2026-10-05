@@ -117,17 +117,14 @@ def shaTraffic (ms : List Render.Msg) : Traffic :=
 
 /-! ## All honest traffic -/
 
-/-- The honest traffic of the seven tables (`nearAir` order), from the bundle
-(all-empty if the records admit no walks). -/
+/-- The honest traffic of the seven tables (`nearAir` order). -/
 def honestTraffic (c : Claim) (e : Ext) : List Traffic :=
-  match bundle c e with
-  | .ok B =>
-    let pub := pubOf c
-    let I := B.info
-    let uses := edgeUses B.walks
-    [shaTraffic B.msgs, nodeTraffic (nodeViewsOf I uses) pub, walkTraffic (walkViewsOf B.walks),
-     rcptTraffic pub (rcptViewsOf I), acctTraffic (acctViewsOf I), mrkTraffic pub (mrkViewOf I),
-     sortTraffic (sortIdsOf I)]
-  | .error _ => List.replicate 7 ⟨fun _ => [], fun _ => []⟩
+  let B := bundle c e
+  let pub := pubOf c
+  let I := B.info
+  let uses := edgeUses B.walks
+  [shaTraffic B.msgs, nodeTraffic (nodeViewsOf I uses) pub, walkTraffic (walkViewsOf B.walks),
+   rcptTraffic pub (rcptViewsOf I), acctTraffic (acctViewsOf I), mrkTraffic pub (mrkViewOf I),
+   sortTraffic (sortIdsOf I)]
 
 end ZkFormal.Near.Render
