@@ -21,6 +21,7 @@ arena-jobs = { path = "../../server/arena-jobs", features = ["client"] }
 arena-formal-checker = { path = "../formal-checker" }
 tokio = { workspace = true }
 libc.workspace = true
+sha2.workspace = true
 
 [dev-dependencies]
 arena-npai = { path = "../npai" }

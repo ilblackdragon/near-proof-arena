@@ -8,6 +8,8 @@
 //! Requires `ARENA_DEV_UNSAFE=1` and installed tools; otherwise SKIP.
 #![allow(clippy::type_complexity, clippy::doc_lazy_continuation)]
 
+mod common;
+
 use arena_formal_checker::native::{NativeLeanRoute, VerifierRoute};
 use arena_formal_checker::*;
 use arena_types::{GateStatus, ObligationId};
@@ -110,13 +112,13 @@ fn native(_: &Path) -> VerifierRoute {
 #[test]
 fn native_lean_route() {
     if std::env::var("ARENA_DEV_UNSAFE").as_deref() != Ok("1") {
-        eprintln!("SKIP native_lean_route: ARENA_DEV_UNSAFE=1 required");
+        common::skip_gated!("ARENA_DEV_UNSAFE=1 required");
         return;
     }
     let tools = match toolchain::ToolPaths::discover() {
         Ok(t) => t,
         Err(e) => {
-            eprintln!("SKIP native_lean_route: {e}");
+            common::skip_gated!("formal-checker tools unavailable: {e}");
             return;
         }
     };

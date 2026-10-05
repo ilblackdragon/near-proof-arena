@@ -4,7 +4,8 @@
 mod common;
 
 use arena_jobs::*;
-use arena_types::{GateStatus, ObligationId, ReasonCode};
+use arena_types::{Digest, GateStatus, ObligationId, ReasonCode};
+use arena_worker::executor::JobExecutor;
 use common::*;
 
 #[test]
@@ -46,7 +47,7 @@ fn honest_candidate_passes_every_stage() {
     }
     let s = &gate(&c, ObligationId::ConformanceDifferential).summary;
     assert!(
-        s.contains("10/10 cases conform (6 public fixtures, 4 judge-sampled)"),
+        s.contains("10/10 cases conform (6 public fixtures, 4 judge-sampled, 0 held-out)"),
         "{s}"
     );
     assert!(
@@ -385,7 +386,7 @@ fn fork_bomb_and_background_daemon() {
 /// not reach any gate summary; on public fixtures the details stay.
 #[test]
 fn redteam_heldout_failure_details_are_not_a_covert_channel() {
-    let mut f = fixture();
+    let f = fixture();
     let base = String::from_utf8(package_files()["source/prove.c"].1.clone()).unwrap();
     let marker = "  memcpy(claim, r, 16);";
     let leak_name = base.replace(
@@ -411,13 +412,12 @@ fn redteam_heldout_failure_details_are_not_a_covert_channel() {
             s.contains("LEAK-") || s.contains("173"),
             "{what}: control lost detail: {s}"
         );
-        // only judge-sampled (non-public) cases
-        let saved = std::mem::replace(
-            &mut f.exec.ctx.oracles,
-            arena_worker::oracle::Oracles::builtin(),
-        );
+        // only judge-sampled (non-public) cases: a challenge that pins no
+        // fixture set (all-zero digest)
+        let mut job = job;
+        job.challenge.workload_suite.public_fixtures =
+            Digest::try_from(format!("sha256:{}", "0".repeat(64))).unwrap();
         let c = f.exec(JobSpec::Conformance(job));
-        f.exec.ctx.oracles = saved;
         assert_eq!(
             gate(&c, ObligationId::ProverReliability).status,
             GateStatus::Fail,
@@ -432,4 +432,83 @@ fn redteam_heldout_failure_details_are_not_a_covert_channel() {
             );
         }
     }
+}
+
+/// Audit A06: a challenge that pins public fixtures the worker cannot supply
+/// is an infrastructure error naming the pin; conformance never PASSes on
+/// generated cases alone.
+#[test]
+fn conformance_fails_closed_without_pinned_fixtures() {
+    let mut f = fixture();
+    let job = built(&f, &package_files());
+    f.exec.ctx.oracles = arena_worker::oracle::Oracles::builtin();
+    for spec in [
+        JobSpec::Conformance(job.clone()),
+        JobSpec::Adversarial(job.clone()),
+    ] {
+        let e = f
+            .exec
+            .execute(&spec, "t", &std::sync::atomic::AtomicBool::new(false))
+            .unwrap_err();
+        let m = e.to_string();
+        assert!(
+            matches!(e, arena_worker::executor::ExecError::Infra(_)),
+            "{m}"
+        );
+        assert!(
+            m.contains(job.challenge.workload_suite.public_fixtures.as_str()),
+            "{m}"
+        );
+    }
+}
+
+/// Audit A06: a committed held-out set held by the judge is verified against
+/// `heldout_commitment`, used for conformance, and stays out of summaries; a
+/// wrong digest is an infrastructure error.
+#[test]
+fn conformance_uses_verified_heldout_set() {
+    let mut f = fixture();
+    let hd = f.tmp.path().join("heldout");
+    for class in ["toy-small", "toy-large"] {
+        std::fs::create_dir_all(hd.join(class)).unwrap();
+        for i in 0..3u64 {
+            let mut r = (4242 + i).to_le_bytes().to_vec();
+            r.extend_from_slice(&(9 * i + 2).to_le_bytes());
+            let h: String = r.iter().map(|x| format!("{x:02x}")).collect();
+            std::fs::write(
+                hd.join(class).join(format!("hidden-{i}.json")),
+                format!("{{\"request_hex\":\"{h}\"}}"),
+            )
+            .unwrap();
+        }
+    }
+    let commit = f.exec.ctx.oracles.add_heldout_dir(&hd).unwrap();
+    let mut job = built(&f, &package_files());
+    // The signed demo challenge commits to no held-out set (all-zero).
+    let c = f.exec(JobSpec::Conformance(job.clone()));
+    let s = &gate(&c, ObligationId::ConformanceDifferential);
+    assert_eq!(s.status, GateStatus::Pass, "{}", s.summary);
+    assert!(s.summary.contains("0 held-out"), "{}", s.summary);
+    // Commit to a different set: fail closed.
+    job.challenge.workload_suite.heldout_commitment = Digest::of_bytes(b"not the set");
+    let e = f
+        .exec
+        .execute(
+            &JobSpec::Conformance(job.clone()),
+            "t",
+            &std::sync::atomic::AtomicBool::new(false),
+        )
+        .unwrap_err();
+    assert!(e.to_string().contains("heldout_commitment"), "{e}");
+    // Commit to this set: used, ids withheld.
+    job.challenge.workload_suite.heldout_commitment = commit.clone();
+    let c = f.exec(JobSpec::Conformance(job));
+    let s = &gate(&c, ObligationId::ConformanceDifferential);
+    assert_eq!(s.status, GateStatus::Pass, "{}", s.summary);
+    assert!(s.summary.contains("4 held-out"), "{}", s.summary);
+    assert!(s.summary.contains(commit.as_str()), "{}", s.summary);
+    for g in &c.gates {
+        assert!(!g.summary.contains("hidden-"), "{}", g.summary);
+    }
+    assert!(c.artifacts.iter().all(|a| !a.label.contains("hidden-")));
 }

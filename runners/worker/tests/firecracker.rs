@@ -14,7 +14,7 @@ use std::sync::Arc;
 #[test]
 fn honest_candidate_through_firecracker() {
     if std::env::var("ARENA_FC_TESTS").as_deref() != Ok("1") {
-        eprintln!("skipped: set ARENA_FC_TESTS=1");
+        skip_gated!("set ARENA_FC_TESTS=1");
         return;
     }
     let f = fixture();
@@ -66,7 +66,7 @@ fn honest_candidate_through_firecracker() {
 #[test]
 fn build_through_firecracker_with_pinned_toolchain() {
     if std::env::var("ARENA_FC_TESTS").as_deref() != Ok("1") {
-        eprintln!("skipped: set ARENA_FC_TESTS=1");
+        skip_gated!("set ARENA_FC_TESTS=1");
         return;
     }
     let images = std::env::var_os("ARENA_TOOLCHAIN_IMAGES")

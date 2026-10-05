@@ -142,6 +142,13 @@ The judge computes the concrete bound from the certified formula (a Lean
 term evaluated by the kernel — **no `native_decide`**) at the actual
 parameters; manifest claims like `security_bits = 128` are ignored.
 
+`privacy = validity_only` means admission establishes validity (soundness of
+the claim) only, not witness privacy: `FORMAL_ZK` is then in
+`not_applicable_gates`. A privacy claim requires a `zero_knowledge` profile
+and a `FORMAL_ZK` gate discharged by a closed privacy theorem. formal-core does
+not define that predicate yet, and no challenge requires it
+(`docs/AGENT_CONTRACT.md` §6.1).
+
 ## 6. Obligations and gates
 
 Obligation ids (`ObligationId`) used in `required_obligations`:

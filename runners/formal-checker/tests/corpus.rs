@@ -6,6 +6,8 @@
 //! Without them the test only checks that the dev runner refuses to start and
 //! prints SKIP. Filter with `FC_CASE=<substring>`; parallelism `FC_JOBS` (default 6).
 
+mod common;
+
 use arena_formal_checker::*;
 use arena_types::{GateStatus, ObligationId, ReasonCode};
 use serde_json::Value;
@@ -136,13 +138,13 @@ fn corpus() {
             dev_runner().is_err(),
             "dev runner must refuse without ARENA_DEV_UNSAFE=1"
         );
-        eprintln!("SKIP corpus: set ARENA_DEV_UNSAFE=1 to run the formal checker corpus");
+        common::skip_gated!("set ARENA_DEV_UNSAFE=1 to run the formal checker corpus");
         return;
     }
     let tools = match toolchain::ToolPaths::discover() {
         Ok(t) => t,
         Err(e) => {
-            eprintln!("SKIP corpus: {e}");
+            common::skip_gated!("formal-checker tools unavailable: {e}");
             return;
         }
     };
