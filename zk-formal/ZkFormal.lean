@@ -85,3 +85,6 @@ import ZkFormal.Udr.Np.Early
 import ZkFormal.Udr.Np.Ali
 import ZkFormal.Udr.Np.Bus
 import ZkFormal.Udr.Np.BusRounds
+import ZkFormal.Bcs.TransDefs
+import ZkFormal.Bcs.TransStatements
+import ZkFormal.Bcs.TransCompose
