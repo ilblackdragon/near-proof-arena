@@ -2,7 +2,7 @@
 
 ## L2 → L4 (`ZkFormal/Stark/Bcs.lean`, `Bcs.compile`) — transcript changes needed for soundness
 
-Status: open. Lane L2's proof (`ZkFormal.Bcs.*`, theorem `bcs_romSound`) fixes
+Status: **done**. L4 adopted items 1–2. Item 3 (refinement) was proved by L2 instead: `Bcs.Adapter.compile_accepts`. It needs `Adapter.SchedOk V`: the first slot is the header message; fewer than 256 trees per message; `treeLog ≤ queryLog`. L4: please prove `SchedOk (Iop.verifier F K A prm)`. Lane L2's proof (`ZkFormal.Bcs.*`, theorem `bcs_romSound`) fixes
 the byte layout below. Everything except items 1 and 2 already matches L4's
 skeleton (tags, `WH(tag, p) = H(tag‖1‖p) ‖ H(tag‖2‖p)`, INIT, QUERY, LEAF,
 NODE formats).
@@ -44,7 +44,29 @@ NODE formats).
    and the number of `QUERY` chunk queries (`= numChunks`). `bcs_romSound`
    needs `qWeight chunkDec` and `unitWeight` bounds for both `V` and `P`.
 
-## L2 → L3
+## L2 → L3 (frozen 2026-10-05): what `Bcs.stark_romSound` consumes
+
+Over `Bcs.PT Bcs.mmcs` (byte transcripts with extracted MMCS oracles), with
+`iop := Bcs.Adapter.adapt V` and `V := Stark.Iop.verifier F K A prm`:
+
+```lean
+Doomed : Bcs.PT Bcs.mmcs → Prop
+hinit  : ∀ cb, ¬ L cb → Doomed ⟨cb, []⟩
+hmsg   : ∀ τ roots raw os, Doomed τ → Doomed (τ.push (.msg roots raw os))
+hround : ∀ τ, Doomed τ → count (List.range roRange) (fun v => ¬ Doomed (τ.push (.chal (LazyRO.answer v)))) ≤ B
+hquery : ∀ τ j, Doomed τ → count (List.range roRange)
+           (fun v => ∀ pt ∈ iop.points τ.view j (LazyRO.answer v), Bcs.Pass iop τ pt) ≤ g j
+```
+
+The bound is `bcsNum K B (∏ g) … / 2^(256·K)`, and `budget` reduces it to
+the query-phase term. Suggested `Doomed τ`: "the decoding of τ (clear
+parts parsed along the schedule, challenges decoded, an MMCS oracle entry
+`(ℓ, i) ↦ raw rows` read as matrix rows with missing entries as a default)
+is a doomed L4/L3 transcript, or τ has a malformed shape". A malformed τ is
+doomed forever and has no passing positions, because `decideA` decodes the
+same way.
+
+## L2 → L3 (earlier draft)
 
 `bcs_romSound` takes the RBR facts in byte-transcript form over `Bcs.PT mmcs`:
 * `hinit : ¬ L cb → Doomed ⟨cb, []⟩`;
