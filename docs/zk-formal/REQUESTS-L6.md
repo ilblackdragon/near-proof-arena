@@ -156,3 +156,43 @@ per-table statement is local.)
 `.mul (c rf) (c idx)` (`rf → idx = 0`).  The honest generator already has
 `idx = 0` on `rf` rows: `test/NearRenderTest.lean` passes unchanged (rcpt now
 965 constraints); `BudgetCheck`/`NpOkCheck` re-checked.
+## R-L6e-1 (L6-render): `Good` must bound the number of touched nodes — OPEN
+
+**Problem.** `AcctLocalStmt` (part of `RenderObligations`) is false as stated:
+`Good c e` does not bound the number of touched nodes of `e.ns`, but the
+`acct` table has one 16-row segment per touched node and `maxLog = 12`
+(at most 256 segments).
+
+*Counterexample.* One receipt, and a revealed trie: a root branch whose own
+value slot is touched, with 16 revealed child branches, each with 16 revealed
+touched leaves (257 touched nodes), all with valid 72-byte AccountV1 values; the claim computed from the `Ext` as in
+`test/NearRenderTest.lean` (`mkClaim`).  Every field of `Good` holds
+(`size`: 257 leaves are far below `maxWitnessBytes`; the receipt's walk reaches
+one of the leaves), but the honest `acct` table has `257·16 = 4112 > 2^12`
+rows, so `TableLocal.log_le` fails.  (No trace at all is accepted for such an
+`Ext`: `VSLOT` forces one `acct` segment per touched node.)
+
+**Fix (minimal).** Add to `Good`
+
+```lean
+  touched_le : (e.ns.filter NodeRec.touched).length ≤ Params.maxBatch
+```
+
+(`Render.TouchedLe e`, `Render/Proof/AcctFacts.lean`).  The pruning
+(`GoodCompleteStmt`) produces exactly the receivers' slots, at most
+`receiptCount ≤ maxBatch` of them.  Soundness: from the `acct` view
+(`AcctWf`/`acctTraffic`, `≤ 2^12/16 = 256` segments) and `VSLOT` balance
+(node sends `VSLOT (k)` once per touched node, acct receives once per segment).
+
+Proved meanwhile: `acctLocal' : AcctLocalStmt'` (= `AcctLocalStmt` with the
+extra hypothesis `TouchedLe e`) and `acctLocal_of : (∀ c e, Good c e →
+TouchedLe e) → AcctLocalStmt`.
+
+**Related (not yet checked in detail).** The same kind of bound is missing for
+the `node` and `sha` tables (`maxLog = 22`): `Good.size` bounds the revealed
+*bytes* (`≤ 3·10^6`), but each node costs `node` rows per serialized byte and
+`sha` rows per 64-byte block of its two serializations plus `≥ 36` rows per
+node (two messages, at least one block of 17 rows each, plus start rows).  A
+trie of ~10^6 tiny nodes (e.g. childless, valueless branches of a few bytes)
+satisfies `Good.size` but would need `> 2^22` `sha` rows.  Fix: bound the
+node count in `Good` (or make `size` count a per-node overhead).

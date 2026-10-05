@@ -151,3 +151,48 @@ carry nothing (`other_bus`). `bundle` is total (a failing walk is empty, with
   through `res`, the spec walk takes `EPS` steps).
 * The sha cells via `Sha.Gen.rowCell` cost ≈ 1.5 ms each in the interpreter,
   so tests use L5's expected traffic for the sha side.
+
+## Render obligations — proofs (`Render/Proof/`, lane/zk-L6-rproof)
+
+Generators rewritten in closed form where needed for the proofs (same rows;
+`test/NearRenderTest.lean` still: no violations, every bus balanced):
+`mkTab H W f` tables for sort/acct/walk, `Info.vpre/vpost/res` as maps
+(`resF`), functional `walkOf` (`walkFrom`), `rcptData` (`rdOf`, prefix sums),
+walk counters `useAtL`/`usesL` shared by the walk table and its view.
+
+| obligation | theorem | module |
+|---|---|---|
+| `SortLocalStmt` | `sortLocal` | `Proof/SortLocal` (+ `SortIds`: sorted ids strictly increasing, carries) |
+| `SortTrafficStmt` | `sortTraffic_ok` | `Proof/SortTraffic` |
+| `AcctLocalStmt` | `acctLocal'` (needs `TouchedLe e`, R-L6e-1), `acctLocal_of` | `Proof/AcctLocal` (+ `AcctFacts`) |
+| `AcctTrafficStmt` | `acctTraffic_ok` | `Proof/AcctTraffic` |
+| `WalkLocalStmt` | `walkLocal` | `Proof/WalkLocal` (+ `WalkOk`: generator walk = spec walk; `WalkShape`) |
+| `WalkTrafficStmt` | `walkTraffic_ok` | `Proof/WalkTraffic` (+ `WalkIdx`) |
+| `VslotBusStmt` | `vslotBus` | `Proof/BusVslot` |
+| `RidsBusStmt` | `ridsBus` | `Proof/BusRids` |
+| `MemBusStmt` | `memBus` | `Proof/BusMem` (+ `MemChain`: write/read time pairs are a permutation) |
+| `FinalBusStmt`, `KeynibBusStmt` | `finalBus`, `keynibBus` | `Proof/BusFinal` |
+| `MrkLocalStmt` | `mrkLocal` | `Proof/MrkLocal{,2,3,4}` (+ `MrkRecs`: row records of the levels) |
+| `MrkTrafficStmt` | `mrkTraffic_ok` | `Proof/MrkTraffic{,2,3}` (+ `MrkFacts`: level sizes, `MRK` indices = `hashedBefore`) |
+| `MposBusStmt` | `mposBus` | `Proof/BusMpos` (children of level `j` = level `j − 1` in order; taken positions = rotation of offered ones) |
+
+**Assembly** (`Proof/Main`): `render_of_rest : RenderRest → RenderStmt`, where
+`RenderRest` = the open obligations: `TouchedLe` from `Good` (R-L6e-1),
+`Sha/Node/Rcpt` Local + Traffic, buses `BYTES, DIGEST, PARENT, EDGE`.
+All proofs: axioms `propext, Classical.choice, Quot.sound` only.
+
+Elaboration (`lake env lean`, wall): MrkLocal2 21 s, MrkLocal 12 s, WalkLocal 6 s,
+SortLocal 5 s, MrkLocal3 5 s, MrkLocal4 5 s, AcctLocal 4 s, the rest ≤ 1.2 s.
+`test/NearRenderTest.lean` ≈ 50 s (was 36 s; walk counters are `O(rows²)`).
+
+Generator changes (rows unchanged up to the closed forms; test passes):
+`Render/{Sort,Acct,Walk,Mrk}.lean` closed form via `mkTab`; `Render/Common.lean`:
+`mkTab`, `Info.vpre/vpost` as maps, `resF` (walk targets), functional
+`walkFrom`/`walkOf`; `Render/Rcpt.lean`: `rdOf`/`rcptData` as a map with
+prefix sums; `Render/Views.lean`: views built from the same closed forms
+(walk counters `usesL`, mrk levels `MrkGen.levels`).
+
+Key lemma: `walkOf_ok` (`Proof/WalkOk`): under `Good`, the generator's walk of
+every receipt succeeds and ends at `e.slot r` (simulation of the spec `Walk`
+with `EPS` steps collapsed by `resF`; `resF` is stable by the `TreeShape`
+depth argument).

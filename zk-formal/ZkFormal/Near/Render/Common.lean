@@ -46,6 +46,10 @@ def padTo (rows : Array Row) (pad : Row) : Array Row :=
 
 def zeroRow (w : Nat) : Row := Array.replicate w 0
 
+/-- The table of `H` rows of width `W` with cells `f row col` (closed-form generators). -/
+def mkTab (H W : Nat) (f : Nat → Nat → Nat) : Array Row :=
+  (Array.range H).map fun q => (Array.range W).map (f q)
+
 /-- Little-endian bytes of `x` (width `w`). -/
 def leBytes (w x : Nat) : List Nat := toNats (leN w x)
 
@@ -102,20 +106,28 @@ def nRcpt : Nat := I.e.rs.length
 
 end Info
 
+/-- Walk target of node `n` (fuel `f`): an empty-key extension with a revealed
+child forwards to its child's target. -/
+def resF (ns : Array NodeRec) : Nat → Nat → Nat
+  | 0, n => n
+  | f + 1, n =>
+    match ns.getD n (.branch none [] 0) with
+    | .ext [] (.node c) _ => resF ns f c
+    | _ => n
+
 /-- Build the `Info` of an `Ext` (pre/post serializations bottom-up). -/
 def mkInfo (c : Claim) (e : Ext) : Info := Id.run do
   let ns := e.ns.toArray
   let N := ns.size
   let order := postOrder ns (N + 1) 0
   let touched := (List.range N).filter fun k => (ns.getD k (.branch none [] 0)).touched
-  let mut vpre : Array (List Nat) := Array.replicate N []
-  let mut vpost : Array (List Nat) := Array.replicate N []
-  for k in touched do
-    vpre := vpre.set! k (toNats (e.vals0 k))
-    vpost := vpost.set! k (toNats (e.valsAt e.rs.length k))
+  let vpre : Array (List Nat) := (Array.range N).map fun k =>
+    if (ns.getD k (.branch none [] 0)).touched then toNats (e.vals0 k) else []
+  let vpost : Array (List Nat) := (Array.range N).map fun k =>
+    if (ns.getD k (.branch none [] 0)).touched then toNats (e.valsAt e.rs.length k) else []
   let mut pre : Array (List Nat) := Array.replicate N []
   let mut post : Array (List Nat) := Array.replicate N []
-  let mut res : Array Nat := (List.range N).toArray
+  let res : Array Nat := (Array.range N).map (resF ns (N + 1))
   let mut dpre : Array Bytes := Array.replicate N []
   let mut dpost : Array Bytes := Array.replicate N []
   for n in order do
@@ -128,10 +140,6 @@ def mkInfo (c : Claim) (e : Ext) : Info := Id.run do
     post := post.set! n (toNats sPost)
     dpre := dpre.set! n (sha256 sPre)
     dpost := dpost.set! n (sha256 sPost)
-    if eextOf nr then
-      match kidIds nr with
-      | [c'] => res := res.set! n (res.getD c' c')
-      | _ => pure ()
   let mut depth : Array Nat := Array.replicate N 0
   for n in order.reverse do
     for c' in kidIds (ns.getD n (.branch none [] 0)) do
@@ -182,17 +190,19 @@ structure WStep where
   last : Bool
   deriving Repr, Inhabited
 
+/-- Steps from state `st` consuming `syms` (symbol index from `t`). -/
+def walkFrom (I : Info) : Nat × Nat → List Nat → Nat → Except String (List WStep)
+  | _, [], _ => .ok []
+  | st, sym :: syms, t => do
+    let st' ← stepOf I st.1 st.2 sym
+    let rest ← walkFrom I st' syms (t + 1)
+    return ⟨some t, sym, [st.1, st.2, sym, st'.1, st'.2], sym = SYM_END⟩ :: rest
+
 /-- The walk of receipt `rc`: `START` then one step per key symbol. -/
 def walkOf (I : Info) (rc : Receipt) : Except String (List WStep) := do
   let r0 := I.res.getD 0 0
-  let mut steps : Array WStep := #[⟨none, SYM_START, [0, 0, SYM_START, r0, 0], false⟩]
-  let mut st := (r0, 0)
-  let syms := keySyms rc
-  for (sym, t) in syms.zip (List.range syms.length) do
-    let st' ← stepOf I st.1 st.2 sym
-    steps := steps.push ⟨some t, sym, [st.1, st.2, sym, st'.1, st'.2], sym = SYM_END⟩
-    st := st'
-  return steps.toList
+  let rest ← walkFrom I (r0, 0) (keySyms rc) 0
+  return ⟨none, SYM_START, [0, 0, SYM_START, r0, 0], false⟩ :: rest
 
 /-- All walks, receipt order (a walk that fails is empty; see `walkErrors`). -/
 def walksOf (I : Info) : List (List WStep) :=
