@@ -277,3 +277,28 @@ pub fn run(mut req: Request, state: &BTreeMap<Vec<u8>, Vec<u8>>) -> Executed {
     let _ = enc::CLAIM_FORMAT;
     Executed { request: req, claim: Some(claim), witness_values, nearcore, clean, problems }
 }
+
+/// Bytes of the slice witness nearcore's own `TrieRecorder` records when
+/// reading `keys` from the trie of `state` (sum of recorded node and value
+/// lengths: exactly the `witness_bytes` the domain check bounds). Used by the
+/// `max_witness` generator to calibrate its trie against the domain cap.
+pub fn recorded_read_bytes(state: &BTreeMap<Vec<u8>, Vec<u8>>, keys: &[Vec<u8>]) -> usize {
+    let epoch_info_provider = MockEpochInfoProvider::default();
+    let shard_layout = epoch_info_provider.shard_layout(&EpochId::default()).unwrap();
+    let shard_uid = shard_layout.shard_uids().next().unwrap();
+    let tries: ShardTries = TestTriesBuilder::new().build();
+    let empty = tries.get_trie_for_shard(shard_uid, CryptoHash::default());
+    let changes: Vec<(Vec<u8>, Option<Vec<u8>>)> =
+        state.iter().map(|(k, v)| (k.clone(), Some(v.clone()))).collect();
+    let tc = empty.update(changes, AccessOptions::DEFAULT).unwrap();
+    let mut su = tries.store_update();
+    let root = tries.apply_all(&tc, shard_uid, &mut su);
+    su.commit();
+    let rec = tries.get_trie_for_shard(shard_uid, root).recording_reads_new_recorder();
+    for k in keys {
+        let _ = rec.get(k, AccessOptions::DEFAULT).unwrap();
+    }
+    let proof = rec.recorded_storage().unwrap();
+    let PartialState::TrieValues(values) = &proof.nodes;
+    values.iter().map(|v| v.len()).sum()
+}

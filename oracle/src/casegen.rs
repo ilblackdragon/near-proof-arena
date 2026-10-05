@@ -322,6 +322,12 @@ fn price(rng: &mut Rng) -> u128 {
 pub static FORCE_RECEIPTS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
 pub fn gen_valid(seed: u64, idx: u64, profile: &str) -> Case {
+    if profile == crate::maxwit::PROFILE {
+        // not in PROFILES: only on request (`--profiles max_witness`)
+        let (c, st) = crate::maxwit::generate(seed, idx, crate::maxwit::receipts(), &[], &[]);
+        eprintln!("max_witness {}: {st:?}", c.id);
+        return c;
+    }
     for attempt in 0.. {
         let mut rng = Rng::new(seed, idx.wrapping_mul(1000).wrapping_add(attempt));
         let c = gen_valid_once(&mut rng, seed, idx, profile);
