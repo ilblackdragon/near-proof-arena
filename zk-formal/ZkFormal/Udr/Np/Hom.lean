@@ -184,4 +184,68 @@ theorem selSum_omg_next {log : Nat} (hlog : log ≤ 27) {r : Nat} (hr : r < 2 ^ 
   · rw [if_pos (by rw [h, Nat.mod_self]), if_pos h]
   · rw [if_neg (by rw [Nat.mod_eq_of_lt (by omega)]; omega), if_neg h]
 
+/-! ## The evaluation homomorphism on the trace domain -/
+
+section
+variable (A : Air) (prm : Params)
+
+theorem ofBase_ite (p : Prop) [Decidable p] (a b : Fp) :
+    Fp8.ofBase (if p then a else b) = if p then Fp8.ofBase a else Fp8.ofBase b := by
+  split <;> rfl
+
+theorem evalWith_hom (τ : PTn) (t : Nat)
+    (hdl : (hdrOf τ).getD t 0 = (tl A prm τ t).log) (hlog : (tl A prm τ t).log ≤ 27)
+    (hbase : ∀ (c j : Nat), (colAt A prm τ ⟨t, 0, c⟩ (omg (tl A prm τ t).log ^ j)).IsBase)
+    (r : Nat) (hr : r < 2 ^ (tl A prm τ t).log) : ∀ e : Expr,
+    e.evalWith (polyEnv A prm τ t (omg (tl A prm τ t).log ^ r)) =
+      Fp8.ofBase (e.eval (decTrace A prm τ) t r (pubOf Fp τ.cb))
+  | .const c => rfl
+  | .pub i => rfl
+  | .col c nx => by
+    have hh : (decTrace A prm τ).height t = 2 ^ (tl A prm τ t).log := by
+      show 2 ^ (hdrOf τ).getD t 0 = _; rw [hdl]
+    show colAt A prm τ ⟨t, 0, c⟩ (if nx then omg (tl A prm τ t).log * omg (tl A prm τ t).log ^ r
+        else omg (tl A prm τ t).log ^ r) =
+      Fp8.ofBase ((colAt A prm τ ⟨t, 0, c⟩
+        (omg ((hdrOf τ).getD t 0) ^ (if nx then (r + 1) % (decTrace A prm τ).height t else r))).c0)
+    rw [hdl, hh]
+    cases nx
+    · simp only [Bool.false_eq_true, if_false]
+      exact (ofBase_c0 (hbase c r)).symm
+    · simp only [if_true]
+      have e : omg (tl A prm τ t).log * omg (tl A prm τ t).log ^ r =
+          omg (tl A prm τ t).log ^ ((r + 1) % 2 ^ (tl A prm τ t).log) := by
+        rw [← omg_pow_mod hlog, Semiring.pow_succ]; grind
+      rw [e]
+      exact (ofBase_c0 (hbase c _)).symm
+  | .isFirst => by
+    show selSum (2 ^ (tl A prm τ t).log) (omg (tl A prm τ t).log ^ r) = Fp8.ofBase (if r = 0 then 1 else 0)
+    rw [selSum_omg hlog hr, ofBase_ite]; rfl
+  | .isLast => by
+    have hh : (decTrace A prm τ).height t = 2 ^ (tl A prm τ t).log := by
+      show 2 ^ (hdrOf τ).getD t 0 = _; rw [hdl]
+    show selSum (2 ^ (tl A prm τ t).log) (omg (tl A prm τ t).log * omg (tl A prm τ t).log ^ r) =
+      Fp8.ofBase (if r + 1 = (decTrace A prm τ).height t then 1 else 0)
+    rw [selSum_omg_next hlog hr, ofBase_ite, hh]; rfl
+  | .isTransition => by
+    have hh : (decTrace A prm τ).height t = 2 ^ (tl A prm τ t).log := by
+      show 2 ^ (hdrOf τ).getD t 0 = _; rw [hdl]
+    show 1 - selSum (2 ^ (tl A prm τ t).log) (omg (tl A prm τ t).log * omg (tl A prm τ t).log ^ r) =
+      Fp8.ofBase (if r + 1 = (decTrace A prm τ).height t then 0 else 1)
+    rw [selSum_omg_next hlog hr, ofBase_ite, hh]
+    split
+    · show (1 : Fp8) - 1 = 0; grind
+    · show (1 : Fp8) - 0 = 1; grind
+  | .add a b => by
+    show a.evalWith _ + b.evalWith _ = Fp8.ofBase (a.eval _ t r _ + b.eval _ t r _)
+    rw [evalWith_hom τ t hdl hlog hbase r hr a, evalWith_hom τ t hdl hlog hbase r hr b, Fp8.ofBase_add]
+  | .mul a b => by
+    show a.evalWith _ * b.evalWith _ = Fp8.ofBase (a.eval _ t r _ * b.eval _ t r _)
+    rw [evalWith_hom τ t hdl hlog hbase r hr a, evalWith_hom τ t hdl hlog hbase r hr b, Fp8.ofBase_mul]
+  | .neg a => by
+    show - a.evalWith _ = Fp8.ofBase (- a.eval _ t r _)
+    rw [evalWith_hom τ t hdl hlog hbase r hr a, Fp8.ofBase_neg]
+
+end
+
 end ZkFormal.Udr.Np
