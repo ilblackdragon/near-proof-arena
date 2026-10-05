@@ -147,3 +147,26 @@ are `sorry` in the scratch tree only. `proverQ`/`proverChunk` are the proved `pr
 * `np_admission` hypotheses: AIR soundness/completeness, header fit, non-empty and < 2^32 tables,
   size bound, `maxProofBytes`, profile facts, `lo`/`g` domination + `QueryOk`, `NpOk`, `NVu`.
   `near_admission` needs only `L6Facts`.
+
+### M2 real checker run on the closed certificate (`535b0c7`; dev bwrap sandbox, tier_cap demo)
+
+Certificate `ToyCandidate.certificate := toy_admission _ … rfl (by decide) (by decide) (by decide +kernel)`.
+There is **no sorry** anywhere. Model `ZkFormal.Toy.Model.verifier`; trusted: formal-core (`ArenaCore`) + `ZkToySpec`.
+
+**All six gates PASS**: FORMAL_SEMANTIC_SOUNDNESS, FORMAL_SEMANTIC_COMPLETENESS, FORMAL_CRYPTO_SOUNDNESS,
+FORMAL_IMPL_CONNECTION, AXIOM_AUDIT and ARTIFACT_BINDING. There are no findings and no warnings.
+* Rechecks: leanchecker accepted 231 modules (74 s), lean4lean accepted 231 modules (84 s; the L1b
+  Pocklington `p_prime` fixed the timeout), nanoda accepted (20 s); arena-audit and the NDJSON audit (12 767 decls) accepted.
+* Candidate elaboration took 111 s; the whole pipeline took 324 s.
+* Judge-built verifier `sha256:f703a5a2…`, run on honest proofs from L8's Rust prover:
+
+  | proof | exit code | time |
+  |---|---|---|
+  | height 2: 2 KB | 1 (query domain 2^5 < 2^8, correctly inadmissible) | 2 ms |
+  | 33 KB | 0 | 14 ms |
+  | 365 KB | 0 | 104 ms |
+  | 927 KB | 0 | 237 ms |
+
+  Wrong claim, non-canonical claim and a 1-bit mutation are all rejected.
+* Caveat: `lane/fc-csimp` (R-L7-5) has not landed. AXIOM_AUDIT does not yet cover the `@[csimp]`
+  lemmas. L4d's three lemmas use only propext/Quot.sound, so the verdict should not change.
