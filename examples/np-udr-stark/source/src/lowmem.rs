@@ -25,7 +25,7 @@ use crate::mmcs::rev;
 
 pub type Dft = Radix2DitParallel<F>;
 
-/// Bit-reverse the rows of a row-major matrix in place.
+/// Bit-reverse the rows of a row-major matrix (parallel gather).
 pub fn reverse_rows(m: &mut RowMajorMatrix<F>) {
     let w = m.width();
     let h = m.height();
@@ -33,13 +33,13 @@ pub fn reverse_rows(m: &mut RowMajorMatrix<F>) {
         return;
     }
     let bits = p3_util::log2_strict_usize(h);
-    for i in 0..h {
+    let src = std::mem::take(&mut m.values);
+    let mut dst = vec![F::ZERO; h * w];
+    dst.par_chunks_mut(w).enumerate().for_each(|(i, row)| {
         let j = rev(i, bits);
-        if i < j {
-            let (a, b) = m.values.split_at_mut(j * w);
-            a[i * w..(i + 1) * w].swap_with_slice(&mut b[..w]);
-        }
-    }
+        row.copy_from_slice(&src[j * w..(j + 1) * w]);
+    });
+    m.values = dst;
 }
 
 /// `Σ_j f[j·m + i] · y^j` for `i < m` (rows of `f`, `C` columns).

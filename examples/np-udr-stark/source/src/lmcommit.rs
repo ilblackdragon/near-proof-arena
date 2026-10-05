@@ -133,9 +133,10 @@ fn rows_on(dft: &Dft, m: &CMat, ranges: &[(usize, usize)], chunk: usize) -> Vec<
     for (c0, c1) in m.src.chunks(chunk) {
         let co = m.src.coeffs(dft, c0, c1);
         let cw = c1 - c0;
+        use rayon::prelude::*;
+        let evs: Vec<_> = ranges.par_iter().map(|&(p0, len)| eval_range(dft, &co, m.lde, m.shift, p0, len, None)).collect();
         let mut off = 0;
-        for &(p0, len) in ranges {
-            let e = eval_range(dft, &co, m.lde, m.shift, p0, len, None);
+        for (e, &(_, len)) in evs.iter().zip(ranges) {
             for i in 0..len {
                 out[off + i][c0..c1].copy_from_slice(&e.values[i * cw..(i + 1) * cw]);
             }

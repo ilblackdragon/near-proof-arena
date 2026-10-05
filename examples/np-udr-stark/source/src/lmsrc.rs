@@ -60,6 +60,25 @@ impl Src<'_> {
             }
         }
     }
+    /// Coefficients of the base columns `cols` (main traces only: any subset).
+    pub fn coeffs_list(&self, dft: &Dft, cols: &[usize]) -> RowMajorMatrix<F> {
+        match self {
+            Src::Main(t) => {
+                let w = cols.len();
+                let h = t.height();
+                let mut v = vec![F::ZERO; h * w];
+                v.par_chunks_mut(w.max(1)).enumerate().for_each(|(r, row)| {
+                    for (j, &c) in cols.iter().enumerate() {
+                        row[j] = t.get(r, c);
+                    }
+                });
+                let m = RowMajorMatrix::new(v, w);
+                if w == 0 { m } else { dft.idft_batch(m) }
+            }
+            _ => panic!("coeffs_list: main traces only"),
+        }
+    }
+
     /// Column chunk boundaries (aux chunks are aligned to K columns).
     pub fn chunks(&self, max: usize) -> Vec<(usize, usize)> {
         let w = self.width();
@@ -89,7 +108,7 @@ pub struct AuxSrc<'a> {
     pub alpha: EF,
     pub gamma: EF,
     /// main columns the interaction expressions read (sorted)
-    cols: Vec<usize>,
+    pub cols: Vec<usize>,
 }
 
 const RCH: usize = 4096;
