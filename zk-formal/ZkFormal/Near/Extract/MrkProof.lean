@@ -726,3 +726,140 @@ theorem bounds (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) :
       rw [toNat_succ_of e1 (by omega), e2]; simp [Fp.toNat_zero]; omega
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp} {segs : List (Nat × Nat)}
+
+def dsOf (tr : Trace Fp) (segs : List (Nat × Nat)) : List ND := segs.map fun p => ndAt tr (p.1 + 1)
+
+theorem dsOf_get (t : Nat) (ht : t < segs.length) : (dsOf tr segs).getD t default = ndAt tr (segs[t].1 + 1) := by
+  rw [getD_eq_getElem' _ _ (by simp [dsOf]; exact ht)]; simp [dsOf]
+
+theorem one_iff {r x : Nat} : one tr x r = true ↔ tr.cell T_MRK r x = 1 := by simp [one]
+
+theorem idx_le (hS : Segs tr segs) : ∀ t (ht : t < segs.length), t ≤ segs[t].1 := by
+  intro t; induction t with
+  | zero => intro _; omega
+  | succ t ih =>
+    intro ht; rw [hS.next ht]
+    have := ih (by omega); have := (hS.seg _ (List.getElem_mem (by omega : t < segs.length))).1; omega
+
+theorem rules (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) : Rules (dsOf tr segs) := by
+  have hP : 4 * tr.height T_MRK + 4 < P := by have := height_le hL; unfold P; omega
+  have hH2 := height_ge hL
+  have hB0 := bounds hL hS
+  have hB : ∀ t (ht : t < segs.length), _ ∧ _ ∧ _ ∧ 4 * t + 4 < ZkFormal.Algebra.P := fun t ht => by
+    obtain ⟨a, b, c⟩ := hB0 t ht
+    have hp := List.getElem_mem (l := segs) ht
+    have := hS.le hp; have := idx_le hS t ht; have := hP
+    exact ⟨a, b, c, by omega⟩
+  have hlen : (dsOf tr segs).length = segs.length := by simp [dsOf]
+  have hrow : ∀ t (ht : t < segs.length), segs[t].1 + 1 < tr.height T_MRK := fun t ht => by
+    have hp := List.getElem_mem (l := segs) ht
+    have := hS.le hp; have := (hS.seg _ hp).1; omega
+  have hA : ∀ t (ht : t < segs.length), A tr (segs[t].1 + 1) = 1 := fun t ht =>
+    (endRow hL (hS.seg _ (List.getElem_mem ht)) (hS.le (List.getElem_mem ht))).2.1
+  refine ⟨fun t ht => ?_, fun t ht hl => ?_, fun t ht hl => ?_, fun t ht hl => ?_, fun t ht hl => ?_, fun h0 => ?_⟩
+  · rw [hlen] at ht; rw [dsOf_get t ht]
+    have e := (shapeRow hL (hrow t ht) (hA t ht)).2.1
+    simp only [ndAt]
+    rw [cellOne hL (hrow t ht) (x := pr) (by simp), cellOne hL (hrow t ht) (x := odd) (by simp),
+      cellOne hL (hrow t ht) (x := lil) (by simp)] at e
+    revert e
+    cases one tr pr (segs[t].1 + 1) <;> cases one tr odd (segs[t].1 + 1) <;>
+      cases one tr lil (segs[t].1 + 1) <;> simp only [ite_true, ite_false, Bool.false_eq_true] <;>
+      intro e <;> first | rfl | (exfalso; grind)
+  · rw [hlen] at ht; rw [dsOf_get t ht] at hl ⊢
+    simp only [ndAt] at hl ⊢
+    rw [one_iff] at hl
+    obtain ⟨e1, -, e3, -, -⟩ := shapeRow hL (hrow t ht) (hA t ht)
+    have hs := toNat_succ_of (e3 hl).symm (by have := (hB t ht).2.2.1; have := (hB t ht).2.2.2; omega)
+    refine ⟨hs.symm, ?_⟩
+    have ho : (tr.cell T_MRK (segs[t].1 + 1) odd).toNat = if one tr odd (segs[t].1 + 1) then 1 else 0 := by
+      rw [cellOne hL (hrow t ht) (x := odd) (by simp)]; split <;> rfl
+    have hob : (tr.cell T_MRK (segs[t].1 + 1) odd).toNat ≤ 1 := by
+      rw [ho]; cases one tr odd (segs[t].1 + 1) <;> decide
+    have hs2 : 2 * (tr.cell T_MRK (segs[t].1 + 1) s).toNat < P := by
+      have := (hB t ht).2.2.1; have := (hB t ht).2.2.2; omega
+    have hs1 : 1 ≤ (tr.cell T_MRK (segs[t].1 + 1) s).toNat := by omega
+    have key := lin2 e1 hob hs2 hs1
+    by_cases hb : one tr odd (segs[t].1 + 1) = true
+    · simp only [hb, ite_true] at ho ⊢; omega
+    · simp only [hb, ite_false, Bool.false_eq_true] at ho ⊢; omega
+  · rw [hlen] at ht; rw [dsOf_get t ht] at hl ⊢
+    simp only [ndAt] at hl ⊢
+    rw [one_iff] at hl
+    obtain ⟨-, -, -, e4, e5⟩ := shapeRow hL (hrow t ht) (hA t ht)
+    rw [one_iff]
+    constructor
+    · intro h; rw [e4 h]; rfl
+    · intro h
+      rcases isBool hL (hrow t ht) (x := top) (by simp) with h' | h'
+      · exfalso
+        have := e5 h'
+        rw [← Fp.ofNat_toNat (tr.cell T_MRK (segs[t].1 + 1) s), h] at this
+        exact absurd this (by
+          rw [show Fp.ofNat 1 = (1 : Fp) from rfl]; intro hc; grind)
+      · exact h'
+  · rw [hlen] at ht; rw [dsOf_get t (by omega)] at hl; rw [dsOf_get t (by omega), dsOf_get (t + 1) ht]
+    simp only [ndAt] at hl ⊢
+    have hp0 := List.getElem_mem (l := segs) (by omega : t < segs.length)
+    have hp1 := List.getElem_mem (l := segs) ht
+    obtain ⟨-, f1, -, -⟩ := succF hL (hS.seg _ hp0) (hS.le hp0) (hS.seg _ hp1) (hS.le hp1) (hS.next ht)
+    have hl0 := bool01 hL (hrow t (by omega)) (x := lil) (by simp) (by rw [← one_iff, hl]; decide)
+    obtain ⟨e1, e2, e3⟩ := f1 hl0
+    exact ⟨toNat_eq_of e1, toNat_succ_of e2 (by have := (hB t (by omega)).2.2.1; have := (hB t (by omega)).2.2.2; omega), toNat_eq_of e3⟩
+  · rw [hlen] at ht; rw [dsOf_get t (by omega)] at hl; rw [dsOf_get t (by omega), dsOf_get (t + 1) ht]
+    simp only [ndAt] at hl ⊢
+    rw [one_iff] at hl
+    have hp0 := List.getElem_mem (l := segs) (by omega : t < segs.length)
+    have hp1 := List.getElem_mem (l := segs) ht
+    obtain ⟨g0, -, f2, -⟩ := succF hL (hS.seg _ hp0) (hS.le hp0) (hS.seg _ hp1) (hS.le hp1) (hS.next ht)
+    obtain ⟨e1, e2, e3⟩ := f2 hl
+    refine ⟨by simp [one, g0 hl], toNat_succ_of e1 (by have := (hB t (by omega)).2.1; have := (hB t (by omega)).2.2.2; omega), ?_, toNat_eq_of e3⟩
+    rw [e2]; rfl
+  · rw [hlen] at h0 ⊢
+    rw [dsOf_get _ (by omega)]
+    simp only [ndAt, one_iff]
+    have hp := List.getElem_mem (l := segs) (by omega : segs.length - 1 < segs.length)
+    obtain ⟨hE, -, hcst⟩ := endRow hL (hS.seg _ hp) (hS.le hp)
+    have hend := segEnd_last segs 0 hS.consec h0
+    have he1 : segs[segs.length - 1].1 + segs[segs.length - 1].2 + 1 < tr.height T_MRK := by
+      have := hS.le hp
+      rcases Nat.lt_or_ge (segs[segs.length - 1].1 + segs[segs.length - 1].2 + 1) (tr.height T_MRK) with h | h
+      · exact h
+      · exfalso
+        have hA' := (endRow hL (hS.seg _ hp) (hS.le hp)).1
+        have hl := lastRow hL (by omega)
+        rw [show tr.height T_MRK - 1 = segs[segs.length - 1].1 + segs[segs.length - 1].2 by omega] at hl
+        -- the end row is active (E = 1 means sl or pr, both active)
+        have hl2 := (local_ hL (r := segs[segs.length - 1].1 + segs[segs.length - 1].2) (by omega))
+        simp only [E, A] at hA' hl
+        rcases isBool hL (r := segs[segs.length - 1].1 + segs[segs.length - 1].2) (by omega) (x := pr) (by simp)
+          with a | a
+        · have hsl : tr.cell T_MRK (segs[segs.length - 1].1 + segs[segs.length - 1].2) sl = 1 := by
+            rw [a] at hA'; grind
+          have hw := hl2.2.2.2.2.2.2.1; rw [hsl] at hw
+          have hwl : tr.cell T_MRK (segs[segs.length - 1].1 + segs[segs.length - 1].2) wl = 1 := by
+            rcases isBool hL (r := segs[segs.length - 1].1 + segs[segs.length - 1].2) (by omega) (x := wl) (by simp)
+              with b | b <;> rw [b] at hw <;> grind
+          have := (hl2.2.2.2.2.1 hwl).1; rw [this, a] at hl; grind
+        · rw [a] at hl; grind
+    have hnA : A tr (segs[segs.length - 1].1 + segs[segs.length - 1].2 + 1) = 0 := by
+      have := hS.pad (segs[segs.length - 1].1 + segs[segs.length - 1].2) (by omega) (by omega)
+      simp only [actS, decide_eq_false_iff_not] at this
+      rcases A_cases hL (r := segs[segs.length - 1].1 + segs[segs.length - 1].2 + 1) he1 with ⟨h, -⟩ | ⟨h, -⟩
+      · exact absurd h this
+      · exact h
+    have ne := nodeEnd hL he1 hE
+    rw [hcst lil (by simp [nodeConst]), hcst top (by simp [nodeConst])] at ne
+    rcases isBool hL (hrow (segs.length - 1) (by omega)) (x := lil) (by simp) with hl | hl
+    · rw [(ne.2.1 hl).1] at hnA; exact absurd hnA fp_one_ne_zero
+    · refine ⟨hl, ?_⟩
+      rcases isBool hL (hrow (segs.length - 1) (by omega)) (x := top) (by simp) with ht | ht
+      · rw [(ne.2.2.1 hl ht).1] at hnA; exact absurd hnA fp_one_ne_zero
+      · exact ht
+
+end ZkFormal.Near.MrkProof

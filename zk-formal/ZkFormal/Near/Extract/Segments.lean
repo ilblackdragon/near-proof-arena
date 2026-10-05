@@ -393,3 +393,15 @@ theorem getD_eq_getElem' {α : Type} (l : List α) (d : α) {n : Nat} (h : n < l
     l.getD n d = l[n] := by
   rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem h]; rfl
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+theorem segEnd_last : ∀ (l : List (Nat × Nat)) (s0 : Nat), Consec s0 l → (h : 0 < l.length) →
+    segEnd s0 l = (l[l.length - 1]'(by omega)).1 + (l[l.length - 1]'(by omega)).2
+  | [], _, _, h => by simp at h
+  | [p], s0, hc, _ => by obtain ⟨rfl, -⟩ := hc; simp [segEnd]
+  | p :: q :: r, s0, hc, _ => by
+    obtain ⟨rfl, hc⟩ := hc
+    have := segEnd_last (q :: r) (p.1 + p.2) hc (by simp)
+    simp only [segEnd] at this ⊢
+    rw [this]; simp
+end ZkFormal.Near
