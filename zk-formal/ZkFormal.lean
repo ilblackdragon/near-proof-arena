@@ -56,3 +56,5 @@ import ZkFormal.Bcs.StarkDecode
 import ZkFormal.Bcs.StarkOpen
 import ZkFormal.Bcs.StarkAlign
 import ZkFormal.Bcs.StarkRefine
+import ZkFormal.Bcs.MultiproofRead
+import ZkFormal.Bcs.Multiproof
