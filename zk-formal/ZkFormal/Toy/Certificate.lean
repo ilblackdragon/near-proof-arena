@@ -17,7 +17,7 @@ other lanes, bundled (IOP completeness, prover budgets and L3 soundness are prov
 | field | statement | owner |
 |---|---|---|
 | `bcs`, `size` | `Prover.{BcsComplete,Size}Stmt` — false for hash functions with non-32-byte answers; proved for 32-byte ones (`bcs_complete32`, `size32`); closes once L4 normalises answers (`fit32`, R-L7-bcs-1) | L4 + L7-bcs |
-| `query` | `QueryOk Params.default.numChunks g2_5` | **false for 24 chunks** — R-L7-1 (true after `numChunks := 26`: `udr2_K26_ok`) |
+| `min8` | admissible headers have `queryLog ≥ 8` (then `QueryOk 24 g2_8` = `udr2_K24_min8_ok`) | L4 (lane/zk-L4e, R-L7-1 decision) |
 -/
 
 namespace ZkFormal.Toy
@@ -29,7 +29,8 @@ open ArenaCore ArenaCore.Security Lean.Grind ZkFormal ZkFormal.Stark ZkFormal.Ai
 structure ToyPending : Prop where
   bcs : BcsCompleteStmt
   size : SizeStmt
-  query : QueryOk Params.default.numChunks g2_5
+  /-- Admissible headers have query domain `≥ 2^8` (R-L7-1 decision (b), L4 lane/zk-L4e). -/
+  min8 : ∀ hdr, headerOk toyAir Params.default hdr = true → 8 ≤ queryLog toyAir Params.default hdr
 
 /-- `public.bin` of the toy candidate. -/
 def publicBin : Bytes := Bytes.ofString "np-udr-stark-v1/toy-square/v1"
@@ -75,9 +76,8 @@ theorem toy_admission (hp : ToyPending) (pid model : String) (tb : Nat) (allowed
     toyAir toyAir_tables (by decide) rfl (fun c w => honestTrace w)
     (fun c tr h => toy_sound c tr h)
     (fun c w _ hr => ⟨toy_holds c w hr, toy_header w⟩)
-    toy_size (Nat.le_refl _) ?_ ?_ htb rfl rfl 5 g2_5
-    (fun hdr h => queryLog_ge_of_headerOk toyAir Params.default hdr toyAir_tables h)
-    g2_5_dom hp.query toy_npOk toy_NVu
+    toy_size (Nat.le_refl _) ?_ ?_ htb rfl rfl 8 g2_8 hp.min8
+    g2_8_dom udr2_K24_min8_ok toy_npOk toy_NVu
   · show ZkToySpec.secModelOf model = _
     rw [hmodel]; rfl
   · show AssumptionId.sha256RandomOracle ∈ allowed.flatMap ZkToySpec.assumptionOf

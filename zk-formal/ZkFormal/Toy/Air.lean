@@ -90,9 +90,10 @@ theorem toy_sound (b : UInt8) (tr : Trace Fp) (h : Holds toyAir (pubB b) tr) :
 
 /-! ## Completeness -/
 
-/-- The honest trace: height 2, every row holds the 4 bits of `w`. -/
+/-- The honest trace: height 16 (so the LDE domain is `2^8`, the smallest admissible
+query domain under R-L7-1 (b)), every row holds the 4 bits of `w`. -/
 def honestTrace (w : Nat) : Trace Fp where
-  log := fun _ => 1
+  log := fun _ => 4
   cell := fun _ _ c => (((w / 2 ^ c % 2 : Nat) : Nat) : Fp)
 
 theorem bits_ok : ∀ w, w < 16 → ∀ c, c < 4 →
@@ -119,7 +120,7 @@ theorem toy_holds (b : UInt8) (w : Nat) (h : w * w = b.toNat) :
   refine ⟨?_, ?_, ?_, ?_⟩
   · intro t ht
     have : t = 0 := by simp [toyAir] at ht; omega
-    subst this; exact ⟨Nat.le_refl _, show 1 ≤ 16 by decide⟩
+    subst this; exact ⟨show 1 ≤ 4 by decide, show 4 ≤ 16 by decide⟩
   · intro t ht r _ e he
     have : t = 0 := by simp [toyAir] at ht; omega
     subst this
@@ -143,7 +144,7 @@ theorem toy_holds (b : UInt8) (w : Nat) (h : w * w = b.toNat) :
 
 theorem toy_header (w : Nat) :
     headerOk toyAir Params.default (Prover.trHdr toyAir (honestTrace w)) = true := by
-  show headerOk toyAir Params.default [1] = true
+  show headerOk toyAir Params.default [4] = true
   decide
 
 end ZkFormal.Toy

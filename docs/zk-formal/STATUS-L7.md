@@ -123,3 +123,12 @@ are `sorry` in the scratch tree only. `proverQ`/`proverChunk` are the proved `pr
 * `np_admission` (and so `toy_admission`, `near_admission`) is now proved from **only**
   `BcsCompleteStmt`, `SizeStmt` and `QueryOk numChunks g2_5`, plus the AIR inputs. `ToyPending`
   = {bcs, size, query}.
+
+## Lead decisions applied (2026-10-05)
+
+* **R-L7-1 → (b):** 24 chunks, admissible headers require `queryLog ≥ 8`. Toy and NEAR use
+  `lo = 8`, `g = g2_8`, and `QueryOk 24 g2_8 = udr2_K24_min8_ok` (kernel). The new input is `min8`
+  (admissible ⇒ `8 ≤ queryLog`); it comes from L4's new `headerOk` (lane/zk-L4e). The toy's honest
+  trace now has height 16 (LDE 2^8).
+* `ToyPending` = {`bcs`, `size` (L4e: hash answers normalised to 32 bytes), `min8` (L4e)}.
+* ZK challenge draft renamed to `near-transfer-receipt-v1-zk` (`chl_bdbfc808…`, unsigned).

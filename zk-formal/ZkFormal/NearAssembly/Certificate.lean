@@ -54,7 +54,8 @@ structure L6Facts (A : Air) (honestTrace : WfClaim → Witness → Trace Fp) : P
 structure NearPending (A : Air) : Prop where
   bcs : BcsCompleteStmt
   size : SizeStmt
-  query : QueryOk Params.default.numChunks g2_5
+  /-- Admissible headers have query domain `≥ 2^8` (R-L7-1 decision, L4). -/
+  min8 : ∀ hdr, headerOk A Params.default hdr = true → 8 ≤ queryLog A Params.default hdr
 
 /-- **M5 skeleton: admission on the NEAR challenge.** -/
 theorem near_admission (A : Air) (honestTrace : WfClaim → Witness → Trace Fp)
@@ -69,9 +70,8 @@ theorem near_admission (A : Air) (honestTrace : WfClaim → Witness → Trace Fp
   refine np_admission hp.bcs hp.size _ _ pub hpub
     A h6.nonempty h6.tables rfl honestTrace (fun c tr h => h6.sound c tr h)
     (fun c w _ hr => ⟨h6.complete c w hr, h6.fits c w hr⟩)
-    h6.size (Nat.le_refl _) ?_ ?_ htb rfl rfl 5 g2_5
-    (fun hdr h => queryLog_ge_of_headerOk A Params.default hdr h6.nonempty h)
-    g2_5_dom hp.query h6.npOk h6.nvu
+    h6.size (Nat.le_refl _) ?_ ?_ htb rfl rfl 8 g2_8 hp.min8
+    g2_8_dom udr2_K24_min8_ok h6.npOk h6.nvu
   · show secModelOf model = _
     rw [hmodel]; rfl
   · show AssumptionId.sha256RandomOracle ∈ allowed.flatMap assumptionOf
