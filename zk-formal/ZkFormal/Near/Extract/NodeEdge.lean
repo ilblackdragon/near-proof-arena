@@ -152,7 +152,7 @@ variable (hL : TableLocal Node.table tr T_NODE pub)
 include hL
 variable {s ℓ : Nat} {fl : List (Nat × Nat)}
 
-theorem hP_of (hC : NodeCtx tr s ℓ fl) : s + ℓ + 4 < P := by
+theorem hP_of (hC : NodeCtx tr s ℓ fl) : 2 * (s + ℓ) + 8 < P := by
   have := hC.bound; have := height_le hL; unfold P; omega
 
 /-- The node start: the root provides the walk's first step. -/
@@ -260,5 +260,94 @@ theorem hpfEdge (hC : NodeCtx tr s ℓ fl) (hm : (5, 1) ∈ fl) (sF : tr.cell T_
         have hN : cv tr T_NODE (s + 5) aN = cv tr T_NODE s xres := by unfold cv; rw [f1, hxr]
         have hJ : cv tr T_NODE (s + 5) aJ = 0 := by unfold cv; rw [f2]; exact Fp.toNat_zero
         simp [eAN, hnid, hlo, hI, hN, hJ, cv_one hx]
+
+end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+theorem fp_one_gA (a b' c' d' e f g : Fp) : (1 : Fp) + (0 * a * b' + (c' * 0 * d' * e + (f * 0 * g + 0))) = 1 := by grind
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+/-- A key byte row: the high-nibble edge (A) and, unless it is the dead last nibble of an
+extension, the low-nibble edge (B). -/
+theorem keyRowEdge (hC : NodeCtx tr s ℓ fl) {o L : Nat} (hm : (o, L) ∈ fl) (ho : 0 < o)
+    (sK : tr.cell T_NODE (s + o) sKEY = 1) {d : Nat} (hd : d < L) {n : Nat}
+    (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) (hnP : n < P) :
+    rowEdgeN tr pub (s + o + d) =
+      [([n, 2 * d + cv tr T_NODE s odd, hiN tr (s + o + d), n, 2 * d + cv tr T_NODE s odd + 1], cv tr T_NODE (s + o + d) mA)] ++
+      (if d + 1 = L ∧ cv tr T_NODE s xdead = 1 then [] else
+        [([n, 2 * d + cv tr T_NODE s odd + 1, loN tr (s + o + d),
+           if d + 1 = L ∧ cv tr T_NODE s te = 1 then cv tr T_NODE s xres else n,
+           if d + 1 = L ∧ cv tr T_NODE s te = 1 then 0 else 2 * d + cv tr T_NODE s odd + 2], cv tr T_NODE (s + o + d) mB)]) := by
+  obtain ⟨hF, hH⟩ := fieldAt hL hC hm
+  have hdℓ : o + d < ℓ := by have := (hC.fields.field _ hm).2; simp at this; omega
+  have hP := hP_of hL hC
+  obtain ⟨hr, ha, hnid⟩ := inRow hL hC hdℓ hn hnP
+  rw [← Nat.add_assoc] at hr ha hnid
+  have sK' : tr.cell T_NODE (s + o + d) sKEY = 1 := by rw [hF.st d hd sKEY (by simp [states]), sK]
+  have z := fun y (hy : y ∈ states) (hne : y ≠ sKEY) => stOnly hL hr ha sK' (by simp [states]) hy hne
+  have cst := fun x (hx : x ∈ nodeConst) => (show tr.cell T_NODE (s + o + d) x = tr.cell T_NODE s x by
+    rw [Nat.add_assoc]; exact segConst hL hC hx hdℓ)
+  obtain ⟨GA, GB⟩ := gatesAt hL hr
+  rw [sK', z sHPF (by simp [states]) (by decide), z sCH (by simp [states]) (by decide),
+    z sVH (by simp [states]) (by decide), if_neg (by omega)] at GA
+  have hA : tr.cell T_NODE (s + o + d) gA = 1 := by rw [GA]; exact fp_one_gA _ _ _ _ _ _ _
+  rw [sK', cst xdead (by simp [nodeConst])] at GB
+  have hidx := hF.idx d hd
+  have E := (edgeFacts hL hr (pub := pub)).1 sK'
+  simp only at E
+  obtain ⟨e1, e2, e3, e4, e5, e6⟩ := E
+  obtain ⟨n1, n2, hhi, hlo⟩ := nibs hL hr (pub := pub)
+  have bo := cvb hL (r := s) (by omega) (x := odd) (by simp [boolCols])
+  have hki : kiE.eval tr T_NODE (s + o + d) pub = ((2 * d + cv tr T_NODE s odd : Nat) : Fp) := by
+    simp only [kiE, eval_add, eval_smul, eval_c]
+    rw [hidx, cst odd (by simp [nodeConst]), cell_eq_cast tr T_NODE s odd, natCast_add, natCast_mul]
+  have kiN1 : (kiE.eval tr T_NODE (s + o + d) pub + 1).toNat = 2 * d + cv tr T_NODE s odd + 1 := by
+    rw [hki, show (1 : Fp) = ((1 : Nat) : Fp) from rfl, ← natCast_add]; exact toNat_of_eq rfl (by omega)
+  have kiN2 : (kiE.eval tr T_NODE (s + o + d) pub + 2).toNat = 2 * d + cv tr T_NODE s odd + 2 := by
+    rw [hki, show (2 : Fp) = ((2 : Nat) : Fp) from rfl, ← natCast_add]; exact toNat_of_eq rfl (by omega)
+  have hfe : tr.cell T_NODE (s + o + d) fe = 1 ↔ d + 1 = L := hF.fe d hd
+  have eA : eAN tr (s + o + d) = [n, 2 * d + cv tr T_NODE s odd, hiN tr (s + o + d), n, 2 * d + cv tr T_NODE s odd + 1] := by
+    unfold eAN
+    have hb1 : 2 * d + cv tr T_NODE s odd < P := by omega
+    rw [hnid, cv_of_eq (e1.trans hki) hb1, cv_of_eq (e2.trans hhi) (by unfold P; omega),
+      show cv tr T_NODE (s + o + d) aN = n by unfold cv; rw [e3]; exact hnid,
+      show cv tr T_NODE (s + o + d) aJ = 2 * d + cv tr T_NODE s odd + 1 by
+        unfold cv; rw [e4]; exact kiN1]
+  unfold rowEdgeN
+  rw [hA, if_pos rfl, eA]
+  congr 1
+  rcases isBool hL hr (x := fe) (by simp [boolCols]) with hf | hf
+  · -- not the last row
+    have hnl : ¬ d + 1 = L := fun h => by rw [hfe.2 h] at hf; exact fp_one_ne_zero hf
+    have hB : tr.cell T_NODE (s + o + d) gB = 1 := by rw [GB, hf]; grind
+    obtain ⟨f1, f2⟩ := e5 (by rw [hf]; grind)
+    rw [hB, if_pos rfl, if_neg (fun h => hnl h.1), if_neg (fun h => hnl h.1), if_neg (fun h => hnl h.1)]
+    unfold eBN
+    rw [hnid, kiN1, toNat_of_eq hlo (by unfold P; omega),
+      show cv tr T_NODE (s + o + d) bN = n by unfold cv; rw [f1]; exact hnid,
+      show cv tr T_NODE (s + o + d) bJ = 2 * d + cv tr T_NODE s odd + 2 by unfold cv; rw [f2]; exact kiN2]
+  · have hl : d + 1 = L := hfe.1 hf
+    rcases isBool hL (r := s) (by omega) (x := xdead) (by simp [boolCols]) with hx | hx
+    · have hB : tr.cell T_NODE (s + o + d) gB = 1 := by rw [GB, hx]; grind
+      rw [hB, if_pos rfl, if_neg (fun h => by rw [cv_zero hx] at h; omega)]
+      unfold eBN
+      rw [hnid, kiN1, toNat_of_eq hlo (by unfold P; omega)]
+      rcases isBool hL (r := s) (by omega) (x := te) (by simp [boolCols]) with ht | ht
+      · obtain ⟨f1, f2⟩ := e5 (by rw [cst te (by simp [nodeConst]), ht]; grind)
+        rw [if_neg (fun h => by rw [cv_zero ht] at h; omega), if_neg (fun h => by rw [cv_zero ht] at h; omega),
+          show cv tr T_NODE (s + o + d) bN = n by unfold cv; rw [f1]; exact hnid,
+          show cv tr T_NODE (s + o + d) bJ = 2 * d + cv tr T_NODE s odd + 2 by unfold cv; rw [f2]; exact kiN2]
+      · obtain ⟨f1, f2⟩ := e6 hf (by rw [cst te (by simp [nodeConst]), ht])
+        rw [if_pos ⟨hl, cv_one ht⟩, if_pos ⟨hl, cv_one ht⟩,
+          show cv tr T_NODE (s + o + d) bN = cv tr T_NODE s xres by unfold cv; rw [f1, cst xres (by simp [nodeConst])],
+          show cv tr T_NODE (s + o + d) bJ = 0 by unfold cv; rw [f2]; exact Fp.toNat_zero]
+    · have hB : tr.cell T_NODE (s + o + d) gB = 0 := by rw [GB, hx, hf]; grind
+      rw [hB, if_pos (show d + 1 = L ∧ cv tr T_NODE s xdead = 1 from ⟨hl, cv_one hx⟩)]; simp
 
 end ZkFormal.Near.NodeProof
