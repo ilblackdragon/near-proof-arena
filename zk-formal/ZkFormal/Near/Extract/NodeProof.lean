@@ -88,3 +88,81 @@ theorem sizeBound (hS : NodeSegs tr segs) : (segs.map (szOf tr)).sum ≤ 3000000
   omega
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {segs : List (Nat × Nat)}
+
+theorem touchedNode {s ℓ : Nat} {fl : List (Nat × Nat)} (hC : NodeCtx tr s ℓ fl) :
+    (nodeVOf tr s).touched = (cv tr T_NODE s tv == 1) := by
+  obtain ⟨hr0, ha0⟩ := nodeStart hL hC
+  have T := typeSumNat hL hr0 ha0
+  have F := (flags hL hr0).2.2.1
+  have hz : cv tr T_NODE s tv * (cv tr T_NODE s tb1 + cv tr T_NODE s te) = 0 := by
+    rw [cell_eq_cast tr T_NODE s tv, cell_eq_cast tr T_NODE s tb1, cell_eq_cast tr T_NODE s te, ← natCast_add,
+      ← natCast_mul] at F
+    have b1 := cvb hL hr0 (x := tv) (by simp [boolCols])
+    have b2 := cvb hL hr0 (x := tb1) (by simp [boolCols])
+    have b3 := cvb hL hr0 (x := te) (by simp [boolCols])
+    have := Nat.mul_le_mul b1 (show cv tr T_NODE s tb1 + cv tr T_NODE s te ≤ 2 by omega)
+    exact fp_cast_eq (b := 0) (by unfold P; omega) (by unfold P; omega) (F.trans rfl)
+  exact touched_iff tr s hz (by omega)
+
+theorem nodeWfOf (hS : NodeSegs tr segs) : NodeWf (viewOf tr pub segs) := by
+  have hlen : (viewOf tr pub segs).length = segs.length := by simp [viewOf]
+  obtain ⟨h0, f0⟩ := hS.first hL
+  have hget : ∀ n (hn : n < (viewOf tr pub segs).length),
+      (viewOf tr pub segs)[n] = nodeSOf tr pub segs[n].1 segs[n].2 := by
+    intro n hn; simp [viewOf]
+  have hH := hS.lenLt hL
+  have hHP : tr.height T_NODE < P := by have := height_le hL; unfold P; omega
+  have mem : ∀ S ∈ viewOf tr pub segs, ∃ p ∈ segs, S = nodeSOf tr pub p.1 p.2 := by
+    intro S hS'; simp only [viewOf, List.mem_map] at hS'; obtain ⟨p, hp, rfl⟩ := hS'; exact ⟨p, hp, rfl⟩
+  refine ⟨List.ne_nil_of_length_pos (by rw [hlen]; exact h0), ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro S hS'; obtain ⟨p, hp, rfl⟩ := mem S hS'
+    obtain ⟨fl, hC⟩ := hS.ctx hL hp
+    exact (nodeV_wf hL hC).1
+  · obtain ⟨q, rest, hq⟩ := List.exists_cons_of_length_pos h0
+    have hq0 : q.1 = 0 := by subst hq; simpa using f0
+    subst hq
+    show cv tr T_NODE q.1 depth = 0
+    rw [hq0]; unfold cv; rw [(firstRow hL (by have := height_ge hL; omega)).2.2.2.1]; exact Fp.toNat_zero
+  · intro n hn
+    rw [hget]
+    obtain ⟨fl, hC⟩ := hS.ctx hL (List.getElem_mem (show n < segs.length by omega))
+    exact resOkNode hL hC (hS.nid hL n (by omega)) (by omega)
+  · intro n hn
+    rw [hget]
+    obtain ⟨fl, hC⟩ := hS.ctx hL (List.getElem_mem (show n < segs.length by omega))
+    exact usesLen hL hC (hS.nid hL n (by omega)) (by omega) (hS.start0 hL (by omega))
+  · have : (viewOf tr pub segs).map (fun S => (S.v.ser false).length + (if S.v.touched then 72 else 0)) =
+        segs.map (szOf tr) := by
+      unfold viewOf; rw [List.map_map]; apply List.map_congr_left; intro p hp
+      obtain ⟨fl, hC⟩ := hS.ctx hL hp
+      simp only [Function.comp, nodeSOf]
+      rw [← (nodeSer hL hC).1, rowsB_length, szOf]
+      simp only [touchedNode hL hC]
+      have := cvb hL (r := p.1) (by have := hC.bound; have := hC.seg.1; omega) (x := tv) (by simp [boolCols])
+      by_cases ht : cv tr T_NODE p.1 tv = 1 <;> simp [ht] <;> omega
+    rw [this]; exact sizeBound hL hS
+  · intro S hS'; obtain ⟨p, hp, rfl⟩ := mem S hS'
+    exact ⟨cv_lt _ _ _ _, cv_lt _ _ _ _, uses_lt tr pub p.1 p.2⟩
+  · intro S hS'; obtain ⟨p, hp, rfl⟩ := mem S hS'
+    obtain ⟨fl, hC⟩ := hS.ctx hL hp
+    exact (nodeV_wf hL hC).2
+
+end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near
+
+/-- **The node table extracts.** -/
+theorem node_view : NodeViewStmt := by
+  intro tr pub hL
+  obtain ⟨segs, hS⟩ := NodeProof.nodeSegs_exist hL
+  exact ⟨NodeProof.viewOf tr pub segs, NodeProof.nodeWfOf hL hS, NodeProof.nodeTrafficOf hL hS⟩
+
+end ZkFormal.Near
