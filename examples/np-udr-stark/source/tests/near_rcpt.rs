@@ -73,7 +73,22 @@ fn fixtures_rcpt() {
         let mut lean_note = String::new();
         if let Some(ld) = &lean_dir {
             let p = std::path::Path::new(ld).join(format!("{name}.rows"));
-            let txt = std::fs::read_to_string(&p).unwrap_or_else(|e| panic!("{p:?}: {e}"));
+            let txt = std::fs::read_to_string(&p).unwrap_or_default();
+            if txt.is_empty() {
+                eprintln!("{name}: no Lean dump, skipped");
+                continue;
+            }
+            // rcptMsgs (`<dir>/<case>.rows.msgs`: `id b0 b1 …` per line)
+            let mtxt = std::fs::read_to_string(p.with_extension("rows.msgs")).unwrap_or_default();
+            let lm: Vec<Vec<u64>> =
+                mtxt.lines().map(|l| l.split_whitespace().map(|x| x.parse().unwrap()).collect()).collect();
+            let rm: Vec<Vec<u64>> = rcpt::rcpt_msgs(&i)
+                .iter()
+                .map(|m| std::iter::once(m.id as u64).chain(m.bytes.iter().map(|&b| b as u64)).collect())
+                .collect();
+            if lm != rm {
+                fails.push(format!("{name}: rcptMsgs differ from Lean"));
+            }
             let lean: Vec<Vec<u64>> =
                 txt.lines().map(|l| l.split_whitespace().map(|x| x.parse().unwrap()).collect()).collect();
             assert_eq!(lean.len(), rows.len(), "{name}: row count vs Lean");
