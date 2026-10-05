@@ -147,3 +147,4 @@ import ZkFormal.Prover.NpGlobal
 import ZkFormal.Prover.NpGlobal2
 import ZkFormal.Prover.NpBus
 import ZkFormal.Prover.NpBus2
+import ZkFormal.Prover.NpBus3
