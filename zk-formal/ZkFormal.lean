@@ -136,3 +136,4 @@ import ZkFormal.Prover.NpFits
 import ZkFormal.Prover.NpCommits
 import ZkFormal.Prover.NpQ
 import ZkFormal.Prover.NpPrefix
+import ZkFormal.Prover.NpHon
