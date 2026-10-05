@@ -447,6 +447,9 @@ jobs:
           set -euo pipefail
           oracle/scripts/link-nearcore.sh "$ARENA_NEARCORE_DIR"
           cargo build --locked --manifest-path oracle/Cargo.toml
+      - name: Lean reference checker (near_v2 test candidate)
+        working-directory: spec/lean
+        run: lake build nearspec-check
       - name: Firecracker E2E tests (must execute, never skip)
         run: |
           set -euo pipefail
@@ -454,7 +457,7 @@ jobs:
           {
             cargo test --locked -p arena-firecracker --tests -- --nocapture --test-threads=1
             cargo test --locked -p arena-worker --test firecracker --test npai --test formal --test near \
-              -- --nocapture --test-threads=1
+              --test near_v2 -- --nocapture --test-threads=1
           } 2>&1 | tee "$log"
           if grep -q '^ARENA-TEST-SKIPPED' "$log"; then
             echo "::error::a gated Firecracker test was skipped"; exit 1
@@ -462,6 +465,7 @@ jobs:
           for t in honest_candidate_through_firecracker build_through_firecracker_with_pinned_toolchain \
                    npai_route_in_firecracker formal_check_near_statement_firecracker \
                    reexec_witness_reference_firecracker formal_checker_corpus_in_microvms \
-                   native_lean_compiles_in_microvm; do
+                   native_lean_compiles_in_microvm v2_draft_challenge_through_the_worker_pipeline \
+                   v2_pipeline_rejects_v1_inputs; do
             grep -Eq "^test $t \.\.\. " "$log" || { echo "::error::gated test $t did not run"; exit 1; }
           done

@@ -47,7 +47,7 @@ fn honest_candidate_passes_every_stage() {
     }
     let s = &gate(&c, ObligationId::ConformanceDifferential).summary;
     assert!(
-        s.contains("10/10 cases conform (6 public fixtures, 4 judge-sampled)"),
+        s.contains("10/10 cases conform (6 public fixtures, 4 judge-sampled, 0 held-out)"),
         "{s}"
     );
     assert!(
