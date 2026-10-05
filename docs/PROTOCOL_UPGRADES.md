@@ -292,3 +292,24 @@ configuration, so every formal gate was UNKNOWN.
 `tests/e2e/milestone-d.sh` now runs against the signed v1.2 itself. It
 signs a local successor only if the pinned checker identity differs from
 the worker's. Results: `docs/e2e-results/milestone-d-v1-2/`.
+
+### 7.4 Trusted trees frozen per challenge (2026-10-05)
+
+The judge used to build the trusted reference from the checkout it was
+deployed from; HEAD's `formal-core/` + `spec/lean/` no longer hashed to the
+NEAR challenges' `formal_spec.tree_digest` (`sha256:8090432a…`). Since this
+change the reference is built only from the frozen tree the challenge pins
+(invariant 6, docs/TCB.md §1a):
+
+```sh
+arena-admin freeze-trusted --commit 6873c9980fd93c0483e93b94fe7e8a1fe0d52d52 \
+  --store /data/illia/nearproof-live/trusted-trees \
+  --challenge challenges/chl_5ef2bc7d2068219635426e47ca46bfbb.json   # (+ v1-1, v1-2, v1-3, chl_b7c8…)
+# -> sha256:8090432a8236d8a8cacada10c257f83575f6c0ec480a40659d6af023ff39c611
+```
+
+Re-running the v1-3 admissions (docs/LIVE.md §5a): the npai-v1 entry is
+still ADMITTED; the two native-lean entries are INFRA_ERROR because the
+native-lean Expected template is not part of the v1 family's pinned tree.
+`ArenaCore.SHA256Fast` (ZK backend) and the spec v2 modules likewise take
+effect only for a challenge that pins a tree containing them.

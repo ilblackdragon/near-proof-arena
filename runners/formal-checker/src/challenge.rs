@@ -160,7 +160,12 @@ impl ChallengeFormalConfig {
         inp: &ExpectedInputs,
         interp: bool,
     ) -> Result<TemplateExpected, ConfigError> {
-        let template = std::fs::read_to_string(repo_root.join(&e.template))?;
+        let template = std::fs::read_to_string(repo_root.join(&e.template)).map_err(|err| {
+            ConfigError::Invalid(format!(
+                "template {} not readable in the trusted tree: {err}",
+                e.template
+            ))
+        })?;
         let p = inp.profile;
         let model = serde_json::to_value(p.model)?
             .as_str()
