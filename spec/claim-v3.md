@@ -157,7 +157,7 @@ the authenticated segment, `Rel` checks that part (column "checked by `Rel`").
 | A2 | section B (headers, slots) | authenticated by `chunk_inner.prev_block_hash` | hash chain, `chunk_headers_root`, segment = walk | all |
 | T1 | `epoch_id` | trusted | = `W.epoch_id`; = `blocks[0].epoch_id` or `blocks[0].next_epoch_id` per `epoch_start_after[0]`; must be in `epochs` | all |
 | T2 | `protocol_version` | trusted | = `epochs[epoch_id].protocol_version` | all (D0–D3: must be 86) |
-| T3 | `chain_id` | trusted | — | D2 (implicit/ETH accounts, signatures over chain id are not used at 86 [unverified for DelegateV2]), D3 (`chain_id` host function) |
+| T3 | `chain_id` | trusted | — | D2 (ETH-implicit account creation picks the wallet contract by chain id, `runtime/runtime/src/actions.rs:236`), D3 (contract identifier resolution `lib.rs:640`, contract preparation pipeline `lib.rs:3177`, `chain_id` host function `ext.rs:339`) |
 | T4 | `rs_data_parts`, `rs_total_parts` | trusted (genesis epoch config) | `data = (total ≤ 3 ? 1 : (total − 1)/3)`, `2 ≤ total ≤ 256` | all (encoded merkle root) |
 | T5 | `epochs[e].protocol_version` | trusted | see T2; all equal 86 below D∞ | all |
 | T6 | `epochs[e].shard_layout` | trusted | `chunk_inner.shard_id` ∈ layout; slot count of every block = number of shards of its epoch | all (routing, scheduler, receipt roots) |
