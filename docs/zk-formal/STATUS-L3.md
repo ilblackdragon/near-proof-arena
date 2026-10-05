@@ -27,8 +27,14 @@ Composition `Np.rbr_of` (proved) from the obligations in `Udr/Np/Statements.lean
 
 | Obligation | Owner | State |
 |---|---|---|
-| `ShapedPrefixStmt`, `ScheduleAltStmt` | sub-agent `zk-L3-ali` | open |
-| `Msg0/2/4/6Stmt`, `Chal1/3/5/7Stmt` (main → z) | sub-agent `zk-L3-ali` | open |
-| `Msg8Stmt`, `MsgLateStmt`, `ChalLateStmt`, `QueryStmt` (DEEP, batching, FRI, local bridge) | sub-agent `zk-L3-fri2` | open |
+| `ShapedPrefixStmt`, `ScheduleAltStmt` | ali | **proved** (`shapedPrefix`, `scheduleAlt`, Shape.lean) |
+| `Msg0/2/6Stmt` | ali | **proved** (`msg0`, `msg2`, `msg6`, Early.lean) |
+| `Msg4Stmt` (aux chain ⇒ grand products) | ali | **proved** (`msg4`, Msg4.lean) |
+| `Chal1/3Stmt` (fingerprints ≤ fpBound, γ ≤ multBound) | ali | **proved** (`chal1`, `chal3`, BusRounds.lean) |
+| `Chal5Stmt` (α_c), `Chal7Stmt` (z) | ali | **proved** (`chal5`, `chal7`) |
+| `ChalLateStmt` (batching, FRI β/γ) | fri2 | **proved** (`chalLate`, Late.lean) |
+| `MsgLateStmt` | fri2 | **proved** (`msgLate`, FrameMsg.lean) |
+| `QueryStmt` | fri2 | reduced to `LocalBridgeStmt` (`query_of_bridge`); bridge open |
+| `Msg8Stmt` (OOD values: DEEP farness, global = semantic ALI) | ali | open |
 
 Elaboration: every `Udr` module < 1.5 s.
