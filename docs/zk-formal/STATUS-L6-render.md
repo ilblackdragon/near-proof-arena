@@ -257,7 +257,7 @@ it remains to identify the extracted view with `rcptViewsOf I`.
 | `ParentBusStmt` | `parentBus` (`parentBus'` under `KeyBound`) | `Proof/BusParent` |
 | `NodeSerStmt` | `nodeSer_ok` (`nodeSer'`) | `Proof/NodeSer` |
 | `NodeTrafficStmt` | `nodeTraffic_ok` | `Proof/NodeTraffic{1..7,}` |
-| `NodeLocalStmt` | open; height bound `node_log` and multiplicity bits `node_bits` done | `Proof/NodeLocal0` |
+| `NodeLocalStmt` | `nodeLocal` | `Proof/NodeLocal` (+ `NodeLocal0`, groups below) |
 | `DigestBusStmt` | open | — |
 
 Support: `Proof/NodeInfo` (reachability, depths, record-trie fuel stability),
@@ -359,3 +359,31 @@ no generator change.
 
 `RenderRest` is now `nodeL` only.  Elaboration (`lake env lean`, wall): every
 new module < 1 s; axioms `propext, Classical.choice, Quot.sound`.
+
+## NodeLocalStmt (sub-lane L6e-nloc, `lane/zk-L6-nloc`) — closed
+
+`nodeLocal : NodeLocalStmt` (`Proof/NodeLocal`), so `RenderRest` is gone:
+`Proof/Main` has `render_stmt_closed : RenderStmt`, `nearAir_complete_closed`,
+`honestTrace_fits_closed` (hypothesis-free; axioms propext, Classical.choice,
+Quot.sound).  No table or generator change; `test/NearRenderTest.lean` passes.
+
+Method: constraints are evaluated over ℤ (`Proof/NodeEv`: `ev`, `ev_sound`;
+cells are naturals, so a constraint vanishes once its integer value is 0) and
+checked group by group on every row (`NodeRow0.GroupOk`; rows are node rows
+`mkR I n p`, the `SUM` row, padding; `row_node`, `next_row`).  Structure of
+the layout: `NodeSeq` (`layout_adj`: consecutive positions are the same field
+or a field succession `SuccOk`, which every record's non-empty fields chain by,
+`chain_fields`; first/last row of a node).
+
+| group | theorem | module (elab., s) |
+|---|---|---|
+| `cBool` | `cBool_ok` | `NodeBool` (7) |
+| `cRows` | `cRows_ok` | `NodeRows` (6) |
+| `cTrans` | `cTrans_ok` | `NodeTrans` (26), `NodeTrans2` (15) |
+| `cFields` | `cFields_ok` | `NodeFields` (22; `succ_facts`, `flag_facts`) |
+| `cBytes` | `cBytes_ok` | `NodeBytes` (3; `byte_facts`, bit sums `nib4`/`lo8`/`hi8`) |
+| `cWindows` | `cWindows_ok` | `NodeWin0`–`NodeWin3` (≤ 27; `win_shape`, `branch_win`: slot/index/last of a branch window) |
+| `cLinks` | `cLinks_ok` | `NodeLinks`–`NodeLinks4` (≤ 37; `res_node`: walk target, `lnk_tac` per field) |
+
+Support: `NodeFacts` (row bytes, wf, `node_ev`), `NodeRc` (cells at literal
+columns, `node_rc`; generated).
