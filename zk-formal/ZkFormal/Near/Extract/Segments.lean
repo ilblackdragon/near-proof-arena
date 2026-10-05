@@ -405,3 +405,24 @@ theorem segEnd_last : ∀ (l : List (Nat × Nat)) (s0 : Nat), Consec s0 l → (h
     simp only [segEnd] at this ⊢
     rw [this]; simp
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+theorem zip_range_flatMap {α β : Type} [Inhabited α] (l : List α) (F : α → Nat → List β) :
+    (l.zip (List.range l.length)).flatMap (fun x => F x.1 x.2) =
+      (List.range l.length).flatMap fun q => F (l.getD q default) q := by
+  have gen : ∀ (l : List α) (k : Nat), (l.zip (List.range' k l.length)).flatMap (fun x => F x.1 x.2) =
+      (List.range l.length).flatMap fun q => F (l.getD q default) (k + q) := by
+    intro l
+    induction l with
+    | nil => intro k; simp
+    | cons a l ih =>
+      intro k
+      rw [List.length_cons, List.range'_succ, List.zip_cons_cons, List.flatMap_cons, ih (k + 1),
+        List.range_succ_eq_map, List.flatMap_cons, List.flatMap_map]
+      simp only [List.getD_cons_zero, Nat.add_zero, List.getD_cons_succ]
+      congr 1
+      congr 1; funext q; rw [show k + 1 + q = k + q.succ by omega]
+  have := gen l 0
+  simp only [Nat.zero_add] at this
+  rw [← this, List.range_eq_range']
+end ZkFormal.Near
