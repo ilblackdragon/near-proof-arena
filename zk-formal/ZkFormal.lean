@@ -107,3 +107,4 @@ import ZkFormal.Toy.AirDef
 import ZkFormal.Toy.Air
 import ZkFormal.Toy.Model
 import ZkFormal.Toy.Certificate
+import ZkFormal.NearAssembly.Certificate

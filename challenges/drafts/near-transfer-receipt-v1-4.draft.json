@@ -1,0 +1,263 @@
+{
+  "schema": "arena-challenge-v1",
+  "name": "near-transfer-receipt-v1-4",
+  "season": "2026-s1",
+  "tier": "formal",
+  "nearcore": {
+    "repo": "https://github.com/near/nearcore",
+    "tag": "2.13.4",
+    "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
+  },
+  "protocol_version": 86,
+  "chain_id": "mainnet",
+  "runtime_config_digest": "sha256:ae2d1af88031a30bb09d17fd0d514503de26ed83d642ff497618e9f3320eebf1",
+  "semantic_scope": {
+    "name": "near-transfer-receipt-v1",
+    "kind": "subset",
+    "granularity": "receipt_batch_transition",
+    "restrictions": [
+      {
+        "id": "pv86",
+        "text": "protocol_version = 86 (nearcore 2.13.4 STABLE_PROTOCOL_VERSION)"
+      },
+      {
+        "id": "mainnet_params",
+        "text": "chain_id = mainnet: mainnet RuntimeConfig for PV 86 (RuntimeConfigStore::new(None))"
+      },
+      {
+        "id": "claim_wf",
+        "text": "all claim fields within their encoded widths (u32/u64/u128, 32-byte hashes, chain id 1..64 printable ASCII)"
+      },
+      {
+        "id": "batch_size",
+        "text": "the batch has 1..=256 receipts"
+      },
+      {
+        "id": "compute_limit",
+        "text": "(n-1)*223182562500 < gas_limit: no receipt is pushed to the delayed queue"
+      },
+      {
+        "id": "receipt_shape",
+        "text": "every receipt is Receipt::V0 / ReceiptEnum::Action with exactly one Transfer action and no input/output data dependencies"
+      },
+      {
+        "id": "valid_account_ids",
+        "text": "predecessor, receiver and signer are valid NEAR AccountIds"
+      },
+      {
+        "id": "signer_key_type",
+        "text": "signer public key is ED25519 or SECP256K1"
+      },
+      {
+        "id": "not_system_predecessor",
+        "text": "predecessor is not 'system' (refund receipts are not inputs)"
+      },
+      {
+        "id": "named_receiver",
+        "text": "receiver is a NamedAccount (not NEAR-implicit, ETH-implicit or deterministic)"
+      },
+      {
+        "id": "distinct_receipt_ids",
+        "text": "receipt ids are pairwise distinct"
+      },
+      {
+        "id": "witness_size",
+        "text": "the revealed partial-trie bytes are <= 3,000,000 (storage-proof soft limit never reached)"
+      },
+      {
+        "id": "receiver_exists_v1",
+        "text": "each receiver Account exists when its receipt is applied and is a 72-byte AccountV1"
+      },
+      {
+        "id": "no_balance_overflow",
+        "text": "amount+deposit <= 2^128-2 and amount'+locked < 2^128"
+      },
+      {
+        "id": "storage_stake",
+        "text": "after the credit, amount'+locked >= 10^19*storage_usage or storage_usage <= 770"
+      },
+      {
+        "id": "burn_fits_u128",
+        "text": "G*min(gas_price, block_gas_price), G*(gas_price-min) and the total tokens burnt fit in u128"
+      },
+      {
+        "id": "apply_context",
+        "text": "the chunk applies only these incoming receipts: no transactions, no local/delayed/yield receipts, no validator-account update, new chunk"
+      }
+    ],
+    "excludes": [
+      "block_finality",
+      "data_availability",
+      "receipt_inclusion",
+      "pre_state_root_on_chain",
+      "epoch_and_protocol_version_selection",
+      "onchain_post_state_root",
+      "transactions",
+      "signature_verification",
+      "function_calls_and_wasm",
+      "non_transfer_actions",
+      "implicit_account_creation",
+      "failure_paths_and_rollback",
+      "refund_receipt_inputs",
+      "data_postponed_yield_receipts",
+      "delayed_receipt_queue",
+      "congestion_control_and_buffering",
+      "bandwidth_scheduler",
+      "outgoing_receipts_root_and_routing",
+      "validator_updates_and_rewards",
+      "account_v2_global_contracts",
+      "receipt_enum_action_v2",
+      "other_protocol_versions",
+      "testnet_parameters"
+    ],
+    "formal_spec": {
+      "relation_module": "NearSpec.TransferV1",
+      "relation_decl": "NearSpec.TransferV1.NearRelation",
+      "tree_digest": "sha256:35fbd26064cd2f7d64f5b1dce7f41da61d96129517f5696b321c463c45bafdf0",
+      "lean_toolchain": "leanprover/lean4:v4.34.1"
+    },
+    "spec_doc_digest": "sha256:a1323f4a1b93e3fd9325ce3f8a046eb5661b066f20658325bc45e8209d8e09b3"
+  },
+  "claim_encoding": {
+    "format": "near-arena-claim-v1",
+    "spec_digest": "sha256:92289554aa01fac7af1fff992b33e983d42f89baa133697a8d8c7f47f9c5bb09",
+    "max_request_bytes": 131072,
+    "max_witness_bytes": 4194304,
+    "max_claim_bytes": 366
+  },
+  "security_profile": {
+    "id": "validity-classical-128",
+    "privacy": "validity_only",
+    "adversary": "classical",
+    "target_bits": 128,
+    "model": "random_oracle",
+    "setup_model": "transparent",
+    "allowed_assumptions": [
+      "sha256-collision-resistance",
+      "random-oracle-fiat-shamir-sha256"
+    ],
+    "max_prover_queries_log2": 40,
+    "max_hash_queries_log2": 64,
+    "max_aggregation_depth": 8,
+    "deployment_proofs_log2": 40
+  },
+  "toolchain_policy": {
+    "lean_toolchain": "leanprover/lean4:v4.34.1",
+    "checker_image": "sha256:b6391b3899df90e2557924ae7b67f0c07456fa20d41f6bbf383220a311d15b1e",
+    "axiom_allowlist": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "allowed_packages": [
+      [
+        "ArenaCore",
+        "e4088761c996284e25787bd61eabe8bf079bc914"
+      ],
+      [
+        "NearSpec",
+        "e4088761c996284e25787bd61eabe8bf079bc914"
+      ]
+    ],
+    "recheckers": [
+      "leanchecker",
+      "nanoda",
+      "lean4lean"
+    ]
+  },
+  "required_obligations": [
+    "PKG_WELLFORMED",
+    "BUILD_REPRODUCIBLE",
+    "ARTIFACT_BINDING",
+    "FORMAL_SEMANTIC_SOUNDNESS",
+    "FORMAL_SEMANTIC_COMPLETENESS",
+    "FORMAL_CRYPTO_SOUNDNESS",
+    "FORMAL_IMPL_CONNECTION",
+    "AXIOM_AUDIT",
+    "CONFORMANCE_DIFFERENTIAL",
+    "ADVERSARIAL_PROOFS",
+    "PROVER_RELIABILITY",
+    "RESOURCE_LIMITS",
+    "BENCHMARK"
+  ],
+  "not_applicable_gates": [
+    "FORMAL_ZK"
+  ],
+  "hardware_profile": {
+    "id": "nearproof-local-ryzen9-9950x3d",
+    "cpu_model": "AMD Ryzen 9 9950X3D 16-Core Processor (local operator host; 8 vCPUs pinned per run)",
+    "vcpus": 8,
+    "ram_bytes": 34359738368,
+    "gpu": null
+  },
+  "workload_suite": {
+    "revision": "near-transfer-receipt-v1-r1",
+    "classes": [
+      {
+        "id": "batch-1",
+        "description": "requests with exactly 1 single-Transfer receipt(s); generator profiles basic,prefix,boundary,repeat,prices,large",
+        "weight_ppm": 200000,
+        "batch_size": 8,
+        "generator": "sha256:1a6e9c6450d36dd8c84086db75ac1657621d63735695aa06d33acd0b451ef371"
+      },
+      {
+        "id": "batch-16",
+        "description": "requests with exactly 16 single-Transfer receipt(s); generator profiles basic,prefix,boundary,repeat,prices,large",
+        "weight_ppm": 300000,
+        "batch_size": 8,
+        "generator": "sha256:c8ad786e71e309a9fde2cb186c623c3592753b52f54ed0a0e5f6603b2389934e"
+      },
+      {
+        "id": "batch-256",
+        "description": "requests with exactly 256 single-Transfer receipt(s); generator profiles basic,prefix,boundary,repeat,prices,large",
+        "weight_ppm": 500000,
+        "batch_size": 8,
+        "generator": "sha256:290802b219e3cf257590e9dd471487e85eaa702477da5b74a53adcf71ddf5ff8"
+      }
+    ],
+    "public_fixtures": "sha256:c83f3e14d526e78244ee2d7288396a9680717fa42ef77127ba29ccf27bb7e6ec",
+    "heldout_commitment": "sha256:e4312f75b841727b2f039dee36f4b7c775f8a3d39953dd284a4d739f0c48c3f9",
+    "baseline_submission": "sha256:329c763a92542052e1e2d69b6dc262446571acb1ab9ec50fd4caec170bcd699f",
+    "baseline_ns": [
+      [
+        "batch-1",
+        6549724
+      ],
+      [
+        "batch-16",
+        6556339
+      ],
+      [
+        "batch-256",
+        9332365
+      ]
+    ]
+  },
+  "measurement": {
+    "warmup_runs": 3,
+    "measured_runs": 15,
+    "aggregation": "median",
+    "outlier_mad_k": 5,
+    "cold_runs": 1,
+    "concurrency": 1,
+    "per_run_timeout_ms": 600000,
+    "invocation_mode": "vm_per_batch"
+  },
+  "resource_limits": {
+    "max_proof_bytes": 8388608,
+    "max_verify_ms": 10000,
+    "max_prove_ms": 600000,
+    "max_ram_bytes": 17179869184,
+    "max_vram_bytes": 0,
+    "max_public_artifact_bytes": 67108864,
+    "max_prepare_ms": 600000,
+    "max_build_ms": 3600000
+  },
+  "formal_params": {
+    "verify_fuel": 1073741824,
+    "max_proof_bytes": 8388608,
+    "max_reduction_fuel": 1073741824
+  },
+  "supersedes": "chl_fefb6bc7596a6fb1a145062c864db947",
+  "created_at": "2026-10-05T12:00:00Z"
+}
