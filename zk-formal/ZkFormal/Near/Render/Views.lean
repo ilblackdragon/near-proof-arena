@@ -58,9 +58,7 @@ def walkViewsOf (ws : List (List WStep)) : List WalkV := Id.run do
 def acctViewsOf (I : Info) : List AcctV :=
   I.touched.map fun k => ⟨k, tlastOf I.e k, I.vpre.getD k [], (I.vpost.getD k []).take 16⟩
 
-def sortIdsOf (I : Info) : List (Nat × List Nat) :=
-  let ids := (I.e.rs.zip (List.range I.e.rs.length)).map fun (rc, r) => (r, toNats rc.receiptId)
-  ids.foldr insertSorted []
+def sortIdsOf (I : Info) : List (Nat × List Nat) := sortedIds I
 
 /-! ## mrk -/
 

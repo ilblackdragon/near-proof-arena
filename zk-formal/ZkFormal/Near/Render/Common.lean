@@ -46,6 +46,10 @@ def padTo (rows : Array Row) (pad : Row) : Array Row :=
 
 def zeroRow (w : Nat) : Row := Array.replicate w 0
 
+/-- The table of `H` rows of width `W` with cells `f row col` (closed-form generators). -/
+def mkTab (H W : Nat) (f : Nat → Nat → Nat) : Array Row :=
+  (Array.range H).map fun q => (Array.range W).map (f q)
+
 /-- Little-endian bytes of `x` (width `w`). -/
 def leBytes (w x : Nat) : List Nat := toNats (leN w x)
 
