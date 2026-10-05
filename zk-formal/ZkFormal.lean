@@ -88,3 +88,4 @@ import ZkFormal.Udr.Np.BusRounds
 import ZkFormal.Bcs.TransDefs
 import ZkFormal.Bcs.TransStatements
 import ZkFormal.Bcs.TransCompose
+import ZkFormal.Bcs.DecQuery
