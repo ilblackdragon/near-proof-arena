@@ -217,3 +217,38 @@ theorem resOkNode (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s ni
     · rw [if_neg h1, if_neg h2]; exact resN hE
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+def szOf (tr : Trace Fp) (p : Nat × Nat) : Nat := p.2 + 72 * cv tr T_NODE p.1 tv
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+theorem szNode (hC : NodeCtx tr s ℓ fl) (hlt : s + ℓ < tr.height T_NODE) :
+    tr.cell T_NODE (s + ℓ) sz = tr.cell T_NODE s sz + ((ℓ + 72 * cv tr T_NODE s tv : Nat) : Fp) := by
+  have hp := hC.seg.1
+  have inner : ∀ d, d < ℓ → tr.cell T_NODE (s + d) sz = tr.cell T_NODE s sz + ((d : Nat) : Fp) := by
+    intro d; induction d with
+    | zero => intro _; simp only [Nat.add_zero]; rw [show ((0 : Nat) : Fp) = 0 from rfl]; grind
+    | succ d ih =>
+      intro hd
+      have Z := (sizeFacts hL (r := s + d) (by omega)).1 (by omega)
+      have hnl : tr.cell T_NODE (s + d) nl = 0 :=
+        zero_of hL (by omega) (by simp [boolCols]) (hC.seg.2.2.2.2.2 (s + d) (by omega) (by omega))
+      rw [segAct hL hC (by omega), hnl, show s + d + 1 = s + (d + 1) by omega] at Z
+      rw [Z, ih (by omega), natCast_add]; grind
+  have hl := hC.seg.2.2.1; rw [one_iff] at hl
+  have Z := (sizeFacts hL (r := s + ℓ - 1) (by omega)).1 (by omega)
+  rw [show s + ℓ - 1 = s + (ℓ - 1) by omega] at Z hl
+  have htv : tr.cell T_NODE (s + (ℓ - 1)) tv = tr.cell T_NODE s tv := segConst hL hC (x := tv) (by simp [nodeConst]) (by omega)
+  rw [segAct hL hC (by omega), hl, show s + (ℓ - 1) + 1 = s + ℓ by omega, inner (ℓ - 1) (by omega),
+    htv, cell_eq_cast tr T_NODE s tv] at Z
+  rw [Z, natCast_add, natCast_mul, show ℓ = (ℓ - 1) + 1 by omega, natCast_add]
+  simp only [show ℓ - 1 + 1 - 1 = ℓ - 1 by omega]
+  grind
+
+end ZkFormal.Near.NodeProof
