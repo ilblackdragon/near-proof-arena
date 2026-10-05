@@ -1,7 +1,6 @@
 import ZkFormal.Near.Render.Proof.MrkRecs
 import ZkFormal.Near.Render.Proof.Base
 import ZkFormal.Near.Render.Rcpt
-import ZkFormal.Near.Render.Proof.RcptAttr
 
 /-!
 # ZkFormal.Near.Render.Proof.RcptBase — rows of the honest `rcpt` table
@@ -20,7 +19,6 @@ open NearSpec NearSpec.TransferV1 ZkFormal.Near ZkFormal.Air ZkFormal.Algebra Zk
 
 namespace RcptP
 
-attribute [rcols] Rcpt.act Rcpt.rf Rcpt.rl Rcpt.lastR Rcpt.sCL Rcpt.sPL Rcpt.sP Rcpt.sVL Rcpt.sV Rcpt.sRID Rcpt.sT0 Rcpt.sSL Rcpt.sS Rcpt.sKT Rcpt.sPK Rcpt.sGP Rcpt.sTL Rcpt.sDEP Rcpt.sXP0 Rcpt.sXRI Rcpt.sXG Rcpt.sXST Rcpt.sXL0 Rcpt.sXLH Rcpt.sXRH Rcpt.sXRF Rcpt.sXRZ Rcpt.idx Rcpt.fs Rcpt.fe Rcpt.b Rcpt.e1Id Rcpt.e1Pos Rcpt.e1V Rcpt.e1G Rcpt.e2Id Rcpt.e2Pos Rcpt.e2V Rcpt.e2G Rcpt.e3Id Rcpt.e3Pos Rcpt.e3V Rcpt.e3G Rcpt.tA Rcpt.symA Rcpt.lastA Rcpt.gKA Rcpt.kz Rcpt.r Rcpt.o Rcpt.o2 Rcpt.Lp Rcpt.Lv Rcpt.Ls Rcpt.kt Rcpt.hr Rcpt.kslot Rcpt.tprev Rcpt.rcnt Rcpt.ge Rcpt.big Rcpt.oEnd Rcpt.o2End Rcpt.reg Rcpt.tok Rcpt.h2 Rcpt.h3 Rcpt.h5 Rcpt.h6 Rcpt.h7 Rcpt.lb Rcpt.z Rcpt.linv Rcpt.l210 Rcpt.hx6 Rcpt.acc Rcpt.vc0 Rcpt.vc1 Rcpt.h01 Rcpt.p1 Rcpt.p2 Rcpt.p3 Rcpt.i1 Rcpt.i2 Rcpt.i3 Rcpt.isys Rcpt.r1 Rcpt.lo8 Rcpt.lo4 Rcpt.xb Rcpt.c1 Rcpt.c2 Rcpt.c3 Rcpt.c4 Rcpt.dl Rcpt.burnt Rcpt.ramt Rcpt.sumD Rcpt.invA Rcpt.bef Rcpt.lk Rcpt.st Rcpt.dsum Rcpt.invB Rcpt.dI Rcpt.dL Rcpt.gDg Rcpt.width
 
 
 /-! ## Rows as functions -/
@@ -180,13 +178,13 @@ theorem fLen_pos {d : RD} (hd : DOk d) {s : Nat} (hs : s ∈ fields d.hr) : 1 �
   simp at hs <;>
   rcases hs with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
     rfl | rfl | rfl | rfl | rfl | rfl <;>
-  simp [fLen, rcols] <;> omega
+  simp [fLen, Rcpt.act, Rcpt.rf, Rcpt.rl, Rcpt.lastR, Rcpt.sCL, Rcpt.sPL, Rcpt.sP, Rcpt.sVL, Rcpt.sV, Rcpt.sRID, Rcpt.sT0, Rcpt.sSL, Rcpt.sS, Rcpt.sKT, Rcpt.sPK, Rcpt.sGP, Rcpt.sTL, Rcpt.sDEP, Rcpt.sXP0, Rcpt.sXRI, Rcpt.sXG, Rcpt.sXST, Rcpt.sXL0, Rcpt.sXLH, Rcpt.sXRH, Rcpt.sXRF, Rcpt.sXRZ, Rcpt.idx, Rcpt.fs, Rcpt.fe, Rcpt.b, Rcpt.e1Id, Rcpt.e1Pos, Rcpt.e1V, Rcpt.e1G, Rcpt.e2Id, Rcpt.e2Pos, Rcpt.e2V, Rcpt.e2G, Rcpt.e3Id, Rcpt.e3Pos, Rcpt.e3V, Rcpt.e3G, Rcpt.tA, Rcpt.symA, Rcpt.lastA, Rcpt.gKA, Rcpt.kz, Rcpt.r, Rcpt.o, Rcpt.o2, Rcpt.Lp, Rcpt.Lv, Rcpt.Ls, Rcpt.kt, Rcpt.hr, Rcpt.kslot, Rcpt.tprev, Rcpt.rcnt, Rcpt.ge, Rcpt.big, Rcpt.oEnd, Rcpt.o2End, Rcpt.reg, Rcpt.tok, Rcpt.h2, Rcpt.h3, Rcpt.h5, Rcpt.h6, Rcpt.h7, Rcpt.lb, Rcpt.z, Rcpt.linv, Rcpt.l210, Rcpt.hx6, Rcpt.acc, Rcpt.vc0, Rcpt.vc1, Rcpt.h01, Rcpt.p1, Rcpt.p2, Rcpt.p3, Rcpt.i1, Rcpt.i2, Rcpt.i3, Rcpt.isys, Rcpt.r1, Rcpt.lo8, Rcpt.lo4, Rcpt.xb, Rcpt.c1, Rcpt.c2, Rcpt.c3, Rcpt.c4, Rcpt.dl, Rcpt.burnt, Rcpt.ramt, Rcpt.sumD, Rcpt.invA, Rcpt.bef, Rcpt.lk, Rcpt.st, Rcpt.dsum, Rcpt.invB, Rcpt.dI, Rcpt.dL, Rcpt.gDg, Rcpt.width] <;> omega
 
 /-- Consecutive fields. -/
 def FAdj (h : Bool) (s s' : Nat) : Prop := s' = nextF h s ∧ s ≠ 26 ∧ (s = 23 → h = true)
 
 theorem fields_adj (h : Bool) : Adj2 (FAdj h) (fields h) := by
-  cases h <;> simp [Adj2, FAdj, fields, nextF, rcols]
+  cases h <;> simp [Adj2, FAdj, fields, nextF, Rcpt.act, Rcpt.rf, Rcpt.rl, Rcpt.lastR, Rcpt.sCL, Rcpt.sPL, Rcpt.sP, Rcpt.sVL, Rcpt.sV, Rcpt.sRID, Rcpt.sT0, Rcpt.sSL, Rcpt.sS, Rcpt.sKT, Rcpt.sPK, Rcpt.sGP, Rcpt.sTL, Rcpt.sDEP, Rcpt.sXP0, Rcpt.sXRI, Rcpt.sXG, Rcpt.sXST, Rcpt.sXL0, Rcpt.sXLH, Rcpt.sXRH, Rcpt.sXRF, Rcpt.sXRZ, Rcpt.idx, Rcpt.fs, Rcpt.fe, Rcpt.b, Rcpt.e1Id, Rcpt.e1Pos, Rcpt.e1V, Rcpt.e1G, Rcpt.e2Id, Rcpt.e2Pos, Rcpt.e2V, Rcpt.e2G, Rcpt.e3Id, Rcpt.e3Pos, Rcpt.e3V, Rcpt.e3G, Rcpt.tA, Rcpt.symA, Rcpt.lastA, Rcpt.gKA, Rcpt.kz, Rcpt.r, Rcpt.o, Rcpt.o2, Rcpt.Lp, Rcpt.Lv, Rcpt.Ls, Rcpt.kt, Rcpt.hr, Rcpt.kslot, Rcpt.tprev, Rcpt.rcnt, Rcpt.ge, Rcpt.big, Rcpt.oEnd, Rcpt.o2End, Rcpt.reg, Rcpt.tok, Rcpt.h2, Rcpt.h3, Rcpt.h5, Rcpt.h6, Rcpt.h7, Rcpt.lb, Rcpt.z, Rcpt.linv, Rcpt.l210, Rcpt.hx6, Rcpt.acc, Rcpt.vc0, Rcpt.vc1, Rcpt.h01, Rcpt.p1, Rcpt.p2, Rcpt.p3, Rcpt.i1, Rcpt.i2, Rcpt.i3, Rcpt.isys, Rcpt.r1, Rcpt.lo8, Rcpt.lo4, Rcpt.xb, Rcpt.c1, Rcpt.c2, Rcpt.c3, Rcpt.c4, Rcpt.dl, Rcpt.burnt, Rcpt.ramt, Rcpt.sumD, Rcpt.invA, Rcpt.bef, Rcpt.lk, Rcpt.st, Rcpt.dsum, Rcpt.invB, Rcpt.dI, Rcpt.dL, Rcpt.gDg, Rcpt.width]
 
 theorem fields_head (h : Bool) : (fields h).head? = some 5 := by cases h <;> rfl
 theorem fields_last (h : Bool) : (fields h).getLast? = some (lastF h) := by cases h <;> rfl
