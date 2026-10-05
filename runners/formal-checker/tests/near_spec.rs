@@ -1,7 +1,10 @@
 //! The NEAR challenge's judge configuration end to end: trusted packages
 //! formal-core + spec/lean (NearSpec) from
-//! `challenges/near-transfer-receipt-v1.json`, the Expected module rendered from
-//! `spec/lean/judge/Expected.lean.template`, and two negative candidates. Proves
+//! `challenges/near-transfer-receipt-v1.json`, taken from the **frozen trusted
+//! tree the signed challenge pins** (`formal_spec.tree_digest`, extracted from
+//! its freeze commit and re-hashed), the Expected module rendered from that
+//! tree's `spec/lean/judge/Expected.lean.template`, and two negative
+//! candidates. Proves
 //! the reference build of the real NEAR statement works (a FAIL with the right
 //! reason code, never INFRA_ERROR/UNKNOWN). Opt-in: `FC_NEAR_SPEC=1`,
 //! `ARENA_DEV_UNSAFE=1` and installed tools.
@@ -44,6 +47,29 @@ fn near_transfer_expected_reference_build() {
     let clean = root.join("clean");
     export(&repo, "formal-core", &clean);
     export(&repo, "spec/lean", &clean);
+    // The frozen tree chl_5ef2… (NEAR v1 family) pins.
+    let chal: arena_types::ChallengeDefinition = serde_json::from_slice(
+        &std::fs::read(repo.join("challenges/chl_5ef2bc7d2068219635426e47ca46bfbb.json")).unwrap(),
+    )
+    .unwrap();
+    let pin = chal.semantic_scope.formal_spec.tree_digest.clone();
+    let store = root.join("trusted-trees");
+    let entry = arena_types::trusted_tree::entry_dir(&store, &pin);
+    std::fs::create_dir_all(&entry).unwrap();
+    let st = std::process::Command::new("sh")
+        .arg("-c")
+        .arg("git -C \"$1\" archive --format=tar 6873c9980fd93c0483e93b94fe7e8a1fe0d52d52 -- formal-core spec/lean | tar -x -C \"$2\"")
+        .arg("sh")
+        .arg(&repo)
+        .arg(&entry)
+        .status()
+        .unwrap();
+    assert!(
+        st.success(),
+        "freeze commit of the NEAR v1 pin not in this clone"
+    );
+    let frozen = root.join("frozen");
+    arena_types::trusted_tree::materialize(&store, &pin, &frozen).unwrap();
     let cfg = ChallengeFormalConfig::load(
         &repo.join("runners/formal-checker/challenges/near-transfer-receipt-v1.json"),
     )
@@ -54,7 +80,7 @@ fn near_transfer_expected_reference_build() {
     .unwrap();
     let exp = cfg
         .expected(
-            &clean,
+            &frozen,
             &ExpectedInputs {
                 profile: &profile,
                 verify_fuel: 1 << 30,
@@ -83,9 +109,10 @@ fn near_transfer_expected_reference_build() {
         let req = CheckRequest {
             formal_dir: formal,
             certificate: "Candidate.certificate".into(),
-            trusted: cfg.trusted_packages(&clean),
+            trusted: cfg.trusted_packages(&frozen),
             expected: &exp,
             challenge_digest: None,
+            trusted_tree: Some(pin.clone()),
             policy: policy.clone(),
             limits: Limits::default(),
             work_dir: root.join(name).join("work"),
@@ -122,9 +149,26 @@ fn near_transfer_expected_reference_build() {
             ));
         }
     }
-    // native-lean route: the NEAR native template elaborates with a candidate
-    // model spliced in and the judge's own build digest (a sorry certificate
-    // must be reported as SORRY_FOUND, never INFRA_ERROR).
+    // The v1 family's pinned tree predates the native-lean template: that
+    // route has no statement under these challenges (the worker fails it as
+    // INFRA_ERROR); it takes a challenge that pins a tree containing it.
+    assert!(cfg
+        .expected_native_lean(
+            &frozen,
+            &ExpectedInputs {
+                profile: &profile,
+                verify_fuel: 1 << 30,
+                max_proof_bytes: 8 << 20,
+                max_reduction_fuel: 1 << 30,
+                public_digest_hex: "ab".repeat(32),
+                verifier_digest_hex: String::new(),
+            },
+        )
+        .is_err());
+    // native-lean route (HEAD tree, no pinned challenge): the NEAR native
+    // template elaborates with a candidate model spliced in and the judge's
+    // own build digest (a sorry certificate must be reported as SORRY_FOUND,
+    // never INFRA_ERROR).
     {
         let exp_native = cfg
             .expected_native_lean(
@@ -157,6 +201,7 @@ fn near_transfer_expected_reference_build() {
             trusted: cfg.trusted_packages(&clean),
             expected: &exp_native,
             challenge_digest: None,
+            trusted_tree: None,
             policy: policy.clone(),
             limits: Limits::default(),
             work_dir: root.join("native_sorry").join("work"),

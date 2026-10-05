@@ -63,4 +63,15 @@ theorem udr3_ok : num e3 40 * 2 ^ 128 ≤ den 40 := by decide +kernel
 
 theorem udr3_351_fails : ¬ (num e3 39 * 2 ^ 128 ≤ den 39) := by decide +kernel
 
+/-! ### L3 radius (REQUESTS R-L3-2): `e = (n - D)/2 - 1`
+
+DEEP decoding needs `n - 2e ≥ D + 1`; L3's `RbrWith` instance uses
+`agreeUdr = n - ((n - n/16)/2 - 1)`.  The target set still clears 2^-132. -/
+
+def e2' : Nat := (n - D) / 2 - 1
+
+theorem udr2'_ok : num e2' 24 * 2 ^ 128 ≤ den 24 := by decide +kernel
+
+theorem udr2'_margin : num e2' 24 * 2 ^ 132 ≤ den 24 := by decide +kernel
+
 end ZkFormal.Params

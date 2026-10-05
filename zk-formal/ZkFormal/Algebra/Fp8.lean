@@ -347,7 +347,7 @@ theorem toList_ofList {l : List Fp} (h : l.length = 8) : toList (ofList l) = l :
   | [_, _, _, _, _, _, _, _], _ => rfl
 
 /-- All `p^8` elements of `K` (never evaluated; used for counting). -/
-def all : List Fp8 := (vecs Fp.all 8).map ofList
+noncomputable def all : List Fp8 := (vecs Fp.all 8).map ofList
 
 theorem mem_all (a : Fp8) : a ∈ all :=
   List.mem_map.mpr ⟨toList a, mem_vecs rfl (fun x _ => Fp.mem_all x), ofList_toList a⟩

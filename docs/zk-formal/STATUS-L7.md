@@ -16,6 +16,7 @@ Branch `lane/zk-L7`. Lean: `zk-formal/ZkFormal/{Assembly,Prover,Toy,NearAssembly
 | `badAnswers_le` | commit-phase `bad = 2^36 · 2·3^8 ≤ 2^50` |
 | `full_ok`, `full_K26`, `full_K24_min8`, `full_K40_udr3` | `bcsNum … · 2^128 ≤ 2^(256K)` at 2^64 hash / 2^40 prover queries |
 | `Bcs.budget32` | L2's `budget` with honest-prover budget `NPu ≤ 2^32` (R-L7-3) |
+| **`stark_romSound_full`** (`Assembly/RomFull.lean`) | L3 `Udr.Np.rbrWith` ∘ L2 `stark_romSound_rbr` ∘ L4 facts ∘ L7 numerics: `RomSound` at 2^-128 from `NpOk A prm` (decidable), `QueryOk prm.numChunks g` + domination, `NVu ≤ 2^30`, prover budgets — proved; `stark_romSound_full'` fixes `g = g2_5` |
 | `np_romSound` (`Assembly/RomBound.lean`) | judge's `RomSound` for `verifier Fp Fp8 A prm` from L3's `RbrWith` + prover budgets, all verifier-side hypotheses discharged (L4c facts, `schedOk`, `hdec_deployed`) |
 
 ## 2. Prover model and completeness (`Prover/*`)
@@ -44,10 +45,8 @@ Defined: `proveTree V pr pub cb` (BCS compilation of an honest IOP prover `pr`: 
 | `Toy.toy_sound`, `toy_holds`, `toy_header`, `toy_size`, `toy_NVu` | toy AIR semantics and numerics — proved |
 | `NearAssembly.near_admission` (M5 skeleton) | `AdmissionStatement` for `NearSpec.TransferV1.challengeParamsWith …` from `NearPending` + `L6Facts` — proved |
 
-Open inputs of `toy_admission` / `near_admission` (`ToyPending`/`NearPending`): the six
-prover statements above; L3's `RbrFacts (Iop.verifier Fp Fp8 A default) (AirLang Fp A)
-Fp8.all 2^36 (agreeUdr 4)` (L3's `Np.rbr_of` from its open `Msg*/Chal*/Query/Shaped/ScheduleAlt`
-statements); `QueryOk Params.default.numChunks g2_5`, **false for the current default (24)**,
+Open inputs of `toy_admission` / `near_admission` (`ToyPending`/`NearPending`): the
+prover statements above (L3 is now closed: `toy_npOk` proved, soundness via `stark_romSound_full`); `QueryOk Params.default.numChunks g2_5`, **false for the current default (24)**,
 true once R-L7-1 is applied (`numChunks := 26`). NEAR additionally: `L6Facts` (L6) and the
 size bound at every admissible NEAR header.
 

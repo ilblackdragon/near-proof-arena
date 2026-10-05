@@ -180,6 +180,7 @@ fn formal_core_toy() {
             trusted: trusted.clone(),
             expected: exp,
             challenge_digest: None,
+            trusted_tree: None,
             policy: policy.clone(),
             limits: Limits::default(),
             work_dir: root.join(name).join("work"),

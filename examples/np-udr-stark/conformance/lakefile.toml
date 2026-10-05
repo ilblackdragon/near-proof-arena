@@ -1,0 +1,33 @@
+# Conformance harness (lane L8): runs the deployed Lean verifier model of
+# `np-udr-stark-v1` (ZkFormal.Stark.verifier, lane L4) on files produced by
+# the Rust prover in ../source.  See run.sh.
+name = "NpConformance"
+version = "0.1.0"
+defaultTargets = ["np-lean-verify", "np-lean-export", "np-lean-eval", "np-lean-shatrace"]
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[require]]
+name = "ZkFormal"
+path = "../../../zk-formal"
+
+[[lean_lib]]
+name = "Conformance"
+
+[[lean_exe]]
+name = "np-lean-verify"
+root = "Verify"
+
+[[lean_exe]]
+name = "np-lean-export"
+root = "Export"
+
+[[lean_exe]]
+name = "np-lean-eval"
+root = "EvalRandom"
+
+[[lean_exe]]
+name = "np-lean-shatrace"
+root = "ShaTrace"

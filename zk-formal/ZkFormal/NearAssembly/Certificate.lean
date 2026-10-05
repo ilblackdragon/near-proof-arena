@@ -9,7 +9,7 @@ import NearSpec.Challenge
 `nearModel A` = claim guard ∘ L4's verifier for the NEAR AIR `A`), from
 
 * `NearPending` — the same protocol-level obligations as the toy (prover model:
-  L7-bcs / L7-iop; L3's `RbrFacts` for `A`; `QueryOk` for the chunk count, R-L7-1);
+  L7-bcs / L7-iop; `QueryOk` for the chunk count, R-L7-1);
 * `L6Facts A honestTrace` — lane L6's deliverables, in the shapes of
   `ZkFormal.Near.{nearAir_sound, nearAir_complete, honestTrace_fits}` (lane/zk-L6),
   plus the AIR-level numerics (`W_eq`-based size bound at every admissible header,
@@ -46,6 +46,8 @@ structure L6Facts (A : Air) (honestTrace : WfClaim → Witness → Trace Fp) : P
   nonempty : A.tables ≠ []
   size : ∀ hdr, headerOk A Params.default hdr = true → sizeBound (Vd A) hdr ≤ 8388608
   nvu : NVu A Params.default ≤ 2 ^ 30
+  /-- L3's decidable side condition. -/
+  npOk : Udr.Np.NpOk A Params.default
 
 /-- Protocol-level obligations (identical in shape to `Toy.ToyPending`). -/
 structure NearPending (A : Air) : Prop where
@@ -55,7 +57,6 @@ structure NearPending (A : Air) : Prop where
   proverChunk : ProverChunkStmt
   npIop : NpIopCompleteStmt
   npProverQ : NpProverQStmt
-  rbr : Udr.RbrFacts (Vd A) (Udr.AirLang Fp A) Fp8.all (2 ^ 36) (Udr.agreeUdr 4)
   query : QueryOk Params.default.numChunks g2_5
 
 /-- **M5 skeleton: admission on the NEAR challenge.** -/
@@ -68,13 +69,12 @@ theorem near_admission (A : Air) (honestTrace : WfClaim → Witness → Trace Fp
     AdmissionStatement
       (challengeParamsWith (profileOf pid model tb allowed 40 64) fuel 8388608 rfuel)
       { publicDigest := pd, impl := .nativeTrusted bd tid (nearModel A) } := by
-  obtain ⟨D, hR⟩ := hp.rbr
   refine np_admission hp.bcs hp.size hp.proverQ hp.proverChunk hp.npIop hp.npProverQ _ _ pub hpub
     A h6.nonempty rfl honestTrace (fun c tr h => h6.sound c tr h)
     (fun c w _ hr => ⟨h6.complete c w hr, h6.fits c w hr⟩)
     h6.size (Nat.le_refl _) ?_ ?_ htb rfl rfl 5 g2_5
     (fun hdr h => queryLog_ge_of_headerOk A Params.default hdr h6.nonempty h)
-    g2_5_dom hp.query D hR h6.nvu
+    g2_5_dom hp.query h6.npOk h6.nvu
   · show secModelOf model = _
     rw [hmodel]; rfl
   · show AssumptionId.sha256RandomOracle ∈ allowed.flatMap assumptionOf

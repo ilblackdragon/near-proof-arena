@@ -69,6 +69,10 @@ pub struct Governance {
     /// Governed security profiles/assumptions (`security/`); when present every
     /// challenge must pass the same policy the governance CLI enforces.
     pub governed: Option<arena_admin::GovernedSet>,
+    /// Judge trusted-tree store (`ARENA_TRUSTED_TREES`). When set, a non-demo
+    /// challenge is refused unless the trusted tree it pins is published
+    /// there and verifies; `None` (dev only) skips that check with a warning.
+    pub trusted_trees: Option<std::path::PathBuf>,
 }
 
 impl Governance {
@@ -79,18 +83,32 @@ impl Governance {
         {
             return Err("formal-tier challenge signed by a dev-only governance key".into());
         }
+        let mut warnings = match &self.trusted_trees {
+            Some(store) => {
+                arena_admin::trusted::check_available(store, &v.definition)
+                    .map_err(|e| format!("trusted tree not available: {e:#}"))?;
+                vec![]
+            }
+            None if arena_admin::trusted::required(&v.definition) => vec![format!(
+                "no trusted-tree store configured (dev): pinned trusted tree {} NOT checked",
+                v.definition.semantic_scope.formal_spec.tree_digest
+            )],
+            None => vec![],
+        };
         match &self.governed {
             Some(g) => {
                 let f = arena_admin::policy::check_definition(&v.definition, g);
                 if f.ok() {
-                    Ok(f.warnings)
+                    warnings.extend(f.warnings);
+                    Ok(warnings)
                 } else {
                     Err(format!("governance policy: {}", f.errors.join("; ")))
                 }
             }
-            None => Ok(vec![
-                "no governed security/ set configured; policy checks skipped".into(),
-            ]),
+            None => {
+                warnings.push("no governed security/ set configured; policy checks skipped".into());
+                Ok(warnings)
+            }
         }
     }
 }

@@ -18,7 +18,6 @@ other lanes / of L7's own sub-lanes, bundled in `ToyPending`:
 |---|---|---|
 | `bcs`, `size`, `proverQ`, `proverChunk` | `Prover.{BcsComplete,Size,ProverQ,ProverChunk}Stmt` | L7-bcs |
 | `npIop`, `npProverQ` | `Prover.{NpIopComplete,NpProverQ}Stmt` | L7-iop |
-| `rbr` | `Udr.RbrFacts (Iop.verifier Fp Fp8 toyAir default) (AirLang Fp toyAir) Fp8.all 2^36 (agreeUdr 4)` | L3 (`Np.rbr_of` from its open Stmts) |
 | `query` | `QueryOk Params.default.numChunks g2_5` | **false for 24 chunks** — R-L7-1 (true after `numChunks := 26`: `udr2_K26_ok`) |
 -/
 
@@ -35,7 +34,6 @@ structure ToyPending : Prop where
   proverChunk : ProverChunkStmt
   npIop : NpIopCompleteStmt
   npProverQ : NpProverQStmt
-  rbr : Udr.RbrFacts (Vd toyAir) (Udr.AirLang Fp toyAir) Fp8.all (2 ^ 36) (Udr.agreeUdr 4)
   query : QueryOk Params.default.numChunks g2_5
 
 /-- `public.bin` of the toy candidate. -/
@@ -61,6 +59,14 @@ theorem toy_size (hdr : List Nat) (h : headerOk toyAir Params.default hdr = true
     sizeBound (Vd toyAir) hdr ≤ 8388608 := by
   rcases toy_headers hdr h with rfl | rfl | rfl | rfl <;> decide +kernel
 
+/-- L3's side condition for the toy AIR. -/
+theorem toy_npOk : Udr.Np.NpOk toyAir Params.default := by
+  refine ⟨rfl, ?_, by decide⟩
+  intro T hT
+  simp only [toyAir, List.mem_singleton] at hT
+  subst hT
+  decide
+
 theorem toy_NVu : NVu toyAir Params.default ≤ 2 ^ 30 := by decide +kernel
 
 /-- **M2: the toy admission statement**, from the open obligations. -/
@@ -72,14 +78,13 @@ theorem toy_admission (hp : ToyPending) (pid model : String) (tb : Nat) (allowed
     AdmissionStatement
       (ZkToySpec.challengeParamsWith (ZkToySpec.profileOf pid model tb allowed 40 64) fuel 8388608 rfuel)
       { publicDigest := pd, impl := .nativeTrusted bd tid Model.verifier } := by
-  obtain ⟨D, hR⟩ := hp.rbr
   refine np_admission hp.bcs hp.size hp.proverQ hp.proverChunk hp.npIop hp.npProverQ _ _ publicBin hpub
     toyAir toyAir_tables rfl (fun c w => honestTrace w)
     (fun c tr h => toy_sound c tr h)
     (fun c w _ hr => ⟨toy_holds c w hr, toy_header w⟩)
     toy_size (Nat.le_refl _) ?_ ?_ htb rfl rfl 5 g2_5
     (fun hdr h => queryLog_ge_of_headerOk toyAir Params.default hdr toyAir_tables h)
-    g2_5_dom hp.query D hR toy_NVu
+    g2_5_dom hp.query toy_npOk toy_NVu
   · show ZkToySpec.secModelOf model = _
     rw [hmodel]; rfl
   · show AssumptionId.sha256RandomOracle ∈ allowed.flatMap ZkToySpec.assumptionOf

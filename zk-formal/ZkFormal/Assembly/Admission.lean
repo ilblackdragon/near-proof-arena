@@ -1,4 +1,4 @@
-import ZkFormal.Assembly.RomBound
+import ZkFormal.Assembly.RomFull
 import ZkFormal.Prover.Compose
 
 /-!
@@ -14,7 +14,7 @@ profile, target ≤ 128 bits, budgets 2^64 / 2^40) and any AIR `A`:
 | `FORMAL_SEMANTIC_SOUNDNESS` | `hsound` — the AIR's soundness (L5/L6) |
 | `FORMAL_SEMANTIC_COMPLETENESS` | `hcomp` — the AIR's completeness (L5/L6) |
 | `VerifierComplete` | `np_proverComplete` at `H = sha256(roTag ‖ ·)` |
-| `CryptoSound` (ROM) | `np_proverComplete` (every `H`), `np_romSound` (L2 transport of L3's `RbrWith`, kernel numerics), `romSound_guard` |
+| `CryptoSound` (ROM) | `np_proverComplete` (every `H`), `stark_romSound_full` (L3 `rbrWith` ∘ L2 transport ∘ L4 facts, kernel numerics), `romSound_guard` |
 
 The backend is `B c tr := Holds A (pubOf (encodeClaim c)) tr`.  The deployed verifier
 is `npVerifier ch.spec A` (claim guard ∘ L4's compiled verifier, see `Guard.lean`).
@@ -36,7 +36,7 @@ theorem inLang_of_guard (S : ChallengeSpec) (A : Air) (cb : Bytes) (hok : claimO
   exact ⟨c, hc, tr, by show Holds A (Udr.pubOf Fp (S.encodeClaim c)) tr; rw [he]; exact htr⟩
 
 /-- **The admission certificate of an np-udr-stark candidate**, from the open
-obligations of the prover model (`Prover.Statements`), L3's `RbrWith`, the AIR's
+obligations of the prover model (`Prover.Statements`), L3's decidable `NpOk`, the AIR's
 semantic soundness/completeness and the concrete numeric checks. -/
 theorem np_admission
     (hB : BcsCompleteStmt) (hSz : SizeStmt) (hQ : ProverQStmt) (hC : ProverChunkStmt)
@@ -58,8 +58,7 @@ theorem np_admission
     (hqp : ch.profile.maxProverQueriesLog2 = 40)
     (lo g : Nat) (hlo : ∀ hdr, headerOk A Params.default hdr = true → lo ≤ queryLog A Params.default hdr)
     (hdom : Dominates (Udr.agreeUdr 4) lo g) (hq : QueryOk Params.default.numChunks g)
-    (D : PT Fp8 (Oracle Fp) → Prop)
-    (hR : Udr.RbrWith (Vd A) (Udr.AirLang Fp A) Fp8.all (2 ^ 36) (Udr.agreeUdr 4) D)
+    (hok : Udr.Np.NpOk A Params.default)
     (hNV : NVu A Params.default ≤ 2 ^ 30) :
     AdmissionStatement ch art := by
   let P := npProver ch.spec A traceOf
@@ -73,8 +72,8 @@ theorem np_admission
   · right
     rw [hmodel]
     refine ⟨hassm, P.toProver, hPC, ?_⟩
-    obtain ⟨tapeLen, num, den, hb, hrom⟩ := np_romSound A Params.default ShapeOk.default lo g hlo hdom hq
-      D hR hNV P pub (2 ^ 32) (Nat.le_refl _) (np_prover_unit hQ hNQ ch.spec A hA traceOf pub)
+    obtain ⟨tapeLen, num, den, hb, hrom⟩ := stark_romSound_full A Params.default hok lo g hlo hdom hq
+      hNV P pub (2 ^ 32) (Nat.le_refl _) (np_prover_unit hQ hNQ ch.spec A hA traceOf pub)
       (np_prover_chunk hC ch.spec A traceOf pub)
     refine ⟨tapeLen, num, den, ?_, ?_⟩
     · exact Nat.le_trans (Nat.mul_le_mul_left _ (Nat.pow_le_pow_right (by decide) htb)) hb

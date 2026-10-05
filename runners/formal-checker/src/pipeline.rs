@@ -156,6 +156,11 @@ pub struct CheckRequest<'a> {
     pub expected: &'a dyn ExpectedTypeBuilder,
     /// Challenge definition digest (bound into the cache key).
     pub challenge_digest: Option<Digest>,
+    /// The challenge's pinned trusted tree (`formal_spec.tree_digest`) the
+    /// `trusted` packages were materialized from and verified against
+    /// (`arena_types::trusted_tree`). Bound explicitly into the reference
+    /// and report cache keys; `None` only for ad-hoc/stand-in checks.
+    pub trusted_tree: Option<Digest>,
     pub policy: Policy,
     pub limits: Limits,
     /// Scratch directory for this check (created; must be empty or absent).
@@ -590,7 +595,7 @@ impl FormalChecker {
             ));
         }
         let includes: Vec<_> = req.trusted.iter().map(|p| (&p.name, &p.include)).collect();
-        let key = json_digest(&("trusted-v2", &digests, &includes, image));
+        let key = json_digest(&("trusted-v3", &req.trusted_tree, &digests, &includes, image));
         let dir = cached_build(&req.cache_dir, &format!("tr-{}", &key.hex()[..24]), |dir| {
             let src = dir.join("src");
             let out = dir.join("out");
@@ -636,7 +641,8 @@ impl FormalChecker {
             |e: String| Finding::unknown(ReasonCode::InfraError, format!("reference build: {e}"));
         let expected_source_digest = Digest::of_bytes(expected_src.as_bytes());
         let key = json_digest(&(
-            "ref-v2",
+            "ref-v3",
+            &req.trusted_tree,
             &tb.digests,
             &expected_source_digest,
             image,
@@ -1038,6 +1044,7 @@ impl FormalChecker {
             "checker_image": image,
             "formal_tree": formal_tree,
             "trusted": trusted_build.as_ref().ok().map(|t| t.digests.clone()),
+            "trusted_tree": req.trusted_tree,
             "expected": req.expected.identity(),
             "certificate": req.certificate,
             "challenge": req.challenge_digest,
@@ -1847,11 +1854,15 @@ impl FormalChecker {
         for r in rechecks.iter_mut().filter(|r| r.verdict == "completed") {
             r.verdict = if clean { "accepted" } else { "findings" }.into();
         }
-        let trusted_list: Vec<(String, Digest)> = req
+        let mut trusted_list: Vec<(String, Digest)> = req
             .trusted
             .iter()
             .filter_map(|p| tree_digest(&p.src_root).ok().map(|d| (p.name.clone(), d)))
             .collect();
+        // The challenge-pinned frozen tree the packages were verified against.
+        if let Some(t) = &req.trusted_tree {
+            trusted_list.push(("pinned-trusted-tree".into(), t.clone()));
+        }
         let graph = report::evidence_graph(&report::GraphInput {
             certificate: &req.certificate,
             certificate_digest: cert_digest,

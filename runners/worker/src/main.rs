@@ -69,14 +69,26 @@ fn oracles(dirs: &[PathBuf], near: Option<(PathBuf, PathBuf)>) -> Oracles {
     o
 }
 
+/// FORMAL_CHECK is enabled by a configs dir; the trusted reference always
+/// comes from the frozen trusted-tree store (never a checkout).
 fn formal(
-    repo: Option<PathBuf>,
+    legacy_repo: Option<PathBuf>,
+    trusted_trees: Option<PathBuf>,
     configs: Option<PathBuf>,
     images: Option<PathBuf>,
 ) -> Option<FormalEnv> {
-    repo.map(|repo| FormalEnv {
-        configs_dir: configs.unwrap_or_else(|| repo.join("runners/formal-checker/challenges")),
-        repo,
+    if legacy_repo.is_some() {
+        die("ARENA_FORMAL_REPO is no longer read: the trusted reference is built from the challenge's \
+             frozen trusted tree. Set ARENA_TRUSTED_TREES (store published by `arena-admin freeze-trusted`) \
+             and ARENA_FORMAL_CONFIGS_DIR instead (docs/TCB.md)");
+    }
+    let configs_dir = configs?;
+    if trusted_trees.is_none() {
+        eprintln!("arena-worker: WARNING ARENA_TRUSTED_TREES unset: every FORMAL_CHECK of a configured challenge fails as INFRA_ERROR");
+    }
+    Some(FormalEnv {
+        trusted_trees,
+        configs_dir,
         images_dir: images,
     })
 }
@@ -116,6 +128,7 @@ fn main() {
                 ),
                 formal: formal(
                     cfg.formal_repo.clone(),
+                    cfg.trusted_trees.clone(),
                     cfg.formal_configs_dir.clone(),
                     cfg.lean_checker_images.clone(),
                 ),
@@ -203,6 +216,7 @@ fn run_job_local(args: &[String]) {
         ),
         formal: formal(
             std::env::var_os("ARENA_FORMAL_REPO").map(PathBuf::from),
+            std::env::var_os("ARENA_TRUSTED_TREES").map(PathBuf::from),
             std::env::var_os("ARENA_FORMAL_CONFIGS_DIR").map(PathBuf::from),
             std::env::var_os("ARENA_LEAN_CHECKER_IMAGES").map(PathBuf::from),
         ),
