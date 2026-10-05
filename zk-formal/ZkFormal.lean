@@ -132,3 +132,4 @@ import ZkFormal.Sha.Complete.All
 import ZkFormal.Udr.SumR
 import ZkFormal.Udr.Np.DeepSem
 import ZkFormal.Udr.Np.Main
+import ZkFormal.Algebra.Pocklington

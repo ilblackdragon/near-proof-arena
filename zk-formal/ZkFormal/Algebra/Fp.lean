@@ -1,5 +1,6 @@
 import ZkFormal.Algebra.Transport
 import ZkFormal.Algebra.NatPrime
+import ZkFormal.Algebra.Pocklington
 
 /-!
 # ZkFormal.Algebra.Fp — the BabyBear field `F_p`, `p = 15·2^27 + 1`
@@ -12,7 +13,8 @@ and there is no separate refinement step; the proven bridge to arithmetic
 mod `p` is `toNat_add`, `toNat_mul`, … and `toFin` (into core's `Fin p`).
 
 Main results:
-* `p_prime : IsPrime P` — kernel trial division up to `√p < 44 870`;
+* `p_prime : IsPrime P` — Pocklington certificate (`p − 1 = 2^27·15`,
+  `31^((p−1)/2) ≡ −1`), one kernel modular exponentiation;
 * `instance : Lean.Grind.Field Fp`, `IsCharP Fp P`;
 * `pow_card_sub_one : a ≠ 0 → a ^ (P - 1) = 1` (Fermat);
 * `eleven_nonsquare : ∀ x : Fp, x * x ≠ 11` (Euler's criterion);
@@ -31,9 +33,15 @@ theorem P_eq : P = 15 * 2 ^ 27 + 1 := rfl
 
 theorem P_lt : P < 2 ^ 31 := by decide
 
-/-- **`p` is prime** (kernel trial division, ≈5 s). -/
+/-- The Pocklington witness: `31^(2^26·15) ≡ −1 (mod p)`. -/
+theorem p_cert : 31 ^ (2 ^ (27 - 1) * 15) % P = P - 1 := by
+  rw [← powMod_eq (by decide)]
+  decide +kernel
+
+/-- **`p` is prime**: Pocklington's criterion with `F = 2^27 > √p`. -/
 theorem p_prime : IsPrime P :=
-  isPrime_of_trialDiv (fuel := 44870) (by decide) (by decide +kernel)
+  isPrime_of_pocklington2 (k := 27) (m := 15) (a := 31) (by decide) (by decide) (by decide)
+    (by decide) p_cert
 
 instance : NeZero P := ⟨by decide⟩
 
