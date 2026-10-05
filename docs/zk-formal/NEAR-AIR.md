@@ -49,7 +49,7 @@ values is done byte-serially (LSB first) with carries carried to the next row.
   |---|---|---|---|
   | 1 `RC` | `u64 shard ‖ u32 n ‖ Σ Receipt.encode` | 0 | `12 + Σ size_r` |
   | 2 `RF` | `u32 nref ‖ Σ Receipt.encode refund` | 0 | `4 + Σ size'_r` |
-  | 3 `PEO` | `PartialExecutionOutcome` of receipt `r` | `r` | `46 + 32·hr + L_v` |
+  | 3 `PEO` | `PartialExecutionOutcome` of receipt `r` | `r` | `37 + 32·hr + L_v` |
   | 4 `LEAF` | `u32 2 ‖ id ‖ H(PEO_r)` | `r` | 68 |
   | 5 `RID` | `id ‖ u64 height ‖ u64 0` (refund id preimage) | `r` | 48 |
   | 6 `MRK` | outcome-merkle inner node `left ‖ right` | merkle row | 64 |
