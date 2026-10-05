@@ -404,3 +404,349 @@ theorem keyPart (hC : NodeCtx tr s ℓ fl) (ht : tr.cell T_NODE s tl + tr.cell T
       · rw [show fl[3].1 = fl[2 + 1].1 from rfl, this.2]; grind
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node
+
+theorem list_of_fun {fl : List (Nat × Nat)} {n : Nat} (hlen : fl.length = n) (f : Nat → Nat × Nat)
+    (h : ∀ i (hi : i < fl.length), fl[i] = f i) : fl = (List.range n).map f := by
+  apply List.ext_getElem (by simp [hlen])
+  intro i h1 h2; rw [h i h1]; simp
+
+theorem drop_of_len {α : Type} {l : List α} {q : Nat} (h : l.length ≤ q) : l.drop q = [] :=
+  List.drop_eq_nil_of_le h
+
+/-- Number of present children (bitmap popcount) as a natural. -/
+@[irreducible] def popN (tr : Trace Fp) (r : Nat) : Nat := ((List.range 16).map fun i => cv tr T_NODE r (bm i)).sum
+
+theorem eval_popAux (tr : Trace Fp) (r : Nat) (pub : List Fp) (l : List Nat) :
+    (sum (l.map fun i => c (bm i))).eval tr T_NODE r pub = (((l.map fun i => cv tr T_NODE r (bm i)).sum : Nat) : Fp) := by
+  induction l with
+  | nil => rfl
+  | cons a l ih =>
+    simp only [List.map_cons, eval_sum_cons, eval_c, List.sum_cons, natCast_add, ih]
+    rw [cell_eq_cast]
+
+theorem eval_popE (tr : Trace Fp) (r : Nat) (pub : List Fp) :
+    popE.eval tr T_NODE r pub = (popN tr r : Fp) := by unfold popN; exact eval_popAux tr r pub _
+
+theorem popN_le {tr : Trace Fp} {r : Nat} (h : ∀ i, i < 16 → cv tr T_NODE r (bm i) ≤ 1) : popN tr r ≤ 16 := by
+  unfold popN
+  have : ∀ l : List Nat, (∀ i ∈ l, i < 16) → ((l.map fun i => cv tr T_NODE r (bm i)).sum ≤ l.length) := by
+    intro l; induction l with
+    | nil => simp
+    | cons a l ih => intro hl; simp only [List.map_cons, List.sum_cons, List.length_cons]
+                     have := h a (hl a (by simp)); have := ih (fun i hi => hl i (by simp [hi])); omega
+  have := this (List.range 16) (fun i hi => by simpa using hi); simpa using this
+
+theorem bm_bool {i : Nat} (hi : i < 16) : bm i ∈ boolCols := by
+  unfold boolCols; simp only [List.mem_append, List.mem_map, List.mem_range]
+  exact Or.inl (Or.inl (Or.inl (Or.inr ⟨i, hi, rfl⟩)))
+
+theorem fp_one_sub_zero : (1 : Fp) - 0 = 1 := by decide
+theorem fp_lin1 {a b : Fp} (h : a = 1 * b + 0) : a = b := by grind
+theorem fp_one_mul_zero {a : Fp} (h : 1 * a = 0) : a = (0 : Nat) := by
+  rw [show ((0 : Nat) : Fp) = 0 from rfl]; grind
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+theorem popN_small {r : Nat} (hr : r < tr.height T_NODE) : popN tr r ≤ 16 :=
+  popN_le (fun i hi => cvb hL hr (bm_bool hi))
+
+theorem popNConst (hC : NodeCtx tr s ℓ fl) {d : Nat} (hd : d < ℓ) : popN tr (s + d) = popN tr s := by
+  unfold popN; congr 1; apply List.map_congr_left; intro i hi; rw [List.mem_range] at hi
+  unfold cv; rw [segConst hL hC (x := bm i) (by unfold nodeConst; simp only [List.mem_append, List.mem_map, List.mem_range]; exact Or.inr ⟨i, hi, rfl⟩) hd]
+
+theorem lastIdx (hC : NodeCtx tr s ℓ fl) {i : Nat} (hi : i < fl.length)
+    (hm : tr.cell T_NODE (s + fl[i].1) sMEM = 1) : fl.length = i + 1 ∧ ℓ = fl[i].1 + 8 := by
+  have h1 := memLast hL hC hi hm
+  have l := (lens hL hC hi).2.2.2.2.2.2.2.2 hm
+  have := hC.fields.last (by omega)
+  simp only [show fl.length - 1 = i by omega] at this
+  exact ⟨h1.symm, by omega⟩
+
+set_option maxHeartbeats 4000000 in
+/-- Branch tail from the `BM` field (index `iB`, offset `o`). -/
+theorem brTail (hC : NodeCtx tr s ℓ fl) {iB : Nat} (hiB : iB < fl.length)
+    (hbm : tr.cell T_NODE (s + fl[iB].1) sBM = 1) (hbr : tr.cell T_NODE s tb1 + tr.cell T_NODE s tb2 = 1) :
+    fl.drop iB = (fl[iB].1, 2) :: ((List.range (popN tr s)).map (fun j => (fl[iB].1 + 2 + 32 * j, 32)) ++
+      [(fl[iB].1 + 2 + 32 * popN tr s, 8)]) ∧
+    ℓ = fl[iB].1 + 2 + 32 * popN tr s + 8 ∧
+    (tr.cell T_NODE s nochild = 1 ↔ popN tr s = 0) ∧
+    tr.cell T_NODE (s + (fl[iB].1 + 2 + 32 * popN tr s)) sMEM = 1 ∧
+    ∀ j, j < popN tr s → ∃ hj : iB + 1 + j < fl.length, fl[iB + 1 + j] = (fl[iB].1 + 2 + 32 * j, 32) ∧
+      tr.cell T_NODE (s + fl[iB + 1 + j].1) sCH = 1 ∧ tr.cell T_NODE (s + fl[iB + 1 + j].1) w = ((j : Nat) : Fp) ∧
+      (tr.cell T_NODE (s + fl[iB + 1 + j].1) lastw = 1 ↔ j + 1 = popN tr s) := by
+  obtain ⟨hr0, ha0⟩ := nodeStart hL hC
+  have lB := (lens hL hC hiB).2.2.2.2.2.2.1 hbm
+  obtain ⟨h1', e1⟩ := goNext hL hC hiB hbm (by simp [states]) (by decide)
+  have N := (nx hL hC h1').2.2.2.2.2.2.1 hbm
+  have hpop := (flags hL hr0).2.1
+  rw [eval_popE] at hpop
+  have hpS := popN_small hL hr0
+  rcases isBool hL hr0 (x := nochild) (by simp [boolCols]) with hn | hn
+  · -- children: a CH run
+    rw [hn] at N
+    have c0 : tr.cell T_NODE (s + fl[iB + 1].1) sCH = 1 := by rw [N.2, fp_one_sub_zero]
+    have hbmCH : tr.cell T_NODE (s + fl[iB].1) sCH = 0 :=
+      stOnly hL (x := sBM) (y := sCH) (fieldRow hL hC hiB).1 (fAct hL hC hiB) hbm (by simp [states])
+        (by simp [states]) (by decide)
+    have w0 := chFirst hL hC h1' hbmCH c0
+    obtain ⟨m, hm, R, hlw, hmem, pm⟩ := chRun hL hC h1' c0 w0
+    obtain ⟨hlen, hℓ⟩ := lastIdx hL hC hm hmem
+    -- m + 1 = pop
+    obtain ⟨hjm, cm, wm, -, -⟩ := R m (Nat.le_refl _)
+    have hrm := (fieldRow hL hC hjm).1
+    have W := (winSlot hL hrm cm).2.2 hlw
+    simp only [nWinE, isBr, eval_add, eval_mul, eval_c, eval_popE] at W
+    have hdl : fl[iB + 1 + m].1 < ℓ := by
+      have hFm := (hC.fields.field _ (List.getElem_mem hjm)); have := hFm.1.pos; have := hFm.2; omega
+    rw [fConst hL hC hjm (x := tb1) (by simp [nodeConst]), fConst hL hC hjm (x := tb2) (by simp [nodeConst]),
+      fConst hL hC hjm (x := te) (by simp [nodeConst]), wm, hbr, popNConst hL hC hdl] at W
+    have hte : tr.cell T_NODE s te = 0 := by
+      have := typeSumNat hL hr0 ha0
+      have h1 := cv_bool (isBool hL hr0 (x := tb1) (by simp [boolCols]))
+      have h2 := cv_bool (isBool hL hr0 (x := tb2) (by simp [boolCols]))
+      have e := hbr
+      rw [cell_eq_cast tr T_NODE s tb1, cell_eq_cast tr T_NODE s tb2, ← natCast_add] at e
+      have := ofNat_inj (by unfold P; omega) (by unfold P; omega) (e.trans (show (1 : Fp) = ((1 : Nat) : Fp) from rfl))
+      exact of_cv_zero (by omega)
+    rw [hte] at W
+    have hp : m + 1 = popN tr s := by
+      have := height_le hL; have := hC.bound
+      obtain ⟨-, -, -, pm', -⟩ := R m (Nat.le_refl _)
+      apply ofNat_inj (by unfold P; omega) (by unfold P; omega)
+      rw [natCast_add]; exact fp_lin1 W
+    have hpop0 : popN tr s ≠ 0 := by omega
+    have hiB1 : fl[iB + 1].1 = fl[iB].1 + 2 := by rw [e1, lB]
+    refine ⟨?_, ?_, ⟨fun h => by rw [hn] at h; exact absurd h fp_zero_ne_one, fun h => absurd h hpop0⟩, ?_, ?_⟩
+    · rw [drop_cons_get hiB, List.cons.injEq]
+      refine ⟨Prod.ext rfl lB, ?_⟩
+      have hlist := list_of_fun (fl := fl.drop (iB + 1)) (n := m + 2) (by simp only [List.length_drop]; omega)
+          (fun j => if j ≤ m then (fl[iB].1 + 2 + 32 * j, 32) else (fl[iB].1 + 2 + 32 * (m + 1), 8)) (by
+        intro j hj
+        simp only [List.getElem_drop, List.length_drop] at hj ⊢
+        by_cases hjm' : j ≤ m
+        · rw [if_pos hjm']
+          obtain ⟨hj', -, -, pj, lj⟩ := R j hjm'
+          exact Prod.ext (by show fl[iB + 1 + j].1 = fl[iB].1 + 2 + 32 * j; rw [pj, hiB1]) lj
+        · rw [if_neg hjm']
+          have : j = m + 1 := by omega
+          subst this
+          have l8 := (lens hL hC hm).2.2.2.2.2.2.2.2 hmem
+          exact Prod.ext (by show fl[iB + 1 + m + 1].1 = _; rw [pm, hiB1]) l8)
+      rw [hlist, List.range_succ, List.map_append, ← hp]
+      simp only [List.map_cons, List.map_nil, if_neg (show ¬ (m + 1 ≤ m) by omega)]
+      apply congrArg (· ++ _)
+      apply List.map_congr_left; intro j hj; rw [List.mem_range] at hj; rw [if_pos (by omega)]
+    · rw [hℓ, pm, hiB1, ← hp]
+    · rw [← hp, show fl[iB].1 + 2 + 32 * (m + 1) = fl[iB + 1 + m + 1].1 by rw [pm, hiB1]]; exact hmem
+    · intro j hj
+      obtain ⟨hj', cj, wj, pj, lj⟩ := R j (by omega)
+      refine ⟨hj', Prod.ext (by rw [pj, hiB1]) lj, cj, wj, ⟨fun h => ?_, fun h => ?_⟩⟩
+      · apply Classical.byContradiction; intro hne
+        -- an earlier window with lastw = 1 ends the run
+        have hjm2 : j < m := by omega
+        obtain ⟨hj2, e2⟩ := goNext hL hC hj' cj (by simp [states]) (by decide)
+        have N2 := (nx hL hC hj2).2.2.2.2.2.2.2 cj
+        rw [h] at N2
+        obtain ⟨hj1, cj1, wj1, pj1, lj1⟩ := R (j + 1) (by omega)
+        have : tr.cell T_NODE (s + fl[iB + 1 + (j + 1)].1) sMEM = 0 :=
+          stOnly hL (x := sCH) (y := sMEM) (fieldRow hL hC hj1).1 (fAct hL hC hj1) cj1 (by simp [states])
+            (by simp [states]) (by decide)
+        have this' : tr.cell T_NODE (s + fl[iB + 1 + j + 1].1) sMEM = 0 := this
+        rw [this'] at N2; exact fp_zero_ne_one N2.2
+      · have : j = m := by omega
+        subst this; exact hlw
+  · -- no children
+    have hp0 : popN tr s = 0 := by
+      rw [hn] at hpop
+      exact ofNat_inj (by unfold P; omega) (by unfold P; omega) (fp_one_mul_zero hpop)
+    rw [hn] at N
+    have hmem : tr.cell T_NODE (s + fl[iB + 1].1) sMEM = 1 := N.1
+    obtain ⟨hlen, hℓ⟩ := lastIdx hL hC h1' hmem
+    have hiB1 : fl[iB + 1].1 = fl[iB].1 + 2 := by rw [e1, lB]
+    refine ⟨?_, by rw [hℓ, hiB1, hp0], ⟨fun _ => hp0, fun _ => hn⟩, by rw [hp0]; simpa [hiB1] using hmem,
+      fun j hj => by omega⟩
+    rw [drop_cons_get hiB, drop_cons_get h1', drop_of_len (by omega), hp0]
+    have l8 := (lens hL hC h1').2.2.2.2.2.2.2.2 hmem
+    simp only [List.range_zero, List.map_nil, List.nil_append, List.cons.injEq, and_true]
+    refine ⟨Prod.ext rfl lB, Prod.ext ?_ l8⟩
+    simp [hiB1]
+
+end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node
+
+theorem fp_add_zero' {a : Fp} (h : a = 1 + 0) : a = 1 := by grind
+theorem fp_zero_add' {a : Fp} (h : a = 0 + 1) : a = 1 := by grind
+theorem fp_eq_one_of_sum {a b : Fp} (h : a + b = 1) (hb : b = 0) : a = 1 := by grind
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+theorem typeZeros (hC : NodeCtx tr s ℓ fl) {x : Nat} (hx : x ∈ [tl, te, tb1, tb2])
+    (h1 : tr.cell T_NODE s x = 1) {y : Nat} (hy : y ∈ [tl, te, tb1, tb2]) (hne : y ≠ x) :
+    tr.cell T_NODE s y = 0 := by
+  obtain ⟨hr0, ha0⟩ := nodeStart hL hC
+  exact typeOnly hL hr0 ha0 h1 hx hy hne
+
+set_option maxHeartbeats 1000000 in
+theorem leafFields (hC : NodeCtx tr s ℓ fl) (ht : tr.cell T_NODE s tl = 1) :
+    1 ≤ cv tr T_NODE s hplen ∧ (tr.cell T_NODE s nokey = 1 ↔ cv tr T_NODE s hplen = 1) ∧
+    fl = leafFL (cv tr T_NODE s hplen) ∧ ℓ = 49 + cv tr T_NODE s hplen ∧
+    tr.cell T_NODE s sTAG = 1 ∧ tr.cell T_NODE (s + 1) sHPL = 1 ∧ tr.cell T_NODE (s + 5) sHPF = 1 ∧
+    (cv tr T_NODE s hplen ≠ 1 → tr.cell T_NODE (s + 6) sKEY = 1) ∧
+    tr.cell T_NODE (s + (5 + cv tr T_NODE s hplen)) sVLEN = 1 ∧
+    tr.cell T_NODE (s + (9 + cv tr T_NODE s hplen)) sVH = 1 ∧
+    tr.cell T_NODE (s + (41 + cv tr T_NODE s hplen)) sMEM = 1 := by
+  have hte := typeZeros hL hC (x := tl) (y := te) (by simp) ht (by simp) (by decide)
+  obtain ⟨hh1, hnk, hq, htake, pq, sT, sH, sF, sK, sV, -⟩ := keyPart hL hC (by rw [ht, hte]; exact fp_add_zero' rfl)
+  generalize (if cv tr T_NODE s hplen = 1 then 3 else 4) = q at *
+  generalize cv tr T_NODE s hplen = h at *
+  rw [ht] at sV
+  have l0 := (lens hL hC hq).2.2.2.2.1 sV
+  obtain ⟨hq1', e1⟩ := goNext hL hC hq sV (by simp [states]) (by decide)
+  have hq1 : q + 1 < fl.length := hq1'
+  have s1 : tr.cell T_NODE (s + fl[q + 1].1) sVH = 1 := (nx hL hC hq1).2.2.2.2.1 sV
+  have l1 := (lens hL hC hq1).2.2.2.2.2.1 s1
+  obtain ⟨hq2', e2⟩ := goNext hL hC hq1 s1 (by simp [states]) (by decide)
+  have hq2 : q + 2 < fl.length := hq2'
+  have e2' : fl[q + 2].1 = fl[q + 1].1 + fl[q + 1].2 := e2
+  have s2 : tr.cell T_NODE (s + fl[q + 2].1) sMEM = 1 := by
+    have := ((nx hL hC hq2).2.2.2.2.2.1 s1).1; rw [ht] at this; exact this
+  obtain ⟨hlen, hℓ⟩ := lastIdx hL hC hq2 s2
+  have l2 := (lens hL hC hq2).2.2.2.2.2.2.2.2 s2
+  refine ⟨hh1, hnk, ?_, by omega, sT, sH, sF, sK, by rw [← pq]; exact sV,
+    by rw [show 9 + h = fl[q + 1].1 by omega]; exact s1, by rw [show 41 + h = fl[q + 2].1 by omega]; exact s2⟩
+  rw [split_at fl q, htake, drop_cons_get hq, drop_cons_get hq1, drop_cons_get hq2, drop_of_len (by omega)]
+  unfold leafFL
+  simp only [List.append_assoc, List.cons_append, List.nil_append, List.append_cancel_left_eq,
+    List.cons.injEq, and_true]
+  exact ⟨Prod.ext pq l0, Prod.ext (by omega) l1, Prod.ext (by omega) l2⟩
+
+set_option maxHeartbeats 1000000 in
+theorem extFields (hC : NodeCtx tr s ℓ fl) (ht : tr.cell T_NODE s te = 1) :
+    1 ≤ cv tr T_NODE s hplen ∧ (tr.cell T_NODE s nokey = 1 ↔ cv tr T_NODE s hplen = 1) ∧
+    fl = extFL (cv tr T_NODE s hplen) ∧ ℓ = 45 + cv tr T_NODE s hplen ∧
+    tr.cell T_NODE s sTAG = 1 ∧ tr.cell T_NODE (s + 1) sHPL = 1 ∧ tr.cell T_NODE (s + 5) sHPF = 1 ∧
+    (cv tr T_NODE s hplen ≠ 1 → tr.cell T_NODE (s + 6) sKEY = 1) ∧
+    tr.cell T_NODE (s + (5 + cv tr T_NODE s hplen)) sCH = 1 ∧
+    tr.cell T_NODE (s + (37 + cv tr T_NODE s hplen)) sMEM = 1 := by
+  have htl := typeZeros hL hC (x := te) (y := tl) (by simp) ht (by simp) (by decide)
+  obtain ⟨hh1, hnk, hq, htake, pq, sT, sH, sF, sK, -, sC⟩ := keyPart hL hC (by rw [ht, htl]; exact fp_zero_add' rfl)
+  generalize (if cv tr T_NODE s hplen = 1 then 3 else 4) = q at *
+  generalize cv tr T_NODE s hplen = h at *
+  rw [ht] at sC
+  have l0 := (lens hL hC hq).2.2.2.2.2.2.2.1 sC
+  have w0 := (winSlot hL (fieldRow hL hC hq).1 sC).2.1 (by rw [fConst hL hC hq (by simp [nodeConst]), ht])
+  obtain ⟨hq1', e1⟩ := goNext hL hC hq sC (by simp [states]) (by decide)
+  have hq1 : q + 1 < fl.length := hq1'
+  have N := (nx hL hC hq1).2.2.2.2.2.2.2 sC
+  have hlw : tr.cell T_NODE (s + fl[q].1) lastw = 1 := by
+    rcases isBool hL (fieldRow hL hC hq).1 (x := lastw) (by simp [boolCols]) with h0 | h0
+    · exfalso
+      rw [h0] at N
+      have c1 : tr.cell T_NODE (s + fl[q + 1].1) sCH = 1 := fp_eq_one_of_sum N.1 N.2
+      have W := chStep hL hC hq1 sC c1
+      have w1 := (winSlot hL (fieldRow hL hC hq1).1 c1).2.1 (by rw [fConst hL hC hq1 (by simp [nodeConst]), ht])
+      rw [w1, w0] at W
+      exact fp_zero_ne_one (by rw [W]; decide)
+    · exact h0
+  rw [hlw] at N
+  have s1 : tr.cell T_NODE (s + fl[q + 1].1) sMEM = 1 := N.2
+  obtain ⟨hlen, hℓ⟩ := lastIdx hL hC hq1 s1
+  have l1 := (lens hL hC hq1).2.2.2.2.2.2.2.2 s1
+  refine ⟨hh1, hnk, ?_, by omega, sT, sH, sF, sK, by rw [← pq]; exact sC,
+    by rw [show 37 + h = fl[q + 1].1 by omega]; exact s1⟩
+  rw [split_at fl q, htake, drop_cons_get hq, drop_cons_get hq1, drop_of_len (by omega)]
+  unfold extFL
+  simp only [List.append_assoc, List.cons_append, List.nil_append, List.append_cancel_left_eq,
+    List.cons.injEq, and_true]
+  exact ⟨Prod.ext pq l0, Prod.ext (by omega) l1⟩
+
+end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+set_option maxHeartbeats 1000000 in
+/-- Branch field list (`o = 1` for `b1`, `37` for `b2`). -/
+theorem brFields (hC : NodeCtx tr s ℓ fl) (hb : tr.cell T_NODE s tb1 + tr.cell T_NODE s tb2 = 1) :
+    let o := if tr.cell T_NODE s tb2 = 1 then 37 else 1
+    fl = brFL o (popN tr s) ∧ ℓ = o + 2 + 32 * popN tr s + 8 ∧
+    tr.cell T_NODE s sTAG = 1 ∧ (o = 37 → tr.cell T_NODE (s + 1) sVLEN = 1 ∧ tr.cell T_NODE (s + 5) sVH = 1) ∧
+    tr.cell T_NODE (s + o) sBM = 1 ∧
+    (tr.cell T_NODE s nochild = 1 ↔ popN tr s = 0) ∧
+    tr.cell T_NODE (s + (o + 2 + 32 * popN tr s)) sMEM = 1 ∧
+    ∀ j, j < popN tr s → tr.cell T_NODE (s + (o + 2 + 32 * j)) sCH = 1 ∧
+      tr.cell T_NODE (s + (o + 2 + 32 * j)) w = ((j : Nat) : Fp) ∧
+      (tr.cell T_NODE (s + (o + 2 + 32 * j)) lastw = 1 ↔ j + 1 = popN tr s) := by
+  intro o
+  obtain ⟨h0, f0, sT⟩ := firstField hL hC
+  obtain ⟨hr0, ha0⟩ := nodeStart hL hC
+  have sT' : tr.cell T_NODE (s + fl[0].1) sTAG = 1 := by rw [f0, Nat.add_zero]; exact sT
+  have l0 := (lens hL hC h0).1 sT'
+  obtain ⟨h1', e1⟩ := goNext hL hC h0 sT' (by simp [states]) (by decide)
+  have h1 : 1 < fl.length := h1'
+  have e1' : fl[1].1 = fl[0].1 + fl[0].2 := e1
+  have N0 := (nx hL hC h1).1 sT'
+  rcases isBool hL hr0 (x := tb2) (by simp [boolCols]) with h2 | h2
+  · -- b1
+    have ho : o = 1 := by simp only [o, h2]; decide
+    have h1' : tr.cell T_NODE s tb1 = 1 := by rw [h2] at hb; grind
+    have sB : tr.cell T_NODE (s + fl[1].1) sBM = 1 := by rw [N0.2.1, h1']
+    obtain ⟨hD, hℓ, hnc, hM, hW⟩ := brTail hL hC h1 sB hb
+    have p1 : fl[1].1 = 1 := by omega
+    rw [p1] at hD hℓ hM hW
+    rw [ho]
+    refine ⟨?_, hℓ, sT, fun h => absurd h (by decide), by rw [← p1]; exact sB, hnc, hM, fun j hj => ?_⟩
+    · rw [split_at fl 1, hD]
+      unfold brFL
+      simp [List.take_one, List.head?_eq_getElem?, List.getElem?_eq_getElem h0]
+      exact Prod.ext f0 l0
+    · obtain ⟨hj, ej, cj, wj, lj⟩ := hW j hj
+      have : fl[1 + 1 + j].1 = 1 + 2 + 32 * j := by rw [ej]
+      rw [this] at cj wj lj
+      exact ⟨cj, wj, lj⟩
+  · -- b2
+    have ho : o = 37 := by simp only [o, h2]; decide
+    have sV : tr.cell T_NODE (s + fl[1].1) sVLEN = 1 := by rw [N0.2.2, h2]
+    have l1 := (lens hL hC h1).2.2.2.2.1 sV
+    obtain ⟨h2', e2⟩ := goNext hL hC h1 sV (by simp [states]) (by decide)
+    have h2'' : 2 < fl.length := h2'
+    have e2' : fl[2].1 = fl[1].1 + fl[1].2 := e2
+    have sH : tr.cell T_NODE (s + fl[2].1) sVH = 1 := (nx hL hC h2'').2.2.2.2.1 sV
+    have l2 := (lens hL hC h2'').2.2.2.2.2.1 sH
+    obtain ⟨h3', e3⟩ := goNext hL hC h2'' sH (by simp [states]) (by decide)
+    have h3 : 3 < fl.length := h3'
+    have e3' : fl[3].1 = fl[2].1 + fl[2].2 := e3
+    have sB : tr.cell T_NODE (s + fl[3].1) sBM = 1 := by rw [((nx hL hC h3).2.2.2.2.2.1 sH).2, h2]
+    obtain ⟨hD, hℓ, hnc, hM, hW⟩ := brTail hL hC h3 sB hb
+    have p3 : fl[3].1 = 37 := by omega
+    rw [p3] at hD hℓ hM hW
+    rw [ho]
+    refine ⟨?_, hℓ, sT, fun _ => ⟨by rw [show 1 = fl[1].1 by omega]; exact sV, by rw [show 5 = fl[2].1 by omega]; exact sH⟩,
+      by rw [← p3]; exact sB, hnc, hM, fun j hj => ?_⟩
+    · rw [split_at fl 3, hD, take_three h2'']
+      unfold brFL
+      simp only [show (37 : Nat) ≠ 1 by decide, if_false, List.cons_append, List.nil_append, List.singleton_append,
+        List.append_assoc, List.cons.injEq, true_and]
+      exact ⟨Prod.ext f0 l0, Prod.ext (by omega) l1, Prod.ext (by omega) l2, trivial⟩
+    · obtain ⟨hj, ej, cj, wj, lj⟩ := hW j hj
+      have : fl[3 + 1 + j].1 = 37 + 2 + 32 * j := by rw [ej]
+      rw [this] at cj wj lj
+      exact ⟨cj, wj, lj⟩
+
+end ZkFormal.Near.NodeProof
