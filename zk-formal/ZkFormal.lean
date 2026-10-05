@@ -55,3 +55,4 @@ import ZkFormal.Udr.Np.Sem
 import ZkFormal.Udr.Np.Stage
 import ZkFormal.Udr.Np.Statements
 import ZkFormal.Udr.Np.Compose
+import ZkFormal.Udr.Np.Shape
