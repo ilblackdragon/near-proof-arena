@@ -248,3 +248,38 @@ row (`(r, field, idx) ↦ cell`), then one lemma per constraint family
 soundness side: the extraction (`Extract/RcptTraffic`, `rcpt_view`) gives the
 traffic of any locally valid rcpt table as `rcptTraffic pub (viewOf …)`, so
 it remains to identify the extracted view with `rcptViewsOf I`.
+
+## Sub-lane L6e-rcpt (lane/zk-L6-rcptr): `RcptLocalStmt` (partial), `RcptTrafficStmt` (open)
+
+**Generator in closed form.** `Render/Rcpt.lean`: records `recsOf ds`
+(`RRec.cl i`, `RRec.seg r s i`), cells `fullCell` (= `segCell`/`clCell`, emission
+slots = the table's `emits` evaluated by `evalF`), carries/borrows `chain`/`bchain`,
+columns as numerals.  Same rows as the old imperative generator on ex1–ex5
+(checked cell by cell); `test/NearRenderTest.lean` passes (≈ 67 s, was ≈ 50 s).
+
+**Proof infrastructure** (`Render/Proof/Rcpt{Base,Rows,Cells,Col,Lem}`): `evR`
+(an expression on a row given as functions), `Zr` (syntactic vanishing when
+cells are zero), `nextOf` adjacency of the records, `allRows_of` (a constraint
+holds on every row from: record rows with their successor, the last record,
+padding rows), generated column lemmas `S_*`/`L_*` (simp sets `rseg`, `rcl`).
+
+**Proved families** (on every row of `render c.1 e`, under `Good`):
+`cStates` (`RcptStates1–7`: bits, one-hot, field bookkeeping, last indices,
+successions, receipt boundaries and offsets `o`/`o2`/`rcnt`, constants),
+`cEmit` (`RcptEmit`), `cChars` (`RcptChars1–5`: character-local constraints by
+`decide` over the 256 bytes on a synthetic row, separators, lengths,
+predecessor ≠ `system`, named receiver), `cKey` (`RcptKey`); heights and
+multiplicity bits (`RcptLocal`).
+
+**Assembly.** `RcptP.rcptLocal_of`/`rcptLocal_fams : RcptFams → RcptLocalStmt`;
+`RenderRest.rcptL` is now `RcptP.RcptFams` = the five open families
+`cRegs`, `cGas`, `cDep`, `cClaim`, `cEnd` (`FamOk F`: every `x ∈ F` holds on
+every row).  No table bug found.  All modules ≤ 8.1 s (`RcptChars1` 8.1 s,
+`RcptStates1` 4.6 s, rest ≤ 2.5 s); axioms `propext, Classical.choice,
+Quot.sound`.
+
+**Open.** The five families (registers/tokens, gas and balance byte-serial
+arithmetic, claim checks, end-of-batch) and `RcptTrafficStmt`.  Gas/dep need
+the chain lemmas (`Σ out_j 256^j + 256^n·carry_n = Σ x_j 256^j`) and the
+no-overflow facts of `RcptOk`; `cEnd` needs `pub_n/pub_nref/pub_tok`
+(`Link/Claim`) with `Hdr = ⟨hg.pv, hg.chain⟩`.
