@@ -69,7 +69,7 @@ theorem sh_header (τ : PTn) (hs : Shaped (Vnp A prm) τ) (hE : 1 ≤ τ.entries
     ∃ hdr, τ.header? = some hdr ∧ headerOk A prm hdr = true ∧
       (Vnp A prm).slots τ = schedule A prm hdr := by
   cases hh : τ.header? with
-  | some hdr => exact ⟨hdr, rfl, hs.1 hdr hh, by simp [IopSpec.slots, hh, Vnp, Iop.verifier]⟩
+  | some hdr => exact ⟨hdr, rfl, (verifier_headerOk (hs.1 hdr hh)).1, by simp [IopSpec.slots, hh, Vnp, Iop.verifier]⟩
   | none =>
     exfalso
     obtain ⟨s, hs0, hfit⟩ := hs.2.2 0 (by omega)
