@@ -294,6 +294,8 @@ def check (cfg : Config) : IO UInt32 := do
           (match ci with | .opaqueInfo _ => true | _ => false))
       | none => false
     csimpJson := csimpJson.push <| Json.mkObj [("thm", toJson (nameStr e.thmName)),
+      -- escaped form (`«»` where needed), as consumed by lean4export's name-literal decoder
+      ("thmEscaped", toJson (toString e.thmName)),
       ("from", toJson (nameStr e.fromDeclName)), ("to", toJson (nameStr e.toDeclName)),
       ("origin", toJson origin), ("fromOrigin", toJson (classify e.fromDeclName)),
       ("statementOk", toJson statementOk), ("axioms", toJson (strArr caxioms)),

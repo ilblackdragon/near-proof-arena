@@ -1541,8 +1541,12 @@ impl FormalChecker {
                 // certificate closure: export them too (kernel-checked by nanoda,
                 // axiom-audited from the export).
                 for c in lean_audit.iter().flat_map(|l| l.csimp.iter()) {
-                    if c.thm.split('.').all(staging::is_ident) {
-                        argv.push(c.thm.clone());
+                    // Lean identifiers may contain `?`, `!`, unicode, `«»`; pass
+                    // Lean's own escaped rendering. If the export then lacks the
+                    // lemma, the NDJSON side fails closed (RECHECK_FAILED).
+                    let n = &c.thm_escaped;
+                    if !n.is_empty() && n.len() < 4096 && !n.chars().any(|ch| ch.is_whitespace() || ch.is_control()) {
+                        argv.push(n.clone());
                     } else {
                         findings.push(Finding::new(
                             ReasonCode::RecheckFailed,

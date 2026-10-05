@@ -77,6 +77,8 @@ pub struct LeanFlagged {
 #[serde(rename_all = "camelCase", default)]
 pub struct LeanCSimp {
     pub thm: String,
+    /// Lean's escaped rendering of `thm` (for lean4export's name decoder).
+    pub thm_escaped: String,
     pub from: String,
     pub to: String,
     pub origin: String,
