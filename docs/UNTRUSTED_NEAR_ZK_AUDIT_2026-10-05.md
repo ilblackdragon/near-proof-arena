@@ -1,5 +1,7 @@
 # Untrusted NEAR ZK implementation: correctness audit and agent handoff
 
+**Latest independent re-review:** see [Re-review after remediation](#re-review-after-remediation) below. The original findings are retained as history; several are now resolved. The re-review covers changes through `4958b82f95ff71bc196fb9df356067ecd787d825`.
+
 Date: 2026-10-05
 
 Audited revision: `8e831a6` (the HEAD inspected during the audit).
@@ -416,5 +418,89 @@ Workspace checks on this branch:
   `cargo clippy --workspace --all-targets -D warnings` are clean.
 * `cargo test --workspace`: 337 passed. `fork_bomb_and_background_daemon`
   failed once from host thread exhaustion (EAGAIN) under full-workspace
-  parallelism and passed on two isolated reruns. That flakiness predates
-  this branch.
+parallelism and passed on two isolated reruns. That flakiness predates
+this branch.
+
+## Re-review after remediation
+
+Reviewed on 2026-10-05. Started at `afb5b87`; incorporated `babf73b` (checker deployment) and `4958b82f95ff71bc196fb9df356067ecd787d825` (closed package certificate and low-memory prover), which landed during review. Findings below apply to that final revision. Implementation was not changed by this review.
+
+### Revised conclusion
+
+The original critical compiler-rewrite issue is fixed in the tested checker. The NEAR v1 AIR, soundness/completeness proofs, real prover, real verifier model, and packaged closed certificate now exist. The old statement that the NEAR AIR or prover is missing is obsolete.
+
+There is now a closed formal validity argument for the scoped **v1 Transfer-receipt relation**, subject to its declared TCB and random-oracle model. This is still not an authenticated full-mainnet transition proof or a zero-knowledge privacy guarantee. The full signed-challenge, formal-tier STARK pipeline remains to be demonstrated for the reviewed package, and the recorded worst-case prover runtime exceeds the current cap.
+
+No new soundness exploit was found in the selected paths reviewed. This was a focused review of the changes and trust boundaries, not a line-by-line audit of every newly added formal lemma or a fresh independent-kernel replay of the entire packaged NEAR certificate.
+
+### Status of original findings
+
+| ID | Re-review status | Independently checked / remaining limit |
+|---|---|---|
+| A01 | **Fixed in checker; regression verified** | Real corpus and native-route suites pass. Malicious csimp fails all six gates with SORRY_FOUND; honest csimp passes. Code audits rewrite roots and exports them for independent checking. LIVE.md §5c records deployment, successor challenges, and invalidation of 15 old cache entries; those operational actions were not queried independently. |
+| A02 | **Core implementation and package certificate complete; formal-tier E2E remains** | Built `NearAssembly.NearClosed`; checked the exact theorem type and allowed axioms; real prover and `NpUdrStark.certificate` are present. Committed checker report records all gates PASS under `tier_cap: demo`. See R01/R03 below. |
+| A03 | **Scope documentation improved; broader guarantee still absent** | v1 remains a projected receipt-batch relation; v2 remains restricted single-shard. Chain authentication, multi-shard/full transition semantics, and a nearcore refinement proof are not supplied by this work. |
+| A04 | **Worker integration verified** | Re-ran v2 demo worker pipeline: 25 fixtures + 3 samples, 155 hostile inputs, wrong-version rejection. This test excludes FORMAL_CHECK and does not establish a v2 STARK certificate. |
+| A05 | **Validity-only labeling addressed; privacy still absent** | No privacy obligation was added to AdmissionStatement. Correctly remains outside validity admission. |
+| A06 | **Public coverage fixed; secret/held-out mechanisms implemented; enforcement partial** | Unit and pipeline tests pass. Missing pinned public fixtures fail closed. LIVE.md now records secret sampling and held-out deployment, superseding the older remediation note above. Code still permits configuration-based held-out opt-out and undersized held-out samples; see R04. |
+| A07 | **Substantially improved, incomplete** | STARK builds and real checker tests are wired into CI; required gated tests panic on skips. The axiom gate still targets the old conditional theorem; standalone prover tests are not wired into CI; KVM job remains opt-in. See R02. |
+
+### R01 — High: finish the worker/challenge integration for the now-closed STARK package
+
+At `4958b82`, the packaged certificate is real:
+
+```lean
+theorem certificate : ArenaExpectedInst.expectedType :=
+  certificate_of ZkFormal.Near.Render.render_stmt_closed
+    ZkFormal.NearAssembly.near_min_height
+    _ _ _ _ _ _ _ _ _ rfl (by decide) (by decide) (by decide +kernel)
+```
+
+However, [candidate.toml](../examples/np-udr-stark/candidate.toml) still targets the unsigned `near-transfer-receipt-v1-zk` draft (`chl_bdbfc808…`). That draft pins the old checker identity `sha256:b6391b38…`. [Worker formal configuration](../runners/formal-checker/challenges/near-transfer-receipt-v1.json) recognizes v1 through v1-5, but not `near-transfer-receipt-v1-zk`. `find_config` in [formal.rs](../runners/worker/src/stages/formal.rs) selects by `chal.name`; an unmatched name produces UNKNOWN formal gates. Manually supplying a config to `formal-check` does not exercise this worker selection path.
+
+The committed [formal checker report](../examples/np-udr-stark/bench/results/formal-check-v1zk-2026-10-05.json) has all six gates PASS, no findings/warnings, and accepted leanchecker/nanoda/lean4lean/audit results. It explicitly has **`tier_cap: demo`**. That is useful component evidence, not a full formal-tier server/worker admission. The report predates the low-memory prover merge, so a package-level run must cover the final build even though the certified verifier is unchanged.
+
+**Next action / acceptance:** register a compatible signed successor with the fixed checker and intended frozen tree, update the manifest and worker config consistently, and run the final package through validate/build/prepare/formal/conformance/adversarial/benchmark in the formal-tier pipeline. Record exact package/verifier/public digests and required gate outcomes. Existing docs propose a v1-6 successor; choose the final name consistently rather than adding an obsolete draft alias by rote.
+
+### R02 — Medium: CI checks the conditional theorem instead of the closed NEAR certificate
+
+[AdmissionAxioms.lean](../zk-formal/test/AdmissionAxioms.lean) imports `NearAssembly.Certificate` and checks `near_admission`, whose `L6Facts` hypothesis remains explicit. The workflow's explicit targets and axiom-output loop use the same old theorem. The newly closed theorem is `NearAssembly.near_certificate_closed` in [NearClosed.lean](../zk-formal/ZkFormal/NearAssembly/NearClosed.lean).
+
+The default `ZkFormal` build does import `NearClosed`, so ordinary type errors are caught. But replacing an L6 proof by `sorry` can still elaborate, while the axiom gate on the conditional assembly theorem remains clean. Thus this gate does not protect the newly achieved closure of the NEAR proof.
+
+Also, `examples/np-udr-stark/source` is a standalone Cargo workspace, and the workflow/Makefile does not invoke its new low-memory, trace-equivalence, or malformed-input tests. The KVM workflow remains conditioned on `vars.ARENA_KVM_RUNNER == 'true'`; skip-to-panic inside a test does not force an entirely skipped workflow job to execute.
+
+**Next action / acceptance:** explicitly build and axiom-check `near_certificate_closed` (and the actual package certificate under judge-generated literals), add the standalone prover's relevant tests and Rust/Lean conformance to CI, and make KVM execution a required release check. A negative control that inserts `sorry` into an L6 dependency must fail the axiom gate. Record an executed KVM job, not only its workflow definition.
+
+### R03 — High for full-domain reliability: maximum in-domain proving exceeds the cap
+
+[STATUS-L8.md](zk-formal/STATUS-L8.md), L8d section, records a valid maximum-domain witness: 256 receipts, 2,999,955 revealed bytes, SHA/node tables of height 2^22. The low-memory prover uses about 11.4 GB and produces a 3.56 MB accepted proof, but takes **1,742 seconds** on the reported 8-thread AVX2 run.
+
+The [draft challenge](../challenges/drafts/near-transfer-receipt-v1-zk.draft.json) caps both proving and measurement runs at **600,000 ms**. The worker passes that limit to the proving sandbox. On comparable hardware the recorded case cannot finish within the cap, despite being mathematically covered by completeness. This is a reliability/resource mismatch, not evidence of false-proof acceptance. The maximum-case measurement is repository evidence; it was not rerun during this review.
+
+**Next action / acceptance:** reproduce the maximum-domain case on the intended governed hardware and either optimize it within the existing cap or make an explicit governed scope/resource change. Include this boundary case in required reliability coverage. Do not describe typical workload timings as proof of full-domain completion within the limit.
+
+### R04 — Medium: held-out policy can still be weakened by worker configuration
+
+In [oracle.rs](../runners/worker/src/oracle.rs), `heldout_for` returns `None` whenever `heldout_configured` is false, even if the challenge has a nonzero held-out commitment. `conformance_suite` adds a “NOT exercised” note and can pass. Missing season secrets likewise select public sampling. The newly documented live configuration uses both mechanisms, which improves that deployment, but the code does not require them for formal runs.
+
+There is also a smaller coverage discrepancy: sampled classes require `per_class` cases, but a held-out class is checked only for nonemptiness before `truncate(per_class)`. If ten cases per class are requested and a held-out class contains one, it contributes one and still passes. This does not satisfy the function's documented “as many committed held-out cases per class” contract.
+
+**Next action / acceptance:** define the intended mandatory coverage in governed policy, enforce it independently of optional worker configuration, and reject short held-out classes when the policy requires `per_class`. Preserve explicit demo opt-outs if desired. Add tests for a formal challenge with a commitment but no held-out configuration, and for a nonempty but undersized held-out class. These are empirical coverage guarantees, not replacements for formal soundness.
+
+### Independent validation in this re-review
+
+1. `cargo test --locked --offline -p arena-worker -p arena-formal-checker --lib`: **31 passed** (18 worker, 13 checker).
+2. `ARENA_DEV_UNSAFE=1 ARENA_REQUIRE_GATED_TESTS=1 cargo test --locked --offline -p arena-formal-checker --test native_route --test corpus -- --nocapture --test-threads=1`: **both real suites passed**. The attack binary still accepts an invalid claim in the deliberate exploit demonstration, but **all gates reject the candidate with SORRY_FOUND**, as required. Honest compiler rewrites pass.
+3. `lake build ZkFormal.NearAssembly.NearClosed`: **passed**, rerun after the final formal-source merge; cached/incremental build, not a fresh clean independent-kernel replay.
+4. `#print axioms` on `near_certificate_closed`, `nearAir_sound_closed`, and `Render.render_stmt_closed`: only `propext`, `Classical.choice`, `Quot.sound`. Inspected the closed theorem's type: only profile/artifact literals and their concrete facts remain, with no L6 semantic/completeness hypotheses.
+5. Exported current `ZkFormal.Near.nearAir` using `Air.exportJson`; **byte-identical** to the Rust prover's committed `source/near-air.json`.
+6. `ARENA_DEV_UNSAFE=1 ARENA_NEAR_TESTS=1 ARENA_REQUIRE_GATED_TESTS=1 ARENA_NEAR_ORACLE=/data/illia/nearproof-live/bin/near-arena-oracle cargo test --locked --offline -p arena-worker --test near_v2 -- --nocapture --test-threads=1`: **2 passed**. 28 honest cases, 155 hostile inputs, and version-mismatch controls. Executed the installed oracle binary in local tests; did not modify the live service. Initial attempts correctly failed for missing default binary / missing dev-sandbox flag; the fully configured rerun passed.
+7. `ARENA_DEV_UNSAFE=1 cargo test --locked --offline -p arena-worker --test pipeline conformance_ -- --nocapture --test-threads=1`: **2 passed**, covering missing pinned public fixtures and a verified held-out set.
+8. `cargo test --locked --offline --manifest-path examples/np-udr-stark/source/Cargo.toml --test lowmem --test near_cols --test near_fuzz --test near_core --test near_rcpt -- --test-threads=1`: **9 passed** against the low-memory merge. Includes reference-proof parity at multiple memory budgets, compact/row-major trace equivalence, corruption detection, fixture claims, structured invalid inputs, mutation/panic tests, and CLI exit codes.
+
+Not independently rerun: the roughly 1,400-second packaged NEAR formal-check run, the 1,742-second maximum-domain proving benchmark, full formal-tier Firecracker STARK admission, or authenticated mainnet replay. The committed report and deployment notes are evidence supplied by the implementation work and are labeled accordingly above.
+
+### Recommended next handoff
+
+Finish R01, fix R02 before relying on CI to preserve closed NEAR soundness, resolve R03 for the promised supported domain, and make the R04 policy explicit. Do not reopen the now-discharged L6 work or the verified csimp fix. Mainnet authentication and privacy remain separate scope expansions, not properties established by the current v1 validity certificate.

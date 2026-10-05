@@ -199,6 +199,11 @@ impl SandboxRunner {
         s.pids = 1024;
         // RLIMIT_FSIZE inside the sandbox follows the scratch size.
         s.rw_scratch_mb = (spec.max_file_bytes >> 20).max(64);
+        // Read-write dirs (the growing `.olean` output tree) are written back
+        // through the output channel, so its cap must cover the whole tree:
+        // the 256 MiB sandbox default silently dropped late modules of large
+        // certificates on Firecracker. Use the scratch size as the bound.
+        s.max_output_bytes = s.rw_scratch_mb << 20;
         s.output_trunc_bytes = REPORT_CAPTURE_LIMIT;
         s
     }
@@ -241,6 +246,16 @@ impl UntrustedRunner for SandboxRunner {
                 let _ = std::fs::remove_dir_all(d);
             }
             return Err(InfraError::Violation(o.violations.join(", ")));
+        }
+        // Never continue on a partial write-back of read-write dirs/outputs: a
+        // missing `.olean` would surface later as a misleading build error.
+        if let Some(e) = &o.output_error {
+            if let Some(d) = &stdout_dir {
+                let _ = std::fs::remove_dir_all(d);
+            }
+            return Err(InfraError::Io(std::io::Error::other(format!(
+                "sandbox output collection incomplete: {e}"
+            ))));
         }
         let mut captured: Option<Vec<u8>> = None;
         if let Some(d) = &stdout_dir {
