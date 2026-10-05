@@ -5,3 +5,7 @@ import Lean
 -/
 
 register_simp_attr rcols
+
+/-- Cells of the `rcpt` segment / claim rows, column by column (`Proof/RcptCol`). -/
+register_simp_attr rseg
+register_simp_attr rcl

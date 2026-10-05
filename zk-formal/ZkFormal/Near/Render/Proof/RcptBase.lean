@@ -124,6 +124,24 @@ theorem Zr_sound {z zn : Nat → Bool} {f0 : Bool} {cur nx : Nat → Fp} {fst ls
     rcases h with h | h <;> simp only [evR_mul, Zr_sound hz hzn hf _ h] <;> grind
   | .neg a, h => by simp only [Zr] at h; simp only [evR_neg, Zr_sound hz hzn hf a h]; grind
 
+theorem Zr_mono_n {z zn zn' : Nat → Bool} {f0 : Bool} (h : ∀ x, zn x = true → zn' x = true) :
+    ∀ {e}, Zr z zn f0 e = true → Zr z zn' f0 e = true
+  | .const _, h' => h'
+  | .col x false, h' => h'
+  | .col x true, h' => h x h'
+  | .pub _, h' => h'
+  | .isFirst, h' => h'
+  | .isLast, h' => h'
+  | .isTransition, h' => h'
+  | .add a d, h' => by
+    simp only [Zr, Bool.and_eq_true] at h' ⊢; exact ⟨Zr_mono_n h h'.1, Zr_mono_n h h'.2⟩
+  | .mul a d, h' => by
+    simp only [Zr, Bool.or_eq_true] at h' ⊢
+    rcases h' with h' | h'
+    · exact .inl (Zr_mono_n h h')
+    · exact .inr (Zr_mono_n h h')
+  | .neg a, h' => by simp only [Zr] at h' ⊢; exact Zr_mono_n h h'
+
 /-! ## Records -/
 
 open RcptGen
