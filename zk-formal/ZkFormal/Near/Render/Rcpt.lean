@@ -15,7 +15,8 @@ evaluated on the row (`fullCell`).
 
 Closed form: the rows are the records `recsOf ds` (`RRec.cl i`: claim row `i`;
 `RRec.seg r s i`: row `i` of field `s` of receipt `r`), a cell is
-`fullCell ds pub bgp N ρ col`; carries and borrows are `chain`/`bchain`.
+`fullCell ds pub bgp N ρ col`; carries and borrows are `chain`/`bchain`.  Columns and
+field states are written as numerals (the indices of `Tables/Rcpt/Layout.lean`).
 -/
 
 namespace ZkFormal.Near.Render
@@ -75,14 +76,14 @@ def isHexC (ch : Nat) : Bool := (48 ≤ ch && ch ≤ 57) || (97 ≤ ch && ch ≤
 def charCell (ch col : Nat) : Nat :=
   let hi := ch / 16
   let lo := ch % 16
-  if col = h2 then b2n (hi == 2) else if col = h3 then b2n (hi == 3)
-  else if col = h5 then b2n (hi == 5) else if col = h6 then b2n (hi == 6)
-  else if col = h7 then b2n (hi == 7)
-  else if col = lb 0 then bitOf lo 0 else if col = lb 1 then bitOf lo 1
-  else if col = lb 2 then bitOf lo 2 else if col = lb 3 then bitOf lo 3
-  else if col = z then b2n (lo == 0) else if col = linv then (if lo == 0 then 0 else invP lo)
-  else if col = l210 then b2n (lo % 8 == 7)
-  else if col = hx6 then b2n (hi == 6 && 1 ≤ lo && lo ≤ 6)
+  if col = 111 then b2n (hi == 2) else if col = 112 then b2n (hi == 3)
+  else if col = 113 then b2n (hi == 5) else if col = 114 then b2n (hi == 6)
+  else if col = 115 then b2n (hi == 7)
+  else if col = 116 then bitOf lo 0 else if col = 117 then bitOf lo 1
+  else if col = 118 then bitOf lo 2 else if col = 119 then bitOf lo 3
+  else if col = 120 then b2n (lo == 0) else if col = 121 then (if lo == 0 then 0 else invP lo)
+  else if col = 122 then b2n (lo % 8 == 7)
+  else if col = 123 then b2n (hi == 6 && 1 ≤ lo && lo ≤ 6)
   else 0
 
 /-- Per-receipt data. -/
@@ -121,47 +122,47 @@ def pubs (pub : Array Nat) (off len : Nat) : List Nat := (List.range len).map fu
 
 /-- Length of field `s`. -/
 def fLen (d : RD) (s : Nat) : Nat :=
-  if s = sPL then 4 else if s = sP then d.pred.length else if s = sVL then 4
-  else if s = sV then d.recv.length else if s = sRID then 32 else if s = sT0 then 1
-  else if s = sSL then 4 else if s = sS then d.signer.length else if s = sKT then 1
-  else if s = sPK then 32 + 32 * d.kt else if s = sGP then 16 else if s = sTL then 13
-  else if s = sDEP then 16 else if s = sXP0 then 4 else if s = sXRI then 32 else if s = sXG then 8
-  else if s = sXST then 5 else if s = sXL0 then 4 else if s = sXLH then 32 else if s = sXRH then 16
-  else if s = sXRF then 10 else if s = sXRZ then 16 else 0
+  if s = 5 then 4 else if s = 6 then d.pred.length else if s = 7 then 4
+  else if s = 8 then d.recv.length else if s = 9 then 32 else if s = 10 then 1
+  else if s = 11 then 4 else if s = 12 then d.signer.length else if s = 13 then 1
+  else if s = 14 then 32 + 32 * d.kt else if s = 15 then 16 else if s = 16 then 13
+  else if s = 17 then 16 else if s = 18 then 4 else if s = 19 then 32 else if s = 20 then 8
+  else if s = 21 then 5 else if s = 22 then 4 else if s = 23 then 32 else if s = 24 then 16
+  else if s = 25 then 10 else if s = 26 then 16 else 0
 
 /-- Register contents loaded at the first row of field `s`. -/
 def fLd (d : RD) (pub : Array Nat) (s : Nat) : List Nat :=
-  if s = sPL then [d.pred.length, 0, 0, 0] else if s = sP then [115, 121, 115, 116, 101, 109]
-  else if s = sVL then [d.recv.length, 0, 0, 0] else if s = sT0 then [0]
-  else if s = sSL then [d.signer.length, 0, 0, 0] else if s = sKT then [d.kt]
-  else if s = sGP then pubs pub PV_BGP 16 else if s = sTL then [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 3]
-  else if s = sXP0 then [b2n d.hr, 0, 0, 0] else if s = sXRI then d.refundId
-  else if s = sXG then G_LE else if s = sXST then [2, 0, 0, 0, 0] else if s = sXL0 then [2, 0, 0, 0]
-  else if s = sXLH then d.peoDig else if s = sXRH then pubs pub PV_HEIGHT 8 ++ List.replicate 8 0
-  else if s = sXRF then [6, 0, 0, 0, 115, 121, 115, 116, 101, 109]
-  else if s = sXRZ then List.replicate 16 0 else []
+  if s = 5 then [d.pred.length, 0, 0, 0] else if s = 6 then [115, 121, 115, 116, 101, 109]
+  else if s = 7 then [d.recv.length, 0, 0, 0] else if s = 10 then [0]
+  else if s = 11 then [d.signer.length, 0, 0, 0] else if s = 13 then [d.kt]
+  else if s = 15 then pubs pub PV_BGP 16 else if s = 16 then [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 3]
+  else if s = 18 then [b2n d.hr, 0, 0, 0] else if s = 19 then d.refundId
+  else if s = 20 then G_LE else if s = 21 then [2, 0, 0, 0, 0] else if s = 22 then [2, 0, 0, 0]
+  else if s = 23 then d.peoDig else if s = 24 then pubs pub PV_HEIGHT 8 ++ List.replicate 8 0
+  else if s = 25 then [6, 0, 0, 0, 115, 121, 115, 116, 101, 109]
+  else if s = 26 then List.replicate 16 0 else []
 
 /-- The fields of a receipt, in order. -/
 def fields (h : Bool) : List Nat :=
-  [sPL, sP, sVL, sV, sRID, sT0, sSL, sS, sKT, sPK, sGP, sTL, sDEP, sXP0] ++ (if h then [sXRI] else []) ++
-  [sXG, sXST, sXL0, sXLH] ++ (if h then [sXRH, sXRF, sXRZ] else [])
+  [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18] ++ (if h then [19] else []) ++
+  [20, 21, 22, 23] ++ (if h then [24, 25, 26] else [])
 
 /-- The fields before `GP` (the tokens register holds the old total). -/
-def beforeGP (s : Nat) : Bool := [sPL, sP, sVL, sV, sRID, sT0, sSL, sS, sKT, sPK].contains s
+def beforeGP (s : Nat) : Bool := [5, 6, 7, 8, 9, 10, 11, 12, 13, 14].contains s
 
-def isStr (s : Nat) : Bool := s == sP || s == sV || s == sS
+def isStr (s : Nat) : Bool := s == 6 || s == 8 || s == 12
 
 /-- The account-id string of field `s`. -/
-def strOf (d : RD) (s : Nat) : List Nat := if s = sP then d.pred else if s = sV then d.recv else d.signer
+def strOf (d : RD) (s : Nat) : List Nat := if s = 6 then d.pred else if s = 8 then d.recv else d.signer
 
 /-- The byte of row `i` of field `s`. -/
 def segByte (d : RD) (pub : Array Nat) (s i : Nat) : Nat :=
-  if ZkFormal.Near.Rcpt.regStates.contains s then (fLd d pub s).getD i 0
+  if [5, 7, 11, 10, 13, 16, 18, 20, 21, 22, 24, 25, 26, 19, 23].contains s then (fLd d pub s).getD i 0
   else if isStr s then (strOf d s).getD i 0
-  else if s = sRID then d.id.getD i 0
-  else if s = sPK then d.pk.getD i 0
-  else if s = sGP then (leBytes 16 d.gp).getD i 0
-  else if s = sDEP then (leBytes 16 d.dep).getD i 0
+  else if s = 9 then d.id.getD i 0
+  else if s = 14 then d.pk.getD i 0
+  else if s = 15 then (leBytes 16 d.gp).getD i 0
+  else if s = 17 then (leBytes 16 d.dep).getD i 0
   else 0
 
 /-! ## Gas (`GP`) and balance (`DEP`) arithmetic -/
@@ -210,13 +211,13 @@ def sysB (j : Nat) : Nat := [115, 121, 115, 116, 101, 109].getD j 0
 open Seg in
 /-- Scratch bits `xb j` of row `i` of field `s`. -/
 def segXb (d : RD) (bgp : Nat → Nat) (s i j : Nat) : Nat :=
-  if s = sGP then
+  if s = 15 then
     if j < 8 then bitOf (gdv d bgp i) j else if j = 8 then bitOf (gbr d bgp (i + 1)) 0
     else if j < 20 then bitOf (sb d bgp i / 256) (j - 9)
     else if j < 31 then bitOf (sr d bgp i / 256) (j - 20)
     else if j < 39 then bitOf (tt d bgp i % 256) (j - 31)
     else if j = 39 then bitOf (tt d bgp i / 256) 0 else 0
-  else if s = sDEP then
+  else if s = 17 then
     if j < 8 then bitOf (sa d i % 256) j else if j = 8 then bitOf (sa d i / 256) 0
     else if j < 17 then bitOf (stt d i % 256) (j - 9) else if j = 17 then bitOf (stt d i / 256) 0
     else if j < 26 then bitOf (sq d i % 256) (j - 18) else if j < 38 then bitOf (sq d i / 256) (j - 26)
@@ -248,11 +249,11 @@ def o2EndOf (d : RD) : Nat := d.o2 + (if d.hr then 129 + 2 * d.signer.length + 3
 /-- The tokens register of row `i` of field `s`. -/
 def segTok (d : RD) (s i j : Nat) : Nat :=
   if beforeGP s then Seg.tokOld d j
-  else if s = sGP then (if i + j < 16 then Seg.tokOld d (i + j) else Seg.tokNew d (i + j - 16))
+  else if s = 15 then (if i + j < 16 then Seg.tokOld d (i + j) else Seg.tokNew d (i + j - 16))
   else Seg.tokNew d j
 
 /-- Is row `i` of field `s` the receipt's last row. -/
-def isRl (d : RD) (s i : Nat) : Bool := i + 1 == fLen d s && (s == sXRZ || (s == sXLH && !d.hr))
+def isRl (d : RD) (s i : Nat) : Bool := i + 1 == fLen d s && (s == 26 || (s == 23 && !d.hr))
 
 open Seg in
 /-- Cells of row `i` of field `s` of receipt `d` (`N` receipts; emission slots `0`). -/
@@ -261,64 +262,64 @@ def segCell (d : RD) (pub : Array Nat) (bgp : Nat → Nat) (N s i col : Nat) : N
   let bv := segByte d pub s i
   let lst := i + 1 = len
   if col < 31 then
-    if col = act then 1 else if col = rf then b2n (s = sPL ∧ i = 0)
-    else if col = rl then b2n (isRl d s i) else if col = lastR then b2n (isRl d s i && d.r + 1 == N)
-    else if col = idx then i else if col = fs then b2n (i = 0) else if col = fe then b2n lst
-    else if col = b then bv
-    else if col = sCL then 0 else if col = s then 1 else 0
+    if col = 0 then 1 else if col = 1 then b2n (s = 5 ∧ i = 0)
+    else if col = 2 then b2n (isRl d s i) else if col = 3 then b2n (isRl d s i && d.r + 1 == N)
+    else if col = 27 then i else if col = 28 then b2n (i = 0) else if col = 29 then b2n lst
+    else if col = 30 then bv
+    else if col = 4 then 0 else if col = s then 1 else 0
   else if col < 43 then 0
   else if col < 63 then
-    if col = tA then
-      (if s = sV then 2 + 2 * i else if s = sVL ∧ i < 2 then i
-       else if s = sRID ∧ i = 0 then 2 + 2 * d.recv.length else 0)
-    else if col = symA then (if s = sV then bv / 16 else if s = sRID ∧ i = 0 then SYM_END else 0)
-    else if col = lastA then b2n (s = sRID ∧ i = 0)
-    else if col = gKA then b2n (s = sV ∨ (s = sVL ∧ i < 2) ∨ (s = sRID ∧ i = 0))
-    else if col = kz then b2n (s = sVL ∧ i < 2)
-    else if col = r then d.r else if col = o then d.o else if col = o2 then d.o2
-    else if col = Lp then d.pred.length else if col = Lv then d.recv.length
-    else if col = Ls then d.signer.length else if col = kt then d.kt else if col = hr then b2n d.hr
-    else if col = kslot then d.kslot else if col = tprev then d.tprev else if col = rcnt then d.rcnt
-    else if col = ge then b2n d.ge else if col = big then b2n d.big
-    else if col = oEnd then oEndOf d else if col = o2End then o2EndOf d else 0
+    if col = 43 then
+      (if s = 8 then 2 + 2 * i else if s = 7 ∧ i < 2 then i
+       else if s = 9 ∧ i = 0 then 2 + 2 * d.recv.length else 0)
+    else if col = 44 then (if s = 8 then bv / 16 else if s = 9 ∧ i = 0 then SYM_END else 0)
+    else if col = 45 then b2n (s = 9 ∧ i = 0)
+    else if col = 46 then b2n (s = 8 ∨ (s = 7 ∧ i < 2) ∨ (s = 9 ∧ i = 0))
+    else if col = 47 then b2n (s = 7 ∧ i < 2)
+    else if col = 48 then d.r else if col = 49 then d.o else if col = 50 then d.o2
+    else if col = 51 then d.pred.length else if col = 52 then d.recv.length
+    else if col = 53 then d.signer.length else if col = 54 then d.kt else if col = 55 then b2n d.hr
+    else if col = 56 then d.kslot else if col = 57 then d.tprev else if col = 58 then d.rcnt
+    else if col = 59 then b2n d.ge else if col = 60 then b2n d.big
+    else if col = 61 then oEndOf d else if col = 62 then o2EndOf d else 0
   else if col < 95 then (fLd d pub s).getD (i + (col - 63)) 0
   else if col < 111 then segTok d s i (col - 95)
   else if col < 124 then (if isStr s then charCell bv col else 0)
   else if col < 138 then
-    if col = acc then (if s = sP then accP d i % P else if s = sV then accV d i else 0)
-    else if col = vc0 then (if s = sV then d.recv.getD 0 0 else 0)
-    else if col = vc1 then (if s = sV then d.recv.getD 1 0 else 0)
-    else if col = h01 then (if s = sV then h01V d else 0)
-    else if col = p1 then (if s = sP ∧ lst then pP d else if s = sV ∧ lst then pV1 d else 0)
-    else if col = p2 then (if s = sV ∧ lst then pV2 d else 0)
-    else if col = p3 then (if s = sV ∧ lst then pV3 d else 0)
-    else if col = i1 then (if s = sV ∧ lst then invP (pV1 d) else 0)
-    else if col = i2 then (if s = sV ∧ lst then invP (pV2 d) else 0)
-    else if col = i3 then (if s = sV ∧ lst then invP (pV3 d) else 0)
-    else if col = isys then (if s = sP ∧ lst then invP (pP d) else 0)
-    else if col = r1 then b2n (s = sDEP ∧ i = 1)
+    if col = 124 then (if s = 6 then accP d i % P else if s = 8 then accV d i else 0)
+    else if col = 125 then (if s = 8 then d.recv.getD 0 0 else 0)
+    else if col = 126 then (if s = 8 then d.recv.getD 1 0 else 0)
+    else if col = 127 then (if s = 8 then h01V d else 0)
+    else if col = 128 then (if s = 6 ∧ lst then pP d else if s = 8 ∧ lst then pV1 d else 0)
+    else if col = 129 then (if s = 8 ∧ lst then pV2 d else 0)
+    else if col = 130 then (if s = 8 ∧ lst then pV3 d else 0)
+    else if col = 131 then (if s = 8 ∧ lst then invP (pV1 d) else 0)
+    else if col = 132 then (if s = 8 ∧ lst then invP (pV2 d) else 0)
+    else if col = 133 then (if s = 8 ∧ lst then invP (pV3 d) else 0)
+    else if col = 134 then (if s = 6 ∧ lst then invP (pP d) else 0)
+    else if col = 135 then b2n (s = 17 ∧ i = 1)
     else 0
   else if col < 204 then segXb d bgp s i (col - 138)
-  else if s = sGP then
-    if col = c1 then gbr d bgp i else if col = c2 then chain (x2 d bgp) i
-    else if col = c3 then chain (x3 d bgp) i else if col = c4 then chain (x4 d bgp) i
+  else if s = 15 then
+    if col = 204 then gbr d bgp i else if col = 205 then chain (x2 d bgp) i
+    else if col = 206 then chain (x3 d bgp) i else if col = 207 then chain (x4 d bgp) i
     else if col < 212 then (if col - 208 < i then pB d bgp (i - 1 - (col - 208)) else 0)
     else if col < 216 then (if col - 212 < i then surB d bgp (i - 1 - (col - 212)) else 0)
-    else if col = burnt then sb d bgp i % 256 else if col = ramt then sr d bgp i % 256
-    else if col = sumD then runSum (gdv d bgp) i
-    else if col = invA then (if lst ∧ d.hr then invP (runSum (gdv d bgp) i) else 0)
+    else if col = 216 then sb d bgp i % 256 else if col = 217 then sr d bgp i % 256
+    else if col = 218 then runSum (gdv d bgp) i
+    else if col = 219 then (if lst ∧ d.hr then invP (runSum (gdv d bgp) i) else 0)
     else 0
-  else if s = sDEP then
-    if col = c1 then chain (y1 d) i else if col = c2 then chain (y2 d) i
-    else if col = c3 then chain (y3 d) i else if col = c4 then dbr d i
+  else if s = 17 then
+    if col = 204 then chain (y1 d) i else if col = 205 then chain (y2 d) i
+    else if col = 206 then chain (y3 d) i else if col = 207 then dbr d i
     else if col < 215 then (if col - 208 < i then stB d (i - 1 - (col - 208)) else 0)
-    else if col = bef then befB d i else if col = lk then lkB d i else if col = st then stB d i
-    else if col = dsum then runA d i else if col = invB then (if lst then invP (runA d i) else 0)
+    else if col = 220 then befB d i else if col = 221 then lkB d i else if col = 222 then stB d i
+    else if col = 223 then runA d i else if col = 224 then (if lst then invP (runA d i) else 0)
     else 0
-  else if col = gDg then b2n (i = 0 ∧ (s = sXRI ∨ s = sXLH))
-  else if col = dI then
-    (if i = 0 ∧ s = sXRI then msgId K_RID d.r else if i = 0 ∧ s = sXLH then msgId K_PEO d.r else 0)
-  else if col = dL then (if i = 0 ∧ s = sXRI then 48 else if i = 0 ∧ s = sXLH then d.peoLen else 0)
+  else if col = 227 then b2n (i = 0 ∧ (s = 19 ∨ s = 23))
+  else if col = 225 then
+    (if i = 0 ∧ s = 19 then msgId K_RID d.r else if i = 0 ∧ s = 23 then msgId K_PEO d.r else 0)
+  else if col = 226 then (if i = 0 ∧ s = 19 then 48 else if i = 0 ∧ s = 23 then d.peoLen else 0)
   else 0
 
 /-! ## Claim rows -/
@@ -344,17 +345,17 @@ end Cl
 open Cl in
 /-- Cells of claim row `i`. -/
 def clCell (pub : Array Nat) (i col : Nat) : Nat :=
-  if col = act then 1 else if col = sCL then 1 else if col = idx then i
-  else if col = fs then b2n (i = 0) else if col = fe then b2n (i = 11)
+  if col = 0 then 1 else if col = 4 then 1 else if col = 27 then i
+  else if col = 28 then b2n (i = 0) else if col = 29 then b2n (i = 11)
   else if 63 ≤ col ∧ col < 75 then (A pub).getD ((i + (col - 63)) % 12) 0
   else if 75 ≤ col ∧ col < 79 then (B pub).getD ((i + (col - 75)) % 4) 0
   else if 79 ≤ col ∧ col < 87 then G_LE.getD ((i + (col - 79)) % 8) 0
   else if 87 ≤ col ∧ col < 95 then (D pub).getD ((i + (col - 87)) % 8) 0
   else if 95 ≤ col ∧ col < 103 then (T pub).getD ((i + (col - 95)) % 8) 0
-  else if col = lo8 then b2n (i < 8) else if col = lo4 then b2n (i < 4)
-  else if col = invA then (if i = 0 then invP (pub.getD PV_N 0 + pub.getD (PV_N + 1) 0) else 0)
+  else if col = 136 then b2n (i < 8) else if col = 137 then b2n (i < 4)
+  else if col = 219 then (if i = 0 then invP (pub.getD PV_N 0 + pub.getD (PV_N + 1) 0) else 0)
   else if i < 8 then
-    if col = c1 then chain (x1 pub) i else if col = c2 then br pub i else if col = c3 then chain (x3 pub) i
+    if col = 204 then chain (x1 pub) i else if col = 205 then br pub i else if col = 206 then chain (x3 pub) i
     else if 138 ≤ col ∧ col < 146 then bitOf (sy pub i % 256) (col - 138)
     else if 146 ≤ col ∧ col < 154 then bitOf (sy pub i / 256) (col - 146)
     else if 154 ≤ col ∧ col < 162 then bitOf (dv pub i) (col - 154)
