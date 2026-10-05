@@ -81,9 +81,9 @@ theorem leNat_255 (b : Bytes) (h : b.length = 16) (h255 : ∀ j, j < 16 → (toN
     exact UInt8.toNat_inj.1 this
   rw [this]; decide
 
-theorem touched_some (hg : Good c e) : ∃ k, k ∈ (mkInfo c e).touched := by
-  obtain ⟨s, _, hs⟩ := hg.walks 0 (by rw [hg.len]; exact hg.n_pos)
-  refine ⟨e.slot 0, mem_touched.2 ?_⟩
+theorem slot_mem (hg : Good c e) {r : Nat} (hr : r < e.rs.length) : e.slot r ∈ (mkInfo c e).touched := by
+  obtain ⟨s, _, hs⟩ := hg.walks r hr
+  refine mem_touched.2 ?_
   cases hs with
   | endLeaf h => exact ⟨_, h, rfl⟩
   | endBranch h => exact ⟨_, h, rfl⟩
@@ -95,6 +95,12 @@ theorem touched_some (hg : Good c e) : ∃ k, k ∈ (mkInfo c e).touched := by
       · exact h'
       · rw [List.getElem?_eq_none (by omega)] at hj; cases hj
     exact absurd this (by decide)
+
+theorem touched_some (hg : Good c e) : ∃ k, k ∈ (mkInfo c e).touched :=
+  ⟨_, slot_mem hg (r := 0) (by rw [hg.len]; exact hg.n_pos)⟩
+
+theorem touched_nodup : (mkInfo c e).touched.Nodup := by
+  rw [mkInfo_touched]; exact List.nodup_range.filter _
 
 theorem acct_pre (hg : Good c e) : ∀ k ∈ (mkInfo c e).touched,
     ((mkInfo c e).vpre.getD k []).length = 72 ∧ (∀ b ∈ (mkInfo c e).vpre.getD k [], b < 256) ∧

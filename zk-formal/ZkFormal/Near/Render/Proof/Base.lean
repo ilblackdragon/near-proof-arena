@@ -122,6 +122,12 @@ theorem flatMap_single {α β : Type} {l : List α} {f : α → List β} {g : α
     simp only [List.flatMap_cons, List.map_cons, h x (by simp), List.singleton_append]
     rw [ih (fun q hq => h q (by simp [hq]))]
 
+theorem nodup_map_on {α β : Type} {l : List α} {f : α → β}
+    (h : ∀ a ∈ l, ∀ b ∈ l, f a = f b → a = b) (hl : l.Nodup) : (l.map f).Nodup := by
+  unfold List.Nodup at hl ⊢
+  rw [List.pairwise_map]
+  exact hl.imp_of_mem fun ha hb hne heq => hne (h _ ha _ hb heq)
+
 theorem flatMap_congr' {α β : Type} {l : List α} {f g : α → List β} (h : ∀ x ∈ l, f x = g x) :
     l.flatMap f = l.flatMap g := by
   induction l with
