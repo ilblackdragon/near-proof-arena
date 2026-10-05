@@ -14,6 +14,7 @@
 use std::collections::HashMap;
 
 use p3_field::PrimeField32;
+use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
 
 use crate::field::F;
@@ -133,10 +134,21 @@ fn rows_on(dft: &Dft, m: &CMat, ranges: &[(usize, usize)], chunk: usize) -> Vec<
     for (c0, c1) in m.src.chunks(chunk) {
         let co = m.src.coeffs(dft, c0, c1);
         let cw = c1 - c0;
-        use rayon::prelude::*;
-        let evs: Vec<_> = ranges.par_iter().map(|&(p0, len)| eval_range(dft, &co, m.lde, m.shift, p0, len, None)).collect();
+        // ranges grouped by length; one streaming pass per length
+        let mut lens: Vec<usize> = ranges.iter().map(|r| r.1).collect();
+        lens.sort_unstable();
+        lens.dedup();
+        let mut evs: Vec<Option<RowMajorMatrix<F>>> = ranges.iter().map(|_| None).collect();
+        for &l in &lens {
+            let idx: Vec<usize> = (0..ranges.len()).filter(|&i| ranges[i].1 == l).collect();
+            let p0s: Vec<usize> = idx.iter().map(|&i| ranges[i].0).collect();
+            for (i, e) in idx.iter().zip(crate::lowmem::eval_ranges(dft, &co, m.lde, m.shift, &p0s, l)) {
+                evs[*i] = Some(e);
+            }
+        }
         let mut off = 0;
         for (e, &(_, len)) in evs.iter().zip(ranges) {
+            let e = e.as_ref().unwrap();
             for i in 0..len {
                 out[off + i][c0..c1].copy_from_slice(&e.values[i * cw..(i + 1) * cw]);
             }

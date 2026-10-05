@@ -52,6 +52,12 @@ impl Src<'_> {
     }
     /// Coefficients of base columns `c0..c1`.
     pub fn coeffs(&self, dft: &Dft, c0: usize, c1: usize) -> RowMajorMatrix<F> {
+        let _t = std::time::Instant::now();
+        let r = self.coeffs_(dft, c0, c1);
+        crate::lowmem::prof::add(&crate::lowmem::prof::COEFFS, _t);
+        r
+    }
+    fn coeffs_(&self, dft: &Dft, c0: usize, c1: usize) -> RowMajorMatrix<F> {
         match self {
             Src::Coeffs(c) => sub_cols(c, c0, c1),
             _ => {
@@ -67,9 +73,12 @@ impl Src<'_> {
                 let w = cols.len();
                 let h = t.height();
                 let mut v = vec![F::ZERO; h * w];
-                v.par_chunks_mut(w.max(1)).enumerate().for_each(|(r, row)| {
-                    for (j, &c) in cols.iter().enumerate() {
-                        row[j] = t.get(r, c);
+                v.par_chunks_mut(w.max(1) * 1024).enumerate().for_each(|(k, rows)| {
+                    for (i, row) in rows.chunks_mut(w.max(1)).enumerate() {
+                        let r = k * 1024 + i;
+                        for (j, &c) in cols.iter().enumerate() {
+                            row[j] = t.get(r, c);
+                        }
                     }
                 });
                 let m = RowMajorMatrix::new(v, w);
@@ -95,7 +104,12 @@ pub fn sub_cols(m: &RowMajorMatrix<F>, c0: usize, c1: usize) -> RowMajorMatrix<F
     let cw = c1 - c0;
     let h = m.height();
     let mut v = vec![F::ZERO; h * cw];
-    v.par_chunks_mut(cw.max(1)).enumerate().for_each(|(r, o)| o.copy_from_slice(&m.values[r * w + c0..r * w + c1]));
+    v.par_chunks_mut(cw.max(1) * 1024).enumerate().for_each(|(k, o)| {
+        for (i, row) in o.chunks_mut(cw.max(1)).enumerate() {
+            let r = k * 1024 + i;
+            row.copy_from_slice(&m.values[r * w + c0..r * w + c1]);
+        }
+    });
     RowMajorMatrix::new(v, cw)
 }
 
@@ -219,6 +233,12 @@ impl<'a> AuxSrc<'a> {
 
     /// Values on `H` of base columns `c0..c1` (multiples of 8).
     pub fn values(&self, c0: usize, c1: usize) -> RowMajorMatrix<F> {
+        let _t = std::time::Instant::now();
+        let r = self.values_(c0, c1);
+        crate::lowmem::prof::add(&crate::lowmem::prof::AUXV, _t);
+        r
+    }
+    fn values_(&self, c0: usize, c1: usize) -> RowMajorMatrix<F> {
         assert!(c0 % 8 == 0 && c1 % 8 == 0);
         let t = self.main.height();
         let nc = self.lay.n_chain;

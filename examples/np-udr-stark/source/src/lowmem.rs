@@ -13,6 +13,7 @@
 //!   holding all columns of a row.
 
 use p3_dft::{Radix2DitParallel, TwoAdicSubgroupDft};
+use p3_matrix::bitrev::BitReversibleMatrix;
 use p3_field::{Field, PackedValue, PrimeCharacteristicRing, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use p3_matrix::Matrix;
@@ -24,6 +25,28 @@ use crate::hash::{Digest64, RO_TAG};
 use crate::mmcs::rev;
 
 pub type Dft = Radix2DitParallel<F>;
+
+/// Coarse profiling counters (nanoseconds), printed with `NPUDR_VERBOSE=1`.
+pub mod prof {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    pub static COEFFS: AtomicU64 = AtomicU64::new(0);
+    pub static EVAL: AtomicU64 = AtomicU64::new(0);
+    pub static FEED: AtomicU64 = AtomicU64::new(0);
+    pub static AUXV: AtomicU64 = AtomicU64::new(0);
+    pub static BEVAL: AtomicU64 = AtomicU64::new(0);
+    pub static AUXC: AtomicU64 = AtomicU64::new(0);
+    pub static FILL: AtomicU64 = AtomicU64::new(0);
+    pub fn add(c: &AtomicU64, t: std::time::Instant) {
+        c.fetch_add(t.elapsed().as_nanos() as u64, Ordering::Relaxed);
+    }
+    pub fn report() -> String {
+        let g = |c: &AtomicU64| c.swap(0, Ordering::Relaxed) as f64 / 1e9;
+        format!(
+            "coeffs {:.1}s eval {:.1}s feed {:.1}s auxvals {:.1}s beval {:.1}s auxc {:.1}s fill {:.1}s",
+            g(&COEFFS), g(&EVAL), g(&FEED), g(&AUXV), g(&BEVAL), g(&AUXC), g(&FILL)
+        )
+    }
+}
 
 /// Bit-reverse the rows of a row-major matrix (parallel gather).
 pub fn reverse_rows(m: &mut RowMajorMatrix<F>) {
@@ -44,7 +67,6 @@ pub fn reverse_rows(m: &mut RowMajorMatrix<F>) {
 
 /// `Σ_j f[j·m + i] · y^j` for `i < m` (rows of `f`, `C` columns).
 fn fold(f: &RowMajorMatrix<F>, m: usize, y: F) -> RowMajorMatrix<F> {
-    type P = <F as Field>::Packing;
     let w = f.width();
     let t = f.height();
     let k = t / m;
@@ -53,29 +75,97 @@ fn fold(f: &RowMajorMatrix<F>, m: usize, y: F) -> RowMajorMatrix<F> {
     }
     let ys: Vec<F> = y.powers().take(k).collect();
     let mut out = vec![F::ZERO; m * w];
-    let lanes = P::WIDTH;
-    let full = w / lanes;
-    out.par_chunks_mut(w * 64.min(m)).enumerate().for_each(|(ci, o)| {
-        let i0 = ci * 64.min(m);
-        for (di, orow) in o.chunks_mut(w).enumerate() {
-            let i = i0 + di;
-            let (op, ot) = orow.split_at_mut(full * lanes);
-            let opk = P::pack_slice_mut(op);
-            for j in 0..k {
-                let src = &f.values[(j * m + i) * w..(j * m + i + 1) * w];
-                let yj = ys[j];
-                let pj = P::from(yj);
-                let (sp, st) = src.split_at(full * lanes);
-                for (a, b) in opk.iter_mut().zip(P::pack_slice(sp)) {
-                    *a += pj * *b;
-                }
-                for (a, b) in ot.iter_mut().zip(st) {
-                    *a += yj * *b;
-                }
-            }
+    let rb = 256.min(m);
+    out.par_chunks_mut(w * rb).enumerate().for_each(|(ci, o)| {
+        let i0 = ci * rb;
+        let n = o.len();
+        for (j, &yj) in ys.iter().enumerate() {
+            let src = &f.values[(j * m + i0) * w..(j * m + i0) * w + n];
+            axpy(o, yj, src);
         }
     });
     RowMajorMatrix::new(out, w)
+}
+
+/// `o += a · x` (packed).
+#[inline]
+fn axpy(o: &mut [F], a: F, x: &[F]) {
+    type P = <F as Field>::Packing;
+    let lanes = P::WIDTH;
+    let full = o.len() / lanes * lanes;
+    let pa = P::from(a);
+    let (op, ot) = o.split_at_mut(full);
+    let (xp, xt) = x.split_at(full);
+    for (u, v) in P::pack_slice_mut(op).iter_mut().zip(P::pack_slice(xp)) {
+        *u += pa * *v;
+    }
+    for (u, v) in ot.iter_mut().zip(xt) {
+        *u += a * *v;
+    }
+}
+
+/// Evaluations at many aligned ranges of the same length `len ≤ T` (one
+/// streaming pass over the coefficients), each in bit-reversed order.
+pub fn eval_ranges(
+    dft: &Dft,
+    coeffs: &RowMajorMatrix<F>,
+    l: usize,
+    shift: F,
+    ranges: &[usize],
+    len: usize,
+) -> Vec<RowMajorMatrix<F>> {
+    let t = coeffs.height();
+    let w = coeffs.width();
+    let r = ranges.len();
+    if r == 0 || w == 0 {
+        return ranges.iter().map(|_| RowMajorMatrix::new(vec![], w)).collect();
+    }
+    assert!(len <= t);
+    let a = p3_util::log2_strict_usize(len);
+    let cs: Vec<F> = ranges.iter().map(|&p0| shift * omega(l).exp_u64(rev(p0 >> a, l - a) as u64)).collect();
+    let ys: Vec<F> = cs.iter().map(|c| c.exp_u64(len as u64)).collect();
+    let k = t / len;
+    // blocks of j (each block: rows j·len .. (j+1)·len for j in block)
+    let nb = (rayon::current_num_threads() * 4).min(k).max(1);
+    let per = k.div_ceil(nb);
+    let acc = (0..nb)
+        .into_par_iter()
+        .map(|b| {
+            let j0 = b * per;
+            let j1 = ((b + 1) * per).min(k);
+            let mut acc = vec![F::ZERO; r * len * w];
+            if j0 >= j1 {
+                return acc;
+            }
+            let mut pw: Vec<F> = ys.iter().map(|y| y.exp_u64(j0 as u64)).collect();
+            for j in j0..j1 {
+                let src = &coeffs.values[j * len * w..(j + 1) * len * w];
+                for (q, p) in pw.iter_mut().enumerate() {
+                    axpy(&mut acc[q * len * w..(q + 1) * len * w], *p, src);
+                    *p *= ys[q];
+                }
+            }
+            acc
+        })
+        .reduce(
+            || vec![F::ZERO; r * len * w],
+            |mut x, y| {
+                for (u, v) in x.iter_mut().zip(y) {
+                    *u += v;
+                }
+                x
+            },
+        );
+    (0..r)
+        .map(|q| {
+            let h = RowMajorMatrix::new(acc[q * len * w..(q + 1) * len * w].to_vec(), w);
+            if len == 1 {
+                h
+            } else {
+                dft.coset_dft_batch(h, cs[q]).bit_reverse_rows().to_row_major_matrix()
+            }
+        })
+        .collect()
 }
 
 /// Evaluations, in bit-reversed position order, of the polynomials with
@@ -94,6 +184,14 @@ pub fn eval_range(
 ) -> RowMajorMatrix<F> {
     let t = coeffs.height();
     let w = coeffs.width();
+    let _t0 = std::time::Instant::now();
+    struct G(std::time::Instant);
+    impl Drop for G {
+        fn drop(&mut self) {
+            prof::add(&prof::EVAL, self.0);
+        }
+    }
+    let _g = if len <= t { Some(G(_t0)) } else { None };
     if len > t {
         let mut out = Vec::with_capacity(len * w);
         for b in 0..len / t {
@@ -122,9 +220,7 @@ pub fn eval_range(
         return RowMajorMatrix::new(v, w);
     }
     let h = fold(coeffs, len, c.exp_u64(len as u64));
-    let mut e = dft.coset_dft_batch(h, c).to_row_major_matrix();
-    reverse_rows(&mut e);
-    e
+    dft.coset_dft_batch(h, c).bit_reverse_rows().to_row_major_matrix()
 }
 
 // ---------------------------------------------------------------------------
@@ -224,6 +320,7 @@ impl WhStream {
     /// `i0 .. i0+count`, without advancing; call [`Self::commit_len`] once
     /// every message has received its `len` bytes.
     pub fn feed_at(&mut self, i0: usize, len: usize, body: impl Fn(usize, &mut Vec<u8>) + Sync, count: usize) {
+        let _t = std::time::Instant::now();
         let (fd, carry) = (self.first_done, self.carry);
         self.st[i0..i0 + count].par_iter_mut().zip(self.buf[i0..i0 + count].par_iter_mut()).enumerate().for_each_init(
             || Vec::with_capacity(len),
@@ -234,6 +331,7 @@ impl WhStream {
                 Self::absorb_one(st, buf, fd, carry, tmp);
             },
         );
+        prof::add(&prof::FEED, _t);
     }
 
     pub fn commit_len(&mut self, len: usize) {
