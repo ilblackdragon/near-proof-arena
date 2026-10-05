@@ -11,9 +11,9 @@ evaluation.
 | | Plonky3 example (`examples/stark-plonky3`) | `nearAir` v1 |
 |---|---|---|
 | tables | 9 (one row per item, LogUp) | 7 (byte-serial streams, grand product) |
-| main columns | 10,817 | ≈ 1,160 (incl. L5's 544-column SHA table) |
-| interactions | 3,619 per row-set | 58 |
-| `W_eq` (main + 8·aux + 8·quot, §5) | ≈ 14,600 | **≈ 1,800 (budget 3,000)** at `auxGroup = 1` |
+| main columns | 10,817 | 1,070 (incl. L5's 544-column SHA table) |
+| interactions | 3,619 per row-set | 66 |
+| `W_eq` (main + 8·aux + 8·quot, §5) | ≈ 14,600 | **1,766 (budget 3,000), kernel-checked** (`Budget.weq_le`) |
 | largest table | `node`, 2^12 rows × 1,381 cols | `node`/`sha`, ≤ 2^22 rows × ≤ 544 cols |
 
 The re-layout rests on one decision: **every table that emits message bytes
@@ -49,7 +49,7 @@ values is done byte-serially (LSB first) with carries carried to the next row.
   |---|---|---|---|
   | 1 `RC` | `u64 shard ‖ u32 n ‖ Σ Receipt.encode` | 0 | `12 + Σ size_r` |
   | 2 `RF` | `u32 nref ‖ Σ Receipt.encode refund` | 0 | `4 + Σ size'_r` |
-  | 3 `PEO` | `PartialExecutionOutcome` of receipt `r` | `r` | `46 + 32·hr + L_v` |
+  | 3 `PEO` | `PartialExecutionOutcome` of receipt `r` | `r` | `37 + 32·hr + L_v` |
   | 4 `LEAF` | `u32 2 ‖ id ‖ H(PEO_r)` | `r` | 68 |
   | 5 `RID` | `id ‖ u64 height ‖ u64 0` (refund id preimage) | `r` | 48 |
   | 6 `MRK` | outcome-merkle inner node `left ‖ right` | merkle row | 64 |
@@ -89,8 +89,13 @@ values is done byte-serially (LSB first) with carries carried to the next row.
 | 8 | `RIDS` | `(r, i, id_i)` | rcpt → sort | perm |
 | 9 | `MPOS` | `(level, index, Id, len)` | rcpt, mrk → mrk | perm |
 
-`sym < 16` is a key nibble, `16 = END` (key exhausted, value slot), `17 = EPS`
-(extension end → child, consumes nothing).
+`sym < 16` is a key nibble, `16 = END` (key exhausted, value slot), `18 = START`
+(the walk's first step, root → its walk target). Walk targets `res` skip
+empty-key extensions (an empty-key extension forwards its child's target; the
+last nibble of an extension's key and a branch's child edge go directly to the
+child's target), so AIR walks take no epsilon steps: at most `1 + 2 + 128 + 1`
+rows per receipt even for pathological witnesses with long chains of empty
+extensions. `17 = EPS` exists only in the spec-level `Walk` (`Spec/Trie.lean`).
 
 ## 3. Tables
 
@@ -266,19 +271,23 @@ Proof bytes per query ≈ `4·W_eq` + Merkle paths, so `W_eq` is the quantity
 DESIGN.md §8 budgets (`≤ 3000`). Estimates (v1 layout; exact numbers are
 `#eval ZkFormal.Near.Budget.report`):
 
-| table | width | sends | recvs | deg | `W_eq` (g=1) | `W_eq` (g=2) | maxLog |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| sha (L5) | 544 | 1 | 16 | 4 | 704 | 656 | 22 |
-| node | 140 | 7 | 6 | 4 | 268 | 236 | 22 |
-| walk | 16 | 2 | 2 | 3 | 72 | 64 | 16 |
-| rcpt | 250 | 9 | 5 | 4 | 386 | 354 | 18 |
-| acct | 20 | 12 | 1 | 3 | 148 | 116 | 12 |
-| mrk | 50 | 2 | 3 | 3 | 114 | 98 | 15 |
-| sort | 45 | 0 | 1 | 3 | 77 | 77 | 13 |
-| **total** | ≈ 1,065 | | | | **≈ 1,770** | **≈ 1,600** | |
+Exact numbers of the v1 Lean AIR (`#eval Budget.report 1`; table degree 4
+everywhere, so 3 quotient chunks per table):
 
-Margin: a 60 % overrun of every NEAR-table estimate still fits 3,000 at
-`g = 1`; no protocol change is required. (`g = 2` saves ≈ 170; L4 may pick
+| table | width | interactions | aux (K) | `W_eq` (g=1) | maxLog |
+|---|---:|---:|---:|---:|---:|
+| sha (L5) | 544 | 17 | 17 | 704 | 22 |
+| node | 163 | 13 | 13 | 291 | 22 |
+| walk | 12 | 4 | 4 | 68 | 16 |
+| rcpt | 228 | 13 | 13 | 356 | 18 |
+| acct | 16 | 13 | 13 | 144 | 12 |
+| mrk | 58 | 5 | 5 | 122 | 15 |
+| sort | 49 | 1 | 1 | 81 | 13 |
+| **total** | 1,070 | 66 | | **1,766** | |
+
+`ZkFormal.Near.Budget.weq_le : weq nearAir 1 ≤ 3000` and
+`nearAir_wf : Air.wf nearAir 16 = true` are checked by `decide +kernel`
+(13 s, leaf module `Near/BudgetCheck.lean`). No protocol change is required. (`g = 2` saves ≈ 170; L4 may pick
 it later — the AIR is valid for any `g` with degree ≤ 16.)
 
 L4 `Air.wf` side conditions: all multiplicities are one bit, so

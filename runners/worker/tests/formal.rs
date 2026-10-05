@@ -16,21 +16,6 @@ use std::sync::Arc;
 
 const NEAR: &str = "chl_5ef2bc7d2068219635426e47ca46bfbb";
 
-/// Copy git-tracked files of `rel` (clean: no `.lake/`).
-fn export(rel: &str, dest: &Path) {
-    let out = std::process::Command::new("git")
-        .arg("-C")
-        .arg(repo())
-        .args(["ls-files", "--", rel])
-        .output()
-        .unwrap();
-    for f in String::from_utf8(out.stdout).unwrap().lines() {
-        let d = dest.join(f);
-        std::fs::create_dir_all(d.parent().unwrap()).unwrap();
-        std::fs::copy(repo().join(f), d).unwrap();
-    }
-}
-
 fn candidate(cert: &str) -> std::collections::BTreeMap<String, (u32, Vec<u8>)> {
     let mut files = package_files();
     let m = String::from_utf8(files["candidate.toml"].1.clone())
@@ -158,13 +143,11 @@ fn has(r: &JobResult, g: ObligationId, status: GateStatus, rc: Option<ReasonCode
 }
 
 fn formal_env(tmp: &Path, images: Option<PathBuf>) -> FormalEnv {
-    let clean = tmp.join("clean");
-    if !clean.exists() {
-        export("formal-core", &clean);
-        export("spec/lean", &clean);
-    }
+    // The frozen trusted tree the NEAR challenge pins (never HEAD's).
+    let store = frozen_store(tmp, &near(), NEAR_V1_TRUSTED_COMMIT)
+        .expect("the pinned trusted tree's commit is in this clone");
     FormalEnv {
-        repo: clean,
+        trusted_trees: Some(store),
         configs_dir: repo().join("runners/formal-checker/challenges"),
         images_dir: images,
     }
@@ -237,7 +220,15 @@ fn formal_check_near_statement_bwrap() {
     );
     let mut exec = exec;
     exec.ctx.formal = f.exec.ctx.formal.clone();
-    negatives(&f, &exec, near());
+    // Test-only re-pin (as tests/near.rs): the signed challenge pins the
+    // identity of one build of the host checker tools; this host's tools may
+    // have been rebuilt. The trusted tree pin is left untouched.
+    let mut chal = near();
+    chal.toolchain_policy.checker_image = arena_formal_checker::toolchain::ToolPaths::discover()
+        .unwrap()
+        .image_digest()
+        .unwrap();
+    negatives(&f, &exec, chal);
 }
 
 #[test]

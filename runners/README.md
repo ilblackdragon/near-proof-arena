@@ -175,9 +175,13 @@ __arena-sandbox-helper`, so one binary is deployed).
   `database` key is visible to it.
   `ARENA_FIXTURES_DIRS` (public fixtures, matched to challenges by
   TreeDigest), `ARENA_CONFORMANCE_SAMPLES` (default 8),
-  `ARENA_FORMAL_REPO` (clean checkout with `formal-core/`, `spec/lean/`;
-  enables FORMAL_CHECK), `ARENA_FORMAL_CONFIGS_DIR` (default
-  `<repo>/runners/formal-checker/challenges`), `ARENA_LEAN_CHECKER_IMAGES`
+  `ARENA_FORMAL_CONFIGS_DIR` (`arena-formal-challenge-v1` configs; enables
+  FORMAL_CHECK), `ARENA_TRUSTED_TREES` (frozen trusted-tree store,
+  `<hex>/{formal-core,spec/lean}` published by `arena-admin freeze-trusted`:
+  the reference is built only from the tree the challenge pins, re-hashed on
+  the job's copy; missing/mismatch = INFRA_ERROR; docs/TCB.md). The legacy
+  `ARENA_FORMAL_REPO` (a checkout as the trusted base) is refused at
+  startup. `ARENA_LEAN_CHECKER_IMAGES`
   (firecracker), `ARENA_BUILD_TOOLCHAIN_IMAGE` + `ARENA_IMAGES_DIR`, `ARENA_DEV_BENCH_BATCH_CAP` (DEV ONLY, recorded in
   `measured_by`), `ARENA_LEASE_SECONDS`.
 * Types and transport: `server/arena-jobs` is the single source (`JobSpec`,

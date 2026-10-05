@@ -145,7 +145,7 @@ def MrkNode.raw : MrkNode → List Nat
 structure MrkWf (pub : List Fp) (v : MrkV) : Prop where
   /-- the node kinds follow `merklize` for `n` leaves (`n` from the public bytes,
   stated when those are bytes and `1 ≤ n`) -/
-  shape : (∀ x, x < 4 → pubNat pub (PV_N + x) < 256) → 1 ≤ nPubNat pub →
+  shape : (∀ x, x < 4 → pubNat pub (PV_N + x) < 256) → 1 ≤ nPubNat pub → nPubNat pub ≤ 256 →
     v.nodes.length = (mrkShape (nPubNat pub)).length ∧
     ∀ q (h : q < v.nodes.length), (match v.nodes[q] with
       | .hashed .. => true | .promoted .. => false) = ((mrkShape (nPubNat pub)).getD q (0, 0, false)).2.2

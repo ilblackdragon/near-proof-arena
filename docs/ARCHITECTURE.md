@@ -222,10 +222,13 @@ it has a score, and it is not revoked. Everything else is listed unranked.
   recorded and audited (`run.change_class`) but **does not affect control
   flow**. Cache reuse is decided by the cache key alone.
 * **Cache key** (`server/arena-orchestrator/src/cache.rs`): sha256 of JCS of
-  `{v: "arena-formal-cache-v1", challenge_digest, verified_surface,
-  checker_image, sorted assumptions, axiom_allowlist, recheckers,
-  lean_toolchain}`. Because the challenge digest is part of the key, results
-  never carry across challenges, including superseded ones.
+  `{v: "arena-formal-cache-v2", challenge_digest, trusted_tree,
+  verified_surface, checker_image, sorted assumptions, axiom_allowlist,
+  recheckers, lean_toolchain}`, where `trusted_tree` is the challenge's pinned
+  `formal_spec.tree_digest` (the frozen tree FORMAL_CHECK builds the
+  reference from, docs/TCB.md). Because the challenge digest is part of the
+  key, results never carry across challenges, including superseded ones.
+  `v1` entries predate the trusted-tree pin enforcement and are never reused.
 * **Reuse** (`reuse_formal`): at BUILT, a live entry whose tier is at least
   the challenge tier is copied into `gate_results` (with `mandatory`
   recomputed and `reused_from` set) and its evidence graph is merged. Audited

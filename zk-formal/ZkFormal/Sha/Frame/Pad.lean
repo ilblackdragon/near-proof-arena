@@ -276,6 +276,27 @@ theorem range_map_append (f : Nat → Nat) (a b : Nat) :
     (List.range (a + b)).map f = (List.range a).map f ++ (List.range b).map (fun i => f (a + i)) := by
   rw [List.range_add, List.map_append, List.map_map]; rfl
 
+/-- The data bytes are the first `L` bytes. -/
+theorem FrameRules.data_eq (hR : FrameRules k L FL BY seen p80 last) :
+    ((List.range (64 * k)).filterMap fun g => if FL g = 1 then some (BY g) else none) =
+      (List.range L).map BY := by
+  have hL := hR.L_lt
+  have hk := hR.k_pos
+  rw [show 64 * k = L + (64 * k - L) by omega, List.range_add, List.filterMap_append]
+  have e1 : (List.range L).filterMap (fun g => if FL g = 1 then some (BY g) else none) =
+      (List.range L).map BY := by
+    apply filterMap_eq_map_of
+    intro g hg; simp at hg
+    simp [(hR.fl_iff g (by omega)).2 hg]
+  have e2 : ((List.range (64 * k - L)).map (L + ·)).filterMap
+      (fun g => if FL g = 1 then some (BY g) else none) = [] := by
+    rw [List.filterMap_eq_nil_iff]
+    intro g hg; simp at hg
+    obtain ⟨a, ha, rfl⟩ := hg
+    have hne : FL (L + a) ≠ 1 := by intro h; have := (hR.fl_iff (L + a) (by omega)).1 h; omega
+    simp [hne]
+  rw [e1, e2, List.append_nil]
+
 /-- **Padding.** The byte stream of the blocks is `pad` of the data bytes. -/
 theorem pad_of_frame (hR : FrameRules k L FL BY seen p80 last) :
     SHA256.pad ((List.range (64 * k)).filterMap fun g => if FL g = 1 then some (BY g) else none) =

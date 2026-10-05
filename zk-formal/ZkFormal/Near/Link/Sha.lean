@@ -224,7 +224,7 @@ theorem mrk_nodes_length : mv.nodes.length ≤ 257 * 256 := by
   have hb : ∀ x, x < 4 → pubNat (publicOf c) (PV_N + x) < 256 := fun _ _ => pubNat_lt c _
   obtain ⟨hl, h1, h2⟩ := h.rcpt.count hb
   have hn : nPubNat (publicOf c) = rs.length := by rw [nPubNat_eq _ hb, hl]; rfl
-  obtain ⟨hlen, -⟩ := h.mrk.shape (fun _ _ => pubNat_lt c _) (by rw [hn]; exact h1)
+  obtain ⟨hlen, -⟩ := h.mrk.shape (fun _ _ => pubNat_lt c _) (by rw [hn]; exact h1) (by rw [hn]; exact h2)
   rw [hlen, hn]; exact mrkShape_length _ h2
 
 theorem bytes_classified :

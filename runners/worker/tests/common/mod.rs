@@ -222,3 +222,55 @@ pub fn assert_fail(o: &JobResult, g: ObligationId, reason: ReasonCode) {
         r.summary
     );
 }
+
+/// The commit whose `formal-core/` + `spec/lean/` the NEAR v1 family
+/// (`chl_5ef2…`, v1-1, v1-2, v1-3, experimental `chl_b7c8…`) pins
+/// (`formal_spec.tree_digest = sha256:8090432a…`).
+pub const NEAR_V1_TRUSTED_COMMIT: &str = "6873c9980fd93c0483e93b94fe7e8a1fe0d52d52";
+
+/// Extract the tracked `formal-core/` + `spec/lean/` of `commit` into `dest`
+/// (`None` if the commit is not in this clone, e.g. a shallow CI checkout).
+pub fn extract_trusted(commit: &str, dest: &Path) -> Option<()> {
+    let ok = std::process::Command::new("git")
+        .arg("-C")
+        .arg(repo())
+        .args(["cat-file", "-e", &format!("{commit}^{{commit}}")])
+        .status()
+        .ok()?
+        .success();
+    if !ok {
+        return None;
+    }
+    std::fs::create_dir_all(dest).unwrap();
+    let st = std::process::Command::new("sh")
+        .arg("-c")
+        .arg(format!(
+            "git -C \"$1\" archive --format=tar {commit} -- formal-core spec/lean | tar -x -C \"$2\""
+        ))
+        .arg("sh")
+        .arg(repo())
+        .arg(dest)
+        .status()
+        .unwrap();
+    assert!(st.success(), "git archive {commit}");
+    Some(())
+}
+
+/// A trusted-tree store holding the frozen tree `chal` pins, frozen from
+/// `commit` (and checked to hash to the pin). `None` when the commit is
+/// unavailable.
+pub fn frozen_store(tmp: &Path, chal: &ChallengeDefinition, commit: &str) -> Option<PathBuf> {
+    let store = tmp.join("trusted-trees");
+    let pin = &chal.semantic_scope.formal_spec.tree_digest;
+    let dir = arena_types::trusted_tree::entry_dir(&store, pin);
+    if !dir.exists() {
+        extract_trusted(commit, &dir)?;
+    }
+    assert_eq!(
+        &arena_types::trusted_tree::digest_of(&dir).unwrap(),
+        pin,
+        "{commit} is not the commit {} pins",
+        chal.semantic_scope.name
+    );
+    Some(store)
+}

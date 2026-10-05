@@ -40,7 +40,7 @@ newest() { ls -t "$1"/*.json | head -1 | xargs basename | sed 's/\.json$//'; }
 
 export RUSTC_WRAPPER="${RUSTC_WRAPPER:-sccache}"
 say "build"
-( cd "$REPO" && cargo build -q -j 8 -p arena-server -p arena-worker -p arena-cli -p arena-formal-checker )
+( cd "$REPO" && cargo build -q -j 8 -p arena-server -p arena-worker -p arena-cli -p arena-admin -p arena-formal-checker )
 # The judge's interpreter runs inside the microVM: a static (musl) build, as
 # deployed (deploy/hardened/env/worker.env.example).
 ( cd "$REPO" && cargo build -q --release -p arena-npai --bin npai-verify --target x86_64-unknown-linux-musl )
@@ -93,6 +93,11 @@ FC_TOKEN=$("$BIN/arena-server" create-worker --database-url "$DBURL" --name e2e-
 CLEAN="$WORK/clean"
 rm -rf "$CLEAN"; mkdir -p "$CLEAN"
 ( cd "$REPO" && git ls-files -- formal-core spec/lean oracle/fixtures/public | tar -cf - -T - ) | tar -xf - -C "$CLEAN"
+# the frozen trusted tree the NEAR v1 family pins (formal_spec.tree_digest; docs/TCB.md):
+# FORMAL_CHECK builds the reference only from it, never from this checkout
+"$BIN/arena-admin" freeze-trusted --repo "$REPO" --store "$WORK/trusted-trees" \
+  --commit "${ARENA_E2E_TRUSTED_COMMIT:-6873c9980fd93c0483e93b94fe7e8a1fe0d52d52}" \
+  --challenge "$REPO/challenges/chl_5ef2bc7d2068219635426e47ca46bfbb.json" >/dev/null
 TC=$(newest "$TC_IMAGES")
 env -i PATH="$PATH" HOME="$HOME" \
   ARENA_SERVER_URL="http://127.0.0.1:$WPORT" ARENA_WORKER_TOKEN="$FC_TOKEN" \
@@ -101,7 +106,7 @@ env -i PATH="$PATH" HOME="$HOME" \
   ARENA_IMAGES_DIR="$TC_IMAGES" ARENA_BUILD_TOOLCHAIN_IMAGE="sha256:$TC" \
   ARENA_BUILD_MOUNTS="$LEAN_IMG/arena/tc:/opt/lean" \
   ARENA_BUILD_PATH="/opt/lean/bin:/usr/local/rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/bin:/usr/local/cargo/bin:/usr/local/bin:/usr/bin:/bin" \
-  ARENA_FORMAL_REPO="$CLEAN" ARENA_FORMAL_CONFIGS_DIR="$REPO/runners/formal-checker/challenges" \
+  ARENA_TRUSTED_TREES="$WORK/trusted-trees" ARENA_FORMAL_CONFIGS_DIR="$REPO/runners/formal-checker/challenges" \
   ARENA_LEAN_CHECKER_IMAGES="$LEAN_IMAGES" ARENA_NPAI_VERIFY="$NPAI_VERIFY" \
   ${ARENA_INTERP_REF:+ARENA_INTERP_REF="$ARENA_INTERP_REF"} \
   ARENA_NEAR_ORACLE="$ORACLE" ARENA_WORKLOAD_GENERATORS="$REPO/spec/workloads/near-transfer-receipt-v1" \

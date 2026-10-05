@@ -1,9 +1,13 @@
 //! Content-addressed formal-result cache.
 //!
-//! Key = sha256(JCS{challenge digest, verified surface, checker image,
-//! assumption set, axiom allowlist, rechecker set}). Because the key commits
-//! to everything the formal gates depend on, a hit is sound regardless of
-//! lineage. Entries are never deleted; invalidation (by checker image or by
+//! Key = sha256(JCS{challenge digest, pinned trusted tree, verified surface,
+//! checker image, assumption set, axiom allowlist, rechecker set}). Because
+//! the key commits to everything the formal gates depend on, a hit is sound
+//! regardless of lineage. The trusted tree (`formal_spec.tree_digest`) is
+//! already committed to by the challenge digest; it is named explicitly
+//! because it is what the judge's reference build is made from (v2: entries
+//! from v1 keys were produced before FORMAL_CHECK enforced the pin, so they
+//! are never reused). Entries are never deleted; invalidation (by checker image or by
 //! assumption id) marks them dead and keeps them for history.
 
 use arena_db::{from_json, from_json_opt, json, DbError};
@@ -17,6 +21,7 @@ use sqlx::PgConnection;
 struct KeyMaterial<'a> {
     v: &'static str,
     challenge_digest: &'a Digest,
+    trusted_tree: &'a Digest,
     verified_surface: &'a VerifiedSurface,
     checker_image: &'a Digest,
     assumptions: Vec<&'a str>,
@@ -40,8 +45,9 @@ pub fn cache_key(chal_digest: &Digest, chal: &ChallengeDefinition, vs: &Verified
         x
     }
     let km = KeyMaterial {
-        v: "arena-formal-cache-v1",
+        v: "arena-formal-cache-v2",
         challenge_digest: chal_digest,
+        trusted_tree: &chal.semantic_scope.formal_spec.tree_digest,
         verified_surface: vs,
         checker_image: &chal.toolchain_policy.checker_image,
         assumptions: sorted(&chal.security_profile.allowed_assumptions),

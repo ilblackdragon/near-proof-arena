@@ -10,6 +10,7 @@ pub mod evidence;
 pub mod pipeline;
 pub mod security;
 pub mod tree;
+pub mod trusted_tree;
 
 pub use candidate::{CandidateManifest, VerifyRoute};
 pub use canonical::{canonical_json, sha256_digest, Digest};
@@ -17,7 +18,7 @@ pub use challenge::{ChallengeDefinition, ChallengeId, FormalParams};
 pub use evidence::EvidenceGraph;
 pub use pipeline::*;
 pub use security::SecurityProfile;
-pub use tree::{tree_digest, tree_digest_entries, TreeEntry};
+pub use tree::{tree_digest, tree_digest_entries, tree_entries, TreeEntry};
 
 /// Version of the contracts in this crate. Bump on any change to a hashed or
 /// wire-visible structure.

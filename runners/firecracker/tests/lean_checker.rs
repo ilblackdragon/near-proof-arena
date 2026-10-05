@@ -307,6 +307,7 @@ fn formal_checker_corpus_in_microvms() {
             trusted: trusted.clone(),
             expected: &expected,
             challenge_digest: None,
+            trusted_tree: None,
             policy,
             limits: {
                 let mut l = Limits::default();

@@ -6,8 +6,11 @@
 #   bin/        release binaries (arena-server, arena-worker, arena, arena-admin,
 #               formal-check, npai-verify (musl), near-arena-oracle)
 #   release/    read-only snapshot of the repo inputs the services use
-#               (challenges/, security/, formal configs, workloads, the clean
-#               formal tree, nginx.conf, arena-guard); REVISION = git sha
+#               (challenges/, security/, formal configs, workloads, public
+#               fixtures, nginx.conf, arena-guard); REVISION = git sha
+#   trusted-trees/  judge-owned frozen trusted trees <hex>/{formal-core,spec/lean}
+#               (arena-admin freeze-trusted): FORMAL_CHECK builds the reference
+#               only from the tree a challenge pins, never from release/ or HEAD
 #   web/        production web build (web/dist), served by nginx
 #   config/     non-secret service config: server.env, worker.env,
 #               worker-<name>.env, web.env (ARENA_FC_DEPS etc. live here)
@@ -34,7 +37,11 @@
 #   revoke-submission <id> <reason>   admin API: revoke (drops it from the leaderboard)
 #   set-quota <handle> <subs/day> <active runs> [upload bytes/day]   admin API: per-agent quota
 #   rerun-submission <id> <reason>    admin API: new run for a submission (e.g. after an infra fix)
-#   register-challenge <id.json>      copy a signed <id>.json + .sig into release/ and restart
+#   register-challenge <id.json>      verify (signature, policy, pinned trusted tree published),
+#                           copy a signed <id>.json + .sig into release/ and restart
+#   freeze-trusted <commit> <id.json>...  publish the frozen trusted tree of <commit>
+#                           (must hash to every given challenge's formal_spec.tree_digest)
+#   check-trusted           every release/ challenge has its pinned trusted tree
 #   backup                  pg_dump (custom format) + object store snapshot into backups/
 #   reap-orphans <name>     kill Firecracker containers left behind by worker <name>
 #   tailnet on|off|status   expose the tailnet nginx listener over HTTPS on this
@@ -77,7 +84,7 @@ unit_name() {
 
 cmd_install() {
   [ -x "$TARGET/release/arena-server" ] || die "no release build in $TARGET (cargo build --release, see docs/LIVE.md)"
-  mkdir -p "$LIVE"/{bin,config,objects,work,logs,backups,web}
+  mkdir -p "$LIVE"/{bin,config,objects,work,logs,backups,web,trusted-trees}
   install -d -m 700 "$LIVE/secrets"
   say "binaries from $TARGET"
   for b in arena-server arena-worker arena arena-admin formal-check; do
@@ -96,8 +103,9 @@ cmd_install() {
   rm -rf "$stage"; mkdir -p "$stage/clean"
   git -C "$REPO" archive --format=tar HEAD -- challenges security runners/formal-checker/challenges \
     spec/workloads deploy/scripts/arena-guard deploy/local/nginx.conf | tar -xf - -C "$stage"
-  # the clean formal tree the worker hands to FORMAL_CHECK (as tests/e2e/*.sh)
-  git -C "$REPO" archive --format=tar HEAD -- formal-core spec/lean oracle/fixtures/public | tar -xf - -C "$stage/clean"
+  # public fixtures only: the trusted Lean tree is NEVER taken from HEAD; FORMAL_CHECK
+  # builds from trusted-trees/<pin> (arena-live freeze-trusted), see docs/TCB.md
+  git -C "$REPO" archive --format=tar HEAD -- oracle/fixtures/public | tar -xf - -C "$stage/clean"
   echo "$rev" >"$stage/REVISION"
   # locally-registered challenges (register-challenge) survive reinstalls
   if [ -d "$LIVE/release/challenges" ]; then
@@ -117,12 +125,29 @@ cmd_install() {
   chmod -R a+rX "$LIVE/web"
 
   write_default_config
+  upgrade_config
   render_web_conf
   render_units
   # nginx re-reads nothing by itself: reload the (possibly) new config
   if systemctl --user -q is-active arena-live-web.service; then
     docker exec arena-live-web nginx -s reload >/dev/null 2>&1 || systemctl --user restart arena-live-web.service
   fi
+  cmd_check_trusted || echo "arena-live: WARNING: publish the missing trusted trees (arena-live freeze-trusted); FORMAL_CHECK fails closed (INFRA_ERROR) without them" >&2
+}
+
+# Existing config files are never overwritten; migrate the keys that changed.
+upgrade_config() {
+  local c="$LIVE/config"
+  if grep -q '^ARENA_FORMAL_REPO=' "$c/worker.env"; then
+    sed -i "s|^ARENA_FORMAL_REPO=.*|ARENA_TRUSTED_TREES=$LIVE/trusted-trees|" "$c/worker.env"
+    say "worker.env: ARENA_FORMAL_REPO -> ARENA_TRUSTED_TREES"
+  fi
+  grep -q '^ARENA_TRUSTED_TREES=' "$c/worker.env" || echo "ARENA_TRUSTED_TREES=$LIVE/trusted-trees" >>"$c/worker.env"
+  grep -q '^ARENA_TRUSTED_TREES=' "$c/server.env" || {
+    printf '# frozen trusted trees: non-demo challenges register only against their pinned tree\nARENA_TRUSTED_TREES=%s\n' "$LIVE/trusted-trees" >>"$c/server.env"
+    say "server.env: + ARENA_TRUSTED_TREES"
+  }
+  return 0
 }
 
 write_default_config() {
@@ -136,6 +161,7 @@ ARENA_OBJECT_STORE_DIR=$LIVE/objects
 ARENA_CHALLENGES_DIR=$LIVE/release/challenges
 ARENA_SECURITY_DIR=$LIVE/release/security
 ARENA_GOVERNANCE_PUBKEY_FILE=$LIVE/release/challenges/governance-dev.pub,$LIVE/release/challenges/governance-local.pub
+ARENA_TRUSTED_TREES=$LIVE/trusted-trees
 ARENA_REPORT_SIGNING_KEY_FILE=$LIVE/secrets/report-signing-key.pem
 ARENA_LEASE_SECS=600
 ARENA_RETRY_BACKOFF_SECS=5
@@ -159,7 +185,7 @@ ARENA_BUILD_TOOLCHAIN_IMAGE=sha256:70d2b28003f8117601772dedb7f42393e928ccfcca735
 ARENA_LEAN_CHECKER_IMAGES=/data/illia/nearproof-deps/lean-checker/images
 ARENA_BUILD_MOUNTS=/data/illia/nearproof-deps/lean-checker/images/d85133a1309157e27d0bac50b20d6d96a59db3ee6d55830389366f7248ccb7e1/arena/tc:/opt/lean
 ARENA_BUILD_PATH=/opt/lean/bin:/usr/local/rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/bin:/usr/local/cargo/bin:/usr/local/bin:/usr/bin:/bin
-ARENA_FORMAL_REPO=$LIVE/release/clean
+ARENA_TRUSTED_TREES=$LIVE/trusted-trees
 ARENA_FORMAL_CONFIGS_DIR=$LIVE/release/runners/formal-checker/challenges
 ARENA_NPAI_VERIFY=$LIVE/bin/npai-verify
 ARENA_NEAR_ORACLE=$LIVE/bin/near-arena-oracle
@@ -380,9 +406,25 @@ cmd_register_challenge() {
   "$LIVE/bin/arena-admin" verify --pubkey "$LIVE/release/challenges/governance-local.pub" \
     --pubkey "$LIVE/release/challenges/governance-dev.pub" --security-dir "$LIVE/release/security" "$j" \
     || die "signature/policy verification failed"
+  "$LIVE/bin/arena-admin" check-trusted --store "$LIVE/trusted-trees" "$j" \
+    || die "the challenge's pinned trusted tree is not published (arena-live freeze-trusted <commit> $j)"
   cp "$j" "$s" "$LIVE/release/challenges/"
   systemctl --user restart arena-live-server.service
   say "registered $(basename "$j" .json) (server restarted)"
+}
+
+cmd_freeze_trusted() {
+  local commit="${1:?commit}"; shift
+  [ $# -ge 1 ] || die "freeze-trusted <commit> <chl_….json>...  (the tree must hash to each challenge's pin)"
+  git -C "$REPO" rev-parse --git-dir >/dev/null 2>&1 \
+    || die "no git repository at $REPO: run from a checkout (deploy/live/arena-live) or set ARENA_LIVE_REPO"
+  local args=() f
+  for f in "$@"; do args+=(--challenge "$f"); done
+  "$LIVE/bin/arena-admin" freeze-trusted --repo "$REPO" --store "$LIVE/trusted-trees" --commit "$commit" "${args[@]}"
+}
+
+cmd_check_trusted() {
+  "$LIVE/bin/arena-admin" check-trusted --store "$LIVE/trusted-trees" "$LIVE/release/challenges"/chl_*.json
 }
 
 cmd_backup() {
@@ -393,6 +435,8 @@ cmd_backup() {
   # objects are immutable + content-addressed: hard-link snapshot, near-zero cost
   cp -al "$LIVE/objects" "$d/objects"
   cp -p "$LIVE/secrets/report-signing-key.pem" "$d/" 2>/dev/null || true
+  # frozen trusted trees (read-only dirs: archived, so rotation can delete them)
+  tar -C "$LIVE" -cf "$d/trusted-trees.tar" trusted-trees 2>/dev/null || true
   chmod -R go-rwx "$d"
   # keep the 14 newest
   ls -1d "$LIVE/backups"/*/ 2>/dev/null | sort | head -n -14 | xargs -r rm -rf
@@ -438,6 +482,8 @@ case "$c" in
   rerun-submission) cmd_rerun_submission "$@" ;;
   set-quota) cmd_set_quota "$@" ;;
   register-challenge) cmd_register_challenge "$@" ;;
+  freeze-trusted) cmd_freeze_trusted "$@" ;;
+  check-trusted) cmd_check_trusted ;;
   backup) cmd_backup ;;
   reap-orphans) cmd_reap_orphans "$@" ;;
   tailnet) cmd_tailnet "$@" ;;
