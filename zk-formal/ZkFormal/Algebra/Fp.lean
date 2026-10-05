@@ -301,7 +301,7 @@ instance : IsCharP Fp P := IsCharP.mk' _ _ (ofNat_eq_zero_iff := fun x => by
 theorem ofNat_toNat (a : Fp) : ofNat a.toNat = a := ext (by rw [toNat_ofNat, Nat.mod_eq_of_lt a.toNat_lt])
 
 /-- All `p` field elements (never evaluated; used for counting). -/
-def all : List Fp := (List.range P).map ofNat
+noncomputable def all : List Fp := (List.range P).map ofNat
 
 theorem mem_all (a : Fp) : a ∈ all :=
   List.mem_map.mpr ⟨a.toNat, List.mem_range.mpr a.toNat_lt, ofNat_toNat a⟩
