@@ -220,6 +220,26 @@ impl WhStream {
         self.advance(len);
     }
 
+    /// Append `body(i - i0, out)` (exactly `len` bytes) to messages
+    /// `i0 .. i0+count`, without advancing; call [`Self::commit_len`] once
+    /// every message has received its `len` bytes.
+    pub fn feed_at(&mut self, i0: usize, len: usize, body: impl Fn(usize, &mut Vec<u8>) + Sync, count: usize) {
+        let (fd, carry) = (self.first_done, self.carry);
+        self.st[i0..i0 + count].par_iter_mut().zip(self.buf[i0..i0 + count].par_iter_mut()).enumerate().for_each_init(
+            || Vec::with_capacity(len),
+            |tmp, (i, (st, buf))| {
+                tmp.clear();
+                body(i, tmp);
+                debug_assert_eq!(tmp.len(), len);
+                Self::absorb_one(st, buf, fd, carry, tmp);
+            },
+        );
+    }
+
+    pub fn commit_len(&mut self, len: usize) {
+        self.advance(len);
+    }
+
     /// Append row `i` of `rows` (`n × w` field elements, u32 LE) to message `i`.
     pub fn feed_rows(&mut self, rows: &RowMajorMatrix<F>) {
         let w = rows.width();
