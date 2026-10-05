@@ -16,9 +16,15 @@
 //! definition and the judge's artifact digests):
 //! ```text
 //! formal-check --formal F --challenge challenges/<id>.json \
-//!     --challenge-config runners/formal-checker/challenges/<name>.json --repo-root <clean checkout> \
+//!     --challenge-config runners/formal-checker/challenges/<name>.json \
+//!     (--trusted-store <ARENA_TRUSTED_TREES> | --repo-root <dir>) \
 //!     --public-digest <hex> --verifier-digest <hex> [--emit-expected out.lean]
 //! ```
+//! The trusted packages and templates come from the challenge's pinned
+//! trusted tree (`formal_spec.tree_digest`): `--trusted-store` copies it from
+//! the frozen-tree store and re-verifies the copy (as the worker does);
+//! `--repo-root` is accepted only if its `formal-core/` + `spec/lean/` hash
+//! to the pin (so a drifted checkout is refused, never silently used).
 use arena_formal_checker::*;
 use std::path::PathBuf;
 
@@ -39,6 +45,8 @@ fn main() -> anyhow::Result<()> {
     let mut cand_bin: Option<arena_types::Digest> = None;
     let (mut chal, mut chal_cfg, mut repo_root, mut pub_d, mut ver_d, mut emit) =
         (None, None, None, None, None, None);
+    let mut trusted_store: Option<PathBuf> = None;
+    let mut trusted_tree: Option<arena_types::Digest> = None;
     let mut work = std::env::temp_dir().join(format!("formal-check-{}", std::process::id()));
     let mut cache = toolchain::fc_home().join("ref-cache");
     while let Some(a) = args.next() {
@@ -56,6 +64,7 @@ fn main() -> anyhow::Result<()> {
             "--challenge" => chal = Some(PathBuf::from(v()?)),
             "--challenge-config" => chal_cfg = Some(PathBuf::from(v()?)),
             "--repo-root" => repo_root = Some(PathBuf::from(v()?)),
+            "--trusted-store" => trusted_store = Some(PathBuf::from(v()?)),
             "--public-digest" => pub_d = Some(v()?),
             "--verifier-digest" => ver_d = Some(v()?),
             "--emit-expected" => emit = Some(PathBuf::from(v()?)),
@@ -103,10 +112,32 @@ fn main() -> anyhow::Result<()> {
         (Some(e), None) => serde_json::from_slice(&std::fs::read(e)?)?,
         (None, Some(cfg_path)) => {
             let cfg = ChallengeFormalConfig::load(&cfg_path)?;
-            let root = repo_root.ok_or_else(|| anyhow::anyhow!("--repo-root required"))?;
             let def: arena_types::ChallengeDefinition = serde_json::from_slice(&std::fs::read(
                 chal.ok_or_else(|| anyhow::anyhow!("--challenge required"))?,
             )?)?;
+            let pin = def.semantic_scope.formal_spec.tree_digest.clone();
+            let root = match (trusted_store, repo_root) {
+                (Some(store), None) => {
+                    let root = work.with_extension("trusted-tree");
+                    let _ = std::fs::remove_dir_all(&root);
+                    arena_types::trusted_tree::materialize(&store, &pin, &root)
+                        .map_err(|e| anyhow::anyhow!("pinned trusted tree: {e}"))?;
+                    root
+                }
+                (None, Some(root)) => {
+                    let got = arena_types::trusted_tree::digest_of(&root)?;
+                    if got != pin {
+                        anyhow::bail!(
+                            "{}: formal-core + spec/lean hash to {got}, but the challenge pins {pin} \
+                             (use --trusted-store with the frozen tree)",
+                            root.display()
+                        );
+                    }
+                    root
+                }
+                _ => anyhow::bail!("give exactly one of --trusted-store or --repo-root"),
+            };
+            trusted_tree = Some(pin);
             let inp = ExpectedInputs::from_definition(
                 &def,
                 pub_d.ok_or_else(|| anyhow::anyhow!("--public-digest required"))?,
@@ -159,6 +190,7 @@ fn main() -> anyhow::Result<()> {
         trusted,
         expected: &expected,
         challenge_digest: None,
+        trusted_tree,
         policy,
         limits: Limits::default(),
         work_dir: work,

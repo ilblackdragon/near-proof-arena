@@ -228,6 +228,11 @@ FC_TOKEN=$("$BIN/arena-server" create-worker --database-url "$DBURL" --name sp1-
 CLEAN="$WORK/clean"
 rm -rf "$CLEAN"; mkdir -p "$CLEAN"
 ( cd "$REPO" && git ls-files -- formal-core spec/lean oracle/fixtures/public | tar -cf - -T - ) | tar -xf - -C "$CLEAN"
+# the frozen trusted tree the NEAR v1 family pins (formal_spec.tree_digest; docs/TCB.md):
+# FORMAL_CHECK builds the reference only from it, never from this checkout
+"$BIN/arena-admin" freeze-trusted --repo "$REPO" --store "$WORK/trusted-trees" \
+  --commit "${ARENA_E2E_TRUSTED_COMMIT:-6873c9980fd93c0483e93b94fe7e8a1fe0d52d52}" \
+  --challenge "$REPO/challenges/chl_5ef2bc7d2068219635426e47ca46bfbb.json" >/dev/null
 env -i PATH="$PATH" HOME="$HOME" \
   ARENA_SERVER_URL="http://127.0.0.1:$WPORT" ARENA_WORKER_TOKEN="$FC_TOKEN" \
   ARENA_WORKER_ID=sp1-fc-worker ARENA_WORK_DIR="$WORK/fc-worker" ARENA_SANDBOX_BACKEND=firecracker \
@@ -235,7 +240,7 @@ env -i PATH="$PATH" HOME="$HOME" \
   ARENA_IMAGES_DIR="$TC_IMAGES" ARENA_BUILD_TOOLCHAIN_IMAGE="sha256:$TC" \
   ARENA_BUILD_MOUNTS="$LEAN_IMG/arena/tc:/opt/lean" \
   ARENA_BUILD_PATH="/opt/lean/bin:/usr/local/rustup/toolchains/1.96.0-x86_64-unknown-linux-gnu/bin:/usr/local/cargo/bin:/usr/local/bin:/usr/bin:/bin" \
-  ARENA_FORMAL_REPO="$CLEAN" ARENA_FORMAL_CONFIGS_DIR="$REPO/runners/formal-checker/challenges" \
+  ARENA_TRUSTED_TREES="$WORK/trusted-trees" ARENA_FORMAL_CONFIGS_DIR="$REPO/runners/formal-checker/challenges" \
   ARENA_LEAN_CHECKER_IMAGES="$LEAN_IMAGES" \
   ARENA_NEAR_ORACLE="$ORACLE" ARENA_WORKLOAD_GENERATORS="$REPO/spec/workloads/near-transfer-receipt-v1" \
   ARENA_FIXTURES_DIRS="$CLEAN/oracle/fixtures/public" ARENA_CONFORMANCE_SAMPLES=3 \

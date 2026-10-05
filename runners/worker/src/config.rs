@@ -54,9 +54,12 @@ pub struct WorkerConfig {
     pub bench_batch_cap: Option<u32>,
     /// Judge-sampled conformance cases per job.
     pub conformance_samples: usize,
-    /// Clean checkout with the trusted Lean packages (enables FORMAL_CHECK).
+    /// Legacy `ARENA_FORMAL_REPO` (a working checkout as the trusted base):
+    /// refused at startup if set.
     pub formal_repo: Option<PathBuf>,
-    /// `arena-formal-challenge-v1` configs (default `<repo>/runners/formal-checker/challenges`).
+    /// Frozen trusted-tree store (`ARENA_TRUSTED_TREES`).
+    pub trusted_trees: Option<PathBuf>,
+    /// `arena-formal-challenge-v1` configs (enables FORMAL_CHECK).
     pub formal_configs_dir: Option<PathBuf>,
     /// Installed lean-checker images (firecracker).
     pub lean_checker_images: Option<PathBuf>,
@@ -339,6 +342,7 @@ impl WorkerConfig {
                 })?,
             },
             formal_repo: s.get("ARENA_FORMAL_REPO").map(PathBuf::from),
+            trusted_trees: s.get("ARENA_TRUSTED_TREES").map(PathBuf::from),
             formal_configs_dir: s.get("ARENA_FORMAL_CONFIGS_DIR").map(PathBuf::from),
             lean_checker_images: s.get("ARENA_LEAN_CHECKER_IMAGES").map(PathBuf::from),
             npai_verify: s.get("ARENA_NPAI_VERIFY").map(PathBuf::from).or_else(|| {
