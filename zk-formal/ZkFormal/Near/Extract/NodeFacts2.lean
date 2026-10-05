@@ -300,3 +300,102 @@ theorem winSlot {r : Nat} (hr : r < tr.height T_NODE) (hc : tr.cell T_NODE r sCH
   · rw [h] at c5; grind
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+
+theorem linkGates {r : Nat} (hr : r < tr.height T_NODE) :
+    let K := fun x => tr.cell T_NODE r x
+    K gP = K fs * K sCH * K rv ∧ K gV = K nf * K tv ∧
+    K eext = K te * K nokey * (1 - K odd) ∧ K xdead = K te * (1 - K xrv) ∧ K xlast0 = K te * K nokey ∧
+    K te * K sCH * (K xrv - K rv) = 0 ∧ K xrv * (1 - K te) = 0 ∧ K te * K sCH * (K xres - K cres) = 0 ∧
+    (K act - K eext) * (K res - K nid) = 0 ∧ K eext * (1 - K xrv) * (K res - K nid) = 0 ∧
+    K eext * K xrv * (K res - K xres) = 0 ∧
+    K gA = K sKEY + (K sHPF * K odd * (1 - K nokey * K xdead) + (K gP * (K tb1 + K tb2) +
+      ((K gD - K gP) + (if r = 0 then 1 else 0)))) ∧
+    K gB = K sKEY - K sKEY * K fe * K xdead := by
+  intro K
+  have c1 := con hL hr (e := sub (c gP) (.mul chStart (c rv))) (mem_links (by simp [cLinks]))
+  have c2 := con hL hr (e := sub (c gV) (.mul (c nf) (c tv))) (mem_links (by simp [cLinks]))
+  have c3 := con hL hr (e := sub (c eext) (mul3 (c te) (c nokey) (Dsl.not (c odd)))) (mem_links (by simp [cLinks]))
+  have c4 := con hL hr (e := sub (c xdead) (.mul (c te) (Dsl.not (c xrv)))) (mem_links (by simp [cLinks]))
+  have c5 := con hL hr (e := sub (c xlast0) (.mul (c te) (c nokey))) (mem_links (by simp [cLinks]))
+  have c6 := con hL hr (e := mul3 (c te) (c sCH) (sub (c xrv) (c rv))) (mem_links (by simp [cLinks]))
+  have c7 := con hL hr (e := .mul (c xrv) (Dsl.not (c te))) (mem_links (by simp [cLinks]))
+  have c8 := con hL hr (e := .mul (.mul (c te) (c sCH)) (sub (c xres) (c cres))) (mem_links (by simp [cLinks]))
+  have c9 := con hL hr (e := .mul (sub (c act) (c eext)) (sub (c res) (c nid))) (mem_links (by simp [cLinks]))
+  have c10 := con hL hr (e := mul3 (c eext) (Dsl.not (c xrv)) (sub (c res) (c nid))) (mem_links (by simp [cLinks]))
+  have c11 := con hL hr (e := mul3 (c eext) (c xrv) (sub (c res) (c xres))) (mem_links (by simp [cLinks]))
+  have c12 := con hL hr (e := sub (c gA) (.add (c sKEY) (.add (mul3 (c sHPF) (c odd) (Dsl.not (.mul (c nokey) (c xdead))))
+      (.add (.mul (c gP) isBr) (.add valStart .isFirst))))) (mem_links (by simp [cLinks]))
+  have c13 := con hL hr (e := sub (sub (c gB) (c sKEY)) (.neg (mul3 (c sKEY) (c fe) (c xdead))))
+    (mem_links (by simp [cLinks]))
+  simp only [chStart, isBr, valStart, eval_mul, eval_mul3, eval_c, eval_not, eval_sub, eval_add, eval_neg,
+    eval_isFirst] at c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13
+  simp only [K]
+  exact ⟨by grind, by grind, by grind, by grind, by grind, c6, c7, c8, c9, c10, c11, by grind, by grind⟩
+
+/-- Edge A / B contents per row kind. -/
+theorem edgeFacts {r : Nat} (hr : r < tr.height T_NODE) :
+    let K := fun x => tr.cell T_NODE r x
+    (K sKEY = 1 → K aI = kiE.eval tr T_NODE r pub ∧ K aS = hiE.eval tr T_NODE r pub ∧ K aN = K nid ∧
+      K aJ = kiE.eval tr T_NODE r pub + 1 ∧
+      (K fe * K te = 0 → K bN = K nid ∧ K bJ = kiE.eval tr T_NODE r pub + 2) ∧
+      (K fe = 1 → K te = 1 → K bN = K xres ∧ K bJ = 0)) ∧
+    (K sHPF = 1 → K odd = 1 → K aI = 0 ∧ K aS = loE.eval tr T_NODE r pub ∧
+      (K xlast0 = 0 → K aN = K nid ∧ K aJ = 1) ∧ (K xlast0 = 1 → K aN = K xres ∧ K aJ = 0)) ∧
+    (K gP = 1 → K tb1 + K tb2 = 1 → K aI = 0 ∧ K aS = jIdxE.eval tr T_NODE r pub ∧ K aN = K cres ∧ K aJ = 0) ∧
+    (K gD - K gP = 1 → K aI = K tl * sE.eval tr T_NODE r pub ∧ K aS = (SYM_END : Nat) ∧ K aN = K nid ∧ K aJ = 0) ∧
+    (r = 0 → K aI = 0 ∧ K aS = (SYM_START : Nat) ∧ K aN = K res ∧ K aJ = 0) := by
+  intro K
+  have k1 := con hL hr (e := .mul (c sKEY) (sub (c aI) kiE)) (mem_links (by simp [cLinks]))
+  have k2 := con hL hr (e := .mul (c sKEY) (sub (c aS) hiE)) (mem_links (by simp [cLinks]))
+  have k3 := con hL hr (e := .mul (c sKEY) (sub (c aN) (c nid))) (mem_links (by simp [cLinks]))
+  have k4 := con hL hr (e := .mul (c sKEY) (sub (c aJ) (.add kiE (k 1)))) (mem_links (by simp [cLinks]))
+  have k5 := con hL hr (e := .mul (.mul (c sKEY) (Dsl.not (.mul (c fe) (c te)))) (sub (c bN) (c nid)))
+    (mem_links (by simp [cLinks]))
+  have k6 := con hL hr (e := .mul (.mul (c sKEY) (Dsl.not (.mul (c fe) (c te)))) (sub (c bJ) (.add kiE (k 2))))
+    (mem_links (by simp [cLinks]))
+  have k7 := con hL hr (e := mul3 (c sKEY) (c fe) (.mul (c te) (sub (c bN) (c xres)))) (mem_links (by simp [cLinks]))
+  have k8 := con hL hr (e := mul3 (c sKEY) (c fe) (.mul (c te) (c bJ))) (mem_links (by simp [cLinks]))
+  have o1 := con hL hr (e := .mul (.mul (c sHPF) (c odd)) (c aI)) (mem_links (by simp [cLinks]))
+  have o2 := con hL hr (e := .mul (.mul (c sHPF) (c odd)) (sub (c aS) loE)) (mem_links (by simp [cLinks]))
+  have o3 := con hL hr (e := .mul (mul3 (c sHPF) (c odd) (Dsl.not (c xlast0))) (sub (c aN) (c nid)))
+    (mem_links (by simp [cLinks]))
+  have o4 := con hL hr (e := .mul (mul3 (c sHPF) (c odd) (Dsl.not (c xlast0))) (sub (c aJ) (k 1)))
+    (mem_links (by simp [cLinks]))
+  have o5 := con hL hr (e := .mul (mul3 (c sHPF) (c odd) (c xlast0)) (sub (c aN) (c xres))) (mem_links (by simp [cLinks]))
+  have o6 := con hL hr (e := .mul (mul3 (c sHPF) (c odd) (c xlast0)) (c aJ)) (mem_links (by simp [cLinks]))
+  have b1 := con hL hr (e := .mul (.mul (c gP) isBr) (c aI)) (mem_links (by simp [cLinks]))
+  have b2 := con hL hr (e := .mul (.mul (c gP) isBr) (sub (c aS) jIdxE)) (mem_links (by simp [cLinks]))
+  have b3 := con hL hr (e := .mul (.mul (c gP) isBr) (sub (c aN) (c cres))) (mem_links (by simp [cLinks]))
+  have b4 := con hL hr (e := .mul (.mul (c gP) isBr) (c aJ)) (mem_links (by simp [cLinks]))
+  have v1 := con hL hr (e := .mul valStart (sub (c aI) (.mul (c tl) sE))) (mem_links (by simp [cLinks]))
+  have v2 := con hL hr (e := .mul valStart (sub (c aS) (k SYM_END))) (mem_links (by simp [cLinks]))
+  have v3 := con hL hr (e := .mul valStart (sub (c aN) (c nid))) (mem_links (by simp [cLinks]))
+  have v4 := con hL hr (e := .mul valStart (c aJ)) (mem_links (by simp [cLinks]))
+  have f1 := con hL hr (e := .mul .isFirst (c aI)) (mem_links (by simp [cLinks]))
+  have f2 := con hL hr (e := .mul .isFirst (sub (c aS) (k SYM_START))) (mem_links (by simp [cLinks]))
+  have f3 := con hL hr (e := .mul .isFirst (sub (c aN) (c res))) (mem_links (by simp [cLinks]))
+  have f4 := con hL hr (e := .mul .isFirst (c aJ)) (mem_links (by simp [cLinks]))
+  simp only [isBr, valStart, eval_mul, eval_mul3, eval_c, eval_not, eval_sub, eval_add, eval_k, eval_isFirst]
+    at k1 k2 k3 k4 k5 k6 k7 k8 o1 o2 o3 o4 o5 o6 b1 b2 b3 b4 v1 v2 v3 v4 f1 f2 f3 f4
+  simp only [K]
+  refine ⟨fun h => ?_, fun h h' => ?_, fun h h' => ?_, fun h => ?_, fun h => ?_⟩
+  · rw [h] at k1 k2 k3 k4 k5 k6 k7 k8
+    refine ⟨by grind, by grind, by grind, by grind, fun h2 => ?_, fun h2 h3 => ?_⟩
+    · rw [h2] at k5 k6; exact ⟨by grind, by grind⟩
+    · rw [h2, h3] at k7 k8; exact ⟨by grind, by grind⟩
+  · rw [h, h'] at o1 o2 o3 o4 o5 o6
+    refine ⟨by grind, by grind, fun h2 => ?_, fun h2 => ?_⟩
+    · rw [h2] at o3 o4; exact ⟨by grind, by grind⟩
+    · rw [h2] at o5 o6; exact ⟨by grind, by grind⟩
+  · rw [h, h'] at b1 b2 b3 b4; exact ⟨by grind, by grind, by grind, by grind⟩
+  · rw [h] at v1 v2 v3 v4; exact ⟨by grind, by grind, by grind, by grind⟩
+  · subst h; simp only [if_pos rfl] at f1 f2 f3 f4; exact ⟨by grind, by grind, by grind, by grind⟩
+
+end ZkFormal.Near.NodeProof
