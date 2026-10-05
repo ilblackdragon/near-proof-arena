@@ -62,7 +62,7 @@ theorem compile_accepts_of (hmp : MultiproofStmt) : CompileAcceptsStmt := by
   have hfa := parseSlots_rel (F := F) hdr _ pb ps rest hps
   -- the transcript chain
   have hinit : WHin tbl (initMsg (ctxOf pub) cb) d0 := by
-    have := (evalT_starkWH tbl _ _ _).mp h0
+    have := (evalT_starkWH wf _ _ _).mp h0
     have e : initMsg (ctxOf pub) cb = Stark.tagInit :: Stark.initMsg pub cb := by
       simp [initMsg, Stark.initMsg, ctxOf, tagInit, Stark.tagInit, List.append_assoc]
     rw [e]; exact this
@@ -73,7 +73,7 @@ theorem compile_accepts_of (hmp : MultiproofStmt) : CompileAcceptsStmt := by
   have hvh0 : viewHeader V es [] = some hdr :=
     viewHeader_eq V hdr psH ssH ps entries es [] (hsched ▸ hfa) hrel
   have hvh := viewHeader_take V es hdr hvh0
-  obtain ⟨hal_len, hlook⟩ := queryAnswers_spec tbl dfin V.numChunks answers hans
+  obtain ⟨hal_len, hlook⟩ := queryAnswers_spec tbl wf dfin V.numChunks answers hans
   refine ⟨es, dfin, hchain, fun j hj => ?_⟩
   have hj' : j < answers.length := by simp only [adapt] at hj; omega
   refine ⟨answers[j], hlook j hj', fun x hx => ?_⟩

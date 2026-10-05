@@ -72,7 +72,7 @@ theorem shaped_hdr {τ : PTn} (hs : Shaped (Vnp A prm) τ) (hne : τ.entries ≠
       intro h; subst h; simp at hlen)
     simp only [List.getElem_cons_zero] at hl; subst hl
     unfold PT.header?; rw [he]
-  exact ⟨l, hh, hs.1 l hh, by unfold IopSpec.slots; rw [hh]; rfl⟩
+  exact ⟨l, hh, (verifier_headerOk (hs.1 l hh)).1, by unfold IopSpec.slots; rw [hh]; rfl⟩
 
 theorem shaped_fits {τ : PTn} (hs : Shaped (Vnp A prm) τ) {l : List Nat} (hl : τ.header? = some l)
     (k : Nat) (hk : k < τ.entries.length) :

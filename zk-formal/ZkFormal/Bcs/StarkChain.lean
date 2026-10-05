@@ -11,16 +11,34 @@ namespace ZkFormal.Bcs.Adapter
 
 open ArenaCore ArenaCore.Security ZkFormal Lean.Grind
 
-theorem evalT_starkH (tbl : Table) (m : Bytes) :
+theorem evalT_starkH {tbl : Table} (wf : TableWF tbl) (m : Bytes) :
     evalT tbl (Stark.H m) = tbl.lookup m := by
-  unfold Stark.H OracleComp.ask
+  unfold Stark.H
   simp only [evalT]
-  cases tbl.lookup m <;> rfl
+  cases h : tbl.lookup m with
+  | none => rfl
+  | some y => simp only [evalT, Stark.fit32_of_length (wf.lookup_length h)]
 
-theorem evalT_starkWH (tbl : Table) (tag : UInt8) (m u : Bytes) :
+theorem evalT_starkWH_eq {tbl : Table} (wf : TableWF tbl) (tag : UInt8) (m : Bytes) :
+    evalT tbl (Stark.WH tag m) = evalT tbl (wh (tag :: m)) := by
+  unfold Stark.WH Stark.H wh
+  simp only [OracleComp.bind, evalT]
+  have e0 : whq (tag :: m) 0 = tag :: 1 :: m := rfl
+  have e1 : whq (tag :: m) 1 = tag :: 2 :: m := rfl
+  rw [e0, e1]
+  cases ha : tbl.lookup (tag :: 1 :: m) with
+  | none => rfl
+  | some a =>
+    simp only
+    cases hb : tbl.lookup (tag :: 2 :: m) with
+    | none => rfl
+    | some b =>
+      simp only [evalT, Stark.fit32_of_length (wf.lookup_length ha),
+        Stark.fit32_of_length (wf.lookup_length hb)]
+
+theorem evalT_starkWH {tbl : Table} (wf : TableWF tbl) (tag : UInt8) (m u : Bytes) :
     evalT tbl (Stark.WH tag m) = some u ↔ WHin tbl (tag :: m) u := by
-  have e : Stark.WH tag m = wh (tag :: m) := rfl
-  rw [e, evalT_wh]
+  rw [evalT_starkWH_eq wf, evalT_wh]
 
 theorem whin_take32 {tbl : Table} (wf : TableWF tbl) {m a b : Bytes}
     (ha : tbl.lookup (whq m 0) = some a) : (a ++ b).take 32 = a :=
@@ -72,7 +90,7 @@ theorem chain_refine {tbl : Table} (wf : TableWF tbl) (ctx cb : Bytes) :
         simp only [Prod.mk.injEq] at h
         obtain ⟨rfl, rfl⟩ := h
         have hok1 := hok vs raw List.mem_cons_self
-        have hwh := (evalT_starkWH tbl _ _ _).mp hw
+        have hwh := (evalT_starkWH wf _ _ _).mp hw
         have hch' : Chain tbl ctx cb (es0 ++ [.msg (Stark.rootsOf vs) (Stark.clearOf vs raw)]) d' :=
           Chain.msg _ _ _ _ _ hch hok1.1 hok1.2 hwh
         obtain ⟨es, hrel, hfin⟩ := chain_refine wf ctx cb ss d' _ ents df
@@ -93,7 +111,7 @@ theorem chain_refine {tbl : Table} (wf : TableWF tbl) (ctx cb : Bytes) :
         obtain ⟨ents, df⟩ := res
         simp only [Prod.mk.injEq] at h
         obtain ⟨rfl, rfl⟩ := h
-        obtain ⟨a, b, ha, hb, rfl⟩ := (evalT_starkWH tbl _ _ _).mp hw
+        obtain ⟨a, b, ha, hb, rfl⟩ := (evalT_starkWH wf _ _ _).mp hw
         have hch' : Chain tbl ctx cb (es0 ++ [.chal a]) (a ++ b) := Chain.chal _ _ _ _ hch ha hb
         obtain ⟨es, hrel, hfin⟩ := chain_refine wf ctx cb ss (a ++ b) _ ents df
           (fun vs' raw' hm => hok vs' raw' (List.mem_cons_of_mem _ hm)) hch' hc
