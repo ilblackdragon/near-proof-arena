@@ -387,3 +387,9 @@ theorem range'_flatMap_pairs (s n : Nat) :
       List.flatMap_append]
     simp [List.range', show s + 2 * n + 1 = s + (2 * n + 1) by omega]
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+theorem getD_eq_getElem' {α : Type} (l : List α) (d : α) {n : Nat} (h : n < l.length) :
+    l.getD n d = l[n] := by
+  rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem h]; rfl
+end ZkFormal.Near

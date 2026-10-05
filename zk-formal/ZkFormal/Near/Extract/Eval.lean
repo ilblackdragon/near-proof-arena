@@ -178,3 +178,24 @@ open ZkFormal.Algebra
 @[simp] theorem ofNat_mul' (a b : Nat) : Fp.ofNat a * Fp.ofNat b = Fp.ofNat (a * b) := by
   rw [← natCast_eq, ← natCast_eq, ← natCast_eq, natCast_mul]
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+open ZkFormal.Algebra
+theorem toNat_succ_of {a b : Fp} (h : a = b + 1) (hb : b.toNat + 1 < P) : a.toNat = b.toNat + 1 := by
+  rw [h, ← Fp.ofNat_toNat b, show (1 : Fp) = Fp.ofNat 1 from rfl, ofNat_add', Fp.toNat_ofNat,
+    Fp.toNat_ofNat, Nat.mod_eq_of_lt (Fp.toNat_lt b), Nat.mod_eq_of_lt hb]
+theorem toNat_eq_of {a b : Fp} (h : a = b) : a.toNat = b.toNat := by rw [h]
+/-- `a + o = 2·s` in `Fp` with small values is an equation in `ℕ`. -/
+theorem lin2 {a o s : Fp} (h : a + o = 2 * s) (ho : o.toNat ≤ 1) (hs : 2 * s.toNat < P) (hs1 : 1 ≤ s.toNat) :
+    a.toNat + o.toNat = 2 * s.toNat := by
+  have e : Fp.ofNat (a.toNat + o.toNat) = Fp.ofNat (2 * s.toNat) := by
+    rw [← ofNat_add', Fp.ofNat_toNat, Fp.ofNat_toNat, ← ofNat_mul', Fp.ofNat_toNat]; exact h
+  have := congrArg Fp.toNat e
+  rw [Fp.toNat_ofNat, Fp.toNat_ofNat, Nat.mod_eq_of_lt hs] at this
+  have ha := Fp.toNat_lt a
+  by_cases hlt : a.toNat + o.toNat < P
+  · rwa [Nat.mod_eq_of_lt hlt] at this
+  · have : (a.toNat + o.toNat) % P = a.toNat + o.toNat - P := by
+      rw [Nat.mod_eq_sub_mod (by omega), Nat.mod_eq_of_lt (by omega)]
+    omega
+end ZkFormal.Near

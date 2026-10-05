@@ -568,3 +568,85 @@ theorem segKind (hL : TableLocal Mrk.table tr T_MRK pub) {s' ℓ : Nat}
       · have := (w2 x hx).2.2.2.2.2 0 (by omega); simpa using this
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp}
+
+/-- The node read at its first row `r`. -/
+def ndAt (tr : Trace Fp) (r : Nat) : ND :=
+  { j := (tr.cell T_MRK r j).toNat, i := (tr.cell T_MRK r i).toNat, sp := (tr.cell T_MRK r sp).toNat,
+    s := (tr.cell T_MRK r s).toNat, odd := one tr odd r, lil := one tr lil r, top := one tr top r,
+    pr := one tr pr r }
+
+/-- Last row of a node segment and its constants. -/
+theorem endRow (hL : TableLocal Mrk.table tr T_MRK pub) {s' ℓ : Nat}
+    (hseg : IsSeg (actS tr) (firstS tr) (lastS tr) s' ℓ) (hH : s' + ℓ ≤ tr.height T_MRK - 1) :
+    E tr (s' + ℓ) = 1 ∧ A tr (s' + 1) = 1 ∧
+    ∀ x ∈ nodeConst, tr.cell T_MRK (s' + ℓ) x = tr.cell T_MRK (s' + 1) x := by
+  rcases segKind hL hseg hH with ⟨hpr, hsg, rfl⟩ | ⟨rfl, hpr, hh⟩
+  · have hwn := (local_ hL (r := s' + 1) (by omega)).2.2.2.2.2.2.2.1 hpr
+    have hsl := (local_ hL (r := s' + 1) (by omega)).2.2.2.2.2.2.1
+    rw [hwn] at hsl
+    refine ⟨?_, by simp only [A, hsg, hpr]; grind, fun _ _ => rfl⟩
+    simp only [E, hpr, hsl]; grind
+  · have h63 := hh.rows 63 (by omega)
+    have h0 := hh.rows 0 (by omega)
+    rw [show s' + 1 + 63 = s' + 64 by omega] at h63
+    have hl := hh.last; rw [show s' + 1 + 63 = s' + 64 by omega] at hl
+    refine ⟨by simp only [E, hl, h63.2.1]; grind, by simp only [A]; rw [Nat.add_zero] at h0; rw [h0.1, hpr]; grind,
+      h63.2.2.2.2.2⟩
+
+end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp}
+
+theorem cellOne {tr : Trace Fp} (hL : TableLocal Mrk.table tr T_MRK pub) {r x : Nat}
+    (hr : r < tr.height T_MRK) (hx : x ∈ [rt, sg, pr, wn, wf, wl, sf, sl, odd, lil, top, gM, gO]) :
+    tr.cell T_MRK r x = if one tr x r then 1 else 0 := by
+  rcases isBool hL hr hx with h | h <;> simp [one, h]
+
+/-- Field-level node succession between consecutive segments `p0`, `p1`. -/
+theorem succF (hL : TableLocal Mrk.table tr T_MRK pub) {p0 p1 : Nat × Nat}
+    (hs0 : IsSeg (actS tr) (firstS tr) (lastS tr) p0.1 p0.2) (h0 : p0.1 + p0.2 ≤ tr.height T_MRK - 1)
+    (hs1 : IsSeg (actS tr) (firstS tr) (lastS tr) p1.1 p1.2) (h1 : p1.1 + p1.2 ≤ tr.height T_MRK - 1)
+    (hcg : p1.1 = p0.1 + p0.2) :
+    (tr.cell T_MRK (p0.1 + 1) lil = 1 → tr.cell T_MRK (p0.1 + 1) top = 0) ∧
+    (tr.cell T_MRK (p0.1 + 1) lil = 0 → tr.cell T_MRK (p1.1 + 1) j = tr.cell T_MRK (p0.1 + 1) j ∧
+      tr.cell T_MRK (p1.1 + 1) i = tr.cell T_MRK (p0.1 + 1) i + 1 ∧
+      tr.cell T_MRK (p1.1 + 1) sp = tr.cell T_MRK (p0.1 + 1) sp) ∧
+    (tr.cell T_MRK (p0.1 + 1) lil = 1 → tr.cell T_MRK (p1.1 + 1) j = tr.cell T_MRK (p0.1 + 1) j + 1 ∧
+      tr.cell T_MRK (p1.1 + 1) i = 0 ∧ tr.cell T_MRK (p1.1 + 1) sp = tr.cell T_MRK (p0.1 + 1) s) ∧
+    tr.cell T_MRK (p1.1 + 1) q = tr.cell T_MRK (p0.1 + 1) q + tr.cell T_MRK (p0.1 + 1) sg := by
+  have hpos1 := hs1.1
+  obtain ⟨hE, -, hcst⟩ := endRow hL hs0 h0
+  have hAb : A tr (p1.1 + 1) = 1 := (endRow hL hs1 h1).2.1
+  have ne := nodeEnd hL (r := p0.1 + p0.2) (by omega) hE
+  have cj := hcst j (by simp [nodeConst]); have ci := hcst i (by simp [nodeConst])
+  have csp := hcst sp (by simp [nodeConst]); have cs := hcst s (by simp [nodeConst])
+  have cl := hcst lil (by simp [nodeConst]); have ctop := hcst top (by simp [nodeConst])
+  have cq := hcst q (by simp [nodeConst])
+  have csg : tr.cell T_MRK (p0.1 + p0.2) sg = tr.cell T_MRK (p0.1 + 1) sg := by
+    rcases segKind hL hs0 h0 with ⟨-, -, hl⟩ | ⟨hl, -, hh⟩
+    · rw [hl]
+    · rw [hl]
+      have := (hh.rows 63 (by omega)).1; have h0' := (hh.rows 0 (by omega)).1
+      rw [show p0.1 + 1 + 63 = p0.1 + 64 by omega] at this
+      rw [Nat.add_zero] at h0'; rw [this, h0']
+  simp only [cj, ci, csp, cs, cl, ctop, cq, csg] at ne
+  rw [← hcg] at ne
+  obtain ⟨-, n1, n2, n3, n4⟩ := ne
+  have ht0 : tr.cell T_MRK (p0.1 + 1) lil = 1 → tr.cell T_MRK (p0.1 + 1) top = 0 := by
+    intro hl
+    rcases isBool hL (r := p0.1 + 1) (by omega) (x := top) (by simp) with h | h
+    · exact h
+    · rw [n3 hl h] at hAb; exact absurd hAb fp_zero_ne_one
+  refine ⟨ht0, fun hl => (n1 hl).2, fun hl => ?_, n4 hAb⟩
+  obtain ⟨-, e1, e2, e3⟩ := n2 hl (ht0 hl)
+  exact ⟨e1, e2, e3⟩
+
+end ZkFormal.Near.MrkProof
