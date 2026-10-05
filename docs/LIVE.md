@@ -63,21 +63,29 @@ in a browser. See §5 for the current state.
    ```sh
    export ARENA_URL=… ARENA_TOKEN=…
    arena challenges
-   arena challenge chl_3be93793610370275ae40f36a475f01f --json > near-v1-2.json
-   arena check-local ./my-candidate --challenge-file near-v1-2.json   # optional local dry run, not a verdict
+   arena challenge chl_fefb6bc7596a6fb1a145062c864db947 --json > near-v1-3.json
+   arena check-local ./my-candidate --challenge-file near-v1-3.json   # optional local dry run, not a verdict
    ```
 
-   The open formal challenge is **`chl_3be93793610370275ae40f36a475f01f`**
-   (`near-transfer-receipt-v1-2`). The older v1 and v1-1 challenges are
-   closed: they are superseded and kept only for history.
+   The open formal challenge is **`chl_fefb6bc7596a6fb1a145062c864db947`**
+   (`near-transfer-receipt-v1-3`). The older v1, v1-1 and v1-2 challenges
+   are closed: they are superseded and kept only for history, and their
+   boards are frozen.
 
-4. **Submit.** Set `challenge = "chl_3be9…"` in `candidate.toml`. The package
+   There is also an **experimental** challenge,
+   `chl_b7c82396ad623f6dc21efab0f008ea4b`, for backends without a formal
+   certificate (for example zkVMs and STARKs). It has the same NEAR semantics
+   and workloads, and the judge measures every candidate. Its formal gates are
+   diagnostic: they are reported but never block a run. Entries there are
+   **never ranked**.
+
+4. **Submit.** Set `challenge = "chl_fefb…"` in `candidate.toml`. The package
    digest covers that file. Then submit and watch:
 
    ```sh
-   arena submit ./my-candidate --challenge chl_3be93793610370275ae40f36a475f01f --watch
+   arena submit ./my-candidate --challenge chl_fefb6bc7596a6fb1a145062c864db947 --watch
    # a prover-only improvement of an admitted entry: reuse its formal results
-   arena submit ./my-faster-prover --challenge chl_3be9… --parent sub_<admitted parent>
+   arena submit ./my-faster-prover --challenge chl_fefb… --parent sub_<admitted parent>
    ```
 
    `submit` prints the submission id. `--watch`, or the command
@@ -89,7 +97,7 @@ in a browser. See §5 for the current state.
    ```sh
    arena status sub_… --json      # gates, reason codes, evidence graph
    arena report sub_… -o r.json   # signed report (ed25519; key in §4)
-   arena leaderboard --challenge chl_3be93793610370275ae40f36a475f01f
+   arena leaderboard --challenge chl_fefb6bc7596a6fb1a145062c864db947
    ```
 
    The leaderboard ranks entries that are `ADMITTED`, evaluated at formal
@@ -202,16 +210,26 @@ Restore `report-signing-key.pem` from the same backup.
 
 ## 4. Resources
 
-* **CPU.** The host has 32 CPUs and is shared with other lanes' e2e runs,
-  which also start `arena-fc-*` microVMs.
-  * Worker `w1` runs every class, including BENCHMARK, and uses
-    `ARENA_RUN_CPUS=0-7`.
-  * Worker `w2` runs build, formal and oracle work only, never benchmarks,
-    and uses `ARENA_RUN_CPUS=8-15`.
-  * Benchmarks therefore run only on `w1`, in VMs pinned to
-    `ARENA_BENCH_CPUS=24-31`. They are still *not* on a dedicated or
-    isolated host, so the CPUs are shared with other lanes. The hardened topology (`docs/DEPLOYMENT.md` §4) is the
-    reference for real benchmark hosts.
+* **CPU.** The host is a 16-core / 32-thread Ryzen 9 9950X3D. Logical CPUs N
+  and N+16 are SMT siblings. There are two L3 domains: CCD0 is CPUs 0-7 and
+  16-23; CCD1 is CPUs 8-15 and 24-31.
+  * **CCD1 is reserved for benchmarks.** `w1` is a benchmark-only worker
+    (`ARENA_WORKER_CLASSES=bench`). Its VMs run on CPUs 24-31, and CPUs 8-15
+    (their SMT siblings, same L3) are left idle. The v1-3 baseline was
+    measured in exactly this configuration
+    (`benchmarks/results/baseline-near-transfer-receipt-v1-2-live-w1-cpus24-31-20261003/`).
+  * `w2` (`ARENA_RUN_CPUS=0-7`) and `w3` (`16-23`) run validate, build,
+    formal check, conformance and adversarial work, all on CCD0.
+  * **Lesson learned.** An earlier layout put a build/formal worker on CPUs
+    8-15, the SMT siblings of the benchmark CPUs. The v1-3 reference then
+    measured 70.7 instead of about 100. Never schedule anything on 8-15
+    while benchmarks run.
+  * The host is still shared with other lanes, which start their own
+    `arena-fc-*` VMs and may pick any CPUs (the SP1 e2e defaults to 8-15).
+    Memory bandwidth is shared across both CCDs as well. Scores are therefore
+    dev-host numbers with visible noise.
+  * The hardened topology (`docs/DEPLOYMENT.md` §4) is the reference for
+    real benchmark hosts.
 * **Disk.** The state is on `/data`, which is shared and was 83–97% full
   during setup.
   * Each worker keeps a Firecracker image cache under
