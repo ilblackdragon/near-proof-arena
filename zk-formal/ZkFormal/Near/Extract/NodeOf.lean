@@ -44,16 +44,16 @@ theorem belowN_succ (tr : Trace Fp) (s j : Nat) : belowN tr s (j + 1) = belowN t
 theorem popN_eq (tr : Trace Fp) (s : Nat) : popN tr s = belowN tr s 16 := by unfold popN belowN; rfl
 
 /-- Children in slot order are the windows in order. -/
-theorem flatMap_bits {α : Type} (f : Nat → Nat) (F : Nat → List α) (hf : ∀ j, f j ≤ 1) (n : Nat) :
+theorem flatMap_bits {α : Type} (f : Nat → Nat) (F : Nat → List α) (n : Nat) (hf : ∀ j, j < n → f j ≤ 1) :
     (List.range n).flatMap (fun j => if f j = 1 then F (((List.range j).map f).sum) else []) =
       (List.range (((List.range n).map f).sum)).flatMap F := by
   induction n with
   | zero => simp
   | succ n ih =>
-    rw [List.range_succ, List.flatMap_append, ih]
+    rw [List.range_succ, List.flatMap_append, ih (fun j hj => hf j (by omega))]
     simp only [List.map_append, List.map_cons, List.map_nil, List.sum_append, List.sum_cons, List.sum_nil,
       Nat.add_zero, List.flatMap_cons, List.flatMap_nil, List.append_nil]
-    have := hf n
+    have := hf n (by omega)
     by_cases h : f n = 1
     · rw [if_pos h, h, List.range_succ, List.flatMap_append]; simp
     · rw [if_neg h, show f n = 0 by omega]; simp
@@ -238,5 +238,236 @@ theorem leafSer (hC : NodeCtx tr s ℓ fl) (ht : tr.cell T_NODE s tl = 1) :
   constructor
   · rw [split, T0, T1, K.1, S.1, K.2]; simp only [List.append_assoc]
   · rw [split, ← S.2, P0, P1, P5, P6, P41, T0, T1, K.1, K.2]; simp only [List.append_assoc]
+
+end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+/-- A child window field. -/
+theorem kidSer {r0 : Nat} (hF : Field tr r0 32) (hH : r0 + 32 ≤ tr.height T_NODE)
+    (hc : tr.cell T_NODE r0 sCH = 1) :
+    rowsB tr b r0 32 = (kidOf tr r0).bytes false ∧ rowsB tr pb r0 32 = (kidOf tr r0).bytes true := by
+  have hr : r0 < tr.height T_NODE := by omega
+  have ha : tr.cell T_NODE r0 act = 1 := by simpa using hF.act 0 (by omega)
+  have W := winField hL hF hH (by
+    rw [hc, stOnly hL hr ha hc (by simp [states]) (y := sVH) (by simp [states]) (by decide)]; grind)
+  rw [W.1, W.2]
+  unfold kidOf
+  by_cases hrv : cv tr T_NODE r0 rv = 1
+  · rw [if_pos hrv]; exact ⟨rfl, rfl⟩
+  · rw [if_neg hrv]
+    refine ⟨rfl, ?_⟩
+    simp only [NKid.bytes]
+    unfold win; apply List.map_congr_left; intro i hi; rw [List.mem_range] at hi
+    have hfs := (hF.fs 0 (by omega)).2 rfl
+    simp only [Nat.add_zero] at hfs
+    have hrv0 : tr.cell T_NODE r0 rv = 0 := bool01 hL hr (by simp [boolCols]) (fun h => hrv (cv_one h))
+    unfold cv; rw [(winLoad hL hr hfs i hi).1 hc hrv0]
+
+/-- Extension serialization. -/
+theorem extSer (hC : NodeCtx tr s ℓ fl) (ht : tr.cell T_NODE s te = 1) :
+    rowsB tr b s ℓ = (nodeVOf tr s).ser false ∧ rowsB tr pb s ℓ = (nodeVOf tr s).ser true := by
+  obtain ⟨hh1, -, hfl, hℓ, sT, sH, sF, sK, sC, sM⟩ := extFields hL hC ht
+  have htl : tr.cell T_NODE s tl = 0 := typeZeros hL hC (x := te) (y := tl) (by simp) ht (by simp) (by decide)
+  have hcv : cv tr T_NODE s te = 1 := cv_one ht
+  have hcl : cv tr T_NODE s tl ≠ 1 := by rw [cv_zero htl]; decide
+  have mem : ∀ p ∈ extFL (cv tr T_NODE s hplen), p ∈ fl := fun p hp => hfl ▸ hp
+  have hr0 : s < tr.height T_NODE := (nodeStart hL hC).1
+  have K := keySer hL hC (by rw [ht, htl]; grind)
+    hh1 (by omega) sF (mem _ (by simp [extFL, keyFL]))
+    (fun h => sK h) (fun h => mem _ (by simp [extFL, keyFL, h]))
+  simp only [hcl, decide_false] at K
+  obtain ⟨hFC, hHC⟩ := fieldAt hL hC (mem (5 + cv tr T_NODE s hplen, 32) (by simp [extFL]))
+  have C := kidSer hL hFC hHC sC
+  have T0 : rowsB tr b s 1 = [3] := by
+    rw [rowsB_one, tagByte hL hr0 sT,
+      cv_zero (typeZeros hL hC (x := te) (y := tb1) (by simp) ht (by simp) (by decide)),
+      cv_zero (typeZeros hL hC (x := te) (y := tb2) (by simp) ht (by simp) (by decide)), hcv]
+  obtain ⟨hF1, hH1⟩ := fieldAt hL hC (mem (1, 4) (by simp [extFL, keyFL]))
+  have T1 : rowsB tr b (s + 1) 4 = u32r (cv tr T_NODE s hplen) := by
+    rw [hplBytes hL hF1 hH1 sH, cvConst hL hC (by simp [nodeConst]) (by omega)]
+  have P0 := pbOf hL hC (o := 0) (L := 1) (mem _ (by simp [extFL, keyFL])) (by simpa using sT) (by simp [states]) (by decide) (by decide)
+  have P1 := pbOf hL hC (L := 4) (mem _ (by simp [extFL, keyFL])) sH (by simp [states]) (by decide) (by decide)
+  have P5 := pbOf hL hC (L := 1) (mem _ (by simp [extFL, keyFL])) sF (by simp [states]) (by decide) (by decide)
+  have P6 : rowsB tr pb (s + 6) (cv tr T_NODE s hplen - 1) = rowsB tr b (s + 6) (cv tr T_NODE s hplen - 1) := by
+    by_cases h1 : cv tr T_NODE s hplen = 1
+    · simp [rowsB, h1]
+    · exact pbOf hL hC (L := cv tr T_NODE s hplen - 1) (mem _ (by simp [extFL, keyFL, h1])) (sK h1) (by simp [states]) (by decide) (by decide)
+  have P37 := pbOf hL hC (L := 8) (mem _ (by simp [extFL])) sM (by simp [states]) (by decide) (by decide)
+  simp only [Nat.add_zero] at P0
+  have split : ∀ x, rowsB tr x s ℓ = rowsB tr x s 1 ++ (rowsB tr x (s + 1) 4 ++
+      ((rowsB tr x (s + 5) 1 ++ rowsB tr x (s + 6) (cv tr T_NODE s hplen - 1)) ++
+      (rowsB tr x (s + (5 + cv tr T_NODE s hplen)) 32 ++
+      rowsB tr x (s + (37 + cv tr T_NODE s hplen)) 8))) := by
+    intro x
+    rw [hℓ, show 45 + cv tr T_NODE s hplen = 1 + (4 + ((1 + (cv tr T_NODE s hplen - 1)) + (32 + 8))) by omega]
+    simp only [rowsB_add, List.append_assoc]
+    rw [show s + 5 + (1 + (cv tr T_NODE s hplen - 1)) = s + (5 + cv tr T_NODE s hplen) by omega]
+    rw [show s + (5 + cv tr T_NODE s hplen) + 32 = s + (37 + cv tr T_NODE s hplen) by omega]
+  unfold nodeVOf; rw [if_neg hcl, if_pos hcv]
+  simp only [NodeV.ser]
+  constructor
+  · rw [split, T0, T1, K.1, C.1, K.2]; simp only [List.append_assoc]
+  · rw [split, ← C.2, P0, P1, P5, P6, P37, T0, T1, K.1, K.2]; simp only [List.append_assoc]
+
+end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+theorem bitsVal_split (v : Nat → Nat) (off a : Nat) : ∀ c, bitsVal v off (a + c) = bitsVal v off a + 2 ^ a * bitsVal v (off + a) c
+  | 0 => by simp [bitsVal]
+  | c + 1 => by
+    rw [show a + (c + 1) = a + c + 1 by omega]
+    simp only [bitsVal]
+    rw [bitsVal_split v off a c, Nat.pow_add, Nat.mul_add, Nat.mul_assoc, show off + (a + c) = off + a + c by omega]
+    omega
+
+theorem sum_bits (v : Nat → Nat) : ∀ n, (∀ j, j < n → v j ≤ 1) →
+    ((List.range n).map fun j => if v j = 1 then 2 ^ j else 0).sum = bitsVal v 0 n
+  | 0, _ => rfl
+  | n + 1, hv => by
+    rw [List.range_succ, List.map_append, List.sum_append, sum_bits v n (fun j hj => hv j (by omega))]
+    simp only [bitsVal, List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, Nat.zero_add]
+    have := hv n (by omega)
+    by_cases h : v n = 1
+    · rw [if_pos h, h]; simp
+    · rw [if_neg h, show v n = 0 by omega]; simp
+
+theorem bitsVal_congr {v v' : Nat → Nat} {off len : Nat} (h : ∀ j, j < len → v (off + j) = v' (off + j)) :
+    bitsVal v off len = bitsVal v' off len := by
+  induction len with
+  | zero => rfl
+  | succ len ih => simp only [bitsVal]; rw [ih (fun j hj => h j (by omega)), h len (by omega)]
+
+theorem kidOf_present (tr : Trace Fp) (r : Nat) : (kidOf tr r).present = true := by
+  unfold kidOf; split <;> rfl
+
+theorem kidBitmap_kidsOf (tr : Trace Fp) (s o : Nat) (hv : ∀ j, j < 16 → cv tr T_NODE s (bm j) ≤ 1) :
+    kidBitmap (kidsOf tr s o) = bitsVal (fun j => cv tr T_NODE s (bm j)) 0 16 := by
+  rw [← sum_bits _ 16 hv]
+  unfold kidBitmap kidsOf
+  rw [List.length_map, List.length_range]
+  have : ∀ n, ((List.map (fun j => if cv tr T_NODE s (bm j) = 1 then kidOf tr (s + (o + 2 + 32 * belowN tr s j)) else NKid.none)
+      (List.range n)).zip (List.range n)) = (List.range n).map fun j =>
+      (if cv tr T_NODE s (bm j) = 1 then kidOf tr (s + (o + 2 + 32 * belowN tr s j)) else NKid.none, j) := by
+    intro n; induction n with
+    | zero => rfl
+    | succ n ih => rw [List.range_succ, List.map_append, List.zip_append (by simp), ih]; simp
+  rw [this, List.map_map]
+  congr 1; apply List.map_congr_left; intro j _
+  simp only [Function.comp]
+  by_cases h : cv tr T_NODE s (bm j) = 1
+  · rw [if_pos h, if_pos h, kidOf_present]; rfl
+  · rw [if_neg h, if_neg h]; rfl
+
+theorem kids_bytes (tr : Trace Fp) (s o : Nat) (p : Bool) :
+    (kidsOf tr s o).flatMap (NKid.bytes p) =
+      (List.range 16).flatMap fun j =>
+        if cv tr T_NODE s (bm j) = 1 then (kidOf tr (s + (o + 2 + 32 * belowN tr s j))).bytes p else [] := by
+  unfold kidsOf; rw [List.flatMap_map]; congr 1; funext j; split <;> rfl
+
+end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+theorem brOff_eq (hC : NodeCtx tr s ℓ fl) :
+    brOff tr s = if tr.cell T_NODE s tb2 = 1 then 37 else 1 := by
+  unfold brOff
+  by_cases h : tr.cell T_NODE s tb2 = 1
+  · rw [if_pos h, if_pos (cv_one h)]
+  · rw [if_neg h, if_neg (fun h' => h (of_cv_one h'))]
+
+/-- Bitmap, children windows and `MEM` of a branch. -/
+theorem brRest (hC : NodeCtx tr s ℓ fl) (hb : tr.cell T_NODE s tb1 + tr.cell T_NODE s tb2 = 1) :
+    rowsB tr b (s + brOff tr s) (2 + 32 * popN tr s + 8) =
+      [kidBitmap (kidsOf tr s (brOff tr s)) % 256, kidBitmap (kidsOf tr s (brOff tr s)) / 256] ++
+        ((kidsOf tr s (brOff tr s)).flatMap (NKid.bytes false) ++ rowsB tr b (s + (brOff tr s + 2 + 32 * popN tr s)) 8) ∧
+    rowsB tr pb (s + brOff tr s) (2 + 32 * popN tr s + 8) =
+      [kidBitmap (kidsOf tr s (brOff tr s)) % 256, kidBitmap (kidsOf tr s (brOff tr s)) / 256] ++
+        ((kidsOf tr s (brOff tr s)).flatMap (NKid.bytes true) ++ rowsB tr b (s + (brOff tr s + 2 + 32 * popN tr s)) 8) := by
+  have B := brFields hL hC hb
+  simp only at B
+  rw [← brOff_eq hL hC] at B
+  obtain ⟨hfl, hℓ, -, -, sB, -, sM, hW⟩ := B
+  have hbv : ∀ j, j < 16 → cv tr T_NODE s (bm j) ≤ 1 := fun j hj => cvb hL (nodeStart hL hC).1 (bm_bool hj)
+  have KB := kidBitmap_kidsOf tr s (brOff tr s) hbv
+  rw [show (16 : Nat) = 8 + 8 from rfl, bitsVal_split] at KB
+  simp only [Nat.zero_add] at KB
+  have lo8 := bitsVal_lt (fun j => cv tr T_NODE s (bm j)) 0 8 (fun j hj => hbv _ (by omega))
+  have hi8 := bitsVal_lt (fun j => cv tr T_NODE s (bm j)) 8 8 (fun j hj => hbv _ (by omega))
+  generalize ho : brOff tr s = o at *
+  have mem : ∀ p ∈ brFL o (popN tr s), p ∈ fl := fun p hp => hfl ▸ hp
+  obtain ⟨hFB, hHB⟩ := fieldAt hL hC (mem (o, 2) (by simp [brFL]))
+  have hrB : s + o + 1 < tr.height T_NODE := by omega
+  -- bitmap bytes
+  have bmv : ∀ d, d < 2 → ∀ i, i < 16 → cv tr T_NODE (s + o + d) (bm i) = cv tr T_NODE s (bm i) := by
+    intro d hd i hi
+    rw [show s + o + d = s + (o + d) by omega]
+    exact cvConst hL hC (by unfold nodeConst; simp only [List.mem_append, List.mem_map, List.mem_range]
+                            exact Or.inr ⟨i, hi, rfl⟩) (by omega)
+  have hb0 : cv tr T_NODE (s + o) b = kidBitmap (kidsOf tr s o) % 256 := by
+    have e := (bytes hL (r := s + o) (by omega)).2.2.2.2.2.2.2.1 (by simpa using sB) (by simpa using (hFB.fs 0 (by omega)).2 rfl)
+    rw [bmLo, eval_bits tr T_NODE (s + o) pub bm 0 8 (fun j hj => isBool hL (by omega) (bm_bool (by omega))),
+      cell_eq_cast tr T_NODE (s + o) b] at e
+    have bl := bitsVal_lt (fun b => cv tr T_NODE (s + o) (bm b)) 0 8
+      (fun j hj => cvb hL (by omega) (bm_bool (by omega)))
+    have := fp_cast_eq (cv_lt _ _ _ _) (by unfold P; omega) e
+    rw [this, KB, bitsVal_congr (v' := fun j => cv tr T_NODE s (bm j)) (fun j hj => by
+      simpa using bmv 0 (by omega) (0 + j) (by omega))]
+    omega
+  have hb1 : cv tr T_NODE (s + o + 1) b = kidBitmap (kidsOf tr s o) / 256 := by
+    have hs1 : tr.cell T_NODE (s + o + 1) sBM = 1 := by rw [hFB.st 1 (by omega) sBM (by simp [states])]; simpa using sB
+    have hf1 : tr.cell T_NODE (s + o + 1) fs = 0 :=
+      bool01 hL hrB (by simp [boolCols]) (fun h => by have := (hFB.fs 1 (by omega)).1 h; omega)
+    have e := (bytes hL (r := s + o + 1) hrB).2.2.2.2.2.2.2.2.1 hs1 hf1
+    rw [bmHi, eval_bits tr T_NODE (s + o + 1) pub bm 8 8 (fun j hj => isBool hL hrB (bm_bool (by omega))),
+      cell_eq_cast tr T_NODE (s + o + 1) b] at e
+    have bl := bitsVal_lt (fun b => cv tr T_NODE (s + o + 1) (bm b)) 8 8
+      (fun j hj => cvb hL hrB (bm_bool (by omega)))
+    have := fp_cast_eq (cv_lt _ _ _ _) (by unfold P; omega) e
+    rw [this, KB, bitsVal_congr (v' := fun j => cv tr T_NODE s (bm j)) (fun j hj => by
+      simpa using bmv 1 (by omega) (8 + j) (by omega))]
+    omega
+  have BM : rowsB tr b (s + o) 2 = [kidBitmap (kidsOf tr s o) % 256, kidBitmap (kidsOf tr s o) / 256] := by
+    rw [← hb0, ← hb1]; simp [rowsB, List.range_succ]
+  -- windows
+  have CH : ∀ p, (List.range (popN tr s)).flatMap (fun j => rowsB tr (if p then pb else b) (s + o + 2 + 32 * j) 32) =
+      (kidsOf tr s o).flatMap (NKid.bytes p) := by
+    intro p
+    rw [kids_bytes]
+    have := flatMap_bits (fun j => cv tr T_NODE s (bm j)) (fun w => (kidOf tr (s + (o + 2 + 32 * w))).bytes p) 16 hbv
+    unfold belowN; rw [this, ← belowN, ← popN_eq]
+    apply flatMap_congr'; intro j hj; rw [List.mem_range] at hj
+    obtain ⟨cj, -, -⟩ := hW j hj
+    obtain ⟨hFj, hHj⟩ := fieldAt hL hC (mem (o + 2 + 32 * j, 32) (by simp [brFL]; exact Or.inr ⟨j, hj, rfl⟩))
+    have K := kidSer hL hFj hHj cj
+    rw [show s + o + 2 + 32 * j = s + (o + 2 + 32 * j) by omega]
+    cases p
+    · exact K.1
+    · exact K.2
+  have PB := pbOf hL hC (L := 2) (mem _ (by simp [brFL])) sB (by simp [states]) (by decide) (by decide)
+  have PM := pbOf hL hC (L := 8) (mem _ (by simp [brFL])) sM (by simp [states]) (by decide) (by decide)
+  have split : ∀ x, rowsB tr x (s + o) (2 + 32 * popN tr s + 8) =
+      rowsB tr x (s + o) 2 ++ ((List.range (popN tr s)).flatMap (fun j => rowsB tr x (s + o + 2 + 32 * j) 32) ++
+        rowsB tr x (s + (o + 2 + 32 * popN tr s)) 8) := by
+    intro x
+    rw [rowsB_add, rowsB_add, rowsB_blocks, List.append_assoc,
+      show s + o + (2 + 32 * popN tr s) = s + (o + 2 + 32 * popN tr s) by omega]
+  constructor
+  · rw [split, BM, show b = (if false then pb else b) from rfl, CH false]
+  · rw [split, PB, BM, PM, show pb = (if true then pb else b) from rfl, CH true]
 
 end ZkFormal.Near.NodeProof
