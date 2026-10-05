@@ -4,3 +4,10 @@ import NearSpecV3.ReedSolomon
 import NearSpecV3.F64
 import NearSpecV3.Congestion
 import NearSpecV3.BandwidthScheduler
+import NearSpecV3.Wire
+import NearSpecV3.ClaimV3
+import NearSpecV3.WitnessV3
+import NearSpecV3.Layout
+import NearSpecV3.TrieBuild
+import NearSpecV3.RuntimeD0
+import NearSpecV3.ChunkValidationV0
