@@ -3,11 +3,7 @@
 # the Rust prover in ../source.  See run.sh.
 name = "NpConformance"
 version = "0.1.0"
-<<<<<<< HEAD
-defaultTargets = ["np-lean-verify", "np-lean-export", "np-lean-eval"]
-=======
-defaultTargets = ["np-lean-verify", "np-lean-export", "np-lean-shatrace"]
->>>>>>> lane/zk-L8-sha
+defaultTargets = ["np-lean-verify", "np-lean-export", "np-lean-eval", "np-lean-shatrace"]
 
 [leanOptions]
 autoImplicit = false
@@ -29,10 +25,9 @@ name = "np-lean-export"
 root = "Export"
 
 [[lean_exe]]
-<<<<<<< HEAD
 name = "np-lean-eval"
 root = "EvalRandom"
-=======
+
+[[lean_exe]]
 name = "np-lean-shatrace"
 root = "ShaTrace"
->>>>>>> lane/zk-L8-sha

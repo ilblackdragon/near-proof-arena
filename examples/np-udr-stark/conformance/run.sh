@@ -62,7 +62,6 @@ open(dst, 'wb').write(bytes(b))
 PY
 }
 
-<<<<<<< HEAD
 echo "== constraint evaluation at random points: Rust vs Lean"
 ev="$here/.lake/build/bin/np-lean-eval"
 for x in fib multi bus; do
@@ -72,7 +71,7 @@ for x in fib multi bus; do
     else bad "eval $x seed $s"; fi
   done
 done
-=======
+
 # check_proof <label> <dir>: honest proof accepted, mutations rejected
 check_proof() {
   local x=$1 d=$2
@@ -107,7 +106,6 @@ check_proof() {
     else bad "$x extended claim -> '$r' rc=$rc"; fi
   fi
 }
->>>>>>> lane/zk-L8-sha
 
 echo "== proofs"
 for x in fib multi bus; do

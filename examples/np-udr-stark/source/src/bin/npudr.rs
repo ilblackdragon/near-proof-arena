@@ -99,7 +99,6 @@ fn main() {
                 }
             }
         }
-<<<<<<< HEAD
         Some("eval-random") => {
             use npudr::field::{decode_chal, EF};
             use p3_field::PrimeField32;
@@ -123,7 +122,8 @@ fn main() {
                         npudr::field::ef_coeffs(&regs[o as usize]).iter().map(|x| x.as_canonical_u32().to_string()).collect();
                     println!("{t} {i} {}", ls.join(" "));
                 }
-=======
+            }
+        }
         Some("shatrace") => {
             let lens: Vec<usize> = a[3..].iter().map(|s| s.parse().unwrap()).collect();
             std::fs::write(&a[2], sha::dump_trace(&sha::toy_msgs(&lens))).unwrap();
@@ -143,7 +143,6 @@ fn main() {
             println!("bus imbalance: {} message(s) {:?}", im.len(), im.iter().take(5).collect::<Vec<_>>());
             if bad || !im.is_empty() {
                 std::process::exit(1)
->>>>>>> lane/zk-L8-sha
             }
         }
         Some("export") => {
