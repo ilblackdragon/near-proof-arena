@@ -64,12 +64,6 @@ def invP (x : Nat) : Nat := (ZkFormal.Algebra.Fp.ofNat x)⁻¹.toNat
 def kidIds (nr : NodeRec) : List Nat :=
   nr.kids.filterMap fun k => match k with | .node c => some c | _ => none
 
-/-- Post-order of the revealed tree from node `n` (fuel `f`). -/
-def postOrder (ns : Array NodeRec) : Nat → Nat → List Nat
-  | 0, _ => []
-  | f + 1, n =>
-    ((ns[n]?.map kidIds).getD []).flatMap (postOrder ns f) ++ [n]
-
 /-- Empty-key extension with a revealed child: walks skip it. -/
 def eextOf : NodeRec → Bool
   | .ext [] _ _ => true
@@ -115,36 +109,41 @@ def resF (ns : Array NodeRec) : Nat → Nat → Nat
     | .ext [] (.node c) _ => resF ns f c
     | _ => n
 
-/-- Build the `Info` of an `Ext` (pre/post serializations bottom-up). -/
-def mkInfo (c : Claim) (e : Ext) : Info := Id.run do
+/-- The bytes a revealed node's hash is taken of: `PTrie.hashOf p = sha256 (nodeSer p)`
+for every revealed `p` (`[]` for `.hash`). -/
+def nodeSer : PTrie → Bytes
+  | .hash _ => []
+  | .leaf k v mem =>
+    let hp := hexPrefix k true
+    [0] ++ u32 hp.length ++ hp ++ v.valueRef ++ u64 mem
+  | .ext k c mem =>
+    let hp := hexPrefix k false
+    [3] ++ u32 hp.length ++ hp ++ c.hashOf ++ u64 mem
+  | .branch none cs mem => [1] ++ u16 (kidsBitmap cs 0) ++ Kids.hashes cs ++ u64 mem
+  | .branch (some v) cs mem => [2] ++ v.valueRef ++ u16 (kidsBitmap cs 0) ++ Kids.hashes cs ++ u64 mem
+
+/-- Preorder `(node, depth)` pairs of the revealed subtree of node `n` at depth `d` (fuel `f`). -/
+def subD (ns : Array NodeRec) : Nat → Nat → Nat → List (Nat × Nat)
+  | 0, _, _ => []
+  | f + 1, n, d => (n, d) :: (kidIds (ns.getD n (.branch none [] 0))).flatMap fun c => subD ns f c (d + 1)
+
+/-- Build the `Info` of an `Ext`: the pre/post serializations are those of the
+nodes of the record tries (`treeOf`, whose hashes are the state roots), depths
+from a preorder traversal. -/
+def mkInfo (c : Claim) (e : Ext) : Info :=
   let ns := e.ns.toArray
   let N := ns.size
-  let order := postOrder ns (N + 1) 0
   let touched := (List.range N).filter fun k => (ns.getD k (.branch none [] 0)).touched
   let vpre : Array (List Nat) := (Array.range N).map fun k =>
     if (ns.getD k (.branch none [] 0)).touched then toNats (e.vals0 k) else []
   let vpost : Array (List Nat) := (Array.range N).map fun k =>
     if (ns.getD k (.branch none [] 0)).touched then toNats (e.valsAt e.rs.length k) else []
-  let mut pre : Array (List Nat) := Array.replicate N []
-  let mut post : Array (List Nat) := Array.replicate N []
   let res : Array Nat := (Array.range N).map (resF ns (N + 1))
-  let mut dpre : Array Bytes := Array.replicate N []
-  let mut dpost : Array Bytes := Array.replicate N []
-  for n in order do
-    let nr := ns.getD n (.branch none [] 0)
-    let vhPre := sha256 (ofNats (vpre.getD n []))
-    let vhPost := sha256 (ofNats (vpost.getD n []))
-    let sPre := ser vhPre (fun c => dpre.getD c []) nr
-    let sPost := ser vhPost (fun c => dpost.getD c []) nr
-    pre := pre.set! n (toNats sPre)
-    post := post.set! n (toNats sPost)
-    dpre := dpre.set! n (sha256 sPre)
-    dpost := dpost.set! n (sha256 sPost)
-  let mut depth : Array Nat := Array.replicate N 0
-  for n in order.reverse do
-    for c' in kidIds (ns.getD n (.branch none [] 0)) do
-      depth := depth.set! c' (depth.getD n 0 + 1)
-  return { e, c, ns, pre, post, depth, res, vpre, vpost, touched }
+  let pre : Array (List Nat) := (Array.range N).map fun n => toNats (nodeSer (treeOf e.ns e.vals0 N n))
+  let post : Array (List Nat) := (Array.range N).map fun n =>
+    toNats (nodeSer (treeOf e.ns (e.valsAt e.rs.length) N n))
+  let depth : Array Nat := (subD ns (N + 1) 0 0).foldl (fun a p => a.set! p.1 p.2) (Array.replicate N 0)
+  { e, c, ns, pre, post, depth, res, vpre, vpost, touched }
 
 /-! ## Walks -/
 
