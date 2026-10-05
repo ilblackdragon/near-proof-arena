@@ -17,11 +17,15 @@
 //!   `np-lean-shatrace` format (cross-check against the Lean generator).
 //! * `npudr shacheck <len>...` — evaluate every constraint of the SHA toy on
 //!   every row of the honest traces and check bus balance.
+//! * `npudr nearrender <request.bin> <witness.bin> <out.bin>` — the NEAR honest
+//!   tables 1..6 and SHA messages in the `np-lean-render` format.
+//! * `npudr nearcheck <request.bin> <witness.bin>` — evaluate every nearAir
+//!   constraint on the honest traces (incl. sha) and check bus balance.
 use std::time::Instant;
 
 use npudr::air::Air;
 use npudr::prover::{prove_bytes, ProveOptions};
-use npudr::{check, sha, toy};
+use npudr::{check, near, sha, toy};
 use p3_matrix::Matrix;
 use npudr::verifier::verify;
 
@@ -167,7 +171,48 @@ fn main() {
             let (air, _, _) = toy_instance(&a[2], 3);
             println!("{}", air.to_json());
         }
-        _ => die("usage: npudr bench|toy|verify|export ..."),
+        Some("nearrender") => {
+            let t = Instant::now();
+            let (req, wit) = (std::fs::read(&a[2]).unwrap(), std::fs::read(&a[3]).unwrap());
+            let (c, e) = near::load(&req, &wit).unwrap_or_else(|e| die(&e));
+            let b = near::trace::bundle(&c, &e);
+            if !b.errors.is_empty() {
+                eprintln!("npudr nearrender: walk errors {:?}", b.errors);
+            }
+            std::fs::write(&a[4], near::dump(&c.encode(), &b)).unwrap();
+            let rows: Vec<usize> = b.parts().iter().map(|p| p.2.len()).collect();
+            eprintln!("npudr nearrender: {} nodes, {} receipts, {} msgs, rows {rows:?}, {} ms",
+                e.ns.len(), e.rs.len(), b.msgs.len(), t.elapsed().as_millis());
+        }
+        Some("nearcheck") => {
+            // every constraint of every nearAir table on the honest traces, and bus balance
+            let (req, wit) = (std::fs::read(&a[2]).unwrap(), std::fs::read(&a[3]).unwrap());
+            let t = Instant::now();
+            let (cb, air, trs) = near::prepare(&req, &wit).unwrap_or_else(|e| die(&e));
+            let tg = t.elapsed().as_millis();
+            let pubs = near::public_of(&cb);
+            let names = ["sha", "node", "walk", "rcpt", "acct", "mrk", "sort"];
+            let mut bad = false;
+            for (k, (tab, tr)) in air.tables.iter().zip(&trs).enumerate() {
+                let f = check::failing_constraints(tab, tr, &pubs, 20);
+                println!("table {k} {:5} {:>8} x {:3}: {} failing (constraint,row) {:?}", names[k], tr.height(), tr.width(), f.len(), f);
+                bad |= !f.is_empty();
+            }
+            let imb = check::bus_imbalance(&air, &trs, &pubs);
+            let mut per_bus = std::collections::BTreeMap::new();
+            for (bus, _, _, _) in &imb {
+                *per_bus.entry(*bus).or_insert(0usize) += 1;
+            }
+            println!("bus imbalance: {} messages, per bus {per_bus:?}", imb.len());
+            for (bus, msg, s, r) in imb.iter().take(10) {
+                println!("  bus {bus} msg {:?} sent {s} received {r}", &msg[..msg.len().min(12)]);
+            }
+            println!("render {tg} ms, check {} ms", t.elapsed().as_millis() - tg);
+            if bad || !imb.is_empty() {
+                std::process::exit(1);
+            }
+        }
+        _ => die("usage: npudr bench|toy|verify|export|nearrender|nearcheck ..."),
     }
 }
 

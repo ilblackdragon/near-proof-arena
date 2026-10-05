@@ -1,9 +1,10 @@
 import Conformance.AirJson
 import Conformance.Toys
 import Conformance.Sha
+import ZkFormal.Near.Air
 
 /-!
-`np-lean-export <fib|multi|sha>` — print `Air.exportJson` of a Lean toy AIR.
+`np-lean-export <fib|multi|sha|near>` — print `Air.exportJson` of a Lean toy AIR.
 `np-lean-export --roundtrip <air.json>` — parse an `np-air-v1` file, check
 that re-exporting gives a JSON-equal value, report byte identity.
 -/
@@ -19,7 +20,7 @@ def main (args : List String) : IO UInt32 := do
       IO.println s!"roundtrip ok: {A.tables.length} table(s), json-equal, byte-identical={same}"
       return 0
   | [name] =>
-    match (toys ++ [("sha", Conformance.Sha.shaAir)]).lookup name with
+    match (toys ++ [("sha", Conformance.Sha.shaAir), ("near", ZkFormal.Near.nearAir)]).lookup name with
     | some A => IO.println A.exportJson; return 0
-    | none => IO.eprintln s!"np-lean-export: unknown AIR {name} (fib|multi|sha)"; return 2
-  | _ => IO.eprintln "usage: np-lean-export <fib|multi|sha> | --roundtrip <air.json>"; return 2
+    | none => IO.eprintln s!"np-lean-export: unknown AIR {name} (fib|multi|sha|near)"; return 2
+  | _ => IO.eprintln "usage: np-lean-export <fib|multi|sha|near> | --roundtrip <air.json>"; return 2

@@ -38,11 +38,79 @@
 //!   rid_bytes, rc_bytes, rf_bytes, rcpt_msgs_sim`.
 //! * [`rcpt`] — `rcpt_rows_all(&Info) -> Vec<Vec<u32>>`,
 //!   `rcpt_msgs(&Info) -> Vec<Msg>` (owned by the rcpt sub-agent).
+//! * [`node`], [`small`] (walk, acct, sort, mrk) — table generators
+//!   (`*_rows_all`, `*_msgs`); [`trace`] — `bundle`, `render` (7 traces in
+//!   `nearAir` order), `bundle_traces`, `sha_matrix`.
 //! * [`reexec`] — copied reexec-witness decoder/engine.
+//!
+//! Top level: [`near_air`] (the committed Lean export `near-air.json` =
+//! `Air.exportJson ZkFormal.Near.nearAir`), [`prepare`] (inputs → claim.bin,
+//! AIR, traces), [`dump`] (`np-near-render-v1` cross-check format, see
+//! `conformance/NearRender.lean`).
 pub mod ext;
 pub mod ids;
 pub mod info;
+pub mod node;
 pub mod rcpt;
 pub mod reexec;
 pub mod sim;
+pub mod small;
 pub mod spec;
+pub mod trace;
+
+use p3_matrix::dense::RowMajorMatrix;
+
+use crate::air::Air;
+use crate::field::F;
+
+/// `Air.exportJson ZkFormal.Near.nearAir` (committed, `np-lean-export near`).
+pub const NEAR_AIR_JSON: &str = include_str!("../../near-air.json");
+
+/// The NEAR AIR (`ZkFormal.Near.nearAir`).
+pub fn near_air() -> Air { Air::from_json(NEAR_AIR_JSON).expect("near-air.json") }
+
+/// Public inputs of a claim: its bytes as field elements (`publicOf`).
+pub fn public_of(claim_bin: &[u8]) -> Vec<F> { claim_bin.iter().map(|&b| F::new(b as u32)).collect() }
+
+/// Records of the inputs: `(claim, ext_of claim witness)`.
+pub fn load(request: &[u8], witness: &[u8]) -> Result<(spec::Claim, ext::Ext), String> {
+    let inp = spec::load_inputs(request, witness)?;
+    let e = ext::ext_of(&inp.claim, &inp.witness);
+    Ok((inp.claim, e))
+}
+
+/// `request.bin`, `witness.bin` → (`claim.bin`, `nearAir`, honest traces).
+pub fn prepare(request: &[u8], witness: &[u8]) -> Result<(Vec<u8>, Air, Vec<RowMajorMatrix<F>>), String> {
+    let (c, e) = load(request, witness)?;
+    let b = trace::bundle(&c, &e);
+    if !b.errors.is_empty() {
+        return Err(format!("walk errors: {:?}", b.errors));
+    }
+    Ok((c.encode(), near_air(), trace::bundle_traces(&b)))
+}
+
+/// Dump a bundle in the `np-near-render-v1` format (`conformance/NearRender.lean`).
+pub fn dump(claim_bin: &[u8], b: &trace::Bundle) -> Vec<u8> {
+    let mut o = vec![];
+    let u = |o: &mut Vec<u8>, x: usize| o.extend_from_slice(&(x as u32).to_le_bytes());
+    u(&mut o, claim_bin.len());
+    o.extend_from_slice(claim_bin);
+    u(&mut o, b.msgs.len());
+    for m in &b.msgs {
+        u(&mut o, m.id as usize);
+        u(&mut o, m.bytes.len());
+        o.extend_from_slice(&m.bytes);
+    }
+    let parts = b.parts();
+    u(&mut o, parts.len());
+    for (_, w, rows) in parts {
+        u(&mut o, w);
+        u(&mut o, rows.len());
+        for r in rows.iter() {
+            for c in 0..w {
+                u(&mut o, r.get(c).copied().unwrap_or(0) as usize);
+            }
+        }
+    }
+    o
+}
