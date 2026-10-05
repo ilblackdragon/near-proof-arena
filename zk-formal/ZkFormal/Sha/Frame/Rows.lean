@@ -391,4 +391,137 @@ theorem fprev_next {j : Nat} (hj1 : 1 ≤ j) (hj : j ≤ 3) (hn : nv tr t (r + 1
 
 end
 
+/-! ## Bytes -/
+
+theorem wordAt_bits (hK : KindFacts tr t) {r : Nat} (hr : r < tr.height t) {i : Nat} (hi : i < 4) :
+    ∀ b, b < 32 → nv tr t r (colW i b) ≤ 1 := fun b hb => b_W hK hr hi hb
+
+theorem ev_byteE (hK : KindFacts tr t) {r : Nat} (hr : r < tr.height t) {q : Nat} (hq : q < 16) :
+    (byteE q).eval tr t r pub = Fp.ofNat (byteAt tr t r q) := by
+  unfold byteE byteAt wordAt
+  rw [ev_bits]
+  congr 1
+  rw [ofBits_byte _ (wordAt_bits hK hr (i := q / 4) (by omega)) _ (by omega)]
+  rfl
+
+theorem byteAt_lt (r q : Nat) : byteAt tr t r q < 256 := by unfold byteAt; omega
+
+section
+variable (hL : ShaLocal tr t pub) (hK : KindFacts tr t) {r : Nat} (hr : r < tr.height t)
+include hL hK hr
+
+/-- A non-data byte of a message row is `0x80` right after the data of a
+`p80` block, else `0` (bytes `56..63` of a last block excepted). -/
+theorem byte_rule {j q : Nat} (hj : j < 4) (hq : q < 16) (hR : nv tr t r (colR j) = 1)
+    (hF : nv tr t r (colF q) = 0) (hc : 16 * j + q < 56 ∨ nv tr t r colLast = 0) :
+    byteAt tr t r q =
+      if nv tr t r colP80 = 1 ∧ (if q = 0 then nv tr t r colFprev else nv tr t r (colF (q - 1))) = 1
+      then 128 else 0 := by
+  have hmem : (if 16 * j + q < 56 then
+      Expr.mul (.mul (E.c (colR j)) (E.not (E.c (colF q))))
+        (E.sub (byteE q) (E.smul 128 (.mul (E.c colP80) (dropE q))))
+    else
+      Expr.mul (.mul (E.c (colR j)) (E.not (E.c (colF q))))
+        (E.sub (.mul (E.not (E.c colLast)) (byteE q)) (E.smul 128 (.mul (E.c colPn) (dropE q)))))
+      ∈ ZkFormal.Sha.Table.cFrame := by
+    unfold ZkFormal.Sha.Table.cFrame
+    apply List.mem_append_left; apply List.mem_append_left; apply List.mem_append_left
+    apply List.mem_append_right
+    simp only [List.mem_flatMap, List.mem_map, List.mem_range]
+    exact ⟨j, hj, q, hq, rfl⟩
+  have k := frame_at hL hr hmem
+  have hpn := pn_val hL hK hr
+  have hprev : (if q = 0 then nv tr t r colFprev else nv tr t r (colF (q - 1))) ≤ 1 := by
+    split
+    · exact b_Fprev hK hr
+    · exact b_F hK hr (by omega)
+  have hprevC : (if q = 0 then tr.cell t r colFprev else tr.cell t r (colF (q - 1))) =
+      Fp.ofNat (if q = 0 then nv tr t r colFprev else nv tr t r (colF (q - 1))) := by
+    split <;> exact cell_eq_ofNat _ _ _ _
+  have hB := byteAt_lt (tr := tr) (t := t) r q
+  have hdrop : (dropE q).eval tr t r pub =
+      (if q = 0 then tr.cell t r colFprev else tr.cell t r (colF (q - 1))) + -tr.cell t r (colF q) := by
+    unfold dropE; split <;> rfl
+  have eB := ev_byteE (pub := pub) hK hr hq
+  split at k
+  · simp only [ev_mul, ev_c, ev_not, ev_sub, ev_smul, hdrop, eB, cell_of_nv_one hR,
+      cell_of_nv_zero hF, hprevC] at k
+    rcases nv01 (b_P80 hK hr) with ⟨p1, q1⟩ | ⟨p1, q1⟩ <;>
+    rcases Nat.le_one_iff_eq_zero_or_eq_one.1 hprev with h2 | h2 <;>
+    simp only [p1, q1, h2, ofNat_one, ofNat_zero] at k ⊢ <;>
+    first
+    | (have h' : Fp.ofNat (byteAt tr t r q) = 0 := by clear hmem hpn hprevC hdrop eB; grind
+       have := ofNat_inj (a := byteAt tr t r q) (b := 0) (by rw [P_val]; omega) (by rw [P_val]; omega)
+         (by rw [ofNat_zero]; exact h')
+       simp [this])
+    | (have h' : Fp.ofNat (byteAt tr t r q) = Fp.ofNat 128 := by clear hmem hpn hprevC hdrop eB; grind
+       have := ofNat_inj (by rw [P_val]; omega) (by rw [P_val]; omega) h'
+       simp [this])
+  · have hl : nv tr t r colLast = 0 := by omega
+    simp only [ev_mul, ev_c, ev_not, ev_sub, ev_smul, hdrop, eB, cell_of_nv_one hR,
+      cell_of_nv_zero hF, hprevC, hpn, cell_of_nv_zero hl] at k
+    rcases nv01 (b_P80 hK hr) with ⟨p1, q1⟩ | ⟨p1, q1⟩ <;>
+    rcases Nat.le_one_iff_eq_zero_or_eq_one.1 hprev with h2 | h2 <;>
+    simp only [p1, q1, h2, ofNat_one, ofNat_zero] at k ⊢ <;>
+    first
+    | (have h' : Fp.ofNat (byteAt tr t r q) = 0 := by clear hmem hpn hprevC hdrop eB; grind
+       have := ofNat_inj (a := byteAt tr t r q) (b := 0) (by rw [P_val]; omega) (by rw [P_val]; omega)
+         (by rw [ofNat_zero]; exact h')
+       simp [this])
+    | (have h' : Fp.ofNat (byteAt tr t r q) = Fp.ofNat 128 := by clear hmem hpn hprevC hdrop eB; grind
+       have := ofNat_inj (by rw [P_val]; omega) (by rw [P_val]; omega) h'
+       simp [this])
+
+/-- Length word rules on the `R3` row of a last block. -/
+theorem len_rules (h3 : nv tr t r (colR 3) = 1) (hl : nv tr t r colLast = 1) :
+    wordAt tr t r (colW 2) = 0 ∧ wordAt tr t r (colW 3) < 2 ^ 28 ∧
+    Fp.ofNat (wordAt tr t r (colW 3)) = Fp.ofNat 8 * tr.cell t r colNd := by
+  have c3 := cell_of_nv_one h3
+  have cl := cell_of_nv_one hl
+  have hw2 : ∀ b, b < 32 → nv tr t r (colW 2 b) = 0 := by
+    intro b hb
+    have k := frame_at hL hr (e := .mul (.mul (E.c (colR 3)) (E.c colLast)) (E.c (colW 2 b)))
+      (by unfold ZkFormal.Sha.Table.cFrame
+          apply List.mem_append_left; apply List.mem_append_left
+          apply List.mem_append_right
+          simp only [List.mem_map, List.mem_range]; exact ⟨b, hb, rfl⟩)
+    simp only [ev_mul, ev_c, c3, cl] at k
+    rcases nv01 (b_W hK hr (i := 2) (by omega) hb) with ⟨p1, q1⟩ | ⟨p1, q1⟩
+    · exact q1
+    · rw [p1] at k; exfalso; revert k; decide
+  have hw3 : ∀ b, 28 ≤ b → b < 32 → nv tr t r (colW 3 b) = 0 := by
+    intro b hb1 hb
+    have k := frame_at hL hr (e := .mul (.mul (E.c (colR 3)) (E.c colLast)) (E.c (colW 3 b)))
+      (by unfold ZkFormal.Sha.Table.cFrame
+          apply List.mem_append_left
+          apply List.mem_append_right
+          simp only [List.mem_map, List.mem_range'_1]; exact ⟨b, ⟨hb1, by omega⟩, rfl⟩)
+    simp only [ev_mul, ev_c, c3, cl] at k
+    rcases nv01 (b_W hK hr (i := 3) (by omega) hb) with ⟨p1, q1⟩ | ⟨p1, q1⟩
+    · exact q1
+    · rw [p1] at k; exfalso; revert k; decide
+  have e28 : wordAt tr t r (colW 3) = ofBits (fun b => nv tr t r (colW 3 b)) 28 := by
+    unfold wordAt
+    rw [show (32 : Nat) = 28 + 4 by rfl, ofBits_split]
+    have : ofBits (fun b => nv tr t r (colW 3 (28 + b))) 4 = 0 := by
+      rw [ofBits_congr _ (fun _ => 0) 4 (fun b hb => hw3 (28 + b) (by omega) (by omega))]; rfl
+    rw [this]; omega
+  refine ⟨?_, ?_, ?_⟩
+  · unfold wordAt
+    rw [ofBits_congr _ (fun _ => 0) 32 hw2]
+    clear hw2 hw3 e28; induction 32 <;> simp_all [ofBits]
+  · rw [e28]; exact ofBits_lt' _ 28 (fun b hb => b_W hK hr (by omega) (by omega))
+  · have k := frame_at hL hr (e := .mul (.mul (E.c (colR 3)) (E.c colLast))
+        (E.sub (E.bits (fun b => E.c (colW 3 b)) 0 28) (E.smul 8 (E.c colNd))))
+      (by unfold ZkFormal.Sha.Table.cFrame
+          apply List.mem_append_right; simp)
+    simp only [ev_mul, ev_c, ev_sub, ev_smul, c3, cl, ev_bits] at k
+    rw [e28]
+    have e : (fun b => (tr.cell t r (colW 3 (0 + b))).toNat) = fun b => nv tr t r (colW 3 b) := by
+      funext b; simp [nv]
+    rw [e] at k
+    grind
+
+end
+
 end ZkFormal.Sha.Frame
