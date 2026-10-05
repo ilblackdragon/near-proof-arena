@@ -91,3 +91,4 @@ import ZkFormal.Bcs.TransCompose
 import ZkFormal.Bcs.DecPush
 import ZkFormal.Bcs.PosCount
 import ZkFormal.Bcs.TransFinal
+import ZkFormal.Bcs.DecQuery

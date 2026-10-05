@@ -2,6 +2,8 @@ import ZkFormal.Bcs.TransCompose
 import ZkFormal.Bcs.DecPush
 import ZkFormal.Algebra.DecodeCount
 import ZkFormal.Stark.Laws
+import ZkFormal.Bcs.DecQuery
+import ZkFormal.Bcs.PosCount
 
 /-!
 # ZkFormal.Bcs.TransFinal — ROM soundness of L4's verifier from L3's `RbrWith`
@@ -71,5 +73,37 @@ theorem hdec_deployed (ood : Bool) (P : Algebra.Fp8 → Prop) (b : Nat)
       fun v => by unfold decChal; rw [if_pos rfl]; exact Stark.decodeOod_agree _
     simp only [e]
     exact Algebra.decodeOod_count P b h
+
+end ZkFormal.Bcs.Transport
+
+namespace ZkFormal.Bcs.Transport
+
+open ArenaCore ArenaCore.Security ZkFormal Lean.Grind
+
+/-- **ROM soundness of L4's deployed verifier from L3's round-by-round facts**
+(all L2 obligations discharged). -/
+theorem stark_romSound_rbr
+    {F K : Type} [Field F] [Field K] [Stark.StarkField F K] [DecidableEq F]
+    (V : Stark.IopSpec F K) (hS : Adapter.SchedOk V)
+    (hK : 2 ≤ V.numChunks) (hK' : V.numChunks ≤ 2 ^ 32)
+    (InLang : Bytes → Prop) (Kall : List K) (bad : Nat) (agree : Nat → Nat)
+    (D : Stark.PT K (Stark.Oracle F) → Prop) (hR : Udr.RbrWith V InLang Kall bad agree D)
+    (Dm : Nat) (hdec : ∀ ood (P : K → Prop) b, count Kall P ≤ b →
+      count (List.range roRange) (fun v => P (decChal (F := F) ood (LazyRO.answer v))) ≤ b * Dm)
+    (hp : 0 < V.posPerChunk) (hpb : V.posPerChunk * V.posBits ≤ 256)
+    (hql : ∀ hdr, V.headerOk hdr = true → V.queryLog hdr ≤ V.posBits)
+    (G : Nat) (hG : ∀ hdr, V.headerOk hdr = true →
+      agree (2 ^ V.queryLog hdr) ^ V.posPerChunk * 2 ^ (256 - V.posPerChunk * V.queryLog hdr) ≤ G)
+    {S : ChallengeSpec} (P : TreeProver S) (pub : Bytes)
+    (qH qP NPu NVu NPq NVq : Nat) (hN : qH + qP * NPu + NVu ≤ 2 ^ 100)
+    (hPu : ∀ c wit, OracleComp.QueryBound unitWeight (P.tree pub c wit) NPu)
+    (hVu : ∀ cb pb, OracleComp.QueryBound unitWeight ((starkTree (F := F) V).tree pub cb pb) NVu)
+    (hPq : ∀ c wit, OracleComp.QueryBound (qWeight chunkDec) (P.tree pub c wit) NPq)
+    (hVq : ∀ cb pb, OracleComp.QueryBound (qWeight chunkDec) ((starkTree (F := F) V).tree pub cb pb) NVq) :
+    RomSound S InLang (starkTree (F := F) V).toVerifier P.toProver pub qH qP (qH + qP * NPu + NVu)
+      (bcsNum V.numChunks (bad * Dm) (G ^ V.numChunks) qH qP NPu NVu NPq NVq)
+      (roRange ^ V.numChunks) :=
+  stark_romSound_rbr_of decQuery posCount V hS hK hK' InLang Kall bad agree D hR Dm hdec hp hpb hql G hG
+    P pub qH qP NPu NVu NPq NVq hN hPu hVu hPq hVq
 
 end ZkFormal.Bcs.Transport
