@@ -120,7 +120,7 @@ theorem query_of (hLB : LocalBridgeStmt) (hG : GoodStmt) : QueryStmt := by
     refine count_le_of_cover _ List.nodup_range _ (permAt A Params.default τ 0) _ _ fun x hx hpass => ?_
     obtain ⟨j, hj, hjx⟩ := hsurj 0 (Nat.zero_le _) x (by simpa using List.mem_range.mp hx)
     rw [Nat.sub_zero] at hj
-    have := hLB A _ hok τ hn0 hs hq hglob j hj (hjx ▸ hpass)
+    have := hLB A _ hok τ hn0 hs hq hglob (by omega) j hj (hjx ▸ hpass)
     rw [hS, hR, ← hSr] at this
     exact ⟨j, List.mem_range.mpr hj, hjx, this⟩
   -- fewer than `n - e` FRI paths pass

@@ -118,11 +118,11 @@ end
 `global`, if the verifier's checks pass at the verifier position
 `permAt 0 j` of the natural layer-0 index `j`, then the FRI path through `j`
 passes (`passK`), and layer 0 agrees with the batched DEEP word of the
-largest class there. -/
+largest class there.  (`5 ≤ n0`: some table exists.) -/
 def LocalBridgeStmt : Prop :=
   ∀ (A : Air) (prm : Params), NpOk A prm → ∀ (τ : PTn) (hn0 : n0Of A prm τ ≤ 27),
     Shaped (Vnp A prm) τ → (Vnp A prm).AtQuery τ →
-    (Vnp A prm).global ((Vnp A prm).prep τ.erase) = true →
+    (Vnp A prm).global ((Vnp A prm).prep τ.erase) = true → 5 ≤ n0Of A prm τ →
     ∀ j, j < 2 ^ n0Of A prm τ →
       (Vnp A prm).ChecksPass τ (permAt A prm τ 0 j) ((Vnp A prm).trueOpenings τ (permAt A prm τ 0 j)) →
       Fri.passK (mkSetup A prm τ hn0) (mkRun A prm τ) (ellOf A prm τ) j ∧
