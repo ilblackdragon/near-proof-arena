@@ -233,3 +233,49 @@ theorem carry_chain (s : List Nat) : ∀ (a b : List Nat) (c : Nat → Nat), a.l
     omega
 
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+
+theorem const_of {α : Type} {f : Nat → α} {s ℓ : Nat}
+    (hstep : ∀ r, s ≤ r → r + 1 < s + ℓ → f (r + 1) = f r) :
+    ∀ r, s ≤ r → r < s + ℓ → f r = f s := by
+  intro r h1 h2
+  induction r with
+  | zero => have : s = 0 := by omega
+            subst this; rfl
+  | succ r ih =>
+    rcases Nat.lt_or_ge r s with h | h
+    · have : s = r + 1 := by omega
+      subst this; rfl
+    · rw [hstep r h (by omega), ih h (by omega)]
+
+end ZkFormal.Near
+
+namespace ZkFormal.Near
+theorem seg_le_end (segs : List (Nat × Nat)) (s0 : Nat) (hc : Consec s0 segs) :
+    ∀ p ∈ segs, s0 ≤ p.1 ∧ p.1 + p.2 ≤ segEnd s0 segs := by
+  induction segs generalizing s0 with
+  | nil => simp
+  | cons q rest ih =>
+    obtain ⟨s, ℓ⟩ := q
+    obtain ⟨rfl, hc⟩ := hc
+    intro p hp
+    have hge := segEnd_ge rest (s + ℓ) hc
+    rcases List.mem_cons.mp hp with rfl | hp
+    · simp only [segEnd]; omega
+    · have := ih (s + ℓ) hc p hp; simp only [segEnd]; omega
+
+theorem range'_succ' (s ℓ : Nat) : List.range' s (ℓ + 1) = List.range' s ℓ ++ [s + ℓ] := by
+  rw [← List.range'_append_1]; simp
+end ZkFormal.Near
+
+namespace ZkFormal.Near
+theorem range'_split (A H : Nat) (h : A ≤ H) :
+    List.range' 0 H = List.range' 0 A ++ List.range' A (H - A) := by
+  have := @List.range'_append_1 0 A (H - A)
+  simp only [Nat.zero_add] at this
+  rw [this, Nat.add_sub_cancel' h]
+
+theorem flatMap_nil_fun {α β : Type} (l : List α) : l.flatMap (fun _ => ([] : List β)) = [] := by
+  induction l <;> simp_all
+end ZkFormal.Near

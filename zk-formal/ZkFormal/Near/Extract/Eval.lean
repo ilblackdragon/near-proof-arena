@@ -112,3 +112,59 @@ theorem eq_of_cast {L R : Nat} (hL : L < P) (hR : R < P) (h : (L : Fp) = (R : Fp
   ofNat_inj hL hR h
 
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl
+
+/-- `Σ_{b<len} 2^b · v (off + b)` -/
+def bitsVal (v : Nat → Nat) (off : Nat) : Nat → Nat
+  | 0 => 0
+  | len + 1 => bitsVal v off len + 2 ^ len * v (off + len)
+
+theorem bits_succ (x : Nat → Expr) (off len : Nat) :
+    bits x off (len + 1) = sum ((List.range len).map (fun b => smul (2 ^ b) (x (off + b))) ++
+      [smul (2 ^ len) (x (off + len))]) := by
+  simp [bits, List.range_succ]
+
+theorem eval_sum_append (tr : Trace Fp) (t r : Nat) (pub : List Fp) (l1 l2 : List Expr) :
+    (sum (l1 ++ l2)).eval tr t r pub = (sum l1).eval tr t r pub + (sum l2).eval tr t r pub := by
+  induction l1 with
+  | nil => simp; grind
+  | cons e l ih => simp [ih]; grind
+
+/-- Bits of boolean cells evaluate to the natural `bitsVal`. -/
+theorem eval_bits (tr : Trace Fp) (t r : Nat) (pub : List Fp) (x : Nat → Nat) (off len : Nat)
+    (hb : ∀ b, b < len → tr.cell t r (x (off + b)) = 0 ∨ tr.cell t r (x (off + b)) = 1) :
+    (bits (fun b => c (x b)) off len).eval tr t r pub =
+      ((bitsVal (fun b => cv tr t r (x b)) off len : Nat) : Fp) := by
+  induction len with
+  | zero => rfl
+  | succ len ih =>
+    rw [bits_succ, eval_sum_append, show sum ((List.range len).map _) = bits (fun b => c (x b)) off len from rfl,
+      ih (fun b hb' => hb b (by omega))]
+    simp only [bitsVal, natCast_add, natCast_mul, eval_sum_cons, eval_sum_nil, eval_smul, eval_c]
+    rw [cell_eq_cast tr t r (x (off + len))]
+    grind
+
+theorem bitsVal_lt (v : Nat → Nat) (off len : Nat) (hb : ∀ b, b < len → v (off + b) ≤ 1) :
+    bitsVal v off len < 2 ^ len := by
+  induction len with
+  | zero => simp [bitsVal]
+  | succ len ih =>
+    have := ih (fun b h => hb b (by omega)); have := hb len (by omega)
+    simp only [bitsVal, Nat.pow_succ]
+    have : 2 ^ len * v (off + len) ≤ 2 ^ len := by
+      calc 2 ^ len * v (off + len) ≤ 2 ^ len * 1 := Nat.mul_le_mul_left _ (by omega)
+        _ = 2 ^ len := by simp
+    omega
+
+theorem cv_bool {tr : Trace Fp} {t r x : Nat} (h : tr.cell t r x = 0 ∨ tr.cell t r x = 1) :
+    cv tr t r x ≤ 1 := by
+  rcases h with h | h <;> simp [cv, h, Fp.toNat_zero, Fp.toNat_one]
+
+end ZkFormal.Near
+
+namespace ZkFormal.Near
+@[simp] theorem fp_zero_ne_one : ¬ ((0 : ZkFormal.Algebra.Fp) = 1) := by decide
+@[simp] theorem fp_one_ne_zero : ¬ ((1 : ZkFormal.Algebra.Fp) = 0) := by decide
+end ZkFormal.Near
