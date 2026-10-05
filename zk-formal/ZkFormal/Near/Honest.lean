@@ -1,11 +1,10 @@
-import ZkFormal.Near.Spec.Good
+import ZkFormal.Near.Spec.Prune
 import ZkFormal.Near.Air
 
 /-!
 # ZkFormal.Near.Honest — `extOf` (witness → records) and `render` (records → trace)
 
-* `extOf c w` prunes the witness trie to the nodes on the touched paths and
-  numbers them (root `0`); slots are the node ids of the receivers' values.
+* `extOf c w` (`Near.Spec.Prune`) prunes the witness trie to the touched paths;
 * `render c e` is the honest trace of every table (the SHA table through L5's
   generator on the messages the NEAR tables emit).
 
@@ -17,10 +16,6 @@ names and do not change when the bodies do.
 namespace ZkFormal.Near
 
 open ZkFormal.Air ZkFormal.Algebra NearSpec NearSpec.TransferV1
-
-/-- Records of a witness (pruned to the touched paths). -/
-def extOf (_c : Claim) (w : Witness) : Ext :=
-  { ns := [], vals0 := fun _ => [], rs := w.receipts, slot := fun _ => 0 }
 
 /-- The honest trace of records. -/
 def render (_c : Claim) (_e : Ext) : Trace Fp := ⟨fun _ => 1, fun _ _ _ => 0⟩

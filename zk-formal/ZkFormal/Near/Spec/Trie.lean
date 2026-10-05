@@ -148,8 +148,8 @@ def Kid.wf : Kid → Prop
   | .node _ => True
 
 def NodeRec.wf : NodeRec → Prop
-  | .leaf k v mem => nibblesOk k = true ∧ k.length ≤ 130 ∧ v.wf ∧ mem < 2 ^ 64
-  | .ext k kid mem => nibblesOk k = true ∧ k.length ≤ 130 ∧ kid ≠ .none ∧ kid.wf ∧ mem < 2 ^ 64
+  | .leaf k v mem => nibblesOk k = true ∧ k.length < 512 ∧ v.wf ∧ mem < 2 ^ 64
+  | .ext k kid mem => nibblesOk k = true ∧ k.length < 512 ∧ kid ≠ .none ∧ kid.wf ∧ mem < 2 ^ 64
   | .branch v kids mem => kids.length = 16 ∧ (∀ s, v = some s → s.wf) ∧
       (∀ kid ∈ kids, kid.wf) ∧ mem < 2 ^ 64
 

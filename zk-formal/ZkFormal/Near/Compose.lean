@@ -17,7 +17,7 @@ theorem nearAir_sound (hE : ExtractStmt) (hS : GoodSoundStmt) :
     ∀ (c : WfClaim) (tr : Trace Fp), Holds nearAir (publicOf c) tr → ∃ w, NearRelation c.1 w := by
   intro c tr h
   obtain ⟨e, he⟩ := hE c tr h
-  exact ⟨witnessOf e, hS c.1 e he⟩
+  exact ⟨witnessOf e, hS c.1 e c.2 he⟩
 
 theorem nearAir_complete (hC : GoodCompleteStmt) (hR : RenderStmt) :
     ∀ (c : WfClaim) (w : Witness), NearRelation c.1 w → Holds nearAir (publicOf c) (honestTrace c w) :=

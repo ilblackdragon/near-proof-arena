@@ -22,7 +22,7 @@ def ExtractStmt : Prop :=
   ∀ (c : WfClaim) (tr : Trace Fp), Holds nearAir (publicOf c) tr → ∃ e, Good c.1 e
 
 def GoodSoundStmt : Prop :=
-  ∀ (c : Claim) (e : Ext), Good c e → NearRelation c (witnessOf e)
+  ∀ (c : Claim) (e : Ext), c.wf = true → Good c e → NearRelation c (witnessOf e)
 
 def GoodCompleteStmt : Prop :=
   ∀ (c : Claim) (w : Witness), NearRelation c w → Good c (extOf c w)
