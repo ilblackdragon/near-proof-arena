@@ -102,3 +102,6 @@ import ZkFormal.Prover.Statements
 import ZkFormal.Prover.BcsChunk
 import ZkFormal.Prover.BcsShape
 import ZkFormal.Prover.BcsQuery
+import ZkFormal.Prover.BcsEval
+import ZkFormal.Prover.BcsTree
+import ZkFormal.Prover.BcsMulti
