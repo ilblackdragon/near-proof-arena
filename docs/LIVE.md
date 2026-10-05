@@ -137,9 +137,23 @@ $L revoke-agent <handle>          # agents.disabled = true; the token stops work
 $L add-worker <name> [classes]    # register + configure + enable another Firecracker worker (classes: all | build,formal,oracle,bench)
 $L revoke-submission <sub> "<public reason>"   # drops it from the leaderboard (signed report stays)
 $L rerun-submission <sub> "<reason>"           # new run, e.g. after an infra fix
-$L register-challenge /path/chl_<id>.json      # verify signature + policy, copy into release/challenges, restart server
+$L register-challenge /path/chl_<id>.json      # verify signature + policy + pinned trusted tree published, copy into release/challenges, restart server
+ARENA_LIVE_REPO=<checkout> $L freeze-trusted <commit> chl_<id>.json...   # publish trusted-trees/<pin> (must hash to each challenge's formal_spec.tree_digest)
+$L check-trusted                                # every release/ challenge has its pinned trusted tree
 $L tailnet on|off|status
 ```
+
+**Frozen trusted trees** (docs/TCB.md §1a). FORMAL_CHECK builds the
+ArenaCore/NearSpec reference and renders the Expected statement only from
+`trusted-trees/<hex>/` — the read-only snapshot of `formal-core/` +
+`spec/lean/` whose TreeDigest the challenge pins — copied into the job and
+re-hashed. It never uses `release/` or the checkout's HEAD; a missing or
+mismatching tree is INFRA_ERROR. The server (`ARENA_TRUSTED_TREES` in
+`server.env`) and `register-challenge` refuse a non-demo challenge whose
+tree is not published. Published: `sha256:8090432a…` from commit
+`6873c99` (NEAR v1, v1-1, v1-2, v1-3 and experimental `chl_b7c8…`). A new
+challenge that pins a new tree needs `freeze-trusted` before
+`register-challenge`.
 
 **Upgrading to a new `main`.** Build the release binaries and the web UI,
 then reinstall and restart:
@@ -157,7 +171,9 @@ deploy/live/arena-live install    # binaries, release/ snapshot (git HEAD), web/
 ```
 
 * **What `install` keeps.** It never overwrites `config/*.env` or
-  `secrets/`. Challenges added with `register-challenge` survive a reinstall.
+  `secrets/` (it only migrates renamed keys, e.g. `ARENA_FORMAL_REPO` →
+  `ARENA_TRUSTED_TREES`), nor `trusted-trees/`. Challenges added with
+  `register-challenge` survive a reinstall. It ends with `check-trusted`.
 * **The oracle.** `near-arena-oracle` is copied from
   `/data/illia/nearproof/oracle/target/debug/` (set `ARENA_LIVE_ORACLE` to
   change the source). It is a nearcore-linked debug build of about 1 GB.
@@ -245,6 +261,35 @@ Restore `report-signing-key.pem` from the same backup.
 * **Postgres.** The database is `arena_live` on the shared `arena-pg`
   container, which has a `restart=unless-stopped` policy. Other lanes create
   and drop `arena_e2e_*` databases there; `arena_live` is not one of them.
+
+## 5a. Trusted-tree re-check (2026-10-05)
+
+Until 2026-10-05 the live judge built the trusted reference (ArenaCore,
+NearSpec, Expected templates) from `release/clean`, a snapshot of HEAD's
+`formal-core/` + `spec/lean/`, and never compared it with the challenges'
+pin `sha256:8090432a…`; HEAD had drifted (spec v2, native-lean templates,
+`ArenaCore.SHA256Fast`). The fix (docs/TCB.md §1a) was deployed and
+`trusted-trees/8090432a…` was frozen from commit `6873c99` (68 files; it
+reproduces the pin of v1, v1-1, v1-2, v1-3 and experimental `chl_b7c8…`).
+The three submissions admitted on v1-3 were re-run with
+`arena-live rerun-submission` (the formal-result cache key moved to
+`arena-formal-cache-v2`, so nothing was reused):
+
+| submission | route | old run | re-run | result |
+|------------|-------|---------|--------|--------|
+| `sub_f1f08796886c465fb01fbcd1a4a8d3f6` (`examples/reexec-npai`) | npai-v1 | ADMITTED | `run_59e3bbdb0d5342619426aaf70b2463c9` | **ADMITTED**: all 6 formal gates PASS against the frozen tree (log: "trusted tree sha256:8090432a…: copied … and re-verified"); conformance, adversarial, benchmark re-ran; score 82.975 |
+| `sub_9c9a9b7a0af54193971c5cb7d7e843de` (`examples/reexec-witness`) | native-lean | ADMITTED | `run_682e1a6034244afe80d74f520fa361f1` | **INFRA_ERROR** (FORMAL_CHECK, 3 attempts): `spec/lean/judge/Expected.native-lean.lean.template` is not in the pinned tree |
+| `sub_2062f152012c42c3bc868a3e77a06bc0` (`reexec-witness-fast`, PROVER_ONLY child of `sub_9c9a…`) | native-lean | ADMITTED (reused) | `run_d6465eee9ea94389ae1263f249ff1eb4` | **INFRA_ERROR**, same reason |
+
+The native-lean template was added (commit `6b9d74c`) after the v1 freeze
+commit, and v1-1…v1-3 kept the v1 pin, so the native-lean statement those
+two entries were admitted under was never pinned by the challenge. They are
+now unranked (latest run INFRA_ERROR; the old runs and signed reports stay
+in their history). Restoring them needs a successor challenge whose pinned
+tree contains the template (e.g. frozen at the v1-3 commit `cf5f1f5`,
+which predates `SHA256Fast`), registered after `freeze-trusted`. The same
+applies to the native-lean entry `sub_df165fa9…` on the experimental
+`chl_b7c8…` (same pin; not re-run).
 
 ## 5. Current state (2026-10-03 16:10 UTC)
 

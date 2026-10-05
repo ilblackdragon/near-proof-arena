@@ -7,8 +7,13 @@
 //! Judge inputs:
 //! * per-challenge config `runners/formal-checker/challenges/<name>.json`
 //!   (`arena-formal-challenge-v1`: trusted Lean packages, reserved prefixes,
-//!   Expected template), resolved against a clean checkout
-//!   (`ARENA_FORMAL_REPO`);
+//!   Expected template), resolved against the challenge's **frozen trusted
+//!   tree**: the snapshot of `formal-core/` + `spec/lean/` whose TreeDigest
+//!   the challenge pins (`semantic_scope.formal_spec.tree_digest`), taken
+//!   from the judge's trusted-tree store (`ARENA_TRUSTED_TREES`, published by
+//!   `arena-admin freeze-trusted`), copied into the job and re-hashed before
+//!   use. A missing or non-matching tree fails the job as INFRA_ERROR; no
+//!   working checkout is ever used for the trusted reference;
 //! * the Expected statement data: the challenge's `security_profile` and
 //!   `formal_params`, and the judge-computed artifact digests —
 //!   `sha256(public_dir/public.bin)` from the judge-run `prepare` and the
@@ -38,10 +43,11 @@ use std::path::PathBuf;
 /// Where the worker finds its formal-checking inputs.
 #[derive(Clone, Debug, Default)]
 pub struct FormalEnv {
-    /// Clean checkout (git-tracked files only) holding the trusted packages
-    /// and templates the challenge configs point at.
-    pub repo: PathBuf,
-    /// `arena-formal-challenge-v1` configs (default `<repo>/runners/formal-checker/challenges`).
+    /// Frozen trusted-tree store: `<dir>/<hex>/{formal-core,spec/lean}`
+    /// (`arena_types::trusted_tree`). `None` fails every FORMAL_CHECK of a
+    /// configured challenge closed (INFRA_ERROR).
+    pub trusted_trees: Option<PathBuf>,
+    /// `arena-formal-challenge-v1` configs.
     pub configs_dir: PathBuf,
     /// Installed lean-checker images (`<hex>/` + `<hex>.json`), required on
     /// production (non-demo) sandboxes.
@@ -171,6 +177,26 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         );
         return Ok(out);
     };
+    // The trusted base is the tree the challenge pins, never a checkout.
+    let pin = chal.semantic_scope.formal_spec.tree_digest.clone();
+    let Some(store) = env.trusted_trees.as_ref() else {
+        return Err(ExecError::Infra(format!(
+            "no frozen trusted-tree store configured (ARENA_TRUSTED_TREES): challenge {:?} pins \
+             trusted tree {pin} and is never checked against any other",
+            chal.name
+        )));
+    };
+    let trusted_root = r.fresh("trusted-tree");
+    arena_types::trusted_tree::materialize(store, &pin, &trusted_root).map_err(|e| {
+        ExecError::Infra(format!(
+            "challenge {:?}: pinned trusted tree unavailable: {e}",
+            chal.name
+        ))
+    })?;
+    out.log.push(format!(
+        "trusted tree {pin}: copied from {} and re-verified",
+        store.display()
+    ));
     let Some(formal) = &j.manifest.formal else {
         all_gates(
             &mut out,
@@ -305,10 +331,14 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         Err(e) => return Err(ExecError::Infra(format!("expected statement inputs: {e}"))),
     };
     let expected = match &route {
-        VerifierRoute::NativeLean(_) => cfg.expected_native_lean(&env.repo, &inputs),
-        _ => cfg.expected(&env.repo, &inputs),
+        VerifierRoute::NativeLean(_) => cfg.expected_native_lean(&trusted_root, &inputs),
+        _ => cfg.expected(&trusted_root, &inputs),
     }
-    .map_err(|e| ExecError::Infra(format!("expected statement: {e}")))?;
+    .map_err(|e| {
+        ExecError::Infra(format!(
+            "expected statement from pinned trusted tree {pin}: {e}"
+        ))
+    })?;
 
     let runner = match SandboxRunner::new(r.ctx.sandbox.clone(), r.fresh("fc-sandbox")) {
         Ok(x) => x.with_rootfs(rootfs),
@@ -335,9 +365,10 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
     let req = CheckRequest {
         formal_dir,
         certificate: formal.certificate.clone(),
-        trusted: cfg.trusted_packages(&env.repo),
+        trusted: cfg.trusted_packages(&trusted_root),
         expected: &expected,
         challenge_digest: Some(j.ctx.challenge_digest.clone()),
+        trusted_tree: Some(pin.clone()),
         policy,
         limits: Limits {
             mem_bytes: formal_mem_bytes(),

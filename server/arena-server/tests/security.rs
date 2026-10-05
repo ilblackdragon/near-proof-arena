@@ -938,6 +938,7 @@ async fn repo_challenges_load_with_governance_policy() {
     let gov = arena_server::Governance {
         dev_only_keys: vec![keys[0].0],
         governed: Some(arena_admin::GovernedSet::load(&root.join("security")).unwrap()),
+        trusted_trees: None,
     };
     let (ok, refused) = arena_server::bootstrap::challenges_from_dir(
         &app.pool,
@@ -956,8 +957,51 @@ async fn repo_challenges_load_with_governance_policy() {
     let dev_gov = arena_server::Governance {
         dev_only_keys: vec![app.gov.verifying_key()],
         governed: None,
+        trusted_trees: None,
     };
     assert!(dev_gov.check(&v).unwrap_err().contains("dev-only"));
+    // a non-demo challenge is registered only against its published,
+    // verifying trusted tree (docs/TCB.md "Frozen trusted trees")
+    let store = tempfile::tempdir().unwrap();
+    let tt_gov = arena_server::Governance {
+        trusted_trees: Some(store.path().into()),
+        ..Default::default()
+    };
+    let src = store.path().join("src");
+    for (f, body) in [
+        ("formal-core/ArenaCore.lean", "-- core\n"),
+        ("spec/lean/NearSpec.lean", "-- spec\n"),
+    ] {
+        std::fs::create_dir_all(src.join(f).parent().unwrap()).unwrap();
+        std::fs::write(src.join(f), body).unwrap();
+    }
+    let pin = arena_types::trusted_tree::digest_of(&src).unwrap();
+    let checked = |def: arena_types::ChallengeDefinition| {
+        let sig = arena_db::challenge::parse_signature(&app.sign(&def)).unwrap();
+        let v =
+            arena_db::challenge::verify_definition(def, &sig, &[app.gov.verifying_key()]).unwrap();
+        tt_gov.check(&v)
+    };
+    let mut def = challenge_def(Tier::Formal, "formal-pinned");
+    def.semantic_scope.formal_spec.tree_digest = pin.clone();
+    let missing = checked(def.clone()).unwrap_err();
+    assert!(missing.contains("trusted tree"), "{missing}");
+    std::fs::rename(
+        &src,
+        arena_types::trusted_tree::entry_dir(store.path(), &pin),
+    )
+    .unwrap();
+    checked(def.clone()).unwrap();
+    // tampered after publication: refused
+    std::fs::write(
+        arena_types::trusted_tree::entry_dir(store.path(), &pin).join("spec/lean/NearSpec.lean"),
+        "-- changed\n",
+    )
+    .unwrap();
+    assert!(checked(def).unwrap_err().contains("not the pinned"));
+    // experimental tier is gated too; demo is not
+    assert!(checked(challenge_def(Tier::Experimental, "exp-pinned")).is_err());
+    checked(challenge_def(Tier::Demo, "demo-pinned")).unwrap();
     // and governance policy rejects definitions that violate it (fixture uses a non-governed schema id)
     let mut bad = challenge_def(Tier::Demo, "demo-policy");
     bad.toolchain_policy.axiom_allowlist.push("sorryAx".into());

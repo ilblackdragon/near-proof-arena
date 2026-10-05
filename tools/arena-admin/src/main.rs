@@ -94,6 +94,35 @@ enum Cmd {
     },
     /// Compute the TreeDigest of a directory (docs/CONTRACTS.md §1).
     TreeDigest { dir: PathBuf },
+    /// Publish the frozen trusted tree (formal-core + spec/lean) of a git
+    /// commit into the judge's trusted-tree store as `<store>/<hex>/`. The
+    /// digest is recomputed from the extracted files and must equal the pin
+    /// of every `--challenge` (and every `--expect`).
+    FreezeTrusted {
+        /// Commit (or ref) whose tracked formal-core/ + spec/lean/ to freeze.
+        #[arg(long)]
+        commit: String,
+        /// The trusted-tree store (`ARENA_TRUSTED_TREES`).
+        #[arg(long)]
+        store: PathBuf,
+        /// Repository to read the commit from.
+        #[arg(long, default_value = ".")]
+        repo: PathBuf,
+        /// Challenge file(s) whose `formal_spec.tree_digest` must match.
+        #[arg(long = "challenge")]
+        challenges: Vec<PathBuf>,
+        /// Expected TreeDigest(s) (`sha256:<hex>`).
+        #[arg(long)]
+        expect: Vec<String>,
+    },
+    /// Registration gate: each challenge's pinned trusted tree is in the
+    /// store and its files hash to the pin (demo tier: not required).
+    CheckTrusted {
+        #[arg(long)]
+        store: PathBuf,
+        #[arg(required = true)]
+        files: Vec<PathBuf>,
+    },
 }
 
 fn print_findings(f: &policy::Findings) {
@@ -255,6 +284,61 @@ fn main() -> Result<()> {
         }
         Cmd::TreeDigest { dir } => {
             println!("{}", challenge_file::tree_digest(&dir)?);
+        }
+        Cmd::FreezeTrusted {
+            commit,
+            store,
+            repo,
+            challenges,
+            expect,
+        } => {
+            let mut pins: Vec<arena_types::Digest> = Vec::new();
+            for e in expect {
+                pins.push(
+                    e.clone()
+                        .try_into()
+                        .map_err(|x: String| anyhow::anyhow!("--expect {e}: {x}"))?,
+                );
+            }
+            for c in &challenges {
+                let def = load_definition(c).with_context(|| c.display().to_string())?;
+                pins.push(def.semantic_scope.formal_spec.tree_digest.clone());
+            }
+            if pins.is_empty() {
+                bail!("give --challenge and/or --expect: a trusted tree is frozen for a pin");
+            }
+            let f = arena_admin::trusted::freeze(&repo, &commit, &store, &pins)?;
+            println!(
+                "{} {} (commit {}{})",
+                f.digest,
+                f.dir.display(),
+                f.commit,
+                if f.existed {
+                    ", already published; re-verified"
+                } else {
+                    ""
+                }
+            );
+        }
+        Cmd::CheckTrusted { store, files } => {
+            let mut bad = 0;
+            for p in &files {
+                let res = load_definition(p)
+                    .and_then(|def| arena_admin::trusted::check_available(&store, &def));
+                match res {
+                    Ok(Some(dir)) => println!("OK   {}: {}", p.display(), dir.display()),
+                    Ok(None) => {
+                        println!("OK   {}: demo tier, no trusted tree required", p.display())
+                    }
+                    Err(e) => {
+                        bad += 1;
+                        println!("FAIL {}: {e:#}", p.display());
+                    }
+                }
+            }
+            if bad > 0 {
+                bail!("{bad} challenge(s) without their pinned trusted tree");
+            }
         }
     }
     Ok(())
