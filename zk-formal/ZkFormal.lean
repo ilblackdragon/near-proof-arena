@@ -154,5 +154,6 @@ import ZkFormal.Near.Render.Proof.BusVslot
 import ZkFormal.Near.Render.Proof.BusRids
 import ZkFormal.Near.Render.Proof.BusMem
 import ZkFormal.Near.Render.Proof.WalkLocal
+import ZkFormal.Near.Render.Proof.WalkTraffic
 import ZkFormal.Near.Link.Main
 import ZkFormal.Near.Final
