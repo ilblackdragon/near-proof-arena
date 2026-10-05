@@ -1154,3 +1154,66 @@ theorem hashedTraffic (hL : TableLocal Mrk.table tr T_MRK pub) {s : Nat} (hh : H
       simp_all [B_BYTES, B_DIGEST, B_MPOS]
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp} {segs : List (Nat × Nat)}
+
+theorem promotedTraffic (hL : TableLocal Mrk.table tr T_MRK pub) {s : Nat} (h1 : 1 ≤ s)
+    (hs : s < tr.height T_MRK) (hpr : tr.cell T_MRK s pr = 1) (hsg : tr.cell T_MRK s sg = 0) (b : Nat) (sd : Bool) :
+    rowTraffic Mrk.interactions tr T_MRK s pub b sd =
+      (if b = B_MPOS ∧ sd = false then
+        [[tr.cell T_MRK s mj, tr.cell T_MRK s mi, tr.cell T_MRK s cId, tr.cell T_MRK s cLen]] else []) ++
+      (if b = B_MPOS ∧ sd = true then
+        [[tr.cell T_MRK s j, tr.cell T_MRK s i, tr.cell T_MRK s cId, tr.cell T_MRK s cLen]] else []) := by
+  have l := local_ hL hs
+  have hrt : tr.cell T_MRK s rt = 0 := by rw [l.2.2.1, if_neg (by omega)]
+  have hwf : tr.cell T_MRK s wf = 0 := bool01 hL hs (by simp) (fun h => by
+    have := (l.2.2.2.1 h).1; rw [hsg] at this; exact fp_zero_ne_one this)
+  have hsf : tr.cell T_MRK s sf = 0 := by rw [l.2.2.2.2.2.1, hwf]; grind
+  have hgM : tr.cell T_MRK s gM = 1 := by rw [l.2.2.2.2.2.2.2.2.1, hwf, hpr, hrt]; grind
+  have hgO : tr.cell T_MRK s gO = 1 := by rw [l.2.2.2.2.2.2.2.2.2, hsf, hpr]; grind
+  obtain ⟨-, -, -, o⟩ := links hL hs
+  rw [rowT, hsg, hwf, hrt, hgM, hgO, (o hpr).1, (o hpr).2]
+  by_cases e : b = B_MPOS
+  · subst e; cases sd <;> simp [B_BYTES, B_DIGEST, B_MPOS]
+  · cases sd <;> simp [e, B_BYTES, B_DIGEST, B_MPOS] <;> omega
+
+theorem rootTraffic (hL : TableLocal Mrk.table tr T_MRK pub) (h1 : 1 < tr.height T_MRK) (b : Nat) (sd : Bool) :
+    rowTraffic Mrk.interactions tr T_MRK 0 pub b sd =
+      (if b = B_DIGEST ∧ sd = false then [[tr.cell T_MRK 0 cId, tr.cell T_MRK 0 cLen] ++ pubOut pub] else []) ++
+      (if b = B_MPOS ∧ sd = false then
+        [[tr.cell T_MRK 0 mj, 0, tr.cell T_MRK 0 cId, tr.cell T_MRK 0 cLen]] else []) := by
+  have l := local_ hL (r := 0) (by omega)
+  have hrt : tr.cell T_MRK 0 rt = 1 := by rw [l.2.2.1, if_pos rfl]
+  have hsp := l.1; rw [hrt] at hsp
+  have hsg : tr.cell T_MRK 0 sg = 0 := bool01 hL (by omega) (by simp) (fun h => by rw [h] at hsp; grind)
+  have hpr : tr.cell T_MRK 0 pr = 0 := bool01 hL (by omega) (by simp) (fun h => by rw [h, hsg] at hsp; grind)
+  have hwf : tr.cell T_MRK 0 wf = 0 := bool01 hL (by omega) (by simp) (fun h => by
+    have := (l.2.2.2.1 h).1; rw [hsg] at this; exact fp_zero_ne_one this)
+  have hsf : tr.cell T_MRK 0 sf = 0 := by rw [l.2.2.2.2.2.1, hwf]; grind
+  have hgM : tr.cell T_MRK 0 gM = 1 := by rw [l.2.2.2.2.2.2.2.2.1, hwf, hpr, hrt]; grind
+  have hgO : tr.cell T_MRK 0 gO = 0 := by rw [l.2.2.2.2.2.2.2.2.2, hsf, hpr]; grind
+  have hmi := (links hL (r := 0) (by omega)).2.1 hrt
+  rw [rowT, hsg, hwf, hrt, hgM, hgO, hmi]
+  by_cases e1 : b = B_DIGEST
+  · subst e1; cases sd <;> simp [B_BYTES, B_DIGEST, B_MPOS]
+  · by_cases e2 : b = B_MPOS
+    · subst e2; cases sd <;> simp [B_BYTES, B_DIGEST, B_MPOS]
+    · cases sd <;> simp [e1, e2, B_BYTES, B_DIGEST, B_MPOS] <;> omega
+
+theorem padTraffic (hL : TableLocal Mrk.table tr T_MRK pub) {r : Nat} (h1 : 1 ≤ r) (hr : r < tr.height T_MRK)
+    (ha : A tr r = 0) (b : Nat) (sd : Bool) : rowTraffic Mrk.interactions tr T_MRK r pub b sd = [] := by
+  have l := local_ hL hr
+  rcases A_cases hL hr with ⟨h, -⟩ | ⟨-, hsg, hpr⟩
+  · rw [ha] at h; exact absurd h.symm fp_one_ne_zero
+  have hrt : tr.cell T_MRK r rt = 0 := by rw [l.2.2.1, if_neg (by omega)]
+  have hwf : tr.cell T_MRK r wf = 0 := bool01 hL hr (by simp) (fun h => by
+    have := (l.2.2.2.1 h).1; rw [hsg] at this; exact fp_zero_ne_one this)
+  have hsf : tr.cell T_MRK r sf = 0 := by rw [l.2.2.2.2.2.1, hwf]; grind
+  have hgM : tr.cell T_MRK r gM = 0 := by rw [l.2.2.2.2.2.2.2.2.1, hwf, hpr, hrt]; grind
+  have hgO : tr.cell T_MRK r gO = 0 := by rw [l.2.2.2.2.2.2.2.2.2, hsf, hpr]; grind
+  rw [rowT, hsg, hwf, hrt, hgM, hgO]; simp
+
+end ZkFormal.Near.MrkProof
