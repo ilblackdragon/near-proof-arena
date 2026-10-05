@@ -150,3 +150,34 @@ accepted all 111 modules. The cause is the kernel trial division up to 44 869, w
 The challenge's `toolchain_policy.recheckers` includes `lean4lean`, so this gives RECHECK_FAILED on
 every gate. Fix (L1): replace the trial division with a Pratt/Pocklington certificate
 (`p − 1 = 2^27·3·5`; witness 31). That needs only a few `decide +kernel` modular exponentiations.
+### R-L7-bcs-1 (to lead, L4, L2): `ProverComplete` fails for hash functions whose answers are not 32 bytes
+`ProverComplete` (formal-core) quantifies over **every** `H : Bytes → Bytes`. The compiled verifier
+(`Stark/Bcs.lean`) parses each Merkle root (and each multiproof sibling) as exactly 64 bytes and
+compares the root with a recomputed wide hash `H(..) ‖ H(..)` (`root' == root`). Counterexample:
+`H := fun _ => []` — every recomputed root is `[]` ≠ the 64 parsed bytes, so **no** proof of a
+schedule with an oracle is accepted; the same holds for any `H` with `|H m| ≠ 32`. Hence
+`Prover.BcsCompleteStmt` and `Prover.SizeStmt` are false as stated, and so is `ProverComplete`
+for the deployed verifier. L7-bcs proves the corrected statements with `∀ m, (H m).length = 32`
+(`Prover.bcs_complete32 : BcsCompleteStmt32`, `Prover.size32 : SizeStmt32`).
+Proposed fix (verifier-side, keeps every proof shape): normalise each oracle answer in `Stark.H`,
+```lean
+def fit32 (y : Bytes) : Bytes := (y ++ List.replicate 32 0).take 32
+def H (m : Bytes) : OracleComp hashSpec Bytes := .query m fun y => .pure (fit32 y)
+```
+`fit32` is the identity on the ROM game's 32-byte answers (soundness unaffected; L2's lemmas that
+unfold `H`/`ask` see `.query m k` with `k y = .pure (fit32 y)`), and then completeness holds for
+every `H`: L7-bcs's proofs only use `|WH output| = 64` (`whp_length`), which `fit32` gives
+unconditionally. The deployed Rust verifier must apply the same normalisation (a no-op for SHA-256).
+
+### R-L7-bcs-2 (to L7): `BcsCompleteStmt` needs a non-empty query phase
+With `numChunks = 0` or `posPerChunk = 0` there are no positions, every multiproof has an empty
+leaf set, and `mpLevels` rejects (`[] ≠ [(0, root)]`), while an IOP with trivial `global`/`check`
+is complete. `BcsCompleteStmt32` assumes `0 < numChunks` and `0 < posPerChunk` (both hold for
+`Params.default`; L4c proved `posPerChunk > 0`).
+
+### R-L7-bcs-3 (to L7-iop, done in Defs.lean): `ProverWf.hdrParts`
+The parser checks every `.header` part against the proof header; `Shaped` only fixes its length.
+Counterexample: schedule `[.msg [.header 1], .msg [.header 1]]`, prover sends `[5]` then `[7]`:
+well-formed, IOP-complete for trivial checks, rejected. `ProverWf` now has
+`hdrParts : ∀ τ, Reach V pr cb τ → V.NextIsProver τ → ∀ l, .header l ∈ pr.next τ → l = pr.hdr`
+(for np-udr-stark the only header part is the first one, so it follows from `header`).

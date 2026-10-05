@@ -108,3 +108,13 @@ import ZkFormal.Toy.Air
 import ZkFormal.Toy.Model
 import ZkFormal.Toy.Certificate
 import ZkFormal.NearAssembly.Certificate
+import ZkFormal.Prover.BcsChunk
+import ZkFormal.Prover.BcsShape
+import ZkFormal.Prover.BcsQuery
+import ZkFormal.Prover.BcsEval
+import ZkFormal.Prover.BcsTree
+import ZkFormal.Prover.BcsMulti
+import ZkFormal.Prover.BcsOpen
+import ZkFormal.Prover.BcsPrefix
+import ZkFormal.Prover.BcsComplete
+import ZkFormal.Prover.BcsSize

@@ -28,7 +28,8 @@ Defined: `proveTree V pr pub cb` (BCS compilation of an honest IOP prover `pr`: 
 |---|---|
 | `np_proverComplete` (ProverComplete, every `H`) | **proved from** `BcsCompleteStmt`, `SizeStmt`, `NpIopCompleteStmt` |
 | `np_prover_unit` (2^32), `np_prover_chunk` (numChunks) | **proved from** `ProverQStmt`+`NpProverQStmt`, `ProverChunkStmt` |
-| `BcsCompleteStmt`, `SizeStmt`, `ProverQStmt`, `ProverChunkStmt` | open — sub-lane `lane/zk-L7-bcs` |
+| `ProverChunkStmt`, `ProverQStmt` | **proved** `prover_chunk`, `prover_unit` (L7-bcs) |
+| `BcsCompleteStmt`, `SizeStmt` | **false as stated** for `H` with non-32-byte answers (R-L7-bcs-1); proved for 32-byte `H` (+ `0 < numChunks, posPerChunk`): `bcs_complete32`, `size32`. Needs L4's `fit32` fix in `Stark.H`, after which the general statements follow |
 | `NpIopCompleteStmt`, `NpProverQStmt` | open — sub-lane `lane/zk-L7-iop` |
 | `VerifierComplete` | from `np_proverComplete` at `H = sha256(roTag ‖ ·)` (in `np_admission`) |
 | proof-size bound | `sizeBound` (formula); toy: `toy_size` ≤ 8 MiB proved (467 KB at height 16); NEAR: `L6Facts.size` open |
