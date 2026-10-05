@@ -28,26 +28,29 @@ two touched leaves + two dead extensions (one single-nibble), 3 receipts
 one-nibble leaf below; ex4 empty-key extensions (root and inner) and a
 one-nibble extension, 1 receipt (mrk promote-only, sort single segment).
 
-After the fixes below: node, walk, acct, mrk, sort have **no constraint
+With the acct fix and the sort padding row: node, walk, acct, mrk, sort have **no constraint
 violations and no bad bits** on all four examples, and **every bus balances**
 (BYTES, DIGEST, PARENT, VSLOT, EDGE, KEYNIB, FINAL, MEM, RIDS, MPOS), with
 `sha` and `rcpt` simulated. In particular the pre/post state roots and the
 outcome root computed by NearSpec match the digests the tables look up.
 
-## Table fixes
+## Table bugs found
 
-1. **`acct`, lane-switch constraint** `act · lo8' · (1 − lo8) = 0` (lo8 never
-   rises): violated on the last lane of every segment, since the next row is
-   the next segment's first lane (`lo8 = 1`) — or, when the table is full,
-   row 0 by wrap-around. Gate changed to `act − al` (active, not last lane);
-   degree unchanged. Soundness unchanged: within a segment `lo8` is still
-   non-increasing, starts at 1 (`af`), ends at 0 (`al`), and drops only at
-   `i = 7`.
-2. **`sort`, next-segment `ft = 0`** `sl · act' · ft' = 0`: violated when
-   the table is full (`32·n` a power of two, e.g. `n = 1, 2, 4`): the last row
-   is `sl` and wraps to row 0, which has `ft = 1`. Replaced by
-   `isTransition · sl · ft' = 0` (degree 3; padding rows have `ft = 0`
-   honestly and `ft` is only read on active rows).
+1. **`acct`, lane-switch constraint** `act · lo8' · (1 − lo8) = 0`: violated
+   on the last lane of every segment (the next row is the next segment's first
+   lane, `lo8 = 1`) and, on a full table, by the wrap to row 0. Fixed on
+   `lane/zk-L6` by the lead (gate `act · (1 − al)`); this branch merged that
+   version (my equivalent `act − al` gate was dropped).
+2. **`sort`, next-segment `ft = 0`** `sl · act' · ft' = 0`: violated whenever
+   the table is full (`32·n` a power of two): the last row is `sl` and wraps to
+   row 0, which has `ft = 1`. **Not fixed in the table** (the lead's
+   `Extract/SortProof.lean` uses this exact constraint); the generator always
+   adds at least one padding row instead. That works for every `n` except
+   **`n = 256`**: `32·256 = 2^13 = 2^maxLog`, no room for a padding row, so the
+   honest trace of a full batch violates the table — a **completeness bug**.
+   Fix options (lead): `isTransition · sl · ft' = 0` (degree 3; `ft` is only read
+   on active rows, honest padding has `ft = 0`; one line of SortProof changes),
+   or `maxLog = 14`.
 
 ## Generator notes (not table bugs)
 
@@ -56,6 +59,15 @@ outcome root computed by NearSpec match the digests the tables look up.
   (dead extension child); the generator fills them.
 
 ## Soundness review (holes found: none so far)
+
+Mutation probe (`test/NearProbeTest.lean`, ≈ 75 s): on an honest trace of a
+mixed example (odd extension, branch, touched branch value, dead extension,
+odd/even leaves, 3 receipts), every column of one row per flag pattern is
+changed by `+1`; a change no constraint (rows `r−1`, `r`) and no interaction
+observes is "free". Free cells found are all don't-cares: node nibble bits off
+`HPF`/`KEY` rows, `jj`/`w`/`lastw` off branch `CH` windows, flags on the `SUM`
+and padding rows; acct `inv` off the last lane; mrk `sp s odd inv` on the root
+row; sort `diff` bits / carries on the first segment and padding; walk none.
 
 Checked while writing the generators (argument sketches in the commit log):
 window slot order (`belowE = w` ⇒ windows are the present slots in order,
@@ -79,4 +91,14 @@ Minor / completeness-only:
 
 ## Open
 
-* `render : Claim → Ext → Trace Fp` (`Render/Trace.lean`): in progress.
+* `ZkFormal.Near.Render.render : Claim → Ext → Trace Fp` (`Render/Trace.lean`)
+  exists: `nearAir` order, sha lazily via `Sha.Gen.rowCell` on `bundle`'s
+  messages, **rcpt = two zero rows (placeholder)** — the rcpt table that landed
+  on `lane/zk-L6` (961 constraints) is violated by them (25 constraints on row
+  0), as expected. `Honest.lean` not edited: `ZkFormal.Near.render` should
+  become `Render.render`.
+* rcpt generator (after the table stabilizes); the rcpt side is simulated from
+  the `Ext` in `RcptSim.lean`.
+* sha cells via `Sha.Gen.rowCell` cost ≈ 1.5 ms each in the interpreter
+  (block recomputed per cell), so the tests use L5's `expectedBytes` /
+  `expectedDigests` for the sha side instead of materializing the sha table.
