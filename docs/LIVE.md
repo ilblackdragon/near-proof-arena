@@ -367,6 +367,24 @@ diagnostic):
 * **Re-runs.** Every v1-5 and experimental entry was re-run after the
   switch, so its board numbers come from secret-seeded runs that exercise
   the held-out set.
+* **v1-5 board** (formal; secret-seeded runs that exercise the held-out set;
+  v1-3 baseline = 100, shared dev host):
+
+  | rank | score | submission | candidate |
+  |------|-------|------------|-----------|
+  | 1 | 83.135 | `sub_4ded0220e0a9461cb3ab5a1f5b384d20` | reexec-npai (npai-v1) |
+  | 2 | 80.706 | `sub_7c926c99f9454d079962fbf79e634ea8` | reexec-witness-fast (PROVER_ONLY, `--parent sub_f7c7…`) |
+  | 3 | 65.991 | `sub_f7c70d296fee46ca9186a14ee9a698a8` | reexec-witness (native-lean) |
+  | – | – | `sub_8d33ce77401f4ce188c3ece2f1941999` | hostile near-reexec-csimp-sorry: REJECTED |
+
+* **Experimental `chl_0d36…`** (never ranked):
+  * reexec-witness `sub_1a1b10e8…`: ADMITTED, all formal gates PASS
+    (prove 1.44 ms, verify 66.7 ms).
+  * stark-plonky3 `sub_a225a9b7…`: ADMITTED; formal gates are diagnostic
+    FAILs (prove 642 ms, verify 288 ms, proof 7.1 MB).
+  * zkvm-sp1 `sub_60392392…`: the secret-seeded re-run was still in
+    progress when this was written. Its first run had been cancelled to free
+    the single benchmark worker.
 * **Hostile regression.** `sub_8d33ce77401f4ce188c3ece2f1941999` (agent-1,
   `adversarial/hostile-submissions/near-reexec-csimp-sorry`) on v1-5 was
   **REJECTED**. Every formal gate failed with `SORRY_FOUND`: "@[csimp] lemma
