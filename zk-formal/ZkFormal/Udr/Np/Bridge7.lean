@@ -258,8 +258,6 @@ theorem localBridge_of (hD : DeepSemStmt) : LocalBridgeStmt := by
       rw [h00, hjj] at this
       exact this
 
-namespace ZkFormal.Udr.Np
-
 /-- **`QueryStmt` from DEEP semantics.** -/
 theorem query_of_deepSem (hD : DeepSemStmt) : QueryStmt := query_of_bridge (localBridge_of hD)
 

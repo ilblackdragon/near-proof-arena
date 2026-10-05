@@ -318,10 +318,10 @@ theorem deepAt_eq (c : Ctx Fp8) (op : List (List (List Fp))) (m x : Nat) :
 /-! ## The class sum -/
 
 theorem class_sum (eqs : List Fp8) (m : Nat) (z ω ξ : Fp8) (val : Col → Fp8) (cl : Col → Bool → Fp8)
-    (rowM rowA rowQ : Nat → List Fp) (oodF : Nat → TOod Fp8)
-    (hv0 : ∀ t c, val ⟨t, 0, c⟩ = Fp8.ofBase ((rowM t).getD c 0))
-    (hv1 : ∀ t c, val ⟨t, 1, c⟩ = (ksOfRow (F := Fp) (rowA t)).getD c 0)
-    (hv2 : ∀ t c, val ⟨t, 2, c⟩ = (ksOfRow (F := Fp) (rowQ t)).getD c 0)
+    (rowM rowA rowQ : Nat → List Fp) (oodF : Nat → TOod Fp8) (layF : Nat → TLayout)
+    (hv0 : ∀ t c, (layF t).lde = m → val ⟨t, 0, c⟩ = Fp8.ofBase ((rowM t).getD c 0))
+    (hv1 : ∀ t c, (layF t).lde = m → val ⟨t, 1, c⟩ = (ksOfRow (F := Fp) (rowA t)).getD c 0)
+    (hv2 : ∀ t c, (layF t).lde = m → val ⟨t, 2, c⟩ = (ksOfRow (F := Fp) (rowQ t)).getD c 0)
     (hc0 : ∀ t c, cl ⟨t, 0, c⟩ false = (oodF t).mainZ.getD c 0)
     (hc0' : ∀ t c, cl ⟨t, 0, c⟩ true = (oodF t).mainG.getD c 0)
     (hc1 : ∀ t c, cl ⟨t, 1, c⟩ false = (oodF t).auxZ.getD c 0)
@@ -329,6 +329,7 @@ theorem class_sum (eqs : List Fp8) (m : Nat) (z ω ξ : Fp8) (val : Col → Fp8)
     (hc2 : ∀ t c, cl ⟨t, 2, c⟩ false = (oodF t).quotZ.getD c 0) :
     ∀ (ps : List (TLayout × TOod Fp8)) (pre : List TLayout) (s : Nat),
       (∀ k (hk : k < ps.length), ps[k].2 = oodF (s + k)) →
+      (∀ k (hk : k < ps.length), ps[k].1 = layF (s + k)) →
       let H : Nat → Col × Bool → Fp8 := fun j ds =>
         eqs.getD j 0 * (val ds.1 - cl ds.1 ds.2) * (ξ - (if ds.2 then ω * z else z))⁻¹
       let rows := (((ps.map (·.1)).zip (tdList eqs pre ps)).zipIdx s).filter (·.1.1.lde == m)
@@ -341,12 +342,15 @@ theorem class_sum (eqs : List Fp8) (m : Nat) (z ω ξ : Fp8) (val : Col → Fp8)
             dotK r.1.2.eAg (ksOfRow (F := Fp) (rowA r.2)) - r.1.2.vg) * (ξ - ω * z)⁻¹ =
       sOff ((((ps.map (·.1)).zipIdx s).filter fun (L, _) => L.lde == m).flatMap
         (fun (L, t) => blkOf L t)) (offSum pre m) H
-  | [], pre, s, _ => by simp [sumL, sOff]; grind
-  | (L, o) :: ps, pre, s, hps => by
+  | [], pre, s, _, _ => by simp [sumL, sOff]; grind
+  | (L, o) :: ps, pre, s, hps, hls => by
     intro H rows
-    have ih := class_sum eqs m z ω ξ val cl rowM rowA rowQ oodF hv0 hv1 hv2 hc0 hc0' hc1 hc1' hc2 ps
+    have ih := class_sum eqs m z ω ξ val cl rowM rowA rowQ oodF layF hv0 hv1 hv2 hc0 hc0' hc1 hc1' hc2 ps
       (pre ++ [L]) (s + 1) (fun k hk => by
         have := hps (k + 1) (by simp; omega); simp at this; rw [this]; congr 1; omega)
+      (fun k hk => by
+        have := hls (k + 1) (by simp; omega); simp at this; rw [this]; congr 1; omega)
+    have hlf : L = layF s := by have := hls 0 (by simp); simpa using this
     have ho : o = oodF s := by have := hps 0 (by simp); simpa using this
     simp only at ih
     simp only [rows, List.map_cons, tdList, List.zip_cons_cons, List.zipIdx_cons, List.filter_cons]
@@ -358,7 +362,7 @@ theorem class_sum (eqs : List Fp8) (m : Nat) (z ω ξ : Fp8) (val : Col → Fp8)
         rw [offSum_append, ite_eq_left hL, hlen]
       rw [hoff, ← ih]
       have ht := table_sum eqs (offSum pre L.lde) L s o (rowM s) (rowA s) (rowQ s) z ω ξ val cl
-        (fun c => hv0 s c) (fun c => hv1 s c) (fun c => hv2 s c)
+        (fun c => hv0 s c (hlf ▸ hL)) (fun c => hv1 s c (hlf ▸ hL)) (fun c => hv2 s c (hlf ▸ hL))
         (fun c => ho ▸ hc0 s c) (fun c => ho ▸ hc0' s c) (fun c => ho ▸ hc1 s c)
         (fun c => ho ▸ hc1' s c) (fun c => ho ▸ hc2 s c)
       simp only at ht
@@ -380,5 +384,219 @@ theorem prep_deep (Q : QData A prm τ) :
   rfl
 
 end
+
+end ZkFormal.Udr.Np
+
+namespace ZkFormal.Udr.Np
+
+open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
+
+theorem foldl_fst_len {X Y Z : Type} (f : List X × Y → Z → List X × Y)
+    (hf : ∀ acc z, (f acc z).1.length = acc.1.length + 1) :
+    ∀ (l : List Z) (acc : List X × Y), (l.foldl f acc).1.length = acc.1.length + l.length
+  | [], acc => by simp
+  | z :: l, acc => by rw [List.foldl_cons, foldl_fst_len f hf l, hf, List.length_cons]; omega
+
+theorem splitOod_len (lay : List TLayout) (ood : List Fp8) : (splitOod lay ood).1.length = lay.length := by
+  unfold splitOod
+  rw [foldl_fst_len _ (fun acc z => by simp)]
+  simp
+
+theorem sOff_congr {β : Type} (xs : List β) (off : Nat) (H H' : Nat → β → Fp8)
+    (h : ∀ j (hj : j < xs.length), H (off + j) xs[j] = H' (off + j) xs[j]) :
+    sOff xs off H = sOff xs off H' := by
+  unfold sOff
+  apply sumR_congr; intro j hj
+  rw [List.getElem?_eq_getElem hj]; exact h j hj
+
+theorem layout_lde (A : Air) (prm : Params) (hdr : List Nat) (L : TLayout) (hL : L ∈ layout A prm hdr) :
+    L.lde = L.log + prm.logBlowup := by
+  simp only [layout, List.mem_map] at hL
+  obtain ⟨⟨T, l⟩, _, rfl⟩ := hL
+  rfl
+
+theorem ds_mem_deepCols (lay : List TLayout) (m : Nat) (d : Col) (s : Bool)
+    (h : (d, s) ∈ deepCols lay m) : d.t < lay.length ∧ (lay.getD d.t default).lde = m := by
+  simp only [deepCols, List.mem_flatMap, List.mem_filter] at h
+  obtain ⟨⟨L, t⟩, ⟨hz, hm⟩, hb⟩ := h
+  have hz' := List.mem_zipIdx hz
+  simp only [Nat.zero_add, Nat.sub_zero] at hz'
+  have hdt : d.t = t := by
+    simp only [List.mem_append, List.mem_map, List.mem_range] at hb
+    rcases hb with ((((⟨c, _, he⟩ | ⟨c, _, he⟩) | ⟨c, _, he⟩) | ⟨c, _, he⟩) | ⟨c, _, he⟩) <;>
+      (cases he; rfl)
+  refine ⟨hdt ▸ hz'.2.1, ?_⟩
+  rw [hdt, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem hz'.2.1]
+  simp only [Option.getD_some]
+  rw [← hz'.2.2]; simpa using hm
+
+end ZkFormal.Udr.Np
+
+namespace ZkFormal.Udr.Np
+
+open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
+
+/-- The batched DEEP word as an offset sum over the DEEP columns. -/
+theorem deepAtPos_sOff {A : Air} {prm : Params} {τ : PTn} (Q : QData A prm τ) (m p : Nat) :
+    deepAtPos A prm τ m p =
+      sOff (deepCols (layOf A prm τ) m) 0 (fun j ds =>
+        (eqTable ((Q.rest).take (batchRounds (layOf A prm τ)))).getD j 0 *
+          ((colVal τ ds.1 p - claimed A prm τ ds.1 ds.2) *
+            (pt (n0Of A prm τ) m p - (if ds.2 then omg (tl A prm τ ds.1.t).log * zOf τ else zOf τ))⁻¹)) := by
+  have hbc : batchChals A prm τ = (Q.rest).take (batchRounds (layOf A prm τ)) := by
+    simp only [batchChals, nBatch, Q.hc, List.drop_succ_cons, List.drop_zero]
+  have hlen : ((Q.rest).take (batchRounds (layOf A prm τ))).length = batchRounds (layOf A prm τ) := by
+    have := Q.hrest; rw [Q.lay]; simp; omega
+  simp only [deepAtPos, batchedWord, hbc]
+  rw [batchAll_col, hlen, Nat.zero_mul]
+  generalize hrs : (Q.rest).take (batchRounds (layOf A prm τ)) = rs at hlen ⊢
+  -- the number of DEEP columns is at most `2^L`
+  have hN : (deepCols (layOf A prm τ) m).length ≤ 2 ^ batchRounds (layOf A prm τ) := by
+    cases hdc : deepCols (layOf A prm τ) m with
+    | nil => simp
+    | cons b bs =>
+      have hb : b ∈ deepCols (layOf A prm τ) m := by rw [hdc]; exact List.mem_cons_self ..
+      obtain ⟨ht, hlde⟩ := ds_mem_deepCols _ m b.1 b.2 hb
+      have hmem : (layOf A prm τ).getD b.1.t default ∈ layOf A prm τ := by
+        rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem ht]; exact List.getElem_mem ht
+      have := deepCols_length_le (layOf A prm τ) _ hmem
+      rw [hlde, hdc] at this; exact this
+  rw [sumR_trunc hN (fun j h1 _ => by
+    simp only [deepWord, Nat.zero_add, List.getElem?_eq_none h1]; grind)]
+  unfold sOff
+  apply sumR_congr
+  intro j hj
+  have he : (eqTable rs).getD j 0 = eqF rs j := eqTable_getD rs j (by rw [hlen]; omega)
+  simp only [deepWord, Nat.zero_add, he]
+  rw [List.getElem?_eq_getElem hj]
+
+theorem row_eq (o : Oracle Fp) (lay' : List TLayout) (w : TLayout → Nat)
+    (hfit : OFit o (lay'.map fun L => (L.lde, w L))) (x N m t : Nat)
+    (hlde : (lay'.getD t default).lde = m) :
+    (o.map fun M => M.row (x >>> (N - M.log))).getD t [] = (matOf o t).row (x >>> (N - m)) := by
+  obtain ⟨hlen, hk⟩ := hfit
+  rw [List.length_map] at hlen
+  by_cases ht : t < o.length
+  · obtain ⟨sh, hsh, hlog, -⟩ := hk t ht
+    rw [List.getElem?_map, List.getElem?_eq_getElem (by omega)] at hsh
+    have hl : o[t].log = m := by
+      rw [hlog, ← Option.some.inj hsh, ← hlde, List.getD_eq_getElem?_getD,
+        List.getElem?_eq_getElem (by omega)]
+      rfl
+    simp only [matOf, List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_eq_getElem ht,
+      Option.map_some, Option.getD_some, hl]
+  · rw [List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_eq_none (by omega)]
+    simp [matOf, List.getD_eq_getElem?_getD, List.getElem?_eq_none (Nat.le_of_not_lt ht)]
+
+theorem deepSem : DeepSemStmt := by
+  intro A prm _ τ hs hq hg x _ m _
+  obtain ⟨Q⟩ := qdata A prm τ hg
+  obtain ⟨o0, o1, o2, fris, hor, h0, h1, h2, -⟩ := query_oracles A prm Q.hdr τ hs hq Q.hh
+  let lay := layOf A prm τ
+  let oods := (splitOod lay Q.ood).1
+  let ps := lay.zip oods
+  have hps1 : ps.map (·.1) = lay := by
+    simp only [ps, oods]; rw [List.map_fst_zip]; rw [splitOod_len]; exact Nat.le_refl _
+  let eqs := eqTable ((Q.rest).take (batchRounds lay))
+  let p := x >>> (n0Of A prm τ - m)
+  let op := (Vnp A prm).trueOpenings τ x
+  let ω := omg (m - prm.logBlowup)
+  have hn0 : (Vnp A prm).queryLog Q.hdr = n0Of A prm τ := by
+    rw [Q.n0]; rfl
+  have hopk : ∀ k o, τ.oracles.getD k [] = o →
+      op.getD k [] = o.map (fun M => M.row (x >>> (n0Of A prm τ - M.log))) := by
+    intro k o hk
+    simp only [op, IopSpec.trueOpenings, Q.hh, hn0]
+    rw [List.getD_eq_getElem?_getD, List.getElem?_map]
+    rw [List.getD_eq_getElem?_getD] at hk
+    cases h : τ.oracles[k]? with
+    | none => rw [h] at hk; simp at hk; subst hk; simp
+    | some o' => rw [h] at hk; simp at hk; subst hk; simp
+  have hlayQ : lay = layout A prm Q.hdr := Q.lay
+  have hv : ∀ (k : Nat) (w : TLayout → Nat), k < 3 → OFit (τ.oracles.getD k []) ((layout A prm Q.hdr).map fun L => (L.lde, w L)) →
+      ∀ t, (lay.getD t default).lde = m →
+        (op.getD k []).getD t [] = (matOf (oracleOf τ k) t).row p := by
+    intro k w _ hfit t hl
+    rw [hopk k _ rfl]
+    exact row_eq _ (layout A prm Q.hdr) w hfit x (n0Of A prm τ) m t (by rw [← hlayQ]; exact hl)
+  have hf0 : OFit (τ.oracles.getD 0 []) ((layout A prm Q.hdr).map fun L => (L.lde, L.width)) := by
+    rw [hor]; exact h0
+  have hf1 : OFit (τ.oracles.getD 1 []) ((layout A prm Q.hdr).map fun L => (L.lde, 8 * L.aux)) := by
+    rw [hor]; exact h1
+  have hf2 : OFit (τ.oracles.getD 2 []) ((layout A prm Q.hdr).map fun L => (L.lde, 8 * L.quot)) := by
+    rw [hor]; exact h2
+  let oodF : Nat → TOod Fp8 := fun t =>
+    ((splitOod (layOf A prm τ) (τ.elems.getD 1 [])).1).getD t ⟨[], [], [], [], []⟩
+  have hood : τ.elems.getD 1 [] = Q.ood := by rw [Q.he]; rfl
+  have hcs := class_sum eqs m (zOf τ) ω (pt (n0Of A prm τ) m p) (fun d => colVal τ d p)
+    (claimed A prm τ) (fun t => (op.getD 0 []).getD t []) (fun t => (op.getD 1 []).getD t [])
+    (fun t => (op.getD 2 []).getD t []) oodF (fun t => lay.getD t default)
+    (fun t c hl => by rw [hv 0 _ (by omega) hf0 t hl]; simp [colVal])
+    (fun t c hl => by rw [hv 1 _ (by omega) hf1 t hl]; simp [colVal])
+    (fun t c hl => by rw [hv 2 _ (by omega) hf2 t hl]; simp [colVal])
+    (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl)
+    ps [] 0
+    (fun k hk => by
+      simp only [ps, oods, oodF, hood, List.getElem_zip, Nat.zero_add]
+      rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem]; rfl)
+    (fun k hk => by
+      simp only [ps, List.getElem_zip, Nat.zero_add]
+      rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem]; rfl)
+  simp only [hps1] at hcs
+  have hdc : deepCols lay m = ((lay.zipIdx 0).filter fun (L, _) => L.lde == m).flatMap
+      (fun (L, t) => blkOf L t) := rfl
+  -- the right-hand side
+  rw [deepAtPos_sOff Q m p]
+  have hlog : ∀ t, (lay.getD t default).lde = m → (lay.getD t default).log = m - prm.logBlowup := by
+    intro t ht
+    by_cases hlt : t < lay.length
+    · have hmem : lay.getD t default ∈ layout A prm Q.hdr := by
+        rw [← hlayQ, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem hlt]
+        exact List.getElem_mem hlt
+      have := layout_lde A prm Q.hdr _ hmem; omega
+    · rw [List.getD_eq_getElem?_getD, List.getElem?_eq_none (by omega)] at ht ⊢
+      have e1 : (default : TLayout).lde = 0 := rfl
+      have e2 : (default : TLayout).log = 0 := rfl
+      simp only [Option.getD_none] at ht ⊢
+      omega
+  rw [show sOff (deepCols (layOf A prm τ) m) 0 _ = sOff (deepCols lay m) 0 _ from rfl]
+  rw [sOff_congr (deepCols lay m) 0 _ (fun j ds => eqs.getD j 0 * ((fun d => colVal τ d p) ds.1 -
+      claimed A prm τ ds.1 ds.2) * (pt (n0Of A prm τ) m p - (if ds.2 then ω * zOf τ else zOf τ))⁻¹)
+      (fun j hj => by
+        have hm := ds_mem_deepCols lay m _ _ (List.getElem_mem hj)
+        have hl := hlog _ hm.2
+        have hl' : (tl A prm τ (deepCols lay m)[j].1.t).log = m - prm.logBlowup := hl
+        simp only [Nat.zero_add, hl']
+        grind)]
+  rw [hdc]
+  refine Eq.trans ?_ hcs
+  -- the left-hand side
+  rw [deepAt_eq]
+  simp only [prepF_lay Q, prepF_n0 Q, prepF_z Q, prep_deep Q]
+  rw [fold_stepD _ _ ([], []) [] (fun _ => rfl), List.nil_append]
+  simp only [lay, eqs, ps, oods, op, p]
+  generalize hR : List.filter (fun x => x.fst.fst.lde == m) ((layOf A prm τ).zip
+    (tdList (eqTable (List.take (batchRounds (layOf A prm τ)) Q.rest)) []
+      ((layOf A prm τ).zip (splitOod (layOf A prm τ) Q.ood).fst))).zipIdx = R
+  cases R with
+  | nil => simp only [sumL, List.foldr_nil]; grind
+  | cons r0 rs =>
+    obtain ⟨⟨L0, d0⟩, t0⟩ := r0
+    have hmem : ((L0, d0), t0) ∈ List.filter (fun x => x.fst.fst.lde == m) ((layOf A prm τ).zip
+        (tdList (eqTable (List.take (batchRounds (layOf A prm τ)) Q.rest)) []
+          ((layOf A prm τ).zip (splitOod (layOf A prm τ) Q.ood).fst))).zipIdx := by
+      rw [hR]; exact List.mem_cons_self ..
+    rw [List.mem_filter] at hmem
+    have hz := List.mem_zipIdx hmem.1
+    have hLd : (L0, d0) ∈ (layOf A prm τ).zip
+        (tdList (eqTable (List.take (batchRounds (layOf A prm τ)) Q.rest)) []
+          ((layOf A prm τ).zip (splitOod (layOf A prm τ) Q.ood).fst)) := by
+      rw [hz.2.2]; exact List.getElem_mem _
+    have hL0 : L0 ∈ layout A prm Q.hdr := by rw [← Q.lay]; exact (List.of_mem_zip hLd).1
+    have hlde : L0.lde = m := by simpa using hmem.2
+    have hl0 : L0.log = m - prm.logBlowup := by have := layout_lde A prm Q.hdr L0 hL0; omega
+    simp only [hl0]
+    simp only [Field.div_eq_mul_inv]
+    rfl
 
 end ZkFormal.Udr.Np

@@ -122,3 +122,5 @@ import ZkFormal.Bcs.PosCount
 import ZkFormal.Bcs.TransFinal
 import ZkFormal.Bcs.DecQuery
 import ZkFormal.Udr.SumR
+import ZkFormal.Udr.Np.DeepSem
+import ZkFormal.Udr.Np.Main
