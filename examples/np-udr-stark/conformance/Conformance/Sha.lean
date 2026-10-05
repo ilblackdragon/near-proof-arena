@@ -53,6 +53,6 @@ def toyByte (i j : Nat) : Nat := (37 * j + 11 * i + 5) % 256
 
 def toyMsgs (lens : List Nat) : List ZkFormal.Sha.Gen.Msg :=
   (lens.zip (List.range lens.length)).map fun (n, i) =>
-    { id := i + 1, bytes := (List.range n).map (toyByte i), dmult := 1 }
+    { id := i + 1, bytes := (List.range n).map (toyByte i), dmult := true }
 
 end Conformance.Sha

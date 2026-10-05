@@ -125,7 +125,7 @@ if cmp -s "$out/rust-sha.json" "$out/lean-sha.json"; then pass "export sha byte-
 if "$le" --roundtrip "$out/rust-sha.json" >/dev/null; then pass "roundtrip sha"; else bad "roundtrip sha"; fi
 
 echo "== SHA toy: honest trace, Rust (npudr shatrace) vs Lean (ZkFormal.Sha.Gen)"
-IFS=';' read -ra cases <<< "${SHA_CASES:-0;55;56;64;119;951;1000;0 55 56 64 119 1000 3}"
+IFS=';' read -ra cases <<< "${SHA_CASES:-0;3;55;56;64;119;120;951;1000;0 3 55 56 64 120 1000}"
 for c in "${cases[@]}"; do
   f=$(echo $c | tr ' ' _)
   $HEAVY "$here/.lake/build/bin/np-lean-shatrace" "$out/sha-lean-$f.bin" $c 2>/dev/null

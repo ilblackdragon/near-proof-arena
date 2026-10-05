@@ -393,7 +393,8 @@ pub fn sha_air() -> Air {
 pub struct Msg {
     pub id: u32,
     pub bytes: Vec<u8>,
-    pub dmult: u32,
+    /// whether the digest is provided on the digest bus (`Gen.Msg.dmult : Bool`)
+    pub dmult: bool,
 }
 
 /// `Conformance.Sha.toyMsgs`: message `i` has id `i+1`, dmult 1, byte `j` =
@@ -404,7 +405,7 @@ pub fn toy_msgs(lens: &[usize]) -> Vec<Msg> {
         .map(|(i, &len)| Msg {
             id: i as u32 + 1,
             bytes: (0..len).map(|j| ((37 * j + 11 * i + 5) % 256) as u8).collect(),
-            dmult: 1,
+            dmult: true,
         })
         .collect()
 }
@@ -648,7 +649,7 @@ pub fn sha_traces(msgs: &[Msg]) -> Vec<RowMajorMatrix<F>> {
         for (p, &x) in d.iter().enumerate() {
             row[2 + p] = F::new(x as u32);
         }
-        row[34] = F::new(m.dmult);
+        row[34] = F::new(m.dmult as u32);
     }
     vec![to_matrix(&cells, WIDTH), RowMajorMatrix::new(bytes, 4), RowMajorMatrix::new(dig, 35)]
 }
