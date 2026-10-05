@@ -60,7 +60,7 @@ theorem fr_padbyte (cur nx : Row) (hc : CurRow cur) (j q : Nat) (hj : j < 4) (hq
     by_cases hd : 64 * b + (16 * j + q) < M.bytes.length
     · rw [if_pos ⟨hj, hd⟩]; omega
     · rw [pad_mid _ _ (by omega) (by omega)]
-      ites
+      sha_ites
   · apply cur_round' f lst p cur nx hc j (by omega)
     intro M b hM hb
     have hn := blk_arith M b hb
@@ -71,9 +71,9 @@ theorem fr_padbyte (cur nx : Row) (hc : CurRow cur) (j q : Nat) (hj : j < 4) (hq
     · rw [if_pos ⟨hj, hd⟩]; omega
     · by_cases hl : b + 1 = nb M
       · rw [if_pos hl]
-        ites
+        sha_ites
       · rw [pad_mid _ _ (by omega) (by omega)]
-        ites
+        sha_ites
 
 /-- The last block ends with the 64-bit length: words 14, 15 are `0`, `8·len`. -/
 theorem last_words (M : Msg) (b : Nat) (hM : MOk M) (hb : b < nb M) (hlast : b + 1 = nb M) :

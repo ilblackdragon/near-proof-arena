@@ -84,7 +84,7 @@ theorem fr_Fchain (cur nx : Row) (hs : Step cur nx) (j : Nat) (hj1 : 1 ≤ j) (h
   cases hs with
   | round M b j' hM hb hj' =>
     simp only [kR, zev_n, zev_c, renv_nxt, renv_cur, rowCell_round, r_Fprev, r_F M b j' 15 (by decide)]
-    ites
+    sha_ites
   | start M hM => simp only [kR]; rw [if_neg (by omega)]; simp
   | dnext M b hM hb => simp only [kR]; rw [if_neg (by omega)]; simp
   | r15 M b hM hb => simp [kR]
@@ -99,11 +99,11 @@ theorem fr_Nd (cur nx : Row) (hs : Step cur nx) :
   | start M hM =>
     rw [fsum_round]
     simp only [kS, kD, gateV, List.mem_range, zev_n, zev_c, renv_nxt, renv_cur, rowCell_round, r_Nd]
-    ites
+    sha_ites
   | round M b j hM hb hj =>
     rw [fsum_round]
     simp only [kS, kD, gateV, List.mem_range, zev_n, zev_c, renv_nxt, renv_cur, rowCell_round, r_Nd]
-    ites
+    sha_ites
   | r15 M b hM hb =>
     rw [fsum_digest]
     simp only [kS, kD, gateV, zev_n, zev_c, renv_nxt, renv_cur, rowCell_round, rowCell_digest, r_Nd, d_Nd]
@@ -112,7 +112,7 @@ theorem fr_Nd (cur nx : Row) (hs : Step cur nx) :
     rw [fsum_round]
     simp only [kS, kD, gateV, List.mem_range, zev_n, zev_c, renv_nxt, renv_cur, rowCell_round,
       rowCell_digest, r_Nd, d_Nd]
-    ites
+    sha_ites
   | dlast M b hM hb _ hX => rw [gateV_ps _ hX, ps_kD _ hX]; simp
   | pad _ hX => rw [gateV_ps _ hX, ps_kD _ hX]; simp
 
@@ -164,11 +164,11 @@ theorem fr_SeenR0 (cur nx : Row) (hs : Step cur nx) :
   | start M hM =>
     simp only [kR, zev_n, zev_mul, zev_add, zev_c, renv_nxt, renv_cur, rowCell_round, rowCell_start, r_Seen,
       sc_D, sc_Seen, sc_P80]
-    ites
+    sha_ites
   | dnext M b hM hb =>
     simp only [kR, zev_n, zev_mul, zev_add, zev_c, renv_nxt, renv_cur, rowCell_round, rowCell_digest,
       r_Seen, d_Seen, d_P80, dc_D]
-    ites
+    sha_ites
   | round M b j hM hb hj => simp [kR]
   | r15 M b hM hb => simp [kR]
   | dlast M b hM hb _ hX => rw [ps_kR _ hX]; simp

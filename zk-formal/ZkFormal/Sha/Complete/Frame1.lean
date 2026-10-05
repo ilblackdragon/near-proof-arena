@@ -10,7 +10,7 @@ namespace ZkFormal.Sha.Complete
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Sha.Gen ZkFormal.Sha.Layout ZkFormal.Sha.Table
 
 /-- Split every `if` and close the arithmetic. -/
-macro "ites" : tactic => `(tactic| (repeat' split) <;> omega)
+macro "sha_ites" : tactic => `(tactic| (repeat' split) <;> omega)
 
 section
 variable (f lst : Int) (p : Nat → Int)
@@ -49,7 +49,7 @@ theorem fr_mono (cur nx : Row) (hc : CurRow cur) (q : Nat) (hq : q < 15) :
   · intro M b j _ _ _
     simp only [zev_mul, zev_not, zev_c, renv_cur, rowCell_round, r_F M b j _ (by omega : q + 1 < 16),
       r_F M b j q (by omega)]
-    ites
+    sha_ites
   · intro M b _ _; simp [dc_F _ _ (by omega : q + 1 < 16)]
   · simp
 
@@ -59,7 +59,7 @@ theorem fr_F0prev (cur nx : Row) (hc : CurRow cur) :
   · intro M _; simp [cell_F_start _ 0 (by decide)]
   · intro M b j _ _ _
     simp only [zev_mul, zev_not, zev_c, renv_cur, rowCell_round, r_F M b j 0 (by decide), r_Fprev]
-    ites
+    sha_ites
   · intro M b _ _; simp [dc_F _ 0 (by decide)]
   · simp
 
@@ -70,7 +70,7 @@ theorem fr_msgC (cur nx : Row) (hc : CurRow cur) :
   · intro M b j _ _ _
     simp only [zev_mul, zev_not, zev_gMsgC, zev_c, renv_cur, rowCell_round, r_F M b j 0 (by decide),
       gateV, List.mem_range]
-    ites
+    sha_ites
   · intro M b _ _; simp [dc_F _ 0 (by decide)]
   · simp
 
@@ -80,7 +80,7 @@ theorem fr_R0prev (cur nx : Row) (hc : CurRow cur) :
   · intro M _; simp [zev_cR _ _ _ _ _ 0 (by decide), kR]
   · intro M b j _ _ _
     simp only [zev_mul, zev_not, zev_cR _ _ _ _ _ 0 (by decide), kR, zev_c, renv_cur, rowCell_round, r_Fprev]
-    ites
+    sha_ites
   · intro M b _ _; simp [zev_cR _ _ _ _ _ 0 (by decide), kR]
   · simp [zev_cR _ _ _ _ _ 0 (by decide), kR]
 
@@ -90,10 +90,10 @@ theorem fr_Pn (cur nx : Row) (hc : CurRow cur) :
   · intro M _; simp
   · intro M b j _ _ _
     simp only [zev_sub, zev_mul, zev_not, zev_c, renv_cur, rowCell_round, r_Pn, r_P80, r_Last]
-    ites
+    sha_ites
   · intro M b _ _
     simp only [zev_sub, zev_mul, zev_not, zev_c, renv_cur, rowCell_digest, d_Pn, d_P80, d_Last]
-    ites
+    sha_ites
   · simp
 
 theorem fr_SeenP80 (cur nx : Row) (hc : CurRow cur) :
@@ -102,10 +102,10 @@ theorem fr_SeenP80 (cur nx : Row) (hc : CurRow cur) :
   · intro M _; simp
   · intro M b j _ _ _
     simp only [zev_mul, zev_c, renv_cur, rowCell_round, r_Seen, r_P80]
-    ites
+    sha_ites
   · intro M b _ _
     simp only [zev_mul, zev_c, renv_cur, rowCell_digest, d_Seen, d_P80]
-    ites
+    sha_ites
   · simp
 
 theorem fr_Dmult1 (cur nx : Row) (hc : CurRow cur) :
@@ -115,7 +115,7 @@ theorem fr_Dmult1 (cur nx : Row) (hc : CurRow cur) :
   · intro M b j _ _ _; simp [rc_Dmult]
   · intro M b _ _
     simp only [zev_mul, zev_not, zev_c, renv_cur, rowCell_digest, d_Dmult, dc_D]
-    ites
+    sha_ites
   · simp
 
 theorem fr_Dmult2 (cur nx : Row) (hc : CurRow cur) :
@@ -125,7 +125,7 @@ theorem fr_Dmult2 (cur nx : Row) (hc : CurRow cur) :
   · intro M b j _ _ _; simp [rc_Dmult]
   · intro M b _ _
     simp only [zev_mul, zev_not, zev_c, renv_cur, rowCell_digest, d_Dmult, d_Last]
-    ites
+    sha_ites
   · simp
 
 /-! ## Block-level padding structure (round rows only) -/
@@ -168,7 +168,7 @@ theorem fr_blk1 (cur nx : Row) (hc : CurRow cur) :
   intro M b _ hb
   have := blk_arith M b hb
   simp only [zev_mul, zev_c, renv_cur, rowCell_round, r_P80, r_F M b 3 15 (by decide)]
-  ites
+  sha_ites
 
 theorem fr_blk2 (cur nx : Row) (hc : CurRow cur) :
     zev (renv cur nx f lst p)
@@ -178,14 +178,14 @@ theorem fr_blk2 (cur nx : Row) (hc : CurRow cur) :
   have := blk_arith M b hb
   simp only [zev_mul, zev_sub, zev_not, zev_c, renv_cur, rowCell_round, r_P80, r_Seen,
     r_F M b 3 15 (by decide)]
-  ites
+  sha_ites
 
 theorem fr_blk3 (cur nx : Row) (hc : CurRow cur) :
     zev (renv cur nx f lst p) (.mul (.mul (E.c (colR 0)) (E.c colSeen)) (E.c (colF 0))) = 0 := by
   apply cur_round' f lst p cur nx hc 0 (by decide)
   intro M b _ hb
   simp only [zev_mul, zev_c, renv_cur, rowCell_round, r_Seen, r_F M b 0 0 (by decide)]
-  ites
+  sha_ites
 
 theorem fr_blk4 (cur nx : Row) (hc : CurRow cur) :
     zev (renv cur nx f lst p)
@@ -194,7 +194,7 @@ theorem fr_blk4 (cur nx : Row) (hc : CurRow cur) :
   intro M b _ hb
   have := blk_arith M b hb
   simp only [zev_mul, zev_sub, zev_not, zev_c, renv_cur, rowCell_round, r_Seen, r_P80, r_Last]
-  ites
+  sha_ites
 
 theorem fr_blk5 (cur nx : Row) (hc : CurRow cur) :
     zev (renv cur nx f lst p) (.mul (.mul (E.c (colR 0)) (E.c colSeen)) (E.not (E.c colLast))) = 0 := by
@@ -202,7 +202,7 @@ theorem fr_blk5 (cur nx : Row) (hc : CurRow cur) :
   intro M b _ hb
   have := blk_arith M b hb
   simp only [zev_mul, zev_not, zev_c, renv_cur, rowCell_round, r_Seen, r_Last]
-  ites
+  sha_ites
 
 theorem fr_blk6 (cur nx : Row) (hc : CurRow cur) :
     zev (renv cur nx f lst p) (.mul (.mul (E.c (colR 3)) (E.c colLast)) (E.c (colF 8))) = 0 := by
@@ -210,7 +210,7 @@ theorem fr_blk6 (cur nx : Row) (hc : CurRow cur) :
   intro M b _ hb
   have := blk_arith M b hb
   simp only [zev_mul, zev_c, renv_cur, rowCell_round, r_Last, r_F M b 3 8 (by decide)]
-  ites
+  sha_ites
 
 theorem fr_blk7 (cur nx : Row) (hc : CurRow cur) :
     zev (renv cur nx f lst p)
@@ -222,7 +222,7 @@ theorem fr_blk7 (cur nx : Row) (hc : CurRow cur) :
     r_F M b 3 8 (by decide)]
   simp only [Nat.reduceEqDiff, if_false]
   simp only [zev_c, renv_cur, rowCell_round, r_F M b 3 7 (by decide)]
-  ites
+  sha_ites
 
 theorem fr_blk8 (cur nx : Row) (hc : CurRow cur) :
     zev (renv cur nx f lst p) (.mul (.mul (E.c (colR 3)) (E.c colPn)) (E.not (E.c (colF 7)))) = 0 := by
@@ -230,7 +230,7 @@ theorem fr_blk8 (cur nx : Row) (hc : CurRow cur) :
   intro M b _ hb
   have := blk_arith M b hb
   simp only [zev_mul, zev_not, zev_c, renv_cur, rowCell_round, r_Pn, r_F M b 3 7 (by decide)]
-  ites
+  sha_ites
 
 end
 
