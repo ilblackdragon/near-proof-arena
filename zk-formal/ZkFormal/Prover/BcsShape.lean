@@ -134,6 +134,14 @@ theorem sched_head (hw : ProverWf V pr cb) :
 
 theorem inv_init : Inv V pr cb (V.schedule pr.hdr) (PT.init cb) := ⟨.init, rfl⟩
 
+theorem inv_next (hw : ProverWf V pr cb) {parts : List Part} {ss : List Slot}
+    {τ : PT K (Oracle F)} (h : Inv V pr cb (.msg parts :: ss) τ) : V.NextIsProver τ := by
+  obtain ⟨hr, hd⟩ := h
+  have hg := getElem?_of_drop hd
+  by_cases he : τ.entries = []
+  · exact ⟨[.header V.numTables], by simp [slots_of_nil (V := V) he, he]⟩
+  · exact ⟨parts, by rw [slots_of_ne hw hr he]; exact hg⟩
+
 theorem inv_msg (hw : ProverWf V pr cb) {parts : List Part} {ss : List Slot}
     {τ : PT K (Oracle F)} (h : Inv V pr cb (.msg parts :: ss) τ) :
     Inv V pr cb ss (τ.push (pr.next τ)) ∧ Fits2 (pr.next τ) parts := by

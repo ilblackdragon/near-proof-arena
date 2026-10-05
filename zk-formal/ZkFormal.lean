@@ -105,3 +105,5 @@ import ZkFormal.Prover.BcsQuery
 import ZkFormal.Prover.BcsEval
 import ZkFormal.Prover.BcsTree
 import ZkFormal.Prover.BcsMulti
+import ZkFormal.Prover.BcsOpen
+import ZkFormal.Prover.BcsPrefix
