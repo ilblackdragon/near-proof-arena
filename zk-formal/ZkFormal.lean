@@ -95,7 +95,11 @@ import ZkFormal.Bcs.TransFinal
 import ZkFormal.Bcs.DecQuery
 import ZkFormal.Stark.L2Facts
 import ZkFormal.Stark.ChunkBound
+import ZkFormal.Assembly.Budget32
 import ZkFormal.Assembly.Params
 import ZkFormal.Assembly.RomBound
 import ZkFormal.Prover.Defs
 import ZkFormal.Prover.Statements
+import ZkFormal.Assembly.Guard
+import ZkFormal.Prover.Compose
+import ZkFormal.Assembly.Admission

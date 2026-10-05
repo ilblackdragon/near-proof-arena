@@ -1,5 +1,5 @@
 import ZkFormal.Udr.Rbr
-import ZkFormal.Bcs.Budget
+import ZkFormal.Assembly.Budget32
 
 /-!
 # ZkFormal.Assembly.Params — the numeric instantiation of L2's transport bound (lane L7)
@@ -101,22 +101,22 @@ theorem badAnswers_le : badAnswers ≤ 2 ^ 50 := by decide
 /-! ## The full bound `num · 2^128 ≤ den` -/
 
 /-- Full numeric bound at the profile budgets (2^64 hash, 2^40 prover queries)
-for any honest-prover / verifier unit budgets `≤ 2^30` and `K` chunk queries per
+for honest-prover unit budget `≤ 2^32`, verifier unit budget `≤ 2^30` and `K` chunk queries per
 proof and per verification. -/
-theorem full_ok (K g NPu NVu : Nat) (hK : 2 ≤ K) (hPu : NPu ≤ 2 ^ 30) (hVu : NVu ≤ 2 ^ 30)
+theorem full_ok (K g NPu NVu : Nat) (hK : 2 ≤ K) (hPu : NPu ≤ 2 ^ 32) (hVu : NVu ≤ 2 ^ 30)
     (hq : QueryOk K g) :
     Bcs.bcsNum K badAnswers (g ^ K) (2 ^ 64) (2 ^ 40) NPu NVu K K * 2 ^ 128 ≤ roRange ^ K :=
-  Bcs.budget K badAnswers (g ^ K) NPu NVu K K hK badAnswers_le hPu hVu hq
+  Bcs.budget32 K badAnswers (g ^ K) NPu NVu K K hK badAnswers_le hPu hVu hq
 
-theorem full_K26 (NPu NVu : Nat) (hPu : NPu ≤ 2 ^ 30) (hVu : NVu ≤ 2 ^ 30) :
+theorem full_K26 (NPu NVu : Nat) (hPu : NPu ≤ 2 ^ 32) (hVu : NVu ≤ 2 ^ 30) :
     Bcs.bcsNum 26 badAnswers (g2_5 ^ 26) (2 ^ 64) (2 ^ 40) NPu NVu 26 26 * 2 ^ 128 ≤ roRange ^ 26 :=
   full_ok 26 g2_5 NPu NVu (by decide) hPu hVu udr2_K26_ok
 
-theorem full_K24_min8 (NPu NVu : Nat) (hPu : NPu ≤ 2 ^ 30) (hVu : NVu ≤ 2 ^ 30) :
+theorem full_K24_min8 (NPu NVu : Nat) (hPu : NPu ≤ 2 ^ 32) (hVu : NVu ≤ 2 ^ 30) :
     Bcs.bcsNum 24 badAnswers (g2_8 ^ 24) (2 ^ 64) (2 ^ 40) NPu NVu 24 24 * 2 ^ 128 ≤ roRange ^ 24 :=
   full_ok 24 g2_8 NPu NVu (by decide) hPu hVu udr2_K24_min8_ok
 
-theorem full_K40_udr3 (NPu NVu : Nat) (hPu : NPu ≤ 2 ^ 30) (hVu : NVu ≤ 2 ^ 30) :
+theorem full_K40_udr3 (NPu NVu : Nat) (hPu : NPu ≤ 2 ^ 32) (hVu : NVu ≤ 2 ^ 30) :
     Bcs.bcsNum 40 badAnswers (g3_5 ^ 40) (2 ^ 64) (2 ^ 40) NPu NVu 40 40 * 2 ^ 128 ≤ roRange ^ 40 :=
   full_ok 40 g3_5 NPu NVu (by decide) hPu hVu udr3_K40_ok
 

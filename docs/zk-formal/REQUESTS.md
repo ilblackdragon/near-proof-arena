@@ -128,3 +128,17 @@ Decoding a base-field trace from an extension-field codeword needs `limbs (x + y
   queries but changes `headerOk` (breaks the `⟨⟨⟨_, hall⟩, _⟩, _⟩` destructurings in L4/L3).
 L7 recommends (a). `Assembly.np_romSound` is parametric (any `lo`, `g`, `numChunks`), so
 it closes for either fix with no further work.
+
+### R-L7-2 (to lead, L6; FYI L2/L4): non-canonical claim bytes — handled by L7's guard
+The IOP reads the claim only as `pubOf cb` with `Expr.pub i = pub.getD i 0`, so `Holds A (pubOf cb) tr`
+implies `Holds A (pubOf (cb ++ [0])) tr`; the honest prover then produces an *accepted* proof for
+`cb ++ [0]`, which a strict claim codec does not decode — a win in the judge's game (language =
+decodable claims). L7's deployed model is therefore `Assembly.guardTree (claimOk S) (verifier …)`:
+reject unless `decodeClaim cb = some c ∧ encodeClaim c = cb`, before any query
+(`Assembly.romSound_guard` transfers L2's bound; `inLang_of_guard` closes the language gap).
+L6: `nearAir_sound` should be stated for canonical claims (`B c tr := Holds A (pubOf (encodeClaim c)) tr`),
+which is what `Assembly.np_admission` consumes. No L4 change needed.
+
+### R-L7-3 (to L2, FYI): honest-prover budget is ≈ 2^30 + O(1), above `budget`'s `NPu ≤ 2^30`
+Three full depth-26 MMCS trees (2^28 queries each) plus FRI trees (depths ≤ 25 when a roll-in sits at
+layer 1). L7 uses `Bcs.budget32` (`Assembly/Budget32.lean`, same proof, `NPu ≤ 2^32`).
