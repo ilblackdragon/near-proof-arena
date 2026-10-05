@@ -81,18 +81,26 @@ theorem passK_succ (S : Setup K) (R : Run K) {k i : Nat} (hik : i + (k + 1) = S.
   have h0 : S.r - (k + 1) = i := by omega
   rw [passK, h1, h0]
 
-/-- The layer-by-layer pass-set argument, layer `i = r - k`. -/
+/-- The roll-in word `G i` is `e (i+1)`-close to the layer-`(i+1)` RS code. -/
+def RollClose (S : Setup K) (R : Run K) (e : Nat → Nat) (i : Nat) : Prop :=
+  ∃ q : Nat → K,
+    count (List.range (S.nn (i + 1))) (fun j => R.G i j () ≠ ev (S.DD (i + 1)) q (S.xs (i + 1) j))
+      ≤ e (i + 1)
+
+/-- The layer-by-layer pass-set argument, layer `i = r - k`; also every
+roll-in word from layer `i` upward is close to its code. -/
 theorem fri_layer (S : Setup K) (R : Run K) (e : Nat → Nat)
     (he : ∀ i, i < S.r → e i ≤ 2 * e (i + 1)) (hgood : GoodChallenges S R e) :
     ∀ k i, i + k = S.r → S.nn i - e i ≤ count (List.range (S.nn i)) (passK S R k) →
-      ∃ p : Nat → K, ∀ j, j < S.nn i → passK S R k j →
-        R.f i j () = ev (S.DD i) p (S.xs i j) := by
+      (∃ p : Nat → K, ∀ j, j < S.nn i → passK S R k j →
+        R.f i j () = ev (S.DD i) p (S.xs i j)) ∧
+      ∀ i', i ≤ i' → i' < S.r → RollClose S R e i' := by
   intro k
   induction k with
   | zero =>
     intro i hi _
     rw [show i = S.r by omega]
-    exact ⟨R.pr, fun j _ hj => hj⟩
+    exact ⟨⟨R.pr, fun j _ hj => hj⟩, fun i' h1 h2 => absurd h2 (by omega)⟩
   | succ k ih =>
     intro i hik hcnt
     have hir : i < S.r := by omega
@@ -105,7 +113,7 @@ theorem fri_layer (S : Setup K) (R : Run K) (e : Nat → Nat)
       exact Nat.le_trans hcnt (Nat.le_of_eq (count_congr_mem _ fun j _ => hP j))
     have hei := he i hir
     have hAle : S.nn (i + 1) - e (i + 1) ≤ count (List.range (S.nn (i + 1))) A := by omega
-    obtain ⟨q, hq⟩ := ih (i + 1) (by omega)
+    obtain ⟨⟨q, hq⟩, hup⟩ := ih (i + 1) (by omega)
       (Nat.le_trans hAle (count_mono _ fun j h => h.2))
     let c : Word Unit K := fun j _ => ev (S.DD (i + 1)) q (S.xs (i + 1) j)
     have hc : (S.code (i + 1) hir).mem c := ⟨q, fun j _ => rfl⟩
@@ -118,7 +126,17 @@ theorem fri_layer (S : Setup K) (R : Run K) (e : Nat → Nat)
       intro j hj hA
       rw [← hA.1]
       funext u; cases u; exact hq j hj hA.2
-    obtain ⟨v0, _, hv0, _, hS1⟩ := (hgood i hir).2 c hc (hdA _ _ hroll)
+    obtain ⟨v0, v1, hv0, hv1, hS1⟩ := (hgood i hir).2 c hc (hdA _ _ hroll)
+    have hrollI : RollClose S R e i := by
+      obtain ⟨Q1, hQ1⟩ := hv1
+      refine ⟨Q1, Nat.le_trans (count_mono_mem _ (F := fun j => R.G i j ≠ v1 j) fun j hj hne heq => hne ?_)
+        (hdA (R.G i) v1 fun j hj hA => (hS1 j hj (hroll j hj hA)).2)⟩
+      rw [← hQ1 j (List.mem_range.mp hj), heq]
+    refine ⟨?_, fun i' h1 h2 => ?_⟩
+    rotate_left
+    · by_cases hii : i' = i
+      · exact hii ▸ hrollI
+      · exact hup i' (by omega) h2
     have hfold : ∀ j, j < S.nn (i + 1) → A j → foldW S R i j = v0 j :=
       fun j hj hA => (hS1 j hj (hroll j hj hA)).1
     obtain ⟨a0, a1, ha0, ha1, hS2⟩ := (hgood i hir).1 v0 hv0 (hdA _ _ hfold)
@@ -167,6 +185,12 @@ end Fri
 /-- **FRI pass-set argument** (unique decoding, no weights). -/
 theorem fri : FriStmt := by
   intro K _ S R e he hgood hcnt
-  exact Fri.fri_layer S R e he hgood S.r 0 (Nat.zero_add _) hcnt
+  exact (Fri.fri_layer S R e he hgood S.r 0 (Nat.zero_add _) hcnt).1
+
+/-- **FRI roll-in closeness**: every roll-in word `G i` (`i < r`) is
+`e (i+1)`-close to the layer-`(i+1)` code. -/
+theorem friRoll : FriRollStmt := by
+  intro K _ S R e he hgood hcnt i hi
+  exact (Fri.fri_layer S R e he hgood S.r 0 (Nat.zero_add _) hcnt).2 i (Nat.zero_le _) hi
 
 end ZkFormal.Udr
