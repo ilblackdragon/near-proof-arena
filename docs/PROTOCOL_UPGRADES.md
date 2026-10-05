@@ -313,3 +313,53 @@ still ADMITTED; the two native-lean entries are INFRA_ERROR because the
 native-lean Expected template is not part of the v1 family's pinned tree.
 `ArenaCore.SHA256Fast` (ZK backend) and the spec v2 modules likewise take
 effect only for a challenge that pins a tree containing them.
+
+### 7.5 Native-lean template pinned: v1-3 → v1-4, experimental successor (2026-10-05)
+
+**Why.** §7.4 showed that the v1 family's frozen tree (`6873c99`,
+`sha256:8090432a…`) predates `spec/lean/judge/Expected.native-lean.lean.template`
+(added in `6b9d74c`). The native-lean admissions on v1-2/v1-3 were therefore
+judged against a statement their challenge never pinned, and under the pin
+they fail as INFRA_ERROR. Governance decision (lead, under the local
+operator authority used for v1-1…v1-3): sign successors that pin a tree
+containing the template, with the v1 semantics unchanged.
+
+**Tree.** `formal-core/` + `spec/lean/` at `cf5f1f5` (the commit that
+signed v1-3): `sha256:190e9a7d210c7a9086d1b0e3fc1c754bc72ea684b2113fbadfebfb13241fd111`
+(`arena-admin tree-digest` of `git archive cf5f1f5 -- formal-core spec/lean`
+and `spec/tools/tree_digest.py spec/lean formal-core` on a `cf5f1f5`
+checkout agree). Relative to `6873c99`, `git diff --name-status` shows:
+
+* added: the native-lean judge templates (`Expected.native-lean`,
+  `ExpectedV2`, `ExpectedV2.native-lean`), the spec v2 modules
+  (`TrieUpsert*`, `Bandwidth`, `TransferV2*`, `ClaimCodecV2`, `CodecV2`,
+  `ChallengeV2`, `ExamplesV2`, `Examples/V2*`), `scripts/gen_example_v2.py`;
+* modified, tooling only: `formal-core/InterpRef.lean` (a `batch` mode of
+  the reference interpreter CLI), `spec/lean/Main.lean` (the
+  `nearspec-check` CLI also decodes v2), `spec/lean/NearSpec.lean` (root
+  imports of the v2 modules);
+* unchanged: every module the v1 statement uses (`ArenaCore.*`,
+  `NearSpec.TransferV1`, `Challenge`, `ClaimCodec`, `Trie`, `Outcome`, …)
+  and `Expected.lean.template`. `ArenaCore.SHA256Fast` is **not** in it
+  (added later for the ZK backend).
+
+**Challenges** (`arena-admin supersede`, key
+`/data/illia/nearproof-deps/keys/governance-local.key`), each identical to
+its predecessor except `formal_spec.tree_digest`, `supersedes`,
+`created_at` (and `name` for v1-4):
+
+* `chl_f3903307cb9b064d75b35b6af461a0dc` `near-transfer-receipt-v1-4`
+  (formal) supersedes v1-3 `chl_fefb…`; v1-3's baseline and measurement
+  config are kept.
+* `chl_df55f9f7fc94060fdfd6bfeeb1c79c1f` (experimental, name unchanged
+  `near-transfer-receipt-v1-2`) supersedes `chl_b7c8…`; still no baseline.
+
+The formal config `near-transfer-receipt-v1.json` lists v1-4 as an alias.
+The trusted tree was published with `arena-live freeze-trusted cf5f1f5 …`
+before registration.
+
+**Experimental FORMAL_CHECK failures.** On an experimental challenge every
+FORMAL_CHECK gate is diagnostic, but a FORMAL_CHECK *job* that failed for
+good used to decide the whole run INFRA_ERROR. The control plane now records
+those gates UNKNOWN / `INFRA_ERROR` (with the error) and continues to
+conformance, adversarial and benchmark; formal tier is unchanged.
