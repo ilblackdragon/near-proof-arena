@@ -220,7 +220,15 @@ fn formal_check_near_statement_bwrap() {
     );
     let mut exec = exec;
     exec.ctx.formal = f.exec.ctx.formal.clone();
-    negatives(&f, &exec, near());
+    // Test-only re-pin (as tests/near.rs): the signed challenge pins the
+    // identity of one build of the host checker tools; this host's tools may
+    // have been rebuilt. The trusted tree pin is left untouched.
+    let mut chal = near();
+    chal.toolchain_policy.checker_image = arena_formal_checker::toolchain::ToolPaths::discover()
+        .unwrap()
+        .image_digest()
+        .unwrap();
+    negatives(&f, &exec, chal);
 }
 
 #[test]

@@ -19,6 +19,13 @@ ever letting a result silently change meaning.
    challenge's.
 5. "The old Lean proof still compiles" is never evidence that it still
    applies.
+6. The trusted Lean base is frozen per challenge. `formal_spec.tree_digest`
+   pins `formal-core/` + `spec/lean/`, and the judge builds the reference
+   only from the frozen tree with that digest (docs/TCB.md §1a). Changes to
+   those directories on `main` — new spec modules, new judge templates,
+   `ArenaCore.SHA256Fast` for the ZK backend — take effect **only** through a
+   new challenge that pins the new tree; existing challenges keep their tree
+   forever.
 
 ## 2. Upgrade flow
 
@@ -43,6 +50,11 @@ new nearcore release / protocol version
    held-out commitment, created_at) and signs it:
      arena-admin supersede --old challenges/<old>.json --draft <new>.json …
    (rejects protocol_version downgrade and non-increasing created_at)
+   and publishes the trusted tree it pins (formal_spec.tree_digest):
+     arena-admin freeze-trusted --commit <freeze commit> --store <ARENA_TRUSTED_TREES> \
+       --challenge challenges/<new>.json
+   (refuses unless the commit's formal-core + spec/lean hash to the pin;
+   registration in step 6 is refused until this is done)
 6. announce a grace period; when it is over, register the successor
    (admin API or ARENA_CHALLENGES_DIR). Registration closes the old challenge
    for new submissions in the same transaction (`open = false`, audit event
