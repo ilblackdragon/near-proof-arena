@@ -103,3 +103,43 @@ fn freeze_publishes_only_the_pinned_tree() {
     assert!(freeze(&repo(), COMMIT, &store, std::slice::from_ref(&pin)).is_err());
     make_writable(tmp.path());
 }
+
+/// v1-4 and the experimental successor pin the tree of commit cf5f1f5 (the
+/// v1 tree plus the native-lean templates and spec v2; no SHA256Fast).
+#[test]
+fn v1_4_pins_the_cf5f1f5_tree() {
+    const C: &str = "cf5f1f514a2cac4a6557cfde05dab5526749e707";
+    if !std::process::Command::new("git")
+        .arg("-C")
+        .arg(repo())
+        .args(["cat-file", "-e", &format!("{C}^{{commit}}")])
+        .status()
+        .is_ok_and(|s| s.success())
+    {
+        eprintln!("skipped: {C} not in this clone");
+        return;
+    }
+    let tmp = tempfile::tempdir().unwrap();
+    let store = tmp.path().join("store");
+    let defs: Vec<_> = [
+        "chl_f3903307cb9b064d75b35b6af461a0dc",
+        "chl_df55f9f7fc94060fdfd6bfeeb1c79c1f",
+    ]
+    .iter()
+    .map(|id| load_definition(&repo().join(format!("challenges/{id}.json"))).unwrap())
+    .collect();
+    let pins: Vec<Digest> = defs
+        .iter()
+        .map(|d| d.semantic_scope.formal_spec.tree_digest.clone())
+        .collect();
+    let f = freeze(&repo(), C, &store, &pins).unwrap();
+    for d in &defs {
+        assert!(check_available(&store, d).unwrap().is_some());
+    }
+    let entry = trusted_tree::entry_dir(&store, &f.digest);
+    assert!(entry
+        .join("spec/lean/judge/Expected.native-lean.lean.template")
+        .is_file());
+    assert!(!entry.join("formal-core/ArenaCore/SHA256Fast.lean").exists());
+    make_writable(tmp.path());
+}
