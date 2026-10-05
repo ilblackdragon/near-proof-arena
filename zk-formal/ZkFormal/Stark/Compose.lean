@@ -1,4 +1,6 @@
 import ZkFormal.Stark.Statements
+import ZkFormal.Stark.QueryBound
+import ZkFormal.Stark.NpBounds
 
 /-!
 # ZkFormal.Stark.Compose — L4 deliverables from the `Statements`
@@ -20,5 +22,18 @@ theorem verifier_queryBound (hQ1 : CompileQueryBoundStmt) (hQ2 : NpBoundsStmt)
     OracleComp.QueryBound unitWeight ((verifier F K A prm).tree pub cb pb) (NVu A prm) := by
   rw [verifier_eq_compile F K A prm pub cb pb, ← compileBound_np (F := F) (K := K) A prm]
   exact hQ1 F K _ _ _ _ (hQ2 F K A prm) pub cb pb
+
+end ZkFormal.Stark
+
+namespace ZkFormal.Stark
+
+open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Air
+
+/-- **`NVu`, unconditional**: every run of the deployed verifier tree makes at
+most `NVu A prm` oracle queries. -/
+theorem verifier_queryBound' {F K : Type} [Field F] [Field K] [StarkField F K] [DecidableEq F]
+    [DecidableEq K] (A : Air) (prm : Params) (pub cb pb : Bytes) :
+    OracleComp.QueryBound unitWeight ((verifier F K A prm).tree pub cb pb) (NVu A prm) :=
+  verifier_queryBound compile_queryBound np_bounds A prm pub cb pb
 
 end ZkFormal.Stark
