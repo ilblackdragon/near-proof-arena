@@ -158,6 +158,167 @@ theorem mpNode_spec {tbl : Table} {lvl : Nat} {ws : List Nat} {x : Nat} {lft rgt
       have := evalT_WH hh
       simpa [nodeMsg, Stark.tagNode, Bcs.tagNode, List.cons_append, List.append_assoc] using this
 
+
+/-! ## One level up -/
+
+/-- A node hashed at height `lvl` from 64-byte children and injected bytes `raw`. -/
+def NodeAt (tbl : Table) (lvl : Nat) (hp l rr raw : Bytes) : Prop :=
+  l.length = 64 ∧ rr.length = 64 ∧ WHin tbl (nodeMsg lvl l rr raw) hp
+
+/-- Postcondition of one `mpUp` level from nodes `L` to parents `L'`, recording `op`. -/
+def UpOK (tbl : Table) (k lvl : Nat) (ws : List Nat) (L L' : List (Nat × Bytes))
+    (op : Stark.Opened F) : Prop :=
+  (∀ p ∈ L', p.2.length = 64) ∧
+  (∀ e ∈ op, e.1.1 = k ∧ ∃ hp l rr raw, (e.1.2, hp) ∈ L' ∧ NodeAt tbl lvl hp l rr raw ∧
+     Stark.readRows (F := F) ws raw = some (e.2, [])) ∧
+  (∀ x h, (x, h) ∈ L → ∃ hp l rr raw, (x / 2, hp) ∈ L' ∧ NodeAt tbl lvl hp l rr raw ∧
+     (if x % 2 = 0 then l = h else rr = h) ∧ (ws ≠ [] → ∃ rows, ((k, x / 2), rows) ∈ op))
+
+/-- The `finish` step of `mpUp`: the children `C` of parent `x / 2` (with
+digests `lft`, `rgt`), then the rest `Lr`. -/
+theorem finish_spec (tbl : Table) (wf : TableWF tbl) (k lvl : Nat) (ws : List Nat) (x : Nat)
+    (lft rgt r1 : Bytes)
+    (recur : Bytes → OracleComp hashSpec (Option (List (Nat × Bytes) × Stark.Opened F × Bytes)))
+    (C Lr : List (Nat × Bytes)) (hlft : lft.length = 64) (hrgt : rgt.length = 64)
+    (hC : ∀ c ∈ C, c.1 / 2 = x / 2 ∧ (if c.1 % 2 = 0 then lft = c.2 else rgt = c.2))
+    (hrec : ∀ r2 L' op r3, evalT tbl (recur r2) = some (some (L', op, r3)) →
+      UpOK (F := F) tbl k lvl ws Lr L' op)
+    {L' : List (Nat × Bytes)} {op : Stark.Opened F} {r' : Bytes}
+    (h : evalT tbl (OracleComp.bind (Stark.mpNode (F := F) lvl ws (x / 2) lft rgt r1) fun
+        | none => .pure none
+        | some (nh, rows?, r2) =>
+          OracleComp.bind (recur r2) fun
+            | none => .pure none
+            | some (hs, op, r3) =>
+              .pure (some (nh :: hs, (match rows? with
+                | some rows => ((k, x / 2), rows) :: op
+                | none => op), r3))) = some (some (L', op, r'))) :
+    UpOK (F := F) tbl k lvl ws (C ++ Lr) L' op := by
+  obtain ⟨res, hres, h⟩ := evalT_bind_some h
+  rcases res with _ | ⟨⟨y, hp⟩, rows?, r2⟩
+  · simp [evalT] at h
+  obtain ⟨raw, rows, hrr, hy, hW, hrows⟩ := mpNode_spec hres
+  simp only at hy; subst hy; subst hrows
+  obtain ⟨res2, hres2, h⟩ := evalT_bind_some h
+  rcases res2 with _ | ⟨hs, op0, r3⟩
+  · simp [evalT] at h
+  obtain ⟨u1, u2, u3⟩ := hrec r2 hs op0 r3 hres2
+  have hnode : NodeAt tbl lvl hp lft rgt raw := ⟨hlft, hrgt, hW⟩
+  have hfin : L' = (x / 2, hp) :: hs ∧
+      op = (if ws.isEmpty then op0 else ((k, x / 2), rows) :: op0) := by
+    cases hws : ws.isEmpty <;> simp only [hws, evalT, Option.some.injEq, Prod.mk.injEq] at h <;>
+      exact ⟨h.1.symm, by simp [← h.2.1]⟩
+  obtain ⟨rfl, rfl⟩ := hfin
+  have hhead : ws ≠ [] → ((k, x / 2), rows) ∈ (if ws.isEmpty then op0 else ((k, x / 2), rows) :: op0) := by
+    intro hne
+    have : ws.isEmpty = false := by cases ws <;> simp_all
+    rw [this]; exact List.mem_cons_self
+  have htail : ∀ e ∈ op0, e ∈ (if ws.isEmpty then op0 else ((k, x / 2), rows) :: op0) := by
+    intro e he
+    split
+    · exact he
+    · exact List.mem_cons_of_mem _ he
+  refine ⟨?_, ?_, ?_⟩
+  · intro p hp'
+    rcases List.mem_cons.mp hp' with rfl | hp'
+    · exact hW.length wf
+    · exact u1 p hp'
+  · intro e he
+    split at he
+    · obtain ⟨e1, hp2, l, rr, raw2, hm, hn, hr⟩ := u2 e he
+      exact ⟨e1, hp2, l, rr, raw2, List.mem_cons_of_mem _ hm, hn, hr⟩
+    · rcases List.mem_cons.mp he with rfl | he
+      · exact ⟨rfl, hp, lft, rgt, raw, List.mem_cons_self, hnode, hrr⟩
+      · obtain ⟨e1, hp2, l, rr, raw2, hm, hn, hr⟩ := u2 e he
+        exact ⟨e1, hp2, l, rr, raw2, List.mem_cons_of_mem _ hm, hn, hr⟩
+  · intro c hc hm
+    rcases List.mem_append.mp hm with hm | hm
+    · obtain ⟨hc1, hc2⟩ := hC _ hm
+      simp only at hc1 hc2
+      refine ⟨hp, lft, rgt, raw, by rw [hc1]; exact List.mem_cons_self, hnode, hc2, fun hne => ?_⟩
+      exact ⟨rows, by rw [hc1]; exact hhead hne⟩
+    · obtain ⟨hp2, l, rr, raw2, hm2, hn, hch, hrw⟩ := u3 c hc hm
+      exact ⟨hp2, l, rr, raw2, List.mem_cons_of_mem _ hm2, hn, hch,
+        fun hne => (hrw hne).elim fun rs hrs => ⟨rs, htail _ hrs⟩⟩
+
+theorem mpUp_spec (tbl : Table) (wf : TableWF tbl) (k lvl : Nat) (ws : List Nat) :
+    ∀ (N : Nat) (L : List (Nat × Bytes)) (r : Bytes), L.length ≤ N → (∀ p ∈ L, p.2.length = 64) →
+      ∀ L' op r', evalT tbl (Stark.mpUp (F := F) k lvl ws L r) = some (some (L', op, r')) →
+        UpOK (F := F) tbl k lvl ws L L' op := by
+  intro N
+  induction N with
+  | zero =>
+    intro L r hN _ L' op r' h
+    match L with
+    | [] =>
+      simp only [Stark.mpUp, evalT, Option.some.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl, rfl⟩ := h
+      exact ⟨by simp, by simp, by simp⟩
+  | succ N ih =>
+    intro L r hN h64 L' op r' h
+    match L with
+    | [] =>
+      simp only [Stark.mpUp, evalT, Option.some.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl, rfl⟩ := h
+      exact ⟨by simp, by simp, by simp⟩
+    | (x, hx) :: tl =>
+      have hx64 : hx.length = 64 := h64 _ List.mem_cons_self
+      match tl with
+      | (x', hx') :: rest =>
+        have hx'64 : hx'.length = 64 := h64 _ (List.mem_cons_of_mem _ List.mem_cons_self)
+        have hrest64 : ∀ p ∈ rest, p.2.length = 64 := fun p hp =>
+          h64 p (List.mem_cons_of_mem _ (List.mem_cons_of_mem _ hp))
+        have htl64 : ∀ p ∈ (x', hx') :: rest, p.2.length = 64 := fun p hp =>
+          h64 p (List.mem_cons_of_mem _ hp)
+        have hr : rest.length ≤ N := by simp at hN; omega
+        have hr' : ((x', hx') :: rest).length ≤ N := by simp at hN; omega
+        simp only [Stark.mpUp] at h
+        split at h
+        · rename_i hc
+          exact finish_spec (F := F) tbl wf k lvl ws x hx hx' r _ [(x, hx), (x', hx')] rest hx64 hx'64
+            (by
+              intro c hc'
+              simp only [List.mem_cons, List.not_mem_nil, or_false] at hc'
+              rcases hc' with rfl | rfl
+              · simp [hc.1]
+              · simp only [hc.2]; refine ⟨by omega, ?_⟩
+                rw [ite_eq_right (by omega)]; trivial)
+            (fun r2 L' op r3 h => ih rest r2 hr hrest64 L' op r3 h) h
+        · split at h
+          · simp [evalT] at h
+          · rename_i s r1 hs
+            have hs64 : s.length = 64 := by
+              unfold Stark.take? at hs; split at hs
+              · simp only [Option.some.injEq, Prod.mk.injEq] at hs; rw [← hs.1]; simp; omega
+              · cases hs
+            split at h
+            · rename_i hc
+              exact finish_spec (F := F) tbl wf k lvl ws x hx s r1 _ [(x, hx)] ((x', hx') :: rest)
+                hx64 hs64 (by intro c hc'; simp at hc'; subst hc'; simp [hc])
+                (fun r2 L' op r3 h => ih _ r2 hr' htl64 L' op r3 h) h
+            · rename_i hc
+              exact finish_spec (F := F) tbl wf k lvl ws x s hx r1 _ [(x, hx)] ((x', hx') :: rest)
+                hs64 hx64 (by intro c hc'; simp at hc'; subst hc'; simp [hc])
+                (fun r2 L' op r3 h => ih _ r2 hr' htl64 L' op r3 h) h
+      | [] =>
+        simp only [Stark.mpUp] at h
+        split at h
+        · simp [evalT] at h
+        · rename_i s r1 hs
+          have hs64 : s.length = 64 := by
+            unfold Stark.take? at hs; split at hs
+            · simp only [Option.some.injEq, Prod.mk.injEq] at hs; rw [← hs.1]; simp; omega
+            · cases hs
+          split at h
+          · rename_i hc
+            exact finish_spec (F := F) tbl wf k lvl ws x hx s r1 _ [(x, hx)] []
+              hx64 hs64 (by intro c hc'; simp at hc'; subst hc'; simp [hc])
+              (fun r2 L' op r3 h => ih [] r2 (by simp) (by simp) L' op r3 h) h
+          · rename_i hc
+            exact finish_spec (F := F) tbl wf k lvl ws x s hx r1 _ [(x, hx)] []
+              hs64 hx64 (by intro c hc'; simp at hc'; subst hc'; simp [hc])
+              (fun r2 L' op r3 h => ih [] r2 (by simp) (by simp) L' op r3 h) h
+
 end
 
 end ZkFormal.Bcs.Multiproof
