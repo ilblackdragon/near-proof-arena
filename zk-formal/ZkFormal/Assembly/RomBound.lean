@@ -62,7 +62,7 @@ theorem np_romSound (A : Air) (prm : Params) (hprm : ShapeOk prm)
     (hR : Udr.RbrWith (Iop.verifier Fp Fp8 A prm) (Udr.AirLang Fp A) Fp8.all (2 ^ 36)
       (Udr.agreeUdr prm.logBlowup) D)
     (hNV : NVu A prm ≤ 2 ^ 30)
-    {S : ChallengeSpec} (P : TreeProver S) (pub : Bytes) (NPu : Nat) (hNP : NPu ≤ 2 ^ 30)
+    {S : ChallengeSpec} (P : TreeProver S) (pub : Bytes) (NPu : Nat) (hNP : NPu ≤ 2 ^ 32)
     (hPu : ∀ c w, OracleComp.QueryBound unitWeight (P.tree pub c w) NPu)
     (hPq : ∀ c w, OracleComp.QueryBound (qWeight Bcs.chunkDec) (P.tree pub c w) prm.numChunks) :
     ∃ tapeLen num den : Nat, num * 2 ^ 128 ≤ den ∧
@@ -92,9 +92,9 @@ theorem np_romSound (A : Air) (prm : Params) (hprm : ShapeOk prm)
     change 0 < prm.posPerChunk
     rw [hprm.ppc]; decide
   have hN : 2 ^ 64 + 2 ^ 40 * NPu + NVu A prm ≤ 2 ^ 100 := by
-    have : 2 ^ 40 * NPu ≤ 2 ^ 40 * 2 ^ 30 := Nat.mul_le_mul_left _ hNP
-    have e : (2 : Nat) ^ 40 * 2 ^ 30 = 2 ^ 70 := by rw [← Nat.pow_add]
-    have : (2 : Nat) ^ 64 + 2 ^ 70 + 2 ^ 30 ≤ 2 ^ 100 := by decide
+    have : 2 ^ 40 * NPu ≤ 2 ^ 40 * 2 ^ 32 := Nat.mul_le_mul_left _ hNP
+    have e : (2 : Nat) ^ 40 * 2 ^ 32 = 2 ^ 72 := by rw [← Nat.pow_add]
+    have : (2 : Nat) ^ 64 + 2 ^ 72 + 2 ^ 30 ≤ 2 ^ 100 := by decide
     omega
   have hrom := Bcs.Transport.stark_romSound_rbr (Iop.verifier Fp Fp8 A prm) hS hprm.k2 hprm.k32
     (Udr.AirLang Fp A) Fp8.all (2 ^ 36) (Udr.agreeUdr prm.logBlowup) D hR (2 * 3 ^ 8)

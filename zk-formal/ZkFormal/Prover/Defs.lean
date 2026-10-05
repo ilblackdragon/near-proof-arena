@@ -193,6 +193,10 @@ structure ProverWf (V : IopSpec F K) (pr : IopProver F K) (cb : Bytes) : Prop wh
   shaped : ∀ τ, Reach V pr cb τ → Udr.Shaped V τ
   /-- … and, once started, carries `pr.hdr` as its header. -/
   header : ∀ τ, Reach V pr cb τ → τ.entries ≠ [] → τ.header? = some pr.hdr
+  /-- Every header part the prover sends is `pr.hdr` (the parser checks each header
+  part against the proof header, so a second, different header part of the right
+  length would be rejected; `shaped` only fixes its length). -/
+  hdrParts : ∀ τ, Reach V pr cb τ → V.NextIsProver τ → ∀ l, PartV.header l ∈ pr.next τ → l = pr.hdr
 
 end
 
