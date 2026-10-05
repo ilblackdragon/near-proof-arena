@@ -182,3 +182,14 @@ model `nearModel nearAir`), from **only** L6's `RenderStmt` and `NearMinHeightSt
   actual value at the maximal header is 5 127 343 B.
 * Challenge: `challenges/drafts/near-transfer-receipt-v1-zk.draft.json` (unsigned) pins formal-core with SHA256Fast.
 * Prover side for L8: R-L7-7.
+
+### M2 with the csimp-audit checker (lane/zk-int 5fa43e9, tools key 57218f6d040706e1)
+
+* **All six gates PASS** on the closed toy certificate. leanchecker and lean4lean each accepted
+  232 modules; nanoda, arena-audit and the NDJSON audit (12 801 decls) accepted. There are no
+  findings or warnings. The judge binary is unchanged: `sha256:f703a5a2…`.
+* **The three fast-path csimp lemmas are audited** (`lean-audit.json` `csimp`): `take?_eq_takeF`,
+  `readInj_eq_readInjF`, `mpLeaves_eq_mpLeavesF`. Each has `statementOk`, no missing closure and no
+  unsafe/partial dependencies, and axioms ⊆ {propext, Quot.sound}.
+* **R-L7-5 closed:** the `sorry` csimp reproducer now FAILs every gate with `SORRY_FOUND`. Both the
+  Lean-side and the independent NDJSON audit flag `Candidate.Model.redirect (verify ↦ acceptAll)`.
