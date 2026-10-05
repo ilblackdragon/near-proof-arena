@@ -162,5 +162,27 @@ if [ -n "${BENCH:-}" ]; then
   done
 fi
 
+# NEAR (lane L6 Render/*.lean vs src/near/): nearAir export, honest tables
+# cell for cell, constraints + bus balance.  NEAR_CASES: case directories
+# (request.bin, witness.bin[, expected_claim.bin]); default: public fixtures.
+echo "== NEAR: nearAir export, honest trace Rust (npudr nearrender) vs Lean (np-lean-render)"
+"$le" near > "$out/lean-near.json"
+if cmp -s "$out/lean-near.json" "$src/near-air.json"; then pass "near-air.json == np-lean-export near"; else bad "near-air.json stale"; fi
+lr="$here/.lake/build/bin/np-lean-render"
+for d in ${NEAR_CASES:-$here/../../../oracle/fixtures/public/cases/*}; do
+  n=$(basename "$d")
+  $HEAVY "$lr" "$d/request.bin" "$d/witness.bin" "$out/near-lean-$n.bin" 2>/dev/null || { bad "near $n: np-lean-render failed"; continue; }
+  "$npudr" nearrender "$d/request.bin" "$d/witness.bin" "$out/near-rust-$n.bin" 2>/dev/null
+  if cmp -s "$out/near-lean-$n.bin" "$out/near-rust-$n.bin"; then pass "near $n: claim, SHA messages, tables 1-6 identical"
+  else bad "near $n: render differs"; fi
+  if [ -f "$d/expected_claim.bin" ]; then
+    len=$(stat -c %s "$d/expected_claim.bin")
+    if cmp -s <(tail -c +5 "$out/near-rust-$n.bin" | head -c $len) "$d/expected_claim.bin"; then pass "near $n: claim = expected_claim.bin"
+    else bad "near $n: claim != expected_claim.bin"; fi
+  fi
+  if $HEAVY "$npudr" nearcheck "$d/request.bin" "$d/witness.bin" >"$out/near-check-$n.txt"; then pass "near $n: every nearAir constraint holds, buses balance"
+  else bad "near $n: nearcheck failed (see $out/near-check-$n.txt)"; fi
+done
+
 [ $fail -eq 0 ] && echo "ALL PASS" || echo "SOME FAILURES"
 exit $fail

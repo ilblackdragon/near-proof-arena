@@ -5,6 +5,7 @@ pub mod eval;
 pub mod check;
 pub mod field;
 pub mod hash;
+pub mod near;
 pub mod mmcs;
 pub mod protocol;
 pub mod sha;

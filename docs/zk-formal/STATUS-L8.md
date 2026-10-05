@@ -68,3 +68,28 @@ Lean (compiled) verify is the blocker for the 10 s verify cap (REQUESTS.md, L8 �
 | bench 3000 × 2^14 | 3.35 MiB | 1029 ms |
 | bench 3 × 1000 × 2^16 | 3.77 MiB | 2028 ms |
 | bench 3000 × 2^17 | 3.64 MiB | 887 ms |
+
+## lane/zk-L8c — real NEAR prover (`out/prove`)
+
+`prove` = request/witness → claim (reexec engine, = NearSpec `deriveClaim`) →
+`npudr::near` (cell-for-cell port of L6 `Near.render (extOf c w)` + L5 SHA) →
+`np-udr-stark-v1` over `nearAir` (`source/near-air.json` = Lean
+`Air.exportJson nearAir`, byte-identical).
+
+`bench/near-bench.sh` (8 threads, heavy wrapper; results
+`bench/results/near-2026-10-05.tsv`): all 20 public fixtures + 18 oracle-generated
+class workloads (seed 7, profiles basic/prefix/boundary/repeat/prices/large):
+**claim == expected_claim, Rust verify accept, compiled Lean verifier accept on all 38.**
+
+| class | prove | peak RSS | proof | Lean verify |
+|---|---|---|---|---|
+| batch-1 | 0.24–0.29 s | 22 MB | 1.84–1.92 MB | 450–503 ms |
+| batch-16 | 0.9–1.4 s | 117–144 MB | 2.30–2.47 MB | 579–647 ms |
+| batch-256 | 14.1–16.1 s | 1.77–1.93 GB | 2.86–3.05 MB | 768–1146 ms |
+| caps | 600 s | 16 GiB | 8 MiB | 10 s |
+
+Trace cross-check: Rust `npudr nearrender` == Lean `np-lean-render` (claim, all SHA messages, all 7 tables) byte-identical on all 38 cases; `nearcheck`: 0 violations, 0 bus imbalance (no L6 bug).
+
+Caveat: the worst-case domain (SHA table 2^22 × 544) would need ~18 GB in the
+streaming prover; it is not in the workloads (DESIGN §8: only the Lean model
+`P` must handle it).
