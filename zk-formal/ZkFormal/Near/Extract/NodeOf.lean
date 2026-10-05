@@ -471,3 +471,83 @@ theorem brRest (hC : NodeCtx tr s ℓ fl) (hb : tr.cell T_NODE s tb1 + tr.cell T
   · rw [split, PB, BM, PM, show pb = (if true then pb else b) from rfl, CH true]
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+theorem brSer (hC : NodeCtx tr s ℓ fl) (hb : tr.cell T_NODE s tb1 + tr.cell T_NODE s tb2 = 1) :
+    rowsB tr b s ℓ = (nodeVOf tr s).ser false ∧ rowsB tr pb s ℓ = (nodeVOf tr s).ser true := by
+  have B := brFields hL hC hb
+  simp only at B
+  rw [← brOff_eq hL hC] at B
+  obtain ⟨hfl, hℓ, sT, sVV, sB, -, sM, -⟩ := B
+  have R := brRest hL hC hb
+  have hr0 : s < tr.height T_NODE := (nodeStart hL hC).1
+  have ha0 : tr.cell T_NODE s act = 1 := (nodeStart hL hC).2
+  have hTS := typeSumNat hL hr0 ha0
+  have hb1 := cvb hL hr0 (x := tb1) (by simp [boolCols])
+  have hb2 := cvb hL hr0 (x := tb2) (by simp [boolCols])
+  have hcb : cv tr T_NODE s tb1 + cv tr T_NODE s tb2 = 1 := by
+    have e := hb
+    rw [cell_eq_cast tr T_NODE s tb1, cell_eq_cast tr T_NODE s tb2, ← natCast_add] at e
+    exact fp_cast_eq (by unfold P; omega) (by unfold P; omega) (e.trans rfl)
+  have hcl : cv tr T_NODE s tl ≠ 1 := by omega
+  have hce : cv tr T_NODE s te ≠ 1 := by omega
+  have mem : ∀ p ∈ brFL (brOff tr s) (popN tr s), p ∈ fl := fun p hp => hfl ▸ hp
+  have T0 : rowsB tr b s 1 = [cv tr T_NODE s tb1 + 2 * cv tr T_NODE s tb2] := by
+    rw [rowsB_one, tagByte hL hr0 sT, show cv tr T_NODE s te = 0 by omega, Nat.mul_zero, Nat.add_zero]
+  have P0 := pbOf hL hC (o := 0) (L := 1) (mem _ (by simp [brFL])) (by simpa using sT) (by simp [states]) (by decide) (by decide)
+  simp only [Nat.add_zero] at P0
+  unfold nodeVOf; rw [if_neg hcl, if_neg hce]
+  simp only [NodeV.ser]
+  by_cases h2 : cv tr T_NODE s tb2 = 1
+  · have ho : brOff tr s = 37 := by unfold brOff; rw [if_pos h2]
+    rw [if_pos h2]
+    rw [ho] at R mem hℓ sB sM
+    obtain ⟨sV, sH⟩ := sVV ho
+    have S := slotSer hL hC (rV := 1) (rH := 5) (mem _ (by simp [brFL])) (mem _ (by simp [brFL])) sV sH rfl
+    have split : ∀ x, rowsB tr x s ℓ = rowsB tr x s 1 ++ ((rowsB tr x (s + 1) 4 ++ rowsB tr x (s + 5) 32) ++
+        rowsB tr x (s + 37) (2 + 32 * popN tr s + 8)) := by
+      intro x
+      rw [hℓ, show 37 + 2 + 32 * popN tr s + 8 = 1 + ((4 + 32) + (2 + 32 * popN tr s + 8)) by omega]
+      simp only [rowsB_add, List.append_assoc]
+    rw [ho]
+    constructor
+    · rw [split, T0, S.1, R.1, h2, show cv tr T_NODE s tb1 = 0 by omega]
+      simp only [List.append_assoc, List.cons_append, List.nil_append, List.singleton_append]
+    · rw [split, P0, T0, S.2, R.2, h2, show cv tr T_NODE s tb1 = 0 by omega]
+      simp only [List.append_assoc, List.cons_append, List.nil_append, List.singleton_append]
+  · have ho : brOff tr s = 1 := by unfold brOff; rw [if_neg h2]
+    rw [if_neg h2]
+    rw [ho] at R mem hℓ sB sM
+    have split : ∀ x, rowsB tr x s ℓ = rowsB tr x s 1 ++ rowsB tr x (s + 1) (2 + 32 * popN tr s + 8) := by
+      intro x
+      rw [hℓ, show 1 + 2 + 32 * popN tr s + 8 = 1 + (2 + 32 * popN tr s + 8) by omega, rowsB_add]
+    rw [ho]
+    constructor
+    · rw [split, T0, R.1, show cv tr T_NODE s tb1 = 1 by omega, show cv tr T_NODE s tb2 = 0 by omega]
+      simp only [List.append_assoc, List.cons_append, List.nil_append, List.singleton_append]
+    · rw [split, P0, T0, R.2, show cv tr T_NODE s tb1 = 1 by omega, show cv tr T_NODE s tb2 = 0 by omega]
+      simp only [List.append_assoc, List.cons_append, List.nil_append, List.singleton_append]
+
+/-- Rows = serialization, for every node type. -/
+theorem nodeSer (hC : NodeCtx tr s ℓ fl) :
+    rowsB tr b s ℓ = (nodeVOf tr s).ser false ∧ rowsB tr pb s ℓ = (nodeVOf tr s).ser true := by
+  obtain ⟨hr0, ha0⟩ := nodeStart hL hC
+  have T := typeSumNat hL hr0 ha0
+  by_cases h1 : cv tr T_NODE s tl = 1
+  · exact leafSer hL hC (of_cv_one h1)
+  by_cases h2 : cv tr T_NODE s te = 1
+  · exact extSer hL hC (of_cv_one h2)
+  apply brSer hL hC
+  have hb1 := cvb hL hr0 (x := tb1) (by simp [boolCols])
+  have hb2 := cvb hL hr0 (x := tb2) (by simp [boolCols])
+  rw [cell_eq_cast tr T_NODE s tb1, cell_eq_cast tr T_NODE s tb2, ← natCast_add, show cv tr T_NODE s tb1 + cv tr T_NODE s tb2 = 1 by omega]
+  rfl
+
+end ZkFormal.Near.NodeProof
