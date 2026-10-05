@@ -24,10 +24,11 @@ revealed child (`rv`, node `cid` of length `clen`) or of a touched value
 (`tv`, `VPRE/VPOST(nid)`, length 72); otherwise `preg = reg` (post = pre).
 
 Interactions: `BYTES` pre/post; `DIGEST` window pre/post and root pre/post;
-`PARENT` send (revealed child window) / receive (non-root node start);
-`VSLOT` receive (touched node); `EDGE` providers A (one per key byte, odd
-first nibble, child window, extension end, value slot) and B (second nibble
-of a key byte), each chained: send `(e, 0)`, receive `(e, m)`.
+`PARENT` send (revealed child window: id, depth, length, walk target) /
+receive (non-root node start); `VSLOT` receive (touched node); `EDGE`
+providers A and B (see `cLinks`), each chained: send `(e, 0)`, receive
+`(e, m)`.  Walk targets `res` skip empty-key extensions, so walks never take
+epsilon steps (a walk has at most `2 + 130 + 1` steps).
 -/
 
 namespace ZkFormal.Near.Node
@@ -92,7 +93,22 @@ def aJ : Nat := 149
 def mA : Nat := 150
 def mB : Nat := 151
 def sz : Nat := 152
-def width : Nat := 153
+/-- walk target of the node: itself, or (empty-key extension) its child's target -/
+def res : Nat := 153
+/-- the window's child's walk target (sent on `PARENT`) -/
+def cres : Nat := 154
+/-- extension: child's walk target / child revealed / child unrevealed / single-nibble key -/
+def xres : Nat := 155
+def xrv : Nat := 156
+def xdead : Nat := 157
+def xlast0 : Nat := 158
+/-- empty-key extension -/
+def eext : Nat := 159
+/-- edge B gate and target -/
+def gB : Nat := 160
+def bN : Nat := 161
+def bJ : Nat := 162
+def width : Nat := 163
 
 /-- The nine field states. -/
 def states : List Nat := [sTAG, sHPL, sHPF, sKEY, sVLEN, sVH, sBM, sCH, sMEM]
@@ -129,7 +145,7 @@ def bmHi : Expr := bits (fun i => c (bm i)) 8 8
 def boolCols : List Nat :=
   [act, nf, nl, sumr, tl, te, tb1, tb2] ++ states ++ [fs, fe, odd, nokey] ++
   (List.range 4).map hbit ++ (List.range 4).map lbit ++ (List.range 16).map bm ++ [nochild] ++
-  (List.range 16).map jj ++ [lastw, rv, tv, gD, gP, gV, gA]
+  (List.range 16).map jj ++ [lastw, rv, tv, gD, gP, gV, gA, xrv, xdead, xlast0, eext, gB]
 
 def cBool : List Expr := boolCols.map fun x => bool (c x)
 
@@ -150,7 +166,8 @@ def cRows : List Expr :=
 
 /-- Node-constant columns. -/
 def nodeConst : List Nat :=
-  [nid, len, depth, tl, te, tb1, tb2, hplen, odd, nokey, nochild, tv] ++ (List.range 16).map bm
+  [nid, len, depth, tl, te, tb1, tb2, hplen, odd, nokey, nochild, tv, res, xres, xrv, xdead, xlast0, eext] ++
+    (List.range 16).map bm
 
 /-- Transitions (current row active). -/
 def cTrans : List Expr :=
@@ -220,7 +237,7 @@ def cBytes : List Expr :=
     .mul (sub (c act) winE) (sub (c pb) (c b)) ]
 
 /-- Windows: register reads and shifts, loads, child slot bookkeeping. -/
-def windowConst : List Nat := [rv, cid, clen, w, lastw] ++ (List.range 16).map jj
+def windowConst : List Nat := [rv, cid, clen, cres, w, lastw] ++ (List.range 16).map jj
 
 def cWindows : List Expr :=
   [ .mul winE (sub (c b) (c (reg 0))), .mul winE (sub (c pb) (c (preg 0))) ] ++
@@ -248,39 +265,67 @@ def cWindows : List Expr :=
     .mul (c te) (.mul (c sCH) (c w)),
     mul3 (c lastw) (c sCH) (sub (.add (c w) (k 1)) nWinE) ]
 
-/-- Parent, slot and edge gates and edge contents. -/
+/-- Walk targets (`res`), parent/slot/edge gates and edge contents.
+
+Edges (provider A per row, B on key bytes):
+* key byte `m` (`ki = 2m + odd`): A `(N,ki) –hi→ (N,ki+1)`; B `(N,ki+1) –lo→ (N,ki+2)`,
+  except that the last nibble of an extension goes to `(xres, 0)` (and is absent
+  if the child is unrevealed);
+* odd first nibble: A `(N,0) –x0→ (N,1)` (extension with a one-nibble key: `(xres,0)`);
+* branch child window (revealed): A `(N,0) –j→ (cres,0)`;
+* touched value window: A `(N, tl·s) –END→ (N,0)`;
+* root, first row: A `(0,0) –START→ (res,0)` (the walk's first step).
+Empty-key extensions provide nothing; their `res` is their child's `res`
+(or themselves, a dead end, if the child is unrevealed). -/
 def cLinks : List Expr :=
   [ sub (c gP) (.mul chStart (c rv)),
     sub (c gV) (.mul (c nf) (c tv)),
-    sub (c gA) (.add (c sKEY) (.add (.mul (c sHPF) (c odd))
-      (.add (.mul chStart (c rv)) valStart))),
-    -- key byte: high nibble
+    -- extension flags
+    sub (c eext) (mul3 (c te) (c nokey) (not (c odd))),
+    sub (c xdead) (.mul (c te) (not (c xrv))),
+    sub (c xlast0) (.mul (c te) (c nokey)),
+    mul3 (c te) (c sCH) (sub (c xrv) (c rv)),
+    .mul (c xrv) (not (c te)),
+    .mul (.mul (c te) (c sCH)) (sub (c xres) (c cres)),
+    -- walk target
+    .mul (sub (c act) (c eext)) (sub (c res) (c nid)),
+    mul3 (c eext) (not (c xrv)) (sub (c res) (c nid)),
+    mul3 (c eext) (c xrv) (sub (c res) (c xres)),
+    -- gates
+    sub (c gA) (.add (c sKEY) (.add (mul3 (c sHPF) (c odd) (not (.mul (c nokey) (c xdead))))
+      (.add (.mul (c gP) isBr) (.add valStart .isFirst)))),
+    sub (sub (c gB) (c sKEY)) (.neg (mul3 (c sKEY) (c fe) (c xdead))),
+    -- key byte: high nibble (A), low nibble (B)
     .mul (c sKEY) (sub (c aI) kiE), .mul (c sKEY) (sub (c aS) hiE),
     .mul (c sKEY) (sub (c aN) (c nid)), .mul (c sKEY) (sub (c aJ) (.add kiE (k 1))),
+    .mul (.mul (c sKEY) (not (.mul (c fe) (c te)))) (sub (c bN) (c nid)),
+    .mul (.mul (c sKEY) (not (.mul (c fe) (c te)))) (sub (c bJ) (.add kiE (k 2))),
+    mul3 (c sKEY) (c fe) (.mul (c te) (sub (c bN) (c xres))),
+    mul3 (c sKEY) (c fe) (.mul (c te) (c bJ)),
     -- odd first nibble
     .mul (.mul (c sHPF) (c odd)) (c aI), .mul (.mul (c sHPF) (c odd)) (sub (c aS) loE),
-    .mul (.mul (c sHPF) (c odd)) (sub (c aN) (c nid)), .mul (.mul (c sHPF) (c odd)) (sub (c aJ) (k 1)),
+    .mul (mul3 (c sHPF) (c odd) (not (c xlast0))) (sub (c aN) (c nid)),
+    .mul (mul3 (c sHPF) (c odd) (not (c xlast0))) (sub (c aJ) (k 1)),
+    .mul (mul3 (c sHPF) (c odd) (c xlast0)) (sub (c aN) (c xres)),
+    .mul (mul3 (c sHPF) (c odd) (c xlast0)) (c aJ),
     -- branch child
-    .mul ((.mul (c gP) isBr)) (c aI), .mul ((.mul (c gP) isBr)) (sub (c aS) jIdxE),
-    .mul ((.mul (c gP) isBr)) (sub (c aN) (c cid)), .mul ((.mul (c gP) isBr)) (c aJ),
-    -- extension end
-    .mul ((.mul (c gP) (c te))) (sub (c aI) sE),
-    .mul ((.mul (c gP) (c te))) (sub (c aS) (k SYM_EPS)),
-    .mul ((.mul (c gP) (c te))) (sub (c aN) (c cid)),
-    .mul ((.mul (c gP) (c te))) (c aJ),
+    .mul (.mul (c gP) isBr) (c aI), .mul (.mul (c gP) isBr) (sub (c aS) jIdxE),
+    .mul (.mul (c gP) isBr) (sub (c aN) (c cres)), .mul (.mul (c gP) isBr) (c aJ),
     -- value slot
     .mul valStart (sub (c aI) (.mul (c tl) sE)),
     .mul valStart (sub (c aS) (k SYM_END)),
     .mul valStart (sub (c aN) (c nid)),
-    .mul valStart (c aJ) ]
+    .mul valStart (c aJ),
+    -- root: the walk's first step
+    .mul .isFirst (c aI), .mul .isFirst (sub (c aS) (k SYM_START)),
+    .mul .isFirst (sub (c aN) (c res)), .mul .isFirst (c aJ) ]
 
 def constraints : List Expr := cBool ++ cRows ++ cTrans ++ cFields ++ cBytes ++ cWindows ++ cLinks
 
 /-! ## Interactions -/
 
 def edgeA (u : Expr) : List Expr := [c nid, c aI, c aS, c aN, c aJ, u]
-def edgeB (u : Expr) : List Expr :=
-  [c nid, .add kiE (k 1), loE, c nid, .add kiE (k 2), u]
+def edgeB (u : Expr) : List Expr := [c nid, .add kiE (k 1), loE, c bN, c bJ, u]
 
 def interactions : List Interaction :=
   [ send B_BYTES (c act) [mid K_NPRE (c nid), c pos, c b],
@@ -289,13 +334,13 @@ def interactions : List Interaction :=
     recv B_DIGEST (c gD) ([.add (c dI) (k 1), c dL] ++ (List.range 32).map fun i => c (preg i)),
     recv B_DIGEST .isFirst ([k K_NPRE, c len] ++ (List.range 32).map fun i => .pub (PV_PRE + i)),
     recv B_DIGEST .isFirst ([k K_NPOST, c len] ++ (List.range 32).map fun i => .pub (PV_POST + i)),
-    send B_PARENT (c gP) [c cid, .add (c depth) (k 1), c clen],
-    recv B_PARENT (sub (c nf) .isFirst) [c nid, c depth, c len],
+    send B_PARENT (c gP) [c cid, .add (c depth) (k 1), c clen, c cres],
+    recv B_PARENT (sub (c nf) .isFirst) [c nid, c depth, c len, c res],
     recv B_VSLOT (c gV) [c nid],
     send B_EDGE (c gA) (edgeA (k 0)),
     recv B_EDGE (c gA) (edgeA (c mA)),
-    send B_EDGE (c sKEY) (edgeB (k 0)),
-    recv B_EDGE (c sKEY) (edgeB (c mB)) ]
+    send B_EDGE (c gB) (edgeB (k 0)),
+    recv B_EDGE (c gB) (edgeB (c mB)) ]
 
 /-- Height cap: `2^22` rows (revealed bytes `≤ 3,000,000` plus the `SUM` row). -/
 def maxLog : Nat := 22

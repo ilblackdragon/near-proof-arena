@@ -47,8 +47,10 @@ def numBuses : Nat := 10
 
 /-- Key exhausted: the walk enters the value slot. -/
 def SYM_END : Nat := 16
-/-- Extension end → child (consumes no key nibble). -/
+/-- Extension end → child (consumes no key nibble; spec-level walks only). -/
 def SYM_EPS : Nat := 17
+/-- The walk's first step, root → its walk target. -/
+def SYM_START : Nat := 18
 
 /-! ## Public inputs: `publicOf c = c.encode` (as field elements)
 
