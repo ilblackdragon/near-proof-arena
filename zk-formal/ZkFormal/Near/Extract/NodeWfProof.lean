@@ -116,3 +116,104 @@ theorem nodeV_wf (hC : NodeCtx tr s ℓ fl) : (nodeVOf tr s).wf ∧ ∀ x ∈ (n
     · exact rowsB_lt _ _ _ _ x h
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+theorem rowEdgeN_snd_lt (tr : Trace Fp) (pub : List Fp) (r : Nat) : ∀ eu ∈ rowEdgeN tr pub r, eu.2 < P := by
+  intro eu he; unfold rowEdgeN at he; rw [List.mem_append] at he
+  rcases he with he | he <;> (split at he <;> simp at he) <;> (subst he; exact cv_lt _ _ _ _)
+
+theorem uses_lt (tr : Trace Fp) (pub : List Fp) (s ℓ : Nat) : ∀ u ∈ (nodeSOf tr pub s ℓ).uses, u < P := by
+  intro u hu
+  simp only [nodeSOf, List.mem_map] at hu
+  obtain ⟨eu, he, rfl⟩ := hu
+  have := (canonE_perm _).mem_iff.mp he
+  unfold rowEdgesN at this; rw [List.mem_flatMap] at this
+  obtain ⟨r, -, hr⟩ := this
+  exact rowEdgeN_snd_lt tr pub r eu hr
+
+theorem fp_mul3_z1 (a : Fp) : (1 : Fp) * 0 * a = 0 := by grind
+theorem fp_mul3_z2 (a : Fp) : (1 : Fp) * a * (1 - 1) = 0 := by grind
+
+theorem fp_mul_zero_cases {a b' : Fp} (h : a * b' = 0) (ha : a = 1) : b' = 0 := by rw [ha] at h; grind
+theorem fp_sub_zero_eq {a b' : Fp} (h : a - b' = 0) : a = b' := by grind
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+theorem usesLen (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) (hnP : n < P)
+    (h0 : s = 0 ↔ n = 0) : (nodeSOf tr pub s ℓ).uses.length = (edgesOf n (nodeSOf tr pub s ℓ)).length := by
+  rw [← nodeEdgesAll hL hC hn hnP h0]; simp [nodeSOf]
+
+set_option maxHeartbeats 1000000 in
+theorem resOkNode (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) (hnP : n < P) :
+    (nodeSOf tr pub s ℓ).resOk n := by
+  obtain ⟨hr0, ha0⟩ := nodeStart hL hC
+  have T := typeSumNat hL hr0 ha0
+  have G := linkGates hL hr0
+  simp only at G
+  obtain ⟨-, -, Geext, Gdead, -, -, -, -, G1, G2, G3, -, -⟩ := G
+  rw [ha0] at G1
+  have resN : tr.cell T_NODE s eext = 0 → cv tr T_NODE s res = n := by
+    intro he; rw [he, show (1 : Fp) - 0 = 1 by decide, fp_one_mul'] at G1
+    exact cv_of_eq ((fp_sub_zero_eq G1).trans hn) hnP
+  unfold NodeS.resOk nodeSOf
+  simp only
+  by_cases h2 : cv tr T_NODE s te = 1
+  · have ht := of_cv_one h2
+    have htl : cv tr T_NODE s tl ≠ 1 := by omega
+    obtain ⟨hh1, hnk, hfl, -, -, -, -, -, sC, -⟩ := extFields hL hC ht
+    have hm : (5 + cv tr T_NODE s hplen, 32) ∈ fl := hfl ▸ (by simp [extFL])
+    obtain ⟨Krv, Kres, Kdead, Klast⟩ := extKid hL hC ht hm sC
+    unfold nodeVOf; rw [if_neg htl, if_pos h2]
+    have bo := cvb hL hr0 (x := odd) (by simp [boolCols])
+    have bk := cvb hL hr0 (x := nokey) (by simp [boolCols])
+    by_cases hee : cv tr T_NODE s nokey = 1 ∧ cv tr T_NODE s odd = 0
+    · -- empty-key extension
+      have hE : tr.cell T_NODE s eext = 1 := by
+        rw [Geext, ht, of_cv_one hee.1, of_cv_zero hee.2]; decide
+      have hk : keyNibs tr s = [] := by
+        unfold keyNibs keyPairs
+        rw [hnk.1 (of_cv_one hee.1), if_neg (by omega)]; simp
+      rw [hk]
+      unfold kidOf
+      by_cases hv : cv tr T_NODE (s + (5 + cv tr T_NODE s hplen)) rv = 1
+      · rw [if_pos hv]
+        simp only
+        have hx : tr.cell T_NODE s xrv = 1 := of_cv_one (by omega)
+        rw [hE, hx, fp_one_mul', fp_one_mul'] at G3
+        rw [← Kres]; unfold cv; rw [fp_sub_zero_eq G3]
+      · rw [if_neg hv]
+        simp only
+        have hx : tr.cell T_NODE s xrv = 0 := of_cv_zero (by omega)
+        rw [hE, hx, show (1 : Fp) - 0 = 1 by decide, fp_one_mul', fp_one_mul'] at G2
+        exact cv_of_eq ((fp_sub_zero_eq G2).trans hn) hnP
+    · have hE : tr.cell T_NODE s eext = 0 := by
+        rw [Geext, ht]
+        rcases isBool hL hr0 (x := nokey) (by simp [boolCols]) with hk | hk <;>
+          rcases isBool hL hr0 (x := odd) (by simp [boolCols]) with ho | ho
+        · rw [hk]; exact fp_mul3_z1 _
+        · rw [hk]; exact fp_mul3_z1 _
+        · exact absurd ⟨cv_one hk, cv_zero ho⟩ hee
+        · rw [ho]; exact fp_mul3_z2 _
+      have hk : keyNibs tr s ≠ [] := by
+        intro h; have := congrArg List.length h; rw [keyNibs_length] at this; simp at this
+        apply hee; constructor
+        · have : cv tr T_NODE s hplen = 1 := by omega
+          exact cv_one (hnk.2 this)
+        · omega
+      rcases hkk : keyNibs tr s with _ | ⟨x, rest⟩
+      · exact absurd hkk hk
+      · exact resN hE
+  · have hE : tr.cell T_NODE s eext = 0 := by
+      rw [Geext, of_cv_zero (show cv tr T_NODE s te = 0 by
+        have := cvb hL hr0 (x := te) (by simp [boolCols]); omega)]; grind
+    unfold nodeVOf
+    by_cases h1 : cv tr T_NODE s tl = 1
+    · rw [if_pos h1]; exact resN hE
+    · rw [if_neg h1, if_neg h2]; exact resN hE
+
+end ZkFormal.Near.NodeProof
