@@ -1,7 +1,7 @@
 import ZkFormal.Near.Extract.RcptDep
 
 /-!
-# ZkFormal.Near.Extract.RcptArith — the arithmetic facts of a receipt (`RcptV.Wf'.arith`)
+# ZkFormal.Near.Extract.RcptArith — the arithmetic facts of a receipt (`RcptV.Wf.arith`)
 -/
 
 namespace ZkFormal.Near.RcptProof

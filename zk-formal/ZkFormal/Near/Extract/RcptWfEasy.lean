@@ -1,8 +1,7 @@
 import ZkFormal.Near.Extract.RcptTraffic
-import ZkFormal.Near.Extract.RcptViewFix
 
 /-!
-# ZkFormal.Near.Extract.RcptWfEasy — the structural facts of `RcptWf'`
+# ZkFormal.Near.Extract.RcptWfEasy — the structural facts of `RcptWf`
 
 Lengths, byte ranges of the column-read values, canonicity, `tprev ≤ r`, the
 fixed claim prefix.

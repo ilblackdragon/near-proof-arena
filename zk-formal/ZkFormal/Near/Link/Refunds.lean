@@ -17,7 +17,7 @@ theorem systemN_eq : toBytes ([6, 0, 0, 0] ++ systemN) = borshBytes AccountId.sy
 theorem zeros16_eq : toBytes (List.replicate 16 0) = u128 0 := by decide
 theorem zeros8_eq : toBytes (List.replicate 8 0) = u64 0 := by decide
 
-theorem toBytes_encRefund {x : RcptV} {r a b c : Nat} (w : x.Wf r a b c) (height refund : Nat)
+theorem toBytes_encRefund {x : RcptV} {r : Nat} {a : List Nat} {b c : Nat} (w : x.Wf r a b c) (height refund : Nat)
     (hrfid : toBytes x.rfid = receiptIdFrom (toBytes x.rid) height 0)
     (hramt : leN' x.ramt = refund) :
     toBytes x.encRefund = (gasRefundReceipt x.toReceipt height refund).encode := by

@@ -53,7 +53,7 @@ include h
 
 theorem rs_length_le : rs.length ≤ 256 := (h.rcpt.count (fun _ _ => pubNat_lt c _)).2.2
 
-theorem rs_wf : ∀ x ∈ rs, ∃ r a b c, x.Wf r a b c := by
+theorem rs_wf : ∀ x ∈ rs, ∃ (r : Nat) (a : List Nat) (b c : Nat), x.Wf r a b c := by
   obtain ⟨toks, -, -, hw, -⟩ := rcptWf_at h.rcpt
   intro x hx
   obtain ⟨r, hr, rfl⟩ := List.mem_iff_getElem.mp hx

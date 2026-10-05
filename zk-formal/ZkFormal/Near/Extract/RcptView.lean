@@ -132,35 +132,34 @@ def Bytes8 (l : List Nat) : Prop := ∀ y ∈ l, y < 256
 def leN' (l : List Nat) : Nat := leNat (l.map UInt8.ofNat)
 def toBytes (l : List Nat) : Bytes := l.map UInt8.ofNat
 
-/-- Per-receipt facts; `bgp`/`tok` are the block gas price and the tokens burnt
-before this receipt (as naturals). -/
-structure RcptV.Wf (x : RcptV) (r bgp tok tok' : Nat) : Prop where
+/-- Per-receipt facts; `bgpB` are the block gas price bytes and `tok`/`tok'` the
+tokens burnt before / after this receipt (as naturals).  (Fixes R-L6r-1..3 of
+`REQUESTS-L6.md`: `tprev_le` assumes `tprev < P − 512`; the storage clause is
+mod `2^128`; `arith` assumes the gas price bytes are bytes.) -/
+structure RcptV.Wf (x : RcptV) (r : Nat) (bgpB : List Nat) (tok tok' : Nat) : Prop where
   lens : x.rid.length = 32 ∧ x.pk.length = 32 + 32 * x.kt ∧ x.kt ≤ 1 ∧ x.gp.length = 16 ∧
     x.dep.length = 16 ∧ x.bef.length = 16 ∧ x.lk.length = 16 ∧ x.st.length = 16 ∧
     x.aft.length = 16 ∧ x.burnt.length = 16 ∧ x.ramt.length = 16 ∧ x.rfid.length = 32 ∧
     x.peoh.length = 32
-  /-- account ids (characters are bytes, checked locally) -/
   ids : AccountId.valid (toBytes x.p) = true ∧ AccountId.valid (toBytes x.v) = true ∧
     AccountId.valid (toBytes x.s) = true ∧ Bytes8 x.p ∧ Bytes8 x.v ∧ Bytes8 x.s
   notSystem : toBytes x.p ≠ AccountId.system
   named : AccountId.isNamed (toBytes x.v) = true
-  /-- `aft` and the running tokens are range-checked locally -/
   aft8 : Bytes8 x.aft
   small : x.kslot < P ∧ x.tprev < P
-  /-- time of the memory read: `tprev ≤ r` -/
-  tprev_le : x.tprev ≤ r
-  /-- arithmetic, for byte-valued inputs (`ramt` is only emitted, hence only
-  range-checked by the SHA table, when the receipt has a refund) -/
-  arith : Bytes8 x.gp → Bytes8 x.dep → Bytes8 x.bef → Bytes8 x.lk → Bytes8 x.st →
-    Bytes8 x.burnt → (x.hr = true → Bytes8 x.ramt) → bgp < Params.two128 →
+  /-- R-L6r-1 -/
+  tprev_le : x.tprev < P - 512 → x.tprev ≤ r
+  /-- R-L6r-2, R-L6r-3 -/
+  arith : Bytes8 bgpB → Bytes8 x.gp → Bytes8 x.dep → Bytes8 x.bef → Bytes8 x.lk → Bytes8 x.st →
+    Bytes8 x.burnt → (x.hr = true → Bytes8 x.ramt) →
     leN' x.aft = leN' x.bef + leN' x.dep ∧ leN' x.aft < Params.u128Max ∧
     leN' x.aft + leN' x.lk < Params.two128 ∧
-    (Params.storageAmountPerByte * leN' x.st ≤ leN' x.aft + leN' x.lk ∨
+    ((Params.storageAmountPerByte * leN' x.st) % Params.two128 ≤ leN' x.aft + leN' x.lk ∨
       leN' x.st ≤ Params.zeroBalanceStorageLimit) ∧
-    (x.ge = decide (bgp ≤ leN' x.gp)) ∧
-    leN' x.burnt = Params.G * min (leN' x.gp) bgp ∧
-    (x.hr = true ↔ Params.G * (leN' x.gp - min (leN' x.gp) bgp) ≠ 0) ∧
-    (x.hr = true → leN' x.ramt = Params.G * (leN' x.gp - min (leN' x.gp) bgp)) ∧
+    (x.ge = decide (leN' bgpB ≤ leN' x.gp)) ∧
+    leN' x.burnt = Params.G * min (leN' x.gp) (leN' bgpB) ∧
+    (x.hr = true ↔ Params.G * (leN' x.gp - min (leN' x.gp) (leN' bgpB)) ≠ 0) ∧
+    (x.hr = true → leN' x.ramt = Params.G * (leN' x.gp - min (leN' x.gp) (leN' bgpB))) ∧
     tok' = tok + leN' x.burnt ∧ tok' < Params.two128
 
 /-- `n` from the public claim bytes (little endian). -/
@@ -174,13 +173,10 @@ def RcptV.raw (x : RcptV) : List Nat :=
 /-- Table-level facts (claim facts stated for byte-valued public inputs, as
 `publicOf` provides). -/
 structure RcptWf (pub : List Fp) (rs : RcptVs) : Prop where
-  /-- tokens before each receipt (`toks[0] = 0`, `toks.length = rs.length + 1`) -/
   toks : ∃ toks : List Nat, toks.length = rs.length + 1 ∧ toks.head? = some 0 ∧
-    (∀ r (h : r < rs.length), rs[r].Wf r (leN' (pubBytes pub PV_BGP 16)) (toks.getD r 0)
-      (toks.getD (r + 1) 0)) ∧
+    (∀ r (h : r < rs.length), rs[r].Wf r (pubBytes pub PV_BGP 16) (toks.getD r 0) (toks.getD (r + 1) 0)) ∧
     ((∀ i, i < 16 → pubNat pub (PV_TOK + i) < 256) →
       toks.getD rs.length 0 = leN' (pubBytes pub PV_TOK 16))
-  /-- claim rows -/
   prefix_ : ∀ j, j < 77 → pubNat pub j = (ZkFormal.Near.claimPrefix.getD j 0).toNat
   count : (∀ x, x < 4 → pubNat pub (PV_N + x) < 256) → rs.length = nPubLE pub ∧ 1 ≤ rs.length ∧
     rs.length ≤ 256
@@ -189,7 +185,6 @@ structure RcptWf (pub : List Fp) (rs : RcptVs) : Prop where
     leN' (pubBytes pub PV_GAS 8) = rs.length * Params.G
   refunds : (∀ j, j < 309 → pubNat pub j < 256) →
     (rs.filter (·.hr)).length = leN' (pubBytes pub PV_NREF 4)
-  /-- raw values are canonical naturals (`Fp.toNat` of columns) -/
   canon : ∀ x ∈ rs, ∀ y ∈ x.raw, y < P
 
 def RcptViewStmt : Prop :=

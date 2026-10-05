@@ -36,7 +36,7 @@ variable {c : WfClaim} {vs : List NodeS} {ws : List WalkV} {rs : RcptVs} {as : L
   (h : LinkHyp c vs ws rs as mv ids shaS shaR)
 include h
 
-theorem rcpt_wf_at {r : Nat} (hr : r < rs.length) : ∃ a b c, rs[r].Wf r a b c := by
+theorem rcpt_wf_at {r : Nat} (hr : r < rs.length) : ∃ (a : List Nat) (b c : Nat), rs[r].Wf r a b c := by
   obtain ⟨toks, -, -, hw, -⟩ := rcptWf_at h.rcpt
   exact ⟨_, _, _, hw r hr⟩
 
@@ -161,6 +161,9 @@ theorem tprev_eq : ∀ r (hr : r < rs.length), rs[r].tprev = lastW (ksl rs) rs[r
     have hle := w.tprev_le
     have hin := read_in_W h (rd_mem_memR (pub := publicOf c) (as := as) hr (i := 0) (by decide))
     have htime := read_time h hin (k := rs[r].kslot) (t := rs[r].tprev) rfl
+    have hrl := rs_length_le h
+    have hle := hle (by
+      rcases htime with e | ⟨r', hr', -, e⟩ <;> rw [e] <;> unfold P <;> omega)
     have htL : rs[r].tprev ≤ lastW (ksl rs) rs[r].kslot r := by
       rcases htime with e | ⟨r', hr', hk, e⟩
       · omega

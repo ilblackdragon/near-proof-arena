@@ -2,11 +2,11 @@ import ZkFormal.Near.Extract.RcptWfIds
 import ZkFormal.Near.Extract.RcptTraffic
 
 /-!
-# ZkFormal.Near.Extract.RcptProof — `RcptViewStmt'`
+# ZkFormal.Near.Extract.RcptProof — `RcptViewStmt`
 
 The view of a legal `rcpt` table is `viewOf tr rcs` (one `rcptOf` per receipt
 segment, `Shape`); its traffic is `rcptTraffic` (`traffic_of`) and it satisfies
-`RcptWf'`: per-receipt facts (`ids_of`, `arith_of`, …) with the running
+`RcptWf`: per-receipt facts (`ids_of`, `arith_of`, …) with the running
 tokens read from the `tok` register, and the claim facts.
 -/
 
@@ -103,8 +103,8 @@ namespace ZkFormal.Near
 
 open ZkFormal.Air ZkFormal.Algebra RcptProof
 
-/-- **The rcpt table's view** (with the fixes R-L6r-1..3). -/
-theorem rcpt_view' : RcptViewStmt' := by
+/-- **The rcpt table's view** . -/
+theorem rcpt_view : RcptViewStmt := by
   intro tr pub hL
   obtain ⟨rcs, S⟩ := shape_of hL
   have hn : 0 < rcs.length := by have := S.ne; cases rcs <;> simp_all

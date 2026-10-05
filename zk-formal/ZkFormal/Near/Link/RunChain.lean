@@ -1,4 +1,5 @@
 import ZkFormal.Near.Link.Digests
+import ZkFormal.Near.Extract.RcptChain
 
 /-!
 # ZkFormal.Near.Link.RunChain — slot values along the memory chain, `arith` for every receipt
@@ -23,6 +24,25 @@ theorem bytes8_of_getD {l : List Nat} {n : Nat} (hl : l.length = n) (h : ∀ i, 
   obtain ⟨i, hi, rfl⟩ := List.mem_iff_getElem.mp hy
   have := h i (by omega)
   rwa [getD_eq_getElem _ _ hi] at this
+
+/-- A 16-byte little-endian value whose upper 8 bytes vanish is below `2^64`. -/
+theorem leN'_lt64 {l : List Nat} (hl : l.length = 16) (hb : Bytes8 l) (hz : ∀ i, 8 ≤ i → i < 16 → l.getD i 0 = 0) :
+    leN' l < 2 ^ 64 := by
+  have e : l = (List.range 16).map (fun i => l.getD i 0) := by
+    apply List.ext_getElem (by simp [hl]); intro i h1 h2
+    simp [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem h1]
+  rw [leN', e, ← leN', show leN' ((List.range 16).map (fun i => l.getD i 0)) =
+      le256 ((List.range 16).map (fun i => l.getD i 0)) from le256_eq_leNat _ (by rw [← e]; exact hb),
+    RcptProof.le256_map_range]
+  have b : ∀ i, i < 8 → l.getD i 0 ≤ 255 := fun i hi => by
+    have := hb (l.getD i 0) (by rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (by omega)]; simp)
+    omega
+  have := b 0 (by omega); have := b 1 (by omega); have := b 2 (by omega); have := b 3 (by omega)
+  have := b 4 (by omega); have := b 5 (by omega); have := b 6 (by omega); have := b 7 (by omega)
+  simp only [RcptProof.sumL, hz 8 (by omega) (by omega), hz 9 (by omega) (by omega), hz 10 (by omega) (by omega),
+    hz 11 (by omega) (by omega), hz 12 (by omega) (by omega), hz 13 (by omega) (by omega), hz 14 (by omega) (by omega),
+    hz 15 (by omega) (by omega)]
+  omega
 
 theorem getD_lt_of_bytes8 {l : List Nat} (h : Bytes8 l) (i : Nat) : l.getD i 0 < 256 := by
   rw [List.getD_eq_getElem?_getD]
@@ -85,7 +105,7 @@ theorem bgp_lt : leN' (pubBytes (publicOf c) PV_BGP 16) = c.1.blockGasPrice ∧
 
 /-- The arithmetic facts of receipt `r`, with the block gas price and running tokens. -/
 theorem arith_ok {r : Nat} (hr : r < rs.length) {tok tok' : Nat}
-    (w : rs[r].Wf r (leN' (pubBytes (publicOf c) PV_BGP 16)) tok tok') :
+    (w : rs[r].Wf r (pubBytes (publicOf c) PV_BGP 16) tok tok') :
     let x := rs[r]; let bgp := c.1.blockGasPrice
     leN' x.aft = leN' x.bef + leN' x.dep ∧ leN' x.aft < Params.u128Max ∧
     leN' x.aft + leN' x.lk < Params.two128 ∧
@@ -97,7 +117,6 @@ theorem arith_ok {r : Nat} (hr : r < rs.length) {tok tok' : Nat}
     (x.hr = true → leN' x.ramt = Params.G * (leN' x.gp - min (leN' x.gp) bgp)) ∧
     tok' = tok + leN' x.burnt ∧ tok' < Params.two128 := by
   obtain ⟨hbgp, hbgpl⟩ := bgp_lt h
-  rw [hbgp] at w
   obtain ⟨l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13⟩ := w.lens
   obtain ⟨hrcb, -⟩ := rc_digest h
   have hencb : Bytes8 rs[r].enc := bytes8_of_sub hrcb (fun y hy => by
@@ -123,7 +142,16 @@ theorem arith_ok {r : Nat} (hr : r < rs.length) {tok tok' : Nat}
     refine bytes8_of_sub hrf (fun y hy => ?_)
     rw [rfMsg_eq]; simp only [List.mem_append, List.mem_flatMap]; right
     exact ⟨_, List.getElem_mem hr, (by simp [rfPart, hhr, RcptV.encRefund, hy])⟩
-  exact w.arith hgp hdep hbef hlk hst hburnt hramt hbgpl
+  have hbB : Bytes8 (pubBytes (publicOf c) PV_BGP 16) := by
+    intro y hy; simp only [pubBytes, List.mem_map, List.mem_range] at hy
+    obtain ⟨i, -, rfl⟩ := hy; exact pubNat_lt c _
+  obtain ⟨a1, a2, a3, a4, a5, a6, a7, a8, a9, a10⟩ := w.arith hbB hgp hdep hbef hlk hst hburnt hramt
+  rw [hbgp] at a5 a6 a7 a8
+  refine ⟨a1, a2, a3, ?_, a5, a6, a7, a8, a9, a10⟩
+  have hst64 : leN' rs[r].st < 2 ^ 64 := leN'_lt64 l8 hst (fun i h1 h2 => by
+    rw [(hl i h2).2.1, if_neg (by omega)])
+  rw [Nat.mod_eq_of_lt (by unfold Params.storageAmountPerByte Params.two128; omega)] at a4
+  exact a4
 
 end Hyp
 

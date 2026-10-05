@@ -69,7 +69,7 @@ theorem toBytes_borshN {l : List Nat} (h : l.length < 256) :
     toBytes (RcptV.borshN l) = borshBytes (toBytes l) := by
   rw [RcptV.borshN, toBytes_append, toBytes_u32r h, borshBytes, toBytes_length]
 
-theorem toBytes_enc {x : RcptV} {r a b c : Nat} (w : x.Wf r a b c) (hb : Bytes8 x.enc) :
+theorem toBytes_enc {x : RcptV} {r : Nat} {a : List Nat} {b c : Nat} (w : x.Wf r a b c) (hb : Bytes8 x.enc) :
     toBytes x.enc = x.toReceipt.encode := by
   obtain ⟨hp, hv, hs⟩ := idLens w
   obtain ⟨h1, h2, h3, h4, h5, -⟩ := w.lens
@@ -86,7 +86,7 @@ theorem toBytes_enc {x : RcptV} {r a b c : Nat} (w : x.Wf r a b c) (hb : Bytes8 
   simp only [List.append_assoc]
   rfl
 
-theorem toReceipt_inSlice {x : RcptV} {r a b c : Nat} (w : x.Wf r a b c) :
+theorem toReceipt_inSlice {x : RcptV} {r : Nat} {a : List Nat} {b c : Nat} (w : x.Wf r a b c) :
     x.toReceipt.inSlice = true := by
   obtain ⟨h1, h2, h3, h4, h5, -⟩ := w.lens
   obtain ⟨i1, i2, i3, -⟩ := w.ids

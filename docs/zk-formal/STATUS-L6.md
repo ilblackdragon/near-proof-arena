@@ -7,6 +7,7 @@ Branch `lane/zk-L6`. Layout spec: `NEAR-AIR.md`. Lean: `zk-formal/ZkFormal/Near/
 | theorem | remaining hypotheses |
 |---|---|
 | `nearAir_sound_R` (`Near/Final.lean`) | `RcptViewStmt` |
+| `nearAir_sound_closed` (`Near/Final.lean`) | **none** (axioms: propext, Classical.choice, Quot.sound) |
 | `nearAir_sound_NR` / `nearAir_sound_L5` | (superseded) |
 | `nearAir_complete'` | `RenderStmt` |
 | `honestTrace_fits'` | `RenderStmt` |
@@ -23,7 +24,7 @@ Branch `lane/zk-L6`. Layout spec: `NEAR-AIR.md`. Lean: `zk-formal/ZkFormal/Near/
 | `AcctViewStmt` | L6 | **proved** `Extract/AcctProof.lean` `acct_view` |
 | `MrkViewStmt` | L6 | **proved** `Extract/MrkProof.lean` `mrk_view` |
 | `NodeViewStmt` | L6 | **proved** `Extract/NodeProof.lean` `node_view` (22 modules `Extract/Node*`, ~20 s total) |
-| `RcptViewStmt` | L6-rcptview | in progress (sub-lane) |
+| `RcptViewStmt` | L6-rcptview | **proved** `Extract/RcptProof.lean` `rcpt_view` (statement fixed per R-L6r-1..3) |
 | `LinkStmt` (views + SHA + balance ⇒ `Good`) | L6-link | **proved** `Link/Main.lean` `link` |
 | `RenderStmt` + `render` (honest trace) | L6-render / L6e | generators done (all buses balance on the sample, `test/NearRenderTest.lean`); obligations `RenderObligations` (Local/Traffic/Bus) in progress (sub-lane `lane/zk-L6-rproof`) |
 | `Budget.weq_le` (W_eq = 1766 ≤ 3000), `nearAir_wf` | L6 | **proved** (kernel, `BudgetCheck.lean`, 13 s) |
@@ -34,6 +35,7 @@ Branch `lane/zk-L6`. Layout spec: `NEAR-AIR.md`. Lean: `zk-formal/ZkFormal/Near/
 * acct: `lo8` monotonicity was enforced across segment boundaries (fixed).
 * sort: `ft` reset constraint fired on the wrap from a full `2^13` table to row 0 (now gated by `isTransition`).
 * rcpt: account ids of 65 bytes were accepted (now `≤ 64`).
+* rcpt: `idx` was not reset at a receipt start (R-L6r-4; added `rf·idx = 0`).
 * views: `MrkV.n` added (the claimed `n` is only a field element); `canon` fields (raw values `< p`).
 
 ## Elaboration time (per module)
@@ -64,3 +66,12 @@ Quot.sound), via `link_of` (`Link/Compose.lean`) from the nine statements of
 View changes (REQUESTS-L6.md): R-L6d-1 (`canon` fields), R-L6d-2 (`arith`
 assumes `Bytes8 ramt` only for refund receipts). Elaboration: every `Link/*`
 module < 1 s; all 40 modules from scratch 12.6 s wall.
+
+## L6-rcptview (`rcpt_view`, branch `lane/zk-L6-rcptview`)
+
+Modules `Extract/Rcpt*.lean` (each < 6 s elaboration; `RcptCharClass` ≈ 5 s, all others < 2 s):
+Facts/Segs/Layout/Table/Regs (row structure, receipt field layout `layout_of`, `table_of`),
+RowT/Of/Chunks/FB1/FB2/Bytes/Gates/Bus/Chars/Key/Dig/Claim/Shape/Traffic (`traffic_of`: all buses),
+WfEasy/Count/Chain/Gas1-3/Dep/Arith/Toks/ClaimArith/CharClass/Strings/StrField/Names/WfIds (`RcptWf`),
+Proof (`rcpt_view`).  Statement fixes R-L6r-1..3 adopted in `Extract/RcptView.lean`; `Link/{Mem,RunChain,
+RcptFacts,EncLemmas,Refunds,Sha,Run}.lean` adapted (`link` still proved).

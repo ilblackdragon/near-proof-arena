@@ -72,7 +72,7 @@ theorem bef_val {r : Nat} (hr : r < rs.length) {a : AcctV} (ha : a ∈ as) (hk :
 
 /-- The token sums of `RcptWf`. -/
 theorem toks_spec : ∃ toks : List Nat, toks.length = rs.length + 1 ∧ toks.head? = some 0 ∧
-    (∀ r (hr : r < rs.length), rs[r].Wf r (leN' (pubBytes (publicOf c) PV_BGP 16)) (toks.getD r 0)
+    (∀ r (hr : r < rs.length), rs[r].Wf r (pubBytes (publicOf c) PV_BGP 16) (toks.getD r 0)
       (toks.getD (r + 1) 0)) ∧ toks.getD rs.length 0 = c.1.tokensBurntTotal := by
   obtain ⟨toks, h1, h2, h3, h4⟩ := rcptWf_at h.rcpt
   obtain ⟨-, -, -, -, -, -, -, bt⟩ := wf_bounds c
@@ -101,7 +101,7 @@ theorem amt_inv {a : AcctV} (ha : a ∈ as) :
     · simp
 
 theorem tok_inv {toks : List Nat} (h0 : toks.head? = some 0)
-    (hw : ∀ r (hr : r < rs.length), rs[r].Wf r (leN' (pubBytes (publicOf c) PV_BGP 16)) (toks.getD r 0)
+    (hw : ∀ r (hr : r < rs.length), rs[r].Wf r (pubBytes (publicOf c) PV_BGP 16) (toks.getD r 0)
       (toks.getD (r + 1) 0)) :
     ∀ r, r ≤ rs.length → (linkExt vs as rs).tokAt c.1 r = toks.getD r 0
   | 0, _ => by

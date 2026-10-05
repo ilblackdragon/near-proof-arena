@@ -69,7 +69,7 @@ conclusions (amount, storage, `ge`, `burnt`, `hr ↔ surplus ≠ 0`, `tok`) are
 derived from columns other than `ramt` (`hr` is `[sur ≠ 0]` by an inverse,
 `sur_i = ge·D_i`), so their table proofs do not use the range of `ramt`.
 
-## R-L6r-1 (L6-rcptview): `RcptV.Wf.tprev_le` is false for the table — OPEN
+## R-L6r-1 (L6-rcptview): `RcptV.Wf.tprev_le` is false for the table — APPLIED on `lane/zk-L6-rcptview`
 
 **Problem.** The table checks the memory-read time only by
 `mul3 dp (c fs) (sub (sub (c r) (c tprev)) (bitsX 57 9))`, i.e.
@@ -88,7 +88,7 @@ Linking (`Link/Mem.lean` `tprev_eq`) already has `htime` (`tprev = 0` or
 discharge the new hypothesis there.  (Table side: `tprev + d ≡ r`, `d < 512`,
 `tprev + d < P`, `r < P` ⇒ `tprev + d = r`.)
 
-## R-L6r-2 (L6-rcptview): the storage clause of `RcptV.Wf.arith` is false for the table — OPEN
+## R-L6r-2 (L6-rcptview): the storage clause of `RcptV.Wf.arith` is false for the table — APPLIED on `lane/zk-L6-rcptview`
 
 **Problem.** `q = 10^19 · st` is computed in the `DEP` rows by the convolution
 `conv S_LE (c st) dl` over the 16 rows only (positions `0..15`, final carry
@@ -113,7 +113,7 @@ Linking (`Link/RunChain.lean`) gets `st_i = 0` for `i ≥ 8` from the acct lanes
 is the identity there.  (Alternative with the same effect: add the hypothesis
 `leN' x.st < 2^64 →` to `arith`.)
 
-## R-L6r-3 (L6-rcptview): `RcptV.Wf.arith` needs the block gas price bytes to be bytes — OPEN
+## R-L6r-3 (L6-rcptview): `RcptV.Wf.arith` needs the block gas price bytes to be bytes — APPLIED on `lane/zk-L6-rcptview`
 
 **Problem.** `RcptWf.toks` instantiates `Wf` with
 `bgp := leN' (pubBytes pub PV_BGP 16)`, which reads each public value mod 256

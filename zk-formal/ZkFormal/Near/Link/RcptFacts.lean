@@ -21,7 +21,7 @@ theorem valid_length {s : Bytes} (h : AccountId.valid s = true) : 2 ≤ s.length
 theorem toBytes_length (l : List Nat) : (toBytes l).length = l.length := List.length_map _
 
 /-- Account-id lengths of a receipt. -/
-theorem idLens {x : RcptV} {r a b c : Nat} (w : x.Wf r a b c) :
+theorem idLens {x : RcptV} {r : Nat} {a : List Nat} {b c : Nat} (w : x.Wf r a b c) :
     x.p.length ≤ 64 ∧ x.v.length ≤ 64 ∧ x.s.length ≤ 64 := by
   obtain ⟨h1, h2, h3, -⟩ := w.ids
   have := valid_length h1; have := valid_length h2; have := valid_length h3
@@ -31,7 +31,7 @@ theorem idLens {x : RcptV} {r a b c : Nat} (w : x.Wf r a b c) :
 /-- The `RcptWf` per-receipt facts, with the running token amounts. -/
 theorem rcptWf_at {pub : List Fp} {rs : RcptVs} (h : RcptWf pub rs) :
     ∃ toks : List Nat, toks.length = rs.length + 1 ∧ toks.head? = some 0 ∧
-      (∀ r (hr : r < rs.length), rs[r].Wf r (leN' (pubBytes pub PV_BGP 16)) (toks.getD r 0)
+      (∀ r (hr : r < rs.length), rs[r].Wf r (pubBytes pub PV_BGP 16) (toks.getD r 0)
         (toks.getD (r + 1) 0)) ∧
       ((∀ i, i < 16 → pubNat pub (PV_TOK + i) < 256) →
         toks.getD rs.length 0 = leN' (pubBytes pub PV_TOK 16)) := h.toks
@@ -57,7 +57,7 @@ theorem rawOrByte_borsh {x : RcptV} {l : List Nat} (hl : l.length ≤ 64) (h : �
   intro y hy; rcases mem_u32r hy with rfl | rfl <;> omega
 
 section
-variable {x : RcptV} {r a b c : Nat} (w : x.Wf r a b c)
+variable {x : RcptV} {r : Nat} {a : List Nat} {b c : Nat} (w : x.Wf r a b c)
 include w
 
 macro "rob" : tactic => `(tactic| (
