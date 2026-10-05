@@ -89,6 +89,8 @@ import ZkFormal.Udr.Np.FrameFri
 import ZkFormal.Udr.Np.Late
 import ZkFormal.Udr.Np.Commits
 import ZkFormal.Udr.Np.SchedFri
+import ZkFormal.Udr.Np.Avail
+import ZkFormal.Udr.Np.FrameMsg
 import ZkFormal.Udr.Np.Shape
 import ZkFormal.Udr.Np.Frame
 import ZkFormal.Udr.Np.Facts
