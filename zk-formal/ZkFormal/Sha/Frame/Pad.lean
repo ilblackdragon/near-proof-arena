@@ -281,6 +281,7 @@ theorem FrameRules.data_eq (hR : FrameRules k L FL BY seen p80 last) :
     ((List.range (64 * k)).filterMap fun g => if FL g = 1 then some (BY g) else none) =
       (List.range L).map BY := by
   have hL := hR.L_lt
+  have hk := hR.k_pos
   rw [show 64 * k = L + (64 * k - L) by omega, List.range_add, List.filterMap_append]
   have e1 : (List.range L).filterMap (fun g => if FL g = 1 then some (BY g) else none) =
       (List.range L).map BY := by
