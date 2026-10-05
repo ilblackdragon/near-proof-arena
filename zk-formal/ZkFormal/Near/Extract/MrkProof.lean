@@ -1033,3 +1033,37 @@ theorem rowT (r b : Nat) (sd : Bool) :
   refine ap ?_ (ap ?_ (ap ?_ (ap ?_ ?_))) <;> (split <;> split <;> simp_all [eq_comm]) <;> grind
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp} {segs : List (Nat × Nat)}
+
+/-- Row facts inside a hashed segment starting at `s`. -/
+theorem hrow (hL : TableLocal Mrk.table tr T_MRK pub) {s : Nat} (hh : Hashed tr s) (h1 : 1 ≤ s)
+    (hH : s + 64 ≤ tr.height T_MRK) (p : Nat) (hp : p < 64) :
+    tr.cell T_MRK (s + p) sg = 1 ∧ tr.cell T_MRK (s + p) rt = 0 ∧
+    tr.cell T_MRK (s + p) wf = (if p % 32 = 0 then 1 else 0) ∧
+    tr.cell T_MRK (s + p) gM = (if p % 32 = 0 then 1 else 0) ∧
+    tr.cell T_MRK (s + p) gO = (if p = 0 then 1 else 0) ∧
+    (32 : Nat) * tr.cell T_MRK (s + p) wn + tr.cell T_MRK (s + p) pw = ((p : Nat) : Fp) := by
+  obtain ⟨a1, a2, a3, a4, a5, -⟩ := hh.rows p hp
+  have l := local_ hL (r := s + p) (by omega)
+  have hrt : tr.cell T_MRK (s + p) rt = 0 := by rw [l.2.2.1, if_neg (by omega)]
+  have hwf : tr.cell T_MRK (s + p) wf = (if p % 32 = 0 then 1 else 0) := by
+    split
+    · exact a5.2 (by assumption)
+    · exact bool01 hL (by omega) (by simp) (fun h => by rename_i hne; exact hne (a5.1 h))
+  refine ⟨a1, hrt, hwf, ?_, ?_, ?_⟩
+  · rw [l.2.2.2.2.2.2.2.2.1, hwf, a2, hrt]; split <;> grind
+  · rw [l.2.2.2.2.2.2.2.2.2, l.2.2.2.2.2.1, hwf, a4, a2]
+    by_cases h0 : p = 0
+    · subst h0; simp; grind
+    · rw [if_neg h0]; split <;> split <;> first | omega | grind
+  · rw [a4, a3]
+    split
+    · rw [Nat.mod_eq_of_lt (by omega)]; grind
+    · rw [show ((32 : Nat) : Fp) * 1 = ((32 * 1 : Nat) : Fp) by rw [natCast_mul]; rfl, ← natCast_add]
+      congr 1; omega
+
+end ZkFormal.Near.MrkProof
