@@ -1,0 +1,49 @@
+[package]
+name = "near-arena-oracle-v3"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Judge-owned oracle for near/pv86/chunk-validation/v0: drives a real multi-shard nearcore TestEnv, captures the real ChunkStateWitness bytes chunk producers emit, builds claim-v3 from the chain store/epoch manager, and judges with nearcore's own validator."
+
+# Separate from ../ (the frozen v1/v2 oracle): this crate depends on nearcore's
+# integration-tests (TestEnv), which pulls in the whole node. Path deps point at
+# the pinned checkout via ../vendor (scripts/link-nearcore.sh); Cargo.lock is
+# nearcore's own lock file so every third-party crate resolves exactly as nearcore's.
+[workspace]
+exclude = ["vendor"]
+
+[[bin]]
+name = "near-arena-oracle-v3"
+path = "src/main.rs"
+
+[dependencies]
+integration-tests = { path = "vendor/nearcore/integration-tests" }
+near-chain = { path = "vendor/nearcore/chain/chain" }
+near-chain-configs = { path = "vendor/nearcore/core/chain-configs" }
+near-client = { path = "vendor/nearcore/chain/client" }
+near-epoch-manager = { path = "vendor/nearcore/chain/epoch-manager" }
+near-primitives = { path = "vendor/nearcore/core/primitives", features = ["test_utils", "solomon", "clock", "rand"] }
+near-primitives-core = { path = "vendor/nearcore/core/primitives-core" }
+near-store = { path = "vendor/nearcore/core/store" }
+near-crypto = { path = "vendor/nearcore/core/crypto" }
+near-parameters = { path = "vendor/nearcore/core/parameters" }
+node-runtime = { path = "vendor/nearcore/runtime/runtime" }
+near-o11y = { path = "vendor/nearcore/core/o11y" }
+borsh = { version = "1.0.0", features = ["derive", "rc"] }
+hex = "0.4.2"
+itertools = "0.14.0"
+rand = "0.8.5"
+rand_chacha = "0.3.1"
+reed-solomon-erasure = { version = "6.0.0", features = ["simd-accel"] }
+serde_json = "1.0.68"
+sha2 = "0.10"
+
+[patch.crates-io]
+protobuf = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }
+protobuf-support = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }
+
+[profile.dev]
+panic = 'unwind'
+opt-level = 1
+[profile.dev.package."*"]
+opt-level = 2
