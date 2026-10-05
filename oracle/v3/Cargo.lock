@@ -2845,6 +2845,7 @@ name = "near-arena-oracle-v3"
 version = "0.1.0"
 dependencies = [
  "borsh",
+ "chrono",
  "hex",
  "integration-tests",
  "itertools",
@@ -2858,6 +2859,7 @@ dependencies = [
  "near-primitives",
  "near-primitives-core",
  "near-store",
+ "near-time",
  "node-runtime",
  "rand 0.8.5",
  "rand_chacha 0.3.1",

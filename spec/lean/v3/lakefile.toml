@@ -1,0 +1,35 @@
+name = "NearSpecV3"
+version = "0.1.0"
+defaultTargets = ["NearSpecV3", "nearspec-v3-check", "nearspec-v3-leaftest"]
+
+# v3 statement near/pv86/chunk-validation/v0 (spec/near-chunk-validation-v0.md).
+# A separate Lake package so that no file of the pinned v1/v2 package
+# (spec/lean/lakefile.toml, NearSpec.lean, NearSpec/*) is modified; it reuses
+# NearSpec (trie, upsert proofs, SHA-256, account/receipt/outcome encodings).
+
+[[lean_lib]]
+name = "NearSpecV3"
+
+[[lean_exe]]
+name = "nearspec-v3-check"
+root = "Main"
+
+[[lean_exe]]
+name = "nearspec-v3-leaftest"
+root = "LeafTest"
+
+[[require]]
+name = "NearSpec"
+path = ".."
+
+[[require]]
+name = "ArenaCore"
+path = "../../../formal-core"
+
+[[lean_exe]]
+name = "nearspec-v3-test-rs"
+root = "TestRS"
+
+[[lean_exe]]
+name = "nearspec-v3-test-sched"
+root = "TestSched"

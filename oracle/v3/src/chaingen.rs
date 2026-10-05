@@ -59,6 +59,7 @@ fn acct(k: usize, j: usize) -> AccountId {
 }
 
 pub struct Setup {
+    pub clock: near_time::FakeClock,
     pub env: TestEnv,
     pub ems: Vec<Arc<EpochManagerHandle>>,
     pub genesis: Genesis,
@@ -77,6 +78,7 @@ pub fn setup(p: &ChainParams) -> Setup {
     let mut genesis_config = GenesisConfig {
         protocol_version: PROTOCOL_VERSION,
         genesis_height: 10000,
+        genesis_time: chrono::DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
         chain_id: "arena-v3-local".to_string(),
         shard_layout,
         validators: validators
@@ -135,14 +137,18 @@ pub fn setup(p: &ChainParams) -> Setup {
         .iter()
         .map(|s| EpochManager::new_arc_handle_from_epoch_config_store(s.clone(), &genesis.config, ecs.clone()))
         .collect();
+    // Deterministic time: a fake clock advanced by a fixed step per block, so the
+    // generated chain (timestamps, hence every hash) is byte-reproducible from the seed.
+    let clock = near_time::FakeClock::new(near_time::Utc::from_unix_timestamp(1_700_000_000).unwrap());
     let env = TestEnv::builder(&genesis.config)
+        .clock(clock.clock())
         .clients(validators.clone())
         .stores(stores)
         .epoch_managers(ems.clone())
         .save_tx_outcomes(true)
         .nightshade_runtimes_with_runtime_config_store(&genesis, vec![RuntimeConfigStore::new(None); n])
         .build();
-    Setup { env, ems, genesis, accounts }
+    Setup { clock, env, ems, genesis, accounts }
 }
 
 pub struct Stats {
@@ -185,6 +191,7 @@ pub fn run_chain(
     );
     for _round in 0..p.blocks {
         height += 1;
+        s.clock.advance(near_time::Duration::milliseconds(1100));
         let tip = s.env.clients[0].chain.head().unwrap();
         // ---- transactions
         let mut txs = Vec::new();

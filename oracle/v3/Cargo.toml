@@ -28,9 +28,11 @@ near-store = { path = "vendor/nearcore/core/store" }
 near-crypto = { path = "vendor/nearcore/core/crypto" }
 near-parameters = { path = "vendor/nearcore/core/parameters" }
 node-runtime = { path = "vendor/nearcore/runtime/runtime" }
+near-time = { path = "vendor/nearcore/core/time", features = ["clock"] }
 near-o11y = { path = "vendor/nearcore/core/o11y" }
 borsh = { version = "1.0.0", features = ["derive", "rc"] }
 hex = "0.4.2"
+chrono = { version = "0.4", default-features = false, features = ["std"] }
 itertools = "0.14.0"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
