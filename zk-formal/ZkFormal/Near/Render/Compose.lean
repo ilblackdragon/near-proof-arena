@@ -3,7 +3,7 @@ import ZkFormal.Near.Render.Statements
 /-!
 # ZkFormal.Near.Render.Compose — `RenderStmt` from the render obligations
 
-`render_stmt : RenderObligations → RenderStmt` (no `sorry`): heights,
+`render_stmt : RenderObligations → RenderStmt` (no `sorry`; everything under `Good ∧ Small`): heights,
 constraints and bits from the seven `LocalStmt`s; bus balance from the seven
 `TrafficStmt`s (each table's `tableBusCount` is a count in its honest
 traffic), the ten `BusStmt`s and `other_bus` (proved here: no honest traffic
@@ -78,41 +78,41 @@ theorem count_sel {is : List Interaction} {tr : Trace Fp} {t : Nat} {pub : List 
 
 /-- **`RenderStmt` from the render obligations.** -/
 theorem render_stmt (h : RenderObligations) : RenderStmt := by
-  intro c e hg
+  intro c e hg hs
   show Holds nearAir (publicOf c) (Render.render c.1 e)
   have L : ∀ t (ht : t < nearAir.tables.length),
       TableLocal nearAir.tables[t] (render c.1 e) t (publicOf c) := by
     intro t ht
     match t, ht with
-    | 0, _ => exact h.shaL c e hg
-    | 1, _ => exact h.nodeL c e hg
-    | 2, _ => exact h.walkL c e hg
-    | 3, _ => exact h.rcptL c e hg
-    | 4, _ => exact h.acctL c e hg
-    | 5, _ => exact h.mrkL c e hg
-    | 6, _ => exact h.sortL c e hg
+    | 0, _ => exact h.shaL c e hg hs
+    | 1, _ => exact h.nodeL c e hg hs
+    | 2, _ => exact h.walkL c e hg hs
+    | 3, _ => exact h.rcptL c e hg hs
+    | 4, _ => exact h.acctL c e hg hs
+    | 5, _ => exact h.mrkL c e hg hs
+    | 6, _ => exact h.sortL c e hg hs
     | _ + 7, ht => exact absurd ht (by simp [nearAir_tables])
   have key : ∀ b s m, busCount nearAir (render c.1 e) (publicOf c) b s m = hcount c.1 e b s m := by
     intro b s m
-    rw [busCount_near, count_sel (h.shaT c e hg), count_sel (h.nodeT c e hg),
-      count_sel (h.walkT c e hg), count_sel (h.rcptT c e hg), count_sel (h.acctT c e hg),
-      count_sel (h.mrkT c e hg), count_sel (h.sortT c e hg)]
+    rw [busCount_near, count_sel (h.shaT c e hg hs), count_sel (h.nodeT c e hg hs),
+      count_sel (h.walkT c e hg hs), count_sel (h.rcptT c e hg hs), count_sel (h.acctT c e hg hs),
+      count_sel (h.mrkT c e hg hs), count_sel (h.sortT c e hg hs)]
     rfl
   refine ⟨fun t ht => ⟨(L t ht).log_ge, (L t ht).log_le⟩, fun t ht r hr e he => (L t ht).constr r hr e he,
     fun t ht r hr i hi b hb => (L t ht).bits r hr i hi b hb, ?_⟩
   intro b m
   rw [key, key]
   match b with
-  | 0 => exact h.bytes c e hg m
-  | 1 => exact h.digest c e hg m
-  | 2 => exact h.parent c e hg m
-  | 3 => exact h.vslot c e hg m
-  | 4 => exact h.edge c e hg m
-  | 5 => exact h.keynib c e hg m
-  | 6 => exact h.final c e hg m
-  | 7 => exact h.mem c e hg m
-  | 8 => exact h.rids c e hg m
-  | 9 => exact h.mpos c e hg m
+  | 0 => exact h.bytes c e hg hs m
+  | 1 => exact h.digest c e hg hs m
+  | 2 => exact h.parent c e hg hs m
+  | 3 => exact h.vslot c e hg hs m
+  | 4 => exact h.edge c e hg hs m
+  | 5 => exact h.keynib c e hg hs m
+  | 6 => exact h.final c e hg hs m
+  | 7 => exact h.mem c e hg hs m
+  | 8 => exact h.rids c e hg hs m
+  | 9 => exact h.mpos c e hg hs m
   | b + 10 => rw [other_bus (by omega), other_bus (by omega)]
 
 end ZkFormal.Near.Render

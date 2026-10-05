@@ -136,7 +136,7 @@ theorem walkOff_add_le : âˆ€ (ws : List (List WStep)) (r : Nat), r < ws.length â
 open WalkTraffic in
 /-- **`WalkTrafficStmt`.** -/
 theorem walkTraffic_ok : WalkTrafficStmt := by
-  intro c e hg
+  intro c e hg _
   have hp : partOf (bundle c.1 e) T_WALK =
       mkTab (2 ^ logOf (walkSteps (walksOf (mkInfo c.1 e))).length) WalkTab.width
         (fun q col => WalkLocal.V (walkSteps (walksOf (mkInfo c.1 e))) (usesL (walkSteps (walksOf (mkInfo c.1 e))))

@@ -319,7 +319,7 @@ end SortLocal
 open SortLocal in
 /-- **`SortLocalStmt`.** -/
 theorem sortLocal : SortLocalStmt := by
-  intro c e hg
+  intro c e hg _
   have ok := idsOk hg
   have hp : partOf (bundle c e) T_SORT =
       mkTab (2 ^ logOf (32 * (sortedIds (mkInfo c e)).length)) Sort.width

@@ -156,7 +156,7 @@ per-table statement is local.)
 `.mul (c rf) (c idx)` (`rf → idx = 0`).  The honest generator already has
 `idx = 0` on `rf` rows: `test/NearRenderTest.lean` passes unchanged (rcpt now
 965 constraints); `BudgetCheck`/`NpOkCheck` re-checked.
-## R-L6e-1 (L6-render): `Good` must bound the number of touched nodes — OPEN
+## R-L6e-1 (L6-render): `Good` must bound the number of touched nodes — RESOLVED (`Small`, L6e-rsha)
 
 **Problem.** `AcctLocalStmt` (part of `RenderObligations`) is false as stated:
 `Good c e` does not bound the number of touched nodes of `e.ns`, but the
@@ -196,3 +196,34 @@ node (two messages, at least one block of 17 rows each, plus start rows).  A
 trie of ~10^6 tiny nodes (e.g. childless, valueless branches of a few bytes)
 satisfies `Good.size` but would need `> 2^22` `sha` rows.  Fix: bound the
 node count in `Good` (or make `size` count a per-node overhead).
+
+**Resolution (L6e-rsha).** `Good` is unchanged (soundness produces it).
+Completeness only renders the *pruned* records `extOf c w`, so the size side
+condition is a separate predicate (`Spec/Small.lean`, name stable):
+
+```lean
+def NodeRec.dead : NodeRec → Bool          -- branch, no value, no child
+def NodeRec.terminal (nr) := nr.touched || nr.dead
+structure Small (e : Ext) : Prop where
+  terminals : (e.ns.filter NodeRec.terminal).length ≤ Params.maxBatch
+```
+
+* `small_complete : NearRelation c w → Small (extOf c w)`
+  (`Spec/SmallComplete.lean`; `tc_prune`: every terminal record of
+  `prune keys t` ends a distinct key, so there are `≤ |keys| = |receipts|`).
+* `RenderStmt : ∀ c e, Good c.1 e → Small e → Holds …`; every
+  `LocalStmt`/`TrafficStmt`/`BusStmt` of `Render/Statements.lean` assumes
+  `Good c.1 e → Small e →`.  `SmallCompleteStmt` (Near/Statements) is the
+  new link; `nearAir_complete hC hSm hR`, `honestTrace_fits hC hSm hR`
+  (Near/Compose), `nearAir_complete'`/`honestTrace_fits'` (Near/Main, with
+  `good_complete`, `small_complete`), and `nearAir_complete_rest`,
+  `honestTrace_fits_rest : RenderRest → …` (Render/Proof/Main).
+* `acctLocal : AcctLocalStmt` (via `Small.touched`); `RenderRest` lost its
+  `touched` field.
+
+Why this suffices for `sha` (and `node`): with `Good.nodes_wf` (hashes are 32
+bytes, extensions have a child), every non-dead record serializes to `≥ 43`
+bytes, and two SHA messages of `s ≥ 43` bytes take `2·(1 + 17·⌈(s+9)/64⌉) ≤
+5s/4` rows (tight at `s = 56`).  So the node messages need `≤ 1.25·3·10^6 +
+36·256 < 3.77·10^6` rows; the remaining `> 4·10^5` rows of `2^22` cover the
+`acct`, `mrk` and `rcpt` messages (`O(maxBatch)` messages of bounded length).

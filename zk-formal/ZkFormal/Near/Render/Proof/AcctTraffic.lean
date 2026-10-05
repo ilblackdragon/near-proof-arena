@@ -182,7 +182,7 @@ end AcctTraffic
 open AcctTraffic in
 /-- **`AcctTrafficStmt`.** -/
 theorem acctTraffic_ok : AcctTrafficStmt := by
-  intro c e hg
+  intro c e hg _
   have hp : partOf (bundle c.1 e) T_ACCT =
       mkTab (2 ^ logOf (16 * (mkInfo c.1 e).touched.length)) Acct.width (AcctGen.cell (mkInfo c.1 e)) := rfl
   obtain ⟨_, hH, hcell⟩ := render_mkTab (by decide) (by decide) hp

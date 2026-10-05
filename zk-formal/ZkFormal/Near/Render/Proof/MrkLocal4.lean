@@ -49,7 +49,7 @@ open NearSpec NearSpec.TransferV1 ZkFormal.Near ZkFormal.Air ZkFormal.Algebra Zk
 open MrkLocal MrkGen in
 /-- **`MrkLocalStmt`.** -/
 theorem mrkLocal : MrkLocalStmt := by
-  intro c e hg
+  intro c e hg _
   have hnI : (mkInfo c.1 e).nRcpt = e.rs.length := rfl
   have hn1 : 1 ≤ (mkInfo c.1 e).nRcpt := by rw [hnI, hg.len]; exact hg.n_pos
   have hn256 : (mkInfo c.1 e).nRcpt ≤ 256 := by rw [hnI, hg.len]; exact hg.n_le

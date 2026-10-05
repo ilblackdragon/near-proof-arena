@@ -101,7 +101,7 @@ set_option maxHeartbeats 1000000 in
 open BusMpos MrkGen MrkTraffic in
 /-- **`MposBusStmt`.** -/
 theorem mposBus : MposBusStmt := by
-  intro c e hg m
+  intro c e hg _ m
   rw [hcount_eq, hcount_eq]
   have hv : mrkViewOf (bundle c e).info =
       ⟨(mkInfo c e).nRcpt, topJ (mkInfo c e).nRcpt,

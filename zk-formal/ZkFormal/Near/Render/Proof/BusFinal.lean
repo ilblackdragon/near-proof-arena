@@ -39,7 +39,7 @@ end
 
 /-- **`FinalBusStmt`.** -/
 theorem finalBus : FinalBusStmt := by
-  intro c e hg m
+  intro c e hg _ m
   rw [hcount_eq, hcount_eq]
   have hw : (bundle c.1 e).walks = walksOf (mkInfo c.1 e) := rfl
   simp only [sel, if_true, Bool.false_eq_true, if_false, shaTraffic, nodeTraffic, nodeSends, nodeRecvs,
@@ -71,7 +71,7 @@ theorem rcpt_keySyms (I : Info) (r : Nat) : (rcptViewOf (rdOf I r)).keySyms = ke
 
 /-- **`KeynibBusStmt`.** -/
 theorem keynibBus : KeynibBusStmt := by
-  intro c e hg m
+  intro c e hg _ m
   rw [hcount_eq, hcount_eq]
   have hw : (bundle c.1 e).walks = walksOf (mkInfo c.1 e) := rfl
   simp only [sel, if_true, Bool.false_eq_true, if_false, shaTraffic, nodeTraffic, nodeSends, nodeRecvs,

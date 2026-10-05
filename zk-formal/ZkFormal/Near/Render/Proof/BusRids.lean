@@ -24,7 +24,7 @@ theorem cnt_perm {l₁ l₂ : List ZkFormal.Near.Msg} (h : l₁.Perm l₂) (m : 
 
 /-- **`RidsBusStmt`.** -/
 theorem ridsBus : RidsBusStmt := by
-  intro c e _ m
+  intro c e _ _ m
   rw [hcount_eq, hcount_eq]
   simp only [sel, if_true, Bool.false_eq_true, if_false, shaTraffic, nodeTraffic, nodeSends, nodeRecvs,
     walkTraffic, walkSends, walkRecvs, rcptTraffic, rcptSends, rcptRecvs, acctTraffic, acctSends, acctRecvs,

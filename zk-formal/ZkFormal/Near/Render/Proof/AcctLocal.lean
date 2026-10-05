@@ -236,7 +236,7 @@ namespace ZkFormal.Near.Render
 
 open NearSpec NearSpec.TransferV1 ZkFormal.Near ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl
 
-/-- `AcctLocalStmt` under the missing `Good` field `TouchedLe` (R-L6e-1). -/
+/-- `AcctLocalStmt` under `TouchedLe` (from `Small`, R-L6e-1). -/
 def AcctLocalStmt' : Prop :=
   ∀ (c : WfClaim) (e : Ext), Good c.1 e → TouchedLe e →
     TableLocal Acct.table (render c.1 e) T_ACCT (publicOf c)
@@ -270,8 +270,8 @@ theorem acctLocal' : AcctLocalStmt' := by
     simp only [List.mem_cons, List.not_mem_nil, or_false] at hb <;> subst hb <;>
     exact key _ (by simp only [List.mem_cons, List.not_mem_nil, true_or, or_true])
 
-/-- **`AcctLocalStmt`**, given that `Good` bounds the touched nodes (R-L6e-1). -/
-theorem acctLocal_of (h : ∀ (c : Claim) (e : Ext), Good c e → TouchedLe e) : AcctLocalStmt :=
-  fun c e hg => acctLocal' c e hg (h c.1 e hg)
+/-- **`AcctLocalStmt`** (`Small` bounds the touched nodes, R-L6e-1). -/
+theorem acctLocal : AcctLocalStmt :=
+  fun c e hg hs => acctLocal' c e hg hs.touched
 
 end ZkFormal.Near.Render
