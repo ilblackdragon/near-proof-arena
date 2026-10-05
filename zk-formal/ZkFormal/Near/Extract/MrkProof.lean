@@ -996,3 +996,40 @@ theorem wfOf (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) : MrkW
         (rcases hx with rfl | rfl | rfl | rfl | ⟨x, -, rfl⟩ | ⟨x, -, rfl⟩ <;> exact Fp.toNat_lt _)
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp} {segs : List (Nat × Nat)}
+
+theorem multNat1 (x : Nat) (r : Nat) :
+    Interaction.multNat.go tr T_MRK r pub [c x] 0 = if tr.cell T_MRK r x = 1 then 1 else 0 := by
+  simp only [Interaction.multNat.go, eval_c]
+  by_cases h : tr.cell T_MRK r x = 1 <;> simp [h]
+
+def regs (tr : Trace Fp) (r : Nat) : List Fp := (List.range 32).map fun x => tr.cell T_MRK r (reg x)
+def pubOut (pub : List Fp) : List Fp := (List.range 32).map fun x => pub.getD (PV_OUT + x) 0
+
+/-- Messages of row `r` per bus and side. -/
+theorem rowT (r b : Nat) (sd : Bool) :
+    rowTraffic Mrk.interactions tr T_MRK r pub b sd =
+      (if b = B_BYTES ∧ sd = true ∧ tr.cell T_MRK r sg = 1 then
+        [[(K_MRK : Fp) + (16 : Nat) * tr.cell T_MRK r q, (32 : Nat) * tr.cell T_MRK r wn + tr.cell T_MRK r pw,
+          tr.cell T_MRK r (reg 0)]] else []) ++
+      (if b = B_DIGEST ∧ sd = false ∧ tr.cell T_MRK r wf = 1 then
+        [[tr.cell T_MRK r cId, tr.cell T_MRK r cLen] ++ regs tr r] else []) ++
+      (if b = B_DIGEST ∧ sd = false ∧ tr.cell T_MRK r rt = 1 then
+        [[tr.cell T_MRK r cId, tr.cell T_MRK r cLen] ++ pubOut pub] else []) ++
+      (if b = B_MPOS ∧ sd = false ∧ tr.cell T_MRK r gM = 1 then
+        [[tr.cell T_MRK r mj, tr.cell T_MRK r mi, tr.cell T_MRK r cId, tr.cell T_MRK r cLen]] else []) ++
+      (if b = B_MPOS ∧ sd = true ∧ tr.cell T_MRK r gO = 1 then
+        [[tr.cell T_MRK r j, tr.cell T_MRK r i, tr.cell T_MRK r oId, tr.cell T_MRK r oLen]] else []) := by
+  simp only [rowTraffic, Mrk.interactions, List.flatMap_cons, List.flatMap_nil, List.append_nil,
+    Dsl.recv, Dsl.send, Interaction.multNat, multNat1, Interaction.msgVal, List.map_cons, List.map_nil,
+    List.map_append, List.map_map, eval_c, eval_add, eval_k, eval_smul, eval_mid, eval_pub, List.append_assoc,
+    regs, pubOut, Function.comp_def]
+  have ap : ∀ {a b c d : List (List Fp)}, a = b → c = d → a ++ c = b ++ d := by
+    intro a b c d h1 h2; rw [h1, h2]
+  refine ap ?_ (ap ?_ (ap ?_ (ap ?_ ?_))) <;> (split <;> split <;> simp_all [eq_comm]) <;> grind
+
+end ZkFormal.Near.MrkProof
