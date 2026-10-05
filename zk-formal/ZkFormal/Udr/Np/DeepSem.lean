@@ -266,6 +266,109 @@ theorem table_sum (eqs : List Fp8) (off : Nat) (L : TLayout) (t : Nat) (o : TOod
       (by omega)]
   grind
 
+/-! ## `deepAt` as a sum over the class -/
+
+/-- `Σ_{r ∈ l} f r`. -/
+def sumL {α : Type} (l : List α) (f : α → Fp8) : Fp8 := l.foldr (fun a s => f a + s) 0
+
+theorem foldl_pair {α : Type} (g : Fp8 × Fp8 → α → Fp8 × Fp8) (F G : α → Fp8)
+    (hg : ∀ acc r, g acc r = (acc.1 + F r, acc.2 + G r)) :
+    ∀ (l : List α) (a b : Fp8), l.foldl g (a, b) = (a + sumL l F, b + sumL l G)
+  | [], a, b => by simp [sumL]; constructor <;> grind
+  | r :: l, a, b => by
+    rw [List.foldl_cons, hg, foldl_pair g F G hg l]
+    simp only [sumL, List.foldr_cons, Prod.mk.injEq]
+    constructor <;> grind
+
+theorem deepAt_eq (c : Ctx Fp8) (op : List (List (List Fp))) (m x : Nat) :
+    deepAt (F := Fp) c op m x =
+      let p := x >>> (c.n0 - m)
+      let ξ : Fp8 := StarkField.embed (K := Fp8) (domPoint (K := Fp8) c.n0 m p : Fp)
+      let main := op.getD 0 []; let aux := op.getD 1 []; let quot := op.getD 2 []
+      let rows := ((c.lay.zip c.deep).zipIdx).filter (·.1.1.lde == m)
+      match rows with
+      | [] => 0
+      | ((L0, _), _) :: _ =>
+        let ω : Fp8 := StarkField.embed (K := Fp8) (StarkField.twoAdicGen (K := Fp8) L0.log : Fp)
+        sumL rows (fun r => (r.1.2.eMz.zip (main.getD r.2 [])).foldl
+              (fun s (uv : Fp8 × Fp) => s + uv.1 * StarkField.embed (K := Fp8) uv.2) 0 +
+            dotK r.1.2.eAz (ksOfRow (F := Fp) (aux.getD r.2 [])) +
+            dotK r.1.2.eQ (ksOfRow (F := Fp) (quot.getD r.2 [])) - r.1.2.vz) / (ξ - c.z) +
+        sumL rows (fun r => (r.1.2.eMg.zip (main.getD r.2 [])).foldl
+              (fun s (uv : Fp8 × Fp) => s + uv.1 * StarkField.embed (K := Fp8) uv.2) 0 +
+            dotK r.1.2.eAg (ksOfRow (F := Fp) (aux.getD r.2 [])) - r.1.2.vg) / (ξ - ω * c.z) := by
+  unfold deepAt
+  simp only
+  split
+  · rename_i h; simp only [h]
+  · rename_i L0 d0 t0 rs hrs
+    simp only [hrs]
+    rw [foldl_pair _
+      (fun r => (r.1.2.eMz.zip ((op.getD 0 []).getD r.2 [])).foldl
+              (fun s (uv : Fp8 × Fp) => s + uv.1 * StarkField.embed (K := Fp8) uv.2) 0 +
+            dotK r.1.2.eAz (ksOfRow (F := Fp) ((op.getD 1 []).getD r.2 [])) +
+            dotK r.1.2.eQ (ksOfRow (F := Fp) ((op.getD 2 []).getD r.2 [])) - r.1.2.vz)
+      (fun r => (r.1.2.eMg.zip ((op.getD 0 []).getD r.2 [])).foldl
+              (fun s (uv : Fp8 × Fp) => s + uv.1 * StarkField.embed (K := Fp8) uv.2) 0 +
+            dotK r.1.2.eAg (ksOfRow (F := Fp) ((op.getD 1 []).getD r.2 [])) - r.1.2.vg)
+      (fun acc r => by simp only [dotK]; apply Prod.ext <;> simp only <;> grind)]
+    simp only
+    grind
+
+/-! ## The class sum -/
+
+theorem class_sum (eqs : List Fp8) (m : Nat) (z ω ξ : Fp8) (val : Col → Fp8) (cl : Col → Bool → Fp8)
+    (rowM rowA rowQ : Nat → List Fp) (oodF : Nat → TOod Fp8)
+    (hv0 : ∀ t c, val ⟨t, 0, c⟩ = Fp8.ofBase ((rowM t).getD c 0))
+    (hv1 : ∀ t c, val ⟨t, 1, c⟩ = (ksOfRow (F := Fp) (rowA t)).getD c 0)
+    (hv2 : ∀ t c, val ⟨t, 2, c⟩ = (ksOfRow (F := Fp) (rowQ t)).getD c 0)
+    (hc0 : ∀ t c, cl ⟨t, 0, c⟩ false = (oodF t).mainZ.getD c 0)
+    (hc0' : ∀ t c, cl ⟨t, 0, c⟩ true = (oodF t).mainG.getD c 0)
+    (hc1 : ∀ t c, cl ⟨t, 1, c⟩ false = (oodF t).auxZ.getD c 0)
+    (hc1' : ∀ t c, cl ⟨t, 1, c⟩ true = (oodF t).auxG.getD c 0)
+    (hc2 : ∀ t c, cl ⟨t, 2, c⟩ false = (oodF t).quotZ.getD c 0) :
+    ∀ (ps : List (TLayout × TOod Fp8)) (pre : List TLayout) (s : Nat),
+      (∀ k (hk : k < ps.length), ps[k].2 = oodF (s + k)) →
+      let H : Nat → Col × Bool → Fp8 := fun j ds =>
+        eqs.getD j 0 * (val ds.1 - cl ds.1 ds.2) * (ξ - (if ds.2 then ω * z else z))⁻¹
+      let rows := (((ps.map (·.1)).zip (tdList eqs pre ps)).zipIdx s).filter (·.1.1.lde == m)
+      sumL rows (fun r => (r.1.2.eMz.zip (rowM r.2)).foldl
+              (fun s (uv : Fp8 × Fp) => s + uv.1 * StarkField.embed (K := Fp8) uv.2) 0 +
+            dotK r.1.2.eAz (ksOfRow (F := Fp) (rowA r.2)) +
+            dotK r.1.2.eQ (ksOfRow (F := Fp) (rowQ r.2)) - r.1.2.vz) * (ξ - z)⁻¹ +
+        sumL rows (fun r => (r.1.2.eMg.zip (rowM r.2)).foldl
+              (fun s (uv : Fp8 × Fp) => s + uv.1 * StarkField.embed (K := Fp8) uv.2) 0 +
+            dotK r.1.2.eAg (ksOfRow (F := Fp) (rowA r.2)) - r.1.2.vg) * (ξ - ω * z)⁻¹ =
+      sOff ((((ps.map (·.1)).zipIdx s).filter fun (L, _) => L.lde == m).flatMap
+        (fun (L, t) => blkOf L t)) (offSum pre m) H
+  | [], pre, s, _ => by simp [sumL, sOff]; grind
+  | (L, o) :: ps, pre, s, hps => by
+    intro H rows
+    have ih := class_sum eqs m z ω ξ val cl rowM rowA rowQ oodF hv0 hv1 hv2 hc0 hc0' hc1 hc1' hc2 ps
+      (pre ++ [L]) (s + 1) (fun k hk => by
+        have := hps (k + 1) (by simp; omega); simp at this; rw [this]; congr 1; omega)
+    have ho : o = oodF s := by have := hps 0 (by simp); simpa using this
+    simp only at ih
+    simp only [rows, List.map_cons, tdList, List.zip_cons_cons, List.zipIdx_cons, List.filter_cons]
+    by_cases hL : L.lde = m
+    · have hb : (L.lde == m) = true := by simp [hL]
+      simp only [hb, ite_true, List.flatMap_cons, sOff_append]
+      have hlen : (blkOf L s).length = cntL L := by simp [blkOf, cntL]; omega
+      have hoff : offSum pre m + (blkOf L s).length = offSum (pre ++ [L]) m := by
+        rw [offSum_append, ite_eq_left hL, hlen]
+      rw [hoff, ← ih]
+      have ht := table_sum eqs (offSum pre L.lde) L s o (rowM s) (rowA s) (rowQ s) z ω ξ val cl
+        (fun c => hv0 s c) (fun c => hv1 s c) (fun c => hv2 s c)
+        (fun c => ho ▸ hc0 s c) (fun c => ho ▸ hc0' s c) (fun c => ho ▸ hc1 s c)
+        (fun c => ho ▸ hc1' s c) (fun c => ho ▸ hc2 s c)
+      simp only at ht
+      rw [show offSum pre m = offSum pre L.lde by rw [hL], ht]
+      simp only [sumL, List.foldr_cons]
+      grind
+    · have hb : (L.lde == m) = false := by simp [hL]
+      simp only [hb, Bool.false_eq_true, ite_false]
+      rw [show offSum pre m = offSum (pre ++ [L]) m by rw [offSum_append, ite_eq_right hL, Nat.add_zero], ← ih]
+
 section
 variable {A : Air} {prm : Params} {τ : PTn}
 
