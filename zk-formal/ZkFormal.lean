@@ -156,3 +156,4 @@ import ZkFormal.Prover.NpDeep4
 import ZkFormal.Prover.NpDeep5
 import ZkFormal.Prover.NpLocal
 import ZkFormal.Prover.NpLocal2
+import ZkFormal.Prover.NpFriPoly
