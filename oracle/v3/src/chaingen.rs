@@ -5,7 +5,7 @@
 use crate::claim::{block_rec, build_claim};
 use crate::enc::{Claim, encode_witness};
 use crate::judge::nearcore_judge;
-use crate::mutate::{Judge, mutants};
+use crate::mutate::{Judge, drop_each_node, mutants};
 use integration_tests::env::nightshade_setup::TestEnvNightshadeSetupExt;
 use integration_tests::env::test_env::TestEnv;
 use near_chain::Provenance;
@@ -49,6 +49,9 @@ pub struct ChainParams {
     pub p_fail: f64,
     pub p_implicit: f64,
     pub p_two: f64,
+    /// (first round, number of rounds, shard index): force that shard's chunks missing for a
+    /// long run (segments longer than 32 blocks: D0 exclusion c.segment).
+    pub long_skip: Option<(u64, u64, usize)>,
 }
 
 const ACCTS_PER_SHARD: usize = 10;
@@ -253,7 +256,15 @@ pub fn run_chain(
                 let _ = h.process_tx(tx.clone(), false, false);
             }
         }
-        let force_skip: Vec<AccountId> = pending_skips.remove(&(tip.height + 2)).unwrap_or_default();
+        let mut force_skip: Vec<AccountId> = pending_skips.remove(&(tip.height + 2)).unwrap_or_default();
+        if let Some((start, len, k)) = p.long_skip {
+            if _round >= start && _round < start + len {
+                let em = &s.env.clients[0].epoch_manager;
+                let layout = em.get_shard_layout(&em.get_epoch_id_from_prev_block(&tip.last_block_hash).unwrap()).unwrap();
+                let sid = layout.account_id_to_shard_id(&s.accounts[k][0]);
+                force_skip.push(s.env.get_chunk_producer_at_offset(&tip, 2, sid));
+            }
+        }
         // ---- block
         let bp = s.env.get_block_producer_at_offset(&tip, height - tip.height);
         let block = s.env.client(&bp).produce_block(height).unwrap().unwrap();
@@ -382,7 +393,11 @@ pub fn run_chain(
                     } else {
                         client.chain.get_block(last.header().prev_hash()).ok().and_then(|b| block_rec(&b).ok())
                     };
-                    for m in mutants(&built.claim, &sw, parent, &mut rng) {
+                    let mut ms = mutants(&built.claim, &sw, parent, &mut rng);
+                    if d0_seen % (mutate_every * 2) == 0 {
+                        ms.extend(drop_each_node(&built.claim, &sw, 48));
+                    }
+                    for m in ms {
                         let (exp, src) = match m.judge {
                             Judge::Claim => (Err("claim-v3 discipline".to_string()), "claim-v3"),
                             Judge::Nearcore => (

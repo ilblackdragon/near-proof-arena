@@ -309,3 +309,28 @@ pub fn mutants(
     }
     out
 }
+
+/// Read-set faithfulness: drop each recorded trie value of the main and of every
+/// implicit transition, one at a time (capped). nearcore rejects iff it reads the
+/// dropped node or value (MissingTrieValue); the Lean/Python relations must agree.
+pub fn drop_each_node(claim: &Claim, w: &ChunkStateWitness, cap: usize) -> Vec<Mutant> {
+    let mut out = Vec::new();
+    let ChunkStateWitness::V2(x) = w;
+    let PartialState::TrieValues(main) = &x.main_state_transition.base_state;
+    for i in 0..main.len().min(cap) {
+        let mut w2 = w.clone();
+        let PartialState::TrieValues(v) = &mut v2(&mut w2).main_state_transition.base_state;
+        v.remove(i);
+        out.push(Mutant { name: format!("w.drop_node.main.{i}"), claim: claim.clone(), witness: borsh::to_vec(&w2).unwrap(), judge: Judge::Nearcore });
+    }
+    for (k, t) in x.implicit_transitions.iter().enumerate() {
+        let PartialState::TrieValues(vals) = &t.base_state;
+        for i in 0..vals.len().min(cap) {
+            let mut w2 = w.clone();
+            let PartialState::TrieValues(v) = &mut v2(&mut w2).implicit_transitions[k].base_state;
+            v.remove(i);
+            out.push(Mutant { name: format!("w.drop_node.implicit{k}.{i}"), claim: claim.clone(), witness: borsh::to_vec(&w2).unwrap(), judge: Judge::Nearcore });
+        }
+    }
+    out
+}

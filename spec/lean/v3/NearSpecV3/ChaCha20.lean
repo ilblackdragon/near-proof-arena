@@ -89,8 +89,14 @@ def Rng.nextU32 (r : Rng) : Nat × Rng :=
     | w :: rest => (w, { r with ctr := r.ctr + 1, buf := rest })
     | [] => (0, r) -- unreachable: a block has 16 words
 
-/-- `u32` leading zeros of `n` (`n < 2³²`). -/
-def lz32 (n : Nat) : Nat := 32 - n.log2 - 1
+/-- Bit length of `n` (structural, fuel = 64 ≥ 32 bits). -/
+def bitLen : Nat → Nat → Nat
+  | 0, _ => 0
+  | _, 0 => 0
+  | fuel + 1, n => 1 + bitLen fuel (n / 2)
+
+/-- `u32` leading zeros of `n` (`0 < n < 2³²`). -/
+def lz32 (n : Nat) : Nat := 32 - bitLen 64 n
 
 /-- `gen_range(0..n as u32)`, `1 ≤ n < 2³²`, with `fuel` draws. -/
 def genIndex : Nat → Nat → Rng → Option (Nat × Rng)

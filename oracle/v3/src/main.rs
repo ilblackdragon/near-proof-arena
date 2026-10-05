@@ -50,6 +50,7 @@ fn chain_params(seed: u64, i: usize, blocks: u64) -> chaingen::ChainParams {
         p_fail: 0.02,
         p_implicit: 0.01,
         p_two: 0.02,
+        long_skip: if i % 8 == 5 { Some((40, 40, 0)) } else { None },
     }
 }
 
