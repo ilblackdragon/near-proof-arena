@@ -76,10 +76,9 @@ derived from columns other than `ramt` (`hr` is `[sur ≠ 0]` by an inverse,
 `acct` table has one 16-row segment per touched node and `maxLog = 12`
 (at most 256 segments).
 
-*Counterexample.* One receipt, and a revealed trie whose root branch has
-257 revealed children, each a touched leaf (leaf `k` with a 1-nibble key
-under branch slot ... — e.g. a two-level branch tree with 257 leaves), all with
-valid 72-byte AccountV1 values; the claim computed from the `Ext` as in
+*Counterexample.* One receipt, and a revealed trie: a root branch whose own
+value slot is touched, with 16 revealed child branches, each with 16 revealed
+touched leaves (257 touched nodes), all with valid 72-byte AccountV1 values; the claim computed from the `Ext` as in
 `test/NearRenderTest.lean` (`mkClaim`).  Every field of `Good` holds
 (`size`: 257 leaves are far below `maxWitnessBytes`; the receipt's walk reaches
 one of the leaves), but the honest `acct` table has `257·16 = 4112 > 2^12`
