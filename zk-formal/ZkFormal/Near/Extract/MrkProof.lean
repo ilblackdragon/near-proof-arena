@@ -1340,6 +1340,67 @@ theorem nodeEq (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) (t :
       · by_cases h2 : b = B_MPOS
         · subst h2; simp [B_BYTES, B_MPOS, Msg.toFp, cn, fpN']
         · simp [h1, h2]
-  · sorry
+  · -- hashed node: 64 rows
+    have hs1 : 1 ≤ segs[t].1 + 1 := by omega
+    have hH : segs[t].1 + 1 + 64 ≤ tr.height T_MRK := by omega
+    rw [hl, hashedTraffic hL hh hs1 hH]
+    have hnd : nodeOf tr segs[t] = .hashed (cn tr (segs[t].1 + 1) cId) (cn tr (segs[t].1 + 1) cLen)
+        ((List.range 32).map fun x => cn tr (segs[t].1 + 1) (reg x))
+        (cn tr (segs[t].1 + 1 + 32) cId) (cn tr (segs[t].1 + 1 + 32) cLen)
+        ((List.range 32).map fun x => cn tr (segs[t].1 + 1 + 32) (reg x)) := by
+      simp [nodeOf, hpr0]
+    rw [hnd]
+    -- facts at the two window starts
+    have r0 := hh.rows 0 (by omega); have r32 := hh.rows 32 (by omega)
+    simp only [Nat.add_zero] at r0
+    have hwf0 : tr.cell T_MRK (segs[t].1 + 1) wf = 1 := r0.2.2.2.2.1.2 trivial
+    have hwf32 : tr.cell T_MRK (segs[t].1 + 1 + 32) wf = 1 := r32.2.2.2.2.1.2 rfl
+    obtain ⟨m0, -, -, -⟩ := links hL (r := segs[t].1 + 1) (by omega)
+    obtain ⟨m32, -, -, -⟩ := links hL (r := segs[t].1 + 1 + 32) (by omega)
+    obtain ⟨a1, a2⟩ := m0 (by rw [hwf0, hpr0]; grind)
+    obtain ⟨b1, b2⟩ := m32 (by rw [hwf32, r32.2.1]; grind)
+    have cj : tr.cell T_MRK (segs[t].1 + 1 + 32) j = tr.cell T_MRK (segs[t].1 + 1) j :=
+      r32.2.2.2.2.2 j (by simp [nodeConst])
+    have ci : tr.cell T_MRK (segs[t].1 + 1 + 32) i = tr.cell T_MRK (segs[t].1 + 1) i :=
+      r32.2.2.2.2.2 i (by simp [nodeConst])
+    rw [cj] at b1; rw [ci, r32.2.2.2.1, if_neg (by decide)] at b2; rw [r0.2.2.2.1, if_pos (by decide)] at a2
+    have hmj0 : tr.cell T_MRK (segs[t].1 + 1) mj = Fp.ofNat (cn tr (segs[t].1 + 1) j - 1) := by
+      rw [← toNat_pred_of a1 hB.1]; exact (fpN' _).symm
+    have hmj32 : tr.cell T_MRK (segs[t].1 + 1 + 32) mj = Fp.ofNat (cn tr (segs[t].1 + 1) j - 1) := by
+      rw [← toNat_pred_of b1 hB.1]; exact (fpN' _).symm
+    have hmi0 : tr.cell T_MRK (segs[t].1 + 1) mi = Fp.ofNat (2 * cn tr (segs[t].1 + 1) i) := by
+      rw [a2, ← ofNat_mul', fpN', show Fp.ofNat 2 = (2 : Fp) from rfl]; grind
+    have hmi32 : tr.cell T_MRK (segs[t].1 + 1 + 32) mi = Fp.ofNat (2 * cn tr (segs[t].1 + 1) i + 1) := by
+      rw [b2, ← ofNat_add', ← ofNat_mul', fpN', show Fp.ofNat 2 = (2 : Fp) from rfl,
+        show Fp.ofNat 1 = (1 : Fp) from rfl]
+    cases sd
+    · simp only [Bool.false_eq_true, if_false, and_false, false_and, List.append_nil, List.nil_append]
+      by_cases h1 : b = B_DIGEST
+      · subst h1
+        simp [B_DIGEST, B_MPOS, Msg.toFp, digMsg, regs, cn, fpN']
+      · by_cases h2 : b = B_MPOS
+        · subst h2
+          simp only [show ¬ (B_MPOS = B_DIGEST) by decide, if_false, if_true, and_self, List.nil_append,
+            List.map_cons, List.map_nil, Msg.toFp, false_and, and_true, ite_false]
+          rw [hmj0, hmj32, hmi0, hmi32]; simp only [cn, fpN']
+        · simp [h1, h2]
+    · simp only [if_true, and_true, true_and, and_false, false_and, if_false, List.append_nil, List.nil_append]
+      by_cases h1 : b = B_BYTES
+      · subst h1
+        simp only [show ¬ (B_BYTES = B_DIGEST) by decide, show ¬ (B_BYTES = B_MPOS) by decide, false_and,
+          ite_false, List.append_nil, if_true, emitAt, List.length_append, List.length_map, List.length_range,
+          show 32 + 32 = 64 from rfl, List.map_map]
+        apply List.map_congr_left; intro p hp; rw [List.mem_range] at hp
+        simp only [Function.comp, Msg.toFp, List.map_cons, List.map_nil, msgId]
+        rw [winByte hh p hp, Nat.zero_add, natCast_eq, natCast_eq, ofNat_lin]
+        simp [cn, fpN', natCast_eq]
+      · by_cases h2 : b = B_MPOS
+        · subst h2
+          obtain ⟨-, -, o, -⟩ := links hL (r := segs[t].1 + 1) (by omega)
+          obtain ⟨e1, e2⟩ := o hh.sf1
+          simp only [show ¬ (B_MPOS = B_BYTES) by decide, if_false, if_true, List.map_cons, List.map_nil,
+            Msg.toFp, msgId]
+          rw [e1, e2, natCast_eq, natCast_eq, ofNat_lin]; simp only [cn, fpN']; rfl
+        · simp [h1, h2]
 
 end ZkFormal.Near.MrkProof
