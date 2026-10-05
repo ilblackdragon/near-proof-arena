@@ -113,6 +113,16 @@ def FriStmt : Prop :=
     S.nn 0 - e 0 ≤ count (List.range (S.nn 0)) (Fri.passK S R S.r) →
     ∃ p : Nat → K, ∀ j, j < S.nn 0 → Fri.passK S R S.r j → R.f 0 j () = ev (S.DD 0) p (S.xs 0 j)
 
+/-- **FRI roll-ins.**  Under the hypotheses of `FriStmt`, every rolled-in word
+`G i` (on layer `i+1`) is `e (i+1)`-close to the RS code of layer `i+1`. -/
+def FriRollStmt : Prop :=
+  ∀ (K : Type) [Field K] (S : Fri.Setup K) (R : Fri.Run K) (e : Nat → Nat),
+    (∀ i, i < S.r → e i ≤ 2 * e (i + 1)) → Fri.GoodChallenges S R e →
+    S.nn 0 - e 0 ≤ count (List.range (S.nn 0)) (Fri.passK S R S.r) →
+    ∀ i, i < S.r → ∃ q : Nat → K,
+      count (List.range (S.nn (i + 1))) (fun j => R.G i j () ≠ ev (S.DD (i + 1)) q (S.xs (i + 1) j))
+        ≤ e (i + 1)
+
 /-! ## Grand-product multiset argument -/
 
 /-- **Product round.** Distinct multisets of field elements give products
