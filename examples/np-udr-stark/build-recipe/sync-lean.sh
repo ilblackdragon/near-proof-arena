@@ -69,9 +69,10 @@ TOML
 # modules in the import closure of formal/NpUdrStark/*.lean (the verifier model and
 # the certificate): the judge elaborates every .lean file under formal/.
 rm -rf "$pkg/formal/ZkFormal" "$pkg/formal/ZkFormal.lean"
-python3 - "$repo/zk-formal" "$pkg/formal" <<'PY'
+python3 - "$repo/zk-formal" "$pkg/formal" "$NEARSPEC" <<'PY'
 import os, re, shutil, sys
 src, dst = sys.argv[1], sys.argv[2]
+TRUSTED_NEARSPEC = {"NearSpec." + m for m in sys.argv[3].split()}
 def imports(path):
     txt = open(path, encoding="utf-8").read()
     txt = re.sub(r"/-.*?-/", "", txt, flags=re.S)
@@ -84,7 +85,13 @@ for f in sorted(os.listdir(os.path.join(dst, "NpUdrStark"))):
 seen = set()
 while todo:
     m = todo.pop()
-    if m in seen or not m.startswith("ZkFormal"):
+    if m in seen:
+        continue
+    if not m.startswith("ZkFormal"):
+        ok = m == "ArenaCore" or m.startswith("ArenaCore.") or m.split(".")[0] in ("Init", "Std", "Lean") \
+            or m in TRUSTED_NEARSPEC or m.startswith("NpUdrStark.") or m == "ArenaExpectedInst"
+        if not ok:
+            sys.exit(f"sync-lean: closure imports {m}: not candidate, trusted or toolchain (judge would reject)")
         continue
     seen.add(m)
     p = os.path.join(src, *m.split(".")) + ".lean"
