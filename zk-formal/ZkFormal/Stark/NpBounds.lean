@@ -247,8 +247,8 @@ end
 /-- **`NpBoundsStmt`**. -/
 theorem np_bounds : NpBoundsStmt := by
   intro F K _ _ _ _ _ A prm
-  exact ⟨fun hdr h => schedule_length_le A prm hdr h,
-    fun hdr h => oracles_length_le A prm hdr h,
-    fun hdr h => oracles_depth_le A prm hdr h⟩
+  exact ⟨fun hdr h => schedule_length_le A prm hdr (verifier_headerOk h).1,
+    fun hdr h => oracles_length_le A prm hdr (verifier_headerOk h).1,
+    fun hdr h => oracles_depth_le A prm hdr (verifier_headerOk h).1⟩
 
 end ZkFormal.Stark

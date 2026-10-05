@@ -358,3 +358,27 @@ candidate `csimp` except through a governed allowlist. Lean side: enumerate the 
 (L4d's `take?_eq_takeF`, `readInj_eq_readInjF`, `mpLeaves_eq_mpLeavesF`; axioms propext and
 Quot.sound) pass that rule. Add this reproducer to `tests/native_route.rs`
 (expect FAIL `SORRY_FOUND`).
+### L4 response to R-L7-bcs-1 and R-L7-1 (lane/zk-L4e, lead decisions)
+* **R-L7-bcs-1 done.** `Stark.H m = .query m fun y => .pure (fit32 y)`, where
+  `fit32 y = (y ++ replicate 32 0).take 32` (`fit32_length`, `fit32_of_length`).
+  L2's lemmas now take `TableWF tbl` where they unfold `H`/`WH`:
+  `Multiproof.evalT_WH_eq`, `evalT_WH wf`, `mpNode_spec wf`, `StarkChain.evalT_starkH wf`,
+  `evalT_starkWH wf`, `evalT_starkWH_eq`, `StarkOpen.queryAnswers_spec tbl wf`.
+  I patched all of them in place; every proof is green. `WH_eq` (`rfl`) is gone. L4's
+  `ChunkBound.H_chunk` is now a one-way lemma.
+* **R-L7-1 (b) done.** `Iop.verifier`'s `headerOk` is now
+  `headerOk A prm hdr && decide (minQueryLog ≤ queryLog A prm hdr)`, with `minQueryLog = 8`.
+  The Protocol-level `headerOk` is unchanged, so every destructuring stays valid.
+  Use `Stark.verifier_headerOk : (Iop.verifier F K A prm).headerOk hdr = true →
+  headerOk A prm hdr = true ∧ 8 ≤ queryLog A prm hdr`. L3's three uses
+  (`Np.Facts`, `Np.ShapeLate`, `Np.Query`) were patched.
+  **L7:** state `np_romSound`'s `hlo` over the IOP's admissible headers
+  (`∀ hdr, (Iop.verifier Fp Fp8 A prm).headerOk hdr = true → lo ≤ queryLog A prm hdr`, which is what
+  `hG` needs). Discharge it with `lo = 8` via `(verifier_headerOk h).2`. Then `g2_8_dom` and
+  `udr2_K24_min8_ok` give `QueryOk 24 g2_8` at the default 24 chunks. `ToyPending.min8` becomes
+  this lemma. **L7/L6 completeness:** the honest prover must give its largest table at least
+  `2^(8 - logBlowup) = 16` rows. The toy AIR, if it allows `l < 4`, needs a padded height
+  (`ProverWf.header` must produce an admissible header).
+  **L8:** the Rust verifier must reject `n0 < 8`, and the prover must pad. In
+  `conformance/run.sh`, log 3 (`n0 = 7`) honest proofs are now rejected by the Lean verifier;
+  use logs ≥ 4.

@@ -11,7 +11,7 @@ namespace ZkFormal.Bcs.Adapter
 
 open ArenaCore ArenaCore.Security ZkFormal Lean.Grind
 
-theorem queryAnswers_spec (tbl : Table) (d : Bytes) : ∀ (n : Nat) (ys : List Bytes),
+theorem queryAnswers_spec (tbl : Table) (wf : TableWF tbl) (d : Bytes) : ∀ (n : Nat) (ys : List Bytes),
     evalT tbl (Stark.queryAnswers d n) = some ys →
       ys.length = n ∧ ∀ j (hj : j < ys.length), tbl.lookup (chunkQ d j) = some ys[j]
   | 0, ys, h => by
@@ -29,7 +29,7 @@ theorem queryAnswers_spec (tbl : Table) (d : Bytes) : ∀ (n : Nat) (ys : List B
         rw [h2] at h
         simp only [Option.bind_some, evalT, Option.some.injEq] at h
         subst h
-        obtain ⟨hl, hq⟩ := queryAnswers_spec tbl d n ys0 h1
+        obtain ⟨hl, hq⟩ := queryAnswers_spec tbl wf d n ys0 h1
         refine ⟨by simp [hl], fun j hj => ?_⟩
         simp only [List.length_append, List.length_singleton] at hj
         by_cases hjl : j < ys0.length
@@ -38,7 +38,7 @@ theorem queryAnswers_spec (tbl : Table) (d : Bytes) : ∀ (n : Nat) (ys : List B
           subst this
           rw [List.getElem_append_right (Nat.le_refl _)]
           simp only [Nat.sub_self, List.getElem_singleton]
-          rw [evalT_starkH] at h2
+          rw [evalT_starkH wf] at h2
           rw [← hl] at h2
           exact h2
 

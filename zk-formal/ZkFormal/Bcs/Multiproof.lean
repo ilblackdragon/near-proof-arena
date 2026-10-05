@@ -33,11 +33,28 @@ theorem evalT_bind_some {α β : Type} {tbl : Table} {oa : OracleComp hashSpec �
   | none => rw [ha] at h; cases h
   | some a => rw [ha] at h; exact ⟨a, rfl, h⟩
 
-theorem WH_eq (tag : UInt8) (m : Bytes) : Stark.WH tag m = wh (tag :: m) := rfl
+/-- On a well-formed log (32-byte answers) L4's normalising `Stark.H`
+(`fit32`) is invisible: `Stark.WH` evaluates as L2's `wh`. -/
+theorem evalT_WH_eq {tbl : Table} (wf : TableWF tbl) (tag : UInt8) (m : Bytes) :
+    evalT tbl (Stark.WH tag m) = evalT tbl (wh (tag :: m)) := by
+  unfold Stark.WH Stark.H wh
+  simp only [OracleComp.bind, evalT]
+  have e0 : whq (tag :: m) 0 = tag :: 1 :: m := rfl
+  have e1 : whq (tag :: m) 1 = tag :: 2 :: m := rfl
+  rw [e0, e1]
+  cases ha : tbl.lookup (tag :: 1 :: m) with
+  | none => rfl
+  | some a =>
+    simp only
+    cases hb : tbl.lookup (tag :: 2 :: m) with
+    | none => rfl
+    | some b =>
+      simp only [evalT, Stark.fit32_of_length (wf.lookup_length ha),
+        Stark.fit32_of_length (wf.lookup_length hb)]
 
-theorem evalT_WH {tbl : Table} {tag : UInt8} {m u : Bytes} (h : evalT tbl (Stark.WH tag m) = some u) :
-    WHin tbl (tag :: m) u := by
-  rw [WH_eq] at h; exact (evalT_wh tbl _ u).mp h
+theorem evalT_WH {tbl : Table} (wf : TableWF tbl) {tag : UInt8} {m u : Bytes}
+    (h : evalT tbl (Stark.WH tag m) = some u) : WHin tbl (tag :: m) u := by
+  rw [evalT_WH_eq wf] at h; exact (evalT_wh tbl _ u).mp h
 
 theorem lookup_mem' {α β : Type} [BEq α] [LawfulBEq α] :
     ∀ {l : List (α × β)} {a : α} {b : β}, l.lookup a = some b → (a, b) ∈ l
@@ -116,7 +133,7 @@ theorem mpLeaves_spec (tbl : Table) (wf : TableWF tbl) (n : Nat) (ws : List Nat)
       · simp only [evalT, Option.some.injEq, Prod.mk.injEq] at h
         obtain ⟨rfl, rfl, rfl⟩ := h
         obtain ⟨ih1, ih2, ih3, ih4⟩ := mpLeaves_spec tbl wf n ws xs r1 hs op' r'' hres
-        have hW : WHin tbl (leafMsg (r.take (r.length - r1.length))) hx := evalT_WH hh
+        have hW : WHin tbl (leafMsg (r.take (r.length - r1.length))) hx := evalT_WH wf hh
         refine ⟨?_, ?_, ?_, ?_⟩
         · intro p hp
           rcases List.mem_cons.mp hp with rfl | hp
@@ -138,7 +155,7 @@ theorem mpLeaves_spec (tbl : Table) (wf : TableWF tbl) (n : Nat) (ws : List Nat)
 
 /-! ## One node -/
 
-theorem mpNode_spec {tbl : Table} {lvl : Nat} {ws : List Nat} {x : Nat} {lft rgt r : Bytes}
+theorem mpNode_spec {tbl : Table} (wf : TableWF tbl) {lvl : Nat} {ws : List Nat} {x : Nat} {lft rgt r : Bytes}
     {nh : Nat × Bytes} {rows? : Option (List (List F))} {r2 : Bytes}
     (h : evalT tbl (Stark.mpNode (F := F) lvl ws x lft rgt r) = some (some (nh, rows?, r2))) :
     ∃ raw rows, Stark.readRows (F := F) ws raw = some (rows, []) ∧ nh.1 = x ∧
@@ -158,7 +175,7 @@ theorem mpNode_spec {tbl : Table} {lvl : Nat} {ws : List Nat} {x : Nat} {lft rgt
       simp only [evalT, Option.some.injEq, Prod.mk.injEq] at h
       obtain ⟨rfl, rfl, rfl⟩ := h
       refine ⟨_, rows0, readRows_consumed hrows, rfl, ?_, rfl⟩
-      have := evalT_WH hh
+      have := evalT_WH wf hh
       simpa [nodeMsg, Stark.tagNode, Bcs.tagNode, List.cons_append, List.append_assoc] using this
 
 
@@ -200,7 +217,7 @@ theorem finish_spec (tbl : Table) (wf : TableWF tbl) (k lvl : Nat) (ws : List Na
   obtain ⟨res, hres, h⟩ := evalT_bind_some h
   rcases res with _ | ⟨⟨y, hp⟩, rows?, r2⟩
   · simp [evalT] at h
-  obtain ⟨raw, rows, hrr, hy, hW, hrows⟩ := mpNode_spec hres
+  obtain ⟨raw, rows, hrr, hy, hW, hrows⟩ := mpNode_spec wf hres
   simp only at hy; subst hy; subst hrows
   obtain ⟨res2, hres2, h⟩ := evalT_bind_some h
   rcases res2 with _ | ⟨hs, op0, r3⟩

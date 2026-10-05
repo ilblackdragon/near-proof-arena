@@ -39,7 +39,7 @@ theorem np_queryLog_le_posBits (prm : Params) (hdr : List Nat)
   show queryLog A prm hdr ≤ prm.posBits
   have hl : ∀ L ∈ layout A prm hdr, L.lde ≤ prm.posBits := by
     intro L hL
-    change headerOk A prm hdr = true at h
+    replace h := (verifier_headerOk h).1
     simp only [headerOk, Bool.and_eq_true, List.all_eq_true, decide_eq_true_eq] at h
     obtain ⟨⟨⟨_, hall⟩, _⟩, _⟩ := h
     simp only [layout, List.mem_map] at hL

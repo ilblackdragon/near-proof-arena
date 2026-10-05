@@ -52,7 +52,7 @@ theorem query_of (hLB : LocalBridgeStmt) (hG : GoodStmt) : QueryStmt := by
   obtain ⟨hdr, αfp, γ, αc, z, rest, finals, ood, fp, hh, hc, he, hrest, hfp, hgc⟩ :=
     prep_inv A prm τ hglob
   have hhdr : hdrOf τ = hdr := by simp [hdrOf, hh]
-  have hok' : headerOk A prm hdr = true := hs.1 hdr hh
+  have hok' : headerOk A prm hdr = true := (verifier_headerOk (hs.1 hdr hh)).1
   subst hprm
   have hn0' : n0Of A Params.default τ ≤ 26 := by
     rw [n0Of, hhdr]; exact queryLog_le A hdr hok'
