@@ -334,3 +334,28 @@ maxWitnessBytes`).
 generator change, no statement fix.  Elaboration (`lake env lean`, wall): every
 new module ≤ 3.1 s (RcptClaim2 3.1 s, RcptRegs1 2.8 s, rest ≤ 2.3 s); axioms
 `propext, Classical.choice, Quot.sound`.
+
+## Sub-lane L6e-digest (lane/zk-L6-digest): `DigestBusStmt` proved
+
+| obligation | theorem | modules |
+|---|---|---|
+| node receives | `BusDigest.node_digest` | `Proof/DigNode` |
+| merkle levels = `merklize` | `BusDigest.levels_dig_eq`, `root_dig` | `Proof/DigMrk` |
+| mrk receives | `BusDigest.mrk_digest` | `Proof/DigMrk2` |
+| rcpt receives, assembly | `BusDigest.rcpt_digest`, `digestBus` | `Proof/BusDigest` |
+
+Messages on DIGEST are keyed by the SHA message id (`kind + 16·idx`), not by
+content, so the "one digest sent, received several times" worry does not
+arise: every id of `bundle.msgs` is received exactly once, and `dmult = true`
+for all messages is right.  Node: root `NPRE/NPOST` from the public roots
+(`preRoot`/`postRoot`, `pub_pre/pub_post`), each non-root node as the revealed
+child of its unique parent (`BusParent.count_children`), `VPRE/VPOST` per
+touched slot (the acct messages).  Mrk: the root (against `outRoot`) plus both
+children of every hashed node = the leaves plus the hashed nodes (rotation
+`BusMpos.rot`; a promoted node is its child).  Rcpt: `RC`/`RF` (against
+`rcCommit`/`rfCommit`), `PEO(r)`, `RID(r)` for refunds; `LEAF(r)` goes to mrk.
+No hypothesis beyond `Good ∧ Small` (`Small.keys` for the node serializations);
+no generator change.
+
+`RenderRest` is now `nodeL` only.  Elaboration (`lake env lean`, wall): every
+new module < 1 s; axioms `propext, Classical.choice, Quot.sound`.
