@@ -210,3 +210,4 @@ import ZkFormal.Near.Render.Proof.Main
 import ZkFormal.Near.Spec.SmallComplete
 import ZkFormal.Near.Link.Main
 import ZkFormal.Near.Final
+import ZkFormal.NearAssembly.Final
