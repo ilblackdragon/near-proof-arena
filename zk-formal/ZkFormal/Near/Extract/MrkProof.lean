@@ -1067,3 +1067,90 @@ theorem hrow (hL : TableLocal Mrk.table tr T_MRK pub) {s : Nat} (hh : Hashed tr 
       congr 1; omega
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp} {segs : List (Nat × Nat)}
+
+theorem fpN' (a : Fp) : Fp.ofNat a.toNat = a := Fp.ofNat_toNat a
+
+/-- Window byte `p` of a hashed node. -/
+theorem winByte {s : Nat} (hh : Hashed tr s) (p : Nat) (hp : p < 64) :
+    (((List.range 32).map fun x => cn tr s (reg x)) ++ ((List.range 32).map fun x => cn tr (s + 32) (reg x))).getD p 0 =
+      cn tr (s + p) (reg 0) := by
+  by_cases h : p < 32
+  · rw [List.getD_eq_getElem?_getD, List.getElem?_append_left (by simpa using h)]
+    simp [List.getElem?_range h, cn]
+    have := hh.regs 0 (by omega) p h; simp at this; rw [this]
+  · rw [List.getD_eq_getElem?_getD, List.getElem?_append_right (by simp; omega)]
+    simp only [List.length_map, List.length_range, List.getElem?_map, List.getElem?_range (by omega : p - 32 < 32),
+      Option.map_some, Option.getD_some, cn]
+    have := hh.regs 1 (by omega) (p - 32) (by omega)
+    rw [show s + 32 * 1 + (p - 32) = s + p by omega, show s + 32 * 1 = s + 32 by omega] at this
+    rw [this]
+
+end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp} {segs : List (Nat × Nat)}
+
+theorem range'_64 (s : Nat) :
+    List.range' s 64 = [s] ++ List.range' (s + 1) 31 ++ [s + 32] ++ List.range' (s + 33) 31 := by
+  have e1 := @List.range'_append_1 s 1 63
+  have e2 := @List.range'_append_1 (s + 1) 31 32
+  have e3 := @List.range'_append_1 (s + 32) 1 31
+  rw [show s + 1 + 31 = s + 32 by omega] at e2
+  rw [show s + 32 + 1 = s + 33 by omega] at e3
+  simp only [List.range'_one] at e1 e3
+  rw [← e1, ← e2, ← e3]; simp
+
+theorem sparse64 {α : Type} (f : Nat → List α) (s : Nat) (h : ∀ p, p < 64 → p ≠ 0 → p ≠ 32 → f (s + p) = []) :
+    (List.range' s 64).flatMap f = f s ++ f (s + 32) := by
+  rw [range'_64]
+  simp only [List.flatMap_append, List.flatMap_singleton]
+  rw [flatMap_range'_nil f (s + 1) 31 (fun j hj => by rw [show s + 1 + j = s + (1 + j) by omega]; exact h _ (by omega) (by omega) (by omega)),
+    flatMap_range'_nil f (s + 33) 31 (fun j hj => by rw [show s + 33 + j = s + (33 + j) by omega]; exact h _ (by omega) (by omega) (by omega))]
+  simp
+
+theorem hashedTraffic (hL : TableLocal Mrk.table tr T_MRK pub) {s : Nat} (hh : Hashed tr s) (h1 : 1 ≤ s)
+    (hH : s + 64 ≤ tr.height T_MRK) (b : Nat) (sd : Bool) :
+    (List.range' s 64).flatMap (fun r => rowTraffic Mrk.interactions tr T_MRK r pub b sd) =
+      (if b = B_BYTES ∧ sd = true then (List.range 64).map fun p =>
+        [(K_MRK : Fp) + (16 : Nat) * tr.cell T_MRK s q, ((p : Nat) : Fp), tr.cell T_MRK (s + p) (reg 0)] else []) ++
+      (if b = B_DIGEST ∧ sd = false then
+        [[tr.cell T_MRK s cId, tr.cell T_MRK s cLen] ++ regs tr s,
+         [tr.cell T_MRK (s + 32) cId, tr.cell T_MRK (s + 32) cLen] ++ regs tr (s + 32)] else []) ++
+      (if b = B_MPOS ∧ sd = false then
+        [[tr.cell T_MRK s mj, tr.cell T_MRK s mi, tr.cell T_MRK s cId, tr.cell T_MRK s cLen],
+         [tr.cell T_MRK (s + 32) mj, tr.cell T_MRK (s + 32) mi, tr.cell T_MRK (s + 32) cId,
+          tr.cell T_MRK (s + 32) cLen]] else []) ++
+      (if b = B_MPOS ∧ sd = true then
+        [[tr.cell T_MRK s j, tr.cell T_MRK s i, tr.cell T_MRK s oId, tr.cell T_MRK s oLen]] else []) := by
+  have R := hrow hL hh h1 hH
+  have hq : ∀ p, p < 64 → tr.cell T_MRK (s + p) q = tr.cell T_MRK s q := fun p hp =>
+    (hh.rows p hp).2.2.2.2.2 q (by simp [nodeConst])
+  by_cases hB : b = B_BYTES ∧ sd = true
+  · obtain ⟨rfl, rfl⟩ := hB
+    rw [flatMap_range'_single _ (fun p => [(K_MRK : Fp) + (16 : Nat) * tr.cell T_MRK s q, ((p : Nat) : Fp),
+      tr.cell T_MRK (s + p) (reg 0)]) s 64 (fun p hp => by
+        obtain ⟨a1, -, -, -, -, a6⟩ := R p hp
+        rw [rowT, a1, a6, hq p hp]; simp [B_BYTES, B_DIGEST, B_MPOS])]
+    simp [B_BYTES, B_DIGEST, B_MPOS]
+  · rw [sparse64 _ s (fun p hp h0 h32 => by
+      obtain ⟨-, a2, a3, a4, a5, -⟩ := R p hp
+      rw [rowT, a2, a3, a4, a5, if_neg (by omega : ¬ p % 32 = 0), if_neg h0]
+      simp only [fp_zero_ne_one, and_false, if_false, List.append_nil]
+      rw [if_neg (fun h => hB ⟨h.1, h.2.1⟩)])]
+    obtain ⟨-, b2, b3, b4, b5, -⟩ := R 0 (by omega)
+    obtain ⟨-, c2, c3, c4, c5, -⟩ := R 32 (by omega)
+    simp only [Nat.add_zero] at b2 b3 b4 b5
+    rw [rowT, rowT, b2, b3, b4, b5, c2, c3, c4, c5]
+    simp only [show (0 : Nat) % 32 = 0 from rfl, show (32 : Nat) % 32 = 0 from rfl, if_true,
+      show ¬ (32 = 0) by decide, if_false, fp_zero_ne_one, and_false, and_true, if_pos rfl]
+    by_cases e1 : b = B_DIGEST <;> by_cases e2 : b = B_MPOS <;> cases sd <;>
+      simp_all [B_BYTES, B_DIGEST, B_MPOS]
+
+end ZkFormal.Near.MrkProof
