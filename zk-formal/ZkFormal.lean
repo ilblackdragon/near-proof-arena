@@ -107,3 +107,4 @@ import ZkFormal.Prover.BcsTree
 import ZkFormal.Prover.BcsMulti
 import ZkFormal.Prover.BcsOpen
 import ZkFormal.Prover.BcsPrefix
+import ZkFormal.Prover.BcsComplete
