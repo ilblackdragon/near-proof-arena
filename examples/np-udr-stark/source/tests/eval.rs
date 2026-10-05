@@ -189,7 +189,7 @@ fn bench_cube_3000() {
         be.eval_combined(rows, w, &next, &sf, &sl, &apow, &mut out);
     }
     let fast = (reps * chunk) as f64 / t0.elapsed().as_secs_f64();
-    let n_ref = 128;
+    let n_ref = 512;
     let t0 = Instant::now();
     let want = reference(&tape, &[], rows, w, &next, &sf, &sl, &apow, n_ref);
     let slow = n_ref as f64 / t0.elapsed().as_secs_f64();
@@ -200,4 +200,49 @@ fn bench_cube_3000() {
         slow * tape.ops.len() as f64,
         fast / slow
     );
+}
+
+/// Cost breakdown on synthetic tapes (loads + accumulations only; a long
+/// multiplication chain with one output).
+#[test]
+#[ignore]
+fn bench_breakdown() {
+    let w = 3000;
+    let chunk = 1024;
+    let nrows = chunk + 16;
+    let mut r = Rng(9);
+    let rows: Vec<F> = (0..nrows * w).map(|_| r.f()).collect();
+    let next: Vec<u32> = (0..chunk as u32).map(|i| i + 16).collect();
+    let sf: Vec<F> = (0..chunk).map(|_| r.f()).collect();
+    let sl: Vec<F> = (0..chunk).map(|_| r.f()).collect();
+    let run = |name: &str, cs: Vec<E>| {
+        let tape = Tape::compile(&cs);
+        let apow: Vec<EF> = (0..cs.len()).map(|_| EF::from_basis_coefficients_fn(|i| F::new(i as u32 + 3))).collect();
+        let be = BlockEval::new(&tape, &[]);
+        let mut out = vec![EF::ZERO; chunk];
+        let t0 = Instant::now();
+        let reps = 10;
+        for _ in 0..reps {
+            be.eval_combined(&rows, w, &next, &sf, &sl, &apow, &mut out);
+        }
+        let dt = t0.elapsed().as_secs_f64() / (reps * chunk) as f64;
+        println!(
+            "{name}: {} instructions, {:.2} ns/row/instruction, {:.0} rows/s",
+            be.num_instructions(),
+            dt * 1e9 / be.num_instructions() as f64,
+            1.0 / dt
+        );
+    };
+    run("load+acc", (0..w).map(E::col).collect());
+    run("load+acc next", (0..w).map(E::nxt).collect());
+    let mut e = E::col(0);
+    for c in 1..w {
+        e = E::mul(e, E::col(c));
+    }
+    run("load+mul", vec![e]);
+    let mut e = E::col(0);
+    for k in 1..w {
+        e = E::mul(E::add(e, E::c(k as u64)), E::col(k % 8));
+    }
+    run("mul/addk chain", vec![e]);
 }

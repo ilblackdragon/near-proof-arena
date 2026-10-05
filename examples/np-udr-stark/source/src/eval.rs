@@ -39,15 +39,18 @@ pub type PF = <F as Field>::Packing;
 /// SIMD width of [`PF`].
 pub const W: usize = <PF as PackedValue>::WIDTH;
 /// Packed vectors per register (rows per group = `W · U`).
-const U: usize = if W >= 16 { 1 } else if W >= 8 { 2 } else { 8 };
+const U: usize = if W >= 16 { 2 } else if W >= 8 { 4 } else { 8 };
 const L: usize = W * U;
 
 /// Selector groups: 0 = plain, 1 = isFirst, 2 = isLast, 3 = isTransition.
 const NGROUPS: usize = 4;
-/// Terms that may be added to a folded `u64` accumulator before the next fold.
+/// Terms added to a folded `u64` accumulator per `Acc` instruction.
 /// After a fold the value is `< 2^32 + 2^32·(2^32 − 2p) < 2^60.01`; each term
 /// is `< p^2 < 2^61.82`, and `2^60.01 + 4·(p−1)^2 < 2^64`.
-const TERMS_PER_FOLD: u32 = 4;
+const TERMS: usize = 4;
+/// Accumulator lanes are split in even / odd rows (`H` each), matching
+/// `vpmuludq` on the low / high halves of 64-bit pairs of Montgomery words.
+const H: usize = L / 2;
 /// `2^32 mod p`.
 const R32: u64 = (1u64 << 32) % (P as u64);
 
@@ -92,16 +95,16 @@ enum Ins {
     LoadCur(u32, u32),
     /// `d = column c of the next rows`
     LoadNxt(u32, u32),
-    /// accumulate register `src` into group `g` with merged coefficient `coef`
-    Acc { g: u32, src: u32, coef: u32 },
-    /// fold the `u64` accumulators of group `g`
-    Fold(u32),
+    /// `acc_g = fold(acc_g) + Σ_{t<n} coef_t · src_t` for the `n ≤ TERMS`
+    /// (register, merged coefficient) pairs of `batches[batch]`
+    Acc { g: u32, n: u32, batch: u32 },
 }
 
 /// Compiled tape (see the module docs).
 #[derive(Clone, Debug)]
 pub struct BlockEval {
     prog: Vec<Ins>,
+    batches: Vec<[(u32, u32); TERMS]>,
     nregs: usize,
     consts: Vec<F>,
     /// register of each selector, if used
@@ -342,7 +345,42 @@ impl BlockEval {
             })
         };
         let mut prog: Vec<Ins> = Vec::with_capacity(sched.len() * 2);
-        let mut pending = [0u32; NGROUPS];
+        // Accumulations are batched per group; values waiting in a batch are
+        // pinned in their registers until the batch is emitted.
+        let mut pending: [Vec<(V, u32)>; NGROUPS] = Default::default();
+        let mut pinned: HashMap<V, usize> = HashMap::new();
+        let mut batches: Vec<[(u32, u32); TERMS]> = vec![];
+        let flush = |g: usize,
+                     t: usize,
+                     pending: &mut [Vec<(V, u32)>; NGROUPS],
+                     pinned: &mut HashMap<V, usize>,
+                     reg: &mut HashMap<V, u32>,
+                     free: &mut Vec<u32>,
+                     prog: &mut Vec<Ins>,
+                     batches: &mut Vec<[(u32, u32); TERMS]>| {
+            let items = std::mem::take(&mut pending[g]);
+            if items.is_empty() {
+                return;
+            }
+            let mut b = [(0u32, 0u32); TERMS];
+            for (k, &(v, a)) in items.iter().enumerate() {
+                b[k] = (reg[&v], a);
+            }
+            prog.push(Ins::Acc { g: g as u32, n: items.len() as u32, batch: batches.len() as u32 });
+            batches.push(b);
+            for &(v, _) in &items {
+                let c = pinned.get_mut(&v).unwrap();
+                *c -= 1;
+                if *c == 0 {
+                    pinned.remove(&v);
+                    if !matches!(v, V::Sel(_)) && last[&v] <= t {
+                        if let Some(r) = reg.remove(&v) {
+                            free.push(r);
+                        }
+                    }
+                }
+            }
+        };
         let mut groups_used = [false; NGROUPS];
         for (t, &s) in sched.iter().enumerate() {
             let ops = uses(s);
@@ -384,7 +422,7 @@ impl BlockEval {
                     };
                     // operands dying here free their registers before the
                     // result is allocated (operands are read before the write)
-                    release(&ops, t, &last, &mut reg, &mut free);
+                    release(&ops, t, &last, &pinned, &mut reg, &mut free);
                     let d = alloc(&mut free);
                     prog.push(with_dst(lowered, d));
                     reg.insert(V::N(i), d);
@@ -393,19 +431,21 @@ impl BlockEval {
                     let (g, x) = accs[a as usize];
                     let g = g as usize;
                     groups_used[g] = true;
-                    if pending[g] == TERMS_PER_FOLD {
-                        prog.push(Ins::Fold(g as u32));
-                        pending[g] = 0;
+                    pending[g].push((x, a));
+                    *pinned.entry(x).or_insert(0) += 1;
+                    if pending[g].len() == TERMS {
+                        flush(g, t, &mut pending, &mut pinned, &mut reg, &mut free, &mut prog, &mut batches);
                     }
-                    pending[g] += 1;
-                    prog.push(Ins::Acc { g: g as u32, src: r(&x), coef: a });
-                    release(&ops, t, &last, &mut reg, &mut free);
                 }
             }
+        }
+        for g in 0..NGROUPS {
+            flush(g, sched.len(), &mut pending, &mut pinned, &mut reg, &mut free, &mut prog, &mut batches);
         }
 
         BlockEval {
             prog,
+            batches,
             nregs: nregs as usize,
             consts,
             sel,
@@ -452,13 +492,13 @@ impl BlockEval {
         assert!(next[..n].iter().all(|&j| (j as usize) < nrows), "next row out of range");
 
         // merged coefficients, canonical limbs
-        let coefs: Vec<[u64; 8]> = self
+        let coefs: Vec<[u32; 8]> = self
             .coef_terms
             .iter()
             .map(|ks| {
                 let s: EF = ks.iter().map(|&k| alpha_pow[k as usize]).sum();
                 let c: &[F] = s.as_basis_coefficients_slice();
-                std::array::from_fn(|j| c[j].as_canonical_u32() as u64)
+                std::array::from_fn(|j| c[j].as_canonical_u32())
             })
             .collect();
 
@@ -489,7 +529,14 @@ impl BlockEval {
                 }
             }
             acc.iter_mut().for_each(|a| *a = 0);
-            let ctx = Ctx { rows, cur_off: &cur_off, nxt_off: &nxt_off, consts: &self.consts, coefs: &coefs };
+            let ctx = Ctx {
+                rows,
+                cur_off: &cur_off,
+                nxt_off: &nxt_off,
+                consts: &self.consts,
+                coefs: &coefs,
+                batches: &self.batches,
+            };
             run(&self.prog, &mut regs, &ctx, &mut acc);
             // finalize
             for l in 0..cnt {
@@ -501,7 +548,8 @@ impl BlockEval {
                         continue;
                     }
                     for (j, limb) in limbs.iter_mut().enumerate() {
-                        let v = from_monty((acc[(g * 8 + j) * L + l] % P as u64) as u32);
+                        let h = if l % 2 == 0 { l / 2 } else { H + l / 2 };
+                        let v = from_monty((acc[(g * 8 + j) * L + h] % P as u64) as u32);
                         *limb += if g == 0 { v } else { v * fsel[g] };
                     }
                 }
@@ -521,9 +569,16 @@ fn operands(op: &NOp) -> Vec<V> {
 
 /// Free the registers of operands whose last use is step `t` (selectors are
 /// never freed).
-fn release(ops: &[V], t: usize, last: &HashMap<V, usize>, reg: &mut HashMap<V, u32>, free: &mut Vec<u32>) {
+fn release(
+    ops: &[V],
+    t: usize,
+    last: &HashMap<V, usize>,
+    pinned: &HashMap<V, usize>,
+    reg: &mut HashMap<V, u32>,
+    free: &mut Vec<u32>,
+) {
     for v in ops {
-        if matches!(v, V::Sel(_)) || last.get(v) != Some(&t) {
+        if matches!(v, V::Sel(_)) || last.get(v) != Some(&t) || pinned.contains_key(v) {
             continue;
         }
         if let Some(r) = reg.remove(v) {
@@ -544,7 +599,7 @@ fn with_dst(ins: Ins, d: u32) -> Ins {
         Ins::Const(_, k) => Ins::Const(d, k),
         Ins::LoadCur(_, c) => Ins::LoadCur(d, c),
         Ins::LoadNxt(_, c) => Ins::LoadNxt(d, c),
-        Ins::Acc { .. } | Ins::Fold(_) => unreachable!(),
+        Ins::Acc { .. } => unreachable!(),
     }
 }
 
@@ -556,18 +611,21 @@ fn raw_regs_mut(regs: &mut [[PF; U]]) -> &mut [F] {
     unsafe { std::slice::from_raw_parts_mut(regs.as_mut_ptr() as *mut F, regs.len() * L) }
 }
 
-/// The Montgomery words of a register (`MontyField31` is `repr(transparent)`
-/// over `u32`).
+/// The Montgomery words of a register as `u64` pairs: lane `2h` in the low
+/// and lane `2h + 1` in the high half of word `h` (little endian).
 #[inline(always)]
-fn monty_words(x: &[PF; U]) -> &[u32; L] {
-    const { assert!(size_of::<[PF; U]>() == L * 4 && size_of::<F>() == 4) };
-    // SAFETY: `[PF; U]` is `L` consecutive `F`, each a `repr(transparent)` `u32`.
-    unsafe { &*(x as *const [PF; U] as *const [u32; L]) }
+fn pair_words(x: &[PF; U]) -> [u64; H] {
+    const { assert!(cfg!(target_endian = "little") && size_of::<[PF; U]>() == 8 * H) };
+    // SAFETY: `[PF; U]` is `L = 2H` initialized `u32` words; the register
+    // file is only 4-byte aligned, hence the unaligned read.
+    unsafe { (x as *const [PF; U] as *const [u64; H]).read_unaligned() }
 }
 
 #[inline(always)]
 fn monty_words_mut(x: &mut [PF; U]) -> &mut [u32; L] {
-    // SAFETY: as for `monty_words`; every word written is a valid element.
+    const { assert!(size_of::<[PF; U]>() == L * 4 && size_of::<F>() == 4) };
+    // SAFETY: `[PF; U]` is `L` consecutive `F`, each a `repr(transparent)`
+    // `u32` (its Montgomery word); callers only write valid words (< p).
     unsafe { &mut *(x as *mut [PF; U] as *mut [u32; L]) }
 }
 
@@ -583,7 +641,8 @@ struct Ctx<'a> {
     cur_off: &'a [usize; L],
     nxt_off: &'a [usize; L],
     consts: &'a [F],
-    coefs: &'a [[u64; 8]],
+    coefs: &'a [[u32; 8]],
+    batches: &'a [[(u32, u32); TERMS]],
 }
 
 #[inline(always)]
@@ -626,22 +685,80 @@ fn run(prog: &[Ins], regs: &mut [[PF; U]], ctx: &Ctx, acc: &mut [u64]) {
             Ins::Const(d, k) => regs[d as usize] = [PF::from(ctx.consts[k as usize]); U],
             Ins::LoadCur(d, c) => gather(ctx.rows, ctx.cur_off, c as usize, &mut regs[d as usize]),
             Ins::LoadNxt(d, c) => gather(ctx.rows, ctx.nxt_off, c as usize, &mut regs[d as usize]),
-            Ins::Acc { g, src, coef } => {
-                let v = monty_words(&regs[src as usize]);
-                let c = &ctx.coefs[coef as usize];
-                let a: &mut [u64; 8 * L] =
+            Ins::Acc { g, n, batch } => {
+                let gacc: &mut [u64; 8 * L] =
                     (&mut acc[g as usize * 8 * L..(g as usize + 1) * 8 * L]).try_into().unwrap();
-                for j in 0..8 {
-                    let cj = c[j];
-                    for l in 0..L {
-                        a[j * L + l] += cj * v[l] as u64;
-                    }
+                let b = &ctx.batches[batch as usize];
+                match n {
+                    4 => acc_kernel::<4>(gacc, regs, b, ctx.coefs),
+                    3 => acc_kernel::<3>(gacc, regs, b, ctx.coefs),
+                    2 => acc_kernel::<2>(gacc, regs, b, ctx.coefs),
+                    _ => acc_kernel::<1>(gacc, regs, b, ctx.coefs),
                 }
             }
-            Ins::Fold(g) => {
-                for a in &mut acc[g as usize * 8 * L..(g as usize + 1) * 8 * L] {
-                    *a = (*a & 0xffff_ffff) + (*a >> 32) * R32;
+        }
+    }
+}
+
+/// `a = fold(a) + Σ_{t<N} c_t · v_t` on the even / odd split of each limb.
+#[inline(always)]
+fn acc_kernel<const N: usize>(
+    a: &mut [u64; 8 * L],
+    regs: &[[PF; U]],
+    b: &[(u32, u32); TERMS],
+    coefs: &[[u32; 8]],
+) {
+    const { assert!(L % 2 == 0 && N <= TERMS) };
+    let ws: [[u64; H]; N] = std::array::from_fn(|t| pair_words(&regs[b[t].0 as usize]));
+    let cs: [&[u32; 8]; N] = std::array::from_fn(|t| &coefs[b[t].1 as usize]);
+    #[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
+    if H % 4 == 0 {
+        // SAFETY: AVX2 is enabled at compile time; all accesses are in bounds
+        // (`a` has `8L` words, each `ws[t]` has `H` words, `H % 4 == 0`).
+        unsafe { acc_avx2::<N>(a, &ws, &cs) };
+        return;
+    }
+    for j in 0..8 {
+        let (e, o) = a[j * L..(j + 1) * L].split_at_mut(H);
+        for h in 0..H {
+            let mut x = (e[h] & 0xffff_ffff) + (e[h] >> 32) * R32;
+            let mut y = (o[h] & 0xffff_ffff) + (o[h] >> 32) * R32;
+            for t in 0..N {
+                let c = cs[t][j] as u64;
+                x += c * (ws[t][h] & 0xffff_ffff);
+                y += c * (ws[t][h] >> 32);
+            }
+            e[h] = x;
+            o[h] = y;
+        }
+    }
+}
+
+#[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
+#[inline(always)]
+unsafe fn acc_avx2<const N: usize>(a: &mut [u64; 8 * L], ws: &[[u64; H]; N], cs: &[&[u32; 8]; N]) {
+    use std::arch::x86_64::*;
+    unsafe {
+        let mask = _mm256_set1_epi64x(0xffff_ffff);
+        let r32 = _mm256_set1_epi64x(R32 as i64);
+        let ap = a.as_mut_ptr() as *mut __m256i;
+        for q in 0..H / 4 {
+            let we: [__m256i; N] = std::array::from_fn(|t| _mm256_loadu_si256(ws[t].as_ptr().add(4 * q) as *const __m256i));
+            let wo: [__m256i; N] = std::array::from_fn(|t| _mm256_srli_epi64::<32>(we[t]));
+            for j in 0..8 {
+                let pe = ap.add((j * L) / 4 + q);
+                let po = ap.add((j * L + H) / 4 + q);
+                let e = _mm256_loadu_si256(pe);
+                let o = _mm256_loadu_si256(po);
+                let mut e = _mm256_add_epi64(_mm256_and_si256(e, mask), _mm256_mul_epu32(_mm256_srli_epi64::<32>(e), r32));
+                let mut o = _mm256_add_epi64(_mm256_and_si256(o, mask), _mm256_mul_epu32(_mm256_srli_epi64::<32>(o), r32));
+                for t in 0..N {
+                    let c = _mm256_set1_epi64x(cs[t][j] as i64);
+                    e = _mm256_add_epi64(e, _mm256_mul_epu32(we[t], c));
+                    o = _mm256_add_epi64(o, _mm256_mul_epu32(wo[t], c));
                 }
+                _mm256_storeu_si256(pe, e);
+                _mm256_storeu_si256(po, o);
             }
         }
     }
