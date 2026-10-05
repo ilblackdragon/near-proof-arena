@@ -62,3 +62,5 @@ import ZkFormal.Udr.Np.Early
 import ZkFormal.Udr.Np.Ali
 import ZkFormal.Udr.Np.Bus
 import ZkFormal.Udr.Np.BusRounds
+import ZkFormal.Udr.Np.Degree
+import ZkFormal.Udr.Np.Chal7
