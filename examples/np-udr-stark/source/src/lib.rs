@@ -1,5 +1,6 @@
 //! `np-udr-stark-v1` prover (DESIGN.md §4), lane L8.
 pub mod air;
+pub mod cols;
 pub mod aux;
 pub mod eval;
 pub mod check;
