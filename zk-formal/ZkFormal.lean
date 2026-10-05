@@ -40,4 +40,4 @@ import ZkFormal.Stark.NpBounds
 import ZkFormal.Stark.QueryBound
 -- Lane L5: SHA-256 block table (statements, composition, generator).
 import ZkFormal.Sha.Compose
-import ZkFormal.Sha.Sound.Kind
+import ZkFormal.Sha.Sound.Round
