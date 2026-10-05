@@ -60,3 +60,5 @@ import ZkFormal.Udr.Np.QueryParts
 import ZkFormal.Udr.Np.QueryFacts
 import ZkFormal.Udr.Np.Query
 import ZkFormal.Udr.Np.Good
+import ZkFormal.Udr.Np.ShapeLate
+import ZkFormal.Udr.Np.FrameFri
