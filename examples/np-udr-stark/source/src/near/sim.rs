@@ -44,3 +44,56 @@ pub fn rcpt_msgs_sim(i: &Info) -> Vec<Msg> {
     v
 }
 
+
+/// One bus message of a simulated table (`RcptSim.BusMsg`, multiplicity 1).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BusMsg {
+    pub bus: usize,
+    pub send: bool,
+    pub msg: Vec<u32>,
+}
+
+/// `rcptBus I`: traffic of `rcpt` except its `BYTES` sends.
+pub fn rcpt_bus_sim(i: &Info) -> Vec<BusMsg> {
+    let e = &i.e;
+    let mut v: Vec<BusMsg> = rcpt_msgs_sim(i)
+        .iter()
+        .filter(|m| m.id as usize % 16 != K_LEAF)
+        .map(|m| {
+            let mut msg = vec![m.id, m.bytes.len() as u32];
+            msg.extend(sha_n(&m.bytes).iter().map(|&x| x as u32));
+            BusMsg { bus: B_DIGEST, send: false, msg }
+        })
+        .collect();
+    for r in 0..i.n_rcpt() {
+        let rc = e.rc(r);
+        let k = e.slot(r);
+        let a0 = e.acc0(k);
+        let bef = le_bytes(16, e.amt_at(k, r));
+        let aft = le_bytes(16, e.amt_at(k, r) + rc.deposit);
+        let lk = le_bytes(16, a0.locked);
+        let st = le_bytes(8, a0.storage_usage);
+        let g = |b: &Bytes, j: usize| b.get(j).copied().unwrap_or(0) as u32;
+        for (t, s) in key_syms(&rc).into_iter().enumerate() {
+            v.push(BusMsg { bus: B_KEYNIB, send: true, msg: vec![r as u32, t as u32, s as u32, (s == SYM_END) as u32] });
+        }
+        v.push(BusMsg { bus: B_FINAL, send: false, msg: vec![r as u32, k as u32] });
+        let tp = tprev_of(e, r) as u32;
+        for j in 0..16 {
+            v.push(BusMsg { bus: B_MEM, send: false, msg: vec![k as u32, tp, j as u32, g(&bef, j), g(&lk, j), g(&st, j)] });
+            v.push(BusMsg { bus: B_MEM, send: true, msg: vec![k as u32, r as u32 + 1, j as u32, g(&aft, j), g(&lk, j), g(&st, j)] });
+        }
+        for j in 0..32 {
+            v.push(BusMsg { bus: B_RIDS, send: true, msg: vec![r as u32, j as u32, g(&rc.receipt_id, j)] });
+        }
+        v.push(BusMsg { bus: B_MPOS, send: true, msg: vec![0, r as u32, msg_id(K_LEAF, r) as u32, 68] });
+    }
+    v
+}
+
+/// `bytesSends ms`.
+pub fn bytes_sends(ms: &[Msg]) -> Vec<BusMsg> {
+    ms.iter()
+        .flat_map(|m| m.bytes.iter().enumerate().map(move |(p, &b)| BusMsg { bus: B_BYTES, send: true, msg: vec![m.id, p as u32, b as u32] }))
+        .collect()
+}

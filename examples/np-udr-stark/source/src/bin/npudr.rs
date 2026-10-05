@@ -188,7 +188,21 @@ fn main() {
             // every constraint of every nearAir table on the honest traces, and bus balance
             let (req, wit) = (std::fs::read(&a[2]).unwrap(), std::fs::read(&a[3]).unwrap());
             let t = Instant::now();
-            let (cb, air, trs) = near::prepare(&req, &wit).unwrap_or_else(|e| die(&e));
+            // with an empty (stub) rcpt table, its traffic is simulated (RcptSim):
+            // sha also hashes `rcpt_msgs_sim`, and the remaining imbalance must be
+            // exactly `rcpt_bus_sim ++ bytes_sends rcpt_msgs_sim`.
+            let (c, e) = near::load(&req, &wit).unwrap_or_else(|e| die(&e));
+            let mut b = near::trace::bundle(&c, &e);
+            let sim = b.rcpt.is_empty();
+            let mut simbus = vec![];
+            if sim {
+                let rm = near::sim::rcpt_msgs_sim(&b.info);
+                simbus = near::sim::rcpt_bus_sim(&b.info);
+                simbus.extend(near::sim::bytes_sends(&rm));
+                b.msgs.extend(rm);
+                println!("rcpt table is the stub: simulating its traffic ({} bus messages)", simbus.len());
+            }
+            let (cb, air, trs) = (c.encode(), near::near_air(), near::trace::bundle_traces(&b));
             let tg = t.elapsed().as_millis();
             let pubs = near::public_of(&cb);
             let names = ["sha", "node", "walk", "rcpt", "acct", "mrk", "sort"];
@@ -196,9 +210,25 @@ fn main() {
             for (k, (tab, tr)) in air.tables.iter().zip(&trs).enumerate() {
                 let f = check::failing_constraints(tab, tr, &pubs, 20);
                 println!("table {k} {:5} {:>8} x {:3}: {} failing (constraint,row) {:?}", names[k], tr.height(), tr.width(), f.len(), f);
-                bad |= !f.is_empty();
+                bad |= !f.is_empty() && !(sim && k == 3);
             }
-            let imb = check::bus_imbalance(&air, &trs, &pubs);
+            let mut imb = check::bus_imbalance(&air, &trs, &pubs);
+            if sim {
+                // add the simulated rcpt traffic; keys not reported were balanced
+                let mut m: std::collections::BTreeMap<(usize, Vec<u32>), (i64, i64)> = std::collections::BTreeMap::new();
+                for (bus, msg, s, r) in &imb {
+                    m.insert((*bus, msg.clone()), (*s as i64, *r as i64));
+                }
+                let mut delta: std::collections::BTreeMap<(usize, Vec<u32>), i64> = std::collections::BTreeMap::new();
+                for x in &simbus {
+                    *delta.entry((x.bus, x.msg.clone())).or_default() += if x.send { 1 } else { -1 };
+                }
+                for (k, d) in delta {
+                    let ent = m.entry(k).or_insert((0, 0));
+                    if d > 0 { ent.0 += d } else { ent.1 -= d }
+                }
+                imb = m.into_iter().filter(|(_, (s, r))| s != r).map(|((b, msg), (s, r))| (b, msg, s as u64, r as u64)).collect();
+            }
             let mut per_bus = std::collections::BTreeMap::new();
             for (bus, _, _, _) in &imb {
                 *per_bus.entry(*bus).or_insert(0usize) += 1;
