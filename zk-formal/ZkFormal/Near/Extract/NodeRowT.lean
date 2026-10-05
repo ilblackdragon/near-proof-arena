@@ -100,3 +100,8 @@ theorem rowT_other (r b' : Nat) (sd : Bool) (h : b' ≠ B_BYTES ∧ b' ≠ B_DIG
     Ne.symm h5]
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+theorem flatMap_eq_nil' {α β : Type} {l : List α} {f : α → List β} (h : ∀ x ∈ l, f x = []) : l.flatMap f = [] := by
+  rw [List.flatMap_eq_nil_iff]; exact h
+end ZkFormal.Near.NodeProof
