@@ -228,7 +228,7 @@ bytes, and two SHA messages of `s ≥ 43` bytes take `2·(1 + 17·⌈(s+9)/64⌉
 36·256 < 3.77·10^6` rows; the remaining `> 4·10^5` rows of `2^22` cover the
 `acct`, `mrk` and `rcpt` messages (`O(maxBatch)` messages of bounded length).
 
-## R-L6e-2 (L6-node): `Small` must bound the revealed key lengths — OPEN
+## R-L6e-2 (L6-node): `Small` must bound the revealed key lengths — APPLIED (Small.keys, small_complete)
 
 **Problem.** `Good` allows keys of up to 511 nibbles (`NodeRec.wf`), but the
 node table writes the hex-prefix length as one byte: the `HPL` row has
