@@ -9,15 +9,17 @@ Quot.sound.
 | log plumbing (`evalT`, `simulate_evalT`, `TableWF`, splits) | Bcs/Log.lean | L2 | proved |
 | wide hash binding `wh_unique`, no-inversion `noInv_of` | Bcs/Wide.lean | L2 | proved |
 | commitment interface, `invert_eq`, `used_produced` | Bcs/Commit.lean | L2 | proved |
-| single-height Merkle `merkle_binding`, `merkle_rooted` | Bcs/Merkle.lean | L2 | proved |
+| single-height Merkle `merkle_binding` | Bcs/Merkle.lean | L2 | proved |
 | **extraction lemma** `chain_extract`, `accept_imp_event_log` | Bcs/Extract.lean | L2 | proved |
 | `bcs_romSound` (composition) | Bcs/Compose.lean | L2 | proved from Stmts |
-| `GameStmt`, `QBAddStmt`, `StepMixStmt` | Bcs/Game2.lean | sub-agent L2-game | open |
-| `InvPotStmt` (inversion potential) | Bcs/InvPot.lean | sub-agent L2-inv | open |
-| `MmcsStmt` (mixed-height MMCS binding) | Bcs/Mmcs.lean | sub-agent L2-mmcs | open |
-| `BudgetStmt` (profile arithmetic) | Bcs/Budget.lean | sub-agent L2-budget | open |
-| L4 refinement `evalT … = some true → AcceptsIn` | (L4) | L4 | requested (REQUESTS.md) |
-| RbrFacts transport to byte transcripts | (L7/L2) | — | not started |
+| `GameStmt`, `QBAddStmt`, `StepMixStmt` | Bcs/Game2.lean | L2-game | **proved** `game2`, `qbAdd`, `stepMix` |
+| `MmcsStmt` (mixed-height MMCS binding, L4 byte format) | Bcs/Mmcs.lean | L2 | **proved** `mmcs_binding_rooted` |
+| `BudgetStmt` | Bcs/Budget.lean | L2-budget | **proved** `budget`, `budget_K24` |
+| `MultiproofStmt` (L4 multiproof ⇒ mmcsOpen paths) | Bcs/Multiproof*.lean | L2-mp | **proved** `multiproof_sound` |
+| `CompileAcceptsStmt` (L4 `Stark.Bcs.compile` ⇒ `AcceptsIn (adapt V)`) | Bcs/Stark{Adapter,Parse,Chain,Decode,Open,Align,Refine,Main}.lean | L2 | **proved** `compile_accepts` |
+| `stark_romSound` (RomSound of L4's deployed verifier) | Bcs/Final.lean | L2 | proved, modulo `InvPotStmt` + L3 RBR facts |
+| `InvPotStmt` (inversion potential) | Bcs/InvPot.lean | L2-inv | in progress |
+| RBR facts transport (L3 `RbrFacts` → `Bcs.PT mmcs` form) | — | L3/L7 | not started |
 
 Design amendments (relative to DESIGN.md §4), recorded in REQUESTS.md:
 * Challenge: `d ← WH(CHAL, d)`, challenge = first half. This fixes an
