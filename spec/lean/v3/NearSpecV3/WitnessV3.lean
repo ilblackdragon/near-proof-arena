@@ -94,7 +94,7 @@ def pChunkHeader : P (Bytes × ChunkInner) := fun bs => do
   pure ((innerBytes, ci), bs)
 
 def decodeStateWitness (bs : Bytes) : Except String StateWitness := do
-  if bs.length > MAX_WITNESS then throw "decode: witness larger than 64 MiB"
+  if lenT bs > MAX_WITNESS then throw "decode: witness larger than 64 MiB"
   let (t, bs) ← pU8 "ChunkStateWitness tag" bs
   if t != 1 then throw "decode: ChunkStateWitness tag"
   let (eid, bs) ← pHash "epoch_id" bs

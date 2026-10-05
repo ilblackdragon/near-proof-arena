@@ -28,14 +28,42 @@ def lift {α} (what : String) (p : Parser α) : P α := fun bs =>
   | some r => .ok r
   | none => .error s!"decode: truncated {what}"
 
+/-! Tail-recursive byte-list helpers: the kernel evaluates them iteratively, so
+`decide +kernel` works on multi-kilobyte witnesses (the structurally recursive
+`List.length` / `NearSpec.takeN` nest one kernel frame per byte). -/
+
+def revAppend : List UInt8 → List UInt8 → List UInt8
+  | [], acc => acc
+  | b :: bs, acc => revAppend bs (b :: acc)
+
+def takeAcc : Nat → List UInt8 → List UInt8 → Option (List UInt8 × List UInt8)
+  | 0, acc, rest => some (revAppend acc [], rest)
+  | _ + 1, _, [] => none
+  | n + 1, acc, b :: bs => takeAcc n (b :: acc) bs
+
+/-- `takeN` (same result, tail-recursive). -/
+def takeT (n : Nat) : Parser Bytes := fun bs => takeAcc n [] bs
+
+def lenAcc : List UInt8 → Nat → Nat
+  | [], n => n
+  | _ :: bs, n => lenAcc bs (n + 1)
+
+/-- `List.length` (same result, tail-recursive). -/
+def lenT (b : List UInt8) : Nat := lenAcc b 0
+
+def readBytesT : Parser Bytes := fun bs =>
+  match readU32 bs with
+  | none => none
+  | some (n, rest) => takeT n rest
+
 def pU8 (w : String) : P Nat := lift w readU8
 def pU16 (w : String) : P Nat := lift w readU16
 def pU32 (w : String) : P Nat := lift w readU32
 def pU64 (w : String) : P Nat := lift w readU64
 def pU128 (w : String) : P Nat := lift w readU128
 def pHash (w : String) : P Bytes := lift w readHash
-def pBytes (w : String) : P Bytes := lift w readBorshBytes
-def pTake (n : Nat) (w : String) : P Bytes := lift w (takeN n)
+def pBytes (w : String) : P Bytes := lift w readBytesT
+def pTake (n : Nat) (w : String) : P Bytes := lift w (takeT n)
 
 def pMany {α} (p : P α) : Nat → P (List α)
   | 0, bs => .ok ([], bs)
@@ -63,7 +91,10 @@ def pBool (w : String) : P Bool := fun bs => do
   | _ => throw s!"decode: invalid bool {w}"
 
 /-- Bytes consumed by a parser (to keep the exact encoding of a sub-value). -/
-def consumed (before after : Bytes) : Bytes := before.take (before.length - after.length)
+def consumed (before after : Bytes) : Bytes :=
+  match takeT (lenT before - lenT after) before with
+  | some (h, _) => h
+  | none => []
 
 /-- `AccountId`: borsh string + `validate` (near-account-id-2.0.0 `src/borsh.rs:9-30`). -/
 def pAccountId (w : String) : P Bytes := fun bs => do

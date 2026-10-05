@@ -14,11 +14,14 @@ namespace NearSpecV3
 open NearSpec
 
 /-- `"near-arena-claim-v3"` -/
-def claimTag : Bytes := "near-arena-claim-v3".toUTF8.toList
+def claimTag : Bytes :=
+  [110, 101, 97, 114, 45, 97, 114, 101, 110, 97, 45, 99, 108, 97, 105, 109, 45, 118, 51]
 /-- `"near/pv86/chunk-validation/v0"` -/
-def statementIdV3 : Bytes := "near/pv86/chunk-validation/v0".toUTF8.toList
+def statementIdV3 : Bytes :=
+  [110, 101, 97, 114, 47, 112, 118, 56, 54, 47, 99, 104, 117, 110, 107, 45, 118, 97, 108, 105, 100, 97, 116, 105, 111, 110, 47, 118, 48]
 /-- `"near-arena-witness-v3"` -/
-def witnessTag : Bytes := "near-arena-witness-v3".toUTF8.toList
+def witnessTag : Bytes :=
+  [110, 101, 97, 114, 45, 97, 114, 101, 110, 97, 45, 119, 105, 116, 110, 101, 115, 115, 45, 118, 51]
 
 structure ChunkSlot where
   inner : Bytes

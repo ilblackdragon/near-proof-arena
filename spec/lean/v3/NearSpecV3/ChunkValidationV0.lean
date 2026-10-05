@@ -103,7 +103,7 @@ def checkD0 (claimBytes witnessBytes : Bytes) : Except String Unit := do
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
   let (swBytes, codes) ← decodeWitnessFile witnessBytes
   check codes.isEmpty "out of domain (w.no_code): contract code"
-  check (swBytes.length ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
+  check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
   let w ← decodeStateWitness swBytes
   check (w.innerBytes == c.chunkInner) "invalid: witness chunk header differs from the claim"
   check (w.epochId == c.epochId) "invalid: epoch id"
@@ -176,7 +176,10 @@ def checkD0 (claimBytes witnessBytes : Bytes) : Except String Unit := do
     let shuffled ← match shuffleWithSeed proofs S.hdr.prevHash with
       | some p => pure p
       | none => throw "invalid: shuffle fuel exhausted (probability < 2^-1024)"
-    receipts := receipts ++ (shuffled.map (·.receipts)).flatten
+    -- filter_incoming_receipts_for_shard (store/mod.rs:252-273): keep receipts routed to the
+    -- target shard under the (final) layout; proofs are never dropped
+    receipts := receipts ++
+      (shuffled.map fun e => e.receipts.filter fun r => L.shardOf r.receiverId == H.shardId).flatten
   check ((distinctKeys w.entries).length == used) "invalid: source_receipt_proofs contains extra proofs"
   check (sha256 (encodeReceipts receipts) == w.appliedReceiptsHash) "invalid: applied receipts hash"
   check (slotB2.txRoot == zeroHash32) "invalid: transaction root of the last chunk"
