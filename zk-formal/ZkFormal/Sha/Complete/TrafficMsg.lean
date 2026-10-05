@@ -167,4 +167,113 @@ theorem msg_recv (M : Msg) :
   rw [List.mem_range] at hk
   rw [pad_getD_data _ _ hk]
 
+/-! ## Digest provide of a message -/
+
+theorem map_toNat_ofNat' (m : List Nat) (h : ∀ x ∈ m, x < 256) :
+    (m.map UInt8.ofNat).map UInt8.toNat = m := by
+  induction m with
+  | nil => rfl
+  | cons x xs ih =>
+    simp only [List.map_cons, List.cons.injEq]
+    refine ⟨?_, ih (fun y hy => h y (List.mem_cons_of_mem _ hy))⟩
+    have := h x (List.mem_cons_self ..)
+    simp; omega
+
+theorem beN4_map (x : Nat) :
+    (ArenaCore.Bytes.beN 4 x).map UInt8.toNat = (List.range 4).map fun p => x / 2 ^ (8 * (3 - p)) % 2 ^ 8 := by
+  simp only [ArenaCore.Bytes.beN, List.map_cons, List.map_nil, List.nil_append,
+    List.cons_append, UInt8.toNat_ofNat']
+  rw [show List.range 4 = [0, 1, 2, 3] from rfl]
+  simp only [List.map_cons, List.map_nil, List.cons.injEq, and_true]
+  refine ⟨?_, ?_, ?_, ?_⟩ <;> simp only [Nat.reducePow, Nat.reduceSub, Nat.reduceMul] <;> omega
+
+theorem digest_map (h : List Nat) :
+    (h.flatMap fun x => ArenaCore.Bytes.beN 4 x).map UInt8.toNat =
+      (List.range (4 * h.length)).map fun p => h.getD (p / 4) 0 / 2 ^ (8 * (3 - p % 4)) % 2 ^ 8 := by
+  induction h with
+  | nil => rfl
+  | cons x t ih =>
+    have e1 : (List.range 4).map (fun p => x / 2 ^ (8 * (3 - p)) % 2 ^ 8) =
+        (List.range 4).map (fun p => (x :: t).getD (p / 4) 0 / 2 ^ (8 * (3 - p % 4)) % 2 ^ 8) := by
+      apply List.map_congr_left
+      intro p hp
+      rw [List.mem_range] at hp
+      rw [Nat.div_eq_of_lt hp, Nat.mod_eq_of_lt hp]
+      rfl
+    have e2 : (List.range (4 * t.length)).map (fun p => t.getD (p / 4) 0 / 2 ^ (8 * (3 - p % 4)) % 2 ^ 8) =
+        ((List.range (4 * t.length)).map (4 + ·)).map
+          (fun p => (x :: t).getD (p / 4) 0 / 2 ^ (8 * (3 - p % 4)) % 2 ^ 8) := by
+      rw [List.map_map]
+      apply List.map_congr_left
+      intro p _
+      show _ = (x :: t).getD ((4 + p) / 4) 0 / 2 ^ (8 * (3 - (4 + p) % 4)) % 2 ^ 8
+      rw [show (4 + p) / 4 = p / 4 + 1 by omega, show (4 + p) % 4 = p % 4 by omega]
+      rfl
+    rw [List.flatMap_cons, List.map_append, ih, beN4_map, List.length_cons,
+      show 4 * (t.length + 1) = 4 + 4 * t.length by omega, List.range_add, List.map_append, e1, e2]
+
+theorem foldl_all (M : Msg) :
+    (msgBlocks M.bytes).foldl ArenaCore.SHA256.compress ArenaCore.SHA256.H0 =
+      ArenaCore.SHA256.compress (blkOf M (nb M - 1)).hin (blkOf M (nb M - 1)).blk := by
+  have h1 := nb_pos M
+  have := hin_succ M (nb M - 1) (by omega)
+  rw [show nb M - 1 + 1 = nb M by omega] at this
+  rw [← this]
+  show _ = ((msgBlocks M.bytes).take (nb M)).foldl _ _
+  rw [List.take_of_length_le (l := msgBlocks M.bytes) (i := nb M) (Nat.le_refl _)]
+
+theorem sha_msg (M : Msg) (hM : MOk M) :
+    (ArenaCore.sha256 (M.bytes.map UInt8.ofNat)).map UInt8.toNat =
+      (List.range 32).map fun p => (blkOf M (nb M - 1)).hout (p / 4) / 2 ^ (8 * (3 - p % 4)) % 2 ^ 8 := by
+  rw [Spec.sha256_eq_foldl _ (msgBlocks M.bytes)
+    (fun c hc => chunks_len64 _ _ (pad_length _) c hc)
+    (by rw [map_toNat_ofNat' _ hM.bytes]; exact (chunks_flatten _ _ (pad_length _)).symm),
+    foldl_all M]
+  show ((ArenaCore.SHA256.compress _ _).flatMap fun x => ArenaCore.Bytes.beN 4 x).map UInt8.toNat = _
+  rw [digest_map, ArenaCore.SHA256.compress_length]
+  apply List.map_congr_left
+  intro p hp
+  rw [List.mem_range] at hp
+  rw [compress_getD _ _ (by omega)]
+
+theorem msg_dig (M : Msg) (hM : MOk M) :
+    (msgRows M).flatMap rowDigN =
+      if M.dmult then [[M.id, M.bytes.length] ++ (ArenaCore.sha256 (M.bytes.map UInt8.ofNat)).map UInt8.toNat]
+      else [] := by
+  rw [msgRows_flatMap M rowDigN rfl]
+  have hblock : ∀ b, ((List.range 17).flatMap fun j =>
+      rowDigN (if j < 16 then .round j (blkOf M b) else .digest (blkOf M b))) =
+      rowDigN (.digest (blkOf M b)) := by
+    intro b
+    rw [List.range_succ, List.flatMap_append]
+    have e : (List.range 16).flatMap (fun j =>
+        rowDigN (if j < 16 then .round j (blkOf M b) else .digest (blkOf M b))) = [] := by
+      rw [List.flatMap_eq_nil_iff]
+      intro j hj
+      rw [List.mem_range] at hj
+      rw [if_pos hj]; rfl
+    rw [e]
+    simp
+  rw [flatMap_congr' (fun b _ => hblock b)]
+  have h1 := nb_pos M
+  rw [show nb M = (nb M - 1) + 1 by omega, List.range_succ, List.flatMap_append]
+  have e : (List.range (nb M - 1)).flatMap (fun b => rowDigN (.digest (blkOf M b))) = [] := by
+    rw [List.flatMap_eq_nil_iff]
+    intro b hb
+    rw [List.mem_range] at hb
+    simp only [rowDigN]
+    split
+    · next h => exact absurd h.1 (show ¬ (b + 1 = nb M) by omega)
+    · rfl
+  rw [e, List.nil_append, List.flatMap_cons, List.flatMap_nil, List.append_nil]
+  simp only [rowDigN]
+  have hl : (blkOf M (nb M - 1)).idx + 1 = (blkOf M (nb M - 1)).nblk := by
+    show nb M - 1 + 1 = nb M; omega
+  cases hd : M.dmult
+  · rw [if_neg (by rintro ⟨-, h⟩; simp [hd] at h)]; rfl
+  · rw [if_pos ⟨hl, by simp [hd]⟩, if_pos rfl]
+    simp only [blkOf_id, blkOf_len, blkOf_idx, List.cons.injEq, and_true]
+    rw [sha_msg M hM, show 64 * (nb M - 1) + 64 = 64 * nb M by omega,
+      Nat.min_eq_left (by have := nb_eq M; omega)]
+
 end ZkFormal.Sha.Complete
