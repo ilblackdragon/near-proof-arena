@@ -551,3 +551,16 @@ theorem nodeSer (hC : NodeCtx tr s ℓ fl) :
   rfl
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+variable {tr : Trace Fp} {pub : List Fp} {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+theorem fieldIn (hC : NodeCtx tr s ℓ fl) {o L : Nat} (hm : (o, L) ∈ fl) : o < ℓ := by
+  have := hC.fields.field _ hm; simp only at this; have := this.1.pos; omega
+
+theorem fieldRow' (hL : TableLocal Node.table tr T_NODE pub) (hC : NodeCtx tr s ℓ fl) {o L : Nat} (hm : (o, L) ∈ fl) :
+    s + o < tr.height T_NODE := by
+  have := fieldIn hC hm; have := hC.bound; omega
+
+end ZkFormal.Near.NodeProof
