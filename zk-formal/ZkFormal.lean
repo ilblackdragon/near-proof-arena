@@ -141,3 +141,4 @@ import ZkFormal.Prover.NpPrep
 import ZkFormal.Prover.NpRows
 import ZkFormal.Prover.NpAux
 import ZkFormal.Prover.NpDeg
+import ZkFormal.Prover.NpDeg2
