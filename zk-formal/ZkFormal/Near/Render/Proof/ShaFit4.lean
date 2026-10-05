@@ -215,7 +215,7 @@ theorem msgsOk (hs : Small e) : Sha.MsgsOk (shaMsgsOf c e) := by
     obtain ⟨m, hm, rfl⟩ := hM
     exact (hB m hm).2
   · rw [shaMsgsOf, shaMsgs_rows, msgs_eq, rowsL_append, rowsL_append, rowsL_append]
-    have h1 := node_rows (c := c) hg.nodes_wf
+    have h1 := node_rows (c := c) hg
     have h2 := acct_rows hg hs
     have h3 := mrk_rows (mkInfo c e) (by
       have := hg.len; have := hg.n_le; simp only [Params.maxBatch] at *

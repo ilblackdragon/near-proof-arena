@@ -175,7 +175,7 @@ theorem nodeMsgs_rows : rowsL (nodeMsgs (mkInfo c e)) =
   simp
 
 /-- **SHA rows of the node messages.** -/
-theorem node_rows (hw : ∀ nr ∈ e.ns, nr.wf) :
+theorem node_rows (hg : Good c e) :
     4 * rowsL (nodeMsgs (mkInfo c e)) ≤ 5 * revealedOf e.ns + 144 * (e.ns.filter NodeRec.dead).length := by
   rw [nodeMsgs_rows]
   have hN : (mkInfo c e).ns.size = e.ns.length := by simp [mkInfo_ns]
@@ -185,14 +185,14 @@ theorem node_rows (hw : ∀ nr ∈ e.ns, nr.wf) :
       ((List.range e.ns.length).map fun n => 2 * rowsOf (sz0 (e.ns.toArray.getD n (.branch none [] 0)))).sum := by
     apply sum_map_le
     intro n _
-    have a := rowsOf_mono (pre_ok c e n).1
-    have b := rowsOf_mono (post_ok c e n).1
+    have a := rowsOf_mono (pre_ok c e hg n).1
+    have b := rowsOf_mono (post_ok c e hg n).1
     simp only [Info.nodeAt, mkInfo_ns] at a b
     omega
   rw [range_map_getD e.ns _ (fun nr => 2 * rowsOf (sz0 nr))] at h1
   have h2 : (e.ns.map fun nr => 16 * rowsOf (sz0 nr)).sum ≤
       (e.ns.map fun nr => 10 * nodeSize nr + 288 * (if nr.dead then 1 else 0)).sum :=
-    sum_map_le fun nr h => node_pair nr (hw nr h)
+    sum_map_le fun nr h => node_pair nr (hg.nodes_wf nr h)
   have e1 : (e.ns.map fun nr => 16 * rowsOf (sz0 nr)).sum = 16 * (e.ns.map fun nr => rowsOf (sz0 nr)).sum :=
     sum_map_mul _ _ _
   have e2 : (e.ns.map fun nr => 2 * rowsOf (sz0 nr)).sum = 2 * (e.ns.map fun nr => rowsOf (sz0 nr)).sum :=

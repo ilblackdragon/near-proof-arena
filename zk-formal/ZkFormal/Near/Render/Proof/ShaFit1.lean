@@ -174,13 +174,15 @@ theorem loopOf_inv : LoopInv e.ns.toArray (loopOf e) :=
 
 theorem mkInfo_ns : (mkInfo c e).ns = e.ns.toArray := rfl
 
-/-- **`pre n`**: bytes, at most `sz0 (nodeAt n)` of them. -/
-theorem pre_ok (n : Nat) :
+/-- **`pre n`**: bytes, at most `sz0 (nodeAt n)` of them.  (Interface used by
+`ShaFit2/3`; `Good` is not needed for the loop form of `mkInfo`, but gives the
+hash widths a closed form via `treeOf` would need.) -/
+theorem pre_ok (_ : Good c e) (n : Nat) :
     ((mkInfo c e).pre.getD n []).length ≤ sz0 ((mkInfo c e).nodeAt n) ∧
       ∀ x ∈ (mkInfo c e).pre.getD n [], x < 256 := by
   rw [mkInfo_pre]; exact (loopOf_inv e).pre n
 
-theorem post_ok (n : Nat) :
+theorem post_ok (_ : Good c e) (n : Nat) :
     ((mkInfo c e).post.getD n []).length ≤ sz0 ((mkInfo c e).nodeAt n) ∧
       ∀ x ∈ (mkInfo c e).post.getD n [], x < 256 := by
   rw [mkInfo_post]; exact (loopOf_inv e).post n

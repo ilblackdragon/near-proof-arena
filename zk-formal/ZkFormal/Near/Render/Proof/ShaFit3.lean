@@ -55,8 +55,8 @@ theorem node_msgsB (hg : Good c e) : MsgsB (nodeMsgs (mkInfo c e)) := by
   intro m hm
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
   rcases hm with rfl | rfl
-  · exact ⟨(pre_ok c e n).2, Nat.lt_of_le_of_lt (pre_ok c e n).1 h1⟩
-  · exact ⟨(post_ok c e n).2, Nat.lt_of_le_of_lt (post_ok c e n).1 h1⟩
+  · exact ⟨(pre_ok c e hg n).2, Nat.lt_of_le_of_lt (pre_ok c e hg n).1 h1⟩
+  · exact ⟨(post_ok c e hg n).2, Nat.lt_of_le_of_lt (post_ok c e hg n).1 h1⟩
 
 /-! ## acct -/
 
