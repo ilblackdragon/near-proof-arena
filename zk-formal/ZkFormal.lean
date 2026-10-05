@@ -133,3 +133,5 @@ import ZkFormal.Prover.NpCompose
 import ZkFormal.Prover.NpSched
 import ZkFormal.Prover.NpBasic
 import ZkFormal.Prover.NpFits
+import ZkFormal.Prover.NpCommits
+import ZkFormal.Prover.NpQ
