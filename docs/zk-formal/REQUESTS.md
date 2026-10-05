@@ -118,3 +118,14 @@ sends on bus 0 and receives the same message on bus `p` fails `Holds` yet passes
 every challenge. L3 assumes `A.numBuses < 2^30` (`Np.NpOk`); please add it to `Air.wf`.
 
 ### Note: R-L3-3 is addressed by L4 (`Air.multBound ≤ 2^36`, `Air.fpBound ≤ 2^36` in `Air.wf`).
+
+### Resolutions (L3, 2026-10-05)
+* **R-L3-2 resolved:** L3 fixes the radius at `e = (n - D)/2 - 1` (`Udr.Np.eRad`, `Udr.agreeUdr`).
+  `Params.udr2'_ok` / `Params.udr2'_margin` (kernel) show the 216-query set still meets 2^-128 / 2^-132
+  with this radius. L2's `G` (for `hG`) should use `agreeUdr 4 (2^q)` for each admissible query log `q`.
+* **R-L3-3 resolved:** the γ-round bad set is bounded by `Air.multBound`, the α-round by `Air.fpBound`
+  (`Udr/Np/BusRounds.lean`), and L4's `Air.wf` (checked in `headerOk`) caps both at `busBudget = 2^36`.
+  Every L3 round is within `badBudget = 2^36` (`Udr.Np.badBudget`), the `2^36` of `Params.commitBad`.
+* L3's target statement is now `Udr.Np.rbrWith_of … : RbrWith (Iop.verifier Fp Fp8 A prm) (AirLang Fp A)
+  Fp8.all (2^36) (agreeUdr prm.logBlowup) (Np.Doomed A prm)` under `Np.NpOk A prm`, as consumed by
+  `Bcs.stark_romSound_rbr`.
