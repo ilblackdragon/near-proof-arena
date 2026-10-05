@@ -154,6 +154,134 @@ theorem RT_digest_sem (I : Info) (u : Std.HashMap Edge Nat) (pub : List Fp) (r :
       · simp [h0]
   | _ => simp [V, rc_gD, digOf, ofNat0', digSem]
 
+theorem digSem_kid (I : Info) (n : Nat) (k : Kid) (w l : Nat × Bool) (j : Option Nat) :
+    digSem n (.ch (kidWin I k w.1 w.2 j)) = digSem n (.ch (kidWin I k 0 false none)) := by
+  cases k <;> rfl
+
+/-- Field digests of a node = the view's digest receives (up to order). -/
+theorem dig_node (I : Info) (n : Nat) (nr : NodeRec)
+    (K : Nat × Nat × Nat × List Nat × List Nat → List (List Nat))
+    (hK : ∀ c l r pre po, K (c, l, r, pre, po) = [digMsg (msgId K_NPRE c) l pre, digMsg (msgId K_NPOST c) l po])
+    (T : NodeV → List (List Nat))
+    (hT1 : ∀ k pre po m, T (.leaf k (.touched pre po) m) = [digMsg (msgId K_VPRE n) 72 pre, digMsg (msgId K_VPOST n) 72 po])
+    (hT2 : ∀ kids pre po m, T (.branch (some (.touched pre po)) kids m) =
+      [digMsg (msgId K_VPRE n) 72 pre, digMsg (msgId K_VPOST n) 72 po])
+    (hT3 : ∀ v, v.vwin = none → T v = []) :
+    ((fieldsOf I n nr).flatMap (digSem n)).Perm ((nodeVOf I n nr).revealed.flatMap K ++ T (nodeVOf I n nr)) := by
+  have hkids : ∀ kids : List Kid, (branchWins I kids).flatMap (digSem n) =
+      ((kidIds (.branch none kids 0)).map (revOf I)).flatMap K := by
+    intro kids
+    rw [branchWins_flat I (digSem n) (fun k w l j w' l' j' => by cases k <;> rfl)]
+    rw [kids_filter_flat _ (by rfl), List.flatMap_map]
+    simp only [kidIds, NodeRec.kids]
+    induction kids with
+    | nil => rfl
+    | cons k kids ih =>
+      cases k with
+      | none => simp only [List.flatMap_cons, List.filterMap_cons]; rw [ih]; rfl
+      | hash h => simp only [List.flatMap_cons, List.filterMap_cons]; rw [ih]; rfl
+      | node c =>
+        simp only [List.flatMap_cons, List.filterMap_cons]; rw [ih]
+        simp [kidWin, digSem, hK, revOf, Info.preDig, Info.postDig]
+  cases nr with
+  | leaf k v m =>
+    rw [view_revealed]
+    cases v with
+    | ref len h =>
+      simp only [fieldsOf, List.flatMap_cons, List.flatMap_nil, digSem, valWin]
+      rw [hT3 _ rfl]; simp [kidIds, NodeRec.kids]
+    | touched =>
+      simp only [fieldsOf, List.flatMap_cons, List.flatMap_nil, digSem, valWin, if_true]
+      simp only [nodeVOf, nslotOf, hT1]; simp [kidIds, NodeRec.kids]
+  | ext k kid m =>
+    rw [view_revealed, hT3 _ rfl]
+    simp only [fieldsOf, List.flatMap_cons, List.flatMap_nil, digSem, List.append_nil, List.nil_append]
+    cases kid with
+    | none => simp [kidWin, kidIds, NodeRec.kids]
+    | hash h => simp [kidWin, kidIds, NodeRec.kids]
+    | node c => simp [kidWin, kidIds, NodeRec.kids, hK, revOf, Info.preDig, Info.postDig]
+  | branch v kids m =>
+    rw [view_revealed]
+    have hk' : (kidIds (.branch v kids m)) = kidIds (.branch none kids 0) := rfl
+    rw [hk']
+    cases v with
+    | none =>
+      rw [hT3 _ rfl]
+      simp only [fieldsOf, List.cons_append, List.flatMap_cons, List.flatMap_append, List.flatMap_nil,
+        digSem, List.nil_append, List.append_nil, hkids]
+      exact List.Perm.refl _
+    | some sv =>
+      cases sv with
+      | ref len h =>
+        rw [hT3 _ rfl]
+        simp only [fieldsOf, List.cons_append, List.flatMap_cons, List.flatMap_append, List.flatMap_nil,
+          digSem, valWin, List.nil_append, List.append_nil, hkids]
+        simp
+      | touched =>
+        simp only [nodeVOf, Option.map_some, nslotOf, hT2]
+        simp only [fieldsOf, List.cons_append, List.flatMap_cons, List.flatMap_append, List.flatMap_nil,
+          digSem, valWin, if_true, List.nil_append, List.append_nil, hkids]
+        exact List.perm_append_comm (l₁ := [_, _])
+
+/-! ## PARENT sends -/
+
+def parSem (d : Nat) : F → List (List Nat)
+  | .ch w => if w.look then [[w.cid, d + 1, w.clen, w.cres]] else []
+  | _ => []
+
+theorem RT_parent_sem (I : Info) (u : Std.HashMap Edge Nat) (pub : List Fp) (r : NRec) :
+    RT I u pub r B_PARENT true =
+      if r.idx = 0 then (parSem (I.depth.getD r.n 0) r.f).map Msg.toFp else [] := by
+  rw [RT_parentS]
+  obtain ⟨n, pos, f, idx, b, pb⟩ := r
+  cases f with
+  | ch w =>
+    by_cases h : idx = 0 ∧ w.look = true
+    · obtain ⟨rfl, hl⟩ := h
+      simp [V, rc_gP, rc_cid, rc_depth, rc_clen, rc_cres, digOf, F.chw, hl, parSem, ofNat1', Msg.toFp]
+    · have : digOf ⟨n, pos, .ch w, idx, b, pb⟩ = none := by simp [digOf, h]
+      simp only [V, rc_gP, this, ofNat0', fp_zero_ne_one, if_false]
+      by_cases h0 : idx = 0
+      · have hl : w.look = false := by simpa [h0] using h
+        simp [h0, parSem, hl]
+      · simp [h0]
+  | vh w =>
+    simp only [V, rc_gP, digOf]
+    by_cases h : idx = 0 ∧ w.look = true <;> simp [h, ofNat0', parSem]
+  | _ => simp [V, rc_gP, digOf, ofNat0', parSem]
+
+theorem par_node (I : Info) (n : Nat) (nr : NodeRec) (d : Nat)
+    (K : Nat × Nat × Nat × List Nat × List Nat → List Nat)
+    (hK : ∀ c l r pre po, K (c, l, r, pre, po) = [c, d + 1, l, r]) :
+    (fieldsOf I n nr).flatMap (parSem d) = (nodeVOf I n nr).revealed.map K := by
+  rw [view_revealed]
+  cases nr with
+  | leaf k v m => cases v <;> simp [fieldsOf, parSem, kidIds, NodeRec.kids]
+  | ext k kid m =>
+    cases kid <;> simp [fieldsOf, parSem, kidWin, kidIds, NodeRec.kids, hK, revOf]
+  | branch v kids m =>
+    have hkids : (branchWins I kids).flatMap (parSem d) = (kidIds (.branch v kids m)).map (fun c => K (revOf I c)) := by
+      rw [branchWins_flat I (parSem d) (fun k w l j w' l' j' => by cases k <;> rfl)]
+      rw [kids_filter_flat _ (by rfl)]
+      simp only [kidIds, NodeRec.kids]
+      induction kids with
+      | nil => rfl
+      | cons k kids ih =>
+        cases k with
+        | none => simp only [List.flatMap_cons, List.filterMap_cons]; rw [ih]; rfl
+        | hash h => simp only [List.flatMap_cons, List.filterMap_cons]; rw [ih]; rfl
+        | node c =>
+          simp only [List.flatMap_cons, List.filterMap_cons]; rw [ih]
+          simp [kidWin, parSem, hK, revOf]
+    rw [List.map_map]
+    cases v with
+    | none =>
+      simp only [fieldsOf, List.cons_append, List.flatMap_cons, List.flatMap_append, List.flatMap_nil, parSem,
+        List.nil_append, List.append_nil, hkids]; rfl
+    | some sv =>
+      simp only [fieldsOf, List.cons_append, List.flatMap_cons, List.flatMap_append, List.flatMap_nil, parSem,
+        List.nil_append, List.append_nil, hkids]; rfl
+
 end NodeTr
 
 end ZkFormal.Near.Render
