@@ -193,3 +193,34 @@ model `nearModel nearAir`), from **only** L6's `RenderStmt` and `NearMinHeightSt
   unsafe/partial dependencies, and axioms ⊆ {propext, Quot.sound}.
 * **R-L7-5 closed:** the `sorry` csimp reproducer now FAILs every gate with `SORRY_FOUND`. Both the
   Lean-side and the independent NDJSON audit flag `Candidate.Model.redirect (verify ↦ acceptAll)`.
+
+## M5 packaging (`examples/np-udr-stark`, audit A02)
+
+Done (independent of L6):
+* `formal/NpUdrStark/Model.lean` is the real model: the claim guard followed by
+  `Stark.verifier Fp Fp8 nearAir default` (`model_eq : … = nearModel nearAir`, `rfl`).
+  `Assembly.lean`: `certificate_of hR hmin : AdmissionStatement …` for every validity-classical-128
+  literal, with `publicBin` = `params.bin` (`sha256 = 38c230e8…`).
+* `sync-lean.sh`: lean-vendor is re-pinned to `e4088761` (formal-core with sha256Fast; the v1-zk draft's
+  `allowed_packages`). Only the certificate's import closure is vendored (367 modules). The script
+  rejects any closure import the judge would reject; the first run caught `ZkToySpec`, now moved
+  out of the NEAR closure. `candidate.toml` points at the v1-zk draft (`chl_bdbfc808…`).
+* **Reproducible build:** two clean `env -i` builds from separate copies give bit-identical
+  `out/verify` `c82117cb…`.
+* **Real formal-check, configured-challenge mode** (v1-zk draft, `near-transfer-receipt-v1.json`
+  config, real `Expected.native-lean` template, repo root = `e4088761` tree, scratch
+  `NpUdrStark.certificate := certificate_of sorry sorry …`):
+  * ARTIFACT_BINDING PASS. The judge-built verifier is `sha256:c82117cb…`, **identical to
+    build.sh's**.
+  * Every formal gate fails **only** on SORRY_FOUND (the two L6 inputs). So the certificate type
+    matches the rendered statement: template, challenge and pins agree.
+  * leanchecker, lean4lean (372 modules each) and nanoda accept. Candidate elaboration takes
+    241 s; the whole pipeline takes 646 s.
+* The judge binary rejects malformed input (random and empty proofs, exit 1).
+
+Remaining for A02 acceptance:
+* L6: `RenderStmt`, R-L7-6. After that, `NpUdrStark.certificate` is one line (README).
+* L8: the NEAR `prove` path (R-L7-7). Then honest fixtures and sampled cases must be accepted by
+  `c82117cb…`-style judge builds, and false claims rejected.
+* Governance: sign the v1-zk challenge with the new checker identity (v1-5 deploy lane), update
+  `candidate.toml`, then run the full formal-tier pipeline.
