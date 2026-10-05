@@ -15,12 +15,13 @@ import ZkFormal.Near.Render.Proof.BusMem
 import ZkFormal.Near.Render.Proof.BusFinal
 import ZkFormal.Near.Render.Proof.BusMpos
 import ZkFormal.Near.Render.Proof.ShaFit4
+import ZkFormal.Near.Render.Proof.RcptBytes2
 
 /-!
 # ZkFormal.Near.Render.Proof.Main — what is left of `RenderStmt`
 
 `render_of_rest : RenderRest → RenderStmt`: the proved obligations (sha,
-sort, acct, walk, mrk local + traffic; buses VSLOT, RIDS, MEM, FINAL, KEYNIB, MPOS) are
+sort, acct, walk, mrk local + traffic; BYTES given `NodeSerStmt`; buses VSLOT, RIDS, MEM, FINAL, KEYNIB, MPOS) are
 plugged in; `RenderRest` lists the open ones.  All obligations are stated
 under `Good c.1 e ∧ Small e` (R-L6e-1 resolved: the acct table's height bound
 comes from `Small.touched`).
@@ -39,7 +40,8 @@ structure RenderRest : Prop where
   rcptL : RcptLocalStmt
   nodeT : NodeTrafficStmt
   rcptT : RcptTrafficStmt
-  bytes : BytesBusStmt
+  /-- the node views serialize as `mkInfo`'s `pre`/`post` (gives `BytesBusStmt` via `bytesBus_of`) -/
+  nodeSer : NodeSerStmt
   digest : DigestBusStmt
   parent : ParentBusStmt
   edge : EdgeBusStmt
@@ -51,7 +53,7 @@ theorem render_of_rest (h : RenderRest) : RenderStmt :=
       acctL := acctLocal, mrkL := mrkLocal, sortL := sortLocal,
       shaT := shaTraffic_ok, nodeT := h.nodeT, walkT := walkTraffic_ok, rcptT := h.rcptT,
       acctT := acctTraffic_ok, mrkT := mrkTraffic_ok, sortT := sortTraffic_ok,
-      bytes := h.bytes, digest := h.digest, parent := h.parent, vslot := vslotBus, edge := h.edge,
+      bytes := bytesBus_of h.nodeSer rcptBytes, digest := h.digest, parent := h.parent, vslot := vslotBus, edge := h.edge,
       keynib := keynibBus, final := finalBus, mem := memBus, rids := ridsBus, mpos := mposBus }
 
 /-- **Completeness of the NEAR AIR** from the open render obligations. -/
