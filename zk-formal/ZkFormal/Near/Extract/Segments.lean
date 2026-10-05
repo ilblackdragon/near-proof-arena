@@ -364,3 +364,26 @@ namespace ZkFormal.Near
 theorem map_eq_flatMap {α β : Type} (l : List α) (f : α → β) : l.map f = l.flatMap fun a => [f a] := by
   induction l <;> simp_all
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+theorem flatMap_append_perm {α β : Type} (l : List α) (f g : α → List β) :
+    (l.flatMap fun x => f x ++ g x).Perm (l.flatMap f ++ l.flatMap g) := by
+  induction l with
+  | nil => simp
+  | cons x l ih =>
+    simp only [List.flatMap_cons]
+    refine List.Perm.trans (List.Perm.append_left _ ih) ?_
+    simp only [List.append_assoc]
+    apply List.Perm.append_left
+    rw [← List.append_assoc, ← List.append_assoc]
+    exact List.Perm.append_right _ List.perm_append_comm
+
+theorem range'_flatMap_pairs (s n : Nat) :
+    List.range' s (2 * n) = (List.range n).flatMap fun j => [s + 2 * j, s + 2 * j + 1] := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    rw [show 2 * (n + 1) = 2 * n + 2 by omega, ← List.range'_append_1, ih, List.range_succ,
+      List.flatMap_append]
+    simp [List.range', show s + 2 * n + 1 = s + (2 * n + 1) by omega]
+end ZkFormal.Near

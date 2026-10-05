@@ -108,8 +108,10 @@ theorem nextSeg {r : Nat} (hr : r + 1 < tr.height T_SORT) (hl : tr.cell T_SORT r
     tr.cell T_SORT (r + 1) sf = 1 ∧ tr.cell T_SORT (r + 1) ft = 0 := by
   have h1 := con hL (by omega : r < _) (e := mul3 (c sl) (n act) (Dsl.not (n sf)))
     (by simp [Sort.constraints])
-  have h2 := con hL (by omega : r < _) (e := mul3 (c sl) (n act) (n ft)) (by simp [Sort.constraints])
-  simp only [eval_mul3, eval_c, eval_not, eval_n, nxt hr] at h1 h2
+  have h2 := con hL (by omega : r < _) (e := .mul .isTransition (mul3 (c sl) (n act) (n ft)))
+    (by simp [Sort.constraints])
+  simp only [eval_mul3, eval_mul, eval_c, eval_not, eval_n, nxt hr, eval_isTransition,
+    if_neg (show ¬ r + 1 = tr.height T_SORT by omega)] at h1 h2
   rw [ha, hl] at h1 h2
   constructor <;> grind
 
