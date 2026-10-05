@@ -73,7 +73,9 @@ and `out/prove-avx512`, chosen at runtime by CPU dispatch.
   batch-256 48.7 s vs 62.2 s. Verify is unchanged (0.44 / 0.58 / 0.78 s)
   and peak RSS is 1.5 GB. The BENCHMARK summary also records
   "session 1: CACHING_SUSPECTED; re-measured on fresh batches only".
-  The expected speed-up (L8 measured about 7.6 s for batch-256 outside the
-  judge) did not show under the judge's benchmark VM (8 vCPUs on CPUs 0-7,
-  Firecracker). Whether the AVX-512 dispatch fires inside the guest has not
-  been verified yet.
+  The child is 22% faster on batch-256 but 41–53% slower on batch-1 and
+  batch-16. That looks like a new fixed per-request overhead, and the score
+  is a geometric mean, so it dropped below the parent's. The cause is under
+  investigation (lane L8 is reproducing it in a VM equivalent to the live
+  judge's, including whether the AVX-512 dispatch fires in the guest). A
+  follow-up `np-udr-stark-fast2` will replace this entry.
