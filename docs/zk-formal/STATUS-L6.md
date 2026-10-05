@@ -36,3 +36,24 @@ Branch `lane/zk-L6`. Layout spec: `NEAR-AIR.md`. Lean: `zk-formal/ZkFormal/Near/
 ## Elaboration time (per module)
 
 All `Near/Spec/*`, `Near/Extract/*` modules: < 2 s each. Kernel checks: BudgetCheck 13 s, NpOkCheck 8 s.
+
+## L6-link (`LinkStmt`, branch `lane/zk-L6-link`)
+
+`Link/Compose.lean`: `link_of` proves `LinkStmt` from the nine statements of
+`Link/Statements.lean` (witness `linkExt`).
+
+| statement | state | file |
+|---|---|---|
+| `ShaStmt` (message reconstruction) | **proved** `sha_ok` | `Link/Sha.lean` |
+| `ClaimStmt` | **proved** `claim_ok` | `Link/Claim.lean` |
+| `ReceiptsStmt` | **proved** `receipts_ok` | `Link/Receipts.lean` |
+| `NodupStmt` | **proved** `nodup_ok` | `Link/Nodup.lean` |
+| `TrieStmt` | **proved** `trie_ok` | `Link/Trie.lean` |
+| `RunStmt` | **proved** `run_ok` | `Link/Run.lean` |
+| `PostStmt` | **proved** `post_ok` | `Link/Post.lean` |
+| `RefundsStmt` | **proved** `refunds_ok` | `Link/Refunds.lean` |
+| `OutStmt` | open | — |
+| `WalksStmt` | open | — |
+
+View changes (REQUESTS-L6.md): R-L6d-1 (`canon` fields), R-L6d-2 (`arith`
+assumes `Bytes8 ramt` only for refund receipts).
