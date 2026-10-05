@@ -863,3 +863,73 @@ theorem rules (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) : Rul
       · exact ht
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp} {segs : List (Nat × Nat)}
+
+abbrev cn (tr : Trace Fp) (r x : Nat) : Nat := (tr.cell T_MRK r x).toNat
+
+def nodeOf (tr : Trace Fp) (p : Nat × Nat) : MrkNode :=
+  if tr.cell T_MRK (p.1 + 1) pr = 1 then .promoted (cn tr (p.1 + 1) cId) (cn tr (p.1 + 1) cLen)
+  else .hashed (cn tr (p.1 + 1) cId) (cn tr (p.1 + 1) cLen) ((List.range 32).map fun x => cn tr (p.1 + 1) (reg x))
+    (cn tr (p.1 + 1 + 32) cId) (cn tr (p.1 + 1 + 32) cLen) ((List.range 32).map fun x => cn tr (p.1 + 1 + 32) (reg x))
+
+def viewOf (tr : Trace Fp) (segs : List (Nat × Nat)) : MrkV :=
+  { n := cn tr 1 sp, J := cn tr 0 mj, rootId := cn tr 0 cId, rootLen := cn tr 0 cLen, nodes := segs.map (nodeOf tr) }
+
+def isH : MrkNode → Bool
+  | .hashed .. => true
+  | .promoted .. => false
+
+theorem isH_nodeOf (p : Nat × Nat) : isH (nodeOf tr p) = !(one tr pr (p.1 + 1)) := by
+  unfold nodeOf; by_cases h : tr.cell T_MRK (p.1 + 1) pr = 1 <;> simp [h, isH, one]
+
+/-- The `q` counter counts the hashed nodes before. -/
+theorem qCount (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) :
+    ∀ t (ht : t < segs.length), cn tr (segs[t].1 + 1) q = hashedBefore (segs.map (nodeOf tr)) t := by
+  have hP : 4 * tr.height T_MRK + 4 < P := by have := height_le hL; unfold P; omega
+  intro t
+  induction t with
+  | zero =>
+    intro ht
+    have h2 := height_ge hL
+    rw [hS.first ht]; simp [cn, (rootRow hL (by omega)).2.2.2.2.2.1, hashedBefore, Fp.toNat_zero]
+  | succ t ih =>
+    intro ht
+    have hp0 := List.getElem_mem (l := segs) (by omega : t < segs.length)
+    have hp1 := List.getElem_mem (l := segs) ht
+    have e := (succF hL (hS.seg _ hp0) (hS.le hp0) (hS.seg _ hp1) (hS.le hp1) (hS.next ht)).2.2.2
+    have hr : segs[t].1 + 1 < tr.height T_MRK := by have := hS.le hp0; have := (hS.seg _ hp0).1; omega
+    have hsg : tr.cell T_MRK (segs[t].1 + 1) sg = if one tr pr (segs[t].1 + 1) then 0 else 1 := by
+      rcases A_cases hL hr with ⟨-, ⟨a, b⟩ | ⟨a, b⟩⟩ | ⟨h, -⟩
+      · simp [one, a, b]
+      · simp [one, a, b]
+      · rw [(endRow hL (hS.seg _ hp0) (hS.le hp0)).2.1] at h; exact absurd h fp_one_ne_zero
+    have hq := ih (by omega)
+    have hlt : hashedBefore (segs.map (nodeOf tr)) t ≤ t := by
+      simp only [hashedBefore]
+      exact Nat.le_trans (List.length_filter_le _ _) (by simp; omega)
+    have hidx := idx_le hS t (by omega)
+    have := hS.le hp0
+    have key : hashedBefore (segs.map (nodeOf tr)) (t + 1) =
+        hashedBefore (segs.map (nodeOf tr)) t + (if one tr pr (segs[t].1 + 1) then 0 else 1) := by
+      simp only [hashedBefore]
+      rw [List.take_succ, List.filter_append, List.length_append]
+      congr 1
+      rw [List.getElem?_map, List.getElem?_eq_getElem (by omega : t < segs.length)]
+      simp only [Option.toList_some, Option.map_some]
+      unfold nodeOf
+      by_cases h : tr.cell T_MRK (segs[t].1 + 1) pr = 1 <;> simp [h, one]
+    rw [key, ← hq]
+    simp only [cn]
+    rw [e, hsg]
+    by_cases hb : one tr pr (segs[t].1 + 1) = true
+    · simp only [hb, if_true]; rw [show tr.cell T_MRK (segs[t].1 + 1) q + 0 = tr.cell T_MRK (segs[t].1 + 1) q by grind]
+      rfl
+    · simp only [hb, Bool.false_eq_true, if_false]
+      have : cn tr (segs[t].1 + 1) q ≤ t := by rw [hq]; exact hlt
+      exact toNat_succ_of rfl (by simp only [cn] at this; omega)
+
+end ZkFormal.Near.MrkProof
