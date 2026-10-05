@@ -34,3 +34,26 @@ Branch `lane/zk-L4`. Interfaces published (frozen for M1); format: `FORMATS.md`.
   `busBudget = 2^36` (the per-round bad count assumed by `Params.commitBad`).
 * Session OOM crash at 19:06: the qbound and test sub-lanes were restarted under the
   `heavy` wrapper.
+
+## Verifier speed (lane/zk-L4d)
+
+Compiled-verify time was quadratic: `take?` measured `List.length` of the
+remaining proof on every 4-byte read, and Merkle leaf/node readers sliced
+`r.take (r.length - r'.length)`. Fix: linear `takeF`, `mpLeavesF`, `readInjF`,
+each proved equal in the kernel and installed with `@[csimp]` inside
+`Stark/Bcs.lean`, right after the originals, so all compiled callers use them.
+Definitions and proofs are unchanged. Axioms: propext, Quot.sound.
+
+| proof | before | after |
+|---|---|---|
+| 0.40 MB (toy multi 10) | 5850 ms | 87 ms |
+| 0.77 MB (toy multi 14) | 19104 ms | 170 ms |
+| 1.00 MB (toy multi 16) | – | 230 ms |
+| 1.66 MB (bench w=1000, h=2^14) | – | 382 ms |
+| 3.51 MB (bench w=3000, h=2^14) | – | 792 ms |
+| 3.95 MB (bench 3×w=1000, h=2^16) | – | 920 ms |
+| 4.18 MB (bench w=3500, h=2^16) | – | 1005 ms |
+
+The lead measured 13 s, 80 s and 180 s for 0.5 MB, 0.92 MB and 1.45 MB before
+the fix. Conformance `run.sh 3 6 10` gives ALL PASS (honest proofs accepted,
+every mutation rejected).
