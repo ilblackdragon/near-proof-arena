@@ -359,9 +359,26 @@ fn quotient(
         for (j, &c) in rc.iter().enumerate() {
             map[c] = j as u32;
         }
-        let len = pass_len(2 * (rc.len() + aw) * 4 + 48, avail, npts);
+        // cache the aux coefficients when they fit in half the transient budget
+        let cache_bytes = aw * 4 * t;
+        let cached: Option<Src> = if cache_bytes <= avail / 2 {
+            let mut v = Vec::with_capacity(t * aw);
+            let parts = aux.chunks(chunk);
+            let cos: Vec<RowMajorMatrix<F>> = parts.iter().map(|&(c0, c1)| aux.coeffs(dft, c0, c1)).collect();
+            for r in 0..t {
+                for (co, &(c0, c1)) in cos.iter().zip(&parts) {
+                    v.extend_from_slice(&co.values[r * (c1 - c0)..(r + 1) * (c1 - c0)]);
+                }
+            }
+            Some(Src::Coeffs(RowMajorMatrix::new(v, aw)))
+        } else {
+            None
+        };
+        let aux_src: &Src = cached.as_ref().unwrap_or(aux);
+        let avail2 = if cached.is_some() { avail - cache_bytes } else { avail };
+        let len = pass_len(2 * (rc.len() + aw) * 4 + 48, avail2, npts);
         let mut hi = Halves::new(main, Some(&rc), len);
-        let mut ha = Halves::new(aux, None, len);
+        let mut ha = Halves::new(aux_src, None, len);
         let iw = rc.len();
         for (load_cur, st) in schedule(npts, t, h, len) {
             if let Some(p) = load_cur {

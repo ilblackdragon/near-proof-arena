@@ -142,7 +142,8 @@ impl<'a> AuxSrc<'a> {
 
     /// Interaction values and per-interaction data of row `r`: chain columns
     /// (`P_j`, `Π_j`, in layout order) and group factors `Φ_g`.
-    fn row(&self, r: usize, regs: &mut Vec<F>, cur: &mut Vec<F>, nxt: &mut Vec<F>, chain: &mut [EF], gphi: &mut [EF]) {
+    #[allow(clippy::too_many_arguments)]
+    fn row(&self, r: usize, need: &[bool], regs: &mut Vec<F>, cur: &mut Vec<F>, nxt: &mut Vec<F>, chain: &mut [EF], gphi: &mut [EF]) {
         let t = self.main.height();
         let w = self.main.width();
         cur.resize(w, F::ZERO);
@@ -167,6 +168,9 @@ impl<'a> AuxSrc<'a> {
             &mut phis_v
         };
         for (ii, it) in self.tab.interactions.iter().enumerate() {
+            if !need[ii] {
+                continue;
+            }
             let o = self.lay.expr_off[ii];
             let val = |k: usize| ef_from_base(regs[self.lay.itape.outputs[o + k] as usize]);
             let msg: Vec<EF> = (0..it.msg.len()).map(val).collect();
@@ -196,7 +200,29 @@ impl<'a> AuxSrc<'a> {
     }
 
     /// Per-row chain values and group factors for rows `r0..r1`.
-    fn rows(&self, r0: usize, r1: usize) -> (Vec<EF>, Vec<EF>) {
+    /// Interactions needed for aux EF columns `e0..e1` (all for `None`).
+    fn needed(&self, range: Option<(usize, usize)>) -> Vec<bool> {
+        let n = self.tab.interactions.len();
+        let Some((e0, e1)) = range else { return vec![true; n] };
+        let nc = self.lay.n_chain;
+        let mut need = vec![false; n];
+        for ii in 0..n {
+            let (k, off) = self.lay.chain[ii];
+            if k >= 2 && off < e1 && off + 2 * (k - 1) > e0 {
+                need[ii] = true;
+            }
+        }
+        for (g, grp) in self.lay.groups.iter().enumerate() {
+            if nc + g >= e0 && nc + g < e1 {
+                for &i in grp {
+                    need[i] = true;
+                }
+            }
+        }
+        need
+    }
+
+    fn rows(&self, r0: usize, r1: usize, need: &[bool]) -> (Vec<EF>, Vec<EF>) {
         let nc = self.lay.n_chain;
         let ng = self.lay.groups.len();
         let mut chains = vec![EF::ZERO; (r1 - r0) * nc];
@@ -204,7 +230,7 @@ impl<'a> AuxSrc<'a> {
         let (mut regs, mut cur, mut nxt) = (vec![], vec![], vec![]);
         for r in r0..r1 {
             let i = r - r0;
-            self.row(r, &mut regs, &mut cur, &mut nxt, &mut chains[i * nc..(i + 1) * nc], &mut phis[i * ng..(i + 1) * ng]);
+            self.row(r, need, &mut regs, &mut cur, &mut nxt, &mut chains[i * nc..(i + 1) * nc], &mut phis[i * ng..(i + 1) * ng]);
         }
         (chains, phis)
     }
@@ -216,10 +242,11 @@ impl<'a> AuxSrc<'a> {
         if ng == 0 {
             return vec![];
         }
+        let need = self.needed(None);
         (0..t.div_ceil(RCH))
             .into_par_iter()
             .map(|k| {
-                let (_, phis) = self.rows(k * RCH, ((k + 1) * RCH).min(t));
+                let (_, phis) = self.rows(k * RCH, ((k + 1) * RCH).min(t), &need);
                 let mut p = vec![EF::ONE; ng];
                 for row in phis.chunks(ng) {
                     for (a, b) in p.iter_mut().zip(row) {
@@ -244,6 +271,7 @@ impl<'a> AuxSrc<'a> {
         let nc = self.lay.n_chain;
         let ng = self.lay.groups.len();
         let (e0, e1) = (c0 / 8, c1 / 8);
+        let need = self.needed(Some((e0, e1)));
         let cw = c1 - c0;
         let mut out = vec![F::ZERO; t * cw];
         if cw == 0 {
@@ -260,7 +288,7 @@ impl<'a> AuxSrc<'a> {
             .map(|(k, o)| {
                 let r0 = k * RCH;
                 let r1 = ((k + 1) * RCH).min(t);
-                let (chains, phis) = self.rows(r0, r1);
+                let (chains, phis) = self.rows(r0, r1, &need);
                 let mut prod = vec![EF::ONE; g1 - g0];
                 for i in 0..r1 - r0 {
                     let orow = &mut o[i * cw..(i + 1) * cw];
