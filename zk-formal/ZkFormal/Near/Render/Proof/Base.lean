@@ -112,4 +112,55 @@ theorem render_mkTab {c : Claim} {e : Ext} {t L W : Nat} {f : Nat → Nat → Na
   refine ⟨hl, by simp [Trace.height, hl], fun q col hq hc => ?_⟩
   rw [render_cell c e h0 h7, hp, mkTab_get hq hc]
 
+/-! ## Traffic as lists -/
+
+theorem flatMap_single {α β : Type} {l : List α} {f : α → List β} {g : α → β}
+    (h : ∀ q ∈ l, f q = [g q]) : l.flatMap f = l.map g := by
+  induction l with
+  | nil => rfl
+  | cons x l ih =>
+    simp only [List.flatMap_cons, List.map_cons, h x (by simp), List.singleton_append]
+    rw [ih (fun q hq => h q (by simp [hq]))]
+
+theorem flatMap_nil' {α β : Type} {l : List α} {f : α → List β} (h : ∀ q ∈ l, f q = []) :
+    l.flatMap f = [] := List.flatMap_eq_nil_iff.2 h
+
+theorem range_split {n H : Nat} (h : n ≤ H) : List.range H = List.range n ++ (List.range (H - n)).map (n + ·) := by
+  rw [← List.range_add, Nat.add_sub_cancel' h]
+
+/-- Uniform chunks: `k` messages per element. -/
+theorem flatMap_chunks {α β : Type} (k : Nat) (hk : 0 < k) (d : α) (h : α → Nat → β) :
+    ∀ S : List α, S.flatMap (fun x => (List.range k).map (h x)) =
+      (List.range (k * S.length)).map (fun q => h (S.getD (q / k) d) (q % k))
+  | [] => by simp
+  | x :: S => by
+    rw [List.flatMap_cons, flatMap_chunks k hk d h S, List.length_cons, Nat.mul_succ, Nat.add_comm,
+      List.range_add, List.map_append, List.map_map]
+    congr 1
+    · apply List.map_congr_left; intro q hq
+      have := List.mem_range.1 hq
+      simp [Nat.div_eq_of_lt this, Nat.mod_eq_of_lt this]
+    · apply List.map_congr_left; intro q _
+      simp only [Function.comp_apply]
+      rw [show (k + q) / k = q / k + 1 by rw [Nat.add_comm, Nat.add_div_right _ hk],
+        show (k + q) % k = q % k by rw [Nat.add_comm, Nat.add_mod_right]]
+      simp
+
+/-- `TableTraffic` from the per-bus message lists of the rows (up to permutation). -/
+theorem traffic_of {is : List Interaction} {tr : Trace Fp} {t : Nat} {pub : List Fp} {tf : Traffic}
+    (hs : ∀ b, ((List.range (tr.height t)).flatMap fun r => rowTraffic is tr t r pub b true).Perm
+      ((tf.sends b).map Msg.toFp))
+    (hr : ∀ b, ((List.range (tr.height t)).flatMap fun r => rowTraffic is tr t r pub b false).Perm
+      ((tf.recvs b).map Msg.toFp)) :
+    TableTraffic is tr t pub tf := by
+  intro b m
+  rw [tableBusCount_eq, tableBusCount_eq]
+  exact ⟨(hs b).count_eq m, (hr b).count_eq m⟩
+
+/-- Multiplicity of a one-bit interaction. -/
+theorem multNat_one {g : Expr} {msg : List Expr} {bus : Nat} {s : Bool} {tr : Trace Fp} {t r : Nat}
+    {pub : List Fp} :
+    Interaction.multNat ⟨bus, [g], msg, s⟩ tr t r pub = if g.eval tr t r pub = 1 then 1 else 0 := by
+  simp [Interaction.multNat, Interaction.multNat.go]
+
 end ZkFormal.Near.Render
