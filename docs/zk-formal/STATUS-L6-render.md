@@ -172,6 +172,24 @@ walk counters `useAtL`/`usesL` shared by the walk table and its view.
 | `RidsBusStmt` | `ridsBus` | `Proof/BusRids` |
 | `MemBusStmt` | `memBus` | `Proof/BusMem` (+ `MemChain`: write/read time pairs are a permutation) |
 | `FinalBusStmt`, `KeynibBusStmt` | `finalBus`, `keynibBus` | `Proof/BusFinal` |
+| `MrkLocalStmt` | `mrkLocal` | `Proof/MrkLocal{,2,3,4}` (+ `MrkRecs`: row records of the levels) |
+| `MrkTrafficStmt` | `mrkTraffic_ok` | `Proof/MrkTraffic{,2,3}` (+ `MrkFacts`: level sizes, `MRK` indices = `hashedBefore`) |
+
+**Assembly** (`Proof/Main`): `render_of_rest : RenderRest → RenderStmt`, where
+`RenderRest` = the open obligations: `TouchedLe` from `Good` (R-L6e-1),
+`Sha/Node/Rcpt` Local + Traffic, buses `BYTES, DIGEST, PARENT, EDGE, MPOS`.
+All proofs: axioms `propext, Classical.choice, Quot.sound` only.
+
+Elaboration (`lake env lean`, wall): MrkLocal2 21 s, MrkLocal 12 s, WalkLocal 6 s,
+SortLocal 5 s, MrkLocal3 5 s, MrkLocal4 5 s, AcctLocal 4 s, the rest ≤ 1.2 s.
+`test/NearRenderTest.lean` ≈ 50 s (was 36 s; walk counters are `O(rows²)`).
+
+Generator changes (rows unchanged up to the closed forms; test passes):
+`Render/{Sort,Acct,Walk,Mrk}.lean` closed form via `mkTab`; `Render/Common.lean`:
+`mkTab`, `Info.vpre/vpost` as maps, `resF` (walk targets), functional
+`walkFrom`/`walkOf`; `Render/Rcpt.lean`: `rdOf`/`rcptData` as a map with
+prefix sums; `Render/Views.lean`: views built from the same closed forms
+(walk counters `usesL`, mrk levels `MrkGen.levels`).
 
 Key lemma: `walkOf_ok` (`Proof/WalkOk`): under `Good`, the generator's walk of
 every receipt succeeds and ends at `e.slot r` (simulation of the spec `Walk`
