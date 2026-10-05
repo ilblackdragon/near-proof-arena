@@ -289,4 +289,293 @@ theorem finals_split (n : TLayout → Nat) : ∀ (lay : List TLayout) (acc : Lis
     simp only [Function.comp, List.take_succ_cons, List.map_cons, List.sum_cons, List.getD_cons_succ,
       List.drop_drop]
 
+/-! ## Sides of one table -/
+
+theorem filter_send_eq (is : List Interaction) :
+    is.filter (fun i => i.send) = is.filter (fun i => i.send == true) :=
+  List.filter_congr fun i _ => by cases i.send <;> rfl
+
+theorem filter_recv_eq (is : List Interaction) :
+    is.filter (fun i => !i.send) = is.filter (fun i => i.send == false) :=
+  List.filter_congr fun i _ => by cases i.send <;> rfl
+
+theorem table_side (is : List Interaction) (fins : List Fp8) (Φ : Interaction → Fp8)
+    (hlen : fins.length = is.length)
+    (hj : ∀ j, j < (ordOf is).length → fins.getD j 0 = Φ ((ordOf is).getD j default)) :
+    (fins.take (is.filter (fun i => i.send)).length).prod = ((is.filter (fun i => i.send)).map Φ).prod ∧
+    (fins.drop (is.filter (fun i => i.send)).length).prod = ((is.filter (fun i => !i.send)).map Φ).prod := by
+  have hs := length_filter_send is
+  rw [← filter_send_eq, ← filter_recv_eq] at hs
+  have hord : ordOf is = is.filter (fun i => i.send) ++ is.filter (fun i => !i.send) := rfl
+  have hordl : (ordOf is).length = is.length := by rw [hord, List.length_append]; omega
+  generalize hA : is.filter (fun i => i.send) = SA at *
+  generalize hB : is.filter (fun i => !i.send) = SB at *
+  constructor
+  · congr 1
+    refine List.ext_getElem (by rw [List.length_take, List.length_map]; omega) fun j h1 h2 => ?_
+    rw [List.length_map] at h2
+    rw [List.getElem_take, List.getElem_map]
+    have := hj j (by omega)
+    rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (by omega), Option.getD_some] at this
+    rw [this, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (by omega), Option.getD_some]
+    congr 1
+    simp only [hord]
+    rw [List.getElem_append_left]
+  · congr 1
+    refine List.ext_getElem (by rw [List.length_drop, List.length_map]; omega) fun j h1 h2 => ?_
+    rw [List.length_map] at h2
+    rw [List.getElem_drop, List.getElem_map]
+    have := hj (SA.length + j) (by omega)
+    rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (by omega), Option.getD_some] at this
+    rw [this, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (by omega), Option.getD_some]
+    congr 1
+    simp only [hord]
+    rw [List.getElem_append_right (by omega)]
+    congr 1; omega
+
+theorem sum_take_le (n : TLayout → Nat) (lay : List TLayout) (t : Nat) (ht : t < lay.length) :
+    ((lay.take t).map n).sum + n (lay.getD t default) ≤ (lay.map n).sum := by
+  have e : lay = lay.take t ++ lay[t] :: lay.drop (t + 1) := by
+    conv => lhs; rw [← List.take_append_drop t lay]
+    rw [List.drop_eq_getElem_cons ht]
+  have e2 : lay.getD t default = lay[t] := by
+    rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem ht]; rfl
+  conv => rhs; rw [e]
+  rw [e2, List.map_append, List.sum_append, List.map_cons, List.sum_cons]
+  omega
+
+theorem zip_range_map {β : Type} [Inhabited β] (n : Nat) (f : Nat → List Fp8) (l : List β) (hl : l.length = n) :
+    ((List.range n).map f).zip l = (List.range n).map fun t => (f t, l.getD t default) := by
+  refine List.ext_getElem (by simp; omega) fun j h1 h2 => ?_
+  simp only [List.getElem_zip, List.getElem_map, List.getElem_range]
+  rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (by simp at h2; omega)]
+  rfl
+
+/-! ## Per-table facts of a shaped transcript -/
+
+section
+variable {A : Air}
+
+local notation "prm0" => Params.default
+
+structure TabOk (A : Air) (τ : PTn) (t : Nat) : Prop where
+  hdl : (hdrOf τ).getD t 0 = (tl A prm0 τ t).log
+  hlog : (tl A prm0 τ t).log ≤ 27
+  hbase : ∀ (c j : Nat), (colAt A prm0 τ ⟨t, 0, c⟩ (omg (tl A prm0 τ t).log ^ j)).IsBase
+  haux : (tl A prm0 τ t).aux = nCons (tableOf A t).interactions + (tableOf A t).interactions.length
+  hsend : (tl A prm0 τ t).sendG = ((tableOf A t).interactions.filter (fun i => i.send)).length
+  hn : (tl A prm0 τ t).sendG + (tl A prm0 τ t).recvG = (tableOf A t).interactions.length
+
+theorem tabOk_of {τ : PTn} {l : List Nat} (hl : τ.header? = some l) (hh : headerOk A prm0 l = true)
+    (t : Nat) (ht : t < A.tables.length) : TabOk A τ t := by
+  obtain ⟨hlen, hlog, hwf, _⟩ := headerOk_facts hh
+  have htl := tl_eq (prm := prm0) hl hlen t ht
+  have hlt := hlog t ht (by omega)
+  have hmx := (table_wf_facts ((wf_facts hwf).1 _ (List.getElem_mem ht))).2.1
+  have hs := length_filter_send (tableOf A t).interactions
+  rw [← filter_send_eq, ← filter_recv_eq] at hs
+  have hT := tableOf_lt ht
+  rw [hT] at hs
+  refine ⟨?_, ?_, fun c j => ?_, ?_, ?_, ?_⟩
+  · rw [htl]; unfold hdrOf; rw [hl]
+    simp only [Option.getD_some, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (show t < l.length by omega)]
+  · rw [htl]; show l[t] ≤ 27; omega
+  · have e : omg (tl A prm0 τ t).log ^ j = Fp8.ofBase (Fp.twoAdicGen (tl A prm0 τ t).log ^ j) := by
+      unfold omg; rw [ofBase_pow]
+    rw [e]
+    refine colAt_base τ ⟨t, 0, c⟩ rfl (by rw [htl]) rfl ?_ _
+    rw [htl]; show l[t] + 4 ≤ 27
+    have := hlt.2.2; simp [Params.default] at this; omega
+  · rw [htl, hT]
+    show (A.tables[t]).auxCount 1 = _
+    unfold Air.Table.auxCount nCons Air.Table.numSide
+    rw [numGroups_one, numGroups_one, ← filter_send_eq, ← filter_recv_eq]; omega
+  · rw [htl, hT]; show numGroups _ 1 = _
+    rw [numGroups_one]; unfold Air.Table.numSide; rw [filter_send_eq]
+  · rw [htl, hT]; show numGroups _ 1 + numGroups _ 1 = _
+    rw [numGroups_one, numGroups_one]; unfold Air.Table.numSide
+    rw [← filter_send_eq, ← filter_recv_eq]; omega
+
+theorem finsOf_length {τ : PTn} {l : List Nat} (hl : τ.header? = some l) (hh : headerOk A prm0 l = true)
+    (hfl : (finalsOf τ).length = ((layOf A prm0 τ).map fun L => L.sendG + L.recvG).sum)
+    (t : Nat) (ht : t < A.tables.length) :
+    (finsOf A prm0 τ t).length = (tableOf A t).interactions.length := by
+  obtain ⟨hlen, _, _, _⟩ := headerOk_facts hh
+  have hlay : (layOf A prm0 τ).length = A.tables.length := by
+    unfold layOf hdrOf; rw [hl]; simp [layout, hlen]
+  have := sum_take_le (fun L => L.sendG + L.recvG) (layOf A prm0 τ) t (by omega)
+  unfold finsOf
+  rw [List.length_take, List.length_drop, ← (tabOk_of hl hh t ht).hn]
+  unfold tl at *
+  omega
+
+end
+
+/-! ## The two contradictions -/
+
+section
+variable {A : Air}
+
+local notation "prm0" => Params.default
+
+theorem no_localFail {τ : PTn} {l : List Nat} (hl : τ.header? = some l) (hh : headerOk A prm0 l = true)
+    (α γ : Fp8)
+    (hz : ∀ t, t < A.tables.length → ∀ r, r < 2 ^ (tl A prm0 τ t).log →
+      ∀ c ∈ csAt A prm0 τ t α γ (omg (tl A prm0 τ t).log ^ r), c = 0) :
+    ¬ LocalFail A prm0 τ := by
+  rintro ⟨t, ht, r, hr, e, he, hne⟩
+  have tab := tabOk_of hl hh t ht
+  have hr' : r < 2 ^ (tl A prm0 τ t).log := by
+    have : (decTrace A prm0 τ).height t = 2 ^ (hdrOf τ).getD t 0 := rfl
+    rw [this, tab.hdl] at hr; exact hr
+  have h1 := evalWith_hom A prm0 τ t tab.hdl tab.hlog tab.hbase r hr' e
+  have h2 := hz t ht r hr' _ (by unfold csAt; exact List.mem_append_left _ (List.mem_map.mpr ⟨e, he, rfl⟩))
+  rw [h1] at h2
+  exact hne (Fp8.ofBase_inj (h2.trans rfl))
+
+/-- The per-table factor product `Φ_t(i) = ∏_r φ_i(ω^r)`. -/
+noncomputable def PhiT (A : Air) (τ : PTn) (α γ : Fp8) (t : Nat) (i : Interaction) : Fp8 :=
+  ((List.range (2 ^ (tl A prm0 τ t).log)).map fun r =>
+    phiOf (polyEnv A prm0 τ t (omg (tl A prm0 τ t).log ^ r)) α γ i).prod
+
+theorem gp_tables {τ : PTn} {l : List Nat} (hl : τ.header? = some l) (hh : headerOk A prm0 l = true)
+    (α γ : Fp8) (s : Bool) :
+    ((expand (busMsgs A prm0 τ s)).map fun m => γ - fpL α m).prod =
+      ((List.range A.tables.length).map fun t =>
+        (((tableOf A t).interactions.filter (fun i => i.send == s)).map (PhiT A τ α γ t)).prod).prod := by
+  rw [gp_side]
+  congr 1
+  apply List.map_congr_left
+  intro t ht
+  have tab := tabOk_of hl hh t (List.mem_range.mp ht)
+  have hh' : (decTrace A prm0 τ).height t = 2 ^ (tl A prm0 τ t).log := by
+    show 2 ^ (hdrOf τ).getD t 0 = _; rw [tab.hdl]
+  rw [hh']
+  unfold PhiT
+  rw [prod_swap]
+  congr 1
+  apply List.map_congr_left
+  intro i _
+  congr 1
+  apply List.map_congr_left
+  intro r hr
+  exact (phiOf_eq A τ t tab.hdl tab.hlog tab.hbase r (List.mem_range.mp hr) α γ i).symm
+
+theorem no_gpDiffer {τ : PTn} {l : List Nat} (hl : τ.header? = some l) (hh : headerOk A prm0 l = true)
+    (hfl : (finalsOf τ).length = ((layOf A prm0 τ).map fun L => L.sendG + L.recvG).sum)
+    (α γ : Fp8)
+    (hz : ∀ t, t < A.tables.length → ∀ r, r < 2 ^ (tl A prm0 τ t).log →
+      ∀ c ∈ csAt A prm0 τ t α γ (omg (tl A prm0 τ t).log ^ r), c = 0)
+    (hBF : ¬ BusFinalsFail A prm0 τ) : ¬ GpDiffer A prm0 τ α γ := by
+  obtain ⟨hlen, _, _, _⟩ := headerOk_facts hh
+  have hlay : (layOf A prm0 τ).length = A.tables.length := by
+    unfold layOf hdrOf; rw [hl]; simp [layout, hlen]
+  have hside : ∀ t, t < A.tables.length →
+      ((finsOf A prm0 τ t).take (tl A prm0 τ t).sendG).prod =
+        (((tableOf A t).interactions.filter (fun i => i.send == true)).map (PhiT A τ α γ t)).prod ∧
+      ((finsOf A prm0 τ t).drop (tl A prm0 τ t).sendG).prod =
+        (((tableOf A t).interactions.filter (fun i => i.send == false)).map (PhiT A τ α γ t)).prod := by
+    intro t ht
+    have tab := tabOk_of hl hh t ht
+    have := table_side (tableOf A t).interactions (finsOf A prm0 τ t) (PhiT A τ α γ t)
+      (finsOf_length hl hh hfl t ht) (fun j hj => table_fins A τ t α γ tab.hlog tab.haux
+        (finsOf_length hl hh hfl t ht) (hz t ht) j hj)
+    rw [tab.hsend, ← filter_send_eq, ← filter_recv_eq]
+    exact this
+  intro hgp
+  apply hBF
+  unfold BusFinalsFail
+  have hsplit := finals_split (fun L => L.sendG + L.recvG) (layOf A prm0 τ) [] (finalsOf τ)
+  simp only [List.nil_append] at hsplit
+  dsimp only
+  rw [hsplit, zip_range_map _ _ _ rfl, List.map_map, List.map_map, foldl_mul_prod, foldl_mul_prod]
+  have hmap : ∀ (F G : Nat → Fp8), (∀ t, t < A.tables.length → F t = G t) →
+      ((List.range (layOf A prm0 τ).length).map F).prod = ((List.range A.tables.length).map G).prod :=
+    fun F G hFG => by rw [hlay]; congr 1; exact List.map_congr_left fun t ht => hFG t (List.mem_range.mp ht)
+  have e1 : ∀ x : Fp8, 1 * x = x := fun x => by grind
+  rw [e1, e1, hmap _ (fun t => (((tableOf A t).interactions.filter (fun i => i.send == true)).map
+      (PhiT A τ α γ t)).prod) (fun t ht => ?_),
+    hmap _ (fun t => (((tableOf A t).interactions.filter (fun i => i.send == false)).map
+      (PhiT A τ α γ t)).prod) (fun t ht => ?_), ← gp_tables hl hh, ← gp_tables hl hh]
+  · exact hgp
+  · show ((finsOf A prm0 τ t).drop (tl A prm0 τ t).sendG).foldl (· * ·) 1 = _
+    rw [foldl_mul_prod, e1, (hside t ht).2]
+  · show ((finsOf A prm0 τ t).take (tl A prm0 τ t).sendG).foldl (· * ·) 1 = _
+    rw [foldl_mul_prod, e1, (hside t ht).1]
+
+end
+
+/-! ## `Msg4` -/
+
+theorem elems_nil_E4 {A : Air} {prm : Params} {τ : PTn} (hs : Shaped (Vnp A prm) τ)
+    (hE : τ.entries.length = 4) : τ.elems = [] := by
+  have hne : τ.entries ≠ [] := fun h => by rw [h] at hE; simp at hE
+  obtain ⟨l, hl, _, _⟩ := shaped_hdr hs hne
+  obtain ⟨s0, h01, h02⟩ := shaped_fits hs hl 0 (by omega)
+  rw [(sched_get l).1] at h01; cases h01
+  obtain ⟨a, b, he0, ha, hb⟩ := fits_two h02
+  obtain ⟨o, rfl⟩ := fits_oracle hb
+  obtain ⟨l', rfl⟩ := fits_header ha
+  obtain ⟨s2, h21, h22⟩ := shaped_fits hs hl 2 (by omega)
+  rw [(sched_get l).2.1] at h21; cases h21
+  have he2 := fits_nil h22
+  obtain ⟨s1, h11, h12⟩ := shaped_fits hs hl 1 (by omega)
+  obtain ⟨s3, h31, h32⟩ := shaped_fits hs hl 3 (by omega)
+  have hs1 : s1 = .chal false := by
+    have : (schedule A prm l)[1]? = some (.chal false) := rfl
+    rw [this] at h11; cases h11; rfl
+  have hs3 : s3 = .chal false := by
+    have : (schedule A prm l)[3]? = some (.chal false) := rfl
+    rw [this] at h31; cases h31; rfl
+  subst hs1; subst hs3
+  obtain ⟨c1, he1⟩ := fits_chal h12
+  obtain ⟨c3, he3⟩ := fits_chal h32
+  match hes : τ.entries, hE with
+  | [e0, e1, e2, e3], _ =>
+    have : τ = ⟨τ.cb, [e0, e1, e2, e3]⟩ := by rw [← hes]
+    simp only [hes, List.getElem_cons_zero, List.getElem_cons_succ] at he0 he1 he2 he3
+    subst he0; subst he1; subst he2; subst he3
+    rw [this]; simp [PT.elems]
+
+theorem msg4 : Msg4Stmt := by
+  intro A prm hok τ m hs _ hE hst
+  obtain ⟨hprm, _, _⟩ := hok
+  subst hprm
+  have hne : τ.entries ≠ [] := fun h => by rw [h] at hE; simp at hE
+  have hsτ := (shapedPrefix A _ τ).1 m hs
+  obtain ⟨l, hl, hh, _⟩ := shaped_hdr hsτ hne
+  obtain ⟨l2, hl2, _, s4, h41, h42⟩ := push_fits hs hne
+  rw [hl] at hl2; cases hl2
+  rw [hE, (sched_get l).2.2.1] at h41; cases h41
+  obtain ⟨a4, b4, hm, ha4, hb4⟩ := fits_two h42
+  cases hm
+  obtain ⟨o, rfl⟩ := fits_oracle ha4
+  obtain ⟨xs, rfl, hxs⟩ := fits_elems hb4
+  have hel := elems_nil_E4 hsτ hE
+  have hl' : (τ.push [PartV.oracle o, .elems xs]).header? = some l := by rw [header?_push _ _ hne]; exact hl
+  have hfin : finalsOf (τ.push [PartV.oracle o, .elems xs]) = xs := by
+    unfold finalsOf
+    have : (τ.push [PartV.oracle o, .elems xs]).elems = τ.elems ++ [xs] := by
+      simp [PT.push, PT.elems, List.flatMap_append]
+    rw [this, hel]; rfl
+  have hfl : (finalsOf (τ.push [PartV.oracle o, .elems xs])).length =
+      ((layOf A Params.default (τ.push [PartV.oracle o, .elems xs])).map fun L => L.sendG + L.recvG).sum := by
+    rw [hfin, hxs]; unfold layOf hdrOf; rw [hl']; rfl
+  have ho1 := shaped_oracles1 hsτ (by omega)
+  have hO : OAgree 1 (τ.push [PartV.oracle o, .elems xs]) τ := (oAgree_push τ _ hne).mono ho1
+  have hE' : (τ.push [PartV.oracle o, .elems xs]).entries.length = 5 := by rw [len_push, hE]
+  simp only [Stage, hE] at hst
+  simp only [Stage, hE', chals_push]
+  refine Classical.byContradiction fun hno => ?_
+  simp only [_root_.not_or, Classical.not_not] at hno
+  obtain ⟨hC2, hCs, hBF⟩ := hno
+  have hz : ∀ t, t < A.tables.length → ∀ r, r < 2 ^ (tl A Params.default (τ.push [PartV.oracle o, .elems xs]) t).log →
+      ∀ c ∈ csAt A Params.default (τ.push [PartV.oracle o, .elems xs]) t (τ.chals.getD 0 0) (τ.chals.getD 1 0)
+        (omg (tl A Params.default (τ.push [PartV.oracle o, .elems xs]) t).log ^ r), c = 0 :=
+    fun t ht r hr c hc => Classical.byContradiction fun h0 => hCs ⟨t, ht, r, hr, c, hc, h0⟩
+  rcases hst with h | h | h
+  · exact h ((allClose_congr hO (Nat.le_refl 1)).mp (allClose_mono (by omega) hC2))
+  · exact no_localFail hl' hh _ _ hz ((localFail_congr hO (Nat.le_refl 1)).mpr h)
+  · exact no_gpDiffer hl' hh hfl _ _ hz hBF ((gpDiffer_congr hO (Nat.le_refl 1) _ _).mpr h)
+
 end ZkFormal.Udr.Np
