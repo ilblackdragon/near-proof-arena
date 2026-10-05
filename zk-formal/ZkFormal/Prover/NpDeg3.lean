@@ -145,6 +145,56 @@ theorem csX_poly (t : Nat) (α γ : Fp8) :
     rw [hG, hR]
     exact gc_eval (pEnv A cb tr t) Gs Rs fins x
 
+
+theorem compX_isPoly (t : Nat) (α γ αc : Fp8) :
+    IsPoly ((tb A t).degree dp.auxGroup * (2 ^ lg tr t - 1) + 1) (compX A cb tr α γ αc t) := by
+  obtain ⟨Fs, hF, he⟩ := csX_poly A cb tr t α γ
+  have := combine_isPoly αc Fs hF
+  exact (PD.congr (T := 2 ^ lg tr t) (d := (tb A t).degree dp.auxGroup) this fun x => by
+    show combine αc (Fs.map (· x)) = combine αc (csX A cb tr α γ t x); rw [he x])
+
+theorem combine_zero (α : Fp8) : ∀ (l : List Fp8), (∀ c ∈ l, c = 0) → combine α l = 0
+  | [], _ => rfl
+  | c :: l, h => by
+    show c + α * combine α l = 0
+    rw [h c (by simp), combine_zero α l (fun d hd => h d (by simp [hd]))]; grind
+
+/-- **The quotient exists** (honest trace satisfying `Holds`). -/
+theorem quot_exists (hH : Holds A (pubOf Fp cb) tr) {t : Nat} (ht : TabOk A tr t) (α γ αc : Fp8) :
+    ∃ co : Nat → Fp8, ∀ x, compX A cb tr α γ αc t x =
+      (x ^ (2 ^ lg tr t) - 1) * ev ((tb A t).quotCount dp.auxGroup * 2 ^ lg tr t) co x := by
+  have hlog : tr.log t ≤ 27 := by have := ht.log22; omega
+  have hT : 1 ≤ 2 ^ lg tr t := Nat.one_le_two_pow
+  obtain ⟨c, hc⟩ := compX_isPoly A cb tr t α γ αc
+  have hz : ∀ r, r < 2 ^ lg tr t → ev ((tb A t).degree dp.auxGroup * (2 ^ lg tr t - 1) + 1) c
+      (omg (lg tr t) ^ r) = 0 := by
+    intro r hr
+    rw [← hc]
+    exact combine_zero αc _ (csX_row_zero A cb tr hH ht α γ hr)
+  obtain ⟨q, hq⟩ := exists_div_vanish hT (fun r => omg (lg tr t) ^ r) (npDistinct_omg hlog)
+    (fun r _ => omg_pow_r_T hlog r) c hz
+  have hD : 1 ≤ (tb A t).degree dp.auxGroup := by
+    have := (degree_facts (tb A t)).1; exact Nat.le_trans (by decide) this
+  obtain ⟨c', hc'⟩ := ev_mono_pad (m := (tb A t).degree dp.auxGroup * (2 ^ lg tr t - 1) + 1 - 2 ^ lg tr t)
+    (m' := (tb A t).quotCount dp.auxGroup * 2 ^ lg tr t) (by
+      unfold Table.quotCount
+      have e1 : ((tb A t).degree dp.auxGroup - 1) * 2 ^ lg tr t =
+          (tb A t).degree dp.auxGroup * 2 ^ lg tr t - 2 ^ lg tr t := by
+        rw [Nat.sub_mul, Nat.one_mul]
+      have e2 : (tb A t).degree dp.auxGroup * (2 ^ lg tr t - 1) =
+          (tb A t).degree dp.auxGroup * 2 ^ lg tr t - (tb A t).degree dp.auxGroup := by
+        rw [Nat.mul_sub, Nat.mul_one]
+      have e3 : (tb A t).degree dp.auxGroup ≤ (tb A t).degree dp.auxGroup * 2 ^ lg tr t :=
+        Nat.le_mul_of_pos_right _ (Nat.two_pow_pos _)
+      rw [e1, e2]; omega) q
+  exact ⟨c', fun x => by rw [hc x, hq x, hc' x]⟩
+
+theorem qC_spec (hH : Holds A (pubOf Fp cb) tr) {t : Nat} (ht : TabOk A tr t) (α γ αc : Fp8) :
+    ∀ x, compX A cb tr α γ αc t x =
+      (x ^ (2 ^ lg tr t) - 1) * ev ((tb A t).quotCount dp.auxGroup * 2 ^ lg tr t) (qC A cb tr α γ αc t) x := by
+  unfold qC
+  exact pick_spec (quot_exists A cb tr hH ht α γ αc)
+
 end
 
 

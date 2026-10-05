@@ -144,3 +144,4 @@ import ZkFormal.Prover.NpDeg
 import ZkFormal.Prover.NpDeg2
 import ZkFormal.Prover.NpDeg3
 import ZkFormal.Prover.NpGlobal
+import ZkFormal.Prover.NpGlobal2
