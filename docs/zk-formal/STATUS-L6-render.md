@@ -151,3 +151,29 @@ carry nothing (`other_bus`). `bundle` is total (a failing walk is empty, with
   through `res`, the spec walk takes `EPS` steps).
 * The sha cells via `Sha.Gen.rowCell` cost ≈ 1.5 ms each in the interpreter,
   so tests use L5's expected traffic for the sha side.
+
+## Render obligations — proofs (`Render/Proof/`, lane/zk-L6-rproof)
+
+Generators rewritten in closed form where needed for the proofs (same rows;
+`test/NearRenderTest.lean` still: no violations, every bus balanced):
+`mkTab H W f` tables for sort/acct/walk, `Info.vpre/vpost/res` as maps
+(`resF`), functional `walkOf` (`walkFrom`), `rcptData` (`rdOf`, prefix sums),
+walk counters `useAtL`/`usesL` shared by the walk table and its view.
+
+| obligation | theorem | module |
+|---|---|---|
+| `SortLocalStmt` | `sortLocal` | `Proof/SortLocal` (+ `SortIds`: sorted ids strictly increasing, carries) |
+| `SortTrafficStmt` | `sortTraffic_ok` | `Proof/SortTraffic` |
+| `AcctLocalStmt` | `acctLocal'` (needs `TouchedLe e`, R-L6e-1), `acctLocal_of` | `Proof/AcctLocal` (+ `AcctFacts`) |
+| `AcctTrafficStmt` | `acctTraffic_ok` | `Proof/AcctTraffic` |
+| `WalkLocalStmt` | `walkLocal` | `Proof/WalkLocal` (+ `WalkOk`: generator walk = spec walk; `WalkShape`) |
+| `WalkTrafficStmt` | `walkTraffic_ok` | `Proof/WalkTraffic` (+ `WalkIdx`) |
+| `VslotBusStmt` | `vslotBus` | `Proof/BusVslot` |
+| `RidsBusStmt` | `ridsBus` | `Proof/BusRids` |
+| `MemBusStmt` | `memBus` | `Proof/BusMem` (+ `MemChain`: write/read time pairs are a permutation) |
+| `FinalBusStmt`, `KeynibBusStmt` | `finalBus`, `keynibBus` | `Proof/BusFinal` |
+
+Key lemma: `walkOf_ok` (`Proof/WalkOk`): under `Good`, the generator's walk of
+every receipt succeeds and ends at `e.slot r` (simulation of the spec `Walk`
+with `EPS` steps collapsed by `resF`; `resF` is stable by the `TreeShape`
+depth argument).
