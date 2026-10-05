@@ -52,3 +52,5 @@ import ZkFormal.Stark.QueryBound
 import ZkFormal.Bcs.StarkAdapter
 import ZkFormal.Bcs.StarkParse
 import ZkFormal.Bcs.StarkChain
+import ZkFormal.Bcs.StarkDecode
+import ZkFormal.Bcs.StarkOpen
