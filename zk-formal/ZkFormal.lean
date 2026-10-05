@@ -51,3 +51,7 @@ import ZkFormal.Udr.BW
 import ZkFormal.Udr.Main
 import ZkFormal.Udr.Deep
 import ZkFormal.Udr.Rbr
+import ZkFormal.Udr.Np.Sem
+import ZkFormal.Udr.Np.Stage
+import ZkFormal.Udr.Np.Statements
+import ZkFormal.Udr.Np.Compose
