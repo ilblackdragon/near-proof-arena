@@ -75,7 +75,7 @@ macro "rfin" : tactic => `(tactic| (
   (try simp only [b2n, decide_eq_true_eq, Bool.decide_eq_true] at *)
   (repeat' split)
   all_goals (try simp only [ofNat0, ofNat1, natCast_eq, ofNat_add_e, ofNat_mul_e] at *)
-  all_goals first | omega | grind))
+  all_goals first | omega | grind | grind [ofNat0, ofNat1]))
 
 end RcptP
 
