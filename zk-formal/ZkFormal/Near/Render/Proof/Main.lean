@@ -19,6 +19,7 @@ import ZkFormal.Near.Render.Proof.RcptBytes2
 import ZkFormal.Near.Render.Proof.BusEdge
 import ZkFormal.Near.Render.Proof.BusParent
 import ZkFormal.Near.Render.Proof.NodeSer
+import ZkFormal.Near.Render.Proof.NodeTraffic
 
 /-!
 # ZkFormal.Near.Render.Proof.Main — what is left of `RenderStmt`
@@ -41,7 +42,6 @@ open NearSpec NearSpec.TransferV1 ZkFormal.Near ZkFormal.Air ZkFormal.Algebra
 structure RenderRest : Prop where
   nodeL : NodeLocalStmt
   rcptL : RcptLocalStmt
-  nodeT : NodeTrafficStmt
   rcptT : RcptTrafficStmt
   digest : DigestBusStmt
 
@@ -50,7 +50,7 @@ theorem render_of_rest (h : RenderRest) : RenderStmt :=
   render_stmt
     { shaL := shaLocal, nodeL := h.nodeL, walkL := walkLocal, rcptL := h.rcptL,
       acctL := acctLocal, mrkL := mrkLocal, sortL := sortLocal,
-      shaT := shaTraffic_ok, nodeT := h.nodeT, walkT := walkTraffic_ok, rcptT := h.rcptT,
+      shaT := shaTraffic_ok, nodeT := nodeTraffic_ok, walkT := walkTraffic_ok, rcptT := h.rcptT,
       acctT := acctTraffic_ok, mrkT := mrkTraffic_ok, sortT := sortTraffic_ok,
       bytes := bytesBus_of nodeSer_ok rcptBytes, digest := h.digest, parent := parentBus,
       vslot := vslotBus, edge := edgeBus,
