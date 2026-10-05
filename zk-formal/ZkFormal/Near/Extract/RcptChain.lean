@@ -79,3 +79,12 @@ theorem chain (L : Nat) (hL : 0 < L) (s a cin cout : Nat → Nat)
   rwa [show L - 1 + 1 = L by omega] at this
 
 end ZkFormal.Near.RcptProof
+
+namespace ZkFormal.Near.RcptProof
+
+theorem sumL_add (f g : Nat → Nat) (L : Nat) : sumL (fun k => f k + g k) L = sumL f L + sumL g L := by
+  induction L with
+  | zero => rfl
+  | succ L ih => simp only [sumL]; rw [ih, Nat.mul_add]; omega
+
+end ZkFormal.Near.RcptProof
