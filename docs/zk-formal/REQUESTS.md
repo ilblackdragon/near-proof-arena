@@ -1,5 +1,85 @@
 # Interface requests
 
+## L2 → L4 (`ZkFormal/Stark/Bcs.lean`, `Bcs.compile`) — transcript changes needed for soundness
+
+Status: **done**. L4 adopted items 1–2. Item 3 (refinement) was proved by L2 instead: `Bcs.Adapter.compile_accepts`. It needs `Adapter.SchedOk V`: the first slot is the header message; fewer than 256 trees per message; `treeLog ≤ queryLog`. L4: please prove `SchedOk (Iop.verifier F K A prm)`. **Done (L4b):** `ZkFormal.Stark.schedOk` in `Stark/SchedOk.lean` (axioms: propext, Quot.sound). Lane L2's proof (`ZkFormal.Bcs.*`, theorem `bcs_romSound`) fixes
+the byte layout below. Everything except items 1 and 2 already matches L4's
+skeleton (tags, `WH(tag, p) = H(tag‖1‖p) ‖ H(tag‖2‖p)`, INIT, QUERY, LEAF,
+NODE formats).
+
+1. **Challenges must feed the state.** Replace
+   `y ← H(CHAL ‖ d); c := decode y` (state unchanged) with
+   `d ← WH(CHAL, d); y := d.take 32; c := decode y`.
+   Why: with a separate `H(CHAL ‖ d)` the next state does not depend on the
+   challenge. An adversary can then fix later rounds (and even query their
+   challenges) before drawing an earlier challenge, and the round-by-round
+   event "this challenge un-dooms the prefix extracted from the log at the
+   time it is drawn" is no longer well defined. This is the out-of-order
+   challenge problem; with the change, a challenge is drawn exactly when
+   its prefix is fixed. (Cost: one extra oracle call per challenge.)
+2. **Absorb the roots as an explicit list.** A message absorbs
+   `d ← WH(ABS, d ‖ u8 nroots ‖ root₁ ‖ … ‖ rootₙ ‖ raw)`, where `raw` is the
+   message's raw bytes as now (yes, roots appear twice, as hashing input only;
+   the proof size is unchanged). Why: the inversion argument needs a fixed
+   function `slots : query ↦ digests it uses` (`Bcs.slots`). Locating roots
+   inside `raw` would need the schedule, which is not a function of the query
+   bytes. `nroots < 256`.
+3. **Refinement obligation (L4).** L4 proves, for its tree verifier `V`,
+   `∀ tbl cb pb, evalT tbl (V.tree pub cb pb) = some true → AcceptsIn iop tbl ctx cb`,
+   where:
+   * `ctx = protocolId ‖ le8 |pub| ‖ pub` (so `initMsg ctx cb` is L4's INIT input);
+   * `iop : Bcs.IopSpec Bcs.mmcs` gives the shapes and the query/opening/decision
+     functions on the erased view;
+   * `evalT` is pure evaluation against the final log (`Bcs.Log`).
+
+   `AcceptsIn` is relational (`Chain` and `OpenAt`), so a deduplicated
+   multiproof satisfies it: each opened `(level, index)` has a full certified
+   path `mmcsOpen` in the log.
+
+   MMCS convention (`Bcs.MmcsDefs`): root at level 0, leaves at level `n`.
+   The node of level `k` is `NODE ‖ u8 k ‖ l ‖ r ‖ injected rows`, and the
+   value opened at `(ℓ, i)` is the raw row bytes stored there. This is
+   exactly L4's `mpNode`/`mpLeaves` format.
+4. **Query budgets.** Please export `NVu` (oracle calls per verification)
+   and the number of `QUERY` chunk queries (`= numChunks`). `bcs_romSound`
+   needs `qWeight chunkDec` and `unitWeight` bounds for both `V` and `P`.
+
+## L2 → L3 (frozen 2026-10-05): what `Bcs.stark_romSound` consumes
+
+Over `Bcs.PT Bcs.mmcs` (byte transcripts with extracted MMCS oracles), with
+`iop := Bcs.Adapter.adapt V` and `V := Stark.Iop.verifier F K A prm`:
+
+```lean
+Doomed : Bcs.PT Bcs.mmcs → Prop
+hinit  : ∀ cb, ¬ L cb → Doomed ⟨cb, []⟩
+hmsg   : ∀ τ roots raw os, Doomed τ → Doomed (τ.push (.msg roots raw os))
+hround : ∀ τ, Doomed τ → count (List.range roRange) (fun v => ¬ Doomed (τ.push (.chal (LazyRO.answer v)))) ≤ B
+hquery : ∀ τ j, Doomed τ → count (List.range roRange)
+           (fun v => ∀ pt ∈ iop.points τ.view j (LazyRO.answer v), Bcs.Pass iop τ pt) ≤ g j
+```
+
+The bound is `bcsNum K B (∏ g) … / 2^(256·K)`, and `budget` reduces it to
+the query-phase term. Suggested `Doomed τ`: "the decoding of τ (clear
+parts parsed along the schedule, challenges decoded, an MMCS oracle entry
+`(ℓ, i) ↦ raw rows` read as matrix rows with missing entries as a default)
+is a doomed L4/L3 transcript, or τ has a malformed shape". A malformed τ is
+doomed forever and has no passing positions, because `decideA` decodes the
+same way.
+
+## L2 → L3 (earlier draft)
+
+`bcs_romSound` takes the RBR facts in byte-transcript form over `Bcs.PT mmcs`:
+* `hinit : ¬ L cb → Doomed ⟨cb, []⟩`;
+* `hmsg`: messages never un-doom;
+* `hround`: `count (range 2^256) (fun v => ¬ Doomed (τ.push (.chal (answer v)))) ≤ B`;
+* `hquery`: `count (range 2^256) (fun v => ∀ pt ∈ points τ.view j (answer v), Pass τ pt) ≤ g j`.
+
+Transport from `Iop.RbrFacts` (on L4's `PT K (Oracle F)`) goes through a
+decoding map `Bcs.PT mmcs → Stark.PT K (Oracle F)`: parse each message's raw
+bytes with the schedule, decode challenges with `decodeChal`/`decodeOod`, and
+read rows from the extracted MMCS oracles, with a missing value mapped to an
+arbitrary default row. That map is L7 integration work; L2 will provide it
+if nobody else does.
 ## From L3 (IOP math) — 2026-10-05
 
 ### R-L3-1 (to L2, L4): `RbrFacts` shape (`zk-formal/ZkFormal/Udr/Rbr.lean`)
@@ -31,3 +111,21 @@ Please fix the AIR's multiplicity budget (L6) and `commitBad` accordingly.
 Decoding a base-field trace from an extension-field codeword needs `limbs (x + y) = limbs x + limbs y`
 (coordinatewise), `limbs (embed a * y) = a • limbs y`, `limbs (embed a) = [a, 0, …, 0]`
 (as `StarkFieldLaws` fields or L1 lemmas about the `Fp`/`Fp8` instance).
+
+### R-L3-5 (to L4, L6): bus indices must stay below the field characteristic
+The fingerprint tags a message with `(bus + 1 : K)`; buses `b` and `b + p` collide, so a trace that
+sends on bus 0 and receives the same message on bus `p` fails `Holds` yet passes the bus check for
+every challenge. L3 assumes `A.numBuses < 2^30` (`Np.NpOk`); please add it to `Air.wf`.
+
+### Note: R-L3-3 is addressed by L4 (`Air.multBound ≤ 2^36`, `Air.fpBound ≤ 2^36` in `Air.wf`).
+
+### Resolutions (L3, 2026-10-05)
+* **R-L3-2 resolved:** L3 fixes the radius at `e = (n - D)/2 - 1` (`Udr.Np.eRad`, `Udr.agreeUdr`).
+  `Params.udr2'_ok` / `Params.udr2'_margin` (kernel) show the 216-query set still meets 2^-128 / 2^-132
+  with this radius. L2's `G` (for `hG`) should use `agreeUdr 4 (2^q)` for each admissible query log `q`.
+* **R-L3-3 resolved:** the γ-round bad set is bounded by `Air.multBound`, the α-round by `Air.fpBound`
+  (`Udr/Np/BusRounds.lean`), and L4's `Air.wf` (checked in `headerOk`) caps both at `busBudget = 2^36`.
+  Every L3 round is within `badBudget = 2^36` (`Udr.Np.badBudget`), the `2^36` of `Params.commitBad`.
+* L3's target statement is now `Udr.Np.rbrWith_of … : RbrWith (Iop.verifier Fp Fp8 A prm) (AirLang Fp A)
+  Fp8.all (2^36) (agreeUdr prm.logBlowup) (Np.Doomed A prm)` under `Np.NpOk A prm`, as consumed by
+  `Bcs.stark_romSound_rbr`.
