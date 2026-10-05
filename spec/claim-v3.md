@@ -146,12 +146,42 @@ the epoch config has a `dynamic_resharding_config`,
 
 ### 2.4 Classification of every claim value
 
-| value | class | consumer obligation |
-|---|---|---|
-| `chunk_inner` | the statement | it is the header being endorsed |
-| `epoch_id`, `protocol_version`, `chain_id` | trusted | equal to its epoch manager / genesis |
-| section B | authenticated by `chunk_inner.prev_block_hash` | `prev_block_hash` is a block in its store |
-| `rs_*`, `epochs`, `epoch_start_after`, `apply_facts`, `tx_valid`, `genesis_chunk_extra` | trusted | equal to its epoch manager / chain store answers for this segment |
+**Authenticated** values are checked by `Rel` against hashes; **trusted** values
+are answers of the consumer's own epoch manager / store / genesis config that no
+hash in the claim determines. Wherever a trusted value is partly derivable from
+the authenticated segment, `Rel` checks that part (column "checked by `Rel`").
+
+| # | value | class | checked by `Rel` | read by rungs |
+|---|---|---|---|---|
+| A1 | `chunk_inner` | the statement | version (`validate_version`), every `prev_*`/root field vs re-execution | all |
+| A2 | section B (headers, slots) | authenticated by `chunk_inner.prev_block_hash` | hash chain, `chunk_headers_root`, segment = walk | all |
+| T1 | `epoch_id` | trusted | = `W.epoch_id`; = `blocks[0].epoch_id` or `blocks[0].next_epoch_id` per `epoch_start_after[0]`; must be in `epochs` | all |
+| T2 | `protocol_version` | trusted | = `epochs[epoch_id].protocol_version` | all (D0–D3: must be 86) |
+| T3 | `chain_id` | trusted | — | D2 (implicit/ETH accounts, signatures over chain id are not used at 86 [unverified for DelegateV2]), D3 (`chain_id` host function) |
+| T4 | `rs_data_parts`, `rs_total_parts` | trusted (genesis epoch config) | `data = (total ≤ 3 ? 1 : (total − 1)/3)`, `2 ≤ total ≤ 256` | all (encoded merkle root) |
+| T5 | `epochs[e].protocol_version` | trusted | see T2; all equal 86 below D∞ | all |
+| T6 | `epochs[e].shard_layout` | trusted | `chunk_inner.shard_id` ∈ layout; slot count of every block = number of shards of its epoch | all (routing, scheduler, receipt roots) |
+| T7 | `epochs[e].epoch_height` | trusted | — | D3 (`epoch_height` host function) |
+| T8 | `epochs[e].validators` | trusted | — | D3 (`validator_stake`, `validator_total_stake`) |
+| T9 | `epoch_start_after[i]` | trusted | consistent with header epoch ids (§2.2); 1 for a genesis block | all (D0: must be 0 for every applied block's parent ⇒ excludes epoch starts) |
+| T10 | `apply_facts[i].validator_update` | trusted | `Some` iff the applied block starts an epoch (T9) | D2+ |
+| T11 | `apply_facts[i].minimum_stake` | trusted | — | D2+ (Stake action) |
+| T12 | `apply_facts[i].split_gate` | trusted | `None` if DynamicResharding is off at the epoch's version | D∞ (D0–D3 require `None`) |
+| T13 | `tx_valid` | trusted (store + genesis `transaction_validity_period`) | length = `|W.transactions|`; all 1 if B2 is genesis | D1+ |
+| T14 | `genesis_chunk_extra` | trusted | `Some` iff B2 is the genesis block | D∞ |
+
+`Rel` can only check the trusted values for internal consistency; it cannot
+check that they are *true*. Consequently:
+
+> **A proof for `claim.bin` is meaningful only to a verifier who built section C
+> (and `epoch_id`, `protocol_version`, `chain_id`) from its own chain state, or
+> independently checked each trusted item against its own epoch manager and
+> store.** A claim produced by a third party must never be presented as
+> "validated" on the strength of a proof alone: a false trusted value (e.g. a
+> wrong shard layout or wrong Reed–Solomon parameters) yields a true `Rel` for a
+> chunk no honest validator would endorse. Values not read by a rung (e.g. T11
+> in D0) must still be the true values for the drop-in criterion
+> (`spec/near-chunk-validation-v0.md` §4).
 
 These are exactly the values `validate_chunk_state_witness` obtains from the
 store and the epoch manager (`docs/research/chunk-validation-boundary.md` §10).
