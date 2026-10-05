@@ -88,3 +88,18 @@ theorem sumL_add (f g : Nat → Nat) (L : Nat) : sumL (fun k => f k + g k) L = s
   | succ L ih => simp only [sumL]; rw [ih, Nat.mul_add]; omega
 
 end ZkFormal.Near.RcptProof
+
+namespace ZkFormal.Near.RcptProof
+
+def convS (f : Nat → Nat) (k : Nat) : Nat :=
+  232 * (if 2 ≤ k then f (k - 2) else 0) + 137 * (if 3 ≤ k then f (k - 3) else 0) +
+  4 * (if 4 ≤ k then f (k - 4) else 0) + 35 * (if 5 ≤ k then f (k - 5) else 0) +
+  199 * (if 6 ≤ k then f (k - 6) else 0) + 138 * (if 7 ≤ k then f (k - 7) else 0)
+def convR (f : Nat → Nat) : Nat := 232 * f 14 + 59392 * f 15 + 137 * f 13 + 35072 * f 14 + 8978432 * f 15 + 4 * f 12 + 1024 * f 13 + 262144 * f 14 + 67108864 * f 15 + 35 * f 11 + 8960 * f 12 + 2293760 * f 13 + 587202560 * f 14 + 150323855360 * f 15 + 199 * f 10 + 50944 * f 11 + 13041664 * f 12 + 3338665984 * f 13 + 854698491904 * f 14 + 218802813927424 * f 15 + 138 * f 9 + 35328 * f 10 + 9043968 * f 11 + 2315255808 * f 12 + 592705486848 * f 13 + 151732604633088 * f 14 + 38843546786070528 * f 15
+theorem convS_id (f : Nat → Nat) :
+    NearSpec.Params.storageAmountPerByte * sumL f 16 = sumL (convS f) 16 + NearSpec.Params.two128 * convR f := by
+  simp only [sumL, convS, convR, NearSpec.Params.storageAmountPerByte, NearSpec.Params.two128]
+  simp (config := {decide := true}) only [ite_true, ite_false, Nat.reduceSub, Nat.reducePow]
+  omega
+
+end ZkFormal.Near.RcptProof
