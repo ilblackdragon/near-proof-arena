@@ -367,13 +367,14 @@ ARENA_WORKER_TOKEN_FILE=$S/worker-$n.token
 $kline
 # host CPUs for BUILD/CONFORMANCE/ADVERSARIAL VMs (one vCPU each). Layout on
 # this 16-core/32-thread host (SMT siblings N and N+16; L3 0-7,16-23 | 8-15,24-31):
-# non-benchmark workers on CCD0 (w2 0-7, w3 16-23); CCD1 reserved for the
-# benchmark worker (VMs on 24-31, siblings 8-15 idle) - see docs/LIVE.md.
-ARENA_RUN_CPUS=0-7
+# since v1-6: benchmarks on CCD0 0-7 (the V-cache CCD; the v1-6 baseline was
+# measured there), siblings 16-23 kept idle; non-benchmark workers on CCD1
+# (w2 8-15, w3 24-31) - see docs/LIVE.md.
+ARENA_RUN_CPUS=8-15
 EOF
   case ",$kinds," in *,all,*|*,bench,*)
     grep -q '^ARENA_BENCH_CPUS=' "$LIVE/config/worker-$n.env" || printf '%s\n' \
-      '# benchmark VMs on CCD1 (24-31); keep 8-15 (their SMT siblings) free' 'ARENA_BENCH_CPUS=24-31' >>"$LIVE/config/worker-$n.env" ;;
+      '# benchmark VMs on CCD0 (0-7) = the v1-6 baseline CPUs; keep 16-23 (their SMT siblings) free' 'ARENA_BENCH_CPUS=0-7' >>"$LIVE/config/worker-$n.env" ;;
   esac
   mkdir -p "$LIVE/work/$n"
   systemctl --user enable "arena-live-worker@$n.service" >/dev/null 2>&1 || true

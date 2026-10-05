@@ -423,3 +423,66 @@ on v1-5 (`sub_f7c70d29…`) and on the experimental successor
 relied on a csimp substitution. The npai-v1 entries (formal tree
 `sha256:6aabf528…`, no compiled model: the judge runs its own interpreter)
 are not exposed to R-L7-5 and were re-run on v1-5 as well (docs/LIVE.md §5c).
+
+### 7.7 v1-5 → v1-6: SHA256Fast trusted tree (NEAR STARK) + secret-sampled baseline (2026-10-05)
+
+**Why.** (a) The closed NEAR STARK certificate `examples/np-udr-stark` (lanes
+zk-L1…L8) uses `ArenaCore.SHA256Fast`, which is not in the v1-4/v1-5 tree
+`sha256:190e9a7d…` (cf5f1f5). It passed all six formal gates against the
+unsigned `near-transfer-receipt-v1-zk` draft, which pins tree
+`sha256:35fbd26064cd2f7d64f5b1dce7f41da61d96129517f5696b321c463c45bafdf0`.
+(b) The v1-3…v1-5 baseline was measured with **public**-seed sampling.
+Since 2026-10-05 the live workers sample with the season secret (§7.6,
+BENCHMARK_SPEC §11.1), so the reference scored 66–83 on v1-5. Lead decision:
+one successor that pins both changes; the v1-zk draft is not signed
+(`challenges/drafts/near-transfer-receipt-v1-zk.SUPERSEDED.md`).
+
+**Trusted tree.** `sha256:35fbd260…` is `formal-core` + `spec/lean` at
+commit `e4088761` (`arena-admin freeze-trusted --commit e4088761` recomputes
+it). It is also main's current tree: nothing under those directories changed
+between `e4088761` and main. Relative to v1-5's `cf5f1f5` tree, `git diff
+--name-status cf5f1f5 e4088761 -- formal-core spec/lean` shows:
+
+* added: `formal-core/ArenaCore/SHA256Fast.lean` (a fast SHA-256 and
+  `@[csimp] theorem sha256_eq_sha256Fast : @sha256 = @sha256Fast`, a
+  kernel-checked proof, no axiom) and `formal-core/ArenaCoreTests/SHA256Fast.lean`;
+* modified, imports only: `ArenaCore.lean`, `ArenaCore/Interp.lean` and
+  `ArenaCoreTests.lean` each gain `import …SHA256Fast`;
+* `spec/lean`: unchanged. No definition the v1 statement uses changes.
+
+Because of that csimp lemma, the Lean compiler builds every judge-built
+native-lean verifier that calls `ArenaCore.sha256` with the fast
+implementation. Its equality to the specification is a trusted-tree
+theorem, checked by the kernel.
+
+**`toolchain_policy.allowed_packages`** (`ArenaCore`, `NearSpec`) moves
+from `4f5c19df…` to `e4088761`, the commit whose sources np-udr-stark
+vendors (`source/lean-vendor`, `build-recipe/sync-lean.sh`).
+
+**Baseline.** `examples/reexec-witness` (package `sha256:329c763a…`, as
+before) was measured on the unsigned measurement draft
+`challenges/drafts/near-transfer-receipt-v1-6.measure.json` (id
+`chl_75d5a6f9…`, baseline null), with:
+
+* judge-secret HMAC sampling, season commitment `sha256:b860eb74…`
+  (`run_baseline.py --season-secret-file`);
+* procedure `vm_per_batch`, 3 warm-up and 15 measured runs;
+* Firecracker `firecracker-rc`, CPUs **0-7** (CCD0; SMT siblings 16-23 idle,
+  live w2/w3 stopped for the window), 2026-10-05 10:30–10:33 UTC.
+
+Calibration passed (drift 18 145 ppm), with no flags and BENCHMARK PASS.
+Medians: batch-1 6 211 419 ns, batch-16 6 876 460 ns, batch-256 10 205 590 ns
+(v1-5: 6 549 724 / 6 556 339 / 9 332 365). Results are in
+`benchmarks/results/baseline-near-transfer-receipt-v1-6-secret-cpus0-7-20261005/`.
+`pin_baseline.py --base` filled in only the baseline.
+
+**Measurement config = baseline config.** The live benchmark worker `w1`
+was moved to the same CPUs (`ARENA_BENCH_CPUS=0-7`). Build, formal,
+conformance and adversarial VMs moved to CCD1 (`w2` 8-15, `w3` 24-31), and
+16-23 is kept free (docs/LIVE.md).
+
+**Challenge.** `chl_7c0456cb2d1a36f8601863ac206cfcc9`
+`near-transfer-receipt-v1-6` supersedes v1-5 `chl_17ac2f30…`. It is identical
+except `name`, `created_at`, `supersedes`, `formal_spec.tree_digest`,
+`allowed_packages` and the baseline. The checker identity stays
+`sha256:66b014d4…`. Signed with the local operator key.
