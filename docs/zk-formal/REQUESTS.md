@@ -82,3 +82,12 @@ in-progress `Air/Basic.lean`, `Air/Export.lean`, `Stark/Field.lean`.
 Open (needs L4/L3): the aux (grand-product) column layout for buses with
 bit-list multiplicities (`auxGroup`), the `finals` message, and the bus
 balance check at `z`. The Rust side currently rejects AIRs with interactions.
+
+## L8 → L1 (blocker for any compiled verifier, incl. the judge's native-lean build)
+
+`zk-formal/ZkFormal/Algebra/Fp.lean:304` `def all : List Fp := (List.range P).map ofNat`
+and `Fp8.lean:350` `def all : List Fp8` are computable top-level constants, so
+every compiled executable importing them evaluates them at initialization
+(a ~2·10⁹-element list) and is OOM-killed before `main`. Request: mark both
+`noncomputable` (they are only used in proofs). Verified on a scratch copy:
+zk-formal still builds and the conformance executable starts.
