@@ -168,3 +168,13 @@ namespace ZkFormal.Near
 @[simp] theorem fp_zero_ne_one : ¬ ((0 : ZkFormal.Algebra.Fp) = 1) := by decide
 @[simp] theorem fp_one_ne_zero : ¬ ((1 : ZkFormal.Algebra.Fp) = 0) := by decide
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+open ZkFormal.Algebra
+@[simp] theorem ofNat_lin (a b : Nat) (x : Fp) : Fp.ofNat a + Fp.ofNat b * x = Fp.ofNat (a + b * x.toNat) := by
+  rw [← natCast_eq, ← natCast_eq, ← natCast_eq, natCast_add, natCast_mul, natCast_eq x.toNat, Fp.ofNat_toNat]
+@[simp] theorem ofNat_add' (a b : Nat) : Fp.ofNat a + Fp.ofNat b = Fp.ofNat (a + b) := by
+  rw [← natCast_eq, ← natCast_eq, ← natCast_eq, natCast_add]
+@[simp] theorem ofNat_mul' (a b : Nat) : Fp.ofNat a * Fp.ofNat b = Fp.ofNat (a * b) := by
+  rw [← natCast_eq, ← natCast_eq, ← natCast_eq, natCast_mul]
+end ZkFormal.Near

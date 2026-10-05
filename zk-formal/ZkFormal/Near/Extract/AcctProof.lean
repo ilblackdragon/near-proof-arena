@@ -274,3 +274,429 @@ theorem segInfo (hL : TableLocal Acct.table tr T_ACCT pub) {s ℓ : Nat}
   · have := he.2.2.2; rwa [show s + 16 - 1 = s + 15 by omega] at this
 
 end ZkFormal.Near.AcctProof
+
+namespace ZkFormal.Near.AcctProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Acct
+
+variable {tr : Trace Fp} {pub : List Fp}
+
+abbrev cN (tr : Trace Fp) (q x : Nat) : Nat := (tr.cell T_ACCT q x).toNat
+
+theorem flatMap_segs' {α β : Type} {l : List α} {F G : α → List β}
+    (h : ∀ x ∈ l, F x = G x) : l.flatMap F = l.flatMap G := by
+  induction l with
+  | nil => rfl
+  | cons x l ih => simp only [List.flatMap_cons]; rw [h x (by simp), ih (fun y hy => h y (by simp [hy]))]
+
+theorem List.map_eq_flatMap_singleton_aux {α β : Type} (l : List α) (f : α → β) :
+    l.flatMap (fun x => if True then [f x] else []) = l.map f := by
+  induction l <;> simp_all
+
+/-- Pre value byte `p` of the segment at `s` (lane layout of `Tables/Acct.lean`). -/
+def valAt (tr : Trace Fp) (amtCol s p : Nat) : Nat :=
+  if p < 16 then cN tr (s + p) amtCol
+  else if p < 32 then cN tr (s + (p - 16)) lk
+  else if p < 64 then (if (p - 32) % 2 = 0 then cN tr (s + (p - 32) / 2) ch0 else cN tr (s + (p - 32) / 2) ch1)
+  else cN tr (s + (p - 64)) st
+
+abbrev preAt (tr : Trace Fp) (s p : Nat) : Nat := valAt tr amt s p
+
+def acctOfSeg (tr : Trace Fp) (s : Nat) : AcctV :=
+  { k := cN tr s kk, tlast := cN tr s tlast, pre := (List.range 72).map (preAt tr s),
+    post := (List.range 16).map fun j => cN tr (s + j) post }
+
+/-- Nat messages of lane `j` on BYTES (pre, then post). -/
+def laneBytes (tr : Trace Fp) (s j : Nat) (id : Nat) (amtCol : Nat) : List Msg :=
+  [[id, j, cN tr (s + j) amtCol], [id, 16 + j, cN tr (s + j) lk], [id, 32 + 2 * j, cN tr (s + j) ch0],
+   [id, 33 + 2 * j, cN tr (s + j) ch1]] ++ (if j < 8 then [[id, 64 + j, cN tr (s + j) st]] else [])
+
+theorem emit_perm (s id amtCol : Nat) :
+    ((List.range 16).flatMap fun j => laneBytes tr s j id amtCol).Perm
+      (emitAt id 0 ((List.range 72).map (valAt tr amtCol s))) := by
+  -- the four parts of the value
+  let a := fun j => ([id, j, cN tr (s + j) amtCol] : Msg)
+  let l := fun j => ([id, 16 + j, cN tr (s + j) lk] : Msg)
+  let cc := fun j => ([[id, 32 + 2 * j, cN tr (s + j) ch0], [id, 33 + 2 * j, cN tr (s + j) ch1]] : List Msg)
+  let so := fun j => (if j < 8 then [[id, 64 + j, cN tr (s + j) st]] else [] : List Msg)
+  have hl : ∀ j, laneBytes tr s j id amtCol = [a j] ++ ([l j] ++ (cc j ++ so j)) := fun j => rfl
+  have p1 : ((List.range 16).flatMap fun j => laneBytes tr s j id amtCol).Perm
+      ((List.range 16).map a ++ ((List.range 16).map l ++ ((List.range 16).flatMap cc ++
+        (List.range 16).flatMap so))) := by
+    simp only [hl]
+    refine (flatMap_append_perm _ _ _).trans ?_
+    rw [← map_eq_flatMap]
+    apply List.Perm.append_left
+    refine (flatMap_append_perm _ _ _).trans ?_
+    rw [← map_eq_flatMap]
+    apply List.Perm.append_left
+    exact flatMap_append_perm _ _ _
+  refine p1.trans (List.Perm.of_eq ?_)
+  have hg : ∀ p, p < 72 → ((List.range 72).map (valAt tr amtCol s)).getD p 0 = valAt tr amtCol s p := by
+    intro p hp; simp [List.getD_eq_getElem?_getD, List.getElem?_range hp]
+  have hlen : ((List.range 72).map (valAt tr amtCol s)).length = 72 := by simp
+  generalize ((List.range 72).map (valAt tr amtCol s)) = pre at hg hlen
+  have hr : List.range 72 = List.range' 0 16 ++ (List.range' 16 16 ++ (List.range' 32 (2 * 16) ++
+      List.range' 64 8)) := by decide
+  unfold emitAt
+  rw [hlen, hr]
+  simp only [List.map_append]
+  have e1 : (List.range' 0 16).map (fun p => ([id, 0 + p, pre.getD p 0] : Msg)) = (List.range 16).map a := by
+    rw [List.range'_eq_map_range, List.map_map]
+    apply List.map_congr_left; intro j hj; rw [List.mem_range] at hj
+    simp only [Function.comp, a, Nat.zero_add]
+    rw [hg j (by omega)]; simp [valAt, show j < 16 from hj]
+  have e2 : (List.range' 16 16).map (fun p => ([id, 0 + p, pre.getD p 0] : Msg)) = (List.range 16).map l := by
+    rw [List.range'_eq_map_range, List.map_map]
+    apply List.map_congr_left; intro j hj; rw [List.mem_range] at hj
+    simp only [Function.comp, l, Nat.zero_add]
+    rw [hg (16 + j) (by omega)]
+    simp [valAt, show ¬ (16 + j < 16) by omega, show 16 + j < 32 by omega]
+  have e3 : (List.range' 32 (2 * 16)).map (fun p => ([id, 0 + p, pre.getD p 0] : Msg)) =
+      (List.range 16).flatMap cc := by
+    rw [range'_flatMap_pairs, List.map_flatMap]
+    apply flatMap_segs' ; intro j hj; rw [List.mem_range] at hj
+    simp only [List.map_cons, List.map_nil, cc, Nat.zero_add]
+    rw [hg (32 + 2 * j) (by omega), hg (32 + 2 * j + 1) (by omega),
+      show 32 + 2 * j + 1 = 33 + 2 * j by omega]
+    simp [valAt, show ¬ (32 + 2 * j < 16) by omega, show ¬ (32 + 2 * j < 32) by omega,
+      show 32 + 2 * j < 64 by omega, show ¬ (33 + 2 * j < 16) by omega,
+      show ¬ (33 + 2 * j < 32) by omega, show 33 + 2 * j < 64 by omega,
+      show (32 + 2 * j - 32) % 2 = 0 by omega, show (33 + 2 * j - 32) % 2 = 1 by omega,
+      show (32 + 2 * j - 32) / 2 = j by omega, show (33 + 2 * j - 32) / 2 = j by omega]
+  have e4 : (List.range' 64 8).map (fun p => ([id, 0 + p, pre.getD p 0] : Msg)) =
+      (List.range 16).flatMap so := by
+    have h16 : List.range 16 = List.range' 0 8 ++ List.range' 8 8 := by decide
+    rw [h16, List.flatMap_append, flatMap_range'_nil so 8 8 (fun j hj => by simp [so]),
+      List.append_nil, flatMap_range'_single so (fun j => [id, 64 + j, cN tr (s + j) st]) 0 8
+        (fun j hj => by simp [so, hj]), List.range'_eq_map_range, List.map_map]
+    apply List.map_congr_left; intro j hj; rw [List.mem_range] at hj
+    simp only [Function.comp, Nat.zero_add]
+    rw [hg (64 + j) (by omega)]
+    simp [valAt, show ¬ (64 + j < 16) by omega, show ¬ (64 + j < 32) by omega, show ¬ (64 + j < 64) by omega]
+  rw [e1, e2, e3, e4]
+
+end ZkFormal.Near.AcctProof
+
+namespace ZkFormal.Near.AcctProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Acct
+
+variable {tr : Trace Fp} {pub : List Fp}
+
+theorem post_list (s : Nat) :
+    (acctOfSeg tr s).post ++ (acctOfSeg tr s).pre.drop 16 = (List.range 72).map (valAt tr post s) := by
+  apply List.ext_getElem
+  · simp [acctOfSeg]
+  · intro p h1 h2
+    simp only [List.length_map, List.length_range] at h2
+    by_cases hp : p < 16
+    · rw [List.getElem_append_left (by simp [acctOfSeg]; omega)]
+      simp [acctOfSeg, valAt, hp]
+    · rw [List.getElem_append_right (by simp [acctOfSeg]; omega)]
+      simp [acctOfSeg, valAt, hp, show 16 + (p - 16) = p by omega]
+
+theorem multNat1 (e : Expr) (q : Nat) :
+    Interaction.multNat.go tr T_ACCT q pub [e] 0 = if e.eval tr T_ACCT q pub = 1 then 1 else 0 := by
+  simp only [Interaction.multNat.go]
+  by_cases h : e.eval tr T_ACCT q pub = 1 <;> simp [h]
+
+/-- Nat messages a row sends on BYTES. -/
+def rowBytesN (tr : Trace Fp) (q : Nat) (lane : Nat) (lo : Bool) : List Msg :=
+  let k := cN tr q kk
+  let one (id pos x : Nat) : Msg := [id, pos, cN tr q x]
+  [one (msgId K_VPRE k) lane amt, one (msgId K_VPRE k) (16 + lane) lk, one (msgId K_VPRE k) (32 + 2 * lane) ch0,
+    one (msgId K_VPRE k) (33 + 2 * lane) ch1] ++
+  (if lo then [one (msgId K_VPRE k) (64 + lane) st] else []) ++
+  [one (msgId K_VPOST k) lane post, one (msgId K_VPOST k) (16 + lane) lk, one (msgId K_VPOST k) (32 + 2 * lane) ch0,
+    one (msgId K_VPOST k) (33 + 2 * lane) ch1] ++
+  (if lo then [one (msgId K_VPOST k) (64 + lane) st] else [])
+
+end ZkFormal.Near.AcctProof
+
+namespace ZkFormal.Near.AcctProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Acct
+
+variable {tr : Trace Fp} {pub : List Fp}
+
+theorem fpN (a : Fp) : Fp.ofNat a.toNat = a := Fp.ofNat_toNat a
+
+theorem castAdd (x : Nat) (a : Fp) (h : a = ((x : Nat) : Fp)) (y : Nat) :
+    (y : Fp) + a = ((y + x : Nat) : Fp) := by rw [h, natCast_add]
+
+theorem rowT_bytes (q j : Nat) (hj : j < 16) (ha : tr.cell T_ACCT q act = 1) (hi : tr.cell T_ACCT q i = ((j : Nat) : Fp))
+    (hg : tr.cell T_ACCT q gS = if j < 8 then 1 else 0) :
+    rowTraffic Acct.interactions tr T_ACCT q pub B_BYTES true = (rowBytesN tr q j (decide (j < 8))).map Msg.toFp := by
+  simp only [rowTraffic, Acct.interactions, Acct.vbytes, List.flatMap_append, List.flatMap_cons, List.flatMap_nil,
+    Dsl.send, Dsl.recv, Interaction.multNat, multNat1, Interaction.msgVal, eval_c, eval_add, eval_k,
+    eval_smul, eval_mid, ha, hg]
+  rw [natCast_eq] at hi
+  have hjP : j % P = j := Nat.mod_eq_of_lt (by unfold P; omega)
+  by_cases h8 : j < 8 <;>
+  simp [h8, rowBytesN, Msg.toFp, msgId, B_BYTES, B_MEM, B_VSLOT, natCast_eq, fpN, hi, Fp.toNat_ofNat, hjP]
+
+end ZkFormal.Near.AcctProof
+
+namespace ZkFormal.Near.AcctProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Acct
+
+variable {tr : Trace Fp} {pub : List Fp}
+
+def memN (tr : Trace Fp) (q j : Nat) (t amtCol : Nat) : Msg :=
+  [cN tr q kk, t, j, cN tr q amtCol, cN tr q lk, cN tr q st]
+
+theorem rowT_other (q j : Nat) (hj : j < 16) (ha : tr.cell T_ACCT q act = 1)
+    (hi : tr.cell T_ACCT q i = ((j : Nat) : Fp)) (b : Nat) (sd : Bool) (hb : ¬ (b = B_BYTES ∧ sd = true)) :
+    rowTraffic Acct.interactions tr T_ACCT q pub b sd =
+      (if b = B_MEM ∧ sd = true then [(memN tr q j 0 amt).map Fp.ofNat] else []) ++
+      (if b = B_MEM ∧ sd = false then [(memN tr q j (cN tr q tlast) post).map Fp.ofNat] else []) ++
+      (if b = B_VSLOT ∧ sd = true ∧ tr.cell T_ACCT q af = 1 then [[tr.cell T_ACCT q kk]] else []) := by
+  rw [natCast_eq] at hi
+  have hjP : j % P = j := Nat.mod_eq_of_lt (by unfold P; omega)
+  simp only [rowTraffic, Acct.interactions, Acct.vbytes, List.flatMap_append, List.flatMap_cons, List.flatMap_nil,
+    Dsl.send, Dsl.recv, Interaction.multNat, multNat1, Interaction.msgVal, eval_c, eval_k, ha]
+  by_cases h1 : b = B_BYTES
+  · subst h1
+    have : sd = false := by cases sd <;> simp_all
+    subst this
+    simp [B_BYTES, B_MEM, B_VSLOT]
+  · by_cases h2 : b = B_MEM
+    · subst h2; cases sd <;> simp [B_BYTES, B_MEM, B_VSLOT, memN, fpN, hi, Fp.toNat_ofNat, hjP] <;> rfl
+    · by_cases h3 : b = B_VSLOT
+      · subst h3; cases sd <;> simp [B_BYTES, B_MEM, B_VSLOT]
+        split <;> simp_all [eq_comm]
+      · simp [Ne.symm h1, Ne.symm h2, Ne.symm h3, h1, h2, h3]
+
+end ZkFormal.Near.AcctProof
+
+namespace ZkFormal.Near
+theorem perm_flatMap_congr {α β : Type} (l : List α) (F G : α → List β) (h : ∀ x ∈ l, (F x).Perm (G x)) :
+    (l.flatMap F).Perm (l.flatMap G) := by
+  induction l with
+  | nil => exact List.Perm.refl _
+  | cons x l ih =>
+    simp only [List.flatMap_cons]
+    exact List.Perm.append (h x (by simp)) (ih (fun y hy => h y (by simp [hy])))
+end ZkFormal.Near
+
+namespace ZkFormal.Near.AcctProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Acct
+
+variable {tr : Trace Fp} {pub : List Fp}
+
+theorem acctSends_flat (as : List AcctV) (b : Nat) : acctSends as b = as.flatMap fun a => acctSends [a] b := by
+  unfold acctSends; split
+  · simp
+  · split
+    · simp
+    · split
+      · simp [map_eq_flatMap]
+      · simp
+
+theorem acctRecvs_flat (as : List AcctV) (b : Nat) : acctRecvs as b = as.flatMap fun a => acctRecvs [a] b := by
+  unfold acctRecvs; split <;> simp
+
+/-- One segment's traffic, up to permutation. -/
+theorem segTraffic (hL : TableLocal Acct.table tr T_ACCT pub) {s ℓ : Nat}
+    (hseg : IsSeg (isOne tr act) (isOne tr af) (isOne tr al) s ℓ) (hH : s + ℓ ≤ tr.height T_ACCT)
+    (b : Nat) (sd : Bool) :
+    ((List.range' s ℓ).flatMap fun q => rowTraffic Acct.interactions tr T_ACCT q pub b sd).Perm
+      ((if sd then acctSends [acctOfSeg tr s] b else acctRecvs [acctOfSeg tr s] b).map Msg.toFp) := by
+  obtain ⟨h16, hrow, -⟩ := segInfo hL hseg hH
+  subst h16
+  have hfs : tr.cell T_ACCT s af = 1 := by have := hseg.2.1; simpa [isOne] using this
+  have hgS : ∀ j, j < 16 → tr.cell T_ACCT (s + j) gS = if j < 8 then 1 else 0 := fun j hj => by
+    rw [(rowFacts hL (by omega : s + j < _)).2.2.2, (hrow j hj).1, (hrow j hj).2.2.2.2.1]; split <;> grind
+  have hst : ∀ j, j < 16 → ¬ j < 8 → tr.cell T_ACCT (s + j) st = 0 := fun j hj h8 =>
+    (rowFacts hL (by omega : s + j < _)).2.2.1 (by rw [(hrow j hj).2.2.2.2.1, if_neg h8])
+  have hk : ∀ j, j < 16 → cN tr (s + j) kk = cN tr s kk := fun j hj => by
+    show (tr.cell T_ACCT (s + j) kk).toNat = _; rw [(hrow j hj).2.2.1]
+  have htl : ∀ j, j < 16 → cN tr (s + j) tlast = cN tr s tlast := fun j hj => by
+    show (tr.cell T_ACCT (s + j) tlast).toNat = _; rw [(hrow j hj).2.2.2.1]
+  have hl0 : ∀ j, 0 < j → j < 16 → tr.cell T_ACCT (s + j) af = 0 := fun j h0 hj =>
+    zero_of_not_one hL (by omega) (by simp) (hseg.2.2.2.2.1 (s + j) (by omega) (by omega))
+  rw [List.range'_eq_map_range, List.flatMap_map]
+  by_cases hB : b = B_BYTES ∧ sd = true
+  · obtain ⟨rfl, rfl⟩ := hB
+    rw [flatMap_segs' (G := fun j => (rowBytesN tr (s + j) j (decide (j < 8))).map Msg.toFp)
+      (fun j hj => rowT_bytes (s + j) j (List.mem_range.mp hj) (hrow j (List.mem_range.mp hj)).1
+        (hrow j (List.mem_range.mp hj)).2.1 (hgS j (List.mem_range.mp hj))), ← List.map_flatMap]
+    simp only [if_true, acctSends, if_pos rfl, List.flatMap_cons, List.flatMap_nil, List.append_nil]
+    apply List.Perm.map
+    -- each row = pre lane ++ post lane
+    have hrowsplit : ∀ j ∈ List.range 16, rowBytesN tr (s + j) j (decide (j < 8)) =
+        laneBytes tr s j (msgId K_VPRE (cN tr s kk)) amt ++ laneBytes tr s j (msgId K_VPOST (cN tr s kk)) post := by
+      intro j hj; rw [List.mem_range] at hj
+      simp only [rowBytesN, laneBytes, hk j hj]
+      by_cases h8 : j < 8 <;> simp [h8]
+    rw [flatMap_segs' hrowsplit]
+    refine (flatMap_append_perm _ _ _).trans (List.Perm.append (emit_perm s _ amt) ?_)
+    rw [post_list]; exact emit_perm s _ post
+  · apply List.Perm.of_eq
+    rw [flatMap_segs' (G := fun j =>
+      (if b = B_MEM ∧ sd = true then [(memN tr (s + j) j 0 amt).map Fp.ofNat] else []) ++
+      (if b = B_MEM ∧ sd = false then [(memN tr (s + j) j (cN tr (s + j) tlast) post).map Fp.ofNat] else []) ++
+      (if b = B_VSLOT ∧ sd = true ∧ tr.cell T_ACCT (s + j) af = 1 then [[tr.cell T_ACCT (s + j) kk]] else []))
+      (fun j hj => rowT_other (s + j) j (List.mem_range.mp hj) (hrow j (List.mem_range.mp hj)).1
+        (hrow j (List.mem_range.mp hj)).2.1 b sd hB)]
+    have hpre : ∀ p, p < 72 → (acctOfSeg tr s).pre.getD p 0 = preAt tr s p := fun p hp => by
+      simp [acctOfSeg, List.getD_eq_getElem?_getD, List.getElem?_range hp]
+    have hpost : ∀ j, j < 16 → (acctOfSeg tr s).post.getD j 0 = cN tr (s + j) post := fun j hj => by
+      simp [acctOfSeg, List.getD_eq_getElem?_getD, List.getElem?_range hj]
+    have hlane : ∀ (amtCol : Nat) (col : List Nat), (∀ j, j < 16 → col.getD j 0 = cN tr (s + j) amtCol) →
+        ∀ j, j < 16 → acctLane (acctOfSeg tr s) col j = [cN tr (s + j) amtCol, cN tr (s + j) lk, cN tr (s + j) st] := by
+      intro amtCol col hcol j hj
+      simp only [acctLane, hcol j hj, hpre (16 + j) (by omega), preAt, valAt]
+      by_cases h8 : j < 8
+      · rw [if_pos h8, hpre (64 + j) (by omega)]
+        simp [valAt, show ¬ (16 + j < 16) by omega, show 16 + j < 32 by omega, show ¬ (64 + j < 16) by omega,
+          show ¬ (64 + j < 32) by omega, show ¬ (64 + j < 64) by omega]
+      · rw [if_neg h8, show cN tr (s + j) st = 0 by simp [cN, hst j hj h8, Fp.toNat_zero]]
+        simp [show ¬ (16 + j < 16) by omega, show 16 + j < 32 by omega]
+    by_cases hM : b = B_MEM
+    · subst hM
+      cases sd
+      · have hf : (fun j =>
+            (if B_MEM = B_MEM ∧ false = true then [(memN tr (s + j) j 0 amt).map Fp.ofNat] else []) ++
+            (if B_MEM = B_MEM ∧ false = false then
+              [(memN tr (s + j) j (cN tr (s + j) tlast) post).map Fp.ofNat] else []) ++
+            (if B_MEM = B_VSLOT ∧ false = true ∧ tr.cell T_ACCT (s + j) af = 1 then
+              [[tr.cell T_ACCT (s + j) kk]] else [])) =
+            fun j => [(memN tr (s + j) j (cN tr (s + j) tlast) post).map Fp.ofNat] := by
+          funext j; simp
+        rw [hf, ← map_eq_flatMap]
+        simp only [Bool.false_eq_true, if_false, acctRecvs, if_pos rfl, List.flatMap_cons, List.flatMap_nil,
+          List.append_nil, List.map_map]
+        simp only [ite_true, List.map_map]
+        apply List.map_congr_left; intro j hj; rw [List.mem_range] at hj
+        simp only [Function.comp, Msg.toFp, memN, hk j hj, htl j hj]
+        rw [hlane post (acctOfSeg tr s).post hpost j hj]; simp [acctOfSeg]
+      · have hf : (fun j =>
+            (if B_MEM = B_MEM ∧ true = true then [(memN tr (s + j) j 0 amt).map Fp.ofNat] else []) ++
+            (if B_MEM = B_MEM ∧ true = false then
+              [(memN tr (s + j) j (cN tr (s + j) tlast) post).map Fp.ofNat] else []) ++
+            (if B_MEM = B_VSLOT ∧ true = true ∧ tr.cell T_ACCT (s + j) af = 1 then
+              [[tr.cell T_ACCT (s + j) kk]] else [])) =
+            fun j => [(memN tr (s + j) j 0 amt).map Fp.ofNat] := by
+          funext j; simp [B_MEM, B_VSLOT]
+        rw [hf, ← map_eq_flatMap]
+        simp only [if_true, acctSends, show ¬ (B_MEM = B_BYTES) by decide, if_false, if_pos rfl,
+          List.flatMap_cons, List.flatMap_nil, List.append_nil, List.map_map]
+        try simp only [ite_true, List.map_map]
+        apply List.map_congr_left; intro j hj; rw [List.mem_range] at hj
+        simp only [Function.comp, Msg.toFp, memN, hk j hj]
+        rw [hlane amt (acctOfSeg tr s).pre (fun j hj => by rw [hpre j (by omega)]; simp [valAt, hj]) j hj]
+        simp [acctOfSeg]
+    · by_cases hV : b = B_VSLOT ∧ sd = true
+      · obtain ⟨rfl, rfl⟩ := hV
+        have hf : (fun j =>
+            (if B_VSLOT = B_MEM ∧ true = true then [(memN tr (s + j) j 0 amt).map Fp.ofNat] else []) ++
+            (if B_VSLOT = B_MEM ∧ true = false then
+              [(memN tr (s + j) j (cN tr (s + j) tlast) post).map Fp.ofNat] else []) ++
+            (if B_VSLOT = B_VSLOT ∧ true = true ∧ tr.cell T_ACCT (s + j) af = 1 then
+              [[tr.cell T_ACCT (s + j) kk]] else [])) =
+            fun j => if tr.cell T_ACCT (s + j) af = 1 then [[tr.cell T_ACCT (s + j) kk]] else [] := by
+          funext j; simp [B_MEM, B_VSLOT]
+        rw [hf]
+        have h16 : List.range 16 = [0] ++ List.range' 1 15 := by decide
+        rw [h16, List.flatMap_append, List.flatMap_singleton, Nat.add_zero, if_pos hfs,
+          flatMap_range'_nil _ 1 15 (fun j hj => by
+            rw [if_neg (by rw [hl0 (1 + j) (by omega) (by omega)]; exact fp_zero_ne_one)])]
+        simp [acctSends, B_VSLOT, B_MEM, B_BYTES, Msg.toFp, acctOfSeg, fpN]
+      · have hf : (fun j =>
+            (if b = B_MEM ∧ sd = true then [(memN tr (s + j) j 0 amt).map Fp.ofNat] else []) ++
+            (if b = B_MEM ∧ sd = false then
+              [(memN tr (s + j) j (cN tr (s + j) tlast) post).map Fp.ofNat] else []) ++
+            (if b = B_VSLOT ∧ sd = true ∧ tr.cell T_ACCT (s + j) af = 1 then
+              [[tr.cell T_ACCT (s + j) kk]] else [])) = fun _ => [] := by
+          funext j
+          rw [if_neg (fun h => hM h.1), if_neg (fun h => hM h.1), if_neg (fun h => hV ⟨h.1, h.2.1⟩)]; rfl
+        rw [hf, flatMap_nil_fun]
+        cases sd
+        · simp [acctRecvs, hM]
+        · have : b ≠ B_BYTES := fun h => hB ⟨h, rfl⟩
+          have : b ≠ B_VSLOT := fun h => hV ⟨h, rfl⟩
+          simp [acctSends, hM, *]
+
+end ZkFormal.Near.AcctProof
+
+namespace ZkFormal.Near.AcctProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Acct
+
+variable {tr : Trace Fp} {pub : List Fp}
+
+theorem dsumF_zero (s : Nat) (h : ∀ j, j < 16 → tr.cell T_ACCT (s + j) amt = 255) :
+    ∀ j, j ≤ 16 → dsumF tr s j = 0 := by
+  intro j
+  induction j with
+  | zero => intro _; rfl
+  | succ j ih => intro hj; simp only [dsumF]; rw [ih (by omega), h j (by omega)]; grind
+
+theorem notMax (hL : TableLocal Acct.table tr T_ACCT pub) {s ℓ : Nat}
+    (hseg : IsSeg (isOne tr act) (isOne tr af) (isOne tr al) s ℓ) (hH : s + ℓ ≤ tr.height T_ACCT) :
+    (∀ j, j < 16 → (acctOfSeg tr s).pre.getD j 0 < 256) →
+      ∃ j, j < 16 ∧ (acctOfSeg tr s).pre.getD j 0 ≠ 255 := by
+  intro _
+  obtain ⟨h16, hrow, hinv⟩ := segInfo hL hseg hH
+  refine Classical.byContradiction fun hne => ?_
+  have hall : ∀ j, j < 16 → tr.cell T_ACCT (s + j) amt = 255 := by
+    intro j hj
+    have : (acctOfSeg tr s).pre.getD j 0 = 255 := Classical.byContradiction fun h => hne ⟨j, hj, h⟩
+    simp only [acctOfSeg, List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_range (by omega : j < 72),
+      Option.map_some, Option.getD_some, valAt, if_pos hj] at this
+    have h' : (tr.cell T_ACCT (s + j) amt).toNat = 255 := this
+    rw [← Fp.ofNat_toNat (tr.cell T_ACCT (s + j) amt), h']; rfl
+  have := (hrow 15 (by omega)).2.2.2.2.2
+  rw [this, dsumF_zero s hall 16 (by omega)] at hinv
+  grind
+
+end ZkFormal.Near.AcctProof
+
+namespace ZkFormal.Near
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Acct AcctProof
+
+/-- **The acct table's view.** -/
+theorem acct_view : AcctViewStmt := by
+  intro tr pub hL
+  obtain ⟨segs, hc, hend, hall, hpad⟩ := segments_of (segFacts hL) height_pos
+  have hH : ∀ p ∈ segs, p.1 + p.2 ≤ tr.height T_ACCT := fun p hp => by
+    have := seg_le_end segs 0 hc p hp; omega
+  have hpadT : ∀ b sd, ∀ q, segEnd 0 segs ≤ q → q < tr.height T_ACCT →
+      rowTraffic Acct.interactions tr T_ACCT q pub b sd = [] := by
+    intro b sd q h1 h2
+    have ha := zero_of_not_one hL h2 (by simp) (hpad q h1 h2)
+    have hf : tr.cell T_ACCT q af = 0 := by
+      rcases isBool hL h2 (x := af) (by simp) with h | h
+      · exact h
+      · have := ((rowFacts hL h2).1 h).1; rw [ha] at this; exact absurd this fp_zero_ne_one
+    have hg : tr.cell T_ACCT q gS = 0 := by rw [(rowFacts hL h2).2.2.2, ha]; grind
+    simp only [rowTraffic, Acct.interactions, Acct.vbytes, List.flatMap_append, List.flatMap_cons,
+      List.flatMap_nil, Dsl.send, Dsl.recv, Interaction.multNat, multNat1, eval_c, ha, hf, hg]
+    simp
+  refine ⟨segs.map fun p => acctOfSeg tr p.1, ⟨?_, ?_, ?_⟩, fun b m => ⟨?_, ?_⟩⟩
+  · intro h
+    rw [List.map_eq_nil_iff] at h
+    subst h
+    have := hpad 0 (by simp [segEnd]) height_pos
+    have h0 := ((rowFacts hL height_pos).1 (row0 hL height_pos)).1
+    simp [isOne, h0] at this
+  · intro a ha
+    simp only [List.mem_map] at ha
+    obtain ⟨p, -, rfl⟩ := ha
+    exact ⟨by simp [acctOfSeg], by simp [acctOfSeg], Fp.toNat_lt _, Fp.toNat_lt _⟩
+  · intro a ha
+    simp only [List.mem_map] at ha
+    obtain ⟨p, hp, rfl⟩ := ha
+    exact notMax hL (hall p hp) (hH p hp)
+  · simp only [acctTraffic, tableBusCount_eq]
+    rw [flatMap_rows_segs _ segs _ hc hend (hpadT b true)]
+    refine List.Perm.count_eq ?_ m
+    rw [acctSends_flat, List.map_flatMap, List.flatMap_map]
+    exact perm_flatMap_congr _ _ _ (fun p hp => by
+      have := segTraffic hL (hall p hp) (hH p hp) b true; simpa using this)
+  · simp only [acctTraffic, tableBusCount_eq]
+    rw [flatMap_rows_segs _ segs _ hc hend (hpadT b false)]
+    refine List.Perm.count_eq ?_ m
+    rw [acctRecvs_flat, List.map_flatMap, List.flatMap_map]
+    exact perm_flatMap_congr _ _ _ (fun p hp => by
+      have := segTraffic hL (hall p hp) (hH p hp) b false; simpa using this)
+
+end ZkFormal.Near
