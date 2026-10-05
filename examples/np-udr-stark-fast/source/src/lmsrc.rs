@@ -25,6 +25,8 @@ pub enum Src<'a> {
     Aux(AuxSrc<'a>),
     /// coefficients `T × w`
     Coeffs(RowMajorMatrix<F>),
+    /// coefficients as contiguous column chunks `(c0, T × cw)`, total width
+    Chunks(Vec<(usize, RowMajorMatrix<F>)>, usize),
 }
 
 impl Src<'_> {
@@ -33,6 +35,7 @@ impl Src<'_> {
             Src::Main(t) => t.log_h,
             Src::Aux(a) => a.main.log_h,
             Src::Coeffs(c) => p3_util::log2_strict_usize(c.height()),
+            Src::Chunks(v, _) => p3_util::log2_strict_usize(v[0].1.height()),
         }
     }
     pub fn width(&self) -> usize {
@@ -40,6 +43,7 @@ impl Src<'_> {
             Src::Main(t) => t.width(),
             Src::Aux(a) => 8 * a.lay.width(),
             Src::Coeffs(c) => c.width(),
+            Src::Chunks(_, w) => *w,
         }
     }
     /// Values on `H` of base columns `c0..c1`.
@@ -48,6 +52,7 @@ impl Src<'_> {
             Src::Main(t) => t.chunk(c0, c1),
             Src::Aux(a) => a.values(c0, c1),
             Src::Coeffs(c) => dft.dft_batch(sub_cols(c, c0, c1)).to_row_major_matrix(),
+            Src::Chunks(..) => dft.dft_batch(self.coeffs_(dft, c0, c1)).to_row_major_matrix(),
         }
     }
     /// Coefficients of base columns `c0..c1`.
@@ -60,6 +65,26 @@ impl Src<'_> {
     fn coeffs_(&self, dft: &Dft, c0: usize, c1: usize) -> RowMajorMatrix<F> {
         match self {
             Src::Coeffs(c) => sub_cols(c, c0, c1),
+            Src::Chunks(v, _) => {
+                if let Some((_, m)) = v.iter().find(|(s, m)| *s == c0 && s + m.width() == c1) {
+                    return m.clone();
+                }
+                // general column range: gather from the covering chunks
+                let h = v[0].1.height();
+                let cw = c1 - c0;
+                let mut out = vec![F::ZERO; h * cw];
+                for (s, m) in v {
+                    let (a, b) = ((*s).max(c0), (s + m.width()).min(c1));
+                    if a >= b {
+                        continue;
+                    }
+                    let mw = m.width();
+                    out.par_chunks_mut(cw).enumerate().for_each(|(r, o)| {
+                        o[a - c0..b - c0].copy_from_slice(&m.values[r * mw + a - s..r * mw + b - s]);
+                    });
+                }
+                RowMajorMatrix::new(out, cw)
+            }
             _ => {
                 let v = self.values(dft, c0, c1);
                 if v.width() == 0 { v } else { dft.idft_batch(v) }
@@ -88,9 +113,15 @@ impl Src<'_> {
         }
     }
 
-    /// Column chunk boundaries (aux chunks are aligned to K columns).
+    /// Column chunk boundaries (aux chunks are aligned to K columns). Aux
+    /// columns are recomputed row by row from all interactions at once, so
+    /// they come as one chunk unless that exceeds 3 GiB.
     pub fn chunks(&self, max: usize) -> Vec<(usize, usize)> {
         let w = self.width();
+        let max = match self {
+            Src::Aux(_) if (w * 4) << self.log_h() <= 3 << 30 => max.max(w),
+            _ => max,
+        };
         let step = (max / 8).max(1) * 8;
         (0..w.div_ceil(step)).map(|i| (i * step, ((i + 1) * step).min(w))).collect()
     }
@@ -123,6 +154,9 @@ pub struct AuxSrc<'a> {
     pub gamma: EF,
     /// main columns the interaction expressions read (sorted)
     pub cols: Vec<usize>,
+    /// per interaction: `α^0..α^len` and `(bus+1)·α^len` (fingerprints
+    /// computed with base-field message values)
+    apow: Vec<(Vec<EF>, EF)>,
 }
 
 const RCH: usize = 4096;
@@ -137,7 +171,16 @@ impl<'a> AuxSrc<'a> {
             .collect();
         cols.sort_unstable();
         cols.dedup();
-        AuxSrc { main, tab, lay, pubs, alpha, gamma, cols }
+        let apow = tab
+            .interactions
+            .iter()
+            .map(|it| {
+                let p: Vec<EF> = alpha.powers().take(it.msg.len() + 1).collect();
+                let last = p[it.msg.len()] * F::from_u64(it.bus as u64 + 1);
+                (p, last)
+            })
+            .collect();
+        AuxSrc { main, tab, lay, pubs, alpha, gamma, cols, apow }
     }
 
     /// Interaction values and per-interaction data of row `r`: chain columns
@@ -167,11 +210,23 @@ impl<'a> AuxSrc<'a> {
             phis_v = vec![EF::ONE; self.tab.interactions.len()];
             &mut phis_v
         };
+        let outs = &self.lay.itape.outputs;
         for (ii, it) in self.tab.interactions.iter().enumerate() {
             if !need[ii] {
                 continue;
             }
             let o = self.lay.expr_off[ii];
+            let k = it.mult.len();
+            if k <= 1 {
+                // = γ − fingerprint(bus, msg, α) with base-field products
+                let (ap, last) = &self.apow[ii];
+                let mut fp = *last;
+                for j in 0..it.msg.len() {
+                    fp += ap[j] * regs[outs[o + j] as usize];
+                }
+                phis[ii] = if k == 0 { EF::ONE } else { EF::ONE + (self.gamma - fp - EF::ONE) * regs[outs[o + it.msg.len()] as usize] };
+                continue;
+            }
             let val = |k: usize| ef_from_base(regs[self.lay.itape.outputs[o + k] as usize]);
             let msg: Vec<EF> = (0..it.msg.len()).map(val).collect();
             let bits: Vec<EF> = (0..it.mult.len()).map(|k| val(it.msg.len() + k)).collect();
@@ -233,6 +288,41 @@ impl<'a> AuxSrc<'a> {
             self.row(r, need, &mut regs, &mut cur, &mut nxt, &mut chains[i * nc..(i + 1) * nc], &mut phis[i * ng..(i + 1) * ng]);
         }
         (chains, phis)
+    }
+
+    /// Values on `H` of the interaction expressions `o0..o1` (itape outputs),
+    /// `T × (o1-o0)`. Every interaction expression has degree ≤ 1, so these
+    /// determine the expressions' polynomials (of degree `< T`) everywhere.
+    pub fn ivals(&self, o0: usize, o1: usize) -> RowMajorMatrix<F> {
+        let _t = std::time::Instant::now();
+        let t = self.main.height();
+        let w = self.main.width();
+        let cw = o1 - o0;
+        let mut out = vec![F::ZERO; t * cw];
+        if cw > 0 {
+            out.par_chunks_mut(RCH * cw).enumerate().for_each(|(k, o)| {
+                let (mut regs, mut cur, mut nxt) = (vec![], vec![F::ZERO; w], vec![F::ZERO; w]);
+                for (i, orow) in o.chunks_mut(cw).enumerate() {
+                    let r = k * RCH + i;
+                    let nr = (r + 1) % t;
+                    for &c in &self.cols {
+                        cur[c] = self.main.get(r, c);
+                        nxt[c] = self.main.get(nr, c);
+                    }
+                    let sel = [
+                        if r == 0 { F::ONE } else { F::ZERO },
+                        if r + 1 == t { F::ONE } else { F::ZERO },
+                        if r + 1 == t { F::ZERO } else { F::ONE },
+                    ];
+                    self.lay.itape.eval::<F>(&mut regs, |c, n| if n { nxt[c] } else { cur[c] }, self.pubs, sel);
+                    for (j, x) in orow.iter_mut().enumerate() {
+                        *x = regs[self.lay.itape.outputs[o0 + j] as usize];
+                    }
+                }
+            });
+        }
+        crate::lowmem::prof::add(&crate::lowmem::prof::AUXV, _t);
+        RowMajorMatrix::new(out, cw)
     }
 
     /// Bus finals: `∏_rows Φ_g` per group.

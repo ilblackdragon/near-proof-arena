@@ -138,6 +138,49 @@ impl TraceCols {
         RowMajorMatrix::new(v, w)
     }
 
+    /// Columns `c0..c1` as a row-major matrix, releasing their storage (each
+    /// column keeps its width class for [`TraceCols::put_chunk`]).
+    pub fn take_chunk(&mut self, c0: usize, c1: usize) -> RowMajorMatrix<F> {
+        let m = self.chunk(c0, c1);
+        for c in &mut self.cols[c0..c1] {
+            *c = match c {
+                Col::U8(_) => Col::U8(Vec::new()),
+                Col::U16(_) => Col::U16(Vec::new()),
+                Col::U32(_) => Col::U32(Vec::new()),
+            };
+        }
+        m
+    }
+
+    /// Refill columns `c0..c0+m.width()` (released by `take_chunk`) from
+    /// canonical values that fit their width classes.
+    pub fn put_chunk(&mut self, c0: usize, m: &RowMajorMatrix<F>) {
+        use p3_field::PrimeField32;
+        let w = m.width();
+        let h = self.height();
+        assert_eq!(m.height(), h);
+        for c in &mut self.cols[c0..c0 + w] {
+            *c = match c {
+                Col::U8(_) => Col::U8(vec![0; h]),
+                Col::U16(_) => Col::U16(vec![0; h]),
+                Col::U32(_) => Col::U32(vec![0; h]),
+            };
+        }
+        let ptrs: Vec<ColPtr> = self.cols[c0..c0 + w].iter_mut().map(ColPtr::of).collect();
+        const CH: usize = 4096;
+        (0..h.div_ceil(CH)).into_par_iter().for_each(|k| {
+            for r in k * CH..((k + 1) * CH).min(h) {
+                for (j, p) in ptrs.iter().enumerate() {
+                    let x = m.values[r * w + j].as_canonical_u32();
+                    assert!(p.fits(x), "put_chunk: value does not fit its column class");
+                    // SAFETY: rows r are disjoint across tasks; each column
+                    // buffer has `h` entries.
+                    unsafe { p.write(r, x) }
+                }
+            }
+        });
+    }
+
     /// One row into `out` (`width` entries).
     pub fn row_into(&self, r: usize, out: &mut [F]) {
         for (c, x) in out.iter_mut().enumerate() {
@@ -159,6 +202,14 @@ impl ColPtr {
             Col::U8(v) => ColPtr { tag: 0, p: v.as_mut_ptr() },
             Col::U16(v) => ColPtr { tag: 1, p: v.as_mut_ptr() as *mut u8 },
             Col::U32(v) => ColPtr { tag: 2, p: v.as_mut_ptr() as *mut u8 },
+        }
+    }
+    #[inline]
+    fn fits(&self, x: u32) -> bool {
+        match self.tag {
+            0 => x < 256,
+            1 => x < 65536,
+            _ => true,
         }
     }
     #[inline]
