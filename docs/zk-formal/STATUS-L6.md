@@ -6,7 +6,8 @@ Branch `lane/zk-L6`. Layout spec: `NEAR-AIR.md`. Lean: `zk-formal/ZkFormal/Near/
 
 | theorem | remaining hypotheses |
 |---|---|
-| `nearAir_sound_L5` | `NodeViewStmt`, `RcptViewStmt`, `MrkViewStmt`, `LinkStmt` |
+| `nearAir_sound_R` (`Near/Final.lean`) | `RcptViewStmt` |
+| `nearAir_sound_NR` / `nearAir_sound_L5` | (superseded) |
 | `nearAir_complete'` | `RenderStmt` |
 | `honestTrace_fits'` | `RenderStmt` |
 
@@ -20,11 +21,11 @@ Branch `lane/zk-L6`. Layout spec: `NEAR-AIR.md`. Lean: `zk-formal/ZkFormal/Near/
 | `SortViewStmt` | L6 | **proved** `Extract/SortProof.lean` `sort_view` |
 | `WalkViewStmt` | L6 | **proved** `Extract/WalkProof.lean` `walk_view` |
 | `AcctViewStmt` | L6 | **proved** `Extract/AcctProof.lean` `acct_view` |
-| `MrkViewStmt` | L6 | open |
-| `NodeViewStmt` | L6 | open |
-| `RcptViewStmt` | L6 | open (rcpt table under test in L6-render) |
-| `LinkStmt` (views + SHA + balance ⇒ `Good`) | L6-link | in progress |
-| `RenderStmt` + `render` (honest trace) | L6-render | generators for all but rcpt done, rcpt + statement split in progress |
+| `MrkViewStmt` | L6 | **proved** `Extract/MrkProof.lean` `mrk_view` |
+| `NodeViewStmt` | L6 | **proved** `Extract/NodeProof.lean` `node_view` (22 modules `Extract/Node*`, ~20 s total) |
+| `RcptViewStmt` | L6-rcptview | in progress (sub-lane) |
+| `LinkStmt` (views + SHA + balance ⇒ `Good`) | L6-link | **proved** `Link/Main.lean` `link` |
+| `RenderStmt` + `render` (honest trace) | L6-render / L6e | generators done (all buses balance on the sample, `test/NearRenderTest.lean`); obligations `RenderObligations` (Local/Traffic/Bus) in progress (sub-lane `lane/zk-L6-rproof`) |
 | `Budget.weq_le` (W_eq = 1766 ≤ 3000), `nearAir_wf` | L6 | **proved** (kernel, `BudgetCheck.lean`, 13 s) |
 | `nearAir_npOk` (L3 side condition) | L6 | **proved** (kernel, `NpOkCheck.lean`, 8 s) |
 
@@ -32,10 +33,13 @@ Branch `lane/zk-L6`. Layout spec: `NEAR-AIR.md`. Lean: `zk-formal/ZkFormal/Near/
 
 * acct: `lo8` monotonicity was enforced across segment boundaries (fixed).
 * sort: `ft` reset constraint fired on the wrap from a full `2^13` table to row 0 (now gated by `isTransition`).
+* rcpt: account ids of 65 bytes were accepted (now `≤ 64`).
+* views: `MrkV.n` added (the claimed `n` is only a field element); `canon` fields (raw values `< p`).
 
 ## Elaboration time (per module)
 
-All `Near/Spec/*`, `Near/Extract/*` modules: < 2 s each. Kernel checks: BudgetCheck 13 s, NpOkCheck 8 s.
+All `Near/Spec/*`, `Near/Extract/*` modules: < 5 s each (slowest `NodeSlot` 4.7 s, `MrkProof` 5 s).
+Node extraction: 22 modules, ~20 s total. Kernel checks: BudgetCheck 13 s, NpOkCheck 8 s.
 
 ## L6-link (`LinkStmt`, branch `lane/zk-L6-link`) — **proved**
 
