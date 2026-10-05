@@ -54,3 +54,26 @@ Sampled workload classes prove in 13–14 s at ≤ 1.5 GB. The worst-case
 adversarial maximum witness proves in 1742 s (11.4 GB), above the 600 s
 per-run cap. A RESOURCE_LIMITS / adversarial case at that size would time
 out.
+
+## np-udr-stark-fast (prover-only child)
+
+`sub_56bb976bc115412483197db8d34c3092` (`examples/np-udr-stark-fast`,
+`--parent sub_19cc9c90…`). It was packed with `arena pack` from main's tree,
+with the vendored crates (`8305b575…`) and the synced formal sources;
+`formal/` is identical to the parent's. The package ships `out/prove` (AVX2)
+and `out/prove-avx512`, chosen at runtime by CPU dispatch.
+
+* **ADMITTED**, change class **PROVER_ONLY**. The six formal gates are
+  `reused_from` the parent, so no FORMAL_CHECK job ran. CONFORMANCE (26/26,
+  including 3 held-out), ADVERSARIAL, RESOURCE_LIMITS, PROVER_RELIABILITY
+  and BENCHMARK re-ran and passed (`fast-status.json`; signed report in
+  `fast-report.json`).
+* **Score 0.048** (rank 5), below the parent's 0.052. Live prove medians,
+  fast vs parent: batch-1 3.05 s vs 1.99 s, batch-16 9.14 s vs 6.49 s,
+  batch-256 48.7 s vs 62.2 s. Verify is unchanged (0.44 / 0.58 / 0.78 s)
+  and peak RSS is 1.5 GB. The BENCHMARK summary also records
+  "session 1: CACHING_SUSPECTED; re-measured on fresh batches only".
+  The expected speed-up (L8 measured about 7.6 s for batch-256 outside the
+  judge) did not show under the judge's benchmark VM (8 vCPUs on CPUs 0-7,
+  Firecracker). Whether the AVX-512 dispatch fires inside the guest has not
+  been verified yet.

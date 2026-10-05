@@ -1,0 +1,2997 @@
+{
+  "id": "sub_56bb976bc115412483197db8d34c3092",
+  "challenge_id": "chl_7c0456cb2d1a36f8601863ac206cfcc9",
+  "agent": "reference",
+  "candidate_name": "np-udr-stark-fast",
+  "backend_family": "np-udr-stark-v1",
+  "parent": "sub_19cc9c90e2184946aad17195bd02d847",
+  "tier": "formal",
+  "package_digest": "sha256:142accf15ab4992195b94d5048bbec7011a3a6fc00a04bcb30ab67553bbfdeb5",
+  "stage": "DECIDED",
+  "decision": "ADMITTED",
+  "accepted": true,
+  "score_milli": 48,
+  "change_class": "PROVER_ONLY",
+  "gates": [
+    {
+      "gate": "PKG_WELLFORMED",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "package TreeDigest sha256:81721934c2c9582a569fcd97774a40c30c958f85eb7fba5cfd9c6d7c66421271; 3014 files, 38974348 bytes; manifest ok",
+      "evidence": [],
+      "started_at": "2026-10-05T14:32:34.492084989Z",
+      "finished_at": "2026-10-05T14:32:34.566946722Z",
+      "reused_from": null
+    },
+    {
+      "gate": "BUILD_REPRODUCIBLE",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "two independent builds produced identical trees sha256:0b1f2afb224245d6e373f6710523499b0a2a4876309bd5913f03332bd64b9eae; prepare 8 ms, public dir 110 bytes, TreeDigest sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
+      "evidence": [],
+      "started_at": "2026-10-05T14:32:34.593176644Z",
+      "finished_at": "2026-10-05T14:35:53.703714594Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_SEMANTIC_SOUNDNESS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:c82117cb46db768c5eb158bcdf6e30508e8aadc2590510464ff3a40280e22472",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:bc76fc1b6797669b75ea77563ac400e0c9349186b2f3edfc450ec1acee611d2d",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:2ac2ce2f4d2fee59d9472ac058735e2f129042eb2454c25f183c035d3d6d1d6c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:4d3daee39a3e21d88eda66672442cd16546ad220e149feb4fc99200cb273a599",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Air.Basic",
+          "digest": "sha256:d0391b2f425ebfff0b9792a6507d75e138dcfe605add8a1c32daa9d4eadb5db2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Layout",
+          "digest": "sha256:942446a266f9b1b52b44a5be1c4bf84fd4e625ca4f85d515c551f454f52f8cc2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Table",
+          "digest": "sha256:99c5588fca6e1fbdcb6ef248059df8bbdcd749d2b61ede4d70e988b713d592b4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Transport",
+          "digest": "sha256:1df0ae9b3d30af9e56c7a98a4b9295a42ca3e25620abac6e5c75981407d6d483",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.NatPrime",
+          "digest": "sha256:dbad8646aab5a20cf973b17e377516d6c520c754bf00edbd0a5722a45ae2cfee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Pocklington",
+          "digest": "sha256:72273cd78f2504d9c8872d406edf24343e247c9cf71b8273268da0b2a4165222",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp",
+          "digest": "sha256:ba09883d17d5170eafb3d661f3b7bdfdde4d444f7b82ca2732e379266d4f7eeb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Ids",
+          "digest": "sha256:4e28569dd1d5643cbd440e72e619a19b4cfa9803382b1f6006425c80ed6eb4f0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Dsl",
+          "digest": "sha256:5fd1a4994c5704b4116c18cd62ca0620fc002679794a4cadc4f8eb18e2afe0eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Node",
+          "digest": "sha256:a9648058787ae1a7027d1bdbe320abd844cbc0705e345dc7b84247dacba63c64",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Walk",
+          "digest": "sha256:f7258c3f5368e6b410e4121528a7acb32d180cbeefe041c360b1f3645c9ac539",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Layout",
+          "digest": "sha256:57997501bec03c11bcaffdd0ad9dce96cda1fd405bdef0d567df26ad864b4ee6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Fields",
+          "digest": "sha256:14a3bc099e99b536e249407efd02cba8bea8fe4001de31b3b7815ae1425ee91d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Arith",
+          "digest": "sha256:750915e765fc96eab7dec34dbe979613fbc69bb5c66ab8f0503ced1fc0af5b66",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt",
+          "digest": "sha256:8338287892e365ec49430f625715a38b5d559f8b57b361780c84f9b025558438",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Acct",
+          "digest": "sha256:9d39386223620334fdb6d5cab3da52c61cb1cc1731ee2825396773fae225231b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Mrk",
+          "digest": "sha256:e64cf0a32fd72b628179d0df917a4afb74b8bd79e291c0879c83e138574757e9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Sort",
+          "digest": "sha256:a12b1a2dd306434b1acfac5d273e81b93e321ed443985e349ebeb75b939bc293",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Air",
+          "digest": "sha256:ec63865f0eec9b677519a1b93cef1fc7f031ea8f7421a9409be45c918ea51315",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Potential",
+          "digest": "sha256:7228458b926e026fdcbc2b38cb0331f35af8b7db288d605151c8e448e9c2d4a1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.BadQuery",
+          "digest": "sha256:658efdd78f21be212b6d7f396d2bc9d203b268d9026cfd2552251e2551297f06",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Game",
+          "digest": "sha256:f252920bf06479a97caf0cf0a96cbbb0f12175a9d82c35158ecbbc0e1e79f50a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Guard",
+          "digest": "sha256:9e6a9e1bb02b21aa9d98ad92c4283104c7a8bd6cdc17f6ef2c017cd72b7e10cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Field",
+          "digest": "sha256:1bd170b26b7d986d6a2514802a0944c09d2453933da9e99dbc3ba06109453f7f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Params",
+          "digest": "sha256:61872f45a148ea33d0cf21316cfa3ad2cc500694562eeb0af24f9b8af04fa754",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Iop",
+          "digest": "sha256:0fb9021be045e060f29f4c38a808d4a50334842ac016114e6bdf3d78b0add506",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Bcs",
+          "digest": "sha256:2c4d012ace1e84027c18579c46e00cbf43f7832e8df59fa08cfbfc3cca225449",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Protocol",
+          "digest": "sha256:a527bf700063edf1fd8a53a65f8447920c745ae6a28e57cbb516f5363db993cf",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Verifier",
+          "digest": "sha256:a12dcff25bbca10607e2e5536a1b7c9de57d1fdd57aab6eff76bc8998b7dbab9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.QuadExt",
+          "digest": "sha256:5a42eed75895bc25822505933d0d47bec9af809cacc5dddf82d96d48ff2bb6d2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp8",
+          "digest": "sha256:47ea6c3dc2a1dfcbb39a73bfefdaee67ba30e0a5be585065d321467e98f41b7d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Decode",
+          "digest": "sha256:26b37828478294cd78e06b8e8bf1c771459669262c97eff2cd21a5cb9dfb04ee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Instance",
+          "digest": "sha256:de3c5b6a126effc288f06f5838e9ac5e3bdca8cc758e684419fd2dbb4b250490",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.Model",
+          "digest": "sha256:b949620b28b39b7620b772e1d2679e3f845c5b563d4a00f3ef2c198364599675",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.PublicBin",
+          "digest": "sha256:c55b6bcdfaadbdf240242684d4abe4ec6429310fc8626aff90e7e5abc8c1030a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Udr.Rbr",
+          "digest": "sha256:13d869a3751ffc2fca9f04775d09eb273e53700f0345ac004e3d746452d98a28",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Product",
+          "digest": "sha256:0a759c34d39c1ccf7c464e8020ec4b6bb8d66b9a5c408de3399662adeea0319c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Log",
+          "digest": "sha256:5c555bbf052b264aca38a843f5dc6830912c96d0c7057462e3aad3fe97068acc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Collision",
+          "digest": "sha256:5c9b9f0ab0d86ac416a4617a4a6017f88951319dd31d8f38ab0c4340c4b0e717",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Wide",
+          "digest": "sha256:549d78fd011101b5e6a4d844b3513bb9b67209b43739b600ce20be80f643f4c4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Commit",
+          "digest": "sha256:4100a0127f6713124ee4f6247a9b026bad4272f6ef7e04b26d8850b25aa7a749",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Extract",
+          "digest": "sha256:791ac213e9222add76de5205930ee82cb8eedbc0a4b328bf6726fdacc6264817",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MmcsDefs",
+          "digest": "sha256:8e931f647d4db3347ad81af509d190ed3335d94777b785e7a91cf09de174a529",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Statements",
+          "digest": "sha256:c0c1e70789783199859d1acaeb8b1ae5240b1088f5dd699d3f90200917deaa04",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Budget",
+          "digest": "sha256:55b3f2f34197acb82be0f7f22f6dcb571e9f63c20054ae00645e46a7212abc4d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Budget32",
+          "digest": "sha256:ef8f2496e3005c053ac593f2de0f57ed43b6711de50403e0b68b930e6173e4c6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Params",
+          "digest": "sha256:d60d6ebbaec2c13c612766b87e5a4ce4648ea811e0a09bb554d401942675c1b1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Statements",
+          "digest": "sha256:97bc8ed9f99d64241f46af92e1db91ba86f0faac5f2236c530e02996456eab2a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.NpBounds",
+          "digest": "sha256:2dc509d728962e3057358617d123ffd676111deab1385091aea2d2cb7852d6ac",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.QueryBound",
+          "digest": "sha256:55ad9d6a035f1d1dc3cad7f623f2f91c1b1748040581618d3b7d4d002f6cb9cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Compose",
+          "digest": "sha256:1b4486111e592859487206eedf18931432ff2767e55e9bbc5e30d6d1543feeb0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAdapter",
+          "digest": "sha256:0304a64c8615ca29e83f6299a981489a56dbf3ace8ebf0d86a6696a855799a4a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.ParseLemmas",
+          "digest": "sha256:7354edc9996eb8a3cdaa077367e9a5adc68051b9e7d339534625d4797b945b9a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkParse",
+          "digest": "sha256:62f7080a479f64ef38e9cd34ef47723449052e19eba540f70c24f180ab9252b7",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkChain",
+          "digest": "sha256:44e08f5352aede8d906ac7ce22a6d1bec7aba2f75313c2e0d719090f47b871ba",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkDecode",
+          "digest": "sha256:1d99fae97a69272a3b342843b2a98d331c7b2cda4c10092f9215519070dedf8c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkOpen",
+          "digest": "sha256:cfd745c292a479eaa3a66b4f5c960b0a16655a017699ae005e72fdc4dd473a4e",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAlign",
+          "digest": "sha256:60e831f297ce53a079357f076528dc91737bd61178706756bd1585b88771e4e1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkRefine",
+          "digest": "sha256:55653cd90c1db5359b4326a4bb0b91fc08e41d80991baeb05996f027c151ad95",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MultiproofRead",
+          "digest": "sha256:74608bf51ee6b8344d9643df026c1ed109f623e017cc70166ed1ebcddc30475a",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-05T12:18:07.906673414Z",
+      "finished_at": "2026-10-05T13:54:12.119737155Z",
+      "reused_from": "sub_19cc9c90e2184946aad17195bd02d847"
+    },
+    {
+      "gate": "FORMAL_SEMANTIC_COMPLETENESS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:c82117cb46db768c5eb158bcdf6e30508e8aadc2590510464ff3a40280e22472",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:bc76fc1b6797669b75ea77563ac400e0c9349186b2f3edfc450ec1acee611d2d",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:2ac2ce2f4d2fee59d9472ac058735e2f129042eb2454c25f183c035d3d6d1d6c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:4d3daee39a3e21d88eda66672442cd16546ad220e149feb4fc99200cb273a599",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Air.Basic",
+          "digest": "sha256:d0391b2f425ebfff0b9792a6507d75e138dcfe605add8a1c32daa9d4eadb5db2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Layout",
+          "digest": "sha256:942446a266f9b1b52b44a5be1c4bf84fd4e625ca4f85d515c551f454f52f8cc2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Table",
+          "digest": "sha256:99c5588fca6e1fbdcb6ef248059df8bbdcd749d2b61ede4d70e988b713d592b4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Transport",
+          "digest": "sha256:1df0ae9b3d30af9e56c7a98a4b9295a42ca3e25620abac6e5c75981407d6d483",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.NatPrime",
+          "digest": "sha256:dbad8646aab5a20cf973b17e377516d6c520c754bf00edbd0a5722a45ae2cfee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Pocklington",
+          "digest": "sha256:72273cd78f2504d9c8872d406edf24343e247c9cf71b8273268da0b2a4165222",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp",
+          "digest": "sha256:ba09883d17d5170eafb3d661f3b7bdfdde4d444f7b82ca2732e379266d4f7eeb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Ids",
+          "digest": "sha256:4e28569dd1d5643cbd440e72e619a19b4cfa9803382b1f6006425c80ed6eb4f0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Dsl",
+          "digest": "sha256:5fd1a4994c5704b4116c18cd62ca0620fc002679794a4cadc4f8eb18e2afe0eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Node",
+          "digest": "sha256:a9648058787ae1a7027d1bdbe320abd844cbc0705e345dc7b84247dacba63c64",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Walk",
+          "digest": "sha256:f7258c3f5368e6b410e4121528a7acb32d180cbeefe041c360b1f3645c9ac539",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Layout",
+          "digest": "sha256:57997501bec03c11bcaffdd0ad9dce96cda1fd405bdef0d567df26ad864b4ee6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Fields",
+          "digest": "sha256:14a3bc099e99b536e249407efd02cba8bea8fe4001de31b3b7815ae1425ee91d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Arith",
+          "digest": "sha256:750915e765fc96eab7dec34dbe979613fbc69bb5c66ab8f0503ced1fc0af5b66",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt",
+          "digest": "sha256:8338287892e365ec49430f625715a38b5d559f8b57b361780c84f9b025558438",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Acct",
+          "digest": "sha256:9d39386223620334fdb6d5cab3da52c61cb1cc1731ee2825396773fae225231b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Mrk",
+          "digest": "sha256:e64cf0a32fd72b628179d0df917a4afb74b8bd79e291c0879c83e138574757e9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Sort",
+          "digest": "sha256:a12b1a2dd306434b1acfac5d273e81b93e321ed443985e349ebeb75b939bc293",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Air",
+          "digest": "sha256:ec63865f0eec9b677519a1b93cef1fc7f031ea8f7421a9409be45c918ea51315",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Potential",
+          "digest": "sha256:7228458b926e026fdcbc2b38cb0331f35af8b7db288d605151c8e448e9c2d4a1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.BadQuery",
+          "digest": "sha256:658efdd78f21be212b6d7f396d2bc9d203b268d9026cfd2552251e2551297f06",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Game",
+          "digest": "sha256:f252920bf06479a97caf0cf0a96cbbb0f12175a9d82c35158ecbbc0e1e79f50a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Guard",
+          "digest": "sha256:9e6a9e1bb02b21aa9d98ad92c4283104c7a8bd6cdc17f6ef2c017cd72b7e10cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Field",
+          "digest": "sha256:1bd170b26b7d986d6a2514802a0944c09d2453933da9e99dbc3ba06109453f7f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Params",
+          "digest": "sha256:61872f45a148ea33d0cf21316cfa3ad2cc500694562eeb0af24f9b8af04fa754",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Iop",
+          "digest": "sha256:0fb9021be045e060f29f4c38a808d4a50334842ac016114e6bdf3d78b0add506",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Bcs",
+          "digest": "sha256:2c4d012ace1e84027c18579c46e00cbf43f7832e8df59fa08cfbfc3cca225449",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Protocol",
+          "digest": "sha256:a527bf700063edf1fd8a53a65f8447920c745ae6a28e57cbb516f5363db993cf",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Verifier",
+          "digest": "sha256:a12dcff25bbca10607e2e5536a1b7c9de57d1fdd57aab6eff76bc8998b7dbab9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.QuadExt",
+          "digest": "sha256:5a42eed75895bc25822505933d0d47bec9af809cacc5dddf82d96d48ff2bb6d2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp8",
+          "digest": "sha256:47ea6c3dc2a1dfcbb39a73bfefdaee67ba30e0a5be585065d321467e98f41b7d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Decode",
+          "digest": "sha256:26b37828478294cd78e06b8e8bf1c771459669262c97eff2cd21a5cb9dfb04ee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Instance",
+          "digest": "sha256:de3c5b6a126effc288f06f5838e9ac5e3bdca8cc758e684419fd2dbb4b250490",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.Model",
+          "digest": "sha256:b949620b28b39b7620b772e1d2679e3f845c5b563d4a00f3ef2c198364599675",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.PublicBin",
+          "digest": "sha256:c55b6bcdfaadbdf240242684d4abe4ec6429310fc8626aff90e7e5abc8c1030a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Udr.Rbr",
+          "digest": "sha256:13d869a3751ffc2fca9f04775d09eb273e53700f0345ac004e3d746452d98a28",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Product",
+          "digest": "sha256:0a759c34d39c1ccf7c464e8020ec4b6bb8d66b9a5c408de3399662adeea0319c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Log",
+          "digest": "sha256:5c555bbf052b264aca38a843f5dc6830912c96d0c7057462e3aad3fe97068acc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Collision",
+          "digest": "sha256:5c9b9f0ab0d86ac416a4617a4a6017f88951319dd31d8f38ab0c4340c4b0e717",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Wide",
+          "digest": "sha256:549d78fd011101b5e6a4d844b3513bb9b67209b43739b600ce20be80f643f4c4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Commit",
+          "digest": "sha256:4100a0127f6713124ee4f6247a9b026bad4272f6ef7e04b26d8850b25aa7a749",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Extract",
+          "digest": "sha256:791ac213e9222add76de5205930ee82cb8eedbc0a4b328bf6726fdacc6264817",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MmcsDefs",
+          "digest": "sha256:8e931f647d4db3347ad81af509d190ed3335d94777b785e7a91cf09de174a529",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Statements",
+          "digest": "sha256:c0c1e70789783199859d1acaeb8b1ae5240b1088f5dd699d3f90200917deaa04",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Budget",
+          "digest": "sha256:55b3f2f34197acb82be0f7f22f6dcb571e9f63c20054ae00645e46a7212abc4d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Budget32",
+          "digest": "sha256:ef8f2496e3005c053ac593f2de0f57ed43b6711de50403e0b68b930e6173e4c6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Params",
+          "digest": "sha256:d60d6ebbaec2c13c612766b87e5a4ce4648ea811e0a09bb554d401942675c1b1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Statements",
+          "digest": "sha256:97bc8ed9f99d64241f46af92e1db91ba86f0faac5f2236c530e02996456eab2a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.NpBounds",
+          "digest": "sha256:2dc509d728962e3057358617d123ffd676111deab1385091aea2d2cb7852d6ac",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.QueryBound",
+          "digest": "sha256:55ad9d6a035f1d1dc3cad7f623f2f91c1b1748040581618d3b7d4d002f6cb9cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Compose",
+          "digest": "sha256:1b4486111e592859487206eedf18931432ff2767e55e9bbc5e30d6d1543feeb0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAdapter",
+          "digest": "sha256:0304a64c8615ca29e83f6299a981489a56dbf3ace8ebf0d86a6696a855799a4a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.ParseLemmas",
+          "digest": "sha256:7354edc9996eb8a3cdaa077367e9a5adc68051b9e7d339534625d4797b945b9a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkParse",
+          "digest": "sha256:62f7080a479f64ef38e9cd34ef47723449052e19eba540f70c24f180ab9252b7",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkChain",
+          "digest": "sha256:44e08f5352aede8d906ac7ce22a6d1bec7aba2f75313c2e0d719090f47b871ba",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkDecode",
+          "digest": "sha256:1d99fae97a69272a3b342843b2a98d331c7b2cda4c10092f9215519070dedf8c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkOpen",
+          "digest": "sha256:cfd745c292a479eaa3a66b4f5c960b0a16655a017699ae005e72fdc4dd473a4e",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAlign",
+          "digest": "sha256:60e831f297ce53a079357f076528dc91737bd61178706756bd1585b88771e4e1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkRefine",
+          "digest": "sha256:55653cd90c1db5359b4326a4bb0b91fc08e41d80991baeb05996f027c151ad95",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MultiproofRead",
+          "digest": "sha256:74608bf51ee6b8344d9643df026c1ed109f623e017cc70166ed1ebcddc30475a",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-05T12:18:07.906673414Z",
+      "finished_at": "2026-10-05T13:54:12.119737155Z",
+      "reused_from": "sub_19cc9c90e2184946aad17195bd02d847"
+    },
+    {
+      "gate": "FORMAL_CRYPTO_SOUNDNESS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:c82117cb46db768c5eb158bcdf6e30508e8aadc2590510464ff3a40280e22472",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:bc76fc1b6797669b75ea77563ac400e0c9349186b2f3edfc450ec1acee611d2d",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:2ac2ce2f4d2fee59d9472ac058735e2f129042eb2454c25f183c035d3d6d1d6c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:4d3daee39a3e21d88eda66672442cd16546ad220e149feb4fc99200cb273a599",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Air.Basic",
+          "digest": "sha256:d0391b2f425ebfff0b9792a6507d75e138dcfe605add8a1c32daa9d4eadb5db2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Layout",
+          "digest": "sha256:942446a266f9b1b52b44a5be1c4bf84fd4e625ca4f85d515c551f454f52f8cc2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Table",
+          "digest": "sha256:99c5588fca6e1fbdcb6ef248059df8bbdcd749d2b61ede4d70e988b713d592b4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Transport",
+          "digest": "sha256:1df0ae9b3d30af9e56c7a98a4b9295a42ca3e25620abac6e5c75981407d6d483",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.NatPrime",
+          "digest": "sha256:dbad8646aab5a20cf973b17e377516d6c520c754bf00edbd0a5722a45ae2cfee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Pocklington",
+          "digest": "sha256:72273cd78f2504d9c8872d406edf24343e247c9cf71b8273268da0b2a4165222",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp",
+          "digest": "sha256:ba09883d17d5170eafb3d661f3b7bdfdde4d444f7b82ca2732e379266d4f7eeb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Ids",
+          "digest": "sha256:4e28569dd1d5643cbd440e72e619a19b4cfa9803382b1f6006425c80ed6eb4f0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Dsl",
+          "digest": "sha256:5fd1a4994c5704b4116c18cd62ca0620fc002679794a4cadc4f8eb18e2afe0eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Node",
+          "digest": "sha256:a9648058787ae1a7027d1bdbe320abd844cbc0705e345dc7b84247dacba63c64",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Walk",
+          "digest": "sha256:f7258c3f5368e6b410e4121528a7acb32d180cbeefe041c360b1f3645c9ac539",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Layout",
+          "digest": "sha256:57997501bec03c11bcaffdd0ad9dce96cda1fd405bdef0d567df26ad864b4ee6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Fields",
+          "digest": "sha256:14a3bc099e99b536e249407efd02cba8bea8fe4001de31b3b7815ae1425ee91d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Arith",
+          "digest": "sha256:750915e765fc96eab7dec34dbe979613fbc69bb5c66ab8f0503ced1fc0af5b66",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt",
+          "digest": "sha256:8338287892e365ec49430f625715a38b5d559f8b57b361780c84f9b025558438",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Acct",
+          "digest": "sha256:9d39386223620334fdb6d5cab3da52c61cb1cc1731ee2825396773fae225231b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Mrk",
+          "digest": "sha256:e64cf0a32fd72b628179d0df917a4afb74b8bd79e291c0879c83e138574757e9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Sort",
+          "digest": "sha256:a12b1a2dd306434b1acfac5d273e81b93e321ed443985e349ebeb75b939bc293",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Air",
+          "digest": "sha256:ec63865f0eec9b677519a1b93cef1fc7f031ea8f7421a9409be45c918ea51315",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Potential",
+          "digest": "sha256:7228458b926e026fdcbc2b38cb0331f35af8b7db288d605151c8e448e9c2d4a1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.BadQuery",
+          "digest": "sha256:658efdd78f21be212b6d7f396d2bc9d203b268d9026cfd2552251e2551297f06",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Game",
+          "digest": "sha256:f252920bf06479a97caf0cf0a96cbbb0f12175a9d82c35158ecbbc0e1e79f50a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Guard",
+          "digest": "sha256:9e6a9e1bb02b21aa9d98ad92c4283104c7a8bd6cdc17f6ef2c017cd72b7e10cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Field",
+          "digest": "sha256:1bd170b26b7d986d6a2514802a0944c09d2453933da9e99dbc3ba06109453f7f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Params",
+          "digest": "sha256:61872f45a148ea33d0cf21316cfa3ad2cc500694562eeb0af24f9b8af04fa754",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Iop",
+          "digest": "sha256:0fb9021be045e060f29f4c38a808d4a50334842ac016114e6bdf3d78b0add506",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Bcs",
+          "digest": "sha256:2c4d012ace1e84027c18579c46e00cbf43f7832e8df59fa08cfbfc3cca225449",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Protocol",
+          "digest": "sha256:a527bf700063edf1fd8a53a65f8447920c745ae6a28e57cbb516f5363db993cf",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Verifier",
+          "digest": "sha256:a12dcff25bbca10607e2e5536a1b7c9de57d1fdd57aab6eff76bc8998b7dbab9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.QuadExt",
+          "digest": "sha256:5a42eed75895bc25822505933d0d47bec9af809cacc5dddf82d96d48ff2bb6d2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp8",
+          "digest": "sha256:47ea6c3dc2a1dfcbb39a73bfefdaee67ba30e0a5be585065d321467e98f41b7d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Decode",
+          "digest": "sha256:26b37828478294cd78e06b8e8bf1c771459669262c97eff2cd21a5cb9dfb04ee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Instance",
+          "digest": "sha256:de3c5b6a126effc288f06f5838e9ac5e3bdca8cc758e684419fd2dbb4b250490",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.Model",
+          "digest": "sha256:b949620b28b39b7620b772e1d2679e3f845c5b563d4a00f3ef2c198364599675",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.PublicBin",
+          "digest": "sha256:c55b6bcdfaadbdf240242684d4abe4ec6429310fc8626aff90e7e5abc8c1030a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Udr.Rbr",
+          "digest": "sha256:13d869a3751ffc2fca9f04775d09eb273e53700f0345ac004e3d746452d98a28",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Product",
+          "digest": "sha256:0a759c34d39c1ccf7c464e8020ec4b6bb8d66b9a5c408de3399662adeea0319c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Log",
+          "digest": "sha256:5c555bbf052b264aca38a843f5dc6830912c96d0c7057462e3aad3fe97068acc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Collision",
+          "digest": "sha256:5c9b9f0ab0d86ac416a4617a4a6017f88951319dd31d8f38ab0c4340c4b0e717",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Wide",
+          "digest": "sha256:549d78fd011101b5e6a4d844b3513bb9b67209b43739b600ce20be80f643f4c4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Commit",
+          "digest": "sha256:4100a0127f6713124ee4f6247a9b026bad4272f6ef7e04b26d8850b25aa7a749",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Extract",
+          "digest": "sha256:791ac213e9222add76de5205930ee82cb8eedbc0a4b328bf6726fdacc6264817",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MmcsDefs",
+          "digest": "sha256:8e931f647d4db3347ad81af509d190ed3335d94777b785e7a91cf09de174a529",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Statements",
+          "digest": "sha256:c0c1e70789783199859d1acaeb8b1ae5240b1088f5dd699d3f90200917deaa04",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Budget",
+          "digest": "sha256:55b3f2f34197acb82be0f7f22f6dcb571e9f63c20054ae00645e46a7212abc4d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Budget32",
+          "digest": "sha256:ef8f2496e3005c053ac593f2de0f57ed43b6711de50403e0b68b930e6173e4c6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Params",
+          "digest": "sha256:d60d6ebbaec2c13c612766b87e5a4ce4648ea811e0a09bb554d401942675c1b1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Statements",
+          "digest": "sha256:97bc8ed9f99d64241f46af92e1db91ba86f0faac5f2236c530e02996456eab2a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.NpBounds",
+          "digest": "sha256:2dc509d728962e3057358617d123ffd676111deab1385091aea2d2cb7852d6ac",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.QueryBound",
+          "digest": "sha256:55ad9d6a035f1d1dc3cad7f623f2f91c1b1748040581618d3b7d4d002f6cb9cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Compose",
+          "digest": "sha256:1b4486111e592859487206eedf18931432ff2767e55e9bbc5e30d6d1543feeb0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAdapter",
+          "digest": "sha256:0304a64c8615ca29e83f6299a981489a56dbf3ace8ebf0d86a6696a855799a4a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.ParseLemmas",
+          "digest": "sha256:7354edc9996eb8a3cdaa077367e9a5adc68051b9e7d339534625d4797b945b9a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkParse",
+          "digest": "sha256:62f7080a479f64ef38e9cd34ef47723449052e19eba540f70c24f180ab9252b7",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkChain",
+          "digest": "sha256:44e08f5352aede8d906ac7ce22a6d1bec7aba2f75313c2e0d719090f47b871ba",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkDecode",
+          "digest": "sha256:1d99fae97a69272a3b342843b2a98d331c7b2cda4c10092f9215519070dedf8c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkOpen",
+          "digest": "sha256:cfd745c292a479eaa3a66b4f5c960b0a16655a017699ae005e72fdc4dd473a4e",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAlign",
+          "digest": "sha256:60e831f297ce53a079357f076528dc91737bd61178706756bd1585b88771e4e1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkRefine",
+          "digest": "sha256:55653cd90c1db5359b4326a4bb0b91fc08e41d80991baeb05996f027c151ad95",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MultiproofRead",
+          "digest": "sha256:74608bf51ee6b8344d9643df026c1ed109f623e017cc70166ed1ebcddc30475a",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-05T12:18:07.906673414Z",
+      "finished_at": "2026-10-05T13:54:12.119737155Z",
+      "reused_from": "sub_19cc9c90e2184946aad17195bd02d847"
+    },
+    {
+      "gate": "FORMAL_IMPL_CONNECTION",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:c82117cb46db768c5eb158bcdf6e30508e8aadc2590510464ff3a40280e22472",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:bc76fc1b6797669b75ea77563ac400e0c9349186b2f3edfc450ec1acee611d2d",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:2ac2ce2f4d2fee59d9472ac058735e2f129042eb2454c25f183c035d3d6d1d6c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:4d3daee39a3e21d88eda66672442cd16546ad220e149feb4fc99200cb273a599",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Air.Basic",
+          "digest": "sha256:d0391b2f425ebfff0b9792a6507d75e138dcfe605add8a1c32daa9d4eadb5db2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Layout",
+          "digest": "sha256:942446a266f9b1b52b44a5be1c4bf84fd4e625ca4f85d515c551f454f52f8cc2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Table",
+          "digest": "sha256:99c5588fca6e1fbdcb6ef248059df8bbdcd749d2b61ede4d70e988b713d592b4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Transport",
+          "digest": "sha256:1df0ae9b3d30af9e56c7a98a4b9295a42ca3e25620abac6e5c75981407d6d483",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.NatPrime",
+          "digest": "sha256:dbad8646aab5a20cf973b17e377516d6c520c754bf00edbd0a5722a45ae2cfee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Pocklington",
+          "digest": "sha256:72273cd78f2504d9c8872d406edf24343e247c9cf71b8273268da0b2a4165222",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp",
+          "digest": "sha256:ba09883d17d5170eafb3d661f3b7bdfdde4d444f7b82ca2732e379266d4f7eeb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Ids",
+          "digest": "sha256:4e28569dd1d5643cbd440e72e619a19b4cfa9803382b1f6006425c80ed6eb4f0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Dsl",
+          "digest": "sha256:5fd1a4994c5704b4116c18cd62ca0620fc002679794a4cadc4f8eb18e2afe0eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Node",
+          "digest": "sha256:a9648058787ae1a7027d1bdbe320abd844cbc0705e345dc7b84247dacba63c64",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Walk",
+          "digest": "sha256:f7258c3f5368e6b410e4121528a7acb32d180cbeefe041c360b1f3645c9ac539",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Layout",
+          "digest": "sha256:57997501bec03c11bcaffdd0ad9dce96cda1fd405bdef0d567df26ad864b4ee6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Fields",
+          "digest": "sha256:14a3bc099e99b536e249407efd02cba8bea8fe4001de31b3b7815ae1425ee91d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Arith",
+          "digest": "sha256:750915e765fc96eab7dec34dbe979613fbc69bb5c66ab8f0503ced1fc0af5b66",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt",
+          "digest": "sha256:8338287892e365ec49430f625715a38b5d559f8b57b361780c84f9b025558438",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Acct",
+          "digest": "sha256:9d39386223620334fdb6d5cab3da52c61cb1cc1731ee2825396773fae225231b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Mrk",
+          "digest": "sha256:e64cf0a32fd72b628179d0df917a4afb74b8bd79e291c0879c83e138574757e9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Sort",
+          "digest": "sha256:a12b1a2dd306434b1acfac5d273e81b93e321ed443985e349ebeb75b939bc293",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Air",
+          "digest": "sha256:ec63865f0eec9b677519a1b93cef1fc7f031ea8f7421a9409be45c918ea51315",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Potential",
+          "digest": "sha256:7228458b926e026fdcbc2b38cb0331f35af8b7db288d605151c8e448e9c2d4a1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.BadQuery",
+          "digest": "sha256:658efdd78f21be212b6d7f396d2bc9d203b268d9026cfd2552251e2551297f06",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Game",
+          "digest": "sha256:f252920bf06479a97caf0cf0a96cbbb0f12175a9d82c35158ecbbc0e1e79f50a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Guard",
+          "digest": "sha256:9e6a9e1bb02b21aa9d98ad92c4283104c7a8bd6cdc17f6ef2c017cd72b7e10cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Field",
+          "digest": "sha256:1bd170b26b7d986d6a2514802a0944c09d2453933da9e99dbc3ba06109453f7f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Params",
+          "digest": "sha256:61872f45a148ea33d0cf21316cfa3ad2cc500694562eeb0af24f9b8af04fa754",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Iop",
+          "digest": "sha256:0fb9021be045e060f29f4c38a808d4a50334842ac016114e6bdf3d78b0add506",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Bcs",
+          "digest": "sha256:2c4d012ace1e84027c18579c46e00cbf43f7832e8df59fa08cfbfc3cca225449",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Protocol",
+          "digest": "sha256:a527bf700063edf1fd8a53a65f8447920c745ae6a28e57cbb516f5363db993cf",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Verifier",
+          "digest": "sha256:a12dcff25bbca10607e2e5536a1b7c9de57d1fdd57aab6eff76bc8998b7dbab9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.QuadExt",
+          "digest": "sha256:5a42eed75895bc25822505933d0d47bec9af809cacc5dddf82d96d48ff2bb6d2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp8",
+          "digest": "sha256:47ea6c3dc2a1dfcbb39a73bfefdaee67ba30e0a5be585065d321467e98f41b7d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Decode",
+          "digest": "sha256:26b37828478294cd78e06b8e8bf1c771459669262c97eff2cd21a5cb9dfb04ee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Instance",
+          "digest": "sha256:de3c5b6a126effc288f06f5838e9ac5e3bdca8cc758e684419fd2dbb4b250490",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.Model",
+          "digest": "sha256:b949620b28b39b7620b772e1d2679e3f845c5b563d4a00f3ef2c198364599675",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.PublicBin",
+          "digest": "sha256:c55b6bcdfaadbdf240242684d4abe4ec6429310fc8626aff90e7e5abc8c1030a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Udr.Rbr",
+          "digest": "sha256:13d869a3751ffc2fca9f04775d09eb273e53700f0345ac004e3d746452d98a28",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Product",
+          "digest": "sha256:0a759c34d39c1ccf7c464e8020ec4b6bb8d66b9a5c408de3399662adeea0319c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Log",
+          "digest": "sha256:5c555bbf052b264aca38a843f5dc6830912c96d0c7057462e3aad3fe97068acc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Collision",
+          "digest": "sha256:5c9b9f0ab0d86ac416a4617a4a6017f88951319dd31d8f38ab0c4340c4b0e717",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Wide",
+          "digest": "sha256:549d78fd011101b5e6a4d844b3513bb9b67209b43739b600ce20be80f643f4c4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Commit",
+          "digest": "sha256:4100a0127f6713124ee4f6247a9b026bad4272f6ef7e04b26d8850b25aa7a749",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Extract",
+          "digest": "sha256:791ac213e9222add76de5205930ee82cb8eedbc0a4b328bf6726fdacc6264817",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MmcsDefs",
+          "digest": "sha256:8e931f647d4db3347ad81af509d190ed3335d94777b785e7a91cf09de174a529",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Statements",
+          "digest": "sha256:c0c1e70789783199859d1acaeb8b1ae5240b1088f5dd699d3f90200917deaa04",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Budget",
+          "digest": "sha256:55b3f2f34197acb82be0f7f22f6dcb571e9f63c20054ae00645e46a7212abc4d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Budget32",
+          "digest": "sha256:ef8f2496e3005c053ac593f2de0f57ed43b6711de50403e0b68b930e6173e4c6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Params",
+          "digest": "sha256:d60d6ebbaec2c13c612766b87e5a4ce4648ea811e0a09bb554d401942675c1b1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Statements",
+          "digest": "sha256:97bc8ed9f99d64241f46af92e1db91ba86f0faac5f2236c530e02996456eab2a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.NpBounds",
+          "digest": "sha256:2dc509d728962e3057358617d123ffd676111deab1385091aea2d2cb7852d6ac",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.QueryBound",
+          "digest": "sha256:55ad9d6a035f1d1dc3cad7f623f2f91c1b1748040581618d3b7d4d002f6cb9cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Compose",
+          "digest": "sha256:1b4486111e592859487206eedf18931432ff2767e55e9bbc5e30d6d1543feeb0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAdapter",
+          "digest": "sha256:0304a64c8615ca29e83f6299a981489a56dbf3ace8ebf0d86a6696a855799a4a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.ParseLemmas",
+          "digest": "sha256:7354edc9996eb8a3cdaa077367e9a5adc68051b9e7d339534625d4797b945b9a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkParse",
+          "digest": "sha256:62f7080a479f64ef38e9cd34ef47723449052e19eba540f70c24f180ab9252b7",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkChain",
+          "digest": "sha256:44e08f5352aede8d906ac7ce22a6d1bec7aba2f75313c2e0d719090f47b871ba",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkDecode",
+          "digest": "sha256:1d99fae97a69272a3b342843b2a98d331c7b2cda4c10092f9215519070dedf8c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkOpen",
+          "digest": "sha256:cfd745c292a479eaa3a66b4f5c960b0a16655a017699ae005e72fdc4dd473a4e",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAlign",
+          "digest": "sha256:60e831f297ce53a079357f076528dc91737bd61178706756bd1585b88771e4e1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkRefine",
+          "digest": "sha256:55653cd90c1db5359b4326a4bb0b91fc08e41d80991baeb05996f027c151ad95",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MultiproofRead",
+          "digest": "sha256:74608bf51ee6b8344d9643df026c1ed109f623e017cc70166ed1ebcddc30475a",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-05T12:18:07.906673414Z",
+      "finished_at": "2026-10-05T13:54:12.119737155Z",
+      "reused_from": "sub_19cc9c90e2184946aad17195bd02d847"
+    },
+    {
+      "gate": "AXIOM_AUDIT",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certified closure uses only allowlisted axioms; no sorry/native shortcuts",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:c82117cb46db768c5eb158bcdf6e30508e8aadc2590510464ff3a40280e22472",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:bc76fc1b6797669b75ea77563ac400e0c9349186b2f3edfc450ec1acee611d2d",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:2ac2ce2f4d2fee59d9472ac058735e2f129042eb2454c25f183c035d3d6d1d6c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:4d3daee39a3e21d88eda66672442cd16546ad220e149feb4fc99200cb273a599",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Air.Basic",
+          "digest": "sha256:d0391b2f425ebfff0b9792a6507d75e138dcfe605add8a1c32daa9d4eadb5db2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Layout",
+          "digest": "sha256:942446a266f9b1b52b44a5be1c4bf84fd4e625ca4f85d515c551f454f52f8cc2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Table",
+          "digest": "sha256:99c5588fca6e1fbdcb6ef248059df8bbdcd749d2b61ede4d70e988b713d592b4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Transport",
+          "digest": "sha256:1df0ae9b3d30af9e56c7a98a4b9295a42ca3e25620abac6e5c75981407d6d483",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.NatPrime",
+          "digest": "sha256:dbad8646aab5a20cf973b17e377516d6c520c754bf00edbd0a5722a45ae2cfee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Pocklington",
+          "digest": "sha256:72273cd78f2504d9c8872d406edf24343e247c9cf71b8273268da0b2a4165222",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp",
+          "digest": "sha256:ba09883d17d5170eafb3d661f3b7bdfdde4d444f7b82ca2732e379266d4f7eeb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Ids",
+          "digest": "sha256:4e28569dd1d5643cbd440e72e619a19b4cfa9803382b1f6006425c80ed6eb4f0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Dsl",
+          "digest": "sha256:5fd1a4994c5704b4116c18cd62ca0620fc002679794a4cadc4f8eb18e2afe0eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Node",
+          "digest": "sha256:a9648058787ae1a7027d1bdbe320abd844cbc0705e345dc7b84247dacba63c64",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Walk",
+          "digest": "sha256:f7258c3f5368e6b410e4121528a7acb32d180cbeefe041c360b1f3645c9ac539",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Layout",
+          "digest": "sha256:57997501bec03c11bcaffdd0ad9dce96cda1fd405bdef0d567df26ad864b4ee6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Fields",
+          "digest": "sha256:14a3bc099e99b536e249407efd02cba8bea8fe4001de31b3b7815ae1425ee91d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Arith",
+          "digest": "sha256:750915e765fc96eab7dec34dbe979613fbc69bb5c66ab8f0503ced1fc0af5b66",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt",
+          "digest": "sha256:8338287892e365ec49430f625715a38b5d559f8b57b361780c84f9b025558438",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Acct",
+          "digest": "sha256:9d39386223620334fdb6d5cab3da52c61cb1cc1731ee2825396773fae225231b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Mrk",
+          "digest": "sha256:e64cf0a32fd72b628179d0df917a4afb74b8bd79e291c0879c83e138574757e9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Sort",
+          "digest": "sha256:a12b1a2dd306434b1acfac5d273e81b93e321ed443985e349ebeb75b939bc293",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Air",
+          "digest": "sha256:ec63865f0eec9b677519a1b93cef1fc7f031ea8f7421a9409be45c918ea51315",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Potential",
+          "digest": "sha256:7228458b926e026fdcbc2b38cb0331f35af8b7db288d605151c8e448e9c2d4a1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.BadQuery",
+          "digest": "sha256:658efdd78f21be212b6d7f396d2bc9d203b268d9026cfd2552251e2551297f06",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Game",
+          "digest": "sha256:f252920bf06479a97caf0cf0a96cbbb0f12175a9d82c35158ecbbc0e1e79f50a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Guard",
+          "digest": "sha256:9e6a9e1bb02b21aa9d98ad92c4283104c7a8bd6cdc17f6ef2c017cd72b7e10cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Field",
+          "digest": "sha256:1bd170b26b7d986d6a2514802a0944c09d2453933da9e99dbc3ba06109453f7f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Params",
+          "digest": "sha256:61872f45a148ea33d0cf21316cfa3ad2cc500694562eeb0af24f9b8af04fa754",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Iop",
+          "digest": "sha256:0fb9021be045e060f29f4c38a808d4a50334842ac016114e6bdf3d78b0add506",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Bcs",
+          "digest": "sha256:2c4d012ace1e84027c18579c46e00cbf43f7832e8df59fa08cfbfc3cca225449",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Protocol",
+          "digest": "sha256:a527bf700063edf1fd8a53a65f8447920c745ae6a28e57cbb516f5363db993cf",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Verifier",
+          "digest": "sha256:a12dcff25bbca10607e2e5536a1b7c9de57d1fdd57aab6eff76bc8998b7dbab9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.QuadExt",
+          "digest": "sha256:5a42eed75895bc25822505933d0d47bec9af809cacc5dddf82d96d48ff2bb6d2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp8",
+          "digest": "sha256:47ea6c3dc2a1dfcbb39a73bfefdaee67ba30e0a5be585065d321467e98f41b7d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Decode",
+          "digest": "sha256:26b37828478294cd78e06b8e8bf1c771459669262c97eff2cd21a5cb9dfb04ee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Instance",
+          "digest": "sha256:de3c5b6a126effc288f06f5838e9ac5e3bdca8cc758e684419fd2dbb4b250490",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.Model",
+          "digest": "sha256:b949620b28b39b7620b772e1d2679e3f845c5b563d4a00f3ef2c198364599675",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.PublicBin",
+          "digest": "sha256:c55b6bcdfaadbdf240242684d4abe4ec6429310fc8626aff90e7e5abc8c1030a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Udr.Rbr",
+          "digest": "sha256:13d869a3751ffc2fca9f04775d09eb273e53700f0345ac004e3d746452d98a28",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Product",
+          "digest": "sha256:0a759c34d39c1ccf7c464e8020ec4b6bb8d66b9a5c408de3399662adeea0319c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Log",
+          "digest": "sha256:5c555bbf052b264aca38a843f5dc6830912c96d0c7057462e3aad3fe97068acc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Collision",
+          "digest": "sha256:5c9b9f0ab0d86ac416a4617a4a6017f88951319dd31d8f38ab0c4340c4b0e717",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Wide",
+          "digest": "sha256:549d78fd011101b5e6a4d844b3513bb9b67209b43739b600ce20be80f643f4c4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Commit",
+          "digest": "sha256:4100a0127f6713124ee4f6247a9b026bad4272f6ef7e04b26d8850b25aa7a749",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Extract",
+          "digest": "sha256:791ac213e9222add76de5205930ee82cb8eedbc0a4b328bf6726fdacc6264817",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MmcsDefs",
+          "digest": "sha256:8e931f647d4db3347ad81af509d190ed3335d94777b785e7a91cf09de174a529",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Statements",
+          "digest": "sha256:c0c1e70789783199859d1acaeb8b1ae5240b1088f5dd699d3f90200917deaa04",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Budget",
+          "digest": "sha256:55b3f2f34197acb82be0f7f22f6dcb571e9f63c20054ae00645e46a7212abc4d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Budget32",
+          "digest": "sha256:ef8f2496e3005c053ac593f2de0f57ed43b6711de50403e0b68b930e6173e4c6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Params",
+          "digest": "sha256:d60d6ebbaec2c13c612766b87e5a4ce4648ea811e0a09bb554d401942675c1b1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Statements",
+          "digest": "sha256:97bc8ed9f99d64241f46af92e1db91ba86f0faac5f2236c530e02996456eab2a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.NpBounds",
+          "digest": "sha256:2dc509d728962e3057358617d123ffd676111deab1385091aea2d2cb7852d6ac",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.QueryBound",
+          "digest": "sha256:55ad9d6a035f1d1dc3cad7f623f2f91c1b1748040581618d3b7d4d002f6cb9cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Compose",
+          "digest": "sha256:1b4486111e592859487206eedf18931432ff2767e55e9bbc5e30d6d1543feeb0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAdapter",
+          "digest": "sha256:0304a64c8615ca29e83f6299a981489a56dbf3ace8ebf0d86a6696a855799a4a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.ParseLemmas",
+          "digest": "sha256:7354edc9996eb8a3cdaa077367e9a5adc68051b9e7d339534625d4797b945b9a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkParse",
+          "digest": "sha256:62f7080a479f64ef38e9cd34ef47723449052e19eba540f70c24f180ab9252b7",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkChain",
+          "digest": "sha256:44e08f5352aede8d906ac7ce22a6d1bec7aba2f75313c2e0d719090f47b871ba",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkDecode",
+          "digest": "sha256:1d99fae97a69272a3b342843b2a98d331c7b2cda4c10092f9215519070dedf8c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkOpen",
+          "digest": "sha256:cfd745c292a479eaa3a66b4f5c960b0a16655a017699ae005e72fdc4dd473a4e",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAlign",
+          "digest": "sha256:60e831f297ce53a079357f076528dc91737bd61178706756bd1585b88771e4e1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkRefine",
+          "digest": "sha256:55653cd90c1db5359b4326a4bb0b91fc08e41d80991baeb05996f027c151ad95",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MultiproofRead",
+          "digest": "sha256:74608bf51ee6b8344d9643df026c1ed109f623e017cc70166ed1ebcddc30475a",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-05T12:18:07.906673414Z",
+      "finished_at": "2026-10-05T13:54:12.119737155Z",
+      "reused_from": "sub_19cc9c90e2184946aad17195bd02d847"
+    },
+    {
+      "gate": "ARTIFACT_BINDING",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "verifier executable is the judge's build of the certified Lean model; its digest is pinned in the statement (binary↔model edge: trusted Lean compiler/runtime)",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:c82117cb46db768c5eb158bcdf6e30508e8aadc2590510464ff3a40280e22472",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:bc76fc1b6797669b75ea77563ac400e0c9349186b2f3edfc450ec1acee611d2d",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:2ac2ce2f4d2fee59d9472ac058735e2f129042eb2454c25f183c035d3d6d1d6c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:4d3daee39a3e21d88eda66672442cd16546ad220e149feb4fc99200cb273a599",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Air.Basic",
+          "digest": "sha256:d0391b2f425ebfff0b9792a6507d75e138dcfe605add8a1c32daa9d4eadb5db2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Layout",
+          "digest": "sha256:942446a266f9b1b52b44a5be1c4bf84fd4e625ca4f85d515c551f454f52f8cc2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Sha.Table",
+          "digest": "sha256:99c5588fca6e1fbdcb6ef248059df8bbdcd749d2b61ede4d70e988b713d592b4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Transport",
+          "digest": "sha256:1df0ae9b3d30af9e56c7a98a4b9295a42ca3e25620abac6e5c75981407d6d483",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.NatPrime",
+          "digest": "sha256:dbad8646aab5a20cf973b17e377516d6c520c754bf00edbd0a5722a45ae2cfee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Pocklington",
+          "digest": "sha256:72273cd78f2504d9c8872d406edf24343e247c9cf71b8273268da0b2a4165222",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp",
+          "digest": "sha256:ba09883d17d5170eafb3d661f3b7bdfdde4d444f7b82ca2732e379266d4f7eeb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Ids",
+          "digest": "sha256:4e28569dd1d5643cbd440e72e619a19b4cfa9803382b1f6006425c80ed6eb4f0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Dsl",
+          "digest": "sha256:5fd1a4994c5704b4116c18cd62ca0620fc002679794a4cadc4f8eb18e2afe0eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Node",
+          "digest": "sha256:a9648058787ae1a7027d1bdbe320abd844cbc0705e345dc7b84247dacba63c64",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Walk",
+          "digest": "sha256:f7258c3f5368e6b410e4121528a7acb32d180cbeefe041c360b1f3645c9ac539",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Layout",
+          "digest": "sha256:57997501bec03c11bcaffdd0ad9dce96cda1fd405bdef0d567df26ad864b4ee6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Fields",
+          "digest": "sha256:14a3bc099e99b536e249407efd02cba8bea8fe4001de31b3b7815ae1425ee91d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt.Arith",
+          "digest": "sha256:750915e765fc96eab7dec34dbe979613fbc69bb5c66ab8f0503ced1fc0af5b66",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Rcpt",
+          "digest": "sha256:8338287892e365ec49430f625715a38b5d559f8b57b361780c84f9b025558438",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Acct",
+          "digest": "sha256:9d39386223620334fdb6d5cab3da52c61cb1cc1731ee2825396773fae225231b",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Mrk",
+          "digest": "sha256:e64cf0a32fd72b628179d0df917a4afb74b8bd79e291c0879c83e138574757e9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Tables.Sort",
+          "digest": "sha256:a12b1a2dd306434b1acfac5d273e81b93e321ed443985e349ebeb75b939bc293",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Near.Air",
+          "digest": "sha256:ec63865f0eec9b677519a1b93cef1fc7f031ea8f7421a9409be45c918ea51315",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Potential",
+          "digest": "sha256:7228458b926e026fdcbc2b38cb0331f35af8b7db288d605151c8e448e9c2d4a1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.BadQuery",
+          "digest": "sha256:658efdd78f21be212b6d7f396d2bc9d203b268d9026cfd2552251e2551297f06",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Game",
+          "digest": "sha256:f252920bf06479a97caf0cf0a96cbbb0f12175a9d82c35158ecbbc0e1e79f50a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Guard",
+          "digest": "sha256:9e6a9e1bb02b21aa9d98ad92c4283104c7a8bd6cdc17f6ef2c017cd72b7e10cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Field",
+          "digest": "sha256:1bd170b26b7d986d6a2514802a0944c09d2453933da9e99dbc3ba06109453f7f",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Params",
+          "digest": "sha256:61872f45a148ea33d0cf21316cfa3ad2cc500694562eeb0af24f9b8af04fa754",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Iop",
+          "digest": "sha256:0fb9021be045e060f29f4c38a808d4a50334842ac016114e6bdf3d78b0add506",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Bcs",
+          "digest": "sha256:2c4d012ace1e84027c18579c46e00cbf43f7832e8df59fa08cfbfc3cca225449",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Protocol",
+          "digest": "sha256:a527bf700063edf1fd8a53a65f8447920c745ae6a28e57cbb516f5363db993cf",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Verifier",
+          "digest": "sha256:a12dcff25bbca10607e2e5536a1b7c9de57d1fdd57aab6eff76bc8998b7dbab9",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.QuadExt",
+          "digest": "sha256:5a42eed75895bc25822505933d0d47bec9af809cacc5dddf82d96d48ff2bb6d2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Fp8",
+          "digest": "sha256:47ea6c3dc2a1dfcbb39a73bfefdaee67ba30e0a5be585065d321467e98f41b7d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Algebra.Decode",
+          "digest": "sha256:26b37828478294cd78e06b8e8bf1c771459669262c97eff2cd21a5cb9dfb04ee",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Instance",
+          "digest": "sha256:de3c5b6a126effc288f06f5838e9ac5e3bdca8cc758e684419fd2dbb4b250490",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.Model",
+          "digest": "sha256:b949620b28b39b7620b772e1d2679e3f845c5b563d4a00f3ef2c198364599675",
+          "public": true
+        },
+        {
+          "label": "candidate olean NpUdrStark.PublicBin",
+          "digest": "sha256:c55b6bcdfaadbdf240242684d4abe4ec6429310fc8626aff90e7e5abc8c1030a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Udr.Rbr",
+          "digest": "sha256:13d869a3751ffc2fca9f04775d09eb273e53700f0345ac004e3d746452d98a28",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Product",
+          "digest": "sha256:0a759c34d39c1ccf7c464e8020ec4b6bb8d66b9a5c408de3399662adeea0319c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Log",
+          "digest": "sha256:5c555bbf052b264aca38a843f5dc6830912c96d0c7057462e3aad3fe97068acc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Collision",
+          "digest": "sha256:5c9b9f0ab0d86ac416a4617a4a6017f88951319dd31d8f38ab0c4340c4b0e717",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Wide",
+          "digest": "sha256:549d78fd011101b5e6a4d844b3513bb9b67209b43739b600ce20be80f643f4c4",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Commit",
+          "digest": "sha256:4100a0127f6713124ee4f6247a9b026bad4272f6ef7e04b26d8850b25aa7a749",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Extract",
+          "digest": "sha256:791ac213e9222add76de5205930ee82cb8eedbc0a4b328bf6726fdacc6264817",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MmcsDefs",
+          "digest": "sha256:8e931f647d4db3347ad81af509d190ed3335d94777b785e7a91cf09de174a529",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Statements",
+          "digest": "sha256:c0c1e70789783199859d1acaeb8b1ae5240b1088f5dd699d3f90200917deaa04",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.Budget",
+          "digest": "sha256:55b3f2f34197acb82be0f7f22f6dcb571e9f63c20054ae00645e46a7212abc4d",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Budget32",
+          "digest": "sha256:ef8f2496e3005c053ac593f2de0f57ed43b6711de50403e0b68b930e6173e4c6",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Assembly.Params",
+          "digest": "sha256:d60d6ebbaec2c13c612766b87e5a4ce4648ea811e0a09bb554d401942675c1b1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Statements",
+          "digest": "sha256:97bc8ed9f99d64241f46af92e1db91ba86f0faac5f2236c530e02996456eab2a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.NpBounds",
+          "digest": "sha256:2dc509d728962e3057358617d123ffd676111deab1385091aea2d2cb7852d6ac",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.QueryBound",
+          "digest": "sha256:55ad9d6a035f1d1dc3cad7f623f2f91c1b1748040581618d3b7d4d002f6cb9cc",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.Compose",
+          "digest": "sha256:1b4486111e592859487206eedf18931432ff2767e55e9bbc5e30d6d1543feeb0",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAdapter",
+          "digest": "sha256:0304a64c8615ca29e83f6299a981489a56dbf3ace8ebf0d86a6696a855799a4a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Stark.ParseLemmas",
+          "digest": "sha256:7354edc9996eb8a3cdaa077367e9a5adc68051b9e7d339534625d4797b945b9a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkParse",
+          "digest": "sha256:62f7080a479f64ef38e9cd34ef47723449052e19eba540f70c24f180ab9252b7",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkChain",
+          "digest": "sha256:44e08f5352aede8d906ac7ce22a6d1bec7aba2f75313c2e0d719090f47b871ba",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkDecode",
+          "digest": "sha256:1d99fae97a69272a3b342843b2a98d331c7b2cda4c10092f9215519070dedf8c",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkOpen",
+          "digest": "sha256:cfd745c292a479eaa3a66b4f5c960b0a16655a017699ae005e72fdc4dd473a4e",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkAlign",
+          "digest": "sha256:60e831f297ce53a079357f076528dc91737bd61178706756bd1585b88771e4e1",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.StarkRefine",
+          "digest": "sha256:55653cd90c1db5359b4326a4bb0b91fc08e41d80991baeb05996f027c151ad95",
+          "public": true
+        },
+        {
+          "label": "candidate olean ZkFormal.Bcs.MultiproofRead",
+          "digest": "sha256:74608bf51ee6b8344d9643df026c1ed109f623e017cc70166ed1ebcddc30475a",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-05T12:18:07.906673414Z",
+      "finished_at": "2026-10-05T13:54:12.119737155Z",
+      "reused_from": "sub_19cc9c90e2184946aad17195bd02d847"
+    },
+    {
+      "gate": "CONFORMANCE_DIFFERENTIAL",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "26/26 cases conform (20 public fixtures, 3 judge-sampled, 3 held-out); judge-secret HMAC sampling (season secret commitment sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d); held-out set sha256:e4312f75b841727b2f039dee36f4b7c775f8a3d39953dd284a4d739f0c48c3f9 verified against the commitment and used (3 case(s); ids withheld)",
+      "evidence": [
+        {
+          "label": "claim fixture/example-tierA",
+          "digest": "sha256:10143c59f0ade440b4083f683ad64874eb4c8c62f0c6676a97be35d91419df51",
+          "public": true
+        },
+        {
+          "label": "claim fixture/example-tierB",
+          "digest": "sha256:52105ad679a1c78b42179912e846e8d79978918f2a67c6ed6437caa27d8d8871",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v0",
+          "digest": "sha256:0e7e710a032e95d90649a64db8376eda17172cbf15128a6264f27a900a4f67bf",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v1",
+          "digest": "sha256:4469ac3e490d1583d3eb9785419be3f3d9e92734c7a97f519eeaf46ef7d95bcd",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v10",
+          "digest": "sha256:32ae95c80000819d74cc53c80bd0a0dc2cc17c76ea8fd9d919faa1ba9795d88b",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v11",
+          "digest": "sha256:2e5279432846e51332c70b210f9b837110ea82b710afccf7487553ef5a3a151d",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v12",
+          "digest": "sha256:759d260d4243e809cb5d4b7e362c17a10d57c610540f02b04b7c37c9cfb65016",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v13",
+          "digest": "sha256:0d8bb49db94ac01a543788fd80fe75db8d2e22b2ef5849fc540390226bcb0f92",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v14",
+          "digest": "sha256:9ea57c240ab6e1b23cc5491ddcc237c8022d7f8218e84b139f2fbee6996eeecd",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v15",
+          "digest": "sha256:4d559d143f03992240bcfd3ec12bbc98bb325144ef601736d23d6f2f57909488",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v16",
+          "digest": "sha256:357f44c54b7b9bd9e165615d63b632136068568c3a7cfbb7c4d9051721621891",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v17",
+          "digest": "sha256:d6dd1b0e78517d53421fcb81af569cb9163b55b8b6a97d0c01a0096f8dcd9602",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v2",
+          "digest": "sha256:6cf458e3eca87357185d97afaebd9580a04ed625e96f452b06d71ec59ede9afe",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v3",
+          "digest": "sha256:6edb6c3e24d5329ec08f0158f99a439fb5bf68b9f9b3dc4bea097ab75f7ef212",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v4",
+          "digest": "sha256:b02f73a48fc5f42095373bde8224f4ab55d0d16ed7b63e75af4a20c4c40d07e8",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v5",
+          "digest": "sha256:e5dc6d967b06c420fc54284d79c5f8dd64c7ba24020b458121a09f50605fed4f",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v6",
+          "digest": "sha256:e15cd189ad76fd4d6aa4d0889e046c0ea9d9783cbfcae985a6e72ca8d35cf025",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v7",
+          "digest": "sha256:f72cabd6afad45bb5caa60bbbdf4a4b954e2d60fa936e2ec463489af13c96613",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v8",
+          "digest": "sha256:030c9927b4a4cabdd01ddde48f1713e90976997e87d216e4feae681303a9272c",
+          "public": true
+        },
+        {
+          "label": "claim fixture/s20261003-v9",
+          "digest": "sha256:3cf9cc3df63476c1a7b505032caac4963053a9436366dd884b34d13332ee2d71",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-05T14:35:53.741170045Z",
+      "finished_at": "2026-10-05T14:37:34.870193117Z",
+      "reused_from": null
+    },
+    {
+      "gate": "PROVER_RELIABILITY",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "26/26 honest proofs produced and accepted",
+      "evidence": [
+        {
+          "label": "proof fixture/example-tierA",
+          "digest": "sha256:9419e50fd9d1c4dbce26afc9ee335e6683650eab9efe100cea62bc05c9bbd8c6",
+          "public": true
+        },
+        {
+          "label": "proof fixture/example-tierB",
+          "digest": "sha256:e8559b2df3918e3d036380eff17170a1f26c555b9765d98ffb16d6eb418a26f6",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v0",
+          "digest": "sha256:6bc5e830940e9955046eb1e39bc88186311dbca50e601270c89d72961b5ad354",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v1",
+          "digest": "sha256:704ba45e70668157fe6b0f0cb38e039e9f622cdb895c2fc72ddbf21289ff96b1",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v10",
+          "digest": "sha256:37f1cd7699e0816418600255180fa1674fb89575d335d60a31f397e3658b3a59",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v11",
+          "digest": "sha256:4fa1e38ae798db2e27f3e8b953fa56bda03d160ad461a81b61aabdc1e894cd45",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v12",
+          "digest": "sha256:1f00ab30a6155baa06c6e05ceda87fc8bd3102cf5440fb7850668486f9567640",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v13",
+          "digest": "sha256:9e3c25a0300d725960bdd589cdb968eb8ab7af7d2645a7f06e04facdd5105be0",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v14",
+          "digest": "sha256:7dab659d8750d6a2d1f5ffe3eb44d9fdfd9b8a5182460517208a394d6ec52c20",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v15",
+          "digest": "sha256:c9fb521fe236fd638488a21898436f9023d8a0cb13b4e15c9ab95b60ac71117e",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v16",
+          "digest": "sha256:a836822ddfeeb4eda1b0c885119df534a57f87b478165e29ac0c2e09c3f0459f",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v17",
+          "digest": "sha256:60c507c044a201cb51cf9d7125b7b42218f69eba27ef2bbfa72df0f3eaa4c5f3",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v2",
+          "digest": "sha256:fb640ed98ae0c9af9f8b1076138b54c4f3c1396c75813be59174173d75797777",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v3",
+          "digest": "sha256:aef98accfca67ec842426dd33fcce885244e3e506618f629bf03ceee9658850e",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v4",
+          "digest": "sha256:afbef6013cba143b8d349f2f756fb6a60a4c61548cc02e98afc1f4a6cf513a3e",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v5",
+          "digest": "sha256:4f68cc46895c17f428fb78f33d7bccf212da71a23dca73dd5a723a17ef5d006d",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v6",
+          "digest": "sha256:739fe56ad5762f0faf4dd1ffa4989c20ef826843bf1b351e35fd286bb8efbdd6",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v7",
+          "digest": "sha256:ced1aec0c15f9bae146006d3ca461f0a8fa38c9f71d42dfac082dc70e36f6b3c",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v8",
+          "digest": "sha256:6f6543183f5dbd49bb26cd0ef62975accfe93538760f7019608ff61b743e53a7",
+          "public": true
+        },
+        {
+          "label": "proof fixture/s20261003-v9",
+          "digest": "sha256:0c6236b2137732bfca05d9225843dfb3fd000e40d4dda3bccdaa464ad0430192",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-05T14:35:53.741170766Z",
+      "finished_at": "2026-10-05T14:37:34.870195041Z",
+      "reused_from": null
+    },
+    {
+      "gate": "RESOURCE_LIMITS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "public cases: max proof 2854191 bytes (cap 8388608), max verify 842 ms (cap 10000), peak memory 1425 MiB",
+      "evidence": [],
+      "started_at": "2026-10-05T14:35:53.741170837Z",
+      "finished_at": "2026-10-05T14:37:34.870195692Z",
+      "reused_from": null
+    },
+    {
+      "gate": "ADVERSARIAL_PROOFS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "155 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:noncanonical,adv:altered-commitment,adv:truncated-merkle-path,adv:swapped-siblings,adv:duplicated-node,adv:node-type-confusion,adv:transcript-tamper,adv:domain-separation,adv:mismatched-context,adv:recursive-substitution]: 155 rejected, 0 errored (not accepted), 0 timed out (not accepted), 0 accepted",
+      "evidence": [],
+      "started_at": "2026-10-05T14:37:34.885368429Z",
+      "finished_at": "2026-10-05T14:39:23.74566598Z",
+      "reused_from": null
+    },
+    {
+      "gate": "BENCHMARK",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "judge-secret HMAC sampling (season secret commitment sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d); session 1: CACHING_SUSPECTED; re-measured on fresh batches only; batch-1: median 3051538 us, MAD 172970 us, verify median 438646 us, max proof 2079847 B; batch-16: median 9136497 us, MAD 268490 us, verify median 577661 us, max proof 2547243 B; batch-256: median 48666999 us, MAD 1829751 us, verify median 778676 us, max proof 3088879 B; worker-side score 48 ± 2 milli (server recomputes)",
+      "evidence": [
+        {
+          "label": "benchmark session",
+          "digest": "sha256:76edd90d58ed221a0f571e36716b5f85352544427986eb960655bfc30f69e5b8",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-05T14:39:24.01603623Z",
+      "finished_at": "2026-10-05T15:36:33.636211109Z",
+      "reused_from": null
+    }
+  ],
+  "reason_codes": [],
+  "benchmark": {
+    "hardware_profile": "nearproof-local-ryzen9-9950x3d",
+    "suite_revision": "near-transfer-receipt-v1-r1",
+    "classes": [
+      {
+        "class_id": "batch-1",
+        "weight_ppm": 200000,
+        "runs_ns": [
+          2833690932,
+          3127419046,
+          3800638853,
+          2763119845,
+          3224508665,
+          3543788751,
+          3194227494,
+          2705623108,
+          2925681373,
+          3051538399,
+          2585326912,
+          2799788918,
+          3152767335,
+          3202172320,
+          2930026618
+        ],
+        "median_ns": 3051538399,
+        "mad_ns": 172970266,
+        "cold_ns": 3736265284,
+        "baseline_ns": 6211419,
+        "verify_median_ns": 438646900,
+        "proof_bytes_max": 2079847,
+        "peak_rss_bytes": 860921856
+      },
+      {
+        "class_id": "batch-16",
+        "weight_ppm": 300000,
+        "runs_ns": [
+          9956310743,
+          9319042961,
+          9699201400,
+          9473332520,
+          9206930267,
+          8868006668,
+          8611330256,
+          9136497194,
+          8964089313,
+          9234641392,
+          8812841524,
+          8800554176,
+          9306533521,
+          8943395333,
+          8861735435
+        ],
+        "median_ns": 9136497194,
+        "mad_ns": 268490526,
+        "cold_ns": 9550290798,
+        "baseline_ns": 6876460,
+        "verify_median_ns": 577661331,
+        "proof_bytes_max": 2547243,
+        "peak_rss_bytes": 969797632
+      },
+      {
+        "class_id": "batch-256",
+        "weight_ppm": 500000,
+        "runs_ns": [
+          47086762783,
+          50291825225,
+          50775973030,
+          54081924262,
+          53864289002,
+          46353975946,
+          50496751087,
+          48618439219,
+          45445161134,
+          48474990851,
+          48655482922,
+          52158010141,
+          45162770120,
+          48666999837,
+          49097814281
+        ],
+        "median_ns": 48666999837,
+        "mad_ns": 1829751250,
+        "cold_ns": 55559560325,
+        "baseline_ns": 10205590,
+        "verify_median_ns": 778676604,
+        "proof_bytes_max": 3088879,
+        "peak_rss_bytes": 1582592000
+      }
+    ],
+    "score_milli": 48,
+    "score_ci_milli": 2,
+    "prepare_ns": 7630627,
+    "public_artifact_bytes": 110,
+    "measured_by": "arena-worker live-w1"
+  },
+  "evidence_graph": {
+    "nodes": [
+      {
+        "id": "formal:certificate",
+        "kind": "theorem",
+        "label": "certificate NpUdrStark.certificate",
+        "digest": "sha256:6e6e36a743d1f09de4e98ba219a4caa1f37044d20be829e7254a977c29a0a7b6"
+      },
+      {
+        "id": "formal:expected_statement",
+        "kind": "theorem",
+        "label": "judge-constructed admission statement",
+        "digest": "sha256:2ac2ce2f4d2fee59d9472ac058735e2f129042eb2454c25f183c035d3d6d1d6c"
+      },
+      {
+        "id": "tcb:lean_toolchain",
+        "kind": "tcb_component",
+        "label": "Lean leanprover/lean4:v4.34.1",
+        "digest": "sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867"
+      },
+      {
+        "id": "formal:trusted:formal-core",
+        "kind": "formal_semantics",
+        "label": "formal-core",
+        "digest": "sha256:988c30c29c3b014145fa3f5131f1f199d119c1e1880749ccaf55e59a2db409df"
+      },
+      {
+        "id": "formal:trusted:near-spec",
+        "kind": "formal_semantics",
+        "label": "near-spec",
+        "digest": "sha256:3f2a84e3f87f4500880990f861849cae0fdbf0ed46337268a948a2ba4bba012e"
+      },
+      {
+        "id": "formal:trusted:pinned-trusted-tree",
+        "kind": "formal_semantics",
+        "label": "pinned-trusted-tree",
+        "digest": "sha256:35fbd26064cd2f7d64f5b1dce7f41da61d96129517f5696b321c463c45bafdf0"
+      },
+      {
+        "id": "formal:axiom:Classical.choice",
+        "kind": "assumption",
+        "label": "Classical.choice",
+        "digest": null
+      },
+      {
+        "id": "formal:axiom:Quot.sound",
+        "kind": "assumption",
+        "label": "Quot.sound",
+        "digest": null
+      },
+      {
+        "id": "formal:axiom:propext",
+        "kind": "assumption",
+        "label": "propext",
+        "digest": null
+      },
+      {
+        "id": "tcb:leanchecker",
+        "kind": "tcb_component",
+        "label": "leanchecker",
+        "digest": null
+      },
+      {
+        "id": "tcb:arena-audit",
+        "kind": "tcb_component",
+        "label": "arena-audit",
+        "digest": null
+      },
+      {
+        "id": "tcb:nanoda",
+        "kind": "tcb_component",
+        "label": "nanoda",
+        "digest": null
+      },
+      {
+        "id": "tcb:lean4lean",
+        "kind": "tcb_component",
+        "label": "lean4lean",
+        "digest": null
+      },
+      {
+        "id": "tcb:ndjson-audit",
+        "kind": "tcb_component",
+        "label": "ndjson-audit",
+        "digest": null
+      },
+      {
+        "id": "formal:verifier_model",
+        "kind": "backend_semantics",
+        "label": "candidate-defined verifier model NpUdrStark.Model.verifier (inside the admission statement)",
+        "digest": "sha256:ce5153b9a1da8c7306500d7d42abdad854f32afd3f19725a2c9f4ac19e7c40de"
+      },
+      {
+        "id": "artifact:verifier_binary",
+        "kind": "artifact",
+        "label": "judge-built native verify (leanprover/lean4:v4.34.1+leanc)",
+        "digest": "sha256:c82117cb46db768c5eb158bcdf6e30508e8aadc2590510464ff3a40280e22472"
+      },
+      {
+        "id": "tcb:lean_compiler_runtime",
+        "kind": "tcb_component",
+        "label": "Lean compiler + runtime leanprover/lean4:v4.34.1",
+        "digest": "sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867"
+      }
+    ],
+    "edges": [
+      {
+        "from": "formal:certificate",
+        "to": "formal:expected_statement",
+        "kind": "proves",
+        "status": "checked",
+        "evidence": [
+          "sha256:c82117cb46db768c5eb158bcdf6e30508e8aadc2590510464ff3a40280e22472",
+          "sha256:bc76fc1b6797669b75ea77563ac400e0c9349186b2f3edfc450ec1acee611d2d",
+          "sha256:2ac2ce2f4d2fee59d9472ac058735e2f129042eb2454c25f183c035d3d6d1d6c",
+          "sha256:4d3daee39a3e21d88eda66672442cd16546ad220e149feb4fc99200cb273a599",
+          "sha256:d0391b2f425ebfff0b9792a6507d75e138dcfe605add8a1c32daa9d4eadb5db2",
+          "sha256:942446a266f9b1b52b44a5be1c4bf84fd4e625ca4f85d515c551f454f52f8cc2",
+          "sha256:99c5588fca6e1fbdcb6ef248059df8bbdcd749d2b61ede4d70e988b713d592b4",
+          "sha256:1df0ae9b3d30af9e56c7a98a4b9295a42ca3e25620abac6e5c75981407d6d483",
+          "sha256:dbad8646aab5a20cf973b17e377516d6c520c754bf00edbd0a5722a45ae2cfee",
+          "sha256:72273cd78f2504d9c8872d406edf24343e247c9cf71b8273268da0b2a4165222",
+          "sha256:ba09883d17d5170eafb3d661f3b7bdfdde4d444f7b82ca2732e379266d4f7eeb",
+          "sha256:4e28569dd1d5643cbd440e72e619a19b4cfa9803382b1f6006425c80ed6eb4f0",
+          "sha256:5fd1a4994c5704b4116c18cd62ca0620fc002679794a4cadc4f8eb18e2afe0eb",
+          "sha256:a9648058787ae1a7027d1bdbe320abd844cbc0705e345dc7b84247dacba63c64",
+          "sha256:f7258c3f5368e6b410e4121528a7acb32d180cbeefe041c360b1f3645c9ac539",
+          "sha256:57997501bec03c11bcaffdd0ad9dce96cda1fd405bdef0d567df26ad864b4ee6",
+          "sha256:14a3bc099e99b536e249407efd02cba8bea8fe4001de31b3b7815ae1425ee91d",
+          "sha256:750915e765fc96eab7dec34dbe979613fbc69bb5c66ab8f0503ced1fc0af5b66",
+          "sha256:8338287892e365ec49430f625715a38b5d559f8b57b361780c84f9b025558438",
+          "sha256:9d39386223620334fdb6d5cab3da52c61cb1cc1731ee2825396773fae225231b",
+          "sha256:e64cf0a32fd72b628179d0df917a4afb74b8bd79e291c0879c83e138574757e9",
+          "sha256:a12b1a2dd306434b1acfac5d273e81b93e321ed443985e349ebeb75b939bc293",
+          "sha256:ec63865f0eec9b677519a1b93cef1fc7f031ea8f7421a9409be45c918ea51315",
+          "sha256:7228458b926e026fdcbc2b38cb0331f35af8b7db288d605151c8e448e9c2d4a1",
+          "sha256:658efdd78f21be212b6d7f396d2bc9d203b268d9026cfd2552251e2551297f06",
+          "sha256:f252920bf06479a97caf0cf0a96cbbb0f12175a9d82c35158ecbbc0e1e79f50a",
+          "sha256:9e6a9e1bb02b21aa9d98ad92c4283104c7a8bd6cdc17f6ef2c017cd72b7e10cc",
+          "sha256:1bd170b26b7d986d6a2514802a0944c09d2453933da9e99dbc3ba06109453f7f",
+          "sha256:61872f45a148ea33d0cf21316cfa3ad2cc500694562eeb0af24f9b8af04fa754",
+          "sha256:0fb9021be045e060f29f4c38a808d4a50334842ac016114e6bdf3d78b0add506",
+          "sha256:2c4d012ace1e84027c18579c46e00cbf43f7832e8df59fa08cfbfc3cca225449",
+          "sha256:a527bf700063edf1fd8a53a65f8447920c745ae6a28e57cbb516f5363db993cf",
+          "sha256:a12dcff25bbca10607e2e5536a1b7c9de57d1fdd57aab6eff76bc8998b7dbab9",
+          "sha256:5a42eed75895bc25822505933d0d47bec9af809cacc5dddf82d96d48ff2bb6d2",
+          "sha256:47ea6c3dc2a1dfcbb39a73bfefdaee67ba30e0a5be585065d321467e98f41b7d",
+          "sha256:26b37828478294cd78e06b8e8bf1c771459669262c97eff2cd21a5cb9dfb04ee",
+          "sha256:de3c5b6a126effc288f06f5838e9ac5e3bdca8cc758e684419fd2dbb4b250490",
+          "sha256:b949620b28b39b7620b772e1d2679e3f845c5b563d4a00f3ef2c198364599675",
+          "sha256:c55b6bcdfaadbdf240242684d4abe4ec6429310fc8626aff90e7e5abc8c1030a",
+          "sha256:13d869a3751ffc2fca9f04775d09eb273e53700f0345ac004e3d746452d98a28",
+          "sha256:0a759c34d39c1ccf7c464e8020ec4b6bb8d66b9a5c408de3399662adeea0319c",
+          "sha256:5c555bbf052b264aca38a843f5dc6830912c96d0c7057462e3aad3fe97068acc",
+          "sha256:5c9b9f0ab0d86ac416a4617a4a6017f88951319dd31d8f38ab0c4340c4b0e717",
+          "sha256:549d78fd011101b5e6a4d844b3513bb9b67209b43739b600ce20be80f643f4c4",
+          "sha256:4100a0127f6713124ee4f6247a9b026bad4272f6ef7e04b26d8850b25aa7a749",
+          "sha256:791ac213e9222add76de5205930ee82cb8eedbc0a4b328bf6726fdacc6264817",
+          "sha256:8e931f647d4db3347ad81af509d190ed3335d94777b785e7a91cf09de174a529",
+          "sha256:c0c1e70789783199859d1acaeb8b1ae5240b1088f5dd699d3f90200917deaa04",
+          "sha256:55b3f2f34197acb82be0f7f22f6dcb571e9f63c20054ae00645e46a7212abc4d",
+          "sha256:ef8f2496e3005c053ac593f2de0f57ed43b6711de50403e0b68b930e6173e4c6",
+          "sha256:d60d6ebbaec2c13c612766b87e5a4ce4648ea811e0a09bb554d401942675c1b1",
+          "sha256:97bc8ed9f99d64241f46af92e1db91ba86f0faac5f2236c530e02996456eab2a",
+          "sha256:2dc509d728962e3057358617d123ffd676111deab1385091aea2d2cb7852d6ac",
+          "sha256:55ad9d6a035f1d1dc3cad7f623f2f91c1b1748040581618d3b7d4d002f6cb9cc",
+          "sha256:1b4486111e592859487206eedf18931432ff2767e55e9bbc5e30d6d1543feeb0",
+          "sha256:0304a64c8615ca29e83f6299a981489a56dbf3ace8ebf0d86a6696a855799a4a",
+          "sha256:7354edc9996eb8a3cdaa077367e9a5adc68051b9e7d339534625d4797b945b9a",
+          "sha256:62f7080a479f64ef38e9cd34ef47723449052e19eba540f70c24f180ab9252b7",
+          "sha256:44e08f5352aede8d906ac7ce22a6d1bec7aba2f75313c2e0d719090f47b871ba",
+          "sha256:1d99fae97a69272a3b342843b2a98d331c7b2cda4c10092f9215519070dedf8c",
+          "sha256:cfd745c292a479eaa3a66b4f5c960b0a16655a017699ae005e72fdc4dd473a4e",
+          "sha256:60e831f297ce53a079357f076528dc91737bd61178706756bd1585b88771e4e1",
+          "sha256:55653cd90c1db5359b4326a4bb0b91fc08e41d80991baeb05996f027c151ad95",
+          "sha256:74608bf51ee6b8344d9643df026c1ed109f623e017cc70166ed1ebcddc30475a"
+        ],
+        "note": "syntactic Expr equality of the certificate type and the reference statement"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:formal-core",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:988c30c29c3b014145fa3f5131f1f199d119c1e1880749ccaf55e59a2db409df"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:near-spec",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:3f2a84e3f87f4500880990f861849cae0fdbf0ed46337268a948a2ba4bba012e"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:pinned-trusted-tree",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:35fbd26064cd2f7d64f5b1dce7f41da61d96129517f5696b321c463c45bafdf0"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:Classical.choice",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:Quot.sound",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:propext",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:leanchecker",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted (522 modules in 522 runs)"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:arena-audit",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted ()"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:nanoda",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted ()"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:lean4lean",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted (522 modules in 522 runs)"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:ndjson-audit",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted (32494 decls)"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:verifier_model",
+        "kind": "contains_candidate_model",
+        "status": "checked",
+        "evidence": [
+          "sha256:ce5153b9a1da8c7306500d7d42abdad854f32afd3f19725a2c9f4ac19e7c40de"
+        ],
+        "note": "statement instantiated at the candidate model; model closure audited (axioms, no sorry/native/partial/unsafe/extern, no shadowing)"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:verifier_model",
+        "kind": "proves_obligations_about",
+        "status": "checked",
+        "evidence": [],
+        "note": "semantic/crypto/completeness obligations are kernel-checked about this model"
+      },
+      {
+        "from": "artifact:verifier_binary",
+        "to": "formal:verifier_model",
+        "kind": "implements",
+        "status": "trusted",
+        "evidence": [
+          "sha256:c82117cb46db768c5eb158bcdf6e30508e8aadc2590510464ff3a40280e22472"
+        ],
+        "note": "compiled by the judge from the model with the governed Lean compiler; NOT a checked edge"
+      },
+      {
+        "from": "artifact:verifier_binary",
+        "to": "tcb:lean_compiler_runtime",
+        "kind": "built_from",
+        "status": "trusted",
+        "evidence": [
+          "sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867"
+        ],
+        "note": "trusted-base entry"
+      }
+    ]
+  },
+  "revoked": null,
+  "created_at": "2026-10-05T14:32:34.171124Z",
+  "updated_at": "2026-10-05T15:36:33.918514Z",
+  "artifacts": [
+    {
+      "label": "build log 1",
+      "digest": "sha256:33a10d3ec6fd7433221206156e0faa1764db889abc0c2dea70d08c8a220d6b85"
+    },
+    {
+      "label": "build log 2",
+      "digest": "sha256:65552baf3d83de7d4a2d4b897ec74bb69baca73d4e7e3c249bff09fa2b35ac47"
+    },
+    {
+      "label": "public_artifacts",
+      "digest": "sha256:18afdd4d7ce328dc863ad3cea9e363bf30a970fc982636471cfdaa74b74b1e5a"
+    },
+    {
+      "label": "claim fixture/example-tierA",
+      "digest": "sha256:10143c59f0ade440b4083f683ad64874eb4c8c62f0c6676a97be35d91419df51"
+    },
+    {
+      "label": "proof fixture/example-tierA",
+      "digest": "sha256:9419e50fd9d1c4dbce26afc9ee335e6683650eab9efe100cea62bc05c9bbd8c6"
+    },
+    {
+      "label": "claim fixture/example-tierB",
+      "digest": "sha256:52105ad679a1c78b42179912e846e8d79978918f2a67c6ed6437caa27d8d8871"
+    },
+    {
+      "label": "proof fixture/example-tierB",
+      "digest": "sha256:e8559b2df3918e3d036380eff17170a1f26c555b9765d98ffb16d6eb418a26f6"
+    },
+    {
+      "label": "claim fixture/s20261003-v0",
+      "digest": "sha256:0e7e710a032e95d90649a64db8376eda17172cbf15128a6264f27a900a4f67bf"
+    },
+    {
+      "label": "proof fixture/s20261003-v0",
+      "digest": "sha256:6bc5e830940e9955046eb1e39bc88186311dbca50e601270c89d72961b5ad354"
+    },
+    {
+      "label": "claim fixture/s20261003-v1",
+      "digest": "sha256:4469ac3e490d1583d3eb9785419be3f3d9e92734c7a97f519eeaf46ef7d95bcd"
+    },
+    {
+      "label": "proof fixture/s20261003-v1",
+      "digest": "sha256:704ba45e70668157fe6b0f0cb38e039e9f622cdb895c2fc72ddbf21289ff96b1"
+    },
+    {
+      "label": "claim fixture/s20261003-v10",
+      "digest": "sha256:32ae95c80000819d74cc53c80bd0a0dc2cc17c76ea8fd9d919faa1ba9795d88b"
+    },
+    {
+      "label": "proof fixture/s20261003-v10",
+      "digest": "sha256:37f1cd7699e0816418600255180fa1674fb89575d335d60a31f397e3658b3a59"
+    },
+    {
+      "label": "claim fixture/s20261003-v11",
+      "digest": "sha256:2e5279432846e51332c70b210f9b837110ea82b710afccf7487553ef5a3a151d"
+    },
+    {
+      "label": "proof fixture/s20261003-v11",
+      "digest": "sha256:4fa1e38ae798db2e27f3e8b953fa56bda03d160ad461a81b61aabdc1e894cd45"
+    },
+    {
+      "label": "claim fixture/s20261003-v12",
+      "digest": "sha256:759d260d4243e809cb5d4b7e362c17a10d57c610540f02b04b7c37c9cfb65016"
+    },
+    {
+      "label": "proof fixture/s20261003-v12",
+      "digest": "sha256:1f00ab30a6155baa06c6e05ceda87fc8bd3102cf5440fb7850668486f9567640"
+    },
+    {
+      "label": "claim fixture/s20261003-v13",
+      "digest": "sha256:0d8bb49db94ac01a543788fd80fe75db8d2e22b2ef5849fc540390226bcb0f92"
+    },
+    {
+      "label": "proof fixture/s20261003-v13",
+      "digest": "sha256:9e3c25a0300d725960bdd589cdb968eb8ab7af7d2645a7f06e04facdd5105be0"
+    },
+    {
+      "label": "claim fixture/s20261003-v14",
+      "digest": "sha256:9ea57c240ab6e1b23cc5491ddcc237c8022d7f8218e84b139f2fbee6996eeecd"
+    },
+    {
+      "label": "proof fixture/s20261003-v14",
+      "digest": "sha256:7dab659d8750d6a2d1f5ffe3eb44d9fdfd9b8a5182460517208a394d6ec52c20"
+    },
+    {
+      "label": "claim fixture/s20261003-v15",
+      "digest": "sha256:4d559d143f03992240bcfd3ec12bbc98bb325144ef601736d23d6f2f57909488"
+    },
+    {
+      "label": "proof fixture/s20261003-v15",
+      "digest": "sha256:c9fb521fe236fd638488a21898436f9023d8a0cb13b4e15c9ab95b60ac71117e"
+    },
+    {
+      "label": "claim fixture/s20261003-v16",
+      "digest": "sha256:357f44c54b7b9bd9e165615d63b632136068568c3a7cfbb7c4d9051721621891"
+    },
+    {
+      "label": "proof fixture/s20261003-v16",
+      "digest": "sha256:a836822ddfeeb4eda1b0c885119df534a57f87b478165e29ac0c2e09c3f0459f"
+    },
+    {
+      "label": "claim fixture/s20261003-v17",
+      "digest": "sha256:d6dd1b0e78517d53421fcb81af569cb9163b55b8b6a97d0c01a0096f8dcd9602"
+    },
+    {
+      "label": "proof fixture/s20261003-v17",
+      "digest": "sha256:60c507c044a201cb51cf9d7125b7b42218f69eba27ef2bbfa72df0f3eaa4c5f3"
+    },
+    {
+      "label": "claim fixture/s20261003-v2",
+      "digest": "sha256:6cf458e3eca87357185d97afaebd9580a04ed625e96f452b06d71ec59ede9afe"
+    },
+    {
+      "label": "proof fixture/s20261003-v2",
+      "digest": "sha256:fb640ed98ae0c9af9f8b1076138b54c4f3c1396c75813be59174173d75797777"
+    },
+    {
+      "label": "claim fixture/s20261003-v3",
+      "digest": "sha256:6edb6c3e24d5329ec08f0158f99a439fb5bf68b9f9b3dc4bea097ab75f7ef212"
+    },
+    {
+      "label": "proof fixture/s20261003-v3",
+      "digest": "sha256:aef98accfca67ec842426dd33fcce885244e3e506618f629bf03ceee9658850e"
+    },
+    {
+      "label": "claim fixture/s20261003-v4",
+      "digest": "sha256:b02f73a48fc5f42095373bde8224f4ab55d0d16ed7b63e75af4a20c4c40d07e8"
+    },
+    {
+      "label": "proof fixture/s20261003-v4",
+      "digest": "sha256:afbef6013cba143b8d349f2f756fb6a60a4c61548cc02e98afc1f4a6cf513a3e"
+    },
+    {
+      "label": "claim fixture/s20261003-v5",
+      "digest": "sha256:e5dc6d967b06c420fc54284d79c5f8dd64c7ba24020b458121a09f50605fed4f"
+    },
+    {
+      "label": "proof fixture/s20261003-v5",
+      "digest": "sha256:4f68cc46895c17f428fb78f33d7bccf212da71a23dca73dd5a723a17ef5d006d"
+    },
+    {
+      "label": "claim fixture/s20261003-v6",
+      "digest": "sha256:e15cd189ad76fd4d6aa4d0889e046c0ea9d9783cbfcae985a6e72ca8d35cf025"
+    },
+    {
+      "label": "proof fixture/s20261003-v6",
+      "digest": "sha256:739fe56ad5762f0faf4dd1ffa4989c20ef826843bf1b351e35fd286bb8efbdd6"
+    },
+    {
+      "label": "claim fixture/s20261003-v7",
+      "digest": "sha256:f72cabd6afad45bb5caa60bbbdf4a4b954e2d60fa936e2ec463489af13c96613"
+    },
+    {
+      "label": "proof fixture/s20261003-v7",
+      "digest": "sha256:ced1aec0c15f9bae146006d3ca461f0a8fa38c9f71d42dfac082dc70e36f6b3c"
+    },
+    {
+      "label": "claim fixture/s20261003-v8",
+      "digest": "sha256:030c9927b4a4cabdd01ddde48f1713e90976997e87d216e4feae681303a9272c"
+    },
+    {
+      "label": "proof fixture/s20261003-v8",
+      "digest": "sha256:6f6543183f5dbd49bb26cd0ef62975accfe93538760f7019608ff61b743e53a7"
+    },
+    {
+      "label": "claim fixture/s20261003-v9",
+      "digest": "sha256:3cf9cc3df63476c1a7b505032caac4963053a9436366dd884b34d13332ee2d71"
+    },
+    {
+      "label": "proof fixture/s20261003-v9",
+      "digest": "sha256:0c6236b2137732bfca05d9225843dfb3fd000e40d4dda3bccdaa464ad0430192"
+    },
+    {
+      "label": "benchmark session",
+      "digest": "sha256:76edd90d58ed221a0f571e36716b5f85352544427986eb960655bfc30f69e5b8"
+    }
+  ],
+  "verified_surface": {
+    "challenge_id": "chl_7c0456cb2d1a36f8601863ac206cfcc9",
+    "verify_artifact": "sha256:c82117cb46db768c5eb158bcdf6e30508e8aadc2590510464ff3a40280e22472",
+    "prepare_artifact": "sha256:683ba931004439021372adc114ca48f78337c26fac565dead4f384ad62a14f3b",
+    "public_artifacts": "sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
+    "formal_tree": "sha256:6caae14d2b65af1d900044c5911747ff28f22b24552065f41bbd823677133595",
+    "certificate_decl": "NpUdrStark.certificate",
+    "checker_image": "sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867",
+    "verify_route": "native-lean",
+    "verifier_model": "NpUdrStark.Model.verifier",
+    "verifier_model_module": "NpUdrStark.Model"
+  },
+  "build": {
+    "toolchain_image": "sha256:70d2b28003f8117601772dedb7f42393e928ccfcca7356a49d675ec3f878a8a1",
+    "reproducible": true,
+    "build_ns": 102800609767
+  },
+  "assumptions": [
+    {
+      "id": "sha256-collision-resistance",
+      "lean_decl": null,
+      "description": null
+    },
+    {
+      "id": "random-oracle-fiat-shamir-sha256",
+      "lean_decl": null,
+      "description": null
+    },
+    {
+      "id": "formal:axiom:Classical.choice",
+      "lean_decl": null,
+      "description": "Classical.choice"
+    },
+    {
+      "id": "formal:axiom:Quot.sound",
+      "lean_decl": null,
+      "description": "Quot.sound"
+    },
+    {
+      "id": "formal:axiom:propext",
+      "lean_decl": null,
+      "description": "propext"
+    }
+  ],
+  "trusted_base": [
+    {
+      "id": "lean-toolchain",
+      "label": "Lean kernel (leanprover/lean4:v4.34.1)",
+      "digest": null
+    },
+    {
+      "id": "checker-image",
+      "label": "formal checker image",
+      "digest": "sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867"
+    },
+    {
+      "id": "rechecker:leanchecker",
+      "label": "rechecker leanchecker",
+      "digest": null
+    },
+    {
+      "id": "rechecker:nanoda",
+      "label": "rechecker nanoda",
+      "digest": null
+    },
+    {
+      "id": "rechecker:lean4lean",
+      "label": "rechecker lean4lean",
+      "digest": null
+    },
+    {
+      "id": "sandbox:firecracker",
+      "label": "judge sandbox backend firecracker",
+      "digest": null
+    },
+    {
+      "id": "tcb:lean_toolchain",
+      "label": "Lean leanprover/lean4:v4.34.1",
+      "digest": "sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867"
+    },
+    {
+      "id": "tcb:leanchecker",
+      "label": "leanchecker",
+      "digest": null
+    },
+    {
+      "id": "tcb:arena-audit",
+      "label": "arena-audit",
+      "digest": null
+    },
+    {
+      "id": "tcb:nanoda",
+      "label": "nanoda",
+      "digest": null
+    },
+    {
+      "id": "tcb:lean4lean",
+      "label": "lean4lean",
+      "digest": null
+    },
+    {
+      "id": "tcb:ndjson-audit",
+      "label": "ndjson-audit",
+      "digest": null
+    },
+    {
+      "id": "tcb:lean_compiler_runtime",
+      "label": "Lean compiler + runtime leanprover/lean4:v4.34.1",
+      "digest": "sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867"
+    }
+  ],
+  "logs": [],
+  "revocation_history": []
+}
