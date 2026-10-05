@@ -1,4 +1,5 @@
 import ZkFormal.Near.Render.Proof.NodeLocal0
+import ZkFormal.Near.Render.Proof.NodeTraffic
 
 /-!
 # ZkFormal.Near.Render.Proof.NodeSeq — consecutive rows of the honest node table
