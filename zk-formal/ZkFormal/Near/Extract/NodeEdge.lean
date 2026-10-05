@@ -351,3 +351,68 @@ theorem keyRowEdge (hC : NodeCtx tr s ℓ fl) {o L : Nat} (hm : (o, L) ∈ fl) (
       rw [hB, if_pos (show d + 1 = L ∧ cv tr T_NODE s xdead = 1 from ⟨hl, cv_one hx⟩)]; simp
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+theorem fp_vhA (a b' c' d' t : Fp) : (0 : Fp) + (0 * a * b' + (1 * 0 * c' * d' + (1 * 1 * t + 0))) = t := by grind
+theorem fp_chA (a b' c' d' r e f : Fp) : (0 : Fp) + (0 * a * b' + (1 * 1 * r * (c' + d') + (1 * 0 * e + 0))) =
+    r * (c' + d') := by grind
+theorem fp_sub_mul_zero (a b' : Fp) : (0 : Fp) - 0 * a * b' = 0 := by grind
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+theorem vhEdge (hC : NodeCtx tr s ℓ fl) {o : Nat} (hm : (o, 32) ∈ fl) (ho : 0 < o)
+    (sH : tr.cell T_NODE (s + o) sVH = 1) {n : Nat} (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) (hnP : n < P)
+    (hh : cv tr T_NODE s tl = 1 → 1 ≤ cv tr T_NODE s hplen ∧ cv tr T_NODE s hplen < ℓ) :
+    rowEdgeN tr pub (s + o) = if cv tr T_NODE s tv = 1 then
+      [([n, if cv tr T_NODE s tl = 1 then 2 * (cv tr T_NODE s hplen - 1) + cv tr T_NODE s odd else 0, SYM_END, n, 0],
+        cv tr T_NODE (s + o) mA)] else [] := by
+  have hoℓ : o < ℓ := by have := (hC.fields.field _ hm); simp at this; have := this.1.pos; omega
+  have hP := hP_of hL hC
+  obtain ⟨hr, ha, hnid⟩ := inRow hL hC hoℓ hn hnP
+  obtain ⟨hF, hH⟩ := fieldAt hL hC hm
+  have hfs : tr.cell T_NODE (s + o) fs = 1 := by simpa using (hF.fs 0 (by omega)).2 rfl
+  have z := fun y (hy : y ∈ states) (hne : y ≠ sVH) => stOnly hL hr ha sH (by simp [states]) hy hne
+  have cst := fun x (hx : x ∈ nodeConst) => segConst hL hC hx hoℓ
+  obtain ⟨GA, GB⟩ := gatesAt hL hr
+  rw [z sKEY (by simp [states]) (by decide), z sHPF (by simp [states]) (by decide), z sCH (by simp [states]) (by decide),
+    sH, hfs, if_neg (by omega)] at GA
+  rw [z sKEY (by simp [states]) (by decide)] at GB
+  have hB : tr.cell T_NODE (s + o) gB = 0 := by rw [GB]; exact fp_sub_mul_zero _ _
+  have hA : tr.cell T_NODE (s + o) gA = tr.cell T_NODE s tv := by rw [GA, fp_vhA, cst tv (by simp [nodeConst])]
+  unfold rowEdgeN; rw [hB, hA]
+  rcases isBool hL (r := s) (by omega) (x := tv) (by simp [boolCols]) with ht | ht
+  · rw [ht, if_neg (show ¬ cv tr T_NODE s tv = 1 by rw [cv_zero ht]; omega)]; simp
+  · rw [ht, if_pos (show cv tr T_NODE s tv = 1 from cv_one ht), if_pos rfl]
+    have M := winMisc hL hr
+    have hgD : tr.cell T_NODE (s + o) gD - tr.cell T_NODE (s + o) gP = 1 := by
+      rw [M.2.1, hfs, sH, cst tv (by simp [nodeConst]), ht]; grind
+    have E := (edgeFacts hL hr (pub := pub)).2.2.2.1 hgD
+    simp only at E
+    obtain ⟨e1, e2, e3, e4⟩ := E
+    have hI : cv tr T_NODE (s + o) aI = if cv tr T_NODE s tl = 1 then 2 * (cv tr T_NODE s hplen - 1) + cv tr T_NODE s odd else 0 := by
+      rw [cst tl (by simp [nodeConst])] at e1
+      have bo := cvb hL (r := s) (by omega) (x := odd) (by simp [boolCols])
+      rcases isBool hL (r := s) (by omega) (x := tl) (by simp [boolCols]) with hl | hl
+      · rw [if_neg (show ¬ cv tr T_NODE s tl = 1 by rw [cv_zero hl]; omega)]; unfold cv; rw [e1, hl, fp_zero_mul]
+        exact Fp.toNat_zero
+      · rw [if_pos (show cv tr T_NODE s tl = 1 from cv_one hl)]
+        obtain ⟨h1, hhP⟩ := hh (cv_one hl)
+        apply cv_of_eq _ (by omega)
+        rw [e1, hl]
+        simp only [sE, eval_add, eval_smul, eval_sub, eval_c, eval_k]
+        rw [cst hplen (by simp [nodeConst]), cst odd (by simp [nodeConst]), cell_eq_cast tr T_NODE s hplen,
+          cell_eq_cast tr T_NODE s odd, show cv tr T_NODE s hplen = (cv tr T_NODE s hplen - 1) + 1 by omega,
+          natCast_add (cv tr T_NODE s hplen - 1) 1, natCast_add, natCast_mul]
+        grind
+    have hS : cv tr T_NODE (s + o) aS = SYM_END := by
+      unfold cv; rw [e2]; exact toNat_of_eq rfl (by unfold SYM_END P; omega)
+    have hN : cv tr T_NODE (s + o) aN = n := by unfold cv; rw [e3]; exact hnid
+    have hJ : cv tr T_NODE (s + o) aJ = 0 := by unfold cv; rw [e4]; exact Fp.toNat_zero
+    unfold eAN; rw [hnid, hI, hS, hN, hJ]; simp
+
+end ZkFormal.Near.NodeProof
