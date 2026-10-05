@@ -38,3 +38,5 @@ import ZkFormal.Algebra.Main
 -- Lane L1 (algebra): BabyBear, its degree-8 extension, polynomials, RS codes.
 import ZkFormal.Stark.NpBounds
 import ZkFormal.Stark.QueryBound
+-- Lane L5: SHA-256 block table (statements, composition, generator).
+import ZkFormal.Sha.Compose
