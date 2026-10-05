@@ -1,0 +1,3 @@
+batch-1 median_ns=1989271600 baseline_ns=6211419 verify_median_ns=431491297 proof_bytes_max=1955439 peak_rss=604123136
+batch-16 median_ns=6492014396 baseline_ns=6876460 verify_median_ns=572230665 proof_bytes_max=2461047 peak_rss=671911936
+batch-256 median_ns=62156378513 baseline_ns=10205590 verify_median_ns=776622622 proof_bytes_max=3077615 peak_rss=3459911680
