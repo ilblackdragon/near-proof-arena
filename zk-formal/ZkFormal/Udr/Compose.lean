@@ -34,7 +34,7 @@ theorem strong_line_rs2_scalar (hBW : RsGapStmt) {K : Type} [Field K] (xs : Nat 
 /-- **FRI query-phase bound.** With good challenges, if `f 0` is not `e 0`-close
 to the layer-0 RS code, fewer than `nn 0 - e 0` query positions pass. -/
 theorem fri_far_pass_lt (hF : FriStmt) {K : Type} [Field K] (S : Fri.Setup K) (R : Fri.Run K)
-    (e : Nat → Nat) (he : ∀ i, i < S.r → e i ≤ 2 * e (i + 1)) (hg : Fri.GoodChallenges S R e)
+    (e : Nat → Nat) (he : ∀ i, i < S.r → e i ≤ 2 * e (i + 1) + 1) (hg : Fri.GoodChallenges S R e)
     (hfar : ¬ ∃ w, (S.code 0 (Nat.zero_le _)).mem w ∧ dist (S.nn 0) (R.f 0) w ≤ e 0) :
     count (List.range (S.nn 0)) (Fri.passK S R S.r) < S.nn 0 - e 0 := by
   refine Nat.lt_of_not_le fun hle => hfar ?_

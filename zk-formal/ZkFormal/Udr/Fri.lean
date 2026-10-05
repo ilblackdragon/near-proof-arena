@@ -90,7 +90,7 @@ def RollClose (S : Setup K) (R : Run K) (e : Nat → Nat) (i : Nat) : Prop :=
 /-- The layer-by-layer pass-set argument, layer `i = r - k`; also every
 roll-in word from layer `i` upward is close to its code. -/
 theorem fri_layer (S : Setup K) (R : Run K) (e : Nat → Nat)
-    (he : ∀ i, i < S.r → e i ≤ 2 * e (i + 1)) (hgood : GoodChallenges S R e) :
+    (he : ∀ i, i < S.r → e i ≤ 2 * e (i + 1) + 1) (hgood : GoodChallenges S R e) :
     ∀ k i, i + k = S.r → S.nn i - e i ≤ count (List.range (S.nn i)) (passK S R k) →
       (∃ p : Nat → K, ∀ j, j < S.nn i → passK S R k j →
         R.f i j () = ev (S.DD i) p (S.xs i j)) ∧

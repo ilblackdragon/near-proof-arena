@@ -31,7 +31,7 @@ theorem strong_line_rs_scalar {K : Type} [Field K] (xs : Nat → K) (n D e : Nat
 /-- **FRI query-phase bound** (UDR): with good challenges and a far input word,
 fewer than `nn 0 - e 0` positions pass all checks. -/
 theorem fri_query_bound {K : Type} [Field K] (S : Fri.Setup K) (R : Fri.Run K)
-    (e : Nat → Nat) (he : ∀ i, i < S.r → e i ≤ 2 * e (i + 1)) (hg : Fri.GoodChallenges S R e)
+    (e : Nat → Nat) (he : ∀ i, i < S.r → e i ≤ 2 * e (i + 1) + 1) (hg : Fri.GoodChallenges S R e)
     (hfar : ¬ ∃ w, (S.code 0 (Nat.zero_le _)).mem w ∧ dist (S.nn 0) (R.f 0) w ≤ e 0) :
     count (List.range (S.nn 0)) (Fri.passK S R S.r) < S.nn 0 - e 0 :=
   fri_far_pass_lt fri S R e he hg hfar
