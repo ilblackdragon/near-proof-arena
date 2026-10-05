@@ -24,10 +24,12 @@
 #
 # usage: build-recipe/sync-lean.sh   (from anywhere)
 set -euo pipefail
-PIN=4f5c19dfbffe0fb14e48870ea9489f6e46a896f8   # challenge allowed_packages commit
+# challenge allowed_packages commit: near-transfer-receipt-v1-zk (challenges/drafts/,
+# formal-core with ArenaCore.sha256Fast). formal-core/ and spec/lean/ are unchanged since.
+PIN=e4088761c996284e25787bd61eabe8bf079bc914
 pkg="$(cd "$(dirname "$0")/.." && pwd)"
 repo="$(git -C "$pkg" rev-parse --show-toplevel)"
-NEARSPEC="Bytes SHA256 AccountId Primitives Trie Outcome TransferV1 ClaimCodec Challenge"
+NEARSPEC="Bytes SHA256 AccountId Primitives Trie Outcome TransferV1 ClaimCodec Challenge"   # runners/formal-checker/challenges/near-transfer-receipt-v1.json
 
 dst="$pkg/source/lean-vendor"
 rm -rf "$dst"
@@ -63,10 +65,38 @@ TOML
 ( cd "$dst" && find . -type f ! -path './*/.lake/*' | LC_ALL=C sort | xargs sha256sum ) \
   > "$pkg/dependency-locks/lean-vendor.sha256"
 
-# zk-formal: the working tree (lanes commit there first), sources only.
+# zk-formal: the working tree (lanes commit there first), sources only, and ONLY the
+# modules in the import closure of formal/NpUdrStark/*.lean (the verifier model and
+# the certificate): the judge elaborates every .lean file under formal/.
 rm -rf "$pkg/formal/ZkFormal" "$pkg/formal/ZkFormal.lean"
-( cd "$repo/zk-formal" && git ls-files --cached --others --exclude-standard ZkFormal.lean 'ZkFormal/*.lean' 'ZkFormal/**/*.lean' \
-  | LC_ALL=C sort -u | tar -cf - -T - ) | tar -xf - -C "$pkg/formal"
-( cd "$pkg/formal" && find ZkFormal.lean ZkFormal -type f -name '*.lean' | LC_ALL=C sort | xargs sha256sum ) \
+python3 - "$repo/zk-formal" "$pkg/formal" <<'PY'
+import os, re, shutil, sys
+src, dst = sys.argv[1], sys.argv[2]
+def imports(path):
+    txt = open(path, encoding="utf-8").read()
+    txt = re.sub(r"/-.*?-/", "", txt, flags=re.S)
+    txt = re.sub(r"--[^\n]*", "", txt)
+    return re.findall(r"^\s*import\s+([A-Za-z0-9_.']+)", txt, flags=re.M)
+todo = []
+for f in sorted(os.listdir(os.path.join(dst, "NpUdrStark"))):
+    if f.endswith(".lean"):
+        todo += imports(os.path.join(dst, "NpUdrStark", f))
+seen = set()
+while todo:
+    m = todo.pop()
+    if m in seen or not m.startswith("ZkFormal"):
+        continue
+    seen.add(m)
+    p = os.path.join(src, *m.split(".")) + ".lean"
+    if not os.path.isfile(p):
+        sys.exit(f"sync-lean: {m} not found in zk-formal")
+    todo += imports(p)
+for m in sorted(seen):
+    rel = os.path.join(*m.split(".")) + ".lean"
+    os.makedirs(os.path.dirname(os.path.join(dst, rel)), exist_ok=True)
+    shutil.copyfile(os.path.join(src, rel), os.path.join(dst, rel))
+print(f"zk-formal closure: {len(seen)} modules")
+PY
+( cd "$pkg/formal" && find ZkFormal -type f -name '*.lean' | LC_ALL=C sort | xargs sha256sum ) \
   > "$pkg/dependency-locks/zk-formal.sha256"
 echo "lean-vendor: $(wc -l < "$pkg/dependency-locks/lean-vendor.sha256") files @ ${PIN:0:7}; zk-formal: $(wc -l < "$pkg/dependency-locks/zk-formal.sha256") files"
