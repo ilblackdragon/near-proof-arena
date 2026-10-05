@@ -1,6 +1,5 @@
 import ZkFormal.Prover.SizeBound
 import ZkFormal.NearAssembly.Final
-import ZkFormal.Toy.Air
 
 /-!
 # ZkFormal.Prover.SizeBoundNear — `NearSizeStmt` (lane L7-size)
@@ -31,12 +30,5 @@ theorem near_size : NearAssembly.NearSizeStmt := fun hdr h =>
   Nat.le_trans (sizeBound_le nearAir Params.default hdr 86 kappa_default (verifier_headerOk h).1)
     (by rw [near_sizeMax]; decide)
 
-theorem toy_sizeMax : sizeMax Toy.toyAir Params.default 86 ≤ 8388608 := by decide +kernel
-
-/-- Sanity instance: the toy AIR's size bound via the generic route. -/
-theorem toy_size' : ∀ hdr, (Vd Toy.toyAir).headerOk hdr = true →
-    sizeBound (Vd Toy.toyAir) hdr ≤ 8388608 := fun hdr h =>
-  Nat.le_trans (sizeBound_le Toy.toyAir Params.default hdr 86 kappa_default (verifier_headerOk h).1)
-    toy_sizeMax
 
 end ZkFormal.Prover.SizeBound

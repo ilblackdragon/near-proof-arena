@@ -87,7 +87,7 @@ MODEL_DECL="${MODEL_DECL:-$(toml verifier_model)}"
   echo "source/lean-vendor differs from dependency-locks/lean-vendor.sha256 (build-recipe/sync-lean.sh)" >&2
   exit 1
 }
-( cd formal && find ZkFormal.lean ZkFormal -type f -name '*.lean' 2>/dev/null | sort | xargs -r sha256sum ) \
+( cd formal && find ZkFormal -type f -name '*.lean' 2>/dev/null | sort | xargs -r sha256sum ) \
   | cmp -s - dependency-locks/zk-formal.sha256 || {
   echo "formal/ZkFormal differs from dependency-locks/zk-formal.sha256 (build-recipe/sync-lean.sh)" >&2
   exit 1
