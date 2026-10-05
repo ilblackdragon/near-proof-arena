@@ -22,7 +22,12 @@
 //!   --public-dir PUB --native-verifier BUILD/out/verify \
 //!   --oracle oracle/target/debug/near-arena-oracle \
 //!   --generators spec/workloads/near-transfer-receipt-v1 --fixtures oracle/fixtures/public \
-//!   --cpus 8-15 --fc-deps DIR --work DIR --out session.json
+//!   --cpus 8-15 --fc-deps DIR --work DIR --out session.json \
+//!   [--season-secret-file F --season-secret-commit sha256:…]
+//!
+//! With `--season-secret-file` the benchmark batches are sampled exactly as
+//! a live worker with `ARENA_SEASON_SECRET_FILE` samples them (HMAC of the
+//! season secret, BENCHMARK_SPEC §11.1); only the commitment is recorded.
 //! ```
 
 use arena_firecracker::{FirecrackerConfig, FirecrackerSandbox};
@@ -217,6 +222,16 @@ fn main() {
             chal.workload_suite.public_fixtures
         ));
     }
+    let secret_commitment = one.get("season-secret-file").map(|f| {
+        let s = arena_worker::oracle::SeasonSecret::from_file(
+            Path::new(f),
+            one.get("season-secret-commit").map(String::as_str),
+        )
+        .unwrap_or_else(|e| die(format!("season secret: {e}")));
+        let c = s.commitment().to_string();
+        oracles.set_season_secret(s);
+        c
+    });
     let fc = Arc::new(
         FirecrackerSandbox::new(
             FirecrackerConfig::from_deps_dir(&deps, &work.join("fc")).unwrap_or_else(|e| die(e)),
@@ -279,9 +294,16 @@ fn main() {
         "public_tree_digest": public_tree,
         "native_verifier": native_verifier,
         "procedure": chal.measurement,
-        "sampling": {
-            "rule": "worker NearOracle: seed = derive_seed(\"workload\", class_id, challenge_id, package_digest); fresh-confirm uses class_id#fresh",
-            "seed_parts": [chal_id, package_digest.to_string()],
+        "sampling": match &secret_commitment {
+            Some(c) => json!({
+                "rule": "worker NearOracle, judge-secret: seed = first 8 bytes BE of HMAC-SHA256(season_secret, \"near-arena-workload-sample-v1|\" + challenge_id + \"|\" + package_digest + \"|\" + class_id) (BENCHMARK_SPEC §11.1); fresh-confirm uses class_id#fresh",
+                "seed_parts": [chal_id, package_digest.to_string()],
+                "season_secret_commitment": c,
+            }),
+            None => json!({
+                "rule": "worker NearOracle: seed = derive_seed(\"workload\", class_id, challenge_id, package_digest); fresh-confirm uses class_id#fresh",
+                "seed_parts": [chal_id, package_digest.to_string()],
+            }),
         },
         "calibration": {"workload": CALIBRATION, "pre_ns": cal_pre, "post_ns": cal_post},
         "loadavg": load,

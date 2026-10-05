@@ -59,6 +59,10 @@ def main():
     ap.add_argument("--fc-deps", default=None, help="Firecracker deps dir (images built from this checkout)")
     ap.add_argument("--workloads", default=os.path.join(REPO, "spec/workloads/near-transfer-receipt-v1"),
                     help="generator specs <class>.json (digests must match the challenge)")
+    ap.add_argument("--season-secret-file", default=None,
+                    help="judge-only season secret (hex, 0600): sample batches as a live worker with "
+                         "ARENA_SEASON_SECRET_FILE does (BENCHMARK_SPEC §11.1); never printed")
+    ap.add_argument("--season-secret-commit", default=None, help="published commitment the secret must match")
     a = ap.parse_args()
 
     chal_path = os.path.abspath(a.challenge)
@@ -137,6 +141,10 @@ def main():
             "--work", os.path.join(work, "session"), "--out", session_json]
     if a.fc_deps:
         argv += ["--fc-deps", os.path.abspath(a.fc_deps)]
+    if a.season_secret_file:
+        argv += ["--season-secret-file", os.path.abspath(a.season_secret_file)]
+        if a.season_secret_commit:
+            argv += ["--season-secret-commit", a.season_secret_commit]
     started = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
     run(argv, cwd=REPO, env=dict(os.environ, RUSTC_WRAPPER=os.environ.get("RUSTC_WRAPPER", "sccache")))
     finished = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
@@ -188,7 +196,10 @@ def main():
         "cpus": s["cpus"],
         "procedure": s["procedure"],
         "sampling": dict(s["sampling"], generators=gens, oracle_nearcore_pin=oracle_commit.strip().splitlines(),
-                         note="public seeds (the season-secret HMAC of §11.1 is not wired in the worker)"),
+                         note=("judge-secret HMAC sampling (season secret commitment "
+                               + s["sampling"]["season_secret_commitment"] + "), as the live workers sample")
+                         if s["sampling"].get("season_secret_commitment") else
+                         "PUBLIC seeds derive_seed(...): reproducible by anyone; not the live (secret-seeded) procedure"),
         "schedule_seed": s["session"].get("schedule_seed"),
         "gates": {k: {"status": v["status"], "summary": v["summary"], "reason_codes": v["reason_codes"]} for k, v in gates.items()},
         "flags": s["session"]["flags"],
