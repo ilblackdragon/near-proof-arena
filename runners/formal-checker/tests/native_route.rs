@@ -157,6 +157,19 @@ fn native_lean_route() {
             expect: vec![(None, GateStatus::Pass, vec![])],
         },
         Case {
+            name: "native_model_csimp_sorry",
+            model: "csimp_sorry",
+            route: native,
+            // compiled-code finding: every gate incl. ARTIFACT_BINDING fails
+            expect: fail_all(vec!["SORRY_FOUND"]),
+        },
+        Case {
+            name: "native_model_csimp_honest",
+            model: "csimp_honest",
+            route: native,
+            expect: vec![(None, GateStatus::Pass, vec![])],
+        },
+        Case {
             name: "native_model_sorry",
             model: "sorry",
             route: native,
@@ -314,7 +327,13 @@ fn native_lean_route() {
             if !rep.gates.iter().any(|g| g.gate == ArtifactBinding) {
                 errs.push(format!("{}: no ARTIFACT_BINDING gate", c.name));
             }
-            if c.name == "native_ok" {
+            if c.name == "native_model_csimp_sorry" {
+                if let Some(nb) = rep.native_verifier.as_ref() {
+                    let bad = run_verifier(&nb.path, &dir.join("run"), &[0, 0x42]);
+                    eprintln!("    (attack demo) judge-built binary on an INVALID claim exits {bad} (0 = the unsound csimp took effect); gates reject it");
+                }
+            }
+            if c.name == "native_ok" || c.name == "native_model_csimp_honest" {
                 let nb = rep.native_verifier.as_ref().expect("judge-built verifier");
                 assert_eq!(digest::sha256_file(&nb.path).unwrap(), nb.digest);
                 let ok = run_verifier(&nb.path, &dir.join("run"), &[0, 0x41]);

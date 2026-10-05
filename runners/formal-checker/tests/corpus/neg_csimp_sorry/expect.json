@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "SORRY_FOUND"
+    ]
+  },
+  "description": "@[csimp] proved by sorry: compiled code would run bogusSum; lemma is outside the certificate closure"
+}

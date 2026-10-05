@@ -38,6 +38,8 @@ structure Config where
   modelDecl : String
   /-- Judge-generated `def inst : Prop := expectedDecl modelDecl` (`""` = none). -/
   instDecl : String
+  /-- Axioms the challenge allows (for attributing candidate-wide violations). -/
+  axiomAllowlist : Option (Array String) := none
   deriving FromJson, Inhabited
 
 /-- Plain dotted name parser (no «» escapes; arena names are plain identifiers). -/
@@ -253,6 +255,77 @@ def check (cfg : Config) : IO UInt32 := do
         ("modelModule", toJson (match moduleOf env modelName with | some m => nameStr m | none => "")),
         ("modelOrigin", toJson (classify modelName)),
         ("modelAxioms", toJson (strArr maxioms)), ("modelClosure", Json.arr mJson)]
+  -- Compiler-substitution lemmas (`@[csimp]`). They change COMPILED code
+  -- (e.g. the judge-built native verifier) without appearing in the
+  -- certificate's dependency closure, so every non-trusted one is audited
+  -- here: its statement must literally be `@f = @g` (as Lean requires) and
+  -- its whole closure is reported for the axiom audit.
+  -- Read the raw per-module entries (global AND scoped) of every non-trusted
+  -- module, not the merged state (which depends on import-time finalization
+  -- and on which scopes happen to be open).
+  let mut csimpEntries : Array Compiler.CSimp.Entry := #[]
+  for h : i in [0:env.header.moduleNames.size] do
+    let m := env.header.moduleNames[i]
+    if trusted.contains m || isToolchainModule cfg m then continue
+    for lvl in [OLeanLevel.exported, OLeanLevel.private] do
+      for e in Compiler.CSimp.ext.ext.getModuleEntries env i (level := lvl) do
+        let ce := match e with
+          | .global a => a
+          | .scoped _ a => a
+        if !csimpEntries.any (fun x => x.thmName == ce.thmName && x.fromDeclName == ce.fromDeclName) then
+          csimpEntries := csimpEntries.push ce
+  let mut csimpJson : Array Json := #[]
+  for e in csimpEntries do
+    let origin := classify e.thmName
+    let (cclo, cmissing) := closure env #[e.thmName]
+    let caxioms := cclo.filter fun n => match env.find? n with
+      | some (.axiomInfo _) => true | _ => false
+    let statementOk := match env.find? e.thmName with
+      | some (.thmInfo v) =>
+        match (stripMData v.type).eq? with
+        | some (_, .const f us, .const g vs) =>
+          f == e.fromDeclName && g == e.toDeclName && us == vs &&
+            us == v.levelParams.map mkLevelParam
+        | _ => false
+      | _ => false
+    let bad := cclo.filter fun n =>
+      match env.find? n with
+      | some ci => classify n == "candidate" && (ci.isUnsafe || ci.isPartial ||
+          (match ci with | .opaqueInfo _ => true | _ => false))
+      | none => false
+    csimpJson := csimpJson.push <| Json.mkObj [("thm", toJson (nameStr e.thmName)),
+      -- escaped form (`«»` where needed), as consumed by lean4export's name-literal decoder
+      ("thmEscaped", toJson (toString e.thmName)),
+      ("from", toJson (nameStr e.fromDeclName)), ("to", toJson (nameStr e.toDeclName)),
+      ("origin", toJson origin), ("fromOrigin", toJson (classify e.fromDeclName)),
+      ("statementOk", toJson statementOk), ("axioms", toJson (strArr caxioms)),
+      ("unsafeOrPartial", toJson (strArr bad)), ("closureMissing", toJson (strArr cmissing))]
+  fields := fields ++ [("csimp", Json.arr csimpJson)]
+  -- Candidate-wide axiom audit: the union of the closures of EVERY constant
+  -- of every candidate module (fail closed on unrelated junk too: attributes
+  -- and compiled code can use declarations outside the certificate closure).
+  let mut candConsts : Array Name := #[]
+  for h : i in [0:env.header.moduleNames.size] do
+    if candMods.contains env.header.moduleNames[i] then
+      candConsts := candConsts ++ env.header.moduleData[i]!.constNames
+  let (allClo, _) := closure env candConsts
+  let allAxioms := allClo.filter fun n => match env.find? n with
+    | some (.axiomInfo _) => true | _ => false
+  let allow := (cfg.axiomAllowlist.getD #[]).map parseName
+  let badAxioms := allAxioms.filter fun a => !allow.contains a
+  -- Attribution (only on the failure path): which candidate constants use them.
+  let mut users : Array Json := #[]
+  if !badAxioms.isEmpty then
+    let mut examined := 0
+    for n in candConsts do
+      if users.size ≥ 50 || examined ≥ 2000 then break
+      examined := examined + 1
+      let (c, _) := closure env #[n]
+      for a in badAxioms do
+        if c.contains a then
+          users := users.push (Json.mkObj [("decl", toJson (nameStr n)), ("axiom", toJson (nameStr a))])
+  fields := fields ++ [("candidateAxioms", toJson (strArr allAxioms)), ("candidateAxiomUsers", Json.arr users),
+    ("candidateConstCount", toJson candConsts.size)]
   -- Attribute / safety scan over every constant of every candidate module.
   let mut flagged : Array Json := #[]
   for h : i in [0:env.header.moduleNames.size] do
@@ -264,11 +337,13 @@ def check (cfg : Config) : IO UInt32 := do
         let ext := isExtern env n
         let init := hasInitAttr env n || isIOUnitInitFn env n
         let isOpaque := match ci with | .opaqueInfo _ => true | _ => false
-        if implBy.isSome || ext || init || ci.isUnsafe || ci.isPartial || isOpaque then
+        let exportName := getExportNameFor? env n
+        if implBy.isSome || ext || init || ci.isUnsafe || ci.isPartial || isOpaque || exportName.isSome then
           flagged := flagged.push <| Json.mkObj [("name", toJson (nameStr n)), ("module", toJson (nameStr m)),
             ("implementedBy", match implBy with | some t => toJson (nameStr t) | none => Json.null),
             ("extern", toJson (ext)), ("init", toJson (init)), ("unsafe", toJson (ci.isUnsafe)),
-            ("partial", toJson (ci.isPartial)), ("opaque", toJson (isOpaque))]
+            ("partial", toJson (ci.isPartial)), ("opaque", toJson (isOpaque)),
+            ("export", match exportName with | some t => toJson (nameStr t) | none => Json.null)]
   fields := fields ++ [("flagged", toJson (Json.arr flagged))]
   IO.println (Json.compress (Json.mkObj fields))
   return 0
