@@ -305,3 +305,57 @@ arithmetic, claim checks, end-of-batch) and `RcptTrafficStmt`.  Gas/dep need
 the chain lemmas (`Σ out_j 256^j + 256^n·carry_n = Σ x_j 256^j`) and the
 no-overflow facts of `RcptOk`; `cEnd` needs `pub_n/pub_nref/pub_tok`
 (`Link/Claim`) with `Hdr = ⟨hg.pv, hg.chain⟩`.
+
+## Sub-lane L6e-rcpt (continuation): `RcptLocalStmt`, `RcptTrafficStmt` proved
+
+| obligation | theorem | modules |
+|---|---|---|
+| `cRegs` | `RcptP.regsFam` | `Proof/RcptRegs{1..4}` (loads, head, shifts, claim loads/rotations, tokens) |
+| `cGas` | `RcptP.gasFam` | `Proof/RcptGas{F,B,1,2,3}` |
+| `cDep` | `RcptP.depFam` | `Proof/RcptDep{F,1,2,3}` |
+| `cClaim` | `RcptP.claimFam` | `Proof/RcptClaim{1,2}` |
+| `cEnd` | `RcptP.endFam` | `Proof/RcptEnd` |
+| `RcptLocalStmt` | `RcptP.rcptLocal` | `Proof/RcptEnd` |
+| `RcptTrafficStmt` | `RcptP.rcptTraffic_ok` | `Proof/RcptTr{1,2,3}`, `Proof/RcptTraffic` |
+
+Toolkit: `Proof/RcptNat` (byte-serial `Nat` facts: `V x n = Σ x_j 256^j`,
+`chain x n = V x n / 256^n` and its digits, `bchain`/`bdig` with the final borrow
+`[V a < V b + b0]`, `V (conv g v) n = Σ g_j 256^j V v (n−j)`, bytes of `leBytes`);
+`GasOk`/`DepOk` (numeric facts from `Receipt.wf`, `RcptOk`, `Account.decode`;
+bridges `gasOk`, `depOk`); `Proof/RcptFam.fam_of` (a family on every row by
+row kind).  Traffic reuses the soundness side: `rcptLocal` ⇒ `shape_of`,
+`traffic_of`; every field row of the extracted receipt `i` is the honest record
+`seg i f k` (`rec_at`: active, state, index and `r` cells determine it), so the
+extracted parameters and view are the honest ones (`rs_eq`, `view_eq`; receipt
+count from `count_ok`).  Needed bound: `kslot < 3·10^6` (`ns.length ≤ revealedOf ≤
+maxWitnessBytes`).
+
+`RenderRest` is now `nodeL, digest` (rcpt fields removed).  No table or
+generator change, no statement fix.  Elaboration (`lake env lean`, wall): every
+new module ≤ 3.1 s (RcptClaim2 3.1 s, RcptRegs1 2.8 s, rest ≤ 2.3 s); axioms
+`propext, Classical.choice, Quot.sound`.
+
+## Sub-lane L6e-digest (lane/zk-L6-digest): `DigestBusStmt` proved
+
+| obligation | theorem | modules |
+|---|---|---|
+| node receives | `BusDigest.node_digest` | `Proof/DigNode` |
+| merkle levels = `merklize` | `BusDigest.levels_dig_eq`, `root_dig` | `Proof/DigMrk` |
+| mrk receives | `BusDigest.mrk_digest` | `Proof/DigMrk2` |
+| rcpt receives, assembly | `BusDigest.rcpt_digest`, `digestBus` | `Proof/BusDigest` |
+
+Messages on DIGEST are keyed by the SHA message id (`kind + 16·idx`), not by
+content, so the "one digest sent, received several times" worry does not
+arise: every id of `bundle.msgs` is received exactly once, and `dmult = true`
+for all messages is right.  Node: root `NPRE/NPOST` from the public roots
+(`preRoot`/`postRoot`, `pub_pre/pub_post`), each non-root node as the revealed
+child of its unique parent (`BusParent.count_children`), `VPRE/VPOST` per
+touched slot (the acct messages).  Mrk: the root (against `outRoot`) plus both
+children of every hashed node = the leaves plus the hashed nodes (rotation
+`BusMpos.rot`; a promoted node is its child).  Rcpt: `RC`/`RF` (against
+`rcCommit`/`rfCommit`), `PEO(r)`, `RID(r)` for refunds; `LEAF(r)` goes to mrk.
+No hypothesis beyond `Good ∧ Small` (`Small.keys` for the node serializations);
+no generator change.
+
+`RenderRest` is now `nodeL` only.  Elaboration (`lake env lean`, wall): every
+new module < 1 s; axioms `propext, Classical.choice, Quot.sound`.
