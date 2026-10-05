@@ -97,3 +97,5 @@ import ZkFormal.Stark.L2Facts
 import ZkFormal.Stark.ChunkBound
 import ZkFormal.Assembly.Params
 import ZkFormal.Assembly.RomBound
+import ZkFormal.Prover.Defs
+import ZkFormal.Prover.Statements
