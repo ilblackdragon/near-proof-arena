@@ -41,13 +41,6 @@ impl Col {
         }
     }
     #[inline]
-    fn set(&mut self, r: usize, x: u32) {
-        match self {
-            Col::U8(v) => v[r] = x as u8,
-            Col::U16(v) => v[r] = x as u16,
-            Col::U32(v) => v[r] = x,
-        }
-    }
     pub fn bytes(&self) -> usize {
         match self {
             Col::U8(v) => v.len(),
