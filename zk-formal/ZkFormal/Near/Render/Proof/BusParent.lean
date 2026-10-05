@@ -98,7 +98,7 @@ theorem parentBus' : ∀ (c : WfClaim) (e : Ext), Good c.1 e → KeyBound e →
   exact ((List.perm_iff_count.2 (count_children hs)).map _ |>.map Msg.toFp).count_eq m
 
 /-- `ParentBusStmt` from the missing `Good` field `KeyBound` (R-L6e-2). -/
-theorem parentBus_of (h : ∀ (c : Claim) (e : Ext), Good c e → KeyBound e) : ParentBusStmt :=
-  fun c e hg => parentBus' c e hg (h c.1 e hg)
+theorem parentBus_of (h : ∀ (c : Claim) (e : Ext), Good c e → Small e → KeyBound e) : ParentBusStmt :=
+  fun c e hg hs => parentBus' c e hg (h c.1 e hg hs)
 
 end ZkFormal.Near.Render

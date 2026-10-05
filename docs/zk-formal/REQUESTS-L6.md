@@ -227,3 +227,35 @@ bytes, and two SHA messages of `s ≥ 43` bytes take `2·(1 + 17·⌈(s+9)/64⌉
 5s/4` rows (tight at `s = 56`).  So the node messages need `≤ 1.25·3·10^6 +
 36·256 < 3.77·10^6` rows; the remaining `> 4·10^5` rows of `2^22` cover the
 `acct`, `mrk` and `rcpt` messages (`O(maxBatch)` messages of bounded length).
+
+## R-L6e-2 (L6-node): `Small` must bound the revealed key lengths — OPEN
+
+**Problem.** `Good` allows keys of up to 511 nibbles (`NodeRec.wf`), but the
+node table writes the hex-prefix length as one byte: the `HPL` row has
+`fs · (b − hplen) = 0` and the next three bytes `0`, so `hplen = 1 + s/2`
+must be `< 256`, i.e. `s < 510` nibbles.  The extraction-side view writes the
+same length as `u32r` (`[L, 0, 0, 0]`).
+
+*Counterexample.* One receipt whose walk reaches a touched leaf below a root
+branch, plus (in another root slot) a revealed extension with a 510-nibble key
+and an unrevealed child hash.  `Good` holds (revealed bytes ≪ 3 MB, the
+extension is off every walk), but the honest serialization of that extension
+starts `[3, 0, 1, 0, 0, …]` (`u32 256`): the `HPL` constraint fails
+(`NodeLocalStmt` is false), the view's `ser false` is `[3, 256, 0, 0, 0, …]`
+≠ `mkInfo.pre` (`NodeSerStmt`, hence the BYTES bus, false), and the `PARENT`
+length differs.  No trace exists for such an `Ext`.
+
+**Fix (minimal).** A field of `Small`:
+
+```lean
+  keys : ∀ nr ∈ e.ns, nr.key.length < 510      -- = Render.KeyBound e
+```
+
+`small_complete` gets it from the pruning: every revealed leaf/extension of
+`extOf c w` lies on the walk of a receiver key (`accountKeyPath`, at most
+`2·(1 + 64) = 130` nibbles), so its key is a segment of that path.
+
+Proved meanwhile (`Render/Proof/`): `parentBus'`, `parentBus_of`
+(`BusParent`), `nodeSer'`, `nodeSer_of` (`NodeSer`); `Proof/Main.lean`'s
+`RenderRest` now has the field `keys : ∀ c e, Good c e → Small e → KeyBound e`
+in place of `nodeSer`/`parent`; `edge` is proved outright (`BusEdge.edgeBus`).

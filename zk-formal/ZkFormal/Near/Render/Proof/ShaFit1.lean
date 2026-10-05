@@ -1,4 +1,4 @@
-import ZkFormal.Near.Render.Proof.Base
+import ZkFormal.Near.Render.Proof.NodeInfo
 
 /-!
 # ZkFormal.Near.Render.Proof.ShaFit1 — node serializations of `mkInfo` are short bytes
@@ -69,123 +69,91 @@ theorem toNats_lt (b : Bytes) : ∀ x ∈ toNats b, x < 256 := by
   obtain ⟨y, -, rfl⟩ := hx
   exact y.toNat_lt
 
-/-! ## The loop of `mkInfo` -/
+/-! ## `mkInfo`'s serializations (closed form: `nodeSer` of the record tries) -/
 
-abbrev LS := Array (List Nat) × Array (List Nat) × Array Bytes × Array Bytes
+theorem kids_hashes (g : Nat → PTrie) : ∀ kids : List Kid,
+    Kids.hashes (kidsOf g kids) = concatAll (kids.map (kidBytes fun c => (g c).hashOf)) ∧
+      ∀ i, kidsBitmap (kidsOf g kids) i = bitmapOf kids i
+  | [] => ⟨rfl, fun _ => rfl⟩
+  | k :: kids => by
+    obtain ⟨h1, h2⟩ := kids_hashes g kids
+    cases k with
+    | none => exact ⟨by simp [kidsOf, Kids.hashes, h1, concatAll, kidBytes],
+        fun i => by simp [kidsOf, kidsBitmap, bitmapOf, kidBit, h2]⟩
+    | hash h => exact ⟨by simp [kidsOf, Kids.hashes, PTrie.hashOf, h1, concatAll, kidBytes],
+        fun i => by simp [kidsOf, kidsBitmap, bitmapOf, kidBit, h2]⟩
+    | node c => exact ⟨by simp [kidsOf, Kids.hashes, h1, concatAll, kidBytes],
+        fun i => by simp [kidsOf, kidsBitmap, bitmapOf, kidBit, h2]⟩
 
-/-- One step of `mkInfo`'s serialization loop. -/
-def loopF (ns : Array NodeRec) (vpre vpost : Array (List Nat)) (s : LS) (n : Nat) : LS :=
-  (s.1.set! n (toNats (ser (sha256 (ofNats (vpre.getD n []))) (fun c => s.2.2.1.getD c [])
-      (ns.getD n (.branch none [] 0)))),
-   s.2.1.set! n (toNats (ser (sha256 (ofNats (vpost.getD n []))) (fun c => s.2.2.2.getD c [])
-      (ns.getD n (.branch none [] 0)))),
-   s.2.2.1.set! n (sha256 (ser (sha256 (ofNats (vpre.getD n []))) (fun c => s.2.2.1.getD c [])
-      (ns.getD n (.branch none [] 0)))),
-   s.2.2.2.set! n (sha256 (ser (sha256 (ofNats (vpost.getD n []))) (fun c => s.2.2.2.getD c [])
-      (ns.getD n (.branch none [] 0)))))
+/-- `nodeSer` of one record step is the record serialization `ser`. -/
+theorem nodeSer_ser (vals : Nat → Bytes) (n : Nat) (g : Nat → PTrie) (nr : NodeRec)
+    (hv : nr.touched = true → (vals n).length = 72) :
+    nodeSer (Sound.nodeTree vals n g nr) = ser (sha256 (vals n)) (fun c => (g c).hashOf) nr := by
+  have hslot : ∀ v : VSlot, (v = .touched → (vals n).length = 72) →
+      (slotOf vals n v).valueRef = vrefBytes (sha256 (vals n)) v := by
+    intro v h; cases v with
+    | ref len hh => rfl
+    | touched => simp [slotOf, Slot.valueRef, vrefBytes, h rfl]
+  cases nr with
+  | leaf k v mem =>
+    simp only [Sound.nodeTree, nodeSer, ser]
+    rw [hslot v (fun h => hv (by subst h; rfl))]
+  | ext k kid mem =>
+    simp only [Sound.nodeTree, nodeSer, ser]
+    cases kid <;> rfl
+  | branch v kids mem =>
+    obtain ⟨h1, h2⟩ := kids_hashes g kids
+    cases v with
+    | none => simp only [Sound.nodeTree, Option.map_none, nodeSer, ser, h1, h2]
+    | some s =>
+      simp only [Sound.nodeTree, Option.map_some, nodeSer, ser, h1, h2]
+      rw [hslot s (fun h => hv (by subst h; rfl))]
 
-/-- The loop state's invariant. -/
-def SerOk (ns : Array NodeRec) (a : Array (List Nat)) : Prop :=
-  ∀ n, (a.getD n []).length ≤ sz0 (ns.getD n (.branch none [] 0)) ∧ ∀ x ∈ a.getD n [], x < 256
-
-def DigOk (a : Array Bytes) : Prop := ∀ c, (a.getD c []).length ≤ 32
-
-structure LoopInv (ns : Array NodeRec) (s : LS) : Prop where
-  pre : SerOk ns s.1
-  post : SerOk ns s.2.1
-  dpre : DigOk s.2.2.1
-  dpost : DigOk s.2.2.2
-
-theorem getD_set! {α : Type} (a : Array α) (i : Nat) (v : α) (n : Nat) (d : α) :
-    (a.set! i v).getD n d = if i = n ∧ i < a.size then v else a.getD n d := by
-  simp only [Array.set!, Array.getD_eq_getD_getElem?, Array.getElem?_setIfInBounds]
-  by_cases h1 : i = n
-  · subst h1
-    by_cases h2 : i < a.size
-    · simp [h2]
-    · simp [h2]
-  · simp [h1]
-
-theorem serOk_set {ns : Array NodeRec} {a : Array (List Nat)} (h : SerOk ns a) (i : Nat) (vh : Bytes)
-    (dig : Nat → Bytes) (hv : vh.length ≤ 32) (hd : ∀ c, (dig c).length ≤ 32) :
-    SerOk ns (a.set! i (toNats (ser vh dig (ns.getD i (.branch none [] 0))))) := by
-  intro n
-  rw [getD_set!]
-  split
-  · rename_i hi
-    rw [← hi.1]
-    refine ⟨?_, toNats_lt _⟩
-    simp only [toNats, List.length_map]
-    exact ser_len_le vh dig hv hd _
-  · exact h n
-
-theorem digOk_set {a : Array Bytes} (h : DigOk a) (i : Nat) (b : Bytes) :
-    DigOk (a.set! i (sha256 b)) := by
-  intro c
-  rw [getD_set!]
-  split
-  · simp [ArenaCore.sha256_length]
-  · exact h c
-
-theorem loopInv_step (ns : Array NodeRec) (vpre vpost : Array (List Nat)) (s : LS) (n : Nat)
-    (h : LoopInv ns s) : LoopInv ns (loopF ns vpre vpost s n) :=
-  ⟨serOk_set h.pre n _ _ (by simp [ArenaCore.sha256_length]) h.dpre,
-   serOk_set h.post n _ _ (by simp [ArenaCore.sha256_length]) h.dpost,
-   digOk_set h.dpre n _, digOk_set h.dpost n _⟩
-
-theorem loopInv_foldl (ns : Array NodeRec) (vpre vpost : Array (List Nat)) :
-    ∀ (l : List Nat) (s : LS), LoopInv ns s → LoopInv ns (l.foldl (loopF ns vpre vpost) s)
-  | [], _, h => h
-  | n :: l, s, h => loopInv_foldl ns vpre vpost l _ (loopInv_step ns vpre vpost s n h)
-
-theorem getD_replicate_nil {α : Type} (N n : Nat) : (Array.replicate N ([] : List α)).getD n [] = [] := by
-  simp only [Array.getD_eq_getD_getElem?, Array.getElem?_replicate]
-  split <;> rfl
-
-theorem loopInv_init (ns : Array NodeRec) (N : Nat) :
-    LoopInv ns (Array.replicate N [], Array.replicate N [], Array.replicate N [], Array.replicate N []) :=
-  ⟨fun n => by rw [getD_replicate_nil]; simp, fun n => by rw [getD_replicate_nil]; simp,
-   fun c => by rw [getD_replicate_nil]; simp, fun c => by rw [getD_replicate_nil]; simp⟩
+theorem mkInfo_ns (c : Claim) (e : Ext) : (mkInfo c e).ns = e.ns.toArray := rfl
 
 section
-variable (c : Claim) (e : Ext)
+variable {c : Claim} {e : Ext}
 
-/-- The serialization loop of `mkInfo`, as a fold. -/
-def loopOf : LS :=
-  let ns := e.ns.toArray
-  let N := ns.size
-  let vpre : Array (List Nat) := (Array.range N).map fun k =>
-    if (ns.getD k (.branch none [] 0)).touched then toNats (e.vals0 k) else []
-  let vpost : Array (List Nat) := (Array.range N).map fun k =>
-    if (ns.getD k (.branch none [] 0)).touched then toNats (e.valsAt e.rs.length k) else []
-  (postOrder ns (N + 1) 0).foldl (loopF ns vpre vpost)
-    (Array.replicate N [], Array.replicate N [], Array.replicate N [], Array.replicate N [])
+theorem pre_post_ok (hs : TreeShape e.ns) (vals : Nat → Bytes)
+    (hv : ∀ k nr, e.ns[k]? = some nr → nr.touched = true → (vals k).length = 72) (n : Nat) :
+    (toNats (nodeSer (treeOf e.ns vals e.ns.length n))).length ≤ sz0 ((mkInfo c e).nodeAt n) := by
+  by_cases hn : n < e.ns.length
+  · obtain ⟨d, hd0, hd⟩ := hs.depth
+    have hget : e.ns[n]? = some e.ns[n] := by simp [hn]
+    rw [NodeInfo.tree_node hs hd0 hd vals hget, nodeSer_ser _ _ _ _ (hv n _ hget), NodeInfo.info_nodeAt hn,
+      toNats, List.length_map]
+    refine ser_len_le _ _ (by simp [ArenaCore.sha256_length]) (fun c' => ?_) _
+    by_cases hc : c' < e.ns.length
+    · rw [NodeInfo.tree_hash hs vals hc, ArenaCore.sha256_length]; omega
+    · cases h : e.ns.length with
+      | zero => simp [treeOf, PTrie.hashOf]
+      | succ N => simp [treeOf, List.getElem?_eq_none (show e.ns.length ≤ c' by omega), PTrie.hashOf]
+  · have : e.ns.length ≤ n := by omega
+    cases h : e.ns.length with
+    | zero => simp [treeOf, nodeSer, toNats]
+    | succ N => simp [treeOf, List.getElem?_eq_none (show e.ns.length ≤ n by omega), nodeSer, toNats]
 
-theorem mkInfo_pre : (mkInfo c e).pre = (loopOf e).1 := by
-  simp only [mkInfo, List.forIn_pure_yield_eq_foldl, Id.run, pure_bind, bind_pure_comp]
-  rfl
-
-theorem mkInfo_post : (mkInfo c e).post = (loopOf e).2.1 := by
-  simp only [mkInfo, List.forIn_pure_yield_eq_foldl, Id.run, pure_bind, bind_pure_comp]
-  rfl
-
-theorem loopOf_inv : LoopInv e.ns.toArray (loopOf e) :=
-  loopInv_foldl _ _ _ _ _ (loopInv_init _ _)
-
-theorem mkInfo_ns : (mkInfo c e).ns = e.ns.toArray := rfl
-
-/-- **`pre n`**: bytes, at most `sz0 (nodeAt n)` of them.  (Interface used by
-`ShaFit2/3`; `Good` is not needed for the loop form of `mkInfo`, but gives the
-hash widths a closed form via `treeOf` would need.) -/
-theorem pre_ok (_ : Good c e) (n : Nat) :
+/-- **`pre n`**: bytes, at most `sz0 (nodeAt n)` of them. -/
+theorem pre_ok (c : Claim) (e : Ext) (hg : Good c e) (n : Nat) :
     ((mkInfo c e).pre.getD n []).length ≤ sz0 ((mkInfo c e).nodeAt n) ∧
       ∀ x ∈ (mkInfo c e).pre.getD n [], x < 256 := by
-  rw [mkInfo_pre]; exact (loopOf_inv e).pre n
+  by_cases hn : n < e.ns.length
+  · rw [NodeInfo.info_pre hn]
+    exact ⟨pre_post_ok hg.shape _ hg.vals_len n, toNats_lt _⟩
+  · have : (mkInfo c e).pre.getD n [] = [] := by simp [mkInfo, Array.getD_eq_getD_getElem?, hn]
+    simp [this]
 
-theorem post_ok (_ : Good c e) (n : Nat) :
+theorem post_ok (c : Claim) (e : Ext) (hg : Good c e) (n : Nat) :
     ((mkInfo c e).post.getD n []).length ≤ sz0 ((mkInfo c e).nodeAt n) ∧
       ∀ x ∈ (mkInfo c e).post.getD n [], x < 256 := by
-  rw [mkInfo_post]; exact (loopOf_inv e).post n
+  by_cases hn : n < e.ns.length
+  · rw [NodeInfo.info_post hn]
+    refine ⟨pre_post_ok hg.shape _ (fun k nr hk ht => ?_) n, toNats_lt _⟩
+    have hmem : k ∈ (mkInfo c e).touched := mem_touched.2 ⟨nr, hk, ht⟩
+    have := acct_post hg k hmem
+    rwa [vpost_eq hmem, NodeInfo.toNats_len] at this
+  · have : (mkInfo c e).post.getD n [] = [] := by simp [mkInfo, Array.getD_eq_getD_getElem?, hn]
+    simp [this]
 
 end
 

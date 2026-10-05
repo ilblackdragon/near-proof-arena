@@ -500,7 +500,7 @@ end BusEdge
 open BusEdge in
 /-- **`EdgeBusStmt`.** -/
 theorem edgeBus : EdgeBusStmt := by
-  intro c e hg m
+  intro c e hg _ m
   rw [hcount_eq, hcount_eq]
   have hw : (bundle c.1 e).walks = walksOf (mkInfo c.1 e) := rfl
   simp only [sel, ite_true, Bool.false_eq_true, ite_false, shaTraffic, nodeTraffic, nodeSends, nodeRecvs,
