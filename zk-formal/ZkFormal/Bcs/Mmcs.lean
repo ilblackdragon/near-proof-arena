@@ -45,14 +45,14 @@ theorem mmcs_binding_aux {pre hist : Table} (wf : TableWF (pre ++ hist))
     intro node k i v hop hp
     obtain ⟨l, r, raw, hl, hr, hn, hc⟩ := hop
     rw [mmcsExt, invert_eq wf hcol hn hp]
-    have hnh : WHin hist (nodeMsg k l r raw) node := by
+    have hnh : WHin hist (nodeMsg (n - k) l r raw) node := by
       obtain ⟨m', hm'⟩ := hp
       have := wh_unique wf hcol (WHin.suffix wf.1 hm') hn
       exact this ▸ hm'
-    have hsl := slots_nodeMsg k l r raw hl hr 0 (by omega)
-    have e1 : ((k.toUInt8 :: (l ++ r ++ raw)).drop 1).take 64 = l := by
+    have hsl := slots_nodeMsg (n - k) l r raw hl hr 0 (by omega)
+    have e1 : (((n - k).toUInt8 :: (l ++ r ++ raw)).drop 1).take 64 = l := by
       simp only [List.drop_succ_cons, List.drop_zero, List.append_assoc, List.take_left' hl]
-    have e2 : ((k.toUInt8 :: (l ++ r ++ raw)).drop 65).take 64 = r := by
+    have e2 : (((n - k).toUInt8 :: (l ++ r ++ raw)).drop 65).take 64 = r := by
       rw [show (65 : Nat) = 64 + 1 by rfl, List.drop_succ_cons, List.append_assoc,
         List.drop_left' hl, List.take_left' hr]
     simp only [nodeMsg, if_true, ite_true, e1, e2]

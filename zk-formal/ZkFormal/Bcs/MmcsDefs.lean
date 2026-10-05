@@ -7,7 +7,7 @@ Byte format of lane L4 (`Stark/Bcs.lean`, `multiproof`): a tree of depth `n`
 (root at level `0`, leaves at level `n`).
 * leaf at level `n`: `WH(LEAF, rows)` where `rows` are the raw bytes of the
   rows of the matrices of log `n` at that index;
-* node at level `k < n`: `WH(NODE, u8 k ‖ left ‖ right ‖ rows)` where `rows`
+* node at level `k < n` (height `n - k`): `WH(NODE, u8 (n-k) ‖ left ‖ right ‖ rows)` where `rows`
   are the raw bytes of the rows *injected* at level `k` (matrices of log `k`;
   empty if none).
 
@@ -25,9 +25,9 @@ more levels by the low bits of `i`, stores `v`. -/
 def mmcsOpen (tbl : Table) (n : Nat) : Bytes → Nat → Nat → Nat → Bytes → Prop
   | node, k, 0, _, v =>
     if k = n then WHin tbl (leafMsg v) node
-    else ∃ l r, l.length = 64 ∧ r.length = 64 ∧ WHin tbl (nodeMsg k l r v) node
+    else ∃ l r, l.length = 64 ∧ r.length = 64 ∧ WHin tbl (nodeMsg (n - k) l r v) node
   | node, k, t + 1, i, v =>
-    ∃ l r raw, l.length = 64 ∧ r.length = 64 ∧ WHin tbl (nodeMsg k l r raw) node ∧
+    ∃ l r raw, l.length = 64 ∧ r.length = 64 ∧ WHin tbl (nodeMsg (n - k) l r raw) node ∧
       (if i / 2 ^ t % 2 = 0 then mmcsOpen tbl n l (k + 1) t i v
        else mmcsOpen tbl n r (k + 1) t i v)
 

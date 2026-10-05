@@ -173,7 +173,7 @@ def OpenAt (tbl : Table) (vt : View) (q : Nat × Nat × cs.Pos) (v : Bytes) : Pr
     (iop.shapes (vt.prefix q.1) e.raw)[q.2.1]? = some sh ∧ cs.OpenIn tbl root sh q.2.2 v
 
 /-- **What an accepting verifier run certifies about its final oracle log.**
-A concrete verifier (L4) proves `evalT tbl (V.tree pub cb pb) = some true →
+A concrete verifier (L4) proves `TableWF tbl → evalT tbl (V.tree pub cb pb) = some true →
 AcceptsIn iop tbl ctx cb`. -/
 def AcceptsIn (tbl : Table) (ctx cb : Bytes) : Prop :=
   ∃ es d, Chain tbl ctx cb es d ∧ ∀ j, j < iop.numChunks → ∃ y, tbl.lookup (chunkQ d j) = some y ∧

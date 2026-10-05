@@ -81,7 +81,7 @@ theorem bcs_romSound (hGame : GameStmt) (hQB : QBAddStmt) (hMix : StepMixStmt) (
     (iop : IopSpec cs) (hK : 2 ≤ iop.numChunks) (hK' : iop.numChunks ≤ 2 ^ 32)
     (Doomed : PT cs → Prop) (ctx : Bytes)
     {S : ChallengeSpec} (L : Bytes → Prop) (P : TreeProver S) (V : TreeVerifier) (pub : Bytes)
-    (hV : ∀ tbl cb pb, evalT tbl (V.tree pub cb pb) = some true → AcceptsIn iop tbl ctx cb)
+    (hV : ∀ tbl cb pb, TableWF tbl → evalT tbl (V.tree pub cb pb) = some true → AcceptsIn iop tbl ctx cb)
     (hinit : ∀ cb, ¬ L cb → Doomed ⟨cb, []⟩)
     (hmsg : ∀ τ roots raw os, Doomed τ → Doomed (τ.push (.msg roots raw os)))
     (B : Nat) (hround : ∀ τ : PT cs, Doomed τ →
@@ -137,7 +137,7 @@ theorem bcs_romSound (hGame : GameStmt) (hQB : QBAddStmt) (hMix : StepMixStmt) (
     intro tbl cb pb wf hlen hev hL
     have hpow1 : roRange ^ (iop.numChunks - 1) * roRange = roRange ^ iop.numChunks := by rw [← Nat.pow_succ]; congr 1; omega
     have hpow2 : roRange ^ (iop.numChunks - 2) * roRange ^ 2 = roRange ^ iop.numChunks := by rw [← Nat.pow_add]; congr 1; omega
-    rcases accept_imp_event_log hbind hroot hmsg wf (hinit cb hL) (hV tbl cb pb hev) with
+    rcases accept_imp_event_log hbind hroot hmsg wf (hinit cb hL) (hV tbl cb pb wf hev) with
       h | h | h | h
     · -- commit phase
       have : roRange ≤ badPot (RoundBad iop Doomed ctx) tbl := by

@@ -49,3 +49,4 @@ import ZkFormal.Bcs.Mmcs
 -- Lane L4: AIR DSL and protocol/verifier model.
 import ZkFormal.Stark.NpBounds
 import ZkFormal.Stark.QueryBound
+import ZkFormal.Bcs.StarkAdapter
