@@ -57,6 +57,25 @@ theorem fam_of {c : Claim} {e : Ext} (hg : Good c e) {pub : List Fp} {F : List E
   · exact hP x hx
   · exact hW x hx
 
+theorem Zr_mono {z z' zn zn' : Nat → Bool} {f0 f0' : Bool} (hz : ∀ x, z x = true → z' x = true)
+    (hzn : ∀ x, zn x = true → zn' x = true) (hf : f0 = true → f0' = true) :
+    ∀ {e}, Zr z zn f0 e = true → Zr z' zn' f0' e = true
+  | .const _, h' => h'
+  | .col x false, h' => hz x h'
+  | .col x true, h' => hzn x h'
+  | .pub _, h' => h'
+  | .isFirst, h' => hf h'
+  | .isLast, h' => h'
+  | .isTransition, h' => h'
+  | .add a d, h' => by
+    simp only [Zr, Bool.and_eq_true] at h' ⊢; exact ⟨Zr_mono hz hzn hf h'.1, Zr_mono hz hzn hf h'.2⟩
+  | .mul a d, h' => by
+    simp only [Zr, Bool.or_eq_true] at h' ⊢
+    rcases h' with h' | h'
+    · exact .inl (Zr_mono hz hzn hf h')
+    · exact .inr (Zr_mono hz hzn hf h')
+  | .neg a, h' => by simp only [Zr] at h' ⊢; exact Zr_mono hz hzn hf h'
+
 /-- The last record. -/
 theorem lastRec_facts {c : Claim} {e : Ext} (hg : Good c e) :
     ∃ r s i, lastRec c e = .seg r s i ∧ r + 1 = NN e ∧ s ∈ fields (Df c e r).hr ∧ i + 1 = fLen (Df c e r) s ∧
