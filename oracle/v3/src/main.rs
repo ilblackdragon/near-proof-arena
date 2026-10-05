@@ -15,11 +15,14 @@
 //!          each with claim.bin, witness.bin, meta.json; DIR/summary.json.
 //!   vectors --out DIR [--seed S]
 //!          Leaf-primitive vectors from nearcore code (src/vectors.rs).
+//!   ed25519-judge --in IN.jsonl --out OUT.jsonl / ed25519-sign --seed S --n N --out F
+//!          nearcore's Ed25519 verdicts / signatures (src/ed25519v.rs).
 //!   params --out FILE
 //!          Runtime-config description for runtime_config_digest_v3.
 
 mod claim;
 mod d0;
+mod ed25519v;
 mod enc;
 mod chaingen;
 mod judge;
@@ -135,6 +138,15 @@ fn main() {
     let code = match args.get(1).map(String::as_str) {
         Some("gen") => cmd_gen(&args),
         Some("params") => cmd_params(&args),
+        Some("ed25519-judge") => ed25519v::cmd_judge(
+            &PathBuf::from(arg(&args, "--in").expect("--in")),
+            &PathBuf::from(arg(&args, "--out").expect("--out")),
+        ),
+        Some("ed25519-sign") => ed25519v::cmd_sign(
+            arg(&args, "--seed").and_then(|s| s.parse().ok()).unwrap_or(1),
+            arg(&args, "--n").and_then(|s| s.parse().ok()).unwrap_or(1000),
+            &PathBuf::from(arg(&args, "--out").expect("--out")),
+        ),
         Some("vectors") => vectors::cmd_vectors(
             &PathBuf::from(arg(&args, "--out").expect("--out")),
             arg(&args, "--seed").and_then(|s| s.parse().ok()).unwrap_or(1),
