@@ -191,3 +191,4 @@ import ZkFormal.Prover.NpFold
 import ZkFormal.Prover.NpLocal3
 import ZkFormal.Prover.NpFinal
 import ZkFormal.Prover.NpLocalMain
+import ZkFormal.Algebra.Pocklington
