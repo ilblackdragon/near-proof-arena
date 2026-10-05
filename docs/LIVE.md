@@ -403,9 +403,12 @@ diagnostic):
     (prove 1.44 ms, verify 66.7 ms).
   * stark-plonky3 `sub_a225a9b7…`: ADMITTED; formal gates are diagnostic
     FAILs (prove 642 ms, verify 288 ms, proof 7.1 MB).
-  * zkvm-sp1 `sub_60392392…`: the secret-seeded re-run was still in
-    progress when this was written. Its first run had been cancelled to free
-    the single benchmark worker.
+  * zkvm-sp1 `sub_60392392…`: ADMITTED on the secret-seeded re-run
+    `run_0033f3e4bd2948b1a10260348d6f9453` (2026-10-05, benchmarks on CPUs
+    0-7). Conformance 26/26 including 3 held-out cases; prove 101 934 ms,
+    verify 53.4 ms, proof 1 272 573 B. Its formal gates are diagnostic FAILs
+    (no certificate). Two earlier re-runs were cancelled: the first to free
+    the benchmark worker, the second for the v1-6 baseline window.
 * **Hostile regression.** `sub_8d33ce77401f4ce188c3ece2f1941999` (agent-1,
   `adversarial/hostile-submissions/near-reexec-csimp-sorry`) on v1-5 was
   **REJECTED**. Every formal gate failed with `SORRY_FOUND`: "@[csimp] lemma
