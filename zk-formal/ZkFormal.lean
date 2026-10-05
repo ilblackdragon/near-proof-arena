@@ -94,6 +94,7 @@ import ZkFormal.Udr.Np.FrameMsg
 import ZkFormal.Udr.Np.Bridge1
 import ZkFormal.Udr.Np.Bridge2
 import ZkFormal.Udr.Np.Bridge3
+import ZkFormal.Udr.Np.Bridge4
 import ZkFormal.Udr.Np.Shape
 import ZkFormal.Udr.Np.Frame
 import ZkFormal.Udr.Np.Facts

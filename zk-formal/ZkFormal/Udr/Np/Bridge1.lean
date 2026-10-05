@@ -119,7 +119,7 @@ theorem foldOnce_spec (c : Ctx Fp8) (i base : Nat) (β : Fp8) (n : Nat) (us : Li
 theorem foldLeaf_eq (c : Ctx Fp8) (c0 a j : Nat) (us : List Fp8) (U : Nat → Nat → Fp8)
     (hlen : us.length = 2 ^ a)
     (h0 : ∀ t, t < 2 ^ a → us.getD t 0 = U 0 ((j <<< a) + t))
-    (hstep : ∀ s q, s < a → U (s + 1) q =
+    (hstep : ∀ s q, s < a → q < (j + 1) * 2 ^ (a - (s + 1)) → U (s + 1) q =
       foldPos c.n0 (c0 + s) (2 * q) (c.betas.getD (c0 + s) 0) (U s (2 * q)) (U s (2 * q + 1))) :
     foldLeaf (F := Fp) c c0 a j us = U a j := by
   let step := fun (acc : List Fp8) s =>
@@ -141,7 +141,7 @@ theorem foldLeaf_eq (c : Ctx Fp8) (c0 a j : Nat) (us : List Fp8) (U : Nat → Na
       show (foldOnce (F := Fp) c (c0 + s) (j <<< (a - s)) (c.betas.getD (c0 + s) 0) _).getD t 0 = _
       rw [f2 t ht, ih2 (2 * t) (by rw [show a - s = (a - (s + 1)) + 1 by omega, Nat.pow_succ]; omega),
         ih2 (2 * t + 1) (by rw [show a - s = (a - (s + 1)) + 1 by omega, Nat.pow_succ]; omega),
-        hstep s _ (by omega)]
+        hstep s _ (by omega) (by rw [Nat.shiftLeft_eq, Nat.succ_mul]; omega)]
       have e : j <<< (a - s) = 2 * (j <<< (a - (s + 1))) := by
         rw [Nat.shiftLeft_eq, Nat.shiftLeft_eq, show a - s = (a - (s + 1)) + 1 by omega, Nat.pow_succ]
         rw [Nat.mul_comm 2, Nat.mul_assoc]
