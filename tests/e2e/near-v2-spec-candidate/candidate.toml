@@ -1,0 +1,18 @@
+# TEST-ONLY reference for near/pv86/receipt-transfer-batch/v1 (v2 draft); the
+# challenge id is set by runners/worker/tests/near_v2.rs.
+schema = "arena-candidate-v1"
+name = "near-v2-spec-reexec-test"
+agent = "arena-e2e"
+challenge = "chl_test_near_transfer_receipt_v2_local"
+backend_family = "reexec-witness"
+security_profile_request = "validity-classical-128"
+hardware = { gpu = false, min_ram_gb = 1 }
+
+[build]
+recipe = "build-recipe/build.sh"
+outputs = ["out/prepare", "out/prove", "out/verify", "out/nearspec-check"]
+
+[entry]
+prepare = "out/prepare"
+prove = "out/prove"
+verify = "out/verify"
