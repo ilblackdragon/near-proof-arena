@@ -328,6 +328,51 @@ diagnostic):
   resubmitted from their original vendored packages, with only the
   `challenge` field changed.
 
+### 5c. Security fix R-L7-5, v1-5, season secret, held-out set (2026-10-05)
+
+* **Checker.** The live workers use lean-checker image
+  `sha256:463fdcf4…` from main (csimp audit + candidate-wide axiom audit),
+  installed in `/data/illia/nearproof-deps/lean-checker/images-csimp`
+  (`ARENA_LEAN_CHECKER_IMAGES`; the build mount `/opt/lean` uses the same
+  image's `arena/tc`, byte-identical to the previous one). Checker identity
+  `sha256:66b014d4…`. The old image is untouched in `…/lean-checker/images`.
+* **Challenges.** `chl_17ac2f309f490da391081806645b795a`
+  **`near-transfer-receipt-v1-5`** (formal, open) supersedes v1-4, which is
+  closed with its board frozen; experimental
+  `chl_0d36946f05e7e0989f881aa8d8f8fc61` supersedes `chl_df55…`
+  (docs/PROTOCOL_UPGRADES.md §7.6). Both pin the trusted tree
+  `sha256:190e9a7d…`.
+* **Formal cache.** The 15 entries produced by the old checker
+  (`sha256:b6391b38…`) were invalidated via
+  `/v1/admin/formal-cache/invalidate`. A v1-5 submission whose `--parent` is
+  a v1-4 entry is refused (HTTP 400, "parent submission belongs to a
+  different challenge").
+* **Season secret** (BENCHMARK_SPEC §11.1–11.2). The secret is 32 random
+  bytes, hex, at `secrets/season-secret-2026-10.hex` (0600; never printed,
+  never in a sandbox). The published commitment is
+  **`sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d`**,
+  computed as `sha256("near-arena-secret-commit-v1\0" || secret)`.
+  `worker.env` sets `ARENA_SEASON_SECRET_FILE` and
+  `ARENA_SEASON_SECRET_COMMIT`. The workers log "judge-secret workload
+  sampling (commitment sha256:b860eb74…)".
+* **Held-out set** (§11.3). `ARENA_HELDOUT_DIRS` is
+  `/data/illia/nearproof-deps/heldout/near-transfer-receipt-v1`. Its
+  TreeDigest is `sha256:e4312f75…`, which equals `heldout_commitment` of
+  every v1 challenge. A live CONFORMANCE summary (v1-5
+  `run_38a58a11aca8497b969c97a2f4f784be`) reads: "26/26 cases conform (20
+  public fixtures, 3 judge-sampled, 3 held-out); judge-secret HMAC sampling
+  (season secret commitment sha256:b860eb74…); held-out set sha256:e4312f75…
+  verified against the commitment and used (3 case(s); ids withheld)".
+  None of the 72 held-out case ids appears in the job result.
+* **Re-runs.** Every v1-5 and experimental entry was re-run after the
+  switch, so its board numbers come from secret-seeded runs that exercise
+  the held-out set.
+* **Hostile regression.** `sub_8d33ce77401f4ce188c3ece2f1941999` (agent-1,
+  `adversarial/hostile-submissions/near-reexec-csimp-sorry`) on v1-5 was
+  **REJECTED**. Every formal gate failed with `SORRY_FOUND`: "@[csimp] lemma
+  ReexecWitness.check_eq_acceptAll (compiled code: ReexecWitness.check ↦
+  ReexecWitness.acceptAll) depends on axiom sorryAx".
+
 ## 5. Current state (2026-10-03 16:10 UTC)
 
 * **Deployed revision.** `release/REVISION` is
