@@ -165,13 +165,21 @@ def MultiproofStmt : Prop :=
       mmcsOpen tbl (Stark.treeLog mats) root 0 mw.1 (x >>> (Stark.treeLog mats - mw.1)) raw ∧
       Stark.readRows (F := F) (Stark.levelWidths mats mw.1) raw = some (rows, [])
 
-/-- **Refinement: L4's compiled verifier certifies `AcceptsIn`.**  Needs the
-query domain to cover every tree (`treeLog ≤ queryLog`). -/
+/-- Shape conditions on L4's IOP used by the refinement (on admissible
+headers): the first slot is a message starting with the header; every
+message commits fewer than 256 trees; the query domain covers every tree. -/
+structure SchedOk {F K : Type} [Field F] [Field K] [Stark.StarkField F K] (V : Stark.IopSpec F K) : Prop where
+  first : ∀ hdr, V.headerOk hdr = true →
+    ∃ ps ss, V.schedule hdr = .msg (.header V.numTables :: ps) :: ss
+  roots : ∀ hdr, V.headerOk hdr = true → ∀ parts, Stark.Slot.msg parts ∈ V.schedule hdr →
+    (oracleShapes parts).length < 256
+  depth : ∀ hdr, V.headerOk hdr = true → ∀ o ∈ Stark.schedOracles (V.schedule hdr),
+    Stark.treeLog o ≤ V.queryLog hdr
+
+/-- **Refinement: L4's compiled verifier certifies `AcceptsIn`.** -/
 def CompileAcceptsStmt : Prop :=
   ∀ (F K : Type) [Field F] [Field K] [Stark.StarkField F K] [DecidableEq F]
-    (V : Stark.IopSpec F K),
-    (∀ hdr, V.headerOk hdr = true → ∀ o ∈ Stark.schedOracles (V.schedule hdr),
-      Stark.treeLog o ≤ V.queryLog hdr) →
+    (V : Stark.IopSpec F K), SchedOk V →
     ∀ (tbl : Table) (pub cb pb : Bytes), TableWF tbl →
       evalT tbl (Stark.Bcs.compile (F := F) V pub cb pb) = some true →
       AcceptsIn (adapt (F := F) V) tbl (ctxOf pub) cb
