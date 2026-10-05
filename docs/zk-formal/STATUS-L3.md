@@ -20,15 +20,35 @@ All listed "proved" items are sorry-free, axioms ⊆ {propext, Classical.choice,
 | **DEEP farness** / closeness transfer | `deep_close`, `deep_value` | `Udr/Deep.lean` |
 | **multilinear batching** chain | `batch_close`, `batch_chain` | `Udr/Deep.lean` |
 
-## RbrFacts for np-udr-stark (`Udr/Rbr.lean`, `Udr/Np/*`)
+## RbrFacts for np-udr-stark (`Udr/Rbr.lean`, `Udr/Np/*`) — **DONE**
 
-Interface: `RbrFacts V InLang Kall bad agree` (existential `Doomed`), see REQUESTS R-L3-1.
-Composition `Np.rbr_of` (proved) from the obligations in `Udr/Np/Statements.lean`:
+**`ZkFormal.Udr.Np.rbrWith`** (`Udr/Np/Main.lean`), sorry-free, axioms ⊆ {propext, Classical.choice, Quot.sound}:
 
-| Obligation | Owner | State |
+```lean
+theorem rbrWith (A : Air) (prm : Params) (hok : NpOk A prm) :
+    RbrWith (Iop.verifier Fp Fp8 A prm) (AirLang Fp A) Fp8.all badBudget (agreeUdr prm.logBlowup) (Doomed A prm)
+```
+with `badBudget = 2^36`, `agreeUdr b n = n - ((n - n/2^b)/2 - 1)`, and
+`NpOk A prm := prm = Params.default ∧ (∀ T ∈ A.tables, allConstraints + 2·auxCount + 3·#interactions ≤ 2^20) ∧ A.numBuses < 2^30`
+(decidable on the concrete AIR). This is the `hR` input of L2's `Bcs.stark_romSound_rbr`.
+
+| Obligation | Theorem | File(s) |
 |---|---|---|
-| `ShapedPrefixStmt`, `ScheduleAltStmt` | sub-agent `zk-L3-ali` | open |
-| `Msg0/2/4/6Stmt`, `Chal1/3/5/7Stmt` (main → z) | sub-agent `zk-L3-ali` | open |
-| `Msg8Stmt`, `MsgLateStmt`, `ChalLateStmt`, `QueryStmt` (DEEP, batching, FRI, local bridge) | sub-agent `zk-L3-fri2` | open |
+| `ShapedPrefixStmt`, `ScheduleAltStmt` | `shapedPrefix`, `scheduleAlt` | Shape.lean |
+| main commit (`¬InLang ⇒` far or decoded trace fails) | `msg0` | Early.lean, Hom.lean |
+| `α_fp` (fingerprints ≤ `Air.fpBound`) | `chal1` | BusRounds.lean, Bus.lean |
+| `γ` (grand product ≤ `Air.multBound`) | `chal3` | BusRounds.lean |
+| aux commit (running products ⇒ grand products) | `msg4` | Msg4.lean, AuxChain.lean |
+| `α_c` (constraint combination) | `chal5` | Ali.lean |
+| quotient commit | `msg6` | Early.lean |
+| `z` (ALI identity, `z ∈ F` counted bad) | `chal7` | Chal7.lean, Degree.lean |
+| OOD values (DEEP farness, global = semantic ALI) | `msg8` | Msg8.lean, Deep8.lean, Global8.lean |
+| batching `r_k`, FRI `β_i`/`γ_i` | `chalLate` | Late.lean |
+| later messages (frame) | `msgLate` | FrameMsg.lean, FrameFri.lean |
+| query phase (FRI pass sets, local bridge from `checkAt`) | `query_of_deepSem` | Query.lean, Good.lean, Bridge1–7.lean, Domain.lean |
+| verifier `deepAt` = batched DEEP word | `deepSem` | DeepSem.lean, SumR.lean |
 
-Elaboration: every `Udr` module < 1.5 s.
+Definition fixes found while proving (all in REQUESTS.md): radius `(n-D)/2 - 1` (R-L3-2), stage 8 needs `z ∉ F`,
+bus indices `< p` (R-L3-5, `NpOk`).
+
+Size: `Udr/` ≈ 11.2k lines. Elaboration: all `Udr` modules rebuilt from scratch in ≈ 23 s wall (≈ 56 s CPU).
