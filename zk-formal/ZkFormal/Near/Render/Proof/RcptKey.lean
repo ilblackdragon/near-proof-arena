@@ -66,12 +66,6 @@ theorem key_rows {pub : List Fp} {r s i : Nat} (hs : s = 7 ∨ s = 8 ∨ s = 9) 
       Bool.or_true, Bool.true_or, Bool.or_false, Bool.false_or, Bool.false_eq_true, hfe] <;>
     (try rw [hb rfl]) <;> rfin
 
-theorem seg_ne_cl (r s i : Nat) : (RRec.seg r s i == RRec.cl 0) = false := by
-  simp
-
-theorem lastRec_eq (c : Claim) (e : Ext) : ∃ r s i, lastRec c e = .seg r s i ∧ (s = 23 ∨ s = 26) :=
-  ⟨_, _, _, rfl, by unfold lastF; split <;> simp⟩
-
 /-- **`cKey` on the honest rows.** -/
 theorem key_ok (hg : Good c e) (hV : ∀ r, r < NN e → ∀ i, i < (Df c e r).recv.length →
       (Df c e r).recv.getD i 0 < 256 ∧ vch ((Df c e r).recv.getD i 0) = true) {pub : List Fp} :

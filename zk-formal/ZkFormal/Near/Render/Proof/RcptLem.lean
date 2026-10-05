@@ -21,8 +21,11 @@ open RcptGen
 
 theorem P_def : Render.P = ZkFormal.Algebra.P := rfl
 
-theorem ofNat_mod (x : Nat) : Fp.ofNat (x % P) = Fp.ofNat x := by
+theorem ofNat_mod (x : Nat) : Fp.ofNat (x % Render.P) = Fp.ofNat x := by
   apply Fp.ext; simp [Fp.toNat_ofNat, Nat.mod_mod, P_def]
+
+theorem ofNat_modA (x : Nat) : Fp.ofNat (x % ZkFormal.Algebra.P) = Fp.ofNat x := by
+  apply Fp.ext; simp [Fp.toNat_ofNat, Nat.mod_mod]
 
 theorem ofNat_sub {a b : Nat} (h : b ≤ a) : Fp.ofNat (a - b) = Fp.ofNat a - Fp.ofNat b := by
   have : Fp.ofNat a = Fp.ofNat (a - b) + Fp.ofNat b := by rw [ofNat_add']; congr 1; omega

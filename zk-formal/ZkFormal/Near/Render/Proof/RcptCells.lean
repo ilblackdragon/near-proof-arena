@@ -52,6 +52,12 @@ theorem nextOf_in {D : Nat → RD} {r s i : Nat} (h : i + 1 < fLen (D r) s) :
     nextOf D (.seg r s i) = .seg r s (i + 1) := by
   simp [nextOf, h]
 
+theorem seg_ne_cl (r s i : Nat) : (RRec.seg r s i == RRec.cl 0) = false := by
+  simp
+
+theorem lastRec_eq (c : Claim) (e : Ext) : ∃ r s i, lastRec c e = .seg r s i ∧ (s = 23 ∨ s = 26) :=
+  ⟨_, _, _, rfl, by unfold lastF; split <;> simp⟩
+
 /-- An account-id character (`[a-z0-9]` or a separator `- _ .`). -/
 def vch (ch : Nat) : Bool := (97 ≤ ch && ch ≤ 122) || (48 ≤ ch && ch ≤ 57) || ch == 45 || ch == 95 || ch == 46
 
