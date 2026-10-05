@@ -1,7 +1,7 @@
 #!/bin/bash
 # judge-built NEAR verifier on honest / false / mutated proofs.
 S=/tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad
-V=$S/m5/work/verify; P=$S/pkgbuild/b3/pkg/out/prove; PREP=$S/pkgbuild/b3/pkg/out/prepare
+V=${V:-$S/m5/work/verify}; P=${P:-$S/pkgbuild/b1/pkg/out/prove}; PREP=${PREP:-$S/pkgbuild/b1/pkg/out/prepare}
 W=$S/m5test; rm -rf $W; mkdir -p $W/pub
 F=/data/illia/nearproof-wt/zk-L7/oracle/fixtures/public
 $PREP --params $F/params.bin --out $W/pub || { echo prepare failed; exit 1; }
@@ -14,6 +14,7 @@ run() {
   local rc=$? t1=$(date +%s%N)
   if [ $rc -ne 0 ]; then printf "%s\tPROVE_FAIL(%s)\n" "$c" "$(tail -1 $W/err)"; return; fi
   local cl=$(cmp -s $W/c.bin $d/expected_claim.bin && echo ok || echo DIFF)
+  mkdir -p $W/keep; cp $W/c.bin $W/keep/$c.c; cp $W/p.bin $W/keep/$c.p; echo $c >> $W/keep/list
   local t2=$(date +%s%N); $V --public $W/pub --claim $W/c.bin --proof $W/p.bin >/dev/null 2>&1; local vr=$?; local t3=$(date +%s%N)
   # false claim: flip one byte in the last 32 bytes (outputs/commitments) of the claim
   python3 - $W/c.bin $W/cf.bin <<'PY'
@@ -30,3 +31,9 @@ PY
 }
 for d in $F/cases/*/; do run $d $(basename $d); done
 for r in 1 16 256; do for d in $S/m5cases/batch-$r/cases/*/; do run $d "r$r-$(basename $d)"; done; done
+
+# swapped pairs: claim of case i with the proof of case i+1 (valid canonical claims, wrong proof)
+mapfile -t L < $W/keep/list; n=${#L[@]}; acc=0; rej=0
+for ((i=0;i<n;i++)); do a=${L[$i]}; b=${L[$(( (i+1)%n ))]}
+  $V --public $W/pub --claim $W/keep/$a.c --proof $W/keep/$b.p >/dev/null 2>&1 && acc=$((acc+1)) || rej=$((rej+1)); done
+echo "swapped pairs: $n tested, $rej rejected, $acc accepted"

@@ -427,3 +427,14 @@ the same cell function (checked equal to L6's on every case ≤ 3000 steps).
 Rust (`npudr::near`) and Lean render are byte-identical on all 38 cases
 (20 public fixtures + 18 class workloads); 0 constraint violations, 0 bus
 imbalance. No L6 table bug found.
+
+### R-L7-8 (to L6; applied by L7): no custom simp attributes in admitted code
+`Near/Render/Proof/RcptAttr.lean` used `register_simp_attr rcols/rseg/rcl`. Each one generates
+`initialize` declarations, so the formal checker reports NATIVE_EVAL_FOUND on every formal gate
+of the NEAR certificate (real run 2026-10-05; everything else passed). L7 inlined the three sets:
+* the `@[rseg]`/`@[rcl]` tags in `RcptCol` and `attribute [rcols]` in `RcptBase` are removed;
+* every `simp [… rcols/rseg/rcl …]` lists the member theorems explicitly (68 sites);
+* `RcptAttr.lean` is deleted.
+
+The full build passes. Please do not reintroduce `register_*`, `initialize` or `import Lean` metaprograms
+in `ZkFormal`.
