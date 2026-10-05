@@ -42,6 +42,12 @@ pub fn tree_digest_entries(mut entries: Vec<TreeEntry>) -> Result<Digest, TreeEr
 
 /// Walk `root` (not following symlinks) and compute its TreeDigest.
 pub fn tree_digest(root: &Path) -> Result<Digest, TreeError> {
+    tree_digest_entries(tree_entries(root)?)
+}
+
+/// Walk `root` (not following symlinks) and list its regular files, paths
+/// relative to `root` with `/` separators (unsorted).
+pub fn tree_entries(root: &Path) -> Result<Vec<TreeEntry>, TreeError> {
     fn walk(root: &Path, dir: &Path, out: &mut Vec<TreeEntry>) -> Result<(), TreeError> {
         for e in std::fs::read_dir(dir)? {
             let p = e?.path();
@@ -75,7 +81,7 @@ pub fn tree_digest(root: &Path) -> Result<Digest, TreeError> {
     }
     let mut entries = Vec::new();
     walk(root, root, &mut entries)?;
-    tree_digest_entries(entries)
+    Ok(entries)
 }
 
 #[cfg(test)]

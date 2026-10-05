@@ -93,19 +93,24 @@ pub fn near_env(f: &mut Fixture) -> Option<()> {
         "sha256:c83f3e14d526e78244ee2d7288396a9680717fa42ef77127ba29ccf27bb7e6ec"
     );
     f.exec.ctx.oracles = o;
-    export("formal-core", &clean);
-    export("spec/lean", &clean);
+    f.chal = serde_json::from_slice::<ChallengeDefinition>(
+        &std::fs::read(repo().join(format!("challenges/{NEAR}.json"))).unwrap(),
+    )
+    .unwrap();
+    // The trusted reference is the frozen tree the challenge pins.
+    let Some(store) = frozen_store(f.tmp.path(), &f.chal, NEAR_V1_TRUSTED_COMMIT) else {
+        eprintln!(
+            "skipped: commit {NEAR_V1_TRUSTED_COMMIT} (pinned trusted tree) not in this clone"
+        );
+        return None;
+    };
     f.exec.ctx.formal = Some(FormalEnv {
-        repo: clean,
+        trusted_trees: Some(store),
         configs_dir: repo().join("runners/formal-checker/challenges"),
         images_dir: None,
     });
     f.exec.ctx.bench_batch_cap = Some(1);
     f.exec.ctx.conformance_samples = 3;
-    f.chal = serde_json::from_slice::<ChallengeDefinition>(
-        &std::fs::read(repo().join(format!("challenges/{NEAR}.json"))).unwrap(),
-    )
-    .unwrap();
     // Test-only re-pin: the signed challenge pins the identity of one build
     // of the host checker tools; this host's tools may have been rebuilt.
     f.chal.toolchain_policy.checker_image = arena_formal_checker::toolchain::ToolPaths::discover()

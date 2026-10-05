@@ -7,6 +7,7 @@ pub mod challenge_file;
 pub mod governed;
 pub mod keys;
 pub mod policy;
+pub mod trusted;
 
 pub use challenge_file::{verify_file, Verified};
 pub use governed::GovernedSet;

@@ -214,6 +214,7 @@ async fn serve(args: ServeArgs) -> anyhow::Result<()> {
     let governance = arena_server::Governance {
         dev_only_keys: r.dev_only_keys.clone(),
         governed: r.governed.take(),
+        trusted_trees: r.trusted_trees.take(),
     };
     if let Some(dir) = &args.challenges_dir {
         let (ok, bad) = arena_server::bootstrap::challenges_from_dir(

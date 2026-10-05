@@ -52,6 +52,13 @@ pub struct ServeArgs {
     /// challenge must also pass the governance policy (tools/arena-admin).
     #[arg(long, env = "ARENA_SECURITY_DIR")]
     pub security_dir: Option<PathBuf>,
+    /// Judge trusted-tree store (`<dir>/<hex>/{formal-core,spec/lean}`, see
+    /// `arena-admin freeze-trusted`). Registration of a non-demo challenge is
+    /// refused unless its pinned `formal_spec.tree_digest` is published there
+    /// and verifies. Required in production; unset in dev skips the check
+    /// with a warning.
+    #[arg(long, env = "ARENA_TRUSTED_TREES")]
+    pub trusted_trees: Option<PathBuf>,
     /// Hardened config (TOML) required for any non-loopback listener.
     #[arg(long, env = "ARENA_HARDENED_CONFIG")]
     pub hardened_config: Option<PathBuf>,
@@ -111,6 +118,7 @@ pub struct Resolved {
     pub governance_keys: Vec<VerifyingKey>,
     pub dev_only_keys: Vec<VerifyingKey>,
     pub governed: Option<arena_admin::GovernedSet>,
+    pub trusted_trees: Option<PathBuf>,
 }
 
 /// Parse a listener address. Only IP literals are accepted (no hostnames, so
@@ -322,6 +330,21 @@ impl ServeArgs {
                 None
             }
         };
+        let trusted_trees = match (&self.trusted_trees, env) {
+            (Some(d), _) => {
+                if !d.is_dir() {
+                    return Err(format!("ARENA_TRUSTED_TREES {}: not a directory", d.display()));
+                }
+                Some(d.clone())
+            }
+            (None, Env::Production) => {
+                return Err("ARENA_TRUSTED_TREES is required in production: formal challenges are registered only against their frozen trusted tree".into())
+            }
+            (None, Env::Dev) => {
+                tracing::warn!("ARENA_TRUSTED_TREES not set (dev): challenges are registered WITHOUT checking that their pinned trusted tree is published");
+                None
+            }
+        };
         if governance_keys.is_empty() {
             match env {
                 Env::Production => {
@@ -341,6 +364,7 @@ impl ServeArgs {
             governance_keys,
             dev_only_keys,
             governed,
+            trusted_trees,
         })
     }
 }
