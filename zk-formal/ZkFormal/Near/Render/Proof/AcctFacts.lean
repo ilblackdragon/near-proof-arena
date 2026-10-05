@@ -96,44 +96,50 @@ theorem touched_some (hg : Good c e) : ∃ k, k ∈ (mkInfo c e).touched := by
       · rw [List.getElem?_eq_none (by omega)] at hj; cases hj
     exact absurd this (by decide)
 
+theorem acct_pre (hg : Good c e) : ∀ k ∈ (mkInfo c e).touched,
+    ((mkInfo c e).vpre.getD k []).length = 72 ∧ (∀ b ∈ (mkInfo c e).vpre.getD k [], b < 256) ∧
+    ∃ j, j < 16 ∧ ((mkInfo c e).vpre.getD k []).getD j 0 ≠ 255 := by
+  intro k hk
+  obtain ⟨nr, h1, h2⟩ := mem_touched.1 hk
+  rw [vpre_eq hk]
+  have hl := hg.vals_len k nr h1 h2
+  refine ⟨by simp [toNats, hl], fun b hb => ?_, ?_⟩
+  · simp only [toNats, List.mem_map] at hb
+    obtain ⟨u, _, rfl⟩ := hb; exact u.toNat_lt
+  · apply Classical.byContradiction
+    intro hne
+    have h255 : ∀ j, j < 16 → (toNats (e.vals0 k)).getD j 0 = 255 := fun j hj =>
+      Classical.byContradiction fun h => hne ⟨j, hj, h⟩
+    have hv := hg.vals_v1 k nr h1 h2
+    have hmax : leNat ((e.vals0 k).take 16) = Params.u128Max := by
+      apply leNat_255 _ (by simp [hl])
+      intro j hj
+      rw [← h255 j hj]
+      simp [toNats, List.getD_eq_getElem?_getD, List.getElem?_take, hj]
+    simp [Account.decode, hl, hmax] at hv
+
+theorem acct_post (hg : Good c e) : ∀ k ∈ (mkInfo c e).touched, ((mkInfo c e).vpost.getD k []).length = 72 := by
+  intro k hk
+  obtain ⟨nr, h1, h2⟩ := mem_touched.1 hk
+  rw [vpost_eq hk]
+  have hl := hg.vals_len k nr h1 h2
+  have hv := hg.vals_v1 k nr h1 h2
+  simp only [Ext.valsAt, Ext.acc0, Account.encode, toNats, List.length_map, List.length_append, u128, u64]
+  rcases hd : Account.decode (e.vals0 k) with _ | a
+  · simp [hd] at hv
+  · simp only [Option.getD_some]
+    have : a.codeHash.length = 32 := by
+      simp only [Account.decode, hl, if_true] at hd
+      split at hd
+      · simp at hd
+      · simp only [Option.some.injEq] at hd; rw [← hd]; simp [hl]
+    simp [leN_length, this]
+
 theorem acctOk (hg : Good c e) (ht : TouchedLe e) : AcctOk (mkInfo c e) := by
-  refine ⟨?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, acct_pre hg, acct_post hg⟩
   · obtain ⟨k, hk⟩ := touched_some hg
     exact List.length_pos_of_mem hk
   · rw [touched_len]; exact ht
-  · intro k hk
-    obtain ⟨nr, h1, h2⟩ := mem_touched.1 hk
-    rw [vpre_eq hk]
-    have hl := hg.vals_len k nr h1 h2
-    refine ⟨by simp [toNats, hl], fun b hb => ?_, ?_⟩
-    · simp only [toNats, List.mem_map] at hb
-      obtain ⟨u, _, rfl⟩ := hb; exact u.toNat_lt
-    · apply Classical.byContradiction
-      intro hne
-      have h255 : ∀ j, j < 16 → (toNats (e.vals0 k)).getD j 0 = 255 := fun j hj =>
-        Classical.byContradiction fun h => hne ⟨j, hj, h⟩
-      have hv := hg.vals_v1 k nr h1 h2
-      have hmax : leNat ((e.vals0 k).take 16) = Params.u128Max := by
-        apply leNat_255 _ (by simp [hl])
-        intro j hj
-        rw [← h255 j hj]
-        simp [toNats, List.getD_eq_getElem?_getD, List.getElem?_take, hj]
-      simp [Account.decode, hl, hmax] at hv
-  · intro k hk
-    obtain ⟨nr, h1, h2⟩ := mem_touched.1 hk
-    rw [vpost_eq hk]
-    have hl := hg.vals_len k nr h1 h2
-    have hv := hg.vals_v1 k nr h1 h2
-    simp only [Ext.valsAt, Ext.acc0, Account.encode, toNats, List.length_map, List.length_append, u128, u64]
-    rcases hd : Account.decode (e.vals0 k) with _ | a
-    · simp [hd] at hv
-    · simp only [Option.getD_some]
-      have : a.codeHash.length = 32 := by
-        simp only [Account.decode, hl, if_true] at hd
-        split at hd
-        · simp at hd
-        · simp only [Option.some.injEq] at hd; rw [← hd]; simp [hl]
-      simp [leN_length, this]
 
 end
 

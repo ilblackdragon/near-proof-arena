@@ -122,6 +122,12 @@ theorem flatMap_single {α β : Type} {l : List α} {f : α → List β} {g : α
     simp only [List.flatMap_cons, List.map_cons, h x (by simp), List.singleton_append]
     rw [ih (fun q hq => h q (by simp [hq]))]
 
+theorem flatMap_congr' {α β : Type} {l : List α} {f g : α → List β} (h : ∀ x ∈ l, f x = g x) :
+    l.flatMap f = l.flatMap g := by
+  induction l with
+  | nil => rfl
+  | cons x l ih => simp only [List.flatMap_cons, h x (by simp), ih (fun y hy => h y (by simp [hy]))]
+
 theorem flatMap_nil' {α β : Type} {l : List α} {f : α → List β} (h : ∀ q ∈ l, f q = []) :
     l.flatMap f = [] := List.flatMap_eq_nil_iff.2 h
 
@@ -145,6 +151,41 @@ theorem flatMap_chunks {α β : Type} (k : Nat) (hk : 0 < k) (d : α) (h : α �
       rw [show (k + q) / k = q / k + 1 by rw [Nat.add_comm, Nat.add_div_right _ hk],
         show (k + q) % k = q % k by rw [Nat.add_comm, Nat.add_mod_right]]
       simp
+
+theorem perm_flatMap_congr {α β : Type} {l : List α} {f g : α → List β} (h : ∀ x ∈ l, (f x).Perm (g x)) :
+    (l.flatMap f).Perm (l.flatMap g) := by
+  induction l with
+  | nil => exact List.Perm.refl _
+  | cons x l ih =>
+    simp only [List.flatMap_cons]
+    exact (h x (by simp)).append (ih (fun y hy => h y (by simp [hy])))
+
+theorem perm_flatMap_append {α β : Type} (l : List α) (f g : α → List β) :
+    (l.flatMap fun x => f x ++ g x).Perm (l.flatMap f ++ l.flatMap g) := by
+  induction l with
+  | nil => exact List.Perm.refl _
+  | cons x l ih =>
+    simp only [List.flatMap_cons, List.append_assoc]
+    refine List.Perm.append_left _ ?_
+    refine (ih.append_left (g x)).trans ?_
+    rw [← List.append_assoc, ← List.append_assoc]
+    exact List.perm_append_comm.append_right _
+
+theorem range_flatMap_chunks {β : Type} (k : Nat) (f : Nat → List β) :
+    ∀ n, (List.range (k * n)).flatMap f = (List.range n).flatMap fun t => (List.range k).flatMap fun i => f (k * t + i)
+  | 0 => by simp
+  | n + 1 => by
+    rw [Nat.mul_succ, List.range_add, List.flatMap_append, range_flatMap_chunks k f n, List.range_succ,
+      List.flatMap_append, List.flatMap_map]
+    simp
+
+theorem flatMap_getD {α β : Type} (d : α) (l : List α) (f : α → List β) :
+    l.flatMap f = (List.range l.length).flatMap fun t => f (l.getD t d) := by
+  have : (List.range l.length).map (fun t => l.getD t d) = l := by
+    apply List.ext_getElem (by simp)
+    intro i h1 h2; simp [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem h2]
+  conv => lhs; rw [← this]
+  rw [List.flatMap_map]
 
 /-- `TableTraffic` from the per-bus message lists of the rows (up to permutation). -/
 theorem traffic_of {is : List Interaction} {tr : Trace Fp} {t : Nat} {pub : List Fp} {tf : Traffic}
