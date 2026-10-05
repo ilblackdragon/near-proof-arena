@@ -13,7 +13,8 @@ from the statements below.
   with width 0, no constraints, no interactions and `maxLog = 1` is admissible, and so
   is the AIR of `2^32` copies of it, with the all-zero trace of height 2, which
   satisfies `Holds`).  Corrected: `NpIopCompleteStmt'` assumes `A.tables.length < 2^32`
-  (`NpCompose.npIopComplete_false` is the formal counterexample).
+  (no formal proof of the negation is included: evaluating `headerOk` on a
+  `2^32`-element list is out of reach of the kernel, but the argument is the one above).
 * **`NpProverQStmt`**: `proverQ` counts two queries per schedule slot, and the
   schedule has `2·(batchRounds - 1)` batching slots with
   `batchRounds ≈ log₂ (max class column count)`, which is unbounded since nothing in
