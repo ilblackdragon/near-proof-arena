@@ -92,7 +92,9 @@ fn gate_relevant(g: ObligationId, f: &Finding, conjunct_gates: Option<&[Obligati
     if g == ObligationId::ArtifactBinding {
         // The binding of the executed verifier to the statement: fails on
         // binding findings; undecided whenever anything is undecided.
-        return f.code == ReasonCode::ArtifactBindingFailed || f.severity == Severity::Unknown || f.scope == Scope::Compiled;
+        return f.code == ReasonCode::ArtifactBindingFailed
+            || f.severity == Severity::Unknown
+            || f.scope == Scope::Compiled;
     }
     if f.scope == Scope::Binding {
         return false;

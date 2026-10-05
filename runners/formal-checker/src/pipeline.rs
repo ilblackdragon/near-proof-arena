@@ -1545,7 +1545,10 @@ impl FormalChecker {
                     // Lean's own escaped rendering. If the export then lacks the
                     // lemma, the NDJSON side fails closed (RECHECK_FAILED).
                     let n = &c.thm_escaped;
-                    if !n.is_empty() && n.len() < 4096 && !n.chars().any(|ch| ch.is_whitespace() || ch.is_control()) {
+                    if !n.is_empty()
+                        && n.len() < 4096
+                        && !n.chars().any(|ch| ch.is_whitespace() || ch.is_control())
+                    {
                         argv.push(n.clone());
                     } else {
                         findings.push(Finding::new(
@@ -1712,7 +1715,12 @@ impl FormalChecker {
                                 .filter(|d| d.kind == crate::ndjson::DeclKind::Axiom)
                                 .map(|d| d.name.clone())
                                 .collect();
-                            findings.extend(audit::nd_csimp_findings(&ex, &la.csimp, &req.policy.axiom_allowlist, &ref_axioms));
+                            findings.extend(audit::nd_csimp_findings(
+                                &ex,
+                                &la.csimp,
+                                &req.policy.axiom_allowlist,
+                                &ref_axioms,
+                            ));
                         }
                         if let Some(n) = nanoda_count {
                             if n == 0 || (ex.decls.len() as u64) < n / 2 {
@@ -1786,7 +1794,11 @@ impl FormalChecker {
                     &trusted_axioms,
                     per_conjunct,
                 ));
-                findings.extend(audit::lean_compiled_code_findings(la, &req.policy.axiom_allowlist, &trusted_axioms));
+                findings.extend(audit::lean_compiled_code_findings(
+                    la,
+                    &req.policy.axiom_allowlist,
+                    &trusted_axioms,
+                ));
             }
             if let Some(a) = &nd {
                 findings.extend(audit::nd_findings(a, &req.policy.axiom_allowlist));
