@@ -1,12 +1,14 @@
+import ZkFormal.Near.Render.Views
 import ZkFormal.Near.Render.Trace
 
-/-! Executable checks of the NEAR honest-trace generators (lane L6e).
+/-! Executable checks of the NEAR honest-trace generators (lane L6e): all six
+NEAR tables (node, walk, rcpt, acct, mrk, sort) and every bus, with the `sha`
+side from L5's expected traffic.
 Run: `lake env lean test/NearRenderTest.lean`.  Not part of the library.
 
 Each example is a small hand-built `Ext` (with the claim computed from it);
-for each we print the constraint violations of node / walk / acct / mrk /
-sort and the balance of every bus, with `sha` and `rcpt` simulated
-(`rcpt*`, `sha*` in the contributions). -/
+for each we print the constraint violations of each table and the balance
+of every bus (`sha*` in the contributions = simulated sha side). -/
 
 open NearSpec NearSpec.TransferV1 ZkFormal.Near ZkFormal.Near.Render ZkFormal.Air
 
@@ -54,9 +56,9 @@ def run (name : String) (e : Ext) : IO Unit := do
   let c := mkClaim e
   let pub := pubOf c
   IO.println s!"=== {name}: {e.ns.length} nodes, {e.rs.length} receipts, pub {pub.length}"
-  match bundle c e with
-  | .error err => IO.println s!"generator error: {err}"
-  | .ok B =>
+  let B := bundle c e
+  if !B.errors.isEmpty then IO.println s!"generator error: {B.errors}"
+  do
     for (nm, T, rows) in B.tables do
       let groups := if nm == "node" then nodeGroups else []
       for l in reportTable nm T rows pub groups do IO.println l
@@ -109,12 +111,12 @@ def ex4 : Ext := mkExt
   [(rcptOf "alice" 0 (2 * bgp) (10 ^ 23), 5)]
 
 /-- Check of `render`: the NEAR tables read back from the trace (tables
-`1 … 6` of `nearAir`), whole-AIR bus balance with `sha` and `rcpt` simulated. -/
+`1 … 6` of `nearAir`), whole-AIR bus balance with `sha` simulated. -/
 def runFull (name : String) (e : Ext) : IO Unit := do
   let c := mkClaim e
   let pub := pubOf c
   let tr := render c e
-  let names := ["node", "walk", "rcpt(placeholder)", "acct", "mrk", "sort"]
+  let names := ["node", "walk", "rcpt", "acct", "mrk", "sort"]
   IO.println s!"=== render {name}: logs {(List.range 7).map tr.log}"
   let mut traffic : List (String × BusMsg) := []
   for (nm, t) in names.zip (List.range 6) do
@@ -123,10 +125,69 @@ def runFull (name : String) (e : Ext) : IO Unit := do
       (List.range T.width).toArray.map fun col => (tr.cell (t + 1) r col).toNat
     for l in reportTable nm T rows pub (if nm == "node" then nodeGroups else []) do IO.println l
     traffic := traffic ++ tableBus nm T rows pub
-  let I := mkInfo c e
-  traffic := traffic ++ ((rcptBus I ++ bytesSends (rcptMsgs I)).map ("rcpt*", ·)) ++
-    ((shaSim (renderParts c e).1).map ("sha*", ·))
+  traffic := traffic ++ ((shaSim (renderParts c e).1).map ("sha*", ·))
   for l in reportBus traffic do IO.println l
+
+def mkExt' (ns : List NodeRec) (amts : List (Nat × Nat × Nat)) (rs : List (Receipt × Nat)) : Ext :=
+  { ns, vals0 := fun k => match amts.lookup k with | some (a, st) => acctBytes a st | none => [],
+    rs := rs.map (·.1), slot := fun r => (rs.map (·.2)).getD r 0 }
+
+def long64 : String := "abcdefghijklmnopqrstuvwxyz-0123456789_abcdefghijklmnopqrstuvw.xy"
+def hexish : String := "0x" ++ "0123456789abcdef0123456789abcdef0123456g"
+
+def rcptFull (pred recv signer : String) (pk : PublicKey) (i gp dep : Nat) : Receipt :=
+  ⟨str pred, str recv, hsh s!"receipt{i}", str signer, pk, gp, dep⟩
+
+def secpPk : PublicKey := ⟨1, hsh "k1" ++ hsh "k2"⟩
+
+/-- Receipt-level variety: a 64-char receiver, a SECP256K1 signer key, gas price
+below / equal to / above the block price (refund only above), predecessor of
+length 6 (≠ "system"), a `0x`+40 receiver that is not hex (named), storage
+`≤ 770` with balance below the storage stake and storage `> 770` above it. -/
+def ex5 : Ext := mkExt'
+  [ .branch none (kidsL [(0, .node 1), (1, .hash (hsh "o"))]) 1000,
+    .branch none (kidsL [(0, .node 2)]) 900,
+    .branch none (kidsL [(6, .node 3), (3, .node 4)]) 800,
+    .leaf ((keyOf long64).drop 3) .touched 300,
+    .leaf ((keyOf hexish).drop 3) .touched 310 ]
+  [(3, 5 * 10 ^ 24, 5000), (4, 10 ^ 21, 700)]
+  [(rcptFull "carol.near" long64 "dave_1.near" secpPk 0 (bgp / 2) (10 ^ 23), 3),
+   (rcptFull "sysabc" hexish "eve.tg" ⟨0, hsh "pk"⟩ 1 (3 * bgp) 12345, 4),
+   (rcptFull "x-y.z_w" long64 "dave_1.near" secpPk 2 bgp 0, 3),
+   (rcptFull "carol.near" hexish "zz" secpPk 3 (bgp + 1) (2 ^ 100), 4)]
+
+/-- Messages as a sorted list (multiset comparison). -/
+def msort (l : List (List Nat)) : List (List Nat) :=
+  l.mergeSort fun a b => decide (toString a ≤ toString b)
+
+/-- `TrafficStmt` check: each table's traffic equals its honest view traffic
+(`Render.Views`), and the honest traffic balances on every bus (`BusStmt`). -/
+def runViews (name : String) (e : Ext) : IO Unit := do
+  let c := mkClaim e
+  let pub := pubOf c
+  let B := bundle c e
+  if !B.errors.isEmpty then IO.println s!"generator error: {B.errors}"
+  do
+    let tfs := honestTraffic c e
+    let mut ok := true
+    for ((nm, T, rows), t) in B.tables.zip [1, 2, 3, 4, 5, 6] do
+      let act := tableBus nm T rows pub
+      let tf := tfs.getD t ⟨fun _ => [], fun _ => []⟩
+      for b in List.range 10 do
+        for s in [true, false] do
+          let got := msort ((act.filter fun (_, m) => m.bus == b && m.send == s).flatMap
+            fun (_, m) => List.replicate m.mult m.msg)
+          let want := msort (if s then tf.sends b else tf.recvs b)
+          if got != want then
+            ok := false
+            IO.println s!"  {nm} bus {busName b} {if s then "send" else "recv"}: table {got.length} vs view {want.length}; first diff {((got.filter (!want.contains ·)).take 2)} / {((want.filter (!got.contains ·)).take 2)}"
+    let traffic : List (String × BusMsg) := (tfs.zip (List.range 7)).flatMap fun (tf, t) =>
+      (List.range 10).flatMap fun b =>
+        (tf.sends b).map (fun m => (s!"t{t}", ({ bus := b, send := true, msg := m } : BusMsg))) ++
+        (tf.recvs b).map (fun m => (s!"t{t}", ({ bus := b, send := false, msg := m } : BusMsg)))
+    let ims := imbalances traffic
+    IO.println s!"=== views {name}: traffic = view traffic: {ok}; honest view traffic unbalanced messages: {ims.length}"
+    for im in ims.take 5 do IO.println s!"    {busName im.bus} {im.msg.take 8} net {im.net} by {im.by_}"
 
 end NearRenderTest
 
@@ -136,8 +197,29 @@ open NearRenderTest in
   run "ex2 ext→branch→leaves, 3 receipts" ex2
   run "ex3 branch with value" ex3
   run "ex4 empty-key extensions, 1 receipt" ex4
+  run "ex5 receipt variety (long ids, secp key, gas below/equal/above, storage cases)" ex5
+
+open NearRenderTest in
+#eval do
+  for (nm, e) in [("ex1", ex1), ("ex2", ex2), ("ex3", ex3), ("ex4", ex4), ("ex5", ex5)] do
+    runViews nm e
 
 open NearRenderTest in
 #eval do
   runFull "ex4" ex4
   runFull "ex3" ex3
+
+/-! Negative check: a 65-character predecessor (invalid account id) violates
+exactly the `L ≤ 64` constraint added to `rcpt` (before the fix the honest-style
+trace of this receipt satisfied every rcpt constraint). -/
+open NearRenderTest in
+#eval do
+  let long65 := long64 ++ "q"
+  let e := mkExt' ex5.ns [(3, 5 * 10 ^ 24, 5000), (4, 10 ^ 21, 700)]
+    [(rcptFull long65 long64 "dave_1.near" secpPk 0 (bgp / 2) (10 ^ 23), 3)]
+  let c := mkClaim e
+  let B := bundle c e
+  if !B.errors.isEmpty then IO.println s!"generator error: {B.errors}"
+  do
+    let vs := violations Rcpt.table B.rcpt (pubOf c)
+    IO.println s!"65-char predecessor: rcpt violations {groupViol vs}"

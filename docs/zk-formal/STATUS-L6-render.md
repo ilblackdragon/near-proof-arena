@@ -14,7 +14,11 @@ test `zk-formal/test/NearRenderTest.lean`
 | `Render/Acct.lean` | `acctRowsAll`, `acctMsgs` (`VPRE`/`VPOST`) |
 | `Render/Mrk.lean` | `mrkRowsAll`, `mrkMsgs` (`MRK(q)`) |
 | `Render/Sort.lean` | `sortRowsAll` (ids ascending LE, delay line cyclic) |
-| `Render/RcptSim.lean` | the `rcpt` side simulated from the `Ext`: `rcptMsgs` (`RC`, `RF`, `PEO`, `LEAF`, `RID`), `rcptBus` (DIGEST receives, KEYNIB, FINAL, MEM, RIDS, MPOS), `shaSim` (sha side: BYTES receives, DIGEST sends) |
+| `Render/Rcpt.lean` | `rcptRowsAll` (claim rows, receipt segments, registers, account-id machinery, key symbols, gas/balance arithmetic with carries/borrows/delay lines/bit pools, claim checks; emission slots filled by evaluating the table's own `emits`), `rcptData` |
+| `Render/Views.lean` | the honest views of the extraction side (`nodeViewsOf`, `walkViewsOf`, `rcptViewsOf`, `acctViewsOf`, `mrkViewOf`, `sortIdsOf`), `shaTraffic`, `honestTraffic c e` (seven `Traffic`s, `nearAir` order) |
+| `Render/Statements.lean` | split of `RenderStmt`: `LocalStmt` ×7, `TrafficStmt` ×7, `BusStmt` ×10 (`RenderObligations`) |
+| `Render/Compose.lean` | `other_bus` (proved), **`render_stmt : RenderObligations → RenderStmt`** (no sorry; axioms propext, choice, Quot.sound) |
+| `Render/RcptSim.lean` | the `rcpt` side simulated from the `Ext` (kept for comparison: `Bundle.busSim`): `rcptMsgs` (`RC`, `RF`, `PEO`, `LEAF`, `RID`), `rcptBus` (DIGEST receives, KEYNIB, FINAL, MEM, RIDS, MPOS), `shaSim` (sha side: BYTES receives, DIGEST sends) |
 | `Render/Check.lean` | `violations` (every non-vanishing `(row, constraint)`, via `Expr.eval`), `badBits`, `tableBus` (via `multNat`/`msgVal`), `imbalances` (per bus/message `Σ send − Σ recv` with contributing tables), reports |
 | `Render/Tables.lean` | `bundle c e` (all five generators + every SHA message), `Bundle.bus` (whole AIR traffic, `sha`/`rcpt` simulated) |
 
@@ -48,9 +52,7 @@ outcome root computed by NearSpec match the digests the tables look up.
    adds at least one padding row instead. That works for every `n` except
    **`n = 256`**: `32·256 = 2^13 = 2^maxLog`, no room for a padding row, so the
    honest trace of a full batch violates the table — a **completeness bug**.
-   Fix options (lead): `isTransition · sl · ft' = 0` (degree 3; `ft` is only read
-   on active rows, honest padding has `ft = 0`; one line of SortProof changes),
-   or `maxLog = 14`.
+   **Fixed by the lead** on `lane/zk-L6` (`isTransition · sl · act' · ft' = 0`).
 
 ## Generator notes (not table bugs)
 
@@ -58,7 +60,7 @@ outcome root computed by NearSpec match the digests the tables look up.
   contents `aI aS aN aJ` / `bN bJ` are constrained even when the gate is off
   (dead extension child); the generator fills them.
 
-## Soundness review (holes found: none so far)
+## Soundness review (trie side: no holes found; rcpt: see bug 3)
 
 Mutation probe (`test/NearProbeTest.lean`, ≈ 75 s): on an honest trace of a
 mixed example (odd extension, branch, touched branch value, dead extension,
@@ -84,21 +86,68 @@ Minor / completeness-only:
 * dead extension: `xres` (and the window's `cres`) are free; harmless (no edge
   leaves the extension).
 
+## rcpt (second milestone)
+
+* Generator `Render/Rcpt.lean` written from `Tables/Rcpt*.lean`; the real
+  table replaces the simulation in `bundle`, `Bundle.bus` and `render`
+  (`ZkFormal.Near.render := Render.render` in `Honest.lean`).
+* Tests: on ex1–ex5, rcpt has no violations and every bus balances with the
+  real rcpt table. ex5 covers: 64-char receiver, SECP256K1 signer key
+  (`kt = 1`), gas price below / equal / above the block price (refund only
+  above; `ge = 0` case), a 6-char predecessor ≠ `system`, a `0x`+40 receiver
+  that is not hex (named), storage 700 ≤ 770 with balance below the stake
+  (`big = 0`) and storage 5000 above it, a `2^100` deposit.
+* `views exN`: every table's traffic equals the extraction side's view
+  traffic of the honest views (`nodeTraffic` … `sortTraffic`, i.e. the
+  `TrafficStmt`s hold on the examples), and that traffic balances (the
+  `BusStmt`s).
+* Mutation probe on rcpt: no semantic cell is free (only `xb 8..25` on claim
+  rows 8–11, the `770` slack bits when `big = 1`, the `tprev` bits off the
+  first DEP row).
+
+### rcpt table bug (fixed, soundness)
+
+3. **Account-id length ≤ 64 not enforced.** `L − 2 = bitsX 0 6` allows
+   `L ∈ [2, 65]`; `AccountId.valid` (and `RcptV.Wf.ids` of the extraction
+   side) needs `≤ 64`, so a receipt with a 65-byte predecessor / receiver /
+   signer was accepted (the relation rejects it). Fix in
+   `Tables/Rcpt/Arith.lean` `cChars`: `fe · s · (64 − L − bitsX 6 6) = 0` for
+   `s ∈ {P, V, S}` (3 constraints, no new columns; `xb 6..11` are unused on
+   those rows; `BudgetCheck` passes). Test: a 65-char predecessor violates
+   exactly this constraint.
+
+## Sort table
+
+The lead's fix (`isTransition · sl · act' · ft'`) is merged; the generator no
+longer adds a padding row (a full batch, `n = 256`, fills `2^13` rows exactly).
+
+## Render statements
+
+`RenderStmt` ⇐ `RenderObligations` (`Render/Compose.lean`, proved):
+`ShaLocalStmt … SortLocalStmt` (`TableLocal` of each table of
+`render c.1 e` under `Good c.1 e`), `ShaTrafficStmt … SortTrafficStmt`
+(`TableTraffic … (htf c e t)`, the honest view traffic), `BytesBusStmt …
+MposBusStmt` (trace-free balance of the honest traffic per bus); buses `≥ 10`
+carry nothing (`other_bus`). `bundle` is total (a failing walk is empty, with
+`walkErrors`), so `render` has no fallback branch.
+
 ## Doc discrepancies (for the lead)
 
 * NEAR-AIR.md §1 `PEO` length `46 + 32·hr + L_v`: `Outcome.partialEncode` is
-  `4 + 32·hr + 8 + 16 + (4 + L_v) + 1 + 4 = 37 + 32·hr + L_v`.
+  `4 + 32·hr + 8 + 16 + (4 + L_v) + 1 + 4 = 37 + 32·hr + L_v` (the rcpt table
+  uses 37, correctly).
 
 ## Open
 
-* `ZkFormal.Near.Render.render : Claim → Ext → Trace Fp` (`Render/Trace.lean`)
-  exists: `nearAir` order, sha lazily via `Sha.Gen.rowCell` on `bundle`'s
-  messages, **rcpt = two zero rows (placeholder)** — the rcpt table that landed
-  on `lane/zk-L6` (961 constraints) is violated by them (25 constraints on row
-  0), as expected. `Honest.lean` not edited: `ZkFormal.Near.render` should
-  become `Render.render`.
-* rcpt generator (after the table stabilizes); the rcpt side is simulated from
-  the `Ext` in `RcptSim.lean`.
-* sha cells via `Sha.Gen.rowCell` cost ≈ 1.5 ms each in the interpreter
-  (block recomputed per cell), so the tests use L5's `expectedBytes` /
-  `expectedDigests` for the sha side instead of materializing the sha table.
+* Proofs of the `RenderObligations` (none proved yet). The generators are
+  imperative (`Id.run`, `Array.set!` loops), which is convenient for testing
+  but not for proofs; the local statements are best attacked by giving each
+  table a closed-form cell function `cell r col` (segment `r / L`, lane
+  `r % L`) proved equal to the generator's rows, then checking constraints
+  per row kind.
+* `extOf` (pruning) is still a placeholder; `render` assumes the records'
+  root is node 0 and the walks succeed (`walkErrors = []`), which `Good`
+  should give via `WalkTo` (the generator's walk skips empty-key extensions
+  through `res`, the spec walk takes `EPS` steps).
+* The sha cells via `Sha.Gen.rowCell` cost ≈ 1.5 ms each in the interpreter,
+  so tests use L5's expected traffic for the sha side.

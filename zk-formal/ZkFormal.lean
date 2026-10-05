@@ -145,3 +145,4 @@ import ZkFormal.Near.NpOkCheck
 -- Lane L6 sub-lane L6-link: views + SHA contract + bus balance ⇒ Good (LinkStmt split).
 import ZkFormal.Near.Link.Compose
 import ZkFormal.Near.Extract.MrkProof
+import ZkFormal.Near.Render.Compose

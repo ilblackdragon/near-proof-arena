@@ -194,9 +194,13 @@ def walkOf (I : Info) (rc : Receipt) : Except String (List WStep) := do
     st := st'
   return steps.toList
 
-/-- All walks, receipt order. -/
-def walksOf (I : Info) : Except String (List (List WStep)) :=
-  I.e.rs.mapM (walkOf I)
+/-- All walks, receipt order (a walk that fails is empty; see `walkErrors`). -/
+def walksOf (I : Info) : List (List WStep) :=
+  I.e.rs.map fun rc => match walkOf I rc with | .ok w => w | .error _ => []
+
+/-- The walks that fail (none for honest records). -/
+def walkErrors (I : Info) : List String :=
+  I.e.rs.filterMap fun rc => match walkOf I rc with | .ok _ => none | .error err => some err
 
 /-- Edge use counts. -/
 def edgeUses (ws : List (List WStep)) : Std.HashMap Edge Nat :=

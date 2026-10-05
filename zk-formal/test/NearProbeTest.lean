@@ -32,8 +32,13 @@ def mkClaim (e : Ext) : Claim :=
       outcomeRoot := zeroHash, refundCount := 0, refundsCommitment := zeroHash,
       gasBurntTotal := 0, tokensBurntTotal := 0 }
   { c0 with preStateRoot := (trieOf e.ns e.vals0).hashOf,
+            receiptsCommitment := receiptsCommitment c0.shardId e.rs,
             slicePostRoot := (trieOf e.ns (e.valsAt e.rs.length)).hashOf,
-            outcomeRoot := outcomeRoot (e.outcomes c0) }
+            outcomeRoot := outcomeRoot (e.outcomes c0),
+            refundCount := (e.refunds c0).length,
+            refundsCommitment := refundsCommitment (e.refunds c0),
+            gasBurntTotal := e.rs.length * Params.G,
+            tokensBurntTotal := e.tokAt c0 e.rs.length }
 
 /-- Mixed example: odd extension, branch with touched value and children,
 dead extension, leaves (odd/even keys); 3 receipts. -/
@@ -59,20 +64,35 @@ def probe (nm : String) (T : Table) (rows : Array Row) (pub : List ZkFormal.Alge
     let rs := (fr.filter (·.2 == c)).map (·.1)
     IO.println s!"  col {c}: free on rows {rs}"
 
+/-- Per sampled row: its rcpt field state and free columns. -/
+def probeRcpt (rows : Array Row) (pub : List ZkFormal.Algebra.Fp) : IO Unit := do
+  let key := [Rcpt.act, Rcpt.fs, Rcpt.fe, Rcpt.rl, Rcpt.hr, Rcpt.kz, Rcpt.r1, Rcpt.lo8, Rcpt.lo4,
+    Rcpt.big, Rcpt.ge] ++ Rcpt.states
+  let smp := sampleRows rows key
+  let fr := freeCells Rcpt.table rows pub smp
+  let names := ["CL", "PL", "P", "VL", "V", "RID", "T0", "SL", "S", "KT", "PK", "GP", "TL", "DEP",
+    "XP0", "XRI", "XG", "XST", "XL0", "XLH", "XRH", "XRF", "XRZ"]
+  for r in smp do
+    let row := rows.getD r #[]
+    let st := ((Rcpt.states.zip names).find? fun (c, _) => row.getD c 0 == 1).map (·.2) |>.getD "pad"
+    let cols := (fr.filter (·.1 == r)).map (·.2)
+    IO.println s!"row {r} {st} idx {row.getD Rcpt.idx 0} fs {row.getD Rcpt.fs 0} fe {row.getD Rcpt.fe 0}: {cols}"
+
 end NearProbeTest
 
 open NearProbeTest in
 #eval do
   let c := mkClaim ex
   let pub := pubOf c
-  match bundle c ex with
-  | .error err => IO.println err
-  | .ok B =>
+  let B := bundle c ex
+  if !B.errors.isEmpty then IO.println s!"generator error: {B.errors}"
+  do
     -- node: patterns of type, state, fs/fe, nf/nl, gates
     probe "node" Node.table B.node pub
       ([Node.act, Node.nf, Node.nl, Node.sumr, Node.tl, Node.te, Node.tb1, Node.tb2, Node.fs,
         Node.fe, Node.odd, Node.nokey, Node.rv, Node.tv, Node.gA, Node.gB, Node.lastw] ++ Node.states)
     probe "walk" WalkTab.table B.walk pub [WalkTab.act, WalkTab.ws, WalkTab.we]
+    probeRcpt B.rcpt pub
     probe "acct" Acct.table B.acct pub [Acct.act, Acct.af, Acct.al, Acct.lo8, Acct.i]
     probe "mrk" Mrk.table B.mrk pub [Mrk.rt, Mrk.sg, Mrk.pr, Mrk.wf, Mrk.wl, Mrk.sf, Mrk.sl, Mrk.pw]
     probe "sort" Sort.table B.sort pub [Sort.act, Sort.sf, Sort.sl, Sort.ft, Sort.i]
