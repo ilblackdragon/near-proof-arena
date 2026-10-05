@@ -1,13 +1,16 @@
 //! Full-prefix Fiat–Shamir transcript through the 512-bit hash chain.
 //!
-//! * `d_0 = WH(INIT, "np-udr-stark-v1" ‖ pubDigest[32] ‖ header ‖ u32le(|cb|) ‖ cb)`
-//! * every challenge is preceded by exactly one absorbed message `m`
-//!   (possibly empty): `d ← WH(ABS, d ‖ m)`, then
-//!   `c = decodeChal(H(CHAL ‖ d))` (or `decodeOod` for the OOD point).
-//! * after the last message (the final FRI polynomial), `d_fin ← WH(ABS, d ‖ m)`,
-//!   and query chunk `j < 24` is `H(QUERY ‖ d_fin ‖ u8(j))`.
+//! * `d_0 = WH(INIT, "np-udr-stark-v1" ‖ le64(|pub|) ‖ pub ‖ le64(|cb|) ‖ cb)`
+//!   (`pub` = the full public tape); the proof header is part of message 0.
+//! * a message with Merkle roots `ρ` and clear bytes `μ` (in proof order):
+//!   `d ← WH(ABS, d ‖ u8(|ρ|) ‖ ρ ‖ μ)`; every challenge is preceded by one
+//!   message (possibly empty: `u8(0)`).
+//! * a challenge steps the state: `d ← WH(CHAL, d)`, `c = decodeChal(d[0..32])`
+//!   (`decodeOod` for the OOD point).
+//! * after the last message (the final FRI polynomial) the state is `d_fin`;
+//!   query chunk `j < 24` is `H(QUERY ‖ d_fin ‖ le32(j))`.
 //! * a query chunk `A` (32 bytes) read as a big-endian 256-bit integer `N`
-//!   yields positions `(N >> 26·i) mod 2^26 mod n0` for `i = 0..9`.
+//!   yields positions `(N >> 26·i) mod 2^n0` for `i = 0..9`.
 
 use crate::field::{decode_chal, decode_ood, EF};
 use crate::hash::{h, wh, Digest32, Digest64, TAG_ABS, TAG_CHAL, TAG_INIT, TAG_QUERY};
@@ -20,25 +23,34 @@ pub struct Transcript {
 }
 
 impl Transcript {
-    pub fn new(pub_digest: &Digest32, header: &[u8], cb: &[u8]) -> Self {
-        let d = wh(TAG_INIT, &[PROTOCOL_ID, pub_digest, header, &(cb.len() as u32).to_le_bytes(), cb]);
+    pub fn new(pub_tape: &[u8], cb: &[u8]) -> Self {
+        let d = wh(
+            TAG_INIT,
+            &[PROTOCOL_ID, &(pub_tape.len() as u64).to_le_bytes(), pub_tape, &(cb.len() as u64).to_le_bytes(), cb],
+        );
         Transcript { d, pending: None }
     }
 
     /// Queue the prover message preceding the next challenge.
-    pub fn absorb(&mut self, msg: Vec<u8>) {
+    pub fn absorb(&mut self, roots: &[Digest64], clear: &[u8]) {
         assert!(self.pending.is_none(), "two messages without a challenge");
-        self.pending = Some(msg);
+        let mut m = vec![roots.len() as u8];
+        for r in roots {
+            m.extend_from_slice(r);
+        }
+        m.extend_from_slice(clear);
+        self.pending = Some(m);
     }
 
     fn step(&mut self) {
-        let m = self.pending.take().unwrap_or_default();
+        let m = self.pending.take().unwrap_or(vec![0u8]);
         self.d = wh(TAG_ABS, &[&self.d, &m]);
     }
 
     fn raw(&mut self) -> Digest32 {
         self.step();
-        h(&[&[TAG_CHAL], &self.d])
+        self.d = wh(TAG_CHAL, &[&self.d]);
+        self.d[..32].try_into().unwrap()
     }
 
     pub fn chal(&mut self) -> EF {
@@ -56,7 +68,7 @@ impl Transcript {
         self.step();
         let mut out = Vec::with_capacity(chunks * per_chunk);
         for j in 0..chunks {
-            let a = h(&[&[TAG_QUERY], &self.d, &[j as u8]]);
+            let a = h(&[&[TAG_QUERY], &self.d, &(j as u32).to_le_bytes()]);
             out.extend(positions(&a, per_chunk).into_iter().map(|p| p & ((1 << log_n0) - 1)));
         }
         out

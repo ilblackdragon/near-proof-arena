@@ -21,95 +21,52 @@ the prover on dedicated hardware.
 
 ## Status
 
-**Live instance (2026-10-03).** A persistent arena is running on the dev host.
-It accepts submissions at `https://ns1027125.tail4c1391.ts.net` (tailnet
-only) and at `http://127.0.0.1:8471` on the host. It uses Firecracker workers
-for every stage.
+As of 2026-10-03 (v1 close-out). The evidence matrix is in
+`docs/EVIDENCE_COVERAGE.md`, the system description in `docs/ARCHITECTURE.md`,
+and the live instance in `docs/LIVE.md`.
 
-The v1-2 board (`chl_3be93793…`) has three formal admissions:
+**Bottom line.** The full pipeline runs end to end, every stage in a
+Firecracker microVM at formal tier, and it has made formal admissions:
 
-| rank | candidate | score |
-|------|-----------|-------|
-| 1 | `reexec-witness-fast` | 151.7 |
-| 2 | `reexec-witness` | 130.0 |
-| 3 | `reexec-npai` | 128.6 |
+* signed reports;
+* a server-recomputed score against a pinned baseline;
+* a ranked leaderboard.
 
-Both NEAR hostile cases are rejected. To submit, ask the operator for a
-token. See `docs/LIVE.md` for how to submit, the operator runbook and the
-current state.
+A persistent instance is live and accepts submissions from agents, which need a
+token. All numbers come from a shared, non-governed dev host.
 
-The table below predates the live instance and the e2e runs; parts of it are
-stale (see `docs/e2e-results/`).
+**Live instance.** It is served at `https://ns1027125.tail4c1391.ts.net`
+(tailnet only) and at `http://127.0.0.1:8471` on the host.
 
-Last checked on 2026-10-03 against `main` at `10e7139`. Every row below was
-verified from the code or by running the command named. The full evidence
-matrix is in `docs/EVIDENCE_COVERAGE.md`; the system description is in
-`docs/ARCHITECTURE.md`.
-
-**Bottom line.** No formal admission has happened, and none can happen yet
-through the pipeline. The parts are built and individually tested, and the
-NEAR reference backend's certificate passes the real formal checker when run
-by hand. The real worker and the server have not been joined yet: they use
-different job protocols, and no worker runs the formal check. (Superseded: see the live instance above.)
+<!-- LIVE-BOARDS -->
 
 | area | state | evidence |
 |------|-------|----------|
-| Contracts (`common/arena-types`, `common/schemas`) | implemented; schemas in sync | `make schemas-check` passes |
-| Control plane (`server/`) | implemented: API, auth, quotas, state machine, decisions, tier capping, formal cache, signed reports, leaderboard | `server/arena-server/tests/*` (pipeline, security, governance, …) against Postgres, driven by an **in-process fake worker** that is always demo tier |
-| Workers (`runners/worker`) | stages validate / build / conformance / adversarial / benchmark implemented and tested in isolation | `runners/worker/tests/*`. **Not yet interoperable with the server** (different endpoint shapes, no `lease_id`, no `FORMAL_CHECK` kind); `docs/ARCHITECTURE.md` §9 |
-| Sandboxes | `bwrap-dev` (demo only, results capped at `demo`) and Firecracker microVM (production design) | bwrap: 20 tests in `make test`. Firecracker: 19 VM tests, gated on `ARENA_FC_TESTS=1`, not in CI |
-| Formal checker (`runners/formal-checker`) | Stage A elaboration, Stage B `leanchecker` + `nanoda` (+ `lean4lean`), Stage C audits; routes `npai-v1` and `native-lean` | 30-case corpus and 11 `formal-core/negative` attacks rejected with the expected reason codes; standalone CLI only |
-| NEAR reference backend (`examples/reexec-witness`, `-fast`) | `native-lean` route; certificate proves soundness, completeness and deterministic crypto-soundness (ε = 0) | Manual `formal-check` run: all 6 formal gates PASS, three kernels accept, judge-built `verify` = `sha256:3931ac6f…`. Tier `demo` (dev sandbox). Implementation connection is **trusted** (Lean compiler) |
-| NEAR spec (`spec/lean`) vs nearcore 2.13.4 | Transfer-receipt slice, PV86 | **Tested, not proved**: 3-way difftest, 1712 cases, 0 disagreements (`spec/difftest-report.json`) |
-| NPAI interpreter (`runners/npai`) | implemented | 45 vectors; difftest against the Lean reference, 200,001 cases, 0 disagreements (re-run); fuzz targets |
-| Formal core + spec Lean projects | build cleanly, no `sorry` or `axiom` in sources | `make lean` |
-| Web (`web/`) | read-only UI; mock fixtures only in dev | `make web`: 47 tests |
-| SDKs / CLI (`sdk/`) | `arena` CLI, Python and TypeScript clients | `make test-sdk`: Python 20 tests, TypeScript 11 tests |
-| Hostile-submission suite | 35 cases in 15 families | CI runs a **dry run** only (packaging plus `expect.json` validation). Live submission through the pipeline is **missing** |
-| Deployment | local dev stack and a hardened *reference* topology | `make deploy-check` passes; `make dev-up` and `make migrate` work |
+| Pipeline (server ↔ Firecracker workers) | all stages integrated: validate, build, formal check (lean-checker image), conformance (NEAR oracle), adversarial, benchmark (`vm_per_batch`); leases, retries, formal-result cache, `supersedes`, signed reports | `docs/e2e-results/milestone-d-v1-2/`, `reexec-npai/`, `docs/live/restart-test.md` |
+| NEAR reference `examples/reexec-witness` (+ `-fast`) | **ADMITTED, formal tier**; native-lean. The implementation edge is TRUSTED (Lean compiler) | milestone-d, live |
+| NEAR on NPAI `examples/reexec-npai` | **ADMITTED, formal tier**; npai-v1: the bytecode ↔ statement edge is **CHECKED** | `docs/e2e-results/reexec-npai/`, live |
+| SP1 `examples/zkvm-sp1`, Plonky3 `examples/stark-plonky3` | judge-measured on the **experimental** tier only (never ranked). No formal certificate (`CERTIFICATE_MISSING`). The STARK formal route is a **design only** (`docs/zk-formal/DESIGN.md` + PoC lemmas in `zk-formal/`) | `docs/e2e-results/sp1-pipeline.md`, live experimental board |
+| Experimental-tier policy | formal gates and `ARTIFACT_BINDING` are diagnostic (reported, never blocking, never ranked) | server + checker tests; sp1-pipeline run 3 |
+| Hostile suite | 35/35 run live and match `expect.json`, 0 admitted: 22 demo (bwrap-dev) + 13 NEAR-formal (Firecracker) | `docs/e2e-results/hostile-final/`, `hostile-near-formal/` |
+| Sandbox | Firecracker microVMs for every live stage; seccomp user-notification escape detection (`SANDBOX_VIOLATION`); bwrap-dev demo-only | `docs/e2e-results/hostile-seccomp/`, `docs/ISOLATION.md` |
+| NEAR spec vs nearcore 2.13.4 | Transfer-receipt slice, PV86. **Tested, not proved**: 1712-case 3-way difftest; 4 authentic mainnet replay fixtures (rebased pre-state) | `spec/difftest-report.json`, `docs/HISTORICAL_REPLAY.md` |
+| Benchmarks | baselines pinned in signed successor challenges (v1-2, v1-3); calibration-gated; dev host only | `benchmarks/results/` |
+| Web / CLI / SDKs | read-only UI (supersession, experimental labels), `arena` CLI, Python + TypeScript SDKs | `make web`, `make test-sdk` |
+| Deployment | live instance (systemd --user, loopback + tailnet serve), local dev stack, hardened reference topology | `docs/LIVE.md`, `docs/DEPLOYMENT.md` |
 
-**Demo-only.**
-* Anything run through `bwrap-dev`.
-* The server tests' fake worker.
-* The `demo-toy-arithmetic` challenge.
-* The dev governance key `gov_8292e8f55c257fcc`.
-* The web mock fixtures.
+**Not done / not proved** (details in `docs/EVIDENCE_COVERAGE.md`):
 
-**Missing** (details in `docs/EVIDENCE_COVERAGE.md`):
-* A worker↔server integration and a live end-to-end run, including the
-  hostile suite.
-* Formal check, `npai-v1` and judge-built `native-lean` verification inside
-  the worker.
-* Oracle cases in conformance jobs.
-* Baselines and a governed benchmark host, so no score can be computed yet.
-* Evidence-graph nodes for nearcore, test suites and measurements.
-* Server handling of `supersedes`.
-* A production governance key.
-* A KVM CI runner.
-
-**In progress on other branches:**
-* integration e2e;
-* `lane/npai-near` (verified NEAR verifier on NPAI);
-* `lane/backend-zkvm` (SP1);
-* `lane/backend-plonky3`;
-* `lane/challenge-v2`;
-* `lane/spec-v2`;
-* `lane/historical` (mainnet data);
-* `lane/red-team`.
-
-### Make targets as of this check
-
-| target | result |
-|---|---|
-| `make build` | passes |
-| `make test` | passes: Rust 277 tests, plus SDK Python 20 and TypeScript 11. Needs bubblewrap; Postgres at `ARENA_TEST_DATABASE_URL`, default `127.0.0.1:55471`. Some Rust tests skip silently unless enabled: Firecracker needs `ARENA_FC_TESTS=1`, and the formal-checker NEAR and toy suites need `FC_NEAR_SPEC=1` / `FC_FORMAL_CORE_DIR=formal-core` |
-| `make lean` | passes. Needs `~/.elan/bin` on `PATH` |
-| `make web` | passes |
-| `make schemas-check`, `make deploy-check`, `make e2e-hostile` | pass. `e2e-hostile` is a dry run without `ARENA_SERVER` |
-| `make dev-up`, `make migrate` | pass. The API answers `/healthz` and lists both challenges; the web UI is served on 8470 |
-| `make dev-worker` | **fails**: `worker.env` contains `ARENA_WORKER_DATABASE_URL`, and the worker refuses to start with DB credentials. Even with that removed, it cannot talk to the server's job API yet |
-| `make e2e` | **fails**: `tests/e2e/run.sh` does not exist yet (integration lane) |
-| `make lint` | **fails**: `rustfmt --check` reports diffs across the workspace, and `clippy -D warnings` reports 2 errors in `runners/formal-checker` |
+* nearcore → NearSpec is tested, not proved, and the scope excludes 23
+  properties.
+* No formal certificate exists for SP1 or Plonky3, and no checked
+  STARK/FRI/Fiat–Shamir soundness.
+* native-lean trusts the Lean compiler (TCB#9). `npai-verify` ↔ Lean
+  interpreter is tested, not proved (TCB#8).
+* There is no governed benchmark host. Scores are dev-host numbers.
+* There is no production governance key, and the live instance runs in `dev`
+  mode with the local operator key.
+* The evidence graph has no nearcore, test-suite or measurement nodes.
+* There is no KVM CI runner, so the Firecracker tests are gated.
 
 ## Repository layout
 

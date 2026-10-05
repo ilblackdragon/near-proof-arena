@@ -91,39 +91,54 @@ impl Expr {
 }
 
 impl Table {
-    /// Maximal constraint degree (at least 1).
+    /// Constraint degree (`Table.degree`, including aux constraints, ≥ 2).
     pub fn degree(&self) -> usize {
-        self.constraints.iter().map(|c| c.degree()).max().unwrap_or(0).max(1)
+        crate::aux::table_degree(self)
     }
-    /// Number of quotient chunks `max(1, d - 1)`, each of degree `< T`.
+    /// Number of quotient chunks `degree - 1`, each of degree `< T`.
     pub fn num_quot_chunks(&self) -> usize {
-        (self.degree().max(2)) - 1
+        self.degree() - 1
     }
-    /// Number of `K`-valued aux columns (grand-product accumulators).
+    /// Number of `K`-valued aux columns.
     pub fn aux_width(&self) -> usize {
-        // Buses are not yet supported (pending the L4/L3 grand-product
-        // layout); AIRs with interactions are rejected by `Air::validate`.
-        0
+        crate::aux::AuxLayout::new(self).width()
+    }
+    /// Number of bus finals (send groups + receive groups).
+    pub fn num_finals(&self) -> usize {
+        crate::aux::AuxLayout::new(self).num_finals()
     }
 }
 
 impl Air {
+    /// `Air.wf 16` and `Table.degree ≤ 16` (`headerOk` without the header).
     pub fn validate(&self) -> Result<(), String> {
         if self.tables.is_empty() {
             return Err("AIR has no tables".into());
         }
         for (ti, t) in self.tables.iter().enumerate() {
-            if !t.interactions.is_empty() {
-                return Err(format!("table {ti}: interactions not supported yet"));
+            let chk = |e: &Expr| check_expr(e, t.width, self.num_pub).map_err(|m| format!("table {ti}: {m}"));
+            for c in &t.constraints {
+                chk(c)?;
+                if c.degree() > 16 {
+                    return Err(format!("table {ti}: constraint degree > 16"));
+                }
+            }
+            for i in &t.interactions {
+                if i.bus >= self.num_buses {
+                    return Err(format!("table {ti}: bus {} out of range", i.bus));
+                }
+                if i.mult.len() > 25 {
+                    return Err(format!("table {ti}: more than 25 multiplicity bits"));
+                }
+                for e in i.mult.iter().chain(&i.msg) {
+                    chk(e)?;
+                }
             }
             if t.degree() > 16 {
-                return Err(format!("table {ti}: constraint degree {} > 16", t.degree()));
+                return Err(format!("table {ti}: degree {} > 16", t.degree()));
             }
             if t.max_log > 22 || t.max_log < 1 {
                 return Err(format!("table {ti}: maxLog {} not in [1, 22]", t.max_log));
-            }
-            for c in &t.constraints {
-                check_expr(c, t.width, self.num_pub).map_err(|e| format!("table {ti}: {e}"))?;
             }
         }
         Ok(())
