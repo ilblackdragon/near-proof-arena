@@ -14,10 +14,14 @@ Top theorems (`Sha/Compose.lean`, proved from the statements below, no sorry):
 | `KindStmt` | L5-block | open |
 | `BlockStmt` (= `sha_block_sound`) | L5-block | open |
 | `IVStmt` | L5-block | open |
-| `ChainStmt` | L5 (lead) | open |
-| `FrameStmt` | L5 (lead) | open |
-| `DigestIoStmt` | L5 (lead) | open |
+| `ChainStmt` | L5 (lead) | **proved** from `KindStmt` (`Frame/Chain.lean` `chainStmt_of`) |
+| `FrameStmt` | L5 (lead) | **proved** from `KindStmt`, `BlockStmt` (`Frame/Stmt.lean` `frameStmt_of`; padding core `Frame/Pad.lean` `pad_of_frame`) |
+| `DigestIoStmt` | L5 (lead) | **proved** from `KindStmt` (`Frame/Stmt.lean` `digestIoStmt_of`) |
 | `CompleteFamStmt cBool/cKind/cIV/cRound/cSched/cHelp/cDigest/cFrame` | L5-complete | open |
 | `LogStmt`, `MultBitsStmt`, `TrafficStmt` | L5-complete | open |
 
 Elaboration times: Spec 0.4 s, Table 0.5 s, Compose < 2 s.
+
+`Sha/Frame/All.lean`: `sha_bus_sound_of`, `sha_digest_contract_of` — soundness
+now depends only on `KindStmt`, `BlockStmt`, `IVStmt`.
+Frame modules elaborate in ≤ 2 s each.
