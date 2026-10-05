@@ -7,12 +7,20 @@
 //!   verifier.
 //! * `npudr verify <air.json> <pub.bin> <claim.bin> <proof.bin>` —
 //!   Rust reference verifier; exit 0 iff accepted.
-//! * `npudr export <fib|multi>` — print the toy AIR in `np-air-v1`.
+//! * `npudr export <fib|multi|sha>` — print the toy AIR in `np-air-v1`.
+//! * `npudr toy sha <log> <outdir> [len ...]` — SHA-256 toy (src/sha.rs):
+//!   messages of the given lengths (default: 1000-byte messages filling a
+//!   SHA table of `2^log` rows), proved and written as for the other toys.
+//! * `npudr shatrace <out.bin> <len>...` — dump the honest SHA table in the
+//!   `np-lean-shatrace` format (cross-check against the Lean generator).
+//! * `npudr shacheck <len>...` — evaluate every constraint of the SHA toy on
+//!   every row of the honest traces and check bus balance.
 use std::time::Instant;
 
 use npudr::air::Air;
 use npudr::prover::{prove_bytes, ProveOptions};
-use npudr::toy;
+use npudr::{check, sha, toy};
+use p3_matrix::Matrix;
 use npudr::verifier::verify;
 
 fn die(m: &str) -> ! {
@@ -48,11 +56,32 @@ fn main() {
             );
         }
         Some("toy") => {
-            let (air, traces, cb) = toy_instance(&a[2], a[3].parse().unwrap());
+            let t0 = Instant::now();
+            let (air, traces, cb) = if a[2] == "sha" {
+                let msgs = sha_msgs(a[3].parse().unwrap(), &a[5..]);
+                (sha::sha_air(), sha::sha_traces(&msgs), vec![])
+            } else {
+                toy_instance(&a[2], a[3].parse().unwrap())
+            };
+            let tg = t0.elapsed().as_secs_f64();
             let dir = std::path::Path::new(&a[4]);
             std::fs::create_dir_all(dir).unwrap();
             let pd = b"np-udr-stark toy public tape".to_vec();
+            let shapes: Vec<String> = traces.iter().map(|m| format!("{}x2^{}", m.width(), m.height().trailing_zeros())).collect();
+            let t = Instant::now();
             let b = prove_bytes(&air, traces, &pd, &cb, &ProveOptions { verbose: false }).unwrap_or_else(|e| die(&e));
+            let tp = t.elapsed().as_secs_f64();
+            let t = Instant::now();
+            let ok = verify(&air, &pd, &cb, &b);
+            let tv = t.elapsed().as_secs_f64();
+            eprintln!(
+                "toy {} tables=[{}] tracegen={tg:.3}s prove={tp:.3}s proof={} B verify_rust={tv:.3}s ({}) threads={}",
+                a[2],
+                shapes.join(","),
+                b.len(),
+                if ok.is_ok() { "accept".to_string() } else { format!("{ok:?}") },
+                rayon::current_num_threads()
+            );
             std::fs::write(dir.join("air.json"), air.to_json()).unwrap();
             std::fs::write(dir.join("claim.bin"), &cb).unwrap();
             std::fs::write(dir.join("pub.bin"), &pd).unwrap();
@@ -70,7 +99,32 @@ fn main() {
                 }
             }
         }
+        Some("shatrace") => {
+            let lens: Vec<usize> = a[3..].iter().map(|s| s.parse().unwrap()).collect();
+            std::fs::write(&a[2], sha::dump_trace(&sha::toy_msgs(&lens))).unwrap();
+        }
+        Some("shacheck") => {
+            let lens: Vec<usize> = a[2..].iter().map(|s| s.parse().unwrap()).collect();
+            let msgs = sha::toy_msgs(&lens);
+            let air = sha::sha_air();
+            let trs = sha::sha_traces(&msgs);
+            let mut bad = false;
+            for (ti, (t, tr)) in air.tables.iter().zip(&trs).enumerate() {
+                let f = check::failing_constraints(t, tr, &[], 20);
+                println!("table {ti} ({}): {} constraints, failing (constraint, row): {:?}", t.name, t.constraints.len(), f);
+                bad |= !f.is_empty();
+            }
+            let im = check::bus_imbalance(&air, &trs, &[]);
+            println!("bus imbalance: {} message(s) {:?}", im.len(), im.iter().take(5).collect::<Vec<_>>());
+            if bad || !im.is_empty() {
+                std::process::exit(1)
+            }
+        }
         Some("export") => {
+            if a[2] == "sha" {
+                println!("{}", sha::sha_air().to_json());
+                return;
+            }
             let (air, _, _) = toy_instance(&a[2], 3);
             println!("{}", air.to_json());
         }
@@ -96,4 +150,15 @@ fn toy_instance(which: &str, log: usize) -> (Air, Vec<p3_matrix::dense::RowMajor
         }
         _ => die("toy: fib|multi|bus|wide"),
     }
+}
+
+/// SHA toy messages: explicit lengths, or 1000-byte messages filling `2^log`
+/// SHA rows (each takes 1 + 17·16 = 273 rows).
+fn sha_msgs(log: usize, lens: &[String]) -> Vec<sha::Msg> {
+    let lens: Vec<usize> = if lens.is_empty() {
+        vec![1000; ((1usize << log) / 273).max(1)]
+    } else {
+        lens.iter().map(|s| s.parse().unwrap()).collect()
+    };
+    sha::toy_msgs(&lens)
 }
