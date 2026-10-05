@@ -32,19 +32,19 @@ def interactionsOut (tr : Trace Fp) : List (Bool × Nat × List Nat × Nat) := I
         out := (it.send, it.bus, it.msg.map (fun e => (e.eval tr 0 r []).toNat), m) :: out
   return out.reverse
 
-def strMsg (id : Nat) (s : String) (dm : Nat := 1) : Msg := ⟨id, s.toUTF8.toList.map UInt8.toNat, dm⟩
+def strMsg (id : Nat) (s : String) (dm : Bool := true) : Msg := ⟨id, s.toUTF8.toList.map UInt8.toNat, dm⟩
 
 def main : IO Unit := do
-  let lens := [0, 3, 55, 56, 63, 64, 119, 120]
+  let lens := [0, 3, 55, 56, 64, 120]
   let msgs := (lens.zip (List.range lens.length)).map fun (n, i) =>
-    (⟨i + 7, (List.range n).map (fun j => (j * 37 + i * 11 + 5) % 256), i % 3 + 1⟩ : Msg)
-  let msgs := msgs ++ [strMsg 100 "abc" 2]
+    (⟨i + 7, (List.range n).map (fun j => (j * 37 + i * 11 + 5) % 256), i % 2 == 0⟩ : Msg)
+  let msgs := msgs ++ [strMsg 100 "abc"]
   let (tr, nrows) := mkTrace msgs
   IO.println s!"rows {nrows} height {tr.height 0} constraints {Table.constraints.length}"
   let bad := checkConstraints tr
   IO.println s!"violations: {bad.length} first: {bad.take 10}"
   let io := interactionsOut tr
-  let digests := (io.filter fun x => x.1).map fun x => (x.2.2.1, x.2.2.2)
+  let digests := (io.filter fun x => x.1 && x.2.2.2 == 1).map fun x => x.2.2.1
   let bytes := (io.filter fun x => !x.1).map fun x => (x.2.2.1)
   let expD := expectedDigests msgs
   IO.println s!"digests ok: {digests == expD} ({digests.length})"

@@ -18,11 +18,12 @@ namespace ZkFormal.Sha.Gen
 
 open ArenaCore ArenaCore.SHA256 ZkFormal.Sha.Spec ZkFormal.Sha.Layout
 
-/-- One message: identifier, bytes (as `Nat`s `< 256`), digest-bus multiplicity. -/
+/-- One message: identifier, bytes (as `Nat`s `< 256`), whether its digest
+is provided on the digest bus. -/
 structure Msg where
   id : Nat
   bytes : List Nat
-  dmult : Nat
+  dmult : Bool
 
 /-- Block `b` of a message (all the data the rows of the block depend on). -/
 structure Blk where
@@ -37,7 +38,7 @@ structure Blk where
   hin : List Nat
   /-- the 64 padded bytes of this block -/
   blk : List Nat
-  dmult : Nat
+  dmult : Bool
 
 /-- Row descriptors. -/
 inductive Row where
@@ -176,7 +177,7 @@ def digestCell (B : Blk) (col : Nat) : Nat :=
   else if col = colP80 then (if B.p80 then 1 else 0)
   else if col = colSeen then (if B.seen then 1 else 0)
   else if col = colPn then (if B.p80 && !B.last then 1 else 0)
-  else if col = colDmult then (if B.last then B.dmult else 0)
+  else if col = colDmult then (if B.last && B.dmult then 1 else 0)
   else 0
 
 def rowCell : Row → Nat → Nat
@@ -197,9 +198,9 @@ def honestCell (msgs : List Msg) (r col : Nat) : Nat :=
 def expectedBytes (msgs : List Msg) : List (List Nat) :=
   msgs.flatMap fun M => (List.range M.bytes.length).map fun p => [M.id, p, M.bytes.getD p 0]
 
-/-- Digests provided: `((id, len, sha256 bytes), dmult)`. -/
-def expectedDigests (msgs : List Msg) : List (List Nat × Nat) :=
-  msgs.map fun M =>
-    ([M.id, M.bytes.length] ++ (sha256 (M.bytes.map UInt8.ofNat)).map UInt8.toNat, M.dmult)
+/-- Digests provided (multiplicity one each): `(id, len, sha256 bytes)`. -/
+def expectedDigests (msgs : List Msg) : List (List Nat) :=
+  (msgs.filter (·.dmult)).map fun M =>
+    [M.id, M.bytes.length] ++ (sha256 (M.bytes.map UInt8.ofNat)).map UInt8.toNat
 
 end ZkFormal.Sha.Gen
