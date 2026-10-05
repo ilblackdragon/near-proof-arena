@@ -79,6 +79,14 @@ import ZkFormal.Udr.Np.Sem
 import ZkFormal.Udr.Np.Stage
 import ZkFormal.Udr.Np.Statements
 import ZkFormal.Udr.Np.Compose
+import ZkFormal.Udr.Np.Domain
+import ZkFormal.Udr.Np.QueryParts
+import ZkFormal.Udr.Np.QueryFacts
+import ZkFormal.Udr.Np.Query
+import ZkFormal.Udr.Np.Good
+import ZkFormal.Udr.Np.ShapeLate
+import ZkFormal.Udr.Np.FrameFri
+import ZkFormal.Udr.Np.Late
 import ZkFormal.Udr.Np.Shape
 import ZkFormal.Udr.Np.Frame
 import ZkFormal.Udr.Np.Facts
