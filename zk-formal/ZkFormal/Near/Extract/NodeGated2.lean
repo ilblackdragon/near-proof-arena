@@ -133,3 +133,60 @@ theorem nodeVs (hC : NodeCtx tr s ℓ fl) {n : Nat} (S : NodeS) (hv : S.v = node
   · rw [h, cv_one h]; simp [gate, Msg.toFp, hn, ← natCast_eq]
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+theorem cell_eq_cast' (x : Fp) : ((x.toNat : Nat) : Fp) = x := by rw [natCast_eq, Fp.ofNat_toNat]
+
+theorem flatMap_filterMap {α β γ : Type} (l : List α) (f : α → Option β) (g : β → List γ) :
+    (l.filterMap f).flatMap g = l.flatMap fun a => (f a).toList.flatMap g := by
+  induction l with
+  | nil => rfl
+  | cons a l ih =>
+    simp only [List.filterMap_cons, List.flatMap_cons]
+    cases h : f a <;> simp [ih, h]
+
+def revF : NKid → Option (Nat × Nat × Nat × List Nat × List Nat)
+  | .node c l r pre po => some (c, l, r, pre, po)
+  | _ => none
+
+theorem revealed_branch (v : Option NSlot) (kids : List NKid) (m : List Nat) :
+    (NodeV.branch v kids m).revealed = kids.filterMap revF := by
+  simp only [NodeV.revealed]; congr
+
+theorem revF_digs (kd : NKid) :
+    (revF kd).toList.flatMap (fun x : Nat × Nat × Nat × List Nat × List Nat =>
+      [digMsg (msgId K_NPRE x.1) x.2.1 x.2.2.2.1, digMsg (msgId K_NPOST x.1) x.2.1 x.2.2.2.2]) = revDigs kd := by
+  cases kd <;> simp [revF, revDigs]
+
+theorem revF_par (d : Nat) (kd : NKid) :
+    (revF kd).toList.flatMap (fun x : Nat × Nat × Nat × List Nat × List Nat => [[x.1, d + 1, x.2.1, x.2.2.1]]) =
+      revPar d kd := by
+  cases kd <;> simp [revF, revPar]
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+theorem kidsFlat (hC : NodeCtx tr s ℓ fl) {α : Type} (o : Nat) (G : NKid → List α) (hG : G .none = []) :
+    (kidsOf tr s o).flatMap G = (List.range (popN tr s)).flatMap fun w => G (kidOf tr (s + (o + 2 + 32 * w))) := by
+  have hbv : ∀ j, j < 16 → cv tr T_NODE s (bm j) ≤ 1 := fun j hj => cvb hL (nodeStart hL hC).1 (bm_bool hj)
+  unfold kidsOf; rw [List.flatMap_map]
+  have := flatMap_bits (fun j => cv tr T_NODE s (bm j)) (fun w => G (kidOf tr (s + (o + 2 + 32 * w)))) 16 hbv
+  rw [popN_eq]; unfold belowN; rw [← this]
+  apply flatMap_congr'; intro j _
+  split <;> simp [hG]
+
+/-- The roots (node 0's DIGEST lookups of the claimed state roots). -/
+theorem tagDig (hC : NodeCtx tr s ℓ fl) {n : Nat} (S : NodeS) (hv : S.v = nodeVOf tr s) (h0 : s = 0 ↔ n = 0) :
+    rowT tr pub s B_DIGEST false = (if n = 0 then roots0 S pub else []).map Msg.toFp := by
+  rw [(tagStart hL hC).2.1]
+  by_cases hs : s = 0
+  · rw [if_pos hs, if_pos (h0.1 hs), roots0, hv, ← (nodeSer hL hC).1, rowsB_length, lenCell hL hC]
+    simp [gate, Msg.toFp, digMsg, pubNat, ← natCast_eq, Function.comp_def]
+    exact ⟨fun a _ => (cell_eq_cast' _).symm, fun a _ => (cell_eq_cast' _).symm⟩
+  · rw [if_neg hs, if_neg (fun h => hs (h0.2 h))]; simp [gate]
+
+end ZkFormal.Near.NodeProof
