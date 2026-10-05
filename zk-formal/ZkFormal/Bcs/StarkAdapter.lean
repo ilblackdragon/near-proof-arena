@@ -109,14 +109,18 @@ def opensA (V : Stark.IopSpec F K) (vt : View) (x : Nat) : List (Nat × Nat × (
       mats.map fun mw => (r, t, (mw.1, x >>> (V.queryLog hdr - mw.1)))
   | none => []
 
+/-- A row normalized to the declared width (malformed rows read as zeros). -/
+def normRow (w : Nat) (row : List F) : List F := if row.length = w then row else List.replicate w 0
+
+/-- The row of the matrix at slot `slot` of level `m`, read from the level bytes `v`. -/
+def rowAt (mats : List (Nat × Nat)) (m w slot : Nat) (v : Bytes) : List F :=
+  normRow w (match Stark.readRows (F := F) (Stark.levelWidths mats m) v with
+    | some (rows, _) => rows.getD slot []
+    | none => [])
+
 /-- Rows of one oracle from its opened level bytes (one value per matrix). -/
 def rowsOf (mats : List (Nat × Nat)) : List (Nat × Nat) → List Nat → List Bytes → List (List F)
-  | (m, _) :: ms, seen, v :: vs =>
-    let slot := seen.count m
-    let row := match Stark.readRows (F := F) (Stark.levelWidths mats m) v with
-      | some (rows, _) => rows.getD slot []
-      | none => []
-    row :: rowsOf mats ms (m :: seen) vs
+  | (m, w) :: ms, seen, v :: vs => rowAt mats m w (seen.count m) v :: rowsOf mats ms (m :: seen) vs
   | _, _, _ => []
 
 /-- Split the opened values per oracle. -/
@@ -140,7 +144,7 @@ def adapt (V : Stark.IopSpec F K) : IopSpec mmcs where
   points := fun vt _ y =>
     match viewHeader V vt.entries [] with
     | some hdr => V.positions (V.queryLog hdr) [y]
-    | none => []
+    | none => [0]
   opens := opensA V
   decide := decideA V
 

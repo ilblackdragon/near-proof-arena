@@ -33,3 +33,26 @@ Design amendments (relative to DESIGN.md §4), recorded in REQUESTS.md:
   potential (`InvPotStmt`).
 
 Elaboration: all Bcs modules < 1 s each.
+
+## L2b: RBR transport (branch lane/zk-L2b)
+
+Top theorem: `ZkFormal.Bcs.Transport.stark_romSound_rbr` (`Bcs/TransFinal.lean`).
+It gives `RomSound` for `Stark.Bcs.compile V` with bound
+`bcsNum K (bad·Dm) (G^K) … / 2^(256K)`, from L3's `Udr.RbrWith V InLang Kall bad agree D`.
+Its remaining inputs are:
+* L1/L4: `Dm` (`hdec_deployed` gives `Dm = 2·3^8` for Fp/Fp8, `Kall = Fp8.all`);
+* L4: `SchedOk V`, `0 < posPerChunk`, `posPerChunk·posBits ≤ 256`, `queryLog ≤ posBits`;
+* a bound `G ≥ agree(2^n0)^p·2^(256−p·n0)`;
+* query budgets.
+
+| Sublemma | File | State |
+|---|---|---|
+| `decodePT`, `DoomedB` (malformed = doomed forever) | Bcs/TransDefs.lean | defs |
+| `transport` (hinit/hmsg/hround/hquery from RbrWith) | Bcs/TransCompose.lean | proved from Stmts |
+| `DecNoneStmt`, `DecMsgStmt`, `DecChalStmt` | Bcs/DecPush.lean | **proved** |
+| `DecQueryStmt` | Bcs/DecQuery.lean | **proved** `decQuery` |
+| `PosCountStmt` | Bcs/PosCount.lean | **proved** `posCount` |
+| `hdec_deployed` | Bcs/TransFinal.lean | **proved** |
+
+Adapter change: rows are normalized to the declared width (`rowAt`/`normRow`),
+and `points` is `[0]` when there is no header. `compile_accepts` was re-proved under both.

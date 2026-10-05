@@ -47,6 +47,15 @@ import ZkFormal.Algebra.Compose
 import ZkFormal.Algebra.RSProofs
 import ZkFormal.Algebra.Main
 import ZkFormal.Bcs.Mmcs
+-- L3: IOP facts in the unique-decoding regime.
+import ZkFormal.Udr.Count
+import ZkFormal.Udr.Code
+import ZkFormal.Udr.Poly
+import ZkFormal.Udr.RS
+import ZkFormal.Udr.Statements
+import ZkFormal.Udr.Fri
+import ZkFormal.Udr.GrandProduct
+import ZkFormal.Udr.Compose
 -- Lane L4: AIR DSL and protocol/verifier model.
 import ZkFormal.Stark.NpBounds
 import ZkFormal.Stark.QueryBound
@@ -62,3 +71,25 @@ import ZkFormal.Bcs.Multiproof
 import ZkFormal.Bcs.StarkMain
 import ZkFormal.Bcs.Final
 import ZkFormal.Stark.SchedOk
+import ZkFormal.Udr.BW
+import ZkFormal.Udr.Main
+import ZkFormal.Udr.Deep
+import ZkFormal.Udr.Rbr
+import ZkFormal.Udr.Np.Sem
+import ZkFormal.Udr.Np.Stage
+import ZkFormal.Udr.Np.Statements
+import ZkFormal.Udr.Np.Compose
+import ZkFormal.Udr.Np.Shape
+import ZkFormal.Udr.Np.Frame
+import ZkFormal.Udr.Np.Facts
+import ZkFormal.Udr.Np.Early
+import ZkFormal.Udr.Np.Ali
+import ZkFormal.Udr.Np.Bus
+import ZkFormal.Udr.Np.BusRounds
+import ZkFormal.Bcs.TransDefs
+import ZkFormal.Bcs.TransStatements
+import ZkFormal.Bcs.TransCompose
+import ZkFormal.Bcs.DecPush
+import ZkFormal.Bcs.PosCount
+import ZkFormal.Bcs.TransFinal
+import ZkFormal.Bcs.DecQuery

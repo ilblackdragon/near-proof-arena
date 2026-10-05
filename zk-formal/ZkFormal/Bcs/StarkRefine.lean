@@ -102,7 +102,7 @@ theorem build (hmp : MultiproofStmt) (V : Stark.IopSpec F K) (tbl : Table) (wf :
           rw [← Nat.shiftRight_add]; congr 1; omega
         rw [e] at hl hop
         exact ⟨rows, raw, hl, ⟨.msg roots clear, root, Stark.treeLog mats', he, hroot, hshape, hop⟩, hrr⟩)
-      mats' [] (fun _ h => h)
+      mats' [] [] (by simp) (by simp)
     refine ⟨vs ++ vals, ?_, ?_⟩
     · simp only [List.flatMap_cons]
       exact Forall2.append (Forall2.map_left _ hvs) hv
