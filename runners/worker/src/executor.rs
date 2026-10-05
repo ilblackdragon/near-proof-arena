@@ -512,7 +512,10 @@ fn sanitize_id(s: &str) -> String {
         .collect()
 }
 
-/// Seed parts binding sampled workloads to this challenge + package.
-pub fn seed_parts(ctx: &JobContext) -> [String; 2] {
-    [ctx.challenge_id.clone(), ctx.package_digest.to_string()]
+/// Sampling seeds binding judge-sampled workloads to this challenge and the
+/// frozen package digest, keyed by the worker's season secret when it has
+/// one (docs/BENCHMARK_SPEC.md §11.1; see [`crate::oracle::SeedCtx`]).
+pub fn seeds(wctx: &WorkerContext, ctx: &JobContext) -> crate::oracle::SeedCtx {
+    wctx.oracles
+        .seeds(&ctx.challenge_id, ctx.package_digest.as_str())
 }

@@ -249,7 +249,7 @@ fn npai_exit3_is_binding_failure_never_reject() {
 #[test]
 fn npai_route_in_firecracker() {
     if std::env::var("ARENA_FC_TESTS").as_deref() != Ok("1") {
-        eprintln!("skipped: set ARENA_FC_TESTS=1");
+        skip_gated!("set ARENA_FC_TESTS=1");
         return;
     }
     let target = repo().join("target/static");

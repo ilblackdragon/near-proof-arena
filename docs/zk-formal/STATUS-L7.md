@@ -132,6 +132,8 @@ are `sorry` in the scratch tree only. `proverQ`/`proverChunk` are the proved `pr
   trace now has height 16 (LDE 2^8).
 * `ToyPending` = {`bcs`, `size` (L4e: hash answers normalised to 32 bytes), `min8` (L4e)}.
 * ZK challenge draft renamed to `near-transfer-receipt-v1-zk` (`chl_bdbfc808…`, unsigned).
+  (Note 2026-10-05: "zk" here names the STARK backend lane. The draft is
+  `validity-classical-128` / `validity_only`, so it gives no zero-knowledge guarantee.)
 
 
 ## M2 certificate CLOSED (after merging lane/zk-L4e and lane/zk-int with L1b)
@@ -193,3 +195,54 @@ model `nearModel nearAir`), from **only** L6's `RenderStmt` and `NearMinHeightSt
   unsafe/partial dependencies, and axioms ⊆ {propext, Quot.sound}.
 * **R-L7-5 closed:** the `sorry` csimp reproducer now FAILs every gate with `SORRY_FOUND`. Both the
   Lean-side and the independent NDJSON audit flag `Candidate.Model.redirect (verify ↦ acceptAll)`.
+
+## M5 packaging (`examples/np-udr-stark`, audit A02)
+
+Done (independent of L6):
+* `formal/NpUdrStark/Model.lean` is the real model: the claim guard followed by
+  `Stark.verifier Fp Fp8 nearAir default` (`model_eq : … = nearModel nearAir`, `rfl`).
+  `Assembly.lean`: `certificate_of hR hmin : AdmissionStatement …` for every validity-classical-128
+  literal, with `publicBin` = `params.bin` (`sha256 = 38c230e8…`).
+* `sync-lean.sh`: lean-vendor is re-pinned to `e4088761` (formal-core with sha256Fast; the v1-zk draft's
+  `allowed_packages`). Only the certificate's import closure is vendored (367 modules). The script
+  rejects any closure import the judge would reject; the first run caught `ZkToySpec`, now moved
+  out of the NEAR closure. `candidate.toml` points at the v1-zk draft (`chl_bdbfc808…`).
+* **Reproducible build:** two clean `env -i` builds from separate copies give bit-identical
+  `out/verify` `c82117cb…`.
+* **Real formal-check, configured-challenge mode** (v1-zk draft, `near-transfer-receipt-v1.json`
+  config, real `Expected.native-lean` template, repo root = `e4088761` tree, scratch
+  `NpUdrStark.certificate := certificate_of sorry sorry …`):
+  * ARTIFACT_BINDING PASS. The judge-built verifier is `sha256:c82117cb…`, **identical to
+    build.sh's**.
+  * Every formal gate fails **only** on SORRY_FOUND (the two L6 inputs). So the certificate type
+    matches the rendered statement: template, challenge and pins agree.
+  * leanchecker, lean4lean (372 modules each) and nanoda accept. Candidate elaboration takes
+    241 s; the whole pipeline takes 646 s.
+* The judge binary rejects malformed input (random and empty proofs, exit 1).
+
+Remaining for A02 acceptance:
+* L6: `RenderStmt`, R-L7-6. After that, `NpUdrStark.certificate` is one line (README).
+* L8: the NEAR `prove` path (R-L7-7). Then honest fixtures and sampled cases must be accepted by
+  `c82117cb…`-style judge builds, and false claims rejected.
+* Governance: sign the v1-zk challenge with the new checker identity (v1-5 deploy lane), update
+  `candidate.toml`, then run the full formal-tier pipeline.
+
+## M5: the judge-built NEAR verifier on real proofs (2026-10-05)
+
+Verifier: `sha256:c82117cb…`, the formal-checker's native build of `NpUdrStark.Model.verifier`,
+byte-identical to `build.sh`'s `out/verify`. Prover: `out/prove` `3f136f70…` from the package recipe.
+Public tape: `prepare` of `params.bin` (`sha256 38c230e8…` = `NpUdrStark.publicBin`).
+Cases: 20 public fixtures plus 18 oracle class cases (seed 7; 6 each of 1, 16 and 256 receipts).
+Results are in `examples/np-udr-stark/bench/results/judge-verify-2026-10-05.tsv`; the script is
+`bench/judge-verify.sh`.
+* **38/38 honest proofs accepted**, and the claim equals `expected_claim` on all 38.
+* **38/38 rejected** for each of: a false claim (1 claim byte flipped), a mutated proof (1 random
+  bit), and a truncated proof (last byte dropped). Swapped claim/proof pairs across cases are
+  also rejected (3/3).
+* Prove time and proof size: batch-1 0.1–0.3 s, 1.84–2.01 MB; batch-16 0.6–1.0 s, 2.30–2.47 MB;
+  batch-256 11–13 s, 2.86–3.05 MB. The largest public fixtures take 9–13 s.
+* **Judge-verify time**: 0.51–0.87 s (batch-1/16), 1.0–1.12 s (batch-256), at most 1.69 s overall
+  (`s20261003-v5`). The cap is 10 s.
+
+Remaining for A02: L6's `RenderStmt` + R-L7-6, then the one-line `NpUdrStark.certificate`. Then a
+full formal-tier pipeline run on the signed v1-zk challenge, which needs the new checker identity.

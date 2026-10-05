@@ -1,24 +1,32 @@
-import ArenaCore.Verifier
-import ZkFormal.Params
+import ZkFormal.Near.Air
+import ZkFormal.Assembly.Guard
+import ZkFormal.Stark.Verifier
+import ZkFormal.Stark.Instance
+import NearSpec.Challenge
 
 /-!
-# PLACEHOLDER verifier model (`NpUdrStark.Model.verifier`)
+# The deployed verifier model `NpUdrStark.Model.verifier`
 
-Package skeleton only (lane L8). Lanes L4/L7 replace this file with the real
-`np-udr-stark-v1` verifier, `(verifier nearAir prm).toVerifier`
-(docs/zk-formal/DESIGN.md §7). Until then it REJECTS EVERYTHING, so the
-skeleton can never accept a proof.
+`np-udr-stark-v1` for `near-transfer-receipt-v1`: the claim-canonicality guard
+(`Assembly.claimOk`, R-L7-2) followed by lane L4's BCS-compiled verifier
+`ZkFormal.Stark.verifier Fp Fp8 nearAir Params.default` (BabyBear / `F_p^8`,
+24 chunks × 9 positions, minimum query domain 2^8, oracle answers normalised by
+`fit32`). It is definitionally `ZkFormal.NearAssembly.nearModel nearAir`
+(`NpUdrStark.model_eq`, by `rfl`), the model `near_certificate'` is about.
 
-It imports `ZkFormal.Params` only to exercise the packaging of the zk-formal
-package as candidate code in the model's import closure (formal/ZkFormal is
-copied by build-recipe/sync-lean.sh); the build compiles that closure exactly
-as the judge's native-lean build does.
+The judge compiles exactly this definition (native-lean route). Its import closure
+holds only trusted modules (ArenaCore, NearSpec.Challenge and its imports) and
+`formal/ZkFormal` modules, with no `Lean`/`Std`. The `@[csimp]` fast paths
+(`Stark.take?_eq_takeF`, `readInj_eq_readInjF`, `mpLeaves_eq_mpLeavesF`) are
+kernel-proved and audited by the checker (R-L7-5).
 -/
 
 namespace NpUdrStark
 
-/-- Reject-all placeholder; no oracle queries. -/
-def Model.verifier : ArenaCore.OracleVerifier where
-  run := fun _ hs _pub _cb _pb => (false, hs)
+open ArenaCore ZkFormal ZkFormal.Stark ZkFormal.Algebra
+
+def Model.verifier : OracleVerifier :=
+  (Assembly.guardTree (Assembly.claimOk NearSpec.TransferV1.challengeSpec)
+    (ZkFormal.Stark.verifier Fp Fp8 ZkFormal.Near.nearAir Params.default)).toVerifier
 
 end NpUdrStark

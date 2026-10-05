@@ -24,6 +24,14 @@ stem; every `allowed_assumptions` entry of a profile must name a file in
 | `validity-classical-128` | validity only | ROM (Fiat–Shamir) | transparent | 128 bits | 2^64 | 2^40 |
 | `zk-classical-128` | zero knowledge | ROM (Fiat–Shamir) | transparent | 128 bits | 2^64 | 2^40 |
 
+**Privacy.** `validity-classical-128` is the only profile in use: every
+challenge embeds it. An admission under it proves validity (soundness of the
+claim) only, not witness privacy or zero knowledge, and this holds for
+succinct STARK backends too. `zk-classical-128` is defined but not usable yet:
+formal-core has no zero-knowledge predicate, so its mandatory `FORMAL_ZK` gate
+cannot pass (it is `UNKNOWN`, so the decision is `INCONCLUSIVE`). A privacy
+claim needs that gate discharged by a closed privacy theorem.
+
 Both are **classical** profiles: nothing here implies post-quantum security.
 Both forbid trusted setups (`setup_model = transparent`); an
 `approved_ceremony` profile would need its own governance change including the
