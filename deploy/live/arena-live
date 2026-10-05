@@ -416,6 +416,8 @@ cmd_register_challenge() {
 cmd_freeze_trusted() {
   local commit="${1:?commit}"; shift
   [ $# -ge 1 ] || die "freeze-trusted <commit> <chl_….json>...  (the tree must hash to each challenge's pin)"
+  git -C "$REPO" rev-parse --git-dir >/dev/null 2>&1 \
+    || die "no git repository at $REPO: run from a checkout (deploy/live/arena-live) or set ARENA_LIVE_REPO"
   local args=() f
   for f in "$@"; do args+=(--challenge "$f"); done
   "$LIVE/bin/arena-admin" freeze-trusted --repo "$REPO" --store "$LIVE/trusted-trees" --commit "$commit" "${args[@]}"
