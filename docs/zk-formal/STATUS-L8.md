@@ -88,6 +88,8 @@ class workloads (seed 7, profiles basic/prefix/boundary/repeat/prices/large):
 | batch-256 | 14.1–16.1 s | 1.77–1.93 GB | 2.86–3.05 MB | 768–1146 ms |
 | caps | 600 s | 16 GiB | 8 MiB | 10 s |
 
+Trace cross-check: Rust `npudr nearrender` == Lean `np-lean-render` (claim, all SHA messages, all 7 tables) byte-identical on all 38 cases; `nearcheck`: 0 violations, 0 bus imbalance (no L6 bug).
+
 Caveat: the worst-case domain (SHA table 2^22 × 544) would need ~18 GB in the
 streaming prover; it is not in the workloads (DESIGN §8: only the Lean model
 `P` must handle it).
