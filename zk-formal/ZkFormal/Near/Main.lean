@@ -2,6 +2,7 @@ import ZkFormal.Near.Compose
 import ZkFormal.Near.Extract.Compose
 import ZkFormal.Near.Spec.Sound
 import ZkFormal.Near.Spec.Complete
+import ZkFormal.Near.Extract.ShaFacts
 
 /-!
 # ZkFormal.Near.Main — lane L6 top theorems with the proved parts plugged in
@@ -29,5 +30,13 @@ theorem honestTrace_fits' (hR : RenderStmt) {c : WfClaim} {w : Witness} (h : Nea
     ∀ t (ht : t < nearAir.tables.length),
       1 ≤ (honestTrace c w).log t ∧ (honestTrace c w).log t ≤ nearAir.tables[t].maxLog :=
   honestTrace_fits good_complete hR h
+
+/-- Soundness with the SHA contract taken from lane L5's statements. -/
+theorem nearAir_sound_L5 (hN : NodeViewStmt) (hW : WalkViewStmt) (hR : RcptViewStmt)
+    (hA : AcctViewStmt) (hM : MrkViewStmt) (hS : SortViewStmt)
+    (hB : Sha.BlockStmt) (hIV : Sha.IVStmt) (hC : Sha.ChainStmt) (hF : Sha.FrameStmt)
+    (hIO : Sha.DigestIoStmt) (hL : LinkStmt) :
+    ∀ (c : WfClaim) (tr : Trace Fp), Holds nearAir (publicOf c) tr → ∃ w, NearRelation c.1 w :=
+  nearAir_sound' hN hW hR hA hM hS (shaFacts_of hB hIV hC hF hIO) hL
 
 end ZkFormal.Near
