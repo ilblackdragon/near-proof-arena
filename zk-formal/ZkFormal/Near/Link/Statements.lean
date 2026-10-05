@@ -106,19 +106,20 @@ def mrkMsgs (mv : MrkV) : List (List Nat) :=
     | .hashed _ _ l _ _ r => some (l ++ r)
     | _ => none
 
-/-- The message the NEAR tables emit under SHA message id `id`. -/
+/-- The message the NEAR tables emit under SHA message id `id` (`[]` for ids
+no table emits under). -/
 def encOf (pub : List Fp) (vs : List NodeS) (rs : RcptVs) (as : List AcctV) (mv : MrkV)
     (id : Nat) : List Nat :=
   let k := id % 16
   let i := id / 16
   if k = K_RC then (if i = 0 then rcMsg pub rs else [])
   else if k = K_RF then (if i = 0 then rfMsg pub rs else [])
-  else if k = K_PEO then (rs.getD i default).peo
-  else if k = K_LEAF then (rs.getD i default).leaf
-  else if k = K_RID then ridMsg pub (rs.getD i default)
-  else if k = K_MRK then (mrkMsgs mv).getD i []
-  else if k = K_NPRE then (vs.getD i default).v.ser false
-  else if k = K_NPOST then (vs.getD i default).v.ser true
+  else if k = K_PEO then (rs[i]?.map RcptV.peo).getD []
+  else if k = K_LEAF then (rs[i]?.map RcptV.leaf).getD []
+  else if k = K_RID then (rs[i]?.map (ridMsg pub)).getD []
+  else if k = K_MRK then ((mrkMsgs mv)[i]?).getD []
+  else if k = K_NPRE then (vs[i]?.map fun s => s.v.ser false).getD []
+  else if k = K_NPOST then (vs[i]?.map fun s => s.v.ser true).getD []
   else if k = K_VPRE then ((acctOf as i).map (·.pre)).getD []
   else if k = K_VPOST then ((acctOf as i).map fun a => a.post ++ a.pre.drop 16).getD []
   else []
