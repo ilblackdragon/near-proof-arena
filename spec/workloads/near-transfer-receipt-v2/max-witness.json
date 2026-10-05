@@ -1,0 +1,20 @@
+{
+ "schema": "near-arena-workload-generator-v1",
+ "challenge": "near-transfer-receipt-v2",
+ "class": "max-witness",
+ "receipts_per_request": 256,
+ "tool": "near-arena-oracle gen --scope v2",
+ "args": [
+  "--scope",
+  "v2",
+  "--receipts",
+  "256",
+  "--profiles",
+  "max_witness",
+  "--fixtures-layout"
+ ],
+ "seed": "fresh per run (judge-chosen after freeze); held-out set: secret seed",
+ "oracle_source_tree_digest": "sha256:dd83aefffe5031cc89c0d4d562d1126ef0175179a4a77c64d1eeedf1c7aac17c",
+ "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+ "statement_id": "near/pv86/receipt-transfer-batch/v1"
+}

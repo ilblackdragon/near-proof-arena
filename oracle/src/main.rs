@@ -10,7 +10,11 @@
 //!          Generate OracleCase directories (request.bin, witness.bin, claim.bin,
 //!          state.bin, diagnostics.json); [--receipts N] fixes the receipt count
 //!          (workload classes). Every case is executed by the real
-//!          pinned nearcore `Runtime::apply`.
+//!          pinned nearcore `Runtime::apply`. `--profiles max_witness` (never
+//!          part of the default profile list) generates the maximal in-domain
+//!          witness class: 256 receipts (or `--receipts N`) whose recorded
+//!          slice witness is calibrated to just under the 3 000 000-byte
+//!          domain cap (src/maxwit.rs).
 //!   replay --case DIR
 //!          Re-run nearcore from state.bin + request.bin and check that claim.bin
 //!          and witness.bin are reproduced byte for byte (exit 1 otherwise).
@@ -32,6 +36,7 @@ mod domain;
 mod enc;
 mod exec;
 mod casegen;
+mod maxwit;
 mod v2;
 
 use near_primitives::hash::hash;
