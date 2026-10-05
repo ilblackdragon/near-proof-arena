@@ -305,3 +305,32 @@ arithmetic, claim checks, end-of-batch) and `RcptTrafficStmt`.  Gas/dep need
 the chain lemmas (`Σ out_j 256^j + 256^n·carry_n = Σ x_j 256^j`) and the
 no-overflow facts of `RcptOk`; `cEnd` needs `pub_n/pub_nref/pub_tok`
 (`Link/Claim`) with `Hdr = ⟨hg.pv, hg.chain⟩`.
+
+## Sub-lane L6e-rcpt (continuation): `RcptLocalStmt`, `RcptTrafficStmt` proved
+
+| obligation | theorem | modules |
+|---|---|---|
+| `cRegs` | `RcptP.regsFam` | `Proof/RcptRegs{1..4}` (loads, head, shifts, claim loads/rotations, tokens) |
+| `cGas` | `RcptP.gasFam` | `Proof/RcptGas{F,B,1,2,3}` |
+| `cDep` | `RcptP.depFam` | `Proof/RcptDep{F,1,2,3}` |
+| `cClaim` | `RcptP.claimFam` | `Proof/RcptClaim{1,2}` |
+| `cEnd` | `RcptP.endFam` | `Proof/RcptEnd` |
+| `RcptLocalStmt` | `RcptP.rcptLocal` | `Proof/RcptEnd` |
+| `RcptTrafficStmt` | `RcptP.rcptTraffic_ok` | `Proof/RcptTr{1,2,3}`, `Proof/RcptTraffic` |
+
+Toolkit: `Proof/RcptNat` (byte-serial `Nat` facts: `V x n = Σ x_j 256^j`,
+`chain x n = V x n / 256^n` and its digits, `bchain`/`bdig` with the final borrow
+`[V a < V b + b0]`, `V (conv g v) n = Σ g_j 256^j V v (n−j)`, bytes of `leBytes`);
+`GasOk`/`DepOk` (numeric facts from `Receipt.wf`, `RcptOk`, `Account.decode`;
+bridges `gasOk`, `depOk`); `Proof/RcptFam.fam_of` (a family on every row by
+row kind).  Traffic reuses the soundness side: `rcptLocal` ⇒ `shape_of`,
+`traffic_of`; every field row of the extracted receipt `i` is the honest record
+`seg i f k` (`rec_at`: active, state, index and `r` cells determine it), so the
+extracted parameters and view are the honest ones (`rs_eq`, `view_eq`; receipt
+count from `count_ok`).  Needed bound: `kslot < 3·10^6` (`ns.length ≤ revealedOf ≤
+maxWitnessBytes`).
+
+`RenderRest` is now `nodeL, digest` (rcpt fields removed).  No table or
+generator change, no statement fix.  Elaboration (`lake env lean`, wall): every
+new module ≤ 3.1 s (RcptClaim2 3.1 s, RcptRegs1 2.8 s, rest ≤ 2.3 s); axioms
+`propext, Classical.choice, Quot.sound`.
