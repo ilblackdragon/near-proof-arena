@@ -8,6 +8,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions: {}
 
@@ -75,16 +76,20 @@ jobs:
       - name: Regenerate common/schemas and require no diff
         run: make schemas-check
 
+  # Lean projects. zk-formal (the STARK admission certificates, audit A07)
+  # requires formal-core and spec/lean as Lake *path* dependencies
+  # (zk-formal/lakefile.toml, lake-manifest.json), which Lake builds into their
+  # own `.lake` dirs, so all three `.lake` dirs are cached together.
   lean:
     name: lean (${{ matrix.project }})
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-    timeout-minutes: 90
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
-        project: [formal-core, spec/lean]
+        project: [formal-core, spec/lean, zk-formal]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -103,6 +108,16 @@ jobs:
         with:
           path: ~/.elan
           key: elan-${{ runner.os }}-${{ hashFiles(format('{0}/lean-toolchain', matrix.project)) }}
+      - name: Cache Lake build dirs (project + path dependencies)
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            formal-core/.lake
+            spec/lean/.lake
+            zk-formal/.lake
+          key: lake-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles('formal-core/lean-toolchain', 'formal-core/lakefile.toml', 'formal-core/lake-manifest.json', 'spec/lean/lean-toolchain', 'spec/lean/lakefile.toml', 'spec/lean/lake-manifest.json', 'zk-formal/lean-toolchain', 'zk-formal/lakefile.toml', 'zk-formal/lake-manifest.json') }}-${{ hashFiles('formal-core/**/*.lean', 'spec/lean/**/*.lean', 'zk-formal/**/*.lean') }}
+          restore-keys: |
+            lake-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles('formal-core/lean-toolchain', 'formal-core/lakefile.toml', 'formal-core/lake-manifest.json', 'spec/lean/lean-toolchain', 'spec/lean/lakefile.toml', 'spec/lean/lake-manifest.json', 'zk-formal/lean-toolchain', 'zk-formal/lakefile.toml', 'zk-formal/lake-manifest.json') }}-
       - name: Put cached elan on PATH
         run: echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - uses: leanprover/lean-action@f061402b660e0c34644504b324e830f2991d4865 # v1.6.1
@@ -111,7 +126,114 @@ jobs:
           build: "true"
           test: "false"
           lint: "false"
-          use-github-cache: "true"
+          use-github-cache: "false"
+      # The default target (ZkFormal) imports both certificates; building them
+      # by name keeps this gate if the default target ever stops covering them.
+      - name: zk-formal certificate targets
+        if: matrix.project == 'zk-formal'
+        working-directory: zk-formal
+        run: lake build ZkFormal.Toy.Certificate ZkFormal.NearAssembly.Certificate
+      # Axiom gate: only propext / Classical.choice / Quot.sound may appear.
+      # test/AdmissionAxioms.lean errors (non-zero exit) on anything else; the
+      # grep is an independent second check on the `#print axioms` output.
+      # This does not discharge explicit hypotheses (e.g. L6Facts).
+      - name: zk-formal admission axioms
+        if: matrix.project == 'zk-formal'
+        working-directory: zk-formal
+        run: |
+          set -euo pipefail
+          lake env lean test/AdmissionAxioms.lean 2>&1 | tee "$RUNNER_TEMP/zk-axioms.log"
+          for thm in ZkFormal.Toy.toy_admission ZkFormal.NearAssembly.near_admission; do
+            line=$(grep -F "'$thm' depends on axioms: " "$RUNNER_TEMP/zk-axioms.log") \
+              || { echo "::error::no '#print axioms' output for $thm"; exit 1; }
+            if [ "$line" != "'$thm' depends on axioms: [propext, Classical.choice, Quot.sound]" ]; then
+              echo "::error::$thm: unexpected axioms: $line"; exit 1
+            fi
+            grep -qF "AXIOMS-OK $thm:" "$RUNNER_TEMP/zk-axioms.log" \
+              || { echo "::error::axiom assertion did not run for $thm"; exit 1; }
+          done
+          if grep -q 'sorryAx' "$RUNNER_TEMP/zk-axioms.log"; then
+            echo "::error::sorryAx in zk-formal admission certificates"; exit 1
+          fi
+
+  # Environment-gated tests (CI convention). Tests whose prerequisites are
+  # opt-in (ARENA_DEV_UNSAFE, FC_NEAR_SPEC, FC_FORMAL_CORE_DIR, ARENA_FC_TESTS,
+  # ARENA_FORMAL_TESTS, ARENA_NEAR_TESTS, installed tools, ...) never pass
+  # silently: when skipped they print one stderr line
+  #   ARENA-TEST-SKIPPED: <test>: <reason>
+  # (helper `skip_gated!` in runners/{worker,formal-checker,firecracker}/tests/common),
+  # and with ARENA_REQUIRE_GATED_TESTS=1 they panic instead. Every job below
+  # that sets gating variables also sets ARENA_REQUIRE_GATED_TESTS=1, runs
+  # with --nocapture and greps the log, so a gated test that did not execute
+  # fails the job. The `rust` job does not set it: there the formal/firecracker
+  # tests are reported as ARENA-TEST-SKIPPED, not as executed.
+
+  # Formal checker: full hostile Lean corpus (tests/corpus, incl. the native
+  # compiler-rewrite @[csimp] cases neg_csimp_{sorry,axiom,native_decide},
+  # pos_csimp_{honest,zk_take}), the native-lean route (incl. the R-L7-5
+  # csimp_sorry reproducer, which must FAIL), formal-core's real Toy
+  # certificate + negatives, and the NEAR statement reference build.
+  formal-checker:
+    name: formal-checker (corpus, native csimp, NEAR spec)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 150
+    env:
+      ARENA_DEV_UNSAFE: "1"
+      FC_NEAR_SPEC: "1"
+      ARENA_REQUIRE_GATED_TESTS: "1"
+      FC_JOBS: "2"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # near_spec.rs extracts the frozen trusted tree from its freeze commit.
+          fetch-depth: 0
+      - run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - name: Sandbox prerequisites (bwrap-dev needs unprivileged user namespaces)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Cache elan toolchains
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.elan
+          key: elan-${{ runner.os }}-${{ hashFiles('runners/formal-checker/lean-toolchain') }}
+      # Keyed on TOOLS_KEY_FILES (runners/formal-checker/src/toolchain.rs);
+      # helpers are content-addressed by that key, and ToolPaths::discover
+      # refuses any helper whose baked key differs.
+      - name: Cache formal-checker helper tools
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/arena-formal-checker
+          key: fc-tools-${{ runner.os }}-${{ hashFiles('runners/formal-checker/lean-toolchain', 'runners/formal-checker/tools.toml', 'runners/formal-checker/scripts/setup-tools.sh', 'runners/formal-checker/lean/ArenaAudit/**') }}
+      - name: Install Lean toolchain + checker tools (lean4export, nanoda, lean4lean, arena-audit)
+        run: |
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.elan/bin:$PATH"
+          CARGO_JOBS=4 runners/formal-checker/scripts/setup-tools.sh
+      - name: Formal checker gated tests (must execute, never skip)
+        run: |
+          set -euo pipefail
+          export FC_FORMAL_CORE_DIR="$GITHUB_WORKSPACE/formal-core"
+          log="$RUNNER_TEMP/formal-checker.log"
+          cargo test --locked -p arena-formal-checker --tests -- --nocapture --test-threads=1 2>&1 | tee "$log"
+          if grep -q '^ARENA-TEST-SKIPPED' "$log"; then
+            echo "::error::a gated formal-checker test was skipped"; exit 1
+          fi
+          for t in corpus native_lean_route formal_core_toy near_transfer_expected_reference_build; do
+            grep -Eq "^test $t \.\.\. " "$log" || { echo "::error::gated test $t did not run"; exit 1; }
+          done
+          # (pipefail: cargo test itself must have passed; a skip would have
+          # panicked under ARENA_REQUIRE_GATED_TESTS=1.) The native
+          # compiler-rewrite (@[csimp]) hostile cases must have been checked.
+          for c in neg_csimp_sorry neg_csimp_axiom neg_csimp_native_decide pos_csimp_honest pos_csimp_zk_take \
+                   native_model_csimp_sorry native_model_csimp_honest; do
+            grep -Eq "(^|[[:space:]])${c}[[:space:]]" "$log" || { echo "::error::csimp case $c missing from the run"; exit 1; }
+          done
 
   web:
     name: web (build, test)
@@ -242,3 +364,108 @@ jobs:
           sudo apt-get install -y -qq bubblewrap
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - run: make e2e-hostile
+
+  # Real Firecracker E2E (audit A07): microVM isolation end to end, including
+  # the NEAR reexec pipeline with FORMAL_CHECK in the lean-checker image.
+  #
+  # REQUIRES A SELF-HOSTED RUNNER with labels [self-hosted, linux, x64, kvm];
+  # it cannot run on GitHub-hosted runners (no /dev/kvm, no rootful Docker
+  # with the fc-runner capabilities). It only runs when the repository
+  # variable ARENA_KVM_RUNNER is 'true', and never for pull requests from
+  # forks (untrusted code must not reach the self-hosted host). The runner
+  # should be ephemeral or dedicated. Host prerequisites (docs/ISOLATION.md,
+  # runners/README.md):
+  #   * /dev/kvm read/write for the runner user; rootful Docker usable by it
+  #     (docker group == root-equivalent: dedicated host only);
+  #   * bubblewrap + unprivileged user namespaces (bwrap-dev reference runs);
+  #   * elan, rustup (+ the x86_64-unknown-linux-musl target, installed below);
+  #   * a nearcore checkout at the commit in oracle/NEARCORE_PIN
+  #     (ARENA_NEARCORE_DIR) for the NEAR oracle;
+  #   * disk under ARENA_DEPS_ROOT for the images built below (~10 GB).
+  # Images (Firecracker/jailer + guest kernel verified against
+  # deploy/images/firecracker/PINS, guest rootfs, fc-runner, build toolchain
+  # image, lean-checker image) are (re)built from THIS checkout, so the guest
+  # init/shim under test are the ones in the commit. near.rs currently
+  # hardcodes the toolchain/lean-checker image dirs under
+  # /data/illia/nearproof-deps, so ARENA_DEPS_ROOT must be that path.
+  firecracker-e2e:
+    name: firecracker e2e (self-hosted KVM)
+    if: >-
+      vars.ARENA_KVM_RUNNER == 'true' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, linux, x64, kvm]
+    permissions:
+      contents: read
+    timeout-minutes: 300
+    env:
+      ARENA_DEPS_ROOT: /data/illia/nearproof-deps
+      ARENA_FC_DEPS: /data/illia/nearproof-deps/firecracker
+      ARENA_TOOLCHAIN_IMAGES: /data/illia/nearproof-deps/toolchain-images
+      TOOLCHAIN_IMAGES: /data/illia/nearproof-deps/toolchain-images
+      LEAN_CHECKER_IMAGES: /data/illia/nearproof-deps/lean-checker/images
+      ARENA_NEARCORE_DIR: /data/illia/nearproof-deps/nearcore
+      ARENA_DEV_UNSAFE: "1"
+      ARENA_FC_TESTS: "1"
+      ARENA_FORMAL_TESTS: "1"
+      ARENA_NEAR_TESTS: "1"
+      ARENA_REQUIRE_GATED_TESTS: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # near.rs / trusted-tree tests extract the pinned freeze commit.
+          fetch-depth: 0
+      - name: Check KVM host prerequisites
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::KVM runner prerequisite missing: $1"; exit 2; }
+          [ -r /dev/kvm ] && [ -w /dev/kvm ] || fail "/dev/kvm not read/writable by $(id -un)"
+          docker info >/dev/null 2>&1 || fail "rootful docker not usable by $(id -un)"
+          command -v bwrap >/dev/null || fail "bubblewrap"
+          command -v rustup >/dev/null || fail "rustup"
+          command -v elan >/dev/null || [ -x "$HOME/.elan/bin/elan" ] || fail "elan"
+          [ -d "$ARENA_NEARCORE_DIR/.git" ] || fail "nearcore checkout at $ARENA_NEARCORE_DIR (oracle/NEARCORE_PIN)"
+          mkdir -p "$ARENA_FC_DEPS" "$ARENA_TOOLCHAIN_IMAGES" "$LEAN_CHECKER_IMAGES"
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Rust toolchains
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          rustup target add x86_64-unknown-linux-musl
+      - name: Build/verify Firecracker images from this checkout
+        run: |
+          set -euo pipefail
+          deploy/images/firecracker/fetch.sh
+          deploy/images/rootfs/build.sh
+          deploy/images/fc-runner/build.sh
+          deploy/images/toolchain/build.sh
+          deploy/images/lean-checker/build.sh
+      - name: Formal checker tools (host reference runs)
+        run: runners/formal-checker/scripts/setup-tools.sh
+      - name: NEAR oracle (pinned nearcore)
+        run: |
+          set -euo pipefail
+          oracle/scripts/link-nearcore.sh "$ARENA_NEARCORE_DIR"
+          cargo build --locked --manifest-path oracle/Cargo.toml
+      - name: Lean reference checker (near_v2 test candidate)
+        working-directory: spec/lean
+        run: lake build nearspec-check
+      - name: Firecracker E2E tests (must execute, never skip)
+        run: |
+          set -euo pipefail
+          log="$RUNNER_TEMP/firecracker-e2e.log"
+          {
+            cargo test --locked -p arena-firecracker --tests -- --nocapture --test-threads=1
+            cargo test --locked -p arena-worker --test firecracker --test npai --test formal --test near \
+              --test near_v2 -- --nocapture --test-threads=1
+          } 2>&1 | tee "$log"
+          if grep -q '^ARENA-TEST-SKIPPED' "$log"; then
+            echo "::error::a gated Firecracker test was skipped"; exit 1
+          fi
+          for t in honest_candidate_through_firecracker build_through_firecracker_with_pinned_toolchain \
+                   npai_route_in_firecracker formal_check_near_statement_firecracker \
+                   reexec_witness_reference_firecracker formal_checker_corpus_in_microvms \
+                   native_lean_compiles_in_microvm v2_draft_challenge_through_the_worker_pipeline \
+                   v2_pipeline_rejects_v1_inputs; do
+            grep -Eq "^test $t \.\.\. " "$log" || { echo "::error::gated test $t did not run"; exit 1; }
+          done

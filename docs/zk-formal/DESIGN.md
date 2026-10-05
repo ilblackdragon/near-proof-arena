@@ -11,6 +11,12 @@ gate on challenge `near-transfer-receipt-v1-2`. That challenge uses the
 target 128 bits, at most 2^64 hash queries and at most 2^40 prover
 (honest-proof) queries. Zero knowledge is not required.
 
+**Naming.** The "zk" in `zk-formal`, `ZkFormal`, the `lane/zk-*` branches and
+the draft challenge `near-transfer-receipt-v1-zk` is historical. This
+development proves **succinct validity** (soundness of a STARK for
+`NearRelation`), not zero knowledge. np-udr-stark has no blinding or hiding,
+and its challenges are `validity_only` with `FORMAL_ZK` not applicable.
+
 ---
 
 ## 0. Decisions at a glance

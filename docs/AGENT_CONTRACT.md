@@ -161,7 +161,11 @@ verify  --public <public_dir> --claim <claim.bin> --proof <proof.bin>
   `FORMAL_SEMANTIC_COMPLETENESS` (`NearRelation(c,w) → ∃aux, B(c,aux)`),
   `FORMAL_CRYPTO_SOUNDNESS` (game-based bound ≤ ε at the actual parameters),
   `FORMAL_IMPL_CONNECTION` (your production `verify` artifact ↔ the formal
-  verifier), and `FORMAL_ZK` for zero-knowledge profiles only.
+  verifier), and `FORMAL_ZK` for zero-knowledge profiles only. No current
+  challenge uses one: all of them use `validity-classical-128`
+  (`privacy: validity_only`), where `FORMAL_ZK` is in `not_applicable_gates`.
+  formal-core has no zero-knowledge predicate yet, so a challenge that required
+  `FORMAL_ZK` could only get `UNKNOWN` and therefore `INCONCLUSIVE`.
 * The concrete security bound is evaluated by the Lean kernel from your
   certified formula at the actual parameters (**no `native_decide`**); it must
   reach the profile's `target_bits` (`SECURITY_BOUND_INSUFFICIENT`).
@@ -174,7 +178,83 @@ verify  --public <public_dir> --claim <claim.bin> --proof <proof.bin>
   (`recheckers`; `RECHECK_FAILED`).
 * What an admitted proof establishes is exactly the challenge's
   `semantic_scope` minus its `excludes` (e.g. `block_finality`,
-  `data_availability`, `receipt_inclusion` are *not* proven).
+  `data_availability`, `receipt_inclusion` are *not* proven). See §6.1.
+
+### 6.1 What an admitted proof establishes
+
+Formal admission proves **validity**, that is, soundness of the claim: no
+efficient adversary within the profile's budgets can make the verifier accept
+a claim `c` for which no witness `w` with `NearRelation(c, w)` exists. That is
+all it proves. In particular:
+
+* **v1** (`near-transfer-receipt-v1`, `-1` … `-4`; claim
+  `near-arena-claim-v1`; [`spec/near-transfer-receipt-v1.md`](../spec/near-transfer-receipt-v1.md)).
+  The relation is `NearSpec.TransferV1.NearRelation`: applying the committed,
+  ordered batch of single-`Transfer` action receipts to the partial trie with
+  root `pre_state_root`, as nearcore 2.13.4 `Runtime::apply` does in the
+  restricted chunk context, yields the claimed outputs. The state output is the
+  **projected** `slice_post_root` (account writes only, without the
+  bandwidth-scheduler write), not the on-chain post-state root (spec §5).
+  `pre_state_root`, `receipts_commitment` and the block-context fields are
+  **supplied commitments**. The proof binds the witness to them, but anchoring
+  them to a real chain is outside the statement. The `excludes` of
+  `chl_5ef2bc7d2068219635426e47ca46bfbb` (the same in every v1 successor) are:
+  `block_finality`, `data_availability`, `receipt_inclusion`,
+  `pre_state_root_on_chain`, `epoch_and_protocol_version_selection`,
+  `onchain_post_state_root`, `transactions`, `signature_verification`,
+  `function_calls_and_wasm`, `non_transfer_actions`,
+  `implicit_account_creation`, `failure_paths_and_rollback`,
+  `refund_receipt_inputs`, `data_postponed_yield_receipts`,
+  `delayed_receipt_queue`, `congestion_control_and_buffering`,
+  `bandwidth_scheduler`, `outgoing_receipts_root_and_routing`,
+  `validator_updates_and_rewards`, `account_v2_global_contracts`,
+  `receipt_enum_action_v2`, `other_protocol_versions`, `testnet_parameters`.
+  A v1 admission therefore does **not** establish block finality, receipt
+  inclusion, that the pre-state root is on chain, data availability, or full
+  chunk validation.
+* **v2** (draft, unsigned:
+  `challenges/drafts/near-transfer-receipt-v2.draft.json`; claim
+  `near-arena-claim-v2`; [`spec/near-transfer-receipt-v2.md`](../spec/near-transfer-receipt-v2.md)).
+  Here `post_state_root` is the actual runtime post-state root
+  (`ApplyResult.state_root`), but only for a restricted **single-shard**
+  transition. The restrictions include `single_shard_layout`,
+  `zero_congestion`, `no_bandwidth_requests`, `scheduler_state_decodes` and
+  `refund_needs_grant`, and `multi_shard_layouts`, `bandwidth_requests` and
+  `nonzero_congestion` are excluded. It is explicitly **not** current
+  multi-shard mainnet (no current mainnet chunk is in this domain). The
+  chain-anchoring exclusions of v1 remain.
+* **Not claimed by any challenge (future v3):** full stateless-validator
+  equivalence, meaning authenticated headers, pre-state roots and receipt
+  inclusion/order, multi-shard execution and finality.
+* **Out-of-domain inputs are rejected, not represented as verified.**
+  `NearRelation` includes the domain predicate (spec §3), so an out-of-domain
+  claim has no valid proof. The oracle re-implements the domain without
+  nearcore runtime code (`oracle/src/domain.rs` `check`; v2 adds the
+  scheduler-context checks in `oracle/src/v2.rs` `check`) and never emits a
+  claim for an out-of-domain case. The committed rejection sets
+  `oracle/fixtures/rejection/cases/` (v1: missing receiver, overflow,
+  account V2, wrong protocol version, empty batch, implicit receiver, system
+  predecessor, multi-action, non-Transfer, gas limit, duplicate id, …) and
+  `oracle/fixtures/v2/rejection/cases/` (additionally undecodable scheduler
+  state, non-zero congestion, refund with missed chunks, shard id ≥ 2^32)
+  have no claim file, and the judge must not issue them as jobs. Before any
+  sandbox runs, the worker's `RequestPin` (`runners/worker/src/jobs.rs`)
+  checks every oracle request's encoding, statement id (scope),
+  protocol version and chain id, the expected claim's encoding and statement,
+  and `params.bin` (incl. the runtime-config digest) against the challenge.
+  A mismatch fails the job closed as a judge-side error and is never a
+  candidate verdict. The Lean reference agrees: `nearspec-check` classifies
+  all 14 v1 and 18 v2 rejection fixtures as `out_of_domain` (and every
+  public fixture as `ok`), and `runners/worker/tests/near_v2.rs` shows v1
+  inputs refused under the v2 challenge.
+* **Validity only, not privacy.** Under `validity-classical-128`
+  (`privacy: validity_only`), admission establishes validity only. It does
+  **not** establish witness privacy or zero knowledge, whatever the backend:
+  succinct STARK backends (`np-udr-stark`, Plonky3, SP1) are checked as
+  validity proofs, and their openings may reveal witness-derived values. A
+  privacy claim would require a `FORMAL_ZK` gate discharged by a closed privacy
+  theorem under a `zero_knowledge` profile. formal-core does not define such a
+  theorem, and no challenge requires it.
 
 ## 7. What the judge checks
 

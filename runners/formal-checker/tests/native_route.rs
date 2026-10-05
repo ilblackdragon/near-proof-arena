@@ -8,6 +8,8 @@
 //! Requires `ARENA_DEV_UNSAFE=1` and installed tools; otherwise SKIP.
 #![allow(clippy::type_complexity, clippy::doc_lazy_continuation)]
 
+mod common;
+
 use arena_formal_checker::native::{NativeLeanRoute, VerifierRoute};
 use arena_formal_checker::*;
 use arena_types::{GateStatus, ObligationId};
@@ -110,13 +112,13 @@ fn native(_: &Path) -> VerifierRoute {
 #[test]
 fn native_lean_route() {
     if std::env::var("ARENA_DEV_UNSAFE").as_deref() != Ok("1") {
-        eprintln!("SKIP native_lean_route: ARENA_DEV_UNSAFE=1 required");
+        common::skip_gated!("ARENA_DEV_UNSAFE=1 required");
         return;
     }
     let tools = match toolchain::ToolPaths::discover() {
         Ok(t) => t,
         Err(e) => {
-            eprintln!("SKIP native_lean_route: {e}");
+            common::skip_gated!("formal-checker tools unavailable: {e}");
             return;
         }
     };
@@ -153,6 +155,19 @@ fn native_lean_route() {
         Case {
             name: "native_ok",
             model: "ok",
+            route: native,
+            expect: vec![(None, GateStatus::Pass, vec![])],
+        },
+        Case {
+            name: "native_model_csimp_sorry",
+            model: "csimp_sorry",
+            route: native,
+            // compiled-code finding: every gate incl. ARTIFACT_BINDING fails
+            expect: fail_all(vec!["SORRY_FOUND"]),
+        },
+        Case {
+            name: "native_model_csimp_honest",
+            model: "csimp_honest",
             route: native,
             expect: vec![(None, GateStatus::Pass, vec![])],
         },
@@ -314,7 +329,13 @@ fn native_lean_route() {
             if !rep.gates.iter().any(|g| g.gate == ArtifactBinding) {
                 errs.push(format!("{}: no ARTIFACT_BINDING gate", c.name));
             }
-            if c.name == "native_ok" {
+            if c.name == "native_model_csimp_sorry" {
+                if let Some(nb) = rep.native_verifier.as_ref() {
+                    let bad = run_verifier(&nb.path, &dir.join("run"), &[0, 0x42]);
+                    eprintln!("    (attack demo) judge-built binary on an INVALID claim exits {bad} (0 = the unsound csimp took effect); gates reject it");
+                }
+            }
+            if c.name == "native_ok" || c.name == "native_model_csimp_honest" {
                 let nb = rep.native_verifier.as_ref().expect("judge-built verifier");
                 assert_eq!(digest::sha256_file(&nb.path).unwrap(), nb.digest);
                 let ok = run_verifier(&nb.path, &dir.join("run"), &[0, 0x41]);

@@ -866,6 +866,37 @@ impl Export {
         h
     }
 
+    /// `@Eq α (Expr.const f us) (Expr.const g us)` → `(f, g, us-are-exactly-params)`.
+    pub fn as_eq_of_consts(
+        &self,
+        e: u32,
+        level_params: &[String],
+    ) -> Option<(String, String, bool)> {
+        let ExprNode::App(f1, rhs) = self.exprs[self.unmdata(e) as usize] else {
+            return None;
+        };
+        let ExprNode::App(f2, lhs) = self.exprs[self.unmdata(f1) as usize] else {
+            return None;
+        };
+        let ExprNode::App(f3, _ty) = self.exprs[self.unmdata(f2) as usize] else {
+            return None;
+        };
+        let (eq, _) = self.const_head(f3)?;
+        if eq != "Eq" {
+            return None;
+        }
+        let (lf, lus) = self.const_head(lhs)?;
+        let (rg, rus) = self.const_head(rhs)?;
+        let params_ok = lus.len() == level_params.len()
+            && rus.len() == level_params.len()
+            && lus
+                .iter()
+                .zip(rus)
+                .zip(level_params)
+                .all(|((a, b), p)| self.level_is_param(*a, p) && self.level_is_param(*b, p));
+        Some((lf.to_string(), rg.to_string(), params_ok))
+    }
+
     /// `Expr.app (Expr.const f []) (Expr.const x [])` → `(f, x)`.
     pub fn as_app_of_consts(&self, e: u32) -> Option<(String, String)> {
         let ExprNode::App(f, x) = self.exprs[self.unmdata(e) as usize] else {

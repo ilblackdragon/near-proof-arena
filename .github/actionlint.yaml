@@ -1,0 +1,6 @@
+# actionlint config (make workflow-lint).
+self-hosted-runner:
+  # Custom label of the self-hosted KVM runner used by the `firecracker-e2e`
+  # job in workflows/ci.yml (real Firecracker microVMs need /dev/kvm).
+  labels:
+    - kvm

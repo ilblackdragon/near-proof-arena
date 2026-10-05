@@ -7,7 +7,7 @@
 //! corresponding reason code.
 
 use super::common::{self, Verdict};
-use crate::executor::{seed_parts, ExecError, JobRun, StageOut};
+use crate::executor::{ExecError, JobRun, StageOut};
 use crate::gate::Gate;
 use crate::jobs::{ExecJob, RunLimits};
 use crate::oracle::{Case, OracleError};
@@ -36,7 +36,7 @@ struct Runner<'r, 'a> {
     fresh_only: bool,
     oracle: &'r dyn crate::oracle::Oracle,
     chal: &'r arena_types::ChallengeDefinition,
-    parts: Vec<String>,
+    seeds: crate::oracle::SeedCtx,
     /// Fail-closed protocol-version binding of every request.
     pin: Option<crate::jobs::RequestPin>,
 }
@@ -176,10 +176,8 @@ impl BatchRunner for Runner<'_, '_> {
         let (batch, fresh) = self.batches[class_id].clone();
         let batch = if self.fresh_only {
             let tag = format!("{class_id}#confirm-{}-{round}", phase.as_str());
-            let mut parts: Vec<&str> = self.parts.iter().map(|s| s.as_str()).collect();
-            parts.push(&tag);
             self.oracle
-                .sample(self.chal, class_id, &parts, batch.len())
+                .sample(self.chal, class_id, &self.seeds.tagged(&tag), batch.len())
                 .map_err(|e| RunError::Infra(e.to_string()))?
         } else if phase == Phase::FreshConfirm {
             fresh
@@ -188,8 +186,7 @@ impl BatchRunner for Runner<'_, '_> {
         };
         if let Some(pin) = &self.pin {
             for c in &batch {
-                common::check_request_pin(pin, &c.request, &c.id, c.public)
-                    .map_err(|e| RunError::Infra(e.to_string()))?;
+                common::check_case_pin(pin, c).map_err(|e| RunError::Infra(e.to_string()))?;
             }
         }
         if phase != Phase::Cold
@@ -286,8 +283,8 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         }
         Err(e) => return Err(ExecError::Infra(e.to_string())),
     };
-    let parts_owned = seed_parts(&j.ctx);
-    let parts: Vec<&str> = parts_owned.iter().map(|s| s.as_str()).collect();
+    let seeds = crate::executor::seeds(r.ctx, &j.ctx);
+    bench.note(seeds.mode());
     let mut batches = HashMap::new();
     let mut capped = false;
     for c in &chal.workload_suite.classes {
@@ -299,13 +296,18 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             }
         }
         let batch = oracle
-            .sample(chal, &c.id, &parts, n)
+            .sample(chal, &c.id, &seeds, n)
             .map_err(|e| ExecError::Infra(e.to_string()))?;
+        if batch.len() < n {
+            return Err(ExecError::Infra(format!(
+                "fail-closed: class {:?}: oracle sampled {} of the {n} batch members",
+                c.id,
+                batch.len()
+            )));
+        }
         let fresh_tag = format!("{}#fresh", c.id);
-        let mut fresh_parts = parts.clone();
-        fresh_parts.push(&fresh_tag);
         let fresh = oracle
-            .sample(chal, &c.id, &fresh_parts, n)
+            .sample(chal, &c.id, &seeds.tagged(&fresh_tag), n)
             .map_err(|e| ExecError::Infra(e.to_string()))?;
         batches.insert(c.id.clone(), (batch, fresh));
     }
@@ -380,7 +382,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         fresh_only: false,
         oracle,
         chal,
-        parts: parts_owned.to_vec(),
+        seeds: seeds.clone(),
         pin: crate::jobs::RequestPin::from_challenge(chal),
     };
     let mut plan = plan;

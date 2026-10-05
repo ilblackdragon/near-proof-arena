@@ -215,3 +215,4 @@ import ZkFormal.Prover.SizeBound
 import ZkFormal.Prover.SizeBoundNear
 import ZkFormal.NearAssembly.Closed
 import ZkFormal.NearAssembly.MinHeight
+import ZkFormal.Prover.SizeBoundToy

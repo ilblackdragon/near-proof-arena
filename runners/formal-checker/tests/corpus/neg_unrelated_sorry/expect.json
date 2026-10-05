@@ -1,0 +1,17 @@
+{
+  "gates": {
+    "FORMAL_SEMANTIC_SOUNDNESS": {
+      "status": "PASS"
+    },
+    "FORMAL_IMPL_CONNECTION": {
+      "status": "PASS"
+    },
+    "AXIOM_AUDIT": {
+      "status": "FAIL",
+      "codes": [
+        "SORRY_FOUND"
+      ]
+    }
+  },
+  "description": "candidate-wide audit: sorry in a declaration unrelated to the certificate fails AXIOM_AUDIT only"
+}

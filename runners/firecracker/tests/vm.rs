@@ -4,6 +4,8 @@
 //! `deploy/images/rootfs/build.sh` and `deploy/images/fc-runner/build.sh`.
 //! Set `ARENA_FC_TESTS_VERBOSE=1` to print per-run timings.
 
+mod common;
+
 use arena_firecracker::*;
 use sha2::{Digest as _, Sha256};
 use std::fs;
@@ -19,7 +21,7 @@ fn enabled() -> bool {
 macro_rules! gate {
     () => {
         if !enabled() {
-            eprintln!("skipped: set ARENA_FC_TESTS=1");
+            common::skip_gated!("set ARENA_FC_TESTS=1");
             return;
         }
     };

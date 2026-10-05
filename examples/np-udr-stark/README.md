@@ -7,17 +7,23 @@ The candidate package for the provable STARK backend `np-udr-stark-v1`
 `examples/reexec-witness` for the native-lean verifier route, and
 `examples/stark-plonky3` for the vendored Plonky3 Rust build.
 
+**Validity, not zero knowledge.** np-udr-stark is a succinct STARK *validity*
+proof. It has no blinding or hiding: trace and FRI openings reveal
+witness-derived values. Its target profile is `validity-classical-128`
+(`privacy: validity_only`, `FORMAL_ZK` not applicable), so admission would
+establish soundness of the claim only, not witness privacy. The "zk" in
+`zk-formal` / `ZkFormal` and in the draft `near-transfer-receipt-v1-zk` is
+historical naming, not a privacy claim.
+
 ## Status
 
 | piece | state |
 |---|---|
-| `out/prepare` | done. Writes `public.bin` = approved `params.bin` verbatim (the reexec-witness convention; the AIR and the parameters are fixed by the Lean model). |
-| `out/prove` | **stub.** It checks the CLI and inputs, then exits 2 with `not yet implemented: NEAR AIR pending (L6)`. The protocol engine in `source/src/` (lane L8) works on toy AIRs (`npudr` dev CLI). |
-| `out/verify` | built from `formal/NpUdrStark/Model.lean`. That file is a **reject-all placeholder**, to be replaced by lanes L4/L7. |
-| certificate | none. `NpUdrStark.certificate` is the planned name (lane L7). |
-
-The judge cannot admit this package yet. The real formal checker reports
-`CERTIFICATE_MISSING`.
+| `out/prepare` | done. Writes `public.bin` = approved `params.bin` verbatim (= `NpUdrStark.publicBin`). |
+| `out/prove` | **stub** (exits 2). The NEAR prove path is lane L8's: AIR export + witness→trace (`REQUESTS.md` R-L7-7). |
+| `out/verify` | the judge's native-lean build of `NpUdrStark.Model.verifier` = claim guard ∘ `ZkFormal.Stark.verifier Fp Fp8 nearAir default` (`model_eq : … = NearAssembly.nearModel nearAir`, `rfl`). |
+| certificate | `NpUdrStark.certificate_of` (`formal/NpUdrStark/Assembly.lean`, axioms propext/Classical.choice/Quot.sound) proves the judge's statement for every validity-classical-128 literal from L6's `RenderStmt` and `NearMinHeightStmt` (R-L7-6). Once those land, `NpUdrStark.certificate` is `certificate_of <render> <minHeight> _ … rfl (by decide) (by decide) (by decide +kernel)`. |
+| challenge | the unsigned draft `near-transfer-receipt-v1-zk` (`chl_bdbfc808…`; ArenaCore/NearSpec @ `e4088761`, i.e. formal-core with `sha256Fast`). The id changes when it is signed with the new checker identity. |
 
 ## Layout
 
@@ -27,10 +33,10 @@ The judge cannot admit this package yet. The real formal checker reports
 | `source/` | Rust crate (`npudr` library, the `npudr` dev CLI, and the judge bins `prepare`/`prove`). Plonky3 is pinned to rev `3acc8b7`. |
 | `source/src/bin/leanorder.rs` | Build helper. It prints the judge's module orders: trusted modules in `topo` order, and the model closure in `stage_candidate` order filtered to the closure. It also enforces the import rule for model modules. |
 | `source/vendor/` | **Not in git.** Every crate, written by `build-recipe/vendor.sh` (needs network). The digest is pinned in `dependency-locks/vendor-digest.txt`. |
-| `source/lean-vendor/` | Judge-trusted Lean sources, verbatim at the pinned commit `4f5c19d` (`allowed_packages`): `formal-core/ArenaCore{,.lean}` plus the 9 trusted `NearSpec` modules. They exist only so that `build.sh` can replicate the judge build offline. Pinned in `dependency-locks/lean-vendor.sha256`, which is identical to reexec-witness's. |
+| `source/lean-vendor/` | Judge-trusted Lean sources, verbatim at the pinned commit `e4088761` (the v1-zk challenge's `allowed_packages`): `formal-core/ArenaCore{,.lean}` (including `SHA256Fast`) plus the 9 trusted `NearSpec` modules. They exist only so that `build.sh` can replicate the judge build offline. Pinned in `dependency-locks/lean-vendor.sha256`. |
 | `source/verifier/` | The judge's `main` wrapper (`ARENACORE_MAIN_TEMPLATE`, verbatim) and `lean-toolchain`. |
 | `formal/NpUdrStark/` | The verifier model and, later, the certificate (L4/L7). |
-| `formal/ZkFormal{,.lean}` | **Not in git.** A copy of `zk-formal/` (lanes L1–L3) made by `build-recipe/sync-lean.sh`, pinned in `dependency-locks/zk-formal.sha256`. It is candidate code, not trusted code. The judge stages only `formal/`, and model modules may import only trusted modules, other `formal/` modules and `Init` (`native_build`). So ZkFormal must ship inside `formal/`: it cannot be a Lake `require`, and it cannot live in `lean-vendor`. |
+| `formal/ZkFormal{,.lean}` | **Not in git.** The import closure of `formal/NpUdrStark/*.lean` within `zk-formal/` (369 modules), copied by `build-recipe/sync-lean.sh`, pinned in `dependency-locks/zk-formal.sha256`. It is candidate code, not trusted code. The judge stages only `formal/`, and model modules may import only trusted modules, other `formal/` modules and `Init` (`native_build`). So ZkFormal must ship inside `formal/`: it cannot be a Lake `require`, and it cannot live in `lean-vendor`. |
 | `build-recipe/build.sh` | The judge build (offline): `out/{prepare,prove,verify}`. |
 | `build-recipe/vendor.sh`, `sync-lean.sh` | Packager steps. |
 
@@ -55,6 +61,16 @@ The Lean step compiles the trusted modules, then the model's import closure
 `lean -c` / `leanc -c -O3 -DNDEBUG` / one `leanc -o`. This is the same as
 `native_build`. The model can be overridden with `MODEL_MODULE`/`MODEL_DECL`.
 By default both are read from `candidate.toml`.
+
+## Verified (2026-10-05, real model `nearModel nearAir`)
+
+Two clean builds (fresh `HOME`, `env -i`, `SOURCE_DATE_EPOCH=0`) from separate copies give bit-identical outputs:
+
+```
+eefd2add15097d15bd485e2098bbe3a2006bea3acae5276435fa105f0cb2ae3f  out/prepare
+9dad00e9e8eb40db8baf335e13edb30a8df488771ea101d3bc3626ef414b7312  out/prove   (stub)
+c82117cb46db768c5eb158bcdf6e30508e8aadc2590510464ff3a40280e22472  out/verify
+```
 
 ## Verified (2026-10-03, placeholder model)
 

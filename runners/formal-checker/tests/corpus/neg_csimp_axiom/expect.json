@@ -1,0 +1,9 @@
+{
+  "all": {
+    "status": "FAIL",
+    "codes": [
+      "FORBIDDEN_AXIOM"
+    ]
+  },
+  "description": "@[csimp] proved from a candidate axiom"
+}

@@ -10,7 +10,8 @@ or is a hard requirement other lanes have accepted in `docs/CONTRACTS.md`.
 An `ADMITTED` result under a `formal` challenge means: the judge built the
 candidate's exact artifacts reproducibly; a Lean certificate, checked by the
 arena's own kernel and independent recheckers, proves that the candidate's
-verifier is sound (and complete, and ZK where required) for the challenge's
+verifier is sound (and complete; ZK only where a `zero_knowledge` profile
+requires `FORMAL_ZK`, which no challenge currently does) for the challenge's
 fixed `NearRelation` under only the challenge's governed assumptions, with a
 concrete bound evaluated at the challenge's parameters; the production
 verifier artifact is bound to the formal verifier; the candidate agreed with
@@ -19,8 +20,9 @@ and the reported timings were measured by the judge.
 
 It does **not** claim: that nearcore itself is correct, that the Lean spec of
 NEAR matches nearcore beyond differential testing, finality/data
-availability/receipt inclusion (see each challenge's `excludes`), or anything
-about tiers other than `formal`.
+availability/receipt inclusion (see each challenge's `excludes`), witness
+privacy (every current challenge is `validity_only`: an admission is a validity
+proof, not a zero-knowledge one), or anything about tiers other than `formal`.
 
 ## 2. Assets
 

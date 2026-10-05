@@ -417,3 +417,13 @@ L6's `RenderStmt`/R-L7-6 and L7's size bound. For the Rust prover:
 5. **Limits:** 24 chunks × 9 positions. The Lean size bound at the maximal header is 5 127 343 B
    (8 MiB cap), so expect ≈ 2–4 MB proofs on the workload classes. The judge-built Lean verifier
    checks 0.93 MB in 0.24 s (linear).
+## L8 → L6: `Render/Walk.lean` walk generator is cubic (speed only)
+
+`useAtL` evaluates `st.getD j default` inside the filter predicate with
+linear list indexing per cell, so `walkRowsAll` is cubic in walk steps: on
+fixture s20261003-v5 (233 receipts) it did not finish in 15 min. The L8
+conformance dumper (`conformance/NearRender.lean`) uses a one-pass count with
+the same cell function (checked equal to L6's on every case ≤ 3000 steps).
+Rust (`npudr::near`) and Lean render are byte-identical on all 38 cases
+(20 public fixtures + 18 class workloads); 0 constraint violations, 0 bus
+imbalance. No L6 table bug found.

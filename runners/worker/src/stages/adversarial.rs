@@ -4,11 +4,10 @@
 //! conformance is nondeterministic (and would make this gate vacuous).
 
 use super::common::{self, Verdict};
-use crate::executor::{seed_parts, ExecError, JobRun, StageOut};
+use crate::executor::{ExecError, JobRun, StageOut};
 use crate::gate::Gate;
 use crate::jobs::{ExecJob, RunLimits};
 use crate::mutators::{HonestPair, MutationCtx};
-use crate::oracle::OracleError;
 use arena_types::{GateStatus, ObligationId, ReasonCode};
 
 /// Honest proofs the hostile inputs are derived from.
@@ -28,19 +27,15 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         ..Default::default()
     };
     let limits = RunLimits::from_challenge(&j.challenge);
-    let parts_owned = seed_parts(&j.ctx);
-    let parts: Vec<&str> = parts_owned.iter().map(|s| s.as_str()).collect();
-    let mut cases = match r.ctx.oracles.get(&j.challenge).and_then(|o| {
-        let fx = r.ctx.oracles.fixtures_for(&j.challenge)?;
-        o.conformance_cases(&j.challenge, fx.as_deref(), &parts, HONEST_CASES)
-    }) {
-        Ok(c) => c,
-        Err(OracleError::Unavailable(m)) => {
+    // Honest controls come from the same fail-closed suite as conformance
+    // (pinned fixtures + per-class samples, pin-checked; no held-out cases).
+    let mut cases = match common::suite(r, &j.challenge, &j.ctx, HONEST_CASES, false)? {
+        Ok(s) => s.cases,
+        Err(m) => {
             g.note(m);
             out.gates.push(g.finish(GateStatus::Unknown, true));
             return Ok(out);
         }
-        Err(e) => return Err(ExecError::Infra(e.to_string())),
     };
     // Prefer distinct claims (swap mutators need two different claims).
     cases.sort_by_key(|c| !c.public);
@@ -117,8 +112,13 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             }
         }
     }
-    let seed =
-        arena_measure::stats::derive_seed("adversarial", &parts).map_err(ExecError::Infra)?;
+    // Mutator selection stays publicly reproducible (hostile inputs are
+    // derived from the candidate's own honest proofs).
+    let seed = arena_measure::stats::derive_seed(
+        "adversarial",
+        &[&j.ctx.challenge_id, j.ctx.package_digest.as_str()],
+    )
+    .map_err(ExecError::Infra)?;
     let ctx = MutationCtx {
         honest: &honest,
         max_proof_bytes: limits.max_proof_bytes,
