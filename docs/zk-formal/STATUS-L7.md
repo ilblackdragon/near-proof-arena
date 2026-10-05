@@ -85,3 +85,22 @@ Result:
   * `RECHECK_FAILED`: lean4lean hit a deterministic timeout on L1's `p_prime` (R-L7-4).
 * leanchecker accepted all 111 modules (43 s), and nanoda accepted the 8 239-declaration export
   (9 s). Candidate elaboration took 30 s in total, with no module over 1.3 s.
+
+## M2 rerun with L4d's `@[csimp]` fast verifier (lane/zk-int d6e3a90; toy `maxLog` 16)
+
+Real checker, dev sandbox. Deployed default parameters (24 chunks), so the judge binary matches the
+Rust prover. Pending obligations: `bcs`, `size`, `npIop`, `npProverQ`, and `query` (false at 24, R-L7-1)
+are `sorry` in the scratch tree only. `proverQ`/`proverChunk` are the proved `prover_unit`/`prover_chunk`.
+* Same verdict as before: ARTIFACT_BINDING PASS. The formal gates FAIL only on SORRY_FOUND and
+  the lean4lean `p_prime` timeout (R-L7-4). leanchecker accepted 196 modules (66 s), nanoda accepted
+  11 092 declarations, and candidate elaboration took 81 s in total.
+* **Candidate `@[csimp]` on the native-lean route:** accepted. The audit has no rule for it either
+  way, and the judge's native build applies it. The judge-generated `Stark/Bcs.c` calls
+  `takeF`/`mpLeavesF`/`readInjF` at every call site; `take?` appears only as its own definition.
+  The trusted `ArenaCore/Interp.c` calls `ArenaCore_sha256Fast`.
+* **Timing of the judge-built binary** (`sha256:65512c09…`), honest toy proofs from the L8 Rust
+  prover (`sqprove`, scratch): 2 KB 3 ms, 33 KB 13 ms, 365 KB 82 ms, **927 KB 208 ms**. That is
+  linear and matches L4d's 1.00 MB / 230 ms; the old path took ~20 s at 0.8 MB. Rejections (exit 1)
+  on a wrong claim, a non-canonical claim `[b, 0]` (the guard), and a 1-bit proof mutation.
+* **But see R-L7-5:** csimp lemmas are not audited, so a `sorry` csimp passes every gate and
+  redirects the judge binary (reproduced).

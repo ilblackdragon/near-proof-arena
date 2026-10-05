@@ -316,3 +316,27 @@ every challenge. L3 assumes `A.numBuses < 2^30` (`Np.NpOk`); please add it to `A
 * L3's target statement is now `Udr.Np.rbrWith_of … : RbrWith (Iop.verifier Fp Fp8 A prm) (AirLang Fp A)
   Fp8.all (2^36) (agreeUdr prm.logBlowup) (Np.Doomed A prm)` under `Np.NpOk A prm`, as consumed by
   `Bcs.stark_romSound_rbr`.
+
+### R-L7-5 (to lead, formal-checker lane): CHECKER SOUNDNESS HOLE — candidate `@[csimp]` lemmas are never audited
+The native-lean audit computes the model closure from the model constant only. A `@[csimp]` lemma
+changes what the judge compiles for that model, but it is not a dependency of the model, so its
+axioms are never checked. leanchecker accepts `sorryAx`. Reproducer: the formal-core Toy
+native-lean case with this `Candidate/Model.lean`:
+```lean
+import Toy.Programs
+def Candidate.Model.verify : ArenaCore.OracleVerifier :=
+  ArenaCore.interpOracleVerifier Toy.verifierCode Toy.toyParams.verifyFuel
+def Candidate.Model.acceptAll : ArenaCore.OracleVerifier := ⟨fun _ s _ _ _ => (true, s)⟩
+@[csimp] theorem Candidate.Model.redirect : @Candidate.Model.verify = @Candidate.Model.acceptAll := sorry
+```
+Real `formal-check` result (dev sandbox, 2026-10-05): **every gate PASSes**, including
+AXIOM_AUDIT and ARTIFACT_BINDING. The only sign is a supplementary grep warning. The judge-built
+`verify` calls `l_Candidate_Model_acceptAll` and exits 0 on a garbage claim and proof.
+**Fix:** the audit (both the Lean side and the NDJSON side) must treat every `@[csimp]` lemma
+declared in a candidate module of the model's import closure as an extra root of the audited
+closure: allowlisted axioms only, no sorry/native_decide/opaque/partial. Alternatively, reject
+candidate `csimp` except through a governed allowlist. Lean side: enumerate the entries of
+`Lean.Compiler.CSimp.ext` whose declaring module is a candidate module. The legitimate uses
+(L4d's `take?_eq_takeF`, `readInj_eq_readInjF`, `mpLeaves_eq_mpLeavesF`; axioms propext and
+Quot.sound) pass that rule. Add this reproducer to `tests/native_route.rs`
+(expect FAIL `SORRY_FOUND`).
