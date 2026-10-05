@@ -197,6 +197,32 @@ sorry / candidate axiom / native_decide / shadowed `ArenaCore.OracleVerifier`
 foreign candidate binary, candidate-native route. `tests/near_spec.rs`
 (`FC_NEAR_SPEC=1`) also builds the NEAR native-lean statement.
 
+### Compiler-affecting attributes and the candidate-wide audit (R-L7-5)
+
+Some declarations change **compiled code** without being in the
+certificate's dependency closure — most importantly `@[csimp]` lemmas
+`@f = @g`, which make the compiler run `g` wherever `f` appears (including
+in the judge-built native-lean verifier). A `@[csimp]` lemma proved by
+`sorry` would otherwise let the judge's binary run an arbitrary replacement
+while every gate passes. Policy, per attribute, for declarations in
+candidate modules:
+
+| attribute | effect on compiled code | policy |
+|-----------|-------------------------|--------|
+| `@[csimp]` | replaces `f` by `g` | **audited**: every non-trusted entry (read from the raw per-module extension entries, global and scoped) must be backed by a theorem whose statement is literally `@f = @g` (`us` = its level params) and whose full closure uses only allowlisted axioms and no candidate unsafe/partial/opaque; done on the Lean side **and** independently: the lemma is added to the `lean4export` set, kernel-rechecked by nanoda and audited from the NDJSON. Replacing a trusted `f` is fine — the lemma proves equality. Violations use scope `Compiled` (every gate incl. `ARTIFACT_BINDING` fails). |
+| `@[implemented_by]`, `@[extern]`, `@[export]`, `initialize`/`[init]`, `unsafe` | arbitrary native code / symbol override / startup hooks | **rejected** (`NATIVE_EVAL_FOUND`); the auto-generated `implemented_by` pair of a `partial def` is exempt (partial in the certified path is `UNAPPROVED_ASSUMPTION`) |
+| `@[inline]`, `@[noinline]`, `@[specialize]`, `@[nospecialize]`, `@[macro_inline]`, `@[never_extract]`, `@[reducible]`, instances | evaluation strategy only, semantics-preserving for the total, kernel-checked definitions the arena compiles | allowed |
+
+Independently of attributes, the **candidate-wide axiom audit** (Lean side)
+takes the union of the dependency closures of *every* constant in every
+candidate module and classifies its axioms against the allowlist; anything
+else fails `AXIOM_AUDIT` (scope `AxiomAudit`; offending declarations are
+named). This fails closed on unrelated junk (`theorem junk : 2+2=5 := sorry`
+anywhere in the formal tree rejects the submission) — acceptable: the
+formal tree is the candidate's proof artifact, and it closes this whole
+class (any future codegen-affecting attribute) at once. All candidate
+declarations are additionally kernel-replayed by leanchecker and lean4lean.
+
 ### Per-conjunct gates
 
 If `Policy.conjunct_gates` is set and the statement is a right-nested
@@ -272,6 +298,10 @@ formal-core as `Candidate.lean`, matching their `-- EXPECT:` lines.
   default).
 * `nanoda_bin` is run with `unsafe_permit_all_axioms` (pure kernel check);
   axiom policy is enforced by the audits.
+* The candidate-wide axiom audit and the csimp enumeration come from the
+  Lean-side audit (which maps candidate `.olean`s in the sandbox); the NDJSON
+  side independently re-checks every csimp lemma that audit reports, but it
+  cannot itself enumerate attributes (they are not in the export format).
 * Result caching by `cache_key` is left to the worker (`reused_from`).
 * native-lean: the binary↔model edge trusts the Lean compiler/runtime (by
   design) and the wrapper-equality check runs in an audit process that maps

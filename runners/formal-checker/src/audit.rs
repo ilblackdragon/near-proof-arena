@@ -68,6 +68,31 @@ pub struct LeanFlagged {
     #[serde(rename = "partial")]
     pub is_partial: bool,
     pub opaque: bool,
+    /// `@[export <sym>]`: exposes/overrides a C symbol in compiled code.
+    pub export: Option<String>,
+}
+
+/// A non-trusted `@[csimp]` (compiler substitution) entry `from ↦ to` proved by `thm`.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct LeanCSimp {
+    pub thm: String,
+    pub from: String,
+    pub to: String,
+    pub origin: String,
+    pub from_origin: String,
+    /// The theorem's statement is literally `@from = @to` (Lean's requirement).
+    pub statement_ok: bool,
+    pub axioms: Vec<String>,
+    pub unsafe_or_partial: Vec<String>,
+    pub closure_missing: Vec<String>,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct LeanAxiomUser {
+    pub decl: String,
+    pub axiom: String,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -97,6 +122,70 @@ pub struct LeanAudit {
     pub model_origin: Option<String>,
     pub model_axioms: Vec<String>,
     pub model_closure: Vec<LeanClosureEntry>,
+    /// Non-trusted compiler-substitution lemmas (audited even though they are
+    /// outside the certificate closure: they change compiled code).
+    pub csimp: Vec<LeanCSimp>,
+    /// Axioms reachable from ANY constant of ANY candidate module.
+    pub candidate_axioms: Vec<String>,
+    pub candidate_axiom_users: Vec<LeanAxiomUser>,
+    pub candidate_const_count: Option<u64>,
+}
+
+/// Findings for compiler-affecting declarations and the candidate-wide
+/// axiom audit (both outside the certificate's dependency closure).
+pub fn lean_compiled_code_findings(a: &LeanAudit, allowlist: &[String], trusted_axioms: &BTreeSet<String>) -> Vec<Finding> {
+    let mut f = Vec::new();
+    if !a.import_ok || a.fatal.is_some() {
+        return f;
+    }
+    for c in &a.csimp {
+        if !c.statement_ok {
+            f.push(Finding::new(
+                ReasonCode::RecheckFailed,
+                Scope::Compiled,
+                format!("@[csimp] entry {} ↦ {} via {} is not backed by a theorem `@{} = @{}` (environment inconsistency)", c.from, c.to, c.thm, c.from, c.to),
+            ));
+        }
+        if !c.closure_missing.is_empty() {
+            f.push(Finding::new(ReasonCode::RecheckFailed, Scope::Compiled, format!("@[csimp] {} has missing dependencies {:?}", c.thm, c.closure_missing)));
+        }
+        for ax in &c.axioms {
+            if let Some(code) = classify_axiom(ax, allowlist, trusted_axioms) {
+                f.push(Finding::new(
+                    code,
+                    Scope::Compiled,
+                    format!("@[csimp] lemma {} (compiled code: {} ↦ {}) depends on axiom {ax}", c.thm, c.from, c.to),
+                ));
+            }
+        }
+        for n in &c.unsafe_or_partial {
+            f.push(Finding::new(
+                ReasonCode::UnapprovedAssumption,
+                Scope::Compiled,
+                format!("@[csimp] lemma {} depends on candidate unsafe/partial/opaque `{n}`", c.thm),
+            ));
+        }
+    }
+    let mut attributed = BTreeSet::new();
+    for u in &a.candidate_axiom_users {
+        if let Some(code) = classify_axiom(&u.axiom, allowlist, trusted_axioms) {
+            attributed.insert(u.axiom.clone());
+            f.push(Finding::new(
+                code,
+                Scope::AxiomAudit,
+                format!("candidate declaration {} depends on axiom {} (every candidate declaration is audited)", u.decl, u.axiom),
+            ));
+        }
+    }
+    for ax in &a.candidate_axioms {
+        if attributed.contains(ax) {
+            continue;
+        }
+        if let Some(code) = classify_axiom(ax, allowlist, trusted_axioms) {
+            f.push(Finding::new(code, Scope::AxiomAudit, format!("candidate modules depend on axiom {ax}")));
+        }
+    }
+    f
 }
 
 /// Findings about the candidate verifier model spliced into the statement
@@ -228,6 +317,9 @@ pub fn lean_findings(
         }
         if fl.is_unsafe {
             what.push("unsafe".into());
+        }
+        if let Some(e) = &fl.export {
+            what.push(format!("@[export {e}]"));
         }
         if !what.is_empty() {
             f.push(Finding::new(
@@ -860,4 +952,46 @@ mod tests {
             Some(ReasonCode::ForbiddenAxiom)
         );
     }
+}
+
+/// Independent (NDJSON, nanoda-checked) audit of the `@[csimp]` lemmas the
+/// Lean-side audit enumerated: each must be in the export as a theorem whose
+/// statement is literally `@from = @to`, and its closure's axioms must be allowed.
+pub fn nd_csimp_findings(
+    ex: &Export,
+    csimp: &[LeanCSimp],
+    allowlist: &[String],
+    trusted_axioms: &BTreeSet<String>,
+) -> Vec<Finding> {
+    let mut f = Vec::new();
+    for c in csimp {
+        let Some(d) = ex.decls.get(&c.thm) else {
+            f.push(Finding::new(ReasonCode::RecheckFailed, Scope::Compiled, format!("@[csimp] lemma {} missing from the independent export", c.thm)));
+            continue;
+        };
+        let shape = (d.kind == DeclKind::Thm).then(|| ex.as_eq_of_consts(d.ty, &d.level_params)).flatten();
+        match shape {
+            Some((from, to, true)) if from == c.from && to == c.to => {}
+            other => f.push(Finding::new(
+                ReasonCode::RecheckFailed,
+                Scope::Compiled,
+                format!("@[csimp] lemma {} is not a theorem `@{} = @{}` in the independent export (got {other:?})", c.thm, c.from, c.to),
+            )),
+        }
+        let (clo, missing) = ex.closure([c.thm.clone()]);
+        if !missing.is_empty() {
+            f.push(Finding::new(ReasonCode::RecheckFailed, Scope::Compiled, format!("@[csimp] lemma {} export not closed: {missing:?}", c.thm)));
+        }
+        for ax in axioms_in(ex, &clo) {
+            if let Some(code) = classify_axiom(&ax, allowlist, trusted_axioms) {
+                f.push(Finding::new(code, Scope::Compiled, format!("@[csimp] lemma {} depends on axiom {ax} (independent export)", c.thm)));
+            }
+        }
+        for n in &clo {
+            if ex.decls.get(n).is_some_and(|d| d.is_unsafe || d.is_partial) {
+                f.push(Finding::new(ReasonCode::UnapprovedAssumption, Scope::Compiled, format!("@[csimp] lemma {} uses unsafe/partial `{n}`", c.thm)));
+            }
+        }
+    }
+    f
 }

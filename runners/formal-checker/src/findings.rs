@@ -16,6 +16,12 @@ pub enum Scope {
     /// Only the ARTIFACT_BINDING gate (e.g. a candidate-supplied binary that
     /// is not the judge build; the formal proof itself is unaffected).
     Binding,
+    /// Only AXIOM_AUDIT (candidate-wide hygiene: a declaration outside the
+    /// certificate closure uses a forbidden axiom).
+    AxiomAudit,
+    /// Every gate including ARTIFACT_BINDING: the finding affects compiled
+    /// code (e.g. an unsound `@[csimp]` lemma rewrites the judge-built verifier).
+    Compiled,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]

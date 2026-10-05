@@ -1,0 +1,7 @@
+{
+  "all": {
+    "status": "PASS",
+    "codes": []
+  },
+  "description": "honest @[csimp] (slowSum = fastSum, kernel-proved) outside the certificate closure"
+}

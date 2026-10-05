@@ -1464,6 +1464,72 @@ impl FormalChecker {
                 &mut findings,
             ));
 
+            // C1 (run before the export so the independent NDJSON side can also
+            // export and kernel-check every non-trusted `@[csimp]` lemma it reports).
+            let audit_cfg = serde_json::json!({
+                "imports": std::iter::once(req.expected.module_name().to_string()).chain(cand_mods.iter().cloned()).collect::<Vec<_>>(),
+                "expectedDecl": req.expected.decl_name(),
+                "certificate": req.certificate,
+                "candidateModules": cand_mods,
+                "trustedModules": reference.modules,
+                "toolchainPrefixes": req.policy.toolchain_prefixes,
+                "modelDecl": model_route.map(|r| r.model_decl.clone()).unwrap_or_default(),
+                "instDecl": model_route.map(|r| r.inst_decl.clone()).unwrap_or_default(),
+                "axiomAllowlist": req.policy.axiom_allowlist,
+            });
+            let _ = std::fs::write(x.join("audit.json"), audit_cfg.to_string());
+            let lean_audit: Option<LeanAudit> = {
+                let mut spec = ctx.base_spec(
+                    vec![G_AUDIT.into(), "check".into(), format!("{G_X}/audit.json")],
+                    &lean_path,
+                    req.limits.audit_timeout,
+                    req.limits.mem_bytes,
+                );
+                mount_replay(&mut spec);
+                spec.ro.push((x.clone(), G_X.into()));
+                match ctx.run("audit:arena-audit", &spec, REPORT_CAPTURE_LIMIT) {
+                    Err(f) => {
+                        findings.push(f);
+                        None
+                    }
+                    Ok(o) if o.exit == RunExit::TimedOut => {
+                        findings.push(Finding::unknown(
+                            ReasonCode::Timeout,
+                            "arena-audit timed out".into(),
+                        ));
+                        None
+                    }
+                    Ok(o) => {
+                        match serde_json::from_slice::<LeanAudit>(&o.stdout) {
+                            Ok(a) if o.success() => {
+                                let _ =
+                                    std::fs::write(req.work_dir.join("lean-audit.json"), &o.stdout);
+                                evidence.push(EvidenceRef {
+                                    label: "arena-audit report".into(),
+                                    digest: Digest::of_bytes(&o.stdout),
+                                    public: true,
+                                });
+                                rechecks.push(RecheckerRun {
+                                    id: "arena-audit".into(),
+                                    ran: true,
+                                    verdict: "completed".into(),
+                                    wall_ms: o.wall.as_millis() as u64,
+                                    detail: String::new(),
+                                });
+                                Some(a)
+                            }
+                            _ => {
+                                findings.push(Finding::new(
+                                ReasonCode::RecheckFailed,
+                                Scope::All,
+                                format!("arena-audit failed on the candidate environment ({:?}): {}", o.exit, lossy_tail(&o.stderr, 600)),
+                            ));
+                                None
+                            }
+                        }
+                    }
+                }
+            };
             // B2: export the certificate's closure (sandboxed: loads candidate oleans).
             let cand_export = x.join("candidate.ndjson");
             let export_ok = {
@@ -1471,6 +1537,20 @@ impl FormalChecker {
                 argv.extend(cand_mods.iter().cloned());
                 argv.push("--".into());
                 argv.push(req.certificate.clone());
+                // Compiler-substitution lemmas affect compiled code outside the
+                // certificate closure: export them too (kernel-checked by nanoda,
+                // axiom-audited from the export).
+                for c in lean_audit.iter().flat_map(|l| l.csimp.iter()) {
+                    if c.thm.split('.').all(staging::is_ident) {
+                        argv.push(c.thm.clone());
+                    } else {
+                        findings.push(Finding::new(
+                            ReasonCode::RecheckFailed,
+                            Scope::Compiled,
+                            format!("@[csimp] lemma {:?} has a name that cannot be exported for independent checking", c.thm),
+                        ));
+                    }
+                }
                 let mut spec = ctx.base_spec(
                     argv,
                     &lean_path,
@@ -1602,70 +1682,7 @@ impl FormalChecker {
                 }
             }
 
-            // ---------------- Stage C: judge checks.
-            let audit_cfg = serde_json::json!({
-                "imports": std::iter::once(req.expected.module_name().to_string()).chain(cand_mods.iter().cloned()).collect::<Vec<_>>(),
-                "expectedDecl": req.expected.decl_name(),
-                "certificate": req.certificate,
-                "candidateModules": cand_mods,
-                "trustedModules": reference.modules,
-                "toolchainPrefixes": req.policy.toolchain_prefixes,
-                "modelDecl": model_route.map(|r| r.model_decl.clone()).unwrap_or_default(),
-                "instDecl": model_route.map(|r| r.inst_decl.clone()).unwrap_or_default(),
-            });
-            let _ = std::fs::write(x.join("audit.json"), audit_cfg.to_string());
-            let lean_audit: Option<LeanAudit> = {
-                let mut spec = ctx.base_spec(
-                    vec![G_AUDIT.into(), "check".into(), format!("{G_X}/audit.json")],
-                    &lean_path,
-                    req.limits.audit_timeout,
-                    req.limits.mem_bytes,
-                );
-                mount_replay(&mut spec);
-                spec.ro.push((x.clone(), G_X.into()));
-                match ctx.run("audit:arena-audit", &spec, REPORT_CAPTURE_LIMIT) {
-                    Err(f) => {
-                        findings.push(f);
-                        None
-                    }
-                    Ok(o) if o.exit == RunExit::TimedOut => {
-                        findings.push(Finding::unknown(
-                            ReasonCode::Timeout,
-                            "arena-audit timed out".into(),
-                        ));
-                        None
-                    }
-                    Ok(o) => {
-                        match serde_json::from_slice::<LeanAudit>(&o.stdout) {
-                            Ok(a) if o.success() => {
-                                let _ =
-                                    std::fs::write(req.work_dir.join("lean-audit.json"), &o.stdout);
-                                evidence.push(EvidenceRef {
-                                    label: "arena-audit report".into(),
-                                    digest: Digest::of_bytes(&o.stdout),
-                                    public: true,
-                                });
-                                rechecks.push(RecheckerRun {
-                                    id: "arena-audit".into(),
-                                    ran: true,
-                                    verdict: "completed".into(),
-                                    wall_ms: o.wall.as_millis() as u64,
-                                    detail: String::new(),
-                                });
-                                Some(a)
-                            }
-                            _ => {
-                                findings.push(Finding::new(
-                                ReasonCode::RecheckFailed,
-                                Scope::All,
-                                format!("arena-audit failed on the candidate environment ({:?}): {}", o.exit, lossy_tail(&o.stderr, 600)),
-                            ));
-                                None
-                            }
-                        }
-                    }
-                }
-            };
+            // ---------------- Stage C: judge checks (Lean-side audit ran before the export).
             let nd: Option<audit::NdAudit> = if export_ok {
                 let t = Instant::now();
                 match Export::read(&cand_export, req.limits.export_max_bytes) {
@@ -1683,6 +1700,16 @@ impl FormalChecker {
                             n_conj,
                             nm,
                         );
+                        if let Some(la) = &lean_audit {
+                            let ref_axioms: BTreeSet<String> = reference
+                                .export
+                                .decls
+                                .values()
+                                .filter(|d| d.kind == crate::ndjson::DeclKind::Axiom)
+                                .map(|d| d.name.clone())
+                                .collect();
+                            findings.extend(audit::nd_csimp_findings(&ex, &la.csimp, &req.policy.axiom_allowlist, &ref_axioms));
+                        }
                         if let Some(n) = nanoda_count {
                             if n == 0 || (ex.decls.len() as u64) < n / 2 {
                                 findings.push(Finding::new(
@@ -1755,6 +1782,7 @@ impl FormalChecker {
                     &trusted_axioms,
                     per_conjunct,
                 ));
+                findings.extend(audit::lean_compiled_code_findings(la, &req.policy.axiom_allowlist, &trusted_axioms));
             }
             if let Some(a) = &nd {
                 findings.extend(audit::nd_findings(a, &req.policy.axiom_allowlist));
