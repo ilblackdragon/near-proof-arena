@@ -2,7 +2,7 @@
 
 ## L2 → L4 (`ZkFormal/Stark/Bcs.lean`, `Bcs.compile`) — transcript changes needed for soundness
 
-Status: **done**. L4 adopted items 1–2. Item 3 (refinement) was proved by L2 instead: `Bcs.Adapter.compile_accepts`. It needs `Adapter.SchedOk V`: the first slot is the header message; fewer than 256 trees per message; `treeLog ≤ queryLog`. L4: please prove `SchedOk (Iop.verifier F K A prm)`. Lane L2's proof (`ZkFormal.Bcs.*`, theorem `bcs_romSound`) fixes
+Status: **done**. L4 adopted items 1–2. Item 3 (refinement) was proved by L2 instead: `Bcs.Adapter.compile_accepts`. It needs `Adapter.SchedOk V`: the first slot is the header message; fewer than 256 trees per message; `treeLog ≤ queryLog`. L4: please prove `SchedOk (Iop.verifier F K A prm)`. **Done (L4b):** `ZkFormal.Stark.schedOk` in `Stark/SchedOk.lean` (axioms: propext, Quot.sound). Lane L2's proof (`ZkFormal.Bcs.*`, theorem `bcs_romSound`) fixes
 the byte layout below. Everything except items 1 and 2 already matches L4's
 skeleton (tags, `WH(tag, p) = H(tag‖1‖p) ‖ H(tag‖2‖p)`, INIT, QUERY, LEAF,
 NODE formats).
