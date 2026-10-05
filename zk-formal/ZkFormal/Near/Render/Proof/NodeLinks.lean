@@ -86,16 +86,21 @@ macro_rules
   all_goals try simp only at hres
   all_goals try simp only [F.state, F.chw, F.win, F.nib, digOf, edgeAOf, edgeBOf, gateCell, edgeCell, Node.sTAG,
     Node.sHPL, Node.sHPF, Node.sKEY, Node.sVLEN, Node.sVH, Node.sBM, Node.sCH, Node.sMEM, msgId] at htag ⊢
+  all_goals try simp only [hlook]
   all_goals generalize hnr : I.nodeAt rn = nr at *
   all_goals rcases nr with ⟨k, _ | _, m⟩ | ⟨k, kid, m⟩ | ⟨_ | ⟨_ | _⟩, kids, m⟩
+  all_goals try (simp at hshape; done)
   all_goals try (cases kid <;> rcases k with _ | ⟨x, _ | ⟨y, k⟩⟩)
+  all_goals try (simp at hshape; done)
+  all_goals try (simp only [NodeRec.ext.injEq, NodeRec.branch.injEq, Kid.node.injEq, Kid.hash.injEq, true_and,
+    and_true] at hshape; first | obtain ⟨rfl, rfl, rfl⟩ := hshape | obtain ⟨rfl, rfl⟩ := hshape)
   all_goals try (exfalso; simp [fieldsOf] at hf; done)
   all_goals try (exfalso; simp [fieldsOf] at hf; have := branchWins_state hf; simp [F.state, Node.sHPL, Node.sHPF,
     Node.sKEY, Node.sVLEN, Node.sVH, Node.sBM, Node.sCH, Node.sMEM, Node.sTAG] at this; done)
   all_goals try simp [F.len, b2n, typeOf, eextOf', xrvOf, xdeadOf, xlast0Of, isExtR, isLE, nokeyOf, oddOf, hplenOf,
-    xresOf, NodeRec.key, NodeRec.touched, valWin] at htag hidx hres
+    xresOf, NodeRec.key, NodeRec.touched, valWin, kidWin] at htag hidx hres
   all_goals try simp [F.len, b2n, typeOf, eextOf', xrvOf, xdeadOf, xlast0Of, isExtR, isLE, nokeyOf, oddOf, hplenOf,
-    xresOf, NodeRec.key, NodeRec.touched, valWin, hres, htag, Int.add_right_neg]
+    xresOf, NodeRec.key, NodeRec.touched, valWin, kidWin, hres, htag, Int.add_right_neg]
   all_goals first
     | omega
     | (simp [Int.add_right_neg]; done)
@@ -111,6 +116,9 @@ macro_rules
          simp only [ho, show ¬ (k.length + 1 + 1 < 2) by omega, ite_false] <;> simp <;> omega)
     | (simp [Int.add_right_neg] <;> omega)
     | (simp only [show ¬ (k.length + 1 + 1 < 2) by omega, ite_false]; simp; done)
+    | (rcases (show j0 = 0 ∨ j0 = 1 ∨ j0 = 2 ∨ j0 = 3 ∨ j0 = 4 ∨ j0 = 5 ∨ j0 = 6 ∨ j0 = 7 ∨ j0 = 8 ∨ j0 = 9 ∨
+          j0 = 10 ∨ j0 = 11 ∨ j0 = 12 ∨ j0 = 13 ∨ j0 = 14 ∨ j0 = 15 by omega) with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+        (by_cases hj : j = 0) <;> simp [hj] <;> omega)
     | trace_state))
 
 set_option maxHeartbeats 8000000 in
