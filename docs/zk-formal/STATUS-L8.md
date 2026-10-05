@@ -93,3 +93,26 @@ Trace cross-check: Rust `npudr nearrender` == Lean `np-lean-render` (claim, all 
 Caveat: the worst-case domain (SHA table 2^22 × 544) would need ~18 GB in the
 streaming prover; it is not in the workloads (DESIGN §8: only the Lean model
 `P` must handle it).
+
+## lane/zk-L8d — no panics, low-memory prover, reproducible package
+
+* **Errors, not panics** (sub-agent, lane/zk-L8d-gen): `near::prepare(_cols)` returns `Err`
+  on every out-of-domain input (domain guard, height check, trie depth guard); `prove`
+  runs under `catch_unwind` on a 1 GiB-stack thread and writes outputs atomically only
+  on success (exit 2, nothing written otherwise). `tests/near_fuzz.rs`: 12,000 random
+  fixture mutations + 21 structured out-of-range cases, 0 panics.
+* **Low-memory prover** (`prover.rs`; the previous one is `prover_ref.rs`; proofs are
+  byte-identical, `tests/lowmem.rs`, including tiny budgets): compact column traces
+  (`cols.rs`, generators produce them directly: `near::prepare_cols`), aux columns
+  recomputed, streaming wide-hash commitments with recomputed low Merkle levels
+  (`lmcommit.rs`), budgeted multi-pass quotient with rolling next-row ranges, OOD/DEEP
+  from H values, copy-free FRI. Budget `NPUDR_MEM_GB` (default 11).
+* **Max in-domain witness** (`npudr gen-max`: n = 256, revealedBytes 2,999,955; sha and
+  node tables 2^22 rows): claim == derived claim, Rust verifier accepts,
+  **peak RSS 11.4 GB (≤ 12 GiB)**, proof 3.56 MB — but **prove 1742 s** (8 threads,
+  AVX2), over the 600 s cap: quotient 1170 s (aux-column recomputation 434 s, per-pass
+  iDFTs), main commit 206 s, aux 164 s, openings 100 s. Old prover: ~55 GB, not runnable.
+* Class workloads unchanged in outcome (38/38 claims, Rust accept); batch-256 13.2–14.1 s,
+  ≤ 1.57 GB (`bench/results/near-lowmem-2026-10-05.tsv`).
+* Reproducible package build with the real prove: two clean builds (fresh HOMEs, second
+  under `unshare -rn`) bit-identical: prepare 6ba6ebb6…, prove e7a9eb09…, verify c82117cb….

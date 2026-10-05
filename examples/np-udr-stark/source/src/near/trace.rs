@@ -7,6 +7,7 @@ use super::ext::Ext;
 use super::info::*;
 use super::spec::Claim;
 use super::{node, rcpt, small};
+use crate::cols::TraceCols;
 use crate::field::F;
 use crate::sha;
 
@@ -101,3 +102,39 @@ pub fn bundle_traces(b: &Bundle) -> Vec<RowMajorMatrix<F>> {
 
 /// **The honest trace** of a claim and its records (`Render.render`).
 pub fn render(claim: &Claim, ext: &Ext) -> Vec<RowMajorMatrix<F>> { bundle_traces(&bundle(claim, ext)) }
+
+/// Small table rows → compact columns (`clog2 rows` rows; empty → one zero row).
+fn rows_cols(rows: &[Row], width: usize) -> TraceCols {
+    TraceCols::from_rows(clog2(rows.len()), width, |r, b| {
+        if let Some(x) = rows.get(r) {
+            b[..x.len()].copy_from_slice(x);
+        }
+    })
+}
+
+/// The honest trace as compact columns: same content and heights as
+/// [`render`], without materializing the big tables (`sha` from block
+/// descriptors, `node` from per-node field layouts, rows on demand). Also
+/// returns the walk errors (none for honest records).
+pub fn render_cols_checked(claim: &Claim, ext: &Ext) -> (Vec<TraceCols>, Vec<String>) {
+    let i = mk_info(claim, ext);
+    let ws = walks_of(&i);
+    let uses = edge_uses(&ws);
+    let mut msgs = node::node_msgs(&i);
+    msgs.extend(small::acct_msgs(&i));
+    msgs.extend(small::mrk_msgs(&i));
+    msgs.extend(rcpt::rcpt_msgs(&i));
+    let sha = sha::sha_cols(&sha_msgs(&msgs));
+    drop(msgs);
+    let node = node::NodeTab::new(&i, &uses).cols();
+    let mut out = vec![sha, node];
+    out.push(rows_cols(&small::walk_rows_all(&ws), small::WALK_WIDTH));
+    out.push(rows_cols(&rcpt::rcpt_rows_all(&i), RCPT_WIDTH));
+    out.push(rows_cols(&small::acct_rows_all(&i), small::ACCT_WIDTH));
+    out.push(rows_cols(&small::mrk_rows_all(&i), small::MRK_WIDTH));
+    out.push(rows_cols(&small::sort_rows_all(&i), small::SORT_WIDTH));
+    (out, walk_errors(&i))
+}
+
+/// [`render_cols_checked`] without the walk errors.
+pub fn render_cols(claim: &Claim, ext: &Ext) -> Vec<TraceCols> { render_cols_checked(claim, ext).0 }
