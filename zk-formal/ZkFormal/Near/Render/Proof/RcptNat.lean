@@ -1,4 +1,4 @@
-import ZkFormal.Near.Render.Rcpt
+import ZkFormal.Near.Render.Proof.RcptChars4
 
 /-!
 # ZkFormal.Near.Render.Proof.RcptNat — byte-serial arithmetic of the `rcpt` generator
@@ -257,12 +257,6 @@ theorem V_smul (a : Nat) (x : Nat → Nat) : ∀ n, V (fun i => a * x i) n = a *
   | 0 => rfl
   | n + 1 => by rw [V, V, V_smul a x n, Nat.mul_add, Nat.mul_assoc]
 
-/-- `runSum` -/
-theorem runSum_succ (x : Nat → Nat) (i : Nat) : runSum x (i + 1) = runSum x i + x (i + 1) := by
-  simp [runSum, List.range_succ]; omega
-
-theorem runSum_zero (x : Nat → Nat) : runSum x 0 = x 0 := by simp [runSum]
-
 theorem runSum_eq0 (x : Nat → Nat) : ∀ i, runSum x i = 0 → ∀ j, j ≤ i → x j = 0
   | 0, h, j, hj => by rw [runSum_zero] at h; rw [show j = 0 by omega]; exact h
   | i + 1, h, j, hj => by
@@ -270,10 +264,6 @@ theorem runSum_eq0 (x : Nat → Nat) : ∀ i, runSum x i = 0 → ∀ j, j ≤ i 
     rcases (show j = i + 1 ∨ j ≤ i by omega) with rfl | hj'
     · omega
     · exact runSum_eq0 x i (by omega) j hj'
-
-theorem runSum_le (x : Nat → Nat) {M : Nat} (hx : ∀ j, x j ≤ M) : ∀ i, runSum x i ≤ (i + 1) * M
-  | 0 => by rw [runSum_zero]; have := hx 0; omega
-  | i + 1 => by rw [runSum_succ, Nat.add_mul (i + 1)]; have := runSum_le x hx i; have := hx (i + 1); omega
 
 theorem V_zero (x : Nat → Nat) : ∀ n, (∀ i, i < n → x i = 0) → V x n = 0
   | 0, _ => rfl

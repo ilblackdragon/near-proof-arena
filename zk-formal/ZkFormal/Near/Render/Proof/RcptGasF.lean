@@ -242,7 +242,7 @@ theorem gdv_ref (hr : d.hr = true) : runSum (Seg.gdv d bg) 15 ≠ 0 := by
   apply hr'; rw [show d.gp - B = 0 by omega]; rfl
 
 theorem runSum_gdv_lt (i : Nat) (hi : i < 16) : runSum (Seg.gdv d bg) i < 4096 := by
-  have := runSum_le (Seg.gdv d bg) (M := 255) (fun j => Nat.le_of_lt_succ (gdv_lt h j)) i
+  have := runSum_le (Seg.gdv d bg) 255 (fun j => Nat.le_of_lt_succ (gdv_lt h j)) i
   have : (i + 1) * 255 ≤ 16 * 255 := Nat.mul_le_mul_right _ (by omega)
   omega
 
