@@ -1,6 +1,6 @@
 {
   "schema": "arena-challenge-v1",
-  "name": "near-transfer-receipt-v1-4",
+  "name": "near-transfer-receipt-v1-zk",
   "season": "2026-s1",
   "tier": "formal",
   "nearcore": {

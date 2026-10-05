@@ -23,7 +23,7 @@ with `Candidate.Model.verifier := nearModel Near.nearAir`.
 formal-core since `9f1adc7`, which is newer than the `ArenaCore @ 4f5c19df` pinned by
 `chl_3be9…`/`chl_fefb…`; the verify-time budget needs it, so admission happens on a
 new challenge that pins the new tree (draft:
-`challenges/drafts/near-transfer-receipt-v1-4.draft.json`, unsigned).
+`challenges/drafts/near-transfer-receipt-v1-zk.draft.json`, unsigned).
 -/
 
 namespace ZkFormal.NearAssembly

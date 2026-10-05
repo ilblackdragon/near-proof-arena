@@ -60,8 +60,8 @@ size bound at every admissible NEAR header.
 
 ## M5 trusted-tree pinning
 
-`challenges/drafts/near-transfer-receipt-v1-4.draft.json` (unsigned; `arena-admin check` OK,
-id `chl_53e1d8d00479c527c6f555e8dcca769a`): supersedes v1-3 (`chl_fefb6bc7…`), pins
+`challenges/drafts/near-transfer-receipt-v1-zk.draft.json` (unsigned; `arena-admin check` OK,
+id `chl_bdbfc8082737c592d3fe3d46992c7868`): supersedes v1-3 (`chl_fefb6bc7…`), pins
 ArenaCore/NearSpec at `e4088761` (formal-core with `sha256Fast`, `9f1adc7`), tree digest
 `sha256:35fbd260…`; everything else as v1-3.
 
