@@ -19,7 +19,8 @@ rev 3acc8b7: p3-baby-bear/field/dft/matrix/util only). Package:
 | Proof-mutator tests (Rust verifier; 7k bit flips, trunc/extend, claim/pub) | L8 | done |
 | **M1: round trip with compiled Lean verifier** (fib, multi-height, buses) | L8 | **done** (needs L1 `noncomputable Fp.all` locally) |
 | Lean conformance harness `conformance/run.sh` (export equality, accept, mutants) | L8 | done |
-| Fast packed constraint evaluator (`eval.rs`) | L8 sub-agent | in progress |
+| Fast packed constraint evaluator (`eval.rs`, BlockEval) | L8 | done |
+| Random-point constraint differential Lean vs Rust (`np-lean-eval`) | L8 | done (fib, multi, bus) |
 | SHA-256 table (L5) trace gen + round trip + benchmarks | L8 sub-agent | in progress |
 | Judge `prove` | L8 | blocked on L6 (NEAR AIR + witness→trace) |
 | Verifier model / certificate in package | L4/L7 | placeholder reject-all model |
@@ -32,8 +33,8 @@ Benchmarks (8 threads, synthetic degree-4 table, no buses):
 
 | table | prove | peak RSS | proof | Rust verify |
 |---|---|---|---|---|
-| 3000 cols × 2^17 rows (n0 = 2^21) | 39 s | 4.8 GB | 3.64 MiB | 0.09 s |
+| 3000 cols × 2^17 rows (n0 = 2^21) | 33 s | 4.8 GB | 3.64 MiB | 0.09 s |
 
 (before streaming: 70 s, 76 GB). Main costs: main commit 19.7 s (16 coset DFTs ≈ 12 s + WH leaf hashing,
 16·T·W·4 bytes), openings 7.5 s (direct packed evaluation at the opened points),
-quotient 8.9 s (scalar interpreter; packed evaluator pending).
+quotient 3.7 s (packed AVX2 BlockEval, 7.9x the scalar tape; the rest is the 4 block DFTs).
