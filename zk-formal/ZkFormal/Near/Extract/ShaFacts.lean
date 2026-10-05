@@ -1,11 +1,11 @@
 import ZkFormal.Near.Extract.Statements
 import ZkFormal.Near.Extract.BusCount
-import ZkFormal.Sha.Compose
+import ZkFormal.Sha.Sound
 
 /-!
 # ZkFormal.Near.Extract.ShaFacts — `ShaFactsStmt` from L5's statements
 
-L5's `sha_digest_contract` (proved from L5's sublemma statements) in the
+L5's `sha_digest_contract_closed` (proved, lane L5) in the
 form the NEAR linking uses.
 -/
 
@@ -44,8 +44,8 @@ theorem sha_mem {i : Interaction} (hi : i ∈ Sha.Table.interactions B_BYTES B_D
 
 theorem shaDigestI_bus : shaDigestI.bus = B_DIGEST ∧ shaDigestI.send = true := ⟨rfl, rfl⟩
 
-theorem shaFacts_of (hB : BlockStmt) (hIV : IVStmt) (hC : ChainStmt) (hF : FrameStmt)
-    (hIO : DigestIoStmt) : ShaFactsStmt := by
+/-- **The SHA contract** (closed: from L5's `sha_digest_contract_closed`). -/
+theorem shaFacts : ShaFactsStmt := by
   intro tr pub hL
   refine ⟨?_, ?_, ?_⟩
   · intro b m hb
@@ -85,7 +85,7 @@ theorem shaFacts_of (hB : BlockStmt) (hIV : IVStmt) (hC : ChainStmt) (hF : Frame
         simp [shaDigestI, Interaction.multNat, Interaction.multNat.go, Sha.Table.interactions,
           Expr.eval, Expr.evalWith, rowEnv, Sha.Table.E.c, hne]
       obtain ⟨m', dg, -, hdg, hmsg, hbytes⟩ :=
-        sha_digest_contract hB hIV hC hF hIO hL B_BYTES B_DIGEST hd hmult
+        sha_digest_contract_closed hL B_BYTES B_DIGEST hd hmult
       refine ⟨tr.cell T_SHA d Layout.colId, m', ?_, ?_⟩
       · rw [show shaDigestI = (Sha.Table.interactions B_BYTES B_DIGEST)[16]! from rfl, hmsg, hdg]
       · intro j hj
