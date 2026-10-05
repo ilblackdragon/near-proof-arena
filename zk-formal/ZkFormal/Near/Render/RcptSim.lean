@@ -1,4 +1,5 @@
 import ZkFormal.Near.Render.Common
+import ZkFormal.Sha.Gen
 
 /-!
 # ZkFormal.Near.Render.RcptSim — the `rcpt` side, simulated from an `Ext`
@@ -81,11 +82,12 @@ def bytesSends (ms : List Msg) : List BusMsg :=
   ms.flatMap fun m => (m.bytes.zip (List.range m.bytes.length)).map fun (b, p) =>
     { bus := B_BYTES, send := true, msg := [m.id, p, b] }
 
-/-- The `sha` table's side, simulated: receives every byte, provides every digest once. -/
+/-- The `sha` table's side, simulated by L5's expected traffic
+(`Sha.Gen.expectedBytes`/`expectedDigests`, checked against the SHA table by
+`test/ShaGenTest.lean`): receives every byte, provides every digest once. -/
 def shaSim (ms : List Msg) : List BusMsg :=
-  ms.flatMap fun m =>
-    ((m.bytes.zip (List.range m.bytes.length)).map fun (b, p) =>
-      ({ bus := B_BYTES, send := false, msg := [m.id, p, b] } : BusMsg)) ++
-    [{ bus := B_DIGEST, send := true, msg := digestMsg m }]
+  let gm : List Sha.Gen.Msg := ms.map fun m => ⟨m.id, m.bytes, true⟩
+  (Sha.Gen.expectedBytes gm).map (fun m => ({ bus := B_BYTES, send := false, msg := m } : BusMsg)) ++
+  (Sha.Gen.expectedDigests gm).map (fun m => ({ bus := B_DIGEST, send := true, msg := m } : BusMsg))
 
 end ZkFormal.Near.Render

@@ -1,4 +1,4 @@
-import ZkFormal.Near.Render.Tables
+import ZkFormal.Near.Render.Trace
 
 /-! Executable checks of the NEAR honest-trace generators (lane L6e).
 Run: `lake env lean test/NearRenderTest.lean`.  Not part of the library.
@@ -108,6 +108,26 @@ def ex4 : Ext := mkExt
   [(5, 5 * 10 ^ 24)]
   [(rcptOf "alice" 0 (2 * bgp) (10 ^ 23), 5)]
 
+/-- Check of `render`: the NEAR tables read back from the trace (tables
+`1 … 6` of `nearAir`), whole-AIR bus balance with `sha` and `rcpt` simulated. -/
+def runFull (name : String) (e : Ext) : IO Unit := do
+  let c := mkClaim e
+  let pub := pubOf c
+  let tr := render c e
+  let names := ["node", "walk", "rcpt(placeholder)", "acct", "mrk", "sort"]
+  IO.println s!"=== render {name}: logs {(List.range 7).map tr.log}"
+  let mut traffic : List (String × BusMsg) := []
+  for (nm, t) in names.zip (List.range 6) do
+    let T := nearAir.tables.getD (t + 1) default
+    let rows : Array Row := (List.range (tr.height (t + 1))).toArray.map fun r =>
+      (List.range T.width).toArray.map fun col => (tr.cell (t + 1) r col).toNat
+    for l in reportTable nm T rows pub (if nm == "node" then nodeGroups else []) do IO.println l
+    traffic := traffic ++ tableBus nm T rows pub
+  let I := mkInfo c e
+  traffic := traffic ++ ((rcptBus I ++ bytesSends (rcptMsgs I)).map ("rcpt*", ·)) ++
+    ((shaSim (renderParts c e).1).map ("sha*", ·))
+  for l in reportBus traffic do IO.println l
+
 end NearRenderTest
 
 open NearRenderTest in
@@ -116,3 +136,8 @@ open NearRenderTest in
   run "ex2 ext→branch→leaves, 3 receipts" ex2
   run "ex3 branch with value" ex3
   run "ex4 empty-key extensions, 1 receipt" ex4
+
+open NearRenderTest in
+#eval do
+  runFull "ex4" ex4
+  runFull "ex3" ex3

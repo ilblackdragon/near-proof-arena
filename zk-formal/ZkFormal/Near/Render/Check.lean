@@ -118,3 +118,49 @@ def reportBus (ms : List (String × BusMsg)) (only : List Nat := []) : List Stri
   ("bus balance:" :: summ) ++ details
 
 end ZkFormal.Near.Render
+
+namespace ZkFormal.Near.Render
+
+open ZkFormal.Air ZkFormal.Algebra
+
+/-! ## Single-cell mutation probe
+
+For a sample of rows, change one cell by `+1` and ask whether the change is
+*observed*: a constraint fails on that row or the previous one (the only rows
+that read the cell), or the bus traffic of those two rows changes.  Cells
+that can change unobserved are free in the AIR; a free cell that carries
+meaning is a soundness hole. -/
+
+/-- Constraint values and traffic of rows `r−1, r` (cyclic). -/
+def localView (T : Table) (tr : Trace Fp) (H r : Nat) (pub : List Fp) :
+    List Bool × List (Nat × List Fp × Bool) :=
+  let rs := [(r + H - 1) % H, r]
+  (rs.flatMap fun q => T.constraints.map fun e => e.eval tr 0 q pub == 0,
+   rs.flatMap fun q => T.interactions.map fun it => (it.multNat tr 0 q pub, it.msgVal tr 0 q pub, it.send))
+
+/-- Rows to probe: the first row of each distinct pattern of the `key` columns. -/
+def sampleRows (rows : Array Row) (key : List Nat) : List Nat := Id.run do
+  let mut seen : List (List Nat) := []
+  let mut out : Array Nat := #[]
+  for r in List.range rows.size do
+    let sig := key.map fun c => (rows.getD r #[]).getD c 0
+    if !seen.contains sig then
+      seen := sig :: seen
+      out := out.push r
+  return out.toList
+
+/-- Free cells `(row, col)` among the sampled rows. -/
+def freeCells (T : Table) (rows : Array Row) (pub : List Fp) (sample : List Nat) :
+    List (Nat × Nat) := Id.run do
+  let base := traceOf rows
+  let H := rows.size
+  let mut out : Array (Nat × Nat) := #[]
+  for r in sample do
+    let v0 := localView T base H r pub
+    for col in List.range T.width do
+      let tr : Trace Fp := ⟨base.log, fun t q c => if q = r ∧ c = col then base.cell t q c + 1 else base.cell t q c⟩
+      let v1 := localView T tr H r pub
+      if v1.1.all id && v1.2 == v0.2 then out := out.push (r, col)
+  return out.toList
+
+end ZkFormal.Near.Render
