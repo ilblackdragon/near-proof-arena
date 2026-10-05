@@ -189,6 +189,42 @@ theorem recs_facts (hn : 1 ≤ n) :
   rw [← recs_eq, hr] at this
   simp only [topJ, ← this, Option.map_some, Option.getD_some]
 
+theorem level_sum : ∀ s sp, 2 * s ≤ sp + 1 →
+    ((List.range s).map fun i => if 2 * i + 1 < sp then 64 else 1).sum ≤ 32 * sp + 1
+  | 0, _, _ => by simp
+  | s + 1, sp, h => by
+    rw [List.range_succ, List.map_append, List.sum_append]
+    have : ((List.range s).map fun i => if 2 * i + 1 < sp then 64 else 1).sum ≤ 64 * s := by
+      clear h
+      induction s with
+      | zero => simp
+      | succ s ih => rw [List.range_succ, List.map_append, List.sum_append]; simp; split <;> omega
+    simp only [List.map_cons, List.map_nil, List.sum_cons, List.sum_nil]
+    split <;> omega
+
+theorem expand_len (x : Nat × Nat × Bool) : (expand x).length = if x.2.2 then 64 else 1 := by
+  unfold expand; split <;> simp_all
+
+theorem levels_len : ∀ f j sp, ((mrkLevels f j sp).flatMap expand).length ≤ 64 * sp + 33 * f
+  | 0, _, _ => by simp [mrkLevels]
+  | f + 1, j, sp => by
+    simp only [mrkLevels]
+    have ih := levels_len f (j + 1) ((sp + 1) / 2)
+    have hl : (((List.range ((sp + 1) / 2)).map fun i => (j, i, decide (2 * i + 1 < sp))).flatMap expand).length
+        ≤ 32 * sp + 1 := by
+      rw [List.length_flatMap, List.map_map]
+      have := level_sum ((sp + 1) / 2) sp (by omega)
+      have e : ((List.range ((sp + 1) / 2)).map ((fun a => (expand a).length) ∘ fun i => (j, i, decide (2 * i + 1 < sp)))) =
+          (List.range ((sp + 1) / 2)).map fun i => if 2 * i + 1 < sp then 64 else 1 := by
+        apply List.map_congr_left; intro i _; simp [expand_len]
+      rw [e]; exact this
+    split
+    · simp only [List.append_nil]; omega
+    · rw [List.flatMap_append, List.length_append]; omega
+
+theorem recs_len (n : Nat) : (recs n).length ≤ 64 * n + 33 * (n + 1) := by
+  rw [recs_eq]; exact levels_len (n + 1) 1 n
+
 theorem size_pos (hn : 1 ≤ n) : ∀ j, 1 ≤ size n j
   | 0 => hn
   | j + 1 => by have := size_pos hn j; simp only [size]; omega
