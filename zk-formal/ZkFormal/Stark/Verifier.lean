@@ -286,11 +286,17 @@ def checkAt (c : Ctx K) (x : Nat) (op : List (List (List F))) : Bool :=
 
 end
 
+/-- Smallest admissible query domain (`log₂`): with 216 queries the
+query-phase term meets `2^-128` only for `n0 ≥ 8` (R-L7-1,
+`Assembly.udr2_K24_min8_ok`); smaller headers are rejected (the prover pads
+the largest table to height `≥ 2^(8 - logBlowup)`). -/
+def minQueryLog : Nat := 8
+
 /-- **The IOP verifier of `np-udr-stark-v1`** for the AIR `A`. -/
 def Iop.verifier (F K : Type) [Field F] [Field K] [StarkField F K] [DecidableEq F] [DecidableEq K]
     (A : Air) (prm : Params) : IopSpec F K where
   numTables := A.tables.length
-  headerOk := headerOk A prm
+  headerOk := fun hdr => headerOk A prm hdr && decide (minQueryLog ≤ queryLog A prm hdr)
   schedule := schedule A prm
   queryLog := queryLog A prm
   numChunks := prm.numChunks
@@ -311,5 +317,17 @@ theorem verifier_eq_compile (F K : Type) [Field F] [Field K] [StarkField F K] [D
     [DecidableEq K] (A : Air) (prm : Params) (pub cb pb : Bytes) :
     (verifier F K A prm).tree pub cb pb = Bcs.compile (F := F) (Iop.verifier F K A prm) pub cb pb :=
   rfl
+
+end ZkFormal.Stark
+
+namespace ZkFormal.Stark
+
+/-- Admissible headers of the np IOP: `headerOk` and a query domain of at least `2^minQueryLog`. -/
+theorem verifier_headerOk {F K : Type} [Lean.Grind.Field F] [Lean.Grind.Field K] [StarkField F K]
+    [DecidableEq F] [DecidableEq K] {A : ZkFormal.Air.Air} {prm : Params} {hdr : List Nat}
+    (h : (Iop.verifier F K A prm).headerOk hdr = true) :
+    headerOk A prm hdr = true ∧ minQueryLog ≤ queryLog A prm hdr := by
+  change (headerOk A prm hdr && decide (minQueryLog ≤ queryLog A prm hdr)) = true at h
+  simpa only [Bool.and_eq_true, decide_eq_true_eq] using h
 
 end ZkFormal.Stark

@@ -45,8 +45,20 @@ def tagQuery : UInt8 := 0x05
 /-- Protocol identifier absorbed in `d₀`. -/
 def protocolId : Bytes := Bytes.ofString "np-udr-stark-v1"
 
-/-- A single oracle query. -/
-def H (m : Bytes) : OracleComp hashSpec Bytes := OracleComp.ask (spec := hashSpec) m
+/-- Normalise an oracle answer to exactly 32 bytes (zero-pad / truncate).
+The identity on the ROM game's answers (always 32 bytes); it makes honest
+completeness hold for *every* hash function, as `ProverComplete` requires
+(R-L7-bcs-1). -/
+def fit32 (y : Bytes) : Bytes := (y ++ List.replicate 32 0).take 32
+
+theorem fit32_length (y : Bytes) : (fit32 y).length = 32 := by
+  simp [fit32]
+
+theorem fit32_of_length {y : Bytes} (h : y.length = 32) : fit32 y = y := by
+  simp [fit32, h]
+
+/-- A single oracle query (answer normalised to 32 bytes). -/
+def H (m : Bytes) : OracleComp hashSpec Bytes := .query (spec := hashSpec) m fun y => .pure (fit32 y)
 
 /-- Wide (512-bit) hash: two oracle queries. -/
 def WH (tag : UInt8) (m : Bytes) : OracleComp hashSpec Bytes :=
@@ -59,6 +71,29 @@ def WH (tag : UInt8) (m : Bytes) : OracleComp hashSpec Bytes :=
 /-- Take exactly `n` bytes. -/
 def take? (n : Nat) (r : Bytes) : Option (Bytes × Bytes) :=
   if n ≤ r.length then some (r.take n, r.drop n) else none
+
+/-! ### Compiled fast path (`@[csimp]`; see the note at `readInjF`) -/
+
+/-- `take?` without measuring the input. -/
+def takeF : Nat → Bytes → Option (Bytes × Bytes)
+  | 0, r => some ([], r)
+  | _ + 1, [] => none
+  | n + 1, b :: r =>
+    match takeF n r with
+    | none => none
+    | some (p, s) => some (b :: p, s)
+
+theorem takeF_eq : ∀ (n : Nat) (r : Bytes), takeF n r = take? n r
+  | 0, r => by simp [takeF, take?]
+  | _ + 1, [] => by simp [takeF, take?]
+  | n + 1, b :: r => by
+    have ih := takeF_eq n r
+    simp only [takeF, ih, take?, List.length_cons, Nat.add_le_add_iff_right]
+    by_cases h : n ≤ r.length <;> simp [h]
+
+@[csimp] theorem take?_eq_takeF : @take? = @takeF := by
+  funext n r; exact (takeF_eq n r).symm
+
 
 /-- Little-endian u32 values, `n` of them. -/
 def readU32s : Nat → Bytes → Option (List Nat × Bytes)
@@ -266,6 +301,131 @@ def readInj (ws : List Nat) (r : Bytes) : Option (List (List F) × Bytes × Byte
   match readRows (F := F) ws r with
   | none => none
   | some (rows, r') => some (rows, r.take (r.length - r'.length), r')
+
+/-! ### Compiled fast paths (`@[csimp]`)
+
+The definitions above are written for proofs; compiled, `take?` and the raw
+slices `r.take (r.length - r'.length)` are linear in the *remaining proof*
+at every read, i.e. quadratic overall.  The fast versions below are proved
+equal in the kernel and installed with `@[csimp]` here, before any caller is
+compiled, so compiled code (and only compiled code) uses them. -/
+
+/-! ## Exact consumption of the readers -/
+
+theorem take?_consume {n : Nat} {r b r' : Bytes} (h : take? n r = some (b, r')) :
+    r.length = n + r'.length := by
+  unfold take? at h
+  split at h
+  · cases h; simp only [List.length_drop]; omega
+  · cases h
+
+theorem readU32s_consume : ∀ {n : Nat} {r : Bytes} {xs : List Nat} {r' : Bytes},
+    readU32s n r = some (xs, r') → r.length = 4 * n + r'.length
+  | 0, r, xs, r', h => by simp only [readU32s, Option.some.injEq, Prod.mk.injEq] at h; obtain ⟨_, rfl⟩ := h; simp
+  | n + 1, r, xs, r', h => by
+    simp only [readU32s] at h
+    split at h
+    · cases h
+    · rename_i b r1 h1
+      split at h
+      · cases h
+      · rename_i ys r2 h2
+        simp only [Option.some.injEq, Prod.mk.injEq] at h
+        obtain ⟨_, rfl⟩ := h
+        have := take?_consume h1
+        have := readU32s_consume h2
+        omega
+
+
+omit [DecidableEq F] in
+theorem readFs_consume {n : Nat} {r : Bytes} {xs : List F} {r' : Bytes}
+    (h : readFs (F := F) n r = some (xs, r')) : r.length = 4 * n + r'.length := by
+  unfold readFs at h
+  split at h
+  · cases h
+  · rename_i ys r1 h1
+    split at h
+    · simp only [Option.some.injEq, Prod.mk.injEq] at h; obtain ⟨_, rfl⟩ := h
+      exact readU32s_consume h1
+    · cases h
+
+omit [DecidableEq F] in
+theorem readRows_consume : ∀ {ws : List Nat} {r : Bytes} {rows : List (List F)} {r' : Bytes},
+    readRows (F := F) ws r = some (rows, r') → r.length = 4 * ws.sum + r'.length
+  | [], r, rows, r', h => by
+    simp only [readRows, Option.some.injEq, Prod.mk.injEq] at h; obtain ⟨_, rfl⟩ := h; simp
+  | w :: ws, r, rows, r', h => by
+    simp only [readRows] at h
+    split at h
+    · cases h
+    · rename_i row r1 h1
+      split at h
+      · cases h
+      · rename_i rs r2 h2
+        simp only [Option.some.injEq, Prod.mk.injEq] at h
+        obtain ⟨_, rfl⟩ := h
+        have := readFs_consume h1
+        have := readRows_consume h2
+        simp only [List.sum_cons]
+        omega
+
+omit [DecidableEq F] in
+theorem readRows_raw {ws : List Nat} {r : Bytes} {rows : List (List F)} {r' : Bytes}
+    (h : readRows (F := F) ws r = some (rows, r')) :
+    r.take (r.length - r'.length) = r.take (4 * ws.sum) := by
+  have := readRows_consume h
+  congr 1; omega
+
+/-! ## Merkle readers -/
+
+/-- `readInj` with the raw slice taken by its known length. -/
+def readInjF (ws : List Nat) (r : Bytes) : Option (List (List F) × Bytes × Bytes) :=
+  match readRows (F := F) ws r with
+  | none => none
+  | some (rows, r') => some (rows, r.take (4 * ws.sum), r')
+
+/-- `mpLeaves` with the raw slice taken by its known length. -/
+def mpLeavesF (n : Nat) (ws : List Nat) :
+    List Nat → Bytes → OracleComp hashSpec (Option (List (Nat × Bytes) × Opened F × Bytes))
+  | [], r => .pure (some ([], [], r))
+  | x :: xs, r =>
+    match readRows (F := F) ws r with
+    | none => .pure none
+    | some (rows, r') =>
+      OracleComp.bind (WH tagLeaf (r.take (4 * ws.sum))) fun h =>
+      OracleComp.bind (mpLeavesF n ws xs r') fun
+        | none => .pure none
+        | some (hs, op, r'') => .pure (some ((x, h) :: hs, ((n, x), rows) :: op, r''))
+
+omit [DecidableEq F] in
+theorem readInjF_eq (ws : List Nat) (r : Bytes) :
+    readInjF (F := F) ws r = readInj (F := F) ws r := by
+  unfold readInjF readInj
+  cases h : readRows (F := F) ws r with
+  | none => rfl
+  | some p => obtain ⟨rows, r'⟩ := p; simp only; rw [readRows_raw h]
+
+omit [DecidableEq F] in
+theorem mpLeavesF_eq (n : Nat) (ws : List Nat) : ∀ (xs : List Nat) (r : Bytes),
+    mpLeavesF (F := F) n ws xs r = mpLeaves (F := F) n ws xs r
+  | [], r => rfl
+  | x :: xs, r => by
+    simp only [mpLeavesF, mpLeaves]
+    cases h : readRows (F := F) ws r with
+    | none => rfl
+    | some p =>
+      obtain ⟨rows, r'⟩ := p
+      simp only
+      rw [readRows_raw h]
+      congr 1; funext hh; congr 1
+      exact mpLeavesF_eq n ws xs r'
+
+@[csimp] theorem readInj_eq_readInjF : @readInj = @readInjF := by
+  funext F _ ws r; exact (readInjF_eq (F := F) ws r).symm
+
+@[csimp] theorem mpLeaves_eq_mpLeavesF : @mpLeaves = @mpLeavesF := by
+  funext F _ n ws xs r; exact (mpLeavesF_eq (F := F) n ws xs r).symm
+
 
 /-- Hash the parent `x` of level `k` from its children, reading its injected
 rows; then continue with `k` (CPS: `cont` gets the remaining bytes). -/

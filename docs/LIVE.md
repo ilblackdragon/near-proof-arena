@@ -291,6 +291,43 @@ which predates `SHA256Fast`), registered after `freeze-trusted`. The same
 applies to the native-lean entry `sub_df165fa9…` on the experimental
 `chl_b7c8…` (same pin; not re-run).
 
+### 5b. v1-4 and the experimental successor (2026-10-05)
+
+Per the governance decision in docs/PROTOCOL_UPGRADES.md §7.5,
+`trusted-trees/190e9a7d…` was frozen from `cf5f1f5` and two successors were
+registered (`register-challenge`, which checked the tree first):
+**`chl_f3903307cb9b064d75b35b6af461a0dc` `near-transfer-receipt-v1-4`**
+(formal, open; v1-3 `chl_fefb…` is now closed/superseded with its board
+frozen) and **`chl_df55f9f7fc94060fdfd6bfeeb1c79c1f`** (experimental,
+supersedes `chl_b7c8…`). All entries were submitted by `reference`.
+
+**v1-4 board** (formal; v1-3 baseline = 100):
+
+| rank | score | submission | candidate | notes |
+|------|-------|------------|-----------|-------|
+| 1 | 105.880 | `sub_647eb440621242eb9150812970ebf1cd` | reexec-witness-fast (`--parent sub_38a4…`) | PROVER_ONLY; the formal gates `reused_from` the parent |
+| 2 | 92.702 | `sub_4efcac6d54fa432ab0e6bcf16cc2568c` | reexec-npai | npai-v1 |
+| 3 | 92.667 | `sub_38a419d1608844d2ad7be22f7a8bad25` | reexec-witness | native-lean: all formal gates PASS against the pinned template |
+
+**Experimental `chl_df55…` board** (never ranked; formal gates are
+diagnostic):
+
+* `sub_475fc7b353904d399674063e5fa80483` reexec-witness: ADMITTED, all
+  formal gates PASS.
+* `sub_5ce54f2ae5d0433fafc5708ea1c2cc6f` stark-plonky3: ADMITTED; its
+  formal gates are diagnostic FAILs (no certificate: `CERTIFICATE_MISSING`,
+  `ARTIFACT_BINDING_FAILED`).
+* `sub_c9cc5e62b8fc4beb97f925baecbf6c7f` zkvm-sp1: ADMITTED (prove
+  101 593 ms, verify 50.1 ms, proof 1 272 573 B); formal gates are
+  diagnostic FAILs (no certificate).
+* stark-plonky3 measured prove 543.2 ms, verify 271.2 ms, proof 7 143 666 B;
+  reexec-witness measured prove 1.27 ms, verify 44.9 ms, proof 69 289 B.
+* `sub_3e4633e8…` and `sub_5e30e2f3…` were operator packaging mistakes
+  (packed from git-tracked files, so `source/vendor` was missing:
+  BUILD_FAILED). They are revoked with that reason. SP1 and Plonky3 were
+  resubmitted from their original vendored packages, with only the
+  `challenge` field changed.
+
 ## 5. Current state (2026-10-03 16:10 UTC)
 
 * **Deployed revision.** `release/REVISION` is

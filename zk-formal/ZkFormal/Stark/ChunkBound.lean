@@ -45,7 +45,8 @@ theorem WH_zq (tag : UInt8) (htag : tag ≠ Bcs.tagQuery) (m : Bytes) : ZQ (WH t
     intro j
     simp only [qWeight, Bcs.chunkDec, htag, false_and, ite_false, Option.isSome_none]
     rfl
-  unfold WH H OracleComp.ask
+  unfold WH H
+  simp only [OracleComp.bind]
   exact .query _ _ (hw 1) fun a => .query _ _ (hw 2) fun b => .pure _
 
 theorem tagAbs_ne : tagAbs ≠ Bcs.tagQuery := by decide
@@ -72,12 +73,12 @@ theorem chain_zq (d : Bytes) (ps : List (PSlot K)) : ZQ (chain (F := F) d ps) :=
 theorem qWeight_le_one (x : Bytes) : qWeight Bcs.chunkDec x ≤ 1 := by
   unfold qWeight; split <;> omega
 
-theorem H_chunk {β : Type} (m : Bytes) (f : Bytes → OracleComp hashSpec β) :
-    OracleComp.QueryBound (qWeight Bcs.chunkDec) (OracleComp.bind (H m) fun y => f y) 1 ↔
-      ∀ y, OracleComp.QueryBound (qWeight Bcs.chunkDec) (f y) (1 - qWeight Bcs.chunkDec m) := by
-  constructor
-  · intro h; cases h with | query _ _ _ _ hk => exact hk
-  · intro hk; exact .query (spec := hashSpec) m _ 1 (qWeight_le_one m) hk
+theorem H_chunk {β : Type} (m : Bytes) (f : Bytes → OracleComp hashSpec β)
+    (hk : ∀ y, OracleComp.QueryBound (qWeight Bcs.chunkDec) (f y) (1 - qWeight Bcs.chunkDec m)) :
+    OracleComp.QueryBound (qWeight Bcs.chunkDec) (OracleComp.bind (H m) fun y => f y) 1 := by
+  unfold H
+  simp only [OracleComp.bind]
+  exact .query (spec := hashSpec) m _ 1 (qWeight_le_one m) fun y => hk (fit32 y)
 
 theorem queryAnswers_chunk (d : Bytes) (n : Nat) :
     OracleComp.QueryBound (qWeight Bcs.chunkDec) (queryAnswers d n) n := by
@@ -86,7 +87,7 @@ theorem queryAnswers_chunk (d : Bytes) (n : Nat) :
   | succ n ih =>
     simp only [queryAnswers]
     refine ZkFormal.QueryBound.bind (b := 1) ih fun ys => ?_
-    exact (H_chunk _ _).2 fun y => .pure _ _
+    exact H_chunk _ _ fun y => .pure _ _
 
 theorem mpLeaves_zq (n : Nat) (ws : List Nat) (xs : List Nat) (r : Bytes) :
     ZQ (mpLeaves (F := F) n ws xs r) := by

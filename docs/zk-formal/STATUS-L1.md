@@ -10,7 +10,7 @@ Interface: `zk-formal/ZkFormal/Algebra/` — definitions frozen in `Fp`, `Fp8`,
 |---|---|
 | `IsPrime`, `isPrime_of_trialDiv`, `euclid`, `fermat` | `Algebra.NatPrime` |
 | `CommRing.ofEmbedding`, `Field.ofInv`, `binPow_eq`, `pow_inj_of_half` | `Algebra.Transport` |
-| `p_prime` (kernel trial division, ~5 s), `Fp.pow_card_sub_one`, `Fp.eleven_nonsquare`, `Fp.sqrtNegOne_sq`, `instance Field Fp`, `IsCharP Fp P`, `Fp.twoAdicGen_pow`, `Fp.twoAdicGen_pow_half`, `Fp.twoAdicGen_pow_inj`, `Fp.mem_all`/`nodup_all` | `Algebra.Fp` |
+| `p_prime` (Pocklington certificate `31^((p−1)/2) ≡ −1`, `Algebra.Pocklington`; checked by leanchecker, nanoda, lean4lean in < 1 s), `Fp.pow_card_sub_one`, `Fp.eleven_nonsquare`, `Fp.sqrtNegOne_sq`, `instance Field Fp`, `IsCharP Fp P`, `Fp.twoAdicGen_pow`, `Fp.twoAdicGen_pow_half`, `Fp.twoAdicGen_pow_inj`, `Fp.mem_all`/`nodup_all` | `Algebra.Fp` |
 | `QuadExt.field`, `QuadExt.t_nonsquare` | `Algebra.QuadExt` |
 | `instance Field Fp8` (flat exec repr, refinement `toT_mul` into tower), `IsCharP Fp8 P`, `Fp8.mem_all`, `Fp8.nodup_all`, `Fp8.length_all = P^8`, `isBase_iff` | `Algebra.Fp8` |
 | `decodeOod_not_base`, `decodeOod_ne_ofBase` | `Algebra.Decode` |
@@ -28,5 +28,5 @@ Interface: `zk-formal/ZkFormal/Algebra/` — definitions frozen in `Fp`, `Fp8`,
 
 | Module | Time |
 |---|---|
-| `Algebra.Fp` | ~6 s (5 s is `p_prime`) |
+| `Algebra.Fp` | < 1 s (was ~6 s with trial division) |
 | others (PolyLemmas, PolyRoots, RSProofs, DecodeCount, …) | < 1 s each |
