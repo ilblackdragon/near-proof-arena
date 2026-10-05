@@ -108,3 +108,4 @@ import ZkFormal.Sha.Sound.Block
 import ZkFormal.Sha.Sound
 import ZkFormal.Sha.Complete.All
 import ZkFormal.Near.Extract.SortProof
+import ZkFormal.Near.Extract.WalkProof

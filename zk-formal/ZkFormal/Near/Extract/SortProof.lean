@@ -288,34 +288,6 @@ def idsOf (tr : Trace Fp) (segs : List (Nat × Nat)) : List (Nat × List Nat) :=
 
 end ZkFormal.Near.SortProof
 
-namespace ZkFormal.Near
-/-- `flatMap` over `range' s ℓ` of functions that are singletons there. -/
-theorem flatMap_range'_single {α : Type} (f : Nat → List α) (g : Nat → α) (s ℓ : Nat)
-    (h : ∀ j, j < ℓ → f (s + j) = [g j]) :
-    (List.range' s ℓ).flatMap f = (List.range ℓ).map g := by
-  induction ℓ with
-  | zero => rfl
-  | succ ℓ ih =>
-    rw [range'_succ', List.flatMap_append, ih (fun j hj => h j (by omega)),
-      List.range_succ, List.map_append]
-    simp [h ℓ (by omega)]
-
-theorem flatMap_range'_nil {α : Type} (f : Nat → List α) (s ℓ : Nat)
-    (h : ∀ j, j < ℓ → f (s + j) = []) : (List.range' s ℓ).flatMap f = [] := by
-  induction ℓ with
-  | zero => rfl
-  | succ ℓ ih =>
-    rw [range'_succ', List.flatMap_append, ih (fun j hj => h j (by omega))]
-    simp [h ℓ (by omega)]
-
-theorem flatMap_segs {α : Type} (segs : List (Nat × Nat)) (F G : Nat × Nat → List α)
-    (h : ∀ p ∈ segs, F p = G p) : segs.flatMap F = segs.flatMap G := by
-  induction segs with
-  | nil => rfl
-  | cons p rest ih =>
-    simp only [List.flatMap_cons]
-    rw [h p (by simp), ih (fun q hq => h q (by simp [hq]))]
-end ZkFormal.Near
 
 namespace ZkFormal.Near.SortProof
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Sort

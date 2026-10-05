@@ -306,3 +306,61 @@ theorem le256_eq_leNat (l : List Nat) (h : ∀ y ∈ l, y < 256) :
     have hy := h y (by simp)
     simp [UInt8.toNat_ofNat, Nat.mod_eq_of_lt hy]
 end ZkFormal.Near
+
+namespace ZkFormal.Near
+/-- Row-wise lists over a segmented table: padding rows contribute nothing. -/
+theorem flatMap_rows_segs {α : Type} (H : Nat) (segs : List (Nat × Nat)) (f : Nat → List α)
+    (hc : Consec 0 segs) (hend : segEnd 0 segs ≤ H)
+    (hpad : ∀ r, segEnd 0 segs ≤ r → r < H → f r = []) :
+    (List.range H).flatMap f = segs.flatMap fun p => (List.range' p.1 p.2).flatMap f := by
+  have hA := segEnd_ge segs 0 hc
+  have e1 : List.range H = List.range' 0 (segEnd 0 segs - 0) ++
+      List.range' (segEnd 0 segs) (H - segEnd 0 segs) := by
+    rw [List.range_eq_range', Nat.sub_zero]; exact range'_split _ _ hend
+  rw [e1, List.flatMap_append, range'_segs segs 0 hc, List.flatMap_assoc]
+  have : (List.range' (segEnd 0 segs) (H - segEnd 0 segs)).flatMap f = [] := by
+    have gen : ∀ len, segEnd 0 segs + len ≤ H → (List.range' (segEnd 0 segs) len).flatMap f = [] := by
+      intro len
+      induction len with
+      | zero => intro _; rfl
+      | succ len ih =>
+        intro hl
+        rw [range'_succ', List.flatMap_append, ih (by omega)]
+        simp [hpad (segEnd 0 segs + len) (by omega) (by omega)]
+    exact gen _ (by omega)
+  rw [this, List.append_nil]
+end ZkFormal.Near
+
+namespace ZkFormal.Near
+/-- `flatMap` over `range' s ℓ` of functions that are singletons there. -/
+theorem flatMap_range'_single {α : Type} (f : Nat → List α) (g : Nat → α) (s ℓ : Nat)
+    (h : ∀ j, j < ℓ → f (s + j) = [g j]) :
+    (List.range' s ℓ).flatMap f = (List.range ℓ).map g := by
+  induction ℓ with
+  | zero => rfl
+  | succ ℓ ih =>
+    rw [range'_succ', List.flatMap_append, ih (fun j hj => h j (by omega)),
+      List.range_succ, List.map_append]
+    simp [h ℓ (by omega)]
+
+theorem flatMap_range'_nil {α : Type} (f : Nat → List α) (s ℓ : Nat)
+    (h : ∀ j, j < ℓ → f (s + j) = []) : (List.range' s ℓ).flatMap f = [] := by
+  induction ℓ with
+  | zero => rfl
+  | succ ℓ ih =>
+    rw [range'_succ', List.flatMap_append, ih (fun j hj => h j (by omega))]
+    simp [h ℓ (by omega)]
+
+theorem flatMap_segs {α : Type} (segs : List (Nat × Nat)) (F G : Nat × Nat → List α)
+    (h : ∀ p ∈ segs, F p = G p) : segs.flatMap F = segs.flatMap G := by
+  induction segs with
+  | nil => rfl
+  | cons p rest ih =>
+    simp only [List.flatMap_cons]
+    rw [h p (by simp), ih (fun q hq => h q (by simp [hq]))]
+end ZkFormal.Near
+
+namespace ZkFormal.Near
+theorem map_eq_flatMap {α β : Type} (l : List α) (f : α → β) : l.map f = l.flatMap fun a => [f a] := by
+  induction l <;> simp_all
+end ZkFormal.Near
