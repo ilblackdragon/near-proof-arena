@@ -160,3 +160,4 @@ import ZkFormal.Prover.NpFriPoly
 import ZkFormal.Prover.NpFold
 import ZkFormal.Prover.NpLocal3
 import ZkFormal.Prover.NpFinal
+import ZkFormal.Prover.NpLocalMain
