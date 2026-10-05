@@ -59,3 +59,4 @@ import ZkFormal.Udr.Np.Shape
 import ZkFormal.Udr.Np.Frame
 import ZkFormal.Udr.Np.Facts
 import ZkFormal.Udr.Np.Early
+import ZkFormal.Udr.Np.Ali
