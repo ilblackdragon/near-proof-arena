@@ -364,6 +364,32 @@ impl Tape {
         Tape { ops, outputs }
     }
 
+    /// Evaluate over `K` with arbitrary (extension-valued) public inputs.
+    pub fn eval_ext(
+        &self,
+        regs: &mut Vec<crate::field::EF>,
+        col: impl Fn(usize, bool) -> crate::field::EF,
+        pubv: impl Fn(usize) -> crate::field::EF,
+        sel: [crate::field::EF; 3],
+    ) {
+        use crate::field::EF;
+        regs.clear();
+        for op in &self.ops {
+            let v = match *op {
+                Op::Const(c) => EF::from(F::new(c)),
+                Op::Col(c, n) => col(c as usize, n),
+                Op::Pub(i) => pubv(i as usize),
+                Op::IsFirst => sel[0],
+                Op::IsLast => sel[1],
+                Op::IsTransition => sel[2],
+                Op::Add(a, b) => regs[a as usize] + regs[b as usize],
+                Op::Mul(a, b) => regs[a as usize] * regs[b as usize],
+                Op::Neg(a) => -regs[a as usize],
+            };
+            regs.push(v);
+        }
+    }
+
     /// Evaluate over any ring `R` containing `F`. `col(c, next)` and the
     /// selectors are supplied by the caller.
     #[inline]

@@ -70,6 +70,31 @@ fn main() {
                 }
             }
         }
+        Some("eval-random") => {
+            use npudr::field::{decode_chal, EF};
+            use p3_field::PrimeField32;
+            let air = Air::from_json(&std::fs::read_to_string(&a[2]).unwrap()).unwrap_or_else(|e| die(&e));
+            let seed: u32 = a[3].parse().unwrap();
+            let rnd = |kind: u8, t: usize, i: usize| -> EF {
+                let mut m = b"np-eval".to_vec();
+                m.extend_from_slice(&seed.to_le_bytes());
+                m.push(kind);
+                m.extend_from_slice(&(t as u32).to_le_bytes());
+                m.extend_from_slice(&(i as u32).to_le_bytes());
+                decode_chal(&npudr::hash::sha256(&m))
+            };
+            for (t, tab) in air.tables.iter().enumerate() {
+                let tape = npudr::air::Tape::compile(&tab.constraints);
+                // pub(i) values are extension elements here: evaluate with a tape over EF
+                let mut regs = vec![];
+                tape.eval_ext(&mut regs, |c, n| rnd(n as u8, t, c), |i| rnd(2, t, i), [rnd(3, t, 0), rnd(4, t, 0), rnd(5, t, 0)]);
+                for (i, &o) in tape.outputs.iter().enumerate() {
+                    let ls: Vec<String> =
+                        npudr::field::ef_coeffs(&regs[o as usize]).iter().map(|x| x.as_canonical_u32().to_string()).collect();
+                    println!("{t} {i} {}", ls.join(" "));
+                }
+            }
+        }
         Some("export") => {
             let (air, _, _) = toy_instance(&a[2], 3);
             println!("{}", air.to_json());

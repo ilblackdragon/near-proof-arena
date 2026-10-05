@@ -3,7 +3,7 @@
 # the Rust prover in ../source.  See run.sh.
 name = "NpConformance"
 version = "0.1.0"
-defaultTargets = ["np-lean-verify", "np-lean-export"]
+defaultTargets = ["np-lean-verify", "np-lean-export", "np-lean-eval"]
 
 [leanOptions]
 autoImplicit = false
@@ -23,3 +23,7 @@ root = "Verify"
 [[lean_exe]]
 name = "np-lean-export"
 root = "Export"
+
+[[lean_exe]]
+name = "np-lean-eval"
+root = "EvalRandom"
