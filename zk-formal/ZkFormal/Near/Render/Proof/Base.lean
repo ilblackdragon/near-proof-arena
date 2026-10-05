@@ -13,6 +13,8 @@ namespace ZkFormal.Near.Render
 
 open NearSpec NearSpec.TransferV1 ZkFormal.Near ZkFormal.Air ZkFormal.Algebra
 
+theorem mkInfo_e {c : Claim} {e : Ext} : (mkInfo c e).e = e := rfl
+
 /-- Rows `t − 1` of the six NEAR tables (`1 node … 6 sort`). -/
 def partOf (B : Bundle) : Nat → Array Row
   | 1 => B.node | 2 => B.walk | 3 => B.rcpt | 4 => B.acct | 5 => B.mrk | 6 => B.sort

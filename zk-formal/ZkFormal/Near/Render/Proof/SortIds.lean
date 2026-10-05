@@ -93,8 +93,6 @@ theorem leVal_lt : ∀ (l : List Nat), (∀ b ∈ l, b < 256) → leVal l < 256 
 section
 variable {c : Claim} {e : Ext}
 
-theorem mkInfo_e : (mkInfo c e).e = e := rfl
-
 theorem rawIds_len : (rawIds (mkInfo c e)).length = e.rs.length := by
   simp [rawIds, mkInfo_e]
 
