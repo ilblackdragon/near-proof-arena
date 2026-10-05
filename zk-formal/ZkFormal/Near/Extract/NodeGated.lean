@@ -129,3 +129,80 @@ theorem brGated (hC : NodeCtx tr s ℓ fl) (hb : tr.cell T_NODE s tb1 + tr.cell 
       List.flatMap_cons, List.flatMap_nil, List.flatMap_append, List.flatMap_map, Nat.add_zero, zB, zM, zV]
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node ZkFormal.Near
+
+def revDigs (kd : NKid) : List Msg := match kd with
+  | .node c l _ pre po => [digMsg (msgId K_NPRE c) l pre, digMsg (msgId K_NPOST c) l po]
+  | _ => []
+
+def revPar (d : Nat) (kd : NKid) : List Msg := match kd with
+  | .node c l r _ _ => [[c, d + 1, l, r]]
+  | _ => []
+
+theorem win_toFp (tr : Trace Fp) (col : Nat → Nat) (r : Nat) : (win tr col r).map Fp.ofNat = regW tr r col := by
+  unfold win regW; rw [List.map_map]; apply List.map_congr_left; intro i _; exact ofNat_cv tr T_NODE r (col i)
+
+theorem cast_cv (tr : Trace Fp) (r x : Nat) : ((cv tr T_NODE r x : Nat) : Fp) = tr.cell T_NODE r x :=
+  (cell_eq_cast tr T_NODE r x).symm
+
+theorem ofNat_msgId (k i : Nat) : Fp.ofNat (msgId k i) = (k : Fp) + ((16 : Nat) : Fp) * ((i : Nat) : Fp) := by
+  rw [← natCast_eq]; exact toFp_msgId k i
+
+theorem ofNat_npre (c : Nat) : Fp.ofNat (msgId K_NPRE c) = ((K_NPRE : Nat) : Fp) + ((16 : Nat) : Fp) * (c : Fp) :=
+  ofNat_msgId _ _
+theorem ofNat_npost (c : Nat) :
+    Fp.ofNat (msgId K_NPOST c) = ((K_NPRE : Nat) : Fp) + ((16 : Nat) : Fp) * (c : Fp) + ((1 : Nat) : Fp) := by
+  rw [← ofNat_npre, ← natCast_eq, ← natCast_eq, ← natCast_add]; congr 1; unfold msgId K_NPOST K_NPRE; omega
+theorem ofNat_vpre (c : Nat) : Fp.ofNat (msgId K_VPRE c) = ((K_VPRE : Nat) : Fp) + ((16 : Nat) : Fp) * (c : Fp) :=
+  ofNat_msgId _ _
+theorem ofNat_vpost (c : Nat) :
+    Fp.ofNat (msgId K_VPOST c) = ((K_VPRE : Nat) : Fp) + ((16 : Nat) : Fp) * (c : Fp) + ((1 : Nat) : Fp) := by
+  rw [← ofNat_vpre, ← natCast_eq, ← natCast_eq, ← natCast_add]; congr 1; unfold msgId K_VPOST K_VPRE; omega
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+theorem chView (hC : NodeCtx tr s ℓ fl) {o : Nat} (hm : (o, 32) ∈ fl) (ho : 0 < o)
+    (hc : tr.cell T_NODE (s + o) sCH = 1) :
+    rowT tr pub (s + o) B_DIGEST false = (revDigs (kidOf tr (s + o))).map Msg.toFp ∧
+    rowT tr pub (s + o) B_PARENT true = (revPar (cv tr T_NODE s depth) (kidOf tr (s + o))).map Msg.toFp := by
+  obtain ⟨P, D⟩ := chStartMsgs hL hC hm ho hc
+  obtain ⟨hF, hH⟩ := fieldAt hL hC hm
+  have hr : s + o < tr.height T_NODE := by omega
+  have hdep : tr.cell T_NODE (s + o) depth = tr.cell T_NODE s depth :=
+    segConst hL hC (by simp [nodeConst]) (by have := (hC.fields.field _ hm).2; simp at this; omega)
+  rw [P, D]
+  unfold kidOf
+  rcases isBool hL hr (x := rv) (by simp [boolCols]) with h | h
+  · rw [h, if_neg (by rw [cv_zero h]; decide)]; simp [gate, revDigs, revPar]
+  · rw [h, if_pos (cv_one h)]
+    rw [hdep]
+    simp only [gate, if_true, revDigs, revPar, List.replicate_one, List.map_cons, List.map_nil,
+      Msg.toFp, digMsg, List.map_append, win_toFp, ofNat_npre, ofNat_npost, ofNat_cv', List.cons_append,
+      List.nil_append]
+    simp only [cast_cv, ← natCast_eq, natCast_add, and_true]
+
+theorem vhView (hC : NodeCtx tr s ℓ fl) {o n : Nat} (hm : (o, 32) ∈ fl) (ho : 0 < o)
+    (hv : tr.cell T_NODE (s + o) sVH = 1) (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) :
+    rowT tr pub (s + o) B_PARENT true = [] ∧
+    rowT tr pub (s + o) B_DIGEST false = (if cv tr T_NODE s tv = 1 then
+      [digMsg (msgId K_VPRE n) 72 (win tr reg (s + o)), digMsg (msgId K_VPOST n) 72 (win tr preg (s + o))]
+      else []).map Msg.toFp := by
+  obtain ⟨P, D⟩ := vhStart hL hC hm ho hv
+  have hin : o < ℓ := by have := (hC.fields.field _ hm); simp at this; have := this.1.pos; omega
+  have htv : tr.cell T_NODE (s + o) tv = tr.cell T_NODE s tv := segConst hL hC (by simp [nodeConst]) hin
+  have hnid : tr.cell T_NODE (s + o) nid = ((n : Nat) : Fp) := by rw [segConst hL hC (by simp [nodeConst]) hin, hn]
+  refine ⟨P, ?_⟩
+  rw [D, htv, hnid]
+  rcases isBool hL (nodeStart hL hC).1 (x := tv) (by simp [boolCols]) with h | h
+  · rw [h, if_neg (by rw [cv_zero h]; decide)]; simp [gate]
+  · rw [h, if_pos (cv_one h)]
+    simp only [gate, if_true, List.replicate_one, List.map_cons, List.map_nil,
+      Msg.toFp, digMsg, List.map_append, win_toFp, ofNat_vpre, ofNat_vpost, List.cons_append, List.nil_append]
+    rfl
+
+end ZkFormal.Near.NodeProof
