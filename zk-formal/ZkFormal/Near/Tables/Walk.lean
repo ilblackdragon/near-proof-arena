@@ -18,7 +18,7 @@ Edges are consumed through the chained `EDGE` bus: receive `(e, u)`, send
 `(e, u + 1)`.
 -/
 
-namespace ZkFormal.Near.Walk
+namespace ZkFormal.Near.WalkTab
 
 open ZkFormal.Air ZkFormal.Near.Dsl
 
@@ -72,4 +72,4 @@ def maxLog : Nat := 16
 def table : Table :=
   { width := width, constraints := constraints, interactions := interactions, maxLog := maxLog }
 
-end ZkFormal.Near.Walk
+end ZkFormal.Near.WalkTab

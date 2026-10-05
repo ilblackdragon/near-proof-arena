@@ -28,7 +28,7 @@ def T_MRK : Nat := 5
 def T_SORT : Nat := 6
 
 def nearTables : List Table :=
-  [Sha.Table.table B_BYTES B_DIGEST, Node.table, Walk.table, Rcpt.table, Acct.table, Mrk.table,
+  [Sha.Table.table B_BYTES B_DIGEST, Node.table, WalkTab.table, Rcpt.table, Acct.table, Mrk.table,
    Sort.table]
 
 /-- **The NEAR AIR.** -/
