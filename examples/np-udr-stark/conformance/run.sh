@@ -2,7 +2,13 @@
 # Differential conformance: Rust prover (../source) vs the deployed Lean
 # verifier model (np-lean-verify, ZkFormal.Stark.verifier Fp Fp8 air default).
 #
-#   ./run.sh [log ...]        (default logs: 3 6 10)
+#   ./run.sh [log ...]        (default logs: 4 6 10; logs must be >= 4, since
+#                             the verifier needs a query domain >= 2^8, i.e.
+#                             a largest table of >= 16 rows: Stark.minQueryLog)
+#   BENCH="w:log[:tables] ..." ./run.sh ...
+#                             also prove synthetic benches (`npudr bench ...
+#                             --out dir`) and record np-lean-verify accept/time
+#   BENCH_OUT=<dir>           keep the bench artifacts there (default $out/bench)
 #
 # 1. builds both sides;
 # 2. checks `npudr export X` == `np-lean-export X` byte for byte (X = fib, multi)
@@ -20,7 +26,7 @@ if [ -z "${HEAVY+x}" ]; then
   if [ -x /data/illia/nearproof-deps/bin/heavy ]; then HEAVY=/data/illia/nearproof-deps/bin/heavy; else HEAVY=; fi
 fi
 export PATH="$HOME/.elan/bin:$PATH"
-logs=("$@"); [ ${#logs[@]} -eq 0 ] && logs=(3 6 10)
+logs=("$@"); [ ${#logs[@]} -eq 0 ] && logs=(4 6 10)
 
 fail=0
 pass() { echo "PASS  $*"; }
@@ -65,7 +71,7 @@ PY
 echo "== constraint evaluation at random points: Rust vs Lean"
 ev="$here/.lake/build/bin/np-lean-eval"
 for x in fib multi bus; do
-  "$npudr" toy $x 3 "$out/ev-$x" >/dev/null
+  "$npudr" toy $x 4 "$out/ev-$x" >/dev/null
   for s in 1 2 3; do
     if cmp -s <("$npudr" eval-random "$out/ev-$x/air.json" $s) <("$ev" "$out/ev-$x/air.json" $s); then pass "eval $x seed $s"
     else bad "eval $x seed $s"; fi
@@ -141,6 +147,20 @@ d="$out/sha"; rm -rf "$d"; mkdir -p "$d"
 if $HEAVY "$npudr" toy sha 6 "$d" ${SHA_PROOF_LENS:-0 3 56 119} 2>"$d/prove.err"; then
   OFFSETS="0 9 40 $(( $(stat -c %s "$d/proof.bin") / 2 )) $(( $(stat -c %s "$d/proof.bin") - 1 ))" check_proof "sha" "$d"
 else bad "sha: npudr toy failed"; cat "$d/prove.err"; fi
+
+if [ -n "${BENCH:-}" ]; then
+  echo "== synthetic benches (npudr bench --out; Lean verify time)"
+  bo="${BENCH_OUT:-$out/bench}"
+  for spec in $BENCH; do
+    IFS=: read -r bw bl bt <<< "$spec"
+    d="$bo/w${bw}-h${bl}-t${bt:-1}"; rm -rf "$d"; mkdir -p "$d"
+    if ! line=$($HEAVY "$npudr" bench "$bw" "$bl" ${bt:-1} --out "$d" 2>/dev/null); then bad "bench $spec: prove failed"; continue; fi
+    r=$(verify "$d" "$d/proof.bin"); rc=$?
+    t=$(grep -o 'wall [0-9]* ms' "$d/verify.err")
+    if [ "$r" = accept ] && [ $rc -eq 0 ]; then pass "bench $spec accepted by Lean, $t | $line"
+    else bad "bench $spec -> '$r' rc=$rc | $line"; fi
+  done
+fi
 
 [ $fail -eq 0 ] && echo "ALL PASS" || echo "SOME FAILURES"
 exit $fail

@@ -790,6 +790,62 @@ async fn experimental_formal_gates_are_diagnostic() {
     assert!(lb.as_array().unwrap().iter().all(|e| e["rank"].is_null()));
 }
 
+/// Experimental tier: a FORMAL_CHECK job that fails for good (here: infra
+/// failures on every attempt, e.g. a pinned trusted tree the worker cannot
+/// build) records its diagnostic gates as UNKNOWN / INFRA_ERROR and the run
+/// continues to the measured stages; it is never INFRA_ERROR because of them.
+#[tokio::test]
+async fn experimental_formal_check_failure_is_diagnostic() {
+    let app = spawn().await;
+    let chal = app
+        .register(&challenge_def(Tier::Experimental, "exp-formal-infra"))
+        .await;
+    let v = app.submit(&chal, b"pkg", "e3", None).await;
+    let mut w = formal_capable_worker(&app).await;
+    w.behavior.infra_fail = Some(JobKind::FormalCheck);
+    let kinds = w.drain().await;
+    assert_eq!(
+        kinds.iter().filter(|k| **k == JobKind::FormalCheck).count(),
+        3,
+        "{kinds:?}"
+    );
+    for k in [
+        JobKind::Conformance,
+        JobKind::Adversarial,
+        JobKind::Benchmark,
+    ] {
+        assert!(kinds.contains(&k), "{k} did not run: {kinds:?}");
+    }
+    let v = app.view(&v.id).await;
+    let ab = gate_of(&v, ObligationId::ArtifactBinding);
+    assert_eq!(ab.status, GateStatus::Unknown);
+    assert!(ab.reason_codes.contains(&ReasonCode::InfraError));
+    assert!(
+        ab.summary.contains("simulated infra failure"),
+        "{}",
+        ab.summary
+    );
+    assert!(!ab.mandatory);
+    assert_eq!(v.decision, Some(Decision::Admitted));
+    assert!(v.reason_codes.contains(&ReasonCode::ObligationUndischarged));
+}
+
+/// Formal tier: the same failure is INFRA_ERROR (never skipped).
+#[tokio::test]
+async fn formal_tier_formal_check_failure_is_infra_error() {
+    let app = spawn().await;
+    let chal = app
+        .register(&challenge_def(Tier::Formal, "formal-infra"))
+        .await;
+    let v = app.submit(&chal, b"pkg", "f3", None).await;
+    let mut w = formal_capable_worker(&app).await;
+    w.behavior.infra_fail = Some(JobKind::FormalCheck);
+    let kinds = w.drain().await;
+    assert!(!kinds.contains(&JobKind::Conformance), "{kinds:?}");
+    let v = app.view(&v.id).await;
+    assert_eq!(v.decision, Some(Decision::InfraError));
+}
+
 /// Experimental tier: conformance stays blocking (claims must be right before
 /// anything is measured).
 #[tokio::test]

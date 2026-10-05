@@ -45,8 +45,20 @@ def tagQuery : UInt8 := 0x05
 /-- Protocol identifier absorbed in `d₀`. -/
 def protocolId : Bytes := Bytes.ofString "np-udr-stark-v1"
 
-/-- A single oracle query. -/
-def H (m : Bytes) : OracleComp hashSpec Bytes := OracleComp.ask (spec := hashSpec) m
+/-- Normalise an oracle answer to exactly 32 bytes (zero-pad / truncate).
+The identity on the ROM game's answers (always 32 bytes); it makes honest
+completeness hold for *every* hash function, as `ProverComplete` requires
+(R-L7-bcs-1). -/
+def fit32 (y : Bytes) : Bytes := (y ++ List.replicate 32 0).take 32
+
+theorem fit32_length (y : Bytes) : (fit32 y).length = 32 := by
+  simp [fit32]
+
+theorem fit32_of_length {y : Bytes} (h : y.length = 32) : fit32 y = y := by
+  simp [fit32, h]
+
+/-- A single oracle query (answer normalised to 32 bytes). -/
+def H (m : Bytes) : OracleComp hashSpec Bytes := .query (spec := hashSpec) m fun y => .pure (fit32 y)
 
 /-- Wide (512-bit) hash: two oracle queries. -/
 def WH (tag : UInt8) (m : Bytes) : OracleComp hashSpec Bytes :=

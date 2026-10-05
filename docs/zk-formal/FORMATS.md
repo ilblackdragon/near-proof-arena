@@ -59,6 +59,10 @@ cyclically), `["p",i]` (public input `i`, which is byte `cb[i]`, or 0 when
   (size `2^n0`) `n0 − m` times. **Every evaluation vector is stored in
   bit-reversed order**, so positions `2j, 2j+1` are `±y` and fold to `j`.
 * Oracle: `H(m) = sha256("NPAI-RO-v1" ‖ m)`, 32 bytes (`Interp.deployedRO`).
+  The verifier normalises every oracle answer to exactly 32 bytes before using it:
+  `fit32(y) = (y ‖ 0^32)[0..32]` (`Stark.fit32`). This is a no-op for SHA-256, so
+  Rust only needs it if it is ever generic in the hash. It makes honest
+  completeness hold for every hash function, which `ProverComplete` requires.
   Wide hash: `WH(tag, m) = H(tag ‖ 0x01 ‖ m) ‖ H(tag ‖ 0x02 ‖ m)`, 64 bytes.
   Tags: INIT 0x00, LEAF 0x01, NODE 0x02, ABS 0x03, CHAL 0x04, QUERY 0x05.
 * `decodeChal(y)`: limb `i` is `be32(y[4i..4i+4]) mod p`.
@@ -69,7 +73,12 @@ cyclically), `["p",i]` (public input `i`, which is byte `cb[i]`, or 0 when
 
 The header gives `h_t = log₂` of each table's height, with
 `1 ≤ h_t ≤ maxLog_t` and `h_t + 4 ≤ 26`. The verifier also requires
-`Air.wf (2^4)` and `Table.degree ≤ 16`.
+`Air.wf (2^4)` and `Table.degree ≤ 16`. **The query domain must also satisfy
+`n0 = max_t (h_t + 4) ≥ 8`**, i.e. some table has height `≥ 16`
+(`Stark.minQueryLog`). Headers below this are rejected, so **the prover must
+give its largest table at least 16 rows**. Reason: with 216 queries the
+query-phase error meets 2^-128 only on domains of size `≥ 2^8` (R-L7-1,
+`Assembly.udr2_K24_min8_ok`).
 
 * The LDE log is `m_t = h_t + 4`, and `n0 = max m_t` is the query domain.
 * Main matrix of table `t`: `(m_t, width_t)` base columns.

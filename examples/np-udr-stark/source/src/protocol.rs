@@ -47,6 +47,9 @@ pub const PER_CHUNK: usize = 9;
 pub const MAX_ARITY_LOG: usize = 3;
 pub const MAX_PROOF_BYTES: usize = 8 << 20;
 pub const MAX_LOG_LDE: usize = 26;
+/// `Stark.minQueryLog`: the query domain must have `n0 ≥ 2^8` (216 queries
+/// reach 2^-128 only there), i.e. the largest table has ≥ 16 rows.
+pub const MIN_QUERY_LOG: usize = 8;
 
 #[derive(Clone, Debug)]
 pub struct Schedule {
@@ -89,6 +92,12 @@ impl Schedule {
         let hmax = *heights.iter().max().unwrap();
         let l0 = hmax + LOG_BLOWUP;
         air.validate()?;
+        if l0 < MIN_QUERY_LOG {
+            return Err(format!(
+                "query domain 2^{l0} < 2^{MIN_QUERY_LOG}: the largest table needs at least {} rows (pad it)",
+                1usize << (MIN_QUERY_LOG - LOG_BLOWUP)
+            ));
+        }
         if l0 > MAX_LOG_LDE {
             return Err("LDE too large".into());
         }

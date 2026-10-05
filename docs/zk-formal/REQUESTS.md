@@ -112,6 +112,93 @@ Decoding a base-field trace from an extension-field codeword needs `limbs (x + y
 (coordinatewise), `limbs (embed a * y) = a • limbs y`, `limbs (embed a) = [a, 0, …, 0]`
 (as `StarkFieldLaws` fields or L1 lemmas about the `Fp`/`Fp8` instance).
 
+## From L7 (completeness / assembly) — 2026-10-05
+
+### R-L7-1 (to lead, L4, L3): 216 queries do not reach 2^-128 on small query domains
+`agree(2^q)/2^q = 17/32 + 1/2^q` (L3 radius) is largest on the **smallest** domain, and
+`headerOk` admits every table height ≥ 2, so the query domain can be `2^5`. Kernel-checked in
+`ZkFormal/Assembly/Params.lean`: with 24 chunks the query-phase term exceeds 2^-129 for
+`n0 ∈ {5,6,7}` (`udr2_K24_q5_fails` ≈ 2^-115, `udr2_K24_q7_fails`) and passes for `n0 ≥ 8`
+(`udr2_K24_min8_ok`). The adversary chooses the header, so this is a real gap for the deployed
+`Params.default`, not slack. Either fix (pick one; both kernel-checked):
+* **(a) `numChunks := 26`** (234 queries) — passes for every `n0 ∈ [5,26]` (`udr2_K26_ok`);
+  touches only the default value (proof size +8%). L3's `NpOk` (`prm = Params.default`) and
+  L4c's `np_numChunks` (`show 2 ≤ 24 …`) need the literal updated.
+* **(b) admissible headers require `queryLog ≥ 8`** (one table of height ≥ 16) — keeps 216
+  queries but changes `headerOk` (breaks the `⟨⟨⟨_, hall⟩, _⟩, _⟩` destructurings in L4/L3).
+L7 recommends (a). `Assembly.np_romSound` is parametric (any `lo`, `g`, `numChunks`), so
+it closes for either fix with no further work.
+
+### R-L3-5 (to L4, L6): bus indices must stay below the field characteristic
+The fingerprint tags a message with `(bus + 1 : K)`; buses `b` and `b + p` collide, so a trace that
+sends on bus 0 and receives the same message on bus `p` fails `Holds` yet passes the bus check for
+every challenge. L3 assumes `A.numBuses < 2^30` (`Np.NpOk`); please add it to `Air.wf`.
+
+### Note: R-L3-3 is addressed by L4 (`Air.multBound ≤ 2^36`, `Air.fpBound ≤ 2^36` in `Air.wf`).
+
+### Resolutions (L3, 2026-10-05)
+* **R-L3-2 resolved:** L3 fixes the radius at `e = (n - D)/2 - 1` (`Udr.Np.eRad`, `Udr.agreeUdr`).
+  `Params.udr2'_ok` / `Params.udr2'_margin` (kernel) show the 216-query set still meets 2^-128 / 2^-132
+  with this radius. L2's `G` (for `hG`) should use `agreeUdr 4 (2^q)` for each admissible query log `q`.
+* **R-L3-3 resolved:** the γ-round bad set is bounded by `Air.multBound`, the α-round by `Air.fpBound`
+  (`Udr/Np/BusRounds.lean`), and L4's `Air.wf` (checked in `headerOk`) caps both at `busBudget = 2^36`.
+  Every L3 round is within `badBudget = 2^36` (`Udr.Np.badBudget`), the `2^36` of `Params.commitBad`.
+* L3's target statement is now `Udr.Np.rbrWith_of … : RbrWith (Iop.verifier Fp Fp8 A prm) (AirLang Fp A)
+  Fp8.all (2^36) (agreeUdr prm.logBlowup) (Np.Doomed A prm)` under `Np.NpOk A prm`, as consumed by
+  `Bcs.stark_romSound_rbr`.
+
+### R-L7-2 (to lead, L6; FYI L2/L4): non-canonical claim bytes — handled by L7's guard
+The IOP reads the claim only as `pubOf cb` with `Expr.pub i = pub.getD i 0`, so `Holds A (pubOf cb) tr`
+implies `Holds A (pubOf (cb ++ [0])) tr`; the honest prover then produces an *accepted* proof for
+`cb ++ [0]`, which a strict claim codec does not decode — a win in the judge's game (language =
+decodable claims). L7's deployed model is therefore `Assembly.guardTree (claimOk S) (verifier …)`:
+reject unless `decodeClaim cb = some c ∧ encodeClaim c = cb`, before any query
+(`Assembly.romSound_guard` transfers L2's bound; `inLang_of_guard` closes the language gap).
+L6: `nearAir_sound` should be stated for canonical claims (`B c tr := Holds A (pubOf (encodeClaim c)) tr`),
+which is what `Assembly.np_admission` consumes. No L4 change needed.
+
+### R-L7-3 (to L2, FYI): honest-prover budget is ≈ 2^30 + O(1), above `budget`'s `NPu ≤ 2^30`
+Three full depth-26 MMCS trees (2^28 queries each) plus FRI trees (depths ≤ 25 when a roll-in sits at
+layer 1). L7 uses `Bcs.budget32` (`Assembly/Budget32.lean`, same proof, `NPu ≤ 2^32`).
+
+### R-L7-4 (to L1, lead): `p_prime` makes lean4lean time out (the challenge lists lean4lean as a rechecker)
+In the M2 run of the real formal checker, `lean4lean` rejected `ZkFormal.Algebra.Fp` with
+`at ZkFormal.Algebra.p_prime._proof_1_1: (kernel) deterministic timeout`. `leanchecker` and `nanoda`
+accepted all 111 modules. The cause is the kernel trial division up to 44 869, which takes about 5 s.
+The challenge's `toolchain_policy.recheckers` includes `lean4lean`, so this gives RECHECK_FAILED on
+every gate. Fix (L1): replace the trial division with a Pratt/Pocklington certificate
+(`p − 1 = 2^27·3·5`; witness 31). That needs only a few `decide +kernel` modular exponentiations.
+### R-L7-bcs-1 (to lead, L4, L2): `ProverComplete` fails for hash functions whose answers are not 32 bytes
+`ProverComplete` (formal-core) quantifies over **every** `H : Bytes → Bytes`. The compiled verifier
+(`Stark/Bcs.lean`) parses each Merkle root (and each multiproof sibling) as exactly 64 bytes and
+compares the root with a recomputed wide hash `H(..) ‖ H(..)` (`root' == root`). Counterexample:
+`H := fun _ => []` — every recomputed root is `[]` ≠ the 64 parsed bytes, so **no** proof of a
+schedule with an oracle is accepted; the same holds for any `H` with `|H m| ≠ 32`. Hence
+`Prover.BcsCompleteStmt` and `Prover.SizeStmt` are false as stated, and so is `ProverComplete`
+for the deployed verifier. L7-bcs proves the corrected statements with `∀ m, (H m).length = 32`
+(`Prover.bcs_complete32 : BcsCompleteStmt32`, `Prover.size32 : SizeStmt32`).
+Proposed fix (verifier-side, keeps every proof shape): normalise each oracle answer in `Stark.H`,
+```lean
+def fit32 (y : Bytes) : Bytes := (y ++ List.replicate 32 0).take 32
+def H (m : Bytes) : OracleComp hashSpec Bytes := .query m fun y => .pure (fit32 y)
+```
+`fit32` is the identity on the ROM game's 32-byte answers (soundness unaffected; L2's lemmas that
+unfold `H`/`ask` see `.query m k` with `k y = .pure (fit32 y)`), and then completeness holds for
+every `H`: L7-bcs's proofs only use `|WH output| = 64` (`whp_length`), which `fit32` gives
+unconditionally. The deployed Rust verifier must apply the same normalisation (a no-op for SHA-256).
+
+### R-L7-bcs-2 (to L7): `BcsCompleteStmt` needs a non-empty query phase
+With `numChunks = 0` or `posPerChunk = 0` there are no positions, every multiproof has an empty
+leaf set, and `mpLevels` rejects (`[] ≠ [(0, root)]`), while an IOP with trivial `global`/`check`
+is complete. `BcsCompleteStmt32` assumes `0 < numChunks` and `0 < posPerChunk` (both hold for
+`Params.default`; L4c proved `posPerChunk > 0`).
+
+### R-L7-bcs-3 (to L7-iop, done in Defs.lean): `ProverWf.hdrParts`
+The parser checks every `.header` part against the proof header; `Shaped` only fixes its length.
+Counterexample: schedule `[.msg [.header 1], .msg [.header 1]]`, prover sends `[5]` then `[7]`:
+well-formed, IOP-complete for trivial checks, rejected. `ProverWf` now has
+`hdrParts : ∀ τ, Reach V pr cb τ → V.NextIsProver τ → ∀ l, .header l ∈ pr.next τ → l = pr.hdr`
+(for np-udr-stark the only header part is the first one, so it follows from `header`).
 ## L8 → L4: wire-level choices (original proposal — SUPERSEDED by FORMATS.md v1, which the Rust prover now follows)
 
 Status: implemented in `examples/np-udr-stark/source` (branch `lane/zk-L8`),
@@ -247,3 +334,52 @@ every challenge. L3 assumes `A.numBuses < 2^30` (`Np.NpOk`); please add it to `A
 * L3's target statement is now `Udr.Np.rbrWith_of … : RbrWith (Iop.verifier Fp Fp8 A prm) (AirLang Fp A)
   Fp8.all (2^36) (agreeUdr prm.logBlowup) (Np.Doomed A prm)` under `Np.NpOk A prm`, as consumed by
   `Bcs.stark_romSound_rbr`.
+
+### R-L7-5 (to lead, formal-checker lane): CHECKER SOUNDNESS HOLE — candidate `@[csimp]` lemmas are never audited
+The native-lean audit computes the model closure from the model constant only. A `@[csimp]` lemma
+changes what the judge compiles for that model, but it is not a dependency of the model, so its
+axioms are never checked. leanchecker accepts `sorryAx`. Reproducer: the formal-core Toy
+native-lean case with this `Candidate/Model.lean`:
+```lean
+import Toy.Programs
+def Candidate.Model.verify : ArenaCore.OracleVerifier :=
+  ArenaCore.interpOracleVerifier Toy.verifierCode Toy.toyParams.verifyFuel
+def Candidate.Model.acceptAll : ArenaCore.OracleVerifier := ⟨fun _ s _ _ _ => (true, s)⟩
+@[csimp] theorem Candidate.Model.redirect : @Candidate.Model.verify = @Candidate.Model.acceptAll := sorry
+```
+Real `formal-check` result (dev sandbox, 2026-10-05): **every gate PASSes**, including
+AXIOM_AUDIT and ARTIFACT_BINDING. The only sign is a supplementary grep warning. The judge-built
+`verify` calls `l_Candidate_Model_acceptAll` and exits 0 on a garbage claim and proof.
+**Fix:** the audit (both the Lean side and the NDJSON side) must treat every `@[csimp]` lemma
+declared in a candidate module of the model's import closure as an extra root of the audited
+closure: allowlisted axioms only, no sorry/native_decide/opaque/partial. Alternatively, reject
+candidate `csimp` except through a governed allowlist. Lean side: enumerate the entries of
+`Lean.Compiler.CSimp.ext` whose declaring module is a candidate module. The legitimate uses
+(L4d's `take?_eq_takeF`, `readInj_eq_readInjF`, `mpLeaves_eq_mpLeavesF`; axioms propext and
+Quot.sound) pass that rule. Add this reproducer to `tests/native_route.rs`
+(expect FAIL `SORRY_FOUND`).
+
+### L4 response to R-L7-bcs-1 and R-L7-1 (lane/zk-L4e, lead decisions)
+* **R-L7-bcs-1 done.** `Stark.H m = .query m fun y => .pure (fit32 y)`, where
+  `fit32 y = (y ++ replicate 32 0).take 32` (`fit32_length`, `fit32_of_length`).
+  L2's lemmas now take `TableWF tbl` where they unfold `H`/`WH`:
+  `Multiproof.evalT_WH_eq`, `evalT_WH wf`, `mpNode_spec wf`, `StarkChain.evalT_starkH wf`,
+  `evalT_starkWH wf`, `evalT_starkWH_eq`, `StarkOpen.queryAnswers_spec tbl wf`.
+  I patched all of them in place; every proof is green. `WH_eq` (`rfl`) is gone. L4's
+  `ChunkBound.H_chunk` is now a one-way lemma.
+* **R-L7-1 (b) done.** `Iop.verifier`'s `headerOk` is now
+  `headerOk A prm hdr && decide (minQueryLog ≤ queryLog A prm hdr)`, with `minQueryLog = 8`.
+  The Protocol-level `headerOk` is unchanged, so every destructuring stays valid.
+  Use `Stark.verifier_headerOk : (Iop.verifier F K A prm).headerOk hdr = true →
+  headerOk A prm hdr = true ∧ 8 ≤ queryLog A prm hdr`. L3's three uses
+  (`Np.Facts`, `Np.ShapeLate`, `Np.Query`) were patched.
+  **L7:** state `np_romSound`'s `hlo` over the IOP's admissible headers
+  (`∀ hdr, (Iop.verifier Fp Fp8 A prm).headerOk hdr = true → lo ≤ queryLog A prm hdr`, which is what
+  `hG` needs). Discharge it with `lo = 8` via `(verifier_headerOk h).2`. Then `g2_8_dom` and
+  `udr2_K24_min8_ok` give `QueryOk 24 g2_8` at the default 24 chunks. `ToyPending.min8` becomes
+  this lemma. **L7/L6 completeness:** the honest prover must give its largest table at least
+  `2^(8 - logBlowup) = 16` rows. The toy AIR, if it allows `l < 4`, needs a padded height
+  (`ProverWf.header` must produce an admissible header).
+  **L8:** the Rust verifier must reject `n0 < 8`, and the prover must pad. In
+  `conformance/run.sh`, log 3 (`n0 = 7`) honest proofs are now rejected by the Lean verifier;
+  use logs ≥ 4.
