@@ -147,3 +147,4 @@ import ZkFormal.Near.Link.Compose
 import ZkFormal.Near.Extract.MrkProof
 import ZkFormal.Near.Render.Compose
 import ZkFormal.Near.Link.Main
+import ZkFormal.Near.Final
