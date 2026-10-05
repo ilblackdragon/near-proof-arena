@@ -112,11 +112,10 @@ def mkInfo (c : Claim) (e : Ext) : Info := Id.run do
   let N := ns.size
   let order := postOrder ns (N + 1) 0
   let touched := (List.range N).filter fun k => (ns.getD k (.branch none [] 0)).touched
-  let mut vpre : Array (List Nat) := Array.replicate N []
-  let mut vpost : Array (List Nat) := Array.replicate N []
-  for k in touched do
-    vpre := vpre.set! k (toNats (e.vals0 k))
-    vpost := vpost.set! k (toNats (e.valsAt e.rs.length k))
+  let vpre : Array (List Nat) := (Array.range N).map fun k =>
+    if (ns.getD k (.branch none [] 0)).touched then toNats (e.vals0 k) else []
+  let vpost : Array (List Nat) := (Array.range N).map fun k =>
+    if (ns.getD k (.branch none [] 0)).touched then toNats (e.valsAt e.rs.length k) else []
   let mut pre : Array (List Nat) := Array.replicate N []
   let mut post : Array (List Nat) := Array.replicate N []
   let mut res : Array Nat := (List.range N).toArray

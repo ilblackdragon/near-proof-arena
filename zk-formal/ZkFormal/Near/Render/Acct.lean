@@ -13,34 +13,42 @@ namespace ZkFormal.Near.Render
 
 open ZkFormal.Near
 
-def acctRowsAll (I : Info) : Array Row := Id.run do
-  let mut rows : Array Row := #[]
-  for k in I.touched do
-    let v := I.vpre.getD k []
-    let vp := I.vpost.getD k []
-    let tlast := tlastOf I.e k
-    let mut dsum := 0
-    for i in List.range 16 do
-      dsum := dsum + (255 - v.getD i 0)
-      let mut row := zeroRow Acct.width
-      row := row.set! Acct.act 1
-      row := row.set! Acct.af (if i = 0 then 1 else 0)
-      row := row.set! Acct.al (if i = 15 then 1 else 0)
-      row := row.set! Acct.kk k
-      row := row.set! Acct.i i
-      row := row.set! Acct.tlast tlast
-      row := row.set! Acct.amt (v.getD i 0)
-      row := row.set! Acct.post (vp.getD i 0)
-      row := row.set! Acct.lk (v.getD (16 + i) 0)
-      row := row.set! Acct.st (if i < 8 then v.getD (64 + i) 0 else 0)
-      row := row.set! Acct.ch0 (v.getD (32 + 2 * i) 0)
-      row := row.set! Acct.ch1 (v.getD (33 + 2 * i) 0)
-      row := row.set! Acct.lo8 (if i < 8 then 1 else 0)
-      row := row.set! Acct.dsum dsum
-      row := row.set! Acct.inv (if i = 15 then invP dsum else 0)
-      row := row.set! Acct.gS (if i < 8 then 1 else 0)
-      rows := rows.push row
-  return padTo rows (zeroRow Acct.width)
+namespace AcctGen
+variable (I : Info)
+
+/-- `Σ_{j ≤ i} (255 − v_j)` -/
+def dsumOf (v : List Nat) (i : Nat) : Nat := ((List.range (i + 1)).map fun j => 255 - v.getD j 0).sum
+
+/-- Slot of segment `q / 16`. -/
+def kOf (q : Nat) : Nat := I.touched.getD (q / 16) 0
+
+/-- Active cells (row `q < 16·|touched|`), lane `i = q % 16`. -/
+def actCell (q : Nat) : Nat → Nat
+  | 0 => 1
+  | 1 => if q % 16 = 0 then 1 else 0
+  | 2 => if q % 16 = 15 then 1 else 0
+  | 3 => kOf I q
+  | 4 => q % 16
+  | 5 => tlastOf I.e (kOf I q)
+  | 6 => (I.vpre.getD (kOf I q) []).getD (q % 16) 0
+  | 7 => (I.vpost.getD (kOf I q) []).getD (q % 16) 0
+  | 8 => (I.vpre.getD (kOf I q) []).getD (16 + q % 16) 0
+  | 9 => if q % 16 < 8 then (I.vpre.getD (kOf I q) []).getD (64 + q % 16) 0 else 0
+  | 10 => (I.vpre.getD (kOf I q) []).getD (32 + 2 * (q % 16)) 0
+  | 11 => (I.vpre.getD (kOf I q) []).getD (33 + 2 * (q % 16)) 0
+  | 12 => if q % 16 < 8 then 1 else 0
+  | 13 => dsumOf (I.vpre.getD (kOf I q) []) (q % 16)
+  | 14 => if q % 16 = 15 then invP (dsumOf (I.vpre.getD (kOf I q) []) 15) else 0
+  | 15 => if q % 16 < 8 then 1 else 0
+  | _ => 0
+
+def cell (q col : Nat) : Nat := if q < 16 * I.touched.length then actCell I q col else 0
+
+end AcctGen
+
+/-- 16 rows per touched slot (closed form `AcctGen.cell`), padded with zero rows. -/
+def acctRowsAll (I : Info) : Array Row :=
+  mkTab (2 ^ logOf (16 * I.touched.length)) Acct.width (AcctGen.cell I)
 
 /-- Messages the `acct` table emits: `VPRE(k)`, `VPOST(k)`. -/
 def acctMsgs (I : Info) : List Msg :=
