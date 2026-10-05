@@ -133,6 +133,27 @@ pub fn prepare_unguarded(request: &[u8], witness: &[u8]) -> Result<(Vec<u8>, Air
     Ok((c.encode(), air, traces))
 }
 
+/// [`prepare`] with compact traces ([`trace::render_cols`]; low peak memory).
+pub fn prepare_cols(request: &[u8], witness: &[u8]) -> Result<(Vec<u8>, Air, Vec<crate::cols::TraceCols>), String> {
+    catch_panic(|| {
+        let (c, e) = load(request, witness)?;
+        let (traces, errors) = trace::render_cols_checked(&c, &e);
+        if !errors.is_empty() {
+            return Err(format!("walk errors: {errors:?}"));
+        }
+        let air = near_air();
+        if traces.len() != air.tables.len() {
+            return Err(format!("{} traces for {} tables", traces.len(), air.tables.len()));
+        }
+        for (k, (t, m)) in air.tables.iter().zip(&traces).enumerate() {
+            if m.log_h > t.max_log {
+                return Err(format!("trace {k}: 2^{} rows > 2^{} (maxLog)", m.log_h, t.max_log));
+            }
+        }
+        Ok((c.encode(), air, traces))
+    })
+}
+
 /// Every trace fits its table: `height ≤ 2^maxLog`.
 pub fn check_heights(air: &Air, traces: &[RowMajorMatrix<F>]) -> Result<(), String> {
     use p3_matrix::Matrix;
