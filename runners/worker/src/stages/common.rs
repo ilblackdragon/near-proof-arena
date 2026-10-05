@@ -713,22 +713,56 @@ pub fn run_verify_batch(
     Ok(v)
 }
 
-/// Fail-closed protocol-version check of one oracle request
-/// ([`RequestPin`](crate::jobs::RequestPin)): a mismatch is a judge-side
-/// error, so the job fails as infra and nothing is attributed to the
-/// candidate. Held-out case ids are not echoed.
-pub fn check_request_pin(
-    pin: &crate::jobs::RequestPin,
-    request: &[u8],
-    case_id: &str,
-    public: bool,
-) -> Result<(), ExecError> {
-    pin.check(request).map_err(|e| {
-        ExecError::Infra(format!(
-            "fail-closed: oracle request {} rejected: {e}",
-            case_label(case_id, public)
-        ))
-    })
+/// Fail-closed version check of one oracle case
+/// ([`RequestPin`](crate::jobs::RequestPin)): the request header and the
+/// judge's expected-claim header must name the challenge's encoding,
+/// statement, protocol version and chain. A mismatch is a judge-side error,
+/// so the job fails as infra and nothing is attributed to the candidate.
+/// Held-out case ids are not echoed.
+pub fn check_case_pin(pin: &crate::jobs::RequestPin, case: &Case) -> Result<(), ExecError> {
+    pin.check(&case.request)
+        .and_then(|_| pin.check_claim(&case.expected_claim))
+        .map_err(|e| {
+            ExecError::Infra(format!(
+                "fail-closed: oracle case {} rejected: {e}",
+                case_label(&case.id, case.public)
+            ))
+        })
+}
+
+/// The conformance suite of `chal` for this job (fixtures + per-class
+/// samples [+ held-out]), every case pin-checked. `Ok(Err(note))` when no
+/// oracle serves this claim encoding (gates stay UNKNOWN); every other
+/// shortfall is a fail-closed infra error.
+pub fn suite(
+    r: &JobRun<'_>,
+    chal: &arena_types::ChallengeDefinition,
+    ctx: &crate::jobs::JobContext,
+    samples: usize,
+    with_heldout: bool,
+) -> Result<Result<crate::oracle::Suite, String>, ExecError> {
+    use crate::oracle::OracleError;
+    let seeds = crate::executor::seeds(r.ctx, ctx);
+    let s = match r
+        .ctx
+        .oracles
+        .conformance_suite(chal, &seeds, samples, with_heldout)
+    {
+        Ok(s) => s,
+        Err(OracleError::Unavailable(m)) => return Ok(Err(m)),
+        Err(e) => return Err(ExecError::Infra(e.to_string())),
+    };
+    if s.cases.is_empty() {
+        return Err(ExecError::Infra(
+            "fail-closed: oracle produced no cases".into(),
+        ));
+    }
+    if let Some(pin) = crate::jobs::RequestPin::from_challenge(chal) {
+        for case in &s.cases {
+            check_case_pin(&pin, case)?;
+        }
+    }
+    Ok(Ok(s))
 }
 
 /// CONTRACTS §4 exit codes (+ npai-verify's 3 = digest mismatch).
