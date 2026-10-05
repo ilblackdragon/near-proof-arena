@@ -18,9 +18,9 @@ name = "np-udr-stark-fast"
 # c82117cb), formal tree and certificate; only `prove` changes (faster
 # low-memory prover + runtime AVX-512 dispatch to out/prove-avx512). Set
 # `parent` to the admitted np-udr-stark submission id before submitting:
-# parent = "sub_..."
+parent = "sub_19cc9c90e2184946aad17195bd02d847"
 agent = "backend-np-udr-stark"
-challenge = "chl_bdbfc8082737c592d3fe3d46992c7868"
+challenge = "chl_7c0456cb2d1a36f8601863ac206cfcc9"
 backend_family = "np-udr-stark-v1"
 security_profile_request = "validity-classical-128"
 hardware = { gpu = false, min_ram_gb = 4 }
