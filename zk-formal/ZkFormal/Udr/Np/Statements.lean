@@ -37,8 +37,11 @@ def badBudget : Nat := 2 ^ 36
 decidable on the concrete AIR). -/
 def NpOk (A : Air) (prm : Params) : Prop :=
   prm = Params.default ∧
-  ∀ T ∈ A.tables, T.allConstraints.length + 2 * T.auxCount prm.auxGroup + 3 * T.interactions.length
-    ≤ 2 ^ 20
+  (∀ T ∈ A.tables, T.allConstraints.length + 2 * T.auxCount prm.auxGroup + 3 * T.interactions.length
+    ≤ 2 ^ 20) ∧
+  -- bus tags `bus + 1` are distinct and nonzero in the field (buses congruent mod `p`
+  -- would otherwise be merged by the fingerprints; `Holds` balances them separately)
+  A.numBuses < 2 ^ 30
 
 /-- Shorthand for the verifier. -/
 abbrev Vnp (A : Air) (prm : Params) : IopSpec Fp Fp8 := Iop.verifier Fp Fp8 A prm

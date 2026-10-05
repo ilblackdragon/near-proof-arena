@@ -113,7 +113,7 @@ theorem numGroups_one (n : Nat) : numGroups n 1 = n := by simp [numGroups]
 theorem csAt_length {A : Air} {prm : Params} (hok : NpOk A prm) (τ : PTn) (t : Nat)
     (ht : t < A.tables.length) (αfp γ x : Fp8) :
     (csAt A prm τ t αfp γ x).length ≤ 2 ^ 20 := by
-  obtain ⟨hprm, hb⟩ := hok
+  obtain ⟨hprm, hb, _⟩ := hok
   subst hprm
   have hT : tableOf A t = A.tables[t] := by
     unfold tableOf; rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem ht]; rfl
