@@ -1,5 +1,7 @@
-import ArenaCore
-import NearSpec
+import ArenaCore.Relation
+import ArenaCore.Backend
+import ArenaCore.Verifier
+import NearSpec.ClaimCodec
 
 /-!
 # The challenge spec, as the judge assembles it
