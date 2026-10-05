@@ -24,7 +24,7 @@ use crate::lowmem::{eval_range, Dft, WhStream};
 use crate::mmcs::{index_sets, Opening};
 
 /// Levels `< KEEP` are recomputed at opening time.
-pub const KEEP: usize = 4;
+pub const KEEP: usize = 6;
 
 /// A committed matrix: its source, LDE log, coset shift and tree class
 /// (`l0 − lde log`).
