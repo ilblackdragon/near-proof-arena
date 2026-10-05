@@ -248,3 +248,26 @@ row (`(r, field, idx) ↦ cell`), then one lemma per constraint family
 soundness side: the extraction (`Extract/RcptTraffic`, `rcpt_view`) gives the
 traffic of any locally valid rcpt table as `rcptTraffic pub (viewOf …)`, so
 it remains to identify the extracted view with `rcptViewsOf I`.
+
+## Node obligations (sub-lane L6e-node, `lane/zk-L6-node`)
+
+| obligation | theorem | module |
+|---|---|---|
+| `EdgeBusStmt` | `edgeBus` | `Proof/BusEdge` (offered edges distinct + every walk edge offered ⇒ chained counters balance, `chain_perm`) |
+| `ParentBusStmt` | `parentBus` (`parentBus'` under `KeyBound`) | `Proof/BusParent` |
+| `NodeSerStmt` | `nodeSer_ok` (`nodeSer'`) | `Proof/NodeSer` |
+| `NodeTrafficStmt` | `nodeTraffic_ok` | `Proof/NodeTraffic{1..7,}` |
+| `NodeLocalStmt` | open; height bound `node_log` and multiplicity bits `node_bits` done | `Proof/NodeLocal0` |
+| `DigestBusStmt` | open | — |
+
+Support: `Proof/NodeInfo` (reachability, depths, record-trie fuel stability),
+`Proof/NodeViewFacts` (honest views: `wf`, `toRec`, `ser` = generator),
+`Proof/NodeLayout` (field bytes, hex-prefix bytes), `Proof/NodeCells`
+(cells by column), `Proof/NodeRowT` (traffic of one row).
+
+Generator changes (rows unchanged on the tests; `test/NearRenderTest.lean` passes):
+`mkInfo` in closed form (`pre`/`post` = `nodeSer` of the record tries
+`treeOf`, depths from a preorder `subD`); node table in closed form
+(`NodeGen.recsOf`, `rowCell`, `cell`).  `ShaFit1.pre_ok`/`post_ok` re-proved
+(same statements).  `Spec/Small.lean`: field `keys` (R-L6e-2), proved in
+`small_complete` (`keys_prune`).  All new modules elaborate in < 2 s.
