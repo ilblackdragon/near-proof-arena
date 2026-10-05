@@ -246,3 +246,29 @@ Results are in `examples/np-udr-stark/bench/results/judge-verify-2026-10-05.tsv`
 
 Remaining for A02: L6's `RenderStmt` + R-L7-6, then the one-line `NpUdrStark.certificate`. Then a
 full formal-tier pipeline run on the signed v1-zk challenge, which needs the new checker identity.
+
+## M5: closed NEAR certificate — real checker ALL GATES PASS (2026-10-05)
+
+`NpUdrStark.certificate := certificate_of Render.render_stmt_closed NearAssembly.near_min_height …`
+(`examples/np-udr-stark/formal/NpUdrStark/Certificate.lean`, no sorry).
+* **Real formal-check**, configured-challenge mode: statement from the v1-zk draft, the
+  `near-transfer-receipt-v1.json` config and the real `Expected.native-lean` template; trusted tree `e4088761`.
+  **All six gates PASS**: FORMAL_SEMANTIC_SOUNDNESS/COMPLETENESS, FORMAL_CRYPTO_SOUNDNESS,
+  FORMAL_IMPL_CONNECTION, AXIOM_AUDIT, ARTIFACT_BINDING. No findings and no warnings.
+  * leanchecker and lean4lean accepted 522 modules; nanoda, arena-audit and the NDJSON audit
+    (32 494 decls) accepted. The three fast-path csimp lemmas are audited
+    (propext/Quot.sound).
+  * The judge-built verifier is `sha256:c82117cb…`, equal to build.sh's `out/verify`.
+  * Candidate elaboration took 647 s; the whole pipeline took 1 400 s (dev sandbox, tier_cap demo).
+  * Report: `examples/np-udr-stark/bench/results/formal-check-v1zk-2026-10-05.json`.
+  * The first run failed with NATIVE_EVAL_FOUND from L6's `register_simp_attr`s. Fixed by
+    inlining the simp sets (R-L7-8).
+* **Judge-verify** (`bench/judge-verify.sh`, results `bench/results/judge-verify-closed-2026-10-05.tsv`),
+  20 public fixtures + 18 seed-7 class cases:
+  * 38/38 honest proofs accepted, with claim = `expected_claim`;
+  * 38/38 rejected for each of: false claim, 1-bit proof mutation, truncation;
+  * **38/38 swapped pairs rejected**: case i's valid canonical claim with case i+1's proof.
+    This exercises rejection by the STARK itself, not just the claim guard.
+  * Verify time ≤ 1.11 s (cap 10 s). Prove: batch-256 cases 10.7–12.7 s; proofs 1.84–3.05 MB.
+* Next (deploy lane): sign `near-transfer-receipt-v1-6` (checker `66b014d4…`) and run the live
+  submission. `candidate.toml` is left for the deploy lane to set.
