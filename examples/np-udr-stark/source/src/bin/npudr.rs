@@ -23,6 +23,9 @@
 //!   constraint on the honest traces (incl. sha) and check bus balance.
 //! * `npudr nearcols <request.bin> <witness.bin>` — the compact honest traces
 //!   (`near::prepare_cols`): heights and storage per table.
+//! * `npudr nearcolscheck <request.bin> <witness.bin>` — `nearcheck` on the
+//!   compact traces (`prepare_cols`; constraints + bus balance by message hash),
+//!   for cases too large for the row-major traces.
 //! * `npudr gen-max <out_dir> [--target-bytes N] [--n N] [--kids K] [--eps 0|1]`
 //!   — synthesize a maximum-size in-domain case (`npudr::near::genmax`):
 //!   `request.bin`, `witness.bin`, `expected_claim.bin`.
@@ -258,6 +261,28 @@ fn main() {
             }
             println!("total {:.1} MiB, {} ms", trs.iter().map(|t| t.bytes()).sum::<usize>() as f64 / (1 << 20) as f64, t.elapsed().as_millis());
         }
+        Some("nearcolscheck") => {
+            // nearcheck on the compact traces (prepare_cols): for cases (the max case)
+            // whose row-major u64 traces do not fit in memory
+            let (req, wit) = (std::fs::read(&a[2]).unwrap(), std::fs::read(&a[3]).unwrap());
+            let t = Instant::now();
+            let (cb, air, trs) = near::with_big_stack(move || near::prepare_cols(&req, &wit)).unwrap_or_else(|e| die(&e));
+            let tg = t.elapsed().as_millis();
+            let pubs = near::public_of(&cb);
+            let names = ["sha", "node", "walk", "rcpt", "acct", "mrk", "sort"];
+            let mut bad = false;
+            for (k, (tab, tr)) in air.tables.iter().zip(&trs).enumerate() {
+                let f = check::failing_constraints_cols(tab, tr, &pubs, 20);
+                println!("table {k} {:5} 2^{:2} x {:3}: {} failing (constraint,row) {:?}", names[k], tr.log_h, tr.width(), f.len(), f);
+                bad |= !f.is_empty();
+            }
+            let (per_bus, total) = check::bus_imbalance_cols(&air, &trs, &pubs);
+            println!("bus traffic: {total} sends; imbalanced messages per bus {per_bus:?}");
+            println!("render_cols {tg} ms, check {} ms", t.elapsed().as_millis() - tg);
+            if bad || !per_bus.is_empty() {
+                std::process::exit(1);
+            }
+        }
         Some("gen-max") => {
             let out = a.get(2).unwrap_or_else(|| die("gen-max <out_dir> [--target-bytes N] [--n N] [--kids K] [--eps 0|1]"));
             let mut o = near::genmax::Opts::default();
@@ -285,7 +310,7 @@ fn main() {
                 c.n, c.revealed, c.branches, c.exts, c.leaves, c.request.len(), c.witness.len(), t.elapsed().as_millis()
             );
         }
-        _ => die("usage: npudr bench|toy|verify|export|nearrender|nearcheck|gen-max ..."),
+        _ => die("usage: npudr bench|toy|verify|export|nearrender|nearcheck|nearcols|nearcolscheck|gen-max ..."),
     }
 }
 

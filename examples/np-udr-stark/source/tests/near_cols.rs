@@ -34,3 +34,30 @@ fn render_cols_matches_render() {
     assert!(g.exts > 0);
     same("genmax 60k", &g.request, &g.witness);
 }
+
+/// `check::*_cols` (the max-case checker behind `npudr nearcolscheck`): honest
+/// compact traces pass; a corrupted walk cell is caught (constraint or bus).
+#[test]
+fn cols_checker() {
+    use npudr::check;
+    use npudr::cols::Col;
+    let g = genmax::gen_max(&genmax::Opts { target_bytes: 60_000, n: Some(5), ..Default::default() }).unwrap();
+    let (cb, air, mut trs) = near::prepare_cols(&g.request, &g.witness).unwrap();
+    let pubs = near::public_of(&cb);
+    for (t, tr) in air.tables.iter().zip(&trs) {
+        assert!(check::failing_constraints_cols(t, tr, &pubs, 5).is_empty());
+    }
+    let (imb, total) = check::bus_imbalance_cols(&air, &trs, &pubs);
+    assert!(imb.is_empty() && total > 0, "{imb:?}");
+    // walk table (2), first row: bump every column that holds a small value
+    for c in &mut trs[2].cols {
+        match c {
+            Col::U8(v) => v[0] = v[0].wrapping_add(1),
+            Col::U16(v) => v[0] = v[0].wrapping_add(1),
+            Col::U32(v) => v[0] = v[0].wrapping_add(1),
+        }
+    }
+    let bad = !check::failing_constraints_cols(&air.tables[2], &trs[2], &pubs, 5).is_empty();
+    let (imb, _) = check::bus_imbalance_cols(&air, &trs, &pubs);
+    assert!(bad && !imb.is_empty(), "corruption not detected: constraints {bad}, buses {imb:?}");
+}
