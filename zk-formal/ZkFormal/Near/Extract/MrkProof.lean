@@ -1283,3 +1283,63 @@ theorem recvs_eq (v : MrkV) (b : Nat) :
     · simp [h1, h2]
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp} {segs : List (Nat × Nat)}
+
+theorem toNat_pred_of {a b : Fp} (h : a + 1 = b) (hb : 1 ≤ b.toNat) : a.toNat = b.toNat - 1 := by
+  have e : Fp.ofNat (b.toNat - 1) + 1 = b := by
+    rw [show (1 : Fp) = Fp.ofNat 1 from rfl, ofNat_add', Nat.sub_add_cancel hb, Fp.ofNat_toNat]
+  have : a = Fp.ofNat (b.toNat - 1) := by rw [← e] at h; grind
+  rw [this, Fp.toNat_ofNat, Nat.mod_eq_of_lt (by have := Fp.toNat_lt b; omega)]
+
+theorem nodeEq (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) (t : Nat) (ht : t < segs.length)
+    (b : Nat) (sd : Bool) :
+    (List.range' (segs[t].1 + 1) segs[t].2).flatMap (fun r => rowTraffic Mrk.interactions tr T_MRK r pub b sd) =
+      (if sd then Fsend (viewOf tr segs) b (nodeOf tr segs[t]) t
+       else Frecv (viewOf tr segs) b (nodeOf tr segs[t]) t).map Msg.toFp := by
+  have hp := List.getElem_mem (l := segs) ht
+  have hpos := posOf hL hS t ht
+  have hq := qCount hL hS t ht
+  have hB := bounds hL hS t ht
+  have hle := hS.le hp
+  have hbf : hashedBefore (List.map (nodeOf tr) segs) t = cn tr (segs[t].1 + 1) q := hq.symm
+  simp only [viewOf] at hpos
+  unfold Fsend Frecv mrkPos
+  simp only [viewOf, hpos, hbf]
+  rcases segKind hL (hS.seg _ hp) hle with ⟨hpr, hsg, hl⟩ | ⟨hl, hpr0, hh⟩
+  · -- promoted node: one row
+    rw [hl, List.range'_one, List.flatMap_singleton,
+      promotedTraffic hL (by omega) (by omega) hpr hsg]
+    have hnd : nodeOf tr segs[t] = .promoted (cn tr (segs[t].1 + 1) cId) (cn tr (segs[t].1 + 1) cLen) := by
+      simp [nodeOf, hpr]
+    rw [hnd]
+    obtain ⟨m1, -, -, -⟩ := links hL (r := segs[t].1 + 1) (by omega)
+    have hwn := (local_ hL (r := segs[t].1 + 1) (by omega)).2.2.2.2.2.2.2.1 hpr
+    have hwf : tr.cell T_MRK (segs[t].1 + 1) wf = 0 := bool01 hL (by omega) (by simp) (fun h => by
+      have := ((local_ hL (r := segs[t].1 + 1) (by omega)).2.2.2.1 h).1; rw [hsg] at this; exact fp_zero_ne_one this)
+    obtain ⟨e1, e2⟩ := m1 (by rw [hwf, hpr]; grind)
+    rw [hwn] at e2
+    cases sd
+    · simp only [Frecv, Bool.false_eq_true, if_false]
+      by_cases h1 : b = B_MPOS
+      · subst h1
+        simp only [show ¬ (B_MPOS = B_DIGEST) by decide, if_false, if_true, and_self, true_and,
+          Bool.false_eq_true, and_false, List.append_nil, List.map_cons, List.map_nil, Msg.toFp]
+        have hmj : tr.cell T_MRK (segs[t].1 + 1) mj = Fp.ofNat (cn tr (segs[t].1 + 1) j - 1) := by
+          rw [← toNat_pred_of e1 hB.1]; exact (fpN' _).symm
+        have hmi : tr.cell T_MRK (segs[t].1 + 1) mi = Fp.ofNat (2 * cn tr (segs[t].1 + 1) i) := by
+          rw [e2, ← ofNat_mul', fpN', show Fp.ofNat 2 = (2 : Fp) from rfl]; grind
+        rw [hmj, hmi]; simp only [cn, fpN']
+      · simp [h1]
+    · simp only [Fsend, if_true]
+      by_cases h1 : b = B_BYTES
+      · subst h1; simp [B_BYTES, B_MPOS]
+      · by_cases h2 : b = B_MPOS
+        · subst h2; simp [B_BYTES, B_MPOS, Msg.toFp, cn, fpN']
+        · simp [h1, h2]
+  · sorry
+
+end ZkFormal.Near.MrkProof
