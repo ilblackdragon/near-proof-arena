@@ -59,3 +59,4 @@ import ZkFormal.Udr.Np.Domain
 import ZkFormal.Udr.Np.QueryParts
 import ZkFormal.Udr.Np.QueryFacts
 import ZkFormal.Udr.Np.Query
+import ZkFormal.Udr.Np.Good
