@@ -5,6 +5,8 @@
 //! could not read, and the cache, keyed by TreeDigest, kept serving it).
 //! The VM part is gated by `ARENA_FC_TESTS=1`.
 
+mod common;
+
 use arena_firecracker::images::{self, TreeLimits};
 use arena_firecracker::*;
 use std::fs;
@@ -108,7 +110,7 @@ fn umask_0077_trees_give_normalized_images_and_readable_guests() {
 
     // 2. the guest (uid 1000) can read, list and execute it
     if std::env::var("ARENA_FC_TESTS").as_deref() != Ok("1") {
-        eprintln!("VM part skipped: set ARENA_FC_TESTS=1");
+        common::skip_gated!("VM part: set ARENA_FC_TESTS=1");
         return;
     }
     let cfg = FirecrackerConfig::from_deps_dir(&deps(), &base).unwrap();

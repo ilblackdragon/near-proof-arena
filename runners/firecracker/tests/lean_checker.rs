@@ -15,6 +15,8 @@
 //! Gated: `ARENA_FC_TESTS=1` and an installed image under
 //! `$LEAN_CHECKER_IMAGES` (default /data/illia/nearproof-deps/lean-checker/images).
 
+mod common;
+
 use arena_firecracker::*;
 use arena_formal_checker::sandbox::{
     InfraError as FcInfra, RunExit, RunOutcome, RunSpec, CAPTURE_LIMIT,
@@ -217,7 +219,7 @@ fn names(rep: &FormalCheckReport) -> (Vec<String>, Vec<String>) {
 #[test]
 fn formal_checker_corpus_in_microvms() {
     if !enabled() {
-        eprintln!("skipped: set ARENA_FC_TESTS=1");
+        common::skip_gated!("set ARENA_FC_TESTS=1");
         return;
     }
     let (img_dir, digest) = lean_image();
@@ -421,7 +423,7 @@ fn formal_checker_corpus_in_microvms() {
 #[test]
 fn native_lean_compiles_in_microvm() {
     if !enabled() {
-        eprintln!("skipped: set ARENA_FC_TESTS=1");
+        common::skip_gated!("set ARENA_FC_TESTS=1");
         return;
     }
     let (img_dir, digest) = lean_image();

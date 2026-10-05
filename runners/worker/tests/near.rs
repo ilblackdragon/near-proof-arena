@@ -55,7 +55,10 @@ pub fn near_env(f: &mut Fixture) -> Option<()> {
         .map(PathBuf::from)
         .unwrap_or_else(|| repo().join("oracle/target/debug/near-arena-oracle"));
     if !oracle.is_file() {
-        eprintln!("SKIP: no near-arena-oracle at {}", oracle.display());
+        report_gated_skip(
+            std::thread::current().name().unwrap_or("near::near_env"),
+            &format!("no near-arena-oracle at {}", oracle.display()),
+        );
         return None;
     }
     let home = PathBuf::from(std::env::var("HOME").unwrap());
@@ -99,8 +102,9 @@ pub fn near_env(f: &mut Fixture) -> Option<()> {
     .unwrap();
     // The trusted reference is the frozen tree the challenge pins.
     let Some(store) = frozen_store(f.tmp.path(), &f.chal, NEAR_V1_TRUSTED_COMMIT) else {
-        eprintln!(
-            "skipped: commit {NEAR_V1_TRUSTED_COMMIT} (pinned trusted tree) not in this clone"
+        report_gated_skip(
+            std::thread::current().name().unwrap_or("near::near_env"),
+            &format!("commit {NEAR_V1_TRUSTED_COMMIT} (pinned trusted tree) not in this clone"),
         );
         return None;
     };
@@ -151,7 +155,7 @@ fn run(f: &Fixture, spec: JobSpec) -> JobResult {
 #[test]
 fn reexec_witness_reference_all_stages() {
     if std::env::var("ARENA_NEAR_TESTS").as_deref() != Ok("1") {
-        eprintln!("skipped: set ARENA_NEAR_TESTS=1");
+        skip_gated!("set ARENA_NEAR_TESTS=1");
         return;
     }
     let mut f = fixture();
@@ -253,7 +257,7 @@ fn reexec_witness_reference_firecracker() {
     if std::env::var("ARENA_NEAR_TESTS").as_deref() != Ok("1")
         || std::env::var("ARENA_FC_TESTS").as_deref() != Ok("1")
     {
-        eprintln!("skipped: set ARENA_NEAR_TESTS=1 ARENA_FC_TESTS=1");
+        skip_gated!("set ARENA_NEAR_TESTS=1 ARENA_FC_TESTS=1");
         return;
     }
     let mut f = fixture();

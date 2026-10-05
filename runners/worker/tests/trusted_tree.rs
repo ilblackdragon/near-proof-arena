@@ -133,7 +133,7 @@ fn formal_check_requires_the_pinned_trusted_tree() {
     }
 
     let Some(store) = frozen_store(f.tmp.path(), &chal, NEAR_V1_TRUSTED_COMMIT) else {
-        eprintln!("skipped (correct/tampered cases): {NEAR_V1_TRUSTED_COMMIT} not in this clone");
+        skip_gated!("correct/tampered cases: {NEAR_V1_TRUSTED_COMMIT} not in this clone");
         return;
     };
 
