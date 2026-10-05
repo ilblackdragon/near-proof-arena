@@ -98,6 +98,7 @@ import ZkFormal.Udr.Np.Degree
 import ZkFormal.Udr.Np.Chal7
 import ZkFormal.Udr.Np.Hom
 import ZkFormal.Udr.Np.AuxChain
+import ZkFormal.Udr.Np.Msg4
 import ZkFormal.Bcs.TransDefs
 import ZkFormal.Bcs.TransStatements
 import ZkFormal.Bcs.TransCompose
