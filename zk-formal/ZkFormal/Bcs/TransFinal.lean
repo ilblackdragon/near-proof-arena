@@ -1,5 +1,7 @@
 import ZkFormal.Bcs.TransCompose
 import ZkFormal.Bcs.DecPush
+import ZkFormal.Algebra.DecodeCount
+import ZkFormal.Stark.Laws
 
 /-!
 # ZkFormal.Bcs.TransFinal — ROM soundness of L4's verifier from L3's `RbrWith`
@@ -44,5 +46,30 @@ theorem stark_romSound_rbr_of (hQuery : DecQueryStmt) (hPos : PosCountStmt)
   have := stark_romSound' V hS hK hK' (DoomedB V D) InLang P pub hi hm (bad * Dm) hr (fun _ => G)
     (fun τ j hd => hq τ j hd) qH qP NPu NVu NPq NVq hN hPu hVu hPq hVq
   rwa [prod_const] at this
+
+end ZkFormal.Bcs.Transport
+
+namespace ZkFormal.Bcs.Transport
+
+open ArenaCore ArenaCore.Security ZkFormal Lean.Grind
+
+/-- **Challenge decoding for the deployed fields** (L1: `decodeChal_count`,
+`decodeOod_count`, L4: `decode_agree`): fibers of size at most `2·3^8`. -/
+theorem hdec_deployed (ood : Bool) (P : Algebra.Fp8 → Prop) (b : Nat)
+    (h : count Algebra.Fp8.all P ≤ b) :
+    count (List.range roRange) (fun v => P (decChal (F := Algebra.Fp) ood (LazyRO.answer v))) ≤
+      b * (2 * 3 ^ 8) := by
+  cases ood with
+  | false =>
+    have e : ∀ v, decChal (F := Algebra.Fp) false (LazyRO.answer v) = Algebra.decodeChal (LazyRO.answer v) :=
+      fun v => by unfold decChal; rw [if_neg Bool.false_ne_true]; exact Stark.decodeChal_agree _
+    simp only [e]
+    have h38 : (3 : Nat) ^ 8 ≤ 2 * 3 ^ 8 := Nat.le_mul_of_pos_left _ (by decide)
+    exact Nat.le_trans (Algebra.decodeChal_count P b h) (Nat.mul_le_mul_left b h38)
+  | true =>
+    have e : ∀ v, decChal (F := Algebra.Fp) true (LazyRO.answer v) = Algebra.decodeOod (LazyRO.answer v) :=
+      fun v => by unfold decChal; rw [if_pos rfl]; exact Stark.decodeOod_agree _
+    simp only [e]
+    exact Algebra.decodeOod_count P b h
 
 end ZkFormal.Bcs.Transport
