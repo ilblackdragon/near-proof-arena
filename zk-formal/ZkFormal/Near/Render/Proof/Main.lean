@@ -16,6 +16,7 @@ import ZkFormal.Near.Render.Proof.BusFinal
 import ZkFormal.Near.Render.Proof.BusMpos
 import ZkFormal.Near.Render.Proof.ShaFit4
 import ZkFormal.Near.Render.Proof.RcptBytes2
+import ZkFormal.Near.Render.Proof.RcptLocal
 
 /-!
 # ZkFormal.Near.Render.Proof.Main — what is left of `RenderStmt`
@@ -37,7 +38,8 @@ open NearSpec NearSpec.TransferV1 ZkFormal.Near ZkFormal.Air ZkFormal.Algebra
 /-- The open render obligations. -/
 structure RenderRest : Prop where
   nodeL : NodeLocalStmt
-  rcptL : RcptLocalStmt
+  /-- the open `rcpt` constraint families (`RcptLocalStmt` = `RcptP.rcptLocal_fams`) -/
+  rcptL : RcptP.RcptFams
   nodeT : NodeTrafficStmt
   rcptT : RcptTrafficStmt
   /-- the node views serialize as `mkInfo`'s `pre`/`post` (gives `BytesBusStmt` via `bytesBus_of`) -/
@@ -49,7 +51,7 @@ structure RenderRest : Prop where
 /-- **`RenderStmt` from the open obligations.** -/
 theorem render_of_rest (h : RenderRest) : RenderStmt :=
   render_stmt
-    { shaL := shaLocal, nodeL := h.nodeL, walkL := walkLocal, rcptL := h.rcptL,
+    { shaL := shaLocal, nodeL := h.nodeL, walkL := walkLocal, rcptL := RcptP.rcptLocal_fams h.rcptL,
       acctL := acctLocal, mrkL := mrkLocal, sortL := sortLocal,
       shaT := shaTraffic_ok, nodeT := h.nodeT, walkT := walkTraffic_ok, rcptT := h.rcptT,
       acctT := acctTraffic_ok, mrkT := mrkTraffic_ok, sortT := sortTraffic_ok,

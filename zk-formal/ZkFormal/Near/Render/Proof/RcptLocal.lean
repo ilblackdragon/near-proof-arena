@@ -109,6 +109,16 @@ theorem rcptLocal_of (hR : FamOk Rcpt.cRegs) (hG : FamOk Rcpt.cGas) (hD : FamOk 
   · rcases (show k = 0 ∨ k = 1 ∨ k = 2 by omega) with rfl | rfl | rfl <;> exact hbool _ (mem_of_any (by decide))
   all_goals exact hbool _ (mem_of_any (by decide))
 
+/-- The open `rcpt` constraint families. -/
+structure RcptFams : Prop where
+  regs : FamOk Rcpt.cRegs
+  gas : FamOk Rcpt.cGas
+  dep : FamOk Rcpt.cDep
+  claim : FamOk Rcpt.cClaim
+  fin : FamOk Rcpt.cEnd
+
+theorem rcptLocal_fams (h : RcptFams) : RcptLocalStmt := rcptLocal_of h.regs h.gas h.dep h.claim h.fin
+
 end RcptP
 
 end ZkFormal.Near.Render
