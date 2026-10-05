@@ -47,7 +47,8 @@ def constraints : List Expr :=
     mul3 (c act) (not (c sl)) (sub (n cin) (c cout)),
     -- next segment or padding
     mul3 (c sl) (n act) (not (n sf)),
-    mul3 (c sl) (n act) (n ft),
+    -- (`isTransition`: on a full table the last row wraps to row 0, which has `ft = 1`)
+    mul3 .isTransition (c sl) (n ft),
     mul3 .isTransition (not (c act)) (n act),
     -- id_t = id_{t-1} + diff + 1
     .mul (.mul (c act) (not (c ft)))
