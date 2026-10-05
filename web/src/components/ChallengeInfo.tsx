@@ -107,6 +107,13 @@ export function ExcludesCallout({ c }: { c: ChallengeRecord }) {
       <p className="scope-line">
         Scope: <ScopeKindLabel kind={s.kind} /> · granularity <code><T v={s.granularity} /></code>
       </p>
+      {c.definition.security_profile?.privacy !== 'zero_knowledge' && (
+        <p className="privacy-line">
+          <strong>Validity only, not privacy:</strong> this challenge's security profile is{' '}
+          <code>validity_only</code>. Admission proves that the claim is sound for the formal relation. It does not
+          prove that the proof hides the witness (no zero-knowledge guarantee).
+        </p>
+      )}
       {s.restrictions.length > 0 && (
         <>
           <h3>Restrictions ({s.restrictions.length})</h3>

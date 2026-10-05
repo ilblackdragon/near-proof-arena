@@ -20,51 +20,46 @@ import ZkFormal.Near.Render.Proof.BusEdge
 import ZkFormal.Near.Render.Proof.BusParent
 import ZkFormal.Near.Render.Proof.NodeSer
 import ZkFormal.Near.Render.Proof.NodeTraffic
+import ZkFormal.Near.Render.Proof.RcptTraffic
+import ZkFormal.Near.Render.Proof.BusDigest
+import ZkFormal.Near.Render.Proof.NodeLocal
 
 /-!
-# ZkFormal.Near.Render.Proof.Main — what is left of `RenderStmt`
+# ZkFormal.Near.Render.Proof.Main — `RenderStmt`, closed
 
-`render_of_rest : RenderRest → RenderStmt`: the proved obligations (sha,
-sort, acct, walk, mrk local + traffic; BYTES, PARENT (keys from `Small.keys`); buses VSLOT, RIDS, MEM, FINAL, KEYNIB, MPOS, EDGE) are
-plugged in; `RenderRest` lists the open ones.  All obligations are stated
-under `Good c.1 e ∧ Small e` (R-L6e-1 resolved: the acct table's height bound
-comes from `Small.touched`).
+Every render obligation is proved (sha, node, walk, rcpt, acct, mrk, sort:
+local + traffic; buses BYTES, DIGEST, PARENT, VSLOT, EDGE, KEYNIB, FINAL,
+MEM, RIDS, MPOS), all under `Good c.1 e ∧ Small e`.
 
-`nearAir_complete_rest` / `honestTrace_fits_rest`: the DESIGN completeness
-statements from `RenderRest` alone (`good_complete`, `small_complete`).
+* `render_stmt_closed : RenderStmt`;
+* `nearAir_complete_closed` / `honestTrace_fits_closed`: the DESIGN
+  completeness statements, hypothesis-free (`good_complete`, `small_complete`).
 -/
 
 namespace ZkFormal.Near.Render
 
 open NearSpec NearSpec.TransferV1 ZkFormal.Near ZkFormal.Air ZkFormal.Algebra
 
-/-- The open render obligations. -/
-structure RenderRest : Prop where
-  nodeL : NodeLocalStmt
-  rcptL : RcptLocalStmt
-  rcptT : RcptTrafficStmt
-  digest : DigestBusStmt
-
-/-- **`RenderStmt` from the open obligations.** -/
-theorem render_of_rest (h : RenderRest) : RenderStmt :=
+/-- **`RenderStmt`**: the honest trace of `Good ∧ Small` records satisfies the NEAR AIR. -/
+theorem render_stmt_closed : RenderStmt :=
   render_stmt
-    { shaL := shaLocal, nodeL := h.nodeL, walkL := walkLocal, rcptL := h.rcptL,
+    { shaL := shaLocal, nodeL := nodeLocal, walkL := walkLocal, rcptL := RcptP.rcptLocal,
       acctL := acctLocal, mrkL := mrkLocal, sortL := sortLocal,
-      shaT := shaTraffic_ok, nodeT := nodeTraffic_ok, walkT := walkTraffic_ok, rcptT := h.rcptT,
+      shaT := shaTraffic_ok, nodeT := nodeTraffic_ok, walkT := walkTraffic_ok, rcptT := RcptP.rcptTraffic_ok,
       acctT := acctTraffic_ok, mrkT := mrkTraffic_ok, sortT := sortTraffic_ok,
-      bytes := bytesBus_of nodeSer_ok rcptBytes, digest := h.digest, parent := parentBus,
+      bytes := bytesBus_of nodeSer_ok rcptBytes, digest := digestBus, parent := parentBus,
       vslot := vslotBus, edge := edgeBus,
       keynib := keynibBus, final := finalBus, mem := memBus, rids := ridsBus, mpos := mposBus }
 
-/-- **Completeness of the NEAR AIR** from the open render obligations. -/
-theorem nearAir_complete_rest (h : RenderRest) :
+/-- **Completeness of the NEAR AIR.** -/
+theorem nearAir_complete_closed :
     ∀ (c : WfClaim) (w : Witness), NearRelation c.1 w → Holds nearAir (publicOf c) (honestTrace c w) :=
-  nearAir_complete good_complete small_complete (render_of_rest h)
+  nearAir_complete good_complete small_complete render_stmt_closed
 
 /-- **The honest trace fits** every table's height bound. -/
-theorem honestTrace_fits_rest (h : RenderRest) {c : WfClaim} {w : Witness} (hr : NearRelation c.1 w) :
+theorem honestTrace_fits_closed {c : WfClaim} {w : Witness} (hr : NearRelation c.1 w) :
     ∀ t (ht : t < nearAir.tables.length),
       1 ≤ (honestTrace c w).log t ∧ (honestTrace c w).log t ≤ nearAir.tables[t].maxLog :=
-  honestTrace_fits good_complete small_complete (render_of_rest h) hr
+  honestTrace_fits good_complete small_complete render_stmt_closed hr
 
 end ZkFormal.Near.Render

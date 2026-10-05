@@ -23,7 +23,7 @@ ever letting a result silently change meaning.
    pins `formal-core/` + `spec/lean/`, and the judge builds the reference
    only from the frozen tree with that digest (docs/TCB.md §1a). Changes to
    those directories on `main` — new spec modules, new judge templates,
-   `ArenaCore.SHA256Fast` for the ZK backend — take effect **only** through a
+   `ArenaCore.SHA256Fast` for the np-udr-stark validity backend — take effect **only** through a
    new challenge that pins the new tree; existing challenges keep their tree
    forever.
 
@@ -311,7 +311,7 @@ arena-admin freeze-trusted --commit 6873c9980fd93c0483e93b94fe7e8a1fe0d52d52 \
 Re-running the v1-3 admissions (docs/LIVE.md §5a): the npai-v1 entry is
 still ADMITTED; the two native-lean entries are INFRA_ERROR because the
 native-lean Expected template is not part of the v1 family's pinned tree.
-`ArenaCore.SHA256Fast` (ZK backend) and the spec v2 modules likewise take
+`ArenaCore.SHA256Fast` (np-udr-stark validity backend) and the spec v2 modules likewise take
 effect only for a challenge that pins a tree containing them.
 
 ### 7.5 Native-lean template pinned: v1-3 → v1-4, experimental successor (2026-10-05)
@@ -341,7 +341,7 @@ checkout agree). Relative to `6873c99`, `git diff --name-status` shows:
 * unchanged: every module the v1 statement uses (`ArenaCore.*`,
   `NearSpec.TransferV1`, `Challenge`, `ClaimCodec`, `Trie`, `Outcome`, …)
   and `Expected.lean.template`. `ArenaCore.SHA256Fast` is **not** in it
-  (added later for the ZK backend).
+  (added later for the np-udr-stark validity backend).
 
 **Challenges** (`arena-admin supersede`, key
 `/data/illia/nearproof-deps/keys/governance-local.key`), each identical to

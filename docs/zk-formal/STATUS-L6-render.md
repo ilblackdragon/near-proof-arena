@@ -257,7 +257,7 @@ it remains to identify the extracted view with `rcptViewsOf I`.
 | `ParentBusStmt` | `parentBus` (`parentBus'` under `KeyBound`) | `Proof/BusParent` |
 | `NodeSerStmt` | `nodeSer_ok` (`nodeSer'`) | `Proof/NodeSer` |
 | `NodeTrafficStmt` | `nodeTraffic_ok` | `Proof/NodeTraffic{1..7,}` |
-| `NodeLocalStmt` | open; height bound `node_log` and multiplicity bits `node_bits` done | `Proof/NodeLocal0` |
+| `NodeLocalStmt` | `nodeLocal` | `Proof/NodeLocal` (+ `NodeLocal0`, groups below) |
 | `DigestBusStmt` | open | — |
 
 Support: `Proof/NodeInfo` (reachability, depths, record-trie fuel stability),
@@ -271,3 +271,119 @@ Generator changes (rows unchanged on the tests; `test/NearRenderTest.lean` passe
 (`NodeGen.recsOf`, `rowCell`, `cell`).  `ShaFit1.pre_ok`/`post_ok` re-proved
 (same statements).  `Spec/Small.lean`: field `keys` (R-L6e-2), proved in
 `small_complete` (`keys_prune`).  All new modules elaborate in < 2 s.
+## Sub-lane L6e-rcpt (lane/zk-L6-rcptr): `RcptLocalStmt` (partial), `RcptTrafficStmt` (open)
+
+**Generator in closed form.** `Render/Rcpt.lean`: records `recsOf ds`
+(`RRec.cl i`, `RRec.seg r s i`), cells `fullCell` (= `segCell`/`clCell`, emission
+slots = the table's `emits` evaluated by `evalF`), carries/borrows `chain`/`bchain`,
+columns as numerals.  Same rows as the old imperative generator on ex1–ex5
+(checked cell by cell); `test/NearRenderTest.lean` passes (≈ 67 s, was ≈ 50 s).
+
+**Proof infrastructure** (`Render/Proof/Rcpt{Base,Rows,Cells,Col,Lem}`): `evR`
+(an expression on a row given as functions), `Zr` (syntactic vanishing when
+cells are zero), `nextOf` adjacency of the records, `allRows_of` (a constraint
+holds on every row from: record rows with their successor, the last record,
+padding rows), generated column lemmas `S_*`/`L_*` (simp sets `rseg`, `rcl`).
+
+**Proved families** (on every row of `render c.1 e`, under `Good`):
+`cStates` (`RcptStates1–7`: bits, one-hot, field bookkeeping, last indices,
+successions, receipt boundaries and offsets `o`/`o2`/`rcnt`, constants),
+`cEmit` (`RcptEmit`), `cChars` (`RcptChars1–5`: character-local constraints by
+`decide` over the 256 bytes on a synthetic row, separators, lengths,
+predecessor ≠ `system`, named receiver), `cKey` (`RcptKey`); heights and
+multiplicity bits (`RcptLocal`).
+
+**Assembly.** `RcptP.rcptLocal_of`/`rcptLocal_fams : RcptFams → RcptLocalStmt`;
+`RenderRest.rcptL` is now `RcptP.RcptFams` = the five open families
+`cRegs`, `cGas`, `cDep`, `cClaim`, `cEnd` (`FamOk F`: every `x ∈ F` holds on
+every row).  No table bug found.  All modules ≤ 8.1 s (`RcptChars1` 8.1 s,
+`RcptStates1` 4.6 s, rest ≤ 2.5 s); axioms `propext, Classical.choice,
+Quot.sound`.
+
+**Open.** The five families (registers/tokens, gas and balance byte-serial
+arithmetic, claim checks, end-of-batch) and `RcptTrafficStmt`.  Gas/dep need
+the chain lemmas (`Σ out_j 256^j + 256^n·carry_n = Σ x_j 256^j`) and the
+no-overflow facts of `RcptOk`; `cEnd` needs `pub_n/pub_nref/pub_tok`
+(`Link/Claim`) with `Hdr = ⟨hg.pv, hg.chain⟩`.
+
+## Sub-lane L6e-rcpt (continuation): `RcptLocalStmt`, `RcptTrafficStmt` proved
+
+| obligation | theorem | modules |
+|---|---|---|
+| `cRegs` | `RcptP.regsFam` | `Proof/RcptRegs{1..4}` (loads, head, shifts, claim loads/rotations, tokens) |
+| `cGas` | `RcptP.gasFam` | `Proof/RcptGas{F,B,1,2,3}` |
+| `cDep` | `RcptP.depFam` | `Proof/RcptDep{F,1,2,3}` |
+| `cClaim` | `RcptP.claimFam` | `Proof/RcptClaim{1,2}` |
+| `cEnd` | `RcptP.endFam` | `Proof/RcptEnd` |
+| `RcptLocalStmt` | `RcptP.rcptLocal` | `Proof/RcptEnd` |
+| `RcptTrafficStmt` | `RcptP.rcptTraffic_ok` | `Proof/RcptTr{1,2,3}`, `Proof/RcptTraffic` |
+
+Toolkit: `Proof/RcptNat` (byte-serial `Nat` facts: `V x n = Σ x_j 256^j`,
+`chain x n = V x n / 256^n` and its digits, `bchain`/`bdig` with the final borrow
+`[V a < V b + b0]`, `V (conv g v) n = Σ g_j 256^j V v (n−j)`, bytes of `leBytes`);
+`GasOk`/`DepOk` (numeric facts from `Receipt.wf`, `RcptOk`, `Account.decode`;
+bridges `gasOk`, `depOk`); `Proof/RcptFam.fam_of` (a family on every row by
+row kind).  Traffic reuses the soundness side: `rcptLocal` ⇒ `shape_of`,
+`traffic_of`; every field row of the extracted receipt `i` is the honest record
+`seg i f k` (`rec_at`: active, state, index and `r` cells determine it), so the
+extracted parameters and view are the honest ones (`rs_eq`, `view_eq`; receipt
+count from `count_ok`).  Needed bound: `kslot < 3·10^6` (`ns.length ≤ revealedOf ≤
+maxWitnessBytes`).
+
+`RenderRest` is now `nodeL, digest` (rcpt fields removed).  No table or
+generator change, no statement fix.  Elaboration (`lake env lean`, wall): every
+new module ≤ 3.1 s (RcptClaim2 3.1 s, RcptRegs1 2.8 s, rest ≤ 2.3 s); axioms
+`propext, Classical.choice, Quot.sound`.
+
+## Sub-lane L6e-digest (lane/zk-L6-digest): `DigestBusStmt` proved
+
+| obligation | theorem | modules |
+|---|---|---|
+| node receives | `BusDigest.node_digest` | `Proof/DigNode` |
+| merkle levels = `merklize` | `BusDigest.levels_dig_eq`, `root_dig` | `Proof/DigMrk` |
+| mrk receives | `BusDigest.mrk_digest` | `Proof/DigMrk2` |
+| rcpt receives, assembly | `BusDigest.rcpt_digest`, `digestBus` | `Proof/BusDigest` |
+
+Messages on DIGEST are keyed by the SHA message id (`kind + 16·idx`), not by
+content, so the "one digest sent, received several times" worry does not
+arise: every id of `bundle.msgs` is received exactly once, and `dmult = true`
+for all messages is right.  Node: root `NPRE/NPOST` from the public roots
+(`preRoot`/`postRoot`, `pub_pre/pub_post`), each non-root node as the revealed
+child of its unique parent (`BusParent.count_children`), `VPRE/VPOST` per
+touched slot (the acct messages).  Mrk: the root (against `outRoot`) plus both
+children of every hashed node = the leaves plus the hashed nodes (rotation
+`BusMpos.rot`; a promoted node is its child).  Rcpt: `RC`/`RF` (against
+`rcCommit`/`rfCommit`), `PEO(r)`, `RID(r)` for refunds; `LEAF(r)` goes to mrk.
+No hypothesis beyond `Good ∧ Small` (`Small.keys` for the node serializations);
+no generator change.
+
+`RenderRest` is now `nodeL` only.  Elaboration (`lake env lean`, wall): every
+new module < 1 s; axioms `propext, Classical.choice, Quot.sound`.
+
+## NodeLocalStmt (sub-lane L6e-nloc, `lane/zk-L6-nloc`) — closed
+
+`nodeLocal : NodeLocalStmt` (`Proof/NodeLocal`), so `RenderRest` is gone:
+`Proof/Main` has `render_stmt_closed : RenderStmt`, `nearAir_complete_closed`,
+`honestTrace_fits_closed` (hypothesis-free; axioms propext, Classical.choice,
+Quot.sound).  No table or generator change; `test/NearRenderTest.lean` passes.
+
+Method: constraints are evaluated over ℤ (`Proof/NodeEv`: `ev`, `ev_sound`;
+cells are naturals, so a constraint vanishes once its integer value is 0) and
+checked group by group on every row (`NodeRow0.GroupOk`; rows are node rows
+`mkR I n p`, the `SUM` row, padding; `row_node`, `next_row`).  Structure of
+the layout: `NodeSeq` (`layout_adj`: consecutive positions are the same field
+or a field succession `SuccOk`, which every record's non-empty fields chain by,
+`chain_fields`; first/last row of a node).
+
+| group | theorem | module (elab., s) |
+|---|---|---|
+| `cBool` | `cBool_ok` | `NodeBool` (7) |
+| `cRows` | `cRows_ok` | `NodeRows` (6) |
+| `cTrans` | `cTrans_ok` | `NodeTrans` (26), `NodeTrans2` (15) |
+| `cFields` | `cFields_ok` | `NodeFields` (22; `succ_facts`, `flag_facts`) |
+| `cBytes` | `cBytes_ok` | `NodeBytes` (3; `byte_facts`, bit sums `nib4`/`lo8`/`hi8`) |
+| `cWindows` | `cWindows_ok` | `NodeWin0`–`NodeWin3` (≤ 27; `win_shape`, `branch_win`: slot/index/last of a branch window) |
+| `cLinks` | `cLinks_ok` | `NodeLinks`–`NodeLinks4` (≤ 37; `res_node`: walk target, `lnk_tac` per field) |
+
+Support: `NodeFacts` (row bytes, wf, `node_ev`), `NodeRc` (cells at literal
+columns, `node_rc`; generated).

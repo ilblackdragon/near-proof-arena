@@ -379,6 +379,7 @@ dependencies = [
  "proof-mutators",
  "serde",
  "serde_json",
+ "sha2",
  "tar",
  "tempfile",
  "thiserror",

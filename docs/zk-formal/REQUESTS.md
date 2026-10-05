@@ -384,7 +384,8 @@ Quot.sound) pass that rule. Add this reproducer to `tests/native_route.rs`
   `conformance/run.sh`, log 3 (`n0 = 7`) honest proofs are now rejected by the Lean verifier;
   use logs ≥ 4.
 
-### R-L7-6 (to L6): minimum height of the honest NEAR trace (`NearAssembly.NearMinHeightStmt`)
+### R-L7-6 (to L6): minimum height of the honest NEAR trace (`NearAssembly.NearMinHeightStmt`) — DONE
+**Done (L6):** `NearAssembly.near_min_height : NearMinHeightStmt` (`NearAssembly/MinHeight.lean`): the SHA table always has `log ≥ 5` (`Render.render_sha_log_ge`; the `RC` message is always hashed).
 Admissible headers now need a query domain of at least 2^8 (`minQueryLog = 8`, R-L7-1), so some
 table of `honestTrace c w` must have at least 16 rows:
 `∀ c w, NearRelation c.1 w → ∃ t < 7, 4 ≤ (honestTrace c w).log t`.

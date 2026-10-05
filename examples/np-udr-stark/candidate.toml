@@ -1,14 +1,21 @@
 # np-udr-stark: the provable STARK backend `np-udr-stark-v1`
-# (docs/zk-formal/DESIGN.md §4, §7) for near-transfer-receipt-v1-2.
-# PACKAGE SKELETON: `prove` is a stub until the NEAR AIR lands (lane L6), and
-# formal/ holds a reject-all placeholder model and no certificate (lanes
-# L4/L7), so the judge cannot admit it yet. verify_route = native-lean: the
-# judge compiles [formal] verifier_model itself (as for reexec-witness);
+# (docs/zk-formal/DESIGN.md §4, §7) for near-transfer-receipt-v1-zk.
+# formal/NpUdrStark/Model.lean is the real deployed model
+# (= ZkFormal.NearAssembly.nearModel nearAir); NpUdrStark.certificate_of
+# (formal/NpUdrStark/Assembly.lean) proves the admission statement from L6's
+# RenderStmt + NearMinHeightStmt. NpUdrStark.certificate and the NEAR `prove`
+# path (L8, REQUESTS R-L7-7) are still pending, so the judge cannot admit it yet.
+# verify_route = native-lean: the judge compiles [formal] verifier_model itself;
 # build.sh replicates that build into out/verify.
+#
+# challenge: the UNSIGNED draft challenges/drafts/near-transfer-receipt-v1-zk.draft.json
+# (pins ArenaCore/NearSpec @ e4088761 = formal-core with sha256Fast, matching
+# source/lean-vendor). The id changes when governance signs it with the new
+# checker identity; update it here then.
 schema = "arena-candidate-v1"
 name = "np-udr-stark"
 agent = "backend-np-udr-stark"
-challenge = "chl_3be93793610370275ae40f36a475f01f"
+challenge = "chl_bdbfc8082737c592d3fe3d46992c7868"
 backend_family = "np-udr-stark-v1"
 security_profile_request = "validity-classical-128"
 hardware = { gpu = false, min_ram_gb = 4 }

@@ -215,3 +215,206 @@ Not performed: a fresh full-checker exploit run, a full Firecracker E2E run, a c
 7. Implement A05 if zero-knowledge privacy is part of the goal.
 
 Do not mark the task complete solely because Lean builds, the toy certificate passes, a conditional NEAR theorem is axiom-clean, or an experimental benchmark accepts honest proofs. Completion requires a closed certificate for the intended NEAR relation, a sound connection to the exact deployed verifier, and an executed mandatory E2E pipeline with negative controls.
+
+## Remediation status
+
+Updated 2026-10-05 on branch `lane/audit-fixes` (based on `8838e1b`). "Fixed"
+means the stated acceptance criteria are met by code and tests in this branch;
+it is not an independent re-audit. A01 and A02 are owned by other lanes and
+are not covered by this branch.
+
+| finding | status | evidence |
+|---|---|---|
+| A01 | Fixed upstream (`5fa43e9`, `5d6961e`); not re-done here | CI now runs the native csimp hostile cases (see A07) |
+| A02 | Open, in progress in other lanes | none here |
+| A03 | Scope statement **done**. Chain authentication and multi-shard semantics remain **open** by design (future v3) | `be002d6`, `a0e8785`, web `daa591b` |
+| A04 | **Fixed** for worker integration: v2 runs through the real worker pipeline (DEMO tier, test candidate) | `fda64b2`, `964c958`, `35249de` |
+| A05 | Labeling **fixed**: validity-only everywhere. A privacy theorem / `FORMAL_ZK` gate is still **open** (not a current goal) | `daa591b`, `be002d6` |
+| A06 | **Fixed** | `fda64b2` |
+| A07 | **Fixed** in the workflow definition; the hosted jobs have not run on GitHub yet, and the KVM job needs a self-hosted runner | `ff1b030`, `35249de` |
+
+### A03: statement scope
+
+* `README.md` § "What an admitted proof establishes" and
+  `docs/AGENT_CONTRACT.md` §6.1 state the scope:
+  * v1: the receipt-batch relation with a projected `slice_post_root` over
+    externally supplied (anchored) pre-state root and receipts commitments,
+    with the challenge's `excludes` quoted verbatim. It does not cover
+    finality, inclusion, an on-chain pre-root, data availability or full
+    chunk validation.
+  * v2: the real post-state root, but only for a restricted single-shard
+    domain.
+  * Full stateless-validator equivalence would be a future v3 and is not
+    claimed.
+* The web challenge page already rendered `semantic_scope.excludes` and
+  `restrictions` as "What an admitted proof does NOT establish". It now also
+  shows "Validity only, not privacy".
+* Out-of-scope transitions are rejected.
+  * `nearspec-check` (Lean reference) over `oracle/fixtures/{public,rejection}`
+    reports 20 ok and 14 `out_of_domain`, with 0 inconsistent.
+  * `nearspec-check --scope v2` over `oracle/fixtures/v2/{public,rejection}`
+    reports 25 ok and 18 `out_of_domain`, with 0 inconsistent.
+  * The rejection fixtures carry no expected claim, so the worker never
+    issues them (`NearOracle::read_cases`).
+  * `RequestPin` now pins the request encoding and statement id, the
+    protocol version and chain, the expected-claim encoding and statement,
+    and `params.bin`, including the runtime-config digest
+    (`jobs::tests::v1_and_v2_pins_reject_each_others_cases`). This includes
+    the v2 `wrong_protocol_version` rejection fixture.
+* Still open: authenticated chain context (headers, receipt inclusion,
+  finality, shard layout) and multi-shard semantics. No mainnet transition
+  claim is made.
+
+### A04: v2 in the worker
+
+* `NearOracle` is registered separately for `near-arena-claim-v1` and
+  `near-arena-claim-v2`.
+  * A generator spec must name the oracle's `--scope`, otherwise the job
+    fails closed.
+  * `ARENA_WORKLOAD_GENERATORS` accepts the v1 and v2 spec dirs.
+  * `approved_params` checks `params.bin` against the pin.
+* `runners/worker/tests/near_v2.rs::v2_draft_challenge_through_the_worker_pipeline`
+  runs an unsigned local TEST copy of
+  `challenges/drafts/near-transfer-receipt-v2.draft.json`.
+  * Stages: validate, build, conformance, adversarial and benchmark, with
+    job tier DEMO, on bwrap-dev.
+  * Inputs: `near-arena-oracle --scope v2`, the v2 generator specs and the
+    digest-pinned `oracle/fixtures/v2/public` (`sha256:074bddfd…`).
+  * Result: PASS on 25 fixtures plus 3 sampled cases, with 155 hostile
+    inputs rejected.
+  * The candidate is the TEST-ONLY `tests/e2e/near-v2-spec-candidate`
+    (prove/verify via `nearspec-check --scope v2`). No v2 formal certificate
+    exists, so FORMAL_CHECK is not run.
+  * The worker only consumes the challenge definition carried by the job, so
+    signing was unnecessary and no signed copy was produced.
+* `v2_pipeline_rejects_v1_inputs`:
+  * v1 fixtures under the v2 challenge fail with INFRA:
+    `request format "near-arena-request-v1", challenge expects "near-arena-request-v2"`.
+  * v1 generator specs fail with INFRA (`--scope v1`).
+  * `near-arena-claim-v3` stays UNKNOWN.
+* Unit tests: `oracle::tests::near_v1_and_v2_oracles_are_distinct` and
+  `jobs::tests::v1_and_v2_pins_reject_each_others_cases`.
+* Gated: `ARENA_NEAR_TESTS=1`, the oracle and `nearspec-check`. It ran
+  locally and passed, and it is part of the KVM CI job.
+* Not done: a v2 formal (native-lean / STARK) reference candidate. That
+  depends on A02-style work for `TransferV2`.
+
+### A05: privacy labeling
+
+* np-udr-stark, SP1 and Plonky3 are described as validity proofs, not
+  zero-knowledge, in:
+  * `examples/{np-udr-stark,zkvm-sp1,stark-plonky3}/README.md`;
+  * `docs/{CONTRACTS,TCB,THREAT_MODEL,PROTOCOL_UPGRADES}.md`;
+  * `docs/zk-formal/{DESIGN,STATUS-L7}.md`;
+  * `security/README.md`.
+* "zk" in `zk-formal`/`ZkFormal` is noted as historical in
+  `zk-formal/README.md` and `docs/zk-formal/DESIGN.md`.
+* `README.md` and `AGENT_CONTRACT.md` state that formal admission under
+  `validity-classical-128` establishes validity only.
+* No challenge requires `FORMAL_ZK`, and no part of the formal checker
+  produces it.
+
+### A06: coverage and sampling
+
+Fail-closed coverage (`runners/worker/src/oracle.rs`,
+`Oracles::conformance_suite`):
+
+* A pinned `public_fixtures` the worker cannot supply is an INFRA error
+  naming the pin. Only an all-zero digest means "no fixtures".
+* The pinned set must contain an in-domain case.
+* Every workload class contributes at least `max(1, ceil(samples/classes))`
+  sampled cases.
+* Benchmark batches must be full size.
+* Every case is pin-checked before any candidate code runs.
+
+Judge-secret sampling (`SeedCtx`):
+
+* With `ARENA_SEASON_SECRET_FILE` (hex, mode 0600, never sandboxed or
+  logged), seeds are `HMAC-SHA256(secret, "near-arena-workload-sample-v1|" ‖
+  challenge_id ‖ "|" ‖ package_digest ‖ "|" ‖ class)`.
+* These seeds are bit-identical to `arena_bench.seeds.derive_sampling_seed`.
+* `ARENA_SEASON_SECRET_COMMIT` checks the file against the published
+  commit-reveal digest `sha256("near-arena-secret-commit-v1\0" ‖ secret)`.
+  Summaries name the commitment.
+* Without a secret, summaries say "PUBLIC sampling seeds".
+* The procedure is documented in `docs/BENCHMARK_SPEC.md` §11.1–11.3.
+
+Committed held-out sets:
+
+* Held-out sets live in `ARENA_HELDOUT_DIRS` (judge-only), are matched to
+  `heldout_commitment` by TreeDigest and are re-hashed on use.
+* Once a worker has any held-out dir configured, a missing or mismatched
+  committed set is INFRA.
+* Conformance uses a seed-selected subset of each class.
+* Held-out ids, sizes and failure details are withheld from summaries
+  (RT-04).
+* A worker without held-out dirs reports "NOT exercised" rather than
+  skipping silently.
+
+Tests:
+
+* `oracle::tests::missing_pinned_fixtures_fail_closed`
+* `oracle::tests::insufficient_class_coverage_fails_closed`
+* `oracle::tests::heldout_set_is_verified_against_the_commitment`
+* `oracle::tests::judge_secret_sampling_seeds`: Python reference vectors,
+  and seeds change with the secret
+* `oracle::tests::season_secret_file_is_judge_only_and_never_printed`
+* `pipeline::conformance_fails_closed_without_pinned_fixtures`
+* `pipeline::conformance_uses_verified_heldout_set`
+
+Deployment note: the live worker (`deploy/live/arena-live`) has neither a
+season secret nor held-out dirs configured. Its runs therefore report public
+seeds and "held-out NOT exercised" until the operator sets them. See
+`deploy/hardened/env/worker.env.example`.
+
+Coverage remains empirical evidence and never substitutes for formal
+soundness.
+
+### A07: CI
+
+`.github/workflows/ci.yml` changes:
+
+* `zk-formal` is in the Lean matrix, with `.lake` caches for zk-formal and
+  its formal-core and spec/lean path dependencies.
+* It builds the Toy and NearAssembly certificates.
+* An axiom gate (`zk-formal/test/AdmissionAxioms.lean`) fails on anything
+  beyond `propext`/`Classical.choice`/`Quot.sound`, or on `sorryAx`.
+
+`formal-checker` job:
+
+* Runs `corpus`, `native_lean_route` (including the R-L7-5 `csimp_sorry`
+  case), `formal_core_toy` and `near_spec` with
+  `ARENA_REQUIRE_GATED_TESTS=1`.
+* Asserts from the log that every named test ran.
+
+Gated-test skips (`skip_gated!`):
+
+* Gated tests now print `ARENA-TEST-SKIPPED: <test>: <reason>` instead of
+  passing silently.
+* Under `ARENA_REQUIRE_GATED_TESTS=1` a skip panics.
+* This applies to the worker, formal-checker and firecracker test crates.
+
+`firecracker-e2e` job:
+
+* Runs on `[self-hosted, linux, x64, kvm]`, gated by
+  `vars.ARENA_KVM_RUNNER == 'true'` and excluded for fork PRs.
+* Runs the real Firecracker E2E (including `near` and `near_v2`) with every
+  gate variable set, and asserts that each named test ran.
+
+Validation and gaps:
+
+* actionlint 1.7.12 and shellcheck are clean. zizmor 1.24.1 reports no
+  findings (1 suppressed: `self-hosted-runner`, expected).
+* The formal-checker gated tests passed locally (corpus 83 s, formal_core
+  145 s, native route 64 s, near_spec 35 s).
+* Not yet observed: a run of the new jobs on GitHub-hosted runners, and any
+  KVM run, since no self-hosted runner is registered.
+
+Workspace checks on this branch:
+
+* `cargo fmt --all --check` and
+  `cargo clippy --workspace --all-targets -D warnings` are clean.
+* `cargo test --workspace`: 337 passed. `fork_bomb_and_background_daemon`
+  failed once from host thread exhaustion (EAGAIN) under full-workspace
+  parallelism and passed on two isolated reruns. That flakiness predates
+  this branch.

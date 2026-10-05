@@ -3,12 +3,20 @@
 This candidate targets the same registered statement as the reference
 candidate, `near/pv86/receipt-transfer-batch/v0` (`spec/claim-v1.md`,
 `spec/near-transfer-receipt-v1.md`). It belongs to a different backend family:
-a **succinct cryptographic proof**. The proof does not contain the witness,
-and the verifier does not re-execute NEAR semantics. It checks a constant-size
-(~1.27 MB) recursively compressed STARK proof from the
+a **succinct cryptographic proof**. The proof does not ship the witness
+verbatim, and the verifier does not re-execute NEAR semantics. It checks a
+constant-size (~1.27 MB) recursively compressed STARK proof from the
 [SP1](https://github.com/succinctlabs/sp1) v6.8.1 RISC-V zkVM. The proof
 attests that the pinned guest program ran on *some* (request, witness) and
 committed exactly `claim.bin`.
+
+**Validity only, not zero knowledge.** Despite the "zkVM" name, SP1's STARK
+core and its recursively compressed proofs (the form used here) are not
+zero-knowledge. Any privacy would have to come from wrapping, e.g. SP1's
+Groth16/PLONK outer proofs. This backend does not use them, and the arena
+would not check that property anyway: it checks validity only
+(`validity-classical-128`, `FORMAL_ZK` not applicable). No witness-privacy
+property is claimed or checked.
 
 **Tier expectation: EXPERIMENTAL.** None of the strict formal obligations
 about SP1 are discharged, and `formal/` deliberately defines no
@@ -185,7 +193,7 @@ lane's built `out/` binaries.
 | verify | 10–270 ms, grows with batch (Lean verifier, `List UInt8` SHA); 4–8 MB RSS | **30–110 ms constant**, 5 MB RSS |
 | prove | **< 10 ms**, 2 MB RSS | 46–83 s (quiet host) / 90–220 s (loaded), 16–38 GB RSS |
 | setup / keys | none (`public.bin` = params) | program vkey from judge-run `prepare` (transparent) |
-| privacy of witness | witness revealed in the proof | witness not in the proof (validity only, ZK not claimed) |
+| privacy of witness | witness revealed in the proof | none: witness not shipped verbatim, but the STARK is not hiding (validity only, not ZK) |
 | formal evidence | **full admission certificate**: `DeterministicSound` (ε = 0, no assumption), completeness, codec round trip, native-lean impl edge *trusted* | semantic layer vacuous; **crypto, constraint, compiler, guest and impl links missing**; SP1 targets 100 bits; FS hash (Poseidon2) not an approved assumption |
 | TCB | Lean kernel + Lean compiler/runtime (verify) | SP1 protocol + recursion circuits + AIRs incl. SHA precompile + sp1-verifier + succinct rustc + guest |
 | tier | formal-admissible (pending judge native-lean route) | EXPERIMENTAL |

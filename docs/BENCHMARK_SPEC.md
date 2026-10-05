@@ -500,12 +500,33 @@ leader re-run) append a tag to `class_id` (`<class>#fresh`, `<class>#rerun2`).
 Same package digest ⇒ same inputs (dedup: re-submitting an identical package
 returns the cached result, it does not re-roll noise).
 
+**Worker implementation** (`runners/worker/src/oracle.rs`, `SeedCtx`): the
+season secret is read from the judge-only file `ARENA_SEASON_SECRET_FILE` (hex,
+≥ 32 bytes, must not be group/other accessible); it is never passed to a
+sandbox or placed in paths, arguments or messages (only the derived per-class
+seed reaches the judge's own `near-arena-oracle gen --seed`), and `Debug`
+prints only its commitment. The class component is
+`class_id`, replaced by a re-run tag that already starts with `<class_id>#`
+(`batch-1#fresh`, `batch-1#confirm-<phase>-<round>`) and extended by `#heldout`
+for the held-out subset selection; the result is bit-identical to
+`arena_bench.seeds.derive_sampling_seed` (test `judge_secret_sampling_seeds`).
+Conformance, adversarial controls and benchmark batches all draw from it. If a
+worker has no secret configured it falls back to the public
+`derive_seed("workload", class_id, challenge_id, package_digest, tags…)` and
+says so in the `CONFORMANCE_DIFFERENTIAL` and `BENCHMARK` summaries ("PUBLIC
+sampling seeds"); such runs are reproducible by anyone, including the
+submitter, and must not be presented as secret-sampled.
+
 ### 11.2 Commit-reveal of the season secret
 
 * Before a season opens governance publishes
   `commit = sha256("near-arena-secret-commit-v1\0" || season_secret)`
   (secret ≥ 32 random bytes) in the season manifest.
-* The secret lives only in the judge's sampling service.
+* The secret lives only in the judge's sampling service (the worker reads
+  it from `ARENA_SEASON_SECRET_FILE`; with `ARENA_SEASON_SECRET_COMMIT` set to
+  the published commitment, a worker whose secret does not match refuses to
+  start). Every gate summary that used it names the commitment, so the
+  reveal can be matched to the runs.
 * At season end the secret is revealed; anyone can verify the commitment
   (`arena_bench.seeds.verify_reveal`), recompute every submission's sampling
   seeds and regenerate its inputs, proving the judge did not cherry-pick
@@ -518,6 +539,27 @@ set (tree digest) revealed at season end. During the season held-out cases
 are used for correctness gating only, with **bucketed feedback** (§11.4). At
 season end, the top entries are re-measured on held-out timing batches and the
 season standings report both numbers.
+
+**Worker implementation:** held-out sets live in judge-only directories
+(`ARENA_HELDOUT_DIRS`, never mounted into a sandbox) laid out per class
+(`<class>/…` in the claim encoding's fixture layout) and are matched to
+`heldout_commitment` by TreeDigest, re-hashed on every use. Once a worker has
+any held-out dir configured, a committed set that is missing or whose digest
+differs is an infrastructure error (fail closed). CONFORMANCE uses a
+seed-selected subset of each class (as many as the sampled cases per class);
+held-out cases are non-public: their ids, proof sizes, timings and failure
+details never reach summaries or public evidence (RT-04), and the summary
+reports only the count and the commitment. A worker without held-out dirs
+reports "held-out set … NOT exercised" in the CONFORMANCE summary instead of
+silently skipping it.
+
+**Coverage floor (fail closed):** a challenge that pins `public_fixtures` must
+be run against exactly that set (a worker without it fails the job as
+infrastructure, naming the pin), the set must contain an in-domain case, and
+every workload class must contribute at least `max(1, ceil(samples /
+classes))` judge-sampled cases; benchmark batches must have their full size.
+Empirical coverage is evidence, not a soundness argument: it never substitutes
+for the formal gates.
 
 ### 11.4 Adaptive-leakage limits
 
