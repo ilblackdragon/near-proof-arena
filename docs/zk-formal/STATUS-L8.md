@@ -116,3 +116,48 @@ streaming prover; it is not in the workloads (DESIGN §8: only the Lean model
   ≤ 1.57 GB (`bench/results/near-lowmem-2026-10-05.tsv`).
 * Reproducible package build with the real prove: two clean builds (fresh HOMEs, second
   under `unshare -rn`) bit-identical: prepare 6ba6ebb6…, prove e7a9eb09…, verify c82117cb….
+
+## lane/zk-L8e — max witness under 600 s (prover-only child `np-udr-stark-fast`)
+
+Max in-domain witness (gen-max, sha/node tables 2^22, 3.3 GB compact trace), all
+runs pinned to CPUs 8-15 (CCD1, no V-cache; the live worker owns 0-7/16-23),
+proof byte-identical to the main prover's (sha256 0fc29afc…) in every run:
+
+| prover | threads | prove | peak RSS |
+|---|---|---|---|
+| main (L8d), CPUs 0-7, busy host | 8 | 1859 s | 11.4 GB |
+| L8e, AVX2 build | 8 | 627 s | 11.1 GB |
+| L8e, AVX-512 build | 8 | 394 s | 11.25 GB |
+| L8e, AVX-512 build (SMT siblings 8-15,24-31) | 16 | 383 s | 11.5 GB |
+| packaged `out/prove` (dispatches to `out/prove-avx512`) | 8 | **379 s** | 11.27 GB |
+
+Lean `out/verify` accepts the max-case proof (1.0 s). Phases (AVX-512, 8 thr):
+main commit 153 s, aux 68, quotient 89, quot commit 25, OOD 9, DEEP 18, openings 28.
+
+* Quotient (1241 s → 89 s): it already ran on 2^⌈log nq⌉·T = 4T points; the cost was
+  re-transforms. Now: values on nq = 3 cosets + per-coefficient Vandermonde solve;
+  main trace converted to coefficients once (compact columns released, rebuilt
+  after); bus family from cached aux coefficients and, for table 0, the 99
+  degree-1 interaction-value polynomials instead of the 403 columns they read;
+  base-field fingerprints (FastBus).
+* Aux values computed once per row for all groups (was once per 32-column chunk),
+  aux coefficients cached across commit groups; glibc mmap threshold pinned +
+  malloc_trim (quotient peak 13.7 → 11.1 GB); KEEP 4 → 6.
+* AVX-512: the arena Firecracker guest exposes AVX-512 F/BW/DQ/VL/IFMA (no CPU
+  template; verified by running ZMM code in an arena-launched guest). `out/prove`
+  (x86-64-v3) execs `out/prove-avx512` (x86-64-v4, same source) after runtime
+  detection (`NPUDR_NO_AVX512=1` disables). The packed Montgomery multiply-add is
+  ~6.6× faster (opening folds), coset DFTs ~1.5×. AVX2-only hosts: ~620 s, over cap.
+* Package `examples/np-udr-stark-fast` (parent `examples/np-udr-stark` unchanged =
+  main): two clean builds (second `unshare -rn`) bit-identical; `out/prepare`
+  6ba6ebb6… and `out/verify` c82117cb… identical to the parent, formal tree and
+  dependency-locks identical; `out/prove` 40ad5fb5…, `out/prove-avx512` 4cb43664….
+  `parent = "sub_…"` must be set to the admitted np-udr-stark submission.
+* Fixtures with the packaged binaries: 38/38 claims, 38/38 accept, all false-claim /
+  mutated / truncated / swapped rejected; batch-256 prove ~7.6 s (was 13–14 s).
+* Tests: `tests/lowmem_near.rs` (new): ref == lowmem on NEAR fixtures v4/v5/v17 and
+  gen-max 60k at default and tiny budgets; toy `lowmem`, `near_fuzz` pass; under
+  both AVX2 and AVX-512 builds.
+* Workload spec: `near-arena-oracle gen --profiles max_witness` (oracle/src/maxwit.rs)
+  + `spec/workloads/near-transfer-receipt-v2/max-witness.{json,md}` (not governed;
+  pinned spec doc unchanged).

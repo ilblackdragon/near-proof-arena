@@ -592,6 +592,7 @@ pub struct Case {
 /// `bw_state` (varied pre-existing scheduler states), `trie_shapes` (states that
 /// force every insert case: root leaf/extension/branch, exotic keys under 0x0f),
 /// `missed` (missed_chunks_count > 0, no refunds), `shards` (non-zero shard ids).
+/// Not in the default list, only on request: `max_witness` (`src/maxwit.rs`).
 pub const PROFILES: &[&str] = &[
     "basic", "prefix", "boundary", "repeat", "prices", "large", "bw_state", "trie_shapes", "missed", "shards",
 ];
@@ -781,6 +782,9 @@ fn force_no_refunds(req: &mut Request) {
 }
 
 pub fn gen_valid(seed: u64, idx: u64, profile: &str) -> Case {
+    if profile == crate::maxwit::PROFILE {
+        return gen_max_witness(seed, idx);
+    }
     let v1_profile = if casegen::PROFILES.contains(&profile) { profile } else { "basic" };
     for attempt in 0u64.. {
         let mut base = casegen::gen_valid(seed, idx.wrapping_mul(7).wrapping_add(attempt), v1_profile);
@@ -827,6 +831,21 @@ pub fn gen_valid(seed: u64, idx: u64, profile: &str) -> Case {
         }
     }
     unreachable!()
+}
+
+/// `max_witness` under v2 (`src/maxwit.rs`): shard 0, zero congestion, no
+/// missed chunks (every receipt refunds), and the scheduler state a
+/// single-shard chain stores, whose `0x0f` path is part of the calibrated
+/// witness.
+fn gen_max_witness(seed: u64, idx: u64) -> Case {
+    let mut rng = Rng::new(seed ^ 0xB4D5_4D57_0000_0002, idx);
+    let bw = bw_value(&[(0, 0, 4_400_000)], rng.bytes32());
+    let (base, st) = crate::maxwit::generate(seed, idx, crate::maxwit::receipts(), &[(BW_KEY.to_vec(), bw)], &[BW_KEY.to_vec()]);
+    eprintln!("max_witness {}: {st:?}", base.id);
+    let req = Request::from_v1(base.request);
+    let c = Case { id: base.id, profile: base.profile, request: req, state: base.state, invalid_kind: None };
+    assert!(check(&c.request, &c.state, st.witness_bytes).is_ok(), "max_witness case out of domain");
+    c
 }
 
 pub fn gen_invalid(seed: u64, idx: u64, kind: &str) -> Case {

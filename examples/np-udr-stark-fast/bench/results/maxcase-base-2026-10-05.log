@@ -1,0 +1,43 @@
+[prove] trace 1.911s tables 544x2^22 163x2^22 12x2^16 228x2^17 16x2^12 58x2^14 49x2^13 (3323 MB)
+[prove] resident 5136 MB, chunk 32, group 2^24
+[prove] main commit: 205.749s
+[prove]   coeffs 36.1s eval 122.3s feed 24.9s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s
+[prove] aux: 203.846s
+[prove]   coeffs 105.7s eval 55.0s feed 11.1s auxvals 94.5s beval 0.0s auxc 0.0s fill 0.0s
+[prove] quotient: 1240.850s
+[prove]   coeffs 802.6s eval 88.9s feed 0.0s auxvals 463.9s beval 24.8s auxc 54.3s fill 1140.8s
+[prove] quot commit: 29.536s
+[prove]   coeffs 0.6s eval 8.4s feed 1.8s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s
+[prove] ood: 30.329s
+[prove]   coeffs 0.0s eval 0.0s feed 0.0s auxvals 19.3s beval 0.0s auxc 0.0s fill 0.0s
+[prove] deep: 40.414s
+[prove]   coeffs 0.0s eval 2.9s feed 0.0s auxvals 19.2s beval 0.0s auxc 0.0s fill 0.0s
+[prove] fri: 1.377s
+[prove]   coeffs 0.0s eval 0.0s feed 0.0s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s
+[prove] openings: 105.047s
+[prove]   coeffs 30.9s eval 0.0s feed 0.0s auxvals 19.3s beval 0.0s auxc 0.0s fill 0.0s
+[prove] total 1859.258s proof 3561135 B
+	Command being timed: "taskset -c 0-7 /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/l8e/prove-base --public /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/pv/pub --request /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/maxcase/max/request.bin --witness /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/maxcase/max/witness.bin --claim-out /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/l8e/cbase.bin --proof-out /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/l8e/pbase.bin"
+	User time (seconds): 11699.59
+	System time (seconds): 260.63
+	Percent of CPU this job got: 643%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 30:59.43
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 11445436
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1
+	Minor (reclaiming a frame) page faults: 329562223
+	Voluntary context switches: 497152
+	Involuntary context switches: 865140
+	Swaps: 0
+	File system inputs: 6392
+	File system outputs: 7032
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+EXIT 0
