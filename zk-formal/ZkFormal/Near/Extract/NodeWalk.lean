@@ -123,3 +123,86 @@ theorem nextState {s ℓ : Nat} {fl : List (Nat × Nat)} (hC : NodeCtx tr s ℓ 
   · rw [h] at e; exact absurd e fp_one_ne_zero
 
 end ZkFormal.Near.NodeProof
+
+namespace ZkFormal.Near.NodeProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Node
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal Node.table tr T_NODE pub)
+include hL
+
+theorem fieldRow {s ℓ : Nat} {fl : List (Nat × Nat)} (hC : NodeCtx tr s ℓ fl) {i : Nat} (hi : i < fl.length) :
+    s + fl[i].1 < tr.height T_NODE ∧ s + fl[i].1 + fl[i].2 ≤ tr.height T_NODE := by
+  have := (hC.fields.field _ (List.getElem_mem hi)); have := this.1.pos; have := hC.bound; omega
+
+/-- Field length from its state. -/
+theorem fieldLength {s ℓ : Nat} {fl : List (Nat × Nat)} (hC : NodeCtx tr s ℓ fl) {i : Nat} (hi : i < fl.length) :
+    let K := fun x => tr.cell T_NODE (s + fl[i].1) x
+    (K sTAG = 1 → fl[i].2 = 1) ∧ (K sHPL = 1 → fl[i].2 = 4) ∧ (K sHPF = 1 → fl[i].2 = 1) ∧
+    (K sKEY = 1 → (fl[i].2 + 1 : Nat) = (K hplen).toNat) ∧
+    (K sVLEN = 1 → fl[i].2 = 4) ∧ (K sVH = 1 → fl[i].2 = 32) ∧ (K sBM = 1 → fl[i].2 = 2) ∧
+    (K sCH = 1 → fl[i].2 = 32) ∧ (K sMEM = 1 → fl[i].2 = 8) := by
+  intro K
+  have hP : tr.height T_NODE + 4 < P := by have := height_le hL; unfold P; omega
+  obtain ⟨he, hst, hidx⟩ := fieldEndRow hL hC hi
+  have hF := (hC.fields.field _ (List.getElem_mem hi)).1
+  have hr := fieldRow hL hC hi
+  have FL := fieldLen hL (r := s + fl[i].1 + fl[i].2 - 1) (by have := hF.pos; omega) he
+  simp only [hst sTAG (by simp [states]), hst sHPL (by simp [states]), hst sHPF (by simp [states]),
+    hst sKEY (by simp [states]), hst sVLEN (by simp [states]), hst sVH (by simp [states]),
+    hst sBM (by simp [states]), hst sCH (by simp [states]), hst sMEM (by simp [states]), hidx] at FL
+  have conv : ∀ c : Nat, c < P → ((fl[i].2 - 1 : Nat) : Fp) = (c : Fp) → fl[i].2 = c + 1 := by
+    intro c hc e
+    have := ofNat_inj (by have := hF.pos; omega) hc e
+    have := hF.pos; omega
+  refine ⟨fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_,
+    fun h => ?_, fun h => ?_⟩
+  · exact conv 0 (by unfold P; omega) (FL.1 h)
+  · exact conv 3 (by unfold P; omega) (FL.2.1 h)
+  · exact conv 0 (by unfold P; omega) (FL.2.2.1 h)
+  · have e := FL.2.2.2.1 h
+    -- idx + 2 = hplen at the end row; hplen is node-constant
+    have hcst : tr.cell T_NODE (s + fl[i].1 + fl[i].2 - 1) hplen = K hplen := by
+      have key : ∀ d, d < fl[i].2 → tr.cell T_NODE (s + fl[i].1 + d) hplen = K hplen := by
+        intro d; induction d with
+        | zero => intro _; rfl
+        | succ d ih =>
+          intro hd
+          have hnl : tr.cell T_NODE (s + fl[i].1 + d) nl = 0 := by
+            have hfe : tr.cell T_NODE (s + fl[i].1 + d) fe = 0 :=
+              bool01 hL (by omega) (by simp [boolCols]) (fun h' => by have := (hF.fe d (by omega)).1 h'; omega)
+            exact bool01 hL (by omega) (by simp [boolCols]) (fun h' => by
+              have := ((rowFacts hL (by omega)).2.2.2.2.1 h').2.1; rw [hfe] at this; exact fp_zero_ne_one this)
+          have := (inNode hL (r := s + fl[i].1 + d) (by omega) (hF.act d (by omega)) hnl).2.2.2 hplen (by simp [nodeConst])
+          rw [show s + fl[i].1 + (d + 1) = s + fl[i].1 + d + 1 by omega, this, ih (by omega)]
+      have := key (fl[i].2 - 1) (by have := hF.pos; omega)
+      rwa [show s + fl[i].1 + (fl[i].2 - 1) = s + fl[i].1 + fl[i].2 - 1 by have := hF.pos; omega] at this
+    rw [hcst] at e
+    have : ((fl[i].2 - 1 : Nat) : Fp) + 2 = Fp.ofNat (fl[i].2 + 1) := by
+      rw [natCast_eq, show (2 : Fp) = Fp.ofNat 2 from rfl, ofNat_add']; congr 1; have := hF.pos; omega
+    rw [← e, this, Fp.toNat_ofNat, Nat.mod_eq_of_lt (by omega)]
+  · exact conv 3 (by unfold P; omega) (FL.2.2.2.2.1 h)
+  · exact conv 31 (by unfold P; omega) (FL.2.2.2.2.2.1 h)
+  · exact conv 1 (by unfold P; omega) (FL.2.2.2.2.2.2.1 h)
+  · exact conv 31 (by unfold P; omega) (FL.2.2.2.2.2.2.2.1 h)
+  · exact conv 7 (by unfold P; omega) (FL.2.2.2.2.2.2.2.2 h)
+
+/-- A MEM field is the last field. -/
+theorem memLast {s ℓ : Nat} {fl : List (Nat × Nat)} (hC : NodeCtx tr s ℓ fl) {i : Nat} (hi : i < fl.length)
+    (hm : tr.cell T_NODE (s + fl[i].1) sMEM = 1) : i + 1 = fl.length := by
+  rcases Nat.lt_or_ge (i + 1) fl.length with h | h
+  · exfalso
+    obtain ⟨he, hst, -⟩ := fieldEndRow hL hC hi
+    have hr := fieldRow hL hC hi
+    have hF := (hC.fields.field _ (List.getElem_mem hi)).1
+    have hnl := (rowFacts hL (r := s + fl[i].1 + fl[i].2 - 1) (by have := hF.pos; omega)).2.2.2.2.2
+      (by rw [hst sMEM (by simp [states]), hm]) he
+    -- a node end inside the segment, before its last row
+    have hnext := hC.fields.next h
+    have hF1 := hC.fields.field _ (List.getElem_mem h)
+    have p0 := hF.pos; have p1 := hF1.1.pos; have p2 := hF1.2
+    have := hC.seg.2.2.2.2.2 (s + fl[i].1 + fl[i].2 - 1) (by omega) (by omega)
+    simp only [one, decide_eq_false_iff_not] at this; exact this hnl
+  · omega
+
+end ZkFormal.Near.NodeProof
