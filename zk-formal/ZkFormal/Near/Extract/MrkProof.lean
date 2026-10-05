@@ -650,3 +650,79 @@ theorem succF (hL : TableLocal Mrk.table tr T_MRK pub) {p0 p1 : Nat × Nat}
   exact ⟨e1, e2, e3⟩
 
 end ZkFormal.Near.MrkProof
+
+namespace ZkFormal.Near.MrkProof
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near.Dsl ZkFormal.Near.Mrk MrkShape
+
+variable {tr : Trace Fp} {pub : List Fp} {segs : List (Nat × Nat)}
+
+/-- Segment decomposition facts packaged. -/
+structure Segs (tr : Trace Fp) (segs : List (Nat × Nat)) : Prop where
+  consec : Consec 0 segs
+  bound : segEnd 0 segs ≤ tr.height T_MRK - 1
+  seg : ∀ p ∈ segs, IsSeg (actS tr) (firstS tr) (lastS tr) p.1 p.2
+  pad : ∀ r, segEnd 0 segs ≤ r → r < tr.height T_MRK - 1 → actS tr r = false
+
+theorem Segs.le (hS : Segs tr segs) {p : Nat × Nat} (hp : p ∈ segs) : p.1 + p.2 ≤ tr.height T_MRK - 1 := by
+  have := seg_le_end segs 0 hS.consec p hp; have := hS.bound; omega
+
+theorem Segs.nonempty (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) : 0 < segs.length := by
+  rcases Nat.eq_zero_or_pos segs.length with h | h
+  · exfalso
+    rw [List.length_eq_zero_iff] at h; subst h
+    have h2 := height_ge hL
+    have := hS.pad 0 (by simp [segEnd]) (by omega)
+    simp only [actS, decide_eq_false_iff_not, Nat.zero_add] at this
+    exact this (rootRow hL (by omega)).2.1
+  · exact h
+
+theorem Segs.first (hS : Segs tr segs) (h : 0 < segs.length) : segs[0].1 = 0 := by
+  have := hS.consec
+  cases segs with
+  | nil => simp at h
+  | cons p rest => exact this.1
+
+theorem Segs.next (hS : Segs tr segs) {t : Nat} (ht : t + 1 < segs.length) :
+    segs[t + 1].1 = segs[t].1 + segs[t].2 := consec_get segs 0 hS.consec t ht
+
+/-- Small counters: `1 ≤ j_t ≤ t + 1`, `i_t ≤ t`. -/
+theorem bounds (hL : TableLocal Mrk.table tr T_MRK pub) (hS : Segs tr segs) :
+    ∀ t (ht : t < segs.length), 1 ≤ (tr.cell T_MRK (segs[t].1 + 1) j).toNat ∧
+      (tr.cell T_MRK (segs[t].1 + 1) j).toNat ≤ t + 1 ∧ (tr.cell T_MRK (segs[t].1 + 1) i).toNat ≤ t := by
+  have hP : tr.height T_MRK < P := by have := height_le hL; unfold P; omega
+  have hlen : segs.length ≤ tr.height T_MRK := by
+    have := hS.bound
+    have : segs.length ≤ segEnd 0 segs := by
+      have key : ∀ (l : List (Nat × Nat)) s0, Consec s0 l → (∀ p ∈ l, 0 < p.2) → s0 + l.length ≤ segEnd s0 l := by
+        intro l; induction l with
+        | nil => intro s0 _ _; simp [segEnd]
+        | cons p rest ih =>
+          intro s0 hc hpos
+          obtain ⟨s, ℓ⟩ := p
+          obtain ⟨rfl, hc⟩ := hc
+          have := ih (s + ℓ) hc (fun q hq => hpos q (by simp [hq]))
+          have := hpos (s, ℓ) (by simp)
+          simp only [segEnd, List.length_cons] at *; omega
+      have := key segs 0 hS.consec (fun p hp => (hS.seg p hp).1); omega
+    omega
+  intro t
+  induction t with
+  | zero =>
+    intro ht
+    have h2 := height_ge hL
+    obtain ⟨-, -, hj, hi, -⟩ := rootRow hL (by omega)
+    rw [hS.first ht, Nat.zero_add, hj, hi]; decide
+  | succ t ih =>
+    intro ht
+    obtain ⟨a1, a2, a3⟩ := ih (by omega)
+    have hp0 := List.getElem_mem (l := segs) (by omega : t < segs.length)
+    have hp1 := List.getElem_mem (l := segs) ht
+    obtain ⟨-, f1, f2, -⟩ := succF hL (hS.seg _ hp0) (hS.le hp0) (hS.seg _ hp1) (hS.le hp1) (hS.next ht)
+    rcases isBool hL (r := segs[t].1 + 1) (by have := hS.le hp0; have := (hS.seg _ hp0).1; omega)
+      (x := lil) (by simp) with hl | hl
+    · obtain ⟨e1, e2, -⟩ := f1 hl
+      rw [toNat_eq_of e1, toNat_succ_of e2 (by omega)]; omega
+    · obtain ⟨e1, e2, -⟩ := f2 hl
+      rw [toNat_succ_of e1 (by omega), e2]; simp [Fp.toNat_zero]; omega
+
+end ZkFormal.Near.MrkProof
