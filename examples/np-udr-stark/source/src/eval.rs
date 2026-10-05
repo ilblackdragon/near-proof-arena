@@ -480,6 +480,26 @@ impl BlockEval {
         alpha_pow: &[EF],
         out: &mut [EF],
     ) {
+        self.eval_rows(rows, width, 0, next, sel_first, sel_last, alpha_pow, out)
+    }
+
+    /// As [`Self::eval_combined`], for the rows `row0 .. row0 + out.len()`
+    /// of `rows`: `out[i]` is evaluated on row `row0 + i`, with next row
+    /// `next[i]` (an absolute row index of `rows`) and selectors
+    /// `sel_first[i]`, `sel_last[i]`. Lets a caller split one block into
+    /// chunks whose next rows lie anywhere in the block.
+    #[allow(clippy::too_many_arguments)]
+    pub fn eval_rows(
+        &self,
+        rows: &[F],
+        width: usize,
+        row0: usize,
+        next: &[u32],
+        sel_first: &[F],
+        sel_last: &[F],
+        alpha_pow: &[EF],
+        out: &mut [EF],
+    ) {
         let n = out.len();
         if n == 0 {
             return;
@@ -487,7 +507,7 @@ impl BlockEval {
         assert!(alpha_pow.len() >= self.num_constraints, "alpha_pow too short");
         assert!(next.len() >= n && sel_first.len() >= n && sel_last.len() >= n);
         assert!(self.max_col <= width, "column out of range");
-        assert!(rows.len() >= n * width);
+        assert!(rows.len() >= (row0 + n) * width);
         let nrows = if width == 0 { usize::MAX } else { rows.len() / width };
         assert!(next[..n].iter().all(|&j| (j as usize) < nrows), "next row out of range");
 
@@ -515,7 +535,7 @@ impl BlockEval {
                 let raw = raw_regs_mut(&mut regs);
                 for l in 0..L {
                     let i = i0 + l.min(cnt - 1);
-                    cur_off[l] = i * width;
+                    cur_off[l] = (row0 + i) * width;
                     nxt_off[l] = next[i] as usize * width;
                     if let Some(r) = self.sel[0] {
                         raw[r as usize * L + l] = sel_first[i];

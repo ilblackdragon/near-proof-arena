@@ -8,6 +8,7 @@ use p3_util::{log2_strict_usize, reverse_slice_index_bits};
 use rayon::prelude::*;
 
 use crate::air::{Air, Table, Tape};
+use crate::eval::BlockEval;
 use crate::aux::{aux_constraints, AuxLayout};
 use crate::field::{ef_coeffs, ef_from_base, ef_from_coeffs, omega, shift, EF, F};
 use crate::hash::Digest64;
@@ -296,6 +297,9 @@ fn quotient(
     let wa = q.lay.width();
     // next-row permutation inside a block (bit-reversed order)
     let next: Vec<usize> = (0..t).map(|u| rev((rev(u, h) + 1) % t, h)).collect();
+    let next32: Vec<u32> = next.iter().map(|&x| x as u32).collect();
+    let beval = BlockEval::new(tape, pubs);
+    const CHUNK: usize = 1024;
     let mut qv: Vec<EF> = Vec::with_capacity(t << e);
     for b in 0..1usize << e {
         let blk = main.block(dft, b);
@@ -307,23 +311,37 @@ fn quotient(
         let zinv = z.inverse();
         let i1 = batch_multiplicative_inverse(&xs.iter().map(|&x| tf * (x - F::ONE)).collect::<Vec<_>>());
         let i2 = batch_multiplicative_inverse(&xs.iter().map(|&x| tf * (x - h_last)).collect::<Vec<_>>());
+        let sfirst: Vec<F> = i1.iter().map(|&v| z * v).collect();
+        let slast: Vec<F> = i2.iter().map(|&v| h_last * z * v).collect();
+        // main-trace constraints, combined with α^k (packed batch evaluator)
+        let mut mains = vec![EF::ZERO; t];
+        mains.par_chunks_mut(CHUNK).enumerate().for_each(|(ci, out)| {
+            let r0 = ci * CHUNK;
+            let r1 = r0 + out.len();
+            beval.eval_rows(
+                &blk.values,
+                w,
+                r0,
+                &next32[r0..r1],
+                &sfirst[r0..r1],
+                &slast[r0..r1],
+                &apow,
+                out,
+            );
+        });
         let part: Vec<EF> = (0..t)
             .into_par_iter()
             .map_init(
-                || (Vec::new(), Vec::new(), Vec::new(), Vec::new()),
-                |(regs, iregs, cs, phis), u| {
-                    let first = z * i1[u];
-                    let last = h_last * z * i2[u];
+                || (Vec::new(), Vec::new(), Vec::new()),
+                |(iregs, cs, phis), u| {
+                    let first = sfirst[u];
+                    let last = slast[u];
                     let sel = [first, last, F::ONE - last];
                     let row = &blk.values[u * w..(u + 1) * w];
                     let nu = next[u];
                     let nrow = &blk.values[nu * w..(nu + 1) * w];
                     let col = |c: usize, nn: bool| if nn { nrow[c] } else { row[c] };
-                    tape.eval::<F>(regs, col, pubs, sel);
-                    let mut acc = EF::ZERO;
-                    for (o, a) in tape.outputs.iter().zip(&apow) {
-                        acc += *a * regs[*o as usize];
-                    }
+                    let mut acc = mains[u];
                     if wa > 0 {
                         q.lay.itape.eval::<F>(iregs, col, pubs, sel);
                         let ivals: Vec<EF> =
