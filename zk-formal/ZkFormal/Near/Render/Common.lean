@@ -190,17 +190,19 @@ structure WStep where
   last : Bool
   deriving Repr, Inhabited
 
+/-- Steps from state `st` consuming `syms` (symbol index from `t`). -/
+def walkFrom (I : Info) : Nat × Nat → List Nat → Nat → Except String (List WStep)
+  | _, [], _ => .ok []
+  | st, sym :: syms, t => do
+    let st' ← stepOf I st.1 st.2 sym
+    let rest ← walkFrom I st' syms (t + 1)
+    return ⟨some t, sym, [st.1, st.2, sym, st'.1, st'.2], sym = SYM_END⟩ :: rest
+
 /-- The walk of receipt `rc`: `START` then one step per key symbol. -/
 def walkOf (I : Info) (rc : Receipt) : Except String (List WStep) := do
   let r0 := I.res.getD 0 0
-  let mut steps : Array WStep := #[⟨none, SYM_START, [0, 0, SYM_START, r0, 0], false⟩]
-  let mut st := (r0, 0)
-  let syms := keySyms rc
-  for (sym, t) in syms.zip (List.range syms.length) do
-    let st' ← stepOf I st.1 st.2 sym
-    steps := steps.push ⟨some t, sym, [st.1, st.2, sym, st'.1, st'.2], sym = SYM_END⟩
-    st := st'
-  return steps.toList
+  let rest ← walkFrom I (r0, 0) (keySyms rc) 0
+  return ⟨none, SYM_START, [0, 0, SYM_START, r0, 0], false⟩ :: rest
 
 /-- All walks, receipt order (a walk that fails is empty; see `walkErrors`). -/
 def walksOf (I : Info) : List (List WStep) :=
