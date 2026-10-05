@@ -16,7 +16,7 @@ so `E = 2·#challenges` or `2·#challenges + 1`):
 | 5 | aux, finals | main/aux far, a constraint (incl. aux) fails on `H`, or bus finals fail |
 | 6 | `α_c` | far, `C_t ≠ 0` somewhere on `H`, or bus finals fail |
 | 7 | quotient | far, `C_t ≠ (X^T - 1)·Q_t` as functions, or bus finals fail |
-| 8 | `z` | far, (`z ∉ F` and `C_t(z) ≠ (z^T-1)Q_t(z)`), or bus finals fail |
+| 8 | `z` | `z ∉ F`, and: far, `C_t(z) ≠ (z^T-1)Q_t(z)`, or bus finals fail |
 | ≥ 9 | OOD values … | global checks fail, or (some batched DEEP word far and all FRI challenges so far good) |
 
 For `E ≥ 9` the batching rounds drawn so far are applied to each class's
@@ -201,9 +201,9 @@ noncomputable def Stage (τ : PTn) : Prop :=
   | 7 => ¬ AllClose A prm τ 3 ∨
       (∃ t, t < A.tables.length ∧ ∃ x, Ct A prm τ t (ch 0) (ch 1) (ch 2) x ≠
         (x ^ (2 ^ (tl A prm τ t).log) - 1) * Qt A prm τ t x) ∨ BusFinalsFail A prm τ
-  | 8 => ¬ AllClose A prm τ 3 ∨
-      (¬ (ch 3).IsBase ∧ ∃ t, t < A.tables.length ∧ Ct A prm τ t (ch 0) (ch 1) (ch 2) (ch 3) ≠
-        ((ch 3) ^ (2 ^ (tl A prm τ t).log) - 1) * Qt A prm τ t (ch 3)) ∨ BusFinalsFail A prm τ
+  | 8 => ¬ (ch 3).IsBase ∧ (¬ AllClose A prm τ 3 ∨
+      (∃ t, t < A.tables.length ∧ Ct A prm τ t (ch 0) (ch 1) (ch 2) (ch 3) ≠
+        ((ch 3) ^ (2 ^ (tl A prm τ t).log) - 1) * Qt A prm τ t (ch 3)) ∨ BusFinalsFail A prm τ)
   | _ => GlobalFail A prm τ ∨
       ((∃ L ∈ layOf A prm τ, BatchFar A prm τ L.lde L.log) ∧ FriGoodSoFar A prm τ)
 
