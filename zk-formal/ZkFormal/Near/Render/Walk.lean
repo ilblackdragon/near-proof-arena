@@ -13,27 +13,43 @@ namespace ZkFormal.Near.Render
 
 open ZkFormal.Near
 
-def walkRowsAll (ws : List (List WStep)) : Array Row := Id.run do
-  let mut cnt : Std.HashMap Edge Nat := {}
-  let mut rows : Array Row := #[]
-  for (w, r) in ws.zip (List.range ws.length) do
-    for s in w do
-      let u := cnt.getD s.edge 0
-      cnt := cnt.insert s.edge (u + 1)
-      let mut row := zeroRow WalkTab.width
-      row := row.set! WalkTab.act 1
-      row := row.set! WalkTab.ws (if s.t.isNone then 1 else 0)
-      row := row.set! WalkTab.we (if s.last then 1 else 0)
-      row := row.set! WalkTab.r r
-      row := row.set! WalkTab.t (s.t.getD 0)
-      row := row.set! WalkTab.sym s.sym
-      row := row.set! WalkTab.nN (s.edge.getD 0 0)
-      row := row.set! WalkTab.nI (s.edge.getD 1 0)
-      row := row.set! WalkTab.nN2 (s.edge.getD 3 0)
-      row := row.set! WalkTab.nI2 (s.edge.getD 4 0)
-      row := row.set! WalkTab.u u
-      row := row.set! WalkTab.gK (if s.t.isNone then 0 else 1)
-      rows := rows.push row
-  return padTo rows (zeroRow WalkTab.width)
+/-- Steps of walks `r, r+1, …` with their receipt index. -/
+def stepsFrom : List (List WStep) → Nat → List (Nat × WStep)
+  | [], _ => []
+  | w :: ws, r => w.map (r, ·) ++ stepsFrom ws (r + 1)
+
+/-- All steps in table order, with their receipt index. -/
+def walkSteps (ws : List (List WStep)) : List (Nat × WStep) := stepsFrom ws 0
+
+/-- The chained edge counter of step `j` of `st`: earlier steps with the same edge. -/
+def useAtL (st : List (Nat × WStep)) (j : Nat) : Nat :=
+  ((st.take j).filter fun p => p.2.edge == (st.getD j default).2.edge).length
+
+def useAt (ws : List (List WStep)) (j : Nat) : Nat := useAtL (walkSteps ws) j
+
+/-- All counters (computed once). -/
+def usesL (st : List (Nat × WStep)) : List Nat := (List.range st.length).map (useAtL st)
+
+/-- Cells of the row of step `(r, s)` with counter `u`. -/
+def walkCell (p : Nat × WStep) (u : Nat) : Nat → Nat
+  | 0 => 1
+  | 1 => if p.2.t.isNone then 1 else 0
+  | 2 => if p.2.last then 1 else 0
+  | 3 => p.1
+  | 4 => p.2.t.getD 0
+  | 5 => p.2.sym
+  | 6 => p.2.edge.getD 0 0
+  | 7 => p.2.edge.getD 1 0
+  | 8 => p.2.edge.getD 3 0
+  | 9 => p.2.edge.getD 4 0
+  | 10 => u
+  | 11 => if p.2.t.isNone then 0 else 1
+  | _ => 0
+
+def walkRowsAll (ws : List (List WStep)) : Array Row :=
+  let st := walkSteps ws
+  let us := usesL st
+  mkTab (2 ^ logOf st.length) WalkTab.width fun q col =>
+    if q < st.length then walkCell (st.getD q default) (us.getD q 0) col else 0
 
 end ZkFormal.Near.Render

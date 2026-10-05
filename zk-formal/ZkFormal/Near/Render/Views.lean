@@ -40,18 +40,15 @@ def nodeViewsOf (I : Info) (uses : Std.HashMap Edge Nat) : List NodeS :=
 
 /-! ## walk -/
 
+/-- Index of the first step of walk `r` in table order. -/
+def walkOff (ws : List (List WStep)) (r : Nat) : Nat := ((ws.take r).map List.length).sum
+
 /-- Steps with their chained counters, in table order. -/
-def walkViewsOf (ws : List (List WStep)) : List WalkV := Id.run do
-  let mut cnt : Std.HashMap Edge Nat := {}
-  let mut out : Array WalkV := #[]
-  for (w, r) in ws.zip (List.range ws.length) do
-    let mut steps : Array (ZkFormal.Near.Msg × Nat) := #[]
-    for s in w do
-      let u := cnt.getD s.edge 0
-      cnt := cnt.insert s.edge (u + 1)
-      steps := steps.push (s.edge, u)
-    out := out.push ⟨r, steps.toList⟩
-  return out.toList
+def walkViewsOf (ws : List (List WStep)) : List WalkV :=
+  let us := usesL (walkSteps ws)
+  (List.range ws.length).map fun r =>
+    ⟨r, (List.range (ws.getD r []).length).map fun j =>
+      (((ws.getD r []).getD j default).edge, us.getD (walkOff ws r + j) 0)⟩
 
 /-! ## acct, sort -/
 
