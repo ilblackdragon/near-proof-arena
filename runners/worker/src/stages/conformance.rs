@@ -8,10 +8,9 @@
 //! ids never appear in summaries.
 
 use super::common::{self, case_label, Verdict};
-use crate::executor::{seed_parts, ExecError, JobRun, StageOut};
+use crate::executor::{ExecError, JobRun, StageOut};
 use crate::gate::Gate;
 use crate::jobs::{ExecJob, RunLimits};
-use crate::oracle::OracleError;
 use arena_types::{GateStatus, ObligationId, ReasonCode};
 
 pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
@@ -33,37 +32,18 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         out.gates.push(res.finish(st, true));
     };
     let limits = RunLimits::from_challenge(&j.challenge);
-    let parts = seed_parts(&j.ctx);
-    let parts: Vec<&str> = parts.iter().map(|s| s.as_str()).collect();
-    let cases = match r.ctx.oracles.get(&j.challenge).and_then(|o| {
-        let fx = r.ctx.oracles.fixtures_for(&j.challenge)?;
-        o.conformance_cases(
-            &j.challenge,
-            fx.as_deref(),
-            &parts,
-            r.ctx.conformance_samples,
-        )
-    }) {
-        Ok(c) if !c.is_empty() => c,
-        Ok(_) => {
-            conf.note("oracle produced no cases");
-            finish(&mut out, conf, rel, res, false);
-            return Ok(out);
-        }
-        Err(OracleError::Unavailable(m)) => {
+    // Fail closed (A06): pinned fixtures, per-class coverage, the committed
+    // held-out set (when this worker holds held-out sets) and the version
+    // pins of every case are checked before any candidate code runs.
+    let suite = match common::suite(r, &j.challenge, &j.ctx, r.ctx.conformance_samples, true)? {
+        Ok(s) => s,
+        Err(m) => {
             conf.note(m);
             finish(&mut out, conf, rel, res, false);
             return Ok(out);
         }
-        Err(e @ OracleError::Broken(_)) => return Err(ExecError::Infra(e.to_string())),
     };
-    // Fail closed on any request outside the challenge's protocol version /
-    // chain before any candidate code runs.
-    if let Some(pin) = crate::jobs::RequestPin::from_challenge(&j.challenge) {
-        for case in &cases {
-            common::check_request_pin(&pin, &case.request, &case.id, case.public)?;
-        }
-    }
+    let cases = &suite.cases;
     let bundle = common::fetch_bundle(r, &j.build, &j.manifest.entry)?;
     let public_dir = common::fetch_public(r, &j.build, &limits)?;
     let verifier = match common::verifier_for(r, j, &bundle, true)? {
@@ -87,7 +67,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut max_verify_ns = 0u64;
     let mut max_rss = 0u64;
     let mut passed = 0usize;
-    for case in &cases {
+    for case in cases {
         let label = case_label(&case.id, case.public);
         let proved = match common::run_prove(r, &env, case)? {
             Ok(p) => p,
@@ -167,11 +147,13 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             r.shadow.0, r.shadow.1
         ));
     }
-    let public = cases.iter().filter(|c| c.public).count();
     conf.note(format!(
-        "{passed}/{n} cases conform ({public} public fixtures, {} judge-sampled)",
-        n - public
+        "{passed}/{n} cases conform ({} public fixtures, {} judge-sampled, {} held-out)",
+        suite.public, suite.sampled, suite.heldout
     ));
+    for note in &suite.notes {
+        conf.note(note.clone());
+    }
     rel.note(format!("{passed}/{n} honest proofs produced and accepted"));
     res.note(format!(
         "public cases: max proof {max_proof} bytes (cap {}), max verify {} ms (cap {}), peak memory {} MiB",

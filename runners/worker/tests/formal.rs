@@ -207,7 +207,7 @@ fn negatives(f: &Fixture, exec: &arena_worker::executor::StageExecutor, chal: Ch
 #[test]
 fn formal_check_near_statement_bwrap() {
     if std::env::var("ARENA_FORMAL_TESTS").as_deref() != Ok("1") {
-        eprintln!("skipped: set ARENA_FORMAL_TESTS=1");
+        skip_gated!("set ARENA_FORMAL_TESTS=1");
         return;
     }
     let mut f = fixture();
@@ -236,7 +236,7 @@ fn formal_check_near_statement_firecracker() {
     if std::env::var("ARENA_FORMAL_TESTS").as_deref() != Ok("1")
         || std::env::var("ARENA_FC_TESTS").as_deref() != Ok("1")
     {
-        eprintln!("skipped: set ARENA_FORMAL_TESTS=1 ARENA_FC_TESTS=1");
+        skip_gated!("set ARENA_FORMAL_TESTS=1 ARENA_FC_TESTS=1");
         return;
     }
     let f = fixture();

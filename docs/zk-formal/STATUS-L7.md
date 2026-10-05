@@ -132,6 +132,8 @@ are `sorry` in the scratch tree only. `proverQ`/`proverChunk` are the proved `pr
   trace now has height 16 (LDE 2^8).
 * `ToyPending` = {`bcs`, `size` (L4e: hash answers normalised to 32 bytes), `min8` (L4e)}.
 * ZK challenge draft renamed to `near-transfer-receipt-v1-zk` (`chl_bdbfc808…`, unsigned).
+  (Note 2026-10-05: "zk" here names the STARK backend lane. The draft is
+  `validity-classical-128` / `validity_only`, so it gives no zero-knowledge guarantee.)
 
 
 ## M2 certificate CLOSED (after merging lane/zk-L4e and lane/zk-int with L1b)

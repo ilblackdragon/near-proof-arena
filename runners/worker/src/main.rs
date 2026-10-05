@@ -53,11 +53,21 @@ fn sandbox(backend: &str, work_dir: &Path) -> Arc<dyn Sandbox> {
     }
 }
 
-fn oracles(dirs: &[PathBuf], near: Option<(PathBuf, PathBuf)>) -> Oracles {
+/// Judge-side sampling inputs that never reach a sandbox: held-out set
+/// directories and the season secret (its value is never printed; only the
+/// public commitment is).
+#[derive(Default)]
+struct JudgeInputs {
+    heldout_dirs: Vec<PathBuf>,
+    secret_file: Option<PathBuf>,
+    secret_commit: Option<String>,
+}
+
+fn oracles(dirs: &[PathBuf], near: Option<(PathBuf, Vec<PathBuf>)>, judge: JudgeInputs) -> Oracles {
     let mut o = Oracles::builtin();
     if let Some((bin, gens)) = near {
         o = o
-            .with_near(bin, &gens)
+            .with_near_dirs(bin, &gens)
             .unwrap_or_else(|e| die(format!("NEAR oracle: {e}")));
     }
     for d in dirs {
@@ -65,6 +75,26 @@ fn oracles(dirs: &[PathBuf], near: Option<(PathBuf, PathBuf)>) -> Oracles {
             Ok(digest) => eprintln!("arena-worker: fixtures {} = {digest}", d.display()),
             Err(e) => die(format!("fixtures dir: {e}")),
         }
+    }
+    for d in &judge.heldout_dirs {
+        match o.add_heldout_dir(d) {
+            Ok(digest) => eprintln!("arena-worker: held-out set = {digest}"),
+            Err(e) => die(format!("held-out dir: {e}")),
+        }
+    }
+    match &judge.secret_file {
+        Some(p) => {
+            let s = arena_worker::oracle::SeasonSecret::from_file(p, judge.secret_commit.as_deref())
+                .unwrap_or_else(|e| die(format!("season secret: {e}")));
+            eprintln!(
+                "arena-worker: judge-secret workload sampling (commitment {})",
+                s.commitment()
+            );
+            o.set_season_secret(s);
+        }
+        None => eprintln!(
+            "arena-worker: WARNING: no ARENA_SEASON_SECRET_FILE: workload sampling uses public seeds"
+        ),
     }
     o
 }
@@ -124,7 +154,15 @@ fn main() {
                 mutators: MutatorRegistry::with_adversarial_lane(),
                 oracles: oracles(
                     &cfg.fixtures_dirs,
-                    cfg.near_oracle.clone().zip(cfg.workload_generators.clone()),
+                    cfg.near_oracle
+                        .clone()
+                        .filter(|_| !cfg.workload_generators.is_empty())
+                        .map(|b| (b, cfg.workload_generators.clone())),
+                    JudgeInputs {
+                        heldout_dirs: cfg.heldout_dirs.clone(),
+                        secret_file: cfg.season_secret_file.clone(),
+                        secret_commit: cfg.season_secret_commit.clone(),
+                    },
                 ),
                 formal: formal(
                     cfg.formal_repo.clone(),
@@ -212,7 +250,18 @@ fn run_job_local(args: &[String]) {
             &fixtures,
             std::env::var_os("ARENA_NEAR_ORACLE")
                 .map(PathBuf::from)
-                .zip(std::env::var_os("ARENA_WORKLOAD_GENERATORS").map(PathBuf::from)),
+                .zip(
+                    std::env::var("ARENA_WORKLOAD_GENERATORS")
+                        .ok()
+                        .map(|v| v.split(',').map(PathBuf::from).collect::<Vec<_>>()),
+                ),
+            JudgeInputs {
+                heldout_dirs: std::env::var("ARENA_HELDOUT_DIRS")
+                    .map(|v| v.split(',').map(PathBuf::from).collect())
+                    .unwrap_or_default(),
+                secret_file: std::env::var_os("ARENA_SEASON_SECRET_FILE").map(PathBuf::from),
+                secret_commit: std::env::var("ARENA_SEASON_SECRET_COMMIT").ok(),
+            },
         ),
         formal: formal(
             std::env::var_os("ARENA_FORMAL_REPO").map(PathBuf::from),

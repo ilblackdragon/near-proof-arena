@@ -67,9 +67,19 @@ pub struct WorkerConfig {
     pub npai_verify: Option<PathBuf>,
     /// Lean reference interpreter for npai shadow checks.
     pub interp_ref: Option<PathBuf>,
-    /// `near-arena-oracle` binary + workload generator specs dir (NEAR oracle).
+    /// `near-arena-oracle` binary + workload generator specs dirs (NEAR
+    /// oracles v1 and v2; `ARENA_WORKLOAD_GENERATORS`, comma-separated).
     pub near_oracle: Option<PathBuf>,
-    pub workload_generators: Option<PathBuf>,
+    pub workload_generators: Vec<PathBuf>,
+    /// Judge-only held-out set directories (`ARENA_HELDOUT_DIRS`), matched to
+    /// `workload_suite.heldout_commitment` by TreeDigest. When set, committed
+    /// held-out sets are mandatory on this worker (fail closed).
+    pub heldout_dirs: Vec<PathBuf>,
+    /// Judge-only season secret (`ARENA_SEASON_SECRET_FILE`, hex, mode 0600)
+    /// keying workload sampling (BENCHMARK_SPEC §11.1), and the commitment
+    /// governance published for it (`ARENA_SEASON_SECRET_COMMIT`, optional).
+    pub season_secret_file: Option<PathBuf>,
+    pub season_secret_commit: Option<String>,
     pub lease_seconds: u32,
 }
 
@@ -320,15 +330,7 @@ impl WorkerConfig {
             bench_cpus,
             run_cpus,
             keep_workdirs: s.get("ARENA_KEEP_WORKDIRS").as_deref() == Some("1"),
-            fixtures_dirs: s
-                .get("ARENA_FIXTURES_DIRS")
-                .map(|v| {
-                    v.split(',')
-                        .filter(|x| !x.trim().is_empty())
-                        .map(|x| PathBuf::from(x.trim()))
-                        .collect()
-                })
-                .unwrap_or_default(),
+            fixtures_dirs: dir_list(s.get("ARENA_FIXTURES_DIRS")),
             bench_batch_cap: match s.get("ARENA_DEV_BENCH_BATCH_CAP") {
                 None => None,
                 Some(v) => Some(v.parse().map_err(|e: std::num::ParseIntError| {
@@ -351,7 +353,10 @@ impl WorkerConfig {
             }),
             interp_ref: s.get("ARENA_INTERP_REF").map(PathBuf::from),
             near_oracle: s.get("ARENA_NEAR_ORACLE").map(PathBuf::from),
-            workload_generators: s.get("ARENA_WORKLOAD_GENERATORS").map(PathBuf::from),
+            workload_generators: dir_list(s.get("ARENA_WORKLOAD_GENERATORS")),
+            heldout_dirs: dir_list(s.get("ARENA_HELDOUT_DIRS")),
+            season_secret_file: s.get("ARENA_SEASON_SECRET_FILE").map(PathBuf::from),
+            season_secret_commit: s.get("ARENA_SEASON_SECRET_COMMIT"),
             lease_seconds: match s.get("ARENA_LEASE_SECONDS") {
                 None => 300,
                 Some(v) => v.parse().map_err(|e: std::num::ParseIntError| {
@@ -360,6 +365,17 @@ impl WorkerConfig {
             },
         })
     }
+}
+
+/// A comma-separated directory list (empty entries ignored).
+fn dir_list(v: Option<String>) -> Vec<PathBuf> {
+    v.map(|v| {
+        v.split(',')
+            .filter(|x| !x.trim().is_empty())
+            .map(|x| PathBuf::from(x.trim()))
+            .collect()
+    })
+    .unwrap_or_default()
 }
 
 fn hostname() -> String {

@@ -255,11 +255,16 @@ CLI: `formal-check --formal DIR --certificate NAME --trusted NAME=DIR[@Prefix,..
 ## Tests
 
 ```sh
-cargo test -p arena-formal-checker                       # unit tests; corpus SKIPs
+cargo test -p arena-formal-checker                       # unit tests; gated tests print ARENA-TEST-SKIPPED
 ARENA_DEV_UNSAFE=1 cargo test -p arena-formal-checker -- --nocapture   # + real corpus
 ARENA_DEV_UNSAFE=1 FC_FORMAL_CORE_DIR=<formal-core dir> \
   cargo test -p arena-formal-checker --test formal_core -- --nocapture
 ```
+
+Skipped gated tests print `ARENA-TEST-SKIPPED: <test>: <reason>`;
+`ARENA_REQUIRE_GATED_TESTS=1` turns every skip into a failure. CI (`formal-checker`
+job) runs all four integration tests that way: `ARENA_DEV_UNSAFE=1 FC_NEAR_SPEC=1
+FC_FORMAL_CORE_DIR=formal-core ARENA_REQUIRE_GATED_TESTS=1`.
 
 `tests/corpus/<case>/{formal/,expect.json}` against the stand-in trusted
 package `tests/fixtures/standin` (`ArenaStandIn.AdmissionStatement`, a

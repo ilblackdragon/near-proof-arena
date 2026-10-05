@@ -7,6 +7,14 @@ The candidate package for the provable STARK backend `np-udr-stark-v1`
 `examples/reexec-witness` for the native-lean verifier route, and
 `examples/stark-plonky3` for the vendored Plonky3 Rust build.
 
+**Validity, not zero knowledge.** np-udr-stark is a succinct STARK *validity*
+proof. It has no blinding or hiding: trace and FRI openings reveal
+witness-derived values. Its target profile is `validity-classical-128`
+(`privacy: validity_only`, `FORMAL_ZK` not applicable), so admission would
+establish soundness of the claim only, not witness privacy. The "zk" in
+`zk-formal` / `ZkFormal` and in the draft `near-transfer-receipt-v1-zk` is
+historical naming, not a privacy claim.
+
 ## Status
 
 | piece | state |

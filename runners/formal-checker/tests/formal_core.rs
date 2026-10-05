@@ -9,6 +9,8 @@
 //!   each of formal-core's `negative/*.lean` files as `Candidate.lean`.
 #![allow(clippy::type_complexity, clippy::doc_lazy_continuation)]
 
+mod common;
+
 use arena_formal_checker::*;
 use arena_types::GateStatus;
 use std::collections::BTreeMap;
@@ -76,11 +78,11 @@ fn candidate_dir(core: &Path, dest: &Path, extra: Option<&Path>) {
 #[test]
 fn formal_core_toy() {
     let Ok(core) = std::env::var("FC_FORMAL_CORE_DIR") else {
-        eprintln!("SKIP formal_core_toy: set FC_FORMAL_CORE_DIR=<formal-core dir>");
+        common::skip_gated!("set FC_FORMAL_CORE_DIR=<formal-core dir>");
         return;
     };
     if std::env::var("ARENA_DEV_UNSAFE").as_deref() != Ok("1") {
-        eprintln!("SKIP formal_core_toy: ARENA_DEV_UNSAFE=1 required");
+        common::skip_gated!("ARENA_DEV_UNSAFE=1 required");
         return;
     }
     let core = PathBuf::from(core);

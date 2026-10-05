@@ -29,6 +29,14 @@ bubblewrap and unprivileged user namespaces. `ARENA_SANDBOX_CGROUP=off`
 forces the rlimit fallback; `=require` refuses to run without a delegated
 cgroup.
 
+Opt-in tests (`ARENA_FC_TESTS`, `ARENA_FORMAL_TESTS`, `ARENA_NEAR_TESTS`,
+formal-checker `FC_NEAR_SPEC` / `FC_FORMAL_CORE_DIR` / installed tools, a
+missing pinned commit, ...) never pass silently: a skipped one prints
+`ARENA-TEST-SKIPPED: <test>: <reason>` to stderr (`skip_gated!` in each
+crate's `tests/common/mod.rs`), and with `ARENA_REQUIRE_GATED_TESTS=1` it
+panics instead. Set that whenever a run claims to exercise the gated tests
+(CI's `formal-checker` and self-hosted `firecracker-e2e` jobs do).
+
 ## archive
 
 `ingest(reader, dest, limits)` streams the archive (zstd detected by magic)

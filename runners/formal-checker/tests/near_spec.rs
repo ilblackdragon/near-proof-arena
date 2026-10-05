@@ -9,6 +9,8 @@
 //! reason code, never INFRA_ERROR/UNKNOWN). Opt-in: `FC_NEAR_SPEC=1`,
 //! `ARENA_DEV_UNSAFE=1` and installed tools.
 
+mod common;
+
 use arena_formal_checker::*;
 use arena_types::GateStatus;
 use std::path::{Path, PathBuf};
@@ -33,9 +35,7 @@ fn near_transfer_expected_reference_build() {
     if std::env::var("FC_NEAR_SPEC").as_deref() != Ok("1")
         || std::env::var("ARENA_DEV_UNSAFE").as_deref() != Ok("1")
     {
-        eprintln!(
-            "SKIP near_transfer_expected_reference_build: set FC_NEAR_SPEC=1 ARENA_DEV_UNSAFE=1"
-        );
+        common::skip_gated!("set FC_NEAR_SPEC=1 ARENA_DEV_UNSAFE=1");
         return;
     }
     let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
