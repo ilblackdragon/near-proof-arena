@@ -383,3 +383,36 @@ Quot.sound) pass that rule. Add this reproducer to `tests/native_route.rs`
   **L8:** the Rust verifier must reject `n0 < 8`, and the prover must pad. In
   `conformance/run.sh`, log 3 (`n0 = 7`) honest proofs are now rejected by the Lean verifier;
   use logs ≥ 4.
+
+### R-L7-6 (to L6): minimum height of the honest NEAR trace (`NearAssembly.NearMinHeightStmt`)
+Admissible headers now need a query domain of at least 2^8 (`minQueryLog = 8`, R-L7-1), so some
+table of `honestTrace c w` must have at least 16 rows:
+`∀ c w, NearRelation c.1 w → ∃ t < 7, 4 ≤ (honestTrace c w).log t`.
+This is presumably immediate for the SHA table: every claim has n ≥ 1 receipts, so at least one
+message is hashed, giving ≥ 17 rows and `honestLog ≥ 5`. Please prove it next to `honestTrace_fits'`.
+`NearAssembly.near_certificate` takes exactly `RenderStmt`, this statement and `NearSizeStmt`
+(L7, in progress).
+
+### R-L7-7 (to L8): the NEAR prove path that `out/prove` must implement
+The Lean side is final. The deployed model is `NearAssembly.nearModel nearAir`: the claim guard
+followed by `Stark.verifier Fp Fp8 nearAir Params.default`. `near_certificate` is proved modulo
+L6's `RenderStmt`/R-L7-6 and L7's size bound. For the Rust prover:
+1. **AIR:** consume `nearAir.exportJson` (`np-air-v1`; FORMATS.md §1). Generate it with
+   `#eval IO.FS.writeFile … ZkFormal.Near.nearAir.exportJson` (as `np-lean-export` does for the
+   toys) and pin its sha256 in the package. There are 7 tables in the order sha, node, walk, rcpt,
+   acct, mrk, sort, with widths 544/163/12/228/16/58/49 and maxLog 22/22/16/18/12/15/13.
+2. **Witness → trace:** reproduce `ZkFormal.Near.Render.render c (extOf c w)`
+   (`Near/Render/{Tables,Node,Walk,Rcpt,Acct,Mrk,Sort,Trace}.lean` give the column specification
+   row by row; the SHA table is L5's `Sha.Gen` on `bundle.msgs`, as in the SHA toy). Table
+   heights are `2^logOf(rows)` with the padding rows of `Render.padTo`. `extOf` (`Near/Spec/Prune.lean`)
+   prunes the witness to the records actually used.
+   * Differential test: per-table cell equality against a Lean dump of `render`, as for
+     `np-lean-shatrace`, plus `npudr shacheck`-style constraint and bus checks on the fixtures.
+3. **Header:** at least one table must have ≥ 16 rows (query domain ≥ 2^8, `minQueryLog`). If
+   R-L7-6 does not hold for some claim, pad the SHA table.
+4. **Transcript and hashing:** unchanged, except that oracle answers are normalised by `fit32`
+   (a no-op for SHA-256). Claim bytes are `WfClaim.encode` (the verifier rejects non-canonical
+   claims before hashing). `public.bin` is whatever `prepare` writes, and `pub` = its bytes.
+5. **Limits:** 24 chunks × 9 positions. The Lean size bound at the maximal header is 5 127 343 B
+   (8 MiB cap), so expect ≈ 2–4 MB proofs on the workload classes. The judge-built Lean verifier
+   checks 0.93 MB in 0.24 s (linear).
