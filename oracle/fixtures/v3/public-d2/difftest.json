@@ -53,8 +53,8 @@
     "mutants.verdict_source.derived": 2
   },
   "seconds": {
-    "python": 388.1244330406189,
-    "python_d1": 0.0616915225982666
+    "python": 393.15500140190125,
+    "python_d1": 0.06550192832946777
   },
   "disagreements": 0,
   "disagreement_samples": [],
