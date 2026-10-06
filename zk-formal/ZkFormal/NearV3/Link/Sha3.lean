@@ -186,4 +186,75 @@ theorem npre_sha (hw : NodeWf3 vs) (hvw : ValWf es) {others : List Msg} {shaS sh
     (by have := ser_len_lt hw hn; unfold ZkFormal.Algebra.P; omega) hd
     (npre_sends hw hvw H.othersId hn) hrecv
 
+theorem cnt_pos3 {l : List Msg} {x : Msg} (h : x ∈ l) : 0 < cnt l x.toFp := Link.cnt_pos_of_mem h
+
+theorem kid_dig_mem {p : Nat} (hp : p < vs.length) {c l r : Nat} {pre po : List Nat}
+    (hk : (c, l, r, pre, po) ∈ vs[p].v.revealed) :
+    digMsg (msgId K_NPRE c) l pre ∈ nodeRecvs3 vs B_DIGEST ++ headRecvs hs B_DIGEST := by
+  apply List.mem_append_left
+  unfold nodeRecvs3; rw [if_pos rfl, List.mem_flatMap]
+  refine ⟨(vs[p], p), zip_range_mem vs hp, List.mem_append_left _ ?_⟩
+  rw [List.mem_flatMap]
+  exact ⟨(c, l, r, pre, po), hk, by simp⟩
+
+theorem head_dig_mem {h : HeadE} (hh : h ∈ hs) :
+    digMsg (msgId K_NPRE h.rid) h.rlen h.pre ∈ nodeRecvs3 vs B_DIGEST ++ headRecvs hs B_DIGEST := by
+  apply List.mem_append_right
+  unfold headRecvs; rw [if_pos rfl, List.mem_flatMap]
+  exact ⟨h, hh, by simp⟩
+
+variable {others : List Msg} {shaS shaR : Nat → List Fp → Nat}
+
+/-- **Revealed kid windows.** -/
+theorem kid_sha (hw : NodeWf3 vs) (hhw : HeadWf hs) (hvw : ValWf es) (hb : ParentBal vs hs)
+    (H : ShaHyp vs hs es others shaS shaR) {p : Nat} (hp : p < vs.length) {c l r : Nat} {pre po : List Nat}
+    (hk : (c, l, r, pre, po) ∈ vs[p].v.revealed) :
+    ∃ hc : c < vs.length, Bytes8 (vs[c].v.ser false) ∧ pre = (sha256 (toB (vs[c].v.ser false))).map UInt8.toNat := by
+  obtain ⟨hc, -, -, hl, -⟩ := kid_link hw hb hp hk
+  have hlen := ser_len_lt hw hc
+  rw [Nat.mod_eq_of_lt (by unfold ZkFormal.Algebra.P; omega)] at hl
+  subst hl
+  have hd : ∀ x ∈ pre, x < ZkFormal.Algebra.P := by
+    intro x hx; apply hw.canon _ (List.getElem_mem hp)
+    cases hv : vs[p].v with
+    | leaf => rw [hv] at hk; simp [NodeV3.revealed] at hk
+    | ext k kid m =>
+      rw [hv] at hk; cases kid <;> simp [NodeV3.revealed] at hk
+      obtain ⟨rfl, rfl, rfl, rfl, rfl⟩ := hk; simp [NodeV3.raw, NKid.raw, hx]
+    | branch sv kids m =>
+      rw [hv] at hk
+      simp only [NodeV3.revealed, List.mem_filterMap] at hk
+      obtain ⟨kd, hkd, he⟩ := hk
+      cases kd with
+      | none => simp at he
+      | hash _ => simp at he
+      | node c' l' r' pre' po' =>
+        simp at he; obtain ⟨-, -, -, h4, -⟩ := he; subst h4
+        simp only [NodeV3.raw, List.mem_append, List.mem_flatMap]
+        exact Or.inl (Or.inr ⟨_, hkd, by simp [NKid.raw, hx]⟩)
+  exact ⟨hc, npre_sha hw hvw H hc hd (H.digest _ (cnt_pos3 (kid_dig_mem hp hk)))⟩
+
+/-- **Head windows.** -/
+theorem head_sha (hw : NodeWf3 vs) (hhw : HeadWf hs) (hvw : ValWf es) (hb : ParentBal vs hs)
+    (H : ShaHyp vs hs es others shaS shaR) {h : HeadE} (hh : h ∈ hs) :
+    ∃ hr : h.rid < vs.length, Bytes8 (vs[h.rid].v.ser false) ∧
+      h.pre = (sha256 (toB (vs[h.rid].v.ser false))).map UInt8.toNat := by
+  obtain ⟨hr, -, -, hl, -⟩ := head_link hw hhw hb hh
+  have hlen := ser_len_lt hw hr
+  rw [Nat.mod_eq_of_lt (by unfold ZkFormal.Algebra.P; omega)] at hl
+  have hm := head_dig_mem (vs := vs) hh
+  rw [← hl] at hm
+  exact ⟨hr, npre_sha hw hvw H hr (fun x hx => (hhw.canon h hh).2.2.2.2.2.1 x hx) (H.digest _ (cnt_pos3 hm))⟩
+
+/-- **Every record's bytes are bytes.** -/
+theorem rec_bytes (hw : NodeWf3 vs) (hhw : HeadWf hs) (hvw : ValWf es) (hb : ParentBal vs hs)
+    (H : ShaHyp vs hs es others shaS shaR) : ∀ s ∈ vs, ∀ x ∈ s.v.ser false, x < 256 := by
+  intro s hs' x hx
+  obtain ⟨n, hn, rfl⟩ := List.getElem_of_mem hs'
+  rcases sender_of hw hhw hb hn with ⟨h, hh, hr, -, -⟩ | ⟨p, hp, l, r, pre, po, hk, -, -⟩
+  · obtain ⟨hr', hB, -⟩ := head_sha hw hhw hvw hb H hh
+    subst hr; exact hB x hx
+  · obtain ⟨hc, hB, -⟩ := kid_sha hw hhw hvw hb H hp hk
+    exact hB x hx
+
 end ZkFormal.NearV3.Link3
