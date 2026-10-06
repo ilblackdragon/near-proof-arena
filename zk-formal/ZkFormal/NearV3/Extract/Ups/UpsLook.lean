@@ -195,8 +195,12 @@ theorem parentOf (k : Nat) (hk1 : k + 1 < ps.length) :
 
 /-- **Every part's digest is looked up at its length** (from SHA and the `MEMD` match; downward from the
 root). -/
-theorem ups_look {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : NearSpec.Bytes}
-    (X0 : UpsExt0 s ps ci ti si kd sdx Pb src val) (HS : UpsShaSeg s ps) (HM : UpsMemdSeg s) :
+theorem ups_look0 {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie}
+    (hRs : UpbReads s Pb)
+    (hEnc : ∀ k (hk : k < ps.length), Pb (s.row ps[k].1 sN) = (nodeEnc (src k)).map UInt8.toNat)
+    (hOk : ∀ k, k < ps.length → SrcOk ci si ti (sdx k) (kd k) (src k)) (hti : ti ≤ si)
+    (hxy : spYN ci = 1 → ci ≠ 4 → s.row 0 tX ≠ UpsSpec.yOf si)
+    (HS : UpsShaSeg s ps) (HM : UpsMemdSeg s) :
     UpsLookSeg s ps := by
   suffices H : ∀ m, ∀ k (hk : k < ps.length), ps.length - k = m → ∃ i, i < s.rows.length ∧ s.row i gD = 1 ∧
       s.row i dI = upsIdN (s.row 0 tau) (k + 1) ∧ s.row i dL = ps[k].2 by
@@ -213,35 +217,35 @@ theorem ups_look {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : N
     obtain ⟨i, hi, hg, hI, hLn⟩ := ih (ps.length - p) (by omega) p hp rfl
     exact (HS i hi hg p hp hI hLn).1
   have hRd : ∀ i, i < s.rows.length → s.row i rd = 1 → s.row i rb = (Pb (s.row i sN)).getD (s.row i spos) 0 :=
-    fun i hi hrd => (X0.reads i hi hrd).1
+    fun i hi hrd => (hRs i hi hrd).1
   obtain ⟨hA, hB⟩ := parentOf hw hs hL hP k hk1
   by_cases h8 : kd k = 8
   · have hl50 := nlfLen hw hs hL hP k hk h8
-    obtain ⟨hsl, -, -, -, -, -, o5, -, -, o10, -⟩ := X0.srcOk (k + 1) hk1
-    have hsrc := X0.srcEnc (k + 1) hk1
+    obtain ⟨hsl, -, -, -, -, -, o5, -, -, o10, -⟩ := hOk (k + 1) hk1
+    have hsrc := hEnc (k + 1) hk1
     rcases hA h8 with h5 | ⟨h10, hY⟩
     · obtain ⟨bv, cs, mm, hP', hbv, hmm, hkl, hslot⟩ := o5 h5
       rw [hP'] at hsrc hsl
-      obtain ⟨i, hi, hg, hI, hLn⟩ := rbiLook hw hs hL hP (k + 1) hk1 h5 val (rbiSi hw hs hL hP (k + 1) hk1 h5) Pb bv cs mm
-        X0.reads hsrc hsl hbv hmm hkl hslot X0.vlen X0.vbytes (bytesOf (k + 1) hk1 (by omega))
+      obtain ⟨i, hi, hg, hI, hLn⟩ := rbiLook hw hs hL hP (k + 1) hk1 h5 [] (rbiSi hw hs hL hP (k + 1) hk1 h5) Pb bv cs mm
+        hRs hsrc hsl hbv hmm hkl hslot (bytesOf (k + 1) hk1 (by omega))
       exact ⟨i, hi, hg, hI, by rw [hLn, hl50]⟩
     · obtain ⟨oL, oE⟩ := o10 h10
-      obtain ⟨i, hi, hg, hI, hLn⟩ := spbLookY hw hs hL hP (k + 1) hk1 h10 val Pb X0.reads (src (k + 1)) (.hash [])
-        hsrc hsl oL oE X0.vlen X0.vbytes X0.digV X0.xy (bytesOf (k + 1) hk1 (by omega)) hY
+      obtain ⟨i, hi, hg, hI, hLn⟩ := spbLookY hw hs hL hP (k + 1) hk1 h10 [] Pb hRs (src (k + 1)) (.hash [])
+        hsrc hsl oL oE hxy (bytesOf (k + 1) hk1 (by omega)) hY
       exact ⟨i, hi, hg, hI, by rw [hLn, hl50]⟩
   · obtain ⟨p, hp, hkp, hr, hcK⟩ := hB h8
     obtain ⟨c, hcc, hc, -, -, -, -, hcl⟩ := memdMatch hw hs hL hP HM p hp hr 0 (by omega)
     have hck : c = k := by rw [hcc, hcK]
     subst hck
     have hbp := bytesOf p hp hkp
-    obtain ⟨hsl, o0, o1, -, -, -, -, -, -, o10, o11⟩ := X0.srcOk p hp
-    have hsrc := X0.srcEnc p hp
+    obtain ⟨hsl, o0, o1, -, -, -, -, -, -, o10, o11⟩ := hOk p hp
+    have hsrc := hEnc p hp
     rcases hr with h | h | h | h | ⟨h, hR⟩
     · have hp1 : p = c + 1 := by simp [childK, h] at hcK; omega
       subst hp1
       obtain ⟨bv, cs, mm, cc, hP', hbv, hmm, hkl, hslot, hc32⟩ := o0 h
       rw [hP'] at hsrc
-      obtain ⟨i, hi, hg, hI, hLn⟩ := rdbLook hw hs hL hP (c + 1) hp h Pb bv cs cc cc mm 0 X0.reads hsrc hbv hmm hkl
+      obtain ⟨i, hi, hg, hI, hLn⟩ := rdbLook hw hs hL hP (c + 1) hp h Pb bv cs cc cc mm 0 hRs hsrc hbv hmm hkl
         hslot hc32 hbp
       exact ⟨i, hi, hg, hI, by rw [hLn, hcl]⟩
     · have hp1 : p = c + 1 := by simp [childK, h] at hcK; omega
@@ -254,7 +258,7 @@ theorem ups_look {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : N
     · have hp1 : p = c + 1 := by simp [childK, h] at hcK; omega
       subst hp1
       obtain ⟨i, hi, hg, hI, hLn⟩ := wexLook hw hs hL hP (c + 1) hp h (.hash [])
-        ((partPlan hw hs hL hP (c + 1) hp).2.2 h) X0.tiLe hbp
+        ((partPlan hw hs hL hP (c + 1) hp).2.2 h) hti hbp
       exact ⟨i, hi, hg, hI, by rw [hLn, hcl]⟩
     · have hp1 : p = c + 1 := by simp [childK, h] at hcK; omega
       subst hp1
@@ -266,10 +270,16 @@ theorem ups_look {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : N
     · have hc0 : c = 0 := by simp [childK, h] at hcK; omega
       subst hc0
       obtain ⟨oL, oE⟩ := o10 h
-      obtain ⟨i, hi, hg, hI, hLn⟩ := spbLookC hw hs hL hP p hp h val Pb X0.reads (src p) (.hash [])
-        hsrc hsl oL oE X0.vlen X0.vbytes X0.digV X0.xy hbp hR
+      obtain ⟨i, hi, hg, hI, hLn⟩ := spbLookC hw hs hL hP p hp h [] Pb hRs (src p) (.hash [])
+        hsrc hsl oL oE hxy hbp hR
       exact ⟨i, hi, hg, hI, by rw [hLn, hcl]⟩
 
+
+/-- **Every part's digest is looked up at its length**, from `UpsExt0`. -/
+theorem ups_look {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : NearSpec.Bytes}
+    (X0 : UpsExt0 s ps ci ti si kd sdx Pb src val) (HS : UpsShaSeg s ps) (HM : UpsMemdSeg s) :
+    UpsLookSeg s ps :=
+  ups_look0 hw hs hL hP X0.reads X0.srcEnc X0.srcOk X0.tiLe X0.xy HS HM
 
 /-- **The parts of a segment** from `UpsExt0`, SHA and the `MEMD` match: every part `k` emits
 `nodeEnc (upsQ … k)` with exact `MEMD` limbs. -/

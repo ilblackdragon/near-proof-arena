@@ -432,6 +432,7 @@ Added (this round):
 | `UpsPath` | the walk's path records (with `ups_walkHyp`): **`ups_levels`** (`D ≤ t* − 1`; `D ≥ 1`: `W1` steps out of `N_0`; `D = 2`: `t* = W3`, `W2` steps out of `N_1`; `t*`'s record is `N_D`), `rowEdge`, `stepSym`, **`ups_downSlot`** (a branch at level `d < D` has a revealed child in `slotOf d`), **`ups_termEdge`** (an absent-by-key terminal's `LEND` / `KEY`-at-`I` edge is `N_D`'s), **`ups_termBmap`** (an absent-at-branch terminal's `BMAP` is `N_D`'s: `hasVal = 0` on `W3`, bit `y` clear on `W1`/`W2`) |
 | `UpsTag` | the part's reads of its source's first bytes: **`tagCopy`** (`RDB RDE RLP RBR PT` copy byte 0 onto their `TAG` row, whose byte is the node type), `copyRow`, `firstTag`, **`ptHead`** (`PT` copies bytes 1, 5 = `qhk = 1`, flag `0`, `bHPFp`), **`tagNib5`** (`MVL MVE` and `ESx1`'s `SPB` read byte 5 on their `TAG` row, `spos = 5`, high nibble `2·qtl + podd`: `tagNib`, `rdTag`) |
 | `UpsShapeK` | **`ups_shape`**: every part's source has its kind's `SrcShape` (constructor from the tag / the walk; `RDB`'s slot from `ups_downSlot` with `descLt` (`sdx < D` from the descend counter); `RBV` (`w3Si`: `t* = W3`) and `RBI` from `BMAP`; `LSa` from `LEND`; `MVL`/`MVE`/`ESx1` from the `KEY` edge (`I < |k|`) and byte 5); `kindCase`, `kindCaseK`, `tag_cases`; **`ups_ext0S`** / **`ups_partsAllS`**: `ups_ext0` / `ups_partsAll` without the shape hypothesis |
+| `UpsVb` | **step 2, `vbytes` without an AIR change**: `valKind` (every case has a part with a fresh `VLEN` field: `RLP RBR RBV NLF`, or the `LSb ESl0 ESl1` split branch), **`vbPart`** (its rows `L0 L1 L2` are three of its emitted bytes), **`ups_vbytes`** (with the segment SHA facts and the lookups `ups_look0`, which do not use the limbs), **`ups_vbytesE`**; **`ups_ext0V`** / **`ups_partsAllV`**: `UpsExt0` and every part's bytes with exact `MEMD` limbs from `UpsEnv` alone.  `UpsLook`: `ups_look0` (lookups from reads, sources and walk facts); `rbiLook`/`spbLookY`/`spbLookC` dropped their unused `vlen`/`vbytes`/`digV` arguments |
 | `UpsChain` | **step 4**: `upsE s = ⟨τ, reg(W0), reg(W3)⟩`; `ups_rootMsgs`/`ups_midMsgs`; **`ups_chain`** (`root_chain` for the real table: `RootChain hs (v.map upsE) K r0 rK`), **`ups_tauDistinct`**, `ups_tauBound` (`τ ≤ K`); **step 3, root half**: `rootLook3`, **`ups_rootDig`** (`(upsE s).post = sha256 (nodeEnc (upsQ (|ps| − 1)))`) |
 
 Changes to existing statements (all rebuilt): `SrcOk` and the `RBI`/`MVL`/`MVE`/`SPB` lemmas take encodings `< 2^22`
@@ -449,9 +450,7 @@ so that the `upsV3` walks fit (`wrows_lt` unchanged); `Chain3.UpsWf` → `UpsEWf
 
 **Open (M7e)**, with what each needs:
 * (done) **`SrcShape`** of every part: `ups_shape` (`UpsRec`, `UpsPath`, `UpsTag`, `UpsShapeK`, 1,073 lines).
-* **`vbytes`** (`L0 L1 L2 < 256`): not constrained on `W0`; SHA bounds them where a part emits them (a fresh `VLEN`
-  field, present in every case), but `ups_look` uses `vbytes` (circular).  Either reorder (look up the
-  value-carrying part first, ~150 lines) or add a range check on `W0` (AIR change, lead decision).
+* (done) **`vbytes`**: `ups_vbytesE` (SHA bounds each limb as an emitted `VLEN` byte; no AIR change).
 * **step 3, upsert half**: `upsQ (|ps| − 1)` vs `upsert (prune_[0,15] T') [0,15] v` up to `hashOf`
   (`upsert_hashOf_congr` / `upsert_refinedBy`; terminal cases `upsert_brSlot`/`upsert_brVal`/`upsert_leaf_ne`
   /`upsert_ext_np` with `SpbSplit`; upper parts `upsert_branch_down`/`upsert_ext_down`; pass-through `.ext []`;
@@ -462,8 +461,9 @@ so that the `upsV3` walks fit (`wrows_lt` unchanged); `Chain3.UpsWf` → `UpsEWf
   of every instance chains to the next head.
 
 **Unconstrained cells read by the link (STATUS §6 register):**
-* `W0`'s value-length limbs `L0 L1 L2` (`vbytes`): read by every per-kind lemma through `UpsExt0.vlen`/`vbytes`;
-  not range-checked on `W0` (see above).
+* (closed) `W0`'s value-length limbs `L0 L1 L2` (`vbytes`): not range-checked on `W0`; discharged by `ups_vbytesE`
+  (each limb is a byte the value-carrying part emits on `BYTES`; SHA's contract bounds it once that part's digest
+  is looked up, `ups_look0`).
 * (closed) `W3`'s `BMAP` bitmap `wbm`: now discharged by `ups_bm`.
 The other cells the links read (`rx`, `rb`, `mBv`, `mCv`, `clen`, `qlen`, `dI`, `dL`, `reg`, `j`, `jm`, `idx`, `gD`,
 `gMs`, `gMr`, `sN`, `spos`, `plen`, `pdep`, `rcid`, `u`, `nI`, `nI2`, `nib`, `tX`) are pinned by the table or by a

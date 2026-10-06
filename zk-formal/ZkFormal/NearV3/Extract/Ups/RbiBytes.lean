@@ -560,8 +560,6 @@ theorem rbiLook (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : NearSpec.
     (hsl : (nodeEnc (.branch bv cs m)).length < 2 ^ 22)
     (hbv : ∀ sl, bv = some sl → sl.valueRef.length = 36) (hm : m < 2 ^ 64)
     (hkl : UpsSpec.kidsLen cs = 16) (hslot : UpsSpec.kidAt cs (UpsSpec.yOf si) = none)
-    (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
-    (hLb : s.row 0 L0 < 256 ∧ s.row 0 L1 < 256 ∧ s.row 0 L2 < 256)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
     ∃ i, i < s.rows.length ∧ s.row i gD = 1 ∧ s.row i dI = upsIdN (s.row 0 tau) k ∧ s.row i dL = 50 := by
   have K := partK hw hs hL hP k hk
