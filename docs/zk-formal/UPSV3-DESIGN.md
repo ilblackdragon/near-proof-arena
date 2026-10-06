@@ -353,6 +353,26 @@ Each row matches the spec:
   * the per-case lemmas are `upsert_brSlot`, `upsert_brVal`, `upsert_leaf_ne` with `splitLeaf`'s three cases, `upsert_ext_np` with `splitExt`'s, and `upsert_branch_down` / `upsert_ext_down` for the `RD` levels and (key `[]`) the `PT` levels;
   * then `upsert_hashOf_congr`, plus `set_upsert_comm` / `trieOpsStmt` for the order relative to the lockstep sets.
 
+### 8.1 M7c layer 2 (layout): status (lane/v3-trie-h)
+
+Done (kernel-checked, axioms ⊆ {propext, Classical.choice, Quot.sound}; `Extract/Ups/`):
+
+| module | content |
+|---|---|
+| `LayoutRows`, `Layout` | row lemmas `layoutRow`/`pconst`/`sconst`; `walkRows` (W0…W3), `valuePart` (rows `4 … 3+L`), `nodeParts` (consecutive parts to the segment end, `j = k+1`, `qpos`, `pf`/`pl`, part constants) |
+| `FieldRows`, `LayoutFields` | `fieldRow` (one-hot states = `qb`, `idx` counter, field successions), `fieldEnd` (lengths), `fieldSucc`, `partHead`, `extLastw`; `segConstAll`; `partFields` (fields of a part) |
+| `LayoutShape` | `partShape`: the fields' (state, length) list is `shapeU` of the part's type (leaf / ext / branch without / with value, `w` windows, `w = 0` iff `nochild`) |
+| `MsgRows` | `msgsW`, `msgsV`, `msgsQ`: every row's messages by kind (ids `msgId 12 (512τ + j)` and `u + 1` mod `P`) |
+| `ByteRows` | 49 generated row lemmas (`test/gen_ups_bytes.py`): copy flags per field, `b = rb` (+ bitmap add), fresh grammar bytes, header reads, read positions, `DIGEST` ids/lengths |
+| `LayoutMain` | `UpsLayout s L ps fls ws` and `ups_layout : UpsWf v → ∀ s ∈ v, ∃ L ps fls ws, UpsLayout s L ps fls ws` |
+
+Not yet done (layer 2): the part plan (`cPlan`: kinds by `jo`/case, `up`, `pdep`, `rc`, `sN`/`cN` chain) as
+part-level facts; window roles (`fw`, `tgt`, `wfr`, `wy`, `wn`, `rdc`, `aft`); the `MEM` carry-chain lemma
+(§5: `R = E + (A + B − C)` truncated, exact high limb; needs the emitted bytes `< 256` from SHA as a
+hypothesis); the walk semantics of `W0 … W3` (modes, levels, terminal, case selector ↔ `WalkR`);
+aggregation of the per-row byte facts into per-field byte lists (`Q_j` = fields of `shapeU`).
+M7d (render) and M7e (link) are not started.
+
 ## 9. Model check (tested)
 
 `zk-formal/test/upsv3_model.py` checks the design against the spec. Run it as:
