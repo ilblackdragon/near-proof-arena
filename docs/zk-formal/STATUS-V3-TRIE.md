@@ -497,6 +497,14 @@ counted.
   Delta: one interaction, gate `(gD − gP)·tw` (degree 2, existing columns). The view gains
   `B_VSLOT` recvs `[vid]` for written slots; the render is re-proved. Scheduled with M7c/M7d
   (helper).
+  **Done (lane/v3-trie-h):** `recv B_VSLOT ((gD − gP)·tw) [vid]`, the last interaction of
+  `NodeV3.interactions`; `nodeRecvs3 B_VSLOT` = `[vid]` per record whose value slot has
+  `written = true`; `node3_view`, `node_render_local`, `node_render_traffic` re-proved (axioms
+  propext, Classical.choice, Quot.sound). Budget (`BudgetCheck`): nodeV3 186 cols, 21
+  interactions, degree 4 → 5 at g=1 (degree-2 gate), `W_eq` 370 → 386 (g=1), 298 → 306 (g=3);
+  five-table total 855 → 871 / 783 → 791; with upsV3 (`BudgetUps`) 1185 → 1201 / 1073 → 1081.
+  Alternative (not done): a gate column `gW = valStart·tw` keeps degree 4: 187 cols,
+  `W_eq` 379 (g=1) / 307 (g=3).
 
 0. **Fixed soundness gap (d153d30f)**: `valV3` ids had no start, so `VPRE(vid) ≡ NPRE(c) mod P` was choosable (id-space collision on BYTES/ENT/DIGEST). Now `isFirst·vid = 0`, `ValWf.first`.
 

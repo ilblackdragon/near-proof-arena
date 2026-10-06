@@ -104,7 +104,12 @@ theorem padRowT {r : Nat} (hr : r < tr.height T_NODE) (ha : tr.cell T_NODE r act
   · subst b10; cases sd
     · rw [rowT_upbR, ha]; simp [gate]
     · rw [rowT_upbS, ha]; simp [gate]
-  exact rowT_other r bb sd ⟨b0, b1, b2, b4, b5, b6, b9, b7, b8, b3, b10⟩
+  by_cases b11 : bb = B_VSLOT
+  · subst b11; cases sd
+    · rw [rowT_vslotR, hgD, hgP, show (0 : Fp) - 0 = 0 by decide, show (0 : Fp) * tr.cell T_NODE r tw = 0 by grind]
+      simp [gate]
+    · exact rowT_vslotS r
+  exact rowT_other r bb sd ⟨b0, b1, b2, b4, b5, b6, b9, b7, b8, b3, b10, b11⟩
 
 /-- A non-`SUM` row is silent on `SIZE`. -/
 theorem sizeQuiet {r : Nat} (hs : tr.cell T_NODE r sumr = 0) (sd : Bool) : rowT tr pub r B_SIZE sd = [] := by

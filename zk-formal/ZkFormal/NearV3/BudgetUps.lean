@@ -13,7 +13,8 @@ table list after M7: `nodeV3` with the delta (`NodeV3.tableU`), `headV3`, `valV3
 M7c: `upsV3` with the pass-through mode (empty-key extensions on the `[0,15]` path), the
 `UPB` child-id field and the id packing `512τ + j` (+10 columns: `dep0‥2`, `kPT`, `up`, `rc`,
 `pdep`, `cN`, `rcid`, `rdc`); the `nodeV3` delta is unchanged in size (`cid` is an existing
-column).
+column).  With the `VSLOT` receive (gate `valStart·tw`): `nodeV3` 21 interactions, degree 5
+at `g = 1`, `W_eq` 386 / 306; lane total 1201 / 1081.
 -/
 
 namespace ZkFormal.NearV3.Budget
@@ -31,10 +32,10 @@ def weqTrieU (g : Nat) : Nat := (trieTablesU.map (weqTable g)).sum
 theorem ups_g1 : row6 1 UpsV3.table = (186, 15, 15, 4, 330, 22) := by decide +kernel
 theorem ups_g3 : row6 3 UpsV3.table = (186, 15, 6, 8, 290, 22) := by decide +kernel
 
-theorem nodeU_g1 : row6 1 NodeV3.tableU = (186, 20, 20, 4, 370, 22) := by decide +kernel
-theorem nodeU_g3 : row6 3 NodeV3.tableU = (186, 20, 7, 8, 298, 22) := by decide +kernel
+theorem nodeU_g1 : row6 1 NodeV3.tableU = (186, 21, 21, 5, 386, 22) := by decide +kernel
+theorem nodeU_g3 : row6 3 NodeV3.tableU = (186, 21, 8, 8, 306, 22) := by decide +kernel
 
-theorem weqTrieU_g1 : weqTrieU 1 = 1185 := by decide +kernel
-theorem weqTrieU_g3 : weqTrieU 3 = 1073 := by decide +kernel
+theorem weqTrieU_g1 : weqTrieU 1 = 1201 := by decide +kernel
+theorem weqTrieU_g3 : weqTrieU 3 = 1081 := by decide +kernel
 
 end ZkFormal.NearV3.Budget

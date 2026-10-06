@@ -56,7 +56,7 @@ theorem sends_eq (vs : List NodeS3) (bb : Nat) (hb : bb ≠ B_SIZE) :
 
 theorem sends_size_nil (vs : List NodeS3) :
     (List.range vs.length).flatMap (fun n => pnSend n (vs.getD n default) B_SIZE) = [] := by
-  apply flatMap_eq_nil'; intro n _; unfold pnSend; simp [B_SIZE, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT, B_UPB]
+  apply flatMap_eq_nil'; intro n _; unfold pnSend; simp [B_SIZE, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT, B_UPB, B_VSLOT]
 
 theorem recvs_eq (vs : List NodeS3) (bb : Nat) :
     nodeRecvs3 vs bb = (List.range vs.length).flatMap fun n => pnRecv n (vs.getD n default) bb := by
@@ -84,6 +84,9 @@ theorem recvs_eq (vs : List NodeS3) (bb : Nat) :
   by_cases h8 : bb = B_UPB
   · simp only [if_neg h1, if_neg h2, if_neg h4, if_neg h5, if_neg h6, if_neg h7, if_pos h8]
     exact zrf' vs _ (fun S n => upbOf n S fun p => S.mU.getD p 0) (fun x => rfl)
-  simp only [if_neg h1, if_neg h2, if_neg h4, if_neg h5, if_neg h6, if_neg h7, if_neg h8]; simp
+  by_cases h9 : bb = B_VSLOT
+  · simp only [if_neg h1, if_neg h2, if_neg h4, if_neg h5, if_neg h6, if_neg h7, if_neg h8, if_pos h9]
+    exact zrf' vs _ (fun S _ => pnVslot S) (fun x => rfl)
+  simp only [if_neg h1, if_neg h2, if_neg h4, if_neg h5, if_neg h6, if_neg h7, if_neg h8, if_neg h9]; simp
 
 end ZkFormal.NearV3.NodeProof3

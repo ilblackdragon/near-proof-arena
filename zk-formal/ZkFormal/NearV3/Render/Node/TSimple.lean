@@ -15,7 +15,7 @@ open ZkFormal.Near.Render.NodeGen (F Win layout bitOf b2n)
 namespace NodeGen3
 
 /-- `rowN` keeps exactly the pieces of bus `b`, side `sd`. -/
-macro "rown_simp" : tactic => `(tactic| simp only [rowN, rowN0, rowNU, B_BYTES, B_DIGEST, B_PARENT, B_VPARENT, B_EDGE, B_BMAP,
+macro "rown_simp" : tactic => `(tactic| simp only [rowN, rowN0, rowNU, B_BYTES, B_DIGEST, B_PARENT, B_VPARENT, B_VSLOT, B_EDGE, B_BMAP,
   B_DIGS, B_DUP, B_ENT, B_SIZE, B_UPB, Nat.reduceEqDiff, true_and, and_true, false_and, and_false, ite_true, ite_false,
   List.nil_append, List.append_nil, Bool.false_eq_true, Bool.true_eq_false, decide_true, decide_false])
 

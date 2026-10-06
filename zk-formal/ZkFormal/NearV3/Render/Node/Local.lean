@@ -150,11 +150,19 @@ theorem node_render_local (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp) (
       rcases hnat with h | ⟨h1, h2⟩
       · rw [h]; left; grind
       · rw [h1, h2]; right; decide
+    have hvt : (Expr.mul NodeV3.valStart (Dsl.c NodeV3.tw)).eval tr t q pub = 0 ∨
+        (Expr.mul NodeV3.valStart (Dsl.c NodeV3.tw)).eval tr t q pub = 1 := by
+      rw [eval_mul]
+      have htw : (Dsl.c NodeV3.tw).eval tr t q pub = 0 ∨ (Dsl.c NodeV3.tw).eval tr t q pub = 1 := by
+        rw [eval_c, hcell q NodeV3.tw hq (by decide)]
+        exact ofNat01 (cell_bool vs _ q (x := NodeV3.tw) (by decide))
+      rcases hvs with h | h <;> rcases htw with h' | h' <;> rw [h, h'] <;> decide
     simp only [NodeV3.table, NodeV3.interactions, send, recv, List.mem_cons, List.not_mem_nil, or_false] at hi
-    rcases hi with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    rcases hi with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
       simp only [List.mem_singleton] at hbb <;> subst hbb
     all_goals first
       | exact hvs
+      | exact hvt
       | exact hc _ (by simp [NodeV3.act, NodeV3.nf, NodeV3.gD, NodeV3.gP, NodeV3.gV, NodeV3.gA, NodeV3.gB,
           NodeV3.gS, NodeV3.gDp, NodeV3.gBm, NodeV3.hd, NodeV3.dup, NodeV3.sumr])
       | exact hc 0 (Or.inl rfl)

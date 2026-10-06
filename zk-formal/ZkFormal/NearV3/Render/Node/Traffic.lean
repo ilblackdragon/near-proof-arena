@@ -79,9 +79,51 @@ theorem rows_all (vs : List NodeS3) {H : Nat} (hHR : R vs + 1 ≤ H) (b : Nat) (
 
 theorem rowN_other (c : Nat → Nat) (b : Nat) (sd : Bool) (h1 : b ≠ B_BYTES) (h2 : b ≠ B_DIGEST) (h3 : b ≠ B_PARENT)
     (h4 : b ≠ B_VPARENT) (h5 : b ≠ B_EDGE) (h6 : b ≠ B_BMAP) (h7 : b ≠ B_DIGS) (h8 : b ≠ B_DUP) (h9 : b ≠ B_ENT)
-    (h10 : b ≠ B_SIZE) (h11 : b ≠ B_UPB) : rowN c b sd = [] := by
+    (h10 : b ≠ B_SIZE) (h11 : b ≠ B_UPB) (h12 : b ≠ B_VSLOT) : rowN c b sd = [] := by
   simp [rowN, rowN0, rowNU, Ne.symm h1, Ne.symm h2, Ne.symm h3, Ne.symm h4, Ne.symm h5, Ne.symm h6, Ne.symm h7, Ne.symm h8,
-    Ne.symm h9, Ne.symm h10, Ne.symm h11]
+    Ne.symm h9, Ne.symm h10, Ne.symm h11, Ne.symm h12]
+
+/-- The `VSLOT` receive of a row: the `VPARENT` message's first entry when `tw = 1`. -/
+theorem rowN_vslot (c : Nat → Nat) (h : c 167 ≤ 1) :
+    rowN c B_VSLOT false = if c 167 = 1 then (rowN c B_VPARENT true).map (List.take 1) else [] := by
+  rcases (show c 167 = 0 ∨ c 167 = 1 by omega) with h0 | h1
+  · simp [rowN, rowN0, rowNU, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_VSLOT, B_EDGE, B_BMAP, B_DIGS, B_DUP,
+      B_ENT, B_SIZE, B_UPB, h0, gt]
+  · simp only [rowN, rowN0, rowNU, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_VSLOT, B_EDGE, B_BMAP, B_DIGS, B_DUP,
+      B_ENT, B_SIZE, B_UPB, h1, Nat.mul_one, if_true]
+    simp [gt]
+    split <;> simp
+
+/-- `VSLOT` receive of a lockstep-written value slot. -/
+def tgtVs (v : NodeV3) : List ZkFormal.Near.Msg := match v.value with | some (i, _, _, _, true) => [[i]] | _ => []
+
+theorem rec_vslot {vs : List NodeS3} (ok : NodeOk vs) {n : Nat} (hn : n < vs.length) :
+    (recN vs n B_VSLOT false).Perm (tgtVs (rec vs n).v) := by
+  have hrow : ∀ p ∈ List.range (layN vs n).length, rowN (rowCell vs (mkR vs n p)) B_VSLOT false =
+      if twOf (rec vs n).v = true then (rowN (rowCell vs (mkR vs n p)) B_VPARENT true).map (List.take 1) else [] := by
+    intro p _
+    rw [rowN_vslot _ (by rw [Rc.c167]; cases twOf _ <;> decide), Rc.c167]
+    show (if b2n (twOf (rec vs n).v) = 1 then _ else _) = _
+    cases twOf (rec vs n).v <;> simp [b2n]
+  unfold recN
+  rw [ZkFormal.Near.Render.flatMap_congr' hrow]
+  have hvp := rec_vpS ok hn
+  unfold recN at hvp
+  cases htw : twOf (rec vs n).v
+  · simp only [Bool.false_eq_true, if_false, flatMap_nil' (fun _ _ => rfl)]
+    unfold tgtVs; unfold twOf at htw
+    generalize (rec vs n).v.value = o at htw ⊢
+    rcases o with _ | ⟨i, l, pre, po, w⟩
+    · exact List.Perm.refl _
+    · simp only at htw; subst htw; exact List.Perm.refl _
+  · simp only [if_true]
+    rw [← List.map_flatMap]
+    refine (hvp.map (List.take 1)).trans ?_
+    unfold tgtVs tgtVp; unfold twOf at htw
+    generalize (rec vs n).v.value = o at htw ⊢
+    rcases o with _ | ⟨i, l, pre, po, w⟩
+    · simp at htw
+    · simp only at htw; subst htw; simp
 
 /-- Sends of the records, per bus. -/
 theorem sends_perm {vs : List NodeS3} (ok : NodeOk vs) (b : Nat) :
@@ -96,7 +138,7 @@ theorem sends_perm {vs : List NodeS3} (ok : NodeOk vs) (b : Nat) :
   by_cases hS : b = B_SIZE
   · subst hS
     rw [flatMap_nil' (fun n hn => rec_sizeS ok (List.mem_range.1 hn))]
-    simp [nodeSends3, B_SIZE, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT, B_UPB, total_eq]
+    simp [nodeSends3, B_SIZE, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT, B_UPB, B_VSLOT, total_eq]
   rw [if_neg (fun h => hS h.1), List.append_nil]
   by_cases h1 : b = B_BYTES
   · subst h1; simp only [nodeSends3, if_true]
@@ -128,10 +170,16 @@ theorem sends_perm {vs : List NodeS3} (ok : NodeOk vs) (b : Nat) :
     exact R' (fun n hn => perm_eq_r (List.Perm.refl _) (rec_upb ok hn true)) (fun n => rfl)
   rw [flatMap_nil' (fun n _ => show recN vs n b _ = [] from flatMap_nil' (fun p _ => by
     rcases (show b = B_DIGEST ∨ b = B_DUP ∨ (b ≠ B_DIGEST ∧ b ≠ B_DUP) by omega) with h | h | ⟨h8, h9⟩
-    · subst h; simp [rowN, rowN0, rowNU, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP, B_ENT, B_SIZE, B_UPB]
-    · subst h; simp [rowN, rowN0, rowNU, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP, B_ENT, B_SIZE, B_UPB]
-    · exact rowN_other _ _ _ h1 h8 h2 h3 h4 h5 h6 h9 h7 hS hU))]
-  simp [nodeSends3, h1, h2, h3, h4, h5, h6, h7, hS, hU]
+    · subst h; simp [rowN, rowN0, rowNU, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP, B_ENT, B_SIZE, B_UPB, B_VSLOT]
+    · subst h; simp [rowN, rowN0, rowNU, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP, B_ENT, B_SIZE, B_UPB, B_VSLOT]
+    · rcases (show b = B_VSLOT ∨ b ≠ B_VSLOT by omega) with hV | hV
+      · subst hV; simp [rowN, rowN0, rowNU, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP,
+          B_ENT, B_SIZE, B_UPB, B_VSLOT]
+      · exact rowN_other _ _ _ h1 h8 h2 h3 h4 h5 h6 h9 h7 hS hU hV))]
+  have hV : b ≠ B_VSLOT ∨ b = B_VSLOT := by omega
+  rcases hV with hV | hV
+  · simp [nodeSends3, h1, h2, h3, h4, h5, h6, h7, hS, hU, hV]
+  · subst hV; simp [nodeSends3, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT, B_SIZE, B_UPB, B_VSLOT]
 
 /-- Receives of the records, per bus. -/
 theorem recvs_perm {vs : List NodeS3} (ok : NodeOk vs) (b : Nat) :
@@ -170,13 +218,17 @@ theorem recvs_perm {vs : List NodeS3} (ok : NodeOk vs) (b : Nat) :
   · subst hU; simp only [nodeRecvs3, B_DIGEST, B_PARENT, B_EDGE, B_BMAP, B_DUP, B_ENT, B_UPB, Nat.reduceEqDiff,
       if_true, if_false]
     exact R' (fun n hn => perm_eq_r (List.Perm.refl _) (rec_upb ok hn false)) (fun n => rfl)
+  by_cases hV : b = B_VSLOT
+  · subst hV; simp only [nodeRecvs3, B_DIGEST, B_PARENT, B_EDGE, B_BMAP, B_DUP, B_ENT, B_UPB, B_VSLOT,
+      Nat.reduceEqDiff, if_true, if_false]
+    exact R' (fun n hn => rec_vslot ok hn) (fun n => rfl)
   rw [flatMap_nil' (fun n _ => show recN vs n b _ = [] from flatMap_nil' (fun p _ => by
     rcases (show b = B_BYTES ∨ b = B_VPARENT ∨ b = B_DIGS ∨ b = B_SIZE ∨
         (b ≠ B_BYTES ∧ b ≠ B_VPARENT ∧ b ≠ B_DIGS ∧ b ≠ B_SIZE) by omega) with h | h | h | h | ⟨h7, h8, h9, h10⟩
     all_goals try (subst h; simp [rowN, rowN0, rowNU, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP,
-      B_ENT, B_SIZE, B_UPB])
-    exact rowN_other _ _ _ h7 h1 h2 h8 h3 h4 h9 h5 h6 h10 hU))]
-  simp [nodeRecvs3, h1, h2, h3, h4, h5, h6, hU]
+      B_ENT, B_SIZE, B_UPB, B_VSLOT])
+    exact rowN_other _ _ _ h7 h1 h2 h8 h3 h4 h9 h5 h6 h10 hU hV))]
+  simp [nodeRecvs3, h1, h2, h3, h4, h5, h6, hU, hV]
 
 end NodeGen3
 
@@ -197,7 +249,8 @@ theorem node_render_traffic (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp)
     intro b sd
     rw [ZkFormal.Near.Render.flatMap_congr' (g := fun q => (rowN (cell vs (tr.height t) q) b sd).map Msg.toFp)
       (fun q hq => rowT_eq _ (fun x hx => hcell q x (List.mem_range.1 hq) hx)
-        (fun x hx => gate_le3 vs _ q x hx) (vs_le vs _ q) b sd),
+        (fun x hx => gate_le3 vs _ q x hx) (vs_le vs _ q)
+        (cell_bool vs _ q (x := NodeV3.tw) (by decide)) b sd),
       ← List.map_flatMap, rows_all vs hHR]
   apply traffic_of
   · intro b; rw [hall b true]; exact (sends_perm hok b).map _
