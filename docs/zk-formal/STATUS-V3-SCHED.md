@@ -14,7 +14,7 @@ Rules: no `sorry` / `axiom` / `native_decide`; axioms ⊆ {propext, Classical.ch
 |---|---|---|---|
 | M0 | design | tables, buses, message formats, public data, amendments needed, `W_eq` estimate (§2–§4) | **done** |
 | M1 | spec-side refinement | `runCore` decomposed into the AIR's phases, each **proved** equal to the spec (§5); executable event model `coreEv` = `runCore` on 600/600 vectors | **done** |
-| M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 810 at g = 1), honest generators, constraint evaluator + bus-balance tests on the 600 vectors, mutants | tables + budget **done**; generators/tests in progress |
+| M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 814 at g = 1), honest generators for all six (`Gen/*`), constraint evaluator + bus-balance tests on the 600 vectors, mutants (§8) | **done** |
 | M3 | soundness | per table: `…Local → ∃ v, Wf v ∧ Traffic …` (L5 style), bus contracts (comparator, memory, scan, codec), link lemma: `schedCore_sound` | **started** (§7): comparator contract, memory row view + segments, abstract memory consistency |
 | M4 | completeness | honest traces satisfy every constraint, traffic = expected lists; `schedCore_complete`; height bounds | open |
 | M5 | integration | message formats agreed with `v3-trie` (`VBYTES`, `upsV3`) and the assembly (public segments, `Prep.fwd`), cuts | open |
@@ -64,13 +64,14 @@ its sanity hash, and the grants checked against `Prep.fwd`.
 | `sscV3` scan | `Tables/Scan.lean` | 50 | 6 | 4 | 122 | 22 |
 | `sprV3` process | `Tables/Proc.lean` | 64 | 11 | 4 | 176 | 22 |
 | `smmV3` memory | `Tables/Mem.lean` | 18 | 4 | 4 | 74 | 22 |
-| `scpV3` comparator | `Tables/Cmp.lean` | 29 | 1 | 4 | 61 | 22 |
+| `scpV3` comparator | `Tables/Cmp.lean` | 33 | 1 | 4 | 65 | 22 |
 | `sdsV3` distribute | `Tables/Dist.lean` | 55 | 8 | 4 | 143 | 22 |
-| **total** | | 322 | 43 | | **810** | |
+| **total** | | 326 | 43 | | **814** | |
 
-(At g = 3 the grouped aux constraints have degree 8, total 778; g = 1 is the better setting
-for these tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,464 `W_eq` ≈ 1.26 MB of
-proof (at ≈ 864 B per `W_eq`).
+(At g = 3 the grouped aux constraints have degree 8; g = 1 is the better setting for these
+tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,468 `W_eq` ≈ 1.27 MB of proof (at
+≈ 864 B per `W_eq`). The comparator is 29-bit: the distribute sort key `avg·64 + shard` reaches
+≈ 2^28 (found by `SchedFullTest`; 25 bits were too few).
 
 **Proposed cuts** (not implemented):
 * codec: a per-byte digest output from SHA (`DBYTE (Id, i, b)`) instead of the 34-element
@@ -163,3 +164,26 @@ its buses (`STATUS-V3-CHACHA` §6).
 | `Mem.row_flags`, `row_next`, `row_after_lst`, `row_pad`, `row_last`, `row_first`, `row_init`, `row_read`, `row_grant` | `View/Mem.lean` | memory rows: one-hot kinds, segment continuation with carried `addr, v→vin, t→tp, w→wp, al, isL`, boundaries, INIT/READ/GRANT semantics (values mod `P`) |
 | `Mem.seg_back`, **`Mem.seg_start`** | `View/Mem.lean` | every active row lies in a segment that starts at an INIT row |
 | **`mem_consistent`** | `Spec/MemCons.lean` | abstract offline memory checking: chained time-ordered segments + frame + correct steps ⇒ every op reads the simulated state |
+
+## 8. M2 tests (executable, from `zk-formal/`)
+
+* `test/SchedModelTest.lean` (≈ 4 s): the event model `coreEv` = `runCore` on **600/600**
+  vectors (6,535 rounds, 1,017 key-0 rounds, 9,981 steps), every structural check holding.
+* `test/SchedTablesTest.lean [limit]` (≈ 22 min for 600, interpreted): `Gen.run` (checked step by
+  step against `processEv`/`coreEv`, shuffles replayed with `genAt`), honest traces of `scpV3`,
+  `smmV3`, `sscV3`, `sprV3` **and** lane v3-chacha's `shufV3`/`genV3`/`chachaV3` (fast row
+  builders, equal to the lane generators cell by cell on a sample): **600/600 vectors, 0
+  violations, 0 non-0/1 multiplicity bits**, buses `SCMP SOP SFIN SINC SPUSH SSIN SSOUT SSMEM SGEN
+  SSHUF SCHACHA SPUBB SPAR SRAW` balanced against the expected external traffic; the renderer
+  (`keyRecs`, `parScan`, `rawRecs`) agrees on all 600; **37/37** single-cell mutants caught.
+* `test/SchedFullTest.lean [limit]`: all six tables (codec and distribute included) per vector;
+  constraints, multiplicity bits, balance of `SCMP SOP SFIN SINC SPUSH SPUBB SPAR SRAW SLINK SSHD
+  SDL SDLX SDG S0F SPOST VBYTES BYTES DIGEST` with the renderer's public records and the
+  expected external traffic, where the expected `SPOST` bytes are **`runCore`'s new state** and
+  `VBYTES` the canonical previous state; forwarding demands = half of each grant of sender 0;
+  codec / distribute mutants.
+
+Honest-value conventions (for a Rust generator): scan `INC` multiplicity = bit set ∧ increase
+processed; `sprV3`'s first padding row carries the key register and the instance values of the
+last active row, `ikc = (kc − 15)⁻¹` on every row; a scan param row only for instances with a
+converted request (the public `SPAR` tag-1 record follows the same rule).
