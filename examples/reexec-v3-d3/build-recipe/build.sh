@@ -51,7 +51,7 @@ LEAN="${TC}/bin/lean"
 LEANC="${TC}/bin/leanc"
 ORDER="${ROOT}/source/target/release/leanorder"
 TRUSTED_PREFIXES="ArenaCore NearSpec.Bytes NearSpec.SHA256 NearSpec.Trie NearSpec.AccountId NearSpec.Primitives NearSpec.Outcome NearSpec.TransferV1 NearSpec.ClaimCodec NearSpec.Challenge NearSpec.TrieUpsert NearSpec.Bandwidth NearSpecV3.Wire NearSpecV3.ClaimV3 NearSpecV3.WitnessV3 NearSpecV3.Layout NearSpecV3.TrieBuild NearSpecV3.RuntimeD0 NearSpecV3.ChaCha20 NearSpecV3.F64 NearSpecV3.Congestion NearSpecV3.BandwidthScheduler NearSpecV3.GF256 NearSpecV3.ReedSolomon NearSpecV3.ChunkValidationV0 NearSpecV3.ClaimV3Props NearSpecV3.ChallengeV3 NearSpecV3.SHA512 NearSpecV3.Ed25519 NearSpecV3.TxD1 NearSpecV3.RuntimeD1 NearSpecV3.ChunkValidationD1 NearSpecV3.D2.Trie NearSpecV3.D2.Types NearSpecV3.D2.Fees NearSpecV3.D2.State NearSpecV3.D2.Queues NearSpecV3.D2.Actions NearSpecV3.D2.Receipts NearSpecV3.D2.TxD2 NearSpecV3.D2.Validators NearSpecV3.D2.RuntimeD2 NearSpecV3.ChunkValidationD2 NearSpecV3.Wasm.Syntax NearSpecV3.Wasm.Decode NearSpecV3.Wasm.Validate NearSpecV3.Wasm.FiniteWasm NearSpecV3.Wasm.HostSigs NearSpecV3.Wasm.InstrSize NearSpecV3.Wasm.Prepare NearSpecV3.Wasm.Numerics NearSpecV3.Wasm.Crypto NearSpecV3.Wasm.TrieStore NearSpecV3.Wasm.Machine NearSpecV3.Wasm.TrieAccounting NearSpecV3.Wasm.Host NearSpecV3.Wasm.Exec NearSpecV3.D3.FunctionCall NearSpecV3.ChallengeChunkV3"
-MODEL_MODULES="ReexecV3D3.Canon ReexecV3D3.Model"   # the model's import closure in formal/
+MODEL_MODULES="ReexecV3D3.CanonDefs ReexecV3D3.NormDefs ReexecV3D3.Canon ReexecV3D3.Model"   # the model's import closure in formal/
 NB="${ROOT}/build-native"
 rm -rf "${NB}"
 mkdir -p "${NB}/tsrc" "${NB}/msrc/ReexecV3D3" "${NB}/main" "${NB}/olean" "${NB}/c" "${NB}/o"
