@@ -85,6 +85,59 @@ def valType : P VT := do
   | 0x6F => fail "gc types are disallowed (externref; finite-wasm features `gc_types = false`)"
   | _ => fail "invalid value type"
 
+/-- wasmparser 0.228 `read_var_s33` (`binary_reader.rs:660-692`). -/
+def s33 : P Int := do
+  let b ← byte
+  if b < 0x80 then return (if b ≥ 0x40 then (b : Int) - 128 else b)
+  let mut result : Nat := b % 128
+  let mut shift := 7
+  for _ in [0:4] do
+    let b ← byte
+    result := result + (b % 128) * 2 ^ shift
+    if shift ≥ 25 then
+      let v : Int := let w := (b * 2) % 256; if w ≥ 128 then (w : Int) - 256 else w
+      let x := Int.fdiv v (2 ^ (33 - shift))
+      if b ≥ 128 ∨ (x ≠ 0 ∧ x ≠ -1) then fail "invalid var_s33: integer representation too long"
+      return result
+    shift := shift + 7
+    if b < 128 then
+      return (if result ≥ 2 ^ (shift - 1) then (result : Int) - 2 ^ shift else result)
+  fail "invalid var_s33"
+
+def abstractHeapOk (b : Nat) : Bool :=
+  [0x70, 0x6F, 0x6E, 0x71, 0x72, 0x73, 0x6D, 0x6B, 0x6A, 0x6C, 0x69, 0x74, 0x68, 0x75].contains b
+
+/-- wasmparser 0.228 `HeapType::from_reader` (`readers/core/types.rs:1757-1801`): a non-negative
+s33 is a concrete type index (< 2^20), otherwise an abstract heap type, optionally `0x65`-shared. -/
+def heapTypeP : P Unit := do
+  let p0 ← get
+  let v ← s33
+  if v ≥ 0 ∧ v < 2 ^ 32 then
+    if v ≥ 2 ^ 20 then fail "type index greater than implementation limits"
+  else
+    set p0
+    let b ← byte
+    if b = 0x65 then
+      if !abstractHeapOk (← byte) then fail "invalid abstract heap type"
+    else if !abstractHeapOk b then fail "invalid heap type"
+
+/-- wasmparser 0.228's *parser* for a local's value type (`ValType::from_reader`,
+`readers/core/types.rs:1639-1727`), which is more permissive than validation: it accepts v128 and GC
+reference syntax. Returns `none` for a parsed type that validation will reject (v128, any reference
+type other than `funcref`). Used for local declarations, where NEAR's local budget is checked
+between parsing and validation (`prepare_v3.rs:247-255`). -/
+def valTypePermissive : P (Option VT) := do
+  match ← peekByte with
+  | some 0x7F => let _ ← byte; pure (some .i32)
+  | some 0x7E => let _ ← byte; pure (some .i64)
+  | some 0x7D => let _ ← byte; pure (some .f32)
+  | some 0x7C => let _ ← byte; pure (some .f64)
+  | some 0x7B => let _ ← byte; pure none
+  | some 0x70 => let _ ← byte; pure (some .funcref)
+  | some 0x63 | some 0x64 => do let _ ← byte; heapTypeP; pure none
+  | some _ => do heapTypeP; pure none
+  | none => fail "unexpected end"
+
 def refType : P VT := do
   match ← byte with
   | 0x70 => pure .funcref
@@ -115,6 +168,10 @@ def memarg : P (Nat × Nat) := do
 
 def zeroByte : P Unit := do
   if (← byte) ≠ 0 then fail "zero byte expected"
+
+/-- a LEB `u32` memory index (wasmparser 0.228 `binary_reader.rs`, 0xFC 8/10/11); only memory 0 exists -/
+def memIdx : P Unit := do
+  if (← u32) ≠ 0 then fail "unknown memory"
 
 def isFloatOp (op : Nat) : Bool :=
   op = 0x2A || op = 0x2B || op = 0x38 || op = 0x39 || op = 0x43 || op = 0x44 ||
@@ -170,10 +227,11 @@ def instr : P Instr := do
   | 0xD2 => pure (.refFunc (← u32))
   | 0xFC => do
     match ← u32 with
-    | 8 => do let d ← u32; zeroByte; pure (.memInit d)
+    -- bulk-memory memory indices are LEB u32 (not a single zero byte); ≠ 0 fails validation
+    | 8 => do let d ← u32; memIdx; pure (.memInit d)
     | 9 => pure (.dataDrop (← u32))
-    | 10 => do zeroByte; zeroByte; pure .memCopy
-    | 11 => do zeroByte; pure .memFill
+    | 10 => do memIdx; memIdx; pure .memCopy
+    | 11 => do memIdx; pure .memFill
     | 12 => do let e ← u32; let t ← u32; pure (.tableInit e t)
     | 13 => pure (.elemDrop (← u32))
     | 14 => do let d ← u32; let s ← u32; pure (.tableCopy d s)

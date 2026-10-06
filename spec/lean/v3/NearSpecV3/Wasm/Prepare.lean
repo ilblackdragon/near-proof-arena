@@ -121,6 +121,10 @@ def liftP {α} (x : P α) : PM α := fun s b pos =>
   | .error (.invalid m) => .error (.prep "Deserialization" m)
 
 def deser {α} (why : String) : PM α := throw (.prep "Deserialization" why)
+
+/-- run a sub-parser on the input truncated at `stop` (a function body's reader is bounded by its size) -/
+def boundedP {α} (stop : Nat) (x : P α) : PM α :=
+  liftP (withReader (fun b => b.extract 0 stop) x)
 def prepFail {α} (v why : String) : PM α := throw (.prep v why)
 
 def anyFloatVT (ts : Array VT) : Bool := ts.any VT.isFloat
@@ -166,6 +170,9 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
     modify fun s => { s with m := { s.m with types := ts } }
   | 2 => do
     let is ← liftP (vecOf import_)
+    -- the validator consumes the whole section (trailing bytes → Deserialization) before
+    -- `transform_import_section` (`prepare_v3.rs:92-98`)
+    if (← getThe Nat) ≠ sEnd then deser "section size mismatch: unexpected data at the end of the section"
     -- validator.import_section
     for i in is do
       if i.kind = 0 ∧ i.idx ≥ m.types.size then deser "unknown type"
@@ -193,6 +200,7 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
     modify fun s => { s with m := { s.m with funcTypes := fs } }
   | 4 => do
     let ts ← liftP (vecOf tableType)
+    if (← getThe Nat) ≠ sEnd then deser "section size mismatch: unexpected data at the end of the section"
     for t in ts do
       match t.lim.max with
       | some mx => if t.lim.min > mx then deser "table size minimum must not be greater than maximum"
@@ -265,12 +273,22 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
       let bEnd := st + sz
       if bEnd > sEnd then deser "function body extends past section"
       if sz > cfg.maxFunctionBodySize then prepFail "FunctionBodyTooLarge" "max_function_body_size"
-      let groups ← liftP localGroups
+      -- local groups are read and budgeted one at a time (`prepare_v3.rs:247-255`): an exceeded
+      -- budget is reported before a later group fails to parse
+      let ng ← boundedP bEnd u32
+      let mut groups : Array (Nat × VT) := #[]
       let mut lb := (← get).localBudget
-      for (cnt, _) in groups do
+      let mut badLocal := false
+      for _ in [0:ng] do
+        let cnt ← boundedP bEnd u32
+        let t ← boundedP bEnd valTypePermissive
         if cnt > lb then prepFail "TooManyLocals" "max_locals_per_contract"
         lb := lb - cnt
+        match t with
+        | some t => groups := groups.push (cnt, t)
+        | none => badLocal := true
       modify fun s => { s with localBudget := lb }
+      if badLocal then deser "local type rejected by validation (GC/SIMD/externref)"
       let ft := m.types[m.funcTypes[k]!]!
       let nLocals := groups.foldl (fun a (cnt, _) => a + cnt) 0
       if ft.params.size + nLocals > cfg.wpMaxFunctionLocals then deser "too many locals"
@@ -316,7 +334,13 @@ def earlyPass (cfg : NearCfg) : PM Unit := do
     let id ← liftP byte
     let len ← liftP u32
     let st ← getThe Nat
-    if st + len > b.size then deser "section size mismatch: unexpected end"
+    if st + len > b.size then
+      -- wasmparser streams the code section: `CodeSectionStart { count }` is yielded (and NEAR's
+      -- function budget checked, `prepare_v3.rs:225-230`) before the truncation is noticed
+      if id = 10 then
+        let n ← liftP u32
+        if n > (← get).funcBudget then prepFail "TooManyFunctions" "code section count"
+      deser "section size mismatch: unexpected end"
     if id ≠ 0 then
       match sectionRank id with
       | some r =>
