@@ -5,34 +5,34 @@ import NearSpecV3.TxD1
 # `Runtime::apply` restricted to domain D1 (new chunk with Transfer transactions)
 
 Extends `RuntimeD0.applyNewChunk` by step 2 of `Runtime::apply` (`runtime/runtime/src/lib.rs:1797`),
-`process_transactions` (`lib.rs:1882-2278`), and by the local receipts it creates, processed
+`process_transactions` (`lib.rs:1882-2279`), and by the local receipts it creates, processed
 first by `process_receipts` (`lib.rs:2658-2721`, `process_local_receipts` 2357-2433).
 spec/near-chunk-validation-d1.md §3 is the prose version; every step cites nearcore.
 
 ## `process_transactions`, per transaction `t` with validity flag `f` (in chunk order)
 
 1. `UniqueChunkTransactions` (PV 85): a transaction whose hash was already seen in this chunk is
-   skipped — no outcome, no reads, nothing (`lib.rs:2004-2012`). The hash is recorded for every
+   skipped — no outcome, no reads, nothing (`lib.rs:1981-1992`). The hash is recorded for every
    transaction, expired or not.
-2. `f = 0` ⇒ failed outcome (`Expired`, `lib.rs:1904-1907, 2014-2022`).
-3. `validate_transaction` fails (signature, size) ⇒ failed outcome.
-4. `tx_cost` overflows ⇒ failed outcome (`CostOverflow`, `lib.rs:2030-2047`).
+2. `f = 0` ⇒ failed outcome (`Expired`, `lib.rs:1902-1905, 1994-2003`).
+3. `validate_transaction` fails (signature, size) ⇒ failed outcome (`lib.rs:1906-1918, 1994-2003`).
+4. `tx_cost` overflows ⇒ failed outcome (`CostOverflow`, `lib.rs:2010-2028`).
 5. The signer's account is looked up (the value prefetched for every non-expired transaction,
-   `lib.rs:1925-1985`; a storage error is surfaced only here, `lib.rs:2066`): absent ⇒ failed
+   `lib.rs:1922-1977`; a storage error is surfaced only here, `lib.rs:2030-2049`): absent ⇒ failed
    outcome (`InvalidSignerId`); a V2 account is out of D1 (`t.signer_v1`); undecodable ⇒ reject.
-6. The access key `(signer, public key)` is looked up likewise: absent ⇒ failed outcome
-   (`AccessKeyNotFound`); undecodable ⇒ reject.
+6. The access key `(signer, public key)` is looked up likewise (`lib.rs:2050-2076`): absent ⇒
+   failed outcome (`AccessKeyNotFound`); undecodable ⇒ reject.
 7. `verify_and_charge_tx_ephemeral` (`TxD1.verifyAndCharge`): failure ⇒ failed outcome.
 8. Success: receipt `Receipt::from_tx` (`receipt.rs:344-365`) with id
    `create_receipt_id_from_transaction(tx_hash, height)` = `sha256(tx_hash ‖ u64 height ‖ u64 0)`
    (`core/primitives/src/utils.rs:270-275`) and gas price `max(gas_price, min_gas_purchase_price)`;
-   it is a local receipt iff `receiver = signer` (`lib.rs:2184-2192`), else it goes through
+   it is a local receipt iff `receiver = signer` (`lib.rs:2187-2195`), else it goes through
    `ReceiptSink::forward_or_buffer_receipt` (buffering is out of D1, `e.forwarded`). If
    `tx_burnt_amount + burnt` overflows u128 the transaction gets no outcome and no state change
-   (the receipt is already emitted; `lib.rs:2224-2244`). Otherwise: outcome
+   (the receipt is already emitted; `lib.rs:2212-2236`). Otherwise: outcome
    `SuccessReceiptId(rid)` with `gas_burnt = burnt gas`, `tokens_burnt = burnt amount`; chunk gas
    and compute += burnt gas (u64 overflow panics); account amount and access-key nonce are
-   written (`lib.rs:2253-2275`).
+   written (`lib.rs:2238-2266`).
 
 A failed outcome is `{id: tx_hash, receipt_ids: [], gas_burnt: 0, tokens_burnt: 0, executor:
 signer, status: Failure}` (`transaction.rs:723-744`); `PartialExecutionStatus::Failure` carries

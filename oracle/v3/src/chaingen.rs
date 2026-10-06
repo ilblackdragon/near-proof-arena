@@ -312,9 +312,13 @@ pub fn run_chain(
             } else {
                 s.env.clients[i].process_block_test(block.clone().into(), Provenance::NONE)
             };
-            if injector {
+            if injector && r.is_ok() {
                 let (k, _) = inject.clone().unwrap();
-                let crafted = craft_for(&s, i, k, &block, height, _round, p, &mut rng);
+                // the block may not be applied yet (ChunksMissing): then no crafted chunk
+                let Some(crafted) = craft_for(&s, i, k, &block, height, _round, p, &mut rng) else {
+                    crate::d1gen::produce_chunks_with_injection(&mut s.env.clients[i], &block, None, &mut rng);
+                    continue;
+                };
                 stats.injected += crafted.len();
                 let sid = {
                     let em = &s.env.clients[i].epoch_manager;
@@ -331,6 +335,7 @@ pub fn run_chain(
                     &mut rng,
                 );
             }
+            let r = r.map(|_| ());
             match r {
                 Ok(_) => {}
                 Err(near_chain::Error::ChunksMissing(_)) => {}
@@ -547,7 +552,7 @@ fn craft_for(
     round: u64,
     p: &ChainParams,
     rng: &mut StdRng,
-) -> Vec<(String, SignedTransaction)> {
+) -> Option<Vec<(String, SignedTransaction)>> {
     let c0 = &s.env.clients[0];
     let layout = c0.epoch_manager.get_shard_layout(block.header().epoch_id()).unwrap();
     let sid = layout.account_id_to_shard_id(&s.accounts[k][0]);
@@ -556,8 +561,7 @@ fn craft_for(
         .env
         .clients
         .iter()
-        .find_map(|c| c.chain.get_chunk_extra(block.hash(), &uid).ok().map(|e| (c, e)))
-        .expect("no client has the chunk extra");
+        .find_map(|c| c.chain.get_chunk_extra(block.hash(), &uid).ok().map(|e| (c, e)))?;
     let trie = c.runtime_adapter.get_trie_for_shard(sid, block.hash(), *extra.state_root(), false).unwrap();
     let mut view = HashMap::new();
     for j in crate::d1gen::HONEST_ACCTS..ACCTS_PER_SHARD {
@@ -586,5 +590,5 @@ fn craft_for(
         view,
     };
     let n = rng.gen_range(3..10);
-    crate::d1gen::craft(rng, &mut ctx, n, 0.08)
+    Some(crate::d1gen::craft(rng, &mut ctx, n, 0.08))
 }
