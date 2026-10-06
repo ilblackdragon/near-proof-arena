@@ -65,6 +65,9 @@ cases.append(p.done())
 cases.append(P(b"x" * 20000).call("log_utf8", U64MAX, 0).done())
 cases.append(P(b"x" * 20000).call("log_utf8", 16385, 0).done())
 cases.append(P("ab".encode("utf-16-le") * 5000).call("log_utf16", U64MAX, 0).done())
+# explicit-length UTF-16: odd length is checked before the log-length limit (doc-review H6 note)
+for n in (16385, 16386, 20001, 3):
+    cases.append(P(b"\x41\x00" * 10001).call("log_utf16", n, 0).done())
 cases.append(P(b"z" * 16384).call("log_utf8", 16384, 0).call("log_utf8", 1, 0).done())
 # storage
 cases.append(P(b"k" * 3000).call("storage_write", 2049, 0, 10, 0, 0).done())

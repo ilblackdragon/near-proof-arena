@@ -2368,10 +2368,12 @@ def get_utf16(inst, n, ptr):
     if n != U64:
         # unlike UTF-8, the explicit-length path reads memory before the log-length check
         buf = mem_read(inst, ptr, n)
-        if n > max_len:
-            raise HostErr(f"TotalLogLengthExceeded {{ length: {inst.total_log + n}, limit: {MAX_TOTAL_LOG_LENGTH} }}")
+        # odd length is checked before the log-length limit (black-box probe: log_utf16(16385, 0)
+        # -> BadUTF16; README H6 note)
         if n % 2:
             raise HostErr("BadUTF16")
+        if n > max_len:
+            raise HostErr(f"TotalLogLengthExceeded {{ length: {inst.total_log + n}, limit: {MAX_TOTAL_LOG_LENGTH} }}")
     else:
         buf = bytearray()
         i = 0

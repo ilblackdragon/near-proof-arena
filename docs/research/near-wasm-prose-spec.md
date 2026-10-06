@@ -140,6 +140,11 @@ State:
   Because a charge point charges a whole range, the burnt amount depends on the range.
 * **Host calls.** Sync before the call. After it returns, set `g := prepaid − burnt − promises`. On return
   from wasm to the host (normally or by a trap), sync once more.
+* **Sync** means: `d := max(0, (prepaid − burnt − promises) − g)` (both subtractions saturating at 0), and
+  burn `d` **only if `d > 0`**. After a failed action fee (`deduct_gas`), `burnt` can exceed the lowered
+  `limit`; a literal `burn(0)` would then fail a second time and could mask the first error (e.g.
+  `GasLimitExceeded`).
+  (Errata H18, §7.2.)
 * **Loading fee.** Before execution: `1,089,295 × code_len`, then `35,445,963`. Failure → `GasExceeded`
   with burnt clamped. A missing `main` export, or a `main` that is not `() → ()`, gives a 0-gas
   `MethodResolveError` (the loading fee is discarded).
@@ -190,3 +195,40 @@ list. In summary:
 * **D13:** charge points are correct as stated. One position ambiguity remains: a point at the `end` that
   closes a dead region may equivalently be placed after it. Both placements give identical outcomes.
 * **D14:** operand-stack and segment clarifications.
+
+### 7.2 Errata from the clean-room host-function extension (H1–H18)
+
+Checkpoint 3 of the clean-room implementation added the 75 non-curve host functions, written from
+§5 and `near-wasm-boundary.md` Appendix A and settled by black-box runs against the D3 harness. Its
+README lists H1–H18. Each was checked against the pinned nearcore 2.13.4 source and classified:
+**(a)** Appendix A or this document was wrong or silent for production nearcore, corrected in place;
+**(b)** the black-box result is specific to the harness's `MockedExternal`, and Appendix A now states both
+behaviours; **(c)** not confirmed by source, not applied. Citations: "W:" =
+`runtime/near-vm-runner/src/wasmtime_runner/`, "L:" = `runtime/near-vm-runner/src/logic/`, `ext.rs` =
+`runtime/runtime/src/ext.rs`, `mock_external.rs` = `L:mocks/mock_external.rs`. Production `External`
+trie charges are specified authoritatively by `docs/research/d3-trie-accounting.md` §4.3.
+
+| # | Class | Correction (Appendix A row or section) | Source |
+|---|---|---|---|
+| H1 | b | `storage_write_evicted_byte×old_len` and `storage_remove_ret_value_byte×old_len` are charged by production `RuntimeExt` (through `deref_write_evicted_value_bytes` / `deref_removed_value_bytes`, *before* the value deref and the TTN commit), not by `W:logic.rs`; `MockedExternal` charges neither, so eviction is free under the harness while WR(old_len) is still paid. `storage_read`'s value and large-read charges are in `W:logic.rs` and apply under both. Rows storage_write/read/remove. | `W:logic.rs:4508, 4668`; `ext.rs:166-174, 250-261`; `L:gas_counter.rs:408-413`; `mock_external.rs:171-199` |
+| H2 | a | Storage order: `base`, PIV, `*_base`, GMR(k), `KeyLengthExceeded` on the key's actual length (register path included), then (write) GMR(v), `ValueLengthExceeded`, then the per-byte charges. | `W:logic.rs:4473-4507, 4573-4587, 4646-4667` |
+| H3 | a + b | (a) `set_state_init_data_entry` resolves the promise index *before* GMR(k)/GMR(v); `deterministic_state_init_entry` has send fee 0; `InvalidActionIndex`/`DataEntryAlreadyExists` come after both fees. (b) Action and receipt indices: production = index within the receipt's actions / in `action_receipts`; mock = position in one global action log. Data entries live inside the state-init action. | `W:logic.rs:2885`; `parameters.yaml:128-132`; `receipt_manager.rs:87-98, 322-347`; `mock_external.rs:344-386` |
+| H4 | a | `abort`: `base`; pointer < 4 → `BadUTF16`; `NumberOfLogsExceeded` before any read; both RM(4) length prefixes; UTF16(msg); UTF16(file). `log_byte` on the message without `"ABORT: "`; the limit counts the prefixed log; panic text `{msg}, filename: "{file}" line: {l} col: {c}`. | `W:logic.rs:4316-4345` |
+| H5 | a | A log-length overflow detected at push time reports `TotalLogLengthExceeded{total+2L}` (the total is incremented before the error is built); `log_base + log_byte×len` is already charged. | `L:logic.rs:105-124` |
+| H6 | a, partly c | UTF-8 explicit: base; `n > max` → `{total+n}` before any read; RM(n); byte charge; `BadUTF8`. NUL scans as in the README. **UTF-16 explicit order corrected from source, not from the README:** base; RM(n); odd `n` → `BadUTF16`; *then* `n > max` → `{total+n}`; byte charge; decode. The README (and `cleanroom/nearwasm.py`) put the length check before the odd check; nearcore checks odd length first. A black-box probe confirms nearcore: `log_utf16(16385, 0)` → `BadUTF16`, where the clean-room gives `TotalLogLengthExceeded{16385}` (same gas). The rest of H6 is confirmed. Notation rows UTF8/UTF16. | `W:logic.rs:392-427, 454-507` (odd check at 474, length check at 475) |
+| H7 | a | `AID` charges `utf8_decoding_byte` on the bytes actually read (the register's length in register mode), not on the raw `len`. | `W:logic.rs:4424-4426` |
+| H8 | a | Public keys are decoded after the promise lookup and the action fees in stake, add_key*, delete_key and all gas-key functions; an undecodable key counts as length 0 in the gas-key fees; `transfer_to_gas_key` raises `BalanceExceeded` before `InvalidPublicKey`; `num_nonces > u16` → IntegerOverflow right after GMR(pk). ML-DSA-65 (`02‖1952`) is **accepted** at PV86 in production too: `PostQuantumSignatures` is a PV85 feature. | `W:logic.rs:3188-3212, 3258, 3426, 3477, 3570, 3625`; `L:logic.rs:236-258`; `core/primitives-core/src/version.rs:567`; `ext.rs:620-622` |
+| H9 | a | Gas-key fee geometry: `GasKeyInfo` borsh length 18; minimum gas-key `AccessKey` borsh length 27; access-key trie key `1 + len(receiver) + 1 + pk_len`; a nonce key adds 2 (u16) and a nonce value is 8 (u64). `pk_len` includes the tag byte. The exec side uses the receipt's receiver. | `core/parameters/src/cost.rs:794-880`; `core/primitives-core/src/trie_key.rs:13-15`; `core/primitives-core/src/account.rs:481-487, 556-558` |
+| H10 | a | `transfer` plus its implicit-account surcharges is one `pay_action_accumulated` (one `deduct_gas`). | `W:logic.rs:3123-3142`; `core/parameters/src/cost.rs:722-776` |
+| H11 | a + b | (a) Method-name lists are split on byte `,`, an empty name → `EmptyMethodName` before the promise lookup, and the fee is Σ(len+1). (b) Non-UTF-8 names: production raises `InvalidMethodName` when the action is appended (after the fees); `MockedExternal` accepts them. The same split applies to function_call's method name. | `L:utils.rs:4-20`; `W:logic.rs:3549`; `receipt_manager.rs:382, 500, 598`; `mock_external.rs:388-406, 472-490` |
+| H12 | a | `promise_yield_create` order, including RCPT and receipt creation before `NumberPromisesExceeded`, and IntegerOverflow for `gas = u64::MAX` in the prepay, before any receipt. | `W:logic.rs:3731-3802`; `L:gas_counter.rs:118-142` |
+| H13 | a | `promise_yield_create_with_id` order: no `yield_create_base`; RM(16) amount before the method name; `YieldIdMalformed` before `yield_create_byte`; pending → `u64::MAX` with no further charges and no balance check; the receipt is created *before* the prepay; `deduct_balance` after both ACTs. "Pending" = trie mapping in production, action-log entry in the mock. | `W:logic.rs:3805-3920`; `ext.rs:371-400`; `mock_external.rs:256-277` |
+| H14 | b | Resume and data ids are mock behaviour. Mock: logs `YR` for any 32-byte id, returns 1 only for a yield created in the call, and data ids = `sha256(u64_le(n))` advanced only by yield creation. Production: returns 1 iff a yield receipt or status exists in state, and data ids = `create_receipt_id_from_action_hash(action_hash, block_height, n)`, with `n` also advanced by every data dependency of `create_action_receipt`. | `mock_external.rs:205-211, 236-317`; `ext.rs:303-311, 342-351, 402-440` |
+| H15 | a | `promise_batch_create`/`_then` pay RCPT and create the receipt before `checked_push_promise`'s `NumberPromisesExceeded`. `promise_and` flattens joint promises, keeping duplicates, and checks 128 on the flattened list. | `W:logic.rs:2176-2201, 2244-2247, 2308-2311, 516-528` |
+| H16 | a | `ed25519_verify`: `ed25519_verify_base` (no `base`); GMR(sig); length → `"invalid signature length"`; `sig[63]&0xE0≠0` → 0 *before* the message is read; GMR(msg); byte charge; GMR(pk); length → `"invalid public key length"`. Hash functions charge their own `*_base`, not `base` (as the rows already said). | `W:logic.rs:1783-1851, 1499-1514` |
+| H17 | a + b | (a) Confirmed and made explicit: `storage_iter_*` charge nothing, not even `base`; `current_contract_code` returns 0 without writing a register; `input`/`promise_result` charge `write_register_base` only; any register write while 100 registers exist (including a replacement) → `MemoryAccessViolation`; `value_return` after `promise_return` replaces the return data; an aborted outcome keeps its logs. (b) Harness output only: `{:?}`-escaped panic text (production uses `Display`, "Smart contract panicked: {msg}"), and printing the action log and storage after an abort (production discards an aborted call's receipts and state changes). | `W:logic.rs:4768-4847, 4366-4369, 4148, 4219`; `L:vmstate.rs:229-262`; `L:logic.rs:4498-4502`; `L:errors.rs:540` |
+| H18 | a | §4 sync burns only a positive difference (saturating). Corrected in §4 and in Appendix A §3. | `W:mod.rs:1049-1061`; `L:gas_counter.rs:147-166, 389-391` |
+
+Refuted part: only the UTF-16 explicit-length check order in H6 (class c). The clean-room passes its
+difftests because no generated case has an odd length above the remaining log budget. Its `get_utf16`
+should check odd length before the log length.
