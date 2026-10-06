@@ -1,0 +1,20 @@
+{
+  "base": "00-h10032-s1",
+  "case": "00-h10032-s1-w.applied_receipts_hash",
+  "d0_violations": [
+    "w.no_txs",
+    "e.queues_empty",
+    "r.shape"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": true,
+  "kind": "mutant",
+  "mutation": "w.applied_receipts_hash",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipts hash 5ZuNt9obM141SD66ntvaLWyX5HcgZ32KZF7crzkxhDz6 does not match expected receipts hash 5VzyEf5WTAZJ2Wy8HPf8SbEHpH3ur5vQyNojMoSxyRKk\")",
+  "verdict_source": "nearcore"
+}

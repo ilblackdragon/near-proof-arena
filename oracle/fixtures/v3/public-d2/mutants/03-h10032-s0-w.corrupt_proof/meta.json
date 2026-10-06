@@ -1,0 +1,25 @@
+{
+  "base": "03-h10032-s0",
+  "case": "03-h10032-s0-w.corrupt_proof",
+  "d0_violations": [
+    "c.single_epoch",
+    "c.no_split_gate",
+    "w.no_txs",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "e.compute",
+    "r.success",
+    "r.shape"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": true,
+  "kind": "mutant",
+  "mutation": "w.corrupt_proof",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(FmtajKiK5A7iEZy9jijHtkGX2zmVZFatnr67Kdhky53t) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "verdict_source": "nearcore"
+}

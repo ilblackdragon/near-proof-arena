@@ -1,0 +1,22 @@
+{
+  "base": "02-h10026-s3",
+  "case": "02-h10026-s3-w.new_tx.drop_rehashed",
+  "d0_violations": [
+    "c.single_epoch",
+    "c.no_split_gate",
+    "c.no_tx_flags",
+    "w.no_txs",
+    "e.queues_empty"
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": true,
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": true,
+  "kind": "mutant",
+  "mutation": "w.new_tx.drop_rehashed",
+  "nearcore": "ok",
+  "verdict_source": "nearcore"
+}
