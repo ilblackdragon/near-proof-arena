@@ -130,6 +130,25 @@ def Acct.touch (a : Acct) (h : ByteArray) : Acct :=
 
 def Acct.touchAll (a : Acct) (hs : List ByteArray) : Acct := hs.foldl Acct.touch a
 
+/-- The chunk's storage-proof recorder (`TrieRecorder`, `core/store/src/trie/trie_recording.rs`):
+the set of node/value hashes recorded so far and `upper_bound_size` = Σ size of each hash at its
+first recording (`record_with`, :114-130) + 2000 per contract-data removal (`record_key_removal`,
+:140-146, called from `TrieUpdate::remove` for `TrieKey::ContractData`, `update.rs:169-181`).
+Chunk-scoped (`recording_reads_with_proof_size_limit`, `runtime/mod.rs:1258`), never rolled back. -/
+structure Recorder where
+  set : Std.HashMap ByteArray Unit := {}
+  size : Nat := 0
+
+def Recorder.record (r : Recorder) (h : ByteArray) (len : Nat) : Recorder :=
+  if r.set.contains h then r else { set := r.set.insert h (), size := r.size + len }
+
+/-- Record the nodes a lookup retrieved (sizes = their recorded bytes). -/
+def Recorder.recordNodes (r : Recorder) (st : Store) (hs : List ByteArray) : Recorder :=
+  hs.foldl (fun r h => r.record h ((st.get? h).map (·.size) |>.getD 0)) r
+
+/-- Per-receipt storage-proof limit (`per_receipt_storage_proof_size_limit`, `69.yaml`). -/
+def perReceiptProofLimit : Nat := 4000000
+
 /-- Chunk-scoped trie state of the trie-backed `External`. `overlay` = the `TrieUpdate` changes of
 the chunk so far (committed receipts + the current receipt's prospective), keyed by full trie key;
 `none` = removed. `prefix` = `TrieKey::ContractData` prefix of the current account
@@ -140,6 +159,9 @@ structure RealStore where
   overlay : Std.HashMap ByteArray (Option ByteArray) := {}
   acct : Acct := {}
   pfx : ByteArray := .empty
+  recd : Recorder := {}
+  /-- `storage_proof_size_before_receipt` (`runtime/runtime/src/lib.rs:838-845`) -/
+  recBefore : Nat := 0
 
 def contractDataPrefix (account : String) : ByteArray :=
   (ByteArray.mk #[9]) ++ account.toUTF8 ++ (ByteArray.mk #[44])

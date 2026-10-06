@@ -63,12 +63,18 @@ use serde_json::json;
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 
-const CONTRACT: &[u8] = include_bytes!("../ttn.wasm");
+const CONTRACT_V1: &[u8] = include_bytes!("../ttn.wasm");
+/// v2 (`--v2`): several contracts per shard, promise DAGs, large-value reads (`ttn2.wat`)
+const CONTRACT_V2: &[u8] = include_bytes!("../ttn2.wasm");
 const ACCTS: usize = 6;
 const N_VALIDATORS: usize = 8;
 
 fn acct(k: usize, j: usize) -> AccountId {
     format!("s{k}a{j:02}").parse().unwrap()
+}
+/// v2: the second contract of shard k (same shard: "s{k}ctr" < "s{k}ctr2" < "s{k+1}")
+fn ctr2(k: usize) -> AccountId {
+    format!("s{k}ctr2").parse().unwrap()
 }
 fn ctr(k: usize) -> AccountId {
     format!("s{k}ctr").parse().unwrap()
@@ -83,6 +89,10 @@ pub struct Params {
     /// op-level difftest trace (`--trace FILE`): per chunk, the recorded pre-state, the
     /// contract calls in execution order, and nearcore's per-call profile
     pub trace: Option<std::path::PathBuf>,
+    pub v2: bool,
+    /// `--limit-plan FILE`: extra transactions `<round> <receiver> <args_hex> <gas>` (one per line),
+    /// signed by the first account of the receiver's shard (a local receipt in the same chunk)
+    pub limit_plan: Vec<(u64, AccountId, Vec<u8>, u64)>,
 }
 
 fn setup(p: &Params) -> (near_time::FakeClock, TestEnv, Vec<Vec<AccountId>>) {
@@ -122,7 +132,8 @@ fn setup(p: &Params) -> (near_time::FakeClock, TestEnv, Vec<Vec<AccountId>>) {
         ..Default::default()
     };
     let mut records = Vec::new();
-    let code_hash = hash(CONTRACT);
+    let contract: &[u8] = if p.v2 { CONTRACT_V2 } else { CONTRACT_V1 };
+    let code_hash = hash(contract);
     let mut add = |records: &mut Vec<StateRecord>, a: &AccountId, staked: Balance, contract: bool| {
         let ac = if contract { AccountContract::Local(code_hash) } else { AccountContract::None };
         records.push(StateRecord::Account { account_id: a.clone(), account: Account::new(initial, staked, ac, 0) });
@@ -137,10 +148,37 @@ fn setup(p: &Params) -> (near_time::FakeClock, TestEnv, Vec<Vec<AccountId>>) {
         let staked = if validators.contains(a) { stake } else { Balance::ZERO };
         add(&mut records, a, staked, false);
     }
-    for k in 0..p.n_shards {
-        let c = ctr(k);
+    let mut contracts: Vec<AccountId> = (0..p.n_shards).map(ctr).collect();
+    if p.v2 {
+        contracts.extend((0..p.n_shards).map(ctr2));
+        contracts.extend(["s0big", "s1big"].iter().map(|a| a.parse::<AccountId>().unwrap()));
+    }
+    for c in contracts {
+        let k = c.as_str()[1..2].parse::<usize>().unwrap();
         add(&mut records, &c, Balance::ZERO, true);
-        records.push(StateRecord::Contract { account_id: c.clone(), code: CONTRACT.to_vec() });
+        records.push(StateRecord::Contract { account_id: c.clone(), code: contract.to_vec() });
+        if p.v2 {
+            for j in 0..=255u8 {
+                records.push(StateRecord::Data {
+                    account_id: c.clone(),
+                    data_key: vec![b'f', j].into(),
+                    value: vec![j; j as usize + 1].into(),
+                });
+            }
+            // large values (per-receipt storage-proof limit) in "s0big" and "s1big" only (never
+            // targeted by the random traffic, so a planned receipt's recording is deterministic):
+            // 8 values of 450,000 + 37,013·b + 997·k bytes (≈ 4.6 MB per contract)
+            if c.as_str().ends_with("big") {
+                for b in 0..8u8 {
+                    let len = 450_000 + 37_013 * b as usize + 997 * k;
+                    records.push(StateRecord::Data {
+                        account_id: c.clone(),
+                        data_key: vec![b'B', b].into(),
+                        value: vec![b ^ 0x5a; len].into(),
+                    });
+                }
+            }
+        }
         // pre-populate half of the 2-byte keys and some 3-byte keys, mixed value sizes
         for j in (0..64u8).step_by(2) {
             let vlen = [1usize, 100, 4500][(j as usize / 2) % 3];
@@ -257,6 +295,43 @@ const SPECIAL: [ExtCosts; 11] = [
 ///  <ok|fail> <wasm_gas> <ext_gas_total> <special_0> … <special_10>)…`
 /// Calls = the chunk's FunctionCall receipts to the experiment contracts, in execution order
 /// (outcome order). Expected values are nearcore's outcome profile (`ProfileDataV3`).
+/// The error kind. The runtime stores a `HostError` as its `Display` text inside
+/// `FunctionCallError::ExecutionError` (`near-vm-runner/src/logic/errors.rs:520-640`); map the texts
+/// that occur here back to the variant, otherwise the variant inside `FunctionCallError(…)`.
+fn err_kind(dbg: &str) -> String {
+    const TEXTS: [(&str, &str); 3] = [
+        ("Exceeded the prepaid gas.", "GasExceeded"),
+        ("Exceeded the maximum amount of gas allowed to burn per contract.", "GasLimitExceeded"),
+        ("Size of the recorded trie storage proof has exceeded the allowed limit", "RecordedStorageExceeded"),
+    ];
+    if dbg.contains("ExecutionError(") {
+        for (t, k) in TEXTS {
+            if dbg.contains(t) {
+                return k.to_string();
+            }
+        }
+        return format!("ExecutionError[{}]", dbg.replace(' ', "_"));
+    }
+    let after = |m: &str| dbg.find(m).map(|i| &dbg[i + m.len()..]);
+    let rest = after("HostError(").or_else(|| after("FunctionCallError(")).unwrap_or("other");
+    rest.chars().take_while(|c| c.is_ascii_alphanumeric()).collect()
+}
+
+/// Function calls of new receipts (outgoing receipts of every applied chunk; promise children).
+fn record_receipt_calls(v: &near_chain::types::ApplyChunkResult, m: &mut HashMap<CryptoHash, (AccountId, Vec<u8>, u64)>) {
+    use near_primitives::receipt::ReceiptEnum;
+    for r in &v.outgoing_receipts {
+        let actions = match r.receipt() {
+            ReceiptEnum::Action(a) | ReceiptEnum::PromiseYield(a) => &a.actions,
+            ReceiptEnum::ActionV2(a) | ReceiptEnum::PromiseYieldV2(a) => &a.actions,
+            _ => continue,
+        };
+        if let [near_primitives::action::Action::FunctionCall(fc)] = actions.as_slice() {
+            m.insert(*r.receipt_id(), (r.receiver_id().clone(), fc.args.clone(), fc.gas.as_gas()));
+        }
+    }
+}
+
 fn write_trace(
     w: &mut impl std::io::Write,
     sw: &ChunkStateWitness,
@@ -271,7 +346,7 @@ fn write_trace(
     for o in &v.outcomes {
         // contract executions are exactly the outcomes executed by a `s<k>ctr` account
         let ex = o.outcome.executor_id.as_str();
-        if !ex.ends_with("ctr") {
+        if !(ex.contains("ctr") || ex.ends_with("big")) {
             continue;
         }
         let Some((rcv, args, gas)) = calls_by_receipt.get(&o.id) else {
@@ -285,9 +360,9 @@ fn write_trace(
             _ => return false,
         };
         let ext: u128 = ExtCosts::iter().map(|c| prof.get_ext_cost(c).as_gas() as u128).sum();
-        let status = match o.outcome.status {
-            near_primitives::transaction::ExecutionStatus::Failure(_) => "fail",
-            _ => "ok",
+        let status = match &o.outcome.status {
+            near_primitives::transaction::ExecutionStatus::Failure(e) => format!("fail:{}", err_kind(&format!("{e:?}"))),
+            _ => "ok".to_string(),
         };
         let mut c = format!(
             "{} {} {} {} {} {}",
@@ -343,13 +418,17 @@ pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
                 let signer = InMemorySigner::test_signer(&signer_id);
                 let nonce = nonces.entry(signer_id.clone()).or_insert(0);
                 *nonce += 1;
-                let tgt = ctr(rng.gen_range(0..p.n_shards));
+                let tgt = if p.v2 && rng.gen_bool(0.5) {
+                    ctr2(rng.gen_range(0..p.n_shards))
+                } else {
+                    ctr(rng.gen_range(0..p.n_shards))
+                };
                 let nops = rng.gen_range(1..=p.ops_max);
                 let mut args = Vec::with_capacity(nops * 3);
                 for _ in 0..nops {
-                    args.push(rng.gen_range(0..4u8));
+                    args.push(rng.gen_range(0..if p.v2 { 8u8 } else { 4u8 }));
                     args.push(rng.gen_range(0..48u8)); // overlap with pre-populated keys 0,2,..,62
-                    args.push(rng.gen_range(0..6u8));
+                    args.push(rng.gen_range(0..if p.v2 { 64u8 } else { 6u8 }));
                 }
                 let gas = if rng.gen_bool(0.3) {
                     Gas::from_gas(rng.gen_range(3_000_000_000_000u64..40_000_000_000_000))
@@ -370,6 +449,18 @@ pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
                 calls_by_tx.insert(tx.get_hash(), (tgt, args, gas.as_gas()));
                 txs.push(tx);
             }
+        }
+        for (r, rcv, args, gas) in p.limit_plan.iter().filter(|x| x.0 == _round) {
+            let _ = r;
+            let k = rcv.as_str()[1..2].parse::<usize>().unwrap();
+            let signer_id = accounts[k][0].clone();
+            let signer = InMemorySigner::test_signer(&signer_id);
+            let nonce = nonces.entry(signer_id.clone()).or_insert(0);
+            *nonce += 1;
+            let tx = SignedTransaction::call(*nonce, signer_id, rcv.clone(), &signer, Balance::ZERO,
+                "run".to_string(), args.clone(), Gas::from_gas(*gas), tip.last_block_hash);
+            calls_by_tx.insert(tx.get_hash(), (rcv.clone(), args.clone(), *gas));
+            txs.push(tx);
         }
         for tx in txs {
             for h in &env.rpc_handlers {
@@ -512,6 +603,7 @@ pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
                         }
                     }
                 }
+                record_receipt_calls(&v, &mut calls_by_receipt);
                 if !write_trace(tw, &sw, prev_root, &v, &calls_by_receipt) {
                     trace_skipped += 1;
                 }

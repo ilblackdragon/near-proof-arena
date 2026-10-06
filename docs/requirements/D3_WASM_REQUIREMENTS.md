@@ -65,6 +65,13 @@ D3 lifts the D2 restrictions on (spec §6, D3):
 * host functions that read trusted claim facts: `epoch_height` (T7),
   `validator_stake` / `validator_total_stake` (T8), `chain_id` (T3).
 
+D3 does **not** lift (all D3 stages keep these D0–D2 restrictions; lead decision 2026-10-06):
+
+* **resharding** (shard-layout changes, resharding transitions, split gates) stays in D∞. `InD3`
+  keeps the single-epoch / no-epoch-start / no-split-gate conditions
+  (`spec/lean/v3/NearSpecV3/Wasm/DomainD3.lean`: `noResharding`, `noResharding_spec` and rejection
+  examples).
+
 ### 1.1 Staged domains (D3α–D3δ, D3∞)
 
 Each stage is a separate `InD3x` with the same claim and witness formats, and each one is a

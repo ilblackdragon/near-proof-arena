@@ -38,10 +38,17 @@ accounting cache, abort on its error, return the current value. -/
 def realOpH (r : TTN.RealStore) (f : TTN.RealStore → ByteArray → Gas → TTN.Out) (k : ByteArray) :
     HM (Option ByteArray) := do
   let o := f r (r.pfx ++ k) (← get).gas
-  modify fun s => { s with gas := o.gs, real := some { r with acct := o.acct } }
+  modify fun s => { s with gas := o.gs, real := some { r with acct := o.acct, recd := o.recd } }
   match o.err with
   | some e => throw e
   | none => pure o.old
+
+/-- `observe_size` after a storage op (trie-backed `External` only). -/
+def observeH : HM Unit := do
+  match (← get).real with
+  | some r => if TTN.overLimit r then
+      hErr s!"RecordedStorageExceeded \{ limit: {TTN.perReceiptProofLimit} B }"
+  | none => pure ()
 
 def realSetH (r : TTN.RealStore) (k : ByteArray) (v : Option ByteArray) : HM Unit :=
   modify fun s => match s.real with
@@ -634,6 +641,7 @@ def hostCall (name : String) : Option (HM Unit) :=
       | some r => do
         let old ← realOpH r TTN.storageWrite k
         realSetH r k (some v)
+        observeH
         pure old
       | none => do
         let old := trieGet s k
@@ -660,7 +668,9 @@ def hostCall (name : String) : Option (HM Unit) :=
     payPerH C.storageReadKeyByte k.size
     match (← get).real with
     | some r =>
-      match ← realOpH r TTN.storageRead k with
+      let v ← realOpH r TTN.storageRead k
+      observeH
+      match v with
       | some v => regSetH a[2] v; pushRet 1
       | none => pushRet 0
     | none =>
@@ -684,13 +694,16 @@ def hostCall (name : String) : Option (HM Unit) :=
     let s ← get
     match s.real with
     | some r =>
-      match ← realOpH r TTN.storageRemove k with
+      let v ← realOpH r TTN.storageRemove k
+      realSetH r k none
+      modify fun s => { s with real := s.real.map TTN.removeRecord }
+      observeH
+      match v with
       | some v =>
-        realSetH r k none
         modify fun s => { s with storageUsage := s.storageUsage - (v.size + k.size + numExtraBytesRecord) }
         regSetH a[2] v
         pushRet 1
-      | none => realSetH r k none; pushRet 0
+      | none => pushRet 0
     | none =>
     match trieGet s k with
     | some v =>
@@ -708,7 +721,10 @@ def hostCall (name : String) : Option (HM Unit) :=
       hErr s!"KeyLengthExceeded \{ length: {k.size}, limit: {maxLengthStorageKey} }"
     payPerH C.storageHasKeyByte k.size
     match (← get).real with
-    | some r => pushRet (if (← realOpH r TTN.storageHasKey k).isSome then 1 else 0)
+    | some r =>
+      let v ← realOpH r TTN.storageHasKey k
+      observeH
+      pushRet (if v.isSome then 1 else 0)
     | none => pushRet (if (trieGet (← get) k).isSome then 1 else 0)
   | "storage_iter_prefix" => some do
     let _ ← popArgs 2; hErr "Deprecated { method_name: \"storage_iter_prefix\" }"

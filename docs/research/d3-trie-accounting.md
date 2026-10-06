@@ -166,15 +166,53 @@ accesses. The cache only decides the profile split, which is not consensus data 
 hashes `PartialExecutionOutcome`, which has no metadata). The split is still modelled exactly and
 difftested.
 
+### 4.5 Storage-proof recording and the per-receipt limit
+
+* **Recorder.** One per chunk application, never rolled back (`TrieRecorder`,
+  `trie_recording.rs`; `recording_reads_with_proof_size_limit`, `runtime/mod.rs:1258`). It holds a set
+  of recorded hashes and a counter `upper_bound`. Recording a hash that is not yet in the set adds
+  it and adds its byte length (the stored node or value bytes) to `upper_bound`. Recording an
+  already-recorded hash does nothing.
+* **What is recorded.** On a trie lookup (overlay miss), every visited node, in any mode,
+  including `storage_read` and `storage_has_key`, which charge no trie nodes. On a dereference, the
+  value: for `storage_read` after the value charges succeed, for write/remove after the
+  evicted/removed-bytes charge. An overlay hit records nothing.
+* **Removals.** Every `storage_remove` adds 2000 to `upper_bound`, whether or not the key exists,
+  even when the overlay already has it removed (`TrieUpdate::remove` → `record_key_removal`,
+  `update.rs:169-181`). This happens after the value dereference and before the trie-node commit.
+* **Receipt start.** Before the receipt's snapshot `before = upper_bound`
+  (`storage_proof_size_before_receipt`, `runtime/runtime/src/lib.rs:838-845`), the runtime reads the
+  receiver's account (`TrieKey::Account` = `0x00 ‖ utf8(account)`). This records the nodes on that
+  path and the account value. The model records exactly that path and value at each call start;
+  it happens before the snapshot, so it never counts toward the receipt's growth, but it pre-records
+  the top nodes that contract-data paths share with it (clean-room T10). Nothing else between the
+  snapshot and the VM records anything: `record_contract_call` uses `NO_SIDE_EFFECTS`
+  (`function_call.rs:355-390`).
+* **Deduplication is by hash, chunk-wide.** Byte-identical subtrees under different accounts (in
+  the v2 experiment every contract has the same genesis `f` subtree) have identical node hashes, so
+  a receipt's growth depends on what *earlier receipts of other accounts* recorded in the same chunk
+  (clean-room T11). The spec is exact here because its recorder is a hash set shared by the chunk.
+* **Check.** After every storage operation (`observe_size`, `logic.rs:4510, 4605, 4670, 4730`; for
+  `storage_read`, after the value charges and before the register write): if
+  `upper_bound − before > 4,000,000` (`per_receipt_storage_proof_size_limit`, `69.yaml`), the call
+  fails with `HostError::RecordedStorageExceeded`. Exactly 4,000,000 passes.
+
 ## 5. Op-level difftest
 
 `near-d3-ttn --trace FILE` writes one line per chunk:
 
 ```
-C <prev_root> <n> <node>… <k> (<account> <prepaid> <args|-> <ok|fail> <wasm> <ext_total> <s0>…<s10>)…
+C <prev_root> <n> <node>… <k> (<account> <prepaid> <args|-> <ok|fail:KIND> <wasm> <ext_total> <s0>…<s10>)…
 ```
 
-The calls are every outcome executed by a contract account, in outcome order. Their contents come
+`KIND` is the `HostError` variant name (`GasExceeded`, `GasLimitExceeded`,
+`RecordedStorageExceeded`, …); otherwise it is the variant inside `FunctionCallError(…)`. The
+runtime stores a host error only as its display text, which the generator maps back to the
+variant. The calls are every outcome executed by a contract account (`*ctr*`, `*big`), in outcome
+order. Promise-created calls are included, with their contents taken from the outgoing receipts of
+the chunk that created them. `--v2` uses `ttn2.wat`: 8 storage contracts (2 per shard) plus
+`s0big`/`s1big`, which hold 8 values of 0.45–0.71 MB each, and promise DAGs
+(`promise_create`/`promise_then` to other contracts, args nested in the input). Their contents come
 from the transactions the generator submitted (receipt id taken from the transaction's conversion
 outcome). The expected columns are nearcore's outcome profile. The slot order is
 `storage_write_base, storage_read_base, storage_read_key_byte, storage_read_value_byte,
@@ -200,3 +238,39 @@ There were 15 trace runs: seeds 1–3 with `--ops 40` and `--ops 300` over 60 bl
 * The difftest is sensitive. On seed 1 with 300 ops, the deliberately wrong replays disagree on 414 of 667 calls (fresh cache per call, `--ablate-cache`) and on 423 of 667 (no committed overlay between calls, `--ablate-overlay`).
 * Producer vs validator stayed at 0 outcome differences on every run, with all witnesses endorsed by nearcore.
 * On seed 8, the use_flat_storage=false ablation hit a `MissingTrieValue` once. Counting read nodes changed gas enough that execution took a different path and needed a node the witness does not record. It is counted as a differing chunk (`ablation_storage_errors`). This is expected behaviour of the ablation, not a finding about nearcore.
+
+### 5.2 Multiple contracts, promise DAGs, and the per-receipt storage-proof limit (checkpoint 3c)
+
+**Multiple contracts and cross-contract chains (`--v2`, `ttn2.wat`).** Each shard has two storage
+contracts. `run` creates `promise_create` / `promise_then` chains to any of the 8 contracts, and
+nests each child's ops in its args. Each child therefore runs in a later chunk, possibly on another
+shard, and can spawn further children. Every chunk interleaves calls of several contracts that share
+the chunk's cache and recorder. In 6 runs (seeds 21–26, 80 blocks, `--ops 200`, memtries on for the
+even seeds) there were 1,896 chunks and 46,574 calls, of which 16,891 failed (all `GasExceeded`:
+children carry 5–20 Tgas) and 19,293 had trie-node charges. Lean vs nearcore had **0
+disagreements**. Producer vs validator had 0 outcome differences on every run, and every witness
+was endorsed. Most calls are promise-created: a run submits on the order of a thousand transactions
+(an estimate from the generator's rates, not counted). Two v1 regression runs (seeds 31–32, 1,309
+calls) also had 0 disagreements.
+
+**Per-receipt storage-proof limit (§4.5).** The `s0big`/`s1big` contracts hold 8 values of
+0.45–0.71 MB each, and no random traffic reaches them. Planned receipts (`--limit-plan`) read 7 of
+the values, then remove one key repeatedly (+2000 each), then read small values of length
+1–256 bytes. The clean-room implementation calibrated the plans with its own model, and the runs
+were then made with nearcore. `runs/limit/` holds the plans, `run.sh`, the difftests, and each
+planned receipt's growth as computed by the spec (`--deltas`):
+
+| growth (bytes) | receipts | nearcore | spec |
+|---|---|---|---|
+| 4,000,000 (exactly the limit) | 3 | ok | ok |
+| 4,000,001 (one over) | 2 | `RecordedStorageExceeded` | `RecordedStorageExceeded` |
+| 3,997,449 – 3,999,878 | 15 | ok | ok |
+| 4,000,021 – 4,001,743 | 4 | `RecordedStorageExceeded` | `RecordedStorageExceeded` |
+| 3,255,933 – 3,256,056 (clearly under) / 4,645,178 (clearly over) | 3 / 3 | ok / fail | ok / fail |
+| 605 – 728 (one-op control receipts) | 8 | ok | ok |
+
+The three limit traces (2,639 calls, of which 9 hit `RecordedStorageExceeded`) also had 0
+disagreements on every column. The clean-room agrees with nearcore on the same cases and on its own
+traces (findings T10–T16 in its README). Its ablations show that each rule of §4.5 is needed: the
+strict `>`, the +2000 per remove, read recording, has_key recording, and the account read before the
+snapshot.

@@ -1,0 +1,3 @@
+chunks=316 calls=7288 failed_calls=2657 calls_with_trie_node_charges=3003 disagreements=0
+failure kinds: fail:GasExceeded=2657; contracts=8
+calls with nonzero slot: write_base=2129, read_base=3883, read_key_byte=3883, read_value_byte=2695, large_read_base=631, large_read_byte=631, remove_base=2133, has_key_base=2172, has_key_byte=2172, touching_trie_node=2506, read_cached_trie_node=2882
