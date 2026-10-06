@@ -155,18 +155,43 @@ which have different row shapes, are separate small tables:
   leaf; dead target `(nid, s)` for an extension's last nibble when the child is unrevealed;
   `BMAP` per branch; `SIZE` instead of v1's in-table 3,000,000 check.
 
-### 2.3 `0x0f` upsert: separate table `upsV3` (open)
+### 2.3 `0x0f` upsert: separate table `upsV3` (design; not started)
 
 Lockstep pre/post records express only same-length `set`s (accounts).  The `0x0f` upsert
 changes `memory_usage` along its path with truncated Nat arithmetic (`m + new − old`), may
 change the value length, and when the key is absent changes node shapes (`splitLeaf`,
 `splitExt`, new branch child/value).  It is applied **after** the lockstep writes
 (`set_upsert_comm`, account keys `[0,0,…] ≠ [0,15]`): the head sends the lockstep post-root on
-`MIDROOT (τ, ·)` and `upsV3` (to be designed) re-reveals the upsert path of the lockstep
-post-trie (bytes copied from the lockstep records' post streams, so no collision assumption),
-computes the post-upsert path (incl. insertion modes) and sends `ROOT (τ+1, ·)`.  Every
-instance has exactly one `0x0f` upsert (scheduler step), so the chain is
-`ROOT τ → head → MIDROOT τ → upsV3 → ROOT τ+1`.
+`MIDROOT (τ, ·)`, and the chain is `ROOT τ → head → MIDROOT τ → upsV3 → ROOT τ+1`.
+
+**Reduction (spec side, available):** by `upsert_hashOf_congr` the post-root only depends on
+the path trie `P` (the lockstep post-trie pruned to the path of `[0,15]`: ≤ 3 revealed nodes,
+every off-path child `.hash`).  The obligation is `Q = upsert P [0,15] v` for the new path
+trie `Q` (≤ 6 revealed nodes: ≤ 3 rewritten path nodes, `wrapExt` extension, split branch,
+moved leaf / shortened extension, new leaf).  Case table for a 2-nibble key: per level
+(root / after one nibble / after two) the node is a leaf (replace or `splitLeaf`), an
+extension (descend or `splitExt`) or a branch (descend into slot, new child leaf, or set
+the branch value) — 3 levels × 3 shapes × ≤ 3 outcomes.
+
+**The cost driver is cross-record byte access, not the case logic.**  `Q`'s nodes copy
+bytes from `P`'s post encodings: 15 sibling windows (shifted by 32 when a child is
+inserted before them), the moved leaf's slot, the moved/shortened key (re-hex-prefixed: a
+nibble shift by 1–3), and new `MEM` / `VLEN` values.  Options:
+
+* **(A) `Q` as `nodeV3` records** of a pseudo-instance (their bytes, fields and hashes are
+  then covered by `node3_view` unchanged) + a generalised `ENT` copy (`ENT (src, len, pos−off,
+  b)` per row, with an offset column) for windows and slots + a key-nibble copy over the
+  chained `EDGE` provider + a small field-level `upsV3` table (case selector, `u64` `MEM`
+  arithmetic with truncation, value length).  Changes `nodeV3` (≈ 4 columns, 2 interactions:
+  view port ≈ +500 lines); `upsV3` + link ≈ 3 k lines.
+* **(B) bespoke byte-level `upsV3`** with its own field parser for `P` and `Q` (duplicates
+  much of `nodeV3`'s 6 k-line view; ≈ 5–6 k lines) and a multiplicity column on `nodeV3`'s
+  post-byte stream so that `upsV3` can copy `P`'s bytes (no collision assumption).
+* **(C) A4** (`0x0f` present; design doc §4): removes insertion; with present `0x0f` the
+  upsert is a `set` plus `MEM`/`VLEN` updates along ≤ 3 path nodes, i.e. lockstep records
+  with `MEM`/`VLEN` excluded from "post = pre" and a per-path-node `u64` delta — ≈ 1 k lines.
+
+Recommendation: (A) if insertion must stay in D0 (no amendment); (C) if A4 is acceptable.
 
 ### 2.4 Walks
 
@@ -235,7 +260,7 @@ counted.
    depth ⇒ `RootedDagR` with rank = depth); entries ⇒ `storeOf` covered by `uniq` entries
    (`storeOf_hashFunctional`) ⇒ `storeBuildR`; walks ⇒ `find`/`AbsentWitness`
    (`absent_iff`); lockstep post-root = `set`s.
-3. **`upsV3`** (§2.3).
+3. **`upsV3`** (§2.3): design options A/B/C, decision requested (insertion ⇒ A).
 4. **A7** (unfolded-size cap, §1.3): no decision; statements parametric in `UnfoldBound e` (§1.4).
 5. `size` lane consumes `SIZE (0, ·)` (node) and `SIZE (1, ·)` (values).
 6. Producers must switch value pre-bytes from `BYTES (VPRE)` to `VBYTES (vid, …)` (`acct`
