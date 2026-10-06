@@ -63,7 +63,21 @@ theorem rel_mono (t : Tier) (c w : Bytes) (h : RelTier t c w) : RelChunkV3 c w :
 /-! ## `ChallengeSpec` instances -/
 
 def WfClaim.RelTier (t : Tier) (c : WfClaim) (w : List UInt8) : Prop := NearSpecV3.RelTier t c.1.encode w
-def WfClaim.DomainTier (t : Tier) (c : WfClaim) : Prop := ∃ w, WfClaim.RelTier t c w
+/-- The witness-size bound of every tier's domain (64 MiB = `MAX_WITNESS` = `maxProofBytesV3`).
+
+A D3α `witness.bin` carries a `Vec` of contract-code blobs (spec/claim-v3.md §3), and nothing in
+`RelD3` bounds how *many* blobs a witness lists (an empty or never-read blob can be repeated), so
+`∃ w, RelD3 c w` alone does not give a witness of bounded size, and completeness up to
+`maxProofBytes` would need a lock-step argument through the whole D2/WASM runtime. The domain of a
+tier is therefore the claims with a `Rel_t` witness of at most 64 MiB. This excludes no real chunk:
+the state witness is ≤ 8 MiB (`w.size`) and the code blobs total ≤ 4 000 000 bytes, so dropping
+repeated or unread blobs always gives such a witness; D0–D2 witnesses carry no code and are at most
+8 MiB + 33 bytes anyway. The bound is uniform over the tiers and only fixes which witness a
+completeness proof starts from; soundness (`Rel_t`, `RelChunkV3`) is unaffected. -/
+def maxWitnessChunk : Nat := 67108864
+
+def WfClaim.DomainTier (t : Tier) (c : WfClaim) : Prop :=
+  ∃ w, WfClaim.RelTier t c w ∧ w.length ≤ maxWitnessChunk
 def WfClaim.RelChunk (c : WfClaim) (w : List UInt8) : Prop := RelChunkV3 c.1.encode w
 
 /-- The spec a candidate declaring tier `t` is admitted under: soundness w.r.t. `Rel_t`,
@@ -87,12 +101,19 @@ def challengeSpecChunkTop : ChallengeSpec where
   encodeClaim := WfClaim.encode
   decode_encode := WfClaim.decode_encode
 
-def challengeParamsChunk (t : Tier) : ChallengeParams where
+/-- The tier's admission parameters with the judge-spliced literals (the Expected template of
+`near-chunk-v3` renders `challengeParamsChunkWith <tier> profile fuel maxProofBytes red`). -/
+def challengeParamsChunkWith (t : Tier) (profile : SecurityProfile)
+    (verifyFuel maxProofBytes maxReductionFuel : Nat) : ChallengeParams where
   spec := challengeSpecChunk t
-  profile := NearSpec.TransferV1.profileValidityClassical128
-  verifyFuel := verifyFuelV3
-  maxProofBytes := maxProofBytesV3
-  maxReductionFuel := maxReductionFuelV3
+  profile := profile
+  verifyFuel := verifyFuel
+  maxProofBytes := maxProofBytes
+  maxReductionFuel := maxReductionFuel
+
+def challengeParamsChunk (t : Tier) : ChallengeParams :=
+  challengeParamsChunkWith t NearSpec.TransferV1.profileValidityClassical128 verifyFuelV3
+    maxProofBytesV3 maxReductionFuelV3
 
 /-- Language inclusion: a claim true at any tier is true for the challenge statement. -/
 theorem inLang_mono (t : Tier) (cb : Bytes) :
