@@ -489,6 +489,12 @@ counted.
 
 ## 6. Open items
 
+* **Process rule (lead):** after each table's view is proved, list here the table cells that
+  the view leaves unconstrained but a later link reads. Current entries:
+  * `upsV3` W3 BMAP bitmap is not range-checked (`ups_walk` takes 16-bit as a hypothesis;
+    discharged by BMAP balance in M7e).
+  * The SPB free-key cells were fixed by 412363e8 (lead-approved).
+
 * **Decision (cross-lane, v3-rcpt R3): `VSLOT (vid)` recv in nodeV3.** nodeV3 receives
   `VSLOT (vid)` (bus 3, v1 format) once on every lockstep-written value window
   (`valStart·tw`), and acctV3 sends one per account write. The balance then makes account
