@@ -454,7 +454,14 @@ theorem walk3_view : WalkV3ViewStmt := by
     rw [rowT]
     simp [hz WalkV3.mS (by simp), hz WalkV3.mK (by simp), hz WalkV3.mB (by simp), hw, hg,
       show (0 : Fp) + 0 = 0 by grind]
-  refine ⟨segs.map (walkOfSeg tr tt), ⟨?_, ?_, ?_, ?_, ?_, ?_⟩, fun b m => ⟨?_, ?_⟩⟩
+  have hrows : ((segs.map (walkOfSeg tr tt)).flatMap (·.steps)).length ≤ 2 ^ 21 := by
+    have hl := congrArg List.length (range'_segs segs 0 hc)
+    simp only [List.length_range', Nat.sub_zero, List.length_flatMap] at hl
+    have hle := height_le hL
+    rw [List.flatMap_map, List.length_flatMap]
+    simp only [walkOfSeg, List.length_map, List.length_range]
+    omega
+  refine ⟨segs.map (walkOfSeg tr tt), ⟨?_, ?_, ?_, ?_, ?_, ?_⟩, hrows, fun b m => ⟨?_, ?_⟩⟩
   · intro wv hw
     obtain ⟨p, hp, rfl⟩ := List.mem_map.1 hw
     obtain ⟨h2, -⟩ := segInfo hL (hall p hp) (hH p hp)
@@ -513,12 +520,7 @@ theorem walk3_view : WalkV3ViewStmt := by
       have ha1 := (hrow (i + 1) hi).1; rw [e] at ha1
       rcases modes_cases (q := p.1 + i + 1) hL (by have := hH p hp; omega) ha1 with h | h | h | h <;>
         simp [stepAt, modeOf, h] at hD ⊢
-  · have hl := congrArg List.length (range'_segs segs 0 hc)
-    simp only [List.length_range', Nat.sub_zero, List.length_flatMap] at hl
-    have hle := height_le hL
-    rw [List.flatMap_map, List.length_flatMap]
-    simp only [walkOfSeg, List.length_map, List.length_range]
-    omega
+  · omega
   · simp only [walkTraffic3]
     rw [tableBusCount_eq, flatMap_rows_segs _ segs _ hc hend (hpadT b true),
       flatMap_segs segs _ _ (fun p hp => segSend hL (hall p hp) (hH p hp) b), walkSends3_flat]

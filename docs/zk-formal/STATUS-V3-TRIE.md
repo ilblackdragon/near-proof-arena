@@ -22,7 +22,7 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition | **done** (`PerTau3`: `root_tau`, `build_tau`, `walks_tau`) |
 | M6c | post-root after sets | **done**: `post_tau` (`Link/Post3`), `post_eq_set(s)` (`Link/Post3Spec`), `valsPost_eq_setVals` (`Link/Post3Writes`); open M6d below |
 | M6d | occurrences, reach, post root = iterated `set` | **done**: `occ_le_one`, `reach_walk(_at)`, `find_walk_any`, `post_sets_tau`, `post_sets_walk` (`Link/Post3Occ*`, 76ecb4a8). Interface: `hpl` (account writer), `hperm` (each written value has one keyed write: assembly) |
-| M7 | `upsV3` (option A) | M7a **done** (`root_chain`); M7b **done** (table `Tables/Ups.lean`, budget `BudgetUps.lean`, `UPSV3-DESIGN.md`, model check 2,650 instances, 0 failures; nodeV3 delta in `NodeUpb.lean`, not yet applied); M7c: table + nodeV3 UPB/VSLOT deltas + view layer 1 (`ups_view`) **done**, layer 2: `ups_layout`, `ups_plan`, `ups_windows`, `ups_mem` (u64 carry chain, exact high limb), `ups_walk` (W0–W3 is a `walkV3` walk), `QNodes` target nodes, walk traffic (`ups_walkTrafficFp`) **done**; per-kind `bytes(Q_j) = nodeEnc` for all 12 kinds; gather **`ups_parts`** under `UpsExt` (d756a41d). **M7c done.** Table fix `412363e8`: split branch pinned to branch layout (`pf·kSPB·(qtl+qte) = 0`, closes a free-key hole; budget unchanged). M7e (lane/v3-trie-h, UPSV3-DESIGN §8.2): exact `MEMD` limbs per kind, `ups_partsS` (all parts' bytes = `nodeEnc (upsQ k)` from `UpsExt0` + segment SHA + segment `MEMD` match; lookups `ups_look`), step 2 `SpbSplit`, global SHA / `MEMD` (`sha_seg`, `memd_seg`, `ups_partsG`) **done**; `UpsExt0` from the other tables (`UPB` reads `upb_reads`, sources `ups_srcEnc`/`post_nodeOk`, value via interface `SchedVal` `ups_vlen`/`ups_digV`, walk link for the `upsV3` walks `ups_walkHyp`, `ups_tiLe`, `ups_xy`, `ups_idBound`; assembled `ups_ext0`/`ups_partsAll`) **done** modulo the parts' `SrcShape` and `vbytes`; step 4 (`ups_chain`, `ups_tauDistinct`) and step 3's root half (`ups_rootDig`) **done**; open: `SrcShape` (≈1k), `vbytes`, step 3 upsert half (≈1.5k); M7d render 3–4k |
+| M7 | `upsV3` (option A) | M7a **done** (`root_chain`); M7b **done** (table `Tables/Ups.lean`, budget `BudgetUps.lean`, `UPSV3-DESIGN.md`, model check 2,650 instances, 0 failures; nodeV3 delta in `NodeUpb.lean`, not yet applied); M7c: table + nodeV3 UPB/VSLOT deltas + view layer 1 (`ups_view`) **done**, layer 2: `ups_layout`, `ups_plan`, `ups_windows`, `ups_mem` (u64 carry chain, exact high limb), `ups_walk` (W0–W3 is a `walkV3` walk), `QNodes` target nodes, walk traffic (`ups_walkTrafficFp`) **done**; per-kind `bytes(Q_j) = nodeEnc` for all 12 kinds; gather **`ups_parts`** under `UpsExt` (d756a41d). **M7c done.** Table fix `412363e8`: split branch pinned to branch layout (`pf·kSPB·(qtl+qte) = 0`, closes a free-key hole; budget unchanged). M7e (lane/v3-trie-h, UPSV3-DESIGN §8.2): exact `MEMD` limbs per kind, `ups_partsS` (all parts' bytes = `nodeEnc (upsQ k)` from `UpsExt0` + segment SHA + segment `MEMD` match; lookups `ups_look`), step 2 `SpbSplit`, global SHA / `MEMD` (`sha_seg`, `memd_seg`, `ups_partsG`) **done**; `UpsExt0` from the other tables (`UPB` reads `upb_reads`, sources `ups_srcEnc`/`post_nodeOk`, value via interface `SchedVal` `ups_vlen`/`ups_digV`, walk link for the `upsV3` walks `ups_walkHyp`, `ups_tiLe`, `ups_xy`, `ups_idBound`; assembled `ups_ext0`/`ups_partsAll`) **done** (`vbytes` from SHA without an AIR change: `ups_vbytesE`; `UpsExt0` and the parts from the other tables alone: `ups_ext0V`, `ups_partsAllV`); the parts' `SrcShape` **done** (`ups_shape`: tag / walk / byte-5 facts; `ups_ext0S`, `ups_partsAllS`); step 4 (`ups_chain`, `ups_tauDistinct`) and step 3's root half (`ups_rootDig`) **done**; open: step 3 upsert half (≈1.5k); M7d render 3–4k |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
 
@@ -494,14 +494,21 @@ counted.
   * `upsV3` W3 BMAP bitmap is not range-checked (`ups_walk` takes 16-bit as a hypothesis).
     **Discharged** (lane/v3-trie-h, `Extract/Ups/UpsWalk.lean` `ups_bm`): the `BMAP` balance makes it a branch
     record's bitmap.
-  * **New (M7e):** `upsV3` W0 value-length limbs `L0 L1 L2` are not range-checked; every per-kind byte lemma reads
-    them (`UpsExt0.vlen`/`vbytes`).  SHA bounds them where a part emits a fresh `VLEN` field (every case has one),
-    but `ups_look` already uses `vbytes`, so the discharge needs the value-carrying part looked up first, or a
-    byte range check on `W0` (AIR change: lead decision).  Hypothesis of `ups_ext0` for now.
+  * (closed, no AIR change) `upsV3` W0 value-length limbs `L0 L1 L2` are not range-checked on `W0`; every per-kind
+    byte lemma reads them (`UpsExt0.vlen`/`vbytes`).  **Discharged** (lane/v3-trie-h, `Extract/Ups/UpsVb.lean`
+    `ups_vbytesE`) by the lead's criterion (each limb bounded individually by SHA's `BYTES` contract, not through
+    the length field): every case has a part that emits a fresh `VLEN` field whose first three rows carry
+    `b = L0, L1, L2` (`vlenFresh`; `RLP` / `RBR` / `RBV` / `NLF` / the `LSb ESl0 ESl1` split branch's value slot,
+    `valKind` by `decide`); that part's digest is looked up at its length (`ups_look0`, which no longer uses the
+    limbs: `rbiLook`, `spbLookY`, `spbLookC` dropped their unused `vlen`/`vbytes`/`digV` arguments), so SHA's
+    `digest` contract (`sha_seg` / `UpsShaSeg`) makes each of its emitted bytes, hence each limb, `< 256`
+    (`vbPart`, `ups_vbytes`).  `L < 2^24` then pins `L` exactly (`ups_vlen`).
   * **Interface (M7e):** `SchedVal v sv` (`Extract/Ups/UpsVal.lean`): every `SPLEN`/`SPOST` receive of `upsV3` is a
     scheduler send `[τ, |sv τ|]` / `[τ, d, (sv τ)[d]]` (`d < |sv τ|`), `|sv τ| < 2^24` (owed to v3-sched).
-  * **Interface (M7e):** `walkV3`'s height `≤ 2^21`, proved in `walk3_view` (`height_le`) but not exported by
-    `WalkV3ViewStmt`; `WalkWf3.nrows` is now `≤ 2^23` so that the walks of `walkV3` and `upsV3` fit together.
+  * (closed) `walkV3`'s height `≤ 2^21`: **exported** by `WalkV3ViewStmt` (a conjunct next to `WalkWf3`:
+    `(ws.flatMap (·.steps)).length ≤ 2^21`, from `height_le`; `walk3_view` re-proved, axioms propext,
+    Classical.choice, Quot.sound).  `WalkWf3.nrows` stays `≤ 2^23` so that the walks of `walkV3` and `upsV3` fit
+    together (`allWalks_wf`); the `hWr` hypothesis of `ups_bm` / `allWalks_wf` / `ups_walkHyp` is this conjunct.
   * The SPB free-key cells were fixed by 412363e8 (lead-approved).
 
 * **Decision (cross-lane, v3-rcpt R3): `VSLOT (vid)` recv in nodeV3.** nodeV3 receives

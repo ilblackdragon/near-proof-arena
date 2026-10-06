@@ -830,10 +830,6 @@ theorem spbLookY (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : NearSpe
     (hsl : (nodeEnc src).length < 2 ^ 22)
     (hsrcL : ci = 4 → ∃ key sl m, src = .leaf key sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32)
     (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 510)
-    (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
-    (hLb : s.row 0 L0 < 256 ∧ s.row 0 L1 < 256 ∧ s.row 0 L2 < 256)
-    (hdig : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) 0 →
-      s.row i dL = val.length → regN (s.row i) = (NearSpec.sha256 val).map UInt8.toNat)
     (hxy : spYN ci = 1 → ci ≠ 4 → s.row 0 tX ≠ UpsSpec.yOf si)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) (hY : spYN ci = 1) :
     ∃ i, i < s.rows.length ∧ s.row i gD = 1 ∧ s.row i dI = upsIdN (s.row 0 tau) k ∧ s.row i dL = 50 := by
@@ -954,10 +950,6 @@ theorem spbLookC (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : NearSpe
     (hsl : (nodeEnc src).length < 2 ^ 22)
     (hsrcL : ci = 4 → ∃ key sl m, src = .leaf key sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32)
     (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 510)
-    (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
-    (hLb : s.row 0 L0 < 256 ∧ s.row 0 L1 < 256 ∧ s.row 0 L2 < 256)
-    (hdig : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) 0 →
-      s.row i dL = val.length → regN (s.row i) = (NearSpec.sha256 val).map UInt8.toNat)
     (hxy : spYN ci = 1 → ci ≠ 4 → s.row 0 tX ≠ UpsSpec.yOf si)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) (hR1 : spRN ci = 1) :
     ∃ i, i < s.rows.length ∧ s.row i gD = 1 ∧ s.row i dI = upsIdN (s.row 0 tau) 1 ∧ s.row i dL = s.row ps[k].1 clen := by

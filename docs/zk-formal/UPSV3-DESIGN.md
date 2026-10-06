@@ -428,6 +428,11 @@ Added (this round):
 | `UpsWalk` | the `upsV3` walks in the walk link: `allWalks ws v = ws ++ v.map upsWalk`, `WalkBal` (the `EDGE`/`BMAP` balance of nodes, heads, `walkV3`, `upsV3`) ⇒ `Walk3.BusBal` over `allWalks` (`walkBal_all`); **`ups_bm`** (`W3`'s `BMAP` bitmap is a branch record's, `< 2^16`: discharges `ups_walk`'s hypothesis); `allWalks_wf`; **`ups_walkHyp`** (`Walk3.WalkHyp` of all walks: `walk3_pos`/`walk3_find` apply to `upsV3` walks); `edge_I`, **`ups_tiLe`** (`UpsExt0.tiLe`) |
 | `UpsShape` | `SrcOk` split: **`NodeOk3`** (generic: encoding `< 2^22`, usage `< 2^64`, nibbles `< 16`, keys `< 510`, 36-byte slots of length `< 2^32`, 16 children, 32-byte child hashes) and **`SrcShape`** (constructor and slot / key conditions per kind); `srcOk_of`; **`post_nodeOk`** (`NodeOk3` of every record's post subtrie); **`ups_srcOk`** (`UpsExt0.srcOk` given the parts' `SrcShape`) |
 | `UpsExt` | **`UpsEnv`** (the other tables' facts, collected); **`ups_ext0`** (`UpsExt0` of every segment given `SrcShape` and `vbytes`); **`ups_partsAll`** (every part emits `nodeEnc (upsQ k)` with exact `MEMD` limbs) |
+| `UpsRec` | record facts (no table): `edge_branch` (a non-`END` edge of a branch is `DOWN` to a revealed child in the symbol's slot), `edge_key` (a `KEY` edge belongs to a leaf / extension, before its key's end), `edge_lend` (`LEND`: a leaf), `ser_tag` (byte 0 = `tagOf`: 0 leaf, 3 extension, 1 / 2 branch without / with value), `ser5_leaf`/`ser5_ext` (byte 5's high nibble `2·isLeaf + odd`), `ext_nil_of` (bytes 1, 5 = `1`, `0` ⇒ key `[]`), `kidAt_node`/`kidAt_none`, **`post_eq`** (a record's post subtrie is `nodeTree3` of its `Rec3`) |
+| `UpsPath` | the walk's path records (with `ups_walkHyp`): **`ups_levels`** (`D ≤ t* − 1`; `D ≥ 1`: `W1` steps out of `N_0`; `D = 2`: `t* = W3`, `W2` steps out of `N_1`; `t*`'s record is `N_D`), `rowEdge`, `stepSym`, **`ups_downSlot`** (a branch at level `d < D` has a revealed child in `slotOf d`), **`ups_termEdge`** (an absent-by-key terminal's `LEND` / `KEY`-at-`I` edge is `N_D`'s), **`ups_termBmap`** (an absent-at-branch terminal's `BMAP` is `N_D`'s: `hasVal = 0` on `W3`, bit `y` clear on `W1`/`W2`) |
+| `UpsTag` | the part's reads of its source's first bytes: **`tagCopy`** (`RDB RDE RLP RBR PT` copy byte 0 onto their `TAG` row, whose byte is the node type), `copyRow`, `firstTag`, **`ptHead`** (`PT` copies bytes 1, 5 = `qhk = 1`, flag `0`, `bHPFp`), **`tagNib5`** (`MVL MVE` and `ESx1`'s `SPB` read byte 5 on their `TAG` row, `spos = 5`, high nibble `2·qtl + podd`: `tagNib`, `rdTag`) |
+| `UpsShapeK` | **`ups_shape`**: every part's source has its kind's `SrcShape` (constructor from the tag / the walk; `RDB`'s slot from `ups_downSlot` with `descLt` (`sdx < D` from the descend counter); `RBV` (`w3Si`: `t* = W3`) and `RBI` from `BMAP`; `LSa` from `LEND`; `MVL`/`MVE`/`ESx1` from the `KEY` edge (`I < |k|`) and byte 5); `kindCase`, `kindCaseK`, `tag_cases`; **`ups_ext0S`** / **`ups_partsAllS`**: `ups_ext0` / `ups_partsAll` without the shape hypothesis |
+| `UpsVb` | **step 2, `vbytes` without an AIR change**: `valKind` (every case has a part with a fresh `VLEN` field: `RLP RBR RBV NLF`, or the `LSb ESl0 ESl1` split branch), **`vbPart`** (its rows `L0 L1 L2` are three of its emitted bytes), **`ups_vbytes`** (with the segment SHA facts and the lookups `ups_look0`, which do not use the limbs), **`ups_vbytesE`**; **`ups_ext0V`** / **`ups_partsAllV`**: `UpsExt0` and every part's bytes with exact `MEMD` limbs from `UpsEnv` alone.  `UpsLook`: `ups_look0` (lookups from reads, sources and walk facts); `rbiLook`/`spbLookY`/`spbLookC` dropped their unused `vlen`/`vbytes`/`digV` arguments |
 | `UpsChain` | **step 4**: `upsE s = ⟨τ, reg(W0), reg(W3)⟩`; `ups_rootMsgs`/`ups_midMsgs`; **`ups_chain`** (`root_chain` for the real table: `RootChain hs (v.map upsE) K r0 rK`), **`ups_tauDistinct`**, `ups_tauBound` (`τ ≤ K`); **step 3, root half**: `rootLook3`, **`ups_rootDig`** (`(upsE s).post = sha256 (nodeEnc (upsQ (|ps| − 1)))`) |
 
 Changes to existing statements (all rebuilt): `SrcOk` and the `RBI`/`MVL`/`MVE`/`SPB` lemmas take encodings `< 2^22`
@@ -438,22 +443,14 @@ so that the `upsV3` walks fit (`wrows_lt` unchanged); `Chain3.UpsWf` → `UpsEWf
 * `SchedVal v sv` (scheduler ↔ `upsV3`, V3-D0-DESIGN §12): `sv τ` is the new value of instance `τ`; every `SPLEN`
   receive is a scheduler send `[τ, |sv τ|]`, every `SPOST` receive a send `[τ, d, (sv τ)[d]]` with `d < |sv τ|`
   (as `Fp` images), `|sv τ| < 2^24`.
-* `walkV3`'s height `≤ 2^21` (`hWr` of `allWalks_wf` / `ups_walkHyp`): proved inside `walk3_view` (`height_le`)
-  but not exported by `WalkV3ViewStmt` (whose `WalkWf3.nrows` is now `≤ 2^23`).
+* (discharged) `walkV3`'s height `≤ 2^21` (`hWr` of `allWalks_wf` / `ups_walkHyp`): now exported by
+  `WalkV3ViewStmt` next to `WalkWf3` (whose `nrows` stays `≤ 2^23` for `walkV3` and `upsV3` walks together).
 * `UpsEnv` collects the balances (`UPB`, `MEMD`, `BYTES` with others' ids not of kind 12, `DIGEST` provided) and
   `τ < 2^17` (from `ups_tauBound` with `K < 2^17`).
 
 **Open (M7e)**, with what each needs:
-* **`SrcShape`** of every part (the only open field of `UpsExt0`): from the walk and the case.  Non-`PT` parts read
-  the path record `N_sd` (`hP.src`, `ups_walkLev`); with `ups_walkHyp`, `walk3_pos` places these records on the
-  path of `[0, 15]` in `T' = fullTree R V' h.rid`.  Per kind: `RDB` (a `DOWN` step at a branch: the slot holds a
-  child), `RDE`/`MVE` (an extension; `I + 1 ≤ |k|` from the `KEY` edge at `I`), `RLP`/`RBR`/`RBV` (the terminal
-  `VAL` / absent-at-branch record's type: read from the copied tag byte), `RBI` (`BMAP` bit `y` clear: `ups_bm`'s
-  provider), `MVL`/`SPB` (the terminal `KEY`/`LEND` edge's record), `PT` (`.ext []` via `rcid` = `ucid`, the
-  pass-through chain `resOk`).  Estimate 900–1300 lines.
-* **`vbytes`** (`L0 L1 L2 < 256`): not constrained on `W0`; SHA bounds them where a part emits them (a fresh `VLEN`
-  field, present in every case), but `ups_look` uses `vbytes` (circular).  Either reorder (look up the
-  value-carrying part first, ~150 lines) or add a range check on `W0` (AIR change, lead decision).
+* (done) **`SrcShape`** of every part: `ups_shape` (`UpsRec`, `UpsPath`, `UpsTag`, `UpsShapeK`, 1,073 lines).
+* (done) **`vbytes`**: `ups_vbytesE` (SHA bounds each limb as an emitted `VLEN` byte; no AIR change).
 * **step 3, upsert half**: `upsQ (|ps| − 1)` vs `upsert (prune_[0,15] T') [0,15] v` up to `hashOf`
   (`upsert_hashOf_congr` / `upsert_refinedBy`; terminal cases `upsert_brSlot`/`upsert_brVal`/`upsert_leaf_ne`
   /`upsert_ext_np` with `SpbSplit`; upper parts `upsert_branch_down`/`upsert_ext_down`; pass-through `.ext []`;
@@ -464,8 +461,9 @@ so that the `upsV3` walks fit (`wrows_lt` unchanged); `Chain3.UpsWf` → `UpsEWf
   of every instance chains to the next head.
 
 **Unconstrained cells read by the link (STATUS §6 register):**
-* `W0`'s value-length limbs `L0 L1 L2` (`vbytes`): read by every per-kind lemma through `UpsExt0.vlen`/`vbytes`;
-  not range-checked on `W0` (see above).
+* (closed) `W0`'s value-length limbs `L0 L1 L2` (`vbytes`): not range-checked on `W0`; discharged by `ups_vbytesE`
+  (each limb is a byte the value-carrying part emits on `BYTES`; SHA's contract bounds it once that part's digest
+  is looked up, `ups_look0`).
 * (closed) `W3`'s `BMAP` bitmap `wbm`: now discharged by `ups_bm`.
 The other cells the links read (`rx`, `rb`, `mBv`, `mCv`, `clen`, `qlen`, `dI`, `dL`, `reg`, `j`, `jm`, `idx`, `gD`,
 `gMs`, `gMr`, `sN`, `spos`, `plen`, `pdep`, `rcid`, `u`, `nI`, `nI2`, `nib`, `tX`) are pinned by the table or by a
