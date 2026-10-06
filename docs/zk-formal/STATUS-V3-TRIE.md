@@ -317,8 +317,10 @@ Per instance `τ` there is one `0x0f` read and one `0x0f` upsert.
       windows, slot, key bytes; nibble shifts are done with hi/lo nibble columns as in
       `nodeV3`) or fresh: tag, length bytes, bitmap, child digests from `DIGEST`, `MEM` from
       the `u64` arithmetic `m + new − old` (truncated), the new value's digest `VUPS(τ)`.
-    * `NUPS` is a new id kind, to be requested.
-  * **The post value:** the `SPOST` bytes are received and re-sent as `BYTES (VUPS(τ), pos, b)`.
+    * **Ids (lead, design §12):** packed into `K_VUPS = 12` with `idx = 8τ + j`. `j = 0` is
+    the post `0x0f` value and `j = 1..7` are the `Q` nodes (≤ 7). Owed to the assembly lane:
+    the id-range lemma "the `upsV3` ids are exactly kind 12 with `idx < 8(K+1)`".
+  * **The post value:** the `SPOST` bytes are received and re-sent as `BYTES (msgId 12 (8τ), pos, b)`.
 * **M7c: view.** `UpsViewStmt`, in the segment framework.
 * **M7d: render.**
 * **M7e: link.** From the view, the node records of `τ` and the walk:
@@ -327,7 +329,14 @@ Per instance `τ` there is one `0x0f` read and one `0x0f` upsert.
   * hence `root' = hashOf (upsert T' [0,15] v)`, via `upsert_hashOf_congr`;
   * plus `set_upsert_comm` / `trieOpsStmt`, which give the relation's order.
 
-This deviates from option A as first written (`Q` as `nodeV3` records): the new nodes are byte
+**Lead conditions on the deviation:**
+* M7e proves `Q = upsert (prune_[0,15] P) [0,15] v` **byte-exact, including `memory_usage`**,
+  in all three cases: present, absent at an empty branch slot, and absent by key split.
+* An `UPB` copy must not be able to read a record off the `[0,15]` path. Planned mechanism:
+  `upsV3` takes the source record ids from the `[0,15]` walk's `EDGE` steps, so they are
+  path records, and `UPB` messages carry the record id.
+
+This deviates (**approved**) from option A as first written (`Q` as `nodeV3` records): the new nodes are byte
 segments of `upsV3` itself. `nodeV3` changes only by `UPB` plus `mU` (one interaction, one
 column). Why: copying into `nodeV3` records would need per-row offset columns in `nodeV3`
 and a re-port of its view, whereas `upsV3` writes only the fixed shapes of ≤ 6 nodes.
