@@ -141,7 +141,7 @@ theorem cell_sf {r : Nat} (hr : r < R insts) :
   generalize (recs insts).getD r default = a
   obtain ⟨i, rk⟩ := a
   cases rk with
-  | w t => by_cases h : t = 0 <;> simp [h, wCell, isSeg, UpsV3.sf]
+  | w t => by_cases h : t = 0 <;> simp [h, wCell, isSeg, UpsV3.sf, ind]
   | v p => simp [vCell, isSeg, UpsV3.sf]
   | q k p => simp [qCell, isSeg, isPC, qRowCell, qRow, UpsV3.sf]
 

@@ -92,8 +92,8 @@ structure UpsInst where
 
 namespace UpsGen
 
-/-- Indicator. -/
-abbrev ind (p : Prop) [Decidable p] : Int := if p then 1 else 0
+/-- Indicator (opaque in the proofs: a ring atom). -/
+def ind (p : Prop) [Decidable p] : Int := if p then 1 else 0
 
 /-! ## Segment constants -/
 
@@ -112,7 +112,7 @@ def Lb (i : Nat) : Int := if i = 0 then (L I % 256 : Nat) else if i = 1 then (L 
   else if i = 2 then (L I / 65536 : Nat) else 0
 
 def upsIdV (x : Int) : Int := 12 + 16 * (512 * (I.tau : Int) + x)
-def cin (l : List Nat) : Int := ind (I.ci ∈ l)
+def cin (l : List Nat) : Int := (l.map fun n => ind (I.ci = n)).sum
 def xbit (i : Nat) : Int := (I.x / 2 ^ i % 2 : Nat)
 def pxV : Int := (2 ^ (I.x % 8) : Nat)
 /-- split branch: has the new leaf / has two windows / receives `MEMD` -/
@@ -120,9 +120,9 @@ def spYc : Int := cin I [4, 6, 9, 10]
 def twoC : Int := cin I [6, 9, 10]
 def spRecv : Int := cin I [5, 6, 7, 9]
 def bmLV : Int := (1 - cin I [4]) * (1 - xbit I 3) * pxV I + spYc I * ind (I.ts = 1)
-def bmHV : Int := (1 - cin I [4]) * xbit I 3 * pxV I + 128 * (spYc I * ind (I.ts ≠ 1))
+def bmHV : Int := (1 - cin I [4]) * xbit I 3 * pxV I + 128 * (spYc I * (1 - ind (I.ts = 1)))
 def presV : Int := ind ((step I 3).mode = 0)
-def vidV : Int := if (step I 3).mode = 0 then ((step I 3).e.getD 3 0 : Nat) else 0
+def vidV : Int := ind ((step I 3).mode = 0) * ((step I 3).e.getD 3 0 : Nat)
 
 /-- Segment-constant columns (`UpsV3.segConst`). -/
 def isSeg (col : Nat) : Bool := (10 ≤ col && col < 49) || (176 ≤ col && col < 179) || col == 186
@@ -219,8 +219,8 @@ end
 section
 variable (I : UpsInst) (P : UpsPartI)
 
-def kin (l : List Nat) : Int := ind (P.kind ∈ l)
-def xcpV : Int := ind (P.kind = 10 ∧ (I.ci = 8 ∨ I.ci = 10))
+def kin (l : List Nat) : Int := (l.map fun n => ind (P.kind = n)).sum
+def xcpV : Int := ind (P.kind = 10) * (ind (I.ci = 8) + ind (I.ci = 10))
 def useAV : Int := kin P [0, 1, 3, 4, 5, 7, 11] + xcpV I P
 def bNV : Int := kin P [0, 1, 9, 11] + kin P [10] * spRecv I
 def bLV : Int := kin P [3]
@@ -235,14 +235,14 @@ def KcV : Int :=
   kin P [9] * (50 + 2 * (P.qhk : Int)) +
   kin P [10] * (202 * cin I [4] + 100 * cin I [5, 7, 8] + 152 * cin I [6, 9, 10])
 def vcpV : Int := kin P [0, 5, 6] + kin P [10] * cin I [4]
-def ba0V : Int := kin P [5] * ind (I.ts = 1)
-def ba1V : Int := 128 * (kin P [5] * ind (I.ts ≠ 1))
-def spY1V : Int := kin P [10] * (cin I [4] + ind (I.ts = 1) * twoC I)
-def spY2V : Int := kin P [10] * (ind (I.ts ≠ 1) * twoC I)
+def ba0V : Int := ind (P.kind = 5) * ind (I.ts = 1)
+def ba1V : Int := 128 * (ind (P.kind = 5) * (1 - ind (I.ts = 1)))
+def spY1V : Int := ind (P.kind = 10) * (ind (I.ci = 4) + ind (I.ts = 1) * twoC I)
+def spY2V : Int := ind (P.kind = 10) * ((1 - ind (I.ts = 1)) * twoC I)
 /-- target slot 15 (last window) -/
-def s15V : Int := kin P [0] * ind (P.sd = 1) + kin P [5] * ind (I.ts ≠ 1)
+def s15V : Int := ind (P.kind = 0) * ind (P.sd = 1) + ind (P.kind = 5) * (1 - ind (I.ts = 1))
 def upV : Int := kin P [0, 1, 11]
-def nokeyV : Int := ind (P.ty ≤ 1 ∧ P.qhk = 1)
+def nokeyV : Int := ind (P.ty ≤ 1) * ind (P.qhk = 1)
 
 /-- Part-constant columns (`UpsV3.partConst`). -/
 def isPC (col : Nat) : Bool := (49 ≤ col && col < 100) || (179 ≤ col && col < 184)
@@ -310,38 +310,34 @@ def nWin (sh : List (Nat × Nat)) : Nat := (sh.filter fun f => f.1 = 7).length
 section
 variable (I : UpsInst) (P : UpsPartI) (st ix wi : Nat)
 
-def fwV : Int := ind (st = 7 ∧ wi = 0)
-def lastwV : Int := ind (st = 7 ∧ wi + 1 = nWin P.shape)
+def fwV : Int := ind (st = 7) * ind (wi = 0)
+def lastwV : Int := ind (st = 7) * ind (wi + 1 = nWin P.shape)
 def tgtV : Int := ind (st = 7) * (fwV st wi * (1 - s15V I P) + lastwV P st wi * s15V I P)
-def wyV : Int := ind (st = 7) * kin P [10] * (fwV st wi * spY1V I P + (1 - fwV st wi) * spY2V I P)
+def wyV : Int := ind (st = 7) * ind (P.kind = 10) * (fwV st wi * spY1V I P + (1 - fwV st wi) * spY2V I P)
 def wfrV : Int :=
   ind (st = 7) * (kin P [0, 5] * tgtV I P st wi + kin P [1, 9, 11] +
-    kin P [10] * (1 - (1 - wyV I P st wi) * xcpV I P))
-def wnV : Int := ind (st = 7) * (kin P [5] * tgtV I P st wi + kin P [10] * wyV I P st wi)
+    ind (P.kind = 10) * (1 - (1 - wyV I P st wi) * xcpV I P))
+def wnV : Int := ind (st = 7) * (ind (P.kind = 5) * tgtV I P st wi + ind (P.kind = 10) * wyV I P st wi)
 
 /-- The byte is copied from the source. -/
 def cpV : Int :=
-  if st = 0 then kin P [0, 1, 2, 3, 5, 11]
-  else if st = 1 ∨ st = 2 then kin P [1, 2, 11]
-  else if st = 3 then kin P [1, 2, 6, 7]
-  else if st = 4 ∨ st = 5 then vcpV I P
-  else if st = 6 then kin P [0, 3, 4, 5]
-  else if st = 7 then 1 - wfrV I P st wi
-  else 0
+  ind (st = 0) * kin P [0, 1, 2, 3, 5, 11] + (ind (st = 1) + ind (st = 2)) * kin P [1, 2, 11] +
+  ind (st = 3) * kin P [1, 2, 6, 7] + (ind (st = 4) + ind (st = 5)) * vcpV I P +
+  ind (st = 6) * kin P [0, 3, 4, 5] + ind (st = 7) * (1 - wfrV I P st wi)
 
 /-- The row reads its target window's child id. -/
-def rdcV : Int := ind (st = 7 ∧ ix = 0) * tgtV I P st wi * upV P
+def rdcV : Int := ind (st = 7) * ind (ix = 0) * tgtV I P st wi * upV P
 
 def extraV : Int :=
-  ind (st = 0) * (kin P [4, 6, 7] + xcpV I P) + ind (st = 1 ∧ ix = 0) * kin P [6, 7] +
-  ind (st = 2) * kin P [6, 7] + ind (st = 4) * kin P [3] + ind (st = 6 ∧ ix = 0) * xcpV I P +
-  ind (st = 8) * (1 - kin P [8]) + rdcV I P st ix wi
+  ind (st = 0) * (kin P [4, 6, 7] + xcpV I P) + ind (st = 1) * ind (ix = 0) * kin P [6, 7] +
+  ind (st = 2) * kin P [6, 7] + ind (st = 4) * ind (P.kind = 3) + ind (st = 6) * ind (ix = 0) * xcpV I P +
+  ind (st = 8) * (1 - ind (P.kind = 8)) + rdcV I P st ix wi
 
 def rdV : Int := cpV I P st wi + extraV I P st ix wi
 
 def aftV : Int :=
-  kin P [4] * ind (st = 6 ∨ st = 7 ∨ st = 8) +
-  kin P [5] * (ind (st = 7) * (1 - fwV st wi) * ind (I.ts = 1) + ind (st = 8))
+  ind (P.kind = 4) * (ind (st = 6) + ind (st = 7) + ind (st = 8)) +
+  ind (P.kind = 5) * (ind (st = 7) * (1 - fwV st wi) * ind (I.ts = 1) + ind (st = 8))
 
 /-- Read position. -/
 def sposV (p : Nat) : Int :=
@@ -381,6 +377,8 @@ variable (I : UpsInst) (P : UpsPartI)
 
 /-- byte `i` of the source's `memory_usage` (its last eight bytes) -/
 def memByte (Q : UpsPartI) (i : Nat) : Int := (Q.pb.getD (Q.pb.length - 8 + i) 0 : Nat)
+/-- the `MEM`-row read of the source (position `plen − 8 + i`) -/
+def memRb (Q : UpsPartI) (i : Nat) : Int := (Q.pb.getD (((Q.pb.length : Int) - 8 + i).toNat) 0 : Nat)
 /-- byte `i` of the source's value length -/
 def slb (i : Nat) : Int := if i < 4 then (P.pb.getD (P.soff + i) 0 : Nat) else 0
 /-- the child part (`MEMD`) -/
@@ -388,12 +386,12 @@ def child : UpsPartI := part I (P.jm - 1)
 /-- limb `i` of an exact value `R` (the high limb on row 7) -/
 def limb (R : Int) (i : Nat) : Int := if i < 7 then R / 256 ^ i % 256 else R / 256 ^ 7
 
-def Ai (i : Nat) : Int := useAV I P * memByte P i
+def Ai (i : Nat) : Int := useAV I P * memRb P i
 def Bi (i : Nat) : Int := bNV I P * limb P.mB i + bLV P * Lb I i
 def Ci (i : Nat) : Int :=
-  cOV P * memByte (child I P) i + cSV P * slb P i + (if i = 0 then CcV I P else 0)
+  cOV P * memByte (child I P) i + cSV P * slb P i + ind (i = 0) * CcV I P
 def X1V (i : Nat) : Int := Ai I P i + Bi I P i - Ci I P i
-def EinV (i : Nat) : Int := (if i = 0 then KcV I P else 0) + eLV P * Lb I i + eSV I P * slb P i
+def EinV (i : Nat) : Int := ind (i = 0) * KcV I P + eLV P * Lb I i + eSV I P * slb P i
 def sigV : Int := 1 - 2 * (P.neg : Int)
 
 /-- `Σ_{l < n} f l · 256^l` -/
@@ -457,11 +455,11 @@ def qRow (col : Nat) : Int :=
   | 126 => dLV I P st ix wi
   | 127 => cpV I P st wi
   | 128 => aftV I P st wi
-  | 168 => ind (st = 8 ∧ k + 1 ≠ nQ I ∧ P.kind ≠ 8)
+  | 168 => ind (st = 8) * (1 - ind (k + 1 = nQ I)) * (1 - ind (P.kind = 8))
   | 169 => ind (st = 8) * bNV I P
   | 170 => if st = 8 then limb (RV I P) ix else 0
-  | 171 => if st = 8 then bNV I P * limb P.mB ix else 0
-  | 172 => if st = 8 then bNV I P * memByte (child I P) ix else 0
+  | 171 => if st = 8 then limb P.mB ix else 0
+  | 172 => if st = 8 then memByte (child I P) ix else 0
   | 184 => (P.pcid.getD (sposV I P st ix wi p).toNat 0 : Nat)
   | 185 => rdcV I P st ix wi
   | col =>
