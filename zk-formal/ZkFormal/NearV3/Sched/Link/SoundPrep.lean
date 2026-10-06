@@ -8,7 +8,9 @@ codec passes them from instance to instance. The instances agree on the layout b
 builds every apply context with the one layout `L` of the claim:
 
 * **`prepD0_ids`**: `prepD0 cb h = .ok p → ∃ ids, ∀ sp ∈ p.sched, sp.ids = ids`;
-* **`prepD0_ash`**: every `allShardsHash` is a `sha256` output, 32 bytes (`pubOf`).
+* **`prepD0_ash`**: every `allShardsHash` is a `sha256` output, 32 bytes (`pubOf`);
+* **`prepD0_values`**: every value table is `requestValues params` (`pubOf`);
+* **`prepD0_asz`**: every `allowed` array has `n²` entries (`pubOf`).
 -/
 
 namespace ZkFormal.NearV3.Sched
@@ -112,5 +114,67 @@ theorem prepD0_ash {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = .
   obtain ⟨pc, hpc, hb⟩ := bind_ok h
   rw [prepBody_sched hb]
   exact prepClaim_ash hpc
+
+/-! ## Any property of `schedPub` outputs -/
+
+theorem prop_close {Q : SchedPub → Prop} (hQ : ∀ ctx sp, schedPub ctx = some sp → Q sp)
+    {ctxs : List ApplyCtx} {sched : List SchedPub}
+    {f : ApplyCtx → Except String SchedPub} (hm : List.mapM f ctxs = .ok sched)
+    (hf : ∀ ctx sp, f ctx = .ok sp → schedPub ctx = some sp) : ∀ sp ∈ sched, Q sp := by
+  intro sp hsp
+  obtain ⟨ctx, -, hfc⟩ := mapM_ok f _ _ hm sp hsp
+  exact hQ ctx sp (hf ctx sp hfc)
+
+set_option maxHeartbeats 4000000 in
+theorem prepClaim_prop {Q : SchedPub → Prop} (hQ : ∀ ctx sp, schedPub ctx = some sp → Q sp)
+    {cb : Bytes} {pc : PrepC} (h : prepClaim cb = .ok pc) : ∀ sp ∈ pc.sched, Q sp := by
+  unfold prepClaim at h
+  repeat' (first
+    | (obtain ⟨_, _, h⟩ := bind_ok h)
+    | (split at h)
+    | (dsimp only at h))
+  all_goals try (cases h; done)
+  all_goals try (exfalso; exact throw_ne (by assumption))
+  all_goals
+    simp only [pure, Except.pure, Except.ok.injEq] at h; subst h
+    exact prop_close hQ (by assumption) (fun ctx sp hc => by
+        split at hc
+        · simp only [pure, Except.pure, Except.ok.injEq] at hc; subst hc; assumption
+        · cases hc)
+
+theorem prepD0_prop {Q : SchedPub → Prop} (hQ : ∀ ctx sp, schedPub ctx = some sp → Q sp)
+    {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = .ok p) : ∀ sp ∈ p.sched, Q sp := by
+  unfold prepD0 at h
+  obtain ⟨pc, hpc, hb⟩ := bind_ok h
+  rw [prepBody_sched hb]
+  exact prepClaim_prop hQ hpc
+
+/-- **Every value table of a successful `prepD0` is `requestValues params`.** -/
+theorem prepD0_values {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = .ok p) :
+    ∀ sp ∈ p.sched, sp.values = requestValues sp.params :=
+  prepD0_prop (fun ctx sp h => by
+    unfold schedPub pubOf at h
+    by_cases hn : ctx.layout.shardIds.length = 0
+    · simp [hn] at h
+    · cases hp : Params.calculate Config.pv86 ctx.layout.shardIds.length with
+      | none => simp [hn, hp] at h
+      | some p =>
+        simp only [hn, hp, ↓reduceIte] at h
+        simp only [Option.bind, bind, Option.some.injEq] at h
+        subst h; rfl) h
+
+/-- **Every `allowed` array of a successful `prepD0` has `n²` entries.** -/
+theorem prepD0_asz {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = .ok p) :
+    ∀ sp ∈ p.sched, sp.allowed.size = sp.ids.length * sp.ids.length :=
+  prepD0_prop (fun ctx sp h => by
+    unfold schedPub pubOf at h
+    by_cases hn : ctx.layout.shardIds.length = 0
+    · simp [hn] at h
+    · cases hp : Params.calculate Config.pv86 ctx.layout.shardIds.length with
+      | none => simp [hn, hp] at h
+      | some p =>
+        simp only [hn, hp, ↓reduceIte] at h
+        simp only [Option.bind, bind, Option.some.injEq] at h
+        subst h; simp) h
 
 end ZkFormal.NearV3.Sched
