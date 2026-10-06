@@ -41,7 +41,8 @@ fn chain_params(seed: u64, i: usize, blocks: u64) -> chaingen::ChainParams {
         seed: seed.wrapping_mul(1_000_003).wrapping_add(i as u64),
         n_shards: [4usize, 5, 6][i % 3],
         seats,
-        gas_limit_tgas: if i % 4 == 3 { 10 } else { 1000 },
+        // chain 8 (A1): a genesis gas limit above 10^15 -- every chunk out of D0 (c.gas_limit)
+        gas_limit_tgas: if i == 8 { 1500 } else if i % 4 == 3 { 10 } else { 1000 },
         epoch_length: 30,
         blocks,
         p_missing: 0.12,

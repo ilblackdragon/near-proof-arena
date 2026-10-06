@@ -1,3 +1,4 @@
+import ArenaCore.SHA256Fast
 import NearSpec.SHA256
 import NearSpec.Outcome
 import NearSpecV3.GF256

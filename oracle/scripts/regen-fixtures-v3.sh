@@ -2,7 +2,8 @@
 # Regenerate the v3 (near/pv86/chunk-validation/v0) fixtures with nearcore's own code.
 # Byte-reproducible: FakeClock + fixed genesis time + seeded RNG (oracle/v3/src/chaingen.rs).
 #   public set (committed):  oracle/fixtures/v3/public   (seed 4243, 2 chains x 40 blocks)
-#   full difftest set:       $OUT (default /tmp/near-v3-full; seed 4243, 8 chains x 120 blocks)
+#   full difftest set:       $OUT (default /tmp/near-v3-full; seed 4243, 9 chains x 120 blocks;
+#                            chain 8 has a 1500 Tgas genesis gas limit: A1 c.gas_limit)
 #   leaf vectors (committed): oracle/fixtures/v3/vectors (seed 86)
 set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
@@ -15,5 +16,5 @@ rm -rf "$here/fixtures/v3/public"
 if [[ "${FULL:-0}" == 1 ]]; then
   OUT="${OUT:-/tmp/near-v3-full}"
   rm -rf "$OUT"
-  "$bin" gen --seed 4243 --out "$OUT" --chains 8 --blocks 120 --mutate-every 6
+  "$bin" gen --seed 4243 --out "$OUT" --chains 9 --blocks 120 --mutate-every 6
 fi

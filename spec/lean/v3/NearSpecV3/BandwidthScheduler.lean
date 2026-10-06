@@ -1,3 +1,4 @@
+import ArenaCore.SHA256Fast
 import NearSpec.Bandwidth
 import NearSpecV3.ChaCha20
 import NearSpecV3.Congestion

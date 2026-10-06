@@ -5,12 +5,13 @@
   "d0.expected_accept": 64,
   "d0.lean.accept": 64,
   "d0.python.accept": 64,
-  "mutants.cases": 78,
+  "mutants.cases": 121,
   "mutants.expected_accept": 16,
   "mutants.lean.accept": 16,
-  "mutants.lean.out_of_domain": 2,
+  "mutants.lean.out_of_domain": 45,
   "mutants.lean.reject": 60,
   "mutants.python.accept": 16,
+  "mutants.python.out_of_domain": 43,
   "mutants.python.reject": 62,
   "ood.cases": 59,
   "ood.expected_accept": 0,
@@ -59,6 +60,7 @@
   "w.dup_key_last_good|expected_accept=True": 2,
   "w.epoch_id|expected_accept=False": 2,
   "w.extra_proof|expected_accept=False": 2,
+  "w.foreign_routed_receipt|expected_accept=False": 43,
   "w.main_block_hash(unchecked)|expected_accept=True": 2,
   "w.main_post_root|expected_accept=False": 2,
   "w.trailing_byte|expected_accept=False": 2,
@@ -81,7 +83,7 @@
   },
   "honest_accepted_by_nearcore": 290,
   "honest_witnesses": 290,
-  "mutants": 78,
+  "mutants": 121,
   "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
   "ood_cases_written": 59,
   "protocol_version": 86,
@@ -89,7 +91,7 @@
  },
  "statement": "near/pv86/chunk-validation/v0",
  "wall_seconds": {
-  "lean": 12.852978229522705,
-  "python": 0.18220734596252441
+  "lean": 19.19088053703308,
+  "python": 0.30468273162841797
  }
 }

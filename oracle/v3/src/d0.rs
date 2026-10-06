@@ -123,6 +123,20 @@ pub fn classify(
     if ci.delayed_receipts_gas() != 0 || ci.buffered_receipts_gas() != 0 || ci.receipt_bytes() != 0 {
         add("c.own_congestion_zero");
     }
+    // A1 (c.gas_limit): the B2 slot's chunk gas limit (a genesis constant) <= 10^15
+    if slot.gas_limit().as_gas() > 1_000_000_000_000_000 {
+        add("c.gas_limit");
+    }
+    // A2 (w.proof_routing): every receipt of every source receipt proof routes (nearcore's
+    // Receipt::receiver_shard_id under the epoch layout) to the target shard. An honest
+    // witness holds exactly the used proofs (one per new source chunk).
+    for p in w.source_receipt_proofs().values() {
+        for r in &p.0 {
+            if r.receiver_shard_id(&shard_layout).map_err(|e| e.to_string())? != shard_id {
+                add("w.proof_routing");
+            }
+        }
+    }
     let pre = crate::judge::pre_validate(client, w)?;
     let receipts = match pre.main_transition_params {
         MainTransition::NewChunk { new_chunk_data, .. } => new_chunk_data.receipts,
