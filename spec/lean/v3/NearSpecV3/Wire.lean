@@ -1,4 +1,3 @@
-import ArenaCore.SHA256Fast
 import NearSpec.Primitives
 import NearSpec.AccountId
 

@@ -9,8 +9,7 @@ Implementations compared on every case directory (claim.bin, witness.bin, meta.j
   (3) Python            — `oracle/tools/spec_check_v3.py` (independent).
 
 A case agrees iff both checkers accept exactly when expected_rel_d0, and for honest
-out-of-domain cases (ood/) and for mutants with `expected_verdict` (constructed
-out-of-domain mutants such as the A2 `w.foreign_routed_receipt`) both report that verdict.
+out-of-domain cases (ood/) both report out_of_domain.
 
 usage: difftest_v3.py --cases DIR [--lean EXE] [--python FILE] [--report OUT.json]
          [--lean-jsonl F --python-jsonl F]   (reuse precomputed outputs)
@@ -75,9 +74,6 @@ def main():
             ok = acc == exp
             if kind == "ood":
                 ok = ok and j["verdict"] == "out_of_domain"
-            # constructed out-of-domain mutants (e.g. A2 w.proof_routing) pin the exact verdict
-            if meta.get("expected_verdict"):
-                ok = ok and j["verdict"] == meta["expected_verdict"]
             if not ok:
                 disagreements.append({"case": d, "impl": name, "expected_rel_d0": exp,
                                       "verdict": j["verdict"], "reason": j["reason"],
@@ -95,26 +91,12 @@ def main():
     try:
         report["oracle_summary"] = json.load(open(os.path.join(a.cases, "summary.json")))
         report["oracle_summary"].pop("chains", None)
-        # A2 (w.proof_routing) on honest witnesses: the oracle's nearcore-based classifier checks
-        # every receipt of every source proof of every honest witness (non-genesis B2)
-        osum = report["oracle_summary"]
-        report["a2_proof_routing_honest"] = {
-            "honest_witnesses": osum.get("honest_witnesses"),
-            "violations": osum.get("d0_violation_counts", {}).get("w.proof_routing", 0),
-        }
     except Exception:
         pass
-    a2m = [d for d in dirs if os.path.basename(os.path.dirname(d)) == "mutants"
-           and d.endswith("w.foreign_routed_receipt")]
-    report["a2_foreign_routed_mutants"] = {
-        "cases": len(a2m),
-        **{f"{name}.out_of_domain": sum(1 for d in a2m if res.get(d, {}).get("verdict") == "out_of_domain")
-           for name, res in impls.items()},
-    }
     s = json.dumps(report, indent=1, sort_keys=True)
     if a.report:
         open(a.report, "w").write(s + "\n")
-    print(json.dumps({k: report.get(k) for k in ("counts", "disagreements", "a2_proof_routing_honest", "a2_foreign_routed_mutants")}, indent=1))
+    print(json.dumps({k: report[k] for k in ("counts", "disagreements")}, indent=1))
     return 0 if not disagreements else 1
 
 if __name__ == "__main__":

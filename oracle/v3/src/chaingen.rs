@@ -5,7 +5,7 @@
 use crate::claim::{block_rec, build_claim};
 use crate::enc::{Claim, encode_witness};
 use crate::judge::nearcore_judge;
-use crate::mutate::{Judge, drop_each_node, foreign_routing, mutants};
+use crate::mutate::{Judge, drop_each_node, mutants};
 use integration_tests::env::nightshade_setup::TestEnvNightshadeSetupExt;
 use integration_tests::env::test_env::TestEnv;
 use near_chain::Provenance;
@@ -386,30 +386,6 @@ pub fn run_chain(
                 stats.d0 += 1;
                 write_case(&out.join("d0").join(&name), &built.claim, &wb, meta);
                 d0_seen += 1;
-                // A2 mutant on every accepted D0 case whose segment starts at B2 (no RNG use,
-                // so the rest of the corpus is unchanged)
-                let mut a2: Vec<crate::mutate::Mutant> = Vec::new();
-                if verdict.is_ok() && built.b2 == 0 {
-                    let em = client.epoch_manager.as_ref();
-                    if let Ok(layout) = em.get_shard_layout(built.blocks[0].header().epoch_id()) {
-                        a2.extend(foreign_routing(&built.claim, &sw, &layout, built.shard_id));
-                    }
-                }
-                for m in a2 {
-                    let Judge::OutOfDomain(cond) = m.judge else { unreachable!() };
-                    let mname = format!("{name}-{}", m.name);
-                    let meta = json!({
-                        "case": mname, "kind": "mutant", "mutation": m.name, "base": name,
-                        "verdict_source": "construction",
-                        "nearcore": "not judged (mutated block not in the store); Rel holds by construction",
-                        "expected_rel": true,
-                        "in_d0": false, "d0_violations": [cond],
-                        "expected_rel_d0": false,
-                        "expected_verdict": "out_of_domain",
-                    });
-                    stats.mutants += 1;
-                    write_case(&out.join("mutants").join(&mname), &m.claim, &m.witness, meta);
-                }
                 if verdict.is_ok() && mutate_every > 0 && d0_seen % mutate_every == 0 {
                     let last = built.blocks.last().unwrap();
                     let parent = if last.header().is_genesis() {
@@ -424,7 +400,6 @@ pub fn run_chain(
                     for m in ms {
                         let (exp, src) = match m.judge {
                             Judge::Claim => (Err("claim-v3 discipline".to_string()), "claim-v3"),
-                            Judge::OutOfDomain(_) => unreachable!(),
                             Judge::Nearcore => (
                                 nearcore_judge(client, &m.witness, &[], (m.claim.rs_data_parts, m.claim.rs_total_parts)),
                                 "nearcore",

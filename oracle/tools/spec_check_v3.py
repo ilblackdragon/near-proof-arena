@@ -39,7 +39,6 @@ STATEMENT = b"near/pv86/chunk-validation/v0"
 MAX_WITNESS = 64 * 1024 * 1024
 D0_MAX_WITNESS = 8 * 1024 * 1024
 D0_MAX_BASE_STATE = 3_000_000
-D0_MAX_GAS_LIMIT = 10 ** 15  # A1 (mainnet genesis 1000 Tgas)
 
 # PV 86 runtime config (runtime_configs/parameters.yaml + 85.yaml)
 NEW_ACTION_RECEIPT_EXEC = 108_059_500_000
@@ -583,9 +582,6 @@ def check_case_inner(claim_b, witness_b):
     if len(c['tx_valid']) != 0:
         raise Reject("claim: tx_valid length")
     own_slot = B2.slots[idx]
-    # A1: chunk gas_limit (a genesis constant) at most mainnet's 1000 Tgas
-    if own_slot.inner.gas_limit > D0_MAX_GAS_LIMIT:
-        raise OOD("c.gas_limit: chunk gas_limit above 10^15")
     cong_b2 = ctx_congestion(B2)
     if s0 not in cong_b2:
         raise OOD("c.own_congestion_zero: no congestion info for own shard")
@@ -624,9 +620,6 @@ def check_case_inner(claim_b, witness_b):
                 leaf = sha(sha(u64(to_shard) + u32(len(receipts)) + b''.join(x.raw for x in receipts)))
                 if compute_root_from_path(path, leaf) != s.inner.prev_outgoing_receipts_root:
                     raise Reject("receipt proof merkle path")
-                # A2 (w.proof_routing): every receipt of a used proof routes to the target shard
-                if any(account_to_shard(L, x.recv) != s0 for x in receipts):
-                    raise OOD("w.proof_routing: receipt proof holds a receipt routed to another shard")
                 expected += 1
                 block_proofs.append(receipts)
             # filter_incoming_receipts_for_shard (unconditional; keeps every proof)

@@ -18,7 +18,7 @@
   },
   "honest_accepted_by_nearcore": 290,
   "honest_witnesses": 290,
-  "mutants": 121,
+  "mutants": 78,
   "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
   "ood_cases_written": 59,
   "protocol_version": 86,

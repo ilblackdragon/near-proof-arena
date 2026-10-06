@@ -179,7 +179,6 @@ Claim-level (decidable from `c` alone):
 | `c.no_tx_flags` | `tx_valid = []` | no transactions |
 | `c.segment` | `n_blocks ≤ 32` | size bound |
 | `c.own_congestion_zero` | the shard's congestion info in B2's slot has `delayed_receipts_gas = buffered_receipts_gas = receipt_bytes = 0` | equivalent (on a real chain) to: own delayed queue and outgoing buffers empty before the chunk |
-| `c.gas_limit` (A1) | the `gas_limit` of B2's own-shard slot is `≤ 10^15` (1000 Tgas, mainnet genesis) | bounds the applied receipts (`n ≤ 4481`) for a succinct proof; nearcore copies the genesis gas limit into every chunk forever (`chunk_producer.rs:393`, `validate.rs:154`, `chain_update.rs:472,519`, `update_shard.rs:224`; V3-D0-DESIGN §10.1), so a real chain is either wholly in or wholly out |
 
 Witness/execution-level:
 
@@ -188,7 +187,6 @@ Witness/execution-level:
 | `w.no_txs` | `W.transactions = []`, `W.new_transactions = []` | no tx verification, no local receipts |
 | `w.no_code` | contract code list empty | no WASM |
 | `w.size` | `|state_witness| ≤ 8 MiB`; revealed `base_state` bytes of the main transition ≤ 3 000 000 | recorded-proof estimate stays below 4 000 000, so no receipt is delayed for proof size |
-| `w.proof_routing` (A2) | every receipt of every *used* source receipt proof (the entry `lookupLast` selects for a new source chunk) routes, under `L(epoch_id)`, to the validated shard | no receipt is Merkle-hashed but filtered out (proof-size bound); holds on every honest single-epoch witness: proofs are built per target shard with the same layout (`chain.rs:4132-4150`, `receipt.rs:438-447`, V3-D0-DESIGN §10.1). A foreign receipt with a valid path is accepted by nearcore (it filters) but is outside D0 |
 | `r.shape` | every receipt in `R`: `ReceiptEnum::Action` (tag 0), exactly one `Transfer` action, no input data ids, no output data receivers, ED25519/SECP256K1 signer key, valid named receiver (no implicit-account creation) | v1 receipt shape |
 | `w.proof_shape` | every receipt in every `source_receipt_proofs` entry — including an entry overridden by a later duplicate key — has the D0 receipt shape | the D0 decoder does not model the full receipt type universe; only adversarially crafted witnesses (duplicate keys) can violate it without violating `r.shape` |
 | `r.refunds` | predecessor may be `system` (refund receipts are allowed, unlike v1). For a gas refund (`signer_id = receiver_id`): no gas key for `signer_public_key`, and the access key is absent or `FullAccess` (so `try_refund_allowance` writes nothing) | refund path without key writes |
@@ -271,8 +269,7 @@ v1/v2 oracle and its lock file are untouched.
   randomly missing chunks, forced missing chunks of the burst's target shard for 3 heights
   (buffering ⇒ bandwidth requests and non-zero congestion of other shards), one chain with a
   40-height gap of one shard (segment > 32 blocks), one chain with a 10 Tgas gas limit
-  (delayed receipts; in D0 under A1), one chain (index 8) with a 1500 Tgas gas limit (every chunk
-  outside D0 by A1 `c.gas_limit`), 30-block epochs (validator updates at epoch starts). A `FakeClock` and a
+  (delayed receipts), 30-block epochs (validator updates at epoch starts). A `FakeClock` and a
   fixed genesis time make every run byte-reproducible from the seed.
 * **Witnesses.** The `ChunkStateWitness` values the chunk producers hand to the partial-witness
   layer (`DistributeStateWitnessRequest`), serialized with nearcore borsh — the real bytes. They
@@ -295,13 +292,6 @@ v1/v2 oracle and its lock file are untouched.
   epoch id, trailing byte, dropped / corrupted implicit transitions, context mutations (header
   bytes, slot heights, slot inners, missing or extra block, epoch-start flag), trusted facts
   (Reed–Solomon parameters; `chain_id` and `minimum_stake`, which D0 does not read).
-  **A2 mutant** (`w.foreign_routed_receipt`, every accepted D0 case whose segment starts at B2):
-  a D0-shaped receipt routed to another shard is appended to a source proof of B2, and the source
-  chunk's `prev_outgoing_receipts_root`, its chunk hash (the map key), B2's `chunk_headers_root`
-  and hash, and the endorsed chunk's `prev_block_hash` are recomputed. Every value nearcore's
-  validator reads is then consistent and the foreign receipt is filtered out, so `Rel` holds *by
-  construction* (nearcore cannot judge it directly: the mutated block is not in its store); the
-  expected verdict is `out_of_domain` (`w.proof_routing`).
 * **Leaf vectors** (`near-arena-oracle-v3 vectors`, `oracle/fixtures/v3/vectors/`): nearcore's
   `ChaCha20Rng` stream and `shuffle_receipt_proofs`; `CongestionControl::congestion_level`
   (f64 bits), `is_fully_congested`, `outgoing_gas_limit`; `reed_solomon_encode` + encoded merkle
@@ -326,7 +316,6 @@ v1/v2 package (`spec/lean/lakefile.toml`, `NearSpec.lean`, `NearSpec/*`) is modi
 | `RuntimeD0` | `Runtime::apply` for new and missing chunks in D0 (reuses `NearSpec.TransferV1.applyReceipt`, `PTrie.find/set/upsert`, `outcomeRoot`) | difftest |
 | `ChunkValidationV0` | `checkD0`, `RelD0` (steps 1–18 + D0 conditions) | difftest; `Examples.RealCase` |
 | `ChallengeV3` | `ArenaCore.ChallengeSpec` instance (`Rel = RelD0 c.encode w`) | builds |
-| `PrepD0` | the claim/hint side of a D0 verifier (V3-D0-DESIGN §1, §2.1, §6.1): `Hint`, `Prep`, `prepD0`, `Prep.encode`, `hintOf`, built only from the functions above | `nearspec-v3-test-prep` on every public fixture and difftest case |
 
 **Non-vacuity (kernel).** `NearSpecV3.Examples.RealCase` (`lake build NearSpecV3.Examples.RealCase`,
 ≈ 2.5 min): `decide +kernel` proves `RelD0` on two real cases (a 4-shard chunk with one incoming
@@ -334,12 +323,6 @@ cross-shard receipt and Reed–Solomon (2,8); a 4-shard chunk with two incoming 
 implicit transition and Reed–Solomon (5,16)) and on nearcore's accepted `dup_key_last_good`
 mutant, and `¬ RelD0` on two nearcore-rejected mutants (`prev_state_root` changed; duplicated
 proof key with the corrupt value last). Axioms: `propext`, `Quot.sound`.
-
-**Compiled SHA-256 (A5).** `Wire`, `TrieBuild`, `BandwidthScheduler` and `ReedSolomon` import
-`ArenaCore.SHA256Fast`, whose kernel-proved `@[csimp]` lemma `sha256 = sha256Fast` makes every
-compiled `sha256` call in `NearSpecV3` use the fast implementation; statements and proofs still
-see only `ArenaCore.sha256`. (Calls compiled inside the frozen `NearSpec` package, e.g. trie node
-hashing, keep the reference implementation.)
 
 Reuse for an AIR: every hash is `ArenaCore.sha256` (L5's SHA bus contract applies unchanged);
 the trie and receipt semantics are v1/v2's (`PTrie`, `upsert` with its proofs,

@@ -93,13 +93,6 @@ def blockCtx (l : Layout) (own gasLimit : Nat) (b : Blk) (gasPrice : Nat) : Appl
     statuses := b.slots.map fun (s, ci) => (ci.shardId, ci.congestion, b.hdr.height - s.heightIncluded),
     requests := b.slots.map fun (_, ci) => (ci.shardId, ci.bwRequests) }
 
-/-- A1: largest chunk `gas_limit` admitted in D0 (mainnet genesis, 1000 Tgas). -/
-def maxGasLimitD0 : Nat := 1000000000000000
-
-/-- A2 (`w.proof_routing`): every receipt of the proof routes to `own` under `l`. -/
-def proofRoutes (l : Layout) (own : Nat) (e : ProofEntry) : Bool :=
-  e.receipts.all fun r => l.shardOf r.receiverId == own
-
 def rsGenesisParamsOk (d t : Nat) : Bool :=
   2 ≤ t && t ≤ 256 && d == (if t ≤ 3 then 1 else (t - 1) / 3)
 
@@ -164,9 +157,6 @@ def checkD0 (claimBytes witnessBytes : Bytes) : Except String Unit := do
   check (c.applyFacts.length == 1 + implicitBlks.length) "invalid: apply_facts length"
   let prevB2 ← match blks[b2i + 1]? with | some b => pure b | none => throw "invalid: walk"
   let slotB2 ← match B2.slots[idx]? with | some p => pure p.2 | none => throw "invalid: slot"
-  -- A1 (V3-D0-DESIGN §4, §10.1): the chunk gas limit is the genesis value forever; D0 admits
-  -- at most mainnet's 10^15 (1000 Tgas), which bounds the number of applied receipts
-  check (slotB2.gasLimit ≤ maxGasLimitD0) "out of domain (c.gas_limit): chunk gas_limit above 10^15"
   -- 3.3 / 3.4 pre-validation: source receipts
   let mut receipts : List Receipt := []
   let mut used : Nat := 0
@@ -181,9 +171,6 @@ def checkD0 (claimBytes witnessBytes : Bytes) : Except String Unit := do
         check (e.proof.fromShard == ci.shardId) "invalid: receipt proof from_shard_id"
         check (e.proof.toShard == H.shardId) "invalid: receipt proof to_shard_id"
         check (verifyReceiptProof ci.prevOutgoingReceiptsRoot e) "invalid: receipt proof merkle path"
-        -- A2 (V3-D0-DESIGN §4, §10.1): every receipt of a used proof routes to the target
-        -- shard under the final layout (true of every honest single-epoch proof)
-        check (proofRoutes L H.shardId e) "out of domain (w.proof_routing): a used receipt proof holds a receipt routed to another shard"
         proofs := proofs ++ [e]
         used := used + 1
     let shuffled ← match shuffleWithSeed proofs S.hdr.prevHash with

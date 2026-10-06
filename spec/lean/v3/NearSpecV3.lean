@@ -13,4 +13,3 @@ import NearSpecV3.RuntimeD0
 import NearSpecV3.ChunkValidationV0
 import NearSpecV3.ChallengeV3
 import NearSpecV3.ClaimV3Props
-import NearSpecV3.PrepD0

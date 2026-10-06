@@ -33,15 +33,3 @@ root = "TestRS"
 [[lean_exe]]
 name = "nearspec-v3-test-sched"
 root = "TestSched"
-
-[[lean_exe]]
-name = "nearspec-v3-test-prep"
-root = "TestPrep"
-
-[[lean_exe]]
-name = "nearspec-v3-bench"
-root = "Bench"
-
-[[lean_exe]]
-name = "nearspec-v3-test-encw"
-root = "TestEncodeWitness"
