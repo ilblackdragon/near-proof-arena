@@ -23,7 +23,8 @@ structure BrLay (s : UpsSeg) (o ℓ w c0 : Nat) (ci ti di si ki sdi : Nat) : Pro
   bytes : rowsB s o ℓ = rowsB s o c0 ++ (rowsB s (o + c0) (32 * w) ++ rowsB s (o + c0 + 32 * w) 8)
   pre : ∀ d, d < c0 → OneHot (s.row (o + d)) ∧ o + d < s.rows.length ∧ IxOf (s.row (o + d)) ci ti di si ki sdi ∧
     (∀ x ∈ partConst, s.row (o + d) x = s.row o x) ∧ s.row (o + d) qb = 1 ∧
-    s.row (o + d) sCH = 0 ∧ s.row (o + d) sMEM = 0 ∧ (s.row (o + d) sTAG = 1 ↔ d = 0) ∧
+    s.row (o + d) sCH = 0 ∧ s.row (o + d) sMEM = 0 ∧
+    s.row (o + d) sHPL + s.row (o + d) sHPF + s.row (o + d) sKEY = 0 ∧ (s.row (o + d) sTAG = 1 ↔ d = 0) ∧
     (s.row (o + d) sBM = 1 ↔ c0 ≤ d + 2) ∧ (s.row (o + d) fs = 1 → s.row (o + d) sBM = 1 → d + 2 = c0) ∧
     (s.row (o + d) sBM = 1 → d + 2 = c0 → s.row (o + d) fs = 1)
   winU : ∀ e, e < w → UField s (o + c0 + 32 * e) 32 ∧ stOf (s.row (o + c0 + 32 * e)) = 7
@@ -63,7 +64,7 @@ theorem brLay {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) (htl 
         obtain ⟨a1, a2, a3, a4, a5, a6⟩ := F
         have t := (stOf_inv a1).1 a2
         have := a1.sum; have := a1.bs
-        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, ⟨fun _ => trivial, fun _ => t⟩, ⟨fun h => by omega, fun h => by omega⟩,
+        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, by omega, ⟨fun _ => trivial, fun _ => t⟩, ⟨fun h => by omega, fun h => by omega⟩,
           fun _ h => by omega, fun _ h => by omega⟩
       · have F := fieldF U1 s1 (by omega) (by omega) (d - 1) (by omega)
         rw [show o + 1 + (d - 1) = o + d by omega] at F
@@ -72,7 +73,7 @@ theorem brLay {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) (htl 
         have := a1.sum; have := a1.bs
         have hfs := U1.fs (d - 1) (by omega)
         rw [show o + 1 + (d - 1) = o + d by omega] at hfs
-        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, ⟨fun h => by omega, fun h => by omega⟩, ⟨fun _ => by omega, fun _ => t⟩,
+        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, by omega, ⟨fun h => by omega, fun h => by omega⟩, ⟨fun _ => by omega, fun _ => t⟩,
           fun h _ => by have := hfs.1 h; omega, fun _ h => hfs.2 (by omega)⟩
     · intro d hd
       have hWe := W (d / 32) (by omega)
@@ -92,21 +93,21 @@ theorem brLay {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) (htl 
         obtain ⟨a1, a2, a3, a4, a5, a6⟩ := F
         have t := (stOf_inv a1).1 a2
         have := a1.sum; have := a1.bs
-        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, ⟨fun _ => trivial, fun _ => t⟩, ⟨fun h => by omega, fun h => by omega⟩,
+        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, by omega, ⟨fun _ => trivial, fun _ => t⟩, ⟨fun h => by omega, fun h => by omega⟩,
           fun _ h => by omega, fun _ h => by omega⟩
       · have F := fieldF U1 s1 (by omega) (by omega) (d - 1) (by omega)
         rw [show o + 1 + (d - 1) = o + d by omega] at F
         obtain ⟨a1, a2, a3, a4, a5, a6⟩ := F
         have t := (stOf_inv a1).2.2.2.2.1 a2
         have := a1.sum; have := a1.bs
-        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, ⟨fun h => by omega, fun h => by omega⟩, ⟨fun h => by omega, fun h => by omega⟩,
+        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, by omega, ⟨fun h => by omega, fun h => by omega⟩, ⟨fun h => by omega, fun h => by omega⟩,
           fun _ h => by omega, fun h _ => by omega⟩
       · have F := fieldF U2 s2 (by omega) (by omega) (d - 5) (by omega)
         rw [show o + 5 + (d - 5) = o + d by omega] at F
         obtain ⟨a1, a2, a3, a4, a5, a6⟩ := F
         have t := (stOf_inv a1).2.2.2.2.2.1 a2
         have := a1.sum; have := a1.bs
-        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, ⟨fun h => by omega, fun h => by omega⟩, ⟨fun h => by omega, fun h => by omega⟩,
+        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, by omega, ⟨fun h => by omega, fun h => by omega⟩, ⟨fun h => by omega, fun h => by omega⟩,
           fun _ h => by omega, fun h _ => by omega⟩
       · have F := fieldF U3 s3 (by omega) (by omega) (d - 37) (by omega)
         rw [show o + 37 + (d - 37) = o + d by omega] at F
@@ -115,7 +116,7 @@ theorem brLay {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) (htl 
         have := a1.sum; have := a1.bs
         have hfs := U3.fs (d - 37) (by omega)
         rw [show o + 37 + (d - 37) = o + d by omega] at hfs
-        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, ⟨fun h => by omega, fun h => by omega⟩, ⟨fun _ => by omega, fun _ => t⟩,
+        exact ⟨a1, a3, a4, a5, a6, by omega, by omega, by omega, ⟨fun h => by omega, fun h => by omega⟩, ⟨fun _ => by omega, fun _ => t⟩,
           fun h _ => by have := hfs.1 h; omega, fun _ h => hfs.2 (by omega)⟩
     · intro d hd
       have hWe := W (d / 32) (by omega)
