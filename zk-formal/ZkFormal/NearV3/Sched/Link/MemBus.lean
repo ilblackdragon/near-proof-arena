@@ -13,7 +13,9 @@ import ZkFormal.NearV3.Sched.View.Mem
   equals the total send multiplicity of `m` on `SOP` over all tables;
 * **`mem_ops_eq_sent`**: the same for the non-`INIT` rows and the messages with op ∈ {1, 2};
   `mem_init_eq_sent` for the `INIT` rows and op 0;
-* `mem_sent_row`: every active `SOP` send of any table is the message of an active memory row.
+* `mem_sent_row`: every active `SOP` send of any table is the message of an active memory row;
+* `sopSent`: all `SOP` sends as a list (`sopSent_count`); **`mem_recv_perm`**, **`mem_ops_perm`**:
+  the multiset forms (`memOpRecv ~ (sopSent).filter isOpMsg`).
 -/
 
 namespace ZkFormal.NearV3.Sched
