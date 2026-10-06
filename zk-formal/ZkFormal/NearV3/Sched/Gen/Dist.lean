@@ -102,7 +102,9 @@ def distRows (I : Input) (R : Run) : Except String DistOut := do
       let e2v := if i + 1 = n then 1 else 0
       rows := rows.push (setAll width ([(act, 1), (kC, 1), (tau, tv), (nn, n), (a, i), (b, j), (s, sv),
         (r, rr), (N1, se.1), (L1, se.2), (N2, re.1), (L2, re.2), (q1, q1v), (r1, r1v), (q2, q2v),
-        (r2, r2v), (llo, l % 256), (lhi, l / 256), (al, b2n alv), (alc, b2n alv), (gb, gbv), (cx, q1v), (cy, q2v),
+        (r2, r2v), (llo, l % 256), (lhi, l / 256), (al, b2n alv), (alc, b2n alv),
+        (side, (srcFields I.ids l)[0]!), (shd, (srcFields I.ids l)[1]!), (lnk, (srcFields I.ids l)[2]!),
+        (by0, (srcFields I.ids l)[3]!), (gb, gbv), (cx, q1v), (cy, q2v),
         (cb, cbv), (cg, b2n alv), (da, i + 1), (db, j), (sL, L2'), (dlsg, 1 - e2v), (dlrg, 1),
         (e1, e1v), (ig1, finv (fsub j (n - 1))), (e2, e2v), (ig2, finv (fsub i (n - 1))),
         (eI, e1v * e2v)] ++

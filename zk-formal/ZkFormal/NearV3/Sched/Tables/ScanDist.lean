@@ -66,7 +66,8 @@ def interactions : List Interaction :=
     { bus := B_SDLX, mult := [c Dist.dlrg], send := false,
       msg := [c Dist.tau, c Dist.a, c Dist.b, c Dist.r, c Dist.N2, c Dist.L2] },
     { bus := B_SDG, mult := [c Dist.kC], send := true,
-      msg := [c Dist.tau, Dist.linkE, c Dist.al, c Dist.gb] } ]
+      msg := [c Dist.tau, Dist.linkE, c Dist.al, c Dist.gb,
+              .add (c Dist.side) (smul 256 (c Dist.shd)), c Dist.lnk, c Dist.by0] } ]
 
 def maxLog : Nat := 22
 

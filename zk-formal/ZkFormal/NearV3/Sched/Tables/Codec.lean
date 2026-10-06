@@ -100,17 +100,32 @@ def pm0 : Nat := 75
 def pm1 : Nat := 76
 def dgg : Nat := 77
 def bF : Nat := 78
+/-- Source map (duplicate shard ids, `Spec/CanonDup`): the record whose allowance link `kidx`
+takes (`srcC`), whether it has one (`hasC`), the received allowance low bytes / high flag of
+that record (`apR`, `bigR`). Record-row only (overlaid). -/
+def srcC : Nat := 87
+def apR : Nat := 88
+def hasC : Nat := 89
+def bigR : Nat := 90
+/-- Record start (`fS ∧ g = 0`), receives `SDG`. -/
+def rs : Nat := 54
+/-- Gate of the `A0` receive (`fA ∧ e2 ∧ hasC`). -/
+def a0g : Nat := 55
+/-- Gate of the `A0` send (`rend ∧ useC`). -/
+def u0g : Nat := 56
+/-- This record is the source of some link (`A0` is sent). -/
+def useC : Nat := 57
 /-- Record-row columns that the digest / header register overlays on header and hash rows
-(cut D): their constraints are gated by the record kinds, and the five flags among them have
-their booleanity gated by `kR`. -/
+(cut D): their constraints are gated by the record kinds, and the flags among them have their
+booleanity gated by `kR`. -/
 def overlay : List Nat :=
   [kidx, klo, khi, g, ig7, ig2, wt, ap, ib, apost, ikl, a1, afin, gfin, gb, a2, g2, cx, cy,
-   50, 51, 52, lowf, nzb, al, cb, bF]
-/-- The 32-byte register: 27 overlaid columns, then 5 own columns `53 … 57`. -/
-def reg (i : Nat) : Nat := if i < 27 then overlay.getD i 0 else 53 + (i - 27)
+   50, 51, 52, lowf, nzb, al, cb, bF, srcC, apR, hasC, bigR]
+/-- The 32-byte register: 31 overlaid columns, then its own column 53. -/
+def reg (i : Nat) : Nat := if i < 31 then overlay.getD i 0 else 53
 /-- Bits of the pre byte (pre bytes are bytes without relying on `valV3`). -/
 def prbit (i : Nat) : Nat := 79 + i
-def width : Nat := 87
+def width : Nat := 91
 
 /-- `max_allowance` (PV 86). -/
 def MA : Nat := 4500000
@@ -128,10 +143,10 @@ def isZ (gate x : Expr) (inv flag : Nat) : List Expr :=
 
 def boolCols : List Nat :=
   [act, kH, kR, kZ, kA, kF, pres, fS, fR, fA, e7, e2, ekl, ehp, esj, zt,
-   cbit, cg, rend, vbg, fwg, dgg] ++ (List.range 8).map pbit ++ (List.range 8).map prbit
+   cbit, cg, rend, vbg, fwg, dgg, rs] ++ (List.range 8).map pbit ++ (List.range 8).map prbit
 
 /-- Flags that share columns with the register: bits on record rows only. -/
-def recBoolCols : List Nat := [lowf, nzb, al, cb, bF]
+def recBoolCols : List Nat := [lowf, nzb, al, cb, bF, hasC, bigR]
 
 /-- Rows carrying the encoding (pre and post bytes). -/
 def encG : Expr := .add (c kH) (.add (c kR) (c kZ))
@@ -180,7 +195,7 @@ def cKind : List Expr :=
     mul3 (c kH) (notE (c ehp)) (notE (n kH)) ] ++
   (List.range 31).map (fun i => mul3 (c kH) (notE (c ehp)) (sub (n (reg i)) (c (reg (i + 1))))) ++
   [ -- header → first record
-    .mul (c ehp) (notE (n fS)), .mul (c ehp) (n kidx), .mul (c ehp) (n g) ]
+    .mul (c ehp) (notE (n fS)), .mul (c ehp) (n kidx), .mul (c ehp) (n g), .mul (c ehp) (notE (n rs)) ]
 
 def cRec : List Expr :=
   [ .mul (c kR) (sub (c kidx) (.add (c klo) (smul 256 (c khi)))),
@@ -217,15 +232,28 @@ def cRec : List Expr :=
     .mul (c fA) (sub (c nzb) (.mul (c bpre) (c ib))),
     .mul (c fA) (.mul (c bpre) (notE (c nzb))),
     -- a1: comparator at byte 2 (cb = [MA ≤ ap + fair]), carried to the record end
-    mul3 (c fA) (c e2) (sub (c cx) (.add (.add (c ap) (.mul (c wt) (c bpre))) (c fair))),
+    -- record start flag; the link data of `SDG` is carried over the record
+    .mul (c rs) (notE (c fS)), .mul (c rs) (c g),
+    mul3 (c rend) (notE (c ekl)) (notE (n rs)) ] ++
+  [al, gb, srcC, hasC, useC].map (fun x => .mul (sub (c kR) (c rend)) (sub (n x) (c x))) ++
+  [ -- the source record's allowance (`A0`), received at byte 2; none ⇒ 0
+    sub (c a0g) (mul3 (c fA) (c e2) (c hasC)),
+    .mul (.mul (c fA) (c e2)) (.mul (notE (c hasC)) (c apR)),
+    .mul (.mul (c fA) (c e2)) (.mul (notE (c hasC)) (c bigR)),
+    mul3 (c fA) (c e2) (sub (n apR) (c apR)),
+    mul3 (c fA) (c e2) (sub (n bigR) (c bigR)),
+    .mul (sub (c fA) (c rend)) (.mul (notE (c lowf)) (sub (n apR) (c apR))),
+    .mul (sub (c fA) (c rend)) (.mul (notE (c lowf)) (sub (n bigR) (c bigR))),
+    sub (c u0g) (.mul (c rend) (c useC)),
+    mul3 (c fA) (c e2) (sub (c cx) (.add (c apR) (c fair))),
     mul3 (c fA) (c e2) (sub (c cy) (k MA)),
     mul3 (c fA) (c e2) (sub (c cbit) (c cb)),
     .mul (sub (c fA) (c rend)) (.mul (notE (c lowf)) (sub (n cb) (c cb))),
     mul3 (c fA) (c e2) (sub (n cb) (c cb)),
     -- record end
     .mul (c rend) (sub (c bF) (.add (c big) (.mul (notE (c big)) (c nzb)))),
-    .mul (c rend) (sub (c a1) (.add (smul MA (c bF))
-      (.mul (notE (c bF)) (.add (smul MA (c cb)) (.mul (notE (c cb)) (.add (c ap) (c fair))))))),
+    .mul (c rend) (sub (c a1) (.add (smul MA (c bigR))
+      (.mul (notE (c bigR)) (.add (smul MA (c cb)) (.mul (notE (c cb)) (.add (c apR) (c fair))))))),
     .mul (c rend) (sub (c a2) (sub (c a1) (.mul (c al) (c base)))),
     .mul (c rend) (sub (c g2) (.mul (c al) (c base))),
     .mul (c rend) (sub (c apost) (c afin)),
@@ -277,7 +305,10 @@ def interactions : List Interaction :=
     { bus := B_SOP, mult := [c rend], send := true,
       msg := [aLE, k 0, k OP_INIT, c al, c a2, c g2, k 0, k 0] },
     { bus := B_SFIN, mult := [c rend], send := false, msg := [aLE, c afin, c gfin] },
-    { bus := B_SDG, mult := [c rend], send := false, msg := [c tau, c kidx, c al, c gb] },
+    { bus := B_SDG, mult := [c rs], send := false,
+      msg := [c tau, c kidx, c al, c gb, c srcC, c hasC, c useC] },
+    { bus := B_SA0, mult := [c u0g], send := true, msg := [c tau, c kidx, c ap, c bF] },
+    { bus := B_SA0, mult := [c a0g], send := false, msg := [c tau, c srcC, c apR, c bigR] },
     { bus := B_SCMP, mult := [c cg], send := true, msg := [c cx, c cy, c cbit] } ]
 
 def maxLog : Nat := 22

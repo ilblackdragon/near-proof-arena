@@ -10,9 +10,9 @@ scpV3`, at `auxGroup = 1` (`ssdV3` = scan + distribute, width cut B: 168 + 201 â
 namespace ZkFormal.NearV3.Sched.Budget
 
 theorem report_g1 : report 1 =
-    [(87, 14, 14, 4, 223, 22), (119, 10, 10, 4, 223, 22), (64, 11, 11, 4, 176, 22),
+    [(91, 16, 16, 4, 243, 22), (119, 10, 10, 4, 223, 22), (64, 11, 11, 4, 176, 22),
      (18, 4, 4, 4, 74, 22), (33, 1, 1, 4, 65, 22)] := by decide +kernel
 
-theorem weqSched_g1 : weqSched 1 = 761 := by decide +kernel
+theorem weqSched_g1 : weqSched 1 = 781 := by decide +kernel
 
 end ZkFormal.NearV3.Sched.Budget

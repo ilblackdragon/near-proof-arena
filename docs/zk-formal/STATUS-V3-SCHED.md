@@ -14,7 +14,7 @@ Rules: no `sorry` / `axiom` / `native_decide`; axioms ⊆ {propext, Classical.ch
 |---|---|---|---|
 | M0 | design | tables, buses, message formats, public data, amendments needed, `W_eq` estimate (§2–§4) | **done** |
 | M1 | spec-side refinement | `runCore` decomposed into the AIR's phases, each **proved** equal to the spec (§5); executable event model `coreEv` = `runCore` on 600/600 vectors | **done** |
-| M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 761 at g = 1 after cuts B, D), honest generators for all six (`Gen/*`), constraint evaluator + bus-balance tests on the 600 vectors, mutants (§8) | **done** |
+| M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 781 at g = 1 after cuts B, D and the source map), honest generators for all six (`Gen/*`), constraint evaluator + bus-balance tests on the 600 vectors, mutants (§8) | **done** |
 | M3 | soundness | per table: `…Local → ∃ v, Wf v ∧ Traffic …` (L5 style), bus contracts (comparator, memory, scan, codec), link lemma: `schedCore_sound` | **started** (§7): comparator contract, memory row view + segments, abstract memory consistency |
 | M4 | completeness | honest traces satisfy every constraint, traffic = expected lists; `schedCore_complete`; height bounds | open |
 | M5 | integration | message formats agreed with `v3-trie` (`VBYTES`, `upsV3`) and the assembly (public segments, `Prep.fwd`), cuts | open |
@@ -60,18 +60,18 @@ its sanity hash, and the grants checked against `Prep.fwd`.
 
 | table | file | width | interactions | degree | `W_eq` | maxLog |
 |---|---|---:|---:|---:|---:|---:|
-| `schV3` codec + link | `Tables/Codec.lean` | 87 | 14 | 4 | 223 | 22 |
+| `schV3` codec + link | `Tables/Codec.lean` | 91 | 16 | 4 | 243 | 22 |
 | `ssdV3` scan + distribute | `Tables/ScanDist.lean` (`Scan.lean`, `Dist.lean`) | 119 | 10 | 4 | 223 | 22 |
 | `sprV3` process | `Tables/Proc.lean` | 64 | 11 | 4 | 176 | 22 |
 | `smmV3` memory | `Tables/Mem.lean` | 18 | 4 | 4 | 74 | 22 |
 | `scpV3` comparator | `Tables/Cmp.lean` | 33 | 1 | 4 | 65 | 22 |
-| **total** | | 321 | 40 | | **761** | |
+| **total** | | 325 | 42 | | **781** | |
 
 History: 810 (first layout) → 814 (29-bit comparator) → 822 (`SPLEN`) → 934 (range fixes, §10) →
-788 (cut B) → **761** (cut D).
+788 (cut B) → 761 (cut D) → **781** (duplicate-id source map, +20).
 
 (At g = 3 the grouped aux constraints have degree 8; g = 1 is the better setting for these
-tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,415 `W_eq` ≈ 1.22 MB of proof (at
+tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,435 `W_eq` ≈ 1.24 MB of proof (at
 ≈ 864 B per `W_eq`). The comparator is 29-bit: the distribute sort key `avg·64 + shard` reaches
 ≈ 2^28 (found by `SchedFullTest`; 25 bits were too few).
 
@@ -279,7 +279,7 @@ in progress. The scheduler uses it **only** in completeness / height bounds (sta
   a canonical previous state is `a (srcOf ids l)`. Here `srcOf ids l` is the last record `k` with
   `tgt ids k = l`, and `tgt` uses the spec's first-index `indexOf`. `core_compose` no longer
   assumes `ids.Nodup` (commit `04a4ad9a`).
-* **AIR side (pending, after cut B).** The codec reads `a0` through the claim-only source map.
+* **AIR side (done, commit below).** The codec reads `a0` through the claim-only source map.
   * The public per-link record gains `(src_lo, src_hi, hasSrc)`, plus a per-record `use` bit; these
     reach the codec with `SDG`.
   * Record `k` sends `A0 (τ, k, ap, big)` with multiplicity `use(k)`.
@@ -333,7 +333,10 @@ Range checks are kept in every variant.
 
 1. **Done:** cut B (`ssdV3`, commit `26829f12`: −146; views re-proved; SchedFullTest 600/600, 51/51
    mutants; SchedTablesTest 600/600, 44/44) and cut D (commit `b056a51d`: −27; SchedFullTest 600/600,
-   51/51). Cut A is on hold. **Pending:** the codec source map (duplicate ids, ≈ +16), §11.
+   51/51). Cut A is on hold. Codec source map done (+20; `SA0` bus 62, `SDG` carries
+   `(src, hasSrc, use)`, `Render.srcFields`); SchedFullTest 60/60, 51/51. **Open:** a test with a
+   duplicate-id layout (the vectors only exercise the identity map; `Gen.run`'s link pass is
+   positional and must switch to `srcArr`).
 2. M3 views: codec, process structure (key block, headers, rounds); link layer per §6 (memory
    consistency instance, operand bounds of §10, `process_rounds` hypotheses, `core_compose`);
    `schedCore_sound`.

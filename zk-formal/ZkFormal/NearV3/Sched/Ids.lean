@@ -21,9 +21,10 @@ statement's bytes); `τ < 32`.
 | 53–55 | — | retired (were `SRAW`, `SLINK`, `SSHD`; now `SPAR` tags 2, 4, 3) | |
 | 56 | `SDL` | `(τ, k_lo, k_hi, o, b)` | codec id byte `o < 16` of record `k`: instance τ → τ + 1 (public sends instance 0, receives `K + 1`) |
 | 57 | `SDLX` | `(τ, a, b, x, links, left)` | distribute: sorted endpoints → grid, receiver delay line |
-| 58 | `SDG` | `(τ, l, allowed, gb)` | distribute grid → codec |
+| 58 | `SDG` | `(τ, l, allowed, gb, src, hasSrc, use)` | distribute grid → codec (record start) |
 | 59 | `S0F` | `(τ, present, vid)` | trie (`0x0f` read of instance τ) → codec |
 | 60 | `SPOST` | `(τ, pos, b)`, `pos < L` | codec → `upsV3` (new `0x0f` value bytes; `upsV3` hashes them under SHA kind `K_VUPS = 12`) |
+| 62 | `SA0` | `(τ, k, ap, big)` | codec record `k` → codec link `l` with `srcOf l = k` (source map) |
 | 61 | `SPLEN` | `(τ, L)` | codec → `upsV3`, once per τ (explicit length) |
 -/
 
@@ -55,6 +56,9 @@ def B_S0F : Nat := 59
 def B_SPOST : Nat := 60
 /-- `(τ, L)`: length of the new `0x0f` value, once per τ (codec → `upsV3`). -/
 def B_SPLEN : Nat := 61
+/-- `(τ, k, ap, big)`: a previous-state record's allowance (low three bytes, high-byte flag), from
+record `k` to the link it is the source of (codec, duplicate-id source map). -/
+def B_SA0 : Nat := 62
 
 /-- Memory op codes. -/
 def OP_INIT : Nat := 0

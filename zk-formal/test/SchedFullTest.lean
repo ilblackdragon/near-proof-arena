@@ -142,7 +142,7 @@ def imbalance (all : List (Nat × Bool × List Nat)) (bus : Nat) : Nat × Nat :=
 def checkedBuses : List (String × Nat) :=
   [("SCMP", B_SCMP), ("SOP", B_SOP), ("SFIN", B_SFIN), ("SINC", B_SINC), ("SPUSH", B_SPUSH),
    ("SPUBB", B_SPUBB), ("SPAR", B_SPAR),
-   ("SDL", B_SDL), ("SDLX", B_SDLX), ("SDG", B_SDG), ("S0F", B_S0F), ("SPOST", B_SPOST), ("SPLEN", B_SPLEN),
+   ("SDL", B_SDL), ("SDLX", B_SDLX), ("SDG", B_SDG), ("S0F", B_S0F), ("SPOST", B_SPOST), ("SPLEN", B_SPLEN), ("SA0", B_SA0),
    ("VBYTES", ZkFormal.NearV3.B_VBYTES), ("BYTES", ZkFormal.Near.B_BYTES), ("DIGEST", ZkFormal.Near.B_DIGEST)]
 
 def busImbalance (all : List (Nat × Bool × List Nat)) : List (String × Nat × Nat) :=

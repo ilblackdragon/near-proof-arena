@@ -1,6 +1,7 @@
 import ZkFormal.NearV3.Sched.Model
 import ZkFormal.NearV3.Sched.Ids
 import ZkFormal.NearV3.Sched.Spec.DistDefs
+import ZkFormal.NearV3.Sched.Spec.CanonDup
 
 /-!
 # ZkFormal.NearV3.Sched.Render — the scheduler's public records (claim-only)
@@ -55,8 +56,15 @@ def rawRecs (τ : Nat) (P : InstPub) : List (List Nat) :=
   (P.raw.zip (List.range P.raw.length)).map fun (q, cid) =>
     [τ, PT_RAW] ++ ((List.range 5).map fun i => (q.bm.getD i 0).toNat) ++ b2 cid ++ [q.s, q.r]
 
+/-- The source map of a layout (`Spec/CanonDup.srcOf`): `(src, hasSrc)` per link and `use` per
+record (some link takes its allowance). -/
+def srcFields (ids : List Nat) (l : Nat) : List Nat :=
+  let src := srcOf ids l
+  let use := decide ((List.range (ids.length * ids.length)).any fun l' => srcOf ids l' == some l)
+  b2 (src.getD 0) ++ [if src.isSome then 1 else 0, if use then 1 else 0]
+
 def linkRecs (τ : Nat) (P : InstPub) : List (List Nat) :=
-  (List.range (P.n * P.n)).map fun l => [τ, PT_LINK, 0, 0, 0, 0, 0, 0] ++ b2 l ++ [P.al l]
+  (List.range (P.n * P.n)).map fun l => [τ, PT_LINK] ++ srcFields P.ids l ++ [0, 0] ++ b2 l ++ [P.al l]
 
 /-- Budget of a sender (`side = 0`) / receiver (`side = 1`) after the base grants. -/
 def budget0 (P : InstPub) (side x : Nat) : Nat :=
