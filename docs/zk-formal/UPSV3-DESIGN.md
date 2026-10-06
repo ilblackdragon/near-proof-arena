@@ -365,9 +365,10 @@ Done (kernel-checked, axioms ⊆ {propext, Classical.choice, Quot.sound}; `Extra
 | `MsgRows` | `msgsW`, `msgsV`, `msgsQ`: every row's messages by kind (ids `msgId 12 (512τ + j)` and `u + 1` mod `P`) |
 | `ByteRows` | 49 generated row lemmas (`test/gen_ups_bytes.py`): copy flags per field, `b = rb` (+ bitmap add), fresh grammar bytes, header reads, read positions, `DIGEST` ids/lengths |
 | `LayoutMain` | `UpsLayout s L ps fls ws` and `ups_layout : UpsWf v → ∀ s ∈ v, ∃ L ps fls ws, UpsLayout s L ps fls ws` |
+| `Nev` | `nev C D e`: a pure constraint evaluated in `ℕ` modulo `P` (`uev_toNat`); `factN` (a vanishing constraint as an `omega`-ready fact); `nev_congr` (only the read columns matter) |
+| `PlanDefs`, `PlanRows`, `Plan` | **part plan**: `UCase`/`UKind` (index order of the one-hot columns), `termPlan cs I` (terminal kinds bottom-up, `WEX` when a split has `I ≥ 1`), `nTof`; `planDec` (kind code / `up` / `termE` checked over all index combinations by `decide +kernel` on `nev`); row facts `segIx`, `partIx`, `planFact`, `partHeadPlan`, `joValueEnd`, `partEnd`, `rootEnd`, `rootPart`, `segNQ`; `UpsPlan s ps ci ti di si kd sdx` and `ups_plan : UpsWf v → s ∈ v → UpsLayout s L ps fls ws → ∃ ci ti di si kd sdx, UpsPlan …`: the number of parts is `nT + dep_D`; part `k < nT` has kind `termPlan[k]`, `up = 0`, `rc = D`, reads level `D` at depth `dep_D`; part `k ≥ nT` is `RDB`/`RDE`/`PT`, `up = 1`, `pdep = dep_D − (k+1−nT)`; `rc k` = number of descends from `k` up (`rdCount`), exactly `D` in all; a descend reads level `rc − 1`; non-`PT` parts read `sN = N_sd` at depth `dep_sd`; `cN (k+1) = sN k`; `rootP` exactly on the last part |
 
-Not yet done (layer 2): the part plan (`cPlan`: kinds by `jo`/case, `up`, `pdep`, `rc`, `sN`/`cN` chain) as
-part-level facts; window roles (`fw`, `tgt`, `wfr`, `wy`, `wn`, `rdc`, `aft`); the `MEM` carry-chain lemma
+Not yet done (layer 2): window roles (`fw`, `tgt`, `wfr`, `wy`, `wn`, `rdc`, `aft`); the `MEM` carry-chain lemma
 (§5: `R = E + (A + B − C)` truncated, exact high limb; needs the emitted bytes `< 256` from SHA as a
 hypothesis); the walk semantics of `W0 … W3` (modes, levels, terminal, case selector ↔ `WalkR`);
 aggregation of the per-row byte facts into per-field byte lists (`Q_j` = fields of `shapeU`).
