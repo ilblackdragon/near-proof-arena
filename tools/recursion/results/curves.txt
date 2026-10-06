@@ -1,0 +1,49 @@
+ops per Tgas = 1.215e+06; ops per segment = 4194304 = 3.451 Tgas; 10^15 gas -> S = 290
+
+== preset d3-lean: per-segment W_eq 494, OOD 458; bytes(S) = 1,995,991 + 442,275*S
+   8 MiB cap: S <= 14  (48.3 Tgas of WASM ops)
+   64 MiB cap: S <= 147  (507.3 Tgas of WASM ops)
+   10 s Lean-verify cap: S <= 54; 600 s prove cap: S <= 3 (near anchor), 1 (toy anchor)
+   Air.wf busBudget 2^36: fpBound allows S <= 50
+   Air.wf busBudget 2^40: fpBound allows S <= 806
+   Air.wf busBudget 2^46: fpBound allows S <= 51621
+   S	MiB	verify_s	verify_s(+List)	prove_h(near..toy)	RSS_now_GB	cost_fUSD	W*_MiB
+   1	2.33	0.93	0.94	0.05..0.11	11	3.36e+13	4.6
+   8	5.28	2.12	2.11	0.42..0.82	64	1.42e+14	19.0
+   64	28.90	11.61	12.49	3.37..6.55	485	1.01e+15	134.1
+   512	217.86	87.54	159.66	26.93..52.36	3854	7.92e+15	1055.4
+   1000	423.69	170.24	449.71	52.60..102.26	7525	1.55e+16	2059.0
+   290	124.22	49.91	72.48	15.26..29.66	2185	4.5e+15	598.9
+   per-segment marginal cost 1.54e+13 fUSD: prove 75%, verify 6%, bandwidth 20%; reexec verify of the same gas 5.88e+11 fUSD
+
+== preset d3-rich: per-segment W_eq 872, OOD 959; bytes(S) = 1,995,991 + 785,380*S
+   8 MiB cap: S <= 8  (27.6 Tgas of WASM ops)
+   64 MiB cap: S <= 82  (283.0 Tgas of WASM ops)
+   10 s Lean-verify cap: S <= 31; 600 s prove cap: S <= 1 (near anchor), 0 (toy anchor)
+   Air.wf busBudget 2^36: fpBound allows S <= 31
+   Air.wf busBudget 2^40: fpBound allows S <= 503
+   Air.wf busBudget 2^46: fpBound allows S <= 32263
+   S	MiB	verify_s	verify_s(+List)	prove_h(near..toy)	RSS_now_GB	cost_fUSD	W*_MiB
+   1	2.65	1.06	1.06	0.10..0.19	17	4.54e+13	6.2
+   8	7.90	3.10	3.09	0.75..1.45	110	2.36e+14	32.1
+   64	49.84	19.47	21.95	5.94..11.56	853	1.76e+15	238.8
+   512	385.39	150.43	340.72	47.54..92.42	6801	1.4e+16	1892.8
+   1000	750.90	293.07	1027.52	92.85..180.50	13280	2.73e+16	3694.5
+   290	219.11	85.53	145.46	26.93..52.35	3854	7.92e+15	1073.2
+   per-segment marginal cost 2.73e+13 fUSD: prove 75%, verify 5%, bandwidth 20%; reexec verify of the same gas 5.88e+11 fUSD
+
+== preset near-density: per-segment W_eq 995, OOD 1480; bytes(S) = 1,995,991 + 908,001*S
+   8 MiB cap: S <= 7  (24.2 Tgas of WASM ops)
+   64 MiB cap: S <= 71  (245.0 Tgas of WASM ops)
+   10 s Lean-verify cap: S <= 29; 600 s prove cap: S <= 1 (near anchor), 0 (toy anchor)
+   Air.wf busBudget 2^36: fpBound allows S <= 41
+   Air.wf busBudget 2^40: fpBound allows S <= 671
+   Air.wf busBudget 2^46: fpBound allows S <= 43018
+   S	MiB	verify_s	verify_s(+List)	prove_h(near..toy)	RSS_now_GB	cost_fUSD	W*_MiB
+   1	2.77	1.08	1.08	0.11..0.21	19	4.93e+13	6.7
+   8	8.83	3.29	3.23	0.85..1.65	125	2.67e+14	36.3
+   64	57.32	20.98	22.07	6.78..13.19	973	2.01e+15	272.8
+   512	445.26	162.52	276.41	54.25..105.45	7760	1.59e+16	2164.7
+   1000	867.84	316.70	763.08	105.95..205.96	15153	3.11e+16	4225.6
+   290	253.03	92.38	127.35	30.73..59.73	4397	9.03e+15	1227.2
+   per-segment marginal cost 3.11e+13 fUSD: prove 75%, verify 5%, bandwidth 20%; reexec verify of the same gas 5.88e+11 fUSD
