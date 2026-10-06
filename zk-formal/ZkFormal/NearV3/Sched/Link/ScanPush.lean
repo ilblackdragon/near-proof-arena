@@ -6,8 +6,8 @@ import ZkFormal.NearV3.Sched.Link.ScanPub
 The converted request list of an instance is `reqsOf P = convRaw P.params P.n P.raw`; with
 `ScanPubOk` it is `raw.map (⟨s·n + r, incsOf p bm⟩)` (`convRaw_eq`).
 
-`ReadOk`: every `READ` of a link address `addrOf τ 0 l` at a time `1 ≤ t ≤ |reqs|` sent on `SOP`
-returns `st.allowance[l]` (an obligation of the memory link: before the process times every link
+`ReadOk`: every `READ` of a link address `addrOf τ 0 l` (`l < 4096`) at a time `1 ≤ t ≤ |reqs|`
+sent on `SOP` returns `st.allowance[l]` (an obligation of the memory link: before the process times every link
 address holds its `INIT` value, the post-link-pass allowance).
 
 **`scan_init`**: the `SPUSH` messages of instance τ sent by the tables other than `sprV3` are,
@@ -50,7 +50,7 @@ theorem reqsOf_getD {P : InstPub} (PO : ScanPubOk P) {c : Nat} (hc : c < P.raw.l
 
 /-- `READ`s of link addresses before the process times return the given state's allowance. -/
 def ReadOk (AP : AirP) (tr : Trace Fp) (pub : List Fp) (τ R : Nat) (st : St) : Prop :=
-  ∀ l t v, v < 2013265921 → 1 ≤ t → t ≤ R →
+  ∀ l t v, l < 4096 → v < 2013265921 → 1 ≤ t → t ≤ R →
     ([addrOf τ 0 l, t, OP_READ, v, v, 0, 0, 0].map Fp.ofNat) ∈ sopSent AP tr pub →
     v = st.allowance[l]!
 
@@ -160,7 +160,14 @@ theorem blk_push (hH : HoldsP AP pub tr) (O : ScanOwn AP tsd tp) {τ : Nat} {P :
   rw [hread, ht] at hmem
   have hc := B.lt
   have hlen := reqsOf_length PO
-  have := hRd _ _ _ (cv_lt _ _) (by omega) (by omega) hmem
+  have hl4 : cv tr tsd f Scan.link < 4096 := by
+    obtain ⟨hs, hr, -⟩ := PO.raw _ (rawAt_mem hc)
+    have h1 : ((rawAt P (cv tr tsd f Scan.cid)).s + 1) * P.n ≤ P.n * P.n :=
+      Nat.mul_le_mul_right _ (by omega)
+    have h2 := Nat.mul_le_mul PO.n64 PO.n64
+    rw [Nat.succ_mul] at h1
+    rw [B.link]; omega
+  have := hRd _ _ _ hl4 (cv_lt _ _) (by omega) (by omega) hmem
   rw [this, reqsOf_getD PO hc, B.link]
 
 /-- **`hinit`, `hinitOk`: the initial pushes of instance τ.** -/
