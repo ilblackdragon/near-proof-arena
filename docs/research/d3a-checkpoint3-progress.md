@@ -80,7 +80,7 @@ Findings while doing this [T]:
     `end` that closes a dead region. The fees are identical and the outcomes agree (prose §7 D13).
   * **Spec bugs it found in the Lean spec [T]** (now fixed and in `opcases`):
     * a table with initial size > 10,000,000 must give `TooManyTableElements`, not `Deserialization`;
-    * a non-memory export name of ≥ 99,999 bytes must give `PrepareError::Serialization` (NEAR's `"\0"`
+    * a non-memory export name of ≥ 100,000 bytes must give `PrepareError::Serialization` (NEAR's `"\0"`
       prefix exceeds the re-parse's 100,000-byte limit).
   * The clean-room's scope is still core, metering and the checkpoint-2 host functions. Independent
     implementations of the other 70 host functions are still open.
