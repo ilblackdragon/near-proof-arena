@@ -17,9 +17,10 @@ for every instance τ `< |p.sched|`, with `sp = p.sched[τ]`, `n = |sp.ids|`:
 
 Hypotheses beyond the trace: ownership (`SchedOwn`, `ScanOwn`, `OpOwn`, `CodecValOwn`, `SparOwn`,
 `PubbOwn`, `InitOwn`, **`SdlOwn`**, **`PubbRecv`**, **`ShaOwn`**; decidable), `PubIdx` with the `SPAR`,
-`SPUBB` and `SDL` (send) records of `render`, `prepD0 cb hint = .ok p`, and two flagged ones:
-`ShaKind` (the cross-lane kind registry: no other `BYTES` sender uses kind 11) and `hids64`
-(shard ids `< 2^64`; prepD0-derivable from `decodeLayout`'s `pU64`, not yet proved).
+`SPUBB` and `SDL` (send) records of `render`, `prepD0 cb hint = .ok p` (every per-instance fact is
+a proved `prepD0` lemma: `prepD0_sched`, `_rawOk`, `_seed`, `_len`, `_ids`, `_ash`, `_values`, `_asz`,
+`_ids64`), and one flagged hypothesis: `ShaKind` (the cross-lane kind registry: no other `BYTES`
+sender uses kind 11).
 -/
 
 namespace ZkFormal.NearV3.Sched
@@ -32,15 +33,14 @@ theorem getD_map_instOf (L : List SchedPub) {τ : Nat} (hτ : τ < L.length) :
   rw [List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_eq_getElem hτ]; rfl
 
 /-- The per-instance `prepD0` facts. -/
-theorem instOk_of {cb : NearSpec.Bytes} {hint : Hint} {p : Prep} (hprep : prepD0 cb hint = .ok p)
-    (hids64 : ∀ sp ∈ p.sched, ∀ x ∈ sp.ids, x < 2 ^ 64) :
+theorem instOk_of {cb : NearSpec.Bytes} {hint : Hint} {p : Prep} (hprep : prepD0 cb hint = .ok p) :
     ∀ τ, τ < (p.sched.map instOf).length → InstOk ((p.sched.map instOf).getD τ instD) := by
   intro τ hτ
   rw [List.length_map] at hτ
   rw [getD_map_instOf _ hτ]
   have hm := List.getElem_mem hτ
   have S := prepD0_sched hprep _ hm
-  exact ⟨S.n1, S.n64, S.params, prepD0_asz hprep _ hm, hids64 _ hm, prepD0_rawOk hprep _ hm,
+  exact ⟨S.n1, S.n64, S.params, prepD0_asz hprep _ hm, prepD0_ids64 hprep _ hm, prepD0_rawOk hprep _ hm,
     prepD0_seed hprep _ hm⟩
 
 section
@@ -56,7 +56,6 @@ theorem schedCore_sound (hH : HoldsP AP pub tr) {tp tm tcmp ts tch tg tsd tcd ts
     (SK : ShaKind AP pub tr tcd)
     -- the prepared statement and the public records (`PubIdx`, R1)
     {cb : NearSpec.Bytes} {hint : Hint} {p : Prep} (hprep : prepD0 cb hint = .ok p)
-    (hids64 : ∀ sp ∈ p.sched, ∀ x ∈ sp.ids, x < 2 ^ 64)
     (I : PubIdx AP pub Fp.ofNat) (fwd : List (Nat × Nat))
     (hrecP : I.recs B_SPAR true = (render (p.sched.map instOf) fwd).par)
     (hrecB : I.recs B_SPUBB true = (render (p.sched.map instOf) fwd).pubb)
@@ -81,7 +80,7 @@ theorem schedCore_sound (hH : HoldsP AP pub tr) {tp tm tcmp ts tch tg tsd tcd ts
   intro sp n
   -- the `prepD0` facts
   have hlen33 := prepD0_len hprep
-  have hP := instOk_of hprep hids64
+  have hP := instOk_of hprep
   have h256 : (p.sched.map instOf).length ≤ 256 := by rw [List.length_map]; omega
   have hlen : (p.sched.map instOf).length < 2013265921 := by omega
   have hτ' : τ < (p.sched.map instOf).length := by rw [List.length_map]; exact hτ
