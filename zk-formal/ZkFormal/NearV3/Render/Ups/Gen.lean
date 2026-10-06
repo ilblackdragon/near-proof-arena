@@ -220,7 +220,8 @@ section
 variable (I : UpsInst) (P : UpsPartI)
 
 def kin (l : List Nat) : Int := (l.map fun n => ind (P.kind = n)).sum
-def xcpV : Int := ind (P.kind = 10) * (ind (I.ci = 8) + ind (I.ci = 10))
+def XcpB : Bool := P.kind == 10 && (I.ci == 8 || I.ci == 10)
+def xcpV : Int := ind (XcpB I P = true)
 def useAV : Int := kin P [0, 1, 3, 4, 5, 7, 11] + xcpV I P
 def bNV : Int := kin P [0, 1, 9, 11] + kin P [10] * spRecv I
 def bLV : Int := kin P [3]
@@ -235,14 +236,17 @@ def KcV : Int :=
   kin P [9] * (50 + 2 * (P.qhk : Int)) +
   kin P [10] * (202 * cin I [4] + 100 * cin I [5, 7, 8] + 152 * cin I [6, 9, 10])
 def vcpV : Int := kin P [0, 5, 6] + kin P [10] * cin I [4]
-def ba0V : Int := ind (P.kind = 5) * ind (I.ts = 1)
-def ba1V : Int := 128 * (ind (P.kind = 5) * (1 - ind (I.ts = 1)))
-def spY1V : Int := ind (P.kind = 10) * (ind (I.ci = 4) + ind (I.ts = 1) * twoC I)
-def spY2V : Int := ind (P.kind = 10) * ((1 - ind (I.ts = 1)) * twoC I)
+def ba0V : Int := ind (P.kind = 5 ∧ I.ts = 1)
+def ba1V : Int := 128 * ind (P.kind = 5 ∧ I.ts ≠ 1)
+def Spy1B : Bool := P.kind == 10 && (I.ci == 4 || (I.ts == 1 && (I.ci == 6 || I.ci == 9 || I.ci == 10)))
+def Spy2B : Bool := P.kind == 10 && I.ts != 1 && (I.ci == 6 || I.ci == 9 || I.ci == 10)
+def spY1V : Int := ind (Spy1B I P = true)
+def spY2V : Int := ind (Spy2B I P = true)
 /-- target slot 15 (last window) -/
-def s15V : Int := ind (P.kind = 0) * ind (P.sd = 1) + ind (P.kind = 5) * (1 - ind (I.ts = 1))
+def S15B : Bool := (P.kind == 0 && P.sd == 1) || (P.kind == 5 && I.ts != 1)
+def s15V : Int := ind (S15B I P = true)
 def upV : Int := kin P [0, 1, 11]
-def nokeyV : Int := ind (P.ty ≤ 1) * ind (P.qhk = 1)
+def nokeyV : Int := ind (P.ty ≤ 1 ∧ P.qhk = 1)
 
 /-- Part-constant columns (`UpsV3.partConst`). -/
 def isPC (col : Nat) : Bool := (49 ≤ col && col < 100) || (179 ≤ col && col < 184)
@@ -310,34 +314,46 @@ def nWin (sh : List (Nat × Nat)) : Nat := (sh.filter fun f => f.1 = 7).length
 section
 variable (I : UpsInst) (P : UpsPartI) (st ix wi : Nat)
 
-def fwV : Int := ind (st = 7) * ind (wi = 0)
-def lastwV : Int := ind (st = 7) * ind (wi + 1 = nWin P.shape)
-def tgtV : Int := ind (st = 7) * (fwV st wi * (1 - s15V I P) + lastwV P st wi * s15V I P)
-def wyV : Int := ind (st = 7) * ind (P.kind = 10) * (fwV st wi * spY1V I P + (1 - fwV st wi) * spY2V I P)
-def wfrV : Int :=
-  ind (st = 7) * (kin P [0, 5] * tgtV I P st wi + kin P [1, 9, 11] +
-    ind (P.kind = 10) * (1 - (1 - wyV I P st wi) * xcpV I P))
-def wnV : Int := ind (st = 7) * (ind (P.kind = 5) * tgtV I P st wi + ind (P.kind = 10) * wyV I P st wi)
-
+def FwB : Bool := st == 7 && wi == 0
+def LastwB : Bool := st == 7 && wi + 1 == nWin P.shape
+def TgtB : Bool := st == 7 && ((FwB st wi && !S15B I P) || (LastwB P st wi && S15B I P))
+def WyB : Bool := st == 7 && P.kind == 10 && ((FwB st wi && Spy1B I P) || (!FwB st wi && Spy2B I P))
+def WfrB : Bool :=
+  st == 7 && (((P.kind == 0 || P.kind == 5) && TgtB I P st wi) || (P.kind == 1 || P.kind == 9 || P.kind == 11) ||
+    (P.kind == 10 && (WyB I P st wi || !XcpB I P)))
+def WnB : Bool := st == 7 && ((P.kind == 5 && TgtB I P st wi) || (P.kind == 10 && WyB I P st wi))
+def VcpB : Bool := P.kind == 0 || P.kind == 5 || P.kind == 6 || (P.kind == 10 && I.ci == 4)
 /-- The byte is copied from the source. -/
-def cpV : Int :=
-  ind (st = 0) * kin P [0, 1, 2, 3, 5, 11] + (ind (st = 1) + ind (st = 2)) * kin P [1, 2, 11] +
-  ind (st = 3) * kin P [1, 2, 6, 7] + (ind (st = 4) + ind (st = 5)) * vcpV I P +
-  ind (st = 6) * kin P [0, 3, 4, 5] + ind (st = 7) * (1 - wfrV I P st wi)
-
+def CpB : Bool :=
+  (st == 0 && (P.kind == 0 || P.kind == 1 || P.kind == 2 || P.kind == 3 || P.kind == 5 || P.kind == 11)) ||
+  ((st == 1 || st == 2) && (P.kind == 1 || P.kind == 2 || P.kind == 11)) ||
+  (st == 3 && (P.kind == 1 || P.kind == 2 || P.kind == 6 || P.kind == 7)) ||
+  ((st == 4 || st == 5) && VcpB I P) ||
+  (st == 6 && (P.kind == 0 || P.kind == 3 || P.kind == 4 || P.kind == 5)) ||
+  (st == 7 && !WfrB I P st wi)
 /-- The row reads its target window's child id. -/
-def rdcV : Int := ind (st = 7) * ind (ix = 0) * tgtV I P st wi * upV P
+def RdcB : Bool := st == 7 && ix == 0 && TgtB I P st wi && (P.kind == 0 || P.kind == 1 || P.kind == 11)
+/-- Header / old-value / old-memory reads. -/
+def ExtraB : Bool :=
+  (st == 0 && (P.kind == 4 || P.kind == 6 || P.kind == 7 || XcpB I P)) || (st == 1 && ix == 0 && (P.kind == 6 || P.kind == 7)) ||
+  (st == 2 && (P.kind == 6 || P.kind == 7)) || (st == 4 && P.kind == 3) || (st == 6 && ix == 0 && XcpB I P) ||
+  (st == 8 && P.kind != 8) || RdcB I P st ix wi
+def AftB : Bool :=
+  (P.kind == 4 && (st == 6 || st == 7 || st == 8)) || (P.kind == 5 && ((st == 7 && !FwB st wi && I.ts == 1) || st == 8))
+def WinFrB : Bool := (st == 5 && !CpB I P st wi) || (st == 7 && WfrB I P st wi)
+def GdB : Bool := ix == 0 && WinFrB I P st wi
 
-def extraV : Int :=
-  ind (st = 0) * (kin P [4, 6, 7] + xcpV I P) + ind (st = 1) * ind (ix = 0) * kin P [6, 7] +
-  ind (st = 2) * kin P [6, 7] + ind (st = 4) * ind (P.kind = 3) + ind (st = 6) * ind (ix = 0) * xcpV I P +
-  ind (st = 8) * (1 - ind (P.kind = 8)) + rdcV I P st ix wi
-
-def rdV : Int := cpV I P st wi + extraV I P st ix wi
-
-def aftV : Int :=
-  ind (P.kind = 4) * (ind (st = 6) + ind (st = 7) + ind (st = 8)) +
-  ind (P.kind = 5) * (ind (st = 7) * (1 - fwV st wi) * ind (I.ts = 1) + ind (st = 8))
+def fwV : Int := ind (FwB st wi = true)
+def lastwV : Int := ind (LastwB P st wi = true)
+def tgtV : Int := ind (TgtB I P st wi = true)
+def wyV : Int := ind (WyB I P st wi = true)
+def wfrV : Int := ind (WfrB I P st wi = true)
+def wnV : Int := ind (WnB I P st wi = true)
+def cpV : Int := ind (CpB I P st wi = true)
+def rdcV : Int := ind (RdcB I P st ix wi = true)
+def extraV : Int := ind (ExtraB I P st ix wi = true)
+def rdV : Int := ind ((CpB I P st wi || ExtraB I P st ix wi) = true)
+def aftV : Int := ind (AftB I P st wi = true)
 
 /-- Read position. -/
 def sposV (p : Nat) : Int :=
@@ -355,17 +371,17 @@ def sposV (p : Nat) : Int :=
 
 def rbV (p : Nat) : Int := (P.pb.getD (sposV I P st ix wi p).toNat 0 : Nat)
 
-def winFrV : Int := ind (st = 5) * (1 - cpV I P st wi) + ind (st = 7) * wfrV I P st wi
-def gDV : Int := ind (ix = 0) * winFrV I P st wi
+def winFrV : Int := ind (WinFrB I P st wi = true)
+def gDV : Int := ind (GdB I P st ix wi = true)
 
 /-- the digest lookup's id / length -/
 def dIV (k : Nat) : Int :=
-  if gDV I P st ix wi = 1 then
-    (if st = 5 then upsIdV I 0 else if wnV I P st wi = 1 then upsIdV I k else upsIdV I P.jm)
+  if GdB I P st ix wi = true then
+    (if st = 5 then upsIdV I 0 else if WnB I P st wi = true then upsIdV I k else upsIdV I P.jm)
   else 0
 def dLV : Int :=
-  if gDV I P st ix wi = 1 then
-    (if st = 5 then (L I : Int) else if wnV I P st wi = 1 then 50 else P.clen)
+  if GdB I P st ix wi = true then
+    (if st = 5 then (L I : Int) else if WnB I P st wi = true then 50 else P.clen)
   else 0
 
 end
@@ -440,7 +456,7 @@ def qRow (col : Nat) : Int :=
   | 102 => rdV I P st ix wi
   | 103 => rbV I P st ix wi p
   | 104 => sposV I P st ix wi p
-  | 105 => if rdV I P st ix wi = 1 then (u : Int) else 0
+  | 105 => if (CpB I P st wi || ExtraB I P st ix wi) = true then (u : Int) else 0
   | 115 => ind (ix = 0)
   | 116 => ind (ix + 1 = fl)
   | 117 => ix
@@ -455,8 +471,9 @@ def qRow (col : Nat) : Int :=
   | 126 => dLV I P st ix wi
   | 127 => cpV I P st wi
   | 128 => aftV I P st wi
-  | 168 => ind (st = 8) * (1 - ind (k + 1 = nQ I)) * (1 - ind (P.kind = 8))
-  | 169 => ind (st = 8) * bNV I P
+  | 168 => ind (st = 8 ∧ k + 1 ≠ nQ I ∧ P.kind ≠ 8)
+  | 169 => ind (st = 8 ∧ ((P.kind = 0 ∨ P.kind = 1 ∨ P.kind = 9 ∨ P.kind = 11) ∨
+      (P.kind = 10 ∧ (I.ci = 5 ∨ I.ci = 6 ∨ I.ci = 7 ∨ I.ci = 9))))
   | 170 => if st = 8 then limb (RV I P) ix else 0
   | 171 => if st = 8 then limb P.mB ix else 0
   | 172 => if st = 8 then memByte (child I P) ix else 0
@@ -517,7 +534,7 @@ def rkey (insts : List UpsInst) : Nat × RK → Option (Nat × Int)
     let I := inst insts i
     let P := part I k
     let fa := fieldAt P.shape p
-    if rdV I P fa.1 fa.2.1 fa.2.2.2 = 1 then some (P.sN, sposV I P fa.1 fa.2.1 fa.2.2.2 p) else none
+    if (CpB I P fa.1 fa.2.2.2 || ExtraB I P fa.1 fa.2.1 fa.2.2.2) = true then some (P.sN, sposV I P fa.1 fa.2.1 fa.2.2.2 p) else none
   | _ => none
 
 /-- `UPB` use count of row `q`: earlier reads of the same byte. -/
