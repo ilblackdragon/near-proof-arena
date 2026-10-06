@@ -1,0 +1,30 @@
+{
+  "base": "00-h10021-s2",
+  "case": "00-h10021-s2-code.extra_unneeded",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    },
+    {
+      "hash": "9ejMtnR8xqaEf8i1gaAYyVkaAzANWwzAQ3oGYJvLGsLG",
+      "len": 228,
+      "name": "d3float"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": true,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 0,
+    "fc_gas_burnt_for_function_call": 0
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "code.extra_unneeded",
+  "nearcore": "ok",
+  "verdict_source": "nearcore(cold)"
+}

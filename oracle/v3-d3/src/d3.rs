@@ -2,7 +2,7 @@
 //! witness (README.md). `InD3α` (docs/requirements/D3_WASM_REQUIREMENTS.md §1.1,
 //! spec/lean/v3/NearSpecV3/Wasm/DomainD3.lean) =
 //!   InD2 with `e.wasm` lifted (src/../v3-d1/src/d2.rs `analyze`, unchanged)
-//!   ∧ `c.no_resharding`  one epoch, no epoch start in the segment, no split gate (`noResharding`)
+//!   ∧ `c.no_resharding`  one shard layout across the claim's epochs, no split gate (`noResharding`)
 //!   ∧ `e.float`          no executed contract has a float value type or opcode
 //!   ∧ `e.ood_host`       no FunctionCall *calls* a curve function (`curveHosts`) or a state-init /
 //!                        global-contract / gas-key function (`Wasm.realOodHosts`); importing one
@@ -148,7 +148,12 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
     };
     let c = &built.claim;
     let mut an = D3Analysis { violations: vec![], executed: vec![], state_calls: vec![], features: BTreeMap::new(), chain_id_import: false };
-    if !(c.epochs.len() == 1 && c.epoch_start_after.iter().all(|x| *x == 0) && c.apply_facts.iter().all(|f| f.split_gate.is_none())) {
+    // `Wasm.noResharding` (spec/lean/v3/NearSpecV3/Wasm/DomainD3.lean): one shard layout across the
+    // claim's epochs and no split gate. Segments may span epochs (as in D2: D2 ⊂ D3); an earlier
+    // version also required a single epoch, which disagreed with `checkD3` on in-D2 multi-epoch
+    // chunks (both checkers accept them; the oracle called them out of domain).
+    let one_layout = c.epochs.iter().all(|e| c.epochs.first().map_or(true, |f| e.shard_layout == f.shard_layout));
+    if !(one_layout && c.apply_facts.iter().all(|f| f.split_gate.is_none())) {
         add(&mut v, "c.no_resharding");
     }
     let b2 = &built.blocks[built.b2];

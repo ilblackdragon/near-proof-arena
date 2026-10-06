@@ -1,0 +1,19 @@
+{
+  "base": "01-h10005-s2",
+  "case": "01-h10005-s2-code.none",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 1279670459502,
+    "fc_gas_burnt_for_function_call": 1279670459502
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "code.none",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 4yinLE3cY6uVvQtfaaUBsXTrt2G1TovT2vjW7wbXLBt4 }))",
+  "verdict_source": "nearcore(cold)"
+}

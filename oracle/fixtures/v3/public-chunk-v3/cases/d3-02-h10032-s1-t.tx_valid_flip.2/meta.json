@@ -1,0 +1,30 @@
+{
+  "base": "02-h10032-s1",
+  "case": "02-h10032-s1-t.tx_valid_flip.2",
+  "codes": [
+    {
+      "hash": "4yinLE3cY6uVvQtfaaUBsXTrt2G1TovT2vjW7wbXLBt4",
+      "len": 958,
+      "name": "d2program"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": true,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 797784294726,
+    "fc_gas_burnt_for_function_call": 797784294726
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "t.tx_valid_flip.2",
+  "nearcore": "ok",
+  "verdict_source": "nearcore(cold,tx_valid=claim)"
+}

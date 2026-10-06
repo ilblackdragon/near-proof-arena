@@ -1,0 +1,25 @@
+{
+  "base": "00-h10056-s3",
+  "case": "00-h10056-s3-hdr2.congestion.buffered_gas",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 1879731991411,
+    "fc_gas_burnt_for_function_call": 1879731991411
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "hdr2.congestion.buffered_gas",
+  "nearcore": "validate: InvalidCongestionInfo(\"Congestion Information validate error. extra: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 669547687500, receipt_bytes: 417, allowed_shard: 2 }), header: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 669547687501, receipt_bytes: 417, allowed_shard: 2 })\")",
+  "verdict_source": "nearcore(cold)"
+}

@@ -1,0 +1,30 @@
+{
+  "base": "05-h10078-s1",
+  "case": "05-h10078-s1-c.epoch_start_flip",
+  "codes": [
+    {
+      "hash": "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+      "len": 1055,
+      "name": "ttn2"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 1023370828177,
+    "fc_gas_burnt_for_function_call": 1023370828177
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "verdict_source": "claim-v3"
+}

@@ -1,0 +1,16 @@
+{
+  "base": "01-h10037-s3",
+  "case": "01-h10037-s3-hdr.height_included(unchecked)",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": true,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "hdr.height_included(unchecked)",
+  "nearcore": "ok",
+  "verdict_source": "nearcore"
+}

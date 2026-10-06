@@ -1,0 +1,25 @@
+{
+  "base": "03-h10082-s2",
+  "case": "03-h10082-s2-w.applied_receipts_hash",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 142393341382,
+    "fc_gas_burnt_for_function_call": 142393341382
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "w.applied_receipts_hash",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipts hash 5gFuAbE71Jtd2FwhquVsUBLRRowZhNKxhZwtJoq6LWT5 does not match expected receipts hash 5cMVX6W27UPucZpjLQERaFbCAoNnzRE47hdzocX6chnj\")",
+  "verdict_source": "nearcore(cold)"
+}

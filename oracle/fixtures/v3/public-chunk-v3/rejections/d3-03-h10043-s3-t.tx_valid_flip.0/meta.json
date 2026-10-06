@@ -1,0 +1,19 @@
+{
+  "base": "03-h10043-s3",
+  "case": "03-h10043-s3-t.tx_valid_flip.0",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 0,
+    "fc_gas_burnt_for_function_call": 0
+  },
+  "in_d2": true,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "t.tx_valid_flip.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 82aiLNKexLHAVKL6Efc6nhNbajm6vF4tKmo12JpMwbm5 }))",
+  "verdict_source": "nearcore(cold,tx_valid=claim)"
+}

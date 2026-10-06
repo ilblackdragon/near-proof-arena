@@ -1,0 +1,551 @@
+{
+  "bandwidth_scheduler": {
+    "max_allowance": 4500000,
+    "max_base_bandwidth": 100000,
+    "max_shard_bandwidth": 4500000,
+    "max_single_grant": 4194304
+  },
+  "congestion_control": {
+    "allowed_shard_outgoing_gas": 1000000000000000,
+    "max_congestion_incoming_gas": 400000000000000000,
+    "max_congestion_memory_consumption": 1000000000,
+    "max_congestion_missed_chunks": 125,
+    "max_congestion_outgoing_gas": 10000000000000000,
+    "max_outgoing_gas": 300000000000000000,
+    "min_outgoing_gas": 1000000000000000
+  },
+  "d1_transaction_fees": {
+    "access_key_nonce_range_multiplier": 1000000,
+    "add_full_access_key": {
+      "exec": [
+        101765125000,
+        101765125000
+      ],
+      "send_not_sir": [
+        101765125000,
+        101765125000
+      ],
+      "send_sir": [
+        101765125000,
+        101765125000
+      ]
+    },
+    "create_account": {
+      "exec": [
+        7200000000000,
+        7200000000000
+      ],
+      "send_not_sir": [
+        500000000000,
+        500000000000
+      ],
+      "send_sir": [
+        500000000000,
+        500000000000
+      ]
+    },
+    "eth_implicit_accounts": true,
+    "max_actions_per_receipt": 100,
+    "max_transaction_size": 1572864,
+    "min_gas_purchase_price": "1000000000",
+    "new_action_receipt": {
+      "exec": [
+        108059500000,
+        108059500000
+      ],
+      "send_not_sir": [
+        108059500000,
+        108059500000
+      ],
+      "send_sir": [
+        108059500000,
+        108059500000
+      ]
+    },
+    "signature_verification": {
+      "ed25519": [
+        0,
+        0
+      ],
+      "mldsa65": [
+        100000000000,
+        100000000000
+      ],
+      "secp256k1": [
+        0,
+        0
+      ]
+    },
+    "storage_amount_per_byte": "10000000000000000000",
+    "transfer": {
+      "exec": [
+        115123062500,
+        115123062500
+      ],
+      "send_not_sir": [
+        115123062500,
+        115123062500
+      ],
+      "send_sir": [
+        115123062500,
+        115123062500
+      ]
+    }
+  },
+  "d2_runtime": {
+    "access_key_min_gas_key_borsh_len": 27,
+    "account_creation": {
+      "min_allowed_top_level_account_length": 65,
+      "registrar_account_id": "registrar"
+    },
+    "account_creation_charge": "7000000000000000000000",
+    "action_fees": {
+      "add_full_access_key": {
+        "exec": [
+          101765125000,
+          101765125000
+        ],
+        "send_not_sir": [
+          101765125000,
+          101765125000
+        ],
+        "send_sir": [
+          101765125000,
+          101765125000
+        ]
+      },
+      "add_function_call_key_base": {
+        "exec": [
+          102217625000,
+          102217625000
+        ],
+        "send_not_sir": [
+          102217625000,
+          102217625000
+        ],
+        "send_sir": [
+          102217625000,
+          102217625000
+        ]
+      },
+      "add_function_call_key_byte": {
+        "exec": [
+          1925331,
+          1925331
+        ],
+        "send_not_sir": [
+          47683715,
+          47683715
+        ],
+        "send_sir": [
+          1925331,
+          1925331
+        ]
+      },
+      "create_account": {
+        "exec": [
+          7200000000000,
+          7200000000000
+        ],
+        "send_not_sir": [
+          500000000000,
+          500000000000
+        ],
+        "send_sir": [
+          500000000000,
+          500000000000
+        ]
+      },
+      "delegate": {
+        "exec": [
+          200000000000,
+          200000000000
+        ],
+        "send_not_sir": [
+          200000000000,
+          200000000000
+        ],
+        "send_sir": [
+          200000000000,
+          200000000000
+        ]
+      },
+      "delete_account": {
+        "exec": [
+          147489000000,
+          147489000000
+        ],
+        "send_not_sir": [
+          147489000000,
+          147489000000
+        ],
+        "send_sir": [
+          147489000000,
+          147489000000
+        ]
+      },
+      "delete_key": {
+        "exec": [
+          94946625000,
+          94946625000
+        ],
+        "send_not_sir": [
+          94946625000,
+          94946625000
+        ],
+        "send_sir": [
+          94946625000,
+          94946625000
+        ]
+      },
+      "deploy_contract_base": {
+        "exec": [
+          184765750000,
+          20000000000000
+        ],
+        "send_not_sir": [
+          184765750000,
+          184765750000
+        ],
+        "send_sir": [
+          184765750000,
+          184765750000
+        ]
+      },
+      "deploy_contract_byte": {
+        "exec": [
+          64572944,
+          250000000
+        ],
+        "send_not_sir": [
+          47683715,
+          47683715
+        ],
+        "send_sir": [
+          6812999,
+          6812999
+        ]
+      },
+      "deploy_global_contract_base": {
+        "exec": [
+          184765750000,
+          184765750000
+        ],
+        "send_not_sir": [
+          184765750000,
+          184765750000
+        ],
+        "send_sir": [
+          184765750000,
+          184765750000
+        ]
+      },
+      "deploy_global_contract_byte": {
+        "exec": [
+          70000000,
+          70000000
+        ],
+        "send_not_sir": [
+          47683715,
+          47683715
+        ],
+        "send_sir": [
+          6812999,
+          6812999
+        ]
+      },
+      "deterministic_state_init_base": {
+        "exec": [
+          7430000000000,
+          7430000000000
+        ],
+        "send_not_sir": [
+          500000000000,
+          500000000000
+        ],
+        "send_sir": [
+          500000000000,
+          500000000000
+        ]
+      },
+      "deterministic_state_init_byte": {
+        "exec": [
+          70000000,
+          70000000
+        ],
+        "send_not_sir": [
+          72000000,
+          72000000
+        ],
+        "send_sir": [
+          72000000,
+          72000000
+        ]
+      },
+      "deterministic_state_init_entry": {
+        "exec": [
+          200000000000,
+          200000000000
+        ],
+        "send_not_sir": [
+          0,
+          0
+        ],
+        "send_sir": [
+          0,
+          0
+        ]
+      },
+      "function_call_base": {
+        "exec": [
+          780000000000,
+          780000000000
+        ],
+        "send_not_sir": [
+          200000000000,
+          200000000000
+        ],
+        "send_sir": [
+          200000000000,
+          200000000000
+        ]
+      },
+      "function_call_byte": {
+        "exec": [
+          2235934,
+          2235934
+        ],
+        "send_not_sir": [
+          47683715,
+          47683715
+        ],
+        "send_sir": [
+          2235934,
+          2235934
+        ]
+      },
+      "gas_key_byte": {
+        "exec": [
+          101435400,
+          101435400
+        ],
+        "send_not_sir": [
+          59357464,
+          59357464
+        ],
+        "send_sir": [
+          59357464,
+          59357464
+        ]
+      },
+      "gas_key_nonce_write_base": {
+        "exec": [
+          64196736000,
+          64196736000
+        ],
+        "send_not_sir": [
+          0,
+          0
+        ],
+        "send_sir": [
+          0,
+          0
+        ]
+      },
+      "gas_key_transfer_base": {
+        "exec": [
+          235676644250,
+          235676644250
+        ],
+        "send_not_sir": [
+          115123062500,
+          115123062500
+        ],
+        "send_sir": [
+          115123062500,
+          115123062500
+        ]
+      },
+      "new_action_receipt": {
+        "exec": [
+          108059500000,
+          108059500000
+        ],
+        "send_not_sir": [
+          108059500000,
+          108059500000
+        ],
+        "send_sir": [
+          108059500000,
+          108059500000
+        ]
+      },
+      "new_data_receipt_base": {
+        "exec": [
+          36486732312,
+          36486732312
+        ],
+        "send_not_sir": [
+          36486732312,
+          36486732312
+        ],
+        "send_sir": [
+          36486732312,
+          36486732312
+        ]
+      },
+      "new_data_receipt_byte": {
+        "exec": [
+          17212011,
+          17212011
+        ],
+        "send_not_sir": [
+          47683715,
+          47683715
+        ],
+        "send_sir": [
+          17212011,
+          17212011
+        ]
+      },
+      "stake": {
+        "exec": [
+          102217625000,
+          102217625000
+        ],
+        "send_not_sir": [
+          141715687500,
+          141715687500
+        ],
+        "send_sir": [
+          141715687500,
+          141715687500
+        ]
+      },
+      "transfer": {
+        "exec": [
+          115123062500,
+          115123062500
+        ],
+        "send_not_sir": [
+          115123062500,
+          115123062500
+        ],
+        "send_sir": [
+          115123062500,
+          115123062500
+        ]
+      },
+      "use_global_contract_base": {
+        "exec": [
+          184765750000,
+          184765750000
+        ],
+        "send_not_sir": [
+          184765750000,
+          184765750000
+        ],
+        "send_sir": [
+          184765750000,
+          184765750000
+        ]
+      },
+      "use_global_contract_byte": {
+        "exec": [
+          64572944,
+          64572944
+        ],
+        "send_not_sir": [
+          47683715,
+          47683715
+        ],
+        "send_sir": [
+          6812999,
+          6812999
+        ]
+      }
+    },
+    "burnt_gas_reward": [
+      3,
+      10
+    ],
+    "eth_implicit_accounts": true,
+    "eth_wallet_global_contract_hash": {
+      "mainnet": "2zodJZK2e4nnv5AqwCRnenNSmkikXhEd7PPY6BmfTmW4",
+      "mainnet_hex": "1daa835c4637f7ae3d924095ba3f0bf2829bcfa17b1068cd58bd853dcad7ceb5",
+      "other(arena-v3-local)": "FAq9tQRbwJPTV3PQLn2F7AUD3FW2Fw1V8ZeZuazfeu1v",
+      "other_hex": "d2884a900d4fa370e48f1e3d4865d4dc0dbd093c89f0e7baef2eddc142c49e8d",
+      "testnet": "3PpYvRxBfC5BkZxTw8ZFG3D52w1ZRhvDDWirKoxphMDn",
+      "testnet_hex": "238feac1f86cc9f9f4003e3f6d5aebc04eaea9c394032bd29470e9609b67f6c5"
+    },
+    "ext_storage_remove": {
+      "base": [
+        53473030500,
+        200000000000
+      ],
+      "key_byte": [
+        38220384,
+        38220384
+      ],
+      "ret_value_byte": [
+        11531556,
+        11531556
+      ]
+    },
+    "gas_key_info_borsh_len": 18,
+    "gas_key_max_balance_to_burn": "1000000000000000000000000",
+    "gas_key_max_nonces": 1024,
+    "gas_refund_penalty": [
+      0,
+      1
+    ],
+    "limits": {
+      "account_id_validity_rules_version": "V2",
+      "max_actions_per_receipt": 100,
+      "max_arguments_length": 4194304,
+      "max_contract_size": 4194304,
+      "max_deploy_actions_per_receipt": 10,
+      "max_length_method_name": 256,
+      "max_length_returned_data": 4194304,
+      "max_number_bytes_method_names": 2000,
+      "max_number_input_data_dependencies": 128,
+      "max_receipt_size": 4194304,
+      "max_total_prepaid_gas": 1000000000000000,
+      "max_transaction_size": 1572864,
+      "yield_timeout_length_in_blocks": 200
+    },
+    "max_account_deletion_storage_usage": 10000,
+    "min_gas_purchase_price": "1000000000",
+    "min_gas_refund_penalty": 0,
+    "signature_verification": {
+      "ed25519": [
+        0,
+        0
+      ],
+      "mldsa65": [
+        100000000000,
+        100000000000
+      ],
+      "secp256k1": [
+        0,
+        0
+      ]
+    },
+    "storage_usage": {
+      "global_contract_storage_amount_per_byte": "100000000000000000000",
+      "num_bytes_account": 100,
+      "num_extra_bytes_record": 40,
+      "storage_amount_per_byte": "10000000000000000000"
+    },
+    "use_state_stored_receipt": true,
+    "witness": {
+      "main_storage_proof_size_soft_limit": 4000000
+    }
+  },
+  "main_storage_proof_size_soft_limit": 4000000,
+  "max_receipt_size": 4194304,
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "protocol_version": 86,
+  "runtime_config_view_sha256": "79b2a2df11580bd67197c125686f0e977040336568bba56999691bfdae530089",
+  "schema": "near-arena-runtime-config-v3"
+}

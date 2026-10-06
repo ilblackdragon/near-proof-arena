@@ -1,0 +1,19 @@
+{
+  "base": "04-h10107-s2",
+  "case": "04-h10107-s2-t.minimum_stake(unused_in_D0)",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": true,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 10121254891,
+    "fc_gas_burnt_for_function_call": 10121254891
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "t.minimum_stake(unused_in_D0)",
+  "nearcore": "ok",
+  "verdict_source": "nearcore(cold)"
+}

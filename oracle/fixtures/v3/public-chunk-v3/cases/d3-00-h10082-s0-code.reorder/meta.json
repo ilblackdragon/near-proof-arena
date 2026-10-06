@@ -1,0 +1,30 @@
+{
+  "base": "00-h10082-s0",
+  "case": "00-h10082-s0-code.reorder",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    },
+    {
+      "hash": "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+      "len": 1055,
+      "name": "ttn2"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": true,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 699416339790,
+    "fc_gas_burnt_for_function_call": 699416339790
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "code.reorder",
+  "nearcore": "ok",
+  "verdict_source": "nearcore(cold)"
+}

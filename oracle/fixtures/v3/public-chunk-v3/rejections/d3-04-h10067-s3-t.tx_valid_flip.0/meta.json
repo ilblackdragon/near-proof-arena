@@ -1,0 +1,19 @@
+{
+  "base": "04-h10067-s3",
+  "case": "04-h10067-s3-t.tx_valid_flip.0",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 0,
+    "fc_gas_burnt_for_function_call": 0
+  },
+  "in_d2": true,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "t.tx_valid_flip.0",
+  "nearcore": "validate: InvalidChunkStateWitness(\"Post state root HbQ2NKCvHqjzuTxUCgUpmF5nQn1wsbjpUvWdkbifX7eY for main transition does not match expected post state root 2riksh8u3Q5BZ1k1Lh4JhT8KBUz8iQeSq7Z4c1GBYdif\")",
+  "verdict_source": "nearcore(cold,tx_valid=claim)"
+}

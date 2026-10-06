@@ -1,0 +1,19 @@
+{
+  "base": "03-h10025-s2",
+  "case": "03-h10025-s2-hdr.prev_balance_burnt",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 0,
+    "fc_gas_burnt_for_function_call": 0
+  },
+  "in_d2": true,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "hdr.prev_balance_burnt",
+  "nearcore": "validate: InvalidBalanceBurnt",
+  "verdict_source": "nearcore(cold)"
+}

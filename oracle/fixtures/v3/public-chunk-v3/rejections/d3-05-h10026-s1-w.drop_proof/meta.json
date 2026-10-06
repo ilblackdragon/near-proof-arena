@@ -1,0 +1,19 @@
+{
+  "base": "05-h10026-s1",
+  "case": "05-h10026-s1-w.drop_proof",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 106701422859,
+    "fc_gas_burnt_for_function_call": 106701422859
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "w.drop_proof",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Missing source receipt proof for chunk ChunkHash(EdJ9cq9gayXsUrNZimfbwXjzrvbsPdoPu8X2weJHAGnK)\")",
+  "verdict_source": "nearcore(cold)"
+}

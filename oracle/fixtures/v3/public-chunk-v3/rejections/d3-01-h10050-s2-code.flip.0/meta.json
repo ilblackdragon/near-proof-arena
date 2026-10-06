@@ -1,0 +1,25 @@
+{
+  "base": "01-h10050-s2",
+  "case": "01-h10050-s2-code.flip.0",
+  "codes": [
+    {
+      "hash": "CKpPtLYwRyTz9iPZzDfNunvMres3mjjT5yk1y9LCE3xe",
+      "len": 5603,
+      "name": "unknown"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 3007816326596,
+    "fc_gas_burnt_for_function_call": 3007816326596
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "code.flip.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+  "verdict_source": "nearcore(cold)"
+}

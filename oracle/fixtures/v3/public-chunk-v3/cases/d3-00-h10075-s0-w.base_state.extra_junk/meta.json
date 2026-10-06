@@ -1,0 +1,25 @@
+{
+  "base": "00-h10075-s0",
+  "case": "00-h10075-s0-w.base_state.extra_junk",
+  "codes": [
+    {
+      "hash": "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+      "len": 1055,
+      "name": "ttn2"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": true,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 194689242420,
+    "fc_gas_burnt_for_function_call": 194689242420
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "w.base_state.extra_junk",
+  "nearcore": "ok",
+  "verdict_source": "nearcore(cold)"
+}

@@ -1,0 +1,30 @@
+{
+  "base": "05-h10030-s2",
+  "case": "05-h10030-s2-c.epoch_start_flip",
+  "codes": [
+    {
+      "hash": "HGqAYUsEmK2du9hgJYLyschkZH62VSJ3Qk2kNVEbQHMF",
+      "len": 1109,
+      "name": "d3hostx"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 512561167026,
+    "fc_gas_burnt_for_function_call": 512561167026
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "c.epoch_start_flip",
+  "nearcore": "claim-v3 discipline",
+  "verdict_source": "claim-v3"
+}

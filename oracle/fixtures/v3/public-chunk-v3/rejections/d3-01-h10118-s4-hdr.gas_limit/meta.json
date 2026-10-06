@@ -1,0 +1,25 @@
+{
+  "base": "01-h10118-s4",
+  "case": "01-h10118-s4-hdr.gas_limit",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 1607702996721,
+    "fc_gas_burnt_for_function_call": 1607702996721
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "hdr.gas_limit",
+  "nearcore": "validate: InvalidGasLimit",
+  "verdict_source": "nearcore(cold)"
+}

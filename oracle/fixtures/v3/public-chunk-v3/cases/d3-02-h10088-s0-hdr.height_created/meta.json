@@ -1,0 +1,19 @@
+{
+  "base": "02-h10088-s0",
+  "case": "02-h10088-s0-hdr.height_created",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": true,
+  "expected_rel_d2": true,
+  "expected_rel_d3": true,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 0,
+    "fc_gas_burnt_for_function_call": 0
+  },
+  "in_d2": true,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "hdr.height_created",
+  "nearcore": "ok",
+  "verdict_source": "nearcore(cold)"
+}

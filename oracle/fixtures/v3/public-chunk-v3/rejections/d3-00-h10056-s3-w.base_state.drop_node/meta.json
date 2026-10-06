@@ -1,0 +1,25 @@
+{
+  "base": "00-h10056-s3",
+  "case": "00-h10056-s3-w.base_state.drop_node",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 1879731991411,
+    "fc_gas_burnt_for_function_call": 1879731991411
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "w.base_state.drop_node",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: vcFFKb1vMK3k9CCs8EC8ng9N2wEnjvPiZBCFBcBsoLK }))",
+  "verdict_source": "nearcore(cold)"
+}

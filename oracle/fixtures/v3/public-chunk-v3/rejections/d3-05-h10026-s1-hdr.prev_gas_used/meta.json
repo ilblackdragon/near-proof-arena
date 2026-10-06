@@ -1,0 +1,19 @@
+{
+  "base": "05-h10026-s1",
+  "case": "05-h10026-s1-hdr.prev_gas_used",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 106701422859,
+    "fc_gas_burnt_for_function_call": 106701422859
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "hdr.prev_gas_used",
+  "nearcore": "validate: InvalidGasUsed",
+  "verdict_source": "nearcore(cold)"
+}

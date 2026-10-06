@@ -1,0 +1,25 @@
+{
+  "base": "05-h10102-s4",
+  "case": "05-h10102-s4-hdr.encoded_merkle_root",
+  "codes": [
+    {
+      "hash": "4yinLE3cY6uVvQtfaaUBsXTrt2G1TovT2vjW7wbXLBt4",
+      "len": 958,
+      "name": "d2program"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 1085572621,
+    "fc_gas_burnt_for_function_call": 1085572621
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "hdr.encoded_merkle_root",
+  "nearcore": "validate: InvalidChunkEncodedMerkleRoot",
+  "verdict_source": "nearcore(cold)"
+}

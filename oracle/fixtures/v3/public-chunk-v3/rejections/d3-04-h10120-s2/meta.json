@@ -1,0 +1,150 @@
+{
+  "action_results": [
+    "incoming:[FunctionCall] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "04-h10120-s2",
+  "chain_params": "D3Params { base: ChainParams { seed: 4402013210, n_shards: 5, seats: 8, gas_limit_tgas: 60, epoch_length: 20, blocks: 120, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.25, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "HGqAYUsEmK2du9hgJYLyschkZH62VSJ3Qk2kNVEbQHMF",
+      "len": 1109,
+      "name": "d3hostx"
+    }
+  ],
+  "contract_accesses": [
+    "HGqAYUsEmK2du9hgJYLyschkZH62VSJ3Qk2kNVEbQHMF"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "r.shape",
+    "r.refunds"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "r.shape",
+    "r.refunds"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [
+    "e.mldsa_key"
+  ],
+  "executed_contracts": [
+    {
+      "account": "s3hx",
+      "curve_imports": [
+        "ecrecover"
+      ],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "HGqAYUsEmK2du9hgJYLyschkZH62VSJ3Qk2kNVEbQHMF",
+      "name": "d3hostx",
+      "ood_family_imports": [
+        "promise_batch_action_use_global_contract",
+        "promise_batch_action_state_init",
+        "promise_batch_action_add_gas_key_with_full_access"
+      ],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 5579,
+    "buffered_post": 0,
+    "buffered_pre": 1,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 1,
+    "code_bytes": 1109,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "d3hostx"
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 0,
+    "ed25519_import": false,
+    "executed_receipts": 5,
+    "fc_failure_kinds": {},
+    "fc_gas_burnt": 1144539805520,
+    "fc_gas_burnt_for_function_call": 252100110814,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 0,
+    "n_function_calls": 1,
+    "n_function_calls_with_code": 1,
+    "n_implicit": 0,
+    "n_logs": 0,
+    "n_ood_host_calls": 1,
+    "n_outcomes_tokens_burnt_nonzero": 3,
+    "n_promises": 2,
+    "n_receipts": 5,
+    "n_receipts_with_receiver_reward": 1,
+    "n_shards": 5,
+    "ood_host_import": true,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": true,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "7563003324400000000",
+    "rs": [
+      2,
+      8
+    ],
+    "tokens_burnt_receipts": "114453980552000000000",
+    "tokens_burnt_txs": "144636512500000000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 10241,
+    "yield_queue_pre": 2
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HGqAYUsEmK2du9hgJYLyschkZH62VSJ3Qk2kNVEbQHMF }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [],
+  "receipt_classes": {
+    "buffered_forwarded": 1,
+    "incoming_action": 1,
+    "incoming_refund": 4,
+    "out_action": 4,
+    "out_refund": 1
+  },
+  "tx_labels": [
+    "h.deterministic",
+    "h.deterministic"
+  ],
+  "tx_results": [
+    "success",
+    "success"
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "action_results": [],
+  "case": "02-h10002-s2",
+  "chain_params": "D3Params { base: ChainParams { seed: 4402013208, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 120, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.25, min_gas_price: 0 }",
+  "codes": [],
+  "contract_accesses": [],
+  "d0_violations": [
+    "c.single_epoch",
+    "c.no_split_gate",
+    "c.not_genesis",
+    "w.no_txs"
+  ],
+  "d1_violations": [
+    "c.single_epoch",
+    "c.no_split_gate",
+    "c.not_genesis",
+    "w.tx_shape"
+  ],
+  "d2_violations": [
+    "c.not_genesis"
+  ],
+  "d3_violations": [
+    "c.not_genesis"
+  ],
+  "executed_contracts": [],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_state_bytes": 0,
+    "code_blobs": 0,
+    "code_bytes": 0,
+    "n_blocks": 2,
+    "n_epochs": 1,
+    "n_implicit": 1,
+    "n_receipts": 0,
+    "n_shards": 6,
+    "rs": [
+      5,
+      16
+    ],
+    "validator_update_in_main": true,
+    "validator_updates": 1,
+    "witness_bytes": 2337
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": null,
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [
+    "d3.delegate_call",
+    "h.delegate"
+  ],
+  "receipt_classes": {},
+  "tx_labels": [],
+  "tx_results": []
+}

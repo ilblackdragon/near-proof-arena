@@ -1,0 +1,25 @@
+{
+  "base": "04-h10117-s0",
+  "case": "04-h10117-s0-t.rs_params",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 3070410384446,
+    "fc_gas_burnt_for_function_call": 3070410384446
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "t.rs_params",
+  "nearcore": "validate: InvalidChunkEncodedMerkleRoot",
+  "verdict_source": "nearcore(cold)"
+}

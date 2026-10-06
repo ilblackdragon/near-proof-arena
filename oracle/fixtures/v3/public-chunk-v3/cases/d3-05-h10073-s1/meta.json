@@ -1,0 +1,157 @@
+{
+  "action_results": [
+    "local:[DeleteKey] => fail:DeleteKeyDoesNotExist",
+    "incoming:[FunctionCall] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "05-h10073-s1",
+  "chain_params": "D3Params { base: ChainParams { seed: 4402013211, n_shards: 6, seats: 100, gas_limit_tgas: 1000, epoch_length: 20, blocks: 120, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: Some((60, 40, 0)) }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.25, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "contract_accesses": [
+    "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "e.forwarded",
+    "r.shape",
+    "r.refunds"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "e.forwarded",
+    "r.shape",
+    "r.refunds",
+    "w.tx_shape",
+    "r.success"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [],
+  "executed_contracts": [
+    {
+      "account": "s4rc",
+      "curve_imports": [],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "name": "d3rich",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": true,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 5198,
+    "buffered_post": 3,
+    "buffered_pre": 2,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 1,
+    "code_bytes": 5603,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "d3rich"
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 0,
+    "ed25519_import": false,
+    "executed_receipts": 4,
+    "fc_failure_kinds": {},
+    "fc_gas_burnt": 903486729891,
+    "fc_gas_burnt_for_function_call": 15420522089,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 3,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 0,
+    "n_function_calls": 1,
+    "n_function_calls_with_code": 1,
+    "n_implicit": 1,
+    "n_logs": 0,
+    "n_ood_host_calls": 0,
+    "n_outcomes_tokens_burnt_nonzero": 6,
+    "n_promises": 1,
+    "n_receipts": 3,
+    "n_receipts_with_receiver_reward": 1,
+    "n_shards": 6,
+    "ood_host_import": false,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": true,
+    "own_congestion_nonzero_pre": true,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "462615662600000000",
+    "rs": [
+      33,
+      100
+    ],
+    "tokens_burnt_receipts": "110649285489100000000",
+    "tokens_burnt_txs": "119203782210500000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 10973,
+    "yield_queue_pre": 1
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [
+    "d3.redeploy_call",
+    "d3.call_ttn2",
+    "h.transfer",
+    "h.deploy"
+  ],
+  "receipt_classes": {
+    "buffered_pushed": 1,
+    "incoming_action": 1,
+    "incoming_refund": 2,
+    "local": 1,
+    "out_action": 3,
+    "out_data": 1,
+    "out_refund": 1
+  },
+  "tx_labels": [
+    "d3.call_ttn2",
+    "d3.call_created",
+    "h.delete_key_missing",
+    "h.delete_other"
+  ],
+  "tx_results": [
+    "success",
+    "success",
+    "success_local",
+    "success"
+  ],
+  "workload_class": "d3-calls"
+}

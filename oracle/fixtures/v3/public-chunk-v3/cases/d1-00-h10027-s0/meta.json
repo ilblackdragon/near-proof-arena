@@ -1,0 +1,46 @@
+{
+  "case": "00-h10027-s0",
+  "chain_params": "ChainParams { seed: 4243012729, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.12, p_tx_shard: 0.35, p_burst: 0.08, p_fail: 0.02, p_implicit: 0.01, p_two: 0.02, long_skip: None, d1: true, p_adv: 0.5 }",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "d1_violations": [],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": true,
+  "features": {
+    "bw_requests_in_context": false,
+    "n_blocks": 3,
+    "n_implicit": 1,
+    "n_receipts": 1,
+    "n_shards": 4,
+    "n_source_blocks": 1,
+    "n_source_proofs": 3,
+    "other_congestion_nonzero": true,
+    "rs": [
+      2,
+      8
+    ],
+    "witness_bytes": 4845
+  },
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "honest",
+  "nearcore": "ok",
+  "new_tx_labels": [
+    "bad_sig_s_plus_l",
+    "expired_old_block",
+    "bad_sig_s_plus_l",
+    "lack_storage",
+    "honest",
+    "honest",
+    "bad_sig_negated_r",
+    "cost_overflow",
+    "bad_sig_s_plus_l",
+    "honest",
+    "honest"
+  ],
+  "tx_labels": [],
+  "tx_results": [],
+  "workload_class": "d1-receipts"
+}

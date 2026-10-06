@@ -1,0 +1,25 @@
+{
+  "base": "05-h10102-s4",
+  "case": "05-h10102-s4-w.dup_key_last_good",
+  "codes": [
+    {
+      "hash": "4yinLE3cY6uVvQtfaaUBsXTrt2G1TovT2vjW7wbXLBt4",
+      "len": 958,
+      "name": "d2program"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": true,
+  "expected_rel_d2": false,
+  "expected_rel_d3": true,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 1085572621,
+    "fc_gas_burnt_for_function_call": 1085572621
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "w.dup_key_last_good",
+  "nearcore": "ok",
+  "verdict_source": "nearcore(cold)"
+}

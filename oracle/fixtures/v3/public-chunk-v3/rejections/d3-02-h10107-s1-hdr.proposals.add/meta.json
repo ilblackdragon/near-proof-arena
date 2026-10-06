@@ -1,0 +1,25 @@
+{
+  "base": "02-h10107-s1",
+  "case": "02-h10107-s1-hdr.proposals.add",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 2495688513789,
+    "fc_gas_burnt_for_function_call": 2495688513789
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "hdr.proposals.add",
+  "nearcore": "validate: InvalidValidatorProposals",
+  "verdict_source": "nearcore(cold)"
+}

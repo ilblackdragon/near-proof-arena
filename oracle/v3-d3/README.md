@@ -186,10 +186,12 @@ accesses (summary counter `check.accesses_differ_from_state_executed`).
 
 `InD3α` = `InD2` with `e.wasm` lifted and `w.no_code` lifted, conjoined with:
 
-* `c.no_resharding`: one epoch, no epoch start in the segment, no split gate
-  (`DomainD3.lean` `noResharding`; requirements §1). **This is stricter than D2's
-  `c.same_layout`.** Multi-epoch D2 segments are therefore *outside* D3α, so `InD2 ⊄ InD3α` on
-  those cases.
+* `c.no_resharding`: one shard layout across the claim's epochs, no split gate (`DomainD3.lean`
+  `noResharding`; requirements §1), i.e. D2's `c.same_layout` + `c.no_split_gate`. Multi-epoch
+  segments are in D3α as in D2, matching `checkD3`. (The corpora of spec §12 were labelled by an
+  earlier version that required a single epoch: their multi-epoch honest chunks are marked out of
+  domain there, and `checkD3` accepts them like nearcore; the difftest does not count decided
+  out-of-domain cases as disagreements.)
 * `e.float`: an executed contract has a float value type (function type, local, global,
   block/select type) or a float opcode.
 * `e.ood_host` (spec §10.0a P3): a dispatched FunctionCall *calls* a Lean `curveHosts` function

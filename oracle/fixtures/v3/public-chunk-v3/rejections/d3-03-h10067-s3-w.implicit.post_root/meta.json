@@ -1,0 +1,19 @@
+{
+  "base": "03-h10067-s3",
+  "case": "03-h10067-s3-w.implicit.post_root",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 0,
+    "fc_gas_burnt_for_function_call": 0
+  },
+  "in_d2": true,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "w.implicit.post_root",
+  "nearcore": "validate: InvalidChunkStateWitness(\"Post state root EENkhbrvWwJqtBHsxZCtXTpdBLrhG2dSWbaHc5wv4yMg for implicit transition at block XaKMcqQ9zikPziff4Qyr7GCisYmbA5dYQc5ARsY8V7w to shard s3.v3, does not match expected state root EJHAM6b1QmoZHsQrU4ULRPZrSMRTxyjM6TtB7HFunn22\")",
+  "verdict_source": "nearcore(cold)"
+}

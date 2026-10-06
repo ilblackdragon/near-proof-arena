@@ -1,0 +1,25 @@
+{
+  "base": "05-h10087-s1",
+  "case": "05-h10087-s1-code.truncate.0",
+  "codes": [
+    {
+      "hash": "CmUBniPgbkkQjte6SdSx6tPVWwU9eoxB992kdiQx2rxk",
+      "len": 527,
+      "name": "unknown"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 659566145186,
+    "fc_gas_burnt_for_function_call": 659566145186
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "code.truncate.0",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP }))",
+  "verdict_source": "nearcore(cold)"
+}

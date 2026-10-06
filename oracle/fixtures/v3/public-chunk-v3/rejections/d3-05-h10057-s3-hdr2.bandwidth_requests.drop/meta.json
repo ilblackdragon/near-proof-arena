@@ -1,0 +1,25 @@
+{
+  "base": "05-h10057-s3",
+  "case": "05-h10057-s3-hdr2.bandwidth_requests.drop",
+  "codes": [
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 334024405225,
+    "fc_gas_burnt_for_function_call": 334024405225
+  },
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "hdr2.bandwidth_requests.drop",
+  "nearcore": "validate: InvalidBandwidthRequests(\"chunk extra: (is_some: true, len: 1) chunk header: (is_some: true, len: 0)\")",
+  "verdict_source": "nearcore(cold)"
+}

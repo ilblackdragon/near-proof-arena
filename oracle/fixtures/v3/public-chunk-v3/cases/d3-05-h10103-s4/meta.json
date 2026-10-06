@@ -1,0 +1,160 @@
+{
+  "action_results": [
+    "incoming:[FunctionCall] => ok",
+    "incoming:[CreateAccount,Transfer] => fail:CreateAccountOnlyByRegistrar",
+    "incoming:[FunctionCall] => ok",
+    "incoming:[FunctionCall] => ok",
+    "incoming:[CreateAccount,Transfer,AddKey(full)] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming:[FunctionCall] => ok"
+  ],
+  "case": "05-h10103-s4",
+  "chain_params": "D3Params { base: ChainParams { seed: 4402013211, n_shards: 6, seats: 100, gas_limit_tgas: 1000, epoch_length: 20, blocks: 120, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: Some((60, 40, 0)) }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.25, min_gas_price: 100000000 }",
+  "codes": [
+    {
+      "hash": "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+      "len": 1055,
+      "name": "ttn2"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "contract_accesses": [
+    "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+    "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt"
+  ],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "r.shape",
+    "r.refunds"
+  ],
+  "d1_violations": [
+    "w.no_code",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "r.shape",
+    "r.refunds"
+  ],
+  "d2_violations": [
+    "e.wasm",
+    "w.no_code"
+  ],
+  "d3_violations": [],
+  "executed_contracts": [
+    {
+      "account": "s1k208.s3a00",
+      "curve_imports": [],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP",
+      "name": "ttn2",
+      "ood_family_imports": [],
+      "source": "state"
+    },
+    {
+      "account": "s1rc",
+      "curve_imports": [],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "name": "d3rich",
+      "ood_family_imports": [],
+      "source": "state"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": true,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 11252,
+    "buffered_post": 0,
+    "buffered_pre": 8,
+    "chunk_gas_price": "100000000",
+    "code_blobs": 2,
+    "code_bytes": 6658,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "d3rich",
+      "ttn2"
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 0,
+    "ed25519_import": false,
+    "executed_receipts": 7,
+    "fc_failure_kinds": {},
+    "fc_gas_burnt": 6331520772275,
+    "fc_gas_burnt_for_function_call": 2778439825157,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 0,
+    "n_function_calls": 4,
+    "n_function_calls_with_code": 4,
+    "n_implicit": 0,
+    "n_logs": 2,
+    "n_ood_host_calls": 0,
+    "n_outcomes_tokens_burnt_nonzero": 7,
+    "n_promises": 8,
+    "n_receipts": 7,
+    "n_receipts_with_receiver_reward": 4,
+    "n_shards": 6,
+    "ood_host_import": false,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": true,
+    "pending_data_count_post": 1,
+    "pending_data_count_pre": 1,
+    "ran_deployed_in_chunk": 0,
+    "received_data_post": 1,
+    "received_data_pre": 1,
+    "receiver_reward_est": "83353194754500000000",
+    "rs": [
+      33,
+      100
+    ],
+    "tokens_burnt_receipts": "8396452795977500000000",
+    "tokens_burnt_txs": "22318256250000000000",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 14808,
+    "yield_queue_pre": 4
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP }))",
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [],
+  "receipt_classes": {
+    "buffered_forwarded": 8,
+    "incoming_action": 6,
+    "incoming_refund": 1,
+    "out_action": 13,
+    "out_refund": 7
+  },
+  "tx_labels": [
+    "h.transfer_created"
+  ],
+  "tx_results": [
+    "success"
+  ],
+  "workload_class": "d3-maxgas"
+}

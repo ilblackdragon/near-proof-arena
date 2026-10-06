@@ -34,6 +34,13 @@
 //!          Domain D1 (spec/near-chunk-validation-d1.md): --domain d1 writes DIR/d1/*,
 //!          DIR/ood/*, DIR/mutants/* with Transfer transactions of every validity class
 //!          (src/d1gen.rs, src/d1.rs); without it the D0 output is unchanged.
+//!          Arena layout for D1 / D2 (src/arena.rs): --domain d1|d2 --fixtures-layout
+//!          [--class C] [--d0-target N] [--rejection-target R] [--no-positives] [--accepted-mutants]
+//!          [--per-chain-cap K] runs the difftest-layout generator into DIR/.raw and converts it to
+//!          DIR/cases/<n>/{request,witness,expected_claim}.bin + DIR/rejections/<n>/ (classes:
+//!          d1-transfers|d1-mixed|d1-receipts, d2-epoch|d2-queues|d2-actions; `arena::class_of`).
+//!   arena-layout --domain d1|d2|d3 --in RAW --out DIR [arena options]: the same conversion of an
+//!          existing difftest-layout corpus.
 //!   ed25519-judge --in IN.jsonl --out OUT.jsonl / ed25519-sign --seed S --n N --out F
 //!          nearcore's Ed25519 verdicts / signatures (src/ed25519v.rs).
 //!   vectors --out DIR [--seed S]
@@ -64,6 +71,7 @@ mod d2gen;
 mod d1gen;
 mod d1judge;
 mod ed25519v;
+pub mod arena;
 
 use serde_json::json;
 use std::path::PathBuf;
@@ -100,6 +108,12 @@ fn cmd_gen(args: &[String]) -> i32 {
     let blocks: u64 = arg(args, "--blocks").and_then(|s| s.parse().ok()).unwrap_or(100);
     let ood_cap: usize = arg(args, "--ood-cap").and_then(|s| s.parse().ok()).unwrap_or(20);
     let mutate_every: usize = arg(args, "--mutate-every").and_then(|s| s.parse().ok()).unwrap_or(6);
+    // arena (judge) layout for D1 / D2: generate the difftest layout into OUT/.raw, then convert
+    // (src/arena.rs); the D1 / D2 chain loops themselves are unchanged
+    let dom = arg(args, "--domain").unwrap_or_else(|| "d1".into());
+    if args.iter().any(|a| a == "--fixtures-layout") && (dom == "d1" || dom == "d2") {
+        return arena::gen_fixtures(args, &dom, |raw| cmd_gen(&arena::raw_args(args, raw)));
+    }
     // this binary generates domain D1 (`--domain d1` accepted for clarity; `--domain d0` refused)
     // or domain D2 (`--domain d2`, src/chaind2.rs; the D1 path below is untouched by it)
     if arg(args, "--domain").as_deref() == Some("d2") {
@@ -428,6 +442,7 @@ fn main() {
     let code = match args.get(1).map(String::as_str) {
         Some("gen") => cmd_gen(&args),
         Some("params") => cmd_params(&args),
+        Some("arena-layout") => arena::cmd_arena_layout(&args),
         Some("ed25519-judge") => ed25519v::cmd_judge(
             &PathBuf::from(arg(&args, "--in").expect("--in")),
             &PathBuf::from(arg(&args, "--out").expect("--out")),

@@ -1,0 +1,129 @@
+{
+  "action_results": [
+    "local:[DeployContract,FunctionCall] => ok",
+    "incoming:[Transfer,Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "01-h10073-s2",
+  "chain_params": "D3Params { base: ChainParams { seed: 4402013207, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 120, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 48, max_d3: 4, code_mutant_p: 0.25, min_gas_price: 0 }",
+  "codes": [],
+  "contract_accesses": [],
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "r.shape",
+    "w.tx_shape"
+  ],
+  "d2_violations": [
+    "e.wasm"
+  ],
+  "d3_violations": [],
+  "executed_contracts": [
+    {
+      "account": "s3k144.s2a01",
+      "curve_imports": [],
+      "ed25519_import": false,
+      "float": false,
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "name": "d3rich",
+      "ood_family_imports": [],
+      "source": "deployed_in_chunk"
+    }
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": true,
+  "features": {
+    "accesses_equal_state_executed": true,
+    "base_state_bytes": 6266,
+    "buffered_post": 0,
+    "buffered_pre": 0,
+    "chunk_gas_price": "0",
+    "code_blobs": 0,
+    "code_bytes": 0,
+    "contract_data_removals": 0,
+    "contracts_ran": [
+      "d3rich"
+    ],
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "deployed_in_chunk": 1,
+    "ed25519_import": false,
+    "executed_receipts": 5,
+    "fc_failure_kinds": {},
+    "fc_gas_burnt": 2823959455744,
+    "fc_gas_burnt_for_function_call": 1389097227442,
+    "fc_profile_exceeds_gas_burnt": 0,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_callbacks": 0,
+    "n_epochs": 1,
+    "n_fc_failures": 0,
+    "n_function_calls": 1,
+    "n_function_calls_with_code": 1,
+    "n_implicit": 0,
+    "n_logs": 1,
+    "n_ood_host_calls": 0,
+    "n_outcomes_tokens_burnt_nonzero": 0,
+    "n_promises": 3,
+    "n_receipts": 5,
+    "n_receipts_with_receiver_reward": 0,
+    "n_shards": 5,
+    "ood_host_import": false,
+    "ood_host_profile_unmarked": 0,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": false,
+    "pending_data_count_post": 1,
+    "pending_data_count_pre": 0,
+    "ran_deployed_in_chunk": 1,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "receiver_reward_est": "0",
+    "rs": [
+      33,
+      100
+    ],
+    "tokens_burnt_receipts": "0",
+    "tokens_burnt_txs": "0",
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 15375,
+    "yield_queue_pre": 0
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "in_d3": true,
+  "kind": "honest",
+  "nearcore": "ok",
+  "nearcore_cold_no_codes": null,
+  "nearcore_judge": "cold validator (empty compiled-contract cache) with the appended code blobs",
+  "nearcore_warm_no_codes": "ok",
+  "new_tx_labels": [
+    "d3.call_multi"
+  ],
+  "receipt_classes": {
+    "incoming_action": 2,
+    "incoming_refund": 3,
+    "local": 1,
+    "out_action": 3,
+    "out_refund": 2
+  },
+  "tx_labels": [
+    "h.delegate_delete_other",
+    "d3.redeploy_call"
+  ],
+  "tx_results": [
+    "success",
+    "success_local"
+  ],
+  "workload_class": "d3-calls"
+}

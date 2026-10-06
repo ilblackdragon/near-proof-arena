@@ -14,6 +14,12 @@
 //!       mutants of D3 cases in DIR/mutants/<case>-<mutation>; DIR/summary.json.
 //!       Chain i uses chain_params_d3(seed, i) (shards 4/5/6, Reed–Solomon seats, gas limits,
 //!       epoch lengths as the D2 generator).
+//!       Arena (judge) layout: --fixtures-layout [--class d3-maxgas|d3-callbacks|d3-calls|d3-nonwasm]
+//!       [--d0-target N] [--rejection-target R] [--no-positives] [--accepted-mutants]
+//!       [--per-chain-cap K] runs the above into DIR/.raw and converts it to DIR/cases/<n>/
+//!       {request,witness,expected_claim}.bin + DIR/rejections/<n>/ (../v3-d1/src/arena.rs).
+//!   arena-layout --domain d3 --in RAW --out DIR [arena options]
+//!       The same conversion of an existing corpus (public fixtures).
 //!   contracts
 //!       Print the code registry (name, hash, length, D3α facts).
 
@@ -50,6 +56,8 @@ mod d2;
 #[allow(dead_code)]
 #[path = "../../v3-d1/src/d2gen.rs"]
 mod d2gen;
+#[path = "../../v3-d1/src/arena.rs"]
+mod arena;
 // D3 (this crate)
 mod chaind3;
 mod d3;
@@ -98,6 +106,10 @@ fn cmd_gen(args: &[String]) -> i32 {
     if arg(args, "--domain").as_deref() != Some("d3") {
         eprintln!("near-arena-oracle-v3-d3 generates domain D3 only (--domain d3)");
         return 2;
+    }
+    // arena (judge) layout: the difftest-layout run into OUT/.raw, then `arena::convert`
+    if args.iter().any(|a| a == "--fixtures-layout") {
+        return arena::gen_fixtures(args, "d3", |raw| cmd_gen(&arena::raw_args(args, raw)));
     }
     let num = |n: &str, d: u64| -> u64 { arg(args, n).map(|v| v.parse().unwrap_or_else(|_| panic!("{n}: not a number"))).unwrap_or(d) };
     let seed = num("--seed", 7);
@@ -178,6 +190,7 @@ fn main() {
     let code = match args.get(1).map(String::as_str) {
         Some("gen") => cmd_gen(&args),
         Some("contracts") => cmd_contracts(),
+        Some("arena-layout") => arena::cmd_arena_layout(&args),
         _ => {
             eprintln!("usage: near-arena-oracle-v3-d3 gen --domain d3 ... | contracts (see src/main.rs)");
             2

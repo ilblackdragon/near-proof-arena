@@ -1,0 +1,19 @@
+{
+  "base": "01-h10086-s3",
+  "case": "01-h10086-s3-w.new_tx.drop_rehashed",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": true,
+  "expected_rel_d2": true,
+  "expected_rel_d3": true,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 0,
+    "fc_gas_burnt_for_function_call": 0
+  },
+  "in_d2": true,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "w.new_tx.drop_rehashed",
+  "nearcore": "ok",
+  "verdict_source": "nearcore(cold)"
+}
