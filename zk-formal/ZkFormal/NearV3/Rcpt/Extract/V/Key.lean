@@ -126,3 +126,81 @@ theorem kz_row (j : Nat) (hj : j < total h Lp Lv Ls kt) :
     exact kz_zero hL (by omega) (st_row hL lay hm j hj (by omega))
 
 end ZkFormal.NearV3.RcptV3Proof
+
+namespace ZkFormal.NearV3.RcptV3Proof
+
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.RcptV3
+
+variable {tr : Trace Fp} {pub : List Fp} {tt : Nat}
+variable (hL : TableLocal RcptV3.table tr tt pub)
+include hL
+
+/-- Slot B on a receiver row: the low nibble of the character. -/
+theorem keyB_V {q : Nat} (hq : q < tr.height tt) (h1 : tr.cell tt q sV = 1) :
+    tr.cell tt q tB = 3 + 2 * tr.cell tt q idx ∧ tr.cell tt q symB = loE.eval tr tt q pub := by
+  have c1 := con hL hq (e := .mul (c sV) (sub (c tB) (.add (k 3) (two (c idx))))) (mem_ky (by simp [cKey]))
+  have c2 := con hL hq (e := .mul (c sV) (sub (c symB) loE)) (mem_ky (by simp [cKey]))
+  simp only [two, eval_mul, eval_sub, eval_add, eval_smul, eval_c, eval_k] at c1 c2
+  rw [h1] at c1 c2; exact ⟨by grind, by grind⟩
+
+/-- **Access-key walk symbols** (rows of a gas-refund system receipt, `ee = 1`). -/
+theorem akey_row {q : Nat} (hq : q < tr.height tt) (he : tr.cell tt q ee = 1) :
+    (tr.cell tt q sT0 = 1 → tr.cell tt q tA = 0 ∧ tr.cell tt q symA = 0 ∧ tr.cell tt q lastA = 0 ∧
+      tr.cell tt q tB = 1 ∧ tr.cell tt q symB = 2) ∧
+    (tr.cell tt q sSL = 1 → tr.cell tt q fs = 1 → tr.cell tt q tA = 2 + 2 * tr.cell tt q RcptV3.Ls ∧
+      tr.cell tt q symA = 0 ∧ tr.cell tt q lastA = 0 ∧ tr.cell tt q tB = 3 + 2 * tr.cell tt q RcptV3.Ls ∧
+      tr.cell tt q symB = 2) ∧
+    (tr.cell tt q sS = 1 → tr.cell tt q tA = 2 + 2 * tr.cell tt q idx ∧ tr.cell tt q symA = hiE.eval tr tt q pub ∧
+      tr.cell tt q lastA = 0 ∧ tr.cell tt q tB = 3 + 2 * tr.cell tt q idx ∧ tr.cell tt q symB = loE.eval tr tt q pub) ∧
+    (tr.cell tt q sKT = 1 → tr.cell tt q tA = 4 + 2 * tr.cell tt q RcptV3.Ls ∧ tr.cell tt q symA = 0 ∧
+      tr.cell tt q lastA = 0 ∧ tr.cell tt q tB = 5 + 2 * tr.cell tt q RcptV3.Ls ∧ tr.cell tt q symB = tr.cell tt q b) ∧
+    (tr.cell tt q sPK = 1 → tr.cell tt q tA = 6 + 2 * tr.cell tt q RcptV3.Ls + 2 * tr.cell tt q idx ∧
+      tr.cell tt q symA = hiPK.eval tr tt q pub ∧ tr.cell tt q lastA = 0 ∧
+      tr.cell tt q tB = 7 + 2 * tr.cell tt q RcptV3.Ls + 2 * tr.cell tt q idx ∧
+      tr.cell tt q symB = loPK.eval tr tt q pub ∧
+      tr.cell tt q b = 16 * hiPK.eval tr tt q pub + loPK.eval tr tt q pub) ∧
+    (tr.cell tt q sGP = 1 → tr.cell tt q fs = 1 →
+      tr.cell tt q tA = 70 + 2 * tr.cell tt q RcptV3.Ls + 64 * tr.cell tt q RcptV3.kt ∧
+      tr.cell tt q symA = (SYM_END : Nat) ∧ tr.cell tt q lastA = 1) := by
+  have m : ∀ e ∈ cKey, e.eval tr tt q pub = 0 := fun e he' => con hL hq (mem_ky he')
+  have T1 := m (mul3 (c ee) (c sT0) (c tA)) (by simp [cKey])
+  have T2 := m (mul3 (c ee) (c sT0) (c symA)) (by simp [cKey])
+  have T3 := m (mul3 (c ee) (c sT0) (c lastA)) (by simp [cKey])
+  have T4 := m (mul3 (c ee) (c sT0) (sub (c tB) (k 1))) (by simp [cKey])
+  have T5 := m (mul3 (c ee) (c sT0) (sub (c symB) (k 2))) (by simp [cKey])
+  have L1 := m (.mul (mul3 (c ee) (c sSL) (c fs)) (sub (c tA) (.add (k 2) (two (c RcptV3.Ls))))) (by simp [cKey])
+  have L2 := m (.mul (mul3 (c ee) (c sSL) (c fs)) (c symA)) (by simp [cKey])
+  have L3 := m (.mul (mul3 (c ee) (c sSL) (c fs)) (c lastA)) (by simp [cKey])
+  have L4 := m (.mul (mul3 (c ee) (c sSL) (c fs)) (sub (c tB) (.add (k 3) (two (c RcptV3.Ls))))) (by simp [cKey])
+  have L5 := m (.mul (mul3 (c ee) (c sSL) (c fs)) (sub (c symB) (k 2))) (by simp [cKey])
+  have S1 := m (mul3 (c ee) (c sS) (sub (c tA) (.add (k 2) (two (c idx))))) (by simp [cKey])
+  have S2 := m (mul3 (c ee) (c sS) (sub (c symA) hiE)) (by simp [cKey])
+  have S3 := m (mul3 (c ee) (c sS) (c lastA)) (by simp [cKey])
+  have S4 := m (mul3 (c ee) (c sS) (sub (c tB) (.add (k 3) (two (c idx))))) (by simp [cKey])
+  have S5 := m (mul3 (c ee) (c sS) (sub (c symB) loE)) (by simp [cKey])
+  have K1 := m (mul3 (c ee) (c sKT) (sub (c tA) (.add (k 4) (two (c RcptV3.Ls))))) (by simp [cKey])
+  have K2 := m (mul3 (c ee) (c sKT) (c symA)) (by simp [cKey])
+  have K3 := m (mul3 (c ee) (c sKT) (c lastA)) (by simp [cKey])
+  have K4 := m (mul3 (c ee) (c sKT) (sub (c tB) (.add (k 5) (two (c RcptV3.Ls))))) (by simp [cKey])
+  have K5 := m (mul3 (c ee) (c sKT) (sub (c symB) (c b))) (by simp [cKey])
+  have P1 := m (mul3 (c ee) (c sPK) (sub (c tA) (sum [k 6, two (c RcptV3.Ls), two (c idx)]))) (by simp [cKey])
+  have P2 := m (mul3 (c ee) (c sPK) (sub (c symA) hiPK)) (by simp [cKey])
+  have P3 := m (mul3 (c ee) (c sPK) (c lastA)) (by simp [cKey])
+  have P4 := m (mul3 (c ee) (c sPK) (sub (c tB) (sum [k 7, two (c RcptV3.Ls), two (c idx)]))) (by simp [cKey])
+  have P5 := m (mul3 (c ee) (c sPK) (sub (c symB) loPK)) (by simp [cKey])
+  have P6 := m (mul3 (c ee) (c sPK) (sub (c b) (.add (smul 16 hiPK) loPK))) (by simp [cKey])
+  have G1 := m (.mul (mul3 (c ee) (c sGP) (c fs)) (sub (c tA) (sum [k 70, two (c RcptV3.Ls), smul 64 (c RcptV3.kt)])))
+    (by simp [cKey])
+  have G2 := m (.mul (mul3 (c ee) (c sGP) (c fs)) (sub (c symA) (k SYM_END))) (by simp [cKey])
+  have G3 := m (.mul (mul3 (c ee) (c sGP) (c fs)) (sub (c lastA) (k 1))) (by simp [cKey])
+  simp only [two, eval_mul, eval_mul3, eval_sub, eval_add, eval_smul, eval_c, eval_k, eval_sum_cons,
+    eval_sum_nil, he] at T1 T2 T3 T4 T5 L1 L2 L3 L4 L5 S1 S2 S3 S4 S5 K1 K2 K3 K4 K5 P1 P2 P3 P4 P5 P6 G1 G2 G3
+  refine ⟨fun h => ?_, fun h h' => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h h' => ?_⟩
+  · rw [h] at T1 T2 T3 T4 T5; exact ⟨by grind, by grind, by grind, by grind, by grind⟩
+  · rw [h, h'] at L1 L2 L3 L4 L5; exact ⟨by grind, by grind, by grind, by grind, by grind⟩
+  · rw [h] at S1 S2 S3 S4 S5; exact ⟨by grind, by grind, by grind, by grind, by grind⟩
+  · rw [h] at K1 K2 K3 K4 K5; exact ⟨by grind, by grind, by grind, by grind, by grind⟩
+  · rw [h] at P1 P2 P3 P4 P5 P6; exact ⟨by grind, by grind, by grind, by grind, by grind, by grind⟩
+  · rw [h, h'] at G1 G2 G3; exact ⟨by grind, by grind, by grind⟩
+
+end ZkFormal.NearV3.RcptV3Proof
