@@ -66,10 +66,24 @@ Findings while doing this [T]:
 
 * **F11:** `compute_usage` and logs are now compared, in every `host`/`hostedges` case and in full-mode runs of
   the other families. 0 disagreements.
-* **F5/C9:** a prose specification of NEAR's metering, preparation and execution for clean-room
-  implementers is in `docs/research/near-wasm-prose-spec.md`. A clean-room implementation is being written
-  from it in `oracle/wasm-d3/cleanroom/` by a separate agent, which has no access to finite-wasm, the
-  instrumentation code or the Lean spec. Its results are reported separately.
+* **F5/C9: done for metering and the checkpoint-2 subset.**
+  * **Prose spec.** `docs/research/near-wasm-prose-spec.md` specifies NEAR's metering, preparation and
+    execution, with errata in §7.
+  * **Clean-room implementation.** A separate agent wrote `oracle/wasm-d3/cleanroom/nearwasm.py` (Python,
+    standard library only) from that spec. It had no access to finite-wasm, nearcore's instrumentation or
+    the Lean spec, and settled ambiguities by black-box runs.
+  * **Three-way outcome agreement [T]:** nearcore = Lean = clean-room on opcodes (9,175), promise (3,000),
+    mutate (10,000) and random (1,500), with **0 disagreements**. The clean-room's own runs add a further
+    ~95,000 cases.
+  * **Charge-point tables:** the clean-room tables equal the Lean (finite-wasm-port) tables on 12,845 of
+    13,363 modules. The other 518 differ **only** in placing a point one operator earlier, at the zero-cost
+    `end` that closes a dead region. The fees are identical and the outcomes agree (prose §7 D13).
+  * **Spec bugs it found in the Lean spec [T]** (now fixed and in `opcases`):
+    * a table with initial size > 10,000,000 must give `TooManyTableElements`, not `Deserialization`;
+    * a non-memory export name of ≥ 99,999 bytes must give `PrepareError::Serialization` (NEAR's `"\0"`
+      prefix exceeds the re-parse's 100,000-byte limit).
+  * The clean-room's scope is still core, metering and the checkpoint-2 host functions. Independent
+    implementations of the other 70 host functions are still open.
 
 ## 3. Not done, and the blocker for RuntimeD3
 

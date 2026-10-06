@@ -495,3 +495,22 @@ def preparedSizeLine (cfg : NearCfg) (code : ByteArray) : String :=
   | .unmodeled w => s!"unmodeled {w}"
 
 end NearSpecV3.Wasm
+
+namespace NearSpecV3.Wasm
+
+/-- Diagnostic for the clean-room comparison (`oracle/wasm-d3/cleanroom`, `--charge-points`): the
+finite-wasm charge points of each defined function as `f<i>: pc:const:linear …` (prologue excluded). -/
+def chargePointsLine (cfg : NearCfg) (code : ByteArray) : String :=
+  match prepare cfg code with
+  | .ok p =>
+    " | ".intercalate ((List.range p.funcs.size).zip p.funcs.toList |>.map fun (i, pf) =>
+      s!"f{i}:" ++ String.join ((List.range pf.gas.size).filterMap fun pc =>
+        match pf.gas[pc]? with
+        | some (some (_, fee)) => some s!" {pc}:{fee.c}:{fee.l}"
+        | _ => none))
+  | .prepErr v _ => s!"prepare-error {v}"
+  | .compileErr _ _ => "prepare-error WasmtimeCompileError"
+  | .outOfDomain _ => "out-of-domain"
+  | .unmodeled w => s!"unmodeled {w}"
+
+end NearSpecV3.Wasm

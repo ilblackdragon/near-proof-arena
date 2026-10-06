@@ -325,6 +325,15 @@ prep("blocks-contract-55000", blocks(11))
 for per, ty, np_ in [(49998, I32, 0), (49999, I32, 0), (49996, I32, 2), (49997, I32, 2), (24999, I64, 0)]:
     prep(f"wasmtime-locals({per},{ty:#x},{np_})",
          lambda m, per=per, ty=ty, np_=np_: m.funcs.append((m.type([I32] * np_, []), [(per, ty)], b"")))
+prep("table-10000001", lambda m: m.tables.append((FUNCREF, 10000001, None)))
+prep("export-name-100000", lambda m: m.exports.append(("x" * 100000, 0, len(m.imports))))
+prep("export-name-99999", lambda m: m.exports.append(("x" * 99999, 0, len(m.imports))))
+prep("memory-export-name-100000", lambda m: m.exports.append(("y" * 100000, 2, 0)))
+prep("call_indirect-table-leb", lambda m: (m.tables.append((FUNCREF, 1, None)),
+     m.funcs.__setitem__(0, (m.funcs[0][0], [], i32c(0) + b"\x11" + uleb(m.type([], [])) + b"\x80\x00"))))
+prep("memory.fill-memidx-leb", lambda m: m.funcs.__setitem__(0, (m.funcs[0][0], [], i32c(0) * 3 + b"\xfc\x0b\x80\x00")))
+prep("memory-export-name-100000", lambda m: m.exports.append(("y" * 100000, 2, 0)))
+prep("memory.grow-memidx-leb", lambda m: m.funcs.__setitem__(0, (m.funcs[0][0], [], i32c(0) + b"\x40\x80\x00\x1a")))
 prep("memory-import", lambda m: m.imports.append(("env", "memory", None)))
 
 labels_path = sys.argv[1] if len(sys.argv) > 1 else None

@@ -169,3 +169,24 @@ Appendix A. The clean-room implementation may read that appendix: it describes b
 
 * Success: `ok <burnt> <used> <return-hex or -> <balance>`.
 * Failure: `abort <burnt> <used> <error>`, where `used = burnt + promises`.
+
+
+## 7. Errata from the clean-room implementation (2026-10-06)
+
+A clean-room implementation written from this document (`oracle/wasm-d3/cleanroom/`) agrees with nearcore
+and with the Lean spec on every test family. Where this document was silent or wrong, it settled the question
+by black-box runs against nearcore. Its README (§ "Defects and gaps", D1–D14) is the authoritative errata
+list. In summary:
+* **D1:** linking and the outcome order: loading fee → link → method resolution → instantiation → start → `main`.
+* **D2:** only single-byte block types.
+* **D3/D9:** count and section-validation order.
+* **D4:** `TooManyLocals` is checked while parsing, with a permissive local-type parse.
+* **D5:** no table parser limit below u32.
+* **D6:** `Serialization` for renamed export names over 100,000 bytes.
+* **D7:** the instrumented size is not derivable from this document. The Lean `InstrSize` model is exact.
+* **D8:** encoding deviations from WebAssembly 2.0: LEB indices for bulk memory and tables, but a single
+  zero byte for `memory.size`/`memory.grow` and the `call_indirect` table index.
+* **D10–D12:** per-function and host-function check order, and `deduct_gas` failures.
+* **D13:** charge points are correct as stated. One position ambiguity remains: a point at the `end` that
+  closes a dead region may equivalently be placed after it. Both placements give identical outcomes.
+* **D14:** operand-stack and segment clarifications.

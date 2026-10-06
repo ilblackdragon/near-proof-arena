@@ -205,7 +205,6 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
       match t.lim.max with
       | some mx => if t.lim.min > mx then deser "table size minimum must not be greater than maximum"
       | none => pure ()
-      if t.lim.min > 10000000 then deser "table too large"
     if ts.size > 100 then deser "tables count"
     if ts.size > cfg.maxTables then prepFail "TooManyTables" "max_tables_per_contract"
     for t in ts do
@@ -384,6 +383,12 @@ def prepare (cfg : NearCfg) (bytes : ByteArray) (blockLevel : Bool := true) : Pr
     let m := s.m
     let c := mkCtx m
     let nImp := m.imports.size
+    -- `prepare_v3` renames every non-memory export to `"\0" ++ name`; the instrumentation re-parses
+    -- the module (wasmparser 0.236, names ≤ 100,000 bytes) and maps the failure to `Serialization`
+    -- (`prepare_v3.rs:444-456`), before any per-function check. Found by the clean-room
+    -- implementation (`oracle/wasm-d3/cleanroom/README.md` D6).
+    if m.exports.any (fun (n, k, _) => k ≠ 2 ∧ n.utf8ByteSize + 1 > 100000) then
+      return .prepErr "Serialization" "renamed export name too long"
     let mut paramBudget := cfg.maxParamsPerContract
     let mut blockBudget := cfg.maxBlocksPerContract
     let mut pfs := #[]

@@ -50,11 +50,11 @@ def parseCtx (gas : Nat) (tok : Option String) : Option CallCtx := do
         | _ => none
       pure c
 
-partial def loop (bl sizeMode full : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
+partial def loop (bl sizeMode full cpMode : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
   let line ← stdin.getLine
   if line.isEmpty then return
   let line := line.trimAscii.toString
-  if line.isEmpty then loop bl sizeMode full stdin stdout else
+  if line.isEmpty then loop bl sizeMode full cpMode stdin stdout else
   let parts := line.splitOn " "
   match parts with
   | g :: h :: rest =>
@@ -65,12 +65,13 @@ partial def loop (bl sizeMode full : Bool) (stdin stdout : IO.FS.Stream) : IO Un
       | some ctx =>
         let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
         stdout.putStrLn (if sizeMode then preparedSizeLine pv86 code
+          else if cpMode then chargePointsLine pv86 code
           else outcome pv86 code "main" ctx fuel bl full)
     | _, _ => stdout.putStrLn "unmodeled bad input"
   | _ => stdout.putStrLn "unmodeled bad input"
   stdout.flush
-  loop bl sizeMode full stdin stdout
+  loop bl sizeMode full cpMode stdin stdout
 
 def main (args : List String) : IO Unit := do
   loop (!args.contains "--instruction-level-metering") (args.contains "--prepared-size")
-    (args.contains "--full") (← IO.getStdin) (← IO.getStdout)
+    (args.contains "--full") (args.contains "--charge-points") (← IO.getStdin) (← IO.getStdout)

@@ -104,6 +104,24 @@ def main():
             pr.wait()
         outs = [open(os.path.join(td, f"in{k}.out")).read().splitlines() for k in range(shards)]
     t2 = time.time()
+    clean = None
+    if os.environ.get("D3_CLEANROOM") == "1":
+        # third, independent implementation (oracle/wasm-d3/cleanroom, written from the prose spec)
+        with tempfile.TemporaryDirectory() as td:
+            ps = []
+            for k in range(shards):
+                p = os.path.join(td, f"in{k}")
+                with open(p, "w") as f:
+                    f.write("\n".join(cases[k::shards]) + "\n")
+                ps.append(subprocess.Popen([sys.executable, os.path.join(HERE, "../cleanroom/nearwasm.py")],
+                                           stdin=open(p), stdout=open(p + ".out", "w")))
+            for pr in ps:
+                pr.wait()
+            couts = [open(os.path.join(td, f"in{k}.out")).read().splitlines() for k in range(shards)]
+        clean = [None] * n
+        for k in range(shards):
+            for j, line in enumerate(couts[k]):
+                clean[k + j * shards] = line
     for k in range(shards):   # review N4: exact per-shard line counts
         want = len(cases[k::shards])
         assert len(outs[k]) == want, f"shard {k}: {len(outs[k])} lines, expected {want}"
@@ -129,10 +147,19 @@ def main():
         else:
             m = re.match(r"(\w+)(?:[({ ]+(\w+))?", p[3])
             cats[f"{m.group(1)}:{m.group(2) or ''}" if m else p[3][:40]] += 1
+        if clean is not None and not clean[i].startswith(("out-of-domain", "unmodeled")) and \
+                norm(a) != norm(clean[i]):
+            bad += 1
+            if bad <= 20:
+                print(f"CLEANROOM DISAGREE {labels[i]}\n  nearcore : {a[:300]}\n  cleanroom: {clean[i][:300]}")
+            continue
         if norm(a) != norm(b):
             bad += 1
             if bad <= 20:
                 print(f"DISAGREE {labels[i]}: {cases[i][:100]}...\n  nearcore: {a[:300]}\n  spec    : {b[:300]}")
+    if clean is not None:
+        cr_excl = sum(1 for x in clean if x.startswith(("out-of-domain", "unmodeled")))
+        print(f"three-way: cleanroom out-of-domain/unmodeled={cr_excl}")
     print(f"family={' '.join(args)} cases={n} compared={n - ood - unm} out_of_domain={ood} unmodeled={unm} disagreements={bad}")
     print(f"nearcore {t1 - t0:.1f}s, spec {t2 - t1:.1f}s ({shards} shards)")
     for c, k in sorted(cats.items(), key=lambda x: -x[1]):
