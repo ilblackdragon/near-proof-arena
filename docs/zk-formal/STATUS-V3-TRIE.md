@@ -191,7 +191,7 @@ The 8 MiB check uses the widths in §4.
 * The graph raises `B` only for adversarial, heavily shared witnesses, which A7 excludes
   anyway, and it still needs a cap on write-path copies.
 
-**Recommendation: keep tree records.**  If SHA rows bind `B0`, the cheap fix within the
+**Recommendation: keep tree records.** (**Lead: accepted**; adopt the `wr` flag if `sha_t` rows bind `B0`, which the spec lane picks from §1.5.)  If SHA rows bind `B0`, the cheap fix within the
 tree approach is to send `NPOST` bytes only for records on write paths (a node-constant
 `wr` flag; `post = pre` otherwise, with the post digest taken from the pre digest).  That
 halves SHA for read-only records with a small `nodeV3` delta.
@@ -228,7 +228,7 @@ which have different row shapes, are separate small tables:
   leaf; dead target `(nid, s)` for an extension's last nibble when the child is unrevealed;
   `BMAP` per branch; `SIZE` instead of v1's in-table 3,000,000 check.
 
-### 2.3 `0x0f` upsert: separate table `upsV3` (design; not started)
+### 2.3 `0x0f` upsert: separate table `upsV3` (**decided: option A**; not started)
 
 Lockstep pre/post records express only same-length `set`s (accounts).  The `0x0f` upsert
 changes `memory_usage` along its path with truncated Nat arithmetic (`m + new − old`), may
@@ -265,6 +265,7 @@ nibble shift by 1–3), and new `MEM` / `VLEN` values.  Options:
   with `MEM`/`VLEN` excluded from "post = pre" and a per-path-node `u64` delta — ≈ 1 k lines.
 
 Recommendation: (A) if insertion must stay in D0 (no amendment); (C) if A4 is acceptable.
+**Lead decision: A** (A4 rejected; B costs more for no gain).
 
 ### 2.4 Walks
 
@@ -333,7 +334,7 @@ counted.
    depth ⇒ `RootedDagR` with rank = depth); entries ⇒ `storeOf` covered by `uniq` entries
    (`storeOf_hashFunctional`) ⇒ `storeBuildR`; walks ⇒ `find`/`AbsentWitness`
    (`absent_iff`); lockstep post-root = `set`s.
-3. **`upsV3`** (§2.3): design options A/B/C, decision requested (insertion ⇒ A).
+3. **`upsV3`** (§2.3): option A decided. Order: node render → link layer → `upsV3`.
 4. **A7** accepted (spec lane `RelD0a`); counting definition and row costs in §1.5; completeness/height parametric, soundness bound-free.
 5. `size` lane consumes `SIZE (0, ·)` (node) and `SIZE (1, ·)` (values).
 6. Producers must switch value pre-bytes from `BYTES (VPRE)` to `VBYTES (vid, …)` (`acct`
