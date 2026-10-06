@@ -221,4 +221,185 @@ theorem par_codec_count {Ps : List InstPub} {fwd : List (Nat × Nat)} (hlen : Ps
     exact ne_of_head (parBlock_head hr) (by simp [parCodec]) (by have := List.mem_range.1 hmem; omega)
       (by omega) hne
 
+theorem codec_mem (k : Nat) (hk : k < 16) : Codec.interactions[k]! ∈ Codec.interactions := by
+  rw [List.getElem!_eq_getElem?_getD, List.getElem?_eq_getElem (by simp [Codec.interactions]; omega)]
+  exact List.getElem_mem _
+
+/-- Ownership of `SPAR`: only public segments send. -/
+structure SparOwn (AP : AirP) : Prop where
+  none : ∀ t, t < AP.tables.length → ∀ i ∈ AP.tables[t]!.interactions, i.bus = B_SPAR → i.send = false
+  pub : ∀ seg ∈ AP.pubSegs, seg.bus = B_SPAR → seg.send = true
+
+variable {AP : AirP} {pub : List Fp} {tr : Trace Fp}
+
+theorem codec_local (hH : HoldsP AP pub tr) {tc : Nat} (O : CodecValOwn AP tc) : Codec.CLocal tr tc pub := by
+  have := local_of_holdsP hH O.lt; rw [O.tab] at this; exact this
+
+theorem codec_h22 (hH : HoldsP AP pub tr) {tc : Nat} (O : CodecValOwn AP tc) : tr.height tc ≤ 2 ^ 22 :=
+  height_le hH O.lt O.tab rfl
+
+/-- The codec parameter message of a first row is `render`'s `parCodec` record of its τ. -/
+theorem first_par (hH : HoldsP AP pub tr) {tc : Nat} (O : CodecValOwn AP tc) (SO : SparOwn AP)
+    (I : PubIdx AP pub Fp.ofNat) (Ps : List InstPub) (fwd : List (Nat × Nat))
+    (hrec : I.recs B_SPAR true = (render Ps fwd).par) (hlen : Ps.length < 2013265921)
+    {f : Nat} (hf : f < tr.height tc) (hF : cv tr tc f Codec.kF = 1) :
+    cv tr tc f Codec.tau < Ps.length ∧
+      (Codec.interactions[6]!).msgVal tr tc f pub =
+        (parCodec (cv tr tc f Codec.tau) (Ps.getD (cv tr tc f Codec.tau) instD)).map Fp.ofNat := by
+  obtain ⟨-, -, -, -, m6, msg6, -⟩ := Codec.codec_first (codec_local hH O) (codec_h22 hH O) hf hF
+  have hp := recv_pub hH SO.none SO.pub O.lt hf (by rw [O.tab]; exact codec_mem 6 (by decide))
+    (by rw [Codec.i6_def]) (by rw [Codec.i6_def]) (by rw [m6]; exact Nat.one_ne_zero)
+  rw [I.count, hrec] at hp
+  have hmem := List.count_pos_iff.1 (Nat.pos_of_ne_zero hp)
+  exact par_codec_mem hlen hmem (cv_lt _ _) (by rw [msg6]; rfl) (by rw [msg6]; rfl)
+
+theorem busCount_send_zero {b : Nat}
+    (hnone : ∀ t, t < AP.tables.length → ∀ i ∈ AP.tables[t]!.interactions, i.bus = b → i.send = false)
+    (m : List Fp) : busCount AP.toAir tr pub b true m = 0 := by
+  rcases Nat.eq_zero_or_pos (busCount AP.toAir tr pub b true m) with h0 | h0
+  · exact h0
+  exfalso
+  obtain ⟨t', ht', hc⟩ := busCount_go_pos tr pub b true _ AP.tables 0
+    (by unfold busCount at h0; exact Nat.pos_iff_ne_zero.1 h0)
+  simp only [Nat.zero_add] at hc
+  obtain ⟨r', -, i', hi', hb', hs', -, -⟩ := exists_of_tableBusCount hc
+  rw [hnone t' ht' i' hi' hb'] at hs'; simp at hs'
+
+/-- **One codec block per τ.** -/
+theorem block_unique (hH : HoldsP AP pub tr) {tc : Nat} (O : CodecValOwn AP tc) (SO : SparOwn AP)
+    (I : PubIdx AP pub Fp.ofNat) (Ps : List InstPub) (fwd : List (Nat × Nat))
+    (hrec : I.recs B_SPAR true = (render Ps fwd).par) (hlen : Ps.length < 2013265921)
+    {f1 f2 : Nat} (hf1 : f1 < tr.height tc) (hF1 : cv tr tc f1 Codec.kF = 1)
+    (hf2 : f2 < tr.height tc) (hF2 : cv tr tc f2 Codec.kF = 1)
+    (hτ : cv tr tc f1 Codec.tau = cv tr tc f2 Codec.tau) : f1 = f2 := by
+  by_cases e : f1 = f2
+  · exact e
+  exfalso
+  obtain ⟨hl1, P1⟩ := first_par hH O SO I Ps fwd hrec hlen hf1 hF1
+  obtain ⟨-, P2⟩ := first_par hH O SO I Ps fwd hrec hlen hf2 hF2
+  rw [← hτ] at P2
+  generalize hMdef : (parCodec (cv tr tc f1 Codec.tau) (Ps.getD (cv tr tc f1 Codec.tau) instD)).map Fp.ofNat = M at P1 P2
+  obtain ⟨-, -, -, -, m61, -⟩ := Codec.codec_first (codec_local hH O) (codec_h22 hH O) hf1 hF1
+  obtain ⟨-, -, -, -, m62, -⟩ := Codec.codec_first (codec_local hH O) (codec_h22 hH O) hf2 hF2
+  have hin : ∀ w, (Codec.interactions[6]!).multNat tr tc w pub = 1 →
+      (Codec.interactions[6]!).msgVal tr tc w pub = M →
+      M ∈ rowTraffic Codec.interactions tr tc w pub B_SPAR false := by
+    intro w hm hmsg
+    unfold rowTraffic
+    refine List.mem_flatMap.2 ⟨Codec.interactions[6]!, codec_mem 6 (by decide), ?_⟩
+    rw [if_pos (by rw [Codec.i6_def]; exact ⟨rfl, rfl⟩), hm, hmsg]
+    simp
+  have h2 : 2 ≤ tableBusCount Codec.interactions tr tc pub B_SPAR false M := by
+    rw [tableBusCount_eq]
+    exact count_two _ M e (hin f1 m61 P1) (hin f2 m62 P2) _ List.nodup_range
+      (List.mem_range.2 hf1) (List.mem_range.2 hf2)
+  have hge := busCount_go_ge tr pub B_SPAR false M AP.tables 0 tc O.lt
+  rw [Nat.zero_add, O.tab, show Codec.table.interactions = Codec.interactions from rfl] at hge
+  have hbal := hH.balance B_SPAR M
+  rw [busCount_send_zero SO.none, pubCount_zero (s := false) (fun seg h1 h2 => by rw [SO.pub seg h1 h2]; simp) _,
+    I.count, hrec] at hbal
+  have hle := par_codec_count (fwd := fwd) hlen _ hl1
+  rw [hMdef] at hle
+  unfold busCount at hbal
+  omega
+
+/-! ## The new `0x0f` value of each instance -/
+
+theorem msg1_eq (t w : Nat) : (Codec.interactions[1]!).msgVal tr t w pub =
+    [cv tr t w Codec.tau, cv tr t w Codec.pos, cv tr t w Codec.bpost].map Fp.ofNat := by
+  rw [Codec.i1_def]
+  simp only [Interaction.msgVal, List.map_cons, List.map_nil]
+  simp only [cv, Fp.ofNat_toNat]
+  rfl
+
+theorem mult1_enc {t w : Nat} (h : (Codec.interactions[1]!).multNat tr t w pub ≠ 0) :
+    (Codec.encG).eval tr t w pub = 1 := by
+  rw [Codec.i1_def] at h
+  unfold Interaction.multNat at h
+  simp only [Interaction.multNat.go] at h
+  by_cases e : (Codec.encG).eval tr t w pub = 1
+  · exact e
+  · simp [e] at h
+
+open Classical in
+/-- Instance τ's post bytes: the encoding of its (unique) codec block, `[]` without a block. -/
+noncomputable def svOf (tr : Trace Fp) (tc τ : Nat) : List Nat :=
+  if h : ∃ f, f < tr.height tc ∧ cv tr tc f Codec.kF = 1 ∧ cv tr tc f Codec.tau = τ then
+    (List.range (37 + 24 * cv tr tc (Classical.choose h) Codec.NN)).map
+      fun i => cv tr tc (Classical.choose h + i) Codec.bpost
+  else []
+
+theorem svOf_block (hH : HoldsP AP pub tr) {tc : Nat} (O : CodecValOwn AP tc) (SO : SparOwn AP)
+    (I : PubIdx AP pub Fp.ofNat) (Ps : List InstPub) (fwd : List (Nat × Nat))
+    (hrec : I.recs B_SPAR true = (render Ps fwd).par) (hlen : Ps.length < 2013265921)
+    {f : Nat} (hf : f < tr.height tc) (hF : cv tr tc f Codec.kF = 1) :
+    svOf tr tc (cv tr tc f Codec.tau) =
+      (List.range (37 + 24 * cv tr tc f Codec.NN)).map fun i => cv tr tc (f + i) Codec.bpost := by
+  have hex : ∃ f', f' < tr.height tc ∧ cv tr tc f' Codec.kF = 1 ∧ cv tr tc f' Codec.tau = cv tr tc f Codec.tau :=
+    ⟨f, hf, hF, rfl⟩
+  unfold svOf
+  rw [dif_pos hex]
+  obtain ⟨h1, h2, h3⟩ := Classical.choose_spec hex
+  have e := block_unique hH O SO I Ps fwd hrec hlen h1 h2 hf hF h3
+  rw [e]
+
+/-- **`SchedVal`** (the trie lane's `UpsVal` interface): one byte string per instance, whose
+length is every `SPLEN` and whose bytes are every `SPOST`. -/
+theorem codec_schedVal (hH : HoldsP AP pub tr) {tc : Nat} (O : CodecValOwn AP tc) (SO : SparOwn AP)
+    (I : PubIdx AP pub Fp.ofNat) (Ps : List InstPub) (fwd : List (Nat × Nat))
+    (hrec : I.recs B_SPAR true = (render Ps fwd).par) (hlen : Ps.length < 2013265921) :
+    ∃ sv : Nat → List Nat,
+      (∀ τ, ∀ x ∈ sv τ, x < 256) ∧ (∀ τ, (sv τ).length < 2 ^ 24) ∧
+      (∀ t r (i : Interaction), t < AP.tables.length → r < tr.height t → i ∈ AP.tables[t]!.interactions →
+        i.bus = B_SPLEN → i.send = false → i.multNat tr t r pub ≠ 0 →
+        ∃ τ, i.msgVal tr t r pub = [τ, (sv τ).length].map Fp.ofNat) ∧
+      (∀ t r (i : Interaction), t < AP.tables.length → r < tr.height t → i ∈ AP.tables[t]!.interactions →
+        i.bus = B_SPOST → i.send = false → i.multNat tr t r pub ≠ 0 →
+        ∃ τ d, d < (sv τ).length ∧ i.msgVal tr t r pub = [τ, d, (sv τ).getD d 0].map Fp.ofNat) := by
+  have hL := codec_local hH O
+  have hH22 := codec_h22 hH O
+  refine ⟨svOf tr tc, ?_, ?_, ?_, ?_⟩
+  · intro τ x hx
+    unfold svOf at hx
+    split at hx
+    · rename_i h
+      obtain ⟨hf, hF, -⟩ := Classical.choose_spec h
+      obtain ⟨i, hi, rfl⟩ := List.mem_map.1 hx
+      have hi' := List.mem_range.1 hi
+      obtain ⟨P1, -⟩ := Codec.codec_post hL hH22 hf hF
+      obtain ⟨m1, -⟩ := P1 i (by omega)
+      have hrow : Classical.choose h + i < tr.height tc := by
+        obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, hlt, -⟩ := Codec.codec_block hL hH22 hf hF
+        omega
+      have he := Codec.encG_eval _ (mult1_enc (by rw [m1]; exact Nat.one_ne_zero)) hL hrow
+      exact (Codec.bytes hL hrow he).2.1
+    · simp at hx
+  · intro τ
+    unfold svOf
+    split
+    · rename_i h
+      obtain ⟨hf, hF, -⟩ := Classical.choose_spec h
+      obtain ⟨-, hN, -⟩ := Codec.codec_block hL hH22 hf hF
+      simp only [List.length_map, List.length_range]
+      omega
+    · simp
+  · intro t r i ht hr hi hb hs hm
+    obtain ⟨f, hf, hF, hmsg, -, -⟩ := codec_splen_sole hH O ht hr hi hb hs hm
+    refine ⟨cv tr tc f Codec.tau, ?_⟩
+    rw [hmsg, svOf_block hH O SO I Ps fwd hrec hlen hf hF]
+    simp
+  · intro t r i ht hr hi hb hs hm
+    obtain ⟨r', hr', hm', hmsg⟩ := codec_spost_sole hH O ht hr hi hb hs hm
+    have he := Codec.encG_eval _ (mult1_enc hm') hL hr'
+    obtain ⟨f, hfr, hF, hlt⟩ := Codec.enc_row hL hH22 hr' he
+    have hf : f < tr.height tc := by omega
+    obtain ⟨P1, -⟩ := Codec.codec_post hL hH22 hf hF
+    obtain ⟨-, hpm⟩ := P1 (r' - f) (by omega)
+    rw [show f + (r' - f) = r' by omega, msg1_eq] at hpm
+    refine ⟨cv tr tc f Codec.tau, r' - f, ?_, ?_⟩
+    · rw [svOf_block hH O SO I Ps fwd hrec hlen hf hF]; simp; omega
+    · rw [hmsg, hpm, svOf_block hH O SO I Ps fwd hrec hlen hf hF]
+      rw [List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_range (by omega)]
+      simp [show f + (r' - f) = r' by omega]
+
 end ZkFormal.NearV3.Sched

@@ -231,6 +231,14 @@ converted request (the public `SPAR` tag-1 record follows the same rule).
   received `SPLEN` is the codec's `(τ, 37 + 24·N)` from an instance's first row, with `1 ≤ N < 2^16`,
   so `L < 2^24`. **`codec_spost_sole`** shows every received `SPOST` is a codec send
   `(τ, pos, bpost)` from a row whose encoding gate is set.
+* **`codec_schedVal` (proved, `Link/CodecSV.lean`, the trie lane's `UpsVal` form):** there is
+  `sv : Nat → List Nat`, the post bytes of instance τ's codec block, with bytes `< 256`,
+  `|sv τ| < 2^24`, every received `SPLEN` = `(τ, |sv τ|)`, and every received `SPOST` =
+  `(τ, d, (sv τ)[d])` with `d < |sv τ|`. Hypotheses: `CodecValOwn`, `SparOwn` (only public
+  segments send on `SPAR`), and `PubIdx` with `recs B_SPAR true = (render Ps fwd).par`.
+  Ingredients: `codec_cover` (every active row lies in a block), `enc_row` (encoding row
+  `= f + i`, `i < L`), and **`block_unique`** (one block per τ: each first row receives the
+  single public `parCodec τ` record, so two blocks with one τ would need it twice).
 * `upsV3` hashes the post value under SHA kind `K_VUPS = 12`; the sanity hash keeps `K_SCH = 11`.
   Kind registry: 1–10 v1, 11 SCH, 12 VUPS, 13 SRC, 14 VAK, 15 and 0 reserved.
 
