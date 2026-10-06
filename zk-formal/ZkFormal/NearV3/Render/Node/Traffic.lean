@@ -79,9 +79,9 @@ theorem rows_all (vs : List NodeS3) {H : Nat} (hHR : R vs + 1 ≤ H) (b : Nat) (
 
 theorem rowN_other (c : Nat → Nat) (b : Nat) (sd : Bool) (h1 : b ≠ B_BYTES) (h2 : b ≠ B_DIGEST) (h3 : b ≠ B_PARENT)
     (h4 : b ≠ B_VPARENT) (h5 : b ≠ B_EDGE) (h6 : b ≠ B_BMAP) (h7 : b ≠ B_DIGS) (h8 : b ≠ B_DUP) (h9 : b ≠ B_ENT)
-    (h10 : b ≠ B_SIZE) : rowN c b sd = [] := by
-  simp [rowN, Ne.symm h1, Ne.symm h2, Ne.symm h3, Ne.symm h4, Ne.symm h5, Ne.symm h6, Ne.symm h7, Ne.symm h8,
-    Ne.symm h9, Ne.symm h10]
+    (h10 : b ≠ B_SIZE) (h11 : b ≠ B_UPB) : rowN c b sd = [] := by
+  simp [rowN, rowN0, rowNU, Ne.symm h1, Ne.symm h2, Ne.symm h3, Ne.symm h4, Ne.symm h5, Ne.symm h6, Ne.symm h7, Ne.symm h8,
+    Ne.symm h9, Ne.symm h10, Ne.symm h11]
 
 /-- Sends of the records, per bus. -/
 theorem sends_perm {vs : List NodeS3} (ok : NodeOk vs) (b : Nat) :
@@ -96,7 +96,7 @@ theorem sends_perm {vs : List NodeS3} (ok : NodeOk vs) (b : Nat) :
   by_cases hS : b = B_SIZE
   · subst hS
     rw [flatMap_nil' (fun n hn => rec_sizeS ok (List.mem_range.1 hn))]
-    simp [nodeSends3, B_SIZE, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT, total_eq]
+    simp [nodeSends3, B_SIZE, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT, B_UPB, total_eq]
   rw [if_neg (fun h => hS h.1), List.append_nil]
   by_cases h1 : b = B_BYTES
   · subst h1; simp only [nodeSends3, if_true]
@@ -122,12 +122,16 @@ theorem sends_perm {vs : List NodeS3} (ok : NodeOk vs) (b : Nat) :
   · subst h7; simp only [nodeSends3, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT,
       Nat.reduceEqDiff, if_true, if_false]
     exact R' (fun n hn => perm_eq_r (List.Perm.refl _) (rec_entS ok hn)) (fun n => rfl)
+  by_cases hU : b = B_UPB
+  · subst hU; simp only [nodeSends3, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT, B_SIZE, B_UPB,
+      Nat.reduceEqDiff, if_true, if_false]
+    exact R' (fun n hn => perm_eq_r (List.Perm.refl _) (rec_upb ok hn true)) (fun n => rfl)
   rw [flatMap_nil' (fun n _ => show recN vs n b _ = [] from flatMap_nil' (fun p _ => by
     rcases (show b = B_DIGEST ∨ b = B_DUP ∨ (b ≠ B_DIGEST ∧ b ≠ B_DUP) by omega) with h | h | ⟨h8, h9⟩
-    · subst h; simp [rowN, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP, B_ENT, B_SIZE]
-    · subst h; simp [rowN, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP, B_ENT, B_SIZE]
-    · exact rowN_other _ _ _ h1 h8 h2 h3 h4 h5 h6 h9 h7 hS))]
-  simp [nodeSends3, h1, h2, h3, h4, h5, h6, h7, hS]
+    · subst h; simp [rowN, rowN0, rowNU, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP, B_ENT, B_SIZE, B_UPB]
+    · subst h; simp [rowN, rowN0, rowNU, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP, B_ENT, B_SIZE, B_UPB]
+    · exact rowN_other _ _ _ h1 h8 h2 h3 h4 h5 h6 h9 h7 hS hU))]
+  simp [nodeSends3, h1, h2, h3, h4, h5, h6, h7, hS, hU]
 
 /-- Receives of the records, per bus. -/
 theorem recvs_perm {vs : List NodeS3} (ok : NodeOk vs) (b : Nat) :
@@ -162,13 +166,17 @@ theorem recvs_perm {vs : List NodeS3} (ok : NodeOk vs) (b : Nat) :
   · subst h6; simp only [nodeRecvs3, B_DIGEST, B_PARENT, B_EDGE, B_BMAP, B_DUP, B_ENT, Nat.reduceEqDiff, if_true,
       if_false]
     exact R' (fun n hn => perm_eq_r (List.Perm.refl _) (rec_entR ok hn)) (fun n => rfl)
+  by_cases hU : b = B_UPB
+  · subst hU; simp only [nodeRecvs3, B_DIGEST, B_PARENT, B_EDGE, B_BMAP, B_DUP, B_ENT, B_UPB, Nat.reduceEqDiff,
+      if_true, if_false]
+    exact R' (fun n hn => perm_eq_r (List.Perm.refl _) (rec_upb ok hn false)) (fun n => rfl)
   rw [flatMap_nil' (fun n _ => show recN vs n b _ = [] from flatMap_nil' (fun p _ => by
     rcases (show b = B_BYTES ∨ b = B_VPARENT ∨ b = B_DIGS ∨ b = B_SIZE ∨
         (b ≠ B_BYTES ∧ b ≠ B_VPARENT ∧ b ≠ B_DIGS ∧ b ≠ B_SIZE) by omega) with h | h | h | h | ⟨h7, h8, h9, h10⟩
-    all_goals try (subst h; simp [rowN, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP,
-      B_ENT, B_SIZE])
-    exact rowN_other _ _ _ h7 h1 h2 h8 h3 h4 h9 h5 h6 h10))]
-  simp [nodeRecvs3, h1, h2, h3, h4, h5, h6]
+    all_goals try (subst h; simp [rowN, rowN0, rowNU, B_DIGEST, B_BYTES, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_DUP,
+      B_ENT, B_SIZE, B_UPB])
+    exact rowN_other _ _ _ h7 h1 h2 h8 h3 h4 h9 h5 h6 h10 hU))]
+  simp [nodeRecvs3, h1, h2, h3, h4, h5, h6, hU]
 
 end NodeGen3
 

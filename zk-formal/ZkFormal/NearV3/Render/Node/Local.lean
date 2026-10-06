@@ -44,7 +44,7 @@ theorem res_node {vs : List NodeS3} (ok : NodeOk vs) {n : Nat} (hn : n < vs.leng
   have h := ok.wf.res n hn
   rw [← rec_eq hn] at h
   generalize rec vs n = s at h ⊢
-  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE⟩ := s
+  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ := s
   simp only [NodeS3.resOk] at h ⊢
   cases v with
   | leaf => simpa [resOf, eextOf, isExt] using h
@@ -126,7 +126,7 @@ theorem node_render_local (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp) (
   refine ⟨?_, ?_, ?_, ?_⟩
   · rw [hlog]; exact one_le_logOf _
   · rw [hlog]; exact logOf_le (by decide) (by rw [R_eq hok]; exact hok.rows)
-  · exact constr_of rfl hcell (constraints_ok hok hHR)
+  · exact constr_of rfl (fun q col hq hcol => hcell q col hq (by unfold NodeV3.width; omega)) (constraints_ok hok hHR)
   · intro q hq it hi bb hbb
     have hc : ∀ col, (col = 0 ∨ col = 1 ∨ col = 142 ∨ col = 144 ∨ col = 145 ∨ col = 160 ∨ col = 143 ∨ col = 181 ∨
         col = 183 ∨ col = 184 ∨ col = 170 ∨ col = 171 ∨ col = 3) →
@@ -151,11 +151,12 @@ theorem node_render_local (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp) (
       · rw [h]; left; grind
       · rw [h1, h2]; right; decide
     simp only [NodeV3.table, NodeV3.interactions, send, recv, List.mem_cons, List.not_mem_nil, or_false] at hi
-    rcases hi with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    rcases hi with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
       simp only [List.mem_singleton] at hbb <;> subst hbb
     all_goals first
       | exact hvs
       | exact hc _ (by simp [NodeV3.act, NodeV3.nf, NodeV3.gD, NodeV3.gP, NodeV3.gV, NodeV3.gA, NodeV3.gB,
           NodeV3.gS, NodeV3.gDp, NodeV3.gBm, NodeV3.hd, NodeV3.dup, NodeV3.sumr])
+      | exact hc 0 (Or.inl rfl)
 
 end ZkFormal.NearV3.Render

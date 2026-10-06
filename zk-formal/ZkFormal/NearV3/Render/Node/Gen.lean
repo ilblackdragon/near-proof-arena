@@ -25,19 +25,6 @@ namespace ZkFormal.NearV3.Render
 open ZkFormal.Near ZkFormal.Near.Render ZkFormal.Algebra
 open ZkFormal.Near.Render.NodeGen (F Win layout bitOf b2n)
 
-/-- Honest input of `nodeV3`. -/
-structure NodeOk (vs : List NodeS3) : Prop where
-  wf : NodeWf3 vs
-  pos : 0 < vs.length
-  depth : ∀ s ∈ vs, s.depth < 400
-  /-- key lengths (`hplen < 256`) -/
-  keys : ∀ s ∈ vs, ∀ k memB, (∃ v, s.v = .leaf k v memB) ∨ (∃ kid, s.v = .ext k kid memB) → k.length < 510
-  /-- the length bytes of revealed values are bytes -/
-  lenB : ∀ s ∈ vs, ∀ lenB i l pre po w, (∃ k m, s.v = .leaf k (.val lenB i l pre po w) m) ∨
-      (∃ kids m, s.v = .branch (some (.val lenB i l pre po w)) kids m) → ∀ x ∈ lenB, x < 256
-  /-- rows (plus the `SUM` row) -/
-  rows : (vs.map fun s => (s.v.ser false).length).sum + 1 ≤ 2 ^ 22
-
 namespace NodeGen3
 
 /-! ## Record data -/
@@ -163,6 +150,10 @@ def mkR (vs : List NodeS3) (n p : Nat) : NRec :=
 def nodeRecs (vs : List NodeS3) (n : Nat) : List NRec := (List.range (layN vs n).length).map (mkR vs n)
 
 def recsOf (vs : List NodeS3) : List NRec := (List.range vs.length).flatMap (nodeRecs vs)
+
+/-- The generator's `cid` column at byte `p` of record `n` (the `UPB` child id). -/
+def cidAt (vs : List NodeS3) (n p : Nat) : Nat :=
+  match ((layN vs n).getD p default).1.chw with | some w => w.cid | none => 0
 
 /-- Non-duplicate bytes before record `n`. -/
 def szBefore (vs : List NodeS3) (n : Nat) : Nat :=
@@ -331,6 +322,7 @@ def rowCell (vs : List NodeS3) (r : NRec) (col : Nat) : Nat :=
     | 183 => (match digOf v r with | some (_, _, true) => 1 | _ => 0) +
         (match digOf v r with | some (_, _, false) => b2n (twOf v) | _ => 0)
     | 184 => b2n (r.f.isBm ∧ r.idx = 0)
+    | 185 => s.mU.getD r.pos 0
     | _ => 0
 
 /-- Cells of the `SUM` row. -/
@@ -351,6 +343,23 @@ def cell (vs : List NodeS3) (_H q col : Nat) : Nat :=
   else padCell (total vs) col
 
 end NodeGen3
+
+/-- Honest input of `nodeV3`. -/
+structure NodeOk (vs : List NodeS3) : Prop where
+  wf : NodeWf3 vs
+  pos : 0 < vs.length
+  depth : ∀ s ∈ vs, s.depth < 400
+  /-- key lengths (`hplen < 256`) -/
+  keys : ∀ s ∈ vs, ∀ k memB, (∃ v, s.v = .leaf k v memB) ∨ (∃ kid, s.v = .ext k kid memB) → k.length < 510
+  /-- the length bytes of revealed values are bytes -/
+  lenB : ∀ s ∈ vs, ∀ lenB i l pre po w, (∃ k m, s.v = .leaf k (.val lenB i l pre po w) m) ∨
+      (∃ kids m, s.v = .branch (some (.val lenB i l pre po w)) kids m) → ∀ x ∈ lenB, x < 256
+  /-- rows (plus the `SUM` row) -/
+  rows : (vs.map fun s => (s.v.ser false).length).sum + 1 ≤ 2 ^ 22
+  /-- the `UPB` child ids are the generator's `cid` column (window child, else `0`):
+  `ucid[p] = cidAt vs n p` -/
+  ucid : ∀ n, n < vs.length → ∀ p, p < ((vs.getD n default).v.ser false).length →
+    (vs.getD n default).ucid.getD p 0 = NodeGen3.cidAt vs n p
 
 /-- The honest `nodeV3` rows. -/
 def nodeRows (vs : List NodeS3) : Array Row :=

@@ -62,10 +62,10 @@ theorem rec_bm {vs : List NodeS3} (ok : NodeOk vs) {n : Nat} (hn : n < vs.length
     · exact rowN_bmS ok hn)]
   generalize (if sd then 0 else (rec vs n).ubm) = u
   generalize rec vs n = s
-  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE⟩ := s
+  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ := s
   have hz : ∀ (fs : List F), (∀ f ∈ fs, f ≠ .bm) →
       (fs.flatMap fun f => (List.range (f.len (hplenOf v))).flatMap fun i =>
-        gBm n ⟨v, tau, d, res, uses, ubm, dup, hd, repE⟩ u (f, i)) = [] := by
+        gBm n ⟨v, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ u (f, i)) = [] := by
     intro fs h
     apply ZkFormal.Near.Render.flatMap_nil'; intro f hf
     apply ZkFormal.Near.Render.flatMap_nil'; intro i _
@@ -77,7 +77,7 @@ theorem rec_bm {vs : List NodeS3} (ok : NodeOk vs) {n : Nat} (hn : n < vs.length
     rw [hz _ (by simp [fieldsOf])]; simp [tgtBm, NodeV3.bmap]
   | branch sv kids m =>
     have hw : (branchWins kids).flatMap (fun f => (List.range (f.len 0)).flatMap fun i =>
-        gBm n ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE⟩ u (f, i)) = [] :=
+        gBm n ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ u (f, i)) = [] :=
       ZkFormal.Near.Render.flatMap_nil' (fun f hf => by
         obtain ⟨_, _, _, _, _, _, rfl⟩ := mem_branchWins hf; simp [gBm])
     cases sv with

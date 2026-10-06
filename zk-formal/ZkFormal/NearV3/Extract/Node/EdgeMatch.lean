@@ -14,7 +14,8 @@ def rowEdgesN (tr : Trace Fp) (pub : List Fp) (s ℓ : Nat) : List (Msg × Nat) 
 def nodeSOf (tr : Trace Fp) (pub : List Fp) (s ℓ : Nat) : NodeS3 :=
   ⟨nodeVOf tr s, cv tr T_NODE s tau, cv tr T_NODE s depth, cv tr T_NODE s res,
     (canonE (rowEdgesN tr pub s ℓ)).map (·.2), cv tr T_NODE (s + brOff tr s) mBm,
-    decide (cv tr T_NODE s dup = 1), decide (cv tr T_NODE s hd = 1), cv tr T_NODE s repE⟩
+    decide (cv tr T_NODE s dup = 1), decide (cv tr T_NODE s hd = 1), cv tr T_NODE s repE,
+    rowsB tr cid s ℓ, rowsB tr NodeV3.mU s ℓ⟩
 
 theorem keyPairs_getD (tr : Trace Fp) (s d : Nat) (hd : d < cv tr T_NODE s hplen - 1) :
     (keyPairs tr s).getD d (0, 0) = (hiN tr (s + 6 + d), loN tr (s + 6 + d)) := by

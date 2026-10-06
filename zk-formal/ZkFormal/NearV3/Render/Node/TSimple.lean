@@ -15,8 +15,8 @@ open ZkFormal.Near.Render.NodeGen (F Win layout bitOf b2n)
 namespace NodeGen3
 
 /-- `rowN` keeps exactly the pieces of bus `b`, side `sd`. -/
-macro "rown_simp" : tactic => `(tactic| simp only [rowN, B_BYTES, B_DIGEST, B_PARENT, B_VPARENT, B_EDGE, B_BMAP,
-  B_DIGS, B_DUP, B_ENT, B_SIZE, Nat.reduceEqDiff, true_and, and_true, false_and, and_false, ite_true, ite_false,
+macro "rown_simp" : tactic => `(tactic| simp only [rowN, rowN0, rowNU, B_BYTES, B_DIGEST, B_PARENT, B_VPARENT, B_EDGE, B_BMAP,
+  B_DIGS, B_DUP, B_ENT, B_SIZE, B_UPB, Nat.reduceEqDiff, true_and, and_true, false_and, and_false, ite_true, ite_false,
   List.nil_append, List.append_nil, Bool.false_eq_true, Bool.true_eq_false, decide_true, decide_false])
 
 section
@@ -44,6 +44,11 @@ theorem rowN_entR : rowN (rowCell vs (mkR vs n p)) B_ENT false =
 
 theorem rowN_sizeS : rowN (rowCell vs (mkR vs n p)) B_SIZE true = [] := by
   rown_simp; simp [Rc.c3, gt]
+
+theorem rowN_upb (sd : Bool) : rowN (rowCell vs (mkR vs n p)) B_UPB sd =
+    [[msgId K_NPOST n, p, ((rec vs n).v.ser true).getD p 0, ((rec vs n).v.ser false).length, (rec vs n).depth,
+      cidAt vs n p, if sd then 0 else (rec vs n).mU.getD p 0]] := by
+  cases sd <;> (rown_simp; simp [Rc.c0, Rc.c4, Rc.c5, Rc.c9, Rc.c6, Rc.c7, Rc.c137, Rc.c185, mkR, gt, cidAt]; try rfl)
 
 end
 
@@ -95,6 +100,13 @@ theorem rec_entR : recN vs n B_ENT false = if (rec vs n).dup then
 
 theorem rec_sizeS : recN vs n B_SIZE true = [] := by
   simp [recN, rowN_sizeS]
+
+theorem rec_upb (sd : Bool) :
+    recN vs n B_UPB sd = upbOf n (rec vs n) (fun p => if sd then 0 else (rec vs n).mU.getD p 0) := by
+  simp only [recN, rowN_upb, upbOf, ← len_eq ok hn]
+  rw [← List.map_eq_flatMap]
+  apply List.map_congr_left; intro p hp; rw [List.mem_range] at hp
+  rw [show (rec vs n).ucid.getD p 0 = cidAt vs n p from ok.ucid n hn p hp]
 
 end
 

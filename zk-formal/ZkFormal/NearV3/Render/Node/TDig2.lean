@@ -117,8 +117,8 @@ theorem kidrev {β : Type} (kids : List NKid) (g : Nat × Nat × Nat × List Nat
   | cons k kids ih => cases k <;> simp [List.filterMap_cons, ih]
 
 theorem tgtPar_branch (sv : Option NSlot3) (kids : List NKid) (m : List Nat) (tau d res : Nat) (uses : List Nat)
-    (ubm : Nat) (dup hd : Bool) (repE : Nat) :
-    tgtPar ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE⟩ =
+    (ubm : Nat) (dup hd : Bool) (repE : Nat) (ucid mU : List Nat) :
+    tgtPar ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ =
       kids.flatMap (fun k => match k with | .node c l r pre po => [[c, tau, d + 1, l, r]] | _ => []) := by
   simp only [tgtPar, NodeV3.revealed]
   induction kids with
@@ -130,9 +130,9 @@ theorem rec_parS {vs : List NodeS3} (ok : NodeOk vs) {n : Nat} (hn : n < vs.leng
   rw [recN_lay ok hn B_PARENT true (gPar (rec vs n)) (fun p _ => by rw [rowN_parS]; rfl)]
   have hw := rwf ok hn
   generalize rec vs n = s at hw ⊢
-  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE⟩ := s
+  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ := s
   simp only at hw ⊢
-  rw [ZkFormal.Near.Render.flatMap_congr' (fun f _ => range0 (fun i => gPar ⟨v, tau, d, res, uses, ubm, dup, hd, repE⟩ (f, i)) _
+  rw [ZkFormal.Near.Render.flatMap_congr' (fun f _ => range0 (fun i => gPar ⟨v, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ (f, i)) _
     (fun i hi => by cases f <;> simp [gPar, hi]) (by cases f <;> first | (left; simp [F.len]; done) | (right; simp [gPar])))]
   cases v with
   | leaf k sv m => simp [fieldsOf, gPar, NodeV3.revealed, tgtPar]
@@ -140,9 +140,9 @@ theorem rec_parS {vs : List NodeS3} (ok : NodeOk vs) {n : Nat} (hn : n < vs.leng
   | branch sv kids m =>
     have hwin := wins_flat kids (fun k => match k with
         | .node c l r pre po => [[c, tau, d + 1, l, r]] | _ => [])
-      (fun w => gPar ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE⟩ (.ch w, 0))
+      (fun w => gPar ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ (.ch w, 0))
       (fun k w l s => by cases k <;> simp [gPar, kidWin]) rfl
-    have hw2 : (branchWins kids).flatMap (fun f => gPar ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE⟩ (f, 0)) =
+    have hw2 : (branchWins kids).flatMap (fun f => gPar ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ (f, 0)) =
         kids.flatMap (fun k => match k with | .node c l r pre po => [[c, tau, d + 1, l, r]] | _ => []) :=
       Eq.trans (ZkFormal.Near.Render.flatMap_congr' (fun f hf => by
           obtain ⟨_, _, _, _, _, _, rfl⟩ := mem_branchWins hf; rfl)) hwin
@@ -188,8 +188,8 @@ namespace NodeGen3
   induction l <;> simp_all
 
 theorem tgtDigs_branch (sv : Option NSlot3) (kids : List NKid) (m : List Nat) (tau d res : Nat) (uses : List Nat)
-    (ubm : Nat) (dup hd : Bool) (repE : Nat) :
-    tgtDigs ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE⟩ =
+    (ubm : Nat) (dup hd : Bool) (repE : Nat) (ucid mU : List Nat) :
+    tgtDigs ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ =
       kids.flatMap (fun k => match k with
         | .node c l r pre po => (List.range 32).map fun i => [msgId K_NPRE c, tau, i, pre.getD i 0] | _ => []) ++
       (match (NodeV3.branch sv kids m).value with
@@ -216,7 +216,7 @@ theorem rec_digsS {vs : List NodeS3} (ok : NodeOk vs) {n : Nat} (hn : n < vs.len
   rw [recN_lay ok hn B_DIGS true (gDigs (rec vs n)) (fun p hp => rowN_digsS ok hn hp)]
   have hw := rwf ok hn
   generalize rec vs n = s at hw ⊢
-  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE⟩ := s
+  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ := s
   simp only at hw ⊢
   cases v with
   | leaf k sv m =>
@@ -229,10 +229,10 @@ theorem rec_digsS {vs : List NodeS3} (ok : NodeOk vs) {n : Nat} (hn : n < vs.len
     rw [tgtDigs_branch]
     have hwin := wins_flat kids (fun k => match k with
         | .node c l r pre po => (List.range 32).map fun i => [msgId K_NPRE c, tau, i, pre.getD i 0] | _ => [])
-      (fun w => (List.range 32).flatMap fun i => gDigs ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE⟩ (.ch w, i))
+      (fun w => (List.range 32).flatMap fun i => gDigs ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ (.ch w, i))
       (fun k w l s => by rw [gDigs_ch]; cases k <;> simp [kidWin]) rfl
     have hw2 : (branchWins kids).flatMap (fun f => (List.range (f.len 0)).flatMap fun i =>
-        gDigs ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE⟩ (f, i)) =
+        gDigs ⟨.branch sv kids m, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ (f, i)) =
         kids.flatMap (fun k => match k with
           | .node c l r pre po => (List.range 32).map fun i => [msgId K_NPRE c, tau, i, pre.getD i 0] | _ => []) :=
       Eq.trans (ZkFormal.Near.Render.flatMap_congr' (fun f hf => by

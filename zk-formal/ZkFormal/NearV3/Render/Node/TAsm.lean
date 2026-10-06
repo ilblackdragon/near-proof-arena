@@ -52,14 +52,14 @@ theorem gt_zero (m : ZkFormal.Near.Msg) : gt 0 m = [] := rfl
 theorem gt_one (m : ZkFormal.Near.Msg) : gt 1 m = [m] := rfl
 
 theorem rowN_pad (vs : List NodeS3) (b : Nat) (sd : Bool) : rowN (padCell (total vs)) b sd = [] := by
-  simp [rowN, padCell, gt]
+  simp [rowN, rowN0, rowNU, padCell, gt]
 
 theorem rowN_sum (vs : List NodeS3) (b : Nat) (sd : Bool) :
     rowN (sumCell (total vs)) b sd = if b = B_SIZE ∧ sd = true then [[0, total vs]] else [] := by
   by_cases h : b = B_SIZE ∧ sd = true
-  · obtain ⟨rfl, rfl⟩ := h; simp [rowN, sumCell, gt, B_SIZE, B_BYTES, B_DIGEST, B_PARENT, B_VPARENT, B_EDGE,
-      B_BMAP, B_DIGS, B_DUP, B_ENT]
-  · rw [if_neg h]; simp only [rowN, sumCell, gt]
+  · obtain ⟨rfl, rfl⟩ := h; simp [rowN, rowN0, rowNU, sumCell, gt, B_SIZE, B_BYTES, B_DIGEST, B_PARENT, B_VPARENT, B_EDGE,
+      B_BMAP, B_DIGS, B_DUP, B_ENT, B_UPB]
+  · rw [if_neg h]; simp only [rowN, rowN0, rowNU, sumCell, gt]
     simp only [Nat.reduceEqDiff, ite_false, ite_true]
     by_cases h2 : B_SIZE = b ∧ true = sd
     · exact absurd ⟨h2.1.symm, h2.2.symm⟩ h

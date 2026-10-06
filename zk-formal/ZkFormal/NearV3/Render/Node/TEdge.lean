@@ -115,7 +115,7 @@ theorem gE_hpf (hw : (rec vs n).v.wf) (hle : isLE (rec vs n).v = true) :
   have hh := NodeLay.hp_head (keyOf (rec vs n).v) (isLeaf (rec vs n).v) hnib
   simp only [gE, ePairs, edgeAOf, edgeBOf, fbytes, NodeLay.hpf_byte, hh, Option.toList, List.append_nil]
   generalize rec vs n = s at *
-  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE⟩ := s
+  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ := s
   simp only at hnib hh hle ⊢
   cases v with
   | branch => simp [isLE] at hle
@@ -165,7 +165,7 @@ theorem gE_key (vs : List NodeS3) (n : Nat) (hw : (rec vs n).v.wf) (hle : isLE (
   have ht := NodeLay.hp_tail (keyOf (rec vs n).v) (isLeaf (rec vs n).v) hnib m hm
   simp only [gE, ePairs, edgeAOf, edgeBOf, fbytes, NodeLay.key_byte, ht, Option.toList, List.singleton_append]
   generalize rec vs n = s at *
-  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE⟩ := s
+  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ := s
   simp only at hnib ht hle hm ⊢
   have hodd : oddOf v = (keyOf v).length % 2 := by simp [oddOf, hle]
   rw [hodd]

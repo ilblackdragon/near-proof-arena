@@ -9,6 +9,11 @@ import ZkFormal.NearV3.Tables.NodeUpb
 (`W_eq = width + 8·aux + 8·quot`, `Near.Budget.weqTable`).  `trieTablesU` is lane `v3-trie`'s
 table list after M7: `nodeV3` with the delta (`NodeV3.tableU`), `headV3`, `valV3`, `walkV3`,
 `uniqV3`, `upsV3`.
+
+M7c: `upsV3` with the pass-through mode (empty-key extensions on the `[0,15]` path), the
+`UPB` child-id field and the id packing `512τ + j` (+10 columns: `dep0‥2`, `kPT`, `up`, `rc`,
+`pdep`, `cN`, `rcid`, `rdc`); the `nodeV3` delta is unchanged in size (`cid` is an existing
+column).
 -/
 
 namespace ZkFormal.NearV3.Budget
@@ -23,13 +28,13 @@ def trieTablesU : List ZkFormal.Air.Table :=
 
 def weqTrieU (g : Nat) : Nat := (trieTablesU.map (weqTable g)).sum
 
-theorem ups_g1 : row6 1 UpsV3.table = (176, 15, 15, 4, 320, 22) := by decide +kernel
-theorem ups_g3 : row6 3 UpsV3.table = (176, 15, 6, 8, 280, 22) := by decide +kernel
+theorem ups_g1 : row6 1 UpsV3.table = (186, 15, 15, 4, 330, 22) := by decide +kernel
+theorem ups_g3 : row6 3 UpsV3.table = (186, 15, 6, 8, 290, 22) := by decide +kernel
 
 theorem nodeU_g1 : row6 1 NodeV3.tableU = (186, 20, 20, 4, 370, 22) := by decide +kernel
 theorem nodeU_g3 : row6 3 NodeV3.tableU = (186, 20, 7, 8, 298, 22) := by decide +kernel
 
-theorem weqTrieU_g1 : weqTrieU 1 = 1175 := by decide +kernel
-theorem weqTrieU_g3 : weqTrieU 3 = 1063 := by decide +kernel
+theorem weqTrieU_g1 : weqTrieU 1 = 1185 := by decide +kernel
+theorem weqTrieU_g3 : weqTrieU 3 = 1073 := by decide +kernel
 
 end ZkFormal.NearV3.Budget
