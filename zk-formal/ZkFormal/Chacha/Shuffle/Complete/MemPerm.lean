@@ -302,7 +302,7 @@ end
 
 /-! ## The whole table -/
 
-theorem instRows_flatMap {f : Row → List (List Nat)} (I : SInst) (s : Nat) :
+theorem instRows_flatMap {β : Type} {f : Row → List β} (I : SInst) (s : Nat) :
     (instRows I s).flatMap f = (List.range I.L).flatMap (fun e => f (.pos I s (I.L - 1 - e))) := by
   unfold instRows; rw [List.flatMap_map]
 
