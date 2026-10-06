@@ -1,0 +1,73 @@
+# Lane `lane/v3-sched`: the bandwidth scheduler's state-dependent core in the AIR (np-udr-stark-v2)
+
+Design: `V3-D0-DESIGN.md` §10–§11 (round-2 decision (c): under the 8 MiB formal cap the
+scheduler's state-dependent core is in-AIR; its claim-only inputs are computed natively and
+published). Target: `NearSpecV3.Scheduler.runCore` (`spec/lean/v3/NearSpecV3/PrepD0.lean`;
+`run_eq_core : run = pubOf.bind runCore`). Lean: `zk-formal/ZkFormal/NearV3/Sched/`.
+v1 and every existing v2/v3 definition are untouched; `spec/lean/v3` is not edited.
+
+Rules: no `sorry` / `axiom` / `native_decide`; axioms ⊆ {propext, Classical.choice, Quot.sound}.
+
+## 0. Plan and milestones
+
+| # | milestone | content | state |
+|---|---|---|---|
+| M0 | design | tables, buses, message formats, public data, amendments needed, `W_eq` estimate (§2–§4) | **done (v0)** |
+| M1 | spec-side refinement | `runCore` decomposed into the AIR's phases, each **proved** equal to the spec: link pass (increase + base grants in closed form), conversion by set bits, process loop as *rounds with a push log*, distribute without breaks on a sorted grid, encoding; executable event model `coreEv` tested on the 600 vectors | in progress |
+| M2 | tables | `Table` values for every table of §3, kernel-checked budget (`W_eq` per table), honest generator, constraint evaluator + bus-balance tests on the 600 vectors, mutants | open |
+| M3 | soundness | per table: `…Local → ∃ v, Wf v ∧ Traffic …` (L5 style), bus contracts (comparator, memory, scan, codec), link lemma: `schedCore_sound` | open |
+| M4 | completeness | honest traces satisfy every constraint, traffic = expected lists; `schedCore_complete`; height bounds | open |
+| M5 | integration | message formats agreed with `v3-trie` (`VBYTES`, `upsV3`) and the assembly (public segments, `Prep.fwd`), cuts | open |
+
+## 1. Inputs and what is native
+
+Per applied block τ (main, then implicit oldest first), `SchedPub_τ` is claim-only (native):
+shard ids, `Params`, the link-allowed matrix, the requests (raw 5-byte bitmaps per the spec
+lane's in-progress switch; converted in-AIR), the seed `prev_block_hash`, `sha256(all_shards)`.
+In-AIR: decode of the previous `0x0f` value (canonical, Canon0f), allowances, budgets, request
+processing with the run-wide ChaCha20 RNG, distribute-remaining, the new `0x0f` value bytes and
+its sanity hash, and the grants checked against `Prep.fwd`.
+
+## 2. Spec facts the design relies on (all to be **proved** in M1)
+
+1. **Base grants never fail on budgets.** With `Params.calculate pv86 n`: `(n−1)·base ≤ MSB − MSG`,
+   so `n·base ≤ 405,696 < MSB`; and `base ≤ fair = MSB / n ≤ a1` for every link. Hence after
+   `increase_allowances` + `grant_base_bandwidth`: `a2[l] = allowed ? a1[l] − base : a1[l]`,
+   `granted = allowed·base`, budgets `MSB − base·#allowed(row / column)` — budgets are claim-only.
+2. **Increases are set-bit differences.** `requestValues` is strictly increasing and `> base`, so
+   `increases` = `[v[c₁] − base, v[c₂] − v[c₁], …]` over the set bits `c₁ < c₂ < …`.
+3. **Process loop = rounds with strictly decreasing keys.** Invariant `allowance[q.link] ≤ key`
+   for every queued request; a re-push goes to a key `< k` unless `k = 0`. So popped keys strictly
+   decrease, then (possibly) repeated `0` rounds; a round's bucket = all pushes targeted at it
+   (`(key, z)`, `z` = 0-round ordinal) in push-time order.
+4. **Distribute never breaks** (`links_num` counts exactly the allowed links still to visit), so
+   every allowed link `(s, r)` in sorted order gets `min(⌊SL/SN⌋, ⌊RL/RN⌋)`.
+5. **Canonical prev** (Canon0f) with distinct shard ids: `allow0[l] = a_l` (record `l`).
+
+## 3. Tables (v0; `W_eq` = width + 8·interactions + 8·(degree − 1), g = 1)
+
+| table | rows | role |
+|---|---|---|
+| `schV3` codec + link | one per byte of the `0x0f` encoding (pre and post in lockstep), + 32 hash rows per τ | pre bytes → `VBYTES`, post bytes → `upsV3`; id bytes via public + delay line; sanity hash via SHA; per link: `a1 = min(a0+fair, MA)`, `a2`, memory init/final, grants vs `fwd` |
+| `sscV3` scan | 20 per request (2 bitmap bits per row) | set bits → increases `INC(τ, v=rid·64+j, inc, last, s, r)`; initial push |
+| `sprV3` process | one per processed request-step | bucket entries (push log, ts order), shuffle in/out/header, `INC`, 3 memory ops, re-push |
+| `smmV3` memory | one per access | address-sorted segments: init, ops in time order, final |
+| `scpV3` comparator | one per comparison | `(x, y, [x ≥ y])`, 24-bit |
+| `sdsV3` distribute | per τ: 2n sorted shard rows + n² grid cells | sorted orders (key `avg·64 + idx` strictly increasing), grid with receiver delay line |
+| `chachaV3`/`genV3`/`shufV3` | lane v3-chacha | one instance set for the scheduler |
+
+Estimated `W_eq` ≈ 690 (codec ≈ 170, scan ≈ 80, process ≈ 125, memory ≈ 70, comparator ≈ 60,
+distribute ≈ 185), to be replaced by kernel-checked numbers in M2.
+
+## 4. Requests to other lanes
+
+* **Spec (proposed amendments, claim-decidable):**
+  * *layout ids distinct* (`c.layout`): every real layout; without it `allow0` needs a duplicate
+    map (one more bus).
+  * *A8 `c.bw_requests`*: every sender's request list has at most `n` entries (nearcore: one per
+    receiver). Without a claim-side bound, `Σ_τ R_τ` is bounded only by the 1 MiB claim and
+    header sharing across blocks (up to 32 × 150 k requests) — beyond any table height.
+* **Trie (`v3-trie`):** the pre value reaches `valV3` as `VBYTES (vid, pos, b)` sent by `schV3`;
+  `schV3` needs `(τ, present, vid)` for the `0x0f` read of instance τ (bus `S0F`); the post value
+  leaves as `SPOST (τ, pos, b)` with header `(τ, len)` for `upsV3`.
+* **Assembly:** public segments (§5), `Prep.fwd` as `(τ = 0, link, total)`.
