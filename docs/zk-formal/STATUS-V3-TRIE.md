@@ -270,7 +270,7 @@ nibble shift by 1–3), and new `MEM` / `VLEN` values.  Options:
 Recommendation: (A) if insertion must stay in D0 (no amendment); (C) if A4 is acceptable.
 **Lead decision: A** (A4 rejected; B costs more for no gain).
 
-### 2.3.1 `upsV3` ↔ scheduler interface (proposed; lane `v3-sched` STATUS §4)
+### 2.3.1 `upsV3` ↔ scheduler interface (**agreed**: V3-D0-DESIGN §12, lead decision)
 
 Per instance `τ` there is one `0x0f` read and one `0x0f` upsert.
 
@@ -282,12 +282,11 @@ Per instance `τ` there is one `0x0f` read and one `0x0f` upsert.
     `valV3` already receives.
 * **`SPOST (τ, pos, b)`**, `pos < L` — the new value's bytes, sent by the codec and received
   by `upsV3`.
-* **`SPLEN (τ, L)`** — the new value's length, sent once per `τ` by the codec (proposed).
-  * The alternative is an end flag on the last `SPOST`.
-  * `upsV3` must not rely on `L = 37 + 24·n²` unless that is a claim-decidable fact.
+* **`SPLEN (τ, L)`** — the new value's length, sent once per `τ` by the codec (no end flag).
+  * `upsV3` does not rely on `L = 37 + 24·n²`.
 * **Bytes are canonical** (`< 256`).
 * **The post value's digest**: `upsV3` hashes the bytes itself, with `BYTES (VUPS(τ), pos,
-  b)` and kind `K_VUPS`. That digest goes into the new leaf / branch value window, and the
+  b)` and kind `K_VUPS = 12` (registry: 11 SCH, 12 VUPS, 13 SRC, 14 VAK, 15 and 0 reserved). That digest goes into the new leaf / branch value window, and the
   value length goes into `memory_usage`.
 
 ### 2.4 Walks
