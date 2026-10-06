@@ -820,3 +820,27 @@ Single SHA table, joint worst case under A1 (n = 4481, ≤ 1984 lists, path dept
 Liveness note (for the spec doc, once B0 is final): chunks whose unfolded read set lies between B0 and 3 MB move out of D0a. They become unprovable, never wrongly accepted.
 
 Lever (a), the multiproof-dedup size bound, is started as lane `v3-size`. It also reruns the full formal accounting with one SHA table.
+
+## 16. Lever (a) result: deduplicated size bound (lane v3-size, merged 6df2fc07)
+
+**Proved:** `Size.multiproof_size_le`, `Size.size32D`, `Size.sizeBoundD_le_dedup`, `Size.sizeMaxDedup_le_sched`, `Size.admission_v2_dedup`, `Size.sizeMaxDedup_eq_model`, `V3.v3_bound`.
+
+Kernel-checked numbers:
+
+| AIR | bound |
+|---|---|
+| nearAir, g = 1 | 5,473,967 → 4,134,191 |
+| v3 synthetic: 23 tables, **one** SHA table, trie / sched / rcpt shapes from their branch heads, `qvV3` not yet counted | g = 1: 7,450,143; **g = 2: 7,146,495**; g = 3: 7,193,567 |
+
+**Correction to the hint size.** A gas refund carries the signer id (≤ 64 B) and possibly a SECP256K1 key. The largest refund is therefore 289 B, and B ≤ 8 + 4481 · 289 = **1,295,017 B**, not 0.91 MB. The spec lane is to confirm.
+
+Margin against the 8 MiB cap minus B, at g = 2: **−52,904 B**. With `qvV3` (≈ +75–112 KB) it would be ≈ −150 KB.
+
+**Finding: roll-in forced commits dominate FRI.** With 23 tables the bound includes about 2.69 MB of FRI, against 1.06 MB without forced commits.
+
+Levers:
+1. **Roll-in alignment, −1.62 MB, recommended.** The honest prover pads table heights so that every roll-in lands on a regular arity-8 commit layer. The verifier and parameters are unchanged. Some `maxLog` values are raised to the next aligned value, and `multBound` and `fpBound` must be re-checked.
+2. A compact refund codec in the hint, ≈ −0.45 MB of B.
+3. Width cuts, ≈ 928 B per base column.
+
+Lever 1 alone gives a bound of ≈ 5.52 MB + 1.30 MB ≈ 6.8 MB, leaving ≈ 1.5 MB of margin even without lever (b)'s single SHA table.
