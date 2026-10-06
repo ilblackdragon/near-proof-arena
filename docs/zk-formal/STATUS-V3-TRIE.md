@@ -489,6 +489,15 @@ counted.
 
 ## 6. Open items
 
+* **Decision (cross-lane, v3-rcpt R3): `VSLOT (vid)` recv in nodeV3.** nodeV3 receives
+  `VSLOT (vid)` (bus 3, v1 format) once on every lockstep-written value window
+  (`valStart·tw`), and acctV3 sends one per account write. The balance then makes account
+  writes and `tw` windows a bijection, which discharges `hperm` (§3.2). This was chosen over a
+  `wr` field on `VPARENT`/`VBYTES`, which would need valV3 to forward the flag to acctV3.
+  Delta: one interaction, gate `(gD − gP)·tw` (degree 2, existing columns). The view gains
+  `B_VSLOT` recvs `[vid]` for written slots; the render is re-proved. Scheduled with M7c/M7d
+  (helper).
+
 0. **Fixed soundness gap (d153d30f)**: `valV3` ids had no start, so `VPRE(vid) ≡ NPRE(c) mod P` was choosable (id-space collision on BYTES/ENT/DIGEST). Now `isFirst·vid = 0`, `ValWf.first`.
 
 1. ~~`nodeV3` render~~ done (`NodeOk` adds: depth < 400, key length < 510, value length bytes < 256, rows Σ+1 ≤ 2^22 — the last is where `UnfoldBound` enters).
