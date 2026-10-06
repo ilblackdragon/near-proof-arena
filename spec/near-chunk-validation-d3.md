@@ -582,6 +582,31 @@ Not guest-visible (post-processing from a structured log suffices):
 * The `PromiseYieldIndices` read of every successful call (§4.2.1) and the yield trie reads
   (§5.3) enter the read set; the D2 single-node-drop mutants are the evidence pattern.
 
+### 10.1 As implemented (`NearSpecV3/D3/FunctionCall.lean`, RuntimeD3 rung 1)
+
+* **In domain:** FunctionCall on `None` / `Local` contracts. This covers:
+  - every non-curve host function except the state-init, global-contract and gas-key families
+    (`oodHosts`; they are D2 `w.shape` families);
+  - yields with nearcore's real External: state reads/writes through the overlay, data ids
+    `sha256(ah ‖ h ‖ n)` with the then-join counter, and timeouts enqueued on success.
+* **Code-cache dependence → out of domain (finding of the D3 corpus code mutants).** The blob of
+  the account's *pre-state* contract may be missing from the witness while the same code was
+  deployed earlier in the chunk. That deploy may have been committed or rolled back
+  (`ActCtx.attempted`, `RS.attempted`). nearcore's verdict then depends on two things:
+  - the compiled-contract cache, which `DeployContract` precompiles into and a rollback does not
+    undo;
+  - the preparation pipeline (receipts submitted before the deploy ran were prepared against a
+    cold cache).
+
+  Observed on the corpus: one honest-derived mutant was rejected (pipelined call before the deploy)
+  and one accepted (postponed call after a rolled-back deploy). `checkD3` classifies all such cases
+  `out of domain (e.wasm-α)`. A missing pre-state blob without such a deploy is nearcore's
+  `MissingTrieValue` (reject). A contract set by a deploy in this chunk is served by the deploy
+  tracker.
+* **Trie-node accounting:** a per-call cache. The chunk-scoped cache (E5) changes only the
+  gas-profile split, because `wasm_touching_trie_node = wasm_read_cached_trie_node` in gas and
+  compute at PV86.
+
 ## 11. Corrections to D2 §13
 
 D2 §13 says the D2 code "already carries the generic parts [D3] needs: input-data reads

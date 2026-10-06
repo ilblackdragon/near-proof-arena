@@ -246,7 +246,28 @@ def functionCall (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) 
     -- CodeDoesNotExist: 0 VM gas, action failure
     pure (st, ar.fail)
   | some hh =>
-  let some code := codeAvailable c st hh | throw "invalid: MissingTrieValue (contract code)"
+  -- Code (§2.2, cold-cache rule). A blob in the merged witness store always serves. Otherwise:
+  -- for the account's *pre-state* contract (nearcore's "contract access", `fc.rs:355-393`) the
+  -- verdict depends on the compiled-contract cache and the preparation pipeline (an in-chunk
+  -- deploy of the same code, even rolled back, precompiles it; pipelined receipts are prepared
+  -- before such a deploy runs): out of domain if that code was deployed in this chunk, else
+  -- nearcore's `MissingTrieValue`. A contract set by a deploy in this chunk comes from the deploy
+  -- tracker (`contract.rs:42-69`).
+  let preHash : Option Bytes := match st.o.trie.find (nibbles (kAccount c.r.recv)) with
+    | some (some raw) => match decodeAcct raw with
+      | some x => match x.contract with | .local h0 => some h0 | _ => none
+      | none => none
+    | _ => none
+  let code ← match env.codeOf hh with
+    | some code => pure code
+    | none =>
+      if preHash == some hh then
+        if (st.deploys ++ c.deployed ++ c.attempted).any (fun x => sha256 x == hh) then
+          throw (oodE "pre-state contract served only by the in-chunk compiled-contract cache")
+        else throw "invalid: MissingTrieValue (contract code)"
+      else match codeAvailable c st hh with
+        | some code => pure code
+        | none => throw "invalid: MissingTrieValue (contract code)"
   let codeB := toBA code
   if let some why := contractOOD cfg codeB then throw (oodE why)
   -- VMContext (§3)

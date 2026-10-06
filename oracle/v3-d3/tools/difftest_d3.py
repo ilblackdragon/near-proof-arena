@@ -23,16 +23,22 @@ def main():
             dirs += [os.path.join(p, d) for d in sorted(os.listdir(p))]
     if sample and sample < len(dirs):
         random.Random(1).shuffle(dirs); dirs = sorted(dirs[:sample])
-    procs = []
-    for s in range(shards):
-        part = dirs[s::shards]
-        if part:
-            procs.append(subprocess.Popen([LEAN] + part, stdout=subprocess.PIPE, text=True))
+    import tempfile
     got = {}
-    for p in procs:
-        out, _ = p.communicate()
-        for line in out.splitlines():
-            j = json.loads(line); got[j["case"]] = j
+    with tempfile.TemporaryDirectory() as td:
+        procs = []
+        for s in range(shards):
+            part = dirs[s::shards]
+            if part:
+                f = open(os.path.join(td, f"o{s}"), "w")
+                procs.append((subprocess.Popen([LEAN] + part, stdout=f, text=True), f))
+        for p, f in procs:
+            p.wait(); f.close()
+        for s in range(shards):
+            fn = os.path.join(td, f"o{s}")
+            if os.path.exists(fn):
+                for line in open(fn):
+                    j = json.loads(line); got[j["case"]] = j
     stats = collections.Counter(); bad = []
     for d in dirs:
         m = json.load(open(os.path.join(d, "meta.json")))

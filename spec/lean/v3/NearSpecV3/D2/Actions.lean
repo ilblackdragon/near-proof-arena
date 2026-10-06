@@ -76,6 +76,10 @@ structure ActCtx where
   /-- E4: codes committed by earlier receipts of this chunk (`ContractsTracker` committed
   deploys; = `RS.deployed` at the start of the receipt). -/
   deployed : List Bytes := []
+  /-- D3: codes deployed in this chunk by any earlier receipt, **committed or rolled back** (a
+  `DeployContract` precompiles into the compiled-contract cache, `actions.rs:297-341`, which a
+  rollback does not undo). D3 uses it to keep cache-dependent verdicts out of domain. -/
+  attempted : List Bytes := []
 
 structure ActionHooks where
   functionCall : ActCtx → ActSt → AR → Base → Except String (ActSt × AR)

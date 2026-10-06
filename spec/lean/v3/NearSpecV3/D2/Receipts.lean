@@ -40,11 +40,11 @@ def storageStakeOk (x : Acct) (amount : Nat) : Option Bool :=
 (`lib.rs:439-493`) and `validate_receipt(NewReceipt)` of each new receipt. `inputs` (E3) and
 `deployed` (E4) are passed to every action through `ActCtx`. -/
 def actionLoop (hooks : ActionHooks) (env : Env) (r : Rcpt) (a : ActionR)
-    (inputs : List (Option Bytes)) (deployed : List Bytes) :
+    (inputs : List (Option Bytes)) (deployed : List Bytes) (attempted : List Bytes := []) :
     Nat → List Act → ActSt × AR → Except String (ActSt × AR)
   | _, [], acc => .ok acc
   | i, act :: rest, (st, res) => do
-    let c : ActCtx := { env, r, a, idx := i, nActs := a.actions.length, inputs, deployed }
+    let c : ActCtx := { env, r, a, idx := i, nActs := a.actions.length, inputs, deployed, attempted }
     let (st, ar) ← applyAction hooks c st act
     let ar := if ar.ok && ar.newReceipts.any (fun x => !validReceipt true x) then ar.fail else ar
     -- merge (lib.rs:439-493): asserts, then gas / gas_burnt_for_function_call / gas_used / compute
@@ -59,7 +59,7 @@ def actionLoop (hooks : ActionHooks) (env : Env) (r : Rcpt) (a : ActionR)
     if ar.ok then
       let tb ← ok? (add128 res.tokensBurnt ar.tokensBurnt) (panicked "tokens_burnt overflow")
       let sub ← ok? (add128 res.subsidized ar.subsidized) (panicked "subsidized_amount overflow")
-      actionLoop hooks env r a inputs deployed (i + 1) rest
+      actionLoop hooks env r a inputs deployed attempted (i + 1) rest
         (st, { res with newReceipts := res.newReceipts ++ ar.newReceipts,
                         proposals := res.proposals ++ ar.proposals, tokensBurnt := tb,
                         subsidized := sub, ret := ar.ret.shift res.newReceipts.length })
@@ -129,7 +129,7 @@ def applyActionReceipt (hooks : ActionHooks) (env : Env) (rs : RS) (r : Rcpt) (a
                      compute := Fees.nar.execCompute, ok := true, newReceipts := [],
                      proposals := [], tokensBurnt := 0 }
   -- 3. actions
-  let (st, res) ← actionLoop hooks env r a inputs rs.deployed 0 a.actions
+  let (st, res) ← actionLoop hooks env r a inputs rs.deployed rs.attempted 0 a.actions
     ({ o := o, account := acct, actor := r.pred }, res0)
   let mut o := st.o
   let mut res := res
@@ -199,6 +199,7 @@ def applyActionReceipt (hooks : ActionHooks) (env : Env) (rs : RS) (r : Rcpt) (a
           ({ pred := r.recv, recv := recv, rid := zero32, body := .data false d data } : Rcpt))
   let rs := { rs with o := o2, otherBurnt := otherBurnt, txBurnt := txBurnt,
                       proposals := rs.proposals ++ res.proposals, deployed := deployed,
+                      attempted := rs.attempted ++ st.deploys,
                       subsidized := subsidized }
   -- 10. receipt ids, instant / forward
   let (rs, ids) ← emitReceipts env r.rid rs 0 (newRs ++ dataRs)
