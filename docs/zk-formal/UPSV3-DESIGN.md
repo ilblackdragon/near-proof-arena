@@ -440,6 +440,9 @@ Added (this round):
 | `UpsTerm` | **`mveLong`** (`MVE` keeps a non-empty key: `pf·kMVE·nokey·(1−qodd)` and the flag byte), **`esx1Len`** (`ESx1`: `|k| = I + 1` from `2·phk + podd = I + 3`, `phk` read on the first bitmap row) |
 | `UpsTermT` | **`ups_term`**: `upsert (T N_D) ([0,15].drop (t* − 1 − I)) v = some (upsQ (nT − 1))` in all eleven cases (`LP`: `VAL` edge at the leaf key's end; `BR`/`BV`/`BI`; splits via `SpbSplit` with `rowKey`, the terminal `LEND`/`KEY` edge, `mveLong`, `esx1Len`, `ups_xy`; `wexTop`: the wrapping extension is `wrapExt (k.take I)`) |
 | `UpsChain` | **step 4**: `upsE s = ⟨τ, reg(W0), reg(W3)⟩`; `ups_rootMsgs`/`ups_midMsgs`; **`ups_chain`** (`root_chain` for the real table: `RootChain hs (v.map upsE) K r0 rK`), **`ups_tauDistinct`**, `ups_tauBound` (`τ ≤ K`); **step 3, root half**: `rootLook3`, **`ups_rootDig`** (`(upsE s).post = sha256 (nodeEnc (upsQ (|ps| − 1)))`) |
+| `UpsCid` | the child-id reads of the upper parts (no AIR change): **`extCid`** (`RDE`/`PT`: on the window's first row `rd = rdc = 1`, `spos = 5 + Pb[1]` (byte 1 = `|hp|`, copied on the `HPL` row), `rcid = cN`; `fw = 1` from the `HPF`/`KEY` row before, `tgt = fw`), **`rdbCid`** (`RDB`: `c0 ∈ {3, 39}`, the `MEM` read gives `plen = c0 + 32w + 8`; for `w > 0` the read is at `c0 + 32·e*`, `e* = w − 1` for slot 15 / `0`), `rdCH` (a window row with `cp = 0`, `rdc = 1` is read) |
+| `UpsUpper` | **step 3, upper chain**: `Eoff` (key consumed above a level: `ℓ` below `D`, `t* − 1 − I` at `D`), **`ups_desc`** (each `d < D` is left on an `enter` row `i` with `d + 1 + nI = i`, landing on `N_{d+1}`, `Eoff (d+1) = i`; `Eoff 0 = 0`), `lvlOf`/**`lvl_succ`**/`lvl_top` (the level below an upper part is its `rc`; the root part's is `0`), **`ptDeep`** (below a pass-through the next non-`PT` part reads `N_rc`, strictly deeper), record facts (`serBr_len`, `filter_take15`, `extSer1`, `kidsBytes_len`), **`chStep`/`ups_ch`** (top-down from `ups_rootSrc` via `top_inv`: the head's `START` edge lands on `rres = res rid = N_0`; a `PT` record is not its own `res` (depth), so `.ext [] (.node c …)` (`resOk`) with `c = sN (k−1)` (`extCid` + `kidCidOk`), `res c = N_rc`; a descend at `N_d` takes the walk's revealed child (`stepRow` at the `enter` row, `rowKey` for an extension's key; `RDB` slot `slotOf d` = `wsym (d+1)`, window position matched to `kidCidOk` through `plen`), **`ups_up`** (bottom-up from `ups_term`: `upsert_pt` / `upsert_rdb` / `upsert_rde`), **`ups_upsert`**: `upsert (fullTree R V' (headAt τ).rid) [0,15] (sv τ) = some (upsQ (|ps| − 1))` |
+| `UpsLink` | **step 2**: `ups_s0fMsgs` (one `S0F [τ, pres, vid]` by `W0`), **`ups_s0f`** / `upsV3_s0f` (`walk3_find_of` on the `upsV3` walk with the post values, `walkHyp_any`: `pres = 1` and `T'_τ.find [0,15] = some (some (valOf V' (vpos vid)))`, or `pres = vid = 0` and `find = some none`); **step 3**: `upsert_isNode`, `ups_post` (`(upsE s).post = hashOf Q` with `ups_rootDig`, `hashOf_eq_enc`), **`upsV3_link`** (every `τ ≤ K`: `upsert T'_τ [0,15] (sv τ) = some Q`, `ROOT` digest `= hashOf Q` byte for byte (`toB` form too), `= (headAt (τ+1)).pre` for `τ < K`, `= rK` for `τ = K`), **`upsV3_linkB`** (the same and `S0F` from views, balances, `ShaHyp` and the interfaces only) |
 
 **AIR fix (M7e, lead-approved): the root part is bound to the instance's root record.**  `cid` is free on
 unrevealed windows (`kidCidOk` constrains it only for `.node` kids), so above the walk's first record `N_0` the
@@ -467,22 +470,29 @@ so that the `upsV3` walks fit (`wrows_lt` unchanged); `Chain3.UpsWf` → `UpsEWf
 * `UpsEnv` collects the balances (`UPB`, `MEMD`, `BYTES` with others' ids not of kind 12, `DIGEST` provided) and
   `τ < 2^17` (from `ups_tauBound` with `K < 2^17`).
 
-**Open (M7e)**, with what each needs:
-* (done) **`SrcShape`** of every part: `ups_shape` (`UpsRec`, `UpsPath`, `UpsTag`, `UpsShapeK`, 1,073 lines).
-* (done) **`vbytes`**: `ups_vbytesE` (SHA bounds each limb as an emitted `VLEN` byte; no AIR change).
-* **step 3, upsert half** — done: the spec lemmas (`UpsUpsert`), the walk's key facts (`UpsKey`), the terminal
-  half **`ups_term`** (`UpsTermT`, all eleven cases).  Open: the **upper chain** `upsert (src k) (keyP k) v =
-  some (upsQ k)` for `nT ≤ k < |ps|`, by top-down induction from the root (`ups_rootSrc`): invariant
-  `res(R_k) = N_ℓ(k)` (`ℓ` = `rc` for a pass-through, `sd` for a descend); a pass-through's record is not `N_ℓ`
-  (depth), so it is `.ext [] (.node c …)` (`resOk`) and its `cid` read at byte 6 (`rdc`, `rcid = cN`,
-  `kidCidOk`) makes `c = R_{k−1}`; a descend at `N_d` takes the walk's revealed child (`stepRow` at the level's
-  exit row, `ups_lvl`), its `cid` read at the target window (RDB: first / last window `c0`, `c0 + 32(w−1)`,
-  RDE: `5 + |hp|`) is that child; keys `keyP k = [0,15].drop c_ℓ` (`c_d = d` below `D`, `c_D = t* − 1 − I`) with
-  `upsert_rdb`/`upsert_rde`/`upsert_pt`; walked records are their own `res` (they provide an edge or `BMAP`).
-  Estimate 500–700 lines.  Then `S0F (present, vid)` = `T.find [0,15]` (`walk3_find` on the `upsV3` walk with
-  `V'`).
-* then `(upsE s).post = toB (hashOf (upsert T' [0,15] v))` from `ups_rootDig`, and with `ups_chain` the post root
-  of every instance chains to the next head.
+**M7e: done** (b0ed3cf4, 08fc3d85; axioms of `ups_upsert`, `ups_s0f`, `upsV3_link`, `upsV3_s0f`, `upsV3_linkB`:
+propext, Classical.choice, Quot.sound):
+* (done) **`SrcShape`** of every part: `ups_shape`.
+* (done) **`vbytes`**: `ups_vbytesE`.
+* (done) **step 3**: spec lemmas (`UpsUpsert`), walk key facts (`UpsKey`), terminal half `ups_term` (`UpsTermT`), upper
+  chain **`ups_upsert`** (`UpsCid` 252 lines, `UpsUpper` 599 lines): the `RDB` target window (first / last) is matched
+  to `kidCidOk`'s position `(1|37) + 2 + 32·#present(kids.take j)` through the source length (`plen` on the `MEM`
+  read, `serBr_len`: `c0 ≡ 3, 7 mod 32` pins `c0` and `w`) and `filter_take15` for slot 15.  `T' = fullTree R V' rid`
+  directly (no `prune`, no `upsert_hashOf_congr` needed).
+* (done) **step 2**: `S0F` = `T'_τ.find [0,15]` (`ups_s0f`, `UpsLink` 246 lines).
+* (done) **`upsV3_link`** / **`upsV3_linkB`** (per `τ ≤ K` with `ups_chain`).
+
+**Hypotheses of `upsV3_linkB`** (views, balances, SHA and interfaces only):
+* views: `NodeWf3 vs`, `HeadWf hds`, `ValWf es`, `UpsWf v`, `WalkWf3 ws`, `(ws.flatMap (·.steps)).length ≤ 2^21`
+  (`WalkV3ViewStmt`'s height conjunct);
+* balances: `Link3.ParentBal`, `Link3.VParentBal`, `UpbBal vs v`, `WalkBal … B_EDGE`, `WalkBal … B_BMAP`,
+  `Link3.KeynibOk ws prov`, `BYTES` (`shaR B_BYTES m = cnt (upsV3 sends ++ othersU) m`, `othersU` ids `< P`, not of
+  kind `K_VUPS`), `DIGEST` provided (`0 < shaS B_DIGEST m`), the `MEMD` permutation, `ROOT` / `MIDROOT`
+  permutations with `K + 1 < P`, `K < 2^17`, `r0` / `rK` canonical, `|hds| < P`;
+* SHA: `Link3.ShaHyp vs hds es others shaS shaR`;
+* interfaces: `SchedVal v sv`, `Link3.VPostOk others pv`, `vpostLen` (`(pv i).length ≤ l` on every written value slot).
+Derived inside: `RootChain` (`ups_chain`), `UpsTauDistinct` (`ups_tauDistinct`), `τ < 2^17` (`ups_tauBound`), the walk
+hypotheses of all walks (`ups_walkHyp`, bytes from `Link3.rec_bytes`); `UpsEnv` assembled.
 
 **Unconstrained cells read by the link (STATUS §6 register):**
 * (closed) `W0`'s value-length limbs `L0 L1 L2` (`vbytes`): not range-checked on `W0`; discharged by `ups_vbytesE`

@@ -22,7 +22,7 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition | **done** (`PerTau3`: `root_tau`, `build_tau`, `walks_tau`) |
 | M6c | post-root after sets | **done**: `post_tau` (`Link/Post3`), `post_eq_set(s)` (`Link/Post3Spec`), `valsPost_eq_setVals` (`Link/Post3Writes`); open M6d below |
 | M6d | occurrences, reach, post root = iterated `set` | **done**: `occ_le_one`, `reach_walk(_at)`, `find_walk_any`, `post_sets_tau`, `post_sets_walk` (`Link/Post3Occ*`, 76ecb4a8). Interface: `hpl` (account writer), `hperm` (each written value has one keyed write: assembly) |
-| M7 | `upsV3` (option A) | M7a **done** (`root_chain`); M7b **done** (table `Tables/Ups.lean`, budget `BudgetUps.lean`, `UPSV3-DESIGN.md`, model check 2,650 instances, 0 failures; nodeV3 delta in `NodeUpb.lean`, not yet applied); M7c: table + nodeV3 UPB/VSLOT deltas + view layer 1 (`ups_view`) **done**, layer 2: `ups_layout`, `ups_plan`, `ups_windows`, `ups_mem` (u64 carry chain, exact high limb), `ups_walk` (W0–W3 is a `walkV3` walk), `QNodes` target nodes, walk traffic (`ups_walkTrafficFp`) **done**; per-kind `bytes(Q_j) = nodeEnc` for all 12 kinds; gather **`ups_parts`** under `UpsExt` (d756a41d). **M7c done.** Table fix `412363e8`: split branch pinned to branch layout (`pf·kSPB·(qtl+qte) = 0`, closes a free-key hole; budget unchanged). M7e (lane/v3-trie-h, UPSV3-DESIGN §8.2): exact `MEMD` limbs per kind, `ups_partsS` (all parts' bytes = `nodeEnc (upsQ k)` from `UpsExt0` + segment SHA + segment `MEMD` match; lookups `ups_look`), step 2 `SpbSplit`, global SHA / `MEMD` (`sha_seg`, `memd_seg`, `ups_partsG`) **done**; `UpsExt0` from the other tables (`UPB` reads `upb_reads`, sources `ups_srcEnc`/`post_nodeOk`, value via interface `SchedVal` `ups_vlen`/`ups_digV`, walk link for the `upsV3` walks `ups_walkHyp`, `ups_tiLe`, `ups_xy`, `ups_idBound`; assembled `ups_ext0`/`ups_partsAll`) **done** (`vbytes` from SHA without an AIR change: `ups_vbytesE`; `UpsExt0` and the parts from the other tables alone: `ups_ext0V`, `ups_partsAllV`); the parts' `SrcShape` **done** (`ups_shape`: tag / walk / byte-5 facts; `ups_ext0S`, `ups_partsAllS`); step 4 (`ups_chain`, `ups_tauDistinct`) and step 3's root half (`ups_rootDig`) **done**; root binding (AIR fix, `ups_rootSrc`); step 3: spec lemmas (`UpsUpsert`), walk key facts (`UpsKey`), terminal half **`ups_term`** (all eleven cases) **done**; open: step 3's upper chain (≈600) and `S0F`, then `upsV3_link`; M7d render 3–4k |
+| M7 | `upsV3` (option A) | M7a **done** (`root_chain`); M7b **done** (table `Tables/Ups.lean`, budget `BudgetUps.lean`, `UPSV3-DESIGN.md`, model check 2,650 instances, 0 failures; nodeV3 delta in `NodeUpb.lean`, not yet applied); M7c: table + nodeV3 UPB/VSLOT deltas + view layer 1 (`ups_view`) **done**, layer 2: `ups_layout`, `ups_plan`, `ups_windows`, `ups_mem` (u64 carry chain, exact high limb), `ups_walk` (W0–W3 is a `walkV3` walk), `QNodes` target nodes, walk traffic (`ups_walkTrafficFp`) **done**; per-kind `bytes(Q_j) = nodeEnc` for all 12 kinds; gather **`ups_parts`** under `UpsExt` (d756a41d). **M7c done.** Table fix `412363e8`: split branch pinned to branch layout (`pf·kSPB·(qtl+qte) = 0`, closes a free-key hole; budget unchanged). M7e (lane/v3-trie-h, UPSV3-DESIGN §8.2): exact `MEMD` limbs per kind, `ups_partsS` (all parts' bytes = `nodeEnc (upsQ k)` from `UpsExt0` + segment SHA + segment `MEMD` match; lookups `ups_look`), step 2 `SpbSplit`, global SHA / `MEMD` (`sha_seg`, `memd_seg`, `ups_partsG`) **done**; `UpsExt0` from the other tables (`UPB` reads `upb_reads`, sources `ups_srcEnc`/`post_nodeOk`, value via interface `SchedVal` `ups_vlen`/`ups_digV`, walk link for the `upsV3` walks `ups_walkHyp`, `ups_tiLe`, `ups_xy`, `ups_idBound`; assembled `ups_ext0`/`ups_partsAll`) **done** (`vbytes` from SHA without an AIR change: `ups_vbytesE`; `UpsExt0` and the parts from the other tables alone: `ups_ext0V`, `ups_partsAllV`); the parts' `SrcShape` **done** (`ups_shape`: tag / walk / byte-5 facts; `ups_ext0S`, `ups_partsAllS`); step 4 (`ups_chain`, `ups_tauDistinct`) and step 3's root half (`ups_rootDig`) **done**; root binding (AIR fix, `ups_rootSrc`); step 3: spec lemmas (`UpsUpsert`), walk key facts (`UpsKey`), terminal half **`ups_term`** (all eleven cases) **done**; step 3's upper chain **`ups_upsert`** (`UpsCid`, `UpsUpper`: `upsert (fullTree R V' rid) [0,15] (sv τ) = some (upsQ (|ps|−1))`), step 2 `S0F` (**`ups_s0f`**: `(present, vid)` = `T'_τ.find [0,15]`) and **`upsV3_link`** / **`upsV3_linkB`** (`UpsLink`: for every `τ ≤ K` the `ROOT` digest is `hashOf (upsert T'_τ [0,15] v_τ)` byte for byte, chained to the next head / `rK`; from views, balances, `ShaHyp` and interfaces only) **done**. **M7e done** (b0ed3cf4, 08fc3d85). M7d render 3–4k |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
 
@@ -521,8 +521,12 @@ counted.
       (`UPB`).  `ucid` is free on unrevealed windows — this was the root gap (closed).  Descends' target windows
       are revealed (the walk's `DOWN` / last-`KEY` edge into the child exists only for `.node` kids); a pass-through
       below a revealed window with a `.hash` child would be its own `res`, i.e. the next walked record, whose depth
-      differs from the pass-through's `pdep`.  **Sound** (formal argument: M7e step 3).
-    * `vid` (`S0F`): `N2` of `W3`'s `VAL` edge = the value id of `N_D`'s slot (`edgesOf3`).  **Sound.**
+      differs from the pass-through's `pdep`.  **Sound**, now kernel-checked (`UpsUpper.chStep` / `ups_ch`: the
+      child-id read `extCid` / `rdbCid` is on the target window's first byte, `kidCidOk` pins it on the revealed
+      window the walk descends through; a pass-through's record is `.ext [] (.node …)` by `ptDeep` + `resOk`).
+    * `vid` (`S0F`): `N2` of `W3`'s `VAL` edge = the value id of `N_D`'s slot (`edgesOf3`).  **Sound**, kernel-checked
+      (`UpsLink.ups_s0f`: `present = 1` and `T'_τ.find [0,15] = some (some (valOf V' (vpos vid)))`, or
+      `present = vid = 0` and the key is absent).
     * depths: `pdep` = the read record's depth (`UPB`); `dep_d` pinned by the part reading `N_d` (every level has
       one: a descend, or a terminal part other than `NLF`).  **Sound.**
     * `τ` on messages: `MIDROOT`/`ROOT`/`S0F`/`SPLEN`/`SPOST`/`MEMD` carry `τ`; `BYTES`/`DIGEST` ids `512τ + j`;
@@ -539,6 +543,16 @@ counted.
     Classical.choice, Quot.sound).  `WalkWf3.nrows` stays `≤ 2^23` so that the walks of `walkV3` and `upsV3` fit
     together (`allWalks_wf`); the `hWr` hypothesis of `ups_bm` / `allWalks_wf` / `ups_walkHyp` is this conjunct.
   * The SPB free-key cells were fixed by 412363e8 (lead-approved).
+  * **Hypotheses of the `upsV3` link (`UpsLink.upsV3_linkB`, M7e done)** — no other cell of `upsV3` is read
+    unconstrained.  Views: `NodeWf3 vs`, `HeadWf hds`, `ValWf es`, `UpsWf v`, `WalkWf3 ws` and its height conjunct
+    `(ws.flatMap (·.steps)).length ≤ 2^21`.  Balances: `ParentBal`, `VParentBal`, `UpbBal` (`nodeV3` + `upsV3` on
+    `UPB`), `WalkBal … B_EDGE` / `B_BMAP` (nodes, heads, `walkV3`, `upsV3`), `KeynibOk ws prov`, the `BYTES`
+    balance `shaR B_BYTES = cnt (upsV3 sends ++ othersU)` with `othersU` ids not of kind 12, every `upsV3` `DIGEST`
+    receive provided (`0 < shaS`), the `MEMD` permutation, the `ROOT` / `MIDROOT` permutations with `K + 1 < P`,
+    `K < 2^17`, `r0`/`rK` canonical, `|hds| < P`.  SHA: `Link3.ShaHyp`.  Interfaces: `SchedVal v sv` (above),
+    `Link3.VPostOk others pv` and the post-value length bound `vpostLen` (`(pv i).length ≤ l` on written slots; the
+    lockstep values' interface, as in `ups_srcEnc`).  `RootChain`, `UpsTauDistinct`, `τ < 2^17` and the walk
+    hypotheses of all walks are derived (`ups_chain`, `ups_tauDistinct`, `ups_tauBound`, `ups_walkHyp`).
 
 * **Decision (cross-lane, v3-rcpt R3): `VSLOT (vid)` recv in nodeV3.** nodeV3 receives
   `VSLOT (vid)` (bus 3, v1 format) once on every lockstep-written value window
