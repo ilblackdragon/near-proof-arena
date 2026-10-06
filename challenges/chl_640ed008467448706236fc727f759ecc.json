@@ -1,0 +1,271 @@
+{
+  "schema": "arena-challenge-v1",
+  "name": "near-chunk-validation-d0",
+  "season": "2026-s1",
+  "tier": "formal",
+  "nearcore": {
+    "repo": "https://github.com/near/nearcore",
+    "tag": "2.13.4",
+    "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
+  },
+  "protocol_version": 86,
+  "chain_id": "arena-v3-local",
+  "runtime_config_digest": "sha256:b7dce2034aeacd470a0c4dbc2d566e480ff9f0f140a07b5088994e0787ed062f",
+  "semantic_scope": {
+    "name": "near/pv86/chunk-validation/v0#D0",
+    "kind": "subset",
+    "granularity": "chunk_validation",
+    "restrictions": [
+      {
+        "id": "c.pv86",
+        "text": "protocol_version = 86 (nearcore 2.13.4), mainnet runtime parameters RuntimeConfigStore::new(None).get_config(86)"
+      },
+      {
+        "id": "c.single_epoch",
+        "text": "every block of the claim's chain segment is in epoch_id; one epoch record; no epoch start in the segment"
+      },
+      {
+        "id": "c.layout",
+        "text": "the epoch's shard layout is ShardLayout V2 or V3 with 1..=64 shards"
+      },
+      {
+        "id": "c.headers",
+        "text": "block headers V6; chunk header inners V4/V5"
+      },
+      {
+        "id": "c.no_split_gate",
+        "text": "no validator-account update and no dynamic-resharding split check for any applied block"
+      },
+      {
+        "id": "c.not_genesis",
+        "text": "the last new chunk of the shard is not the genesis chunk"
+      },
+      {
+        "id": "c.no_tx_flags",
+        "text": "no transaction validity flags (no transactions)"
+      },
+      {
+        "id": "c.segment",
+        "text": "the chain segment has at most 32 blocks"
+      },
+      {
+        "id": "c.own_congestion_zero",
+        "text": "the shard's congestion info in the last-chunk block has zero delayed gas, buffered gas and receipt bytes"
+      },
+      {
+        "id": "w.no_txs",
+        "text": "the witness has no transactions and no new_transactions"
+      },
+      {
+        "id": "w.no_code",
+        "text": "no contract code accompanies the witness"
+      },
+      {
+        "id": "w.size",
+        "text": "state witness <= 8 MiB and the main transition's base_state <= 3,000,000 bytes"
+      },
+      {
+        "id": "w.proof_shape",
+        "text": "every receipt in every source_receipt_proofs entry (incl. overridden duplicate keys) has the D0 receipt shape"
+      },
+      {
+        "id": "r.shape",
+        "text": "every applied receipt: ReceiptEnum::Action, one Transfer action, no data dependencies, ED25519/SECP256K1 signer key, named receiver"
+      },
+      {
+        "id": "r.refunds",
+        "text": "a gas refund (system predecessor, signer = receiver) finds no access key or a FullAccess key"
+      },
+      {
+        "id": "r.success",
+        "text": "every applied receipt succeeds (receiver exists as AccountV1, no overflow, storage stake covered)"
+      },
+      {
+        "id": "e.compute",
+        "text": "no incoming receipt is delayed by the compute limit"
+      },
+      {
+        "id": "e.queues_empty",
+        "text": "delayed-receipt queue, outgoing buffers and promise-yield queue are empty in the pre-state"
+      },
+      {
+        "id": "e.forwarded",
+        "text": "every generated receipt is forwarded (never buffered)"
+      },
+      {
+        "id": "e.distinct_ids",
+        "text": "applied receipt ids are pairwise distinct"
+      }
+    ],
+    "excludes": [
+      "block_finality",
+      "data_availability",
+      "chunk_producer_signatures",
+      "witness_transport_and_part_decoding",
+      "trusted_epoch_facts_correctness",
+      "transactions",
+      "non_transfer_actions",
+      "function_calls_and_wasm",
+      "failure_paths_and_rollback",
+      "delayed_and_buffered_receipts",
+      "epoch_boundaries_and_validator_updates",
+      "resharding",
+      "dynamic_resharding_split_search",
+      "genesis_main_transition",
+      "other_protocol_versions"
+    ],
+    "formal_spec": {
+      "relation_module": "NearSpecV3.ChunkValidationV0",
+      "relation_decl": "NearSpecV3.RelD0",
+      "tree_digest": "sha256:89903b98794a9fd3be31d84b26b6fdf96a9ed94caa1e9a65383c8fbd08e5db34",
+      "lean_toolchain": "leanprover/lean4:v4.34.1"
+    },
+    "spec_doc_digest": "sha256:59833dbbb7e10394ea556f16f1d8decd908fe3aaa3b6aee21b3d09b454f25b4d"
+  },
+  "claim_encoding": {
+    "format": "near-arena-claim-v3",
+    "spec_digest": "sha256:619f00219fa15099ee451c28c6585aa18bb84ccf47d14313d2d0dc3dd999b6bb",
+    "max_request_bytes": 1048576,
+    "max_witness_bytes": 8392704,
+    "max_claim_bytes": 1048576
+  },
+  "security_profile": {
+    "id": "validity-classical-128",
+    "privacy": "validity_only",
+    "adversary": "classical",
+    "target_bits": 128,
+    "model": "random_oracle",
+    "setup_model": "transparent",
+    "allowed_assumptions": [
+      "sha256-collision-resistance",
+      "random-oracle-fiat-shamir-sha256"
+    ],
+    "max_prover_queries_log2": 40,
+    "max_hash_queries_log2": 64,
+    "max_aggregation_depth": 8,
+    "deployment_proofs_log2": 40
+  },
+  "toolchain_policy": {
+    "lean_toolchain": "leanprover/lean4:v4.34.1",
+    "checker_image": "sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867",
+    "axiom_allowlist": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "allowed_packages": [
+      [
+        "ArenaCore",
+        "9f20f82c8578cf87adc1307773cb912cc11e5ff8"
+      ],
+      [
+        "NearSpec",
+        "9f20f82c8578cf87adc1307773cb912cc11e5ff8"
+      ],
+      [
+        "NearSpecV3",
+        "9f20f82c8578cf87adc1307773cb912cc11e5ff8"
+      ]
+    ],
+    "recheckers": [
+      "leanchecker",
+      "nanoda",
+      "lean4lean"
+    ]
+  },
+  "required_obligations": [
+    "PKG_WELLFORMED",
+    "BUILD_REPRODUCIBLE",
+    "ARTIFACT_BINDING",
+    "FORMAL_SEMANTIC_SOUNDNESS",
+    "FORMAL_SEMANTIC_COMPLETENESS",
+    "FORMAL_CRYPTO_SOUNDNESS",
+    "FORMAL_IMPL_CONNECTION",
+    "AXIOM_AUDIT",
+    "CONFORMANCE_DIFFERENTIAL",
+    "ADVERSARIAL_PROOFS",
+    "PROVER_RELIABILITY",
+    "RESOURCE_LIMITS",
+    "BENCHMARK"
+  ],
+  "not_applicable_gates": [
+    "FORMAL_ZK"
+  ],
+  "hardware_profile": {
+    "id": "nearproof-local-ryzen9-9950x3d",
+    "cpu_model": "AMD Ryzen 9 9950X3D 16-Core Processor (local operator host; 8 vCPUs pinned per run)",
+    "vcpus": 8,
+    "ram_bytes": 34359738368,
+    "gpu": null
+  },
+  "workload_suite": {
+    "revision": "near-chunk-validation-d0-r1",
+    "classes": [
+      {
+        "id": "d0-quiet",
+        "description": "D0 chunks with no incoming receipt and no implicit transition: context authentication (hash-linked segment, chunk_headers_root), empty main transition, bandwidth scheduler, congestion info and the Reed-Solomon encoded merkle root",
+        "weight_ppm": 200000,
+        "batch_size": 8,
+        "generator": "sha256:932759a8d2b4681227a101266590cabddb59864ed99f43bccfce0557fa273d92"
+      },
+      {
+        "id": "d0-transfers",
+        "description": "D0 chunks applying >= 1 incoming cross-shard Transfer receipt (source receipt proofs, ChaCha20 shuffle, Runtime::apply over the partial trie, refunds, outcome and outgoing-receipts roots), no implicit transition",
+        "weight_ppm": 500000,
+        "batch_size": 8,
+        "generator": "sha256:990878011f58b53c34c91f37307ec1248e5ff14c5c56e823747c61578c979e20"
+      },
+      {
+        "id": "d0-missing",
+        "description": "D0 chunks after >= 1 missing chunk of the shard (implicit transitions: missing-chunk applies with the bandwidth scheduler), with or without incoming receipts; chains with 25% chunk skips",
+        "weight_ppm": 300000,
+        "batch_size": 8,
+        "generator": "sha256:77ac4648b4a1223725d109d7a7710b7ceeecfe069581e77d70cfaf0fbd74574c"
+      }
+    ],
+    "public_fixtures": "sha256:45eb0203dc2567506753c5066a2e4a2693f21ce661b90db3802592c2ff314a67",
+    "heldout_commitment": "sha256:edac8e6fcf9465874f687f70da25e26054b88931c7f9fca9dc4dcb81dfcd5e97",
+    "baseline_submission": "sha256:fec6f7c95bf30999adb77e308e8395136b0636a86ad875ceaac133137fd41d47",
+    "baseline_ns": [
+      [
+        "d0-missing",
+        6998029
+      ],
+      [
+        "d0-quiet",
+        6830957
+      ],
+      [
+        "d0-transfers",
+        6959158
+      ]
+    ]
+  },
+  "measurement": {
+    "warmup_runs": 3,
+    "measured_runs": 15,
+    "aggregation": "median",
+    "outlier_mad_k": 5,
+    "cold_runs": 1,
+    "concurrency": 1,
+    "per_run_timeout_ms": 600000,
+    "invocation_mode": "vm_per_batch"
+  },
+  "resource_limits": {
+    "max_proof_bytes": 67108864,
+    "max_verify_ms": 10000,
+    "max_prove_ms": 600000,
+    "max_ram_bytes": 17179869184,
+    "max_vram_bytes": 0,
+    "max_public_artifact_bytes": 67108864,
+    "max_prepare_ms": 600000,
+    "max_build_ms": 3600000
+  },
+  "formal_params": {
+    "verify_fuel": 1073741824,
+    "max_proof_bytes": 67108864,
+    "max_reduction_fuel": 1073741824
+  },
+  "supersedes": null,
+  "created_at": "2026-10-06T01:00:00Z"
+}

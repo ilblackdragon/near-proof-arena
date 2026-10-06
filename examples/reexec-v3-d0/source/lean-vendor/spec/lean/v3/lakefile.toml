@@ -1,0 +1,14 @@
+name = "NearSpecV3"
+version = "0.1.0"
+
+[[lean_lib]]
+name = "NearSpecV3"
+globs = ["NearSpecV3.+"]
+
+[[require]]
+name = "NearSpec"
+path = ".."
+
+[[require]]
+name = "ArenaCore"
+path = "../../../formal-core"

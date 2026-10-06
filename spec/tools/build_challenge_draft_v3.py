@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
-"""Build challenges/drafts/near-chunk-validation-d0.draft.json (unsigned).
+"""Build challenges/drafts/near-chunk-validation-d0.draft.json (unsigned) and the
+workload generator specs spec/workloads/near-chunk-validation-d0/<class>.json.
+
+  build_challenge_draft_v3.py [--freeze-commit SHA] [--heldout-commitment sha256:…]
+                              [--baseline-summary benchmarks/results/<s>/summary.json]
+                              [--created-at RFC3339] [--out PATH] [--measure]
 
 All digests are computed from the repository at HEAD (tracked files only):
   runtime_config_digest = sha256(JCS(spec/challenge-inputs/runtime-config-pv86-v3.json))
   formal_spec.tree_digest = TreeDigest(spec/lean formal-core)   (spec/tools/tree_digest.py)
   spec_doc_digest / claim spec_digest = sha256 of the spec documents
-  public_fixtures = TreeDigest(oracle/fixtures/v3/public)
+  public_fixtures = TreeDigest(oracle/fixtures/v3/arena-public)  (arena layout + params.bin)
+  workload_suite.classes[].generator = sha256(JCS(generator spec))
+  generator spec oracle_source_tree_digest = TreeDigest(oracle/v3/src oracle/v3/Cargo.toml oracle/v3/Cargo.lock)
+--freeze-commit pins toolchain_policy.allowed_packages (ArenaCore, NearSpec, NearSpecV3) at the
+commit whose formal-core + spec/lean the challenge freezes (and the reference candidate vendors).
+--measure writes the baseline-measurement draft (no baseline) instead.
 """
-import hashlib, json, os, subprocess, sys
+import argparse, hashlib, json, os, subprocess, sys
 
 ROOT = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True,
                       check=True).stdout.strip()
@@ -43,17 +53,79 @@ restrictions = [
     R("e.distinct_ids", "applied receipt ids are pairwise distinct"),
 ]
 
+# Workload classes (spec/near-chunk-validation-v0.md §6 D0; oracle/v3 `gen --class`):
+# every class draws real multi-shard nearcore TestEnv chains whose parameter set is rotated
+# by the seed (4/5/6 shards x Reed-Solomon (2,8), (33,100) = mainnet, (5,16), (1,3); 1000 Tgas
+# or 10 Tgas gas limit), at most 2 chunks per chain, so a batch spans 4 chain configurations.
+CLASSES = [
+    ("d0-quiet", "quiet", 200000, [],
+     "D0 chunks with no incoming receipt and no implicit transition: context authentication "
+     "(hash-linked segment, chunk_headers_root), empty main transition, bandwidth scheduler, "
+     "congestion info and the Reed-Solomon encoded merkle root"),
+    ("d0-transfers", "transfers", 500000, [],
+     "D0 chunks applying >= 1 incoming cross-shard Transfer receipt (source receipt proofs, ChaCha20 "
+     "shuffle, Runtime::apply over the partial trie, refunds, outcome and outgoing-receipts roots), "
+     "no implicit transition"),
+    ("d0-missing", "missing", 300000, ["--p-missing", "0.25"],
+     "D0 chunks after >= 1 missing chunk of the shard (implicit transitions: missing-chunk applies "
+     "with the bandwidth scheduler), with or without incoming receipts; chains with 25% chunk skips"),
+]
+
+def generator_spec(cid, cls, extra, oracle_digest):
+    return {
+        "schema": "near-arena-workload-generator-v1",
+        "challenge": "near-chunk-validation-d0",
+        "class": cid,
+        "tool": "near-arena-oracle-v3 gen",
+        "args": ["--fixtures-layout", "--class", cls, "--rotate", "--per-chain-cap", "2",
+                 "--chains", "48", "--blocks", "40", "--mutate-every", "0", "--ood-cap", "0", *extra],
+        "seed": "judge-chosen per run (season-secret HMAC, BENCHMARK_SPEC §11.1); --d0-target = batch size; held-out set: secret seed",
+        "oracle_source_tree_digest": tree("oracle/v3/src", "oracle/v3/Cargo.toml", "oracle/v3/Cargo.lock"),
+        "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+        "statement_id": "near/pv86/chunk-validation/v0",
+        "domain": "D0",
+    }
+
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--freeze-commit", default=None)
+    ap.add_argument("--heldout-commitment", default=None)
+    ap.add_argument("--baseline-summary", default=None)
+    ap.add_argument("--created-at", default="2026-10-05T12:00:00Z")
+    ap.add_argument("--checker-image", default="sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867")
+    ap.add_argument("--out", default=os.path.join(ROOT, "challenges/drafts/near-chunk-validation-d0.draft.json"))
+    ap.add_argument("--measure", action="store_true")
+    ap.add_argument("--name", default="near-chunk-validation-d0")
+    ap.add_argument("--supersedes", default=None, help="challenge id this one supersedes")
+    a = ap.parse_args()
+    wdir = os.path.join(ROOT, "spec/workloads/near-chunk-validation-d0")
+    os.makedirs(wdir, exist_ok=True)
+    classes = []
+    for cid, cls, w, extra, desc in CLASSES:
+        spec = generator_spec(cid, cls, extra, None)
+        open(os.path.join(wdir, cid + ".json"), "w").write(json.dumps(spec, indent=1) + "\n")
+        classes.append({"id": cid, "description": desc, "weight_ppm": w, "batch_size": 8,
+                        "generator": dig(spec)})
+    baseline_sub, baseline_ns = None, []
+    if a.baseline_summary:
+        bs = json.load(open(a.baseline_summary))
+        baseline_sub = bs["reference_candidate"]["package_digest"]
+        baseline_ns = bs["baseline_ns"]
+    allowed = [] if not a.freeze_commit else [[p, a.freeze_commit] for p in ("ArenaCore", "NearSpec", "NearSpecV3")]
     rc = json.load(open(os.path.join(ROOT, "spec/challenge-inputs/runtime-config-pv86-v3.json")))
     draft = {
         "schema": "arena-challenge-v1",
-        "name": "near-chunk-validation-d0",
+        "name": a.name,
         "season": "2026-s1",
         "tier": "formal",
         "nearcore": {"repo": "https://github.com/near/nearcore", "tag": "2.13.4",
                      "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"},
         "protocol_version": 86,
-        "chain_id": "mainnet",
+        # The claim's chain_id (trusted fact T3, spec/claim-v3.md §2.4) is the chain the claims are
+        # about: the oracle's TestEnv chains are "arena-v3-local" (nearcore asserts the real genesis
+        # hash for chain_id "mainnet", so a test chain cannot carry it). D0 never reads chain_id;
+        # parameters are mainnet's (runtime_config_digest, RuntimeConfigStore::new(None) at PV 86).
+        "chain_id": "arena-v3-local",
         "runtime_config_digest": dig(rc),
         "semantic_scope": {
             "name": "near/pv86/chunk-validation/v0#D0",
@@ -70,7 +142,6 @@ def main():
             "formal_spec": {
                 "relation_module": "NearSpecV3.ChunkValidationV0",
                 "relation_decl": "NearSpecV3.RelD0",
-                "challenge_spec_decl": "NearSpecV3.challengeSpec",
                 "tree_digest": tree("spec/lean", "formal-core"),
                 "lean_toolchain": "leanprover/lean4:v4.34.1"},
             "spec_doc_digest": fdig("spec/near-chunk-validation-v0.md"),
@@ -79,35 +150,40 @@ def main():
                            "max_request_bytes": 1048576, "max_witness_bytes": 8392704,
                            "max_claim_bytes": 1048576},
         "security_profile": json.load(open(os.path.join(ROOT, "security/profiles/validity-classical-128.json"))),
-        "toolchain_policy": {"lean_toolchain": "leanprover/lean4:v4.34.1", "checker_image": None,
+        "toolchain_policy": {"lean_toolchain": "leanprover/lean4:v4.34.1", "checker_image": a.checker_image,
                              "axiom_allowlist": ["propext", "Classical.choice", "Quot.sound"],
-                             "allowed_packages": [], "recheckers": ["leanchecker", "nanoda", "lean4lean"]},
+                             "allowed_packages": allowed, "recheckers": ["leanchecker", "nanoda", "lean4lean"]},
         "required_obligations": ["PKG_WELLFORMED", "BUILD_REPRODUCIBLE", "ARTIFACT_BINDING",
                                  "FORMAL_SEMANTIC_SOUNDNESS", "FORMAL_SEMANTIC_COMPLETENESS",
                                  "FORMAL_CRYPTO_SOUNDNESS", "FORMAL_IMPL_CONNECTION", "AXIOM_AUDIT",
                                  "CONFORMANCE_DIFFERENTIAL", "ADVERSARIAL_PROOFS", "PROVER_RELIABILITY",
                                  "RESOURCE_LIMITS", "BENCHMARK"],
         "not_applicable_gates": ["FORMAL_ZK"],
-        "hardware_profile": None,
+        # Same dev-host profile and procedure as near-transfer-receipt-v1-6: 8 vCPUs per run,
+        # benchmarks on CPUs 0-7 (CCD0, docs/LIVE.md §4), one microVM per batch.
+        "hardware_profile": {"id": "nearproof-local-ryzen9-9950x3d",
+                             "cpu_model": "AMD Ryzen 9 9950X3D 16-Core Processor (local operator host; 8 vCPUs pinned per run)",
+                             "vcpus": 8, "ram_bytes": 34359738368, "gpu": None},
         "workload_suite": {
-            "revision": "near-chunk-validation-d0-r0",
-            "classes": [{"id": "d0-chunks", "description": "real ChunkStateWitness + claim-v3 pairs in D0 from multi-shard nearcore TestEnv chains (near-arena-oracle-v3 gen)",
-                         "weight_ppm": 1000000, "batch_size": 8, "generator": None}],
-            "public_fixtures": tree("oracle/fixtures/v3/public"),
-            "heldout_commitment": None, "baseline_submission": None, "baseline_ns": []},
+            "revision": "near-chunk-validation-d0-r1",
+            "classes": classes,
+            "public_fixtures": tree("--relative-to", "oracle/fixtures/v3/arena-public", "oracle/fixtures/v3/arena-public"),
+            "heldout_commitment": a.heldout_commitment or "sha256:" + "0" * 64,
+            "baseline_submission": None if a.measure else baseline_sub,
+            "baseline_ns": [] if a.measure else baseline_ns},
         "measurement": {"warmup_runs": 3, "measured_runs": 15, "aggregation": "median", "outlier_mad_k": 5,
-                        "cold_runs": 1, "concurrency": 1, "per_run_timeout_ms": 600000},
+                        "cold_runs": 1, "concurrency": 1, "per_run_timeout_ms": 600000,
+                        "invocation_mode": "vm_per_batch"},
         "resource_limits": {"max_proof_bytes": 67108864, "max_verify_ms": 10000, "max_prove_ms": 600000,
                             "max_ram_bytes": 17179869184, "max_vram_bytes": 0,
                             "max_public_artifact_bytes": 67108864, "max_prepare_ms": 600000,
                             "max_build_ms": 3600000},
-        "supersedes": None,
-        "created_at": "2026-10-05T12:00:00Z",
+        "supersedes": a.supersedes,
+        "created_at": a.created_at,
         "formal_params": {"verify_fuel": 1073741824, "max_proof_bytes": 67108864,
                           "max_reduction_fuel": 1073741824},
-        "draft_notes": "UNSIGNED DRAFT. Not loadable by the server: checker_image, hardware_profile, workload generator digests and the held-out commitment are still to be pinned. Statement: spec/near-chunk-validation-v0.md; formats: spec/claim-v3.md. v1/v2 challenges are unrelated and stay frozen.",
     }
-    out = os.path.join(ROOT, "challenges/drafts/near-chunk-validation-d0.draft.json")
+    out = a.out
     open(out, "w").write(json.dumps(draft, indent=2) + "\n")
     print(out)
 

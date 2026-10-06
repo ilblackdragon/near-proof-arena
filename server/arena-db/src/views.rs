@@ -561,6 +561,13 @@ pub struct Leaderboard {
     pub ranked: Vec<LeaderboardEntry>,
     /// Every submission with labels (rank set only for ranked entries).
     pub all_submissions: Vec<LeaderboardEntry>,
+    /// `speed`, or `cost_v1` when the challenge pins a price model (then
+    /// `cost_ranked` is the second board; docs/BENCHMARK_SPEC.md §14).
+    pub scoring_kind: arena_types::ScoringKind,
+    /// Cost board (cost_v1 challenges only): the same rankable runs, ordered
+    /// by the server-recomputed cost score; `rank` is the cost rank and
+    /// `board = cost_v1` on every entry. Never merged with the speed board.
+    pub cost_ranked: Vec<LeaderboardEntry>,
 }
 
 impl Leaderboard {
@@ -581,6 +588,38 @@ impl Leaderboard {
         });
         ranked.extend(rest);
         ranked
+    }
+
+    /// Flat list of one board. `None` if the challenge has no such board.
+    pub fn entries_for(&self, board: arena_types::ScoringKind) -> Option<Vec<LeaderboardEntry>> {
+        use arena_types::ScoringKind::*;
+        match (board, self.scoring_kind) {
+            (Speed, _) => Some(self.entries()),
+            (CostV1, CostV1) => {
+                let mut v = self.cost_ranked.clone();
+                let ranked: std::collections::HashSet<&str> =
+                    v.iter().map(|e| e.submission_id.as_str()).collect();
+                let mut rest: Vec<LeaderboardEntry> = self
+                    .all_submissions
+                    .iter()
+                    .filter(|e| !ranked.contains(e.submission_id.as_str()))
+                    .cloned()
+                    .map(|mut e| {
+                        e.rank = None;
+                        e.board = Some(CostV1);
+                        e
+                    })
+                    .collect();
+                rest.sort_by(|a, b| {
+                    b.submitted_at
+                        .cmp(&a.submitted_at)
+                        .then(b.submission_id.cmp(&a.submission_id))
+                });
+                v.extend(rest);
+                Some(v)
+            }
+            (CostV1, Speed) => None,
+        }
     }
 }
 
@@ -620,6 +659,13 @@ fn entry(
     superseded_by: Option<&str>,
 ) -> LeaderboardEntry {
     let bench = run.and_then(|r| r.benchmark.as_ref());
+    // A cost result only counts under the challenge's own price model.
+    let cost = bench.and_then(|b| b.cost.clone()).filter(|c| {
+        chal.scoring.as_ref().is_some_and(|s| {
+            s.kind == arena_types::ScoringKind::CostV1
+                && s.price_model_digest.as_ref() == Some(&c.price_model_digest)
+        })
+    });
     LeaderboardEntry {
         rank: None,
         submission_id: b.sub.id.clone(),
@@ -648,6 +694,10 @@ fn entry(
         challenge_id: challenge_id.to_string(),
         protocol_version: chal.protocol_version,
         superseded_by: superseded_by.map(str::to_string),
+        board: None,
+        cost_score_milli: cost.as_ref().and_then(|c| c.score_milli),
+        cost_score_ci_milli: cost.as_ref().and_then(|c| c.score_ci_milli),
+        cost,
     }
 }
 
@@ -699,6 +749,32 @@ pub fn compute_leaderboard(
             .then(at.cmp(bt))
             .then(a.submission_id.cmp(&b.submission_id))
     });
+    let scoring_kind = chal.scoring_kind();
+    let mut cost_ranked: Vec<(LeaderboardEntry, OffsetDateTime)> =
+        if scoring_kind == arena_types::ScoringKind::CostV1 {
+            ranked
+                .iter()
+                .filter(|(e, _)| e.cost_score_milli.is_some())
+                .cloned()
+                .collect()
+        } else {
+            vec![]
+        };
+    cost_ranked.sort_by(|(a, at), (b, bt)| {
+        b.cost_score_milli
+            .cmp(&a.cost_score_milli)
+            .then(at.cmp(bt))
+            .then(a.submission_id.cmp(&b.submission_id))
+    });
+    let cost_ranked: Vec<LeaderboardEntry> = cost_ranked
+        .into_iter()
+        .enumerate()
+        .map(|(i, (mut e, _))| {
+            e.rank = Some(i as u32 + 1);
+            e.board = Some(arena_types::ScoringKind::CostV1);
+            e
+        })
+        .collect();
     let ranked: Vec<LeaderboardEntry> = ranked
         .into_iter()
         .enumerate()
@@ -732,12 +808,170 @@ pub fn compute_leaderboard(
         official: chal.tier == Tier::Formal,
         ranked,
         all_submissions,
+        scoring_kind,
+        cost_ranked,
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use arena_types::scoring::{CostBaselineClass, PriceModel, ScoringKind, ScoringSpec};
+
+    fn chal(cost: bool) -> ChallengeDefinition {
+        let mut c: ChallengeDefinition = serde_json::from_str(include_str!(
+            "../../../challenges/chl_7c0456cb2d1a36f8601863ac206cfcc9.json"
+        ))
+        .unwrap();
+        if cost {
+            let mut pm: PriceModel = serde_json::from_str(include_str!(
+                "../../../challenges/price-models/pm-near-mainnet-2026q4.draft.json"
+            ))
+            .unwrap();
+            pm.status = "governed".into();
+            c.scoring = Some(ScoringSpec {
+                kind: ScoringKind::CostV1,
+                price_model_digest: Some(pm.digest().unwrap()),
+                price_model: Some(pm),
+                cost_baseline: c
+                    .workload_suite
+                    .baseline_ns
+                    .iter()
+                    .map(|(id, ns)| CostBaselineClass {
+                        class_id: id.clone(),
+                        prove_ns: *ns,
+                        verify_ns: 1,
+                        proof_bytes: 1,
+                    })
+                    .collect(),
+                cost_baseline_prepare_ns: None,
+            });
+            c.check_scoring().unwrap();
+        }
+        c
+    }
+
+    fn bundle(id: &str, at: i64, speed: u64, cost: Option<(u64, Digest)>) -> SubmissionBundle {
+        let t = OffsetDateTime::from_unix_timestamp(at).unwrap();
+        let bench = BenchmarkResult {
+            hardware_profile: "hw".into(),
+            suite_revision: "r".into(),
+            classes: vec![],
+            score_milli: Some(speed),
+            score_ci_milli: Some(1),
+            prepare_ns: 0,
+            public_artifact_bytes: 0,
+            measured_by: "t".into(),
+            cost: cost.map(|(s, d)| arena_types::CostResult {
+                kind: ScoringKind::CostV1,
+                price_model_id: "pm".into(),
+                price_model_digest: d,
+                validators_per_chunk: 84,
+                verifier_vcpus: 8,
+                score_milli: Some(s),
+                score_ci_milli: Some(2),
+                classes: vec![],
+            }),
+        };
+        SubmissionBundle {
+            sub: SubmissionRow {
+                id: id.into(),
+                agent_id: "a".into(),
+                agent_handle: "a".into(),
+                challenge_id: "chl_x".into(),
+                package_digest: String::new(),
+                upload_id: String::new(),
+                parent_id: None,
+                idempotency_key: String::new(),
+                request_digest: String::new(),
+                created_at: t,
+            },
+            runs: vec![Run {
+                id: format!("run_{id}"),
+                submission_id: id.into(),
+                run_number: 1,
+                trigger: "submit".into(),
+                requested_by: "a".into(),
+                challenge_tier: Tier::Formal,
+                tier: Tier::Formal,
+                stage: Stage::Decided,
+                decision: Some(Decision::Admitted),
+                accepted: Some(true),
+                score_milli: Some(speed),
+                change_class: None,
+                candidate_name: id.into(),
+                backend_family: "f".into(),
+                manifest: None,
+                build_outputs: None,
+                verified_surface: None,
+                formal_cache_key: None,
+                benchmark: Some(bench),
+                evidence_graph: None,
+                reason_codes: vec![],
+                not_run_gates: vec![],
+                created_at: t,
+                updated_at: t,
+                decided_at: Some(t),
+            }],
+            gates: HashMap::new(),
+            jobs: HashMap::new(),
+            revocation: None,
+        }
+    }
+
+    #[test]
+    fn speed_and_cost_boards_are_separate() {
+        let c = chal(true);
+        let d = c
+            .scoring
+            .as_ref()
+            .unwrap()
+            .price_model_digest
+            .clone()
+            .unwrap();
+        let other = Digest::of_bytes(b"another price model");
+        let bundles = vec![
+            bundle("sub_fast", 1, 110_000, Some((90_000, d.clone()))),
+            bundle("sub_lean", 2, 97_000, Some((207_000, d.clone()))),
+            bundle("sub_stark", 3, 52, Some((1_500, d))),
+            // a cost result under a different price model is never ranked
+            bundle("sub_alien", 4, 100_000, Some((999_000, other))),
+        ];
+        let lb = compute_leaderboard("chl_x", &c, None, &bundles);
+        let speed: Vec<_> = lb.ranked.iter().map(|e| e.submission_id.as_str()).collect();
+        assert_eq!(speed, ["sub_fast", "sub_alien", "sub_lean", "sub_stark"]);
+        let cost: Vec<_> = lb
+            .cost_ranked
+            .iter()
+            .map(|e| e.submission_id.as_str())
+            .collect();
+        assert_eq!(cost, ["sub_lean", "sub_fast", "sub_stark"]);
+        assert!(lb
+            .cost_ranked
+            .iter()
+            .all(|e| e.board == Some(ScoringKind::CostV1)));
+        let flat = lb.entries_for(ScoringKind::CostV1).unwrap();
+        assert_eq!(flat.len(), 4);
+        let alien = flat
+            .iter()
+            .find(|e| e.submission_id == "sub_alien")
+            .unwrap();
+        assert_eq!((alien.rank, alien.cost_score_milli), (None, None));
+        // the speed board keeps speed scores and ranks
+        assert_eq!(lb.entries_for(ScoringKind::Speed).unwrap()[0].rank, Some(1));
+    }
+
+    #[test]
+    fn speed_challenge_has_no_cost_board() {
+        let c = chal(false);
+        let d = Digest::of_bytes(b"x");
+        let lb = compute_leaderboard("chl_x", &c, None, &[bundle("sub_a", 1, 1, Some((5, d)))]);
+        assert!(lb.cost_ranked.is_empty());
+        assert!(lb.entries_for(ScoringKind::CostV1).is_none());
+        assert_eq!(lb.ranked[0].cost_score_milli, None);
+        assert!(lb.ranked[0].cost.is_none());
+    }
+
     #[test]
     fn geomean() {
         assert_eq!(

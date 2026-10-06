@@ -1,0 +1,51 @@
+[package]
+name = "near-d3-ttn"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "D3 trie-accounting experiment: the same chunk applied by its producer (flat storage, memtries on/off) and by the stateless validator (recorded storage), outcome-by-outcome gas/profile comparison plus a use_flat_storage=false ablation."
+
+# Separate crate: oracle/v3 is frozen (pinned by the signed D0 challenge). Same
+# pinned nearcore checkout (vendor/nearcore symlink, as oracle/v3) and nearcore's own Cargo.lock.
+[workspace]
+exclude = ["vendor"]
+
+[[bin]]
+name = "near-d3-ttn"
+path = "src/main.rs"
+
+[dependencies]
+integration-tests = { path = "vendor/nearcore/integration-tests" }
+near-chain = { path = "vendor/nearcore/chain/chain" }
+near-chain-configs = { path = "vendor/nearcore/core/chain-configs" }
+near-client = { path = "vendor/nearcore/chain/client" }
+near-epoch-manager = { path = "vendor/nearcore/chain/epoch-manager" }
+near-primitives = { path = "vendor/nearcore/core/primitives", features = ["test_utils", "solomon", "clock", "rand"] }
+near-primitives-core = { path = "vendor/nearcore/core/primitives-core" }
+near-store = { path = "vendor/nearcore/core/store" }
+near-crypto = { path = "vendor/nearcore/core/crypto" }
+near-parameters = { path = "vendor/nearcore/core/parameters" }
+node-runtime = { path = "vendor/nearcore/runtime/runtime" }
+near-time = { path = "vendor/nearcore/core/time", features = ["clock"] }
+near-o11y = { path = "vendor/nearcore/core/o11y" }
+borsh = { version = "1.0.0", features = ["derive", "rc"] }
+hex = "0.4.2"
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+itertools = "0.14.0"
+rand = "0.8.5"
+rand_chacha = "0.3.1"
+reed-solomon-erasure = { version = "6.0.0", features = ["simd-accel"] }
+serde_json = "1.0.68"
+sha2 = "0.10"
+tracing = "0.1"
+strum = "0.24"
+
+[patch.crates-io]
+protobuf = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }
+protobuf-support = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }
+
+[profile.dev]
+panic = 'unwind'
+opt-level = 1
+[profile.dev.package."*"]
+opt-level = 2

@@ -1,0 +1,25 @@
+  PkgWellformed Pass [] package TreeDigest sha256:6c5fd46bd0c0418f319eeb3f47d661ebb6245703dff0e7a61cf07a7c923da9b4; 74 files, 337815 bytes; manifest ok
+BUILD: 130.472969058s
+  BuildReproducible Pass [DemoOnly] [bwrap-dev (DEMO-only)] two independent builds produced identical trees sha256:a3e9fdefa9cac3b807bc2ee0191d78ff260575aedce52d87b231972434453a8e; prepare 5 ms, public dir 99 bytes, TreeDigest sha256:5a94fc392e745cc5c9d8b3dcf7bf70093c1fbdcb00f56423e1398b4a48409b22
+CONFORMANCE: 13.501923359s
+  ConformanceDifferential Fail [CounterexampleFound, DemoOnly] [bwrap-dev (DEMO-only)] case "fixture-reject/00-h10002-s1": verify accepted a proof of a claim the reference validator rejects (nearcore verdict / out of domain); 84/84 cases conform (78 public fixtures, 3 judge-sampled, 3 held-out); PUBLIC sampling seeds (no season secret configured on this worker; inputs are predictable from the challenge id and package digest); held-out set sha256:edac8e6fcf9465874f687f70da25e26054b88931c7f9fca9dc4dcb81dfcd5e97 verified against the commitment and used (3 case(s); ids withheld); 127 rejection case(s) (121 public, 3 judge-sampled, 3 held-out; nearcore rejects or out of domain): 0 refused by prove, 0 proofs rejected by verify, 1 accepted
+  ProverReliability Pass [DemoOnly] [bwrap-dev (DEMO-only)] 84/84 honest proofs produced and accepted
+  ResourceLimits Pass [DemoOnly] [bwrap-dev (DEMO-only)] public cases: max proof 118295 bytes (cap 67108864), max verify 20 ms (cap 10000), peak memory 2 MiB
+  PkgWellformed Pass [] package TreeDigest sha256:6c5fd46bd0c0418f319eeb3f47d661ebb6245703dff0e7a61cf07a7c923da9b4; 74 files, 337815 bytes; manifest ok
+BUILD: 130.033758698s
+  BuildReproducible Pass [DemoOnly] [bwrap-dev (DEMO-only)] two independent builds produced identical trees sha256:a3e9fdefa9cac3b807bc2ee0191d78ff260575aedce52d87b231972434453a8e; prepare 6 ms, public dir 99 bytes, TreeDigest sha256:5a94fc392e745cc5c9d8b3dcf7bf70093c1fbdcb00f56423e1398b4a48409b22
+FORMAL_CHECK: 81.590917395s
+  FormalSemanticSoundness Pass [DemoOnly] [bwrap-dev (DEMO-only)] certificate type equals the judge-constructed statement; kernel rechecks accepted
+  FormalSemanticCompleteness Pass [DemoOnly] [bwrap-dev (DEMO-only)] certificate type equals the judge-constructed statement; kernel rechecks accepted
+  FormalCryptoSoundness Pass [DemoOnly] [bwrap-dev (DEMO-only)] certificate type equals the judge-constructed statement; kernel rechecks accepted
+  FormalImplConnection Pass [DemoOnly] [bwrap-dev (DEMO-only)] certificate type equals the judge-constructed statement; kernel rechecks accepted
+  AxiomAudit Pass [DemoOnly] [bwrap-dev (DEMO-only)] certified closure uses only allowlisted axioms; no sorry/native shortcuts
+  ArtifactBinding Pass [DemoOnly] [bwrap-dev (DEMO-only)] verifier executable is the judge's build of the certified Lean model; its digest is pinned in the statement (binary↔model edge: trusted Lean compiler/runtime)
+CONFORMANCE: 54.992943357s
+  ConformanceDifferential Pass [DemoOnly] [bwrap-dev (DEMO-only)] 84/84 cases conform (78 public fixtures, 3 judge-sampled, 3 held-out); PUBLIC sampling seeds (no season secret configured on this worker; inputs are predictable from the challenge id and package digest); held-out set sha256:edac8e6fcf9465874f687f70da25e26054b88931c7f9fca9dc4dcb81dfcd5e97 verified against the commitment and used (3 case(s); ids withheld); 127 rejection case(s) (121 public, 3 judge-sampled, 3 held-out; nearcore rejects or out of domain): 0 refused by prove, 127 proofs rejected by verify, 0 accepted
+  ProverReliability Pass [DemoOnly] [bwrap-dev (DEMO-only)] 84/84 honest proofs produced and accepted
+  ResourceLimits Pass [DemoOnly] [bwrap-dev (DEMO-only)] public cases: max proof 118295 bytes (cap 67108864), max verify 1047 ms (cap 10000), peak memory 2 MiB
+ADVERSARIAL: 11.032259239s
+  AdversarialProofs Pass [DemoOnly] [bwrap-dev (DEMO-only)] 155 hostile inputs from [truncate,bitflip,empty,oversize,swap,append,adv:empty,adv:truncate,adv:extend-trailing,adv:bitflip,adv:malformed-length,adv:noncanonical,adv:altered-commitment,adv:truncated-merkle-path,adv:swapped-siblings,adv:duplicated-node,adv:node-type-confusion,adv:transcript-tamper,adv:domain-separation,adv:mismatched-context,adv:recursive-substitution]: 155 rejected, 0 errored (not accepted), 0 timed out (not accepted), 0 accepted
+BENCHMARK: 231.348522131s
+  Benchmark Pass [DemoOnly] [bwrap-dev (DEMO-only)] PUBLIC sampling seeds (no season secret configured on this worker; inputs are predictable from the challenge id and package digest); session 1: CACHING_SUSPECTED; re-measured on fresh batches only; challenge has no frozen baseline for every class: measured, not scored; DEV: batch sizes capped at 2 (timings not comparable); d0-quiet: median 29609 us, MAD 7371 us, verify median 56508 us, max proof 2655 B; d0-transfers: median 21075 us, MAD 6834 us, verify median 102020 us, max proof 5640 B; d0-missing: median 34532 us, MAD 8379 us, verify median 72020 us, max proof 8037 B

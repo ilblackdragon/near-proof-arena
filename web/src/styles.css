@@ -288,3 +288,7 @@ table.board td { min-width: 6rem; }
 .superseded-banner strong { color: var(--warn); }
 .closed-banner { border: 1px solid var(--border); border-left: 4px solid var(--warn); background: var(--surface); border-radius: 8px; padding: 0.6rem 1rem; margin: 1rem 0; }
 .superseded-banner { border-width: 3px; border-left-width: 10px; font-weight: 500; }
+
+/* cost board (BENCHMARK_SPEC §14): nested per-class breakdown */
+table.cost-breakdown { margin: 0; font-size: 0.85em; }
+table.cost-breakdown th, table.cost-breakdown td { padding: 0.15em 0.5em; }

@@ -1,0 +1,46 @@
+[prove] trace 3.476s tables 544x2^22 163x2^22 12x2^16 228x2^17 16x2^12 58x2^14 49x2^13 (3323 MB)
+[prove] resident 4368 MB, chunk 32, group 2^24
+[prove] main commit group 2^24
+[prove] main commit: 295.308s
+[prove]   coeffs 46.7s eval 147.2s feed 65.3s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 6904 MB
+[prove] aux coefficient cache 3904 MB (true), group 2^23
+[prove] aux: 109.538s
+[prove]   coeffs 20.5s eval 39.4s feed 15.2s auxvals 8.1s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 9917 MB
+[prove] quotient: 132.518s
+[prove]   coeffs 13.3s eval 61.3s feed 0.0s auxvals 16.7s beval 9.9s auxc 7.7s fill 69.1s | peak RSS 11061 MB
+[prove] quot commit: 49.746s
+[prove]   coeffs 1.1s eval 15.3s feed 7.7s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 8016 MB
+[prove] ood: 17.247s
+[prove]   coeffs 0.0s eval 0.0s feed 0.0s auxvals 8.4s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 7425 MB
+[prove] deep: 27.122s
+[prove]   coeffs 0.0s eval 3.1s feed 0.0s auxvals 6.8s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 7940 MB
+[prove] fri: 1.796s
+[prove]   coeffs 0.0s eval 0.0s feed 0.0s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 9823 MB
+[prove] openings: 53.993s
+[prove]   coeffs 18.2s eval 0.0s feed 0.0s auxvals 8.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 11274 MB
+[prove] total 691.106s proof 3561135 B
+	Command being timed: "taskset -c 8-15 /data/illia/nearproof-wt/zk-L8f/examples/np-udr-stark-fast2/out/prove --public /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/pv/pub --request /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/maxcase/max/request.bin --witness /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/maxcase/max/witness.bin --claim-out /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/l8e/c-f2pkg.bin --proof-out /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/l8e/p-f2pkg.bin"
+	User time (seconds): 2017.51
+	System time (seconds): 152.83
+	Percent of CPU this job got: 313%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:31.34
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 9112424
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 144650425
+	Voluntary context switches: 264159
+	Involuntary context switches: 2860608
+	Swaps: 0
+	File system inputs: 6328
+	File system outputs: 7048
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+EXIT 0
+PROOF-IDENTICAL

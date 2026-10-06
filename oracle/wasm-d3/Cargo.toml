@@ -1,0 +1,22 @@
+[package]
+name = "near-wasm-d3-harness"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "D3 PoC differential harness: runs a WASM module through pinned nearcore 2.13.4 near-vm-runner (PV86 config, Wasmtime) and prints the VMOutcome observables."
+
+# Separate from every other workspace: path deps point at the pinned nearcore
+# checkout (oracle/vendor/nearcore, see oracle/NEARCORE_PIN and
+# oracle/scripts/link-nearcore.sh); Cargo.lock is nearcore's own lock file.
+[workspace]
+
+[dependencies]
+near-vm-runner = { path = "../vendor/nearcore/runtime/near-vm-runner", features = ["wasmtime_vm"] }
+near-parameters = { path = "../vendor/nearcore/core/parameters" }
+near-primitives-core = { path = "../vendor/nearcore/core/primitives-core" }
+hex = "0.4.2"
+near-crypto = { path = "../vendor/nearcore/core/crypto" }
+borsh = "1"
+
+[profile.release]
+debug = false

@@ -1,0 +1,16 @@
+{
+  "base": "00-h10034-s0",
+  "case": "00-h10034-s0-hdr.prev_state_root",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "hdr.prev_state_root",
+  "nearcore": "validate: InvalidStateRoot",
+  "verdict_source": "nearcore"
+}

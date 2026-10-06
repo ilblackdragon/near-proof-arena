@@ -229,6 +229,8 @@ impl FakeWorker {
                             verify_median_ns: 1000,
                             proof_bytes_max: 2048,
                             peak_rss_bytes: 1 << 20,
+                            verify_runs_ns: vec![1000 * 8; 5],
+                            proof_bytes_runs: vec![2048 * 8; 5],
                         }
                     })
                     .collect();
@@ -241,6 +243,7 @@ impl FakeWorker {
                     prepare_ns: 1,
                     public_artifact_bytes: 1,
                     measured_by: "[DEMO] fake worker".into(),
+                    cost: None,
                 })
             }
             _ => {}

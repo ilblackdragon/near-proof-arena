@@ -133,9 +133,13 @@ pub fn document() -> Value {
             json!({"200": ok("cancelled", view), "401": e401(), "403": err("not yours"), "409": err("already decided")}))},
         "/v1/leaderboards/{challenge_id}": {"get": op(
             "Leaderboard: ranked entries (formal tier, ADMITTED, accepted, not revoked; by score desc) first, \
-             then every other submission with rank=null and tier/decision/revoked labels",
-            "public", None, vec![path_param("challenge_id", "challenge id")], None,
-            json!({"200": ok("entries", board), "404": err("unknown challenge")}))},
+             then every other submission with rank=null and tier/decision/revoked labels. \
+             ?board=speed (default) ranks by the speed score; ?board=cost_v1 ranks by the cost score \
+             (only challenges with scoring.kind = cost_v1; every entry carries board = cost_v1 and the \
+             per-class cost breakdown). Scores of different kinds are never merged.",
+            "public", None, vec![path_param("challenge_id", "challenge id"),
+                query_param("board", "string", "speed (default) | cost_v1")], None,
+            json!({"200": ok("entries", board), "404": err("unknown challenge, or no cost board")}))},
 
         "/v1/admin/challenges": {"post": op(
             "Register a challenge; the signature must verify under a governance key over the JCS bytes; id/digest recomputed",

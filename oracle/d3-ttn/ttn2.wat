@@ -1,0 +1,92 @@
+;; Contract v2 for the trie-accounting experiment (`near-d3-ttn --v2`): storage over several
+;; contracts, cross-contract promise DAGs, and reads of large values (per-receipt storage-proof
+;; limit). `run` interprets its input as 3-byte ops [op, k, c]; op % 8:
+;;   0..3  storage_write / storage_read / storage_has_key / storage_remove on key
+;;         "k" ++ [k] (or "k" ++ [k, 0x55] when (c / 3) is odd), value length 1 / 100 / 4500 by c % 3
+;;   4     promise_create  to "s<k%4>ctr" (+"2" if (k/4)%2) method "run", args = the next
+;;         3*(c%8) input bytes (skipped here), gas = 5 + 5*((c/8)%4) Tgas
+;;   5     promise_then on the last promise (promise_create if none), same target/args/gas rule
+;;   6     storage_read "B" ++ [k%8]  (large genesis values in some contracts)
+;;   7     storage_read "f" ++ [k]    (small genesis values, length k+1)
+(module
+  (import "env" "input" (func $input (param i64)))
+  (import "env" "register_len" (func $register_len (param i64) (result i64)))
+  (import "env" "read_register" (func $read_register (param i64 i64)))
+  (import "env" "storage_write" (func $storage_write (param i64 i64 i64 i64 i64) (result i64)))
+  (import "env" "storage_read" (func $storage_read (param i64 i64 i64) (result i64)))
+  (import "env" "storage_has_key" (func $storage_has_key (param i64 i64) (result i64)))
+  (import "env" "storage_remove" (func $storage_remove (param i64 i64 i64) (result i64)))
+  (import "env" "promise_create" (func $promise_create (param i64 i64 i64 i64 i64 i64 i64 i64) (result i64)))
+  (import "env" "promise_then" (func $promise_then (param i64 i64 i64 i64 i64 i64 i64 i64 i64) (result i64)))
+  (memory 1)
+  (data (i32.const 16002) "ctr")
+  (data (i32.const 16100) "run")
+  (func (export "run")
+    (local $n i32) (local $i i32) (local $op i32) (local $k i32) (local $c i32)
+    (local $klen i64) (local $vlen i64) (local $lastp i64) (local $alen i32) (local $nlen i64) (local $gas i64)
+    (local.set $lastp (i64.const -1))
+    (call $input (i64.const 0))
+    (local.set $n (i32.wrap_i64 (call $register_len (i64.const 0))))
+    (if (i32.gt_u (local.get $n) (i32.const 2048)) (then (local.set $n (i32.const 2048))))
+    (call $read_register (i64.const 0) (i64.const 0))
+    (block $done
+      (loop $next
+        (br_if $done (i32.gt_u (i32.add (local.get $i) (i32.const 3)) (local.get $n)))
+        (local.set $op (i32.and (i32.load8_u (local.get $i)) (i32.const 7)))
+        (local.set $k (i32.load8_u (i32.add (local.get $i) (i32.const 1))))
+        (local.set $c (i32.load8_u (i32.add (local.get $i) (i32.const 2))))
+        (local.set $alen (i32.const 0))
+        (i32.store8 (i32.const 4096) (i32.const 107))
+        (i32.store8 (i32.const 4097) (local.get $k))
+        (i32.store8 (i32.const 4098) (i32.const 85))
+        (local.set $klen
+          (if (result i64) (i32.and (i32.div_u (local.get $c) (i32.const 3)) (i32.const 1))
+            (then (i64.const 3)) (else (i64.const 2))))
+        (local.set $vlen
+          (if (result i64) (i32.eqz (i32.rem_u (local.get $c) (i32.const 3)))
+            (then (i64.const 1))
+            (else (if (result i64) (i32.eq (i32.rem_u (local.get $c) (i32.const 3)) (i32.const 1))
+              (then (i64.const 100)) (else (i64.const 4500))))))
+        (i32.store8 (i32.const 8192) (local.get $i))
+        (block $sw
+          (if (i32.eqz (local.get $op))
+            (then (drop (call $storage_write (local.get $klen) (i64.const 4096)
+                    (local.get $vlen) (i64.const 8192) (i64.const 1))) (br $sw)))
+          (if (i32.eq (local.get $op) (i32.const 1))
+            (then (drop (call $storage_read (local.get $klen) (i64.const 4096) (i64.const 1))) (br $sw)))
+          (if (i32.eq (local.get $op) (i32.const 2))
+            (then (drop (call $storage_has_key (local.get $klen) (i64.const 4096))) (br $sw)))
+          (if (i32.eq (local.get $op) (i32.const 3))
+            (then (drop (call $storage_remove (local.get $klen) (i64.const 4096) (i64.const 1))) (br $sw)))
+          (if (i32.eq (local.get $op) (i32.const 6))
+            (then
+              (i32.store8 (i32.const 4200) (i32.const 66))
+              (i32.store8 (i32.const 4201) (i32.and (local.get $k) (i32.const 7)))
+              (drop (call $storage_read (i64.const 2) (i64.const 4200) (i64.const 1))) (br $sw)))
+          (if (i32.eq (local.get $op) (i32.const 7))
+            (then
+              (i32.store8 (i32.const 4300) (i32.const 102))
+              (i32.store8 (i32.const 4301) (local.get $k))
+              (drop (call $storage_read (i64.const 2) (i64.const 4300) (i64.const 1))) (br $sw)))
+          ;; 4 / 5: promises
+          (i32.store8 (i32.const 16000) (i32.const 115))
+          (i32.store8 (i32.const 16001) (i32.add (i32.const 48) (i32.and (local.get $k) (i32.const 3))))
+          (i32.store8 (i32.const 16005) (i32.const 50))
+          (local.set $nlen (i64.add (i64.const 5)
+            (i64.extend_i32_u (i32.and (i32.shr_u (local.get $k) (i32.const 2)) (i32.const 1)))))
+          (local.set $alen (i32.mul (i32.const 3) (i32.and (local.get $c) (i32.const 7))))
+          (if (i32.gt_u (i32.add (i32.add (local.get $i) (i32.const 3)) (local.get $alen)) (local.get $n))
+            (then (local.set $alen (i32.sub (local.get $n) (i32.add (local.get $i) (i32.const 3))))))
+          (local.set $gas (i64.mul (i64.const 5000000000000)
+            (i64.extend_i32_u (i32.add (i32.const 1) (i32.and (i32.shr_u (local.get $c) (i32.const 3)) (i32.const 3))))))
+          (if (i32.and (i32.eq (local.get $op) (i32.const 5)) (i64.ne (local.get $lastp) (i64.const -1)))
+            (then (local.set $lastp (call $promise_then (local.get $lastp) (local.get $nlen) (i64.const 16000)
+                    (i64.const 3) (i64.const 16100)
+                    (i64.extend_i32_u (local.get $alen)) (i64.extend_i32_u (i32.add (local.get $i) (i32.const 3)))
+                    (i64.const 16200) (local.get $gas))))
+            (else (local.set $lastp (call $promise_create (local.get $nlen) (i64.const 16000)
+                    (i64.const 3) (i64.const 16100)
+                    (i64.extend_i32_u (local.get $alen)) (i64.extend_i32_u (i32.add (local.get $i) (i32.const 3)))
+                    (i64.const 16200) (local.get $gas))))))
+        (local.set $i (i32.add (i32.add (local.get $i) (i32.const 3)) (local.get $alen)))
+        (br $next)))))

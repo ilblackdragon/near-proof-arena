@@ -6,6 +6,13 @@
 //! (`CLAIM_MISMATCH`); then `verify` in a separate sandbox receiving only the
 //! public dir, claim and proof; it must accept. Fail-fast. Non-public case
 //! ids never appear in summaries.
+//!
+//! **Rejection cases** (oracles that provide them, v3): every judge-held
+//! (claim, witness) pair that nearcore's own validator rejects or whose
+//! chunk is outside the challenge's domain is handed to `prove` as well; if
+//! it emits a proof, `verify` runs on the *requested* claim and that proof.
+//! Acceptance fails CONFORMANCE_DIFFERENTIAL with `COUNTEREXAMPLE_FOUND`:
+//! the candidate's acceptance disagrees with the reference validator.
 
 use super::common::{self, case_label, Verdict};
 use crate::executor::{ExecError, JobRun, StageOut};
@@ -140,6 +147,66 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         }
     }
     let n = cases.len();
+    // Rejection cases: only after every positive case passed (fail-fast).
+    let mut rej_note = None;
+    if passed == n {
+        let seeds = crate::executor::seeds(r.ctx, &j.ctx);
+        let rej =
+            match r
+                .ctx
+                .oracles
+                .rejection_suite(&j.challenge, &seeds, r.ctx.conformance_samples)
+            {
+                Ok(x) => x,
+                Err(crate::oracle::OracleError::Unavailable(m)) => {
+                    conf.note(m);
+                    finish(&mut out, conf, rel, res, false);
+                    return Ok(out);
+                }
+                Err(e) => return Err(ExecError::Infra(e.to_string())),
+            };
+        if let Some(pin) = crate::jobs::RequestPin::from_challenge(&j.challenge) {
+            for c in &rej.cases {
+                pin.check_case(&c.request, None).map_err(|e| {
+                    ExecError::Infra(format!(
+                        "fail-closed: rejection case {} rejected: {e}",
+                        case_label(&c.id, c.public)
+                    ))
+                })?;
+            }
+        }
+        let (mut refused, mut rejected, mut accepted) = (0usize, 0usize, 0usize);
+        for case in &rej.cases {
+            let label = case_label(&case.id, case.public);
+            let Some(proof) = common::run_prove_rejection(r, &env, case)? else {
+                refused += 1;
+                continue;
+            };
+            let claim = r.write_file(&case.request, "claim")?;
+            let (v, _) = common::run_verify(r, &env, &claim, &proof)?;
+            match v {
+                Verdict::Accept => {
+                    accepted += 1;
+                    conf.fail(
+                        ReasonCode::CounterexampleFound,
+                        format!("{label}: verify accepted a proof of a claim the reference validator rejects (nearcore verdict / out of domain)"),
+                    );
+                    break;
+                }
+                Verdict::BindingMismatch => {
+                    rel.fail(ReasonCode::ArtifactBindingFailed, "npai-verify: the verifier bytecode is not the certified image (digest mismatch)");
+                    break;
+                }
+                _ => rejected += 1,
+            }
+        }
+        if !rej.cases.is_empty() {
+            rej_note = Some(format!(
+                "{} rejection case(s) ({} public, {} judge-sampled, {} held-out; nearcore rejects or out of domain): {refused} refused by prove, {rejected} proofs rejected by verify, {accepted} accepted",
+                rej.cases.len(), rej.public, rej.sampled, rej.heldout
+            ));
+        }
+    }
     let complete = passed == n;
     if r.shadow != (0, 0) {
         conf.note(format!(
@@ -153,6 +220,9 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     ));
     for note in &suite.notes {
         conf.note(note.clone());
+    }
+    if let Some(m) = rej_note {
+        conf.note(m);
     }
     rel.note(format!("{passed}/{n} honest proofs produced and accepted"));
     res.note(format!(

@@ -161,6 +161,78 @@ pub struct Stats {
     pub ood_written: usize,
     pub mutants: usize,
     pub by_violation: BTreeMap<String, usize>,
+    /// Arena layout: honest positives written to `cases/` (class-matching D0 cases).
+    pub positives: usize,
+    /// Arena layout: cases written to `rejections/` (expected_rel_d0 = false).
+    pub rejections: usize,
+}
+
+/// Workload class of an honest D0 case (spec/workloads/near-chunk-validation-d0/*.json):
+/// `quiet` = no incoming receipt and no implicit transition, `transfers` = at least one
+/// incoming receipt and no implicit transition, `missing` = at least one implicit
+/// transition (missing chunks of the shard before the endorsed chunk); `any` = all.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CaseClass {
+    Any,
+    Quiet,
+    Transfers,
+    Missing,
+}
+
+impl CaseClass {
+    pub fn parse(s: &str) -> Option<Self> {
+        Some(match s {
+            "any" => CaseClass::Any,
+            "quiet" => CaseClass::Quiet,
+            "transfers" => CaseClass::Transfers,
+            "missing" => CaseClass::Missing,
+            _ => return None,
+        })
+    }
+    pub fn matches(self, n_receipts: usize, n_implicit: usize) -> bool {
+        match self {
+            CaseClass::Any => true,
+            CaseClass::Quiet => n_receipts == 0 && n_implicit == 0,
+            CaseClass::Transfers => n_receipts > 0 && n_implicit == 0,
+            CaseClass::Missing => n_implicit > 0,
+        }
+    }
+}
+
+/// Output options of `gen`.
+#[derive(Clone, Debug)]
+pub struct GenOpts {
+    pub ood_cap: usize,
+    pub mutate_every: usize,
+    /// Arena fixtures layout (runners/worker `NearV3Oracle`, `arena check-local`):
+    /// `cases/<n>/{request.bin, witness.bin, expected_claim.bin, meta.json}` for cases with
+    /// `expected_rel_d0 = true` (request = expected claim = claim.bin: the claim is the job),
+    /// `rejections/<n>/{request.bin, witness.bin, meta.json}` for `expected_rel_d0 = false`
+    /// (nearcore rejects, or the honest chunk is outside D0). Otherwise `d0/`, `ood/`,
+    /// `mutants/` with `claim.bin`, `witness.bin`, `meta.json` (difftest layout).
+    pub fixtures_layout: bool,
+    /// Honest D0 cases written as positives (others are skipped, still mutated).
+    pub class: CaseClass,
+    /// Write no positives at all (rejection sampling).
+    pub no_positives: bool,
+    /// Arena layout: also write nearcore-accepted D0 mutants as positives.
+    pub accepted_mutants: bool,
+    /// Stop once this many honest positives were written (0 = no target).
+    pub positive_target: usize,
+    /// Stop once this many rejections were written (0 = no target).
+    pub rejection_target: usize,
+    /// At most this many honest positives per chain (0 = no cap), so a batch
+    /// spans several chain parameter sets (shard counts, Reed-Solomon codes).
+    pub per_chain_cap: usize,
+}
+
+impl GenOpts {
+    /// Every non-zero target reached (and at least one target set).
+    pub fn done(&self, st: &Stats) -> bool {
+        let p = self.positive_target == 0 || st.positives >= self.positive_target;
+        let r = self.rejection_target == 0 || st.rejections >= self.rejection_target;
+        (self.positive_target > 0 || self.rejection_target > 0) && p && r
+    }
 }
 
 fn write_case(dir: &Path, claim: &Claim, witness: &[u8], meta: serde_json::Value) {
@@ -170,15 +242,22 @@ fn write_case(dir: &Path, claim: &Claim, witness: &[u8], meta: serde_json::Value
     std::fs::write(dir.join("meta.json"), serde_json::to_string_pretty(&meta).unwrap()).unwrap();
 }
 
+/// Arena layout: a positive (`expected_rel_d0`) case or a rejection.
+fn write_arena_case(out: &Path, name: &str, positive: bool, claim: &Claim, witness: &[u8], meta: serde_json::Value) {
+    let dir = out.join(if positive { "cases" } else { "rejections" }).join(name);
+    std::fs::create_dir_all(&dir).unwrap();
+    let c = claim.encode();
+    std::fs::write(dir.join("request.bin"), &c).unwrap();
+    if positive {
+        std::fs::write(dir.join("expected_claim.bin"), &c).unwrap();
+    }
+    std::fs::write(dir.join("witness.bin"), encode_witness(witness, &[])).unwrap();
+    std::fs::write(dir.join("meta.json"), serde_json::to_string_pretty(&meta).unwrap()).unwrap();
+}
+
 /// Run one chain; write cases under `out/<chain>-...`.
-pub fn run_chain(
-    chain_idx: usize,
-    p: &ChainParams,
-    out: &Path,
-    ood_cap: usize,
-    mutate_every: usize,
-    stats: &mut Stats,
-) {
+pub fn run_chain(chain_idx: usize, p: &ChainParams, out: &Path, o: &GenOpts, stats: &mut Stats) {
+    let (ood_cap, mutate_every) = (o.ood_cap, o.mutate_every);
     let mut s = setup(p);
     let mut rng = StdRng::seed_from_u64(p.seed);
     let mut nonces: HashMap<AccountId, u64> = HashMap::new();
@@ -192,7 +271,14 @@ pub fn run_chain(
         s.env.clients[0].epoch_manager.num_data_parts() as u16,
         s.env.clients[0].epoch_manager.num_total_parts() as u16,
     );
+    let mut chain_pos = 0usize;
     for _round in 0..p.blocks {
+        if o.done(stats) {
+            break;
+        }
+        if o.per_chain_cap > 0 && chain_pos >= o.per_chain_cap && o.rejection_target == 0 {
+            break;
+        }
         height += 1;
         s.clock.advance(near_time::Duration::milliseconds(1100));
         let tip = s.env.clients[0].chain.head().unwrap();
@@ -382,9 +468,28 @@ pub fn run_chain(
                 "expected_rel_d0": verdict.is_ok() && in_d0,
                 "features": features,
             });
+            let n_receipts = match &sw { ChunkStateWitness::V2(x) => x.source_receipt_proofs.values().map(|p| p.0.len()).sum::<usize>() };
             if in_d0 {
                 stats.d0 += 1;
-                write_case(&out.join("d0").join(&name), &built.claim, &wb, meta);
+                if o.fixtures_layout {
+                    let pos = verdict.is_ok();
+                    if !pos {
+                        if o.rejection_target == 0 || stats.rejections < o.rejection_target {
+                            stats.rejections += 1;
+                            write_arena_case(out, &name, false, &built.claim, &wb, meta);
+                        }
+                    } else if !o.no_positives
+                        && o.class.matches(n_receipts, built.implicit.len())
+                        && (o.positive_target == 0 || stats.positives < o.positive_target)
+                        && (o.per_chain_cap == 0 || chain_pos < o.per_chain_cap)
+                    {
+                        stats.positives += 1;
+                        chain_pos += 1;
+                        write_arena_case(out, &name, true, &built.claim, &wb, meta);
+                    }
+                } else {
+                    write_case(&out.join("d0").join(&name), &built.claim, &wb, meta);
+                }
                 d0_seen += 1;
                 if verdict.is_ok() && mutate_every > 0 && d0_seen % mutate_every == 0 {
                     let last = built.blocks.last().unwrap();
@@ -415,16 +520,37 @@ pub fn run_chain(
                             "expected_rel_d0": exp.is_ok(),
                         });
                         stats.mutants += 1;
-                        write_case(&out.join("mutants").join(&mname), &m.claim, &m.witness, meta);
+                        if o.fixtures_layout {
+                            let pos = exp.is_ok();
+                            // A mutant whose claim header (protocol version, chain id) differs
+                            // from the chain's is a true claim about another chain: never issued
+                            // by the judge (the arena's request pin refuses it), so not written.
+                            let same_header = m.claim.protocol_version == built.claim.protocol_version
+                                && m.claim.chain_id == built.claim.chain_id;
+                            if !same_header {
+                            } else if pos && o.accepted_mutants && !o.no_positives {
+                                write_arena_case(out, &mname, true, &m.claim, &m.witness, meta);
+                            } else if !pos && (o.rejection_target == 0 || stats.rejections < o.rejection_target) {
+                                stats.rejections += 1;
+                                write_arena_case(out, &mname, false, &m.claim, &m.witness, meta);
+                            }
+                        } else {
+                            write_case(&out.join("mutants").join(&mname), &m.claim, &m.witness, meta);
+                        }
                     }
                 }
             } else {
                 let fam = viol.join("+");
                 let c = ood_count.entry(fam).or_default();
-                if *c < ood_cap {
+                if *c < ood_cap && !(o.fixtures_layout && o.rejection_target > 0 && stats.rejections >= o.rejection_target) {
                     *c += 1;
                     stats.ood_written += 1;
-                    write_case(&out.join("ood").join(&name), &built.claim, &wb, meta);
+                    if o.fixtures_layout {
+                        stats.rejections += 1;
+                        write_arena_case(out, &name, false, &built.claim, &wb, meta);
+                    } else {
+                        write_case(&out.join("ood").join(&name), &built.claim, &wb, meta);
+                    }
                 }
             }
         }

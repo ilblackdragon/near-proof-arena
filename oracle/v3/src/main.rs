@@ -13,6 +13,20 @@
 //!          Generate cases: DIR/d0/* (honest, in D0), DIR/ood/* (honest, out of D0,
 //!          capped per violation family), DIR/mutants/* (derived from D0 cases),
 //!          each with claim.bin, witness.bin, meta.json; DIR/summary.json.
+//!          Arena (judge) mode, used by runners/worker `NearV3Oracle` and the
+//!          spec/workloads/near-chunk-validation-d0 generator specs:
+//!            --fixtures-layout     DIR/cases/<n>/{request,witness,expected_claim}.bin
+//!                                  (expected_rel_d0 = true; request = claim) and
+//!                                  DIR/rejections/<n>/{request,witness}.bin (false)
+//!            --class any|quiet|transfers|missing   honest positives of that class only
+//!            --d0-target N         stop after N honest positives
+//!            --rejection-target R  stop after R rejections (with --d0-target: both)
+//!            --per-chain-cap K     at most K honest positives per chain
+//!            --no-positives        rejections only
+//!            --accepted-mutants    also write nearcore-accepted D0 mutants as positives
+//!            --rotate              chain k uses parameter set (k + seed) mod 12
+//!                                  (shards 4/5/6 x RS seats 8/100/16/3) instead of k
+//!            --p-missing P         per-client probability of skipping a chunk (default 0.12)
 //!   vectors --out DIR [--seed S]
 //!          Leaf-primitive vectors from nearcore code (src/vectors.rs).
 //!   params --out FILE
@@ -35,7 +49,7 @@ fn arg(args: &[String], name: &str) -> Option<String> {
     args.iter().position(|a| a == name).and_then(|i| args.get(i + 1).cloned())
 }
 
-fn chain_params(seed: u64, i: usize, blocks: u64) -> chaingen::ChainParams {
+fn chain_params(seed: u64, i: usize, blocks: u64, p_missing: f64) -> chaingen::ChainParams {
     let seats = [8u64, 100, 16, 3][i % 4];
     chaingen::ChainParams {
         seed: seed.wrapping_mul(1_000_003).wrapping_add(i as u64),
@@ -44,7 +58,7 @@ fn chain_params(seed: u64, i: usize, blocks: u64) -> chaingen::ChainParams {
         gas_limit_tgas: if i % 4 == 3 { 10 } else { 1000 },
         epoch_length: 30,
         blocks,
-        p_missing: 0.12,
+        p_missing,
         p_tx_shard: 0.35,
         p_burst: 0.08,
         p_fail: 0.02,
@@ -61,6 +75,30 @@ fn cmd_gen(args: &[String]) -> i32 {
     let blocks: u64 = arg(args, "--blocks").and_then(|s| s.parse().ok()).unwrap_or(100);
     let ood_cap: usize = arg(args, "--ood-cap").and_then(|s| s.parse().ok()).unwrap_or(20);
     let mutate_every: usize = arg(args, "--mutate-every").and_then(|s| s.parse().ok()).unwrap_or(6);
+    let flag = |n: &str| args.iter().any(|a| a == n);
+    let num = |n: &str| -> usize {
+        match arg(args, n) {
+            None => 0,
+            Some(v) => v.parse().unwrap_or_else(|_| panic!("{n}: not a number: {v}")),
+        }
+    };
+    let class = match arg(args, "--class") {
+        None => chaingen::CaseClass::Any,
+        Some(c) => chaingen::CaseClass::parse(&c).unwrap_or_else(|| panic!("--class: unknown class {c}")),
+    };
+    let p_missing: f64 = arg(args, "--p-missing").map(|s| s.parse().expect("--p-missing")).unwrap_or(0.12);
+    let opts = chaingen::GenOpts {
+        ood_cap,
+        mutate_every,
+        fixtures_layout: flag("--fixtures-layout"),
+        class,
+        no_positives: flag("--no-positives"),
+        accepted_mutants: flag("--accepted-mutants"),
+        positive_target: num("--d0-target"),
+        rejection_target: num("--rejection-target"),
+        per_chain_cap: num("--per-chain-cap"),
+    };
+    let rotate = flag("--rotate");
     std::fs::create_dir_all(&out).unwrap();
     let mut stats = chaingen::Stats {
         honest: 0,
@@ -69,28 +107,53 @@ fn cmd_gen(args: &[String]) -> i32 {
         ood_written: 0,
         mutants: 0,
         by_violation: Default::default(),
+        positives: 0,
+        rejections: 0,
     };
     let mut params = Vec::new();
     for i in 0..chains {
-        let p = chain_params(seed, i, blocks);
+        if opts.done(&stats) {
+            break;
+        }
+        let k = if rotate { (i as u64 + seed % 12) as usize } else { i };
+        let mut p = chain_params(seed, k, blocks, p_missing);
+        // the chain seed stays tied to the chain's position in this run
+        p.seed = seed.wrapping_mul(1_000_003).wrapping_add(i as u64);
         eprintln!("chain {i}: {p:?}");
         params.push(format!("{p:?}"));
-        chaingen::run_chain(i, &p, &out, ood_cap, mutate_every, &mut stats);
+        chaingen::run_chain(i, &p, &out, &opts, &mut stats);
         eprintln!(
             "  honest={} ok={} d0={} ood_written={} mutants={}",
             stats.honest, stats.honest_ok, stats.d0, stats.ood_written, stats.mutants
         );
     }
-    let summary = json!({
+    let mut summary = json!({
         "nearcore_commit": NEARCORE_COMMIT, "protocol_version": 86, "seed": seed,
         "chains": params, "honest_witnesses": stats.honest, "honest_accepted_by_nearcore": stats.honest_ok,
         "d0_cases": stats.d0, "ood_cases_written": stats.ood_written, "mutants": stats.mutants,
         "d0_violation_counts": stats.by_violation,
     });
+    if opts.fixtures_layout {
+        summary["arena_layout"] = json!({
+            "class": format!("{:?}", opts.class), "positives": stats.positives, "rejections": stats.rejections,
+            "d0_target": opts.positive_target, "rejection_target": opts.rejection_target,
+            "accepted_mutants": opts.accepted_mutants, "rotate": rotate, "p_missing": p_missing,
+            "per_chain_cap": opts.per_chain_cap,
+        });
+    }
     std::fs::write(out.join("summary.json"), serde_json::to_string_pretty(&summary).unwrap()).unwrap();
     if stats.honest_ok != stats.honest {
         eprintln!("WARNING: some honest witnesses were rejected by nearcore");
         return 1;
+    }
+    if opts.fixtures_layout
+        && (stats.positives < opts.positive_target || stats.rejections < opts.rejection_target)
+    {
+        eprintln!(
+            "targets not reached: {} of {} positives, {} of {} rejections (raise --chains)",
+            stats.positives, opts.positive_target, stats.rejections, opts.rejection_target
+        );
+        return 3;
     }
     0
 }

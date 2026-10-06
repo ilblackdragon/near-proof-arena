@@ -1,0 +1,145 @@
+{
+ "note": "Every verdict (sig_decodes, verify, verify_raw) in *.jsonl is nearcore's, from near-arena-oracle-v3-d1 ed25519-judge / ed25519-sign (oracle/v3-d1/src/ed25519v.rs; nearcore 44f7ae6cd7ef08bab604e20a473bf77e35d4c993, ed25519-dalek 2.2.0, curve25519-dalek 4.1.3). upstream_* fields are the upstream suites' own expectations, kept for comparison only.",
+ "regenerate": [
+  "python3 oracle/tools/gen_ed25519_vectors.py inputs UPSTREAM_DIR STAGE",
+  "for each STAGE/X.in.jsonl: near-arena-oracle-v3-d1 ed25519-judge --in STAGE/X.in.jsonl --out STAGE/X.judged.jsonl",
+  "python3 oracle/tools/gen_ed25519_vectors.py merge STAGE oracle/fixtures/v3/ed25519 && cp STAGE/sha512.jsonl oracle/fixtures/v3/ed25519/",
+  "near-arena-oracle-v3-d1 ed25519-sign --seed 1 --n 2000 --out oracle/fixtures/v3/ed25519/near_signed.jsonl (keys sorted)"
+ ],
+ "upstream": [
+  {
+   "name": "RFC 8032 (\u00a77.1 TEST 1, 2, 3, 1024, SHA(abc))",
+   "url": "https://www.rfc-editor.org/rfc/rfc8032.txt",
+   "sha256": "ed63657ff389301282b169b0abde9b5dd2c7e4d524fdfa5da6ff3094fc93c4c3",
+   "kept": "upstream/rfc8032.txt",
+   "converted": "rfc8032.jsonl (5 vectors + 5 message-mutated)"
+  },
+  {
+   "name": "ed25519.cr.yp.to sign.input (linked from RFC 8032 \u00a77.1)",
+   "url": "https://ed25519.cr.yp.to/python/sign.input",
+   "sha256": "8db1fea94f4e78958aac6e839b483cdd79096d1fe478285f15164f9e58361baf",
+   "kept": "converted only (2.4 MB upstream)",
+   "converted": "djb_sign_input.jsonl",
+   "converted_sha256": "e18fdcc50f673339f930da39530c0b55cc006b34e6490644d844885d89d4135f"
+  },
+  {
+   "name": "Wycheproof ed25519_test.json (testvectors_v1)",
+   "url": "https://raw.githubusercontent.com/C2SP/wycheproof/main/testvectors_v1/ed25519_test.json",
+   "sha256": "752d2ea7d7c6cf4736381b6cbacb61f8182b126ab7cd9b058f00c50084975536",
+   "kept": "upstream/ed25519_test.json",
+   "converted": "wycheproof.jsonl",
+   "skipped_wrong_length": [
+    {
+     "tcId": 30,
+     "sig_len": 0,
+     "result": "invalid",
+     "comment": "empty signature"
+    },
+    {
+     "tcId": 31,
+     "sig_len": 32,
+     "result": "invalid",
+     "comment": "s missing"
+    },
+    {
+     "tcId": 32,
+     "sig_len": 62,
+     "result": "invalid",
+     "comment": "signature too short"
+    },
+    {
+     "tcId": 33,
+     "sig_len": 66,
+     "result": "invalid",
+     "comment": "signature too long"
+    },
+    {
+     "tcId": 34,
+     "sig_len": 96,
+     "result": "invalid",
+     "comment": "include pk in signature"
+    },
+    {
+     "tcId": 35,
+     "sig_len": 65,
+     "result": "invalid",
+     "comment": "prepending 0 byte to signature"
+    },
+    {
+     "tcId": 36,
+     "sig_len": 65,
+     "result": "invalid",
+     "comment": "prepending 0 byte to s"
+    },
+    {
+     "tcId": 37,
+     "sig_len": 65,
+     "result": "invalid",
+     "comment": "appending 0 byte to signature"
+    },
+    {
+     "tcId": 38,
+     "sig_len": 63,
+     "result": "invalid",
+     "comment": "removing 0 byte from signature"
+    },
+    {
+     "tcId": 39,
+     "sig_len": 63,
+     "result": "invalid",
+     "comment": "removing 0 byte from signature"
+    },
+    {
+     "tcId": 40,
+     "sig_len": 63,
+     "result": "invalid",
+     "comment": "removing leading 0 byte from signature"
+    },
+    {
+     "tcId": 41,
+     "sig_len": 63,
+     "result": "invalid",
+     "comment": "dropping byte from signature"
+    }
+   ]
+  },
+  {
+   "name": "C2SP CCTV ed25519vectors.json (the VALIDATIONVECTORS of ed25519-dalek-2.2.0/tests/validation_criteria.rs)",
+   "url": "https://raw.githubusercontent.com/C2SP/CCTV/main/ed25519/ed25519vectors.json",
+   "sha256": "b38e84caf3e7e89170ff520292dbeae421b0a794c27408ce5ce973018fe3d7f9",
+   "kept": "upstream/cctv_ed25519vectors.json",
+   "converted": "cctv.jsonl"
+  },
+  {
+   "name": "novifinancial ed25519-speccheck cases.json (Taming the many EdDSAs)",
+   "url": "https://raw.githubusercontent.com/novifinancial/ed25519-speccheck/main/cases.json",
+   "sha256": "08e47a36d9aead288664930505584f353fff113ab854f2800db1e4f5b3540450",
+   "kept": "upstream/speccheck_cases.json",
+   "converted": "speccheck.jsonl"
+  }
+ ],
+ "generated": [
+  {
+   "file": "near_signed.jsonl",
+   "how": "near-arena-oracle-v3-d1 ed25519-sign --seed 1 --n 2000 (near_crypto::SecretKey::sign)"
+  },
+  {
+   "file": "edge.jsonl",
+   "how": "gen_ed25519_vectors.py edge(), random.Random(20261005); field cls = edge class"
+  },
+  {
+   "file": "sha512.jsonl",
+   "how": "hashlib.sha512; lengths 0..300, 200 random in 0..1000, 1000, 1024"
+  }
+ ],
+ "files_sha256": {
+  "cctv.jsonl": "e5a5264bad83f1b8159e4ac4aa4ee40341fc688c4d3d3b96d17113fd3dbf7a90",
+  "djb_sign_input.jsonl": "e18fdcc50f673339f930da39530c0b55cc006b34e6490644d844885d89d4135f",
+  "edge.jsonl": "1b22fa0de3180aedef58fec602662cbeeffe85b819ff994b1355932e6cc149cb",
+  "near_signed.jsonl": "09e3c5af1fc16c9f0aa556fa257b6468808e193d75fc6f98af0c49ac9e6eae02",
+  "rfc8032.jsonl": "e63007841cafc1d88d71fa1175b7f13c5a79f1532c8c2e7855cfb3d94727e3d3",
+  "sha512.jsonl": "1213305fe0db595c8e42141a3afc1ef4030ec3d311811b28a0830ae0c6421bf9",
+  "speccheck.jsonl": "2765cb9d1c3513461c1e0f56ae39b41120932c69627aebd65cfb106c0e72249d",
+  "wycheproof.jsonl": "4cf3b52cfb7cbb784f0993412be1bd58d2984f1185eb79fff19285bf2775f72e"
+ }
+}

@@ -63,12 +63,23 @@ struct JudgeInputs {
     secret_commit: Option<String>,
 }
 
-fn oracles(dirs: &[PathBuf], near: Option<(PathBuf, Vec<PathBuf>)>, judge: JudgeInputs) -> Oracles {
+fn oracles(
+    dirs: &[PathBuf],
+    near: Option<(PathBuf, Vec<PathBuf>)>,
+    near_v3: Option<(PathBuf, Vec<PathBuf>)>,
+    judge: JudgeInputs,
+) -> Oracles {
     let mut o = Oracles::builtin();
     if let Some((bin, gens)) = near {
         o = o
             .with_near_dirs(bin, &gens)
             .unwrap_or_else(|e| die(format!("NEAR oracle: {e}")));
+    }
+    if let Some((bin, gens)) = near_v3 {
+        eprintln!("arena-worker: NEAR v3 oracle {}", bin.display());
+        o = o
+            .with_near_v3(bin, &gens)
+            .unwrap_or_else(|e| die(format!("NEAR v3 oracle: {e}")));
     }
     for d in dirs {
         match o.add_fixtures_dir(d) {
@@ -155,6 +166,10 @@ fn main() {
                 oracles: oracles(
                     &cfg.fixtures_dirs,
                     cfg.near_oracle
+                        .clone()
+                        .filter(|_| !cfg.workload_generators.is_empty())
+                        .map(|b| (b, cfg.workload_generators.clone())),
+                    cfg.near_oracle_v3
                         .clone()
                         .filter(|_| !cfg.workload_generators.is_empty())
                         .map(|b| (b, cfg.workload_generators.clone())),
@@ -249,6 +264,13 @@ fn run_job_local(args: &[String]) {
         oracles: oracles(
             &fixtures,
             std::env::var_os("ARENA_NEAR_ORACLE")
+                .map(PathBuf::from)
+                .zip(
+                    std::env::var("ARENA_WORKLOAD_GENERATORS")
+                        .ok()
+                        .map(|v| v.split(',').map(PathBuf::from).collect::<Vec<_>>()),
+                ),
+            std::env::var_os("ARENA_NEAR_ORACLE_V3")
                 .map(PathBuf::from)
                 .zip(
                     std::env::var("ARENA_WORKLOAD_GENERATORS")

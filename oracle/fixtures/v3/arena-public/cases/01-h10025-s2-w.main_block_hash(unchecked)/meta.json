@@ -1,0 +1,12 @@
+{
+  "base": "01-h10025-s2",
+  "case": "01-h10025-s2-w.main_block_hash(unchecked)",
+  "d0_violations": [],
+  "expected_rel": true,
+  "expected_rel_d0": true,
+  "in_d0": true,
+  "kind": "mutant",
+  "mutation": "w.main_block_hash(unchecked)",
+  "nearcore": "ok",
+  "verdict_source": "nearcore"
+}

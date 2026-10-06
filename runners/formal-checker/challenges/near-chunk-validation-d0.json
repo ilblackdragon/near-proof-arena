@@ -1,0 +1,29 @@
+{
+  "schema": "arena-formal-challenge-v1",
+  "challenge": "near-chunk-validation-d0",
+  "aliases": ["near-chunk-validation-d0-1"],
+  "trusted": [
+    {"name": "formal-core", "src_root": "formal-core", "include": ["ArenaCore"]},
+    {"name": "near-spec", "src_root": "spec/lean", "include": [
+      "NearSpec.Bytes", "NearSpec.SHA256", "NearSpec.AccountId", "NearSpec.Primitives",
+      "NearSpec.Trie", "NearSpec.Outcome", "NearSpec.TransferV1", "NearSpec.ClaimCodec",
+      "NearSpec.Challenge", "NearSpec.TrieUpsert", "NearSpec.Bandwidth"]},
+    {"name": "near-spec-v3", "src_root": "spec/lean/v3", "include": [
+      "NearSpecV3.ChaCha20", "NearSpecV3.GF256", "NearSpecV3.ReedSolomon", "NearSpecV3.F64",
+      "NearSpecV3.Congestion", "NearSpecV3.BandwidthScheduler", "NearSpecV3.Wire",
+      "NearSpecV3.ClaimV3", "NearSpecV3.ClaimV3Props", "NearSpecV3.WitnessV3", "NearSpecV3.Layout",
+      "NearSpecV3.TrieBuild", "NearSpecV3.RuntimeD0", "NearSpecV3.ChunkValidationV0",
+      "NearSpecV3.ChallengeV3"]}
+  ],
+  "reserved_prefixes": ["ArenaCore", "NearSpec", "NearSpecV3", "ArenaExpected"],
+  "expected": {
+    "module": "ArenaExpected",
+    "decl": "ArenaExpected.expectedType",
+    "template": "spec/lean/judge/ExpectedV3D0.lean.template"
+  },
+  "expected_native_lean": {
+    "module": "ArenaExpected",
+    "decl": "ArenaExpected.expectedTypeFor",
+    "template": "spec/lean/judge/ExpectedV3D0.native-lean.lean.template"
+  }
+}

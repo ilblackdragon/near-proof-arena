@@ -1,0 +1,16 @@
+{
+  "base": "00-h10034-s0",
+  "case": "00-h10034-s0-w.new_tx.sig_flip_rehashed",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": true,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "w.new_tx.sig_flip_rehashed",
+  "nearcore": "ok",
+  "verdict_source": "nearcore"
+}

@@ -21,7 +21,7 @@ pub struct Expect {
     /// Attack family, for grouping in the report.
     pub attack_family: String,
     /// Which challenge kind(s) this case is meaningful on: `"demo"` and/or
-    /// `"near-formal"`. A gate only exists where the challenge requires it, so
+    /// `"near-formal"`, or `"near-v3"` (the v3 chunk-validation challenges). A gate only exists where the challenge requires it, so
     /// formal/artifact/crypto cases are `["near-formal"]` and the demo run
     /// skips them (and vice-versa). Defaults to `["demo"]`.
     #[serde(default = "default_targets")]
@@ -102,10 +102,10 @@ impl Expect {
         if let Some(t) = self
             .targets
             .iter()
-            .find(|t| t.as_str() != "demo" && t.as_str() != "near-formal")
+            .find(|t| !matches!(t.as_str(), "demo" | "near-formal" | "near-v3"))
         {
             return bad(&format!(
-                "unknown target {t:?} (expected demo | near-formal)"
+                "unknown target {t:?} (expected demo | near-formal | near-v3)"
             ));
         }
         Ok(())

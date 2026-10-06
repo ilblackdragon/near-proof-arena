@@ -1,0 +1,15 @@
+name = "WasmD3Driver"
+version = "0.1.0"
+defaultTargets = ["nearspec-v3-wasm"]
+
+# Difftest driver for the D3 WASM semantics in spec/lean/v3/NearSpecV3/Wasm/*.
+# Separate package so that spec/lean/v3/lakefile.toml (pinned by signed v3
+# challenges) is not modified.
+
+[[require]]
+name = "NearSpecV3"
+path = "../../../spec/lean/v3"
+
+[[lean_exe]]
+name = "nearspec-v3-wasm"
+root = "Main"

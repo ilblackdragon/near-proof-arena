@@ -183,6 +183,13 @@ pub struct ClassMeasurement {
     pub verify_median_ns: u64,
     pub proof_bytes_max: u64,
     pub peak_rss_bytes: u64,
+    /// Per measured run (same order as `runs_ns`): Σ verify wall ns of the
+    /// batch's proofs (v1.5, additive; empty in older results).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub verify_runs_ns: Vec<u64>,
+    /// Per measured run: Σ proof bytes of the batch (v1.5, additive).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub proof_bytes_runs: Vec<u64>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -197,6 +204,10 @@ pub struct BenchmarkResult {
     pub prepare_ns: u64,
     pub public_artifact_bytes: u64,
     pub measured_by: String,
+    /// Cost-board result for `scoring.kind = cost_v1` challenges (v1.5,
+    /// additive). Never compared with `score_milli` (a speed score).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cost: Option<crate::scoring::CostResult>,
 }
 
 /// Public view of a submission (API `GET /v1/submissions/{id}`).
@@ -335,6 +346,18 @@ pub struct LeaderboardEntry {
     /// with the successor's (additive, v1.4).
     #[serde(default)]
     pub superseded_by: Option<String>,
+    /// Which board `rank` belongs to: `speed` (default) or `cost_v1`
+    /// (additive, v1.5).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub board: Option<crate::scoring::ScoringKind>,
+    /// Cost-board score and its CI (cost_v1 challenges only; v1.5).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cost_score_milli: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cost_score_ci_milli: Option<u64>,
+    /// Per-class cost components, so the board shows why (v1.5).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cost: Option<crate::scoring::CostResult>,
 }
 
 /// Pure decision function shared by server and tests.

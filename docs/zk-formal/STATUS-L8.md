@@ -161,3 +161,57 @@ main commit 153 s, aux 68, quotient 89, quot commit 25, OOD 9, DEEP 18, openings
 * Workload spec: `near-arena-oracle gen --profiles max_witness` (oracle/src/maxwit.rs)
   + `spec/workloads/near-transfer-receipt-v2/max-witness.{json,md}` (not governed;
   pinned spec doc unchanged).
+
+## lane/zk-L8f — np-udr-stark-fast2 (prover-only child of sub_19cc9c90…)
+
+Live: np-udr-stark-fast (sub_56bb976b…) regressed small classes (batch-1 3.05 s vs
+parent 1.99, batch-16 9.14 vs 6.49; batch-256 48.7 vs 62.2). Reproduced with the
+worker's real BENCHMARK stage (`bench_session`, Firecracker, 8 vCPUs, CPUs 8-15):
+parent 2.25 / 7.36 / 72.4 s, fast 3.45 / 11.18 / 65.1 s (+ CACHING_SUSPECTED).
+
+Per-invocation profile in an arena-launched VM (`bench/pfvm.sh`; batch-16 request,
+parent 0.87 s vs fast 1.32 s): openings 0.20 → 0.79 s (KEEP 6: 64-leaf subtrees per
+query) and main commit 0.11 → 0.15 s (pinned glibc mmap threshold: page faults on
+every ≥1 MB allocation); the AVX-512 dispatch fires in the guest (fake sibling
+returned rc 3) but gains nothing at these sizes.
+
+fast2 = fast's prover with size-dependent strategies (memory-saving paths only when
+the largest table's coefficients exceed 1/4 of the budget / 70% would be exceeded),
+block-wise opening evaluation for T ≤ 2^13, parallel subtree hashing; AVX-512
+dispatch dropped (single AVX2 binary). Proofs: 27/27 byte-identical to the parent
+(24 generated class requests + fixtures v4/v5/v17), toy/NEAR identity tests (both
+strategies), fuzz; max witness identical (0fc29afc…), 11.27 GB, 381 s uncontended
+(AVX2). Package: two clean builds bit-identical; prepare 6ba6ebb6…, verify c82117cb…,
+build recipe and formal tree identical to the parent; prove 872716f6….
+
+| class (8 requests, one VM per batch, CPUs 8-15) | parent | fast2 |
+|---|---|---|
+| per-request, quiet host (`pfvm.sh`, 4 requests) batch-1 | ~230 ms | ~125 ms |
+| batch-16 | ~810 ms | ~490 ms |
+| batch-256 | ~7.97 s | ~5.96 s |
+| paired batches, contended host (min of rounds) batch-1 | 2.24 s | 1.29 s |
+| batch-16 | 7.76 s | 5.11 s |
+| batch-256 | 94.5 s | 66.9 s |
+
+fast2 won 14/16 paired batches. The local fast2 `bench_session` ran under heavy
+interference from other lanes on CPUs 8-15/24-31 (fresh-only medians 1.82 / 5.28 /
+73.1 s with MADs up to 12 s; its warm-ups were 1.34–1.40 / 4.30–4.40 / 53.6–54.1 s).
+
+CACHING_SUSPECTED: the tripwire compares a *different* batch (fresh-confirm) with
+the steady-state median of one fixed batch; it trips when the fresh batch is > 5%
+and > 5·MAD slower. Each batch runs in a fresh VM and the prover keeps no state
+(no files written outside the claim/proof outputs). The parent's own fresh batch-1
+was already +6.0% (saved only by its 35 ms MAD); a faster, more deterministic prover
+has a smaller MAD, so ordinary input-size variation between batches trips it.
+
+Correction to L8e: `~/.cargo/config.toml` sets `[target.x86_64-unknown-linux-gnu]
+rustflags`, which overrides the project's `build.rustflags`, so local "AVX2" dev
+builds were plain x86-64 (SSE2). The L8e "AVX2-only ≈ 620 s" and "AVX-512 6.6× on
+folds" compared against SSE2; a real AVX2 build proves the max witness in 381 s.
+Packaged builds (fresh HOME, build.sh flags) were always AVX2.
+
+Judge-verify with the packaged fast2 binaries: 11/11 cases claim ok, accept, and
+false-claim / mutated / truncated proofs rejected; the sweep was stopped at the
+12th case because the shared `zkbuild.slice` sat at its 40 GB memory.high (other
+lanes), throttling every process in it (also the cause of the contended timings
+above). Proofs being byte-identical to the admitted parent's covers the rest.

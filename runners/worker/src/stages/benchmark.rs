@@ -29,6 +29,9 @@ struct Runner<'r, 'a> {
     public_dir: PathBuf,
     batches: HashMap<String, (Vec<Case>, Vec<Case>)>,
     cpus: Option<Vec<u32>>,
+    /// CPUs `verify` is pinned to: `cpus`, or its first
+    /// `price_model.verifier_vcpus` (reference validator profile, §14).
+    verify_cpus: Option<Vec<u32>>,
     verifier: common::Verifier,
     failure: Option<(ReasonCode, String)>,
     /// Confirmation mode (spec §7.4): every (class, phase, round) proves a
@@ -108,11 +111,17 @@ impl Runner<'_, '_> {
             cross_check(&p.outcome)?;
             if i > 0 {
                 s.push_prove(&p.outcome);
+                s.note_timed_proof_bytes(p.proof.len() as u64);
+            } else {
+                s.note_proof_bytes(p.proof.len() as u64);
             }
-            s.note_proof_bytes(p.proof.len() as u64);
             pairs.push((p.claim_path, p.proof_path));
         }
-        let verified = match common::run_verify_batch(self.r, &env, &pairs) {
+        let venv = common::EntryEnv {
+            cpu_set: self.verify_cpus.clone(),
+            ..env
+        };
+        let verified = match common::run_verify_batch(self.r, &venv, &pairs) {
             Ok(v) => v,
             Err(e) => return Err(self.exec_err(e)),
         };
@@ -229,8 +238,12 @@ impl BatchRunner for Runner<'_, '_> {
             };
             cross_check(&p.outcome)?;
             s.push_prove(&p.outcome);
-            s.note_proof_bytes(p.proof.len() as u64);
-            let (v, vo) = match common::run_verify(self.r, &env, &p.claim_path, &p.proof_path) {
+            s.note_timed_proof_bytes(p.proof.len() as u64);
+            let venv = common::EntryEnv {
+                cpu_set: self.verify_cpus.clone(),
+                ..env
+            };
+            let (v, vo) = match common::run_verify(self.r, &venv, &p.claim_path, &p.proof_path) {
                 Ok(x) => x,
                 Err(e) => return Err(self.exec_err(e)),
             };
@@ -368,6 +381,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         fresh_confirm_runs: 1,
     };
     let cpus = r.ctx.bench_cpus.clone();
+    let verify_cpus = verify_cpu_set(chal, cpus.as_ref()).map_err(ExecError::Infra)?;
     let worker_id = r.ctx.worker_id.clone();
     let mut runner = Runner {
         r,
@@ -377,6 +391,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         public_dir,
         batches,
         cpus,
+        verify_cpus,
         verifier,
         failure: None,
         fresh_only: false,
@@ -474,6 +489,13 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         }
         Err(e) => return Err(ExecError::Infra(format!("score: {}", e.code()))),
     };
+    let cost = match cost_result(chal, &classes, prepare_ns, &plan) {
+        Ok(c) => c,
+        Err(e) => {
+            bench.note(format!("cost_v1 score not computed: {e}"));
+            None
+        }
+    };
     let mut measured_by = format!("arena-worker {worker_id}");
     if capped {
         measured_by.push_str(" [DEV: batch sizes capped]");
@@ -491,6 +513,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         prepare_ns,
         public_artifact_bytes: public_bytes,
         measured_by,
+        cost,
     };
     let report = serde_json::json!({
         "invocation_mode": chal.measurement.invocation_mode(),
@@ -515,6 +538,16 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             c.proof_bytes_max
         ));
     }
+    if let Some(c) = &result.cost {
+        bench.note(format!(
+            "cost_v1 ({}, N_v={}, verify on {} vCPUs): score {} ± {} milli",
+            c.price_model_id,
+            c.validators_per_chunk,
+            c.verifier_vcpus,
+            c.score_milli.unwrap_or(0),
+            c.score_ci_milli.unwrap_or(0)
+        ));
+    }
     if bench.failed() {
         out.gates.push(bench.finish(GateStatus::Unknown, true));
         return Ok(out);
@@ -536,4 +569,112 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     }
     out.benchmark = Some(result);
     Ok(out)
+}
+
+/// The CPUs `verify` runs on: the benchmark set, or (cost_v1) its first
+/// `verifier_vcpus` — the reference validator profile is measured, not
+/// assumed. Fail closed if the benchmark set is too small or unset.
+fn verify_cpu_set(
+    chal: &arena_types::ChallengeDefinition,
+    cpus: Option<&Vec<u32>>,
+) -> Result<Option<Vec<u32>>, String> {
+    let Some(pm) = chal.scoring.as_ref().and_then(|s| s.price_model.as_ref()) else {
+        return Ok(cpus.cloned());
+    };
+    let k = pm.verifier_vcpus as usize;
+    match cpus {
+        Some(c) if c.len() >= k => Ok(Some(c[..k].to_vec())),
+        Some(c) => Err(format!(
+            "fail-closed: cost_v1 verifies on {k} vCPUs but the benchmark CPU set has {}",
+            c.len()
+        )),
+        None => Err("fail-closed: cost_v1 needs a pinned benchmark CPU set".into()),
+    }
+}
+
+/// cost_v1 score (point + seeded bootstrap CI) of a session; `None` for
+/// speed-only challenges.
+fn cost_result(
+    chal: &arena_types::ChallengeDefinition,
+    classes: &[arena_types::ClassMeasurement],
+    prepare_ns: u64,
+    plan: &SessionPlan,
+) -> Result<Option<arena_types::CostResult>, String> {
+    let Some(sc) = chal.scoring.as_ref() else {
+        return Ok(None);
+    };
+    if sc.kind != arena_types::ScoringKind::CostV1 {
+        return Ok(None);
+    }
+    chal.check_scoring()?;
+    let pm = sc.price_model.as_ref().expect("checked");
+    let digest = sc.price_model_digest.clone().expect("checked");
+    let prices = arena_measure::cost::Prices::from_model(pm, chal.hardware_profile.vcpus);
+    let runs = arena_measure::cost::class_runs_for(chal, classes).map_err(|e| e.to_string())?;
+    let base_prep = sc.cost_baseline_prepare_ns.unwrap_or(0);
+    let point = arena_measure::cost::cost_score(&prices, &runs, prepare_ns, base_prep)
+        .map_err(|e| e.code().to_string())?;
+    // Same seed as the speed bootstrap (§14.3): independent computation.
+    let seed = plan.bootstrap_seed;
+    let ci = arena_measure::cost::cost_bootstrap(
+        &prices,
+        &runs,
+        prepare_ns,
+        base_prep,
+        seed,
+        plan.bootstrap_iterations.max(1),
+    )
+    .map_err(|e| e.code().to_string())?;
+    Ok(Some(arena_measure::cost::to_contract(
+        pm,
+        digest,
+        &point,
+        Some(ci.half_width_milli),
+    )))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::verify_cpu_set;
+
+    fn chal(verifier_vcpus: Option<u32>) -> arena_types::ChallengeDefinition {
+        let mut c: arena_types::ChallengeDefinition = serde_json::from_str(include_str!(
+            "../../../../challenges/chl_7c0456cb2d1a36f8601863ac206cfcc9.json"
+        ))
+        .unwrap();
+        if let Some(k) = verifier_vcpus {
+            let mut pm: arena_types::PriceModel = serde_json::from_str(include_str!(
+                "../../../../challenges/price-models/pm-near-mainnet-2026q4.draft.json"
+            ))
+            .unwrap();
+            pm.verifier_vcpus = k;
+            c.scoring = Some(arena_types::ScoringSpec {
+                kind: arena_types::ScoringKind::CostV1,
+                price_model_digest: Some(pm.digest().unwrap()),
+                price_model: Some(pm),
+                cost_baseline: vec![],
+                cost_baseline_prepare_ns: None,
+            });
+        }
+        c
+    }
+
+    #[test]
+    fn verify_runs_on_the_reference_validator_profile() {
+        let cpus: Vec<u32> = (0..8).collect();
+        // speed challenge: verify on the benchmark set, unchanged
+        assert_eq!(
+            verify_cpu_set(&chal(None), Some(&cpus)).unwrap(),
+            Some(cpus.clone())
+        );
+        assert_eq!(verify_cpu_set(&chal(None), None).unwrap(), None);
+        // cost_v1: the first verifier_vcpus benchmark CPUs
+        assert_eq!(
+            verify_cpu_set(&chal(Some(2)), Some(&cpus)).unwrap(),
+            Some(vec![0, 1])
+        );
+        // fail closed when the profile cannot be pinned
+        assert!(verify_cpu_set(&chal(Some(9)), Some(&cpus)).is_err());
+        assert!(verify_cpu_set(&chal(Some(2)), None).is_err());
+    }
 }

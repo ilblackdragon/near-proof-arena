@@ -8,6 +8,7 @@ pub mod canonical;
 pub mod challenge;
 pub mod evidence;
 pub mod pipeline;
+pub mod scoring;
 pub mod security;
 pub mod tree;
 pub mod trusted_tree;
@@ -17,6 +18,7 @@ pub use canonical::{canonical_json, sha256_digest, Digest};
 pub use challenge::{ChallengeDefinition, ChallengeId, FormalParams};
 pub use evidence::EvidenceGraph;
 pub use pipeline::*;
+pub use scoring::{CostClass, CostResult, PriceModel, ScoringKind, ScoringSpec};
 pub use security::SecurityProfile;
 pub use tree::{tree_digest, tree_digest_entries, tree_entries, TreeEntry};
 

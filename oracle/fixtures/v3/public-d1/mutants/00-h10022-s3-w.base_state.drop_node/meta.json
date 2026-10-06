@@ -1,0 +1,16 @@
+{
+  "base": "00-h10022-s3",
+  "case": "00-h10022-s3-w.base_state.drop_node",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "w.base_state.drop_node",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 7CdKF4HQFRnMKFamEuMxseBR4DpYeS3YYGViDbR8Qav7 }))",
+  "verdict_source": "nearcore"
+}
