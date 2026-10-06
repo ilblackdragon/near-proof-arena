@@ -7,8 +7,8 @@ import ZkFormal.NearV3.Sched.Link.MemTau
 * `mem_grant`: a memory GRANT row with `vin < 2^29` (the comparator gives `sf = [inc ≤ vin]`):
   condition `c = isL ? al : [inc ≤ vin]`, `ok ≤ c`, `v = ok ? vin − inc : vin`;
 * `seg_init`: an active row carries `al`, `isL` from the `INIT` row of its segment;
-* `IsLOk`: the `isL` flag of the `INIT` rows of τ's addresses is `[link address]` — **not
-  constrained by the table** (see the report: missing constraint);
+* the `isL` flag of the `INIT` rows of τ's addresses is `[link address]` (`init_row_isL`, from
+  `InitVals`: the `INIT` row's `c = isL` is in the message);
 * **`grant_sem`**: for an entry of the instance with in-values `≤ 4,500,000`, the GRANT outcomes
   `cS = [inc ≤ sbIn]`, `cR = [inc ≤ rbIn]`, `cL = allowed[link]`, and the out-values
   `sbOut, rbOut, alOut = ok ? in − inc : in`.
@@ -175,12 +175,6 @@ theorem row_of_msg {tm : Nat} (hL : Mem.MLocal tr tm pub) {r : Nat} (hr : r < tr
 
 end
 
-/-- The `isL` flag of the `INIT` rows of τ's addresses is `[link address]`. **Not implied by the
-tables** (`isL` is not in the `INIT` message): see the report. -/
-def IsLOk (tr : Trace Fp) (tm τ n : Nat) : Prop :=
-  ∀ f, f < tr.height tm → cv tr tm f Mem.fst = 1 → QT τ n (cv tr tm f Mem.addr) = true →
-    cv tr tm f Mem.isL = if cv tr tm f Mem.addr - τ * 16384 < 4096 then 1 else 0
-
 /-! ## The GRANTs of an entry -/
 
 section
@@ -247,7 +241,6 @@ theorem grant_sem (hH : HoldsP AP pub tr) (O : SchedOwn AP tp tm tcmp ts tch tg)
     {P : InstPub} (SP : ScanPub AP pub (cv tr tp f Proc.tau) P) (PO : ScanPubOk P)
     {allowed : Array Bool} {st : St} (hB : ABnd 4500000 st)
     (hV : InitVals AP tr pub (cv tr tp f Proc.tau) P.n allowed st)
-    (hIL : IsLOk tr tm (cv tr tp f Proc.tau) P.n)
     {i : Nat} (hi : i < m) {j : Nat} (hj : j < cv tr tp (Proc.hdrAt tr tp f i) Proc.Lr)
     (hSb : cv tr tp (Proc.hdrAt tr tp f i + 1 + j) Proc.sbIn ≤ 4500000)
     (hRb : cv tr tp (Proc.hdrAt tr tp f i + 1 + j) Proc.rbIn ≤ 4500000)
@@ -292,7 +285,7 @@ theorem grant_sem (hH : HoldsP AP pub tr) (O : SchedOwn AP tp tm tcmp ts tch tg)
     obtain ⟨f0, hf0r, hff, ea, eal, eil⟩ := seg_init hL hrw ha
     have hf0 : f0 < tr.height tm := by omega
     rw [ea] at hq ⊢
-    refine ⟨by rw [eil]; exact hIL f0 hf0 hff hq, fun hlt => ?_⟩
+    refine ⟨by rw [eil]; exact init_row_isL hH O.mem hτ hn hV hf0 hff hq, fun hlt => ?_⟩
     rw [eal, ← (Mem.row_init hL hf0 hff).2.1, (init_row_vals hH O.mem hτ hn hB hV hf0 hff hq).2, if_pos hlt]
   obtain ⟨r7, h7, a7, -, g7, ad7, -, vi7, vo7, ic7, o7, c7⟩ := G 7 (Or.inl rfl)
   obtain ⟨r8, h8, a8, -, g8, ad8, -, vi8, vo8, ic8, o8, c8⟩ := G 8 (Or.inr (Or.inl rfl))

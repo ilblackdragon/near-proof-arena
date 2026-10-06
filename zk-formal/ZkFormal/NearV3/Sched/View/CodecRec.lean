@@ -13,7 +13,7 @@ byte 2: `A0` receive, comparator), `e = w + 23` (end, `rend`).
   `a2 + al·base ≡ a1 (mod P)`, `a2 = a1 − al·base` when `al·base ≤ a1`;
 * **`codec_rec_msgs`**: `SDG (τ, k, al, gb, srcC, hasC, useC)` received at `w`;
   `SA0 (τ, srcC, apR, bigR)` received at `b` with multiplicity `hasC` (`hasC = 0 ⇒ apR = bigR = 0`);
-  `SCMP (apR + fair, MA, cb)` at `b`; `INIT (16384τ + k, 0, OP_INIT, al, a2, g2, 0, 0)` on `SOP`,
+  `SCMP (apR + fair, MA, cb)` at `b`; `INIT (16384τ + k, 0, OP_INIT, al, a2, g2, 0, 1)` on `SOP` (`c = 1`: a link address),
   `FIN (16384τ + k, afin, gfin)` on `SFIN`, `SA0 (τ, k, ap, bF)` sent with multiplicity `useC`
   (`ap` = the three low pre allowance bytes LE, `bF` = some higher pre byte nonzero) at `e`;
   in instance 0 the forwarding `SCMP (gfin + gb, ft, 1)` and `SPUBB (τ, 4, klo, khi, ft₀, ft₁, ft₂)`
@@ -64,7 +64,7 @@ theorem mult_bit {i : Interaction} {e : Expr} {w x : Nat} (hm : i.mult = [e])
 theorem i9_def : interactions[9]! = Interaction.mk B_SPUBB [.add (c kA) (c fwg)]
     [c tau, .add (smul 2 (c kA)) (smul 4 (c fwg)), c pm0, c pm1, c (fb 0), c (fb 1), c (fb 2)] false := rfl
 theorem i10_def : interactions[10]! = Interaction.mk B_SOP [c rend]
-    [aLE, k 0, k OP_INIT, c al, c a2, c g2, k 0, k 0] true := rfl
+    [aLE, k 0, k OP_INIT, c al, c a2, c g2, k 0, k 1] true := rfl
 theorem i11_def : interactions[11]! = Interaction.mk B_SFIN [c rend] [aLE, c afin, c gfin] false := rfl
 theorem i12_def : interactions[12]! = Interaction.mk B_SDG [c rs]
     [c tau, c kidx, c al, c gb, c srcC, c hasC, c useC] false := rfl
@@ -178,7 +178,7 @@ theorem codec_rec_msgs (hL : CLocal tr t pub) {f k : Nat} (hR : ∀ o, o < 24 �
     (interactions[10]!).multNat tr t (f + 5 + 24 * k + 23) pub = 1 ∧
     (interactions[10]!).msgVal tr t (f + 5 + 24 * k + 23) pub =
       [16384 * cv tr t f tau + k, 0, OP_INIT, cv tr t (f + 5 + 24 * k + 23) al,
-        cv tr t (f + 5 + 24 * k + 23) a2, cv tr t (f + 5 + 24 * k + 23) g2, 0, 0].map Fp.ofNat ∧
+        cv tr t (f + 5 + 24 * k + 23) a2, cv tr t (f + 5 + 24 * k + 23) g2, 0, 1].map Fp.ofNat ∧
     (interactions[11]!).multNat tr t (f + 5 + 24 * k + 23) pub = 1 ∧
     (interactions[11]!).msgVal tr t (f + 5 + 24 * k + 23) pub =
       [16384 * cv tr t f tau + k, cv tr t (f + 5 + 24 * k + 23) afin,

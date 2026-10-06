@@ -15,7 +15,8 @@ derived (step 7):
 
 Remaining hypotheses of **`proc_link''`** / **`proc_core''`**: ownership (`SchedOwn`, `ScanOwn`,
 `OpOwn`), public data (`ScanPub`, `RawOk`, `ParSmall`, the instance's `PubOk`-type bounds),
-`htau`, `hseed` (stage A), `hInitVals` (`InitVals`) and `IsLOk` (missing constraint).
+`htau`, `hseed` (stage A) and `hInitVals` (`InitVals`, which also fixes the `isL` flags of the
+`INIT` rows: `init_row_isL`).
 -/
 
 namespace ZkFormal.NearV3.Sched
@@ -52,7 +53,7 @@ theorem in_le {i : Nat} (hi : i < m) {j : Nat} (hj : j < cv tr tp (Proc.hdrAt tr
   have b7 : cv tr tp (Proc.hdrAt tr tp f i + 1 + j) Proc.sbIn ≤ 4500000 := by rw [y7]; exact (hB _).1
   have b8 : cv tr tp (Proc.hdrAt tr tp f i + 1 + j) Proc.rbIn ≤ 4500000 := by rw [y8]; exact (hB _).2.1
   have b9 : cv tr tp (Proc.hdrAt tr tp f i + 1 + j) Proc.alIn ≤ 4500000 := by rw [y9]; exact (hB _).2.2
-  obtain ⟨-, -, -, -, -, oL⟩ := grant_sem C.hH C.O C.OS C.I C.hτ C.SP C.PO C.hB C.hV C.hIL hi hj b7 b8 b9
+  obtain ⟨-, -, -, -, -, oL⟩ := grant_sem C.hH C.O C.OS C.I C.hτ C.SP C.PO C.hB C.hV hi hj b7 b8 b9
   refine ⟨b7, b8, b9, ?_⟩
   rw [oL]; split <;> omega
 
@@ -110,9 +111,8 @@ theorem proc_link'' {AP : AirP} {pub : List Fp} {tr : Trace Fp} (hH : HoldsP AP 
     -- the spec state
     (allowed : Array Bool) (st : St) (hst : st.rng = rngAt (procKey tr tp f) 0)
     (hsz : SzA P.n st) (hB : ABnd 4500000 st)
-    -- the INIT values (codec / distribute stage) and the `isL` flags (missing constraint)
-    (hV : InitVals AP tr pub (cv tr tp f Proc.tau) P.n allowed st)
-    (hIL : IsLOk tr tm (cv tr tp f Proc.tau) P.n) :
+    -- the INIT values (codec / distribute stage)
+    (hV : InitVals AP tr pub (cv tr tp f Proc.tau) P.n allowed st) :
     let rs := roundsOf tr tp f m
     simR P.n allowed (reqsOf P) rs T0 st = some (specSt P.n allowed (reqsOf P) tr tp f st m, pushRec tr tp f m) ∧
     (entriesOf rs).Perm (initPushes (reqsOf P) st ++ pushRec tr tp f m) ∧
@@ -120,7 +120,7 @@ theorem proc_link'' {AP : AirP} {pub : List Fp} {tr : Trace Fp} (hH : HoldsP AP 
     (∀ R ∈ rs, R.valid) ∧ (∀ R ∈ rs, R.ents ≠ []) ∧ TsOk T0 rs ∧
     processRequests P.n allowed st (reqsOf P) = some (specSt P.n allowed (reqsOf P) tr tp f st m) := by
   have C : MemCtx AP pub tr tp tm tcmp ts tch tg tsd tcd f m P allowed st :=
-    ⟨hH, O, OS, OO, PS, htau, hf, hk, hc, I, SP, PO, hB, hsz, hV, hIL⟩
+    ⟨hH, O, OS, OO, PS, htau, hf, hk, hc, I, SP, PO, hB, hsz, hV⟩
   have hτ : cv tr tp f Proc.tau < 2013265921 := cv_lt _ _
   obtain ⟨hinit, hinitOk⟩ := scan_init (tp := tp) hH OS SP PO hτ st C.read_ok
   have hperm := rounds_perm hH O.tp_lt O.tp_tab O.pushRecv O.pushPub hf hk hc I hinit hinitOk
@@ -169,10 +169,9 @@ theorem proc_core'' {AP : AirP} {pub : List Fp} {tr : Trace Fp} (hH : HoldsP AP 
     (SP : ScanPub AP pub (cv tr tp f Proc.tau) P) (PS : ParSmall AP pub)
     (prev : Option NearSpec.Bytes) (a0 : Nat → Nat) (h0 : NearSpec.Bytes) (hprev : PrevCanon P.ids prev a0 h0)
     (hseed : procKey tr tp f = leWords P.seed)
-    -- the INIT values (codec / distribute stage) and the `isL` flags (missing constraint)
+    -- the INIT values (codec / distribute stage)
     (hV : InitVals AP tr pub (cv tr tp f Proc.tau) P.ids.length P.allowed
-      (lpState P.ids P.params P.allowed a0 P.seed))
-    (hIL : IsLOk tr tm (cv tr tp f Proc.tau) P.ids.length) :
+      (lpState P.ids P.params P.allowed a0 P.seed)) :
     let n := P.ids.length
     let stF := specSt P.ids.length P.allowed (reqsOf P) tr tp f (lpState P.ids P.params P.allowed a0 P.seed) m
     coreOf P.ids P.params P.allowed (reqsOf P) P.seed P.ash prev = some
@@ -187,7 +186,7 @@ theorem proc_core'' {AP : AirP} {pub : List Fp} {tr : Trace Fp} (hH : HoldsP AP 
   have C : MemCtx AP pub tr tp tm tcmp ts tch tg tsd tcd f m P P.allowed
       (lpState P.ids P.params P.allowed a0 P.seed) :=
     ⟨hH, O, OS, OO, PS, htau, hf, hk, hc, I, SP, PO, lpState_bnd P.ids hn P.params hp P.allowed a0 P.seed,
-      lpState_szA P.ids P.params P.allowed a0 P.seed, hV, hIL⟩
+      lpState_szA P.ids P.params P.allowed a0 P.seed, hV⟩
   have hτ : cv tr tp f Proc.tau < 2013265921 := cv_lt _ _
   obtain ⟨hinit, hinitOk⟩ := scan_init (tp := tp) hH OS SP PO hτ
     (lpState P.ids P.params P.allowed a0 P.seed) C.read_ok
