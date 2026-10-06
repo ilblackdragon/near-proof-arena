@@ -158,10 +158,10 @@ theorem zero_of_gate (hL : MLocal tr tm pub) {r : Nat} (hr : r < tr.height tm) {
 /-- **INIT row.** -/
 theorem row_init (hL : MLocal tr tm pub) {r : Nat} (hr : r < tr.height tm) (hf : cv tr tm r fst = 1) :
     cv tr tm r t = 0 ∧ cv tr tm r vin = cv tr tm r al ∧ cv tr tm r inc = cv tr tm r w ∧
-      cv tr tm r ok = 0 ∧ cv tr tm r cc = 0 ∧ cv tr tm r sf = 0 ∧ cv tr tm r wp = cv tr tm r w :=
+      cv tr tm r ok = 0 ∧ cv tr tm r cc = cv tr tm r isL ∧ cv tr tm r sf = 0 ∧ cv tr tm r wp = cv tr tm r w :=
   ⟨zero_of_gate hL hr (by simp [constraints]) hf, eq_of_gate hL hr (by simp [constraints]) hf,
    eq_of_gate hL hr (by simp [constraints]) hf, zero_of_gate hL hr (by simp [constraints]) hf,
-   zero_of_gate hL hr (by simp [constraints]) hf, zero_of_gate hL hr (by simp [constraints]) hf,
+   eq_of_gate hL hr (by simp [constraints]) hf, zero_of_gate hL hr (by simp [constraints]) hf,
    eq_of_gate hL hr (by simp [constraints]) hf⟩
 
 /-- **READ row.** -/

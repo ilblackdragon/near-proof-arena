@@ -12,7 +12,8 @@ Address kinds (`addrOf τ kind idx`): link (allowance `v`, granted accumulator `
 `al`) or a sender / receiver budget (`v`). Every access is a received `SOP` message
 `(addr, t, op, vin, v, inc, ok, c)`:
 
-* `INIT` (`op = 0`, `t = 0`): `vin = al`, `inc = w` (initial granted), `ok = c = 0`;
+* `INIT` (`op = 0`, `t = 0`): `vin = al`, `inc = w` (initial granted), `ok = 0`, `c = isL` (the
+  sender pins the address kind: the codec sends `c = 1` for links, the distribute `c = 0`);
 * `READ` (`op = 1`): `v = vin`;
 * `GRANT` (`op = 2`): the comparator gives `sf = [inc ≤ vin]`; the condition is `c = al` (link)
   or `c = sf` (budget); `ok ⇒ c`; `v = vin − ok·(sf ? inc : vin)` (`saturating_sub` for links;
@@ -80,7 +81,7 @@ def constraints : List Expr :=
     mul3 .isTransition (notE (c act)) (n act),
     -- INIT rows
     .mul (c fst) (c t), .mul (c fst) (sub (c vin) (c al)), .mul (c fst) (sub (c inc) (c w)),
-    .mul (c fst) (c ok), .mul (c fst) (c cc), .mul (c fst) (c sf), .mul (c fst) (sub (c wp) (c w)),
+    .mul (c fst) (c ok), .mul (c fst) (sub (c cc) (c isL)), .mul (c fst) (c sf), .mul (c fst) (sub (c wp) (c w)),
     -- READ rows
     .mul (c isRd) (sub (c v) (c vin)), .mul (c isRd) (sub (c w) (c wp)), .mul (c isRd) (c inc),
     .mul (c isRd) (c ok), .mul (c isRd) (c cc), .mul (c isRd) (c sf),

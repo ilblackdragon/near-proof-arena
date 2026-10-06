@@ -303,7 +303,7 @@ def interactions : List Interaction :=
     { bus := B_SPUBB, mult := [.add (c kA) (c fwg)], send := false,
       msg := [c tau, .add (smul 2 (c kA)) (smul 4 (c fwg)), c pm0, c pm1, c (fb 0), c (fb 1), c (fb 2)] },
     { bus := B_SOP, mult := [c rend], send := true,
-      msg := [aLE, k 0, k OP_INIT, c al, c a2, c g2, k 0, k 0] },
+      msg := [aLE, k 0, k OP_INIT, c al, c a2, c g2, k 0, k 1] },
     { bus := B_SFIN, mult := [c rend], send := false, msg := [aLE, c afin, c gfin] },
     { bus := B_SDG, mult := [c rs], send := false,
       msg := [c tau, c kidx, c al, c gb, c srcC, c hasC, c useC] },

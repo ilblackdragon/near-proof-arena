@@ -220,6 +220,70 @@ def laneCrossCheck (R : Run) : Except String (Nat × Nat × Nat) := do
 
 /-! ## Main -/
 
+/-! ## `isL` mutants (`smmV3`): flip `isL` on a whole segment -/
+
+def cellN (T : Tab) (r c : Nat) : Nat := (T.tr.cell 0 r c).toNat
+
+/-- The last row of the segment whose `INIT` row is `f` (the first `lst` row from `f`). -/
+def segEnd (T : Tab) (f : Nat) : Nat :=
+  (((List.range (T.h - f)).find? fun d => cellN T (f + d) Mem.lst == 1).map (f + ·)).getD f
+
+/-- The first `INIT` row with `isL = l` whose segment has no GRANT row (else the first with `isL = l`):
+without GRANTs nothing but the `INIT` row's `c` / message can see the flag. -/
+def initRowOf (T : Tab) (l : Nat) : Option Nat :=
+  let fs := (List.range T.h).filter fun r => cellN T r Mem.fst == 1 && cellN T r Mem.isL == l
+  match fs.find? (fun f => (List.range (segEnd T f + 1 - f)).all fun d => cellN T (f + d) Mem.isGr == 0) with
+  | some f => some f
+  | none => fs.head?
+
+/-- Flip `isL` on every row of the segment of `f` (so the carried-value constraints still hold);
+with `pin`, also set the `INIT` row's `c` to the new `isL` (so `fst·(c − isL) = 0` holds). -/
+def flipIsL (T : Tab) (f : Nat) (pin : Bool) : Tab :=
+  let e := segEnd T f
+  { T with tr := ⟨T.tr.log, fun t r c =>
+      if f ≤ r ∧ r ≤ e ∧ c = Mem.isL then 1 - T.tr.cell t r c
+      else if pin ∧ r = f ∧ c = Mem.cc then 1 - T.tr.cell t r Mem.isL
+      else T.tr.cell t r c⟩ }
+
+open ZkFormal.Chacha.Table.E in
+/-- The memory constraints before the fix (`fst·c = 0` on `INIT` rows). -/
+def oldMemCs : Array Expr := Mem.constraints.toArray.map fun e =>
+  if e == Expr.mul (c Mem.fst) (sub (c Mem.cc) (c Mem.isL)) then Expr.mul (c Mem.fst) (c Mem.cc) else e
+
+/-- The rows `f − 1 … e + 1` around a segment (cyclically). -/
+def segRowsAround (T : Tab) (f : Nat) : List Nat :=
+  (List.range (segEnd T f + 3 - f)).map fun d => (f + d + T.h - 1) % T.h
+
+/-- The `isL` probes on the memory table `TM`: a link and a budget segment, each flipped unpinned
+(caught by `fst·(c − isL)`) and pinned (`c` := new `isL`: caught by the `SOP` INIT message);
+`others` = the expected external traffic and the other tables' messages. Also prints the old
+table's (`fst·c = 0`) local verdict on the unpinned flip, to show the gap the probe covers. -/
+def isLProbes (TM : Tab) (others : List (Nat × Bool × List Nat)) : IO (Nat × Nat × List String) := do
+  let mut caught := 0
+  let mut tot := 0
+  let mut missed : List String := []
+  for (lbl, l) in [("link", 1), ("budget", 0)] do
+    let some f := initRowOf TM l
+      | IO.println s!"isL mutant: no {lbl} INIT row"; missed := s!"{lbl}: no INIT row" :: missed; continue
+    let e := segEnd TM f
+    let grants := ((List.range (e + 1 - f)).filter fun d => cellN TM (f + d) Mem.isGr == 1).length
+    let rows := segRowsAround TM f
+    let O := flipIsL TM f false
+    -- the old table: `fst·c = 0`, and the old generator's `c = 0` on every INIT row
+    let oTr : Trace Fp := ⟨O.tr.log, fun t r c => if c = Mem.cc ∧ O.tr.cell t r Mem.fst = 1 then 0 else O.tr.cell t r c⟩
+    let O : Tab := { O with cs := oldMemCs, tr := oTr }
+    IO.println s!"isL {lbl} segment rows {f}..{e} ({grants} GRANT rows): old table (fst·c = 0) local violations {(checkRows O rows).length}"
+    for pin in [false, true] do
+      tot := tot + 1
+      let T := flipIsL TM f pin
+      let v := checkRows T rows
+      let ms := msgs T
+      let imb := busImbalance (others ++ ms.1)
+      IO.println s!"  isL mutant {lbl} pin={pin}: local violations {v.length}, mult bits {ms.2}, imbalance {imb}"
+      if !v.isEmpty || ms.2 != 0 || !imb.isEmpty then caught := caught + 1
+      else missed := s!"{lbl} pin={pin}" :: missed
+  return (caught, tot, missed.reverse)
+
 def mutate (T : Tab) (r c : Nat) : Tab :=
   { T with tr := ⟨T.tr.log, fun t r' c' => if r' == r && c' == c then T.tr.cell t r' c' + 1 else T.tr.cell t r' c'⟩ }
 
@@ -327,7 +391,10 @@ def main (args : List String) : IO UInt32 := do
     let imb := busImbalance all
     if !v.isEmpty || ms.2 != 0 || !imb.isEmpty then caught := caught + 1
     else missed := (tabs[ti]!.name, r, col) :: missed
-  IO.println s!"mutants caught {caught}/{probes.length}, missed {missed.reverse}"
+  let others := ext ++ ((List.range tabs.length).flatMap fun k => if k == 1 then [] else base[k]!)
+  let (lc, lt, lm) ← isLProbes tabs[1]! others
+  IO.println s!"isL mutants caught {lc}/{lt}, missed {lm}"
+  IO.println s!"mutants caught {caught + lc}/{probes.length + lt}, missed {missed.reverse}"
   let t2 ← IO.monoMsNow
   IO.println s!"total time {(t2 - t0) / 1000}s"
-  return (if badV == 0 && missed.isEmpty then 0 else 1)
+  return (if badV == 0 && missed.isEmpty && lm.isEmpty then 0 else 1)
