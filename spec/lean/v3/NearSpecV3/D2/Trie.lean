@@ -1,6 +1,5 @@
 import NearSpecV3.TrieBuild
 import NearSpec.TrieUpsert
-import Std.Data.HashMap
 
 /-!
 # D2 trie operations: full reveal, delete with squash, path-only refs, prefix iteration
@@ -31,10 +30,38 @@ open NearSpec NearSpecV3
 
 /-! ## Full reveal of the recorded storage -/
 
-abbrev HStore := Std.HashMap Bytes Bytes
+/-- Binary search tree of the recorded values keyed by their SHA-256 (byte-lexicographic),
+built by insertion in witness order. Pure inductive data with structural recursion, so the
+relation stays kernel-reducible (no `HashMap`: its hash function is `opaque`). -/
+inductive HStore where
+  | tip
+  | node (k v : Bytes) (l r : HStore)
+
+/-- Three-way byte-lexicographic comparison (`0` lt, `1` eq, `2` gt). -/
+def cmpBytes : Bytes → Bytes → Nat
+  | [], [] => 1
+  | [], _ :: _ => 0
+  | _ :: _, [] => 2
+  | a :: as, b :: bs => if a.toNat < b.toNat then 0 else if b.toNat < a.toNat then 2 else cmpBytes as bs
+
+def HStore.insert : HStore → Bytes → Bytes → HStore
+  | .tip, k, v => .node k v .tip .tip
+  | .node k' v' l r, k, v =>
+    match cmpBytes k k' with
+    | 0 => .node k' v' (l.insert k v) r
+    | 2 => .node k' v' l (r.insert k v)
+    | _ => .node k' v l r
+
+def HStore.get? : HStore → Bytes → Option Bytes
+  | .tip, _ => none
+  | .node k' v' l r, k =>
+    match cmpBytes k k' with
+    | 0 => l.get? k
+    | 2 => r.get? k
+    | _ => some v'
 
 def mkHStore (values : List Bytes) : HStore :=
-  values.foldl (fun m v => m.insert (sha256 v) v) {}
+  values.foldl (fun m v => m.insert (sha256 v) v) .tip
 
 def hGet (s : HStore) (h : Bytes) : Option Bytes := s.get? h
 
