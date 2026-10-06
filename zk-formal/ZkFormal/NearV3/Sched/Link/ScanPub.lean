@@ -259,4 +259,263 @@ theorem pub_two (hH : HoldsP AP pub tr) (O : ScanOwn AP tsd tp) {w1 w2 : Nat}
 
 end
 
+
+/-! ## Request blocks of an instance -/
+
+theorem b3_sum (b : Nat) (hb : b < 2 ^ 24) :
+    b % 256 + 256 * (b / 256 % 256) + 65536 * (b / 65536 % 256) = b := by omega
+
+theorem b2_sum (c : Nat) (hc : c < 2 ^ 16) : c % 256 + 256 * (c / 256 % 256) = c := by omega
+
+theorem nodup_map_on {α β : Type} {f : α → β} {l : List α}
+    (hf : ∀ x ∈ l, ∀ y ∈ l, f x = f y → x = y) (hl : l.Nodup) : (l.map f).Nodup := by
+  unfold List.Nodup at *
+  rw [List.pairwise_map]
+  exact hl.imp_of_mem fun ha hb hne he => hne (hf _ ha _ hb he)
+
+theorem rawRec_lt {P : InstPub} (PO : ScanPubOk P) {τ c : Nat} (hτ : τ < 2013265921)
+    (hc : c < P.raw.length) : ∀ x ∈ rawRec τ (rawAt P c) c, x < 2013265921 := by
+  obtain ⟨hs, hr, -⟩ := PO.raw _ (rawAt_mem hc)
+  have := PO.n64
+  intro x hx
+  simp only [rawRec, List.mem_cons, List.not_mem_nil, or_false] at hx
+  rcases hx with h | h | h | h | h | h | h | h | h | h | h <;> subst h <;>
+    first | omega | (simp only [PT_RAW]; omega) | exact Nat.lt_trans (UInt8.toNat_lt _) (by decide)
+
+theorem parScan_lt {P : InstPub} (PO : ScanPubOk P) {τ : Nat} (hτ : τ < 2013265921) :
+    ∀ x ∈ parScan τ P, x < 2013265921 := by
+  have := PO.n64
+  intro x hx
+  simp only [parScan, b3, List.cons_append, List.nil_append, List.mem_cons, List.not_mem_nil,
+    or_false] at hx
+  rcases hx with h | h | h | h | h | h | h | h | h | h | h <;> subst h <;>
+    first | omega | (simp only [PT_SCAN]; omega)
+
+theorem scanRecs_lt {P : InstPub} (PO : ScanPubOk P) {τ : Nat} (hτ : τ < 2013265921) :
+    ∀ R ∈ scanRecs τ P, ∀ x ∈ R, x < 2013265921 := by
+  intro R hR
+  simp only [scanRecs, List.mem_append] at hR
+  rcases hR with hR | hR
+  · split at hR
+    · simp at hR
+    · rw [List.mem_singleton.1 hR]; exact parScan_lt PO hτ
+  · rw [rawRecs_eq] at hR
+    obtain ⟨c, hc, rfl⟩ := List.mem_map.1 hR
+    exact rawRec_lt PO hτ (List.mem_range.1 hc)
+
+theorem scanMsgs_nodup {P : InstPub} (PO : ScanPubOk P) {τ : Nat} (hτ : τ < 2013265921) :
+    (scanMsgs τ P).Nodup := by
+  refine nodup_map_on (fun x hx y hy he => ofNat_list_inj (scanRecs_lt PO hτ x hx)
+    (scanRecs_lt PO hτ y hy) he) ?_
+  have hraw : (rawRecs τ P).Nodup := by
+    rw [rawRecs_eq]
+    refine nodup_map_on (fun x hx y hy he => ?_) List.nodup_range
+    have hx' := List.mem_range.1 hx; have hy' := List.mem_range.1 hy
+    have := PO.len16
+    simp only [rawRec, List.cons.injEq] at he
+    omega
+  unfold scanRecs
+  rw [List.nodup_append]
+  refine ⟨by split <;> simp, hraw, fun a ha b hb => ?_⟩
+  split at ha
+  · simp at ha
+  · rw [List.mem_singleton.1 ha]
+    rw [rawRecs_eq] at hb
+    obtain ⟨c, -, rfl⟩ := List.mem_map.1 hb
+    intro e
+    have := congrArg (·[1]?) e
+    simp [parScan, rawRec, PT_SCAN, PT_RAW] at this
+
+section
+variable {AP : AirP} {pub : List Fp} {tr : Trace Fp} {tsd tp : Nat}
+
+theorem parV_raw {t w τ c : Nat} {q : RawReq} (h : Scan.parV tr t w = rawRec τ q c) :
+    cv tr t w Scan.tau = τ ∧ (∀ i, i < 5 → (q.bm.getD i 0).toNat = cv tr t w (Scan.q i)) ∧
+      cv tr t w Scan.clo = c % 256 ∧ cv tr t w Scan.chi = c / 256 % 256 ∧
+      cv tr t w Scan.s = q.s ∧ cv tr t w Scan.r = q.r := by
+  simp only [Scan.parV, rawRec, List.cons.injEq] at h
+  obtain ⟨h0, -, h2, h3, h4, h5, h6, h7, h8, h9, h10, -⟩ := h
+  refine ⟨h0, fun i hi => ?_, h7, h8, h9, h10⟩
+  rcases (by omega : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 ∨ i = 4) with rfl | rfl | rfl | rfl | rfl
+  · exact h2.symm
+  · exact h3.symm
+  · exact h4.symm
+  · exact h5.symm
+  · exact h6.symm
+
+/-- **A request start of τ is a public raw request.** -/
+theorem blk_rec (hH : HoldsP AP pub tr) (O : ScanOwn AP tsd tp) {τ : Nat} {P : InstPub}
+    (SP : ScanPub AP pub τ P) (PO : ScanPubOk P) {f : Nat} (hf : f < tr.height tsd)
+    (hq : cv tr tsd f Scan.fQ = 1) (ht : cv tr tsd f Scan.tau = τ) :
+    cv tr tsd f Scan.cid < P.raw.length ∧
+      Scan.parV tr tsd f = rawRec τ (rawAt P (cv tr tsd f Scan.cid)) (cv tr tsd f Scan.cid) := by
+  have hL := sd_local hH O
+  have hS := Scan.SLocal.of_sd hL
+  have hm := Scan.par_mult hS hf (Or.inl hq)
+  have h1 := pub_of_row hH O hf hm
+  have hk := Scan.fQ_le_kS hS hf hq
+  have htag := Scan.tag_kS hS hf hk
+  have hτ : τ < 2013265921 := ht ▸ cv_lt _ _
+  rw [Scan.par_msg] at h1
+  rw [SP.par _ (by simp [Scan.parV, ht]) (Or.inr (by simp [Scan.parV, htag, PT_RAW]))] at h1
+  obtain ⟨R, hR, hRe⟩ := List.mem_map.1 (List.count_pos_iff.1 h1)
+  have hlt := Scan.parV_lt hS hf
+  simp only [scanRecs, List.mem_append] at hR
+  rcases hR with hR | hR
+  · split at hR
+    · simp at hR
+    · rw [List.mem_singleton.1 hR] at hRe
+      have := ofNat_list_inj (parScan_lt PO hτ) hlt hRe
+      have e := congrArg (·[1]?) this
+      simp [parScan, Scan.parV, htag, PT_SCAN] at e
+  · rw [rawRecs_eq] at hR
+    obtain ⟨c, hc, rfl⟩ := List.mem_map.1 hR
+    have hc' := List.mem_range.1 hc
+    have he := (ofNat_list_inj (rawRec_lt PO hτ hc') hlt hRe).symm
+    obtain ⟨-, -, hlo, hhi, -, -⟩ := parV_raw he
+    have hcid := (Scan.row_start hS hf hq).2.2.2.2.2.2.1
+    have := PO.len16
+    have e : cv tr tsd f Scan.cid = c := by
+      rw [hcid, hlo, hhi, b2_sum c (by omega), Nat.mod_eq_of_lt (by omega)]
+    rw [e]
+    exact ⟨hc', he⟩
+
+/-- What a request start of τ holds. -/
+structure BlkOk (tr : Trace Fp) (tsd f : Nat) (P : InstPub) : Prop where
+  lt : cv tr tsd f Scan.cid < P.raw.length
+  bm : ∀ i, i < 5 → ((rawAt P (cv tr tsd f Scan.cid)).bm.getD i 0).toNat = cv tr tsd f (Scan.q i)
+  s : cv tr tsd f Scan.s = (rawAt P (cv tr tsd f Scan.cid)).s
+  r : cv tr tsd f Scan.r = (rawAt P (cv tr tsd f Scan.cid)).r
+  nn : cv tr tsd f Scan.nn = P.n
+  link : cv tr tsd f Scan.link =
+    (rawAt P (cv tr tsd f Scan.cid)).s * P.n + (rawAt P (cv tr tsd f Scan.cid)).r
+  base : cv tr tsd f Scan.base = P.params.base
+  dd : cv tr tsd f Scan.dd = P.params.maxSingleGrant - P.params.base
+
+/-- **The data of a request start of τ.** -/
+theorem blk_ok (hH : HoldsP AP pub tr) (O : ScanOwn AP tsd tp) {τ : Nat} {P : InstPub}
+    (SP : ScanPub AP pub τ P) (PO : ScanPubOk P) {f : Nat} (hf : f < tr.height tsd)
+    (hq : cv tr tsd f Scan.fQ = 1) (ht : cv tr tsd f Scan.tau = τ) : BlkOk tr tsd f P := by
+  have hL := sd_local hH O
+  have hS := Scan.SLocal.of_sd hL
+  have hτ : τ < 2013265921 := ht ▸ cv_lt _ _
+  obtain ⟨hc, he⟩ := blk_rec hH O SP PO hf hq ht
+  obtain ⟨-, hbm, -, -, hs, hr⟩ := parV_raw he
+  -- the section's param row
+  obtain ⟨p, hp, hpk, hpc⟩ := Scan.param_of hL f hf hq
+  have hpf : p < tr.height tsd := by omega
+  have hpt : cv tr tsd p Scan.tau = τ := by rw [← hpc Scan.tau (by simp [Scan.instCols]), ht]
+  have hm := Scan.par_mult hS hpf (Or.inr hpk)
+  have h1 := pub_of_row hH O hpf hm
+  have htag := Scan.tag_kP hS hpf hpk
+  rw [Scan.par_msg] at h1
+  rw [SP.par _ (by simp [Scan.parV, hpt]) (Or.inl (by simp [Scan.parV, htag, PT_SCAN]))] at h1
+  obtain ⟨R, hR, hRe⟩ := List.mem_map.1 (List.count_pos_iff.1 h1)
+  have hlt := Scan.parV_lt hS hpf
+  have hpar : Scan.parV tr tsd p = parScan τ P := by
+    simp only [scanRecs, List.mem_append] at hR
+    rcases hR with hR | hR
+    · split at hR
+      · simp at hR
+      · rw [List.mem_singleton.1 hR] at hRe
+        exact (ofNat_list_inj (parScan_lt PO hτ) hlt hRe).symm
+    · rw [rawRecs_eq] at hR
+      obtain ⟨c, hc, rfl⟩ := List.mem_map.1 hR
+      have := ofNat_list_inj (rawRec_lt PO hτ (List.mem_range.1 hc)) hlt hRe
+      have e := congrArg (·[1]?) this
+      simp [rawRec, Scan.parV, htag, PT_RAW] at e
+  simp only [Scan.parV, parScan, b3, List.cons_append, List.nil_append, List.cons.injEq] at hpar
+  obtain ⟨-, -, q0, q1, q2, q3, q4, qlo, qhi, -, -, -⟩ := hpar
+  obtain ⟨hb, hd, -⟩ := Scan.row_param hS hpf hpk
+  have hnn : cv tr tsd p Scan.chi = cv tr tsd p Scan.nn :=
+    Scan.eq_of_gate hS hpf (by simp [Scan.constraints, Scan.shared, Scan.own, Scan.body]) hpk
+  have b24 := PO.base24; have d24 := PO.d24
+  have ebase : cv tr tsd f Scan.base = P.params.base := by
+    rw [hpc Scan.base (by simp [Scan.instCols]), hb, q0, q1, q2, b3_sum _ b24,
+      Nat.mod_eq_of_lt (by omega)]
+  have edd : cv tr tsd f Scan.dd = P.params.maxSingleGrant - P.params.base := by
+    rw [hpc Scan.dd (by simp [Scan.instCols]), hd, q3, q4, qlo, b3_sum _ d24,
+      Nat.mod_eq_of_lt (by omega)]
+  have enn : cv tr tsd f Scan.nn = P.n := by
+    rw [hpc Scan.nn (by simp [Scan.instCols]), ← hnn, qhi]
+  obtain ⟨hs', hr', -⟩ := PO.raw _ (rawAt_mem hc)
+  have hn := PO.n64
+  have hlink := (Scan.row_start hS hf hq).2.2.2.2.2.2.2
+  refine ⟨hc, hbm, hs, hr, enn, ?_, ebase, edd⟩
+  rw [hlink, hs, hr, enn]
+  have : (rawAt P (cv tr tsd f Scan.cid)).s * P.n ≤ 64 * 64 := Nat.mul_le_mul (by omega) hn
+  exact Nat.mod_eq_of_lt (by omega)
+
+/-- **Request starts of τ have distinct `cid`s.** -/
+theorem blk_unique (hH : HoldsP AP pub tr) (O : ScanOwn AP tsd tp) {τ : Nat} {P : InstPub}
+    (SP : ScanPub AP pub τ P) (PO : ScanPubOk P) {f1 f2 : Nat}
+    (hf1 : f1 < tr.height tsd) (hq1 : cv tr tsd f1 Scan.fQ = 1) (ht1 : cv tr tsd f1 Scan.tau = τ)
+    (hf2 : f2 < tr.height tsd) (hq2 : cv tr tsd f2 Scan.fQ = 1) (ht2 : cv tr tsd f2 Scan.tau = τ)
+    (hc : cv tr tsd f1 Scan.cid = cv tr tsd f2 Scan.cid) : f1 = f2 := by
+  have hL := sd_local hH O
+  have hS := Scan.SLocal.of_sd hL
+  have hτ : τ < 2013265921 := ht1 ▸ cv_lt _ _
+  refine Classical.byContradiction fun hne => ?_
+  obtain ⟨-, he1⟩ := blk_rec hH O SP PO hf1 hq1 ht1
+  obtain ⟨-, he2⟩ := blk_rec hH O SP PO hf2 hq2 ht2
+  have hM : (ScanDist.interactions[0]!).msgVal tr tsd f1 pub =
+      (ScanDist.interactions[0]!).msgVal tr tsd f2 pub := by
+    rw [Scan.par_msg, Scan.par_msg, he1, he2, hc]
+  have h2 := pub_two hH O hf1 hf2 hne (Scan.par_mult hS hf1 (Or.inl hq1))
+    (Scan.par_mult hS hf2 (Or.inl hq2)) hM
+  have htag := Scan.tag_kS hS hf1 (Scan.fQ_le_kS hS hf1 hq1)
+  rw [Scan.par_msg] at h2
+  rw [SP.par _ (by simp [Scan.parV, ht1]) (Or.inr (by simp [Scan.parV, htag, PT_RAW]))] at h2
+  have := List.nodup_iff_count.1 (scanMsgs_nodup PO hτ) ((Scan.parV tr tsd f1).map Fp.ofNat)
+  omega
+
+/-- **Every public raw request of τ has a request start.** -/
+theorem blk_exists (hH : HoldsP AP pub tr) (O : ScanOwn AP tsd tp) {τ : Nat} {P : InstPub}
+    (SP : ScanPub AP pub τ P) (PO : ScanPubOk P) (hτ : τ < 2013265921) {c : Nat}
+    (hc : c < P.raw.length) :
+    ∃ f, f < tr.height tsd ∧ cv tr tsd f Scan.fQ = 1 ∧ cv tr tsd f Scan.tau = τ ∧
+      cv tr tsd f Scan.cid = c := by
+  have hL := sd_local hH O
+  have hS := Scan.SLocal.of_sd hL
+  obtain ⟨M, hMd⟩ : ∃ M, M = (rawRec τ (rawAt P c) c).map Fp.ofNat := ⟨_, rfl⟩
+  have hmem : M ∈ scanMsgs τ P := by
+    refine List.mem_map.2 ⟨_, ?_, hMd.symm⟩
+    simp only [scanRecs, List.mem_append]
+    right; rw [rawRecs_eq]; exact List.mem_map.2 ⟨c, List.mem_range.2 hc, rfl⟩
+  have hpc : 1 ≤ pubCount AP pub B_SPAR true M := by
+    rw [SP.par M (by simp [hMd, rawRec]) (Or.inr (by simp [hMd, rawRec]))]
+    exact List.count_pos_iff.2 hmem
+  rw [par_count hH O] at hpc
+  unfold busCount at hpc
+  obtain ⟨t, ht, htc⟩ := busCount_go_pos tr pub _ _ M AP.tables 0 (Nat.pos_iff_ne_zero.1 hpc)
+  rw [Nat.zero_add] at htc
+  obtain ⟨w, hw, i, hi, hb, hs, hmsg, hm⟩ := exists_of_tableBusCount htc
+  by_cases htd : t = tsd
+  · subst htd
+    rw [O.tab] at hi
+    have hi0 := Scan.par_cases i hi hb
+    subst hi0
+    rw [Scan.par_msg] at hmsg
+    have hlt := Scan.parV_lt hS hw
+    have he := ofNat_list_inj hlt (rawRec_lt PO hτ hc) (hmsg.trans hMd)
+    have htag : cv tr t w Scan.kP + 2 * cv tr t w Scan.kS + 3 * cv tr t w Scan.kSh +
+        4 * cv tr t w Scan.kC = 2 := by
+      have := congrArg (·[1]?) he
+      simpa [Scan.parV, rawRec, PT_RAW] using this
+    have hq := Scan.fQ_of_par hS hw hm htag
+    obtain ⟨ht', -, hlo, hhi, -, -⟩ := parV_raw he
+    have hcid := (Scan.row_start hS hw hq).2.2.2.2.2.2.1
+    have := PO.len16
+    exact ⟨w, hw, hq, ht', by rw [hcid, hlo, hhi, b2_sum c (by omega), Nat.mod_eq_of_lt (by omega)]⟩
+  · have h1 := O.parTag t ht htd i hi hb
+    have e := congrArg (·[1]?) hmsg
+    rw [hMd] at e
+    simp only [Interaction.msgVal, List.getElem?_map, h1, rawRec, List.map_cons,
+      List.getElem?_cons_succ, List.getElem?_cons_zero, Option.map_some, Option.some.injEq] at e
+    have : (k 0).eval tr t w pub = Fp.ofNat 0 := Scan.eval_ofNat (by simp [zev_k])
+    rw [this] at e
+    exact absurd ((Proc.ofNat_cv_eq (by decide) (by decide)).1 e) (by simp [PT_RAW])
+
+end
+
 end ZkFormal.NearV3.Sched
