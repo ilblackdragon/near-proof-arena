@@ -47,9 +47,13 @@ charged on its own.
 Reading:
 1. The difftest is **sensitive** to the metering granularity. A semantics that charged per instruction would
    be caught.
-2. On these 4000 cases, instruction-level metering agrees with nearcore on every consensus-observable field.
-   The error variant is not consensus-observable (`PartialExecutionStatus`). This is test evidence (T) for
-   the `metering_equiv` lemma proposed in `docs/research/near-wasm-strategy.md` §2. It is not a proof.
+2. On these 4000 **promise-free** cases, instruction-level metering agrees with nearcore on every
+   consensus-observable field. This does **not** generalise: once a promise exists, an out-of-gas abort charges
+   the whole finite-wasm range (review F1, `docs/reviews/D3_REVIEW_2026-10-06.md`), so `burnt_gas` differs. The
+   `metering_equiv` lemma is retracted, and the AIR must commit to the finite-wasm point table.
+3. `used_gas` equals `burnt_gas` in every case here (no promises), so that column carries no extra information
+   (review F10). Seeds 1–2 ran on a build before the ablation flag existed; the flag's default is unchanged
+   semantics (review F9).
 
 ## Earlier runs (superseded)
 

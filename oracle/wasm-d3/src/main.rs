@@ -1,8 +1,9 @@
 //! D3 PoC differential harness.
 //!
-//! stdin: one case per line: `<prepaid_gas_decimal> <wasm_hex>`.
+//! stdin: one case per line: `<prepaid_gas_decimal> <wasm_hex> [<receiver>,<receiver>…]`
+//! (optional output data receivers, comma-separated account ids).
 //! stdout: one line per case:
-//!   `ok <burnt_gas> <used_gas> <return_hex|->` or
+//!   `ok <burnt_gas> <used_gas> <return_hex|-> <balance_yocto>` or
 //!   `abort <burnt_gas> <used_gas> <FunctionCallError debug>`.
 //! Mode `prepare` instead prints the hex of the prepared (instrumented) module
 //! or `prepare-error <PrepareError debug>`.
@@ -21,7 +22,7 @@ use std::sync::Arc;
 
 const PV: u32 = 86;
 
-fn context(prepaid_gas: u64) -> VMContext {
+fn context(prepaid_gas: u64, receivers: Vec<near_primitives_core::types::AccountId>) -> VMContext {
     VMContext {
         current_account_id: "alice.near".parse().unwrap(),
         signer_account_id: "bob.near".parse().unwrap(),
@@ -41,7 +42,7 @@ fn context(prepaid_gas: u64) -> VMContext {
         prepaid_gas: Gas::from_gas(prepaid_gas),
         random_seed: vec![0; 32],
         view_config: None,
-        output_data_receivers: vec![],
+        output_data_receivers: receivers,
     }
 }
 
@@ -61,7 +62,13 @@ fn main() {
         if line.is_empty() {
             continue;
         }
-        let (gas, code_hex) = line.split_once(' ').expect("`<gas> <hex>`");
+        let mut parts = line.split(' ');
+        let gas = parts.next().expect("gas");
+        let code_hex = parts.next().expect("hex");
+        let receivers: Vec<near_primitives_core::types::AccountId> = parts
+            .next()
+            .map(|r| r.split(',').map(|a| a.parse().expect("receiver account id")).collect())
+            .unwrap_or_default();
         let prepaid: u64 = gas.parse().expect("gas");
         let code = hex::decode(code_hex).expect("hex");
         if mode == "prepare" {
@@ -75,7 +82,7 @@ fn main() {
             }
             continue;
         }
-        let ctx = context(prepaid);
+        let ctx = context(prepaid, receivers);
         let mut ext = MockedExternal::with_code(ContractCode::new(code, None));
         let gas_counter = ctx.make_gas_counter(&wasm_config);
         let prepared =
@@ -92,7 +99,7 @@ fn main() {
                     ReturnData::None => "-".to_string(),
                     ReturnData::ReceiptIndex(i) => format!("receipt{i}"),
                 };
-                writeln!(out, "ok {burnt} {used} {ret}").unwrap()
+                writeln!(out, "ok {burnt} {used} {ret} {}", outcome.balance.as_yoctonear()).unwrap()
             }
         }
         out.flush().unwrap();
