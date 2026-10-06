@@ -512,6 +512,13 @@ pub fn run_chain(
                             ),
                         };
                         let mname = format!("{name}-{}", m.name);
+                        // dropping the only new transaction of a base whose sole D0 violation is
+                        // w.no_txs (and that has no `transactions`) yields a D0 case
+                        let in_d0 = in_d0
+                            || (m.name == "w.new_tx.drop_rehashed"
+                                && viol == ["w.no_txs"]
+                                && sw.transactions().is_empty()
+                                && sw.new_transactions().len() == 1);
                         let meta = json!({
                             "case": mname, "kind": "mutant", "mutation": m.name, "base": name,
                             "verdict_source": src,

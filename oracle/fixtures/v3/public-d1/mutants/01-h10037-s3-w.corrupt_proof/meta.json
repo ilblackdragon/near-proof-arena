@@ -1,0 +1,16 @@
+{
+  "base": "01-h10037-s3",
+  "case": "01-h10037-s3-w.corrupt_proof",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "w.corrupt_proof",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(6dcGUj2EQiyjZrecJP2odGMgHokPLyf21VeU2eF1M1Wg) is for shard 2, expected shard 3\")",
+  "verdict_source": "nearcore"
+}

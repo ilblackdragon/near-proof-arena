@@ -99,7 +99,17 @@ def main():
         if d0 is not None:
             j0 = d0.get(d)
             acc0 = j0 is not None and j0["verdict"] == "accept"
-            if acc0 != meta.get("expected_rel_d0", False):
+            exp0 = meta.get("expected_rel_d0", False)
+            if kind == "mutants" and meta.get("mutation") == "w.new_tx.drop_rehashed":
+                # the oracle copies the base's D0 membership into mutant metadata; dropping the
+                # only new transaction of a base whose sole D0 violation is w.no_txs (and that has
+                # no `transactions`) yields a D0 case: its D0 expectation is nearcore's verdict
+                base = json.load(open(os.path.join(a.cases, "d1", meta["base"], "meta.json")))
+                if (base["d0_violations"] == ["w.no_txs"] and not base.get("tx_labels")
+                        and len(base.get("new_tx_labels", [])) == 1):
+                    exp0 = meta["expected_rel_d1"]
+                    stats["d0_relabelled_new_tx_drop"] += 1
+            if acc0 != exp0:
                 d0_issues.append({"case": d, "problem": "D0 verdict != expected_rel_d0", "d0": j0})
             if acc0 and impls["lean"].get(d, {}).get("verdict") != "accept":
                 d0_issues.append({"case": d, "problem": "accepted by D0 but not by D1"})
@@ -123,7 +133,7 @@ def main():
             features[f"shards_{f.get('n_shards')}"] += 1
     report = {
         "statement": "near/pv86/chunk-validation/v0#D1",
-        "corpus": os.path.abspath(a.cases),
+        "corpus": a.cases,
         "summary": json.load(open(os.path.join(a.cases, "summary.json"))) if os.path.exists(os.path.join(a.cases, "summary.json")) else None,
         "implementations": {"nearcore": "near-arena-oracle-v3 (meta.json)", "lean": a.lean, "python": a.python},
         "cases": len(dirs), "stats": dict(stats), "seconds": times,

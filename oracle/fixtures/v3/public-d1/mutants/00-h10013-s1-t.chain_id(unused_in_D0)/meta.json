@@ -1,0 +1,16 @@
+{
+  "base": "00-h10013-s1",
+  "case": "00-h10013-s1-t.chain_id(unused_in_D0)",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": true,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "t.chain_id(unused_in_D0)",
+  "nearcore": "ok",
+  "verdict_source": "nearcore"
+}
