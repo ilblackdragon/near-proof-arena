@@ -402,7 +402,7 @@ tracked in §10.
 
 | table | cell (row kind) | read by | pinned by | status |
 |---|---|---|---|---|
-| `smmV3` | **`isL` (INIT)** | GRANT condition `cc = isL·al + (1−isL)·sf`, carried | was nothing → `fst·(cc − isL) = 0`, codec INIT `c = 1`, distribute INIT `c = 0` | **gap, fix in progress** (approved) |
+| `smmV3` | **`isL` (INIT)** | GRANT condition `cc = isL·al + (1−isL)·sf`, carried | `fst·(cc − isL) = 0`; codec INIT `c = 1`, distribute INIT `c = 0`; `init_row_isL` from `InitVals` | **fixed** (`c4186d9e`; 600/600, 525/525 dup, mutants 48/48 and 55/55) |
 | `smmV3` | `addr`, `v`, `w` (= `inc`), `al` (= `vin`) (INIT) | segment carry, `SFIN` | `SOP` sender (codec link INIT / distribute budget INIT) | pinned (bus) |
 | `smmV3` | `t`, `inc`, `ok` (READ/GRANT) | GRANT semantics | `SOP` sender (scan READ, process GRANT) | pinned (bus) |
 | `smmV3` | `sf` (GRANT) | `cc`, `v` | comparator `(vin, inc, sf)`; operands `≤ 4.5M` (`GInv`), `inc < 2^25` | pinned (`mem_grant`) |
@@ -433,5 +433,5 @@ tracked in §10.
 | `schV3` | `cx, cy` where `cg = 0` | — | not read | ok |
 
 Padding rows (`act = 0`): every multiplicity is a kind combination, so all are zero; no cell is read.
-**Result:** one gap (`isL`, being fixed); every other read cell is pinned. Rule for new columns:
+**Result:** one gap (`isL`, fixed); every other read cell is pinned. Rule for new columns:
 add a row here in the same commit.
