@@ -138,6 +138,10 @@ variable (σ : TTN.Store) (t : St)
 @[simp] theorem E_trieGet (k : ByteArray) : trieGet (E σ t) k = trieGet t k := rfl
 @[simp] theorem E_dataIdOf (n : Nat) : dataIdOf (E σ t) n = dataIdOf t n := rfl
 @[simp] theorem E_receiptReceiver (n : Nat) : receiptReceiver (E σ t) n = receiptReceiver t n := rfl
+theorem E_readByte' : readByte (E σ t) = readByte t := rfl
+theorem E_trieGet' : trieGet (E σ t) = trieGet t := rfl
+theorem E_dataIdOf' : dataIdOf (E σ t) = dataIdOf t := rfl
+theorem E_receiptReceiver' : receiptReceiver (E σ t) = receiptReceiver t := rfl
 @[simp] theorem E_popN : popN (E σ t) = ((popN t).1, E σ (popN t).2) := by
   unfold popN popV; simp only [E_stack]; cases t.stack.back?.getD (Val.i32 0) <;> rfl
 end
@@ -154,14 +158,17 @@ elab "cr_intro" : tactic => do
   unless (← isProp (← g.getType)) do throwError "cr_intro: not a proposition"
   evalTactic (← `(tactic| intro))
 
+/-- Rewrite `E σ t` away everywhere, also inside instance arguments (which `simp` skips). -/
+macro "cr_rwE" : tactic => `(tactic| ((try rw [E_readByte']); (try rw [E_trieGet']); (try rw [E_dataIdOf']); (try rw [E_receiptReceiver']); (try rw [E_stack]); (try rw [E_frames]); (try rw [E_pages]); (try rw [E_globals]); (try rw [E_table]); (try rw [E_tableMax]); (try rw [E_elems]); (try rw [E_datas]); (try rw [E_stackRem]); (try rw [E_gas]); (try rw [E_ctx]); (try rw [E_ret]); (try rw [E_balance]); (try rw [E_storageUsage]); (try rw [E_registers]); (try rw [E_regUsage]); (try rw [E_logs]); (try rw [E_totalLogLen]); (try rw [E_promises]); (try rw [E_trie]); (try rw [E_actions]); (try rw [E_dataCount]); (try rw [E_subsidized]); (try rw [E_memBytes]); (try rw [E_readByte]); (try rw [E_trieGet]); (try rw [E_dataIdOf]); (try rw [E_receiptReceiver]); (try rw [E_real_isSome]); (try rw [E_readBytes]); (try rw [E_readLE]); (try rw [E_popN])))
+
 syntax "cr_step" : tactic
 macro_rules | `(tactic| cr_step) => `(tactic| first
   | contradiction
-  | ((with_reducible apply CR_get_bind); intro; simp only [E_stack, E_frames, E_pages, E_globals, E_table,
+  | ((with_reducible apply CR_get_bind); intro; cr_rwE; (try dsimp only [E_stack, E_frames, E_pages, E_globals, E_table,
       E_tableMax, E_elems, E_datas, E_stackRem, E_gas, E_ctx, E_ret, E_balance, E_storageUsage, E_registers,
       E_regUsage, E_logs, E_totalLogLen, E_promises, E_trie, E_actions, E_dataCount, E_subsidized,
-      E_real_isSome, E_memBytes, E_readByte, E_readBytes, E_readLE, E_trieGet, E_dataIdOf,
-      E_receiptReceiver, E_popN])
+      E_memBytes, E_readByte, E_trieGet, E_dataIdOf, E_receiptReceiver]);
+      (try simp only [E_real_isSome, E_readBytes, E_readLE, E_popN]))
   | ((with_reducible apply CR_pure'); rfl)
   | ((with_reducible apply CR_throw'); rfl)
   | ((with_reducible apply CR_set); first | rfl | simp only [E_writeBytes, E_writeByte])
@@ -176,7 +183,8 @@ macro_rules | `(tactic| cr_step) => `(tactic| first
       | (with_reducible cr_call)
       | (with_reducible apply CR_ite _ _ rfl)
       | (with_reducible apply CR_dite _ _ rfl)
-      | (with_reducible apply CR_forIn))
+      | (with_reducible apply CR_forIn)
+      )
   | (with_reducible apply CR_forIn)
   | (split <;> try (rename_i hh; simp only [hh]))
   | cr_intro

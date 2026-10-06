@@ -100,7 +100,7 @@ theorem step_of_stepPre (cfg : NearCfg) (p : Prepared) (s : St) (s1 : St) (n : S
     · cases he
   split at h
   · cases h
-  · simp only [*]; exact hexec s h
+  · simp only [*]
   · rename_i k fee hg
     simp only [hg]
     split at h
