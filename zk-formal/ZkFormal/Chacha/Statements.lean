@@ -1,5 +1,6 @@
 import ZkFormal.Chacha.Shuffle.Link
 import ZkFormal.Chacha.Complete.All
+import ZkFormal.Chacha.Rng.Complete.All
 
 /-!
 # ZkFormal.Chacha.Statements — lane v3-chacha top-level statements
@@ -18,7 +19,7 @@ theorem below it proves it.
 * `ShuffleContractStmt` — every `shufV3` instance outputs `NearSpecV3.shuffle` of its inputs
   (`Shuffle.shuffle_contract`; in a v2 AIR the hypotheses come from `genRecv_of_holdsP` and
   `memBal_of_holdsP`);
-* `ChachaCompleteStmt` — `Complete.chacha_complete`.
+* `ChachaCompleteStmt` — `Complete.chacha_complete`; `GenCompleteStmt` — `Rng.Complete.gen_complete`.
 -/
 
 namespace ZkFormal.Chacha
@@ -126,5 +127,20 @@ theorem chachaCompleteStmt : ChachaCompleteStmt :=
   fun reqs hok hrows busChacha t pub =>
     ⟨Complete.chLocal_honest reqs hok hrows t pub,
      fun m => ((Complete.chacha_complete reqs hok hrows busChacha).2.2.2 t pub m).1⟩
+
+def GenCompleteStmt : Prop :=
+  ∀ (calls : List Rng.Gen.Call), (∀ C ∈ calls, Rng.Gen.CallOk C) →
+    (Rng.Gen.honestRows calls).length ≤ 2 ^ Rng.Table.maxLog →
+    ∀ busChacha busGen t pub, busChacha ≠ busGen → Rng.GLocal (Rng.Gen.honestTrace calls) t pub ∧
+      ∀ m, tableBusCount (Rng.Table.interactions busChacha busGen) (Rng.Gen.honestTrace calls) t pub
+          busChacha false m = (Rng.Gen.expectedWords calls).count m ∧
+        tableBusCount (Rng.Table.interactions busChacha busGen) (Rng.Gen.honestTrace calls) t pub
+          busGen true m = (Rng.Gen.expectedGen calls).count m
+
+theorem genCompleteStmt : GenCompleteStmt :=
+  fun calls hok hrows busChacha busGen t pub hne =>
+    ⟨Rng.Complete.gLocal_honest calls hok t pub, fun m =>
+      let h := ((Rng.Complete.gen_complete calls hok hrows busChacha busGen hne).2.2.2 t pub m)
+      ⟨h.1, h.2.2.1⟩⟩
 
 end ZkFormal.Chacha

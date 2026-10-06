@@ -114,7 +114,8 @@ bits of `rotl32`.
 | **`Rng.genIndex_contract`** (`GenIndexContractStmt`) | `Rng/Sound.lean` | an accepting row's `busGen` message is `genMsg key kstart n j kend` with `genAt 64 n key kstart = some (j, kend)`, so `genIndex 64 n (rngAt key kstart) = some (j, rngAt key kend)`, with `1 ≤ n < 2^14` |
 | `recv_matched` | `Bus.lean` | in a `HoldsP` trace, if one table is the only sender on a bus, every active receive equals an active send of that table |
 | **`chachaRecv_of_holdsP`**, **`genIndex_sound`** | `Link.lean` | in a v2 AIR where `chachaV3` is the only sender on `busChacha`, `ChachaRecv` holds, and the `gen_index` contract follows from `HoldsP` alone |
-| `Rng.Complete.gen_complete` | `Rng/Complete/All.lean` | **in progress** (helper): honest trace for a list of calls (`Rng/Gen.lean`), traffic `expectedWords` / `expectedGen` |
+| **`Rng.Complete.gen_complete`** | `Rng/Complete/All.lean` | for calls `(key, kstart, n)` with `CallOk` (key ok, `1 ≤ n < 2^14`, the call succeeds within 64 draws, positions `< 2^30`) and rows `≤ 2^20`: legal heights, every constraint on every row (padding and the wrap included), 0/1 multiplicity bits; receives on `busChacha` exactly `expectedWords` (one `chachaMsg` per draw) and sends on `busGen` exactly `expectedGen` (one `genMsg` per call) |
+| `Rng.Complete.gLocal_honest`, `GenCompleteStmt` | `Rng/Complete/All.lean`, `Statements.lean` | the honest trace is `GLocal` |
 
 ## 3. `shufV3`: the shuffle
 
@@ -188,7 +189,15 @@ bits of `rotl32`.
   * 88 `gen_index` receives, 14 headers.
   * 17/17 single-cell mutants are caught. `t2` is free on rows without a second read, so
     it is not probed there.
-* `test/RngGenTest.lean`: being written by the helper (see §2).
+* `test/RngGenTest.lean` (≈ 17 s):
+  * input: the `gen_index` calls of all 55 json shuffles with `n = 5..12`. That is 434
+    calls and 661 draw rows, 227 of them rejected.
+  * 0 violations.
+  * Replaying the swaps gives the json permutation, and equals `NearSpecV3.shuffle`, for
+    55/55.
+  * Traffic equals `expectedWords` / `expectedGen`.
+  * 27/27 mutants are caught. Key limbs of single-draw calls and of padding rows are
+    pinned only by the bus, by design.
 
 ## 5. Budgets
 
@@ -205,11 +214,17 @@ bits of `rotl32`.
       (−8 `W_eq`, at the cost of an id-uniqueness obligation on the consumer);
     * lower `n` to below 2^12.
 * **Rows at the scheduler's worst case** (64 shards, 32 runs, ≈ 4096 shuffled links per
-  run ≈ 131 k draws):
-  * `genV3` ≈ 131 k rows (2^17–2^18);
-  * `chachaV3` ≈ 8.2 k blocks × 86 ≈ 705 k rows (2^20);
+  run ≈ 131 k shuffle steps):
+  * **Finding.** The spec's Lemire zone `(n << lz(n)) − 1` rejects up to half of all draws:
+    for `n = 5` it rejects 3/8, and the test saw 227 rejections in 661 draws. So `genV3`
+    needs up to 2× the steps, on average ≈ 1.3–1.5×: about 170–260 k rows (2^18).
+  * `chachaV3` needs the same number of words: up to ≈ 16 k blocks × 86 ≈ 1.4 M rows. This
+    is within `maxLog 21` (2^21 rows, ≈ 24 k blocks).
   * `shufV3` ≈ 131 k rows.
-  * Heights are within `maxLog`.
+  * The doc comment of `NearSpecV3.genIndex` claims a rejection probability `< 2^-16`. It
+    is in fact `< 1/2`, so with fuel 64 the out-of-fuel probability is `< 2^-64` per call,
+    not `< 2^-1024`. The spec itself is unaffected: the trusted definition is what is
+    proved against.
 
 ## 6. Obligations for the consumer (scheduler lane)
 
@@ -232,7 +247,7 @@ bits of `rotl32`.
 
 ## 7. Open items
 
-1. **`genV3` completeness**: in progress (helper). The generator is committed (`Rng/Gen.lean`).
+1. *(done)* `genV3` completeness.
 2. **`shufV3` completeness**: not proved. The generator and executable test pass (§4).
    The remaining proof work:
    * per-row constraints, which are routine;
