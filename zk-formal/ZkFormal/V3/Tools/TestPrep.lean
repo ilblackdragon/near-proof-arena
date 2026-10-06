@@ -83,6 +83,9 @@ def trace (cb wb : Bytes) : Except String Tr := do
 def grantOf (o : Scheduler.Output) (a b : Nat) : Nat :=
   ((o.granted.find? (·.1 == (a, b))).map (·.2)).getD 0
 
+/-- The grant of link index `l` (the `Prep.fwd` key). -/
+def grantAt (o : Scheduler.Output) (l : Nat) : Nat := ((o.granted[l]?).map (·.2)).getD 0
+
 def compare (p : Prep) (t : Tr) : List String := Id.run do
   let mut bad : List String := []
   let own := t.k.H.shardId
@@ -120,7 +123,9 @@ def compare (p : Prep) (t : Tr) : List String := Id.run do
   | some pub =>
     match Scheduler.runCore pub (findD t.tMain keyBwState) with
     | some o =>
-      if !(p.fwd.all fun (s, tot) => tot ≤ grantOf o own s) then bad := bad ++ ["fwd: total above grant"]
+      if !(p.fwd.all fun (l, tot) => tot ≤ grantAt o l) then bad := bad ++ ["fwd: total above grant"]
+      -- the link keys are the old shard keys re-indexed
+      if p.fwd.length != (statusShards t.ctxB2).length then bad := bad ++ ["fwd: link keys"]
     | none => bad := bad ++ ["fwd: no run"]
   | none => bad := bad ++ ["fwd: no sched"]
   -- routing intervals
@@ -135,7 +140,7 @@ def fwdAboveGrant (cb wb : Bytes) (p : Prep) : Bool :=
   | .ok k, .ok w, some pub =>
     let tMain := partialTrie w.main.values k.slotB2.prevStateRoot [keyBwState]
     match Scheduler.runCore pub (findD tMain keyBwState) with
-    | some o => p.fwd.any fun (s, tot) => tot > grantOf o k.H.shardId s
+    | some o => p.fwd.any fun (l, tot) => tot > grantAt o l
     | none => false
   | _, _, _ => false
 

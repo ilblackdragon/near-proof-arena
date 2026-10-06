@@ -321,4 +321,70 @@ theorem prepD0_len {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = .
   rw [prepBody_sched hb]
   exact prepClaim_len hpc
 
+/-! ## Forwarding demands: link-keyed, `< 2^24` -/
+
+/-- **Correspondence with the shard-keyed totals**: the link-keyed demand `(l, d)` is the old
+`(s, d)` with `l = own·n + idx(s)`. -/
+theorem fwdLinks_mem (ctx : ApplyCtx) (refunds : List Receipt) (l d : Nat) :
+    (l, d) ∈ fwdLinks ctx refunds ↔
+      ∃ o r s, indexOf ctx.layout.shardIds ctx.own = some o ∧
+        indexOf ctx.layout.shardIds s = some r ∧ l = o * ctx.layout.shardIds.length + r ∧
+        (s, d) ∈ fwdSizes ctx refunds := by
+  unfold fwdLinks
+  cases ho : indexOf ctx.layout.shardIds ctx.own with
+  | none => simp [ho]
+  | some o =>
+    simp only [ho, List.mem_filterMap, Option.map_eq_some_iff, Prod.mk.injEq]
+    constructor
+    · rintro ⟨⟨s, d'⟩, hm, r, hr, rfl, rfl⟩
+      exact ⟨o, r, s, rfl, hr, rfl, hm⟩
+    · rintro ⟨o', r, s, ho', hr, rfl, hm⟩
+      cases ho'
+      exact ⟨(s, d), hm, r, hr, rfl, rfl⟩
+
+theorem fwd_close {ctx : ApplyCtx} {refunds : List Receipt} {u : Unit} {m : String} {p : Prep}
+    (hc : check ((fwdLinks ctx refunds).all fun (_, d) => decide (d < fwdDemandMax)) m = .ok u)
+    (hp : p.fwd = fwdLinks ctx refunds) : ∀ x ∈ p.fwd, x.2 < 2 ^ 24 := by
+  have h := List.all_eq_true.1 (check_ok hc)
+  intro x hx
+  rw [hp] at hx
+  have := of_decide_eq_true (h x hx)
+  simp only [fwdDemandMax] at this
+  exact this
+
+/-- **Every forwarding demand of a successful `prepD0` is `< 2^24`.** Completeness: every grant is
+`≤ 4,500,000 < 2^24` (`core_granted`), so a larger demand fails `e.forwarded` in `checkD0`
+anyway, and the native rejection loses no accepted case. -/
+theorem prepD0_fwd_lt {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = .ok p) :
+    ∀ x ∈ p.fwd, x.2 < 2 ^ 24 := by
+  unfold prepD0 at h
+  obtain ⟨pc, -, h⟩ := bind_ok h
+  unfold prepBody at h
+  repeat' (first
+    | (obtain ⟨_, _, h⟩ := bind_ok h)
+    | (split at h)
+    | (dsimp only at h))
+  all_goals try (cases h; done)
+  all_goals try (exfalso; exact throw_ne (by assumption))
+  all_goals
+    simp only [pure, Except.pure, Except.ok.injEq] at h; subst h
+    exact fwd_close (by assumption) rfl
+
+/-- `prepD0`'s forwarding demands are the link-keyed ones of the B2 context and its refunds. -/
+theorem prepD0_fwd_links {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = .ok p) :
+    ∃ pc refunds, prepClaim cb = .ok pc ∧ p.fwd = fwdLinks pc.ctxB2 refunds := by
+  unfold prepD0 at h
+  obtain ⟨pc, hpc, h⟩ := bind_ok h
+  refine ⟨pc, ?_⟩
+  unfold prepBody at h
+  repeat' (first
+    | (obtain ⟨_, _, h⟩ := bind_ok h)
+    | (split at h)
+    | (dsimp only at h))
+  all_goals try (cases h; done)
+  all_goals try (exfalso; exact throw_ne (by assumption))
+  all_goals
+    simp only [pure, Except.pure, Except.ok.injEq] at h; subst h
+    exact ⟨_, hpc, rfl⟩
+
 end ZkFormal.NearV3.Sched
