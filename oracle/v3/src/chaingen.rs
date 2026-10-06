@@ -522,7 +522,13 @@ pub fn run_chain(chain_idx: usize, p: &ChainParams, out: &Path, o: &GenOpts, sta
                         stats.mutants += 1;
                         if o.fixtures_layout {
                             let pos = exp.is_ok();
-                            if pos && o.accepted_mutants && !o.no_positives {
+                            // A mutant whose claim header (protocol version, chain id) differs
+                            // from the chain's is a true claim about another chain: never issued
+                            // by the judge (the arena's request pin refuses it), so not written.
+                            let same_header = m.claim.protocol_version == built.claim.protocol_version
+                                && m.claim.chain_id == built.claim.chain_id;
+                            if !same_header {
+                            } else if pos && o.accepted_mutants && !o.no_positives {
                                 write_arena_case(out, &mname, true, &m.claim, &m.witness, meta);
                             } else if !pos && (o.rejection_target == 0 || stats.rejections < o.rejection_target) {
                                 stats.rejections += 1;
