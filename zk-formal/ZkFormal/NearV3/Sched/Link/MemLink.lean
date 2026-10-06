@@ -48,6 +48,28 @@ structure MemCtx (AP : AirP) (pub : List Fp) (tr : Trace Fp) (tp tm tcmp ts tch 
 def simσ (τ n : Nat) (allowed : Array Bool) (tr : Trace Fp) (tp f m : Nat) (st : St) (t a : Nat) : Nat :=
   if QT τ n a = true then rd τ (stAt n allowed tr tp f m st t) a else 0
 
+/-- An `INIT` row with an address in τ's range has a τ address. -/
+theorem init_row_qt {AP : AirP} {pub : List Fp} {tr : Trace Fp} {tm : Nat} (hH : HoldsP AP pub tr)
+    (hM : MemOwn AP tm) {τ n : Nat} (hτ : τ < 256) (hn : n ≤ 64) {allowed : Array Bool} {st : St}
+    (hV : InitVals AP tr pub τ n allowed st) {f : Nat} (hf : f < tr.height tm)
+    (hff : cv tr tm f Mem.fst = 1) (h1 : τ * 16384 ≤ cv tr tm f Mem.addr)
+    (h2 : cv tr tm f Mem.addr < τ * 16384 + 16384) : QT τ n (cv tr tm f Mem.addr) = true := by
+  have hL := mLocal_of hH hM
+  have hs := mem_sopSent_of_recv hH hM hf (Mem.init_row hL hf hff).1
+  have hin : Mem.opMsg tr tm pub f ∈ (sopSent AP tr pub).filter (isTauInit τ) := by
+    refine List.mem_filter.2 ⟨hs, ?_⟩
+    simp only [isTauInit, Mem.op_init hL hf hff, opMsg_head, Bool.and_eq_true, beq_iff_eq,
+      Option.any_some, decide_eq_true_eq, toNat_ofNat_lt' (cv_lt _ _)]
+    exact ⟨trivial, h1, h2⟩
+  obtain ⟨x, hx, he⟩ := (mem_initMsgs hn).1 (hV.subset hin)
+  have hx' := idxOk_lt hn hx
+  have e1 := congrArg List.head? he
+  rw [opMsg_head] at e1
+  simp only [initRec, List.map_cons, List.head?_cons, Option.some.injEq] at e1
+  have e := (Proc.ofNat_cv_eq (cv_lt _ _) (by omega)).1 e1
+  rw [QT_iff, e]
+  exact ⟨by omega, by rw [show τ * 16384 + x - τ * 16384 = x by omega]; exact hx⟩
+
 theorem ok_iff {ok cS cR cL inc sb rb : Nat} {al : Bool} (h : ok = cS * cR * cL)
     (hS : cS = if inc ≤ sb then 1 else 0) (hR : cR = if inc ≤ rb then 1 else 0)
     (hL : cL = if al then 1 else 0) :
@@ -260,6 +282,69 @@ theorem mem_reads : ∀ o ∈ memOpsQ tr tm (QT (cv tr tp f Proc.tau) P.n),
       unfold simσ
       rw [if_pos hq]
       exact (memInit_tau C.hH C.O.mem C.hτ C.PO.n64 C.hB C.hV hq).symm)
+
+/-- **`EntryMem` for every entry of the instance.** -/
+theorem entry_mem {i : Nat} (hi : i < m) {j : Nat} (hj : j < cv tr tp (Proc.hdrAt tr tp f i) Proc.Lr) :
+    EntryMem P.n allowed (reqsOf P) tr tp f st i j := by
+  have hn := C.PO.n64
+  obtain ⟨es, er, hs, hr', hl, -⟩ := C.ent hi hj
+  obtain ⟨⟨o7, m7, t7, a7, v7⟩, ⟨o8, m8, t8, a8, v8⟩, ⟨o9, m9, t9, a9, v9⟩⟩ := C.slot_ops hi hj
+  have y7 := C.mem_reads o7 m7
+  have y8 := C.mem_reads o8 m8
+  have y9 := C.mem_reads o9 m9
+  rw [v7, t7, a7] at y7; rw [v8, t8, a8] at y8; rw [v9, t9, a9] at y9
+  unfold simσ at y7 y8 y9
+  rw [if_pos (QT_snd hn hs), rd_snd _ hn hs] at y7
+  rw [if_pos (QT_rcv hn hr'), rd_rcv _ hn hr'] at y8
+  rw [if_pos (QT_link hn hl), rd_link _ hn hl] at y9
+  have hA := stAt_slot (n := P.n) (allowed := allowed) (reqs := reqsOf P) (st := st) C.hL C.hHt C.I
+    (fun i hi j hj => by
+      obtain ⟨⟨rest, h1, -⟩, h2, -⟩ := entry_inc C.hH C.O C.OS C.SP C.PO C.I rfl hi hj
+      exact ⟨⟨rest, h1⟩, h2⟩) i hi j (Nat.le_of_lt hj)
+  simp only [Arr, Prod.mk.injEq] at hA
+  obtain ⟨hsb, hrb, hal⟩ := hA
+  have hB := stAt_bnd P.n allowed tr tp f m st C.hB (cv tr tp (Proc.hdrAt tr tp f i) Proc.T + j)
+  obtain ⟨gS, gR, gL, -, -, oL⟩ := grant_sem C.hH C.O C.OS C.I C.hτ C.SP C.PO C.hB C.hV C.hIL hi hj
+    (by rw [y7]; exact (hB _).1) (by rw [y8]; exact (hB _).2.1) (by rw [y9]; exact (hB _).2.2)
+  exact ⟨by rw [y7, hsb, es], by rw [y8, hrb, er], by rw [y9, hal], gS, gR, gL, oL⟩
+
+/-- **`ReadOk` for the instance.** -/
+theorem read_ok : ReadOk AP tr pub (cv tr tp f Proc.tau) (reqsOf P).length st := by
+  intro l t v hl hv h1 h2 hmem
+  have hR := reqsOf_length C.PO
+  have := C.PO.len16
+  have hn := C.PO.n64
+  have hτ := C.hτ
+  have hc := List.count_pos_iff.2 hmem
+  rw [sopSent_count, ← mem_ops_eq_sent C.hH C.O.mem _ (Or.inl (by simp [OP_READ]; rfl))] at hc
+  obtain ⟨r, hr, hm⟩ := List.mem_filterMap.1 (List.count_pos_iff.1 hc)
+  have hr' := List.mem_range.1 hr
+  by_cases hc' : cv tr tm r Mem.act = 1 ∧ cv tr tm r Mem.fst = 0
+  · simp only [hc'.1, hc'.2, and_self, ↓reduceIte, Option.some.injEq] at hm
+    have hm' := hm
+    rw [Mem.opMsg_eq] at hm'
+    simp only [List.map_cons, List.map_nil, List.cons.injEq] at hm'
+    obtain ⟨ea, et, -, evin, -⟩ := hm'
+    have ha := cell_ofNat ea (by unfold addrOf; omega)
+    have ht := cell_ofNat et (by omega)
+    have hvin := cell_ofNat evin hv
+    obtain ⟨f0, hf0r, hff, eaddr, -, -⟩ := seg_init C.hM hr' hc'.1
+    have hq0 := init_row_qt C.hH C.O.mem hτ hn C.hV (by omega) hff
+      (by rw [← eaddr, ha]; unfold addrOf; omega) (by rw [← eaddr, ha]; unfold addrOf; omega)
+    rw [← eaddr] at hq0
+    have hll : l < P.n * P.n := by
+      rw [ha] at hq0
+      have := (QT_iff.1 hq0).2
+      rw [show addrOf (cv tr tp f Proc.tau) 0 l - cv tr tp f Proc.tau * 16384 = l by unfold addrOf; omega] at this
+      simp only [idxOk, decide_eq_true_eq] at this
+      omega
+    have y := C.mem_reads _ (mem_memOpsQ.2 ⟨memOps_mem hr' hc'.1 hc'.2, hq0⟩)
+    simp only at y
+    rw [hvin, ht, ha] at y
+    unfold simσ at y
+    rw [if_pos (QT_link hn hll), rd_link _ hn hll, stAt_pre C.hL C.hHt C.I t (by unfold T0; omega)] at y
+    exact y
+  · simp [hc'] at hm
 
 end MemCtx
 
