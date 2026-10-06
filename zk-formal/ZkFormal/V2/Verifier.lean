@@ -177,9 +177,9 @@ theorem checksPass_eq {O : Type} (τ : PT K O) (x : Nat) (op : List (List (List 
   rfl
 
 /-- Same header admissibility, schedule, query rule, position encoding and size cap as v1. -/
-theorem headerOk_eq : (Iop.verifierP F K AP prm).headerOk = (Iop.verifier F K AP.toAir prm).headerOk := rfl
-theorem schedule_eq : (Iop.verifierP F K AP prm).schedule = (Iop.verifier F K AP.toAir prm).schedule := rfl
-theorem queryLog_eq : (Iop.verifierP F K AP prm).queryLog = (Iop.verifier F K AP.toAir prm).queryLog := rfl
+theorem headerOk_eqP : (Iop.verifierP F K AP prm).headerOk = (Iop.verifier F K AP.toAir prm).headerOk := rfl
+theorem schedule_eqP : (Iop.verifierP F K AP prm).schedule = (Iop.verifier F K AP.toAir prm).schedule := rfl
+theorem queryLog_eqP : (Iop.verifierP F K AP prm).queryLog = (Iop.verifier F K AP.toAir prm).queryLog := rfl
 
 end
 
