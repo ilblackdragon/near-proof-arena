@@ -404,7 +404,7 @@ the modulus `P ≈ 2^31` when several unknowns share a `% P` (it then reports sp
 such facts go through `Fp` and `natv` (`wbmBits`, `sub_of_cast`), or through `decide +kernel` on index rows
 (`planDec`, `ixVals`).  `omega` / `simp_all` can also time out in `whnf` when the context holds hypotheses with
 large `if`/list terms (e.g. `winRole`'s); prove such side facts with explicit lemmas.
-M7d (render) is not started.
+M7d (render): in progress, see §8.3.
 
 ### 8.2 M7e (link): status (lane/v3-trie-h)
 
@@ -502,6 +502,32 @@ hypotheses of all walks (`ups_walkHyp`, bytes from `Link3.rec_bytes`); `UpsEnv` 
 The other cells the links read (`rx`, `rb`, `mBv`, `mCv`, `clen`, `qlen`, `dI`, `dL`, `reg`, `j`, `jm`, `idx`, `gD`,
 `gMs`, `gMr`, `sN`, `spos`, `plen`, `pdep`, `rcid`, `u`, `nI`, `nI2`, `nib`, `tX`) are pinned by the table or by a
 balance.
+
+### 8.3 M7d (render): status (lane/v3-trie-h)
+
+Done (kernel-checked, axioms ⊆ {propext, Classical.choice, Quot.sound}; `Render/Ups/`, 1,963 lines):
+
+| module | content |
+|---|---|
+| `Gen` | **`UpsGen.cell`**, the honest generator (`upsv3_model.py`'s `gen`) from **`UpsInst`** (one per `τ`: walk `W0…W3` as `WStep3`, path records `N`, depths `dep`, `rid`, case `ci`, `D`, `ts = t*`, `ti = I`, `x`, value `v`, `mid`/`post`) and **`UpsPartI`** (kind, `sd sN pdep rc cN`, source post bytes `pb` and `cid` column `pcid`, `Q` type / hex-prefix data, field `shape`, bytes `q`, `jm clen`, **`MEMD` value `mB`** (the child's exact usage), `soff`, `neg`).  Cells are **integers** (the `memory_usage` chain has negative intermediates); flags are indicators of `Bool` formulas mirroring the constraints (`CpB`, `ExtraB`, `TgtB`, `WfrB`, `WyB`, `WnB`, `GdB`, …); the `MEM` chain carries are closed forms (`coV`, `co2V`); `UPB` use counts are global (`uU`) |
+| `Frame`, `Rows` | `GroupOk` (every constraint's integer value vanishes in `Fp` on every row), `constr_of`; `vz`/`ev_vz` and **`pad_all`/`pad_last`** (`decide +kernel`: every constraint vanishes on padding rows); records `recs`, `RAdj`, `recs_adj`; `groupOk_of` (padding discharged once) |
+| `Local` | **`ups_render_local_of`**: `TableLocal UpsV3.table` from `GroupOk insts H UpsV3.constraints`, `hlog : log = logOf (R + 1)`, `hcell`, `R + 1 ≤ 2^22` (the row cap, parametric); the gate bits come from the constraints via the view's `rowBool`/`kinds` (`gates01`, `modes01`) |
+| `Traffic` | **`ups_render_traffic`**: `TableTraffic UpsV3.interactions tr t pub (upsTraffic (viewOf tr t (segsOf insts)))` for a locally legal trace with the generator's cells (via `UpsRows.viewTraffic`, segments = instances); **`ups_render_view`**: the view's rows are the generator's cells |
+| `Ok` | **`UpsOk`** (`pos`, `inst : InstOk`, `cap : R + 1 ≤ 2^22`); **`InstOk`**: shape (`L ≥ 1`, parts nonempty), ranges (`ci < 11`, `D < 3`, `1 ≤ ts ≤ 3`, `ti < 3`, `x < 16`), terminal class vs case, `L < 2^24`, `nQ = nTof ci ti + dep_D`, and `WalkOkU` (the walk conditions of §2.1: `START` edge, steps, chains, drains, absent terminals, in-record steps, lookup records by level, terminal row / `I` / `D` / `x` / case / `ek`); toolkit `WC VC QC` (cells by row kind, `rfl`), zero cells `zW zV zQ`, `groupOk_by` |
+| `GSeg`, `GDig` | **`cSeg_ok`**, **`cDigest_ok`** (all rows) |
+| `GWalk` | helpers for `cWalk`: `inv_cast` (the inverse cell in `Fp`), `bm_bits` |
+
+Method: `ups_ev` unfolds the integer evaluation, `cellsimp` the row-kind cells at literal columns
+(derived flags stay folded); identities close by `omega`/`grind` after case splits on the
+state / kind / flag atoms.  Splitting everything at once does not scale (8 min for five
+constraints, timeouts): split the state and flag atoms first, with the derived flags folded.
+
+Remaining (estimates): `cWalk` on `W0…W3` (a W1 draft closed all but one family; ≈ 250 lines),
+`cRows` + `cConst` (part / segment transitions; ≈ 400), `cBool` (≈ 250), `cPlan` (plan facts
+into `InstOk`: kinds by `termPlan`, `pdep`/`rc`/`sd`/`sN`/type per part; ≈ 450), `cFields`
+(grammar of `shape`, window roles; ≈ 500), `cBytes` (byte provenance as `UpsOk` facts on `q`
+vs `pb`; ≈ 600), `cMem` (chain identities from the closed-form carries + carry bounds; ≈ 500);
+then `ups_render_local` = `ups_render_local_of` + the groups.  Total ≈ 3,000 lines.
 
 ## 9. Model check (tested)
 
