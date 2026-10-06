@@ -72,7 +72,34 @@ arena contract requires hostile proof *bytes* to be rejected (CONTRACTS: `ADVERS
 a non-malleable proof encoding. The bwrap pipeline run passed only because its public-seed bitflip
 positions missed these ~100 bytes.
 
-**Fix (pending lead decision):** canonical proof encoding — the prover zeroes the unchecked fields,
-the verifier accepts only canonical bytes, and the certificate proves completeness via
-`RelD0 c w → RelD0 c (canon w)` (independence of `checkD0` from those fields + a witness encoder
-round trip; cf. the in-progress `NearSpecV3/EncodeWitness.lean` of lane/v3-spec).
+**Fix (lead decision: option A, canonical proof encoding; adversarial semantics unchanged).**
+
+* `examples/reexec-v3-d0` now proves with the **canonical witness**: `height_included` = 0, the
+  ED25519 all-zero signature, every transition `block_hash` = 0; the verifier accepts only
+  canonical bytes (`CanonDefs.lean`, `canonicalW`). Certificate: `relD0_canonical : RelD0 cb w →
+  ∃ w', RelD0 cb w' ∧ canonicalW w' ∧ |w'| ≤ |w|`, proved in the candidate's `formal/` (the
+  frozen trusted tree is untouched; no encoder was committed anywhere, so none is used): every
+  trusted witness parser is context-free (`CF.lean`), the spliced canonical bytes re-parse to the
+  same witness with zeroed block hashes (`Canon.lean`), and `checkD0` never reads a transition
+  block hash (`Norm.lean`). Axioms: propext, Classical.choice, Quot.sound. Exhaustive single-bit
+  flips of two canonical proofs (1 565 B, 5 214 B with an implicit transition): 0 accepted.
+* Judge: a structure-aware generic mutator `v3-ignored-fields` (runners/worker/src/mutators.rs)
+  flips one bit of each validator-ignored field of every `near-arena-witness-v3` proof, and the
+  permanent hostile case `adversarial/hostile-submissions/near-v3-malleable-witness` (the
+  pre-canonical reference) must be REJECTED with `HOSTILE_PROOF_ACCEPTED`; in the bwrap pipeline
+  all four `v3-ignored-fields` mutants (height_included, signature, main and implicit block_hash)
+  are accepted by it, the canonical reference rejects all 164 hostile inputs. Note filed in
+  adversarial/README.md: random bit flips must be complemented by structure-aware mutations of
+  known validator-ignored fields.
+* Successor challenge **`chl_4b4316516128000f129cff9b3ced8b51` `near-chunk-validation-d0-1`**
+  (supersedes `chl_640ed008…`): identical statement, trusted tree, workloads, fixtures, held-out
+  set and checker; the baseline is re-measured from the canonical reference (package
+  `sha256:63618259…`, measurement draft `chl_902d8b89…`, CPUs 0-7 with live `w1` stopped for the
+  window 04:05–04:09 UTC, secret sampling, calibration OK drift 2 930 ppm, no flags; medians
+  d0-quiet 6 996 987, d0-transfers 6 957 356, d0-missing 7 133 640 ns). An earlier attempt
+  (03:52–04:03) failed calibration (drift 34 359 ppm, one 1.57 s pre-calibration outlier) and is
+  kept as `benchmarks/results/…-attempt1-calibration-drift/`.
+
+## Live run 2
+
+(after the install of the merged judge; see docs/LIVE.md §5e)
