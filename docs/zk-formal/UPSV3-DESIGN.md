@@ -29,7 +29,7 @@ M7b had `upsV3` at 176 columns, `W_eq` 320 / 280. The pass-through mode adds 10 
 is unchanged in size: `cid` is an existing column.
 
 The theorems are `ups_g1`, `ups_g3`, `nodeU_g1`, `nodeU_g3`, `weqTrieU_g1` and `weqTrieU_g3`.
-* `upsV3` has 581 constraints, all of degree ≤ 4. Every interaction gate is a column, and every message has degree 1.
+* `upsV3` has 582 constraints, all of degree ≤ 4. Every interaction gate is a column, and every message has degree 1.
 * Of the 186 columns, 14 walk-row columns are aliases of part-constant columns. The 32-byte register `reg` is reused by row kind (§2.4).
 
 ## 1. Interface
@@ -441,3 +441,9 @@ This checks **completeness and agreement with the spec** of the design. It does 
 1. **Resolved (lead):** the `UPB` format `(NPOST n, pos, pb, len, depth, cid, u)`; `MEMD` (23) with `(τ, j, i, new, old, qlen)`; empty-key extensions on the path are handled by pass-through parts (§1.1); ids `512τ + j`.
 2. **`cid` is free on unrevealed windows** of `nodeV3`. Soundness of the chain (§6.2) therefore uses the walk: a `PT` source with an unrevealed child would be its own `res` and would have ended the walk. An alternative that avoids this argument is to send `rv·cid` (or `cid` only on `gP` rows) on `UPB`. That changes the binding message, so it is not done.
 3. **Width is not optimised.** The 186 columns favour a simple view. The 11 case columns, the 4 `jo` columns and the 10 part-constant arithmetic selectors could be merged into fewer encoded columns, at the cost of higher-degree selector algebra in the view.
+4. **Fixed (M7c layer 2, lane/v3-trie-h): the node type of a split branch without a value was free.** `cPlan`
+   pinned `qtb2 = spValE` for `SPB` but nothing excluded `qtl`/`qte` when `spValE = 0` (`LSc`, `ESn0`, `ESn1`), so
+   an `SPB` part could take the leaf or extension grammar, whose `HPF`/`KEY` bytes no rule constrains for `SPB`
+   (a free key in `Q_SPB`).  Added `pf·kSPB·(qtl + qte) = 0` (degree 3; budget unchanged: width, interactions and
+   the maximal degree are the same).  Re-checked with the model (`test/upsv3_model.py`, seeds 1 (400) and 4 (500,
+   `chain_prob = 0.4`): 0 failures).

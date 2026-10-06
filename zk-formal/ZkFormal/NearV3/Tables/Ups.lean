@@ -519,6 +519,8 @@ def cPlan : List Expr :=
     .mul g (.mul (sumc [kRLP, kMVL, kNLF]) (not (c qtl))),
     .mul g (.mul (c kSPB) (sub (c qtb2) spValE)),
     .mul g (.mul (c kSPB) (c nochild)),
+    -- a split branch is a branch (pins the type when it has no value)
+    .mul g (.mul (c kSPB) (.add (c qtl) (c qte))),
     .mul g (.mul (c nokey) (sub (c qhk) (k 1))),
     -- fresh keys: new leaf [15] / [], wrapping extension [0] / [15] / [0, 15], moved key xs
     .mul g (.mul (c kNLF) (sub (c qhk) (k 1))), .mul g (.mul (c kNLF) (sub (c qodd) (c ts1))),
