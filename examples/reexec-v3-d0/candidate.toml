@@ -1,0 +1,25 @@
+# Reference candidate for near/pv86/chunk-validation/v0, domain D0
+# (challenge near-chunk-validation-d0).
+schema = "arena-candidate-v1"
+name = "reexec-v3-d0"
+agent = "v3-ref"
+challenge = "chl_00000000000000000000000000000000"
+backend_family = "reexec-witness"
+security_profile_request = "validity-classical-128"
+hardware = { gpu = false, min_ram_gb = 4 }
+
+[build]
+recipe = "build-recipe/build.sh"
+outputs = ["out/prepare", "out/prove", "out/verify"]
+
+[entry]
+prepare = "out/prepare"
+prove = "out/prove"
+verify = "out/verify"
+verify_route = "native-lean"
+
+[formal]
+lean_project = "formal"
+certificate = "ReexecV3D0.certificate"
+verifier_model = "ReexecV3D0.Model.verifier"
+verifier_model_module = "ReexecV3D0.Model"

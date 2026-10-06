@@ -8,6 +8,7 @@ defaultTargets = ["ReexecV3D0"]
 [[lean_lib]]
 name = "ReexecV3D0"
 srcDir = "../../formal"
+globs = ["ReexecV3D0.+"]
 
 [[require]]
 name = "NearSpecV3"

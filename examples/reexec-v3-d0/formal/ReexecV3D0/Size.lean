@@ -130,14 +130,14 @@ theorem dTag_length {want : Bytes} {what : String} {bs t : List UInt8} {u : Unit
   unfold dTag at e
   obtain ⟨⟨got, rest⟩, h1, e⟩ := bind_ok e
   have := pBytes_length h1
-  split at e
-  · rename_i hg
-    simp only [pure, Except.pure, Except.ok.injEq, Prod.mk.injEq] at e
+  by_cases hg : (got == want) = true
+  · simp only [hg, if_true, pure, Except.pure, Except.ok.injEq, Prod.mk.injEq] at e
     obtain ⟨-, rfl⟩ := e
     have : got = want := by simpa using hg
     subst this
     omega
-  · cases e
+  · simp only [hg, Bool.false_eq_true, if_false] at e
+    cases e
 
 theorem lenAcc_eq (b : List UInt8) (n : Nat) : lenAcc b n = b.length + n := by
   induction b generalizing n with
@@ -156,19 +156,21 @@ theorem decodeWitnessFile_length {w sw : Bytes}
   obtain ⟨⟨u, bs1⟩, h1, e⟩ := bind_ok e
   obtain ⟨⟨sw', bs2⟩, h2, e⟩ := bind_ok e
   obtain ⟨⟨codes, bs3⟩, h3, e⟩ := bind_ok e
-  split at e
-  · cases e
-  · rename_i hemp
-    simp only [pure, Except.pure, Except.ok.injEq, Prod.mk.injEq] at e
+  have l1 := dTag_length h1
+  have l2 := pBytes_length h2
+  by_cases hemp : bs3.isEmpty = true
+  · simp only [hemp, Bool.not_true, Bool.false_eq_true, if_false, pure, Except.pure, bind,
+      Except.bind, Except.ok.injEq, Prod.mk.injEq] at e
     obtain ⟨rfl, rfl⟩ := e
-    have l1 := dTag_length h1
-    have l2 := pBytes_length h2
     have l3 := pVec_nil_length h3
     have : bs3 = [] := by simpa using hemp
     subst this
     rw [witnessTag_length] at l1
     simp at l3
     omega
+  · simp only [hemp, Bool.not_false, if_true, bind, Except.bind, throw, throwThe,
+      MonadExceptOf.throw] at e
+    cases e
 
 /-- **Size bound.** Every witness of `RelD0` is at most 8 388 641 bytes. -/
 theorem checkD0_witness_length {cb w : Bytes} (h : checkD0 cb w = .ok ()) :
