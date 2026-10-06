@@ -12,9 +12,9 @@ Rules: no `sorry` / `axiom` / `native_decide`; axioms ⊆ {propext, Classical.ch
 
 | # | milestone | content | state |
 |---|---|---|---|
-| M0 | design | tables, buses, message formats, public data, amendments needed, `W_eq` estimate (§2–§4) | **done (v0)** |
-| M1 | spec-side refinement | `runCore` decomposed into the AIR's phases, each **proved** equal to the spec: link pass (increase + base grants in closed form), conversion by set bits, process loop as *rounds with a push log*, distribute without breaks on a sorted grid, encoding; executable event model `coreEv` tested on the 600 vectors | in progress |
-| M2 | tables | `Table` values for every table of §3, kernel-checked budget (`W_eq` per table), honest generator, constraint evaluator + bus-balance tests on the 600 vectors, mutants | open |
+| M0 | design | tables, buses, message formats, public data, amendments needed, `W_eq` estimate (§2–§4) | **done** |
+| M1 | spec-side refinement | `runCore` decomposed into the AIR's phases, each **proved** equal to the spec (§5); executable event model `coreEv` = `runCore` on 600/600 vectors | **done** |
+| M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 810 at g = 1), honest generators, constraint evaluator + bus-balance tests on the 600 vectors, mutants | tables + budget **done**; generators/tests in progress |
 | M3 | soundness | per table: `…Local → ∃ v, Wf v ∧ Traffic …` (L5 style), bus contracts (comparator, memory, scan, codec), link lemma: `schedCore_sound` | open |
 | M4 | completeness | honest traces satisfy every constraint, traffic = expected lists; `schedCore_complete`; height bounds | open |
 | M5 | integration | message formats agreed with `v3-trie` (`VBYTES`, `upsV3`) and the assembly (public segments, `Prep.fwd`), cuts | open |
@@ -56,8 +56,30 @@ its sanity hash, and the grants checked against `Prep.fwd`.
 | `sdsV3` distribute | per τ: 2n sorted shard rows + n² grid cells | sorted orders (key `avg·64 + idx` strictly increasing), grid with receiver delay line |
 | `chachaV3`/`genV3`/`shufV3` | lane v3-chacha | one instance set for the scheduler |
 
-Estimated `W_eq` ≈ 690 (codec ≈ 170, scan ≈ 80, process ≈ 125, memory ≈ 70, comparator ≈ 60,
-distribute ≈ 185), to be replaced by kernel-checked numbers in M2.
+**Kernel-checked** (`Sched/BudgetCheck.lean`: `report_g1`, `weqSched_g1`), g = 1:
+
+| table | file | width | interactions | degree | `W_eq` | maxLog |
+|---|---|---:|---:|---:|---:|---:|
+| `schV3` codec + link | `Tables/Codec.lean` | 106 | 13 | 4 | 234 | 22 |
+| `sscV3` scan | `Tables/Scan.lean` | 50 | 6 | 4 | 122 | 22 |
+| `sprV3` process | `Tables/Proc.lean` | 64 | 11 | 4 | 176 | 22 |
+| `smmV3` memory | `Tables/Mem.lean` | 18 | 4 | 4 | 74 | 22 |
+| `scpV3` comparator | `Tables/Cmp.lean` | 29 | 1 | 4 | 61 | 22 |
+| `sdsV3` distribute | `Tables/Dist.lean` | 55 | 8 | 4 | 143 | 22 |
+| **total** | | 322 | 43 | | **810** | |
+
+(At g = 3 the grouped aux constraints have degree 8, total 778; g = 1 is the better setting
+for these tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,464 `W_eq` ≈ 1.26 MB of
+proof (at ≈ 864 B per `W_eq`).
+
+**Proposed cuts** (not implemented):
+* codec: a per-byte digest output from SHA (`DBYTE (Id, i, b)`) instead of the 34-element
+  `DIGEST` removes the 32-column shift register (−32); a combined pre/post value message agreed
+  with `v3-trie` (`VBYTES` + `SPOST` → one interaction) (−8);
+* process: the three memory GRANT sends on three sub-rows per step (−16); a ChaCha key registry
+  (lane v3-chacha's proposal) removes the 16 key limbs (−16);
+* the process/scan/memory/distribute row-kind structures could share one table (−24 per merged
+  quotient), at the cost of a harder view proof.
 
 ## 4. Requests to other lanes
 
@@ -71,3 +93,21 @@ distribute ≈ 185), to be replaced by kernel-checked numbers in M2.
   `schV3` needs `(τ, present, vid)` for the `0x0f` read of instance τ (bus `S0F`); the post value
   leaves as `SPOST (τ, pos, b)` with header `(τ, len)` for `upsV3`.
 * **Assembly:** public segments (§5), `Prep.fwd` as `(τ = 0, link, total)`.
+
+## 5. M1 — spec-side refinement (all **proved**, axioms ⊆ {propext, Classical.choice, Quot.sound})
+
+| theorem | file | content |
+|---|---|---|
+| `runCore_eq` | `Sched/Model.lean` | `runCore pub prev = coreOf …` (converted requests explicit) |
+| **`core_compose`** | `Sched/Spec/Compose.lean` | `coreOf` = decode of the canonical prev (`PrevCanon`) → closed-form link pass → replayed rounds (`process_rounds` hypotheses) → sorted grid; output state = canonical links with the final allowances and `sha256(h₀ ‖ ash)`, grants = `applyGrants` of the grid (needs `n ≤ 64`, distinct ids < 2^64) |
+| `decode_encode`, `allow0_canon(_get)`, `indexOf_nodup` | `Spec/Canon.lean` | canonical prev decodes; `allow0[l]` = record `l` |
+| `linkPass_eq`, `pv86_facts` | `Spec/LinkPass.lean` | increase + base grants = closed form (budget checks never fail, `a1 ≥ fair ≥ base`) |
+| `increases_eq_incsFrom`, `convertRequests_eq_convRaw`, `incsOf_pos`, `incsOf_length_le` | `Spec/Conv.lean` | increases = value differences over the set bits; conversion from resolved raw requests |
+| `bucketsOf_eq_groups`, `groups_pop` | `Spec/Buckets.lean` | the spec's bucket map of a push log; popping the largest key |
+| `processBucket_runL`, `shuffle_map`, `length_shuffle` | `Spec/Rounds.lean` | one round's processing as the AIR replays it |
+| **`process_rounds`** | `Spec/Loop.lean` | `processRequests = some stF` from the AIR's rounds: replay (`simR`), push-log permutation (the `SPUSH` balance), round order, valid / nonempty rounds, entry time stamps strictly increasing and below the round start (start time any `t₀ ≥ |reqs|`) |
+| **`distribute_eq_grid`**, `gridGrants_get`, `sortByKey_eq_of_sorted`, `applyGrants_granted` | `Spec/Dist.lean` | `break` never fires; per-cell recurrences `SE`/`RE`; sorted orders are the unique `avg·64 + idx`-sorted permutations |
+
+Facts found on the way: the popped keys strictly decrease except trailing key-0 rounds (a re-push
+key is below the popped key unless both are 0); `distribute_remaining_bandwidth`'s `break` is dead
+code; base grants never fail on budgets.
