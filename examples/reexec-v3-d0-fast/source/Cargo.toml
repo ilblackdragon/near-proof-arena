@@ -1,0 +1,31 @@
+# reexec-v3-d0-fast (Rust, std only): prepare, prove (native normaliser, byte-identical to the
+# parent's Lean prover), leanorder (build helper). The deployed verifier is the
+# Lean model in ../formal (compiled by the governed Lean compiler).
+[package]
+name = "reexec-v3-d0"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "prepare"
+path = "src/bin/prepare.rs"
+
+[[bin]]
+name = "prove"
+path = "src/bin/prove.rs"
+
+[[bin]]
+name = "leanorder"
+path = "src/bin/leanorder.rs"
+
+[dependencies]
+
+[workspace]
+
+[profile.release]
+codegen-units = 1
+incremental = false
+lto = "fat"
+panic = "abort"
+opt-level = 3
