@@ -1093,7 +1093,8 @@ sessions are the longest (≈ 6 min, ≈ 1–1.6 s of verify per batch) on a sha
 host whose calibration moved by up to 8% between sessions. The infra-retry
 bound was exhausted, and a fourth attempt in a quieter window also failed. d0-2 is re-measured when the host is quiet. Its unsigned
 measure draft is `challenges/drafts/near-chunk-validation-d0-2.measure.json`.
-v3 D0-1 stays speed-scored until then.
+v3 D0-1 stays speed-scored. **d0-2 was dropped** by the plan change to one coverage-tiered
+challenge `near-chunk-v3` (`challenges/drafts/near-chunk-validation-d0-2.SUPERSEDED.md`).
 
 #### Under the v1 draft (2026-10-05, superseded)
 
