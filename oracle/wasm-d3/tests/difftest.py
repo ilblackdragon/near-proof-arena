@@ -42,6 +42,10 @@ def gen(argv):
                                  check=True, capture_output=True, text=True).stdout.splitlines()
             labels = open(lf.name).read().splitlines()
         return out, labels
+    if kind == "hostedges":
+        out = subprocess.run([sys.executable, os.path.join(HERE, "host_edges.py")],
+                             check=True, capture_output=True, text=True).stdout.splitlines()
+        return out, [f"hostedges#{i}" for i in range(len(out))]
     script = {"random": "gen_d3a.py", "mutate": "mutate.py", "promise": "promise_cases.py",
               "host": "host_cases.py"}[kind]
     out = subprocess.run([sys.executable, os.path.join(HERE, script), argv[1], argv[2]],
@@ -83,7 +87,7 @@ def main():
     cases, labels = gen(args)
     n = len(cases)
     t0 = time.time()
-    full = os.environ.get("D3_FULL") == "1" or args[0] == "host"
+    full = os.environ.get("D3_FULL") == "1" or args[0] in ("host", "hostedges")
     near = subprocess.run([HARNESS] + (["full"] if full else []), input="\n".join(cases) + "\n", check=True,
                           capture_output=True, text=True).stdout.splitlines()
     t1 = time.time()

@@ -261,6 +261,8 @@ structure MAct where
   receiver : Option String := none
   /-- `(data_id, yield_id?)` for `YieldCreate` -/
   yieldCreate : Option (ByteArray × Option ByteArray) := none
+  /-- `(receipt_index, keys)` for `DeterministicStateInit` (data entries set so far) -/
+  stateInit : Option (Nat × Array ByteArray) := none
   deriving Inhabited
 
 structure St where

@@ -187,7 +187,7 @@ def pushLogH (msg : String) : HM Unit := do
 def rustDebugStr (str : String) : String :=
   "\"" ++ str.foldl (fun acc c =>
     acc ++ (match c with
-      | '\t' => "\\t" | '\r' => "\\r" | '\n' => "\\n" | '\\' => "\\\\" | '"' => "\\\""
+      | '\x00' => "\\0" | '\t' => "\\t" | '\r' => "\\r" | '\n' => "\\n" | '\\' => "\\\\" | '"' => "\\\""
       | c => if c.toNat < 0x20 ∨ c.toNat = 0x7F then s!"\\u\{{(Nat.toDigits 16 c.toNat).asString}}"
              else c.toString)) "" ++ "\""
 
@@ -280,6 +280,13 @@ def addFunctionCallKey : Fee3 := ⟨102217625000, 102217625000, 102217625000⟩
 def addFunctionCallKeyByte : Fee3 := ⟨1925331, 47683715, 1925331⟩
 def deleteKey : Fee3 := ⟨94946625000, 94946625000, 94946625000⟩
 def deleteAccount : Fee3 := ⟨147489000000, 147489000000, 147489000000⟩
+def deployGlobalContract : Fee3 := ⟨184765750000, 184765750000, 184765750000⟩
+def deployGlobalContractByte : Fee3 := ⟨6812999, 47683715, 70000000⟩
+def useGlobalContract : Fee3 := ⟨184765750000, 184765750000, 184765750000⟩
+def useGlobalContractByte : Fee3 := ⟨6812999, 47683715, 64572944⟩
+def stateInit : Fee3 := ⟨500000000000, 500000000000, 7430000000000⟩
+def stateInitEntry : Fee3 := ⟨0, 0, 200000000000⟩
+def stateInitByte : Fee3 := ⟨72000000, 72000000, 70000000⟩
 end F
 
 /-- `pay_action_base`: burn send, reserve send + exec (send compute = gas for all PV86 send fees) -/
@@ -367,6 +374,73 @@ def functionCallActionH (idx mlen mptr alen aptr amountPtr gas weight : Nat) : H
   -- one_yocto_on_promise
   if amount = 1 ∧ s.balance = 0 then pure () else deductBalanceH amount
   let _ ← pushAction { text := s!"FC@{r}:{hexStr m}:{hexStr a}:{amount}:{gas}:{weight}" }
+
+/-- `read_contract_id` (`logic.rs`): a 32-byte code hash, or an account id; returns its `len()`. -/
+def readContractIdH (byAccount : Bool) (len ptr : Nat) : HM Nat := do
+  if byAccount then pure (← readAccountIdH len ptr).utf8ByteSize
+  else
+    let h ← memOrRegH ptr len
+    if h.size ≠ 32 then hErr "ContractCodeHashMalformed"
+    pure 32
+
+def deployGlobalH (a : Array Nat) : HM Unit := do
+  payBaseH C.base
+  let code ← memOrRegH a[2]! a[1]!
+  if code.size > maxContractSize then
+    hErr s!"ContractSizeExceeded \{ size: {code.size}, limit: {maxContractSize} }"
+  let (_, sir) ← promiseReceiptH a[0]!
+  payActionBaseH F.deployGlobalContract sir
+  payActionPerByteH F.deployGlobalContractByte code.size sir
+  let _ ← pushAction { text := "OTHER" }
+
+def useGlobalH (byAccount : Bool) (a : Array Nat) : HM Unit := do
+  payBaseH C.base
+  let len ← readContractIdH byAccount a[1]! a[2]!
+  let (_, sir) ← promiseReceiptH a[0]!
+  payActionBaseH F.useGlobalContract sir
+  payActionPerByteH F.useGlobalContractByte len sir
+  let _ ← pushAction { text := "OTHER" }
+
+def stateInitH (byAccount : Bool) (a : Array Nat) : HM Unit := do
+  payBaseH C.base
+  let _ ← readContractIdH byAccount a[1]! a[2]!
+  let amount ← getU128H a[3]!
+  let (r, sir) ← promiseReceiptH a[0]!
+  payActionBaseH F.stateInit sir
+  deductBalanceH amount
+  let ai ← pushAction { text := "OTHER", stateInit := some (r, #[]) }
+  pushRet ai
+
+/-- `promise_yield_create_with_id` (mock: a repeated yield id returns `u64::MAX`, nothing recorded). -/
+def yieldCreateWithIdH (a : Array Nat) : HM Unit := do
+  payBaseH C.base
+  payBaseH C.yieldCreateWithIdBase
+  let amount ← getU128H a[4]!
+  let m ← memOrRegH a[1]! a[0]!
+  if m.size = 0 then hErr "EmptyMethodName"
+  let args ← memOrRegH a[3]! a[2]!
+  let yid ← memOrRegH a[8]! a[7]!
+  if yid.size ≠ 32 then hErr "YieldIdMalformed"
+  let nb := m.size + args.size
+  payPerH C.yieldCreateByte nb
+  let s ← get
+  let dup := s.actions.any fun x => match x.yieldCreate with
+    | some (_, some y) => y == yid
+    | _ => false
+  if dup then pushRet (u64Bound - 1) else
+  let did := dataId s.dataCount
+  set { s with dataCount := s.dataCount + 1 }
+  let r ← pushAction { text := s!"YC:{hexStr did}>{s.ctx.currentAccount}:{hexStr yid}",
+                       receiver := some s.ctx.currentAccount, yieldCreate := some (did, some yid) }
+  withGas (deduct · 0 a[5]!)
+  payNewReceiptH true #[true]
+  let pi ← pushPromiseH (.receipt r)
+  payActionBaseH F.functionCall true
+  payActionPerByteH F.functionCallByte nb true
+  let s ← get
+  if amount = 1 ∧ s.balance = 0 then pure () else deductBalanceH amount
+  let _ ← pushAction { text := s!"FC@{r}:{hexStr m}:{hexStr args}:{amount}:{a[5]!}:{a[6]!}" }
+  pushRet pi
 
 /-- Dispatch. `none` = not a D3α host function handled here. -/
 def hostCall (name : String) : Option (HM Unit) :=
@@ -774,6 +848,46 @@ def hostCall (name : String) : Option (HM Unit) :=
       | some (d, _) => d == did
       | none => false
     pushRet (if found then 1 else 0) (is64 := false)
+  | "promise_yield_create_with_id" => some do yieldCreateWithIdH (← popArgs 9)
+  | "promise_yield_resume_with_yield_id" => some do
+    let a ← popArgs 4
+    payBaseH C.base
+    payBaseH C.yieldResumeBase
+    payPerH C.yieldResumeByte a[2]!
+    let yid ← memOrRegH a[1]! a[0]!
+    let payload ← memOrRegH a[3]! a[2]!
+    if payload.size > maxYieldPayloadSize then
+      hErr s!"YieldPayloadLength \{ length: {payload.size}, limit: {maxYieldPayloadSize} }"
+    if yid.size ≠ 32 then hErr "YieldIdMalformed"
+    let found := (← get).actions.findSome? fun x => match x.yieldCreate with
+      | some (d, some y) => if y == yid then some d else none
+      | _ => none
+    match found with
+    | some did =>
+      let _ ← pushAction { text := s!"YR:{hexStr did}:{hexStr payload}" }
+      pushRet 1 (is64 := false)
+    | none => pushRet 0 (is64 := false)
+  | "promise_batch_action_deploy_global_contract" => some do deployGlobalH (← popArgs 3)
+  | "promise_batch_action_deploy_global_contract_by_account_id" => some do deployGlobalH (← popArgs 3)
+  | "promise_batch_action_use_global_contract" => some do useGlobalH false (← popArgs 3)
+  | "promise_batch_action_use_global_contract_by_account_id" => some do useGlobalH true (← popArgs 3)
+  | "promise_batch_action_state_init" => some do stateInitH false (← popArgs 4)
+  | "promise_batch_action_state_init_by_account_id" => some do stateInitH true (← popArgs 4)
+  | "set_state_init_data_entry" => some do
+    let a ← popArgs 6
+    payBaseH C.base
+    let (r, sir) ← promiseReceiptH a[0]!
+    let k ← memOrRegH a[3]! a[2]!
+    let v ← memOrRegH a[5]! a[4]!
+    payActionBaseH F.stateInitEntry sir
+    payActionPerByteH F.stateInitByte (k.size + v.size) sir
+    let s ← get
+    match s.actions[a[1]!]?.bind (·.stateInit) with
+    | some (ri, keys) =>
+      if ri ≠ r then hErr s!"InvalidActionIndex \{ receipt_index: {r}, action_index: {a[1]!} }"
+      if keys.any (· == k) then hErr "DataEntryAlreadyExists"
+      set { s with actions := s.actions.modify a[1]! fun x => { x with stateInit := some (ri, keys.push k) } }
+    | none => hErr s!"InvalidActionIndex \{ receipt_index: {r}, action_index: {a[1]!} }"
   | _ => none
 
 end NearSpecV3.Wasm

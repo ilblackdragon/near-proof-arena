@@ -21,11 +21,7 @@ from wasmenc import *
 HERE = os.path.dirname(os.path.abspath(__file__))
 INV = json.load(open(os.path.join(HERE, "../../../docs/research/near-wasm-boundary-inventory.json")))
 OOD = {"alt_bn128_g1_multiexp", "alt_bn128_g1_sum", "alt_bn128_pairing_check", "ecrecover", "p256_verify",
-       "ed25519_verify", "promise_yield_create_with_id", "promise_yield_resume_with_yield_id",
-       "promise_batch_action_deploy_global_contract", "promise_batch_action_deploy_global_contract_by_account_id",
-       "promise_batch_action_use_global_contract", "promise_batch_action_use_global_contract_by_account_id",
-       "promise_batch_action_state_init", "promise_batch_action_state_init_by_account_id",
-       "set_state_init_data_entry", "promise_batch_action_transfer_to_gas_key",
+       "ed25519_verify", "promise_batch_action_transfer_to_gas_key",
        "promise_batch_action_add_gas_key_with_full_access", "promise_batch_action_add_gas_key_with_function_call"}
 HOSTS = []
 for i in INV["imports"]:
@@ -106,7 +102,7 @@ def ptr_len(r, pname):
         kinds = ["names"]
     elif "method_name" in pname:
         kinds = ["names", "utf8"]
-    elif "data_id" in pname:
+    elif "data_id" in pname or "yield_id" in pname or "code_hash" in pname:
         kinds = ["dataid"]
     elif "payload" in pname or "arguments" in pname or "value" in pname or "key" in pname or "data" in pname:
         kinds = ["bytes", "utf8", "acct"]
@@ -151,6 +147,8 @@ def gen_call(r, name, args, m, imp):
             continue
         if pn == "register_id" or pn.endswith("register_id"):
             vals[pn] = r.choice([0, 1, 2, 3, 99, 2**33])
+        elif pn == "action_index":
+            vals[pn] = r.choice([0, 1, 2, 3, 2**40])
         elif pn in ("promise_idx", "promise_index"):
             np_ = STATE["np"]
             vals[pn] = r.randrange(np_) if np_ and r.random() < 0.92 else r.choice([0, 1, 5, 2**40])
