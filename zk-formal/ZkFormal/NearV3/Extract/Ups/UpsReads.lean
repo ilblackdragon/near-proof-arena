@@ -91,12 +91,12 @@ def upbW (v : List UpsSeg) : List (Msg × Nat) :=
   v.flatMap fun s => (List.range s.rows.length).flatMap fun i =>
     if s.row i rd = 1 then [(upbK (s.row i), s.row i u)] else []
 
-theorem flatMap_congr' {α β : Type} {f g : α → List β} : ∀ {l : List α}, (∀ a ∈ l, f a = g a) →
+theorem flatMap_congrR {α β : Type} {f g : α → List β} : ∀ {l : List α}, (∀ a ∈ l, f a = g a) →
     l.flatMap f = l.flatMap g
   | [], _ => rfl
   | a :: l, h => by
     simp only [List.flatMap_cons]
-    rw [h a (by simp), flatMap_congr' (fun x hx => h x (by simp [hx]))]
+    rw [h a (by simp), flatMap_congrR (fun x hx => h x (by simp [hx]))]
 
 theorem toFp_succ_mod (m : Msg) (x : Nat) : (m ++ [(x + 1) % P]).toFp = (m ++ [x + 1]).toFp := by
   simp only [Msg.toFp, List.map_append, List.map_cons, List.map_nil]
@@ -106,16 +106,16 @@ theorem toFp_succ_mod (m : Msg) (x : Nat) : (m ++ [(x + 1) % P]).toFp = (m ++ [x
 theorem upsUpb_sends {v : List UpsSeg} (hw : UpsWf v) :
     ((upsTraffic v).sends B_UPB).map Msg.toFp = ((upbW v).map fun s => s.1 ++ [s.2 + 1]).map Msg.toFp := by
   simp only [upsTraffic, upbW, UpsSeg.msgs, List.map_flatMap]
-  apply flatMap_congr'; intro s hs
-  apply flatMap_congr'; intro i hi
+  apply flatMap_congrR; intro s hs
+  apply flatMap_congrR; intro i hi
   rw [upbMsgs hw hs (List.mem_range.1 hi) true]
   split <;> simp [upbN_eq, toFp_succ_mod]
 
 theorem upsUpb_recvs {v : List UpsSeg} (hw : UpsWf v) :
     ((upsTraffic v).recvs B_UPB).map Msg.toFp = ((upbW v).map fun s => s.1 ++ [s.2]).map Msg.toFp := by
   simp only [upsTraffic, upbW, UpsSeg.msgs, List.map_flatMap]
-  apply flatMap_congr'; intro s hs
-  apply flatMap_congr'; intro i hi
+  apply flatMap_congrR; intro s hs
+  apply flatMap_congrR; intro i hi
   rw [upbMsgs hw hs (List.mem_range.1 hi) false]
   split <;> simp [upbN_eq]
 
