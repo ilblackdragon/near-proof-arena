@@ -1,0 +1,16 @@
+{
+  "base": "00-h10013-s1",
+  "case": "00-h10013-s1-c.slot_height_flip",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "c.slot_height_flip",
+  "nearcore": "claim-v3 discipline",
+  "verdict_source": "claim-v3"
+}

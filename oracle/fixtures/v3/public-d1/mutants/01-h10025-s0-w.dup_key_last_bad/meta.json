@@ -1,0 +1,17 @@
+{
+  "base": "01-h10025-s0",
+  "case": "01-h10025-s0-w.dup_key_last_bad",
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "w.dup_key_last_bad",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(FoyzZcoNRYPFSJtVBrLDeJCejqijjFX9fgsa7rBn5STZ) has invalid merkle path, doesn't match outgoing receipts root\")",
+  "verdict_source": "nearcore"
+}

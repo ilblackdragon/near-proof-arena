@@ -1,0 +1,16 @@
+{
+  "base": "00-h10013-s1",
+  "case": "00-h10013-s1-w.drop_proof",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "w.drop_proof",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Missing source receipt proof for chunk ChunkHash(3hVwc61APm6HQnbtP4ke7KqFvWpNsKvohNSvQomRhEQU)\")",
+  "verdict_source": "nearcore"
+}

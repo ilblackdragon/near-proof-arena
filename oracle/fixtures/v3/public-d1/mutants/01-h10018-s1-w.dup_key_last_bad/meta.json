@@ -1,0 +1,14 @@
+{
+  "base": "01-h10018-s1",
+  "case": "01-h10018-s1-w.dup_key_last_bad",
+  "d0_violations": [],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": true,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "w.dup_key_last_bad",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(8pUbwT2sqWatFqPgZhNgaCvwvKakjnjBTDtDvPeKyReu) is for shard 0, expected shard 1\")",
+  "verdict_source": "nearcore"
+}

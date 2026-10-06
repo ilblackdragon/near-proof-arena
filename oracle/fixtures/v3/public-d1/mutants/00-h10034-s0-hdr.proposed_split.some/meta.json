@@ -1,0 +1,16 @@
+{
+  "base": "00-h10034-s0",
+  "case": "00-h10034-s0-hdr.proposed_split.some",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "hdr.proposed_split.some",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s1a0\\\"), left_memory: 1, right_memory: 1 }), expected None (prev block hash: 9W3aorefBWBVdu9JCRfkHJaqnd1jxcusKt9Bk7ou65KL height created: 10034)\")",
+  "verdict_source": "nearcore"
+}

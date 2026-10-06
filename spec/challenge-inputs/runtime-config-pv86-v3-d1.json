@@ -1,0 +1,101 @@
+{
+  "bandwidth_scheduler": {
+    "max_allowance": 4500000,
+    "max_base_bandwidth": 100000,
+    "max_shard_bandwidth": 4500000,
+    "max_single_grant": 4194304
+  },
+  "congestion_control": {
+    "allowed_shard_outgoing_gas": 1000000000000000,
+    "max_congestion_incoming_gas": 400000000000000000,
+    "max_congestion_memory_consumption": 1000000000,
+    "max_congestion_missed_chunks": 125,
+    "max_congestion_outgoing_gas": 10000000000000000,
+    "max_outgoing_gas": 300000000000000000,
+    "min_outgoing_gas": 1000000000000000
+  },
+  "d1_transaction_fees": {
+    "access_key_nonce_range_multiplier": 1000000,
+    "add_full_access_key": {
+      "exec": [
+        101765125000,
+        101765125000
+      ],
+      "send_not_sir": [
+        101765125000,
+        101765125000
+      ],
+      "send_sir": [
+        101765125000,
+        101765125000
+      ]
+    },
+    "create_account": {
+      "exec": [
+        7200000000000,
+        7200000000000
+      ],
+      "send_not_sir": [
+        500000000000,
+        500000000000
+      ],
+      "send_sir": [
+        500000000000,
+        500000000000
+      ]
+    },
+    "eth_implicit_accounts": true,
+    "max_actions_per_receipt": 100,
+    "max_transaction_size": 1572864,
+    "min_gas_purchase_price": "1000000000",
+    "new_action_receipt": {
+      "exec": [
+        108059500000,
+        108059500000
+      ],
+      "send_not_sir": [
+        108059500000,
+        108059500000
+      ],
+      "send_sir": [
+        108059500000,
+        108059500000
+      ]
+    },
+    "signature_verification": {
+      "ed25519": [
+        0,
+        0
+      ],
+      "mldsa65": [
+        100000000000,
+        100000000000
+      ],
+      "secp256k1": [
+        0,
+        0
+      ]
+    },
+    "storage_amount_per_byte": "10000000000000000000",
+    "transfer": {
+      "exec": [
+        115123062500,
+        115123062500
+      ],
+      "send_not_sir": [
+        115123062500,
+        115123062500
+      ],
+      "send_sir": [
+        115123062500,
+        115123062500
+      ]
+    }
+  },
+  "main_storage_proof_size_soft_limit": 4000000,
+  "max_receipt_size": 4194304,
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "protocol_version": 86,
+  "runtime_config_view_sha256": "79b2a2df11580bd67197c125686f0e977040336568bba56999691bfdae530089",
+  "schema": "near-arena-runtime-config-v3"
+}

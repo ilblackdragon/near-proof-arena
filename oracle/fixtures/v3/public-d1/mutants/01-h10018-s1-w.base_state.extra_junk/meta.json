@@ -1,0 +1,14 @@
+{
+  "base": "01-h10018-s1",
+  "case": "01-h10018-s1-w.base_state.extra_junk",
+  "d0_violations": [],
+  "expected_rel": true,
+  "expected_rel_d0": true,
+  "expected_rel_d1": true,
+  "in_d0": true,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "w.base_state.extra_junk",
+  "nearcore": "ok",
+  "verdict_source": "nearcore"
+}

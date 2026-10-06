@@ -1,0 +1,14 @@
+{
+  "base": "01-h10018-s1",
+  "case": "01-h10018-s1-w.epoch_id",
+  "d0_violations": [],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": true,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "w.epoch_id",
+  "nearcore": "actor: InvalidChunkStateWitness epoch id",
+  "verdict_source": "nearcore"
+}
