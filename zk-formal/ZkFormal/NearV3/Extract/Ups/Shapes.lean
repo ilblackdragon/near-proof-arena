@@ -171,4 +171,75 @@ include hw hs
 
 end
 
+theorem fieldsAt_rep (s : UpsSeg) : ∀ (w r : Nat) (rest : List (Nat × Nat)),
+    FieldsAt s r (List.replicate w (7, 32) ++ rest) →
+    (∀ e, e < w → UField s (r + 32 * e) 32 ∧ stOf (s.row (r + 32 * e)) = 7) ∧ FieldsAt s (r + 32 * w) rest ∧
+    fieldsB s r (List.replicate w (7, 32) ++ rest) = rowsB s r (32 * w) ++ fieldsB s (r + 32 * w) rest
+  | 0, r, rest, h => by simp at h ⊢; exact ⟨h, by simp [rowsB]⟩
+  | w + 1, r, rest, h => by
+    simp only [List.replicate_succ, List.cons_append, FieldsAt, fieldsB] at h ⊢
+    obtain ⟨hU, hst, hR⟩ := h
+    obtain ⟨ih1, ih2, ih3⟩ := fieldsAt_rep s w (r + 32) rest hR
+    refine ⟨fun e he => ?_, by rwa [show r + 32 * (w + 1) = r + 32 + 32 * w by omega], ?_⟩
+    · rcases e with _ | e
+      · simpa using ⟨hU, hst⟩
+      · have := ih1 e (by omega); rwa [show r + 32 + 32 * e = r + 32 * (e + 1) by omega] at this
+    · rw [ih3, show 32 * (w + 1) = 32 + 32 * w by omega, rowsB_append, List.append_assoc,
+        show r + 32 + 32 * w = r + (32 + 32 * w) by omega]
+
+section
+variable {v : List UpsSeg} (hw : UpsWf v) {s : UpsSeg} (hs : s ∈ v)
+include hw hs
+
+/-- **A part of a branch with a value**: `TAG VLEN VH BM CH^w MEM`. -/
+theorem branchVShape {o ℓ : Nat} {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) (htb : s.row o qtb2 = 1)
+    (hq0 : s.row o qb = 1) (hpf : s.row o pf = 1) :
+    ℓ = 47 + 32 * w ∧
+    rowsB s o ℓ = rowsB s o 1 ++ (rowsB s (o + 1) 4 ++ (rowsB s (o + 5) 32 ++ (rowsB s (o + 37) 2 ++
+      (rowsB s (o + 39) (32 * w) ++ rowsB s (o + 39 + 32 * w) 8)))) ∧
+    (UField s o 1 ∧ stOf (s.row o) = 0) ∧ (UField s (o + 1) 4 ∧ stOf (s.row (o + 1)) = 4) ∧
+    (UField s (o + 5) 32 ∧ stOf (s.row (o + 5)) = 5) ∧ (UField s (o + 37) 2 ∧ stOf (s.row (o + 37)) = 6) ∧
+    (∀ e, e < w → UField s (o + 39 + 32 * e) 32 ∧ stOf (s.row (o + 39 + 32 * e)) = 7) ∧
+    (UField s (o + 39 + 32 * w) 8 ∧ stOf (s.row (o + 39 + 32 * w)) = 8) := by
+  obtain ⟨-, -, -, -, hsum, -, -, -⟩ := partHead (okRow hw hs (i := o) (by have := U.le; have := U.pos; omega))
+    (rowLt hw hs _) hpf hq0
+  obtain ⟨hFA, hBy⟩ := partFieldsAt U
+  rw [show s.row o qtl = 0 by omega, show s.row o qte = 0 by omega, show s.row o qtb1 = 0 by omega] at hFA hBy
+  simp only [shapeU, show ¬ ((0 : Nat) = 1) by omega, ite_false, List.cons_append, List.singleton_append] at hFA hBy
+  simp only [FieldsAt, fieldsB, List.nil_append] at hFA hBy
+  obtain ⟨U0, s0, U1, s1, U2, s2, U3, s3, hR⟩ := hFA
+  obtain ⟨W, ⟨U5, s5, -⟩, hB⟩ := fieldsAt_rep s w (o + 1 + 4 + 32 + 2) [(8, 8)] hR
+  rw [hB] at hBy
+  simp only [fieldsB, List.append_nil] at hBy
+  have hlen := congrArg List.length hBy
+  simp only [rowsB, List.length_append, List.length_map, List.length_range] at hlen
+  rw [show o + 1 + 4 = o + 5 by omega, show o + 5 + 32 = o + 37 by omega, show o + 37 + 2 = o + 39 by omega] at *
+  exact ⟨by omega, hBy, ⟨U0, s0⟩, ⟨U1, s1⟩, ⟨U2, s2⟩, ⟨U3, s3⟩, W, ⟨U5, s5⟩⟩
+
+/-- **A part of a branch without a value**: `TAG BM CH^w MEM`. -/
+theorem branchNShape {o ℓ : Nat} {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) (htb : s.row o qtb1 = 1)
+    (hq0 : s.row o qb = 1) (hpf : s.row o pf = 1) :
+    ℓ = 11 + 32 * w ∧
+    rowsB s o ℓ = rowsB s o 1 ++ (rowsB s (o + 1) 2 ++ (rowsB s (o + 3) (32 * w) ++ rowsB s (o + 3 + 32 * w) 8)) ∧
+    (UField s o 1 ∧ stOf (s.row o) = 0) ∧ (UField s (o + 1) 2 ∧ stOf (s.row (o + 1)) = 6) ∧
+    (∀ e, e < w → UField s (o + 3 + 32 * e) 32 ∧ stOf (s.row (o + 3 + 32 * e)) = 7) ∧
+    (UField s (o + 3 + 32 * w) 8 ∧ stOf (s.row (o + 3 + 32 * w)) = 8) := by
+  obtain ⟨-, -, -, -, hsum, -, -, -⟩ := partHead (okRow hw hs (i := o) (by have := U.le; have := U.pos; omega))
+    (rowLt hw hs _) hpf hq0
+  obtain ⟨hFA, hBy⟩ := partFieldsAt U
+  rw [show s.row o qtl = 0 by omega, show s.row o qte = 0 by omega, htb] at hFA hBy
+  simp only [shapeU, show ¬ ((0 : Nat) = 1) by omega, ite_false, ite_true, List.cons_append,
+    List.singleton_append] at hFA hBy
+  simp only [FieldsAt, fieldsB, List.nil_append] at hFA hBy
+  obtain ⟨U0, s0, U3, s3, hR⟩ := hFA
+  obtain ⟨W, ⟨U5, s5, -⟩, hB⟩ := fieldsAt_rep s w (o + 1 + 2) [(8, 8)] hR
+  rw [hB] at hBy
+  simp only [fieldsB, List.append_nil] at hBy
+  have hlen := congrArg List.length hBy
+  simp only [rowsB, List.length_append, List.length_map, List.length_range] at hlen
+  rw [show o + 1 + 2 = o + 3 by omega] at *
+  exact ⟨by omega, hBy, ⟨U0, s0⟩, ⟨U3, s3⟩, W, ⟨U5, s5⟩⟩
+
+end
+
 end ZkFormal.NearV3.UpsRows
