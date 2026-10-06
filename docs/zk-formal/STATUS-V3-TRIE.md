@@ -21,7 +21,7 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M6a | link layer: per-τ DAG, record bytes = preimages, walks ⇒ find/absent | **done** (pieces; §3) |
 | M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition | **done** (`PerTau3`: `root_tau`, `build_tau`, `walks_tau`) |
 | M6c | post-root after sets | **done**: `post_tau` (`Link/Post3`), `post_eq_set(s)` (`Link/Post3Spec`), `valsPost_eq_setVals` (`Link/Post3Writes`); open M6d below |
-| M6d | `fullOcc ≤ 1` on link records (unique `PARENT` sender + `val_unique`), `fullReach` of walked keys, `hpl` from the account writer | open |
+| M6d | occurrences, reach, post root = iterated `set` | **done**: `occ_le_one`, `reach_walk(_at)`, `find_walk_any`, `post_sets_tau`, `post_sets_walk` (`Link/Post3Occ*`, 76ecb4a8). Interface: `hpl` (account writer), `hperm` (each written value has one keyed write: assembly) |
 | M7 | `upsV3` (option A) | open |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
