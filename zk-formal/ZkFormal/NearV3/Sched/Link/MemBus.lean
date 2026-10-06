@@ -84,9 +84,25 @@ theorem count_filterMap_ite {α : Type} [BEq α] [LawfulBEq α] (l : List Nat) (
   | cons r l ih =>
     by_cases hp : p r
     · by_cases hg : g r = m
-      · simp [hp, hg, ih, List.count_cons]; omega
-      · simp [hp, hg, ih, List.count_cons]
+      · simp [hp, hg, ih]; omega
+      · simp [hp, hg, ih]
     · simp [hp, ih]
+
+/-- All messages sent (`s = true`) or received on bus `b` by the tables `Ts` (numbered from `k`),
+with multiplicity. -/
+def busTraffic (tr : Trace F) (pub : List F) (b : Nat) (s : Bool) :
+    List ZkFormal.Air.Table → Nat → List (List F)
+  | [], _ => []
+  | T :: Ts, k => ((List.range (tr.height k)).flatMap fun r => rowTraffic T.interactions tr k r pub b s) ++
+      busTraffic tr pub b s Ts (k + 1)
+
+theorem count_busTraffic (tr : Trace F) (pub : List F) (b : Nat) (s : Bool) (m : List F) :
+    ∀ (Ts : List ZkFormal.Air.Table) (k : Nat),
+      (busTraffic tr pub b s Ts k).count m = busCount.go tr pub b s m Ts k
+  | [], _ => rfl
+  | T :: Ts, k => by
+    simp only [busTraffic, busCount.go, List.count_append, tableBusCount_eq,
+      count_busTraffic tr pub b s m Ts (k + 1)]
 
 end
 
@@ -330,5 +346,41 @@ theorem mem_sent_row (hH : HoldsP AP pub tr) {tm : Nat} (hM : MemOwn AP tm)
   by_cases h : cv tr tm r' Mem.act = 1
   · exact h
   · simp [h] at hm'
+
+/-! ## Multisets -/
+
+/-- All `SOP` messages sent by the tables, with multiplicity. -/
+def sopSent (AP : AirP) (tr : Trace Fp) (pub : List Fp) : List (List Fp) :=
+  busTraffic tr pub B_SOP true AP.tables 0
+
+theorem sopSent_count (m : List Fp) : (sopSent AP tr pub).count m = busCount AP.toAir tr pub B_SOP true m :=
+  count_busTraffic tr pub B_SOP true m AP.tables 0
+
+/-- The messages received by the active memory rows are, as a multiset, the messages sent on `SOP`. -/
+theorem mem_recv_perm (hH : HoldsP AP pub tr) {tm : Nat} (hM : MemOwn AP tm) :
+    (memRecv tr tm pub).Perm (sopSent AP tr pub) :=
+  List.perm_iff_count.2 fun m => by rw [mem_recv_eq_sent hH hM, sopSent_count]
+
+/-- `op ∈ {1, 2}` (READ or GRANT). -/
+def isOpMsg (m : List Fp) : Bool := decide (m[2]? = some 1 ∨ m[2]? = some 2)
+
+/-- **`mem_ops_eq_sent`, multiset form**: the `SOP` messages received on the non-`INIT` memory rows
+are, as a multiset, the `SOP` messages with op ∈ {1, 2} sent by all tables. -/
+theorem mem_ops_perm (hH : HoldsP AP pub tr) {tm : Nat} (hM : MemOwn AP tm) :
+    (memOpRecv tr tm pub).Perm ((sopSent AP tr pub).filter isOpMsg) := by
+  refine List.perm_iff_count.2 fun m => ?_
+  by_cases hop : isOpMsg m = true
+  · rw [List.count_filter hop, sopSent_count]
+    exact mem_ops_eq_sent hH hM m (by simpa [isOpMsg] using hop)
+  · rw [List.count_eq_zero.2 (fun h => hop (List.mem_filter.1 h).2), List.count_eq_zero]
+    intro h
+    obtain ⟨r, hr, hm⟩ := List.mem_filterMap.1 h
+    have hr' := List.mem_range.1 hr
+    by_cases hc : cv tr tm r Mem.act = 1 ∧ cv tr tm r Mem.fst = 0
+    · simp only [hc.1, hc.2, and_self, ↓reduceIte] at hm
+      have := (Mem.op_row (mLocal_of hH hM) hr' hc.1 hc.2).2
+      rw [Option.some.inj hm] at this
+      exact hop (by simpa [isOpMsg] using this)
+    · simp [hc] at hm
 
 end ZkFormal.NearV3.Sched
