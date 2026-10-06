@@ -1,4 +1,5 @@
 import ZkFormal.NearV3.Link.Sha3
+import ZkFormal.NearV3.Link.Uniq3
 
 /-!
 # ZkFormal.NearV3.Link.PerTau3 — per-instance trie statement
@@ -38,7 +39,7 @@ theorem root_tau (hw : NodeWf3 vs) (hhw : HeadWf hs) (hvw : ValWf es) (hb : Pare
 /-- **The relation's trie of an instance.** -/
 theorem build_tau (hw : NodeWf3 vs) (hhw : HeadWf hs) (hvw : ValWf es) (hb : ParentBal vs hs)
     (hvb : VParentBal vs es) (H : ShaHyp vs hs es others shaS shaR) {h : HeadE} (hh : h ∈ hs)
-    (hHF : HashFunctional (storeOf (recsOf (vpos (vid0 es)) vs) (valsOf3 vs es) h.tau))
+    {us : List UniqE} (huw : UniqWf us) (hDIGS : DigsBal vs hs us) (hDUP : DupBal us vs es) (hENT : EntBal vs es)
     (keys : List (List Nat))
     (hdet : ∀ k ∈ keys, (fullTree (recsOf (vpos (vid0 es)) vs) (valsOf3 vs es) h.rid).find k ≠ none) :
     (partialTrie (storeOf (recsOf (vpos (vid0 es)) vs) (valsOf3 vs es) h.tau) (toB h.pre) keys).hashOf =
@@ -48,7 +49,8 @@ theorem build_tau (hw : NodeWf3 vs) (hhw : HeadWf hs) (hvw : ValWf es) (hb : Par
   have hbytes := rec_bytes hw hhw hvw hb H
   have hd := rootedDag3 hw hhw hvw hb hvb (vlen_le hvw) hbytes hh
   have hp := pathsRevealed_of_rank hd (rk_lt hw hhw hb _ h.tau) keys hdet
-  have hs' := storeBuildR _ _ _ _ _ keys hHF hd hp
+  have hs' := storeBuildR _ _ _ _ _ keys
+    (store_hashFunctional hw hhw hvw huw hb hvb H hDIGS hDUP hENT hh) hd hp
   rw [root_tau hw hhw hvw hb hvb H hh] at hs'
   exact ⟨hs'.2.1, hs'.2.2⟩
 

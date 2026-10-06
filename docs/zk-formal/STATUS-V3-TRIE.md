@@ -19,7 +19,8 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M5a | `nodeV3` view proof (v1's `Extract/Node*` adapted: `Extract/Node/*.lean`, 21 modules) | **done**: `node3_view : NodeV3ViewStmt` |
 | M5b | `nodeV3` render | **done**: `node_render_local`, `node_render_traffic` (`Render/Node/Local.lean`, `Traffic.lean`; 5df77df2) |
 | M6a | link layer: per-τ DAG, record bytes = preimages, walks ⇒ find/absent | **done** (pieces; §3) |
-| M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition, post-root after sets | open |
+| M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition | **done** (`PerTau3`: `root_tau`, `build_tau`, `walks_tau`) |
+| M6c | post-root after sets; ROOT/MIDROOT chain (head uniqueness per τ) | open |
 | M7 | `upsV3` (option A) | open |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
@@ -321,9 +322,12 @@ What the statements are allowed to assume:
 * SHA facts: `ShaHyp`, i.e. `ShaFacts`, the BYTES balance with id kinds, and DIGEST being
   provided;
 * `KeynibOk`, from the KEYNIB providers' views and balance;
-* **residual `hHF`** in `build_tau`: the store is hash-functional. Lemma
-  `store_hashFunctional` (`Link/Uniq3`, from the uniq view and the DIGS / DUP / ENT
-  balances) is in progress.
+* the uniq view `UniqWf` and the `DIGS` / `DUP` / `ENT` balances. These discharge the
+  hash-functional store in `build_tau` through **`store_hashFunctional`** (`Link/Uniq3*`,
+  helper, 68027172). It needs no bound on `τ`: `storeOf_hashFunctional3` works with an
+  unwrapped instance chain, and `uniq_len` gives `|us| ≤ P`.
+
+No residual hypotheses remain in `root_tau`, `build_tau` or `walks_tau`.
 
 How each hypothesis of `walk3_find` is discharged (lemma, file):
 
