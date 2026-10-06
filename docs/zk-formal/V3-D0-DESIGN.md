@@ -725,3 +725,41 @@ The assembly lane proves one global lemma: every BYTES/DIGEST id produced by any
 No consumer relies on `L = 37 + 24·n²`.
 
 **M7 deviation (approved).** upsV3's new path nodes Q are byte segments of upsV3 itself, not nodeV3 records. Their bytes are copied from the old path records' post bytes over the chained `UPB` bus or computed fresh. nodeV3 gains only `UPB` and the column `mU`. Q's preimages are hashed under `K_VUPS` with `idx = 8τ + j`, so no new kind is allocated.
+
+## 13. Proof-size tracking (program lead, after the sched M3 audit)
+
+`W_eq` so far, per kernel checks or lane estimates (g = 1):
+
+| part | `W_eq` |
+|---|---:|
+| `sha_t` + `sha_r` | 1,408 |
+| trie (`nodeV3`, `headV3`, `valV3`, `walkV3`, `uniqV3`) | 838 |
+| ChaCha (`chachaV3`, `genV3`, `shufV3`) | 654 |
+| scheduler (six tables, after the range fixes) | 934 |
+| receipt-table extension (estimate) | ≈ 480 |
+| `acct`, `mrk`, `sort`, `srcp`, `akey`, `bnd`, `size`, queue parsers (estimate) | ≈ 700 |
+| `upsV3` (estimate) | ≈ 150 |
+| **total** | **≈ 5,150** |
+
+Size model: each `W_eq` costs ≈ 864 B in the scheduled bound. The `W_eq`-independent part of `sizeMaxSched` is ≈ 3.95 MB, derived from `near_sizeMaxSched` = 5.47 MB at `W_eq` 1,766.
+
+| quantity | value |
+|---|---:|
+| formal bound | ≈ 3.95 + 4.45 = **≈ 8.4 MB** |
+| hint `B` | ≤ 0.91 MB |
+| total | ≈ 9.3 MB |
+| cap | 8 MiB = 8.39 MB |
+| **over by** | **≈ 0.9 MB** |
+
+Honest proofs are much smaller: an estimated 3–5 MB at the worst real header.
+
+Planned levers (a size lane, once a slot frees):
+1. **Multiproof-dedup size bound** (proof work only). Charge the shared top ⌈log₂ 216⌉ ≈ 8 Merkle levels once instead of per query. Estimated −0.7 to −1.1 MB of bound.
+2. **auxGroup g = 2** for the v3 AIR. Re-evaluate on the real AIR: P2's g-bound showed only −2.3 % on nearAir.
+3. **Width cuts.**
+   * ChaCha: stream ids instead of keys, merged interactions.
+   * Scheduler: merging the row-kind tables (its §3 list).
+   * One SHA table if `rows(sha_t) + rows(sha_r) ≤ 2^22` holds under the A7 bound B0.
+4. **Hint `B`** may be packed 3 bytes per field element on the public bus. That doesn't change proof bytes, because `B` is carried as raw bytes.
+
+Target: formal bound + `B` ≤ 8,388,608 B, kernel-checked as `nearV3_size`.
