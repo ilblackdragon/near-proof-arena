@@ -33,9 +33,10 @@ structure InstOk (P : InstPub) : Prop where
   raw : RawOk P
   seed32 : P.seed.length = 32
 
-/-- The previous allowance of record `l` decoded by the codec block `f` (`codec_pre_encode`). -/
+/-- The previous allowance of record `l` decoded by the codec block `f` (`codec_pre_encode`; the
+eight little-endian pre bytes of the record, `0` beyond the block's `N` records). -/
 def preA0 (tr : Trace Fp) (t f : Nat) (l : Nat) : Nat :=
-  Codec.rowLE tr t Codec.bpre (f + 5 + 24 * l + 16) 8
+  if l < cv tr t f Codec.NN then Codec.rowLE tr t Codec.bpre (f + 5 + 24 * l + 16) 8 else 0
 
 theorem getElem!_range_toArray_map {α : Type} [Inhabited α] (N : Nat) (g : Nat → α) {k : Nat}
     (hk : k < N) : ((List.range N).toArray.map g)[k]! = g k := by
@@ -376,7 +377,7 @@ theorem codec_init_val (hH : HoldsP AP pub tr) (OC : CodecValOwn AP tcd) (SO : S
       rw [hbF]; split <;> decide
     refine hA _ _ haplt hbFb (fun h => ?_) (fun h => ?_) eap ebg
     · rw [hsa]; unfold preA0
-      rw [hsplit]
+      rw [if_pos hsN, hsplit]
       have : Codec.rowLE tr tcd Codec.bpre (f + 5 + 24 * s + 19) 5 ≠ 0 := fun h0 =>
         absurd (hbF0.2 h0) (by omega)
       unfold Codec.MA
@@ -384,7 +385,7 @@ theorem codec_init_val (hH : HoldsP AP pub tr) (OC : CodecValOwn AP tcd) (SO : S
         Nat.le_mul_of_pos_right _ (Nat.pos_of_ne_zero this)
       omega
     · rw [hsa]; unfold preA0
-      rw [hsplit, hbF0.1 h]; simp
+      rw [if_pos hsN, hsplit, hbF0.1 h]; simp
 
 end
 
