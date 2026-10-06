@@ -709,7 +709,7 @@ This is raised to the lead; lanes that do not depend on it proceed.
 |---:|---|---|---|
 | 1–10 | `K_RC, K_RF, K_PEO, K_LEAF, K_RID, K_MRK, K_NPRE, K_NPOST, K_VPRE, K_VPOST` | v1 meanings, reused by v3 rcpt/mrk/trie (v3-trie: value ids start at 0, `d153d30f`) | per v1 / per v3 table |
 | 11 | `K_SCH` | v3-sched (sanity hash) | τ |
-| 12 | `K_VUPS` | v3-trie `upsV3`: the post `0x0f` value (j = 0) and the new path nodes Q (j = 1..7) | `8·τ + j` |
+| 12 | `K_VUPS` | v3-trie `upsV3`: the post `0x0f` value (j = 0) and the new and pass-through path nodes Q (j = 1..511) | `512·τ + j` |
 | 13 | `K_SRC` | srcp (leaf rehash and path nodes) | `2·step + (j-indexed offset)`, fixed by the srcp lane |
 | 14 | `K_VAK` | akey (access-key values) | touched slot k |
 | 15, 0 | reserved | ask the program lead | — |
@@ -724,7 +724,7 @@ The assembly lane proves one global lemma: every BYTES/DIGEST id produced by any
 
 No consumer relies on `L = 37 + 24·n²`.
 
-**M7 deviation (approved).** upsV3's new path nodes Q are byte segments of upsV3 itself, not nodeV3 records. Their bytes are copied from the old path records' post bytes over the chained `UPB` bus or computed fresh. nodeV3 gains only `UPB` and the column `mU`. Q's preimages are hashed under `K_VUPS` with `idx = 8τ + j`, so no new kind is allocated.
+**M7 deviation (approved).** upsV3's new path nodes Q are byte segments of upsV3 itself, not nodeV3 records. Their bytes are copied from the old path records' post bytes over the chained `UPB` bus or computed fresh. nodeV3 gains only `UPB` and the column `mU`. Q's preimages are hashed under `K_VUPS` with `idx = 512τ + j` (amended from 8τ + j), so no new kind is allocated.
 
 ## 13. Proof-size tracking (program lead, after the sched M3 audit)
 
@@ -763,3 +763,5 @@ Planned levers (a size lane, once a slot frees):
 4. **Hint `B`** may be packed 3 bytes per field element on the public bus. That doesn't change proof bytes, because `B` is carried as raw bytes.
 
 Target: formal bound + `B` ≤ 8,388,608 B, kernel-checked as `nearV3_size`.
+
+**Empty-key extensions on the `[0,15]` path (handled, no domain condition).** The spec reveals `.ext [] child mem` (`hpDecode [0x00]`, `PTrie.wf` allows `k = []`), and `PTrie.upsert` descends through it. There can be ≤ 399 on a path: buildFor's fuel bounds them, and A7 counts them. `upsV3` rewrites each one as a 46-row pass-through segment that takes a fresh child digest and memory value, located through the extra `cid` field on `UPB (NPOST n, pos, pb, len, depth, cid, u)`. nearcore never builds them (`core/store/src/trie/ops/insert_delete.rs:123,171,202,237,252,266,405,417`), but completeness covers every `RelD0a` witness.
