@@ -88,6 +88,7 @@ fn near_transfer_expected_reference_build() {
                 max_reduction_fuel: 1 << 30,
                 public_digest_hex: "ab".repeat(32),
                 verifier_digest_hex: "cd".repeat(32),
+                declared_tier: None,
             },
         )
         .unwrap();
@@ -162,6 +163,7 @@ fn near_transfer_expected_reference_build() {
                 max_reduction_fuel: 1 << 30,
                 public_digest_hex: "ab".repeat(32),
                 verifier_digest_hex: String::new(),
+                declared_tier: None,
             },
         )
         .is_err());
@@ -180,6 +182,7 @@ fn near_transfer_expected_reference_build() {
                     max_reduction_fuel: 1 << 30,
                     public_digest_hex: "ab".repeat(32),
                     verifier_digest_hex: String::new(),
+                    declared_tier: None,
                 },
             )
             .unwrap();

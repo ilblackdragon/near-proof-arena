@@ -230,6 +230,10 @@ pub struct ChallengeDefinition {
     /// so existing challenge ids are unchanged). docs/BENCHMARK_SPEC.md §14.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scoring: Option<crate::scoring::ScoringSpec>,
+    /// Coverage tiers (v1.7, additive; absent ⇒ not serialized, so existing
+    /// challenge ids are unchanged). docs/CONTRACTS.md §11.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage: Option<crate::coverage::CoverageSpec>,
     pub supersedes: Option<ChallengeId>,
     pub created_at: String,
 }
@@ -275,6 +279,34 @@ impl ChallengeDefinition {
         match &self.scoring {
             None => Ok(()),
             Some(s) => s.validate(self),
+        }
+    }
+    /// Validate the optional `coverage` section against this challenge.
+    pub fn check_coverage(&self) -> Result<(), String> {
+        match &self.coverage {
+            None => Ok(()),
+            Some(c) => c.validate(self),
+        }
+    }
+    /// The coverage tier a manifest declares (CONTRACTS §11): `Ok(None)` on a
+    /// challenge without coverage and no declaration; an error when the
+    /// declaration is missing, unknown, or given for a challenge without
+    /// coverage.
+    pub fn declared_tier(
+        &self,
+        m: &crate::CandidateManifest,
+    ) -> Result<Option<&crate::coverage::CoverageTier>, String> {
+        match (&self.coverage, &m.entry.declared_tier) {
+            (None, None) => Ok(None),
+            (None, Some(_)) => {
+                Err("entry.declared_tier is only valid on a coverage-tiered challenge".into())
+            }
+            (Some(_), None) => {
+                Err("this challenge is coverage-tiered: entry.declared_tier is required".into())
+            }
+            (Some(c), Some(t)) => c.tier(t).map(Some).ok_or_else(|| {
+                format!("entry.declared_tier {t:?} is not a tier of this challenge")
+            }),
         }
     }
     /// `chl_` + first 32 hex chars of the canonical digest.

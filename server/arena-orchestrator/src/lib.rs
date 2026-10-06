@@ -1062,6 +1062,7 @@ impl Orchestrator {
             execution: n.execution.clone(),
             log_excerpt: n.log_excerpt.clone(),
             native_verifier: n.native_verifier.clone(),
+            coverage: n.coverage.clone(),
         };
         sqlx::query(
             "UPDATE jobs SET state = 'done', result = $2, execution = $3, finished_at = now(), updated_at = now() WHERE id = $1",
@@ -1224,7 +1225,19 @@ impl Orchestrator {
                 }
             }
             JobKind::Benchmark => ctx.run.benchmark = n.benchmark.clone(),
-            JobKind::Conformance | JobKind::Adversarial => {}
+            JobKind::Conformance => {
+                // v1.7: coverage only for the tier this run's manifest declares.
+                let declared = ctx
+                    .run
+                    .manifest
+                    .as_ref()
+                    .and_then(|m| m.entry.declared_tier.as_deref());
+                ctx.run.coverage = n
+                    .coverage
+                    .clone()
+                    .filter(|c| Some(c.tier.as_str()) == declared);
+            }
+            JobKind::Adversarial => {}
         }
         self.persist_run(conn, ctx).await
     }
@@ -1232,7 +1245,8 @@ impl Orchestrator {
     async fn persist_run(&self, conn: &mut PgConnection, ctx: &Ctx) -> Result<()> {
         sqlx::query(
             "UPDATE runs SET tier = $2, candidate_name = $3, backend_family = $4, manifest = $5, build_outputs = $6,
-                verified_surface = $7, change_class = $8, formal_cache_key = $9, benchmark = $10, evidence_graph = $11
+                verified_surface = $7, change_class = $8, formal_cache_key = $9, benchmark = $10, evidence_graph = $11,
+                coverage = $12
              WHERE id = $1",
         )
         .bind(&ctx.run.id)
@@ -1246,6 +1260,7 @@ impl Orchestrator {
         .bind(&ctx.run.formal_cache_key)
         .bind(ctx.run.benchmark.as_ref().map(json))
         .bind(ctx.run.evidence_graph.as_ref().map(json))
+        .bind(ctx.run.coverage.as_ref().map(json))
         .execute(&mut *conn)
         .await?;
         Ok(())
@@ -1411,6 +1426,15 @@ fn verified_surface(ctx: &Ctx, b: &BuildOutputs) -> Option<VerifiedSurface> {
         _ => (None, None),
     };
     Some(VerifiedSurface {
+        // v1.7: the tier selects the admission statement's params, so a
+        // changed tier is a different surface (VERIFIER_OR_PROTOCOL, no
+        // formal-cache reuse across tiers).
+        declared_tier: ctx
+            .chal
+            .definition
+            .coverage
+            .as_ref()
+            .and(manifest.and_then(|m| m.entry.declared_tier.clone())),
         challenge_id: ctx.chal.id.clone(),
         verify_artifact: b.verify.clone(),
         prepare_artifact: b.prepare.clone(),

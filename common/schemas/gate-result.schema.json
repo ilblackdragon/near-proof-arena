@@ -116,36 +116,47 @@
       ]
     },
     "ReasonCode": {
-      "type": "string",
-      "enum": [
-        "MANIFEST_INVALID",
-        "ARCHIVE_UNSAFE",
-        "CHALLENGE_UNKNOWN",
-        "PROFILE_NOT_ALLOWED",
-        "BUILD_FAILED",
-        "BUILD_NOT_REPRODUCIBLE",
-        "CERTIFICATE_MISSING",
-        "THEOREM_TYPE_MISMATCH",
-        "UNAPPROVED_ASSUMPTION",
-        "FORBIDDEN_AXIOM",
-        "SORRY_FOUND",
-        "NATIVE_EVAL_FOUND",
-        "SHADOWED_DEFINITION",
-        "RECHECK_FAILED",
-        "ARTIFACT_BINDING_FAILED",
-        "CLAIM_MISMATCH",
-        "COUNTEREXAMPLE_FOUND",
-        "HOSTILE_PROOF_ACCEPTED",
-        "VERIFIER_NONDETERMINISTIC",
-        "PROVER_FAILED",
-        "RESOURCE_LIMIT",
-        "TIMEOUT",
-        "SANDBOX_VIOLATION",
-        "SECURITY_BOUND_INSUFFICIENT",
-        "OBLIGATION_UNDISCHARGED",
-        "DEMO_ONLY",
-        "INFRA_ERROR",
-        "CANCELLED"
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "MANIFEST_INVALID",
+            "ARCHIVE_UNSAFE",
+            "CHALLENGE_UNKNOWN",
+            "PROFILE_NOT_ALLOWED",
+            "BUILD_FAILED",
+            "BUILD_NOT_REPRODUCIBLE",
+            "CERTIFICATE_MISSING",
+            "THEOREM_TYPE_MISMATCH",
+            "UNAPPROVED_ASSUMPTION",
+            "FORBIDDEN_AXIOM",
+            "SORRY_FOUND",
+            "NATIVE_EVAL_FOUND",
+            "SHADOWED_DEFINITION",
+            "RECHECK_FAILED",
+            "ARTIFACT_BINDING_FAILED",
+            "CLAIM_MISMATCH",
+            "COUNTEREXAMPLE_FOUND",
+            "HOSTILE_PROOF_ACCEPTED",
+            "VERIFIER_NONDETERMINISTIC",
+            "PROVER_FAILED",
+            "RESOURCE_LIMIT",
+            "TIMEOUT",
+            "SANDBOX_VIOLATION",
+            "SECURITY_BOUND_INSUFFICIENT",
+            "OBLIGATION_UNDISCHARGED",
+            "DEMO_ONLY",
+            "INFRA_ERROR",
+            "CANCELLED"
+          ]
+        },
+        {
+          "description": "v1.7 (coverage-tiered challenges): `prove` answered `UNSUPPORTED` on a positive case of a class its declared tier is complete for.",
+          "type": "string",
+          "enum": [
+            "COVERAGE_GAP_IN_TIER"
+          ]
+        }
       ]
     }
   }

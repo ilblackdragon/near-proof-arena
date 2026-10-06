@@ -128,6 +128,7 @@ pub struct ClassSession {
 impl ClassSession {
     pub fn to_measurement(&self) -> ClassMeasurement {
         ClassMeasurement {
+            abstained: false,
             class_id: self.class_id.clone(),
             weight_ppm: self.weight_ppm,
             runs_ns: self.measured_runs_ns.clone(),

@@ -53,6 +53,7 @@ pub struct RunRowRaw {
     pub formal_cache_key: Option<String>,
     pub benchmark: Option<serde_json::Value>,
     pub evidence_graph: Option<serde_json::Value>,
+    pub coverage: Option<serde_json::Value>,
     pub reason_codes: serde_json::Value,
     pub not_run_gates: serde_json::Value,
     pub created_at: OffsetDateTime,
@@ -62,7 +63,7 @@ pub struct RunRowRaw {
 
 pub const RUN_COLS: &str = "id, submission_id, run_number, trigger, requested_by, challenge_tier, tier, \
     stage, decision, accepted, score_milli, change_class, candidate_name, backend_family, manifest, \
-    build_outputs, verified_surface, formal_cache_key, benchmark, evidence_graph, reason_codes, \
+    build_outputs, verified_surface, formal_cache_key, benchmark, evidence_graph, coverage, reason_codes, \
     not_run_gates, created_at, updated_at, decided_at";
 
 /// Typed run record.
@@ -88,6 +89,8 @@ pub struct Run {
     pub formal_cache_key: Option<String>,
     pub benchmark: Option<BenchmarkResult>,
     pub evidence_graph: Option<EvidenceGraph>,
+    /// v1.7 coverage-tiered challenges: proven coverage (CONFORMANCE).
+    pub coverage: Option<arena_types::CoverageReport>,
     pub reason_codes: Vec<ReasonCode>,
     pub not_run_gates: Vec<ObligationId>,
     pub created_at: OffsetDateTime,
@@ -119,6 +122,7 @@ impl TryFrom<RunRowRaw> for Run {
             formal_cache_key: r.formal_cache_key,
             benchmark: from_json_opt(r.benchmark)?,
             evidence_graph: from_json_opt(r.evidence_graph)?,
+            coverage: from_json_opt(r.coverage)?,
             reason_codes: from_json(r.reason_codes)?,
             not_run_gates: from_json(r.not_run_gates)?,
             created_at: r.created_at,
@@ -431,6 +435,7 @@ impl SubmissionBundle {
             }
         }
         SubmissionView {
+            coverage: run.and_then(|r| r.coverage.clone()),
             id: s.id.clone(),
             challenge_id: s.challenge_id.clone(),
             agent: s.agent_handle.clone(),
@@ -659,6 +664,10 @@ fn entry(
     superseded_by: Option<&str>,
 ) -> LeaderboardEntry {
     let bench = run.and_then(|r| r.benchmark.as_ref());
+    // v1.7: the declared coverage tier (validated at VALIDATE).
+    let tier = run
+        .and_then(|r| r.manifest.as_ref())
+        .and_then(|m| chal.declared_tier(m).ok().flatten());
     // A cost result only counts under the challenge's own price model.
     let cost = bench.and_then(|b| b.cost.clone()).filter(|c| {
         chal.scoring.as_ref().is_some_and(|s| {
@@ -667,6 +676,11 @@ fn entry(
         })
     });
     LeaderboardEntry {
+        coverage_share_ppm: run
+            .and_then(|r| r.coverage.as_ref())
+            .map(|c| c.conformance.share_ppm),
+        declared_tier: tier.map(|t| t.id.clone()),
+        tier_rank: tier.map(|t| t.rank),
         rank: None,
         submission_id: b.sub.id.clone(),
         agent: b.sub.agent_handle.clone(),
@@ -676,10 +690,21 @@ fn entry(
         decision: run.and_then(|r| r.decision),
         accepted: run.and_then(|r| r.accepted),
         score_milli: run.and_then(|r| r.score_milli),
-        prove_median_ns: bench
-            .and_then(|b| weighted_geomean(b.classes.iter().map(|c| (c.weight_ppm, c.median_ns)))),
+        prove_median_ns: bench.and_then(|b| {
+            weighted_geomean(
+                b.classes
+                    .iter()
+                    .filter(|c| !c.abstained)
+                    .map(|c| (c.weight_ppm, c.median_ns)),
+            )
+        }),
         verify_median_ns: bench.and_then(|b| {
-            weighted_geomean(b.classes.iter().map(|c| (c.weight_ppm, c.verify_median_ns)))
+            weighted_geomean(
+                b.classes
+                    .iter()
+                    .filter(|c| !c.abstained)
+                    .map(|c| (c.weight_ppm, c.verify_median_ns)),
+            )
         }),
         proof_bytes: bench.and_then(|b| b.classes.iter().map(|c| c.proof_bytes_max).max()),
         peak_rss_bytes: bench.and_then(|b| b.classes.iter().map(|c| c.peak_rss_bytes).max()),
@@ -743,9 +768,12 @@ pub fn compute_leaderboard(
             })
         })
         .collect();
+    // v1.7: coverage-tiered challenges order by declared tier rank first
+    // (CONTRACTS §11); `tier_rank` is `None` on every other challenge.
     ranked.sort_by(|(a, at), (b, bt)| {
-        b.score_milli
-            .cmp(&a.score_milli)
+        b.tier_rank
+            .cmp(&a.tier_rank)
+            .then(b.score_milli.cmp(&a.score_milli))
             .then(at.cmp(bt))
             .then(a.submission_id.cmp(&b.submission_id))
     });
@@ -761,8 +789,9 @@ pub fn compute_leaderboard(
             vec![]
         };
     cost_ranked.sort_by(|(a, at), (b, bt)| {
-        b.cost_score_milli
-            .cmp(&a.cost_score_milli)
+        b.tier_rank
+            .cmp(&a.tier_rank)
+            .then(b.cost_score_milli.cmp(&a.cost_score_milli))
             .then(at.cmp(bt))
             .then(a.submission_id.cmp(&b.submission_id))
     });
@@ -888,6 +917,7 @@ mod tests {
                 created_at: t,
             },
             runs: vec![Run {
+                coverage: None,
                 id: format!("run_{id}"),
                 submission_id: id.into(),
                 run_number: 1,
@@ -960,6 +990,97 @@ mod tests {
         assert_eq!((alien.rank, alien.cost_score_milli), (None, None));
         // the speed board keeps speed scores and ranks
         assert_eq!(lb.entries_for(ScoringKind::Speed).unwrap()[0].rank, Some(1));
+    }
+
+    /// v1.7 (CONTRACTS §11): ranked by declared tier rank first, then score;
+    /// the board shows tier, rank and the coverage share.
+    #[test]
+    fn coverage_tiers_rank_first() {
+        let mut c = chal(true);
+        let d = c
+            .scoring
+            .as_ref()
+            .unwrap()
+            .price_model_digest
+            .clone()
+            .unwrap();
+        let class0 = c.workload_suite.classes[0].id.clone();
+        c.coverage = Some(arena_types::CoverageSpec {
+            version: "coverage-v1".into(),
+            statement_spec: "S".into(),
+            soundness_lift: "L".into(),
+            tiers: vec![
+                arena_types::CoverageTier {
+                    id: "D0".into(),
+                    rank: 0,
+                    params: "P0".into(),
+                    classes: vec![],
+                },
+                arena_types::CoverageTier {
+                    id: "D3a".into(),
+                    rank: 3,
+                    params: "P3".into(),
+                    classes: vec![class0],
+                },
+            ],
+        });
+        c.check_coverage().unwrap();
+        let manifest = CandidateManifest::parse(include_str!(
+            "../../../examples/reexec-v3-d0/candidate.toml"
+        ))
+        .unwrap();
+        let with = |id: &str, at: i64, speed: u64, cost: u64, tier: &str, share: u32| {
+            let mut b = bundle(id, at, speed, Some((cost, d.clone())));
+            let mut m = manifest.clone();
+            m.entry.declared_tier = Some(tier.into());
+            b.runs[0].manifest = Some(m);
+            let mut cov = arena_types::CoverageReport {
+                tier: tier.into(),
+                conformance: Default::default(),
+                heldout: None,
+            };
+            cov.conformance.share_ppm = share;
+            b.runs[0].coverage = Some(cov);
+            b
+        };
+        let bundles = vec![
+            with("sub_zk_d0", 1, 900_000, 900_000, "D0", 400_000),
+            with("sub_reexec_d3", 2, 100_000, 100_000, "D3a", 1_000_000),
+            with("sub_slow_d3", 3, 50_000, 60_000, "D3a", 1_000_000),
+        ];
+        let lb = compute_leaderboard("chl_x", &c, None, &bundles);
+        let order = |v: &[LeaderboardEntry]| {
+            v.iter()
+                .map(|e| e.submission_id.clone())
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(
+            order(&lb.ranked),
+            ["sub_reexec_d3", "sub_slow_d3", "sub_zk_d0"]
+        );
+        assert_eq!(
+            order(&lb.cost_ranked),
+            ["sub_reexec_d3", "sub_slow_d3", "sub_zk_d0"]
+        );
+        let zk = &lb.ranked[2];
+        assert_eq!(
+            (
+                zk.declared_tier.as_deref(),
+                zk.tier_rank,
+                zk.coverage_share_ppm
+            ),
+            (Some("D0"), Some(0), Some(400_000))
+        );
+        // untiered challenges: no tier fields, plain score order
+        let lb = compute_leaderboard("chl_x", &chal(true), None, &bundles);
+        assert_eq!(
+            order(&lb.ranked),
+            ["sub_zk_d0", "sub_reexec_d3", "sub_slow_d3"]
+        );
+        assert!(lb
+            .ranked
+            .iter()
+            .all(|e| e.tier_rank.is_none() && e.declared_tier.is_none()));
     }
 
     #[test]

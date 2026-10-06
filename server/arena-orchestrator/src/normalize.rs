@@ -33,6 +33,9 @@ pub struct Normalized {
     pub log_excerpt: Option<String>,
     /// FORMAL_CHECK only: judge-built native verifier (content digest).
     pub native_verifier: Option<arena_types::Digest>,
+    /// CONFORMANCE on a coverage-tiered challenge (v1.7): sanitized coverage,
+    /// `share_ppm` recomputed by the server.
+    pub coverage: Option<arena_types::CoverageReport>,
     /// Every owned gate was reported by the worker with a definite status
     /// (no synthesized or UNKNOWN results): eligible for the formal cache.
     pub definite: bool,
@@ -286,6 +289,8 @@ pub fn check_result(
                         ReasonCode::ManifestInvalid,
                         "manifest names a different challenge".to_string(),
                     ))
+                } else if let Err(e) = chal.declared_tier(&m) {
+                    Some((ReasonCode::ManifestInvalid, e))
                 } else if m.security_profile_request != chal.security_profile.id {
                     Some((
                         ReasonCode::ProfileNotAllowed,
@@ -346,6 +351,13 @@ pub fn check_result(
     if kind != JobKind::Benchmark && r.benchmark.is_some() {
         return Err(format!("{kind} job may not report benchmark measurements"));
     }
+    let coverage = match (&r.coverage, kind, &chal.coverage) {
+        (None, _, _) => None,
+        (Some(c), JobKind::Conformance, Some(_)) => Some(normalize_coverage(chal, c)?),
+        (Some(_), _, _) => return Err(format!(
+            "{kind} job may not report coverage (CONFORMANCE on a coverage-tiered challenge only)"
+        )),
+    };
     let log_excerpt = r
         .log_excerpt
         .as_deref()
@@ -361,7 +373,46 @@ pub fn check_result(
         execution,
         log_excerpt,
         native_verifier: r.native_verifier.clone(),
+        coverage,
         definite,
+    })
+}
+
+/// Sanitize a worker's coverage report: the tier must be a tier of the
+/// challenge, classes must be workload classes (or the fixtures key), counts
+/// must be consistent; `share_ppm` is recomputed from the challenge weights.
+/// (The tier is checked against the run's manifest by the orchestrator.)
+pub fn normalize_coverage(
+    chal: &ChallengeDefinition,
+    c: &arena_types::CoverageReport,
+) -> Result<arena_types::CoverageReport, String> {
+    let spec = chal.coverage.as_ref().ok_or("challenge has no coverage")?;
+    if spec.tier(&c.tier).is_none() {
+        return Err(format!("coverage names unknown tier {:?}", c.tier));
+    }
+    let sec = |s: &arena_types::CoverageSection| -> Result<arena_types::CoverageSection, String> {
+        let mut out = arena_types::CoverageSection::default();
+        for (k, v) in &s.per_class {
+            let known = k == arena_types::coverage::FIXTURES_KEY
+                || chal.workload_suite.classes.iter().any(|w| &w.id == k);
+            if !known {
+                return Err(format!("coverage names unknown class {k:?}"));
+            }
+            if v.proven
+                .checked_add(v.abstained)
+                .is_none_or(|n| n > v.cases)
+            {
+                return Err(format!("coverage counts of class {k:?} are inconsistent"));
+            }
+            out.per_class.insert(k.clone(), v.clone());
+        }
+        out.finish(chal);
+        Ok(out)
+    };
+    Ok(arena_types::CoverageReport {
+        tier: c.tier.clone(),
+        conformance: sec(&c.conformance)?,
+        heldout: c.heldout.as_ref().map(sec).transpose()?,
     })
 }
 
@@ -419,5 +470,55 @@ mod tests {
         assert_eq!(m.edges[0].status, EdgeStatus::Tested);
         let m = merge_graphs(Some(m), &checked, JobKind::FormalCheck);
         assert_eq!(m.edges[0].status, EdgeStatus::Tested);
+    }
+
+    #[test]
+    fn coverage_is_sanitized_and_share_recomputed() {
+        let mut c: ChallengeDefinition = serde_json::from_str(include_str!(
+            "../../../challenges/chl_4b4316516128000f129cff9b3ced8b51.json"
+        ))
+        .unwrap();
+        c.coverage = Some(arena_types::CoverageSpec {
+            version: "coverage-v1".into(),
+            statement_spec: "S".into(),
+            soundness_lift: "L".into(),
+            tiers: vec![arena_types::CoverageTier {
+                id: "D0".into(),
+                rank: 0,
+                params: "P".into(),
+                classes: vec![],
+            }],
+        });
+        let mut sec = arena_types::CoverageSection::default();
+        sec.record(Some("d0-quiet"), true, false);
+        sec.record(Some("d0-missing"), false, true);
+        sec.share_ppm = 999_999; // forged
+        let rep = arena_types::CoverageReport {
+            tier: "D0".into(),
+            conformance: sec.clone(),
+            heldout: None,
+        };
+        let n = normalize_coverage(&c, &rep).unwrap();
+        let mut want = sec.clone();
+        want.finish(&c);
+        assert_eq!(n.conformance.share_ppm, want.share_ppm);
+        assert!(n.conformance.share_ppm < 999_999);
+        let mut bad = rep.clone();
+        bad.tier = "D7".into();
+        assert!(normalize_coverage(&c, &bad).is_err());
+        let mut bad = rep.clone();
+        bad.conformance
+            .per_class
+            .get_mut("d0-quiet")
+            .unwrap()
+            .proven = 5;
+        assert!(normalize_coverage(&c, &bad)
+            .unwrap_err()
+            .contains("inconsistent"));
+        let mut bad = rep;
+        bad.conformance
+            .per_class
+            .insert("no-such-class".into(), Default::default());
+        assert!(normalize_coverage(&c, &bad).is_err());
     }
 }

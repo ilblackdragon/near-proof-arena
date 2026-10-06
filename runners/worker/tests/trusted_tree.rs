@@ -48,6 +48,7 @@ fn job(f: &Fixture, chal: &ChallengeDefinition) -> JobSpec {
         verifier_bytecode: None,
     };
     let verified_surface = VerifiedSurface {
+        declared_tier: None,
         challenge_id: NEAR.into(),
         verify_artifact: d.clone(),
         prepare_artifact: d.clone(),

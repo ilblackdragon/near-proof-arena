@@ -57,7 +57,20 @@ pub enum LeanValue {
     /// Byte string given as lowercase hex, rendered as a list literal
     /// `[0x57, 0x74, …]` (e.g. formal-core's `Digest := List UInt8`).
     Bytes(String),
+    /// A coverage tier id (contracts v1.7, CONTRACTS §11), rendered as the
+    /// constructor of `NearSpecV3.Tier` from a fixed table ([`COVERAGE_TIERS`]);
+    /// any other id is rejected, so this never splices free-form syntax.
+    CoverageTier(String),
 }
+
+/// Declared tier id → `NearSpecV3.Tier` constructor (`near-chunk-v3`,
+/// `spec/lean/v3/NearSpecV3/ChallengeChunkV3.lean`).
+pub const COVERAGE_TIERS: &[(&str, &str)] = &[
+    ("D0", "NearSpecV3.Tier.d0"),
+    ("D1", "NearSpecV3.Tier.d1"),
+    ("D2", "NearSpecV3.Tier.d2"),
+    ("D3a", "NearSpecV3.Tier.d3a"),
+];
 
 impl LeanValue {
     pub fn render(&self, key: &str) -> Result<String, ExpectedError> {
@@ -73,6 +86,13 @@ impl LeanValue {
             }
             LeanValue::Str(s) => lean_string(key, s),
             LeanValue::Digest(d) => lean_string(key, d.as_str()),
+            LeanValue::CoverageTier(t) => COVERAGE_TIERS
+                .iter()
+                .find(|(id, _)| id == t)
+                .map(|(_, c)| c.to_string())
+                .ok_or_else(|| {
+                    ExpectedError::BadValue(key.into(), format!("unknown coverage tier {t:?}"))
+                }),
             LeanValue::Bytes(h) => {
                 let b = hex::decode(h)
                     .map_err(|_| ExpectedError::BadValue(key.into(), "bytes must be hex".into()))?;

@@ -294,6 +294,10 @@ pub fn check_definition(def: &ChallengeDefinition, gov: &GovernedSet) -> Finding
     if let Err(e) = def.check_scoring() {
         f.err(format!("scoring: {e}"));
     }
+    // --- coverage tiers (v1.7, CONTRACTS §11) ---------------------------------
+    if let Err(e) = def.check_coverage() {
+        f.err(format!("coverage: {e}"));
+    }
     if tier == Tier::Formal {
         if tp.recheckers.is_empty() {
             f.err("formal tier requires at least one independent kernel rechecker");

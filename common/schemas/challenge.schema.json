@@ -30,6 +30,17 @@
     "claim_encoding": {
       "$ref": "#/definitions/ClaimEncoding"
     },
+    "coverage": {
+      "description": "Coverage tiers (v1.7, additive; absent ⇒ not serialized, so existing challenge ids are unchanged). docs/CONTRACTS.md §11.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/CoverageSpec"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "created_at": {
       "type": "string"
     },
@@ -195,6 +206,70 @@
           "description": "Median Σ verify wall ns per batch, on `verifier_vcpus` CPUs.",
           "type": "integer",
           "format": "uint64",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
+    },
+    "CoverageSpec": {
+      "description": "`ChallengeDefinition.coverage`.",
+      "type": "object",
+      "required": [
+        "soundness_lift",
+        "statement_spec",
+        "tiers",
+        "version"
+      ],
+      "properties": {
+        "soundness_lift": {
+          "description": "Trusted Lean lemma lifting tier soundness to the statement, e.g. `NearSpecV3.sound_lift`.",
+          "type": "string"
+        },
+        "statement_spec": {
+          "description": "Lean declaration of the top `ChallengeSpec` (the statement every admitted verifier is sound for), e.g. `NearSpecV3.challengeSpecChunkTop`.",
+          "type": "string"
+        },
+        "tiers": {
+          "description": "Tiers in any order; `rank` is the total order (higher = larger domain).",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CoverageTier"
+          }
+        },
+        "version": {
+          "description": "`\"coverage-v1\"`.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CoverageTier": {
+      "type": "object",
+      "required": [
+        "classes",
+        "id",
+        "params",
+        "rank"
+      ],
+      "properties": {
+        "classes": {
+          "description": "Workload classes this tier is complete for: an abstention on a positive case of one of them is `COVERAGE_GAP_IN_TIER`.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "id": {
+          "description": "Tier id, e.g. `D0`, `D1`, `D2`, `D3a`.",
+          "type": "string"
+        },
+        "params": {
+          "description": "Lean declaration (term) of the tier's `ChallengeParams`, e.g. `NearSpecV3.challengeParamsChunk .d0`. The judge's per-tier Expected template (formal-checker config `tiers`) instantiates exactly this.",
+          "type": "string"
+        },
+        "rank": {
+          "type": "integer",
+          "format": "uint32",
           "minimum": 0.0
         }
       },

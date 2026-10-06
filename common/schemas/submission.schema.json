@@ -84,6 +84,17 @@
         }
       ]
     },
+    "coverage": {
+      "description": "Coverage-tiered challenges: the declared tier and proven coverage (CONTRACTS §11).",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/CoverageReport"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "created_at": {
       "type": "string"
     },
@@ -336,6 +347,35 @@
         "VERIFIER_OR_PROTOCOL"
       ]
     },
+    "ClassCoverage": {
+      "description": "Per-class tally of positive cases.",
+      "type": "object",
+      "required": [
+        "abstained",
+        "cases",
+        "proven"
+      ],
+      "properties": {
+        "abstained": {
+          "description": "`prove` answered `UNSUPPORTED`.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "cases": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "proven": {
+          "description": "Proved and accepted by `verify`.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
+    },
     "ClassMeasurement": {
       "type": "object",
       "required": [
@@ -350,6 +390,10 @@
         "weight_ppm"
       ],
       "properties": {
+        "abstained": {
+          "description": "v1.7 (coverage-tiered challenges only): `prove` answered `UNSUPPORTED` in this class, so it carries no timing (all time fields 0) and is excluded from the score with the weights renormalized (BENCHMARK_SPEC §17).",
+          "type": "boolean"
+        },
         "baseline_ns": {
           "type": "integer",
           "format": "uint64",
@@ -556,6 +600,64 @@
           "minimum": 0.0
         }
       }
+    },
+    "CoverageReport": {
+      "description": "Report field `coverage` (CONTRACTS §11).",
+      "type": "object",
+      "required": [
+        "conformance",
+        "tier"
+      ],
+      "properties": {
+        "conformance": {
+          "description": "Public fixtures and judge-sampled cases.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/CoverageSection"
+            }
+          ]
+        },
+        "heldout": {
+          "description": "Committed held-out cases (absent when the worker ran none).",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CoverageSection"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tier": {
+          "description": "The declared tier.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CoverageSection": {
+      "description": "One case set (conformance or held-out).",
+      "type": "object",
+      "required": [
+        "per_class",
+        "share_ppm"
+      ],
+      "properties": {
+        "per_class": {
+          "description": "Keyed by workload class id; public fixtures without a class are tallied under [`FIXTURES_KEY`] (not a class: excluded from `share_ppm`).",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ClassCoverage"
+          }
+        },
+        "share_ppm": {
+          "description": "Weight-averaged proven fraction over the challenge's workload classes, in parts per million (contracts carry no floating point).",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
     },
     "Decision": {
       "type": "string",
@@ -839,36 +941,47 @@
       ]
     },
     "ReasonCode": {
-      "type": "string",
-      "enum": [
-        "MANIFEST_INVALID",
-        "ARCHIVE_UNSAFE",
-        "CHALLENGE_UNKNOWN",
-        "PROFILE_NOT_ALLOWED",
-        "BUILD_FAILED",
-        "BUILD_NOT_REPRODUCIBLE",
-        "CERTIFICATE_MISSING",
-        "THEOREM_TYPE_MISMATCH",
-        "UNAPPROVED_ASSUMPTION",
-        "FORBIDDEN_AXIOM",
-        "SORRY_FOUND",
-        "NATIVE_EVAL_FOUND",
-        "SHADOWED_DEFINITION",
-        "RECHECK_FAILED",
-        "ARTIFACT_BINDING_FAILED",
-        "CLAIM_MISMATCH",
-        "COUNTEREXAMPLE_FOUND",
-        "HOSTILE_PROOF_ACCEPTED",
-        "VERIFIER_NONDETERMINISTIC",
-        "PROVER_FAILED",
-        "RESOURCE_LIMIT",
-        "TIMEOUT",
-        "SANDBOX_VIOLATION",
-        "SECURITY_BOUND_INSUFFICIENT",
-        "OBLIGATION_UNDISCHARGED",
-        "DEMO_ONLY",
-        "INFRA_ERROR",
-        "CANCELLED"
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "MANIFEST_INVALID",
+            "ARCHIVE_UNSAFE",
+            "CHALLENGE_UNKNOWN",
+            "PROFILE_NOT_ALLOWED",
+            "BUILD_FAILED",
+            "BUILD_NOT_REPRODUCIBLE",
+            "CERTIFICATE_MISSING",
+            "THEOREM_TYPE_MISMATCH",
+            "UNAPPROVED_ASSUMPTION",
+            "FORBIDDEN_AXIOM",
+            "SORRY_FOUND",
+            "NATIVE_EVAL_FOUND",
+            "SHADOWED_DEFINITION",
+            "RECHECK_FAILED",
+            "ARTIFACT_BINDING_FAILED",
+            "CLAIM_MISMATCH",
+            "COUNTEREXAMPLE_FOUND",
+            "HOSTILE_PROOF_ACCEPTED",
+            "VERIFIER_NONDETERMINISTIC",
+            "PROVER_FAILED",
+            "RESOURCE_LIMIT",
+            "TIMEOUT",
+            "SANDBOX_VIOLATION",
+            "SECURITY_BOUND_INSUFFICIENT",
+            "OBLIGATION_UNDISCHARGED",
+            "DEMO_ONLY",
+            "INFRA_ERROR",
+            "CANCELLED"
+          ]
+        },
+        {
+          "description": "v1.7 (coverage-tiered challenges): `prove` answered `UNSUPPORTED` on a positive case of a class its declared tier is complete for.",
+          "type": "string",
+          "enum": [
+            "COVERAGE_GAP_IN_TIER"
+          ]
+        }
       ]
     },
     "Revocation": {
@@ -1015,6 +1128,12 @@
         },
         "checker_image": {
           "$ref": "#/definitions/Digest"
+        },
+        "declared_tier": {
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "formal_tree": {
           "$ref": "#/definitions/Digest"

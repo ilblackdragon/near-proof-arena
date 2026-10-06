@@ -224,6 +224,7 @@ fn all_stages(f: &Fixture, tier: arena_types::challenge::Tier) {
     );
     let mut build = b.build.unwrap();
     let vs = VerifiedSurface {
+        declared_tier: None,
         challenge_id: challenge_id(f),
         verify_artifact: build.verify.clone(),
         prepare_artifact: build.prepare.clone(),
@@ -339,6 +340,7 @@ fn hostile_fails_adversarial(hostile: &str, needle: &str) {
     );
     let mut build = b.build.unwrap();
     let vs = VerifiedSurface {
+        declared_tier: None,
         challenge_id: challenge_id(&f),
         verify_artifact: build.verify.clone(),
         prepare_artifact: build.prepare.clone(),

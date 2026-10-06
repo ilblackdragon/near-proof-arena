@@ -105,6 +105,9 @@ pub enum ReasonCode {
     DemoOnly,
     InfraError,
     Cancelled,
+    /// v1.7 (coverage-tiered challenges): `prove` answered `UNSUPPORTED` on a
+    /// positive case of a class its declared tier is complete for.
+    CoverageGapInTier,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -169,6 +172,11 @@ pub struct VerifiedSurface {
     /// `native-lean`: `[formal] verifier_model_module`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub verifier_model_module: Option<String>,
+    // ---- additive (v1.7) ----
+    // The declared coverage tier selects the admission statement's params
+    // (CONTRACTS §11): a different tier is a different formal surface.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub declared_tier: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -190,6 +198,11 @@ pub struct ClassMeasurement {
     /// Per measured run: Σ proof bytes of the batch (v1.5, additive).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub proof_bytes_runs: Vec<u64>,
+    /// v1.7 (coverage-tiered challenges only): `prove` answered `UNSUPPORTED`
+    /// in this class, so it carries no timing (all time fields 0) and is
+    /// excluded from the score with the weights renormalized (BENCHMARK_SPEC §17).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub abstained: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -254,6 +267,11 @@ pub struct SubmissionView {
     pub logs: Vec<LogExcerpt>,
     #[serde(default)]
     pub revocation_history: Vec<RevocationEvent>,
+    // ---- additive, optional (v1.7) ----
+    /// Coverage-tiered challenges: the declared tier and proven coverage
+    /// (CONTRACTS §11).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage: Option<crate::coverage::CoverageReport>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -358,6 +376,15 @@ pub struct LeaderboardEntry {
     /// Per-class cost components, so the board shows why (v1.5).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cost: Option<crate::scoring::CostResult>,
+    // ---- additive (v1.7, coverage-tiered challenges only) ----
+    /// Declared coverage tier; the board orders by its rank first.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub declared_tier: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tier_rank: Option<u32>,
+    /// `coverage.conformance.share_ppm` of the ranked run.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage_share_ppm: Option<u32>,
 }
 
 /// Pure decision function shared by server and tests.

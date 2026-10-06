@@ -679,6 +679,7 @@ fn sample_challenge() -> arena_types::ChallengeDefinition {
     use arena_types::security::*;
     let d = arena_types::Digest::of_bytes(b"x");
     ChallengeDefinition {
+        coverage: None,
         schema: "arena-challenge-v1".into(),
         name: "transfer-v1".into(),
         season: "s1".into(),

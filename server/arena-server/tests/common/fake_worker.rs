@@ -92,6 +92,7 @@ impl FakeWorker {
             .await
             .unwrap();
         let mut r = JobResult {
+            coverage: None,
             gates,
             artifacts: vec![EvidenceRef {
                 label: format!("{} log", job.kind),
@@ -133,6 +134,7 @@ impl FakeWorker {
                         },
                     },
                     entry: candidate::EntrySection {
+                        declared_tier: None,
                         prepare: "out/prepare".into(),
                         prove: "out/prove".into(),
                         verify: "out/verify".into(),
@@ -219,6 +221,7 @@ impl FakeWorker {
                             .1;
                         let med = base / self.speedup;
                         ClassMeasurement {
+                            abstained: false,
                             class_id: c.id.clone(),
                             weight_ppm: c.weight_ppm,
                             runs_ns: vec![med; 5],

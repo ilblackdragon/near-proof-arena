@@ -50,6 +50,11 @@ pub struct EntrySection {
     /// `verify_route = "npai-v1"`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub verifier_bytecode: Option<String>,
+    /// Coverage tier the candidate is complete for (v1.7, additive): required
+    /// iff the challenge has `coverage` (checked against the challenge by the
+    /// judge, `ChallengeDefinition::declared_tier`). docs/CONTRACTS.md §11.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub declared_tier: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -181,6 +186,15 @@ impl CandidateManifest {
                 return bad("verifier_bytecode is only valid with verify_route = \"npai-v1\"")
             }
             _ => {}
+        }
+        if let Some(t) = &self.entry.declared_tier {
+            let ok = !t.is_empty()
+                && t.len() <= 32
+                && t.bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_' || b == b'.');
+            if !ok {
+                return bad("entry.declared_tier must match [A-Za-z0-9._-]{1,32}");
+            }
         }
         if !paths.iter().all(|p| is_safe_relpath(p)) {
             return bad("unsafe relative path");

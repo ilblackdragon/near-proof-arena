@@ -298,7 +298,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     };
     let seeds = crate::executor::seeds(r.ctx, &j.ctx);
     bench.note(seeds.mode());
-    let mut batches = HashMap::new();
+    let mut batches: HashMap<String, (Vec<Case>, Vec<Case>)> = HashMap::new();
     let mut capped = false;
     for c in &chal.workload_suite.classes {
         let mut n = c.batch_size as usize;
@@ -352,6 +352,71 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let public_bytes =
         arena_archive::tree_from_dir(&public_dir, &arena_archive::Limits::default())?.total_bytes();
 
+    // Coverage-tiered challenges (BENCHMARK_SPEC §17): every batch member is
+    // proved once, untimed, before the session; a class where `prove`
+    // answers UNSUPPORTED on any member is abstained — excluded from timing
+    // and from the score (weights renormalized) — and, if the declared tier
+    // lists it, COVERAGE_GAP_IN_TIER.
+    let tier = chal
+        .declared_tier(&j.manifest)
+        .map_err(|e| ExecError::Infra(format!("declared tier: {e}")))?;
+    let mut abstained: Vec<String> = vec![];
+    if let Some(t) = tier {
+        let env = common::EntryEnv {
+            bundle: &bundle,
+            entry: &j.manifest.entry,
+            public_dir: &public_dir,
+            limits: &limits,
+            cpu_set: r.ctx.bench_cpus.clone(),
+            verifier: &verifier,
+        };
+        for c in &chal.workload_suite.classes {
+            let (b, f) = &batches[&c.id];
+            for case in b.iter().chain(f.iter()) {
+                if let Err(e) = common::run_prove(r, &env, case)? {
+                    if e.unsupported {
+                        abstained.push(c.id.clone());
+                        break;
+                    }
+                }
+            }
+        }
+        for c in &abstained {
+            if t.classes.contains(c) {
+                bench.fail(
+                    ReasonCode::CoverageGapInTier,
+                    format!("class {c}: prove answered UNSUPPORTED, but declared tier {:?} is complete for it", t.id),
+                );
+            }
+            batches.remove(c);
+        }
+        if !abstained.is_empty() {
+            bench.note(format!(
+                "declared tier {:?}: abstained (UNSUPPORTED) on class(es) {}; not timed, excluded from the score",
+                t.id,
+                abstained.join(", ")
+            ));
+        }
+        if bench.failed() {
+            out.gates.push(bench.finish(GateStatus::Fail, true));
+            return Ok(out);
+        }
+        if abstained.len() == chal.workload_suite.classes.len() {
+            bench.note("no class proved: measured nothing, no score");
+            out.gates.push(bench.finish(GateStatus::Unknown, true));
+            return Ok(out);
+        }
+    }
+    let proven_wc: Vec<&arena_types::challenge::WorkloadClass> = chal
+        .workload_suite
+        .classes
+        .iter()
+        .filter(|c| !abstained.contains(&c.id))
+        .collect();
+    let plan_weights = arena_types::coverage::renormalize_ppm(
+        &proven_wc.iter().map(|c| c.weight_ppm).collect::<Vec<_>>(),
+    )
+    .ok_or_else(|| ExecError::Infra("workload class weights are all zero".into()))?;
     let baselines: HashMap<&str, u64> = chal
         .workload_suite
         .baseline_ns
@@ -359,13 +424,12 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         .map(|(k, v)| (k.as_str(), *v))
         .collect();
     let plan = SessionPlan {
-        classes: chal
-            .workload_suite
-            .classes
+        classes: proven_wc
             .iter()
-            .map(|c| ClassPlan {
+            .zip(&plan_weights)
+            .map(|(c, &w)| ClassPlan {
                 class_id: c.id.clone(),
-                weight_ppm: c.weight_ppm,
+                weight_ppm: w,
                 baseline_ns: baselines.get(c.id.as_str()).copied().unwrap_or(0),
             })
             .collect(),
@@ -458,7 +522,35 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         }
     };
     let r = runner.r;
-    let classes: Vec<_> = session.classes.iter().map(|c| c.to_measurement()).collect();
+    // Report every class at its challenge weight, in challenge order; the
+    // abstained ones carry no timing (the server renormalizes, §17).
+    let measured: Vec<_> = session.classes.iter().map(|c| c.to_measurement()).collect();
+    let classes: Vec<arena_types::ClassMeasurement> = chal
+        .workload_suite
+        .classes
+        .iter()
+        .map(|wc| match measured.iter().find(|m| m.class_id == wc.id) {
+            Some(m) => arena_types::ClassMeasurement {
+                weight_ppm: wc.weight_ppm,
+                ..m.clone()
+            },
+            None => arena_types::ClassMeasurement {
+                class_id: wc.id.clone(),
+                weight_ppm: wc.weight_ppm,
+                runs_ns: vec![],
+                median_ns: 0,
+                mad_ns: 0,
+                cold_ns: None,
+                baseline_ns: baselines.get(wc.id.as_str()).copied().unwrap_or(0),
+                verify_median_ns: 0,
+                proof_bytes_max: 0,
+                peak_rss_bytes: 0,
+                verify_runs_ns: vec![],
+                proof_bytes_runs: vec![],
+                abstained: true,
+            },
+        })
+        .collect();
     // Resource caps over every measured run.
     for c in &classes {
         if c.proof_bytes_max > limits.max_proof_bytes {
@@ -483,7 +575,11 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let (score_milli, ci) = match &session.score {
         Ok(s) => (Some(s.score_milli), Some(s.half_width_milli)),
         // Unscored suites (no frozen baseline) still get measurements.
-        Err(_) if baselines.len() < chal.workload_suite.classes.len() => {
+        Err(_)
+            if proven_wc
+                .iter()
+                .any(|c| !baselines.contains_key(c.id.as_str())) =>
+        {
             bench.note("challenge has no frozen baseline for every class: measured, not scored");
             (None, None)
         }
@@ -610,7 +706,9 @@ fn cost_result(
     let pm = sc.price_model.as_ref().expect("checked");
     let digest = sc.price_model_digest.clone().expect("checked");
     let prices = arena_measure::cost::Prices::for_scoring(sc, pm, chal.hardware_profile.vcpus);
-    let runs = arena_measure::cost::class_runs_for(chal, classes).map_err(|e| e.to_string())?;
+    // §17: only the classes the candidate proved, weights renormalized.
+    let proven = arena_types::coverage::proven_classes(classes).ok_or("no class proved")?;
+    let runs = arena_measure::cost::class_runs_for(chal, &proven).map_err(|e| e.to_string())?;
     let base_prep = sc.cost_baseline_prepare_ns.unwrap_or(0);
     let point = arena_measure::cost::cost_score(&prices, &runs, prepare_ns, base_prep)
         .map_err(|e| e.code().to_string())?;

@@ -290,6 +290,7 @@ pub fn d(s: &str) -> Digest {
 
 pub fn challenge_def(tier: Tier, name: &str) -> ChallengeDefinition {
     ChallengeDefinition {
+        coverage: None,
         schema: "arena-challenge-v1".into(),
         name: name.into(),
         season: "test".into(),

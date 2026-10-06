@@ -65,6 +65,10 @@ pub struct ExpectedInputs<'a> {
     pub public_digest_hex: String,
     /// sha256(verifier.npai), lowercase hex.
     pub verifier_digest_hex: String,
+    /// Coverage-tiered challenges (contracts v1.7, CONTRACTS §11): the
+    /// candidate's `declared_tier`, spliced as `{{declared_tier}}`
+    /// ([`LeanValue::CoverageTier`]). `None` elsewhere.
+    pub declared_tier: Option<String>,
 }
 
 impl<'a> ExpectedInputs<'a> {
@@ -86,6 +90,7 @@ impl<'a> ExpectedInputs<'a> {
             max_reduction_fuel: fp.max_reduction_fuel,
             public_digest_hex,
             verifier_digest_hex,
+            declared_tier: None,
         })
     }
 }
@@ -214,6 +219,9 @@ impl ChallengeFormalConfig {
             "public_digest".into(),
             LeanValue::Bytes(inp.public_digest_hex.clone()),
         );
+        if let Some(t) = &inp.declared_tier {
+            data.insert("declared_tier".into(), LeanValue::CoverageTier(t.clone()));
+        }
         if interp {
             data.insert(
                 "verifier_digest".into(),
@@ -259,6 +267,7 @@ mod tests {
             max_reduction_fuel: 1 << 30,
             public_digest_hex: "00".repeat(32),
             verifier_digest_hex: "11".repeat(32),
+            declared_tier: None,
         };
         let src = cfg.expected(&root, &inp).unwrap().render().unwrap();
         assert!(src.contains("import NearSpec.Challenge"));
@@ -282,5 +291,50 @@ mod tests {
             native.render().is_err(),
             "bin_digest must come from the judge build"
         );
+    }
+
+    /// v1.7: `near-chunk-v3` splices the declared tier as a `NearSpecV3.Tier`
+    /// constructor; a tiered template without a declared tier fails closed.
+    #[test]
+    fn near_chunk_v3_splices_the_declared_tier() {
+        let root = repo_root();
+        let cfg = ChallengeFormalConfig::load(
+            &root.join("runners/formal-checker/challenges/near-chunk-v3.json"),
+        )
+        .unwrap();
+        let profile: SecurityProfile = serde_json::from_slice(
+            &std::fs::read(root.join("security/profiles/validity-classical-128.json")).unwrap(),
+        )
+        .unwrap();
+        let mut inp = ExpectedInputs {
+            profile: &profile,
+            verify_fuel: 1 << 30,
+            max_proof_bytes: 64 << 20,
+            max_reduction_fuel: 1 << 30,
+            public_digest_hex: "00".repeat(32),
+            verifier_digest_hex: "11".repeat(32),
+            declared_tier: None,
+        };
+        assert!(cfg.expected(&root, &inp).unwrap().render().is_err());
+        for (id, ctor) in [("D0", "d0"), ("D1", "d1"), ("D2", "d2"), ("D3a", "d3a")] {
+            inp.declared_tier = Some(id.into());
+            for t in [
+                cfg.expected(&root, &inp).unwrap(),
+                cfg.expected_native_lean(&root, &inp).unwrap(),
+            ] {
+                let extra = BTreeMap::from([
+                    ("bin_digest".to_string(), LeanValue::Bytes("22".repeat(32))),
+                    ("toolchain_id".to_string(), LeanValue::Str("tc".into())),
+                ]);
+                let src = t.render().or_else(|_| t.render_with(&extra)).unwrap();
+                assert!(
+                    src.contains(&format!("challengeParamsChunkWith NearSpecV3.Tier.{ctor}")),
+                    "{src}"
+                );
+                assert!(!src.contains("{{"));
+            }
+        }
+        inp.declared_tier = Some("D4".into());
+        assert!(cfg.expected(&root, &inp).unwrap().render().is_err());
     }
 }

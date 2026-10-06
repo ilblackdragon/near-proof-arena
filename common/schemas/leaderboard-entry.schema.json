@@ -74,6 +74,15 @@
       "format": "uint64",
       "minimum": 0.0
     },
+    "coverage_share_ppm": {
+      "description": "`coverage.conformance.share_ppm` of the ranked run.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32",
+      "minimum": 0.0
+    },
     "decision": {
       "anyOf": [
         {
@@ -82,6 +91,13 @@
         {
           "type": "null"
         }
+      ]
+    },
+    "declared_tier": {
+      "description": "Declared coverage tier; the board orders by its rank first.",
+      "type": [
+        "string",
+        "null"
       ]
     },
     "hardware_profile": {
@@ -169,6 +185,14 @@
     },
     "tier": {
       "$ref": "#/definitions/Tier"
+    },
+    "tier_rank": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32",
+      "minimum": 0.0
     },
     "verify_median_ns": {
       "type": [

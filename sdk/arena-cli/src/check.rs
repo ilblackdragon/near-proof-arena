@@ -236,6 +236,10 @@ fn check_manifest_semantics(
         }
     }
     if let Some(c) = chal {
+        // v1.7: declared_tier is required iff the challenge has coverage tiers.
+        if let Err(e) = c.declared_tier(m) {
+            g.fail(ReasonCode::ManifestInvalid, e);
+        }
         if m.security_profile_request != c.security_profile.id {
             g.fail(
                 ReasonCode::ProfileNotAllowed,
@@ -628,6 +632,10 @@ pub fn run(dir: &Path, opts: &CheckOptions) -> CliResult<LocalReport> {
     }
 
     let limits = chal.as_ref().map(|c| c.resource_limits.clone());
+    // v1.7: on a coverage-tiered challenge `prove` exit 3 is UNSUPPORTED (an
+    // abstention, not a failure; local fixtures carry no class, so no
+    // COVERAGE_GAP_IN_TIER is decided here).
+    let coverage_tiered = chal.as_ref().is_some_and(|c| c.coverage.is_some());
     let work = Work {
         root: Some(tempfile::Builder::new().prefix("arena-check-").tempdir()?),
         keep: opts.keep,
@@ -838,6 +846,13 @@ pub fn run(dir: &Path, opts: &CheckOptions) -> CliResult<LocalReport> {
             &[],
             ms(limits.as_ref().map(|l| l.max_prove_ms), 10 * 60 * 1000),
         );
+        if coverage_tiered && o.code() == Some(arena_types::coverage::PROVE_EXIT_UNSUPPORTED) {
+            rel.note(format!(
+                "{}: prove answered UNSUPPORTED (abstained)",
+                c.name
+            ));
+            continue;
+        }
         if o.code() != Some(0) {
             let rc = if o.exit == ExitKind::TimedOut {
                 ReasonCode::Timeout

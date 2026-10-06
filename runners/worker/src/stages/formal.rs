@@ -322,7 +322,7 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         // on a formal statement (the checker fails ARTIFACT_BINDING).
         None | Some(VerifyRoute::Native) => VerifierRoute::CandidateNative,
     };
-    let inputs = match ExpectedInputs::from_definition(
+    let mut inputs = match ExpectedInputs::from_definition(
         chal,
         public_digest_hex.clone(),
         verifier_digest_hex.clone(),
@@ -330,6 +330,12 @@ pub fn run(r: &mut JobRun<'_>, j: &FormalCheckJob) -> Result<StageOut, ExecError
         Ok(i) => i,
         Err(e) => return Err(ExecError::Infra(format!("expected statement inputs: {e}"))),
     };
+    // v1.7: a coverage-tiered challenge admits the candidate under its
+    // declared tier (`{{declared_tier}}` of the Expected template).
+    inputs.declared_tier = chal
+        .declared_tier(&j.manifest)
+        .map_err(|e| ExecError::Infra(format!("declared tier: {e}")))?
+        .map(|t| t.id.clone());
     let expected = match &route {
         VerifierRoute::NativeLean(_) => cfg.expected_native_lean(&trusted_root, &inputs),
         _ => cfg.expected(&trusted_root, &inputs),

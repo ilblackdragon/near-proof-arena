@@ -86,6 +86,10 @@ pub fn verify_definition(
     definition
         .check_scoring()
         .map_err(|e| format!("scoring: {e}"))?;
+    // v1.7: coverage tiers name known classes, distinct ids and ranks.
+    definition
+        .check_coverage()
+        .map_err(|e| format!("coverage: {e}"))?;
     Ok(VerifiedChallenge {
         id,
         digest,

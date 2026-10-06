@@ -98,6 +98,7 @@ fn run_formal(
     );
     let build = b.build.unwrap();
     let vs = VerifiedSurface {
+        declared_tier: None,
         challenge_id: NEAR.into(),
         verify_artifact: build.verify.clone(),
         prepare_artifact: build.prepare.clone(),

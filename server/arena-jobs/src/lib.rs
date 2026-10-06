@@ -292,6 +292,10 @@ pub struct JobResult {
     /// judge-built native verifier (uploaded before `complete`).
     #[serde(default)]
     pub native_verifier: Option<Digest>,
+    /// CONFORMANCE on a coverage-tiered challenge (contracts v1.7): the
+    /// declared tier's proven coverage (CONTRACTS §11).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage: Option<arena_types::CoverageReport>,
 }
 
 // ---------------------------------------------------------------------------

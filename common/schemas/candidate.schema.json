@@ -88,6 +88,13 @@
         "verify"
       ],
       "properties": {
+        "declared_tier": {
+          "description": "Coverage tier the candidate is complete for (v1.7, additive): required iff the challenge has `coverage` (checked against the challenge by the judge, `ChallengeDefinition::declared_tier`). docs/CONTRACTS.md §11.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "prepare": {
           "type": "string"
         },

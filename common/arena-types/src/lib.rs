@@ -6,6 +6,7 @@
 pub mod candidate;
 pub mod canonical;
 pub mod challenge;
+pub mod coverage;
 pub mod evidence;
 pub mod pipeline;
 pub mod scoring;
@@ -16,6 +17,7 @@ pub mod trusted_tree;
 pub use candidate::{CandidateManifest, VerifyRoute};
 pub use canonical::{canonical_json, sha256_digest, Digest};
 pub use challenge::{ChallengeDefinition, ChallengeId, FormalParams};
+pub use coverage::{ClassCoverage, CoverageReport, CoverageSection, CoverageSpec, CoverageTier};
 pub use evidence::EvidenceGraph;
 pub use pipeline::*;
 pub use scoring::{CostClass, CostResult, PriceModel, ScoringKind, ScoringSpec, VerifyStatistic};

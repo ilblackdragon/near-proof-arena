@@ -50,7 +50,18 @@ pub fn normalize_benchmark(
                 c.class_id, c.weight_ppm, w
             ));
         }
-        if c.median_ns == 0 {
+        if c.abstained {
+            // v1.7: only on coverage-tiered challenges, and with no timing.
+            if chal.coverage.is_none() {
+                return Err(format!(
+                    "class {:?} marked abstained on a challenge without coverage tiers",
+                    c.class_id
+                ));
+            }
+            if c.median_ns != 0 || !c.runs_ns.is_empty() || !c.verify_runs_ns.is_empty() {
+                return Err(format!("abstained class {:?} carries timings", c.class_id));
+            }
+        } else if c.median_ns == 0 {
             return Err(format!("class {:?} has zero median", c.class_id));
         }
         c.baseline_ns = baselines.get(c.class_id.as_str()).copied().unwrap_or(0);
@@ -79,7 +90,9 @@ pub fn compute_cost(
     let pm = sc.price_model.as_ref()?;
     let digest = sc.price_model_digest.clone()?;
     let prices = arena_measure::cost::Prices::for_scoring(sc, pm, chal.hardware_profile.vcpus);
-    let runs = arena_measure::cost::class_runs_for(chal, &b.classes).ok()?;
+    // §17: the classes the candidate proved, weights renormalized.
+    let proven = arena_types::coverage::proven_classes(&b.classes)?;
+    let runs = arena_measure::cost::class_runs_for(chal, &proven).ok()?;
     let point = arena_measure::cost::cost_score(
         &prices,
         &runs,
@@ -97,13 +110,16 @@ pub fn compute_cost(
 
 /// `100 * exp(Σ_j w_j * ln(T_base_j / T_cand_j))`, in milli-units. `None` if any
 /// baseline is missing/zero or the result is not finite.
+/// Abstained classes (coverage-tiered challenges, BENCHMARK_SPEC §17) are
+/// excluded and the remaining weights renormalized.
 pub fn compute_score_milli(b: &BenchmarkResult) -> Option<u64> {
     if b.classes.is_empty() {
         return None;
     }
+    let proven = arena_types::coverage::proven_classes(&b.classes)?;
     let mut acc = 0f64;
     let mut wsum = 0u64;
-    for c in &b.classes {
+    for c in &proven {
         if c.baseline_ns == 0 || c.median_ns == 0 {
             return None;
         }
@@ -126,6 +142,7 @@ mod tests {
     use arena_types::ClassMeasurement;
     fn cm(id: &str, w: u32, med: u64, base: u64) -> ClassMeasurement {
         ClassMeasurement {
+            abstained: false,
             class_id: id.into(),
             weight_ppm: w,
             runs_ns: vec![med],
@@ -211,6 +228,7 @@ mod tests {
             .baseline_ns
             .iter()
             .map(|(id, ns)| ClassMeasurement {
+                abstained: false,
                 class_id: id.clone(),
                 weight_ppm: c
                     .workload_suite
@@ -285,5 +303,65 @@ mod tests {
             compute_score_milli(&br(vec![cm("a", 1_000_000, 50, 0)])),
             None
         );
+    }
+
+    /// v1.7 (BENCHMARK_SPEC §17): abstained classes carry no time, are
+    /// excluded from both scores, and the remaining weights are renormalized.
+    #[test]
+    fn abstained_classes_are_excluded_and_renormalized() {
+        let mut c = v1_6(true);
+        let ids: Vec<String> = c
+            .workload_suite
+            .classes
+            .iter()
+            .map(|k| k.id.clone())
+            .collect();
+        c.coverage = Some(arena_types::CoverageSpec {
+            version: "coverage-v1".into(),
+            statement_spec: "S".into(),
+            soundness_lift: "L".into(),
+            tiers: vec![arena_types::CoverageTier {
+                id: "D0".into(),
+                rank: 0,
+                params: "P".into(),
+                classes: vec![ids[0].clone()],
+            }],
+        });
+        c.check_coverage().unwrap();
+        let mut b = reference_bench(&c);
+        // the candidate is 2x faster on the classes it proves, abstains on the last one
+        let last = b.classes.len() - 1;
+        for (i, k) in b.classes.iter_mut().enumerate() {
+            if i == last {
+                k.abstained = true;
+                k.runs_ns.clear();
+                k.verify_runs_ns.clear();
+                k.proof_bytes_runs.clear();
+                k.median_ns = 0;
+            } else {
+                k.median_ns /= 2;
+                k.runs_ns = vec![k.median_ns; 3];
+            }
+        }
+        let n = normalize_benchmark(&c, b.clone()).unwrap();
+        assert_eq!(
+            n.score_milli,
+            Some(200_000),
+            "geomean over proven classes only"
+        );
+        let cost = n.cost.expect("cost over proven classes");
+        assert_eq!(cost.classes.len(), last);
+        assert!(cost.score_milli.unwrap() > 100_000);
+
+        // Abstention is only meaningful on a coverage-tiered challenge...
+        assert!(normalize_benchmark(&v1_6(true), b.clone())
+            .unwrap_err()
+            .contains("without coverage tiers"));
+        // ...and an abstained class carries no timings.
+        let mut forged = b;
+        forged.classes[last].median_ns = 1;
+        assert!(normalize_benchmark(&c, forged)
+            .unwrap_err()
+            .contains("carries timings"));
     }
 }

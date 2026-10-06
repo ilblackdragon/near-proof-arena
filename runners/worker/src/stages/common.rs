@@ -195,6 +195,10 @@ pub struct StepFailure {
     /// Which gate the failure belongs to.
     pub gate: arena_types::ObligationId,
     pub detail: String,
+    /// `prove` exited with code 3 (`UNSUPPORTED`, contracts v1.7) without
+    /// hitting a resource cap. Only coverage-tiered challenges treat this as
+    /// an abstention; elsewhere it is an ordinary prover failure.
+    pub unsupported: bool,
 }
 
 impl StepFailure {
@@ -229,6 +233,7 @@ fn fail(gate: arena_types::ObligationId, reason: ReasonCode, detail: String) -> 
         reason,
         gate,
         detail,
+        unsupported: false,
     }
 }
 
@@ -475,6 +480,12 @@ pub fn run_prove_batch(
     Ok(res)
 }
 
+/// `prove` answered `UNSUPPORTED` (exit code 3, CONTRACTS §11) within its
+/// resource caps.
+pub fn is_unsupported(o: &SandboxOutcome) -> bool {
+    o.exit == ExitStatus::Exited(arena_types::coverage::PROVE_EXIT_UNSUPPORTED) && !o.pids_limit_hit
+}
+
 /// Checks one prove outcome: resource caps, exit, outputs, claim bytes
 /// against the oracle's expected claim, claim/proof size caps.
 pub fn check_proved(
@@ -500,7 +511,9 @@ pub fn check_proved(
         } else {
             ProverReliability
         };
-        return Err(fail(gate, reason, format!("prove {}", describe_exit(&o))));
+        let mut f = fail(gate, reason, format!("prove {}", describe_exit(&o)));
+        f.unsupported = is_unsupported(&o) && o.peak_rss_bytes <= limits.max_ram_bytes;
+        return Err(f);
     }
     if let Some(e) = &o.output_error {
         return Err(if e.contains("size limit") {

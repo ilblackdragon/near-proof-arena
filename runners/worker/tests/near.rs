@@ -183,6 +183,7 @@ fn reexec_witness_reference_all_stages() {
     assert_eq!(b.gates[0].status, GateStatus::Pass);
     let mut build = b.build.unwrap();
     let vs = VerifiedSurface {
+        declared_tier: None,
         challenge_id: NEAR.into(),
         verify_artifact: build.verify.clone(),
         prepare_artifact: build.prepare.clone(),
@@ -346,6 +347,7 @@ fn reexec_witness_reference_firecracker() {
     assert_eq!(b.gates[0].status, GateStatus::Pass);
     let mut build = b.build.unwrap();
     let vs = VerifiedSurface {
+        declared_tier: None,
         challenge_id: NEAR.into(),
         verify_artifact: build.verify.clone(),
         prepare_artifact: build.prepare.clone(),

@@ -13,6 +13,13 @@
 //! it emits a proof, `verify` runs on the *requested* claim and that proof.
 //! Acceptance fails CONFORMANCE_DIFFERENTIAL with `COUNTEREXAMPLE_FOUND`:
 //! the candidate's acceptance disagrees with the reference validator.
+//!
+//! **Coverage-tiered challenges** (contracts v1.7, CONTRACTS §11): `prove`
+//! may answer `UNSUPPORTED` (exit 3) on a positive case — an abstention, never
+//! an error — except on a case of a class its declared tier lists, where it is
+//! `COVERAGE_GAP_IN_TIER` (FAIL). Abstentions on rejection cases are refusals
+//! (correct non-accepts). Proven/abstained counts per class are reported as
+//! `coverage` (conformance and held-out separately).
 
 use super::common::{self, case_label, Verdict};
 use crate::executor::{ExecError, JobRun, StageOut};
@@ -51,6 +58,16 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         }
     };
     let cases = &suite.cases;
+    // Coverage-tiered challenges: the declared tier (validated at VALIDATE;
+    // re-checked here, fail closed).
+    let tier = match j.challenge.declared_tier(&j.manifest) {
+        Ok(t) => t,
+        Err(e) => return Err(ExecError::Infra(format!("declared tier: {e}"))),
+    };
+    let heldout_from = suite.public + suite.sampled;
+    let mut cov_conf = arena_types::CoverageSection::default();
+    let mut cov_held = arena_types::CoverageSection::default();
+    let mut abstained = 0usize;
     let bundle = common::fetch_bundle(r, &j.build, &j.manifest.entry)?;
     let public_dir = common::fetch_public(r, &j.build, &limits)?;
     let verifier = match common::verifier_for(r, j, &bundle, true)? {
@@ -74,10 +91,32 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut max_verify_ns = 0u64;
     let mut max_rss = 0u64;
     let mut passed = 0usize;
-    for case in cases {
+    for (ci, case) in cases.iter().enumerate() {
         let label = case_label(&case.id, case.public);
+        let cov = if ci >= heldout_from {
+            &mut cov_held
+        } else {
+            &mut cov_conf
+        };
         let proved = match common::run_prove(r, &env, case)? {
             Ok(p) => p,
+            Err(f) if f.unsupported && tier.is_some() => {
+                let t = tier.unwrap();
+                cov.record(case.class.as_deref(), false, true);
+                if case.class.as_ref().is_some_and(|c| t.classes.contains(c)) {
+                    conf.fail(
+                        ReasonCode::CoverageGapInTier,
+                        format!(
+                            "{label}: prove answered UNSUPPORTED on class {:?}, which declared tier {:?} is complete for",
+                            case.class.as_deref().unwrap_or_default(),
+                            t.id
+                        ),
+                    );
+                    break;
+                }
+                abstained += 1;
+                continue;
+            }
             Err(f) => {
                 let note = format!("{label}: {}", f.detail_for(case.public));
                 match f.gate {
@@ -108,7 +147,10 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             max_verify_ns = max_verify_ns.max(vo.wall_ns);
         }
         match v {
-            Verdict::Accept => passed += 1,
+            Verdict::Accept => {
+                passed += 1;
+                cov.record(case.class.as_deref(), true, false);
+            }
             Verdict::Reject => {
                 rel.fail(
                     ReasonCode::ProverFailed,
@@ -147,9 +189,10 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         }
     }
     let n = cases.len();
-    // Rejection cases: only after every positive case passed (fail-fast).
+    // Rejection cases: only after every positive case passed or abstained
+    // outside the declared tier (fail-fast).
     let mut rej_note = None;
-    if passed == n {
+    if passed + abstained == n {
         let seeds = crate::executor::seeds(r.ctx, &j.ctx);
         let rej =
             match r
@@ -207,7 +250,22 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             ));
         }
     }
-    let complete = passed == n;
+    let complete = passed + abstained == n;
+    if let Some(t) = tier {
+        cov_conf.finish(&j.challenge);
+        cov_held.finish(&j.challenge);
+        conf.note(format!(
+            "coverage (declared tier {:?}): {abstained} positive case(s) abstained (UNSUPPORTED) outside the tier; proven share {} ppm (conformance){}",
+            t.id,
+            cov_conf.share_ppm,
+            if suite.heldout > 0 { format!(", {} ppm (held-out)", cov_held.share_ppm) } else { String::new() }
+        ));
+        out.coverage = Some(arena_types::CoverageReport {
+            tier: t.id.clone(),
+            conformance: cov_conf,
+            heldout: (suite.heldout > 0).then_some(cov_held),
+        });
+    }
     if r.shadow != (0, 0) {
         conf.note(format!(
             "npai shadow (Lean reference): {} agreed, {} skipped (large/slow)",
@@ -224,7 +282,14 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     if let Some(m) = rej_note {
         conf.note(m);
     }
-    rel.note(format!("{passed}/{n} honest proofs produced and accepted"));
+    rel.note(format!(
+        "{passed}/{n} honest proofs produced and accepted{}",
+        if abstained > 0 {
+            format!(", {abstained} abstained (UNSUPPORTED)")
+        } else {
+            String::new()
+        }
+    ));
     res.note(format!(
         "public cases: max proof {max_proof} bytes (cap {}), max verify {} ms (cap {}), peak memory {} MiB",
         limits.max_proof_bytes,

@@ -512,3 +512,115 @@ fn conformance_uses_verified_heldout_set() {
     }
     assert!(c.artifacts.iter().all(|a| !a.label.contains("hidden-")));
 }
+
+/// Contracts v1.7 (CONTRACTS §11): on a coverage-tiered challenge `prove` exit
+/// 3 is `UNSUPPORTED` — an abstention outside the declared tier, a
+/// `COVERAGE_GAP_IN_TIER` inside it; abstained classes are not timed. On a
+/// challenge without coverage, exit 3 stays an ordinary prover failure.
+#[test]
+fn coverage_tiers_abstain_and_gap() {
+    use arena_types::{CoverageSpec, CoverageTier};
+    let f = fixture();
+    let mut files = package_files();
+    // Complete for operands < 2^32 (class toy-small); UNSUPPORTED otherwise.
+    let p = String::from_utf8(files["source/prove.c"].1.clone())
+        .unwrap()
+        .replace(
+            "  memcpy(claim, r, 16);",
+            "  if (le64(r) >= 4294967296ULL || le64(r + 8) >= 4294967296ULL) return 3;\n  memcpy(claim, r, 16);",
+        );
+    set(&mut files, "source/prove.c", &p);
+    let base = built(&f, &files);
+    let tier = |id: &str, rank: u32, classes: &[&str]| CoverageTier {
+        id: id.into(),
+        rank,
+        params: format!("Toy.params{rank}"),
+        classes: classes.iter().map(|c| c.to_string()).collect(),
+    };
+    let tiered = |declared: &str| {
+        let mut j = base.clone();
+        j.challenge.coverage = Some(CoverageSpec {
+            version: "coverage-v1".into(),
+            statement_spec: "Toy.top".into(),
+            soundness_lift: "Toy.lift".into(),
+            tiers: vec![
+                tier("T0", 0, &["toy-small"]),
+                tier("T1", 1, &["toy-small", "toy-large"]),
+            ],
+        });
+        j.challenge.check_coverage().unwrap();
+        j.manifest.entry.declared_tier = Some(declared.into());
+        j
+    };
+
+    // Declared T0: the toy-large abstentions are outside the tier.
+    let job = tiered("T0");
+    let c = f.exec(JobSpec::Conformance(job.clone()));
+    for g in [
+        ObligationId::ConformanceDifferential,
+        ObligationId::ProverReliability,
+        ObligationId::ResourceLimits,
+    ] {
+        assert_pass(&c, g);
+    }
+    let cov = c.coverage.as_ref().expect("coverage report");
+    assert_eq!(cov.tier, "T0");
+    let small = &cov.conformance.per_class["toy-small"];
+    let large = &cov.conformance.per_class["toy-large"];
+    assert_eq!((small.proven, small.abstained), (small.cases, 0));
+    assert!(large.abstained > 0, "{large:?}");
+    assert_eq!(large.proven + large.abstained, large.cases);
+    assert!(cov.conformance.share_ppm >= 600_000 && cov.conformance.share_ppm < 1_000_000);
+    let s = &gate(&c, ObligationId::ConformanceDifferential).summary;
+    assert!(s.contains("abstained (UNSUPPORTED)"), "{s}");
+
+    let r = f.exec(JobSpec::Benchmark(job));
+    let bg = gate(&r, ObligationId::Benchmark);
+    assert!(
+        bg.status == GateStatus::Pass || bg.summary.contains("CACHING_SUSPECTED"),
+        "{}",
+        bg.summary
+    );
+    assert!(
+        bg.summary
+            .contains("abstained (UNSUPPORTED) on class(es) toy-large"),
+        "{}",
+        bg.summary
+    );
+    if let Some(res) = &r.benchmark {
+        let l = res
+            .classes
+            .iter()
+            .find(|c| c.class_id == "toy-large")
+            .unwrap();
+        assert!(l.abstained && l.runs_ns.is_empty() && l.median_ns == 0);
+        let s = res
+            .classes
+            .iter()
+            .find(|c| c.class_id == "toy-small")
+            .unwrap();
+        assert!(!s.abstained && s.median_ns > 0);
+        assert_eq!(
+            s.weight_ppm, 600_000,
+            "challenge weights are reported, the server renormalizes"
+        );
+    }
+
+    // Declared T1: the same abstentions break the tier's completeness promise.
+    let c = f.exec(JobSpec::Conformance(tiered("T1")));
+    assert_fail(
+        &c,
+        ObligationId::ConformanceDifferential,
+        ReasonCode::CoverageGapInTier,
+    );
+    let r = f.exec(JobSpec::Benchmark(tiered("T1")));
+    assert_fail(&r, ObligationId::Benchmark, ReasonCode::CoverageGapInTier);
+
+    // No coverage section: exit 3 is a prover failure, as before v1.7.
+    let c = f.exec(JobSpec::Conformance(base.clone()));
+    assert_eq!(
+        gate(&c, ObligationId::ProverReliability).status,
+        GateStatus::Fail
+    );
+    assert!(c.coverage.is_none());
+}

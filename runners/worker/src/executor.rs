@@ -129,6 +129,8 @@ pub struct StageOut {
     pub log: Vec<String>,
     /// FORMAL_CHECK, native-lean route: uploaded judge-built verifier.
     pub native_verifier: Option<Digest>,
+    /// CONFORMANCE, coverage-tiered challenges: proven coverage.
+    pub coverage: Option<arena_types::CoverageReport>,
     /// Whether candidate code ran in the sandbox (then gates are tier-capped
     /// by the backend).
     pub used_sandbox: bool,
@@ -469,6 +471,7 @@ impl JobExecutor for StageExecutor {
             execution: self.execution_info(),
             log_excerpt,
             native_verifier: out.native_verifier,
+            coverage: out.coverage,
         })
     }
 }

@@ -22,6 +22,12 @@
     "checker_image": {
       "$ref": "#/definitions/Digest"
     },
+    "declared_tier": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "formal_tree": {
       "$ref": "#/definitions/Digest"
     },

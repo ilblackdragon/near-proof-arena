@@ -1849,6 +1849,11 @@
           "claim_encoding": {
             "$ref": "#/components/schemas/ClaimEncoding"
           },
+          "coverage": {
+            "description": "Coverage tiers (v1.7, additive; absent ⇒ not serialized, so existing challenge ids are unchanged). docs/CONTRACTS.md §11.",
+            "$ref": "#/components/schemas/CoverageSpec",
+            "nullable": true
+          },
           "created_at": {
             "type": "string"
           },
@@ -1982,6 +1987,35 @@
         },
         "additionalProperties": false
       },
+      "ClassCoverage": {
+        "description": "Per-class tally of positive cases.",
+        "type": "object",
+        "required": [
+          "abstained",
+          "cases",
+          "proven"
+        ],
+        "properties": {
+          "abstained": {
+            "description": "`prove` answered `UNSUPPORTED`.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          },
+          "cases": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          },
+          "proven": {
+            "description": "Proved and accepted by `verify`.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          }
+        },
+        "additionalProperties": false
+      },
       "ClassMeasurement": {
         "type": "object",
         "required": [
@@ -1996,6 +2030,10 @@
           "weight_ppm"
         ],
         "properties": {
+          "abstained": {
+            "description": "v1.7 (coverage-tiered challenges only): `prove` answered `UNSUPPORTED` in this class, so it carries no timing (all time fields 0) and is excluded from the score with the weights renormalized (BENCHMARK_SPEC §17).",
+            "type": "boolean"
+          },
           "baseline_ns": {
             "type": "integer",
             "format": "uint64",
@@ -2246,6 +2284,118 @@
           }
         }
       },
+      "CoverageReport": {
+        "description": "Report field `coverage` (CONTRACTS §11).",
+        "type": "object",
+        "required": [
+          "conformance",
+          "tier"
+        ],
+        "properties": {
+          "conformance": {
+            "description": "Public fixtures and judge-sampled cases.",
+            "$ref": "#/components/schemas/CoverageSection"
+          },
+          "heldout": {
+            "description": "Committed held-out cases (absent when the worker ran none).",
+            "$ref": "#/components/schemas/CoverageSection",
+            "nullable": true
+          },
+          "tier": {
+            "description": "The declared tier.",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CoverageSection": {
+        "description": "One case set (conformance or held-out).",
+        "type": "object",
+        "required": [
+          "per_class",
+          "share_ppm"
+        ],
+        "properties": {
+          "per_class": {
+            "description": "Keyed by workload class id; public fixtures without a class are tallied under [`FIXTURES_KEY`] (not a class: excluded from `share_ppm`).",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ClassCoverage"
+            }
+          },
+          "share_ppm": {
+            "description": "Weight-averaged proven fraction over the challenge's workload classes, in parts per million (contracts carry no floating point).",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          }
+        },
+        "additionalProperties": false
+      },
+      "CoverageSpec": {
+        "description": "`ChallengeDefinition.coverage`.",
+        "type": "object",
+        "required": [
+          "soundness_lift",
+          "statement_spec",
+          "tiers",
+          "version"
+        ],
+        "properties": {
+          "soundness_lift": {
+            "description": "Trusted Lean lemma lifting tier soundness to the statement, e.g. `NearSpecV3.sound_lift`.",
+            "type": "string"
+          },
+          "statement_spec": {
+            "description": "Lean declaration of the top `ChallengeSpec` (the statement every admitted verifier is sound for), e.g. `NearSpecV3.challengeSpecChunkTop`.",
+            "type": "string"
+          },
+          "tiers": {
+            "description": "Tiers in any order; `rank` is the total order (higher = larger domain).",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CoverageTier"
+            }
+          },
+          "version": {
+            "description": "`\"coverage-v1\"`.",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CoverageTier": {
+        "type": "object",
+        "required": [
+          "classes",
+          "id",
+          "params",
+          "rank"
+        ],
+        "properties": {
+          "classes": {
+            "description": "Workload classes this tier is complete for: an abstention on a positive case of one of them is `COVERAGE_GAP_IN_TIER`.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "description": "Tier id, e.g. `D0`, `D1`, `D2`, `D3a`.",
+            "type": "string"
+          },
+          "params": {
+            "description": "Lean declaration (term) of the tier's `ChallengeParams`, e.g. `NearSpecV3.challengeParamsChunk .d0`. The judge's per-tier Expected template (formal-checker config `tiers`) instantiates exactly this.",
+            "type": "string"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          }
+        },
+        "additionalProperties": false
+      },
       "CreateAgentRequest": {
         "type": "object",
         "required": [
@@ -2356,6 +2506,11 @@
           "verify"
         ],
         "properties": {
+          "declared_tier": {
+            "description": "Coverage tier the candidate is complete for (v1.7, additive): required iff the challenge has `coverage` (checked against the challenge by the judge, `ChallengeDefinition::declared_tier`). docs/CONTRACTS.md §11.",
+            "type": "string",
+            "nullable": true
+          },
           "prepare": {
             "type": "string"
           },
@@ -2953,6 +3108,11 @@
             "$ref": "#/components/schemas/BuildOutputs",
             "nullable": true
           },
+          "coverage": {
+            "description": "CONFORMANCE on a coverage-tiered challenge (contracts v1.7): the declared tier's proven coverage (CONTRACTS §11).",
+            "$ref": "#/components/schemas/CoverageReport",
+            "nullable": true
+          },
           "evidence_graph": {
             "$ref": "#/components/schemas/EvidenceGraph",
             "nullable": true
@@ -3155,8 +3315,20 @@
             "minimum": 0.0,
             "nullable": true
           },
+          "coverage_share_ppm": {
+            "description": "`coverage.conformance.share_ppm` of the ranked run.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0,
+            "nullable": true
+          },
           "decision": {
             "$ref": "#/components/schemas/Decision",
+            "nullable": true
+          },
+          "declared_tier": {
+            "description": "Declared coverage tier; the board orders by its rank first.",
+            "type": "string",
             "nullable": true
           },
           "hardware_profile": {
@@ -3230,6 +3402,12 @@
           },
           "tier": {
             "$ref": "#/components/schemas/Tier"
+          },
+          "tier_rank": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0,
+            "nullable": true
           },
           "verify_median_ns": {
             "type": "integer",
@@ -3599,36 +3777,47 @@
         "additionalProperties": false
       },
       "ReasonCode": {
-        "type": "string",
-        "enum": [
-          "MANIFEST_INVALID",
-          "ARCHIVE_UNSAFE",
-          "CHALLENGE_UNKNOWN",
-          "PROFILE_NOT_ALLOWED",
-          "BUILD_FAILED",
-          "BUILD_NOT_REPRODUCIBLE",
-          "CERTIFICATE_MISSING",
-          "THEOREM_TYPE_MISMATCH",
-          "UNAPPROVED_ASSUMPTION",
-          "FORBIDDEN_AXIOM",
-          "SORRY_FOUND",
-          "NATIVE_EVAL_FOUND",
-          "SHADOWED_DEFINITION",
-          "RECHECK_FAILED",
-          "ARTIFACT_BINDING_FAILED",
-          "CLAIM_MISMATCH",
-          "COUNTEREXAMPLE_FOUND",
-          "HOSTILE_PROOF_ACCEPTED",
-          "VERIFIER_NONDETERMINISTIC",
-          "PROVER_FAILED",
-          "RESOURCE_LIMIT",
-          "TIMEOUT",
-          "SANDBOX_VIOLATION",
-          "SECURITY_BOUND_INSUFFICIENT",
-          "OBLIGATION_UNDISCHARGED",
-          "DEMO_ONLY",
-          "INFRA_ERROR",
-          "CANCELLED"
+        "oneOf": [
+          {
+            "type": "string",
+            "enum": [
+              "MANIFEST_INVALID",
+              "ARCHIVE_UNSAFE",
+              "CHALLENGE_UNKNOWN",
+              "PROFILE_NOT_ALLOWED",
+              "BUILD_FAILED",
+              "BUILD_NOT_REPRODUCIBLE",
+              "CERTIFICATE_MISSING",
+              "THEOREM_TYPE_MISMATCH",
+              "UNAPPROVED_ASSUMPTION",
+              "FORBIDDEN_AXIOM",
+              "SORRY_FOUND",
+              "NATIVE_EVAL_FOUND",
+              "SHADOWED_DEFINITION",
+              "RECHECK_FAILED",
+              "ARTIFACT_BINDING_FAILED",
+              "CLAIM_MISMATCH",
+              "COUNTEREXAMPLE_FOUND",
+              "HOSTILE_PROOF_ACCEPTED",
+              "VERIFIER_NONDETERMINISTIC",
+              "PROVER_FAILED",
+              "RESOURCE_LIMIT",
+              "TIMEOUT",
+              "SANDBOX_VIOLATION",
+              "SECURITY_BOUND_INSUFFICIENT",
+              "OBLIGATION_UNDISCHARGED",
+              "DEMO_ONLY",
+              "INFRA_ERROR",
+              "CANCELLED"
+            ]
+          },
+          {
+            "description": "v1.7 (coverage-tiered challenges): `prove` answered `UNSUPPORTED` on a positive case of a class its declared tier is complete for.",
+            "type": "string",
+            "enum": [
+              "COVERAGE_GAP_IN_TIER"
+            ]
+          }
         ]
       },
       "ReasonRequest": {
@@ -3866,6 +4055,11 @@
           "price_model_digest": {
             "description": "JCS sha256 of `price_model`; shown on every cost-board row.",
             "$ref": "#/components/schemas/Digest",
+            "nullable": true
+          },
+          "verify_statistic": {
+            "description": "Aggregation of per-run verify totals (v1.6, additive; absent = `median`). `cost_baseline.verify_ns` is pinned with the same statistic.",
+            "$ref": "#/components/schemas/VerifyStatistic",
             "nullable": true
           }
         },
@@ -4157,6 +4351,11 @@
             "$ref": "#/components/schemas/ChangeClass",
             "nullable": true
           },
+          "coverage": {
+            "description": "Coverage-tiered challenges: the declared tier and proven coverage (CONTRACTS §11).",
+            "$ref": "#/components/schemas/CoverageReport",
+            "nullable": true
+          },
           "created_at": {
             "type": "string"
           },
@@ -4419,6 +4618,10 @@
           "checker_image": {
             "$ref": "#/components/schemas/Digest"
           },
+          "declared_tier": {
+            "type": "string",
+            "nullable": true
+          },
           "formal_tree": {
             "$ref": "#/components/schemas/Digest"
           },
@@ -4459,6 +4662,25 @@
           "native",
           "npai-v1",
           "native-lean"
+        ]
+      },
+      "VerifyStatistic": {
+        "description": "How the per-run verify totals of a class are aggregated into the `V` component of the cost (docs/BENCHMARK_SPEC.md §14.3; contracts v1.6).",
+        "oneOf": [
+          {
+            "description": "`median_u64` (bench-spec-v1.2 / v1.3; the meaning of an absent field).",
+            "type": "string",
+            "enum": [
+              "median"
+            ]
+          },
+          {
+            "description": "`lower_quartile_u64`: the order statistic at index ⌊(n−1)/4⌋ of the sorted runs (bench-spec-v1.4).",
+            "type": "string",
+            "enum": [
+              "lower_quartile"
+            ]
+          }
         ]
       },
       "WorkloadClass": {
