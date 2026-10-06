@@ -26,11 +26,12 @@ def bit (x b : Nat) : Nat := x / 2 ^ b % 2
 
 def b2n (b : Bool) : Nat := if b then 1 else 0
 
-/-- Smallest `log` with `m ≤ 2^log`. -/
-def clog2 (m : Nat) : Nat := Id.run do
-  let mut l := 0
-  while 2 ^ l < m do l := l + 1
-  return l
+/-- Smallest `log` with `m ≤ 2^log` (structural, fuel `m`, so that heights can be reasoned
+about: `Complete/Trace.lean`, `clog2_ge` / `clog2_le`). -/
+def clog2 (m : Nat) : Nat := go m 0 where
+  go : Nat → Nat → Nat
+    | 0, acc => acc
+    | fuel + 1, acc => if m ≤ 2 ^ acc then acc else go fuel (acc + 1)
 
 /-- A row builder: `width` zeros, then `set` writes. -/
 def zrow (width : Nat) : Array Nat := Array.replicate width 0
