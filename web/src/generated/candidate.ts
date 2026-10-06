@@ -39,6 +39,10 @@ export interface BuildSection {
  * via the `definition` "EntrySection".
  */
 export interface EntrySection {
+  /**
+   * Coverage tier the candidate is complete for (v1.7, additive): required iff the challenge has `coverage` (checked against the challenge by the judge, `ChallengeDefinition::declared_tier`). docs/CONTRACTS.md §11.
+   */
+  declared_tier?: string | null;
   prepare: string;
   prove: string;
   /**

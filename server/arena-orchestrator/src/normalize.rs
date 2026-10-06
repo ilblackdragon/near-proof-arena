@@ -354,9 +354,11 @@ pub fn check_result(
     let coverage = match (&r.coverage, kind, &chal.coverage) {
         (None, _, _) => None,
         (Some(c), JobKind::Conformance, Some(_)) => Some(normalize_coverage(chal, c)?),
-        (Some(_), _, _) => return Err(format!(
+        (Some(_), _, _) => {
+            return Err(format!(
             "{kind} job may not report coverage (CONFORMANCE on a coverage-tiered challenge only)"
-        )),
+        ))
+        }
     };
     let log_excerpt = r
         .log_excerpt

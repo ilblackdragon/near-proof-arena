@@ -1571,6 +1571,25 @@
           }
         }
       },
+      "BaselineMode": {
+        "description": "Where a `cost_v1` class's reference cost comes from (contracts v1.8, bench-spec-v1.6; docs/BENCHMARK_SPEC.md §6.2, §14.12).",
+        "oneOf": [
+          {
+            "description": "The pinned `cost_baseline` (bench-spec-v1.2–v1.4; the absent field).",
+            "type": "string",
+            "enum": [
+              "frozen"
+            ]
+          },
+          {
+            "description": "The paired baseline control: the judge runs the challenge's reference (`workload_suite.baseline_submission`) on exactly the candidate's sampled batches, interleaved round by round on the same CPUs, and each class's reference cost is measured in the same session (`ClassMeasurement.ref_*`). `cost_baseline` stays pinned as the documented reference profile and is reported, never scored.",
+            "type": "string",
+            "enum": [
+              "paired"
+            ]
+          }
+        ]
+      },
       "BenchmarkResult": {
         "type": "object",
         "required": [
@@ -1761,6 +1780,78 @@
             }
           },
           "recipe": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CalibrationSpec": {
+        "description": "The judge calibration workload (bench-spec-v1.6, §6.1): a fixed, deterministic binary (`runners/calibrate`, `arena-calibrate`), pinned by digest, run in the benchmark sandbox on the benchmark CPUs as probes before the session, at the start of every measured round, and after it.",
+        "type": "object",
+        "required": [
+          "binary_digest",
+          "edge_probes",
+          "expected_checksum",
+          "max_noise_ppm",
+          "max_step_ppm",
+          "steps_per_probe",
+          "threads",
+          "workload"
+        ],
+        "properties": {
+          "binary_digest": {
+            "description": "sha256 of the static `arena-calibrate` binary; the worker refuses any other.",
+            "$ref": "#/components/schemas/Digest"
+          },
+          "edge_probes": {
+            "description": "Probes before and after the session (each).",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          },
+          "expected_checksum": {
+            "description": "The checksum the workload must print (a wrong one is INFRA).",
+            "type": "string"
+          },
+          "max_noise_ppm": {
+            "description": "Gate: MAD / median over all probes of the session (ppm).",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "max_reference_drift_ppm": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0,
+            "nullable": true
+          },
+          "max_step_ppm": {
+            "description": "Gate: the 90th-percentile step between consecutive probes (ppm).",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          },
+          "reference_median_ns": {
+            "description": "Host admission median of one probe on this hardware profile; when set, the session median must be within `max_reference_drift_ppm` of it.",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0,
+            "nullable": true
+          },
+          "steps_per_probe": {
+            "description": "Timed runs per probe, after one untimed warm-up run, all in one sandbox instance; the probe is their median.",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          },
+          "threads": {
+            "description": "Worker threads per probe (= the benchmark vCPUs).",
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
+          },
+          "workload": {
+            "description": "`arena-calibrate-v1`.",
             "type": "string"
           }
         },
@@ -2077,6 +2168,31 @@
               "minimum": 0.0
             }
           },
+          "ref_proof_bytes_runs": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          },
+          "ref_runs_ns": {
+            "description": "v1.8 (`scoring.baseline_mode = paired`): the reference's paired runs on the same batches, same order as `runs_ns` — Σ prove ns, Σ verify ns and Σ proof bytes per run. Empty otherwise.",
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          },
+          "ref_verify_runs_ns": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          },
           "runs_ns": {
             "type": "array",
             "items": {
@@ -2206,6 +2322,25 @@
             "format": "uint64",
             "minimum": 0.0
           },
+          "ref_proof_bytes": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0,
+            "nullable": true
+          },
+          "ref_prove_ns": {
+            "description": "v1.8: the reference statistics priced into `baseline_total_fusd` (paired runs of this session, or the pinned `cost_baseline`).",
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0,
+            "nullable": true
+          },
+          "ref_verify_ns": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0,
+            "nullable": true
+          },
           "storage_fusd": {
             "type": "integer",
             "format": "uint64",
@@ -2245,6 +2380,11 @@
           "verifier_vcpus"
         ],
         "properties": {
+          "baseline_mode": {
+            "description": "v1.8: `paired` when the reference was measured in the same session.",
+            "$ref": "#/components/schemas/BaselineMode",
+            "nullable": true
+          },
           "classes": {
             "type": "array",
             "items": {
@@ -2681,6 +2821,11 @@
           },
           "manifest": {
             "$ref": "#/components/schemas/CandidateManifest"
+          },
+          "reference": {
+            "description": "BENCHMARK of a `baseline_mode = paired` challenge (v1.8, BENCHMARK_SPEC §6.2): the reference build the worker runs on the same batches. Absent on every other job.",
+            "$ref": "#/components/schemas/ReferenceBuild",
+            "nullable": true
           }
         }
       },
@@ -3532,6 +3677,11 @@
             "description": "`median` only in v1.",
             "type": "string"
           },
+          "calibration": {
+            "description": "The pinned calibration binary and its probe rule (v1.8, additive; docs/BENCHMARK_SPEC.md §6.1). Absent = no in-session calibration (the live worker before v1.8).",
+            "$ref": "#/components/schemas/CalibrationSpec",
+            "nullable": true
+          },
           "cold_runs": {
             "type": "integer",
             "format": "uint32",
@@ -3833,6 +3983,34 @@
         },
         "additionalProperties": false
       },
+      "ReferenceBuild": {
+        "description": "The challenge's reference candidate as built and admitted on this challenge: the latest ADMITTED run of a submission whose package digest is `workload_suite.baseline_submission`.",
+        "type": "object",
+        "required": [
+          "build",
+          "manifest",
+          "package_digest",
+          "run_id",
+          "submission_id"
+        ],
+        "properties": {
+          "build": {
+            "$ref": "#/components/schemas/BuildOutputs"
+          },
+          "manifest": {
+            "$ref": "#/components/schemas/CandidateManifest"
+          },
+          "package_digest": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "submission_id": {
+            "type": "string"
+          }
+        }
+      },
       "RegisterChallengeRequest": {
         "type": "object",
         "required": [
@@ -4032,6 +4210,11 @@
           "kind"
         ],
         "properties": {
+          "baseline_mode": {
+            "description": "v1.8, additive; absent = `frozen`.",
+            "$ref": "#/components/schemas/BaselineMode",
+            "nullable": true
+          },
           "cost_baseline": {
             "type": "array",
             "items": {

@@ -12,6 +12,13 @@
  */
 export type Digest = string;
 /**
+ * Where a `cost_v1` class's reference cost comes from (contracts v1.8, bench-spec-v1.6; docs/BENCHMARK_SPEC.md §6.2, §14.12).
+ *
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "BaselineMode".
+ */
+export type BaselineMode = 'frozen' | 'paired';
+/**
  * This interface was referenced by `SubmissionView`'s JSON-Schema
  * via the `definition` "ScoringKind".
  */
@@ -71,34 +78,37 @@ export type ObligationId =
  * via the `definition` "ReasonCode".
  */
 export type ReasonCode =
-  | 'MANIFEST_INVALID'
-  | 'ARCHIVE_UNSAFE'
-  | 'CHALLENGE_UNKNOWN'
-  | 'PROFILE_NOT_ALLOWED'
-  | 'BUILD_FAILED'
-  | 'BUILD_NOT_REPRODUCIBLE'
-  | 'CERTIFICATE_MISSING'
-  | 'THEOREM_TYPE_MISMATCH'
-  | 'UNAPPROVED_ASSUMPTION'
-  | 'FORBIDDEN_AXIOM'
-  | 'SORRY_FOUND'
-  | 'NATIVE_EVAL_FOUND'
-  | 'SHADOWED_DEFINITION'
-  | 'RECHECK_FAILED'
-  | 'ARTIFACT_BINDING_FAILED'
-  | 'CLAIM_MISMATCH'
-  | 'COUNTEREXAMPLE_FOUND'
-  | 'HOSTILE_PROOF_ACCEPTED'
-  | 'VERIFIER_NONDETERMINISTIC'
-  | 'PROVER_FAILED'
-  | 'RESOURCE_LIMIT'
-  | 'TIMEOUT'
-  | 'SANDBOX_VIOLATION'
-  | 'SECURITY_BOUND_INSUFFICIENT'
-  | 'OBLIGATION_UNDISCHARGED'
-  | 'DEMO_ONLY'
-  | 'INFRA_ERROR'
-  | 'CANCELLED';
+  | (
+      | 'MANIFEST_INVALID'
+      | 'ARCHIVE_UNSAFE'
+      | 'CHALLENGE_UNKNOWN'
+      | 'PROFILE_NOT_ALLOWED'
+      | 'BUILD_FAILED'
+      | 'BUILD_NOT_REPRODUCIBLE'
+      | 'CERTIFICATE_MISSING'
+      | 'THEOREM_TYPE_MISMATCH'
+      | 'UNAPPROVED_ASSUMPTION'
+      | 'FORBIDDEN_AXIOM'
+      | 'SORRY_FOUND'
+      | 'NATIVE_EVAL_FOUND'
+      | 'SHADOWED_DEFINITION'
+      | 'RECHECK_FAILED'
+      | 'ARTIFACT_BINDING_FAILED'
+      | 'CLAIM_MISMATCH'
+      | 'COUNTEREXAMPLE_FOUND'
+      | 'HOSTILE_PROOF_ACCEPTED'
+      | 'VERIFIER_NONDETERMINISTIC'
+      | 'PROVER_FAILED'
+      | 'RESOURCE_LIMIT'
+      | 'TIMEOUT'
+      | 'SANDBOX_VIOLATION'
+      | 'SECURITY_BOUND_INSUFFICIENT'
+      | 'OBLIGATION_UNDISCHARGED'
+      | 'DEMO_ONLY'
+      | 'INFRA_ERROR'
+      | 'CANCELLED'
+    )
+  | 'COVERAGE_GAP_IN_TIER';
 /**
  * This interface was referenced by `SubmissionView`'s JSON-Schema
  * via the `definition` "GateStatus".
@@ -144,6 +154,10 @@ export interface SubmissionView {
   candidate_name: string;
   challenge_id: string;
   change_class?: ChangeClass | null;
+  /**
+   * Coverage-tiered challenges: the declared tier and proven coverage (CONTRACTS §11).
+   */
+  coverage?: CoverageReport | null;
   created_at: string;
   decision?: Decision | null;
   evidence_graph?: EvidenceGraph | null;
@@ -217,6 +231,10 @@ export interface BenchmarkResult {
  * via the `definition` "ClassMeasurement".
  */
 export interface ClassMeasurement {
+  /**
+   * v1.7 (coverage-tiered challenges only): `prove` answered `UNSUPPORTED` in this class, so it carries no timing (all time fields 0) and is excluded from the score with the weights renormalized (BENCHMARK_SPEC §17).
+   */
+  abstained?: boolean;
   baseline_ns: number;
   class_id: string;
   cold_ns?: number | null;
@@ -228,6 +246,12 @@ export interface ClassMeasurement {
    * Per measured run: Σ proof bytes of the batch (v1.5, additive).
    */
   proof_bytes_runs?: number[];
+  ref_proof_bytes_runs?: number[];
+  /**
+   * v1.8 (`scoring.baseline_mode = paired`): the reference's paired runs on the same batches, same order as `runs_ns` — Σ prove ns, Σ verify ns and Σ proof bytes per run. Empty otherwise.
+   */
+  ref_runs_ns?: number[];
+  ref_verify_runs_ns?: number[];
   runs_ns: number[];
   verify_median_ns: number;
   /**
@@ -243,6 +267,10 @@ export interface ClassMeasurement {
  * via the `definition` "CostResult".
  */
 export interface CostResult {
+  /**
+   * v1.8: `paired` when the reference was measured in the same session.
+   */
+  baseline_mode?: BaselineMode | null;
   classes: CostClass[];
   kind: ScoringKind;
   price_model_digest: Digest;
@@ -266,6 +294,12 @@ export interface CostClass {
   proof_bytes: number;
   prove_fusd: number;
   prove_ns: number;
+  ref_proof_bytes?: number | null;
+  /**
+   * v1.8: the reference statistics priced into `baseline_total_fusd` (paired runs of this session, or the pinned `cost_baseline`).
+   */
+  ref_prove_ns?: number | null;
+  ref_verify_ns?: number | null;
   storage_fusd: number;
   total_fusd: number;
   verify_fusd: number;
@@ -286,6 +320,61 @@ export interface BuildInfo {
    * Build sandbox image/rootfs digest or id, if reported.
    */
   toolchain_image?: string | null;
+}
+/**
+ * Report field `coverage` (CONTRACTS §11).
+ *
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "CoverageReport".
+ */
+export interface CoverageReport {
+  /**
+   * Public fixtures and judge-sampled cases.
+   */
+  conformance: CoverageSection;
+  /**
+   * Committed held-out cases (absent when the worker ran none).
+   */
+  heldout?: CoverageSection | null;
+  /**
+   * The declared tier.
+   */
+  tier: string;
+}
+/**
+ * One case set (conformance or held-out).
+ *
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "CoverageSection".
+ */
+export interface CoverageSection {
+  /**
+   * Keyed by workload class id; public fixtures without a class are tallied under [`FIXTURES_KEY`] (not a class: excluded from `share_ppm`).
+   */
+  per_class: {
+    [k: string]: ClassCoverage | undefined;
+  };
+  /**
+   * Weight-averaged proven fraction over the challenge's workload classes, in parts per million (contracts carry no floating point).
+   */
+  share_ppm: number;
+}
+/**
+ * Per-class tally of positive cases.
+ *
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "ClassCoverage".
+ */
+export interface ClassCoverage {
+  /**
+   * `prove` answered `UNSUPPORTED`.
+   */
+  abstained: number;
+  cases: number;
+  /**
+   * Proved and accepted by `verify`.
+   */
+  proven: number;
 }
 /**
  * This interface was referenced by `SubmissionView`'s JSON-Schema
@@ -413,6 +502,7 @@ export interface VerifiedSurface {
   certificate_decl: string;
   challenge_id: string;
   checker_image: Digest;
+  declared_tier?: string | null;
   formal_tree: Digest;
   prepare_artifact: Digest;
   public_artifacts: Digest;

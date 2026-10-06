@@ -951,3 +951,73 @@ pub fn case_label(id: &str, public: bool) -> String {
         "a held-out case".to_string()
     }
 }
+
+/// One probe of the pinned calibration workload (BENCHMARK_SPEC §6.1.1,
+/// bench-spec-v1.6): one sandbox instance on the benchmark CPUs runs
+/// `arena-calibrate --threads N` once untimed (warm-up: guest page cache,
+/// binary load) and then `steps_per_probe` times; the probe is the median of
+/// the timed steps' wall times, measured exactly like a `vm_per_batch` request.
+/// Every failure, including a wrong checksum, is INFRA: the host or the binary
+/// is not what the challenge pins.
+pub fn calibration_probe(
+    r: &mut JobRun<'_>,
+    bin: &Path,
+    spec: &arena_types::challenge::CalibrationSpec,
+    cpus: Option<Vec<u32>>,
+    limits: &RunLimits,
+) -> Result<u64, ExecError> {
+    let layout = r.ctx.sandbox.layout();
+    let threads = spec.threads.max(1).to_string();
+    let mut base = judge_spec(
+        &layout,
+        bin,
+        "arena-calibrate",
+        &["--threads", &threads],
+        &[],
+        120_000,
+        limits,
+    );
+    base.mem_bytes = base.mem_bytes.max(1 << 30);
+    base.pids = base.pids.max(spec.threads + 8);
+    base.cpu_set = cpus;
+    base.env.push(("ARENA_STAGE".into(), "calibration".into()));
+    let k = spec.steps_per_probe.max(1) as usize;
+    let steps: Vec<arena_sandbox::StepSpec> = (0..=k)
+        .map(|_| arena_sandbox::StepSpec {
+            argv: base.argv.clone(),
+            ro_files: vec![],
+            collect: vec![],
+            out_dir: None,
+            wall_timeout: base.wall_timeout,
+        })
+        .collect();
+    let outs = r.run_steps(&base, &steps)?;
+    if outs.len() != k + 1 {
+        return Err(ExecError::Infra(format!(
+            "calibration probe: {} of {} steps ran",
+            outs.len(),
+            k + 1
+        )));
+    }
+    let want = format!("{} {}", spec.workload, spec.expected_checksum);
+    let mut walls = Vec::with_capacity(k);
+    for (i, o) in outs.iter().enumerate() {
+        if o.exit != arena_sandbox::ExitStatus::Exited(0) {
+            return Err(ExecError::Infra(format!(
+                "calibration probe: {}",
+                crate::executor::describe_exit(o)
+            )));
+        }
+        let got = String::from_utf8_lossy(&o.stdout_trunc);
+        if got.trim() != want {
+            return Err(ExecError::Infra(format!(
+                "calibration probe printed {:?}, the challenge pins {want:?}",
+                got.trim()
+            )));
+        }
+        if i > 0 {
+            walls.push(o.wall_ns);
+        }
+    }
+    Ok(arena_measure::stats::median_u64(&walls).expect("k >= 1"))
+}

@@ -26,6 +26,9 @@ export interface AssumptionRef {
   lean_decl?: string | null;
 }
 
+/** Where a `cost_v1` class's reference cost comes from (contracts v1.8, bench-spec-v1.6; docs/BENCHMARK_SPEC.md §6.2, §14.12). */
+export type BaselineMode = "frozen" | "paired";
+
 export interface BenchmarkResult {
   classes: ClassMeasurement[];
   /** Cost-board result for `scoring.kind = cost_v1` challenges (v1.5, additive). Never compared with `score_milli` (a speed score). */
@@ -54,6 +57,29 @@ export interface BuildSection {
   recipe: string;
 }
 
+/** The judge calibration workload (bench-spec-v1.6, §6.1): a fixed, deterministic binary (`runners/calibrate`, `arena-calibrate`), pinned by digest, run in the benchmark sandbox on the benchmark CPUs as probes before the session, at the start of every measured round, and after it. */
+export interface CalibrationSpec {
+  /** sha256 of the static `arena-calibrate` binary; the worker refuses any other. */
+  binary_digest: Digest;
+  /** Probes before and after the session (each). */
+  edge_probes: number;
+  /** The checksum the workload must print (a wrong one is INFRA). */
+  expected_checksum: string;
+  /** Gate: MAD / median over all probes of the session (ppm). */
+  max_noise_ppm: number;
+  max_reference_drift_ppm?: number | null;
+  /** Gate: the 90th-percentile step between consecutive probes (ppm). */
+  max_step_ppm: number;
+  /** Host admission median of one probe on this hardware profile; when set, the session median must be within `max_reference_drift_ppm` of it. */
+  reference_median_ns?: number | null;
+  /** Timed runs per probe, after one untimed warm-up run, all in one sandbox instance; the probe is their median. */
+  steps_per_probe: number;
+  /** Worker threads per probe (= the benchmark vCPUs). */
+  threads: number;
+  /** `arena-calibrate-v1`. */
+  workload: string;
+}
+
 /** Parsed `candidate.toml`. Every field is a *claim* the judge validates. */
 export interface CandidateManifest {
   agent: string;
@@ -72,6 +98,8 @@ export interface CandidateManifest {
 export interface ChallengeDefinition {
   chain_id: string;
   claim_encoding: ClaimEncoding;
+  /** Coverage tiers (v1.7, additive; absent ⇒ not serialized, so existing challenge ids are unchanged). docs/CONTRACTS.md §11. */
+  coverage?: CoverageSpec | null;
   created_at: string;
   /** Formal admission-statement parameters (v1.2, additive; absent ⇒ not serialized, so existing challenge ids are unchanged). */
   formal_params?: FormalParams | null;
@@ -108,7 +136,18 @@ export interface ClaimEncoding {
   spec_digest: Digest;
 }
 
+/** Per-class tally of positive cases. */
+export interface ClassCoverage {
+  /** `prove` answered `UNSUPPORTED`. */
+  abstained: number;
+  cases: number;
+  /** Proved and accepted by `verify`. */
+  proven: number;
+}
+
 export interface ClassMeasurement {
+  /** v1.7 (coverage-tiered challenges only): `prove` answered `UNSUPPORTED` in this class, so it carries no timing (all time fields 0) and is excluded from the score with the weights renormalized (BENCHMARK_SPEC §17). */
+  abstained?: boolean;
   baseline_ns: number;
   class_id: string;
   cold_ns?: number | null;
@@ -118,6 +157,10 @@ export interface ClassMeasurement {
   proof_bytes_max: number;
   /** Per measured run: Σ proof bytes of the batch (v1.5, additive). */
   proof_bytes_runs?: number[];
+  ref_proof_bytes_runs?: number[];
+  /** v1.8 (`scoring.baseline_mode = paired`): the reference's paired runs on the same batches, same order as `runs_ns` — Σ prove ns, Σ verify ns and Σ proof bytes per run. Empty otherwise. */
+  ref_runs_ns?: number[];
+  ref_verify_runs_ns?: number[];
   runs_ns: number[];
   verify_median_ns: number;
   /** Per measured run (same order as `runs_ns`): Σ verify wall ns of the batch's proofs (v1.5, additive; empty in older results). */
@@ -145,6 +188,10 @@ export interface CostClass {
   proof_bytes: number;
   prove_fusd: number;
   prove_ns: number;
+  ref_proof_bytes?: number | null;
+  /** v1.8: the reference statistics priced into `baseline_total_fusd` (paired runs of this session, or the pinned `cost_baseline`). */
+  ref_prove_ns?: number | null;
+  ref_verify_ns?: number | null;
   storage_fusd: number;
   total_fusd: number;
   verify_fusd: number;
@@ -154,6 +201,8 @@ export interface CostClass {
 
 /** `BenchmarkResult.cost` (v1.5, additive): the cost-board result. */
 export interface CostResult {
+  /** v1.8: `paired` when the reference was measured in the same session. */
+  baseline_mode?: BaselineMode | null;
   classes: CostClass[];
   kind: ScoringKind;
   price_model_digest: Digest;
@@ -164,6 +213,46 @@ export interface CostResult {
   verifier_vcpus: number;
 }
 
+/** Report field `coverage` (CONTRACTS §11). */
+export interface CoverageReport {
+  /** Public fixtures and judge-sampled cases. */
+  conformance: CoverageSection;
+  /** Committed held-out cases (absent when the worker ran none). */
+  heldout?: CoverageSection | null;
+  /** The declared tier. */
+  tier: string;
+}
+
+/** One case set (conformance or held-out). */
+export interface CoverageSection {
+  /** Keyed by workload class id; public fixtures without a class are tallied under [`FIXTURES_KEY`] (not a class: excluded from `share_ppm`). */
+  per_class: Record<string, unknown>;
+  /** Weight-averaged proven fraction over the challenge's workload classes, in parts per million (contracts carry no floating point). */
+  share_ppm: number;
+}
+
+/** `ChallengeDefinition.coverage`. */
+export interface CoverageSpec {
+  /** Trusted Lean lemma lifting tier soundness to the statement, e.g. `NearSpecV3.sound_lift`. */
+  soundness_lift: string;
+  /** Lean declaration of the top `ChallengeSpec` (the statement every admitted verifier is sound for), e.g. `NearSpecV3.challengeSpecChunkTop`. */
+  statement_spec: string;
+  /** Tiers in any order; `rank` is the total order (higher = larger domain). */
+  tiers: CoverageTier[];
+  /** `"coverage-v1"`. */
+  version: string;
+}
+
+export interface CoverageTier {
+  /** Workload classes this tier is complete for: an abstention on a positive case of one of them is `COVERAGE_GAP_IN_TIER`. */
+  classes: string[];
+  /** Tier id, e.g. `D0`, `D1`, `D2`, `D3a`. */
+  id: string;
+  /** Lean declaration (term) of the tier's `ChallengeParams`, e.g. `NearSpecV3.challengeParamsChunk .d0`. The judge's per-tier Expected template (formal-checker config `tiers`) instantiates exactly this. */
+  params: string;
+  rank: number;
+}
+
 export type Decision = "ADMITTED" | "REJECTED" | "INCONCLUSIVE" | "INFRA_ERROR" | "CANCELLED";
 
 /** `sha256:<64 lowercase hex>` */
@@ -172,6 +261,8 @@ export type Digest = string;
 export type EdgeStatus = "checked" | "trusted" | "tested" | "missing";
 
 export interface EntrySection {
+  /** Coverage tier the candidate is complete for (v1.7, additive): required iff the challenge has `coverage` (checked against the challenge by the judge, `ChallengeDefinition::declared_tier`). docs/CONTRACTS.md §11. */
+  declared_tier?: string | null;
   prepare: string;
   prove: string;
   /** Built NPAI image (relative path among `build.outputs`), required iff `verify_route = "npai-v1"`. */
@@ -288,7 +379,11 @@ export interface LeaderboardEntry {
   cost_score_ci_milli?: number | null;
   /** Cost-board score and its CI (cost_v1 challenges only; v1.5). */
   cost_score_milli?: number | null;
+  /** `coverage.conformance.share_ppm` of the ranked run. */
+  coverage_share_ppm?: number | null;
   decision?: Decision | null;
+  /** Declared coverage tier; the board orders by its rank first. */
+  declared_tier?: string | null;
   hardware_profile: string;
   peak_rss_bytes?: number | null;
   proof_bytes?: number | null;
@@ -307,6 +402,7 @@ export interface LeaderboardEntry {
   /** Set when the challenge has been superseded: the board is historical (frozen, closed for new submissions) and scores are not comparable with the successor's (additive, v1.4). */
   superseded_by?: string | null;
   tier: Tier;
+  tier_rank?: number | null;
   verify_median_ns?: number | null;
 }
 
@@ -322,6 +418,8 @@ export interface LogExcerpt {
 export interface MeasurementProcedure {
   /** `median` only in v1. */
   aggregation: string;
+  /** The pinned calibration binary and its probe rule (v1.8, additive; docs/BENCHMARK_SPEC.md §6.1). Absent = no in-session calibration (the live worker before v1.8). */
+  calibration?: CalibrationSpec | null;
   cold_runs: number;
   concurrency: number;
   /** How benchmark invocations are isolated (v1.4, additive; absent ⇒ `vm_per_invocation`, i.e. bench-spec-v1, and not serialized, so existing challenge ids are unchanged). See docs/BENCHMARK_SPEC.md §4. */
@@ -385,7 +483,7 @@ export interface PriceRationale {
 
 export type Privacy = "validity_only" | "zero_knowledge";
 
-export type ReasonCode = "MANIFEST_INVALID" | "ARCHIVE_UNSAFE" | "CHALLENGE_UNKNOWN" | "PROFILE_NOT_ALLOWED" | "BUILD_FAILED" | "BUILD_NOT_REPRODUCIBLE" | "CERTIFICATE_MISSING" | "THEOREM_TYPE_MISMATCH" | "UNAPPROVED_ASSUMPTION" | "FORBIDDEN_AXIOM" | "SORRY_FOUND" | "NATIVE_EVAL_FOUND" | "SHADOWED_DEFINITION" | "RECHECK_FAILED" | "ARTIFACT_BINDING_FAILED" | "CLAIM_MISMATCH" | "COUNTEREXAMPLE_FOUND" | "HOSTILE_PROOF_ACCEPTED" | "VERIFIER_NONDETERMINISTIC" | "PROVER_FAILED" | "RESOURCE_LIMIT" | "TIMEOUT" | "SANDBOX_VIOLATION" | "SECURITY_BOUND_INSUFFICIENT" | "OBLIGATION_UNDISCHARGED" | "DEMO_ONLY" | "INFRA_ERROR" | "CANCELLED";
+export type ReasonCode = "MANIFEST_INVALID" | "ARCHIVE_UNSAFE" | "CHALLENGE_UNKNOWN" | "PROFILE_NOT_ALLOWED" | "BUILD_FAILED" | "BUILD_NOT_REPRODUCIBLE" | "CERTIFICATE_MISSING" | "THEOREM_TYPE_MISMATCH" | "UNAPPROVED_ASSUMPTION" | "FORBIDDEN_AXIOM" | "SORRY_FOUND" | "NATIVE_EVAL_FOUND" | "SHADOWED_DEFINITION" | "RECHECK_FAILED" | "ARTIFACT_BINDING_FAILED" | "CLAIM_MISMATCH" | "COUNTEREXAMPLE_FOUND" | "HOSTILE_PROOF_ACCEPTED" | "VERIFIER_NONDETERMINISTIC" | "PROVER_FAILED" | "RESOURCE_LIMIT" | "TIMEOUT" | "SANDBOX_VIOLATION" | "SECURITY_BOUND_INSUFFICIENT" | "OBLIGATION_UNDISCHARGED" | "DEMO_ONLY" | "INFRA_ERROR" | "CANCELLED" | "COVERAGE_GAP_IN_TIER";
 
 export interface ResourceLimits {
   max_build_ms: number;
@@ -423,6 +521,8 @@ export type ScoringKind = "speed" | "cost_v1";
 
 /** `ChallengeDefinition.scoring` (v1.5, additive). */
 export interface ScoringSpec {
+  /** v1.8, additive; absent = `frozen`. */
+  baseline_mode?: BaselineMode | null;
   cost_baseline?: CostBaselineClass[];
   /** Reference candidate's `prepare` wall ns (only charged when `prepare_amortization_requests > 0`). */
   cost_baseline_prepare_ns?: number | null;
@@ -484,6 +584,8 @@ export interface SubmissionView {
   candidate_name: string;
   challenge_id: string;
   change_class?: ChangeClass | null;
+  /** Coverage-tiered challenges: the declared tier and proven coverage (CONTRACTS §11). */
+  coverage?: CoverageReport | null;
   created_at: string;
   decision?: Decision | null;
   evidence_graph?: EvidenceGraph | null;
@@ -531,6 +633,7 @@ export interface VerifiedSurface {
   certificate_decl: string;
   challenge_id: string;
   checker_image: Digest;
+  declared_tier?: string | null;
   formal_tree: Digest;
   prepare_artifact: Digest;
   public_artifacts: Digest;

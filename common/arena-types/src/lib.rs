@@ -20,7 +20,9 @@ pub use challenge::{ChallengeDefinition, ChallengeId, FormalParams};
 pub use coverage::{ClassCoverage, CoverageReport, CoverageSection, CoverageSpec, CoverageTier};
 pub use evidence::EvidenceGraph;
 pub use pipeline::*;
-pub use scoring::{CostClass, CostResult, PriceModel, ScoringKind, ScoringSpec, VerifyStatistic};
+pub use scoring::{
+    BaselineMode, CostClass, CostResult, PriceModel, ScoringKind, ScoringSpec, VerifyStatistic,
+};
 pub use security::SecurityProfile;
 pub use tree::{tree_digest, tree_digest_entries, tree_entries, TreeEntry};
 

@@ -4,6 +4,7 @@ members = [
     "adversarial/proof-mutators",
     "common/arena-types",
     "runners/archive",
+    "runners/calibrate",
     "runners/firecracker",
     "runners/firecracker/init",
     "runners/firecracker/proto",

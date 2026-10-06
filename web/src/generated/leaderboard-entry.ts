@@ -10,6 +10,13 @@
  */
 export type ScoringKind = 'speed' | 'cost_v1';
 /**
+ * Where a `cost_v1` class's reference cost comes from (contracts v1.8, bench-spec-v1.6; docs/BENCHMARK_SPEC.md §6.2, §14.12).
+ *
+ * This interface was referenced by `LeaderboardEntry`'s JSON-Schema
+ * via the `definition` "BaselineMode".
+ */
+export type BaselineMode = 'frozen' | 'paired';
+/**
  * `sha256:<64 lowercase hex>`
  *
  * This interface was referenced by `LeaderboardEntry`'s JSON-Schema
@@ -49,7 +56,15 @@ export interface LeaderboardEntry {
    * Cost-board score and its CI (cost_v1 challenges only; v1.5).
    */
   cost_score_milli?: number | null;
+  /**
+   * `coverage.conformance.share_ppm` of the ranked run.
+   */
+  coverage_share_ppm?: number | null;
   decision?: Decision | null;
+  /**
+   * Declared coverage tier; the board orders by its rank first.
+   */
+  declared_tier?: string | null;
   hardware_profile: string;
   peak_rss_bytes?: number | null;
   proof_bytes?: number | null;
@@ -74,6 +89,7 @@ export interface LeaderboardEntry {
    */
   superseded_by?: string | null;
   tier: Tier;
+  tier_rank?: number | null;
   verify_median_ns?: number | null;
 }
 /**
@@ -83,6 +99,10 @@ export interface LeaderboardEntry {
  * via the `definition` "CostResult".
  */
 export interface CostResult {
+  /**
+   * v1.8: `paired` when the reference was measured in the same session.
+   */
+  baseline_mode?: BaselineMode | null;
   classes: CostClass[];
   kind: ScoringKind;
   price_model_digest: Digest;
@@ -106,6 +126,12 @@ export interface CostClass {
   proof_bytes: number;
   prove_fusd: number;
   prove_ns: number;
+  ref_proof_bytes?: number | null;
+  /**
+   * v1.8: the reference statistics priced into `baseline_total_fusd` (paired runs of this session, or the pinned `cost_baseline`).
+   */
+  ref_prove_ns?: number | null;
+  ref_verify_ns?: number | null;
   storage_fusd: number;
   total_fusd: number;
   verify_fusd: number;

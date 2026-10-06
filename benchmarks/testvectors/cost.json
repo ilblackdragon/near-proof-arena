@@ -843,6 +843,291 @@
      }
     ]
    }
+  },
+  {
+   "name": "paired_self_is_100",
+   "prices": {
+    "validators_per_chunk": 50,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0,
+    "verify_statistic": "lower_quartile"
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "d0-quiet",
+     "weight_ppm": 1000000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 1,
+      "verify_ns": 1,
+      "proof_bytes": 1
+     },
+     "prove_runs_ns": [
+      7000000,
+      6900000,
+      7100000,
+      7050000
+     ],
+     "verify_runs_ns": [
+      880000000,
+      900000000,
+      870000000,
+      950000000
+     ],
+     "proof_bytes_runs": [
+      17296,
+      17296,
+      17296,
+      17296
+     ],
+     "paired": {
+      "prove_runs_ns": [
+       7000000,
+       6900000,
+       7100000,
+       7050000
+      ],
+      "verify_runs_ns": [
+       880000000,
+       900000000,
+       870000000,
+       950000000
+      ],
+      "proof_bytes_runs": [
+       17296,
+       17296,
+       17296,
+       17296
+      ]
+     }
+    }
+   ],
+   "expect": {
+    "score_milli": 100000,
+    "classes": [
+     {
+      "class_id": "d0-quiet",
+      "baseline_total_fusd": 2720918482000,
+      "prove_fusd": 427682000,
+      "prepare_fusd": 0,
+      "verify_fusd": 2648280000000,
+      "bandwidth_fusd": 72210800000,
+      "storage_fusd": 0,
+      "total_fusd": 2720918482000
+     }
+    ]
+   }
+  },
+  {
+   "name": "paired_heavy_tailed_inputs",
+   "prices": {
+    "validators_per_chunk": 50,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0,
+    "verify_statistic": "lower_quartile"
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "d0-quiet",
+     "weight_ppm": 400000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 1,
+      "verify_ns": 1,
+      "proof_bytes": 1
+     },
+     "prove_runs_ns": [
+      6500000,
+      6600000,
+      6400000,
+      6700000,
+      6550000
+     ],
+     "verify_runs_ns": [
+      700000000,
+      710000000,
+      690000000,
+      720000000,
+      705000000
+     ],
+     "proof_bytes_runs": [
+      17000,
+      17000,
+      17000,
+      17000,
+      17000
+     ],
+     "paired": {
+      "prove_runs_ns": [
+       7100000,
+       7000000,
+       7200000,
+       7050000,
+       7150000
+      ],
+      "verify_runs_ns": [
+       800000000,
+       815000000,
+       790000000,
+       830000000,
+       805000000
+      ],
+      "proof_bytes_runs": [
+       17296,
+       17296,
+       17296,
+       17296,
+       17296
+      ]
+     }
+    },
+    {
+     "class_id": "d0-missing",
+     "weight_ppm": 600000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 1,
+      "verify_ns": 1,
+      "proof_bytes": 1
+     },
+     "prove_runs_ns": [
+      6900000,
+      7000000,
+      6950000,
+      7050000,
+      6980000
+     ],
+     "verify_runs_ns": [
+      1100000000,
+      1150000000,
+      1120000000,
+      1090000000,
+      1130000000
+     ],
+     "proof_bytes_runs": [
+      34000,
+      34000,
+      34000,
+      34000,
+      34000
+     ],
+     "paired": {
+      "prove_runs_ns": [
+       7200000,
+       7100000,
+       7300000,
+       7250000,
+       7150000
+      ],
+      "verify_runs_ns": [
+       1113000000,
+       1140000000,
+       1120000000,
+       1150000000,
+       1125000000
+      ],
+      "proof_bytes_runs": [
+       34439,
+       34439,
+       34439,
+       34439,
+       34439
+      ]
+     }
+    }
+   ],
+   "expect": {
+    "score_milli": 106468,
+    "classes": [
+     {
+      "class_id": "d0-quiet",
+      "baseline_total_fusd": 2507843048000,
+      "prove_fusd": 398764000,
+      "prepare_fusd": 0,
+      "verify_fusd": 2130800000000,
+      "bandwidth_fusd": 70975000000,
+      "storage_fusd": 0,
+      "total_fusd": 2202173764000
+     },
+     {
+      "class_id": "d0-missing",
+      "baseline_total_fusd": 3553501161000,
+      "prove_fusd": 424942400,
+      "prepare_fusd": 0,
+      "verify_fusd": 3348400000000,
+      "bandwidth_fusd": 141950000000,
+      "storage_fusd": 0,
+      "total_fusd": 3490774942400
+     }
+    ]
+   }
+  },
+  {
+   "name": "paired_length_mismatch",
+   "prices": {
+    "validators_per_chunk": 50,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0,
+    "verify_statistic": "lower_quartile"
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "a",
+     "weight_ppm": 1000000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 1,
+      "verify_ns": 1,
+      "proof_bytes": 1
+     },
+     "prove_runs_ns": [
+      1,
+      2
+     ],
+     "verify_runs_ns": [
+      1,
+      1
+     ],
+     "proof_bytes_runs": [
+      1,
+      1
+     ],
+     "paired": {
+      "prove_runs_ns": [
+       1
+      ],
+      "verify_runs_ns": [
+       1,
+       1
+      ],
+      "proof_bytes_runs": [
+       1,
+       1
+      ]
+     }
+    }
+   ],
+   "expect": {
+    "error": "RUN_LENGTH_MISMATCH"
+   }
   }
  ],
  "cost_bootstrap": [
@@ -1143,6 +1428,139 @@
     "lo_milli": 97900,
     "hi_milli": 100328,
     "half_width_milli": 1214
+   }
+  },
+  {
+   "name": "paired_heavy_tailed",
+   "seed": 7,
+   "iterations": 400,
+   "prices": {
+    "validators_per_chunk": 50,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0,
+    "verify_statistic": "lower_quartile"
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "d0-quiet",
+     "weight_ppm": 400000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 1,
+      "verify_ns": 1,
+      "proof_bytes": 1
+     },
+     "prove_runs_ns": [
+      6500000,
+      6600000,
+      6400000,
+      6700000,
+      6550000
+     ],
+     "verify_runs_ns": [
+      700000000,
+      710000000,
+      690000000,
+      720000000,
+      705000000
+     ],
+     "proof_bytes_runs": [
+      17000,
+      17000,
+      17000,
+      17000,
+      17000
+     ],
+     "paired": {
+      "prove_runs_ns": [
+       7100000,
+       7000000,
+       7200000,
+       7050000,
+       7150000
+      ],
+      "verify_runs_ns": [
+       800000000,
+       815000000,
+       790000000,
+       830000000,
+       805000000
+      ],
+      "proof_bytes_runs": [
+       17296,
+       17296,
+       17296,
+       17296,
+       17296
+      ]
+     }
+    },
+    {
+     "class_id": "d0-missing",
+     "weight_ppm": 600000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 1,
+      "verify_ns": 1,
+      "proof_bytes": 1
+     },
+     "prove_runs_ns": [
+      6900000,
+      7000000,
+      6950000,
+      7050000,
+      6980000
+     ],
+     "verify_runs_ns": [
+      1100000000,
+      1150000000,
+      1120000000,
+      1090000000,
+      1130000000
+     ],
+     "proof_bytes_runs": [
+      34000,
+      34000,
+      34000,
+      34000,
+      34000
+     ],
+     "paired": {
+      "prove_runs_ns": [
+       7200000,
+       7100000,
+       7300000,
+       7250000,
+       7150000
+      ],
+      "verify_runs_ns": [
+       1113000000,
+       1140000000,
+       1120000000,
+       1150000000,
+       1125000000
+      ],
+      "proof_bytes_runs": [
+       34439,
+       34439,
+       34439,
+       34439,
+       34439
+      ]
+     }
+    }
+   ],
+   "expect": {
+    "score_milli": 106468,
+    "lo_milli": 105100,
+    "hi_milli": 108126,
+    "half_width_milli": 1513
    }
   }
  ],
@@ -1515,6 +1933,281 @@
       "drift_ppm": 10000,
       "ok": true
      }
+    ]
+   }
+  }
+ ],
+ "calibration_probes": [
+  {
+   "name": "steady",
+   "probes": [
+    450000000,
+    451000000,
+    449000000,
+    452000000,
+    450500000,
+    451500000
+   ],
+   "max_step_ppm": 20000,
+   "max_noise_ppm": 50000,
+   "expect": {
+    "n": 6,
+    "median_ns": 450750000,
+    "noise_ppm": 1664,
+    "step_p90_ppm": 2220,
+    "session_drift_ppm": 3334,
+    "reference_drift_ppm": null,
+    "ok": true,
+    "reasons": []
+   }
+  },
+  {
+   "name": "slow_drift_passes",
+   "probes": [
+    450000000,
+    454000000,
+    458000000,
+    462000000,
+    466000000,
+    470000000,
+    474000000,
+    478000000,
+    482000000,
+    486000000,
+    490000000,
+    494000000
+   ],
+   "max_step_ppm": 20000,
+   "max_noise_ppm": 50000,
+   "expect": {
+    "n": 12,
+    "median_ns": 472000000,
+    "noise_ppm": 25424,
+    "step_p90_ppm": 8734,
+    "session_drift_ppm": 97778,
+    "reference_drift_ppm": null,
+    "ok": true,
+    "reasons": []
+   }
+  },
+  {
+   "name": "one_step_between_rounds_passes",
+   "probes": [
+    450000000,
+    450000000,
+    450000000,
+    450000000,
+    450000000,
+    480000000,
+    480000000,
+    480000000,
+    480000000,
+    480000000
+   ],
+   "max_step_ppm": 20000,
+   "max_noise_ppm": 50000,
+   "expect": {
+    "n": 10,
+    "median_ns": 465000000,
+    "noise_ppm": 32259,
+    "step_p90_ppm": 0,
+    "session_drift_ppm": 66667,
+    "reference_drift_ppm": null,
+    "ok": true,
+    "reasons": []
+   }
+  },
+  {
+   "name": "oscillating_fails_step",
+   "probes": [
+    450000000,
+    480000000,
+    450000000,
+    480000000,
+    450000000,
+    480000000,
+    450000000,
+    480000000,
+    450000000,
+    480000000
+   ],
+   "max_step_ppm": 20000,
+   "max_noise_ppm": 50000,
+   "expect": {
+    "n": 10,
+    "median_ns": 465000000,
+    "noise_ppm": 32259,
+    "step_p90_ppm": 66667,
+    "session_drift_ppm": 66667,
+    "reference_drift_ppm": null,
+    "ok": false,
+    "reasons": [
+     "CALIBRATION_STEP"
+    ]
+   }
+  },
+  {
+   "name": "noisy",
+   "probes": [
+    400000000,
+    500000000,
+    420000000,
+    480000000,
+    410000000,
+    490000000
+   ],
+   "max_step_ppm": 300000,
+   "max_noise_ppm": 50000,
+   "expect": {
+    "n": 6,
+    "median_ns": 450000000,
+    "noise_ppm": 88889,
+    "step_p90_ppm": 142858,
+    "session_drift_ppm": 225000,
+    "reference_drift_ppm": null,
+    "ok": false,
+    "reasons": [
+     "CALIBRATION_NOISY"
+    ]
+   }
+  },
+  {
+   "name": "reference_drift",
+   "probes": [
+    450000000,
+    451000000,
+    452000000
+   ],
+   "max_step_ppm": 20000,
+   "max_noise_ppm": 50000,
+   "reference": [
+    400000000,
+    50000
+   ],
+   "expect": {
+    "n": 3,
+    "median_ns": 451000000,
+    "noise_ppm": 2218,
+    "step_p90_ppm": 0,
+    "session_drift_ppm": 4445,
+    "reference_drift_ppm": 127500,
+    "ok": false,
+    "reasons": [
+     "REFERENCE_DRIFT"
+    ]
+   }
+  },
+  {
+   "name": "reference_ok",
+   "probes": [
+    450000000,
+    451000000,
+    452000000
+   ],
+   "max_step_ppm": 20000,
+   "max_noise_ppm": 50000,
+   "reference": [
+    440000000,
+    50000
+   ],
+   "expect": {
+    "n": 3,
+    "median_ns": 451000000,
+    "noise_ppm": 2218,
+    "step_p90_ppm": 0,
+    "session_drift_ppm": 4445,
+    "reference_drift_ppm": 25000,
+    "ok": true,
+    "reasons": []
+   }
+  },
+  {
+   "name": "too_few",
+   "probes": [
+    450000000
+   ],
+   "max_step_ppm": 20000,
+   "max_noise_ppm": 50000,
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "name": "zero",
+   "probes": [
+    450000000,
+    0
+   ],
+   "max_step_ppm": 20000,
+   "max_noise_ppm": 50000,
+   "expect": {
+    "error": true
+   }
+  },
+  {
+   "name": "live_cpus0_7_noise_only",
+   "probes": [
+    575000000,
+    572000000,
+    551400000,
+    558700000,
+    580300000,
+    553800000,
+    555600000,
+    560900000,
+    535500000,
+    570700000,
+    578100000,
+    568200000,
+    570400000,
+    568400000,
+    556000000,
+    584000000,
+    552200000,
+    562200000,
+    562900000,
+    544000000,
+    535000000,
+    592000000,
+    553000000,
+    544500000,
+    543500000,
+    578000000,
+    529700000,
+    545000000,
+    574300000
+   ],
+   "max_step_ppm": 20000,
+   "max_noise_ppm": 50000,
+   "expect": {
+    "n": 29,
+    "median_ns": 560900000,
+    "noise_ppm": 19790,
+    "step_p90_ppm": 17472,
+    "session_drift_ppm": 1218,
+    "reference_drift_ppm": null,
+    "ok": true,
+    "reasons": []
+   }
+  },
+  {
+   "name": "two_probes",
+   "probes": [
+    450000000,
+    460000000
+   ],
+   "max_step_ppm": 20000,
+   "max_noise_ppm": 50000,
+   "expect": {
+    "n": 2,
+    "median_ns": 455000000,
+    "noise_ppm": 10990,
+    "step_p90_ppm": 22223,
+    "session_drift_ppm": 22223,
+    "reference_drift_ppm": null,
+    "ok": false,
+    "reasons": [
+     "CALIBRATION_STEP"
     ]
    }
   }

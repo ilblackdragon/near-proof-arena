@@ -259,10 +259,60 @@ COST_SCORE_CASES += [
     ("lower_quartile_even_runs", _PM_LQ, 0, 0, [_cr("a", 1_000_000, (100, 1_000, 10), [100, 100, 100, 100, 100, 100, 100, 100], [990, 2_000, 1_010, 3_000, 1_000, 5_000, 995, 4_000], [10] * 8)]),
 ]
 
+# bench-spec-v1.6: paired baseline control. The reference runs on the same batches; its runs
+# replace the pinned baseline (kept as a deliberately wrong value: it must not be used).
+def _pcr(cid, w, p, v, s, rp, rv, rs, bs=8):
+    return {**_cr(cid, w, (1, 1, 1), p, v, s), "batch_size": bs,
+            "paired": {"prove_runs_ns": rp, "verify_runs_ns": rv, "proof_bytes_runs": rs}}
+
+
+_PM_PAIRED = {**_PM_LQ}
+COST_SCORE_CASES += [
+    (
+        "paired_self_is_100",
+        _PM_PAIRED,
+        0,
+        0,
+        [_pcr("d0-quiet", 1_000_000, [7_000_000, 6_900_000, 7_100_000, 7_050_000], [880_000_000, 900_000_000, 870_000_000, 950_000_000],
+              [17_296] * 4, [7_000_000, 6_900_000, 7_100_000, 7_050_000], [880_000_000, 900_000_000, 870_000_000, 950_000_000], [17_296] * 4)],
+    ),
+    (
+        "paired_heavy_tailed_inputs",
+        _PM_PAIRED,
+        0,
+        0,
+        [
+            # the candidate drew two 320 ms chunks; so did the reference on the same batch
+            _pcr("d0-quiet", 400_000, [6_500_000, 6_600_000, 6_400_000, 6_700_000, 6_550_000], [700_000_000, 710_000_000, 690_000_000, 720_000_000, 705_000_000],
+                 [17_000] * 5, [7_100_000, 7_000_000, 7_200_000, 7_050_000, 7_150_000], [800_000_000, 815_000_000, 790_000_000, 830_000_000, 805_000_000], [17_296] * 5),
+            _pcr("d0-missing", 600_000, [6_900_000, 7_000_000, 6_950_000, 7_050_000, 6_980_000], [1_100_000_000, 1_150_000_000, 1_120_000_000, 1_090_000_000, 1_130_000_000],
+                 [34_000] * 5, [7_200_000, 7_100_000, 7_300_000, 7_250_000, 7_150_000], [1_113_000_000, 1_140_000_000, 1_120_000_000, 1_150_000_000, 1_125_000_000], [34_439] * 5),
+        ],
+    ),
+    ("paired_length_mismatch", _PM_PAIRED, 0, 0, [_pcr("a", 1_000_000, [1, 2], [1, 1], [1, 1], [1], [1, 1], [1, 1])]),
+]
+
 COST_BOOTSTRAP_CASES = [
     ("v1_6_shape", 4242, 300, COST_SCORE_CASES[1]),
     ("two_class_noisy", derive_seed("bootstrap", "sub_0123456789abcdef", "run_0123456789abcdef"), 500, COST_SCORE_CASES[2]),
-    ("lower_quartile_bimodal", 99, 400, COST_SCORE_CASES[-2]),
+    ("lower_quartile_bimodal", 99, 400, COST_SCORE_CASES[-5]),
+    ("paired_heavy_tailed", 7, 400, COST_SCORE_CASES[-2]),
+]
+
+# (name, probes in time order, max_step_ppm, max_noise_ppm, reference (ns, max_ppm) or None)
+CALIBRATION_PROBE_CASES = [
+    ("steady", [450_000_000, 451_000_000, 449_000_000, 452_000_000, 450_500_000, 451_500_000], 20_000, 50_000, None),
+    ("slow_drift_passes", [450_000_000 + 4_000_000 * i for i in range(12)], 20_000, 50_000, None),
+    ("one_step_between_rounds_passes", [450_000_000] * 5 + [480_000_000] * 5, 20_000, 50_000, None),
+    ("oscillating_fails_step", [450_000_000, 480_000_000] * 5, 20_000, 50_000, None),
+    ("noisy", [400_000_000, 500_000_000, 420_000_000, 480_000_000, 410_000_000, 490_000_000], 300_000, 50_000, None),
+    ("reference_drift", [450_000_000, 451_000_000, 452_000_000], 20_000, 50_000, (400_000_000, 50_000)),
+    ("reference_ok", [450_000_000, 451_000_000, 452_000_000], 20_000, 50_000, (440_000_000, 50_000)),
+    ("too_few", [450_000_000], 20_000, 50_000, None),
+    ("zero", [450_000_000, 0], 20_000, 50_000, None),
+    # live host, CPUs 0-7, 2026-10-06 18:10 UTC: 29 probes of 3 warm runs each (ms → ns)
+    ("live_cpus0_7_noise_only", [int(x * 1_000_000) for x in (575.0, 572.0, 551.4, 558.7, 580.3, 553.8, 555.6, 560.9, 535.5, 570.7, 578.1, 568.2, 570.4, 568.4, 556.0, 584.0, 552.2, 562.2, 562.9, 544.0, 535.0, 592.0, 553.0, 544.5, 543.5, 578.0, 529.7, 545.0, 574.3)], 20_000, 50_000, None),
+    ("two_probes", [450_000_000, 460_000_000], 20_000, 50_000, None),
 ]
 
 # (name, pinned {class: verify_ns}, control {class: [per-run verify totals]}, tolerance_ppm)
@@ -381,4 +431,22 @@ def generate_cost() -> dict:
         }
         out.append({"name": name, "pinned": pinned, "control_runs": control, "tolerance_ppm": tol, "verify_statistic": stat, "expect": exp})
     vec["verify_control"] = out
+    from .calibration import probe_verdict
+
+    out = []
+    for name, probes, step, noise, ref in CALIBRATION_PROBE_CASES:
+        case = {"name": name, "probes": probes, "max_step_ppm": step, "max_noise_ppm": noise}
+        if ref is not None:
+            case["reference"] = list(ref)
+        try:
+            r = probe_verdict(probes, step, noise, ref)
+            case["expect"] = {
+                "n": r.n, "median_ns": r.median_ns, "noise_ppm": r.noise_ppm, "step_p90_ppm": r.step_p90_ppm,
+                "session_drift_ppm": r.session_drift_ppm, "reference_drift_ppm": r.reference_drift_ppm,
+                "ok": r.ok, "reasons": list(r.reasons),
+            }
+        except ValueError:
+            case["expect"] = {"error": True}
+        out.append(case)
+    vec["calibration_probes"] = out
     return vec

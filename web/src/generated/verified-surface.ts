@@ -24,6 +24,7 @@ export interface VerifiedSurface {
   certificate_decl: string;
   challenge_id: string;
   checker_image: Digest;
+  declared_tier?: string | null;
   formal_tree: Digest;
   prepare_artifact: Digest;
   public_artifacts: Digest;

@@ -19,7 +19,7 @@ as the Rust implementation checks it.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Mapping, Sequence
+from typing import Mapping, Optional, Sequence
 
 from .score import ClassInput, ScoreError, score
 from .stats import SplitMix64, lower_quartile_u64, median_u64
@@ -129,6 +129,16 @@ def batch_cost(p: Prices, c: Components, prepare_ns: int, batch_size: int) -> Br
 
 
 @dataclass(frozen=True)
+class PairedRuns:
+    """bench-spec-v1.6 `baseline_mode = paired`: the reference's per-run totals
+    on the same batches (run i paired with candidate run i)."""
+
+    prove_runs_ns: tuple[int, ...]
+    verify_runs_ns: tuple[int, ...]
+    proof_bytes_runs: tuple[int, ...]
+
+
+@dataclass(frozen=True)
 class CostClassRuns:
     class_id: str
     weight_ppm: int
@@ -137,6 +147,7 @@ class CostClassRuns:
     prove_runs_ns: tuple[int, ...]
     verify_runs_ns: tuple[int, ...]
     proof_bytes_runs: tuple[int, ...]
+    paired: Optional[PairedRuns] = None
 
 
 @dataclass(frozen=True)
@@ -146,6 +157,7 @@ class CostClassResult:
     medians: Components
     cost: Breakdown
     baseline_total_fusd: int
+    baseline: Components
 
 
 @dataclass(frozen=True)
@@ -153,6 +165,7 @@ class CostScore:
     score_milli: int
     score_f64: float
     classes: tuple[CostClassResult, ...]
+    paired: bool = False
 
 
 def _check_runs(c: CostClassRuns) -> int:
@@ -161,11 +174,24 @@ def _check_runs(c: CostClassRuns) -> int:
         raise CostError("NO_RUNS", c.class_id)
     if len(c.verify_runs_ns) != n or len(c.proof_bytes_runs) != n:
         raise CostError("RUN_LENGTH_MISMATCH", c.class_id)
+    r = c.paired
+    if r is not None and not (len(r.prove_runs_ns) == len(r.verify_runs_ns) == len(r.proof_bytes_runs) == n):
+        raise CostError("RUN_LENGTH_MISMATCH", c.class_id)
     return n
 
 
+def _stats(p: Prices, prove, verify, bytes_) -> Components:
+    return Components(median_u64(prove), verify_stat(p.verify_statistic, verify), median_u64(bytes_))
+
+
 def _medians(p: Prices, c: CostClassRuns) -> Components:
-    return Components(median_u64(c.prove_runs_ns), verify_stat(p.verify_statistic, c.verify_runs_ns), median_u64(c.proof_bytes_runs))
+    return _stats(p, c.prove_runs_ns, c.verify_runs_ns, c.proof_bytes_runs)
+
+
+def _baseline(p: Prices, c: CostClassRuns) -> Components:
+    """Paired runs' statistics (same rules as the candidate's), or the pinned baseline."""
+    r = c.paired
+    return c.baseline if r is None else _stats(p, r.prove_runs_ns, r.verify_runs_ns, r.proof_bytes_runs)
 
 
 def cost_score(p: Prices, classes: Sequence[CostClassRuns], prepare_ns: int = 0, baseline_prepare_ns: int = 0) -> CostScore:
@@ -174,11 +200,13 @@ def cost_score(p: Prices, classes: Sequence[CostClassRuns], prepare_ns: int = 0,
         _check_runs(c)
         m = _medians(p, c)
         cost = batch_cost(p, m, prepare_ns, c.batch_size)
-        base = batch_cost(p, c.baseline, baseline_prepare_ns, c.batch_size).total_fusd
+        bc = _baseline(p, c)
+        base = batch_cost(p, bc, baseline_prepare_ns, c.batch_size).total_fusd
         inputs.append(ClassInput(c.class_id, c.weight_ppm, base, cost.total_fusd))
-        out.append(CostClassResult(c.class_id, c.weight_ppm, m, cost, base))
+        out.append(CostClassResult(c.class_id, c.weight_ppm, m, cost, base, bc))
     s = score(inputs)
-    return CostScore(s.score_milli, s.score_f64, tuple(out))
+    paired = bool(classes) and all(c.paired is not None for c in classes)
+    return CostScore(s.score_milli, s.score_f64, tuple(out), paired)
 
 
 @dataclass(frozen=True)
@@ -204,7 +232,7 @@ def cost_bootstrap(
         raise ValueError("iterations must be >= 1")
     point = cost_score(p, classes, prepare_ns, baseline_prepare_ns)
     ordered = sorted(classes, key=lambda c: c.class_id.encode("utf-8"))
-    bases = [batch_cost(p, c.baseline, baseline_prepare_ns, c.batch_size).total_fusd for c in ordered]
+    bases = [batch_cost(p, _baseline(p, c), baseline_prepare_ns, c.batch_size).total_fusd for c in ordered]
     rng = SplitMix64(seed)
     xs = []
     for _ in range(iterations):
@@ -217,6 +245,10 @@ def cost_bootstrap(
                 verify_stat(p.verify_statistic, [c.verify_runs_ns[i] for i in idx]),
                 median_u64([c.proof_bytes_runs[i] for i in idx]),
             )
+            r = c.paired
+            if r is not None:  # the same draw resamples the reference's run i
+                rb = _stats(p, [r.prove_runs_ns[i] for i in idx], [r.verify_runs_ns[i] for i in idx], [r.proof_bytes_runs[i] for i in idx])
+                base = batch_cost(p, rb, baseline_prepare_ns, c.batch_size).total_fusd
             inputs.append(ClassInput(c.class_id, c.weight_ppm, base, batch_cost(p, m, prepare_ns, c.batch_size).total_fusd))
         xs.append(score(inputs).score_milli)
     xs.sort()
@@ -236,6 +268,9 @@ def class_runs_from_json(objs) -> list[CostClassRuns]:
             tuple(o["prove_runs_ns"]),
             tuple(o["verify_runs_ns"]),
             tuple(o["proof_bytes_runs"]),
+            PairedRuns(tuple(o["paired"]["prove_runs_ns"]), tuple(o["paired"]["verify_runs_ns"]), tuple(o["paired"]["proof_bytes_runs"]))
+            if o.get("paired")
+            else None,
         )
         for o in objs
     ]

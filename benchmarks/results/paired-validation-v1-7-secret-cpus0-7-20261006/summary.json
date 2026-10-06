@@ -1,0 +1,873 @@
+{
+ "schema": "arena-baseline-summary-v1",
+ "status": "DEV-HOST MEASUREMENT \u2014 not governed hardware, not an official number",
+ "challenge_id": "chl_75d6ee37f7c215f9e310bd972adb58ef",
+ "invocation_mode": "vm_per_batch",
+ "challenge_name": "near-transfer-receipt-v1-7-paired-validation",
+ "suite_revision": "near-transfer-receipt-v1-r1",
+ "hardware_profile_of_challenge": {
+  "id": "nearproof-local-ryzen9-9950x3d",
+  "cpu_model": "AMD Ryzen 9 9950X3D 16-Core Processor (local operator host; 8 vCPUs pinned per run)",
+  "vcpus": 8,
+  "ram_bytes": 34359738368,
+  "gpu": null
+ },
+ "measured_on": "dev-host:dev-illia-32c (NOT nearproof-local-ryzen9-9950x3d governed)",
+ "host_warnings": [
+  "GOVERNOR_NOT_PERFORMANCE: ['powersave']",
+  "TURBO_NOT_DISABLED",
+  "SMT_ACTIVE",
+  "NO_ISOLCPUS"
+ ],
+ "started_at": "2026-10-06T18:13:46+00:00",
+ "finished_at": "2026-10-06T18:28:35+00:00",
+ "reference_candidate": {
+  "package_dir": "examples/reexec-witness-fast",
+  "git_tree": "d15095a74533f553b8f0023567f02a7865735e73",
+  "package_digest": "sha256:84cf8e16b4e4dd8892c3fc8d52ba77dd1947b8bf930bceb322894f5b85240c71",
+  "entry_digests": {
+   "prepare": "sha256:fffa46d5dd6eaa26037dc8a3c39b3ebea327383edb426d15e9a807cef9f94339",
+   "prove": "sha256:fa2a16931fb0c624089ff4f6455126364bf0356d0351ae71467fe9c51cfa5af9",
+   "verify": "sha256:9093c6341f2d2c6894434467d4ff03ff6bdce6d34dc6340d2f992f57635e4b0a"
+  },
+  "bundle_tree_digest": "sha256:9050bfeac957d3f0ada9bfa06487b1dbb1ba8e411e3a94d4d907fb47a84a4637"
+ },
+ "sandbox": {
+  "backend": "firecracker",
+  "steps_share_instance": true,
+  "rootfs": "sha256:bb60e9328af180b61f0a64694e368b2b56ed7d85e2b1cbd6d6c5ed93906f2960",
+  "kernel": "sha256:e20e46d0c36c55c0d1014eb20576171b3f3d922260d9f792017aeff53af3d4f2"
+ },
+ "cpus": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7
+ ],
+ "procedure": {
+  "warmup_runs": 3,
+  "measured_runs": 25,
+  "aggregation": "median",
+  "outlier_mad_k": 5,
+  "cold_runs": 1,
+  "concurrency": 1,
+  "per_run_timeout_ms": 600000,
+  "invocation_mode": "vm_per_batch",
+  "calibration": {
+   "workload": "arena-calibrate-v1",
+   "binary_digest": "sha256:d434077860be66ff66d849dc58595134bbaad882c0761437d988551baeb65e37",
+   "expected_checksum": "87a7f539b09c4e7b",
+   "threads": 8,
+   "steps_per_probe": 5,
+   "edge_probes": 2,
+   "max_step_ppm": 20000,
+   "max_noise_ppm": 50000
+  }
+ },
+ "sampling": {
+  "rule": "worker NearOracle, judge-secret: seed = first 8 bytes BE of HMAC-SHA256(season_secret, \"near-arena-workload-sample-v1|\" + challenge_id + \"|\" + package_digest + \"|\" + class_id) (BENCHMARK_SPEC \u00a711.1); fresh-confirm uses class_id#fresh",
+  "seed_parts": [
+   "chl_75d6ee37f7c215f9e310bd972adb58ef",
+   "sha256:84cf8e16b4e4dd8892c3fc8d52ba77dd1947b8bf930bceb322894f5b85240c71"
+  ],
+  "season_secret_commitment": "sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d",
+  "generators": {
+   "batch-1": {
+    "spec": "spec/workloads/near-transfer-receipt-v1/batch-1.json",
+    "digest": "sha256:1a6e9c6450d36dd8c84086db75ac1657621d63735695aa06d33acd0b451ef371"
+   },
+   "batch-16": {
+    "spec": "spec/workloads/near-transfer-receipt-v1/batch-16.json",
+    "digest": "sha256:c8ad786e71e309a9fde2cb186c623c3592753b52f54ed0a0e5f6603b2389934e"
+   },
+   "batch-256": {
+    "spec": "spec/workloads/near-transfer-receipt-v1/batch-256.json",
+    "digest": "sha256:290802b219e3cf257590e9dd471487e85eaa702477da5b74a53adcf71ddf5ff8"
+   }
+  },
+  "oracle_nearcore_pin": [
+   "repo=https://github.com/near/nearcore",
+   "tag=2.13.4",
+   "commit=44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+   "protocol_version=86"
+  ],
+  "note": "judge-secret HMAC sampling (season secret commitment sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d), as the live workers sample"
+ },
+ "schedule_seed": 4996600776763876055,
+ "gates": {
+  "BENCHMARK": {
+   "status": "PASS",
+   "summary": "judge-secret HMAC sampling (season secret commitment sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d); paired baseline control: reference sub_reference (run run_reference, package sha256:233924e8858d7dc0931962833877aeb50452c6f4fb904d156cc11a5dcb783b30) runs the same batches; session 1 calibration probes (ms): 561.5 551.8 572.0 548.1 548.4 566.2 587.0 555.3 563.2 551.1 566.1 549.4 560.6 548.7 540.2 565.1 572.4 567.6 546.3 570.1 549.4 562.6 564.2 565.1 546.1 567.0 573.5 565.2 557.8; session 1 calibration: 29 probes, median 562558 us, step p90 23997 ppm, noise 13337 ppm, session drift 6591 ppm \u2014 CALIBRATION_STEP; session 1 discarded (calibration); re-measured; session 2 calibration probes (ms): 564.9 555.7 562.3 554.8 561.4 569.9 541.7 558.6 557.5 552.7 554.5 548.7 572.1 554.5 566.0 566.3 573.8 557.8 552.7 550.3 534.8 554.6 558.3 564.5 567.4 563.1 579.2 559.6 557.0; session 2 calibration: 29 probes, median 558275 us, step p90 11150 ppm, noise 10033 ppm, session drift 13925 ppm; batch-1: median 5426 us, MAD 348 us, verify median 4876 us, max proof 1222 B; batch-16: median 5658 us, MAD 505 us, verify median 17012 us, max proof 8937 B; batch-256: median 8981 us, MAD 461 us, verify median 172216 us, max proof 71581 B; cost_v1 (pm-near-mainnet-2026q4@v2, N_v=50, verify on 8 vCPUs): score 100814 \u00b1 829 milli; worker-side score 113908 \u00b1 4058 milli (server recomputes)",
+   "reason_codes": []
+  }
+ },
+ "flags": [],
+ "calibration": {
+  "workload": "head -c 268435456 /dev/zero | sha256sum",
+  "pre_ns": [
+   448241359,
+   437142604,
+   425825841,
+   424173978,
+   424425251
+  ],
+  "post_ns": [
+   429871568,
+   433216945,
+   439944733,
+   437786376,
+   429838859
+  ],
+  "pre_median_ns": 425825841,
+  "post_median_ns": 433216945,
+  "session_drift_ppm": 17358,
+  "pre_mad_ppm": 3880,
+  "post_mad_ppm": 7798,
+  "ok": true,
+  "reasons": [],
+  "note": "stand-in calibration workload; no governed reference median exists for this host"
+ },
+ "loadavg": [
+  {
+   "at": "start",
+   "loadavg": "2.10 3.99 5.85 3/3101 240270"
+  },
+  {
+   "at": "after_calibration_pre",
+   "loadavg": "2.01 3.94 5.83 4/3097 240895"
+  },
+  {
+   "at": "after_session",
+   "loadavg": "4.56 4.08 4.81 2/3044 351700"
+  },
+  {
+   "at": "after_calibration_post",
+   "loadavg": "4.51 4.08 4.81 3/3058 352301"
+  }
+ ],
+ "session_wall_secs": 880,
+ "prepare_ns": 6846198,
+ "native_verifier": "sha256:9093c6341f2d2c6894434467d4ff03ff6bdce6d34dc6340d2f992f57635e4b0a",
+ "fc_deps": "/data/illia/nearproof-deps/firecracker-rc",
+ "classes": [
+  {
+   "class_id": "batch-1",
+   "weight_ppm": 200000,
+   "median_ns": 5426653,
+   "mad_ns": 348330,
+   "min_ns": 4402428,
+   "max_ns": 6202026,
+   "measured_runs": 25,
+   "cold_ns": 183138451,
+   "fresh_ns": [
+    5373779
+   ],
+   "verify_median_ns": 4876186,
+   "proof_bytes_max": 1222,
+   "verify_runs_ns": [
+    36292952,
+    37598561,
+    38572600,
+    36635078,
+    38913954,
+    38506628,
+    39280057,
+    37909494,
+    36044641,
+    36392047,
+    39848354,
+    38621368,
+    35883802,
+    38387997,
+    39792191,
+    36450551,
+    38760634,
+    40522626,
+    36846035,
+    38494319,
+    39940552,
+    38603860,
+    36581748,
+    36746001,
+    40654600
+   ],
+   "proof_bytes_runs": [
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181
+   ],
+   "verify_run_median_ns": 38494319,
+   "verify_stat_ns": 36635078,
+   "ref_runs_ns": [
+    5801067,
+    6525666,
+    6117562,
+    7150375,
+    6473591,
+    6918011,
+    6146757,
+    6841352,
+    5737903,
+    6737050,
+    6624056,
+    6385642,
+    5951234,
+    6596991,
+    6710003,
+    5694505,
+    5803318,
+    6986831,
+    6680281,
+    6118950,
+    6970045,
+    7026420,
+    5531619,
+    6050437,
+    5920149
+   ],
+   "ref_verify_runs_ns": [
+    37569115,
+    39523320,
+    37396886,
+    39561580,
+    40121418,
+    36823298,
+    40269159,
+    38423118,
+    36316934,
+    37755003,
+    39255284,
+    39364280,
+    38665204,
+    37486777,
+    36834124,
+    38701350,
+    37942257,
+    39522287,
+    37663968,
+    36033228,
+    40134477,
+    36596573,
+    37367568,
+    37858431,
+    38822521
+   ],
+   "ref_proof_bytes_runs": [
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181,
+    6181
+   ],
+   "proof_bytes_run_median": 6181,
+   "peak_rss_bytes": 447148032,
+   "outliers": {
+    "median_ns": 5426653,
+    "mad_ns": 348330,
+    "k": 5,
+    "flagged_indices": [],
+    "flagged_ppm": 0,
+    "excessive": false,
+    "notes": []
+   },
+   "tripwire": {
+    "suspected": false,
+    "measured_median_ns": 5426653,
+    "fresh_median_ns": 5373779,
+    "slowdown_ppm": 0
+   }
+  },
+  {
+   "class_id": "batch-16",
+   "weight_ppm": 300000,
+   "median_ns": 5658271,
+   "mad_ns": 505318,
+   "min_ns": 4373572,
+   "max_ns": 6882599,
+   "measured_runs": 25,
+   "cold_ns": 228446372,
+   "fresh_ns": [
+    5498925
+   ],
+   "verify_median_ns": 17012635,
+   "proof_bytes_max": 8937,
+   "verify_runs_ns": [
+    152597176,
+    161748560,
+    138642209,
+    164874409,
+    133959815,
+    137409873,
+    160672899,
+    169548010,
+    160209778,
+    138456442,
+    134014806,
+    134329796,
+    160431124,
+    134949838,
+    164852681,
+    140898602,
+    136044629,
+    136932126,
+    157519426,
+    136570139,
+    136381323,
+    137164620,
+    141286883,
+    139370570,
+    138758353
+   ],
+   "proof_bytes_runs": [
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478
+   ],
+   "verify_run_median_ns": 138758353,
+   "verify_stat_ns": 136570139,
+   "ref_runs_ns": [
+    5943246,
+    6522290,
+    7676353,
+    7361464,
+    6078795,
+    6102489,
+    7069324,
+    5887468,
+    6710853,
+    6486006,
+    6540457,
+    7506149,
+    6544561,
+    6106214,
+    7411268,
+    6252297,
+    5648414,
+    6850614,
+    7013288,
+    6022747,
+    5895198,
+    7178076,
+    6815911,
+    7171822,
+    7189914
+   ],
+   "ref_verify_runs_ns": [
+    165572236,
+    142612197,
+    137252502,
+    137142149,
+    161406256,
+    136977528,
+    139427045,
+    138616305,
+    139212519,
+    166509743,
+    158769147,
+    163589946,
+    137280017,
+    166088516,
+    138713329,
+    136842324,
+    148772582,
+    138180082,
+    166343439,
+    137052113,
+    135250649,
+    165636418,
+    134400907,
+    137386320,
+    160610821
+   ],
+   "ref_proof_bytes_runs": [
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478,
+    46478
+   ],
+   "proof_bytes_run_median": 46478,
+   "peak_rss_bytes": 446947328,
+   "outliers": {
+    "median_ns": 5658271,
+    "mad_ns": 505318,
+    "k": 5,
+    "flagged_indices": [],
+    "flagged_ppm": 0,
+    "excessive": false,
+    "notes": []
+   },
+   "tripwire": {
+    "suspected": false,
+    "measured_median_ns": 5658271,
+    "fresh_median_ns": 5498925,
+    "slowdown_ppm": 0
+   }
+  },
+  {
+   "class_id": "batch-256",
+   "weight_ppm": 500000,
+   "median_ns": 8981340,
+   "mad_ns": 461859,
+   "min_ns": 6851027,
+   "max_ns": 9747872,
+   "measured_runs": 25,
+   "cold_ns": 181978327,
+   "fresh_ns": [
+    9060815
+   ],
+   "verify_median_ns": 172216220,
+   "proof_bytes_max": 71581,
+   "verify_runs_ns": [
+    1354157518,
+    1390951447,
+    1396069157,
+    1385646250,
+    1375936661,
+    1394689639,
+    1404827305,
+    1412260211,
+    1422727762,
+    1380106840,
+    1383357403,
+    1382666988,
+    1447636541,
+    1393060266,
+    1373197143,
+    1410023694,
+    1385437202,
+    1419153560,
+    1389298187,
+    1426807387,
+    1331570542,
+    1399657071,
+    1401703727,
+    1409610305,
+    1398709761
+   ],
+   "proof_bytes_runs": [
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380
+   ],
+   "verify_run_median_ns": 1394689639,
+   "verify_stat_ns": 1383357403,
+   "ref_runs_ns": [
+    10346760,
+    10331680,
+    9937851,
+    9325981,
+    10701668,
+    9405543,
+    10143658,
+    11112564,
+    10443068,
+    8477820,
+    8252052,
+    8780738,
+    10989982,
+    8964442,
+    10236733,
+    9069767,
+    8525147,
+    8973431,
+    9491569,
+    9372680,
+    8062585,
+    10950104,
+    9986736,
+    11037947,
+    10726798
+   ],
+   "ref_verify_runs_ns": [
+    1367028344,
+    1448170486,
+    1421868120,
+    1424247898,
+    1511168406,
+    1398258057,
+    1441459196,
+    1447991501,
+    1449152744,
+    1400083596,
+    1403620346,
+    1416011206,
+    1384953552,
+    1395181165,
+    1410106678,
+    1426725735,
+    1347387823,
+    1372485404,
+    1433997443,
+    1421007203,
+    1459710591,
+    1360673729,
+    1423675313,
+    1431877064,
+    1410257615
+   ],
+   "ref_proof_bytes_runs": [
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380,
+    502380
+   ],
+   "proof_bytes_run_median": 502380,
+   "peak_rss_bytes": 447864832,
+   "outliers": {
+    "median_ns": 8981340,
+    "mad_ns": 461859,
+    "k": 5,
+    "flagged_indices": [],
+    "flagged_ppm": 0,
+    "excessive": false,
+    "notes": []
+   },
+   "tripwire": {
+    "suspected": false,
+    "measured_median_ns": 8981340,
+    "fresh_median_ns": 9060815,
+    "slowdown_ppm": 8848
+   }
+  }
+ ],
+ "baseline_ns": [
+  [
+   "batch-1",
+   5426653
+  ],
+  [
+   "batch-16",
+   5658271
+  ],
+  [
+   "batch-256",
+   8981340
+  ]
+ ],
+ "package_rev": "13ee13c6f435e09bc5815b437d3f9f528be20c0a",
+ "package_is_challenge_baseline_submission": false,
+ "cost_baseline": [
+  {
+   "class_id": "batch-1",
+   "prove_ns": 5426653,
+   "verify_ns": 36635078,
+   "proof_bytes": 6181
+  },
+  {
+   "class_id": "batch-16",
+   "prove_ns": 5658271,
+   "verify_ns": 136570139,
+   "proof_bytes": 46478
+  },
+  {
+   "class_id": "batch-256",
+   "prove_ns": 8981340,
+   "verify_ns": 1383357403,
+   "proof_bytes": 502380
+  }
+ ],
+ "verify_statistic": "lower_quartile",
+ "calibration_probes": [
+  {
+   "at": "pre",
+   "wall_ns": 564910298
+  },
+  {
+   "at": "pre",
+   "wall_ns": 555746391
+  },
+  {
+   "at": {
+    "round": 0
+   },
+   "wall_ns": 562332461
+  },
+  {
+   "at": {
+    "round": 1
+   },
+   "wall_ns": 554839694
+  },
+  {
+   "at": {
+    "round": 2
+   },
+   "wall_ns": 561362335
+  },
+  {
+   "at": {
+    "round": 3
+   },
+   "wall_ns": 569901402
+  },
+  {
+   "at": {
+    "round": 4
+   },
+   "wall_ns": 541665149
+  },
+  {
+   "at": {
+    "round": 5
+   },
+   "wall_ns": 558640876
+  },
+  {
+   "at": {
+    "round": 6
+   },
+   "wall_ns": 557499861
+  },
+  {
+   "at": {
+    "round": 7
+   },
+   "wall_ns": 552671199
+  },
+  {
+   "at": {
+    "round": 8
+   },
+   "wall_ns": 554525619
+  },
+  {
+   "at": {
+    "round": 9
+   },
+   "wall_ns": 548733817
+  },
+  {
+   "at": {
+    "round": 10
+   },
+   "wall_ns": 572085912
+  },
+  {
+   "at": {
+    "round": 11
+   },
+   "wall_ns": 554521450
+  },
+  {
+   "at": {
+    "round": 12
+   },
+   "wall_ns": 566027521
+  },
+  {
+   "at": {
+    "round": 13
+   },
+   "wall_ns": 566280741
+  },
+  {
+   "at": {
+    "round": 14
+   },
+   "wall_ns": 573841199
+  },
+  {
+   "at": {
+    "round": 15
+   },
+   "wall_ns": 557822776
+  },
+  {
+   "at": {
+    "round": 16
+   },
+   "wall_ns": 552674516
+  },
+  {
+   "at": {
+    "round": 17
+   },
+   "wall_ns": 550291031
+  },
+  {
+   "at": {
+    "round": 18
+   },
+   "wall_ns": 534804082
+  },
+  {
+   "at": {
+    "round": 19
+   },
+   "wall_ns": 554645362
+  },
+  {
+   "at": {
+    "round": 20
+   },
+   "wall_ns": 558275287
+  },
+  {
+   "at": {
+    "round": 21
+   },
+   "wall_ns": 564499860
+  },
+  {
+   "at": {
+    "round": 22
+   },
+   "wall_ns": 567437246
+  },
+  {
+   "at": {
+    "round": 23
+   },
+   "wall_ns": 563138111
+  },
+  {
+   "at": {
+    "round": 24
+   },
+   "wall_ns": 579241109
+  },
+  {
+   "at": "post",
+   "wall_ns": 559562990
+  },
+  {
+   "at": "post",
+   "wall_ns": 557044151
+  }
+ ],
+ "calibration_median_ns": 431544256,
+ "verify_control": [],
+ "score_note": "the measured challenge has no baseline: the session is measured, not scored. Against these medians the reference scores exactly 100.000 by construction."
+}

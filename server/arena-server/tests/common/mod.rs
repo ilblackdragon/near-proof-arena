@@ -389,6 +389,7 @@ pub fn challenge_def(tier: Tier, name: &str) -> ChallengeDefinition {
             concurrency: 1,
             per_run_timeout_ms: 60_000,
             invocation_mode: None,
+            calibration: None,
         },
         resource_limits: ResourceLimits {
             max_proof_bytes: 1 << 20,

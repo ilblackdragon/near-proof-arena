@@ -67,6 +67,8 @@ pub struct WorkerConfig {
     pub npai_verify: Option<PathBuf>,
     /// Lean reference interpreter for npai shadow checks.
     pub interp_ref: Option<PathBuf>,
+    /// Pinned calibration binary (`ARENA_CALIBRATION_BIN`, §6.1).
+    pub calibration_bin: Option<PathBuf>,
     /// `near-arena-oracle` binary + workload generator specs dirs (NEAR
     /// oracles v1 and v2; `ARENA_WORKLOAD_GENERATORS`, comma-separated).
     pub near_oracle: Option<PathBuf>,
@@ -355,6 +357,7 @@ impl WorkerConfig {
                 p.is_file().then_some(p)
             }),
             interp_ref: s.get("ARENA_INTERP_REF").map(PathBuf::from),
+            calibration_bin: s.get("ARENA_CALIBRATION_BIN").map(PathBuf::from),
             near_oracle: s.get("ARENA_NEAR_ORACLE").map(PathBuf::from),
             near_oracle_v3: s.get("ARENA_NEAR_ORACLE_V3").map(PathBuf::from),
             workload_generators: dir_list(s.get("ARENA_WORKLOAD_GENERATORS")),

@@ -293,14 +293,125 @@ charged to the candidate, never a `FAIL`), and re-run, bounded by the
 contract's 3 infra retries (then `INFRA_ERROR`). Repeated reference drift
 takes the host out of the governed pool until re-admitted.
 
+#### 6.1.1 The pinned binary and in-session probes (bench-spec-v1.6, contracts v1.8)
+
+Before v1.6 the live worker scheduled no calibration (`calibration_runs = 0`). The
+baseline tooling used a stand-in, `sha256sum` of 256 MiB from a shell pipe, checked
+pre against post. On the shared host that stand-in tripped `SESSION_DRIFT` in most long
+sessions: the d0-2 reference needed four attempts (§14.8), because the host state
+moves on a timescale of minutes. v1.6 replaces both pieces.
+
+* **The binary.** `arena-calibrate` (`runners/calibrate`, workload `arena-calibrate-v1`)
+  is a static musl executable doing fixed work on every thread:
+  - chained SHA-256 over 1 MiB, 128 times;
+  - 48 NTTs of size 2^16 over the Goldilocks field;
+  - 2^23 dependent loads through a 16 MiB random cycle.
+
+  With 8 threads the working set exceeds the 96 MiB L3, so memory-bandwidth contention
+  from other tenants shows up in the probe. The process prints `arena-calibrate-v1
+  <checksum>`, and the judge requires the pinned checksum, so a wrong value is INFRA.
+  `runners/calibrate/build-pinned.sh` reproduces the build bit for bit (rustc 1.96.0,
+  remapped paths). Binary `sha256:d434077860be66ff66d849dc58595134bbaad882c0761437d988551baeb65e37`,
+  checksum `87a7f539b09c4e7b`.
+* **The pin.** `measurement.calibration` holds the workload, the binary digest, the
+  expected checksum, `threads` (= benchmark vCPUs), `steps_per_probe`, `edge_probes`,
+  `max_step_ppm` and `max_noise_ppm`, plus optionally `reference_median_ns` and
+  `max_reference_drift_ppm` (host admission). The worker runs `ARENA_CALIBRATION_BIN` only if its sha256 equals
+  the pin; otherwise it fails closed with INFRA.
+* **Probes.** One probe is one sandbox instance on the benchmark CPUs. It runs the binary
+  once untimed (warm-up), then `steps_per_probe` timed times, exactly like a
+  `vm_per_batch` request, and the probe is the median of the timed runs. A first
+  version timed a fresh microVM per probe, VM boot included, and failed the step gate
+  in 3 of 3 sessions. A session takes `edge_probes` probes before, one at the start of
+  every measured round, and `edge_probes` after (`SessionResult.calibration`).
+* **Gate.** `arena_measure::stats::probe_verdict` = `arena_bench.calibration.probe_verdict`
+  (vectors `cost.json` → `calibration_probes`):
+
+| check | rule | default | on failure |
+|---|---|---|---|
+| step | order statistic ⌊(m−1)·9/10⌋ of the m sorted `drift_ppm(q[i−1], q[i])`, q = rolling medians of 3 consecutive probes | 20 000 ppm | `CALIBRATION_STEP` |
+| noise | `MAD/median` over all probes | 50 000 ppm | `CALIBRATION_NOISY` |
+| host | `|median − ref| / ref`, if pinned | 50 000 ppm | `REFERENCE_DRIFT` |
+| session drift | first vs last probe | reported only | — |
+
+**Why rolling medians.** On the live benchmark CPUs a probe of the 8-thread workload
+has about 2% noise of its own (MAD/median 19 759 ppm over 29 probes, 2026-10-06 18:10
+UTC). The raw consecutive steps then reach a p90 of 65 834 ppm with no host change at
+all. Over rolling medians of 3 the p90 is 17 472 ppm (vector
+`live_cpus0_7_noise_only`). A real host step persists over several rounds and still
+shows; a single noisy probe does not.
+
+**Why a step gate and not a start-vs-end gate.** With the paired control (§6.2), every
+score ratio is formed between two runs on the same batch taken seconds apart. A host
+change slower than one round shifts the candidate and the reference alike and cancels
+out. A drift gate on the session's ends would therefore discard valid sessions, which
+is what happened to d0-2. What does corrupt a ratio is instability inside a round, and
+the step gate catches it when it happens repeatedly: one step between rounds passes,
+an oscillating host fails. Gross noise is caught by the noise gate. A failed gate
+discards the session as INFRA and re-runs it, up to 3 sessions per job.
+
 ### 6.2 Paired baseline control
 
-In every session the challenge's baseline submission is run on the **same
-sampled batches** as the candidate. If the control median deviates from the
-frozen `workload_suite.baseline_ns` by more than 30 000 ppm, the session is
-infra-invalid (input variance or host drift detected). The score still uses
-the frozen `baseline_ns` (contract §7) so scores are comparable across
-sessions; the control only gates validity and is reported.
+**Specified in v1.0, implemented in bench-spec-v1.6 (contracts v1.8) for `cost_v1`
+with `scoring.baseline_mode = paired`.** The original rule compared the control's median
+with the frozen `baseline_ns`. That rule cannot work: each candidate's batches are sampled
+for its own package (§11.1), so the frozen baseline was measured on other inputs. Verify
+time in particular varies by more than 20× from chunk to chunk: in a d0-quiet batch, two of
+eight chunks take ~320 ms and the rest 12–68 ms. In 2026-10-06 sessions, one reference
+on one class measured 632 ms or 913 ms per batch depending only on which batch was drawn
+(§14.8). v1.6 therefore **prices the reference on the candidate's own batches**:
+
+* **Who the reference is.** The reference is the challenge's `baseline_submission`
+  package, as built and admitted on the challenge: the latest ADMITTED, unrevoked run of
+  a submission with that package digest. The control plane attaches its BuildOutputs
+  to the BENCHMARK job (`ExecJob.reference`). When the candidate *is* the reference, it
+  is paired with itself. Until the reference is admitted, a run is measured and
+  speed-scored, and its cost is not computed (noted in the gate).
+* **How it is measured.** In every warm-up and measured round, the reference runs on
+  the **same batch** as the candidate, right before or right after it, on the same CPUs
+  and in the same sandbox kind. The order is decided by a seeded coin per (class,
+  phase, round), so neither side always runs first. Cold and fresh-confirm runs belong
+  to the candidate only. The reference's per-run totals are reported as
+  `ClassMeasurement.ref_runs_ns`, `ref_verify_runs_ns` and `ref_proof_bytes_runs`.
+* **Failures.** A reference failure (wrong claim, rejected proof, timeout, sandbox
+  violation) is INFRA and never charged to the candidate: the reference is admitted,
+  so the judge or the host is at fault.
+* **How it is scored (§14.3).** `C_base,j` uses the statistics of the paired runs: median
+  P, the challenge's verify statistic for V, and median S, under the same price model.
+  The bootstrap draws the run index once and resamples the candidate run and its paired
+  reference run together. The pinned `cost_baseline` stays in the challenge as the
+  documented reference profile and is reported. It is never priced in paired mode.
+* **Cost.** Each scored round runs the reference too, so the session takes about 2×
+  as long. That is the price of comparing like with like on heavy-tailed inputs.
+* **Speed board.** The speed score (§8) is unchanged and uses the frozen `baseline_ns`.
+  The paired prove times are reported. Moving the speed board to paired ratios is a
+  separate, versioned decision.
+
+**Validation (2026-10-06, live CPUs 0-7, `benchmarks/results/paired-validation-v1-7-secret-cpus0-7-20261006/`).**
+The setup:
+
+* the unsigned draft `challenges/drafts/near-transfer-receipt-v1-7-paired-validation.measure.json`
+  (v1-7 + `baseline_mode: paired` + calibration with 5 steps per probe);
+* candidate `examples/reexec-witness-fast` (PROVER_ONLY child, same verifier), paired with
+  `examples/reexec-witness` on the same batches;
+* judge-secret sampling, through the worker's BENCHMARK stage.
+
+Results:
+
+* **Calibration.** Session 1 was discarded by the gate (step p90 23 997 ppm). Session 2
+  passed: 29 probes, step p90 11 150 ppm, noise 10 033 ppm, and session drift 13 925 ppm,
+  which is reported only.
+* **Paired cost.** **100.814 ± 0.829**, the expected ≈ 100 for a prover-only child
+  against its own verifier. Per class, the lower-quartile verify of candidate and
+  reference was 36.6 vs 37.4 ms (batch-1), 136.6 vs 137.3 ms (batch-16) and 1383 vs
+  1398 ms (batch-256), with identical proof bytes.
+* **Comparison with frozen mode.** The same entry's live v1-7 frozen-mode cost score is
+  93.609 ± 1.055. The 6.4-point gap is host and input drift against a reference measured
+  hours earlier on other batches, which the paired control removes.
+* **Speed** (frozen `baseline_ns`) is 113.908.
+* **Failed earlier attempts.** Two earlier validation windows each failed the gate in
+  3 of 3 sessions. In one, every probe booted a fresh VM; in the other, the step gate
+  used raw probes. Both led to the fixes in §6.1.1.
 
 ---
 
@@ -651,6 +762,10 @@ unchanged.
 the per-run verify totals by their lower quartile instead of their median
 (§14.3, rationale in §14.4.1). Absent means `median`, so every v1.2/v1.3 result
 and vector is unchanged.
+**bench-spec-v1.6** (contracts v1.8, additive) implements the paired baseline control
+(§6.2, `scoring.baseline_mode = paired`) and the pinned calibration binary with
+in-session probes (§6.1.1, `measurement.calibration`), and fixes the cost rule for
+coverage tiers (§14.12). Absent fields mean the v1.5 behaviour; ids and vectors are unchanged.
 
 ### 14.2 Model: per-chunk system cost
 
@@ -1239,6 +1354,29 @@ per-chunk model above is the S = 1, N_v = 50 slice of it.
   remain the S = 1 calibration points of the extended model.
 
 ---
+
+### 14.12 Cost with coverage tiers (bench-spec-v1.6; `near-chunk-v3`, with §17 and CONTRACTS §11)
+
+Agreed with the D3 lane, which owns coverage (§17, contracts v1.7). The cost model adds
+no coverage fields of its own; it builds on `declared_tier`, `ClassMeasurement.abstained`
+and the board order (tier rank, score).
+
+1. **Classes are per tier, never mixed.** Abstention is class-level: `prove` exits 3
+   (UNSUPPORTED). Two candidates in the same tier therefore have the same class set.
+2. **Cost is compared only where both sides prove.** The reference covers all of
+   `Rel_D3α`. Abstained classes are excluded, and the weights are renormalized over the
+   proven classes (§17). In paired mode (§6.2) the reference runs only on the
+   candidate's proven classes, on exactly the candidate's batches, so every class ratio
+   is like for like. The reference is never run, timed or priced on a class the
+   candidate abstained from.
+3. **Coverage is reported, not priced.** A narrower candidate is not cheaper for having
+   skipped classes. Ranking is by tier first, and `coverage.share_ppm` and the per-class
+   abstentions are shown next to the cost. Cost scores are only compared within a tier.
+4. **Outside the declared tier.** Proving a *true* claim outside the declared tier is
+   allowed. It counts as coverage, does not raise the tier, and is timed and priced
+   like any proven class. Accepting a false claim is a soundness failure everywhere.
+5. **A reference that abstains** on a class the candidate proves is INFRA (the
+   reference is wrong for the challenge), never charged to the candidate.
 
 ## 15. Contract notes for the integrator
 

@@ -588,7 +588,16 @@ diagnostic):
   the ≈ 6-minute d0 sessions keep failing the stand-in calibration on the shared host). Its v3
   entries stay on the speed-scored `near-chunk-validation-d0-1`. The packages to resubmit are the
   admitted `sub_0826bb9b…` and `sub_2b51fbde…` packages, with `challenge` changed.
-  **Dropped (plan change, 2026-10-06):** the user wants one unified `near-chunk-v3` challenge
+* **bench-spec-v1.6 validation windows (2026-10-06, lane/cost-paired; queue empty, nothing leased).**
+  w1 was stopped only around the sessions; the reference bundle was built beforehand.
+
+  | window (UTC) | what | outcome |
+  |---|---|---|
+  | 17:29–17:48 | paired + calibration, VM boot per probe | 3 sessions CALIBRATION_STEP |
+  | 17:50–18:12 | warm probes (3 steps), raw step gate | 3 sessions CALIBRATION_STEP (step p90 65 834 ppm, noise ≈ 2 %) |
+  | 18:13–18:28 | 5 steps per probe, rolling-median step gate | session 1 discarded, session 2 PASS: paired cost 100.814 ± 0.829 |
+
+    **Dropped (plan change, 2026-10-06):** the user wants one unified `near-chunk-v3` challenge
   (Rel_D3α, coverage tiers). `near-chunk-validation-d0-2` stays unsigned:
   `challenges/drafts/near-chunk-validation-d0-2.SUPERSEDED.md`.
 

@@ -99,6 +99,7 @@ pub fn executor(sandbox: Arc<dyn Sandbox>, store: Arc<FsStore>, work: &Path) -> 
         formal: None,
         npai_verify: None,
         interp_ref: None,
+        calibration_bin: None,
         keep_workdirs: false,
     })
 }
@@ -190,6 +191,7 @@ impl Fixture {
             challenge: self.chal.clone(),
             manifest: manifest.clone(),
             build: build.clone(),
+            reference: None,
         }
     }
 }

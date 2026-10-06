@@ -40,9 +40,13 @@ AssumptionRef = TypedDict(
     },
 )
 
+# Where a `cost_v1` class's reference cost comes from (contracts v1.8, bench-spec-v1.6; docs/BENCHMARK_SPEC.md §6.2, §14.12).
+BaselineMode = Literal["frozen", "paired"]
+
 ClassMeasurement = TypedDict(
     "ClassMeasurement",
     {
+        "abstained": NotRequired[bool],
         "baseline_ns": int,
         "class_id": str,
         "cold_ns": NotRequired[Optional[int]],
@@ -51,6 +55,9 @@ ClassMeasurement = TypedDict(
         "peak_rss_bytes": int,
         "proof_bytes_max": int,
         "proof_bytes_runs": NotRequired[List[int]],
+        "ref_proof_bytes_runs": NotRequired[List[int]],
+        "ref_runs_ns": NotRequired[List[int]],
+        "ref_verify_runs_ns": NotRequired[List[int]],
         "runs_ns": List[int],
         "verify_median_ns": int,
         "verify_runs_ns": NotRequired[List[int]],
@@ -69,6 +76,9 @@ CostClass = TypedDict(
         "proof_bytes": int,
         "prove_fusd": int,
         "prove_ns": int,
+        "ref_proof_bytes": NotRequired[Optional[int]],
+        "ref_prove_ns": NotRequired[Optional[int]],
+        "ref_verify_ns": NotRequired[Optional[int]],
         "storage_fusd": int,
         "total_fusd": int,
         "verify_fusd": int,
@@ -83,6 +93,7 @@ ScoringKind = Literal["speed", "cost_v1"]
 CostResult = TypedDict(
     "CostResult",
     {
+        "baseline_mode": NotRequired[Optional[BaselineMode]],
         "classes": List[CostClass],
         "kind": ScoringKind,
         "price_model_digest": Digest,
@@ -126,11 +137,29 @@ BuildSection = TypedDict(
     },
 )
 
+# The judge calibration workload (bench-spec-v1.6, §6.1): a fixed, deterministic binary (`runners/calibrate`, `arena-calibrate`), pinned by digest, run in the benchmark sandbox on the benchmark CPUs as probes before the session, at the start of every measured round, and after it.
+CalibrationSpec = TypedDict(
+    "CalibrationSpec",
+    {
+        "binary_digest": Digest,
+        "edge_probes": int,
+        "expected_checksum": str,
+        "max_noise_ppm": int,
+        "max_reference_drift_ppm": NotRequired[Optional[int]],
+        "max_step_ppm": int,
+        "reference_median_ns": NotRequired[Optional[int]],
+        "steps_per_probe": int,
+        "threads": int,
+        "workload": str,
+    },
+)
+
 VerifyRoute = Literal["native", "npai-v1", "native-lean"]
 
 EntrySection = TypedDict(
     "EntrySection",
     {
+        "declared_tier": NotRequired[Optional[str]],
         "prepare": str,
         "prove": str,
         "verifier_bytecode": NotRequired[Optional[str]],
@@ -186,6 +215,27 @@ ClaimEncoding = TypedDict(
     },
 )
 
+CoverageTier = TypedDict(
+    "CoverageTier",
+    {
+        "classes": List[str],
+        "id": str,
+        "params": str,
+        "rank": int,
+    },
+)
+
+# `ChallengeDefinition.coverage`.
+CoverageSpec = TypedDict(
+    "CoverageSpec",
+    {
+        "soundness_lift": str,
+        "statement_spec": str,
+        "tiers": List[CoverageTier],
+        "version": str,
+    },
+)
+
 # Parameters of the judge-built admission statement that are not resource limits of the sandbox (`ArenaCore.ChallengeParams`). Optional so that challenges without a formal statement (demo) keep their ids.
 FormalParams = TypedDict(
     "FormalParams",
@@ -214,6 +264,7 @@ MeasurementProcedure = TypedDict(
     "MeasurementProcedure",
     {
         "aggregation": str,
+        "calibration": NotRequired[Optional[CalibrationSpec]],
         "cold_runs": int,
         "concurrency": int,
         "invocation_mode": NotRequired[Optional[InvocationMode]],
@@ -301,6 +352,7 @@ VerifyStatistic = Literal["median", "lower_quartile"]
 ScoringSpec = TypedDict(
     "ScoringSpec",
     {
+        "baseline_mode": NotRequired[Optional[BaselineMode]],
         "cost_baseline": NotRequired[List[CostBaselineClass]],
         "cost_baseline_prepare_ns": NotRequired[Optional[int]],
         "kind": ScoringKind,
@@ -408,6 +460,7 @@ ChallengeDefinition = TypedDict(
     {
         "chain_id": str,
         "claim_encoding": ClaimEncoding,
+        "coverage": NotRequired[Optional[CoverageSpec]],
         "created_at": str,
         "formal_params": NotRequired[Optional[FormalParams]],
         "hardware_profile": HardwareProfile,
@@ -433,6 +486,35 @@ ChallengeDefinition = TypedDict(
 
 # Change classification, computed by the judge (never trusted from the agent).
 ChangeClass = Literal["NO_PARENT", "PROVER_ONLY", "VERIFIER_OR_PROTOCOL"]
+
+# Per-class tally of positive cases.
+ClassCoverage = TypedDict(
+    "ClassCoverage",
+    {
+        "abstained": int,
+        "cases": int,
+        "proven": int,
+    },
+)
+
+# One case set (conformance or held-out).
+CoverageSection = TypedDict(
+    "CoverageSection",
+    {
+        "per_class": Dict[str, Any],
+        "share_ppm": int,
+    },
+)
+
+# Report field `coverage` (CONTRACTS §11).
+CoverageReport = TypedDict(
+    "CoverageReport",
+    {
+        "conformance": CoverageSection,
+        "heldout": NotRequired[Optional[CoverageSection]],
+        "tier": str,
+    },
+)
 
 Decision = Literal["ADMITTED", "REJECTED", "INCONCLUSIVE", "INFRA_ERROR", "CANCELLED"]
 
@@ -481,7 +563,7 @@ EvidenceRef = TypedDict(
 
 GateStatus = Literal["PASS", "FAIL", "UNKNOWN", "NOT_APPLICABLE"]
 
-ReasonCode = Literal["MANIFEST_INVALID", "ARCHIVE_UNSAFE", "CHALLENGE_UNKNOWN", "PROFILE_NOT_ALLOWED", "BUILD_FAILED", "BUILD_NOT_REPRODUCIBLE", "CERTIFICATE_MISSING", "THEOREM_TYPE_MISMATCH", "UNAPPROVED_ASSUMPTION", "FORBIDDEN_AXIOM", "SORRY_FOUND", "NATIVE_EVAL_FOUND", "SHADOWED_DEFINITION", "RECHECK_FAILED", "ARTIFACT_BINDING_FAILED", "CLAIM_MISMATCH", "COUNTEREXAMPLE_FOUND", "HOSTILE_PROOF_ACCEPTED", "VERIFIER_NONDETERMINISTIC", "PROVER_FAILED", "RESOURCE_LIMIT", "TIMEOUT", "SANDBOX_VIOLATION", "SECURITY_BOUND_INSUFFICIENT", "OBLIGATION_UNDISCHARGED", "DEMO_ONLY", "INFRA_ERROR", "CANCELLED"]
+ReasonCode = Literal["MANIFEST_INVALID", "ARCHIVE_UNSAFE", "CHALLENGE_UNKNOWN", "PROFILE_NOT_ALLOWED", "BUILD_FAILED", "BUILD_NOT_REPRODUCIBLE", "CERTIFICATE_MISSING", "THEOREM_TYPE_MISMATCH", "UNAPPROVED_ASSUMPTION", "FORBIDDEN_AXIOM", "SORRY_FOUND", "NATIVE_EVAL_FOUND", "SHADOWED_DEFINITION", "RECHECK_FAILED", "ARTIFACT_BINDING_FAILED", "CLAIM_MISMATCH", "COUNTEREXAMPLE_FOUND", "HOSTILE_PROOF_ACCEPTED", "VERIFIER_NONDETERMINISTIC", "PROVER_FAILED", "RESOURCE_LIMIT", "TIMEOUT", "SANDBOX_VIOLATION", "SECURITY_BOUND_INSUFFICIENT", "OBLIGATION_UNDISCHARGED", "DEMO_ONLY", "INFRA_ERROR", "CANCELLED", "COVERAGE_GAP_IN_TIER"]
 
 GateResult = TypedDict(
     "GateResult",
@@ -510,7 +592,9 @@ LeaderboardEntry = TypedDict(
         "cost": NotRequired[Optional[CostResult]],
         "cost_score_ci_milli": NotRequired[Optional[int]],
         "cost_score_milli": NotRequired[Optional[int]],
+        "coverage_share_ppm": NotRequired[Optional[int]],
         "decision": NotRequired[Optional[Decision]],
+        "declared_tier": NotRequired[Optional[str]],
         "hardware_profile": str,
         "peak_rss_bytes": NotRequired[Optional[int]],
         "proof_bytes": NotRequired[Optional[int]],
@@ -526,6 +610,7 @@ LeaderboardEntry = TypedDict(
         "submitted_at": str,
         "superseded_by": NotRequired[Optional[str]],
         "tier": Tier,
+        "tier_rank": NotRequired[Optional[int]],
         "verify_median_ns": NotRequired[Optional[int]],
     },
 )
@@ -577,6 +662,7 @@ VerifiedSurface = TypedDict(
         "certificate_decl": str,
         "challenge_id": str,
         "checker_image": Digest,
+        "declared_tier": NotRequired[Optional[str]],
         "formal_tree": Digest,
         "prepare_artifact": Digest,
         "public_artifacts": Digest,
@@ -602,6 +688,7 @@ SubmissionView = TypedDict(
         "candidate_name": str,
         "challenge_id": str,
         "change_class": NotRequired[Optional[ChangeClass]],
+        "coverage": NotRequired[Optional[CoverageReport]],
         "created_at": str,
         "decision": NotRequired[Optional[Decision]],
         "evidence_graph": NotRequired[Optional[EvidenceGraph]],
@@ -622,4 +709,4 @@ SubmissionView = TypedDict(
     },
 )
 
-__all__ = ["AdversaryClass", "ArtifactRef", "Assumption", "AssumptionRef", "BenchmarkResult", "BuildInfo", "BuildSection", "CandidateManifest", "ChallengeDefinition", "ChangeClass", "ClaimEncoding", "ClassMeasurement", "CostBaselineClass", "CostClass", "CostResult", "Decision", "Digest", "EdgeStatus", "EntrySection", "EvidenceEdge", "EvidenceGraph", "EvidenceNode", "EvidenceRef", "FormalParams", "FormalSection", "FormalSpecRef", "GateResult", "GateStatus", "HardwareProfile", "HardwareRequest", "InvocationMode", "LeaderboardEntry", "LogExcerpt", "MeasurementProcedure", "NearcorePin", "NodeKind", "ObligationId", "PriceModel", "PriceRationale", "Privacy", "ReasonCode", "ResourceLimits", "Restriction", "Revocation", "RevocationEvent", "ScopeKind", "ScoringKind", "ScoringSpec", "SecurityModel", "SecurityProfile", "SemanticScope", "SetupModel", "Stage", "SubmissionView", "Tier", "ToolchainPolicy", "TrustedBaseEntry", "VerifiedSurface", "VerifyRoute", "VerifyStatistic", "WorkloadClass", "WorkloadSuite"]
+__all__ = ["AdversaryClass", "ArtifactRef", "Assumption", "AssumptionRef", "BaselineMode", "BenchmarkResult", "BuildInfo", "BuildSection", "CalibrationSpec", "CandidateManifest", "ChallengeDefinition", "ChangeClass", "ClaimEncoding", "ClassCoverage", "ClassMeasurement", "CostBaselineClass", "CostClass", "CostResult", "CoverageReport", "CoverageSection", "CoverageSpec", "CoverageTier", "Decision", "Digest", "EdgeStatus", "EntrySection", "EvidenceEdge", "EvidenceGraph", "EvidenceNode", "EvidenceRef", "FormalParams", "FormalSection", "FormalSpecRef", "GateResult", "GateStatus", "HardwareProfile", "HardwareRequest", "InvocationMode", "LeaderboardEntry", "LogExcerpt", "MeasurementProcedure", "NearcorePin", "NodeKind", "ObligationId", "PriceModel", "PriceRationale", "Privacy", "ReasonCode", "ResourceLimits", "Restriction", "Revocation", "RevocationEvent", "ScopeKind", "ScoringKind", "ScoringSpec", "SecurityModel", "SecurityProfile", "SemanticScope", "SetupModel", "Stage", "SubmissionView", "Tier", "ToolchainPolicy", "TrustedBaseEntry", "VerifiedSurface", "VerifyRoute", "VerifyStatistic", "WorkloadClass", "WorkloadSuite"]

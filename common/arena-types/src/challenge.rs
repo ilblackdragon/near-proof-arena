@@ -143,6 +143,43 @@ pub struct MeasurementProcedure {
     /// existing challenge ids are unchanged). See docs/BENCHMARK_SPEC.md §4.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub invocation_mode: Option<InvocationMode>,
+    /// The pinned calibration binary and its probe rule (v1.8, additive;
+    /// docs/BENCHMARK_SPEC.md §6.1). Absent = no in-session calibration (the
+    /// live worker before v1.8).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub calibration: Option<CalibrationSpec>,
+}
+
+/// The judge calibration workload (bench-spec-v1.6, §6.1): a fixed,
+/// deterministic binary (`runners/calibrate`, `arena-calibrate`), pinned by
+/// digest, run in the benchmark sandbox on the benchmark CPUs as probes
+/// before the session, at the start of every measured round, and after it.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct CalibrationSpec {
+    /// `arena-calibrate-v1`.
+    pub workload: String,
+    /// sha256 of the static `arena-calibrate` binary; the worker refuses any other.
+    pub binary_digest: Digest,
+    /// The checksum the workload must print (a wrong one is INFRA).
+    pub expected_checksum: String,
+    /// Worker threads per probe (= the benchmark vCPUs).
+    pub threads: u32,
+    /// Timed runs per probe, after one untimed warm-up run, all in one sandbox
+    /// instance; the probe is their median.
+    pub steps_per_probe: u32,
+    /// Probes before and after the session (each).
+    pub edge_probes: u32,
+    /// Gate: the 90th-percentile step between consecutive probes (ppm).
+    pub max_step_ppm: u64,
+    /// Gate: MAD / median over all probes of the session (ppm).
+    pub max_noise_ppm: u64,
+    /// Host admission median of one probe on this hardware profile; when set,
+    /// the session median must be within `max_reference_drift_ppm` of it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reference_median_ns: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_reference_drift_ppm: Option<u64>,
 }
 
 /// Sandbox-instance granularity of steady-state benchmark runs.

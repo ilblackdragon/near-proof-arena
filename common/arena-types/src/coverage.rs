@@ -182,7 +182,7 @@ impl CoverageSection {
                 den += c.weight_ppm as u128;
             }
         }
-        self.share_ppm = if den == 0 { 0 } else { (num / den) as u32 };
+        self.share_ppm = num.checked_div(den).map_or(0, |x| x as u32);
     }
 }
 

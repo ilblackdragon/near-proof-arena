@@ -194,6 +194,7 @@ fn built(f: &Fixture, nearspec: &Path) -> ExecJob {
         challenge: f.chal.clone(),
         manifest,
         build: b.build.unwrap(),
+        reference: None,
     }
 }
 

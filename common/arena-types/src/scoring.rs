@@ -58,6 +58,23 @@ impl VerifyStatistic {
     }
 }
 
+/// Where a `cost_v1` class's reference cost comes from (contracts v1.8,
+/// bench-spec-v1.6; docs/BENCHMARK_SPEC.md §6.2, §14.12).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum BaselineMode {
+    /// The pinned `cost_baseline` (bench-spec-v1.2–v1.4; the absent field).
+    #[default]
+    Frozen,
+    /// The paired baseline control: the judge runs the challenge's reference
+    /// (`workload_suite.baseline_submission`) on exactly the candidate's
+    /// sampled batches, interleaved round by round on the same CPUs, and each
+    /// class's reference cost is measured in the same session
+    /// (`ClassMeasurement.ref_*`). `cost_baseline` stays pinned as the
+    /// documented reference profile and is reported, never scored.
+    Paired,
+}
+
 /// Why a price-model parameter has its value (part of the hashed object, so
 /// the rationale cannot be edited without a new version).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -175,12 +192,19 @@ pub struct ScoringSpec {
     /// `median`). `cost_baseline.verify_ns` is pinned with the same statistic.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub verify_statistic: Option<VerifyStatistic>,
+    /// v1.8, additive; absent = `frozen`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub baseline_mode: Option<BaselineMode>,
 }
 
 impl ScoringSpec {
     /// The verify statistic in force (absent = `median`).
     pub fn verify_statistic(&self) -> VerifyStatistic {
         self.verify_statistic.unwrap_or_default()
+    }
+    /// The baseline mode in force (absent = `frozen`).
+    pub fn baseline_mode(&self) -> BaselineMode {
+        self.baseline_mode.unwrap_or_default()
     }
 }
 
@@ -194,6 +218,7 @@ impl ScoringSpec {
                     || !self.cost_baseline.is_empty()
                     || self.cost_baseline_prepare_ns.is_some()
                     || self.verify_statistic.is_some()
+                    || self.baseline_mode.is_some()
                 {
                     return Err("scoring.kind = speed takes no price model or cost baseline".into());
                 }
@@ -240,6 +265,16 @@ impl ScoringSpec {
                         return Err(format!("class {:?}: zero baseline time", c.id));
                     }
                 }
+                if self.baseline_mode() == BaselineMode::Paired {
+                    if chal.workload_suite.baseline_submission.is_none() {
+                        return Err("baseline_mode = paired needs workload_suite.baseline_submission (the reference package)".into());
+                    }
+                    if chal.measurement.invocation_mode()
+                        != crate::challenge::InvocationMode::VmPerBatch
+                    {
+                        return Err("baseline_mode = paired needs measurement.invocation_mode = vm_per_batch".into());
+                    }
+                }
                 if pm.prepare_amortization_requests > 0 && self.cost_baseline_prepare_ns.is_none() {
                     return Err("prepare is amortized: cost_baseline_prepare_ns required".into());
                 }
@@ -265,6 +300,14 @@ pub struct CostClass {
     pub storage_fusd: u64,
     pub total_fusd: u64,
     pub baseline_total_fusd: u64,
+    /// v1.8: the reference statistics priced into `baseline_total_fusd`
+    /// (paired runs of this session, or the pinned `cost_baseline`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ref_prove_ns: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ref_verify_ns: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ref_proof_bytes: Option<u64>,
 }
 
 /// `BenchmarkResult.cost` (v1.5, additive): the cost-board result.
@@ -278,6 +321,9 @@ pub struct CostResult {
     pub score_milli: Option<u64>,
     pub score_ci_milli: Option<u64>,
     pub classes: Vec<CostClass>,
+    /// v1.8: `paired` when the reference was measured in the same session.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub baseline_mode: Option<BaselineMode>,
 }
 
 #[cfg(test)]
@@ -313,6 +359,7 @@ mod tests {
                 .collect(),
             cost_baseline_prepare_ns: None,
             verify_statistic: None,
+            baseline_mode: None,
         }
     }
 
@@ -409,6 +456,22 @@ mod tests {
         big.verifier_vcpus = chal.hardware_profile.vcpus + 1;
         c.scoring = Some(cost_spec(&chal, big));
         assert!(c.check_scoring().is_err());
+        // paired mode needs the reference package and vm_per_batch
+        let mut paired = cost_spec(&chal, gov.clone());
+        paired.baseline_mode = Some(BaselineMode::Paired);
+        c.scoring = Some(paired.clone());
+        let mut no_ref = c.clone();
+        no_ref.workload_suite.baseline_submission = None;
+        assert!(no_ref
+            .check_scoring()
+            .unwrap_err()
+            .contains("baseline_submission"));
+        let mut per_inv = c.clone();
+        per_inv.measurement.invocation_mode = None;
+        assert!(per_inv
+            .check_scoring()
+            .unwrap_err()
+            .contains("vm_per_batch"));
         // speed with a price model
         let mut s = cost_spec(&chal, gov);
         s.kind = ScoringKind::Speed;
