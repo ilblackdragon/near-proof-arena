@@ -154,6 +154,80 @@ theorem msgsV (hv : C vb = 1) (bb : Nat) (sd : Bool) :
     toNat_id, List.cons_append, List.singleton_append, List.append_assoc, Lexpr]
   simp [show (Fp.ofNat 1 = 1) from rfl]
 
+theorem toNat_L (a b' c' : Nat) :
+    (Fp.ofNat a + (((256 : Nat) : Fp) * Fp.ofNat b' + ((65536 : Nat) : Fp) * Fp.ofNat c')).toNat =
+      (a + 256 * b' + 65536 * c') % P := by
+  rw [natCast_eq, natCast_eq, ofNat_mul', ofNat_mul', ofNat_add', ofNat_add', Fp.toNat_ofNat, Nat.add_assoc]
+
+/-- The walk-row register. -/
+def regN (C : URow) : List Nat := (List.range 32).map fun i => C (reg i)
+
+/-- **The messages of a walk row** (`W0 … W3`). -/
+theorem msgsW (hw : C wk = 1) (bb : Nat) (sd : Bool) :
+    uMsgs C D bb sd =
+      (if B_MIDROOT = bb ∧ false = sd then (if C sf = 1 then [[C tau] ++ regN C] else []) else []) ++
+      (if B_ROOT = bb ∧ true = sd then (if C wt3 = 1 then [[(C tau + 1) % P] ++ regN C] else []) else []) ++
+      (if B_DIGEST = bb ∧ false = sd then (if C wt3 = 1 then [[C dI, C dL] ++ regN C] else []) else []) ++
+      (if B_S0F = bb ∧ true = sd then (if C sf = 1 then [[C tau, C pres, C vid]] else []) else []) ++
+      (if B_SPLEN = bb ∧ false = sd then
+        (if C sf = 1 then [[C tau, (C L0 + 256 * C L1 + 65536 * C L2) % P]] else []) else []) ++
+      (if B_EDGE = bb ∧ false = sd then
+        (if C mS + C mK = 1 then [[C nN, C nI, C nib, C nN2, C nI2, C ek, C u]] else []) else []) ++
+      (if B_EDGE = bb ∧ true = sd then
+        (if C mS + C mK = 1 then [[C nN, C nI, C nib, C nN2, C nI2, C ek, (C u + 1) % P]] else []) else []) ++
+      (if B_BMAP = bb ∧ false = sd then (if C mB = 1 then [[C nN, C wbm, C hv, C u]] else []) else []) ++
+      (if B_BMAP = bb ∧ true = sd then (if C mB = 1 then [[C nN, C wbm, C hv, (C u + 1) % P]] else []) else []) := by
+  have hk := kinds ok hC hD
+  have b' := fun {x} (hx : x ∈ rowBools) => rowBool ok hC hx
+  have bmS := le1 (b' (x := mS) (by simp [rowBools]))
+  have bmK := le1 (b' (x := mK) (by simp [rowBools]))
+  have bmB := le1 (b' (x := mB) (by simp [rowBools]))
+  have bsf := b' (x := sf) (by simp [rowBools])
+  have bw3 := b' (x := wt3) (by simp [rowBools])
+  have hvb0 : C vb = 0 := by
+    rcases hk.1 with h | h <;> rcases hk.2.2.2.2.2.2.2.1 with h' | h' <;> omega
+  have hqb0 : C qb = 0 := by
+    rcases hk.1 with h | h <;> rcases hk.2.2.2.2.2.2.2.2.1 with h' | h' <;> omega
+  have hmd := fact ok (e := Dsl.bool mDE) (memBool (by simp [cBool]))
+  have hr := fact ok (e := .mul (not (c qb)) (c rd)) (by simp [UpsV3.constraints, UpsV3.cBytes])
+  have hg := fact ok (e := sub (c gD) (.add (mul3 (c qb) (c fs) winFr) (c wt3)))
+    (by simp [UpsV3.constraints, UpsV3.cDigest])
+  have hgs := fact ok (e := sub (c gMs) (mul3 (c sMEM) (not (c rootP)) (not (c kNLF))))
+    (by simp [UpsV3.constraints, UpsV3.cMem])
+  have hgr := fact ok (e := sub (c gMr) (.mul (c sMEM) (c bN))) (by simp [UpsV3.constraints, UpsV3.cMem])
+  have hS := stSum ok hC
+  have zMEM : C sMEM = 0 := by rw [hqb0] at hS; omega
+  simp only [mDE] at hmd
+  uev_simp
+  simp only [cast_ofNat] at *
+  rw [hqb0] at hr hg; rw [zMEM] at hgs hgr; rw [hw] at hmd
+  simp only [cast0, cast1] at hr hg hgs hgr
+  have hY : ((C mS + C mK + C mB : Nat) : Fp) = 0 ∨ ((C mS + C mK + C mB : Nat) : Fp) = 1 := by
+    rw [natCast_add, natCast_add]
+    rcases mul_eq_zero'.mp hmd with h | h
+    · right; rw [cast1] at h; grind
+    · left; rw [cast1] at h; grind
+  have hsum : C mS + C mK + C mB ≤ 1 := by
+    rcases hY with h | h
+    · have := natv (by have := P_gt; omega) (by have := P_gt; omega) (h.trans cast0.symm); omega
+    · have := natv (by have := P_gt; omega) (by have := P_gt; omega) (h.trans cast1.symm); omega
+  have zrd : C rd = 0 := natv (hC _) (by have := P_gt; omega) (by grind)
+  have hgD : C gD = C wt3 := natv (hC _) (hC _) (by grind)
+  have zgs : C gMs = 0 := natv (hC _) (by have := P_gt; omega) (by grind)
+  have zgr : C gMr = 0 := natv (hC _) (by have := P_gt; omega) (by grind)
+  have hSK : Fp.ofNat (C mS) + Fp.ofNat (C mK) = Fp.ofNat (C mS + C mK) := ofNat_add' _ _
+  have bSK : C mS + C mK = 0 ∨ C mS + C mK = 1 := by omega
+  have ofNat10 : Fp.ofNat 1 + Fp.ofNat 0 = 1 := by decide
+  simp only [uMsgs, UpsV3.interactions, Dsl.send, Dsl.recv, List.flatMap_cons, List.flatMap_nil, uMult, uev,
+    Expr.evalWith, uEnv, if_false, Bool.false_eq_true, Dsl.c, Dsl.k, hvb0, hqb0, hgD,
+    zrd, zgs, zgr, ofNat0_ne1, ofNat00_ne1, ofNat10, List.replicate_one, hSK,
+    ofNat_one_iff' bsf, ofNat_one_iff' bw3, ofNat_one_iff' bSK,
+    ofNat_one_iff' (show C mB = 0 ∨ C mB = 1 by omega),
+    if_true, rep_if, ite_self, List.replicate_zero, List.nil_append, List.append_nil, regs, edgeMsg, bmapMsg,
+    Dsl.smul, List.map_cons, List.map_nil, List.map_append, List.map_map, Function.comp_def, tn ok hC hD,
+    toNat_succ1, toNat_L, List.cons_append, List.singleton_append, List.append_assoc, Lexpr, regN]
+  simp only [natCast_eq, ofNat_mul', ofNat_add', Fp.toNat_ofNat, Nat.add_assoc]
+
 end
 
 end ZkFormal.NearV3.UpsRows
