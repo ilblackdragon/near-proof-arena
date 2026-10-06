@@ -8,7 +8,7 @@ import ZkFormal.NearV3.Sched.Ids
 * `send_matched` (dual of lane v3-chacha's `recv_matched`): if one table `tc` is the only
   receiver on bus `b` and no public segment uses `b`, every active send on `b` equals an active
   receive of `tc`.
-* **`cmp_sound`**: every active `SCMP` send `(x, y, b)` of any table with `x, y < 2^25` has
+* **`cmp_sound`**: every active `SCMP` send `(x, y, b)` of any table with `x, y < 2^29` has
   `b = 1 ∧ y ≤ x` or `b = 0 ∧ x < y`.
 -/
 
@@ -62,7 +62,7 @@ theorem cmp_sound (hH : HoldsP AP pub tr) {tc : Nat} (hC : CmpOwn AP tc)
     {t r : Nat} (ht : t < AP.tables.length) (hr : r < tr.height t) {i : Interaction}
     (hi : i ∈ AP.tables[t]!.interactions) (hb : i.bus = B_SCMP) (hs : i.send = true)
     (hm : i.multNat tr t r pub ≠ 0) {x y b : Fp} (hmsg : i.msgVal tr t r pub = [x, y, b])
-    (hx : x.toNat < 2 ^ 25) (hy : y.toNat < 2 ^ 25) :
+    (hx : x.toNat < 2 ^ 29) (hy : y.toNat < 2 ^ 29) :
     (b = 1 ∧ y.toNat ≤ x.toNat) ∨ (b = 0 ∧ x.toNat < y.toNat) := by
   obtain ⟨r', hr', i', hi', -, -, hmsg', -⟩ := send_matched hH hC.lt hC.only hC.pub ht hr hi hb hs hm
   rw [hC.tab] at hi'

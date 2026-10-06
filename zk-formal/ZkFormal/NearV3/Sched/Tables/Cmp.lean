@@ -5,17 +5,17 @@ import ZkFormal.Chacha.Rng.Table
 # ZkFormal.NearV3.Sched.Tables.Cmp — `scpV3`: the scheduler's comparator
 
 One row per comparison. A row receives `CMP (x, y, b)` and proves `b = [y ≤ x]` for
-`x, y < 2^25` (budgets, allowances ≤ 4.5 M, `a0 + fair < 2^25`, time stamps):
-`d = b·(x − y) + (1 − b)·(y − x − 1)` is decomposed into 25 bits. Padding rows (`act = 0`) are `x = y = 0, b = 1, d = 0`, so no
+`x, y < 2^29` (budgets, allowances ≤ 4.5 M, `a0 + fair < 2^25`, time stamps, the distribute sort
+key `avg·64 + shard < 2^29`): `d = b·(x − y) + (1 − b)·(y − x − 1)` is decomposed into 29 bits. Padding rows (`act = 0`) are `x = y = 0, b = 1, d = 0`, so no
 constraint needs a gate.
 
 | col | name |
 |---|---|
 | 0 | `act` |
 | 1, 2, 3 | `x, y, b` |
-| `4 … 28` | bits of `d` |
+| `4 … 32` | bits of `d` |
 
-`W_eq` (g = 1): width 29, 1 interaction, degree 4 ⇒ 29 + 8 + 24 = 61.
+`W_eq` (g = 1): width 33, 1 interaction, degree 4 ⇒ 33 + 8 + 24 = 65.
 -/
 
 namespace ZkFormal.NearV3.Sched.Cmp
@@ -28,8 +28,8 @@ def colX : Nat := 1
 def colY : Nat := 2
 def colB : Nat := 3
 def colD (k : Nat) : Nat := 4 + k
-def nbits : Nat := 25
-def width : Nat := 29
+def nbits : Nat := 29
+def width : Nat := 33
 
 def dE : Expr := num colD nbits
 
@@ -64,9 +64,9 @@ theorem zev_dE (r : Nat) : zev (tenv tr t r pub) dE = (numv tr t r colD nbits : 
   unfold dE num numv
   exact zev_sum_pow _ (fun b => .col (colD b) false) (fun b => cv tr t r (colD b)) nbits (fun _ _ => rfl)
 
-/-- **Row contract.** On every row with `x, y < 2^25`: `b = 1 ∧ y ≤ x` or `b = 0 ∧ x < y`. -/
+/-- **Row contract.** On every row with `x, y < 2^29`: `b = 1 ∧ y ≤ x` or `b = 0 ∧ x < y`. -/
 theorem cmp_row (hL : CLocal tr t pub) {r : Nat} (hr : r < tr.height t)
-    (hX : cv tr t r colX < 2 ^ 25) (hY : cv tr t r colY < 2 ^ 25) :
+    (hX : cv tr t r colX < 2 ^ 29) (hY : cv tr t r colY < 2 ^ 29) :
     (cv tr t r colB = 1 ∧ cv tr t r colY ≤ cv tr t r colX) ∨
       (cv tr t r colB = 0 ∧ cv tr t r colX < cv tr t r colY) := by
   have hB : cv tr t r colB ≤ 1 := hL.bool hr (by simp [constraints])
@@ -77,7 +77,7 @@ theorem cmp_row (hL : CLocal tr t pub) {r : Nat} (hr : r < tr.height t)
   have hDlt : numv tr t r colD nbits < 2 ^ nbits := nbits_le_of hD
   have hz := hL.zc hr (e := mainC) (by simp [constraints])
   simp only [mainC, zev_sub, zev_add, zev_mul, zev_c, zev_k, zev_dE, cur_cv] at hz
-  rw [show (2 : Nat) ^ nbits = 33554432 from rfl] at hDlt
+  rw [show (2 : Nat) ^ nbits = 536870912 from rfl] at hDlt
   rcases Nat.le_one_iff_eq_zero_or_eq_one.1 hB with h | h <;> rw [h] at hz <;> push_cast at hz
   · have := hz (by omega) (by omega)
     right; exact ⟨h, by omega⟩

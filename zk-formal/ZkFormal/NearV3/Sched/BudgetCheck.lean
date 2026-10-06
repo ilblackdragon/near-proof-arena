@@ -11,8 +11,8 @@ namespace ZkFormal.NearV3.Sched.Budget
 
 theorem report_g1 : report 1 =
     [(106, 13, 13, 4, 234, 22), (50, 6, 6, 4, 122, 22), (64, 11, 11, 4, 176, 22),
-     (18, 4, 4, 4, 74, 22), (29, 1, 1, 4, 61, 22), (55, 8, 8, 4, 143, 22)] := by decide +kernel
+     (18, 4, 4, 4, 74, 22), (33, 1, 1, 4, 65, 22), (55, 8, 8, 4, 143, 22)] := by decide +kernel
 
-theorem weqSched_g1 : weqSched 1 = 810 := by decide +kernel
+theorem weqSched_g1 : weqSched 1 = 814 := by decide +kernel
 
 end ZkFormal.NearV3.Sched.Budget
