@@ -5,7 +5,7 @@ import ZkFormal.NearV3.Extract.Node.Slot
 -/
 
 namespace ZkFormal.NearV3.NodeProof3
-open ZkFormal.Near
+open ZkFormal.Near ZkFormal.NearV3
 
 /-- Canonical (`edgesOf`) order: the `END` edge last. -/
 def canonE (L : List (Msg × Nat)) : List (Msg × Nat) :=
@@ -41,11 +41,12 @@ theorem canonE_swap (A E K : List (Msg × Nat)) (hA : ∀ e ∈ A, e.1.getD 2 0 
   simp
 
 /-- Key edges from offset `i0`. -/
-def kE (n i0 : Nat) (k : List Nat) : List Msg := (List.range k.length).map fun i => [n, i0 + i, k.getD i 0, n, i0 + i + 1]
+def kE (n i0 : Nat) (k : List Nat) : List Msg :=
+  (List.range k.length).map fun i => [n, i0 + i, k.getD i 0, n, i0 + i + 1, EK_KEY]
 
-theorem keyEdges_kE (n : Nat) (k : List Nat) : keyEdges n k = kE n 0 k := by simp [keyEdges, kE]
+theorem keyEdges_kE (n : Nat) (k : List Nat) : keyEdges3 n k = kE n 0 k := by simp [keyEdges3, kE]
 
-theorem kE_cons (n i0 a : Nat) (k : List Nat) : kE n i0 (a :: k) = [n, i0, a, n, i0 + 1] :: kE n (i0 + 1) k := by
+theorem kE_cons (n i0 a : Nat) (k : List Nat) : kE n i0 (a :: k) = [n, i0, a, n, i0 + 1, EK_KEY] :: kE n (i0 + 1) k := by
   unfold kE
   rw [List.length_cons, List.range_succ_eq_map, List.map_cons, List.map_map]
   simp only [Nat.add_zero, List.getD_cons_zero, List.cons.injEq, true_and]
@@ -58,14 +59,14 @@ theorem kE_append (n i0 : Nat) (a b : List Nat) : kE n i0 (a ++ b) = kE n i0 a +
     rw [List.cons_append, kE_cons, kE_cons, ih, List.length_cons, show i0 + 1 + a.length = i0 + (a.length + 1) by omega]
     rfl
 
-theorem kE_two (n i0 a b : Nat) : kE n i0 [a, b] = [[n, i0, a, n, i0 + 1], [n, i0 + 1, b, n, i0 + 2]] := by
+theorem kE_two (n i0 a b : Nat) : kE n i0 [a, b] = [[n, i0, a, n, i0 + 1, EK_KEY], [n, i0 + 1, b, n, i0 + 2, EK_KEY]] := by
   simp [kE, List.range_succ]
 
 theorem kE_pairs (n i0 : Nat) (pairs : List (Nat × Nat)) :
     kE n i0 (pairs.flatMap fun p => [p.1, p.2]) =
       (List.range pairs.length).flatMap fun d =>
-        [[n, i0 + 2 * d, (pairs.getD d (0, 0)).1, n, i0 + 2 * d + 1],
-         [n, i0 + 2 * d + 1, (pairs.getD d (0, 0)).2, n, i0 + 2 * d + 2]] := by
+        [[n, i0 + 2 * d, (pairs.getD d (0, 0)).1, n, i0 + 2 * d + 1, EK_KEY],
+         [n, i0 + 2 * d + 1, (pairs.getD d (0, 0)).2, n, i0 + 2 * d + 2, EK_KEY]] := by
   induction pairs generalizing i0 with
   | nil => simp [kE]
   | cons p rest ih =>

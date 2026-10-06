@@ -26,23 +26,22 @@ theorem zip_map_range {α : Type} (g : Nat → α) (n : Nat) :
 
 /-- Child edge of window `w` (row `r`), as the rows provide it. -/
 def winE (tr : Trace Fp) (n r : Nat) : List Msg :=
-  if cv tr T_NODE r rv = 1 then [[n, 0, cv tr T_NODE r aS, cv tr T_NODE r cres, 0]] else []
+  if cv tr T_NODE r rv = 1 then [[n, 0, cv tr T_NODE r aS, cv tr T_NODE r cres, 0, EK_DOWN]] else []
 
 def kidEdgeF (n : Nat) : NKid × Nat → Option Msg
-  | (.node _ _ cr _ _, j) => some [n, 0, j, cr, 0]
+  | (.node _ _ cr _ _, j) => some [n, 0, j, cr, 0, EK_DOWN]
   | _ => none
 
-def endE (n : Nat) (v : Option NSlot) : List Msg := match v with
-  | some (.touched _ _) => [[n, 0, SYM_END, n, 0]]
+def endE (n : Nat) (v : Option NSlot3) : List Msg := match v with
+  | some (.val _ i _ _ _ _) => [[n, 0, SYM_END, i, 0, EK_VAL]]
   | _ => []
 
-theorem edgesOf_branch (n : Nat) (S : NodeS) (v : Option NSlot) (kids : List NKid) (m : List Nat)
+theorem edgesOf_branch (n : Nat) (S : NodeS3) (v : Option NSlot3) (kids : List NKid) (m : List Nat)
     (hv : S.v = .branch v kids m) :
-    edgesOf n S = (if n = 0 then [[0, 0, SYM_START, S.res, 0]] else []) ++
-      ((kids.zip (List.range kids.length)).filterMap (kidEdgeF n) ++ endE n v) := by
-  obtain ⟨sv, sd, sr, su⟩ := S
+    edgesOf3 n S = (kids.zip (List.range kids.length)).filterMap (kidEdgeF n) ++ endE n v := by
+  obtain ⟨sv⟩ := S
   simp only at hv; subst hv
-  unfold edgesOf; simp only
+  unfold edgesOf3; simp only
   rw [filterMap_congr'' (g := kidEdgeF n) (fun x => by obtain ⟨kd, j⟩ := x; cases kd <;> rfl)]
   rcases v with _ | ⟨_ | _⟩ <;> rfl
 
@@ -80,7 +79,7 @@ theorem winAS (hC : NodeCtx tr s ℓ fl) (hb : tr.cell T_NODE s tb1 + tr.cell T_
       of_cv_one hrv]; decide
   have hoℓ : brOff tr s + 2 + 32 * w < ℓ := by
     have := (hC.fields.field _ (mem _ (winMem _ _ _ hw))).2; simp only at this; omega
-  have E := (edgeFacts hL hr (pub := pub)).2.2.1 hgP (show tr.cell T_NODE _ tb1 + tr.cell T_NODE _ tb2 = 1 by
+  have E := (edgeFacts hL hr (pub := pub)).2.2.2.1 hgP (show tr.cell T_NODE _ tb1 + tr.cell T_NODE _ tb2 = 1 by
     rw [segConst hL hC (by simp [nodeConst]) hoℓ, segConst hL hC (x := tb2) (by simp [nodeConst]) hoℓ, hb])
   simp only at E
   unfold cv; rw [E.2.1, hji, toNat_natCast, Nat.mod_eq_of_lt (by unfold P; omega)]
@@ -130,8 +129,8 @@ variable {s ℓ : Nat} {fl : List (Nat × Nat)}
 
 set_option maxHeartbeats 2000000 in
 theorem brEdges (hC : NodeCtx tr s ℓ fl) (hb : tr.cell T_NODE s tb1 + tr.cell T_NODE s tb2 = 1) {n : Nat}
-    (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) (hnP : n < P) (h0 : s = 0 ↔ n = 0) :
-    (canonE (rowEdgesN tr pub s ℓ)).map (·.1) = edgesOf n (nodeSOf tr pub s ℓ) := by
+    (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) (hnP : n < P) :
+    (canonE (rowEdgesN tr pub s ℓ)).map (·.1) = edgesOf3 n (nodeSOf tr pub s ℓ) := by
   have B := brFields hL hC hb
   simp only at B
   rw [← brOff_eq hL hC] at B
@@ -151,8 +150,8 @@ theorem brEdges (hC : NodeCtx tr s ℓ fl) (hb : tr.cell T_NODE s tb1 + tr.cell 
   -- windows
   have FW : ∀ j, j < popN tr s → (List.range' (s + (brOff tr s + 2 + 32 * j)) 32).flatMap (rowEdgeN tr pub) =
       if cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) rv = 1 then
-        [([n, 0, cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) aS, cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) cres, 0],
-          cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) mA)] else [] := by
+        [([n, 0, cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) aS, cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) cres, 0,
+            EK_DOWN], cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) mA)] else [] := by
     intro j hj
     obtain ⟨cj, -, -⟩ := hW j hj
     have hm := mem _ (winMem _ _ _ hj)
@@ -160,14 +159,15 @@ theorem brEdges (hC : NodeCtx tr s ℓ fl) (hb : tr.cell T_NODE s tb1 + tr.cell 
       (by simp [states]) (y := sVH) (by simp [states]) (by decide)]; decide), chEdge hL hC hm (by omega) cj hn hnP htl, hce]
     simp
   have FB := plainEdges hL hC (pub := pub) (L := 2) (mem _ (by simp [brFL])) (by rcases hoff with h | h <;> omega) sB
-    (by simp [states]) (by decide) (by decide) (by decide) (by decide)
-  have FM := plainEdges hL hC (pub := pub) (L := 8) (mem _ (by simp [brFL])) (by omega) sM (by simp [states])
-    (by decide) (by decide) (by decide) (by decide)
+    (by simp [states]) (by decide) (by decide) (by decide) (by decide) (by decide)
+  have FM := memEdges hL hC (pub := pub) (mem _ (by simp [brFL])) (by omega) sM hn hnP
+    (fun h => absurd h (by omega))
+  rw [if_neg (by omega)] at FM
   have hWin := flatMap_congr' (l := List.range (popN tr s)) (fun j hj => FW j (List.mem_range.mp hj))
   generalize hWdef : (List.range (popN tr s)).flatMap (fun j =>
       if cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) rv = 1 then
-        [([n, 0, cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) aS, cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) cres, 0],
-          cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) mA)] else []) = W at hWin
+        [([n, 0, cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) aS, cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) cres, 0,
+            EK_DOWN], cv tr T_NODE (s + (brOff tr s + 2 + 32 * j)) mA)] else []) = W at hWin
   have Wfst : W.map (·.1) = (List.range (popN tr s)).flatMap fun w => winE tr n (s + (brOff tr s + 2 + 32 * w)) := by
     rw [← hWdef, List.map_flatMap]; apply flatMap_congr'; intro j _; unfold winE; split <;> simp
   have hWsym : ∀ e ∈ W, e.1.getD 2 0 ≠ SYM_END := by
@@ -179,35 +179,23 @@ theorem brEdges (hC : NodeCtx tr s ℓ fl) (hb : tr.cell T_NODE s tb1 + tr.cell 
       obtain ⟨j', hj', -, -, haS⟩ := winAS hL hC hb (pub := pub) j hj hrv
       rw [haS]; unfold SYM_END; omega
     · simp at he
-  have hS : ∀ e ∈ startE tr s, e.1.getD 2 0 ≠ SYM_END := by
-    intro e he; unfold startE at he; split at he
-    · simp at he; subst he; simp [SYM_START, SYM_END]
-    · simp at he
   have hkids := kidsEdges hL hC hb (n := n) (pub := pub)
   unfold nodeSOf
   have hVB : nodeVOf tr s = .branch (if cv tr T_NODE s tb2 = 1 then some (slotOf tr s (s + 1) (s + 5)) else none)
       (kidsOf tr s (brOff tr s)) (rowsB tr b (s + (brOff tr s + 2 + 32 * popN tr s)) 8) := by
     unfold nodeVOf; simp only [show ¬ cv tr T_NODE s tl = 1 by omega, show ¬ cv tr T_NODE s te = 1 by omega, if_false]
   rw [edgesOf_branch n _ _ _ _ hVB, hkids]
-  simp only
   rcases hoff with ho | ho
   · -- b1: no value
     have hb2 : cv tr T_NODE s tb2 ≠ 1 := by intro h; unfold brOff at ho; rw [if_pos h] at ho; omega
-    have R : rowEdgesN tr pub s ℓ = startE tr s ++ W := by
+    have R : rowEdgesN tr pub s ℓ = W := by
       unfold rowEdgesN; rw [rowsFields hL hC, hfl]; unfold brFL
       simp only [if_pos ho, List.append_nil, List.cons_append, List.nil_append, List.flatMap_cons, List.flatMap_append,
         List.flatMap_map, List.flatMap_nil]
       rw [tagRows hL hC, show (List.range' (s + brOff tr s) 2).flatMap (rowEdgeN tr pub) = [] from FB, hWin, FM]
       simp
-    rw [R, show startE tr s ++ W = (startE tr s ++ W) ++ [] by simp,
-      canonE_split _ [] (fun e he => by rcases List.mem_append.mp he with h | h; exact hS e h; exact hWsym e h)
-        (by simp), List.append_nil, List.map_append, Wfst, if_neg hb2]
-    unfold startE endE
-    congr 1
-    · by_cases hs : s = 0
-      · rw [if_pos hs, if_pos (h0.1 hs)]; subst hs; simp
-      · rw [if_neg hs, if_neg (fun h => hs (h0.2 h))]; simp
-    · simp
+    rw [R, show W = W ++ [] by simp, canonE_split _ [] hWsym (by simp), List.append_nil, Wfst, if_neg hb2]
+    unfold endE; simp
   · -- b2: value slot
     have hb2 : cv tr T_NODE s tb2 = 1 := by
       unfold brOff at ho; split at ho
@@ -215,32 +203,29 @@ theorem brEdges (hC : NodeCtx tr s ℓ fl) (hb : tr.cell T_NODE s tb1 + tr.cell 
       · omega
     obtain ⟨sV, sH⟩ := sVV ho
     have FV := plainEdges hL hC (pub := pub) (L := 4) (mem _ (by simp [brFL, ho])) (by omega) sV (by simp [states])
-      (by decide) (by decide) (by decide) (by decide)
+      (by decide) (by decide) (by decide) (by decide) (by decide)
     have hm5 : (5, 32) ∈ fl := mem _ (by simp [brFL, ho])
     have FH : (List.range' (s + 5) 32).flatMap (rowEdgeN tr pub) =
-        if cv tr T_NODE s tv = 1 then [([n, 0, SYM_END, n, 0], cv tr T_NODE (s + 5) mA)] else [] := by
+        if cv tr T_NODE s tv = 1 then [([n, 0, SYM_END, cv tr T_NODE s vid, 0, EK_VAL], cv tr T_NODE (s + 5) mA)]
+        else [] := by
       rw [winEdges hL hC hm5 (by omega) (by rw [sH, stOnly hL (fieldRow' hL hC hm5) (segAct hL hC (fieldIn hC hm5)) sH
         (by simp [states]) (y := sCH) (by simp [states]) (by decide)]; decide),
         vhEdge hL hC hm5 (by omega) sH hn hnP (fun h => absurd h (by omega)),
         if_neg (show ¬ cv tr T_NODE s tl = 1 by omega)]
-    have R : rowEdgesN tr pub s ℓ = startE tr s ++
-        ((if cv tr T_NODE s tv = 1 then [([n, 0, SYM_END, n, 0], cv tr T_NODE (s + 5) mA)] else []) ++ W) := by
+    have R : rowEdgesN tr pub s ℓ = [] ++
+        ((if cv tr T_NODE s tv = 1 then [([n, 0, SYM_END, cv tr T_NODE s vid, 0, EK_VAL], cv tr T_NODE (s + 5) mA)]
+          else []) ++ W) := by
       unfold rowEdgesN; rw [rowsFields hL hC, hfl]; unfold brFL
       simp only [if_neg (show ¬ brOff tr s = 1 by omega), List.cons_append, List.nil_append, List.flatMap_cons,
         List.flatMap_append, List.flatMap_map, List.flatMap_nil, List.append_nil]
       rw [tagRows hL hC, FV, FH, show (List.range' (s + brOff tr s) 2).flatMap (rowEdgeN tr pub) = [] from FB, hWin, FM]
       simp
-    rw [R, canonE_swap _ _ _ hS (fun e he => by split at he <;> simp at he; subst he; simp) hWsym,
-      List.map_append, List.map_append, Wfst, if_pos hb2]
-    unfold startE slotOf endE
-    simp only [List.append_assoc]
+    rw [R, canonE_swap _ _ _ (by simp) (fun e he => by split at he <;> simp at he; subst he; simp) hWsym,
+      List.nil_append, List.map_append, Wfst, if_pos hb2]
+    unfold slotOf endE
     congr 1
-    · by_cases hs : s = 0
-      · rw [if_pos hs, if_pos (h0.1 hs)]; subst hs; simp
-      · rw [if_neg hs, if_neg (fun h => hs (h0.2 h))]; simp
-    · congr 1
-      by_cases htv : cv tr T_NODE s tv = 1
-      · rw [if_pos htv, if_pos htv]; simp
-      · rw [if_neg htv, if_neg htv]; simp
+    by_cases htv : cv tr T_NODE s tv = 1
+    · rw [if_pos htv, if_pos htv]; simp
+    · rw [if_neg htv, if_neg htv]; simp
 
 end ZkFormal.NearV3.NodeProof3

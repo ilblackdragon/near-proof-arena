@@ -111,7 +111,7 @@ variable {s ℓ : Nat} {fl : List (Nat × Nat)}
 
 /-- The slot of a branch window: the `w`-th present child. -/
 theorem slotOfWin (hC : NodeCtx tr s ℓ fl) {o : Nat} (hm : (o, 32) ∈ fl) (sC : tr.cell T_NODE (s + o) sCH = 1)
-    (hbr : tr.cell T_NODE s tb1 + tr.cell T_NODE s tb2 = 1) {w : Nat} (hw : tr.cell T_NODE (s + o) Node.w = ((w : Nat) : Fp))
+    (hbr : tr.cell T_NODE s tb1 + tr.cell T_NODE s tb2 = 1) {w : Nat} (hw : tr.cell T_NODE (s + o) NodeV3.w = ((w : Nat) : Fp))
     (hwP : w < 17) :
     ∃ j, j < 16 ∧ cv tr T_NODE s (bm j) = 1 ∧ belowN tr s j = w ∧ jIdxE.eval tr T_NODE (s + o) pub = ((j : Nat) : Fp) := by
   have hoℓ : o < ℓ := by have := (hC.fields.field _ hm); simp at this; have := this.1.pos; omega
