@@ -27,6 +27,17 @@
     "backend_family": {
       "type": "string"
     },
+    "board": {
+      "description": "Which board `rank` belongs to: `speed` (default) or `cost_v1` (additive, v1.5).",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ScoringKind"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "candidate_name": {
       "type": "string"
     },
@@ -34,6 +45,34 @@
       "description": "The challenge this result was measured under (additive, v1.4). A result is never re-labelled or moved to another challenge's board.",
       "default": "",
       "type": "string"
+    },
+    "cost": {
+      "description": "Per-class cost components, so the board shows why (v1.5).",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/CostResult"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "cost_score_ci_milli": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "cost_score_milli": {
+      "description": "Cost-board score and its CI (cost_v1 challenges only; v1.5).",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint64",
+      "minimum": 0.0
     },
     "decision": {
       "anyOf": [
@@ -141,6 +180,139 @@
     }
   },
   "definitions": {
+    "CostClass": {
+      "description": "Cost components of one class (component medians, integer femto-USD per batch run). `*_fusd` validator terms already include the `N_v` factor.",
+      "type": "object",
+      "required": [
+        "bandwidth_fusd",
+        "baseline_total_fusd",
+        "class_id",
+        "prepare_fusd",
+        "proof_bytes",
+        "prove_fusd",
+        "prove_ns",
+        "storage_fusd",
+        "total_fusd",
+        "verify_fusd",
+        "verify_ns",
+        "weight_ppm"
+      ],
+      "properties": {
+        "bandwidth_fusd": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "baseline_total_fusd": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "class_id": {
+          "type": "string"
+        },
+        "prepare_fusd": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "proof_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "prove_fusd": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "prove_ns": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "storage_fusd": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "total_fusd": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "verify_fusd": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "verify_ns": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "weight_ppm": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      }
+    },
+    "CostResult": {
+      "description": "`BenchmarkResult.cost` (v1.5, additive): the cost-board result.",
+      "type": "object",
+      "required": [
+        "classes",
+        "kind",
+        "price_model_digest",
+        "price_model_id",
+        "validators_per_chunk",
+        "verifier_vcpus"
+      ],
+      "properties": {
+        "classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CostClass"
+          }
+        },
+        "kind": {
+          "$ref": "#/definitions/ScoringKind"
+        },
+        "price_model_digest": {
+          "$ref": "#/definitions/Digest"
+        },
+        "price_model_id": {
+          "type": "string"
+        },
+        "score_ci_milli": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "score_milli": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "validators_per_chunk": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "verifier_vcpus": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      }
+    },
     "Decision": {
       "type": "string",
       "enum": [
@@ -149,6 +321,29 @@
         "INCONCLUSIVE",
         "INFRA_ERROR",
         "CANCELLED"
+      ]
+    },
+    "Digest": {
+      "description": "`sha256:<64 lowercase hex>`",
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "ScoringKind": {
+      "oneOf": [
+        {
+          "description": "bench-spec-v1 §8: weighted geometric mean of prove-time speedups.",
+          "type": "string",
+          "enum": [
+            "speed"
+          ]
+        },
+        {
+          "description": "bench-spec §14: weighted geometric mean of per-class system-cost ratios under a pinned [`PriceModel`].",
+          "type": "string",
+          "enum": [
+            "cost_v1"
+          ]
+        }
       ]
     },
     "Tier": {

@@ -81,6 +81,11 @@ pub fn verify_definition(
             "workload weights sum to {weights} ppm, expected 1000000"
         ));
     }
+    // cost_v1: the pinned price model must hash to its digest, be governed on
+    // a formal challenge, and the reference costs must cover every class.
+    definition
+        .check_scoring()
+        .map_err(|e| format!("scoring: {e}"))?;
     Ok(VerifiedChallenge {
         id,
         digest,

@@ -12,6 +12,11 @@
  */
 export type Digest = string;
 /**
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "ScoringKind".
+ */
+export type ScoringKind = 'speed' | 'cost_v1';
+/**
  * Change classification, computed by the judge (never trusted from the agent).
  *
  * This interface was referenced by `SubmissionView`'s JSON-Schema
@@ -189,6 +194,10 @@ export interface AssumptionRef {
  */
 export interface BenchmarkResult {
   classes: ClassMeasurement[];
+  /**
+   * Cost-board result for `scoring.kind = cost_v1` challenges (v1.5, additive). Never compared with `score_milli` (a speed score).
+   */
+  cost?: CostResult | null;
   hardware_profile: string;
   measured_by: string;
   prepare_ns: number;
@@ -215,8 +224,52 @@ export interface ClassMeasurement {
   median_ns: number;
   peak_rss_bytes: number;
   proof_bytes_max: number;
+  /**
+   * Per measured run: Σ proof bytes of the batch (v1.5, additive).
+   */
+  proof_bytes_runs?: number[];
   runs_ns: number[];
   verify_median_ns: number;
+  /**
+   * Per measured run (same order as `runs_ns`): Σ verify wall ns of the batch's proofs (v1.5, additive; empty in older results).
+   */
+  verify_runs_ns?: number[];
+  weight_ppm: number;
+}
+/**
+ * `BenchmarkResult.cost` (v1.5, additive): the cost-board result.
+ *
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "CostResult".
+ */
+export interface CostResult {
+  classes: CostClass[];
+  kind: ScoringKind;
+  price_model_digest: Digest;
+  price_model_id: string;
+  score_ci_milli?: number | null;
+  score_milli?: number | null;
+  validators_per_chunk: number;
+  verifier_vcpus: number;
+}
+/**
+ * Cost components of one class (component medians, integer femto-USD per batch run). `*_fusd` validator terms already include the `N_v` factor.
+ *
+ * This interface was referenced by `SubmissionView`'s JSON-Schema
+ * via the `definition` "CostClass".
+ */
+export interface CostClass {
+  bandwidth_fusd: number;
+  baseline_total_fusd: number;
+  class_id: string;
+  prepare_fusd: number;
+  proof_bytes: number;
+  prove_fusd: number;
+  prove_ns: number;
+  storage_fusd: number;
+  total_fusd: number;
+  verify_fusd: number;
+  verify_ns: number;
   weight_ppm: number;
 }
 /**
