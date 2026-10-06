@@ -16,6 +16,13 @@ open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.Near
 theorem memFields {e : Expr} (h : e ∈ cFields) : e ∈ UpsV3.constraints := by
   unfold UpsV3.constraints; simp only [List.mem_append]; exact Or.inl (Or.inl (Or.inl (Or.inr h)))
 
+theorem memPlan {e : Expr} (h : e ∈ cPlan) : e ∈ UpsV3.constraints := by
+  unfold UpsV3.constraints; simp only [List.mem_append]; exact Or.inl (Or.inl (Or.inl (Or.inl (Or.inr h))))
+
+theorem memBool {e : Expr} (h : e ∈ cBool) : e ∈ UpsV3.constraints := by
+  unfold UpsV3.constraints; simp only [List.mem_append]
+  exact Or.inl (Or.inl (Or.inl (Or.inl (Or.inl (Or.inl (Or.inl (Or.inl (Or.inl h))))))))
+
 theorem memRows {e : Expr} (h : e ∈ cRows) : e ∈ UpsV3.constraints := by
   unfold UpsV3.constraints; simp only [List.mem_append]
   exact Or.inl (Or.inl (Or.inl (Or.inl (Or.inl (Or.inl (Or.inl (Or.inl (Or.inr h))))))))
@@ -101,6 +108,124 @@ theorem fieldRow : FieldRowP C D := by
     uev_simp; simp only [cast_ofNat, h, cast1] at r8
     apply natv (hC _) (by rcases bMEM with h1 | h1 <;> rcases bfe with h2 | h2 <;> simp [h1, h2] <;> omega)
     rw [natCast_mul]; grind
+
+/-- Field lengths at a field end (`idx` of the last row), in `Fp`. -/
+abbrev FieldEndP (C : URow) : Prop :=
+    (C sTAG = 1 → (C idx : Fp) = 0) ∧ (C sHPL = 1 → (C idx : Fp) = 3) ∧ (C sHPF = 1 → (C idx : Fp) = 0) ∧
+    (C sKEY = 1 → (C idx : Fp) + 2 = (C qhk : Fp)) ∧ (C sVLEN = 1 → (C idx : Fp) = 3) ∧
+    (C sVH = 1 → (C idx : Fp) = 31) ∧ (C sBM = 1 → (C idx : Fp) = 1) ∧ (C sCH = 1 → (C idx : Fp) = 31) ∧
+    (C sMEM = 1 → (C idx : Fp) = 7)
+
+theorem fieldEnd (hfe : C fe = 1) : FieldEndP C := by
+  have l1 := fact ok (e := .mul (c fe) (.mul (c sTAG) (c idx))) (memFields (by simp [cFields]))
+  have l2 := fact ok (e := .mul (c fe) (.mul (c sHPL) (sub (c idx) (k 3)))) (memFields (by simp [cFields]))
+  have l3 := fact ok (e := .mul (c fe) (.mul (c sHPF) (c idx))) (memFields (by simp [cFields]))
+  have l4 := fact ok (e := .mul (c fe) (.mul (c sKEY) (sub (.add (c idx) (k 2)) (c qhk)))) (memFields (by simp [cFields]))
+  have l5 := fact ok (e := .mul (c fe) (.mul (c sVLEN) (sub (c idx) (k 3)))) (memFields (by simp [cFields]))
+  have l6 := fact ok (e := .mul (c fe) (.mul (c sVH) (sub (c idx) (k 31)))) (memFields (by simp [cFields]))
+  have l7 := fact ok (e := .mul (c fe) (.mul (c sBM) (sub (c idx) (k 1)))) (memFields (by simp [cFields]))
+  have l8 := fact ok (e := .mul (c fe) (.mul (c sCH) (sub (c idx) (k 31)))) (memFields (by simp [cFields]))
+  have l9 := fact ok (e := .mul (c fe) (.mul (c sMEM) (sub (c idx) (k 7)))) (memFields (by simp [cFields]))
+  uev_simp
+  simp only [cast_ofNat, hfe, cast1] at l1 l2 l3 l4 l5 l6 l7 l8 l9
+  refine ⟨fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_,
+    fun h => ?_⟩
+  · rw [h, cast1] at l1; grind
+  · rw [h, cast1] at l2; grind
+  · rw [h, cast1] at l3; grind
+  · rw [h, cast1] at l4; grind
+  · rw [h, cast1] at l5; grind
+  · rw [h, cast1] at l6; grind
+  · rw [h, cast1] at l7; grind
+  · rw [h, cast1] at l8; grind
+  · rw [h, cast1] at l9; grind
+
+/-- Field successions at a field end inside a part (`Fp`, the part constants of `C`). -/
+abbrev FieldSuccP (C D : URow) : Prop :=
+    (C sTAG = 1 → (D sHPL : Fp) = (C qtl : Fp) + (C qte : Fp) ∧ (D sBM : Fp) = (C qtb1 : Fp) ∧
+      (D sVLEN : Fp) = (C qtb2 : Fp)) ∧
+    (C sHPL = 1 → D sHPF = 1) ∧
+    (C sHPF = 1 → (D sKEY : Fp) = 1 - (C nokey : Fp) ∧ (D sVLEN : Fp) = (C nokey : Fp) * (C qtl : Fp) ∧
+      (D sCH : Fp) = (C nokey : Fp) * (C qte : Fp)) ∧
+    (C sKEY = 1 → (D sVLEN : Fp) = (C qtl : Fp) ∧ (D sCH : Fp) = (C qte : Fp)) ∧
+    (C sVLEN = 1 → D sVH = 1) ∧
+    (C sVH = 1 → (D sMEM : Fp) = (C qtl : Fp) ∧ (D sBM : Fp) = (C qtb2 : Fp)) ∧
+    (C sBM = 1 → (D sMEM : Fp) = (C nochild : Fp) ∧ (D sCH : Fp) = 1 - (C nochild : Fp)) ∧
+    (C sCH = 1 → (D sCH : Fp) + (D sMEM : Fp) = 1 ∧ (D sMEM : Fp) = (C lastw : Fp))
+
+include hD in
+theorem fieldSucc (hfe : C fe = 1) : FieldSuccP C D := by
+  have s1 := fact ok (e := mul3 (c fe) (c sTAG) (sub (.add (c qtl) (c qte)) (n sHPL))) (memFields (by simp [cFields]))
+  have s2 := fact ok (e := mul3 (c fe) (c sTAG) (sub (c qtb1) (n sBM))) (memFields (by simp [cFields]))
+  have s3 := fact ok (e := mul3 (c fe) (c sTAG) (sub (c qtb2) (n sVLEN))) (memFields (by simp [cFields]))
+  have s4 := fact ok (e := mul3 (c fe) (c sHPL) (not (n sHPF))) (memFields (by simp [cFields]))
+  have s5 := fact ok (e := mul3 (c fe) (c sHPF) (sub (not (c nokey)) (n sKEY))) (memFields (by simp [cFields]))
+  have s6 := fact ok (e := mul3 (c fe) (c sHPF) (sub (.mul (c nokey) (c qtl)) (n sVLEN))) (memFields (by simp [cFields]))
+  have s7 := fact ok (e := mul3 (c fe) (c sHPF) (sub (.mul (c nokey) (c qte)) (n sCH))) (memFields (by simp [cFields]))
+  have s8 := fact ok (e := mul3 (c fe) (c sKEY) (sub (c qtl) (n sVLEN))) (memFields (by simp [cFields]))
+  have s9 := fact ok (e := mul3 (c fe) (c sKEY) (sub (c qte) (n sCH))) (memFields (by simp [cFields]))
+  have s10 := fact ok (e := mul3 (c fe) (c sVLEN) (not (n sVH))) (memFields (by simp [cFields]))
+  have s11 := fact ok (e := mul3 (c fe) (c sVH) (sub (c qtl) (n sMEM))) (memFields (by simp [cFields]))
+  have s12 := fact ok (e := mul3 (c fe) (c sVH) (sub (c qtb2) (n sBM))) (memFields (by simp [cFields]))
+  have s13 := fact ok (e := mul3 (c fe) (c sBM) (sub (c nochild) (n sMEM))) (memFields (by simp [cFields]))
+  have s14 := fact ok (e := mul3 (c fe) (c sBM) (sub (not (c nochild)) (n sCH))) (memFields (by simp [cFields]))
+  have s15 := fact ok (e := mul3 (c fe) (c sCH) (sub (k 1) (.add (n sCH) (n sMEM)))) (memFields (by simp [cFields]))
+  have s16 := fact ok (e := mul3 (c fe) (c sCH) (sub (c lastw) (n sMEM))) (memFields (by simp [cFields]))
+  have one := one_lt
+  uev_simp
+  simp only [cast_ofNat, hfe, cast1] at s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 s14 s15 s16
+  refine ⟨fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_, fun h => ?_⟩
+  · rw [h, cast1] at s1 s2 s3; exact ⟨by grind, by grind, by grind⟩
+  · rw [h, cast1] at s4; exact natv (hD _) one (by grind)
+  · rw [h, cast1] at s5 s6 s7; exact ⟨by grind, by grind, by grind⟩
+  · rw [h, cast1] at s8 s9; exact ⟨by grind, by grind⟩
+  · rw [h, cast1] at s10; exact natv (hD _) one (by grind)
+  · rw [h, cast1] at s11 s12; exact ⟨by grind, by grind⟩
+  · rw [h, cast1] at s13 s14; exact ⟨by grind, by grind⟩
+  · rw [h, cast1] at s15 s16; exact ⟨by grind, by grind⟩
+
+include hC in
+/-- A part flag on the part's first row. -/
+theorem partBool (hpf : C pf = 1) {x : Nat} (hx : x ∈ partBools) : C x = 0 ∨ C x = 1 := by
+  have h := fact ok (e := Expr.mul (c pf) (Dsl.bool (c x))) (memBool (by
+    unfold cBool; simp only [List.mem_append, List.mem_map]
+    exact Or.inl (Or.inl (Or.inl (Or.inl (Or.inl (Or.inr ⟨x, hx, rfl⟩)))))))
+  uev_simp
+  simp only [hpf] at h
+  have e : Fp.ofNat 1 = 1 := rfl
+  rw [e] at h
+  exact nat01 (hC x) (by grind)
+
+include hC in
+/-- The node type of the part (one-hot), `nokey`, `nochild`, on the part's first row. -/
+theorem partHead (hpf : C pf = 1) (hq : C qb = 1) :
+    (C qtl = 0 ∨ C qtl = 1) ∧ (C qte = 0 ∨ C qte = 1) ∧ (C qtb1 = 0 ∨ C qtb1 = 1) ∧ (C qtb2 = 0 ∨ C qtb2 = 1) ∧
+    C qtl + C qte + C qtb1 + C qtb2 = 1 ∧ (C nokey = 0 ∨ C nokey = 1) ∧ (C nochild = 0 ∨ C nochild = 1) ∧
+    (C nokey = 1 → C qhk = 1) := by
+  have b1 := partBool ok hC hpf (x := qtl) (by simp [partBools])
+  have b2 := partBool ok hC hpf (x := qte) (by simp [partBools])
+  have b3 := partBool ok hC hpf (x := qtb1) (by simp [partBools])
+  have b4 := partBool ok hC hpf (x := qtb2) (by simp [partBools])
+  have b5 := partBool ok hC hpf (x := nokey) (by simp [partBools])
+  have b6 := partBool ok hC hpf (x := nochild) (by simp [partBools])
+  have h1 := fact ok (e := .mul (.mul (c qb) (c pf)) (sub (sumc [qtl, qte, qtb1, qtb2]) (k 1))) (memPlan (by simp [cPlan]))
+  have h2 := fact ok (e := .mul (c pf) (.mul (c nokey) (sub (c qhk) (k 1)))) (memPlan (by simp [cPlan]))
+  simp only [sumc, List.map_cons, List.map_nil, Dsl.sum] at h1
+  uev_simp
+  simp only [cast_ofNat, hpf, hq, cast1] at h1 h2
+  refine ⟨b1, b2, b3, b4, ?_, b5, b6, fun h => ?_⟩
+  · have := le1 b1; have := le1 b2; have := le1 b3; have := le1 b4
+    apply natv (by have := P_gt; omega) one_lt
+    simp only [natCast_add]; grind
+  · rw [h, cast1] at h2; exact natv (hC _) one_lt (by grind)
+
+include hC in
+/-- An extension has one window: its `CH` rows are `lastw`. -/
+theorem extLastw (ht : C qte = 1) (hc : C sCH = 1) : C lastw = 1 := by
+  have h := fact ok (e := mul3 (c qte) (c sCH) (not (c lastw))) (memFields (by simp [cFields]))
+  uev_simp
+  simp only [cast_ofNat, ht, hc, cast1] at h
+  exact natv (hC _) one_lt (by grind)
 
 end
 
