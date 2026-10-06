@@ -92,6 +92,15 @@ theorem cell_state {s : Nat} {h : Bool} {Lp Lv Ls kt : Nat} (lay : Layout tr tt 
     exact (oneHot hL (by omega) (plan_states h Lp Lv Ls kt f hf).1 hst).2 X
       (plan_states h Lp Lv Ls kt _ hm).1 (Ne.symm hne)
 
+/-- Receipt constants on every receipt row. -/
+theorem lay_const {s : Nat} {h : Bool} {Lp Lv Ls kt : Nat} (lay : Layout tr tt s h Lp Lv Ls kt)
+    (j : Nat) (hj : j < total h Lp Lv Ls kt) : ∀ x ∈ rconsts, tr.cell tt (s + j) x = tr.cell tt s x := by
+  intro x hx
+  obtain ⟨f, hf, h1, h2⟩ := plan_cover h Lp Lv Ls kt j hj
+  have F := lay.flds f hf
+  have := F.consts (j - f.2.1) (by omega) x hx
+  rwa [show s + f.2.1 + (j - f.2.1) = s + j by omega] at this
+
 /-- `rl` on a receipt row: only on the last row. -/
 theorem rl_row {s : Nat} {h : Bool} {Lp Lv Ls kt : Nat} (lay : Layout tr tt s h Lp Lv Ls kt)
     (j : Nat) (hj : j < total h Lp Lv Ls kt) :
