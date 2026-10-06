@@ -464,11 +464,11 @@ theorem init_buckets (reqs : List Req) (st : St) :
 
 /-- **`process_bandwidth_requests` from the AIR's rounds.** -/
 theorem process_rounds (hR : ∀ q ∈ reqs, q.incs ≠ [] ∧ q.incs.length < 64)
-    (rs : List RoundD) (st stF : St) (ps : List PM)
-    (hsim : simR n allowed reqs rs reqs.length st = some (stF, ps))
+    (rs : List RoundD) (st stF : St) (ps : List PM) (t0 : Nat) (ht0 : reqs.length ≤ t0)
+    (hsim : simR n allowed reqs rs t0 st = some (stF, ps))
     (hperm : (entriesOf rs).Perm (initPushes reqs st ++ ps))
     (hord : rs.Pairwise fun R R' => before (R.key, R.z) (R'.key, R'.z))
-    (hval : ∀ R ∈ rs, R.valid) (hne : ∀ R ∈ rs, R.ents ≠ []) (hts : TsOk reqs.length rs) :
+    (hval : ∀ R ∈ rs, R.valid) (hne : ∀ R ∈ rs, R.ents ≠ []) (hts : TsOk t0 rs) :
     processRequests n allowed st reqs = some stF := by
   have hR' : ∀ q ∈ reqs, q.incs.length < 64 := fun q h => (hR q h).2
   unfold processRequests
@@ -477,13 +477,13 @@ theorem process_rounds (hR : ∀ q ∈ reqs, q.incs ≠ [] ∧ q.incs.length < 6
   have hphi : ∀ i, i < reqs.length → phi reqs ⟨st.allowance[(reqs.getD i ⟨0, []⟩).link]!,
       zNext 1 0 st.allowance[(reqs.getD i ⟨0, []⟩).link]!, i, i * 64⟩ = (reqs.getD i ⟨0, []⟩).incs.length := by
     intro i _; simp only [phi, reqAt_init]
-  refine loop n allowed reqs hR' rs reqs.length st stF _ ps _ hsim ⟨hperm, ?_, ?_,
+  refine loop n allowed reqs hR' rs t0 st stF _ ps _ hsim ⟨hperm, ?_, ?_,
     simR_ts n allowed reqs hR' rs _ _ _ _ hsim, ?_, ?_, hord, hval, hne, hts⟩ ?_
   · simp only [TsAsc, initPushes, List.pairwise_map]
     exact List.pairwise_lt_range
   · intro p hp
     simp only [initPushes, List.mem_map, List.mem_range] at hp
-    obtain ⟨i, hi, rfl⟩ := hp; exact hi
+    obtain ⟨i, hi, rfl⟩ := hp; exact Nat.lt_of_lt_of_le hi ht0
   · intro p hp
     simp only [initPushes, List.mem_map, List.mem_range] at hp
     obtain ⟨i, hi, rfl⟩ := hp
