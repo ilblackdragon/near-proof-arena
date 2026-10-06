@@ -338,9 +338,11 @@ Range checks are kept in every variant.
    51/51). Cut A is on hold. Codec source map done (+20; `SA0` bus 62, `SDG` carries
    `(src, hasSrc, use)`, `Render.srcFields`). **Both tests rerun on the final tables (781):**
    SchedFullTest 600/600 vectors, 0 violations, all buses balanced, 51/51 mutants (2,033 s);
-   SchedTablesTest 600/600, 0 violations, 0 unbalanced messages, 44/44 mutants (2,729 s). **Open:** a test with a
-   duplicate-id layout (the vectors only exercise the identity map; `Gen.run`'s link pass is
-   positional and must switch to `srcArr`).
+   SchedTablesTest 600/600, 0 violations, 0 unbalanced messages, 44/44 mutants (2,729 s). Duplicate-id layouts are tested:
+   `SchedFullTest`'s dup mode sets shard id 1 := shard id 0 on every vector with `n ≥ 2`, which
+   gives a non-identity source map. The codec's new state equals `runCore`'s (spec first-index
+   semantics), with every constraint and bus checked. The event model and run data read `allow0`
+   through `srcArr` (commit `e64a64b0`).
 2. M3 views: codec, process structure (key block, headers, rounds); link layer per §6 (memory
    consistency instance, operand bounds of §10, `process_rounds` hypotheses, `core_compose`);
    `schedCore_sound`.
