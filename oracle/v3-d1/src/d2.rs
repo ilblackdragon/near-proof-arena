@@ -640,6 +640,11 @@ pub struct D2Ctx<'a> {
     pub ood_count: &'a mut BTreeMap<String, usize>,
     pub d2_seen: &'a mut usize,
     pub round: u64,
+    /// subset mode (public fixtures): keep an honest D2 case iff it adds a coverage key not
+    /// seen before in this chain, or its name hashes to 0 mod `keep_every` (1 = keep all)
+    pub keep_every: u64,
+    pub seen_cov: &'a mut HashSet<String>,
+    pub drop_cap: usize,
 }
 
 fn write_case(dir: &Path, claim: &Claim, witness: &[u8], meta: serde_json::Value) {
@@ -651,7 +656,7 @@ fn write_case(dir: &Path, claim: &Claim, witness: &[u8], meta: serde_json::Value
 
 /// Domain-D2 classification, metadata, mutants and writing of one honest witness.
 pub fn write_d2_case(x: D2Ctx, stats: &mut Stats) {
-    let D2Ctx { tracker, client, built, sw, wb, verdict, viol, labels, chain_idx, params, n_shards, out, o, rng, ood_count, d2_seen, round } = x;
+    let D2Ctx { tracker, client, built, sw, wb, verdict, viol, labels, chain_idx, params, n_shards, out, o, rng, ood_count, d2_seen, round, keep_every, seen_cov, drop_cap } = x;
     let _ = round;
     let in_d0 = viol.is_empty();
     let viol1 = match crate::d1::classify(tracker, built, sw, viol) {
@@ -724,6 +729,37 @@ pub fn write_d2_case(x: D2Ctx, stats: &mut Stats) {
         }
         return;
     }
+    if keep_every > 1 {
+        let mut keys: Vec<String> = Vec::new();
+        for (l, r) in meta["tx_labels"].as_array().unwrap().iter().zip(meta["tx_results"].as_array().unwrap()) {
+            keys.push(format!("tx:{}=>{}", l.as_str().unwrap(), r.as_str().unwrap()));
+        }
+        for a in meta["action_results"].as_array().unwrap() {
+            keys.push(format!("ar:{}", a.as_str().unwrap()));
+        }
+        for (k, _) in meta["receipt_classes"].as_object().unwrap() {
+            keys.push(format!("rc:{k}"));
+        }
+        for k in ["validator_update_in_main", "own_congestion_nonzero_pre"] {
+            if meta["features"][k].as_bool() == Some(true) {
+                keys.push(format!("f:{k}"));
+            }
+        }
+        for k in ["header_validator_proposals", "header_bandwidth_requests", "yield_queue_pre", "pending_data_count_pre", "contract_data_removals", "n_implicit"] {
+            if meta["features"][k].as_u64().unwrap_or(0) > 0 {
+                keys.push(format!("f:{k}"));
+            }
+        }
+        if meta["features"]["n_epochs"].as_u64().unwrap_or(1) > 1 {
+            keys.push("f:multi_epoch".into());
+        }
+        let novel = keys.iter().any(|k| !seen_cov.contains(k));
+        let hashed = u64::from_le_bytes(crate::enc::sha256(name.as_bytes())[..8].try_into().unwrap()) % keep_every == 0;
+        if !novel && !hashed {
+            return;
+        }
+        seen_cov.extend(keys);
+    }
     if in_d0 {
         stats.d0 += 1;
     }
@@ -764,7 +800,7 @@ pub fn write_d2_case(x: D2Ctx, stats: &mut Stats) {
         ms.push((m, None, None));
     }
     if *d2_seen % (me * 2) == 0 {
-        ms.extend(drop_each_node(&built.claim, sw, 128).into_iter().map(|m| (m, None, None)));
+        ms.extend(drop_each_node(&built.claim, sw, drop_cap).into_iter().map(|m| (m, None, None)));
     }
     ms.extend(crate::d1::mutants(client, &built.claim, sw, rng).into_iter().map(|(m, f)| (m, f, None)));
     ms.extend(header_mutants(&built.claim, sw, rng).into_iter().map(|m| (m, None, None)));

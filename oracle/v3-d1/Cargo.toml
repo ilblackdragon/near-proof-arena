@@ -44,6 +44,7 @@ sha2 = "0.10"
 wat = "1.0.42"
 strum = "0.24"
 near-wallet-contract = { path = "vendor/nearcore/runtime/near-wallet-contract" }
+near-vm-runner = { path = "vendor/nearcore/runtime/near-vm-runner" }
 
 [patch.crates-io]
 protobuf = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }

@@ -27,6 +27,10 @@
 //!            --rotate              chain k uses parameter set (k + seed) mod 12
 //!                                  (shards 4/5/6 x RS seats 8/100/16/3) instead of k
 //!            --p-missing P         per-client probability of skipping a chunk (default 0.12)
+//!          Domain D2: --domain d2 [--first-chain I] [--keep-every K] [--drop-cap C] writes
+//!          DIR/d2/*, DIR/ood/*, DIR/mutants/* (src/chaind2.rs, src/d2gen.rs, src/d2.rs); chain i
+//!          uses chain_params_d2(seed, i); --keep-every K > 1 keeps only honest D2 cases that
+//!          add coverage or hash to 0 mod K (public fixtures).
 //!          Domain D1 (spec/near-chunk-validation-d1.md): --domain d1 writes DIR/d1/*,
 //!          DIR/ood/*, DIR/mutants/* with Transfer transactions of every validity class
 //!          (src/d1gen.rs, src/d1.rs); without it the D0 output is unchanged.
@@ -206,7 +210,7 @@ fn cmd_gen(args: &[String]) -> i32 {
 
 /// Domain-D2 chain parameters of chain `i` (shards, Reed–Solomon seats, gas limits incl. low
 /// ones for delayed receipts, short epochs for validator updates inside segments).
-fn chain_params_d2(seed: u64, i: usize, blocks: u64, p_missing: f64) -> chaind2::D2Params {
+fn chain_params_d2(seed: u64, i: usize, blocks: u64, p_missing: f64, keep_every: u64, drop_cap: usize) -> chaind2::D2Params {
     chaind2::D2Params {
         base: chaingen::ChainParams {
             seed: seed.wrapping_mul(1_000_003).wrapping_add(i as u64),
@@ -229,6 +233,8 @@ fn chain_params_d2(seed: u64, i: usize, blocks: u64, p_missing: f64) -> chaind2:
         // 200 blocks later inside the chain
         p_contract: if blocks >= 250 { 0.10 } else { 0.04 },
         p_adv: 0.35,
+        keep_every,
+        drop_cap,
     }
 }
 
@@ -241,6 +247,8 @@ fn cmd_gen_d2(args: &[String]) -> i32 {
     let ood_cap: usize = arg(args, "--ood-cap").and_then(|s| s.parse().ok()).unwrap_or(20);
     let mutate_every: usize = arg(args, "--mutate-every").and_then(|s| s.parse().ok()).unwrap_or(6);
     let p_missing: f64 = arg(args, "--p-missing").map(|s| s.parse().expect("--p-missing")).unwrap_or(0.12);
+    let keep_every: u64 = arg(args, "--keep-every").and_then(|s| s.parse().ok()).unwrap_or(1);
+    let drop_cap: usize = arg(args, "--drop-cap").and_then(|s| s.parse().ok()).unwrap_or(128);
     let opts = chaingen::GenOpts {
         ood_cap,
         mutate_every,
@@ -261,7 +269,7 @@ fn cmd_gen_d2(args: &[String]) -> i32 {
     };
     let mut params = Vec::new();
     for i in first..first + chains {
-        let p = chain_params_d2(seed, i, blocks, p_missing);
+        let p = chain_params_d2(seed, i, blocks, p_missing, keep_every, drop_cap);
         let pstr = format!("{p:?}");
         eprintln!("chain {i}: {pstr}");
         params.push(pstr);

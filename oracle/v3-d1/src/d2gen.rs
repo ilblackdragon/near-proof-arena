@@ -272,6 +272,8 @@ pub struct World {
     pub stakers: Vec<AccountId>,
     pub minimum_stake: u128,
     pub seat_price: u128,
+    /// contract calls are mostly `promise_yield_create`
+    pub yield_bias: bool,
 }
 
 pub const HONEST: usize = 5;
@@ -309,6 +311,7 @@ impl World {
             stakers,
             minimum_stake: 0,
             seat_price: 0,
+            yield_bias: false,
         }
     }
 
@@ -652,7 +655,8 @@ impl World {
             5 => {
                 let a = self.any_honest(rng);
                 let acc = view_account(s, bh, &a)?;
-                ("h.stake_too_much", a, acc.amount().as_yoctonear() + acc.locked().as_yoctonear() + rng.gen_range(1..10u128.pow(24)))
+                // far above anything the account can hold by execution time (TriesToStake)
+                ("h.stake_too_much", a, acc.amount().as_yoctonear() + acc.locked().as_yoctonear() + 10u128.pow(31) + rng.gen_range(1..10u128.pow(24)))
             }
             _ => {
                 // DeleteAccount of a staking account fails (DeleteAccountStaking)
@@ -864,7 +868,7 @@ impl World {
             prog.push(slot);
             prog.extend_from_slice(&v.to_le_bytes());
         };
-        let which = rng.gen_range(0..6);
+        let which = if self.yield_bias && rng.gen_bool(0.7) { 5 } else { rng.gen_range(0..6) };
         let label;
         match which {
             0 | 1 => {

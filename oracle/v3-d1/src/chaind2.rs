@@ -45,6 +45,10 @@ pub struct D2Params {
     pub p_contract: f64,
     /// probability of an adversarial chunk producer per height
     pub p_adv: f64,
+    /// subset mode (see d2::D2Ctx::keep_every); 1 = every case
+    pub keep_every: u64,
+    /// at most this many single trie-node drop mutants per mutated case
+    pub drop_cap: usize,
 }
 
 const ACCTS_PER_SHARD: usize = 10;
@@ -132,6 +136,22 @@ pub fn setup_d2(p: &ChainParams) -> Setup {
         .save_tx_outcomes(true)
         .nightshade_runtimes_with_runtime_config_store(&genesis, vec![RuntimeConfigStore::new(None); n])
         .build();
+    // Pre-compile every contract the chain will deploy or call into each client's compiled-
+    // contract cache, one at a time, before any block: nearcore's per-contract compilation lock
+    // (near-vm-runner wasmtime_runner CompilationGuard) is held across wasmtime's rayon-parallel
+    // compilation, and a rayon worker waiting inside that compilation may steal a
+    // chunk-validation job (TestEnv spawns them on rayon) that blocks on the same lock — a
+    // self-deadlock. With warm caches `compile_and_cache` returns before taking the lock.
+    let wasm_config = RuntimeConfigStore::new(None).get_config(PROTOCOL_VERSION).wasm_config.clone();
+    for c in &env.clients {
+        let cache = c.runtime_adapter.compiled_contract_cache();
+        for code in [crate::d2gen::program_wasm().to_vec(), crate::d2gen::small_wasm(0), crate::d2gen::small_wasm(1), crate::d2gen::small_wasm(3)] {
+            let code = near_vm_runner::ContractCode::new(code, None);
+            near_vm_runner::precompile_contract(&code, Arc::clone(&wasm_config), Some(cache))
+                .expect("cache")
+                .expect("compile");
+        }
+    }
     Setup { clock, env, ems, genesis, accounts }
 }
 
@@ -144,6 +164,7 @@ pub fn run_chain_d2(chain_idx: usize, dp: &D2Params, out: &Path, o: &GenOpts, st
     let mut rng = StdRng::seed_from_u64(p.seed);
     let mut ood_count: BTreeMap<String, usize> = BTreeMap::new();
     let mut d2_seen = 0usize;
+    let mut seen_cov: std::collections::HashSet<String> = Default::default();
     let mut pending_skips: HashMap<u64, Vec<AccountId>> = HashMap::new();
     let tip0 = s.env.clients[0].chain.head().unwrap();
     let mut height = tip0.height;
@@ -189,7 +210,12 @@ pub fn run_chain_d2(chain_idx: usize, dp: &D2Params, out: &Path, o: &GenOpts, st
                 }
             } else {
                 let n = rng.gen_range(1..=dp.max_txs);
-                txs.extend(world.gen_txs(&s, &tip.last_block_hash, height, &mut rng, n, dp.p_contract));
+                // long chains: many contract calls (mostly yields) early, few later, so the
+                // yields time out 200 blocks later in chunks without other WASM work
+                let long = p.blocks >= 250;
+                world.yield_bias = long && round < 60;
+                let pc = if long { if round < 60 { 0.15 } else { 0.01 } } else { dp.p_contract };
+                txs.extend(world.gen_txs(&s, &tip.last_block_hash, height, &mut rng, n, pc));
             }
         }
         for (l, tx) in txs {
@@ -219,6 +245,26 @@ pub fn run_chain_d2(chain_idx: usize, dp: &D2Params, out: &Path, o: &GenOpts, st
         };
         // ---- block
         let bp = s.env.get_block_producer_at_offset(&tip, height - tip.height);
+        {
+            let em = &s.env.clients[0].epoch_manager;
+            let eid = em.get_epoch_id_from_prev_block(&tip.last_block_hash).unwrap();
+            let neid = em.get_next_epoch_id_from_prev_block(&tip.last_block_hash).unwrap();
+            for e in [eid, neid] {
+                let info = em.get_epoch_info(&e).unwrap();
+                for v in info.validators_iter() {
+                    if !s.env.contains_client(v.account_id()) {
+                        eprintln!("WARNING: validator {} (stake {}) has no client at height {height}", v.account_id(), v.stake());
+                    }
+                }
+            }
+        }
+        if !s.env.contains_client(&bp) {
+            let em = &s.env.clients[0].epoch_manager;
+            let eid = em.get_epoch_id_from_prev_block(&tip.last_block_hash).unwrap();
+            let info = em.get_epoch_info(&eid).unwrap();
+            let vs: Vec<String> = info.validators_iter().map(|v| format!("{}:{}", v.account_id(), v.stake())).collect();
+            panic!("block producer {bp} at height {height} has no client; epoch validators {vs:?}");
+        }
         let block = s.env.client(&bp).produce_block(height).unwrap().unwrap();
         for i in 0..s.env.clients.len() {
             let skip = force_skip.contains(&s.env.get_client_id(i)) || rng.gen_bool(p.p_missing);
@@ -348,6 +394,9 @@ pub fn run_chain_d2(chain_idx: usize, dp: &D2Params, out: &Path, o: &GenOpts, st
                     ood_count: &mut ood_count,
                     d2_seen: &mut d2_seen,
                     round,
+                    keep_every: dp.keep_every,
+                    seen_cov: &mut seen_cov,
+                    drop_cap: dp.drop_cap,
                 },
                 stats,
             );

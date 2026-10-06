@@ -2861,6 +2861,7 @@ dependencies = [
  "near-primitives-core",
  "near-store",
  "near-time",
+ "near-vm-runner",
  "near-wallet-contract",
  "node-runtime",
  "rand 0.8.5",
