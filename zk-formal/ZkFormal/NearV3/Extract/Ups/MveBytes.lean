@@ -12,7 +12,7 @@ the source (`mvHpf`) and its key bytes are copied `δ = phk − qhk` bytes furth
 bytes (`pMEM`).
 
 Hypotheses: `UpbReads s Pb`; the source is `nodeEnc (.ext k c m)` (`< 2^20` bytes, nibbles `< 16`,
-`I + 1 ≤ |k| < 400`, a 32-byte child hash, `m < 2^64`); the part's bytes are `< 256`.
+`I + 1 ≤ |k| < 510`, a 32-byte child hash, `m < 2^64`); the part's bytes are `< 256`.
 -/
 
 set_option linter.unusedSimpArgs false
@@ -36,8 +36,8 @@ theorem ups_mveBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 7)
     (Pb : Nat → List Nat) (key : List Nat) (c : NearSpec.PTrie) (m : Nat)
     (hR : UpbReads s Pb)
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc (.ext key c m)).map UInt8.toNat)
-    (hsmall : (nodeEnc (.ext key c m)).length < 2 ^ 20) (hkey : ∀ x ∈ key, x < 16) (hI : ti + 1 ≤ key.length)
-    (hklen : key.length < 400) (hc32 : c.hashOf.length = 32) (hm : m < 2 ^ 64)
+    (hsmall : (nodeEnc (.ext key c m)).length < 2 ^ 22) (hkey : ∀ x ∈ key, x < 16) (hI : ti + 1 ≤ key.length)
+    (hklen : key.length < 510) (hc32 : c.hashOf.length = 32) (hm : m < 2 ^ 64)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
     rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qMVE key c m ti)).map UInt8.toNat ∧
       limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qMVE key c m ti).memD := by

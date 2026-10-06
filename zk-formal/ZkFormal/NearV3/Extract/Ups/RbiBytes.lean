@@ -113,7 +113,7 @@ theorem ups_rbiBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : Near
     (Pb : Nat → List Nat) (bv : Option NearSpec.Slot) (cs : NearSpec.Kids) (m : Nat)
     (hR : UpbReads s Pb)
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc (.branch bv cs m)).map UInt8.toNat)
-    (hsl : (nodeEnc (.branch bv cs m)).length < 2 ^ 20)
+    (hsl : (nodeEnc (.branch bv cs m)).length < 2 ^ 22)
     (hbv : ∀ sl, bv = some sl → sl.valueRef.length = 36) (hm : m < 2 ^ 64)
     (hkl : UpsSpec.kidsLen cs = 16) (hslot : UpsSpec.kidAt cs (UpsSpec.yOf si) = none)
     (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
@@ -238,7 +238,7 @@ theorem ups_rbiBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : Near
   have hpl := (hR _ (by omega) hrdM).2
   rw [K.pc (c0 + 32 * ww) (by omega) sN (by decide)] at hpl
   have hww : 0 < ww ∧ (Pb (s.row o sN)).length = c0 + 32 * (ww - 1) + 8 := by
-    have hPl : (Pb (s.row o sN)).length < 2 ^ 20 := by rw [hsrc, List.length_map]; exact hsl
+    have hPl : (Pb (s.row o sN)).length < 2 ^ 22 := by rw [hsrc, List.length_map]; exact hsl
     rw [hpl] at hMr
     have hlP := rowLt hw hs (o + (c0 + 32 * ww)) spos
     simp only [P_lit] at hMr hlP
@@ -557,7 +557,7 @@ theorem rbiLook (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : NearSpec.
     (Pb : Nat → List Nat) (bv : Option NearSpec.Slot) (cs : NearSpec.Kids) (m : Nat)
     (hR : UpbReads s Pb)
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc (.branch bv cs m)).map UInt8.toNat)
-    (hsl : (nodeEnc (.branch bv cs m)).length < 2 ^ 20)
+    (hsl : (nodeEnc (.branch bv cs m)).length < 2 ^ 22)
     (hbv : ∀ sl, bv = some sl → sl.valueRef.length = 36) (hm : m < 2 ^ 64)
     (hkl : UpsSpec.kidsLen cs = 16) (hslot : UpsSpec.kidAt cs (UpsSpec.yOf si) = none)
     (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
@@ -679,7 +679,7 @@ theorem rbiLook (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : NearSpec.
   have hpl := (hR _ (by omega) hrdM).2
   rw [K.pc (c0 + 32 * ww) (by omega) sN (by decide)] at hpl
   have hww : 0 < ww ∧ (Pb (s.row o sN)).length = c0 + 32 * (ww - 1) + 8 := by
-    have hPl : (Pb (s.row o sN)).length < 2 ^ 20 := by rw [hsrc, List.length_map]; exact hsl
+    have hPl : (Pb (s.row o sN)).length < 2 ^ 22 := by rw [hsrc, List.length_map]; exact hsl
     rw [hpl] at hMr
     have hlP := rowLt hw hs (o + (c0 + 32 * ww)) spos
     simp only [P_lit] at hMr hlP

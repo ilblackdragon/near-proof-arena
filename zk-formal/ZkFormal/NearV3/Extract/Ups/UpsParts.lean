@@ -59,7 +59,7 @@ def upsQ (ci si ti x : Nat) (v : NearSpec.Bytes) (kd sdx : Nat → Nat) (src : N
 
 /-- The source node of a part, by kind: well formed, of the shape the kind reads. -/
 def SrcOk (ci si ti sd ki : Nat) (P : NearSpec.PTrie) : Prop :=
-  (nodeEnc P).length < 2 ^ 20 ∧
+  (nodeEnc P).length < 2 ^ 22 ∧
   (ki = 0 → ∃ bv cs m c, P = .branch bv cs m ∧ (∀ sl, bv = some sl → sl.valueRef.length = 36) ∧ m < 2 ^ 64 ∧
     UpsSpec.kidsLen cs = 16 ∧ UpsSpec.kidAt cs (slotOf sd) = some c ∧ c.hashOf.length = 32) ∧
   (ki = 1 → ∃ k c m, P = .ext k c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64) ∧
@@ -68,12 +68,12 @@ def SrcOk (ci si ti sd ki : Nat) (P : NearSpec.PTrie) : Prop :=
   (ki = 4 → ∃ cs m, P = .branch none cs m ∧ m < 2 ^ 64) ∧
   (ki = 5 → ∃ bv cs m, P = .branch bv cs m ∧ (∀ sl, bv = some sl → sl.valueRef.length = 36) ∧ m < 2 ^ 64 ∧
     UpsSpec.kidsLen cs = 16 ∧ UpsSpec.kidAt cs (UpsSpec.yOf si) = none) ∧
-  (ki = 6 → ∃ k sl m, P = .leaf k sl m ∧ (∀ x ∈ k, x < 16) ∧ ti + 1 ≤ k.length ∧ k.length < 400 ∧
+  (ki = 6 → ∃ k sl m, P = .leaf k sl m ∧ (∀ x ∈ k, x < 16) ∧ ti + 1 ≤ k.length ∧ k.length < 510 ∧
     sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32) ∧
-  (ki = 7 → ∃ k c m, P = .ext k c m ∧ (∀ x ∈ k, x < 16) ∧ ti + 1 ≤ k.length ∧ k.length < 400 ∧
+  (ki = 7 → ∃ k c m, P = .ext k c m ∧ (∀ x ∈ k, x < 16) ∧ ti + 1 ≤ k.length ∧ k.length < 510 ∧
     c.hashOf.length = 32 ∧ m < 2 ^ 64) ∧
   (ki = 10 → (ci = 4 → ∃ k sl m, P = .leaf k sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32) ∧
-    (spXN ci = 1 → ∃ k c m, P = .ext k c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ k.length < 400)) ∧
+    (spXN ci = 1 → ∃ k c m, P = .ext k c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ k.length < 510)) ∧
   (ki = 11 → ∃ c m, P = .ext [] c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64)
 
 /-- A part receiving its child's `MEMD` (`bN = 1`): descends, pass-throughs, the wrapping extension,
@@ -170,7 +170,7 @@ theorem rbiBytes' (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : NearSpe
     (Pb : Nat → List Nat) (bv : Option NearSpec.Slot) (cs : NearSpec.Kids) (m : Nat)
     (hR : UpbReads s Pb)
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc (.branch bv cs m)).map UInt8.toNat)
-    (hsl : (nodeEnc (.branch bv cs m)).length < 2 ^ 20)
+    (hsl : (nodeEnc (.branch bv cs m)).length < 2 ^ 22)
     (hbv : ∀ sl, bv = some sl → sl.valueRef.length = 36) (hm : m < 2 ^ 64)
     (hkl : UpsSpec.kidsLen cs = 16) (hslot : UpsSpec.kidAt cs (UpsSpec.yOf si) = none)
     (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
