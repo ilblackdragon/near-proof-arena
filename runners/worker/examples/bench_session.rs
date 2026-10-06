@@ -20,7 +20,7 @@
 //! cargo run -j 8 -p arena-worker --example bench_session -- \
 //!   --challenge challenges/chl_….json --package pkg.tar --bundle-dir BUILD \
 //!   --public-dir PUB --native-verifier BUILD/out/verify \
-//!   --oracle oracle/target/debug/near-arena-oracle \
+//!   --oracle oracle/target/debug/near-arena-oracle \   (or --oracle-v3 oracle/v3/target/debug/near-arena-oracle-v3)
 //!   --generators spec/workloads/near-transfer-receipt-v1 --fixtures oracle/fixtures/public \
 //!   --cpus 8-15 --fc-deps DIR --work DIR --out session.json \
 //!   [--season-secret-file F --season-secret-commit sha256:…]
@@ -210,9 +210,19 @@ fn main() {
         build,
     };
 
-    let mut oracles = Oracles::builtin()
-        .with_near(PathBuf::from(get("oracle")), Path::new(&get("generators")))
-        .unwrap_or_else(|e| die(format!("near oracle: {e}")));
+    // `--oracle` (near-arena-oracle: v1/v2 encodings) and/or `--oracle-v3`
+    // (near-arena-oracle-v3: near-arena-claim-v3), over the same generators.
+    let mut oracles = Oracles::builtin();
+    if one.contains_key("oracle") {
+        oracles = oracles
+            .with_near(PathBuf::from(get("oracle")), Path::new(&get("generators")))
+            .unwrap_or_else(|e| die(format!("near oracle: {e}")));
+    }
+    if one.contains_key("oracle-v3") {
+        oracles = oracles
+            .with_near_v3(PathBuf::from(get("oracle-v3")), &[PathBuf::from(get("generators"))])
+            .unwrap_or_else(|e| die(format!("near v3 oracle: {e}")));
+    }
     let fx = oracles
         .add_fixtures_dir(Path::new(&get("fixtures")))
         .unwrap_or_else(|e| die(e));

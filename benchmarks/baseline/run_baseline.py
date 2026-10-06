@@ -48,7 +48,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--challenge", required=True)
     ap.add_argument("--package", required=True, help="reference candidate package dir (tracked files only are packed)")
-    ap.add_argument("--oracle", required=True)
+    ap.add_argument("--oracle", default=None, help="near-arena-oracle (v1/v2 claim encodings)")
+    ap.add_argument("--oracle-v3", default=None, help="near-arena-oracle-v3 (near-arena-claim-v3)")
     ap.add_argument("--out", required=True)
     ap.add_argument("--cpus", default="8-15")
     ap.add_argument("--host-id", default="dev-illia-32c")
@@ -64,6 +65,8 @@ def main():
                          "ARENA_SEASON_SECRET_FILE does (BENCHMARK_SPEC §11.1); never printed")
     ap.add_argument("--season-secret-commit", default=None, help="published commitment the secret must match")
     a = ap.parse_args()
+    if not (a.oracle or a.oracle_v3):
+        sys.exit("give --oracle and/or --oracle-v3")
 
     chal_path = os.path.abspath(a.challenge)
     chal = json.load(open(chal_path))
@@ -136,7 +139,9 @@ def main():
     argv = ["cargo", "run", "-q", "-j", "8", "-p", "arena-worker", "--example", "bench_session", "--",
             "--challenge", run_chal, "--package", pkg_tar, "--bundle-dir", bundle, "--public-dir", public,
             "--native-verifier", os.path.join(bundle, "out/verify"),
-            "--oracle", os.path.abspath(a.oracle), "--generators", os.path.abspath(a.workloads),
+            *(["--oracle", os.path.abspath(a.oracle)] if a.oracle else []),
+            *(["--oracle-v3", os.path.abspath(a.oracle_v3)] if a.oracle_v3 else []),
+            "--generators", os.path.abspath(a.workloads),
             "--fixtures", fixtures, "--cpus", a.cpus, "--calibration-runs", a.calibration_runs,
             "--work", os.path.join(work, "session"), "--out", session_json]
     if a.fc_deps:

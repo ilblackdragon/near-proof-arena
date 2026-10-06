@@ -385,6 +385,35 @@ pub fn run_prove(
     Ok(check_proved(o, &out_dir, &case.expected_claim, env.limits))
 }
 
+/// `prove` on an expected-reject case: `Some(proof path)` when the prover
+/// exited 0 with a `claim.bin` and a `proof.bin` within the size caps (its
+/// claim bytes are not compared: whatever it emits, only `verify` on the
+/// *requested* claim matters), `None` when it refused (any failure).
+pub fn run_prove_rejection(
+    r: &mut JobRun<'_>,
+    env: &EntryEnv<'_>,
+    case: &Case,
+) -> Result<Option<PathBuf>, ExecError> {
+    let request = r.write_file(&case.request, "request")?;
+    let witness = r.write_file(&case.witness, "witness")?;
+    let out_dir = r.fresh("prove-out");
+    let mut spec = prove_spec(
+        r,
+        env,
+        &[(&request, "request.bin"), (&witness, "witness.bin")],
+    );
+    spec.out_dir = Some(out_dir.clone());
+    let o = r.run(&spec)?;
+    if !o.exit.success() || o.output_error.is_some() {
+        return Ok(None);
+    }
+    let proof_path = out_dir.join("out/proof.bin");
+    match std::fs::metadata(&proof_path) {
+        Ok(m) if m.is_file() && m.len() <= env.limits.max_proof_bytes => Ok(Some(proof_path)),
+        _ => Ok(None),
+    }
+}
+
 /// bench-spec-v1.1 (`vm_per_batch`): every case proved by a fresh `prove`
 /// process with a wiped scratch and only its own request/witness, all inside
 /// one sandbox instance when the backend supports it
@@ -720,8 +749,7 @@ pub fn run_verify_batch(
 /// so the job fails as infra and nothing is attributed to the candidate.
 /// Held-out case ids are not echoed.
 pub fn check_case_pin(pin: &crate::jobs::RequestPin, case: &Case) -> Result<(), ExecError> {
-    pin.check(&case.request)
-        .and_then(|_| pin.check_claim(&case.expected_claim))
+    pin.check_case(&case.request, Some(&case.expected_claim))
         .map_err(|e| {
             ExecError::Infra(format!(
                 "fail-closed: oracle case {} rejected: {e}",
