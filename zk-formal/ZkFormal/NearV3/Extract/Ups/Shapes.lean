@@ -137,7 +137,8 @@ variable {v : List UpsSeg} (hw : UpsWf v) {s : UpsSeg} (hs : s ∈ v)
 include hw hs hsc K
 
 /-- **The `MEM` field's bytes**: `u64 (E + (A + B − C))` with the inputs of `memIn`, given the
-input limbs `< 2^12` and the emitted bytes `< 256`. -/
+input limbs `< 2^12` and the emitted bytes `< 256`; and the exact value `E + (A + B − C)` of the
+limbs `rx` (what the part sends on `MEMD`). -/
 theorem memBytesK {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) {r0 : Nat} (hU : UField s r0 8)
     (hst : stOf (s.row r0) = 8) (hend : r0 + 8 = o + ℓ)
     (hb : s.row o eL ≤ 1 ∧ s.row o eS ≤ 1 ∧ s.row o useA ≤ 1 ∧ s.row o bN ≤ 1 ∧ s.row o bL ≤ 1 ∧
@@ -149,7 +150,11 @@ theorem memBytesK {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) {
     rowsB s r0 8 = (NearSpec.u64 (s.row o Kc + s.row o eL * Lv + s.row o eS * Sv +
       (s.row o useA * limbs (fun i => s.row (r0 + i) rb) 8 +
         (s.row o bN * limbs (fun i => s.row (r0 + i) mBv) 8 + s.row o bL * Lv) -
-       (s.row o cO * limbs (fun i => s.row (r0 + i) mCv) 8 + s.row o cS * Sv + s.row o Cc)))).map UInt8.toNat := by
+       (s.row o cO * limbs (fun i => s.row (r0 + i) mCv) 8 + s.row o cS * Sv + s.row o Cc)))).map UInt8.toNat ∧
+    limbs (fun i => s.row (r0 + i) rx) 8 = s.row o Kc + s.row o eL * Lv + s.row o eS * Sv +
+      (s.row o useA * limbs (fun i => s.row (r0 + i) rb) 8 +
+        (s.row o bN * limbs (fun i => s.row (r0 + i) mBv) 8 + s.row o bL * Lv) -
+       (s.row o cO * limbs (fun i => s.row (r0 + i) mCv) 8 + s.row o cS * Sv + s.row o Cc)) := by
   intro Lv Sv
   have M := memOf hw hs U
   simp only at M
@@ -159,6 +164,7 @@ theorem memBytesK {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) {
   obtain ⟨hrx, -, hbx⟩ := hM hin
   obtain ⟨e1, e2, e3, e4⟩ := memIn hw hs hsc K hU hst (by omega) (by omega) hb
   rw [e1, e2, e3, e4] at hrx
+  refine ⟨?_, hrx⟩
   rw [hrx] at hbx
   rw [u64_limbs (fun i hi => (hin i hi).2.2.2.2) hbx]
   rfl
@@ -170,6 +176,10 @@ variable {v : List UpsSeg} (hw : UpsWf v) {s : UpsSeg} (hs : s ∈ v)
 include hw hs
 
 end
+
+/-- The limbs of eight consecutive rows depend only on the first row's index. -/
+theorem limbs_rows_eq {s : UpsSeg} {a b : Nat} (h : a = b) (x : Nat) :
+    limbs (fun i => s.row (a + i) x) 8 = limbs (fun i => s.row (b + i) x) 8 := by subst h; rfl
 
 theorem fieldsAt_rep (s : UpsSeg) : ∀ (w r : Nat) (rest : List (Nat × Nat)),
     FieldsAt s r (List.replicate w (7, 32) ++ rest) →

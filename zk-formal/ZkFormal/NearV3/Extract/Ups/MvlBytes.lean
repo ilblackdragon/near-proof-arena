@@ -136,7 +136,8 @@ theorem ups_mvlBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 6)
     (hsmall : (nodeEnc (.leaf key sl m)).length < 2 ^ 20) (hkey : ∀ x ∈ key, x < 16) (hI : ti + 1 ≤ key.length)
     (hklen : key.length < 400) (hsl : sl.valueRef.length = 36) (hslen : sl.len < 2 ^ 32)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
-    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qMVL key sl ti)).map UInt8.toNat := by
+    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qMVL key sl ti)).map UInt8.toNat ∧
+      limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qMVL key sl ti).memD := by
   have K := partK hw hs hL hP k hk
   obtain ⟨-, U⟩ := hL.part k hk
   rw [hkd] at K
@@ -421,7 +422,7 @@ theorem ups_mvlBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 6)
   have pc5' := fun i (hi : i < 8) x (hx : x ∈ partConst) => by
     have := K.pc (41 + q + i) (by omega) x hx; rwa [show o + (41 + q + i) = o + 41 + q + i by omega] at this
   have hKc' := hKc (by omega)
-  have eM := memBytesK hw hs hsc K U U5 s5 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
+  obtain ⟨eM, eX⟩ := memBytesK hw hs hsc K U U5 s5 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
     (fun i hi => by
       have hfs : s.row (o + 41 + q + i) fs ≤ 1 := by rw [(R5 i hi).1]; split <;> omega
       refine ⟨?_, ?_, ?_, ?_, ?_⟩
@@ -434,7 +435,13 @@ theorem ups_mvlBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 6)
         rcases (show s.row (o + 41 + q + i) fs = 0 ∨ s.row (o + 41 + q + i) fs = 1 by omega) with h | h <;>
           rw [h] <;> omega
       · have := hbyte (41 + q + i) (by omega); rwa [show o + (41 + q + i) = o + 41 + q + i by omega] at this)
-  simp only [hKc', heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hS] at eM
+  simp only [hKc', heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hS] at eM eX
+  refine ⟨?_, (limbs_rows_eq (b := o + 41 + q) (by omega) rx).trans ?_⟩
+  rotate_left
+  · rw [eX]
+    have hXq : (NearSpec.hexPrefix (key.drop (ti + 1)) true).length = q := by simpa [X] using hXl
+    simp only [UpsSpec.qMVL, NearSpec.leafMem, hXq, NearSpec.PTrie.memD, NearSpec.PTrie.mem?, Option.getD_some, Nat.zero_mul, Nat.one_mul, Nat.add_zero, Nat.zero_add, Nat.sub_zero]
+    omega
   -- assemble
   have eT := tagField hw hs U0 s0 (by omega) hq0 K.pf
   rw [show s.row o qtb1 + 2 * s.row o qtb2 + 3 * s.row o qte = 0 by omega] at eT

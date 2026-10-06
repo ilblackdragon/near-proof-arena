@@ -403,7 +403,43 @@ the modulus `P ≈ 2^31` when several unknowns share a `% P` (it then reports sp
 such facts go through `Fp` and `natv` (`wbmBits`, `sub_of_cast`), or through `decide +kernel` on index rows
 (`planDec`, `ixVals`).  `omega` / `simp_all` can also time out in `whnf` when the context holds hypotheses with
 large `if`/list terms (e.g. `winRole`'s); prove such side facts with explicit lemmas.
-M7d (render) and M7e (link) are not started.
+M7d (render) is not started.
+
+### 8.2 M7e (link): status (lane/v3-trie-h)
+
+Done (kernel-checked, axioms ⊆ {propext, Classical.choice, Quot.sound}; `Extract/Ups/`):
+
+| module | content |
+|---|---|
+| `Shapes` + per-kind files | **exact `memory_usage`**: `memBytesK` also gives `limbs rx = E + (A + B − C)` (untruncated); every per-kind lemma (`RLP RDE PT WEX RBV RBR RDB RBI MVL MVE SPB`) now also concludes `limbs rx (MEM rows) = (node).memD` — what the part sends on `MEMD` |
+| `UpsParts` | `UpsExt` split: **`UpsExt0`** (part-independent: `reads`, `srcEnc`, `srcOk`, value `vlen`/`vbytes`/`digV`, walk `tiLe`/`xy`) and **`UpsExtK k`** (`dig` for parts `< k`, `clen`/`memB`/`memV`, bytes of `k`); **`ups_part`**: part `k`'s bytes are `nodeEnc (upsQ k)` and (not `NLF`) its `rx` limbs are `(upsQ k).memD` |
+| `UpsInd` | segment facts **`UpsShaSeg`** (a `DIGEST` lookup of part `k`'s id at its length returns `sha256` of its bytes, which are `< 256`), **`UpsMemdSeg`** (every `MEMD` receive of the segment is matched by a send of the segment: same `j, i, new, old, len`), `UpsLookSeg`; `memdMatch` (a receiving part's child is `childK`; its `mBv`/`mCv`/`clen` are the child's `rx`/`rb`/`qlen` on `MEM` row `i`), `memSrc` (`MEM`-row reads = the source's usage), `qlenPart` (`qlen` = part length), `memRowOf`, `memRows8`, `recvHead`, `rx_lt`; **`ups_partsI`**: strong induction on `k` discharges every `UpsExtK k` (`dig` from SHA + IH, `clen`/`memB`/`memV` from `memdMatch` + IH, bytes from SHA via the lookup) |
+| `UpsLook`, look lemmas in `RdbBytes RbiBytes RdeBytes WexBytes SpbBytes` | **`ups_look`**: `UpsLookSeg` from `UpsExt0` + SHA + `MEMD` (downward from the root: `W3` looks the root up at `rlen = qlen`, `nQ = j`; the new leaf is looked up by `RBI` / split branch at 50 (`nlfLen`); every other part by the part receiving its `MEMD` at `clen` = its length); `parentOf` (`termPar`, `termLast` by `decide`); `rdbLook rbiLook extUpLook wexLook spbLookY spbLookC` (the per-kind proofs' prefixes up to the child-window digest); **`ups_partsS`**: the parts of a segment from `UpsExt0`, "sources are nodes with usage `< 2^64`", `UpsShaSeg`, `UpsMemdSeg` |
+| `UpsBus` | **global SHA / `MEMD`**: **`sha_seg`** (`ShaFacts`, the `BYTES` balance `shaR B_BYTES = cnt (upsV3 sends ++ others)` with no other id of kind 12, every `upsV3` `DIGEST` receive provided, `UpsTauDistinct`, `UpsIdBound` (`τ < 2^17`, `< 512` parts) ⇒ `UpsShaSeg` for every segment, via `sha_core` with the part's bytes); **`memd_seg`** (the `MEMD` balance, `upsV3` only, + `UpsTauDistinct` ⇒ `UpsMemdSeg`); **`ups_partsG`**: every part of every segment emits `nodeEnc (upsQ k)` with exact `MEMD` limbs, from the per-segment `UpsExt0` and "sources are nodes with usage `< 2^64`" and the global facts above |
+| `SpbSplit` | **step 2**: `commonPrefix_eq`; `split_LSa/LSb/LSc` (`splitLeaf k s key' v = wrapExt (k.take I) (qSPB ci (.leaf k s m) (qMVL k s I) k[I] si v)`), `split_ESl0/ESl1/ESn0/ESn1` (same for `splitExt`, moved node `qMVE k c m I` or the old child), given `k.take I = key'.take I` and `key'.drop I = [0,15].drop si`; `wexKey_eq` (the wrapping extension's key is the common prefix) |
+
+**Open (M7e)**, with what each needs:
+* `UpsTauDistinct v` (distinct segment instances) and the segments' `UpsE (τ, mid = reg(W0), post = reg(W3))`
+  for `root_chain` (step 4: `MIDROOT`/`ROOT` messages of `W0`/`W3` from `msgsW`; then `ups_count` gives
+  distinct `τ`);
+* `UpsIdBound v`: `τ < 2^17` (from `K`, or from the row count: a segment has `≥ 51` rows) and `ps.length < 512`
+  (`ps.length = nT + dep_D`, `nT ≤ 4`, `dep_D ≤ 399` from `nodeV3`'s depth bound through the `UPB` reads);
+* interface: no table but `upsV3` sends `BYTES` of kind 12 (owed to the assembly lane, §6 "id-range lemma");
+* `UpsExt0.reads` from the `UPB` balance against `nodeV3`'s chained provider (`upbOf`, `mU`): the generic
+  `Walk3.chain_provided` with `e = [NPOST(sN), spos, rb, plen, pdep, rcid]`, `Pb n = vs[n].v.ser true` (≈ 250
+  lines); `srcEnc` and "sources are nodes with usage `< 2^64`" from the post view (`enc_fullTree_post`,
+  `src k := fullTree R V' (sN k)`); `srcOk` per kind from the walk link (the path records and their shapes:
+  `ups_walk`, `walk3_find`, the descend / pass-through chain by `cid`); `vlen`/`vbytes` from `SPLEN`/codec
+  (interface, as `VPostOk`); `digV` from SHA on the value rows (`sha_seg` with `j = 0`, plus the `SPOST`
+  interface: the codec's bytes are `v`); `tiLe`, `xy` from `ups_walkTerm`;
+* step 3: per instance, `upsQ (root) = upsert (prune T') [0,15] v` up to `hashOf` (`upsert_hashOf_congr` /
+  `upsert_refinedBy`; terminal cases by `upsert_brSlot`/`upsert_brVal`/`upsert_leaf_ne`/`upsert_ext_np` with
+  `SpbSplit`, upper parts by `upsert_branch_down`/`upsert_ext_down`, pass-through `.ext []`), and `S0F` =
+  `T.find [0,15]` (`walk3_find`); step 4: `UpsE` from the view.
+
+**Unconstrained cells read by the link (STATUS §6 register):** none new.  The links above read `rx`, `rb`,
+`mBv`, `mCv`, `clen`, `qlen`, `dI`, `dL`, `reg`, `j`, `jm`, `idx`, `gD`, `gMs`, `gMr`, all pinned by the table
+or by a balance.
 
 ## 9. Model check (tested)
 
