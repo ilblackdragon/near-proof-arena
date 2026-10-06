@@ -1731,4 +1731,99 @@ mod tests {
             pin.check_claim(&c.expected_claim).unwrap();
         }
     }
+
+    /// v3 is its own registration: fixtures (positives with request = claim,
+    /// rejection cases), params pin, generator specs checked for tool and
+    /// class; v1/v2 oracles never serve it.
+    #[test]
+    fn near_v3_oracle_fixtures_rejections_and_generator_pins() {
+        let gens = [
+            repo().join("spec/workloads/near-transfer-receipt-v1"),
+            repo().join("spec/workloads/near-chunk-validation-d0"),
+        ];
+        let mut o = Oracles::builtin()
+            .with_near_dirs(PathBuf::from("/nonexistent/near-arena-oracle"), &gens)
+            .unwrap()
+            .with_near_v3(PathBuf::from("/nonexistent/near-arena-oracle-v3"), &gens)
+            .unwrap();
+        let v3 = load("challenges/drafts/near-chunk-validation-d0.draft.json");
+        let v1 = load("challenges/chl_5ef2bc7d2068219635426e47ca46bfbb.json");
+        assert_eq!(o.get(&v3).unwrap().format(), "near-arena-claim-v3");
+        assert_eq!(o.get(&v1).unwrap().format(), "near-arena-claim-v1");
+        let d = o
+            .add_fixtures_dir(&repo().join("oracle/fixtures/v3/arena-public"))
+            .unwrap();
+        assert_eq!(d, v3.workload_suite.public_fixtures);
+        let fx = o.fixtures_for(&v3).unwrap().unwrap();
+        let cases = o.get(&v3).unwrap().fixture_cases(&v3, &fx).unwrap();
+        assert_eq!(cases.len(), 78);
+        let pin = crate::jobs::RequestPin::from_challenge(&v3).unwrap();
+        for c in &cases {
+            assert_eq!(c.request, c.expected_claim);
+            pin.check_case(&c.request, Some(&c.expected_claim)).unwrap();
+        }
+        let p = o.get(&v3).unwrap().approved_params(&v3, Some(&fx)).unwrap();
+        assert_eq!(p.len(), 99);
+        // rejections: public only here (n = 0, no held-out dir configured)
+        let r = o.rejection_suite(&v3, &seeds(), 0).unwrap();
+        assert_eq!((r.public, r.sampled, r.heldout), (121, 0, 0));
+        for c in &r.cases {
+            assert!(c.expected_claim.is_empty() && c.public);
+            pin.check_case(&c.request, None).unwrap();
+        }
+        // a v1 generator spec under a v3 class is refused before the binary runs
+        let mut x = v3.clone();
+        x.workload_suite.classes[0].generator = v1.workload_suite.classes[0].generator.clone();
+        let e = o.get(&x).unwrap().sample(&x, &x.workload_suite.classes[0].id.clone(), &seeds(), 1).unwrap_err();
+        assert!(e.to_string().contains("near-arena-oracle-v3 gen"), "{e}");
+        // a v3 spec of another class is refused
+        let mut y = v3.clone();
+        y.workload_suite.classes[0].generator = v3.workload_suite.classes[1].generator.clone();
+        let e = o.get(&y).unwrap().sample(&y, &y.workload_suite.classes[0].id.clone(), &seeds(), 1).unwrap_err();
+        assert!(e.to_string().contains("not \"d0-quiet\""), "{e}");
+        // v1 fixtures' params never pass as v3 params
+        let e = o
+            .get(&v3)
+            .unwrap()
+            .approved_params(&v3, Some(&repo().join("oracle/fixtures/public")))
+            .unwrap_err();
+        assert!(e.to_string().contains("format"), "{e}");
+    }
+
+    /// With the real oracle binary (`ARENA_TEST_NEAR_ORACLE_V3`): sampled
+    /// positives are exactly `n` per class and pass the pin; rejection
+    /// sampling alternates out-of-domain chunks and mutants; the committed
+    /// held-out set (`ARENA_TEST_HELDOUT_V3`) verifies against the draft.
+    #[test]
+    fn near_v3_oracle_samples_with_the_real_binary() {
+        let Ok(bin) = std::env::var("ARENA_TEST_NEAR_ORACLE_V3") else {
+            eprintln!("skipped: ARENA_TEST_NEAR_ORACLE_V3 unset");
+            return;
+        };
+        let gens = [repo().join("spec/workloads/near-chunk-validation-d0")];
+        let mut o = Oracles::builtin().with_near_v3(PathBuf::from(bin), &gens).unwrap();
+        o.add_fixtures_dir(&repo().join("oracle/fixtures/v3/arena-public")).unwrap();
+        let v3 = load("challenges/drafts/near-chunk-validation-d0.draft.json");
+        let pin = crate::jobs::RequestPin::from_challenge(&v3).unwrap();
+        for c in &v3.workload_suite.classes {
+            let got = o.get(&v3).unwrap().sample(&v3, &c.id, &seeds(), 3).unwrap();
+            assert_eq!(got.len(), 3);
+            for k in &got {
+                assert_eq!(k.class.as_deref(), Some(c.id.as_str()));
+                assert!(!k.public);
+                pin.check_case(&k.request, Some(&k.expected_claim)).unwrap();
+            }
+        }
+        let r = o.rejection_suite(&v3, &seeds(), 6).unwrap();
+        assert_eq!((r.public, r.sampled), (121, 6));
+        if let Ok(h) = std::env::var("ARENA_TEST_HELDOUT_V3") {
+            o.add_heldout_dir(Path::new(&h)).unwrap();
+            let s = o.conformance_suite(&v3, &seeds(), 3, true).unwrap();
+            assert_eq!(s.heldout, 3);
+            let r = o.rejection_suite(&v3, &seeds(), 4).unwrap();
+            assert_eq!(r.heldout, 4);
+            assert!(r.cases.iter().filter(|c| !c.public).all(|c| !c.id.contains("h1")
+                || c.id.starts_with("rejections/") || c.id.starts_with("heldout-reject/")));
+        }
+    }
 }

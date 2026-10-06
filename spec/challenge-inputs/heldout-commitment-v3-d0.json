@@ -1,0 +1,18 @@
+{
+ "schema": "near-arena-heldout-commitment-v1",
+ "challenge": "near-chunk-validation-d0",
+ "statement_id": "near/pv86/chunk-validation/v0",
+ "domain": "D0",
+ "tree_digest": "sha256:edac8e6fcf9465874f687f70da25e26054b88931c7f9fca9dc4dcb81dfcd5e97",
+ "algorithm": "TreeDigest (docs/CONTRACTS.md \u00a71; arena-admin tree-digest) of the held-out directory",
+ "layout": "d0-{quiet,transfers,missing}/{params.bin, cases/<name>/{request.bin,witness.bin,expected_claim.bin,meta.json}}; rejections/<name>/{request.bin,witness.bin,meta.json}",
+ "cases_per_class": 24,
+ "rejections": "64 (32 out-of-D0 honest chunks, 32 nearcore-rejected mutants)",
+ "labels": "positives: nearcore's validator accepts and the D0 classifier puts the chunk in D0; rejections: nearcore rejects (mutants) or the honest chunk is outside D0. Re-checked with the compiled Lean relation (nearspec-v3-check): 72/72 positives accepted, 0/64 rejections accepted",
+ "generated_with": "oracle/scripts/gen-heldout-v3.sh <secret seed file> <dir> (near-arena-oracle-v3 at the oracle source digest in the workload generator specs)",
+ "oracle_source_tree_digest": "sha256:91b2c4074a682617daa1288a89c00e473e96b456079560d14fae76e6fd7f9516",
+ "seed": "secret; kept off-repo by the local operator until season end",
+ "synthetic_state": false,
+ "chains": "real nearcore TestEnv chains (nearcore 2.13.4, PV 86), not synthetic state",
+ "reproduced": "regenerated from the seed with the oracle at this digest: identical TreeDigest"
+}

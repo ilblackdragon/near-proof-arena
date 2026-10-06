@@ -140,7 +140,6 @@ def main():
             "formal_spec": {
                 "relation_module": "NearSpecV3.ChunkValidationV0",
                 "relation_decl": "NearSpecV3.RelD0",
-                "challenge_spec_decl": "NearSpecV3.challengeSpec",
                 "tree_digest": tree("spec/lean", "formal-core"),
                 "lean_toolchain": "leanprover/lean4:v4.34.1"},
             "spec_doc_digest": fdig("spec/near-chunk-validation-v0.md"),
@@ -166,8 +165,8 @@ def main():
         "workload_suite": {
             "revision": "near-chunk-validation-d0-r1",
             "classes": classes,
-            "public_fixtures": tree("oracle/fixtures/v3/arena-public"),
-            "heldout_commitment": a.heldout_commitment,
+            "public_fixtures": tree("--relative-to", "oracle/fixtures/v3/arena-public", "oracle/fixtures/v3/arena-public"),
+            "heldout_commitment": a.heldout_commitment or "sha256:" + "0" * 64,
             "baseline_submission": None if a.measure else baseline_sub,
             "baseline_ns": [] if a.measure else baseline_ns},
         "measurement": {"warmup_runs": 3, "measured_runs": 15, "aggregation": "median", "outlier_mad_k": 5,

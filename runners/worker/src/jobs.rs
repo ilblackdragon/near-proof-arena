@@ -427,4 +427,58 @@ mod tests {
         toy.claim_encoding.format = "demo-toy-arith-v1".into();
         assert!(RequestPin::from_challenge(&toy).is_none());
     }
+
+    /// A04 (v3): the v3 pin accepts v3 claims (request = claim), v3 params
+    /// (domain D0, runtime-config digest) and nothing of v1/v2; a request
+    /// that differs from the expected claim, a foreign domain, protocol
+    /// version or chain id is refused.
+    #[test]
+    fn v3_pin_claim_is_request_and_params_carry_the_domain() {
+        let v3 = chal("challenges/drafts/near-chunk-validation-d0.draft.json");
+        let v1 = chal("challenges/chl_5ef2bc7d2068219635426e47ca46bfbb.json");
+        let p3 = RequestPin::from_challenge(&v3).unwrap();
+        assert_eq!(p3.format, RequestPin::NEAR_CLAIM_V3);
+        assert_eq!(p3.statement_id, RequestPin::NEAR_STATEMENT_V3);
+        assert_eq!(p3.domain.as_deref(), Some("D0"));
+        assert!(p3.request_is_claim());
+        let dir = "oracle/fixtures/v3/arena-public";
+        let c = fixture(&format!("{dir}/cases/00-h10024-s0/request.bin"));
+        let k = fixture(&format!("{dir}/cases/00-h10024-s0/expected_claim.bin"));
+        let rj = fixture(&format!("{dir}/rejections/00-h10024-s3-hdr.prev_state_root/request.bin"));
+        let pa = fixture(&format!("{dir}/params.bin"));
+        p3.check_case(&c, Some(&k)).unwrap();
+        p3.check_case(&rj, None).unwrap();
+        p3.check_params(&pa, &v3.runtime_config_digest).unwrap();
+        // the claim is the request: a different expected claim is refused
+        let other = fixture(&format!("{dir}/cases/00-h10006-s3/expected_claim.bin"));
+        assert!(p3.check_case(&c, Some(&other)).unwrap_err().contains("request.bin differs"));
+        // v1 artifacts never pass the v3 pin and vice versa
+        let c1 = "oracle/fixtures/public/cases/example-tierA";
+        assert!(p3.check(&fixture(&format!("{c1}/request.bin"))).unwrap_err().contains("format"));
+        let p1 = RequestPin::from_challenge(&v1).unwrap();
+        assert!(p1.check(&c).unwrap_err().contains("format"));
+        assert!(p1.check_params(&pa, &v1.runtime_config_digest).unwrap_err().contains("format"));
+        assert!(p3
+            .check_params(&fixture("oracle/fixtures/public/params.bin"), &v3.runtime_config_digest)
+            .unwrap_err()
+            .contains("format"));
+        // wrong domain / digest / chain / protocol version
+        let mut d1 = v3.clone();
+        d1.semantic_scope.name = "near/pv86/chunk-validation/v0#D1".into();
+        let e = RequestPin::from_challenge(&d1).unwrap().check_params(&pa, &v3.runtime_config_digest);
+        assert!(e.unwrap_err().contains("domain_id"));
+        let e = p3.check_params(&pa, &v1.runtime_config_digest);
+        assert!(e.unwrap_err().contains("runtime_config_digest"));
+        let mut ch = v3.clone();
+        ch.chain_id = "mainnet".into();
+        let e = RequestPin::from_challenge(&ch).unwrap().check(&c);
+        assert!(e.unwrap_err().contains("chain_id"));
+        let mut pv = v3.clone();
+        pv.protocol_version = 87;
+        let e = RequestPin::from_challenge(&pv).unwrap().check(&c);
+        assert!(e.unwrap_err().contains("protocol_version"));
+        let mut trailing = pa.clone();
+        trailing.push(0);
+        assert!(p3.check_params(&trailing, &v3.runtime_config_digest).unwrap_err().contains("trailing"));
+    }
 }
