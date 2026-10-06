@@ -84,16 +84,31 @@ tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,468 `W_eq` ≈ 1.27
 
 ## 4. Requests to other lanes
 
-* **Spec (proposed amendments, claim-decidable):**
-  * *layout ids distinct* (`c.layout`): every real layout; without it `allow0` needs a duplicate
-    map (one more bus).
+* **Spec (proposed amendments, claim-decidable, true of every honest D0 claim):**
+  * *layout shard ids distinct* (`c.layout`). M1's `core_compose` assumes `ids.Nodup` (`allow0` of
+    a canonical state is then record-by-record); without it the codec needs a duplicate map
+    (one more bus).
   * *A8 `c.bw_requests`*: every sender's request list has at most `n` entries (nearcore: one per
-    receiver). Without a claim-side bound, `Σ_τ R_τ` is bounded only by the 1 MiB claim and
-    header sharing across blocks (up to 32 × 150 k requests) — beyond any table height.
-* **Trie (`v3-trie`):** the pre value reaches `valV3` as `VBYTES (vid, pos, b)` sent by `schV3`;
-  `schV3` needs `(τ, present, vid)` for the `0x0f` read of instance τ (bus `S0F`); the post value
-  leaves as `SPOST (τ, pos, b)` with header `(τ, len)` for `upsV3`.
-* **Assembly:** public segments (§5), `Prep.fwd` as `(τ = 0, link, total)`.
+    receiver). Without a claim-side bound, `Σ_τ R_τ` is bounded only by the 1 MiB claim and header
+    sharing across blocks (up to 32 × 150 k requests), beyond any table height; with A8 and A7
+    (`Σ_τ N_τ ≤ 125 k`) the scan needs `≤ 20·Σ R_τ ≤ 2.5 M` rows.
+  * The in-progress switch to raw bitmaps (`SchedPub.raw/values`, `convertRaw`) needs **no AIR
+    change**: the AIR consumes resolved raw requests (`Render.rawRecs`, indices resolved natively);
+    `Spec/Conv.convertRequests_eq_convRaw` is the bridge (`convertRaw` from `toBTreeMap requests`
+    is the same list). Once it lands, `runCore_eq` changes from `pub.reqs` to `convertRaw …`
+    (one line).
+* **Trie (`v3-trie`)**, message formats:
+  * `S0F (τ, present, vid)` — the `0x0f` read of instance τ (present flag and the value record
+    id), received once per τ by the codec;
+  * `VBYTES (vid, pos, b)` — the codec **sends** the previous value's bytes (lockstep with
+    `valV3`'s receive);
+  * `SPOST (τ, pos, b)` — the new value's bytes for `upsV3`, `pos < 37 + 24N`;
+  * the bytes are canonical; `upsV3` may rely on the value length `37 + 24·n²`.
+* **SHA**: the sanity hash uses message kind `K_SCH = 11` (`Id = 11 + 16τ`), 64-byte input.
+  Proposal: a per-byte digest output (`DBYTE (Id, i, b)`) would save the codec's 32-column shift
+  register.
+* **Assembly:** public segments of `Render.render` (`SPUBB`, `SPAR`, `SRAW`, `SLINK`, `SSHD`, `SDL`
+  send/receive), `Prep.fwd` as per-link demands of instance 0; bus ownership §6.1.
 
 ## 5. M1 — spec-side refinement (all **proved**, axioms ⊆ {propext, Classical.choice, Quot.sound})
 
