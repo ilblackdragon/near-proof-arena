@@ -143,6 +143,15 @@ theorem chunksOf_go_le (g : Nat) : ∀ (n : Nat) (l : List α), ∀ c ∈ chunks
 theorem chunksOf_le (g : Nat) (l : List α) : ∀ c ∈ chunksOf g l, c.length ≤ g :=
   chunksOf_go_le g _ l
 
+theorem chunksOf_go_sub (g : Nat) : ∀ (n : Nat) (l : List α), ∀ c ∈ chunksOf.go g n l, ∀ a ∈ c, a ∈ l
+  | 0, _, c, h, _, _ => by simp [chunksOf.go] at h
+  | _ + 1, [], c, h, _, _ => by simp [chunksOf.go] at h
+  | n + 1, b :: l, c, h, a, ha => by
+    simp only [chunksOf.go, List.mem_cons] at h
+    rcases h with rfl | h
+    · exact List.mem_of_mem_take ha
+    · exact List.mem_of_mem_drop (chunksOf_go_sub g n _ c h a ha)
+
 theorem numGroups_le {g : Nat} (hg : 1 ≤ g) (n : Nat) : numGroups n g ≤ n := by
   unfold numGroups
   rw [Nat.max_eq_left hg]

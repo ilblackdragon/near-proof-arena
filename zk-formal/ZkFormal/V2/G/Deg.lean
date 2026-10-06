@@ -27,15 +27,6 @@ open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.V2 ZkFormal.V2.Np
 section
 variable {β : Type}
 
-theorem chunksOf_go_sub (g : Nat) : ∀ (n : Nat) (l : List β), ∀ c ∈ chunksOf.go g n l, ∀ a ∈ c, a ∈ l
-  | 0, _, c, h, _, _ => by simp [chunksOf.go] at h
-  | _ + 1, [], c, h, _, _ => by simp [chunksOf.go] at h
-  | n + 1, b :: l, c, h, a, ha => by
-    simp only [chunksOf.go, List.mem_cons] at h
-    rcases h with rfl | h
-    · exact List.mem_of_mem_take ha
-    · exact List.mem_of_mem_drop (chunksOf_go_sub g n _ c h a ha)
-
 /-- Each group of a representable family is a list of at most `g` members. -/
 def ChunkP (g : Nat) (P : (Fp8 → β) → Prop) (G : Fp8 → List β) : Prop :=
   ∃ c : List (Fp8 → β), c.length ≤ g ∧ (∀ f ∈ c, P f) ∧ ∀ x, G x = c.map fun f => f x
