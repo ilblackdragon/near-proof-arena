@@ -1,0 +1,14 @@
+name = "RecursionPoc"
+version = "0.1.0"
+defaultTargets = ["RecursionPoc"]
+
+# Recursion-track PoC (docs/research/recursion-r2-theorem.md §3): the new algebra of one R2
+# accumulation step, kernel-checked against zk-formal's Udr layer (imported read-only; zk-formal is
+# not modified). Not an admission candidate (F4: allowed packages are ArenaCore and NearSpec).
+
+[[lean_lib]]
+name = "RecursionPoc"
+
+[[require]]
+name = "ZkFormal"
+path = "../zk-formal"
