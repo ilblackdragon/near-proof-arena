@@ -1,4 +1,7 @@
-import ZkFormal.NearV3.Render.Node.FieldFacts
+import ZkFormal.NearV3.Render.Node.FieldsS
+import ZkFormal.NearV3.Render.Node.FieldsA
+import ZkFormal.NearV3.Render.Node.FieldsB
+import ZkFormal.NearV3.Render.Node.FieldsM
 
 /-!
 # ZkFormal.NearV3.Render.Node.Fields — `cFields`: field succession, lengths, flags
@@ -15,79 +18,20 @@ open ZkFormal.Near.Render.NodeRow (wOf lwOf len_facts)
 
 namespace NodeGen3
 
-macro "fclose" : tactic => `(tactic| ((try simp only [b2n, decide_eq_true_eq]); (repeat' split) <;> first | omega | contradiction))
-
-set_option hygiene false in
-macro "fall" : tactic => `(tactic| first
-  | fclose
-  | (rcases hF.2.2.2.1 with ⟨h, h'⟩ | h <;> first | simp [h, h'] | simp [h, bitOf])
-  | (rcases hF.2.2.2.2.1 with h | ⟨h, h'⟩ <;> first | simp [h, h'] | simp [h])
-  | (rcases hF.2.2.1 with h | h <;> (try simp only [h, bitOf]) <;> fclose)
-  | (rcases hF.1 with h | h <;> (try simp only [h]) <;> fclose)
-  | (rcases hF.1 with h | h <;> simp [h])
-  | (rcases hF.2.2.1 with h | h <;> simp [h, bitOf])
-  | (have h6 := hF.2.2.2.2.2.2; revert h6; cases twOf (rec vs n).v <;> cases tvOf (rec vs n).v <;> simp [b2n])
-  | (rcases (show nokeyOf (rec vs n).v = 0 ∨ nokeyOf (rec vs n).v = 1 by omega) with h | h <;>
-      (try simp only [h]) <;> fclose))
-
 section
 variable {vs : List NodeS3} (ok : NodeOk vs) {H : Nat} (hHR : R vs + 1 ≤ H)
 include ok hHR
 
-set_option maxHeartbeats 16000000 in
 theorem cFields_node {q : Nat} (hqn : q < R vs) : RowGoal vs H NodeV3.cFields q := by
   intro C D P hC hD ex hex
-  obtain ⟨n, p, hn, hp, hr, rfl⟩ := row_node hqn
-  have hC' : ∀ x, x < 185 → C x = (rowCell vs (mkR vs n p) x : Int) := by
-    intro x hx; rw [hC x hx, X_node hqn, hr]
-  have hmod : (off vs n + p + 1) % H = off vs n + p + 1 := Nat.mod_eq_of_lt (by omega)
-  rw [hmod] at hD
-  have hlen := len_eq ok hn
-  have hfm := (fmem ok hn hp).1
-  have hidx := (fmem ok hn hp).2
-  have hw := rwf ok hn
-  have hsr := state_range ((layN vs n).getD p default).1
-  have hkf := kind_facts hfm
-  have hT := typeOf_sum (rec vs n).v
-  have hF := flag_facts _ hw
-  have hLf := len_facts ((layN vs n).getD p default).1 (hplenOf (rec vs n).v)
-  have hlast := last_iff ok hn hp
-  simp only [NodeV3.cFields, NodeV3.states, List.mem_cons, List.mem_append, List.mem_map, List.mem_range,
-    List.not_mem_nil, or_false, List.range_succ, List.range_zero, List.nil_append, List.cons_append,
-    List.map_cons, List.map_nil, List.append_assoc] at hex
-  simp only [mkR] at hC'
-  by_cases h1 : p + 1 < (layN vs n).length
-  · have h2 : off vs n + p + 1 < R vs := by
-      rcases next_row hn hp with ⟨_, h, _⟩ | ⟨h, _⟩ | ⟨h, _⟩ <;> omega
-    have h3 : (recsOf vs).getD (off vs n + p + 1) default = mkR vs n (p + 1) := by
-      rcases next_row hn hp with ⟨_, _, h⟩ | ⟨h, _⟩ | ⟨h, _⟩
-      · exact h
-      all_goals omega
-    have hD' : ∀ x, x < 185 → D x = (rowCell vs (mkR vs n (p + 1)) x : Int) := by
-      intro x hx; rw [hD x hx, X_node h2, h3]
-    simp only [mkR] at hD'
-    have hadj := lay_adj hw h1
-    simp only [show layout (fieldsOf (rec vs n).v) (hplenOf (rec vs n).v) = layN vs n from rfl] at hadj
-    have hsr' := state_range ((layN vs n).getD (p + 1) default).1
-    rcases hadj with ⟨a1, a2, a3⟩ | ⟨a1, a2, a3⟩
-    · rw [a1, a2] at hD'
-      rcases hex with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
-      all_goals node_ev3 [hC', hD']
-      all_goals try simp only [rc70, rc71]
-      all_goals node_rc3 []
-      all_goals fall
-    · have hs := succ_facts a3
-      rw [a2] at hD'
-      rcases hex with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
-      all_goals node_ev3 [hC', hD']
-      all_goals try simp only [rc70, rc71]
-      all_goals node_rc3 []
-      all_goals fall
-  · rcases hex with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
-    all_goals node_ev3 [hC']
-    all_goals try simp only [rc70, rc71]
-    all_goals node_rc3 []
-    all_goals fall
+  rw [cFields_split] at hex
+  rcases List.mem_append.1 hex with hex | hex
+  · rcases List.mem_append.1 hex with hex | hex
+    · exact cfS_node ok hHR hqn C D P hC hD ex hex
+    · rcases List.mem_append.1 hex with hex | hex
+      · exact cfA_node ok hHR hqn C D P hC hD ex hex
+      · exact cfB_node ok hHR hqn C D P hC hD ex hex
+  · exact cfM_node ok hHR hqn C D P hC hD ex hex
 
 set_option maxHeartbeats 4000000 in
 theorem cFields_other {q : Nat} (hq : R vs ≤ q) (hqH : q < H) : RowGoal vs H NodeV3.cFields q := by
@@ -102,7 +46,7 @@ theorem cFields_other {q : Nat} (hq : R vs ≤ q) (hqH : q < H) : RowGoal vs H N
     List.not_mem_nil, or_false, List.range_succ, List.range_zero, List.nil_append, List.cons_append,
     List.map_cons, List.map_nil, List.append_assoc] at hex
   generalize total vs = T at *
-  rcases hex with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+  rcases hex with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
   all_goals node_ev3 [hC']
   all_goals split <;> simp [sumCell, padCell]
 
