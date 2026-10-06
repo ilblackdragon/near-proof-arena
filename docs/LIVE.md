@@ -521,9 +521,16 @@ diagnostic):
   * `sub_f9644f35093d44038518293b0d4f8675` hostile `near-v3-lenient-witness` (agent-1), run
     `run_99a3f62247d048098e11f361251818b5`: **REJECTED** (HOSTILE_PROOF_ACCEPTED: 18 of 183 hostile
     inputs accepted, all `v3-witness-freedoms/entries…` and `…/values…`; every other mutant rejected).
-  * Note: `sub_9b0c50fc…` (canonical-only, rank 1 at 102.144) is the same verifier as the hostile
-    case and would now be REJECTED on a re-run; it stays on the board until the lead decides
-    (re-run or revoke).
+  * `sub_9b0c50fcdf80450da79cced76b4f7aea` (run 2's canonical-only reference, same verifier as the
+    hostile case) was re-judged by the current judge (lead decision: `rerun-submission`, not
+    revoke; history kept): run `run_c8661f22951f415d962e0ad2e1338a40` **REJECTED**
+    (HOSTILE_PROOF_ACCEPTED via `v3-witness-freedoms/entries…` and `…/values…`; report
+    `docs/e2e-results/v3-d0-reference/live-run2-reference-rerun-report.json`). Its earlier ADMITTED
+    run (102.144) stays in its history; the board's rank 1 is now `sub_0826bb9b…` (4.504).
+  * **Install hardening** (main `a81535b`): `arena-live build` builds the service binaries at HEAD
+    into the live target dir (heavy wrapper, CPUs 8-15,24-31, clean tree required) and stamps it;
+    `arena-live install` refuses unless the stamp equals HEAD, the tree is clean and no binary is
+    newer than the stamp.
 
 ## 5. Current state (2026-10-03 16:10 UTC)
 

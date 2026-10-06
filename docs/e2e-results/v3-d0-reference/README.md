@@ -160,3 +160,9 @@ status `live-run3-normal-reference-status.json`.
 `OBLIGATION_UNDISCHARGED`. Formal gates PASS; ADVERSARIAL_PROOFS FAIL: 18 of 183 accepted, all
 `v3-witness-freedoms/entries…` and `v3-witness-freedoms/values…` (deterministic). Report
 `live-hostile-lenient-report.json`.
+
+**Re-judged `sub_9b0c50fcdf80450da79cced76b4f7aea`** (run 2's canonical-only reference, ADMITTED
+at 102.144 before `v3-witness-freedoms` existed): `rerun-submission` on the current judge, run
+`run_c8661f22951f415d962e0ad2e1338a40`: **REJECTED** (HOSTILE_PROOF_ACCEPTED,
+`v3-witness-freedoms/entries…` and `…/values…`), the judge's own verdict, same as the hostile case.
+Report `live-run2-reference-rerun-report.json`; the run-1 report above stays as history.
