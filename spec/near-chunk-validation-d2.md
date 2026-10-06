@@ -338,8 +338,10 @@ D1 §3 holds verbatim, generalized to every action list:
    deposit_cost` failing ⇒ **`DepositFailed`**: the gas key is charged `burnt_amount` only,
    the account is unchanged, the nonce row is advanced, **no receipt**, outcome
    `failed_with_gas_burnt(gas_burnt, burnt_amount)` (`transaction.rs:727-744`: status
-   Failure, gas and tokens counted) (`lib.rs:2128-2142`); success charges the key `gas_cost`,
-   the account `deposit_cost`, advances the row.
+   Failure, gas and tokens counted; its compute is `gas_burnt`) (`lib.rs:2128-2142`); an
+   overflow in the storage-stake check is a plain failure (`verifier.rs:524-526`); success
+   charges the key `gas_cost`, the account `deposit_cost`, advances the row. The account is
+   written in both cases (unchanged on `DepositFailed`).
 7. Success: receipt `Receipt::from_tx` (`receipt.rs:344-365`) with **all** actions, id
    `sha256(tx_hash ‖ u64 height ‖ u64 0)`, gas price `receipt_gas_price`; local iff
    `receiver = signer`, else `forward_or_buffer_receipt` (§9.2) — buffering is **in** D2.
