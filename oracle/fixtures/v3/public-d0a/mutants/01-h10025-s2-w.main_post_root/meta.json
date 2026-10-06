@@ -1,0 +1,15 @@
+{
+  "base": "01-h10025-s2",
+  "case": "01-h10025-s2-w.main_post_root",
+  "d0a_violations": [],
+  "domain": "D0a",
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d0a": false,
+  "in_d0": true,
+  "in_d0a": true,
+  "kind": "mutant",
+  "mutation": "w.main_post_root",
+  "nearcore": "validate: InvalidChunkStateWitness(\"Post state root ARmBW3XBLkiaeynm5MDugJuoQZ3Hz282bX3pu8BGo1SV for main transition does not match expected post state root AVfb9YFGEbDJ4fujarVMaEf2fZc4gyDwBPMiQKVGWp6q\")",
+  "verdict_source": "nearcore"
+}

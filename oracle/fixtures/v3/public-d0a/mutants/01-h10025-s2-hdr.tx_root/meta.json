@@ -1,0 +1,15 @@
+{
+  "base": "01-h10025-s2",
+  "case": "01-h10025-s2-hdr.tx_root",
+  "d0a_violations": [],
+  "domain": "D0a",
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d0a": false,
+  "in_d0": true,
+  "in_d0a": true,
+  "kind": "mutant",
+  "mutation": "hdr.tx_root",
+  "nearcore": "validate: InvalidTxRoot",
+  "verdict_source": "nearcore"
+}

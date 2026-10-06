@@ -1,0 +1,18 @@
+{
+  "base": "01-h10018-s4",
+  "case": "01-h10018-s4-w.foreign_routed_receipt",
+  "d0a_violations": [
+    "w.proof_routing"
+  ],
+  "domain": "D0a",
+  "expected_rel": true,
+  "expected_rel_d0": true,
+  "expected_rel_d0a": false,
+  "expected_verdict": "out_of_domain",
+  "in_d0": true,
+  "in_d0a": false,
+  "kind": "mutant",
+  "mutation": "w.foreign_routed_receipt",
+  "nearcore": "not judged (mutated block not in the store); Rel holds by construction",
+  "verdict_source": "construction"
+}

@@ -1,0 +1,35 @@
+heights [22, 22, 16, 17, 12, 14, 13] l0 26 fri_l 21 committed [(0, 3), (3, 2), (5, 1), (6, 2), (8, 1), (9, 1), (10, 3), (13, 3), (16, 3), (19, 2)]
+exact: total 3561135 B
+  header 15  roots 192  finals 2112  ood 73376  fri_roots 640  final_poly 64
+  main   rows     924480  siblings    239424  (leaves 216.0, sib 3741.0)
+  aux    rows     456192  siblings    239424  (leaves 216.0, sib 3741.0)
+  quot   rows     145152  siblings    239424  (leaves 216.0, sib 3741.0)
+  fri0   rows      55296  siblings    197952  (leaves 216.0, sib 3093.0)
+  fri1   rows      27648  siblings    170304  (leaves 216.0, sib 2661.0)
+  fri2   rows      13824  siblings    156480  (leaves 216.0, sib 2445.0)
+  fri3   rows      27648  siblings    128832  (leaves 216.0, sib 2013.0)
+  fri4   rows      13824  siblings    115008  (leaves 216.0, sib 1797.0)
+  fri5   rows      13824  siblings    101184  (leaves 216.0, sib 1581.0)
+  fri6   rows      54784  siblings     59968  (leaves 214.0, sib 937.0)
+  fri7   rows      50176  siblings     22016  (leaves 196.0, sib 344.0)
+  fri8   rows      26368  siblings      1408  (leaves 103.0, sib 22.0)
+  fri9   rows       4096  siblings         0  (leaves 32.0, sib 0.0)
+  sum rows 1813312  sum siblings 1671424
+file 3561135 B, model-exact 3561135 B, diff 0
+rust_verify 0.033s Ok("accept")
+expected (random positions, 200 trials): total 3566602 B
+  header 15  roots 192  finals 2112  ood 73376  fri_roots 640  final_poly 64
+  main   rows     924403  siblings    239902  (leaves 216.0, sib 3748.5)
+  aux    rows     456039  siblings    239902  (leaves 216.0, sib 3748.5)
+  quot   rows     145097  siblings    239902  (leaves 216.0, sib 3748.5)
+  fri0   rows      55295  siblings    198431  (leaves 216.0, sib 3100.5)
+  fri1   rows      27647  siblings    170785  (leaves 216.0, sib 2668.5)
+  fri2   rows      13822  siblings    156963  (leaves 216.0, sib 2452.6)
+  fri3   rows      27638  siblings    129326  (leaves 215.9, sib 2020.7)
+  fri4   rows      13814  siblings    115516  (leaves 215.9, sib 1804.9)
+  fri5   rows      13804  siblings    101723  (leaves 215.7, sib 1589.4)
+  fri6   rows      54554  siblings     60737  (leaves 213.1, sib 949.0)
+  fri7   rows      49850  siblings     22869  (leaves 194.7, sib 357.3)
+  fri8   rows      26726  siblings      1363  (leaves 104.4, sib 21.3)
+  fri9   rows       4092  siblings         2  (leaves 32.0, sib 0.0)
+  sum rows 1812782  sum siblings 1677421
