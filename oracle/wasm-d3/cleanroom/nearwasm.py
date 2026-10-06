@@ -6,6 +6,7 @@ and the WebAssembly 2.0 specification only; ambiguities were resolved by black-b
 harness (see README.md).  Standard library only.
 
   nearwasm.py [--charge-points | --full] [--trace] < cases
+  nearwasm.py --chunk CODEHEX_FILE < trace   # trie-backed chunk replay (nearstore.py, README checkpoint 3b)
 
 Input lines: `<prepaid_gas> <wasm_hex> [<receivers> | k=v;...]` (the harness's context options: rcv, input,
 results, deposit, balance).
@@ -22,6 +23,7 @@ import sys
 import unicodedata
 
 import nearcrypto
+import nearstore
 
 # ----------------------------------------------------------------------------------------------
 # Parameters (PV86)
@@ -2055,6 +2057,7 @@ def sync_exit(inst):
 # ExtCosts: name -> (gas, compute).  Compute differs from gas only for the storage/trie costs.
 EXT = {
     "base": 264_768_111,
+    "contract_loading_base": 35_445_963, "contract_loading_bytes": 1_089_295,
     "read_memory_base": 2_609_863_200, "read_memory_byte": 3_801_333,
     "write_memory_base": 2_803_794_861, "write_memory_byte": 2_723_772,
     "read_register_base": 2_517_165_186, "read_register_byte": 98_562,
@@ -2075,6 +2078,7 @@ EXT = {
     "storage_remove_base": (53_473_030_500, 200_000_000_000), "storage_remove_key_byte": 38_220_384,
     "storage_remove_ret_value_byte": 11_531_556,
     "storage_has_key_base": (54_039_896_625, 158_000_000_000), "storage_has_key_byte": (30_790_845, 10_000_000),
+    "touching_trie_node": (2_280_000_000, 4_000_000_000), "read_cached_trie_node": (2_280_000_000, 4_000_000_000),
     "promise_and_base": 1_465_013_400, "promise_and_per_promise": 5_452_176, "promise_return": 560_152_386,
     "validator_stake_base": 911_834_726_400, "validator_total_stake_base": 911_834_726_400,
     "yield_create_base": 153_411_779_276, "yield_create_byte": 15_643_988,
@@ -3080,8 +3084,7 @@ def h_storage_write(inst, klen, kptr, vlen, vptr, rid):
         raise HostErr(f"ValueLengthExceeded {{ length: {len(v)}, limit: {MAX_VALUE_LEN} }}")
     pay(inst, "storage_write_key_byte", len(k))
     pay(inst, "storage_write_value_byte", len(v))
-    old = inst.trie.get(k)
-    inst.trie[k] = v
+    old = inst.store.write(inst, k, v)
     if old is not None:
         inst.storage_usage += len(v) - len(old)
         reg_set(inst, rid, old)
@@ -3096,13 +3099,9 @@ def h_storage_read(inst, klen, kptr, rid):
     k = gmr(inst, kptr, klen)
     check_key(len(k))
     pay(inst, "storage_read_key_byte", len(k))
-    v = inst.trie.get(k)
+    v = inst.store.read(inst, k)
     if v is None:
         return 0
-    pay(inst, "storage_read_value_byte", len(v))
-    if len(v) > LARGE_READ_THRESHOLD:
-        pay(inst, "storage_large_read_overhead_base")
-        pay(inst, "storage_large_read_overhead_byte", len(v))
     reg_set(inst, rid, v)
     return 1
 
@@ -3113,7 +3112,7 @@ def h_storage_remove(inst, klen, kptr, rid):
     k = gmr(inst, kptr, klen)
     check_key(len(k))
     pay(inst, "storage_remove_key_byte", len(k))
-    old = inst.trie.pop(k, None)
+    old = inst.store.remove(inst, k)
     if old is None:
         return 0
     inst.storage_usage -= len(k) + len(old) + STORAGE_EXTRA_BYTES_RECORD
@@ -3127,7 +3126,7 @@ def h_storage_has_key(inst, klen, kptr):
     k = gmr(inst, kptr, klen)
     check_key(len(k))
     pay(inst, "storage_has_key_byte", len(k))
-    return 1 if k in inst.trie else 0
+    return 1 if inst.store.has(inst, k) else 0
 
 
 def _deprecated(name):
@@ -3210,9 +3209,9 @@ assert set(HANDLERS) | OOD_HOSTS == set(HOST), set(HOST) - set(HANDLERS) - OOD_H
 # ----------------------------------------------------------------------------------------------
 # Running a contract
 
-def run_case(prepaid, wasm, tok, full=False):
+def run_case(prepaid, wasm, tok, full=False, method="main", store=None, prepared=None):
     try:
-        m = prepare(wasm)
+        m = prepared if prepared is not None else prepare(wasm)
     except PrepError as e:
         return f"abort 0 0 CompilationError(PrepareError({e.args[0]}))" + (EMPTY_FULL if full else "")
     except OutOfDomain as e:
@@ -3241,7 +3240,8 @@ def run_case(prepaid, wasm, tok, full=False):
     inst.alog = []
     inst.rcpt_recv = {}
     inst.actions = {}
-    inst.trie = {}
+    inst.store = store if store is not None else nearstore.MockStore()
+    inst.store.last_inst = inst
     inst.storage_usage = 1000
     inst.data_counter = 0
     inst.yields = set()
@@ -3254,7 +3254,7 @@ def run_case(prepaid, wasm, tok, full=False):
     def extra():
         if not full:
             return ""
-        trie = sorted(f"{k.hex()}={v.hex()}" for k, v in inst.trie.items())
+        trie = sorted(f"{k.hex()}={v.hex()}" for k, v in inst.store.items())
         return (f" || compute {compute_usage(inst)} || logs {','.join(l.hex() for l in inst.logs)} || actions "
                 f"{';'.join(inst.alog)} || trie {','.join(trie)}")
 
@@ -3265,9 +3265,18 @@ def run_case(prepaid, wasm, tok, full=False):
         return f"abort 0 0 {err}" + (EMPTY_FULL if full else "")
 
     # loading fee
+    # (profiled as the ext costs contract_loading_bytes / contract_loading_base: checkpoint 3b finding)
     try:
-        gc.pay_per(LOAD_BYTES, len(wasm))
-        gc.pay_base(LOAD_BASE)
+        b0 = gc.burnt
+        try:
+            gc.pay_per(LOAD_BYTES, len(wasm))
+        finally:
+            inst.prof["contract_loading_bytes"] = gc.burnt - b0
+        b0 = gc.burnt
+        try:
+            gc.pay_base(LOAD_BASE)
+        finally:
+            inst.prof["contract_loading_base"] = gc.burnt - b0
     except HostErr:
         return abort("HostError(GasExceeded)")
     # link
@@ -3279,7 +3288,7 @@ def run_case(prepaid, wasm, tok, full=False):
             have = wt_functype(*HOST[nm])
             return abort(f'LinkError {{ msg: "types incompatible: expected type `{want}`, found type `{have}`" }}')
     # method resolution
-    ex = m.exports.get("main")
+    ex = m.exports.get(method)
     if ex is None or ex[0] != 0:
         return nop("MethodResolveError(MethodNotFound)")
     mainf = m.funcs[ex[1]]
@@ -3339,6 +3348,8 @@ def run_case(prepaid, wasm, tok, full=False):
         return f"unmodeled {e.args[0]}"
     except RecursionError:
         return "unmodeled python recursion"
+    except nearstore.StorageError as e:
+        return f"unmodeled storage error {e.args[0]}"
     if inst.ret is None:
         ret = "-"
     elif isinstance(inst.ret, tuple):
@@ -3366,9 +3377,64 @@ def charge_points_line(wasm):
     return " | ".join(parts)
 
 
+CHUNK_SLOTS = ["storage_write_base", "storage_read_base", "storage_read_key_byte", "storage_read_value_byte",
+               "storage_large_read_overhead_base", "storage_large_read_overhead_byte", "storage_remove_base",
+               "storage_has_key_base", "storage_has_key_byte", "touching_trie_node", "read_cached_trie_node"]
+
+
+def chunk_lines(wasm, line):
+    """Replay one `C <prev_root> <n> <node>... <k> (<account> <prepaid> <args|-> <14 expected>)...` line
+    (d3-trie-accounting.md section 5) with the trie-backed store; -> one output line per call."""
+    global CURRENT_ACCOUNT
+    t = line.split(" ")
+    if t[0] != "C":
+        raise ValueError("not a chunk line")
+    root = bytes.fromhex(t[1])
+    n = int(t[2])
+    chunk = nearstore.Chunk(root, [bytes.fromhex(x) for x in t[3:3 + n]])
+    k = int(t[3 + n])
+    out = []
+    for j in range(k):
+        b = 4 + n + 17 * j
+        account, prepaid, args = t[b], int(t[b + 1]), t[b + 2]
+        CURRENT_ACCOUNT = account.encode()
+        store = chunk.store_for(account.encode())
+        tok = "input=" + ("" if args == "-" else args)
+        res = run_case(prepaid, wasm, tok, method="run", store=store)
+        inst = store.last_inst
+        status = res.split(" ", 1)[0]
+        if status not in ("ok", "abort"):
+            out.append(res)
+            continue
+        store.finish(status == "ok")
+        host = sum(inst.prof.values())
+        wasm_gas = inst.gc.burnt - inst.act_gas - host
+        slots = " ".join(str(inst.prof.get(s, 0)) for s in CHUNK_SLOTS)
+        out.append(f"{'ok' if status == 'ok' else 'fail'} {wasm_gas} {host} {slots}")
+    return out
+
+
+def main_chunk(code_file):
+    wasm = bytes.fromhex(open(code_file).read().strip())
+    out = sys.stdout
+    for line in sys.stdin:
+        line = line.strip()
+        if not line:
+            continue
+        k = int(line.split(" ")[3 + int(line.split(" ")[2])])
+        try:
+            res = chunk_lines(wasm, line)
+        except Exception as e:  # never crash the stream; keep one line per call
+            res = [f"unmodeled internal error {type(e).__name__}: {e}"] * k
+        out.write("".join(r + "\n" for r in res))
+        out.flush()
+
+
 def main():
     sys.setrecursionlimit(100000)
     argv = sys.argv[1:]
+    if "--chunk" in argv:
+        return main_chunk(argv[argv.index("--chunk") + 1])
     cp = "--charge-points" in argv
     full = "--full" in argv
     global TRACE

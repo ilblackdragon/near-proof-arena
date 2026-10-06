@@ -26,6 +26,8 @@ nearwasm.py [--charge-points | --full] [--trace] < cases   # `<prepaid> <wasm_he
 difftest_cr.py (opcodes | random N SEED | promise N SEED | mutate N SEED | host N SEED | edges)
                [--shards K] [--timeout S] [--full]
 run_all.sh                                  # the nine required families
+nearwasm.py --chunk CODEHEX_FILE < trace    # checkpoint 3b: trie-backed chunk replay (see below)
+difftest_ttn_cr.py TRACE [--shards K]       # checkpoint 3b: difftest against nearcore op-level traces
 ```
 
 `host` and `edges` always compare in harness `full` mode; `--full` forces it for the other families.
@@ -139,6 +141,9 @@ charged.
   * UTF-16 fails as soon as the bytes read *including the current unit* exceed `max`. It reports
     `total + that count`, which is `16386` from empty and `total + max + 1` for an odd `max`.
 * `panic_utf8` is subject to the same log-length limit.
+* *Note (source review, 2026-10-06): the UTF-16 explicit-length order above is refuted. nearcore checks odd
+  length (`BadUTF16`) **before** the log-length check (`W:logic.rs:474-475`). Probe: `log_utf16(16385, 0)` →
+  nearcore `BadUTF16`, nearwasm.py `TotalLogLengthExceeded{16385}`. See prose spec §7.2.*
 
 **H7. Account-id decoding charges `utf8_decoding_byte` on the bytes actually read.** With the register path
 (`len = u64::MAX`), charging the raw `len` (Appendix A's `AID(n)`) would overflow. Nearcore charges the
@@ -401,9 +406,120 @@ Three points could be stated more explicitly:
   behaviour, but worth stating, since "out-of-bounds segment" is ambiguous.
 * `memory.grow`/`table.grow` failures return −1 after paying the linear fee for the requested count.
 
+## Storage cost model (checkpoint 3b)
+
+`nearstore.py` (standard library only) adds the trie-backed contract storage with trie-node ("TTN")
+accounting. Its only normative source was `docs/research/d3-trie-accounting.md` §4 (prose, 4.1–4.4) and
+§5 (trace format), plus Appendix A of `near-wasm-boundary.md` for the cost values. It did not use the Lean
+modules (`TrieStore`, `TrieAccounting`, `ChunkStorage`, `Host`), `oracle/wasm-d3/lean`, `oracle/d3-ttn/src`
+or any nearcore source. From `oracle/d3-ttn` only the I/O format of `difftest_ttn.py`, the contract
+`ttn.wat`/`ttn.wasm` and the `near-d3-ttn` binary (run as a black box to make traces) were used.
+
+* **Backends.** The storage host functions now call a store: `MockStore` (the harness's MockedExternal,
+  unchanged behaviour) or `TrieStore`, one per call, over a `Chunk` holding the pre-state (root plus recorded
+  nodes and values keyed by SHA-256), the committed overlay, and the chunk-scoped accounting cache.
+* **`nearwasm.py --chunk CODEHEX_FILE`** reads §5 trace lines on stdin, ignores the expected columns, and
+  runs each call as method `run` of the contract with `input = args`, `prepaid`, and current account =
+  `account` (other context as the harness defaults). It prints one line per call:
+  `<ok|fail> <wasm_gas> <ext_gas_total> <s0> … <s10>`, slots in the §5 order. `wasm_gas = burnt − Σ ext`
+  (no actions here). A call's overlay changes are committed iff it is `ok`.
+* **`difftest_ttn_cr.py TRACE [--shards K]`** shards the chunk lines over K processes and compares every
+  call line with the trace's 14 expected columns.
+* **`NEARSTORE_ABLATE=<rule,...>`** switches on deliberately wrong variants, one per prose rule, to show the
+  comparison is sensitive to each (table below).
+
+### Agreement with nearcore
+
+Traces from `near-d3-ttn --seed S --blocks 60` (4 shards, nearcore outcome profiles):
+
+| trace | chunks | calls | failed calls | calls with TTN/cached charges | disagreements |
+|---|---|---|---|---|---|
+| seed 101, `--ops 300` | 236 | 704 | 59 | 673 | **0** |
+| seed 102, `--ops 300` | 236 | 774 | 58 | 732 | **0** |
+| seed 103, `--ops 300` | 236 | 754 | 56 | 704 | **0** |
+| seed 104, `--ops 300` | 236 | 686 | 62 | 651 | **0** |
+| seed 105, `--ops 300` | 236 | 694 | 57 | 655 | **0** |
+| seed 106, `--ops 300` | 236 | 704 | 62 | 663 | **0** |
+| seed 101, `--ops 40`  | 236 | 630 | 0  | 605 | **0** |
+
+Total: 4,946 calls, 0 disagreements. All 354 failed calls are gas exhaustion (`wasm + ext = prepaid`),
+several of them inside a storage charge, so clamped partial charges are compared too. Every slot is nonzero
+in most calls, including the large-read slots and `BranchWithValue` nodes (the 2-byte key `k‖x` is a prefix
+of the 3-byte key `k‖x‖0x55`).
+
+Sensitivity: each ablation breaks agreement (the `--ops 40` trace has no failed calls, so the two
+failure-only rules were checked on seed 101 `--ops 300`).
+
+| `NEARSTORE_ABLATE` | rule it breaks | disagreements |
+|---|---|---|
+| `fresh-cache` | cache is chunk-scoped (4.1) | 401 / 630 |
+| `no-overlay` | committed writes persist across receipts (4.4) | 314 / 630 |
+| `read-touch-path` | a trie read touches no node (4.3) | 589 / 630 |
+| `no-read-warm` | a read's value dereference warms the cache (4.4 subtlety 2) | 197 / 630 |
+| `no-value-touch` | write/remove touch the old value's hash (4.3 step 2) | 567 / 630 |
+| `no-absent-remove` | a remove records `removed` even when absent (4.3 step 3) | 202 / 630 |
+| `keep-failed` | a failed receipt's writes are rolled back (4.4) | 83 / 704 |
+| `ttn-before-bytes` | evicted/removed bytes are charged before the node commit (4.3 step 2) | 3 / 704 |
+
+### Findings: where §4/§5 was silent or ambiguous, and what black-box runs showed
+
+**T1. The contract-loading fee is an ext cost.** §5 says the ext total "includes the evicted/removed-byte
+charges and every other host cost", and Appendix A describes the loading fee only as a gas charge after
+loading. The first replay had every call off by exactly `+723,880,403` in wasm gas and the same amount
+fewer in ext gas, which is `contract_loading_bytes × 632 + contract_loading_base` for the 632-byte
+`ttn.wasm`. nearcore profiles the loading fee under the ext costs `contract_loading_bytes` and
+`contract_loading_base`, so the wasm column is `burnt − ext` with the loading fee counted as ext. The
+clean-room now records it under those two keys. The old harness output does not change, because their gas
+and compute values are equal.
+
+**T2. Order of the evicted/removed-bytes charge and the node commit.** §4.3 step 2 lists the touches, then
+the `B × length` charge, the value touch, and the commit. It does not say plainly that the commit's TTN and
+CACHED charges come **after** `B`. That only matters when gas runs out. Charging the commit first gives 3
+disagreements on seed 101 (calls that run out inside these charges, where the clamped split between the
+`storage_*_evicted/ret_value_byte` and TTN entries differs). The prose order (B first, the commit last) is
+correct.
+
+**T3. Whether the old value's hash is touched by write/remove.** The prose says so ("touch the value hash
+and fetch the value"), but §1/§2 only talk of trie *nodes*. Black-box: the value hash is touched and
+charged as a node (567/630 disagreements without it).
+
+**T4. The failure mode of the commit.** "Charge `TTN × Δdb`, then `CACHED × Δmem`; each is a `pay_per`"
+leaves open what happens when the first one fails. Following Appendix A's `pay_per` (clamped burn, then
+stop, so CACHED is never charged) agrees on all 354 failed calls.
+
+**T5. A read's commit.** §4.3 says that for `storage_read` "the commit happens but charges 0". The
+`touching_trie_node`/`read_cached_trie_node` entries are therefore 0-gas `pay_per` calls. This is
+unobservable in the gas and slot columns, and the clean-room records them as 0. Touching the path on a read
+is clearly wrong (589/630).
+
+**T6. Value charges on a trie read use the value-ref length.** §4.3 says the read's "same value charges as
+in step 1" are applied "if present", before the value hash is touched and the value fetched. The length
+therefore comes from the value ref `(length, hash)`, before the fetch. The large-read threshold (`len >
+4000`) is strict, and the 4,500-byte values of `ttn.wat` hit it. The large-read profile slots are recorded
+at 1 gas per unit, as in Appendix A (`storage_large_read_overhead_{base,byte}` have gas 1), so the slots
+count reads and bytes.
+
+**T7. `has_key` against an overlay `removed`.** "Overlay first" does not say what `removed` gives: it gives
+absent, and nothing is charged or touched in either case.
+
+**T8. Unstated context.** §5 gives only `account`, `prepaid` and `args`. The other context (signer,
+predecessor, balance, block) does not affect `ttn.wasm`. `max_gas_burnt` (the harness's 10^15 vs
+mainnet's 300 Tgas) is never reached, because `prepaid ≤ 300 Tgas` in every trace, and both errors fail the
+call anyway. The traces showed no failure other than gas exhaustion: no `LackBalanceForState`, and no
+storage error. A storage error (missing node or value) would make the replay print `unmodeled storage
+error`.
+
+**T9. Node decoding details** were not needed beyond the prose. The trailing 8-byte `memory_usage` follows
+the body. Hex-prefix bit 1 marks a leaf key (it is never checked against the tag), and a nonzero padding
+nibble on even keys is rejected. Leaf presence is exact nibble equality. Values are fetched by hash from the
+same recorded-storage map as the nodes.
+
 ## Files
 
 * `nearwasm.py`: the implementation and CLI.
+* `nearstore.py`: the storage backends (MockedExternal map, and the trie-backed chunk store with TTN
+  accounting, checkpoint 3b).
+* `difftest_ttn_cr.py`: the checkpoint-3b difftest against `near-d3-ttn --trace` files.
 * `nearcrypto.py`: Keccak, RIPEMD-160 and Ed25519 (dalek `verify`) for the host functions.
 * `probes/host/`: the host-function black-box probes (`hp.py` is the helper; `cmp()` runs both
   implementations in `full` mode).

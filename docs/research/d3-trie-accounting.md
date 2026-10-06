@@ -184,7 +184,9 @@ storage_has_key_base, storage_has_key_byte, touching_trie_node, read_cached_trie
 `difftest_ttn.py TRACE` replays every chunk with the Lean spec (`nearspec-v3-wasm --chunk`:
 `ChunkStorage.replayChunk` → `Exec.runCall` with a `RealStore` → `Host` storage → `TrieAccounting`)
 and compares each call's status, wasm gas, ext total and the 11 slots. The ext total includes the
-evicted/removed-byte charges and every other host cost. Results: §5.1.
+evicted/removed-byte charges, every other host cost, and the contract-loading fee
+(`contract_loading_base` + `contract_loading_bytes × code size`), which is profiled as ext gas, not
+wasm gas (clean-room finding T1). Results: §5.1.
 
 ### 5.1 Results (op-level, Lean spec vs nearcore)
 
