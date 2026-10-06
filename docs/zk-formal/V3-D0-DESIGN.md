@@ -765,3 +765,29 @@ Planned levers (a size lane, once a slot frees):
 Target: formal bound + `B` ≤ 8,388,608 B, kernel-checked as `nearV3_size`.
 
 **Empty-key extensions on the `[0,15]` path (handled, no domain condition).** The spec reveals `.ext [] child mem` (`hpDecode [0x00]`, `PTrie.wf` allows `k = []`), and `PTrie.upsert` descends through it. There can be ≤ 399 on a path: buildFor's fuel bounds them, and A7 counts them. `upsV3` rewrites each one as a 46-row pass-through segment that takes a fresh child digest and memory value, located through the extra `cid` field on `UPB (NPOST n, pos, pb, len, depth, cid, u)`. nearcore never builds them (`core/store/src/trie/ops/insert_delete.rs:123,171,202,237,252,266,405,417`), but completeness covers every `RelD0a` witness.
+
+### 13.1 Update (trie `upsV3` with pass-through, kernel-checked W_eq 1,185)
+
+| part | `W_eq` (g = 1) |
+|---|---:|
+| `sha_t` + `sha_r` | 1,408 |
+| trie (6 tables) | 1,185 |
+| ChaCha | 654 |
+| scheduler (934 − cuts B + D ≈ 172, + source map 16) | ≈ 778 |
+| receipt-table extension (estimate) | ≈ 480 |
+| small tables + queue parsers (estimate) | ≈ 760 |
+| **total** | **≈ 5,260** |
+
+Formal bound ≈ 3.95 MB + 5,260 × 864 B ≈ **8.50 MB**. Adding `B` (≤ 0.91 MB) gives ≈ 9.4 MB against a cap of 8.39 MB: **over by ≈ 1.0 MB**. Honest proofs stay ≈ 3–5 MB.
+
+Levers, ranked:
+
+| lever | saving | cost |
+|---|---:|---|
+| a. Multiproof-dedup size bound (shared top ≈ 7.75 Merkle levels over 3 oracles plus committed FRI layers) | −0.6 to −0.7 MB | proof work only |
+| b. **One SHA table** (−704 `W_eq`): needs trie SHA (1.25 · B0) + receipt-side SHA (≈ 1.34 M under A1) ≤ 2²², i.e. B0 ≤ ≈ 2.25 MB. Proposal: B0 = 2,000,000 (honest max 50,579 B, still ≈ 40× headroom) | −0.61 MB | **lead decision**: it shrinks the domain for chunks whose unfolded read set is 2–3 MB |
+| c. Scheduler cut A | −0.27 MB | medium re-proof; rows ≈ 3.6 M |
+| d. ChaCha cuts (stream ids, merged interactions) | ≈ −0.1 to −0.15 MB | — |
+| e. g = 3 on the v3 AIR | small (P2 showed ≈ −2 %) | — |
+
+Recommendation: **a + b** (−1.2 to −1.3 MB, which fits with a 0.2–0.3 MB margin), with c and d in reserve.
