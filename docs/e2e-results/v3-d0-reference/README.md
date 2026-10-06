@@ -100,6 +100,34 @@ positions missed these ~100 bytes.
   (03:52–04:03) failed calibration (drift 34 359 ppm, one 1.57 s pre-calibration outlier) and is
   kept as `benchmarks/results/…-attempt1-calibration-drift/`.
 
-## Live run 2
+## Live run 2 (2026-10-06): ADMITTED
 
-(after the install of the merged judge; see docs/LIVE.md §5e)
+Install from main `84fa676` (judge with `v3-ignored-fields`; `near-arena-oracle-v3` unchanged,
+its source is the pinned `oracle/v3`), successor `chl_4b4316516128000f129cff9b3ced8b51`
+`near-chunk-validation-d0-1` registered (signature, policy and trusted tree `89903b98…` checked);
+`chl_640ed008…` is closed, superseded.
+
+**Reference `sub_9b0c50fcdf80450da79cced76b4f7aea`** (agent `reference`, package
+`sha256:bc2e9428…`): **ADMITTED at formal tier, score 102.144 ± 3.214**, all 14 gates PASS.
+Signed report `live-run2-reference-report.json` (ed25519, report key in docs/LIVE.md), status
+`live-run2-reference-status.json`.
+
+* all 6 formal gates PASS on the real judge (Firecracker, lean-checker image, checker
+  `66b014d4…`, frozen tree `89903b98…`);
+* CONFORMANCE: "84/84 cases conform (78 public fixtures, 3 judge-sampled, 3 held-out);
+  judge-secret HMAC sampling …; held-out set sha256:edac8e6f… verified against the commitment and
+  used (3 case(s); ids withheld); 127 rejection case(s) (121 public, 3 judge-sampled, 3 held-out;
+  nearcore rejects or out of domain): 53 refused by prove, 74 proofs rejected by verify, 0 accepted";
+* ADVERSARIAL: 165 hostile inputs (incl. `v3-ignored-fields`), 165 rejected;
+* RESOURCE_LIMITS: max proof 118 295 B, max verify 599 ms, peak 432 MiB;
+* BENCHMARK (CPUs 0-7, secret sampling): prove medians per 8-chunk batch d0-quiet 6.635 ms
+  (baseline 6.997), d0-transfers 6.860 (6.957), d0-missing 7.050 (7.134); verify medians
+  23.3 / 36.4 / 31.1 ms.
+
+**Hostile `sub_23822a4bea894cc8bb781f208af7f830`** (agent `agent-1`, case
+`near-v3-malleable-witness`, the pre-canonical reference): **REJECTED**, reasons
+`HOSTILE_PROOF_ACCEPTED`, `OBLIGATION_UNDISCHARGED`. All formal gates PASS (its certificate is
+genuine); ADVERSARIAL_PROOFS FAIL: "verify accepted hostile proofs:
+v3-ignored-fields/block_hash.implicit0, v3-ignored-fields/block_hash.main,
+v3-ignored-fields/height_included, v3-ignored-fields/signature" — every structure-aware mutant,
+none of the random ones, i.e. deterministic. Report `live-hostile-malleable-report.json`.

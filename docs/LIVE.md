@@ -476,11 +476,26 @@ diagnostic):
   (nearcore rejects, or out of D0): a candidate whose verify accepts one fails with
   `COUNTEREXAMPLE_FOUND`.
 * **Reference run 1: REJECTED.** `sub_7c6a67b0c3684852a8f755072744489a`: all 6 formal gates PASS
-  on the real judge, but ADVERSARIAL_PROOFS FAIL (`bitflip/379.3` accepted): the proof is the raw
+  on the real judge, but ADVERSARIAL_PROOFS FAIL (`bitflip/379.3` accepted): the proof was the raw
   witness, and nearcore (hence `RelD0`) ignores `height_included`, the chunk signature and the
-  transitions' `block_hash`, so a flipped bit there is another valid witness of the same true claim.
-  Not unsound, but malleable; the contract requires hostile proof bytes to be rejected. Fix pending
-  (canonical proof encoding). Details: `docs/e2e-results/v3-d0-reference/`.
+  transitions' `block_hash`, so a flipped bit there is another valid witness of the same claim.
+* **Fix (lead decision: canonical proof encoding, adversarial semantics unchanged).** The reference
+  proves with the canonical witness (those fields zeroed) and its verifier accepts only canonical
+  bytes; the certificate proves every `RelD0` witness has a canonical one (`relD0_canonical`).
+  The judge gained the structure-aware mutator `v3-ignored-fields` and the permanent hostile case
+  `near-v3-malleable-witness`. Successor **`chl_4b4316516128000f129cff9b3ced8b51`
+  `near-chunk-validation-d0-1`** (same statement, tree, workloads, fixtures, held-out set; baseline
+  re-measured from the canonical reference on CPUs 0-7, calibration OK) supersedes `chl_640ed008…`.
+  Install from main `84fa676`.
+* **v3 D0 board** (`chl_4b431651…`, synthetic-chain D0, benchmarks on CPUs 0-7, secret sampling,
+  held-out set, rejection cases):
+
+  | rank | score | submission | candidate |
+  |------|-------|------------|-----------|
+  | 1 | 102.144 ± 3.214 | `sub_9b0c50fcdf80450da79cced76b4f7aea` | **reexec-v3-d0** (canonical witness, native-lean): **ADMITTED at formal tier**, all 14 gates PASS; 84/84 conform + 127 rejection cases (0 accepted); 165/165 hostile inputs rejected; signed report in docs/e2e-results/v3-d0-reference/ |
+  | – | – | `sub_23822a4bea894cc8bb781f208af7f830` | hostile `near-v3-malleable-witness` (agent-1): **REJECTED** (HOSTILE_PROOF_ACCEPTED: all four `v3-ignored-fields` mutants accepted, deterministic) |
+
+  Details: `docs/e2e-results/v3-d0-reference/`.
 
 ## 5. Current state (2026-10-03 16:10 UTC)
 
