@@ -12,9 +12,11 @@ here so that RuntimeD3 can call them directly.
 the first block of a new epoch. The witness carries a resharding transition only when the chunk's
 block crosses such a boundary (`get_resharding_transition`, `chunk_validation.rs:258-308`; the
 witness-level split is `Trie::from_recorded_storage(.., true)` at `chunk_validation.rs:709`).
-`noResharding` keeps a claim to one epoch with no epoch start in the segment and no split gate,
-which is the same condition D0/D1 use (`ChunkValidationV0.lean:111-129`). So the shard layout is
-constant over the segment and no resharding transition can be in the witness.
+`noResharding` is D2's resharding exclusion (`c.same_layout` + `c.no_split_gate`,
+`ChunkValidationD2.lean:140, 156`): every epoch of the claim has the byte-identical shard layout
+and no apply fact carries a split gate. Segments may span epochs (as in D2), but the layout never
+changes, so no resharding transition can be in the witness. (An earlier version also required a
+single epoch, which made D3 exclude 825 in-D2 multi-epoch witnesses of the D3 corpus: D2 ⊄ D3.)
 `noResharding_spec` states what acceptance guarantees, and the `example`s check that it rejects.
 
 **Contract domain.** Every contract executed in the chunk must prepare inside D3α: no float type
@@ -27,17 +29,29 @@ namespace NearSpecV3.Wasm
 
 open NearSpecV3
 
-/-- No resharding anywhere in the claim's segment: single epoch, no epoch start, no split gate. -/
+/-- No resharding anywhere in the claim's segment: one shard layout, no split gate. -/
 def noResharding (c : Claim) : Bool :=
-  c.epochs.length == 1 && c.epochStartAfter.all (· == 0) &&
+  (match c.epochs with
+   | [] => true
+   | e :: _ => c.epochs.all (·.shardLayout == e.shardLayout)) &&
     c.applyFacts.all (fun f => f.splitGate.isNone)
 
 theorem noResharding_spec (c : Claim) (h : noResharding c = true) :
-    c.epochs.length = 1 ∧ (∀ b ∈ c.epochStartAfter, b = 0) ∧
+    (∀ e ∈ c.epochs, ∀ e' ∈ c.epochs, e.shardLayout = e'.shardLayout) ∧
       ∀ f ∈ c.applyFacts, f.splitGate = none := by
-  simp only [noResharding, Bool.and_eq_true, beq_iff_eq, List.all_eq_true,
-    Option.isNone_iff_eq_none] at h
-  exact ⟨h.1.1, h.1.2, h.2⟩
+  simp only [noResharding, Bool.and_eq_true] at h
+  obtain ⟨h1, h2⟩ := h
+  refine ⟨fun e he e' he' => ?_, fun f hf => ?_⟩
+  · cases hc : c.epochs with
+    | nil => rw [hc] at he; exact absurd he (List.not_mem_nil)
+    | cons e0 es =>
+      rw [hc] at h1 he he'
+      have a1 := List.all_eq_true.mp h1 e he
+      have a2 := List.all_eq_true.mp h1 e' he'
+      rw [beq_iff_eq] at a1 a2
+      rw [a1, a2]
+  · have := List.all_eq_true.mp h2 f hf
+    exact Option.isNone_iff_eq_none.mp this
 
 /-- A contract executed in the chunk is inside D3α. -/
 def contractInD3α (cfg : NearCfg) (code : ByteArray) : Bool :=
@@ -61,9 +75,9 @@ example : noResharding base = true := by decide
 /-- a split gate (the resharding trigger) is rejected -/
 example : noResharding { base with applyFacts :=
     [{ validatorUpdate := none, minimumStake := 0, splitGate := some gate }] } = false := by decide
-/-- an epoch start inside the segment (where a new layout takes effect) is rejected -/
-example : noResharding { base with epochStartAfter := [0, 1] } = false := by decide
-/-- a second epoch (a layout change between epochs) is rejected -/
-example : noResharding { base with epochs := [ep, ep] } = false := by decide
+/-- several epochs with one layout are in domain (as in D2) -/
+example : noResharding { base with epochs := [ep, ep], epochStartAfter := [0, 1] } = true := by decide
+/-- a layout change between epochs (resharding) is rejected -/
+example : noResharding { base with epochs := [ep, { ep with shardLayout := [1] }] } = false := by decide
 
 end NearSpecV3.Wasm

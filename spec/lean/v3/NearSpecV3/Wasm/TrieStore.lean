@@ -17,10 +17,13 @@ absent); a node missing from the recorded storage is `MissingTrieValue`; node de
 
 namespace NearSpecV3.Wasm.TTN
 
-abbrev Store := Std.HashMap ByteArray ByteArray
+/-- Recorded storage: node or value bytes by SHA-256 (nearcore's `TrieMemoryPartialStorage`). A
+function, so RuntimeD3 can pass the D2 environment's lookup over the merged witness values. -/
+abbrev Store := ByteArray → Option ByteArray
 
 def mkStore (values : List ByteArray) : Store :=
-  values.foldl (fun m v => m.insert (Crypto.sha256 v) v) {}
+  let m : Std.HashMap ByteArray ByteArray := values.foldl (fun m v => m.insert (Crypto.sha256 v) v) {}
+  fun h => m.get? h
 
 def leN (d : ByteArray) (off n : Nat) : Nat :=
   (List.range n).foldr (fun i acc => (d.get! (off + i)).toNat + 256 * acc) 0
@@ -93,7 +96,7 @@ def isPrefixN : List Nat → List Nat → Bool
 def lookupFrom (st : Store) : Nat → ByteArray → List Nat → List ByteArray → Except String Lookup
   | 0, _, _, _ => .error "unmodeled: lookup fuel"
   | fuel + 1, h, key, acc =>
-    match st.get? h with
+    match st h with
     | none => .error errMissing
     | some bytes =>
       let acc := h :: acc
@@ -144,7 +147,7 @@ def Recorder.record (r : Recorder) (h : ByteArray) (len : Nat) : Recorder :=
 
 /-- Record the nodes a lookup retrieved (sizes = their recorded bytes). -/
 def Recorder.recordNodes (r : Recorder) (st : Store) (hs : List ByteArray) : Recorder :=
-  hs.foldl (fun r h => r.record h ((st.get? h).map (·.size) |>.getD 0)) r
+  hs.foldl (fun r h => r.record h ((st h).map (·.size) |>.getD 0)) r
 
 /-- Per-receipt storage-proof limit (`per_receipt_storage_proof_size_limit`, `69.yaml`). -/
 def perReceiptProofLimit : Nat := 4000000
@@ -162,6 +165,9 @@ structure RealStore where
   recd : Recorder := {}
   /-- `storage_proof_size_before_receipt` (`runtime/runtime/src/lib.rs:838-845`) -/
   recBefore : Nat := 0
+  /-- every `storage_write`/`storage_remove` of the call, in order (full trie key; `none` = remove),
+  for RuntimeD3 to replay into the D2 overlay -/
+  writes : Array (ByteArray × Option ByteArray) := #[]
 
 def contractDataPrefix (account : String) : ByteArray :=
   (ByteArray.mk #[9]) ++ account.toUTF8 ++ (ByteArray.mk #[44])

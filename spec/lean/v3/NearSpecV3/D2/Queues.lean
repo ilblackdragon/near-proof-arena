@@ -69,12 +69,40 @@ structure Proposal where
 
 def Proposal.encode (p : Proposal) : Bytes := [0] ++ borshBytes p.acct ++ p.pk.encode ++ u128 p.stake
 
-/-- Chunk-level apply context. -/
+/-- Chunk-level apply context. The fields after `sched` (E1, E2) are read only by D3's
+`FunctionCall` hook; their defaults are never observed by D2. -/
 structure Env where
   ctx : ApplyCtx
   chainId : Bytes
   minStake : Nat
   sched : Scheduler.Params
+  /-- E1: `B2.header.raw_timestamp()` = `inner_lite.timestamp` (`VMContext.block_timestamp`,
+  `fc.rs:270`). -/
+  blockTimestamp : Nat := 0
+  /-- E1: `B2.header.random_value()` = `inner_rest.random_value` (random seed input,
+  `fc.rs:258-259`). -/
+  randomValue : Bytes := []
+  /-- E1: `epoch_height` of the applied block's epoch (claim `epochs[epoch_id].epoch_height`,
+  `fc.rs:271`, `rt/mod.rs:275`). -/
+  epochHeight : Nat := 0
+  /-- E1: the validators `(account, stake)` of the applied block's epoch (claim
+  `epochs[epoch_id].validators`; `validator_stake` / `validator_total_stake`,
+  `ext.rs:326-330`). -/
+  validators : List (Bytes × Nat) := []
+  /-- E2: the merged recorded storage `w.main.values ++ codes` keyed by SHA-256 — **every**
+  `base_state` value (trie nodes and trie values) plus the appended contract-code blobs
+  (`pwt.rs:693-696`, `TrieMemoryPartialStorage`, `trie_storage.rs:325-337`). The main trie
+  (`Ovl.trie`) is revealed from the same list. Empty for implicit transitions. -/
+  store : HStore := .tip
+  /-- The main transition's pre-state root (`prev_state_root`, the root `Ovl.trie` reveals);
+  `[]` for implicit transitions. -/
+  preRoot : Bytes := []
+
+/-- E2: raw lookup by hash over the merged recorded storage `w.main.values ++ codes`
+(value-hash → bytes; `ContractStorage::get` → `storage.retrieve_raw_bytes`, `contract.rs:119`).
+Covers every `base_state` value — trie nodes and trie values included — not only code blobs,
+so it also serves trie-node walks by node hash. -/
+def Env.codeOf (env : Env) (h : Bytes) : Option Bytes := hGet env.store h
 
 structure RS where
   o : Ovl
@@ -92,6 +120,15 @@ structure RS where
   proposals : List Proposal
   instant : List Rcpt
   locals : List Rcpt
+  /-- E4: codes committed by `DeployContract` in earlier receipts of this chunk
+  (`ContractsTracker` committed deploys, `contract.rs:42-69`); never removed. -/
+  deployed : List Bytes := []
+  /-- D3: every code deployed in the chunk so far, committed or rolled back (see `ActCtx.attempted`). -/
+  attempted : List Bytes := []
+  /-- D3: Σ `gas_burnt_for_function_call` over the chunk's action receipts (the `G_α` measure) -/
+  wasmGas : Nat := 0
+  /-- E9: `stats.balance.subsidized` (`lib.rs:1025-1026`); `0` in D2. -/
+  subsidized : Nat := 0
 
 /-! ## `BufferedReceiptIndices` -/
 

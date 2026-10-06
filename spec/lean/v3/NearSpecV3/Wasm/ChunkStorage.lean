@@ -55,7 +55,7 @@ def replayChunk (cfg : NearCfg) (code : ByteArray) (store : Store) (root : ByteA
       | .ok l =>
         let r := recd.recordNodes store l.nodes
         match l.value with
-        | some (_, vh) => r.record vh ((store.get? vh).map (·.size) |>.getD 0)
+        | some (_, vh) => r.record vh ((store vh).map (·.size) |>.getD 0)
         | none => r
       | .error _ => recd
     let real : RealStore := { store, root, overlay, acct, pfx := contractDataPrefix c.account,

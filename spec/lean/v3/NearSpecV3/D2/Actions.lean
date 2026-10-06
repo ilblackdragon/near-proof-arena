@@ -26,8 +26,26 @@ structure ActSt where
   o : Ovl
   account : Option Acct
   actor : Bytes
+  /-- E4: codes deployed by `DeployContract` in the current receipt, not yet committed
+  (`ContractsTracker` uncommitted deploys, `contract.rs:42-48`; `actions.rs:336-339`,
+  `update.rs:298-300`), in deploy order. Merged into `RS.deployed` when the receipt commits,
+  dropped on rollback. D2 never reads it. -/
+  deploys : List Bytes := []
 
-/-- `ActionResult` (`lib.rs:378-414`), the fields D2 uses. -/
+/-- `ReturnData` of an action (`lib.rs:459-466`, `fc.rs:228`); E8. Every non-FunctionCall
+action returns `.none`. -/
+inductive Ret where
+  | none
+  | value (v : Bytes)
+  | receiptIdx (k : Nat)
+  deriving Repr, DecidableEq
+
+/-- `merge`: a receipt index local to an action becomes global (`lib.rs:461-464`). -/
+def Ret.shift : Ret → Nat → Ret
+  | .receiptIdx k, n => .receiptIdx (k + n)
+  | r, _ => r
+
+/-- `ActionResult` (`lib.rs:378-414`). The D3 fields (E6–E9) default to D2 behaviour. -/
 structure AR where
   gasBurnt : Nat
   gasUsed : Nat
@@ -36,6 +54,14 @@ structure AR where
   newReceipts : List Rcpt
   proposals : List Proposal
   tokensBurnt : Nat
+  /-- E6: `gas_burnt_for_function_call`; summed in `merge` always, kept by `set_error`. -/
+  gasFC : Nat := 0
+  /-- E7: logs, in emission order; appended in `merge` always, kept by `set_error`. -/
+  logs : List Bytes := []
+  /-- E8: `Ok(return_data)`; meaningful only when `ok`. -/
+  ret : Ret := .none
+  /-- E9: `subsidized_amount`; added in `merge` on success, cleared by `set_error`. -/
+  subsidized : Nat := 0
 
 structure ActCtx where
   env : Env
@@ -43,6 +69,17 @@ structure ActCtx where
   a : ActionR
   idx : Nat
   nActs : Nat
+  /-- E3: the `ReceivedData` of `a.inputs` (`input_data_ids`), in order: `some v` =
+  `PromiseResult::Successful(v)`, `none` = `Failed` (`lib.rs:796-821`). Identical for every
+  action of the receipt. -/
+  inputs : List (Option Bytes) := []
+  /-- E4: codes committed by earlier receipts of this chunk (`ContractsTracker` committed
+  deploys; = `RS.deployed` at the start of the receipt). -/
+  deployed : List Bytes := []
+  /-- D3: codes deployed in this chunk by any earlier receipt, **committed or rolled back** (a
+  `DeployContract` precompiles into the compiled-contract cache, `actions.rs:297-341`, which a
+  rollback does not undo). D3 uses it to keep cache-dependent verdicts out of domain. -/
+  attempted : List Bytes := []
 
 structure ActionHooks where
   functionCall : ActCtx → ActSt → AR → Base → Except String (ActSt × AR)
@@ -50,7 +87,19 @@ structure ActionHooks where
 def d2Hooks : ActionHooks where
   functionCall _ _ _ _ := .error "out of domain (e.wasm): FunctionCall action dispatched (WASM execution)"
 
-def AR.fail (r : AR) : AR := { r with ok := false, newReceipts := [], proposals := [], tokensBurnt := 0 }
+/-- `ActionResult::set_error` (`lib.rs:487-493`): keeps gas, `gasFC`, compute and logs. -/
+def AR.fail (r : AR) : AR :=
+  { r with ok := false, newReceipts := [], proposals := [], tokensBurnt := 0, subsidized := 0,
+           ret := .none }
+
+/-- E4: `ContractStorage::get(code_hash)` (`contract.rs:104-131`): a contract deployed during
+this chunk (current receipt's uncommitted deploys, then committed ones), else the recorded
+storage `Env.codeOf` (`w.main.values ++ codes`). `none` = not available (cold-cache
+`MissingTrieValue`, spec/near-chunk-validation-d3.md §2.2). -/
+def codeAvailable (c : ActCtx) (st : ActSt) (h : Bytes) : Option Bytes :=
+  match (st.deploys ++ c.deployed).find? (fun code => sha256 code == h) with
+  | some code => some code
+  | none => c.env.codeOf h
 
 /-! ## Helpers -/
 
@@ -196,7 +245,7 @@ def actDeleteAccount (c : ActCtx) (st : ActSt) (res : AR) (ben : Bytes) : Except
     else res.compute + removesCompute nonceRows.length
       ((nonceRows.map fun (k, _, _) => k.length).foldl (· + ·) 0) (8 * nonceRows.length)
   if compute ≥ two64 then throw (inconsistent "compute_usage overflow")
-  pure (⟨o, none, c.r.pred⟩,
+  pure ({ st with o := o, account := none, actor := c.r.pred },
         { res with tokensBurnt := res.tokensBurnt + gsum, newReceipts := res.newReceipts ++ refunds,
                    compute := compute })
 
@@ -293,7 +342,7 @@ def actTransfer (c : ActCtx) (st : ActSt) (res : AR) (dep : Nat) : Except String
       let k : AK := ⟨initialNonce c.env.ctx.height, .full⟩
       let pk : PublicKey := ⟨0, hexDecode recv⟩
       let acct := Acct.new dep 0 .none (Lim.numBytesAccount + pk.trieIdLen + k.encode.length + Lim.numExtraBytesRecord)
-      pure (⟨st.o.setAK recv pk k, some acct, recv⟩, res)
+      pure ({ st with o := st.o.setAK recv pk k, account := some acct, actor := recv }, res)
     | .ethImplicit =>
       let h := ethWalletHash c.env.chainId
       pure ({ st with account := some (Acct.new dep 0 (.global h) (Lim.numBytesAccount + 32)), actor := recv }, res)
@@ -308,7 +357,7 @@ def actDeploy (c : ActCtx) (st : ActSt) (res : AR) (code : Bytes) : Except Strin
   let u := (x.usage - cs) + code.length
   if u ≥ two64 then throw (inconsistent "Storage usage integer overflow")
   let x' := ({ x with usage := u }).setContract (.local (sha256 code))
-  pure ({ st with account := some x', o := st.o.set (kCode recv) code }, res)
+  pure ({ st with account := some x', o := st.o.set (kCode recv) code, deploys := st.deploys ++ [code] }, res)
 
 def actToGasKey (c : ActCtx) (st : ActSt) (res : AR) (pk : PublicKey) (dep : Nat) : Except String (ActSt × AR) := do
   let recv := c.r.recv
@@ -396,7 +445,8 @@ def actDelegate (c : ActCtx) (st : ActSt) (res : AR) (d : Delegate) : Except Str
 def applyAction (hooks : ActionHooks) (c : ActCtx) (st : ActSt) (act : Act) : Except String (ActSt × AR) := do
   let recv := c.r.recv
   let ex := actExec recv act
-  let res : AR := ⟨ex.gas, ex.gas, ex.compute, true, [], [], 0⟩
+  let res : AR := { gasBurnt := ex.gas, gasUsed := ex.gas, compute := ex.compute, ok := true,
+                    newReceipts := [], proposals := [], tokensBurnt := 0 }
   let isRefund := c.r.pred == AccountId.system
   let elig := c.nActs == 1 && !isRefund
   if !existenceOk act st.account recv elig then return (st, res.fail)

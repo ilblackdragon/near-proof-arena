@@ -55,8 +55,22 @@ def doBr (p : Prepared) (s : St) (f : Frame) (l : Nat) : Res :=
     let labels := if lab.isLoop then f.labels.drop l else f.labels.drop (l + 1)
     .cont (setFrame s { f with pc := lab.target, labels := labels })
 
+/-- Host functions whose real-`External` semantics are outside D3α: the state-init,
+global-contract and gas-key families (D2 `w.shape` actions). Under the trie-backed `External`
+(RuntimeD3) *calling* one is out of domain; importing one is not
+(`spec/near-chunk-validation-d3.md` §10.0, P3). -/
+def realOodHosts : List String :=
+  ["promise_batch_action_state_init", "promise_batch_action_state_init_by_account_id",
+   "set_state_init_data_entry", "promise_batch_action_deploy_global_contract",
+   "promise_batch_action_deploy_global_contract_by_account_id",
+   "promise_batch_action_use_global_contract", "promise_batch_action_use_global_contract_by_account_id",
+   "promise_batch_action_add_gas_key_with_full_access",
+   "promise_batch_action_add_gas_key_with_function_call", "promise_batch_action_transfer_to_gas_key"]
+
 /-- A host call: `CallingHost` sync, the host function, `ReturningFromHost` (`g := remaining`). -/
 def callHost (s : St) (name : String) : Res :=
+  if s.real.isSome && realOodHosts.contains name then
+    .unmodeled s!"out-of-domain host function {name} called" else
   match sync s with
   | .error e => .unmodeled e
   | .ok s =>
@@ -445,7 +459,10 @@ def runCall (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx)
   | .compileErr k _ =>
     nop s!"CompilationError(WasmtimeCompileError \{ msg: \"failed to compile: wasm[0]::function[{k}]\" })"
   | .ok p =>
-    if p.m.imports.any (fun i => curveHosts.contains i.name) then .line "out-of-domain curve host function" else
+    -- the harness context: importing a curve host function is out of domain; under the
+    -- trie-backed `External` (RuntimeD3) only *calling* one is (`callHost`: not modelled)
+    if real.isNone && p.m.imports.any (fun i => curveHosts.contains i.name) then
+      .line "out-of-domain curve host function" else
     let gs : Gas := Gas.init ctx.prepaidGas
     let loaded := match payPer gs C.contractLoadingBytes code.size with
       | (gs, none) => payBase gs C.contractLoadingBase

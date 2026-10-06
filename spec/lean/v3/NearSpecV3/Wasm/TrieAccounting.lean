@@ -51,7 +51,7 @@ structure Out where
 
 /-- The value behind a reference, from the recorded storage. -/
 def deref (r : RealStore) (vh : ByteArray) : Except String ByteArray :=
-  match r.store.get? vh with
+  match r.store vh with
   | some v => .ok v
   | none => .error errMissing
 

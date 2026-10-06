@@ -53,29 +53,44 @@ inductive OStatus where
   | value                  -- SuccessValue(vec![])
   | receipt (rid : Bytes)  -- SuccessReceiptId
   | failure                -- Failure(_)
+  /-- `SuccessValue(v)` with an arbitrary payload (D3: a FunctionCall's return value,
+  spec/near-chunk-validation-d3.md §6.6, E12). `.valueBytes []` encodes as `.value`. -/
+  | valueBytes (v : Bytes)
   deriving Repr, DecidableEq
 
+/-- An outcome with its status and logs (`ExecutionOutcome`, `transaction.rs:723-744`).
+`logs` (E13) is `[]` for every transaction and every D0–D2 receipt. -/
 structure OutD1 where
   o : Outcome
   status : OStatus
+  logs : List Bytes := []
   deriving Repr
 
+/-- `PartialExecutionStatus` (`transaction.rs:593-613`). -/
 def OStatus.encode : OStatus → Bytes
   | .value => [2] ++ u32 0
   | .receipt rid => [3] ++ rid
   | .failure => [1]
+  | .valueBytes v => [2] ++ u32 v.length ++ v
 
 def OutD1.partialEncode (x : OutD1) : Bytes :=
   u32 x.o.receiptIds.length ++ concatAll x.o.receiptIds ++ u64 x.o.gasBurnt ++
   u128 x.o.tokensBurnt ++ borshBytes x.o.executorId ++ x.status.encode
 
-def OutD1.leaf (x : OutD1) : Bytes := sha256 (u32 2 ++ x.o.id ++ sha256 x.partialEncode)
+/-- `merklize(outcome.to_hashes())` leaf (`transaction.rs:746-752`, `merkle.rs:47-52`):
+`sha256(u32(2+n) ‖ id ‖ sha256(partial) ‖ sha256(log₁) ‖ … ‖ sha256(logₙ))`. With no logs this
+is the D0/D1 leaf `sha256(u32 2 ‖ id ‖ sha256(partial))`. -/
+def OutD1.leaf (x : OutD1) : Bytes :=
+  match x.logs with
+  | [] => sha256 (u32 2 ++ x.o.id ++ sha256 x.partialEncode)
+  | logs => sha256 (u32 (2 + logs.length) ++ x.o.id ++ sha256 x.partialEncode ++
+                    concatAll (logs.map sha256))
 
 def outcomeRootD1 (os : List OutD1) : Bytes := merkleRoot (os.map OutD1.leaf)
 
 def failedOutcome (t : Tx) : OutD1 :=
-  ⟨{ id := t.hash, receiptIds := [], gasBurnt := 0, tokensBurnt := 0, executorId := t.signerId },
-   .failure⟩
+  { o := { id := t.hash, receiptIds := [], gasBurnt := 0, tokensBurnt := 0, executorId := t.signerId },
+    status := .failure }
 
 /-! ## Transactions -/
 
@@ -128,10 +143,10 @@ def processTx (ctx : ApplyCtx) (st : TxSt) (t : Tx) (flag : Bool) : Except Strin
   let t2 ← match t1.set (keyAccessKey t.signerId t.pkKey) (encodeFullAccessKey t.nonce) with
     | some x => pure x
     | none => throw "invalid: access key path not revealed"
-  pure { st with trie := t2, gas, tokens := st.tokens + c.burntAmount,
-                 outs := st.outs ++ [⟨{ id := h, receiptIds := [rid], gasBurnt := c.gasBurnt,
-                                        tokensBurnt := c.burntAmount, executorId := t.signerId },
-                                      .receipt rid⟩] }
+  let out : OutD1 := { o := { id := h, receiptIds := [rid], gasBurnt := c.gasBurnt,
+                              tokensBurnt := c.burntAmount, executorId := t.signerId },
+                       status := .receipt rid }
+  pure { st with trie := t2, gas, tokens := st.tokens + c.burntAmount, outs := st.outs ++ [out] }
 
 def processTxs (ctx : ApplyCtx) : TxSt → List (Tx × Bool) → Except String TxSt
   | st, [] => .ok st
@@ -192,7 +207,7 @@ def applyNewChunkD1 (prims : Prims) (ctx : ApplyCtx) (t : PTrie) (receipts : Lis
   let (acc, ls, comp) ← applyReceiptsC ctx st.gas (⟨st.trie, [], [], st.gas, st.tokens⟩, st.ls) st.locals
   let (acc, _, _) ← applyReceiptsC ctx comp (acc, ls) receipts
   queueEmpty (← readKey acc.trie keyYieldIdx "PromiseYieldIndices") "promise yield queue"
-  pure ⟨acc.trie, st.outs ++ acc.outcomes.map (fun o => ⟨o, .value⟩), st.fwd ++ acc.refunds,
+  pure ⟨acc.trie, st.outs ++ acc.outcomes.map (fun o => { o := o, status := .value }), st.fwd ++ acc.refunds,
         acc.gasBurnt, acc.tokensBurnt, st.locals.map Receipt.receiptId⟩
 
 /-- Trie keys the D1 main transition may read. -/

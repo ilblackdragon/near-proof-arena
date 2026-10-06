@@ -96,11 +96,27 @@ def dedupSorted (l : List Bytes) : List Bytes :=
     | k' :: _ => if k == k' then acc else k :: acc
     | [] => [k]) []
 
-def checkD2 (claimBytes witnessBytes : Bytes) : Except String Unit := do
+/-- The `Env` of a block `b` (main or implicit transition): the `ApplyCtx` plus the E1 facts of
+the block header and of its epoch's claim record (spec/near-chunk-validation-d3.md §3, §8 E1). -/
+def envOf (c : Claim) (ctx : ApplyCtx) (b : Blk) (minStake : Nat) (sched : Scheduler.Params) : Env :=
+  let ep := c.epochs.find? (·.epochId == b.hdr.epochId)
+  { ctx, chainId := c.chainId, minStake, sched,
+    blockTimestamp := b.hdr.timestamp, randomValue := b.hdr.randomValue,
+    epochHeight := (ep.map (·.epochHeight)).getD 0,
+    validators := (ep.map (·.validators)).getD [] }
+
+/-- The D2 pipeline with the `FunctionCall` hooks as a parameter (the D3 checker reuses it).
+`allowCodes = false` keeps D2's `w.no_code` (any contract code ⇒ out of domain); with
+`allowCodes = true` the witness's code blobs are appended to the main recorded storage exactly as
+the partial-witness tracker does (`pwt.rs:693-696`): the main trie is revealed from, and
+`Env.codeOf` looks up, the merged list `w.main.values ++ codes` (E2). The hooks reach the merged
+storage, the pre-state root and the block / epoch facts through `ActCtx.env`. -/
+def checkD2Core (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
+    (gasCap : Option Nat := none) : Except String Unit := do
   -- 3.1 decoding, actor checks
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
   let (swBytes, codes) ← decodeWitnessFile witnessBytes
-  check codes.isEmpty "out of domain (w.no_code): contract code"
+  if !allowCodes then check codes.isEmpty "out of domain (w.no_code): contract code"
   check (lenT swBytes ≤ 8388608) "out of domain (w.size): witness larger than 8 MiB"
   let w ← decodeStateWitnessD2 swBytes
   check (w.innerBytes == c.chunkInner) "invalid: witness chunk header differs from the claim"
@@ -205,15 +221,23 @@ def checkD2 (claimBytes witnessBytes : Bytes) : Except String Unit := do
     | none => throw "invalid: bandwidth scheduler params (assert panics)"
   let facts0 := c.applyFacts.headD ⟨none, 0, none⟩
   let ctxB2 := blockCtx L H.shardId slotB2.gasLimit B2 prevB2.hdr.nextGasPrice
-  let env : Env := ⟨ctxB2, c.chainId, facts0.minimumStake, sched⟩
-  let tMain := revealTrie w.main.values slotB2.prevStateRoot
+  -- E2: the recorded storage merged with the contract codes (`codes = []` unless `allowCodes`)
+  let merged := w.main.values ++ codes
+  let store := mkHStore merged
+  let env : Env := { envOf c ctxB2 B2 facts0.minimumStake sched with
+                     store := store, preRoot := slotB2.prevStateRoot }
+  let tMain := revealAll store revealFuel slotB2.prevStateRoot
   check (tMain.hashOf == slotB2.prevStateRoot) "invalid: main base_state does not hash to prev_state_root"
   let lastProps := slotB2.proposals.filterMap decodeProposal
-  let out ← applyNewChunkD2 d2Hooks prims env tMain facts0.validatorUpdate lastProps receipts
+  let out ← applyNewChunkD2 hooks prims env tMain facts0.validatorUpdate lastProps receipts
     (w.txs.zip (c.txValid.map (· != 0))) slotB2.congestion
-  let baseBytes := (w.main.values.map List.length).foldl (· + ·) 0
+  -- w.size: sums the merged list (conservative; spec/near-chunk-validation-d3.md §2.2)
+  let baseBytes := (merged.map List.length).foldl (· + ·) 0
   check (baseBytes + 2000 * out.cdRemovals ≤ 4000000)
     "out of domain (w.size): storage-proof upper bound may exceed main_storage_proof_size_soft_limit"
+  -- D3: per-chunk WASM gas cap (`G_α`, D3_WASM_REQUIREMENTS §1.1/§2.4); D2 passes `none`
+  if let some cap := gasCap then
+    check (out.wasmGas ≤ cap) s!"out of domain (e.g_alpha): chunk function-call gas {out.wasmGas} > G_α {cap}"
   let mut root := out.root
   check (root == w.main.postStateRoot) "invalid: main transition post state root"
   -- 3.6 implicit transitions
@@ -222,7 +246,7 @@ def checkD2 (claimBytes witnessBytes : Bytes) : Except String Unit := do
   for ((i, f), T) in (implicitIdx.zip (c.applyFacts.drop 1)).zip w.implicit do
     let M ← match blks[i]? with | some b => pure b | none => throw "invalid: walk"
     let ctxM := blockCtx L H.shardId slotB2.gasLimit M M.hdr.nextGasPrice
-    let envM : Env := ⟨ctxM, c.chainId, f.minimumStake, sched⟩
+    let envM : Env := envOf c ctxM M f.minimumStake sched
     let tM := revealTrie T.values root
     root ← applyMissingChunkD2 prims envM tM f.validatorUpdate mainProps
     check (root == T.postStateRoot) "invalid: implicit transition post state root"
@@ -244,6 +268,10 @@ def checkD2 (claimBytes witnessBytes : Bytes) : Except String Unit := do
   | some (emr, len) =>
     check (H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
     check (H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
+
+/-- The D2 checker: `checkD2Core` with `d2Hooks` (FunctionCall ⇒ out of domain) and `w.no_code`. -/
+def checkD2 (claimBytes witnessBytes : Bytes) : Except String Unit :=
+  checkD2Core d2Hooks false claimBytes witnessBytes
 
 /-- **The D2 relation** on canonical bytes. -/
 def acceptsD2 (claimBytes witnessBytes : Bytes) : Bool :=

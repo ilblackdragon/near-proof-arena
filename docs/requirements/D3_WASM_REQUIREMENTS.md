@@ -69,7 +69,7 @@ D3 lifts the D2 restrictions on (spec §6, D3):
 D3 does **not** lift (all D3 stages keep these D0–D2 restrictions; lead decision 2026-10-06):
 
 * **resharding** (shard-layout changes, resharding transitions, split gates) stays in D∞. `InD3`
-  keeps the single-epoch / no-epoch-start / no-split-gate conditions
+  keeps D2's resharding exclusion (`c.same_layout`: one shard layout across the segment, and `c.no_split_gate`)
   (`spec/lean/v3/NearSpecV3/Wasm/DomainD3.lean`: `noResharding`, `noResharding_spec` and rejection
   examples).
 
