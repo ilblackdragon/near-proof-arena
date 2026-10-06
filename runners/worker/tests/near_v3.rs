@@ -659,3 +659,147 @@ fn v3_freedom_mutants_preserve_the_relation() {
         eprintln!("{rel}: {} mutants, verdicts preserved", dirs.len());
     }
 }
+
+// ---------------------------------------------------------------------------------------------
+// Unread-but-valid preimages (`values/inject-unread.<t>`, `codes/inject-unread`): drawn from the
+// other honest witnesses of the near-chunk-v3 public set (nearcore's recorded read sets).
+
+use arena_worker::mutators::{v3_node_refs, v3_unread_mutants, V3Pool};
+
+fn sha(b: &[u8]) -> [u8; 32] {
+    use sha2::{Digest as _, Sha256};
+    Sha256::digest(b).into()
+}
+
+fn chunk_v3_public() -> Vec<(PathBuf, Vec<u8>)> {
+    corpus("oracle/fixtures/v3/public-chunk-v3/cases")
+}
+
+#[test]
+fn v3_unread_mutants_are_true_unread_preimages() {
+    let cs = chunk_v3_public();
+    assert!(!cs.is_empty());
+    let mut pool = V3Pool::default();
+    for (_, w) in &cs {
+        pool.add(w);
+    }
+    let mut kinds = std::collections::BTreeMap::<String, usize>::new();
+    for (d, w) in &cs {
+        let l = v3_layout(w).unwrap();
+        let sw = &w[l.sw_start..l.sw_start + l.sw_len];
+        for (label, q) in v3_unread_mutants(w, &pool) {
+            let m = v3_layout(&q).unwrap_or_else(|| panic!("{} {label}", d.display()));
+            let msw = &q[m.sw_start..m.sw_start + m.sw_len];
+            let vals = |s: &[u8], t: &arena_worker::mutators::V3Transition| -> Vec<Vec<u8>> {
+                t.values
+                    .iter()
+                    .map(|&(a, b)| s[a + 4..b].to_vec())
+                    .collect()
+            };
+            if label == "codes/inject-unread" {
+                // state witness untouched, one more blob, absent before, its hash in the state
+                assert_eq!(msw, sw);
+                assert_eq!(m.codes.len(), l.codes.len() + 1);
+                let (a, b) = *m.codes.last().unwrap();
+                let blob = &q[a + 4..b];
+                let h = sha(blob);
+                assert!(l.codes.iter().all(|&(x, y)| sha(&w[x + 4..y]) != h));
+                assert!(vals(sw, &l.main).iter().all(|v| sha(v) != h));
+                assert!(vals(sw, &l.main)
+                    .iter()
+                    .any(|v| v.windows(32).any(|x| x == h)));
+            } else {
+                let t = label.strip_prefix("values/inject-unread.").unwrap();
+                let (lt, mt) = if t == "main" {
+                    (&l.main, &m.main)
+                } else {
+                    let i: usize = t.strip_prefix("implicit").unwrap().parse().unwrap();
+                    (&l.implicit[i], &m.implicit[i])
+                };
+                let (old, new) = (vals(sw, lt), vals(msw, mt));
+                assert_eq!(new.len(), old.len() + 1);
+                assert_eq!(&new[..old.len()], &old[..]);
+                let h = sha(new.last().unwrap());
+                // a true preimage of a hash a node of this store references, absent before
+                assert!(old.iter().all(|v| sha(v) != h));
+                assert!(old.iter().any(|v| v3_node_refs(v).contains(&h)));
+                assert_eq!(m.codes.len(), l.codes.len());
+            }
+            *kinds
+                .entry(label.split('.').next().unwrap().to_string())
+                .or_default() += 1;
+        }
+    }
+    eprintln!("unread mutants: {kinds:?}");
+    assert!(
+        kinds.get("values/inject-unread").copied().unwrap_or(0) > 0,
+        "{kinds:?}"
+    );
+    assert!(
+        kinds.get("codes/inject-unread").copied().unwrap_or(0) > 0,
+        "{kinds:?}"
+    );
+}
+
+/// The unread-preimage mutants are semantics-preserving: the compiled Lean `checkD3`
+/// (`oracle/wasm-d3/lean`, `nearspec-v3-check-d3`; it agrees with nearcore on the D3 oracle
+/// corpora) gives every mutant the honest witness's verdict.
+#[test]
+fn v3_unread_mutants_preserve_the_relation() {
+    let bin = repo().join("oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-d3");
+    if !bin.exists() {
+        eprintln!("skipped: {} not built", bin.display());
+        return;
+    }
+    let cs = chunk_v3_public();
+    let mut pool = V3Pool::default();
+    for (_, w) in &cs {
+        pool.add(w);
+    }
+    let tmp = tempfile::tempdir().unwrap();
+    let mut dirs = vec![];
+    for (i, (d, w)) in cs.iter().enumerate() {
+        let claim = std::fs::read(d.join("request.bin")).unwrap();
+        let base = tmp.path().join(format!("{i}-base"));
+        std::fs::create_dir_all(&base).unwrap();
+        std::fs::write(base.join("claim.bin"), &claim).unwrap();
+        std::fs::write(base.join("witness.bin"), w).unwrap();
+        for (label, q) in v3_unread_mutants(w, &pool) {
+            let m = tmp.path().join(format!("{i}-{}", label.replace('/', "_")));
+            std::fs::create_dir_all(&m).unwrap();
+            std::fs::write(m.join("claim.bin"), &claim).unwrap();
+            std::fs::write(m.join("witness.bin"), &q).unwrap();
+            dirs.push((base.clone(), m));
+        }
+    }
+    assert!(!dirs.is_empty());
+    let verdicts = |ds: Vec<&Path>| -> Vec<String> {
+        let o = std::process::Command::new(&bin).args(ds).output().unwrap();
+        assert!(o.status.success());
+        String::from_utf8(o.stdout)
+            .unwrap()
+            .lines()
+            .map(|l| {
+                l.split("\"verdict\": \"")
+                    .nth(1)
+                    .unwrap()
+                    .split('"')
+                    .next()
+                    .unwrap()
+                    .to_string()
+            })
+            .collect()
+    };
+    let base = verdicts(dirs.iter().map(|(b, _)| b.as_path()).collect());
+    let muts = verdicts(dirs.iter().map(|(_, m)| m.as_path()).collect());
+    let mut accepted = 0;
+    for ((b, m), (_, md)) in base.iter().zip(&muts).zip(&dirs) {
+        assert_eq!(b, m, "{}: verdict changed", md.display());
+        accepted += (m == "accept") as usize;
+    }
+    assert!(accepted > 0);
+    eprintln!(
+        "{} unread mutants, verdicts preserved ({accepted} accepted)",
+        dirs.len()
+    );
+}
