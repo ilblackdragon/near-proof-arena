@@ -191,6 +191,29 @@ Classical.choice, Quot.sound}; each checked with `#print axioms`.
 | `lex_lo`, `lex_hi` | `Link/Lex.lean` | position-wise checks against `0`-padded boundaries ⇒ `lexLe lo v`, `¬ lexLe hi v` (the semantic core of `RouteOk.sem`; with R5 this gives A2) |
 | `rcptV3` key rows: `key_row`, `akey_row`, `keyB_V` | `Extract/V/Key.lean` | row facts of both walks (input to the `KEYNIB` traffic of the view) |
 
+## 8. SHA rows of the receipt side (lead lever (b): one shared SHA table) — `Rcpt/ShaRows.lean`
+
+Kernel-checked (`decide`): `rcptShaRows n L d` bounds the receipt-side SHA rows (RC(j), PEO,
+LEAF, RID, VPOST, outcome tree, srcp leaf rehash and `d` path items per list); it does not
+depend on which SHA instance the messages go to (a bus choice of the assembly; with one table
+the receipt tables need no change).
+
+| quantity | value |
+|---|---:|
+| `rcptShaRows 4481 1984 6` (A1, 31 × 64 lists, depth 6) | **1,695,759** (`rcptShaRows_A1`) |
+| one table, `B0 = 2,000,000` (trie `5/4·B0` = 2.5 M) | **over by 1,455** (`single_2M_fails`) |
+| largest `B0` that fits | **1,998,836** (`single_fits`, `single_tight`) |
+
+Breakdown: RC 459,267; PEO 233,012; LEAF 156,835; RID 80,658; VPOST 156,835; mrk 156,800;
+srcp 452,352.  If the trie's `1.25·B0` already counts `VPOST` (value occurrences), subtract
+156,835.  Levers: RID only for refunds is already the honest case but not the worst case;
+srcp is a quarter of the total because every list pays a 228-row path.
+
+**Finding (completeness): path length.** `rootFromPath` accepts paths of any length, and
+`RelD0a` does not bound them (only `w.size`); honest paths have depth `⌈log₂ numShards⌉ ≤ 6`.
+The row bound above needs `d ≤ 6` per list: either a domain condition (path length
+`≤ ⌈log₂ |shards|⌉`, nearcore-faithful) or counting path bytes into `B0`.
+
 ## Modules
 
 | module | content |
