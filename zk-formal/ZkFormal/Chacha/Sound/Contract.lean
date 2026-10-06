@@ -191,10 +191,10 @@ theorem multNat_eq (i : Interaction) (hi : i.mult.length = 1) {r : Nat} :
     · rw [if_neg e] at h; simp at h
 
 /-- **`chacha_contract`**: every active message the table provides on `busChacha` is a word of
-`chachaBlock` for its key (8 words `< 2^32`, as limbs) and counter (`< 2^30`). -/
+`chachaBlock` for its key (8 words `< 2^32`, as limbs) and counter (`< 2^26`). -/
 theorem chacha_contract (hL : ChLocal tr t pub) (busChacha : Nat) {r : Nat} (hr : r < tr.height t)
     {i : Interaction} (hi : i ∈ interactions busChacha) (hm : i.multNat tr t r pub ≠ 0) :
-    ∃ key ctr idx, key.length = 8 ∧ (∀ x ∈ key, x < 2 ^ 32) ∧ ctr < 2 ^ 30 ∧ idx < 16 ∧
+    ∃ key ctr idx, key.length = 8 ∧ (∀ x ∈ key, x < 2 ^ 32) ∧ ctr < 2 ^ 26 ∧ idx < 16 ∧
       i.bus = busChacha ∧ i.send = true ∧
       i.msgVal tr t r pub = chachaMsg key ctr idx ((chachaBlock key ctr)[idx]!) := by
   obtain ⟨kk, hkk, rfl⟩ := List.mem_map.mp hi

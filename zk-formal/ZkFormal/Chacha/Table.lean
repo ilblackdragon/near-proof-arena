@@ -167,7 +167,7 @@ def cKind : List Expr :=
   (List.range 7).map (fun p => .mul (n (colP (p + 1))) (sub drN drC))
 
 /-- Input rows: `I0` fixes the input state (except slot 12) and range-checks key words
-`0..5`; `I1` range-checks key words `6, 7` and the counter (`< 2^30`), and puts the
+`0..5`; `I1` range-checks key words `6, 7` and the counter (`< 2^26`), and puts the
 counter into slot 12. -/
 def cInit : List Expr :=
   ((List.range 16).filter (· ≠ 12)).flatMap (fun i => (List.range 2).map fun l =>
@@ -176,7 +176,7 @@ def cInit : List Expr :=
     .mul (c colI0) (sub (limb (xb m) l) (c (colK m l)))) ++
   (List.range 3).flatMap (fun m => (List.range 2).map fun l =>
     .mul (c colI1) (sub (limb (xb m) l) (c (colK (6 + m) l)))) ++
-  [.mul (c colI1) (c (colX 2 30)), .mul (c colI1) (c (colX 2 31))] ++
+  (List.range' 26 6).map (fun b => .mul (c colI1) (c (colX 2 b))) ++
   (List.range 2).map (fun l => .mul (c colI1) (sub (sC 12 l) (c (colK 8 l))))
 
 /-- Rows that copy the state to the next row. -/

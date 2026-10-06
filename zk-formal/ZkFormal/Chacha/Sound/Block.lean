@@ -3,7 +3,7 @@ import ZkFormal.Chacha.Sound.Row
 /-!
 # ZkFormal.Chacha.Sound.Block — input rows, copies, feed-forward, one block
 
-* `init_rows`: an `I0, I1` pair holds a range-checked key and counter (`< 2^30`), and the
+* `init_rows`: an `I0, I1` pair holds a range-checked key and counter (`< 2^26`), and the
   next row's state is `initArr key ctr`;
 * `block_state`: the state before quarter-round `q ≤ 80` of a block is
   `stBefore (initArr key ctr) q`, so the `F` rows see `rounds 10 (initArr key ctr)`;
@@ -138,9 +138,9 @@ theorem initArr_get {key : List Nat} (hk : key.length = 8) (ctr : Nat) {i : Nat}
       rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
     simp [initArr, consts]
 
-/-- `K` limbs ranged and counter `< 2^30` on row `r`. -/
+/-- `K` limbs ranged and counter `< 2^26` on row `r`. -/
 def KOk (tr : Trace Fp) (t r : Nat) : Prop :=
-  (∀ j, j < 9 → ∀ l, l < 2 → nv tr t r (colK j l) < 65536) ∧ kw tr t r 8 < 2 ^ 30
+  (∀ j, j < 9 → ∀ l, l < 2 → nv tr t r (colK j l) < 65536) ∧ kw tr t r 8 < 2 ^ 26
 
 /-- The input word of slot `i` on row `r`. -/
 def inW (tr : Trace Fp) (t r i : Nat) : Nat := (initArr (keyOf tr t r) (kw tr t r 8))[i]!
@@ -228,11 +228,12 @@ theorem init_rows (hL : ChLocal tr t pub) {s : Nat} (hs : s + 2 < tr.height t)
     rw [show ((1 : Nat) : Int) = 1 from rfl, Int.one_mul] at hz
     have := Lm_lt (xw tr t (s + 1) m) l; have := nv_lt (tr := tr) (t := t) (s + 1) (colK (6 + m) l)
     have := hz (by unfold Lm at *; omega) (by unfold Lm at *; omega); unfold Lm; omega
-  have top : ∀ b, b = 30 ∨ b = 31 → nv tr t (s + 1) (colX 2 b) = 0 := by
-    intro b hb
+  have top : ∀ b, 26 ≤ b → b < 32 → nv tr t (s + 1) (colX 2 b) = 0 := by
+    intro b hb1 hb2
     have hz := zc hL hs1 (mem_cInit (e := .mul (E.c colI1) (E.c (colX 2 b)))
       (by unfold cInit; apply List.mem_append_left
-          apply List.mem_append_right; rcases hb with rfl | rfl <;> simp))
+          apply List.mem_append_right
+          exact List.mem_map.mpr ⟨b, List.mem_range'_1.mpr ⟨hb1, by omega⟩, rfl⟩))
     rw [zev_mul, zev_c, cur_eq, h1, zev_c, cur_eq] at hz
     rw [show ((1 : Nat) : Int) = 1 from rfl, Int.one_mul] at hz
     have := bX hL hs1 (m := 2) (b := b) (by decide) (by omega)
@@ -247,12 +248,15 @@ theorem init_rows (hL : ChLocal tr t pub) {s : Nat} (hs : s + 2 < tr.height t)
     · have e0 := rI1 2 0 (by decide) (by decide); have e1 := rI1 2 1 (by decide) (by decide)
       rw [kc1 8 0 (by decide) (by decide)] at e0; rw [kc1 8 1 (by decide) (by decide)] at e1
       unfold kw; unfold Lm at e0 e1
-      have hx : xw tr t (s + 1) 2 < 2 ^ 30 := by
+      have hx : xw tr t (s + 1) 2 < 2 ^ 26 := by
         have hb : ∀ b, b < 32 → nv tr t (s + 1) (colX 2 b) ≤ 1 := fun b hb => bX hL hs1 (by decide) hb
         unfold xw
-        rw [show (32 : Nat) = 30 + 1 + 1 from rfl, nbits, nbits, show 30 + 1 = 31 from rfl,
-          top 30 (by omega), top 31 (by omega)]
-        have := nbits_lt (f := fun b => nv tr t (s + 1) (colX 2 b)) (n := 30) (fun b h => hb b (by omega))
+        rw [show (32 : Nat) = 26 + 1 + 1 + 1 + 1 + 1 + 1 from rfl, nbits, nbits, nbits, nbits, nbits, nbits,
+          show 26 + 1 = 27 from rfl, show 27 + 1 = 28 from rfl, show 28 + 1 = 29 from rfl,
+          show 29 + 1 = 30 from rfl, show 30 + 1 = 31 from rfl,
+          top 26 (by omega) (by omega), top 27 (by omega) (by omega), top 28 (by omega) (by omega),
+          top 29 (by omega) (by omega), top 30 (by omega) (by omega), top 31 (by omega) (by omega)]
+        have := nbits_lt (f := fun b => nv tr t (s + 1) (colX 2 b)) (n := 26) (fun b h => hb b (by omega))
         omega
       simp at e0 e1; omega
   -- the state
