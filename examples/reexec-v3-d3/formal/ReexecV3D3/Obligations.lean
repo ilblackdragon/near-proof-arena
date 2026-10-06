@@ -1,6 +1,7 @@
 import ArenaCore.Admission
 import NearSpecV3.ChallengeChunkV3
 import ReexecV3D3.Model
+import ReexecV3D3.NormalForm
 
 /-!
 # The admission obligations of the `reexec-v3-d3` backend
@@ -15,15 +16,13 @@ literals.
 
 * Backend: `Aux := Witness` (the witness bytes), `B := Rel` — semantic soundness and completeness are
   immediate.
-* **Verifier completeness.** `DomainTier .d3a c` gives a witness `w₀` with `RelD3` and `|w₀| ≤ 64 MiB`. The
-  honest proof is its normal form `w₁ = canonW (encode c) w₀` when that is usable (`canonOkOf`: a
-  `RelD3` witness, a fixed point of `canonW`, no longer than `w₀`), else `w₀` itself (then `normalW`
-  holds by its escape). Either way `normalW` and `RelD3` hold and the size is ≤ 64 MiB; the verifier
-  decodes the canonical claim back (`WfClaim.decode_encode`). No lock-step argument through the
-  runtime is needed, and none is claimed: that the escape is never taken on a `RelD3` witness is
-  tested, not proved (`Canon.lean`).
-* **Accepted proofs are normal** (`check_normal`): acceptance ⇒ `canonW (encode c) pb = pb`, or the
-  escape.
+* **Verifier completeness.** `DomainTier .d3a c` gives a witness `w₀` with `RelD3` and
+  `|w₀| ≤ 64 MiB`. The honest proof is its normal form `canonW (encode c) w₀` (what `prove` emits):
+  a `RelD3` witness, in normal form, no longer (`NormalForm.relD3_normal`). No escape: the verifier
+  accepts only normal-form bytes.
+* **Accepted proofs are normal** (`check_normal`): acceptance ⇒ the proof is the encoding of its own
+  pools, every value of them is necessary (dropping any one makes `checkD3` reject), and it is its
+  own normal form (`canonW (encode c) pb = pb`).
 * Cryptographic soundness: **deterministic** (`DeterministicSound`, ε = 0, no assumption): the
   verifier accepts only if `checkD3 (encode c) pb = .ok ()` for the decoded claim `c`. `RelD3` is
   stated over `ArenaCore.sha256` values that the verifier recomputes from the explicit witness, so
@@ -57,16 +56,17 @@ theorem check_sound {cb pb : ArenaCore.Bytes} (h : check cb pb = true) :
     obtain ⟨hn, ha⟩ := Bool.and_eq_true_iff.mp h
     exact ⟨c, hc, (acceptsD3_iff _ _).mp ha, hn⟩
 
-/-- Accepted proofs are the canonical form of themselves (or the escape of `normalW`). -/
+/-- **Accepted proofs are in normal form**: the proof is the encoding of its own pools, every value
+of them is necessary, and it is the normaliser's fixed point. -/
 theorem check_normal {cb pb : ArenaCore.Bytes} (h : check cb pb = true) :
     ∃ c, WfClaim.decode cb = some c ∧
-      (canonW c.encode pb = pb ∨ canonOkOf c.encode pb (canonW c.encode pb) = false) := by
+      ∃ sw codes s, decodeWitnessFile pb = .ok (sw, codes) ∧ decodeStateWitnessD2 sw = .ok s ∧
+        encP c.encode sw (initPools s codes) = pb ∧
+        (∀ it ∈ items (initPools s codes),
+          ¬ D3.RelD3 c.encode (encP c.encode sw (removeItem (initPools s codes) it))) ∧
+        canonW c.encode pb = pb := by
   obtain ⟨c, hc, _, hn⟩ := check_sound h
-  refine ⟨c, hc, ?_⟩
-  unfold normalW at hn
-  rcases Bool.or_eq_true_iff.mp hn with h1 | h2
-  · exact Or.inl (beq_iff_eq.mp h1)
-  · exact Or.inr (by simpa using h2)
+  exact ⟨c, hc, normalW_sound hn⟩
 
 theorem deterministicSound (pub : ArenaCore.Bytes) :
     DeterministicSound backend.InLang Model.verifier.deployed pub := by
@@ -83,40 +83,11 @@ theorem check_complete {c : WfClaim} {w : List UInt8} (h : WfClaim.RelTier .d3a 
   rw [hn, Bool.true_and]
   exact (acceptsD3_iff _ _).mpr h
 
-/-- **The prover is complete.** For every `RelD3` witness `w`, the prover's output `proveW cb w` is
-a `RelD3` witness in normal form, no longer than `w`. -/
-theorem proveW_normal {cb w : List UInt8} (h : D3.RelD3 cb w) :
-    D3.RelD3 cb (proveW cb w) ∧ normalW cb (proveW cb w) = true ∧ (proveW cb w).length ≤ w.length := by
-  unfold proveW
-  simp only
-  by_cases hok : canonOkOf cb w (canonW cb w) = true
-  · rw [if_pos hok]
-    have hok' := hok
-    unfold canonOkOf at hok'
-    obtain ⟨⟨ha, hfix⟩, hlen⟩ := Bool.and_eq_true_iff.mp hok' |>.imp_left Bool.and_eq_true_iff.mp
-    refine ⟨(acceptsD3_iff _ _).mp ha, ?_, of_decide_eq_true hlen⟩
-    unfold normalW
-    simp only at hfix ⊢
-    rw [hfix]
-    simp
-  · rw [if_neg hok]
-    refine ⟨h, ?_, Nat.le_refl _⟩
-    unfold normalW
-    simp only
-    have : canonOkOf cb w (canonW cb w) = false := by simpa using hok
-    rw [this]
-    simp
-
-/-- Every `RelD3` witness has a normal-form witness that is accepted, no longer than it. -/
-theorem relD3_normal {cb w : List UInt8} (h : D3.RelD3 cb w) :
-    ∃ w', D3.RelD3 cb w' ∧ normalW cb w' = true ∧ w'.length ≤ w.length :=
-  ⟨proveW cb w, proveW_normal h⟩
-
-/-- The prover's output for any `RelD3` witness of a well-formed claim is accepted. -/
-theorem check_proveW {c : WfClaim} {w : List UInt8} (h : WfClaim.RelTier .d3a c w) :
-    check (WfClaim.encode c) (proveW (WfClaim.encode c) w) = true :=
-  let ⟨hr, hn, _⟩ := proveW_normal h
-  check_complete hr hn
+/-- **The prover is complete.** For every `RelD3` witness of a well-formed claim, the prover's
+output `canonW` is accepted. -/
+theorem check_canonW {c : WfClaim} {w : List UInt8} (h : WfClaim.RelTier .d3a c w) :
+    check (WfClaim.encode c) (canonW (WfClaim.encode c) w) = true :=
+  check_complete (canonW_rel h) (normalW_canonW h).1
 
 theorem verifierComplete (pub : ArenaCore.Bytes) (mpb : Nat) (hm : maxWitnessChunk ≤ mpb) :
     VerifierComplete (challengeSpecChunk .d3a) Model.verifier.deployed pub mpb := by

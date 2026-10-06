@@ -8,8 +8,9 @@ import ReexecV3D3.Canon
 The deployed verifier of the `reexec-v3-d3` backend for `near/pv86/chunk-validation/v0`, domain
 D3α: decode the canonical claim (`near-arena-claim-v3`, well-formed), require the proof to be a
 witness file in **normal form** (`normalW`, `Canon.lean`: ignored header fields zeroed, receipt
-proofs one per key in key order, every `base_state` exactly its reachable values in SHA-256 order,
-exactly the needed contract code blobs in SHA-256 order), and decide `RelD3 (encode c) pb`
+proofs one per key in key order, the main store and every implicit store exactly their *necessary*
+values — one per hash, byte order, dropping any one makes `checkD3` reject — with the main values
+`revealAll` looks up as `base_state` and the rest as contract code), and decide `RelD3 (encode c) pb`
 (`NearSpecV3.D3.checkD3`). This Lean function IS the verifier: the executable is this definition
 compiled by the governed Lean compiler (route `native-lean`, implementation connection `trusted`).
 
