@@ -23,7 +23,10 @@ def read_pk(r):
     t = r.u8()
     if t not in PK_LEN:
         raise DecodeError("PublicKey tag")
-    return u8(t) + r.take(PK_LEN[t])
+    b = u8(t) + r.take(PK_LEN[t])
+    if t == 2:
+        raise OOD("w.shape: ML-DSA-65 public key in a transaction or receipt")
+    return b
 
 
 def read_sig(r):
@@ -31,6 +34,8 @@ def read_sig(r):
     if t not in SIG_LEN:
         raise DecodeError("Signature tag")
     s = r.take(SIG_LEN[t])
+    if t == 2:
+        raise OOD("w.shape: ML-DSA-65 signature")
     if t == 0 and s[63] & 0xE0:
         raise DecodeError("ed25519 signature high bits")
     return u8(t) + s
@@ -244,11 +249,11 @@ def read_action(r, nested=False):
         m = r.u8()
         if m > 1:
             raise DecodeError("GlobalContractDeployMode tag")
-        raise OOD("r.exec: DeployGlobalContract action")
+        raise OOD("w.shape: DeployGlobalContract action")
     elif t == A_USE_GLOBAL:
-        raise OOD("r.exec: UseGlobalContract action")
+        raise OOD("w.shape: UseGlobalContract action")
     elif t == A_DSI:
-        raise OOD("r.exec: DeterministicStateInit action")
+        raise OOD("w.shape: DeterministicStateInit action")
     elif t in (A_TO_GK, A_FROM_GK):
         f['pk'] = read_pk(r)
         f['amount'] = r.u128()
@@ -387,7 +392,7 @@ def read_receipt(r):
         x.data_id = r.hash()
         x.data = r.option(r.bytes)
     elif x.kind == K_GCD:
-        raise OOD("r.exec: GlobalContractDistribution receipt")
+        raise OOD("w.shape: GlobalContractDistribution receipt")
     else:
         raise DecodeError("ReceiptEnum tag")
     x.raw = r.b[start:r.i]

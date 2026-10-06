@@ -58,6 +58,13 @@ pub fn validators_of(n_shards: usize) -> Vec<AccountId> {
     (0..N_VALIDATORS).map(|i| acct(i % n_shards, i / n_shards)).collect()
 }
 
+/// Non-validator accounts that stake in D2 traffic (never genesis validators: those are
+/// a00/a01). They run clients too, so a stake that wins a seat yields a block / chunk producer
+/// the TestEnv can drive.
+pub fn stakers_of() -> Vec<AccountId> {
+    vec![acct(0, 4), acct(1, 4)]
+}
+
 /// `chaingen::setup_with` with the D2 genesis (src/d2gen.rs `genesis_records`).
 pub fn setup_d2(p: &ChainParams) -> Setup {
     let accounts: Vec<Vec<AccountId>> =
@@ -104,7 +111,9 @@ pub fn setup_d2(p: &ChainParams) -> Setup {
     records.extend(extra);
     genesis_config.total_supply = genesis_config.total_supply.checked_add(supply).unwrap();
     let genesis = Genesis::new(genesis_config, GenesisRecords(records)).unwrap();
-    let n = validators.len();
+    let mut clients = validators.clone();
+    clients.extend(stakers_of());
+    let n = clients.len();
     let stores: Vec<_> = (0..n).map(|_| create_test_store()).collect();
     let mut base: EpochConfig = (&genesis.config).into();
     base.block_producer_kickout_threshold = 0;
@@ -117,7 +126,7 @@ pub fn setup_d2(p: &ChainParams) -> Setup {
     let clock = near_time::FakeClock::new(near_time::Utc::from_unix_timestamp(1_700_000_000).unwrap());
     let env = TestEnv::builder(&genesis.config)
         .clock(clock.clock())
-        .clients(validators.clone())
+        .clients(clients)
         .stores(stores)
         .epoch_managers(ems.clone())
         .save_tx_outcomes(true)
@@ -130,7 +139,7 @@ pub fn setup_d2(p: &ChainParams) -> Setup {
 pub fn run_chain_d2(chain_idx: usize, dp: &D2Params, out: &Path, o: &GenOpts, stats: &mut Stats) {
     let p = &dp.base;
     let mut s = setup_d2(p);
-    let mut world = crate::d2gen::World::new(&s.accounts, validators_of(p.n_shards));
+    let mut world = crate::d2gen::World::new(&s.accounts, validators_of(p.n_shards), stakers_of());
     let mut labels: HashMap<near_primitives::hash::CryptoHash, String> = HashMap::new();
     let mut rng = StdRng::seed_from_u64(p.seed);
     let mut ood_count: BTreeMap<String, usize> = BTreeMap::new();

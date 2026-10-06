@@ -106,7 +106,7 @@ ETH_WALLET_HASH = {
 C_ACCOUNT, C_CODE, C_ACCESS_KEY, C_RECEIVED_DATA, C_POSTPONED_ID, C_PENDING, C_POSTPONED = 0, 1, 2, 3, 4, 5, 6
 C_DELAYED, C_DATA, C_YIELD_INDICES, C_YIELD_TIMEOUT, C_YIELD_RECEIPT = 7, 9, 10, 11, 12
 C_BUFFERED_INDICES, C_BUFFERED, C_BW_STATE, C_GROUPS_DATA, C_GROUPS_ITEM = 13, 14, 15, 16, 17
-C_YIELD_STATUS, C_DATA_TO_YIELD = 20, 23
+C_YIELD_STATUS, C_YIELD_TO_DATA, C_DATA_TO_YIELD = 20, 22, 23
 
 
 def k_account(a): return u8(C_ACCOUNT) + a
@@ -445,24 +445,11 @@ def validate_receipt(x, new_receipt):
 # ---------------------------------------------------------------------------------------------
 # transactions
 # ---------------------------------------------------------------------------------------------
-FORBIDDEN = (A_FC,)
-
-
 def check_tx_shape(t):
+    """w.shape for transactions: ED25519 key and signature (ML-DSA anywhere and the
+    global-contract / state-init actions are rejected while decoding, v3lib/near2.py)."""
     if t.pk[0] != 0 or t.sig[0] != 0:
-        raise OOD("w.tx_shape: transaction key or signature is not ED25519")
-
-    def walk(actions, top):
-        for a in actions:
-            if a.tag in FORBIDDEN:
-                raise OOD("w.tx_shape: FunctionCall action")
-            if a.tag in (A_ADDKEY, A_DELKEY, A_STAKE, A_TO_GK, A_FROM_GK) and a.f['pk'][0] == 2:
-                raise OOD("w.tx_shape: ML-DSA key in an action")
-            if a.tag in (A_DELEGATE, A_DELEGATE_V2):
-                if a.f['pk'][0] != 0 or a.f['sig'][0] != 0:
-                    raise OOD("w.tx_shape: delegate key or signature is not ED25519")
-                walk(a.f['actions'], False)
-    walk(t.actions, True)
+        raise OOD("w.shape: transaction key or signature is not ED25519")
 
 
 def decode_state_witness_d2(b):
@@ -676,6 +663,9 @@ class Apply:
                 r.end()
             except DecodeError:
                 raise Reject("StorageInconsistentState: BufferedReceiptIndices")
+        for k, (f, nx) in self.buffers.items():
+            if k not in self.L.index and f != nx:
+                raise OOD("c.same_layout: non-empty outgoing buffer to a shard outside the layout")
         self.metas = {}
         for k in sorted(self.buffers):
             m = st.get(u8(C_GROUPS_DATA) + u64(k))
@@ -962,8 +952,8 @@ class Apply:
             new_allowance = ak.allowance - cost['total']
         if not storage_stake_ok(acc, new_amount):
             return ('fail',)
-        if ak.has_fc():
-            return ('fail',)   # verify_function_call_permission: never a single FunctionCall in D2
+        if ak.has_fc() and not fc_permission_ok(ak, t):
+            return ('fail',)
         return ('ok', new_amount, ('regular', t.nonce, new_allowance))
 
     def verify_gas_key(self, acc, ak, cur, t, cost):
@@ -979,7 +969,7 @@ class Apply:
         if ak.gk_balance < cost['burnt_amount']:
             return ('fail',)
         gk_on_fail = ak.gk_balance - cost['burnt_amount']
-        if ak.has_fc():
+        if ak.has_fc() and not fc_permission_ok(ak, t):
             return ('fail',)
         if acc.amount < cost['deposit']:
             return ('deposit_failed', acc.amount, ('gas', gk_on_fail))
@@ -1090,10 +1080,24 @@ class Apply:
                     raise Reject("StorageInconsistentState: PromiseYieldStatus")
                 if s == b'\x01':
                     return None
-        yv = st.get(k_acc_data(C_YIELD_RECEIPT, acc_id, x.data_id))
+        yk = k_acc_data(C_YIELD_RECEIPT, acc_id, x.data_id)
+        yv = st.get(yk)
         if yv is None:
             return None
-        raise OOD("r.exec: a PromiseYield receipt is resumed (its callback executes WASM)")
+        try:
+            yr = N.decode_receipt(yv)
+        except DecodeError:
+            raise Reject("StorageInconsistentState: yield receipt")
+        st.remove(yk)
+        st.remove(k_acc_data(C_YIELD_STATUS, acc_id, x.data_id))
+        yid = st.get(k_acc_data(C_DATA_TO_YIELD, acc_id, x.data_id))
+        if yid is not None:
+            if len(yid) != 32:
+                raise Reject("StorageInconsistentState: yield id")
+            st.remove(k_acc_data(C_YIELD_TO_DATA, acc_id, yid))
+            st.remove(k_acc_data(C_DATA_TO_YIELD, acc_id, x.data_id))
+        st.set(k_acc_data(C_RECEIVED_DATA, acc_id, x.data_id), self.enc_received(x.data))
+        return self.apply_action_receipt(yr)
 
     @staticmethod
     def enc_received(data):
@@ -1103,14 +1107,6 @@ class Apply:
     def apply_action_receipt(self, x):
         st = self.st
         acc_id = x.recv
-        for a in x.actions:
-            if a.tag == A_FC:
-                raise OOD("r.exec: an executed receipt has a FunctionCall action")
-        if x.pk[0] == 2:
-            raise OOD("r.key_type: executed receipt with an ML-DSA signer key")
-        for a in x.actions:
-            if a.tag in (A_ADDKEY, A_DELKEY, A_STAKE, A_TO_GK, A_FROM_GK) and a.f['pk'][0] == 2:
-                raise OOD("r.key_type: ML-DSA key in an executed action")
         for d in x.inputs:
             k = k_acc_data(C_RECEIVED_DATA, acc_id, d)
             v = st.get(k)
@@ -1291,6 +1287,8 @@ class Apply:
             if account.locked != 0:
                 return fail('DeleteAccountStaking')
         st = self.st
+        if t == A_FC:
+            raise OOD("e.wasm: a FunctionCall action is dispatched (WASM execution)")
         if t == A_CREATE:
             if b'.' not in acc_id and acc_id != b'system':
                 if len(acc_id) < MIN_TOP_LEVEL_LEN and x.pred != REGISTRAR:
@@ -1413,7 +1411,7 @@ class Apply:
                 raise Reject("account balance overflow")
             ctx['account'] = acc
         else:
-            raise OOD("r.exec: action %d executed" % t)
+            raise OOD("e.wasm: action %d dispatched" % t)
         return res
 
     def contract_storage(self, acc_id, acc):
@@ -1522,7 +1520,13 @@ class Apply:
             res['err'] = e
             return res
         f = a.f
-        if not ed25519.verify(f['pk'][1:], f['sig'][1:], N.nep461_hash(a)):
+        if f['pk'][0] != f['sig'][0]:
+            ok = False                                  # Signature::verify on mismatched types
+        elif f['pk'][0] == 1:
+            raise OOD("e.secp: a SECP256K1 delegate signature is verified")
+        else:
+            ok = ed25519.verify(f['pk'][1:], f['sig'][1:], N.nep461_hash(a))
+        if not ok:
             return fail('DelegateActionInvalidSignature')
         if self.height > f['max_block_height']:
             return fail('DelegateActionExpired')
@@ -1552,7 +1556,16 @@ class Apply:
         if f['nonce'] >= upper:
             return fail('DelegateActionNonceTooLarge')
         if ak.has_fc():
-            return fail('DelegateActionAccessKeyError')   # RequiresFullAccess: no FunctionCall in D2
+            inner = f['actions']
+            if len(inner) != 1 or inner[0].tag != A_FC:
+                return fail('DelegateActionAccessKeyError')       # RequiresFullAccess
+            fc = inner[0].f
+            if fc['deposit'] > 0:
+                return fail('DelegateActionAccessKeyError')       # DepositWithFunctionCall (PV 85 fix: returns)
+            if f['receiver'] != ak.receiver:
+                return fail('DelegateActionAccessKeyError')       # ReceiverMismatch
+            if ak.methods and all(fc['method'] != m for m in ak.methods):
+                return fail('DelegateActionAccessKeyError')       # MethodNameMismatch
         if f['nonce_index'] is None:
             ak = ak.copy()
             ak.nonce = f['nonce']
@@ -1597,6 +1610,20 @@ class Apply:
             st.remove(k)
             idx[0] += 1
         return initial, idx
+
+
+def fc_permission_ok(ak, t):
+    """verifier.rs verify_function_call_permission."""
+    if len(t.actions) != 1 or t.actions[0].tag != A_FC:
+        return False
+    fc = t.actions[0].f
+    if fc['deposit'] > 0:
+        return False
+    if t.recv != ak.receiver:
+        return False
+    if ak.methods and all(fc['method'] != m for m in ak.methods):
+        return False
+    return True
 
 
 def storage_removes_compute(count, key_bytes, value_bytes):
@@ -1917,7 +1944,7 @@ def check_case_inner(claim_b, witness_b):
     A.incoming = R_list
     A.process_receipts()
     if base_bytes + 2000 * st.data_removals > PROOF_SOFT_LIMIT:
-        raise OOD("e.proof_limit")
+        raise OOD("w.size: base_state + 2000 x ContractData removals > 4 000 000 (proof limit)")
     # validate_apply_state_update
     yinit, yidx = A.yield_indices
     if yidx != yinit:

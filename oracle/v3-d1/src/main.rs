@@ -225,7 +225,9 @@ fn chain_params_d2(seed: u64, i: usize, blocks: u64, p_missing: f64) -> chaind2:
             long_skip: if i % 8 == 5 { Some((60, 40, 0)) } else { None },
         },
         max_txs: 6,
-        p_contract: 0.04,
+        // long chains (≥ 250 blocks) call the contract more often: their early yields time out
+        // 200 blocks later inside the chain
+        p_contract: if blocks >= 250 { 0.10 } else { 0.04 },
         p_adv: 0.35,
     }
 }

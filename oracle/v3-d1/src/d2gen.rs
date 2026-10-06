@@ -253,6 +253,8 @@ pub struct KeyRec {
     pub signer: Signer,
     pub gas_nonces: u16, // 0 = not a gas key
     pub fc: bool,
+    /// function-call key for a contract account: (receiver, method)
+    pub fc_contract: Option<(AccountId, String)>,
 }
 
 pub struct World {
@@ -266,6 +268,8 @@ pub struct World {
     pub created: Vec<AccountId>,
     pub ctr: u64,
     pub validators: Vec<AccountId>,
+    /// non-validators allowed to stake successfully (they run TestEnv clients)
+    pub stakers: Vec<AccountId>,
     pub minimum_stake: u128,
     pub seat_price: u128,
 }
@@ -273,10 +277,10 @@ pub struct World {
 pub const HONEST: usize = 5;
 
 impl World {
-    pub fn new(accounts: &[Vec<AccountId>], validators: Vec<AccountId>) -> Self {
+    pub fn new(accounts: &[Vec<AccountId>], validators: Vec<AccountId>, stakers: Vec<AccountId>) -> Self {
         let mut keys = HashMap::new();
         let mut add = |a: &AccountId| {
-            keys.insert(a.clone(), vec![KeyRec { signer: InMemorySigner::test_signer(a), gas_nonces: 0, fc: false }]);
+            keys.insert(a.clone(), vec![KeyRec { signer: InMemorySigner::test_signer(a), gas_nonces: 0, fc: false, fc_contract: None }]);
         };
         for sh in accounts {
             for a in sh.iter().take(HONEST) {
@@ -292,7 +296,7 @@ impl World {
         // the genesis gas key of the fat account d1
         for k in 0..accounts.len() {
             let a = fat_acct(k, 1);
-            keys.get_mut(&a).unwrap().push(KeyRec { signer: key_signer(&a, "gk"), gas_nonces: 3, fc: false });
+            keys.get_mut(&a).unwrap().push(KeyRec { signer: key_signer(&a, "gk"), gas_nonces: 3, fc: false, fc_contract: None });
         }
         World {
             accounts: accounts.to_vec(),
@@ -302,6 +306,7 @@ impl World {
             created: vec![],
             ctr: 0,
             validators,
+            stakers,
             minimum_stake: 0,
             seat_price: 0,
         }
@@ -411,7 +416,7 @@ impl World {
                 if amount > 0 && rng.gen_bool(0.2) {
                     acts.push(Action::DeployContract(DeployContractAction { code: small_wasm(rng.gen_range(0..4)) }));
                 }
-                self.keys.insert(sub.clone(), vec![KeyRec { signer: ks, gas_nonces: 0, fc: false }]);
+                self.keys.insert(sub.clone(), vec![KeyRec { signer: ks, gas_nonces: 0, fc: false, fc_contract: None }]);
                 self.created.push(sub.clone());
                 ("h.create_bundle", sub, acts)
             }
@@ -432,7 +437,7 @@ impl World {
                     let r = acct(&format!("s{t}r{n}"));
                     let ks = key_signer(&r, "sub");
                     let acts = vec![Action::CreateAccount(CreateAccountAction {}), Self::transfer(10u128.pow(24)), Self::add_full(ks.public_key())];
-                    self.keys.insert(r.clone(), vec![KeyRec { signer: ks, gas_nonces: 0, fc: false }]);
+                    self.keys.insert(r.clone(), vec![KeyRec { signer: ks, gas_nonces: 0, fc: false, fc_contract: None }]);
                     self.created.push(r.clone());
                     let reg = registrar();
                     let t = self.tx(s, bh, &reg, &r, acts)?;
@@ -494,7 +499,7 @@ impl World {
                         (AccessKey { nonce: 0, permission: AccessKeyPermission::GasKeyFullAccess(GasKeyInfo { balance: Balance::ZERO, num_nonces: nn }) }, nn, false)
                     }
                 };
-                self.keys.get_mut(&me).unwrap().push(KeyRec { signer: ks.clone(), gas_nonces: gn, fc });
+                self.keys.get_mut(&me).unwrap().push(KeyRec { signer: ks.clone(), gas_nonces: gn, fc, fc_contract: None });
                 ("h.add_key", me.clone(), vec![Action::AddKey(Box::new(AddKeyAction { public_key: ks.public_key(), access_key: ak }))])
             }
             13 => {
@@ -563,6 +568,45 @@ impl World {
                 let m = rng.gen_range(6..13);
                 ("h.transfer_batch", r, (0..m).map(|_| Self::transfer(rng.gen_range(1..10u128.pow(20)))).collect())
             }
+            31 => {
+                // a function-call key for a contract (allowance or unlimited, methods cb / any)
+                let i = self.fresh();
+                let ks = key_signer(&me, &format!("fck{i}"));
+                let c = contract_acct(rng.gen_range(0..self.n_shards));
+                let methods: Vec<String> = if rng.gen_bool(0.5) { vec!["cb".into()] } else { vec![] };
+                let ak = AccessKey {
+                    nonce: 0,
+                    permission: AccessKeyPermission::FunctionCall(FunctionCallPermission {
+                        allowance: if rng.gen_bool(0.7) { Some(Balance::from_near(1)) } else { None },
+                        receiver_id: c.to_string(),
+                        method_names: methods,
+                    }),
+                };
+                self.keys.get_mut(&me).unwrap().push(KeyRec { signer: ks.clone(), gas_nonces: 0, fc: true, fc_contract: Some((c, "cb".into())) });
+                ("h.add_fc_key_contract", me.clone(), vec![Action::AddKey(Box::new(AddKeyAction { public_key: ks.public_key(), access_key: ak }))])
+            }
+            32 | 33 => {
+                // a FunctionCall signed by such a key (allowance charged; the gas refund later
+                // tops the allowance up): converted and forwarded here, executed by the
+                // contract's chunk (out of D2)
+                let cands: Vec<(AccountId, KeyRec)> = self
+                    .keys
+                    .iter()
+                    .flat_map(|(a, ks)| ks.iter().filter(|k| k.fc_contract.is_some()).map(move |k| (a.clone(), k.clone())))
+                    .collect();
+                if cands.is_empty() {
+                    return None;
+                }
+                let mut cands = cands;
+                cands.sort_by(|x, y| x.0.cmp(&y.0).then(x.1.signer.public_key().cmp(&y.1.signer.public_key())));
+                let (owner, k) = cands[rng.gen_range(0..cands.len())].clone();
+                let (c, m) = k.fc_contract.clone().unwrap();
+                let pk = k.signer.public_key();
+                let n = self.next_nonce(s, bh, &owner, &pk, None)?;
+                let fc = Action::FunctionCall(Box::new(FunctionCallAction { method_name: m, args: vec![], gas: Gas::from_teragas(5), deposit: Balance::ZERO }));
+                let t = SignedTransaction::from_actions(n, owner.clone(), c, &k.signer, vec![fc], *bh);
+                return Some(("h.fc_key_call".into(), t));
+            }
             _ => ("h.transfer", self.any_honest(rng), vec![Self::transfer(dep)]),
         };
         let t = self.tx(s, bh, &me, &receiver, actions)?;
@@ -583,16 +627,14 @@ impl World {
                 ("h.stake_validator", v, st)
             }
             2 => {
-                // a non-validator stakes between the minimum and well below the seat price
-                let a = self.any_honest(rng);
-                if self.validators.contains(&a) {
-                    return None;
-                }
+                // a non-validator (with a client) stakes between the minimum and well below
+                // the seat price
+                let a = self.stakers[rng.gen_range(0..self.stakers.len())].clone();
                 let hi = (min + min / 2).max(min + 1);
                 ("h.stake_nonvalidator", a, rng.gen_range(min..hi))
             }
             3 => {
-                let a = self.any_honest(rng);
+                let a = if rng.gen_bool(0.7) { self.stakers[rng.gen_range(0..self.stakers.len())].clone() } else { self.any_honest(rng) };
                 if self.validators.contains(&a) {
                     return None;
                 }
@@ -711,7 +753,7 @@ impl World {
                 let sub = self.sub_name(rng, &sender);
                 let ks = key_signer(&sub, "sub");
                 inner = vec![Action::CreateAccount(CreateAccountAction {}), Self::transfer(10u128.pow(24)), Self::add_full(ks.public_key())];
-                self.keys.insert(sub.clone(), vec![KeyRec { signer: ks, gas_nonces: 0, fc: false }]);
+                self.keys.insert(sub.clone(), vec![KeyRec { signer: ks, gas_nonces: 0, fc: false, fc_contract: None }]);
                 self.created.push(sub.clone());
                 receiver = sub;
                 label = "h.delegate_create";
@@ -880,7 +922,7 @@ impl World {
                 prog.push(6);
                 prog.push(1);
                 prog.extend(borsh::to_vec(&ks.public_key()).unwrap());
-                self.keys.insert(sub.clone(), vec![KeyRec { signer: ks, gas_nonces: 0, fc: false }]);
+                self.keys.insert(sub.clone(), vec![KeyRec { signer: ks, gas_nonces: 0, fc: false, fc_contract: None }]);
                 self.created.push(sub);
                 label = "h.call_then_create";
             }
@@ -934,8 +976,9 @@ pub const CLASSES: &[&str] = &[
     "x.invalid_two_delegates", "x.invalid_gas_key_balance", "x.invalid_gas_key_nonces", "x.invalid_stake_key",
     "x.invalid_too_many_actions", "x.multi_insufficient_balance", "x.multi_cost_overflow",
     "x.delegate_bad_sig", "x.delegate_valid", "x.withdraw_too_much", "x.gas_strict_nonce",
+    "x.function_call_tx", "x.delegate_function_call", "x.fc_key_call", "x.delegate_secp_mismatch",
 ];
-pub const OOD_CLASSES: &[&str] = &["ood_function_call", "ood_secp256k1_multi", "ood_delegate_function_call"];
+pub const OOD_CLASSES: &[&str] = &["ood_secp256k1_multi", "ood_delegate_secp", "ood_mldsa"];
 
 fn sign_tx(tx: Transaction, s: &Signer) -> SignedTransaction {
     let sig = s.sign(tx.get_hash_and_size().0.as_ref());
@@ -1117,17 +1160,65 @@ pub fn craft(rng: &mut StdRng, ctx: &mut CraftCtx, n: usize, p_ood: f64) -> Vec<
                 let Some((bal, _)) = gk_state else { continue };
                 vec![v0(&s6, &a6, &a6, v6.ak_nonce + 1 + rng.gen_range(0..100), vec![Action::WithdrawFromGasKey(Box::new(WithdrawFromGasKeyAction { public_key: gk6.public_key(), amount: Balance::from_yoctonear(bal + 1) }))], bh)]
             }
-            "ood_function_call" => {
-                let fc = Action::FunctionCall(Box::new(FunctionCallAction { method_name: "cb".into(), args: vec![], gas: Gas::from_teragas(5), deposit: Balance::ZERO }));
+            "x.function_call_tx" => {
+                // a FunctionCall transaction: converted and forwarded here (in D2); executed by
+                // the contract's chunk (out of D2, e.wasm)
+                let fc = Action::FunctionCall(Box::new(FunctionCallAction { method_name: "cb".into(), args: vec![1, 2, 3], gas: Gas::from_teragas(5), deposit: Balance::from_yoctonear(rng.gen_range(0..1000)) }));
                 let nn = fresh5();
-                vec![v0(&s5, &a5, &contract_acct(ctx.k), nn, vec![fc], bh)]
+                vec![v0(&s5, &a5, &contract_acct(rng.gen_range(0..n_shards)), nn, vec![fc], bh)]
+            }
+            "x.fc_key_call" => {
+                // a07's function-call key (receiver a00): calls on a00 (the permission passes,
+                // receipt forwarded) or on another receiver (ReceiverMismatch) or with a deposit
+                let fc = Action::FunctionCall(Box::new(FunctionCallAction { method_name: "m".into(), args: vec![], gas: Gas::from_teragas(1), deposit: Balance::from_yoctonear(if rng.gen_bool(0.2) { 1 } else { 0 }) }));
+                let r = if rng.gen_bool(0.7) { sh[0].clone() } else { sh[1].clone() };
+                let nn = ctx.view.get(&a7).map(|v| v.fc_nonce).unwrap_or(0) + 1 + rng.gen_range(0..1000);
+                vec![v0(&fc7, &a7, &r, nn, vec![fc], bh)]
+            }
+            "x.delegate_secp_mismatch" => {
+                // a delegate with an ED25519 key and a SECP256K1 signature: Signature::verify
+                // is false without any ECDSA recovery (DelegateActionInvalidSignature, in D2)
+                let a9 = sh[9].clone();
+                let da = DelegateAction {
+                    sender_id: a6.clone(),
+                    receiver_id: recv(rng),
+                    actions: vec![NonDelegateAction::try_from(tr(3)).unwrap()],
+                    nonce: v6.ak_nonce + 1,
+                    max_block_height: ctx.apply_height + 100,
+                    public_key: s6.public_key(),
+                };
+                let sig = crate::d1gen::secp_signer(&a9).sign(da.get_nep461_hash().as_bytes());
+                let nn = fresh5();
+                vec![v0(&s5, &a5, &a6, nn, vec![Action::Delegate(Box::new(SignedDelegateAction { delegate_action: da, signature: sig }))], bh)]
+            }
+            "ood_delegate_secp" => {
+                // a delegate signed by a09's SECP256K1 key: the signature is verified (e.secp)
+                let a9 = sh[9].clone();
+                let sk = crate::d1gen::secp_signer(&a9);
+                let da = DelegateAction {
+                    sender_id: a9.clone(),
+                    receiver_id: recv(rng),
+                    actions: vec![NonDelegateAction::try_from(tr(3)).unwrap()],
+                    nonce: 1 + rng.gen_range(0..1000),
+                    max_block_height: ctx.apply_height + 100,
+                    public_key: sk.public_key(),
+                };
+                let sda = SignedDelegateAction::sign(&sk, da);
+                let nn = fresh5();
+                vec![v0(&s5, &a5, &a9, nn, vec![Action::Delegate(Box::new(sda))], bh)]
+            }
+            "ood_mldsa" => {
+                // an AddKey of an ML-DSA-65 key (w.shape)
+                let pk = InMemorySigner::from_seed(a5.clone(), KeyType::MLDSA65, "mldsa").public_key();
+                let nn = fresh5();
+                vec![v0(&s5, &a5, &a5, nn, vec![Action::AddKey(Box::new(AddKeyAction { public_key: pk, access_key: AccessKey::full_access() }))], bh)]
             }
             "ood_secp256k1_multi" => {
                 let a9 = sh[9].clone();
                 let sk = crate::d1gen::secp_signer(&a9);
                 vec![v0(&sk, &a9, &recv(rng), 1 + rng.gen_range(0..1000), vec![tr(1), tr(2)], bh)]
             }
-            "ood_delegate_function_call" => {
+            "x.delegate_function_call" => {
                 let fc = Action::FunctionCall(Box::new(FunctionCallAction { method_name: "cb".into(), args: vec![], gas: Gas::from_teragas(5), deposit: Balance::ZERO }));
                 let da = DelegateAction {
                     sender_id: a6.clone(),

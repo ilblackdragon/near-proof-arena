@@ -1,25 +1,26 @@
 //! Independent Rust predicate for domain D2 (spec/near-chunk-validation-v0.md §6 D2;
 //! `InD1 ⊂ InD2`), per-receipt / per-action coverage labels, and D2 mutants.
 //!
-//! D2 keeps the D0 conditions `c.pv86`, `c.layout`, `c.headers`, `c.not_genesis`,
-//! `c.segment`, `w.no_code`, `w.size`; replaces `c.single_epoch` by `c.same_layout` (every epoch
-//! of the claim has the endorsed epoch's shard layout: no resharding) and `c.no_split_gate`
-//! by its split-gate half (validator updates are inside D2); lifts `w.no_txs`, `c.no_tx_flags`,
+//! D2 keeps the D0 conditions `c.pv86` (every epoch), `c.layout`, `c.headers`,
+//! `c.not_genesis`, `c.segment`, `w.no_code`, `w.size`; replaces `c.single_epoch` by
+//! `c.same_layout` (every epoch of the claim has the endorsed epoch's shard layout and no
+//! outgoing buffer targets a shard outside it: no resharding) and `c.no_split_gate` by its
+//! split-gate half (validator updates are inside D2); lifts `w.no_txs`, `c.no_tx_flags`,
 //! `c.own_congestion_zero`, `e.queues_empty`, `e.compute`, `e.forwarded`, `r.shape`,
-//! `r.success`, `r.refunds`, `t.signer_v1`; and adds
-//!   * `w.tx_shape`   every transaction (and `new_transactions`) has an ED25519 key and signature
-//!                    and no FunctionCall / DeployGlobalContract / UseGlobalContract /
-//!                    DeterministicStateInit action (also inside Delegate / DelegateV2, whose
-//!                    key and signature are ED25519 too), and no ML-DSA key in any action;
-//!   * `r.exec`       no receipt executed by the main transition (local, delayed, incoming,
-//!                    instant, postponed receipt completed by its data, PromiseYield receipt
-//!                    resumed) contains such an action — receipts that are only stored or moved
-//!                    (delayed, buffered, postponed, forwarded) may — and no
-//!                    GlobalContractDistribution receipt is processed;
-//!   * `r.key_type`   no executed receipt has an ML-DSA signer key;
-//!   * `e.distinct_ids` incoming and local receipt ids pairwise distinct (as D1);
-//!   * `e.proof_limit` sum(base_state) + 2000 · (ContractData removals) ≤ 4 000 000 (the
-//!                    storage-proof soft limit can never stop receipt processing).
+//! `r.success`, `r.refunds`, `t.signer_v1`, `e.distinct_ids`; and adds (the shared D2 contract,
+//! spec/near-chunk-validation-d2.md §12):
+//!   * `w.shape`  every transaction (both lists) has an ED25519 key and signature; no
+//!                DeployGlobalContract / UseGlobalContract / DeterministicStateInit action, no
+//!                GlobalContractDistribution receipt and no ML-DSA-65 key in any transaction or
+//!                receipt the main transition decodes;
+//!   * `e.wasm`   no FunctionCall action reaches its dispatch point (receiver exists, earlier
+//!                actions of the receipt succeeded) in a receipt the main transition executes
+//!                (local, delayed, incoming, instant, postponed receipt completed by its data,
+//!                resumed PromiseYield receipt) — receipts that are only converted, stored or
+//!                moved may carry FunctionCalls;
+//!   * `e.secp`   no SECP256K1 delegate signature is verified;
+//!   * `w.size`   also sum(base_state) + 2000 · (ContractData removals) ≤ 4 000 000 (the
+//!                storage-proof soft limit can never stop receipt processing).
 //! Classification uses the oracle client's full state and stored execution outcomes.
 
 use crate::chaingen::{GenOpts, Stats};
@@ -49,9 +50,10 @@ use serde_json::json;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::path::Path;
 
+/// Global-contract / state-init actions (anywhere, also inside delegates): `w.shape`.
 fn forbidden(a: &Action) -> bool {
     match a {
-        Action::FunctionCall(_) | Action::DeployGlobalContract(_) | Action::UseGlobalContract(_) | Action::DeterministicStateInit(_) => true,
+        Action::DeployGlobalContract(_) | Action::UseGlobalContract(_) | Action::DeterministicStateInit(_) => true,
         Action::Delegate(d) => d.delegate_action.get_actions().iter().any(forbidden),
         Action::DelegateV2(d) => d.delegate_action.get_actions().iter().any(forbidden),
         _ => false,
@@ -70,20 +72,20 @@ fn action_keys_ok(a: &Action) -> bool {
         Action::TransferToGasKey(x) => !mldsa(&x.public_key),
         Action::WithdrawFromGasKey(x) => !mldsa(&x.public_key),
         Action::Delegate(d) => {
-            matches!(d.delegate_action.public_key, PublicKey::ED25519(_))
-                && matches!(d.signature, Signature::ED25519(_))
+            !mldsa(&d.delegate_action.public_key)
+                && !matches!(d.signature, Signature::MLDSA65(_))
                 && d.delegate_action.get_actions().iter().all(action_keys_ok)
         }
         Action::DelegateV2(d) => {
-            matches!(d.delegate_action.public_key(), PublicKey::ED25519(_))
-                && matches!(d.signature, Signature::ED25519(_))
+            !mldsa(d.delegate_action.public_key())
+                && !matches!(d.signature, Signature::MLDSA65(_))
                 && d.delegate_action.get_actions().iter().all(action_keys_ok)
         }
         _ => true,
     }
 }
 
-/// D2 transaction shape (`w.tx_shape`).
+/// D2 transaction shape (`w.shape` for transactions).
 pub fn tx_shape_ok(t: &SignedTransaction) -> bool {
     matches!(t.transaction.public_key(), PublicKey::ED25519(_))
         && matches!(t.signature, Signature::ED25519(_))
@@ -194,7 +196,7 @@ pub fn analyze(client: &Client, built: &Built, w: &ChunkStateWitness, d0_violati
         add(&mut v, "c.same_layout");
     }
     if w.transactions().iter().chain(w.new_transactions().iter()).any(|t| !tx_shape_ok(t)) {
-        add(&mut v, "w.tx_shape");
+        add(&mut v, "w.shape");
     }
     an.features.insert("n_epochs".into(), json!(c.epochs.len()));
     an.features.insert("validator_updates".into(), json!(c.apply_facts.iter().filter(|f| f.validator_update.is_some()).count()));
@@ -231,7 +233,7 @@ pub fn analyze(client: &Client, built: &Built, w: &ChunkStateWitness, d0_violati
             ReceiptEnum::PromiseYield(_) | ReceiptEnum::PromiseYieldV2(_) => "incoming_promise_yield",
             ReceiptEnum::PromiseResume(_) => "incoming_promise_resume",
             ReceiptEnum::GlobalContractDistribution(_) => {
-                add(&mut v, "r.exec");
+                add(&mut v, "w.shape");
                 "incoming_global_contract"
             }
         };
@@ -240,6 +242,9 @@ pub fn analyze(client: &Client, built: &Built, w: &ChunkStateWitness, d0_violati
             if !a.input_data_ids.is_empty() {
                 *an.receipt_classes.entry("incoming_with_input_data".into()).or_default() += 1;
             }
+        }
+        if !receipt_shape_ok(r) {
+            add(&mut v, "w.shape");
         }
         by_id.insert(*r.receipt_id(), (r.clone(), "incoming".into()));
     }
@@ -274,12 +279,17 @@ pub fn analyze(client: &Client, built: &Built, w: &ChunkStateWitness, d0_violati
                     *an.receipt_classes.entry("postponed_executed".into()).or_default() += 1;
                     (r, "postponed".into())
                 }
-                None => {
-                    // a PromiseYield receipt resumed in this chunk (keyed by data id), or unknown
-                    add(&mut v, "r.exec");
-                    *an.receipt_classes.entry("executed_unknown".into()).or_default() += 1;
-                    continue;
-                }
+                None => match find_yield_receipt(&pre, &executor, id)? {
+                    Some(r) => {
+                        *an.receipt_classes.entry("yield_resumed".into()).or_default() += 1;
+                        (r, "yield_resumed".into())
+                    }
+                    None => {
+                        add(&mut v, "e.wasm");
+                        *an.receipt_classes.entry("executed_unknown".into()).or_default() += 1;
+                        continue;
+                    }
+                },
             },
         };
         executed += 1;
@@ -289,11 +299,27 @@ pub fn analyze(client: &Client, built: &Built, w: &ChunkStateWitness, d0_violati
             }
             _ => (vec![], None),
         };
-        if actions.iter().any(forbidden) {
-            add(&mut v, "r.exec");
+        if actions.iter().any(forbidden) || signer_pk.as_ref().is_some_and(mldsa) || !actions.iter().all(action_keys_ok) {
+            add(&mut v, "w.shape");
         }
-        if signer_pk.as_ref().is_some_and(mldsa) || !actions.iter().all(action_keys_ok) {
-            add(&mut v, "r.key_type");
+        // dispatch point: actions before the failing one, and the failing one unless it failed
+        // the existence check (AccountDoesNotExist), were dispatched
+        let reached = |j: usize| -> bool {
+            match &outcome.status {
+                ExecutionStatus::Failure(TxExecutionError::ActionError(e)) => match e.index {
+                    None => true,
+                    Some(i) => (j as u64) < i || ((j as u64) == i && !matches!(e.kind, ActionErrorKind::AccountDoesNotExist { .. })),
+                },
+                _ => true,
+            }
+        };
+        for (j, a) in actions.iter().enumerate() {
+            match a {
+                Action::FunctionCall(_) if reached(j) => add(&mut v, "e.wasm"),
+                Action::Delegate(d) if reached(j) && matches!((&d.delegate_action.public_key, &d.signature), (PublicKey::SECP256K1(_), Signature::SECP256K1(_))) => add(&mut v, "e.secp"),
+                Action::DelegateV2(d) if reached(j) && matches!((d.delegate_action.public_key(), &d.signature), (PublicKey::SECP256K1(_), Signature::SECP256K1(_))) => add(&mut v, "e.secp"),
+                _ => {}
+            }
         }
         let st = status_name(&outcome.status);
         let is_refund = r.predecessor_id().is_system();
@@ -408,13 +434,52 @@ pub fn analyze(client: &Client, built: &Built, w: &ChunkStateWitness, d0_violati
     }
     an.features.insert("contract_data_removals".into(), json!(removals));
     if base_bytes as u64 + 2000 * removals > 4_000_000 {
-        add(&mut v, "e.proof_limit");
+        add(&mut v, "w.size");
+    }
+    // c.same_layout: no non-empty outgoing buffer to a shard outside the layout
+    if b0.iter().any(|(k, (f, n))| f != n && layout.get_shard_index(near_primitives::types::ShardId::new(*k)).is_err()) {
+        add(&mut v, "c.same_layout");
+    }
+    if c.epochs.iter().any(|e| e.protocol_version != 86) {
+        add(&mut v, "c.pv86");
     }
     an.violations = v;
     Ok(an)
 }
 
+fn receipt_shape_ok(r: &Receipt) -> bool {
+    match r.versioned_receipt() {
+        VersionedReceiptEnum::Action(a) | VersionedReceiptEnum::PromiseYield(a) => {
+            !mldsa(a.signer_public_key()) && a.actions().iter().all(|x| !forbidden(x) && action_keys_ok(x))
+        }
+        VersionedReceiptEnum::GlobalContractDistribution(_) => false,
+        _ => true,
+    }
+}
+
+/// The PromiseYield receipt with this receipt id stored for `account` in the pre-state.
+fn find_yield_receipt(pre: &Trie, account: &AccountId, id: &CryptoHash) -> Result<Option<Receipt>, String> {
+    let mut prefix = vec![col::PROMISE_YIELD_RECEIPT];
+    prefix.extend(account.as_bytes());
+    prefix.push(b',');
+    let mut it = pre.disk_iter().map_err(|e| e.to_string())?;
+    it.seek_prefix(&prefix).map_err(|e| e.to_string())?;
+    for x in it {
+        let (k, v) = x.map_err(|e| e.to_string())?;
+        if !k.starts_with(&prefix) {
+            break;
+        }
+        if let Ok(r) = borsh::from_slice::<Receipt>(&v) {
+            if r.receipt_id() == id {
+                return Ok(Some(r));
+            }
+        }
+    }
+    Ok(None)
+}
+
 mod col {
+    pub const PROMISE_YIELD_RECEIPT: u8 = 12;
     pub const RECEIVED_DATA: u8 = 3;
     pub const PENDING_DATA_COUNT: u8 = 5;
     pub const CONTRACT_DATA: u8 = 9;
