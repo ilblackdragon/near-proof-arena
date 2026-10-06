@@ -25,7 +25,7 @@ theorem nodeWfOf (hS : NodeSegs tr segs) : NodeWf3 (viewOf tr pub segs) := by
   have hHP : tr.height T_NODE < P := by have := height_le hL; unfold P; omega
   have mem : ∀ S ∈ viewOf tr pub segs, ∃ p ∈ segs, S = nodeSOf tr pub p.1 p.2 := by
     intro S hS'; simp only [viewOf, List.mem_map] at hS'; obtain ⟨p, hp, rfl⟩ := hS'; exact ⟨p, hp, rfl⟩
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro S hS'; obtain ⟨p, hp, rfl⟩ := mem S hS'
     obtain ⟨fl, hC⟩ := hS.ctx hL hp
     exact (nodeV_wf hL hC).1
@@ -46,6 +46,26 @@ theorem nodeWfOf (hS : NodeSegs tr segs) : NodeWf3 (viewOf tr pub segs) := by
     obtain ⟨fl, hC⟩ := hS.ctx hL hp
     exact (nodeV_wf hL hC).2
   · rw [hlen]; have := height_le hL; omega
+  · have hsum : ((viewOf tr pub segs).map fun s => (s.v.ser false).length).sum = segEnd 0 segs := by
+      have gen : ∀ (l : List (Nat × Nat)) (s0 : Nat), Consec s0 l → (∀ p ∈ l, p ∈ segs) →
+          ((l.map fun p => nodeSOf tr pub p.1 p.2).map fun s => (s.v.ser false).length).sum + s0 = segEnd s0 l := by
+        intro l; induction l with
+        | nil => intro s0 _ _; simp [segEnd]
+        | cons p rest ih =>
+          intro s0 hc hm
+          obtain ⟨a, b'⟩ := p
+          obtain ⟨rfl, hc'⟩ := hc
+          obtain ⟨fl, hC⟩ := hS.ctx hL (hm (a, b') (by simp))
+          have e := ih (a + b') hc' (fun q hq => hm q (by simp [hq]))
+          simp only [List.map_cons, List.sum_cons, segEnd] at e ⊢
+          rw [← e, show (nodeSOf tr pub a b').v = nodeVOf tr a from rfl, ← (nodeSer hL hC).1, rowsB_length]
+          omega
+      have := gen segs 0 hS.consec (fun p hp => hp)
+      simp only [viewOf, List.map_map] at this ⊢
+      simpa using this
+    have := (hS.sumRow hL).1
+    have := height_le hL
+    omega
 
 end ZkFormal.NearV3.NodeProof3
 

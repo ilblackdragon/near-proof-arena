@@ -30,6 +30,8 @@ structure ValWf (es : List ValE) : Prop where
   canon : ∀ e ∈ es, e.vid < P ∧ e.len < P ∧ e.repE < P ∧ ∀ x ∈ e.bytes, x < P
   /-- consecutive ids -/
   ids : ∀ t (ht : t + 1 < es.length), es[t + 1].vid = (es[t].vid + 1) % P
+  /-- ids start at `0` -/
+  first : ∀ h : 0 < es.length, es[0].vid = 0
   /-- rows -/
   rows : (es.map fun e => if e.vz then 1 else e.len).sum + 1 ≤ 2 ^ 22
 
@@ -94,6 +96,7 @@ theorem mem_b {e : Expr} (h : e ∈ ([ .mul (c vf) (Dsl.not (c act)), .mul (c vl
     .mul (c act) (c sumr),
     .mul .isFirst (sub (.add (c act) (c sumr)) (k 1)), .mul .isFirst (sub (c act) (c vf)),
     .mul .isFirst (c sz),
+    .mul .isFirst (c vid),
     .mul .isLast (c act),
     .mul (c vf) (c pos),
     .mul (c vz) (Dsl.not (c vf)), .mul (c vz) (Dsl.not (c vl)), .mul (c vz) (c len), .mul (c vz) (c b),
@@ -762,7 +765,7 @@ theorem val_view : ValViewStmt := by
   obtain ⟨hduA, hhdA, hvfA, -⟩ := hzA hA0
   have hgbA0 : tr.cell tt A ValV3.gb = 0 := by rw [hgbA, hA0]; grind
   have hgduA0 : tr.cell tt A ValV3.gdu = 0 := by rw [hgduA, hvfA]; grind
-  refine ⟨segs.map (valOf tr tt), ⟨?_, ?_, ?_, ?_⟩, fun bb m => ⟨?_, ?_⟩⟩
+  refine ⟨segs.map (valOf tr tt), ⟨?_, ?_, ?_, ?_, ?_⟩, fun bb m => ⟨?_, ?_⟩⟩
   · intro e he
     obtain ⟨p, hp, rfl⟩ := List.mem_map.1 he
     obtain ⟨-, hz⟩ := segInfo hL (hall p hp) (hH p hp)
@@ -801,6 +804,16 @@ theorem val_view : ValViewStmt := by
     rw [show segs[t].1 + (segs[t].2 - 1) = segs[t].1 + segs[t].2 - 1 by omega] at hk
     simp only [valOf]
     rw [this, hk]; exact Fp.toNat_add _ _
+  · intro h0
+    simp only [List.length_map] at h0
+    simp only [List.getElem_map, valOf]
+    have hs0 : segs[0].1 = 0 := by
+      cases segs with
+      | nil => simp at h0
+      | cons q r => exact hc.1
+    have hv0 := con hL hpos (e := .mul .isFirst (ZkFormal.Near.Dsl.c ValV3.vid)) (mem_b (by simp))
+    simp only [eval_mul, eval_c, eval_isFirst, if_pos rfl] at hv0
+    rw [hs0, show tr.cell tt 0 ValV3.vid = 0 by grind]; rfl
   · rw [List.map_map]
     have : ((segs.map fun p => if tr.cell tt p.1 ValV3.vz = 1 then 1 else (tr.cell tt p.1 ValV3.len).toNat)) =
         segs.map fun p => p.2 := by
