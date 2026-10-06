@@ -48,6 +48,50 @@ objects) vs Lean `nearspec-v3-check-d0a` (compiled `checkD0a`) vs Python
 * A2 mutant `w.foreign_routed_receipt` (valid Merkle path, chain re-hashed; `Rel` by
   construction): 592/592 `out_of_domain` in Lean and Python.
 
+### 1.2 Round 3 (lead follow-ups): A7, raw scheduler requests, hint wire parser, duplicate keys
+
+* **A7 `w.unfolded`** (`ChunkValidationV0a`): `occs`/`kOccs`/`nodeEnc`/`valsOf`/`unfoldedBytesT`
+  (identical to lane v3-trie's `unfoldedBytes`), `diffT`/`kDiff` (post-write copies),
+  `rebuildPost`, `triesD0`, `unfoldBytes`, `a7`; `RelD0a B cb w := RelD0 ∧ a1 ∧ a2 ∧ canon0f ∧ a7 B`;
+  **proved** `relD0a_iff`, `relD0a_relD0` (any `B`), `relD0a_mono`; examples
+  `ZkFormal.V3.A7Examples.unfolded_shared`, `built_shared` (kernel: a 3-entry store whose built
+  trie unfolds to more bytes than the store). `B0 = 3,000,000` (`NearSpecV3.B0`,
+  `challengeSpecD0a`, draft; derivation spec v0a §2.4: 1.25 rows/byte × 3 M = 3.75 M of 2²² SHA
+  rows). Computed independently in the oracle (`d0a.rs`, nearcore node type + State column) and
+  the Python checker; difftest compares the three exactly.
+* **Difftest (seed 4243, 9 × 120, regenerated with A7):** 10,771 cases, **0 disagreements**;
+  `unfold_bytes` Lean = Python on 2,695 cases, = oracle on 927 honest cases, 0 mismatches;
+  amendments on 4,597 honest witnesses: A2 0, Canon0f 0, A7 0, A1 599 (chain 8). public-d0a:
+  244 cases, 0 disagreements (123 / 64 unfold comparisons). **A7 boundary**
+  (`a7_boundary_v3.py`): 245 RelD0a cases at bound `U` (accept) and `U − 1` (out_of_domain,
+  `w.unfolded`) in Lean and Python: 245/245.
+* **A7 measurements:** honest accepted witnesses (oracle, 2,993): min 1,248, p50 4,286, p90 7,452,
+  p99 12,650, **max 50,579** (headroom 59× vs B0); RelD0 cases (2,695): max 7,917; arena-public
+  positives max 6,500 (78/78 RelD0a at B0). Full unfold / recorded bytes (shared identical
+  leaves/values only): D0 corpus ≤ 2.31 (3,038 witnesses), public D1 ≤ 1.32 (528, main
+  transitions), arena-public ≤ 1.59. No real-chain v3 witnesses exist in the repo
+  (oracle/fixtures/historical are v1). Liveness: spec v0a §2.4 (≈ 40 k accounts ≈ 75 NEAR
+  storage stake to push a valid chunk out of D0a).
+* **Raw scheduler requests:** `SchedPub.raw` (sender-sorted `BTreeMap`, 5-byte bitmaps) +
+  `SchedPub.values` (40-entry table); in-AIR conversion `Scheduler.convertRaw` /
+  `convertRequestV`; **proved** `Scheduler.convertRequests_eq_raw : convertRequests p ids reqs =
+  convertRaw (requestValues p) p.base ids (toBTreeMap reqs)`, `run_eq_core` re-proved. Worst-case
+  `Prep.encode`: **41 MB → 1.06 MB**, prepD0 + encode 3.4–4.4 s → **0.28–0.32 s**.
+* **Hint wire parser:** `Hint = {n, body}`; `prepBody` parses `body` with `decodeBody`/`pRefund`
+  (refund shape: predecessor `system`, any valid receiver incl. implicit). **Proved**
+  (`ZkFormal.V3.RefundCodec`, helper): `pRefund_encode` (prefix-stable), `decodeBody_bodyOf`,
+  `gasRefundReceipt_shape`, `applyReceipt_refunds_shape`, `applyReceipts_refunds_shape`,
+  `applyNewChunk_outgoing`, `applyNewChunk_refunds_shape`, `applyNewChunk_outgoing_length`,
+  **`decodeBody_outgoing`** (`applyNewChunk … = .ok out → (∀ r ∈ rs, r.wf) → rs.length < 2³² →
+  decodeBody (bodyOf out.outgoing) = .ok out.outgoing`: prep's refund list is exactly
+  `acc.refunds`), `pReceipt_wf` (witness receipts satisfy the hypothesis). Measured: decodeBody of
+  4,481 refunds (half implicit receivers) 14–28 ms.
+* **Duplicate chunk hashes (4):** `RelD0` is satisfiable with two used source slots sharing a
+  chunk hash, and only with one extra unused entry per duplicate (spec v0a §2.5). Test
+  `oracle/tools/dupkey_v3.py`: 30 constructed claims (from accepted D0 cases): with the extra
+  entry Lean and Python accept 30/30 (also RelD0a), without it both reject 30/30.
+* prepD0 test (re-run): 11,015 cases, 2,163/2,163 accepted cases match, 0 problems.
+
 ## 2. `prepD0` (claim/hint side of the verifier) — `NearSpecV3.PrepD0` (new)
 
 Per §11 (c): `Hint = {n, refunds}` (wire form `n`, `B = u32 0 ‖ encodeReceipts refunds`);
@@ -115,20 +159,18 @@ Per component (ms; `nearspec-v3-bench`):
   `sha256` of 1 MiB: 1 358 → 17 ms.
 * **Typical** native part ≈ 5 ms (≪ the STARK's ≈ 1 s). **Worst** native part (64 shards,
   32 blocks, A1-maximal 0.91 MB body at (85,256), 4 481 refunds) ≈ 0.38 + 0.68 + 0.06 ≈ **1.1 s**.
-* **Open (size of the public statement):** `Prep.encode` of the synthetic worst case is
-  **41 MB** (31 `SchedPub` × 4 032 converted requests × ≤ 40 increases as u64), and encoding it
-  takes ≈ 3–4 s. Suggested for the `v3-sched` lane: publish each request as its raw 5-byte
-  bitmap plus the per-block 40-entry `requestValues` table and convert in-AIR (≈ 36 KB per
-  block), or u32 increases (½ size). Not changed here pending the lead's choice.
+* `Prep.encode` of the synthetic worst case: 41 MB with converted increase lists → **1.06 MB**
+  with raw bitmaps (round 3); prepD0 + encode ≈ 0.3 s.
 
 ## 5. Open items
 
-1. `Prep.encode` size in the scheduler-heavy worst case (§4).
-2. The wire form of the hint: parsing `B` back into refunds needs a refund-receipt parser
-   (`pReceipt` rejects implicit-account receivers, which refunds may have) — the verifier lane's.
-3. Forwarding split and routing intervals: tested, not proved.
-4. Two used source chunks with equal `chunk_hash` share one entry (AIR must enforce equal lists).
-5. `checkD0` acceptance of the normal-form re-encoding: tested, not proved.
+1. Forwarding split and routing intervals: tested, not proved.
+2. Duplicate keys: the AIR / witness constructor must add filler entries (spec v0a §2.5).
+3. `checkD0` acceptance of the normal-form re-encoding: tested, not proved.
+4. A7: a full synthetic RelD0 case with shared subtrees near `B0` was not built (needs a
+   re-hashed chain whose state trie is designed; boundary tested at `U`/`U−1` on real cases and
+   the sharing mechanism by the kernel examples); the B0 derivation assumes ≤ 0.44 M SHA rows
+   of non-trie hashing (to confirm with the trie/receipt lanes).
 
 ## 6. Commits
 

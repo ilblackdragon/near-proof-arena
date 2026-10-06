@@ -113,9 +113,10 @@ def prepClaimF (cb : Bytes) : Except String PrepC := do
 
 def prepBodyF (pc : PrepC) (h : Hint) : Except String Prep := do
   let ctx := pc.ctxB2
-  check (h.refunds.all fun r => (statusShards ctx).contains (ctx.layout.shardOf r.receiverId))
+  let refunds ← decodeBody h.body
+  check (refunds.all fun r => (statusShards ctx).contains (ctx.layout.shardOf r.receiverId))
     "out of domain (e.forwarded): generated receipt buffered"
-  check (fwdGasOk ctx h.refunds) "out of domain (e.forwarded): generated receipt buffered"
+  check (fwdGasOk ctx refunds) "out of domain (e.forwarded): generated receipt buffered"
   check (h.n == 0 || (h.n - 1) * Params.G < ctx.gasLimit)
     "out of domain (e.compute): receipt delayed by the compute limit"
   -- 3.7 header comparison (claim/hint part), in `checkD0`'s order
@@ -123,7 +124,7 @@ def prepBodyF (pc : PrepC) (h : Hint) : Except String Prep := do
   check H.proposals.isEmpty "invalid: InvalidValidatorProposals"
   check (H.gasLimit == pc.hdr.gasLimit) "invalid: InvalidGasLimit"
   check (H.prevGasUsed == h.n * Params.G) "invalid: InvalidGasUsed"
-  check (H.prevOutgoingReceiptsRoot == outgoingReceiptsRoot pc.L h.refunds) "invalid: InvalidReceiptsProof"
+  check (H.prevOutgoingReceiptsRoot == outgoingReceiptsRoot pc.L refunds) "invalid: InvalidReceiptsProof"
   check (H.congestion == { pc.ownCongestion with allowedShard := pc.allowed }) "invalid: InvalidCongestionInfo"
   check H.bwRequests.isEmpty "invalid: InvalidBandwidthRequests"
   check H.proposedSplit.isNone "invalid: InvalidChunkHeaderShardSplit"
@@ -135,7 +136,7 @@ def prepBodyF (pc : PrepC) (h : Hint) : Except String Prep := do
     check (pc.H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
     check (pc.H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
   pure { hdr := { pc.hdr with n := h.n }, lists := pc.lists, bnds := pc.bnds, sched := pc.sched,
-         body, fwd := fwdSizes ctx h.refunds }
+         body, fwd := fwdSizes ctx refunds }
 
 @[csimp] theorem prepBody_csimp : @prepBody = @prepBodyF := rfl
 

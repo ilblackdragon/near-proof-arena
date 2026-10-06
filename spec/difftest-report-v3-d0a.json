@@ -8,7 +8,8 @@
   "c.gas_limit": 599,
   "e.sched_canonical": 0,
   "honest_witnesses": 4597,
-  "w.proof_routing": 0
+  "w.proof_routing": 0,
+  "w.unfolded": 0
  },
  "cases_dir": "generated: near-arena-oracle-v3-d0a gen --seed 4243 --chains 9 --blocks 120 --mutate-every 6 (oracle/v3-d0a; byte-reproducible)",
  "counts": {
@@ -108,8 +109,22 @@
   "seed": 4243
  },
  "statement": "near/pv86/chunk-validation/v0",
+ "unfold_bytes": {
+  "compared_lean_python": 2695,
+  "compared_oracle": 927,
+  "distribution": {
+   "max": 7917,
+   "min": 1248,
+   "n": 2695,
+   "p50": 3785,
+   "p90": 5148,
+   "p99": 7320
+  },
+  "mismatch_count": 0,
+  "mismatches": []
+ },
  "wall_seconds": {
-  "lean": 844.4359908103943,
-  "python": 9.229647874832153
+  "lean": 1111.1448554992676,
+  "python": 8.469000101089478
  }
 }
