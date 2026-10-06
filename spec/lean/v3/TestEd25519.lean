@@ -8,7 +8,7 @@ verdicts, and of `NearSpecV3.sha512` against Python `hashlib`.
 Usage: `nearspec-v3-test-ed25519 [DIR]` (default `../../../oracle/fixtures/v3/ed25519`).
 Every `*.jsonl` file in DIR is read; a line with `verify_raw` (nearcore's
 `Signature::verify` on `ed25519_dalek::Signature::from_bytes(sig)`, see
-`oracle/v3/src/ed25519v.rs`) is checked as `verify pk sig msg == verify_raw` and
+`oracle/v3-d1/src/ed25519v.rs`) is checked as `verify pk sig msg == verify_raw` and
 `sigEncodingOk sig == sig_decodes` (and, when `verify` is not null,
 `sigEncodingOk sig && verify pk sig msg == verify`); a line with `sha512` is checked as
 `sha512 msg == sha512`. Exit code 1 on any mismatch.

@@ -56,7 +56,6 @@ mod chaingen;
 mod d1;
 mod d1gen;
 mod d1judge;
-#[path = "../../v3/src/ed25519v.rs"]
 mod ed25519v;
 
 use serde_json::json;

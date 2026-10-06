@@ -55,7 +55,7 @@ Lengths: nearcore's types are fixed-size (`[u8; 32]`, `[u8; 64]`); here `verify`
   equivalence with dalek's code. Faithfulness to nearcore is **tested**:
   `nearspec-v3-test-ed25519` checks `verify = verify_raw` and `sigEncodingOk = sig_decodes`
   on every vector in `oracle/fixtures/v3/ed25519/` (verdicts from nearcore itself via
-  `near-arena-oracle-v3 ed25519-judge`).
+  `near-arena-oracle-v3-d1 ed25519-judge`).
 -/
 
 namespace NearSpecV3

@@ -6,7 +6,7 @@
       and SHA-512 vectors; writes STAGE_DIR/<name>.in.jsonl (id, pk, sig, msg + metadata).
   gen_ed25519_vectors.py merge STAGE_DIR OUT_DIR
       Merge nearcore's verdicts (STAGE_DIR/<name>.judged.jsonl, produced by
-      `near-arena-oracle-v3 ed25519-judge`) into OUT_DIR/<name>.jsonl.
+      `near-arena-oracle-v3-d1 ed25519-judge`) into OUT_DIR/<name>.jsonl.
   gen_ed25519_vectors.py crosscheck DIR
       Compare libsodium (PyNaCl) and OpenSSL (cryptography) against nearcore's verdicts
       and print the disagreement classes (they are NOT the reference).

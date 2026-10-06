@@ -26,8 +26,6 @@ near-primitives = { path = "vendor/nearcore/core/primitives", features = ["test_
 near-primitives-core = { path = "vendor/nearcore/core/primitives-core" }
 near-store = { path = "vendor/nearcore/core/store" }
 near-crypto = { path = "vendor/nearcore/core/crypto" }
-# same version as nearcore's lock; no extra features (verification semantics are near-crypto's)
-ed25519-dalek = { version = "2.2.0", default-features = false }
 near-parameters = { path = "vendor/nearcore/core/parameters" }
 node-runtime = { path = "vendor/nearcore/runtime/runtime" }
 near-time = { path = "vendor/nearcore/core/time", features = ["clock"] }

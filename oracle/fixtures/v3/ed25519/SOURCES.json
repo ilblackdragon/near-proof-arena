@@ -1,10 +1,10 @@
 {
- "note": "Every verdict (sig_decodes, verify, verify_raw) in *.jsonl is nearcore's, from near-arena-oracle-v3 ed25519-judge / ed25519-sign (oracle/v3/src/ed25519v.rs; nearcore 44f7ae6cd7ef08bab604e20a473bf77e35d4c993, ed25519-dalek 2.2.0, curve25519-dalek 4.1.3). upstream_* fields are the upstream suites' own expectations, kept for comparison only.",
+ "note": "Every verdict (sig_decodes, verify, verify_raw) in *.jsonl is nearcore's, from near-arena-oracle-v3-d1 ed25519-judge / ed25519-sign (oracle/v3-d1/src/ed25519v.rs; nearcore 44f7ae6cd7ef08bab604e20a473bf77e35d4c993, ed25519-dalek 2.2.0, curve25519-dalek 4.1.3). upstream_* fields are the upstream suites' own expectations, kept for comparison only.",
  "regenerate": [
   "python3 oracle/tools/gen_ed25519_vectors.py inputs UPSTREAM_DIR STAGE",
-  "for each STAGE/X.in.jsonl: near-arena-oracle-v3 ed25519-judge --in STAGE/X.in.jsonl --out STAGE/X.judged.jsonl",
+  "for each STAGE/X.in.jsonl: near-arena-oracle-v3-d1 ed25519-judge --in STAGE/X.in.jsonl --out STAGE/X.judged.jsonl",
   "python3 oracle/tools/gen_ed25519_vectors.py merge STAGE oracle/fixtures/v3/ed25519 && cp STAGE/sha512.jsonl oracle/fixtures/v3/ed25519/",
-  "near-arena-oracle-v3 ed25519-sign --seed 1 --n 2000 --out oracle/fixtures/v3/ed25519/near_signed.jsonl (keys sorted)"
+  "near-arena-oracle-v3-d1 ed25519-sign --seed 1 --n 2000 --out oracle/fixtures/v3/ed25519/near_signed.jsonl (keys sorted)"
  ],
  "upstream": [
   {
@@ -121,7 +121,7 @@
  "generated": [
   {
    "file": "near_signed.jsonl",
-   "how": "near-arena-oracle-v3 ed25519-sign --seed 1 --n 2000 (near_crypto::SecretKey::sign)"
+   "how": "near-arena-oracle-v3-d1 ed25519-sign --seed 1 --n 2000 (near_crypto::SecretKey::sign)"
   },
   {
    "file": "edge.jsonl",

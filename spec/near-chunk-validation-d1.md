@@ -185,7 +185,7 @@ SHA-512 from `hashlib`).
 
 **Ed25519 leaf** (`oracle/fixtures/v3/ed25519/`, sources and sha256 in `SOURCES.json`;
 `nearspec-v3-test-ed25519` and `python3 -m v3lib.ed25519`): 7 768 vectors, every one judged by
-nearcore (`near-arena-oracle-v3 ed25519-judge`: borsh decodability and
+nearcore (`near-arena-oracle-v3-d1 ed25519-judge`: borsh decodability and
 `Signature::verify`), **0 mismatches for Lean and 0 for Python**: RFC 8032 §7.1 (10) and the
 1 024 `sign.input` vectors, Wycheproof `ed25519_test.json` (139 64-byte cases; nearcore agrees
 with Wycheproof's own result on all of them), C2SP CCTV validation-criteria vectors (914, 208
