@@ -15,7 +15,7 @@ macro "lstep3" : tactic => `(tactic| first
      obtain ⟨_, ha, h⟩ := bind_ok h; obtain ⟨_, hb, hk⟩ := bind_ok hk;
      cases (ha.symm.trans hb); rw [ha, ok_bind];
      (try dsimp only at h); (try dsimp only at hk); (try dsimp only))
-  | (fail_if_success (guard_hyp h :~ (bind (m := Except String) _ _) = _);
+  | ((fail_if_success (guard_hyp h :~ (bind (m := Except String) _ _) = _));
      split at h <;> first
       | (obtain ⟨_, ht, _⟩ := bind_ok h; cases ht; done)
       | (rename_i heq; split at hk <;> (rename_i heq2; first
@@ -28,10 +28,25 @@ set_option hygiene false in
 macro "lstep2" : tactic => `(tactic| first
   | (guard_hyp h :~ (bind (m := Except String) _ _) = _; obtain ⟨_, ha, h⟩ := bind_ok h; rw [ha, ok_bind];
      (try dsimp only at h); (try dsimp only))
-  | (fail_if_success (guard_hyp h :~ (bind (m := Except String) _ _) = _); split at h <;> first
+  | ((fail_if_success (guard_hyp h :~ (bind (m := Except String) _ _) = _)); split at h <;> first
       | (obtain ⟨_, ht, _⟩ := bind_ok h; cases ht; done)
+      | (obtain ⟨_, ht, _⟩ := bind_ok h;
+         simp only [throw, throwThe, MonadExceptOf.throw, reduceCtorEq] at ht; done)
       | (cases h; done)
-      | ((try dsimp only at h); (try dsimp only))))
+      | (simp only [throw, throwThe, MonadExceptOf.throw, reduceCtorEq] at h; done)
+      | (guard_hyp h :~ (bind (m := Except String) _ _) = _; (try dsimp only at h); (try dsimp only))))
+
+set_option hygiene false in
+/-- Lockstep of `h` and the goal when their auxiliary matchers differ (or coincide). -/
+macro "lstep2m" : tactic => `(tactic| first
+  | (guard_hyp h :~ (bind (m := Except String) _ _) = _; obtain ⟨_, ha, h⟩ := bind_ok h;
+     rw [ha, ok_bind]; (try dsimp only at h); (try dsimp only))
+  | ((fail_if_success (guard_hyp h :~ (bind (m := Except String) _ _) = _));
+     split at h <;> first
+      | (obtain ⟨_, ht, _⟩ := bind_ok h; cases ht; done)
+      | (rename_i heq; split <;> (rename_i heq2; first
+          | (cases (heq.symm.trans heq2); done)
+          | (cases (heq.symm.trans heq2); (try dsimp only at h); (try dsimp only))))))
 
 theorem normImpl_length : ∀ (r : Bytes) (ts : List Transition), (normImpl r ts).length = ts.length
   | _, [] => rfl
@@ -200,5 +215,47 @@ theorem checkD0_normal {cb w w' sw sw' : Bytes} {s : StateWitness} {K : List (Li
     simp only [beq_iff_eq] at this
     simp only [pure, Except.pure, Except.ok.injEq, ForInStep.yield.injEq] at hf
     rw [← hf, this]
+
+set_option maxHeartbeats 1000000 in
+/-- `keysD0` computes the same keys and root on the normal form. -/
+theorem keysD0_normal {cb w w' sw sw' : Bytes} {s : StateWitness} {K : List (List Nat)} {R : Bytes}
+    (hw : decodeWitnessFile w = .ok (sw, [])) (hw' : decodeWitnessFile w' = .ok (sw', []))
+    (hl : lenT sw' ≤ lenT sw)
+    (hs : decodeStateWitness sw = .ok s) (hs' : decodeStateWitness sw' = .ok (normW K R s))
+    (hk : keysD0 cb w = .ok (K, R)) : keysD0 cb w' = .ok (K, R) := by
+  have h := hk
+  unfold keysD0 at h ⊢
+  obtain ⟨c, hc, h⟩ := bind_ok h
+  rw [hc, ok_bind]
+  rw [hw, ok_bind] at h
+  rw [hw', ok_bind]
+  simp only [List.isEmpty_nil, check_true, ok_bind] at h ⊢
+  obtain ⟨u2, h2, h⟩ := bind_ok h
+  have hlen : lenT sw ≤ 8388608 := by
+    have := check_ok (by cases u2; exact h2); simpa using this
+  rw [decide_eq_true (Nat.le_trans hl hlen), check_true, ok_bind]
+  rw [hs, ok_bind] at h
+  rw [hs', ok_bind]
+  simp only [normW_epochId, normW_innerBytes, normW_arh, normW_entries,
+    lookupLast_normEntries, distinctKeys_normEntries_length]
+  repeat lstep2
+  obtain ⟨u, ha, h⟩ := bind_ok h
+  have hS : (List.map List.length s.main.values).foldl (· + ·) 0 ≤ 3000000 := by
+    have := check_ok (by cases u; exact ha); simpa using this
+  have hS' : (List.map List.length (normW K R s).main.values).foldl (· + ·) 0 ≤ 3000000 :=
+    Nat.le_trans (sum_normVals_le _ _) hS
+  rw [decide_eq_true hS', check_true, ok_bind]
+  (try dsimp only at h); (try dsimp only)
+  lstep2
+  split at h
+  all_goals first | (obtain ⟨_, ht, _⟩ := bind_ok h; cases ht; done) | skip
+  rename_i v heq
+  obtain ⟨bsh, ha, h⟩ := bind_ok h
+  injection h with h
+  cases h
+  rw [normW_main, ptrie_main1]
+  simp only [heq]
+  rw [ha, ok_bind]
+  rfl
 
 end ReexecV3D0
