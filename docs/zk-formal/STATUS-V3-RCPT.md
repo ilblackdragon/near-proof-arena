@@ -19,7 +19,7 @@ Rules: no `sorry` / `axiom` / `native_decide`; axioms ⊆ {propext, Classical.ch
 | M4 | `qvV3` (fixed-key value parsers `[7] [10] [13] [16]‖s`), `mrkV3` / `sortV3` (`n ≤ 4481`, `n = 0`) | open |
 | M5 | `rcptV3` view (`RcptV3ViewStmt`, adapting v1's 7.3 k-line `Extract/Rcpt*`) | statement done; proof ≈ 35 % (§6) |
 | M6 | `rcptV3` render | open |
-| M7 | links: body binding (`stream_eq_of_count`), lists ⇒ `verifyReceiptProof`, routing ⇒ A2, run ⇒ `applyReceipts` (incl. `applySystemReceipt`), `KeynibOk` for the sends, `hpl`/`hperm` for account writes | open |
+| M7 | links (partial, §7): body binding **done**, `KeynibOk` symbols **done**, signer = receiver **done**, lexicographic core of routing **done**; open: lists ⇒ `verifyReceiptProof`, run ⇒ `applyReceipts`, `hpl`/`hperm`; originally: body binding (`stream_eq_of_count`), lists ⇒ `verifyReceiptProof`, routing ⇒ A2, run ⇒ `applyReceipts` (incl. `applySystemReceipt`), `KeynibOk` for the sends, `hpl`/`hperm` for account writes | open |
 | M8 | heights under A1 / B0 | open |
 
 ## 1. Tables (V3-D0-DESIGN §3.4–3.6 as built)
@@ -180,6 +180,16 @@ Classical.choice, Quot.sound}; each checked with `#print axioms`.
   (claim arithmetic dropped), `StrField`/`Strings`/`CharClass`/`Names` (`sysIff`), new `Sys`
   (`ee`/`neq` from `SREC` rows) and `Route` (`RouteOk` by induction over the lookup rows),
   `WfIds`, `Proof`. `test/port_rcpt_v3.py` does the mechanical part of each port.
+
+## 7. Link lemmas (`NearV3/Rcpt/Link/`, axioms ⊆ {propext, Quot.sound} or std3)
+
+| theorem | file | content |
+|---|---|---|
+| `body_eq`, `body_sha0` | `Link/Body.lean` | `BodyBal` (BYTES balance with the public body receives, other senders of other kinds, `|s| = |B| − 8`) ⇒ the refund stream is `B[8 …]`, and SHA receives no kind-2 message (R4) |
+| `rcpt_keynib_syms` | `Link/Keynib.lean` | every `KEYNIB` symbol of a receipt (account and access-key walk) is `< 16` or `END`: the provider half of `KeynibOk` |
+| `srec_ee`, `srec_neq` | `Link/Srec.lean` | with the per-receipt `SREC` balance: `ee ⇒ signer = receiver`, `sys ∧ ¬ee ⇒ signer ≠ receiver` |
+| `lex_lo`, `lex_hi` | `Link/Lex.lean` | position-wise checks against `0`-padded boundaries ⇒ `lexLe lo v`, `¬ lexLe hi v` (the semantic core of `RouteOk.sem`; with R5 this gives A2) |
+| `rcptV3` key rows: `key_row`, `akey_row`, `keyB_V` | `Extract/V/Key.lean` | row facts of both walks (input to the `KEYNIB` traffic of the view) |
 
 ## Modules
 
