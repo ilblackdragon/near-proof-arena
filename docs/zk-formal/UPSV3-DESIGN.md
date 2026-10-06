@@ -384,11 +384,20 @@ Done (kernel-checked, axioms ⊆ {propext, Classical.choice, Quot.sound}; `Extra
 | `QNodes` | **target nodes** per part kind (spec side, as `PTrie.upsert` builds them): `qRLP`, `qRBR`, `qRBV`, `qRBI`, `qNLF` (`newLeaf ([0,15].drop (si+1)) v`), `qMVL`, `qMVE`, `qSPBleaf`/`qSPBext` (the branch of `splitLeaf`/`splitExt` before `wrapExt`), `qWEX`, `qRDB`, `qRDE`, `qPT`; `setKid`; `qNLF_enc` |
 | `NlfRows` | `NLF` part constants (`nlfHead`: leaf, `hplen 1`, `R = 102 + L` formula), `memLR` (the `L` register on `MEM` rows), `nlfHpf` (flag byte `0x20 + 0x1f·ts1`) |
 
-Not yet done (layer 2; estimate ≈ 2.5–3.5 k lines): the remaining field-level byte lemmas (copied fields with `spos` offsets, moved-key `HPF`, split-branch bitmap) and the
-per-kind assembly `rowsB (part) = nodeEnc (node)` with the node defined from (case, source bytes, child digests, `MEMD`
-values) as in `PTrie.upsert` — the target nodes are defined (`QNodes`); `NLF RLP RDE PT WEX RBV RBR RDB RBI MVL` are done (`NlfBytes`, `RlpBytes`, `RdeBytes`, `WexBytes`, `RbvBytes`, `RbrBytes`, `RdbBytes`, `RbiBytes`, `MvlBytes`); `MVE` and `SPB` remain.  Method note: `omega` is incomplete with the modulus
-`P ≈ 2^31` when several unknowns share a `% P` (it then reports spurious counterexamples or times out); such
-facts go through `Fp` and `natv` (`wbmBits`), or through `decide +kernel` on index rows (`planDec`, `ixVals`).
+Not yet done (layer 2): the per-kind byte statements `rowsB (part) = nodeEnc (node)` are proved for ten of the
+twelve kinds (`NLF RLP RDE PT WEX RBV RBR RDB RBI MVL`); **`MVE`** (≈ 350 lines: `extShape` + the `MVL` moved-key
+argument + a copied window and `memory_usage = 50 + 2·qhk + (m − (50 + 2·phk))`) and **`SPB`** (≈ 1–1.5 k lines:
+per split case the copied value slot / old child hash (`xcp`), the moved node's or new leaf's digests (`wy`), the
+`bmL`/`bmH` bitmap over `kids1`/`kids2`, `MEMD` of the moved node) remain.  The per-kind statements take as
+hypotheses what other tables give: `UpbReads s Pb` (every `UPB` read returns its record's post byte and length)
+with the source record `Pb sN = nodeEnc P` (well-formedness of `P`: 32-byte child hashes, 36-byte value slots,
+`m < 2^64`, nibbles `< 16`, 16 slots), the `DIGEST` of the value / the part below, the `MEMD` limbs, `|val| = L`,
+and the emitted bytes `< 256`; collecting them into one `UpsBytes` statement over a segment (by `kd k`, with the
+source nodes from `nodeV3`'s records along the walk) is M7e's first step.  Method note: `omega` is incomplete with
+the modulus `P ≈ 2^31` when several unknowns share a `% P` (it then reports spurious counterexamples or times out);
+such facts go through `Fp` and `natv` (`wbmBits`, `sub_of_cast`), or through `decide +kernel` on index rows
+(`planDec`, `ixVals`).  `omega` / `simp_all` can also time out in `whnf` when the context holds hypotheses with
+large `if`/list terms (e.g. `winRole`'s); prove such side facts with explicit lemmas.
 M7d (render) and M7e (link) are not started.
 
 ## 9. Model check (tested)
