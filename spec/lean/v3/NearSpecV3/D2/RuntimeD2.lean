@@ -18,8 +18,8 @@ open NearSpec NearSpecV3
 /-! ## Transactions (`process_transactions`, `lib.rs:1882-2279`) -/
 
 def failedOutcomeD2 (t : TxD2) (gas tokens : Nat) : OutD1 :=
-  ⟨{ id := t.hash, receiptIds := [], gasBurnt := gas, tokensBurnt := tokens, executorId := t.signer },
-   .failure⟩
+  { o := { id := t.hash, receiptIds := [], gasBurnt := gas, tokensBurnt := tokens, executorId := t.signer },
+    status := .failure }
 
 def processTxD2 (env : Env) (rsSeen : RS × List Bytes) (tf : TxD2 × Bool) : Except String (RS × List Bytes) := do
   let (rs, seen) := rsSeen
@@ -60,8 +60,9 @@ def processTxD2 (env : Env) (rsSeen : RS × List Bytes) (tf : TxD2 × Bool) : Ex
     if rs.txBurnt + c.burntAmount ≥ two128 then return (rs, seen)
     let g ← ok? (add64 rs.gas c.gasBurnt) (panicked "IntegerOverflowError")
     let cu ← ok? (add64 rs.compute c.computeBurnt) (panicked "IntegerOverflowError")
-    let out : OutD1 := ⟨{ id := h, receiptIds := [rid], gasBurnt := c.gasBurnt,
-                          tokensBurnt := c.burntAmount, executorId := t.signer }, .receipt rid⟩
+    let out : OutD1 := { o := { id := h, receiptIds := [rid], gasBurnt := c.gasBurnt,
+                                tokensBurnt := c.burntAmount, executorId := t.signer },
+                         status := .receipt rid }
     let o := rs.o.setAcct t.signer { a with amount := amount }
     let o := match row with
       | some (idx, nonce) => o.set (kNonce t.signer t.pk idx) (u64 nonce)
@@ -189,7 +190,9 @@ def applyNewChunkD2 (hooks : ActionHooks) (prims : Prims) (env : Env) (t : PTrie
         | none => throw (inconsistent "BufferedReceiptGroupsQueueData")) []
   let limits : List Limit := ctx.statuses.map fun (s, ci, missed) =>
     ⟨s, (if s == ctx.own then GASMAX else prims.outGas ci missed ctx.own), so.grant ctx.own s⟩
-  let rs : RS := ⟨o, limits, [], bufIdx, metas, ownCong, ⟨df, dn, 0, 0, 0, 0⟩, [], 0, 0, 0, 0, [], [], []⟩
+  let rs : RS := { o, limits, outgoing := [], bufIdx, metas, cong := ownCong, dq := ⟨df, dn, 0, 0, 0, 0⟩,
+                   outcomes := [], gas := 0, compute := 0, txBurnt := 0, otherBurnt := 0,
+                   proposals := [], instant := [], locals := [] }
   let rs ← forwardFromBuffer env rs
   -- 5. transactions
   let (rs, _) ← txs.foldlM (processTxD2 env) (rs, [])
@@ -211,6 +214,9 @@ def applyNewChunkD2 (hooks : ActionHooks) (prims : Prims) (env : Env) (t : PTrie
   let root ← o.finalize
   let gasUsed ← ok? (sumNat64 (rs.outcomes.map (·.o.gasBurnt))) (panicked "total gas burnt overflow")
   let burnt ← ok? (add128 rs.txBurnt rs.otherBurnt) (panicked "burnt balance overflow")
+  -- E9: balance_burnt = tx + other (+ slashed = 0) − subsidized (rt/mod.rs:386-403); negative ⇒ Error
+  if rs.subsidized > burnt then throw "invalid: balance_burnt underflow (subsidized exceeds burnt)"
+  let burnt := burnt - rs.subsidized
   pure ⟨root, rs.outcomes, rs.outgoing, gasUsed, burnt, cong, bw, dedupProposals rs.proposals, o.cdRemovals⟩
 
 def applyMissingChunkD2 (prims : Prims) (env : Env) (t : PTrie) (vu : Option ValidatorUpdateFacts)

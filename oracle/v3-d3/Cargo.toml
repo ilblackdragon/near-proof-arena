@@ -1,0 +1,62 @@
+[package]
+name = "near-arena-oracle-v3-d3"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Domain-D3 oracle for near/pv86/chunk-validation/v0: real chunk witnesses with WASM FunctionCalls (nearcore-judged by a cold stateless validator with the needed contract code blobs appended), D3alpha classifier, code mutants. Reuses ../v3/src and ../v3-d1/src modules unchanged via #[path]."
+
+# Separate from ../v3 (the D0 oracle, pinned by the live D0 challenge) and ../ (v1/v2): this crate depends on nearcore's
+# integration-tests (TestEnv), which pulls in the whole node. Path deps point at
+# the pinned checkout via ../vendor (scripts/link-nearcore.sh); Cargo.lock is
+# nearcore's own lock file so every third-party crate resolves exactly as nearcore's.
+[workspace]
+exclude = ["vendor"]
+
+[[bin]]
+name = "near-arena-oracle-v3-d3"
+path = "src/main.rs"
+
+[dependencies]
+integration-tests = { path = "vendor/nearcore/integration-tests" }
+near-chain = { path = "vendor/nearcore/chain/chain" }
+near-chain-configs = { path = "vendor/nearcore/core/chain-configs" }
+near-client = { path = "vendor/nearcore/chain/client" }
+near-epoch-manager = { path = "vendor/nearcore/chain/epoch-manager" }
+near-primitives = { path = "vendor/nearcore/core/primitives", features = ["test_utils", "solomon", "clock", "rand"] }
+near-primitives-core = { path = "vendor/nearcore/core/primitives-core" }
+near-store = { path = "vendor/nearcore/core/store" }
+near-crypto = { path = "vendor/nearcore/core/crypto" }
+# same version as nearcore's lock; no extra features (verification semantics are near-crypto's)
+ed25519-dalek = { version = "2.2.0", default-features = false }
+near-parameters = { path = "vendor/nearcore/core/parameters" }
+node-runtime = { path = "vendor/nearcore/runtime/runtime" }
+near-time = { path = "vendor/nearcore/core/time", features = ["clock"] }
+near-o11y = { path = "vendor/nearcore/core/o11y" }
+borsh = { version = "1.0.0", features = ["derive", "rc"] }
+hex = "0.4.2"
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+itertools = "0.14.0"
+rand = "0.8.5"
+rand_chacha = "0.3.1"
+reed-solomon-erasure = { version = "6.0.0", features = ["simd-accel"] }
+serde_json = "1.0.68"
+sha2 = "0.10"
+wat = "1.0.42"
+strum = "0.24"
+near-wallet-contract = { path = "vendor/nearcore/runtime/near-wallet-contract" }
+near-vm-runner = { path = "vendor/nearcore/runtime/near-vm-runner" }
+# same version as nearcore's lock (near-vm-runner's `wasmparser-236`): the D3alpha contract scan
+wasmparser = "=0.236.1"
+
+[patch.crates-io]
+protobuf = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }
+protobuf-support = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }
+
+[profile.dev]
+panic = 'unwind'
+opt-level = 1
+[profile.dev.package."*"]
+opt-level = 2
+# oracle/v3-d1 turns near-store's debug assertions off for its D1 class `dup_bad_sig_first` (two
+# transactions with one hash in a chunk); D3 chains do not inject that class, so near-store keeps
+# them and this crate shares the build of ../d3-ttn (same profile otherwise).

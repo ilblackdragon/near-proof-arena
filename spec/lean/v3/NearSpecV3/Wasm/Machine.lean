@@ -249,6 +249,12 @@ structure CallCtx where
   chainId : String := "test"
   /-- `External::validator_stake` (yocto); absent = 0 -/
   validators : Array (String × Nat) := #[]
+  /-- `VMContext.account_contract` for `current_contract_code`: `some h` = `Local(h)`; `none` =
+  `AccountContract::None` (the harness context). Global identifiers are out of D3α. -/
+  accountContract : Option ByteArray := none
+  /-- real `External` (RuntimeD3): the action hash `ah` (data ids `sha256(ah ‖ u64 h ‖ u64 n)`,
+  `ext.rs:303-311`); `none` = the harness's mock ids `sha256(u64 n)` -/
+  actionHash : Option ByteArray := none
   deriving Inhabited
 
 /-- A `Promise` (`logic/logic.rs:197-200`): a receipt index or a joint (`promise_and`) set. -/
@@ -298,6 +304,8 @@ structure St where
   /-- trie-backed `External` (chunk replay): when set, storage goes through `TrieAccounting`
   instead of the mock `trie` map -/
   real : Option TTN.RealStore := none
+  /-- `subsidized_amount` (`one_yocto_on_promise`, `logic.rs:3069-3080`) -/
+  subsidized : Nat := 0
 
 inductive Res where
   | cont (s : St)

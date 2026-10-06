@@ -52,7 +52,10 @@ def observeH : HM Unit := do
 
 def realSetH (r : TTN.RealStore) (k : ByteArray) (v : Option ByteArray) : HM Unit :=
   modify fun s => match s.real with
-    | some r' => { s with real := some { r' with overlay := r'.overlay.insert (r.pfx ++ k) v } }
+    | some r' =>
+      let key := r.pfx ++ k
+      let r2 : TTN.RealStore := { r' with overlay := r'.overlay.insert key v, writes := r'.writes.push (key, v) }
+      { s with real := some r2 }
     | none => s
 def payPerH (c : Cost) (n : Nat) : HM Unit := withGas (payPer · c n)
 def payActionH (b bc u : Nat) : HM Unit := withGas (payAction · b bc u)
@@ -407,6 +410,54 @@ def pushRet (v : Nat) (is64 : Bool := true) : HM Unit :=
 
 def dataId (n : Nat) : ByteArray := Crypto.sha256 (natLE n 8)
 
+/-- The `n`-th data id of the call: the mock's, or nearcore's `create_receipt_id_from_action_hash`
+(`utils.rs:299-307`) under the real `External`. -/
+def dataIdOf (s : St) (n : Nat) : ByteArray :=
+  match s.ctx.actionHash with
+  | some ah => Crypto.sha256 (ah ++ natLE s.ctx.blockHeight 8 ++ natLE n 8)
+  | none => dataId n
+
+/-- Real `External`: a `TrieUpdate` read by the External itself (no gas, no trie-node charges):
+overlay first, then the pre-state trie; a missing node or value rejects the chunk. -/
+def realGetH (k : ByteArray) : HM (Option ByteArray) := do
+  let some r := (← get).real | throw "unmodeled: real store"
+  match r.overlay.get? k with
+  | some v => pure v
+  | none =>
+    match TTN.lookup r.store r.root k with
+    | .error e => throw e
+    | .ok l => match l.value with
+      | none => pure none
+      | some (_, vh) => match r.store vh with
+        | some v => pure (some v)
+        | none => throw TTN.errMissing
+
+/-- Real `External`: `TrieUpdate::contains_key` (path only; the value is not read). -/
+def realHasH (k : ByteArray) : HM Bool := do
+  let some r := (← get).real | throw "unmodeled: real store"
+  match r.overlay.get? k with
+  | some v => pure v.isSome
+  | none =>
+    match TTN.lookup r.store r.root k with
+    | .error e => throw e
+    | .ok l => pure l.value.isSome
+
+/-- Real `External`: a `TrieUpdate` write by the External itself (full trie key). -/
+def realPutH (k : ByteArray) (v : Option ByteArray) : HM Unit :=
+  modify fun s => match s.real with
+    | some r => { s with real := some { r with overlay := r.overlay.insert k v,
+                                               writes := r.writes.push (k, v) } }
+    | none => s
+
+/-- `TrieKey` bytes `col ‖ account ‖ ',' ‖ id` of the yield columns (`trie_key.rs`). -/
+def yieldKey (col : UInt8) (acct : String) (id : ByteArray) : ByteArray :=
+  ByteArray.mk #[col] ++ acct.toUTF8 ++ ByteArray.mk #[44] ++ id
+
+/-- Advance the data-id counter for the dependencies of a `then` join (real `External` only,
+`ext.rs:347-349`; the mock does not). -/
+def thenDataIdsH (n : Nat) : HM Unit :=
+  modify fun s => if s.real.isSome then { s with dataCount := s.dataCount + n } else s
+
 def hashHost (cBase cByte : Cost) (h : ByteArray → ByteArray) (len ptr reg : Nat) : HM Unit := do
   payBaseH cBase
   let v ← memOrRegH ptr len
@@ -426,7 +477,11 @@ def functionCallActionH (idx mlen mptr alen aptr amountPtr gas weight : Nat) : H
   withGas (deduct · 0 gas)
   let s ← get
   -- one_yocto_on_promise
-  if amount = 1 ∧ s.balance = 0 then pure () else deductBalanceH amount
+  if amount = 1 ∧ s.balance = 0 then modify fun s => { s with subsidized := s.subsidized + 1 }
+  else deductBalanceH amount
+  -- the real `ReceiptManager` requires a UTF-8 method name (`receipt_manager.rs:381-382`); the
+  -- harness's mock does not (clean-room H11)
+  if (← get).real.isSome && (String.fromUTF8? m).isNone then hErr "InvalidMethodName"
   let _ ← pushAction { text := s!"FC@{r}:{hexStr m}:{hexStr a}:{amount}:{gas}:{weight}" }
 
 /-- `read_contract_id` (`logic.rs`): a 32-byte code hash, or an account id; returns its `len()`. -/
@@ -478,12 +533,18 @@ def yieldCreateWithIdH (a : Vector Nat 9) : HM Unit := do
   let nb := m.size + args.size
   payPerH C.yieldCreateByte nb
   let s ← get
-  let dup := s.actions.any fun x => match x.yieldCreate with
-    | some (_, some y) => y == yid
-    | _ => false
+  let dup ← if s.real.isSome then
+      realHasH (yieldKey 22 s.ctx.currentAccount yid)
+    else pure (s.actions.any fun x => match x.yieldCreate with
+      | some (_, some y) => y == yid
+      | _ => false)
   if dup then pushRet (u64Bound - 1) else
-  let did := dataId s.dataCount
+  let did := dataIdOf s s.dataCount
   set { s with dataCount := s.dataCount + 1 }
+  if s.real.isSome then
+    realPutH (yieldKey 20 s.ctx.currentAccount did) (some (ByteArray.mk #[0]))
+    realPutH (yieldKey 22 s.ctx.currentAccount yid) (some did)
+    realPutH (yieldKey 23 s.ctx.currentAccount did) (some yid)
   let r ← pushAction { text := s!"YC:{hexStr did}>{s.ctx.currentAccount}:{hexStr yid}",
                        receiver := some s.ctx.currentAccount, yieldCreate := some (did, some yid) }
   withGas (deduct · 0 a[5])
@@ -492,7 +553,8 @@ def yieldCreateWithIdH (a : Vector Nat 9) : HM Unit := do
   payActionBaseH F.functionCall true
   payActionPerByteH F.functionCallByte nb true
   let s ← get
-  if amount = 1 ∧ s.balance = 0 then pure () else deductBalanceH amount
+  if amount = 1 ∧ s.balance = 0 then modify fun s => { s with subsidized := s.subsidized + 1 }
+  else deductBalanceH amount
   let _ ← pushAction { text := s!"FC@{r}:{hexStr m}:{hexStr args}:{amount}:{a[5]}:{a[6]}" }
   pushRet pi
 
@@ -546,7 +608,10 @@ def hostCall (name : String) : Option (HM Unit) :=
   | "attached_deposit" => some do
     let a ← popArgs 1; payBaseH C.base; setU128H a[0] (← get).ctx.attachedDeposit
   | "current_contract_code" => some do
-    let _ ← popArgs 1; payBaseH C.base; pushRet 0   -- AccountContract::None in the harness context
+    let a ← popArgs 1; payBaseH C.base
+    match (← get).ctx.accountContract with
+    | none => pushRet 0   -- AccountContract::None (the harness context)
+    | some h => regSetH a[0] h; pushRet 1   -- AccountContract::Local(h)
   | "validator_stake" => some do
     let a ← popArgs 3
     payBaseH C.base
@@ -752,6 +817,7 @@ def hostCall (name : String) : Option (HM Unit) :=
     payNewReceiptH (acct = s.ctx.currentAccount) (deps.map fun r => receiptReceiver s r = acct)
     let r ← pushAction { text := s!"CR({",".intercalate (deps.toList.map toString)})>{acct}",
                          receiver := some acct }
+    thenDataIdsH deps.size
     pushRet (← pushPromiseH (.receipt r))
   | "promise_and" => some do
     let a ← popArgs 2
@@ -792,6 +858,7 @@ def hostCall (name : String) : Option (HM Unit) :=
     payNewReceiptH (acct = s.ctx.currentAccount) (deps.map fun r => receiptReceiver s r = acct)
     let r ← pushAction { text := s!"CR({",".intercalate (deps.toList.map toString)})>{acct}",
                          receiver := some acct }
+    thenDataIdsH deps.size
     let pi ← pushPromiseH (.receipt r)
     functionCallActionH pi a[3] a[4] a[5] a[6] a[7] a[8] 0
     pushRet pi
@@ -866,6 +933,8 @@ def hostCall (name : String) : Option (HM Unit) :=
     payActionBaseH F.addFunctionCallKey sir
     payActionPerByteH F.addFunctionCallKeyByte nb sir
     if !pkValid pk then hErr "InvalidPublicKey"
+    if (← get).real.isSome && names.any (fun n => (String.fromUTF8? n).isNone) then
+      hErr "InvalidMethodName"   -- real `ReceiptManager` (`receipt_manager.rs:594-600`)
     let al := if allowance > 0 then toString allowance else "-"
     let _ ← pushAction { text := s!"AC@{r}:{hexStr pk}:{a[3]}:{al}:{recv}:{"/".intercalate (names.toList.map hexStr)}" }
   | "promise_batch_action_delete_key" => some do
@@ -913,8 +982,10 @@ def hostCall (name : String) : Option (HM Unit) :=
     withGas (deduct · 0 a[4])
     payNewReceiptH true #[true]
     let s ← get
-    let did := dataId s.dataCount
+    let did := dataIdOf s s.dataCount
     set { s with dataCount := s.dataCount + 1 }
+    if s.real.isSome then
+      realPutH (yieldKey 20 s.ctx.currentAccount did) (some (ByteArray.mk #[0]))
     let r ← pushAction { text := s!"YC:{hexStr did}>{s.ctx.currentAccount}:-",
                          receiver := some s.ctx.currentAccount, yieldCreate := some (did, none) }
     let pi ← pushPromiseH (.receipt r)
@@ -933,6 +1004,15 @@ def hostCall (name : String) : Option (HM Unit) :=
     if payload.size > maxYieldPayloadSize then
       hErr s!"YieldPayloadLength \{ length: {payload.size}, limit: {maxYieldPayloadSize} }"
     if did.size ≠ 32 then hErr "DataIdMalformed"
+    if (← get).real.isSome then
+      -- `ext.rs:402-426`: resumable iff a yield receipt or a yield status exists in state
+      let acct := (← get).ctx.currentAccount
+      let found := (← realHasH (yieldKey 12 acct did)) || (← realHasH (yieldKey 20 acct did))
+      if found then
+        let _ ← pushAction { text := s!"YR:{hexStr did}:{hexStr payload}" }
+        realPutH (yieldKey 20 acct did) (some (ByteArray.mk #[1]))
+      pushRet (if found then 1 else 0) (is64 := false)
+    else
     let _ ← pushAction { text := s!"YR:{hexStr did}:{hexStr payload}" }
     let found := (← get).actions.any fun x => match x.yieldCreate with
       | some (d, _) => d == did
@@ -1007,6 +1087,19 @@ def hostCall (name : String) : Option (HM Unit) :=
     if payload.size > maxYieldPayloadSize then
       hErr s!"YieldPayloadLength \{ length: {payload.size}, limit: {maxYieldPayloadSize} }"
     if yid.size ≠ 32 then hErr "YieldIdMalformed"
+    if (← get).real.isSome then
+      -- `ext.rs:428-440`: the yield id resolves through state, then as `promise_yield_resume`
+      let acct := (← get).ctx.currentAccount
+      match ← realGetH (yieldKey 22 acct yid) with
+      | none => pushRet 0 (is64 := false)
+      | some did =>
+        let found := (← realHasH (yieldKey 12 acct did)) ||
+          (← realHasH (yieldKey 20 acct did))
+        if found then
+          let _ ← pushAction { text := s!"YR:{hexStr did}:{hexStr payload}" }
+          realPutH (yieldKey 20 acct did) (some (ByteArray.mk #[1]))
+        pushRet (if found then 1 else 0) (is64 := false)
+    else
     let found := (← get).actions.findSome? fun x => match x.yieldCreate with
       | some (d, some y) => if y == yid then some d else none
       | _ => none

@@ -37,22 +37,32 @@ def storageStakeOk (x : Acct) (amount : Nat) : Option Bool :=
   else some (amount + x.locked ≥ req || x.usage ≤ Params.zeroBalanceStorageLimit)
 
 /-- The action loop of `apply_action_receipt` (`lib.rs:845-888`) with `merge`
-(`lib.rs:439-485`) and `validate_receipt(NewReceipt)` of each new receipt. -/
-def actionLoop (hooks : ActionHooks) (env : Env) (r : Rcpt) (a : ActionR) :
+(`lib.rs:439-493`) and `validate_receipt(NewReceipt)` of each new receipt. `inputs` (E3) and
+`deployed` (E4) are passed to every action through `ActCtx`. -/
+def actionLoop (hooks : ActionHooks) (env : Env) (r : Rcpt) (a : ActionR)
+    (inputs : List (Option Bytes)) (deployed : List Bytes) :
     Nat → List Act → ActSt × AR → Except String (ActSt × AR)
   | _, [], acc => .ok acc
   | i, act :: rest, (st, res) => do
-    let (st, ar) ← applyAction hooks ⟨env, r, a, i, a.actions.length⟩ st act
+    let c : ActCtx := { env, r, a, idx := i, nActs := a.actions.length, inputs, deployed }
+    let (st, ar) ← applyAction hooks c st act
     let ar := if ar.ok && ar.newReceipts.any (fun x => !validReceipt true x) then ar.fail else ar
+    -- merge (lib.rs:439-493): asserts, then gas / gas_burnt_for_function_call / gas_used / compute
+    if ar.gasFC > ar.gasBurnt then throw (panicked "gas_burnt_for_function_call > gas_burnt")
+    if ar.gasBurnt > ar.gasUsed then throw (panicked "gas_burnt > gas_used")
     let gb ← ok? (add64 res.gasBurnt ar.gasBurnt) (panicked "gas_burnt overflow")
+    let gfc ← ok? (add64 res.gasFC ar.gasFC) (panicked "gas_burnt_for_function_call overflow")
     let gu ← ok? (add64 res.gasUsed ar.gasUsed) (panicked "gas_used overflow")
     let cu ← ok? (add64 res.compute ar.compute) (panicked "compute overflow")
-    let res := { res with gasBurnt := gb, gasUsed := gu, compute := cu }
+    let res := { res with gasBurnt := gb, gasUsed := gu, compute := cu, gasFC := gfc,
+                          logs := res.logs ++ ar.logs }
     if ar.ok then
       let tb ← ok? (add128 res.tokensBurnt ar.tokensBurnt) (panicked "tokens_burnt overflow")
-      actionLoop hooks env r a (i + 1) rest
+      let sub ← ok? (add128 res.subsidized ar.subsidized) (panicked "subsidized_amount overflow")
+      actionLoop hooks env r a inputs deployed (i + 1) rest
         (st, { res with newReceipts := res.newReceipts ++ ar.newReceipts,
-                        proposals := res.proposals ++ ar.proposals, tokensBurnt := tb })
+                        proposals := res.proposals ++ ar.proposals, tokensBurnt := tb,
+                        subsidized := sub, ret := ar.ret.shift res.newReceipts.length })
     else pure (st, res.fail)
 
 /-- Refund receipts (`refund_unspent_gas_and_deposits`, `lib.rs:1166-1301`, NEP-536 at PV 85):
@@ -105,19 +115,22 @@ def emitReceipts (env : Env) (parent : Bytes) : RS → Nat → List Rcpt → Exc
 compute usage. -/
 def applyActionReceipt (hooks : ActionHooks) (env : Env) (rs : RS) (r : Rcpt) (a : ActionR) :
     Except String (RS × OutD1 × Nat) := do
-  -- 1. input data: read and remove, then commit
-  let o ← a.inputs.foldlM (fun (o : Ovl) d => do
+  -- 1. input data: read and remove, then commit (E3: the decoded data is kept, in order)
+  let (o, inputs) ← a.inputs.foldlM (fun ((o, ins) : Ovl × List (Option Bytes)) d => do
       match ← o.get (kReceivedData r.recv d) "received data" with
       | none => throw (inconsistent "received data should be in the state")
       | some b => match decodeReceivedData b with
-        | some _ => pure (o.remove (kReceivedData r.recv d))
-        | none => throw (inconsistent "received data")) rs.o
+        | some x => pure (o.remove (kReceivedData r.recv d), ins ++ [x])
+        | none => throw (inconsistent "received data")) (rs.o, [])
   let o := o.commit
   -- 2. receiver account
   let acct ← o.getAcct r.recv
-  let res0 : AR := ⟨Fees.nar.exec, Fees.nar.exec, Fees.nar.execCompute, true, [], [], 0⟩
+  let res0 : AR := { gasBurnt := Fees.nar.exec, gasUsed := Fees.nar.exec,
+                     compute := Fees.nar.execCompute, ok := true, newReceipts := [],
+                     proposals := [], tokensBurnt := 0 }
   -- 3. actions
-  let (st, res) ← actionLoop hooks env r a 0 a.actions (⟨o, acct, r.pred⟩, res0)
+  let (st, res) ← actionLoop hooks env r a inputs rs.deployed 0 a.actions
+    ({ o := o, account := acct, actor := r.pred }, res0)
   let mut o := st.o
   let mut res := res
   -- 4. storage stake
@@ -145,24 +158,60 @@ def applyActionReceipt (hooks : ActionHooks) (env : Env) (rs : RS) (r : Rcpt) (a
     let (rfs, ch) ← refunds r a res purchase burn created
     res := { res with newReceipts := res.newReceipts ++ rfs }
     charge := ch
-  -- 7. proposals; commit or rollback
+  -- 7. proposals; commit or rollback (E4: the receipt's deploys are committed or dropped)
   let o2 := if res.ok then o.commit else o.rollback
-  -- 8. burnt amounts (receiver reward is 0: no function-call gas in D2)
+  let deployed := if res.ok then rs.deployed ++ st.deploys else rs.deployed
+  -- 8. burnt amounts
   let gasOut := if isSystem then 0 else res.gasBurnt
   let b0 := burn * gasOut
   if b0 ≥ two128 then throw (panicked "IntegerOverflowError")
   let tb ← ok? (add128 b0 charge >>= fun x => add128 x res.tokensBurnt) (panicked "IntegerOverflowError")
-  let txBurnt ← ok? (add128 rs.txBurnt tb) (panicked "IntegerOverflowError")
-  -- 9. output data receivers (ReturnData::None ⇒ data = Some([]); failure ⇒ None)
-  let dataRs : List Rcpt := a.outputs.map fun (d, recv) =>
-    ⟨r.recv, recv, zero32, .data false d (if res.ok then some [] else none)⟩
+  -- E10: receiver reward (lib.rs:989-1021): burn · ⌊gasFC · 3/10⌋ to the receiver if it still
+  -- exists; the outcome's tokens_burnt (`tb`) keeps it, the chunk's tx_burnt does not.
+  -- gasFC = 0 in D2 ⇒ rew = 0 ⇒ the D2 path.
+  if res.gasFC * 3 ≥ two64 then throw (panicked "receiver_gas_reward overflow")
+  let rew := burn * (res.gasFC * 3 / 10)
+  if rew ≥ two128 then throw (panicked "IntegerOverflowError")
+  let (o2, txb) ← if rew > 0 then do
+      match ← o2.getAcct r.recv with
+      | some x =>
+        if rew > tb then throw (panicked "tx_burnt_amount - receiver_reward underflow")
+        if x.amount + rew ≥ two128 then throw (panicked "IntegerOverflowError")
+        pure ((o2.setAcct r.recv { x with amount := x.amount + rew }).commit, tb - rew)
+      | none => pure (o2, tb)
+    else pure (o2, tb)
+  let txBurnt ← ok? (add128 rs.txBurnt txb) (panicked "IntegerOverflowError")
+  let subsidized ← ok? (add128 rs.subsidized res.subsidized) (panicked "IntegerOverflowError")
+  -- 9. output data receivers (E11, lib.rs:1034-1073): a returned promise inherits them,
+  -- otherwise one Data receipt each (Value(v) ⇒ Some(v); None ⇒ Some([]); failure ⇒ None)
+  let (newRs, dataRs) ← if a.outputs.isEmpty then pure (res.newReceipts, [])
+    else match res.ok, res.ret with
+      | true, .receiptIdx k =>
+        match res.newReceipts[k]? with
+        | none => throw (panicked "the receipt for the given receipt index should exist")
+        | some nr => match nr.body with
+          | .action y na =>
+            pure (res.newReceipts.set k { nr with body := .action y { na with outputs := na.outputs ++ a.outputs } }, [])
+          | _ => throw (panicked "the receipt should be an action receipt")
+      | ok, ret =>
+        let data : Option Bytes := if ok then (match ret with | .value v => some v | _ => some []) else none
+        pure (res.newReceipts, a.outputs.map fun (d, recv) =>
+          ({ pred := r.recv, recv := recv, rid := zero32, body := .data false d data } : Rcpt))
   let rs := { rs with o := o2, otherBurnt := otherBurnt, txBurnt := txBurnt,
-                      proposals := rs.proposals ++ res.proposals }
+                      proposals := rs.proposals ++ res.proposals, deployed := deployed,
+                      subsidized := subsidized }
   -- 10. receipt ids, instant / forward
-  let (rs, ids) ← emitReceipts env r.rid rs 0 (res.newReceipts ++ dataRs)
-  -- 11. outcome
-  let out : OutD1 := ⟨{ id := r.rid, receiptIds := ids, gasBurnt := res.gasBurnt, tokensBurnt := tb,
-                         executorId := r.recv }, if res.ok then .value else .failure⟩
+  let (rs, ids) ← emitReceipts env r.rid rs 0 (newRs ++ dataRs)
+  -- 11. outcome (E12: status from the return data; E13: logs of all actions)
+  let status : OStatus := if res.ok then
+      (match res.ret with
+       | .none => .value
+       | .value v => .valueBytes v
+       | .receiptIdx k => .receipt (receiptIdFrom r.rid env.ctx.height k))
+    else .failure
+  let out : OutD1 := { o := { id := r.rid, receiptIds := ids, gasBurnt := res.gasBurnt, tokensBurnt := tb,
+                              executorId := r.recv },
+                       status := status, logs := res.logs }
   pure (rs, out, res.compute)
 
 /-- `process_receipt` (`lib.rs:1303-1527`) and `process_action_receipt` (`lib.rs:1529-1597`). -/
