@@ -6,7 +6,7 @@ and the WebAssembly 2.0 specification only; ambiguities were resolved by black-b
 harness (see README.md).  Standard library only.
 
   nearwasm.py [--charge-points | --full] [--trace] < cases
-  nearwasm.py --chunk CODEHEX_FILE < trace   # trie-backed chunk replay (nearstore.py, README checkpoint 3b)
+  nearwasm.py --chunk CODEHEX_FILE [--deltas] < trace   # trie-backed chunk replay (nearstore.py, README 3b/3c)
 
 Input lines: `<prepaid_gas> <wasm_hex> [<receivers> | k=v;...]` (the harness's context options: rcv, input,
 results, deposit, balance).
@@ -18,6 +18,7 @@ bls12381_*, ecrecover, p256_verify) give `out-of-domain`.
 """
 import hashlib
 import mmap
+import re
 import struct
 import sys
 import unicodedata
@@ -90,6 +91,9 @@ class Trap(Exception):
 
 class HostErr(Exception):
     pass
+
+if nearstore.HOST_ERR is Exception:   # first import wins (nearstore re-imports nearwasm when run as __main__)
+    nearstore.HOST_ERR = HostErr
 
 
 def deser():
@@ -1198,7 +1202,10 @@ def stack_effect(m, f, op, imm, info, rec):
         return sum(VSIZE[t] for t in ps), sum(VSIZE[t] for t in rs)
     if op == 0x11:
         ps, rs = m.types[imm[0]]
-        return sum(VSIZE[t] for t in ps), sum(VSIZE[t] for t in rs)   # quirk: index not popped
+        # quirk (README D15): as many values are popped as the callee has params, counted from the top,
+        # where the table index sits; so the index and params[1:] are popped and params[0] stays counted
+        # (the index stays when there are no params).
+        return (4 + sum(VSIZE[t] for t in ps[1:]) if ps else 0), sum(VSIZE[t] for t in rs)
     if op == 0x1A:
         return imm, 0
     if op in (0x1B, 0x1C):
@@ -3384,6 +3391,9 @@ CHUNK_SLOTS = ["storage_write_base", "storage_read_base", "storage_read_key_byte
                "storage_has_key_base", "storage_has_key_byte", "touching_trie_node", "read_cached_trie_node"]
 
 
+CHUNK_DELTAS = False   # --deltas: append ` d=<recorded growth of the receipt>` (section 4.5) to each call line
+
+
 def chunk_lines(wasm, line):
     """Replay one `C <prev_root> <n> <node>... <k> (<account> <prepaid> <args|-> <14 expected>)...` line
     (d3-trie-accounting.md section 5) with the trie-backed store; -> one output line per call."""
@@ -3412,8 +3422,19 @@ def chunk_lines(wasm, line):
         host = sum(inst.prof.values())
         wasm_gas = inst.gc.burnt - inst.act_gas - host
         slots = " ".join(str(inst.prof.get(s, 0)) for s in CHUNK_SLOTS)
-        out.append(f"{'ok' if status == 'ok' else 'fail'} {wasm_gas} {host} {slots}")
+        st = "ok" if status == "ok" else "fail:" + failure_kind(res.split(" ", 3)[3])
+        out.append(f"{st} {wasm_gas} {host} {slots}" + (f" d={chunk.upper - store.before}" if CHUNK_DELTAS else ""))
     return out
+
+
+def failure_kind(err):
+    """`HostError(GasExceeded)` -> GasExceeded, `HostError(X { .. })` -> X, `WasmTrap(..)` -> WasmTrap,
+    `LinkError { .. }` -> LinkError (section 5: the HostError variant name, otherwise the variant inside
+    FunctionCallError)."""
+    if err.startswith("HostError("):
+        err = err[len("HostError("):]
+    m = re.match(r"[A-Za-z0-9_]+", err)
+    return m.group(0) if m else err
 
 
 def main_chunk(code_file):
@@ -3436,6 +3457,8 @@ def main():
     sys.setrecursionlimit(100000)
     argv = sys.argv[1:]
     if "--chunk" in argv:
+        global CHUNK_DELTAS
+        CHUNK_DELTAS = "--deltas" in argv
         return main_chunk(argv[argv.index("--chunk") + 1])
     cp = "--charge-points" in argv
     full = "--full" in argv

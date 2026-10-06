@@ -114,8 +114,11 @@ Simulate the operand stack in bytes along the body, in operator order (no branch
 * Inside dead code (§2), pushes and pops are ignored.
 * At a block's `end`, reset the height to the block's entry height, then push the block's result.
 * `else` resets to the `if`'s entry height.
-* *Quirk:* `call_indirect` pops the callee's params and pushes its results, but does **not** pop its table
-  index operand. The extra 4 bytes stay counted until the enclosing block ends.
+* *Quirk:* `call_indirect` pops as many operands as the callee has params, counted from the top of the
+  stack, where the table index sits. So it pops the index and `params[1..]`, while `params[0]` stays
+  counted until the enclosing block ends. The net pop is `4 + Σ size(params[1..])`, or 0 when there
+  are no params. Then it pushes the results. (Erratum D15: the earlier text said the index is never
+  popped, which is the same thing only when `params[0]` is 4 bytes.)
 * The other operators follow their WebAssembly types, popping first and then pushing (`select` pops 2 net).
 
 ## 4. The gas counter

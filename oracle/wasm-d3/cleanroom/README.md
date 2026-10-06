@@ -26,8 +26,8 @@ nearwasm.py [--charge-points | --full] [--trace] < cases   # `<prepaid> <wasm_he
 difftest_cr.py (opcodes | random N SEED | promise N SEED | mutate N SEED | host N SEED | edges)
                [--shards K] [--timeout S] [--full]
 run_all.sh                                  # the nine required families
-nearwasm.py --chunk CODEHEX_FILE < trace    # checkpoint 3b: trie-backed chunk replay (see below)
-difftest_ttn_cr.py TRACE [--shards K]       # checkpoint 3b: difftest against nearcore op-level traces
+nearwasm.py --chunk CODEHEX_FILE [--deltas] < trace   # checkpoints 3b/3c: trie-backed chunk replay (see below)
+difftest_ttn_cr.py TRACE [--shards K] [--code WASM]   # checkpoints 3b/3c: difftest against nearcore op-level traces
 ```
 
 `host` and `edges` always compare in harness `full` mode; `--full` forces it for the other families.
@@ -47,7 +47,7 @@ difftest_ttn_cr.py TRACE [--shards K]       # checkpoint 3b: difftest against ne
   points, and the prologue. `--charge-points` prints `f<i>: pc:const:linear ...`. Here `i` is the index
   among *defined* functions, `pc` indexes the flat operator list (the final `end` included), and the
   prologue charge `⌈frame/8⌉·R` is **not** listed.
-* **Operand-stack maximum** (§3), including the `call_indirect` quirk. Frame size, the stack budget and
+* **Operand-stack maximum** (§3), including the `call_indirect` quirk (as corrected in D15). Frame size, the stack budget and
   `MemoryAccessViolation` on exhaustion are also implemented.
 * **Gas counter** (§4): the wasm-side copy `g`, syncs at host calls and on return or trap, `burn`,
   `deduct_gas` (burn/use split, with the limit lowered by promise gas), the clamping rules, and
@@ -406,6 +406,21 @@ Three points could be stated more explicitly:
   behaviour, but worth stating, since "out-of-bounds segment" is ambiguous.
 * `memory.grow`/`table.grow` failures return −1 after paying the linear fee for the requested count.
 
+**D15. The `call_indirect` stack quirk leaves the first parameter behind, not the table index.** Prose §3
+says `call_indirect` "pops the callee's params and pushes its results, but does **not** pop its table
+index", so 4 extra bytes stay counted. That is right only when the first parameter is an i32, or when the
+callee has no parameters. Black-box (`probes/p14.py`): the simulation pops as many *values* as the callee
+has parameters, counted from the top of the stack, where the index sits. That pops the index and
+`params[1..]` and leaves `params[0]` counted until the enclosing block ends. The net effect is `pop 4 +
+Σ size(params[1..])` (0 with no params), then push the results. So an `(i64, …)` callee leaves 8 bytes, not
+4. Found from random seed 94 case #433. That `main` recurses into itself before its never-reached
+`call_indirect` to an `(i64, i32) → i32` callee, so the op-stack maximum is 32, not 28. The frame is then
+112 bytes, not 108, the stack budget runs out 87 calls earlier, and the clean-room had charged 87 × 68 R =
+4,867,424,496 gas too much. The 9 parameter shapes × 3 result shapes in `p14.py` and 4 shapes that keep
+the results on the stack all agree with nearcore now. Appendix A does not cover the operand-stack
+simulation. `probes/p13.py` (live and nested `if`, `else` and `if` with results, in front of a self-recursion) ruled
+out the other suspect: the `if` rules of §3 already agreed.
+
 ## Storage cost model (checkpoint 3b)
 
 `nearstore.py` (standard library only) adds the trie-backed contract storage with trie-node ("TTN")
@@ -421,7 +436,8 @@ or any nearcore source. From `oracle/d3-ttn` only the I/O format of `difftest_tt
 * **`nearwasm.py --chunk CODEHEX_FILE`** reads §5 trace lines on stdin, ignores the expected columns, and
   runs each call as method `run` of the contract with `input = args`, `prepaid`, and current account =
   `account` (other context as the harness defaults). It prints one line per call:
-  `<ok|fail> <wasm_gas> <ext_gas_total> <s0> … <s10>`, slots in the §5 order. `wasm_gas = burnt − Σ ext`
+  `<ok|fail:KIND> <wasm_gas> <ext_gas_total> <s0> … <s10>`, slots in the §5 order (`fail:KIND` since
+  checkpoint 3c). `wasm_gas = burnt − Σ ext`
   (no actions here). A call's overlay changes are committed iff it is `ok`.
 * **`difftest_ttn_cr.py TRACE [--shards K]`** shards the chunk lines over K processes and compares every
   call line with the trace's 14 expected columns.
@@ -514,12 +530,138 @@ the body. Hex-prefix bit 1 marks a leaf key (it is never checked against the tag
 nibble on even keys is rejected. Leaf presence is exact nibble equality. Values are fetched by hash from the
 same recorded-storage map as the nodes.
 
+## Storage-proof recording and the per-receipt limit (checkpoint 3c)
+
+Normative source: `docs/research/d3-trie-accounting.md` §4.5 and the updated §5 (status `ok | fail:KIND`,
+`--v2` traces). Same independence rules as 3b: no Lean, no `oracle/d3-ttn/src`, no nearcore source. From
+`oracle/d3-ttn` only `ttn2.wat`/`ttn2.wasm`, the I/O formats of `difftest_ttn.py` and `limit_cases.py`, and
+the `near-d3-ttn` binary as a black box (including `--v2 --limit-plan`).
+
+* **Recorder** (`nearstore.Chunk.record`, `upper`): a chunk-scoped set of recorded hashes and the
+  `upper_bound` counter, never rolled back. Every node visited by a trie lookup is recorded (write, remove,
+  read and has_key alike), and so is every dereferenced value (`Chunk.value`). Each `storage_remove` adds
+  2000 after its value dereference and before its node commit, also when the key is absent or the overlay
+  already holds it.
+* **Receipt start** (`Chunk.receipt_start`, called by `store_for`): looks up `0x00 ‖ account` and records the
+  path and the account value, then the call's `TrieStore` takes `before = upper`.
+* **Check** (`TrieStore.observe`): at the end of each of the four storage operations (for `storage_read`,
+  after the value charges and before the register write), `upper − before > 4,000,000` raises
+  `HostError(RecordedStorageExceeded)`.
+* **Status column**: `ok` or `fail:KIND`, where KIND is the `HostError` variant (`GasExceeded`,
+  `RecordedStorageExceeded`, …) or else the `FunctionCallError` variant (`WasmTrap`, `LinkError`, …):
+  `nearwasm.failure_kind`.
+* **`--deltas`** appends ` d=<upper − before at the end of the call>` to each output line. It is used to
+  calibrate limit cases and is not compared.
+* **Promise host functions** (`promise_create`, `promise_then` in `ttn2.wasm`) are the existing
+  MockedExternal implementation, gas and profile only. The child calls appear in the trace as their own
+  calls and are replayed as such. Nothing needed changing.
+* New `NEARSTORE_ABLATE` rules: `no-account-record`, `account-after-snapshot`, `no-remove-2000`,
+  `no-has-record`, `no-read-record` and `limit-ge` (fail at `≥` instead of `>`).
+
+### Agreement with nearcore
+
+| trace | chunks | calls | failures | disagreements |
+|---|---|---|---|---|
+| v1 seed 301, `--ops 300` (ttn.wasm) | 236 | 689 | 51 GasExceeded | **0** |
+| v1 seed 302, `--ops 300` | 236 | 661 | 48 GasExceeded | **0** |
+| v1 seed 303, `--ops 300` | 236 | 687 | 63 GasExceeded | **0** |
+| v2 seed 301, `--ops 200` (ttn2.wasm, 8 contracts) | 236 | 5,503 | 2,002 GasExceeded | **0** |
+| v2 seed 302 | 236 | 5,581 | 2,027 GasExceeded | **0** |
+| v2 seed 303 | 236 | 5,657 | 1,983 GasExceeded | **0** |
+| v2 seed 304 | 236 | 5,525 | 2,048 GasExceeded | **0** |
+| v2 seed 305 | 236 | 5,566 | 2,022 GasExceeded | **0** |
+| v2 seed 306 | 236 | 5,919 | 2,099 GasExceeded | **0** |
+| lead's limit trace `lim/final.trace` (04:54 version, 10 contracts) | 76 | 747 | 221 GasExceeded, 3 RecordedStorageExceeded | **0** |
+| own limit traces `fin`, `fin2`, `fin3`, `fin4` (seed 7, `--limit-plan`) | 4 × 84 | 2,139 | 463 GasExceeded, 12 RecordedStorageExceeded | **0** |
+
+Total: 38,674 calls, 0 disagreements. Status, wasm gas, ext total and the 11 slots are all compared. For
+`RecordedStorageExceeded` failures this checks that the crossing operation's own charges (for a read, the
+value and large-read charges, with no register write) are in the profile.
+
+**Limit cases.** These are own `--limit-plan` runs, with the recorded growth from `--deltas` and the
+verdict from nearcore. The plan reads `B0..B6` of `s0big`/`s1big` (about 3.94 MB), all 16 `f` group heads,
+`R` removes of the absent key `k/` (+2000 each), and a subset of fresh `f[j]` reads, chosen by subset-sum
+over the per-read growth that the model measured on a calibration witness. "read-last" puts the small reads
+last, so the crossing operation is a read. "remove-last" puts the removes last, so the crossing operation is
+a remove.
+
+| case | growth | nearcore | clean-room |
+|---|---|---|---|
+| s1big read-last (`fin4` ch 30) | **4,000,000** | ok | ok |
+| s0big remove-last (`fin4` ch 37) | **4,000,000** | ok | ok |
+| s1big remove-last (`fin4` ch 38) | **4,000,000** | ok | ok |
+| s1big read-last (`fin3` ch 30) | **4,000,000** | ok | ok |
+| s0big read-last (`fin4` ch 44) | **4,000,001** | fail:RecordedStorageExceeded | same |
+| s1big read-last (`fin4` ch 46) | **4,000,001** | fail:RecordedStorageExceeded | same |
+| s0big remove-last (`fin4` ch 52) | **4,000,001** | fail:RecordedStorageExceeded | same |
+| s1big remove-last (`fin3` ch 54, `fin2` ch 54) | **4,000,001** | fail:RecordedStorageExceeded | same |
+| near misses (`fin*`) | 3,998,047 – 3,999,950 | ok | ok |
+| s1big `B0..B7` (all traces) | 4,645,178 | fail:RecordedStorageExceeded | same |
+| s0big `B0..B5` | 3,255,933 | ok | ok |
+| lead `final.trace` ch 38 / 62 / 68 | 4,000,186 / 4,645,178 / 4,637,325 | fail ×3 | same |
+
+Sensitivity (disagreements with the rule switched off):
+
+| `NEARSTORE_ABLATE` | rule | disagreements |
+|---|---|---|
+| `limit-ge` | the limit is strict, so exactly 4,000,000 passes | 3 on `fin4` (the three exact passes) |
+| `no-remove-2000` | +2000 per remove | 3 on `fin4`, 1 on `final.trace` |
+| `no-read-record` | trie reads record their path | 3 on `fin4`, 1 on `final.trace` |
+| `no-has-record` | has_key records its path | 5 on `fin4` |
+| `no-account-record` | receipt-start Account read | 1 on `final.trace` (ch 38) |
+| `account-after-snapshot` | that read is before `before` | 1 on `final.trace`, 2 on `fin`, 2 on `fin2` |
+| `fresh-cache` (3b) | chunk-scoped TTN cache | 2,054 / 5,503 on v2 seed 301 |
+
+### Findings (§4.5 / §5)
+
+**T10. The receipt-start Account read comes before the snapshot.** §4.5 says "Before the receipt's snapshot
+`before = upper_bound` … the runtime reads the receiver's account". That can be read either as "the read
+happens before the snapshot" or as "the read is part of the receipt's growth". Black-box: the read is
+**not** counted in the receipt's growth (`account-after-snapshot` disagrees on 5 limit calls across three
+traces). It **does** pre-record the nodes it shares with contract-data paths (`no-account-record` disagrees
+on `final.trace` ch 38, growth 4,000,186, where the crossing operation changes).
+
+**T11. Recording is content-addressed across accounts, so it is not limited to the "topmost" shared
+nodes.** §4.5 says the account path's "only nodes it shares with contract-data paths are the topmost ones".
+That is true of the account path, but the recorder deduplicates by hash, and different accounts can have
+byte-identical subtrees. Every v2 contract has the same genesis `f` values, so its `f` subtree (leaves,
+16-child branches and values) is the same set of nodes. A `s0ctr` call that reads `f[j]` earlier in the
+chunk therefore lowers a later `s0big` call's growth. Calibrating on a witness that ignored the earlier
+receipts was off by 1,100–1,950 bytes in 6 of 8 cases (`fin3`). Replaying the chunk in order, as the model
+does, accounts for this exactly, with 0 disagreements. A receipt's growth depends on the other accounts'
+receipts earlier in the same chunk, not only on its own operations. The model needed no change for this,
+because it records by hash, as §4.5's "set of recorded hashes" implies.
+
+**T12. Strict limit, and where the check sits.** Exactly 4,000,000 passes and 4,000,001 fails, both when
+the crossing operation is a read and when it is a remove (table above; `limit-ge` breaks the three exact
+passes). For a failing read the profile contains `storage_read_base`, the key bytes, `read_value_byte` and
+the large-read overhead of that read, and no `write_register_*`. This confirms "after the value charges and
+before the register write" (gas columns agree on all 15 `RecordedStorageExceeded` calls).
+
+**T13. +2000 for absent and overlay-hit removes.** In the remove-last cases the crossing operation is a
+remove of the absent key `k/` that the overlay already holds as `removed`. It still adds 2000 and fails at
+4,000,001, as §4.5 says.
+
+**T14. `has_key` records.** §4.5 lists has_key among the lookups that record. The calibration's warm-up
+`has_key("k/")` call shows this (`no-has-record` disagrees on 5 calls of `fin4`).
+
+**T15. Failure-kind spelling.** §5's KIND is the bare variant name, without fields
+(`RecordedStorageExceeded`, not `RecordedStorageExceeded { limit: … }`). The clean-room's own error strings
+are reduced to their leading identifier after stripping `HostError(`. Only `GasExceeded` and
+`RecordedStorageExceeded` occurred. There was no `GasLimitExceeded`, because `prepaid ≤ 300 Tgas` (T8).
+
+**T16. Promise-DAG calls need no new semantics.** The v2 `run` calls with `promise_create`/`promise_then`
+and the promise-created child calls (args `-` for an empty input, prepaid = the attached gas) all agree
+using the existing gas and profile model. Action costs are kept out of both the wasm and ext columns
+(`wasm = burnt − actions − ext`), which matches nearcore's profile.
+
 ## Files
 
 * `nearwasm.py`: the implementation and CLI.
 * `nearstore.py`: the storage backends (MockedExternal map, and the trie-backed chunk store with TTN
-  accounting, checkpoint 3b).
-* `difftest_ttn_cr.py`: the checkpoint-3b difftest against `near-d3-ttn --trace` files.
+  accounting, checkpoint 3b, and the storage-proof recorder with the per-receipt limit, checkpoint 3c).
+* `difftest_ttn_cr.py`: the checkpoint-3b/3c difftest against `near-d3-ttn --trace` files (`--code` selects
+  `ttn.wasm` or `ttn2.wasm`; it prints failure kinds and the number of contracts).
 * `nearcrypto.py`: Keccak, RIPEMD-160 and Ed25519 (dalek `verify`) for the host functions.
 * `probes/host/`: the host-function black-box probes (`hp.py` is the helper; `cmp()` runs both
   implementations in `full` mode).

@@ -1,4 +1,5 @@
-"""Clean-room trie-backed contract storage with trie-node accounting (checkpoint 3b).
+"""Clean-room trie-backed contract storage with trie-node accounting (checkpoint 3b) and the storage-proof
+recorder with the per-receipt limit (checkpoint 3c, section 4.5).
 
 Written from docs/research/d3-trie-accounting.md section 4 (prose spec) only; points where the prose is
 silent were settled by black-box comparison against nearcore op-level traces (README, "Storage cost
@@ -21,11 +22,16 @@ import nearcrypto
 
 # Deliberately wrong variants, for showing the difftest is sensitive to each prose rule (README 3b):
 # NEARSTORE_ABLATE=fresh-cache,no-overlay,keep-failed,read-touch-path,no-read-warm,no-value-touch,
-#                  ttn-before-bytes,no-absent-remove
+#                  ttn-before-bytes,no-absent-remove,
+#                  (4.5 recorder:) no-account-record,account-after-snapshot,no-remove-2000,
+#                  no-has-record,no-read-record,limit-ge
 ABLATE = set(filter(None, os.environ.get("NEARSTORE_ABLATE", "").split(",")))
 
 LARGE_READ_THRESHOLD = 4000
+PER_RECEIPT_RECORD_LIMIT = 4_000_000     # per_receipt_storage_proof_size_limit (4.5)
+REMOVAL_RECORD_BYTES = 2000              # added to upper_bound by every storage_remove (4.5)
 REMOVED = object()
+HOST_ERR = Exception     # set by nearwasm to its HostErr (nearwasm may run as __main__)
 
 
 class StorageError(Exception):
@@ -141,6 +147,14 @@ class Chunk:
         self.cache = set()
         self.n_db = 0
         self.n_mem = 0
+        # storage-proof recorder (4.5): chunk-scoped, never rolled back
+        self.recorded = set()
+        self.upper = 0
+
+    def record(self, h, nbytes):
+        if h not in self.recorded:
+            self.recorded.add(h)
+            self.upper += nbytes
 
     def touch(self, h):
         if h in self.cache:
@@ -158,8 +172,8 @@ class Chunk:
             n = self.parsed[h] = parse_node(raw)
         return n
 
-    def lookup(self, key):
-        """-> (visited hashes root first, valueref or None)."""
+    def lookup(self, key, record=True):
+        """-> (visited hashes root first, valueref or None).  Every visited node is recorded (4.5)."""
         visited = []
         if self.root == bytes(32):
             return visited, None
@@ -168,6 +182,8 @@ class Chunk:
         while True:
             n = self.node(h)
             visited.append(h)
+            if record:
+                self.record(h, len(self.db[h]))
             if n[0] == "leaf":
                 return visited, (n[2] if n[1] == rest else None)
             if n[0] == "ext":
@@ -189,13 +205,27 @@ class Chunk:
         v = self.db.get(vr[1])
         if v is None:
             raise StorageError("MissingTrieValue")
+        self.record(vr[1], len(v))
         return v
+
+    def receipt_start(self, account):
+        """The runtime's read of the receiver's Account (key 0x00 || account) before the receipt's
+        snapshot: records that path and the account value (4.5)."""
+        _, vr = self.lookup(b"\x00" + account)
+        if vr is not None:
+            self.value(vr)
 
     def store_for(self, account):
         if "fresh-cache" in ABLATE:
             self.cache = set()
         if "no-overlay" in ABLATE:
             self.overlay = {}
+        if "account-after-snapshot" in ABLATE:
+            st = TrieStore(self, account)
+            self.receipt_start(account)
+            return st
+        if "no-account-record" not in ABLATE:
+            self.receipt_start(account)
         return TrieStore(self, account)
 
 
@@ -206,6 +236,13 @@ class TrieStore:
         self.c = chunk
         self.prefix = b"\x09" + account + b","
         self.changes = {}
+        self.before = chunk.upper        # storage_proof_size_before_receipt (4.5)
+
+    def observe(self):
+        """The per-receipt limit check after every storage operation (4.5)."""
+        grown = self.c.upper - self.before
+        if grown > PER_RECEIPT_RECORD_LIMIT or ("limit-ge" in ABLATE and grown >= PER_RECEIPT_RECORD_LIMIT):
+            raise HOST_ERR("RecordedStorageExceeded { limit: 4000000 }")
 
     def _ov(self, fk):
         if fk in self.changes:
@@ -224,15 +261,17 @@ class TrieStore:
         pay(inst, "touching_trie_node", self.c.n_db - db0)
         pay(inst, "read_cached_trie_node", self.c.n_mem - mem0)
 
-    def _evict(self, inst, fk, B):
+    def _evict(self, inst, fk, B, removal=False):
         from nearwasm import pay
         c = self.c
         db0, mem0 = c.n_db, c.n_mem
         hit, ov = self._ov(fk)
         if hit:
             if ov is REMOVED:
+                self._removal(removal)
                 return None
             pay(inst, B, len(ov))
+            self._removal(removal)
             return ov
         visited, vr = c.lookup(fk)
         for h in visited:
@@ -242,27 +281,37 @@ class TrieStore:
             c.touch(vr[1])
             self._commit_nodes(inst, db0, mem0)
             pay(inst, B, vr[0])
-            return c.value(vr)
+            old = c.value(vr)
+            self._removal(removal)
+            return old
         if vr is not None:
             pay(inst, B, vr[0])
             if "no-value-touch" not in ABLATE:
                 c.touch(vr[1])
             old = c.value(vr)
+        self._removal(removal)        # after the value dereference, before the node commit (4.5)
         self._commit_nodes(inst, db0, mem0)
         return old
+
+    def _removal(self, removal):
+        if removal and "no-remove-2000" not in ABLATE:
+            self.c.upper += REMOVAL_RECORD_BYTES
 
     def write(self, inst, k, v):
         fk = self.prefix + k
         old = self._evict(inst, fk, "storage_write_evicted_byte")
         self.changes[fk] = v
+        self.observe()
         return old
 
     def remove(self, inst, k):
         fk = self.prefix + k
-        old = self._evict(inst, fk, "storage_remove_ret_value_byte")
+        old = self._evict(inst, fk, "storage_remove_ret_value_byte", removal=True)
         if old is None and "no-absent-remove" in ABLATE and not self._ov(fk)[0]:
+            self.observe()
             return None
         self.changes[fk] = REMOVED
+        self.observe()
         return old
 
     def read(self, inst, k):
@@ -271,28 +320,35 @@ class TrieStore:
         hit, ov = self._ov(fk)
         if hit:
             if ov is REMOVED:
+                self.observe()
                 return None
             _value_charges(inst, ov)
+            self.observe()
             return ov
         db0, mem0 = c.n_db, c.n_mem
-        visited, vr = c.lookup(fk)
+        visited, vr = c.lookup(fk, record="no-read-record" not in ABLATE)
         if "read-touch-path" in ABLATE:
             for h in visited:
                 c.touch(h)
         self._commit_nodes(inst, db0, mem0)
         if vr is None:
+            self.observe()
             return None
         _value_charges(inst, _Len(vr[0]))
         if "no-read-warm" not in ABLATE:
             c.touch(vr[1])
-        return c.value(vr)
+        v = c.value(vr)
+        self.observe()                # after the value charges, before the register write (4.5)
+        return v
 
     def has(self, inst, k):
         fk = self.prefix + k
         hit, ov = self._ov(fk)
         if hit:
+            self.observe()
             return ov is not REMOVED
-        _, vr = self.c.lookup(fk)
+        _, vr = self.c.lookup(fk, record="no-has-record" not in ABLATE)
+        self.observe()
         return vr is not None
 
     def items(self):
