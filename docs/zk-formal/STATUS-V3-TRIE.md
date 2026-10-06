@@ -511,6 +511,25 @@ counted.
     (column 186) and pins `qb·rootP·(sN − rootRid) = 0`; `RootChain.rid`, `ups_rootSrc`.  Between levels the
     chain is sound without it (the descend above reads a revealed window; a `.hash` child would make the
     pass-through its own `res`, i.e. the next walked record, contradicting its depth).  `W_eq` +1 (331 / 291).
+  * **Audit (M7e, lead request): `upsV3` cells read across instances** (constrained only on revealed / in-instance
+    rows, free otherwise?).  Findings:
+    * `sN` (record ids): non-`PT` parts read `N_sd` (segment constants = the walk's records; the walk starts at the
+      head of `τ` by its `START` edge `[0, τ, …]` and follows record-provided edges, so they are `τ`'s); `PT`
+      parts: bound top-down from `rid` (root binding above) and from each descend's revealed window (below);
+      the new leaf has no source.  **Sound.**
+    * `cN` = `sN` of the part below (constraint); `rcid` = the source's `ucid` at the target window's first byte
+      (`UPB`).  `ucid` is free on unrevealed windows — this was the root gap (closed).  Descends' target windows
+      are revealed (the walk's `DOWN` / last-`KEY` edge into the child exists only for `.node` kids); a pass-through
+      below a revealed window with a `.hash` child would be its own `res`, i.e. the next walked record, whose depth
+      differs from the pass-through's `pdep`.  **Sound** (formal argument: M7e step 3).
+    * `vid` (`S0F`): `N2` of `W3`'s `VAL` edge = the value id of `N_D`'s slot (`edgesOf3`).  **Sound.**
+    * depths: `pdep` = the read record's depth (`UPB`); `dep_d` pinned by the part reading `N_d` (every level has
+      one: a descend, or a terminal part other than `NLF`).  **Sound.**
+    * `τ` on messages: `MIDROOT`/`ROOT`/`S0F`/`SPLEN`/`SPOST`/`MEMD` carry `τ`; `BYTES`/`DIGEST` ids `512τ + j`;
+      `EDGE`/`BMAP`/`UPB` carry global record ids, bound to `τ` through the walk's start and the root binding.
+      **Sound.**
+    * `len` (`plen`): the read record's serialized length (record-local).  **Sound.**
+    No further AIR change needed.
   * **Interface (M7e):** `SchedVal v sv` (`Extract/Ups/UpsVal.lean`): every `SPLEN`/`SPOST` receive of `upsV3` is a
     scheduler send `[τ, |sv τ|]` / `[τ, d, (sv τ)[d]]` (`d < |sv τ|`), `|sv τ| < 2^24` (owed to v3-sched; discharged in the assembly by v3-sched's `codec_schedVal`
     (`Sched/Link/CodecSV.lean`, lane/v3-air), whose ownership conditions `CodecValOwn`/`SparOwn` and the `SPAR`
