@@ -89,7 +89,7 @@ theorem rec_wf (hw : NodeWf3 vs) (hvw : ValWf es) (hb : VParentBal vs es) (hlen 
     have := hw.rows; omega
   have hval := fun {i l pre po w} (h : vs[n].v.value = some (i, l, pre, po, w)) => val_pos hw hvw hb hlen hn h
   generalize hS : vs[n] = S at hwf hby hser hval
-  obtain ⟨v, tau, depth, res, uses, ubm, dup, hd, repE⟩ := S
+  obtain ⟨v, tau, depth, res, uses, ubm, dup, hd, repE, ucid, mU⟩ := S
   simp only at hwf hby hser hval ⊢
   -- value slots
   have slotW : ∀ sl : NSlot3, sl.wf → (∀ x ∈ sl.bytes false, x < 256) →

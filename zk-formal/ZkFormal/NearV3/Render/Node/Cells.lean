@@ -387,6 +387,8 @@ theorem c183 : rowCell vs r 183 = (match digOf (rec vs r.n).v r with | some (_, 
   rfl
 theorem c184 : rowCell vs r 184 = b2n (r.f.isBm ∧ r.idx = 0) := by
   rfl
+theorem c185 : rowCell vs r 185 = (rec vs r.n).mU.getD r.pos 0 := by
+  rfl
 
 end
 end Rc

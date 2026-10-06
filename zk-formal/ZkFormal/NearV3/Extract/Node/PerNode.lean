@@ -16,6 +16,7 @@ def pnSend (n : Nat) (S : NodeS3) (bb : Nat) : List Msg :=
   else if bb = B_BMAP then pnBmS n S
   else if bb = B_DIGS then pnDigs S
   else if bb = B_ENT then pnEntS n S
+  else if bb = B_UPB then upbOf n S fun _ => 0
   else []
 
 def pnRecv (n : Nat) (S : NodeS3) (bb : Nat) : List Msg :=
@@ -25,6 +26,7 @@ def pnRecv (n : Nat) (S : NodeS3) (bb : Nat) : List Msg :=
   else if bb = B_BMAP then pnBmR n S
   else if bb = B_DUP then pnDup n S
   else if bb = B_ENT then pnEntR S
+  else if bb = B_UPB then upbOf n S fun p => S.mU.getD p 0
   else []
 
 theorem zip_fst_snd {α β : Type} (l : List (α × β)) : (l.map (·.1)).zip (l.map (·.2)) = l := by
@@ -55,6 +57,40 @@ theorem edgeUses (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid
   rw [← nodeEdgesAll hL hC hn hnP]
   show ((canonE (rowEdgesN tr pub s ℓ)).map (·.1)).zip ((canonE (rowEdgesN tr pub s ℓ)).map (·.2)) = _
   exact zip_fst_snd _
+
+omit hL in
+theorem rowsB_getD (tr : Trace Fp) (x r n d : Nat) (hd : d < n) : (rowsB tr x r n).getD d 0 = cv tr T_NODE (r + d) x := by
+  unfold rowsB; rw [List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_range hd]; rfl
+
+/-- `UPB` provider messages of one record (`u = 0` sent, `mU` received). -/
+theorem nodeUpb (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp))
+    (hpos : ∀ d, d < ℓ → tr.cell T_NODE (s + d) pos = ((d : Nat) : Fp)) (sd : Bool) :
+    (List.range' s ℓ).flatMap (fun r => rowT tr pub r B_UPB sd) =
+      (upbOf n (nodeSOf tr pub s ℓ) (fun p => if sd then 0 else (nodeSOf tr pub s ℓ).mU.getD p 0)).map Msg.toFp := by
+  obtain ⟨S1, S2⟩ := nodeSer hL hC
+  have hl : ((nodeSOf tr pub s ℓ).v.ser false).length = ℓ := by
+    show ((nodeVOf tr s).ser false).length = ℓ; rw [← S1, rowsB_length]
+  unfold upbOf
+  rw [hl, List.range'_eq_map_range, List.flatMap_map, List.map_map, map_eq_flatMap]
+  apply flatMap_congr'; intro d hd; rw [List.mem_range] at hd
+  have hnid : tr.cell T_NODE (s + d) nid = ((n : Nat) : Fp) := by rw [segConst hL hC (by simp [nodeConst]) hd, hn]
+  have hlen : tr.cell T_NODE (s + d) len = ((ℓ : Nat) : Fp) := by
+    rw [segConst hL hC (by simp [nodeConst]) hd, lenCell hL hC]
+  have hdep : tr.cell T_NODE (s + d) depth = ((cv tr T_NODE s depth : Nat) : Fp) := by
+    rw [segConst hL hC (by simp [nodeConst]) hd, cast_cv]
+  have hpb : ((nodeSOf tr pub s ℓ).v.ser true).getD d 0 = cv tr T_NODE (s + d) pb := by
+    show ((nodeVOf tr s).ser true).getD d 0 = _; rw [← S2, rowsB_getD _ _ _ _ _ hd]
+  have hcid : (nodeSOf tr pub s ℓ).ucid.getD d 0 = cv tr T_NODE (s + d) cid := rowsB_getD _ _ _ _ _ hd
+  have hmU : (nodeSOf tr pub s ℓ).mU.getD d 0 = cv tr T_NODE (s + d) NodeV3.mU := rowsB_getD _ _ _ _ _ hd
+  have hdS : (nodeSOf tr pub s ℓ).depth = cv tr T_NODE s depth := rfl
+  cases sd
+  · rw [rowT_upbR, segAct hL hC hd, gate_one]
+    simp only [Function.comp, Msg.toFp, upbV, List.map_cons, List.map_nil, Bool.false_eq_true, if_false, hpb, hcid,
+      hmU, hdS, hnid, hlen, hdep, hpos d hd, ← natCast_eq, toFp_msgId, cast_cv]
+  · rw [rowT_upbS, segAct hL hC hd, gate_one]
+    simp only [Function.comp, Msg.toFp, upbV, List.map_cons, List.map_nil, if_true, hpb, hcid,
+      hdS, hnid, hlen, hdep, hpos d hd, ← natCast_eq, toFp_msgId, cast_cv]
+    rfl
 
 set_option maxHeartbeats 1000000 in
 /-- Every bus, one node. -/
@@ -87,12 +123,12 @@ theorem nodeAll (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid 
   unfold pnSend pnRecv
   by_cases b0 : bb = B_BYTES
   · subst b0
-    refine ⟨?_, nil false (z false rowT_bytesR) _ (by simp [B_BYTES, B_DIGEST, B_PARENT, B_EDGE, B_BMAP, B_DUP, B_ENT])⟩
+    refine ⟨?_, nil false (z false rowT_bytesR) _ (by simp [B_BYTES, B_DIGEST, B_PARENT, B_EDGE, B_BMAP, B_DUP, B_ENT, B_UPB])⟩
     simp only [if_pos rfl]
     exact nodeBytes hL hC hn hpos
   by_cases b1 : bb = B_DIGEST
   · subst b1
-    refine ⟨nil true (z true rowT_digestS) _ (by simp [B_BYTES, B_DIGEST, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT]), ?_⟩
+    refine ⟨nil true (z true rowT_digestS) _ (by simp [B_BYTES, B_DIGEST, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT, B_UPB]), ?_⟩
     simp only [if_pos rfl]
     exact D.1
   by_cases b2 : bb = B_PARENT
@@ -141,12 +177,19 @@ theorem nodeAll (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid 
       show ¬ B_ENT = B_BMAP by decide, show ¬ B_ENT = B_DIGS by decide, show ¬ B_ENT = B_DUP by decide,
       if_false, if_true]
     exact ⟨eq E.1, eq E.2⟩
-  simp only [b0, b1, b2, b3, b4, b5, b6, b7, b8, if_false, List.map_nil]
+  by_cases b10 : bb = B_UPB
+  · subst b10
+    simp only [show ¬ B_UPB = B_BYTES by decide, show ¬ B_UPB = B_DIGEST by decide,
+      show ¬ B_UPB = B_PARENT by decide, show ¬ B_UPB = B_VPARENT by decide, show ¬ B_UPB = B_EDGE by decide,
+      show ¬ B_UPB = B_BMAP by decide, show ¬ B_UPB = B_DIGS by decide, show ¬ B_UPB = B_DUP by decide,
+      show ¬ B_UPB = B_ENT by decide, if_false, if_true]
+    exact ⟨eq (nodeUpb hL hC hn hpos true), eq (nodeUpb hL hC hn hpos false)⟩
+  simp only [b0, b1, b2, b3, b4, b5, b6, b7, b8, b10, if_false, List.map_nil]
   by_cases b9 : bb = B_SIZE
   · subst b9
     exact ⟨nil true (nodeSize hL hC true) _ rfl, nil false (nodeSize hL hC false) _ rfl⟩
   have oth := fun sd => flatMap_eq_nil' (l := List.range' s ℓ) (fun r _ => rowT_other (tr := tr) (pub := pub) r bb sd
-    ⟨b0, b1, b2, b4, b5, b6, b9, b7, b8, b3⟩)
+    ⟨b0, b1, b2, b4, b5, b6, b9, b7, b8, b3, b10⟩)
   exact ⟨nil true (oth true) _ rfl, nil false (oth false) _ rfl⟩
 
 end ZkFormal.NearV3.NodeProof3

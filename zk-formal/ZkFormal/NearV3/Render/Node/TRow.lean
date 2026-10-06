@@ -24,7 +24,7 @@ def bmN (c : Nat → Nat) : Nat := ((List.range 16).map fun i => 2 ^ i * c (37 +
 def regN (c : Nat → Nat) (o : Nat) : List Nat := (List.range 32).map fun i => c (o + i)
 
 /-- The messages of a row with cells `c` on bus `b`, side `sd`. -/
-def rowN (c : Nat → Nat) (b : Nat) (sd : Bool) : List ZkFormal.Near.Msg :=
+def rowN0 (c : Nat → Nat) (b : Nat) (sd : Bool) : List ZkFormal.Near.Msg :=
   (if B_BYTES = b ∧ true = sd then gt (c 0) [msgId K_NPRE (c 4), c 5, c 8] else []) ++
   (if B_BYTES = b ∧ true = sd then gt (c 0) [msgId K_NPOST (c 4), c 5, c 9] else []) ++
   (if B_DIGEST = b ∧ false = sd then gt (c 142) ([c 140, c 141] ++ regN c 72) else []) ++
@@ -43,6 +43,14 @@ def rowN (c : Nat → Nat) (b : Nat) (sd : Bool) : List ZkFormal.Near.Msg :=
   (if B_ENT = b ∧ true = sd then gt (c 171) [msgId K_NPRE (c 4), c 6, c 5, c 8] else []) ++
   (if B_ENT = b ∧ false = sd then gt (c 170) [c 172, c 6, c 5, c 8] else []) ++
   (if B_SIZE = b ∧ true = sd then gt (c 3) [0, c 152] else [])
+
+/-- The `UPB` pieces (M7c). -/
+def rowNU (c : Nat → Nat) (b : Nat) (sd : Bool) : List ZkFormal.Near.Msg :=
+  (if B_UPB = b ∧ true = sd then gt (c 0) [msgId K_NPOST (c 4), c 5, c 9, c 6, c 7, c 137, 0] else []) ++
+  (if B_UPB = b ∧ false = sd then gt (c 0) [msgId K_NPOST (c 4), c 5, c 9, c 6, c 7, c 137, c 185] else [])
+
+/-- All pieces, in the order of `NodeV3.interactions`. -/
+def rowN (c : Nat → Nat) (b : Nat) (sd : Bool) : List ZkFormal.Near.Msg := rowN0 c b sd ++ rowNU c b sd
 
 theorem ofNat_one_iff {v : Nat} (h : v ≤ 1) : Fp.ofNat v = 1 ↔ v = 1 := by
   rcases (show v = 0 ∨ v = 1 by omega) with rfl | rfl <;> decide
@@ -69,19 +77,19 @@ theorem multNat_one' {g : Expr} {msg : List Expr} {bus : Nat} {s : Bool} {tr : T
     Interaction.multNat ⟨bus, [g], msg, s⟩ tr t r pub = if g.eval tr t r pub = 1 then 1 else 0 := by
   simp [Interaction.multNat, Interaction.multNat.go]
 
-set_option maxHeartbeats 8000000 in
+set_option maxHeartbeats 40000000 in
 /-- **The row's traffic from its cells.** -/
 theorem rowT_eq {tr : Trace Fp} {tt q : Nat} {pub : List Fp} (c : Nat → Nat)
-    (hc : ∀ x, x < 185 → tr.cell tt q x = Fp.ofNat (c x))
+    (hc : ∀ x, x < 186 → tr.cell tt q x = Fp.ofNat (c x))
     (hg : ∀ x, x = 0 ∨ x = 1 ∨ x = 3 ∨ x = 142 ∨ x = 143 ∨ x = 144 ∨ x = 145 ∨ x = 160 ∨ x = 170 ∨ x = 171 ∨
       x = 181 ∨ x = 183 ∨ x = 184 → c x ≤ 1)
     (hvs : c 143 ≤ c 142 ∧ c 142 - c 143 ≤ 1) (b : Nat) (sd : Bool) :
     rowTraffic NodeV3.interactions tr tt q pub b sd = (rowN c b sd).map Msg.toFp := by
   simp only [rowTraffic, NodeV3.interactions, send, recv, List.flatMap_cons, List.flatMap_nil, List.append_nil,
-    multNat_one', Interaction.msgVal, rowN, List.map_append]
+    multNat_one', Interaction.msgVal, rowN, rowN0, rowNU, List.map_append, List.append_assoc]
   have ap : ∀ {a b c d : List (List Fp)}, a = b → c = d → a ++ c = b ++ d := by
     intro a b c d h1 h2; rw [h1, h2]
-  have hcc : ∀ x, x < 185 → (Dsl.c x).eval tr tt q pub = Fp.ofNat (c x) := fun x hx => by rw [eval_c, hc x hx]
+  have hcc : ∀ x, x < 186 → (Dsl.c x).eval tr tt q pub = Fp.ofNat (c x) := fun x hx => by rw [eval_c, hc x hx]
   have hreg : ∀ o, o + 32 ≤ 185 → ((List.range 32).map fun i => (Dsl.c (o + i)).eval tr tt q pub) =
       (regN c o).map Fp.ofNat := by
     intro o ho
@@ -96,10 +104,10 @@ theorem rowT_eq {tr : Trace Fp} {tt q : Nat} {pub : List Fp} (c : Nat → Nat)
     rfl
   have hmid : ∀ kk, (mid kk (Dsl.c 4)).eval tr tt q pub = Fp.ofNat (msgId kk (c 4)) := by
     intro kk; rw [eval_mid, hcc 4 (by decide), mid_eq]
-  simp only [List.append_assoc]
+  try simp only [List.append_assoc]
   have g := hg
   refine ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_
-    (ap ?_ (ap ?_ (ap ?_ ?_))))))))))))))))
+    (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ ?_))))))))))))))))))
   all_goals first
     | (refine piece ?_ ?_ ?_
        · exact g _ (by decide)
@@ -111,17 +119,17 @@ theorem rowT_eq {tr : Trace Fp} {tt q : Nat} {pub : List Fp} (c : Nat → Nat)
          NodeV3.cid, NodeV3.tau, NodeV3.depth, NodeV3.clen, NodeV3.cres, NodeV3.len, NodeV3.res, NodeV3.vid,
          NodeV3.vlen, NodeV3.aI, NodeV3.aS, NodeV3.aN, NodeV3.aJ, NodeV3.aK, NodeV3.mA, NodeV3.mB, NodeV3.bI,
          NodeV3.bS, NodeV3.bN, NodeV3.bJ, NodeV3.bK, NodeV3.tb2, NodeV3.mBm, NodeV3.dE, NodeV3.idx, NodeV3.repE,
-         NodeV3.sz, hcc _ (show (4 : Nat) < 185 by decide)]
-       try simp only [hc 5 (by decide), hc 8 (by decide), hc 9 (by decide), hc 140 (by decide), hc 141 (by decide), hc 137 (by decide), hc 163 (by decide), hc 7 (by decide), hc 138 (by decide), hc 154 (by decide), hc 6 (by decide), hc 153 (by decide), hc 165 (by decide), hc 166 (by decide), hc 146 (by decide), hc 147 (by decide), hc 148 (by decide), hc 149 (by decide), hc 174 (by decide), hc 150 (by decide), hc 176 (by decide), hc 177 (by decide), hc 161 (by decide), hc 162 (by decide), hc 175 (by decide), hc 151 (by decide), hc 13 (by decide), hc 173 (by decide), hc 182 (by decide), hc 23 (by decide), hc 172 (by decide), hc 152 (by decide), natCast_eq, ofNat_add', List.map_map, Function.comp_def]
+         NodeV3.sz, NodeV3.upbMsg, NodeV3.mU, hcc _ (show (4 : Nat) < 186 by decide)]
+       try simp only [hc 5 (by decide), hc 8 (by decide), hc 9 (by decide), hc 140 (by decide), hc 141 (by decide), hc 137 (by decide), hc 163 (by decide), hc 7 (by decide), hc 138 (by decide), hc 154 (by decide), hc 6 (by decide), hc 153 (by decide), hc 165 (by decide), hc 166 (by decide), hc 146 (by decide), hc 147 (by decide), hc 148 (by decide), hc 149 (by decide), hc 174 (by decide), hc 150 (by decide), hc 176 (by decide), hc 177 (by decide), hc 161 (by decide), hc 162 (by decide), hc 175 (by decide), hc 151 (by decide), hc 13 (by decide), hc 173 (by decide), hc 182 (by decide), hc 23 (by decide), hc 172 (by decide), hc 152 (by decide), hc 185 (by decide), natCast_eq, ofNat_add', List.map_map, Function.comp_def]
        try simp only [hreg 72 (by decide), hreg 104 (by decide)]
        try rfl)
     | (refine piece hvs.2 ?_ ?_
-       · simp only [NodeV3.valStart, eval_sub, hcc _ (by decide : (142 : Nat) < 185),
-           hcc _ (by decide : (143 : Nat) < 185), NodeV3.gD, NodeV3.gP]
+       · simp only [NodeV3.valStart, eval_sub, hcc _ (by decide : (142 : Nat) < 186),
+           hcc _ (by decide : (143 : Nat) < 186), NodeV3.gD, NodeV3.gP]
          rw [ofNat_sub' hvs.1]
        intro _ _
        simp only [Msg.toFp, List.map_cons, List.map_nil, eval_c, NodeV3.vid, NodeV3.vlen,
-         hcc _ (by decide : (165 : Nat) < 185), hcc _ (by decide : (166 : Nat) < 185)])
+         hcc _ (by decide : (165 : Nat) < 186), hcc _ (by decide : (166 : Nat) < 186)])
 
 end NodeGen3
 

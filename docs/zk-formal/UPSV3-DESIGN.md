@@ -317,17 +317,22 @@ Each row matches the spec:
 * `1 ≤ L < 2^24`;
 * the trace fits the height: `4 + L + Σ|Q_j|` rows per instance, `|Q_j| ≤ 591` (46 for `PT`), `maxLog 22`. With `≤ 33` instances and `Σ L ≤ 3·10^6` (A7) this is `≤ 3·10^6 + 33·(4 + 6·591 + 397·46) < 2^22`.
 
-## 7. `nodeV3` delta (for the lead to apply)
+## 7. `nodeV3` delta (applied in M7c step 2)
 
-Defined in `Tables/NodeUpb.lean` as `NodeV3.tableU`, for the budget only:
+`Tables/Node.lean` now carries the delta (`NodeUpb.lean` keeps `tableU := table` for the budget):
 
-* **column** `mU := 185` (width 186): the per-row use count;
-* **interactions** (chained provider, as `EDGE`):
+* **column** `mU := 185` (width 186): the **per-row** use count of the row's post byte. It cannot be node-constant: `upsV3` reads different bytes of a record different numbers of times (for example, an `RDB` reads only the first byte of its target window), and a chained provider must close each byte's chain with that byte's exact count.
+* **interactions** (chained provider, as `EDGE`), on every active row:
   * `send UPB (c act) [mid K_NPOST (c nid), c pos, c pb, c len, c depth, c cid, 0]`
   * `recv UPB (c act) [mid K_NPOST (c nid), c pos, c pb, c len, c depth, c cid, c mU]`
-* **constraints:** none.
-* **view:** `nodeTraffic3` gains, per record and byte, `send [NPOST(nid), pos, pb, len, depth, cid, 0]` and `recv […, mU]`, with `mU` and `cid` node-row values (`cid` = the window's child record on revealed windows). The view proof is a port of the `EDGE` provider's.
-* **render:** `mU` = the number of `upsV3` reads of that byte.
+* **constraints:** none. The budget is kernel-checked in `BudgetCheck.lean`: `nodeV3` has 186 columns, 20 interactions and `W_eq` 370 / 298. The five-table total is 855 / 783 (was 838 / 782).
+* **view** (`Extract/NodeView.lean`, `node3_view`):
+  * `NodeS3` gains `ucid` and `mU`, per-byte lists of the `cid` and `mU` cells.
+  * `nodeSends3` / `nodeRecvs3 B_UPB` contain `upbOf n s (· ↦ 0)` / `upbOf n s (p ↦ mU[p])`, where `upbOf n s u = [NPOST(n), p, ser_post[p], |ser|, depth, ucid[p], u p]` for each byte `p`.
+  * `NodeWf3` gains `upbLen` and `upbSmall` (lengths, canonical values) and `kidCid`: the first byte of every revealed child's window carries the child id (`NodeV3.kidCidOk`). The offset is `5 + |hp|` in an extension and `(1 | 37) + 2 + 32·#(present kids before j)` in a branch.
+* **render** (`node_render_local`, `node_render_traffic`):
+  * The generator writes `mU[p]` into column 185.
+  * `NodeOk` gains `ucid`: `ucid[p] = cidAt vs n p`, the generator's `cid` column (the window's child on a revealed window, else 0). A builder sets `ucid` to that and `mU` to the `upsV3` read counts.
 
 ## 8. Plan for view, render and link
 
@@ -342,7 +347,7 @@ Defined in `Tables/NodeUpb.lean` as `NodeV3.tableU`, for the budget only:
   * the plan (§3.3), including the upper chain: depths, the descend counter and the child ids.
 * **M7d, render.** The generator is `test/upsv3_model.py`'s `gen` (§9) transcribed to Lean.
   * Its inputs are the lockstep records, the walk, `v` and `τ`.
-  * The local constraints are proved per part kind. Traffic matches by construction: the `UPB` reads are counted into `nodeV3`'s `mU`.
+  * The local constraints are proved per part kind. Traffic matches by construction: the `UPB` reads are counted into `nodeV3`'s per-byte `mU`, and `ucid = cidAt` (`NodeOk.ucid`).
 * **M7e, link.** Per §6 and per case:
   * from the view, the `nodeV3` records of `τ` and the walk, show `q_root = upsert (prune P) [0,15] v`;
   * the per-case lemmas are `upsert_brSlot`, `upsert_brVal`, `upsert_leaf_ne` with `splitLeaf`'s three cases, `upsert_ext_np` with `splitExt`'s, and `upsert_branch_down` / `upsert_ext_down` for the `RD` levels and (key `[]`) the `PT` levels;

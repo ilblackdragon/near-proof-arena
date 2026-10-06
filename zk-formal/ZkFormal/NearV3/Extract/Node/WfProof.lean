@@ -284,3 +284,100 @@ theorem resOkNode (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s ni
     · rw [if_neg h1, if_neg h2]; exact resN hE
 
 end ZkFormal.NearV3.NodeProof3
+
+namespace ZkFormal.NearV3.NodeProof3
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.NodeV3 ZkFormal.Near
+
+/-! ## `UPB` child ids (`kidCidOk`) -/
+
+theorem belowN_mono (tr : Trace Fp) (s : Nat) : ∀ {j k : Nat}, j ≤ k → belowN tr s j ≤ belowN tr s k := by
+  intro j k h
+  induction k with
+  | zero => rw [Nat.le_zero.mp h]; exact Nat.le_refl _
+  | succ k ih =>
+    rcases Nat.lt_or_ge j (k + 1) with h' | h'
+    · rw [belowN_succ]; have := ih (by omega); omega
+    · rw [show j = k + 1 by omega]; exact Nat.le_refl _
+
+theorem kidsOf_present_count (tr : Trace Fp) (s o : Nat) (hb : ∀ i, i < 16 → cv tr T_NODE s (bm i) ≤ 1) :
+    ∀ j, j ≤ 16 → (((kidsOf tr s o).take j).filter (·.present)).length = belowN tr s j := by
+  intro j
+  induction j with
+  | zero => intro _; simp [belowN]
+  | succ j ih =>
+    intro hj
+    rw [List.take_add_one, List.filter_append, List.length_append, ih (by omega), belowN_succ]
+    have hlt : j < (kidsOf tr s o).length := by simp [kidsOf]; omega
+    rw [List.getElem?_eq_getElem hlt]
+    simp only [kidsOf, List.getElem_map, List.getElem_range, Option.toList_some]
+    have := hb j (by omega)
+    by_cases h : cv tr T_NODE s (bm j) = 1
+    · rw [if_pos h, h]; simp [kidOf_present]
+    · rw [if_neg h, show cv tr T_NODE s (bm j) = 0 by omega]; simp [NKid.present]
+
+theorem rowsB_getD' (tr : Trace Fp) (x r n d : Nat) (hd : d < n) : (rowsB tr x r n).getD d 0 = cv tr T_NODE (r + d) x := by
+  unfold rowsB; rw [List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_range hd]; rfl
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal NodeV3.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+theorem kidCidNode (hC : NodeCtx tr s ℓ fl) : (nodeVOf tr s).kidCidOk (rowsB tr cid s ℓ) := by
+  obtain ⟨hr0, ha0⟩ := nodeStart hL hC
+  have T := typeSumNat hL hr0 ha0
+  by_cases h1 : cv tr T_NODE s tl = 1
+  · unfold nodeVOf; rw [if_pos h1]; trivial
+  by_cases h2 : cv tr T_NODE s te = 1
+  · have ht := of_cv_one h2
+    obtain ⟨hh1, -, hfl, hℓ, sT, sH, sF, sK, sC, sM⟩ := extFields hL hC ht
+    have htl : tr.cell T_NODE s tl = 0 := typeZeros hL hC (x := te) (y := tl) (by simp) ht (by simp) (by decide)
+    have mem : ∀ p ∈ extFL (cv tr T_NODE s hplen), p ∈ fl := fun p hp => hfl ▸ hp
+    have K := keySer hL hC (by rw [ht, htl]; grind)
+      hh1 (by omega) sF (mem _ (by simp [extFL, keyFL]))
+      (fun h => sK h) (fun h => mem _ (by simp [extFL, keyFL, h]))
+    have hcl : cv tr T_NODE s tl ≠ 1 := by omega
+    simp only [hcl, decide_false] at K
+    unfold nodeVOf; rw [if_neg h1, if_pos h2]
+    intro c l r pre po hk
+    rw [K.2, rowsB_getD' _ _ _ _ _ (by omega)]
+    unfold kidOf at hk
+    split at hk
+    · cases hk; rfl
+    · cases hk
+  · unfold nodeVOf; rw [if_neg h1, if_neg h2]
+    have hb : tr.cell T_NODE s tb1 + tr.cell T_NODE s tb2 = 1 := by
+      have hb1 := cvb hL hr0 (x := tb1) (by simp [boolCols])
+      have hb2 := cvb hL hr0 (x := tb2) (by simp [boolCols])
+      rw [cell_eq_cast tr T_NODE s tb1, cell_eq_cast tr T_NODE s tb2, ← natCast_add,
+        show cv tr T_NODE s tb1 + cv tr T_NODE s tb2 = 1 by omega]; rfl
+    have B := brFields hL hC hb
+    simp only at B
+    rw [← brOff_eq hL hC] at B
+    obtain ⟨-, hℓ, -⟩ := B
+    have hbv : ∀ j, j < 16 → cv tr T_NODE s (bm j) ≤ 1 := fun j hj => cvb hL hr0 (bm_bool hj)
+    intro j c l r pre po hk
+    have hj : j < 16 := by
+      rcases Nat.lt_or_ge j 16 with hj | hj
+      · exact hj
+      · rw [List.getD_eq_getElem?_getD, List.getElem?_eq_none (by simp [kidsOf]; omega)] at hk
+        cases hk
+    rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (by simp [kidsOf]; omega)] at hk
+    simp only [kidsOf, List.getElem_map, List.getElem_range, Option.getD_some] at hk
+    split at hk
+    · rename_i hbj
+      have hoff : (if (if cv tr T_NODE s tb2 = 1 then some (slotOf tr s (s + 1) (s + 5)) else none).isSome
+          then 37 else 1) = brOff tr s := by
+        unfold brOff; by_cases h : cv tr T_NODE s tb2 = 1 <;> simp [h]
+      rw [hoff, kidsOf_present_count tr s _ hbv j (by omega)]
+      have hpop : belowN tr s j + 1 ≤ popN tr s := by
+        rw [popN_eq, ← show belowN tr s (j + 1) = belowN tr s j + 1 by rw [belowN_succ, hbj]]
+        exact belowN_mono tr s (by omega)
+      rw [rowsB_getD' _ _ _ _ _ (by omega)]
+      unfold kidOf at hk
+      split at hk
+      · cases hk; rfl
+      · cases hk
+    · cases hk
+
+end ZkFormal.NearV3.NodeProof3

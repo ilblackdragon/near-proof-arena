@@ -25,7 +25,7 @@ theorem nodeWfOf (hS : NodeSegs tr segs) : NodeWf3 (viewOf tr pub segs) := by
   have hHP : tr.height T_NODE < P := by have := height_le hL; unfold P; omega
   have mem : ∀ S ∈ viewOf tr pub segs, ∃ p ∈ segs, S = nodeSOf tr pub p.1 p.2 := by
     intro S hS'; simp only [viewOf, List.mem_map] at hS'; obtain ⟨p, hp, rfl⟩ := hS'; exact ⟨p, hp, rfl⟩
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro S hS'; obtain ⟨p, hp, rfl⟩ := mem S hS'
     obtain ⟨fl, hC⟩ := hS.ctx hL hp
     exact (nodeV_wf hL hC).1
@@ -66,6 +66,16 @@ theorem nodeWfOf (hS : NodeSegs tr segs) : NodeWf3 (viewOf tr pub segs) := by
     have := (hS.sumRow hL).1
     have := height_le hL
     omega
+  · intro S hS'; obtain ⟨p, hp, rfl⟩ := mem S hS'
+    obtain ⟨fl, hC⟩ := hS.ctx hL hp
+    have e : ((nodeSOf tr pub p.1 p.2).v.ser false).length = p.2 := by
+      show ((nodeVOf tr p.1).ser false).length = p.2; rw [← (nodeSer hL hC).1, rowsB_length]
+    rw [e]; exact ⟨rowsB_length _ _ _ _, rowsB_length _ _ _ _⟩
+  · intro S hS'; obtain ⟨p, hp, rfl⟩ := mem S hS'
+    exact ⟨rowsB_lt _ _ _ _, rowsB_lt _ _ _ _⟩
+  · intro S hS'; obtain ⟨p, hp, rfl⟩ := mem S hS'
+    obtain ⟨fl, hC⟩ := hS.ctx hL hp
+    exact kidCidNode hL hC
 
 end ZkFormal.NearV3.NodeProof3
 

@@ -163,7 +163,7 @@ theorem lenB_facts {vs : List NodeS3} (ok : NodeOk vs) {n : Nat} (hn : n < vs.le
   have hw := rwf ok hn
   have hlb := ok.lenB _ (rec_mem hn)
   generalize rec vs n = s at hw hlb hf
-  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE⟩ := s
+  obtain ⟨v, tau, d, res, uses, ubm, dup, hd, repE, ucid, mU⟩ := s
   simp only at hw hlb hf ⊢
   cases v with
   | leaf k sl m =>
