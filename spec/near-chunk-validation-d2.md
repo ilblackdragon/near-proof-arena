@@ -800,7 +800,32 @@ checks are total in D2 and are reused unchanged.
 | `ChunkValidationD2` | `checkD2`, `RelD2` (§11) |
 | `ChallengeD2` | `ArenaCore.ChallengeSpec` with `Rel = RelD2` |
 
-Executable: `nearspec-v3-check-d2 [--d1|--d0] CASE…`.
+Executables: `nearspec-v3-check-d2 [--d1|--d0] CASE…` (JSON lines as `nearspec-v3-check-d1`),
+`nearspec-v3-test-trie-d2 FILE` (trie finalize vectors).
+
+**Modelling choices.**
+* The pre-state trie is the *full reveal* of the recorded storage (`D2.revealTrie`: every
+  node/value of `base_state` reachable from the root; the store is a structural BST keyed by
+  SHA-256, kernel-reducible). An operation succeeds iff every node/value it touches is present,
+  which is nearcore's `MissingTrieValue` rule; revealing more than the D0/D1 per-key builder
+  changes no lookup.
+* The overlay (`D2.Ovl`) is nearcore's `TrieUpdate` with the same commit/rollback points;
+  reads go overlay-first; `finalize` applies the committed changes in raw-key order.
+* Every nearcore panic (`expect`, `unwrap`, `assert`, `UnexpectedIntegerOverflow`,
+  `ReceiptValidationError` of an incoming receipt) and every `StorageError` is
+  `invalid: …`; every `out of domain …` is a §12 condition; everything else follows nearcore.
+* Read order matters only for which error is reported first; any error rejects, so the
+  relation is insensitive to it except across the `invalid` / `out of domain` boundary,
+  where it follows nearcore's execution order.
+
+**Proved** (no `sorry`; axioms ⊆ {propext, Classical.choice, Quot.sound}):
+`PTrie.find_del` (delete with squash is a key→value map deletion: the key becomes absent, every
+other key — present, absent or undetermined — answers as before; no well-formedness
+hypothesis needed), `PTrie.del_false` (a non-deleting delete returns the same trie),
+`find_squashBranch`, `find_extendChild`, `Kids.find_delAt` (`NearSpecV3/D2/TrieProps.lean`);
+inherited: `PTrie.find_upsert_self/other` (v2), the claim codec round trip, the D1 Ed25519
+lemmas. **Tested, not proved**: that the transcription equals nearcore (difftests), that the
+squashed shapes / memory usages are canonical (trie vectors), `InD1 ⊂ InD2` (fixtures).
 
 ## 15. Evidence
 
