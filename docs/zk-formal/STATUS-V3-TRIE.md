@@ -15,7 +15,7 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M1 | store spec for tree records + weak uniq (no A6) | **done** (§1) |
 | M2 | `uniqV3`: table, view, link (weak uniq ⇒ hash-functional), render | **done** |
 | M3 | `walkV3`: table, view, render | **done**; link (walks ⇒ `find`/absent) open |
-| M4 | node side split into `nodeV3` / `headV3` / `valV3`: tables, kernel-checked budget; `headV3` view + render; `valV3` view (render in progress); `nodeV3` view **statement** | **done** except as noted |
+| M4 | node side split into `nodeV3` / `headV3` / `valV3`: tables, kernel-checked budget; `headV3` view + render; `valV3` view + render; `nodeV3` view **statement** | **done** except as noted |
 | M5 | `nodeV3` view proof (adapt v1's 22 `Extract/Node*` modules), `nodeV3` render, link layer (trie of τ hashes to root, finds/absents, post-root), `upsV3` (`0x0f` upsert incl. insertion) | **open** |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
@@ -152,7 +152,7 @@ role clashes are covered because value records live in the same `ENT` space.
 | `uniqV3` | `UniqViewStmt` / **`uniq_view`** (`Extract/UniqProof.lean`) | **`uniq_render_local`, `uniq_render_traffic`, `uniqEntries_wf`** (`Render/Uniq*.lean`) | **`uniq_weak`, `uniq_functional`, `storeOf_hashFunctional`** (`Link/Uniq.lean`) |
 | `walkV3` | `WalkV3ViewStmt` / **`walk3_view`** (`Extract/WalkProof*.lean`) | **`walk_render_local`, `walk_render_traffic`** (`Render/Walk*.lean`) | open |
 | `headV3` | `HeadViewStmt` / **`head_view`** (`Extract/HeadProof.lean`) | **`head_render_local`, `head_render_traffic`** (`Render/HeadRender.lean`) | open (ROOT chain) |
-| `valV3` | `ValViewStmt` / **`val_view`** (`Extract/ValProof.lean`) | in progress | open |
+| `valV3` | `ValViewStmt` / **`val_view`** (`Extract/ValProof.lean`) | **`val_render_local`, `val_render_traffic`** (`Render/Val*.lean`) | open |
 | `nodeV3` | `NodeV3ViewStmt` (`Extract/NodeView.lean`, statement only) | open | open |
 | spec | **`storeBuildR`, `pathsRevealed_of_rank`, `hashFunctional_of_weakUniq`, `treeRecs_spec`** | | |
 
