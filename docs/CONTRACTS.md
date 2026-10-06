@@ -345,6 +345,21 @@ without the new fields behave exactly as in v1.6.
   leak a few bits per class about the secret inputs. Mitigation: publish held-out coverage only in
   aggregate, `share_ppm` over all held-out classes, until a successor rotates the set.
 
+**Known limitation of `near-chunk-v3` v3.0: the union statement.**
+
+* **What it is.** The statement is `RelD0 ∨ RelD1 ∨ RelD2 ∨ RelD3`. Each disjunct is its own Lean
+  transcription of nearcore, so the trusted surface is all four, and the statement's soundness is
+  only as strong as the weakest of them.
+* **How it was checked.** The rungs were difftested against nearcore and against each other: the
+  D0 ⊂ D1 ⊂ D2 ⊂ D3 subset checks found no rung accepting what nearcore rejects. Those checks are
+  tests, not proofs.
+* **Follow-up (lane item, successor version).** Restructure the lower domains as literal
+  restrictions of the top relation: `Rel_Dk := RelD3 ∧ InDk` by definition, with `InDk` decidable.
+  `rel_mono` then becomes `RelDk → RelD3` by projection, and the statement of a successor version
+  can be `RelD3` alone, with one transcription in the trusted surface. The current per-rung checkers
+  (`checkD0`, `checkD1`, `checkD2`) remain as fast implementations, admitted only through proved
+  agreement with `RelD3 ∧ InDk`.
+
 **Versioning.**
 
 * A larger formalized domain (D4, D∞) is a **versioned successor** of the same challenge. It adds
