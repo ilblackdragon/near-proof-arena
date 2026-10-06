@@ -582,6 +582,27 @@ Not guest-visible (post-processing from a structured log suffices):
 * The `PromiseYieldIndices` read of every successful call (§4.2.1) and the yield trie reads
   (§5.3) enter the read set; the D2 single-node-drop mutants are the evidence pattern.
 
+### 10.0 Decisions (lead, 2026-10-06)
+
+1. **`Rel_D3` is the cold-cache, cache-independent statement.** The code of every executed
+   pre-state contract must come from the witness. A nearcore validator with a warm
+   compiled-contract cache may accept witnesses that `Rel_D3` rejects, for example a witness
+   carrying no code blobs at all; the corpus judge observed this on every honest witness tried. A
+   proof cannot depend on what a particular validator has cached, so `Rel_D3` is the conservative
+   statement.
+2. **Cache-dependent code verdicts are a decidable D3α domain condition (`e.code_cache`).**
+
+   - **Condition.** A case is out of D3α when both hold:
+     - an executed pre-state contract's code blob is absent from the witness;
+     - the same code was deployed earlier in the chunk, whether committed or rolled back.
+
+   - **nearcore finding.** For such witnesses, the verdict depends on the validator's
+     compiled-contract cache, since `DeployContract` precompiles and a rollback does not evict.
+     It also depends on the order in which the preparation pipeline prepared the receipts:
+     receipts submitted before the deploy ran were prepared cold. The corpus shows both verdicts.
+3. **`G_α`** (`D3.gAlpha` = 2²² · 822,756 ≈ 3.45 Tgas) bounds the chunk's Σ
+   `gas_burnt_for_function_call`; above it, the case is `out of domain (e.g_alpha)`.
+
 ### 10.1 As implemented (`NearSpecV3/D3/FunctionCall.lean`, RuntimeD3 rung 1)
 
 * **In domain:** FunctionCall on `None` / `Local` contracts. This covers:

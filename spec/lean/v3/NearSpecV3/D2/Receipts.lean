@@ -199,7 +199,7 @@ def applyActionReceipt (hooks : ActionHooks) (env : Env) (rs : RS) (r : Rcpt) (a
           ({ pred := r.recv, recv := recv, rid := zero32, body := .data false d data } : Rcpt))
   let rs := { rs with o := o2, otherBurnt := otherBurnt, txBurnt := txBurnt,
                       proposals := rs.proposals ++ res.proposals, deployed := deployed,
-                      attempted := rs.attempted ++ st.deploys,
+                      attempted := rs.attempted ++ st.deploys, wasmGas := rs.wasmGas + res.gasFC,
                       subsidized := subsidized }
   -- 10. receipt ids, instant / forward
   let (rs, ids) ← emitReceipts env r.rid rs 0 (newRs ++ dataRs)

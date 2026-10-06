@@ -125,6 +125,8 @@ structure RS where
   deployed : List Bytes := []
   /-- D3: every code deployed in the chunk so far, committed or rolled back (see `ActCtx.attempted`). -/
   attempted : List Bytes := []
+  /-- D3: Σ `gas_burnt_for_function_call` over the chunk's action receipts (the `G_α` measure) -/
+  wasmGas : Nat := 0
   /-- E9: `stats.balance.subsidized` (`lib.rs:1025-1026`); `0` in D2. -/
   subsidized : Nat := 0
 

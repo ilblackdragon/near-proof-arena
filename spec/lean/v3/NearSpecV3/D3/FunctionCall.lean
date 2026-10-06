@@ -361,11 +361,31 @@ end NearSpecV3.D3
 
 namespace NearSpecV3.D3
 
-/-- `Rel_D3α` checker: the D2 pipeline (`checkD2Core`) with code blobs allowed and WASM execution
+/-- **`G_α`**, the D3α per-chunk cap on function-call gas (`gas_burnt_for_function_call`, summed
+over the chunk's action receipts; it includes host-function gas). Derivation from single-proof
+capacity:
+* one np-udr-stark proof has tables of at most 2^22 rows, and the D3 EXEC table takes one row per
+  WASM operator (`near-wasm-strategy.md` §2);
+* the cheapest operator costs `regular_op_cost` = 822,756 gas;
+* so 2^22 operators burn at most `2^22 · 822,756` gas. Host gas only lowers the operator count
+  for the same gas, which makes this conservative.
+
+At that table size the single-segment proof is ≈ 2.3 MiB, under the 8 MiB cap
+(`docs/research/recursion-r1-cost.md`, lean preset S = 1). This is the checkpoint value; it is re-fixed
+at checkpoint 5 from the measured EXEC/RAM rows per operator (`D3_WASM_REQUIREMENTS.md` §2.4). -/
+def gAlpha : Nat := 2 ^ 22 * 822756
+
+/-- `Rel_D3` checker: the D2 pipeline (`checkD2Core`) with code blobs allowed and WASM execution
 behind the FunctionCall hook. `InD3α` = `InD2` minus `e.wasm`/`w.no_code`, plus the WASM-level
-conditions reported by the hook (`out of domain (e.wasm-α) …`). -/
+conditions reported by the hook (`out of domain (e.wasm-α) …`) and the per-chunk cap
+`out of domain (e.g_alpha)`.
+
+**Cache independence.** `Rel_D3` is the cold-cache statement: the code of every executed pre-state
+contract must be in the witness (`spec/near-chunk-validation-d3.md` §2.2). A nearcore validator
+with a warm compiled-contract cache may accept witnesses that `Rel_D3` rejects (for example one with
+no code blobs at all). `Rel_D3` is the conservative statement that does not depend on any cache. -/
 def checkD3 (claimBytes witnessBytes : NearSpec.Bytes) : Except String Unit :=
-  checkD2Core (d3Hooks Wasm.pv86) true claimBytes witnessBytes
+  checkD2Core (d3Hooks Wasm.pv86) true claimBytes witnessBytes (some gAlpha)
 
 def RelD3 (claimBytes witnessBytes : NearSpec.Bytes) : Prop := checkD3 claimBytes witnessBytes = .ok ()
 

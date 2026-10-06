@@ -137,6 +137,8 @@ structure MainOutD2 where
   bwRequests : List BwRequest
   proposals : List Proposal
   cdRemovals : Nat
+  /-- D3: Σ `gas_burnt_for_function_call` of the chunk (0 in D2) -/
+  wasmGas : Nat := 0
 
 def decodeBufIdx (b : Bytes) : Option (List (Nat × Nat × Nat)) :=
   match pVec "shard_buffers" (fun bs => do
@@ -217,7 +219,9 @@ def applyNewChunkD2 (hooks : ActionHooks) (prims : Prims) (env : Env) (t : PTrie
   -- E9: balance_burnt = tx + other (+ slashed = 0) − subsidized (rt/mod.rs:386-403); negative ⇒ Error
   if rs.subsidized > burnt then throw "invalid: balance_burnt underflow (subsidized exceeds burnt)"
   let burnt := burnt - rs.subsidized
-  pure ⟨root, rs.outcomes, rs.outgoing, gasUsed, burnt, cong, bw, dedupProposals rs.proposals, o.cdRemovals⟩
+  pure { root, outcomes := rs.outcomes, outgoing := rs.outgoing, gasUsed, balanceBurnt := burnt,
+         congestion := cong, bwRequests := bw, proposals := dedupProposals rs.proposals,
+         cdRemovals := o.cdRemovals, wasmGas := rs.wasmGas }
 
 def applyMissingChunkD2 (prims : Prims) (env : Env) (t : PTrie) (vu : Option ValidatorUpdateFacts)
     (lastProps : List (Bytes × Nat)) : Except String Bytes := do

@@ -111,8 +111,8 @@ def envOf (c : Claim) (ctx : ApplyCtx) (b : Blk) (minStake : Nat) (sched : Sched
 the partial-witness tracker does (`pwt.rs:693-696`): the main trie is revealed from, and
 `Env.codeOf` looks up, the merged list `w.main.values ++ codes` (E2). The hooks reach the merged
 storage, the pre-state root and the block / epoch facts through `ActCtx.env`. -/
-def checkD2Core (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes) :
-    Except String Unit := do
+def checkD2Core (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
+    (gasCap : Option Nat := none) : Except String Unit := do
   -- 3.1 decoding, actor checks
   let c ← (decodeClaimE claimBytes).mapError (fun e => s!"invalid claim: {e}")
   let (swBytes, codes) ← decodeWitnessFile witnessBytes
@@ -235,6 +235,9 @@ def checkD2Core (hooks : ActionHooks) (allowCodes : Bool) (claimBytes witnessByt
   let baseBytes := (merged.map List.length).foldl (· + ·) 0
   check (baseBytes + 2000 * out.cdRemovals ≤ 4000000)
     "out of domain (w.size): storage-proof upper bound may exceed main_storage_proof_size_soft_limit"
+  -- D3: per-chunk WASM gas cap (`G_α`, D3_WASM_REQUIREMENTS §1.1/§2.4); D2 passes `none`
+  if let some cap := gasCap then
+    check (out.wasmGas ≤ cap) s!"out of domain (e.g_alpha): chunk function-call gas {out.wasmGas} > G_α {cap}"
   let mut root := out.root
   check (root == w.main.postStateRoot) "invalid: main transition post state root"
   -- 3.6 implicit transitions
