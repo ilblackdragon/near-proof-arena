@@ -25,3 +25,9 @@ name = "ZkToySpec"
 [[require]]
 name = "NearSpec"
 path = "../spec/lean"
+
+# v3 D0 statement (`NearSpecV3`, lane v3-store: `ZkFormal.NearV3.Spec.*` reasons about
+# `NearSpecV3.partialTrie`). Same NearSpec / ArenaCore packages as above (resolved by name).
+[[require]]
+name = "NearSpecV3"
+path = "../spec/lean/v3"
