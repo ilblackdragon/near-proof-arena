@@ -802,3 +802,21 @@ For this prover:
 * **The verifier returns UNSUPPORTED, never ACCEPT, outside D0.** The claim-level part of the domain is decided natively by `prepClaim`, which is where UNSUPPORTED comes from. Witness-level out-of-domain cases cannot produce an accepting proof, because the AIR enforces `InD0a`.
 * Admission is to `near-chunk-v3` with declared domain D0.
 * Open for assembly: the verifier's three-valued output and its interface. This is to be aligned with the unified challenge's `Expected` template once it is published.
+
+## 15. Lever (b): B0 = 2.0 MB approved by the user; exact row check before the spec edit
+
+Single SHA table, joint worst case under A1 (n = 4481, ≤ 1984 lists, path depth ≤ 6):
+
+| SHA rows | amount |
+|---|---|
+| Trie nodes | ≤ 1.25 per unfolded node byte. That is the exact maximum of `2·(1 + 17·⌈(L+9)/64⌉)/L` over L ≥ 46, reached at L = 56. The trie lane's linear `0.531 + 40.25/L` is a looser bound. |
+| Value records | accounts 72 B (0.49 rows/B), access keys 9 B (2 rows/B, ≤ 4481 of them), small fixed-key values |
+| Receipt side | 1,695,759 (`rcptShaRows_A1`, kernel-checked on lane/v3-rcpt) |
+
+* At B0 = 2,000,000: ≈ 1.25·(B0 − 40,329) + 80,658 + 1,695,759 ≈ 4,226,000 > 2²² = 4,194,304, **over by ≈ 31,700 rows (0.8 %)**. The receipt lane's own check independently gives `single_2M_fails`.
+* The largest B0 that fits is ≈ 1,974,000. Proposal: **B0 = 1,950,000**, which leaves ≈ 30.8 k rows of margin and still ≈ 38× headroom over the measured honest maximum of 50,579 B.
+* Alternative: keep B0 = 2,000,000 with two SHA tables, which loses lever (b)'s −0.61 MB.
+
+Liveness note (for the spec doc, once B0 is final): chunks whose unfolded read set lies between B0 and 3 MB move out of D0a. They become unprovable, never wrongly accepted.
+
+Lever (a), the multiproof-dedup size bound, is started as lane `v3-size`. It also reruns the full formal accounting with one SHA table.
