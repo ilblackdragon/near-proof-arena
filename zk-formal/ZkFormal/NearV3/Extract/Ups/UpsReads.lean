@@ -233,4 +233,59 @@ theorem upb_reads {vs : List NodeS3} {v : List UpsSeg} (hN : NodeWf3 vs) (hw : U
   refine ⟨by rw [postB, hg]; exact h1, ?_⟩
   rw [postB, hg, Link3.ser_length_post3 (hN.wf _ (List.getElem_mem hn))]; exact h2
 
+/-! ## The number of parts -/
+
+section
+variable {v : List UpsSeg} (hw : UpsWf v) {s : UpsSeg} (hs : s ∈ v)
+  {L : Nat} {ps : List (Nat × Nat)} {fls : List (List (Nat × Nat))} {ws : List Nat}
+  (hL : UpsLayout s L ps fls ws) {ci ti di si : Nat} {kd sdx : Nat → Nat} (hP : UpsPlan s ps ci ti di si kd sdx)
+include hw hs hL hP
+
+/-- A part other than the new leaf reads on its first `MEM` row (with the part's `sN` and `pdep`). -/
+theorem memRead (c : Nat) (hc : c < ps.length) (hc8 : kd c ≠ 8) :
+    ps[c].1 + ps[c].2 - 8 < s.rows.length ∧ s.row (ps[c].1 + ps[c].2 - 8) rd = 1 ∧
+    s.row (ps[c].1 + ps[c].2 - 8) sN = s.row ps[c].1 sN ∧
+    s.row (ps[c].1 + ps[c].2 - 8) pdep = s.row ps[c].1 pdep := by
+  obtain ⟨h8, hR8⟩ := memRows8 hw hs hL hP c hc
+  have U := (hL.part c hc).2
+  have hle := U.le
+  obtain ⟨hm, -⟩ := hR8 0 (by omega)
+  have hd : ps[c].2 - 8 < ps[c].2 := by omega
+  rw [show ps[c].1 + ps[c].2 - 8 + 0 = ps[c].1 + (ps[c].2 - 8) by omega] at hm
+  have hlt : ps[c].1 + (ps[c].2 - 8) < s.rows.length := by omega
+  have hq := (U.rows _ hd).1
+  have hoh := oneHot hw hs hlt hq
+  obtain ⟨-, bK, -, -⟩ := partBits hw hs hL hP c hc _ hd
+  rw [if_neg hc8] at bK
+  have hrd := rdMem (okRow hw hs hlt) (rowLt hw hs _) (nextLt hw hs _) hq hm bK hoh
+  rw [show ps[c].1 + ps[c].2 - 8 = ps[c].1 + (ps[c].2 - 8) by omega]
+  exact ⟨hlt, hrd, partPc hw hs hL hP c hc _ hd (by decide), partPc hw hs hL hP c hc _ hd (by decide)⟩
+
+end
+
+/-- **At most 404 parts**: `|ps| = nT + dep_D` with `nT ≤ 4`, and `dep_D ≤ 400` since the first upper
+part reads a record at depth `dep_D − 1 < 400` (`depth_lt`). -/
+theorem ups_nparts {vs : List NodeS3} {hds : List HeadE} {v : List UpsSeg} (hN : NodeWf3 vs) (hhw : HeadWf hds)
+    (hb : Link3.ParentBal vs hds) (hw : UpsWf v) (hbal : UpbBal vs v) {s : UpsSeg} (hs : s ∈ v)
+    {L : Nat} {ps : List (Nat × Nat)} {fls : List (List (Nat × Nat))} {ws : List Nat}
+    (hL : UpsLayout s L ps fls ws) : ps.length ≤ 404 := by
+  obtain ⟨ci, ti, di, si, kd, sdx, hP⟩ := ups_plan hw hs hL
+  have hlen := hP.len
+  have hT := nTof_le ci hP.ix.1 ti hP.ix.2.1
+  by_cases h0 : s.row 0 (176 + di) = 0
+  · omega
+  · have hk : nTof ci ti < ps.length := by omega
+    obtain ⟨hku, -, hpd⟩ := hP.upper _ hk (Nat.le_refl _)
+    obtain ⟨hlt, hrd, -, hp⟩ := memRead hw hs hL hP _ hk (by omega)
+    obtain ⟨hn, -, -, -, hdep, -⟩ := upb_read hN hw hbal hs hlt hrd
+    have := Link3.depth_lt hN hhw hb hn
+    rw [hp] at hdep
+    omega
+
+/-- **`UpsIdBound`** from the part bound and instances below `2^17`. -/
+theorem ups_idBound {vs : List NodeS3} {hds : List HeadE} {v : List UpsSeg} (hN : NodeWf3 vs) (hhw : HeadWf hds)
+    (hb : Link3.ParentBal vs hds) (hw : UpsWf v) (hbal : UpbBal vs v) (hτ : ∀ s ∈ v, s.row 0 tau < 2 ^ 17) :
+    UpsIdBound v :=
+  fun s hs => ⟨hτ s hs, fun _ _ _ _ hL => by have := ups_nparts hN hhw hb hw hbal hs hL; omega⟩
+
 end ZkFormal.NearV3.UpsRows
