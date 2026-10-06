@@ -205,11 +205,13 @@ pub struct V3Transition {
     pub end: usize,
 }
 
-/// The degrees of freedom of a `near-arena-witness-v3` proof in the D0 layout
-/// (`NearSpecV3.decodeStateWitness`): where the state witness sits in the file,
-/// the validator-ignored header fields, the transitions with their
-/// `base_state` values, and the `source_receipt_proofs` entries. Offsets are
-/// relative to the state witness `sw = file[sw_start .. sw_start + sw_len]`.
+/// The degrees of freedom of a `near-arena-witness-v3` proof (`NearSpecV3.decodeStateWitness`
+/// / `decodeStateWitnessD1` / `decodeStateWitnessD2`, and the D3 code blobs): where the state
+/// witness sits in the file, the validator-ignored header fields, the transitions with their
+/// `base_state` values, the `source_receipt_proofs` entries and the contract-code blobs
+/// appended to the file. Offsets of header/transition/entry fields are relative to the state
+/// witness `sw = file[sw_start .. sw_start + sw_len]`; `codes` offsets are relative to the
+/// **file**.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct V3Layout {
     pub sw_start: usize,
@@ -221,94 +223,256 @@ pub struct V3Layout {
     /// `[start, end)` of each entry; the entry's key is its first 32 bytes.
     pub entries: Vec<(usize, usize)>,
     pub implicit: Vec<V3Transition>,
+    /// File offset of the `Vec<bytes> contract_code` count.
+    pub codes_count_at: usize,
+    /// `[start, end)` (file offsets, including the u32 length prefix) of each code blob.
+    pub codes: Vec<(usize, usize)>,
 }
 
-/// Walk a `near-arena-witness-v3` file in the D0 layout; `None` if the bytes
-/// are not one (another proof format, or a shape this walker does not know).
-pub fn v3_layout(file: &[u8]) -> Option<V3Layout> {
-    struct R<'a> {
-        b: &'a [u8],
-        p: usize,
+/// Borsh walker over the nearcore types of a D0–D3 `ChunkStateWitness` (the shapes the Lean
+/// decoders admit: `NearSpecV3.Wire`, `TxD1`, `D2.Types`, `D2.TxD2`). It only skips bytes; it
+/// does not validate account ids, UTF-8 or signature high bits (the relation does).
+struct V3R<'a> {
+    b: &'a [u8],
+    p: usize,
+}
+
+impl<'a> V3R<'a> {
+    fn take(&mut self, n: usize) -> Option<&'a [u8]> {
+        let s = self.b.get(self.p..self.p.checked_add(n)?)?;
+        self.p += n;
+        Some(s)
     }
-    impl<'a> R<'a> {
-        fn take(&mut self, n: usize) -> Option<&'a [u8]> {
-            let s = self.b.get(self.p..self.p.checked_add(n)?)?;
-            self.p += n;
-            Some(s)
+    fn u8(&mut self) -> Option<u8> {
+        Some(self.take(1)?[0])
+    }
+    fn u32(&mut self) -> Option<u32> {
+        Some(u32::from_le_bytes(self.take(4)?.try_into().ok()?))
+    }
+    fn bytes(&mut self) -> Option<&'a [u8]> {
+        let n = self.u32()? as usize;
+        self.take(n)
+    }
+    fn vec(&mut self, mut f: impl FnMut(&mut Self) -> Option<()>) -> Option<()> {
+        for _ in 0..self.u32()? {
+            f(self)?;
         }
-        fn u8(&mut self) -> Option<u8> {
-            Some(self.take(1)?[0])
+        Some(())
+    }
+    fn pk(&mut self) -> Option<()> {
+        let n = match self.u8()? {
+            0 => 32,
+            1 => 64,
+            2 => 1952,
+            _ => return None,
+        };
+        self.take(n).map(|_| ())
+    }
+    fn sig(&mut self) -> Option<()> {
+        let n = match self.u8()? {
+            0 => 64,
+            1 => 65,
+            2 => 3309,
+            _ => return None,
+        };
+        self.take(n).map(|_| ())
+    }
+    fn opt(&mut self, f: impl FnOnce(&mut Self) -> Option<()>) -> Option<()> {
+        match self.u8()? {
+            0 => Some(()),
+            1 => f(self),
+            _ => None,
         }
-        fn u32(&mut self) -> Option<u32> {
-            Some(u32::from_le_bytes(self.take(4)?.try_into().ok()?))
+    }
+    fn tx_nonce(&mut self) -> Option<()> {
+        match self.u8()? {
+            0 => self.take(8).map(|_| ()),
+            1 => self.take(10).map(|_| ()),
+            _ => None,
         }
-        fn bytes(&mut self) -> Option<&'a [u8]> {
-            let n = self.u32()? as usize;
-            self.take(n)
-        }
-        fn pk(&mut self) -> Option<()> {
-            let n = match self.u8()? {
-                0 => 32,
-                1 => 64,
-                2 => 1952,
-                _ => return None,
-            };
-            self.take(n).map(|_| ())
-        }
-        fn transition(&mut self) -> Option<V3Transition> {
-            let start = self.p;
-            self.take(32)?;
-            (self.u8()? == 0).then_some(())?;
-            let nvals_at = self.p;
-            let mut values = vec![];
-            for _ in 0..self.u32()? {
-                let at = self.p;
-                self.bytes()?;
-                values.push((at, self.p));
+    }
+    fn fc_perm(&mut self) -> Option<()> {
+        self.opt(|r| r.take(16).map(|_| ()))?;
+        self.bytes()?;
+        self.vec(|r| r.bytes().map(|_| ()))
+    }
+    fn access_key(&mut self) -> Option<()> {
+        self.take(8)?;
+        match self.u8()? {
+            0 => self.fc_perm(),
+            1 => Some(()),
+            2 => {
+                self.take(18)?;
+                self.fc_perm()
             }
-            self.take(32)?;
-            Some(V3Transition {
-                start,
-                nvals_at,
-                values,
-                end: self.p,
-            })
+            3 => self.take(18).map(|_| ()),
+            _ => None,
         }
     }
+    /// A non-delegate action body after its tag (`D2.pBase`).
+    fn base(&mut self, tag: u8) -> Option<()> {
+        match tag {
+            0 => Some(()),
+            1 => self.bytes().map(|_| ()),
+            2 => {
+                self.bytes()?;
+                self.bytes()?;
+                self.take(24).map(|_| ())
+            }
+            3 => self.take(16).map(|_| ()),
+            4 => {
+                self.take(16)?;
+                self.pk()
+            }
+            5 => {
+                self.pk()?;
+                self.access_key()
+            }
+            6 => self.pk(),
+            7 => self.bytes().map(|_| ()),
+            12 | 13 => {
+                self.pk()?;
+                self.take(16).map(|_| ())
+            }
+            _ => None,
+        }
+    }
+    /// `D2.pAct` (incl. `DelegateAction` V1 / V2).
+    fn action(&mut self) -> Option<()> {
+        let t = self.u8()?;
+        if t == 8 || t == 14 {
+            if t == 14 {
+                (self.u8()? == 0).then_some(())?;
+            }
+            self.bytes()?;
+            self.bytes()?;
+            self.vec(|r| {
+                let t = r.u8()?;
+                (t != 8 && t != 14).then_some(())?;
+                r.base(t)
+            })?;
+            if t == 14 {
+                self.tx_nonce()?;
+            } else {
+                self.take(8)?;
+            }
+            self.take(8)?;
+            self.pk()?;
+            self.sig()
+        } else {
+            self.base(t)
+        }
+    }
+    /// `D2.pRcpt` (a superset of the D0 receipt shape).
+    fn receipt(&mut self) -> Option<()> {
+        self.bytes()?;
+        self.bytes()?;
+        self.take(32)?;
+        match self.u8()? {
+            t @ (0 | 2 | 5 | 6) => {
+                self.bytes()?;
+                if t >= 5 {
+                    self.opt(|r| r.bytes().map(|_| ()))?;
+                }
+                self.pk()?;
+                self.take(16)?;
+                self.vec(|r| {
+                    r.take(32)?;
+                    r.bytes().map(|_| ())
+                })?;
+                self.vec(|r| r.take(32).map(|_| ()))?;
+                self.vec(|r| r.action())
+            }
+            1 | 3 => {
+                self.take(32)?;
+                self.opt(|r| r.bytes().map(|_| ()))
+            }
+            _ => None,
+        }
+    }
+    /// `SignedTransaction` V0 / V1 (`D2.pTxD2`, a superset of `pTxD1`).
+    fn tx(&mut self) -> Option<()> {
+        let b = self.b.get(self.p..self.p + 2)?;
+        let v1 = b[1] != 0 && b[0] == 1;
+        (b[1] == 0 || v1).then_some(())?;
+        if v1 {
+            self.take(1)?;
+        }
+        self.bytes()?;
+        self.pk()?;
+        if v1 {
+            self.tx_nonce()?;
+        } else {
+            self.take(8)?;
+        }
+        self.bytes()?;
+        self.take(32)?;
+        self.vec(|r| r.action())?;
+        if v1 {
+            self.u8()?;
+        }
+        self.sig()
+    }
+    fn transition(&mut self) -> Option<V3Transition> {
+        let start = self.p;
+        self.take(32)?;
+        (self.u8()? == 0).then_some(())?;
+        let nvals_at = self.p;
+        let mut values = vec![];
+        for _ in 0..self.u32()? {
+            let at = self.p;
+            self.bytes()?;
+            values.push((at, self.p));
+        }
+        self.take(32)?;
+        Some(V3Transition {
+            start,
+            nvals_at,
+            values,
+            end: self.p,
+        })
+    }
+}
+
+/// Walk a `near-arena-witness-v3` file (D0–D3 shapes); `None` if the bytes are not one
+/// (another proof format, or a shape this walker does not know).
+pub fn v3_layout(file: &[u8]) -> Option<V3Layout> {
     let tag = b"near-arena-witness-v3";
-    let mut f = R { b: file, p: 0 };
+    let mut f = V3R { b: file, p: 0 };
     (f.bytes()? == tag).then_some(())?;
     let n = f.u32()? as usize;
     let sw_start = f.p;
     let sw = f.take(n)?;
-    let mut r = R { b: sw, p: 0 };
+    let codes_count_at = f.p;
+    let mut codes = vec![];
+    for _ in 0..f.u32()? {
+        let at = f.p;
+        f.bytes()?;
+        codes.push((at, f.p));
+    }
+    (f.p == file.len()).then_some(())?;
+    let mut r = V3R { b: sw, p: 0 };
     (r.u8()? == 1).then_some(())?;
     r.take(32)?;
     (r.u8()? == 2).then_some(())?;
     let itag = r.u8()?;
     (itag == 3 || itag == 4).then_some(())?;
     r.take(4 * 32 + 5 * 8 + 16 + 2 * 32)?;
-    for _ in 0..r.u32()? {
+    r.vec(|r| {
         (r.u8()? == 0).then_some(())?;
         r.bytes()?;
         r.pk()?;
-        r.take(16)?;
-    }
+        r.take(16).map(|_| ())
+    })?;
     (r.u8()? == 0).then_some(())?;
     r.take(42)?;
     (r.u8()? == 0).then_some(())?;
-    for _ in 0..r.u32()? {
-        r.take(7)?;
-    }
+    r.vec(|r| r.take(7).map(|_| ()))?;
     if itag == 4 {
-        match r.u8()? {
-            0 => {}
-            1 => {
-                r.bytes()?;
-                r.take(16)?;
-            }
-            _ => return None,
-        }
+        r.opt(|r| {
+            r.bytes()?;
+            r.take(16).map(|_| ())
+        })?;
     }
     let height_included = r.p;
     r.take(8)?;
@@ -326,29 +490,19 @@ pub fn v3_layout(file: &[u8]) -> Option<V3Layout> {
     for _ in 0..r.u32()? {
         let at = r.p;
         r.take(32)?;
-        for _ in 0..r.u32()? {
-            r.bytes()?;
-            r.bytes()?;
-            r.take(32)?;
-            (r.u8()? == 0).then_some(())?;
-            r.bytes()?;
-            r.pk()?;
-            r.take(16)?;
-            (r.u32()? == 0 && r.u32()? == 0 && r.u32()? == 1 && r.u8()? == 3).then_some(())?;
-            r.take(16)?;
-        }
+        r.vec(|r| r.receipt())?;
         r.take(16)?;
-        for _ in 0..r.u32()? {
-            r.take(33)?;
-        }
+        r.vec(|r| r.take(33).map(|_| ()))?;
         entries.push((at, r.p));
     }
     r.take(32)?;
-    (r.u32()? == 0).then_some(())?;
+    r.vec(|r| r.tx())?;
     let mut implicit = vec![];
     for _ in 0..r.u32()? {
         implicit.push(r.transition()?);
     }
+    r.vec(|r| r.tx())?;
+    (r.p == sw.len()).then_some(())?;
     Some(V3Layout {
         sw_start,
         sw_len: n,
@@ -358,6 +512,8 @@ pub fn v3_layout(file: &[u8]) -> Option<V3Layout> {
         entries_count_at,
         entries,
         implicit,
+        codes_count_at,
+        codes,
     })
 }
 
@@ -416,9 +572,15 @@ impl ProofMutator for V3IgnoredFields {
 /// * `entries/reorder`: the first two entries swapped (when their bytes differ);
 /// * `values/reorder.<t>`: the first two values of transition `t` swapped;
 /// * `values/duplicate.<t>`: the first value of transition `t` appended again;
-/// * `values/inject-unused.<t>`: a 40-byte value no trie node references appended.
+/// * `values/inject-unused.<t>`: a 40-byte value no trie node references appended;
+/// * `codes/reorder`, `codes/duplicate`, `codes/inject-unused` (witnesses with contract code,
+///   D3): the code blobs are appended to the main `base_state` by the partial-witness tracker
+///   (`pwt.rs:693-696`), so their order, repeats and unneeded blobs are the same freedom.
 ///
-/// `<t>` is `main` or `implicit<i>`. Proofs in any other format produce nothing.
+/// `<t>` is `main` or `implicit<i>`. The walker knows every D0–D3 witness shape (transactions,
+/// all receipt and action kinds, code blobs); `transactions`, `new_transactions` and the
+/// receipts / proofs inside entries have no freedom (their exact bytes are hashed by the
+/// relation). Proofs in any other format produce nothing.
 pub struct V3WitnessFreedoms;
 
 fn v3_rebuild(file: &[u8], l: &V3Layout, sw: Vec<u8>) -> Vec<u8> {
@@ -496,9 +658,38 @@ pub fn v3_freedom_mutants(file: &[u8]) -> Vec<(String, Vec<u8>)> {
             v3_splice(sw, end, end, &junk, t.nvals_at, 1),
         ));
     }
-    out.into_iter()
+    let mut out: Vec<(String, Vec<u8>)> = out
+        .into_iter()
         .map(|(n, sw2)| (n, v3_rebuild(file, &l, sw2)))
-        .collect()
+        .collect();
+    // contract-code blobs (D3): appended to the main `base_state` (`pwt.rs:693-696`), i.e. a
+    // hash-indexed store too. Only for witnesses that carry code, so D0–D2 proofs (where any
+    // code is out of domain) get no extra mutants.
+    if let (Some(&(a0, b0)), Some(&(_, end))) = (l.codes.first(), l.codes.last()) {
+        if l.codes.len() >= 2 {
+            let (a1, b1) = l.codes[1];
+            if file[a0..b0] != file[a1..b1] {
+                let mut f2 = file[..a0].to_vec();
+                f2.extend_from_slice(&file[a1..b1]);
+                f2.extend_from_slice(&file[a0..b0]);
+                f2.extend_from_slice(&file[b1..]);
+                out.push(("codes/reorder".to_string(), f2));
+            }
+        }
+        let (al, bl) = *l.codes.last().unwrap();
+        let blob = file[al..bl].to_vec();
+        out.push((
+            "codes/duplicate".to_string(),
+            v3_splice(file, end, end, &blob, l.codes_count_at, 1),
+        ));
+        let mut junk = 41u32.to_le_bytes().to_vec();
+        junk.extend_from_slice(b"nearproof:v3-witness-freedoms:unused-code");
+        out.push((
+            "codes/inject-unused".to_string(),
+            v3_splice(file, end, end, &junk, l.codes_count_at, 1),
+        ));
+    }
+    out
 }
 
 impl ProofMutator for V3WitnessFreedoms {

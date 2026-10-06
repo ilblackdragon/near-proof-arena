@@ -464,3 +464,193 @@ fn accept_all_verifier_fails_on_rejection_cases() {
         g.reason_codes
     );
 }
+
+// ---------------------------------------------------------------------------------------------
+// Structure-aware v3 mutators on every witness shape (D0, D1, D2, D3 code blobs). Not opt-in:
+// pure byte walking over the committed oracle fixtures. The semantics check (every freedom
+// mutant is accepted by the Lean relation iff the honest witness is) runs when the compiled
+// checker `spec/lean/v3/.lake/build/bin/nearspec-v3-check-d2` exists (else it is skipped with a
+// note); the Lean relations agree with nearcore on the oracle corpora (spec §10 difftests).
+
+use arena_worker::mutators::{v3_freedom_mutants, v3_ignored_offsets, v3_layout, V3Layout};
+
+/// `(case dir, claim, witness)` of every honest positive of an oracle corpus directory.
+fn corpus(rel: &str) -> Vec<(PathBuf, Vec<u8>)> {
+    let dir = repo().join(rel);
+    let mut out = vec![];
+    let Ok(rd) = std::fs::read_dir(&dir) else {
+        return out;
+    };
+    let mut ds: Vec<_> = rd.map(|e| e.unwrap().path()).collect();
+    ds.sort();
+    for d in ds {
+        if let Ok(w) = std::fs::read(d.join("witness.bin")) {
+            out.push((d, w));
+        }
+    }
+    out
+}
+
+fn n_values(l: &V3Layout) -> usize {
+    l.main.values.len() + l.implicit.iter().map(|t| t.values.len()).sum::<usize>()
+}
+
+/// Append contract-code blobs to a witness file (the D3 `Vec<bytes> contract_code`).
+fn with_codes(file: &[u8], codes: &[&[u8]]) -> Vec<u8> {
+    let l = v3_layout(file).unwrap();
+    let mut out = file[..l.codes_count_at].to_vec();
+    out.extend_from_slice(&(codes.len() as u32).to_le_bytes());
+    for c in codes {
+        out.extend_from_slice(&(c.len() as u32).to_le_bytes());
+        out.extend_from_slice(c);
+    }
+    out
+}
+
+#[test]
+fn v3_walker_knows_every_d0_d1_d2_witness() {
+    for rel in [
+        "oracle/fixtures/v3/public/d0",
+        "oracle/fixtures/v3/public-d1/d1",
+        "oracle/fixtures/v3/public-d2/d2",
+    ] {
+        let cs = corpus(rel);
+        assert!(!cs.is_empty(), "{rel}: no fixtures");
+        for (d, w) in &cs {
+            let l = v3_layout(w).unwrap_or_else(|| panic!("{}: not walked", d.display()));
+            assert!(l.codes.is_empty());
+            assert_eq!(v3_ignored_offsets(w).unwrap().len(), 3 + l.implicit.len());
+            for (label, q) in v3_freedom_mutants(w) {
+                assert_ne!(&q, w, "{} {label}", d.display());
+                let m = v3_layout(&q)
+                    .unwrap_or_else(|| panic!("{} {label}: not a witness", d.display()));
+                assert!(
+                    !label.starts_with("codes/"),
+                    "{label} on a code-free witness"
+                );
+                let dv = n_values(&m) as i64 - n_values(&l) as i64;
+                let de = m.entries.len() as i64 - l.entries.len() as i64;
+                match label.split('/').nth(1).unwrap().split('.').next().unwrap() {
+                    "duplicate-key" => assert_eq!((de, dv), (1, 0)),
+                    "reorder" => assert_eq!((de, dv), (0, 0)),
+                    "duplicate" | "inject-unused" => assert_eq!((de, dv), (0, 1)),
+                    other => panic!("unexpected mutant {other}"),
+                }
+            }
+        }
+        eprintln!("{rel}: {} witnesses walked", cs.len());
+    }
+}
+
+#[test]
+fn v3_code_blob_mutants() {
+    let (_, w) = corpus("oracle/fixtures/v3/public-d2/d2")
+        .into_iter()
+        .next()
+        .unwrap();
+    // one blob: duplicate + inject-unused; two distinct blobs: also reorder
+    for codes in [
+        vec![&b"\0asm\x01\0\0\0code-a"[..]],
+        vec![&b"\0asm\x01\0\0\0code-a"[..], &b"\0asm\x01\0\0\0b"[..]],
+    ] {
+        let f = with_codes(&w, &codes);
+        let l = v3_layout(&f).unwrap();
+        assert_eq!(l.codes.len(), codes.len());
+        let ms: Vec<_> = v3_freedom_mutants(&f)
+            .into_iter()
+            .filter(|(n, _)| n.starts_with("codes/"))
+            .collect();
+        let names: Vec<&str> = ms.iter().map(|(n, _)| n.as_str()).collect();
+        let want: &[&str] = if codes.len() == 2 {
+            &["codes/reorder", "codes/duplicate", "codes/inject-unused"]
+        } else {
+            &["codes/duplicate", "codes/inject-unused"]
+        };
+        assert_eq!(names, want);
+        for (n, q) in &ms {
+            let m = v3_layout(q).unwrap();
+            // the state witness is untouched; only the code list changes
+            assert_eq!(
+                &q[m.sw_start..m.sw_start + m.sw_len],
+                &f[l.sw_start..l.sw_start + l.sw_len]
+            );
+            let blobs = |x: &[u8], l: &V3Layout| {
+                let mut v: Vec<Vec<u8>> =
+                    l.codes.iter().map(|&(a, b)| x[a + 4..b].to_vec()).collect();
+                v.sort();
+                v
+            };
+            match n.as_str() {
+                "codes/reorder" => assert_eq!(blobs(q, &m), blobs(&f, &l)),
+                "codes/duplicate" => assert_eq!(m.codes.len(), l.codes.len() + 1),
+                _ => assert_eq!(m.codes.len(), l.codes.len() + 1),
+            }
+        }
+    }
+}
+
+/// Every freedom mutant of an accepted witness is accepted by the Lean relation as well (the
+/// mutants are semantics-preserving), so only a normal-form verifier rejects them.
+#[test]
+fn v3_freedom_mutants_preserve_the_relation() {
+    let bin = repo().join("spec/lean/v3/.lake/build/bin/nearspec-v3-check-d2");
+    if !bin.exists() {
+        eprintln!("skipped: {} not built", bin.display());
+        return;
+    }
+    let tmp = tempfile::tempdir().unwrap();
+    for (rel, flag) in [
+        ("oracle/fixtures/v3/public/d0", "--d0"),
+        ("oracle/fixtures/v3/public-d1/d1", "--d1"),
+        ("oracle/fixtures/v3/public-d2/d2", ""),
+    ] {
+        let mut dirs = vec![];
+        // a sample (every 8th case) keeps the run short; every mutant kind still occurs
+        for (i, (d, w)) in corpus(rel)
+            .into_iter()
+            .enumerate()
+            .filter(|(i, _)| i % 8 == 0)
+        {
+            let claim = std::fs::read(d.join("claim.bin")).unwrap();
+            for (label, q) in v3_freedom_mutants(&w) {
+                let m = tmp.path().join(format!(
+                    "{}-{i}-{}",
+                    flag.trim_start_matches('-'),
+                    label.replace('/', "_")
+                ));
+                std::fs::create_dir_all(&m).unwrap();
+                std::fs::write(m.join("claim.bin"), &claim).unwrap();
+                std::fs::write(m.join("witness.bin"), &q).unwrap();
+                dirs.push((d.clone(), m));
+            }
+        }
+        assert!(!dirs.is_empty(), "{rel}: no mutants");
+        let verdicts = |ds: Vec<&Path>| -> Vec<String> {
+            let mut cmd = std::process::Command::new(&bin);
+            if !flag.is_empty() {
+                cmd.arg(flag);
+            }
+            let o = cmd.args(ds).output().unwrap();
+            assert!(o.status.success());
+            String::from_utf8(o.stdout)
+                .unwrap()
+                .lines()
+                .map(|l| {
+                    l.split("\"verdict\": \"")
+                        .nth(1)
+                        .unwrap()
+                        .split('"')
+                        .next()
+                        .unwrap()
+                        .to_string()
+                })
+                .collect()
+        };
+        let base = verdicts(dirs.iter().map(|(d, _)| d.as_path()).collect());
+        let muts = verdicts(dirs.iter().map(|(_, m)| m.as_path()).collect());
+        for ((b, m), (_, md)) in base.iter().zip(&muts).zip(&dirs) {
+            assert_eq!(b, m, "{}: verdict changed", md.display());
+        }
+        eprintln!("{rel}: {} mutants, verdicts preserved", dirs.len());
+    }
+}
