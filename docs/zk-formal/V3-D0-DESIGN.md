@@ -791,3 +791,14 @@ Levers, ranked:
 | e. g = 3 on the v3 AIR | small (P2 showed ≈ −2 %) | — |
 
 Recommendation: **a + b** (−1.2 to −1.3 MB, which fits with a 0.2–0.3 MB margin), with c and d in reserve.
+
+## 14. Challenge restructuring (coordinator, FYI)
+
+There will be one unified challenge, **`near-chunk-v3`**, with statement `Rel_D3α`. Soundness transfers down to smaller domains through `rel_mono`, which the D3 lane is writing. Candidates declare the domain they are complete for and return UNSUPPORTED outside it. Ranking is by coverage tier, then by cost.
+
+For this prover:
+* Soundness stays proved against `Rel_D0`. It transfers to `Rel_D3α` via `rel_mono`.
+* Completeness is on `InD0a B0` (A1, A2, Canon0f, A7 `unfoldBytes ≤ B0`, A8).
+* **The verifier returns UNSUPPORTED, never ACCEPT, outside D0.** The claim-level part of the domain is decided natively by `prepClaim`, which is where UNSUPPORTED comes from. Witness-level out-of-domain cases cannot produce an accepting proof, because the AIR enforces `InD0a`.
+* Admission is to `near-chunk-v3` with declared domain D0.
+* Open for assembly: the verifier's three-valued output and its interface. This is to be aligned with the unified challenge's `Expected` template once it is published.
