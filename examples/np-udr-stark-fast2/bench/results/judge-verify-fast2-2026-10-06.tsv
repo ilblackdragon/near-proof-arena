@@ -1,0 +1,14 @@
+c82117cb46db768c
+case	n	prove_s	proof_B	claim	verify	verify_ms	false_claim	mut_proof	trunc
+example-tierA	-	1280ms	2010359	ok	0	988	1	1	1
+example-tierB	-	1119ms	1971123	ok	0	1068	1	1	1
+s20261003-v0	-	6096ms	2267131	ok	0	1320	1	1	1
+s20261003-v1	-	5357ms	2314847	ok	0	1104	1	1	1
+s20261003-v10	-	1909ms	1964771	ok	0	1017	1	1	1
+s20261003-v11	-	32123ms	2618455	ok	0	1558	1	1	1
+s20261003-v12	-	29547ms	2370799	ok	0	12301	1	1	1
+s20261003-v13	-	50308ms	2250515	ok	0	6899	1	1	1
+s20261003-v14	-	2395ms	2121499	ok	0	1007	1	1	1
+s20261003-v15	-	9666ms	2544923	ok	0	1414	1	1	1
+s20261003-v16	-	60336ms	2445651	ok	0	4745	1	1	1
+# stopped after these cases: zkbuild.slice at memory.high 40G (other lanes), prove reclaim-throttled
