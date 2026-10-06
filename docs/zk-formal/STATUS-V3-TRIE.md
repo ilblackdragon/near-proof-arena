@@ -22,7 +22,7 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition | **done** (`PerTau3`: `root_tau`, `build_tau`, `walks_tau`) |
 | M6c | post-root after sets | **done**: `post_tau` (`Link/Post3`), `post_eq_set(s)` (`Link/Post3Spec`), `valsPost_eq_setVals` (`Link/Post3Writes`); open M6d below |
 | M6d | occurrences, reach, post root = iterated `set` | **done**: `occ_le_one`, `reach_walk(_at)`, `find_walk_any`, `post_sets_tau`, `post_sets_walk` (`Link/Post3Occ*`, 76ecb4a8). Interface: `hpl` (account writer), `hperm` (each written value has one keyed write: assembly) |
-| M7 | `upsV3` (option A) | M7a **done** (`root_chain`); M7b **done** (table `Tables/Ups.lean`, budget `BudgetUps.lean`, `UPSV3-DESIGN.md`, model check 2,650 instances, 0 failures; nodeV3 delta in `NodeUpb.lean`, not yet applied); M7c–e (view, render, link) open |
+| M7 | `upsV3` (option A) | M7a **done** (`root_chain`); M7b **done** (table `Tables/Ups.lean`, budget `BudgetUps.lean`, `UPSV3-DESIGN.md`, model check 2,650 instances, 0 failures; nodeV3 delta in `NodeUpb.lean`, not yet applied); M7c: table + nodeV3 UPB/VSLOT deltas + view layer 1 (`ups_view`) **done**, layer 2 (`ups_layout`: segment/parts/fields/shape/messages/byte provenance) **half done** (UPSV3-DESIGN §8.1); M7d (render), M7e (link) open; est. 6–10k lines remaining |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
 
