@@ -17,7 +17,9 @@ record* id `vid` (a segment of `nodeV3`), not by the touched leaf.
 | 20 | `ENT` | `(eid, len, pos, byte)` | `nodeV3` entry with a duplicate → `nodeV3` duplicate (byte copy) |
 | 21 | `VBYTES` | `(vid, pos, byte)` | value parsers (`acct`, `akey`, `sched`, `qvals`, public) → `nodeV3` value record |
 | 22 | `VPARENT` | `(vid, len)` | `nodeV3` value window → value record (permutation, tree-shaped) |
-| 23 | `MEMD` | `(N, i, post_i, pre_i)` | `nodeV3` record on the `0x0f` upsert path → its parent |
+| 23 | `MEMD` | reserved (`upsV3`) | |
+| 18 | `SIZE` | `(table, total)` | `nodeV3`/`valV3` → `size` |
+| 24 | `MIDROOT` | `(τ, d[32])` | `headV3` (lockstep post-root) → `upsV3` |
 -/
 
 namespace ZkFormal.NearV3
@@ -30,6 +32,10 @@ def B_ENT : Nat := 20
 def B_VBYTES : Nat := 21
 def B_VPARENT : Nat := 22
 def B_MEMD : Nat := 23
+def B_SIZE : Nat := 18
+/-- `(τ, d[32])`: lockstep post-root of instance `τ` (head → `upsV3`, which applies the
+`0x0f` upsert and sends `ROOT (τ+1, ·)`). -/
+def B_MIDROOT : Nat := 24
 
 /-- Edge kinds carried by `EDGE` in v3 (`walkV3` decides what a step may conclude). -/
 def EK_DOWN : Nat := 0   -- branch child / START: descent only
