@@ -220,7 +220,10 @@ fn main() {
     }
     if one.contains_key("oracle-v3") {
         oracles = oracles
-            .with_near_v3(PathBuf::from(get("oracle-v3")), &[PathBuf::from(get("generators"))])
+            .with_near_v3(
+                PathBuf::from(get("oracle-v3")),
+                &[PathBuf::from(get("generators"))],
+            )
             .unwrap_or_else(|e| die(format!("near v3 oracle: {e}")));
     }
     let fx = oracles

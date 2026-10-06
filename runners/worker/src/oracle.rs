@@ -383,7 +383,8 @@ impl Oracles {
     /// `near-arena-oracle-v3`) over the generator specs in `dirs` (only specs
     /// whose `tool` is `near-arena-oracle-v3 gen` are used by it).
     pub fn with_near_v3(mut self, oracle_bin: PathBuf, dirs: &[PathBuf]) -> Result<Self, String> {
-        self.oracles.push(Box::new(NearV3Oracle::new(oracle_bin, dirs)?));
+        self.oracles
+            .push(Box::new(NearV3Oracle::new(oracle_bin, dirs)?));
         Ok(self)
     }
 
@@ -1019,7 +1020,6 @@ impl Oracle for NearOracle {
     }
 }
 
-
 /// Read `<dir>/<name>/{request,witness,expected_claim}.bin` case dirs, sorted
 /// by name. `rejections = false`: dirs without `expected_claim.bin` are
 /// skipped (never issued as positives); `true`: every dir is read as an
@@ -1134,7 +1134,11 @@ impl NearV3Oracle {
 
     /// The class's generator args: the spec must be for this tool and class,
     /// and may not set the judge-controlled output options.
-    fn generator_args(&self, spec: &serde_json::Value, class_id: &str) -> Result<Vec<String>, OracleError> {
+    fn generator_args(
+        &self,
+        spec: &serde_json::Value,
+        class_id: &str,
+    ) -> Result<Vec<String>, OracleError> {
         if spec["tool"].as_str() != Some(Self::TOOL) {
             return Err(OracleError::Broken(format!(
                 "fail-closed: generator spec tool {:?} is not {:?} (claim encoding {})",
@@ -1151,9 +1155,20 @@ impl NearV3Oracle {
         }
         let args: Vec<String> = spec["args"]
             .as_array()
-            .map(|a| a.iter().filter_map(|x| x.as_str().map(String::from)).collect())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|x| x.as_str().map(String::from))
+                    .collect()
+            })
             .unwrap_or_default();
-        for judge_owned in ["--seed", "--out", "--d0-target", "--rejection-target", "--no-positives", "--accepted-mutants"] {
+        for judge_owned in [
+            "--seed",
+            "--out",
+            "--d0-target",
+            "--rejection-target",
+            "--no-positives",
+            "--accepted-mutants",
+        ] {
             if args.iter().any(|a| a == judge_owned) {
                 return Err(OracleError::Broken(format!(
                     "fail-closed: generator spec sets the judge-owned option {judge_owned}"
@@ -1240,7 +1255,13 @@ impl Oracle for NearV3Oracle {
             pin.check_params(&p, &chal.runtime_config_digest)
                 .map_err(|e| OracleError::Broken(format!("held-out params.bin: {e}")))?;
         }
-        read_case_dirs(&d.join("cases"), false, &format!("heldout/{class_id}/"), Some(class_id), false)
+        read_case_dirs(
+            &d.join("cases"),
+            false,
+            &format!("heldout/{class_id}/"),
+            Some(class_id),
+            false,
+        )
     }
 
     fn sample(
@@ -1269,7 +1290,13 @@ impl Oracle for NearV3Oracle {
         args.extend(["--d0-target".to_string(), n.to_string()]);
         let seed = seeds.class_seed(class_id)?;
         let cases = self.gen(seed, &args, |d| {
-            read_case_dirs(&d.join("cases"), false, &format!("{class_id}/"), Some(class_id), false)
+            read_case_dirs(
+                &d.join("cases"),
+                false,
+                &format!("{class_id}/"),
+                Some(class_id),
+                false,
+            )
         })?;
         if cases.len() != n {
             return Err(OracleError::Broken(format!(
@@ -1311,7 +1338,9 @@ impl Oracle for NearV3Oracle {
                     match kind.as_deref() {
                         Some("mutant") => mutants.push(c),
                         Some("honest") => ood.push(c),
-                        _ => return Err(OracleError::Broken("rejection case without a kind".into())),
+                        _ => {
+                            return Err(OracleError::Broken("rejection case without a kind".into()))
+                        }
                     }
                 }
                 Ok((ood, mutants))
@@ -1322,7 +1351,11 @@ impl Oracle for NearV3Oracle {
             let (mut a, mut b) = (ood.into_iter(), mutants.into_iter());
             let mut picked = vec![];
             while picked.len() < n {
-                let x = if picked.len() % 2 == 0 { a.next().or_else(|| b.next()) } else { b.next().or_else(|| a.next()) };
+                let x = if picked.len() % 2 == 0 {
+                    a.next().or_else(|| b.next())
+                } else {
+                    b.next().or_else(|| a.next())
+                };
                 match x {
                     Some(c) => picked.push(c),
                     None => break,
@@ -1338,7 +1371,8 @@ impl Oracle for NearV3Oracle {
             set.cases.extend(picked);
         }
         if let Some(h) = heldout {
-            let mut c = read_case_dirs(&h.join("rejections"), false, "heldout-reject/", None, true)?;
+            let mut c =
+                read_case_dirs(&h.join("rejections"), false, "heldout-reject/", None, true)?;
             if c.is_empty() {
                 return Err(OracleError::Coverage(
                     "the committed held-out set has no rejection cases".into(),
@@ -1359,7 +1393,10 @@ impl Oracle for NearV3Oracle {
         fixtures: Option<&Path>,
     ) -> Result<Vec<u8>, OracleError> {
         let f = fixtures.ok_or_else(|| {
-            OracleError::Unavailable(format!("{} needs the public fixtures (params.bin)", Self::FORMAT))
+            OracleError::Unavailable(format!(
+                "{} needs the public fixtures (params.bin)",
+                Self::FORMAT
+            ))
         })?;
         let p = std::fs::read(f.join("params.bin"))
             .map_err(|e| OracleError::Broken(format!("params.bin: {e}")))?;
@@ -1774,12 +1811,20 @@ mod tests {
         // a v1 generator spec under a v3 class is refused before the binary runs
         let mut x = v3.clone();
         x.workload_suite.classes[0].generator = v1.workload_suite.classes[0].generator.clone();
-        let e = o.get(&x).unwrap().sample(&x, &x.workload_suite.classes[0].id.clone(), &seeds(), 1).unwrap_err();
+        let e = o
+            .get(&x)
+            .unwrap()
+            .sample(&x, &x.workload_suite.classes[0].id.clone(), &seeds(), 1)
+            .unwrap_err();
         assert!(e.to_string().contains("near-arena-oracle-v3 gen"), "{e}");
         // a v3 spec of another class is refused
         let mut y = v3.clone();
         y.workload_suite.classes[0].generator = v3.workload_suite.classes[1].generator.clone();
-        let e = o.get(&y).unwrap().sample(&y, &y.workload_suite.classes[0].id.clone(), &seeds(), 1).unwrap_err();
+        let e = o
+            .get(&y)
+            .unwrap()
+            .sample(&y, &y.workload_suite.classes[0].id.clone(), &seeds(), 1)
+            .unwrap_err();
         assert!(e.to_string().contains("not \"d0-quiet\""), "{e}");
         // v1 fixtures' params never pass as v3 params
         let e = o
@@ -1801,8 +1846,11 @@ mod tests {
             return;
         };
         let gens = [repo().join("spec/workloads/near-chunk-validation-d0")];
-        let mut o = Oracles::builtin().with_near_v3(PathBuf::from(bin), &gens).unwrap();
-        o.add_fixtures_dir(&repo().join("oracle/fixtures/v3/arena-public")).unwrap();
+        let mut o = Oracles::builtin()
+            .with_near_v3(PathBuf::from(bin), &gens)
+            .unwrap();
+        o.add_fixtures_dir(&repo().join("oracle/fixtures/v3/arena-public"))
+            .unwrap();
         let v3 = load("challenges/drafts/near-chunk-validation-d0.draft.json");
         let pin = crate::jobs::RequestPin::from_challenge(&v3).unwrap();
         for c in &v3.workload_suite.classes {
@@ -1822,8 +1870,13 @@ mod tests {
             assert_eq!(s.heldout, 3);
             let r = o.rejection_suite(&v3, &seeds(), 4).unwrap();
             assert_eq!(r.heldout, 4);
-            assert!(r.cases.iter().filter(|c| !c.public).all(|c| !c.id.contains("h1")
-                || c.id.starts_with("rejections/") || c.id.starts_with("heldout-reject/")));
+            assert!(r
+                .cases
+                .iter()
+                .filter(|c| !c.public)
+                .all(|c| !c.id.contains("h1")
+                    || c.id.starts_with("rejections/")
+                    || c.id.starts_with("heldout-reject/")));
         }
     }
 }

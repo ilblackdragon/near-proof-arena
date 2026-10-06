@@ -151,15 +151,20 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
     let mut rej_note = None;
     if passed == n {
         let seeds = crate::executor::seeds(r.ctx, &j.ctx);
-        let rej = match r.ctx.oracles.rejection_suite(&j.challenge, &seeds, r.ctx.conformance_samples) {
-            Ok(x) => x,
-            Err(crate::oracle::OracleError::Unavailable(m)) => {
-                conf.note(m);
-                finish(&mut out, conf, rel, res, false);
-                return Ok(out);
-            }
-            Err(e) => return Err(ExecError::Infra(e.to_string())),
-        };
+        let rej =
+            match r
+                .ctx
+                .oracles
+                .rejection_suite(&j.challenge, &seeds, r.ctx.conformance_samples)
+            {
+                Ok(x) => x,
+                Err(crate::oracle::OracleError::Unavailable(m)) => {
+                    conf.note(m);
+                    finish(&mut out, conf, rel, res, false);
+                    return Ok(out);
+                }
+                Err(e) => return Err(ExecError::Infra(e.to_string())),
+            };
         if let Some(pin) = crate::jobs::RequestPin::from_challenge(&j.challenge) {
             for c in &rej.cases {
                 pin.check_case(&c.request, None).map_err(|e| {

@@ -241,7 +241,12 @@ impl RequestPin {
 impl RequestPin {
     /// `near-arena-params-v3` (spec/claim-v3.md §4): `str format ‖ str
     /// statement ‖ u32 pv ‖ str domain_id ‖ hash runtime_config_digest_v3`.
-    fn check_params_v3(&self, params: &[u8], domain: &str, runtime_config: &Digest) -> Result<(), String> {
+    fn check_params_v3(
+        &self,
+        params: &[u8],
+        domain: &str,
+        runtime_config: &Digest,
+    ) -> Result<(), String> {
         let mut p = params;
         fn take2<'a>(p: &mut &'a [u8], n: usize) -> Result<&'a [u8], String> {
             if p.len() < n {
@@ -285,7 +290,10 @@ impl RequestPin {
                 String::from_utf8_lossy(d)
             ));
         }
-        let got: String = take2(&mut p, 32)?.iter().map(|x| format!("{x:02x}")).collect();
+        let got: String = take2(&mut p, 32)?
+            .iter()
+            .map(|x| format!("{x:02x}"))
+            .collect();
         if !p.is_empty() {
             return Err("params: trailing bytes".into());
         }
@@ -444,28 +452,44 @@ mod tests {
         let dir = "oracle/fixtures/v3/arena-public";
         let c = fixture(&format!("{dir}/cases/00-h10024-s0/request.bin"));
         let k = fixture(&format!("{dir}/cases/00-h10024-s0/expected_claim.bin"));
-        let rj = fixture(&format!("{dir}/rejections/00-h10024-s3-hdr.prev_state_root/request.bin"));
+        let rj = fixture(&format!(
+            "{dir}/rejections/00-h10024-s3-hdr.prev_state_root/request.bin"
+        ));
         let pa = fixture(&format!("{dir}/params.bin"));
         p3.check_case(&c, Some(&k)).unwrap();
         p3.check_case(&rj, None).unwrap();
         p3.check_params(&pa, &v3.runtime_config_digest).unwrap();
         // the claim is the request: a different expected claim is refused
         let other = fixture(&format!("{dir}/cases/00-h10006-s3/expected_claim.bin"));
-        assert!(p3.check_case(&c, Some(&other)).unwrap_err().contains("request.bin differs"));
+        assert!(p3
+            .check_case(&c, Some(&other))
+            .unwrap_err()
+            .contains("request.bin differs"));
         // v1 artifacts never pass the v3 pin and vice versa
         let c1 = "oracle/fixtures/public/cases/example-tierA";
-        assert!(p3.check(&fixture(&format!("{c1}/request.bin"))).unwrap_err().contains("format"));
+        assert!(p3
+            .check(&fixture(&format!("{c1}/request.bin")))
+            .unwrap_err()
+            .contains("format"));
         let p1 = RequestPin::from_challenge(&v1).unwrap();
         assert!(p1.check(&c).unwrap_err().contains("format"));
-        assert!(p1.check_params(&pa, &v1.runtime_config_digest).unwrap_err().contains("format"));
+        assert!(p1
+            .check_params(&pa, &v1.runtime_config_digest)
+            .unwrap_err()
+            .contains("format"));
         assert!(p3
-            .check_params(&fixture("oracle/fixtures/public/params.bin"), &v3.runtime_config_digest)
+            .check_params(
+                &fixture("oracle/fixtures/public/params.bin"),
+                &v3.runtime_config_digest
+            )
             .unwrap_err()
             .contains("format"));
         // wrong domain / digest / chain / protocol version
         let mut d1 = v3.clone();
         d1.semantic_scope.name = "near/pv86/chunk-validation/v0#D1".into();
-        let e = RequestPin::from_challenge(&d1).unwrap().check_params(&pa, &v3.runtime_config_digest);
+        let e = RequestPin::from_challenge(&d1)
+            .unwrap()
+            .check_params(&pa, &v3.runtime_config_digest);
         assert!(e.unwrap_err().contains("domain_id"));
         let e = p3.check_params(&pa, &v1.runtime_config_digest);
         assert!(e.unwrap_err().contains("runtime_config_digest"));
@@ -479,6 +503,9 @@ mod tests {
         assert!(e.unwrap_err().contains("protocol_version"));
         let mut trailing = pa.clone();
         trailing.push(0);
-        assert!(p3.check_params(&trailing, &v3.runtime_config_digest).unwrap_err().contains("trailing"));
+        assert!(p3
+            .check_params(&trailing, &v3.runtime_config_digest)
+            .unwrap_err()
+            .contains("trailing"));
     }
 }

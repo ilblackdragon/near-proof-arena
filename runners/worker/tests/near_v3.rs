@@ -44,7 +44,11 @@ fn git_files(rel: &str) -> std::collections::BTreeMap<String, (u32, Vec<u8>)> {
     let mut m = std::collections::BTreeMap::new();
     for l in String::from_utf8(out.stdout).unwrap().lines() {
         let (meta, path) = l.split_once('\t').unwrap();
-        let mode = if meta.starts_with("100755") { 0o755 } else { 0o644 };
+        let mode = if meta.starts_with("100755") {
+            0o755
+        } else {
+            0o644
+        };
         m.insert(
             path.strip_prefix(&format!("{rel}/")).unwrap().to_string(),
             (mode, std::fs::read(repo().join(path)).unwrap()),
@@ -96,7 +100,10 @@ fn v3_env(f: &mut Fixture) -> Option<()> {
         toolchain_image: None,
     };
     let mut o = Oracles::builtin()
-        .with_near_v3(oracle, &[repo().join("spec/workloads/near-chunk-validation-d0")])
+        .with_near_v3(
+            oracle,
+            &[repo().join("spec/workloads/near-chunk-validation-d0")],
+        )
         .unwrap();
     let clean = f.tmp.path().join("clean");
     let fx = o
@@ -106,8 +113,9 @@ fn v3_env(f: &mut Fixture) -> Option<()> {
         o.add_heldout_dir(Path::new(&h)).unwrap();
     }
     f.exec.ctx.oracles = o;
-    f.chal = serde_json::from_slice::<ChallengeDefinition>(&std::fs::read(repo().join(DRAFT)).unwrap())
-        .unwrap();
+    f.chal =
+        serde_json::from_slice::<ChallengeDefinition>(&std::fs::read(repo().join(DRAFT)).unwrap())
+            .unwrap();
     assert_eq!(f.chal.claim_encoding.format, "near-arena-claim-v3");
     assert_eq!(fx, f.chal.workload_suite.public_fixtures, "v3 fixture pin");
     let commit = std::env::var("ARENA_V3_TRUSTED_COMMIT").unwrap_or_else(|_| "HEAD".into());
@@ -165,7 +173,10 @@ fn package(f: &Fixture) -> std::collections::BTreeMap<String, (u32, Vec<u8>)> {
 fn run(f: &Fixture, spec: JobSpec) -> JobResult {
     let t = std::time::Instant::now();
     let kind = spec.kind();
-    let r = f.exec.execute(&spec, "near-v3", &AtomicBool::new(false)).unwrap();
+    let r = f
+        .exec
+        .execute(&spec, "near-v3", &AtomicBool::new(false))
+        .unwrap();
     eprintln!("{kind}: {:?}", t.elapsed());
     for g in &r.gates {
         eprintln!(
@@ -183,14 +194,34 @@ fn all_stages(f: &Fixture, tier: arena_types::challenge::Tier) {
     let pkg = f.put(&tar_of(&package(f)));
     let mut c = ctx(f, &pkg);
     c.tier = tier;
-    let v = run(f, JobSpec::Validate(ValidateJob { ctx: c.clone(), challenge: f.chal.clone() }));
-    assert_eq!(v.gates[0].status, GateStatus::Pass, "{}", v.gates[0].summary);
+    let v = run(
+        f,
+        JobSpec::Validate(ValidateJob {
+            ctx: c.clone(),
+            challenge: f.chal.clone(),
+        }),
+    );
+    assert_eq!(
+        v.gates[0].status,
+        GateStatus::Pass,
+        "{}",
+        v.gates[0].summary
+    );
     let manifest = v.manifest.unwrap();
     let b = run(
         f,
-        JobSpec::Build(BuildJob { ctx: c.clone(), challenge: f.chal.clone(), manifest: manifest.clone() }),
+        JobSpec::Build(BuildJob {
+            ctx: c.clone(),
+            challenge: f.chal.clone(),
+            manifest: manifest.clone(),
+        }),
     );
-    assert_eq!(b.gates[0].status, GateStatus::Pass, "{}", b.gates[0].summary);
+    assert_eq!(
+        b.gates[0].status,
+        GateStatus::Pass,
+        "{}",
+        b.gates[0].summary
+    );
     let mut build = b.build.unwrap();
     let vs = VerifiedSurface {
         challenge_id: challenge_id(f),
@@ -202,8 +233,14 @@ fn all_stages(f: &Fixture, tier: arena_types::challenge::Tier) {
         checker_image: f.chal.toolchain_policy.checker_image.clone(),
         verify_route: manifest.entry.verify_route,
         verifier_bytecode: build.verifier_bytecode.clone(),
-        verifier_model: manifest.formal.as_ref().and_then(|f| f.verifier_model.clone()),
-        verifier_model_module: manifest.formal.as_ref().and_then(|f| f.verifier_model_module.clone()),
+        verifier_model: manifest
+            .formal
+            .as_ref()
+            .and_then(|f| f.verifier_model.clone()),
+        verifier_model_module: manifest
+            .formal
+            .as_ref()
+            .and_then(|f| f.verifier_model_module.clone()),
     };
     let fc = run(
         f,
@@ -220,8 +257,17 @@ fn all_stages(f: &Fixture, tier: arena_types::challenge::Tier) {
             assert_eq!(g.status, GateStatus::Pass, "{:?}: {}", g.gate, g.summary);
         }
     }
-    build.native_verifier = Some(fc.native_verifier.clone().expect("judge-built native verifier"));
-    let job = ExecJob { ctx: c, challenge: f.chal.clone(), manifest, build };
+    build.native_verifier = Some(
+        fc.native_verifier
+            .clone()
+            .expect("judge-built native verifier"),
+    );
+    let job = ExecJob {
+        ctx: c,
+        challenge: f.chal.clone(),
+        manifest,
+        build,
+    };
     let conf = run(f, JobSpec::Conformance(job.clone()));
     for g in &conf.gates {
         assert_eq!(g.status, GateStatus::Pass, "{:?}: {}", g.gate, g.summary);
@@ -229,11 +275,24 @@ fn all_stages(f: &Fixture, tier: arena_types::challenge::Tier) {
     let s = &gate(&conf, ObligationId::ConformanceDifferential).summary;
     assert!(s.contains("78 public fixtures"), "{s}");
     assert!(s.contains("judge-sampled"), "{s}");
-    assert!(s.contains("rejection case(s)") && s.contains(" 0 accepted"), "{s}");
+    assert!(
+        s.contains("rejection case(s)") && s.contains(" 0 accepted"),
+        "{s}"
+    );
     let a = run(f, JobSpec::Adversarial(job.clone()));
-    assert_eq!(a.gates[0].status, GateStatus::Pass, "{}", a.gates[0].summary);
+    assert_eq!(
+        a.gates[0].status,
+        GateStatus::Pass,
+        "{}",
+        a.gates[0].summary
+    );
     let r = run(f, JobSpec::Benchmark(job));
-    assert_eq!(r.gates[0].status, GateStatus::Pass, "{}", r.gates[0].summary);
+    assert_eq!(
+        r.gates[0].status,
+        GateStatus::Pass,
+        "{}",
+        r.gates[0].summary
+    );
 }
 
 #[test]
@@ -256,11 +315,21 @@ fn accept_all_verifier_fails_on_rejection_cases() {
     }
     let pkg = f.put(&tar_of(&package(&f)));
     let c = ctx(&f, &pkg);
-    let v = run(&f, JobSpec::Validate(ValidateJob { ctx: c.clone(), challenge: f.chal.clone() }));
+    let v = run(
+        &f,
+        JobSpec::Validate(ValidateJob {
+            ctx: c.clone(),
+            challenge: f.chal.clone(),
+        }),
+    );
     let manifest = v.manifest.unwrap();
     let b = run(
         &f,
-        JobSpec::Build(BuildJob { ctx: c.clone(), challenge: f.chal.clone(), manifest: manifest.clone() }),
+        JobSpec::Build(BuildJob {
+            ctx: c.clone(),
+            challenge: f.chal.clone(),
+            manifest: manifest.clone(),
+        }),
     );
     let mut build = b.build.unwrap();
     // A judge "native verifier" that accepts everything (test-only stand-in
@@ -271,9 +340,19 @@ fn accept_all_verifier_fails_on_rejection_cases() {
     std::fs::set_permissions(&accept_all, std::fs::Permissions::from_mode(0o755)).unwrap();
     let bytes = std::fs::read(&accept_all).unwrap();
     build.native_verifier = Some(f.put(&bytes));
-    let job = ExecJob { ctx: c, challenge: f.chal.clone(), manifest, build };
+    let job = ExecJob {
+        ctx: c,
+        challenge: f.chal.clone(),
+        manifest,
+        build,
+    };
     let conf = run(&f, JobSpec::Conformance(job));
     let g = gate(&conf, ObligationId::ConformanceDifferential);
     assert_eq!(g.status, GateStatus::Fail, "{}", g.summary);
-    assert!(g.reason_codes.contains(&arena_types::ReasonCode::CounterexampleFound), "{:?}", g.reason_codes);
+    assert!(
+        g.reason_codes
+            .contains(&arena_types::ReasonCode::CounterexampleFound),
+        "{:?}",
+        g.reason_codes
+    );
 }
