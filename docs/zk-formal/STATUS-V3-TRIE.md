@@ -22,7 +22,7 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition | **done** (`PerTau3`: `root_tau`, `build_tau`, `walks_tau`) |
 | M6c | post-root after sets | **done**: `post_tau` (`Link/Post3`), `post_eq_set(s)` (`Link/Post3Spec`), `valsPost_eq_setVals` (`Link/Post3Writes`); open M6d below |
 | M6d | occurrences, reach, post root = iterated `set` | **done**: `occ_le_one`, `reach_walk(_at)`, `find_walk_any`, `post_sets_tau`, `post_sets_walk` (`Link/Post3Occ*`, 76ecb4a8). Interface: `hpl` (account writer), `hperm` (each written value has one keyed write: assembly) |
-| M7 | `upsV3` (option A) | open |
+| M7 | `upsV3` (option A) | M7a **done** (`root_chain`); M7b **done** (table `Tables/Ups.lean`, budget `BudgetUps.lean`, `UPSV3-DESIGN.md`, model check 2,650 instances, 0 failures; nodeV3 delta in `NodeUpb.lean`, not yet applied); M7c–e (view, render, link) open |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
 
@@ -343,6 +343,28 @@ This deviates (**approved**) from option A as first written (`Q` as `nodeV3` rec
 segments of `upsV3` itself. `nodeV3` changes only by `UPB` plus `mU` (one interaction, one
 column). Why: copying into `nodeV3` records would need per-row offset columns in `nodeV3`
 and a re-port of its view, whereas `upsV3` writes only the fixed shapes of ≤ 6 nodes.
+
+### 2.3.3 M7b result (see `UPSV3-DESIGN.md`)
+
+| table | width | interactions | W_eq g=1 | W_eq g=3 |
+|---|---:|---:|---:|---:|
+| `upsV3` | 176 | 15 | 320 | 280 |
+| `nodeV3` with `UPB` delta | 186 | 20 | 370 | 298 |
+| lane total (6 tables) | | | 1175 | 1063 |
+
+* **Cases:** 11 cases, at most 4 new nodes (`j ≤ 4`).
+* **Path walk:** `upsV3` walks `[0,15]` from the head's `START` edge.
+* **Copies:** sources are only the walked path records `N_d`, read through
+  `UPB (NPOST(n), pos, pb, len, depth, u)`.
+* **`memory_usage`:** exact Nat value, passed to the parent on `MEMD (τ, j, i, new, old, qlen)`.
+
+**Deviations, pending lead sign-off:**
+1. **`UPB` carries `len` and `depth`.**
+   * `depth(N_d) = d` rejects path records reached by skipping empty-key extensions.
+   * As a consequence, tries with empty-key extensions on the `[0,15]` path are **not
+     supported (completeness)**. nearcore never builds them, and unbounded chains could not be
+     handled in bounded rows anyway.
+2. **The `MEMD` bus (23) is used.**
 
 ### 2.4 Walks
 
