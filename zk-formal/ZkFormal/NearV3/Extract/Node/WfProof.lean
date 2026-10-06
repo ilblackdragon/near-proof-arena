@@ -1,7 +1,7 @@
 import ZkFormal.NearV3.Extract.Node.Main
 
 /-!
-# ZkFormal.Near.Extract.NodeWfProof — local well-formedness of the node view
+# ZkFormal.NearV3.Extract.Node.WfProof — local well-formedness of the node view
 -/
 
 namespace ZkFormal.NearV3.NodeProof3
@@ -13,13 +13,16 @@ theorem win_lt (tr : Trace Fp) (col : Nat → Nat) (r : Nat) : ∀ x ∈ win tr 
 theorem rowsB_lt (tr : Trace Fp) (c r n : Nat) : ∀ x ∈ rowsB tr c r n, x < P := by
   intro x hx; unfold rowsB at hx; rw [List.mem_map] at hx; obtain ⟨i, -, rfl⟩ := hx; exact cv_lt _ _ _ _
 
-theorem slotOf_wf (tr : Trace Fp) (s rV rH : Nat) : (slotOf tr s rV rH).wf ∧ ∀ x ∈ (slotOf tr s rV rH).raw, x < P := by
+theorem slotOf_raw (tr : Trace Fp) (s rV rH : Nat) : ∀ x ∈ (slotOf tr s rV rH).raw, x < P := by
   unfold slotOf; split
-  · refine ⟨⟨win_length _ _ _, win_length _ _ _⟩, ?_⟩
-    intro x hx; simp only [NSlot.raw, List.mem_append] at hx
-    rcases hx with h | h <;> exact win_lt _ _ _ x h
-  · refine ⟨⟨rowsB_length _ _ _ _, win_length _ _ _⟩, ?_⟩
-    intro x hx; simp only [NSlot.raw, List.mem_append] at hx
+  · intro x hx; simp only [NSlot3.raw, List.mem_append, List.mem_cons, List.not_mem_nil, or_false] at hx
+    rcases hx with (((h | h | h) | h) | h)
+    · exact rowsB_lt _ _ _ _ x h
+    · subst h; exact cv_lt _ _ _ _
+    · subst h; exact cv_lt _ _ _ _
+    · exact win_lt _ _ _ x h
+    · exact win_lt _ _ _ x h
+  · intro x hx; simp only [NSlot3.raw, List.mem_append] at hx
     rcases hx with h | h
     · exact rowsB_lt _ _ _ _ x h
     · exact win_lt _ _ _ x h
@@ -41,6 +44,32 @@ variable {tr : Trace Fp} {pub : List Fp}
 variable (hL : TableLocal NodeV3.table tr T_NODE pub)
 include hL
 variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+/-- A value slot (`VLEN` field at `oV`, `VH` window at `oH`) is well formed. -/
+theorem slotOf_wf (hC : NodeCtx tr s ℓ fl) {oV oH : Nat} (hV : (oV, 4) ∈ fl) (sV : tr.cell T_NODE (s + oV) sVLEN = 1)
+    (hH : (oH, 32) ∈ fl) (sH : tr.cell T_NODE (s + oH) sVH = 1) : (slotOf tr s (s + oV) (s + oH)).wf := by
+  obtain ⟨FV, HV⟩ := fieldAt hL hC hV
+  obtain ⟨FH, HH⟩ := fieldAt hL hC hH
+  have inV : oV + 4 ≤ ℓ := (hC.fields.field _ hV).2
+  have inH : oH + 32 ≤ ℓ := (hC.fields.field _ hH).2
+  have hr0 := (nodeStart hL hC).1
+  unfold slotOf; split
+  · rename_i htv
+    have htv3 : tr.cell T_NODE (s + oV + 3) tv = 1 := by
+      rw [show s + oV + 3 = s + (oV + 3) by omega, segConst hL hC (by simp [nodeConst]) (by omega)]; exact of_cv_one htv
+    obtain ⟨V1, V2⟩ := vlenVal hL FV (by omega) sV htv3
+    have hvl : cv tr T_NODE (s + oV + 3) vlen = cv tr T_NODE s vlen := by
+      unfold cv; rw [show s + oV + 3 = s + (oV + 3) by omega, segConst hL hC (by simp [nodeConst]) (by omega)]
+    refine ⟨rowsB_length _ _ _ _, win_length _ _ _, win_length _ _ _, fun hw => ?_, V1, fun hb => by rw [V2 hb, hvl]⟩
+    have hw0 : tr.cell T_NODE (s + oH) tw = 0 := by
+      rw [segConst hL hC (by simp [nodeConst]) (by omega)]
+      rcases isBool hL hr0 (x := tw) (by simp [boolCols]) with h | h
+      · exact h
+      · simp [cv_one h] at hw
+    have hfs : tr.cell T_NODE (s + oH) fs = 1 := by simpa using (FH.fs 0 (by omega)).2 rfl
+    unfold win; apply List.map_congr_left; intro i hi; rw [List.mem_range] at hi
+    unfold cv; rw [(winLoad hL (by omega) hfs i hi).2 sH hw0]
+  · exact ⟨rowsB_length _ _ _ _, win_length _ _ _⟩
 
 theorem keyNibs_lt (hC : NodeCtx tr s ℓ fl) (hlt : tr.cell T_NODE s tl + tr.cell T_NODE s te = 1) :
     ∀ x ∈ keyNibs tr s, x < 16 := by
@@ -70,6 +99,7 @@ theorem keyNibs_lt (hC : NodeCtx tr s ℓ fl) (hlt : tr.cell T_NODE s tl + tr.ce
     · exact (nb (s + 6 + m) (by omega) (by omega)).1
     · exact (nb (s + 6 + m) (by omega) (by omega)).2
 
+set_option maxHeartbeats 1000000 in
 theorem nodeV_wf (hC : NodeCtx tr s ℓ fl) : (nodeVOf tr s).wf ∧ ∀ x ∈ (nodeVOf tr s).raw, x < P := by
   obtain ⟨hr0, ha0⟩ := nodeStart hL hC
   have T := typeSumNat hL hr0 ha0
@@ -78,12 +108,14 @@ theorem nodeV_wf (hC : NodeCtx tr s ℓ fl) : (nodeVOf tr s).wf ∧ ∀ x ∈ (n
   · rw [if_pos h1]
     have hte := typeZeros hL hC (x := tl) (y := te) (by simp) (of_cv_one h1) (by simp) (by decide)
     have K := keyNibs_lt hL hC (by rw [of_cv_one h1, hte]; exact fp_add_zero' rfl)
-    obtain ⟨sw, sr⟩ := slotOf_wf tr s (s + (5 + cv tr T_NODE s hplen)) (s + (9 + cv tr T_NODE s hplen))
+    obtain ⟨-, -, hfl, -, -, -, -, -, sV, sVH, -⟩ := leafFields hL hC (of_cv_one h1)
+    have sw := slotOf_wf hL hC (hfl ▸ (by simp [leafFL] : (5 + cv tr T_NODE s hplen, 4) ∈ leafFL _)) sV
+      (hfl ▸ (by simp [leafFL] : (9 + cv tr T_NODE s hplen, 32) ∈ leafFL _)) sVH
     refine ⟨⟨K, sw, rowsB_length _ _ _ _⟩, ?_⟩
-    intro x hx; simp only [NodeV.raw, List.mem_append] at hx
+    intro x hx; simp only [NodeV3.raw, List.mem_append] at hx
     rcases hx with (h | h) | h
     · have := K x h; unfold P; omega
-    · exact sr x h
+    · exact slotOf_raw tr _ _ _ x h
     · exact rowsB_lt _ _ _ _ x h
   rw [if_neg h1]
   by_cases h2 : cv tr T_NODE s te = 1
@@ -92,12 +124,17 @@ theorem nodeV_wf (hC : NodeCtx tr s ℓ fl) : (nodeVOf tr s).wf ∧ ∀ x ∈ (n
     have K := keyNibs_lt hL hC (by rw [of_cv_one h2, htl0]; exact fp_zero_add' rfl)
     obtain ⟨kn, kw, kr⟩ := kidOf_wf tr (s + (5 + cv tr T_NODE s hplen))
     refine ⟨⟨K, kn, kw, rowsB_length _ _ _ _⟩, ?_⟩
-    intro x hx; simp only [NodeV.raw, List.mem_append] at hx
+    intro x hx; simp only [NodeV3.raw, List.mem_append] at hx
     rcases hx with (h | h) | h
     · have := K x h; unfold P; omega
     · exact kr x h
     · exact rowsB_lt _ _ _ _ x h
   rw [if_neg h2]
+  have hb : tr.cell T_NODE s tb1 + tr.cell T_NODE s tb2 = 1 := by
+    have b1 := cvb hL hr0 (x := tb1) (by simp [boolCols])
+    have b2 := cvb hL hr0 (x := tb2) (by simp [boolCols])
+    rw [cell_eq_cast tr T_NODE s tb1, cell_eq_cast tr T_NODE s tb2, ← natCast_add,
+      show cv tr T_NODE s tb1 + cv tr T_NODE s tb2 = 1 by omega]; rfl
   have kidsW : ∀ kd ∈ kidsOf tr s (brOff tr s), kd.wf ∧ ∀ x ∈ kd.raw, x < P := by
     intro kd hkd; unfold kidsOf at hkd; rw [List.mem_map] at hkd; obtain ⟨j, -, rfl⟩ := hkd
     split
@@ -105,15 +142,45 @@ theorem nodeV_wf (hC : NodeCtx tr s ℓ fl) : (nodeVOf tr s).wf ∧ ∀ x ∈ (n
     · exact ⟨trivial, by simp [NKid.raw]⟩
   refine ⟨⟨by simp [kidsOf], fun sl hsl => ?_, fun kd hkd => (kidsW kd hkd).1, rowsB_length _ _ _ _⟩, ?_⟩
   · split at hsl
-    · simp at hsl; subst hsl; exact (slotOf_wf tr _ _ _).1
+    · rename_i hb2
+      simp at hsl; subst hsl
+      have B := brFields hL hC hb
+      simp only at B
+      rw [← brOff_eq hL hC] at B
+      obtain ⟨hfl, -, -, sVV, -⟩ := B
+      have h37 : brOff tr s = 37 := by unfold brOff; rw [if_pos hb2]
+      obtain ⟨sV, sH⟩ := sVV h37
+      exact slotOf_wf hL hC (hfl ▸ (by simp [brFL, h37] : (1, 4) ∈ brFL (brOff tr s) (popN tr s))) sV
+        (hfl ▸ (by simp [brFL, h37] : (5, 32) ∈ brFL (brOff tr s) (popN tr s))) sH
     · simp at hsl
-  · intro x hx; simp only [NodeV.raw, List.mem_append] at hx
+  · intro x hx; simp only [NodeV3.raw, List.mem_append] at hx
     rcases hx with (h | h) | h
     · split at h
-      · simp at h; exact (slotOf_wf tr _ _ _).2 x h
+      · simp at h; exact slotOf_raw tr _ _ _ x h
       · simp at h
     · rw [List.mem_flatMap] at h; obtain ⟨kd, hkd, h⟩ := h; exact (kidsW kd hkd).2 x h
     · exact rowsB_lt _ _ _ _ x h
+
+/-- `depth + 112` is a 9-bit value on the node's first row. -/
+theorem depthBound (hC : NodeCtx tr s ℓ fl) : cv tr T_NODE s depth < 400 ∨ P - 112 ≤ cv tr T_NODE s depth := by
+  obtain ⟨hr0, ha0⟩ := nodeStart hL hC
+  have hnf : tr.cell T_NODE s nf = 1 := by have := hC.seg.2.1; rwa [one_iff] at this
+  have c1 := con hL hr0 (e := .mul (c nf) (sub (.add (c depth) (k 112)) depE))
+    (by simp [NodeV3.constraints, NodeV3.cRows])
+  obtain ⟨-, -, hh, hl⟩ := nibs hL hr0 (pub := pub)
+  have bd := cvb hL hr0 (x := dbit8) (by simp [boolCols])
+  have hlt := (nibs hL hr0 (pub := pub)).1
+  have llt := (nibs hL hr0 (pub := pub)).2.1
+  simp only [eval_mul, eval_c, eval_sub, eval_add, eval_k, depE, eval_smul, hh, hl, hnf] at c1
+  have E : tr.cell T_NODE s depth + ((112 : Nat) : Fp) =
+      ((hiN tr s + 16 * loN tr s + 256 * cv tr T_NODE s dbit8 : Nat) : Fp) := by
+    rw [natCast_add, natCast_add, natCast_mul, natCast_mul, cast_cv]; grind
+  rw [cell_eq_cast tr T_NODE s depth, ← natCast_add] at E
+  by_cases hp : cv tr T_NODE s depth + 112 < P
+  · left
+    have := fp_cast_eq hp (by unfold P; omega) E
+    omega
+  · right; omega
 
 end ZkFormal.NearV3.NodeProof3
 
@@ -144,9 +211,9 @@ variable (hL : TableLocal NodeV3.table tr T_NODE pub)
 include hL
 variable {s ℓ : Nat} {fl : List (Nat × Nat)}
 
-theorem usesLen (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) (hnP : n < P)
-    (h0 : s = 0 ↔ n = 0) : (nodeSOf tr pub s ℓ).uses.length = (edgesOf n (nodeSOf tr pub s ℓ)).length := by
-  rw [← nodeEdgesAll hL hC hn hnP h0]; simp [nodeSOf]
+theorem usesLen (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) (hnP : n < P) :
+    (nodeSOf tr pub s ℓ).uses.length = (edgesOf3 n (nodeSOf tr pub s ℓ)).length := by
+  rw [← nodeEdgesAll hL hC hn hnP]; simp [nodeSOf]
 
 set_option maxHeartbeats 1000000 in
 theorem resOkNode (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) (hnP : n < P) :
@@ -155,19 +222,19 @@ theorem resOkNode (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s ni
   have T := typeSumNat hL hr0 ha0
   have G := linkGates hL hr0
   simp only at G
-  obtain ⟨-, -, Geext, Gdead, -, -, -, -, G1, G2, G3, -, -⟩ := G
+  obtain ⟨-, -, -, -, -, -, -, Geext, -, -, -, -, -, -, -, -, -, G1, G2, G3, -, -⟩ := G
   rw [ha0] at G1
   have resN : tr.cell T_NODE s eext = 0 → cv tr T_NODE s res = n := by
     intro he; rw [he, show (1 : Fp) - 0 = 1 by decide, fp_one_mul'] at G1
     exact cv_of_eq ((fp_sub_zero_eq G1).trans hn) hnP
-  unfold NodeS.resOk nodeSOf
+  unfold NodeS3.resOk nodeSOf
   simp only
   by_cases h2 : cv tr T_NODE s te = 1
   · have ht := of_cv_one h2
     have htl : cv tr T_NODE s tl ≠ 1 := by omega
     obtain ⟨hh1, hnk, hfl, -, -, -, -, -, sC, -⟩ := extFields hL hC ht
     have hm : (5 + cv tr T_NODE s hplen, 32) ∈ fl := hfl ▸ (by simp [extFL])
-    obtain ⟨Krv, Kres, Kdead, Klast⟩ := extKid hL hC ht hm sC
+    obtain ⟨Krv, Kres, Kdead, Klast, -, -⟩ := extKid hL hC ht (pub := pub) hm sC
     unfold nodeVOf; rw [if_neg htl, if_pos h2]
     have bo := cvb hL hr0 (x := odd) (by simp [boolCols])
     have bk := cvb hL hr0 (x := nokey) (by simp [boolCols])
@@ -215,40 +282,5 @@ theorem resOkNode (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s ni
     by_cases h1 : cv tr T_NODE s tl = 1
     · rw [if_pos h1]; exact resN hE
     · rw [if_neg h1, if_neg h2]; exact resN hE
-
-end ZkFormal.NearV3.NodeProof3
-
-namespace ZkFormal.NearV3.NodeProof3
-open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.NodeV3 ZkFormal.Near
-
-def szOf (tr : Trace Fp) (p : Nat × Nat) : Nat := p.2 + 72 * cv tr T_NODE p.1 tv
-
-variable {tr : Trace Fp} {pub : List Fp}
-variable (hL : TableLocal NodeV3.table tr T_NODE pub)
-include hL
-variable {s ℓ : Nat} {fl : List (Nat × Nat)}
-
-theorem szNode (hC : NodeCtx tr s ℓ fl) (hlt : s + ℓ < tr.height T_NODE) :
-    tr.cell T_NODE (s + ℓ) sz = tr.cell T_NODE s sz + ((ℓ + 72 * cv tr T_NODE s tv : Nat) : Fp) := by
-  have hp := hC.seg.1
-  have inner : ∀ d, d < ℓ → tr.cell T_NODE (s + d) sz = tr.cell T_NODE s sz + ((d : Nat) : Fp) := by
-    intro d; induction d with
-    | zero => intro _; simp only [Nat.add_zero]; rw [show ((0 : Nat) : Fp) = 0 from rfl]; grind
-    | succ d ih =>
-      intro hd
-      have Z := (sizeFacts hL (r := s + d) (by omega)).1 (by omega)
-      have hnl : tr.cell T_NODE (s + d) nl = 0 :=
-        zero_of hL (by omega) (by simp [boolCols]) (hC.seg.2.2.2.2.2 (s + d) (by omega) (by omega))
-      rw [segAct hL hC (by omega), hnl, show s + d + 1 = s + (d + 1) by omega] at Z
-      rw [Z, ih (by omega), natCast_add]; grind
-  have hl := hC.seg.2.2.1; rw [one_iff] at hl
-  have Z := (sizeFacts hL (r := s + ℓ - 1) (by omega)).1 (by omega)
-  rw [show s + ℓ - 1 = s + (ℓ - 1) by omega] at Z hl
-  have htv : tr.cell T_NODE (s + (ℓ - 1)) tv = tr.cell T_NODE s tv := segConst hL hC (x := tv) (by simp [nodeConst]) (by omega)
-  rw [segAct hL hC (by omega), hl, show s + (ℓ - 1) + 1 = s + ℓ by omega, inner (ℓ - 1) (by omega),
-    htv, cell_eq_cast tr T_NODE s tv] at Z
-  rw [Z, natCast_add, natCast_mul, show ℓ = (ℓ - 1) + 1 by omega, natCast_add]
-  simp only [show ℓ - 1 + 1 - 1 = ℓ - 1 by omega]
-  grind
 
 end ZkFormal.NearV3.NodeProof3
