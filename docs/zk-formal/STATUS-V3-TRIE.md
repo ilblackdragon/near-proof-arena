@@ -18,7 +18,9 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M4 | node side split into `nodeV3` / `headV3` / `valV3`: tables, kernel-checked budget; `headV3` view + render; `valV3` view + render; `nodeV3` view **statement** | **done** except as noted |
 | M5a | `nodeV3` view proof (v1's `Extract/Node*` adapted: `Extract/Node/*.lean`, 21 modules) | **done**: `node3_view : NodeV3ViewStmt` |
 | M5b | `nodeV3` render | **done**: `node_render_local`, `node_render_traffic` (`Render/Node/Local.lean`, `Traffic.lean`; 5df77df2) |
-| M6 | `upsV3` (`0x0f` upsert incl. insertion, `memory_usage`), link layer (trie of τ hashes to root, finds/absents, post-root) | **open** |
+| M6a | link layer: per-τ DAG, record bytes = preimages, walks ⇒ find/absent | **done** (pieces; §3) |
+| M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition, post-root after sets | open |
+| M7 | `upsV3` (option A) | open |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
 
@@ -295,6 +297,7 @@ role clashes are covered because value records live in the same `ENT` space.
 | `valV3` | `ValViewStmt` / **`val_view`** (`Extract/ValProof.lean`) | **`val_render_local`, `val_render_traffic`** (`Render/Val*.lean`) | open |
 | `nodeV3` | `NodeV3ViewStmt` / **`node3_view`** (`Extract/Node/Proof.lean`; per-node lemmas `leafEdges`, `extEdges`, `brEdges`, `nodeDigs`, `nodeEnt`, `nodeDPVB`, `nodeAll`; global `nodeTrafficOf` incl. the `SUM` row's `SIZE` total, `nodeWfOf` incl. `depthBound`) | **`node_render_local`, `node_render_traffic`** (`Render/Node/*.lean`; hypotheses `NodeOk vs`, honest height `logOf (Σ |ser false| + 1)`) | open |
 | spec | **`UnfoldBound`, `treeRecs_bytes_le`** (`Spec/TreeRecs.lean`) | | |
+| link | | | **`kid_link`, `head_link`, `depth_lt`, `kid_depth`** (`Link/Parent3`); **`val_link`, `val_unique`** (`Link/Vals3`); **`rootedDag3`, `rk_lt`, `rec_wf`** (`Link/Dag3`); **`enc_tree`, `enc_fullTree`** (`Link/NodeHash3`); **`walk3_find`, `walk3_pos`** (`Link/Walk3*`, helper; hypotheses `hT` walk rows < P and `hsym` no START after row 0 to be discharged from KEYNIB/height) |
 | spec | **`storeBuildR`, `pathsRevealed_of_rank`, `hashFunctional_of_weakUniq`, `treeRecs_spec`** | | |
 
 Render theorems are stated for any trace whose table `t` has the generator's cells
@@ -328,6 +331,8 @@ counted.
   root handling, value windows, sizes change).
 
 ## 6. Open items
+
+0. **Fixed soundness gap (d153d30f)**: `valV3` ids had no start, so `VPRE(vid) ≡ NPRE(c) mod P` was choosable (id-space collision on BYTES/ENT/DIGEST). Now `isFirst·vid = 0`, `ValWf.first`.
 
 1. ~~`nodeV3` render~~ done (`NodeOk` adds: depth < 400, key length < 510, value length bytes < 256, rows Σ+1 ≤ 2^22 — the last is where `UnfoldBound` enters).
 2. **Link layer**: ROOT/MIDROOT chain; trie of instance τ = records (tree via `PARENT` +
