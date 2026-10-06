@@ -1,0 +1,29 @@
+# DEVELOPMENT project: builds the certificate (../../formal) against the
+# vendored trusted packages and the judge-local Expected emulation. The
+# deployed verifier is built by build-recipe/build.sh (judge layout).
+name = "reexec-v3-d2-verifier"
+version = "0.1.0"
+defaultTargets = ["ReexecV3D2"]
+
+[[lean_lib]]
+name = "ReexecV3D2"
+srcDir = "../../formal"
+globs = ["ReexecV3D2.+"]
+
+[[require]]
+name = "NearSpecV3"
+path = "../lean-vendor/spec/lean/v3"
+
+[[require]]
+name = "NearSpec"
+path = "../lean-vendor/spec/lean"
+
+[[require]]
+name = "ArenaCore"
+path = "../lean-vendor/formal-core"
+
+# LOCAL EMULATION of the judge-generated Expected modules (judge-local/render.py).
+[[lean_lib]]
+name = "ArenaExpected"
+srcDir = "../../judge-local/out"
+roots = ["ArenaExpected", "ArenaExpectedInst"]
