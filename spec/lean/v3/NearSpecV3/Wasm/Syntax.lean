@@ -4,7 +4,9 @@
 Part of the D3 executable specification (`docs/requirements/D3_WASM_REQUIREMENTS.md` v0.2 §2.1).
 Target: what nearcore 2.13.4 accepts at PV86 (`docs/research/near-wasm-boundary.md` B4): WebAssembly
 MVP + mutable globals + sign-extension + saturating float→int + reference types + bulk memory, one
-memory, at most one table, no multi-value. Floats are **out of domain in D3α**: the decoder parses
+memory, at most one table, no multi-value. **`externref` is rejected**: finite-wasm 0.6.1 passes
+`gc_types = false` (`features.rs:102`), and wasmparser 0.228 then admits only `funcref`
+(`validator.rs:286-290`). `VT.externref` exists only so the decoder can name what it rejects. Floats are **out of domain in D3α**: the decoder parses
 float types/opcodes (`VT.f32/.f64`, `Instr.float`) only so that `InD3α` can recognise and reject them.
 
 Function bodies are *flat* operator arrays (as wasmparser/finite-wasm see them): NEAR's gas
@@ -101,6 +103,8 @@ inductive SegMode where
   deriving Repr, Inhabited
 
 structure Elem where
+  /-- binary encoding form 0‥7 (re-encoding preserves it, `wasm-encoder` `ElementSection::segment`) -/
+  flag : Nat := 0
   type : VT
   mode : SegMode
   init : Array ConstE
@@ -119,6 +123,8 @@ structure Func where
   code : Array Instr
   /-- byte size of the code-section entry (for `max_function_body_size`) -/
   bodySize : Nat
+  /-- original encoded length of each operator (instrumentation copies most operators verbatim) -/
+  opLens : Array Nat := #[]
   deriving Inhabited
 
 structure Module where
@@ -135,6 +141,9 @@ structure Module where
   dataCount : Option Nat := none
   funcs : Array Func := #[]
   datas : Array Data := #[]
+  /-- payload sizes of the sections nearcore's instrumentation copies verbatim
+  (table 4, data count 12, data 11), `instrument_v3.rs:344-359, 400-407, 422-433` -/
+  rawSizes : Array (Nat × Nat) := #[]
   deriving Inhabited
 
 def Func.locals (f : Func) : Array VT :=

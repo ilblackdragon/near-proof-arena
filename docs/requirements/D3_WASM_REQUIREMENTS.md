@@ -103,7 +103,8 @@ Mathlib in anything the judge trusts) of:
    (`runtime/near-vm-runner/src/prepare.rs:28-29` → `prepare/prepare_v3.rs`):
    * **Feature set** (validated on the *original* module, `features.rs:71-109`).
      * **In:** MVP; f32/f64 (out of domain in D3α); mutable globals; sign-extension;
-       saturating float→int; reference types; bulk memory.
+       saturating float→int; reference types (**`funcref` only**: `externref` is rejected because
+       `gc_types = false`, `features.rs:102`; checkpoint-2 finding); bulk memory.
      * **Out:** multi-value, SIMD, relaxed SIMD, threads, tail calls, multi-memory, memory64,
        exceptions, extended-const, GC, function references, memory control, custom page sizes,
        stack switching, wide arithmetic.

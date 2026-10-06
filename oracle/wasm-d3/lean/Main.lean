@@ -1,7 +1,8 @@
 import NearSpecV3.Wasm.Exec
 /-! `nearspec-v3-wasm`: stdin `<prepaid_gas> <wasm_hex>` per line → one outcome line per case in the
 format of the nearcore harness (`oracle/wasm-d3/src/main.rs`). Method name: `main`.
-Flag `--instruction-level-metering`: the finite-wasm merging ablation. -/
+Flag `--instruction-level-metering`: the finite-wasm merging ablation. Flag `--prepared-size`: print
+the exact instrumented-module size (compare with the harness `prepare` mode). -/
 open NearSpecV3.Wasm
 
 def hexVal (c : Char) : Option Nat :=
@@ -19,21 +20,22 @@ def unhex (s : String) : Option ByteArray := Id.run do
     | _, _ => return none
   return some out
 
-partial def loop (bl : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
+partial def loop (bl sizeMode : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
   let line ← stdin.getLine
   if line.isEmpty then return
   let line := line.trimAscii.toString
-  if line.isEmpty then loop bl stdin stdout else
+  if line.isEmpty then loop bl sizeMode stdin stdout else
   match line.splitOn " " with
   | [g, h] =>
     match g.toNat?, unhex h with
     | some gas, some code =>
       let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
-      stdout.putStrLn (outcome pv86 code "main" gas fuel bl)
+      stdout.putStrLn (if sizeMode then preparedSizeLine pv86 code else outcome pv86 code "main" gas fuel bl)
     | _, _ => stdout.putStrLn "unmodeled bad input"
   | _ => stdout.putStrLn "unmodeled bad input"
   stdout.flush
-  loop bl stdin stdout
+  loop bl sizeMode stdin stdout
 
 def main (args : List String) : IO Unit := do
-  loop (!args.contains "--instruction-level-metering") (← IO.getStdin) (← IO.getStdout)
+  loop (!args.contains "--instruction-level-metering") (args.contains "--prepared-size")
+    (← IO.getStdin) (← IO.getStdout)

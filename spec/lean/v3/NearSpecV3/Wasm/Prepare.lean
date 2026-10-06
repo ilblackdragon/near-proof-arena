@@ -1,6 +1,7 @@
 import NearSpecV3.Wasm.Decode
 import NearSpecV3.Wasm.FiniteWasm
 import NearSpecV3.Wasm.HostSigs
+import NearSpecV3.Wasm.InstrSize
 /-!
 # NEAR WASM (D3α): contract preparation as nearcore performs it at PV86
 
@@ -270,8 +271,9 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
       let ft := m.types[m.funcTypes[k]!]!
       let nLocals := groups.foldl (fun a (cnt, _) => a + cnt) 0
       if ft.params.size + nLocals > cfg.wpMaxFunctionLocals then deser "too many locals"
-      let code ← liftP (operators bEnd)
-      let f : Func := { type := m.funcTypes[k]!, localGroups := groups, code := code, bodySize := sz }
+      let (code, lens) ← liftP (operators bEnd)
+      let f : Func := { type := m.funcTypes[k]!, localGroups := groups, code := code, bodySize := sz,
+                        opLens := lens }
       if groups.any (·.2.isFloat) ∨ anyFloatVT ft.params ∨ anyFloatVT ft.results ∨
           code.any (fun i => match i with
             | .float _ => true
@@ -318,6 +320,8 @@ def earlyPass (cfg : NearCfg) : PM Unit := do
         if r ≤ (← get).lastId then deser "section out of order"
         modify fun s => { s with lastId := r }
       | none => deser "malformed section id"
+    if id = 4 ∨ id = 11 ∨ id = 12 then
+      modify fun s => { s with m := { s.m with rawSizes := s.m.rawSizes.push (id, len) } }
     -- section payloads are parsed with a reader bounded to the section
     let sub := b.extract 0 (st + len)
     let r := ((sectionBody cfg id (st + len)).run (← get)).run sub |>.run st
@@ -336,11 +340,12 @@ def earlyPass (cfg : NearCfg) : PM Unit := do
 
 /-! ## Analysis + instrumentation limits (`prepare_v3.rs:418-468`, `instrument_v3.rs:482-692`) -/
 
-/-- Upper bound on bytes added by instrumentation per original operator (the largest injected
-sequence, a linear-fee check, is < 100 bytes; prologue/epilogue and index remapping included). Below
-`maxInstrumentedCodeSize / 128` original bytes, `InstrumentedCodeTooLarge` is impossible. Above it,
-this version needs the exact encoder-size model (open item, checkpoint 2b) and reports `unmodeled`. -/
-def instrumentedSizeSafe (cfg : NearCfg) (codeLen : Nat) : Bool := codeLen * 128 ≤ cfg.maxInstrumentedCodeSize
+/-- Exact length of nearcore's instrumented module (`InstrSize`). -/
+def instrumentedSize (cfg : NearCfg) (m : Module) (pfs : Array PFunc) : Nat :=
+  let G := m.globals.size
+  let bodies := (m.funcs.zip pfs).map fun (f, pf) =>
+    Size.body G pf.type f.localGroups f.code f.opLens pf.gas pf.stackCharge pf.prologueGas
+  Size.moduleSize m bodies cfg.maxStackHeight
 
 def prepare (cfg : NearCfg) (bytes : ByteArray) (blockLevel : Bool := true) : PrepResult :=
   let init : PS := { funcBudget := cfg.maxFunctions, localBudget := cfg.maxLocals }
@@ -379,8 +384,8 @@ def prepare (cfg : NearCfg) (bytes : ByteArray) (blockLevel : Bool := true) : Pr
         gas := gasTable cfg.gas f.code blockLevel, stackCharge := opMax + frame,
         prologueGas := (frame + 7) / 8 * cfg.regularOpCost }
     let _ := nImp
-    if !instrumentedSizeSafe cfg bytes.size then
-      return .unmodeled "InstrumentedCodeTooLarge needs the exact encoder-size model"
+    if instrumentedSize cfg m pfs > cfg.maxInstrumentedCodeSize then
+      return .prepErr "InstrumentedCodeTooLarge" ""
     return .ok { m := m, ctx := c, funcs := pfs }
 
 /-! ## Link and method resolution -/

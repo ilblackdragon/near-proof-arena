@@ -82,13 +82,13 @@ def valType : P VT := do
   | 0x7D => pure .f32
   | 0x7C => pure .f64
   | 0x70 => pure .funcref
-  | 0x6F => pure .externref
+  | 0x6F => fail "gc types are disallowed (externref; finite-wasm features `gc_types = false`)"
   | _ => fail "invalid value type"
 
 def refType : P VT := do
   match ← byte with
   | 0x70 => pure .funcref
-  | 0x6F => pure .externref
+  | 0x6F => fail "gc types are disallowed (externref; finite-wasm features `gc_types = false`)"
   | _ => fail "invalid reference type"
 
 /-- Vector with element count bounded by the remaining input (each element ≥ 1 byte). -/
@@ -259,9 +259,8 @@ def export_ : P (String × Nat × Nat) := do
 def elemKind : P Unit := do
   if (← byte) ≠ 0x00 then fail "malformed element kind"
 
-/-- Element segments, all eight binary encodings (spec §5.5.12). -/
-def elem : P Elem := do
-  let flag ← u32
+/-- Element segment bodies for each of the eight binary encodings (spec §5.5.12). -/
+def elemBody (flag : Nat) : P Elem := do
   let funcs : P (Array ConstE) := do
     let xs ← vecOf u32
     pure (xs.map ConstE.refFunc)
@@ -288,6 +287,11 @@ def elem : P Elem := do
   | 7 => do let t ← refType; pure { type := t, mode := .declarative, init := ← vecOf constExpr }
   | _ => fail "malformed element segment flags"
 
+def elem : P Elem := do
+  let flag ← u32
+  let e ← elemBody flag
+  pure { e with flag := flag }
+
 def data : P Data := do
   match ← u32 with
   | 0 => do
@@ -306,14 +310,17 @@ def data : P Data := do
 def localGroups : P (Array (Nat × VT)) := vecOf (do let n ← u32; let t ← valType; pure (n, t))
 
 /-- Operators of one body up to the matching final `end`, which must end exactly at `stop`. -/
-def operators (stop : Nat) : P (Array Instr) := do
+def operators (stop : Nat) : P (Array Instr × Array Nat) := do
   let mut code := #[]
+  let mut lens := #[]
   let mut depth := 1
   let b ← read
   for _ in [0:b.size] do
     if depth = 0 then break
     if (← get) ≥ stop then fail "function body without end"
+    let p0 ← get
     let i ← instr
+    lens := lens.push ((← get) - p0)
     match i with
     | .block _ | .loop _ | .if_ _ => depth := depth + 1
     | .end_ => depth := depth - 1
@@ -321,6 +328,6 @@ def operators (stop : Nat) : P (Array Instr) := do
     code := code.push i
   if depth ≠ 0 then fail "function body without end"
   if (← get) ≠ stop then fail "operators remaining after end of function"
-  pure code
+  pure (code, lens)
 
 end NearSpecV3.Wasm

@@ -670,3 +670,15 @@ def outcome (cfg : NearCfg) (code : ByteArray) (method : String) (prepaid fuel :
                 s!"ok {s.gas.burnt} {s.gas.burnt} {ret}"
 
 end NearSpecV3.Wasm
+
+namespace NearSpecV3.Wasm
+
+/-- Diagnostic for the difftest: the exact instrumented size, or the preparation error. -/
+def preparedSizeLine (cfg : NearCfg) (code : ByteArray) : String :=
+  match prepare cfg code with
+  | .ok p => toString (instrumentedSize cfg p.m p.funcs)
+  | .prepErr v _ => s!"prepare-error {v}"
+  | .outOfDomain w => s!"out-of-domain {w}"
+  | .unmodeled w => s!"unmodeled {w}"
+
+end NearSpecV3.Wasm
