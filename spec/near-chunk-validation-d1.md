@@ -257,7 +257,7 @@ with `new_transactions`, 2 552 with incoming receipts, 385 with implicit transit
 shards; Reed–Solomon (1,3) 434, (2,8) 1 018, (5,16) 1 078, (33,100) 864), 3 645 honest
 out-of-D1 cases (both checkers report out of domain), 46 009 mutants (7 695 accepted by
 nearcore). **D0 ⊂ D1**: the compiled D0 relation on the same corpus accepts 3 977 cases, every
-one accepted by D1, and agrees with nearcore's D0 expectation on every case. Public subset
+one accepted by D1, and agrees with nearcore's D0 expectation on every case (39 `w.new_tx.drop_rehashed` mutants that drop the only new transaction of an otherwise-D0 chunk are themselves D0 cases; the harness labels them so). Report: `spec/difftest-report-v3-d1.json`. Public subset
 with its own report: `oracle/fixtures/v3/public-d1/` (529 cases, 0 disagreements).
 
 Coverage of crafted transactions in accepted honest D1 cases (class ⇒ nearcore's result):
