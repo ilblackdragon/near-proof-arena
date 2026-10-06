@@ -66,7 +66,7 @@ struct JudgeInputs {
 fn oracles(
     dirs: &[PathBuf],
     near: Option<(PathBuf, Vec<PathBuf>)>,
-    near_v3: Option<(PathBuf, Vec<PathBuf>)>,
+    near_v3: Option<(std::collections::BTreeMap<String, PathBuf>, Vec<PathBuf>)>,
     judge: JudgeInputs,
 ) -> Oracles {
     let mut o = Oracles::builtin();
@@ -75,10 +75,12 @@ fn oracles(
             .with_near_dirs(bin, &gens)
             .unwrap_or_else(|e| die(format!("NEAR oracle: {e}")));
     }
-    if let Some((bin, gens)) = near_v3 {
-        eprintln!("arena-worker: NEAR v3 oracle {}", bin.display());
+    if let Some((bins, gens)) = near_v3 {
+        for (tool, bin) in &bins {
+            eprintln!("arena-worker: NEAR v3 oracle {tool} = {}", bin.display());
+        }
         o = o
-            .with_near_v3(bin, &gens)
+            .with_near_v3_tools(bins, &gens)
             .unwrap_or_else(|e| die(format!("NEAR v3 oracle: {e}")));
     }
     for d in dirs {
@@ -169,9 +171,8 @@ fn main() {
                         .clone()
                         .filter(|_| !cfg.workload_generators.is_empty())
                         .map(|b| (b, cfg.workload_generators.clone())),
-                    cfg.near_oracle_v3
-                        .clone()
-                        .filter(|_| !cfg.workload_generators.is_empty())
+                    Some(cfg.near_oracle_v3.clone())
+                        .filter(|b| !b.is_empty() && !cfg.workload_generators.is_empty())
                         .map(|b| (b, cfg.workload_generators.clone())),
                     JudgeInputs {
                         heldout_dirs: cfg.heldout_dirs.clone(),
@@ -270,13 +271,20 @@ fn run_job_local(args: &[String]) {
                         .ok()
                         .map(|v| v.split(',').map(PathBuf::from).collect::<Vec<_>>()),
                 ),
-            std::env::var_os("ARENA_NEAR_ORACLE_V3")
-                .map(PathBuf::from)
-                .zip(
-                    std::env::var("ARENA_WORKLOAD_GENERATORS")
-                        .ok()
-                        .map(|v| v.split(',').map(PathBuf::from).collect::<Vec<_>>()),
-                ),
+            Some(
+                arena_worker::oracle::NEAR_V3_TOOLS
+                    .iter()
+                    .filter_map(|t| {
+                        std::env::var_os(t.env).map(|p| (t.name.to_string(), PathBuf::from(p)))
+                    })
+                    .collect::<std::collections::BTreeMap<_, _>>(),
+            )
+            .filter(|b| !b.is_empty())
+            .zip(
+                std::env::var("ARENA_WORKLOAD_GENERATORS")
+                    .ok()
+                    .map(|v| v.split(',').map(PathBuf::from).collect::<Vec<_>>()),
+            ),
             JudgeInputs {
                 heldout_dirs: std::env::var("ARENA_HELDOUT_DIRS")
                     .map(|v| v.split(',').map(PathBuf::from).collect())

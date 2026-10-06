@@ -40,7 +40,7 @@
 use arena_measure::stats::{derive_seed, SplitMix64};
 use arena_types::{ChallengeDefinition, Digest};
 use sha2::{Digest as _, Sha256};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
@@ -379,12 +379,25 @@ impl Oracles {
         Ok(self)
     }
 
-    /// Register the v3 oracle (`near-arena-claim-v3`, binary
-    /// `near-arena-oracle-v3`) over the generator specs in `dirs` (only specs
-    /// whose `tool` is `near-arena-oracle-v3 gen` are used by it).
+    /// Register the v3 oracle (`near-arena-claim-v3`) with only the D0 tool's
+    /// binary (`near-arena-oracle-v3`) over the generator specs in `dirs`
+    /// (specs naming another tool fail closed).
     pub fn with_near_v3(mut self, oracle_bin: PathBuf, dirs: &[PathBuf]) -> Result<Self, String> {
         self.oracles
             .push(Box::new(NearV3Oracle::new(oracle_bin, dirs)?));
+        Ok(self)
+    }
+
+    /// Register the v3 oracle over several tool binaries (tool name of
+    /// [`NEAR_V3_TOOLS`] → binary): each generator spec is run by the binary
+    /// of the tool it names; a tool without a binary fails closed.
+    pub fn with_near_v3_tools(
+        mut self,
+        bins: BTreeMap<String, PathBuf>,
+        dirs: &[PathBuf],
+    ) -> Result<Self, String> {
+        self.oracles
+            .push(Box::new(NearV3Oracle::with_tools(bins, dirs)?));
         Ok(self)
     }
 
@@ -1075,36 +1088,110 @@ fn read_case_dirs(
 }
 
 /// `near-arena-claim-v3` (spec/near-chunk-validation-v0.md, spec/claim-v3.md):
-/// the judge-owned oracle `near-arena-oracle-v3` drives real multi-shard
-/// nearcore `TestEnv` chains, captures the `ChunkStateWitness` bytes chunk
-/// producers emit, builds the claim from the producing node's store and epoch
-/// manager, and labels every case with **nearcore's own validator verdict**
-/// (`pre_validate_chunk_state_witness` + `validate_chunk_state_witness`) and
-/// an independent D0 classifier.
+/// the judge-owned oracles drive real multi-shard nearcore `TestEnv` chains,
+/// capture the `ChunkStateWitness` bytes chunk producers emit, build the claim
+/// from the producing node's store and epoch manager, and label every case
+/// with **nearcore's own validator verdict** (`pre_validate_chunk_state_witness`
+/// + `validate_chunk_state_witness`) and an independent domain classifier.
+///
+/// **Oracle tools** ([`NEAR_V3_TOOLS`]): each generator spec names its tool
+/// (`"<tool> gen"`): `near-arena-oracle-v3` (domain D0), `near-arena-oracle-v3-d1`
+/// (`--domain d1|d2`) or `near-arena-oracle-v3-d3` (`--domain d3`, D3α). The
+/// worker maps tool → binary (`ARENA_NEAR_ORACLE_V3`, `…_D1`, `…_D3`); a spec
+/// naming an unknown tool, a (tool, domain) pair not in the table, or a tool
+/// this worker has no binary for fails closed before any generator runs.
 ///
 /// Arena layout (`gen --fixtures-layout`): `cases/<n>/{request.bin,
 /// witness.bin, expected_claim.bin}` with `request = expected_claim =
-/// claim.bin` for `Rel_D0` cases (nearcore accepts and the chunk is in D0),
-/// `rejections/<n>/{request.bin, witness.bin}` for the others (nearcore
-/// rejects, or the honest chunk is outside D0), and `params.bin`
-/// (`near-arena-params-v3`). Held-out sets: `<class>/{params.bin, cases/}`
-/// plus `rejections/`.
+/// claim.bin` for `Rel_D` cases (nearcore accepts and the chunk is in the
+/// domain), `rejections/<n>/{request.bin, witness.bin, meta.json}` for the
+/// others (nearcore rejects, or the honest chunk is outside the domain), and
+/// `params.bin` (`near-arena-params-v3`). Held-out sets: `<class>/{params.bin,
+/// cases/}` plus `rejections/`.
 ///
-/// Sampling runs `near-arena-oracle-v3 gen --fixtures-layout --d0-target n`
-/// with the class's generator-spec args (located by the digest the challenge
-/// commits to; the spec must name this tool and this class) and a
-/// judge-derived seed; rejection sampling runs the judge's fixed
-/// [`NearV3Oracle::REJECTION_ARGS`] with the seed of pseudo-class
-/// `rejections`.
+/// Sampling runs `<tool> gen --fixtures-layout --d0-target n` with the class's
+/// generator-spec args (located by the digest the challenge commits to; the
+/// spec must name a known tool and this class) and a judge-derived seed.
+/// Rejection sampling runs the judge-fixed recipe ([`V3_REJECTION_RECIPES`])
+/// of the **largest domain** among the challenge's class specs, with the seed
+/// of pseudo-class `rejections`: a rejection must be false for every tier of a
+/// coverage-tiered challenge (statement = the union of the tiers' relations),
+/// and only the top domain's classifier guarantees that for out-of-domain
+/// honest chunks. A challenge whose classes are all D0 runs exactly the D0
+/// recipe ([`NearV3Oracle::REJECTION_ARGS`]) on the D0 binary.
 pub struct NearV3Oracle {
-    bin: PathBuf,
+    /// Tool name (e.g. `near-arena-oracle-v3-d3`) → binary.
+    bins: BTreeMap<String, PathBuf>,
     generators: Arc<HashMap<Digest, serde_json::Value>>,
+}
+
+/// Generator domains, ordered by inclusion (D0 ⊂ D1 ⊂ D2 ⊂ D3α).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum V3Domain {
+    D0,
+    D1,
+    D2,
+    D3a,
+}
+
+/// A `near-arena-claim-v3` oracle tool (generator specs name it as
+/// `"<name> gen"`).
+pub struct V3Tool {
+    pub name: &'static str,
+    /// Worker config key of its binary.
+    pub env: &'static str,
+    /// Domains it generates, with their `--domain` value (`None`: the tool
+    /// takes no `--domain`).
+    pub domains: &'static [(V3Domain, Option<&'static str>)],
+}
+
+pub const NEAR_V3_TOOLS: &[V3Tool] = &[
+    V3Tool {
+        name: "near-arena-oracle-v3",
+        env: "ARENA_NEAR_ORACLE_V3",
+        domains: &[(V3Domain::D0, None)],
+    },
+    V3Tool {
+        name: "near-arena-oracle-v3-d1",
+        env: "ARENA_NEAR_ORACLE_V3_D1",
+        domains: &[(V3Domain::D1, Some("d1")), (V3Domain::D2, Some("d2"))],
+    },
+    V3Tool {
+        name: "near-arena-oracle-v3-d3",
+        env: "ARENA_NEAR_ORACLE_V3_D3",
+        domains: &[(V3Domain::D3a, Some("d3"))],
+    },
+];
+
+/// Judge-fixed rejection sampling per top domain: (domain, tool, args without
+/// `--seed` / `--out`). A challenge whose top domain has no recipe here fails
+/// closed on rejection sampling.
+pub const V3_REJECTION_RECIPES: &[(V3Domain, &str, &[&str])] = &[
+    (
+        V3Domain::D0,
+        "near-arena-oracle-v3",
+        NearV3Oracle::REJECTION_ARGS,
+    ),
+    (
+        V3Domain::D3a,
+        "near-arena-oracle-v3-d3",
+        NearV3Oracle::REJECTION_ARGS_D3,
+    ),
+];
+
+/// One class's resolved generator run.
+struct V3Run<'a> {
+    tool: &'static str,
+    domain: V3Domain,
+    bin: &'a Path,
+    args: Vec<String>,
 }
 
 impl NearV3Oracle {
     pub const FORMAT: &'static str = "near-arena-claim-v3";
+    /// The D0 tool (signed `near-chunk-validation-d0*` challenges).
     pub const TOOL: &'static str = "near-arena-oracle-v3 gen";
-    /// Judge-fixed rejection sampling: one honest 40-block chain (parameter
+    /// Judge-fixed D0 rejection sampling: one honest 40-block chain (parameter
     /// set rotated by the seed: 4/5/6 shards, Reed-Solomon (2,8), (33,100),
     /// (5,16), (1,3)), every third honest D0 chunk mutated (nearcore judges
     /// each mutant), out-of-domain honest chunks capped at 3 per violation
@@ -1124,43 +1211,158 @@ impl NearV3Oracle {
         "--blocks",
         "40",
     ];
+    /// Judge-fixed D3α rejection sampling (`near-arena-oracle-v3-d3`; the
+    /// recipe the `near-chunk-v3` held-out rejections were drawn with,
+    /// oracle/scripts/gen-heldout-chunk-v3.sh): two honest 60-block D3 chains,
+    /// every third honest D3α chunk mutated (incl. contract-code mutants with
+    /// p = 0.25, at most 4 trie-node drop mutants per mutated case), honest
+    /// chunks outside InD3α capped at 3 per violation family, no positives.
+    /// Every written rejection is false at every tier (nearcore rejects, or
+    /// the chunk is outside InD3α ⊇ D2 ⊇ D1 ⊇ D0). Selection as for D0.
+    pub const REJECTION_ARGS_D3: &'static [&'static str] = &[
+        "--domain",
+        "d3",
+        "--fixtures-layout",
+        "--no-positives",
+        "--chains",
+        "2",
+        "--blocks",
+        "60",
+        "--mutate-every",
+        "3",
+        "--code-mutant-p",
+        "0.25",
+        "--ood-cap",
+        "3",
+        "--drop-cap",
+        "4",
+    ];
 
+    /// The D0 oracle alone (binary of tool `near-arena-oracle-v3`).
     pub fn new(bin: PathBuf, generators_dirs: &[PathBuf]) -> Result<Self, String> {
+        Self::with_tools(
+            BTreeMap::from([("near-arena-oracle-v3".to_string(), bin)]),
+            generators_dirs,
+        )
+    }
+
+    /// The oracle over the given tool binaries (keys: tool names of
+    /// [`NEAR_V3_TOOLS`]; unknown names are refused).
+    pub fn with_tools(
+        bins: BTreeMap<String, PathBuf>,
+        generators_dirs: &[PathBuf],
+    ) -> Result<Self, String> {
+        if bins.is_empty() {
+            return Err("no near-arena-claim-v3 oracle binary configured".into());
+        }
+        for t in bins.keys() {
+            if !NEAR_V3_TOOLS.iter().any(|x| x.name == t) {
+                return Err(format!("unknown near-arena-claim-v3 oracle tool {t:?}"));
+            }
+        }
         Ok(NearV3Oracle {
-            bin,
+            bins,
             generators: Arc::new(NearOracle::index_generators(generators_dirs)?),
         })
     }
 
-    /// The class's generator args: the spec must be for this tool and class,
-    /// and may not set the judge-controlled output options.
-    fn generator_args(
+    /// The configured tool names.
+    pub fn tools(&self) -> impl Iterator<Item = &str> {
+        self.bins.keys().map(String::as_str)
+    }
+
+    fn bin_for(&self, tool: &str) -> Result<&Path, OracleError> {
+        let env = NEAR_V3_TOOLS
+            .iter()
+            .find(|x| x.name == tool)
+            .map_or("?", |x| x.env);
+        self.bins.get(tool).map(PathBuf::as_path).ok_or_else(|| {
+            OracleError::Broken(format!(
+                "fail-closed: the challenge's generator specs need oracle tool {tool} \
+                 but this worker has no binary for it ({env})"
+            ))
+        })
+    }
+
+    /// The class's generator run: the spec must name a known tool and domain
+    /// and this class, may not set the judge-controlled output options, and
+    /// the worker must hold the tool's binary.
+    fn class_run(
         &self,
+        chal: &ChallengeDefinition,
+        class_id: &str,
+    ) -> Result<V3Run<'_>, OracleError> {
+        let class = chal
+            .workload_suite
+            .classes
+            .iter()
+            .find(|c| c.id == class_id)
+            .ok_or_else(|| OracleError::Broken(format!("unknown class {class_id:?}")))?;
+        let spec = self.generators.get(&class.generator).ok_or_else(|| {
+            OracleError::Unavailable(format!(
+                "no generator spec with digest {} on this worker",
+                class.generator
+            ))
+        })?;
+        let (tool, domain, args) = Self::generator_args(spec, class_id)?;
+        Ok(V3Run {
+            tool,
+            domain,
+            bin: self.bin_for(tool)?,
+            args,
+        })
+    }
+
+    /// Every class's run (fails closed on any class before a generator runs).
+    fn plan(&self, chal: &ChallengeDefinition) -> Result<Vec<V3Run<'_>>, OracleError> {
+        chal.workload_suite
+            .classes
+            .iter()
+            .map(|c| self.class_run(chal, &c.id))
+            .collect()
+    }
+
+    /// (tool, domain, args) of a class's generator spec.
+    fn generator_args(
         spec: &serde_json::Value,
         class_id: &str,
-    ) -> Result<Vec<String>, OracleError> {
-        if spec["tool"].as_str() != Some(Self::TOOL) {
+    ) -> Result<(&'static str, V3Domain, Vec<String>), OracleError> {
+        let named = spec["tool"].as_str().unwrap_or("");
+        let Some(tool) = named
+            .strip_suffix(" gen")
+            .and_then(|n| NEAR_V3_TOOLS.iter().find(|x| x.name == n))
+        else {
             return Err(OracleError::Broken(format!(
-                "fail-closed: generator spec tool {:?} is not {:?} (claim encoding {})",
-                spec["tool"].as_str().unwrap_or(""),
-                Self::TOOL,
-                Self::FORMAT
+                "fail-closed: generator spec tool {named:?} is not a {} oracle tool ({})",
+                Self::FORMAT,
+                NEAR_V3_TOOLS
+                    .iter()
+                    .map(|x| format!("\"{} gen\"", x.name))
+                    .collect::<Vec<_>>()
+                    .join(", ")
             )));
-        }
+        };
         if spec["class"].as_str() != Some(class_id) {
             return Err(OracleError::Broken(format!(
                 "fail-closed: generator spec is for class {:?}, not {class_id:?}",
                 spec["class"].as_str().unwrap_or("")
             )));
         }
-        let args: Vec<String> = spec["args"]
+        let mut args: Vec<String> = vec![];
+        for a in spec["args"]
             .as_array()
-            .map(|a| {
-                a.iter()
-                    .filter_map(|x| x.as_str().map(String::from))
-                    .collect()
-            })
-            .unwrap_or_default();
+            .map(Vec::as_slice)
+            .unwrap_or_default()
+        {
+            match a.as_str() {
+                Some(x) => args.push(x.to_string()),
+                None => {
+                    return Err(OracleError::Broken(
+                        "fail-closed: generator spec args must be strings".into(),
+                    ))
+                }
+            }
+        }
         for judge_owned in [
             "--seed",
             "--out",
@@ -1180,12 +1382,66 @@ impl NearV3Oracle {
                 "generator spec must use --fixtures-layout and name a --class".into(),
             ));
         }
-        Ok(args)
+        let at: Vec<usize> = args
+            .iter()
+            .enumerate()
+            .filter(|(_, a)| *a == "--domain")
+            .map(|(i, _)| i)
+            .collect();
+        let dom_arg = match at.as_slice() {
+            [] => None,
+            [i] => Some(args.get(i + 1).map_or("", String::as_str)),
+            _ => {
+                return Err(OracleError::Broken(
+                    "fail-closed: generator spec sets --domain more than once".into(),
+                ))
+            }
+        };
+        let Some((domain, _)) = tool.domains.iter().find(|(_, d)| *d == dom_arg) else {
+            return Err(OracleError::Broken(format!(
+                "fail-closed: generator spec tool {} with --domain {:?} is not a known oracle domain",
+                tool.name,
+                dom_arg.unwrap_or("(none)")
+            )));
+        };
+        Ok((tool.name, *domain, args))
     }
 
-    /// Run the oracle into a fresh temp dir; `read` gets the dir.
+    /// The judge-fixed rejection recipe of the challenge: that of the largest
+    /// domain among its classes' generator specs (fails closed when a class
+    /// does not resolve or that domain has no recipe).
+    fn rejection_recipe(
+        &self,
+        chal: &ChallengeDefinition,
+    ) -> Result<(&'static str, &Path, Vec<String>), OracleError> {
+        let top = self
+            .plan(chal)?
+            .into_iter()
+            .map(|r| r.domain)
+            .max()
+            .ok_or_else(|| {
+                OracleError::Coverage("the challenge's workload suite has no classes".into())
+            })?;
+        let (_, tool, args) = V3_REJECTION_RECIPES
+            .iter()
+            .find(|(d, _, _)| *d == top)
+            .ok_or_else(|| {
+                OracleError::Broken(format!(
+                    "fail-closed: no judge rejection recipe for top domain {top:?}"
+                ))
+            })?;
+        Ok((
+            tool,
+            self.bin_for(tool)?,
+            args.iter().map(|s| s.to_string()).collect(),
+        ))
+    }
+
+    /// Run `bin gen` into a fresh temp dir; `read` gets the dir.
     fn gen<T>(
         &self,
+        tool: &str,
+        bin: &Path,
         seed: u64,
         args: &[String],
         read: impl FnOnce(&Path) -> Result<T, OracleError>,
@@ -1197,13 +1453,13 @@ impl NearV3Oracle {
             GEN_RUN.fetch_add(1, Ordering::Relaxed)
         ));
         let _ = std::fs::remove_dir_all(&out_dir);
-        let o = std::process::Command::new(&self.bin)
+        let o = std::process::Command::new(bin)
             .arg("gen")
             .args(["--seed", &seed.to_string(), "--out"])
             .arg(&out_dir)
             .args(args)
             .output()
-            .map_err(|e| OracleError::Broken(format!("near-arena-oracle-v3: {e}")));
+            .map_err(|e| OracleError::Broken(format!("{tool}: {e}")));
         let res = o.and_then(|o| {
             if o.status.success() {
                 read(&out_dir)
@@ -1216,7 +1472,7 @@ impl NearV3Oracle {
                     .collect::<Vec<_>>()
                     .join(" | ");
                 Err(OracleError::Broken(format!(
-                    "near-arena-oracle-v3 gen failed ({}): {tail}",
+                    "{tool} gen failed ({}): {tail}",
                     o.status
                 )))
             }
@@ -1274,22 +1530,13 @@ impl Oracle for NearV3Oracle {
         if n == 0 {
             return Ok(vec![]);
         }
-        let class = chal
-            .workload_suite
-            .classes
-            .iter()
-            .find(|c| c.id == class_id)
-            .ok_or_else(|| OracleError::Broken(format!("unknown class {class_id:?}")))?;
-        let spec = self.generators.get(&class.generator).ok_or_else(|| {
-            OracleError::Unavailable(format!(
-                "no generator spec with digest {} on this worker",
-                class.generator
-            ))
-        })?;
-        let mut args = self.generator_args(spec, class_id)?;
+        // every class's tool must resolve before any generator runs
+        self.plan(chal)?;
+        let run = self.class_run(chal, class_id)?;
+        let mut args = run.args;
         args.extend(["--d0-target".to_string(), n.to_string()]);
         let seed = seeds.class_seed(class_id)?;
-        let cases = self.gen(seed, &args, |d| {
+        let cases = self.gen(run.tool, run.bin, seed, &args, |d| {
             read_case_dirs(
                 &d.join("cases"),
                 false,
@@ -1309,7 +1556,7 @@ impl Oracle for NearV3Oracle {
 
     fn rejection_cases(
         &self,
-        _chal: &ChallengeDefinition,
+        chal: &ChallengeDefinition,
         fixtures: Option<&Path>,
         heldout: Option<&Path>,
         seeds: &SeedCtx,
@@ -1322,9 +1569,9 @@ impl Oracle for NearV3Oracle {
             set.cases.extend(c);
         }
         if n > 0 {
-            let args: Vec<String> = Self::REJECTION_ARGS.iter().map(|s| s.to_string()).collect();
+            let (tool, bin, args) = self.rejection_recipe(chal)?;
             let seed = seeds.class_seed("rejections")?;
-            let (mut ood, mut mutants) = self.gen(seed, &args, |d| {
+            let (mut ood, mut mutants) = self.gen(tool, bin, seed, &args, |d| {
                 let dir = d.join("rejections");
                 let all = read_case_dirs(&dir, false, "rejections/", None, true)?;
                 let mut ood = vec![];
@@ -1833,6 +2080,489 @@ mod tests {
             .approved_params(&v3, Some(&repo().join("oracle/fixtures/public")))
             .unwrap_err();
         assert!(e.to_string().contains("format"), "{e}");
+    }
+
+    /// A stand-in oracle binary for tool `tool`: logs `tool argv…` to `log`
+    /// and writes `--d0-target` positives plus 10 rejections (alternating
+    /// honest / mutant) in the arena layout.
+    fn fake_tool(dir: &Path, tool: &str, log: &Path) -> PathBuf {
+        use std::os::unix::fs::PermissionsExt;
+        let p = dir.join(tool);
+        std::fs::write(
+            &p,
+            format!(
+                r#"#!/bin/sh
+echo "{tool} $*" >> '{log}'
+out=; n=0
+while [ $# -gt 0 ]; do
+  case "$1" in --out) out=$2; shift;; --d0-target) n=$2; shift;; esac
+  shift
+done
+mkdir -p "$out/cases" "$out/rejections"
+i=0
+while [ $i -lt $n ]; do
+  d="$out/cases/c$i"; mkdir -p "$d"
+  printf 'claim%s' $i > "$d/request.bin"; printf 'claim%s' $i > "$d/expected_claim.bin"
+  printf 'w' > "$d/witness.bin"; i=$((i+1))
+done
+j=0
+for k in honest mutant honest mutant honest mutant honest mutant honest mutant; do
+  d="$out/rejections/r$j"; mkdir -p "$d"
+  printf 'bad%s' $j > "$d/request.bin"; printf 'w' > "$d/witness.bin"
+  printf '{{"kind":"%s"}}' $k > "$d/meta.json"; j=$((j+1))
+done
+"#,
+                log = log.display()
+            ),
+        )
+        .unwrap();
+        std::fs::set_permissions(&p, std::fs::Permissions::from_mode(0o755)).unwrap();
+        p
+    }
+
+    /// Logged invocations: (tool, args after `gen --seed S --out DIR`).
+    fn invocations(log: &Path) -> Vec<(String, Vec<String>)> {
+        std::fs::read_to_string(log)
+            .unwrap_or_default()
+            .lines()
+            .map(|l| {
+                let w: Vec<String> = l.split_whitespace().map(String::from).collect();
+                assert_eq!(
+                    (w[1].as_str(), w[2].as_str(), w[4].as_str()),
+                    ("gen", "--seed", "--out")
+                );
+                (w[0].clone(), w[6..].to_vec())
+            })
+            .collect()
+    }
+
+    fn fake_tools(dir: &Path, log: &Path, tools: &[&str]) -> BTreeMap<String, PathBuf> {
+        tools
+            .iter()
+            .map(|t| (t.to_string(), fake_tool(dir, t, log)))
+            .collect()
+    }
+
+    fn chunk_v3_gens() -> [PathBuf; 2] {
+        [
+            repo().join("spec/workloads/near-chunk-validation-d0"),
+            repo().join("spec/workloads/near-chunk-v3"),
+        ]
+    }
+
+    /// near-chunk-v3: every class runs the binary of the tool its generator
+    /// spec names (d0-* on the D0 oracle, d1-*/d2-* on the D1 oracle with
+    /// their `--domain`, d3-* on the D3 oracle), sampled cases carry the class
+    /// tag, and rejection sampling runs the D3α recipe on the D3 binary.
+    #[test]
+    fn near_v3_dispatches_each_class_to_its_tool() {
+        let tmp = tempfile::tempdir().unwrap();
+        let log = tmp.path().join("log");
+        let bins = fake_tools(
+            tmp.path(),
+            &log,
+            &[
+                "near-arena-oracle-v3",
+                "near-arena-oracle-v3-d1",
+                "near-arena-oracle-v3-d3",
+            ],
+        );
+        let o = Oracles::builtin()
+            .with_near_v3_tools(bins, &chunk_v3_gens())
+            .unwrap();
+        let chal = load("challenges/drafts/near-chunk-v3.draft.json");
+        assert_eq!(chal.workload_suite.classes.len(), 13);
+        for c in &chal.workload_suite.classes {
+            let _ = std::fs::remove_file(&log);
+            let got = o
+                .get(&chal)
+                .unwrap()
+                .sample(&chal, &c.id, &seeds(), 2)
+                .unwrap();
+            assert_eq!(got.len(), 2);
+            for k in &got {
+                assert_eq!(k.class.as_deref(), Some(c.id.as_str()));
+                assert!(!k.public && k.id.starts_with(&format!("{}/", c.id)));
+            }
+            let inv = invocations(&log);
+            assert_eq!(inv.len(), 1, "{}", c.id);
+            let (tool, args) = &inv[0];
+            let prefix = &c.id[..2];
+            let (want_tool, want_dom) = match prefix {
+                "d0" => ("near-arena-oracle-v3", None),
+                "d1" => ("near-arena-oracle-v3-d1", Some("d1")),
+                "d2" => ("near-arena-oracle-v3-d1", Some("d2")),
+                "d3" => ("near-arena-oracle-v3-d3", Some("d3")),
+                _ => unreachable!(),
+            };
+            assert_eq!(tool, want_tool, "{}", c.id);
+            let dom = args
+                .iter()
+                .position(|a| a == "--domain")
+                .map(|i| args[i + 1].as_str());
+            assert_eq!(dom, want_dom, "{}", c.id);
+            assert_eq!(&args[args.len() - 2..], ["--d0-target", "2"]);
+        }
+        let _ = std::fs::remove_file(&log);
+        let r = o
+            .get(&chal)
+            .unwrap()
+            .rejection_cases(&chal, None, None, &seeds(), 4)
+            .unwrap();
+        assert_eq!(r.sampled, 4);
+        let inv = invocations(&log);
+        assert_eq!(inv.len(), 1);
+        assert_eq!(inv[0].0, "near-arena-oracle-v3-d3");
+        assert_eq!(inv[0].1, NearV3Oracle::REJECTION_ARGS_D3);
+    }
+
+    /// The signed D0 challenges are served exactly as before: the D0 binary,
+    /// the spec's args + `--d0-target n` for sampling, and the fixed D0
+    /// rejection recipe (snapshot of the args the live judge has run).
+    #[test]
+    fn near_v3_d0_challenges_are_unchanged() {
+        let d0_rejection_snapshot = [
+            "--fixtures-layout",
+            "--no-positives",
+            "--rotate",
+            "--mutate-every",
+            "3",
+            "--ood-cap",
+            "3",
+            "--chains",
+            "1",
+            "--blocks",
+            "40",
+        ];
+        assert_eq!(NearV3Oracle::REJECTION_ARGS, d0_rejection_snapshot);
+        for id in [
+            "chl_640ed008467448706236fc727f759ecc",
+            "chl_4b4316516128000f129cff9b3ced8b51",
+        ] {
+            let chal = load(&format!("challenges/{id}.json"));
+            // a D0-only worker (as configured today) and a worker with every tool
+            for tools in [
+                &["near-arena-oracle-v3"][..],
+                &[
+                    "near-arena-oracle-v3",
+                    "near-arena-oracle-v3-d1",
+                    "near-arena-oracle-v3-d3",
+                ][..],
+            ] {
+                let tmp = tempfile::tempdir().unwrap();
+                let log = tmp.path().join("log");
+                let o = Oracles::builtin()
+                    .with_near_v3_tools(fake_tools(tmp.path(), &log, tools), &chunk_v3_gens())
+                    .unwrap();
+                for c in &chal.workload_suite.classes {
+                    let _ = std::fs::remove_file(&log);
+                    o.get(&chal)
+                        .unwrap()
+                        .sample(&chal, &c.id, &seeds(), 3)
+                        .unwrap();
+                    let spec: serde_json::Value = serde_json::from_slice(
+                        &std::fs::read(repo().join(format!(
+                            "spec/workloads/near-chunk-validation-d0/{}.json",
+                            c.id
+                        )))
+                        .unwrap(),
+                    )
+                    .unwrap();
+                    assert_eq!(arena_types::sha256_digest(&spec).unwrap(), c.generator);
+                    let mut want: Vec<String> = spec["args"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|a| a.as_str().unwrap().to_string())
+                        .collect();
+                    want.extend(["--d0-target".into(), "3".into()]);
+                    assert_eq!(
+                        invocations(&log),
+                        vec![("near-arena-oracle-v3".to_string(), want)],
+                        "{id} {}",
+                        c.id
+                    );
+                }
+                let _ = std::fs::remove_file(&log);
+                let r = o
+                    .get(&chal)
+                    .unwrap()
+                    .rejection_cases(&chal, None, None, &seeds(), 4)
+                    .unwrap();
+                assert_eq!(r.sampled, 4);
+                let want: Vec<String> = d0_rejection_snapshot
+                    .iter()
+                    .map(|s| s.to_string())
+                    .collect();
+                assert_eq!(
+                    invocations(&log),
+                    vec![("near-arena-oracle-v3".to_string(), want)]
+                );
+            }
+            // the worker-level `with_near_v3(bin)` is the D0-only configuration
+            let tmp = tempfile::tempdir().unwrap();
+            let log = tmp.path().join("log");
+            let bin = fake_tool(tmp.path(), "near-arena-oracle-v3", &log);
+            let o = Oracles::builtin()
+                .with_near_v3(bin, &chunk_v3_gens())
+                .unwrap();
+            o.get(&chal)
+                .unwrap()
+                .rejection_cases(&chal, None, None, &seeds(), 2)
+                .unwrap();
+            assert_eq!(invocations(&log)[0].0, "near-arena-oracle-v3");
+        }
+    }
+
+    /// Fail closed: an unknown tool, a known tool with an unknown domain, an
+    /// unknown configured tool name, or a tool without a binary on this
+    /// worker — before any generator runs.
+    #[test]
+    fn near_v3_unknown_or_unconfigured_tool_fails_closed() {
+        let tmp = tempfile::tempdir().unwrap();
+        let log = tmp.path().join("log");
+        assert!(Oracles::builtin()
+            .with_near_v3_tools(
+                BTreeMap::from([("near-arena-oracle-v9".into(), PathBuf::from("/x"))]),
+                &chunk_v3_gens()
+            )
+            .is_err());
+        assert!(NearV3Oracle::with_tools(BTreeMap::new(), &chunk_v3_gens()).is_err());
+        let chal = load("challenges/drafts/near-chunk-v3.draft.json");
+        // only the D0 binary: the D1/D3 classes (and so every class) fail closed
+        let o = Oracles::builtin()
+            .with_near_v3_tools(
+                fake_tools(tmp.path(), &log, &["near-arena-oracle-v3"]),
+                &chunk_v3_gens(),
+            )
+            .unwrap();
+        for c in ["d0-quiet", "d3-calls"] {
+            let e = o
+                .get(&chal)
+                .unwrap()
+                .sample(&chal, c, &seeds(), 1)
+                .unwrap_err();
+            assert!(matches!(e, OracleError::Broken(_)), "{e}");
+            assert!(e.to_string().contains("ARENA_NEAR_ORACLE_V3_D1"), "{e}");
+        }
+        let e = o
+            .get(&chal)
+            .unwrap()
+            .rejection_cases(&chal, None, None, &seeds(), 2)
+            .unwrap_err();
+        assert!(e.to_string().contains("no binary"), "{e}");
+        assert!(invocations(&log).is_empty(), "no generator may run");
+        // D0 + D1 binaries: the D3 tool is still missing
+        let o = Oracles::builtin()
+            .with_near_v3_tools(
+                fake_tools(
+                    tmp.path(),
+                    &log,
+                    &["near-arena-oracle-v3", "near-arena-oracle-v3-d1"],
+                ),
+                &chunk_v3_gens(),
+            )
+            .unwrap();
+        let e = o
+            .get(&chal)
+            .unwrap()
+            .sample(&chal, "d1-mixed", &seeds(), 1)
+            .unwrap_err();
+        assert!(e.to_string().contains("ARENA_NEAR_ORACLE_V3_D3"), "{e}");
+        assert!(invocations(&log).is_empty(), "no generator may run");
+        // specs naming an unknown tool, or a known tool with a foreign domain
+        let all = fake_tools(
+            tmp.path(),
+            &log,
+            &[
+                "near-arena-oracle-v3",
+                "near-arena-oracle-v3-d1",
+                "near-arena-oracle-v3-d3",
+            ],
+        );
+        let spec_dir = tmp.path().join("specs");
+        std::fs::create_dir_all(&spec_dir).unwrap();
+        let base: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(repo().join("spec/workloads/near-chunk-v3/d3-calls.json")).unwrap(),
+        )
+        .unwrap();
+        let mut bad = vec![];
+        for (name, tool, dom) in [
+            ("unknown-tool", "near-arena-oracle-v9 gen", "d3"),
+            ("no-gen", "near-arena-oracle-v3-d3", "d3"),
+            ("foreign-domain", "near-arena-oracle-v3-d3", "d2"),
+            ("d1-tool-d3", "near-arena-oracle-v3-d1 gen", "d3"),
+        ] {
+            let mut v = base.clone();
+            v["tool"] = tool.into();
+            v["args"][1] = dom.into();
+            v["note"] = name.into();
+            std::fs::write(spec_dir.join(format!("{name}.json")), v.to_string()).unwrap();
+            bad.push((name, arena_types::sha256_digest(&v).unwrap()));
+        }
+        let mut gens = chunk_v3_gens().to_vec();
+        gens.push(spec_dir);
+        let o = Oracles::builtin().with_near_v3_tools(all, &gens).unwrap();
+        for (name, d) in bad {
+            let mut x = chal.clone();
+            let i = x
+                .workload_suite
+                .classes
+                .iter()
+                .position(|c| c.id == "d3-calls")
+                .unwrap();
+            x.workload_suite.classes[i].generator = d;
+            let e = o
+                .get(&x)
+                .unwrap()
+                .sample(&x, "d0-quiet", &seeds(), 1)
+                .unwrap_err();
+            assert!(matches!(e, OracleError::Broken(_)), "{name}: {e}");
+            assert!(e.to_string().contains("fail-closed"), "{name}: {e}");
+            assert!(
+                o.get(&x)
+                    .unwrap()
+                    .rejection_cases(&x, None, None, &seeds(), 1)
+                    .is_err(),
+                "{name}"
+            );
+        }
+        assert!(invocations(&log).is_empty(), "no generator may run");
+    }
+
+    /// near-chunk-v3 held-out sets (`<class>/{params.bin, cases/}` +
+    /// `rejections/`): every class's held-out cases are tagged with the class
+    /// and never public, alongside judge-sampled cases from all four tools.
+    #[test]
+    fn near_v3_chunk_heldout_cases_carry_their_class() {
+        let tmp = tempfile::tempdir().unwrap();
+        let log = tmp.path().join("log");
+        let bins = fake_tools(
+            tmp.path(),
+            &log,
+            &[
+                "near-arena-oracle-v3",
+                "near-arena-oracle-v3-d1",
+                "near-arena-oracle-v3-d3",
+            ],
+        );
+        let mut o = Oracles::builtin()
+            .with_near_v3_tools(bins, &chunk_v3_gens())
+            .unwrap();
+        let mut chal = load("challenges/drafts/near-chunk-v3.draft.json");
+        let public = repo().join("oracle/fixtures/v3/public-chunk-v3");
+        assert_eq!(
+            o.add_fixtures_dir(&public).unwrap(),
+            chal.workload_suite.public_fixtures
+        );
+        let h = tmp.path().join("heldout");
+        let pos: Vec<PathBuf> = {
+            let mut v: Vec<PathBuf> = std::fs::read_dir(public.join("cases"))
+                .unwrap()
+                .flatten()
+                .map(|e| e.path())
+                .collect();
+            v.sort();
+            v
+        };
+        for (i, c) in chal.workload_suite.classes.iter().enumerate() {
+            let d = h.join(&c.id);
+            std::fs::create_dir_all(d.join("cases")).unwrap();
+            std::fs::copy(public.join("params.bin"), d.join("params.bin")).unwrap();
+            for k in 0..2 {
+                let src = &pos[(2 * i + k) % pos.len()];
+                let dst = d.join("cases").join(format!("h{k}"));
+                std::fs::create_dir_all(&dst).unwrap();
+                for f in ["request.bin", "witness.bin", "expected_claim.bin"] {
+                    std::fs::copy(src.join(f), dst.join(f)).unwrap();
+                }
+            }
+        }
+        let rj = h.join("rejections/r0");
+        std::fs::create_dir_all(&rj).unwrap();
+        let src = public
+            .join("rejections")
+            .read_dir()
+            .unwrap()
+            .flatten()
+            .next()
+            .unwrap()
+            .path();
+        for f in ["request.bin", "witness.bin", "meta.json"] {
+            std::fs::copy(src.join(f), rj.join(f)).unwrap();
+        }
+        chal.workload_suite.heldout_commitment = o.add_heldout_dir(&h).unwrap();
+        let s = o.conformance_suite(&chal, &seeds(), 13, true).unwrap();
+        assert_eq!((s.sampled, s.heldout), (13, 13));
+        let held = &s.cases[s.public + s.sampled..];
+        for c in &chal.workload_suite.classes {
+            let n = held
+                .iter()
+                .filter(|x| x.class.as_deref() == Some(c.id.as_str()) && !x.public)
+                .count();
+            assert_eq!(n, 1, "{}", c.id);
+        }
+        assert!(s.cases[..s.public]
+            .iter()
+            .all(|x| x.class.is_none() && x.public));
+        let r = o.rejection_suite(&chal, &seeds(), 2).unwrap();
+        assert_eq!((r.public, r.sampled, r.heldout), (244, 2, 1));
+    }
+
+    /// near-chunk-v3 with the real D1 and D3 oracle binaries
+    /// (`ARENA_TEST_NEAR_ORACLE_V3_D1`, `ARENA_TEST_NEAR_ORACLE_V3_D3`): one
+    /// class per D1 / D2 / D3 generator yields exactly `n` tagged cases that
+    /// pass the request pin, and the D3α rejection recipe yields `n`
+    /// rejections, alternating out-of-InD3α honest chunks and mutants.
+    #[test]
+    fn near_v3_chunk_samples_with_the_real_binaries() {
+        let (Ok(d1), Ok(d3)) = (
+            std::env::var("ARENA_TEST_NEAR_ORACLE_V3_D1"),
+            std::env::var("ARENA_TEST_NEAR_ORACLE_V3_D3"),
+        ) else {
+            eprintln!("skipped: ARENA_TEST_NEAR_ORACLE_V3_D1 / _D3 unset");
+            return;
+        };
+        let bins = BTreeMap::from([
+            // the D0 classes are not sampled here
+            (
+                "near-arena-oracle-v3".to_string(),
+                PathBuf::from("/nonexistent/near-arena-oracle-v3"),
+            ),
+            ("near-arena-oracle-v3-d1".to_string(), PathBuf::from(d1)),
+            ("near-arena-oracle-v3-d3".to_string(), PathBuf::from(d3)),
+        ]);
+        let o = Oracles::builtin()
+            .with_near_v3_tools(bins, &chunk_v3_gens())
+            .unwrap();
+        let chal = load("challenges/drafts/near-chunk-v3.draft.json");
+        let pin = crate::jobs::RequestPin::from_challenge(&chal).unwrap();
+        let classes: Vec<String> = std::env::var("ARENA_TEST_V3_CLASSES")
+            .map(|v| v.split(',').map(String::from).collect())
+            .unwrap_or_else(|_| {
+                vec![
+                    "d1-transfers".into(),
+                    "d2-actions".into(),
+                    "d3-calls".into(),
+                ]
+            });
+        for c in &classes {
+            let got = o.get(&chal).unwrap().sample(&chal, c, &seeds(), 2).unwrap();
+            assert_eq!(got.len(), 2, "{c}");
+            for k in &got {
+                assert_eq!(k.class.as_deref(), Some(c.as_str()));
+                pin.check_case(&k.request, Some(&k.expected_claim)).unwrap();
+            }
+        }
+        let r = o
+            .get(&chal)
+            .unwrap()
+            .rejection_cases(&chal, None, None, &seeds(), 8)
+            .unwrap();
+        assert_eq!(r.sampled, 8);
+        for c in &r.cases {
+            pin.check_case(&c.request, None).unwrap();
+        }
     }
 
     /// With the real oracle binary (`ARENA_TEST_NEAR_ORACLE_V3`): sampled
