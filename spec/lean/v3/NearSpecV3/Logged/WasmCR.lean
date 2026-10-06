@@ -66,8 +66,81 @@ theorem CR_dite {α : Type} (c c' : Prop) [Decidable c] [Decidable c'] (hc : c =
     CR σ (if h : c then x h else y h) (if h : c' then x' h else y' h) := by
   subst hc; by_cases hc : c <;> simp only [hc, dite_true, dite_false] <;> apply_assumption
 
+theorem CR_forIn_list {β : Type} (l : List Nat) (b : β) (f g : Nat → β → HM (ForInStep β))
+    (h : ∀ i b, CR σ (f i b) (g i b)) : CR σ (forIn l b f) (forIn l b g) := by
+  induction l generalizing b with
+  | nil => exact CR_pure b
+  | cons a l ih =>
+    simp only [List.forIn_cons]
+    apply CR_bind (h a b); intro r
+    cases r with
+    | done b => exact CR_pure b
+    | yield b => exact ih b
+
+theorem CR_forIn {β : Type} (r : Std.Legacy.Range) (b : β) (f g : Nat → β → HM (ForInStep β))
+    (h : ∀ i b, CR σ (f i b) (g i b)) : CR σ (forIn r b f) (forIn r b g) := by
+  simp only [Std.Legacy.Range.forIn_eq_forIn_range']; exact CR_forIn_list _ b f g h
+
 end
 
+theorem E_writeByte (σ) (t : St) (a : Nat) (v : UInt8) : writeByte (E σ t) a v = E σ (writeByte t a v) := rfl
+
+theorem forIn'_E {σ} : ∀ (l : List Nat) (f : (x : Nat) → x ∈ l → St → St) (t : St)
+    (_hf : ∀ x h t, f x h (E σ t) = E σ (f x h t)),
+    (forIn' (m := Id) l (E σ t) fun x h s => ForInStep.yield (f x h s)) =
+      E σ (forIn' (m := Id) l t fun x h s => ForInStep.yield (f x h s))
+  | [], _, _, _ => rfl
+  | x :: xs, f, t, hf => by
+    simp only [List.forIn'_cons]
+    rw [hf]
+    exact forIn'_E xs (fun y hy => f y (List.mem_cons_of_mem _ hy)) _ (fun y hy t => hf y _ t)
+
+theorem E_writeBytes (σ) (t : St) (a : Nat) (d : ByteArray) : writeBytes (E σ t) a d = E σ (writeBytes t a d) := by
+  unfold writeBytes
+  simp only [Id.run, Std.Legacy.Range.forIn'_eq_forIn'_range']
+  exact forIn'_E _ _ _ (fun _ _ _ => rfl)
+
+
+/-! ## `E` is invisible to everything but the store -/
+
+section
+variable (σ : TTN.Store) (t : St)
+@[simp] theorem E_stack : (E σ t).stack = t.stack := rfl
+@[simp] theorem E_frames : (E σ t).frames = t.frames := rfl
+@[simp] theorem E_pages : (E σ t).pages = t.pages := rfl
+@[simp] theorem E_globals : (E σ t).globals = t.globals := rfl
+@[simp] theorem E_table : (E σ t).table = t.table := rfl
+@[simp] theorem E_tableMax : (E σ t).tableMax = t.tableMax := rfl
+@[simp] theorem E_elems : (E σ t).elems = t.elems := rfl
+@[simp] theorem E_datas : (E σ t).datas = t.datas := rfl
+@[simp] theorem E_stackRem : (E σ t).stackRem = t.stackRem := rfl
+@[simp] theorem E_gas : (E σ t).gas = t.gas := rfl
+@[simp] theorem E_ctx : (E σ t).ctx = t.ctx := rfl
+@[simp] theorem E_ret : (E σ t).ret = t.ret := rfl
+@[simp] theorem E_balance : (E σ t).balance = t.balance := rfl
+@[simp] theorem E_storageUsage : (E σ t).storageUsage = t.storageUsage := rfl
+@[simp] theorem E_registers : (E σ t).registers = t.registers := rfl
+@[simp] theorem E_regUsage : (E σ t).regUsage = t.regUsage := rfl
+@[simp] theorem E_logs : (E σ t).logs = t.logs := rfl
+@[simp] theorem E_totalLogLen : (E σ t).totalLogLen = t.totalLogLen := rfl
+@[simp] theorem E_promises : (E σ t).promises = t.promises := rfl
+@[simp] theorem E_trie : (E σ t).trie = t.trie := rfl
+@[simp] theorem E_actions : (E σ t).actions = t.actions := rfl
+@[simp] theorem E_dataCount : (E σ t).dataCount = t.dataCount := rfl
+@[simp] theorem E_subsidized : (E σ t).subsidized = t.subsidized := rfl
+@[simp] theorem E_real_isSome : (E σ t).real.isSome = t.real.isSome := by unfold E; cases t.real <;> rfl
+@[simp] theorem E_memBytes : memBytes (E σ t) = memBytes t := rfl
+@[simp] theorem E_readByte (a : Nat) : readByte (E σ t) a = readByte t a := rfl
+@[simp] theorem E_readBytes (a n : Nat) : readBytes (E σ t) a n = readBytes t a n := by
+  unfold readBytes; simp only [E_readByte]
+@[simp] theorem E_readLE (a w : Nat) : readLE (E σ t) a w = readLE t a w := by
+  unfold readLE; simp only [E_readByte]
+@[simp] theorem E_trieGet (k : ByteArray) : trieGet (E σ t) k = trieGet t k := rfl
+@[simp] theorem E_dataIdOf (n : Nat) : dataIdOf (E σ t) n = dataIdOf t n := rfl
+@[simp] theorem E_receiptReceiver (n : Nat) : receiptReceiver (E σ t) n = receiptReceiver t n := rfl
+@[simp] theorem E_popN : popN (E σ t) = ((popN t).1, E σ (popN t).2) := by
+  unfold popN popV; simp only [E_stack]; cases t.stack.back?.getD (Val.i32 0) <;> rfl
+end
 
 /-! ## The `cr` tactic -/
 
@@ -83,16 +156,28 @@ elab "cr_intro" : tactic => do
 
 syntax "cr_step" : tactic
 macro_rules | `(tactic| cr_step) => `(tactic| first
-  | (apply CR_get_bind; intro; dsimp only [E])
-  | (apply CR_pure'; rfl)
-  | (apply CR_throw'; rfl)
-  | (apply CR_set; rfl)
-  | (apply CR_modify; intro; rfl)
-  | (apply CR_ite _ _ rfl)
-  | (apply CR_dite _ _ rfl)
+  | contradiction
+  | ((with_reducible apply CR_get_bind); intro; simp only [E_stack, E_frames, E_pages, E_globals, E_table,
+      E_tableMax, E_elems, E_datas, E_stackRem, E_gas, E_ctx, E_ret, E_balance, E_storageUsage, E_registers,
+      E_regUsage, E_logs, E_totalLogLen, E_promises, E_trie, E_actions, E_dataCount, E_subsidized,
+      E_real_isSome, E_memBytes, E_readByte, E_readBytes, E_readLE, E_trieGet, E_dataIdOf,
+      E_receiptReceiver, E_popN])
+  | ((with_reducible apply CR_pure'); rfl)
+  | ((with_reducible apply CR_throw'); rfl)
+  | ((with_reducible apply CR_set); first | rfl | simp only [E_writeBytes, E_writeByte])
+  | ((with_reducible apply CR_modify); intro t; first | rfl | (rcases t with ⟨⟩; rename_i real _; cases real <;> rfl))
+  | (with_reducible apply CR_ite _ _ rfl)
+  | (with_reducible apply CR_dite _ _ rfl)
   | (with_reducible cr_call)
-  | (apply CR_bind; with_reducible cr_call)
-  | (dsimp (config := { zeta := false }) only [E])
+  | ((with_reducible apply CR_bind); first
+      | ((with_reducible apply CR_modify); intro t; first | rfl | (rcases t with ⟨⟩; rename_i real _; cases real <;> rfl))
+      | ((with_reducible apply CR_set); first | rfl | simp only [E_writeBytes, E_writeByte])
+      | ((with_reducible apply CR_pure'); rfl)
+      | (with_reducible cr_call)
+      | (with_reducible apply CR_ite _ _ rfl)
+      | (with_reducible apply CR_dite _ _ rfl)
+      | (with_reducible apply CR_forIn))
+  | (with_reducible apply CR_forIn)
   | (split <;> try (rename_i hh; simp only [hh]))
   | cr_intro
   | (simp only []))
