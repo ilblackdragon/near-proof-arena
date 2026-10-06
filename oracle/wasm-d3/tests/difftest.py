@@ -113,7 +113,8 @@ def main():
                 p = os.path.join(td, f"in{k}")
                 with open(p, "w") as f:
                     f.write("\n".join(cases[k::shards]) + "\n")
-                ps.append(subprocess.Popen([sys.executable, os.path.join(HERE, "../cleanroom/nearwasm.py")],
+                ps.append(subprocess.Popen([sys.executable, os.path.join(HERE, "../cleanroom/nearwasm.py")]
+                                           + (["--full"] if full else []),
                                            stdin=open(p), stdout=open(p + ".out", "w")))
             for pr in ps:
                 pr.wait()
