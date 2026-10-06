@@ -1,4 +1,5 @@
 import ZkFormal.NearV3.Extract.Ups.UpsSrc
+import ZkFormal.NearV3.Extract.Ups.Walk
 
 /-!
 # ZkFormal.NearV3.Extract.Ups.UpsVal — the new value from the scheduler codec (M7e, step 1)
@@ -191,5 +192,35 @@ theorem ups_digV {v : List UpsSeg} (hw : UpsWf v) {sv : Nat → NearSpec.Bytes} 
   apply List.map_congr_left
   intro x _
   simp
+
+/-! ## Walk facts: `xy` -/
+
+theorem wsym_yOf : ∀ si, si ≤ 1 → wsym (si + 1) = UpsSpec.yOf si := by decide
+
+section
+variable {v : List UpsSeg} (hw : UpsWf v) {s : UpsSeg} (hs : s ∈ v)
+  {L : Nat} {ps : List (Nat × Nat)} {fls : List (List (Nat × Nat))} {ws : List Nat}
+  (hL : UpsLayout s L ps fls ws) {ci ti di si : Nat} {kd sdx : Nat → Nat} (hP : UpsPlan s ps ci ti di si kd sdx)
+include hw hs hL hP
+
+/-- **`UpsExt0.xy`**: a split with a new leaf (other than `LSa`) has its moved nibble `x = tX` different
+from the new leaf's nibble `y`: the terminal `KEY` edge's nibble differs from the walk symbol. -/
+theorem ups_xy : spYN ci = 1 → ci ≠ 4 → s.row 0 tX ≠ UpsSpec.yOf si := by
+  intro hy h4
+  obtain ⟨i1, i2, i3, i4⟩ := hP.ix
+  have hci : 4 ≤ ci ∧ ci ≤ 10 := by unfold spYN at hy; split at hy <;> omega
+  have h0 : 0 < s.rows.length := by have := hL.walk.1; omega
+  obtain ⟨c1, c2, c3, c4⟩ := hP.seg 0 h0
+  have hsi := (spbSeg (okRow hw hs h0) (rowLt hw hs _) (nextLt hw hs _) hL.walk.2.1 c1 c4 hci.1 hci.2 i4).2.2.2 hy
+  obtain ⟨-, -, -, hmK, -, -, -, -, -, hK, -⟩ := ups_walkTerm hw hs hL hP
+  rw [if_pos hci.1] at hmK
+  obtain ⟨-, hnib⟩ := (hK hci.1).2 h4
+  have hlt : si + 1 < s.rows.length := by have := hL.walk.1; omega
+  have F := wRowF hw hs hL (si + 1) (by omega)
+  have hne := (F.absK hmK).2
+  rw [hnib, hL.segc _ hlt tX (by decide), wsym_yOf si hsi] at hne
+  exact hne
+
+end
 
 end ZkFormal.NearV3.UpsRows
