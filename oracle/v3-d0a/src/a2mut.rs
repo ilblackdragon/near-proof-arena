@@ -14,13 +14,13 @@ pub struct A2Mutant {
     pub witness: Vec<u8>,
 }
 
-fn v2(w: &mut ChunkStateWitness) -> &mut near_primitives::stateless_validation::state_witness::ChunkStateWitnessV2 {
+pub(crate) fn v2(w: &mut ChunkStateWitness) -> &mut near_primitives::stateless_validation::state_witness::ChunkStateWitnessV2 {
     match w {
         ChunkStateWitness::V2(b) => b,
     }
 }
 
-fn with_header_inner(w: &ChunkStateWitness, inner: &[u8]) -> Option<ChunkStateWitness> {
+pub(crate) fn with_header_inner(w: &ChunkStateWitness, inner: &[u8]) -> Option<ChunkStateWitness> {
     let ShardChunkHeader::V3(h) = w.chunk_header() else { return None };
     let mut hb = vec![2u8];
     hb.extend_from_slice(inner);

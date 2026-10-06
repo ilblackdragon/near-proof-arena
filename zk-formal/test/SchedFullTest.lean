@@ -10,16 +10,16 @@ import ZkFormal.NearV3.Sched.Render
 /-! Executable check of all six scheduler tables together (`lake env lean --run test/SchedFullTest.lean [limit]`).
 Not part of the library.
 
-For each nearcore vector (one instance, τ = 0): the honest traces of `schV3`, `sscV3`, `sprV3`,
-`smmV3`, `scpV3`, `sdsV3` (codec and distribute generators from `Gen/Codec`, `Gen/Dist`); every
-constraint on every row, multiplicity bits 0/1, balance of every scheduler bus that does not
-involve lane v3-chacha (`SCMP`, `SOP`, `SFIN`, `SINC`, `SPUSH`, `SDL`, `SDLX`, `SDG`) against
-the public records of `Sched/Render` (`SPUBB`, `SPAR`, `SRAW`, `SLINK`, `SSHD`, `SDL`) and the
+For each nearcore vector (one instance, τ = 0): the honest traces of `schV3`, `ssdV3` (scan +
+distribute, width cut B), `sprV3`, `smmV3`, `scpV3` (codec and merged generators from `Gen/Codec`,
+`Gen/Dist`); every constraint on every row, multiplicity bits 0/1, balance of every scheduler bus
+that does not involve lane v3-chacha (`SCMP`, `SOP`, `SFIN`, `SINC`, `SPUSH`, `SDL`, `SDLX`,
+`SDG`) against the public records of `Sched/Render` (`SPUBB`, `SPAR`, `SDL`) and the
 expected external traffic: `VBYTES` = the canonical previous state's bytes, **`SPOST` = the
 bytes of `runCore`'s new state**, SHA input `prev hash ‖ sha256(all_shards)` and its digest,
 `S0F`. (The shuffle buses are checked with lane v3-chacha's tables in `SchedTablesTest`.)
 Forwarding demands: half of each grant of sender 0. Then single-cell mutants of codec and
-distribute rows. -/
+merged scan/distribute rows. -/
 
 open Lean NearSpecV3 NearSpecV3.Scheduler ZkFormal.Air ZkFormal.Algebra ZkFormal.NearV3.Sched
 open ZkFormal.NearV3.Sched.Gen
@@ -141,8 +141,8 @@ def imbalance (all : List (Nat × Bool × List Nat)) (bus : Nat) : Nat × Nat :=
 
 def checkedBuses : List (String × Nat) :=
   [("SCMP", B_SCMP), ("SOP", B_SOP), ("SFIN", B_SFIN), ("SINC", B_SINC), ("SPUSH", B_SPUSH),
-   ("SPUBB", B_SPUBB), ("SPAR", B_SPAR), ("SRAW", B_SRAW), ("SLINK", B_SLINK), ("SSHD", B_SSHD),
-   ("SDL", B_SDL), ("SDLX", B_SDLX), ("SDG", B_SDG), ("S0F", B_S0F), ("SPOST", B_SPOST), ("SPLEN", B_SPLEN),
+   ("SPUBB", B_SPUBB), ("SPAR", B_SPAR),
+   ("SDL", B_SDL), ("SDLX", B_SDLX), ("SDG", B_SDG), ("S0F", B_S0F), ("SPOST", B_SPOST), ("SPLEN", B_SPLEN), ("SA0", B_SA0),
    ("VBYTES", ZkFormal.NearV3.B_VBYTES), ("BYTES", ZkFormal.Near.B_BYTES), ("DIGEST", ZkFormal.Near.B_DIGEST)]
 
 def busImbalance (all : List (Nat × Bool × List Nat)) : List (String × Nat × Nat) :=
@@ -181,16 +181,15 @@ def fullOf (c : Json) : Except String Full := do
   let cmps := R.cmps ++ D.cmps ++ C.cmps
   let tabs : List Tab := [
     ⟨"schV3", mkTrace C.rows 1 codecPad, Codec.constraints.toArray, Codec.interactions⟩,
-    ⟨"sscV3", Gen.Scan.trace R, Scan.constraints.toArray, Scan.interactions⟩,
+    ⟨"ssdV3", sdTrace R D, ScanDist.constraints.toArray, ScanDist.interactions⟩,
     ⟨"sprV3", Gen.Proc.trace R, Proc.constraints.toArray, Proc.interactions⟩,
     ⟨"smmV3", Gen.Mem.trace R, Mem.constraints.toArray, Mem.interactions⟩,
-    ⟨"scpV3", Gen.Cmp.trace cmps, Cmp.constraints.toArray, Cmp.interactions B_SCMP⟩,
-    ⟨"sdsV3", mkTrace D.rows 1 distPad, Dist.constraints.toArray, Dist.interactions⟩ ]
+    ⟨"scpV3", Gen.Cmp.trace cmps, Cmp.constraints.toArray, Cmp.interactions B_SCMP⟩ ]
   let P : InstPub := ⟨I.ids, I.p, I.allowed, I.raw.filter (fun q => !(setBits q.bm).isEmpty), I.seed, I.ash⟩
   let pubSends : List (Nat × List (List Nat)) :=
     [(B_SPUBB, keyRecs 0 I.seed ++ ashRecs 0 I.ash ++ fwdRecs P fwd),
-     (B_SPAR, [parCodec 0 P] ++ (if P.raw.isEmpty then [] else [parScan 0 P])),
-     (B_SRAW, rawRecs 0 P), (B_SLINK, linkRecs 0 P), (B_SSHD, shardRecs 0 P),
+     (B_SPAR, [parCodec 0 P] ++ (if P.raw.isEmpty then [] else [parScan 0 P]) ++ rawRecs 0 P ++
+        shardRecs 0 P ++ linkRecs 0 P),
      (B_SDL, dlRecs 0 I.ids)]
   let ext : List (Nat × Bool × List Nat) :=
     (pubSends.flatMap fun (b, l) => l.map fun m => (b, true, m)) ++
@@ -216,7 +215,7 @@ def main (args : List String) : IO UInt32 := do
   let cases := (getArr j "cases").toList.take limit
   let mut okV := 0
   let mut badV := 0
-  let mut viol : Array Nat := Array.replicate 6 0
+  let mut viol : Array Nat := Array.replicate 5 0
   let mut idx := 0
   let mut sample : Option Json := none
   for c in cases do
@@ -245,26 +244,35 @@ def main (args : List String) : IO UInt32 := do
     if sample.isNone && idx > 50 then sample := some c
   let t1 ← IO.monoMsNow
   IO.println s!"vectors: {okV} ok, {badV} bad; time {(t1 - t0) / 1000}s"
-  IO.println s!"violations per table (schV3, sscV3, sprV3, smmV3, scpV3, sdsV3): {viol.toList}"
-  -- mutants of codec and distribute rows
+  IO.println s!"violations per table (schV3, ssdV3, sprV3, smmV3, scpV3): {viol.toList}"
+  -- mutants of codec rows and of the merged table's scan / distribute rows
   let some c := sample | return (if badV == 0 then 0 else 1)
   let F ← IO.ofExcept (fullOf c)
   let base := F.tabs.map fun T => (msgs T).1
   -- rows by kind (first record allowance-field end, first shard row, first header, first allowed cell)
-  let dRows := (F.tabs[5]!).tr
+  let dRows := (F.tabs[1]!).tr
   let findRow (T : Tab) (col : Nat) : Nat :=
     ((List.range T.h).find? fun r => (T.tr.cell 0 r col).toNat == 1).getD 0
   let rend := findRow F.tabs[0]! Codec.rend
-  let hdr := findRow F.tabs[5]! Dist.kGH
-  let cell := ((List.range (F.tabs[5]!).h).find? fun r =>
+  let d0 := findRow F.tabs[1]! Dist.kSh
+  let hdr := findRow F.tabs[1]! Dist.kGH
+  let cell := ((List.range (F.tabs[1]!).h).find? fun r =>
     (dRows.cell 0 r Dist.kC).toNat == 1 && (dRows.cell 0 r Dist.al).toNat == 1).getD (hdr + 1)
+  let hasScan := (dRows.cell 0 0 Dist.kP).toNat == 1
   let probes : List (Nat × Nat × Nat) :=
     [ (0, 0, Codec.reg 1), (0, 1, Codec.bpost), (0, 5, Codec.bpost), (0, 6, Codec.bpre), (0, rend - 4, Codec.bpost),
       (0, rend - 6, Codec.ap), (0, rend - 3, Codec.cb), (0, rend, Codec.a2), (0, rend, Codec.afin), (0, rend, Codec.gb),
       (0, rend, Codec.big), (0, rend - 5, Codec.cx), (0, 7, Codec.kidx), (0, 3, Codec.reg 5),
-      (5, 0, Dist.q2), (5, 0, Dist.L2), (5, 0, Dist.kp), (5, 1, Dist.r), (5, 1, Dist.da), (5, 0, Dist.cx),
-      (5, hdr, Dist.N2), (5, hdr, Dist.b), (5, cell, Dist.gb), (5, cell, Dist.sL), (5, cell, Dist.llo),
-      (5, cell, Dist.al), (5, cell, Dist.q1), (5, cell, Dist.N1) ]
+      (1, d0, Dist.q2), (1, d0, Dist.L2), (1, d0, Dist.kp), (1, d0 + 1, Dist.r), (1, d0 + 1, Dist.da), (1, d0, Dist.cx),
+      (1, hdr, Dist.N2), (1, hdr, Dist.b), (1, cell, Dist.gb), (1, cell, Dist.sL), (1, cell, Dist.llo),
+      (1, cell, Dist.al), (1, cell, Dist.q1), (1, cell, Dist.N1),
+      -- cut B: record / memory windows, section boundary
+      (1, d0, Dist.shd), (1, d0, Dist.lnk), (1, d0, Dist.llo), (1, d0, Dist.adr), (1, d0, Dist.bv),
+      (1, d0, Dist.by1), (1, d0, Dist.side), (1, cell, Dist.alc), (1, cell, Dist.side), (1, d0, Dist.kSh),
+      (1, d0, Dist.r1), (1, d0 + 1, Dist.lhi) ] ++
+    (if hasScan then [ (1, 0, Scan.chi), (1, 0, Scan.s), (1, 0, Scan.q 1), (1, 1, Scan.clo), (1, 1, Scan.q 4),
+      (1, 20, Scan.key), (1, 20, Scan.bvz), (1, 20, Scan.cid), (1, 20, Dist.r1), (1, d0 - 1, Scan.re),
+      (1, d0 - 1, Scan.m) ] else [])
   let mut caught := 0
   let mut missed := []
   for (ti, r, col) in probes do

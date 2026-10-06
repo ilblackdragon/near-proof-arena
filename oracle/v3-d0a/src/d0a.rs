@@ -1,5 +1,5 @@
 //! Independent Rust predicate for the D0a amendments (spec/near-chunk-validation-v0a.md):
-//! A1 `c.gas_limit`, A2 `w.proof_routing`, Canon0f `e.sched_canonical`. Used together with
+//! A1 `c.gas_limit`, A2 `w.proof_routing`, Canon0f `e.sched_canonical`, A8 `c.bw_requests`. Used together with
 //! the D0 classifier (../v3/src/d0.rs): a case is in D0a iff both return no violation.
 //! Uses nearcore's own objects and code (chunk headers, `Receipt::receiver_shard_id`, the
 //! tracking node's full state, `Trie::from_recorded_storage` on the witness), not the
@@ -22,6 +22,21 @@ fn canonical(st: &Option<BandwidthSchedulerState>, layout: &near_primitives::sha
             got == want
         }
     }
+}
+
+/// A8 (`c.bw_requests`): every chunk header of every block of the segment has at most one
+/// bandwidth request per `to_shard` (nearcore `ShardChunkHeader::bandwidth_requests`).
+pub fn a8_ok(blocks: &[std::sync::Arc<near_primitives::block::Block>]) -> bool {
+    use near_primitives::bandwidth_scheduler::BandwidthRequests;
+    blocks.iter().all(|b| {
+        b.chunks().iter_raw().all(|h| match h.bandwidth_requests() {
+            None => true,
+            Some(BandwidthRequests::V1(r)) => {
+                let mut seen = std::collections::BTreeSet::new();
+                r.requests.iter().all(|q| seen.insert(q.to_shard))
+            }
+        })
+    })
 }
 
 pub fn extra(client: &Client, built: &Built, w: &ChunkStateWitness) -> Result<Vec<&'static str>, String> {
@@ -64,6 +79,10 @@ pub fn extra(client: &Client, built: &Built, w: &ChunkStateWitness) -> Result<Ve
     }
     if !ok {
         v.push("e.sched_canonical");
+    }
+    // A8: every block of the segment, every chunk slot
+    if !a8_ok(&built.blocks) {
+        v.push("c.bw_requests");
     }
     Ok(v)
 }

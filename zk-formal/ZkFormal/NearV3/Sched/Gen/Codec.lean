@@ -1,6 +1,7 @@
 import ZkFormal.NearV3.Sched.Gen.Run
 import ZkFormal.NearV3.Sched.Tables.Codec
 import ZkFormal.NearV3.Sched.Render
+import ZkFormal.NearV3.Sched.Spec.CanonDup
 import ZkFormal.NearV3.Sched.Gen.Dist
 
 /-!
@@ -79,29 +80,36 @@ def codecRows (I : Input) (R : Run) (present : Bool) (vidV : Nat) (gbA : Array N
         let wtv := 256 ^ gg
         let nzbv := if bpr = 0 then 0 else 1
         let isEnd := f = 2 ∧ gg = 7
-        let mut extra : List (Nat × Nat) := []
+        -- link data of record kk (from `SDG`, carried over the record) and its source record
+        let srcO := srcOf I.ids kk
+        let useV := (List.range N).any fun l' => srcOf I.ids l' == some kk
+        let a0s := match srcO with | some k' => (if present then a0[k']! else 0) | none => 0
+        let apRv := a0s % 16777216
+        let bigRv := if a0s ≥ 16777216 then 1 else 0
+        let alv := b2n (I.allowed[kk]!)
+        let gbv := gbA[kk]!
+        let mut extra : List (Nat × Nat) := [(rs, if f = 0 ∧ gg = 0 then 1 else 0), (al, alv), (gb, gbv),
+          (srcC, srcO.getD 0), (hasC, if srcO.isSome then 1 else 0), (useC, b2n useV)]
+        if f = 2 ∧ gg ≥ 2 then extra := extra ++ [(apR, apRv), (bigR, bigRv)]
         if f = 2 then
           extra := extra ++ [(lowf, lowfv), (wt, wtv % ZkFormal.Algebra.P), (ap, apv), (big, bigv), (apost, apostv),
             (nzb, nzbv), (ib, finv bpr), (ig2, finv (fsub gg 2)), (e2, if gg = 2 then 1 else 0)]
           if gg = 2 then
-            let x := apv + wtv * bpr + fairV
+            extra := extra ++ [(a0g, if srcO.isSome then 1 else 0)]
+            let x := apRv + fairV
             cbv := if Codec.MA ≤ x then 1 else 0
             cmps := cmps ++ [(x, Codec.MA, cbv)]
             extra := extra ++ [(cx, x), (cy, Codec.MA), (cbit, cbv), (cg, 1)]
           if gg ≥ 2 then extra := extra ++ [(cb, cbv)]
         if isEnd then
           let bFv := if bigv = 1 ∨ nzbv = 1 then 1 else 0
-          let a1v := if bFv = 1 then Codec.MA else (if cbv = 1 then Codec.MA else apv + fairV)
-          let alv := b2n (I.allowed[kk]!)
+          let a1v := if bigRv = 1 then Codec.MA else (if cbv = 1 then Codec.MA else apRv + fairV)
           let a2v := a1v - alv * baseV
           check (a2v == R.a2[kk]!) "codec a2 differs from the link pass"
-          let gbv := gbA[kk]!
           let gf := gfinF kk
           let lastRec := kk + 1 = N
-          extra := extra ++ [(rend, 1), (bF, bFv), (a1, a1v), (al, alv), (a2, a2v), (g2, alv * baseV),
-            (afin, afinF kk), (gfin, gf), (gb, gbv), (dgg, if lastRec then 1 else 0)]
-          if lastRec then
-            extra := extra ++ (List.range 32).map fun i => (reg i, digest[i]!)
+          extra := extra ++ [(rend, 1), (bF, bFv), (a1, a1v), (a2, a2v), (g2, alv * baseV),
+            (afin, afinF kk), (gfin, gf), (u0g, b2n useV)]
           if tv = 0 then
             let ft := ((fwd.find? (·.1 == kk)).map (·.2)).getD 0
             check (ft ≤ gf + gbv) "forwarding demand above the grant"
@@ -122,7 +130,7 @@ def codecRows (I : Input) (R : Run) (present : Bool) (vidV : Nat) (gbA : Array N
   for j in List.range 32 do
     let bpr := hpre[j]!
     let regs := (List.range 32).map fun i => (reg i, digest.getD (j + i) 0)
-    rows := rows.push (setAll width (inst ++ [(kZ, 1), (pos, base0 + j), (sj, j), (bpost, digest[j]!),
+    rows := rows.push (setAll width (inst ++ [(kZ, 1), (dgg, if j = 0 then 1 else 0), (pos, base0 + j), (sj, j), (bpost, digest[j]!),
       (bpre, if present then bpr else 0), (bsha, if present then bpr else 0), (vbg, b2n present),
       (isj, finv (fsub j 31)), (esj, if j = 31 then 1 else 0)] ++ regs ++ pb digest[j]! ++ qb (if present then bpr else 0)))
   for j in List.range 32 do

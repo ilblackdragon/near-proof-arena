@@ -5,7 +5,7 @@ import ZkFormal.NearV3.Sched.Model
 
 For each of the 600 nearcore vectors (`oracle/fixtures/v3/vectors/scheduler.json`):
 * `pub := pubOf pv86 …` (claim-only part), raw requests with resolved indices;
-* `convRaw` (set-bit increases) equals `pub.reqs` (`convertRequests`);
+* `convRaw` (set-bit increases) equals `convertRaw pub.values base ids pub.raw` (what `runCore` converts);
 * the previous state is canonicalised (`allow0` written as the layout's `n²` links in order, same
   sanity hash) — `runCore` gives the same output on both (the core depends on `prev` only through
   `allow0` and the hash);
@@ -85,7 +85,7 @@ def main : IO UInt32 := do
       (if prevB.isNone then NearSpec.Bandwidth.State.initial else canon)
     let good ← match want, wantC, ev with
       | some o, some oc, .ok e =>
-        if conv != pub.reqs then IO.println "convRaw differs"; pure false
+        if conv != convertRaw pub.values pub.params.base pub.ids pub.raw then IO.println "convRaw differs"; pure false
         else if o.state != oc.state || o.granted != oc.granted then IO.println "canonical prev changes output"; pure false
         else if e.state != o.state then IO.println "state bytes differ"; pure false
         else if e.granted != o.granted.map (·.2) then IO.println "grants differ"; pure false

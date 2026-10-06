@@ -4,27 +4,38 @@
   "lean.out_of_domain": 592,
   "python.out_of_domain": 592
  },
+ "a8_dup_bw_request_mutants": {
+  "cases": 845,
+  "lean.out_of_domain_c.bw_requests": 845,
+  "python.out_of_domain_c.bw_requests": 845
+ },
+ "a8_reported_elsewhere": {
+  "lean": 0,
+  "python": 0
+ },
  "amendments_on_honest_witnesses": {
+  "c.bw_requests": 0,
   "c.gas_limit": 599,
   "e.sched_canonical": 0,
   "honest_witnesses": 4597,
   "w.proof_routing": 0,
   "w.unfolded": 0
  },
- "cases_dir": "generated: near-arena-oracle-v3-d0a gen --seed 4243 --chains 9 --blocks 120 --mutate-every 6 (oracle/v3-d0a; byte-reproducible)",
+ "cases_dir": "generated: near-arena-oracle-v3-d0a gen --seed 4243 --chains 9 --blocks 120 --mutate-every 6 (oracle/v3-d0a at the A8 commit; honest cases byte-reproducible; A2 mutants pick their template receipt from a HashMap, so their bytes vary between runs)",
  "counts": {
   "d0.cases": 907,
   "d0.expected_accept": 907,
   "d0.lean.accept": 907,
   "d0.python.accept": 907,
+  "mutants.amendment.c.bw_requests": 845,
   "mutants.amendment.w.proof_routing": 592,
-  "mutants.cases": 7733,
+  "mutants.cases": 8578,
   "mutants.expected_accept": 1176,
   "mutants.lean.accept": 1176,
-  "mutants.lean.out_of_domain": 744,
+  "mutants.lean.out_of_domain": 1589,
   "mutants.lean.reject": 5813,
   "mutants.python.accept": 1176,
-  "mutants.python.out_of_domain": 592,
+  "mutants.python.out_of_domain": 1437,
   "mutants.python.reject": 5965,
   "ood.amendment.c.gas_limit": 269,
   "ood.cases": 2131,
@@ -42,6 +53,7 @@
  ],
  "mutation_families": {
   "c.drop_last_block|expected_accept=False": 147,
+  "c.dup_bw_request|expected_accept=False": 845,
   "c.epoch_start_flip|expected_accept=False": 147,
   "c.extra_block|expected_accept=False": 147,
   "c.inner_rest_flip|expected_accept=False": 147,
@@ -102,7 +114,7 @@
   },
   "honest_accepted_by_nearcore": 4597,
   "honest_witnesses": 4597,
-  "mutants": 7733,
+  "mutants": 8578,
   "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
   "ood_cases_written": 2131,
   "protocol_version": 86,
@@ -110,21 +122,21 @@
  },
  "statement": "near/pv86/chunk-validation/v0",
  "unfold_bytes": {
-  "compared_lean_python": 2695,
+  "compared_lean_python": 3540,
   "compared_oracle": 927,
   "distribution": {
    "max": 7917,
    "min": 1248,
-   "n": 2695,
-   "p50": 3785,
-   "p90": 5148,
-   "p99": 7320
+   "n": 3540,
+   "p50": 3769,
+   "p90": 5082,
+   "p99": 7234
   },
   "mismatch_count": 0,
   "mismatches": []
  },
  "wall_seconds": {
-  "lean": 1111.1448554992676,
-  "python": 8.469000101089478
+  "lean": 1735.835557460785,
+  "python": 9.01863980293274
  }
 }

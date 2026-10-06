@@ -14,7 +14,7 @@ Rules: no `sorry` / `axiom` / `native_decide`; axioms ⊆ {propext, Classical.ch
 |---|---|---|---|
 | M0 | design | tables, buses, message formats, public data, amendments needed, `W_eq` estimate (§2–§4) | **done** |
 | M1 | spec-side refinement | `runCore` decomposed into the AIR's phases, each **proved** equal to the spec (§5); executable event model `coreEv` = `runCore` on 600/600 vectors | **done** |
-| M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 934 at g = 1), honest generators for all six (`Gen/*`), constraint evaluator + bus-balance tests on the 600 vectors, mutants (§8) | **done** |
+| M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 781 at g = 1 after cuts B, D and the source map), honest generators for all six (`Gen/*`), constraint evaluator + bus-balance tests on the 600 vectors, mutants (§8) | **done** |
 | M3 | soundness | per table: `…Local → ∃ v, Wf v ∧ Traffic …` (L5 style), bus contracts (comparator, memory, scan, codec), link lemma: `schedCore_sound` | **started** (§7): comparator contract, memory row view + segments, abstract memory consistency |
 | M4 | completeness | honest traces satisfy every constraint, traffic = expected lists; `schedCore_complete`; height bounds | open |
 | M5 | integration | message formats agreed with `v3-trie` (`VBYTES`, `upsV3`) and the assembly (public segments, `Prep.fwd`), cuts | open |
@@ -56,20 +56,22 @@ its sanity hash, and the grants checked against `Prep.fwd`.
 | `sdsV3` distribute | per τ: 2n sorted shard rows + n² grid cells | sorted orders (key `avg·64 + idx` strictly increasing), grid with receiver delay line |
 | `chachaV3`/`genV3`/`shufV3` | lane v3-chacha | one instance set for the scheduler |
 
-**Kernel-checked** (`Sched/BudgetCheck.lean`: `report_g1`, `weqSched_g1`), g = 1:
+**Kernel-checked** (`Sched/BudgetCheck.lean`: `report_g1`, `weqSched_g1`), g = 1, after cuts B and D (§12):
 
 | table | file | width | interactions | degree | `W_eq` | maxLog |
 |---|---|---:|---:|---:|---:|---:|
-| `schV3` codec + link | `Tables/Codec.lean` | 114 | 14 | 4 | 250 | 22 |
-| `sscV3` scan | `Tables/Scan.lean` | 96 | 6 | 4 | 168 | 22 |
+| `schV3` codec + link | `Tables/Codec.lean` | 91 | 16 | 4 | 243 | 22 |
+| `ssdV3` scan + distribute | `Tables/ScanDist.lean` (`Scan.lean`, `Dist.lean`) | 119 | 10 | 4 | 223 | 22 |
 | `sprV3` process | `Tables/Proc.lean` | 64 | 11 | 4 | 176 | 22 |
 | `smmV3` memory | `Tables/Mem.lean` | 18 | 4 | 4 | 74 | 22 |
 | `scpV3` comparator | `Tables/Cmp.lean` | 33 | 1 | 4 | 65 | 22 |
-| `sdsV3` distribute | `Tables/Dist.lean` | 113 | 8 | 4 | 201 | 22 |
-| **total** | | 438 | 44 | | **934** | |
+| **total** | | 325 | 42 | | **781** | |
+
+History: 810 (first layout) → 814 (29-bit comparator) → 822 (`SPLEN`) → 934 (range fixes, §10) →
+788 (cut B) → 761 (cut D) → **781** (duplicate-id source map, +20).
 
 (At g = 3 the grouped aux constraints have degree 8; g = 1 is the better setting for these
-tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,588 `W_eq` ≈ 1.37 MB of proof (at
+tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,435 `W_eq` ≈ 1.24 MB of proof (at
 ≈ 864 B per `W_eq`). The comparator is 29-bit: the distribute sort key `avg·64 + shard` reaches
 ≈ 2^28 (found by `SchedFullTest`; 25 bits were too few).
 
@@ -245,11 +247,103 @@ Cost of the fixes: `sdsV3` +58, `sscV3` +46, `schV3` +8 ⇒ `W_eq` 822 → **934
 `weqSched_g1`). Tests after the fixes: `SchedFullTest` **600/600 vectors, 0 violations, 28/28
 mutants** (1,234 s).
 
-## 11. Open items (in priority order)
+## 11. Claim conditions for the two proposed amendments (nearcore 2.13.4, `44f7ae6c`)
 
-1. M3 views: codec, process structure (key
-   block, headers, rounds); link layer per §6 (memory consistency instance, operand bounds of
-   §10, `process_rounds` hypotheses, `core_compose`); `schedCore_sound`.
-2. M4: completeness of the six tables (honest generators exist and pass on 600 vectors).
-3. Amendment requests (§4): distinct layout ids; A8 request bound.
-4. Cuts (§3).
+**A8 status (lead decision): a relation-level conjunct** `a8` of `RelD0a` (commit `61191270`;
+`ChunkValidationV0a.a8`, `checkD0a`, `relD0a_iff`/`relD0a_relD0`/`relD0a_mono` proved; `prepClaim`
+checks it natively, and so does its `@[csimp]` fast copy). Independent implementations (Python checker, Rust
+oracle on nearcore's chunk headers), mutant `c.dup_bw_request`, full D0a difftest (seed 4243, 9 × 120):
+11,616 cases, **0 disagreements**, A8 on honest witnesses 0 / 4,597, A8 mutants 845/845
+out_of_domain in Lean and Python (STATUS-V3-SPEC §1.1a; commits `8971775f`, `fd75c9f0`). The scheduler uses it **only** in completeness / height bounds (stated parametric in
+`B0` and A8).
+**Soundness does not need it**:
+* `process_rounds`, `core_compose`, the views and `cmp_sound` have no request-count hypothesis;
+* table heights are bounded by `HoldsP` itself (`maxLog`);
+* the request count only matters for whether an honest trace fits (M4).
+
+**A8: at most one request per target shard and sender.**
+* *Construction:* `runtime/runtime/src/congestion_control.rs:512-521`, `generate_bandwidth_requests`.
+  It runs `for shard_id in shard_layout.shard_ids() { if let Some(request) =
+  self.generate_bandwidth_request(shard_id, …)? { requests.push(request) } }`. So there is at most one
+  request per shard id of the layout, `to_shard = shard_id`
+  (`core/primitives/src/bandwidth_scheduler.rs:84-126`, `make_from_receipt_sizes`).
+* *Validation:* `chain/chain/src/validate.rs:280-298`, `validate_bandwidth_requests`. A chunk header's
+  requests must equal the ones the previous chunk's application stored in its chunk extra
+  (`InvalidBandwidthRequests` otherwise).
+* *The block's map:* `chain/chain/src/chain_update.rs:508`, `block.block_bandwidth_requests()`, has one
+  entry per chunk slot.
+* *Proposed condition:* in each block, each slot's `BandwidthRequests` list has at most `n` entries.
+  Equivalently, its `to_shard` values are distinct (claim-decidable). Every honest claim satisfies it,
+  because the requests are the validated outputs of the loop above.
+
+**Decision (program lead): no distinct-ids amendment; the AIR follows the spec on every layout.**
+* **Spec side (done).** `Spec/CanonDup.allow0_src` (proved): for any layout, the spec's `allow0` of
+  a canonical previous state is `a (srcOf ids l)`. Here `srcOf ids l` is the last record `k` with
+  `tgt ids k = l`, and `tgt` uses the spec's first-index `indexOf`. `core_compose` no longer
+  assumes `ids.Nodup` (commit `04a4ad9a`).
+* **AIR side (done, commit below).** The codec reads `a0` through the claim-only source map.
+  * The public per-link record gains `(src_lo, src_hi, hasSrc)`, plus a per-record `use` bit; these
+    reach the codec with `SDG`.
+  * Record `k` sends `A0 (τ, k, ap, big)` with multiplicity `use(k)`.
+  * Record `l` receives `A0 (τ, src(l), …)` at its byte-2 row with multiplicity `hasSrc(l)`, where
+    the comparator runs.
+  * Cost: ≈ +16 `W_eq` (two interactions) plus a few columns.
+* **Faithfulness finding (pinned spec vs nearcore), unreachable on real layouts.** On a layout with
+  duplicate shard ids:
+  * nearcore's `get_shard_index` reads `id_to_index_map`, built by inserting every `shard_ids` entry
+    in order, so the last index wins (`core/primitives/src/shard_layout/v2.rs:199-215`,
+    `v3.rs:205-216`);
+  * the pinned spec's `indexOf` returns the first index.
+
+  So the spec and nearcore disagree on the scheduler's link indices. No real layout has duplicate
+  ids. The AIR proves the spec relation.
+
+**Distinct layout shard ids: weaker evidence.**
+* No explicit assertion:
+  * `ShardLayoutV2::new` (`core/primitives/src/shard_layout/v2.rs:199-215`) inserts `shard_ids`
+    into the `BTreeMap`s `id_to_index_map` / `index_to_id_map` without a distinctness assertion.
+  * `ShardLayoutV3::new` (`shard_layout/v3.rs:205-216`) asserts only the boundary order and the split map.
+* *The split-map case does force distinctness.* With a split map, `validate_and_derive_shard_parent_map`
+  (`v2.rs:21-47`) asserts `shard_ids.sorted() == shards_parent_map.keys()`. The right side is a
+  `BTreeMap`'s keys, so this forces distinct ids.
+* *Duplicates break nearcore itself.* `get_shard_index` reads `id_to_index_map`, and a duplicate id
+  makes it disagree with `shard_ids` (last insert wins). The spec's `indexOf` takes the first index.
+  The spec's own `Scheduler.decodeShardLayoutV2` rejects such a layout (`idToIndex ≠ byId`).
+  `prepD0`'s `decodeLayout` does not check the maps.
+* *Proposed condition:* `c.layout`: the layout's `shard_ids` are pairwise distinct (claim-decidable).
+  This is true of every layout nearcore actually builds: the mainnet `ShardLayout::v2` configurations,
+  and splits, where the assertion above applies.
+* *Alternative if the lead rejects it:* handle duplicates in-AIR with a source map
+  `allow0[l] = record src(l)`. This is one more bus in the codec/link pass, ≈ +16 `W_eq`.
+
+## 12. Width cuts: evaluation (program lead, after design §13)
+
+`W_eq` = width + 8·interactions + 24 per table (degree 4). Current total: 934.
+
+| cut | saving | re-proof cost | decision |
+|---|---:|---|---|
+| **A. one table for scan + process + memory + distribute row kinds.** Columns are multiplexed (width ≈ max over kinds + message windows ≈ 125 instead of 291). The public receives `SPAR/SRAW/SPUBB-key/SSHD/SLINK` move to one padded public bus with an aligned window (5 → 1). `SPUSH` sends 2 → 1, `SOP` sends 5 → 3, `SCMP` sends 4 → 2 (aligned windows). Interactions 29 → ≈ 20. Quotient 4 → 1. | **≈ 310** (934 → ≈ 625) | **medium.** All four proved views (memory, process entry, distribute, scan; ≈ 1.8 k lines) need edits: renamed columns resolve by name, but constraint-membership proofs change; ungated value/booleanity constraints get kind gates; the padding/first/last-row lemmas change because the table becomes sections (`row_pad`, `row_first`, `seg_start`, scan's `row_next_lt`/`row_pad`). Generators and both tests must be rebuilt for the merged layout. Rows ≈ 3.6 M ≤ 2^22 under A7 + A8 (tight). | needs the lead's go-ahead (re-proof is not small) |
+| **B. scan + distribute only.** These are the two widest; public receives 4 → 1, `SOP` sends 2 → 1. | ≈ 140 | small–medium: the distribute view (membership only) and the scan view's boundary lemmas | candidate if A is declined |
+| C. process + memory only | ≈ 48 | small | below the threshold |
+| D. codec: overlay the 32-column digest register on record-only columns; receive `DIGEST` on the first hash row | 32 | none (no codec view yet) | below the threshold; cheap, can go with the codec view |
+| E. per-byte SHA digest output (`DBYTE`) | 32 | SHA lane change | external |
+| F. range-check bits via the comparator | — | — | not possible: a comparator-only bound (`x < 2^29`) is too weak for exact divisions, and the extra comparator rows would exceed 2^22 |
+
+Range checks are kept in every variant.
+
+## 13. Open items (in priority order)
+
+1. **Done:** cut B (`ssdV3`, commit `26829f12`: −146; views re-proved; SchedFullTest 600/600, 51/51
+   mutants; SchedTablesTest 600/600, 44/44) and cut D (commit `b056a51d`: −27; SchedFullTest 600/600,
+   51/51). Cut A is on hold. Codec source map done (+20; `SA0` bus 62, `SDG` carries
+   `(src, hasSrc, use)`, `Render.srcFields`). **Both tests rerun on the final tables (781):**
+   SchedFullTest 600/600 vectors, 0 violations, all buses balanced, 51/51 mutants (2,033 s);
+   SchedTablesTest 600/600, 0 violations, 0 unbalanced messages, 44/44 mutants (2,729 s). **Open:** a test with a
+   duplicate-id layout (the vectors only exercise the identity map; `Gen.run`'s link pass is
+   positional and must switch to `srcArr`).
+2. M3 views: codec, process structure (key block, headers, rounds); link layer per §6 (memory
+   consistency instance, operand bounds of §10, `process_rounds` hypotheses, `core_compose`);
+   `schedCore_sound`.
+3. M4: completeness of the six tables (honest generators exist and pass on 600 vectors).
+4. A8 (§11) as a completeness-only hypothesis; the distinct-ids amendment is dropped (source map, §11). The codec source map is pending.
+5. Cuts D/E.

@@ -1,8 +1,12 @@
 import ZkFormal.NearV3.Sched.View.Mem
-import ZkFormal.NearV3.Sched.Tables.Dist
+import ZkFormal.NearV3.Sched.Tables.ScanDist
 
 /-!
-# ZkFormal.NearV3.Sched.View.Dist — the divisions of `sdsV3` are exact integer divisions
+# ZkFormal.NearV3.Sched.View.Dist — the divisions of the distribute rows of `ssdV3` are exact
+
+`DLocal` is every distribute-family constraint on every row; the merged table `ssdV3` gives it
+(`DLocal.of_sd`, `ScanDist.dist_sub`). The facts below hold on every row (ranges) or on rows of
+the stated kind (`al = 1` only on cells, `kSh = 1` on shard rows).
 
 The quotients are range-checked (`q < 2^23`, 23 bits) and so are the remainders (`r < 64`, 6 bits,
 and `N − 1 − r < 64`), so `L = q·N + r` holds over the naturals (`q·N + r < 2^30 < P`) with
@@ -19,6 +23,10 @@ namespace ZkFormal.NearV3.Sched.Dist
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Chacha ZkFormal.Chacha.Table.E
 
 abbrev DLocal (tr : Trace Fp) (t : Nat) (pub : List Fp) : Prop := Local constraints tr t pub
+
+/-- The merged table's constraints give the distribute family's. -/
+theorem DLocal.of_sd {tr : Trace Fp} {t : Nat} {pub : List Fp}
+    (h : Local ScanDist.constraints tr t pub) : DLocal tr t pub := ScanDist.local_dist h
 
 section
 variable {tr : Trace Fp} {td : Nat} {pub : List Fp}
@@ -51,7 +59,7 @@ theorem bool_of (hL : DLocal tr td pub) {r : Nat} (hr : r < tr.height td) {x : N
   hL.bool hr (by
     unfold constraints cKind
     exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _
-      (List.mem_append_left _ (List.mem_map_of_mem hx)))))
+      (List.mem_append_left _ (List.mem_append_left _ (List.mem_map_of_mem hx))))))
 
 /-- A bit-decomposed expression evaluates to `numv`, below `2^len`. -/
 theorem num_eval (hL : DLocal tr td pub) {r : Nat} (hr : r < tr.height td) (col : Nat → Nat) (len : Nat)

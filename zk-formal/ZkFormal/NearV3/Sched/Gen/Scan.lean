@@ -1,18 +1,21 @@
-import ZkFormal.NearV3.Sched.Tables.Scan
+import ZkFormal.NearV3.Sched.Tables.ScanDist
 import ZkFormal.NearV3.Sched.Gen.Run
 
 /-!
-# ZkFormal.NearV3.Sched.Gen.Scan — honest trace of the bitmap scan `sscV3`
+# ZkFormal.NearV3.Sched.Gen.Scan — honest scan rows of `ssdV3` (the bitmap scan)
 
 Instance τ with converted requests: the param row (`q₀..q₂ = base` bytes, `q₃, q₄, clo = D`
 bytes), then per request `cid` 20 rows `ρ = 4y + u` with bits `b₀, b₁` at positions
 `8y + 2u, 8y + 2u + 1`; byte register `q₀ = bm[y] >> 2u`, `qᵢ = bm[y+i]` (0 past the end);
 `j` = set bits before the row, `cur` = value of the last set bit before (`base` first),
 `cm` = value after `b₀`; remainders of `D·(pos+1)` mod 40 in 6 bits; `iy = (y − 4)⁻¹`,
-`ikey = key⁻¹`. INC multiplicities: `us = bit ∧ (the increase is processed)`. Padding: zero.
+`ikey = key⁻¹`. INC multiplicities: `us = bit ∧ (the increase is processed)`. The distribute
+remainder columns `Dist.r1, Dist.r2` hold the scan remainders (their bits are the scan's); the
+param row keeps `n` in `chi` (record window). The merged trace (scan rows, then distribute rows,
+zero padding) is `Gen.sdTrace` (`Gen/Dist.lean`).
 
-Expected public traffic: `SPAR (τ, 1, n, base₀..₂, D₀..₂, 0, 0)` and
-`SRAW (τ, cid_lo, cid_hi, s, r, bm₀..₄)` per converted request (none if no request).
+Expected public traffic on `SPAR`: `(τ, 1, base₀..₂, D₀..₂, n, 0, 0)` and
+`(τ, 2, bm₀..₄, cid_lo, cid_hi, s, r)` per converted request (none if no request).
 -/
 
 namespace ZkFormal.NearV3.Sched.Gen.Scan
@@ -27,7 +30,7 @@ def paramRow (R : Run) : Array Nat :=
   (zrow width).set! act 1 |>.set! kP 1 |>.set! tau R.tau |>.set! nn R.n |>.set! base R.base
     |>.set! dd R.D |>.set! (q 0) (byteOf R.base 0) |>.set! (q 1) (byteOf R.base 1)
     |>.set! (q 2) (byteOf R.base 2) |>.set! (q 3) (byteOf R.D 0) |>.set! (q 4) (byteOf R.D 1)
-    |>.set! clo (byteOf R.D 2)
+    |>.set! clo (byteOf R.D 2) |>.set! chi R.n
 
 def reqRows (R : Run) (c : CReq) : Array (Array Nat) := Id.run do
   let usedA := R.used.getD c.cid #[]
@@ -56,6 +59,7 @@ def reqRows (R : Run) (c : CReq) : Array (Array Nat) := Id.run do
       |>.set! iy (if yy = 4 then 0 else finv (fsub yy 4)) |>.set! e4 (b2n (yy == 4))
       |>.set! re (b2n (yy == 4 && uu == 3))
       |>.set! Q0 (R.D * (pos + 1) / 40) |>.set! Q1 (R.D * (pos + 2) / 40)
+    a := a.set! Dist.r1 (R.D * (pos + 1) % 40) |>.set! Dist.r2 (R.D * (pos + 2) % 40)
     for i in List.range 6 do
       a := a.set! (rb0 i) (bit (R.D * (pos + 1) % 40) i) |>.set! (rb1 i) (bit (R.D * (pos + 2) % 40) i)
     for i in List.range 23 do
@@ -73,21 +77,18 @@ def rows (R : Run) : Array (Array Nat) :=
   if R.conv.isEmpty then #[] else
   R.conv.foldl (fun acc c => acc ++ reqRows R c) #[paramRow R]
 
-def trace (R : Run) : ZkFormal.Air.Trace ZkFormal.Algebra.Fp :=
-  mkTrace (rows R) 1 fun _ => zrow width
-
 def byte3 (x : Nat) : List Nat := [byteOf x 0, byteOf x 1, byteOf x 2]
 
-/-- Public `SPAR` (tag 1) records received by the scan (one per instance with requests). -/
+/-- Public `SPAR` tag-1 records received by the scan rows (one per instance with requests). -/
 def expectedPar (I : Input) (tau : Nat := 0) : List (List Nat) :=
   let n := I.ids.length
   if (convRaw I.p n I.raw).isEmpty then [] else
-  [[tau, 1, n] ++ byte3 I.p.base ++ byte3 (I.p.maxSingleGrant - I.p.base) ++ [0, 0]]
+  [[tau, PT_SCAN] ++ byte3 I.p.base ++ byte3 (I.p.maxSingleGrant - I.p.base) ++ [n, 0, 0]]
 
-/-- Public `SRAW` records: raw requests with a set bit, numbered `cid = 0, 1, …`. -/
+/-- Public `SPAR` tag-2 records: raw requests with a set bit, numbered `cid = 0, 1, …`. -/
 def expectedRaw (I : Input) (tau : Nat := 0) : List (List Nat) :=
   let rs := I.raw.filter fun q => !(setBits q.bm).isEmpty
   (List.range rs.length).zip rs |>.map fun (i, q) =>
-    [tau, i % 256, i / 256, q.s, q.r] ++ (List.range 5).map fun b => (q.bm.getD b 0).toNat
+    [tau, PT_RAW] ++ ((List.range 5).map fun b => (q.bm.getD b 0).toNat) ++ [i % 256, i / 256, q.s, q.r]
 
 end ZkFormal.NearV3.Sched.Gen.Scan

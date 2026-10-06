@@ -6,6 +6,7 @@ use crate::claim::{block_rec, build_claim};
 use crate::enc::{Claim, encode_witness};
 use crate::judge::nearcore_judge;
 use crate::a2mut::foreign_routing;
+use crate::a8mut::dup_bw_request;
 use crate::mutate::{Judge, drop_each_node, mutants};
 use integration_tests::env::nightshade_setup::TestEnvNightshadeSetupExt;
 use integration_tests::env::test_env::TestEnv;
@@ -535,6 +536,24 @@ pub fn run_chain(chain_idx: usize, p: &ChainParams, out: &Path, o: &GenOpts, sta
                                 "in_d0a": false, "d0a_violations": ["w.proof_routing"],
                                 "expected_rel_d0a": false,
                                 "expected_verdict": "out_of_domain",
+                            });
+                            stats.mutants += 1;
+                            write_case(&out.join("mutants").join(&mname), &m.claim, &m.witness, meta);
+                        }
+                        // A8 mutant (src/a8mut.rs): a repeated to_shard (zero-bitmap request,
+                        // ignored by the scheduler) in a non-own slot of B2
+                        if let Some(m) = dup_bw_request(&built.claim, &sw, &layout, built.shard_id) {
+                            let mname = format!("{name}-{}", m.name);
+                            let meta = json!({
+                                "case": mname, "kind": "mutant", "mutation": m.name, "base": name,
+                                "domain": "D0a", "verdict_source": "construction",
+                                "nearcore": "not judged (mutated block not in the store); Rel holds by construction",
+                                "expected_rel": true,
+                                "in_d0": true, "expected_rel_d0": true,
+                                "in_d0a": false, "d0a_violations": ["c.bw_requests"],
+                                "expected_rel_d0a": false,
+                                "expected_verdict": "out_of_domain",
+                                "expected_reason": "c.bw_requests",
                             });
                             stats.mutants += 1;
                             write_case(&out.join("mutants").join(&mname), &m.claim, &m.witness, meta);

@@ -1,7 +1,7 @@
 import Lean.Data.Json
 import ZkFormal.NearV3.Sched.Gen.Cmp
 import ZkFormal.NearV3.Sched.Gen.Mem
-import ZkFormal.NearV3.Sched.Gen.Scan
+import ZkFormal.NearV3.Sched.Gen.Dist
 import ZkFormal.NearV3.Sched.Gen.Proc
 import ZkFormal.NearV3.Sched.Gen.Lane
 import ZkFormal.NearV3.Sched.Render
@@ -11,11 +11,12 @@ import ZkFormal.NearV3.Sched.Render
 
 For each nearcore vector of `oracle/fixtures/v3/vectors/scheduler.json` (one instance, τ = 0):
 `Gen.run` (checked against `processEv` / `coreEv`), the honest traces of `scpV3`, `smmV3`,
-`sscV3`, `sprV3` and of lane v3-chacha's `shufV3`, `genV3`, `chachaV3` (scheduler buses);
-every constraint on every row, multiplicity bits 0/1, and balance of the buses `SCMP`, `SOP`,
-`SFIN`, `SINC`, `SPUSH`, the six shuffle buses and the public buses `SPUBB` (key records),
-`SPAR` (tag 1), `SRAW` against the expected external traffic (INIT messages, finals, public
-records). Then single-cell mutants per table on the largest vector. -/
+`ssdV3` (scan + distribute, width cut B), `sprV3` and of lane v3-chacha's `shufV3`, `genV3`,
+`chachaV3` (scheduler buses); every constraint on every row, multiplicity bits 0/1, and balance
+of the buses `SCMP`, `SOP`, `SFIN`, `SINC`, `SPUSH`, `SDLX`, `SDG`, the six shuffle buses and the
+public buses `SPUBB` (key records), `SPAR` (tags 1–4) against the expected external traffic
+(link INIT messages and finals of the codec, grid grants received by the codec, public records).
+Then single-cell mutants per table on the largest vector. -/
 
 open Lean NearSpecV3 NearSpecV3.Scheduler ZkFormal.Air ZkFormal.Algebra ZkFormal.NearV3.Sched
 open ZkFormal.NearV3.Sched.Gen
@@ -139,34 +140,41 @@ def imbalance (all : List (Nat × Bool × List Nat)) (bus : Nat) : Nat × Nat :=
 def checkedBuses : List (String × Nat) :=
   [("SCMP", B_SCMP), ("SOP", B_SOP), ("SFIN", B_SFIN), ("SINC", B_SINC), ("SPUSH", B_SPUSH),
    ("SSIN", B_SSIN), ("SSOUT", B_SSOUT), ("SSMEM", B_SSMEM), ("SGEN", B_SGEN), ("SSHUF", B_SSHUF),
-   ("SCHACHA", B_SCHACHA), ("SPUBB", B_SPUBB), ("SPAR", B_SPAR), ("SRAW", B_SRAW)]
+   ("SCHACHA", B_SCHACHA), ("SPUBB", B_SPUBB), ("SPAR", B_SPAR), ("SDLX", B_SDLX), ("SDG", B_SDG)]
 
 def busImbalance (all : List (Nat × Bool × List Nat)) : List (String × Nat × Nat) :=
   (checkedBuses.map fun (nm, b) => (nm, imbalance all b)).filter fun (_, x, y) => x + y != 0
 
-/-- Expected external traffic: INIT sends, public sends, SFIN receives. -/
-def external (I : Input) (R : Run) : List (Nat × Bool × List Nat) :=
-  (Gen.Mem.expectedInit I).map (fun m => (B_SOP, true, m)) ++
+def pubOfI (I : Input) : InstPub :=
+  ⟨I.ids, I.p, I.allowed, I.raw.filter (fun q => !(setBits q.bm).isEmpty), I.seed, I.ash⟩
+
+/-- Expected external traffic: the codec's link INIT sends, public sends, the codec's link
+`SFIN` receives and `SDG` receives (budgets are INIT / finalized by `ssdV3` itself). -/
+def external (I : Input) (R : Run) (D : DistOut) : List (Nat × Bool × List Nat) :=
+  let n := I.ids.length
+  ((Gen.Mem.expectedInit I).take (n * n)).map (fun m => (B_SOP, true, m)) ++
   (Gen.Proc.expectedKey I.seed).map (fun m => (B_SPUBB, true, m)) ++
-  (Gen.Scan.expectedPar I).map (fun m => (B_SPAR, true, m)) ++
-  (Gen.Scan.expectedRaw I).map (fun m => (B_SRAW, true, m)) ++
-  (Gen.Mem.expectedFin I.ids.length R.fin).map (fun m => (B_SFIN, false, m))
+  (Gen.Scan.expectedPar I ++ Gen.Scan.expectedRaw I ++ shardRecs 0 (pubOfI I) ++
+    linkRecs 0 (pubOfI I)).map (fun m => (B_SPAR, true, m)) ++
+  ((Gen.Mem.expectedFin n R.fin).take (n * n)).map (fun m => (B_SFIN, false, m)) ++
+  (List.range (n * n)).map (fun l => (B_SDG, false, [0, l, b2n I.allowed[l]!, D.gb[l]!,
+    (srcFields I.ids l)[0]! + 256 * (srcFields I.ids l)[1]!, (srcFields I.ids l)[2]!, (srcFields I.ids l)[3]!]))
 
 /-- The renderer of `Sched/Render.lean` gives the same public records. -/
 def renderAgrees (I : Input) : Bool :=
-  let P : InstPub := ⟨I.ids, I.p, I.allowed, I.raw.filter (fun q => !(setBits q.bm).isEmpty), I.seed, I.ash⟩
+  let P := pubOfI I
   keyRecs 0 I.seed == Gen.Proc.expectedKey I.seed &&
   (if P.raw.isEmpty then [] else [parScan 0 P]) == Gen.Scan.expectedPar I &&
   rawRecs 0 P == Gen.Scan.expectedRaw I
 
-def tablesOf (R : Run) : Except String (List Tab) := do
+def tablesOf (R : Run) (D : DistOut) : Except String (List Tab) := do
   let (calls, res) ← Gen.Lane.genCalls R
   let ws := Gen.Lane.words R
   let insts := Gen.Lane.shufInsts R
   return [
-    ⟨"scpV3", Gen.Cmp.trace R.cmps, Cmp.constraints.toArray, Cmp.interactions B_SCMP⟩,
+    ⟨"scpV3", Gen.Cmp.trace (R.cmps ++ D.cmps), Cmp.constraints.toArray, Cmp.interactions B_SCMP⟩,
     ⟨"smmV3", Gen.Mem.trace R, Mem.constraints.toArray, Mem.interactions⟩,
-    ⟨"sscV3", Gen.Scan.trace R, Scan.constraints.toArray, Scan.interactions⟩,
+    ⟨"ssdV3", sdTrace R D, ScanDist.constraints.toArray, ScanDist.interactions⟩,
     ⟨"sprV3", Gen.Proc.trace R, Proc.constraints.toArray, Proc.interactions⟩,
     ⟨"shufV3", Gen.Lane.shufTrace insts, ZkFormal.Chacha.Shuffle.Table.constraints.toArray,
       ZkFormal.Chacha.Shuffle.Table.interactions B_SSIN B_SSOUT B_SSMEM B_SGEN B_SSHUF⟩,
@@ -244,11 +252,14 @@ def main (args : List String) : IO UInt32 := do
       | .ok (a, b, d) => IO.println s!"fast lane rows = lane generators (vector {idx - 1}): shuf {a}, gen {b}, chacha {d} cells"
       | .error e => IO.println s!"LANE MISMATCH: {e}"; badV := badV + 1
       crossDone := true
-    let tabs ← match tablesOf R with
+    let D ← match distRows I R with
+      | .ok D => pure D
+      | .error e => IO.println s!"vector {idx - 1}: dist {e}"; badV := badV + 1; continue
+    let tabs ← match tablesOf R D with
       | .ok ts => pure ts
       | .error e => IO.println s!"vector {idx - 1}: tables {e}"; badV := badV + 1; continue
     let mut good := true
-    let mut all := external I R
+    let mut all := external I R D
     let mut i := 0
     for T in tabs do
       let v := violations T
@@ -267,7 +278,7 @@ def main (args : List String) : IO UInt32 := do
       IO.println s!"vector {idx - 1}: imbalance {imb}"
       imbTot := imbTot + (imb.map fun (_, x, y) => x + y).sum
     -- rows (unpadded) per table
-    let rs : List Nat := [R.cmps.length, (Gen.Mem.rows R).size, (Gen.Scan.rows R).size,
+    let rs : List Nat := [R.cmps.length + D.cmps.length, (Gen.Mem.rows R).size, (sdRows R D).size,
       (Gen.Proc.rows R).size, (R.rounds.map (·.Lr)).sum, 0, 86 * ((R.kfin + 15) / 16)]
     let hs := tabs.map Tab.h
     rowsTot := (rowsTot.toList.zip hs).toArray.map fun (a, b) => a + b
@@ -275,7 +286,7 @@ def main (args : List String) : IO UInt32 := do
     if good then okV := okV + 1 else badV := badV + 1
   let t1 ← IO.monoMsNow
   IO.println s!"vectors: {okV} ok, {badV} bad; time {(t1 - t0) / 1000}s"
-  IO.println s!"tables: {["scpV3", "smmV3", "sscV3", "sprV3", "shufV3", "genV3", "chachaV3"]}"
+  IO.println s!"tables: {["scpV3", "smmV3", "ssdV3", "sprV3", "shufV3", "genV3", "chachaV3"]}"
   IO.println s!"violations per table: {viol.toList}; non-0/1 mult bits {badBitsTot}; unbalanced messages {imbTot}"
   IO.println s!"padded rows per table (sum over vectors): {rowsTot.toList}"
   IO.println s!"render (Sched/Render keyRecs/parScan/rawRecs) disagreements: {renderBad}"
@@ -284,19 +295,23 @@ def main (args : List String) : IO UInt32 := do
   let c := (cases.toArray)[largest.1]!
   let I ← IO.ofExcept (inputOf c)
   let R ← IO.ofExcept (run I)
-  let tabs ← IO.ofExcept (tablesOf R)
+  let D ← IO.ofExcept (distRows I R)
+  let tabs ← IO.ofExcept (tablesOf R D)
   let base := tabs.map fun T => (msgs T).1
-  let ext := external I R
+  let ext := external I R D
+  let d0 := (Gen.Scan.rows R).size
   let lastEntry := (Gen.Proc.rows R).size - 1
   let scanLast := (Gen.Scan.rows R).size - 1
   let memRows := (Gen.Mem.rows R).size
   -- (table index, row, column)
   let probes : List (Nat × Nat × Nat) :=
-    [ (0, 0, Cmp.colX), (0, 0, Cmp.colB), (0, 1, Cmp.colD 3), (0, R.cmps.length, Cmp.colAct),
+    [ (0, 0, Cmp.colX), (0, 0, Cmp.colB), (0, 1, Cmp.colD 3), (0, R.cmps.length + D.cmps.length, Cmp.colAct),
       (1, 0, Mem.v), (1, 1, Mem.t), (1, 1, Mem.vin), (1, 2, Mem.ok), (1, memRows - 1, Mem.w),
       (1, memRows - 1, Mem.lst), (1, 0, Mem.addr), (1, memRows, Mem.act),
       (2, 0, Scan.base), (2, 1, Scan.b0), (2, 3, Scan.q 0), (2, 5, Scan.cur), (2, 20, Scan.key),
       (2, 20, Scan.us0), (2, 1, Scan.s), (2, scanLast, Scan.m), (2, 7, Scan.rb0 2),
+      (2, 0, Scan.chi), (2, 20, Scan.bvz), (2, 7, Dist.r1), (2, d0, Dist.q2), (2, d0, Dist.adr),
+      (2, d0, Dist.bv), (2, d0, Dist.shd),
       (3, 0, Proc.sbIn), (3, 3, Proc.colL 0), (3, 16, Proc.K), (3, 16, Proc.kq), (3, 17, Proc.ein),
       (3, 17, Proc.eout), (3, 17, Proc.alOut), (3, 17, Proc.ok), (3, 17, Proc.cx), (3, 17, Proc.zn),
       (3, lastEntry, Proc.rem), (3, lastEntry + 1, Proc.Tq), (3, 16, Proc.T),

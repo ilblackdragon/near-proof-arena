@@ -1,13 +1,17 @@
-import ZkFormal.NearV3.Sched.Gen.Run
-import ZkFormal.NearV3.Sched.Tables.Dist
+import ZkFormal.NearV3.Sched.Gen.Scan
 import ZkFormal.NearV3.Sched.Render
 
 /-!
-# ZkFormal.NearV3.Sched.Gen.Dist — honest rows of `sdsV3` (one instance)
+# ZkFormal.NearV3.Sched.Gen.Dist — honest distribute rows of `ssdV3` (one instance), merged trace
 
 Shard rows (senders, then receivers, each in sorted order by `avg·64 + shard`), then for each
 sender position a header and the `n` cells. Values from the run's final budgets (after the
 process phase) and the claim-only counts; grants recomputed on the grid and returned per link.
+Shard rows also fill the record window (`shd = shard`, `lnk = links`, `llo = n`) and the memory
+INIT window (`adr = 4096·(side + 1) + shard`, `bv = B₀`); cells copy `alc = al`.
+
+`sdRows` / `sdTrace`: the merged table `ssdV3` — the scan rows (`Gen/Scan`), then the distribute
+rows, then zero padding (at least one row).
 -/
 
 namespace ZkFormal.NearV3.Sched.Gen
@@ -64,6 +68,7 @@ def distRows (I : Input) (R : Run) : Except String DistOut := do
         (q2, q), (r2, rem), (icnt, finv c), (zc, if c = 0 then 1 else 0), (kp, kpv),
         (da, if sd = 0 then i else 0), (db, if sd = 0 then 255 else i), (cx, key), (cy, kpv),
         (cb, 1), (cg, 1), (dlsg, 1), (sL, left), (e1, e1v),
+        (shd, x), (lnk, c), (llo, n), (adr, 4096 * (sd + 1) + x), (bv, b0),
         (ig1, finv (fsub i (n - 1)))] ++ (if c = 0 then [] else bitsOf bt2 (c - 1 - rem)) ++
         bitsN qb2 23 q ++ bitsN rb2 6 rem))
       kpv := key + 1
@@ -97,7 +102,9 @@ def distRows (I : Input) (R : Run) : Except String DistOut := do
       let e2v := if i + 1 = n then 1 else 0
       rows := rows.push (setAll width ([(act, 1), (kC, 1), (tau, tv), (nn, n), (a, i), (b, j), (s, sv),
         (r, rr), (N1, se.1), (L1, se.2), (N2, re.1), (L2, re.2), (q1, q1v), (r1, r1v), (q2, q2v),
-        (r2, r2v), (llo, l % 256), (lhi, l / 256), (al, b2n alv), (gb, gbv), (cx, q1v), (cy, q2v),
+        (r2, r2v), (llo, l % 256), (lhi, l / 256), (al, b2n alv), (alc, b2n alv),
+        (side, (srcFields I.ids l)[0]!), (shd, (srcFields I.ids l)[1]!), (lnk, (srcFields I.ids l)[2]!),
+        (by0, (srcFields I.ids l)[3]!), (gb, gbv), (cx, q1v), (cy, q2v),
         (cb, cbv), (cg, b2n alv), (da, i + 1), (db, j), (sL, L2'), (dlsg, 1 - e2v), (dlrg, 1),
         (e1, e1v), (ig1, finv (fsub j (n - 1))), (e2, e2v), (ig2, finv (fsub i (n - 1))),
         (eI, e1v * e2v)] ++
@@ -109,7 +116,13 @@ def distRows (I : Input) (R : Run) : Except String DistOut := do
       ri := ri.set! rr (N2', L2')
   return ⟨rows, gbArr, cmps⟩
 
-/-- Padding row of `sdsV3` (all zero). -/
+/-- Padding row of `ssdV3` (all zero). -/
 def distPad (_ : Nat) : Array Nat := zrow width
+
+/-- Rows of the merged table `ssdV3` for one instance: scan rows, then distribute rows. -/
+def sdRows (R : Run) (D : DistOut) : Array (Array Nat) := Gen.Scan.rows R ++ D.rows
+
+def sdTrace (R : Run) (D : DistOut) : ZkFormal.Air.Trace ZkFormal.Algebra.Fp :=
+  mkTrace (sdRows R D) 1 distPad
 
 end ZkFormal.NearV3.Sched.Gen
