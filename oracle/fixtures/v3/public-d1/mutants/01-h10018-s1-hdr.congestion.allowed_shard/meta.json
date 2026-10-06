@@ -1,0 +1,14 @@
+{
+  "base": "01-h10018-s1",
+  "case": "01-h10018-s1-hdr.congestion.allowed_shard",
+  "d0_violations": [],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": true,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "hdr.congestion.allowed_shard",
+  "nearcore": "validate: InvalidCongestionInfo(\"Congestion Information validate error. extra: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 0, receipt_bytes: 0, allowed_shard: 4 }), header: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 0, receipt_bytes: 0, allowed_shard: 5 })\")",
+  "verdict_source": "nearcore"
+}

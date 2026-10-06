@@ -1,0 +1,16 @@
+{
+  "base": "00-h10022-s3",
+  "case": "00-h10022-s3-hdr.congestion.delayed_gas",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "hdr.congestion.delayed_gas",
+  "nearcore": "validate: InvalidCongestionInfo(\"Congestion Information validate error. extra: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 0, receipt_bytes: 0, allowed_shard: 1 }), header: V1(CongestionInfoV1 { delayed_receipts_gas: 1, buffered_receipts_gas: 0, receipt_bytes: 0, allowed_shard: 1 })\")",
+  "verdict_source": "nearcore"
+}

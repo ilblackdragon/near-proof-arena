@@ -79,3 +79,25 @@ and `out/prove-avx512`, chosen at runtime by CPU dispatch.
   investigation (lane L8 is reproducing it in a VM equivalent to the live
   judge's, including whether the AVX-512 dispatch fires in the guest). A
   follow-up `np-udr-stark-fast2` will replace this entry.
+
+## np-udr-stark-fast2 (prover-only child, 2026-10-06)
+
+`sub_ec1fdc22d88740188c9ea249d38914b8` (`examples/np-udr-stark-fast2`,
+`--parent sub_19cc9c90…`) was packed with `arena pack` from main `328c2ec`,
+with the vendored crates (`8305b575…`) and the synced formal sources;
+`formal/` is identical to the parent's.
+
+* **ADMITTED**, change class **PROVER_ONLY**. All six formal gates are
+  `reused_from` `sub_19cc9c90…`, so no FORMAL_CHECK job ran. CONFORMANCE
+  (26/26, including 3 held-out), ADVERSARIAL, RESOURCE_LIMITS (peak 1233 MiB,
+  max verify 931 ms), PROVER_RELIABILITY and BENCHMARK re-ran and passed.
+  The signed report (`fast2-report.json`) verifies against the live key.
+* **Score 0.070**, rank 4: above the parent (0.052) and above fast (0.048).
+  Prove medians: batch-1 1.39 s (parent 1.99), batch-16 4.55 s (6.49),
+  batch-256 47.98 s (62.2). The MADs are tight (31 ms / 26 ms / 0.81 s).
+  Verify is unchanged (0.44 / 0.59 / 0.77 s). It was the only BENCHMARK
+  job leased on CPUs 0-7 while it ran.
+* **Benchmark summary.** `CACHING_SUSPECTED` (which L8 expected) did **not**
+  fire. Instead sessions 1 and 2 were discarded for `EXCESSIVE_OUTLIERS`
+  (batch-16, then batch-256), and session 3 was accepted. Discarding a
+  session and re-measuring is the procedure working, not a failure.

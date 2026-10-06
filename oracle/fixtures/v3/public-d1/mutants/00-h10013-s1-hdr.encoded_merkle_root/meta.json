@@ -1,0 +1,16 @@
+{
+  "base": "00-h10013-s1",
+  "case": "00-h10013-s1-hdr.encoded_merkle_root",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "hdr.encoded_merkle_root",
+  "nearcore": "validate: InvalidChunkEncodedMerkleRoot",
+  "verdict_source": "nearcore"
+}

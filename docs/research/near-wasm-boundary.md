@@ -7,7 +7,10 @@ Pinned source: nearcore **2.13.4** (`44f7ae6cd7ef08bab604e20a473bf77e35d4c993`, 
 protocol version **86**, mainnet parameters. Unless prefixed, paths are relative to
 `runtime/near-vm-runner/src/` in that checkout. `W:` is short for `wasmtime_runner/`.
 Third-party crates are cited at the versions locked by nearcore's `Cargo.lock`: wasmtime/winch-codegen
-45.0.0, finite-wasm 0.6.1, wasmparser 0.236.
+45.0.0, finite-wasm 0.6.1. **Three wasmparser versions are in the pipeline** (review F6): contract validation and
+the finite-wasm analyses use **0.228.0** (finite-wasm 0.6.1's dependency, `prepare_v3.rs:4`); instrumentation
+re-parses with **0.236.1** (`instrument_v3.rs:12`); Wasmtime 45 re-validates the instrumented module with
+**0.248.0**.
 
 Companion documents:
 * `docs/research/near-wasm-strategy.md`: formal-semantics and proving strategy, effort, recommendation (deliverable 2).
@@ -26,12 +29,12 @@ means observed by running the pinned `near-vm-runner` through `oracle/wasm-d3`. 
 | B1 | At PV86 the VM is **Wasmtime 45**, and NearVM is no longer used. `vm_kind` switched NearVm→Wasmtime at PV84 (`core/parameters/res/runtime_configs/84.yaml:2`). There is no `86.yaml`, so PV86 uses the PV85 config (snapshot `core/parameters/src/snapshots/near_parameters__config_store__tests__85.json.snap`). | [src] |
 | B2 | The code generator is **Winch** (a single-pass baseline compiler) on x86_64 and **Cranelift** on every other arch (`W:mod.rs:512-521`). Consensus therefore assumes Winch-x86_64 and Cranelift-aarch64 agree bit for bit. | [src] |
 | B3 | **Floats are allowed**, and NaNs are **canonicalised** (`cranelift_nan_canonicalization(true)`, `W:mod.rs:531-534`, honoured by Winch at codegen: `winch-codegen-45.0.0/src/isa/x64/masm.rs:716-737`). The canonical NaN is the positive quiet NaN `0x7FC00000` / `0x7FF8000000000000` (`winch-codegen/src/masm.rs:16-17`). It is applied after 24 ops: f32/f64 add, sub, mul, div, min, max, sqrt, ceil, floor, trunc, nearest, and promote/demote. `abs`, `neg`, `copysign`, loads and reinterprets are bitwise and are not canonicalised. | [src] |
-| B4 | Feature set accepted from **contracts** (`features.rs:71-109`, validated by wasmparser through finite-wasm 0.6): MVP + floats + mutable globals + **sign-extension** + **saturating float→int** + **reference types + bulk memory** (`reftypes_bulk_memory = true` from PV84). Everything else is rejected: multi-value, SIMD, relaxed SIMD, threads, tail calls, multi-memory, memory64, exceptions, extended-const, GC, function references, memory control, custom page sizes, stack switching and wide arithmetic. | [src] |
+| B4 | Feature set accepted from **contracts** (`features.rs:71-109`, validated by wasmparser 0.228 through finite-wasm 0.6): MVP + floats + mutable globals + **sign-extension** + **saturating float→int** + **reference types + bulk memory** (`reftypes_bulk_memory = true` from PV84), **but `funcref` only**. `gc_types = false` (`features.rs:102`) makes wasmparser reject `externref` everywhere (`wasmparser-0.228.0/src/validator.rs:286-290`); found by the checkpoint-2 mutation difftest. Everything else is rejected: multi-value, SIMD, relaxed SIMD, threads, tail calls, multi-memory, memory64, exceptions, extended-const, GC, function references, memory control, custom page sizes, stack switching and wide arithmetic. | [src] |
 | B5 | The **prepared** module itself uses one proposal that contracts may not use: the instrumentation emits **wide-arithmetic** ops (`i64.add128`, `i64.sub128`, `i64.mul_wide_u`) for overflow checks (`prepare/instrument_v3.rs:178-231`), and Wasmtime is configured with `wasm_wide_arithmetic(true)` (`W:mod.rs:545`). A spec stated literally over prepared bytes must therefore include that proposal. The PoC instead specifies the instrumentation's *meaning* (§4) and avoids it. | [src] |
 | B6 | Gas is metered by **finite-wasm instrumentation**, not by Wasmtime fuel. A `remaining_gas: i64` global is checked and decremented at **per-basic-block** instrumentation points, and Wasmtime call hooks synchronise it with the host `GasCounter` (`W:mod.rs:1042-1072`). | [src], [tested] |
 | B7 | Stack depth is limited by instrumentation, not by Wasmtime. Every function entry charges `max_operand_stack_bytes + frame_bytes` against a 262,144-"byte" budget, and exhaustion is reported as **`HostError::MemoryAccessViolation`**, not as a trap (`W:logic.rs:290-292`). | [src], [tested] |
 | B8 | Memory is **normalised**: whatever the contract declares, the prepared module has `(memory 1024 2048)`, so it starts at 64 MiB and is capped at 128 MiB (`prepare/prepare_v3.rs:126-139,371-379`). The contract must still *declare* a memory if it uses memory instructions, because validation runs on the original module. | [src], [tested] |
-| B9 | At PV86 there are **89 importable host functions** (module `env`): 76 always-on, plus 13 behind PV85 flags that are all on. Table: Appendix A. | [src] |
+| B9 | At PV86 there are **89 importable host functions** (module `env`): **78 ungated + 11 runtime-gated** (7 by PV85 flags, 4 global-contract functions by the PV78 flag `global_contract_host_fns`, `78.yaml:7`), all gates on. The machine-checked inventory JSON is authoritative. Table: Appendix A. (Corrected per review F7; earlier text said 76 + 13.) | [src] |
 | B10 | Only the **failure bit** of an execution status reaches the outcome root (`PartialExecutionStatus`, `core/primitives/src/transaction.rs:597-613`). The error kind (`GasExceeded` vs `GasLimitExceeded`, trap class, …) is not consensus-observable. Gas, logs, return value, receipts and state changes are. | [src] |
 | B11 | `fix_contract_loading_cost = false` at PV86. A contract that fails preparation or compilation burns **0 gas**, a missing method or bad signature gives a **zero-gas no-op outcome**, and a link error burns the contract-loading fee (§2.3). | [src], [tested] |
 
@@ -39,9 +42,11 @@ means observed by running the pinned `near-vm-runner` through `oracle/wasm-d3`. 
 
 ## 1. Where a `FunctionCall` enters the VM
 
-`runtime/runtime/src/actions.rs` (`action_function_call`) → `runtime/runtime/src/function_call.rs`
-→ `near_vm_runner::prepare(contract, wasm_config, cache, gas_counter, method)` (`runner.rs:54-66`) →
-`near_vm_runner::run(prepared, ext, context, fees)` (`runner.rs:89-109`). The VM is chosen by
+Preparation is called from `runtime/runtime/src/pipelining.rs:441-450` (`prepare_function_call`, possibly on a
+`contract_compilation_pool` worker thread, with the real compiled-contract cache; the gas counter is built at
+`pipelining.rs:427-437`) → `near_vm_runner::prepare(contract, wasm_config, cache, gas_counter, method)`
+(`runner.rs:54-66`). Execution: `runtime/runtime/src/function_call.rs:284` →
+`near_vm_runner::run(prepared, ext, context, fees)` (`runner.rs:89-109`). (Corrected per review F12.) The VM is chosen by
 `config.vm_kind.runtime(config)` (`runner.rs:204-227`). `VMKind::Wasmtime` builds `WasmtimeVM`
 (`runner.rs:216-217`). `node-runtime` compiles near-vm-runner with both `near_vm` and `wasmtime_vm`
 (`runtime/runtime/Cargo.toml:37`), and the protocol config picks Wasmtime.
@@ -83,7 +88,10 @@ The cache is semantically transparent, **except** that its stored values are con
 * *Link result*: an unknown import or a signature mismatch gives `LinkError{msg}`, cached in the memory cache.
   It is charged the loading fee (`W:mod.rs:757-764, 915-918`).
 
-A corrupted or stale on-disk cache is outside the semantics (`VMRunnerError::LoadingError`, i.e. node failure).
+**Correction (review F2).** `VMRunnerError::LoadingError` (e.g. `Module::deserialize` failing on a corrupted
+or stale on-disk cache entry, `W:mod.rs:744-745`) is **not** a node failure: `runtime/runtime/src/function_call.rs:328-330`
+turns it into `nop_outcome(FunctionCallError::LoadingError)`, a failed outcome with 0 gas that enters the outcome
+root. A node with a corrupted local cache therefore computes a different chunk (hazard **H9**).
 One more path is not modelled: **H2**, the concurrency semaphore. `try_acquire` returns `None` only after
 2^16 contended iterations, which yields `LinkError("failed to acquire execution slot")` (`W:mod.rs:1012-1018`).
 That is non-deterministic in principle, unreachable in practice, and must be stated as an assumption.
@@ -166,7 +174,7 @@ control-flow point. A gas point therefore covers a straight-line range that ends
 trapping, branching or side-effecting instruction. The cost of `loop` is charged at the loop *body* start,
 so it is paid on every iteration.
 
-Observable consequences (all **[tested]** by the PoC):
+Observable consequences (**[tested]** by the PoC on its promise-free subset; the promise case is from the review):
 * **Out-of-gas is detected one basic block early.** For the *amount* of gas this is unobservable, because both
   models clamp `burnt` to `min(prepaid, max_gas_burnt)`. It is observable for the **error variant**:
   `process_gas_limit` reports `GasLimitExceeded` iff `burnt + charge > max_gas_burnt`
@@ -175,6 +183,12 @@ Observable consequences (all **[tested]** by the PoC):
   instruction-level ablation disagrees with nearcore on it (§10). Because of B10, this matters for the faithful
   `VMOutcome` but **not** for the outcome root.
 * A trapping instruction has already been paid for when it traps (it is the last instruction of its range).
+* **Once a promise exists, out-of-gas `burnt_gas` depends on the range (review F1, reproduced on pinned
+  nearcore).** `deduct_gas` lowers `gas_limit` to `min(max_gas_burnt, prepaid − promises_gas)`, but
+  `process_gas_limit` clamps `burnt` only to `min(prepaid, max_gas_burnt)`. So an out-of-gas abort charges
+  `burnt + c`, where `c` is the **whole** failing finite-wasm point's charge. An instruction-level meter would
+  charge one operator. `burnt_gas` is in the outcome root. **The finite-wasm point table is therefore
+  consensus-relevant, and any AIR must commit to it.**
 
 ### 3.4 Not instrumented by finite-wasm, but limited elsewhere
 Memory growth is limited by `StoreLimits` and the module maximum (2,048 pages): `memory.grow` past the limit
@@ -202,7 +216,7 @@ limited to 10,000 elements and 1 table.
 | `IndirectCallToNull` | `WasmTrap(IndirectCallToNull)` |
 | `BadSignature` | `WasmTrap(IncorrectCallIndirectSignature)` |
 | `StackOverflow` (native) | `WasmTrap(StackOverflow)` |
-| `Interrupt`, `HeapMisaligned`, unknown | `VMRunnerError` (node error, not an outcome) |
+| `Interrupt`, `HeapMisaligned`, unknown | `VMRunnerError::WasmUnknownError`, which the runtime soft-fails into `nop_outcome(FunctionCallError::WasmUnknownError)`: a **failed outcome with 0 gas** (`runtime/runtime/src/function_call.rs:331-337`; review F2) |
 | GC/component/… traps | `panic!` (declared unreachable under NEAR's config) |
 | host `VMLogicError::HostError(h)` | `HostError(h)` |
 | instrumentation stack exhaustion | `HostError(MemoryAccessViolation)` |
@@ -270,6 +284,12 @@ receipt ids, gas burnt and tokens burnt.
 | H6 | Error variants are not consensus-observable (B10) | `Rel` may quotient error kinds to the failure bit; the T evidence still compares exact errors |
 | H7 | `bls12381_not_in_group_fix = false` at PV86: the known not-in-group behaviour is *protocol* | specify the buggy behaviour as is (Appendix A) |
 | H8 | Storage-proof-size accounting couples execution to witness recording | model in `RuntimeD3` with the trie layer |
+| H9 | `LoadingError` (corrupted/stale local compiled-contract cache) and `WasmUnknownError` become 0-gas failed outcomes (`function_call.rs:328-337`) | `Rel_D3` is stated under the assumption that neither occurs: a correct node never produces them. The oracle never uses a persistent cache shared across nearcore versions |
+| H10 | Resource errors at instantiation (pooling-allocator exhaustion, mmap failure, the H2 semaphore) fall through `into_vm_error` into `LinkError{msg}` *with* the loading fee (`W:mod.rs:414-419, 1019-1026`) | assumption (never occurs on a correctly provisioned node); H2 is one instance |
+| H11 | Winch/Cranelift divergence beyond H1/H3: trap classification, native stack use, float min/max/nearest corners; whether any mainnet validator runs aarch64 is unmeasured | x86_64/Winch pin as a stated protocol assumption; aarch64 leg of the difftest is a recommended addition |
+| H12 | Native stack under *host calls* at maximum WASM depth (pairings, BLS, `ecrecover` near the 262,144 budget) | stress test at checkpoint 3 |
+| H13 | Out-of-gas `burnt_gas` depends on finite-wasm range boundaries once a promise exists (review F1, see §3.3) | AIR commits the finite-wasm point table; no per-instruction metering |
+| H14 | A 4 MiB contract needs > 2^22 PREP rows | PREP segmentation or an `InD3` code-size cap (checkpoint 5) |
 
 ## 9. Alignment with the requirements contract §2.1
 

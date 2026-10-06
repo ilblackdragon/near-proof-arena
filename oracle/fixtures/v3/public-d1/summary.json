@@ -1,0 +1,28 @@
+{
+  "chains": [
+    "ChainParams { seed: 4243012729, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.12, p_tx_shard: 0.35, p_burst: 0.08, p_fail: 0.02, p_implicit: 0.01, p_two: 0.02, long_skip: None, d1: true, p_adv: 0.5 }",
+    "ChainParams { seed: 4243012730, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.12, p_tx_shard: 0.35, p_burst: 0.08, p_fail: 0.02, p_implicit: 0.01, p_two: 0.02, long_skip: None, d1: true, p_adv: 0.5 }"
+  ],
+  "crafted_transactions": 172,
+  "d0_cases": 67,
+  "d1_cases": 188,
+  "d1_violation_counts": {
+    "c.no_split_gate": 18,
+    "c.not_genesis": 9,
+    "c.own_congestion_zero": 31,
+    "c.single_epoch": 36,
+    "e.forwarded": 32,
+    "e.queues_empty": 31,
+    "r.shape": 17,
+    "r.success": 8,
+    "w.tx_shape": 28
+  },
+  "domain": "D1",
+  "honest_accepted_by_nearcore": 300,
+  "honest_witnesses": 300,
+  "mutants": 294,
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "ood_cases_written": 47,
+  "protocol_version": 86,
+  "seed": 4243
+}

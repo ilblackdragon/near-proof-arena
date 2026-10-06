@@ -471,7 +471,7 @@ def outcome (code : ByteArray) (prepaid : Nat) (fuel : Nat) (blockLevel : Bool :
           let ret := match s.ret with
             | some d => hex d
             | none => "-"
-          s!"ok {s.gas.burnt} {s.gas.burnt} {ret}"
+          s!"ok {s.gas.burnt} {s.gas.burnt} {ret} 1000000000000000000000000"  -- balance (harness context; unchanged in the subset)
         | .error e => s!"unmodeled {e}"
       | .abort s e =>
         match finish s with

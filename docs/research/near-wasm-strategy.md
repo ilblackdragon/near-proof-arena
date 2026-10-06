@@ -88,12 +88,15 @@ offline-memory-checked RAM. The recommendation fixes the remaining design choice
    This is exactly the PoC's `endOf`/`elseOf`/gas tables. The translation "structured → flat" is part of the
    *spec* (a Lean function), so no unverified translator sits in the TCB. This closes the gap that zkWasm,
    rWasm and wasmi-in-zkVM all leave open (survey D.3).
-2. **Charge gas per instruction in the AIR** and justify it by a Lean lemma `metering_equiv`. Block-level
-   finite-wasm metering and instruction-level metering produce the same `burnt_gas`, `used_gas`, return data,
-   logs, effects and failure bit. They may differ only in the error variant (`GasExceeded` vs
-   `GasLimitExceeded`), and that variant is not consensus-observable (B10, H6). The PoC's ablation
-   tests exactly this claim (§5). If `Rel` must keep exact error variants, the AIR instead commits to the
-   W2 point table, which costs one extra column.
+2. **Charge gas at finite-wasm points in the AIR (the committed point table is mandatory).** An earlier
+   version of this document proposed per-instruction gas justified by a lemma `metering_equiv`
+   ("block-level and instruction-level metering differ only in the error variant"). **That lemma is false**
+   (independent review F1, reproduced on pinned nearcore): once a contract has created a promise, an out-of-gas
+   abort charges the *whole* failing range, so `burnt_gas` differs (e.g. 337,413,480,225 vs 334,124,101,737),
+   and `burnt_gas` is in the outcome root. The AIR therefore commits the W2 point table (per operator: whether
+   a point precedes it, its constant and linear fee). Each EXEC row charges the point fee, if any, and
+   out-of-gas is decided per point exactly as nearcore does. The cost is one fee column plus a flag, read from the
+   CODE table.
 3. **Memory consistency:** one RAM argument with address spaces {operand stack, locals/frames, linear memory,
    globals, table, registers}. Accesses are (space, addr, time, value) tuples. A grand-product permutation
    (our L3/L4 bus, not LogUp, DESIGN §0) relates them to an address-then-time sorted copy, with continuity
@@ -126,7 +129,7 @@ Let `nearWasmAir` add tables CODE, PREP, EXEC, RAM, ALU, FLOAT, CALL, HOST_*, CR
 | O2 EXEC step | per opcode family: row constraints + CODE lookup + RAM values ⇒ `Wasm.Exec.step` relates consecutive machine states | P | L4 `Expr.eval` lemmas |
 | O3 RAM | permutation + sorted continuity ⇒ every read returns the latest write (generic, proved once, instantiated per address space) | P | L3 grand product, L4 bus semantics |
 | O4 ALU / FLOAT | lookup rows ⇒ `binop`/`unop`/`relop` and IEEE ops equal the W3 definitions | P | — |
-| O5 gas | gas column arithmetic in range, `metering_equiv` (W2 ≡ per-instruction on observables), outcome clamp | P | — |
+| O5 gas | gas column arithmetic in range, charges exactly at the committed finite-wasm points (no metering equivalence), outcome clamp incl. promise-lowered limits | P | — |
 | O6 CALL / stack budget | frames, the 262,144 budget, `MemoryAccessViolation` on exhaustion (B7) | P | O3 |
 | O7 HOST | each host chip ⇒ the W4 spec of that function, including gas and errors | P (crypto: P against our spec; spec vs standard is T) | L5, L6, D1 ed25519 |
 | O8 composition | `Holds nearWasmAir (publicOf c) tr → ∃ w, Rel_D3 c w` | P | L6 composition pattern |
@@ -181,7 +184,8 @@ De-risked:
 * finite-wasm's gas analysis and NEAR's prologue/hook semantics can be specified *on the original module*,
   without modelling instrumented bytes or wide arithmetic (B5);
 * the flat-IR execution shape of §2(1) works;
-* block-level vs instruction-level metering differ only in the error variant (§5);
+* block-level vs instruction-level metering differ only in the error variant *on promise-free code* (§5); with
+  promises they differ in `burnt_gas` (review F1), so the AIR commits to finite-wasm points;
 * the nearcore oracle harness for single calls works against the pinned crate, with no TestEnv needed.
 
 Not de-risked:
@@ -192,7 +196,7 @@ Not de-risked:
 
 1. Adopt **(a)/(c): a universal NEAR-WASM machine AIR over a flat prepared IR**, with:
    * RAM consistency by a grand-product permutation;
-   * per-instruction gas justified by a proved `metering_equiv`;
+   * gas charged at the committed finite-wasm points (not per instruction; review F1);
    * contract preparation as its own AIR on the L5/L6 buses;
    * host chips on buses.
    Reject (b).
@@ -215,8 +219,9 @@ See `examples/d3-wasm-poc/README.md` (subset, commands) and `RESULTS.md` (run lo
 * **Ablation.** The same semantics with finite-wasm's cross-instruction merging disabled
   (`--instruction-level-metering`) gives 50 and 46 disagreements on seeds 1 and 3. All of them are in the
   `window` family, all are `GasLimitExceeded` vs `GasExceeded`, and all have identical gas. With the two
-  variants identified, both seeds give **0 disagreements**. So the test detects metering granularity, and
-  this is T-evidence for `metering_equiv` (§2(2)).
+  variants identified, both seeds give **0 disagreements**. So the test detects metering granularity. This is
+  **not** evidence for a general `metering_equiv`: it holds only on this promise-free subset, and the review
+  (F1) showed it is false once a promise exists.
 * Speed: about 10–50 cases/s for the Lean binary on 8 cores. Single 300 Tgas infinite loops take about 10 s,
   which is fine for testing and irrelevant for proving.
 
@@ -231,7 +236,7 @@ See `examples/d3-wasm-poc/README.md` (subset, commands) and `RESULTS.md` (run lo
 | C5 | §2.1.3 "the gas-exceeded and per-receipt-limit semantics" | Two more couplings: the per-receipt **storage-proof-size limit** (4,000,000 B, active at PV86) couples execution results to witness recording (H8), and **compute usage** differs from gas for storage/trie costs and feeds chunk scheduling. | Name both explicitly. |
 | C6 | §2.1.4 host list ("storage … iterators if any", "math") | 89 `env` imports at PV86 (App. A). The iterators are 3 deprecated stubs that always fail (removing them would change link behaviour). There is no "math" family. The list omits `p256_verify`, gas-key actions, global-contract deploy/use, deterministic state init, named yield/resume, `promise_set_refund_to`/refund receiver, `current_contract_code`, the `env.gas` alias, and `bls12381_not_in_group_fix = false` (buggy subgroup behaviour is protocol, H7). | Replace the list with the inventory (`near-wasm-boundary-inventory.json`, 89 entries) as the coverage denominator. |
 | C7 | §1 trusted facts (T3/T7/T8) | Host functions also read `random_seed`, `block_height` and `block_timestamp` (boundary §6). | Confirm these are covered by existing claim facts, or raise a claim-format request. |
-| C8 | §2.1 table "faithful to nearcore's VM (… outcomes)" | Only the failure bit of `ExecutionStatus` enters the outcome root (`PartialExecutionStatus`, B10). Error variants are not consensus-observable. | Let `Rel_D3` quotient error variants (still T-test them exactly). This makes per-instruction gas in the AIR exact (strategy §2(2)). |
-| C9 | §2.2 "one independent implementation (not derived from nearcore's code)" | NEAR's metering is defined *by* finite-wasm's algorithm, so any faithful implementation re-derives it. | Scope independence to the WASM core (reference interpreter / WasmCert) and the host-function logic. Metering faithfulness is T against nearcore only. |
+| C8 | §2.1 table "faithful to nearcore's VM (… outcomes)" | Only the failure bit of `ExecutionStatus` enters the outcome root (`PartialExecutionStatus`, B10). Error variants are not consensus-observable. | Let `Rel_D3` quotient error variants (still T-test them exactly). (Retracted consequence: this does **not** make per-instruction gas exact; review F1.) |
+| C9 | §2.2 "one independent implementation (not derived from nearcore's code)" | NEAR's metering is defined *by* finite-wasm's algorithm. | Keep independence everywhere. For metering, a **clean-room reimplementation from a short prose spec** of the range-charging rule (per the review), in addition to the Lean port. |
 | C10 | §2.3/§2.4 (single STARK per chunk, v1-style caps) | Chunk WASM gas ≤ 10^15 ⇒ ≤ 1.2·10^9 operators. One np-udr-stark proof (tables ≤ 2^22 rows) holds about 1–3 Tgas of WASM. Prover throughput is orders of magnitude short of 600 s at full scale (strategy §2.2). | Add an explicit requirement or decision point: either segmentation plus aggregation proven in the stack, or an `InD3` per-chunk WASM-gas cap with workload classes. Allow staged domains D3α–D3δ with lead sign-off. |
 | C11 | §4 "no `partial` … in the certified path" | Compatible: the semantics is fuel-bounded. The PoC's only `partial` is its IO driver. | None. Keep this rule. |

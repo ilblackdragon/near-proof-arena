@@ -432,3 +432,28 @@ length), ChaCha20 (32-bit ARX), GF(2⁸) RS encoding (table lookups), and the ex
 * Mainnet `transaction_validity_period` (believed 86 400) — only enters through the trusted flags.
 * zstd multi-frame behaviour (transport only).
 * `TriePrefetcher` on recorded storage (performance only).
+
+## 13. Transactions (domain D1)
+
+Read in the pinned source for D1 (`spec/near-chunk-validation-d1.md` has the full statement):
+
+* Pre-validation touches `new_transactions` only through `check_valid_for_config` (P2,
+  `chunk_validation.rs:323-341`) — no signature, nonce, key or balance check — and
+  `transactions` only through the tx root (P6) and the trusted validity flags (P7).
+* `Runtime::apply` step 2, `process_transactions` (`runtime/runtime/src/lib.rs:1882-2279`):
+  parallel `validate_transaction` (signature, `verifier.rs:109-121`, `transaction.rs:288-354`)
+  and prefetch of signer accounts / access keys of every non-expired transaction
+  (`lib.rs:1890-1977`); sequential loop with duplicate-hash skipping (`UniqueChunkTransactions`,
+  `lib.rs:1981-1992`), failed outcomes for expired / invalid / cost-overflow / missing signer /
+  missing key / `verify_and_charge` failures (`verifier.rs:272-378`), success ⇒ receipt
+  (`Receipt::from_tx`, local iff receiver = signer, `lib.rs:2146-2197`), outcome, account and
+  access-key writes (`lib.rs:2238-2266`).
+* Failed outcomes hash as `PartialExecutionStatus::Failure` without the error
+  (`transaction.rs:597-612, 723-744`; `InvalidTxGenerateOutcomes`, PV 83).
+* Ed25519: `near_crypto::Signature::verify` (`core/crypto/src/signature.rs:1086-1093`) =
+  ed25519-dalek 2.2.0 `VerifyingKey::from_bytes` + `verify` (non-strict, cofactorless,
+  `s < ℓ`; curve25519-dalek 4.1.3 decompression accepts non-canonical `y` and `x = 0` with the
+  sign bit); the node's feature set has no `legacy_compatibility`. Details and citations:
+  `spec/near-chunk-validation-d1.md` §2 and `spec/lean/v3/NearSpecV3/Ed25519.lean`.
+* There is no balance checker in `Runtime::apply` at this commit (the `check_balance` pass of
+  earlier versions is gone), so transactions add no reads beyond the signer accounts and keys.

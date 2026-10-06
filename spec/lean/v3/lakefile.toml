@@ -33,3 +33,11 @@ root = "TestRS"
 [[lean_exe]]
 name = "nearspec-v3-test-sched"
 root = "TestSched"
+
+[[lean_exe]]
+name = "nearspec-v3-check-d1"
+root = "MainD1"
+
+[[lean_exe]]
+name = "nearspec-v3-test-ed25519"
+root = "TestEd25519"

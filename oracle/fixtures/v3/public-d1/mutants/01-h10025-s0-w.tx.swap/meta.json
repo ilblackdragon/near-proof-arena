@@ -1,0 +1,17 @@
+{
+  "base": "01-h10025-s0",
+  "case": "01-h10025-s0-w.tx.swap",
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "w.tx.swap",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Transaction root CfCmMgSdGTeCh7YJwYbTYPzZMXjVx9CSPMaJdFS433nL does not match expected transaction root EBik6zb6LuyRNgfoj1QUt9E1WZ2vxCkmeqwcgTy5VZH2\")",
+  "verdict_source": "nearcore(tx_valid=claim)"
+}
