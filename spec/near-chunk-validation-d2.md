@@ -753,19 +753,25 @@ squash, prefix iteration) with nearcore's read set.
 The Lean D2 runtime is parameterized by `ActionHooks` (`NearSpecV3/D2/Actions.lean`):
 
 ```
+structure ActCtx where env : Env; r : Rcpt; a : ActionR; idx : Nat; nActs : Nat
+structure ActSt  where o : Ovl; account : Option Acct; actor : Bytes
+structure AR     where gasBurnt gasUsed compute : Nat; ok : Bool; newReceipts : List Rcpt;
+                       proposals : List Proposal; tokensBurnt : Nat
 structure ActionHooks where
-  functionCall : ActionEnv → ActionCtx → FunctionCallArgs → Except String ActionResult
-  globalAction : ActionEnv → ActionCtx → Act → Except String ActionResult
+  functionCall : ActCtx → ActSt → AR → Base → Except String (ActSt × AR)
 ```
 
-called at the dispatch point (§7.0) with the overlay state, the receiver account and the
-receipt context (input data results, action hash, gas/compute so far). D2 instantiates both
-with `.error "out of domain (e.wasm): …"`. D3 supplies WASM execution (which may also write
-logs, return `ReceiptIndex`, burn function-call gas — the receiver reward of §6.4.8 and the
-`ReceiptIndex` branch of §6.4.9 are already transcribed generically). The receipt-kind
-processors (`Data`, `PromiseYield`, `PromiseResume`) and the queue processors are total in
-D2 and are reused unchanged; D3 adds `GlobalContractDistribution` and contract code in the
-witness (`w.no_code`).
+`functionCall` is called at the dispatch point (§7.0) with the receipt context, the overlay,
+the receiver account, the actor and the result so far (exec fee charged); its result is merged
+exactly like every other action (`D2/Receipts.lean` `actionLoop`). D2 instantiates it with
+`out of domain (e.wasm)` (`d2Hooks`). D3 supplies WASM execution; the D2 code already carries
+the generic parts it needs: input-data reads (§6.4.1), `ReceiptIndex` handling of output data
+receivers (§6.4.9, unreachable in D2), the receiver reward (§6.4.8, 0 in D2). D3 also extends
+`D2.Base` with the global-contract / state-init actions (decoded as `out of domain (w.shape)`
+today), adds `GlobalContractDistribution` receipts to `D2.RBody` and lifts `w.no_code`. The
+receipt-kind processors (`processReceipt`: Data / Action / PromiseYield / PromiseResume), the
+queues (`D2/Queues.lean`), transactions (`D2/TxD2.lean`), the validator update and the chain-level
+checks are total in D2 and are reused unchanged.
 
 ## 14. Formalization (`spec/lean/v3`, Lake package `NearSpecV3`)
 
@@ -789,4 +795,17 @@ Executable: `nearspec-v3-check-d2 [--d1|--d0] CASE…`.
 
 ## 15. Evidence
 
-(filled in as the work proceeds; see the final report of the D2 lane)
+* **Public D1 / D0 fixtures** (`oracle/fixtures/v3/public-d1`, 529 cases; `oracle/fixtures/v3/public`,
+  201 cases): `nearspec-v3-check-d2` gives the same verdict as `nearspec-v3-check-d1` /
+  `-check-d0` on every case the lower rung decides (accept/reject), so `InD1 ⊂ InD2` and
+  `InD0 ⊂ InD2` hold on them; of the lower rung's out-of-domain cases 98 become in-domain for
+  D2 (43 + 55, all accepted, nearcore accepted every one), 8 are rejected (nearcore rejected
+  every one) and 8 stay out of domain (`c.not_genesis`).
+* **Trie finalize** (`nearspec-v3-test-trie-d2`, vectors from `spec/tools/trie_vectors_d2.py`,
+  an independent canonical-trie builder with nearcore's node encoding and memory usage): random
+  maps with shared prefixes, branch values and empty values, random insert / overwrite /
+  delete sets (incl. deleting every key): 4 900 cases, 0 mismatches of the post-state root.
+  This tests `PTrie.del` + squash + memory usage, not the read set (which needs nearcore's
+  verdicts on dropped nodes: the D2 difftest's single-node-drop mutants).
+* D2 corpora from the D2 oracle (`expected_rel_d2`): see the lane's final report.
+
