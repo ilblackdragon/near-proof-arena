@@ -257,4 +257,108 @@ theorem rec_bytes (hw : NodeWf3 vs) (hhw : HeadWf hs) (hvw : ValWf es) (hb : Par
   · obtain ⟨hc, hB, -⟩ := kid_sha hw hhw hvw hb H hp hk
     exact hB x hx
 
+/-- Sends whose id is `VPRE(vid)` of value record `t` are its bytes. -/
+theorem vpre_sends (hw : NodeWf3 vs) (hvw : ValWf es) {others : List Msg}
+    (hoth : ∀ m ∈ others, ∀ a, m.head? = some a →
+      a < ZkFormal.Algebra.P ∧ a % 16 ≠ K_NPRE ∧ a % 16 ≠ K_NPOST ∧ a % 16 ≠ K_VPRE)
+    {t : Nat} (ht : t < es.length) :
+    ∀ m ∈ nodeSends3 vs B_BYTES ++ valSends es B_BYTES ++ others, ∀ a, m.head? = some a →
+      Fp.ofNat a = Fp.ofNat (msgId K_VPRE t) →
+      ∃ j, j < es[t].bytes.length ∧ m = [msgId K_VPRE t, j, es[t].bytes.getD j 0] := by
+  intro m hm a ha he
+  have hvl := vlen_le hvw
+  have hid : msgId K_VPRE t < ZkFormal.Algebra.P := by unfold msgId K_VPRE ZkFormal.Algebra.P; omega
+  simp only [List.mem_append] at hm
+  rcases hm with (hm | hm) | hm
+  · rw [nodeBytesS, List.mem_flatMap] at hm
+    obtain ⟨⟨s, n'⟩, hsn, hm⟩ := hm
+    obtain ⟨hn', rfl⟩ := mem_zip_range hsn
+    rw [List.mem_append] at hm
+    rcases hm with hm | hm <;> obtain ⟨i, hi, rfl⟩ := mem_emitAt3.mp hm <;> simp at ha <;> subst ha
+    · have := ofNat_eq (nid_lt hw hn' K_NPRE (by decide)) hid he
+      unfold msgId K_VPRE K_NPRE at this; omega
+    · have := ofNat_eq (nid_lt hw hn' K_NPOST (by decide)) hid he
+      unfold msgId K_VPRE K_NPOST at this; omega
+  · rw [valBytesS, List.mem_flatMap] at hm
+    obtain ⟨e, he', hm⟩ := hm
+    obtain ⟨t', ht', rfl⟩ := List.getElem_of_mem he'
+    split at hm
+    · simp at hm
+    · obtain ⟨i, hi, rfl⟩ := mem_emitAt3.mp hm
+      simp at ha; subst ha
+      have hv := vid_small hvw ht'
+      have hlt : eidV es[t'] < ZkFormal.Algebra.P := by
+        unfold eidV msgId K_VPRE ZkFormal.Algebra.P; rw [hv]; omega
+      have := ofNat_eq hlt hid he
+      unfold eidV msgId at this; rw [hv] at this
+      have : t' = t := by omega
+      subst this
+      exact ⟨i, hi, by simp [eidV, hv]⟩
+  · obtain ⟨h1, -, -, h4⟩ := hoth m hm a ha
+    have := ofNat_eq h1 hid he
+    unfold msgId K_VPRE at this; unfold K_VPRE at h4; omega
+
+theorem val_dig_mem {p : Nat} (hp : p < vs.length) {i l : Nat} {pre po : List Nat} {w : Bool}
+    (hv : vs[p].v.value = some (i, l, pre, po, w)) :
+    digMsg (msgId K_VPRE i) l pre ∈ nodeRecvs3 vs B_DIGEST ++ headRecvs hs B_DIGEST := by
+  apply List.mem_append_left
+  unfold nodeRecvs3; rw [if_pos rfl, List.mem_flatMap]
+  refine ⟨(vs[p], p), zip_range_mem vs hp, List.mem_append_right _ ?_⟩
+  simp [hv]
+
+/-- **Revealed value windows.** -/
+theorem val_sha (hw : NodeWf3 vs) (hhw : HeadWf hs) (hvw : ValWf es) (hvb : VParentBal vs es)
+    (H : ShaHyp vs hs es others shaS shaR) {p : Nat} (hp : p < vs.length) {i l : Nat} {pre po : List Nat} {w : Bool}
+    (hv : vs[p].v.value = some (i, l, pre, po, w)) :
+    (valOf (valsOf3 vs es) (vpos (vid0 es) i)).length = l ∧
+      pre = (sha256 (valOf (valsOf3 vs es) (vpos (vid0 es) i))).map UInt8.toNat := by
+  have hlen := vlen_le hvw
+  obtain ⟨t, ht, hpos, hi, hl, hV⟩ := val_pos hw hvw hvb hlen hp hv
+  have hvt := vid_small hvw ht
+  rw [hpos]
+  have hval : valOf (valsOf3 vs es) t = toB es[t].bytes := by simp [valOf, hV]
+  have hbl : es[t].bytes.length = l := by
+    have := hvw.shape _ (List.getElem_mem ht)
+    cases hz : es[t].vz
+    · rw [(this.2 hz).1, hl]
+    · rw [(this.1 hz).2, ← hl, (this.1 hz).1]; rfl
+  rw [hval, toB_len, hbl]
+  refine ⟨rfl, ?_⟩
+  have hm := val_dig_mem (hs := hs) hp hv
+  rw [← hi, hvt, ← hbl] at hm
+  have hd : ∀ x ∈ pre, x < ZkFormal.Algebra.P := by
+    intro x hx; apply hw.canon _ (List.getElem_mem hp)
+    cases hvv : vs[p].v with
+    | leaf k sl m =>
+      rw [hvv] at hv
+      cases sl with
+      | ref => simp [NodeV3.value] at hv
+      | val lb i' l' pr p' w' =>
+        simp [NodeV3.value] at hv; obtain ⟨-, -, rfl, -⟩ := hv
+        simp [NodeV3.raw, NSlot3.raw, hx]
+    | ext => rw [hvv] at hv; simp [NodeV3.value] at hv
+    | branch sv kids m =>
+      rw [hvv] at hv
+      cases sv with
+      | none => simp [NodeV3.value] at hv
+      | some sl =>
+        cases sl with
+        | ref => simp [NodeV3.value] at hv
+        | val lb i' l' pr p' w' =>
+          simp [NodeV3.value] at hv; obtain ⟨-, -, rfl, -⟩ := hv
+          simp [NodeV3.raw, NSlot3.raw, hx]
+  have hcore := Link.sha_core H.sha _ H.bytes (enc := es[t].bytes)
+    (by unfold msgId K_VPRE ZkFormal.Algebra.P; omega)
+    (fun x hx => (hvw.canon _ (List.getElem_mem ht)).2.2.2 x hx)
+    (by
+      have hsh := hvw.shape _ (List.getElem_mem ht)
+      have hr := hvw.rows
+      have hm := le_sum_mem (l := es.map fun e => if e.vz then 1 else e.len)
+        (List.mem_map.mpr ⟨es[t], List.getElem_mem ht, rfl⟩)
+      cases hz : es[t].vz
+      · rw [(hsh.2 hz).1]; simp only [hz] at hm; simp at hm; unfold ZkFormal.Algebra.P; omega
+      · rw [(hsh.1 hz).2]; simp; unfold ZkFormal.Algebra.P; omega)
+    hd (vpre_sends hw hvw H.othersId ht) (H.digest _ (cnt_pos3 hm))
+  exact hcore.2
+
 end ZkFormal.NearV3.Link3
