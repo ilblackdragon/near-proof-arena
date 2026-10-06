@@ -219,7 +219,12 @@ pub fn v3_ignored_offsets(file: &[u8]) -> Option<Vec<(String, usize)>> {
             self.take(n)
         }
         fn pk(&mut self) -> Option<()> {
-            let n = match self.u8()? { 0 => 32, 1 => 64, 2 => 1952, _ => return None };
+            let n = match self.u8()? {
+                0 => 32,
+                1 => 64,
+                2 => 1952,
+                _ => return None,
+            };
             self.take(n).map(|_| ())
         }
         fn transition(&mut self) -> Option<usize> {
@@ -272,7 +277,12 @@ pub fn v3_ignored_offsets(file: &[u8]) -> Option<Vec<(String, usize)>> {
     r.take(8)?;
     let sig_tag = r.u8()?;
     out.push(("signature".to_string(), base + r.p));
-    r.take(match sig_tag { 0 => 64, 1 => 65, 2 => 3309, _ => return None })?;
+    r.take(match sig_tag {
+        0 => 64,
+        1 => 65,
+        2 => 3309,
+        _ => return None,
+    })?;
     out.push(("block_hash.main".to_string(), base + r.transition()?));
     for _ in 0..r.u32()? {
         r.take(32)?;
@@ -313,7 +323,11 @@ impl ProofMutator for V3IgnoredFields {
             for (field, at) in offs {
                 let mut q = p.proof.clone();
                 q[at] ^= 1;
-                out.push(h(format!("v3-ignored-fields/{field}/{}", p.case_id), &p.claim, q));
+                out.push(h(
+                    format!("v3-ignored-fields/{field}/{}", p.case_id),
+                    &p.claim,
+                    q,
+                ));
             }
         }
         out
@@ -553,8 +567,15 @@ mod tests {
         assert_eq!(get("height_included"), 365);
         assert_eq!(get("signature"), 374);
         assert_eq!(get("block_hash.main"), 438);
-        let hp = vec![HonestPair { case_id: "c".into(), claim: b"claim".to_vec(), proof: w.clone() }];
-        let ctx = MutationCtx { honest: &hp, max_proof_bytes: 1 << 26 };
+        let hp = vec![HonestPair {
+            case_id: "c".into(),
+            claim: b"claim".to_vec(),
+            proof: w.clone(),
+        }];
+        let ctx = MutationCtx {
+            honest: &hp,
+            max_proof_bytes: 1 << 26,
+        };
         let m = V3IgnoredFields.mutate(&ctx, &mut SplitMix64::new(1));
         assert_eq!(m.len(), offs.len());
         assert!(m.iter().all(|x| x.proof.len() == w.len() && x.proof != w));
@@ -564,7 +585,10 @@ mod tests {
                 .join("../../oracle/fixtures/v3/arena-public/cases/00-h10024-s0/witness.bin"),
         )
         .unwrap();
-        assert!(v3_ignored_offsets(&w2).unwrap().iter().any(|(n, _)| n == "block_hash.implicit0"));
+        assert!(v3_ignored_offsets(&w2)
+            .unwrap()
+            .iter()
+            .any(|(n, _)| n == "block_hash.implicit0"));
         assert!(v3_ignored_offsets(b"proof-a").is_none());
     }
 }

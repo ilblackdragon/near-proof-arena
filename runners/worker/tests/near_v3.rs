@@ -324,11 +324,21 @@ fn malleable_witness_reference_fails_adversarial() {
     }
     let pkg = f.put(&tar_of(&files));
     let c = ctx(&f, &pkg);
-    let v = run(&f, JobSpec::Validate(ValidateJob { ctx: c.clone(), challenge: f.chal.clone() }));
+    let v = run(
+        &f,
+        JobSpec::Validate(ValidateJob {
+            ctx: c.clone(),
+            challenge: f.chal.clone(),
+        }),
+    );
     let manifest = v.manifest.unwrap();
     let b = run(
         &f,
-        JobSpec::Build(BuildJob { ctx: c.clone(), challenge: f.chal.clone(), manifest: manifest.clone() }),
+        JobSpec::Build(BuildJob {
+            ctx: c.clone(),
+            challenge: f.chal.clone(),
+            manifest: manifest.clone(),
+        }),
     );
     let mut build = b.build.unwrap();
     let vs = VerifiedSurface {
@@ -341,8 +351,14 @@ fn malleable_witness_reference_fails_adversarial() {
         checker_image: f.chal.toolchain_policy.checker_image.clone(),
         verify_route: manifest.entry.verify_route,
         verifier_bytecode: build.verifier_bytecode.clone(),
-        verifier_model: manifest.formal.as_ref().and_then(|f| f.verifier_model.clone()),
-        verifier_model_module: manifest.formal.as_ref().and_then(|f| f.verifier_model_module.clone()),
+        verifier_model: manifest
+            .formal
+            .as_ref()
+            .and_then(|f| f.verifier_model.clone()),
+        verifier_model_module: manifest
+            .formal
+            .as_ref()
+            .and_then(|f| f.verifier_model_module.clone()),
     };
     let fc = run(
         &f,
@@ -354,12 +370,23 @@ fn malleable_witness_reference_fails_adversarial() {
             verified_surface: vs,
         }),
     );
-    build.native_verifier = Some(fc.native_verifier.clone().expect("judge-built native verifier"));
-    let job = ExecJob { ctx: c, challenge: f.chal.clone(), manifest, build };
+    build.native_verifier = Some(
+        fc.native_verifier
+            .clone()
+            .expect("judge-built native verifier"),
+    );
+    let job = ExecJob {
+        ctx: c,
+        challenge: f.chal.clone(),
+        manifest,
+        build,
+    };
     let a = run(&f, JobSpec::Adversarial(job));
     let g = &a.gates[0];
     assert_eq!(g.status, GateStatus::Fail, "{}", g.summary);
-    assert!(g.reason_codes.contains(&arena_types::ReasonCode::HostileProofAccepted));
+    assert!(g
+        .reason_codes
+        .contains(&arena_types::ReasonCode::HostileProofAccepted));
     assert!(g.summary.contains("v3-ignored-fields/"), "{}", g.summary);
 }
 
