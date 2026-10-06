@@ -798,7 +798,7 @@ def outcome (cfg : NearCfg) (code : ByteArray) (method : String) (prepaid fuel :
   | .outOfDomain why => s!"out-of-domain {why}"
   | .unmodeled why => s!"unmodeled {why}"
   | .prepErr v _ => s!"abort 0 0 CompilationError(PrepareError({v}))"
-  | .compileErr k =>
+  | .compileErr k _ =>
     s!"abort 0 0 CompilationError(WasmtimeCompileError \{ msg: \"failed to compile: wasm[0]::function[{k}]\" })"
   | .ok p =>
     let gs : Gas := Gas.init prepaid
@@ -845,7 +845,7 @@ def preparedSizeLine (cfg : NearCfg) (code : ByteArray) : String :=
   match prepare cfg code with
   | .ok p => toString (instrumentedSize cfg p.m p.funcs)
   | .prepErr v _ => s!"prepare-error {v}"
-  | .compileErr _ => "compile-error"
+  | .compileErr _ sz => toString sz   -- prepare succeeds; Wasmtime compilation then fails
   | .outOfDomain w => s!"out-of-domain {w}"
   | .unmodeled w => s!"unmodeled {w}"
 

@@ -71,7 +71,7 @@ inductive PrepResult where
   | prepErr (variant : String) (why : String)
   /-- `CompilationError(WasmtimeCompileError { msg })`: the prepared module passes NEAR's checks
   but Wasmtime rejects it (`wasmtime_runner/mod.rs:571-580`), naming the instrumented function index -/
-  | compileErr (fnIdx : Nat)
+  | compileErr (fnIdx : Nat) (instrumentedSize : Nat)
   /-- the contract is outside `InD3α` (float types or operators) -/
   | outOfDomain (why : String)
   /-- a path this version of the spec does not decide (reported, never silently accepted) -/
@@ -387,7 +387,8 @@ def prepare (cfg : NearCfg) (bytes : ByteArray) (blockLevel : Bool := true) : Pr
         gas := gasTable cfg.gas f.code blockLevel, stackCharge := opMax + frame,
         prologueGas := (frame + 7) / 8 * cfg.regularOpCost }
     let _ := nImp
-    if instrumentedSize cfg m pfs > cfg.maxInstrumentedCodeSize then
+    let isz := instrumentedSize cfg m pfs
+    if isz > cfg.maxInstrumentedCodeSize then
       return .prepErr "InstrumentedCodeTooLarge" ""
     -- Wasmtime re-validates the *instrumented* module with wasmparser 0.248
     -- (`MAX_WASM_FUNCTION_LOCALS` = 50,000, `MAX_WASM_FUNCTION_SIZE` = 7,654,321). Instrumentation
@@ -402,7 +403,7 @@ def prepare (cfg : NearCfg) (bytes : ByteArray) (blockLevel : Bool := true) : Pr
       let bodyLen := Size.bodyPayload G pf.type f.localGroups f.code f.opLens pf.gas pf.stackCharge
         pf.prologueGas
       if nl > 50000 ∨ bodyLen > 7654321 then
-        return .compileErr (nImp + 3 + k)
+        return .compileErr (nImp + 3 + k) isz
     return .ok { m := m, ctx := c, funcs := pfs }
 
 /-! ## Link and method resolution -/

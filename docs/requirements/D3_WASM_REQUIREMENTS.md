@@ -355,7 +355,8 @@ D3 is complete when **all** of these hold:
    `near-wasm-strategy.md`, the PoC with 7,000 cases and 0 disagreements).
 2. Lean semantics for the accepted instruction subset (**D3α: integer WASM incl. tables,
    `call_indirect`, globals, bulk memory, reference types**), plus the per-opcode
-   difftest.
+   difftest. **Reported 2026-10-06** (`docs/research/d3a-checkpoint2.md`: 73,049 compared
+   cases, 0 disagreements; host functions beyond 5 are checkpoint 3).
 3. Host functions, gas and outcomes, plus the full-runtime difftest at scale
    (2.2).
 4. `Rel_D3` plus the re-execution reference ADMITTED live.
