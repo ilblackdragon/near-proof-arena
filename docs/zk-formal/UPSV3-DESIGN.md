@@ -438,8 +438,8 @@ so that the `upsV3` walks fit (`wrows_lt` unchanged); `Chain3.UpsWf` → `UpsEWf
 * `SchedVal v sv` (scheduler ↔ `upsV3`, V3-D0-DESIGN §12): `sv τ` is the new value of instance `τ`; every `SPLEN`
   receive is a scheduler send `[τ, |sv τ|]`, every `SPOST` receive a send `[τ, d, (sv τ)[d]]` with `d < |sv τ|`
   (as `Fp` images), `|sv τ| < 2^24`.
-* `walkV3`'s height `≤ 2^21` (`hWr` of `allWalks_wf` / `ups_walkHyp`): proved inside `walk3_view` (`height_le`)
-  but not exported by `WalkV3ViewStmt` (whose `WalkWf3.nrows` is now `≤ 2^23`).
+* (discharged) `walkV3`'s height `≤ 2^21` (`hWr` of `allWalks_wf` / `ups_walkHyp`): now exported by
+  `WalkV3ViewStmt` next to `WalkWf3` (whose `nrows` stays `≤ 2^23` for `walkV3` and `upsV3` walks together).
 * `UpsEnv` collects the balances (`UPB`, `MEMD`, `BYTES` with others' ids not of kind 12, `DIGEST` provided) and
   `τ < 2^17` (from `ups_tauBound` with `K < 2^17`).
 

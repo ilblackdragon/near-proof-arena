@@ -12,8 +12,8 @@ On `EDGE` and `BMAP` the participants are `nodeV3`, the heads, `walkV3`'s walks 
   (`ups_walkTrafficFp`);
 * **`ups_bm`**: the `W3` bitmap of an absent-at-branch terminal is a branch record's bitmap, so `< 2^16`
   (`BMAP` balance by `chain_provided`; this discharges `ups_walk`'s hypothesis, STATUS §6 register);
-* **`allWalks_wf`**: `WalkWf3 (allWalks ws v)`, given `walkV3`'s view and its height `≤ 2^21`
-  (`WalkWf3.nrows` is `≤ 2^23` so that the `upsV3` walks fit);
+* **`allWalks_wf`**: `WalkWf3 (allWalks ws v)`, given `walkV3`'s view and its height `≤ 2^21` (`hWr`, exported
+  by `WalkV3ViewStmt`; `WalkWf3.nrows` is `≤ 2^23` so that the `upsV3` walks fit);
 * **`ups_walkHyp`**: the `Walk3.WalkHyp` of all walks (so `walk3_pos` / `walk3_find` apply to the
   `upsV3` walks);
 * **`edge_I`**, **`ups_tiLe`**: an edge advances the position by at most one, so the terminal position

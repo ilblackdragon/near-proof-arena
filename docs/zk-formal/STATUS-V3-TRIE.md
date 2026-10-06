@@ -500,8 +500,10 @@ counted.
     byte range check on `W0` (AIR change: lead decision).  Hypothesis of `ups_ext0` for now.
   * **Interface (M7e):** `SchedVal v sv` (`Extract/Ups/UpsVal.lean`): every `SPLEN`/`SPOST` receive of `upsV3` is a
     scheduler send `[τ, |sv τ|]` / `[τ, d, (sv τ)[d]]` (`d < |sv τ|`), `|sv τ| < 2^24` (owed to v3-sched).
-  * **Interface (M7e):** `walkV3`'s height `≤ 2^21`, proved in `walk3_view` (`height_le`) but not exported by
-    `WalkV3ViewStmt`; `WalkWf3.nrows` is now `≤ 2^23` so that the walks of `walkV3` and `upsV3` fit together.
+  * (closed) `walkV3`'s height `≤ 2^21`: **exported** by `WalkV3ViewStmt` (a conjunct next to `WalkWf3`:
+    `(ws.flatMap (·.steps)).length ≤ 2^21`, from `height_le`; `walk3_view` re-proved, axioms propext,
+    Classical.choice, Quot.sound).  `WalkWf3.nrows` stays `≤ 2^23` so that the walks of `walkV3` and `upsV3` fit
+    together (`allWalks_wf`); the `hWr` hypothesis of `ups_bm` / `allWalks_wf` / `ups_walkHyp` is this conjunct.
   * The SPB free-key cells were fixed by 412363e8 (lead-approved).
 
 * **Decision (cross-lane, v3-rcpt R3): `VSLOT (vid)` recv in nodeV3.** nodeV3 receives
