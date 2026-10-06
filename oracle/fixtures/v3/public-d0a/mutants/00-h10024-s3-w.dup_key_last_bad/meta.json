@@ -1,0 +1,15 @@
+{
+  "base": "00-h10024-s3",
+  "case": "00-h10024-s3-w.dup_key_last_bad",
+  "d0a_violations": [],
+  "domain": "D0a",
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d0a": false,
+  "in_d0": true,
+  "in_d0a": true,
+  "kind": "mutant",
+  "mutation": "w.dup_key_last_bad",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"Receipt proof for chunk ChunkHash(3snDfECAjnnT2RtVq5VQBEvHnrK6H9rXBtGP5tQMBt2V) is for shard 2, expected shard 3\")",
+  "verdict_source": "nearcore"
+}

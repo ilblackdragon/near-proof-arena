@@ -140,7 +140,7 @@ def fwdAboveGrant (cb wb : Bytes) (p : Prep) : Bool :=
 
 def main (args : List String) : IO UInt32 := do
   let mut acc := 0; let mut accOk := 0
-  let mut chFail := 0; let mut chOk := 0; let mut chExact := 0; let mut chAir := 0
+  let mut chFail := 0; let mut chOk := 0; let mut chExact := 0; let mut chAir := 0; let mut chFwdOther := 0
   let mut wFail := 0; let mut wPrepOk := 0
   let mut failures : List String := []
   for dir in args do
@@ -172,8 +172,11 @@ def main (args : List String) : IO UInt32 := do
           else failures := failures ++ [s!"{dir}: C/H failure '{m}' but prepD0 succeeded"]
         | .error e =>
           if category e == category m then chOk := chOk + 1
+          -- `e.forwarded` whose size part (the AIR's) fails first: the hint's refunds stop at the
+          -- buffered one, so a later native header check (outgoing root, RS) fails instead
+          else if m.startsWith "out of domain (e.forwarded)" then chFwdOther := chFwdOther + 1
           else failures := failures ++ [s!"{dir}: C/H failure '{m}', prepD0 '{e}'"]
           if e == m then chExact := chExact + 1
   for f in failures.take 50 do IO.eprintln f
-  IO.println s!"\{\"cases\": {args.length}, \"accepted_d0a\": {acc}, \"accepted_prep_ok_and_match\": {accOk}, \"ch_failures\": {chFail}, \"ch_prep_fails_same_category\": {chOk}, \"ch_prep_same_message\": {chExact}, \"ch_forwarded_size_left_to_air_and_above_grant\": {chAir}, \"w_failures\": {wFail}, \"w_failures_prep_ok\": {wPrepOk}, \"problems\": {failures.length}}"
+  IO.println s!"\{\"cases\": {args.length}, \"accepted_d0a\": {acc}, \"accepted_prep_ok_and_match\": {accOk}, \"ch_failures\": {chFail}, \"ch_prep_fails_same_category\": {chOk}, \"ch_prep_same_message\": {chExact}, \"ch_forwarded_size_left_to_air_and_above_grant\": {chAir}, \"ch_forwarded_prep_fails_later_check\": {chFwdOther}, \"w_failures\": {wFail}, \"w_failures_prep_ok\": {wPrepOk}, \"problems\": {failures.length}}"
   return (if failures.isEmpty then 0 else 1)

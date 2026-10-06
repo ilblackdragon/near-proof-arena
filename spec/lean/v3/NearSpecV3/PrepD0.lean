@@ -198,6 +198,7 @@ structure PrepC where
   rsData : Nat
   rsTotal : Nat
   allowed : Nat
+  ownCongestion : Congestion
 
 structure Prep where
   hdr : PrepHdr
@@ -328,15 +329,9 @@ def prepClaim (cb : Bytes) : Except String PrepC := do
   let sched ← ctxs.mapM fun ctx => match schedPub ctx with
     | some p => pure p
     | none => throw "invalid: bandwidth scheduler aborted (StorageInconsistentState)"
-  -- 3.7 header comparison, claim part
+  -- `allowed_shard` of the own congestion info (3.7); the header comparison itself runs in
+  -- `prepBody`, after the execution-time conditions, in `checkD0`'s order
   let allowed := L.shardIds.getD ((B2.hdr.height + idx) % L.numShards) H.shardId
-  let ownCongestion : Congestion := { own with allowedShard := allowed }
-  check H.proposals.isEmpty "invalid: InvalidValidatorProposals"
-  check (H.gasLimit == slotB2.gasLimit) "invalid: InvalidGasLimit"
-  check (H.congestion == ownCongestion) "invalid: InvalidCongestionInfo"
-  check H.bwRequests.isEmpty "invalid: InvalidBandwidthRequests"
-  check H.proposedSplit.isNone "invalid: InvalidChunkHeaderShardSplit"
-  check (H.txRoot == zeroHash32) "invalid: InvalidTxRoot"
   pure {
     hdr := { K := implicitBlks.length, n := 0, own := H.shardId, ownIdx := idx,
              numShards := L.numShards, height := B2.hdr.height, gasPrice := prevB2.hdr.nextGasPrice,
@@ -344,7 +339,7 @@ def prepClaim (cb : Bytes) : Except String PrepC := do
              postStateRoot := H.prevStateRoot, outcomeRoot := H.prevOutcomeRoot,
              balanceBurnt := H.prevBalanceBurnt }
     lists, bnds := ownIntervals L H.shardId, sched, L, H, ctxB2,
-    rsData := c.rsDataParts, rsTotal := c.rsTotalParts, allowed }
+    rsData := c.rsDataParts, rsTotal := c.rsTotalParts, allowed, ownCongestion := own }
 
 def prepBody (pc : PrepC) (h : Hint) : Except String Prep := do
   let ctx := pc.ctxB2
@@ -353,8 +348,16 @@ def prepBody (pc : PrepC) (h : Hint) : Except String Prep := do
   check (fwdGasOk ctx h.refunds) "out of domain (e.forwarded): generated receipt buffered"
   check (h.n == 0 || (h.n - 1) * Params.G < ctx.gasLimit)
     "out of domain (e.compute): receipt delayed by the compute limit"
-  check (pc.H.prevGasUsed == h.n * Params.G) "invalid: InvalidGasUsed"
-  check (pc.H.prevOutgoingReceiptsRoot == outgoingReceiptsRoot pc.L h.refunds) "invalid: InvalidReceiptsProof"
+  -- 3.7 header comparison (claim/hint part), in `checkD0`'s order
+  let H := pc.H
+  check H.proposals.isEmpty "invalid: InvalidValidatorProposals"
+  check (H.gasLimit == pc.hdr.gasLimit) "invalid: InvalidGasLimit"
+  check (H.prevGasUsed == h.n * Params.G) "invalid: InvalidGasUsed"
+  check (H.prevOutgoingReceiptsRoot == outgoingReceiptsRoot pc.L h.refunds) "invalid: InvalidReceiptsProof"
+  check (H.congestion == { pc.ownCongestion with allowedShard := pc.allowed }) "invalid: InvalidCongestionInfo"
+  check H.bwRequests.isEmpty "invalid: InvalidBandwidthRequests"
+  check H.proposedSplit.isNone "invalid: InvalidChunkHeaderShardSplit"
+  check (H.txRoot == zeroHash32) "invalid: InvalidTxRoot"
   let body := h.body
   match encodedMerkleRoot pc.rsData pc.rsTotal body with
   | none => throw "invalid: Reed-Solomon parameters"
