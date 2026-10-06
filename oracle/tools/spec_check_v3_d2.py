@@ -11,7 +11,8 @@ core/store/src/{utils/mod.rs, trie/*}, chain/chain/src/{runtime/mod.rs,
 stateless_validation/chunk_validation.rs, validate.rs}), the claim format
 (spec/claim-v3.md) and the D2 domain definition. It does NOT use the Lean formalization.
 The claim / chain-context decoding, receipt proofs, shuffle, scheduler and Reed-Solomon are
-imported from spec_check_v3.py (D0); Ed25519 from v3lib/ed25519.py (D1); the trie operations
+imported from spec_check_v3.py (D0); Ed25519 from v3lib/ed25519.py (D1; evaluated by
+v3lib/ed25519x.py: same predicate in extended coordinates, memoized); the trie operations
 (lookups by reference, prefix iteration, batched insert/delete) from v3lib/trie2.py; the
 nearcore types from v3lib/near2.py.
 
@@ -31,7 +32,7 @@ from v3lib.prim import (  # noqa: E402
     R, Reject, OOD, DecodeError, sha, u8, u16, u32, u64, u128, bstr, U64_MAX, U128_MAX, ZERO32,
     account_type, merklize, merkle_root_of_hashes, compute_root_from_path, ChaCha20Rng,
     encoded_merkle_root, outgoing_gas_limit, valid_account_id)
-from v3lib import ed25519, sched  # noqa: E402
+from v3lib import ed25519, ed25519x, sched  # noqa: E402
 from v3lib.trie2 import Trie2  # noqa: E402
 from v3lib import near2 as N  # noqa: E402
 from v3lib.near2 import (  # noqa: E402
@@ -867,7 +868,7 @@ class Apply:
             if validate_actions(t.actions, t.recv, True) is not None:
                 self.leaves.append(failed)
                 continue
-            if len(t.raw) > MAX_TRANSACTION_SIZE or not ed25519.verify(t.pk[1:], t.sig[1:], t.hash):
+            if len(t.raw) > MAX_TRANSACTION_SIZE or not ed25519x.verify(t.pk[1:], t.sig[1:], t.hash):
                 self.leaves.append(failed)
                 continue
             cost = tx_cost(t, self.gas_price)
@@ -1525,7 +1526,7 @@ class Apply:
         elif f['pk'][0] == 1:
             raise OOD("e.secp: a SECP256K1 delegate signature is verified")
         else:
-            ok = ed25519.verify(f['pk'][1:], f['sig'][1:], N.nep461_hash(a))
+            ok = ed25519x.verify(f['pk'][1:], f['sig'][1:], N.nep461_hash(a))
         if not ok:
             return fail('DelegateActionInvalidSignature')
         if self.height > f['max_block_height']:
