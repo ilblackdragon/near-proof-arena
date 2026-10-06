@@ -4,6 +4,9 @@
 #   public set (committed):  oracle/fixtures/v3/public   (seed 4243, 2 chains x 40 blocks)
 #   full difftest set:       $OUT (default /tmp/near-v3-full; seed 4243, 8 chains x 120 blocks)
 #   leaf vectors (committed): oracle/fixtures/v3/vectors (seed 86)
+#   D1 public set (committed): oracle/fixtures/v3/public-d1 (seed 4243, 2 chains x 40 blocks, --domain d1)
+#   D1 full difftest set:      $OUT_D1 (default /tmp/near-v3-d1-full; seed 5151, 12 chains x 150 blocks)
+#   Ed25519 vectors (committed): oracle/fixtures/v3/ed25519 (oracle/tools/gen_ed25519_vectors.py, SOURCES.json)
 set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
 "$here/scripts/link-nearcore.sh" >/dev/null
@@ -12,8 +15,13 @@ bin="$here/v3/target/debug/near-arena-oracle-v3"
 rm -rf "$here/fixtures/v3/public"
 "$bin" gen --seed 4243 --out "$here/fixtures/v3/public" --chains 2 --blocks 40 --mutate-every 25 --ood-cap 1
 "$bin" vectors --out "$here/fixtures/v3/vectors" --seed 86
+rm -rf "$here/fixtures/v3/public-d1"
+"$bin" gen --seed 4243 --out "$here/fixtures/v3/public-d1" --chains 2 --blocks 40 --mutate-every 25 --ood-cap 1 --domain d1
 if [[ "${FULL:-0}" == 1 ]]; then
   OUT="${OUT:-/tmp/near-v3-full}"
   rm -rf "$OUT"
   "$bin" gen --seed 4243 --out "$OUT" --chains 8 --blocks 120 --mutate-every 6
+  OUT_D1="${OUT_D1:-/tmp/near-v3-d1-full}"
+  rm -rf "$OUT_D1"
+  "$bin" gen --seed 5151 --out "$OUT_D1" --chains 12 --blocks 150 --ood-cap 40 --mutate-every 4 --domain d1
 fi
