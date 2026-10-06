@@ -179,13 +179,20 @@ def d0_generator(cid):
     return dig(spec)
 
 
+CALIBRATION = {"workload": "arena-calibrate-v1",
+               "binary_digest": "sha256:d434077860be66ff66d849dc58595134bbaad882c0761437d988551baeb65e37",
+               "expected_checksum": "87a7f539b09c4e7b", "threads": 8, "steps_per_probe": 5,
+               "edge_probes": 2, "max_step_ppm": 20000, "max_noise_ppm": 50000}
+
 PRICE_MODEL = "challenges/price-models/pm-near-mainnet-2026q4.v2.json"
 
 
 def scoring(a):
     pm = json.load(open(os.path.join(ROOT, PRICE_MODEL)))
+    # bench-spec-v1.6 / contracts v1.8: paired baseline control (the reference re-run on the same
+    # sampled batches in the same session, BENCHMARK_SPEC §6.2, §14.12)
     sc = {"kind": "cost_v1", "price_model": pm, "price_model_digest": dig(pm),
-          "verify_statistic": "lower_quartile"}
+          "verify_statistic": "lower_quartile", "baseline_mode": "paired"}
     if a.baseline_summary and not a.measure:
         bs = json.load(open(a.baseline_summary))
         if "cost_baseline" in bs:
@@ -299,7 +306,9 @@ def main():
             "weight_source": {"status": "ASSUMED", "note": WEIGHT_SOURCE, "ref": WEIGHTS_REF}},
         "measurement": {"warmup_runs": 3, "measured_runs": 15, "aggregation": "median", "outlier_mad_k": 5,
                         "cold_runs": 1, "concurrency": 1, "per_run_timeout_ms": 600000,
-                        "invocation_mode": "vm_per_batch"},
+                        "invocation_mode": "vm_per_batch",
+                        # pinned calibration binary with in-session probes (bench-spec-v1.6 §6.1)
+                        "calibration": CALIBRATION},
         # caps: as D0 except verify: the D3a re-execution reference runs checkD3 once per needed code
         # blob plus once; measured on the public set (one case, 6 parallel jobs on CPUs 8-15,24-31):
         # verify median 0.04-0.37 s per class, max 3.1 s; prove max 2.4 s; proof <= 182 KB

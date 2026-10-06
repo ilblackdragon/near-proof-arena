@@ -290,7 +290,17 @@
     "cold_runs": 1,
     "concurrency": 1,
     "per_run_timeout_ms": 600000,
-    "invocation_mode": "vm_per_batch"
+    "invocation_mode": "vm_per_batch",
+    "calibration": {
+      "workload": "arena-calibrate-v1",
+      "binary_digest": "sha256:d434077860be66ff66d849dc58595134bbaad882c0761437d988551baeb65e37",
+      "expected_checksum": "87a7f539b09c4e7b",
+      "threads": 8,
+      "steps_per_probe": 5,
+      "edge_probes": 2,
+      "max_step_ppm": 20000,
+      "max_noise_ppm": 50000
+    }
   },
   "resource_limits": {
     "max_proof_bytes": 67108864,
