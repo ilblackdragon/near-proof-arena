@@ -101,7 +101,9 @@ def pm0 : Nat := 102
 def pm1 : Nat := 103
 def dgg : Nat := 104
 def bF : Nat := 105
-def width : Nat := 106
+/-- Bits of the pre byte (pre bytes are bytes without relying on `valV3`). -/
+def prbit (i : Nat) : Nat := 106 + i
+def width : Nat := 114
 
 /-- `max_allowance` (PV 86). -/
 def MA : Nat := 4500000
@@ -119,7 +121,7 @@ def isZ (gate x : Expr) (inv flag : Nat) : List Expr :=
 
 def boolCols : List Nat :=
   [act, kH, kR, kZ, kA, kF, pres, fS, fR, fA, e7, e2, lowf, nzb, ekl, ehp, esj, al, cb, zt,
-   cbit, cg, rend, vbg, fwg, dgg, bF] ++ (List.range 8).map pbit
+   cbit, cg, rend, vbg, fwg, dgg, bF] ++ (List.range 8).map pbit ++ (List.range 8).map prbit
 
 /-- Rows carrying the encoding (pre and post bytes). -/
 def encG : Expr := .add (c kH) (.add (c kR) (c kZ))
@@ -153,6 +155,7 @@ def cKind : List Expr :=
     mul3 (c kA) (c esj) (.mul (n act) (notE (n kF))),
     -- bytes: post bytes are bytes; pre = 0 when absent
     .mul encG (sub (c bpost) pbitsE),
+    .mul encG (sub (c bpre) (ZkFormal.Chacha.Rng.Table.num prbit 8)),
     .mul (notE (c pres)) (c bpre),
     sub (c vbg) (.mul (c pres) encG),
     -- header

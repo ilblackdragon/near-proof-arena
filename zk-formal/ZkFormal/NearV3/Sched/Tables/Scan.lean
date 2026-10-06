@@ -60,14 +60,17 @@ def ikey : Nat := 46
 def zk0 : Nat := 47
 def us0 : Nat := 48
 def us1 : Nat := 49
-def width : Nat := 50
+/-- Range checks: bits of `Q0`, `Q1` (23 each). -/
+def qb0 (i : Nat) : Nat := 50 + i
+def qb1 (i : Nat) : Nat := 73 + i
+def width : Nat := 96
 
 def mul3 (a b d : Expr) : Expr := .mul (.mul a b) d
 def notE (e : Expr) : Expr := sub (k 1) e
 
 def boolCols : List Nat :=
   [act, kP, kS, fQ, b0, b1, u0, u1, e4, re, zk0, us0, us1] ++
-  (List.range 6).map rb0 ++ (List.range 6).map rb1
+  (List.range 6).map rb0 ++ (List.range 6).map rb1 ++ (List.range 23).map qb0 ++ (List.range 23).map qb1
 
 /-- Byte end (`u = 3`). -/
 def be : Expr := .mul (c u0) (c u1)
@@ -136,7 +139,9 @@ def constraints : List Expr :=
     .mul (c kS) (sub (c cm) (.add (.mul (c b0) val0) (.mul (notE (c b0)) (c cur)))),
     -- zk0 = [key = 0]
     .mul (c kS) (sub (c zk0) (notE (.mul (c key) (c ikey)))),
-    .mul (c key) (c zk0) ]
+    .mul (c key) (c zk0),
+    -- quotients < 2^23: `40·Q + rem = D·(pos+1)` is an integer division
+    sub (c Q0) (ZkFormal.Chacha.Rng.Table.num qb0 23), sub (c Q1) (ZkFormal.Chacha.Rng.Table.num qb1 23) ]
 
 def eE : Expr := .add (smul 64 (c cid)) (c j)
 def aL : Expr := .add (smul 16384 (c tau)) (c link)

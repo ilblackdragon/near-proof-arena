@@ -19,7 +19,7 @@ namespace ZkFormal.NearV3.Sched.Gen.Scan
 
 open NearSpecV3 NearSpecV3.Scheduler ZkFormal.NearV3.Sched
 open ZkFormal.NearV3.Sched.Scan (act kP kS fQ tau nn base dd cid clo chi s r link q b0 b1 u0 u1 y iy
-  e4 re Q0 Q1 rb0 rb1 cur cm j m key ikey zk0 us0 us1 width)
+  e4 re Q0 Q1 rb0 rb1 qb0 qb1 cur cm j m key ikey zk0 us0 us1 width)
 
 def byteOf (x i : Nat) : Nat := x / 256 ^ i % 256
 
@@ -58,6 +58,8 @@ def reqRows (R : Run) (c : CReq) : Array (Array Nat) := Id.run do
       |>.set! Q0 (R.D * (pos + 1) / 40) |>.set! Q1 (R.D * (pos + 2) / 40)
     for i in List.range 6 do
       a := a.set! (rb0 i) (bit (R.D * (pos + 1) % 40) i) |>.set! (rb1 i) (bit (R.D * (pos + 2) % 40) i)
+    for i in List.range 23 do
+      a := a.set! (qb0 i) (bit (R.D * (pos + 1) / 40) i) |>.set! (qb1 i) (bit (R.D * (pos + 2) / 40) i)
     a := a.set! cur curV |>.set! cm cmV |>.set! j jj |>.set! m mm |>.set! key c.key
       |>.set! ikey (finv c.key) |>.set! zk0 (b2n (c.key == 0))
       |>.set! us0 (b2n (bb0 == 1 && usedA.getD jj false))

@@ -56,13 +56,14 @@ def codecRows (I : Input) (R : Run) (present : Bool) (vidV : Nat) (gbA : Array N
   let inst : List (Nat × Nat) := [(act, 1), (tau, tv), (pres, b2n present), (vid, vidV), (nn, n),
     (NN, N), (base, baseV), (fair, fairV), (itz, finv tv), (zt, if tv = 0 then 1 else 0)]
   let pb (x : Nat) : List (Nat × Nat) := (List.range 8).map fun i => (pbit i, bit x i)
+  let qb (x : Nat) : List (Nat × Nat) := (List.range 8).map fun i => (prbit i, bit x i)
   -- header
   for p in List.range 5 do
     let bp := hdr[p]!
     let regs := (List.range 32).map fun i => (reg i, params.getD (p + i) 0)
     rows := rows.push (setAll width (inst ++ [(kH, 1), (kF, if p = 0 then 1 else 0), (pos, p),
       (bpost, bp), (bpre, if present then bp else 0), (vbg, b2n present),
-      (ihp, finv (fsub p 4)), (ehp, if p = 4 then 1 else 0)] ++ regs ++ pb bp))
+      (ihp, finv (fsub p 4)), (ehp, if p = 4 then 1 else 0)] ++ regs ++ pb bp ++ qb (if present then bp else 0)))
   -- records
   for kk in List.range N do
     for f in List.range 3 do
@@ -111,7 +112,7 @@ def codecRows (I : Input) (R : Run) (present : Bool) (vidV : Nat) (gbA : Array N
           (vbg, b2n present), (kidx, kk), (klo, kk % 256), (khi, kk / 256),
           (fS, if f = 0 then 1 else 0), (fR, if f = 1 then 1 else 0), (fA, if f = 2 then 1 else 0),
           (g, gg), (ig7, finv (fsub gg 7)), (e7, if gg = 7 then 1 else 0),
-          (ikl, finv (fsub kk (N - 1))), (ekl, if kk + 1 = N then 1 else 0)] ++ pb bpo ++ extra))
+          (ikl, finv (fsub kk (N - 1))), (ekl, if kk + 1 = N then 1 else 0)] ++ pb bpo ++ qb bpr ++ extra))
         if f = 2 ∧ gg < 3 then
           apv := apv + wtv * bpr
           apostv := apostv + wtv * bpo
@@ -123,7 +124,7 @@ def codecRows (I : Input) (R : Run) (present : Bool) (vidV : Nat) (gbA : Array N
     let regs := (List.range 32).map fun i => (reg i, digest.getD (j + i) 0)
     rows := rows.push (setAll width (inst ++ [(kZ, 1), (pos, base0 + j), (sj, j), (bpost, digest[j]!),
       (bpre, if present then bpr else 0), (bsha, if present then bpr else 0), (vbg, b2n present),
-      (isj, finv (fsub j 31)), (esj, if j = 31 then 1 else 0)] ++ regs ++ pb digest[j]!))
+      (isj, finv (fsub j 31)), (esj, if j = 31 then 1 else 0)] ++ regs ++ pb digest[j]! ++ qb (if present then bpr else 0)))
   for j in List.range 32 do
     let x := (I.ash.getD j 0).toNat
     rows := rows.push (setAll width (inst ++ [(kA, 1), (pos, base0 + 32 + j), (sj, 32 + j), (bsha, x),

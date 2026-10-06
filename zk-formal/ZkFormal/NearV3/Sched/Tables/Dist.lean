@@ -74,14 +74,20 @@ def dlrg : Nat := 52
 def sL : Nat := 53
 /-- End of an instance's grid (`kC ∧ e1 ∧ e2`). -/
 def eI : Nat := 54
-def width : Nat := 55
+/-- Range checks: bits of `q1, q2` (23 each) and `r1, r2` (6 each). -/
+def qb1 (i : Nat) : Nat := 55 + i
+def qb2 (i : Nat) : Nat := 78 + i
+def rb1 (i : Nat) : Nat := 101 + i
+def rb2 (i : Nat) : Nat := 107 + i
+def width : Nat := 113
 
 def mul3 (x y w : Expr) : Expr := .mul (.mul x y) w
 def notE (e : Expr) : Expr := sub (k 1) e
 
 def boolCols : List Nat :=
   [act, kSh, kGH, kC, side, zc, al, e1, e2, cb, cg, dlsg, dlrg, eI] ++
-  (List.range 6).map bt1 ++ (List.range 6).map bt2
+  (List.range 6).map bt1 ++ (List.range 6).map bt2 ++
+  (List.range 23).map qb1 ++ (List.range 23).map qb2 ++ (List.range 6).map rb1 ++ (List.range 6).map rb2
 
 def bits1E : Expr := ZkFormal.Chacha.Rng.Table.num bt1 6
 def bits2E : Expr := ZkFormal.Chacha.Rng.Table.num bt2 6
@@ -182,7 +188,13 @@ def cGrid : List Expr :=
     mul3 (c eI) (n act) (n a),
     .mul (c eI) (n kp) ]
 
-def constraints : List Expr := cKind ++ cShard ++ cGrid
+/-- Quotients `< 2^23` and remainders `< 64` on every row, so every division is an integer
+division (`q·N + r < 2^30 < P`). -/
+def cRange : List Expr :=
+  [ sub (c q1) (ZkFormal.Chacha.Rng.Table.num qb1 23), sub (c q2) (ZkFormal.Chacha.Rng.Table.num qb2 23),
+    sub (c r1) (ZkFormal.Chacha.Rng.Table.num rb1 6), sub (c r2) (ZkFormal.Chacha.Rng.Table.num rb2 6) ]
+
+def constraints : List Expr := cKind ++ cShard ++ cGrid ++ cRange
 
 def interactions : List Interaction :=
   [ { bus := B_SSHD, mult := [c kSh], send := false,

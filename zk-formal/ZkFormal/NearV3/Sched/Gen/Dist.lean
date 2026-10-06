@@ -27,6 +27,9 @@ def setAll (w : Nat) (kv : List (Nat × Nat)) : Array Nat :=
 def bitsOf (col : Nat → Nat) (x : Nat) : List (Nat × Nat) :=
   (List.range 6).map fun i => (col i, bit x i)
 
+def bitsN (col : Nat → Nat) (len x : Nat) : List (Nat × Nat) :=
+  (List.range len).map fun i => (col i, bit x i)
+
 def distRows (I : Input) (R : Run) : Except String DistOut := do
   let n := R.n
   let tv := R.tau
@@ -61,7 +64,8 @@ def distRows (I : Input) (R : Run) : Except String DistOut := do
         (q2, q), (r2, rem), (icnt, finv c), (zc, if c = 0 then 1 else 0), (kp, kpv),
         (da, if sd = 0 then i else 0), (db, if sd = 0 then 255 else i), (cx, key), (cy, kpv),
         (cb, 1), (cg, 1), (dlsg, 1), (sL, left), (e1, e1v),
-        (ig1, finv (fsub i (n - 1)))] ++ (if c = 0 then [] else bitsOf bt2 (c - 1 - rem))))
+        (ig1, finv (fsub i (n - 1)))] ++ (if c = 0 then [] else bitsOf bt2 (c - 1 - rem)) ++
+        bitsN qb2 23 q ++ bitsN rb2 6 rem))
       kpv := key + 1
   -- grid
   let mut gbArr : Array Nat := Array.replicate (n * n) 0
@@ -97,7 +101,8 @@ def distRows (I : Input) (R : Run) : Except String DistOut := do
         (cb, cbv), (cg, b2n alv), (da, i + 1), (db, j), (sL, L2'), (dlsg, 1 - e2v), (dlrg, 1),
         (e1, e1v), (ig1, finv (fsub j (n - 1))), (e2, e2v), (ig2, finv (fsub i (n - 1))),
         (eI, e1v * e2v)] ++
-        (if alv then bitsOf bt1 (se.1 - 1 - r1v) ++ bitsOf bt2 (re.1 - 1 - r2v) else [])))
+        (if alv then bitsOf bt1 (se.1 - 1 - r1v) ++ bitsOf bt2 (re.1 - 1 - r2v) else []) ++
+        bitsN qb1 23 q1v ++ bitsN qb2 23 q2v ++ bitsN rb1 6 r1v ++ bitsN rb2 6 r2v))
       if alv then
         gbArr := gbArr.set! l gbv
         se := (se.1 - 1, se.2 - gbv)
