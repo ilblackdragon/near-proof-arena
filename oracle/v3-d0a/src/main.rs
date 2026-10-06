@@ -47,8 +47,9 @@ mod mutate;
 #[path = "../../v3/src/vectors.rs"]
 mod vectors;
 // D0a (this crate): chain generation copied from ../v3/src/chaingen.rs with the D0a
-// classification, the A1 chain and the A2 mutant; amendment classifier; A2 mutant.
+// classification, the A1 chain and the A2 mutant; amendment classifier; A2 and A8 mutants.
 mod a2mut;
+mod a8mut;
 mod chaingen;
 mod d0a;
 
