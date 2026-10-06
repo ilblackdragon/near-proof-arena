@@ -90,8 +90,9 @@ def yieldCreateWithIdHL (a : Vector Nat 9) : HMM Unit := do
     liftH (realPutH (yieldKey 20 s.ctx.currentAccount did) (some (ByteArray.mk #[0])))
     liftH (realPutH (yieldKey 22 s.ctx.currentAccount yid) (some did))
     liftH (realPutH (yieldKey 23 s.ctx.currentAccount did) (some yid))
-  let r ← liftH (pushAction { text := s!"YC:{hexStr did}>{s.ctx.currentAccount}:{hexStr yid}",
-                       receiver := some s.ctx.currentAccount, yieldCreate := some (did, some yid) })
+  let r ← liftH (pushAction
+    { text := s!"YC:{hexStr did}>{s.ctx.currentAccount}:{hexStr yid}",
+      receiver := some s.ctx.currentAccount, yieldCreate := some (did, some yid) })
   liftH (withGas (deduct · 0 a[5]))
   liftH (payNewReceiptH true #[true])
   let pi ← liftH (pushPromiseH (.receipt r))

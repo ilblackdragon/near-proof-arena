@@ -11,6 +11,8 @@ lists of the hashes). Run on a store `g` whose answers are the `RealStore`'s sto
 each mirror returns the original's result.
 -/
 
+set_option linter.unusedSimpArgs false
+
 namespace NearSpecV3.Wasm.TTN
 
 open NearSpec NearSpecV3.Logged
@@ -169,9 +171,11 @@ theorem lookupFromL_spec : ∀ (fuel : Nat) (h : ByteArray) (key : List Nat) (ac
           | nil => rfl
           | cons n rest =>
             simp only
-            split
-            · exact lookupFromL_spec fuel _ rest _
+            generalize kids[n]? = kn
+            rcases kn with _ | _ | c
             · rfl
+            · rfl
+            · exact lookupFromL_spec fuel c rest _
 
 theorem lookupL_spec (root key : ByteArray) : SM.run g (lookupL root key) = .ok (lookup σ root key) := by
   unfold lookupL lookup; split
@@ -192,6 +196,89 @@ theorem derefL_spec (r : RealStore) (hr : r.store = σ) (vh : ByteArray) :
   unfold derefL deref
   simp only [SM.bind_eq, SM.run_bind, run_getBA hσ, Except.bind, hr]
   cases σ vh <;> rfl
+
+theorem writeLikeL_spec (c : Cost) (r : RealStore) (hr : r.store = σ) (τ : Store) (key : ByteArray) (gs : Gas) :
+    SM.run g (writeLikeL c { r with store := τ } key gs) = .ok (writeLike c r key gs) := by
+  unfold writeLikeL writeLike
+  simp only
+  generalize r.overlay.get? key = ov
+  rcases ov with _ | _ | v
+  · simp only [SM.bind_eq, SM.run_bind, lookupL_spec hσ, Except.bind, hr]
+    cases lookup σ r.root key with
+    | error e => rfl
+    | ok l =>
+      simp only [SM.run_bind, recordNodesL_spec hσ, Except.bind]
+      cases l.value with
+      | none => rfl
+      | some p =>
+        obtain ⟨len, vh⟩ := p
+        simp only
+        generalize payPer gs c len = pr
+        obtain ⟨gs', _ | e⟩ := pr
+        · simp only [SM.run_bind, derefL_spec hσ r hr, Except.bind]
+          cases deref r vh <;> rfl
+        · rfl
+  · rfl
+  · simp only
+    generalize payPer gs c v.size = pr
+    obtain ⟨gs', _ | e⟩ := pr <;> rfl
+
+theorem storageReadL_spec (r : RealStore) (hr : r.store = σ) (τ : Store) (key : ByteArray) (gs : Gas) :
+    SM.run g (storageReadL { r with store := τ } key gs) = .ok (storageRead r key gs) := by
+  unfold storageReadL storageRead
+  simp only
+  generalize r.overlay.get? key = ov
+  rcases ov with _ | _ | v
+  · simp only [SM.bind_eq, SM.run_bind, lookupL_spec hσ, Except.bind, hr]
+    cases lookup σ r.root key with
+    | error e => rfl
+    | ok l =>
+      simp only [SM.run_bind, recordNodesL_spec hσ, Except.bind]
+      cases l.value with
+      | none => rfl
+      | some p =>
+        obtain ⟨len, vh⟩ := p
+        simp only
+        cases hp : payPer gs C.storageReadValueByte len with
+        | mk gs1 e1 =>
+          cases e1 with
+          | some e => simp only [hp]; rfl
+          | none =>
+            simp only [hp]
+            by_cases hl : len > 4000
+            · simp only [hl, ↓reduceIte]
+              cases hb : payBase gs1 C.storageLargeReadOverheadBase with
+              | mk gs2 e2 =>
+                cases e2 with
+                | some e => simp only [hb]; rfl
+                | none =>
+                  simp only [hb]
+                  cases payPer gs2 C.storageLargeReadOverheadByte len with
+                  | mk gs3 e3 =>
+                    cases e3 with
+                    | some e => rfl
+                    | none =>
+                      simp only [SM.bind_eq, SM.run_bind, derefL_spec hσ r hr, Except.bind]
+                      cases deref r vh <;> rfl
+            · simp only [hl, ↓reduceIte]
+              simp only [SM.bind_eq, SM.run_bind, derefL_spec hσ r hr, Except.bind]
+              cases deref r vh <;> rfl
+  · rfl
+  · rfl
+
+theorem storageHasKeyL_spec (r : RealStore) (hr : r.store = σ) (τ : Store) (key : ByteArray) (gs : Gas) :
+    SM.run g (storageHasKeyL { r with store := τ } key gs) = .ok (storageHasKey r key gs) := by
+  unfold storageHasKeyL storageHasKey
+  simp only
+  generalize r.overlay.get? key = ov
+  rcases ov with _ | old
+  · simp only [SM.bind_eq, SM.run_bind, lookupL_spec hσ, Except.bind, hr]
+    cases lookup σ r.root key with
+    | error e => rfl
+    | ok l =>
+      simp only [SM.run_bind, recordNodesL_spec hσ, Except.bind]
+      rfl
+  · rfl
 
 end
 
