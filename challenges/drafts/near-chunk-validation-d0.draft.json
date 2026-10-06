@@ -118,7 +118,7 @@
       "relation_module": "NearSpecV3.ChunkValidationV0",
       "relation_decl": "NearSpecV3.RelD0",
       "challenge_spec_decl": "NearSpecV3.challengeSpec",
-      "tree_digest": "sha256:19fbbbbadbf99bbf95f245957bbfbd454be25f94f4dbfee67935631436e6b392",
+      "tree_digest": "sha256:72af401a88ae12b3cd367d635c41a6c0f862c6e19545a28ee41fd47929ed9c72",
       "lean_toolchain": "leanprover/lean4:v4.34.1"
     },
     "spec_doc_digest": "sha256:84181e7491d25373b4da36d70ff28b0cb32da014cdc3f0bea96457745266ca75"
