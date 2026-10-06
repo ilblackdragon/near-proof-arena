@@ -14,7 +14,7 @@ Rules: no `sorry` / `axiom` / `native_decide`; axioms ⊆ {propext, Classical.ch
 |---|---|---|---|
 | M0 | design | tables, buses, message formats, public data, amendments needed, `W_eq` estimate (§2–§4) | **done** |
 | M1 | spec-side refinement | `runCore` decomposed into the AIR's phases, each **proved** equal to the spec (§5); executable event model `coreEv` = `runCore` on 600/600 vectors | **done** |
-| M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 814 at g = 1), honest generators for all six (`Gen/*`), constraint evaluator + bus-balance tests on the 600 vectors, mutants (§8) | **done** |
+| M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 822 at g = 1), honest generators for all six (`Gen/*`), constraint evaluator + bus-balance tests on the 600 vectors, mutants (§8) | **done** |
 | M3 | soundness | per table: `…Local → ∃ v, Wf v ∧ Traffic …` (L5 style), bus contracts (comparator, memory, scan, codec), link lemma: `schedCore_sound` | **started** (§7): comparator contract, memory row view + segments, abstract memory consistency |
 | M4 | completeness | honest traces satisfy every constraint, traffic = expected lists; `schedCore_complete`; height bounds | open |
 | M5 | integration | message formats agreed with `v3-trie` (`VBYTES`, `upsV3`) and the assembly (public segments, `Prep.fwd`), cuts | open |
@@ -60,16 +60,16 @@ its sanity hash, and the grants checked against `Prep.fwd`.
 
 | table | file | width | interactions | degree | `W_eq` | maxLog |
 |---|---|---:|---:|---:|---:|---:|
-| `schV3` codec + link | `Tables/Codec.lean` | 106 | 13 | 4 | 234 | 22 |
+| `schV3` codec + link | `Tables/Codec.lean` | 106 | 14 | 4 | 242 | 22 |
 | `sscV3` scan | `Tables/Scan.lean` | 50 | 6 | 4 | 122 | 22 |
 | `sprV3` process | `Tables/Proc.lean` | 64 | 11 | 4 | 176 | 22 |
 | `smmV3` memory | `Tables/Mem.lean` | 18 | 4 | 4 | 74 | 22 |
 | `scpV3` comparator | `Tables/Cmp.lean` | 33 | 1 | 4 | 65 | 22 |
 | `sdsV3` distribute | `Tables/Dist.lean` | 55 | 8 | 4 | 143 | 22 |
-| **total** | | 326 | 43 | | **814** | |
+| **total** | | 326 | 44 | | **822** | |
 
 (At g = 3 the grouped aux constraints have degree 8; g = 1 is the better setting for these
-tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,468 `W_eq` ≈ 1.27 MB of proof (at
+tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,476 `W_eq` ≈ 1.28 MB of proof (at
 ≈ 864 B per `W_eq`). The comparator is 29-bit: the distribute sort key `avg·64 + shard` reaches
 ≈ 2^28 (found by `SchedFullTest`; 25 bits were too few).
 
@@ -191,9 +191,9 @@ its buses (`STATUS-V3-CHACHA` §6).
   violations, 0 non-0/1 multiplicity bits**, buses `SCMP SOP SFIN SINC SPUSH SSIN SSOUT SSMEM SGEN
   SSHUF SCHACHA SPUBB SPAR SRAW` balanced against the expected external traffic; the renderer
   (`keyRecs`, `parScan`, `rawRecs`) agrees on all 600; **37/37** single-cell mutants caught.
-* `test/SchedFullTest.lean [limit]`: all six tables (codec and distribute included) per vector;
+* `test/SchedFullTest.lean [limit]` (≈ 16 min for 600): **600/600 vectors, 0 violations, all listed buses balanced, 28/28 codec/distribute mutants caught**; all six tables (codec and distribute included) per vector;
   constraints, multiplicity bits, balance of `SCMP SOP SFIN SINC SPUSH SPUBB SPAR SRAW SLINK SSHD
-  SDL SDLX SDG S0F SPOST VBYTES BYTES DIGEST` with the renderer's public records and the
+  SDL SDLX SDG S0F SPOST SPLEN VBYTES BYTES DIGEST` with the renderer's public records and the
   expected external traffic, where the expected `SPOST` bytes are **`runCore`'s new state** and
   `VBYTES` the canonical previous state; forwarding demands = half of each grant of sender 0;
   codec / distribute mutants.
@@ -202,3 +202,29 @@ Honest-value conventions (for a Rust generator): scan `INC` multiplicity = bit s
 processed; `sprV3`'s first padding row carries the key register and the instance values of the
 last active row, `ikc = (kc − 15)⁻¹` on every row; a scan param row only for instances with a
 converted request (the public `SPAR` tag-1 record follows the same rule).
+
+## 9. Binding interface with `v3-trie` / `upsV3` (program lead, V3-D0-DESIGN §12; STATUS-V3-TRIE §2.3.1)
+
+* `S0F (τ, present, vid)`: `upsV3` → codec (received on the instance's first row); `vid = 0` if absent.
+* `VBYTES (vid, pos, b)`: codec → `valV3`, the bytes of the read `0x0f` value (when present).
+* `SPOST (τ, pos, b)`, `pos < L`: codec → `upsV3`, the bytes of the written state.
+* `SPLEN (τ, L)`: codec → `upsV3`, once per τ (bus 61, sent on the first row, `L = 37 + 24·N`
+  computed by the codec; `upsV3` must not assume it). **Implemented** (`Tables/Codec.lean`, +8 `W_eq`).
+* `upsV3` hashes the post value under SHA kind `K_VUPS = 12`; the sanity hash keeps `K_SCH = 11`.
+  Kind registry: 1–10 v1, 11 SCH, 12 VUPS, 13 SRC, 14 VAK, 15 and 0 reserved.
+
+## 10. Open items (in priority order)
+
+1. **Soundness gap in `sdsV3` divisions (found while proving the cell view; honest traces are
+   unaffected).** Shard rows (`avg = left / links`) and cells (`⌊SL/SN⌋`, `⌊RL/RN⌋`) constrain
+   `L = q·N + r` and `N − 1 − r` = 6 bits only; neither `r` nor `q` is range-checked, so e.g.
+   `L = 10, N = 2` also admits `r = P − 4, q = 7`. Fix: decompose `r` itself in 6 bits (and keep
+   `N − 1 − r` in 6 bits), and range-check `q` (23 bits, or route `q ≤ L` through the comparator
+   with `q` bounded); ≈ +30–60 `W_eq`. The scan's divisions are sound (its remainder *is* the bit
+   decomposition, `< 40`). Audit the codec/process similarly when writing their views.
+2. M3 views: scan (in progress), codec, process structure (key block, headers, rounds), distribute
+   (after item 1); link layer per §6 (memory consistency instance, `process_rounds` hypotheses,
+   `core_compose`); `schedCore_sound`.
+3. M4: completeness of the six tables (honest generators exist and pass on 600 vectors).
+4. Amendment requests (§4): distinct layout ids; A8 request bound.
+5. Cuts (§3).

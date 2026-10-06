@@ -250,6 +250,7 @@ def interactions : List Interaction :=
     { bus := ZkFormal.Near.B_DIGEST, mult := [c dgg], send := false,
       msg := [shaId, k 64] ++ (List.range 32).map fun i => c (reg i) },
     { bus := B_S0F, mult := [c kF], send := false, msg := [c tau, c pres, c vid] },
+    { bus := B_SPLEN, mult := [c kF], send := true, msg := [c tau, .add (k 37) (smul 24 (c NN))] },
     { bus := B_SPAR, mult := [c kF], send := false,
       msg := [c tau, k 0, c nn, c (reg 1), c (reg 2), c (reg 5), c (reg 6), c (reg 7), c (reg 8),
               c (reg 9), c (reg 10)] },

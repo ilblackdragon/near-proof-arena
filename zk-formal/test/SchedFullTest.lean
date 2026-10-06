@@ -142,7 +142,7 @@ def imbalance (all : List (Nat × Bool × List Nat)) (bus : Nat) : Nat × Nat :=
 def checkedBuses : List (String × Nat) :=
   [("SCMP", B_SCMP), ("SOP", B_SOP), ("SFIN", B_SFIN), ("SINC", B_SINC), ("SPUSH", B_SPUSH),
    ("SPUBB", B_SPUBB), ("SPAR", B_SPAR), ("SRAW", B_SRAW), ("SLINK", B_SLINK), ("SSHD", B_SSHD),
-   ("SDL", B_SDL), ("SDLX", B_SDLX), ("SDG", B_SDG), ("S0F", B_S0F), ("SPOST", B_SPOST),
+   ("SDL", B_SDL), ("SDLX", B_SDLX), ("SDG", B_SDG), ("S0F", B_S0F), ("SPOST", B_SPOST), ("SPLEN", B_SPLEN),
    ("VBYTES", ZkFormal.NearV3.B_VBYTES), ("BYTES", ZkFormal.Near.B_BYTES), ("DIGEST", ZkFormal.Near.B_DIGEST)]
 
 def busImbalance (all : List (Nat × Bool × List Nat)) : List (String × Nat × Nat) :=
@@ -195,7 +195,7 @@ def fullOf (c : Json) : Except String Full := do
   let ext : List (Nat × Bool × List Nat) :=
     (pubSends.flatMap fun (b, l) => l.map fun m => (b, true, m)) ++
     (dlRecs 1 I.ids).map (fun m => (B_SDL, false, m)) ++
-    [(B_S0F, true, [0, b2n present, vidV])] ++
+    [(B_S0F, true, [0, b2n present, vidV]), (B_SPLEN, false, [0, C.post.length])] ++
     (if present then (List.range C.pre.length).map fun p => (ZkFormal.NearV3.B_VBYTES, false, [vidV, p, C.pre[p]!]) else []) ++
     (List.range C.post.length).map (fun p => (B_SPOST, false, [0, p, C.post[p]!])) ++
     (List.range 64).map (fun j => (ZkFormal.Near.B_BYTES, false, [Codec.K_SCH, j, C.shaIn[j]!])) ++
@@ -250,12 +250,21 @@ def main (args : List String) : IO UInt32 := do
   let some c := sample | return (if badV == 0 then 0 else 1)
   let F ← IO.ofExcept (fullOf c)
   let base := F.tabs.map fun T => (msgs T).1
+  -- rows by kind (first record allowance-field end, first shard row, first header, first allowed cell)
+  let dRows := (F.tabs[5]!).tr
+  let findRow (T : Tab) (col : Nat) : Nat :=
+    ((List.range T.h).find? fun r => (T.tr.cell 0 r col).toNat == 1).getD 0
+  let rend := findRow F.tabs[0]! Codec.rend
+  let hdr := findRow F.tabs[5]! Dist.kGH
+  let cell := ((List.range (F.tabs[5]!).h).find? fun r =>
+    (dRows.cell 0 r Dist.kC).toNat == 1 && (dRows.cell 0 r Dist.al).toNat == 1).getD (hdr + 1)
   let probes : List (Nat × Nat × Nat) :=
-    [ (0, 0, Codec.reg 1), (0, 1, Codec.bpost), (0, 5, Codec.bpost), (0, 6, Codec.bpre), (0, 21, Codec.bpost),
-      (0, 21, Codec.ap), (0, 23, Codec.cb), (0, 28, Codec.a2), (0, 28, Codec.afin), (0, 28, Codec.gb),
-      (0, 28, Codec.big), (0, 28, Codec.cx), (0, 7, Codec.kidx), (0, 3, Codec.reg 5),
-      (5, 0, Dist.q2), (5, 0, Dist.L2), (5, 0, Dist.kp), (5, 1, Dist.r), (5, 2, Dist.da), (5, 3, Dist.cx),
-      (5, 4, Dist.N1), (5, 5, Dist.gb), (5, 5, Dist.sL), (5, 5, Dist.llo), (5, 5, Dist.al), (5, 4, Dist.b) ]
+    [ (0, 0, Codec.reg 1), (0, 1, Codec.bpost), (0, 5, Codec.bpost), (0, 6, Codec.bpre), (0, rend - 4, Codec.bpost),
+      (0, rend - 6, Codec.ap), (0, rend - 3, Codec.cb), (0, rend, Codec.a2), (0, rend, Codec.afin), (0, rend, Codec.gb),
+      (0, rend, Codec.big), (0, rend - 5, Codec.cx), (0, 7, Codec.kidx), (0, 3, Codec.reg 5),
+      (5, 0, Dist.q2), (5, 0, Dist.L2), (5, 0, Dist.kp), (5, 1, Dist.r), (5, 1, Dist.da), (5, 0, Dist.cx),
+      (5, hdr, Dist.N2), (5, hdr, Dist.b), (5, cell, Dist.gb), (5, cell, Dist.sL), (5, cell, Dist.llo),
+      (5, cell, Dist.al), (5, cell, Dist.q1), (5, cell, Dist.N1) ]
   let mut caught := 0
   let mut missed := []
   for (ti, r, col) in probes do

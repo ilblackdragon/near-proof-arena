@@ -25,7 +25,8 @@ statement's bytes); `τ < 32`.
 | 57 | `SDLX` | `(τ, a, b, x, links, left)` | distribute: sorted endpoints → grid, receiver delay line |
 | 58 | `SDG` | `(τ, l, allowed, gb)` | distribute grid → codec |
 | 59 | `S0F` | `(τ, present, vid)` | trie (`0x0f` read of instance τ) → codec |
-| 60 | `SPOST` | `(τ, pos, b)` | codec → `upsV3` (new `0x0f` value bytes) |
+| 60 | `SPOST` | `(τ, pos, b)`, `pos < L` | codec → `upsV3` (new `0x0f` value bytes; `upsV3` hashes them under SHA kind `K_VUPS = 12`) |
+| 61 | `SPLEN` | `(τ, L)` | codec → `upsV3`, once per τ (explicit length) |
 -/
 
 namespace ZkFormal.NearV3.Sched
@@ -51,6 +52,8 @@ def B_SDLX : Nat := 57
 def B_SDG : Nat := 58
 def B_S0F : Nat := 59
 def B_SPOST : Nat := 60
+/-- `(τ, L)`: length of the new `0x0f` value, once per τ (codec → `upsV3`). -/
+def B_SPLEN : Nat := 61
 
 /-- Memory op codes. -/
 def OP_INIT : Nat := 0
