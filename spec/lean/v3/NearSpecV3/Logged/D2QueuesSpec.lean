@@ -4,11 +4,6 @@ import NearSpecV3.Logged.Lockstep
 # `D2/Queues.lean` mirror = original (lockstep)
 -/
 
-namespace NearSpecV3.D2
-
-@[reducible] def Env.ws (e : Env) (st : HStore) : Env := { e with store := st }
-
-end NearSpecV3.D2
 
 namespace NearSpecV3.Logged
 

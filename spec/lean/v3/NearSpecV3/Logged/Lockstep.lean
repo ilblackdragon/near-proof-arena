@@ -100,19 +100,22 @@ macro_rules | `(tactic| lk_eq) => `(tactic| first
 open Lean Elab Tactic Meta in
 /-- Generalize the (non-variable) discriminants of the first `match` of the goal over the whole goal,
 so that splitting it splits the other side's `match` on the same discriminant too. -/
-def lkGeneralizeFirstMatch (g : MVarId) : MetaM (MVarId × Array FVarId) := do
+def lkGeneralizeFirstMatch (g : MVarId) : MetaM (MVarId × Array FVarId × Option Expr) := do
   let tgt ← instantiateMVars (← g.getType)
   let env ← getEnv
-  let some e := tgt.find? (fun e => isMatcherAppCore env e) | return (g, #[])
-  let some m ← matchMatcherApp? e | return (g, #[])
+  let some e := tgt.find? (fun e => isMatcherAppCore env e) | return (g, #[], none)
+  let some m ← matchMatcherApp? e | return (g, #[], none)
   let fvs := m.discrs.filterMap (fun d => if d.isFVar then some d.fvarId! else none)
   let ds := m.discrs.filter (fun d => !d.isFVar && !d.hasLooseBVars)
-  if ds.isEmpty then return (g, fvs)
+  if ds.isEmpty then return (g, fvs, some e)
   let args := ds.map fun d => ({ expr := d, xName? := some `d, hName? := none } : GeneralizeArg)
   try
     let (xs, g') ← g.generalize args
-    return (g', fvs ++ xs)
-  catch _ => return (g, fvs)
+    -- the match, after generalization
+    let tgt' ← instantiateMVars (← g'.getType)
+    let e' := tgt'.find? (fun e => isMatcherAppCore env e)
+    return (g', fvs ++ xs, e')
+  catch _ => return (g, fvs, some e)
 
 open Lean Elab Tactic Meta in
 /-- Does the target still `match` on the free variable `x`? -/
@@ -154,20 +157,16 @@ open Lean Elab Tactic Meta in
 goal of every case with the case hypotheses the split introduced. -/
 elab "lk_split" : tactic => do
   let g ← getMainGoal
-  let (g, gfv) ← lkGeneralizeFirstMatch g
+  let (g, gfv, me) ← lkGeneralizeFirstMatch g
   replaceMainGoal [g]
   let before := (← g.getDecl).lctx
   try
-    evalTactic (← `(tactic| split))
-  catch _ =>
-    -- fallback: case on the first closed `if` condition, reduce every `if` on it
-    let tgt ← instantiateMVars (← g.getType)
-    let some e := tgt.find? (fun e => e.isAppOfArity ``ite 5 && !(e.getArg! 1).hasLooseBVars)
-      | throwError "lk_split: nothing to split"
-    let c ← Term.exprToSyntax (e.getArg! 1)
-    evalTactic (← `(tactic| by_cases hc : $c <;> simp only [hc, ite_true, ite_false, if_pos, if_neg,
-      not_false_eq_true, true_and, and_true]))
-    return
+    match me with
+    | some e =>
+      let gs ← g.withContext (Split.splitMatch g e)
+      replaceMainGoal gs
+    | none => evalTactic (← `(tactic| split))
+  catch _ => throwError "lk_split: nothing to split"
   let gs ← getGoals
   let mut out : List MVarId := []
   for g0 in gs do
@@ -190,27 +189,21 @@ elab "lk_split" : tactic => do
             g ← g.replaceTargetEq r.eNew r.eqProof
           catch _ => pure ()
       pure [g]
-    -- a `match` on a generalized discriminant left (catch-all alternative): case on it
-    let mut gs' : List MVarId := gs1
-    for x in gfv do
-      let mut next : List MVarId := []
-      for h in gs' do
-        if (← h.isAssigned) then continue
-        let still ← try h.withContext (lkMatchesOn h x) catch _ => pure false
-        if still then
-          try
-            let cs ← h.withContext (h.cases x)
-            for c in cs do
-              let c' ← try (c.mvarId.withContext do
-                  let r ← c.mvarId.contradictionCore {}
-                  if r then pure none
-                  else if (← lkCloseByNegHyps c.mvarId) then pure none
-                  else pure (some c.mvarId))
-                catch _ => pure (some c.mvarId)
-              if let some c' := c' then next := next ++ [c']
-          catch _ => next := next ++ [h]
-        else next := next ++ [h]
-      gs' := next
+    -- a `match` on a generalized discriminant left (the other side took a catch-all
+    -- alternative): split it too; the inconsistent combinations close by the case hypotheses
+    let mut gs' : List MVarId := []
+    for h in gs1 do
+      let env ← getEnv
+      let tgt ← instantiateMVars (← h.getType)
+      let m? := tgt.find? (fun e => isMatcherAppCore env e &&
+        (e.getAppArgs.any fun a => a.isFVar && gfv.contains a.fvarId!))
+      match m? with
+      | none => gs' := gs' ++ [h]
+      | some e =>
+        try
+          let hs ← h.withContext (Split.splitMatch h e)
+          gs' := gs' ++ hs
+        catch _ => gs' := gs' ++ [h]
     for h in gs' do
       if (← h.isAssigned) then continue
       let closed ← try (h.withContext do
@@ -218,6 +211,14 @@ elab "lk_split" : tactic => do
         catch _ => pure false
       if !closed then out := out ++ [h]
   setGoals out
+
+open Lean Elab Tactic Meta in
+/-- `intro`, only on propositions (never on a pending data metavariable such as a bind's `φ`). -/
+elab "lk_intro" : tactic => do
+  let g ← getMainGoal
+  let ty ← g.getType
+  unless (← isProp ty) do throwError "lk_intro: not a proposition"
+  evalTactic (← `(tactic| intro))
 
 syntax "lk_call" : tactic
 syntax "lk_ih" : tactic
@@ -239,6 +240,7 @@ macro_rules | `(tactic| lk_step) => `(tactic| first
   | lk_ih
   | (apply R_bind; with_reducible lk_call)
   | (apply R_bind; lk_ih)
+  | (simp only [pure_bind])
   | (apply R_bind; apply R_pure rfl)
   | lk_eq
   | (dsimp only [id])
@@ -247,8 +249,8 @@ macro_rules | `(tactic| lk_step) => `(tactic| first
   | (apply R_mapM)
   | (apply R_bind; apply R_mapM)
   | (apply R_bind; apply R_foldlM)
-  | (intro))
+  | lk_intro)
 
-macro "lk" : tactic => `(tactic| repeat' lk_step)
+macro "lk" : tactic => `(tactic| repeat (any_goals lk_step))
 
 end NearSpecV3.Logged

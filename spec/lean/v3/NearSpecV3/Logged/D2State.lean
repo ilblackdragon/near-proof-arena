@@ -23,6 +23,8 @@ open NearSpec NearSpecV3 NearSpecV3.Logged
 
 @[reducible] def Ovl.wt (o : Ovl) (t : PTrie) : Ovl := { o with trie := t }
 
+@[reducible] def Env.ws (e : Env) (st : HStore) : Env := { e with store := st }
+
 def trieFindL (k : Bytes) : LM (Option (Option Bytes)) := fun root => findL (.lz root revealFuel) (nibbles k)
 def trieFindRefL (k : Bytes) : LM (Option (Option Nat)) :=
   fun root => findRefL (.lz root revealFuel) (nibbles k)
