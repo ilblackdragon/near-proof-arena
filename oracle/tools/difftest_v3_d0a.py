@@ -67,7 +67,7 @@ def main():
         stats[f"{kind}.cases"] += 1
         stats[f"{kind}.expected_accept"] += exp
         for viol in meta.get("d0a_violations", []):
-            if viol in ("c.gas_limit", "w.proof_routing", "e.sched_canonical"):
+            if viol in ("c.gas_limit", "w.proof_routing", "e.sched_canonical", "w.unfolded"):
                 stats[f"{kind}.amendment.{viol}"] += 1
         if kind == "mutants":
             families[(meta["mutation"].split(".")[0] + "." + meta["mutation"].split(".")[1] if meta["mutation"].count(".") else meta["mutation"], exp)] += 1
@@ -87,6 +87,32 @@ def main():
                                       "verdict": j["verdict"], "reason": j["reason"],
                                       "nearcore": meta.get("nearcore")})
             stats[f"{kind}.{name}.{j['verdict']}"] += 1
+    # A7: the three implementations of unfold_bytes agree exactly (Lean / Python on every case
+    # both accept-or-classify-out-of-domain after RelD0; the oracle's on honest accepted cases)
+    unfold = {"compared_lean_python": 0, "compared_oracle": 0, "mismatches": [], "values": []}
+    for d in dirs:
+        meta = json.load(open(os.path.join(d, "meta.json")))
+        lu = impls.get("lean", {}).get(d, {}).get("unfold")
+        pu = impls.get("python", {}).get(d, {}).get("unfold")
+        lv = impls.get("lean", {}).get(d, {}).get("verdict")
+        if pu is not None and lv in ("accept", "out_of_domain"):
+            unfold["compared_lean_python"] += 1
+            if lu != pu:
+                unfold["mismatches"].append({"case": d, "lean": lu, "python": pu})
+        ou = meta.get("unfold_bytes")
+        if ou is not None and pu is not None:
+            unfold["compared_oracle"] += 1
+            if ou != pu:
+                unfold["mismatches"].append({"case": d, "oracle": ou, "python": pu})
+        if pu is not None:
+            unfold["values"].append(pu)
+    vals = sorted(unfold.pop("values"))
+    if vals:
+        q = lambda f: vals[min(len(vals) - 1, int(f * len(vals)))]
+        unfold["distribution"] = {"n": len(vals), "min": vals[0], "p50": q(.5), "p90": q(.9),
+                                  "p99": q(.99), "max": vals[-1]}
+    unfold["mismatch_count"] = len(unfold["mismatches"])
+    disagreements += [{"case": m["case"], "impl": "unfold", "problem": m} for m in unfold["mismatches"]]
     report = {
         "statement": "near/pv86/chunk-validation/v0", "domain": "D0a",
         "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
@@ -94,6 +120,7 @@ def main():
         "counts": dict(sorted(stats.items())),
         "mutation_families": {f"{k[0]}|expected_accept={k[1]}": v for k, v in sorted(families.items())},
         "disagreements": len(disagreements), "disagreement_list": disagreements[:200],
+        "unfold_bytes": unfold,
         "wall_seconds": times,
     }
     try:
@@ -106,7 +133,7 @@ def main():
         vc = osum.get("d0_violation_counts", {})
         report["amendments_on_honest_witnesses"] = {
             "honest_witnesses": osum.get("honest_witnesses"),
-            **{k: vc.get(k, 0) for k in ("c.gas_limit", "w.proof_routing", "e.sched_canonical")},
+            **{k: vc.get(k, 0) for k in ("c.gas_limit", "w.proof_routing", "e.sched_canonical", "w.unfolded")},
         }
     except Exception:
         pass
@@ -120,7 +147,7 @@ def main():
     s = json.dumps(report, indent=1, sort_keys=True)
     if a.report:
         open(a.report, "w").write(s + "\n")
-    print(json.dumps({k: report.get(k) for k in ("counts", "disagreements", "amendments_on_honest_witnesses", "a2_foreign_routed_mutants")}, indent=1))
+    print(json.dumps({k: report.get(k) for k in ("counts", "disagreements", "amendments_on_honest_witnesses", "a2_foreign_routed_mutants", "unfold_bytes")}, indent=1))
     return 0 if not disagreements else 1
 
 if __name__ == "__main__":

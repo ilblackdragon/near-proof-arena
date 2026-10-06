@@ -223,6 +223,23 @@ theorem nextC {q : Nat} (hq : q < H) {e : Expr}
         hH, hnx, hT, if_false, act, vl, sumr, vz, dup, sz, czq, czn, cq, cn, Nat.reduceLT, ne_eq, Nat.reduceEqDiff,
         not_false_eq_true, Nat.add_zero] <;> grind
 
+theorem vidFirst {q : Nat} (hq : q < H) : (Expr.mul .isFirst (c vid)).eval tr tt q pub = 0 := by
+  simp only [eval_mul, eval_isFirst, eval_c]
+  by_cases h0 : q = 0
+  · subst h0
+    rw [if_pos rfl]
+    rcases Nat.eq_zero_or_pos (R es) with hR | hR
+    · rw [cS ok hH hHS hc hq hR.symm (x := vid) (by decide) (by decide)]; simp [vid]; rfl
+    · rw [cR ok hH hHS hc hq hR (x := vid) (by decide) (by decide), recs_head ok hR]
+      have hne : 0 < es.length := by
+        rcases Nat.eq_zero_or_pos es.length with h | h
+        · simp [ValGen.R, List.length_eq_zero_iff.mp h] at hR
+        · exact h
+      simp only [vid, recCell, ent, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem hne, Option.getD_some,
+        ok.wf.first hne]
+      rfl
+  · rw [if_neg h0]; grind
+
 theorem constr {q : Nat} (hq : q < H) {e : Expr} (he : e ∈ ValV3.constraints) : e.eval tr tt q pub = 0 := by
   simp only [ValV3.constraints] at he
   rcases List.mem_append.1 he with he | he
@@ -238,13 +255,14 @@ theorem constr {q : Nat} (hq : q < H) {e : Expr} (he : e ∈ ValV3.constraints) 
           · exact rowC ok hH hHS hc hq (List.mem_append_right _ (by simp))
           · exact rowC ok hH hHS hc hq (List.mem_append_right _ (by simp))
       · simp only [List.mem_cons, List.not_mem_nil, or_false] at he
-        rcases he with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+        rcases he with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
         · exact rowC ok hH hHS hc hq (List.mem_append_right _ (by simp))
         · exact rowC ok hH hHS hc hq (List.mem_append_right _ (by simp))
         · exact rowC ok hH hHS hc hq (List.mem_append_right _ (by simp))
         · exact rowC ok hH hHS hc hq (List.mem_append_right _ (by simp))
         · exact rowC ok hH hHS hc hq (List.mem_append_right _ (by simp))
         · exact rowC ok hH hHS hc hq (List.mem_append_right _ (by simp))
+        · exact vidFirst ok hH hHS hc hq
         · exact rowC ok hH hHS hc hq (List.mem_append_right _ (by simp))
         · exact rowC ok hH hHS hc hq (List.mem_append_right _ (by simp))
         · exact rowC ok hH hHS hc hq (List.mem_append_right _ (by simp))

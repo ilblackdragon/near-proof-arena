@@ -1,5 +1,6 @@
 import ZkFormal.Near.Tables.Dsl
 import ZkFormal.NearV3.Ids
+import ZkFormal.NearV3.IdsUps
 
 /-!
 # ZkFormal.NearV3.Tables.Node — `nodeV3`: tree-shaped trie records of all instances
@@ -29,6 +30,9 @@ these deltas (STATUS-V3-TRIE §3.2):
   `(nid, s)` (provider B on its first `MEM` row; `bI`, `bS` generalise B's position and
   symbol); an extension whose child is unrevealed provides its last nibble with the dead
   target `(nid, s)`; a branch provides `BMAP (nid, bm, tb2, ·)` (chained) on its `BM` row.
+* **`UPB`** (M7c, for `upsV3`): every active row is a chained provider of
+  `UPB (NPOST(nid), pos, pb, len, depth, cid, u)`: `send (…, 0)`, `recv (…, mU)` with the
+  row's use count `mU` (column 185); no constraint.
 * **size**: the `SUM` row sends `SIZE (0, Σ bytes of non-duplicate records)` (bus 18)
   instead of v1's `≤ 3,000,000` check (the bound is on the whole normalised witness:
   size lane).
@@ -141,7 +145,9 @@ def gS : Nat := 181
 def dE : Nat := 182
 def gDp : Nat := 183
 def gBm : Nat := 184
-def width : Nat := 185
+/-- `UPB` use count of the row's post byte (`upsV3` reads; chained provider) -/
+def mU : Nat := 185
+def width : Nat := 186
 
 /-- The nine field states. -/
 def states : List Nat := [sTAG, sHPL, sHPF, sKEY, sVLEN, sVH, sBM, sCH, sMEM]
@@ -388,6 +394,9 @@ def edgeA (u : Expr) : List Expr := [c nid, c aI, c aS, c aN, c aJ, c aK, u]
 def edgeB (u : Expr) : List Expr := [c nid, c bI, c bS, c bN, c bJ, c bK, u]
 def bmapMsg (u : Expr) : List Expr := [c nid, bmE, c tb2, u]
 def entMsg (e : Expr) : List Expr := [e, c len, c pos, c b]
+/-- `UPB (NPOST(nid), pos, pb, len, depth, cid, u)`: a post byte for `upsV3`, with the row's
+window child id `cid` (free off windows) -/
+def upbMsg (u : Expr) : List Expr := [mid K_NPOST (c nid), c pos, c pb, c len, c depth, c cid, u]
 
 def interactions : List Interaction :=
   [ send B_BYTES (c act) [mid K_NPRE (c nid), c pos, c b],
@@ -407,7 +416,9 @@ def interactions : List Interaction :=
     recv B_DUP (c gV) [mid K_NPRE (c nid), c repE],
     send B_ENT (c hd) (entMsg (mid K_NPRE (c nid))),
     recv B_ENT (c dup) (entMsg (c repE)),
-    send B_SIZE (c sumr) [k 0, c sz] ]
+    send B_SIZE (c sumr) [k 0, c sz],
+    send B_UPB (c act) (upbMsg (k 0)),
+    recv B_UPB (c act) (upbMsg (c mU)) ]
 
 /-- Height cap: `2^22` rows (unfolded node bytes `≤ 3,000,000` under A7, plus the `SUM` row). -/
 def maxLog : Nat := 22

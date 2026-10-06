@@ -48,6 +48,8 @@ def constraints : List Expr :=
   [ .mul (c vf) (not (c act)), .mul (c vl) (not (c act)), .mul (c act) (c sumr),
     .mul .isFirst (sub (.add (c act) (c sumr)) (k 1)), .mul .isFirst (sub (c act) (c vf)),
     .mul .isFirst (c sz),
+    -- value ids start at 0 (so `VPRE(vid)` ids stay below `P` and apart from node ids)
+    .mul .isFirst (c vid),
     .mul .isLast (c act),
     .mul (c vf) (c pos),
     -- an empty value is one row without a byte

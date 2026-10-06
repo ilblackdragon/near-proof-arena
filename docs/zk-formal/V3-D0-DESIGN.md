@@ -700,3 +700,94 @@ This is raised to the lead; lanes that do not depend on it proceed.
   Estimated effort: +20–35 k LOC, +3 weeks.
 * **A6 rejected; weak `uniq` instead.** "Equal digest ⇒ equal bytes" is proved in-AIR, with tree-shaped records. This is in lane `v3-trie`.
 * **P2 runs now** in lane `v3-p2`.
+
+## 12. SHA message-id kind registry (program lead, binding for all v3 lanes)
+
+`Id = kind + 16·idx` with `idx < 2^22`. Kinds must be distinct mod 16, and a kind may be shared only by tables whose `idx` spaces are provably disjoint.
+
+| kind | name | owner | idx |
+|---:|---|---|---|
+| 1–10 | `K_RC, K_RF, K_PEO, K_LEAF, K_RID, K_MRK, K_NPRE, K_NPOST, K_VPRE, K_VPOST` | v1 meanings, reused by v3 rcpt/mrk/trie (v3-trie: value ids start at 0, `d153d30f`) | per v1 / per v3 table |
+| 11 | `K_SCH` | v3-sched (sanity hash) | τ |
+| 12 | `K_VUPS` | v3-trie `upsV3`: the post `0x0f` value (j = 0) and the new and pass-through path nodes Q (j = 1..511) | `512·τ + j` |
+| 13 | `K_SRC` | srcp (leaf rehash and path nodes) | `2·step + (j-indexed offset)`, fixed by the srcp lane |
+| 14 | `K_VAK` | akey (access-key values) | touched slot k |
+| 15, 0 | reserved | ask the program lead | — |
+
+The assembly lane proves one global lemma: every BYTES/DIGEST id produced by any table falls in that table's kind, and the idx ranges are disjoint.
+
+**upsV3 ↔ scheduler interface (decided):**
+* `S0F (τ, present, vid)`: upsV3 → sched.
+* `VBYTES (vid, pos, b)`: codec → valV3.
+* `SPOST (τ, pos, b)`, for `pos < L`: codec → upsV3.
+* **`SPLEN (τ, L)`**: sent once per τ by the codec. This is an explicit length message, not an end flag. It pins the length the way DIGEST consumers do.
+
+No consumer relies on `L = 37 + 24·n²`.
+
+**M7 deviation (approved).** upsV3's new path nodes Q are byte segments of upsV3 itself, not nodeV3 records. Their bytes are copied from the old path records' post bytes over the chained `UPB` bus or computed fresh. nodeV3 gains only `UPB` and the column `mU`. Q's preimages are hashed under `K_VUPS` with `idx = 512τ + j` (amended from 8τ + j), so no new kind is allocated.
+
+## 13. Proof-size tracking (program lead, after the sched M3 audit)
+
+`W_eq` so far, per kernel checks or lane estimates (g = 1):
+
+| part | `W_eq` |
+|---|---:|
+| `sha_t` + `sha_r` | 1,408 |
+| trie (`nodeV3`, `headV3`, `valV3`, `walkV3`, `uniqV3`) | 838 |
+| ChaCha (`chachaV3`, `genV3`, `shufV3`) | 654 |
+| scheduler (six tables, after the range fixes) | 934 |
+| receipt-table extension (estimate) | ≈ 480 |
+| `acct`, `mrk`, `sort`, `srcp`, `akey`, `bnd`, `size`, queue parsers (estimate) | ≈ 700 |
+| `upsV3` (estimate) | ≈ 150 |
+| **total** | **≈ 5,150** |
+
+Size model: each `W_eq` costs ≈ 864 B in the scheduled bound. The `W_eq`-independent part of `sizeMaxSched` is ≈ 3.95 MB, derived from `near_sizeMaxSched` = 5.47 MB at `W_eq` 1,766.
+
+| quantity | value |
+|---|---:|
+| formal bound | ≈ 3.95 + 4.45 = **≈ 8.4 MB** |
+| hint `B` | ≤ 0.91 MB |
+| total | ≈ 9.3 MB |
+| cap | 8 MiB = 8.39 MB |
+| **over by** | **≈ 0.9 MB** |
+
+Honest proofs are much smaller: an estimated 3–5 MB at the worst real header.
+
+Planned levers (a size lane, once a slot frees):
+1. **Multiproof-dedup size bound** (proof work only). Charge the shared top ⌈log₂ 216⌉ ≈ 8 Merkle levels once instead of per query. Estimated −0.7 to −1.1 MB of bound.
+2. **auxGroup g = 2** for the v3 AIR. Re-evaluate on the real AIR: P2's g-bound showed only −2.3 % on nearAir.
+3. **Width cuts.**
+   * ChaCha: stream ids instead of keys, merged interactions.
+   * Scheduler: merging the row-kind tables (its §3 list).
+   * One SHA table if `rows(sha_t) + rows(sha_r) ≤ 2^22` holds under the A7 bound B0.
+4. **Hint `B`** may be packed 3 bytes per field element on the public bus. That doesn't change proof bytes, because `B` is carried as raw bytes.
+
+Target: formal bound + `B` ≤ 8,388,608 B, kernel-checked as `nearV3_size`.
+
+**Empty-key extensions on the `[0,15]` path (handled, no domain condition).** The spec reveals `.ext [] child mem` (`hpDecode [0x00]`, `PTrie.wf` allows `k = []`), and `PTrie.upsert` descends through it. There can be ≤ 399 on a path: buildFor's fuel bounds them, and A7 counts them. `upsV3` rewrites each one as a 46-row pass-through segment that takes a fresh child digest and memory value, located through the extra `cid` field on `UPB (NPOST n, pos, pb, len, depth, cid, u)`. nearcore never builds them (`core/store/src/trie/ops/insert_delete.rs:123,171,202,237,252,266,405,417`), but completeness covers every `RelD0a` witness.
+
+### 13.1 Update (trie `upsV3` with pass-through, kernel-checked W_eq 1,185)
+
+| part | `W_eq` (g = 1) |
+|---|---:|
+| `sha_t` + `sha_r` | 1,408 |
+| trie (6 tables) | 1,185 |
+| ChaCha | 654 |
+| scheduler (934 − cuts B + D ≈ 172, + source map 16) | ≈ 778 |
+| receipt-table extension (estimate) | ≈ 480 |
+| small tables + queue parsers (estimate) | ≈ 760 |
+| **total** | **≈ 5,260** |
+
+Formal bound ≈ 3.95 MB + 5,260 × 864 B ≈ **8.50 MB**. Adding `B` (≤ 0.91 MB) gives ≈ 9.4 MB against a cap of 8.39 MB: **over by ≈ 1.0 MB**. Honest proofs stay ≈ 3–5 MB.
+
+Levers, ranked:
+
+| lever | saving | cost |
+|---|---:|---|
+| a. Multiproof-dedup size bound (shared top ≈ 7.75 Merkle levels over 3 oracles plus committed FRI layers) | −0.6 to −0.7 MB | proof work only |
+| b. **One SHA table** (−704 `W_eq`): needs trie SHA (1.25 · B0) + receipt-side SHA (≈ 1.34 M under A1) ≤ 2²², i.e. B0 ≤ ≈ 2.25 MB. Proposal: B0 = 2,000,000 (honest max 50,579 B, still ≈ 40× headroom) | −0.61 MB | **lead decision**: it shrinks the domain for chunks whose unfolded read set is 2–3 MB |
+| c. Scheduler cut A | −0.27 MB | medium re-proof; rows ≈ 3.6 M |
+| d. ChaCha cuts (stream ids, merged interactions) | ≈ −0.1 to −0.15 MB | — |
+| e. g = 3 on the v3 AIR | small (P2 showed ≈ −2 %) | — |
+
+Recommendation: **a + b** (−1.2 to −1.3 MB, which fits with a 0.2–0.3 MB margin), with c and d in reserve.

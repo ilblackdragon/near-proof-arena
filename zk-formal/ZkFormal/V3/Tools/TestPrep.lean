@@ -1,4 +1,5 @@
 import ZkFormal.V3.Fast.Prep
+import NearSpecV3.ChallengeD0a
 
 /-!
 `nearspec-v3-test-prep CASE_DIR...` — executable test of `NearSpecV3.prepD0` / `hintOf`
@@ -146,7 +147,7 @@ def main (args : List String) : IO UInt32 := do
   for dir in args do
     let cb := (← IO.FS.readBinFile (dir ++ "/claim.bin")).toList
     let wb := (← IO.FS.readBinFile (dir ++ "/witness.bin")).toList
-    let r := checkD0a cb wb
+    let r := checkD0a B0 cb wb
     let h := hintOf cb wb
     let p := prepD0 cb h
     match r with

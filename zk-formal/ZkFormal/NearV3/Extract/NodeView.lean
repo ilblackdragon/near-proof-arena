@@ -1,5 +1,6 @@
 import ZkFormal.Near.Extract.NodeView
 import ZkFormal.NearV3.Tables.Node
+import ZkFormal.NearV3.IdsUps
 import ZkFormal.Near.Extract.Segments
 
 /-!
@@ -46,6 +47,11 @@ structure NodeS3 where
   dup : Bool
   hd : Bool
   repE : Nat
+  /-- per byte: the row's window child id `cid` (`UPB`; the child on a revealed window's
+  rows, free elsewhere) -/
+  ucid : List Nat
+  /-- per byte: `UPB` use count of the post byte (`upsV3` reads) -/
+  mU : List Nat
   deriving Repr, Inhabited
 
 /-! ## Serialization (raw) -/
@@ -108,6 +114,11 @@ def NodeV3.bmap : NodeV3 → Option (Nat × Nat)
 
 def eidN (n : Nat) : Nat := msgId K_NPRE n
 
+/-- `UPB (NPOST(n), pos, pb, len, depth, cid, u p)` for every byte `p` of record `n`. -/
+def upbOf (n : Nat) (s : NodeS3) (u : Nat → Nat) : List Msg :=
+  (List.range (s.v.ser false).length).map fun p =>
+    [msgId K_NPOST n, p, (s.v.ser true).getD p 0, (s.v.ser false).length, s.depth, s.ucid.getD p 0, u p]
+
 def nodeSends3 (vs : List NodeS3) (b : Nat) : List Msg :=
   let ns := vs.zip (List.range vs.length)
   if b = B_BYTES then
@@ -133,6 +144,8 @@ def nodeSends3 (vs : List NodeS3) (b : Nat) : List Msg :=
       else []
   else if b = B_SIZE then
     [[0, ((vs.filter fun s => !s.dup).map fun s => (s.v.ser false).length).sum]]
+  else if b = B_UPB then
+    ns.flatMap fun (s, n) => upbOf n s fun _ => 0
   else []
 
 def nodeRecvs3 (vs : List NodeS3) (b : Nat) : List Msg :=
@@ -157,6 +170,8 @@ def nodeRecvs3 (vs : List NodeS3) (b : Nat) : List Msg :=
     ns.flatMap fun (s, _) => if s.dup then
       (List.range (s.v.ser false).length).map fun p => [s.repE, (s.v.ser false).length, p, (s.v.ser false).getD p 0]
       else []
+  else if b = B_UPB then
+    ns.flatMap fun (s, n) => upbOf n s fun p => s.mU.getD p 0
   else []
 
 def nodeTraffic3 (vs : List NodeS3) : Traffic := ⟨nodeSends3 vs, nodeRecvs3 vs⟩
@@ -191,6 +206,15 @@ def NodeV3.raw : NodeV3 → List Nat
   | .ext k kid memB => k ++ kid.raw ++ memB
   | .branch v kids memB => (v.map NSlot3.raw).getD [] ++ kids.flatMap NKid.raw ++ memB
 
+/-- The window child ids: the first byte of every revealed child's window carries the child
+`c` (offset `5 + |hp|` in an extension; `o + 2 + 32·(present kids before j)` in a branch,
+`o = 1` or `37` with a value). -/
+def NodeV3.kidCidOk (ucid : List Nat) : NodeV3 → Prop
+  | .leaf _ _ _ => True
+  | .ext k kid _ => ∀ c l r pre po, kid = .node c l r pre po → ucid.getD (5 + (hpN k false).length) 0 = c
+  | .branch v kids _ => ∀ j c l r pre po, kids.getD j .none = .node c l r pre po →
+      ucid.getD ((if v.isSome then 37 else 1) + 2 + 32 * ((kids.take j).filter (·.present)).length) 0 = c
+
 structure NodeWf3 (vs : List NodeS3) : Prop where
   wf : ∀ s ∈ vs, s.v.wf
   /-- `depth + 112` is a 9-bit value: `depth < 400` unless it wrapped below `0` -/
@@ -201,6 +225,13 @@ structure NodeWf3 (vs : List NodeS3) : Prop where
   canon : ∀ s ∈ vs, ∀ x ∈ s.v.raw, x < P
   /-- ids are row-segment indices (`< 2^22`) -/
   count : vs.length ≤ 2 ^ 22
+  /-- one row per record byte, plus the `SUM` row -/
+  rows : (vs.map fun s => (s.v.ser false).length).sum + 1 ≤ 2 ^ 22
+  /-- `UPB` columns: one value per byte, canonical -/
+  upbLen : ∀ s ∈ vs, s.ucid.length = (s.v.ser false).length ∧ s.mU.length = (s.v.ser false).length
+  upbSmall : ∀ s ∈ vs, (∀ x ∈ s.ucid, x < P) ∧ ∀ x ∈ s.mU, x < P
+  /-- window child ids on `UPB` -/
+  kidCid : ∀ s ∈ vs, s.v.kidCidOk s.ucid
 
 /-- **The `nodeV3` view statement** (any table index `t`). -/
 def NodeV3ViewStmt : Prop :=

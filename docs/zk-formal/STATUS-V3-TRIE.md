@@ -16,7 +16,13 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M2 | `uniqV3`: table, view, link (weak uniq ⇒ hash-functional), render | **done** |
 | M3 | `walkV3`: table, view, render | **done**; link (walks ⇒ `find`/absent) open |
 | M4 | node side split into `nodeV3` / `headV3` / `valV3`: tables, kernel-checked budget; `headV3` view + render; `valV3` view + render; `nodeV3` view **statement** | **done** except as noted |
-| M5 | `nodeV3` view proof (adapt v1's 22 `Extract/Node*` modules), `nodeV3` render, link layer (trie of τ hashes to root, finds/absents, post-root), `upsV3` (`0x0f` upsert incl. insertion) | **open** |
+| M5a | `nodeV3` view proof (v1's `Extract/Node*` adapted: `Extract/Node/*.lean`, 21 modules) | **done**: `node3_view : NodeV3ViewStmt` |
+| M5b | `nodeV3` render | **done**: `node_render_local`, `node_render_traffic` (`Render/Node/Local.lean`, `Traffic.lean`; 5df77df2) |
+| M6a | link layer: per-τ DAG, record bytes = preimages, walks ⇒ find/absent | **done** (pieces; §3) |
+| M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition | **done** (`PerTau3`: `root_tau`, `build_tau`, `walks_tau`) |
+| M6c | post-root after sets | **done**: `post_tau` (`Link/Post3`), `post_eq_set(s)` (`Link/Post3Spec`), `valsPost_eq_setVals` (`Link/Post3Writes`); open M6d below |
+| M6d | occurrences, reach, post root = iterated `set` | **done**: `occ_le_one`, `reach_walk(_at)`, `find_walk_any`, `post_sets_tau`, `post_sets_walk` (`Link/Post3Occ*`, 76ecb4a8). Interface: `hpl` (account writer), `hperm` (each written value has one keyed write: assembly) |
+| M7 | `upsV3` (option A) | M7a **done** (`root_chain`); M7b **done** (table `Tables/Ups.lean`, budget `BudgetUps.lean`, `UPSV3-DESIGN.md`, model check 2,650 instances, 0 failures; nodeV3 delta in `NodeUpb.lean`, not yet applied); M7c–e (view, render, link) open |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
 
@@ -82,6 +88,118 @@ Decidable from `(c, w)` in a few lines over `occs`/`valsOf` (`Spec/Occs.lean`). 
 tree-shaped records cost at most 2 × A7 node rows (pre and post bytes in lockstep, as v1).
 **Raised to the lead** (spec request for lane spec-v3 / V0).
 
+### 1.4 `UnfoldBound e` and the best bound without any amendment
+
+**Decision (lead): no A7 yet.** Every completeness / height statement of this lane takes
+an explicit hypothesis
+
+```lean
+def UnfoldBound (e : Nat) (ws : List Bytes) (root : Bytes) (keys : List (List Nat)) : Prop :=
+  unfoldedBytes (partialTrie ws root keys) ≤ e
+```
+
+(`Spec/TreeRecs.lean`; `treeRecs_bytes_le`: under `UnfoldBound e` the tree-shaped records
+hold `≤ e` bytes, since `storeBytes = unfoldedBytes` by `treeRecs_spec`).  The node table
+has one row per record byte (+ `SUM` row + padding), so its height obligation is
+`e + 1 ≤ 2^22`; value records likewise.
+
+**Best bound provable from `RelD0` alone.**  Notation: `B = |base_state|` (≤ 3,000,000),
+`K` = number of read keys (with multiplicity, as passed to `partialTrie`), `D = trieFuel = 400`,
+`N` = largest node entry of the store, `V` = largest value entry (`N, V ≤ B`; on NEAR
+`N ≤ 559 + |hex-prefix key|`).
+
+> `unfoldedBytes (partialTrie ws root keys) ≤ K·D·N + K·V`,
+> and more finely `≤ N · Σ_{d<D} min(K, 16^d) + K·V`.
+
+Proof (by induction on the fuel of `buildFor`): a subtree is revealed only if a non-empty
+key list reaches it; a branch routes each key to at most one child (by its first nibble)
+and keeps a key that ends there for its value slot; an extension passes only the keys with
+its prefix; a leaf has no children.  So at each depth the revealed occurrences receive
+pairwise disjoint, non-empty sub-multisets of the keys (≤ `K` of them, and ≤ `16^d`), there
+are at most `D` depths (the fuel), and each revealed value consumes a distinct key.  Each
+node occurrence is a store entry (`EntriesFound`), so its encoding has `≤ N` bytes.  Nothing
+better holds without an amendment: the example of §1.3 (one ≈ 560-byte "universal" branch
+repeated under every slot) attains `≈ K · depth · 560` while `B < 1 MB`.
+
+Numbers: with `K = 9,000`, `N = 559`, `D = 400`: `N · Σ_{d<400} min(K,16^d) ≈ 559 ·
+(4,369 + 396·9,000) ≈ 2.0·10^9` bytes — far beyond one `2^22`-row table.  So without A7 the
+tables are complete only for witnesses with `UnfoldBound (2^22 − 1)` (and the value-record
+analogue); on real chains `unfoldedBytes = |base_state|` up to rare identical leaves.
+(Paper proof; the Lean statement is the hypothesis above.)
+
+### 1.5 A7 accepted: what is counted, and row costs per unfolded byte
+
+The lead accepted A7 as a decidable conjunct of `InD0` (`RelD0a B … := … ∧ unfoldBytes ≤ B`,
+spec lane, `NearSpecV3/ChunkValidationV0a.lean`).  This lane keeps **every completeness and
+height theorem parametric in the bound** (`UnfoldBound e`, §1.4).  **Soundness never
+mentions it.**
+
+**Definition to mirror (tree records).**  For each transition `τ = 0..K`:
+
+* `T_τ` is the partial trie the relation builds for `τ`:
+  `partialTrie ws root_τ keys_τ`, where `keys_τ` is every key `τ` reads or writes
+  (reads, account `set`s, `[0,15]`).
+* `nodeB_τ = Σ_{o ∈ occs T_τ} |nodeEnc o|` counts node occurrences, each **per read-path
+  copy**.  A digest shared by several paths is counted once per occurrence.
+* `valB_τ = Σ_{v ∈ valsOf T_τ} |v|` counts revealed value occurrences.
+* **Post-write path copies cost no extra records.**  Account `set`s are lockstep: the post
+  bytes sit in the same rows as the pre bytes, so `nodeB_τ` already counts them.
+* `upsB_τ` counts the `0x0f` upsert's new nodes, under `upsV3` option A (§2.3):
+  `upsB_τ = Σ_{o ∈ occs Q_τ} |nodeEnc o|` (value occurrence of `Q_τ` counted in `valB`).
+  * `Q_τ = upsert (prune_{[0,15]} T_τ') [0,15] v_τ`.
+  * `T_τ'` is the lockstep post-trie.
+  * `prune_k t` replaces every child that is off the path of `k` with `.hash (hashOf child)`.
+  * `Q_τ` has at most 6 revealed nodes.
+  * Under option C (A4), `upsB_τ = 0`.
+
+So `unfoldBytes = Σ_τ (nodeB_τ + valB_τ + upsB_τ)`.  Bounding the parts separately is also
+fine.  Some tables need occurrence counts:
+
+* `nOcc = Σ_τ (|occs T_τ| + |occs Q_τ|)`
+* `vOcc = Σ_τ |valsOf T_τ|`
+
+**Rows (all instances share one table each):**
+
+| table | rows | per unfolded byte (node occurrence of `L ≥ 46` bytes) |
+|---|---|---|
+| `nodeV3` | `Σ_τ (nodeB_τ + upsB_τ) + 1` (SUM) | **1** |
+| `valV3` | `Σ_τ valB_τ + #empty values + 1` | 1 (value bytes) |
+| `sha_t` | per node occurrence: **2** messages (`NPRE` and `NPOST`, every record), each `1 + 17·⌈(L+9)/64⌉` rows; per value occurrence: 1 message | `≤ 0.531 + 40.25/L` per node byte (`≤ 1.41` at `L = 46`, ≈ 0.61 at `L ≈ 500`); ≈ 0.27 + 18/L per value byte; plus the other tables' hashing |
+| `uniqV3` | `32 · (nOcc + vOcc)` | `32/L` (`≤ 0.70`); binding cap `nOcc + vOcc ≤ 131,071` |
+| `headV3` | 32 per instance | 0 |
+| `walkV3` | `Σ_walks (|key nibbles| + 2)` | 0 (does not scale with unfolding) |
+
+Widths and `W_eq` are in §4.  From these, `B0` must satisfy, against `2^22` rows:
+
+* `nodeB + upsB ≤ 2^22 − 1`
+* `0.531·nodeB + 40.25·nOcc + (other SHA) ≤ 2^22`
+* `nOcc + vOcc ≤ 2^17 − 1`
+
+The 8 MiB check uses the widths in §4.
+
+### 1.6 Alternative: one record per distinct digest (graph) plus post copies on write paths
+
+| | tree (current) | graph |
+|---|---|---|
+| pre-state node rows | `Σ` occurrences (unfolded) | distinct digests `≤ |base_state|` (does not scale with sharing) |
+| post-state | lockstep, same rows, free | separate **post-copy records** for every write-path occurrence. Their bytes are copied from the pre record (an `ENT`-style copy with window exceptions). They still scale with unfolding of the write paths, so an A7-type cap on write-path bytes is still needed. |
+| SHA | 2 messages per occurrence | 1 per distinct record + 1 per post copy |
+| uniq | 32 rows per occurrence | 32 rows per distinct record |
+| depth ≤ 400 / fuel | 9 bits per record (`depthBound`); occurrence = record | one record sits at many depths, so walks need a depth counter again. Soundness must go through "fuel-unfolding of the graph refines `partialTrie`" (`find_refinedBy`, `hashOf_refinedBy`, `upsert_refinedBy`; a `set_refinedBy` is missing). Cycles (SHA cycles) must be handled by fuel, not rank. |
+| `PARENT` | exact (one per record) | chained with use counts |
+| proof state | M1 spec done, `node3_view` done, render ≈ 2/3 | spec redone (≈ 1.5–2 k lines), `nodeV3` with a post-copy mode and copy bus (view re-port ≈ 3 k changed lines, render redone), walk depth counter: **≈ +5–7 k lines**, M1/M5 restart |
+
+* **Honest witnesses** (`unfolded ≈ |base_state|`, rare shared leaves): node rows are the
+  same or **higher** with the graph (pre records plus post copies vs lockstep), SHA rows
+  ≈ halve, uniq is the same.
+* The graph raises `B` only for adversarial, heavily shared witnesses, which A7 excludes
+  anyway, and it still needs a cap on write-path copies.
+
+**Recommendation: keep tree records.** (**Lead: accepted**; adopt the `wr` flag if `sha_t` rows bind `B0`, which the spec lane picks from §1.5.)  If SHA rows bind `B0`, the cheap fix within the
+tree approach is to send `NPOST` bytes only for records on write paths (a node-constant
+`wr` flag; `post = pre` otherwise, with the post digest taken from the pre digest).  That
+halves SHA for read-only records with a small `nodeV3` delta.
+
 ## 2. Design decisions (this lane)
 
 ### 2.1 Writes through shared records
@@ -114,18 +232,139 @@ which have different row shapes, are separate small tables:
   leaf; dead target `(nid, s)` for an extension's last nibble when the child is unrevealed;
   `BMAP` per branch; `SIZE` instead of v1's in-table 3,000,000 check.
 
-### 2.3 `0x0f` upsert: separate table `upsV3` (open)
+### 2.3 `0x0f` upsert: separate table `upsV3` (**decided: option A**; not started)
 
 Lockstep pre/post records express only same-length `set`s (accounts).  The `0x0f` upsert
 changes `memory_usage` along its path with truncated Nat arithmetic (`m + new − old`), may
 change the value length, and when the key is absent changes node shapes (`splitLeaf`,
 `splitExt`, new branch child/value).  It is applied **after** the lockstep writes
 (`set_upsert_comm`, account keys `[0,0,…] ≠ [0,15]`): the head sends the lockstep post-root on
-`MIDROOT (τ, ·)` and `upsV3` (to be designed) re-reveals the upsert path of the lockstep
-post-trie (bytes copied from the lockstep records' post streams, so no collision assumption),
-computes the post-upsert path (incl. insertion modes) and sends `ROOT (τ+1, ·)`.  Every
-instance has exactly one `0x0f` upsert (scheduler step), so the chain is
-`ROOT τ → head → MIDROOT τ → upsV3 → ROOT τ+1`.
+`MIDROOT (τ, ·)`, and the chain is `ROOT τ → head → MIDROOT τ → upsV3 → ROOT τ+1`.
+
+**Reduction (spec side, available):** by `upsert_hashOf_congr` the post-root only depends on
+the path trie `P` (the lockstep post-trie pruned to the path of `[0,15]`: ≤ 3 revealed nodes,
+every off-path child `.hash`).  The obligation is `Q = upsert P [0,15] v` for the new path
+trie `Q` (≤ 6 revealed nodes: ≤ 3 rewritten path nodes, `wrapExt` extension, split branch,
+moved leaf / shortened extension, new leaf).  Case table for a 2-nibble key: per level
+(root / after one nibble / after two) the node is a leaf (replace or `splitLeaf`), an
+extension (descend or `splitExt`) or a branch (descend into slot, new child leaf, or set
+the branch value) — 3 levels × 3 shapes × ≤ 3 outcomes.
+
+**The cost driver is cross-record byte access, not the case logic.**  `Q`'s nodes copy
+bytes from `P`'s post encodings: 15 sibling windows (shifted by 32 when a child is
+inserted before them), the moved leaf's slot, the moved/shortened key (re-hex-prefixed: a
+nibble shift by 1–3), and new `MEM` / `VLEN` values.  Options:
+
+* **(A) `Q` as `nodeV3` records** of a pseudo-instance (their bytes, fields and hashes are
+  then covered by `node3_view` unchanged) + a generalised `ENT` copy (`ENT (src, len, pos−off,
+  b)` per row, with an offset column) for windows and slots + a key-nibble copy over the
+  chained `EDGE` provider + a small field-level `upsV3` table (case selector, `u64` `MEM`
+  arithmetic with truncation, value length).  Changes `nodeV3` (≈ 4 columns, 2 interactions:
+  view port ≈ +500 lines); `upsV3` + link ≈ 3 k lines.
+* **(B) bespoke byte-level `upsV3`** with its own field parser for `P` and `Q` (duplicates
+  much of `nodeV3`'s 6 k-line view; ≈ 5–6 k lines) and a multiplicity column on `nodeV3`'s
+  post-byte stream so that `upsV3` can copy `P`'s bytes (no collision assumption).
+* **(C) A4** (`0x0f` present; design doc §4): removes insertion; with present `0x0f` the
+  upsert is a `set` plus `MEM`/`VLEN` updates along ≤ 3 path nodes, i.e. lockstep records
+  with `MEM`/`VLEN` excluded from "post = pre" and a per-path-node `u64` delta — ≈ 1 k lines.
+
+Recommendation: (A) if insertion must stay in D0 (no amendment); (C) if A4 is acceptable.
+**Lead decision: A** (A4 rejected; B costs more for no gain).
+
+### 2.3.1 `upsV3` ↔ scheduler interface (**agreed**: V3-D0-DESIGN §12, lead decision)
+
+Per instance `τ` there is one `0x0f` read and one `0x0f` upsert.
+
+* **`S0F (τ, present, vid)`** — sent by `upsV3`, received once per `τ` by the scheduler
+  codec.
+  * The read of `[0,15]` is the public walk of `τ` (`FINAL (w, τ, fk, k)`).
+  * `present = [fk = VAL]`, and `vid = k` if present, else `0`.
+  * The previous value's bytes go out on `VBYTES (vid, pos, b)` from the codec, which
+    `valV3` already receives.
+* **`SPOST (τ, pos, b)`**, `pos < L` — the new value's bytes, sent by the codec and received
+  by `upsV3`.
+* **`SPLEN (τ, L)`** — the new value's length, sent once per `τ` by the codec (no end flag).
+  * `upsV3` does not rely on `L = 37 + 24·n²`.
+* **Bytes are canonical** (`< 256`).
+* **The post value's digest**: `upsV3` hashes the bytes itself, with `BYTES (VUPS(τ), pos,
+  b)` and kind `K_VUPS = 12` (registry: 11 SCH, 12 VUPS, 13 SRC, 14 VAK, 15 and 0 reserved). That digest goes into the new leaf / branch value window, and the
+  value length goes into `memory_usage`.
+
+### 2.3.2 `upsV3` concrete plan (M7)
+
+**Sub-milestones**
+
+* **M7a: the instance chain.** `upsV3` is abstracted as `(τ, mid, post)`: it receives
+  `MIDROOT (τ, mid)` and sends `ROOT (τ+1, post)`. The public bus closes the chain with
+  `ROOT (0, r0)` and `ROOT (K+1, rK)`. Result: exactly one head and one `upsV3` per `τ ≤ K`,
+  with the root values chained. **Done**: `root_chain` (`Link/Chain3.lean`, dd0af31d), which
+  gives `RootChain`: per-`τ` counts, `headAt` / `upsAt`, `pre0`, `link`, `mid`, `postK`.
+  Hypotheses: `HeadWf`, `UpsWf`, `RootBal`, `MidBal`, `K + 1 < P`, `|hs| < P`. The last one
+  comes from the head table height, `HeadProof.height_le`.
+* **M7b: the table `upsV3`.** One segment per instance `τ`, laid out as follows.
+  * **Header row:**
+    * receives `MIDROOT (τ, mid)`;
+    * sends `ROOT (τ+1, root')`;
+    * sends `S0F (τ, present, vid)`, where `present` / `vid` come from the `[0,15]` walk's
+      `FINAL` (the walk is received as a `FINAL` consumer with multiplicity: public walk of `τ`);
+    * receives `SPLEN (τ, L)`;
+    * holds the case selector: one-hot over the ≤ 27 upsert cases of a 2-nibble key, i.e.
+      3 levels × {leaf, ext, branch} × {replace or descend, split, insert} (§2.3).
+  * **Old path:** for each old path node `P_d` (`d ≤ 2`, record ids from the walk's steps),
+    the `upsV3` rows receive the record's post bytes on a new chained bus
+    `UPB (NPOST(n), pos, pb)`. `nodeV3` sends it on path records with a node-constant
+    multiplicity column `mU`.
+  * **New path:** each new node `Q_j` (`j ≤ 6`) is one byte segment that sends
+    `BYTES (NUPS(τ,j), pos, b)` and receives `DIGEST (NUPS(τ,j), len, d)`.
+    * Bytes are either copied from a `P_d` byte at an offset given by the case (sibling
+      windows, slot, key bytes; nibble shifts are done with hi/lo nibble columns as in
+      `nodeV3`) or fresh: tag, length bytes, bitmap, child digests from `DIGEST`, `MEM` from
+      the `u64` arithmetic `m + new − old` (truncated), the new value's digest `VUPS(τ)`.
+    * **Ids (lead, design §12):** packed into `K_VUPS = 12` with `idx = 8τ + j`. `j = 0` is
+    the post `0x0f` value and `j = 1..7` are the `Q` nodes (≤ 7). Owed to the assembly lane:
+    the id-range lemma "the `upsV3` ids are exactly kind 12 with `idx < 8(K+1)`".
+  * **The post value:** the `SPOST` bytes are received and re-sent as `BYTES (msgId 12 (8τ), pos, b)`.
+* **M7c: view.** `UpsViewStmt`, in the segment framework.
+* **M7d: render.**
+* **M7e: link.** From the view, the node records of `τ` and the walk:
+  * `Q = upsert (prune_[0,15] P) [0,15] v`, by case analysis against `PTrie.upsert`
+    (`Spec/Absent.lean`: `upsert_absent`, `upsert_brSlot`, `upsert_leaf_ne`, …);
+  * hence `root' = hashOf (upsert T' [0,15] v)`, via `upsert_hashOf_congr`;
+  * plus `set_upsert_comm` / `trieOpsStmt`, which give the relation's order.
+
+**Lead conditions on the deviation:**
+* M7e proves `Q = upsert (prune_[0,15] P) [0,15] v` **byte-exact, including `memory_usage`**,
+  in all three cases: present, absent at an empty branch slot, and absent by key split.
+* An `UPB` copy must not be able to read a record off the `[0,15]` path. Planned mechanism:
+  `upsV3` takes the source record ids from the `[0,15]` walk's `EDGE` steps, so they are
+  path records, and `UPB` messages carry the record id.
+
+This deviates (**approved**) from option A as first written (`Q` as `nodeV3` records): the new nodes are byte
+segments of `upsV3` itself. `nodeV3` changes only by `UPB` plus `mU` (one interaction, one
+column). Why: copying into `nodeV3` records would need per-row offset columns in `nodeV3`
+and a re-port of its view, whereas `upsV3` writes only the fixed shapes of ≤ 6 nodes.
+
+### 2.3.3 M7b result (see `UPSV3-DESIGN.md`)
+
+| table | width | interactions | W_eq g=1 | W_eq g=3 |
+|---|---:|---:|---:|---:|
+| `upsV3` | 176 | 15 | 320 | 280 |
+| `nodeV3` with `UPB` delta | 186 | 20 | 370 | 298 |
+| lane total (6 tables) | | | 1175 | 1063 |
+
+* **Cases:** 11 cases, at most 4 new nodes (`j ≤ 4`).
+* **Path walk:** `upsV3` walks `[0,15]` from the head's `START` edge.
+* **Copies:** sources are only the walked path records `N_d`, read through
+  `UPB (NPOST(n), pos, pb, len, depth, u)`.
+* **`memory_usage`:** exact Nat value, passed to the parent on `MEMD (τ, j, i, new, old, qlen)`.
+
+**Deviations, pending lead sign-off:**
+1. **`UPB` carries `len` and `depth`.**
+   * `depth(N_d) = d` rejects path records reached by skipping empty-key extensions.
+   * As a consequence, tries with empty-key extensions on the `[0,15]` path are **not
+     supported (completeness)**. nearcore never builds them, and unbounded chains could not be
+     handled in bounded rows anyway.
+2. **The `MEMD` bus (23) is used.**
 
 ### 2.4 Walks
 
@@ -153,11 +392,73 @@ role clashes are covered because value records live in the same `ENT` space.
 | `walkV3` | `WalkV3ViewStmt` / **`walk3_view`** (`Extract/WalkProof*.lean`) | **`walk_render_local`, `walk_render_traffic`** (`Render/Walk*.lean`) | open |
 | `headV3` | `HeadViewStmt` / **`head_view`** (`Extract/HeadProof.lean`) | **`head_render_local`, `head_render_traffic`** (`Render/HeadRender.lean`) | open (ROOT chain) |
 | `valV3` | `ValViewStmt` / **`val_view`** (`Extract/ValProof.lean`) | **`val_render_local`, `val_render_traffic`** (`Render/Val*.lean`) | open |
-| `nodeV3` | `NodeV3ViewStmt` (`Extract/NodeView.lean`, statement only) | open | open |
+| `nodeV3` | `NodeV3ViewStmt` / **`node3_view`** (`Extract/Node/Proof.lean`; per-node lemmas `leafEdges`, `extEdges`, `brEdges`, `nodeDigs`, `nodeEnt`, `nodeDPVB`, `nodeAll`; global `nodeTrafficOf` incl. the `SUM` row's `SIZE` total, `nodeWfOf` incl. `depthBound`) | **`node_render_local`, `node_render_traffic`** (`Render/Node/*.lean`; hypotheses `NodeOk vs`, honest height `logOf (Σ |ser false| + 1)`) | open |
+| spec | **`UnfoldBound`, `treeRecs_bytes_le`** (`Spec/TreeRecs.lean`) | | |
+| link | | | **`kid_link`, `head_link`, `depth_lt`, `kid_depth`** (`Link/Parent3`); **`val_link`, `val_unique`** (`Link/Vals3`); **`rootedDag3`, `rk_lt`, `rec_wf`** (`Link/Dag3`); **`enc_tree`, `enc_fullTree`** (`Link/NodeHash3`); **`walk3_find`, `walk3_pos`** (`Link/Walk3*`, helper; hypotheses `hT` walk rows < P and `hsym` no START after row 0 to be discharged from KEYNIB/height) |
 | spec | **`storeBuildR`, `pathsRevealed_of_rank`, `hashFunctional_of_weakUniq`, `treeRecs_spec`** | | |
 
 Render theorems are stated for any trace whose table `t` has the generator's cells
 (`hcell` for rows below the height and columns below the width, `hlog` the honest height).
+
+### 3.1 Per-instance link statement and its hypothesis discharges
+
+`Link/PerTau3.lean`, with `R := recsOf (vpos (vid0 es)) vs`, `V := valsOf3 vs es`:
+
+* **`root_tau`**: for each head `h`, `digest R V h.rid = toB h.pre`.
+* **`build_tau`**: for each head `h` and every key list that is determined on the record
+  trie, `partialTrie (storeOf R V h.tau) (toB h.pre) keys` satisfies two things. Its root
+  hash is `toB h.pre`, and it answers every key exactly as `fullTree R V h.rid` does.
+* **`walks_tau`**: every walk computes `find` (a value) or absent on the record trie of a
+  head of its instance.
+
+What the statements are allowed to assume:
+
+* the views: `NodeWf3`, `HeadWf`, `ValWf`, `WalkWf3`;
+* bus balances: `ParentBal`, `VParentBal`, EDGE / BMAP `BusBal`;
+* SHA facts: `ShaHyp`, i.e. `ShaFacts`, the BYTES balance with id kinds, and DIGEST being
+  provided;
+* `KeynibOk`, from the KEYNIB providers' views and balance;
+* the uniq view `UniqWf` and the `DIGS` / `DUP` / `ENT` balances. These discharge the
+  hash-functional store in `build_tau` through **`store_hashFunctional`** (`Link/Uniq3*`,
+  helper, 68027172). It needs no bound on `τ`: `storeOf_hashFunctional3` works with an
+  unwrapped instance chain, and `uniq_len` gives `|us| ≤ P`.
+
+No residual hypotheses remain in `root_tau`, `build_tau` or `walks_tau`.
+
+How each hypothesis of `walk3_find` is discharged (lemma, file):
+
+| hypothesis | discharge |
+|---|---|
+| `hunf` | `unf3` (`Compose3`): `head_of` + `rootedDag3` + `fullTree_unfoldR` (rank = depth; the DAG fixed point, not A7) |
+| `hpar` | `kid_depth` (`Parent3`) |
+| `hhead` | `head_link` (`Parent3`) |
+| `hT` | `wrows_lt` (`Compose3`), from `WalkWf3.nrows` (≤ 2^21, proved in `walk3_view`) |
+| `hsym` | `hsym_of` (`Compose3`), from `KeynibOk` |
+| `hbytes` | `rec_bytes` (`Sha3`), from `ShaHyp` + `head_sha` / `kid_sha` (`sha_core`) |
+| value count `≤ 2^22` | `vlen_le` (`Compose3`), from `ValWf.rows` |
+
+How the hypotheses of `enc_fullTree` are discharged:
+
+* `hk`: `kid_sha`.
+* `hv`: `val_sha`.
+
+Head uniqueness per `τ`, i.e. which head the walk results attach to, comes with the
+ROOT / MIDROOT chain (`upsV3`, public bus).
+
+### 3.2 Post-root (M6c)
+
+* **`post_tau`** (`Link/Post3.lean`): `digest R (valsPost vs es pv) h.rid = toB h.post`.
+  `valsPost` replaces the bytes of every written value record by `pv`.
+  * Interface hypothesis `VPostOk others pv`: the account writer's `BYTES (VPOST i, j, ·)`
+    sends are exactly `pv i`.
+  * Interface hypothesis `hpl : |pv i| ≤ vlen`. SHA may hash a prefix of a sent stream, so
+    the writer must pin the length; the other direction, `vpost_len`, is proved.
+  * Other hypotheses are as in `root_tau`.
+* **`post_eq_set`, `post_eq_sets`, `setVal_comm`, `setVals_perm`** (`Link/Post3Spec.lean`):
+  replacing value record `i` equals `PTrie.set` on a key whose lookup reaches `i`
+  (`fullReach`), exactly, `memory_usage` included. This requires `i` to occur at most once
+  in the unfolding (`fullOcc ≤ 1`). Lists of writes give the fold of `set`s.
+* **`valsPost_eq_setVals`, `writesOf_nodup`** (`Link/Post3Writes.lean`).
 
 ## 4. Budget (kernel-checked: `NearV3/BudgetCheck.lean`, `report_g1`, `report_g3`, `weqTrie_g1`, `weqTrie_g3`)
 
@@ -188,13 +489,15 @@ counted.
 
 ## 6. Open items
 
-1. **`nodeV3` view proof** (adapt `Extract/Node*`), **`nodeV3` render**.
+0. **Fixed soundness gap (d153d30f)**: `valV3` ids had no start, so `VPRE(vid) ≡ NPRE(c) mod P` was choosable (id-space collision on BYTES/ENT/DIGEST). Now `isFirst·vid = 0`, `ValWf.first`.
+
+1. ~~`nodeV3` render~~ done (`NodeOk` adds: depth < 400, key length < 510, value length bytes < 256, rows Σ+1 ≤ 2^22 — the last is where `UnfoldBound` enters).
 2. **Link layer**: ROOT/MIDROOT chain; trie of instance τ = records (tree via `PARENT` +
    depth ⇒ `RootedDagR` with rank = depth); entries ⇒ `storeOf` covered by `uniq` entries
    (`storeOf_hashFunctional`) ⇒ `storeBuildR`; walks ⇒ `find`/`AbsentWitness`
    (`absent_iff`); lockstep post-root = `set`s.
-3. **`upsV3`** (§2.3).
-4. **A7** (unfolded-size cap, §1.3) — spec request.
+3. **`upsV3`** (§2.3): option A decided. Order: node render → link layer → `upsV3`.
+4. **A7** accepted (spec lane `RelD0a`); counting definition and row costs in §1.5; completeness/height parametric, soundness bound-free.
 5. `size` lane consumes `SIZE (0, ·)` (node) and `SIZE (1, ·)` (values).
 6. Producers must switch value pre-bytes from `BYTES (VPRE)` to `VBYTES (vid, …)` (`acct`
    v3 variant, `akey`, `sched`, `qvals`), and send `FINAL`/`KEYNIB` in the v3 formats.

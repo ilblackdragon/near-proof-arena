@@ -680,4 +680,22 @@ theorem treeRecs_spec (ws : List Bytes) (root : Bytes) (keys : List (List Nat)) 
   · unfold storeBytes unfoldedBytes; rw [storeOf_T hnode, List.map_append, List.sum_append, List.map_map]; rfl
 
 
+/-! ## `UnfoldBound e` — the hypothesis every height / completeness statement takes
+
+No size amendment (A7) is assumed: statements that need the node / value record rows of the
+relation's trie to fit a table height are parametric in `UnfoldBound e` (A7 would be
+`e = 3,000,000`; STATUS-V3-TRIE §1.4 gives the best bound without any amendment). -/
+
+/-- The relation's partial trie unfolds to at most `e` bytes. -/
+def UnfoldBound (e : Nat) (ws : List Bytes) (root : Bytes) (keys : List (List Nat)) : Prop :=
+  unfoldedBytes (partialTrie ws root keys) ≤ e
+
+/-- Under `UnfoldBound e` the tree-shaped records hold at most `e` bytes. -/
+theorem treeRecs_bytes_le {e : Nat} (ws : List Bytes) (root : Bytes) (keys : List (List Nat)) (τ : Nat)
+    (hroot : root.length = 32) (hne : keys ≠ [])
+    (hread : ∀ k ∈ keys, (partialTrie ws root keys).find k ≠ none) (hU : UnfoldBound e ws root keys) :
+    storeBytes (recsT τ 0 0 (partialTrie ws root keys)) (valsT τ (partialTrie ws root keys)) τ ≤ e := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, h⟩ := treeRecs_spec ws root keys τ hroot hne hread
+  rw [h]; exact hU
+
 end ZkFormal.NearV3

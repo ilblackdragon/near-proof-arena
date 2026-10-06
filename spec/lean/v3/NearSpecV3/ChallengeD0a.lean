@@ -7,7 +7,7 @@ import NearSpecV3.ChunkValidationV0a
 Draft challenge `near-chunk-validation-d0-stark`
 (`challenges/drafts/near-chunk-validation-d0-stark.draft.json`, spec/near-chunk-validation-v0a.md).
 Same claim type and codec as `NearSpecV3.challengeSpec` (D0); `Rel c w = RelD0a c.encode w`
-(`RelD0 ∧ A1 ∧ A2 ∧ Canon0f`, a pure restriction of D0, `relD0a_relD0`). The formal proof-size
+(`RelD0 ∧ A1 ∧ A2 ∧ Canon0f ∧ A7 B0`, a pure restriction of D0, `relD0a_relD0`). The formal proof-size
 cap is 8 MiB (V3-D0-DESIGN §10, §11).
 -/
 
@@ -15,9 +15,14 @@ namespace NearSpecV3
 
 open ArenaCore
 
-theorem relD0a_relD0 {cb w : Bytes} (h : RelD0a cb w) : RelD0 cb w := h.1
+/-- A7 bound of the challenge instance: unfolded trie bytes (pre + post-write copies, all
+transitions). Derivation (spec/near-chunk-validation-v0a.md §2.4): the SHA table hashes
+every unfolded byte at ≤ 1.25 rows/byte and has 2^22 rows; 1.25 · 3,000,000 = 3.75 M rows
+leaves ≈ 0.44 M rows for the non-trie hashing; the node table (1 row per pre byte) is then
+also below 2^22; table heights, hence the 8 MiB proof-size analysis, are unchanged. -/
+def B0 : Nat := 3000000
 
-def WfClaim.RelD0a (c : WfClaim) (w : List UInt8) : Prop := NearSpecV3.RelD0a c.1.encode w
+def WfClaim.RelD0a (c : WfClaim) (w : List UInt8) : Prop := NearSpecV3.RelD0a B0 c.1.encode w
 def WfClaim.DomainD0a (c : WfClaim) : Prop := ∃ w, WfClaim.RelD0a c w
 
 def challengeSpecD0a : ChallengeSpec where
