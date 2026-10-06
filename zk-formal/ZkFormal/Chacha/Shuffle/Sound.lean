@@ -214,6 +214,181 @@ theorem write_of {r : Nat} (hr : r < tr.height t) {i : Interaction} (hi : i ∈ 
     · rw [← cv_of_cell e3, hq']
     · rw [← e4, hrr]
 
+/-- The row of an active write of the instance. -/
+theorem write_row {r' : Nat} (hr' : r' < tr.height t) {i' : Interaction} (hi' : i' = iMinit B ∨ i' = iMW2 B)
+    (ha' : i'.multNat tr t r' pub ≠ 0) (hinst : cv tr t r' colInst = f - d) :
+    r' = f - cv tr t r' colQ ∧ cv tr t r' colQ ≤ d ∧
+    (i' = iMinit B → cv tr t r' colL = d + 1) ∧ (i' = iMW2 B → 1 ≤ cv tr t r' colQ) := by
+  have ha1 : cv tr t r' colA = 1 := by
+    rcases hi' with rfl | rfl
+    · exact (mult_col rfl).mp ha'
+    · have hs1 : cv tr t r' colS2 = 1 := (mult_col rfl).mp ha'
+      have e := s2_eq hL hr'; rw [hs1] at e
+      have := bA hL hr'; have := bFin hL hr'; have := bEq hL hr'
+      rcases (show cv tr t r' colA = 0 ∨ cv tr t r' colA = 1 by omega) with h | h
+      · rw [h] at e; simp at e
+      · exact h
+  have hin := in_inst hL hG hH hf hfin I.hdf I.hst (fun x hx => (I.rows x hx).2.1) hr' ha1 hinst
+  have hrr : r' = f - (f - r') := by omega
+  refine ⟨by omega, by omega, fun _ => ?_, fun h => ?_⟩
+  · rw [hrr]; exact (I.rows (f - r') (by omega)).2.2.2.1
+  · subst h
+    have hs1 : cv tr t r' colS2 = 1 := (mult_col rfl).mp ha'
+    have e := s2_eq hL hr'; rw [hs1, ha1] at e
+    have := bFin hL hr'
+    rcases Nat.eq_zero_or_pos (cv tr t r' colQ) with h0 | h0
+    · exfalso
+      have : r' = f := by omega
+      subst this; rw [hfin] at e; simp at e
+    · exact h0
+
+include hB hM in
+/-- **Memory consistency for one address**: a read at time `c` of position `x` consumes the
+write with the smallest stamp above `c`. -/
+theorem read_latest {x : Nat} (hx : x ≤ d) :
+    let js := fun q => cv tr t (f - q) colJ
+    let W := fun ts => ts = d + 1 ∨ (1 ≤ ts ∧ ts ≤ d ∧ js ts = x ∧ x < ts)
+    let R := fun c => c ≤ d ∧ (c = x ∨ (1 ≤ c ∧ js c = x ∧ x < c))
+    let cons := fun c => if c = x then cv tr t (f - c) colT1 else cv tr t (f - c) colT2
+    ∀ c, R c → W (cons c) ∧ c < cons c ∧
+      (cons c = d + 1 → tr.cell t (f - c) (if c = x then colC else colO) = tr.cell t (f - x) colV0) ∧
+      (cons c ≤ d → tr.cell t (f - c) (if c = x then colC else colO) = tr.cell t (f - cons c) colC) ∧
+      ∀ ts, W ts → c < ts → cons c ≤ ts := by
+  intro js W R cons
+  -- the read of position `x` at time `c`: interaction, message, activity
+  have rd : ∀ c, R c → ∃ i ∈ B.is, i.bus = B.mem ∧ i.send = false ∧ i.multNat tr t (f - c) pub ≠ 0 ∧
+      i.msgVal tr t (f - c) pub = [tr.cell t (f - c) colInst,
+        tr.cell t (f - c) (if c = x then colQ else colJ),
+        tr.cell t (f - c) (if c = x then colT1 else colT2),
+        tr.cell t (f - c) (if c = x then colC else colO)] ∧
+      cv tr t (f - c) (if c = x then colQ else colJ) = x ∧ (i = iMR1 B ∨ i = iMR2 B) ∧
+      (c = x → i = iMR1 B) ∧ (c ≠ x → i = iMR2 B) := by
+    intro c ⟨hc, hcx⟩
+    obtain ⟨ha, hq, -⟩ := I.rows c hc
+    by_cases e : c = x
+    · subst e
+      refine ⟨iMR1 B, mem_mr1 B, by simp [iMR1, Buses.is, interactions], rfl, (mult_col rfl).mpr ha, ?_,
+        by simp [hq], Or.inl rfl, fun _ => rfl, fun h => absurd rfl h⟩
+      simp only [ite_true]; exact msg_mr1 B _
+    · rcases hcx with h | ⟨h1, hj, hlt⟩
+      · exact absurd h e
+      have hs2 : cv tr t (f - c) colS2 = 1 := (step_s2 hL hG hH hf hfin I h1 hc).2.mpr (by
+        show js c < c; omega)
+      refine ⟨iMR2 B, mem_mr2 B, by simp [iMR2, Buses.is, interactions], rfl, (mult_col rfl).mpr hs2, ?_,
+        by simp [e]; exact hj, Or.inr rfl, fun h => absurd h e, fun _ => rfl⟩
+      simp only [e, ite_false]; exact msg_mr2 B _
+  -- the write consumed by each read
+  have wr : ∀ c, R c → W (cons c) ∧ c < cons c ∧
+      (cons c = d + 1 → tr.cell t (f - c) (if c = x then colC else colO) = tr.cell t (f - x) colV0) ∧
+      (cons c ≤ d → tr.cell t (f - c) (if c = x then colC else colO) = tr.cell t (f - cons c) colC) := by
+    intro c hR
+    obtain ⟨i, hi, hb, hs, ha, hmsg, hpos, -⟩ := rd c hR
+    obtain ⟨ha1, hq, hinst, -⟩ := I.rows c hR.1
+    have hw := write_of B hB hL hG hH hM hf hfin I (show f - c < _ by omega) hi hb hs ha hmsg hinst
+      (by rw [hpos]; exact hx)
+    rw [hpos] at hw
+    have hgt : c < cons c := by
+      show c < (if c = x then cv tr t (f - c) colT1 else cv tr t (f - c) colT2)
+      by_cases e : c = x
+      · rw [if_pos e]; have := t1_gt hL (show f - c < _ by omega) ha1 (by rw [hq]; have := I.hd14; omega)
+        rwa [hq] at this
+      · rw [if_neg e]
+        have h1 : 1 ≤ c := by rcases hR.2 with h | h; exact absurd h e; exact h.1
+        have hs2 : cv tr t (f - c) colS2 = 1 := (step_s2 hL hG hH hf hfin I h1 hR.1).2.mpr (by
+          rcases hR.2 with h | h; exact absurd h e; show js c < c; omega)
+        have := t2_gt hL (show f - c < _ by omega) hs2 (by rw [hq]; have := I.hd14; omega)
+        rwa [hq] at this
+    have hts : cv tr t (f - c) (if c = x then colT1 else colT2) = cons c := by
+      show _ = (if c = x then cv tr t (f - c) colT1 else cv tr t (f - c) colT2)
+      split <;> rfl
+    rw [hts] at hw
+    rcases hw with ⟨e1, e2⟩ | ⟨q', h1, h2, h3, h4, h5, h6⟩
+    · exact ⟨Or.inl e1, hgt, fun _ => e2, fun h => absurd h (by omega)⟩
+    · exact ⟨Or.inr ⟨by omega, by omega, by rw [h5]; exact h3, by rw [h5]; exact h4⟩, hgt,
+        fun h => absurd h (by omega), fun _ => by rw [h5]; exact h6⟩
+  -- injectivity via the bus
+  have hinj : ∀ c c', R c → R c' → cons c = cons c' → c = c' := by
+    intro c c' hR hR' heq
+    obtain ⟨i, hi, hb, hs, ha, hmsg, hpos, -, h1x, h2x⟩ := rd c hR
+    obtain ⟨i', hi', hb', hs', ha', hmsg', hpos', -, h1x', h2x'⟩ := rd c' hR'
+    obtain ⟨W1, -, v1a, v1b⟩ := wr c hR
+    obtain ⟨W2, -, v2a, v2b⟩ := wr c' hR'
+    have cellEq : ∀ r r' y y', cv tr t r y = cv tr t r' y' → tr.cell t r y = tr.cell t r' y' := by
+      intro r r' y y' h; unfold cv at h; exact Fp.ext h
+    have hm : i'.msgVal tr t (f - c') pub = i.msgVal tr t (f - c) pub := by
+      rw [hmsg, hmsg']
+      have e1 := (I.rows c hR.1).2.2.1; have e2 := (I.rows c' hR'.1).2.2.1
+      have hts : cv tr t (f - c) (if c = x then colT1 else colT2) = cons c := by
+        show _ = (if c = x then cv tr t (f - c) colT1 else cv tr t (f - c) colT2); split <;> rfl
+      have hts' : cv tr t (f - c') (if c' = x then colT1 else colT2) = cons c' := by
+        show _ = (if c' = x then cv tr t (f - c') colT1 else cv tr t (f - c') colT2); split <;> rfl
+      congr 1
+      · exact cellEq _ _ _ _ (by rw [e1, e2])
+      congr 1
+      · exact cellEq _ _ _ _ (by rw [hpos, hpos'])
+      congr 1
+      · exact cellEq _ _ _ _ (by rw [hts, hts', heq])
+      congr 1
+      rcases W1 with h | h
+      · rw [v2a (by rw [← heq]; exact h), v1a h]
+      · rw [v2b (by rw [← heq]; omega), v1b (by omega), heq]
+    have hw : ∀ r1 i1 r2 i2, r1 < tr.height t → r2 < tr.height t → (i1 = iMinit B ∨ i1 = iMW2 B) →
+        (i2 = iMinit B ∨ i2 = iMW2 B) → i1.msgVal tr t r1 pub = i.msgVal tr t (f - c) pub →
+        i2.msgVal tr t r2 pub = i.msgVal tr t (f - c) pub →
+        i1.multNat tr t r1 pub ≠ 0 → i2.multNat tr t r2 pub ≠ 0 → r1 = r2 ∧ i1 = i2 := by
+      intro r1 i1 r2 i2 hr1 hr2 hi1 hi2 hm1 hm2 ha1 ha2
+      rw [hmsg] at hm1 hm2
+      -- decode the two writes
+      have dec : ∀ r0 i0, r0 < tr.height t → (i0 = iMinit B ∨ i0 = iMW2 B) → i0.multNat tr t r0 pub ≠ 0 →
+          i0.msgVal tr t r0 pub = [tr.cell t (f - c) colInst, tr.cell t (f - c) (if c = x then colQ else colJ),
+            tr.cell t (f - c) (if c = x then colT1 else colT2), tr.cell t (f - c) (if c = x then colC else colO)] →
+          r0 = f - (if i0 = iMinit B then x else cons c) ∧ (i0 = iMinit B → cons c = d + 1) ∧
+            (i0 = iMW2 B → cons c ≤ d) := by
+        intro r0 i0 hr0 hi0 ha0 hm0
+        have hts : cv tr t (f - c) (if c = x then colT1 else colT2) = cons c := by
+          show _ = (if c = x then cv tr t (f - c) colT1 else cv tr t (f - c) colT2); split <;> rfl
+        rcases hi0 with rfl | rfl
+        · rw [msg_minit] at hm0; simp only [List.cons.injEq] at hm0
+          obtain ⟨e1, e2, e3, -, -⟩ := hm0
+          have hinst : cv tr t r0 colInst = f - d := by rw [cv_of_cell e1]; exact (I.rows c hR.1).2.2.1
+          obtain ⟨hrow, -, hLd, -⟩ := write_row B hL hG hH hf hfin I hr0 (Or.inl rfl) ha0 hinst
+          have hq : cv tr t r0 colQ = x := by rw [cv_of_cell e2, hpos]
+          refine ⟨by rw [if_pos rfl, hrow, hq], fun _ => by rw [← hts, ← cv_of_cell e3, hLd rfl], fun h => ?_⟩
+          exfalso
+          have := congrArg Interaction.mult h
+          simp [iMinit, iMW2, Buses.is, interactions, ZkFormal.Chacha.Table.E.c, colA, colS2] at this
+        · rw [msg_mw2] at hm0; simp only [List.cons.injEq] at hm0
+          obtain ⟨e1, e2, e3, -, -⟩ := hm0
+          have hinst : cv tr t r0 colInst = f - d := by rw [cv_of_cell e1]; exact (I.rows c hR.1).2.2.1
+          obtain ⟨hrow, hqd, -, -⟩ := write_row B hL hG hH hf hfin I hr0 (Or.inr rfl) ha0 hinst
+          have hq : cv tr t r0 colQ = cons c := by rw [cv_of_cell e3, hts]
+          have hne : ¬ (iMW2 B = iMinit B) := by
+            intro h; have := congrArg Interaction.mult h
+            simp [iMinit, iMW2, Buses.is, interactions, ZkFormal.Chacha.Table.E.c, colA, colS2] at this
+          refine ⟨by rw [if_neg hne, hrow, hq], fun h => absurd h hne, fun _ => by rw [← hq]; exact hqd⟩
+      obtain ⟨d1, m1, w1⟩ := dec r1 i1 hr1 hi1 ha1 hm1
+      obtain ⟨d2, m2, w2⟩ := dec r2 i2 hr2 hi2 ha2 hm2
+      rcases hi1 with rfl | rfl <;> rcases hi2 with rfl | rfl
+      · exact ⟨by rw [d1, d2], rfl⟩
+      · have := m1 rfl; have := w2 rfl; omega
+      · have := w1 rfl; have := m2 rfl; omega
+      · exact ⟨by rw [d1, d2], rfl⟩
+    obtain ⟨hrr, hii⟩ := read_unique B hB hM hw (show f - c < _ by have := I.hdf; omega)
+      (show f - c' < _ by have := I.hdf; omega) hi hi' hb hb' hs hs' rfl hm ha ha'
+    have := I.hdf; have := hR.1; have := hR'.1; omega
+  have hstep : ∀ ts, W ts → ts ≠ d + 1 → R ts := by
+    intro ts hW hne
+    rcases hW with h | ⟨h1, h2, h3, h4⟩
+    · exact absurd h hne
+    · exact ⟨h2, Or.inr ⟨h1, h3, h4⟩⟩
+  have hle : ∀ ts, W ts → ts ≤ d + 1 := by
+    intro ts hW; rcases hW with h | ⟨-, h, -⟩ <;> omega
+  have hml := mem_latest W R cons (d + 1) (fun c hR => ⟨(wr c hR).1, (wr c hR).2.1⟩) hinj hstep
+    (Or.inl rfl) hle
+  intro c hR
+  obtain ⟨a1, a2, a3, a4⟩ := wr c hR
+  exact ⟨a1, a2, a3, a4, hml c hR⟩
+
 end
 
 end ZkFormal.Chacha.Shuffle
