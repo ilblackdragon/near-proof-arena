@@ -152,4 +152,123 @@ theorem prepD0_rawOk {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint =
   have H := prepD0_sched h sp hsp
   exact rawOk_of sp (by have := H.n64; omega) H.keys H.a8
 
+/-! ## Seeds are 32 bytes -/
+
+set_option maxHeartbeats 2000000 in
+theorem decodeBlockV6_hash {v : Nat} {ph lite rest : Bytes} {hdr : BlockHdr}
+    (h : decodeBlockV6 v ph lite rest = .ok hdr) : hdr.hash.length = 32 := by
+  unfold decodeBlockV6 at h
+  repeat' (first
+    | (obtain ⟨_, _, h⟩ := bind_ok h)
+    | (split at h)
+    | (dsimp only at h))
+  all_goals try (cases h; done)
+  all_goals try (exfalso; exact throw_ne (by assumption))
+  all_goals (simp only [pure, Except.pure, Except.ok.injEq] at h; subst h; simp [blockHash, ArenaCore.sha256_length])
+
+theorem decodeBlk_hash {r : BlockRec} {b : Blk} (h : decodeBlk r = .ok b) : b.hdr.hash.length = 32 := by
+  unfold decodeBlk at h
+  obtain ⟨hdr, hh, h⟩ := bind_ok h
+  obtain ⟨sl, -, h⟩ := bind_ok h
+  obtain ⟨u, -, h⟩ := bind_ok h
+  simp only [pure, Except.pure, Except.ok.injEq] at h; subst h
+  exact decodeBlockV6_hash hh
+
+/-- A hash-linked segment: every block but the last has a 32-byte `prevHash`. -/
+theorem prevHash_len {blks : List Blk} {rs : List BlockRec} (hdec : List.mapM decodeBlk rs = .ok blks)
+    {u : Unit} {m : String}
+    (hlink : check ((blks.zip (List.drop 1 (List.map (fun x => x.hdr.hash) blks))).all fun x =>
+        match x with
+        | (b, h) => b.hdr.prevHash == h) m = .ok u)
+    {k : Nat} (hk : k + 1 < blks.length) : blks[k].hdr.prevHash.length = 32 := by
+  have hall := List.all_eq_true.1 (check_ok hlink)
+  have hmem : (blks[k], (List.drop 1 (List.map (fun x => x.hdr.hash) blks))[k]'(by simp; omega)) ∈
+      blks.zip (List.drop 1 (List.map (fun x => x.hdr.hash) blks)) := by
+    have := List.getElem_mem (l := blks.zip (List.drop 1 (List.map (fun x => x.hdr.hash) blks)))
+      (n := k) (by simp; omega)
+    simpa [List.getElem_zip] using this
+  have e := hall _ hmem
+  simp only [beq_iff_eq] at e
+  rw [e]
+  simp only [List.getElem_drop, List.getElem_map]
+  obtain ⟨r, -, hr⟩ := mapM_ok decodeBlk rs blks hdec _ (List.getElem_mem (l := blks) (n := k + 1) hk)
+  have e2 := decodeBlk_hash hr
+  simp only [show 1 + k = k + 1 by omega]
+  exact e2
+
+/-- The closing step of `prepClaim` for seeds. -/
+theorem seed_close {rs : List BlockRec} {blks : List Blk} {L : Layout} {i j : Nat} {b B2 : Blk}
+    {own g gp stop : Nat} {sched : List SchedPub} {u1 u2 : Unit} {m1 m2 : String}
+    {f : ApplyCtx → Except String SchedPub}
+    (hdec : List.mapM decodeBlk rs = .ok blks)
+    (hlink : check ((blks.zip (List.drop 1 (List.map (fun x => x.hdr.hash) blks))).all fun x =>
+        match x with
+        | (b, h) => b.hdr.prevHash == h) m1 = .ok u1)
+    (hm : List.mapM f (blockCtx L own g B2 gp ::
+      List.map (fun M => blockCtx L own g M M.hdr.nextGasPrice) (List.take i blks).reverse) = .ok sched)
+    (hb : blks[i]? = some b) (hpb : (pure b : Except String Blk) = .ok B2)
+    (hst : (pure (i + 1 + j) : Except String Nat) = .ok stop)
+    (hlen : check (stop + 1 == blks.length) m2 = .ok u2)
+    (hf : ∀ ctx sp, f ctx = .ok sp → schedPub ctx = some sp) :
+    ∀ sp ∈ sched, sp.seed.length = 32 := by
+  have hl := check_ok hlen
+  simp only [beq_iff_eq] at hl
+  simp only [pure, Except.pure, Except.ok.injEq] at hpb hst; subst hpb hst
+  have hi : i + 1 < blks.length := by omega
+  have hseed : ∀ ctx sp, schedPub ctx = some sp → sp.seed = ctx.prevBlockHash := by
+    intro ctx sp h
+    unfold schedPub pubOf at h
+    by_cases hn : ctx.layout.shardIds.length = 0
+    · simp [hn] at h
+    · cases hp : Params.calculate Config.pv86 ctx.layout.shardIds.length with
+      | none => simp [hn, hp] at h
+      | some p =>
+        simp only [hn, hp, ↓reduceIte] at h
+        simp only [Option.bind, bind, Option.some.injEq] at h
+        subst h; rfl
+  intro sp hsp
+  obtain ⟨ctx, hctx, hfc⟩ := mapM_ok f _ _ hm sp hsp
+  rw [hseed ctx sp (hf ctx sp hfc)]
+  rcases List.mem_cons.1 hctx with e | e
+  · subst e
+    have hbi : blks[i] = b := by
+      rw [List.getElem?_eq_getElem (by omega)] at hb; exact Option.some.inj hb
+    simp only [blockCtx]
+    rw [← hbi]
+    exact prevHash_len hdec hlink hi
+  · obtain ⟨M, hM, rfl⟩ := List.mem_map.1 e
+    obtain ⟨k, hk, hkM⟩ := List.getElem_of_mem (List.mem_reverse.1 hM)
+    rw [List.getElem_take] at hkM
+    have hk' : k < i := by simp at hk; omega
+    simp only [blockCtx]
+    rw [← hkM]
+    exact prevHash_len hdec hlink (by omega)
+
+set_option maxHeartbeats 4000000 in
+/-- Every seed of a successful `prepClaim` is 32 bytes. -/
+theorem prepClaim_seed {cb : Bytes} {pc : PrepC} (h : prepClaim cb = .ok pc) :
+    ∀ sp ∈ pc.sched, sp.seed.length = 32 := by
+  unfold prepClaim at h
+  repeat' (first
+    | (obtain ⟨_, _, h⟩ := bind_ok h)
+    | (split at h)
+    | (dsimp only at h))
+  all_goals try (cases h; done)
+  all_goals try (exfalso; exact throw_ne (by assumption))
+  all_goals
+    simp only [pure, Except.pure, Except.ok.injEq] at h; subst h
+    exact seed_close (by assumption) (by assumption) (by assumption) (by assumption)
+      (by assumption) (by assumption) (by assumption) (fun ctx sp hc => by
+        split at hc
+        · simp only [pure, Except.pure, Except.ok.injEq] at hc; subst hc; assumption
+        · cases hc)
+
+/-- **Every scheduler seed of a successful `prepD0` is 32 bytes.** -/
+theorem prepD0_seed {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = .ok p) :
+    ∀ sp ∈ p.sched, sp.seed.length = 32 := by
+  unfold prepD0 at h
+  obtain ⟨pc, hpc, hb⟩ := bind_ok h
+  rw [prepBody_sched hb]
+  exact prepClaim_seed hpc
+
 end ZkFormal.NearV3.Sched
