@@ -50,9 +50,47 @@ ClassMeasurement = TypedDict(
         "median_ns": int,
         "peak_rss_bytes": int,
         "proof_bytes_max": int,
+        "proof_bytes_runs": NotRequired[List[int]],
         "runs_ns": List[int],
         "verify_median_ns": int,
+        "verify_runs_ns": NotRequired[List[int]],
         "weight_ppm": int,
+    },
+)
+
+# Cost components of one class (component medians, integer femto-USD per batch run). `*_fusd` validator terms already include the `N_v` factor.
+CostClass = TypedDict(
+    "CostClass",
+    {
+        "bandwidth_fusd": int,
+        "baseline_total_fusd": int,
+        "class_id": str,
+        "prepare_fusd": int,
+        "proof_bytes": int,
+        "prove_fusd": int,
+        "prove_ns": int,
+        "storage_fusd": int,
+        "total_fusd": int,
+        "verify_fusd": int,
+        "verify_ns": int,
+        "weight_ppm": int,
+    },
+)
+
+ScoringKind = Literal["speed", "cost_v1"]
+
+# `BenchmarkResult.cost` (v1.5, additive): the cost-board result.
+CostResult = TypedDict(
+    "CostResult",
+    {
+        "classes": List[CostClass],
+        "kind": ScoringKind,
+        "price_model_digest": Digest,
+        "price_model_id": str,
+        "score_ci_milli": NotRequired[Optional[int]],
+        "score_milli": NotRequired[Optional[int]],
+        "validators_per_chunk": int,
+        "verifier_vcpus": int,
     },
 )
 
@@ -60,6 +98,7 @@ BenchmarkResult = TypedDict(
     "BenchmarkResult",
     {
         "classes": List[ClassMeasurement],
+        "cost": NotRequired[Optional[CostResult]],
         "hardware_profile": str,
         "measured_by": str,
         "prepare_ns": int,
@@ -168,12 +207,16 @@ HardwareProfile = TypedDict(
     },
 )
 
+# Sandbox-instance granularity of steady-state benchmark runs.
+InvocationMode = Literal["vm_per_invocation", "vm_per_batch"]
+
 MeasurementProcedure = TypedDict(
     "MeasurementProcedure",
     {
         "aggregation": str,
         "cold_runs": int,
         "concurrency": int,
+        "invocation_mode": NotRequired[Optional[InvocationMode]],
         "measured_runs": int,
         "outlier_mad_k": int,
         "per_run_timeout_ms": int,
@@ -203,6 +246,63 @@ ResourceLimits = TypedDict(
         "max_ram_bytes": int,
         "max_verify_ms": int,
         "max_vram_bytes": int,
+    },
+)
+
+# Reference-candidate cost components of one class, measured under the challenge's procedure (component medians over measured runs; one run = one batch of `batch_size` requests).
+CostBaselineClass = TypedDict(
+    "CostBaselineClass",
+    {
+        "class_id": str,
+        "proof_bytes": int,
+        "prove_ns": int,
+        "verify_ns": int,
+    },
+)
+
+# Why a price-model parameter has its value (part of the hashed object, so the rationale cannot be edited without a new version).
+PriceRationale = TypedDict(
+    "PriceRationale",
+    {
+        "basis": str,
+        "note": str,
+        "param": str,
+        "sources": List[str],
+    },
+)
+
+# `arena-price-model-v1`: integers only, femto-USD. Per-chunk system cost of one proved request (docs/BENCHMARK_SPEC.md §14.2):
+# 
+# ```text C = c_cpu·vcpus_p·T_prove + c_cpu·vcpus_p·T_prepare·/A + N_v · ( c_cpu·vcpus_v·T_verify + (c_bw + c_store)·proof_bytes ) ```
+PriceModel = TypedDict(
+    "PriceModel",
+    {
+        "bandwidth_fusd_per_byte": int,
+        "cpu_fusd_per_vcpu_second": int,
+        "currency": str,
+        "effective_from": str,
+        "id": str,
+        "prepare_amortization_requests": int,
+        "rationale": List[PriceRationale],
+        "schema": str,
+        "status": str,
+        "storage_fusd_per_byte": int,
+        "unit": str,
+        "validators_per_chunk": int,
+        "verifier_vcpus": int,
+        "version": int,
+    },
+)
+
+# `ChallengeDefinition.scoring` (v1.5, additive).
+ScoringSpec = TypedDict(
+    "ScoringSpec",
+    {
+        "cost_baseline": NotRequired[List[CostBaselineClass]],
+        "cost_baseline_prepare_ns": NotRequired[Optional[int]],
+        "kind": ScoringKind,
+        "price_model": NotRequired[Optional[PriceModel]],
+        "price_model_digest": NotRequired[Optional[Digest]],
     },
 )
 
@@ -316,6 +416,7 @@ ChallengeDefinition = TypedDict(
         "resource_limits": ResourceLimits,
         "runtime_config_digest": Digest,
         "schema": str,
+        "scoring": NotRequired[Optional[ScoringSpec]],
         "season": str,
         "security_profile": SecurityProfile,
         "semantic_scope": SemanticScope,
@@ -399,11 +500,17 @@ LeaderboardEntry = TypedDict(
         "accepted": NotRequired[Optional[bool]],
         "agent": str,
         "backend_family": str,
+        "board": NotRequired[Optional[ScoringKind]],
         "candidate_name": str,
+        "challenge_id": NotRequired[str],
+        "cost": NotRequired[Optional[CostResult]],
+        "cost_score_ci_milli": NotRequired[Optional[int]],
+        "cost_score_milli": NotRequired[Optional[int]],
         "decision": NotRequired[Optional[Decision]],
         "hardware_profile": str,
         "peak_rss_bytes": NotRequired[Optional[int]],
         "proof_bytes": NotRequired[Optional[int]],
+        "protocol_version": NotRequired[int],
         "prove_median_ns": NotRequired[Optional[int]],
         "rank": NotRequired[Optional[int]],
         "revoked": bool,
@@ -413,6 +520,7 @@ LeaderboardEntry = TypedDict(
         "security_profile": str,
         "submission_id": str,
         "submitted_at": str,
+        "superseded_by": NotRequired[Optional[str]],
         "tier": Tier,
         "verify_median_ns": NotRequired[Optional[int]],
     },
@@ -468,7 +576,11 @@ VerifiedSurface = TypedDict(
         "formal_tree": Digest,
         "prepare_artifact": Digest,
         "public_artifacts": Digest,
+        "verifier_bytecode": NotRequired[Optional[Digest]],
+        "verifier_model": NotRequired[Optional[str]],
+        "verifier_model_module": NotRequired[Optional[str]],
         "verify_artifact": Digest,
+        "verify_route": NotRequired[Optional[VerifyRoute]],
     },
 )
 
@@ -506,4 +618,4 @@ SubmissionView = TypedDict(
     },
 )
 
-__all__ = ["AdversaryClass", "ArtifactRef", "Assumption", "AssumptionRef", "BenchmarkResult", "BuildInfo", "BuildSection", "CandidateManifest", "ChallengeDefinition", "ChangeClass", "ClaimEncoding", "ClassMeasurement", "Decision", "Digest", "EdgeStatus", "EntrySection", "EvidenceEdge", "EvidenceGraph", "EvidenceNode", "EvidenceRef", "FormalParams", "FormalSection", "FormalSpecRef", "GateResult", "GateStatus", "HardwareProfile", "HardwareRequest", "LeaderboardEntry", "LogExcerpt", "MeasurementProcedure", "NearcorePin", "NodeKind", "ObligationId", "Privacy", "ReasonCode", "ResourceLimits", "Restriction", "Revocation", "RevocationEvent", "ScopeKind", "SecurityModel", "SecurityProfile", "SemanticScope", "SetupModel", "Stage", "SubmissionView", "Tier", "ToolchainPolicy", "TrustedBaseEntry", "VerifiedSurface", "VerifyRoute", "WorkloadClass", "WorkloadSuite"]
+__all__ = ["AdversaryClass", "ArtifactRef", "Assumption", "AssumptionRef", "BenchmarkResult", "BuildInfo", "BuildSection", "CandidateManifest", "ChallengeDefinition", "ChangeClass", "ClaimEncoding", "ClassMeasurement", "CostBaselineClass", "CostClass", "CostResult", "Decision", "Digest", "EdgeStatus", "EntrySection", "EvidenceEdge", "EvidenceGraph", "EvidenceNode", "EvidenceRef", "FormalParams", "FormalSection", "FormalSpecRef", "GateResult", "GateStatus", "HardwareProfile", "HardwareRequest", "InvocationMode", "LeaderboardEntry", "LogExcerpt", "MeasurementProcedure", "NearcorePin", "NodeKind", "ObligationId", "PriceModel", "PriceRationale", "Privacy", "ReasonCode", "ResourceLimits", "Restriction", "Revocation", "RevocationEvent", "ScopeKind", "ScoringKind", "ScoringSpec", "SecurityModel", "SecurityProfile", "SemanticScope", "SetupModel", "Stage", "SubmissionView", "Tier", "ToolchainPolicy", "TrustedBaseEntry", "VerifiedSurface", "VerifyRoute", "WorkloadClass", "WorkloadSuite"]

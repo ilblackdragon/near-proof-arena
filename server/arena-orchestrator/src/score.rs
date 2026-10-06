@@ -171,6 +171,113 @@ mod tests {
         let b = br(vec![cm("a", 500_000, 25, 100), cm("b", 500_000, 50, 50)]);
         assert_eq!(compute_score_milli(&b), Some(200_000));
     }
+    fn v1_6(cost: bool) -> ChallengeDefinition {
+        let mut c: ChallengeDefinition = serde_json::from_str(include_str!(
+            "../../../challenges/chl_7c0456cb2d1a36f8601863ac206cfcc9.json"
+        ))
+        .unwrap();
+        if cost {
+            let mut pm: arena_types::PriceModel = serde_json::from_str(include_str!(
+                "../../../challenges/price-models/pm-near-mainnet-2026q4.draft.json"
+            ))
+            .unwrap();
+            pm.status = "governed".into();
+            c.scoring = Some(arena_types::ScoringSpec {
+                kind: arena_types::ScoringKind::CostV1,
+                price_model_digest: Some(pm.digest().unwrap()),
+                price_model: Some(pm),
+                cost_baseline: c
+                    .workload_suite
+                    .baseline_ns
+                    .iter()
+                    .map(|(id, ns)| arena_types::scoring::CostBaselineClass {
+                        class_id: id.clone(),
+                        prove_ns: *ns,
+                        verify_ns: 40_000_000,
+                        proof_bytes: 10_000,
+                    })
+                    .collect(),
+                cost_baseline_prepare_ns: None,
+            });
+        }
+        c
+    }
+
+    /// The reference candidate's own measurements, with a forged worker cost.
+    fn reference_bench(c: &ChallengeDefinition) -> BenchmarkResult {
+        let classes = c
+            .workload_suite
+            .baseline_ns
+            .iter()
+            .map(|(id, ns)| ClassMeasurement {
+                class_id: id.clone(),
+                weight_ppm: c
+                    .workload_suite
+                    .classes
+                    .iter()
+                    .find(|k| &k.id == id)
+                    .unwrap()
+                    .weight_ppm,
+                runs_ns: vec![*ns; 3],
+                median_ns: *ns,
+                mad_ns: 0,
+                cold_ns: None,
+                baseline_ns: 0,
+                verify_median_ns: 5_000_000,
+                proof_bytes_max: 1_250,
+                peak_rss_bytes: 1,
+                verify_runs_ns: vec![40_000_000; 3],
+                proof_bytes_runs: vec![10_000; 3],
+            })
+            .collect();
+        let mut b = br(classes);
+        b.suite_revision = c.workload_suite.revision.clone();
+        b
+    }
+
+    #[test]
+    fn server_recomputes_cost_and_keeps_kinds_apart() {
+        let c = v1_6(true);
+        let mut b = reference_bench(&c);
+        let d = c
+            .scoring
+            .as_ref()
+            .unwrap()
+            .price_model_digest
+            .clone()
+            .unwrap();
+        b.cost = Some(arena_types::CostResult {
+            kind: arena_types::ScoringKind::CostV1,
+            price_model_id: "forged".into(),
+            price_model_digest: d,
+            validators_per_chunk: 1,
+            verifier_vcpus: 1,
+            score_milli: Some(999_999_999),
+            score_ci_milli: Some(7),
+            classes: vec![],
+        });
+        let n = normalize_benchmark(&c, b.clone()).unwrap();
+        let cost = n.cost.unwrap();
+        assert_eq!(cost.score_milli, Some(100_000));
+        assert_eq!(cost.score_ci_milli, Some(7));
+        assert_eq!(cost.validators_per_chunk, 84);
+        assert_eq!(cost.classes.len(), 3);
+        assert_eq!(n.score_milli, Some(100_000));
+
+        // Speed challenge: a worker-sent cost result is dropped.
+        let s = v1_6(false);
+        let n = normalize_benchmark(&s, b.clone()).unwrap();
+        assert!(n.cost.is_none());
+
+        // Old results without per-run verify/bytes: no cost score.
+        let mut old = b;
+        for k in &mut old.classes {
+            k.verify_runs_ns.clear();
+            k.proof_bytes_runs.clear();
+        }
+        assert!(normalize_benchmark(&c, old).unwrap().cost.is_none());
+    }
+
     #[test]
     fn missing_baseline_no_score() {
         assert_eq!(

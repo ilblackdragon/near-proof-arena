@@ -632,3 +632,49 @@ fn cost_result(
         Some(ci.half_width_milli),
     )))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::verify_cpu_set;
+
+    fn chal(verifier_vcpus: Option<u32>) -> arena_types::ChallengeDefinition {
+        let mut c: arena_types::ChallengeDefinition = serde_json::from_str(include_str!(
+            "../../../../challenges/chl_7c0456cb2d1a36f8601863ac206cfcc9.json"
+        ))
+        .unwrap();
+        if let Some(k) = verifier_vcpus {
+            let mut pm: arena_types::PriceModel = serde_json::from_str(include_str!(
+                "../../../../challenges/price-models/pm-near-mainnet-2026q4.draft.json"
+            ))
+            .unwrap();
+            pm.verifier_vcpus = k;
+            c.scoring = Some(arena_types::ScoringSpec {
+                kind: arena_types::ScoringKind::CostV1,
+                price_model_digest: Some(pm.digest().unwrap()),
+                price_model: Some(pm),
+                cost_baseline: vec![],
+                cost_baseline_prepare_ns: None,
+            });
+        }
+        c
+    }
+
+    #[test]
+    fn verify_runs_on_the_reference_validator_profile() {
+        let cpus: Vec<u32> = (0..8).collect();
+        // speed challenge: verify on the benchmark set, unchanged
+        assert_eq!(
+            verify_cpu_set(&chal(None), Some(&cpus)).unwrap(),
+            Some(cpus.clone())
+        );
+        assert_eq!(verify_cpu_set(&chal(None), None).unwrap(), None);
+        // cost_v1: the first verifier_vcpus benchmark CPUs
+        assert_eq!(
+            verify_cpu_set(&chal(Some(2)), Some(&cpus)).unwrap(),
+            Some(vec![0, 1])
+        );
+        // fail closed when the profile cannot be pinned
+        assert!(verify_cpu_set(&chal(Some(9)), Some(&cpus)).is_err());
+        assert!(verify_cpu_set(&chal(Some(2)), None).is_err());
+    }
+}
