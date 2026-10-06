@@ -304,6 +304,65 @@ fn reference_all_stages() {
     all_stages(&f, arena_types::challenge::Tier::Demo);
 }
 
+/// The pre-canonical reference (proof = raw witness; hostile case
+/// `adversarial/hostile-submissions/near-v3-malleable-witness`) passes the
+/// formal gates and conformance but must fail ADVERSARIAL_PROOFS with
+/// HOSTILE_PROOF_ACCEPTED, deterministically, via `v3-ignored-fields`.
+#[test]
+fn malleable_witness_reference_fails_adversarial() {
+    let mut f = fixture();
+    if v3_env(&mut f).is_none() {
+        return;
+    }
+    let mut files = package(&f);
+    let hostile = "adversarial/hostile-submissions/near-v3-malleable-witness";
+    for (p, v) in git_files(hostile) {
+        if ["BASE", "expect.json", "README.md"].contains(&p.as_str()) {
+            continue;
+        }
+        files.insert(p, v);
+    }
+    let pkg = f.put(&tar_of(&files));
+    let c = ctx(&f, &pkg);
+    let v = run(&f, JobSpec::Validate(ValidateJob { ctx: c.clone(), challenge: f.chal.clone() }));
+    let manifest = v.manifest.unwrap();
+    let b = run(
+        &f,
+        JobSpec::Build(BuildJob { ctx: c.clone(), challenge: f.chal.clone(), manifest: manifest.clone() }),
+    );
+    let mut build = b.build.unwrap();
+    let vs = VerifiedSurface {
+        challenge_id: challenge_id(&f),
+        verify_artifact: build.verify.clone(),
+        prepare_artifact: build.prepare.clone(),
+        public_artifacts: build.public_artifacts.clone(),
+        formal_tree: build.formal_tree.clone(),
+        certificate_decl: build.certificate_decl.clone(),
+        checker_image: f.chal.toolchain_policy.checker_image.clone(),
+        verify_route: manifest.entry.verify_route,
+        verifier_bytecode: build.verifier_bytecode.clone(),
+        verifier_model: manifest.formal.as_ref().and_then(|f| f.verifier_model.clone()),
+        verifier_model_module: manifest.formal.as_ref().and_then(|f| f.verifier_model_module.clone()),
+    };
+    let fc = run(
+        &f,
+        JobSpec::FormalCheck(FormalCheckJob {
+            ctx: c.clone(),
+            challenge: f.chal.clone(),
+            manifest: manifest.clone(),
+            build: build.clone(),
+            verified_surface: vs,
+        }),
+    );
+    build.native_verifier = Some(fc.native_verifier.clone().expect("judge-built native verifier"));
+    let job = ExecJob { ctx: c, challenge: f.chal.clone(), manifest, build };
+    let a = run(&f, JobSpec::Adversarial(job));
+    let g = &a.gates[0];
+    assert_eq!(g.status, GateStatus::Fail, "{}", g.summary);
+    assert!(g.reason_codes.contains(&arena_types::ReasonCode::HostileProofAccepted));
+    assert!(g.summary.contains("v3-ignored-fields/"), "{}", g.summary);
+}
+
 /// A candidate whose verifier accepts everything passes every positive case;
 /// CONFORMANCE must fail on the rejection cases (COUNTEREXAMPLE_FOUND) — the
 /// rejection oracle is what catches it (the unsigned draft + bwrap-dev).

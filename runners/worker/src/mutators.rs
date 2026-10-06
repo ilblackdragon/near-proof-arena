@@ -185,6 +185,141 @@ impl ProofMutator for AppendGarbage {
     }
 }
 
+/// Structure-aware mutations of the bytes nearcore's chunk validator never
+/// reads (v3, `near-arena-witness-v3` proofs). When an honest proof *is* a
+/// witness file, flip one bit of the chunk header's `height_included`, of its
+/// signature, and of every `ChunkStateTransition.block_hash`. A verifier that
+/// accepts any of them accepts two different proof byte strings for one proof
+/// slot (malleability): deterministic `HOSTILE_PROOF_ACCEPTED`, not left to
+/// the random `bitflip` positions. Proofs in any other format produce nothing.
+pub struct V3IgnoredFields;
+
+/// Offsets (in the witness *file*) of the validator-ignored fields of a
+/// `near-arena-witness-v3` proof, or `None` if the bytes are not one in the
+/// D0 layout this walker knows (`NearSpecV3.decodeStateWitness`).
+pub fn v3_ignored_offsets(file: &[u8]) -> Option<Vec<(String, usize)>> {
+    struct R<'a> {
+        b: &'a [u8],
+        p: usize,
+    }
+    impl<'a> R<'a> {
+        fn take(&mut self, n: usize) -> Option<&'a [u8]> {
+            let s = self.b.get(self.p..self.p.checked_add(n)?)?;
+            self.p += n;
+            Some(s)
+        }
+        fn u8(&mut self) -> Option<u8> {
+            Some(self.take(1)?[0])
+        }
+        fn u32(&mut self) -> Option<u32> {
+            Some(u32::from_le_bytes(self.take(4)?.try_into().ok()?))
+        }
+        fn bytes(&mut self) -> Option<&'a [u8]> {
+            let n = self.u32()? as usize;
+            self.take(n)
+        }
+        fn pk(&mut self) -> Option<()> {
+            let n = match self.u8()? { 0 => 32, 1 => 64, 2 => 1952, _ => return None };
+            self.take(n).map(|_| ())
+        }
+        fn transition(&mut self) -> Option<usize> {
+            let at = self.p;
+            self.take(32)?;
+            (self.u8()? == 0).then_some(())?;
+            for _ in 0..self.u32()? {
+                self.bytes()?;
+            }
+            self.take(32)?;
+            Some(at)
+        }
+    }
+    let tag = b"near-arena-witness-v3";
+    let mut f = R { b: file, p: 0 };
+    (f.bytes()? == tag).then_some(())?;
+    let n = f.u32()? as usize;
+    let base = f.p;
+    let sw = f.take(n)?;
+    let mut r = R { b: sw, p: 0 };
+    (r.u8()? == 1).then_some(())?;
+    r.take(32)?;
+    (r.u8()? == 2).then_some(())?;
+    let itag = r.u8()?;
+    (itag == 3 || itag == 4).then_some(())?;
+    r.take(4 * 32 + 5 * 8 + 16 + 2 * 32)?;
+    for _ in 0..r.u32()? {
+        (r.u8()? == 0).then_some(())?;
+        r.bytes()?;
+        r.pk()?;
+        r.take(16)?;
+    }
+    (r.u8()? == 0).then_some(())?;
+    r.take(42)?;
+    (r.u8()? == 0).then_some(())?;
+    for _ in 0..r.u32()? {
+        r.take(7)?;
+    }
+    if itag == 4 {
+        match r.u8()? {
+            0 => {}
+            1 => {
+                r.bytes()?;
+                r.take(16)?;
+            }
+            _ => return None,
+        }
+    }
+    let mut out = vec![("height_included".to_string(), base + r.p)];
+    r.take(8)?;
+    let sig_tag = r.u8()?;
+    out.push(("signature".to_string(), base + r.p));
+    r.take(match sig_tag { 0 => 64, 1 => 65, 2 => 3309, _ => return None })?;
+    out.push(("block_hash.main".to_string(), base + r.transition()?));
+    for _ in 0..r.u32()? {
+        r.take(32)?;
+        for _ in 0..r.u32()? {
+            r.bytes()?;
+            r.bytes()?;
+            r.take(32)?;
+            (r.u8()? == 0).then_some(())?;
+            r.bytes()?;
+            r.pk()?;
+            r.take(16)?;
+            (r.u32()? == 0 && r.u32()? == 0 && r.u32()? == 1 && r.u8()? == 3).then_some(())?;
+            r.take(16)?;
+        }
+        r.take(16)?;
+        for _ in 0..r.u32()? {
+            r.take(33)?;
+        }
+    }
+    r.take(32)?;
+    (r.u32()? == 0).then_some(())?;
+    for i in 0..r.u32()? {
+        out.push((format!("block_hash.implicit{i}"), base + r.transition()?));
+    }
+    Some(out)
+}
+
+impl ProofMutator for V3IgnoredFields {
+    fn name(&self) -> &str {
+        "v3-ignored-fields"
+    }
+    fn mutate(&self, ctx: &MutationCtx<'_>, _: &mut SplitMix64) -> Vec<HostileInput> {
+        let mut out = vec![];
+        for p in ctx.honest {
+            let Some(offs) = v3_ignored_offsets(&p.proof) else {
+                continue;
+            };
+            for (field, at) in offs {
+                let mut q = p.proof.clone();
+                q[at] ^= 1;
+                out.push(h(format!("v3-ignored-fields/{field}/{}", p.case_id), &p.claim, q));
+            }
+        }
+        out
+    }
+}
+
 /// Adapter for a structure-aware mutator from the adversarial lane
 /// (`adversarial/proof-mutators`). Registered under `adv:<name>`. Each honest
 /// pair is mutated with the next pair (cyclically) as the foreign
@@ -242,7 +377,7 @@ impl MutatorRegistry {
     pub fn empty() -> Self {
         MutatorRegistry { mutators: vec![] }
     }
-    /// truncate, bitflip, empty, oversize, swap, append.
+    /// truncate, bitflip, empty, oversize, swap, append, v3-ignored-fields.
     pub fn generic() -> Self {
         MutatorRegistry {
             mutators: vec![
@@ -252,6 +387,7 @@ impl MutatorRegistry {
                 Box::new(Oversize),
                 Box::new(SwapClaimProof),
                 Box::new(AppendGarbage),
+                Box::new(V3IgnoredFields),
             ],
         }
     }
@@ -399,5 +535,36 @@ mod tests {
             .len(),
             2
         );
+    }
+
+    /// The v3 structure-aware mutator hits exactly the validator-ignored
+    /// fields of a real witness (offsets from the exhaustive bit-flip map of
+    /// `00-h10004-s3`: height_included at 365, signature body at 374, main
+    /// transition block_hash at 438) and nothing for other formats.
+    #[test]
+    fn v3_ignored_fields_targets_the_validator_ignored_bytes() {
+        let w = std::fs::read(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../oracle/fixtures/v3/arena-public/cases/00-h10004-s3/witness.bin"),
+        )
+        .unwrap();
+        let offs = v3_ignored_offsets(&w).unwrap();
+        let get = |f: &str| offs.iter().find(|(n, _)| n == f).unwrap().1;
+        assert_eq!(get("height_included"), 365);
+        assert_eq!(get("signature"), 374);
+        assert_eq!(get("block_hash.main"), 438);
+        let hp = vec![HonestPair { case_id: "c".into(), claim: b"claim".to_vec(), proof: w.clone() }];
+        let ctx = MutationCtx { honest: &hp, max_proof_bytes: 1 << 26 };
+        let m = V3IgnoredFields.mutate(&ctx, &mut SplitMix64::new(1));
+        assert_eq!(m.len(), offs.len());
+        assert!(m.iter().all(|x| x.proof.len() == w.len() && x.proof != w));
+        // a witness with an implicit transition gets one more mutant
+        let w2 = std::fs::read(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../oracle/fixtures/v3/arena-public/cases/00-h10024-s0/witness.bin"),
+        )
+        .unwrap();
+        assert!(v3_ignored_offsets(&w2).unwrap().iter().any(|(n, _)| n == "block_hash.implicit0"));
+        assert!(v3_ignored_offsets(b"proof-a").is_none());
     }
 }

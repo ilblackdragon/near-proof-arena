@@ -1,0 +1,23 @@
+{
+  "case": "near-v3-malleable-witness",
+  "attack_family": "proof-malleability",
+  "targets": [
+    "near-v3"
+  ],
+  "runnable": true,
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "ADVERSARIAL_PROOFS"
+  ],
+  "expected_reason_codes": [
+    "HOSTILE_PROOF_ACCEPTED"
+  ],
+  "fail_by_stage": "ADVERSARIAL",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The first reexec-v3-d0 reference (live run 1, sub_7c6a67b0...): proof = the raw nearcore witness, verifier = decide (RelD0 claim proof) without a canonical-bytes check. It is sound (acceptance implies RelD0) and its certificate is genuine (all 6 formal gates PASS), but nearcore's validator - hence RelD0 - never reads the chunk header's height_included, its signature or any ChunkStateTransition.block_hash, so flipping a bit there gives a second accepted proof of the same claim. The judge's structure-aware mutator v3-ignored-fields flips exactly those bytes, so ADVERSARIAL_PROOFS fails deterministically (before it, only a random bit flip that happened to land there caught it).",
+  "notes": "Submit against near-chunk-validation-d0 (chl_640ed008...). Derived case: BASE examples/reexec-v3-d0 with the pre-canonical Model.lean, Obligations.lean, prove.rs (from commit 87768e1) and build.sh (model closure ReexecV3D0.Model only, so the shipped verify equals the judge build)."
+}
