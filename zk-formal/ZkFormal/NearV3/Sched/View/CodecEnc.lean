@@ -114,6 +114,31 @@ theorem codec_first (hL : CLocal tr t pub) (hH : tr.height t ≤ 2 ^ 22) {f : Na
 
 /-! ## Post bytes -/
 
+/-- The encoding rows of an instance block. -/
+theorem enc_rows (hL : CLocal tr t pub) (hH : tr.height t ≤ 2 ^ 22) {f : Nat}
+    (hf : f < tr.height t) (hF : cv tr t f kF = 1) :
+    ∀ i, i < 5 + 24 * cv tr t f NN + 32 →
+      f + i < tr.height t ∧ cv tr t (f + i) kH + cv tr t (f + i) kR + cv tr t (f + i) kZ = 1 ∧
+      cv tr t (f + i) pos = i ∧ IC tr t (f + i) f := by
+  obtain ⟨hN1, hN, hNe, b1, b2, -, HR, RR, -, ZR, hdg, -⟩ := codec_block hL hH hf hF
+  intro i hi
+  by_cases h5 : i < 5
+  · obtain ⟨hw, hk, hp, hic, -⟩ := HR i h5
+    have := kinds hL hw
+    exact ⟨hw, by omega, hp, hic⟩
+  · by_cases hr : i < 5 + 24 * cv tr t f NN
+    · obtain ⟨hw, hk, -, -, -, hp, hic⟩ := RR ((i - 5) / 24) (by omega) ((i - 5) % 24) (by omega)
+      have e : f + 5 + 24 * ((i - 5) / 24) + (i - 5) % 24 = f + i := by omega
+      rw [e] at hw hk hp hic
+      have := kinds hL hw
+      exact ⟨hw, by omega, by rw [hp]; omega, hic⟩
+    · obtain ⟨hw, hk, -, hp, hic, -⟩ := ZR (i - 5 - 24 * cv tr t f NN) (by omega)
+      have e : f + 5 + 24 * cv tr t f NN + (i - 5 - 24 * cv tr t f NN) = f + i := by omega
+      rw [e] at hw hk hp hic
+      have := kinds hL hw
+      exact ⟨hw, by omega, by rw [hp]; omega, hic⟩
+
+
 /-- **Post bytes.** -/
 theorem codec_post (hL : CLocal tr t pub) (hH : tr.height t ≤ 2 ^ 22) {f : Nat}
     (hf : f < tr.height t) (hF : cv tr t f kF = 1) :
@@ -148,26 +173,7 @@ theorem codec_post (hL : CLocal tr t pub) (hH : tr.height t ≤ 2 ^ 22) {f : Nat
     (∀ j, j < 32 → cv tr t (f + 5 + 24 * cv tr t f NN + j) bpost =
       cv tr t (f + 5 + 24 * cv tr t f NN) (reg j)) := by
   obtain ⟨hN1, hN, hNe, b1, b2, -, HR, RR, -, ZR, hdg, -⟩ := codec_block hL hH hf hF
-  -- every encoding row
-  have enc : ∀ i, i < 5 + 24 * cv tr t f NN + 32 →
-      f + i < tr.height t ∧ cv tr t (f + i) kH + cv tr t (f + i) kR + cv tr t (f + i) kZ = 1 ∧
-      cv tr t (f + i) pos = i ∧ IC tr t (f + i) f := by
-    intro i hi
-    by_cases h5 : i < 5
-    · obtain ⟨hw, hk, hp, hic, -⟩ := HR i h5
-      have := kinds hL hw
-      exact ⟨hw, by omega, hp, hic⟩
-    · by_cases hr : i < 5 + 24 * cv tr t f NN
-      · obtain ⟨hw, hk, -, -, -, hp, hic⟩ := RR ((i - 5) / 24) (by omega) ((i - 5) % 24) (by omega)
-        have e : f + 5 + 24 * ((i - 5) / 24) + (i - 5) % 24 = f + i := by omega
-        rw [e] at hw hk hp hic
-        have := kinds hL hw
-        exact ⟨hw, by omega, by rw [hp]; omega, hic⟩
-      · obtain ⟨hw, hk, -, hp, hic, -⟩ := ZR (i - 5 - 24 * cv tr t f NN) (by omega)
-        have e : f + 5 + 24 * cv tr t f NN + (i - 5 - 24 * cv tr t f NN) = f + i := by omega
-        rw [e] at hw hk hp hic
-        have := kinds hL hw
-        exact ⟨hw, by omega, by rw [hp]; omega, hic⟩
+  have enc := enc_rows hL hH hf hF
   refine ⟨fun i hi => ?_, fun j hj => ?_, fun k hk o ho => ?_, fun k hk => ?_, ?_, ?_, fun j hj => ?_⟩
   · obtain ⟨hw, he, hp, hic⟩ := enc i hi
     refine ⟨mult_of rfl (by simp only [encG, zev_add, zev_c, cur_cv]; omega), ?_⟩
@@ -248,6 +254,144 @@ theorem codec_post (hL : CLocal tr t pub) (hH : tr.height t ≤ 2 ^ 22) {f : Nat
     rw [← Nat.zero_add j, ← hreg 0 (by omega)]
     rw [Nat.zero_add]
     omega
+
+
+/-! ## Pre bytes -/
+
+/-- **Pre bytes.** -/
+theorem codec_pre (hL : CLocal tr t pub) (hH : tr.height t ≤ 2 ^ 22) {f : Nat}
+    (hf : f < tr.height t) (hF : cv tr t f kF = 1) :
+    cv tr t f pres ≤ 1 ∧
+    -- VBYTES on every encoding row, multiplicity `pres`
+    (∀ i, i < 5 + 24 * cv tr t f NN + 32 →
+      (interactions[0]!).multNat tr t (f + i) pub = cv tr t f pres ∧
+      (interactions[0]!).msgVal tr t (f + i) pub =
+        [cv tr t f vid, i, cv tr t (f + i) bpre].map Fp.ofNat) ∧
+    -- absent: all pre bytes are 0
+    (cv tr t f pres = 0 → ∀ i, i < 5 + 24 * cv tr t f NN + 32 → cv tr t (f + i) bpre = 0) ∧
+    -- header and id bytes: pre = pres·post
+    (∀ j, j < 5 → cv tr t (f + j) bpre = cv tr t f pres * cv tr t (f + j) bpost) ∧
+    (∀ k, k < cv tr t f NN → ∀ o, o < 16 →
+      cv tr t (f + 5 + 24 * k + o) bpre = cv tr t f pres * cv tr t (f + 5 + 24 * k + o) bpost) ∧
+    -- allowance pre bytes are bytes
+    (∀ k, k < cv tr t f NN → ∀ o, o < 8 → cv tr t (f + 5 + 24 * k + 16 + o) bpre < 256) ∧
+    -- hash rows: pre = the SHA input byte
+    (∀ j, j < 32 → cv tr t (f + 5 + 24 * cv tr t f NN + j) bpre =
+      cv tr t (f + 5 + 24 * cv tr t f NN + j) bsha) := by
+  obtain ⟨-, -, -, -, -, -, HR, RR, -, ZR, -⟩ := codec_block hL hH hf hF
+  have enc := enc_rows hL hH hf hF
+  have hp := (kinds hL hf).2.2.2.2.2.2.2.2.2.1
+  refine ⟨hp, fun i hi => ?_, fun h0 i hi => ?_, fun j hj => ?_, fun k hk o ho => ?_,
+    fun k hk o ho => ?_, fun j hj => ?_⟩
+  · obtain ⟨hw, he, hpos, hic⟩ := enc i hi
+    have hpr : cv tr t (f + i) pres = cv tr t f pres := hic pres (by simp [instCols])
+    obtain ⟨q, c1⟩ := zd hL hw (e := sub (c vbg) (.mul (c pres) encG)) (by simp [constraints, cKind])
+    zs c1 []
+    have h1 : (cv tr t (f + i) kH : Int) + (cv tr t (f + i) kR + cv tr t (f + i) kZ) = 1 := by omega
+    rw [h1] at c1
+    have := lt (tr := tr) (t := t) (f + i) vbg; have := lt (tr := tr) (t := t) (f + i) pres
+    refine ⟨?_, ?_⟩
+    · rw [← hpr]
+      exact mult_bit (i := interactions[0]!) rfl (by simp only [zev_c, cur_cv]; omega) (by omega)
+    · rw [i0_def]
+      simp only [Interaction.msgVal, List.map_cons, List.map_nil, ev_c]
+      rw [hic vid (by simp [instCols]), hpos]
+  · obtain ⟨hw, -, -, hic⟩ := enc i hi
+    exact pre_absent hL hw (by rw [hic pres (by simp [instCols]), h0])
+  · obtain ⟨hw, hk, -, hic, -⟩ := HR j hj
+    rw [(hdr_row hL hw hk).2, ← hic pres (by simp [instCols])]
+    split
+    · next h => rw [h, Nat.one_mul]
+    · next h =>
+      have : cv tr t (f + j) pres = 0 := by have := (kinds hL hw).2.2.2.2.2.2.2.2.2.1; omega
+      rw [this, Nat.zero_mul]
+  · have R := RR k hk o (by omega)
+    have F := rrow_flags hL R (by omega)
+    obtain ⟨hw, -, -, -, -, -, hic⟩ := R
+    have hsr : cv tr t (f + 5 + 24 * k + o) fS + cv tr t (f + 5 + 24 * k + o) fR = 1 := by
+      rw [F.1, F.2.1]; split <;> split <;> omega
+    obtain ⟨q, c1⟩ := zd hL hw (e := .mul (.add (c fS) (c fR)) (sub (c bpre) (.mul (c pres) (c bpost))))
+      (by simp [constraints, cRec])
+    zs c1 []
+    rw [← hic pres (by simp [instCols])]
+    have hpb := (kinds hL hw).2.2.2.2.2.2.2.2.2.1
+    have h1 : (cv tr t (f + 5 + 24 * k + o) fS : Int) + cv tr t (f + 5 + 24 * k + o) fR = 1 := by omega
+    rw [h1] at c1
+    have := lt (tr := tr) (t := t) (f + 5 + 24 * k + o) bpre
+    have := lt (tr := tr) (t := t) (f + 5 + 24 * k + o) bpost
+    rcases Nat.le_one_iff_eq_zero_or_eq_one.1 hpb with h | h <;> rw [h] at c1 ⊢ <;> simp at c1 ⊢ <;> omega
+  · have R := RR k hk (16 + o) (by omega)
+    rw [show f + 5 + 24 * k + 16 + o = f + 5 + 24 * k + (16 + o) by omega]
+    exact (bytes hL R.1 (by have := kinds hL R.1; have := R.2.1; omega)).2.2.2
+  · obtain ⟨hw, hk, -, -, -, -⟩ := ZR j hj
+    obtain ⟨q, c1⟩ := zd hL hw (e := .mul (c kZ) (sub (c bsha) (c bpre))) (by simp [constraints, cTrl])
+    zs c1 [hk]
+    have := lt (tr := tr) (t := t) (f + 5 + 24 * cv tr t f NN + j) bpre
+    have := lt (tr := tr) (t := t) (f + 5 + 24 * cv tr t f NN + j) bsha
+    omega
+
+/-! ## Trailer -/
+
+/-- **Sanity-hash input.** -/
+theorem codec_trailer (hL : CLocal tr t pub) (hH : tr.height t ≤ 2 ^ 22) {f : Nat}
+    (hf : f < tr.height t) (hF : cv tr t f kF = 1) :
+    (∀ j, j < 32 →
+      (interactions[2]!).multNat tr t (f + 5 + 24 * cv tr t f NN + j) pub = 1 ∧
+      (interactions[2]!).msgVal tr t (f + 5 + 24 * cv tr t f NN + j) pub =
+        [11 + 16 * cv tr t f tau, j, cv tr t (f + 5 + 24 * cv tr t f NN + j) bpre].map Fp.ofNat) ∧
+    (∀ j, j < 32 →
+      (interactions[2]!).multNat tr t (f + 5 + 24 * cv tr t f NN + 32 + j) pub = 1 ∧
+      (interactions[2]!).msgVal tr t (f + 5 + 24 * cv tr t f NN + 32 + j) pub =
+        [11 + 16 * cv tr t f tau, 32 + j, cv tr t (f + 5 + 24 * cv tr t f NN + 32 + j) bsha].map Fp.ofNat ∧
+      (interactions[9]!).multNat tr t (f + 5 + 24 * cv tr t f NN + 32 + j) pub = 1 ∧
+      (interactions[9]!).msgVal tr t (f + 5 + 24 * cv tr t f NN + 32 + j) pub =
+        [cv tr t f tau, 2, j, cv tr t (f + 5 + 24 * cv tr t f NN + 32 + j) bsha, 0, 0, 0].map Fp.ofNat) := by
+  obtain ⟨-, -, -, -, -, -, -, -, -, ZR, -, AR, -⟩ := codec_block hL hH hf hF
+  refine ⟨fun j hj => ?_, fun j hj => ?_⟩
+  · obtain ⟨hw, hk, hs, -, hic, -⟩ := ZR j hj
+    have K := kinds hL hw
+    obtain ⟨q, c1⟩ := zd hL hw (e := .mul (c kZ) (sub (c bsha) (c bpre))) (by simp [constraints, cTrl])
+    zs c1 [hk]
+    have := lt (tr := tr) (t := t) (f + 5 + 24 * cv tr t f NN + j) bpre
+    have := lt (tr := tr) (t := t) (f + 5 + 24 * cv tr t f NN + j) bsha
+    refine ⟨mult_of rfl (by simp only [zev_add, zev_c, cur_cv]; omega), ?_⟩
+    rw [i2_def]
+    simp only [Interaction.msgVal, List.map_cons, List.map_nil, ev_c, ev_shaId]
+    rw [hic tau (by simp [instCols]), hs, show cv tr t (f + 5 + 24 * cv tr t f NN + j) bsha =
+      cv tr t (f + 5 + 24 * cv tr t f NN + j) bpre by omega]
+  · obtain ⟨hw, hk, hs, hic⟩ := AR j hj
+    have K := kinds hL hw
+    have hfA : cv tr t (f + 5 + 24 * cv tr t f NN + 32 + j) fA = 0 := by omega
+    have hrd : cv tr t (f + 5 + 24 * cv tr t f NN + 32 + j) rend = 0 := by
+      rw [rend_eq hL hw, hfA, Nat.zero_mul]
+    have l := fun x => lt (tr := tr) (t := t) (f + 5 + 24 * cv tr t f NN + 32 + j) x
+    obtain ⟨q1, c1⟩ := zd hL hw (e := sub (c fwg) (.mul (c rend) (c zt))) (by simp [constraints, cRec])
+    obtain ⟨q2, c2⟩ := zd hL hw (e := .mul (c kA) (sub (c pm0) (sub (c sj) (k 32)))) (by simp [constraints, cTrl])
+    obtain ⟨q3, c3⟩ := zd hL hw (e := .mul (c kA) (sub (c pm1) (c bsha))) (by simp [constraints, cTrl])
+    obtain ⟨q4, c4⟩ := zd hL hw (e := .mul (c kA) (c (fb 0))) (by simp [constraints, cTrl])
+    obtain ⟨q5, c5⟩ := zd hL hw (e := .mul (c kA) (c (fb 1))) (by simp [constraints, cTrl])
+    obtain ⟨q6, c6⟩ := zd hL hw (e := .mul (c kA) (c (fb 2))) (by simp [constraints, cTrl])
+    zs c1 [hrd]; zs c2 [hk, hs]; zs c3 [hk]; zs c4 [hk]; zs c5 [hk]; zs c6 [hk]
+    have := l fwg; have := l pm0; have := l pm1; have := l bsha; have := l (fb 0); have := l (fb 1)
+    have := l (fb 2)
+    have hfw : cv tr t (f + 5 + 24 * cv tr t f NN + 32 + j) fwg = 0 := by omega
+    have hτ := hic tau (by simp [instCols])
+    refine ⟨mult_of rfl (by simp only [zev_add, zev_c, cur_cv]; omega), ?_,
+      mult_of rfl (by simp only [zev_add, zev_c, cur_cv]; rw [hk, hfw]; rfl), ?_⟩
+    · rw [i2_def]
+      simp only [Interaction.msgVal, List.map_cons, List.map_nil, ev_c, ev_shaId]
+      rw [hτ, hs]
+    · rw [i9_def]
+      have e2 : (Expr.add (smul 2 (c kA)) (smul 4 (c fwg))).eval tr t (f + 5 + 24 * cv tr t f NN + 32 + j) pub =
+          Fp.ofNat 2 :=
+        ev_of (by simp only [zev_add, zev_smul, zev_c, cur_cv]; rw [hk, hfw]; rfl)
+      simp only [Interaction.msgVal, List.map_cons, List.map_nil, ev_c, e2]
+      rw [hτ, show cv tr t (f + 5 + 24 * cv tr t f NN + 32 + j) pm0 = j by omega,
+        show cv tr t (f + 5 + 24 * cv tr t f NN + 32 + j) pm1 =
+          cv tr t (f + 5 + 24 * cv tr t f NN + 32 + j) bsha by omega,
+        show cv tr t (f + 5 + 24 * cv tr t f NN + 32 + j) (fb 0) = 0 by omega,
+        show cv tr t (f + 5 + 24 * cv tr t f NN + 32 + j) (fb 1) = 0 by omega,
+        show cv tr t (f + 5 + 24 * cv tr t f NN + 32 + j) (fb 2) = 0 by omega]
 
 end
 
