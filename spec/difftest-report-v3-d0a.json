@@ -1,0 +1,142 @@
+{
+ "a2_foreign_routed_mutants": {
+  "cases": 592,
+  "lean.out_of_domain": 592,
+  "python.out_of_domain": 592
+ },
+ "a8_dup_bw_request_mutants": {
+  "cases": 845,
+  "lean.out_of_domain_c.bw_requests": 845,
+  "python.out_of_domain_c.bw_requests": 845
+ },
+ "a8_reported_elsewhere": {
+  "lean": 0,
+  "python": 0
+ },
+ "amendments_on_honest_witnesses": {
+  "c.bw_requests": 0,
+  "c.gas_limit": 599,
+  "e.sched_canonical": 0,
+  "honest_witnesses": 4597,
+  "w.proof_routing": 0,
+  "w.unfolded": 0
+ },
+ "cases_dir": "generated: near-arena-oracle-v3-d0a gen --seed 4243 --chains 9 --blocks 120 --mutate-every 6 (oracle/v3-d0a at the A8 commit; honest cases byte-reproducible; A2 mutants pick their template receipt from a HashMap, so their bytes vary between runs)",
+ "counts": {
+  "d0.cases": 907,
+  "d0.expected_accept": 907,
+  "d0.lean.accept": 907,
+  "d0.python.accept": 907,
+  "mutants.amendment.c.bw_requests": 845,
+  "mutants.amendment.w.proof_routing": 592,
+  "mutants.cases": 8578,
+  "mutants.expected_accept": 1176,
+  "mutants.lean.accept": 1176,
+  "mutants.lean.out_of_domain": 1589,
+  "mutants.lean.reject": 5813,
+  "mutants.python.accept": 1176,
+  "mutants.python.out_of_domain": 1437,
+  "mutants.python.reject": 5965,
+  "ood.amendment.c.gas_limit": 269,
+  "ood.cases": 2131,
+  "ood.expected_accept": 0,
+  "ood.lean.out_of_domain": 2131,
+  "ood.python.out_of_domain": 2131
+ },
+ "disagreement_list": [],
+ "disagreements": 0,
+ "domain": "D0a",
+ "implementations": [
+  "nearcore-oracle",
+  "lean",
+  "python"
+ ],
+ "mutation_families": {
+  "c.drop_last_block|expected_accept=False": 147,
+  "c.dup_bw_request|expected_accept=False": 845,
+  "c.epoch_start_flip|expected_accept=False": 147,
+  "c.extra_block|expected_accept=False": 147,
+  "c.inner_rest_flip|expected_accept=False": 147,
+  "c.slot_height_flip|expected_accept=False": 147,
+  "c.slot_inner_flip|expected_accept=False": 147,
+  "hdr.bandwidth_requests|expected_accept=False": 147,
+  "hdr.congestion|expected_accept=False": 441,
+  "hdr.encoded_length|expected_accept=False": 147,
+  "hdr.encoded_merkle_root|expected_accept=False": 147,
+  "hdr.gas_limit|expected_accept=False": 147,
+  "hdr.height_created|expected_accept=True": 147,
+  "hdr.height_included(unchecked)|expected_accept=True": 147,
+  "hdr.prev_balance_burnt|expected_accept=False": 147,
+  "hdr.prev_gas_used|expected_accept=False": 147,
+  "hdr.prev_outcome_root|expected_accept=False": 147,
+  "hdr.prev_outgoing_receipts_root|expected_accept=False": 147,
+  "hdr.prev_state_root|expected_accept=False": 147,
+  "hdr.proposals|expected_accept=False": 147,
+  "hdr.proposed_split|expected_accept=False": 147,
+  "hdr.tx_root|expected_accept=False": 147,
+  "t.chain_id(unused_in_D0)|expected_accept=True": 147,
+  "t.minimum_stake(unused_in_D0)|expected_accept=True": 147,
+  "t.rs_params|expected_accept=False": 147,
+  "w.applied_receipts_hash|expected_accept=False": 147,
+  "w.base_state|expected_accept=False": 147,
+  "w.base_state|expected_accept=True": 147,
+  "w.corrupt_proof|expected_accept=False": 147,
+  "w.drop_node|expected_accept=False": 1384,
+  "w.drop_proof|expected_accept=False": 147,
+  "w.dup_key_last_bad|expected_accept=False": 147,
+  "w.dup_key_last_good|expected_accept=True": 147,
+  "w.epoch_id|expected_accept=False": 147,
+  "w.extra_proof|expected_accept=False": 147,
+  "w.foreign_routed_receipt|expected_accept=False": 592,
+  "w.implicit|expected_accept=False": 24,
+  "w.main_block_hash(unchecked)|expected_accept=True": 147,
+  "w.main_post_root|expected_accept=False": 147,
+  "w.trailing_byte|expected_accept=False": 147,
+  "w.unsorted_keys|expected_accept=True": 147
+ },
+ "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+ "oracle_summary": {
+  "d0_cases": 907,
+  "d0_violation_counts": {
+   "c.gas_limit": 599,
+   "c.no_split_gate": 180,
+   "c.no_tx_flags": 1696,
+   "c.not_genesis": 45,
+   "c.own_congestion_zero": 1309,
+   "c.segment": 1,
+   "c.single_epoch": 399,
+   "e.compute": 591,
+   "e.forwarded": 767,
+   "e.queues_empty": 1309,
+   "r.shape": 372,
+   "r.success": 693,
+   "w.no_txs": 2767
+  },
+  "honest_accepted_by_nearcore": 4597,
+  "honest_witnesses": 4597,
+  "mutants": 8578,
+  "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+  "ood_cases_written": 2131,
+  "protocol_version": 86,
+  "seed": 4243
+ },
+ "statement": "near/pv86/chunk-validation/v0",
+ "unfold_bytes": {
+  "compared_lean_python": 3540,
+  "compared_oracle": 927,
+  "distribution": {
+   "max": 7917,
+   "min": 1248,
+   "n": 3540,
+   "p50": 3769,
+   "p90": 5082,
+   "p99": 7234
+  },
+  "mismatch_count": 0,
+  "mismatches": []
+ },
+ "wall_seconds": {
+  "lean": 1735.835557460785,
+  "python": 9.01863980293274
+ }
+}

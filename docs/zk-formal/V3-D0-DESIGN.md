@@ -674,3 +674,173 @@ Formally the hint is therefore bounded only by the witness size (≤ 8 MiB). Und
 * (c) the scheduler in-AIR (estimated 20–40 k LOC).
 
 This is raised to the lead; lanes that do not depend on it proceed.
+
+## 11. Decisions round 2 (lead, 2026-10-06) and consequences
+
+* **Governance change.** `near-chunk-validation-d0-1` is now live: `reexec-v3-d0` is admitted on it, and it pins the NearSpecV3 tree `sha256:89903b98…`. Consequences:
+  * Every v3 amendment is **additive**, in new files: `RelD0a cb w := RelD0 cb w ∧ A1 ∧ A2 ∧ Canon0f`, plus a new successor draft challenge with `max_proof_bytes = 8,388,608`.
+  * A5 becomes candidate-side, kernel-proved `@[csimp]` redirections of the spec functions `prepD0` calls. Pinned modules cannot gain imports.
+  * Extracted witnesses are emitted in the v3-ref normal form `normalW`. The encoder reuses `normSW`/`normW` and their lemmas from main.
+* **8 MiB cap, option (a) then (c).**
+  * Canonicality of `0x0f` bounds the main-transition `s₀` at 98,341 B.
+  * It does **not** make the hint complete under 8 MiB, for two reasons:
+    1. A `RelD0a` witness may read, in each implicit transition, a canonical `0x0f` value that differs from the previously written one but has the same SHA-256 digest. Collision resistance cannot be used in the semantic theorems, so the hint must carry each such value: ≤ 31 × 98,341 B ≈ 3.0 MB.
+    2. The queue values (`[13]`, `[16]‖s`) are unbounded.
+  * Formal budget: STARK bound ≈ 6.4 MB (P1 corrected by +1 MB for roll-in commits, see STATUS-V3-BUS), plus `B` ≤ 0.91 MB, leaves ≈ 1.1 MB.
+  * Per the lead's rule this means **(c): the bandwidth scheduler (with its ChaCha20) and the fixed-key value parsers move into the AIR.**
+  * After (c) the hint is only `{n, B}`: ≤ 0.91 MB under A1.
+  * Native in the verifier, unchanged: the claim-only parts (header chain, walk, shuffle permutation, f64 congestion, RS/emr over `B`, outgoing root, forwarding).
+  * The scheduler's *claim-only inputs* become public data, also computed natively: link permissions from congestion and missed chunks, base bandwidth, converted request increase lists. Its state-dependent core (allowances, budgets, bucket processing, distribute-remaining, state encoding) is in-AIR.
+  * Canon0f is kept: in-AIR decoding of the previous state then reads exactly `n²` links in order.
+  * New lanes, after the spec lane reports:
+    * `v3-chacha`: ChaCha20 block table and `gen_index`/Lemire;
+    * `v3-sched`: scheduler tables, sound and complete against `Scheduler.run`;
+    * `v3-qvals`: queue-value parsers.
+
+  Estimated effort: +20–35 k LOC, +3 weeks.
+* **A6 rejected; weak `uniq` instead.** "Equal digest ⇒ equal bytes" is proved in-AIR, with tree-shaped records. This is in lane `v3-trie`.
+* **P2 runs now** in lane `v3-p2`.
+
+## 12. SHA message-id kind registry (program lead, binding for all v3 lanes)
+
+`Id = kind + 16·idx` with `idx < 2^22`. Kinds must be distinct mod 16, and a kind may be shared only by tables whose `idx` spaces are provably disjoint.
+
+| kind | name | owner | idx |
+|---:|---|---|---|
+| 1–10 | `K_RC, K_RF, K_PEO, K_LEAF, K_RID, K_MRK, K_NPRE, K_NPOST, K_VPRE, K_VPOST` | v1 meanings, reused by v3 rcpt/mrk/trie (v3-trie: value ids start at 0, `d153d30f`) | per v1 / per v3 table |
+| 11 | `K_SCH` | v3-sched (sanity hash) | τ |
+| 12 | `K_VUPS` | v3-trie `upsV3`: the post `0x0f` value (j = 0) and the new and pass-through path nodes Q (j = 1..511) | `512·τ + j` |
+| 13 | `K_SRC` | srcp (leaf rehash and path nodes) | `2·step + (j-indexed offset)`, fixed by the srcp lane |
+| 14 | `K_VAK` | akey (access-key values) | touched slot k |
+| 15, 0 | reserved | ask the program lead | — |
+
+The assembly lane proves one global lemma: every BYTES/DIGEST id produced by any table falls in that table's kind, and the idx ranges are disjoint.
+
+**upsV3 ↔ scheduler interface (decided):**
+* `S0F (τ, present, vid)`: upsV3 → sched.
+* `VBYTES (vid, pos, b)`: codec → valV3.
+* `SPOST (τ, pos, b)`, for `pos < L`: codec → upsV3.
+* **`SPLEN (τ, L)`**: sent once per τ by the codec. This is an explicit length message, not an end flag. It pins the length the way DIGEST consumers do.
+
+No consumer relies on `L = 37 + 24·n²`.
+
+**M7 deviation (approved).** upsV3's new path nodes Q are byte segments of upsV3 itself, not nodeV3 records. Their bytes are copied from the old path records' post bytes over the chained `UPB` bus or computed fresh. nodeV3 gains only `UPB` and the column `mU`. Q's preimages are hashed under `K_VUPS` with `idx = 512τ + j` (amended from 8τ + j), so no new kind is allocated.
+
+## 13. Proof-size tracking (program lead, after the sched M3 audit)
+
+`W_eq` so far, per kernel checks or lane estimates (g = 1):
+
+| part | `W_eq` |
+|---|---:|
+| `sha_t` + `sha_r` | 1,408 |
+| trie (`nodeV3`, `headV3`, `valV3`, `walkV3`, `uniqV3`) | 838 |
+| ChaCha (`chachaV3`, `genV3`, `shufV3`) | 654 |
+| scheduler (six tables, after the range fixes) | 934 |
+| receipt-table extension (estimate) | ≈ 480 |
+| `acct`, `mrk`, `sort`, `srcp`, `akey`, `bnd`, `size`, queue parsers (estimate) | ≈ 700 |
+| `upsV3` (estimate) | ≈ 150 |
+| **total** | **≈ 5,150** |
+
+Size model: each `W_eq` costs ≈ 864 B in the scheduled bound. The `W_eq`-independent part of `sizeMaxSched` is ≈ 3.95 MB, derived from `near_sizeMaxSched` = 5.47 MB at `W_eq` 1,766.
+
+| quantity | value |
+|---|---:|
+| formal bound | ≈ 3.95 + 4.45 = **≈ 8.4 MB** |
+| hint `B` | ≤ 0.91 MB |
+| total | ≈ 9.3 MB |
+| cap | 8 MiB = 8.39 MB |
+| **over by** | **≈ 0.9 MB** |
+
+Honest proofs are much smaller: an estimated 3–5 MB at the worst real header.
+
+Planned levers (a size lane, once a slot frees):
+1. **Multiproof-dedup size bound** (proof work only). Charge the shared top ⌈log₂ 216⌉ ≈ 8 Merkle levels once instead of per query. Estimated −0.7 to −1.1 MB of bound.
+2. **auxGroup g = 2** for the v3 AIR. Re-evaluate on the real AIR: P2's g-bound showed only −2.3 % on nearAir.
+3. **Width cuts.**
+   * ChaCha: stream ids instead of keys, merged interactions.
+   * Scheduler: merging the row-kind tables (its §3 list).
+   * One SHA table if `rows(sha_t) + rows(sha_r) ≤ 2^22` holds under the A7 bound B0.
+4. **Hint `B`** may be packed 3 bytes per field element on the public bus. That doesn't change proof bytes, because `B` is carried as raw bytes.
+
+Target: formal bound + `B` ≤ 8,388,608 B, kernel-checked as `nearV3_size`.
+
+**Empty-key extensions on the `[0,15]` path (handled, no domain condition).** The spec reveals `.ext [] child mem` (`hpDecode [0x00]`, `PTrie.wf` allows `k = []`), and `PTrie.upsert` descends through it. There can be ≤ 399 on a path: buildFor's fuel bounds them, and A7 counts them. `upsV3` rewrites each one as a 46-row pass-through segment that takes a fresh child digest and memory value, located through the extra `cid` field on `UPB (NPOST n, pos, pb, len, depth, cid, u)`. nearcore never builds them (`core/store/src/trie/ops/insert_delete.rs:123,171,202,237,252,266,405,417`), but completeness covers every `RelD0a` witness.
+
+### 13.1 Update (trie `upsV3` with pass-through, kernel-checked W_eq 1,185)
+
+| part | `W_eq` (g = 1) |
+|---|---:|
+| `sha_t` + `sha_r` | 1,408 |
+| trie (6 tables) | 1,185 |
+| ChaCha | 654 |
+| scheduler (934 − cuts B + D ≈ 172, + source map 16) | ≈ 778 |
+| receipt-table extension (estimate) | ≈ 480 |
+| small tables + queue parsers (estimate) | ≈ 760 |
+| **total** | **≈ 5,260** |
+
+Formal bound ≈ 3.95 MB + 5,260 × 864 B ≈ **8.50 MB**. Adding `B` (≤ 0.91 MB) gives ≈ 9.4 MB against a cap of 8.39 MB: **over by ≈ 1.0 MB**. Honest proofs stay ≈ 3–5 MB.
+
+Levers, ranked:
+
+| lever | saving | cost |
+|---|---:|---|
+| a. Multiproof-dedup size bound (shared top ≈ 7.75 Merkle levels over 3 oracles plus committed FRI layers) | −0.6 to −0.7 MB | proof work only |
+| b. **One SHA table** (−704 `W_eq`): needs trie SHA (1.25 · B0) + receipt-side SHA (≈ 1.34 M under A1) ≤ 2²², i.e. B0 ≤ ≈ 2.25 MB. Proposal: B0 = 2,000,000 (honest max 50,579 B, still ≈ 40× headroom) | −0.61 MB | **lead decision**: it shrinks the domain for chunks whose unfolded read set is 2–3 MB |
+| c. Scheduler cut A | −0.27 MB | medium re-proof; rows ≈ 3.6 M |
+| d. ChaCha cuts (stream ids, merged interactions) | ≈ −0.1 to −0.15 MB | — |
+| e. g = 3 on the v3 AIR | small (P2 showed ≈ −2 %) | — |
+
+Recommendation: **a + b** (−1.2 to −1.3 MB, which fits with a 0.2–0.3 MB margin), with c and d in reserve.
+
+## 14. Challenge restructuring (coordinator, FYI)
+
+There will be one unified challenge, **`near-chunk-v3`**, with statement `Rel_D3α`. Soundness transfers down to smaller domains through `rel_mono`, which the D3 lane is writing. Candidates declare the domain they are complete for and return UNSUPPORTED outside it. Ranking is by coverage tier, then by cost.
+
+For this prover:
+* Soundness stays proved against `Rel_D0`. It transfers to `Rel_D3α` via `rel_mono`.
+* Completeness is on `InD0a B0` (A1, A2, Canon0f, A7 `unfoldBytes ≤ B0`, A8).
+* **The verifier returns UNSUPPORTED, never ACCEPT, outside D0.** The claim-level part of the domain is decided natively by `prepClaim`, which is where UNSUPPORTED comes from. Witness-level out-of-domain cases cannot produce an accepting proof, because the AIR enforces `InD0a`.
+* Admission is to `near-chunk-v3` with declared domain D0.
+* Open for assembly: the verifier's three-valued output and its interface. This is to be aligned with the unified challenge's `Expected` template once it is published.
+
+## 15. Lever (b): B0 = 2.0 MB approved by the user; exact row check before the spec edit
+
+Single SHA table, joint worst case under A1 (n = 4481, ≤ 1984 lists, path depth ≤ 6):
+
+| SHA rows | amount |
+|---|---|
+| Trie nodes | ≤ 1.25 per unfolded node byte. That is the exact maximum of `2·(1 + 17·⌈(L+9)/64⌉)/L` over L ≥ 46, reached at L = 56. The trie lane's linear `0.531 + 40.25/L` is a looser bound. |
+| Value records | accounts 72 B (0.49 rows/B), access keys 9 B (2 rows/B, ≤ 4481 of them), small fixed-key values |
+| Receipt side | 1,695,759 (`rcptShaRows_A1`, kernel-checked on lane/v3-rcpt) |
+
+* At B0 = 2,000,000: ≈ 1.25·(B0 − 40,329) + 80,658 + 1,695,759 ≈ 4,226,000 > 2²² = 4,194,304, **over by ≈ 31,700 rows (0.8 %)**. The receipt lane's own check independently gives `single_2M_fails`.
+* The largest B0 that fits is ≈ 1,974,000. Proposal: **B0 = 1,950,000**, which leaves ≈ 30.8 k rows of margin and still ≈ 38× headroom over the measured honest maximum of 50,579 B.
+* Alternative: keep B0 = 2,000,000 with two SHA tables, which loses lever (b)'s −0.61 MB.
+
+Liveness note (for the spec doc, once B0 is final): chunks whose unfolded read set lies between B0 and 3 MB move out of D0a. They become unprovable, never wrongly accepted.
+
+Lever (a), the multiproof-dedup size bound, is started as lane `v3-size`. It also reruns the full formal accounting with one SHA table.
+
+## 16. Lever (a) result: deduplicated size bound (lane v3-size, merged 6df2fc07)
+
+**Proved:** `Size.multiproof_size_le`, `Size.size32D`, `Size.sizeBoundD_le_dedup`, `Size.sizeMaxDedup_le_sched`, `Size.admission_v2_dedup`, `Size.sizeMaxDedup_eq_model`, `V3.v3_bound`.
+
+Kernel-checked numbers:
+
+| AIR | bound |
+|---|---|
+| nearAir, g = 1 | 5,473,967 → 4,134,191 |
+| v3 synthetic: 23 tables, **one** SHA table, trie / sched / rcpt shapes from their branch heads, `qvV3` not yet counted | g = 1: 7,450,143; **g = 2: 7,146,495**; g = 3: 7,193,567 |
+
+**Correction to the hint size.** A gas refund carries the signer id (≤ 64 B) and possibly a SECP256K1 key. The largest refund is therefore 289 B, and B ≤ 8 + 4481 · 289 = **1,295,017 B**, not 0.91 MB. The spec lane is to confirm.
+
+Margin against the 8 MiB cap minus B, at g = 2: **−52,904 B**. With `qvV3` (≈ +75–112 KB) it would be ≈ −150 KB.
+
+**Finding: roll-in forced commits dominate FRI.** With 23 tables the bound includes about 2.69 MB of FRI, against 1.06 MB without forced commits.
+
+Levers:
+1. **Roll-in alignment, −1.62 MB, recommended.** The honest prover pads table heights so that every roll-in lands on a regular arity-8 commit layer. The verifier and parameters are unchanged. Some `maxLog` values are raised to the next aligned value, and `multBound` and `fpBound` must be re-checked.
+2. A compact refund codec in the hint, ≈ −0.45 MB of B.
+3. Width cuts, ≈ 928 B per base column.
+
+Lever 1 alone gives a bound of ≈ 5.52 MB + 1.30 MB ≈ 6.8 MB, leaving ≈ 1.5 MB of margin even without lever (b)'s single SHA table.

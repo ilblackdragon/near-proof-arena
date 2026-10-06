@@ -1,0 +1,19 @@
+{
+  "base": "01-h10009-s0",
+  "case": "01-h10009-s0-c.dup_bw_request",
+  "d0a_violations": [
+    "c.bw_requests"
+  ],
+  "domain": "D0a",
+  "expected_reason": "c.bw_requests",
+  "expected_rel": true,
+  "expected_rel_d0": true,
+  "expected_rel_d0a": false,
+  "expected_verdict": "out_of_domain",
+  "in_d0": true,
+  "in_d0a": false,
+  "kind": "mutant",
+  "mutation": "c.dup_bw_request",
+  "nearcore": "not judged (mutated block not in the store); Rel holds by construction",
+  "verdict_source": "construction"
+}

@@ -1,0 +1,15 @@
+{
+  "base": "00-h10024-s3",
+  "case": "00-h10024-s3-w.main_block_hash(unchecked)",
+  "d0a_violations": [],
+  "domain": "D0a",
+  "expected_rel": true,
+  "expected_rel_d0": true,
+  "expected_rel_d0a": true,
+  "in_d0": true,
+  "in_d0a": true,
+  "kind": "mutant",
+  "mutation": "w.main_block_hash(unchecked)",
+  "nearcore": "ok",
+  "verdict_source": "nearcore"
+}

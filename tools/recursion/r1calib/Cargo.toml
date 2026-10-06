@@ -1,0 +1,24 @@
+# R1 cost-model calibration (docs/research/recursion-r1-cost.md).
+# Links the np-udr-stark-fast2 prover/verifier library (read-only path dependency).
+# Standalone workspace: NOT part of the repository root workspace.
+[package]
+name = "r1calib"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+np-udr-stark = { path = "../../../examples/np-udr-stark-fast2/source" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+rayon = "1"
+
+[profile.release]
+codegen-units = 16
+incremental = false
+lto = "thin"
+panic = "unwind"
+opt-level = 3
+debug = false
+
+[workspace]
