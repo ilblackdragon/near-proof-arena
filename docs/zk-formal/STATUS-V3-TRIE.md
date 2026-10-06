@@ -20,7 +20,8 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M5b | `nodeV3` render | **done**: `node_render_local`, `node_render_traffic` (`Render/Node/Local.lean`, `Traffic.lean`; 5df77df2) |
 | M6a | link layer: per-τ DAG, record bytes = preimages, walks ⇒ find/absent | **done** (pieces; §3) |
 | M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition | **done** (`PerTau3`: `root_tau`, `build_tau`, `walks_tau`) |
-| M6c | post-root after sets; ROOT/MIDROOT chain (head uniqueness per τ) | open |
+| M6c | post-root after sets | **done**: `post_tau` (`Link/Post3`), `post_eq_set(s)` (`Link/Post3Spec`), `valsPost_eq_setVals` (`Link/Post3Writes`); open M6d below |
+| M6d | `fullOcc ≤ 1` on link records (unique `PARENT` sender + `val_unique`), `fullReach` of walked keys, `hpl` from the account writer | open |
 | M7 | `upsV3` (option A) | open |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
@@ -367,6 +368,21 @@ How the hypotheses of `enc_fullTree` are discharged:
 
 Head uniqueness per `τ`, i.e. which head the walk results attach to, comes with the
 ROOT / MIDROOT chain (`upsV3`, public bus).
+
+### 3.2 Post-root (M6c)
+
+* **`post_tau`** (`Link/Post3.lean`): `digest R (valsPost vs es pv) h.rid = toB h.post`.
+  `valsPost` replaces the bytes of every written value record by `pv`.
+  * Interface hypothesis `VPostOk others pv`: the account writer's `BYTES (VPOST i, j, ·)`
+    sends are exactly `pv i`.
+  * Interface hypothesis `hpl : |pv i| ≤ vlen`. SHA may hash a prefix of a sent stream, so
+    the writer must pin the length; the other direction, `vpost_len`, is proved.
+  * Other hypotheses are as in `root_tau`.
+* **`post_eq_set`, `post_eq_sets`, `setVal_comm`, `setVals_perm`** (`Link/Post3Spec.lean`):
+  replacing value record `i` equals `PTrie.set` on a key whose lookup reaches `i`
+  (`fullReach`), exactly, `memory_usage` included. This requires `i` to occur at most once
+  in the unfolding (`fullOcc ≤ 1`). Lists of writes give the fold of `set`s.
+* **`valsPost_eq_setVals`, `writesOf_nodup`** (`Link/Post3Writes.lean`).
 
 ## 4. Budget (kernel-checked: `NearV3/BudgetCheck.lean`, `report_g1`, `report_g3`, `weqTrie_g1`, `weqTrie_g3`)
 
