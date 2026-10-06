@@ -157,7 +157,8 @@ def external (I : Input) (R : Run) (D : DistOut) : List (Nat × Bool × List Nat
   (Gen.Scan.expectedPar I ++ Gen.Scan.expectedRaw I ++ shardRecs 0 (pubOfI I) ++
     linkRecs 0 (pubOfI I)).map (fun m => (B_SPAR, true, m)) ++
   ((Gen.Mem.expectedFin n R.fin).take (n * n)).map (fun m => (B_SFIN, false, m)) ++
-  (List.range (n * n)).map (fun l => (B_SDG, false, [0, l, b2n I.allowed[l]!, D.gb[l]!]))
+  (List.range (n * n)).map (fun l => (B_SDG, false, [0, l, b2n I.allowed[l]!, D.gb[l]!,
+    (srcFields I.ids l)[0]! + 256 * (srcFields I.ids l)[1]!, (srcFields I.ids l)[2]!, (srcFields I.ids l)[3]!]))
 
 /-- The renderer of `Sched/Render.lean` gives the same public records. -/
 def renderAgrees (I : Input) : Bool :=
