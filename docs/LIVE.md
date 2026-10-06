@@ -597,6 +597,21 @@ diagnostic):
   | 17:50–18:12 | warm probes (3 steps), raw step gate | 3 sessions CALIBRATION_STEP (step p90 65 834 ppm, noise ≈ 2 %) |
   | 18:13–18:28 | 5 steps per probe, rolling-median step gate | session 1 discarded, session 2 PASS: paired cost 100.814 ± 0.829 |
 
+  * **Deploy of `0bb6fc8d` (bench-spec-v1.6 / contracts v1.8 + D3-lane coverage v1.7), 2026-10-06 19:05 UTC.**
+  - `bin/arena-calibrate` was installed from `runners/calibrate/build-pinned.sh`, rebuilt from main:
+    `sha256:d4340778…5e37`, checksum `87a7f539b09c4e7b`, the pinned values.
+  - `config/worker.env` gained only `ARENA_CALIBRATION_BIN=/data/illia/nearproof-live/bin/arena-calibrate`.
+    `install` keeps it, because it never overwrites `config/*.env`; `bin/arena-calibrate` is not in
+    the install's binary list either, so a reinstall must keep it there.
+  - Ran `arena-live build` + web build + `install` + `migrate` (0002_coverage) + `restart`, with the
+    queue empty. All three workers carry the key.
+  - Smoke check: the boards are unchanged. The v1-7 speed and cost boards and the D0-1 speed board
+    read as before, and recomputing the six v1-7 cost scores from their stored runs with the
+    new code reproduces every stored value exactly. No live challenge uses paired mode or
+    calibration yet.
+  - The joint near-chunk-v3 reference window with the D3 lane is pending: their reexec-v3-d3 strict
+    normal form and RelD0a are not final yet.
+
     **Dropped (plan change, 2026-10-06):** the user wants one unified `near-chunk-v3` challenge
   (Rel_D3α, coverage tiers). `near-chunk-validation-d0-2` stays unsigned:
   `challenges/drafts/near-chunk-validation-d0-2.SUPERSEDED.md`.
