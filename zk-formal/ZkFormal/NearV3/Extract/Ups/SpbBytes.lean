@@ -126,7 +126,8 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
       s.row i dL = 50 → regN (s.row i) = (UpsSpec.qNLF si val).hashOf.map UInt8.toNat)
     (hxy : spYN ci = 1 → ci ≠ 4 → s.row 0 tX ≠ UpsSpec.yOf si)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
-    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qSPB ci src cx (s.row 0 tX) si val)).map UInt8.toNat := by
+    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qSPB ci src cx (s.row 0 tX) si val)).map UInt8.toNat ∧
+      limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qSPB ci src cx (s.row 0 tX) si val).memD := by
   have K := partK hw hs hL hP k hk
   have hup := upZero hw hs hL hP k hk (by omega)
   obtain ⟨hj, -⟩ := hL.part k hk
@@ -360,9 +361,14 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
         (if ci = 4 then 1 else 0) * (s.row (o + c0 + 32 * ww) (SR 0) + 256 * s.row (o + c0 + 32 * ww) (SR 1) +
           65536 * s.row (o + c0 + 32 * ww) (SR 2) + 16777216 * s.row (o + c0 + 32 * ww) (SR 3)) +
         (spXN ci * limbs (fun i => s.row (o + c0 + 32 * ww + i) rb) 8 +
-          spRN ci * limbs (fun i => s.row (o + c0 + 32 * ww + i) mBv) 8 - s.row o Cc))).map UInt8.toNat := by
+          spRN ci * limbs (fun i => s.row (o + c0 + 32 * ww + i) mBv) 8 - s.row o Cc))).map UInt8.toNat ∧
+      limbs (fun i => s.row (o + c0 + 32 * ww + i) rx) 8 = (spKc ci + (s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2) +
+        (if ci = 4 then 1 else 0) * (s.row (o + c0 + 32 * ww) (SR 0) + 256 * s.row (o + c0 + 32 * ww) (SR 1) +
+          65536 * s.row (o + c0 + 32 * ww) (SR 2) + 16777216 * s.row (o + c0 + 32 * ww) (SR 3)) +
+        (spXN ci * limbs (fun i => s.row (o + c0 + 32 * ww + i) rb) 8 +
+          spRN ci * limbs (fun i => s.row (o + c0 + 32 * ww + i) mBv) 8 - s.row o Cc)) := by
     intro hSR hCcB
-    have eM := memBytesK hw hs hsc K U B.memU.1 B.memU.2 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
+    obtain ⟨eM, eX⟩ := memBytesK hw hs hsc K U B.memU.1 B.memU.2 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
       (fun i hi => by
         have hfs : s.row (o + c0 + 32 * ww + i) fs ≤ 1 := by rw [(R5 i hi).1]; split <;> omega
         have hLbi : bAt [s.row 0 L0, s.row 0 L1, s.row 0 L2] i < 256 := by
@@ -405,8 +411,8 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
             rw [h] <;> omega
         · have := hbyte (c0 + 32 * ww + i) (by omega)
           rwa [show o + (c0 + 32 * ww + i) = o + c0 + 32 * ww + i by omega] at this)
-    simp only [hKc, heL, heS, huA, hbN, hbL, hcO, hcS, Nat.one_mul, Nat.zero_mul, Nat.add_zero, Nat.zero_add] at eM
-    exact eM
+    simp only [hKc, heL, heS, huA, hbN, hbL, hcO, hcS, Nat.one_mul, Nat.zero_mul, Nat.add_zero, Nat.zero_add] at eM eX
+    exact ⟨eM, eX⟩
   -- assembling a branch
   have hpre : rowsB s o c0 = rowsB s o (c0 - 2) ++ rowsB s (o + (c0 - 2)) 2 := by
     rw [← rowsB_append]; congr 1; omega
@@ -630,11 +636,16 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
     have hW := winY 0 (by omega) (by rw [if_pos rfl, sy1, if_pos (Or.inl rfl)])
     subst hsr hwv
     simp only [UpsSpec.qSPB]
+    refine ⟨?_, (limbs_rows_eq (b := o + c0 + 32 * 1) (by omega) rx).trans ?_⟩
+    rotate_left
+    · rw [(eMgen (fun _ => eSb) (by rw [hCc0 rfl]; omega)).2, eS]
+      simp [spKc, spXN, spRN, NearSpec.valueMem, hlm, NearSpec.PTrie.memD, NearSpec.PTrie.mem?]
+      all_goals omega
     apply asm _ _ _ eP (by rw [hk1.1]; simp [spBm, spYN])
       (by have : 2 ^ UpsSpec.yOf si ≤ 2 ^ 15 := Nat.pow_le_pow_right (by omega) (by omega)
           simp [spBm, spYN]; omega)
       (by rw [hk1.2]; exact w1 _ hW)
-    rw [eMgen (fun _ => eSb) (by rw [hCc0 rfl]; omega), eS]
+    rw [(eMgen (fun _ => eSb) (by rw [hCc0 rfl]; omega)).1, eS]
     congr 2
     simp [spKc, spXN, spRN, NearSpec.valueMem, hlm]
     omega
@@ -645,9 +656,14 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
     have hW := winC 0 (by omega) (by rw [if_pos rfl, sy1]; simp) (by decide)
     subst hwv
     simp only [UpsSpec.qSPB]
+    refine ⟨?_, (limbs_rows_eq (b := o + c0 + 32 * 1) (by omega) rx).trans ?_⟩
+    rotate_left
+    · rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega)).2, hmB (by decide), hCc0 (by decide)]
+      simp [spKc, spXN, spRN, NearSpec.valueMem, NearSpec.PTrie.memD, NearSpec.PTrie.mem?]
+      all_goals omega
     apply asm _ _ _ (slotV (by decide) (by decide)) (by rw [hk1.1]; simp [spBm, spYN])
       (by simp [spBm, spYN]; omega) (by rw [hk1.2]; exact w1 _ hW)
-    rw [eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega), hmB (by decide), hCc0 (by decide)]
+    rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega)).1, hmB (by decide), hCc0 (by decide)]
     congr 2
     simp [spKc, spXN, spRN, NearSpec.valueMem]
     omega
@@ -660,8 +676,13 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
     have hk2 := UpsSpec.kids2_bm (s.row 0 tX) (UpsSpec.yOf si) cx (UpsSpec.qNLF si val) hx16 hy16 hne
     subst hwv
     simp only [UpsSpec.qSPB]
+    refine ⟨?_, (limbs_rows_eq (b := o + c0 + 32 * 2) (by omega) rx).trans ?_⟩
+    rotate_left
+    · rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega)).2, hmB (by decide), hCc0 (by decide)]
+      simp [spKc, spXN, spRN, hlm, NearSpec.PTrie.memD, NearSpec.PTrie.mem?]
+      all_goals omega
     have eM : rowsB s (o + c0 + 32 * 2) 8 = (NearSpec.u64 (50 + cx.memD + NearSpec.leafMem (UpsSpec.ysOf si) val.length)).map UInt8.toNat := by
-      rw [eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega), hmB (by decide), hCc0 (by decide)]
+      rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega)).1, hmB (by decide), hCc0 (by decide)]
       congr 2
       simp [spKc, spXN, spRN, hlm]
       omega
@@ -686,9 +707,14 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
     have hW := winC 0 (by omega) (by rw [if_pos rfl, sy1]; simp) (by decide)
     subst hwv
     simp only [UpsSpec.qSPB]
+    refine ⟨?_, (limbs_rows_eq (b := o + c0 + 32 * 1) (by omega) rx).trans ?_⟩
+    rotate_left
+    · rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega)).2, hmB (by decide), hCc0 (by decide)]
+      simp [spKc, spXN, spRN, NearSpec.valueMem, NearSpec.PTrie.memD, NearSpec.PTrie.mem?]
+      all_goals omega
     apply asm _ _ _ (slotV (by decide) (by decide)) (by rw [hk1.1]; simp [spBm, spYN])
       (by simp [spBm, spYN]; omega) (by rw [hk1.2]; exact w1 _ hW)
-    rw [eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega), hmB (by decide), hCc0 (by decide)]
+    rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega)).1, hmB (by decide), hCc0 (by decide)]
     congr 2
     simp [spKc, spXN, spRN, NearSpec.valueMem]
     omega
@@ -703,9 +729,14 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
     have hHk : (NearSpec.hexPrefix key false).length = key.length / 2 + 1 := UpsSpec.hp_len key false
     subst hsr hwv
     simp only [UpsSpec.qSPB]
+    refine ⟨?_, (limbs_rows_eq (b := o + c0 + 32 * 1) (by omega) rx).trans ?_⟩
+    rotate_left
+    · rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCcv]; omega)).2, hA, hCcv]
+      simp [spKc, spXN, spRN, NearSpec.valueMem, NearSpec.extOwnMem, NearSpec.PTrie.memD, NearSpec.PTrie.mem?]
+      all_goals omega
     apply asm _ _ _ (slotV (by decide) (by decide)) (by rw [hk1.1]; simp [spBm, spYN])
       (by simp [spBm, spYN]; omega) (by rw [hk1.2]; exact w1 _ hW)
-    rw [eMgen (fun h => absurd h (by decide)) (by rw [hCcv]; omega), hA, hCcv]
+    rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCcv]; omega)).1, hA, hCcv]
     congr 2
     simp [spKc, spXN, spRN, NearSpec.valueMem, NearSpec.extOwnMem]
     omega
@@ -718,8 +749,13 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
     have hk2 := UpsSpec.kids2_bm (s.row 0 tX) (UpsSpec.yOf si) cx (UpsSpec.qNLF si val) hx16 hy16 hne
     subst hwv
     simp only [UpsSpec.qSPB]
+    refine ⟨?_, (limbs_rows_eq (b := o + c0 + 32 * 2) (by omega) rx).trans ?_⟩
+    rotate_left
+    · rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega)).2, hmB (by decide), hCc0 (by decide)]
+      simp [spKc, spXN, spRN, hlm, NearSpec.PTrie.memD, NearSpec.PTrie.mem?]
+      all_goals omega
     have eM : rowsB s (o + c0 + 32 * 2) 8 = (NearSpec.u64 (50 + cx.memD + NearSpec.leafMem (UpsSpec.ysOf si) val.length)).map UInt8.toNat := by
-      rw [eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega), hmB (by decide), hCc0 (by decide)]
+      rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCc0 (by decide)]; omega)).1, hmB (by decide), hCc0 (by decide)]
       congr 2
       simp [spKc, spXN, spRN, hlm]
       omega
@@ -749,9 +785,14 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
     have hHk : (NearSpec.hexPrefix key false).length = key.length / 2 + 1 := UpsSpec.hp_len key false
     subst hsr hwv
     simp only [UpsSpec.qSPB]
+    refine ⟨?_, (limbs_rows_eq (b := o + c0 + 32 * 2) (by omega) rx).trans ?_⟩
+    rotate_left
+    · rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCcv]; omega)).2, hA, hCcv]
+      simp [spKc, spXN, spRN, hlm, NearSpec.extOwnMem, NearSpec.PTrie.memD, NearSpec.PTrie.mem?]
+      all_goals omega
     have eM : rowsB s (o + c0 + 32 * 2) 8 = (NearSpec.u64 (50 + (m - NearSpec.extOwnMem key) +
         NearSpec.leafMem (UpsSpec.ysOf si) val.length)).map UInt8.toNat := by
-      rw [eMgen (fun h => absurd h (by decide)) (by rw [hCcv]; omega), hA, hCcv]
+      rw [(eMgen (fun h => absurd h (by decide)) (by rw [hCcv]; omega)).1, hA, hCcv]
       congr 2
       simp [spKc, spXN, spRN, hlm, NearSpec.extOwnMem]
       omega

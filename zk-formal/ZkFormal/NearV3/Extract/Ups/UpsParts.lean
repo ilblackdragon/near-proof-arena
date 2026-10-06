@@ -148,6 +148,8 @@ theorem upsQ_eq (ci si ti x : Nat) (v : NearSpec.Bytes) (kd sdx : Nat → Nat) (
 theorem qNLF_len (si : Nat) (v : NearSpec.Bytes) (h : si < 3) : (nodeEnc (UpsSpec.qNLF si v)).length = 50 := by
   rw [UpsSpec.qNLF_enc]; simp [u32_length, u64_length, ysOf_hpLen si h]
 
+theorem andImp {p q r : Prop} (h : p ∧ q) : p ∧ (r → q) := ⟨h.1, fun _ => h.2⟩
+
 attribute [local irreducible] UpsSeg.row UpsSeg.next
 
 section
@@ -169,7 +171,8 @@ theorem rbiBytes' (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : NearSpe
     (hdN : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) k →
       s.row i dL = 50 → regN (s.row i) = (UpsSpec.qNLF si val).hashOf.map UInt8.toNat)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
-    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRBI bv cs m si val)).map UInt8.toNat :=
+    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRBI bv cs m si val)).map UInt8.toNat ∧
+      limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qRBI bv cs m si val).memD :=
   ups_rbiBytes hw hs hL hP k hk hkd val (rbiSi hw hs hL hP k hk hkd) Pb bv cs m hR hsrc hsl hbv hm hkl hslot hlen hLb
     hdN hbyte
 
@@ -210,7 +213,9 @@ set_option maxHeartbeats 4000000 in
 theorem ups_parts {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : NearSpec.Bytes}
     (X : UpsExt s ps ci ti si kd sdx Pb src val) :
     ∀ k (hk : k < ps.length),
-      rowsB s ps[k].1 ps[k].2 = (nodeEnc (upsQ ci si ti (s.row 0 tX) val kd sdx src k)).map UInt8.toNat := by
+      rowsB s ps[k].1 ps[k].2 = (nodeEnc (upsQ ci si ti (s.row 0 tX) val kd sdx src k)).map UInt8.toNat ∧
+      (kd k ≠ 8 → limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 =
+        (upsQ ci si ti (s.row 0 tX) val kd sdx src k).memD) := by
   intro k hk
   have hkl : kd k < 12 := (hP.part k hk).1
   have i4 := hP.ix.2.2.2
@@ -257,7 +262,7 @@ theorem ups_parts {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : 
     rw [hQ h1, h, hP']
     simp only [qPart]
     rw [hP'] at hsrc
-    exact ups_rdbBytes hw hs hL hP k hk h Pb bv cs c _ m _ hR hsrc hbv hm hkl' hsl' hc32 hd
+    exact andImp <| ups_rdbBytes hw hs hL hP k hk h Pb bv cs c _ m _ hR hsrc hbv hm hkl' hsl' hc32 hd
       (fun i hi => X.memB k hk hr i hi)
       (by have := (X.memV k hk hr).1; simp only [childK, h, show ¬ ((0 : Nat) = 10) by omega, ite_false] at this; exact this)
       (by have := (X.memV k hk hr).2; simp only [childK, h, show ¬ ((0 : Nat) = 10) by omega, ite_false] at this; exact this)
@@ -271,7 +276,7 @@ theorem ups_parts {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : 
     rw [hQ h1, h, hP']
     simp only [qPart]
     rw [hP'] at hsrc hsl
-    exact ups_rdeBytes hw hs hL hP k hk h Pb key c _ m _ hRd hsrc (by omega) hc32 hm hd
+    exact andImp <| ups_rdeBytes hw hs hL hP k hk h Pb key c _ m _ hRd hsrc (by omega) hc32 hm hd
       (fun i hi => X.memB k hk hr i hi)
       (by have := (X.memV k hk hr).1; simp only [childK, h, show ¬ ((1 : Nat) = 10) by omega, ite_false] at this; exact this)
       (by have := (X.memV k hk hr).2; simp only [childK, h, show ¬ ((1 : Nat) = 10) by omega, ite_false] at this; exact this)
@@ -281,42 +286,42 @@ theorem ups_parts {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : 
     rw [hQ0, h, hP']
     simp only [qPart]
     rw [hP'] at hsrc hsl
-    exact ups_rlpBytes hw hs hL hP k hk h val Pb key sl m X.vlen X.digV hRd hsrc (by omega) (X.bytes k hk)
+    exact andImp <| ups_rlpBytes hw hs hL hP k hk h val Pb key sl m X.vlen X.digV hRd hsrc (by omega) (X.bytes k hk)
   · -- `RBR`
     obtain ⟨sl, cs, m, hP', h36, hsl32, hm⟩ := o3 h
     rw [hQ0, h, hP']
     simp only [qPart]
     rw [hP'] at hsrc
-    exact ups_rbrBytes hw hs hL hP k hk h val Pb sl cs m X.vlen X.digV hR hsrc h36 hsl32 hm (X.bytes k hk)
+    exact andImp <| ups_rbrBytes hw hs hL hP k hk h val Pb sl cs m X.vlen X.digV hR hsrc h36 hsl32 hm (X.bytes k hk)
   · -- `RBV`
     obtain ⟨cs, m, hP', hm⟩ := o4 h
     rw [hQ0, h, hP']
     simp only [qPart]
     rw [hP'] at hsrc
-    exact ups_rbvBytes hw hs hL hP k hk h val Pb cs m X.vlen X.digV hR hsrc hm (X.bytes k hk)
+    exact andImp <| ups_rbvBytes hw hs hL hP k hk h val Pb cs m X.vlen X.digV hR hsrc hm (X.bytes k hk)
   · -- `RBI`
     obtain ⟨bv, cs, m, hP', hbv, hm, hkl', hslot⟩ := o5 h
     rw [hQ0, h, hP']
     simp only [qPart]
     rw [hP'] at hsrc hsl
-    exact rbiBytes' hw hs hL hP k hk h val Pb bv cs m hR hsrc hsl hbv hm hkl' hslot X.vlen X.vbytes
+    exact andImp <| rbiBytes' hw hs hL hP k hk h val Pb bv cs m hR hsrc hsl hbv hm hkl' hslot X.vlen X.vbytes
       (hdN (Or.inl h)) (X.bytes k hk)
   · -- `MVL`
     obtain ⟨key, sl, m, hP', hkey, hI, hkl', h36, hsl32⟩ := o6 h
     rw [hQ0, h, hP']
     simp only [qPart]
     rw [hP'] at hsrc hsl
-    exact ups_mvlBytes hw hs hL hP k hk h Pb key sl m hR hsrc hsl hkey hI hkl' h36 hsl32 (X.bytes k hk)
+    exact andImp <| ups_mvlBytes hw hs hL hP k hk h Pb key sl m hR hsrc hsl hkey hI hkl' h36 hsl32 (X.bytes k hk)
   · -- `MVE`
     obtain ⟨key, c, m, hP', hkey, hI, hkl', hc32, hm⟩ := o7 h
     rw [hQ0, h, hP']
     simp only [qPart]
     rw [hP'] at hsrc hsl
-    exact ups_mveBytes hw hs hL hP k hk h Pb key c m hR hsrc hsl hkey hI hkl' hc32 hm (X.bytes k hk)
+    exact andImp <| ups_mveBytes hw hs hL hP k hk h Pb key c m hR hsrc hsl hkey hI hkl' hc32 hm (X.bytes k hk)
   · -- `NLF`
     rw [hQ0, h]
     simp only [qPart]
-    exact ups_nlfBytes hw hs hL hP k hk h val X.vlen X.digV (X.bytes k hk)
+    exact ⟨ups_nlfBytes hw hs hL hP k hk h val X.vlen X.digV (X.bytes k hk), fun h' => absurd rfl h'⟩
   · -- `WEX`
     have hr : recvK ci (kd k) := Or.inr (Or.inr (Or.inl h))
     have h1 := hRecv hr
@@ -324,7 +329,7 @@ theorem ups_parts {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : 
     simp only [childK, h, show ¬ ((9 : Nat) = 10) by omega, ite_false, Nat.sub_add_cancel h1] at hd
     rw [hQ h1, h]
     simp only [qPart]
-    exact ups_wexBytes hw hs hL hP k hk h _ (hWti h) X.tiLe hd
+    exact andImp <| ups_wexBytes hw hs hL hP k hk h _ (hWti h) X.tiLe hd
       (fun i hi => (X.memB k hk hr i hi).1)
       (by have := (X.memV k hk hr).1; simp only [childK, h, show ¬ ((9 : Nat) = 10) by omega, ite_false] at this; exact this)
       (X.bytes k hk)
@@ -335,7 +340,7 @@ theorem ups_parts {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : 
           (s.row 0 tX) si val := by
       rw [hQ0, h]; simp only [qPart]
     rw [e]
-    exact ups_spbBytes hw hs hL hP k hk h val Pb hR (src k) _ hsrc hsl oL oE
+    exact andImp <| ups_spbBytes hw hs hL hP k hk h val Pb hR (src k) _ hsrc hsl oL oE
       (fun hr i hi hg hI hL' => by
         have hr' : recvK ci (kd k) := Or.inr (Or.inr (Or.inr (Or.inr ⟨h, hr⟩)))
         have := hdC hr' i hi hg (by simp only [childK, h, ite_true]; exact hI) hL'
@@ -356,7 +361,7 @@ theorem ups_parts {Pb : Nat → List Nat} {src : Nat → NearSpec.PTrie} {val : 
     rw [hQ h1, h, hP']
     simp only [qPart]
     rw [hP'] at hsrc hsl
-    exact ups_ptBytes hw hs hL hP k hk h Pb c _ m _ hRd hsrc (by omega) hc32 hm hd
+    exact andImp <| ups_ptBytes hw hs hL hP k hk h Pb c _ m _ hRd hsrc (by omega) hc32 hm hd
       (fun i hi => X.memB k hk hr i hi)
       (by have := (X.memV k hk hr).1; simp only [childK, h, show ¬ ((11 : Nat) = 10) by omega, ite_false] at this; exact this)
       (by have := (X.memV k hk hr).2; simp only [childK, h, show ¬ ((11 : Nat) = 10) by omega, ite_false] at this; exact this)

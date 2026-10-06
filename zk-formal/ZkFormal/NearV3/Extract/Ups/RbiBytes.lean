@@ -121,7 +121,8 @@ theorem ups_rbiBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : Near
     (hdN : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) k →
       s.row i dL = 50 → regN (s.row i) = (UpsSpec.qNLF si val).hashOf.map UInt8.toNat)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
-    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRBI bv cs m si val)).map UInt8.toNat := by
+    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRBI bv cs m si val)).map UInt8.toNat ∧
+      limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qRBI bv cs m si val).memD := by
   have K := partK hw hs hL hP k hk
   have hup := upZero hw hs hL hP k hk (by omega)
   obtain ⟨hj, -⟩ := hL.part k hk
@@ -460,7 +461,7 @@ theorem ups_rbiBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : Near
     omega
   have pc5 := fun i (hi : i < 8) x (hx : x ∈ partConst) => (FM i hi).2.2.2.2.1 x hx
   obtain ⟨hL0, hL1, hL2⟩ := hLb
-  have eM := memBytesK hw hs hsc K U B.memU.1 B.memU.2 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
+  obtain ⟨eM, eX⟩ := memBytesK hw hs hsc K U B.memU.1 B.memU.2 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
     (fun i hi => by
       have hfs : s.row (o + c0 + 32 * ww + i) fs ≤ 1 := by rw [(R5 i hi).1]; split <;> omega
       have hLbi : bAt [s.row 0 L0, s.row 0 L1, s.row 0 L2] i < 256 := by
@@ -481,7 +482,12 @@ theorem ups_rbiBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : Near
           rw [h] <;> omega
       · have := hbyte (c0 + 32 * ww + i) (by omega)
         rwa [show o + (c0 + 32 * ww + i) = o + c0 + 32 * ww + i by omega] at this)
-  simp only [hKc, heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hA] at eM
+  simp only [hKc, heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hA] at eM eX
+  refine ⟨?_, (limbs_rows_eq (b := o + c0 + 32 * ww) (by omega) rx).trans ?_⟩
+  rotate_left
+  · rw [eX]
+    simp only [UpsSpec.qRBI, NearSpec.leafMem, ysOf_hpLen si i4, NearSpec.PTrie.memD, NearSpec.PTrie.mem?, Option.getD_some, Nat.zero_mul, Nat.one_mul, Nat.add_zero, Nat.zero_add, Nat.sub_zero]
+    omega
   -- the bytes before the windows
   have ePre : rowsB s o c0 = brTag bv ++ [NearSpec.kidsBitmap cs 0 % 256 + (if si = 0 then 1 else 0),
       NearSpec.kidsBitmap cs 0 / 256 % 256 + (if si = 0 then 0 else 128)] := by

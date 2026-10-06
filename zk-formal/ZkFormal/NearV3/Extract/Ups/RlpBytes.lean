@@ -73,7 +73,8 @@ theorem ups_rlpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 2) (val : Near
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc (.leaf key sl m)).map UInt8.toNat)
     (hsl : (nodeEnc (.leaf key sl m)).length < 2 ^ 32)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
-    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRLP key val)).map UInt8.toNat := by
+    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRLP key val)).map UInt8.toNat ∧
+      limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qRLP key val).memD := by
   have K := partK hw hs hL hP k hk
   obtain ⟨-, U⟩ := hL.part k hk
   rw [hkd] at K
@@ -187,7 +188,7 @@ theorem ups_rlpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 2) (val : Near
   have pc5 := fun i (hi : i < 8) x (hx : x ∈ partConst) => by
     have := K.pc (41 + q + i) (by omega) x hx; rwa [show o + (41 + q + i) = o + 41 + q + i by omega] at this
   have hKc' := hKc (by omega)
-  have eM := memBytesK hw hs hsc K U U5 s5 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
+  obtain ⟨eM, eX⟩ := memBytesK hw hs hsc K U U5 s5 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
     (fun i hi => by
       have hLb : bAt [s.row 0 L0, s.row 0 L1, s.row 0 L2] i < 256 := by
         simp only [bAt, List.getD_eq_getElem?_getD]
@@ -206,7 +207,13 @@ theorem ups_rlpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 2) (val : Near
         rcases (show s.row (o + 41 + q + i) fs = 0 ∨ s.row (o + 41 + q + i) fs = 1 by omega) with h | h <;>
           rw [h] <;> omega
       · have := hbyte (41 + q + i) (by omega); rwa [show o + (41 + q + i) = o + 41 + q + i by omega] at this)
-  simp only [hKc', heL, heS, huA, hbN, hbL, hcO, hcS, hCc] at eM
+  simp only [hKc', heL, heS, huA, hbN, hbL, hcO, hcS, hCc] at eM eX
+  refine ⟨?_, (limbs_rows_eq (b := o + 41 + q) (by omega) rx).trans ?_⟩
+  rotate_left
+  · rw [eX]
+    simp only [UpsSpec.qRLP, NearSpec.newLeaf, NearSpec.leafMem, NearSpec.PTrie.memD, NearSpec.PTrie.mem?,
+      Option.getD_some, hqhp, Nat.zero_mul, Nat.one_mul, Nat.add_zero, Nat.zero_add, Nat.sub_zero]
+    omega
   -- assemble
   rw [hBy, eT, eH, cK, eV, eW, eM, hD]
   simp only [UpsSpec.qRLP, NearSpec.newLeaf, nodeEnc, NearSpec.Slot.valueRef, NearSpec.leafMem, List.map_append,

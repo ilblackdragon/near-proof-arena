@@ -75,7 +75,8 @@ theorem ups_wexBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 9) (b' : NearS
     (hMd : ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 4096)
     (hmB : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mBv) 8 = b'.memD)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
-    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qWEX (wexKey si ti) b')).map UInt8.toNat := by
+    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qWEX (wexKey si ti) b')).map UInt8.toNat ∧
+      limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qWEX (wexKey si ti) b').memD := by
   have K := partK hw hs hL hP k hk
   obtain ⟨hj, U⟩ := hL.part k hk
   rw [hkd] at K
@@ -182,7 +183,7 @@ theorem ups_wexBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 9) (b' : NearS
   rw [hr0] at hMd hmB
   have hq2 : q ≤ 2 := by split at hqv <;> omega
   have hKc' := hKc (by omega)
-  have eM := memBytesK hw hs hsc K U U5 s5 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
+  obtain ⟨eM, eX⟩ := memBytesK hw hs hsc K U U5 s5 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
     (fun i hi => by
       have hfs : s.row (o + 37 + q + i) fs ≤ 1 := by rw [(R5 i hi).1]; split <;> omega
       refine ⟨?_, ?_, ?_, ?_, ?_⟩
@@ -194,7 +195,16 @@ theorem ups_wexBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 9) (b' : NearS
         rcases (show s.row (o + 37 + q + i) fs = 0 ∨ s.row (o + 37 + q + i) fs = 1 by omega) with h | h <;>
           rw [h] <;> omega
       · have := hbyte (37 + q + i) (by omega); rwa [show o + (37 + q + i) = o + 37 + q + i by omega] at this)
-  simp only [hKc', heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hmB] at eM
+  simp only [hKc', heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hmB] at eM eX
+  refine ⟨?_, (limbs_rows_eq (b := o + 37 + q) (by omega) rx).trans ?_⟩
+  rotate_left
+  · rw [eX]
+    have hcase : (si = 1 ∧ ti = 1) ∨ (si = 2 ∧ ti = 1) ∨ (si = 2 ∧ ti = 2) := by omega
+    rcases hcase with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;>
+    · simp at hqv
+      subst hqv
+      simp [UpsSpec.qWEX, wexKey, UpsSpec.key, NearSpec.wrapExt, NearSpec.extOwnMem, NearSpec.hexPrefix,
+        NearSpec.packNibbles, NearSpec.PTrie.memD, NearSpec.PTrie.mem?]
   -- assemble
   rw [hBy, eT, eH, eK, eW, eM]
   rw [show (List.range 32).map (fun i => s.row (o + 5 + q) (reg i)) = regN (s.row (o + 5 + q)) from rfl, hDC, hv5]

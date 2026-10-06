@@ -118,7 +118,8 @@ theorem ups_extUpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 1 ∨ kd k =
     (hmB : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mBv) 8 = c'.memD)
     (hmC : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mCv) 8 = cm)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
-    rowsB s ps[k].1 ps[k].2 = (nodeEnc (.ext key c' (m + c'.memD - cm))).map UInt8.toNat := by
+    rowsB s ps[k].1 ps[k].2 = (nodeEnc (.ext key c' (m + c'.memD - cm))).map UInt8.toNat ∧
+      limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = m + c'.memD - cm := by
   have K := partK hw hs hL hP k hk
   obtain ⟨hj, U⟩ := hL.part k hk
   generalize hkk : kd k = ki at K hkd
@@ -298,7 +299,7 @@ theorem ups_extUpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 1 ∨ kd k =
     omega
   have hr0 : o + (45 + q) - 8 = o + 37 + q := by omega
   rw [hr0] at hMd hmB hmC
-  have eM := memBytesK hw hs hsc K U U5 s5 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
+  obtain ⟨eM, eX⟩ := memBytesK hw hs hsc K U U5 s5 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
     (fun i hi => by
       have hfs : s.row (o + 37 + q + i) fs ≤ 1 := by rw [(R5 i hi).1]; split <;> omega
       refine ⟨?_, ?_, ?_, ?_, ?_⟩
@@ -310,7 +311,8 @@ theorem ups_extUpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 1 ∨ kd k =
         have := (hMd i hi).2; omega
       · simp [inE, pc5 i hi Kc (by decide), pc5 i hi eL (by decide), pc5 i hi eS (by decide), hKc, heL, heS]
       · have := hbyte (37 + q + i) (by omega); rwa [show o + (37 + q + i) = o + 37 + q + i by omega] at this)
-  simp only [hKc, heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hA, hmB, hmC] at eM
+  simp only [hKc, heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hA, hmB, hmC] at eM eX
+  refine ⟨?_, by rw [hr0, eX]; simp⟩
   -- assemble
   rw [hBy, eT, eH, cK, eW, eM]
   rw [show (List.range 32).map (fun i => s.row (o + 5 + q) (reg i)) = regN (s.row (o + 5 + q)) from rfl, hDC]
@@ -335,7 +337,8 @@ theorem ups_rdeBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 1)
     (hmB : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mBv) 8 = c'.memD)
     (hmC : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mCv) 8 = cm)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
-    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRDE key m c' cm)).map UInt8.toNat :=
+    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRDE key m c' cm)).map UInt8.toNat ∧
+      limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qRDE key m c' cm).memD :=
   ups_extUpBytes hw hs hL hP k hk (Or.inl hkd) Pb key c c' m cm hR hsrc hsl hc32 hm hdC hMd hmB hmC hbyte
 
 /-- **`PT`**: `nodeEnc (qPT m c' cm)` (the source is `.ext [] c m`). -/
@@ -350,7 +353,8 @@ theorem ups_ptBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 11)
     (hmB : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mBv) 8 = c'.memD)
     (hmC : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mCv) 8 = cm)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
-    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qPT m c' cm)).map UInt8.toNat :=
+    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qPT m c' cm)).map UInt8.toNat ∧
+      limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qPT m c' cm).memD :=
   ups_extUpBytes hw hs hL hP k hk (Or.inr hkd) Pb [] c c' m cm hR hsrc hsl hc32 hm hdC hMd hmB hmC hbyte
 
 end

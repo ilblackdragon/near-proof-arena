@@ -96,7 +96,8 @@ theorem ups_rbrBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 3) (val : Near
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc (.branch (some sl) cs m)).map UInt8.toNat)
     (hsl : sl.valueRef.length = 36) (hslen : sl.len < 2 ^ 32) (hm : m < 2 ^ 64)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
-    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRBR sl cs m val)).map UInt8.toNat := by
+    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRBR sl cs m val)).map UInt8.toNat ∧
+      limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qRBR sl cs m val).memD := by
   have K := partK hw hs hL hP k hk
   have hup := upZero hw hs hL hP k hk (by omega)
   obtain ⟨fl, ww, U⟩ : ∃ fl ww, UPartL s ps[k].1 ps[k].2 fl ww := ⟨_, _, (hL.part k hk).2⟩
@@ -378,7 +379,7 @@ theorem ups_rbrBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 3) (val : Near
     · simpa using e 3 (by omega)
     · simp [List.getElem?_eq_none (show [s.row (o + 39 + 32 * ww) (SR 0), s.row (o + 39 + 32 * ww) (SR 1),
         s.row (o + 39 + 32 * ww) (SR 2), s.row (o + 39 + 32 * ww) (SR 3)].length ≤ i by simp; omega)]
-  have eM := memBytesK hw hs hsc K U U5 s5 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
+  obtain ⟨eM, eX⟩ := memBytesK hw hs hsc K U U5 s5 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
     (fun i hi => by
       have hfs : s.row (o + 39 + 32 * ww + i) fs ≤ 1 := by rw [(R5 i hi).1]; split <;> omega
       have hLb : bAt [s.row 0 L0, s.row 0 L1, s.row 0 L2] i < 256 := by
@@ -398,7 +399,13 @@ theorem ups_rbrBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 3) (val : Near
       · simp [inE, pc5 i hi Kc (by decide), pc5 i hi eL (by decide), pc5 i hi eS (by decide), hKc, heL, heS]
       · have := hbyte (39 + 32 * ww + i) (by omega)
         rwa [show o + (39 + 32 * ww + i) = o + 39 + 32 * ww + i by omega] at this)
-  simp only [hKc, heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hA, hS] at eM
+  simp only [hKc, heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hA, hS] at eM eX
+  refine ⟨?_, (limbs_rows_eq (b := o + 39 + 32 * ww) (by omega) rx).trans ?_⟩
+  rotate_left
+  · rw [eX]
+    simp only [UpsSpec.qRBR, NearSpec.valueMem, NearSpec.PTrie.memD, NearSpec.PTrie.mem?, Option.getD_some,
+      Nat.zero_mul, Nat.one_mul, Nat.add_zero, Nat.zero_add, Nat.sub_zero]
+    omega
   -- assemble
   rw [hBy, eT, eV, eW, hD, show rowsB s (o + 37) 2 ++ (rowsB s (o + 39) (32 * ww) ++ rowsB s (o + 39 + 32 * ww) 8) =
     rowsB s (o + 37) (2 + 32 * ww) ++ rowsB s (o + 39 + 32 * ww) 8 by

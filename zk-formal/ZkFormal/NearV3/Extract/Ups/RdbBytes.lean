@@ -62,7 +62,8 @@ theorem ups_rdbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 0)
     (hmB : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mBv) 8 = c'.memD)
     (hmC : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mCv) 8 = cm)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
-    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRDB bv cs m (slotOf (sdx k)) c' cm)).map UInt8.toNat := by
+    rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qRDB bv cs m (slotOf (sdx k)) c' cm)).map UInt8.toNat ∧
+      limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qRDB bv cs m (slotOf (sdx k)) c' cm).memD := by
   have K := partK hw hs hL hP k hk
   have hup : s.row ps[k].1 UpsV3.up = 1 := by
     rcases Nat.lt_or_ge k (nTof ci ti) with h | h
@@ -302,7 +303,7 @@ theorem ups_rdbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 0)
   have hr0 : o + (c0 + 32 * ww + 8) - 8 = o + c0 + 32 * ww := by omega
   rw [hr0] at hMd hmB hmC
   have pc5 := fun i (hi : i < 8) x (hx : x ∈ partConst) => (FM i hi).2.2.2.2.1 x hx
-  have eM := memBytesK hw hs hsc K U B.memU.1 B.memU.2 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
+  obtain ⟨eM, eX⟩ := memBytesK hw hs hsc K U B.memU.1 B.memU.2 (by omega) (by rw [heL, heS, huA, hbN, hbL, hcO, hcS]; omega)
     (fun i hi => by
       have hfs : s.row (o + c0 + 32 * ww + i) fs ≤ 1 := by rw [(R5 i hi).1]; split <;> omega
       refine ⟨?_, ?_, ?_, ?_, ?_⟩
@@ -315,7 +316,12 @@ theorem ups_rdbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 0)
       · simp [inE, pc5 i hi Kc (by decide), pc5 i hi eL (by decide), pc5 i hi eS (by decide), hKc, heL, heS]
       · have := hbyte (c0 + 32 * ww + i) (by omega)
         rwa [show o + (c0 + 32 * ww + i) = o + c0 + 32 * ww + i by omega] at this)
-  simp only [hKc, heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hA, hmB, hmC] at eM
+  simp only [hKc, heL, heS, huA, hbN, hbL, hcO, hcS, hCc, hA, hmB, hmC] at eM eX
+  refine ⟨?_, (limbs_rows_eq (b := o + c0 + 32 * ww) (by omega) rx).trans ?_⟩
+  rotate_left
+  · rw [eX]
+    simp only [UpsSpec.qRDB, NearSpec.PTrie.memD, NearSpec.PTrie.mem?, Option.getD_some, Nat.zero_mul, Nat.one_mul, Nat.add_zero, Nat.zero_add, Nat.sub_zero]
+    all_goals omega
   -- assemble
   have hsplit : rowsB s o c0 ++ rowsB s (o + c0) (32 * ww) =
       rowsB s o (c0 + 32 * es) ++ (rowsB s (o + c0 + 32 * es) 32 ++ rowsB s (o + (c0 + 32 * es + 32)) (32 * (ww - es - 1))) := by
