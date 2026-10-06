@@ -232,6 +232,58 @@ theorem row_grant (hL : MLocal tr tm pub) {r : Nat} (hr : r < tr.height tm) (hg 
   · rcases h with h | h <;> simp only [h] at c4 <;> push_cast at c4 <;>
       first | omega | (simp at c4; omega)
 
+/-- **Back step.** An active non-INIT row continues the segment of the row above it. -/
+theorem seg_back (hL : MLocal tr tm pub) {r : Nat} (hr : r < tr.height tm)
+    (ha : cv tr tm r act = 1) (hf : cv tr tm r fst = 0) :
+    1 ≤ r ∧ cv tr tm (r - 1) act = 1 ∧ cv tr tm (r - 1) lst = 0 := by
+  have hr1 : 1 ≤ r := by
+    rcases Nat.eq_zero_or_pos r with h | h
+    · subst h; have := row_first hL hr ha; omega
+    · exact h
+  have hr' : r - 1 + 1 < tr.height tm := by omega
+  have e : r - 1 + 1 = r := by omega
+  have F := row_flags hL (show r - 1 < tr.height tm by omega)
+  refine ⟨hr1, ?_, ?_⟩
+  · rcases Nat.le_one_iff_eq_zero_or_eq_one.1 F.1 with h | h
+    · have := row_pad hL hr' h; rw [e] at this; omega
+    · exact h
+  · rcases Nat.le_one_iff_eq_zero_or_eq_one.1 F.2.2.1 with h | h
+    · exact h
+    · have := row_after_lst hL hr' h (by rw [e]; exact ha); rw [e] at this; omega
+
+/-- **Segment start.** Every active row lies in a segment starting at an INIT row `f ≤ r`: all
+rows of `[f, r]` are active, none after `f` is an INIT row, none before `r` is a segment end. -/
+theorem seg_start (hL : MLocal tr tm pub) :
+    ∀ r, r < tr.height tm → cv tr tm r act = 1 →
+      ∃ f, f ≤ r ∧ cv tr tm f fst = 1 ∧ (∀ x, f ≤ x → x ≤ r → cv tr tm x act = 1) ∧
+        (∀ x, f < x → x ≤ r → cv tr tm x fst = 0 ∧ cv tr tm (x - 1) lst = 0) := by
+  intro r
+  induction r with
+  | zero =>
+    intro hr ha
+    exact ⟨0, Nat.le_refl _, row_first hL hr ha, fun x h1 h2 => by
+      have : x = 0 := by omega
+      subst this; exact ha, fun x h1 h2 => by omega⟩
+  | succ r ih =>
+    intro hr ha
+    have F := row_flags hL hr
+    rcases Nat.le_one_iff_eq_zero_or_eq_one.1 F.2.1 with hf | hf
+    · obtain ⟨-, ha', hl'⟩ := seg_back hL hr ha hf
+      simp only [Nat.add_sub_cancel] at ha' hl'
+      obtain ⟨f, hfr, hff, hact, hrest⟩ := ih (by omega) ha'
+      refine ⟨f, by omega, hff, fun x h1 h2 => ?_, fun x h1 h2 => ?_⟩
+      · rcases Nat.lt_or_ge x (r + 1) with h | h
+        · exact hact x h1 (by omega)
+        · have : x = r + 1 := by omega
+          subst this; exact ha
+      · rcases Nat.lt_or_ge x (r + 1) with h | h
+        · exact hrest x h1 (by omega)
+        · have : x = r + 1 := by omega
+          subst this; exact ⟨hf, by simpa using hl'⟩
+    · exact ⟨r + 1, Nat.le_refl _, hf, fun x h1 h2 => by
+        have : x = r + 1 := by omega
+        subst this; exact ha, fun x h1 h2 => by omega⟩
+
 end
 
 end ZkFormal.NearV3.Sched.Mem
