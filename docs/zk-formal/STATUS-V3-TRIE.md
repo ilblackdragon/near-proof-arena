@@ -297,7 +297,10 @@ Per instance `τ` there is one `0x0f` read and one `0x0f` upsert.
 * **M7a: the instance chain.** `upsV3` is abstracted as `(τ, mid, post)`: it receives
   `MIDROOT (τ, mid)` and sends `ROOT (τ+1, post)`. The public bus closes the chain with
   `ROOT (0, r0)` and `ROOT (K+1, rK)`. Result: exactly one head and one `upsV3` per `τ ≤ K`,
-  with the root values chained. In progress (helper, `Link/Chain3*`).
+  with the root values chained. **Done**: `root_chain` (`Link/Chain3.lean`, dd0af31d), which
+  gives `RootChain`: per-`τ` counts, `headAt` / `upsAt`, `pre0`, `link`, `mid`, `postK`.
+  Hypotheses: `HeadWf`, `UpsWf`, `RootBal`, `MidBal`, `K + 1 < P`, `|hs| < P`. The last one
+  comes from the head table height, `HeadProof.height_le`.
 * **M7b: the table `upsV3`.** One segment per instance `τ`, laid out as follows.
   * **Header row:**
     * receives `MIDROOT (τ, mid)`;
