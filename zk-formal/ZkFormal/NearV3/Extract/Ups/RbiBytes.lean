@@ -552,6 +552,323 @@ theorem ups_rbiBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : Near
     simp only [Nat.add_zero, Nat.zero_mul, Nat.one_mul, Nat.zero_add, Nat.sub_zero]
     rw [show 102 + (s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2) + m = m + (102 + val.length) by omega]
 
+/-- An `RBI` part looks up the new leaf's digest (id `j − 1 = k`, length 50) on its target window. -/
+theorem rbiLook (k : Nat) (hk : k < ps.length) (hkd : kd k = 5) (val : NearSpec.Bytes) (hsi : si ≤ 1)
+    (Pb : Nat → List Nat) (bv : Option NearSpec.Slot) (cs : NearSpec.Kids) (m : Nat)
+    (hR : UpbReads s Pb)
+    (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc (.branch bv cs m)).map UInt8.toNat)
+    (hsl : (nodeEnc (.branch bv cs m)).length < 2 ^ 20)
+    (hbv : ∀ sl, bv = some sl → sl.valueRef.length = 36) (hm : m < 2 ^ 64)
+    (hkl : UpsSpec.kidsLen cs = 16) (hslot : UpsSpec.kidAt cs (UpsSpec.yOf si) = none)
+    (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
+    (hLb : s.row 0 L0 < 256 ∧ s.row 0 L1 < 256 ∧ s.row 0 L2 < 256)
+    (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
+    ∃ i, i < s.rows.length ∧ s.row i gD = 1 ∧ s.row i dI = upsIdN (s.row 0 tau) k ∧ s.row i dL = 50 := by
+  have K := partK hw hs hL hP k hk
+  have hup := upZero hw hs hL hP k hk (by omega)
+  obtain ⟨hj, -⟩ := hL.part k hk
+  obtain ⟨fl, ww, U⟩ : ∃ fl ww, UPartL s ps[k].1 ps[k].2 fl ww := ⟨_, _, (hL.part k hk).2⟩
+  rw [hkd] at K
+  generalize ps[k].1 = o at K U hbyte hsrc hup hj ⊢
+  generalize ps[k].2 = ℓ at K U hbyte ⊢
+  have hsc := hL.segc
+  obtain ⟨i1, -, -, i4, -, isd⟩ := K.idx
+  have I0 := K.ix 0 K.pos
+  simp only [Nat.add_zero] at I0
+  have hq0 : s.row o qb = 1 := by simpa using K.qb 0 K.pos
+  have hlt0 : o < s.rows.length := by have := K.le; have := K.pos; omega
+  have ok0 := okRow hw hs hlt0
+  obtain ⟨hx0, hv0, htl, hte, huA, hbN, hbL, hcO, hcS, hCc, heL, heS, hKc⟩ :=
+    head_RBI ok0 (rowLt hw hs _) (nextLt hw hs _) K.pf I0.kd
+  obtain ⟨c0, B⟩ := brLay hw hs hsc K U htl hte
+  have hℓ := B.len
+  subst hℓ
+  have hle := K.le
+  have hlen22 := lenLe hw hs
+  have hc0 : c0 = 3 ∨ c0 = 39 := by rcases B.c0v with h | h <;> omega
+  have hts : s.row o ts1 = if si = 0 then 1 else 0 := by
+    show s.row o 31 = _; have := I0.ts 0 (by omega); simpa [eq_comm] using this
+  -- reads `32·aft` back
+  have readAt : ∀ d a, d < c0 + 32 * ww + 8 → s.row (o + d) rd = 1 → s.row (o + d) aft = a → 32 * a ≤ d →
+      s.row (o + d) rb = (Pb (s.row o sN)).getD (d - 32 * a) 0 ∧ s.row (o + d) plen = (Pb (s.row o sN)).length := by
+    intro d a h2 hrd ha ha'
+    have hlt : o + d < s.rows.length := by omega
+    have hI := K.ix d h2
+    have hsp := sposRBI (okRow hw hs hlt) (rowLt hw hs _) (nextLt hw hs _) hrd (hI.kd 5 (by omega)) ha
+      (by rw [(U.rows d h2).2.1]; exact ha')
+    rw [(U.rows d h2).2.1] at hsp
+    have := hR (o + d) hlt hrd
+    rwa [hsp, K.pc d h2 sN (by decide)] at this
+  have aftAt : ∀ d, d < c0 + 32 * ww + 8 → s.row (o + d) sCH = 0 →
+      s.row (o + d) aft = (if c0 + 32 * ww ≤ d then 1 else 0) := by
+    intro d hd hch
+    have hlt : o + d < s.rows.length := by omega
+    have hoh := oneHot hw hs hlt (K.qb d hd)
+    have A := (aftRow (okRow hw hs hlt) (rowLt hw hs _) (nextLt hw hs _) (K.ix d hd) (K.qb d hd) hoh.sum).2 rfl
+    rcases Nat.lt_or_ge d c0 with h | h
+    · obtain ⟨-, -, -, -, -, -, a7, a8, -⟩ := B.pre d h
+      have := hoh.bs; have := hoh.sum
+      rw [A.1 (by omega), if_neg (by omega)]
+    · rcases Nat.lt_or_ge d (c0 + 32 * ww) with h' | h'
+      · have := (B.win (d - c0) (by omega)).2.2.2.2.2; rw [show o + c0 + (d - c0) = o + d by omega] at this; omega
+      · have F := kField hw hs hsc K B.memU.1 B.memU.2 (by omega) (by omega) (d - (c0 + 32 * ww)) (by omega)
+        rw [show o + c0 + 32 * ww + (d - (c0 + 32 * ww)) = o + d by omega] at F
+        rw [A.2.2 ((stOf_inv F.1).2.2.2.2.2.2.2.2 F.2.1), if_pos h']
+  -- MEM read: the source's length
+  have hMEM0 := kField hw hs hsc K B.memU.1 B.memU.2 (by omega) (by omega) 0 (by omega)
+  simp only [Nat.add_zero] at hMEM0
+  have hm8 : s.row (o + c0 + 32 * ww) sMEM = 1 := (stOf_inv hMEM0.1).2.2.2.2.2.2.2.2 hMEM0.2.1
+  have hrdM : s.row (o + (c0 + 32 * ww)) rd = 1 := by
+    rw [show o + (c0 + 32 * ww) = o + c0 + 32 * ww by omega]
+    exact rdMem (okRow hw hs hMEM0.2.2.1) (rowLt hw hs _) (nextLt hw hs _) hMEM0.2.2.2.2.2 hm8
+      (hMEM0.2.2.2.1.kd 8 (by omega)) hMEM0.1
+  have haM := aftAt (c0 + 32 * ww) (by omega) (by
+    rw [show o + (c0 + 32 * ww) = o + c0 + 32 * ww by omega]; have := hMEM0.1.bs; have := hMEM0.1.sum; omega)
+  rw [if_pos (Nat.le_refl _)] at haM
+  have hlenP : (Pb (s.row o sN)).length = (brPre bv cs).length + (NearSpec.Kids.hashes cs).length + 8 := by
+    rw [hsrc, brEnc]; simp [u64_length]; omega
+  obtain ⟨l1, l2⟩ := brPre_len bv cs hbv
+  -- the tag: `bv` matches the layout
+  have hT0 := B.pre 0 (by omega)
+  simp only [Nat.add_zero] at hT0
+  obtain ⟨t1, -, -, -, -, t6, -, -, t9, t10, -, -⟩ := hT0
+  have htag1 : s.row o sTAG = 1 := t9.2 trivial
+  have hcp0 : s.row o cp = 1 := by
+    apply natv (rowLt hw hs _ _) one_lt
+    rw [cpTAG ok0 (rowLt hw hs _) t1.sum htag1, show s.row o kRDB = 0 from I0.kd 0 (by omega),
+      show s.row o kRDE = 0 from I0.kd 1 (by omega), show s.row o kRLP = 0 from I0.kd 2 (by omega),
+      show s.row o kRBR = 0 from I0.kd 3 (by omega), show s.row o kRBI = 1 from I0.kd 5 (by omega),
+      show s.row o kPT = 0 from I0.kd 11 (by omega)]; rfl
+  have hrd0 : s.row o rd = 1 := rdCopy ok0 (rowLt hw hs _) (nextLt hw hs _) hq0 hcp0 t1
+    (fun _ => ⟨I0.kd 4 (by omega), I0.kd 6 (by omega), I0.kd 7 (by omega), hx0⟩)
+    (fun _ => ⟨I0.kd 6 (by omega), I0.kd 7 (by omega)⟩) (fun _ => I0.kd 3 (by omega)) (fun _ => hx0)
+    (rdcOff ok0 (rowLt hw hs _) (nextLt hw hs _) t6)
+  have hb0 := bCopyN ok0 (rowLt hw hs _) (nextLt hw hs _) hcp0 (by have := t1.bs; have := t1.sum; omega)
+  have hgr0 := (gramRow ok0 (rowLt hw hs _) (nextLt hw hs _) t1.sum).1 htag1 K.pf
+  have ha0 := aftAt 0 (by omega) (by simpa using t6)
+  rw [if_neg (by omega)] at ha0
+  have hr0 := (readAt 0 0 (by omega) (by simpa using hrd0) (by simpa using ha0) (by omega)).1
+  simp only [Nat.add_zero] at hr0
+  rw [hb0, hr0, hsrc, brEnc] at hgr0
+  have hpreL : (brPre bv cs).length = c0 := by
+    have : (brPre bv cs ++ ((NearSpec.Kids.hashes cs).map UInt8.toNat ++ (NearSpec.u64 m).map UInt8.toNat)).getD 0 0 =
+        (brPre bv cs).getD 0 0 := by
+      simp only [List.getD_eq_getElem?_getD]; rw [List.getElem?_append_left (by rw [l1]; split <;> omega)]
+    rw [this, l2] at hgr0
+    rw [l1]
+    rcases B.c0v with ⟨h1, h2, h3⟩ | ⟨h1, h2, h3⟩ <;> cases bv <;> simp at hgr0 ⊢ <;> omega
+  clear hgr0 l2
+  -- the source's length and the window count, from a `MEM` read (as naturals mod `P`)
+  have hMr : (s.row (o + (c0 + 32 * ww)) spos + 32) % P = c0 + 32 * ww ∧
+      (s.row (o + (c0 + 32 * ww)) spos + 8) % P = s.row (o + (c0 + 32 * ww)) plen % P := by
+    have hlt : o + (c0 + 32 * ww) < s.rows.length := by omega
+    have C1 := factN (okRow hw hs hlt) (rowLt hw hs _) (nextLt hw hs _)
+      (e := mul3 (c rd) (c kRBI) (sub (.add (c spos) (smul 32 (c aft))) (c qpos))) (memBytes (by simp [cBytes]))
+    have C2 := factN (okRow hw hs hlt) (rowLt hw hs _) (nextLt hw hs _)
+      (e := mul3 (c rd) (c sMEM) (sub (.add (c spos) (Dsl.k 8)) (.add (c plen) (c idx)))) (memBytes (by simp [cBytes]))
+    have hk5 : s.row (o + (c0 + 32 * ww)) kRBI = 1 := (K.ix (c0 + 32 * ww) (by omega)).kd 5 (by omega)
+    have hq := (U.rows (c0 + 32 * ww) (by omega)).2.1
+    have hidx : s.row (o + (c0 + 32 * ww)) idx = 0 := by
+      have := B.memU.1.idx 0 (by omega); rwa [show o + c0 + 32 * ww + 0 = o + (c0 + 32 * ww) by omega] at this
+    rw [show o + c0 + 32 * ww = o + (c0 + 32 * ww) by omega] at hm8
+    have := rowLt hw hs (o + (c0 + 32 * ww)) spos; have := rowLt hw hs (o + (c0 + 32 * ww)) plen
+    simp only [P_lit] at *
+    nev_simp at C1 C2
+    simp [hrdM, hk5, haM, hq, hm8, hidx] at C1 C2
+    constructor <;> omega
+  have hpl := (hR _ (by omega) hrdM).2
+  rw [K.pc (c0 + 32 * ww) (by omega) sN (by decide)] at hpl
+  have hww : 0 < ww ∧ (Pb (s.row o sN)).length = c0 + 32 * (ww - 1) + 8 := by
+    have hPl : (Pb (s.row o sN)).length < 2 ^ 20 := by rw [hsrc, List.length_map]; exact hsl
+    rw [hpl] at hMr
+    have hlP := rowLt hw hs (o + (c0 + 32 * ww)) spos
+    simp only [P_lit] at hMr hlP
+    rcases B.c0v with ⟨h1, -, -⟩ | ⟨h1, -, -⟩ <;> rcases Nat.eq_zero_or_pos ww with h0 | h0
+    · exfalso; subst h0; omega
+    · omega
+    · exfalso; subst h0
+      have : (brPre bv cs).length ≥ 3 := by rw [l1]; split <;> omega
+      omega
+    · omega
+  obtain ⟨hww, hPlen⟩ := hww
+  have hHl : (NearSpec.Kids.hashes cs).length = 32 * (ww - 1) := by omega
+  have hHl' : ((NearSpec.Kids.hashes cs).map UInt8.toNat).length = 32 * (ww - 1) := by simp [hHl]
+  -- the windows: flags and roles
+  have WF := winFlags hw hs (r := o + c0) hww (by omega) (by omega)
+    (by have := (B.pre (c0 - 1) (by omega)).2.2.2.2.2.1; rwa [show o + (c0 - 1) = o + c0 - 1 by omega] at this)
+    (fun e he => ⟨(B.winU e he).1, fun d hd => by
+      have := (B.win (32 * e + d) (by omega)).2.2.2.2.2; rwa [show o + c0 + (32 * e + d) = o + c0 + 32 * e + d by omega] at this⟩)
+    hm8 (by have := hMEM0.1.bs; have := hMEM0.1.sum; omega)
+  obtain ⟨es, hesv⟩ : ∃ es, es = if si = 0 then 0 else ww - 1 := ⟨_, rfl⟩
+  have hes : es < ww := by rw [hesv]; split <;> omega
+  have role : ∀ e, e < ww → ∀ d, d < 32 → s.row (o + c0 + 32 * e + d) wfr = (if e = es then 1 else 0) ∧
+      s.row (o + c0 + 32 * e + d) wn = (if e = es then 1 else 0) ∧ s.row (o + c0 + 32 * e + d) rdc = 0 ∧
+      s.row (o + c0 + 32 * e + d) aft = (if si = 0 ∧ e ≠ 0 then 1 else 0) := by
+    intro e he d hd
+    obtain ⟨a1, a2, a3, a4, a5, a6⟩ := B.win (32 * e + d) (by omega)
+    rw [show o + c0 + (32 * e + d) = o + c0 + 32 * e + d by omega] at a1 a2 a3 a4 a5 a6
+    have sl := kSel hw hs hsc K (r := o + c0 + 32 * e + d) (by omega) (by omega)
+    have R := winRole (okRow hw hs a2) (rowLt hw hs _) (nextLt hw hs _) a3 i1 i4 (by omega) isd a6 sl.2.2.2.2.1
+      sl.2.2.2.2.2 sl.2.1
+    obtain ⟨f1, f2⟩ := WF e he d hd
+    have hs15 : s15V 5 (sdx k) si = if si = 0 then 0 else 1 := by
+      have : ∀ a, a < 3 → ∀ b, b < 3 → s15V 5 a b = if b = 0 then 0 else 1 := by decide
+      exact this _ isd _ i4
+    have ht : s.row (o + c0 + 32 * e + d) tgt = if e = es then 1 else 0 := by
+      rw [R.1, f1, f2, hs15]
+      by_cases h1 : si = 0
+      · have : es = 0 := by rw [hesv, if_pos h1]
+        rw [this, if_pos h1]
+        by_cases h2 : e = 0 <;> simp [h2]
+      · have : es = ww - 1 := by rw [hesv, if_neg h1]
+        rw [this, if_neg h1, if_pos rfl]
+        by_cases h2 : e + 1 = ww
+        · rw [if_pos h2, if_pos (show e = ww - 1 by rw [← h2, Nat.add_sub_cancel])]
+        · rw [if_neg h2, if_neg (show ¬ (e = ww - 1) from fun h => h2 (by rw [h]; exact Nat.sub_add_cancel hww))]
+    have A := (aftRow (okRow hw hs a2) (rowLt hw hs _) (nextLt hw hs _) a3 a5 a1.sum).2 rfl
+    refine ⟨by rw [R.2.1 (Or.inr rfl), ht], by rw [R.2.2.2.2.2.1, ht]; simp, ?_, ?_⟩
+    · rw [R.2.2.2.2.2.2.1, a4 UpsV3.up (by decide), hup, Nat.mul_zero]
+    · rw [A.2.1 a6, f1]
+      by_cases h1 : si = 0 <;> by_cases h2 : e = 0 <;> simp [h1, h2]
+  -- prefix rows (tag, value slot): copied at their own position
+  have copyPre : ∀ d, d < c0 - 2 → s.row (o + d) cp = 1 ∧ s.row (o + d) rd = 1 ∧
+      (s.row (o + d) sBM = 0 ∨ (s.row (o + d) ba0 = 0 ∧ s.row (o + d) ba1 = 0)) ∧
+      s.row (o + d) spos = 0 + d ∧ s.row (o + d) sN = s.row o sN := by
+    intro d hd
+    obtain ⟨a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, -⟩ := B.pre d (by omega)
+    have hok := okRow hw hs a2
+    have hs1 := a1.sum; have hb := a1.bs
+    have hbm0 : s.row (o + d) sBM = 0 := by
+      rcases (show s.row (o + d) sBM = 0 ∨ s.row (o + d) sBM = 1 by omega) with h | h
+      · exact h
+      · have := a10.1 h; omega
+    have hcp : s.row (o + d) cp = 1 := by
+      apply natv (rowLt hw hs _ _) one_lt
+      by_cases ht : s.row (o + d) sTAG = 1
+      · rw [cpTAG hok (rowLt hw hs _) hs1 ht, show s.row (o + d) kRDB = 0 from a3.kd 0 (by omega),
+          show s.row (o + d) kRDE = 0 from a3.kd 1 (by omega), show s.row (o + d) kRLP = 0 from a3.kd 2 (by omega),
+          show s.row (o + d) kRBR = 0 from a3.kd 3 (by omega), show s.row (o + d) kRBI = 1 from a3.kd 5 (by omega),
+          show s.row (o + d) kPT = 0 from a3.kd 11 (by omega)]; rfl
+      by_cases hv : s.row (o + d) sVLEN = 1
+      · rw [cpVLEN hok (rowLt hw hs _) hs1 hv, a4 vcp (by decide), hv0]
+      · have hvh : s.row (o + d) sVH = 1 := by omega
+        rw [cpVH hok (rowLt hw hs _) hs1 hvh, a4 vcp (by decide), hv0]
+    have hx : s.row (o + d) xcp = 0 := by rw [a4 xcp (by decide), hx0]
+    have hrd := rdCopy hok (rowLt hw hs _) (nextLt hw hs _) a5 hcp a1
+      (fun _ => ⟨a3.kd 4 (by omega), a3.kd 6 (by omega), a3.kd 7 (by omega), hx⟩)
+      (fun _ => ⟨a3.kd 6 (by omega), a3.kd 7 (by omega)⟩) (fun _ => a3.kd 3 (by omega)) (fun _ => hx)
+      (rdcOff hok (rowLt hw hs _) (nextLt hw hs _) a6)
+    have ha := aftAt d (by omega) a6
+    rw [if_neg (by omega)] at ha
+    have hsp := sposRBI hok (rowLt hw hs _) (nextLt hw hs _) hrd (a3.kd 5 (by omega)) ha (by omega)
+    rw [(U.rows d (by omega)).2.1] at hsp
+    exact ⟨hcp, hrd, Or.inl hbm0, by omega, a4 sN (by decide)⟩
+  have cP := copyRunB hw hs Pb hR (r := o) (n := c0 - 2) (δ := 0) (N := s.row o sN) (by omega) (by omega)
+    (fun d hd => by simpa using copyPre d hd)
+  -- the bitmap rows
+  have bmRow : ∀ t, t < 2 → s.row (o + (c0 - 2 + t)) b =
+      (Pb (s.row o sN)).getD (c0 - 2 + t) 0 + (if t = 0 then (if si = 0 then 1 else 0) else (if si = 0 then 0 else 128)) := by
+    intro t ht
+    have hd0 : c0 - 2 + t < c0 + 32 * ww + 8 := by omega
+    have hd1 : 32 * 0 ≤ c0 - 2 + t := by omega
+    have hd2 : ¬ (c0 + 32 * ww ≤ c0 - 2 + t) := by omega
+    obtain ⟨a1, a2, a3, a4, a5, a6, -, -, -, a10, a11, a12⟩ := B.pre (c0 - 2 + t) (by omega)
+    have hok := okRow hw hs a2
+    have hbm : s.row (o + (c0 - 2 + t)) sBM = 1 := a10.2 (by omega)
+    have hcp : s.row (o + (c0 - 2 + t)) cp = 1 := by
+      apply natv (rowLt hw hs _ _) one_lt
+      rw [cpBM hok (rowLt hw hs _) a1.sum hbm, show s.row (o + (c0 - 2 + t)) kRDB = 0 from a3.kd 0 (by omega),
+        show s.row (o + (c0 - 2 + t)) kRBR = 0 from a3.kd 3 (by omega), show s.row (o + (c0 - 2 + t)) kRBV = 0 from a3.kd 4 (by omega),
+        show s.row (o + (c0 - 2 + t)) kRBI = 1 from a3.kd 5 (by omega)]; rfl
+    have hx : s.row (o + (c0 - 2 + t)) xcp = 0 := by rw [a4 xcp (by decide), hx0]
+    have hrd := rdCopy hok (rowLt hw hs _) (nextLt hw hs _) a5 hcp a1
+      (fun _ => ⟨a3.kd 4 (by omega), a3.kd 6 (by omega), a3.kd 7 (by omega), hx⟩)
+      (fun _ => ⟨a3.kd 6 (by omega), a3.kd 7 (by omega)⟩) (fun _ => a3.kd 3 (by omega)) (fun _ => hx)
+      (rdcOff hok (rowLt hw hs _) (nextLt hw hs _) a6)
+    have ha := aftAt (c0 - 2 + t) hd0 a6
+    rw [if_neg hd2] at ha
+    have hr := (readAt (c0 - 2 + t) 0 hd0 hrd ha hd1).1
+    rw [Nat.mul_zero, Nat.sub_zero] at hr
+    have sl := kSel hw hs hsc K (r := o + (c0 - 2 + t)) (by omega) (by omega)
+    have hrb : s.row (o + (c0 - 2 + t)) rb < 256 := by rw [hr, hsrc]; exact toNats_lt _ _
+    rcases (show t = 0 ∨ t = 1 by omega) with rfl | rfl
+    · have hfs : s.row (o + (c0 - 2 + 0)) fs = 1 := a12 hbm (by omega)
+      rw [bCopyIns hok (rowLt hw hs _) (nextLt hw hs _) hcp hbm (a := if si = 0 then 1 else 0)
+        (Or.inl ⟨hfs, by rw [sl.2.2.1]; by_cases h : si = 0 <;> simp [h, ba0V, kdOf, UKind.all, b2n]⟩)
+        (by rw [P_lit]; split <;> omega), hr]
+      simp
+    · have hfs : s.row (o + (c0 - 2 + 1)) fs = 0 := by
+        rcases rowBool hok (rowLt hw hs _) (x := fs) (by decide) with h | h
+        · exact h
+        · have := a11 h hbm; omega
+      rw [bCopyIns hok (rowLt hw hs _) (nextLt hw hs _) hcp hbm (a := if si = 0 then 0 else 128)
+        (Or.inr ⟨hfs, by rw [sl.2.2.2.1]; by_cases h : si = 0 <;> simp [h, ba1V, kdOf, UKind.all, b2n]⟩)
+        (by rw [P_lit]; split <;> omega), hr]
+      simp
+  -- copied windows (after the new first window when `si = 0`, before the new last window otherwise)
+  obtain ⟨off, hoffv⟩ : ∃ off, off = if si = 0 then 1 else 0 := ⟨_, rfl⟩
+  have hoff : off ≤ 1 := by rw [hoffv]; split <;> omega
+  have copyW : ∀ d, d < 32 * (ww - 1) → s.row (o + c0 + 32 * off + d) cp = 1 ∧
+      s.row (o + c0 + 32 * off + d) rd = 1 ∧
+      (s.row (o + c0 + 32 * off + d) sBM = 0 ∨
+        (s.row (o + c0 + 32 * off + d) ba0 = 0 ∧ s.row (o + c0 + 32 * off + d) ba1 = 0)) ∧
+      s.row (o + c0 + 32 * off + d) spos = c0 + d ∧ s.row (o + c0 + 32 * off + d) sN = s.row o sN := by
+    intro d hd
+    have e0 : off + d / 32 < ww := by omega
+    have r := role (off + d / 32) e0 (d % 32) (by omega)
+    rw [show o + c0 + 32 * (off + d / 32) + d % 32 = o + c0 + 32 * off + d by omega] at r
+    have hne : ¬ (off + d / 32 = es) := by rw [hesv]; rw [hoffv]; split <;> omega
+    simp only [if_neg hne] at r
+    have haft : s.row (o + c0 + 32 * off + d) aft = off := by
+      rw [r.2.2.2, hoffv]; by_cases h : si = 0 <;> simp [h] <;> omega
+    obtain ⟨a1, a2, a3, a4, a5, a6⟩ := B.win (32 * off + d) (by omega)
+    rw [show o + c0 + (32 * off + d) = o + c0 + 32 * off + d by omega] at a1 a2 a3 a4 a5 a6
+    have hok := okRow hw hs a2
+    have hcp : s.row (o + c0 + 32 * off + d) cp = 1 := by
+      apply natv (rowLt hw hs _ _) one_lt
+      rw [cpCH hok (rowLt hw hs _) a1.sum a6, r.1]; rfl
+    have hx : s.row (o + c0 + 32 * off + d) xcp = 0 := by rw [a4 xcp (by decide), hx0]
+    have hb1 := a1.bs; have hs1 := a1.sum
+    have hrd := rdCopy hok (rowLt hw hs _) (nextLt hw hs _) a5 hcp a1
+      (fun h => by omega) (fun _ => ⟨a3.kd 6 (by omega), a3.kd 7 (by omega)⟩)
+      (fun h => by omega) (fun _ => hx) r.2.2.1
+    have hq := (U.rows (c0 + 32 * off + d) (by omega)).2.1
+    rw [show o + (c0 + 32 * off + d) = o + c0 + 32 * off + d by omega] at hq
+    have hsp := sposRBI hok (rowLt hw hs _) (nextLt hw hs _) hrd (a3.kd 5 (by omega)) haft (by rw [hq]; omega)
+    rw [hq] at hsp
+    refine ⟨hcp, hrd, Or.inl (by omega), by rw [hsp]; omega, a4 sN (by decide)⟩
+  have cW := copyRunB hw hs Pb hR (r := o + c0 + 32 * off) (n := 32 * (ww - 1)) (δ := c0)
+    (N := s.row o sN) (by omega) (by omega) copyW
+  -- the new window (fresh: the new leaf's digest)
+  have hWe := B.winU es hes
+  have FC := kField hw hs hsc K hWe.1 hWe.2 (by omega) (by omega)
+  have chU : ∀ d, d < 32 → s.row (o + c0 + 32 * es + d) sCH = 1 ∧ s.row (o + c0 + 32 * es + d) wfr = 1 ∧
+      s.row (o + c0 + 32 * es + d) wn = 1 := by
+    intro d hd
+    have F := FC d hd
+    have r := role es hes d hd
+    simp only [if_pos rfl] at r
+    exact ⟨(stOf_inv F.1).2.2.2.2.2.2.2.1 F.2.1, r.1, r.2.1⟩
+  have eW := freshWin hw hs (r0 := o + c0 + 32 * es) (by omega)
+    (fun d hd => Or.inr ⟨(chU d hd).1, (chU d hd).2.1, by have := (FC d hd).1.sum; have := (chU d hd).1; omega⟩)
+    (fun d hd => feZero hw hs hsc K hWe.1 (by omega) d (by omega))
+  have F0 := FC 0 (by omega)
+  simp only [Nat.add_zero] at F0
+  have c0' := chU 0 (by omega)
+  simp only [Nat.add_zero] at c0'
+  have hr3 : o + c0 + 32 * es < s.rows.length := by omega
+  have hgD := gDrow (okRow hw hs hr3) (rowLt hw hs _) (nextLt hw hs _) F0.2.2.2.2.2
+    (by simpa using (hWe.1.fs 0 (by omega)).2 rfl) (qbWt3 hw hs hr3 F0.2.2.2.2.2)
+    (Or.inr ⟨c0'.1, c0'.2.1, by have := F0.1.sum; omega⟩)
+  have hdI0 := dCHn (okRow hw hs hr3) (rowLt hw hs _) F0.1.sum hgD c0'.1 c0'.2.2
+  rw [F0.2.2.2.2.1 j (by decide), hj, hsc _ hr3 tau (by decide)] at hdI0
+  have hdI : s.row (o + c0 + 32 * es) dI = upsIdN (s.row 0 tau) k := by
+    apply dIj_nat (rowLt hw hs _ _)
+    rw [hdI0, natCast_add, cast1]; grind
+  have hdL : s.row (o + c0 + 32 * es) dL = 50 :=
+    natv (rowLt hw hs _ _) (by rw [P_lit]; omega) (dCHnl (okRow hw hs hr3) (rowLt hw hs _) F0.1.sum hgD c0'.1 c0'.2.2)
+  exact ⟨_, hr3, hgD, hdI, hdL⟩
+
 
 end
 

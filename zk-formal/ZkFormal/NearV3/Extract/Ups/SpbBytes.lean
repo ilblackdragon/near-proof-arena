@@ -65,6 +65,15 @@ end
 
 attribute [local irreducible] UpsSeg.row UpsSeg.next
 
+/-- The new leaf's window of a split branch exists: the first, or (two windows) the second. -/
+theorem spbY : ∀ c, c < 11 → ∀ t, t < 2 → spYN c = 1 →
+    spY1V c t 10 = 1 ∨ (twoV c = 1 ∧ spY2V c t 10 = 1) := by decide
+
+/-- The moved node's window of a split branch exists. -/
+theorem spbC : ∀ c, c < 11 → ∀ t, t < 3 → spRN c = 1 →
+    spY1V c t 10 = 0 ∨ (twoV c = 1 ∧ spY2V c t 10 = 0) := by decide
+
+
 section
 variable {v : List UpsSeg} (hw : UpsWf v) {s : UpsSeg} (hs : s ∈ v)
   {L : Nat} {ps : List (Nat × Nat)} {fls : List (List (Nat × Nat))} {ws : List Nat}
@@ -812,6 +821,254 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
       apply asm _ _ _ (slot0 (by decide)) (by rw [hk2.1]; simp [spBm, spYN, UpsSpec.yOf, UpsSpec.key])
         (by simp [spBm, spYN, UpsSpec.yOf, UpsSpec.key]; omega)
         (by rw [hk2.2, if_pos (by simp [UpsSpec.yOf, UpsSpec.key]; omega), List.map_append]; exact w2 _ _ hWo hWy) eM
+
+
+/-- A split branch with a new leaf looks up its digest (id `j − 1 = k`, length 50). -/
+theorem spbLookY (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : NearSpec.Bytes)
+    (Pb : Nat → List Nat) (hR : UpbReads s Pb) (src cx : NearSpec.PTrie)
+    (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc src).map UInt8.toNat)
+    (hsl : (nodeEnc src).length < 2 ^ 20)
+    (hsrcL : ci = 4 → ∃ key sl m, src = .leaf key sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32)
+    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 400)
+    (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
+    (hLb : s.row 0 L0 < 256 ∧ s.row 0 L1 < 256 ∧ s.row 0 L2 < 256)
+    (hdig : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) 0 →
+      s.row i dL = val.length → regN (s.row i) = (NearSpec.sha256 val).map UInt8.toNat)
+    (hxy : spYN ci = 1 → ci ≠ 4 → s.row 0 tX ≠ UpsSpec.yOf si)
+    (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) (hY : spYN ci = 1) :
+    ∃ i, i < s.rows.length ∧ s.row i gD = 1 ∧ s.row i dI = upsIdN (s.row 0 tau) k ∧ s.row i dL = 50 := by
+  have K := partK hw hs hL hP k hk
+  have hup := upZero hw hs hL hP k hk (by omega)
+  obtain ⟨hj, -⟩ := hL.part k hk
+  obtain ⟨fl, ww, U⟩ : ∃ fl ww, UPartL s ps[k].1 ps[k].2 fl ww := ⟨_, _, (hL.part k hk).2⟩
+  obtain ⟨hc4, hc10⟩ := (termCase hw hs hL hP k hk (Or.inr hkd)).2 hkd
+  rw [hkd] at K
+  generalize ps[k].1 = o at K U hbyte hsrc hup hj ⊢
+  generalize ps[k].2 = ℓ at K U hbyte ⊢
+  have hsc := hL.segc
+  obtain ⟨i1, -, -, i4, -, isd⟩ := K.idx
+  have I0 := K.ix 0 K.pos
+  simp only [Nat.add_zero] at I0
+  have hq0 : s.row o qb = 1 := by simpa using K.qb 0 K.pos
+  have hlt0 : o < s.rows.length := by have := K.le; have := K.pos; omega
+  have ok0 := okRow hw hs hlt0
+  obtain ⟨htl, hte, htb2, hnc, hx0, hv0, huA, hbN, hbL, hcO, hcS, hCc0, hCc, heL, heS, hKc, hjm⟩ :=
+    head_SPB ok0 (rowLt hw hs _) (nextLt hw hs _) K.pf I0.kd I0.cs hc4 hc10
+  obtain ⟨-, -, -, -, hsum, -, -, -⟩ := partHead ok0 (rowLt hw hs _) K.pf hq0
+  obtain ⟨sx, sv, stw, sy1, sy2⟩ := spSem ci i1 si i4
+  -- `W0`: the bitmap
+  obtain ⟨h4r, hsf, -⟩ := hL.walk
+  obtain ⟨sc, -, -, sts⟩ := hP.seg 0 (by omega)
+  obtain ⟨hx16, hbmL, hbmH, hsiY⟩ :=
+    spbSeg (okRow hw hs (i := 0) (by omega)) (rowLt hw hs _) (nextLt hw hs _) hsf sc sts hc4 hc10 i4
+  -- the layout
+  obtain ⟨c0, B⟩ := brLay hw hs hsc K U htl hte
+  have hℓ := B.len
+  subst hℓ
+  have hle := K.le
+  have hlen22 := lenLe hw hs
+  have hc0 : c0 = 3 + 36 * spVN ci := by rcases B.c0v with ⟨h1, -, h3⟩ | ⟨h1, -, h3⟩ <;> omega
+  have hspV : spVN ci ≤ 1 := by unfold spVN; split <;> omega
+  have hww : 0 < ww := by
+    rcases Nat.eq_zero_or_pos ww with h | h
+    · exact absurd ((U.windows (by omega)).1 h) (by omega)
+    · exact h
+  have hMEM0 := kField hw hs hsc K B.memU.1 B.memU.2 (by omega) (by omega) 0 (by omega)
+  simp only [Nat.add_zero] at hMEM0
+  have hm8 : s.row (o + c0 + 32 * ww) sMEM = 1 := (stOf_inv hMEM0.1).2.2.2.2.2.2.2.2 hMEM0.2.1
+  have WF := winFlags hw hs (r := o + c0) hww (by omega) (by omega)
+    (by have := (B.pre (c0 - 1) (by omega)).2.2.2.2.2.1; rwa [show o + (c0 - 1) = o + c0 - 1 by omega] at this)
+    (fun e he => ⟨(B.winU e he).1, fun d hd => by
+      have := (B.win (32 * e + d) (by omega)).2.2.2.2.2; rwa [show o + c0 + (32 * e + d) = o + c0 + 32 * e + d by omega] at this⟩)
+    hm8 (by have := hMEM0.1.bs; have := hMEM0.1.sum; omega)
+  -- window roles
+  have role : ∀ e, e < ww → ∀ d, d < 32 →
+      s.row (o + c0 + 32 * e + d) wy = (if e = 0 then spY1V ci si 10 else spY2V ci si 10) ∧
+      s.row (o + c0 + 32 * e + d) wfr + (1 - s.row (o + c0 + 32 * e + d) wy) * spXN ci = 1 ∧
+      s.row (o + c0 + 32 * e + d) wn = s.row (o + c0 + 32 * e + d) wy ∧
+      s.row (o + c0 + 32 * e + d) rdc = 0 ∧
+      (e = 0 → (if e + 1 = ww then 1 else 0) + twoV ci = 1) ∧ (e ≠ 0 → e + 1 = ww) := by
+    intro e he d hd
+    obtain ⟨a1, a2, a3, a4, a5, a6⟩ := B.win (32 * e + d) (by omega)
+    rw [show o + c0 + (32 * e + d) = o + c0 + 32 * e + d by omega] at a1 a2 a3 a4 a5 a6
+    have sl := kSel hw hs hsc K (r := o + c0 + 32 * e + d) (by omega) (by omega)
+    have R := winRole (okRow hw hs a2) (rowLt hw hs _) (nextLt hw hs _) a3 i1 i4 (by omega) isd a6
+      sl.2.2.2.2.1 sl.2.2.2.2.2 sl.2.1
+    obtain ⟨f1, f2⟩ := WF e he d hd
+    obtain ⟨S1, S2, S3, S4⟩ := R.2.2.2.2.1 rfl
+    rw [sx] at S2
+    refine ⟨?_, S2, ?_, ?_, fun h => ?_, fun h => ?_⟩
+    · rw [S1, f1]; by_cases h : e = 0 <;> simp [h]
+    · rw [R.2.2.2.2.2.1]; simp
+    · rw [R.2.2.2.2.2.2.1, a4 UpsV3.up (by decide), hup, Nat.mul_zero]
+    · rw [← f2]; exact S3 (by rw [f1, if_pos h])
+    · have := S4 (by rw [f1, if_neg h]); rw [f2] at this; split at this <;> omega
+  have hwwv : ww = 1 + twoV ci := by
+    have r0 := (role 0 hww 0 (by omega)).2.2.2.2.1 rfl
+    have ht2 : twoV ci ≤ 1 := by rw [stw]; split <;> omega
+    by_cases h1 : 0 + 1 = ww
+    · rw [if_pos h1] at r0; omega
+    · rw [if_neg h1] at r0
+      have r1 := (role 1 (by omega) 0 (by omega)).2.2.2.2.2 (by omega)
+      omega
+  have hlenP : (Pb (s.row o sN)).length = (nodeEnc src).length := by rw [hsrc, List.length_map]
+  have hPb256 : ∀ i, (Pb (s.row o sN)).getD i 0 < 256 := by rw [hsrc]; exact toNats_lt _
+  obtain ⟨e, he, hyv⟩ : ∃ e, e < ww ∧ (if e = 0 then spY1V ci si 10 else spY2V ci si 10) = 1 := by
+    rcases spbY ci i1 si (by have := hsiY hY; omega) hY with h | ⟨h2, h⟩
+    · exact ⟨0, hww, by simpa using h⟩
+    · exact ⟨1, by omega, by simpa using h⟩
+  have hWe := B.winU e he
+  have FC := kField hw hs hsc K hWe.1 hWe.2 (by omega) (by omega)
+  have chU : ∀ d, d < 32 → s.row (o + c0 + 32 * e + d) sCH = 1 ∧ s.row (o + c0 + 32 * e + d) wfr = 1 ∧
+      s.row (o + c0 + 32 * e + d) wn = 1 := by
+    intro d hd
+    have F := FC d hd
+    obtain ⟨r1, r2, r3, -⟩ := role e he d hd
+    rw [hyv] at r1
+    rw [r1] at r2 r3
+    exact ⟨(stOf_inv F.1).2.2.2.2.2.2.2.1 F.2.1, by simpa using r2, r3⟩
+  have eW := freshWin hw hs (r0 := o + c0 + 32 * e) (by omega)
+    (fun d hd => Or.inr ⟨(chU d hd).1, (chU d hd).2.1, by have := (FC d hd).1.sum; have := (chU d hd).1; omega⟩)
+    (fun d hd => feZero hw hs hsc K hWe.1 (by omega) d (by omega))
+  have F0 := FC 0 (by omega)
+  simp only [Nat.add_zero] at F0
+  have c0' := chU 0 (by omega)
+  simp only [Nat.add_zero] at c0'
+  have hr3 : o + c0 + 32 * e < s.rows.length := by omega
+  have hgD := gDrow (okRow hw hs hr3) (rowLt hw hs _) (nextLt hw hs _) F0.2.2.2.2.2
+    (by simpa using (hWe.1.fs 0 (by omega)).2 rfl) (qbWt3 hw hs hr3 F0.2.2.2.2.2)
+    (Or.inr ⟨c0'.1, c0'.2.1, by have := F0.1.sum; omega⟩)
+  have hdI0 := dCHn (okRow hw hs hr3) (rowLt hw hs _) F0.1.sum hgD c0'.1 c0'.2.2
+  rw [F0.2.2.2.2.1 j (by decide), hj, hsc _ hr3 tau (by decide)] at hdI0
+  have hdI : s.row (o + c0 + 32 * e) dI = upsIdN (s.row 0 tau) k := by
+    apply dIj_nat (rowLt hw hs _ _)
+    rw [hdI0, natCast_add, cast1]; grind
+  have hdL : s.row (o + c0 + 32 * e) dL = 50 :=
+    natv (rowLt hw hs _ _) (by rw [P_lit]; omega) (dCHnl (okRow hw hs hr3) (rowLt hw hs _) F0.1.sum hgD c0'.1 c0'.2.2)
+  exact ⟨_, hr3, hgD, hdI, hdL⟩
+
+/-- A split branch over a moved node looks up its digest (id `jm = 1`, length `clen`). -/
+theorem spbLookC (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : NearSpec.Bytes)
+    (Pb : Nat → List Nat) (hR : UpbReads s Pb) (src cx : NearSpec.PTrie)
+    (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc src).map UInt8.toNat)
+    (hsl : (nodeEnc src).length < 2 ^ 20)
+    (hsrcL : ci = 4 → ∃ key sl m, src = .leaf key sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32)
+    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 400)
+    (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
+    (hLb : s.row 0 L0 < 256 ∧ s.row 0 L1 < 256 ∧ s.row 0 L2 < 256)
+    (hdig : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) 0 →
+      s.row i dL = val.length → regN (s.row i) = (NearSpec.sha256 val).map UInt8.toNat)
+    (hxy : spYN ci = 1 → ci ≠ 4 → s.row 0 tX ≠ UpsSpec.yOf si)
+    (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) (hR1 : spRN ci = 1) :
+    ∃ i, i < s.rows.length ∧ s.row i gD = 1 ∧ s.row i dI = upsIdN (s.row 0 tau) 1 ∧ s.row i dL = s.row ps[k].1 clen := by
+  have K := partK hw hs hL hP k hk
+  have hup := upZero hw hs hL hP k hk (by omega)
+  obtain ⟨hj, -⟩ := hL.part k hk
+  obtain ⟨fl, ww, U⟩ : ∃ fl ww, UPartL s ps[k].1 ps[k].2 fl ww := ⟨_, _, (hL.part k hk).2⟩
+  obtain ⟨hc4, hc10⟩ := (termCase hw hs hL hP k hk (Or.inr hkd)).2 hkd
+  rw [hkd] at K
+  generalize ps[k].1 = o at K U hbyte hsrc hup hj ⊢
+  generalize ps[k].2 = ℓ at K U hbyte ⊢
+  have hsc := hL.segc
+  obtain ⟨i1, -, -, i4, -, isd⟩ := K.idx
+  have I0 := K.ix 0 K.pos
+  simp only [Nat.add_zero] at I0
+  have hq0 : s.row o qb = 1 := by simpa using K.qb 0 K.pos
+  have hlt0 : o < s.rows.length := by have := K.le; have := K.pos; omega
+  have ok0 := okRow hw hs hlt0
+  obtain ⟨htl, hte, htb2, hnc, hx0, hv0, huA, hbN, hbL, hcO, hcS, hCc0, hCc, heL, heS, hKc, hjm⟩ :=
+    head_SPB ok0 (rowLt hw hs _) (nextLt hw hs _) K.pf I0.kd I0.cs hc4 hc10
+  obtain ⟨-, -, -, -, hsum, -, -, -⟩ := partHead ok0 (rowLt hw hs _) K.pf hq0
+  obtain ⟨sx, sv, stw, sy1, sy2⟩ := spSem ci i1 si i4
+  -- `W0`: the bitmap
+  obtain ⟨h4r, hsf, -⟩ := hL.walk
+  obtain ⟨sc, -, -, sts⟩ := hP.seg 0 (by omega)
+  obtain ⟨hx16, hbmL, hbmH, hsiY⟩ :=
+    spbSeg (okRow hw hs (i := 0) (by omega)) (rowLt hw hs _) (nextLt hw hs _) hsf sc sts hc4 hc10 i4
+  -- the layout
+  obtain ⟨c0, B⟩ := brLay hw hs hsc K U htl hte
+  have hℓ := B.len
+  subst hℓ
+  have hle := K.le
+  have hlen22 := lenLe hw hs
+  have hc0 : c0 = 3 + 36 * spVN ci := by rcases B.c0v with ⟨h1, -, h3⟩ | ⟨h1, -, h3⟩ <;> omega
+  have hspV : spVN ci ≤ 1 := by unfold spVN; split <;> omega
+  have hww : 0 < ww := by
+    rcases Nat.eq_zero_or_pos ww with h | h
+    · exact absurd ((U.windows (by omega)).1 h) (by omega)
+    · exact h
+  have hMEM0 := kField hw hs hsc K B.memU.1 B.memU.2 (by omega) (by omega) 0 (by omega)
+  simp only [Nat.add_zero] at hMEM0
+  have hm8 : s.row (o + c0 + 32 * ww) sMEM = 1 := (stOf_inv hMEM0.1).2.2.2.2.2.2.2.2 hMEM0.2.1
+  have WF := winFlags hw hs (r := o + c0) hww (by omega) (by omega)
+    (by have := (B.pre (c0 - 1) (by omega)).2.2.2.2.2.1; rwa [show o + (c0 - 1) = o + c0 - 1 by omega] at this)
+    (fun e he => ⟨(B.winU e he).1, fun d hd => by
+      have := (B.win (32 * e + d) (by omega)).2.2.2.2.2; rwa [show o + c0 + (32 * e + d) = o + c0 + 32 * e + d by omega] at this⟩)
+    hm8 (by have := hMEM0.1.bs; have := hMEM0.1.sum; omega)
+  -- window roles
+  have role : ∀ e, e < ww → ∀ d, d < 32 →
+      s.row (o + c0 + 32 * e + d) wy = (if e = 0 then spY1V ci si 10 else spY2V ci si 10) ∧
+      s.row (o + c0 + 32 * e + d) wfr + (1 - s.row (o + c0 + 32 * e + d) wy) * spXN ci = 1 ∧
+      s.row (o + c0 + 32 * e + d) wn = s.row (o + c0 + 32 * e + d) wy ∧
+      s.row (o + c0 + 32 * e + d) rdc = 0 ∧
+      (e = 0 → (if e + 1 = ww then 1 else 0) + twoV ci = 1) ∧ (e ≠ 0 → e + 1 = ww) := by
+    intro e he d hd
+    obtain ⟨a1, a2, a3, a4, a5, a6⟩ := B.win (32 * e + d) (by omega)
+    rw [show o + c0 + (32 * e + d) = o + c0 + 32 * e + d by omega] at a1 a2 a3 a4 a5 a6
+    have sl := kSel hw hs hsc K (r := o + c0 + 32 * e + d) (by omega) (by omega)
+    have R := winRole (okRow hw hs a2) (rowLt hw hs _) (nextLt hw hs _) a3 i1 i4 (by omega) isd a6
+      sl.2.2.2.2.1 sl.2.2.2.2.2 sl.2.1
+    obtain ⟨f1, f2⟩ := WF e he d hd
+    obtain ⟨S1, S2, S3, S4⟩ := R.2.2.2.2.1 rfl
+    rw [sx] at S2
+    refine ⟨?_, S2, ?_, ?_, fun h => ?_, fun h => ?_⟩
+    · rw [S1, f1]; by_cases h : e = 0 <;> simp [h]
+    · rw [R.2.2.2.2.2.1]; simp
+    · rw [R.2.2.2.2.2.2.1, a4 UpsV3.up (by decide), hup, Nat.mul_zero]
+    · rw [← f2]; exact S3 (by rw [f1, if_pos h])
+    · have := S4 (by rw [f1, if_neg h]); rw [f2] at this; split at this <;> omega
+  have hwwv : ww = 1 + twoV ci := by
+    have r0 := (role 0 hww 0 (by omega)).2.2.2.2.1 rfl
+    have ht2 : twoV ci ≤ 1 := by rw [stw]; split <;> omega
+    by_cases h1 : 0 + 1 = ww
+    · rw [if_pos h1] at r0; omega
+    · rw [if_neg h1] at r0
+      have r1 := (role 1 (by omega) 0 (by omega)).2.2.2.2.2 (by omega)
+      omega
+  have hlenP : (Pb (s.row o sN)).length = (nodeEnc src).length := by rw [hsrc, List.length_map]
+  have hPb256 : ∀ i, (Pb (s.row o sN)).getD i 0 < 256 := by rw [hsrc]; exact toNats_lt _
+  obtain ⟨e, he, hyv⟩ : ∃ e, e < ww ∧ (if e = 0 then spY1V ci si 10 else spY2V ci si 10) = 0 := by
+    rcases spbC ci i1 si i4 hR1 with h | ⟨h2, h⟩
+    · exact ⟨0, hww, by simpa using h⟩
+    · exact ⟨1, by omega, by simpa using h⟩
+  have hX0 : spXN ci = 0 := by unfold spRN at hR1; unfold spXN; split at hR1 <;> split <;> omega
+  have hWe := B.winU e he
+  have FC := kField hw hs hsc K hWe.1 hWe.2 (by omega) (by omega)
+  have chU : ∀ d, d < 32 → s.row (o + c0 + 32 * e + d) sCH = 1 ∧ s.row (o + c0 + 32 * e + d) wfr = 1 ∧
+      s.row (o + c0 + 32 * e + d) wn = 0 := by
+    intro d hd
+    have F := FC d hd
+    obtain ⟨r1, r2, r3, -⟩ := role e he d hd
+    rw [hyv] at r1
+    rw [r1, hX0] at r2
+    rw [r1] at r3
+    exact ⟨(stOf_inv F.1).2.2.2.2.2.2.2.1 F.2.1, by simpa using r2, r3⟩
+  have eW := freshWin hw hs (r0 := o + c0 + 32 * e) (by omega)
+    (fun d hd => Or.inr ⟨(chU d hd).1, (chU d hd).2.1, by have := (FC d hd).1.sum; have := (chU d hd).1; omega⟩)
+    (fun d hd => feZero hw hs hsc K hWe.1 (by omega) d (by omega))
+  have F0 := FC 0 (by omega)
+  simp only [Nat.add_zero] at F0
+  have c0' := chU 0 (by omega)
+  simp only [Nat.add_zero] at c0'
+  have hr3 : o + c0 + 32 * e < s.rows.length := by omega
+  have hgD := gDrow (okRow hw hs hr3) (rowLt hw hs _) (nextLt hw hs _) F0.2.2.2.2.2
+    (by simpa using (hWe.1.fs 0 (by omega)).2 rfl) (qbWt3 hw hs hr3 F0.2.2.2.2.2)
+    (Or.inr ⟨c0'.1, c0'.2.1, by have := F0.1.sum; omega⟩)
+  have hdI := dIj_nat (rowLt hw hs _ _) (dCHm (okRow hw hs hr3) (rowLt hw hs _) F0.1.sum hgD c0'.1 c0'.2.2)
+  have hdL := natv (rowLt hw hs _ _) (rowLt hw hs _ _) (dCHml (okRow hw hs hr3) (rowLt hw hs _) F0.1.sum hgD c0'.1 c0'.2.2)
+  rw [hsc _ hr3 tau (by decide), F0.2.2.2.2.1 jm (by decide), hjm hR1] at hdI
+  rw [F0.2.2.2.2.1 clen (by decide)] at hdL
+  exact ⟨_, hr3, hgD, hdI, hdL⟩
 
 end
 
