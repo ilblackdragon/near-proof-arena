@@ -70,6 +70,8 @@ structure WalkWf3 (ws : List WalkR) : Prop where
     ((wv.step i).mode = 0 → (wv.step (i + 1)).e.take 2 = ((wv.step i).e.drop 3).take 2 ∧
       (wv.step (i + 1)).mode ≠ 3) ∧
     ((wv.step i).mode ≠ 0 → (wv.step (i + 1)).mode = 3)
+  /-- one row per step -/
+  nrows : (ws.flatMap (·.steps)).length ≤ 2 ^ 21
 
 /-- Edge message of a row with use count `x`. -/
 def WStep3.edgeMsg (st : WStep3) (x : Nat) : Msg := st.e ++ [x]
