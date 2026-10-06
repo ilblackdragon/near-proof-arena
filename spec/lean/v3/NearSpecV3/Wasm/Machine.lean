@@ -136,9 +136,10 @@ def specialCosts : Array Cost := #[C.storageWriteBase, C.storageReadBase, C.stor
 /-- `compute_outcome`'s compute usage (`logic.rs:131-154`, `profile.rs:98-175`). -/
 def Gas.computeUsage (gs : Gas) : Nat :=
   let specialGas := gs.special.foldl (· + ·) 0
-  let ext := (gs.host - specialGas) + (List.range C.nKeys).foldl (fun acc k =>
-    let v := gs.special[k]!
-    let c := specialCosts[k]!
+  -- `special[k]` absent = no gas recorded under key k (the array starts as `C.nKeys` zeros and is
+  -- only updated in place), so `getD 0` is the meaning, not a fallback
+  let ext := (gs.host - specialGas) + (specialCosts.zipIdx).foldl (fun acc (c, k) =>
+    let v := gs.special[k]?.getD 0
     acc + (if v = 0 then 0 else v * c.compute / c.gas)) 0
   let wasm := gs.burnt - gs.action - gs.host
   ext + gs.sendCompute + wasm
@@ -333,7 +334,7 @@ def readBytes (s : St) (a n : Nat) : ByteArray := Id.run do
 
 def writeBytes (s : St) (a : Nat) (d : ByteArray) : St := Id.run do
   let mut s := s
-  for i in [0:d.size] do s := writeByte s (a + i) d[i]!
+  for h : i in [0:d.size] do s := writeByte s (a + i) (d[i]'(Membership.get_elem_helper h rfl))
   s
 
 /-! ## Stack helpers -/

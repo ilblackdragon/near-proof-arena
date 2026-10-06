@@ -127,7 +127,7 @@ def msInstr (c : Ctx) (locals : Array VT) : Instr → MSM Unit
     let (ps, rs) := numSig op
     -- unop: no-op; binop: pop 1; testop/relop/cvtop: pop all, push result
     if ps.size = 1 ∧ rs = ps then pure ()
-    else if ps.size = 2 ∧ rs.size = 1 ∧ rs[0]! = ps[0]! then msPop
+    else if ps.size = 2 ∧ rs.size = 1 ∧ rs[0]? = ps[0]? then msPop
     else do msPopMany ps.size; for r in rs do msPush r
   | .float _ => throw "float (out of domain)"
 
@@ -275,8 +275,8 @@ def optimizeWith (pts : Array Pt) (merge : Pt → Pt → Option Pt) : Array Pt :
   | some p0 =>
     let mut out := #[]
     let mut prev := p0
-    for i in [1:pts.size] do
-      let cur := pts[i]!
+    for h : i in [1:pts.size] do
+      let cur := pts[i]'(Membership.get_elem_helper h rfl)
       match merge prev cur with
       | some m => prev := m
       | none => out := out.push prev; prev := cur
@@ -295,11 +295,11 @@ fee ≠ 0 (`instrument_v3.rs:609-620, 800-830`). -/
 def gasTable (g : GasCfg) (code : Array Instr) (blockLevel : Bool := true) :
     Array (Option (IK × Fee)) := Id.run do
   let act : StateM GS Unit := do
-    for i in [0:code.size] do
+    for h : i in [0:code.size] do
       modify fun s => match s.sched with
         | some (k, f) => { s with pts := s.pts.push ⟨i, k, f⟩, sched := none, off := i }
         | none => { s with off := i }
-      gInstr g code[i]!
+      gInstr g (code[i]'(Membership.get_elem_helper h rfl))
   let (_, s) := act.run {}
   let pts := optimize s.pts blockLevel
   let mut tbl : Array (Option (IK × Fee)) := Array.replicate code.size none

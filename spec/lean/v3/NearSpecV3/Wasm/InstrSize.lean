@@ -77,7 +77,10 @@ def unstack (G charge : Nat) : Nat :=
   let gs := 1 + uleb (G + 1)
   gs + 2 + (1 + slebPos charge) + 2 + checkedOp 1 + gs
 
-/-- Payload length of one instrumented code-section entry (locals + instructions). -/
+/-- Payload length of one instrumented code-section entry (locals + instructions).
+Precondition `gas.size = code.size = lens.size`: `prepare` checks it explicitly for every function
+before computing any size (N3: a violation is reported as `unmodeled "invariant: …"`), so the
+`[i]!` reads below are in range. -/
 def bodyPayload (G : Nat) (ft : FuncType) (groups : Array (Nat × VT)) (code : Array Instr) (lens : Array Nat)
     (gas : Array (Option (IK × Fee))) (stackCharge prologueGas : Nat) : Nat :=
   let L := ft.params.size + groups.foldl (fun a (n, _) => a + n) 0
@@ -87,12 +90,12 @@ def bodyPayload (G : Nat) (ft : FuncType) (groups : Array (Nat × VT)) (code : A
     (if prologueGas = 0 then 0 else constPoint G prologueGas)
   let ops := Id.run do
     let mut tot := 0
-    for i in [0:code.size] do
+    for h : i in [0:code.size] do
       match gas[i]! with
       | some (k, fee) => tot := tot + point G L k fee
       | none => pure ()
       let isLast := i + 1 = code.size
-      tot := tot + match code[i]! with
+      tot := tot + match code[i]'(Membership.get_elem_helper h rfl) with
         | .call f => 1 + uleb (f + 3)
         | .refFunc f => 1 + uleb (f + 3)
         | .ret => unstack G stackCharge + 1

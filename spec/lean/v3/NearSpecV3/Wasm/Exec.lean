@@ -93,7 +93,7 @@ def tableInit (s : St) (seg d src n : Nat) : Res :=
   if src + n > es.size ∨ d + n > s.table.size then .abort s trapMem
   else Id.run do
     let mut t := s.table
-    for i in [0:n] do t := t.set! (d + i) es[src + i]!
+    for e in es.extract src (src + n), i in [0:n] do t := t.set! (d + i) e
     return .cont { s with table := t }
 
 /-! ## One instruction -/
@@ -247,7 +247,7 @@ def exec (cfg : NearCfg) (p : Prepared) (s : St) (f : Frame) (pf : PFunc) (i : I
       let chunk := s.table.extract src (src + n)
       Id.run do
         let mut t := s.table
-        for k in [0:n] do t := t.set! (d + k) chunk[k]!
+        for e in chunk, k in [0:n] do t := t.set! (d + k) e
         return next { s with table := t }
   | .tableInit e _ =>
     let (n, s) := popN s
@@ -374,19 +374,19 @@ def instantiate (cfg : NearCfg) (p : Prepared) (gas : Gas) : Except String St :=
     pages := Array.replicate cfg.initialMemoryPages zeroPage, globals := gs,
     table := Array.replicate tsize none, tableMax := tmax, elems := elems,
     datas := m.datas.map (·.bytes), stackRem := cfg.maxStackHeight, gas := gas }
-  for k in [0:m.elems.size] do
-    match m.elems[k]!.mode with
+  for el in m.elems, ini in elems, k in [0:m.elems.size] do
+    match el.mode with
     | .active _ off =>
-      let n := elems[k]!.size
+      let n := ini.size
       match tableInit s k (constNat gs off) 0 n with
       | .cont s' => s := { s' with elems := s'.elems.set! k #[] }
       | _ => throw trapMem
     | .declarative => s := { s with elems := s.elems.set! k #[] }
     | .passive => pure ()
-  for k in [0:m.datas.size] do
-    match m.datas[k]!.active with
+  for dseg in m.datas, k in [0:m.datas.size] do
+    match dseg.active with
     | some (_, off) =>
-      match memInit s k (constNat gs off) 0 m.datas[k]!.bytes.size with
+      match memInit s k (constNat gs off) 0 dseg.bytes.size with
       | .cont s' => s := { s' with datas := s'.datas.set! k ByteArray.empty }
       | _ => throw trapMem
     | none => pure ()
@@ -395,8 +395,7 @@ def instantiate (cfg : NearCfg) (p : Prepared) (gas : Gas) : Except String St :=
 /-! ## Top level: the observable `VMOutcome` of one function call -/
 
 def hex (b : ByteArray) : String :=
-  let d := "0123456789abcdef".toList
-  b.foldl (fun acc x => acc.push (d[x.toNat / 16]!) |>.push (d[x.toNat % 16]!)) ""
+  b.foldl (fun acc x => acc ++ hexDigitRepr (x.toNat / 16) ++ hexDigitRepr (x.toNat % 16)) ""
 
 /-- Run one wasm entry (`start` or the method) from host context: `CallingWasm` (`g := remaining`),
 execute, `ReturningFromWasm` (sync, also after a trap). -/
@@ -453,10 +452,12 @@ def outcome (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx)
     | (gs, none) =>
       match link p with
       | .linkError msg => s!"abort {gs.burnt} {gs.used} LinkError \{ msg: \"{msg}\" }" ++ ext (emptySt gs)
+      | .invariant why => s!"unmodeled invariant: {why}"
       | .ok =>
         match resolve p method with
         | .notFound => nop "MethodResolveError(MethodNotFound)"
         | .invalidSignature => nop "MethodResolveError(MethodInvalidSignature)"
+        | .invariant why => s!"unmodeled invariant: {why}"
         | .ok mi =>
           match instantiate cfg p gs with
           | .error e => s!"abort {gs.burnt} {gs.used} {e}" ++ ext (emptySt gs)

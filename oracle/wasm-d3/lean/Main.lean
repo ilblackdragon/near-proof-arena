@@ -1,4 +1,5 @@
 import NearSpecV3.Wasm.Exec
+import NearSpecV3.Wasm.TrieAccounting
 /-! `nearspec-v3-wasm`: stdin `<prepaid_gas> <wasm_hex> [<receiver>,…]` per line → one outcome line per case in the
 format of the nearcore harness (`oracle/wasm-d3/src/main.rs`). Method name: `main`.
 Flag `--instruction-level-metering`: the finite-wasm merging ablation. Flag `--prepared-size`: print

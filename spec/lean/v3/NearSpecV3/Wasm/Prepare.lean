@@ -82,8 +82,8 @@ def matchBlocks (code : Array Instr) : Array Nat × Array Nat := Id.run do
   let mut endOf := Array.replicate code.size 0
   let mut elseOf := Array.replicate code.size 0
   let mut open_ : List Nat := []
-  for i in [0:code.size] do
-    match code[i]! with
+  for h : i in [0:code.size] do
+    match code[i]'(Membership.get_elem_helper h rfl) with
     | .block _ | .loop _ | .if_ _ => open_ := i :: open_
     | .else_ => match open_ with
       | o :: _ => elseOf := elseOf.set! o i
@@ -91,7 +91,8 @@ def matchBlocks (code : Array Instr) : Array Nat × Array Nat := Id.run do
     | .end_ => match open_ with
       | o :: rest =>
         endOf := endOf.set! o i
-        if elseOf[o]! = 0 then elseOf := elseOf.set! o i
+        -- `o` is an index pushed above (`o < code.size = elseOf.size`); `set!`/`[o]?` cannot miss
+        if elseOf[o]? = some 0 then elseOf := elseOf.set! o i
         open_ := rest
       | [] => pure ()
     | _ => pure ()
@@ -127,6 +128,13 @@ def boundedP {α} (stop : Nat) (x : P α) : PM α :=
   liftP (withReader (fun b => b.extract 0 stop) x)
 def prepFail {α} (v why : String) : PM α := throw (.prep v why)
 
+/-- Checked indexing (N3): an index the spec's own invariants put in range; a miss is a spec bug,
+reported as `unmodeled "invariant: …"`, never a silent default value. -/
+def idxPM {α} (a : Array α) (i : Nat) (what : String) : PM α :=
+  match a[i]? with
+  | some x => pure x
+  | none => throw (.unmodeled s!"invariant: {what} index {i} out of range {a.size}")
+
 def anyFloatVT (ts : Array VT) : Bool := ts.any VT.isFloat
 
 /-- Section ordering rank (wasmparser `Order`): data count sits between element and code. -/
@@ -139,7 +147,10 @@ def sectionRank (id : Nat) : Option Nat :=
 /-- Module context for validation from what has been decoded so far. -/
 def mkCtx (m : Module) : Ctx :=
   let fts := m.imports.filterMap (fun i => if i.kind = 0 then m.types[i.idx]? else none) ++
-    m.funcTypes.map (fun t => m.types[t]!)
+    -- every index is < types.size when this runs: the import section (`unknown type`) and the
+    -- function section (`unknown type`) reject out-of-range indices before any `mkCtx` call, so
+    -- the `getD` default is unreachable (it is not a semantic default)
+    m.funcTypes.map (fun t => m.types[t]?.getD default)
   let nf := fts.size
   let refs := Array.replicate nf false
   let mark (r : Array Bool) (e : ConstE) : Array Bool := match e with
@@ -288,11 +299,12 @@ def sectionBody (cfg : NearCfg) (id sEnd : Nat) : PM Unit := do
         | none => badLocal := true
       modify fun s => { s with localBudget := lb }
       if badLocal then deser "local type rejected by validation (GC/SIMD/externref)"
-      let ft := m.types[m.funcTypes[k]!]!
+      let ti ← idxPM m.funcTypes k "function type"
+      let ft ← idxPM m.types ti "type"
       let nLocals := groups.foldl (fun a (cnt, _) => a + cnt) 0
       if ft.params.size + nLocals > cfg.wpMaxFunctionLocals then deser "too many locals"
       let (code, lens) ← liftP (operators bEnd)
-      let f : Func := { type := m.funcTypes[k]!, localGroups := groups, code := code, bodySize := sz,
+      let f : Func := { type := ti, localGroups := groups, code := code, bodySize := sz,
                         opLens := lens }
       if groups.any (·.2.isFloat) ∨ anyFloatVT ft.params ∨ anyFloatVT ft.results ∨
           code.any (fun i => match i with
@@ -393,7 +405,7 @@ def prepare (cfg : NearCfg) (bytes : ByteArray) (blockLevel : Bool := true) : Pr
     let mut blockBudget := cfg.maxBlocksPerContract
     let mut pfs := #[]
     for f in m.funcs do
-      let ft := m.types[f.type]!
+      let some ft := m.types[f.type]? | return .unmodeled "invariant: function type index out of range"
       let locals := f.locals
       let all := ft.params ++ locals
       let opMax ← match maxStack c all f.code with
@@ -416,6 +428,14 @@ def prepare (cfg : NearCfg) (bytes : ByteArray) (blockLevel : Bool := true) : Pr
         gas := gasTable cfg.gas f.code blockLevel, stackCharge := opMax + frame,
         prologueGas := (frame + 7) / 8 * cfg.regularOpCost }
     let _ := nImp
+    -- N3: the size model indexes `gas`/`opLens` by instruction position (`Size.bodyPayload`)
+    if pfs.size ≠ m.funcs.size then return .unmodeled "invariant: prepared function count"
+    for k in [0:m.funcs.size] do
+      match m.funcs[k]?, pfs[k]? with
+      | some f, some pf =>
+        if pf.gas.size ≠ f.code.size ∨ f.opLens.size ≠ f.code.size then
+          return .unmodeled "invariant: gas/length table size differs from the code size"
+      | _, _ => return .unmodeled "invariant: prepared function index"
     let isz := instrumentedSize cfg m pfs
     if isz > cfg.maxInstrumentedCodeSize then
       return .prepErr "InstrumentedCodeTooLarge" ""
@@ -426,8 +446,8 @@ def prepare (cfg : NearCfg) (bytes : ByteArray) (blockLevel : Bool := true) : Pr
     -- an observed instance of hazard H1 (checkpoint-2 finding).
     let G := m.globals.size
     for k in [0:m.funcs.size] do
-      let f := m.funcs[k]!
-      let pf := pfs[k]!
+      let some f := m.funcs[k]? | return .unmodeled "invariant: function index"
+      let some pf := pfs[k]? | return .unmodeled "invariant: prepared function index"
       let nl := pf.type.params.size + pf.locals.size + 2
       let bodyLen := Size.bodyPayload G pf.type f.localGroups f.code f.opLens pf.gas pf.stackCharge
         pf.prologueGas
@@ -442,24 +462,31 @@ inductive LinkResult where
   /-- `FunctionCallError::LinkError { msg }`; unknown import has a fixed message; a signature
   mismatch carries wasmtime's text (compared modulo `msg` by the difftest) -/
   | linkError (msg : String)
+  /-- spec invariant violated (import type index out of range after validation): never silent -/
+  | invariant (why : String)
 
 def link (p : Prepared) : LinkResult := Id.run do
   for i in p.m.imports do
     match hostSig? i.name with
     | none => return .linkError "unknown or invalid import"
-    | some sig => if sig != p.m.types[i.idx]! then return .linkError "*incompatible import type*"
+    | some sig =>
+      match p.m.types[i.idx]? with
+      | some t => if sig != t then return .linkError "*incompatible import type*"
+      | none => return .invariant "import type index out of range"
   return .ok
 
 inductive Resolve where
   | ok (fi : Nat)
   | notFound | invalidSignature
+  | invariant (why : String)
 
 /-- `"\0" ++ method` must be an exported function of type `[] → []` (`wasmtime_runner/mod.rs:887-902`). -/
 def resolve (p : Prepared) (method : String) : Resolve :=
   match p.m.exports.find? (fun (n, _, _) => n = method) with
   | some (_, 0, fi) =>
-    let ft := p.ctx.funcs[fi]!
-    if ft.params.size = 0 ∧ ft.results.size = 0 then .ok fi else .invalidSignature
+    match p.ctx.funcs[fi]? with
+    | some ft => if ft.params.size = 0 ∧ ft.results.size = 0 then .ok fi else .invalidSignature
+    | none => .invariant "exported function index out of range"
   | _ => .notFound
 
 end NearSpecV3.Wasm
