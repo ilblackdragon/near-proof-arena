@@ -11,6 +11,10 @@ This check fails if
   * the tracked oracle/v3 source no longer has the pinned TreeDigest.
 New oracle features belong in their own crates (e.g. oracle/v3-d1), never in oracle/v3.
 
+Drafts (DRAFTS) are checked the same way, except that each generator spec names its own source tree
+(`oracle_source_tree`: oracle/v3-d1 for D1/D2, oracle/v3-d3 + the shared modules for D3; the D0
+classes of near-chunk-v3 reuse the signed D0 specs and so the oracle/v3 pin).
+
 usage: check_oracle_pins.py          (exit 0 = pins hold)
 """
 import glob, hashlib, json, os, subprocess, sys
@@ -20,6 +24,10 @@ ROOT = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=Tr
 SIGNED = {
     # signed challenge -> directory of its generator specs
     "challenges/chl_640ed008467448706236fc727f759ecc.json": "spec/workloads/near-chunk-validation-d0",
+}
+DRAFTS = {
+    "challenges/drafts/near-chunk-v3.draft.json": ["spec/workloads/near-chunk-validation-d0",
+                                                   "spec/workloads/near-chunk-v3"],
 }
 ORACLE_TREE = ["oracle/v3/src", "oracle/v3/Cargo.toml", "oracle/v3/Cargo.lock"]
 
@@ -58,6 +66,28 @@ def main():
                            f"but TreeDigest({' '.join(ORACLE_TREE)}) = {actual}")
             else:
                 print(f"ok  {chl} class {cid}: oracle/v3 source = {pin}")
+    for chl, wdirs in DRAFTS.items():
+        if not os.path.exists(os.path.join(ROOT, chl)):
+            continue
+        c = json.load(open(os.path.join(ROOT, chl)))
+        specs = {}
+        for wdir in wdirs:
+            for f in sorted(glob.glob(os.path.join(ROOT, wdir, "*.json"))):
+                spec = json.load(open(f))
+                specs["sha256:" + hashlib.sha256(jcs(spec).encode()).hexdigest()] = (f, spec)
+        for cl in c["workload_suite"]["classes"]:
+            g = cl.get("generator")
+            if g not in specs:
+                bad.append(f"{chl}: class {cl['id']}: no generator spec hashes to {g}")
+                continue
+            f, spec = specs[g]
+            paths = spec.get("oracle_source_tree", ORACLE_TREE)
+            got = actual if paths == ORACLE_TREE else tree(*paths)
+            if spec.get("oracle_source_tree_digest") != got:
+                bad.append(f"{os.path.relpath(f, ROOT)} pins {spec.get('oracle_source_tree_digest')}, "
+                           f"but TreeDigest({' '.join(paths)}) = {got}")
+            else:
+                print(f"ok  {chl} class {cl['id']}: {' '.join(paths[:1])}… = {got}")
     for b in bad:
         print("PIN DRIFT: " + b, file=sys.stderr)
     sys.exit(1 if bad else 0)

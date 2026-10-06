@@ -1,0 +1,17 @@
+{
+ "schema": "near-arena-heldout-commitment-v1",
+ "challenge": "near-chunk-v3",
+ "statement_id": "near/pv86/chunk-validation/v0",
+ "domain": "D3a (tiers D0, D1, D2, D3a)",
+ "tree_digest": "sha256:eeeb27a45a70691de0b2785ad4a11c10c4edd378594c0248639416202a8b3696",
+ "algorithm": "TreeDigest (docs/CONTRACTS.md §1; arena-admin tree-digest) of the held-out directory",
+ "location": "/data/illia/nearproof-deps/heldout/near-chunk-v3 (judge-only, read-only; ARENA_HELDOUT_DIRS)",
+ "layout": "<class>/{params.bin (domain D3a), cases/<name>/{request.bin,witness.bin,expected_claim.bin,meta.json}} for the 13 classes d0-{quiet,transfers,missing}, d1-{transfers,mixed,receipts}, d2-{actions,queues,epoch}, d3-{calls,callbacks,nonwasm,maxgas}; rejections/<name>/{request.bin,witness.bin,meta.json}",
+ "cases_per_class": 16,
+ "rejections": "64: 24 honest D3 chunks outside InD3α (out of every tier) and 24 nearcore-rejected D3 mutants from a D3 run of the rejection recipe, 8 + 8 nearcore-rejected D1 / D2 mutants (false claims at every tier; no nearcore-accepted lower-domain case)",
+ "labels": "positives: nearcore's validator accepts and the domain's classifier puts the chunk in the class's domain (D0 ⊂ D1 ⊂ D2 ⊂ D3α, tested); rejections as above. Re-checked with the compiled statement rung nearspec-v3-check-d3 (checkD3): 208/208 positives accepted, 0/64 rejections accepted (40 reject, 24 out of domain). The reexec-v3-d3 reference: 208/208 proved and accepted, 0/64 accepted",
+ "generated_with": "oracle/scripts/gen-heldout-chunk-v3.sh <secret seed file> <dir> (D0 classes: near-arena-oracle-v3 at the D0 generator specs' oracle source, the installed live binary; D1/D2: near-arena-oracle-v3-d1, D3: near-arena-oracle-v3-d3 at the near-chunk-v3 generator specs' oracle source digests, commit f4173111)",
+ "seed": "secret; kept off-repo by the local operator (0600 file in the deps held-out dir) until season end",
+ "synthetic_state": false,
+ "chains": "real nearcore TestEnv chains (nearcore 2.13.4, PV 86), not synthetic state"
+}

@@ -1,0 +1,12 @@
+==== lean vs nearcore
+('code_cache', 'oracle', 'lean', 'nearcore_ok') 23
+('code_cache', 'oracle', 'lean', 'nearcore_rej') 24
+('d3', 'accept', 'nearcore_ok') 2687
+('g_alpha', 'oracle', 'lean') 147
+('g_alpha', 'oracle', 'out_of_domain') 21
+('mutants', 'accept', 'nearcore_ok') 2976
+('mutants', 'out_of_domain', 'nearcore_ok') 23
+('mutants', 'out_of_domain', 'nearcore_rej') 24
+('mutants', 'reject', 'nearcore_rej') 10157
+('ood', 'out_of_domain', 'nearcore_ok') 352
+lean: cases=16219 disagreements_with_nearcore=0

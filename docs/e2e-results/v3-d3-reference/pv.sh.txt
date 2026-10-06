@@ -1,0 +1,9 @@
+#!/bin/bash
+# pv.sh CASEDIR KIND -> prints: name kind prove_rc verify_rc prove_s verify_s wlen plen same
+W=/tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/d3work; B=$W/dev/.lake/build/bin
+d=$1; k=$2; n=$(basename $d); o=$W/pv/$k-$n; mkdir -p $o
+t0=$(date +%s.%N); $B/prove --public $W/pubpub --request $d/request.bin --witness $d/witness.bin --claim-out $o/claim.bin --proof-out $o/proof.bin 2>$o/prove.err; pr=$?; t1=$(date +%s.%N)
+if [ $pr = 0 ]; then $B/verify --public $W/pubpub --claim $o/claim.bin --proof $o/proof.bin; vr=$?; else vr=-; fi; t2=$(date +%s.%N)
+wl=$(stat -c %s $d/witness.bin); pl=$(stat -c %s $o/proof.bin 2>/dev/null || echo 0)
+same=$(cmp -s $d/witness.bin $o/proof.bin && echo same || echo diff)
+echo "$n $k $pr $vr $(echo "$t1-$t0" | bc) $(echo "$t2-$t1" | bc) $wl $pl $same"
