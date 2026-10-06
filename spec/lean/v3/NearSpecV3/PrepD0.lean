@@ -48,7 +48,8 @@ for the own shard) and the size limits are the main scheduler run's grants `gran
 (AIR-computed). Since the size check is a running subtraction, *every refund forwards* iff
 (i) the gas-only simulation passes (native, here), (ii) every refund routes to a shard with a
 status entry (native; otherwise the default limit has size 0), and (iii) for every such shard
-`s`, `Σ size of refunds to s ≤ grant(own, s)` — (iii) is emitted as `Prep.fwd` for the AIR.
+`s`, `Σ size of refunds to s ≤ grant(own, s)` — (iii) is emitted as `Prep.fwd` for the AIR,
+keyed by the link index `own·n + idx(s)` (`fwdLinks`), each demand `< 2^24` (checked natively).
 (Equivalence **tested** on every case, `nearspec-v3-test-prep`; not proved.)
 
 ## Routing intervals
@@ -274,7 +275,8 @@ structure Prep where
   bnds : List (Option Bytes × Option Bytes)
   sched : List Scheduler.SchedPub
   body : Bytes
-  /-- `(shard, Σ refund sizes)`: the AIR checks `≤ grant(own, shard)` of the τ = 0 run -/
+  /-- `(link own·n + idx(shard), Σ refund sizes)`, each `< 2^24`: the AIR checks `≤ grant(link)` of
+  the τ = 0 run -/
   fwd : List (Nat × Nat)
 
 /-! ## Routing intervals -/
@@ -321,6 +323,20 @@ def fwdSizes (ctx : ApplyCtx) (refunds : List Receipt) : List (Nat × Nat) :=
   (statusShards ctx).map fun s =>
     (s, ((refunds.filter fun r => ctx.layout.shardOf r.receiverId == s).map
           fun r => min r.encode.length maxReceiptSize).sum)
+
+/-- The forwarding demands keyed by the scheduler **link index** `own·n + idx(s)` (indices in
+the layout's `shardIds`, as `Scheduler.run` numbers links); status shards outside the layout
+carry no link and are dropped. -/
+def fwdLinks (ctx : ApplyCtx) (refunds : List Receipt) : List (Nat × Nat) :=
+  let ids := ctx.layout.shardIds
+  match Scheduler.indexOf ids ctx.own with
+  | none => []
+  | some o => (fwdSizes ctx refunds).filterMap fun (s, tot) =>
+      (Scheduler.indexOf ids s).map fun r => (o * ids.length + r, tot)
+
+/-- Bound on a forwarding demand: every grant is `≤ max_shard_bandwidth = 4,500,000 < 2^24`, so a
+larger demand can never be forwarded (`e.forwarded` fails); rejecting it natively loses no case. -/
+def fwdDemandMax : Nat := 16777216
 
 /-! ## `prepD0` -/
 
@@ -418,6 +434,8 @@ def prepBody (pc : PrepC) (h : Hint) : Except String Prep := do
   check (refunds.all fun r => (statusShards ctx).contains (ctx.layout.shardOf r.receiverId))
     "out of domain (e.forwarded): generated receipt buffered"
   check (fwdGasOk ctx refunds) "out of domain (e.forwarded): generated receipt buffered"
+  check ((fwdLinks ctx refunds).all fun (_, d) => decide (d < fwdDemandMax))
+    "out of domain (e.forwarded): forwarding demand above 2^24"
   check (h.n == 0 || (h.n - 1) * Params.G < ctx.gasLimit)
     "out of domain (e.compute): receipt delayed by the compute limit"
   -- 3.7 header comparison (claim/hint part), in `checkD0`'s order
@@ -437,7 +455,7 @@ def prepBody (pc : PrepC) (h : Hint) : Except String Prep := do
     check (pc.H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
     check (pc.H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
   pure { hdr := { pc.hdr with n := h.n }, lists := pc.lists, bnds := pc.bnds, sched := pc.sched,
-         body, fwd := fwdSizes ctx refunds }
+         body, fwd := fwdLinks ctx refunds }
 
 def prepD0 (cb : Bytes) (h : Hint) : Except String Prep := do
   let pc ← prepClaim cb

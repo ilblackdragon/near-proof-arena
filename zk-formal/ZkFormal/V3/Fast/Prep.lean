@@ -120,6 +120,8 @@ def prepBodyF (pc : PrepC) (h : Hint) : Except String Prep := do
   check (refunds.all fun r => (statusShards ctx).contains (ctx.layout.shardOf r.receiverId))
     "out of domain (e.forwarded): generated receipt buffered"
   check (fwdGasOk ctx refunds) "out of domain (e.forwarded): generated receipt buffered"
+  check ((fwdLinks ctx refunds).all fun (_, d) => decide (d < fwdDemandMax))
+    "out of domain (e.forwarded): forwarding demand above 2^24"
   check (h.n == 0 || (h.n - 1) * Params.G < ctx.gasLimit)
     "out of domain (e.compute): receipt delayed by the compute limit"
   -- 3.7 header comparison (claim/hint part), in `checkD0`'s order
@@ -139,7 +141,7 @@ def prepBodyF (pc : PrepC) (h : Hint) : Except String Prep := do
     check (pc.H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
     check (pc.H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
   pure { hdr := { pc.hdr with n := h.n }, lists := pc.lists, bnds := pc.bnds, sched := pc.sched,
-         body, fwd := fwdSizes ctx refunds }
+         body, fwd := fwdLinks ctx refunds }
 
 @[csimp] theorem prepBody_csimp : @prepBody = @prepBodyF := rfl
 
