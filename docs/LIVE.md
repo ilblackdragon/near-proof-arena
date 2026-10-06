@@ -496,6 +496,35 @@ diagnostic):
   | – | – | `sub_23822a4bea894cc8bb781f208af7f830` | hostile `near-v3-malleable-witness` (agent-1): **REJECTED** (HOSTILE_PROOF_ACCEPTED: all four `v3-ignored-fields` mutants accepted, deterministic) |
 
   Details: `docs/e2e-results/v3-d0-reference/`.
+* **Full normal form (run 3, 2026-10-06).** The canonical-only reference still accepted the
+  freedoms of nearcore's lenient decoding (receipt-proof entry order / duplicate keys, `base_state`
+  order / duplicates / never-read values). The reference now accepts only the full normal form
+  (`examples/reexec-v3-d0/formal/ReexecV3D0/NormalForm.lean`: `relD0_normal`, `normalW_sound`,
+  `normalW_fixed`), proved by a Lean prover running the model's own normaliser `normSW`; the judge
+  gained the generic mutator `v3-witness-freedoms` and the permanent hostile case
+  `near-v3-lenient-witness` (the canonical-only reference). Verifier change ⇒ new submission on the
+  same challenge; the baseline is a timing control only (BENCHMARK_SPEC §6.2), so no successor
+  challenge. Install from main `b61b79f`.
+  * **Install incident.** The first install copied binaries from the live target dir
+    `~/.cache/nearproof-live-target`, last built at `84fa676`, while the build had gone to the
+    checkout's `target/`: the workers ran without `v3-witness-freedoms`, and the first runs of both
+    submissions (ADMITTED 4.430 / hostile ADMITTED 95.774) are invalid. Fixed by building with
+    `CARGO_TARGET_DIR=$HOME/.cache/nearproof-live-target` (as §4 says), re-installing, and
+    `rerun-submission` of both; the first runs stay in their history.
+  * `sub_0826bb9b8d1c46c0b0bc4b5e1a0df3de` **reexec-v3-d0 (normal form)**, run
+    `run_9cfcf7bdfa7949abb7087b5babc77865`: **ADMITTED, score 4.504 ± 0.370**, all 14 gates PASS;
+    84/84 conform + 127 rejection cases (87 refused by prove, 40 rejected by verify, 0 accepted);
+    183/183 hostile inputs rejected incl. `v3-witness-freedoms`. Prove medians per 8-chunk batch
+    124.2 / 148.6 / 196.3 ms (d0-quiet / transfers / missing; baseline ≈ 7 ms): the Lean prover
+    (`keysD0` + `normSW`) is ~20× slower than the old Rust field-zeroing prover. Lead decision:
+    correctness first; a fast Rust normaliser will follow as a PROVER_ONLY child whose output must
+    byte-match `normSW` on the full positive set.
+  * `sub_f9644f35093d44038518293b0d4f8675` hostile `near-v3-lenient-witness` (agent-1), run
+    `run_99a3f62247d048098e11f361251818b5`: **REJECTED** (HOSTILE_PROOF_ACCEPTED: 18 of 183 hostile
+    inputs accepted, all `v3-witness-freedoms/entries…` and `…/values…`; every other mutant rejected).
+  * Note: `sub_9b0c50fc…` (canonical-only, rank 1 at 102.144) is the same verifier as the hostile
+    case and would now be REJECTED on a re-run; it stays on the board until the lead decides
+    (re-run or revoke).
 
 ## 5. Current state (2026-10-03 16:10 UTC)
 

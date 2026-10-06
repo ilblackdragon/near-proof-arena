@@ -131,3 +131,32 @@ genuine); ADVERSARIAL_PROOFS FAIL: "verify accepted hostile proofs:
 v3-ignored-fields/block_hash.implicit0, v3-ignored-fields/block_hash.main,
 v3-ignored-fields/height_included, v3-ignored-fields/signature" — every structure-aware mutant,
 none of the random ones, i.e. deterministic. Report `live-hostile-malleable-report.json`.
+
+## Live run 3 (2026-10-06): full normal form, ADMITTED; lenient hostile REJECTED
+
+Install from main `b61b79f` (judge with `v3-witness-freedoms`). First install used stale
+binaries from `~/.cache/nearproof-live-target` (built at `84fa676`, no new mutator): those first
+runs (reference ADMITTED 4.430, hostile ADMITTED 95.774) are invalid; rebuilt into the live target
+dir, re-installed, `rerun-submission` of both (docs/LIVE.md §5e).
+
+**Reference `sub_0826bb9b8d1c46c0b0bc4b5e1a0df3de`** (agent `reference`, package
+`sha256:9d8b9f71…`), run `run_9cfcf7bdfa7949abb7087b5babc77865`: **ADMITTED at formal tier, score
+4.504 ± 0.370**, all 14 gates PASS. Signed report `live-run3-normal-reference-report.json`,
+status `live-run3-normal-reference-status.json`.
+
+* 6 formal gates PASS (judge-built verify = `build.sh` output, model closure CanonDefs, NormDefs,
+  KeysD0, NormalDefs, NormBytesDefs, Model);
+* CONFORMANCE: 84/84 conform (78 public, 3 judge-sampled, 3 held-out); 127 rejection cases: 87
+  refused by prove, 40 rejected by verify, 0 accepted;
+* ADVERSARIAL: 183 hostile inputs (incl. `v3-ignored-fields`, `v3-witness-freedoms`), 183 rejected;
+* RESOURCE_LIMITS: max proof 118 295 B, max verify 1 459 ms, peak 445 MiB;
+* BENCHMARK (CPUs 0-7, secret sampling): prove medians per 8-chunk batch d0-quiet 124.2 ms
+  (baseline 7.0), d0-transfers 148.6 (7.0), d0-missing 196.3 (7.1); verify 59.4 / 65.6 / 83.4 ms.
+  The Lean prover runs `keysD0` (the claim-segment walk up to the main trie build) + `normSW`.
+
+**Hostile `sub_f9644f35093d44038518293b0d4f8675`** (agent `agent-1`, case
+`near-v3-lenient-witness`, the canonical-only reference of run 2), run
+`run_99a3f62247d048098e11f361251818b5`: **REJECTED**, reasons `HOSTILE_PROOF_ACCEPTED`,
+`OBLIGATION_UNDISCHARGED`. Formal gates PASS; ADVERSARIAL_PROOFS FAIL: 18 of 183 accepted, all
+`v3-witness-freedoms/entries…` and `v3-witness-freedoms/values…` (deterministic). Report
+`live-hostile-lenient-report.json`.
