@@ -117,7 +117,6 @@ def cStates : List Expr :=
     .mul (c hr) (not (c ge)) ] ++
   [r, o2].map (fun x => mul3 (c sCL) (not (c fe)) (sub (n x) (c x))) ++
   rconsts.map (fun x => mul3 rowE (not (c rl)) (sub (n x) (c x))) ++
-  rconsts3.map (fun x => mul3 rowE (not (c rl)) (sub (n x) (c x))) ++
   lconsts.map (fun x => mul3 (c act) (not (c le)) (sub (n x) (c x)))
 
 /-! ## Emission slots -/

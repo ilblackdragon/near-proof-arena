@@ -143,8 +143,6 @@ def gDg : Nat := 227
 /-- The field states, in receipt order (`sCL` = list-header rows). -/
 def states : List Nat := [sCL, sPL, sP, sVL, sV, sRID, sT0, sSL, sS, sKT, sPK, sGP, sTL, sDEP, sXP0, sXRI, sXG, sXST, sXL0, sXLH, sXRH, sXRF, sXRZ]
 
-/-- Receipt constants. -/
-def rconsts : List Nat := [r, o, o2, Lp, Lv, Ls, kt, hr, kslot, tprev, cj, ge, big, oEnd, o2End]
 
 
 /-! ## v3 columns -/
@@ -186,8 +184,9 @@ def iL : Nat := 261
 def iH : Nat := 262
 def width : Nat := 263
 
-/-- v3 receipt constants (carried through a receipt like `rconsts`). -/
-def rconsts3 : List Nat := [sys, ee, gq, dm, dd, q]
+/-- Receipt constants (v1's, then v3's `sys ee gq dm dd q`; defined after the v3 columns). -/
+def rconsts : List Nat := [r, o, o2, Lp, Lv, Ls, kt, hr, kslot, tprev, cj, ge, big, oEnd, o2End, sys, ee, gq,
+  dm, dd, q]
 
 /-- List constants (carried through the list header and the list's receipts). -/
 def lconsts : List Nat := [j, nj]
