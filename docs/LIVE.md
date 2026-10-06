@@ -160,12 +160,11 @@ then reinstall and restart:
 
 ```sh
 cd <checkout>
-RUSTC_WRAPPER=sccache CARGO_TARGET_DIR=$HOME/.cache/nearproof-live-target \
-  cargo build --release -p arena-server -p arena-worker -p arena-cli -p arena-admin -p arena-formal-checker
-RUSTC_WRAPPER=sccache CARGO_TARGET_DIR=$HOME/.cache/nearproof-live-target \
-  cargo build --release -p arena-npai --bin npai-verify --target x86_64-unknown-linux-musl
+deploy/live/arena-live build      # clean tree required; builds into ~/.cache/nearproof-live-target
+                                  # through the heavy wrapper on CPUs 8-15,24-31 and stamps it with HEAD
 (cd web && pnpm install --frozen-lockfile && pnpm run build)
-deploy/live/arena-live install    # binaries, release/ snapshot (git HEAD), web/dist, units
+deploy/live/arena-live install    # refuses unless the stamp == HEAD (tree clean, no binary newer
+                                  # than the stamp); binaries, release/ snapshot (git HEAD), web/dist, units
 /data/illia/nearproof-live/bin/arena-live migrate
 /data/illia/nearproof-live/bin/arena-live restart
 ```

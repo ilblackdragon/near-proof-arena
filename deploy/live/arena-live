@@ -26,7 +26,10 @@
 # a nightly backup. See docs/LIVE.md.
 #
 # Usage: arena-live <command> [args]
-#   install                 copy binaries + snapshot repo inputs + web build, render units
+#   build                   build the service binaries at HEAD into $TARGET (heavy wrapper,
+#                           CPUs 8-15,24-31; clean tree required) and stamp them with HEAD
+#   install                 copy binaries (refused unless stamped at HEAD by `build`) +
+#                           snapshot repo inputs + web build, render units
 #   init                    first-time: database, roles, report key, worker/admin/agent tokens
 #   start|stop|restart [svc]   svc: server | web | worker@<name> | all (default all)
 #   status                  systemd state + health + queue summary
@@ -94,8 +97,51 @@ unit_name() {
   esac
 }
 
+# Binaries are built ONLY by `arena-live build`, which stamps $TARGET with the commit it built;
+# `install` refuses binaries whose stamp is not the HEAD it snapshots (a stale $TARGET once
+# deployed a judge without a mutator that was already on main: docs/LIVE.md §5e).
+HEAVY="${ARENA_LIVE_HEAVY:-/data/illia/nearproof-deps/bin/heavy}"
+BUILD_CPUS="${ARENA_LIVE_BUILD_CPUS:-8-15,24-31}"   # CPUs 0-7/16-23 are the benchmark's
+STAMP="$TARGET/arena-live-build.stamp"
+
+repo_clean() {  # tracked files only; untracked scratch does not enter cargo builds of tracked crates
+  git -C "$REPO" diff --quiet HEAD -- && git -C "$REPO" diff --cached --quiet HEAD --
+}
+
+cmd_build() {
+  repo_clean || die "repo $REPO has uncommitted changes to tracked files: commit or stash before building live binaries"
+  local rev; rev=$(git -C "$REPO" rev-parse HEAD)
+  [ -x "$HEAVY" ] || die "no heavy wrapper at $HEAVY (ARENA_LIVE_HEAVY)"
+  rm -f "$STAMP"
+  say "building live binaries at $rev into $TARGET (heavy, CPUs $BUILD_CPUS)"
+  ( cd "$REPO" && CARGO_TARGET_DIR="$TARGET" taskset -c "$BUILD_CPUS" "$HEAVY" \
+      cargo build --release -p arena-server -p arena-worker -p arena-cli -p arena-admin -p arena-formal-checker ) \
+    || die "cargo build failed"
+  ( cd "$REPO" && CARGO_TARGET_DIR="$TARGET" taskset -c "$BUILD_CPUS" "$HEAVY" \
+      cargo build --release -p arena-npai --bin npai-verify --target x86_64-unknown-linux-musl ) \
+    || die "npai-verify (musl) build failed"
+  [ "$(git -C "$REPO" rev-parse HEAD)" = "$rev" ] && repo_clean \
+    || die "repo changed during the build; not stamping"
+  echo "$rev" >"$STAMP"
+  say "stamped $TARGET at $rev"
+}
+
+check_stamp() {
+  local rev; rev=$(git -C "$REPO" rev-parse HEAD)
+  [ -f "$STAMP" ] || die "no build stamp in $TARGET: run 'arena-live build' (never install binaries of unknown provenance)"
+  local built; built=$(cat "$STAMP")
+  [ "$built" = "$rev" ] || die "binaries in $TARGET were built at $built, not HEAD $rev: run 'arena-live build'"
+  repo_clean || die "repo $REPO has uncommitted changes to tracked files: the release snapshot would not match the binaries"
+  for b in arena-server arena-worker arena arena-admin formal-check; do
+    [ "$TARGET/release/$b" -nt "$STAMP" ] \
+      && die "$TARGET/release/$b is newer than the build stamp (rebuilt outside 'arena-live build')"
+  done
+  return 0
+}
+
 cmd_install() {
-  [ -x "$TARGET/release/arena-server" ] || die "no release build in $TARGET (cargo build --release, see docs/LIVE.md)"
+  [ -x "$TARGET/release/arena-server" ] || die "no release build in $TARGET (arena-live build)"
+  check_stamp
   mkdir -p "$LIVE"/{bin,config,objects,work,logs,backups,web,trusted-trees}
   install -d -m 700 "$LIVE/secrets"
   say "binaries from $TARGET"
@@ -524,6 +570,7 @@ cmd_tailnet() {
 
 c="${1:-}"; shift || true
 case "$c" in
+  build) cmd_build "$@" ;;
   install) cmd_install "$@" ;;
   init) cmd_init "$@" ;;
   migrate) migrate ;;
