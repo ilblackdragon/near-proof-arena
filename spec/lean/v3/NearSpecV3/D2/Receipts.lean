@@ -26,7 +26,7 @@ out-of-domain shapes stay out of domain. -/
 def decodeStoredRcpt (b : Bytes) (what : String) : Except String Rcpt :=
   match decodeRcpt b with
   | .ok r => .ok r
-  | .error e => if e.startsWith "out of domain" then .error e else .error (inconsistent what)
+  | .error e => if isShapeOOD e then .error e else .error (inconsistent what)
 
 /-- `check_storage_stake` (`verifier.rs:48-86`): `some true` ok, `some false` lacking,
 `none` = overflow (`StorageInconsistentState`). -/

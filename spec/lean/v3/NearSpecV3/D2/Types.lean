@@ -26,12 +26,27 @@ namespace NearSpecV3.D2
 
 open NearSpec NearSpecV3
 
+/-! ## Out-of-domain shapes (`w.shape`)
+
+Fixed messages, so that a decoding failure read from the trie can be classified by string
+equality (`isShapeOOD`) — `String.startsWith` would pull `Classical.choice` into the relation. -/
+
+def oodMlDsaKey : String := "out of domain (w.shape): ML-DSA-65 public key"
+def oodMlDsaSig : String := "out of domain (w.shape): ML-DSA-65 signature"
+def oodDeployGlobal : String := "out of domain (w.shape): DeployGlobalContract action"
+def oodUseGlobal : String := "out of domain (w.shape): UseGlobalContract action"
+def oodStateInit : String := "out of domain (w.shape): DeterministicStateInit action"
+def oodGcd : String := "out of domain (w.shape): GlobalContractDistribution receipt"
+
+def isShapeOOD (e : String) : Bool :=
+  [oodMlDsaKey, oodMlDsaSig, oodDeployGlobal, oodUseGlobal, oodStateInit, oodGcd].contains e
+
 /-! ## Public keys -/
 
 /-- `PublicKey` excluding ML-DSA (tag 2): `out of domain (w.shape)`. -/
 def pPk (w : String) : P PublicKey := fun bs => do
   let (pk, bs) ← pPublicKey w bs
-  if pk.tag == 2 then throw s!"out of domain (w.shape): ML-DSA-65 public key ({w})"
+  if pk.tag == 2 then throw oodMlDsaKey
   pure (pk, bs)
 
 /-- `PublicKeyHandle` borsh = trie id of the key (`trie_key.rs:324-335`) for ED25519 /
@@ -282,9 +297,9 @@ def pBase (tag : Nat) : P Base := fun bs =>
     pure (.addKey pk ak, bs)
   | 6 => do let (pk, bs) ← pPk "delete key" bs; pure (.deleteKey pk, bs)
   | 7 => do let (b, bs) ← pAccountId "beneficiary_id" bs; pure (.deleteAccount b, bs)
-  | 9 => throw "out of domain (w.shape): DeployGlobalContract action"
-  | 10 => throw "out of domain (w.shape): UseGlobalContract action"
-  | 11 => throw "out of domain (w.shape): DeterministicStateInit action"
+  | 9 => throw oodDeployGlobal
+  | 10 => throw oodUseGlobal
+  | 11 => throw oodStateInit
   | 12 => do
     let (pk, bs) ← pPk "gas key" bs
     let (d, bs) ← pU128 "deposit" bs
@@ -312,7 +327,7 @@ def pSig (w : String) : P (Nat × Bytes) := fun bs => do
     if (d.getD 63 0).toNat / 32 != 0 then throw s!"decode: ed25519 signature high bits ({w})"
     pure ((0, d), bs)
   | 1 => do let (d, bs) ← pTake 65 w bs; pure ((1, d), bs)
-  | 2 => do let (_, bs) ← pTake 3309 w bs; throw s!"out of domain (w.shape): ML-DSA-65 signature ({w})"
+  | 2 => do let (_, bs) ← pTake 3309 w bs; throw oodMlDsaSig
   | _ => throw s!"decode: unknown signature tag ({w})"
 
 /-- `TransactionNonce` (`transaction.rs:61-68`). -/
@@ -434,7 +449,7 @@ def pRcpt : P Rcpt := fun bs => do
     let (d, bs) ← pHash "data_id" bs
     let (x, bs) ← pOption "data" (pBytes "data") bs
     pure (⟨pred, recv, rid, .data (tag == 3) d x⟩, bs)
-  | 4 => throw "out of domain (w.shape): GlobalContractDistribution receipt"
+  | 4 => throw oodGcd
   | _ => throw "decode: ReceiptEnum tag"
 
 /-- `Receipt::try_from_slice`; `none`-like errors are `StorageInconsistentState` when the bytes

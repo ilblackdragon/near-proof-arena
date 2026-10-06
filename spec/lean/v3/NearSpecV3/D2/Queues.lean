@@ -246,7 +246,7 @@ def readBufferedFromTrie (o : Ovl) (s i : Nat) : Except String Stored := do
   | none => throw (inconsistent "TrieQueue::Item referenced by index should be in the state")
   | some b => match decodeStored b with
     | .ok st => pure st
-    | .error e => if e.startsWith "out of domain" then throw e else throw (inconsistent "buffered receipt")
+    | .error e => if isShapeOOD e then throw e else throw (inconsistent "buffered receipt")
 
 /-- Forward up to the first receipt that does not fit (`forward_from_buffer_to_shard`,
 `congestion_control.rs:338-399`). Returns the forwarded count and metadata pops. -/
@@ -362,7 +362,7 @@ def delayPop (env : Env) : Nat → RS → Except String (RS × Option Rcpt)
       | none => throw (inconsistent "TrieQueue::Item should be in the state")
       | some b => match decodeStored b with
         | .ok st => pure st
-        | .error e => if e.startsWith "out of domain" then throw e else throw (inconsistent "delayed receipt")
+        | .error e => if isShapeOOD e then throw e else throw (inconsistent "delayed receipt")
     let (gas, size) ← storedGasSize st
     if dq.remGas + gas ≥ two64 then throw (panicked "removed delayed gas overflow")
     if dq.remBytes + size ≥ two64 then throw (panicked "removed delayed bytes overflow")
