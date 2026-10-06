@@ -264,4 +264,8 @@ The alternative without A6 is a non-strict `uniq`:
 | `Spec/Absent.lean` | **`AbsentWitness`**, `absent_iff`, `upsert_absent`, local insertion rewrites |
 
 Build: `lake build ZkFormal.NearV3.Spec.StoreComplete ZkFormal.NearV3.Spec.Absent`. The modules are
-not imported by `ZkFormal.lean`, so v1 targets are unaffected.
+not imported by `ZkFormal.lean`, so v1 targets are unaffected (`ZkFormal.Near.Spec.Trie` rebuilt fine
+with the new `require`).
+
+Elaboration (clean, CPUs 8–15): Codec 0.57 s, StoreBuild 0.73 s, Records 0.54 s, StoreSound 0.40 s,
+StoreBuilt 0.88 s, Occs 0.36 s, StoreComplete 0.60 s, TrieOps 0.95 s, Absent 0.56 s. Total ≈ 5.6 s.
