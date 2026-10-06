@@ -1,7 +1,18 @@
 # Recursion track: feasibility summary (input to the checkpoint-2 decision memo)
 
-Status: research input, 2026-10-06. This is not the decision itself. The lead records the decision in
-`D3_WASM_REQUIREMENTS.md` §2.5, per `RECURSION_REQUIREMENTS.md` §4.
+Status: **decided, checkpoint 2 outcome (B), option R5** (2026-10-06, accepted by the user). There is
+no composition, and no bounded R1 either. D3 stays capped at `G_α`. The decision is recorded in
+`D3_WASM_REQUIREMENTS.md` §2.5 (v0.3) and `RECURSION_REQUIREMENTS.md` (status).
+
+The levers below move to the prover lane as `G_α` work (`D3_WASM_REQUIREMENTS.md` §2.4):
+* taller tables with lower blowup;
+* the Array-based verifier;
+* a faster prover;
+* the bus budget.
+
+They matter because of the user's strategic point: the value of ZK is ONE proof across all shards,
+which standard validator hardware cannot re-execute. Single-proof capacity (`G_α`) is therefore the
+key metric. The analysis below was the input to the decision.
 
 | Item | Result | Evidence class | Where |
 |---|---|---|---|
@@ -25,9 +36,8 @@ Status: research input, 2026-10-06. This is not the decision itself. The lead re
   - raising the bus budget to 2^40 (2^-143 commit-phase term, not re-checked in the kernel).
 
   Even with every lever, 10^15 gas stays at or above ≈ 40 MiB.
-* Together this points to (B) R5 for mainnet-scale D3, with a *bounded* R1 (S ≲ 14 under 8 MiB) as
-  a way to raise `G_α` several-fold. Prove time must also be brought within the cap. That decision
-  is the lead's.
+* Together this pointed to (B) R5 for mainnet-scale D3. The *bounded* R1 option (S ≲ 14 under
+  8 MiB) was considered and **rejected** by the user: `G_α` is raised by prover-lane levers instead.
 
 **Interface requests to zk-formal** (not filed; zk-formal untouched): Q1–Q9 in the R2 doc §4. Q4
 (challenge-weighted `badPot`) and the bus-budget increase also matter for R1 at S > 50.

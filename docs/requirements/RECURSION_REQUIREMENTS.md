@@ -3,6 +3,21 @@
 Status: requirements contract, v0.1 (2026-10-06). Drafted in lane `lane/v3-d3` at the lead's request.
 **Changes to §§2–4 need the lead's sign-off.**
 
+**Track closed: checkpoint 2 outcome (B), option R5 (2026-10-06, accepted by the user).** There is
+no composition, and no bounded R1 either. D3 stays capped at `G_α`, and the `G_α` levers move to the
+prover lane (`D3_WASM_REQUIREMENTS.md` §2.4, v0.3). The reason is the user's strategic point: the
+value of ZK is one proof across all shards, which standard validator hardware cannot re-execute, so
+single-proof capacity is the key metric.
+
+Evidence (§4(B)), all in `docs/research/`:
+* `recursion-r1-cost.md`: the measured R1 curve;
+* `recursion-r2-theorem.md`: R2 can be proved sound but is not cheaper;
+* `recursion-summary.md`.
+
+Items delivered and kept as proved results:
+* §3.1 segmentation semantics (`spec/lean/v3/NearSpecV3/Wasm/Segment.lean`);
+* the R2 accumulation-step algebra (`recursion-poc/`).
+
 Parent: `docs/requirements/D3_WASM_REQUIREMENTS.md` v0.2, §2.5. This track decides whether uncapped,
 mainnet-scale D3 is possible under the arena's admission theorem.
 

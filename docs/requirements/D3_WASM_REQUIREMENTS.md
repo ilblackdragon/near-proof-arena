@@ -1,8 +1,9 @@
 # D3 (WASM function calls): requirements for an independent workstream
 
-Status: requirements contract, **v0.2 (2026-10-06)**. v0.2 applies the checkpoint-1
+Status: requirements contract, **v0.3 (2026-10-06)**. v0.2 applied the checkpoint-1
 corrections (`docs/research/near-wasm-strategy.md` §6, C1–C11) and the user's decisions
-recorded in §0.1. Owner of this document: the arena
+recorded in §0.1. v0.3 records the recursion decision (§2.5: outcome (B), R5, no composition) and
+makes `G_α` the key metric, with its levers assigned to the prover lane (§2.4). Owner of this document: the arena
 lead. Implementer: an independent agent/team. Changes to sections 2–5 need the
 lead's sign-off because they define what "done" means.
 
@@ -83,7 +84,7 @@ superset of the previous stage. "Contract" means every contract executed in the 
 | **D3β** | + f32/f64 | float restriction lifted |
 | **D3γ** | + `ecrecover`, `ed25519_verify` (shared with D1), `p256_verify` | those imports allowed |
 | **D3δ** | + `alt_bn128_*`, `bls12381_*` (including the PV86 `bls12381_not_in_group_fix = false` behaviour) | curve imports allowed |
-| **D3∞-scale** | uncapped per-chunk WASM gas | needs the recursion track (decision point §2.5) |
+| **D3∞-scale** | uncapped per-chunk WASM gas | **not pursued** (§2.5: decided (B), no composition) |
 
 `keccak256`, `keccak512`, `ripemd160` and `sha256` are in D3α. They are hash functions, not curve
 functions.
@@ -301,6 +302,27 @@ WASM, while a chunk may burn up to 10^15 gas (≈1.2·10^9 operators at `regular
 `G_α` is fixed at checkpoint 5 from the measured EXEC/RAM rows per operator, and the D3α challenge's
 caps come from it. Workload classes must include a max-`G_α` class.
 
+**`G_α` is the key metric (user's strategic point, 2026-10-06).** The value of ZK here is **one proof
+across all shards**: a statement that standard validator hardware cannot re-execute. Every D3 result
+is therefore judged first by single-proof capacity, the WASM gas one admitted proof can carry under
+the caps, and only then by cost per gas. With composition rejected (§2.5), raising `G_α` is the only
+path to larger D3 coverage.
+
+**Prover-lane work to raise `G_α`.** Each lever is quantified in `docs/research/recursion-r1-cost.md`
+§levers. Every one must stay inside the existing formal stack, and every parameter change must be
+re-checked against the L2/L3 soundness bounds.
+1. **Taller tables with lower blowup.** About 3× fewer proof bytes per operator at rate 1/4. This
+   needs new parameter checks and a re-instantiation of the unique-decoding FRI soundness at the
+   new rate. A higher rate is counter-productive, because unique decoding gives at most about 1 bit
+   per query.
+2. **Array-based Lean verifier.** It removes the per-table term that is quadratic in the number of
+   tables and keeps verify time linear (≈ 0.44 s/MB measured).
+3. **Faster prover.** Prove time is the binding cap. One 2^22-row segment takes 231–381 s on 8
+   threads against the 600 s cap. Peak memory is 11.3 GB.
+4. **Bus budget.** The verifier's bus budget (2^36, `zk-formal/ZkFormal/Air/Basic.lean:216`) limits
+   the number of tables per proof. Raising it, for example to 2^40, needs the commit-phase soundness
+   term re-checked; the R1 cost study puts it near 2^-143, not kernel-checked.
+
 **Contract size vs table height (review §3.7).** A maximum-size contract (4,194,304 bytes) needs at least
 one PREP row per byte, already more than 2^22 rows. D3α must either segment PREP or carry an `InD3α`
 code-size cap fixed at checkpoint 5. Also in scope for the risk register: variable-cost storage gas
@@ -318,6 +340,17 @@ challenge is drafted, the lead decides among:
 (a) an admissible composition was found, so build D3∞ on it;
 (b) no admissible composition, so D3 stays capped, with `G_α` raised only through prover and
 parameter work (larger tables, multi-table segments within one proof).
+
+**Decision (2026-10-06, accepted by the user): (b), option R5.** There is no composition, and no
+bounded R1 either. D3 stays capped at `G_α`. `G_α` is raised only by the prover-lane levers in §2.4.
+The evidence is in `docs/research/recursion-summary.md`, `recursion-r1-cost.md` and
+`recursion-r2-theorem.md`:
+* R1 hits 8 MiB at S ≈ 14 and the 600 s prove cap at S ≈ 1–3.
+* At 10^15 gas, R1 needs S ≈ 290 segments and 124–253 MiB.
+* R2 can be proved sound but is not cheaper with a native verifier.
+
+The segmentation semantics (`Wasm/Segment.lean`) and the R2 algebra PoC (`recursion-poc/`) stay in
+the tree as proved results, but nothing depends on them.
 
 ## 3. Acceptance criteria ("done")
 
