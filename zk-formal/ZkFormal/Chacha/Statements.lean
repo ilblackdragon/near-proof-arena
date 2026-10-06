@@ -1,6 +1,7 @@
 import ZkFormal.Chacha.Shuffle.Link
 import ZkFormal.Chacha.Complete.All
 import ZkFormal.Chacha.Rng.Complete.All
+import ZkFormal.Chacha.Shuffle.Complete.All
 
 /-!
 # ZkFormal.Chacha.Statements — lane v3-chacha top-level statements
@@ -19,7 +20,8 @@ theorem below it proves it.
 * `ShuffleContractStmt` — every `shufV3` instance outputs `NearSpecV3.shuffle` of its inputs
   (`Shuffle.shuffle_contract`; in a v2 AIR the hypotheses come from `genRecv_of_holdsP` and
   `memBal_of_holdsP`);
-* `ChachaCompleteStmt` — `Complete.chacha_complete`; `GenCompleteStmt` — `Rng.Complete.gen_complete`.
+* `ChachaCompleteStmt` — `Complete.chacha_complete`; `GenCompleteStmt` — `Rng.Complete.gen_complete`;
+  `ShuffleCompleteStmt` — `Shuffle.Complete.shuffle_complete` / `shuffle_traffic`.
 -/
 
 namespace ZkFormal.Chacha
@@ -142,5 +144,16 @@ theorem genCompleteStmt : GenCompleteStmt :=
     ⟨Rng.Complete.gLocal_honest calls hok t pub, fun m =>
       let h := ((Rng.Complete.gen_complete calls hok hrows busChacha busGen hne).2.2.2 t pub m)
       ⟨h.1, h.2.2.1⟩⟩
+
+def ShuffleCompleteStmt : Prop :=
+  ∀ (insts : List Shuffle.Gen.SInst), (∀ I ∈ insts, Shuffle.Complete.InstOk I) →
+    (Shuffle.Gen.honestRows insts).length ≤ 2 ^ Shuffle.Table.maxLog →
+    ∀ (B : Shuffle.Buses), B.ok → ∀ t pub,
+      Shuffle.SLocal (Shuffle.Gen.honestTrace insts) t pub ∧ Shuffle.MemBal B (Shuffle.Gen.honestTrace insts) t pub
+
+theorem shuffleCompleteStmt : ShuffleCompleteStmt :=
+  fun insts hok hrows B hB t pub =>
+    ⟨Shuffle.Complete.sLocal_honest insts hok hrows t pub,
+     (Shuffle.Complete.shuffle_complete insts hok hrows B hB).2.2.2 t pub⟩
 
 end ZkFormal.Chacha
