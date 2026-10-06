@@ -10,8 +10,16 @@ challenges) and, on an accepting case, the amendments:
   C0f e.sched_canonical  every 0x0f value read (main pre-state, each implicit
                          pre-state) is absent or BandwidthSchedulerState::V1 whose links
                          are exactly the layout's n^2 links, sender-major
+  A7  w.unfolded         unfold_bytes <= B (default B0 = 3,000,000): for every applied
+                         transition, the bytes of the pre-trie revealed along the read keys,
+                         counted per path copy (node encodings + revealed values), plus the
+                         post-trie's node copies (and revealed values) that differ from the
+                         pre-trie at the same position. Independent implementation: the read
+                         keys are the keys the D0 checker actually reads (recorded on its
+                         PartialTrie instances), positions are walked on the raw node bytes.
 
-usage: spec_check_v3_d0a.py CASE_DIR...   (one JSON line per case, as spec_check_v3.py)
+usage: spec_check_v3_d0a.py [--bound B] CASE_DIR...
+       (one JSON line per case, as spec_check_v3.py, plus "unfold")
 """
 import json
 import os
@@ -19,9 +27,114 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import spec_check_v3 as d0  # noqa: E402
-from v3lib.prim import PartialTrie  # noqa: E402
+from v3lib.prim import PartialTrie, nibbles, decode_node  # noqa: E402
 
 MAX_GAS_LIMIT = 10 ** 15
+B0 = 3_000_000
+
+# ---------------- A7: record the tries the D0 checker builds ----------------
+_TRIES = []
+
+
+class RecTrie(d0.PartialTrie):
+    def __init__(self, values, root):
+        super().__init__(values, root)
+        self.pre_store = dict(self.store)
+        self.pre_root = root
+        self.keys = set()
+        _TRIES.append(self)
+
+    def get(self, key):
+        self.keys.add(bytes(key))
+        return super().get(key)
+
+
+d0.PartialTrie = RecTrie
+
+
+def _parse(raw):
+    """(kind, key nibbles, vref, children, child) or None (not a well-formed node)."""
+    try:
+        if len(raw) < 9:
+            return None
+        n = decode_node(raw)
+    except Exception:
+        return None
+    return n
+
+
+def _value(store, vref, want):
+    if not want or vref is None:
+        return None
+    v = store.get(vref[1])
+    if v is None or len(v) != vref[0]:
+        return None
+    return v
+
+
+def unfold_pre(store, h, keys):
+    if not keys or h is None or h not in store:
+        return 0
+    raw = store[h]
+    n = _parse(raw)
+    if n is None:
+        return 0
+    tot = len(raw)
+    if n.kind == 'leaf':
+        v = _value(store, n.vref, any(k == n.key for k in keys))
+        return tot + (len(v) if v is not None else 0)
+    if n.kind == 'ext':
+        sub = [k[len(n.key):] for k in keys if k[:len(n.key)] == n.key]
+        return tot + unfold_pre(store, n.child, sub)
+    v = _value(store, n.vref, any(len(k) == 0 for k in keys))
+    tot += len(v) if v is not None else 0
+    for i, c in n.children.items():
+        tot += unfold_pre(store, c, [k[1:] for k in keys if k and k[0] == i])
+    return tot
+
+
+def _slot_diff(pre_vref, post_store, post_vref, want):
+    v = _value(post_store, post_vref, want)
+    if v is None:
+        return 0
+    return 0 if pre_vref == post_vref else len(v)
+
+
+def unfold_diff(pre_store, hpre, post_store, hpost, keys):
+    if not keys or hpost is None or hpost not in post_store:
+        return 0
+    raw = post_store[hpost]
+    n = _parse(raw)
+    if n is None:
+        return 0
+    pn = None
+    if hpre is not None and hpre in pre_store:
+        pn = _parse(pre_store[hpre])
+        if pn is not None and pre_store[hpre] == raw:
+            return 0
+    tot = len(raw)
+    if n.kind == 'leaf':
+        pv = pn.vref if (pn is not None and pn.kind == 'leaf' and pn.key == n.key) else None
+        return tot + _slot_diff(pv, post_store, n.vref, any(k == n.key for k in keys))
+    if n.kind == 'ext':
+        pc = pn.child if (pn is not None and pn.kind == 'ext' and pn.key == n.key) else None
+        sub = [k[len(n.key):] for k in keys if k[:len(n.key)] == n.key]
+        return tot + unfold_diff(pre_store, pc, post_store, n.child, sub)
+    pv = pn.vref if (pn is not None and pn.kind == 'branch') else None
+    tot += _slot_diff(pv, post_store, n.vref, any(len(k) == 0 for k in keys))
+    for i, c in n.children.items():
+        pc = pn.children.get(i) if (pn is not None and pn.kind == 'branch') else None
+        tot += unfold_diff(pre_store, pc, post_store, c, [k[1:] for k in keys if k and k[0] == i])
+    return tot
+
+
+def unfold_bytes(tries):
+    tot = 0
+    for t in tries:
+        keys = [nibbles(k) for k in t.keys]
+        tot += unfold_pre(t.pre_store, t.pre_root, keys)
+        tot += unfold_diff(t.pre_store, t.pre_root, t.store, t.root, keys)
+    return tot
 
 
 def canonical(L, v):
@@ -86,26 +199,36 @@ def amendments(claim_b, witness_b):
     return v
 
 
-def check_case(d):
+def check_case(d, bound=B0):
+    """(verdict, reason, unfold_bytes or None)."""
+    _TRIES.clear()
     verdict, reason = d0.check_case(d)
+    tries = list(_TRIES)
     if verdict != "accept":
-        return verdict, reason
+        return verdict, reason, None
     try:
         cb = open(os.path.join(d, "claim.bin"), "rb").read()
         wb = open(os.path.join(d, "witness.bin"), "rb").read()
         v = amendments(cb, wb)
+        u = unfold_bytes(tries)
     except Exception as e:  # a bug in this checker
         print("spec_check_v3_d0a: INTERNAL ERROR on %s: %r" % (d, e), file=sys.stderr)
-        return "reject", "INTERNAL ERROR %s: %s" % (type(e).__name__, e)
+        return "reject", "INTERNAL ERROR %s: %s" % (type(e).__name__, e), None
+    if u > bound:
+        v.append("w.unfolded")
     if v:
-        return "out_of_domain", ",".join(v)
-    return "accept", "ok"
+        return "out_of_domain", ",".join(v), u
+    return "accept", "ok", u
 
 
 def main():
-    for d in sys.argv[1:]:
-        v, reason = check_case(d)
-        print(json.dumps(dict(case=d, verdict=v, reason=reason)))
+    args = sys.argv[1:]
+    bound = B0
+    if args[:1] == ["--bound"]:
+        bound, args = int(args[1]), args[2:]
+    for d in args:
+        v, reason, u = check_case(d, bound)
+        print(json.dumps(dict(case=d, verdict=v, reason=reason, unfold=u)))
         sys.stdout.flush()
 
 

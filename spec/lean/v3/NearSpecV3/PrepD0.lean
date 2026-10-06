@@ -4,7 +4,7 @@ import NearSpecV3.ChunkValidationV0a
 # `prepD0`: the native, claim-side part of a `RelD0a` verifier (V3-D0-DESIGN §1, §2.1, §6.1, §11)
 
 `prepD0 cb h` runs every check of `checkD0a` that is a function of the claim alone (class
-**C**) or of the claim plus the proof-carried hint `h = {n, refunds}` (class **H**), and
+**C**) or of the claim plus the proof-carried hint `h = {n, B}` (class **H**), and
 emits the *prepared statement* `Prep` (`Prep.encode` = the STARK's public input). Everything
 else is the AIR's (class **W**: tries, receipts, Merkle paths, tokens, outcomes, and — after
 the round-2 decision §11 (c) — the fixed-key value parses `[7] [10] [13] [16]‖s`, Canon0f /
@@ -23,18 +23,19 @@ It is modular (§11): `prepClaim cb` is the claim-only part; `prepBody pc h` the
 
 ## Hint
 * `n` — number of applied receipts (`e.compute`, `H.prev_gas_used = n·G`);
-* `refunds` — the generated refund receipts in order (`out.outgoing`); the body is
-  `B = u32 0 ‖ encodeReceipts refunds`. (On the wire the hint is `n` and `B`. Parsing `B`
-  needs a refund-receipt parser: `pReceipt` is **not** exact for it — it rejects non-named
-  receivers, but a gas refund goes to the signer, which may be an implicit account, and
-  `refundCongestionGas` prices exactly that case in D0. The in-memory hint therefore keeps the
-  receipts and `B` is computed from them; a `B` parser is an open item for the verifier.)
+* `body` — the bytes `B = u32 0 ‖ encodeReceipts refunds` of `checkD0` step 18; `prepBody`
+  parses the refunds with `decodeBody` / `pRefund` (refund shape: predecessor `system`, any
+  valid receiver incl. implicit accounts — `pReceipt` would reject those). Proved in
+  `ZkFormal.V3.RefundCodec`: `decodeBody (bodyOf rs) = .ok rs` for refund-shaped `rs`, and
+  every refund list of an accepted main application is refund-shaped, so prep's refund list
+  is exactly `out.outgoing` (= `acc.refunds`).
 
 ## Scheduler public data (`SchedPub`, per applied block τ: B2 then implicit oldest first)
 The claim-only inputs of `Scheduler.run`: shard ids, `Params` (base bandwidth, budgets,
 max allowance), the link-allowed matrix (from `statuses`: f64 congestion level, missed
-chunks, allowed shard), the converted requests (`Req`: link index `s·n+r` and increase list,
-senders ascending, list order), the ChaCha20 seed `prev_block_hash`, and
+chunks, allowed shard), the raw requests (sender-sorted `BTreeMap` order, 5-byte bitmaps)
+with the 40-entry `requestValues` table — converted in-AIR by `convertRaw`
+(`convertRequests_eq_raw`, proved) — the ChaCha20 seed `prev_block_hash`, and
 `sha256(borsh(all_shards))`. `Scheduler.runCore pub prev` is the state-dependent remainder;
 `Scheduler.run_eq_core` (**proved**) : `run cfg cc ids prev cong req seed =
 (pubOf cfg cc ids cong req seed).bind (runCore · prev)`. The in-AIR scheduler is therefore
@@ -65,28 +66,95 @@ open NearSpec NearSpec.TransferV1
 
 /-! ## Hint -/
 
+/-- The hint on the wire: `n` and the body bytes `B` = borsh
+`(Vec<SignedTransaction> = [], outgoing)` (`checkD0` step 18). -/
 structure Hint where
   n : Nat
-  refunds : List Receipt
+  body : Bytes
   deriving DecidableEq, Repr
 
-def Hint.empty : Hint := ⟨0, []⟩
+def Hint.empty : Hint := ⟨0, u32 0 ++ u32 0⟩
 
-/-- `B` = borsh `(Vec<SignedTransaction> = [], outgoing)` (`checkD0` step 18). -/
-def Hint.body (h : Hint) : Bytes := u32 0 ++ encodeReceipts h.refunds
+def bodyOf (refunds : List Receipt) : Bytes := u32 0 ++ encodeReceipts refunds
+
+/-! ## Refund receipts: the hint's body parser
+
+`pReceipt` (the witness decoder) is not usable for `B`: it rejects non-named receivers
+(`r.shape`), but a gas refund goes to the signer, which may be an implicit account.
+`pRefund` accepts exactly the refund shape: predecessor `system`, any valid receiver
+(`AccountId.valid`), `ReceiptEnum::Action` with one `Transfer`, no data dependencies,
+ED25519/SECP256K1 signer key. Round trip and prefix stability: `ZkFormal.V3.RefundCodec`
+(`pRefund_encode`, `decodeBody_bodyOf`, `decodeBody_outgoing`). -/
+
+def pRefund : P Receipt := fun bs => do
+  let (pred, bs) ← pAccountId "predecessor_id" bs
+  if pred != AccountId.system then throw "invalid hint: refund predecessor is not system"
+  let (recv, bs) ← pAccountId "receiver_id" bs
+  let (rid, bs) ← pHash "receipt_id" bs
+  let (tag, bs) ← pU8 "ReceiptEnum tag" bs
+  if tag != 0 then throw "invalid hint: refund ReceiptEnum is not Action(0)"
+  let (signer, bs) ← pAccountId "signer_id" bs
+  let (pk, bs) ← pPublicKey "signer_public_key" bs
+  if pk.tag == 2 then throw "invalid hint: refund ML-DSA signer key"
+  let (gp, bs) ← pU128 "gas_price" bs
+  let (nout, bs) ← pU32 "output_data_receivers" bs
+  if nout != 0 then throw "invalid hint: refund output_data_receivers"
+  let (nin, bs) ← pU32 "input_data_ids" bs
+  if nin != 0 then throw "invalid hint: refund input_data_ids"
+  let (nact, bs) ← pU32 "actions" bs
+  if nact != 1 then throw "invalid hint: refund is not exactly one action"
+  let (atag, bs) ← pU8 "action tag" bs
+  if atag != 3 then throw "invalid hint: refund action is not Transfer(3)"
+  let (dep, bs) ← pU128 "deposit" bs
+  pure ({ predecessorId := pred, receiverId := recv, receiptId := rid, signerId := signer,
+          signerPk := pk, gasPrice := gp, deposit := dep }, bs)
+
+/-- Parse `B = u32 0 ‖ Vec<refund receipt>` (no trailing bytes). -/
+def decodeBody (b : Bytes) : Except String (List Receipt) := do
+  let (ntx, b) ← pU32 "transactions" b
+  if ntx != 0 then throw "invalid hint: body transactions"
+  let (rs, b) ← pVec "refunds" pRefund b
+  if !b.isEmpty then throw "invalid hint: trailing bytes in body"
+  pure rs
 
 /-! ## Scheduler: public (claim-only) part and state-dependent core -/
 
 namespace Scheduler
 
+/-- Claim-only scheduler inputs. Requests are published raw (5-byte bitmaps, senders in
+`BTreeMap` order) with the 40-value table `requestValues params`; the increase lists are
+computed in-AIR by `convertRaw` (`convertRequests_eq_raw`). -/
 structure SchedPub where
   ids : List Nat
   params : Params
   allowed : Array Bool
-  reqs : List Req
+  raw : List (Nat × List BandwidthRequest)
+  values : List Nat
   seed : Bytes
   allShardsHash : Bytes
   deriving Repr
+
+/-- `SchedulerBandwidthRequest::new` from the published value table (what the AIR computes). -/
+def convertRequestV (vals : List Nat) (base : Nat) (ids : List Nat) (sender : Nat)
+    (br : BandwidthRequest) : Option Req := do
+  let s ← indexOf ids sender
+  let r ← indexOf ids br.toShard
+  match increases vals br.bitmap 0 vals base with
+  | [] => none
+  | incs => some ⟨s * ids.length + r, incs⟩
+
+/-- The in-AIR conversion: raw requests (sender-sorted) → `Req` list. -/
+def convertRaw (vals : List Nat) (base : Nat) (ids : List Nat)
+    (raw : List (Nat × List BandwidthRequest)) : List Req :=
+  raw.flatMap fun (sender, brs) => brs.filterMap (convertRequestV vals base ids sender)
+
+theorem convertRequest_eq_V (p : Params) (ids : List Nat) (sender : Nat) (br : BandwidthRequest) :
+    convertRequest p ids sender br = convertRequestV (requestValues p) p.base ids sender br := rfl
+
+/-- **The raw form computes `convertRequests`.** -/
+theorem convertRequests_eq_raw (p : Params) (ids : List Nat)
+    (requests : List (Nat × List BandwidthRequest)) :
+    convertRequests p ids requests = convertRaw (requestValues p) p.base ids (toBTreeMap requests) := rfl
 
 /-- Claim-only inputs of `run` (`none` = a claim-only abort: no shards, bad config). -/
 def pubOf (cfg : Config) (cc : CongestionConfig) (ids : List Nat)
@@ -98,7 +166,7 @@ def pubOf (cfg : Config) (cc : CongestionConfig) (ids : List Nat)
   let status := statuses cc ids congestion
   let links := List.range (n * n)
   let allowed : Array Bool := (links.map fun l => linkAllowed status (l / n) (l % n)).toArray
-  some ⟨ids, p, allowed, convertRequests p ids requests, prevBlockHash,
+  some ⟨ids, p, allowed, toBTreeMap requests, requestValues p, prevBlockHash,
         sha256 (u32 n ++ concatAll (ids.map u64))⟩
 
 /-- The state-dependent remainder of `run` (in-AIR after §11 (c)). -/
@@ -115,7 +183,7 @@ def runCore (pub : SchedPub) (prevState : Option Bytes) : Option Output := do
       match indexOf ids la.sender, indexOf ids la.receiver with
       | some s, some r => a.set! (s * n + r) la.allowance
       | _, _ => a) (Array.replicate (n * n) 0)
-  let reqs := pub.reqs
+  let reqs := convertRaw pub.values p.base ids pub.raw
   let st : St := ⟨Array.replicate n p.maxShardBandwidth, Array.replicate n p.maxShardBandwidth,
     allow0, Array.replicate (n * n) 0, Rng.ofSeed pub.seed⟩
   let fair := p.maxShardBandwidth / n
@@ -343,9 +411,10 @@ def prepClaim (cb : Bytes) : Except String PrepC := do
 
 def prepBody (pc : PrepC) (h : Hint) : Except String Prep := do
   let ctx := pc.ctxB2
-  check (h.refunds.all fun r => (statusShards ctx).contains (ctx.layout.shardOf r.receiverId))
+  let refunds ← decodeBody h.body
+  check (refunds.all fun r => (statusShards ctx).contains (ctx.layout.shardOf r.receiverId))
     "out of domain (e.forwarded): generated receipt buffered"
-  check (fwdGasOk ctx h.refunds) "out of domain (e.forwarded): generated receipt buffered"
+  check (fwdGasOk ctx refunds) "out of domain (e.forwarded): generated receipt buffered"
   check (h.n == 0 || (h.n - 1) * Params.G < ctx.gasLimit)
     "out of domain (e.compute): receipt delayed by the compute limit"
   -- 3.7 header comparison (claim/hint part), in `checkD0`'s order
@@ -353,7 +422,7 @@ def prepBody (pc : PrepC) (h : Hint) : Except String Prep := do
   check H.proposals.isEmpty "invalid: InvalidValidatorProposals"
   check (H.gasLimit == pc.hdr.gasLimit) "invalid: InvalidGasLimit"
   check (H.prevGasUsed == h.n * Params.G) "invalid: InvalidGasUsed"
-  check (H.prevOutgoingReceiptsRoot == outgoingReceiptsRoot pc.L h.refunds) "invalid: InvalidReceiptsProof"
+  check (H.prevOutgoingReceiptsRoot == outgoingReceiptsRoot pc.L refunds) "invalid: InvalidReceiptsProof"
   check (H.congestion == { pc.ownCongestion with allowedShard := pc.allowed }) "invalid: InvalidCongestionInfo"
   check H.bwRequests.isEmpty "invalid: InvalidBandwidthRequests"
   check H.proposedSplit.isNone "invalid: InvalidChunkHeaderShardSplit"
@@ -365,7 +434,7 @@ def prepBody (pc : PrepC) (h : Hint) : Except String Prep := do
     check (pc.H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
     check (pc.H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
   pure { hdr := { pc.hdr with n := h.n }, lists := pc.lists, bnds := pc.bnds, sched := pc.sched,
-         body, fwd := fwdSizes ctx h.refunds }
+         body, fwd := fwdSizes ctx refunds }
 
 def prepD0 (cb : Bytes) (h : Hint) : Except String Prep := do
   let pc ← prepClaim cb
@@ -388,7 +457,8 @@ def Scheduler.SchedPub.encode (p : Scheduler.SchedPub) : Bytes :=
   u64 p.params.base ++ u64 p.params.maxShardBandwidth ++ u64 p.params.maxSingleGrant ++
   u64 p.params.maxReceiptSize ++ u64 p.params.maxAllowance ++
   encList (fun b => u8 (if b then 1 else 0)) p.allowed.toList ++
-  encList (fun q => u32 q.link ++ encList u64 q.incs) p.reqs ++
+  encList (fun (sender, brs) => u64 sender ++ encList (fun (b : BandwidthRequest) => u16 b.toShard ++ b.bitmap) brs) p.raw ++
+  encList u64 p.values ++
   p.seed ++ p.allShardsHash
 
 def Prep.encode (p : Prep) : Bytes :=
@@ -412,18 +482,6 @@ def refundsUpTo (ctx : ApplyCtx) : Acc → List Receipt → List Receipt
       | some acc' => refundsUpTo ctx acc' rs
       | none => acc.refunds
 
-/-- Applied receipts as `checkD0` builds them (lenient: missing proofs are skipped). -/
-def appliedReceipts (k : WalkD0) (w : StateWitness) : List Receipt := Id.run do
-  let mut receipts : List Receipt := []
-  for S in k.sourceBlks do
-    let proofs := S.slots.filterMap fun (s, ci) =>
-      if s.heightIncluded == S.hdr.height then lookupLast (chunkHash s.inner ci.encodedMerkleRoot) w.entries
-      else none
-    let shuffled := (shuffleWithSeed proofs S.hdr.prevHash).getD proofs
-    receipts := receipts ++
-      (shuffled.map fun e => e.receipts.filter fun r => k.L.shardOf r.receiverId == k.H.shardId).flatten
-  return receipts
-
 def hintOfE (cb wb : Bytes) : Except String Hint := do
   let k ← walkD0 cb
   let w ← decodeW wb
@@ -438,7 +496,7 @@ def hintOfE (cb wb : Bytes) : Except String Hint := do
   let refunds := match applyNewChunk prims ctxB2 tMain receipts with
     | .ok out => out.outgoing
     | .error _ => refundsUpTo ctxB2 ⟨tMain, [], [], 0, 0⟩ receipts
-  pure ⟨receipts.length, refunds⟩
+  pure ⟨receipts.length, bodyOf refunds⟩
 
 /-- The hint for `(claim, witness)` (`Hint.empty` if the pair does not decode). -/
 def hintOf (cb w : Bytes) : Hint :=

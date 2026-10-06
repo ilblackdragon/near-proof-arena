@@ -9,12 +9,16 @@ challenge `near-chunk-validation-d0-1` and is **not modified**. Draft challenge:
 ## 1. The relation
 
 ```
-RelD0a(cb, w) := RelD0(cb, w) ∧ A1(cb) ∧ A2(cb, w) ∧ Canon0f(cb, w)
+RelD0a(B)(cb, w) := RelD0(cb, w) ∧ A1(cb) ∧ A2(cb, w) ∧ Canon0f(cb, w) ∧ unfoldBytes(cb, w) ≤ B
 ```
 
-Lean: `NearSpecV3.ChunkValidationV0a` (`RelD0a`, `a1`, `a2`, `canon0f`; executable verdict
-`checkD0a`, `relD0a_iff : RelD0a cb w ↔ checkD0a cb w = .ok ()` **proved**). A pure
-restriction: `RelD0a → RelD0`, so every D0a proof is a D0 proof of the same claim. The claim
+The challenge instance is `B = B0 = 3,000,000` (§2.4).
+
+Lean: `NearSpecV3.ChunkValidationV0a` (`RelD0a B`, `a1`, `a2`, `canon0f`, `a7`, `unfoldBytes`;
+executable verdict `checkD0a B`; **proved**: `relD0a_iff : RelD0a B cb w ↔ checkD0a B cb w = .ok ()`,
+`relD0a_relD0 : RelD0a B cb w → RelD0 cb w` (for every `B`), `relD0a_mono`). A pure
+restriction: every D0a proof is a D0 proof of the same claim; no soundness statement
+mentions `B`. The claim
 and witness formats are unchanged (`spec/claim-v3.md`).
 
 ## 2. Amendments (out-of-domain conditions added to D0's table)
@@ -23,6 +27,7 @@ and witness formats are unchanged (`spec/claim-v3.md`).
 |---|---|---|
 | `c.gas_limit` (A1) | the `gas_limit` of B2's own-shard slot (the block of the shard's last new chunk) is `≤ 10^15` (1000 Tgas) | bounds the applied receipts (`n ≤ 4481`) and the refund body (`≤ 0.91 MB`) for a succinct proof |
 | `w.proof_routing` (A2) | every receipt of every *used* source receipt proof (the entry the last-wins lookup selects for a new source chunk) routes, under `L(epoch_id)`, to the validated shard | no receipt is Merkle-hashed but filtered out (proof-size bound) |
+| `w.unfolded` (A7) | `unfoldBytes(cb, w) ≤ B0 = 3,000,000` (§2.4) | the AIR hashes every revealed node *occurrence* (tree-shaped records); a witness can share one subtree under many slots, so the unfolded size — not `|base_state|` — bounds the SHA and node tables |
 | `e.sched_canonical` (Canon0f) | every `0x0f` (`BandwidthSchedulerState`) value the run reads — main pre-state and each implicit transition's pre-state — is absent or `V1` whose links are exactly the layout's `n²` links `(sender, receiver)` in sender-major order (any allowances, any sanity hash) | the in-AIR scheduler decodes the previous state as exactly `n²` ordered links |
 
 ### 2.1 A1 source check (nearcore 2.13.4, `44f7ae6c`)
@@ -70,6 +75,63 @@ accepted by nearcore (`filter_incoming_receipts_for_shard` drops it) but is outs
   theorems cannot exclude).
 * Tested: the oracle's classifier (`oracle/v3-d0a/src/d0a.rs`, nearcore's own trie reads)
   checks Canon0f on every honest witness of the generated chains (§3).
+
+### 2.4 A7 `w.unfolded`: definition, `B0`, liveness
+
+**Definition** (`NearSpecV3.unfoldBytes`, coordinated with STATUS-V3-TRIE §1.3–1.4,
+`UnfoldBound`): for each applied transition τ (main, then each implicit one) with pre-trie
+`pre_τ = partialTrie ws_τ root_τ keys_τ` (exactly the trie `checkD0` builds) and post-trie
+`post_τ` (the post-state as a store presents it, rebuilt along the same keys):
+`unfoldBytes = Σ_τ unfoldedBytesT pre_τ + diffT pre_τ post_τ`, where `unfoldedBytesT` sums
+`|nodeEnc o|` over the revealed node occurrences (per path copy) and the revealed values
+(identical to lane v3-trie's `unfoldedBytes`, so `UnfoldBound e ws root keys` is
+`unfoldedBytesT (partialTrie ws root keys) ≤ e`), and `diffT` sums the post node occurrences
+whose encoding differs from the pre-trie's at the same position plus the changed revealed
+values (the post-write path copies the AIR hashes). Decidable; computed independently in the
+oracle (`oracle/v3-d0a/src/d0a.rs`: nearcore `RawTrieNodeWithSize`, witness values and the
+tracking node's State column, keys from `TrieKey::to_vec`) and the Python checker (the keys the
+D0 checker reads, raw node bytes); the difftest compares the three values exactly.
+
+**`B0 = 3,000,000`.** The SHA table hashes every unfolded byte (pre occurrences once; changed
+post occurrences once) at ≤ 1.25 rows/byte (sha_t, lane v3-trie); 1.25 · 3,000,000 = 3.75 M of
+its 2²² = 4.19 M rows, leaving ≈ 0.44 M rows (≈ 350 KB of input) for the non-trie hashing
+(receipt lists, outcome leaves, Merkle paths), the budget V3-D0-DESIGN §5.1 assumes. The node
+table (1 row per pre byte, post bytes in lockstep) stays below 2²². Table heights — hence the
+8 MiB proof-size analysis (§5.3) — are unchanged by A7. *Assumption to confirm with the trie
+and receipt lanes: the non-trie SHA input at A1-maximal load fits in the remaining 0.44 M rows.*
+
+**Measured** (STATUS-V3-SPEC §1.2): over the 2,993 nearcore-accepted honest witnesses of the
+full corpus `unfoldBytes` ≤ 50,579 (p50 4,286, p99 12,650; on the 2,695 RelD0 cases ≤ 7,917):
+headroom ≥ 59× against `B0`. Honest tries share only identical leaves/values (full unfold /
+recorded bytes ≤ 2.31 on D0, ≤ 1.32 on the public D1 corpus).
+
+**Liveness limit (known, for later domains).** A7 never makes a false statement provable; it
+can make a *valid* chunk unprovable. An adversary who controls state can make the read paths
+of one chunk long and their unfolded bytes large while `|base_state|` stays small (identical
+subtrees are recorded once): every revealed occurrence is a node of the logical trie, so a
+path through `D` branch levels needs ≈ `D` sibling accounts, and ≈ `U / 75` accounts are needed
+for `U` unfolded bytes with 2-child branches (≈ 75 B each; with 16-child branches ≈ 559 B per
+occurrence but 15 siblings). Exceeding `B0` thus takes ≈ 40,000 named accounts with identical
+sub-structure (e.g. sub-accounts of one attacker account), plus receipts to ≤ 4,481 of them in one
+chunk. Cost at PV 86: storage stake ≈ 182 B per account (account record + full-access key) ×
+10¹⁹ yocto/B ≈ 0.0018 NEAR → **≈ 75 NEAR locked** (refundable on deletion) + creation gas
+(CreateAccount + AddKey + Transfer ≈ 0.4–0.5 Tgas each → ≈ 20 Pgas ≈ 2 NEAR at the 10⁸ yocto/gas
+minimum price) + the transfers that target the chunk. Cheap: the domain's liveness against an
+adversarial state owner is weak; later domains need a larger `B` (multi-instance tables /
+recursion) or a cost-based argument. The attacker cannot make a wrong chunk provable.
+
+### 2.5 Duplicate chunk hashes among used source chunks
+`RelD0` does not forbid two used source slots with the same chunk inner (the claim's blocks
+are authenticated only up to its own `prev_block_hash`); both are looked up under one key
+(last-wins), so their receipt lists are equal, and `distinctKeys(entries) = #used` then needs
+**one extra, unused entry per duplicate**. So `RelD0` (and `RelD0a`) is satisfiable in that
+case, and only with such extra entries. Tested (`oracle/tools/dupkey_v3.py`, 30 constructed
+claims from accepted D0 cases: the witness with the extra entry is accepted by Lean and
+Python, the same witness without it is rejected). Consequences: the constructed witness must
+contain one entry per distinct used key **plus** `#used − #distinct` filler entries with fresh
+keys (any D0-shaped content); the AIR's `srcp` must bind equal lists to equal keys (one entry
+per key), count the filler entries, and never route a filler entry's receipts. The reference
+normal form (`normalW`: dedup + sort) keeps filler entries (distinct keys).
 
 ## 3. Reference oracle and tests
 

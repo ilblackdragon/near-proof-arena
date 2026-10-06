@@ -453,6 +453,21 @@ pub fn run_chain(chain_idx: usize, p: &ChainParams, out: &Path, o: &GenOpts, sta
                     continue;
                 }
             }
+            // A7: unfolded trie bytes (only meaningful when nearcore accepted the witness)
+            let unfold = if verdict.is_ok() {
+                match crate::d0a::unfold_bytes(tracker, &built, &sw) {
+                    Ok(u) => u,
+                    Err(e) => {
+                        eprintln!("unfold failed: {e}");
+                        None
+                    }
+                }
+            } else {
+                None
+            };
+            if unfold.map_or(false, |u| u > crate::d0a::B0) {
+                viol.push("w.unfolded");
+            }
             let in_d0 = viol.is_empty();
             let key = sw.chunk_production_key();
             let name = format!("{chain_idx:02}-h{}-s{}", key.height_created, key.shard_id);
@@ -479,6 +494,7 @@ pub fn run_chain(chain_idx: usize, p: &ChainParams, out: &Path, o: &GenOpts, sta
                 "in_d0": in_d0_orig, "expected_rel_d0": verdict.is_ok() && in_d0_orig,
                 "in_d0a": in_d0, "d0a_violations": viol,
                 "expected_rel_d0a": verdict.is_ok() && in_d0,
+                "unfold_bytes": unfold,
                 "features": features,
             });
             let n_receipts = match &sw { ChunkStateWitness::V2(x) => x.source_receipt_proofs.values().map(|p| p.0.len()).sum::<usize>() };

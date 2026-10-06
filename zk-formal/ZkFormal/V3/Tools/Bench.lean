@@ -1,4 +1,5 @@
 import ZkFormal.V3.Fast.Prep
+import NearSpecV3.ChallengeD0a
 
 /-!
 `nearspec-v3-bench` — per-component timing of the native (claim/hint) part of a D0 verifier
@@ -83,10 +84,11 @@ def components (cb : Bytes) (h : Hint) : IO (List Nat) := do
       (Congestion.isFullyCongested CongestionConfig.pv86 (toCI ci) missed).toNat +
       prims.outGas ci missed ctx.own).sum).sum) id
   let (tSched, _) ← timeNs (fun _ => (ctxs.map fun ctx =>
-      ((schedPub ctx).map fun p => p.reqs.length + p.allowed.size).getD 0).sum) id
-  let body := u32 0 ++ encodeReceipts h.refunds
+      ((schedPub ctx).map fun p => p.raw.length + p.allowed.size).getD 0).sum) id
+  let refunds := (decodeBody h.body).toOption.getD []
+  let body := h.body
   let (tRS, _) ← timeNs (fun _ => ((encodedMerkleRoot p.c.rsDataParts p.c.rsTotalParts body).map (·.2)).getD 0) id
-  let (tOut, _) ← timeNs (fun _ => (outgoingReceiptsRoot p.L h.refunds).length) id
+  let (tOut, _) ← timeNs (fun _ => (outgoingReceiptsRoot p.L refunds).length) id
   return [tDec, tShuf, tCong, tSched, tRS, tOut]
 
 def header : String := "decode+chain  shuffles  congestion  schedPub  RS  outgoing_root  | prepD0 total (ms)"
@@ -103,7 +105,7 @@ def benchFixtures (dirs : List String) : IO Unit := do
   for dir in dirs do
     let cb := (← IO.FS.readBinFile (dir ++ "/claim.bin")).toList
     let wb := (← IO.FS.readBinFile (dir ++ "/witness.bin")).toList
-    if checkD0a cb wb matches .error _ then continue
+    if checkD0a B0 cb wb matches .error _ then continue
     let h := hintOf cb wb
     let (t, ok) ← timeNs (fun _ => match prepD0 cb h with
       | .ok p => p.sched.length + p.lists.length + p.body.length + 1 | .error _ => 0) id
@@ -240,13 +242,14 @@ def benchRS (nBytes seed : Nat) : IO Unit := do
   -- 4481 refunds (A1 maximum), receivers spread over 64 shards
   let L ← IO.ofExcept (decodeLayout (layoutV2 64))
   let refunds : List Receipt := (List.range 4481).map fun i =>
-    { predecessorId := strB "system", receiverId := strB s!"b{pad2 (i % 64)}x{i + seed}",
+    { predecessorId := strB "system", receiverId := (if i % 2 == 0 then strB s!"b{pad2 (i % 64)}x{i + seed}" else strB (String.ofList (List.replicate 64 'a'))),
       receiptId := sha256 (u64 (i + seed)), signerId := strB s!"b{pad2 (i % 64)}x{i}",
       signerPk := ⟨0, zeros 32⟩, gasPrice := 1000000000, deposit := 1000000000000 }
   let (to, _) ← timeNs (fun _ => (outgoingReceiptsRoot L refunds).length) id
   let body := u32 0 ++ encodeReceipts refunds
   let (tb, _) ← timeNs (fun _ => ((encodedMerkleRoot 33 100 body).map (·.2)).getD 0) id
-  IO.println s!"outgoing root, 4481 refunds / 64 shards: {ms to} ms; body {body.length} B, RS (33,100) {ms tb} ms"
+  let (tp, k) ← timeNs (fun _ => match decodeBody body with | .ok rs => rs.length | .error _ => 0) id
+  IO.println s!"outgoing root, 4481 refunds / 64 shards: {ms to} ms; body {body.length} B, RS (33,100) {ms tb} ms; decodeBody {ms tp} ms ({k} refunds)"
 
 def main (args : List String) : IO UInt32 := do
   match args with

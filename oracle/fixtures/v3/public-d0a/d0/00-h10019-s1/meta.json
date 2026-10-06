@@ -24,5 +24,6 @@
   "in_d0": true,
   "in_d0a": true,
   "kind": "honest",
-  "nearcore": "ok"
+  "nearcore": "ok",
+  "unfold_bytes": 3056
 }
