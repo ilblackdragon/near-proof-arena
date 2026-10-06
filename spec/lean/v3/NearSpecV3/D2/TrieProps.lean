@@ -484,4 +484,175 @@ theorem Kids.prefixKeys_sound : ∀ (cs : Kids) (n : Nat) (rest acc : List Nat) 
     exact ⟨r, v, rfl, hpr, by simpa [Kids.find] using hf⟩
 end
 
+/-! ## Prefix iteration returns every present key with the prefix (completeness) -/
+
+theorem isPrefix_comparable {a b r : List Nat} (ha : isPrefix a r = true) (hb : isPrefix b r = true) :
+    isPrefix a b = true ∨ isPrefix b a = true := by
+  induction a generalizing b r with
+  | nil => left; simp [isPrefix]
+  | cons x xs ih =>
+    cases b with
+    | nil => right; simp [isPrefix]
+    | cons y ys =>
+      cases r with
+      | nil => simp [isPrefix] at ha
+      | cons z zs =>
+        simp only [isPrefix, Bool.and_eq_true, beq_iff_eq] at ha hb ⊢
+        obtain ⟨rfl, ha⟩ := ha
+        obtain ⟨rfl, hb⟩ := hb
+        simpa using ih ha hb
+
+mutual
+theorem PTrie.allKeys_complete : ∀ (t : PTrie) (acc : List Nat) (ks : List (List Nat)),
+    t.allKeys acc = some ks → ∀ r v, t.find r = some (some v) → acc ++ r ∈ ks
+  | .hash _, _, _, h => by simp [PTrie.allKeys] at h
+  | .leaf k s m, acc, ks, h => by
+    intro r v hf
+    have hkr : k = r := by
+      by_cases hne : k = r
+      · exact hne
+      · simp [PTrie.find, hne] at hf
+    subst hkr
+    cases s with
+    | val _ => simp only [PTrie.allKeys, Option.some.injEq] at h; subst h; simp
+    | ref _ _ => simp [PTrie.allKeys] at h
+  | .ext k c m, acc, ks, h => by
+    intro r v hf
+    have hp := isPrefix_of_find_ext hf
+    obtain ⟨r', rfl⟩ := (isPrefix_iff _ _).1 hp
+    simp only [PTrie.allKeys] at h
+    have hf' : c.find r' = some (some v) := by simpa [PTrie.find, isPrefix_append] using hf
+    simpa using PTrie.allKeys_complete c (acc ++ k) ks h r' v hf'
+  | .branch bv cs m, acc, ks, h => by
+    intro r v hf
+    simp only [PTrie.allKeys] at h
+    cases hc : Kids.allKeys cs 0 acc with
+    | none =>
+      cases bv with
+      | none => simp [hc] at h
+      | some sl => cases sl <;> simp [hc] at h
+    | some kids =>
+      have hkids : ∀ n r', Kids.find cs n r' = Option.some (Option.some v) → acc ++ n :: r' ∈ kids := by
+        intro n r' hk
+        have := Kids.allKeys_complete cs 0 acc kids hc n r' v hk
+        simpa using this
+      cases bv with
+      | none =>
+        simp only [hc, Option.bind_eq_bind, Option.bind_some, List.nil_append, Option.pure_def,
+          Option.some.injEq] at h
+        subst h
+        cases r with
+        | nil => simp [PTrie.find] at hf
+        | cons n r' => exact hkids n r' (by simpa [PTrie.find] using hf)
+      | some sl =>
+        cases sl with
+        | ref _ _ => simp [PTrie.allKeys] at h
+        | val w =>
+          simp only [hc, Option.bind_eq_bind, Option.bind_some, Option.pure_def,
+            Option.some.injEq] at h
+          subst h
+          cases r with
+          | nil => simp
+          | cons n r' => exact List.mem_append_right _ (hkids n r' (by simpa [PTrie.find] using hf))
+
+theorem Kids.allKeys_complete : ∀ (cs : Kids) (i : Nat) (acc : List Nat) (ks : List (List Nat)),
+    Kids.allKeys cs i acc = Option.some ks → ∀ n r v,
+      Kids.find cs n r = Option.some (Option.some v) → acc ++ (n + i) :: r ∈ ks
+  | .nil, _, _, _, _, n, r, v, hf => by simp [Kids.find] at hf
+  | .none rest, i, acc, ks, h, n, r, v, hf => by
+    simp only [Kids.allKeys] at h
+    cases n with
+    | zero => simp [Kids.find] at hf
+    | succ n =>
+      have := Kids.allKeys_complete rest (i + 1) acc ks h n r v (by simpa [Kids.find] using hf)
+      have e : n + (i + 1) = n + 1 + i := by omega
+      rwa [e] at this
+  | .some c rest, i, acc, ks, h, n, r, v, hf => by
+    simp only [Kids.allKeys] at h
+    cases ha : c.allKeys (acc ++ [i]) with
+    | none => simp [ha] at h
+    | some a =>
+      cases hb : Kids.allKeys rest (i + 1) acc with
+      | none => simp [ha, hb] at h
+      | some b =>
+        simp only [ha, hb, Option.bind_eq_bind, Option.bind_some, Option.pure_def,
+          Option.some.injEq] at h
+        subst h
+        cases n with
+        | zero =>
+          have := PTrie.allKeys_complete c (acc ++ [i]) a ha r v (by simpa [Kids.find] using hf)
+          exact List.mem_append_left _ (by simpa using this)
+        | succ n =>
+          have := Kids.allKeys_complete rest (i + 1) acc b hb n r v (by simpa [Kids.find] using hf)
+          have e : n + (i + 1) = n + 1 + i := by omega
+          rw [e] at this
+          exact List.mem_append_right _ this
+end
+
+mutual
+/-- Every present key with the prefix is returned by the prefix iteration. -/
+theorem PTrie.prefixKeys_complete : ∀ (t : PTrie) (pre acc : List Nat) (ks : List (List Nat)),
+    t.prefixKeys pre acc = some ks → ∀ r v, isPrefix pre r = true →
+      t.find r = some (some v) → acc ++ r ∈ ks
+  | .hash _, _, _, _, h => by simp [PTrie.prefixKeys] at h
+  | .leaf k s m, pre, acc, ks, h => by
+    intro r v hpr hf
+    have hkr : k = r := by
+      by_cases hne : k = r
+      · exact hne
+      · simp [PTrie.find, hne] at hf
+    subst hkr
+    simp only [PTrie.prefixKeys, hpr, ↓reduceIte] at h
+    exact PTrie.allKeys_complete _ acc ks h k v hf
+  | .ext k c m, pre, acc, ks, h => by
+    intro r v hpr hf
+    have hkr := isPrefix_of_find_ext hf
+    simp only [PTrie.prefixKeys] at h
+    by_cases hp : isPrefix k pre = true
+    · simp only [hp, ↓reduceIte] at h
+      obtain ⟨r', rfl⟩ := (isPrefix_iff _ _).1 hkr
+      obtain ⟨p', rfl⟩ := (isPrefix_iff _ _).1 hp
+      have hf' : c.find r' = some (some v) := by simpa [PTrie.find, isPrefix_append] using hf
+      have hpr' : isPrefix p' r' = true := by simpa [isPrefix_append_append] using hpr
+      have := PTrie.prefixKeys_complete c ((k ++ p').drop k.length) (acc ++ k) ks h r' v
+        (by simpa using hpr') hf'
+      simpa using this
+    · simp only [hp, Bool.false_eq_true, ↓reduceIte] at h
+      have hq : isPrefix pre k = true := by
+        rcases isPrefix_comparable hkr hpr with h1 | h1
+        · exact absurd h1 hp
+        · exact h1
+      simp only [hq, ↓reduceIte] at h
+      exact PTrie.allKeys_complete _ acc ks h r v hf
+  | .branch bv cs m, [], acc, ks, h => by
+    intro r v _ hf
+    simp only [PTrie.prefixKeys] at h
+    exact PTrie.allKeys_complete _ acc ks h r v hf
+  | .branch bv cs m, n :: rest, acc, ks, h => by
+    intro r v hpr hf
+    simp only [PTrie.prefixKeys] at h
+    cases r with
+    | nil => simp [isPrefix] at hpr
+    | cons n2 r' =>
+      simp only [isPrefix, Bool.and_eq_true, beq_iff_eq] at hpr
+      obtain ⟨rfl, hpr⟩ := hpr
+      have := Kids.prefixKeys_complete cs n rest (acc ++ [n]) ks h r' v hpr (by simpa [PTrie.find] using hf)
+      simpa using this
+
+theorem Kids.prefixKeys_complete : ∀ (cs : Kids) (n : Nat) (rest acc : List Nat) (ks : List (List Nat)),
+    Kids.prefixKeys cs n rest acc = Option.some ks → ∀ r v, isPrefix rest r = true →
+      Kids.find cs n r = Option.some (Option.some v) → acc ++ r ∈ ks
+  | .nil, _, _, _, _, _, r, v, _, hf => by simp [Kids.find] at hf
+  | .none _, 0, _, _, _, _, r, v, _, hf => by simp [Kids.find] at hf
+  | .some c _, 0, rest, acc, ks, h, r, v, hpr, hf => by
+    simp only [Kids.prefixKeys] at h
+    exact PTrie.prefixKeys_complete c rest acc ks h r v hpr (by simpa [Kids.find] using hf)
+  | .none r', i + 1, rest, acc, ks, h, r, v, hpr, hf => by
+    simp only [Kids.prefixKeys] at h
+    exact Kids.prefixKeys_complete r' i rest acc ks h r v hpr (by simpa [Kids.find] using hf)
+  | .some _ r', i + 1, rest, acc, ks, h, r, v, hpr, hf => by
+    simp only [Kids.prefixKeys] at h
+    exact Kids.prefixKeys_complete r' i rest acc ks h r v hpr (by simpa [Kids.find] using hf)
+end
+
 end NearSpec
