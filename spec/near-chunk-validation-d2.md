@@ -846,7 +846,7 @@ squashed shapes / memory usages are canonical (trie vectors), `InD1 ⊂ InD2` (f
 * **Trie finalize** (`nearspec-v3-test-trie-d2`, vectors from `spec/tools/trie_vectors_d2.py`,
   an independent canonical-trie builder with nearcore's node encoding and memory usage): random
   maps with shared prefixes, branch values and empty values, random insert / overwrite /
-  delete sets (incl. deleting every key): 4 900 cases, 0 mismatches of the post-state root.
+  delete sets (incl. deleting every key): 7 900 cases (seeds 7, 11, 12, 13, 99), 0 mismatches of the post-state root.
   This tests `PTrie.del` + squash + memory usage, not the read set (which needs nearcore's
   verdicts on dropped nodes: the D2 difftest's single-node-drop mutants).
 * **Kernel non-vacuity** (`lake build NearSpecV3.Examples.RealCaseD2`, ≈ 7 min, < 32 GB;
