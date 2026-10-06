@@ -344,7 +344,8 @@ Range checks are kept in every variant.
    `SchedFullTest`'s dup mode sets shard id 1 := shard id 0 on every vector with `n ≥ 2`, which
    gives a non-identity source map. The codec's new state equals `runCore`'s (spec first-index
    semantics), with every constraint and bus checked. The event model and run data read `allow0`
-   through `srcArr` (commit `e64a64b0`).
+   through `srcArr` (commit `e64a64b0`). Result: 600/600 vectors and **525/525 duplicate-id
+   layouts** (all with a non-identity source map), 0 violations, 51/51 mutants (3,896 s).
 2. M3 views: codec, process structure (key block, headers, rounds); link layer per §6 (memory
    consistency instance, operand bounds of §10, `process_rounds` hypotheses, `core_compose`);
    `schedCore_sound`.
