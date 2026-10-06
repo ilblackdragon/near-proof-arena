@@ -52,8 +52,11 @@ mod mutate;
 #[path = "../../v3/src/vectors.rs"]
 mod vectors;
 // D1 (this crate)
+mod chaind2;
 mod chaingen;
 mod d1;
+mod d2;
+mod d2gen;
 mod d1gen;
 mod d1judge;
 mod ed25519v;
@@ -94,6 +97,10 @@ fn cmd_gen(args: &[String]) -> i32 {
     let ood_cap: usize = arg(args, "--ood-cap").and_then(|s| s.parse().ok()).unwrap_or(20);
     let mutate_every: usize = arg(args, "--mutate-every").and_then(|s| s.parse().ok()).unwrap_or(6);
     // this binary generates domain D1 (`--domain d1` accepted for clarity; `--domain d0` refused)
+    // or domain D2 (`--domain d2`, src/chaind2.rs; the D1 path below is untouched by it)
+    if arg(args, "--domain").as_deref() == Some("d2") {
+        return cmd_gen_d2(args);
+    }
     if arg(args, "--domain").as_deref().is_some_and(|d| d != "d1") {
         panic!("near-arena-oracle-v3-d1 generates domain D1 only; use near-arena-oracle-v3 for D0");
     }
@@ -197,6 +204,86 @@ fn cmd_gen(args: &[String]) -> i32 {
     0
 }
 
+/// Domain-D2 chain parameters of chain `i` (shards, Reed–Solomon seats, gas limits incl. low
+/// ones for delayed receipts, short epochs for validator updates inside segments).
+fn chain_params_d2(seed: u64, i: usize, blocks: u64, p_missing: f64) -> chaind2::D2Params {
+    chaind2::D2Params {
+        base: chaingen::ChainParams {
+            seed: seed.wrapping_mul(1_000_003).wrapping_add(i as u64),
+            n_shards: [4usize, 5, 6][i % 3],
+            seats: [8u64, 100, 16, 3][i % 4],
+            gas_limit_tgas: [1000u64, 1000, 1000, 10, 60][i % 5],
+            epoch_length: [12u64, 30, 20][(i / 3) % 3],
+            blocks,
+            p_missing,
+            p_tx_shard: 0.5,
+            p_burst: 0.04,
+            p_fail: 0.0,
+            p_implicit: 0.0,
+            p_two: 0.0,
+            // one chain in eight: a shard's chunks missing for 40 heights (segments > 32 blocks)
+            long_skip: if i % 8 == 5 { Some((60, 40, 0)) } else { None },
+        },
+        max_txs: 6,
+        p_contract: 0.04,
+        p_adv: 0.35,
+    }
+}
+
+fn cmd_gen_d2(args: &[String]) -> i32 {
+    let seed: u64 = arg(args, "--seed").and_then(|s| s.parse().ok()).unwrap_or(1);
+    let out = PathBuf::from(arg(args, "--out").expect("--out"));
+    let chains: usize = arg(args, "--chains").and_then(|s| s.parse().ok()).unwrap_or(6);
+    let first: usize = arg(args, "--first-chain").and_then(|s| s.parse().ok()).unwrap_or(0);
+    let blocks: u64 = arg(args, "--blocks").and_then(|s| s.parse().ok()).unwrap_or(100);
+    let ood_cap: usize = arg(args, "--ood-cap").and_then(|s| s.parse().ok()).unwrap_or(20);
+    let mutate_every: usize = arg(args, "--mutate-every").and_then(|s| s.parse().ok()).unwrap_or(6);
+    let p_missing: f64 = arg(args, "--p-missing").map(|s| s.parse().expect("--p-missing")).unwrap_or(0.12);
+    let opts = chaingen::GenOpts {
+        ood_cap,
+        mutate_every,
+        fixtures_layout: false,
+        class: chaingen::CaseClass::Any,
+        no_positives: false,
+        accepted_mutants: false,
+        positive_target: 0,
+        rejection_target: 0,
+        per_chain_cap: 0,
+        d1: false,
+        p_adv: 0.35,
+    };
+    std::fs::create_dir_all(&out).unwrap();
+    let mut stats = chaingen::Stats {
+        honest: 0, honest_ok: 0, d0: 0, ood_written: 0, mutants: 0, by_violation: Default::default(),
+        positives: 0, rejections: 0, d1: 0, injected: 0,
+    };
+    let mut params = Vec::new();
+    for i in first..first + chains {
+        let p = chain_params_d2(seed, i, blocks, p_missing);
+        let pstr = format!("{p:?}");
+        eprintln!("chain {i}: {pstr}");
+        params.push(pstr);
+        chaind2::run_chain_d2(i, &p, &out, &opts, &mut stats);
+        eprintln!(
+            "  honest={} ok={} d2={} d1={} d0={} ood_written={} mutants={} crafted={}",
+            stats.honest, stats.honest_ok, stats.positives, stats.d1, stats.d0, stats.ood_written, stats.mutants, stats.injected
+        );
+    }
+    let summary = json!({
+        "nearcore_commit": NEARCORE_COMMIT, "protocol_version": 86, "seed": seed, "domain": "D2",
+        "chains": params, "honest_witnesses": stats.honest, "honest_accepted_by_nearcore": stats.honest_ok,
+        "d2_cases": stats.positives, "d1_cases_among_d2": stats.d1, "d0_cases_among_d2": stats.d0,
+        "ood_cases_written": stats.ood_written, "mutants": stats.mutants,
+        "crafted_transactions": stats.injected, "d2_violation_counts": stats.by_violation,
+    });
+    std::fs::write(out.join("summary.json"), serde_json::to_string_pretty(&summary).unwrap()).unwrap();
+    if stats.honest_ok != stats.honest {
+        eprintln!("WARNING: some honest witnesses were rejected by nearcore");
+        return 1;
+    }
+    0
+}
+
 /// Fee parameters read by Transfer-transaction conversion (domain D1): `tx_cost`
 /// (runtime/runtime/src/config.rs:400-479) and the limits checked on transactions.
 fn d1_fees(cfg: &near_parameters::RuntimeConfig) -> serde_json::Value {
@@ -222,6 +309,64 @@ fn d1_fees(cfg: &near_parameters::RuntimeConfig) -> serde_json::Value {
         "max_transaction_size": cfg.wasm_config.limit_config.max_transaction_size,
         "max_actions_per_receipt": cfg.wasm_config.limit_config.max_actions_per_receipt,
         "access_key_nonce_range_multiplier": near_primitives::account::AccessKey::ACCESS_KEY_NONCE_RANGE_MULTIPLIER,
+    })
+}
+
+/// Every runtime parameter the D2 relation reads (fees with gas and compute, storage, limits,
+/// refunds, account creation, gas keys, wallet contract hashes), from nearcore's own config.
+fn d2_params(cfg: &near_parameters::RuntimeConfig) -> serde_json::Value {
+    use near_parameters::{ActionCosts, ExtCosts, SignatureKind};
+    use strum::IntoEnumIterator;
+    let mut fees = serde_json::Map::new();
+    for c in ActionCosts::iter() {
+        let fee = cfg.fees.fee(c);
+        let pc = |p: near_parameters::ParameterCost| json!([p.gas.as_gas(), p.compute]);
+        fees.insert(format!("{c:?}"), json!({"send_sir": pc(fee.send_fee(true)), "send_not_sir": pc(fee.send_fee(false)), "exec": pc(fee.exec_fee())}));
+    }
+    let sv = |k: SignatureKind| {
+        let p = cfg.fees.signature_verification_costs[k];
+        json!([p.gas.as_gas(), p.compute])
+    };
+    let ext = |e: ExtCosts| json!([cfg.wasm_config.ext_costs.gas_cost(e).as_gas(), cfg.wasm_config.ext_costs.compute_cost(e)]);
+    let su = &cfg.fees.storage_usage_config;
+    let lc = &cfg.wasm_config.limit_config;
+    let acc = &cfg.account_creation_config;
+    json!({
+        "action_fees": fees,
+        "signature_verification": {"ed25519": sv(SignatureKind::Ed25519), "secp256k1": sv(SignatureKind::Secp256k1), "mldsa65": sv(SignatureKind::MlDsa65)},
+        "ext_storage_remove": {"base": ext(ExtCosts::storage_remove_base), "key_byte": ext(ExtCosts::storage_remove_key_byte), "ret_value_byte": ext(ExtCosts::storage_remove_ret_value_byte)},
+        "storage_usage": {"num_bytes_account": su.num_bytes_account, "num_extra_bytes_record": su.num_extra_bytes_record,
+            "storage_amount_per_byte": su.storage_amount_per_byte.as_yoctonear().to_string(),
+            "global_contract_storage_amount_per_byte": su.global_contract_storage_amount_per_byte.as_yoctonear().to_string()},
+        "burnt_gas_reward": [*cfg.fees.burnt_gas_reward.numer(), *cfg.fees.burnt_gas_reward.denom()],
+        "gas_refund_penalty": [*cfg.fees.gas_refund_penalty.numer(), *cfg.fees.gas_refund_penalty.denom()],
+        "min_gas_refund_penalty": cfg.fees.min_gas_refund_penalty.as_gas(),
+        "min_gas_purchase_price": cfg.min_gas_purchase_price.as_yoctonear().to_string(),
+        "account_creation_charge": cfg.account_creation_charge.as_yoctonear().to_string(),
+        "use_state_stored_receipt": cfg.use_state_stored_receipt,
+        "account_creation": {"min_allowed_top_level_account_length": acc.min_allowed_top_level_account_length, "registrar_account_id": acc.registrar_account_id.to_string()},
+        "limits": {"max_actions_per_receipt": lc.max_actions_per_receipt, "max_total_prepaid_gas": lc.max_total_prepaid_gas.as_gas(),
+            "max_number_bytes_method_names": lc.max_number_bytes_method_names, "max_length_method_name": lc.max_length_method_name,
+            "max_arguments_length": lc.max_arguments_length, "max_length_returned_data": lc.max_length_returned_data,
+            "max_contract_size": lc.max_contract_size, "max_transaction_size": lc.max_transaction_size,
+            "max_receipt_size": lc.max_receipt_size, "max_number_input_data_dependencies": lc.max_number_input_data_dependencies,
+            "max_deploy_actions_per_receipt": lc.max_deploy_actions_per_receipt, "yield_timeout_length_in_blocks": lc.yield_timeout_length_in_blocks,
+            "account_id_validity_rules_version": format!("{:?}", lc.account_id_validity_rules_version)},
+        "eth_implicit_accounts": cfg.wasm_config.eth_implicit_accounts,
+        "eth_wallet_global_contract_hash": {
+            "mainnet": near_wallet_contract::eth_wallet_global_contract_hash("mainnet").to_string(),
+            "testnet": near_wallet_contract::eth_wallet_global_contract_hash("testnet").to_string(),
+            "other(arena-v3-local)": near_wallet_contract::eth_wallet_global_contract_hash("arena-v3-local").to_string(),
+            "other_hex": hex::encode(near_wallet_contract::eth_wallet_global_contract_hash("arena-v3-local").0),
+            "mainnet_hex": hex::encode(near_wallet_contract::eth_wallet_global_contract_hash("mainnet").0),
+            "testnet_hex": hex::encode(near_wallet_contract::eth_wallet_global_contract_hash("testnet").0),
+        },
+        "access_key_min_gas_key_borsh_len": near_primitives::account::AccessKey::min_gas_key_borsh_len(),
+        "gas_key_info_borsh_len": near_primitives::account::GasKeyInfo::borsh_len(),
+        "gas_key_max_balance_to_burn": near_primitives::account::GasKeyInfo::MAX_BALANCE_TO_BURN.as_yoctonear().to_string(),
+        "gas_key_max_nonces": near_primitives::account::AccessKeyPermission::MAX_NONCES_FOR_GAS_KEY,
+        "max_account_deletion_storage_usage": near_primitives_core::account::Account::MAX_ACCOUNT_DELETION_STORAGE_USAGE,
+        "witness": {"main_storage_proof_size_soft_limit": cfg.witness_config.main_storage_proof_size_soft_limit},
     })
 }
 
@@ -257,6 +402,9 @@ fn cmd_params(args: &[String]) -> i32 {
         "main_storage_proof_size_soft_limit": cfg.witness_config.main_storage_proof_size_soft_limit,
     });
     let mut d = d;
+    if args.iter().any(|a| a == "--d2") {
+        d["d2_runtime"] = d2_params(&cfg);
+    }
     if args.iter().any(|a| a == "--d1") {
         // spec/challenge-inputs/runtime-config-pv86-v3-d1.json: plus the fees D1 reads
         d["d1_transaction_fees"] = d1_fees(&cfg);

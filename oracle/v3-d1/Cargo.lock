@@ -2861,12 +2861,15 @@ dependencies = [
  "near-primitives-core",
  "near-store",
  "near-time",
+ "near-wallet-contract",
  "node-runtime",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "reed-solomon-erasure",
  "serde_json",
  "sha2",
+ "strum",
+ "wat",
 ]
 
 [[package]]
