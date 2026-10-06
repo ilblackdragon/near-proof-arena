@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Independent Python checker for domain D0a of near/pv86/chunk-validation/v0
-(spec/near-chunk-validation-v0a.md): RelD0a = RelD0 ∧ A1 ∧ A2 ∧ Canon0f.
+(spec/near-chunk-validation-v0a.md): RelD0a = RelD0 ∧ A1 ∧ A2 ∧ Canon0f ∧ A7 ∧ A8.
 
 Runs the D0 checker (spec_check_v3.py, unmodified: it is pinned with the live D0
 challenges) and, on an accepting case, the amendments:
@@ -17,6 +17,11 @@ challenges) and, on an accepting case, the amendments:
                          pre-trie at the same position. Independent implementation: the read
                          keys are the keys the D0 checker actually reads (recorded on its
                          PartialTrie instances), positions are walked on the raw node bytes.
+  A8  c.bw_requests      in every block of the claim's segment, every chunk slot's
+                         BandwidthRequests has pairwise distinct to_shard values.
+
+Violations are reported joined by "," in the order A1, A2, C0f, A7, A8 (the order of the
+Lean checkD0a checks; Lean reports only the first failing one).
 
 usage: spec_check_v3_d0a.py [--bound B] CASE_DIR...
        (one JSON line per case, as spec_check_v3.py, plus "unfold")
@@ -199,6 +204,17 @@ def amendments(claim_b, witness_b):
     return v
 
 
+def a8_ok(claim_b):
+    """A8: every slot of every block of the segment has distinct to_shard values."""
+    c = d0.decode_claim(claim_b)
+    for b in c['blocks']:
+        for raw, _hi in b.slots_raw:
+            tos = [t for t, _bm in d0.decode_inner_bytes(raw).bandwidth_requests]
+            if len(set(tos)) != len(tos):
+                return False
+    return True
+
+
 def check_case(d, bound=B0):
     """(verdict, reason, unfold_bytes or None)."""
     _TRIES.clear()
@@ -216,6 +232,12 @@ def check_case(d, bound=B0):
         return "reject", "INTERNAL ERROR %s: %s" % (type(e).__name__, e), None
     if u > bound:
         v.append("w.unfolded")
+    try:
+        if not a8_ok(cb):
+            v.append("c.bw_requests")
+    except Exception as e:  # a bug in this checker
+        print("spec_check_v3_d0a: INTERNAL ERROR on %s: %r" % (d, e), file=sys.stderr)
+        return "reject", "INTERNAL ERROR %s: %s" % (type(e).__name__, e), None
     if v:
         return "out_of_domain", ",".join(v), u
     return "accept", "ok", u

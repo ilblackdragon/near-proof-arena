@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """3-way differential test for near/pv86/chunk-validation/v0, domain D0a
-(RelD0a = RelD0 ∧ A1 ∧ A2 ∧ Canon0f, spec/near-chunk-validation-v0a.md).
+(RelD0a = RelD0 ∧ A1 ∧ A2 ∧ Canon0f ∧ A7 ∧ A8, spec/near-chunk-validation-v0a.md).
 
 Implementations compared on every case directory (claim.bin, witness.bin, meta.json):
   (1) nearcore oracle  — meta.json written by `near-arena-oracle-v3-d0a gen`: nearcore's own
@@ -11,12 +11,18 @@ Implementations compared on every case directory (claim.bin, witness.bin, meta.j
 
 A case agrees iff both checkers accept exactly when expected_rel_d0a, and for honest
 out-of-domain cases (ood/) and for mutants with `expected_verdict` (constructed
-out-of-domain mutants such as the A2 `w.foreign_routed_receipt`) both report that verdict.
+out-of-domain mutants such as the A2 `w.foreign_routed_receipt`) both report that verdict;
+a mutant with `expected_reason` (the A8 `c.dup_bw_request`: amendment family `c.bw_requests`)
+must also name that family in both checkers' reason (Lean reports only its first failing
+check, Python all violations joined; such a mutant violates exactly one amendment).
 
 usage: difftest_v3.py --cases DIR [--lean EXE] [--python FILE] [--report OUT.json]
          [--lean-jsonl F --python-jsonl F]   (reuse precomputed outputs)
 """
 import argparse, collections, json, os, subprocess, sys, time
+
+AMENDMENTS = ("c.gas_limit", "w.proof_routing", "e.sched_canonical", "w.unfolded", "c.bw_requests")
+
 
 def run_checker(cmd, dirs, chunk=400):
     out = {}
@@ -67,7 +73,7 @@ def main():
         stats[f"{kind}.cases"] += 1
         stats[f"{kind}.expected_accept"] += exp
         for viol in meta.get("d0a_violations", []):
-            if viol in ("c.gas_limit", "w.proof_routing", "e.sched_canonical", "w.unfolded"):
+            if viol in AMENDMENTS:
                 stats[f"{kind}.amendment.{viol}"] += 1
         if kind == "mutants":
             families[(meta["mutation"].split(".")[0] + "." + meta["mutation"].split(".")[1] if meta["mutation"].count(".") else meta["mutation"], exp)] += 1
@@ -82,6 +88,8 @@ def main():
             # constructed out-of-domain mutants (e.g. A2 w.proof_routing) pin the exact verdict
             if meta.get("expected_verdict"):
                 ok = ok and j["verdict"] == meta["expected_verdict"]
+            if meta.get("expected_reason"):
+                ok = ok and meta["expected_reason"] in j["reason"]
             if not ok:
                 disagreements.append({"case": d, "impl": name, "expected_rel_d0a": exp,
                                       "verdict": j["verdict"], "reason": j["reason"],
@@ -133,7 +141,7 @@ def main():
         vc = osum.get("d0_violation_counts", {})
         report["amendments_on_honest_witnesses"] = {
             "honest_witnesses": osum.get("honest_witnesses"),
-            **{k: vc.get(k, 0) for k in ("c.gas_limit", "w.proof_routing", "e.sched_canonical", "w.unfolded")},
+            **{k: vc.get(k, 0) for k in AMENDMENTS},
         }
     except Exception:
         pass
@@ -144,10 +152,24 @@ def main():
         **{f"{name}.out_of_domain": sum(1 for d in a2m if res.get(d, {}).get("verdict") == "out_of_domain")
            for name, res in impls.items()},
     }
+    a8m = [d for d in dirs if os.path.basename(os.path.dirname(d)) == "mutants"
+           and d.endswith("c.dup_bw_request")]
+    report["a8_dup_bw_request_mutants"] = {
+        "cases": len(a8m),
+        **{f"{name}.out_of_domain_c.bw_requests": sum(
+            1 for d in a8m if res.get(d, {}).get("verdict") == "out_of_domain"
+            and "c.bw_requests" in res.get(d, {}).get("reason", ""))
+           for name, res in impls.items()},
+    }
+    # A8 on everything else: no checker reports c.bw_requests outside the A8 mutants
+    a8set = set(a8m)
+    report["a8_reported_elsewhere"] = {
+        name: sum(1 for d in dirs if d not in a8set and "c.bw_requests" in res.get(d, {}).get("reason", ""))
+        for name, res in impls.items()}
     s = json.dumps(report, indent=1, sort_keys=True)
     if a.report:
         open(a.report, "w").write(s + "\n")
-    print(json.dumps({k: report.get(k) for k in ("counts", "disagreements", "amendments_on_honest_witnesses", "a2_foreign_routed_mutants", "unfold_bytes")}, indent=1))
+    print(json.dumps({k: report.get(k) for k in ("counts", "disagreements", "amendments_on_honest_witnesses", "a2_foreign_routed_mutants", "a8_dup_bw_request_mutants", "a8_reported_elsewhere", "unfold_bytes")}, indent=1))
     return 0 if not disagreements else 1
 
 if __name__ == "__main__":
