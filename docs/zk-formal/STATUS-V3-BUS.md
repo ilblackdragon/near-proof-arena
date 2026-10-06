@@ -9,27 +9,36 @@ Rules: no `sorry`, `axiom` or `native_decide`.
 
 ## Statements
 
-| deliverable | statement | file | state |
+All of these are built, contain no `sorry`, `axiom` or `native_decide`, and use axioms
+⊆ {propext, Classical.choice, Quot.sound}. Each was checked with `#print axioms`.
+
+| deliverable | statement | file | axioms |
 |---|---|---|---|
-| L4 | `PubSeg`, `AirP` (extends `Air`), `pubMsgs`, `pubCount`, `pubFit`, `HoldsP` | `V2/Air.lean` | built |
-| L4 | `holdsP_iff_holds` (no segments ⇒ `HoldsP ↔ Holds`), `holdsP_ofAir` | `V2/Air.lean` | built |
-| L4 | `AirP.wf` (with `pubBound`, `multBoundP`, `fpBoundP`), `AirP.wf_air` (⇒ v1 `Air.wf`) | `V2/Air.lean` | built |
-| L4 | `globalChecksP`, `prepP`, `Iop.verifierP`, `verifierP`, `prepP_eq`, `checksPass_eq`, `globalChecksP_nil` | `V2/Verifier.lean` | built |
-| L4 | export `np-air-v2` (`AirP.exportJson`) + `FORMATS.md` §8 | `V2/Export.lean` | written |
-| L3 | `rbrWithP_of` (composition, `PubBad` disjunct) | `V2/Np/Compose.lean` | built |
-| L3 | `msg0P msg2P msg6P chal5P chal7P` | `V2/Np/Early.lean` | written, build pending |
-| L3 | `chal1P chal3P` (gpAlpha/gpGamma on trace ++ public multisets) | `V2/Np/Bus.lean` | written, build pending |
-| L3 | `msg4P` (`finals_gp`, `no_gpDifferP`) | `V2/Np/Msg4.lean` | written, build pending |
-| L3 | `msg8P` (`globalChecksP_true`, `pubProd_eq`) | `V2/Np/Msg8.lean` | written, build pending |
-| L3 | `msgLateP chalLateP` | `V2/Np/Late.lean` | written, build pending |
-| L3 | `queryP` (`deepSemQ`, `localBridgeQ`, `goodQ`, `qdataP`) | `V2/Np/Query.lean` | written, build pending |
-| L3 | **`rbrWithP`**, `rbrFactsP` | `V2/Np/Main.lean` | written, build pending |
-| L2 | **`stark_romSound_fullP`** (`schedOkP`, `npBoundsP`, `verifierP_queryBound`) | `V2/RomFull.lean` | written, build pending |
-| L7 | **`npIopCompleteP`** (`busProdP`, `globalP`, `localNH`, `proverWfP`) | `V2/Prover.lean` | written, build pending |
-| L7 | **`admission_v2`**, `np_proverCompleteP` | `V2/Admission.lean` | written, build pending |
-| P1 | `sizeMaxSched`, `sizeBound_le_sched`, `sizeMaxSched_le` | `V2/SizeSched.lean` | helper, in progress |
-| toy | toy AIR with a public segment and a hint, admission theorem | `V2/Toy.lean` | not started |
-| P2 | `NpOkP` with `auxGroup ∈ {1,2,3}` | — | open, see below |
+| L4 | `PubSeg`, `AirP` (extends `Air`), `pubMsgs`, `pubCount`, `pubFit`, `HoldsP` | `V2/Air.lean` | — |
+| L4 | `holdsP_iff_holds` (no segments ⇒ `HoldsP ↔ Holds`), `holdsP_ofAir` | `V2/Air.lean` | propext |
+| L4 | `AirP.wf` (`pubBound`, `multBoundP`, `fpBoundP`), `AirP.wf_air` (⇒ v1 `Air.wf`) | `V2/Air.lean` | propext |
+| L4 | `globalChecksP`, `prepP`, `globalOkP`, `Iop.verifierP`, `verifierP`; `prepP_eq`, `checksPass_eq`, `globalChecksP_nil` | `V2/Verifier.lean` | propext |
+| L4 | export `np-air-v2` (`AirP.exportJson`), `FORMATS.md` §8 | `V2/Export.lean` | — |
+| L3 | `rbrWithP_of`; rounds `msg0P msg2P msg4P msg6P msg8P msgLateP chal1P chal3P chal5P chal7P chalLateP queryP` | `V2/Np/*.lean` | std3 |
+| L3 | **`V2.Np.rbrWithP`** : `NpOkP AP prm → RbrWith (Iop.verifierP Fp Fp8 AP prm) (AirLangP AP) Fp8.all 2^36 (agreeUdr prm.logBlowup) (DoomedP AP prm)`; `rbrFactsP` | `V2/Np/Main.lean` | std3 |
+| L2 | **`V2.stark_romSound_fullP`**: ROM soundness at 2^-128 for `verifierP`, language `AirLangP` (`schedOkP`, `npBoundsP`, `verifierP_queryBound`) | `V2/RomFull.lean` | std3 |
+| L7 | **`Prover.Np.npIopCompleteP`**: v1's honest prover is perfectly complete for the v2 IOP on `HoldsP` traces (`busProdP`, `globalP`, `localNH`, `proverWfP`, `reach_v1`) | `V2/Prover.lean` | std3 |
+| L7 | **`V2.admission_v2`**: guard ∘ `V3.hintTree` ∘ v2 STARK, composed with `V3.romSound_hint` and `romSound_guard`; `np_proverCompleteP` | `V2/Admission.lean` | std3 |
+| P1 | `SizeSched.sizeMaxSched`, **`sizeBound_le_sched`** (any `prm`), **`sizeMaxSched_le`** (≤ `sizeMax … κ`), `near_sizeMaxSched = 5,473,967` (was 7,426,175), `near_size_sched`, `toy_size_sched` | `V2/SizeSched.lean`, `V2/SizeSchedNear.lean` | std3 / propext |
+| toy | **`V2.Toy.toyP_admission`**: closed `AdmissionStatement` for a sorted-permutation toy. The claim and the hint (the sorted witness) are two public segments on one bus. Native `prep` checks sortedness. Soundness is `toy_soundP`, completeness `toy_compP`. | `V2/Toy.lean` | std3 |
+| P2 | `NpOkP` with `auxGroup ∈ {1,2,3}` | — | **open**, see below |
+
+(std3 = propext, Classical.choice, Quot.sound.)
+
+### Findings
+
+* **P1 saving is ≈1.95 MB, not ≈3 MB.** The design estimate (§5.3) leaves out commits forced
+  by roll-ins. `nearAir` has 7 tables, so up to 6 layers can be forced to commit by a
+  roll-in, which adds 1,050,624 B in the worst case. Without roll-ins the bound would be
+  4,423,343 B, which matches the design's ≈4.4 MB. `sizeMaxSched nearAir = 5,473,967 B`.
+  The design's v3 numbers in §5.3 (≈5.2–5.6 MB at the formal bound) should be raised by about 1 MB.
+  Alternatively, prove a tighter constraint on roll-in positions.
+* The toy's inner STARK bound is `sizeMaxSched toyAir = 2,829,897 B`.
 
 ## Design notes and findings
 
@@ -66,4 +75,16 @@ Rules: no `sorry`, `axiom` or `native_decide`.
 
 ## Elaboration times
 
-(to be filled from `lake build` runs)
+From `lake build` on this host, CPUs 8–15, against a warm v1 cache. Every v2 module elaborates in
+under about 20 s. The largest are `V2/Prover.lean` (≈5–10 s), `V2/Np/Query.lean` (≈8 s),
+`V2/Np/Late.lean` (≈8 s) and `V2/SizeSchedNear.lean` (5.8 s, kernel evaluation on
+`nearAir`). Each of the rest takes under 2 s. All of v2 adds about 1 minute to an
+elaboration budget. A per-file timing run was interrupted by host memory pressure
+(the shared `zkbuild.slice` was pinned at its 40 GB `MemoryHigh` by another lane's job),
+so these numbers are approximate.
+
+## Process notes
+
+* `zk-formal/ZkFormal.lean` (root import) is not modified. The v2 modules are built by name
+  (`lake build ZkFormal.V2.Toy ZkFormal.V2.SizeSchedNear ZkFormal.V2.Export`). Adding them to the
+  root is left to the lead.
