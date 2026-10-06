@@ -118,6 +118,173 @@ theorem busCount_go_ge (tr : Trace F) (pub : List F) (b : Nat) (s : Bool) (m : L
 end
 
 section
+variable {F : Type} [Lean.Grind.CommRing F] [DecidableEq F]
+
+/-! ## Counting active pairs (multiplicities `≤ 1`) -/
+
+theorem count_flatMap_rows {rows : List Nat} {g : Nat → List (List F)} {m : List F} :
+    (rows.flatMap g).count m = (rows.map fun r => (g r).count m).sum := by
+  induction rows with
+  | nil => rfl
+  | cons r rs ih => simp [List.flatMap_cons, List.count_append, ih]
+
+theorem count_rowTraffic_eq (is : List Interaction) (tr : Trace F) (t r : Nat) (pub : List F) (b : Nat)
+    (s : Bool) (m : List F) :
+    (rowTraffic is tr t r pub b s).count m =
+      (is.map fun i => if i.bus = b ∧ i.send = s ∧ i.msgVal tr t r pub = m then i.multNat tr t r pub else 0).sum := by
+  rw [← count_rowTraffic]
+  induction is with
+  | nil => rfl
+  | cons i is ih => simp only [List.foldr_cons, List.map_cons, List.sum_cons]; rw [ih]
+
+theorem sum_map_zero {α : Type} (l : List α) (f : α → Nat) (h : ∀ x ∈ l, f x = 0) : (l.map f).sum = 0 := by
+  induction l with
+  | nil => rfl
+  | cons y l ih =>
+    simp only [List.map_cons, List.sum_cons]
+    rw [h y (List.mem_cons_self ..), ih (fun x hx => h x (List.mem_cons_of_mem _ hx))]
+
+theorem sum_le_of_single {α : Type} [DecidableEq α] (l : List α) (hnd : l.Nodup) (f : α → Nat) (a0 : α)
+    (h : ∀ a ∈ l, a ≠ a0 → f a = 0) (h0 : a0 ∈ l → f a0 ≤ 1) : (l.map f).sum ≤ 1 := by
+  induction l with
+  | nil => simp
+  | cons a l ih =>
+    simp only [List.map_cons, List.sum_cons]
+    have hnd' := List.nodup_cons.mp hnd
+    by_cases e : a = a0
+    · subst e
+      have h0' := h0 (List.mem_cons_self ..)
+      have : (l.map f).sum = 0 := sum_map_zero l f (fun x hx => h x (List.mem_cons_of_mem _ hx)
+          (fun hx' => hnd'.1 (hx' ▸ hx)))
+      omega
+    · rw [h a (List.mem_cons_self ..) e]
+      have := ih hnd'.2 (fun x hx hne => h x (List.mem_cons_of_mem _ hx) hne)
+        (fun hx => h0 (List.mem_cons_of_mem _ hx)); omega
+
+theorem sum_ge_two {α : Type} (l : List α) (f : α → Nat) {a1 a2 : α} (h1 : a1 ∈ l) (h2 : a2 ∈ l)
+    (hne : a1 ≠ a2) (hl : l.Nodup) (f1 : 1 ≤ f a1) (f2 : 1 ≤ f a2) : 2 ≤ (l.map f).sum := by
+  induction l with
+  | nil => simp at h1
+  | cons a l ih =>
+    simp only [List.map_cons, List.sum_cons]
+    have hnd' := List.nodup_cons.mp hl
+    have mem_le : ∀ x ∈ l, f x ≤ (l.map f).sum := by
+      intro x hx
+      clear ih h1 h2 hl hnd' hne f1 f2
+      induction l with
+      | nil => simp at hx
+      | cons y l ih2 =>
+        simp only [List.map_cons, List.sum_cons]
+        rcases List.mem_cons.mp hx with rfl | hx'
+        · omega
+        · have := ih2 hx'; omega
+    rcases List.mem_cons.mp h1 with rfl | h1'
+    · rcases List.mem_cons.mp h2 with rfl | h2'
+      · exact absurd rfl hne
+      · have := mem_le a2 h2'; omega
+    · rcases List.mem_cons.mp h2 with rfl | h2'
+      · have := mem_le a1 h1'; omega
+      · have := ih h1' h2' hnd'.2; omega
+
+/-- Single-bit multiplicities are `≤ 1`. -/
+theorem multNat_le_one {i : Interaction} (hi : i.mult.length = 1) (tr : Trace F) (t r : Nat) (pub : List F) :
+    i.multNat tr t r pub ≤ 1 := by
+  match i, hi with
+  | ⟨_, [b], _, _⟩, _ =>
+    unfold Interaction.multNat Interaction.multNat.go Interaction.multNat.go
+    split <;> simp
+
+/-- At most one active `(row, interaction)` pair carries `m`: the count is `≤ 1`. -/
+theorem tableBusCount_le_one {is : List Interaction} (hnd : is.Nodup) (h1 : ∀ i ∈ is, i.mult.length = 1)
+    {tr : Trace F} {t : Nat} {pub : List F} {b : Nat} {s : Bool} {m : List F} (r0 : Nat) (i0 : Interaction)
+    (h : ∀ r, r < tr.height t → ∀ i ∈ is, i.bus = b → i.send = s → i.msgVal tr t r pub = m →
+      i.multNat tr t r pub ≠ 0 → r = r0 ∧ i = i0) :
+    tableBusCount is tr t pub b s m ≤ 1 := by
+  rw [tableBusCount_eq, count_flatMap_rows]
+  have hrow : ∀ r ∈ List.range (tr.height t), (rowTraffic is tr t r pub b s).count m ≤ 1 ∧
+      (r ≠ r0 → (rowTraffic is tr t r pub b s).count m = 0) := by
+    intro r hr
+    have hr' := List.mem_range.mp hr
+    rw [count_rowTraffic_eq]
+    constructor
+    · apply sum_le_of_single is hnd _ i0
+      · intro i hi hne
+        split
+        · rename_i hc
+          have := h r hr' i hi hc.1 hc.2.1 hc.2.2
+          by_cases hm : i.multNat tr t r pub = 0
+          · exact hm
+          · exact absurd (this hm).2 hne
+        · rfl
+      · intro hi0
+        split
+        · exact multNat_le_one (h1 i0 hi0) _ _ _ _
+        · omega
+    · intro hne
+      apply sum_map_zero
+      intro i hi
+      split
+      · rename_i hc
+        by_cases hm : i.multNat tr t r pub = 0
+        · exact hm
+        · exact absurd (h r hr' i hi hc.1 hc.2.1 hc.2.2 hm).1 hne
+      · rfl
+  apply sum_le_of_single _ List.nodup_range _ r0
+  · intro r hr hne; exact (hrow r hr).2 hne
+  · intro hr; exact (hrow r0 hr).1
+
+/-- Two distinct active pairs carry `m`: the count is `≥ 2`. -/
+theorem tableBusCount_ge_two {is : List Interaction} (hnd : is.Nodup)
+    {tr : Trace F} {t : Nat} {pub : List F} {b : Nat} {s : Bool} {m : List F}
+    {r1 r2 : Nat} {i1 i2 : Interaction} (hr1 : r1 < tr.height t) (hr2 : r2 < tr.height t)
+    (hi1 : i1 ∈ is) (hi2 : i2 ∈ is) (hne : r1 ≠ r2 ∨ i1 ≠ i2)
+    (hb1 : i1.bus = b) (hs1 : i1.send = s) (hm1 : i1.msgVal tr t r1 pub = m) (ha1 : i1.multNat tr t r1 pub ≠ 0)
+    (hb2 : i2.bus = b) (hs2 : i2.send = s) (hm2 : i2.msgVal tr t r2 pub = m) (ha2 : i2.multNat tr t r2 pub ≠ 0) :
+    2 ≤ tableBusCount is tr t pub b s m := by
+  rw [tableBusCount_eq, count_flatMap_rows]
+  have row_ge : ∀ r i, i ∈ is → i.bus = b → i.send = s → i.msgVal tr t r pub = m →
+      i.multNat tr t r pub ≠ 0 → 1 ≤ (rowTraffic is tr t r pub b s).count m := by
+    intro r i hi hb hs hm ha
+    rw [count_rowTraffic_eq]
+    have hle : (if i.bus = b ∧ i.send = s ∧ i.msgVal tr t r pub = m then
+        i.multNat tr t r pub else 0) ≤ (is.map fun i => if i.bus = b ∧ i.send = s ∧ i.msgVal tr t r pub = m then
+        i.multNat tr t r pub else 0).sum := by
+      clear hne hi1 hi2 hnd
+      induction is with
+      | nil => simp at hi
+      | cons y l ih =>
+        simp only [List.map_cons, List.sum_cons]
+        rcases List.mem_cons.mp hi with rfl | hy
+        · omega
+        · have := ih hy; omega
+    simp only [hb, hs, hm, and_self, ite_true] at hle
+    omega
+  by_cases hr : r1 = r2
+  · subst hr
+    have hne' : i1 ≠ i2 := by rcases hne with h | h; exact absurd rfl h; exact h
+    have : 2 ≤ (rowTraffic is tr t r1 pub b s).count m := by
+      rw [count_rowTraffic_eq]
+      apply sum_ge_two is _ hi1 hi2 hne' hnd
+      · simp only [hb1, hs1, hm1, and_self, ite_true]; omega
+      · simp only [hb2, hs2, hm2, and_self, ite_true]; omega
+    have hle : (rowTraffic is tr t r1 pub b s).count m ≤
+        ((List.range (tr.height t)).map fun r => (rowTraffic is tr t r pub b s).count m).sum := by
+      have hmem := List.mem_range.mpr hr1
+      generalize List.range (tr.height t) = rows at hmem
+      induction rows with
+      | nil => simp at hmem
+      | cons y l ih =>
+        simp only [List.map_cons, List.sum_cons]
+        rcases List.mem_cons.mp hmem with rfl | hy
+        · omega
+        · have := ih hy; omega
+    omega
+  · exact sum_ge_two _ _ (List.mem_range.mpr hr1) (List.mem_range.mpr hr2) hr List.nodup_range
+      (row_ge r1 i1 hi1 hb1 hs1 hm1 ha1) (row_ge r2 i2 hi2 hb2 hs2 hm2 ha2)
+
+end
+
+section
 variable {F : Type} [Lean.Grind.CommRing F] [DecidableEq F] [PubVal F]
 
 /-- Public messages on bus `b`, side `send`, have count `0` if no segment of that side uses `b`. -/
