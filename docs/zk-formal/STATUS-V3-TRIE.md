@@ -489,6 +489,11 @@ counted.
 
 ## 6. Open items
 
+* **TODO (lead, after M7d):** restate `ShaHyp.othersId` (and the kind-12 `othersU`) as a
+  consequence of `KindReg.avoid` (`ZkFormal/V2/KindReg.lean`, lane/v3-air) for kinds
+  `K_NPRE`, `K_NPOST`, `K_VPRE`, `K_VUPS`, so one global `KindReg` instance at assembly
+  discharges them.
+
 * **Process rule (lead):** after each table's view is proved, list here the table cells that
   the view leaves unconstrained but a later link reads. Current entries:
   * `upsV3` W3 BMAP bitmap is not range-checked (`ups_walk` takes 16-bit as a hypothesis).
