@@ -271,4 +271,54 @@ theorem prepD0_seed {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = 
   rw [prepBody_sched hb]
   exact prepClaim_seed hpc
 
+/-! ## At most 33 instances -/
+
+theorem mapM_length {ε α β : Type} (f : α → Except ε β) :
+    ∀ (l : List α) (r : List β), l.mapM f = .ok r → r.length = l.length
+  | [], r, h => by
+    simp only [List.mapM_nil, pure, Except.pure, Except.ok.injEq] at h; subst h; rfl
+  | a :: t, r, h => by
+    rw [List.mapM_cons] at h
+    obtain ⟨b, -, h⟩ := bind_ok h
+    obtain ⟨bs, hbs, h⟩ := bind_ok h
+    simp only [pure, Except.pure, Except.ok.injEq] at h; subst h
+    simp [mapM_length f t bs hbs]
+
+theorem len_close {rs : List BlockRec} {blks : List Blk} {i : Nat} {b : Blk} {B2 : Blk} {L : Layout}
+    {own g gp : Nat} {sched : List SchedPub} {u : Unit} {m : String}
+    {f : ApplyCtx → Except String SchedPub}
+    (hseg : check (decide (rs.length ≤ 32)) m = .ok u)
+    (hdec : List.mapM decodeBlk rs = .ok blks)
+    (hm : List.mapM f (blockCtx L own g B2 gp ::
+      List.map (fun M => blockCtx L own g M M.hdr.nextGasPrice) (List.take i blks).reverse) = .ok sched)
+    (hb : blks[i]? = some b) : sched.length ≤ 33 := by
+  have h1 := check_ok hseg
+  simp only [decide_eq_true_eq] at h1
+  have h2 := mapM_length _ _ _ hdec
+  have h3 := mapM_length _ _ _ hm
+  have hi : i < blks.length := (List.getElem?_eq_some_iff.1 hb).1
+  simp only [List.length_cons, List.length_map, List.length_reverse, List.length_take] at h3
+  omega
+
+set_option maxHeartbeats 4000000 in
+theorem prepClaim_len {cb : Bytes} {pc : PrepC} (h : prepClaim cb = .ok pc) : pc.sched.length ≤ 33 := by
+  unfold prepClaim at h
+  repeat' (first
+    | (obtain ⟨_, _, h⟩ := bind_ok h)
+    | (split at h)
+    | (dsimp only at h))
+  all_goals try (cases h; done)
+  all_goals try (exfalso; exact throw_ne (by assumption))
+  all_goals
+    simp only [pure, Except.pure, Except.ok.injEq] at h; subst h
+    exact len_close (by assumption) (by assumption) (by assumption) (by assumption)
+
+/-- **At most 33 scheduler instances** (B2 and at most 32 implicit blocks). -/
+theorem prepD0_len {cb : Bytes} {hint : Hint} {p : Prep} (h : prepD0 cb hint = .ok p) :
+    p.sched.length ≤ 33 := by
+  unfold prepD0 at h
+  obtain ⟨pc, hpc, hb⟩ := bind_ok h
+  rw [prepBody_sched hb]
+  exact prepClaim_len hpc
+
 end ZkFormal.NearV3.Sched
