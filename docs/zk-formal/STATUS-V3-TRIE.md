@@ -20,7 +20,8 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M5b | `nodeV3` render | **done**: `node_render_local`, `node_render_traffic` (`Render/Node/Local.lean`, `Traffic.lean`; 5df77df2) |
 | M6a | link layer: per-τ DAG, record bytes = preimages, walks ⇒ find/absent | **done** (pieces; §3) |
 | M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition | **done** (`PerTau3`: `root_tau`, `build_tau`, `walks_tau`) |
-| M6c | post-root after sets; ROOT/MIDROOT chain (head uniqueness per τ) | open |
+| M6c | post-root after sets | **done**: `post_tau` (`Link/Post3`), `post_eq_set(s)` (`Link/Post3Spec`), `valsPost_eq_setVals` (`Link/Post3Writes`); open M6d below |
+| M6d | `fullOcc ≤ 1` on link records (unique `PARENT` sender + `val_unique`), `fullReach` of walked keys, `hpl` from the account writer | open |
 | M7 | `upsV3` (option A) | open |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
@@ -270,6 +271,25 @@ nibble shift by 1–3), and new `MEM` / `VLEN` values.  Options:
 Recommendation: (A) if insertion must stay in D0 (no amendment); (C) if A4 is acceptable.
 **Lead decision: A** (A4 rejected; B costs more for no gain).
 
+### 2.3.1 `upsV3` ↔ scheduler interface (**agreed**: V3-D0-DESIGN §12, lead decision)
+
+Per instance `τ` there is one `0x0f` read and one `0x0f` upsert.
+
+* **`S0F (τ, present, vid)`** — sent by `upsV3`, received once per `τ` by the scheduler
+  codec.
+  * The read of `[0,15]` is the public walk of `τ` (`FINAL (w, τ, fk, k)`).
+  * `present = [fk = VAL]`, and `vid = k` if present, else `0`.
+  * The previous value's bytes go out on `VBYTES (vid, pos, b)` from the codec, which
+    `valV3` already receives.
+* **`SPOST (τ, pos, b)`**, `pos < L` — the new value's bytes, sent by the codec and received
+  by `upsV3`.
+* **`SPLEN (τ, L)`** — the new value's length, sent once per `τ` by the codec (no end flag).
+  * `upsV3` does not rely on `L = 37 + 24·n²`.
+* **Bytes are canonical** (`< 256`).
+* **The post value's digest**: `upsV3` hashes the bytes itself, with `BYTES (VUPS(τ), pos,
+  b)` and kind `K_VUPS = 12` (registry: 11 SCH, 12 VUPS, 13 SRC, 14 VAK, 15 and 0 reserved). That digest goes into the new leaf / branch value window, and the
+  value length goes into `memory_usage`.
+
 ### 2.4 Walks
 
 * No depth counter (node depth ≤ 399 bounds `fdepth`, `pathsRevealed_of_rank`).
@@ -348,6 +368,21 @@ How the hypotheses of `enc_fullTree` are discharged:
 
 Head uniqueness per `τ`, i.e. which head the walk results attach to, comes with the
 ROOT / MIDROOT chain (`upsV3`, public bus).
+
+### 3.2 Post-root (M6c)
+
+* **`post_tau`** (`Link/Post3.lean`): `digest R (valsPost vs es pv) h.rid = toB h.post`.
+  `valsPost` replaces the bytes of every written value record by `pv`.
+  * Interface hypothesis `VPostOk others pv`: the account writer's `BYTES (VPOST i, j, ·)`
+    sends are exactly `pv i`.
+  * Interface hypothesis `hpl : |pv i| ≤ vlen`. SHA may hash a prefix of a sent stream, so
+    the writer must pin the length; the other direction, `vpost_len`, is proved.
+  * Other hypotheses are as in `root_tau`.
+* **`post_eq_set`, `post_eq_sets`, `setVal_comm`, `setVals_perm`** (`Link/Post3Spec.lean`):
+  replacing value record `i` equals `PTrie.set` on a key whose lookup reaches `i`
+  (`fullReach`), exactly, `memory_usage` included. This requires `i` to occur at most once
+  in the unfolding (`fullOcc ≤ 1`). Lists of writes give the fold of `set`s.
+* **`valsPost_eq_setVals`, `writesOf_nodup`** (`Link/Post3Writes.lean`).
 
 ## 4. Budget (kernel-checked: `NearV3/BudgetCheck.lean`, `report_g1`, `report_g3`, `weqTrie_g1`, `weqTrie_g3`)
 
