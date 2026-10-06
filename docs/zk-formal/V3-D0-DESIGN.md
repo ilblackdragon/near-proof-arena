@@ -709,7 +709,7 @@ This is raised to the lead; lanes that do not depend on it proceed.
 |---:|---|---|---|
 | 1–10 | `K_RC, K_RF, K_PEO, K_LEAF, K_RID, K_MRK, K_NPRE, K_NPOST, K_VPRE, K_VPOST` | v1 meanings, reused by v3 rcpt/mrk/trie (v3-trie: value ids start at 0, `d153d30f`) | per v1 / per v3 table |
 | 11 | `K_SCH` | v3-sched (sanity hash) | τ |
-| 12 | `K_VUPS` | v3-trie `upsV3` (post `0x0f` value) | τ |
+| 12 | `K_VUPS` | v3-trie `upsV3`: the post `0x0f` value (j = 0) and the new path nodes Q (j = 1..7) | `8·τ + j` |
 | 13 | `K_SRC` | srcp (leaf rehash and path nodes) | `2·step + (j-indexed offset)`, fixed by the srcp lane |
 | 14 | `K_VAK` | akey (access-key values) | touched slot k |
 | 15, 0 | reserved | ask the program lead | — |
@@ -723,3 +723,5 @@ The assembly lane proves one global lemma: every BYTES/DIGEST id produced by any
 * **`SPLEN (τ, L)`**: sent once per τ by the codec. This is an explicit length message, not an end flag. It pins the length the way DIGEST consumers do.
 
 No consumer relies on `L = 37 + 24·n²`.
+
+**M7 deviation (approved).** upsV3's new path nodes Q are byte segments of upsV3 itself, not nodeV3 records. Their bytes are copied from the old path records' post bytes over the chained `UPB` bus or computed fresh. nodeV3 gains only `UPB` and the column `mU`. Q's preimages are hashed under `K_VUPS` with `idx = 8τ + j`, so no new kind is allocated.
