@@ -60,13 +60,12 @@ def oodHosts : List String :=
 /-- `none` = in domain; `some why` = out of D3α. Preparation/compile errors are in domain (the call
 fails in nearcore like here). -/
 def contractOOD (cfg : NearCfg) (code : ByteArray) : Option String :=
+  -- floats (and unmodeled preparation paths) are decided at preparation; the excluded host
+  -- families (`curveHosts`, `Wasm.realOodHosts`) are out of domain only when *called* (§10.0 P3),
+  -- reported by the run as `unmodeled …`
   match prepare cfg code with
   | .outOfDomain w => some w
   | .unmodeled w => some s!"unmodeled preparation: {w}"
-  | .ok p =>
-    match p.m.imports.find? (fun i => curveHosts.contains i.name || oodHosts.contains i.name) with
-    | some i => some s!"host function {i.name}"
-    | none => none
   | _ => none
 
 def oodE (why : String) : String := s!"out of domain (e.wasm-α): {why}"
@@ -232,6 +231,12 @@ def functionCall (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) 
     Except String (ActSt × AR) := do
   let .fcall method args gas deposit := b | throw "unmodeled: functionCall hook on a non-FunctionCall"
   let some acct := st.account | throw "invalid: EXPECT_ACCOUNT_EXISTS"
+  -- ETH-implicit accounts with a local contract may resolve to the legacy-wallet global contract
+  -- (`contract_code.rs:56-76`); conservatively out of domain (§10.0 P5)
+  if AccountId.isEthImplicit c.r.recv then
+    match acct.contract with
+    | .local _ => throw (oodE "ETH-implicit account with a local contract (legacy wallet resolution)")
+    | _ => pure ()
   let env := c.env
   let h := env.ctx.height
   if acct.amount + deposit ≥ 2 ^ 128 then

@@ -603,6 +603,32 @@ Not guest-visible (post-processing from a structured log suffices):
 3. **`G_α`** (`D3.gAlpha` = 2²² · 822,756 ≈ 3.45 Tgas) bounds the chunk's Σ
    `gas_burnt_for_function_call`; above it, the case is `out of domain (e.g_alpha)`.
 
+### 10.0a Precise statements (findings P1–P5 of the independent Python checker, `oracle/tools/README-d3.md`)
+
+* **P1, pre-state contract.** At a `FunctionCall`, the receiver's contract is a *pre-state
+  contract* iff its current `Local` code hash equals its `Local` code hash in the chunk's pre-state
+  trie, i.e. unchanged since the chunk started.
+  - The preparation pipeline reuses a preparation whose `expected_hash` still matches
+    (`pipelining.rs:152-300, 351`).
+  - `e.code_cache` applies to pre-state contracts only, whether the earlier deploy of the same code
+    was committed or rolled back, and to any account.
+  - A contract whose hash changed in this chunk is served by the deploy tracker
+    (`core/store/src/contract.rs:104-130`).
+* **P2, when G_α is evaluated.** After the whole main transition has been applied, including
+  `finalize`. It is checked together with `w.size`, before the post-state-root and header
+  comparisons.
+  - A storage error anywhere in the main transition rejects, even past the crossing.
+  - Deciding the condition requires executing the whole chunk.
+* **P3, excluded host functions.** The state-init, global-contract and gas-key families and the
+  curve functions are out of domain when **called** (`Wasm.realOodHosts`; curve functions are not
+  modelled). Importing them is not out of domain. Floats are decided at preparation.
+* **P4, ML-DSA keys created by a contract.** `Stake`, `AddKey` and `DeleteKey` actions with an
+  ML-DSA-65 key make the case out of domain (`w.shape`) when the new receipt's actions are decoded.
+  `PostQuantumSignatures` is enabled at PV 85, so the VM accepts these keys.
+* **P5, ETH-implicit accounts.** A `FunctionCall` on an ETH-implicit account with a `Local`
+  contract is out of domain. This conservatively covers the legacy-wallet resolution of
+  `contract_code.rs:56-76`; the wallet hashes are not enumerated.
+
 ### 10.1 As implemented (`NearSpecV3/D3/FunctionCall.lean`, RuntimeD3 rung 1)
 
 * **In domain:** FunctionCall on `None` / `Local` contracts. This covers:
