@@ -229,6 +229,29 @@ theorem R_getIndices (o : Ovl) (k : Bytes) (what : String) :
   | none => exact R_pure rfl
   | some raw => dsimp only [id]; exact R_ite _ _ rfl (R_pure rfl) (R_throw _)
 
+/-! ## Call-site forms (the original's arguments are free; equations closed by `rfl`) -/
+
+theorem R_get' (o : Ovl) {oO : Ovl} (h : oO = o.wt (preT s root)) (k : Bytes) (what : String) :
+    R s root (o.getL k what) (oO.get k what) id := h ▸ R_get o k what
+theorem R_refLen' (o : Ovl) {oO : Ovl} (h : oO = o.wt (preT s root)) (k : Bytes) (what : String) :
+    R s root (o.refLenL k what) (oO.refLen k what) id := h ▸ R_refLen o k what
+theorem R_contains' (o : Ovl) {oO : Ovl} (h : oO = o.wt (preT s root)) (k : Bytes) (what : String) :
+    R s root (o.containsL k what) (oO.contains k what) id := h ▸ R_contains o k what
+theorem R_iterKeys' (o : Ovl) {oO : Ovl} (h : oO = o.wt (preT s root)) (pre : Bytes) (what : String) :
+    R s root (o.iterKeysL pre what) (oO.iterKeys pre what) id := h ▸ R_iterKeys o pre what
+theorem R_getAcct' (o : Ovl) {oO : Ovl} (h : oO = o.wt (preT s root)) (a : Bytes) :
+    R s root (o.getAcctL a) (oO.getAcct a) id := h ▸ R_getAcct o a
+theorem R_getAKRaw' (o : Ovl) {oO : Ovl} (h : oO = o.wt (preT s root)) (k : Bytes) :
+    R s root (o.getAKRawL k) (oO.getAKRaw k) id := h ▸ R_getAKRaw o k
+theorem R_getAK' (o : Ovl) {oO : Ovl} (h : oO = o.wt (preT s root)) (a : Bytes) (pk : PublicKey) :
+    R s root (o.getAKL a pk) (oO.getAK a pk) id := h ▸ R_getAK o a pk
+theorem R_getU64' (o : Ovl) {oO : Ovl} (h : oO = o.wt (preT s root)) (k : Bytes) (what : String) :
+    R s root (o.getU64L k what) (oO.getU64 k what) id := h ▸ R_getU64 o k what
+theorem R_getIndices' (o : Ovl) {oO : Ovl} (h : oO = o.wt (preT s root)) (k : Bytes) (what : String) :
+    R s root (o.getIndicesL k what) (oO.getIndices k what) id := h ▸ R_getIndices o k what
+theorem R_finalize' (hs : HInv s) (o : Ovl) {oO : Ovl} (h : oO = o.wt (preT s root)) :
+    R s root (o.finalizeL) (oO.finalize) id := h ▸ R_finalize hs o
+
 end
 
 end NearSpecV3.Logged
