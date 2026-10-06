@@ -178,6 +178,9 @@ its buses (`STATUS-V3-CHACHA` §6).
 | `send_matched`, **`cmp_sound`** | `Link/Cmp.lean` | dual of lane v3-chacha's `recv_matched`; every active `SCMP` send `(x, y, b)` with `x, y < 2^25` has `b = [y ≤ x]` (given `CmpOwn`) |
 | `Mem.row_flags`, `row_next`, `row_after_lst`, `row_pad`, `row_last`, `row_first`, `row_init`, `row_read`, `row_grant` | `View/Mem.lean` | memory rows: one-hot kinds, segment continuation with carried `addr, v→vin, t→tp, w→wp, al, isL`, boundaries, INIT/READ/GRANT semantics (values mod `P`) |
 | `Mem.seg_back`, **`Mem.seg_start`** | `View/Mem.lean` | every active row lies in a segment that starts at an INIT row |
+| `Proc.entry_row` | `View/Proc.lean` | process entry rows: `ok = cS·cR·cL`, `last = [rem = 0]`, `za = [alOut = 0]`, push gate |
+| `Dist.div_of_row`, **`Dist.cell_div`**, **`Dist.shard_div`** | `View/Dist.lean` | distribute divisions are exact integer divisions (from the new range checks), `gb = min` via the comparator bit |
+| `Scan.row_*`, `Scan.q_ranges`, `Scan.q_exact`, `struct_all`, `vals_all`, **`scan_request`** | `View/Scan.lean`, `View/ScanReq.lean`, `View/ScanSpec.lean` | a request block: 20 rows, bits = the bitmap's bits, `m` = number of set bits, every sent `INC` is `(τ, 64·cid + j, (incsOf p bm)[j], len − j − 1, s, r, link)` (at most once each), end-row PUSH / READ messages; the process side must show every needed `INC` is used |
 | **`mem_consistent`** | `Spec/MemCons.lean` | abstract offline memory checking: chained time-ordered segments + frame + correct steps ⇒ every op reads the simulated state |
 
 ## 8. M2 tests (executable, from `zk-formal/`)
@@ -225,7 +228,7 @@ proof obligations, not table gaps.
 | `sdsV3` | `min(q1, q2)` | comparator `(q1, q2)`, operands `< 2^23` by the new bits | sound (`cmp_sound` + `cell_div`) |
 | `sdsV3` | sort key `q2·64 + shard` vs previous | comparator, key `< 2^29` (`q2 < 2^23`, shard byte from public `< 64`) | sound |
 | `sdsV3` | `L2 − gb`, `SL − gb`, `N − al` | `gb ≤ q ≤ L/N ≤ L`; `N ≥ 1` on allowed cells (`r < N`) | no borrow (`cell_div`) |
-| `sscV3` | `40·Q + rem = D·(pos+1)` (×2 per row) | **was: only `rem` in bits** (gap: wrong `rem` ⇒ non-integral `Q`) → now `Q < 2^23` (23 bits) ⇒ exact | **fixed** (table + generator); the scan view (helper, in progress) uses the bound |
+| `sscV3` | `40·Q + rem = D·(pos+1)` (×2 per row) | **was: only `rem` in bits** (gap: wrong `rem` ⇒ non-integral `Q`) → now `Q < 2^23` (23 bits) ⇒ exact | **fixed**; proved exact in the scan view (`Scan.q_ranges`, `Scan.q_exact`, used by **`scan_request`**) |
 | `sscV3` | `inc = val − cur`, `rem = m − j − 1` | values strictly increasing (`requestValues_strict`), `j < m` at set bits | no borrow (scan view) |
 | `schV3` | `a1 = min(a0 + fair, MA)` | comparator at byte 2, `ap < 2^24` needs pre bytes `< 256` → **now 8 bits on `bpre`** (was relying on `valV3`) | **fixed** |
 | `schV3` | `a2 = a1 − al·base` | `a1 ≥ min(fair, MA) ≥ base` from public params (PubOk) | no borrow |
@@ -239,12 +242,12 @@ proof obligations, not table gaps.
 | `scpV3` | `d = b(x − y) + (1 − b)(y − x − 1)`, 29 bits | contract needs `x, y < 2^29` | sound under the stated precondition (`cmp_sound`) |
 
 Cost of the fixes: `sdsV3` +58, `sscV3` +46, `schV3` +8 ⇒ `W_eq` 822 → **934** (kernel-checked
-`weqSched_g1`). Tests after the fixes: `SchedFullTest` 60/60 with 28/28 mutants (600-vector run
-below).
+`weqSched_g1`). Tests after the fixes: `SchedFullTest` **600/600 vectors, 0 violations, 28/28
+mutants** (1,234 s).
 
 ## 11. Open items (in priority order)
 
-1. M3 views: scan (helper, in progress; must use the `Q` bounds), codec, process structure (key
+1. M3 views: codec, process structure (key
    block, headers, rounds); link layer per §6 (memory consistency instance, operand bounds of
    §10, `process_rounds` hypotheses, `core_compose`); `schedCore_sound`.
 2. M4: completeness of the six tables (honest generators exist and pass on 600 vectors).
