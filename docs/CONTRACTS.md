@@ -323,6 +323,28 @@ without the new fields behave exactly as in v1.6.
 * `succinct` badge (BENCHMARK_SPEC §17). It is a display attribute and filter, not a gate and not a
   score component.
 
+**As implemented (lane v3-d3, 87f1c1a3; amendments to the text above).**
+
+* **Share is `share_ppm: u32`.** Contracts carry no floats.
+* **Report shape** is `coverage {tier, conformance: {per_class, share_ppm}, heldout?: {per_class,
+  share_ppm}}`. Public fixtures carry no class: they are tallied as `public-fixtures`, excluded from
+  the share, and an abstention there is never a gap. The report is stored in `runs.coverage`
+  (migration 0002).
+* **Leaderboard entries** carry `declared_tier`, `tier_rank` and `coverage_share_ppm`.
+* **Benchmark abstention** is decided before the timed session. Each batch member is proved once,
+  untimed. A class with any `UNSUPPORTED` member is marked abstained (`ClassMeasurement.abstained`,
+  zero timings) and excluded with its weight renormalized, for both `speed` and `cost_v1`. An
+  abstention inside the timed session is a candidate failure.
+* **Proving outside the declared tier** is allowed. Accepting a *true* claim outside the tier is
+  not a soundness failure and counts as coverage. It does not raise the declared tier, which needs
+  its completeness theorem.
+* **The `succinct` badge thresholds** live in `CoverageSpec.succinct: Option<{max_proof_bytes,
+  max_verify_ns}>`, together with the slope test of BENCHMARK_SPEC §17. They are display-only and
+  not implemented yet.
+* **Covert channel.** Per-class held-out abstention counts are chosen by the candidate, so they
+  leak a few bits per class about the secret inputs. Mitigation: publish held-out coverage only in
+  aggregate, `share_ppm` over all held-out classes, until a successor rotates the set.
+
 **Versioning.**
 
 * A larger formalized domain (D4, D∞) is a **versioned successor** of the same challenge. It adds
