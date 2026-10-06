@@ -1,0 +1,2 @@
+chunks=236 calls=664 failed_calls=71 calls_with_trie_node_charges=634 disagreements=0
+calls with nonzero slot: write_base=658, read_base=657, read_key_byte=657, read_value_byte=651, large_read_base=608, large_read_byte=608, remove_base=657, has_key_base=658, has_key_byte=658, touching_trie_node=574, read_cached_trie_node=633

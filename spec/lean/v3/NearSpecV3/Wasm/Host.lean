@@ -1,4 +1,4 @@
-import NearSpecV3.Wasm.Machine
+import NearSpecV3.Wasm.TrieAccounting
 import NearSpecV3.Wasm.Crypto
 import NearSpecV3.Ed25519
 /-!
@@ -32,6 +32,21 @@ def withGas (f : Gas → Gas × Option String) : HM Unit := do
   | none => pure ()
 
 def payBaseH (c : Cost) : HM Unit := withGas (payBase · c)
+
+/-- Run the trie-backed `External` side of a storage op (`TrieAccounting`): keep the updated gas and
+accounting cache, abort on its error, return the current value. -/
+def realOpH (r : TTN.RealStore) (f : TTN.RealStore → ByteArray → Gas → TTN.Out) (k : ByteArray) :
+    HM (Option ByteArray) := do
+  let o := f r (r.pfx ++ k) (← get).gas
+  modify fun s => { s with gas := o.gs, real := some { r with acct := o.acct } }
+  match o.err with
+  | some e => throw e
+  | none => pure o.old
+
+def realSetH (r : TTN.RealStore) (k : ByteArray) (v : Option ByteArray) : HM Unit :=
+  modify fun s => match s.real with
+    | some r' => { s with real := some { r' with overlay := r'.overlay.insert (r.pfx ++ k) v } }
+    | none => s
 def payPerH (c : Cost) (n : Nat) : HM Unit := withGas (payPer · c n)
 def payActionH (b bc u : Nat) : HM Unit := withGas (payAction · b bc u)
 def burnH (x : Nat) : HM Unit := withGas (burn · x)
@@ -615,11 +630,18 @@ def hostCall (name : String) : Option (HM Unit) :=
     payPerH C.storageWriteKeyByte k.size
     payPerH C.storageWriteValueByte v.size
     let s ← get
-    let old := trieGet s k
-    let trie := match s.trie.findIdx? (·.1 == k) with
-      | some i => s.trie.set! i (k, v)
-      | none => s.trie.push (k, v)
-    set { s with trie := trie }
+    let old ← match s.real with
+      | some r => do
+        let old ← realOpH r TTN.storageWrite k
+        realSetH r k (some v)
+        pure old
+      | none => do
+        let old := trieGet s k
+        let trie := match s.trie.findIdx? (·.1 == k) with
+          | some i => s.trie.set! i (k, v)
+          | none => s.trie.push (k, v)
+        set { s with trie := trie }
+        pure old
     match old with
     | some o =>
       modify fun s => { s with storageUsage := s.storageUsage - o.size + v.size }
@@ -636,6 +658,12 @@ def hostCall (name : String) : Option (HM Unit) :=
     if k.size > maxLengthStorageKey then
       hErr s!"KeyLengthExceeded \{ length: {k.size}, limit: {maxLengthStorageKey} }"
     payPerH C.storageReadKeyByte k.size
+    match (← get).real with
+    | some r =>
+      match ← realOpH r TTN.storageRead k with
+      | some v => regSetH a[2] v; pushRet 1
+      | none => pushRet 0
+    | none =>
     match trieGet (← get) k with
     | some v =>
       payPerH C.storageReadValueByte v.size
@@ -654,6 +682,16 @@ def hostCall (name : String) : Option (HM Unit) :=
       hErr s!"KeyLengthExceeded \{ length: {k.size}, limit: {maxLengthStorageKey} }"
     payPerH C.storageRemoveKeyByte k.size
     let s ← get
+    match s.real with
+    | some r =>
+      match ← realOpH r TTN.storageRemove k with
+      | some v =>
+        realSetH r k none
+        modify fun s => { s with storageUsage := s.storageUsage - (v.size + k.size + numExtraBytesRecord) }
+        regSetH a[2] v
+        pushRet 1
+      | none => realSetH r k none; pushRet 0
+    | none =>
     match trieGet s k with
     | some v =>
       set { s with trie := s.trie.filter (·.1 != k),
@@ -669,7 +707,9 @@ def hostCall (name : String) : Option (HM Unit) :=
     if k.size > maxLengthStorageKey then
       hErr s!"KeyLengthExceeded \{ length: {k.size}, limit: {maxLengthStorageKey} }"
     payPerH C.storageHasKeyByte k.size
-    pushRet (if (trieGet (← get) k).isSome then 1 else 0)
+    match (← get).real with
+    | some r => pushRet (if (← realOpH r TTN.storageHasKey k).isSome then 1 else 0)
+    | none => pushRet (if (trieGet (← get) k).isSome then 1 else 0)
   | "storage_iter_prefix" => some do
     let _ ← popArgs 2; hErr "Deprecated { method_name: \"storage_iter_prefix\" }"
   | "storage_iter_range" => some do

@@ -1,5 +1,5 @@
 import NearSpecV3.Wasm.Exec
-import NearSpecV3.Wasm.TrieAccounting
+import NearSpecV3.Wasm.ChunkStorage
 /-! `nearspec-v3-wasm`: stdin `<prepaid_gas> <wasm_hex> [<receiver>,…]` per line → one outcome line per case in the
 format of the nearcore harness (`oracle/wasm-d3/src/main.rs`). Method name: `main`.
 Flag `--instruction-level-metering`: the finite-wasm merging ablation. Flag `--prepared-size`: print
@@ -51,6 +51,43 @@ def parseCtx (gas : Nat) (tok : Option String) : Option CallCtx := do
         | _ => none
       pure c
 
+/-- `--chunk`: one line per chunk, `C <root> <n> <node>… <k> (<account> <gas> <args|-> <expected…14>)…`
+(`oracle/d3-ttn` trace); prints one profile line per call (`TTN.profileLine`). The expected
+columns are skipped here (compared by `oracle/d3-ttn/difftest_ttn.py`). The code is the first
+argument after `--chunk` (hex file path). -/
+def chunkLine (code : ByteArray) (ablate : String) (line : String) : List String := Id.run do
+  let toks := (line.splitOn " ").toArray
+  if toks.size < 4 || toks[0]! != "C" then return ["unmodeled bad chunk line"]
+  let some root := unhex toks[1]! | return ["unmodeled bad root"]
+  let some n := toks[2]!.toNat? | return ["unmodeled bad n"]
+  let mut nodes := []
+  for i in [0:n] do
+    match unhex toks[3 + i]! with
+    | some b => nodes := b :: nodes
+    | none => return ["unmodeled bad node"]
+  let some k := toks[3 + n]!.toNat? | return ["unmodeled bad k"]
+  let mut calls := []
+  for j in [0:k] do
+    let b := 4 + n + 17 * j
+    let some gas := toks[b + 1]!.toNat? | return ["unmodeled bad gas"]
+    let input ← match toks[b + 2]! with
+      | "-" => pure ByteArray.empty
+      | h => match unhex h with
+        | some d => pure d
+        | none => return ["unmodeled bad args"]
+    calls := { account := toks[b]!, prepaid := gas, input } :: calls
+  TTN.replayChunk pv86 code (TTN.mkStore nodes) root calls.reverse
+    (fun gas => (gas / pv86.regularOpCost + 2) * 64 + 1000000) ablate
+
+partial def chunkLoop (code : ByteArray) (ablate : String) (stdin stdout : IO.FS.Stream) : IO Unit := do
+  let line ← stdin.getLine
+  if line.isEmpty then return
+  let line := line.trimAscii.toString
+  if !line.isEmpty then
+    for l in chunkLine code ablate line do stdout.putStrLn l
+    stdout.flush
+  chunkLoop code ablate stdin stdout
+
 partial def loop (bl sizeMode full cpMode : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
   let line ← stdin.getLine
   if line.isEmpty then return
@@ -74,5 +111,13 @@ partial def loop (bl sizeMode full cpMode : Bool) (stdin stdout : IO.FS.Stream) 
   loop bl sizeMode full cpMode stdin stdout
 
 def main (args : List String) : IO Unit := do
+  if let some code := (match args with
+      | "--chunk" :: path :: _ => some path
+      | _ => none) then
+    let some c := unhex (← IO.FS.readFile code).trimAscii.toString | throw (IO.userError "bad code hex")
+    let ablate := if args.contains "--ablate-cache" then "cache"
+      else if args.contains "--ablate-overlay" then "overlay" else ""
+    chunkLoop c ablate (← IO.getStdin) (← IO.getStdout)
+    return
   loop (!args.contains "--instruction-level-metering") (args.contains "--prepared-size")
     (args.contains "--full") (args.contains "--charge-points") (← IO.getStdin) (← IO.getStdout)

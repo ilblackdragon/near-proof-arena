@@ -80,6 +80,9 @@ pub struct Params {
     pub blocks: u64,
     pub memtries: bool,
     pub ops_max: usize,
+    /// op-level difftest trace (`--trace FILE`): per chunk, the recorded pre-state, the
+    /// contract calls in execution order, and nearcore's per-call profile
+    pub trace: Option<std::path::PathBuf>,
 }
 
 fn setup(p: &Params) -> (near_time::FakeClock, TestEnv, Vec<Vec<AccountId>>) {
@@ -230,10 +233,97 @@ struct Tally {
     cached_gas_a: u128,
     memtrie_producers: usize,
     compute_v_vs_a_diff: usize,
+    ablation_storage_errors: usize,
+}
+
+/// Profile slots compared op-level: the ext costs whose compute differs from gas (the spec's
+/// `specialCosts`, `Machine.lean`), in the same order.
+const SPECIAL: [ExtCosts; 11] = [
+    ExtCosts::storage_write_base,
+    ExtCosts::storage_read_base,
+    ExtCosts::storage_read_key_byte,
+    ExtCosts::storage_read_value_byte,
+    ExtCosts::storage_large_read_overhead_base,
+    ExtCosts::storage_large_read_overhead_byte,
+    ExtCosts::storage_remove_base,
+    ExtCosts::storage_has_key_base,
+    ExtCosts::storage_has_key_byte,
+    ExtCosts::touching_trie_node,
+    ExtCosts::read_cached_trie_node,
+];
+
+/// One trace line per chunk:
+/// `C <prev_root> <n_nodes> <node_hex>… <n_calls> (<account> <prepaid_gas> <args_hex|->
+///  <ok|fail> <wasm_gas> <ext_gas_total> <special_0> … <special_10>)…`
+/// Calls = the chunk's FunctionCall receipts to the experiment contracts, in execution order
+/// (outcome order). Expected values are nearcore's outcome profile (`ProfileDataV3`).
+fn write_trace(
+    w: &mut impl std::io::Write,
+    sw: &ChunkStateWitness,
+    root: CryptoHash,
+    v: &near_chain::types::ApplyChunkResult,
+    calls_by_receipt: &HashMap<CryptoHash, (AccountId, Vec<u8>, u64)>,
+) -> bool {
+    use near_primitives::state::PartialState;
+    use strum::IntoEnumIterator;
+    let PartialState::TrieValues(nodes) = &sw.main_state_transition().base_state;
+    let mut calls = Vec::new();
+    for o in &v.outcomes {
+        // contract executions are exactly the outcomes executed by a `s<k>ctr` account
+        let ex = o.outcome.executor_id.as_str();
+        if !ex.ends_with("ctr") {
+            continue;
+        }
+        let Some((rcv, args, gas)) = calls_by_receipt.get(&o.id) else {
+            eprintln!("trace: contract outcome {} with unknown receipt; chunk skipped", o.id);
+            return false;
+        };
+        assert_eq!(rcv.as_str(), ex);
+        let prof = match &o.outcome.metadata {
+            ExecutionMetadata::V3(p) => p.as_ref().clone(),
+            ExecutionMetadata::V4(p) => p.profile.clone(),
+            _ => return false,
+        };
+        let ext: u128 = ExtCosts::iter().map(|c| prof.get_ext_cost(c).as_gas() as u128).sum();
+        let status = match o.outcome.status {
+            near_primitives::transaction::ExecutionStatus::Failure(_) => "fail",
+            _ => "ok",
+        };
+        let mut c = format!(
+            "{} {} {} {} {} {}",
+            rcv,
+            gas,
+            if args.is_empty() { "-".to_string() } else { hex::encode(args) },
+            status,
+            prof.get_wasm_cost().as_gas(),
+            ext
+        );
+        for k in SPECIAL {
+            c.push_str(&format!(" {}", prof.get_ext_cost(k).as_gas()));
+        }
+        calls.push(c);
+    }
+    let mut line = format!("C {} {}", hex::encode(root.as_ref()), nodes.len());
+    for n in nodes.iter() {
+        line.push(' ');
+        line.push_str(&hex::encode(n));
+    }
+    line.push_str(&format!(" {}", calls.len()));
+    for c in calls {
+        line.push(' ');
+        line.push_str(&c);
+    }
+    writeln!(w, "{line}").unwrap();
+    true
 }
 
 pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
     let (clock, mut env, accounts) = setup(p);
+    // receipt contents: tx hash -> call, then (from the tx's conversion outcome) receipt id -> call
+    let mut calls_by_tx: HashMap<CryptoHash, (AccountId, Vec<u8>, u64)> = HashMap::new();
+    let mut calls_by_receipt: HashMap<CryptoHash, (AccountId, Vec<u8>, u64)> = HashMap::new();
+    let mut trace_skipped = 0usize;
+    let mut trace = p.trace.as_ref().map(|f| std::io::BufWriter::new(std::fs::File::create(f).unwrap()));
     let mut rng = StdRng::seed_from_u64(p.seed);
     let mut nonces: HashMap<AccountId, u64> = HashMap::new();
     let mut t = Tally::default();
@@ -266,17 +356,19 @@ pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
                 } else {
                     Gas::from_teragas(300)
                 };
-                txs.push(SignedTransaction::call(
+                let tx = SignedTransaction::call(
                     *nonce,
                     signer_id,
-                    tgt,
+                    tgt.clone(),
                     &signer,
                     Balance::ZERO,
                     "run".to_string(),
-                    args,
+                    args.clone(),
                     gas,
                     tip.last_block_hash,
-                ));
+                );
+                calls_by_tx.insert(tx.get_hash(), (tgt, args, gas.as_gas()));
+                txs.push(tx);
             }
         }
         for tx in txs {
@@ -347,7 +439,7 @@ pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
                 }
             }
             // V: the validator's main-transition application
-            let apply = |flat: bool| -> Option<(CryptoHash, near_primitives::types::ShardId, near_primitives::shard_layout::ShardUId, near_chain::types::ApplyChunkResult)> {
+            let apply = |flat: bool| -> Option<(CryptoHash, near_primitives::types::ShardId, near_primitives::shard_layout::ShardUId, Result<near_chain::types::ApplyChunkResult, String>, CryptoHash)> {
                 let pre = pre_validate(client, &sw).unwrap();
                 let MainTransition::NewChunk { new_chunk_data, block_hash, shard_id } = pre.main_transition_params else {
                     return None;
@@ -355,6 +447,7 @@ pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
                 let epoch_id = em.get_epoch_id(&block_hash).unwrap();
                 let shard_uid = shard_id_to_uid(em, shard_id, &epoch_id).unwrap();
                 let span = tracing::debug_span!("d3ttn");
+                let prev_root = new_chunk_data.prev_state_root;
                 let res = if flat {
                     apply_new_chunk(
                         ApplyChunkReason::ValidateChunkStateWitness,
@@ -365,8 +458,8 @@ pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
                         MaybePinnedMemtrieRoot::no_memtries(),
                         None,
                     )
-                    .unwrap()
-                    .apply_result
+                    .map(|r| r.apply_result)
+                    .map_err(|e| format!("{e:?}"))
                 } else {
                     let NewChunkData {
                         gas_limit, prev_state_root, prev_validator_proposals, transactions, block, receipts,
@@ -395,12 +488,34 @@ pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
                             &receipts,
                             transactions,
                         )
-                        .unwrap()
+                        .map_err(|e| format!("{e:?}"))
                 };
-                Some((block_hash, shard_id, shard_uid, res))
+                Some((block_hash, shard_id, shard_uid, res, prev_root))
             };
-            let Some((bh, shard_id, shard_uid, v)) = apply(true) else { continue };
-            let (_, _, _, a) = apply(false).unwrap();
+            let Some((bh, shard_id, shard_uid, v, prev_root)) = apply(true) else { continue };
+            let v = v.expect("validator application of an honest witness failed");
+            // the ablation's different gas can change control flow and need nodes the witness does
+            // not record: a storage error there counts as a differing chunk (validator would reject)
+            let a = match apply(false).unwrap().3 {
+                Ok(a) => Some(a),
+                Err(e) => {
+                    t.ablation_storage_errors += 1;
+                    eprintln!("ablation apply failed (counted as a differing chunk): {e}");
+                    None
+                }
+            };
+            if let Some(tw) = trace.as_mut() {
+                for o in &v.outcomes {
+                    if let Some(c) = calls_by_tx.get(&o.id) {
+                        if let Some(r) = o.outcome.receipt_ids.first() {
+                            calls_by_receipt.insert(*r, c.clone());
+                        }
+                    }
+                }
+                if !write_trace(tw, &sw, prev_root, &v, &calls_by_receipt) {
+                    trace_skipped += 1;
+                }
+            }
             t.chunks += 1;
             if !v.outcomes.is_empty() {
                 t.chunks_with_outcomes += 1;
@@ -445,7 +560,7 @@ pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
                 }
                 t.ttn_gas_v += ttn as u128;
                 t.cached_gas_v += cached as u128;
-                if let Some(ao) = a.outcomes.get(i) {
+                if let Some(ao) = a.as_ref().and_then(|a| a.outcomes.get(i)) {
                     t.ttn_gas_a += profile_gas(&ao.outcome.metadata, ExtCosts::touching_trie_node) as u128;
                     t.cached_gas_a += profile_gas(&ao.outcome.metadata, ExtCosts::read_cached_trie_node) as u128;
                     if outcome_bytes(ao) != outcome_bytes(vo) {
@@ -466,7 +581,7 @@ pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
                     "h": hash(&outcome_bytes(vo)).to_string(),
                 }));
             }
-            if a.outcomes.len() != v.outcomes.len() || a.new_root != v.new_root {
+            if a.as_ref().map_or(true, |a| a.outcomes.len() != v.outcomes.len() || a.new_root != v.new_root) {
                 chunk_a_diff = true;
             }
             if chunk_a_diff {
@@ -494,6 +609,8 @@ pub fn cmd_ttn(p: &Params, out: &std::path::Path) {
         "ablation_ttn_gas": t.ttn_gas_a.to_string(), "ablation_cached_gas": t.cached_gas_a.to_string(),
         "ablation_outcome_diffs": t.a_diff_outcomes, "ablation_chunk_diffs": t.a_diff_chunks,
         "ablation_compute_diffs": t.compute_v_vs_a_diff,
+        "trace_chunks_skipped": trace_skipped,
+        "ablation_storage_errors": t.ablation_storage_errors,
     });
     println!("{}", serde_json::to_string_pretty(&summary).unwrap());
     std::fs::write(out, serde_json::to_string_pretty(&json!({"summary": summary, "chunks": digests})).unwrap())

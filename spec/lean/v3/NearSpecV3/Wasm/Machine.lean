@@ -1,5 +1,6 @@
 import NearSpecV3.Wasm.Prepare
 import NearSpecV3.Wasm.Numerics
+import NearSpecV3.Wasm.TrieStore
 /-!
 # NEAR WASM (D3α): machine state, gas counter with profile, memory
 
@@ -294,6 +295,9 @@ structure St where
   trie : Array (ByteArray × ByteArray) := #[]
   actions : Array MAct := #[]
   dataCount : Nat := 0
+  /-- trie-backed `External` (chunk replay): when set, storage goes through `TrieAccounting`
+  instead of the mock `trie` map -/
+  real : Option TTN.RealStore := none
 
 inductive Res where
   | cont (s : St)

@@ -1,6 +1,6 @@
 //! near-d3-ttn: trie-accounting experiment (docs/research/d3-trie-accounting.md).
 //!
-//! usage: near-d3-ttn [--seed N] [--shards N] [--blocks N] [--ops N] [--memtries] --out FILE
+//! usage: near-d3-ttn [--seed N] [--shards N] [--blocks N] [--ops N] [--memtries] [--trace FILE] --out FILE
 mod d3ttn;
 mod judge;
 
@@ -14,6 +14,7 @@ fn main() {
         blocks: num("--blocks", 40),
         memtries: args.iter().any(|a| a == "--memtries"),
         ops_max: num("--ops", 40) as usize,
+        trace: get("--trace").map(std::path::PathBuf::from),
     };
     let out = get("--out").expect("--out FILE");
     d3ttn::cmd_ttn(&p, std::path::Path::new(&out));

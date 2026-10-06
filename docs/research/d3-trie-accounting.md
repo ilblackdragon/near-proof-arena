@@ -68,29 +68,133 @@ On top of the three-way comparison, nearcore's full witness judge runs on every 
 * The storage-proof size limit actually triggering (4 MB per receipt).
 * Producers with flat storage absent at a non-genesis height.
 
-## 4. The spec (`TrieAccounting.lean`)
+## 4. The spec (prose; Lean: `TrieStore.lean`, `TrieAccounting.lean`, `ChunkStorage.lean`)
 
-Inputs for one op are:
+This section is the normative prose: the clean-room implementation is written from it, not from the
+Lean modules.
 
-* the chunk's pre-state trie (`PTrie` at `prev_state_root`; every receipt of the chunk reads through it);
-* the chunk's write overlay (`TrieUpdate` prospective and committed changes, `update.rs:118-145`);
-* the chunk-scoped cache `Acct`.
+### 4.1 State
 
-`lookupPath` mirrors `lookup_from_state_column`. It lists the node hashes retrieved, root first, including the last node when the key is absent. Reaching an unrevealed node yields `MissingTrieValue`.
+* **Pre-state.** `prev_state_root` (32 bytes) and the witness's recorded storage: a set of byte
+  strings, each addressed by its SHA-256. Every receipt of the chunk reads the trie at this one root;
+  writes never change the root during the chunk.
+* **Overlay.** A map from full trie key to `value | removed`, holding the chunk's writes so far
+  (the committed changes of earlier receipts plus the current receipt's own). The full trie key of a
+  contract storage key `k` of account `a` is `0x09 ‖ utf8(a) ‖ 0x2c (',') ‖ k`.
+* **Accounting cache.** A set of 32-byte hashes, with counters `db` and `mem`. It is created empty
+  once per chunk and shared by every receipt of the chunk, across accounts. It is never rolled back.
+  *Touching* a hash `h` means: if `h` is in the set then `mem += 1`; otherwise `db += 1` and `h` is
+  added to the set.
 
-| op | overlay hit | overlay miss |
-|---|---|---|
-| `storage_write` / `storage_remove` | no touches. `evicted`/`removed_byte × len` charged if a value was present | track every path node, then charge `evicted/removed_byte × len` if a value is present, then track `hash(value)`, then `TTN × Δdb` and `cached × Δmem` |
-| `storage_read` | value charges only | no node tracked (TTN/cached charged ×0). Value bytes and large-read overhead are charged, then `hash(value)` enters the cache **uncharged** (`deref` with `FreeGasCounter`, `logic.rs:4600`; `ext.rs:70-86`) |
-| `storage_has_key` | none | none |
+### 4.2 Trie nodes and lookup
+
+A node is `borsh(RawTrieNodeWithSize)`: the node body, then an 8-byte little-endian
+`memory_usage` (ignored here). The body is a 1-byte tag:
+
+* `0` Leaf: `u32 LE len` + hex-prefix-encoded key (`len` bytes) + value ref = `u32 LE value
+  length` + 32-byte value hash.
+* `1` BranchNoValue: `u16 LE` child bitmap (bit `i` set means child `i` is present), then one 32-byte
+  hash per present child in index order.
+* `2` BranchWithValue: value ref (`u32` length + hash), then bitmap and children as in tag `1`.
+* `3` Extension: `u32 LE len` + hex-prefix key + 32-byte child hash.
+
+Hex-prefix: in the first byte, the high nibble `f` has bit 0 set for an odd nibble count (and then
+the low nibble is the first key nibble; otherwise it must be 0), and bit 1 set for a leaf key; the
+remaining bytes give two nibbles each, high nibble first.
+
+**Lookup** of key `K` (as nibbles, high nibble first) from the root:
+
+* An all-zero root means the empty trie: no node is retrieved and the key is absent.
+* Otherwise retrieve node `h`: a hash missing from the recorded storage is a storage error
+  (`MissingTrieValue`). Record `h` in the visited list.
+  * Leaf: the key is present iff its key equals the remaining nibbles. Stop.
+  * Extension: if its key is a prefix of the remaining nibbles, consume it and continue at the
+    child. Otherwise absent; stop.
+  * Branch: if no nibbles remain, the result is the branch's value (if any). Stop. Otherwise take
+    the child at the next nibble and continue, or report absent if there is no such child.
+
+The lookup returns the visited node hashes, root first, plus the value ref `(length, hash)` when
+the key is present. Absence is also decided by the last node visited.
+
+### 4.3 The four operations
+
+Gas: `TTN` = `wasm_touching_trie_node`, `CACHED` = `wasm_read_cached_trie_node`. *Commit since
+snapshot `(db₀, mem₀)`* means: charge `TTN × (db − db₀)`, then `CACHED × (mem − mem₀)`. Each is a
+`pay_per`, recorded under its own profile key. The base, key and value charges that precede these
+steps, and the register writes that follow them, are those of Appendix A; listed here is only what
+happens inside the `External` call.
+
+**storage_write(k, v)** and **storage_remove(k)** (B = `storage_write_evicted_byte` /
+`storage_remove_ret_value_byte`): take a snapshot.
+1. If the overlay has the key: if it holds a value `old`, charge `B × len(old)` and return `old`.
+   If it holds `removed`, return nothing. No trie access, no touches.
+2. Otherwise look the key up in the trie. Touch every visited node. If a value is present:
+   charge `B × length` (on failure, stop here; the touches stay in the cache uncharged), then touch
+   the value hash and fetch the value (missing means a storage error). Then commit since the
+   snapshot. Return the value, if any.
+3. Then the overlay gets `k ↦ v` (write) or `k ↦ removed` (remove). A remove records `removed`
+   even when the key was absent.
+
+**storage_read(k)**:
+1. If the overlay has the key with a value: charge `storage_read_value_byte × len`, and if
+   `len > 4000` also `storage_large_read_overhead_base` and `storage_large_read_overhead_byte ×
+   len`. Return the value. No touches. If it holds `removed`: absent.
+2. Otherwise look the key up. **No node is touched.** The commit happens but charges 0. If present:
+   apply the same value charges as in step 1, then touch the value hash **without charging**
+   (it enters the cache and increments `db`/`mem`, but no gas), then fetch the value.
+
+**storage_has_key(k)**: overlay first, otherwise a trie lookup. Nothing is touched and nothing is
+charged by the `External`. A missing node is still a storage error.
+
+### 4.4 Across the chunk
+
+Contract calls run in the chunk's execution order (the order of its outcomes). The cache persists
+through every call, failed or not. A call's overlay changes are kept iff its receipt succeeds; a
+failed receipt (any error, including out of gas) rolls back to the overlay before the call.
 
 Subtleties the spec keeps:
 
-1. The cache lives for the whole chunk, crosses receipts and accounts, and is not rolled back when a receipt fails.
-2. A failed evicted-bytes charge leaves the path touches in the cache, uncharged.
-3. A read's value dereference warms the cache for a later write or remove of the same key.
-4. Keys written or removed earlier in the chunk (overlay) touch nothing. This holds even across receipts, because the root is fixed per chunk.
+1. A failed evicted/removed-bytes charge leaves the path touches in the cache, uncharged.
+2. A read's value dereference warms the cache (uncharged) for a later write or remove of the same
+   key.
+3. Keys written or removed earlier in the chunk touch nothing, even across receipts.
 
-**At PV86 the cache does not affect gas.** Since PV82, `wasm_touching_trie_node` = `wasm_read_cached_trie_node` = 2,280,000,000 gas and 4,000,000,000 compute (`runtime_configs/82.yaml`; `theorem ttn_costs_equal`, proved by `rfl`). So gas and compute depend only on the number of tracked accesses. The cache only decides the profile split, which is not consensus data (outcome root hashes `PartialExecutionOutcome`, which has no metadata). The split is still modelled exactly.
+**At PV86 the cache does not affect gas.** Since PV82, `wasm_touching_trie_node` =
+`wasm_read_cached_trie_node` = 2,280,000,000 gas and 4,000,000,000 compute (`runtime_configs/82.yaml`;
+`theorem ttn_costs_equal`, proved by `rfl`). So gas and compute depend only on the number of tracked
+accesses. The cache only decides the profile split, which is not consensus data (the outcome root
+hashes `PartialExecutionOutcome`, which has no metadata). The split is still modelled exactly and
+difftested.
 
-**Remaining work (RuntimeD3):** replace the mock storage in `Host.lean` with `TTN.storage*` over the D2 trie/overlay state and thread `Acct` through the chunk. Then difftest per outcome against `oracle/d3-ttn`'s digests, which already record per-outcome `ttn`/`cached` gas for 5,951 outcomes (1,925 of them with trie-node charges).
+## 5. Op-level difftest
+
+`near-d3-ttn --trace FILE` writes one line per chunk:
+
+```
+C <prev_root> <n> <node>… <k> (<account> <prepaid> <args|-> <ok|fail> <wasm> <ext_total> <s0>…<s10>)…
+```
+
+The calls are every outcome executed by a contract account, in outcome order. Their contents come
+from the transactions the generator submitted (receipt id taken from the transaction's conversion
+outcome). The expected columns are nearcore's outcome profile. The slot order is
+`storage_write_base, storage_read_base, storage_read_key_byte, storage_read_value_byte,
+storage_large_read_overhead_base, storage_large_read_overhead_byte, storage_remove_base,
+storage_has_key_base, storage_has_key_byte, touching_trie_node, read_cached_trie_node`.
+
+`difftest_ttn.py TRACE` replays every chunk with the Lean spec (`nearspec-v3-wasm --chunk`:
+`ChunkStorage.replayChunk` → `Exec.runCall` with a `RealStore` → `Host` storage → `TrieAccounting`)
+and compares each call's status, wasm gas, ext total and the 11 slots. The ext total includes the
+evicted/removed-byte charges and every other host cost. Results: §5.1.
+
+### 5.1 Results (op-level, Lean spec vs nearcore)
+
+There were 15 trace runs: seeds 1–3 with `--ops 40` and `--ops 300` over 60 blocks; seed 4 with `--ops 300 --memtries` over 60 blocks; seeds 5–12 with `--ops 200` over 100 blocks, memtries on for the even seeds.
+
+| | chunks | contract calls | failed calls (mostly out of gas mid-run) | calls with trie-node charges | disagreements |
+|---|---|---|---|---|---|
+| total | 4,820 | 14,036 | 764 | 13,536 | **0** |
+
+* Every profile slot is exercised. In the 300-op runs, more than 90% of calls have a nonzero value in each of the 11 slots (`runs/*.difftest`).
+* The difftest is sensitive. On seed 1 with 300 ops, the deliberately wrong replays disagree on 414 of 667 calls (fresh cache per call, `--ablate-cache`) and on 423 of 667 (no committed overlay between calls, `--ablate-overlay`).
+* Producer vs validator stayed at 0 outcome differences on every run, with all witnesses endorsed by nearcore.
+* On seed 8, the use_flat_storage=false ablation hit a `MissingTrieValue` once. Counting read nodes changed gas enough that execution took a different path and needed a node the witness does not record. It is counted as a differing chunk (`ablation_storage_errors`). This is expected behaviour of the ablation, not a finding about nearcore.

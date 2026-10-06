@@ -1,2 +1,3 @@
 /target
 /runs/*.json
+/runs/*.trace

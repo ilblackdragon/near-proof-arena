@@ -38,6 +38,7 @@ reed-solomon-erasure = { version = "6.0.0", features = ["simd-accel"] }
 serde_json = "1.0.68"
 sha2 = "0.10"
 tracing = "0.1"
+strum = "0.24"
 
 [patch.crates-io]
 protobuf = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }

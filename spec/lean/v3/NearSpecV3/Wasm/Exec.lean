@@ -423,64 +423,78 @@ def fullExtra (s : St) : String :=
   let trie := (s.trie.toList.map (fun (k, v) => s!"{hex k}={hex v}")).toArray.qsort (· < ·)
   s!" || compute {s.gas.computeUsage} || logs {",".intercalate (s.logs.toList.map hex)} || actions {";".intercalate (s.actions.toList.map (·.text))} || trie {",".intercalate trie.toList}"
 
+/-- The call's end state: a finished line that carries no state (preparation/link/resolve/loading
+outcomes), or the final machine state with the abort error if any. -/
+inductive Run where
+  | line (l : String)
+  | done (s : St) (err : Option String)
+
+/-- One function call. `real`: run storage against the trie-backed `External` (chunk replay). -/
+def runCall (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx) (fuel : Nat)
+    (blockLevel : Bool := true) (full : Bool := false) (real : Option TTN.RealStore := none) : Run :=
+  let emptySt (gs : Gas) : St :=
+    { pages := #[], globals := #[], table := #[], tableMax := 0, elems := #[], datas := #[],
+      stackRem := 0, gas := gs, ctx := ctx }
+  let ext (s : St) : String := if full then fullExtra s else ""
+  let nop (e : String) : Run := .line (s!"abort 0 0 {e}" ++ ext (emptySt (Gas.init ctx.prepaidGas)))
+  if method.isEmpty then nop "MethodResolveError(MethodEmptyName)" else
+  match prepare cfg code blockLevel with
+  | .outOfDomain why => .line s!"out-of-domain {why}"
+  | .unmodeled why => .line s!"unmodeled {why}"
+  | .prepErr v _ => nop s!"CompilationError(PrepareError({v}))"
+  | .compileErr k _ =>
+    nop s!"CompilationError(WasmtimeCompileError \{ msg: \"failed to compile: wasm[0]::function[{k}]\" })"
+  | .ok p =>
+    if p.m.imports.any (fun i => curveHosts.contains i.name) then .line "out-of-domain curve host function" else
+    let gs : Gas := Gas.init ctx.prepaidGas
+    let loaded := match payPer gs C.contractLoadingBytes code.size with
+      | (gs, none) => payBase gs C.contractLoadingBase
+      | r => r
+    match loaded with
+    | (gs, some _) => .line (s!"abort {gs.burnt} {gs.used} {errGasExceeded}" ++ ext (emptySt gs))
+    | (gs, none) =>
+      match link p with
+      | .linkError msg => .line (s!"abort {gs.burnt} {gs.used} LinkError \{ msg: \"{msg}\" }" ++ ext (emptySt gs))
+      | .invariant why => .line s!"unmodeled invariant: {why}"
+      | .ok =>
+        match resolve p method with
+        | .notFound => nop "MethodResolveError(MethodNotFound)"
+        | .invalidSignature => nop "MethodResolveError(MethodInvalidSignature)"
+        | .invariant why => .line s!"unmodeled invariant: {why}"
+        | .ok mi =>
+          match instantiate cfg p gs with
+          | .error e => .line (s!"abort {gs.burnt} {gs.used} {e}" ++ ext (emptySt gs))
+          | .ok s =>
+            let s := { s with ctx := ctx, balance := ctx.accountBalance + ctx.attachedDeposit,
+                              storageUsage := ctx.storageUsage, real := real }
+            let afterStart : Except String (St × Option String) :=
+              match p.m.start with
+              | some st => callEntry cfg p fuel s st
+              | none => .ok (s, none)
+            match afterStart with
+            | .error why => .line s!"unmodeled {why}"
+            | .ok (s, some e) => .done s (some e)
+            | .ok (s, none) =>
+              match callEntry cfg p fuel s mi with
+              | .error why => .line s!"unmodeled {why}"
+              | .ok (s, e) => .done s e
+
 /-- One line in the harness format (`oracle/wasm-d3/src/main.rs`):
 `ok <burnt> <used> <ret|-|receiptN> <balance>`, `abort <burnt> <used> <error>` (the zero-gas no-op
 outcome of a missing method prints as `abort 0 0 …`, as the harness does), or `out-of-domain …` /
 `unmodeled …` (never silently equal to nearcore). `full` appends `fullExtra` (harness mode `full`). -/
 def outcome (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx) (fuel : Nat)
     (blockLevel : Bool := true) (full : Bool := false) : String :=
-  let emptySt (gs : Gas) : St :=
-    { pages := #[], globals := #[], table := #[], tableMax := 0, elems := #[], datas := #[],
-      stackRem := 0, gas := gs, ctx := ctx }
   let ext (s : St) : String := if full then fullExtra s else ""
-  let nop (e : String) : String := s!"abort 0 0 {e}" ++ ext (emptySt (Gas.init ctx.prepaidGas))
-  if method.isEmpty then nop "MethodResolveError(MethodEmptyName)" else
-  match prepare cfg code blockLevel with
-  | .outOfDomain why => s!"out-of-domain {why}"
-  | .unmodeled why => s!"unmodeled {why}"
-  | .prepErr v _ => nop s!"CompilationError(PrepareError({v}))"
-  | .compileErr k _ =>
-    nop s!"CompilationError(WasmtimeCompileError \{ msg: \"failed to compile: wasm[0]::function[{k}]\" })"
-  | .ok p =>
-    if p.m.imports.any (fun i => curveHosts.contains i.name) then "out-of-domain curve host function" else
-    let gs : Gas := Gas.init ctx.prepaidGas
-    let loaded := match payPer gs C.contractLoadingBytes code.size with
-      | (gs, none) => payBase gs C.contractLoadingBase
-      | r => r
-    match loaded with
-    | (gs, some _) => s!"abort {gs.burnt} {gs.used} {errGasExceeded}" ++ ext (emptySt gs)
-    | (gs, none) =>
-      match link p with
-      | .linkError msg => s!"abort {gs.burnt} {gs.used} LinkError \{ msg: \"{msg}\" }" ++ ext (emptySt gs)
-      | .invariant why => s!"unmodeled invariant: {why}"
-      | .ok =>
-        match resolve p method with
-        | .notFound => nop "MethodResolveError(MethodNotFound)"
-        | .invalidSignature => nop "MethodResolveError(MethodInvalidSignature)"
-        | .invariant why => s!"unmodeled invariant: {why}"
-        | .ok mi =>
-          match instantiate cfg p gs with
-          | .error e => s!"abort {gs.burnt} {gs.used} {e}" ++ ext (emptySt gs)
-          | .ok s =>
-            let s := { s with ctx := ctx, balance := ctx.accountBalance + ctx.attachedDeposit,
-                              storageUsage := ctx.storageUsage }
-            let afterStart : Except String (St × Option String) :=
-              match p.m.start with
-              | some st => callEntry cfg p fuel s st
-              | none => .ok (s, none)
-            match afterStart with
-            | .error why => s!"unmodeled {why}"
-            | .ok (s, some e) => s!"abort {s.gas.burnt} {s.gas.used} {e}" ++ ext s
-            | .ok (s, none) =>
-              match callEntry cfg p fuel s mi with
-              | .error why => s!"unmodeled {why}"
-              | .ok (s, some e) => s!"abort {s.gas.burnt} {s.gas.used} {e}" ++ ext s
-              | .ok (s, none) =>
-                let ret := match s.ret with
-                  | some (.inl d) => hex d
-                  | some (.inr r) => s!"receipt{r}"
-                  | none => "-"
-                s!"ok {s.gas.burnt} {s.gas.used} {ret} {s.balance}" ++ ext s
+  match runCall cfg code method ctx fuel blockLevel full with
+  | .line l => l
+  | .done s (some e) => s!"abort {s.gas.burnt} {s.gas.used} {e}" ++ ext s
+  | .done s none =>
+    let ret := match s.ret with
+      | some (.inl d) => hex d
+      | some (.inr r) => s!"receipt{r}"
+      | none => "-"
+    s!"ok {s.gas.burnt} {s.gas.used} {ret} {s.balance}" ++ ext s
 
 end NearSpecV3.Wasm
 
