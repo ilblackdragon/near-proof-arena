@@ -1,5 +1,6 @@
 import Lean
 import NearSpecV3.Logged.D2Queues
+import NearSpecV3.D2.Actions
 
 /-!
 # Lockstep tactic for `R` (mirror vs original)
@@ -10,9 +11,29 @@ proved), `pure`/`throw` leaves, and `match`es (split once on the mirror side; th
 on the same discriminant is reduced with the case equation).
 -/
 
+namespace NearSpecV3.D2
+
+open NearSpec NearSpecV3
+
+@[reducible] def ActSt.wt (st : ActSt) (t : PTrie) : ActSt := { st with o := st.o.wt t }
+@[reducible] def ActCtx.ws (c : ActCtx) (es : HStore) : ActCtx := { c with env := c.env.ws es }
+
+end NearSpecV3.D2
+
 namespace NearSpecV3.Logged
 
 open NearSpec NearSpecV3 NearSpecV3.D2
+
+/-- Put the revealed trie back into the states inside a value (identity on non-states). -/
+class WT (α : Type) where
+  wt : α → PTrie → α
+
+instance (priority := low) instWTDefault {α : Type} : WT α := ⟨fun a _ => a⟩
+@[reducible] instance instWTOvl : WT Ovl := ⟨Ovl.wt⟩
+@[reducible] instance instWTRS : WT RS := ⟨RS.wt⟩
+@[reducible] instance instWTActSt : WT ActSt := ⟨ActSt.wt⟩
+@[reducible] instance instWTProd {α β : Type} [WT α] [WT β] : WT (α × β) :=
+  ⟨fun p t => (WT.wt p.1 t, WT.wt p.2 t)⟩
 
 section
 variable {s : HStore} {root : Bytes}
@@ -46,6 +67,12 @@ theorem R_mapM {α γ : Type} (f : γ → Except String α) (f' : γ → LM α)
       simp only [Except.map, ex_ok_bind, bind, Except.bind] at ih ⊢
       rw [ih]
       cases LM.ev s root (List.mapM f' xs) <;> rfl
+
+theorem R_foldlM_wt {α γ : Type} [WT α] {f : α → γ → Except String α} {f' : α → γ → LM α}
+    {l : List γ} {b : α} {ob : α}
+    (h : ∀ b x, R s root (f' b x) (f (WT.wt b (preT s root)) x) (fun x => WT.wt x (preT s root)))
+    (hb : ob = WT.wt b (preT s root)) :
+    R s root (l.foldlM f' b) (l.foldlM f ob) (fun x => WT.wt x (preT s root)) := R_foldlM h hb
 
 /-- A mirror bind whose head is a pure read of the original. -/
 theorem R_bind_ok {α β β' : Type} {x' : LM α} {a : α} {f' : α → LM β'} {o : Except String β} {ψ : β' → β}
@@ -213,6 +240,75 @@ elab "lk_split" : tactic => do
   setGoals out
 
 open Lean Elab Tactic Meta in
+/-- Join points: on `R (let j := vN; bN) (let j' := vO; bO) χ` with function-valued `j`, `j'` (the
+`__do_jp` of `do`-notation), relate the two join points once — `∀ xs, R (j xs) (j' (WT.wt xs T)) χ` —
+and continue on the bodies with that hypothesis, instead of inlining them into every branch. -/
+elab "lk_jp" : tactic => do
+  let g ← getMainGoal
+  g.withContext do
+    let tgt ← whnfR (← instantiateMVars (← g.getType))
+    unless tgt.isAppOfArity ``R 7 do throwError "lk_jp: not R"
+    let args := tgt.getAppArgs
+    let s := args[2]!; let root := args[3]!; let n := args[4]!; let o := args[5]!; let χ := args[6]!
+    let .letE nN tyN vN bN _ := n | throwError "lk_jp: mirror not a let"
+    let .letE nO tyO vO bO _ := o | throwError "lk_jp: original not a let"
+    unless tyN.isForall && tyO.isForall do throwError "lk_jp: not a join point"
+    let T ← mkAppM ``preT #[s, root]
+    -- HJ jN jO := ∀ xs, R s root (jN xs) (jO (WT.wt xs T)) χ
+    let mkHJ (jN jO : Expr) : MetaM Expr :=
+      forallTelescope tyN fun xs _ => do
+        let xsO ← xs.mapM fun x => mkAppM ``WT.wt #[x, T]
+        let body ← mkAppM ``R #[s, root, mkAppN jN xs, mkAppN jO xsO, χ]
+        mkForallFVars xs body
+    let hjv ← mkHJ vN vO
+    let mH1 ← mkFreshExprSyntheticOpaqueMVar hjv
+    let bodyTy ← withLocalDeclD nN tyN fun jN => withLocalDeclD nO tyO fun jO => do
+      let hj ← mkHJ jN jO
+      withLocalDeclD `hj hj fun h => do
+        let r ← mkAppM ``R #[s, root, bN.instantiate1 jN, bO.instantiate1 jO, χ]
+        mkForallFVars #[jN, jO, h] r
+    let mBody ← mkFreshExprSyntheticOpaqueMVar bodyTy
+    g.assign (mkApp3 mBody vN vO mH1)
+    -- body: intro the join points and the hypothesis
+    let (_, gB) ← mBody.mvarId!.introN 3 [nN, nO, `hj]
+    replaceMainGoal [mH1.mvarId!, gB]
+
+open Lean Elab Tactic Meta in
+/-- Zeta-reduce top-level non-function `let`s of either side of an `R` goal. -/
+elab "lk_zeta" : tactic => do
+  let g ← getMainGoal
+  g.withContext do
+    let tgt ← whnfR (← instantiateMVars (← g.getType))
+    unless tgt.isAppOfArity ``R 7 do throwError "lk_zeta: not R"
+    let args := tgt.getAppArgs
+    let red (e : Expr) : Bool × Expr :=
+      match e with
+      | .letE _ ty v b _ => if ty.isForall then (false, e) else (true, b.instantiate1 v)
+      | _ => (false, e)
+    let (c1, n) := red args[4]!
+    let (c2, o) := red args[5]!
+    unless c1 || c2 do throwError "lk_zeta: nothing"
+    let tgt' := mkAppN tgt.getAppFn (args.set! 4 n |>.set! 5 o)
+    replaceMainGoal [← g.replaceTargetDefEq tgt']
+
+open Lean Elab Tactic Meta in
+/-- Apply a local hypothesis concluding in `R` (join-point relations, induction hypotheses). -/
+elab "lk_hyp" : tactic => do
+  let g ← getMainGoal
+  g.withContext do
+    for d in (← getLCtx) do
+      if d.isImplementationDetail then continue
+      let ok ← forallTelescopeReducing d.type fun _ b => pure (b.isAppOfArity ``R 7)
+      if !ok then continue
+      let s ← saveState
+      try
+        let gs ← g.apply (mkFVar d.fvarId)
+        replaceMainGoal gs
+        return
+      catch _ => restoreState s
+    throwError "lk_hyp: no hypothesis applies"
+
+open Lean Elab Tactic Meta in
 /-- `intro`, only on propositions (never on a pending data metavariable such as a bind's `φ`). -/
 elab "lk_intro" : tactic => do
   let g ← getMainGoal
@@ -238,17 +334,21 @@ macro_rules | `(tactic| lk_step) => `(tactic| first
   | (apply R_error)
   | (with_reducible lk_call)
   | lk_ih
+  | lk_hyp
+  | lk_jp
+  | lk_zeta
   | (apply R_bind; with_reducible lk_call)
   | (apply R_bind; lk_ih)
+  | (apply R_bind; lk_hyp)
   | (simp only [pure_bind])
   | (apply R_bind; apply R_pure rfl)
   | lk_eq
-  | (dsimp only [id])
+  | (dsimp (config := { zeta := false }) only [id, WT.wt, instWTProd, instWTOvl, instWTRS, instWTActSt, instWTDefault])
   | lk_split
   | (apply R_foldlM)
   | (apply R_mapM)
   | (apply R_bind; apply R_mapM)
-  | (apply R_bind; apply R_foldlM)
+  | (apply R_bind; apply R_foldlM_wt)
   | lk_intro)
 
 macro "lk" : tactic => `(tactic| repeat (any_goals lk_step))

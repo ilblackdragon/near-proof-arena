@@ -16,8 +16,6 @@ structure ActionHooksL where
 def d2HooksL : ActionHooksL where
   functionCall _ _ _ _ := throw "out of domain (e.wasm): FunctionCall action dispatched (WASM execution)"
 
-@[reducible] def ActSt.wt (st : ActSt) (t : PTrie) : ActSt := { st with o := st.o.wt t }
-@[reducible] def ActCtx.ws (c : ActCtx) (es : HStore) : ActCtx := { c with env := c.env.ws es }
 
 /-- Contract storage of an account (`get_contract_storage_usage`, `actions.rs:454-473`):
 local code length by `get_code_len` (path read only), global identifiers by their size. -/
