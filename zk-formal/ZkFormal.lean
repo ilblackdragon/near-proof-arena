@@ -219,3 +219,33 @@ import ZkFormal.Prover.SizeBoundToy
 import ZkFormal.NearAssembly.NearClosed
 -- v3 D0 design PoC (docs/zk-formal/V3-D0-DESIGN.md §8): hints + native preprocessing.
 import ZkFormal.V3.Hint
+-- np-udr-stark-v2 (public-message bus; docs/zk-formal/STATUS-V3-BUS.md)
+import ZkFormal.V2.Admission
+import ZkFormal.V2.Air
+import ZkFormal.V2.Export
+import ZkFormal.V2.Np.Bus
+import ZkFormal.V2.Np.Compose
+import ZkFormal.V2.Np.Defs
+import ZkFormal.V2.Np.Early
+import ZkFormal.V2.Np.Frame
+import ZkFormal.V2.Np.Late
+import ZkFormal.V2.Np.Main
+import ZkFormal.V2.Np.Msg4
+import ZkFormal.V2.Np.Msg8
+import ZkFormal.V2.Np.Query
+import ZkFormal.V2.Prover
+import ZkFormal.V2.RomFull
+import ZkFormal.V2.SizeSched
+import ZkFormal.V2.SizeSchedNear
+import ZkFormal.V2.Toy
+import ZkFormal.V2.Verifier
+-- v3 trie store semantics (docs/zk-formal/STATUS-V3-STORE.md)
+import ZkFormal.NearV3.Spec.Absent
+import ZkFormal.NearV3.Spec.Codec
+import ZkFormal.NearV3.Spec.Occs
+import ZkFormal.NearV3.Spec.Records
+import ZkFormal.NearV3.Spec.StoreBuild
+import ZkFormal.NearV3.Spec.StoreBuilt
+import ZkFormal.NearV3.Spec.StoreComplete
+import ZkFormal.NearV3.Spec.StoreSound
+import ZkFormal.NearV3.Spec.TrieOps
