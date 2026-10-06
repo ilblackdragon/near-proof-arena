@@ -39,6 +39,11 @@ export type ObligationId =
   | 'BENCHMARK';
 /**
  * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
+ * via the `definition` "ScoringKind".
+ */
+export type ScoringKind = 'speed' | 'cost_v1';
+/**
+ * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
  * via the `definition` "AdversaryClass".
  */
 export type AdversaryClass = 'classical';
@@ -89,6 +94,10 @@ export interface ChallengeDefinition {
   resource_limits: ResourceLimits;
   runtime_config_digest: Digest;
   schema: string;
+  /**
+   * Scoring kind and, for `cost_v1`, the pinned price model and reference cost components (v1.5, additive; absent ⇒ `speed` and not serialized, so existing challenge ids are unchanged). docs/BENCHMARK_SPEC.md §14.
+   */
+  scoring?: ScoringSpec | null;
   season: string;
   security_profile: SecurityProfile;
   semantic_scope: SemanticScope;
@@ -184,6 +193,118 @@ export interface ResourceLimits {
   max_ram_bytes: number;
   max_verify_ms: number;
   max_vram_bytes: number;
+}
+/**
+ * `ChallengeDefinition.scoring` (v1.5, additive).
+ *
+ * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
+ * via the `definition` "ScoringSpec".
+ */
+export interface ScoringSpec {
+  cost_baseline?: CostBaselineClass[];
+  /**
+   * Reference candidate's `prepare` wall ns (only charged when `prepare_amortization_requests > 0`).
+   */
+  cost_baseline_prepare_ns?: number | null;
+  kind: ScoringKind;
+  price_model?: PriceModel | null;
+  /**
+   * JCS sha256 of `price_model`; shown on every cost-board row.
+   */
+  price_model_digest?: Digest | null;
+}
+/**
+ * Reference-candidate cost components of one class, measured under the challenge's procedure (component medians over measured runs; one run = one batch of `batch_size` requests).
+ *
+ * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
+ * via the `definition` "CostBaselineClass".
+ */
+export interface CostBaselineClass {
+  class_id: string;
+  /**
+   * Median Σ proof bytes per batch.
+   */
+  proof_bytes: number;
+  /**
+   * Median Σ prove wall ns per batch; must equal `workload_suite.baseline_ns`.
+   */
+  prove_ns: number;
+  /**
+   * Median Σ verify wall ns per batch, on `verifier_vcpus` CPUs.
+   */
+  verify_ns: number;
+}
+/**
+ * `arena-price-model-v1`: integers only, femto-USD. Per-chunk system cost of one proved request (docs/BENCHMARK_SPEC.md §14.2):
+ *
+ * ```text C = c_cpu·vcpus_p·T_prove + c_cpu·vcpus_p·T_prepare·/A + N_v · ( c_cpu·vcpus_v·T_verify + (c_bw + c_store)·proof_bytes ) ```
+ *
+ * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
+ * via the `definition` "PriceModel".
+ */
+export interface PriceModel {
+  /**
+   * `c_bw`: network cost per proof byte per validator.
+   */
+  bandwidth_fusd_per_byte: number;
+  /**
+   * `c_cpu`: price of one vCPU for one second (prover and validator).
+   */
+  cpu_fusd_per_vcpu_second: number;
+  /**
+   * `USD`.
+   */
+  currency: string;
+  effective_from: string;
+  id: string;
+  /**
+   * `A`: requests over which one `prepare` is amortized; 0 = `prepare` is not charged (reported only, bench-spec-v1 §2).
+   */
+  prepare_amortization_requests: number;
+  rationale: PriceRationale[];
+  /**
+   * `arena-price-model-v1`.
+   */
+  schema: string;
+  /**
+   * `draft` (never pinned by a signed challenge) or `governed`.
+   */
+  status: string;
+  /**
+   * `c_store`: retention cost per proof byte per validator (0 = none).
+   */
+  storage_fusd_per_byte: number;
+  /**
+   * `femto_usd`.
+   */
+  unit: string;
+  /**
+   * `N_v`: validators that each verify every chunk's proof (stateless validation fan-out). ≥ 1.
+   */
+  validators_per_chunk: number;
+  /**
+   * vCPUs of the reference validator profile; `verify` is measured pinned to this many of the benchmark CPUs and charged for them. ≥ 1 and ≤ the challenge's `hardware_profile.vcpus`.
+   */
+  verifier_vcpus: number;
+  version: number;
+}
+/**
+ * Why a price-model parameter has its value (part of the hashed object, so the rationale cannot be edited without a new version).
+ *
+ * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
+ * via the `definition` "PriceRationale".
+ */
+export interface PriceRationale {
+  /**
+   * `protocol` (read from pinned nearcore), `published` (public price list / docs), or `estimate` (a modelling choice).
+   */
+  basis: string;
+  note: string;
+  /**
+   * Field name of the parameter, e.g. `validators_per_chunk`.
+   */
+  param: string;
+  sources: string[];
 }
 /**
  * Governed security profile (`security/profiles/<id>.json`).

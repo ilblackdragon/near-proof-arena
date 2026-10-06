@@ -1,0 +1,103 @@
+{
+ "id": "sub_314aa809c32e42248cc637b462d8ced7",
+ "challenge_id": "chl_7c0456cb2d1a36f8601863ac206cfcc9",
+ "candidate_name": "reexec-witness-fast",
+ "backend_family": "reexec-witness",
+ "decision": "ADMITTED",
+ "score_milli": 110007,
+ "benchmark": {
+  "hardware_profile": "nearproof-local-ryzen9-9950x3d",
+  "suite_revision": "near-transfer-receipt-v1-r1",
+  "classes": [
+   {
+    "class_id": "batch-1",
+    "weight_ppm": 200000,
+    "runs_ns": [
+     6306616,
+     5221124,
+     6388678,
+     5544584,
+     6028932,
+     6246312,
+     5896943,
+     6115645,
+     5464513,
+     4657586,
+     6154961,
+     5548881,
+     5079547,
+     5373002,
+     4367351
+    ],
+    "median_ns": 5548881,
+    "mad_ns": 480051,
+    "cold_ns": 175475732,
+    "baseline_ns": 6211419,
+    "verify_median_ns": 4980502,
+    "proof_bytes_max": 1133,
+    "peak_rss_bytes": 446619648
+   },
+   {
+    "class_id": "batch-16",
+    "weight_ppm": 300000,
+    "runs_ns": [
+     4714553,
+     7598886,
+     5803622,
+     7108192,
+     6045823,
+     5442211,
+     5797738,
+     6233579,
+     6453752,
+     5141677,
+     5837171,
+     5381757,
+     6228060,
+     6229971,
+     6076544
+    ],
+    "median_ns": 6045823,
+    "mad_ns": 248085,
+    "cold_ns": 147895709,
+    "baseline_ns": 6876460,
+    "verify_median_ns": 18010034,
+    "proof_bytes_max": 8332,
+    "peak_rss_bytes": 447320064
+   },
+   {
+    "class_id": "batch-256",
+    "weight_ppm": 500000,
+    "runs_ns": [
+     10473867,
+     9662672,
+     9595488,
+     9848162,
+     12393408,
+     7460121,
+     9530945,
+     9276546,
+     9859994,
+     9684846,
+     9272821,
+     9427963,
+     9204020,
+     9274364,
+     8942120
+    ],
+    "median_ns": 9530945,
+    "mad_ns": 258124,
+    "cold_ns": 206166181,
+    "baseline_ns": 10205590,
+    "verify_median_ns": 188436555,
+    "proof_bytes_max": 84970,
+    "peak_rss_bytes": 447262720
+   }
+  ],
+  "score_milli": 110007,
+  "score_ci_milli": 3189,
+  "prepare_ns": 7675577,
+  "public_artifact_bytes": 110,
+  "measured_by": "arena-worker live-w1"
+ }
+}

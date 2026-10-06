@@ -51,3 +51,14 @@ export function fmtTime(s: unknown): string {
 export function fmtInt(v: unknown): string {
   return isNum(v) ? v.toLocaleString('en-US') : '—';
 }
+
+/** Integer femto-USD (1e-15 USD, the cost_v1 unit) as dollars. */
+export function fmtFusd(fusd: unknown): string {
+  if (!isNum(fusd)) return '—';
+  const usd = fusd / 1e15;
+  if (usd === 0) return '$0';
+  if (usd >= 1) return `$${usd.toFixed(2)}`;
+  // three significant digits for sub-dollar amounts
+  const digits = Math.min(12, Math.max(2, 2 - Math.floor(Math.log10(usd))));
+  return `$${usd.toFixed(digits)}`;
+}

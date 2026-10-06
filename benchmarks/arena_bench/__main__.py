@@ -8,7 +8,8 @@
   seed         --purpose P [parts...]
   report       --input bundle.json [--out report.md]
   host-profile --id ID [--governed] [--out file.json]
-  gen-testvectors [--out path] [--check]
+  gen-testvectors [--out path] [--check]   (score.json and cost.json next to it)
+  cost-rescore --challenge chl.json --price-model pm.json --baseline summary.json SUB.json...  (offline, §14.6)
 """
 
 from __future__ import annotations
@@ -61,6 +62,8 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("report"); p.add_argument("--input", required=True); p.add_argument("--out")
     p = sub.add_parser("host-profile"); p.add_argument("--id", required=True); p.add_argument("--governed", action="store_true"); p.add_argument("--note"); p.add_argument("--out")
     p = sub.add_parser("gen-testvectors"); p.add_argument("--out", default=str(DEFAULT_VECTORS)); p.add_argument("--check", action="store_true")
+    p = sub.add_parser("cost-rescore"); p.add_argument("--challenge", required=True); p.add_argument("--price-model", required=True)
+    p.add_argument("--baseline-session", required=True); p.add_argument("--out"); p.add_argument("subs", nargs="+", help="VIEW.json:SESSION.json")
     a = ap.parse_args(argv)
 
     try:
@@ -84,15 +87,24 @@ def main(argv: list[str] | None = None) -> int:
             _emit(report.render(_load(a.input)), a.out)
         elif a.cmd == "host-profile":
             _emit(hostprofile.collect(a.id, governed=a.governed, note=a.note), a.out)
+        elif a.cmd == "cost-rescore":
+            from . import rescore
+
+            r = rescore.main(a.challenge, a.price_model, a.baseline_session, a.subs, a.out)
+            if not a.out:
+                _emit(rescore.markdown(r))
         elif a.cmd == "gen-testvectors":
-            text = testvectors.dumps(testvectors.generate())
+            outs = [(Path(a.out), testvectors.dumps(testvectors.generate())),
+                    (Path(a.out).with_name("cost.json"), testvectors.dumps(testvectors.generate_cost()))]
             if a.check:
-                if Path(a.out).read_text() != text:
-                    print(f"{a.out} is stale; regenerate with gen-testvectors", file=sys.stderr)
+                stale = [str(p) for p, text in outs if not p.exists() or p.read_text() != text]
+                if stale:
+                    print(f"{', '.join(stale)} stale; regenerate with gen-testvectors", file=sys.stderr)
                     return 1
                 print("test vectors up to date")
             else:
-                Path(a.out).write_text(text)
+                for p, text in outs:
+                    p.write_text(text)
     except ScoreError as e:
         _emit({"error": e.code, "detail": str(e)})
         return 2
