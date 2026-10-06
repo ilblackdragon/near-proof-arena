@@ -1,58 +1,61 @@
-import NearSpecV3.ChunkValidationV0
+import NearSpecV3.ChunkValidationV0a
 
 /-!
-# `prepD0`: the native, claim-side part of the D0 verifier (V3-D0-DESIGN §1, §2.1, §6.1)
+# `prepD0`: the native, claim-side part of a `RelD0a` verifier (V3-D0-DESIGN §1, §2.1, §6.1, §11)
 
-`prepD0 cb h` runs every check of `checkD0` that is a function of the claim alone (class
-**C** of V3-D0-DESIGN §1) or of the claim plus a small proof-carried hint `h` (class **H**),
-and emits the *prepared statement* `Prep` whose bytes `Prep.encode` are the public input of
-the witness-only STARK (class **W**: tries, receipts, Merkle paths, tokens, outcomes).
+`prepD0 cb h` runs every check of `checkD0a` that is a function of the claim alone (class
+**C**) or of the claim plus the proof-carried hint `h = {n, refunds}` (class **H**), and
+emits the *prepared statement* `Prep` (`Prep.encode` = the STARK's public input). Everything
+else is the AIR's (class **W**: tries, receipts, Merkle paths, tokens, outcomes, and — after
+the round-2 decision §11 (c) — the fixed-key value parses `[7] [10] [13] [16]‖s`, Canon0f /
+the `0x0f` state decode and the scheduler's state-dependent core).
 
-It is built **only from existing `NearSpecV3` functions**, in `checkD0`'s order:
-`decodeClaimE`, `decodeChunkInner`, `decodeLayout`, `rsGenesisParamsOk`, `decodeBlk`
-(block hashes, `chunk_headers_root`), the backward walk, `chunkHash`, `shuffleWithSeed`,
-`blockCtx`, `prims` (= `Scheduler.run` with `Congestion`), `queueEmpty`, `bufferedShards`,
-`tryForward`, `Limit`, `outgoingReceiptsRoot`, `encodedMerkleRoot`, `encodeReceipts`,
-`proofRoutes`' `Layout.shardOf`. Its error messages are `checkD0`'s.
+Built **only from existing `NearSpecV3` functions** in `checkD0`'s order: `decodeClaimE`,
+`decodeChunkInner`, `decodeLayout`, `rsGenesisParamsOk`, `decodeBlk` (block hashes,
+`chunk_headers_root`), the backward walk, `chunkHash`, `shuffleWithSeed`, `blockCtx`,
+`toCI`, `Scheduler.statuses` / `linkAllowed` / `Params.calculate` / `convertRequests`
+(`Congestion` f64 inside), `Congestion.outgoingGasLimit` (`prims.outGas`), `Limit`,
+`refundCongestionGas`, `outgoingReceiptsRoot`, `encodedMerkleRoot`, `encodeReceipts`,
+`Layout.shardOf`.
 
-## The hint (`Hint`) and a deviation from the design's table
+It is modular (§11): `prepClaim cb` is the claim-only part; `prepBody pc h` the `{n, B}` part;
+`prepD0 cb h := prepClaim cb >>= (prepBody · h)`.
 
-* `n` — number of applied receipts (fixes `e.compute` and `H.prev_gas_used = n·G`);
-* `refunds` — the generated refund receipts in order (`out.outgoing`). The design (§2.3)
-  carries the body bytes `B` and decodes refunds with `pReceipt`; that is **not exact**:
-  `pReceipt` rejects non-named receivers (`r.shape`), but a gas refund goes to the *signer*,
-  which may be an implicit account (in D0: `refundCongestionGas` prices exactly that case).
-  The hint therefore carries the refund receipts themselves and `prepD0` computes
-  `B = u32 0 ‖ encodeReceipts refunds` (so `B` and the refunds agree by construction; the AIR
-  binds `B` bytewise as in §1);
-* the values read at the fixed keys of the main pre-state: `[7]`, `0x0f` (`s0`), `[13]`,
-  `[16]‖u64 s` for every buffered shard `s`, `[10]` (`none` = proven absent);
-* per implicit transition: the `[7]` value and the `0x0f` value read, where `sched = none`
-  means "the value the previous transition wrote" (the A3 case, always the honest one).
+## Hint
+* `n` — number of applied receipts (`e.compute`, `H.prev_gas_used = n·G`);
+* `refunds` — the generated refund receipts in order (`out.outgoing`); the body is
+  `B = u32 0 ‖ encodeReceipts refunds`. (On the wire the hint is `n` and `B`. Parsing `B`
+  needs a refund-receipt parser: `pReceipt` is **not** exact for it — it rejects non-named
+  receivers, but a gas refund goes to the signer, which may be an implicit account, and
+  `refundCongestionGas` prices exactly that case in D0. The in-memory hint therefore keeps the
+  receipts and `B` is computed from them; a `B` parser is an open item for the verifier.)
 
-Every hint value is checked by the AIR as a touched trie value (walk to the public key ending
-at that value, by digest), `refunds` through `B`, `n` through `mrk`/`rcpt` — a wrong hint is
-never accepted; `prepD0` itself only needs the hint to be well-formed.
+## Scheduler public data (`SchedPub`, per applied block τ: B2 then implicit oldest first)
+The claim-only inputs of `Scheduler.run`: shard ids, `Params` (base bandwidth, budgets,
+max allowance), the link-allowed matrix (from `statuses`: f64 congestion level, missed
+chunks, allowed shard), the converted requests (`Req`: link index `s·n+r` and increase list,
+senders ascending, list order), the ChaCha20 seed `prev_block_hash`, and
+`sha256(borsh(all_shards))`. `Scheduler.runCore pub prev` is the state-dependent remainder;
+`Scheduler.run_eq_core` (**proved**) : `run cfg cc ids prev cong req seed =
+(pubOf cfg cc ids cong req seed).bind (runCore · prev)`. The in-AIR scheduler is therefore
+specified by `runCore` on public `SchedPub` and the AIR-decoded previous state.
 
-## The prepared statement (`Prep`)
+## Forwarding (`e.forwarded`) split
+`tryForward` checks per refund `limit.gas ≥ min(gas, 10^15) ∧ limit.size ≥ size` and then
+subtracts both. The gas limits are claim-only (`outGas` of each slot's congestion, `GASMAX`
+for the own shard) and the size limits are the main scheduler run's grants `grant(own, s)`
+(AIR-computed). Since the size check is a running subtraction, *every refund forwards* iff
+(i) the gas-only simulation passes (native, here), (ii) every refund routes to a shard with a
+status entry (native; otherwise the default limit has size 0), and (iii) for every such shard
+`s`, `Σ size of refunds to s ≤ grant(own, s)` — (iii) is emitted as `Prep.fwd` for the AIR.
+(Equivalence **tested** on every case, `nearspec-v3-test-prep`; not proved.)
 
-Header (`PrepHdr`): τ count `K + 1`, `n`, own shard id / index / shard count, B2 height, gas
-price and gas limit, `prev_state_root` of B2's slot (τ = 0 root), `H.prev_state_root` (final
-root), `H.prev_outcome_root`, `H.prev_balance_burnt`. Segments: the source receipt lists in
-**applied order** (`(key, from_shard, root)`, after the ChaCha20 shuffle), the own shard's
-routing intervals, `B`, the fixed-key walks per τ (key, expected terminal), the `0x0f` states
-written per τ. `Prep.encode` puts values in as `(len, sha256)` digests.
-
-Routing intervals (`ownIntervals`): `Layout.shardOf a = shard_ids[partition_point(b ≤ a)]`;
-for each position `k` with `shard_ids[k] = own` the accounts with partition point `k` are
-`[max(boundaries[0..k)), boundaries[k])` (open ends = `none`). For a well-formed layout this
-is the single interval `[boundaries[i−1], boundaries[i])`; the general form keeps `prepD0`
-exact for any trusted layout bytes. `inIntervals_iff_shardOf` is **tested**
-(`nearspec-v3-test-prep`), not proved.
+## Routing intervals
+`ownIntervals` as before: for each position `k` with `shard_ids[k] = own`, the accounts with
+partition point `k` are `[max(boundaries[0..k)), boundaries[k])`. **Tested**, not proved.
 
 ## Open (recorded for the AIR lanes)
-* Two used source chunks with the same `chunk_hash` share one witness entry (last-wins
-  lookup) and `distinctKeys = used` then needs an extra unused entry; the prepared lists keep
+* Two used source chunks with the same `chunk_hash` share one witness entry; the lists keep
   the key so the AIR can enforce equal lists for equal keys (§3.5 `srcp`).
 -/
 
@@ -62,25 +65,101 @@ open NearSpec NearSpec.TransferV1
 
 /-! ## Hint -/
 
-structure ImplicitHint where
-  /-- value read at `[7]` (`DelayedReceiptIndices`, determinacy only) -/
-  delayed : Option Bytes
-  /-- `0x0f` read: `none` = the value the previous transition wrote; `some v` = explicit -/
-  sched : Option (Option Bytes)
-  deriving DecidableEq, Repr
-
 structure Hint where
   n : Nat
   refunds : List Receipt
-  s0 : Option Bytes
-  delayed : Option Bytes
-  buffered : Option Bytes
-  groups : List (Option Bytes)
-  yield : Option Bytes
-  implicit : List ImplicitHint
   deriving DecidableEq, Repr
 
-def Hint.empty : Hint := ⟨0, [], none, none, none, [], none, []⟩
+def Hint.empty : Hint := ⟨0, []⟩
+
+/-- `B` = borsh `(Vec<SignedTransaction> = [], outgoing)` (`checkD0` step 18). -/
+def Hint.body (h : Hint) : Bytes := u32 0 ++ encodeReceipts h.refunds
+
+/-! ## Scheduler: public (claim-only) part and state-dependent core -/
+
+namespace Scheduler
+
+structure SchedPub where
+  ids : List Nat
+  params : Params
+  allowed : Array Bool
+  reqs : List Req
+  seed : Bytes
+  allShardsHash : Bytes
+  deriving Repr
+
+/-- Claim-only inputs of `run` (`none` = a claim-only abort: no shards, bad config). -/
+def pubOf (cfg : Config) (cc : CongestionConfig) (ids : List Nat)
+    (congestion : List (Nat × CongestionInfo × Nat))
+    (requests : List (Nat × List BandwidthRequest)) (prevBlockHash : Bytes) : Option SchedPub := do
+  let n := ids.length
+  if n = 0 then none
+  let p ← Params.calculate cfg n
+  let status := statuses cc ids congestion
+  let links := List.range (n * n)
+  let allowed : Array Bool := (links.map fun l => linkAllowed status (l / n) (l % n)).toArray
+  some ⟨ids, p, allowed, convertRequests p ids requests, prevBlockHash,
+        sha256 (u32 n ++ concatAll (ids.map u64))⟩
+
+/-- The state-dependent remainder of `run` (in-AIR after §11 (c)). -/
+def runCore (pub : SchedPub) (prevState : Option Bytes) : Option Output := do
+  let prev ← match prevState with
+    | none => some NearSpec.Bandwidth.State.initial
+    | some b => NearSpec.Bandwidth.State.decode b
+  let ids := pub.ids
+  let n := ids.length
+  let p := pub.params
+  let links := List.range (n * n)
+  let allowed := pub.allowed
+  let allow0 := prev.links.foldl (fun (a : Array Nat) la =>
+      match indexOf ids la.sender, indexOf ids la.receiver with
+      | some s, some r => a.set! (s * n + r) la.allowance
+      | _, _ => a) (Array.replicate (n * n) 0)
+  let reqs := pub.reqs
+  let st : St := ⟨Array.replicate n p.maxShardBandwidth, Array.replicate n p.maxShardBandwidth,
+    allow0, Array.replicate (n * n) 0, Rng.ofSeed pub.seed⟩
+  let fair := p.maxShardBandwidth / n
+  let st := { st with allowance := st.allowance.map fun a => Nat.min (Nat.min (a + fair) u64Max) p.maxAllowance }
+  let st := links.foldl (fun st l => (tryGrant n allowed st l p.base).2) st
+  let st ← processRequests n allowed st reqs
+  let st := distribute n allowed st
+  let sid (i : Nat) : Nat := ids.getD i 0
+  let newLinks : List NearSpec.Bandwidth.LinkAllowance :=
+    links.map fun l => ⟨sid (l / n), sid (l % n), st.allowance[l]!⟩
+  let newState : NearSpec.Bandwidth.State := ⟨newLinks, sha256 (prev.sanityHash ++ pub.allShardsHash)⟩
+  some ⟨newState.encode, links.map fun l => ((sid (l / n), sid (l % n)), st.granted[l]!), p⟩
+
+/-- `run` = claim-only public part, then the state-dependent core. -/
+theorem run_eq_core (cfg : Config) (cc : CongestionConfig) (ids : List Nat) (prev : Option Bytes)
+    (cong : List (Nat × CongestionInfo × Nat)) (req : List (Nat × List BandwidthRequest))
+    (seed : Bytes) :
+    run cfg cc ids prev cong req seed = (pubOf cfg cc ids cong req seed).bind (runCore · prev) := by
+  unfold run pubOf runCore
+  by_cases hn : ids.length = 0
+  · cases prev with
+    | none => simp [hn]
+    | some b => cases NearSpec.Bandwidth.State.decode b <;> simp [hn]
+  · cases hp : Params.calculate cfg ids.length with
+    | none =>
+      cases prev with
+      | none => simp [hn, hp]
+      | some b => cases NearSpec.Bandwidth.State.decode b <;> simp [hn, hp]
+    | some p =>
+      cases prev with
+      | none => simp only [hn, hp, Option.bind, ↓reduceIte, bind, Option.bind_some]; rfl
+      | some b =>
+        cases hd : NearSpec.Bandwidth.State.decode b with
+        | none => simp only [hn, hp, hd, Option.bind, ↓reduceIte, bind]
+        | some st => simp only [hn, hp, hd, Option.bind, ↓reduceIte, bind]; rfl
+
+end Scheduler
+
+/-- The scheduler's public data for one apply context (the `prims.sched` mapping). -/
+def schedPub (ctx : ApplyCtx) : Option Scheduler.SchedPub :=
+  Scheduler.pubOf Scheduler.Config.pv86 CongestionConfig.pv86 ctx.layout.shardIds
+    (ctx.statuses.map fun (s, c, m) => (s, toCI c, m))
+    (ctx.requests.map fun (s, rs) => (s, rs.map fun r => ⟨r.toShard, r.bitmap⟩))
+    ctx.prevBlockHash
 
 /-! ## Prepared statement -/
 
@@ -101,27 +180,33 @@ structure PrepHdr where
 
 /-- One source receipt list in applied order. -/
 structure SrcList where
-  key : Bytes          -- chunk_hash (witness map key)
+  key : Bytes
   fromShard : Nat
-  root : Bytes         -- prev_outgoing_receipts_root of the source chunk
+  root : Bytes
   deriving DecidableEq, Repr
 
-/-- A fixed-key read of transition `tau`: the walk to `key` must end at `value`
-(`none` = proven absent). -/
-structure PubWalk where
-  tau : Nat
-  key : List Nat
-  value : Option Bytes
-  deriving DecidableEq, Repr
+/-- Claim-only part of the prepared statement. -/
+structure PrepC where
+  hdr : PrepHdr                -- `n` filled by `prepBody`
+  lists : List SrcList
+  bnds : List (Option Bytes × Option Bytes)
+  sched : List Scheduler.SchedPub
+  -- kept for `prepBody`
+  L : Layout
+  H : ChunkInner
+  ctxB2 : ApplyCtx
+  rsData : Nat
+  rsTotal : Nat
+  allowed : Nat
 
 structure Prep where
   hdr : PrepHdr
   lists : List SrcList
   bnds : List (Option Bytes × Option Bytes)
+  sched : List Scheduler.SchedPub
   body : Bytes
-  walks : List PubWalk
-  states : List Bytes
-  deriving DecidableEq, Repr
+  /-- `(shard, Σ refund sizes)`: the AIR checks `≤ grant(own, shard)` of the τ = 0 run -/
+  fwd : List (Nat × Nat)
 
 /-! ## Routing intervals -/
 
@@ -130,7 +215,6 @@ def lexMax (a b : Bytes) : Bytes := if lexLe a b then b else a
 def lexMaxOpt (l : List Bytes) : Option Bytes :=
   l.foldl (fun acc b => some (match acc with | none => b | some a => lexMax a b)) none
 
-/-- The accounts routed to `own` by `l.shardOf`, as half-open lexicographic intervals. -/
 def ownIntervals (l : Layout) (own : Nat) : List (Option Bytes × Option Bytes) :=
   (List.range (l.boundaries.length + 1)).filterMap fun k =>
     if l.shardIds.getD k 0 == own then some (lexMaxOpt (l.boundaries.take k), l.boundaries[k]?)
@@ -142,13 +226,39 @@ def inInterval (a : Bytes) (iv : Option Bytes × Option Bytes) : Bool :=
 
 def inIntervals (ivs : List (Option Bytes × Option Bytes)) (a : Bytes) : Bool := ivs.any (inInterval a)
 
+/-! ## Forwarding split -/
+
+/-- Status shards in first-occurrence order (`Limit.get` uses the first entry). -/
+def statusShards (ctx : ApplyCtx) : List Nat :=
+  ctx.statuses.foldl (fun acc (s, _, _) => if acc.contains s then acc else acc ++ [s]) []
+
+/-- Gas-only part of `tryForward` over all refunds (claim-only limits). -/
+def fwdGasOk (ctx : ApplyCtx) (refunds : List Receipt) : Bool :=
+  let gas0 : List (Nat × Nat) := ctx.statuses.map fun (s, ci, missed) =>
+    (s, if s == ctx.own then GASMAX else prims.outGas ci missed ctx.own)
+  let get (ls : List (Nat × Nat)) (s : Nat) : Nat := ((ls.find? (·.1 == s)).map (·.2)).getD GASMAX
+  let step (acc : Option (List (Nat × Nat))) (r : Receipt) : Option (List (Nat × Nat)) := do
+    let ls ← acc
+    let s := ctx.layout.shardOf r.receiverId
+    let gas := refundCongestionGas r.receiverId
+    let g := get ls s
+    if g ≥ min gas allowedShardOutgoingGas then
+      some (ls.map fun (x, y) => if x == s then (x, g - gas) else (x, y))
+    else none
+  (refunds.foldl step (some gas0)).isSome
+
+/-- Per status shard, the total (capped) size of the refunds routed to it. -/
+def fwdSizes (ctx : ApplyCtx) (refunds : List Receipt) : List (Nat × Nat) :=
+  (statusShards ctx).map fun s =>
+    (s, ((refunds.filter fun r => ctx.layout.shardOf r.receiverId == s).map
+          fun r => min r.encode.length maxReceiptSize).sum)
+
 /-! ## `prepD0` -/
 
-def prepD0 (cb : Bytes) (h : Hint) : Except String Prep := do
+def prepClaim (cb : Bytes) : Except String PrepC := do
   -- 3.1 decoding (claim part)
   let c ← (decodeClaimE cb).mapError (fun e => s!"invalid claim: {e}")
   let H ← (decodeChunkInner c.chunkInner).mapError (fun e => s!"invalid claim: {e}")
-  -- claim-level D0 conditions and trusted-fact consistency
   check (c.protocolVersion == 86) "out of domain (c.pv86)"
   check (c.epochs.length == 1) "out of domain (c.single_epoch): more than one epoch"
   let ep := c.epochs.headD ⟨[], 0, 0, [], []⟩
@@ -195,8 +305,9 @@ def prepD0 (cb : Bytes) (h : Hint) : Except String Prep := do
   check (c.applyFacts.length == 1 + implicitBlks.length) "invalid: apply_facts length"
   let prevB2 ← match blks[b2i + 1]? with | some b => pure b | none => throw "invalid: walk"
   let slotB2 ← match B2.slots[idx]? with | some p => pure p.2 | none => throw "invalid: slot"
+  -- A1
   check (slotB2.gasLimit ≤ maxGasLimitD0) "out of domain (c.gas_limit): chunk gas_limit above 10^15"
-  -- 3.3 / 3.4: source lists in applied order (keys, from shards, roots, ChaCha20 shuffle)
+  -- 3.3 / 3.4: source lists in applied order
   let mut lists : List SrcList := []
   for S in sourceBlks do
     let mut srcs : List SrcList := []
@@ -211,79 +322,56 @@ def prepD0 (cb : Bytes) (h : Hint) : Except String Prep := do
   let own := slotB2.congestion
   check (own.delayedGas == 0 && own.bufferedGas == 0 && own.receiptBytes == 0)
     "out of domain (c.own_congestion_zero)"
-  -- 3.5 main transition, claim/hint part
+  -- scheduler public data per applied block (B2, then implicit oldest first)
   let ctxB2 := blockCtx L H.shardId slotB2.gasLimit B2 prevB2.hdr.nextGasPrice
-  let bshards ← (bufferedShards h.buffered).mapError id
-  check (h.groups.length == bshards.length) "invalid: hint (buffered group values)"
-  queueEmpty h.delayed "delayed receipt queue"
-  let so ← match prims.sched ⟨ctxB2.layout.shardIds, ctxB2.own, h.s0, ctxB2.statuses,
-                               ctxB2.requests, ctxB2.prevBlockHash⟩ with
-    | some o => pure o
+  let ctxs := ctxB2 :: implicitBlks.map fun M => blockCtx L H.shardId slotB2.gasLimit M M.hdr.nextGasPrice
+  let sched ← ctxs.mapM fun ctx => match schedPub ctx with
+    | some p => pure p
     | none => throw "invalid: bandwidth scheduler aborted (StorageInconsistentState)"
-  let limits : List Limit := ctxB2.statuses.map fun (s, ci, missed) =>
-    ⟨s, (if s == ctxB2.own then GASMAX else prims.outGas ci missed ctxB2.own), so.grant ctxB2.own s⟩
-  let _ ← h.refunds.foldlM (fun ls rf =>
-      match tryForward ctxB2 ls rf with
-      | some ls' => .ok ls'
-      | none => .error "out of domain (e.forwarded): generated receipt buffered") limits
-  check (h.n == 0 || (h.n - 1) * Params.G < ctxB2.gasLimit)
-    "out of domain (e.compute): receipt delayed by the compute limit"
-  queueEmpty h.yield "promise yield queue"
-  -- 3.6 implicit transitions: scheduler runs on the hinted / previously written 0x0f
-  check (h.implicit.length == implicitBlks.length) "invalid: implicit transitions count"
-  let mut prevState : Bytes := so.state
-  let mut states : List Bytes := [so.state]
-  let mut walks : List PubWalk :=
-    [⟨0, keyDelayedIdx, h.delayed⟩, ⟨0, keyBwState, h.s0⟩, ⟨0, keyBufferedIdx, h.buffered⟩] ++
-    (bshards.zip h.groups).map (fun (s, v) => ⟨0, keyGroupsData s, v⟩) ++
-    [⟨0, keyYieldIdx, h.yield⟩]
-  let mut tau := 1
-  for (M, ih) in implicitBlks.zip h.implicit do
-    let ctxM := blockCtx L H.shardId slotB2.gasLimit M M.hdr.nextGasPrice
-    let read : Option Bytes := match ih.sched with
-      | none => some prevState
-      | some v => v
-    let o ← match prims.sched ⟨ctxM.layout.shardIds, ctxM.own, read, ctxM.statuses,
-                                ctxM.requests, ctxM.prevBlockHash⟩ with
-      | some o => pure o
-      | none => throw "invalid: bandwidth scheduler aborted (StorageInconsistentState)"
-    walks := walks ++ [⟨tau, keyDelayedIdx, ih.delayed⟩, ⟨tau, keyBwState, read⟩]
-    states := states ++ [o.state]
-    prevState := o.state
-    tau := tau + 1
-  -- 3.7 header comparison, claim/hint part
+  -- 3.7 header comparison, claim part
   let allowed := L.shardIds.getD ((B2.hdr.height + idx) % L.numShards) H.shardId
   let ownCongestion : Congestion := { own with allowedShard := allowed }
   check H.proposals.isEmpty "invalid: InvalidValidatorProposals"
   check (H.gasLimit == slotB2.gasLimit) "invalid: InvalidGasLimit"
-  check (H.prevGasUsed == h.n * Params.G) "invalid: InvalidGasUsed"
-  check (H.prevOutgoingReceiptsRoot == outgoingReceiptsRoot L h.refunds) "invalid: InvalidReceiptsProof"
   check (H.congestion == ownCongestion) "invalid: InvalidCongestionInfo"
   check H.bwRequests.isEmpty "invalid: InvalidBandwidthRequests"
   check H.proposedSplit.isNone "invalid: InvalidChunkHeaderShardSplit"
   check (H.txRoot == zeroHash32) "invalid: InvalidTxRoot"
-  let body := u32 0 ++ encodeReceipts h.refunds
-  match encodedMerkleRoot c.rsDataParts c.rsTotalParts body with
-  | none => throw "invalid: Reed-Solomon parameters"
-  | some (emr, len) =>
-    check (H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
-    check (H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
   pure {
-    hdr := { K := implicitBlks.length, n := h.n, own := H.shardId, ownIdx := idx,
+    hdr := { K := implicitBlks.length, n := 0, own := H.shardId, ownIdx := idx,
              numShards := L.numShards, height := B2.hdr.height, gasPrice := prevB2.hdr.nextGasPrice,
              gasLimit := slotB2.gasLimit, prevStateRoot := slotB2.prevStateRoot,
              postStateRoot := H.prevStateRoot, outcomeRoot := H.prevOutcomeRoot,
              balanceBurnt := H.prevBalanceBurnt }
-    lists, bnds := ownIntervals L H.shardId, body, walks, states }
+    lists, bnds := ownIntervals L H.shardId, sched, L, H, ctxB2,
+    rsData := c.rsDataParts, rsTotal := c.rsTotalParts, allowed }
+
+def prepBody (pc : PrepC) (h : Hint) : Except String Prep := do
+  let ctx := pc.ctxB2
+  check (h.refunds.all fun r => (statusShards ctx).contains (ctx.layout.shardOf r.receiverId))
+    "out of domain (e.forwarded): generated receipt buffered"
+  check (fwdGasOk ctx h.refunds) "out of domain (e.forwarded): generated receipt buffered"
+  check (h.n == 0 || (h.n - 1) * Params.G < ctx.gasLimit)
+    "out of domain (e.compute): receipt delayed by the compute limit"
+  check (pc.H.prevGasUsed == h.n * Params.G) "invalid: InvalidGasUsed"
+  check (pc.H.prevOutgoingReceiptsRoot == outgoingReceiptsRoot pc.L h.refunds) "invalid: InvalidReceiptsProof"
+  let body := h.body
+  match encodedMerkleRoot pc.rsData pc.rsTotal body with
+  | none => throw "invalid: Reed-Solomon parameters"
+  | some (emr, len) =>
+    check (pc.H.encodedMerkleRoot == emr) "invalid: InvalidChunkEncodedMerkleRoot"
+    check (pc.H.encodedLength == len) "invalid: InvalidChunkEncodedLength"
+  pure { hdr := { pc.hdr with n := h.n }, lists := pc.lists, bnds := pc.bnds, sched := pc.sched,
+         body, fwd := fwdSizes ctx h.refunds }
+
+def prepD0 (cb : Bytes) (h : Hint) : Except String Prep := do
+  let pc ← prepClaim cb
+  prepBody pc h
 
 /-! ## Encoding of the prepared statement (the STARK's public input) -/
 
-/-- `"near-arena-prep-d0-v0"` -/
-def prepTag : Bytes := "near-arena-prep-d0-v0".toUTF8.toList
-
-def encDigestOpt : Option Bytes → Bytes
-  | none => [0]
-  | some v => [1] ++ u32 v.length ++ sha256 v
+/-- `"near-arena-prep-d0a-v0"` -/
+def prepTag : Bytes := "near-arena-prep-d0a-v0".toUTF8.toList
 
 def PrepHdr.encode (h : PrepHdr) : Bytes :=
   u32 h.K ++ u32 h.n ++ u64 h.own ++ u32 h.ownIdx ++ u32 h.numShards ++ u64 h.height ++
@@ -292,21 +380,21 @@ def PrepHdr.encode (h : PrepHdr) : Bytes :=
 
 def SrcList.encode (s : SrcList) : Bytes := s.key ++ u64 s.fromShard ++ s.root
 
-def PubWalk.encode (w : PubWalk) : Bytes :=
-  u32 w.tau ++ encList u8 w.key ++ encDigestOpt w.value
+def Scheduler.SchedPub.encode (p : Scheduler.SchedPub) : Bytes :=
+  encList u64 p.ids ++
+  u64 p.params.base ++ u64 p.params.maxShardBandwidth ++ u64 p.params.maxSingleGrant ++
+  u64 p.params.maxReceiptSize ++ u64 p.params.maxAllowance ++
+  encList (fun b => u8 (if b then 1 else 0)) p.allowed.toList ++
+  encList (fun q => u32 q.link ++ encList u64 q.incs) p.reqs ++
+  p.seed ++ p.allShardsHash
 
 def Prep.encode (p : Prep) : Bytes :=
   borshBytes prepTag ++ p.hdr.encode ++ encList SrcList.encode p.lists ++
   encList (fun (lo, hi) => encOpt borshBytes lo ++ encOpt borshBytes hi) p.bnds ++
-  borshBytes p.body ++ encList PubWalk.encode p.walks ++
-  encList (fun v => u32 v.length ++ sha256 v) p.states
+  encList Scheduler.SchedPub.encode p.sched ++
+  borshBytes p.body ++ encList (fun (s, t) => u64 s ++ u64 t) p.fwd
 
-/-! ## `hintOf`: the hint read off the relation's own execution
-
-Mirrors `checkD0` without its checks (lenient: a missing piece leaves a default), so that on
-every `RelD0` case it returns exactly the values `checkD0` reads. Refunds: `out.outgoing` of
-the main application; if that application fails (e.g. a refund would be buffered), the
-refunds generated up to the failing receipt, so `prepD0` reports the same D0 exclusion. -/
+/-! ## `hintOf`: the hint read off the relation's own execution -/
 
 /-- Refunds generated by applying `rs` in order, up to the first failing receipt. -/
 def refundsUpTo (ctx : ApplyCtx) : Acc → List Receipt → List Receipt
@@ -321,68 +409,35 @@ def refundsUpTo (ctx : ApplyCtx) : Acc → List Receipt → List Receipt
       | some acc' => refundsUpTo ctx acc' rs
       | none => acc.refunds
 
-def findD (t : PTrie) (k : List Nat) : Option Bytes := (t.find k).getD none
-
-def hintOfE (cb wb : Bytes) : Except String Hint := do
-  let c ← decodeClaimE cb
-  let (swBytes, _) ← decodeWitnessFile wb
-  let w ← decodeStateWitness swBytes
-  let H ← decodeChunkInner c.chunkInner
-  let ep := c.epochs.headD ⟨[], 0, 0, [], []⟩
-  let L ← decodeLayout ep.shardLayout
-  let blks ← c.blocks.mapM decodeBlk
-  let idx ← match L.index H.shardId with | some i => pure i | none => throw "layout"
-  let isNew := fun (b : Blk) => match b.slots[idx]? with
-    | some (s, _) => s.heightIncluded == b.hdr.height
-    | none => false
-  let b2i ← match blks.findIdx? isNew with | some i => pure i | none => throw "walk"
-  let B2 ← match blks[b2i]? with | some b => pure b | none => throw "walk"
-  let stop := match (blks.drop (b2i + 1)).findIdx? isNew with
-    | some j => b2i + 1 + j
-    | none => blks.length
-  let implicitBlks := (blks.take b2i).reverse
-  let sourceBlks := (blks.drop b2i).take (stop - b2i)
-  let prevB2 ← match blks[b2i + 1]? with | some b => pure b | none => throw "walk"
-  let slotB2 ← match B2.slots[idx]? with | some p => pure p.2 | none => throw "slot"
-  -- applied receipts (as checkD0)
+/-- Applied receipts as `checkD0` builds them (lenient: missing proofs are skipped). -/
+def appliedReceipts (k : WalkD0) (w : StateWitness) : List Receipt := Id.run do
   let mut receipts : List Receipt := []
-  for S in sourceBlks do
+  for S in k.sourceBlks do
     let proofs := S.slots.filterMap fun (s, ci) =>
       if s.heightIncluded == S.hdr.height then lookupLast (chunkHash s.inner ci.encodedMerkleRoot) w.entries
       else none
     let shuffled := (shuffleWithSeed proofs S.hdr.prevHash).getD proofs
     receipts := receipts ++
-      (shuffled.map fun e => e.receipts.filter fun r => L.shardOf r.receiverId == H.shardId).flatten
-  let ctxB2 := blockCtx L H.shardId slotB2.gasLimit B2 prevB2.hdr.nextGasPrice
-  let t0 := partialTrie w.main.values slotB2.prevStateRoot [keyBufferedIdx]
-  let buffered := findD t0 keyBufferedIdx
-  let bshards := match bufferedShards buffered with | .ok s => s | .error _ => []
-  let tMain := partialTrie w.main.values slotB2.prevStateRoot (mainKeys receipts bshards)
-  let s0 := findD tMain keyBwState
-  let (refunds, root0) := match applyNewChunk prims ctxB2 tMain receipts with
-    | .ok out => (out.outgoing, out.trie.hashOf)
-    | .error _ => (refundsUpTo ctxB2 ⟨tMain, [], [], 0, 0⟩ receipts, w.main.postStateRoot)
-  let so := prims.sched ⟨ctxB2.layout.shardIds, ctxB2.own, s0, ctxB2.statuses, ctxB2.requests,
-                         ctxB2.prevBlockHash⟩
-  let mut prevState : Option Bytes := so.map (·.state)
-  let mut root := root0
-  let mut imps : List ImplicitHint := []
-  for (M, T) in implicitBlks.zip w.implicit do
-    let ctxM := blockCtx L H.shardId slotB2.gasLimit M M.hdr.nextGasPrice
-    let tM := partialTrie T.values root [keyDelayedIdx, keyBwState]
-    let v := findD tM keyBwState
-    imps := imps ++ [⟨findD tM keyDelayedIdx, if prevState.isSome && v == prevState then none else some v⟩]
-    let o := prims.sched ⟨ctxM.layout.shardIds, ctxM.own, v, ctxM.statuses, ctxM.requests,
-                          ctxM.prevBlockHash⟩
-    prevState := o.map (·.state)
-    root := match applyMissingChunk prims ctxM tM with
-      | .ok t => t.hashOf
-      | .error _ => T.postStateRoot
-  pure { n := receipts.length, refunds, s0, delayed := findD tMain keyDelayedIdx, buffered,
-         groups := bshards.map fun s => findD tMain (keyGroupsData s),
-         yield := findD tMain keyYieldIdx, implicit := imps }
+      (shuffled.map fun e => e.receipts.filter fun r => k.L.shardOf r.receiverId == k.H.shardId).flatten
+  return receipts
 
-/-- The hint for `(claim, witness)` (`Hint.empty` if the pair does not even decode). -/
+def hintOfE (cb wb : Bytes) : Except String Hint := do
+  let k ← walkD0 cb
+  let w ← decodeW wb
+  let B2 ← match k.blks[k.b2i]? with | some b => pure b | none => throw "walk"
+  let prevB2 ← match k.blks[k.b2i + 1]? with | some b => pure b | none => throw "walk"
+  let receipts := appliedReceipts k w
+  let ctxB2 := blockCtx k.L k.H.shardId k.slotB2.gasLimit B2 prevB2.hdr.nextGasPrice
+  let t0 := partialTrie w.main.values k.slotB2.prevStateRoot [keyBufferedIdx]
+  let bshards := match (t0.find keyBufferedIdx).getD none |> bufferedShards with
+    | .ok s => s | .error _ => []
+  let tMain := partialTrie w.main.values k.slotB2.prevStateRoot (mainKeys receipts bshards)
+  let refunds := match applyNewChunk prims ctxB2 tMain receipts with
+    | .ok out => out.outgoing
+    | .error _ => refundsUpTo ctxB2 ⟨tMain, [], [], 0, 0⟩ receipts
+  pure ⟨receipts.length, refunds⟩
+
+/-- The hint for `(claim, witness)` (`Hint.empty` if the pair does not decode). -/
 def hintOf (cb w : Bytes) : Hint :=
   match hintOfE cb w with
   | .ok h => h
