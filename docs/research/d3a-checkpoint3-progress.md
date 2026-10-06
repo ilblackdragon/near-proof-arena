@@ -36,10 +36,26 @@ for `host` and `hostedges`):
 
 | Family | Cases | Disagreements |
 |---|---|---|
-| `host`: random host-call sequences, args chosen by parameter role, seeds 1–13 | 50,300 | **0** |
+| `host`: random host-call sequences, args chosen by parameter role, seeds 1–12 (final build) | 48,000 | **0** |
 | `hostedges`: every limit error, deep success paths, gas keys, 400 nearcore-judged Ed25519 vectors | 442 | **0** |
 | `promise` and `random` in full mode (compute usage, logs) | 5,000 | **0** |
-| regression after the refactor: `opcodes`, `random`, `promise`, `mutate` | 15,167 | **0** |
+| regression after the refactor: `opcodes`, `random`, `promise` | 15,167 | **0** |
+| `mutate`, seeds 21–59 (byte-level mutants; decode/validate/limit-order agreement) | 285,000 | **0** (after the fixes below) |
+
+Preparation-fidelity findings from the larger mutation run [T]. All are fixed and re-tested.
+
+1. **Consensus-relevant spec bug.** The memory index of `memory.init`/`memory.copy`/`memory.fill` is a LEB
+   u32 (`0x80 0x00` is valid). The spec required a single zero byte, so it **rejected contracts that
+   nearcore accepts**. The random generators always emitted canonical bytes; byte-level mutation found it.
+2. A function body's locals reader is bounded by the body size. A zero-size body is `Deserialization`,
+   not a read into the next body.
+3. Local value types are parsed by wasmparser's *permissive* reader (GC syntax, s33 type indices, v128).
+   NEAR's local budget is checked between parsing and validation, so `TooManyLocals` can precede a
+   type error.
+4. The code section is streamed. A truncated code section reports `TooManyFunctions` (count vs.
+   budget) before the truncation.
+5. Trailing bytes in the import or table section are detected by the validator **before** NEAR's
+   import/table checks.
 
 Findings while doing this [T]:
 * the initial balance is `account_balance + attached_deposit` (`logic/logic.rs:66-70`);
@@ -70,12 +86,24 @@ Findings while doing this [T]:
      refunds. A function call emits arbitrary action receipts, and these are D2's scope (requirements
      §1: "D3 lifts the D2 restrictions").
 
+  **Open question for (1)** [src]:
+  * Contract storage reads use `KeyLookupMode::MemOrFlatOrTrie` (`ext.rs:197-200`). The accounting
+    cache doc says flat-storage reads are *not* tracked, except for value dereferences
+    (`ext.rs:676-679`).
+  * Stateless validators have no flat storage; they read a recorded partial trie.
+  * How nearcore keeps `touching_trie_node` counts identical between producer and validator (memtries
+    on both sides, or recording rules) must be settled from source plus TestEnv evidence before
+    the trie-accounting `External` is specified.
+
   **Escalation:** building `RuntimeD3` on `RuntimeD1` alone would re-implement D2. The proposal is that
   `RuntimeD3` waits for `RuntimeD2` (or D2's action/queue modules land first). Until then, D3 work can
   proceed on (1), the trie-accounting `External`, which D2 does not need.
 * **The 100k full-runtime difftest:** depends on the above, plus `oracle/v3` producing chains with WASM
   traffic.
-* **N3** (`xs[i]!` cleanup): not done. Most occurrences are host-argument arrays whose arity is fixed by
-  link-time signature checking. They will be replaced by pattern-matched arities before the spec is pinned.
+* **N3** (`xs[i]!` cleanup), partly done:
+  * `Host` is clean: host arguments are `Vector`s, so access is statically in bounds.
+  * The execution path in `Exec` reports explicit `unmodeled "invariant: …"` instead of defaulting.
+  * Still to do: preparation-time indexing in `Prepare`/`FiniteWasm`/`InstrSize` (indices are validated
+    by then) and bounded loops in `Exec`/`Machine`/`Crypto`.
 * **Independent implementation for host functions (§2.2):** not started. The clean-room agent's scope is
   core + metering + the checkpoint-2 host functions.
