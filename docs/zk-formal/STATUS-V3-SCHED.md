@@ -231,6 +231,14 @@ converted request (the public `SPAR` tag-1 record follows the same rule).
   received `SPLEN` is the codec's `(τ, 37 + 24·N)` from an instance's first row, with `1 ≤ N < 2^16`,
   so `L < 2^24`. **`codec_spost_sole`** shows every received `SPOST` is a codec send
   `(τ, pos, bpost)` from a row whose encoding gate is set.
+* **`codec_schedVal` (proved, `Link/CodecSV.lean`, the trie lane's `UpsVal` form):** there is
+  `sv : Nat → List Nat`, the post bytes of instance τ's codec block, with bytes `< 256`,
+  `|sv τ| < 2^24`, every received `SPLEN` = `(τ, |sv τ|)`, and every received `SPOST` =
+  `(τ, d, (sv τ)[d])` with `d < |sv τ|`. Hypotheses: `CodecValOwn`, `SparOwn` (only public
+  segments send on `SPAR`), and `PubIdx` with `recs B_SPAR true = (render Ps fwd).par`.
+  Ingredients: `codec_cover` (every active row lies in a block), `enc_row` (encoding row
+  `= f + i`, `i < L`), and **`block_unique`** (one block per τ: each first row receives the
+  single public `parCodec τ` record, so two blocks with one τ would need it twice).
 * `upsV3` hashes the post value under SHA kind `K_VUPS = 12`; the sanity hash keeps `K_SCH = 11`.
   Kind registry: 1–10 v1, 11 SCH, 12 VUPS, 13 SRC, 14 VAK, 15 and 0 reserved.
 
@@ -376,3 +384,46 @@ Range checks are kept in every variant.
 3. M4: completeness of the six tables (honest generators exist and pass on 600 vectors).
 4. A8 (§11) as a completeness-only hypothesis; the distinct-ids amendment is dropped (source map, §11). The codec source map is pending.
 5. Cuts D/E.
+
+## 14. Unconstrained-cells register (program lead, after the `isL` gap; every lane)
+
+Every cell that its table's own constraints leave free, but that a message or a later link reads.
+Each must be pinned by a bus partner, a sender, or a range check. Audit of all five scheduler
+tables (cut B merged scan + distribute), 2026-10-06. The comparator precondition `x, y < 2^29` is
+tracked in §10.
+
+| table | cell (row kind) | read by | pinned by | status |
+|---|---|---|---|---|
+| `smmV3` | **`isL` (INIT)** | GRANT condition `cc = isL·al + (1−isL)·sf`, carried | was nothing → `fst·(cc − isL) = 0`, codec INIT `c = 1`, distribute INIT `c = 0` | **gap, fix in progress** (approved) |
+| `smmV3` | `addr`, `v`, `w` (= `inc`), `al` (= `vin`) (INIT) | segment carry, `SFIN` | `SOP` sender (codec link INIT / distribute budget INIT) | pinned (bus) |
+| `smmV3` | `t`, `inc`, `ok` (READ/GRANT) | GRANT semantics | `SOP` sender (scan READ, process GRANT) | pinned (bus) |
+| `smmV3` | `sf` (GRANT) | `cc`, `v` | comparator `(vin, inc, sf)`; operands `≤ 4.5M` (`GInv`), `inc < 2^25` | pinned (`mem_grant`) |
+| `smmV3` | `tp` (INIT) | — (comparator gated by `isRd + isGr`) | not read | ok |
+| `scpV3` | `x`, `y` | `b`, `d` | sender; `x, y < 2^29` (§10) | pinned |
+| `sprV3` | `ts`, `ein` (entry) | comparator, `SSIN` | `SPUSH` receive (scan/process pushes) | pinned (`rounds_perm`) |
+| `sprV3` | `eout` | `SINC`, re-push | `SSOUT` (shuffle) | pinned (`round_shuffle`) |
+| `sprV3` | `inc, rem, s, r, link` | `SOP`, push | `SINC` (scan) | pinned (`entry_inc`) |
+| `sprV3` | `sbIn/rbIn/alIn`, `sbOut/rbOut/alOut`, `cS/cR/cL` | `ok`, push | memory checks `vin` (chain), `v`, `cc` via `SOP` | pinned (`entry_mem`; `cc` needs the `isL` fix) |
+| `sprV3` | `le` | round end | an extra entry's `SSIN (lid, Lr, ·)` has no shuffle receiver | pinned (`round_shape`) |
+| `sprV3` | `Lr`, `kend` (header) | times, RNG chain | `SSHUF` (shuffle header) | pinned |
+| `sprV3` | `sbIn, sbOut` (key rows) | key limbs | `SPUBB` public key records | pinned (`key_block`) |
+| `ssdV3` | record windows `fw0…fw8` (param, request start, shard, cell) | base, D, bitmap bytes, cid, s, r, count, budget bytes, n, src fields, link, `al` | `SPAR` public records (tags 1–4) | pinned (`scan_pub`, `parBlock`) |
+| `ssdV3` | `key` (request) | `SPUSH`, `zk0` | memory READ `(link, cid+1)`: `vin` chained, `v = vin` | pinned (`read_ok`) |
+| `ssdV3` | `us0`, `us1` (request) | `SINC` sends | `SINC` balance with the process (every sent increase is received) | pinned (`entry_inc`, `scan_init`) |
+| `ssdV3` | `L2` (shard) | avg, `SDLX` | `SFIN` (memory final budget) | pinned |
+| `ssdV3` | `r, N2, L2` (grid header), `N2, L2` (cell) | grid recurrences | `SDLX` (shard rows / previous cell) | pinned |
+| `ssdV3` | `q1, r1, q2, r2, cb` (cell with `al = 0`) | — (`gb = 0`, comparator gate off) | not read | ok |
+| `schV3` | `pres`, `vid` (first row) | `bpre`, `VBYTES` | `S0F` (`upsV3`) | pinned |
+| `schV3` | `bpre` (encoding rows) | allowances, ids, SHA | `VBYTES` (`valV3`) when present; `0` when absent | pinned |
+| `schV3` | header `reg 0…10`, `nn`, `NN`, `base`, `fair`, `τ` | layout, link pass | `SPAR` codec record (tag 0) | pinned (`block_unique` uses it) |
+| `schV3` | id `bpost`, `klo`, `khi` | ids, `SDL` | `SDL` chain from instance 0's public records | pinned (`codec_link`) |
+| `schV3` | `al, gb, srcC, hasC, useC` | link pass, `SA0` | `SDG` at record start (distribute cell) | pinned |
+| `schV3` | `apR`, `bigR` | `a1` | `SA0` from the source record; `0` without source | pinned |
+| `schV3` | `afin`, `gfin` | post allowance bytes, forwarding | `SFIN` (memory final) | pinned |
+| `schV3` | `bsha` (A rows), `fb0..2` (forwarding) | SHA input, `ft` | `SPUBB` public records (ash, fwd) | pinned |
+| `schV3` | `reg` on the first hash row | post hash | `DIGEST` (SHA) | pinned |
+| `schV3` | `cx, cy` where `cg = 0` | — | not read | ok |
+
+Padding rows (`act = 0`): every multiplicity is a kind combination, so all are zero; no cell is read.
+**Result:** one gap (`isL`, being fixed); every other read cell is pinned. Rule for new columns:
+add a row here in the same commit.
