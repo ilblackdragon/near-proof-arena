@@ -400,6 +400,7 @@ pub fn challenge_def(tier: Tier, name: &str) -> ChallengeDefinition {
             max_build_ms: 3_600_000,
         },
         formal_params: None,
+        scoring: None,
         supersedes: None,
         created_at: "2026-10-01T00:00:00Z".into(),
     }

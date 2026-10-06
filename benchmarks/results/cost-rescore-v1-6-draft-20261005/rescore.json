@@ -1,0 +1,364 @@
+{
+ "schema": "arena-offline-cost-rescore-v1",
+ "status": "OFFLINE RE-SCORING under a DRAFT price model; not signed, not published, not a board",
+ "challenge_id": "chl_7c0456cb2d1a36f8601863ac206cfcc9",
+ "challenge_name": "near-transfer-receipt-v1-6",
+ "price_model_id": "pm-near-mainnet-2026q4@v1",
+ "price_model_status": "draft",
+ "price_model_digest": "sha256:38c281cfe256d2cfcdef920eb267254df16fbe947a76e03637ad704016b84dac",
+ "prices": {
+  "validators_per_chunk": 84,
+  "prover_vcpus": 8,
+  "verifier_vcpus": 8,
+  "cpu_fusd_per_vcpu_second": 7610000000,
+  "bandwidth_fusd_per_byte": 82000,
+  "storage_fusd_per_byte": 0,
+  "prepare_amortization_requests": 0
+ },
+ "approximations": [
+  "proof bytes per run = batch_size x proof_bytes_max (sessions predate per-run byte totals); same for baseline and candidates",
+  "verify per run = exact sum of the run's verify wall times (flat verify_runs_ns chunked by batch_size)",
+  "verify was measured on the full 8-CPU benchmark set = verifier_vcpus of this model",
+  "prepare not charged (prepare_amortization_requests = 0)"
+ ],
+ "baseline": [
+  {
+   "class_id": "batch-1",
+   "median_prove_ns": 6211419,
+   "median_verify_ns": 37608750,
+   "median_proof_bytes": 8704,
+   "prove_fusd": 378151189,
+   "prepare_fusd": 0,
+   "verify_fusd": 192328138800,
+   "bandwidth_fusd": 59953152000,
+   "storage_fusd": 0,
+   "total_fusd": 252659441989
+  },
+  {
+   "class_id": "batch-16",
+   "median_prove_ns": 6876460,
+   "median_verify_ns": 127840081,
+   "median_proof_bytes": 59256,
+   "prove_fusd": 418638885,
+   "prepare_fusd": 0,
+   "verify_fusd": 653763947088,
+   "bandwidth_fusd": 408155328000,
+   "storage_fusd": 0,
+   "total_fusd": 1062337913973
+  },
+  {
+   "class_id": "batch-256",
+   "median_prove_ns": 10205590,
+   "median_verify_ns": 1365003999,
+   "median_proof_bytes": 669352,
+   "prove_fusd": 621316320,
+   "prepare_fusd": 0,
+   "verify_fusd": 6980521250640,
+   "bandwidth_fusd": 4610496576000,
+   "storage_fusd": 0,
+   "total_fusd": 11591639142960
+  }
+ ],
+ "rows": [
+  {
+   "submission_id": "sub_19cc9c90e2184946aad17195bd02d847",
+   "candidate": "np-udr-stark",
+   "speed_score_milli_live": 52,
+   "speed_score_milli_recomputed": 52,
+   "cost_score_milli": 1528,
+   "cost_score_ci_milli": 1,
+   "sensitivity_cost_score_milli": {
+    "N_v=1": 926,
+    "N_v=30": 1502,
+    "N_v=105": 1531,
+    "bw=0": 6115,
+    "bw=x1.8 (egress 0.09/GB)": 1177,
+    "verify on 2 vCPUs (price only)": 893
+   },
+   "classes": [
+    {
+     "class_id": "batch-1",
+     "weight_ppm": 200000,
+     "median_prove_ns": 1989271600,
+     "median_verify_ns": 3441869374,
+     "median_proof_bytes": 15643512,
+     "prove_fusd": 121106855008,
+     "prepare_fusd": 0,
+     "verify_fusd": 17601444629160,
+     "bandwidth_fusd": 107752510656000,
+     "storage_fusd": 0,
+     "total_fusd": 125475062140168,
+     "baseline_total_fusd": 252659441989
+    },
+    {
+     "class_id": "batch-16",
+     "weight_ppm": 300000,
+     "median_prove_ns": 6492014396,
+     "median_verify_ns": 4560579534,
+     "median_proof_bytes": 19688376,
+     "prove_fusd": 395233836429,
+     "prepare_fusd": 0,
+     "verify_fusd": 23322438890520,
+     "bandwidth_fusd": 135613533888000,
+     "storage_fusd": 0,
+     "total_fusd": 159331206614949,
+     "baseline_total_fusd": 1062337913973
+    },
+    {
+     "class_id": "batch-256",
+     "weight_ppm": 500000,
+     "median_prove_ns": 62156378513,
+     "median_verify_ns": 6200008598,
+     "median_proof_bytes": 24620920,
+     "prove_fusd": 3784080323872,
+     "prepare_fusd": 0,
+     "verify_fusd": 31706347969548,
+     "bandwidth_fusd": 169588896960000,
+     "storage_fusd": 0,
+     "total_fusd": 205079325253420,
+     "baseline_total_fusd": 11591639142960
+    }
+   ]
+  },
+  {
+   "submission_id": "sub_314aa809c32e42248cc637b462d8ced7",
+   "candidate": "reexec-witness-fast",
+   "speed_score_milli_live": 110007,
+   "speed_score_milli_recomputed": 110007,
+   "cost_score_milli": 91318,
+   "cost_score_ci_milli": 1001,
+   "sensitivity_cost_score_milli": {
+    "N_v=1": 91807,
+    "N_v=30": 91330,
+    "N_v=105": 91317,
+    "bw=0": 88970,
+    "bw=x1.8 (egress 0.09/GB)": 92203,
+    "verify on 2 vCPUs (price only)": 93337
+   },
+   "classes": [
+    {
+     "class_id": "batch-1",
+     "weight_ppm": 200000,
+     "median_prove_ns": 5548881,
+     "median_verify_ns": 37998990,
+     "median_proof_bytes": 9064,
+     "prove_fusd": 337815876,
+     "prepare_fusd": 0,
+     "verify_fusd": 194323795008,
+     "bandwidth_fusd": 62432832000,
+     "storage_fusd": 0,
+     "total_fusd": 257094442884,
+     "baseline_total_fusd": 252659441989
+    },
+    {
+     "class_id": "batch-16",
+     "weight_ppm": 300000,
+     "median_prove_ns": 6045823,
+     "median_verify_ns": 150943422,
+     "median_proof_bytes": 66656,
+     "prove_fusd": 368069705,
+     "prepare_fusd": 0,
+     "verify_fusd": 771912584688,
+     "bandwidth_fusd": 459126528000,
+     "storage_fusd": 0,
+     "total_fusd": 1231407182393,
+     "baseline_total_fusd": 1062337913973
+    },
+    {
+     "class_id": "batch-256",
+     "weight_ppm": 500000,
+     "median_prove_ns": 9530945,
+     "median_verify_ns": 1554719588,
+     "median_proof_bytes": 679760,
+     "prove_fusd": 580243932,
+     "prepare_fusd": 0,
+     "verify_fusd": 7950711595512,
+     "bandwidth_fusd": 4682186880000,
+     "storage_fusd": 0,
+     "total_fusd": 12633478719444,
+     "baseline_total_fusd": 11591639142960
+    }
+   ]
+  },
+  {
+   "submission_id": "sub_56bb976bc115412483197db8d34c3092",
+   "candidate": "np-udr-stark-fast",
+   "speed_score_milli_live": 48,
+   "speed_score_milli_recomputed": 48,
+   "cost_score_milli": 1496,
+   "cost_score_ci_milli": 2,
+   "sensitivity_cost_score_milli": {
+    "N_v=1": 949,
+    "N_v=30": 1475,
+    "N_v=105": 1498,
+    "bw=0": 6098,
+    "bw=x1.8 (egress 0.09/GB)": 1151,
+    "verify on 2 vCPUs (price only)": 874
+   },
+   "classes": [
+    {
+     "class_id": "batch-1",
+     "weight_ppm": 200000,
+     "median_prove_ns": 3051538399,
+     "median_verify_ns": 3510312038,
+     "median_proof_bytes": 16638776,
+     "prove_fusd": 185777657732,
+     "prepare_fusd": 0,
+     "verify_fusd": 17951454937416,
+     "bandwidth_fusd": 114607889088000,
+     "storage_fusd": 0,
+     "total_fusd": 132745121683148,
+     "baseline_total_fusd": 252659441989
+    },
+    {
+     "class_id": "batch-16",
+     "weight_ppm": 300000,
+     "median_prove_ns": 9136497194,
+     "median_verify_ns": 4637501493,
+     "median_proof_bytes": 20377944,
+     "prove_fusd": 556229949171,
+     "prepare_fusd": 0,
+     "verify_fusd": 23715811635096,
+     "bandwidth_fusd": 140363278272000,
+     "storage_fusd": 0,
+     "total_fusd": 164635319856267,
+     "baseline_total_fusd": 1062337913973
+    },
+    {
+     "class_id": "batch-256",
+     "weight_ppm": 500000,
+     "median_prove_ns": 48666999837,
+     "median_verify_ns": 6240063238,
+     "median_proof_bytes": 24711032,
+     "prove_fusd": 2962846950077,
+     "prepare_fusd": 0,
+     "verify_fusd": 31911184194120,
+     "bandwidth_fusd": 170209588416000,
+     "storage_fusd": 0,
+     "total_fusd": 205083619560197,
+     "baseline_total_fusd": 11591639142960
+    }
+   ]
+  },
+  {
+   "submission_id": "sub_7ef24373c6ac46cd800965882635df16",
+   "candidate": "reexec-npai",
+   "speed_score_milli_live": 97324,
+   "speed_score_milli_recomputed": 97324,
+   "cost_score_milli": 207592,
+   "cost_score_ci_milli": 599,
+   "sensitivity_cost_score_milli": {
+    "N_v=1": 199488,
+    "N_v=30": 207383,
+    "N_v=105": 207615,
+    "bw=0": 1942188,
+    "bw=x1.8 (egress 0.09/GB)": 155003,
+    "verify on 2 vCPUs (price only)": 115931
+   },
+   "classes": [
+    {
+     "class_id": "batch-1",
+     "weight_ppm": 200000,
+     "median_prove_ns": 6693307,
+     "median_verify_ns": 5543981,
+     "median_proof_bytes": 11776,
+     "prove_fusd": 407488531,
+     "prepare_fusd": 0,
+     "verify_fusd": 28351475376,
+     "bandwidth_fusd": 81113088000,
+     "storage_fusd": 0,
+     "total_fusd": 109872051907,
+     "baseline_total_fusd": 252659441989
+    },
+    {
+     "class_id": "batch-16",
+     "weight_ppm": 300000,
+     "median_prove_ns": 7108216,
+     "median_verify_ns": 7232509,
+     "median_proof_bytes": 87544,
+     "prove_fusd": 432748191,
+     "prepare_fusd": 0,
+     "verify_fusd": 36986472432,
+     "bandwidth_fusd": 603003072000,
+     "storage_fusd": 0,
+     "total_fusd": 640422292623,
+     "baseline_total_fusd": 1062337913973
+    },
+    {
+     "class_id": "batch-256",
+     "weight_ppm": 500000,
+     "median_prove_ns": 10251287,
+     "median_verify_ns": 42990299,
+     "median_proof_bytes": 706184,
+     "prove_fusd": 624098353,
+     "prepare_fusd": 0,
+     "verify_fusd": 219848949936,
+     "bandwidth_fusd": 4864195392000,
+     "storage_fusd": 0,
+     "total_fusd": 5084668440289,
+     "baseline_total_fusd": 11591639142960
+    }
+   ]
+  },
+  {
+   "submission_id": "sub_c67dd93beafd4ecc9935431366f0baa6",
+   "candidate": "reexec-witness",
+   "speed_score_milli_live": 98376,
+   "speed_score_milli_recomputed": 98376,
+   "cost_score_milli": 93492,
+   "cost_score_ci_milli": 2074,
+   "sensitivity_cost_score_milli": {
+    "N_v=1": 93564,
+    "N_v=30": 93494,
+    "N_v=105": 93492,
+    "bw=0": 92388,
+    "bw=x1.8 (egress 0.09/GB)": 93922,
+    "verify on 2 vCPUs (price only)": 94479
+   },
+   "classes": [
+    {
+     "class_id": "batch-1",
+     "weight_ppm": 200000,
+     "median_prove_ns": 6493733,
+     "median_verify_ns": 38551323,
+     "median_proof_bytes": 9136,
+     "prove_fusd": 395338466,
+     "prepare_fusd": 0,
+     "verify_fusd": 197148381780,
+     "bandwidth_fusd": 62928768000,
+     "storage_fusd": 0,
+     "total_fusd": 260472488246,
+     "baseline_total_fusd": 252659441989
+    },
+    {
+     "class_id": "batch-16",
+     "weight_ppm": 300000,
+     "median_prove_ns": 6999832,
+     "median_verify_ns": 138286630,
+     "median_proof_bytes": 72480,
+     "prove_fusd": 426149773,
+     "prepare_fusd": 0,
+     "verify_fusd": 707186762940,
+     "bandwidth_fusd": 499242240000,
+     "storage_fusd": 0,
+     "total_fusd": 1206855152713,
+     "baseline_total_fusd": 1062337913973
+    },
+    {
+     "class_id": "batch-256",
+     "weight_ppm": 500000,
+     "median_prove_ns": 10249638,
+     "median_verify_ns": 1510574327,
+     "median_proof_bytes": 640272,
+     "prove_fusd": 623997962,
+     "prepare_fusd": 0,
+     "verify_fusd": 7724956262352,
+     "bandwidth_fusd": 4410193536000,
+     "storage_fusd": 0,
+     "total_fusd": 12135773796314,
+     "baseline_total_fusd": 11591639142960
+    }
+   ]
+  }
+ ]
+}
