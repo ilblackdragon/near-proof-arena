@@ -294,6 +294,46 @@ mod tests {
         assert_eq!(r["price_model_digest"], pm.digest().unwrap().as_str());
     }
 
+    const GOVERNED_V2: &str =
+        include_str!("../../../challenges/price-models/pm-near-mainnet-2026q4.v2.json");
+    /// JCS digest of the governed model (docs/BENCHMARK_SPEC.md §14.7). A
+    /// governed file is never edited: any change is a new version.
+    const GOVERNED_V2_DIGEST: &str =
+        "sha256:292f094206162f78ee3ad982a8082c11b49fc379ad04956275693d9ef4d5ca6a";
+
+    #[test]
+    fn governed_price_model_v2_is_pinned() {
+        let pm: PriceModel = serde_json::from_str(GOVERNED_V2).unwrap();
+        pm.validate().unwrap();
+        assert_eq!(
+            (pm.id.as_str(), pm.version, pm.status.as_str()),
+            ("pm-near-mainnet-2026q4", 2, "governed")
+        );
+        // Decisions of 2026-10-06: 50 validators per shard, draft prices kept.
+        assert_eq!(pm.validators_per_chunk, 50);
+        assert_eq!(pm.verifier_vcpus, 8);
+        assert_eq!(pm.cpu_fusd_per_vcpu_second, 7_610_000_000);
+        assert_eq!(pm.bandwidth_fusd_per_byte, 82_000);
+        assert_eq!(pm.digest().unwrap().as_str(), GOVERNED_V2_DIGEST);
+        // The offline re-scorings (Python JCS) record the same digest.
+        for r in [
+            include_str!(
+                "../../../benchmarks/results/cost-rescore-v1-6-pm-v2-20261006/rescore.json"
+            ),
+            include_str!(
+                "../../../benchmarks/results/cost-rescore-v3-d0-1-pm-v2-20261006/rescore.json"
+            ),
+        ] {
+            let r: serde_json::Value = serde_json::from_str(r).unwrap();
+            assert_eq!(r["price_model_digest"], GOVERNED_V2_DIGEST);
+        }
+        // A formal challenge accepts it.
+        let chal = v1_6();
+        let mut c = chal.clone();
+        c.scoring = Some(cost_spec(&chal, pm));
+        c.check_scoring().unwrap();
+    }
+
     #[test]
     fn scoring_section_is_additive_and_checked() {
         let chal = v1_6();

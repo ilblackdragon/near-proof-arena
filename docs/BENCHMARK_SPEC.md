@@ -616,7 +616,13 @@ suite revision.
   scores differ by more than `max(ci₁ + ci₂, 30 000 ppm of the lower)`, the
   entry is marked `UNCONFIRMED` and both are shown. The **lower** of the two
   scores is the ranked score; both are published.
-* Experimental/demo tiers and non-governed hosts are label## 14. Cost-normalized board (`cost_v1`, bench-spec-v1.2)
+* Experimental/demo tiers and non-governed hosts are labelled as such and
+  never ranked on the official board.
+* Wording: "best measured on this challenge" — never "provably fastest".
+
+---
+
+## 14. Cost-normalized board (`cost_v1`, bench-spec-v1.3)
 
 ### 14.1 Status and scope
 
@@ -634,13 +640,22 @@ counts on a board only if it was computed under that challenge's own price
 model (digest match). The server drops any cost result a worker sends for a
 speed-only challenge.
 
+Versions: bench-spec-v1.2 introduced `cost_v1` with a draft price model.
+**bench-spec-v1.3** (2026-10-06) adds the verify drift control (§14.4), the
+pinning rule for `cost_baseline` (§14.5), the governed price model
+`pm-near-mainnet-2026q4@v2` (§14.7) and the documented multi-shard extension
+(§14.11, future, not scored). The cost formula (§14.3) and its test vectors are
+unchanged.
+
 ### 14.2 Model: per-chunk system cost
 
 NEAR stateless validation proves each chunk once and verifies it many
 times. The chunk producer applies the chunk and distributes the state witness
 (in the arena: the proof). Every chunk validator assigned to that shard at
-that height then receives the witness, validates it and endorses it. Cost per
-proved request (one `prove` invocation is one chunk-like unit):
+that height then receives the witness, validates it and endorses it. The
+statement is **per shard**: one proof covers one shard's chunk, and only that
+shard's committee verifies it. Cost per proved request (one `prove`
+invocation is one chunk-like unit):
 
 ```
 C = c_cpu·v_p·T_prove                       prover (chunk producer), once
@@ -655,7 +670,7 @@ C = c_cpu·v_p·T_prove                       prover (chunk producer), once
 | `proof_bytes` | size of `proof.bin` | measured |
 | `v_p` | prover vCPUs = `hardware_profile.vcpus` | challenge |
 | `v_v` | reference validator vCPUs; `verify` is **pinned** to this many of the benchmark CPUs | price model |
-| `N_v` | validators that verify each chunk (stateless-validation fan-out) | price model |
+| `N_v` | validators that verify each chunk: the chunk-validator committee of **one shard** (stateless-validation fan-out); 50 in the governed model | price model |
 | `c_cpu` | price of one vCPU-second | price model |
 | `c_bw`, `c_store` | per-validator network and retention cost per proof byte | price model |
 
@@ -740,15 +755,49 @@ batch, on the benchmark CPUs, and only measured-phase verifies are reported.
 The worker computes `BenchmarkResult.cost` (point score and CI). The server
 recomputes the point score from the per-run vectors and the challenge, keeps
 the worker's CI half-width, and drops the result if the vectors are missing or
-inconsistent. Gaps that remain:
+inconsistent.
 
-* the paired baseline control (§6.2) checks only prove time;
-* `verify` noise is not yet re-measured by a control. The 2026-10-05 sessions
-  show ≈ 10% session-to-session variance in reexec-witness verify (§14.8).
+**Verify drift control (bench-spec-v1.3, normative).** Under `cost_v1` the
+validator term `N_v·c_cpu·v_v·V` dominates the cost of every re-execution
+reference (§14.8), so a drifted reference verify median would move every
+cost score of the challenge. The control extends §6.2 from prove time to
+verify time, with the same tolerance:
 
-A governed `cost_v1` challenge SHOULD wait for a verify control. It would add
-the baseline's verify medians to the §6.2 gate with the same 30 000 ppm
-tolerance.
+```
+verify_control(pinned V_j, control runs of class j):
+  V_ctl,j  = median_u64(per-run Σ verify ns of the control session, class j)
+  drift_j  = ceil(|V_ctl,j − V_j| · 1e6 / V_j)                 (ppm, §6.1 drift_ppm)
+  ok       = ∀j: drift_j ≤ 30 000                                (VERIFY_CONTROL_TOLERANCE_PPM)
+  else  VERIFY_DRIFT  → the control session is infra-invalid
+```
+
+The classes of the pinned and the control set must be identical
+(`MISSING_BASELINE`), a control class needs ≥ 1 run (`NO_RUNS`) and a pinned
+median must be > 0 (`ZERO_OR_BAD_TIME`). Reference:
+`arena_bench.cost.verify_control`; Rust: `arena_measure::cost::verify_control`;
+vectors: `cost.json` → `verify_control`. Where it applies:
+
+1. **Pinning a cost baseline (§14.5).** The reference is measured on the
+   challenge's benchmark CPUs with `run_baseline.py --control-sessions N`
+   (N ≥ 1): N more sessions of the same bundle, the same sampled batches and the
+   same CPUs right after the first. Each control is checked against the first
+   session. A control session that is itself infra-invalid (§6.1 calibration
+   failed, or flagged) does not count either way. `pin_baseline.py
+   --price-model` refuses to write `scoring` unless the pinned session is valid,
+   at least one control is valid, and every valid control passes. A failed
+   control is an infra event: re-measure (bounded by the 3 infra retries), and
+   never widen the tolerance in place.
+2. **Season re-check and re-scoring.** A re-measurement of a pinned reference
+   is compared with the pinned `verify_ns`. A failure means the host or the
+   reference changed. The board is then labelled and the baseline is re-pinned
+   as a new challenge version (§14.5); a published board is never re-priced in
+   place.
+3. **In-session paired control (§6.2).** When the worker runs the challenge's
+   baseline submission on the same batches as the candidate, it applies this
+   check to the control's verify medians next to the prove check. The live
+   worker does not run the paired baseline yet, neither for prove nor for
+   verify. Until it does, 1 and 2 are the enforced controls, and the candidate's
+   own verify noise is in its bootstrap CI (§14.3).
 
 ### 14.5 Price model (`arena-price-model-v1`) and governance
 
@@ -770,7 +819,20 @@ tolerance.
 * A challenge embeds the model inline **and** its digest
   (`scoring.price_model_digest`, checked). Changing any price is a new
   model version and therefore a new challenge. A published board is never
-  re-priced.
+  re-priced. The price-model digest is shown on every cost-board row.
+* **Versioning.** `id` names the series (e.g. the season) and `version` is
+  bumped on any change to any field, rationale included. A governed file is
+  `challenges/price-models/<id>.v<version>.json`, and its JCS digest is pinned
+  by a test (`arena-types` `scoring::tests`). It is never edited: a change is
+  a new file with `version + 1`. A model is content-addressed by its digest
+  and is signed only through the challenge that embeds it (`arena-admin
+  sign`/`supersede`).
+* **Pinning `cost_baseline`.** `prove_ns` comes from the same session as
+  `workload_suite.baseline_ns`. `verify_ns` and `proof_bytes` are that session's
+  medians of the per-run totals (§14.3), measured on the benchmark CPUs
+  (`verify` pinned to `verifier_vcpus`) and confirmed by the verify drift
+  control (§14.4). Tooling: `run_baseline.py --control-sessions N`, then
+  `pin_baseline.py --price-model <governed model>`.
 * `formal` challenges MUST pin a `governed` model. The check is enforced by
   `ChallengeDefinition::check_scoring` in `arena-admin verify` and in
   server-side registration.
@@ -813,7 +875,33 @@ Results and API:
   verify, N_v × bytes, total, ratio to the reference, verify time and proof
   size per batch.
 
-### 14.7 Draft price model `pm-near-mainnet-2026q4` (v1, DRAFT, not signed)
+### 14.7 Price model `pm-near-mainnet-2026q4`
+
+#### v2 — GOVERNED (2026-10-06)
+
+`challenges/price-models/pm-near-mainnet-2026q4.v2.json`, digest
+`sha256:292f094206162f78ee3ad982a8082c11b49fc379ad04956275693d9ef4d5ca6a`
+(pinned by `arena-types` `scoring::tests::governed_price_model_v2_is_pinned`).
+It is the v1 draft below with these changes: `N_v` = 50 per shard, status
+`governed`, `effective_from` 2026-10-06, and the rationale updated. Every price
+is kept.
+
+| param | value | basis | justification |
+|---|---|---|---|
+| `validators_per_chunk` | **50** | governance decision | **Per shard.** The per-chunk statement is one shard's chunk at one height, and that shard's committee verifies it, so `N_v` counts one shard's validators. 50 is the governed committee size. The v1 observation (84.0–84.1 distinct endorsers per shard, 105 mandate seats) is kept as a sensitivity column. Only the validator terms scale with `N_v`, both linearly. |
+| `verifier_vcpus` | **8** | published | NEAR chunk-validator spec ("≥ 8 physical cores"). Measured pinned to live CPUs 0–7 (CCD0, SMT siblings idle). |
+| `cpu_fusd_per_vcpu_second` | **7.61e9** (USD 7.61e-6) | ESTIMATE | Unchanged: USD 160/month for 8 vCPU (m5a.2xlarge CPU part) ÷ (730 h × 8 × 3600 s). |
+| `bandwidth_fusd_per_byte` | **82 000** (USD 8.2e-11) | ESTIMATE | Unchanged: egress USD 0.05/GB × upload amplification. The amplification is `(N−2)/⌊0.6 N⌋`: 1.64 at N = 84 and 1.60 at N = 50 (48/30). The v1 constant is kept by decision. The N = 50 derivation gives 8.0e-11 (−2.4%), well inside the egress-price uncertainty. |
+| `storage_fusd_per_byte` | **0** | estimate | Unchanged. |
+| `prepare_amortization_requests` | **0** | estimate | Unchanged. |
+
+The measurement does not change the constants. In the re-measured references
+(§14.8), verify is 63–77% of the reference cost on v1-6 and 93–96% on v3 D0;
+bandwidth is the rest, and prove is < 0.2%. No measured quantity is an input
+to a price, so the measurement cannot contradict `c_cpu` or `c_bw`. What it
+does show is that the verify median itself is the quantity to control (§14.4).
+
+#### v1 — DRAFT (2026-10-05, superseded by v2, never signed)
 
 `challenges/price-models/pm-near-mainnet-2026q4.draft.json`, digest
 `sha256:38c281cfe256d2cfcdef920eb267254df16fbe947a76e03637ad704016b84dac`.
@@ -835,7 +923,93 @@ Context facts that the model does not use directly, from nearcore 2.13.4:
 * `main_storage_proof_size_soft_limit` = 4 MB (`72.yaml:1`);
 * mainnet block time ≥ 600 ms (`nearcore/src/config.rs:76`).
 
-### 14.8 Offline re-scoring of the live v1-6 board (draft model, not signed)
+### 14.8 Offline re-scoring of the admitted entries
+
+#### Under the governed model v2, with re-measured references (2026-10-06)
+
+**Reference re-measurement.** For each challenge, the pinned
+`baseline_submission` package was re-packed from git and checked to be
+byte-identical to the pin: v1-6 `sha256:329c763a…` from `6b4ae2f`, v3 D0-1
+`sha256:63618259…` from `e50d17d`. It was then measured on the live benchmark
+CPUs 0–7 through the worker's own BENCHMARK stage (`run_baseline.py` →
+`bench_session`, Firecracker `firecracker-rc`, `vm_per_batch`, judge-secret
+sampling under the live season commitment `sha256:b860eb74…`, sampled for the
+live challenge id). Live `w1` was stopped for the windows (07:45–08:06 and
+08:06–08:15 UTC) with no job queued or leased. Each run was 1 + 2 control sessions on the
+same batches (§14.4).
+
+| challenge | session | prove ms/batch (frozen) | verify ms/batch (per-run median) | proof KiB/batch | verify control |
+|---|---|---|---|---|---|
+| v3 D0-1 | `costbase-near-chunk-validation-d0-1-secret-cpus0-7-20261006` | quiet 6.77 (7.00), transfers 7.14 (6.96), missing 7.23 (7.13) | quiet **813.6**, transfers **923.8**, missing **632.1** | 15.7 / 27.7 / 33.1 | **PASS** (control 2: 5 342 / 19 673 / 4 041 ppm; control 1 infra-invalid, SESSION_DRIFT) |
+| v1-6 attempt 1 | `…-v1-6-…-20261006-attempt1-verify-drift` | batch-1 6.97, batch-16 7.40, batch-256 10.03 | 39.1 / **164.2** / 1509.8 | 6.1 / 47.0 / 507.3 | **FAIL** VERIFY_DRIFT: batch-16 43 293 and 41 464 ppm (both controls valid, both ≈ 171 ms); batch-1 ≤ 5 312, batch-256 ≤ 17 416 |
+| v1-6 attempt 2 | `…-v1-6-…-20261006-attempt2-verify-drift` | 6.82 / 7.81 / 10.41 (frozen 6.21 / 6.88 / 10.21) | 38.9 / **157.2** / 1524.0 | 6.1 / 47.0 / 507.3 | **FAIL** VERIFY_DRIFT: batch-16 160 774 ppm (valid control at 182.5 ms); batch-1 21 948, batch-256 19 546 |
+
+On v3 D0 the reference verify reproduces within 3%, and the cost baseline is
+confirmed. On v1-6 the **batch-16 reference verify is bimodal**: the per-run
+totals of one session cluster near 150 ms and near 185–215 ms, so the median
+of 15 runs moves by 4–21% between sessions on identical batches. The control
+caught exactly the failure it was added for. Per §14.4 the v1-6 cost baseline
+is **not confirmed**, and a governed v1-6 cost challenge cannot be pinned from
+these sessions. The fix is a measurement change, not a wider tolerance: more
+measured runs for verify, or a verify median over pooled sessions, as a
+bench-spec change. Batch-1 and batch-256 pass in every valid control.
+
+The per-run verify totals of v3 D0 are 1.6–4.2× (8 × the per-proof median).
+Verify time is heavy-tailed in the input: in every d0-quiet batch, two of the
+eight sampled chunks verify in ≈ 320–350 ms and the other six in 12–68 ms.
+The cost formula charges the batch total, which is the right quantity (the
+median per proof would hide the expensive chunks). It does so for the
+reference and every candidate alike.
+
+**Scores.** `python -m arena_bench cost-rescore --cost-baseline …` (inputs
+copied from the live object store; runs untouched). The reference prove is
+the frozen `baseline_ns`. Reference verify and bytes come from the re-measured
+session. "ref as in control" re-scores against the valid control session's
+medians and shows how far the choice of session moves the score.
+
+v3 D0-1 (`benchmarks/results/cost-rescore-v3-d0-1-pm-v2-20261006/`, exact
+per-run bytes, reference **confirmed**):
+
+| candidate | speed (live) | **cost_v1 (v2)** | ref as in control | N_v=1 | N_v=84 | c_bw=0 | verify priced at 2 vCPUs |
+|---|---|---|---|---|---|---|---|
+| reexec-v3-d0-fast (`sub_2b51fbde…`) | 104.566 | **78.766 ± 1.535** | 79.513 | 78.931 | 78.764 | 77.734 | 81.422 |
+| reexec-v3-d0 normal form (`sub_0826bb9b…`) | 4.504 | **74.600 ± 3.662** | 75.308 | 66.229 | 74.679 | 73.515 | 76.855 |
+
+v1-6 (`benchmarks/results/cost-rescore-v1-6-pm-v2-20261006/`, bytes upper
+bound because five sessions predate per-run byte totals; reference
+**UNCONFIRMED**, so the scores are indicative):
+
+| candidate | speed (live) | v1 draft (N_v=84, 2026-10-05) | **cost_v1 (v2)** | ref as in control | N_v=1 | N_v=84 | c_bw=0 | verify priced at 2 vCPUs |
+|---|---|---|---|---|---|---|---|---|
+| reexec-npai (`sub_7ef24373…`) | 97.324 | 207.592 | **222.554 ± 0.641** | 231.354 | 213.516 | 222.643 | 2187.299 | 118.352 |
+| reexec-witness (`sub_c67dd93b…`) | 98.376 | 93.492 | **100.270 ± 2.225** | 104.235 | 100.144 | 100.271 | 104.549 | 96.469 |
+| reexec-witness-fast (`sub_314aa809…`) | 110.007 | 91.318 | **97.942 ± 1.073** | 101.815 | 98.263 | 97.939 | 100.688 | 95.311 |
+| np-udr-stark-fast2 (`sub_ec1fdc22…`) | 0.070 | — | **1.632 ± 0.003** | 1.696 | 1.087 | 1.640 | 6.725 | 0.909 |
+| np-udr-stark (`sub_19cc9c90…`) | 0.052 | 1.528 | **1.628 ± 0.001** | 1.692 | 0.991 | 1.639 | 6.656 | 0.906 |
+| np-udr-stark-fast (`sub_56bb976b…`) | 0.048 | 1.496 | **1.596 ± 0.002** | 1.659 | 1.016 | 1.604 | 6.672 | 0.887 |
+
+What moved, and why:
+
+* **N_v 84 → 50 hardly moves any score** (compare the N_v=84 column). For the
+  reexec family the cost is almost all validator-side, and that side scales with
+  `N_v` for the reference and the candidate alike. Only the STARKs (≈ 1–2%
+  prover share) and the v3 Lean prover (`sub_0826bb9b…`, prove 124–196 ms per
+  batch) gain anything from a smaller committee. The latter is still 74.6 at
+  N_v = 50 against 66.2 at N_v = 1.
+* **The v1-6 changes against the draft re-scoring come from the re-measured
+  reference** (verify 1365 → 1524 ms on batch-256, 128 → 157 ms on batch-16),
+  not from N_v. The reference package now scores ≈ 100 against its own
+  re-measurement (`sub_c67dd93b…` 100.27; that is the re-vendored build of
+  the same verifier source).
+* **v3 D0: both admitted entries cost more than the reference** (74.6 and
+  78.8), the reverse of the speed board (fast child 104.6). Their normal-form
+  verifier (`normalW`) does more work per proof than the canonical-only
+  reference it is measured against: 923–1148 ms against 632–924 ms per batch.
+  The speed board does not see this, because it measures prove time only. It
+  is the price of rejecting the `v3-witness-freedoms` malleability (§5e of
+  LIVE.md), and it is now visible.
+
+#### Under the v1 draft (2026-10-05, superseded)
 
 `python -m arena_bench cost-rescore` takes the judge's "benchmark session"
 artifacts of the five ranked v1-6 submissions. It re-scores them against the
@@ -895,7 +1069,7 @@ What the cost board shows that the speed board hides:
 
 | attack | effect under cost_v1 | defence |
 |---|---|---|
-| **Tiny proof, huge verify** (e.g. "proof" = hash, verify recomputes) | Verify is charged N_v × v_v × wall. A 100× slower verify costs ≈ 84× more than a slower prover would. | Cost term itself; `max_verify_ms`; the verifier is part of `VerifiedSurface` (§12). |
+| **Tiny proof, huge verify** (e.g. "proof" = hash, verify recomputes) | Verify is charged N_v × v_v × wall. A 100× slower verify costs ≈ 50× more than a slower prover would. | Cost term itself; `max_verify_ms`; the verifier is part of `VerifiedSurface` (§12). |
 | **Witness as proof** (re-execution) | This is the status quo, and it scores as the reference does. Bytes and verify are charged N_v times. | Intended: it is the baseline to beat. |
 | **Verify fast only on the judge's big box** | Verify is measured pinned to `verifier_vcpus` CPUs of the reference validator profile, so multi-thread speedups beyond the profile are not available. | §14.2 pinning. The next model version can lower `verifier_vcpus` (sensitivity column "2 vCPUs" shows the effect) or add a memory cap for verify. |
 | **Parallel verify to cut wall time** | Pays for every reserved vCPU (allocated × wall); no gain beyond the profile. | §14.2. |
@@ -903,21 +1077,80 @@ What the cost board shows that the speed board hides:
 | **Push work into `prepare`** | Not charged at A = 0; `prepare` is input-blind (§2), so it cannot depend on inputs. | §2 caps; set A > 0 if a model needs it. |
 | **Ignore latency to minimise cost** (very slow but cheap prover) | Prove is ≈ 0% of cost, so a slow prover hardly moves the cost score. | `max_prove_ms` hard cap. The speed board stays primary for latency. A future model may add a per-request latency gate tied to block time (600 ms). |
 | **Price-model shopping** | Not possible: the model is pinned by digest in the signed challenge, and results under another digest are never ranked. | §14.5, server and web digest checks. |
-| **Noisy verify luck** | Verify is bootstrapped jointly with prove (CI). The baseline verify is not yet re-measured per session. | Add a verify paired control before a governed `cost_v1` challenge (§14.4). |
+| **Noisy verify luck** | Verify is bootstrapped jointly with prove (CI). A drifted *reference* verify would move every score. | Verify drift control (§14.4): the pinned reference verify must be reproduced within 30 000 ppm on the benchmark CPUs before it is pinned, and again at each season re-check. |
 
-### 14.10 Decisions requested before a governed `cost_v1` challenge
+### 14.10 Decisions (resolved 2026-10-06)
 
-1. Approve `N_v = 84`, or choose 105 (mandate seats; this barely moves scores,
-   see the sensitivity columns).
-2. Approve `c_cpu` and `c_bw` as estimates. Only the CPU:bandwidth ratio
-   matters to the ranking: `c_bw = 0` turns reexec-npai's 2.08× into 19×.
-3. Keep `verifier_vcpus = 8`, or measure a weaker validator profile.
-4. Make the verify paired control (§14.4) a prerequisite.
-5. Re-measure the reference with per-run byte totals (the new worker records
-   them), then pin `cost_baseline` from that session.
+1. `N_v` = **50 validators per shard** (not 84 or 105). One chunk proof is
+   verified by its shard's committee only.
+2. `c_cpu` = USD 7.61e-6 per vCPU-second and `c_bw` = USD 8.2e-11 per byte per
+   validator are kept as estimates. The measurement did not contradict them
+   (§14.7).
+3. `verifier_vcpus` = 8 is kept.
+4. The verify drift control is added (§14.4). It is a prerequisite for pinning
+   a `cost_baseline`.
+5. The references were re-measured on the live benchmark CPUs with per-run byte
+   totals (§14.8). **v3 D0-1 passed the verify control**, so a governed
+   `cost_v1` successor of it can be pinned with `pin_baseline.py --old …
+   --price-model challenges/price-models/pm-near-mainnet-2026q4.v2.json`.
+   **v1-6 failed it** (batch-16 bimodal verify), so its cost baseline stays
+   unconfirmed until the verify measurement is made robust. No cost challenge
+   is registered yet: the live challenges stay speed-scored, and the cost
+   numbers in §14.8 are offline.
 
- on its own profile. The price-model digest is shown
-on every cost-board row; changing prices is a new version, never an edit.
+### 14.11 Forward plan: one proof for all shards (multi-shard term, FUTURE, not scored)
+
+**Why ZK at all.** Under `cost_v1` a per-chunk succinct proof competes with
+re-execution only through a smaller `N_v × (verify + bytes)`. With
+small witnesses the break-even is hard (§14.8). The structural advantage of ZK
+is elsewhere: **one proof can cover every shard**. Re-execution cannot do
+that today. A validator that checks a whole block must re-execute S chunks,
+which needs S × the per-shard CPU, memory and witness bandwidth. That is more
+than the standard 8-core validator profile, and it is why validation is
+sharded with one committee per shard. A succinct proof of the whole block
+costs a roughly flat verify and size whatever S is, so *every* validator can
+check *every* shard.
+
+**Price model extension (documented now, versioned later).** The statement
+becomes a whole block of S shards, and the same formula is applied to it:
+
+```
+C_block = c_cpu·v_p·T_prove_block                         prover(s), incl. aggregation
+        + N_v,block · ( c_cpu·v_v·T_verify_block + c_bw·bytes_block )
+N_v,block = N_v · S            (all validators: 50 × S; e.g. 500 for S = 10)
+
+re-execution reference:
+  T_verify_block ≈ Σ_s T_verify_s   (grows linearly with S)
+  bytes_block    ≈ Σ_s bytes_s      (grows linearly with S)
+  feasibility    : must fit the reference validator profile (v_v, memory,
+                   bandwidth); for S above what one 8-vCPU validator can
+                   re-execute within the block time, the reference is priced at
+                   v_v,ref = ⌈S·v_v / 8⌉·8 vCPUs and flagged EXCEEDS_PROFILE
+succinct candidate:
+  T_verify_block ≈ const, bytes_block ≈ const   (independent of S, up to log factors)
+```
+
+The baseline cost therefore grows ≈ S² (S × more validators, each doing
+S × more work), while a succinct candidate's validator term grows only ≈ S
+(more validators, same work each). That is the regime where ZK wins. The
+per-chunk model above is the S = 1, N_v = 50 slice of it.
+
+**How it lands (governance, not now).**
+
+* A new price-model version (`arena-price-model-v2`, a schema change) adds
+  `shards_per_statement` (S) and `validators_per_shard` (50). `N_v` is then
+  derived as `validators_per_shard × S`. The reference's validator profile
+  can be scaled with an `EXCEEDS_PROFILE` label. `arena-price-model-v1` and
+  every `cost_v1` result stay as they are.
+* A new **workload class / challenge**: a *cross-shard aggregate statement*
+  whose relation is the conjunction, over the S chunks of one block, of the
+  per-shard `validate_chunk_state_witness` relation that today's D0 challenge
+  checks (same per-shard semantics, plus the block binding: the chunk headers
+  of one block and its shard layout). A new scoring kind, say `cost_v2`, is
+  pinned to it. That is a new statement, so it is a new challenge.
+* **The current per-chunk challenges do not change.** The v1-6 and v3 D0
+  statements, their fixtures, baselines and boards are untouched, and they
+  remain the S = 1 calibration points of the extended model.
 
 ---
 
@@ -943,6 +1176,7 @@ python -m arena_bench report --input bundle.json --out report.md
 python -m arena_bench host-profile --id <id> [--governed] [--note ...] --out host.json
 python -m arena_bench gen-testvectors [--check]        # score.json + cost.json
 python -m arena_bench cost-rescore --challenge chl.json --price-model pm.json \
-    --baseline-session baseline/session.json --out DIR VIEW.json:SESSION.json...
+    --baseline-session baseline/session.json [--cost-baseline costbase/summary.json [--allow-unconfirmed]] \
+    --out DIR VIEW.json:SESSION.json...
 python -m pytest benchmarks -q
 ```

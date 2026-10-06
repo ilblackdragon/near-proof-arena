@@ -1,0 +1,72 @@
+{
+ "schema": "arena-price-model-v1",
+ "id": "pm-near-mainnet-2026q4",
+ "version": 2,
+ "status": "governed",
+ "effective_from": "2026-10-06",
+ "currency": "USD",
+ "unit": "femto_usd",
+ "validators_per_chunk": 50,
+ "verifier_vcpus": 8,
+ "cpu_fusd_per_vcpu_second": 7610000000,
+ "bandwidth_fusd_per_byte": 82000,
+ "storage_fusd_per_byte": 0,
+ "prepare_amortization_requests": 0,
+ "rationale": [
+  {
+   "param": "validators_per_chunk",
+   "basis": "estimate",
+   "note": "N_v = 50 chunk validators PER SHARD (governance decision, 2026-10-06). The per-chunk statement is one shard's chunk at one height; it is verified by that shard's chunk-validator committee, so N_v counts one shard's validators, not all validators. 50 is the governed committee size; the v1 draft's mainnet observation (epoch 4835, 2026-10-05: 415 validators, 10 shards, 84.0-84.1 distinct endorsers per shard per height; 105 mandate seats per shard) is kept as context and as a sensitivity column, not as the price. Only the verify and bandwidth terms scale with N_v, and both scale linearly, so N_v moves the prover:validator balance but not the ranking among candidates whose cost is all validator-side. FUTURE (not priced here, docs/BENCHMARK_SPEC.md 14.11): a whole-block statement covering S shards is verified by every validator, N_v = 50 x S, against a re-execution baseline that grows with S. Re-check per season.",
+   "sources": [
+    "governance decision 2026-10-06 (BENCHMARK_SPEC 14.10, decision 1: N_v = 50 validators per shard)",
+    "nearcore 2.13.4 core/primitives/res/epoch_configs/mainnet/85.json:7 (target_validator_mandates_per_shard = 105)",
+    "nearcore 2.13.4 core/primitives/src/epoch_info.rs:597-611 (sample_chunk_validators per height)",
+    "nearcore 2.13.4 chain/epoch-manager/src/lib.rs:1064-1094 (chunk validator assignments per (epoch, shard, height))",
+    "https://rpc.mainnet.near.org method=validators, retrieved 2026-10-05 (epoch_height 4835)"
+   ]
+  },
+  {
+   "param": "verifier_vcpus",
+   "basis": "published",
+   "note": "Reference validator profile: NEAR's published chunk-validator spec is 'x86_64 with at least 8 physical cores' (recommended and minimal). The judge measures verify pinned to the first 8 benchmark CPUs; on the live host those are CPUs 0-7 (CCD0, 8 physical cores, SMT siblings 16-23 idle), i.e. the reference profile; the references of the v1-6 and v3 D0 challenges were re-measured there on 2026-10-06 with the verify drift control (BENCHMARK_SPEC 14.4: v3 D0 confirmed; v1-6 batch-16 not reproducible within 30 000 ppm). Charging allocated vCPUs x wall time (not guest CPU time) keeps the only trusted clock (supervisor wall) and makes parallel verifiers cost what they reserve.",
+   "sources": [
+    "https://near-nodes.io/validator/hardware-validator (chunk validator: 8 physical cores, 8-16 GB RAM)"
+   ]
+  },
+  {
+   "param": "cpu_fusd_per_vcpu_second",
+   "basis": "estimate",
+   "note": "c_cpu = 7.61e-6 USD per vCPU-second = USD 160/month for 8 vCPU (AWS m5a.2xlarge, CPU part, the first cost estimate NEAR publishes for a chunk validator): 160 / (730 h x 8 x 3600 s). The same price is used for the prover (chunk producer) because both run on the same class of node. ESTIMATE: on-demand cloud list price; bare metal is cheaper, reserved instances ~40% cheaper. Only ratios to the baseline enter the score, so a uniform CPU price change does not move CPU-only comparisons; it moves the CPU:bandwidth balance.",
+   "sources": [
+    "https://near-nodes.io/validator/hardware-validator (AWS m5a.2xlarge USD 160 CPU + 160 storage / month)"
+   ]
+  },
+  {
+   "param": "bandwidth_fusd_per_byte",
+   "basis": "estimate",
+   "note": "c_bw = per-validator network cost of one proof byte = egress price x upload amplification. Upload amplification from nearcore partial-witness distribution: Reed-Solomon with WITNESS_RATIO_DATA_PARTS = 0.6 and one part per chunk validator; each validator forwards its part to the other N-2 validators, so it uploads (N-2)/floor(0.6 N) x the proof: 1.64 at N = 84 (v1 draft), 1.60 at N = 50 (48/30); ingress is free on clouds. Egress price ESTIMATE USD 0.05/GB (AWS >150 TB/month tier; first tier is 0.09; unmetered bare metal is lower). Governed value: 8.2e-11 USD/B = 82000 fUSD/B, the v1 draft constant retained by governance decision (2026-10-06); the N = 50 derivation gives 8.0e-11 (-2.4%), well inside the egress-price uncertainty. Not modelled: the chunk producer's own ~1.7 x upload (one node, ~2-3% of the N_v term), compression (candidates may compress; decompression is inside verify time).",
+   "sources": [
+    "nearcore 2.13.4 chain/client/src/stateless_validation/partial_witness/encoding.rs:6 (WITNESS_RATIO_DATA_PARTS = 0.6)",
+    "nearcore 2.13.4 chain/client/src/stateless_validation/partial_witness/partial_witness_actor.rs:343-398, 442-477 (part i to validator i, forwarded to all others)",
+    "nearcore 2.13.4 core/primitives/src/reed_solomon.rs:76-82 (data parts, part length)",
+    "https://aws.amazon.com/ec2/pricing/on-demand/ (data transfer out to internet)"
+   ]
+  },
+  {
+   "param": "storage_fusd_per_byte",
+   "basis": "estimate",
+   "note": "0: chunk validators do not retain the witness after endorsing (only the endorsement signature enters the block; nearcore keeps witnesses only under a debug option). A future model that archives proofs for light clients would set this.",
+   "sources": [
+    "nearcore 2.13.4 core/primitives/src/stateless_validation/chunk_endorsement.rs:98-134 (only the signature goes into the block)"
+   ]
+  },
+  {
+   "param": "prepare_amortization_requests",
+   "basis": "estimate",
+   "note": "0 = prepare is not charged (bench-spec-v1 section 2 policy kept): prepare runs once per verified surface, i.e. once per release, while a release proves millions of chunks (43200 heights per epoch x 10 shards), so its amortized share is below measurement noise. It stays measured, capped and reported.",
+   "sources": [
+    "nearcore 2.13.4 core/primitives/res/epoch_configs/mainnet/85.json:2 (epoch_length = 43200)"
+   ]
+  }
+ ]
+}

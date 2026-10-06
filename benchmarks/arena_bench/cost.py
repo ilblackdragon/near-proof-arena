@@ -226,3 +226,52 @@ def class_runs_from_json(objs) -> list[CostClassRuns]:
         )
         for o in objs
     ]
+
+
+# --- verify drift control (BENCHMARK_SPEC §14.4) -----------------------------
+
+VERIFY_CONTROL_TOLERANCE_PPM = 30_000
+
+
+@dataclass(frozen=True)
+class VerifyControlClass:
+    class_id: str
+    pinned_verify_ns: int
+    control_verify_ns: int
+    drift_ppm: int
+    ok: bool
+
+
+@dataclass(frozen=True)
+class VerifyControl:
+    tolerance_ppm: int
+    classes: tuple[VerifyControlClass, ...]
+    ok: bool
+    reasons: tuple[str, ...]
+
+
+def verify_control(
+    pinned: Mapping[str, int],
+    control_runs: Mapping[str, Sequence[int]],
+    tolerance_ppm: int = VERIFY_CONTROL_TOLERANCE_PPM,
+) -> VerifyControl:
+    """A control session of the reference must reproduce every class's pinned
+    verify median (per batch) within `tolerance_ppm`; otherwise VERIFY_DRIFT
+    (session infra-invalid). Mirrors `arena_measure::cost::verify_control`."""
+    from .calibration import drift_ppm
+
+    if sorted(pinned) != sorted(control_runs):
+        raise CostError("MISSING_BASELINE")
+    out = []
+    for cid in sorted(pinned, key=lambda c: c.encode("utf-8")):
+        pin = pinned[cid]
+        if pin <= 0:
+            raise CostError("ZERO_OR_BAD_TIME")
+        runs = list(control_runs[cid])
+        if not runs:
+            raise CostError("NO_RUNS", cid)
+        med = median_u64(runs)
+        d = drift_ppm(pin, med)
+        out.append(VerifyControlClass(cid, pin, med, d, d <= tolerance_ppm))
+    ok = all(c.ok for c in out)
+    return VerifyControl(tolerance_ppm, tuple(out), ok, () if ok else ("VERIFY_DRIFT",))

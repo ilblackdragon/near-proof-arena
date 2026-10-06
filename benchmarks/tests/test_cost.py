@@ -58,3 +58,41 @@ def test_bootstrap_order_independent():
 def test_committed_cost_vectors_are_fresh():
     assert VECTORS.read_text() == testvectors.dumps(testvectors.generate_cost())
     assert json.loads(VECTORS.read_text())["schema"] == "arena-bench-cost-testvectors-v1"
+
+
+def test_verify_control_vectors_and_rescore_gate():
+    """§14.4: the cross-language vectors hold, and an offline re-score refuses a
+    cost baseline whose verify control failed unless explicitly labelled."""
+    import json
+    from pathlib import Path
+
+    import pytest
+
+    from arena_bench import rescore
+    from arena_bench.cost import CostError, verify_control
+
+    root = Path(__file__).resolve().parents[2]
+    vec = json.loads((root / "benchmarks/testvectors/cost.json").read_text())
+    for case in vec["verify_control"]:
+        try:
+            r = verify_control(case["pinned"], case["control_runs"], case["tolerance_ppm"])
+            assert r.ok == case["expect"]["ok"], case["name"]
+            assert [c.drift_ppm for c in r.classes] == [c["drift_ppm"] for c in case["expect"]["classes"]]
+        except CostError as e:
+            assert e.code == case["expect"]["error"], case["name"]
+
+    res = root / "benchmarks/results"
+    d = res / "cost-rescore-v1-6-pm-v2-20261006/inputs"
+    sub = "sub_c67dd93beafd4ecc9935431366f0baa6"
+    args = (
+        str(root / "challenges/chl_7c0456cb2d1a36f8601863ac206cfcc9.json"),
+        str(root / "challenges/price-models/pm-near-mainnet-2026q4.v2.json"),
+        str(res / "baseline-near-transfer-receipt-v1-6-secret-cpus0-7-20261005/session.json"),
+        [f"{d / sub}.view.json:{d / sub}.session.json"],
+        None,
+        str(res / "costbase-near-transfer-receipt-v1-6-secret-cpus0-7-20261006-attempt2-verify-drift/summary.json"),
+    )
+    with pytest.raises(ValueError, match="verify drift control"):
+        rescore.main(*args)
+    r = rescore.main(*args, allow_unconfirmed=True)
+    assert "UNCONFIRMED" in r["status"] and r["controls"]["confirmed"] is False

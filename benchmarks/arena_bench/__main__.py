@@ -9,7 +9,7 @@
   report       --input bundle.json [--out report.md]
   host-profile --id ID [--governed] [--out file.json]
   gen-testvectors [--out path] [--check]   (score.json and cost.json next to it)
-  cost-rescore --challenge chl.json --price-model pm.json --baseline summary.json SUB.json...  (offline, §14.6)
+  cost-rescore --challenge chl.json --price-model pm.json --baseline-session S.json [--cost-baseline summary.json] VIEW:SESSION...  (offline, §14.8)
 """
 
 from __future__ import annotations
@@ -64,6 +64,8 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("gen-testvectors"); p.add_argument("--out", default=str(DEFAULT_VECTORS)); p.add_argument("--check", action="store_true")
     p = sub.add_parser("cost-rescore"); p.add_argument("--challenge", required=True); p.add_argument("--price-model", required=True)
     p.add_argument("--baseline-session", required=True); p.add_argument("--out"); p.add_argument("subs", nargs="+", help="VIEW.json:SESSION.json")
+    p.add_argument("--cost-baseline", help="run_baseline.py summary.json re-measuring the reference (verify/bytes; §14.4 control must pass)")
+    p.add_argument("--allow-unconfirmed", action="store_true", help="re-score against a cost baseline whose verify control failed (labelled UNCONFIRMED)")
     a = ap.parse_args(argv)
 
     try:
@@ -90,7 +92,7 @@ def main(argv: list[str] | None = None) -> int:
         elif a.cmd == "cost-rescore":
             from . import rescore
 
-            r = rescore.main(a.challenge, a.price_model, a.baseline_session, a.subs, a.out)
+            r = rescore.main(a.challenge, a.price_model, a.baseline_session, a.subs, a.out, a.cost_baseline, a.allow_unconfirmed)
             if not a.out:
                 _emit(rescore.markdown(r))
         elif a.cmd == "gen-testvectors":

@@ -1,0 +1,480 @@
+{
+ "schema": "arena-baseline-summary-v1",
+ "status": "DEV-HOST MEASUREMENT \u2014 not governed hardware, not an official number",
+ "challenge_id": "chl_4b4316516128000f129cff9b3ced8b51",
+ "invocation_mode": "vm_per_batch",
+ "challenge_name": "near-chunk-validation-d0-1",
+ "suite_revision": "near-chunk-validation-d0-r1",
+ "hardware_profile_of_challenge": {
+  "id": "nearproof-local-ryzen9-9950x3d",
+  "cpu_model": "AMD Ryzen 9 9950X3D 16-Core Processor (local operator host; 8 vCPUs pinned per run)",
+  "vcpus": 8,
+  "ram_bytes": 34359738368,
+  "gpu": null
+ },
+ "measured_on": "dev-host:dev-illia-32c (NOT nearproof-local-ryzen9-9950x3d governed)",
+ "host_warnings": [
+  "GOVERNOR_NOT_PERFORMANCE: ['powersave']",
+  "TURBO_NOT_DISABLED",
+  "SMT_ACTIVE",
+  "NO_ISOLCPUS"
+ ],
+ "started_at": "2026-10-06T07:55:35+00:00",
+ "finished_at": "2026-10-06T08:06:26+00:00",
+ "reference_candidate": {
+  "package_dir": "examples/reexec-v3-d0",
+  "git_tree": "270b444fc063bb2977030c1059afabfeadfda718",
+  "package_digest": "sha256:636182595910b3de0f6f2dcdd42c30e8e87481c466cccc739d3dc60033f9a17b",
+  "entry_digests": {
+   "prepare": "sha256:eef81b4b62d3dc8d7e0cdd2b81cf035e87b41621e42332725dc89ac68d071a79",
+   "prove": "sha256:fd005028327b43ad9c4b43fd6816260d320c6f8cb0057c893e65b54d40ed77d8",
+   "verify": "sha256:96383ecae41ea6272ccf3b81090064ab173acb0e33f368dfe8dafe9587f2ab87"
+  },
+  "bundle_tree_digest": "sha256:a11d5178c8c7e5c9c738c2ce9198a7fe4fd47f33d03acdda94ba67247c69c42f"
+ },
+ "sandbox": {
+  "backend": "firecracker",
+  "steps_share_instance": true,
+  "rootfs": "sha256:bb60e9328af180b61f0a64694e368b2b56ed7d85e2b1cbd6d6c5ed93906f2960",
+  "kernel": "sha256:e20e46d0c36c55c0d1014eb20576171b3f3d922260d9f792017aeff53af3d4f2"
+ },
+ "cpus": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7
+ ],
+ "procedure": {
+  "warmup_runs": 3,
+  "measured_runs": 15,
+  "aggregation": "median",
+  "outlier_mad_k": 5,
+  "cold_runs": 1,
+  "concurrency": 1,
+  "per_run_timeout_ms": 600000,
+  "invocation_mode": "vm_per_batch"
+ },
+ "sampling": {
+  "rule": "worker NearOracle, judge-secret: seed = first 8 bytes BE of HMAC-SHA256(season_secret, \"near-arena-workload-sample-v1|\" + challenge_id + \"|\" + package_digest + \"|\" + class_id) (BENCHMARK_SPEC \u00a711.1); fresh-confirm uses class_id#fresh",
+  "seed_parts": [
+   "chl_4b4316516128000f129cff9b3ced8b51",
+   "sha256:636182595910b3de0f6f2dcdd42c30e8e87481c466cccc739d3dc60033f9a17b"
+  ],
+  "season_secret_commitment": "sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d",
+  "generators": {
+   "d0-quiet": {
+    "spec": "spec/workloads/near-chunk-validation-d0/d0-quiet.json",
+    "digest": "sha256:932759a8d2b4681227a101266590cabddb59864ed99f43bccfce0557fa273d92"
+   },
+   "d0-transfers": {
+    "spec": "spec/workloads/near-chunk-validation-d0/d0-transfers.json",
+    "digest": "sha256:990878011f58b53c34c91f37307ec1248e5ff14c5c56e823747c61578c979e20"
+   },
+   "d0-missing": {
+    "spec": "spec/workloads/near-chunk-validation-d0/d0-missing.json",
+    "digest": "sha256:77ac4648b4a1223725d109d7a7710b7ceeecfe069581e77d70cfaf0fbd74574c"
+   }
+  },
+  "oracle_nearcore_pin": [
+   "repo=https://github.com/near/nearcore",
+   "tag=2.13.4",
+   "commit=44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+   "protocol_version=86"
+  ],
+  "note": "judge-secret HMAC sampling (season secret commitment sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d), as the live workers sample"
+ },
+ "schedule_seed": 4676037901914442849,
+ "gates": {
+  "BENCHMARK": {
+   "status": "PASS",
+   "summary": "judge-secret HMAC sampling (season secret commitment sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d); d0-quiet: median 6765 us, MAD 610 us, verify median 24327 us, max proof 3384 B; d0-transfers: median 7144 us, MAD 453 us, verify median 48702 us, max proof 5662 B; d0-missing: median 7226 us, MAD 405 us, verify median 48390 us, max proof 7117 B; worker-side score 98965 \u00b1 4990 milli (server recomputes)",
+   "reason_codes": []
+  }
+ },
+ "flags": [],
+ "calibration": {
+  "workload": "head -c 268435456 /dev/zero | sha256sum",
+  "pre_ns": [
+   462780257,
+   468808694,
+   463129143,
+   463336202,
+   456231338
+  ],
+  "post_ns": [
+   456676871,
+   460669886,
+   463604269,
+   472028395,
+   474237282
+  ],
+  "pre_median_ns": 463129143,
+  "post_median_ns": 463604269,
+  "session_drift_ppm": 1026,
+  "pre_mad_ppm": 754,
+  "post_mad_ppm": 14943,
+  "ok": true,
+  "reasons": [],
+  "note": "stand-in calibration workload; no governed reference median exists for this host"
+ },
+ "loadavg": [
+  {
+   "at": "start",
+   "loadavg": "18.40 17.05 15.71 15/3227 1180973"
+  },
+  {
+   "at": "after_calibration_pre",
+   "loadavg": "18.21 17.03 15.71 32/3266 1181667"
+  },
+  {
+   "at": "after_session",
+   "loadavg": "16.30 17.07 16.04 15/3182 1205242"
+  },
+  {
+   "at": "after_calibration_post",
+   "loadavg": "16.18 17.02 16.03 17/3187 1205882"
+  }
+ ],
+ "session_wall_secs": 207,
+ "prepare_ns": 6609832,
+ "native_verifier": "sha256:96383ecae41ea6272ccf3b81090064ab173acb0e33f368dfe8dafe9587f2ab87",
+ "fc_deps": "/data/illia/nearproof-deps/firecracker-rc",
+ "classes": [
+  {
+   "class_id": "d0-quiet",
+   "weight_ppm": 200000,
+   "median_ns": 6765424,
+   "mad_ns": 610538,
+   "min_ns": 5509512,
+   "max_ns": 7843343,
+   "measured_runs": 15,
+   "cold_ns": 225434499,
+   "fresh_ns": [
+    5678819
+   ],
+   "verify_median_ns": 24327521,
+   "proof_bytes_max": 3384,
+   "verify_runs_ns": [
+    844339299,
+    788169238,
+    797364930,
+    817609302,
+    804476173,
+    817143232,
+    841481229,
+    832521330,
+    813606908,
+    897069752,
+    801202745,
+    800650208,
+    808891187,
+    781712447,
+    820309745
+   ],
+   "proof_bytes_runs": [
+    16092,
+    16092,
+    16092,
+    16092,
+    16092,
+    16092,
+    16092,
+    16092,
+    16092,
+    16092,
+    16092,
+    16092,
+    16092,
+    16092,
+    16092
+   ],
+   "verify_run_median_ns": 813606908,
+   "proof_bytes_run_median": 16092,
+   "peak_rss_bytes": 448233472,
+   "outliers": {
+    "median_ns": 6765424,
+    "mad_ns": 610538,
+    "k": 5,
+    "flagged_indices": [],
+    "flagged_ppm": 0,
+    "excessive": false,
+    "notes": []
+   },
+   "tripwire": {
+    "suspected": false,
+    "measured_median_ns": 6765424,
+    "fresh_median_ns": 5678819,
+    "slowdown_ppm": 0
+   }
+  },
+  {
+   "class_id": "d0-transfers",
+   "weight_ppm": 500000,
+   "median_ns": 7144378,
+   "mad_ns": 453312,
+   "min_ns": 6034459,
+   "max_ns": 7778753,
+   "measured_runs": 15,
+   "cold_ns": 201195679,
+   "fresh_ns": [
+    6407840
+   ],
+   "verify_median_ns": 48702106,
+   "proof_bytes_max": 5662,
+   "verify_runs_ns": [
+    931945517,
+    947253647,
+    939906877,
+    917861637,
+    897266789,
+    893793178,
+    923841733,
+    931753562,
+    916675109,
+    929581387,
+    919716614,
+    867569289,
+    923268035,
+    1020366173,
+    954489241
+   ],
+   "proof_bytes_runs": [
+    28406,
+    28406,
+    28406,
+    28406,
+    28406,
+    28406,
+    28406,
+    28406,
+    28406,
+    28406,
+    28406,
+    28406,
+    28406,
+    28406,
+    28406
+   ],
+   "verify_run_median_ns": 923841733,
+   "proof_bytes_run_median": 28406,
+   "peak_rss_bytes": 447741952,
+   "outliers": {
+    "median_ns": 7144378,
+    "mad_ns": 453312,
+    "k": 5,
+    "flagged_indices": [],
+    "flagged_ppm": 0,
+    "excessive": false,
+    "notes": []
+   },
+   "tripwire": {
+    "suspected": false,
+    "measured_median_ns": 7144378,
+    "fresh_median_ns": 6407840,
+    "slowdown_ppm": 0
+   }
+  },
+  {
+   "class_id": "d0-missing",
+   "weight_ppm": 300000,
+   "median_ns": 7226212,
+   "mad_ns": 405484,
+   "min_ns": 6033117,
+   "max_ns": 8552207,
+   "measured_runs": 15,
+   "cold_ns": 189919470,
+   "fresh_ns": [
+    6874410
+   ],
+   "verify_median_ns": 48390118,
+   "proof_bytes_max": 7117,
+   "verify_runs_ns": [
+    617898001,
+    627923818,
+    639138636,
+    658386845,
+    638160048,
+    675616461,
+    641211027,
+    650179939,
+    632094816,
+    631116622,
+    666588945,
+    622122802,
+    613823215,
+    629028509,
+    625964434
+   ],
+   "proof_bytes_runs": [
+    33911,
+    33911,
+    33911,
+    33911,
+    33911,
+    33911,
+    33911,
+    33911,
+    33911,
+    33911,
+    33911,
+    33911,
+    33911,
+    33911,
+    33911
+   ],
+   "verify_run_median_ns": 632094816,
+   "proof_bytes_run_median": 33911,
+   "peak_rss_bytes": 448167936,
+   "outliers": {
+    "median_ns": 7226212,
+    "mad_ns": 405484,
+    "k": 5,
+    "flagged_indices": [],
+    "flagged_ppm": 0,
+    "excessive": false,
+    "notes": []
+   },
+   "tripwire": {
+    "suspected": false,
+    "measured_median_ns": 7226212,
+    "fresh_median_ns": 6874410,
+    "slowdown_ppm": 0
+   }
+  }
+ ],
+ "baseline_ns": [
+  [
+   "d0-missing",
+   7226212
+  ],
+  [
+   "d0-quiet",
+   6765424
+  ],
+  [
+   "d0-transfers",
+   7144378
+  ]
+ ],
+ "package_rev": "e50d17dce6ea812fa4cb19a65b2a0c620949753e",
+ "package_is_challenge_baseline_submission": true,
+ "cost_baseline": [
+  {
+   "class_id": "d0-missing",
+   "prove_ns": 7226212,
+   "verify_ns": 632094816,
+   "proof_bytes": 33911
+  },
+  {
+   "class_id": "d0-quiet",
+   "prove_ns": 6765424,
+   "verify_ns": 813606908,
+   "proof_bytes": 16092
+  },
+  {
+   "class_id": "d0-transfers",
+   "prove_ns": 7144378,
+   "verify_ns": 923841733,
+   "proof_bytes": 28406
+  }
+ ],
+ "verify_control": [
+  {
+   "session": "session-control-1.json",
+   "ok": false,
+   "reasons": [
+    "VERIFY_DRIFT"
+   ],
+   "tolerance_ppm": 30000,
+   "classes": [
+    {
+     "class_id": "d0-missing",
+     "pinned_verify_ns": 632094816,
+     "control_verify_ns": 658471974,
+     "drift_ppm": 41730,
+     "ok": false
+    },
+    {
+     "class_id": "d0-quiet",
+     "pinned_verify_ns": 813606908,
+     "control_verify_ns": 804477304,
+     "drift_ppm": 11222,
+     "ok": true
+    },
+    {
+     "class_id": "d0-transfers",
+     "pinned_verify_ns": 923841733,
+     "control_verify_ns": 940956953,
+     "drift_ppm": 18527,
+     "ok": true
+    }
+   ],
+   "prove_median_ns": {
+    "d0-quiet": 7087317,
+    "d0-transfers": 6983983,
+    "d0-missing": 6936285
+   },
+   "proof_bytes_run_median": {
+    "d0-quiet": 16092,
+    "d0-transfers": 28406,
+    "d0-missing": 33911
+   },
+   "flags": [],
+   "calibration_ok": false,
+   "calibration_reasons": [
+    "SESSION_DRIFT"
+   ],
+   "session_wall_secs": 205,
+   "valid": false
+  },
+  {
+   "session": "session-control-2.json",
+   "ok": true,
+   "reasons": [],
+   "tolerance_ppm": 30000,
+   "classes": [
+    {
+     "class_id": "d0-missing",
+     "pinned_verify_ns": 632094816,
+     "control_verify_ns": 634648661,
+     "drift_ppm": 4041,
+     "ok": true
+    },
+    {
+     "class_id": "d0-quiet",
+     "pinned_verify_ns": 813606908,
+     "control_verify_ns": 809260821,
+     "drift_ppm": 5342,
+     "ok": true
+    },
+    {
+     "class_id": "d0-transfers",
+     "pinned_verify_ns": 923841733,
+     "control_verify_ns": 942016059,
+     "drift_ppm": 19673,
+     "ok": true
+    }
+   ],
+   "prove_median_ns": {
+    "d0-quiet": 6414491,
+    "d0-transfers": 7145177,
+    "d0-missing": 7350796
+   },
+   "proof_bytes_run_median": {
+    "d0-quiet": 16092,
+    "d0-transfers": 28406,
+    "d0-missing": 33911
+   },
+   "flags": [],
+   "calibration_ok": true,
+   "calibration_reasons": [],
+   "session_wall_secs": 206,
+   "valid": true
+  }
+ ],
+ "score_note": "the measured challenge has no baseline: the session is measured, not scored. Against these medians the reference scores exactly 100.000 by construction."
+}

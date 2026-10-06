@@ -541,6 +541,17 @@ diagnostic):
     `arena-live install` refuses unless the stamp equals HEAD, the tree is clean and no binary is
     newer than the stamp.
 
+### 5f. cost_v1 governed price model; reference re-measurement (2026-10-06)
+
+* Governed price model `pm-near-mainnet-2026q4@v2` (N_v = 50 per shard, draft prices kept;
+  digest `sha256:292f0942…`), verify drift control and the multi-shard forward plan:
+  BENCHMARK_SPEC §14.4, §14.7, §14.11. No live challenge is cost-scored yet; no install was
+  needed (the live boards are unchanged).
+* `w1` was stopped 07:45–08:06 and 08:06–08:15 UTC (queue empty, nothing leased) to re-measure
+  the pinned references of v1-6 and v3 D0-1 on CPUs 0-7 through `bench_session` (3 sessions
+  each). v3 D0-1 passed the verify control; v1-6 failed it on batch-16 (bimodal verify) in both
+  attempts. Results and offline re-scores of all admitted entries: BENCHMARK_SPEC §14.8.
+
 ## 5. Current state (2026-10-03 16:10 UTC)
 
 * **Deployed revision.** `release/REVISION` is

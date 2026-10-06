@@ -828,5 +828,264 @@
     "half_width_milli": 14379
    }
   }
+ ],
+ "verify_control": [
+  {
+   "name": "within_tolerance",
+   "pinned": {
+    "b": 2000000,
+    "a": 1000000
+   },
+   "control_runs": {
+    "a": [
+     1030000,
+     990000,
+     1000000
+    ],
+    "b": [
+     2050000,
+     2060000,
+     1990000
+    ]
+   },
+   "tolerance_ppm": 30000,
+   "expect": {
+    "ok": true,
+    "reasons": [],
+    "classes": [
+     {
+      "class_id": "a",
+      "pinned_verify_ns": 1000000,
+      "control_verify_ns": 1000000,
+      "drift_ppm": 0,
+      "ok": true
+     },
+     {
+      "class_id": "b",
+      "pinned_verify_ns": 2000000,
+      "control_verify_ns": 2050000,
+      "drift_ppm": 25000,
+      "ok": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "exactly_at_tolerance_up",
+   "pinned": {
+    "a": 1000000
+   },
+   "control_runs": {
+    "a": [
+     1030000
+    ]
+   },
+   "tolerance_ppm": 30000,
+   "expect": {
+    "ok": true,
+    "reasons": [],
+    "classes": [
+     {
+      "class_id": "a",
+      "pinned_verify_ns": 1000000,
+      "control_verify_ns": 1030000,
+      "drift_ppm": 30000,
+      "ok": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "exactly_at_tolerance_down",
+   "pinned": {
+    "a": 1000000
+   },
+   "control_runs": {
+    "a": [
+     970000
+    ]
+   },
+   "tolerance_ppm": 30000,
+   "expect": {
+    "ok": true,
+    "reasons": [],
+    "classes": [
+     {
+      "class_id": "a",
+      "pinned_verify_ns": 1000000,
+      "control_verify_ns": 970000,
+      "drift_ppm": 30000,
+      "ok": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "one_ns_over",
+   "pinned": {
+    "a": 1000000
+   },
+   "control_runs": {
+    "a": [
+     1030001
+    ]
+   },
+   "tolerance_ppm": 30000,
+   "expect": {
+    "ok": false,
+    "reasons": [
+     "VERIFY_DRIFT"
+    ],
+    "classes": [
+     {
+      "class_id": "a",
+      "pinned_verify_ns": 1000000,
+      "control_verify_ns": 1030001,
+      "drift_ppm": 30001,
+      "ok": false
+     }
+    ]
+   }
+  },
+  {
+   "name": "rounds_up",
+   "pinned": {
+    "a": 3
+   },
+   "control_runs": {
+    "a": [
+     4,
+     4
+    ]
+   },
+   "tolerance_ppm": 333333,
+   "expect": {
+    "ok": false,
+    "reasons": [
+     "VERIFY_DRIFT"
+    ],
+    "classes": [
+     {
+      "class_id": "a",
+      "pinned_verify_ns": 3,
+      "control_verify_ns": 4,
+      "drift_ppm": 333334,
+      "ok": false
+     }
+    ]
+   }
+  },
+  {
+   "name": "one_class_drifts",
+   "pinned": {
+    "d0-quiet": 47330387,
+    "d0-transfers": 52000000
+   },
+   "control_runs": {
+    "d0-quiet": [
+     47000000,
+     47500000
+    ],
+    "d0-transfers": [
+     56000000,
+     57000000,
+     55000000
+    ]
+   },
+   "tolerance_ppm": 30000,
+   "expect": {
+    "ok": false,
+    "reasons": [
+     "VERIFY_DRIFT"
+    ],
+    "classes": [
+     {
+      "class_id": "d0-quiet",
+      "pinned_verify_ns": 47330387,
+      "control_verify_ns": 47250000,
+      "drift_ppm": 1699,
+      "ok": true
+     },
+     {
+      "class_id": "d0-transfers",
+      "pinned_verify_ns": 52000000,
+      "control_verify_ns": 56000000,
+      "drift_ppm": 76924,
+      "ok": false
+     }
+    ]
+   }
+  },
+  {
+   "name": "even_count_median",
+   "pinned": {
+    "a": 100
+   },
+   "control_runs": {
+    "a": [
+     90,
+     100,
+     104,
+     200
+    ]
+   },
+   "tolerance_ppm": 30000,
+   "expect": {
+    "ok": true,
+    "reasons": [],
+    "classes": [
+     {
+      "class_id": "a",
+      "pinned_verify_ns": 100,
+      "control_verify_ns": 102,
+      "drift_ppm": 20000,
+      "ok": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "class_mismatch",
+   "pinned": {
+    "a": 1
+   },
+   "control_runs": {
+    "b": [
+     1
+    ]
+   },
+   "tolerance_ppm": 30000,
+   "expect": {
+    "error": "MISSING_BASELINE"
+   }
+  },
+  {
+   "name": "no_runs",
+   "pinned": {
+    "a": 1
+   },
+   "control_runs": {
+    "a": []
+   },
+   "tolerance_ppm": 30000,
+   "expect": {
+    "error": "NO_RUNS"
+   }
+  },
+  {
+   "name": "zero_pinned",
+   "pinned": {
+    "a": 0
+   },
+   "control_runs": {
+    "a": [
+     1
+    ]
+   },
+   "tolerance_ppm": 30000,
+   "expect": {
+    "error": "ZERO_OR_BAD_TIME"
+   }
+  }
  ]
 }

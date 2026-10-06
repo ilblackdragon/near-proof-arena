@@ -1,0 +1,332 @@
+{
+ "schema": "arena-offline-cost-rescore-v1",
+ "status": "OFFLINE RE-SCORING under the GOVERNED price model pm-near-mainnet-2026q4@v2; no run is modified; not a board",
+ "challenge_id": "chl_4b4316516128000f129cff9b3ced8b51",
+ "challenge_name": "near-chunk-validation-d0-1",
+ "price_model_id": "pm-near-mainnet-2026q4@v2",
+ "price_model_status": "governed",
+ "price_model_digest": "sha256:292f094206162f78ee3ad982a8082c11b49fc379ad04956275693d9ef4d5ca6a",
+ "prices": {
+  "validators_per_chunk": 50,
+  "prover_vcpus": 8,
+  "verifier_vcpus": 8,
+  "cpu_fusd_per_vcpu_second": 7610000000,
+  "bandwidth_fusd_per_byte": 82000,
+  "storage_fusd_per_byte": 0,
+  "prepare_amortization_requests": 0
+ },
+ "bytes_mode": "exact",
+ "approximations": [
+  "reference prove = frozen baseline_ns; reference verify / bytes = the re-measured cost baseline session (2026-10-06T07:55:35+00:00, CPUs 0,1,2,3,4,5,6,7)",
+  "verify per run = exact sum of the run's verify wall times",
+  "proof bytes per run = exact per-run totals (baseline and every candidate have them)",
+  "verify was measured on the full 8-CPU benchmark set = verifier_vcpus of this model (8)",
+  "prepare not charged (prepare_amortization_requests = 0)"
+ ],
+ "cost_baseline_source": {
+  "summary": "../benchmarks/results/costbase-near-chunk-validation-d0-1-secret-cpus0-7-20261006/summary.json",
+  "package_digest": "sha256:636182595910b3de0f6f2dcdd42c30e8e87481c466cccc739d3dc60033f9a17b",
+  "package_rev": "e50d17dce6ea812fa4cb19a65b2a0c620949753e"
+ },
+ "controls": {
+  "frozen_session_challenge_id": "chl_902d8b89e05fa5efaa148e8fc2a81b26",
+  "confirmed": true,
+  "prove_vs_frozen_ppm": {
+   "d0-missing": 12977,
+   "d0-quiet": 33095,
+   "d0-transfers": 26882
+  },
+  "verify_control_in_window": [
+   {
+    "session": "session-control-1.json",
+    "ok": false,
+    "reasons": [
+     "VERIFY_DRIFT"
+    ],
+    "tolerance_ppm": 30000,
+    "classes": [
+     {
+      "class_id": "d0-missing",
+      "pinned_verify_ns": 632094816,
+      "control_verify_ns": 658471974,
+      "drift_ppm": 41730,
+      "ok": false
+     },
+     {
+      "class_id": "d0-quiet",
+      "pinned_verify_ns": 813606908,
+      "control_verify_ns": 804477304,
+      "drift_ppm": 11222,
+      "ok": true
+     },
+     {
+      "class_id": "d0-transfers",
+      "pinned_verify_ns": 923841733,
+      "control_verify_ns": 940956953,
+      "drift_ppm": 18527,
+      "ok": true
+     }
+    ],
+    "prove_median_ns": {
+     "d0-quiet": 7087317,
+     "d0-transfers": 6983983,
+     "d0-missing": 6936285
+    },
+    "proof_bytes_run_median": {
+     "d0-quiet": 16092,
+     "d0-transfers": 28406,
+     "d0-missing": 33911
+    },
+    "flags": [],
+    "calibration_ok": false,
+    "calibration_reasons": [
+     "SESSION_DRIFT"
+    ],
+    "session_wall_secs": 205,
+    "valid": false
+   },
+   {
+    "session": "session-control-2.json",
+    "ok": true,
+    "reasons": [],
+    "tolerance_ppm": 30000,
+    "classes": [
+     {
+      "class_id": "d0-missing",
+      "pinned_verify_ns": 632094816,
+      "control_verify_ns": 634648661,
+      "drift_ppm": 4041,
+      "ok": true
+     },
+     {
+      "class_id": "d0-quiet",
+      "pinned_verify_ns": 813606908,
+      "control_verify_ns": 809260821,
+      "drift_ppm": 5342,
+      "ok": true
+     },
+     {
+      "class_id": "d0-transfers",
+      "pinned_verify_ns": 923841733,
+      "control_verify_ns": 942016059,
+      "drift_ppm": 19673,
+      "ok": true
+     }
+    ],
+    "prove_median_ns": {
+     "d0-quiet": 6414491,
+     "d0-transfers": 7145177,
+     "d0-missing": 7350796
+    },
+    "proof_bytes_run_median": {
+     "d0-quiet": 16092,
+     "d0-transfers": 28406,
+     "d0-missing": 33911
+    },
+    "flags": [],
+    "calibration_ok": true,
+    "calibration_reasons": [],
+    "session_wall_secs": 206,
+    "valid": true
+   }
+  ],
+  "verify_vs_frozen_session": {
+   "ok": false,
+   "reasons": [
+    "VERIFY_DRIFT"
+   ],
+   "classes": [
+    {
+     "class_id": "d0-missing",
+     "pinned_verify_ns": 913308261,
+     "control_verify_ns": 632094816,
+     "drift_ppm": 307907,
+     "ok": false
+    },
+    {
+     "class_id": "d0-quiet",
+     "pinned_verify_ns": 800431750,
+     "control_verify_ns": 813606908,
+     "drift_ppm": 16461,
+     "ok": true
+    },
+    {
+     "class_id": "d0-transfers",
+     "pinned_verify_ns": 853924766,
+     "control_verify_ns": 923841733,
+     "drift_ppm": 81878,
+     "ok": false
+    }
+   ],
+   "note": "re-measured verify medians vs the frozen speed-baseline session (other day, same package and CPUs; batches are the same only if that session measured this challenge id); informational"
+  }
+ },
+ "baseline": [
+  {
+   "class_id": "d0-missing",
+   "median_prove_ns": 7133640,
+   "median_verify_ns": 632094816,
+   "median_proof_bytes": 33911,
+   "prove_fusd": 434296004,
+   "prepare_fusd": 0,
+   "verify_fusd": 1924096619950,
+   "bandwidth_fusd": 139035100000,
+   "storage_fusd": 0,
+   "total_fusd": 2063566015954
+  },
+  {
+   "class_id": "d0-quiet",
+   "median_prove_ns": 6996987,
+   "median_verify_ns": 813606908,
+   "median_proof_bytes": 16092,
+   "prove_fusd": 425976569,
+   "prepare_fusd": 0,
+   "verify_fusd": 2476619428000,
+   "bandwidth_fusd": 65977200000,
+   "storage_fusd": 0,
+   "total_fusd": 2543022604569
+  },
+  {
+   "class_id": "d0-transfers",
+   "median_prove_ns": 6957356,
+   "median_verify_ns": 923841733,
+   "median_proof_bytes": 28406,
+   "prove_fusd": 423563834,
+   "prepare_fusd": 0,
+   "verify_fusd": 2812174235300,
+   "bandwidth_fusd": 116464600000,
+   "storage_fusd": 0,
+   "total_fusd": 2929062399134
+  }
+ ],
+ "rows": [
+  {
+   "submission_id": "sub_0826bb9b8d1c46c0b0bc4b5e1a0df3de",
+   "candidate": "reexec-v3-d0",
+   "package_digest": "sha256:9d8b9f71b815a11436ffd129f4ccf0f6ea38ea6043832540ec077622b104f75f",
+   "speed_score_milli_live": 4504,
+   "speed_score_milli_recomputed": 4504,
+   "cost_score_milli": 74600,
+   "cost_score_ci_milli": 3662,
+   "sensitivity_cost_score_milli": {
+    "N_v=1": 66229,
+    "N_v=84 (v1 draft)": 74679,
+    "N_v=105": 74702,
+    "bw=0": 73515,
+    "bw=x1.8 (egress 0.09/GB)": 75410,
+    "verify on 2 vCPUs (price only)": 76855
+   },
+   "cost_score_milli_vs_control_reference": {
+    "session-control-2.json": 75308
+   },
+   "classes": [
+    {
+     "class_id": "d0-missing",
+     "weight_ppm": 300000,
+     "median_prove_ns": 196251230,
+     "median_verify_ns": 1203750019,
+     "median_proof_bytes": 34190,
+     "prove_fusd": 11947774883,
+     "prepare_fusd": 0,
+     "verify_fusd": 3664215057850,
+     "bandwidth_fusd": 140179000000,
+     "storage_fusd": 0,
+     "total_fusd": 3816341832733,
+     "baseline_total_fusd": 2063566015954
+    },
+    {
+     "class_id": "d0-quiet",
+     "weight_ppm": 200000,
+     "median_prove_ns": 124163773,
+     "median_verify_ns": 975007254,
+     "median_proof_bytes": 17075,
+     "prove_fusd": 7559090501,
+     "prepare_fusd": 0,
+     "verify_fusd": 2967922081200,
+     "bandwidth_fusd": 70007500000,
+     "storage_fusd": 0,
+     "total_fusd": 3045488671701,
+     "baseline_total_fusd": 2543022604569
+    },
+    {
+     "class_id": "d0-transfers",
+     "weight_ppm": 500000,
+     "median_prove_ns": 148555850,
+     "median_verify_ns": 1074531889,
+     "median_proof_bytes": 25909,
+     "prove_fusd": 9044080148,
+     "prepare_fusd": 0,
+     "verify_fusd": 3270875070150,
+     "bandwidth_fusd": 106226900000,
+     "storage_fusd": 0,
+     "total_fusd": 3386146050298,
+     "baseline_total_fusd": 2929062399134
+    }
+   ]
+  },
+  {
+   "submission_id": "sub_2b51fbdeb20c4ff0b5932607c8e8e7da",
+   "candidate": "reexec-v3-d0-fast",
+   "package_digest": "sha256:d065d3cbbc02d8a6435c44d76e48e388f9f5151a68b253362d651306958d6c87",
+   "speed_score_milli_live": 104566,
+   "speed_score_milli_recomputed": 104566,
+   "cost_score_milli": 78766,
+   "cost_score_ci_milli": 1535,
+   "sensitivity_cost_score_milli": {
+    "N_v=1": 78931,
+    "N_v=84 (v1 draft)": 78764,
+    "N_v=105": 78764,
+    "bw=0": 77734,
+    "bw=x1.8 (egress 0.09/GB)": 79533,
+    "verify on 2 vCPUs (price only)": 81422
+   },
+   "cost_score_milli_vs_control_reference": {
+    "session-control-2.json": 79513
+   },
+   "classes": [
+    {
+     "class_id": "d0-missing",
+     "weight_ppm": 300000,
+     "median_prove_ns": 6928914,
+     "median_verify_ns": 1148186617,
+     "median_proof_bytes": 36348,
+     "prove_fusd": 421832285,
+     "prepare_fusd": 0,
+     "verify_fusd": 3495080062150,
+     "bandwidth_fusd": 149026800000,
+     "storage_fusd": 0,
+     "total_fusd": 3644528694435,
+     "baseline_total_fusd": 2063566015954
+    },
+    {
+     "class_id": "d0-quiet",
+     "weight_ppm": 200000,
+     "median_prove_ns": 6615824,
+     "median_verify_ns": 923159216,
+     "median_proof_bytes": 17556,
+     "prove_fusd": 402771366,
+     "prepare_fusd": 0,
+     "verify_fusd": 2810096653550,
+     "bandwidth_fusd": 71979600000,
+     "storage_fusd": 0,
+     "total_fusd": 2882479024916,
+     "baseline_total_fusd": 2543022604569
+    },
+    {
+     "class_id": "d0-transfers",
+     "weight_ppm": 500000,
+     "median_prove_ns": 6621931,
+     "median_verify_ns": 1016103707,
+     "median_proof_bytes": 24062,
+     "prove_fusd": 403143160,
+     "prepare_fusd": 0,
+     "verify_fusd": 3093019684150,
+     "bandwidth_fusd": 98654200000,
+     "storage_fusd": 0,
+     "total_fusd": 3192077027310,
+     "baseline_total_fusd": 2929062399134
+    }
+   ]
+  }
+ ]
+}

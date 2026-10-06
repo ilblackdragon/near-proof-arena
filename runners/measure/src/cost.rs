@@ -351,6 +351,87 @@ pub fn cost_bootstrap(
     })
 }
 
+/// Verify drift control tolerance (docs/BENCHMARK_SPEC.md §14.4): the
+/// §6.2 paired-control tolerance, applied to verify medians.
+pub const VERIFY_CONTROL_TOLERANCE_PPM: u64 = 30_000;
+
+/// One class of a [`VerifyControl`].
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VerifyControlClass {
+    pub class_id: String,
+    /// The pinned reference verify median per batch (`cost_baseline.verify_ns`).
+    pub pinned_verify_ns: u64,
+    /// Median of the control session's per-run verify totals.
+    pub control_verify_ns: u64,
+    /// `|control - pinned| / pinned` in ppm, rounded up.
+    pub drift_ppm: u64,
+    pub ok: bool,
+}
+
+/// Verdict of the verify drift control (§14.4): a control session of the
+/// reference candidate on the same CPUs must reproduce every class's pinned
+/// verify median within `tolerance_ppm`. A failure (`VERIFY_DRIFT`) makes
+/// the session infra-invalid; it is never charged to a candidate.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VerifyControl {
+    pub tolerance_ppm: u64,
+    /// Sorted by class id (bytes).
+    pub classes: Vec<VerifyControlClass>,
+    pub ok: bool,
+    /// Empty, or `["VERIFY_DRIFT"]`.
+    pub reasons: Vec<String>,
+}
+
+/// Normative verify drift control. `pinned` and `control_runs` must name the
+/// same classes (`MISSING_BASELINE` otherwise); every control class needs at
+/// least one run (`NO_RUNS`) and every pinned median must be > 0
+/// (`ZERO_OR_BAD_TIME`).
+pub fn verify_control(
+    pinned: &[(String, u64)],
+    control_runs: &[(String, Vec<u64>)],
+    tolerance_ppm: u64,
+) -> Result<VerifyControl, CostError> {
+    let mut ids: Vec<&str> = pinned.iter().map(|(c, _)| c.as_str()).collect();
+    ids.sort_unstable_by(|a, b| a.as_bytes().cmp(b.as_bytes()));
+    let mut ctl: Vec<&str> = control_runs.iter().map(|(c, _)| c.as_str()).collect();
+    ctl.sort_unstable_by(|a, b| a.as_bytes().cmp(b.as_bytes()));
+    if ids != ctl || ids.windows(2).any(|w| w[0] == w[1]) {
+        return Err(CostError::MissingBaseline);
+    }
+    let mut classes = Vec::with_capacity(ids.len());
+    for id in ids {
+        let pin = pinned.iter().find(|(c, _)| c == id).expect("same ids").1;
+        let runs = &control_runs
+            .iter()
+            .find(|(c, _)| c == id)
+            .expect("same ids")
+            .1;
+        if pin == 0 {
+            return Err(CostError::ZeroOrBadTime);
+        }
+        let med = median_u64(runs).ok_or(CostError::Score(ScoreError::NoRuns))?;
+        let drift = crate::stats::drift_ppm(pin, med);
+        classes.push(VerifyControlClass {
+            class_id: id.to_string(),
+            pinned_verify_ns: pin,
+            control_verify_ns: med,
+            drift_ppm: drift,
+            ok: drift <= tolerance_ppm,
+        });
+    }
+    let ok = classes.iter().all(|c| c.ok);
+    Ok(VerifyControl {
+        tolerance_ppm,
+        classes,
+        ok,
+        reasons: if ok {
+            vec![]
+        } else {
+            vec!["VERIFY_DRIFT".into()]
+        },
+    })
+}
+
 /// Build the contract-level [`arena_types::CostResult`] from a point score
 /// (and an optional CI half-width).
 pub fn to_contract(
@@ -551,6 +632,43 @@ mod tests {
         c.verify_runs_ns.clear();
         c.proof_bytes_runs.clear();
         assert_eq!(cost_score(&p, &[c], 0, 0).unwrap_err().code(), "NO_RUNS");
+    }
+
+    #[test]
+    fn verify_control_tolerance() {
+        let pin = vec![("a".to_string(), 1_000_000), ("b".to_string(), 2_000_000)];
+        let ok = verify_control(
+            &pin,
+            &[
+                ("b".into(), vec![2_050_000, 2_060_000, 1_990_000]),
+                ("a".into(), vec![1_030_000, 990_000, 1_000_000]),
+            ],
+            VERIFY_CONTROL_TOLERANCE_PPM,
+        )
+        .unwrap();
+        assert!(ok.ok && ok.reasons.is_empty());
+        assert_eq!(ok.classes[0].class_id, "a");
+        assert_eq!(ok.classes[1].drift_ppm, 25_000);
+        // exactly at the tolerance passes; one ns above fails
+        let edge = |v: u64| {
+            verify_control(&pin[..1], &[("a".into(), vec![v])], 30_000)
+                .unwrap()
+                .ok
+        };
+        assert!(edge(1_030_000) && edge(970_000));
+        assert!(!edge(1_030_001) && !edge(969_999));
+        let bad = verify_control(&pin[..1], &[("a".into(), vec![1_031_000])], 30_000).unwrap();
+        assert_eq!(bad.reasons, ["VERIFY_DRIFT"]);
+        assert_eq!(
+            verify_control(&pin, &[("a".into(), vec![1])], 30_000).unwrap_err(),
+            CostError::MissingBaseline
+        );
+        assert_eq!(
+            verify_control(&pin[..1], &[("a".into(), vec![])], 30_000)
+                .unwrap_err()
+                .code(),
+            "NO_RUNS"
+        );
     }
 
     #[test]

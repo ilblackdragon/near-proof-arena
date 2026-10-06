@@ -19,7 +19,18 @@ Pipeline (every step recorded in OUT_DIR):
      (`cargo run -p arena-worker --example bench_session`), with calibration
      pre/post;
   6. summarise: per-class medians/MAD/cold/verify, outliers, tripwire,
-     calibration drift (`arena_bench.calibration.check_drift`), load average.
+     calibration drift (`arena_bench.calibration.check_drift`), load average,
+     and the cost_v1 components (per-run verify and proof-byte totals and
+     their medians, BENCHMARK_SPEC §14.3);
+  7. with `--control-sessions N`: N more sessions of the same bundle on the
+     same CPUs and the same sampled batches, each checked against the first
+     by the verify drift control (`arena_bench.cost.verify_control`,
+     BENCHMARK_SPEC §14.4, 30 000 ppm). `summary.json` records the verdicts;
+     `pin_baseline.py` refuses a cost baseline whose control failed.
+
+`--package-rev REV` packs the package as committed at REV (default HEAD), e.g.
+to re-measure a challenge's pinned `baseline_submission`; the summary records
+whether the packed digest equals it.
 
 usage: run_baseline.py --challenge challenges/chl_….json --package examples/reexec-witness
                        --oracle oracle/target/debug/near-arena-oracle --out benchmarks/results/<name>
@@ -28,7 +39,7 @@ import argparse, datetime, hashlib, json, os, shutil, subprocess, sys, tempfile
 
 REPO = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True).stdout.strip()
 sys.path.insert(0, os.path.join(REPO, "benchmarks"))
-from arena_bench import calibration, hostprofile, stats  # noqa: E402
+from arena_bench import calibration, cost, hostprofile, stats  # noqa: E402
 
 
 def jcs(v):
@@ -42,6 +53,34 @@ def sha256_file(p):
 def run(cmd, **kw):
     print("+", " ".join(cmd), file=sys.stderr)
     return subprocess.run(cmd, check=True, **kw)
+
+
+def control_verdicts(classes, controls):
+    """§14.4 verify drift control of each control session against the first."""
+    pinned = {c["class_id"]: c["verify_run_median_ns"] for c in classes}
+    out = []
+    for path, cs in controls:
+        runs = {c["class_id"]: c["measured_verify_runs_ns"] for c in cs["session"]["classes"]}
+        v = cost.verify_control(pinned, runs)
+        cal = calibration.check_drift(cs["calibration"]["pre_ns"], cs["calibration"]["post_ns"])
+        out.append({
+            "session": os.path.basename(path),
+            "ok": v.ok,
+            "reasons": list(v.reasons),
+            "tolerance_ppm": v.tolerance_ppm,
+            "classes": [c.__dict__ for c in v.classes],
+            "prove_median_ns": {c["class_id"]: stats.median_u64(c["measured_runs_ns"]) for c in cs["session"]["classes"]},
+            "proof_bytes_run_median": {c["class_id"]: stats.median_u64(c["measured_proof_bytes_runs"])
+                                       for c in cs["session"]["classes"]},
+            "flags": cs["session"]["flags"],
+            "calibration_ok": cal.ok,
+            "calibration_reasons": list(cal.reasons),
+            "session_wall_secs": cs["session_wall_secs"],
+            # §6.1: a session whose calibration failed (or that is flagged) is
+            # infra-invalid; its control verdict does not count either way
+            "valid": cal.ok and not cs["session"]["flags"],
+        })
+    return out
 
 
 def main():
@@ -64,6 +103,9 @@ def main():
                     help="judge-only season secret (hex, 0600): sample batches as a live worker with "
                          "ARENA_SEASON_SECRET_FILE does (BENCHMARK_SPEC §11.1); never printed")
     ap.add_argument("--season-secret-commit", default=None, help="published commitment the secret must match")
+    ap.add_argument("--package-rev", default="HEAD", help="pack the package as committed at this git revision")
+    ap.add_argument("--control-sessions", type=int, default=0,
+                    help="extra sessions of the same bundle for the verify drift control (BENCHMARK_SPEC §14.4)")
     a = ap.parse_args()
     if not (a.oracle or a.oracle_v3):
         sys.exit("give --oracle and/or --oracle-v3")
@@ -82,8 +124,9 @@ def main():
     shutil.rmtree(export, ignore_errors=True)
     os.makedirs(export)
     rel = os.path.relpath(os.path.abspath(a.package), REPO)
-    git_tree = subprocess.run(["git", "-C", REPO, "rev-parse", f"HEAD:{rel}"], capture_output=True, text=True, check=True).stdout.strip()
-    archive = subprocess.run(["git", "-C", REPO, "archive", "HEAD", rel], capture_output=True, check=True).stdout
+    rev = subprocess.run(["git", "-C", REPO, "rev-parse", a.package_rev], capture_output=True, text=True, check=True).stdout.strip()
+    git_tree = subprocess.run(["git", "-C", REPO, "rev-parse", f"{rev}:{rel}"], capture_output=True, text=True, check=True).stdout.strip()
+    archive = subprocess.run(["git", "-C", REPO, "archive", rev, rel], capture_output=True, check=True).stdout
     subprocess.run(["tar", "-x", "-C", export], input=archive, check=True)
     pkg_dir = os.path.join(export, rel)
     pkg_tar = os.path.join(work, "package.tar")
@@ -132,7 +175,7 @@ def main():
     shutil.rmtree(public, ignore_errors=True)
     run([os.path.join(bundle, "out/prepare"), "--params", os.path.join(fixtures, "params.bin"), "--out", public])
 
-    # 5. the session
+    # 5. the session (+ control sessions)
     session_json = os.path.join(out, "session.json")
     run_chal = chal_path
     hw_label = f"dev-host:{a.host_id} (NOT {chal['hardware_profile']['id']} governed)"
@@ -143,17 +186,24 @@ def main():
             *(["--oracle-v3", os.path.abspath(a.oracle_v3)] if a.oracle_v3 else []),
             "--generators", os.path.abspath(a.workloads),
             "--fixtures", fixtures, "--cpus", a.cpus, "--calibration-runs", a.calibration_runs,
-            "--work", os.path.join(work, "session"), "--out", session_json]
+            "--work", os.path.join(work, "session"), "--out", "SESSION_OUT"]
     if a.fc_deps:
         argv += ["--fc-deps", os.path.abspath(a.fc_deps)]
     if a.season_secret_file:
         argv += ["--season-secret-file", os.path.abspath(a.season_secret_file)]
         if a.season_secret_commit:
             argv += ["--season-secret-commit", a.season_secret_commit]
+    def session(path):
+        shutil.rmtree(os.path.join(work, "session"), ignore_errors=True)
+        argv_i = [path if x == "SESSION_OUT" else x for x in argv]
+        run(argv_i, cwd=REPO, env=dict(os.environ, RUSTC_WRAPPER=os.environ.get("RUSTC_WRAPPER", "sccache")))
+        return json.load(open(path))
+
     started = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
-    run(argv, cwd=REPO, env=dict(os.environ, RUSTC_WRAPPER=os.environ.get("RUSTC_WRAPPER", "sccache")))
+    s = session(session_json)
+    controls = [(os.path.join(out, f"session-control-{i + 1}.json"),) for i in range(a.control_sessions)]
+    controls = [(p, session(p)) for (p,) in controls]
     finished = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
-    s = json.load(open(session_json))
 
     # 6. summary
     gates = {g["gate"]: g for g in s["job_result"]["gates"]}
@@ -174,6 +224,11 @@ def main():
             "fresh_ns": cs["fresh_runs_ns"],
             "verify_median_ns": stats.median_u64(cs["verify_runs_ns"]),
             "proof_bytes_max": cs["proof_bytes_max"],
+            # cost_v1 components (§14.3): per measured run, Σ over the batch
+            "verify_runs_ns": cs["measured_verify_runs_ns"],
+            "proof_bytes_runs": cs["measured_proof_bytes_runs"],
+            "verify_run_median_ns": stats.median_u64(cs["measured_verify_runs_ns"]),
+            "proof_bytes_run_median": stats.median_u64(cs["measured_proof_bytes_runs"]),
             "peak_rss_bytes": cs["peak_rss_bytes"],
             "outliers": cs["outliers"],
             "tripwire": cs["tripwire"],
@@ -223,11 +278,23 @@ def main():
         "fc_deps": s["fc_deps"],
         "classes": classes,
         "baseline_ns": [[c["class_id"], c["median_ns"]] for c in sorted(classes, key=lambda c: c["class_id"])],
+        "package_rev": rev,
+        "package_is_challenge_baseline_submission": package_digest == chal["workload_suite"]["baseline_submission"],
+        "cost_baseline": [
+            {"class_id": c["class_id"], "prove_ns": c["median_ns"], "verify_ns": c["verify_run_median_ns"],
+             "proof_bytes": c["proof_bytes_run_median"]}
+            for c in sorted(classes, key=lambda c: c["class_id"])
+        ],
+        "verify_control": control_verdicts(classes, controls),
         "score_note": "the measured challenge has no baseline: the session is measured, not scored. Against these medians the reference scores exactly 100.000 by construction.",
     }
     json.dump(summary, open(os.path.join(out, "summary.json"), "w"), indent=1)
     open(os.path.join(out, "summary.json"), "a").write("\n")
     print(json.dumps({"package_digest": package_digest, "baseline_ns": summary["baseline_ns"],
+                      "package_is_challenge_baseline_submission": summary["package_is_challenge_baseline_submission"],
+                      "cost_baseline": summary["cost_baseline"],
+                      "verify_control": [{k: v[k] for k in ("session", "ok", "reasons")} | {"drift_ppm": {c["class_id"]: c["drift_ppm"] for c in v["classes"]}}
+                                         for v in summary["verify_control"]],
                       "calibration_ok": dv.ok, "flags": summary["flags"]}, indent=1))
 
 

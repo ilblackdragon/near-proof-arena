@@ -246,6 +246,20 @@ COST_BOOTSTRAP_CASES = [
     ("two_class_noisy", derive_seed("bootstrap", "sub_0123456789abcdef", "run_0123456789abcdef"), 500, COST_SCORE_CASES[2]),
 ]
 
+# (name, pinned {class: verify_ns}, control {class: [per-run verify totals]}, tolerance_ppm)
+VERIFY_CONTROL_CASES = [
+    ("within_tolerance", {"b": 2_000_000, "a": 1_000_000}, {"a": [1_030_000, 990_000, 1_000_000], "b": [2_050_000, 2_060_000, 1_990_000]}, 30_000),
+    ("exactly_at_tolerance_up", {"a": 1_000_000}, {"a": [1_030_000]}, 30_000),
+    ("exactly_at_tolerance_down", {"a": 1_000_000}, {"a": [970_000]}, 30_000),
+    ("one_ns_over", {"a": 1_000_000}, {"a": [1_030_001]}, 30_000),
+    ("rounds_up", {"a": 3}, {"a": [4, 4]}, 333_333),
+    ("one_class_drifts", {"d0-quiet": 47_330_387, "d0-transfers": 52_000_000}, {"d0-quiet": [47_000_000, 47_500_000], "d0-transfers": [56_000_000, 57_000_000, 55_000_000]}, 30_000),
+    ("even_count_median", {"a": 100}, {"a": [90, 100, 104, 200]}, 30_000),
+    ("class_mismatch", {"a": 1}, {"b": [1]}, 30_000),
+    ("no_runs", {"a": 1}, {"a": []}, 30_000),
+    ("zero_pinned", {"a": 0}, {"a": [1]}, 30_000),
+]
+
 
 def _prices(pm):
     from .cost import Prices
@@ -265,7 +279,7 @@ def _breakdown_json(b):
 
 
 def generate_cost() -> dict:
-    from .cost import Components, CostError, batch_cost, class_runs_from_json, cost_bootstrap, cost_score
+    from .cost import Components, CostError, batch_cost, class_runs_from_json, cost_bootstrap, cost_score, verify_control
 
     vec: dict = {
         "schema": COST_SCHEMA,
@@ -315,4 +329,20 @@ def generate_cost() -> dict:
             }
         )
     vec["cost_bootstrap"] = out
+    out = []
+    for name, pinned, control, tol in VERIFY_CONTROL_CASES:
+        try:
+            r = verify_control(pinned, control, tol)
+            exp = {
+                "ok": r.ok,
+                "reasons": list(r.reasons),
+                "classes": [
+                    {"class_id": c.class_id, "pinned_verify_ns": c.pinned_verify_ns, "control_verify_ns": c.control_verify_ns, "drift_ppm": c.drift_ppm, "ok": c.ok}
+                    for c in r.classes
+                ],
+            }
+        except CostError as e:
+            exp = {"error": e.code}
+        out.append({"name": name, "pinned": pinned, "control_runs": control, "tolerance_ppm": tol, "expect": exp})
+    vec["verify_control"] = out
     return vec

@@ -42,6 +42,26 @@ target/debug/arena-admin supersede --old challenges/chl_5ef2bc7d2068219635426e47
 6. writes `host-profile.json`, `build.log`, `session.json` (every raw run,
    the schedule, job output, calibration, load averages) and `summary.json`.
 
+## cost_v1 references (BENCHMARK_SPEC §14.4, §14.5)
+
+```sh
+python3 benchmarks/baseline/run_baseline.py --challenge challenges/chl_….json \
+  --package examples/<reference> --package-rev <commit whose tree packs to baseline_submission> \
+  --cpus 0-7 --control-sessions 2 [--season-secret-file … --season-secret-commit …] --out <results>
+python3 benchmarks/baseline/pin_baseline.py --old challenges/chl_….json --summary <results>/summary.json \
+  --name <successor> --created-at <RFC 3339> --out <draft> \
+  --price-model challenges/price-models/pm-near-mainnet-2026q4.v2.json
+```
+
+The summary adds per-run verify / proof-byte totals, `cost_baseline`,
+`package_is_challenge_baseline_submission` and one `verify_control` verdict per
+control session (same bundle, same batches, same CPUs). A control whose
+calibration failed is `valid: false` and does not count. `pin_baseline.py
+--price-model` writes `scoring` (cost_v1) only from a valid session with at
+least one valid control and every valid control within 30 000 ppm, and only
+for a `governed` model. On a failure, re-measure into a new directory and keep
+the failed one as `<name>-attemptN-verify-drift`.
+
 ## Limitations (read before using a number)
 
 * **Dev host.** The shared development box is not a governed host (§4.1):

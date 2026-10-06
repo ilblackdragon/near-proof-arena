@@ -1,0 +1,1311 @@
+{
+  "schema": "arena-bench-session-v2",
+  "challenge_id": "chl_7c0456cb2d1a36f8601863ac206cfcc9",
+  "suite_revision": "near-transfer-receipt-v1-r1",
+  "package_digest": "sha256:329c763a92542052e1e2d69b6dc262446571acb1ab9ec50fd4caec170bcd699f",
+  "sandbox": {
+    "backend": "firecracker",
+    "steps_share_instance": true,
+    "rootfs": "sha256:bb60e9328af180b61f0a64694e368b2b56ed7d85e2b1cbd6d6c5ed93906f2960",
+    "kernel": "sha256:e20e46d0c36c55c0d1014eb20576171b3f3d922260d9f792017aeff53af3d4f2"
+  },
+  "fc_deps": "/data/illia/nearproof-deps/firecracker-rc",
+  "cpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "bundle_tree_digest": "sha256:9099b64e12a039cab6ec354390038cec21ea50173bc53475404e591cfa2bf11e",
+  "public_tree_digest": "sha256:b7fa448e64a4e0a012bc8e05bf591ecc257861addbed2bac49e4db70db0e39e8",
+  "native_verifier": "sha256:3931ac6f2c1eba795424c3a2b65cd84538f10dbf7e25376bff1380378270ac94",
+  "procedure": {
+    "warmup_runs": 3,
+    "measured_runs": 15,
+    "aggregation": "median",
+    "outlier_mad_k": 5,
+    "cold_runs": 1,
+    "concurrency": 1,
+    "per_run_timeout_ms": 600000,
+    "invocation_mode": "vm_per_batch"
+  },
+  "sampling": {
+    "rule": "worker NearOracle, judge-secret: seed = first 8 bytes BE of HMAC-SHA256(season_secret, \"near-arena-workload-sample-v1|\" + challenge_id + \"|\" + package_digest + \"|\" + class_id) (BENCHMARK_SPEC §11.1); fresh-confirm uses class_id#fresh",
+    "seed_parts": [
+      "chl_7c0456cb2d1a36f8601863ac206cfcc9",
+      "sha256:329c763a92542052e1e2d69b6dc262446571acb1ab9ec50fd4caec170bcd699f"
+    ],
+    "season_secret_commitment": "sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d"
+  },
+  "calibration": {
+    "workload": "head -c 268435456 /dev/zero | sha256sum",
+    "pre_ns": [
+      481150008,
+      466266839,
+      459155551,
+      453607465,
+      465610061
+    ],
+    "post_ns": [
+      465603246,
+      454624960,
+      462747619,
+      460847332,
+      459352768
+    ]
+  },
+  "loadavg": [
+    {
+      "at": "start",
+      "loadavg": "14.53 15.17 14.88 14/3169 1149528"
+    },
+    {
+      "at": "after_calibration_pre",
+      "loadavg": "14.57 15.17 14.88 15/3123 1150256"
+    },
+    {
+      "at": "after_session",
+      "loadavg": "19.23 16.84 15.55 16/3207 1176573"
+    },
+    {
+      "at": "after_calibration_post",
+      "loadavg": "18.89 16.81 15.54 18/3184 1177209"
+    }
+  ],
+  "session_wall_secs": 158,
+  "job_result": {
+    "gates": [
+      {
+        "gate": "BENCHMARK",
+        "mandatory": true,
+        "status": "PASS",
+        "reason_codes": [],
+        "summary": "judge-secret HMAC sampling (season secret commitment sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d); batch-1: median 7086 us, MAD 349 us, verify median 5094 us, max proof 1060 B; batch-16: median 7104 us, MAD 545 us, verify median 19578 us, max proof 8463 B; batch-256: median 10739 us, MAD 626 us, verify median 189759 us, max proof 74197 B; worker-side score 94021 ± 4718 milli (server recomputes)",
+        "evidence": [
+          {
+            "label": "benchmark session",
+            "digest": "sha256:b49a5fa12c6d2cd4815b8b658b461bf67076abbe66c7b53686b2dbdbdaeec697",
+            "public": true
+          }
+        ],
+        "started_at": "2026-10-06T07:51:47.386486805Z",
+        "finished_at": "2026-10-06T07:54:26.095226409Z",
+        "reused_from": null
+      }
+    ],
+    "artifacts": [
+      {
+        "label": "benchmark session",
+        "digest": "sha256:b49a5fa12c6d2cd4815b8b658b461bf67076abbe66c7b53686b2dbdbdaeec697",
+        "public": true
+      }
+    ],
+    "benchmark": {
+      "hardware_profile": "nearproof-local-ryzen9-9950x3d",
+      "suite_revision": "near-transfer-receipt-v1-r1",
+      "classes": [
+        {
+          "class_id": "batch-1",
+          "weight_ppm": 200000,
+          "runs_ns": [
+            5987230,
+            6641134,
+            7113421,
+            7192360,
+            7495839,
+            5797964,
+            7436069,
+            7086491,
+            7593163,
+            7393908,
+            6363979,
+            6923072,
+            7315280,
+            6244205,
+            7066443
+          ],
+          "median_ns": 7086491,
+          "mad_ns": 349578,
+          "cold_ns": 202470533,
+          "baseline_ns": 6211419,
+          "verify_median_ns": 5094565,
+          "proof_bytes_max": 1060,
+          "peak_rss_bytes": 448143360,
+          "verify_runs_ns": [
+            38670697,
+            39276287,
+            41592818,
+            38229277,
+            38059277,
+            39858763,
+            41090682,
+            39057726,
+            39243174,
+            38022025,
+            40272632,
+            40946488,
+            41247546,
+            40030273,
+            39043113
+          ],
+          "proof_bytes_runs": [
+            6249,
+            6249,
+            6249,
+            6249,
+            6249,
+            6249,
+            6249,
+            6249,
+            6249,
+            6249,
+            6249,
+            6249,
+            6249,
+            6249,
+            6249
+          ]
+        },
+        {
+          "class_id": "batch-16",
+          "weight_ppm": 300000,
+          "runs_ns": [
+            7594084,
+            6559146,
+            6651941,
+            6721193,
+            8036069,
+            7726174,
+            6375832,
+            7509665,
+            6469608,
+            7825560,
+            7962548,
+            7915981,
+            6898924,
+            6624549,
+            7104743
+          ],
+          "median_ns": 7104743,
+          "mad_ns": 545597,
+          "cold_ns": 205719786,
+          "baseline_ns": 6876460,
+          "verify_median_ns": 19578009,
+          "proof_bytes_max": 8463,
+          "peak_rss_bytes": 448348160,
+          "verify_runs_ns": [
+            168543072,
+            155336389,
+            151996592,
+            159097938,
+            175894017,
+            154301309,
+            184305481,
+            171041609,
+            151117230,
+            192466428,
+            241703773,
+            150751529,
+            198276561,
+            222521130,
+            250116063
+          ],
+          "proof_bytes_runs": [
+            48164,
+            48164,
+            48164,
+            48164,
+            48164,
+            48164,
+            48164,
+            48164,
+            48164,
+            48164,
+            48164,
+            48164,
+            48164,
+            48164,
+            48164
+          ]
+        },
+        {
+          "class_id": "batch-256",
+          "weight_ppm": 500000,
+          "runs_ns": [
+            11292727,
+            9510191,
+            11582363,
+            11342201,
+            11033701,
+            11512593,
+            10739386,
+            10113359,
+            8805375,
+            9446955,
+            11277508,
+            9938488,
+            10702528,
+            9802131,
+            11194513
+          ],
+          "median_ns": 10739386,
+          "mad_ns": 626027,
+          "cold_ns": 252694584,
+          "baseline_ns": 10205590,
+          "verify_median_ns": 189759116,
+          "proof_bytes_max": 74197,
+          "peak_rss_bytes": 448999424,
+          "verify_runs_ns": [
+            1536141636,
+            1558223612,
+            1479050132,
+            1523741705,
+            1517369506,
+            1557347768,
+            1554530051,
+            1561236662,
+            1553795165,
+            1526955657,
+            1594585051,
+            1501905188,
+            1524140537,
+            1555714673,
+            1473796770
+          ],
+          "proof_bytes_runs": [
+            519522,
+            519522,
+            519522,
+            519522,
+            519522,
+            519522,
+            519522,
+            519522,
+            519522,
+            519522,
+            519522,
+            519522,
+            519522,
+            519522,
+            519522
+          ]
+        }
+      ],
+      "score_milli": 94021,
+      "score_ci_milli": 4718,
+      "prepare_ns": 8787693,
+      "public_artifact_bytes": 110,
+      "measured_by": "arena-worker bench-session"
+    },
+    "evidence_graph": null,
+    "manifest": null,
+    "build": null,
+    "execution": {
+      "sandbox_backend": "firecracker",
+      "tier_cap": "formal",
+      "worker_version": "arena-worker/0.1.0"
+    },
+    "log_excerpt": null,
+    "native_verifier": null
+  },
+  "session": {
+    "invocation_mode": "vm_per_batch",
+    "sandbox_instance_per_batch": true,
+    "schedule_seed": 3242716572347054856,
+    "schedule": [
+      {
+        "seq": 0,
+        "phase": "cold",
+        "class_id": "batch-1",
+        "round": 0
+      },
+      {
+        "seq": 1,
+        "phase": "cold",
+        "class_id": "batch-16",
+        "round": 0
+      },
+      {
+        "seq": 2,
+        "phase": "cold",
+        "class_id": "batch-256",
+        "round": 0
+      },
+      {
+        "seq": 3,
+        "phase": "warmup",
+        "class_id": "batch-256",
+        "round": 0
+      },
+      {
+        "seq": 4,
+        "phase": "warmup",
+        "class_id": "batch-16",
+        "round": 0
+      },
+      {
+        "seq": 5,
+        "phase": "warmup",
+        "class_id": "batch-1",
+        "round": 0
+      },
+      {
+        "seq": 6,
+        "phase": "warmup",
+        "class_id": "batch-256",
+        "round": 1
+      },
+      {
+        "seq": 7,
+        "phase": "warmup",
+        "class_id": "batch-1",
+        "round": 1
+      },
+      {
+        "seq": 8,
+        "phase": "warmup",
+        "class_id": "batch-16",
+        "round": 1
+      },
+      {
+        "seq": 9,
+        "phase": "warmup",
+        "class_id": "batch-1",
+        "round": 2
+      },
+      {
+        "seq": 10,
+        "phase": "warmup",
+        "class_id": "batch-256",
+        "round": 2
+      },
+      {
+        "seq": 11,
+        "phase": "warmup",
+        "class_id": "batch-16",
+        "round": 2
+      },
+      {
+        "seq": 12,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 0
+      },
+      {
+        "seq": 13,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 0
+      },
+      {
+        "seq": 14,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 0
+      },
+      {
+        "seq": 15,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 1
+      },
+      {
+        "seq": 16,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 1
+      },
+      {
+        "seq": 17,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 1
+      },
+      {
+        "seq": 18,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 2
+      },
+      {
+        "seq": 19,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 2
+      },
+      {
+        "seq": 20,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 2
+      },
+      {
+        "seq": 21,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 3
+      },
+      {
+        "seq": 22,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 3
+      },
+      {
+        "seq": 23,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 3
+      },
+      {
+        "seq": 24,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 4
+      },
+      {
+        "seq": 25,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 4
+      },
+      {
+        "seq": 26,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 4
+      },
+      {
+        "seq": 27,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 5
+      },
+      {
+        "seq": 28,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 5
+      },
+      {
+        "seq": 29,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 5
+      },
+      {
+        "seq": 30,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 6
+      },
+      {
+        "seq": 31,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 6
+      },
+      {
+        "seq": 32,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 6
+      },
+      {
+        "seq": 33,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 7
+      },
+      {
+        "seq": 34,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 7
+      },
+      {
+        "seq": 35,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 7
+      },
+      {
+        "seq": 36,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 8
+      },
+      {
+        "seq": 37,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 8
+      },
+      {
+        "seq": 38,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 8
+      },
+      {
+        "seq": 39,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 9
+      },
+      {
+        "seq": 40,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 9
+      },
+      {
+        "seq": 41,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 9
+      },
+      {
+        "seq": 42,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 10
+      },
+      {
+        "seq": 43,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 10
+      },
+      {
+        "seq": 44,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 10
+      },
+      {
+        "seq": 45,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 11
+      },
+      {
+        "seq": 46,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 11
+      },
+      {
+        "seq": 47,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 11
+      },
+      {
+        "seq": 48,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 12
+      },
+      {
+        "seq": 49,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 12
+      },
+      {
+        "seq": 50,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 12
+      },
+      {
+        "seq": 51,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 13
+      },
+      {
+        "seq": 52,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 13
+      },
+      {
+        "seq": 53,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 13
+      },
+      {
+        "seq": 54,
+        "phase": "measured",
+        "class_id": "batch-16",
+        "round": 14
+      },
+      {
+        "seq": 55,
+        "phase": "measured",
+        "class_id": "batch-256",
+        "round": 14
+      },
+      {
+        "seq": 56,
+        "phase": "measured",
+        "class_id": "batch-1",
+        "round": 14
+      },
+      {
+        "seq": 57,
+        "phase": "fresh_confirm",
+        "class_id": "batch-256",
+        "round": 0
+      },
+      {
+        "seq": 58,
+        "phase": "fresh_confirm",
+        "class_id": "batch-16",
+        "round": 0
+      },
+      {
+        "seq": 59,
+        "phase": "fresh_confirm",
+        "class_id": "batch-1",
+        "round": 0
+      }
+    ],
+    "classes": [
+      {
+        "class_id": "batch-1",
+        "weight_ppm": 200000,
+        "baseline_ns": 6211419,
+        "cold_runs_ns": [
+          202470533
+        ],
+        "warmup_runs_ns": [
+          8166092,
+          6916158,
+          8231226
+        ],
+        "measured_runs_ns": [
+          5987230,
+          6641134,
+          7113421,
+          7192360,
+          7495839,
+          5797964,
+          7436069,
+          7086491,
+          7593163,
+          7393908,
+          6363979,
+          6923072,
+          7315280,
+          6244205,
+          7066443
+        ],
+        "fresh_runs_ns": [
+          6892526
+        ],
+        "verify_runs_ns": [
+          5641370,
+          4699005,
+          3678806,
+          5113596,
+          5256926,
+          5763770,
+          3658397,
+          4858827,
+          5646710,
+          6011055,
+          3505098,
+          4972240,
+          5407740,
+          4178987,
+          5075535,
+          4478922,
+          5732561,
+          6086328,
+          6631624,
+          4462922,
+          5475848,
+          3936610,
+          3767162,
+          5499763,
+          5827200,
+          6029099,
+          3881778,
+          3322725,
+          3588275,
+          6179553,
+          4960979,
+          4439668,
+          5915826,
+          5997561,
+          3667965,
+          4609317,
+          3963321,
+          4415983,
+          3551546,
+          5937758,
+          5726740,
+          4814283,
+          3321162,
+          4991036,
+          5349981,
+          5572620,
+          3967259,
+          6115682,
+          5713265,
+          5521404,
+          5208845,
+          5333110,
+          4751564,
+          4496645,
+          3628891,
+          6436958,
+          5612195,
+          4419640,
+          5200490,
+          3668045,
+          5252848,
+          4985205,
+          5281392,
+          4637911,
+          6279060,
+          5955621,
+          4430410,
+          5225837,
+          3862231,
+          5276583,
+          3702640,
+          4510792,
+          5689340,
+          6177508,
+          3378951,
+          4923198,
+          5258329,
+          4300456,
+          3925539,
+          4368704,
+          5596966,
+          4499900,
+          5187706,
+          4804504,
+          5430282,
+          5733303,
+          4442113,
+          4577858,
+          5948728,
+          5547673,
+          6304017,
+          4892550,
+          3886315,
+          4175601,
+          5692445,
+          4499159,
+          5882704,
+          5427276,
+          5059835,
+          5232009,
+          5440842,
+          4463202,
+          3620245,
+          6121433,
+          5632302,
+          5874207,
+          5245204,
+          4671604,
+          3867290,
+          5493531,
+          3562155,
+          5683980,
+          5736919,
+          6251999,
+          5168489,
+          5285700,
+          3837483,
+          4243408,
+          3870996,
+          4648119
+        ],
+        "measured_verify_runs_ns": [
+          38670697,
+          39276287,
+          41592818,
+          38229277,
+          38059277,
+          39858763,
+          41090682,
+          39057726,
+          39243174,
+          38022025,
+          40272632,
+          40946488,
+          41247546,
+          40030273,
+          39043113
+        ],
+        "measured_proof_bytes_runs": [
+          6249,
+          6249,
+          6249,
+          6249,
+          6249,
+          6249,
+          6249,
+          6249,
+          6249,
+          6249,
+          6249,
+          6249,
+          6249,
+          6249,
+          6249
+        ],
+        "proof_bytes_max": 1060,
+        "peak_rss_bytes": 448143360,
+        "outliers": {
+          "median_ns": 7086491,
+          "mad_ns": 349578,
+          "k": 5,
+          "flagged_indices": [],
+          "flagged_ppm": 0,
+          "excessive": false,
+          "notes": []
+        },
+        "tripwire": {
+          "suspected": false,
+          "measured_median_ns": 7086491,
+          "fresh_median_ns": 6892526,
+          "slowdown_ppm": 0
+        }
+      },
+      {
+        "class_id": "batch-16",
+        "weight_ppm": 300000,
+        "baseline_ns": 6876460,
+        "cold_runs_ns": [
+          205719786
+        ],
+        "warmup_runs_ns": [
+          7150219,
+          7900863,
+          7542950
+        ],
+        "measured_runs_ns": [
+          7594084,
+          6559146,
+          6651941,
+          6721193,
+          8036069,
+          7726174,
+          6375832,
+          7509665,
+          6469608,
+          7825560,
+          7962548,
+          7915981,
+          6898924,
+          6624549,
+          7104743
+        ],
+        "fresh_runs_ns": [
+          7342894
+        ],
+        "verify_runs_ns": [
+          40188064,
+          14520435,
+          19181729,
+          13064273,
+          17532736,
+          25351945,
+          17894376,
+          20809514,
+          21208705,
+          14439062,
+          20620678,
+          13355121,
+          17562772,
+          26934544,
+          18274291,
+          22941216,
+          20635005,
+          15952310,
+          20194717,
+          13632403,
+          15330269,
+          25742039,
+          19452539,
+          21057310,
+          21851646,
+          17021813,
+          21384936,
+          13754342,
+          16790578,
+          26753172,
+          19090307,
+          22451144,
+          44323097,
+          15503364,
+          20357162,
+          13452555,
+          17733904,
+          25693588,
+          18294068,
+          20536279,
+          21457683,
+          16237226,
+          19064198,
+          13910146,
+          17310657,
+          26526466,
+          18656911,
+          21138022,
+          52676372,
+          15809191,
+          18716764,
+          13073551,
+          17712263,
+          26530653,
+          19032318,
+          20754369,
+          37796942,
+          15917594,
+          19294181,
+          14494846,
+          17562791,
+          27038348,
+          17791692,
+          21145215,
+          20577636,
+          14891983,
+          18939964,
+          15162272,
+          17570666,
+          25795218,
+          17962233,
+          20217258,
+          59398404,
+          16481205,
+          20449885,
+          13314645,
+          17010311,
+          27363992,
+          18469758,
+          19978228,
+          22426065,
+          15928785,
+          21337657,
+          14485769,
+          15494687,
+          27242833,
+          60009515,
+          64778462,
+          23312123,
+          15093973,
+          20526059,
+          13525060,
+          15767422,
+          25037982,
+          17785430,
+          19703480,
+          64323925,
+          18256526,
+          20678265,
+          13617644,
+          17013577,
+          26156027,
+          17820396,
+          20410201,
+          20624464,
+          15555322,
+          21055025,
+          13089420,
+          17081044,
+          58919401,
+          54346343,
+          21850111,
+          48720642,
+          38698647,
+          20543662,
+          37069209,
+          16001632,
+          25646087,
+          41828910,
+          21607274
+        ],
+        "measured_verify_runs_ns": [
+          168543072,
+          155336389,
+          151996592,
+          159097938,
+          175894017,
+          154301309,
+          184305481,
+          171041609,
+          151117230,
+          192466428,
+          241703773,
+          150751529,
+          198276561,
+          222521130,
+          250116063
+        ],
+        "measured_proof_bytes_runs": [
+          48164,
+          48164,
+          48164,
+          48164,
+          48164,
+          48164,
+          48164,
+          48164,
+          48164,
+          48164,
+          48164,
+          48164,
+          48164,
+          48164,
+          48164
+        ],
+        "proof_bytes_max": 8463,
+        "peak_rss_bytes": 448348160,
+        "outliers": {
+          "median_ns": 7104743,
+          "mad_ns": 545597,
+          "k": 5,
+          "flagged_indices": [],
+          "flagged_ppm": 0,
+          "excessive": false,
+          "notes": []
+        },
+        "tripwire": {
+          "suspected": false,
+          "measured_median_ns": 7104743,
+          "fresh_median_ns": 7342894,
+          "slowdown_ppm": 33520
+        }
+      },
+      {
+        "class_id": "batch-256",
+        "weight_ppm": 500000,
+        "baseline_ns": 10205590,
+        "cold_runs_ns": [
+          252694584
+        ],
+        "warmup_runs_ns": [
+          10711845,
+          10125543,
+          9757106
+        ],
+        "measured_runs_ns": [
+          11292727,
+          9510191,
+          11582363,
+          11342201,
+          11033701,
+          11512593,
+          10739386,
+          10113359,
+          8805375,
+          9446955,
+          11277508,
+          9938488,
+          10702528,
+          9802131,
+          11194513
+        ],
+        "fresh_runs_ns": [
+          11033721
+        ],
+        "verify_runs_ns": [
+          179789053,
+          187744369,
+          201342888,
+          200838018,
+          187093313,
+          221546992,
+          195358622,
+          162428381,
+          184083738,
+          204681273,
+          183769976,
+          219086279,
+          176126688,
+          237547201,
+          191897286,
+          161031171,
+          175206934,
+          202491107,
+          182952776,
+          193863676,
+          160276058,
+          232515878,
+          184833587,
+          146910116,
+          188272680,
+          191138965,
+          187988315,
+          223994345,
+          163680015,
+          234850001,
+          174346714,
+          159470670,
+          175280010,
+          205546807,
+          197213869,
+          205566413,
+          171276523,
+          229988718,
+          183459888,
+          149037278,
+          181151522,
+          208161508,
+          212333912,
+          205128619,
+          175307460,
+          236853268,
+          186886538,
+          151524941,
+          187388512,
+          224728612,
+          200283997,
+          196741207,
+          168733905,
+          232742759,
+          188399725,
+          155511334,
+          189575959,
+          204092556,
+          201163542,
+          203907798,
+          165196916,
+          249926626,
+          187588467,
+          159784798,
+          174319068,
+          209538726,
+          195989010,
+          206770666,
+          178019282,
+          222134458,
+          200589831,
+          166434124,
+          171278842,
+          190157210,
+          201937766,
+          221744421,
+          174103240,
+          238714657,
+          190559568,
+          138459953,
+          194059366,
+          199372657,
+          204357671,
+          197572448,
+          176250882,
+          266663528,
+          202305377,
+          154003122,
+          188296155,
+          189942274,
+          190124116,
+          193550176,
+          182984366,
+          222774518,
+          173244532,
+          160989051,
+          171955876,
+          195037374,
+          184674476,
+          206988461,
+          178835195,
+          238359535,
+          207664433,
+          140625187,
+          189527090,
+          199373285,
+          182613075,
+          193834439,
+          181506582,
+          230888590,
+          206105187,
+          171866425,
+          172070849,
+          188104050,
+          184433210,
+          197089845,
+          167484867,
+          245867535,
+          168274874,
+          150471540
+        ],
+        "measured_verify_runs_ns": [
+          1536141636,
+          1558223612,
+          1479050132,
+          1523741705,
+          1517369506,
+          1557347768,
+          1554530051,
+          1561236662,
+          1553795165,
+          1526955657,
+          1594585051,
+          1501905188,
+          1524140537,
+          1555714673,
+          1473796770
+        ],
+        "measured_proof_bytes_runs": [
+          519522,
+          519522,
+          519522,
+          519522,
+          519522,
+          519522,
+          519522,
+          519522,
+          519522,
+          519522,
+          519522,
+          519522,
+          519522,
+          519522,
+          519522
+        ],
+        "proof_bytes_max": 74197,
+        "peak_rss_bytes": 448999424,
+        "outliers": {
+          "median_ns": 10739386,
+          "mad_ns": 626027,
+          "k": 5,
+          "flagged_indices": [],
+          "flagged_ppm": 0,
+          "excessive": false,
+          "notes": []
+        },
+        "tripwire": {
+          "suspected": false,
+          "measured_median_ns": 10739386,
+          "fresh_median_ns": 11033721,
+          "slowdown_ppm": 27407
+        }
+      }
+    ],
+    "bootstrap": {
+      "score_milli": 94021,
+      "lo_milli": 89867,
+      "hi_milli": 99302,
+      "half_width_milli": 4718,
+      "iterations": 10000,
+      "seed": 12121311460451873360
+    },
+    "flags": []
+  }
+}

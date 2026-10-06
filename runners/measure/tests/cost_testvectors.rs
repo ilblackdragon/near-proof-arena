@@ -160,3 +160,51 @@ fn cost_bootstrap_vectors() {
         );
     }
 }
+
+#[test]
+fn verify_control_vectors() {
+    let v = vectors();
+    let cases = v["verify_control"].as_array().unwrap();
+    assert!(cases.len() >= 10);
+    for case in cases {
+        let name = &case["name"];
+        let pinned: Vec<(String, u64)> = case["pinned"]
+            .as_object()
+            .unwrap()
+            .iter()
+            .map(|(k, x)| (k.clone(), u(x)))
+            .collect();
+        let control: Vec<(String, Vec<u64>)> = case["control_runs"]
+            .as_object()
+            .unwrap()
+            .iter()
+            .map(|(k, x)| (k.clone(), us(x)))
+            .collect();
+        let ex = &case["expect"];
+        match cost::verify_control(&pinned, &control, u(&case["tolerance_ppm"])) {
+            Ok(r) => {
+                assert_eq!(Value::Bool(r.ok), ex["ok"], "{name}");
+                assert_eq!(
+                    serde_json::to_value(&r.reasons).unwrap(),
+                    ex["reasons"],
+                    "{name}"
+                );
+                let got: Vec<Value> = r
+                    .classes
+                    .iter()
+                    .map(|c| {
+                        serde_json::json!({
+                            "class_id": c.class_id,
+                            "pinned_verify_ns": c.pinned_verify_ns,
+                            "control_verify_ns": c.control_verify_ns,
+                            "drift_ppm": c.drift_ppm,
+                            "ok": c.ok,
+                        })
+                    })
+                    .collect();
+                assert_eq!(Value::Array(got), ex["classes"], "{name}");
+            }
+            Err(e) => assert_eq!(ex["error"], e.code(), "{name}"),
+        }
+    }
+}
