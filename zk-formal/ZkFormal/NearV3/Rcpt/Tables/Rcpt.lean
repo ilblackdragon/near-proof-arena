@@ -41,7 +41,7 @@ def interactions : List Interaction :=
     send B_KEYNIB (c gKB) [wE, c tB, c symB, k 0],
     recv B_FINAL (c gF) [.add (c r) (smul W_AK (c sT0)), k 0, c fkF, c kF],
     recv B_MEM (c sDEP) [c kslot, c tprev, c idx, c bef, c lk, c st],
-    send B_MEM (c sDEP) [c kslot, .add (c r) (k 1), c idx, ZkFormal.Near.Rcpt.aftE, c lk, c st],
+    send B_MEM (c sDEP) [c kslot, .add (c r) (k 1), c idx, aftE, c lk, c st],
     send B_RIDS (c sRID) [c r, c idx, c b],
     send B_MPOS (c rf) [k 0, c r, mid K_LEAF (c r), k 68],
     send B_RCL (c le) [c j, c oEnd],

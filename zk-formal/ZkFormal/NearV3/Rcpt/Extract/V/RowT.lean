@@ -53,7 +53,7 @@ theorem rowT (q bus : Nat) (sd : Bool) :
         else []) ++
       (if bus = B_MEM ∧ sd = true then
         gt (C tr tt q sDEP) [C tr tt q kslot, C tr tt q RcptV3.r + (1 : Nat), C tr tt q idx,
-          ZkFormal.Near.Rcpt.aftE.eval tr tt q pub, C tr tt q lk, C tr tt q st] else []) ++
+          aftE.eval tr tt q pub, C tr tt q lk, C tr tt q st] else []) ++
       (if bus = B_RIDS ∧ sd = true then gt (C tr tt q sRID) [C tr tt q RcptV3.r, C tr tt q idx, C tr tt q b] else []) ++
       (if bus = B_MPOS ∧ sd = true then
         gt (C tr tt q rf) [(0 : Nat), C tr tt q RcptV3.r, (K_LEAF : Nat) + (16 : Nat) * C tr tt q RcptV3.r, (68 : Nat)]

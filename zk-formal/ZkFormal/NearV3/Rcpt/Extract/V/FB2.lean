@@ -10,7 +10,6 @@ import ZkFormal.NearV3.Rcpt.Extract.V.FB1
 namespace ZkFormal.NearV3.RcptV3Proof
 
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.RcptV3
-open ZkFormal.Near.Rcpt (bitsX bitsXn pubs ks leE G_LE S_LE conv ovf SS hiE loE sepE sepN hexE hexN sq lb' DE DEn pE surE aftE)
 open ZkFormal.Near.RcptProof (sumL chain chainC convS convR sumL_congr sumL_lt le256_map_range sumL_add convS_id)
 
 variable {tr : Trace Fp} {pub : List Fp} {tt : Nat}

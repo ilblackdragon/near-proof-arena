@@ -10,7 +10,6 @@ Each of these buses is used by one field of the receipt (`PL` row 0, `DEP`,
 namespace ZkFormal.NearV3.RcptV3Proof
 
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.RcptV3
-open ZkFormal.Near.Rcpt (bitsX bitsXn pubs ks leE G_LE S_LE conv ovf SS hiE loE sepE sepN hexE hexN sq lb' DE DEn pE surE aftE)
 open ZkFormal.Near.RcptProof (sumL chain chainC convS convR sumL_congr sumL_lt le256_map_range sumL_add convS_id)
 
 variable {tr : Trace Fp} {pub : List Fp} {tt : Nat}
@@ -63,7 +62,6 @@ end ZkFormal.NearV3.RcptV3Proof
 namespace ZkFormal.NearV3.RcptV3Proof
 
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.RcptV3
-open ZkFormal.Near.Rcpt (bitsX bitsXn pubs ks leE G_LE S_LE conv ovf SS hiE loE sepE sepN hexE hexN sq lb' DE DEn pE surE aftE)
 open ZkFormal.Near.RcptProof (sumL chain chainC convS convR sumL_congr sumL_lt le256_map_range sumL_add convS_id)
 
 variable {tr : Trace Fp} {pub : List Fp} {tt : Nat}
@@ -131,7 +129,7 @@ theorem rcpt_memS :
     _ 16 (fun i hi => ?_), List.map_map]
   · rfl
   · rw [rowT_memS]; simp only [C]; rw [gt_one (F.fld.st i hi)]
-    have hb := eval_bits tr tt (s + (107 + Vt Lp Lv Ls kt) + i) pub ZkFormal.Near.Rcpt.xb 0 8 (fun j hj =>
+    have hb := eval_bits tr tt (s + (107 + Vt Lp Lv Ls kt) + i) pub xb 0 8 (fun j hj =>
       isBool hL (by simp at hle; omega) (by
         unfold boolCols; simp only [List.mem_append]
         exact Or.inl (Or.inr (List.mem_map.mpr ⟨0 + j, List.mem_range.mpr (by omega), rfl⟩))))
@@ -141,7 +139,6 @@ theorem rcpt_memS :
       List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_range hi, Option.map_some, Option.getD_some]
     rw [F.consts i hi kslot (by simp [rconsts]), F.consts i hi RcptV3.r (by simp [rconsts]), F.fld.idx i hi, hrN]
     simp [natCast_eq]
-    rfl
 
 theorem rcpt_rids :
     (List.range' s (total h Lp Lv Ls kt)).flatMap (fun q => rowTraffic RcptV3.interactions tr tt q pub B_RIDS true) =

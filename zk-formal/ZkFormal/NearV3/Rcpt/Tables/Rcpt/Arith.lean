@@ -26,8 +26,38 @@ v1's `Rcpt.Arith` (`Near/Tables/Rcpt/Arith.lean`) without the claim rows, and:
 namespace ZkFormal.NearV3.RcptV3
 
 open ZkFormal.Air ZkFormal.Near ZkFormal.Near.Dsl NearSpec
-open ZkFormal.Near.Rcpt (bitsX bitsXn pubs ks leE G_LE S_LE conv ovf SS hiE loE sepE sepN hexE
-  hexN sq lb' DE DEn pE surE aftE)
+
+/-! ## Expression helpers (v1's, over `rcptV3`'s column names) -/
+
+def bitsX (off len : Nat) : Expr := bits (fun j => c (xb j)) off len
+def bitsXn (off len : Nat) : Expr := bits (fun j => n (xb j)) off len
+def pubs (off len : Nat) : List Expr := (List.range len).map fun j => .pub (off + j)
+def ks (l : List Nat) : List Expr := l.map k
+def leE (l : List Expr) : Expr := sum ((l.zip (List.range l.length)).map fun (e, j) => smul (256 ^ j) e)
+
+def G_LE : List Nat := [196, 164, 183, 246, 51, 0, 0, 0]
+def S_LE : List Nat := [0, 0, 232, 137, 4, 35, 199, 138]
+def SS : Expr := sum [c sP, c sV, c sS]
+def hiE : Expr := sum [smul 2 (c h2), smul 3 (c h3), smul 5 (c h5), smul 6 (c h6), smul 7 (c h7)]
+def loE : Expr := bits (fun j => c (lb j)) 0 4
+def sepE : Expr := .add (c h2) (c h5)
+def sepN : Expr := .add (n h2) (n h5)
+def hexE : Expr := .add (c h3) (c hx6)
+def hexN : Expr := .add (n h3) (n hx6)
+def sq (e : Expr) : Expr := .mul e e
+def lb' (j : Nat) : Expr := c (lb j)
+
+def DE : Expr := bitsX 0 8
+def DEn : Expr := bitsXn 0 8
+def pE : Expr := .add (.mul (c ge) (c (reg 0))) (.mul (not (c ge)) (c b))
+def surE : Expr := .mul (c ge) DE
+def conv (cs : List Nat) (x : Expr) (dl : Nat → Expr) : Expr :=
+  sum ((cs.zip (List.range cs.length)).map fun (g, j) => smul g (if j = 0 then x else dl (j - 1)))
+/-- bytes `16..` of `G·x` from the last row (`x`, `dl 0..2`): must vanish -/
+def ovf (x : Expr) (dl : Nat → Expr) : Expr :=
+  sum [smul (164 + 183 + 246 + 51) x, smul (183 + 246 + 51) (dl 0), smul (246 + 51) (dl 1),
+       smul 51 (dl 2)]
+
 
 /-! ## Registers -/
 
@@ -247,7 +277,40 @@ def cGas : List Expr :=
 
 /-! ## Balances (`DEP` rows): v1's -/
 
-def cDep : List Expr := ZkFormal.Near.Rcpt.cDep
+
+def dp : Expr := c sDEP
+def aftE : Expr := bitsX 0 8
+def cDep : List Expr :=
+  let d (j : Nat) : Expr := c (dl j)
+  [ .mul dp (sub (sum [c bef, c b, c c1]) (.add aftE (smul 256 (c (xb 8))))),
+    .mul (.mul dp (c fs)) (c c1), mul3 dp (not (c fe)) (sub (n c1) (c (xb 8))),
+    mul3 dp (c fe) (c (xb 8)),
+    -- amount ≠ u128::MAX
+    mul3 dp (c fs) (sub (c dsum) (sub (k 255) aftE)),
+    mul3 dp (not (c fe)) (sub (n dsum) (.add (c dsum) (sub (k 255) (bitsXn 0 8)))),
+    mul3 dp (c fe) (sub (.mul (c dsum) (c invB)) (k 1)),
+    -- tot = aft + locked < 2^128
+    .mul dp (sub (sum [aftE, c lk, c c2]) (.add (bitsX 9 8) (smul 256 (c (xb 17))))),
+    .mul (.mul dp (c fs)) (c c2), mul3 dp (not (c fe)) (sub (n c2) (c (xb 17))),
+    mul3 dp (c fe) (c (xb 17)),
+    -- q = 10^19·storage
+    .mul dp (sub (.add (conv S_LE (c st) d) (c c3)) (.add (bitsX 18 8) (smul 256 (bitsX 26 12)))),
+    .mul (.mul dp (c fs)) (c c3), mul3 dp (not (c fe)) (sub (n c3) (bitsX 26 12)),
+    mul3 dp (c fe) (bitsX 26 12),
+    mul3 dp (not (c fe)) (sub (n (dl 0)) (c st)),
+    -- tot − q with borrow; no final borrow when `big`
+    .mul dp (sub (sub (bitsX 9 8) (bitsX 18 8)) (sub (.add (c c4) (bitsX 38 8)) (smul 256 (c (xb 46))))),
+    .mul (.mul dp (c fs)) (c c4), mul3 dp (not (c fe)) (sub (n c4) (c (xb 46))),
+    .mul (mul3 dp (c fe) (c big)) (c (xb 46)),
+    -- otherwise storage ≤ 770
+    .mul (c r1) (not dp), mul3 dp (c fs) (c r1), mul3 dp (not (c fe)) (sub (n r1) (c fs)),
+    mul3 (not (c big)) (c r1) (sub (k 770) (sum [c (dl 0), smul 256 (c st), bitsX 47 10])),
+    mul3 (not (c big)) (sub (sub dp (c fs)) (c r1)) (c st),
+    -- the read is not from the future
+    mul3 dp (c fs) (sub (sub (c r) (c tprev)) (bitsX 57 9)) ] ++
+  (List.range 7).map (fun j => mul3 dp (c fs) (d j)) ++
+  (List.range 6).map (fun j => mul3 dp (not (c fe)) (sub (n (dl (j + 1))) (d j)))
+
 
 /-! ## End of the active part, digest lookups -/
 
