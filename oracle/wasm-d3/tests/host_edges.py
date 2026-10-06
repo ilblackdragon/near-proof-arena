@@ -161,3 +161,22 @@ cases.append(P("ünïcödé\n\"q\"".encode()).call("panic_utf8", len("ünïcöd�
 cases.append(P(b"", "rcv=alice.near,bob.near,carol.near").done((0, 4096)))
 for c in cases:
     print(c)
+
+# ed25519_verify on nearcore-judged vectors (oracle/fixtures/v3/ed25519), plus length errors
+import glob
+vecs = []
+for f in sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../fixtures/v3/ed25519/*.jsonl"))):
+    if "sha512" in f:
+        continue
+    for line in open(f):
+        v = json.loads(line)
+        if "sig" in v and "pk" in v and "msg" in v:
+            vecs.append(v)
+for v in vecs[:400]:
+    sig, pk, msg = bytes.fromhex(v["sig"]), bytes.fromhex(v["pk"]), bytes.fromhex(v["msg"])
+    p = P(sig + pk + msg)
+    # store the verdict at memory[4000] and return it
+    p.raw(i32c(4000))
+    p.call("ed25519_verify", len(sig), 0, len(msg), len(sig) + len(pk), len(pk), len(sig), keep=True)
+    p.raw(b"\x37\x03\x00")
+    print(p.done((4000, 8)))

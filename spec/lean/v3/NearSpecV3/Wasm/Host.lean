@@ -1,5 +1,6 @@
 import NearSpecV3.Wasm.Machine
 import NearSpecV3.Wasm.Crypto
+import NearSpecV3.Ed25519
 /-!
 # NEAR WASM (D3α): host functions
 
@@ -13,8 +14,10 @@ receipt index = action-log index). `RuntimeD3` will instantiate the real trie-ba
 everything above `External` is shared.
 
 D3α scope: every host function except the curve ones (`alt_bn128_*`, `bls12381_*`, `ecrecover`,
-`p256_verify`: out of domain) and, pending D1's merge, `ed25519_verify`. The global-contract,
-deterministic-state-init and gas-key actions report `unmodeled` until their fee formulas are modelled.
+`p256_verify`: out of domain). `ed25519_verify` shares D1's `NearSpecV3.Ed25519.verify` (same
+`ed25519_dalek::Verifier::verify` as transaction signatures). The three gas-key actions report
+`unmodeled` until their fee formulas (`gas_key_*_fee`, `core/parameters/src/cost.rs:781-876`) are
+modelled.
 -/
 namespace NearSpecV3.Wasm
 
@@ -848,6 +851,18 @@ def hostCall (name : String) : Option (HM Unit) :=
       | some (d, _) => d == did
       | none => false
     pushRet (if found then 1 else 0) (is64 := false)
+  | "ed25519_verify" => some do
+    -- logic.rs `ed25519_verify`: an encoding-invalid signature returns 0 before the message is read
+    let a ← popArgs 6
+    payBaseH C.ed25519VerifyBase
+    let sig ← memOrRegH a[1]! a[0]!
+    if sig.size ≠ 64 then hErr "Ed25519VerifyInvalidInput { msg: \"invalid signature length\" }"
+    if sig[63]! &&& 0xE0 ≠ 0 then pushRet 0 else
+    let msg ← memOrRegH a[3]! a[2]!
+    payPerH C.ed25519VerifyByte msg.size
+    let pk ← memOrRegH a[5]! a[4]!
+    if pk.size ≠ 32 then hErr "Ed25519VerifyInvalidInput { msg: \"invalid public key length\" }"
+    pushRet (if Ed25519.verify pk.toList sig.toList msg.toList then 1 else 0)
   | "promise_yield_create_with_id" => some do yieldCreateWithIdH (← popArgs 9)
   | "promise_yield_resume_with_yield_id" => some do
     let a ← popArgs 4

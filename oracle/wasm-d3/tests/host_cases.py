@@ -21,7 +21,7 @@ from wasmenc import *
 HERE = os.path.dirname(os.path.abspath(__file__))
 INV = json.load(open(os.path.join(HERE, "../../../docs/research/near-wasm-boundary-inventory.json")))
 OOD = {"alt_bn128_g1_multiexp", "alt_bn128_g1_sum", "alt_bn128_pairing_check", "ecrecover", "p256_verify",
-       "ed25519_verify", "promise_batch_action_transfer_to_gas_key",
+       "promise_batch_action_transfer_to_gas_key",
        "promise_batch_action_add_gas_key_with_full_access", "promise_batch_action_add_gas_key_with_function_call"}
 HOSTS = []
 for i in INV["imports"]:

@@ -401,7 +401,7 @@ def callEntry (cfg : NearCfg) (p : Prepared) (fuel : Nat) (s : St) (fi : Nat) :
   | .cont _ => .error "cont"
 
 /-- Host functions outside D3α (curve arithmetic: D3γ/δ). Importing one puts the contract out of
-domain. `ed25519_verify` is D3α but waits for D1's Ed25519 (unmodeled until then). -/
+domain. -/
 def curveHosts : List String := ["alt_bn128_g1_multiexp", "alt_bn128_g1_sum", "alt_bn128_pairing_check",
   "bls12381_p1_sum", "bls12381_p2_sum", "bls12381_g1_multiexp", "bls12381_g2_multiexp",
   "bls12381_map_fp_to_g1", "bls12381_map_fp2_to_g2", "bls12381_pairing_check",
