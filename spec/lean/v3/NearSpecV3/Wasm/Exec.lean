@@ -35,7 +35,9 @@ def doReturn (p : Prepared) (s : St) : Res :=
   match s.frames with
   | [] => .fin s
   | f :: fs =>
-    let pf := p.funcs[f.fn]!
+    match p.funcs[f.fn]? with
+    | none => .unmodeled "invariant: frame of an unknown function"
+    | some pf =>
     let ar := pf.type.results.size
     let vals := s.stack.extract (s.stack.size - ar) s.stack.size
     let s := { s with stack := s.stack.extract 0 f.base ++ vals, frames := fs,
@@ -45,7 +47,9 @@ def doReturn (p : Prepared) (s : St) : Res :=
 def doBr (p : Prepared) (s : St) (f : Frame) (l : Nat) : Res :=
   if l + 1 ≥ f.labels.length then doReturn p s
   else
-    let lab := f.labels[l]!
+    match f.labels[l]? with
+    | none => .unmodeled "invariant: branch to an unknown label"
+    | some lab =>
     let vals := s.stack.extract (s.stack.size - lab.arity) s.stack.size
     let s := { s with stack := s.stack.extract 0 lab.height ++ vals }
     let labels := if lab.isLoop then f.labels.drop l else f.labels.drop (l + 1)
@@ -147,7 +151,10 @@ def exec (cfg : NearCfg) (p : Prepared) (s : St) (f : Frame) (pf : PFunc) (i : I
   | .unreachable => .abort s (trapStr "Unreachable")
   | .nop => next s
   | .block bt =>
-    let lab : Label := { target := pf.endOf[f.pc]! + 1, arity := (btResults bt).size,
+    match pf.endOf[f.pc]? with
+    | none => .unmodeled "invariant: block without end"
+    | some e =>
+    let lab : Label := { target := e + 1, arity := (btResults bt).size,
                          height := s.stack.size, isLoop := false }
     .cont (setFrame s { f with pc := f.pc + 1, labels := lab :: f.labels })
   | .loop _ =>
@@ -155,13 +162,14 @@ def exec (cfg : NearCfg) (p : Prepared) (s : St) (f : Frame) (pf : PFunc) (i : I
     .cont (setFrame s { f with pc := f.pc + 1, labels := lab :: f.labels })
   | .if_ bt =>
     let (c, s) := popN s
-    let e := pf.endOf[f.pc]!
-    let el := pf.elseOf[f.pc]!
+    match pf.endOf[f.pc]?, pf.elseOf[f.pc]? with
+    | some e, some el =>
     let lab : Label := { target := e + 1, arity := (btResults bt).size,
                          height := s.stack.size, isLoop := false }
     if c ≠ 0 then .cont (setFrame s { f with pc := f.pc + 1, labels := lab :: f.labels })
     else if el ≠ e then .cont (setFrame s { f with pc := el + 1, labels := lab :: f.labels })
     else .cont (setFrame s { f with pc := e + 1 })
+    | _, _ => .unmodeled "invariant: if without end"
   | .else_ =>
     match f.labels with
     | lab :: ls => .cont (setFrame s { f with pc := lab.target, labels := ls })
@@ -181,8 +189,11 @@ def exec (cfg : NearCfg) (p : Prepared) (s : St) (f : Frame) (pf : PFunc) (i : I
     | none => .abort s trapMem   -- TableOutOfBounds ↦ MemoryOutOfBounds (mod.rs:388)
     | some none => .abort s (trapStr "IndirectCallToNull")
     | some (some fi) =>
-      if p.ctx.funcs[fi]! != p.m.types[ty]! then .abort s (trapStr "IncorrectCallIndirectSignature")
-      else callFunc cfg p (advance s) fi
+      match p.ctx.funcs[fi]?, p.m.types[ty]? with
+      | some ft, some want =>
+        if ft != want then .abort s (trapStr "IncorrectCallIndirectSignature")
+        else callFunc cfg p (advance s) fi
+      | _, _ => .unmodeled "invariant: unknown function or type"
   | .refNull _ => next (pushV s (.ref none))
   | .refIsNull => let (r, s) := popRef s; next (pushI32 s (Num.b2 r.isNone))
   | .refFunc x => next (pushV s (.ref (some x)))
@@ -315,9 +326,10 @@ def step (cfg : NearCfg) (p : Prepared) (s : St) : Res :=
       match pf.code[f.pc]? with
       | none => .unmodeled "pc out of range"
       | some i =>
-        match pf.gas[f.pc]! with
-        | none => exec cfg p s f pf i
-        | some (k, fee) =>
+        match pf.gas[f.pc]? with
+        | none => .unmodeled "invariant: gas table shorter than the code"
+        | some none => exec cfg p s f pf i
+        | some (some (k, fee)) =>
           match charge s fee (if k = .linear then topCount s else 0) with
           | .cont s => exec cfg p s f pf i
           | r => r
