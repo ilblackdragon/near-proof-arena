@@ -15,17 +15,24 @@ Lean).  One **segment per instance `τ`**, rows in this order:
   (`dd0 … dd2`), its position `I` in that record (`ti0 … ti2`) and its key nibble `x` (`tX`).
   `W0` also receives `MIDROOT (τ, mid)`, `SPLEN (τ, L)` and sends `S0F (τ, present, vid)`;
   `W3` receives the new root's `DIGEST` and sends `ROOT (τ + 1, post)`.
-* **value rows** (`vb`, part `j = 0`): `SPOST (τ, pos, b)` in, `BYTES (msgId 12 (8τ), pos, b)`
+* **value rows** (`vb`, part `j = 0`): `SPOST (τ, pos, b)` in, `BYTES (msgId 12 (512τ), pos, b)`
   out, `pos < L`.
-* **node parts** (`qb`, `j = 1 … nQ ≤ 4`, bottom-up): one part per new path node `Q_j`; row
-  `qpos` emits byte `qpos` of `Q_j` on `BYTES (msgId 12 (8τ + j), qpos, b)`.  A part follows
+* **node parts** (`qb`, `j = 1 … nQ ≤ 403`, bottom-up): one part per new path node `Q_j`; row
+  `qpos` emits byte `qpos` of `Q_j` on `BYTES (msgId 12 (512τ + j), qpos, b)`.  A part follows
   `nodeV3`'s field grammar on `Q_j` (states `TAG … MEM`), and every byte is either **copied**
   from the part's source record `sN ∈ {N0, N1, N2}` (`UPB`, chained, at position `spos`) or
   **fresh** (tag, lengths, hex-prefix bytes, bitmap, digests of the new children / the new
   value from `DIGEST`, `memory_usage` from the two-chain `u64` arithmetic).
 
 The **case selector** is the one-hot `cLP … cESn1` (segment constant); with the walk it fixes
-the part plan (kinds `kRDB … kSPB` by position `jo1 … jo4`).  Degree 4.
+the terminal parts (kinds `kRLP … kSPB` by position `jo1 … jo4`, `j ≤ nT ≤ 4`).  Above them
+come the **upper parts** (`up`), one per record on the path from `N_D` up to the root, by
+depth: `pdep = dep_D − (j − nT)`, down to `0` at the root part.  The part at the depth
+`dep_d` of a walked record `N_d` (`d < D`) is its descend `RDB`/`RDE` (counted by `rc`); every
+other upper part is a **pass-through** `PT` of an empty-key extension (`.ext [] c m`, 46 bytes:
+everything copied but the child window and `memory_usage`), which the walk skips.  Each
+upper part reads the child id `cid` of its target window on `UPB` (`rdc`) and checks it
+against the source record of the part below (`cN`).  Degree 4.
 
 Columns are aliased in two places: the walk-row message columns reuse part-constant columns
 (`nN … trm` on `wk` rows; part constants are only constrained on `vb`/`qb` rows), and the
@@ -212,7 +219,25 @@ def mCv : Nat := 172
 def mS : Nat := 173
 def mK : Nat := 174
 def mB : Nat := 175
-def width : Nat := 176
+/-! ### Pass-through columns (M7c: empty-key extensions on the path) -/
+/-- depths of the path records `N0 … N2` (segment constants, read on `UPB`) -/
+def dep0 : Nat := 176
+def dep1 : Nat := 177
+def dep2 : Nat := 178
+/-- part kind: pass-through of an empty-key extension (`.ext [] c m`, 46 bytes) -/
+def kPT : Nat := 179
+/-- the part is an upper (path) part: `RDB`, `RDE` or `PT` above the terminal parts -/
+def up : Nat := 180
+/-- descend parts (`RD`) at or above this part (counts down to 0 at the root part) -/
+def rc : Nat := 181
+/-- depth of the part's position in the trie (its source record's depth on `UPB`) -/
+def pdep : Nat := 182
+/-- source record of the part below (the child id `cid` of an upper part's target window) -/
+def cN : Nat := 183
+/-- row: `cid` field of the `UPB` read; the row reads the target window's child id -/
+def rcid : Nat := 184
+def rdc : Nat := 185
+def width : Nat := 186
 
 /-! ### `reg` aliases -/
 /-- `MEM` rows: inside-chain byte bits, carries, outside-chain carries, carry-ins, inputs -/
@@ -231,20 +256,20 @@ def wb (i : Nat) : Nat := reg i
 
 def states : List Nat := [sTAG, sHPL, sHPF, sKEY, sVLEN, sVH, sBM, sCH, sMEM]
 def cases : List Nat := [cLP, cBR, cBV, cBI, cLSa, cLSb, cLSc, cESl0, cESl1, cESn0, cESn1]
-def kinds : List Nat := [kRDB, kRDE, kRLP, kRBR, kRBV, kRBI, kMVL, kMVE, kNLF, kWEX, kSPB]
+def kinds : List Nat := [kRDB, kRDE, kRLP, kRBR, kRBV, kRBI, kMVL, kMVE, kNLF, kWEX, kSPB, kPT]
 
 /-- Segment-constant columns. -/
-def segConst : List Nat := (List.range 39).map (· + 10)
+def segConst : List Nat := (List.range 39).map (· + 10) ++ [dep0, dep1, dep2]
 /-- Part-constant columns. -/
-def partConst : List Nat := (List.range 51).map (· + 49)
+def partConst : List Nat := (List.range 51).map (· + 49) ++ [kPT, up, rc, pdep, cN]
 
 /-! ## Derived expressions -/
 
 def sumc (xs : List Nat) : Expr := sum (xs.map c)
 def Lexpr : Expr := .add (c L0) (.add (smul 256 (c L1)) (smul 65536 (c L2)))
 def Lb (i : Nat) : Nat := [L0, L1, L2].getD i L0
-/-- `upsV3` SHA id `msgId 12 (8τ + jx)` -/
-def upsId (jx : Expr) : Expr := mid K_VUPS (.add (smul 8 (c tau)) jx)
+/-- `upsV3` SHA id `msgId 12 (512τ + jx)` -/
+def upsId (jx : Expr) : Expr := mid K_VUPS (.add (smul 512 (c tau)) jx)
 /-- walk symbol of the row (`START`, `0`, `15`, `END`) -/
 def symE : Expr := .add (smul SYM_START (c sf)) (.add (smul 15 (c wt2)) (smul SYM_END (c wt3)))
 /-- terminal walk row (degree 2; the column `trm` equals it on walk rows and is used where a
@@ -281,7 +306,11 @@ def ccE : Expr := bits (fun i => c (cc i)) 0 3
 /-- inside-chain carry out: `cb − 3` (rows 0 … 6), the high limb `cb` (row 7) -/
 def coE : Expr := .add cbE (smul 3 (sub (c fe) (k 1)))
 def sigE : Expr := sub (k 1) (smul 2 (c neg))
-def upbMsg (uu : Expr) : List Expr := [mid K_NPOST (c sN), c spos, c rb, c plen, sdE, uu]
+def upbMsg (uu : Expr) : List Expr := [mid K_NPOST (c sN), c spos, c rb, c plen, c pdep, c rcid, uu]
+/-- depth of the terminal record `N_D` -/
+def depDE : Expr := sum [.mul (c dd0) (c dep0), .mul (c dd1) (c dep1), .mul (c dd2) (c dep2)]
+/-- depth of the source level `sd` -/
+def depSE : Expr := sum [.mul (c sd0) (c dep0), .mul (c sd1) (c dep1), .mul (c sd2) (c dep2)]
 
 /-- Kind codes of the part plan (`RD` = `RDB` or `RDE`). -/
 def kindCode : Expr :=
@@ -302,19 +331,29 @@ def plan4 : Expr := smul 9 (.mul pnE (sumc [cLSc, cESn0]))
 def nTermE : Expr :=
   sum [c cLP, c cBR, c cBV, smul 2 (c cBI), smul 2 (c cLSa), smul 2 (c cLSb), smul 3 (c cLSc),
     smul 2 (c cESl0), c cESl1, smul 3 (c cESn0), smul 2 (c cESn1)]
+/-- Number of terminal parts: the case's, plus the wrapping extension. -/
+def nTE : Expr := .add nTermE pwE
+/-- Position `i ∈ 2 … 4` holds a terminal part (`plan_i ≠ 0`; position 1 always does). -/
+def isT2 : Expr :=
+  sum [c cBI, c cLSa, c cLSb, c cLSc, c cESl0, .mul pnE (c cESl1), c cESn0, c cESn1]
+def isT3 : Expr := .add (.add (c cLSc) (c cESn0)) (.mul pnE (sumc [cLSa, cLSb, cESl0, cESn1]))
+def isT4 : Expr := .mul pnE (sumc [cLSc, cESn0])
+/-- The part is a terminal part (`j ≤ nT`); `jo i` marks `j = i` for `i ≤ 4`. -/
+def termE : Expr :=
+  sum [c (jo 1), .mul (c (jo 2)) isT2, .mul (c (jo 3)) isT3, .mul (c (jo 4)) isT4]
 
 /-! ## Constraints -/
 
 /-- Booleans: row flags (everywhere), segment flags (`sf`), part flags (`pf`). -/
 def rowBools : List Nat :=
   [act, wk, vb, qb, sf, wt1, wt2, wt3, pf, pl, rd, cp, aft] ++ states ++
-  [fs, fe, fw, lastw, wfr, tgt, wy, wn, gD, gMs, gMr, mS, mK, mB]
+  [fs, fe, fw, lastw, wfr, tgt, wy, wn, gD, gMs, gMr, mS, mK, mB, rdc]
 def segBools : List Nat :=
   cases ++ [dd0, dd1, dd2, ts1, ts2, ts3, ti0, ti1, ti2, pres] ++ (List.range 4).map xb
 def partBools : List Nat :=
   kinds ++ (List.range 4).map (fun i => jo (i + 1)) ++
   [sd0, sd1, sd2, qtl, qte, qtb1, qtb2, qodd, nokey, nochild, rootP,
-   eL, eS, useA, bN, bL, cO, cS, neg, podd, vcp, xcp, spY1, spY2]
+   eL, eS, useA, bN, bL, cO, cS, neg, podd, vcp, xcp, spY1, spY2, up]
 
 def cBool : List Expr :=
   rowBools.map (fun x => Dsl.bool (c x)) ++
@@ -344,12 +383,25 @@ def cRows : List Expr :=
     mul3 (c vb) (c pl) (sub (.add (c qpos) (k 1)) Lexpr),
     .mul (c vb) (c j),
     mul3 (c vb) (c pl) (sub (n j) (k 1)),
+    -- position flags `jo i` (`j = i`, `i ≤ 4`): `jo 1` on the first node part, then shifted
+    mul3 (c vb) (c pl) (sub (n (jo 1)) (k 1)),
+    mul3 (c vb) (c pl) (n (jo 2)), mul3 (c vb) (c pl) (n (jo 3)), mul3 (c vb) (c pl) (n (jo 4)),
     -- node parts: positions 0 … qlen−1, the part ends with its MEM field
     mul3 (c qb) (not (c pl)) (not (n qb)), mul3 (c qb) (not (c pl)) (n pf),
     .mul (mul3 (c qb) (c pl) (not (c rootP))) (not (n qb)),
     .mul (mul3 (c qb) (c pl) (not (c rootP))) (not (n pf)),
     .mul (mul3 (c qb) (c pl) (not (c rootP))) (sub (n j) (.add (c j) (k 1))),
+    .mul (mul3 (c qb) (c pl) (not (c rootP))) (n (jo 1)),
+    .mul (mul3 (c qb) (c pl) (not (c rootP))) (sub (n (jo 2)) (c (jo 1))),
+    .mul (mul3 (c qb) (c pl) (not (c rootP))) (sub (n (jo 3)) (c (jo 2))),
+    .mul (mul3 (c qb) (c pl) (not (c rootP))) (sub (n (jo 4)) (c (jo 3))),
+    -- upper chain: descend count, the part below's source record
+    .mul (mul3 (c qb) (c pl) (not (c rootP))) (sub (n rc) (sub (c rc) kRD)),
+    .mul (mul3 (c qb) (c pl) (not (c rootP))) (sub (n cN) (c sN)),
     .mul (mul3 (c qb) (c pl) (c rootP)) (sub (n act) (n sf)),
+    -- the root part: every descend done, depth 0
+    .mul (mul3 (c qb) (c pl) (c rootP)) (sub (c rc) kRD),
+    mul3 (c qb) (c rootP) (c pdep),
     .mul (c qb) (sub (c pl) (.mul (c sMEM) (c fe))),
     mul3 (c qb) (c pl) (sub (.add (c qpos) (k 1)) (c qlen)),
     .mul (c qb) (.mul (c rootP) (sub (c j) (c nQ))),
@@ -435,7 +487,7 @@ def cSeg : List Expr :=
       (.mul spYE (c ts1)))),
     .mul (c sf) (sub (c bmH) (.add (mul3 (not (c cLSa)) (c (xb 3)) (c px))
       (smul 128 (.mul spYE (not (c ts1)))))),
-    .mul (c sf) (sub (c nQ) (.add nTermE (.add pwE DE))) ]
+    .mul (c sf) (sub (c nQ) (.add nTE depDE)) ]
 
 /-- Part plan and part headers (on the part's first row). -/
 def cPlan : List Expr :=
@@ -443,19 +495,27 @@ def cPlan : List Expr :=
   let gq := .mul (c qb) (c pf)
   (kinds ++ (List.range 4).map (fun i => jo (i + 1))).map (fun x => Expr.mul (c vb) (c x)) ++
   [ .mul gq (sub (sumc kinds) (k 1)),
-    .mul gq (sub (sumc ((List.range 4).map fun i => jo (i + 1))) (k 1)),
-    .mul gq (sub (c j) (sum ((List.range 4).map fun i => smul (i + 1) (c (jo (i + 1)))))),
     .mul g (sub kindCode (sum [.mul (c (jo 1)) plan1, .mul (c (jo 2)) plan2,
       .mul (c (jo 3)) plan3, .mul (c (jo 4)) plan4])),
-    -- source record: the terminal record, or level nQ − j for a descend
+    -- terminal parts (`j ≤ nT`) vs upper parts (`RDB`, `RDE`, `PT`; `up`)
+    .mul g (sub (.add (c up) termE) (c qb)),
+    .mul g (sub (c up) (sumc [kRDB, kRDE, kPT])),
+    -- depth: `dep_D` for terminal parts, one less per upper part
+    .mul g (.add (sub (c pdep) depDE) (.mul (c up) (sub (c j) nTE))),
+    -- descend count: `D` on terminal parts (decremented by each `RD`, transitions)
+    .mul g (.mul (not (c up)) (sub (c rc) DE)),
+    -- source record: the terminal record, or level `rc − 1` for a descend; a pass-through
+    -- part's source is chained by the child id instead (`rdc`)
     .mul gq (sub (sumc [sd0, sd1, sd2]) (k 1)),
-    .mul g (sub sdE (.add (.mul (not kRD) DE) (.mul kRD (sub (c nQ) (c j))))),
-    .mul g (sub (c sN) (sum [.mul (c sd0) (c N0), .mul (c sd1) (c N1), .mul (c sd2) (c N2)])),
+    mul3 g (not (c kPT)) (sub sdE (.add (.mul (not kRD) DE) (.mul kRD (sub (c rc) (k 1))))),
+    mul3 g (not (c kPT)) (sub (c sN) (sum [.mul (c sd0) (c N0), .mul (c sd1) (c N1), .mul (c sd2) (c N2)])),
+    mul3 g (not (c kPT)) (sub (c pdep) depSE),
     -- node type of Q
     .mul gq (sub (sumc [qtl, qte, qtb1, qtb2]) (k 1)),
     .mul g (.mul (sumc [kRDB, kRBR, kRBI]) (.add (c qtl) (c qte))),
     .mul g (.mul (.add (c kRBR) (c kRBV)) (not (c qtb2))),
-    .mul g (.mul (sumc [kRDE, kMVE, kWEX]) (not (c qte))),
+    .mul g (.mul (sumc [kRDE, kMVE, kWEX, kPT]) (not (c qte))),
+    mul3 g (c kPT) (not (c nokey)), mul3 g (c kPT) (c qodd),
     .mul g (.mul (sumc [kRLP, kMVL, kNLF]) (not (c qtl))),
     .mul g (.mul (c kSPB) (sub (c qtb2) spValE)),
     .mul g (.mul (c kSPB) (c nochild)),
@@ -470,13 +530,13 @@ def cPlan : List Expr :=
     -- old child taken as is: the extension key has exactly I + 1 nibbles
     .mul g (.mul (c xcp) (sub (.add (smul 2 (c phk)) (c podd)) (.add tIE (k 3)))),
     -- MEMD child: the part below (descend, wrapping extension) / the moved node (split)
-    .mul g (.mul (sumc [kRDB, kRDE, kWEX]) (sub (c jm) (sub (c j) (k 1)))),
+    .mul g (.mul (sumc [kRDB, kRDE, kWEX, kPT]) (sub (c jm) (sub (c j) (k 1)))),
     mul3 g (c kSPB) (.mul spRecvE (sub (c jm) (k 1))),
     -- memory_usage formula
-    .mul g (sub (c useA) (sum [c kRDB, c kRDE, c kRBR, c kRBV, c kRBI, c kMVE, c xcp])),
-    .mul g (sub (c bN) (sum [c kRDB, c kRDE, c kWEX, .mul (c kSPB) spRecvE])),
+    .mul g (sub (c useA) (sum [c kRDB, c kRDE, c kRBR, c kRBV, c kRBI, c kMVE, c xcp, c kPT])),
+    .mul g (sub (c bN) (sum [c kRDB, c kRDE, c kWEX, .mul (c kSPB) spRecvE, c kPT])),
     .mul g (sub (c bL) (c kRBR)),
-    .mul g (sub (c cO) kRD),
+    .mul g (sub (c cO) (.add kRD (c kPT))),
     .mul g (sub (c cS) (c kRBR)),
     .mul g (sub (c Cc) (.mul (.add (c kMVE) (c xcp)) (.add (k 50) (smul 2 (c phk))))),
     .mul g (sub (c eL) (sum [c kRLP, c kRBV, c kRBI, c kNLF, c kSPB])),
@@ -540,22 +600,25 @@ def cFields : List Expr :=
     -- window roles: target window of a rewritten branch; split-branch new-leaf window
     .mul (c sCH) (sub (c tgt) (.add (.mul (c fw) (not s15E)) (.mul (c lastw) s15E))),
     mul3 (.add (c kRDB) (c kRBI)) (c sCH) (sub (c wfr) (c tgt)),
-    mul3 (.add (c kRDE) (c kWEX)) (c sCH) (not (c wfr)),
+    mul3 (sumc [kRDE, kWEX, kPT]) (c sCH) (not (c wfr)),
     mul3 (sumc [kRBR, kRBV, kMVE]) (c sCH) (c wfr),
     mul3 (c kSPB) (c sCH) (sub (c wy) (.add (.mul (c fw) (c spY1)) (.mul (not (c fw)) (c spY2)))),
     mul3 (c kSPB) (c sCH) (sub (c wfr) (sub (k 1) (.mul (not (c wy)) (c xcp)))),
-    .mul (c sCH) (sub (c wn) (.add (.mul (c kRBI) (c tgt)) (.mul (c kSPB) (c wy)))) ]
+    .mul (c sCH) (sub (c wn) (.add (.mul (c kRBI) (c tgt)) (.mul (c kSPB) (c wy)))),
+    -- an upper part reads the child id of its target window: the part below's source
+    sub (c rdc) (.mul (mul3 (c sCH) (c fs) (c tgt)) (c up)),
+    .mul (c rdc) (sub (c rcid) (c cN)) ]
 
 /-- Copy / read flags, bytes, read positions. -/
 def cBytes : List Expr :=
   let extra := sum [
     .mul (c sTAG) (sumc [kRBV, kMVL, kMVE, xcp]),
     mul3 (c sHPL) (c fs) kM, .mul (c sHPF) kM, .mul (c sVLEN) (c kRBR),
-    mul3 (c sBM) (c fs) (c xcp), .mul (c sMEM) (not (c kNLF))]
+    mul3 (c sBM) (c fs) (c xcp), .mul (c sMEM) (not (c kNLF)), c rdc]
   [ .mul (not (c qb)) (c cp), .mul (not (c qb)) (c rd),
     -- which bytes are copies
-    .mul (c sTAG) (sub (c cp) (sumc [kRDB, kRDE, kRLP, kRBR, kRBI])),
-    .mul (.add (c sHPL) (c sHPF)) (sub (c cp) (.add (c kRDE) (c kRLP))),
+    .mul (c sTAG) (sub (c cp) (sumc [kRDB, kRDE, kRLP, kRBR, kRBI, kPT])),
+    .mul (.add (c sHPL) (c sHPF)) (sub (c cp) (sumc [kRDE, kRLP, kPT])),
     .mul (c sKEY) (sub (c cp) (sumc [kRDE, kRLP, kMVL, kMVE])),
     .mul (.add (c sVLEN) (c sVH)) (sub (c cp) (c vcp)),
     .mul (c sBM) (sub (c cp) (sumc [kRDB, kRBR, kRBV, kRBI])),
@@ -574,6 +637,8 @@ def cBytes : List Expr :=
     mul3 (c sHPF) (c kNLF) (sub (c b) (.add (k 32) (smul 31 (c ts1)))),
     mul3 (c sHPF) (c kWEX) (sub (c b) (.add (smul 16 (.mul (c ts2) (c ti1))) (smul 31 (.mul (c ts3) (c ti1))))),
     mul3 (c sKEY) (c kWEX) (sub (c b) (k 15)),
+    -- pass-through: the copied flag byte is `0x00` (empty even extension key)
+    mul3 (c sHPF) (c kPT) (c b),
     -- fresh value length (L, byte 3 = 0) and fresh windows (register)
     mul3 (c sVLEN) (not (c cp)) (sub (c b) (c (LR 0))),
     .mul winFr (sub (c b) (c (reg 0))) ] ++
@@ -590,7 +655,7 @@ def cBytes : List Expr :=
     mul3 (c rd) (c sVLEN) (sub (c rb) (c (SR 0))),
     -- read positions
     mul3 (c rd) (c sMEM) (sub (.add (c spos) (k 8)) (.add (c plen) (c idx))),
-    mul3 (c rd) (sumc [kRDB, kRDE, kRLP, kRBR]) (sub (c spos) (c qpos)),
+    mul3 (c rd) (sumc [kRDB, kRDE, kRLP, kRBR, kPT]) (sub (c spos) (c qpos)),
     mul3 (c rd) (c kRBV) (sub (.add (c spos) (smul 36 (c aft))) (c qpos)),
     mul3 (c rd) (c kRBI) (sub (.add (c spos) (smul 32 (c aft))) (c qpos)),
     mul3 (c rd) kM (.mul (c sTAG) (sub (c spos) (k 5))),
@@ -673,7 +738,8 @@ def interactions : List Interaction :=
     send B_MEMD (c gMs) [c tau, c j, c idx, c rx, c rb, c qlen],
     recv B_MEMD (c gMr) [c tau, c jm, c idx, c mBv, c mCv, c clen] ]
 
-/-- Height cap `2^22`: per instance `4 + L + Σ |Q_j|` rows (`|Q_j| ≤ 559 + 32`), with
+/-- Height cap `2^22`: per instance `4 + L + Σ |Q_j|` rows (`≤ 4` terminal parts of
+`≤ 591` bytes, `≤ 399` upper parts: descends `≤ 591`, pass-throughs `46`), with
 `Σ_τ L ≤ 3,000,000` (A7) and `≤ 33` instances. -/
 def maxLog : Nat := 22
 

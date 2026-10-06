@@ -9,7 +9,8 @@ import ZkFormal.NearV3.IdsUps
 
 * one column `mU` (index `185`, width `186`): the use count of the row's post byte;
 * two interactions (chained provider, as `EDGE`): on every active row
-  `send UPB (NPOST(nid), pos, pb, len, depth, 0)` and `recv UPB (…, mU)`;
+  `send UPB (NPOST(nid), pos, pb, len, depth, cid, 0)` and `recv UPB (…, mU)`, where `cid`
+  is the window column (the child record of a window row; free elsewhere);
 * no constraint (`mU` is free; the bus balance fixes it).
 -/
 
@@ -20,7 +21,7 @@ open ZkFormal.Air ZkFormal.Near ZkFormal.Near.Dsl
 def mU : Nat := 185
 def widthU : Nat := 186
 
-def upbMsg (uu : Expr) : List Expr := [mid K_NPOST (c nid), c pos, c pb, c len, c depth, uu]
+def upbMsg (uu : Expr) : List Expr := [mid K_NPOST (c nid), c pos, c pb, c len, c depth, c cid, uu]
 
 def upbInteractions : List Interaction :=
   [ send B_UPB (c act) (upbMsg (k 0)),

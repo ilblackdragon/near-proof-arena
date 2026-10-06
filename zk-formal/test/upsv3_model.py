@@ -2,7 +2,11 @@
 """Model check of the upsV3 table.
 
 Usage: lake env lean --run test/UpsExport.lean > ups_air.txt
-       python3 test/upsv3_model.py ups_air.txt [seed] [instances]
+       python3 test/upsv3_model.py ups_air.txt [seed] [instances] [chain_prob] [long_chain]
+
+chain_prob: probability that a node on the [0,15] path sits below a chain of empty-key
+extensions (`.ext [] c m`, lengths 1 … 50); long_chain: if > 0, one more chain of that length
+above the root (depth ≤ 399 needs long_chain + path ≤ 399).
 
 Model check of the upsV3 table (Tables/Ups.lean) against the spec PTrie.upsert.
 
@@ -122,7 +126,7 @@ def rhash(): return [random.randrange(256) for _ in range(32)]
 def rmem():
     r = random.random()
     if r < 0.25: return random.randrange(0, 60)          # small: truncation cases
-    if r < 0.25: return U64 - 1 - random.randrange(1000)  # near the top
+    if r < 0.4: return U64 - 1 - random.randrange(1000)   # near the top
     return random.randrange(0, U64)
 def rslot(reveal=True):
     if reveal and random.random() < 0.7: return ('val', [random.randrange(256) for _ in range(random.randrange(0, 40))])
@@ -155,7 +159,27 @@ def rnode(rem, depth):
     elif bv is not None and bv[0] == 'ref' and random.random() < 0.7:
         bv = ('val', [1, 2, 3])
     return ('branch', bv, kids, rmem())
-def rchild(rem, depth): return rnode(rem, depth)
+def rchild(rem, depth): return rnode_c(rem, depth)
+CHAIN = [0.0]   # probability of an empty-key extension chain above a path node
+LONG = [0]      # if > 0: one chain of this length above the root
+def chainLen():
+    r = random.random()
+    if r < 0.5: return random.randrange(1, 4)
+    if r < 0.8: return random.randrange(4, 16)
+    return random.randrange(16, 51)
+def eextChain(t, k):
+    for _ in range(k):
+        # rarely an unrevealed child: the walk dead-ends there (instance skipped)
+        t = ('ext', [], t, rmem())
+    return t
+def rnode_c(rem, depth):
+    t = rnode(rem, depth)
+    if random.random() < CHAIN[0]: t = eextChain(t, chainLen())
+    return t
+def rroot():
+    t = rnode_c([0, 15], 0)
+    if LONG[0]: t = eextChain(t, LONG[0])
+    return t
 
 # ---------------------------------------------------------------- record view (nodeV3)
 class Rec: pass
@@ -165,8 +189,16 @@ def records(root, tau):
     ctr = [100]
     def rid():
         ctr[0] += 1; return ctr[0]
-    def build(t, depth):
+    def build(t, depth, parent=None):
         n = rid(); r = Rec(); r.id = n; r.depth = depth; r.node = t; r.bytes = ser(t); recs[n] = r
+        r.parent = parent; r.cid = {}; r.res = n
+        if t[0] == 'ext' and not t[1]:
+            # empty-key extension: no edges; its walk target is its child's
+            c = t[2]
+            if c[0] != 'hash':
+                cn = build(c, depth + 1, n); r.res = recs[cn].res
+                for i in range(32): r.cid[6 + i] = cn
+            return n
         if t[0] == 'leaf':
             k = t[1]
             for i, x in enumerate(k): edges.append((n, i, x, n, i + 1, EK_KEY))
@@ -176,21 +208,29 @@ def records(root, tau):
         elif t[0] == 'ext':
             k = t[1]; c = t[2]
             cres = None
-            if c[0] != 'hash': cres = build(c, depth + 1)
+            if c[0] != 'hash':
+                cn = build(c, depth + 1, n); cres = recs[cn].res
+                off = 5 + len(hexPrefix(k, False))
+                for i in range(32): r.cid[off + i] = cn
             for i, x in enumerate(k[:-1]): edges.append((n, i, x, n, i + 1, EK_KEY))
             if cres is not None: edges.append((n, len(k) - 1, k[-1], cres, 0, EK_KEY))
             else: edges.append((n, len(k) - 1, k[-1], n, len(k), EK_KEY))
         else:
             bv, kids = t[1], t[2]
+            off = 1 + (36 if bv is not None else 0) + 2
             for i, c in enumerate(kids):
-                if c is not None and c[0] != 'hash':
-                    cr = build(c, depth + 1); edges.append((n, 0, i, cr, 0, EK_DOWN))
+                if c is None: continue
+                if c[0] != 'hash':
+                    cn = build(c, depth + 1, n); cr = recs[cn].res
+                    edges.append((n, 0, i, cr, 0, EK_DOWN))
+                    for ii in range(32): r.cid[off + ii] = cn
+                off += 32
             if bv is not None and bv[0] == 'val':
                 v = rid(); vals[v] = bv[1]; edges.append((n, 0, END, v, 0, EK_VAL))
             bmaps[n] = (sum(1 << i for i in range(16) if kids[i] is not None), 1 if bv is not None else 0)
         return n
     r0 = build(root, 0)
-    edges.append((0, tau, START, r0, 0, EK_DOWN))
+    edges.append((0, tau, START, recs[r0].res, 0, EK_DOWN))
     return r0, recs, vals, edges, bmaps
 
 def walk(edges, bmaps, tau):
@@ -246,6 +286,16 @@ def ev(e, row, nxt, first, last):
     if op == '-': return (-ev(a[0], row, nxt, first, last)) % P
     raise Exception(op)
 
+def pysrc(e):
+    op, a = e
+    if op == 'k': return str(a[0])
+    if op == 'c': return '%s.get(%d,0)' % ('N' if a[1] else 'R', a[0])
+    if op in ('F', 'L', 'T'): return op
+    if op == '+': return '(%s+%s)' % (pysrc(a[0]), pysrc(a[1]))
+    if op == '*': return '(%s*%s)' % (pysrc(a[0]), pysrc(a[1]))
+    if op == '-': return '(-%s)' % pysrc(a[0])
+    raise Exception(op)
+
 NEGS = []
 AIR = sys.argv[1] if len(sys.argv) > 1 else 'ups_air.txt'
 CONS, INTS = [], []
@@ -255,6 +305,8 @@ for line in open(AIR):
         parts = line.split(' ', 3)
         es = parse(parts[3])
         INTS.append((int(parts[1]), int(parts[2]), es[0], es[1:]))
+# all constraints compiled into one function of (row, next row, isFirst, isLast, isTransition)
+CFUN = eval('lambda R,N,F,L,T: [' + ','.join(pysrc(e) for e in CONS) + ']')
 
 # ---------------------------------------------------------------- column map (Ups.lean)
 C = dict(act=0, wk=1, vb=2, qb=3, sf=4, wt1=5, wt2=6, wt3=7, pf=8, pl=9, tau=10, N0=11, N1=12, N2=13,
@@ -271,16 +323,19 @@ C = dict(act=0, wk=1, vb=2, qb=3, sf=4, wt1=5, wt2=6, wt3=7, pf=8, pl=9, tau=10,
          qpos=100, b=101, rd=102, rb=103, spos=104, u=105, sTAG=106, sHPL=107, sHPF=108,
          sKEY=109, sVLEN=110, sVH=111, sBM=112, sCH=113, sMEM=114, fs=115, fe=116, idx=117,
          fw=118, lastw=119, wfr=120, tgt=121, wy=122, wn=123, gD=124, dI=125, dL=126, cp=127,
-         aft=128, gMs=168, gMr=169, rx=170, mBv=171, mCv=172, mS=173, mK=174, mB=175)
+         aft=128, gMs=168, gMr=169, rx=170, mBv=171, mCv=172, mS=173, mK=174, mB=175,
+         dep0=176, dep1=177, dep2=178, kPT=179, up=180, rc=181, pdep=182, cN=183, rcid=184, rdc=185)
 def XB(i): return 38 + i
 def JO(i): return 60 + i
 def REG(i): return 129 + i
 def LR(i): return 161 + i
 def SR(i): return 164 + i
-WIDTH = 176
-KIND = ['RDB', 'RDE', 'RLP', 'RBR', 'RBV', 'RBI', 'MVL', 'MVE', 'NLF', 'WEX', 'SPB']
+WIDTH = 186
+KIND = ['RDB', 'RDE', 'RLP', 'RBR', 'RBV', 'RBI', 'MVL', 'MVE', 'NLF', 'WEX', 'SPB', 'PT']
 CASES = ['LP', 'BR', 'BV', 'BI', 'LSa', 'LSb', 'LSc', 'ESl0', 'ESl1', 'ESn0', 'ESn1']
-def upsId(tau, jx): return 12 + 16 * (8 * tau + jx)
+def upsId(tau, jx):
+    assert 0 <= jx < 512
+    return 12 + 16 * (512 * tau + jx)
 def inv(x): return pow(x % P, P - 2, P)
 
 STATES = ['sTAG', 'sHPL', 'sHPF', 'sKEY', 'sVLEN', 'sVH', 'sBM', 'sCH', 'sMEM']
@@ -308,7 +363,7 @@ def gen(root, tau, v, maxQ=4):
     L = len(v)
     seg = {}
     # walk-derived
-    lv = 0; Ns = [r0]; tstar = None; I = None; x = 0; mode_t = None; termrec = None
+    lv = 0; Ns = [wr[0][1][3]]; tstar = None; I = None; x = 0; mode_t = None; termrec = None
     rows = []
     for t, w in enumerate(wr):
         row = {C['act']: 1, C['wk']: 1}
@@ -355,12 +410,25 @@ def gen(root, tau, v, maxQ=4):
     T = dict(LP=['RLP'], BR=['RBR'], BV=['RBV'], BI=['NLF', 'RBI'], LSa=['NLF', 'SPB'], LSb=['MVL', 'SPB'],
              LSc=['MVL', 'NLF', 'SPB'], ESl0=['MVE', 'SPB'], ESl1=['SPB'], ESn0=['MVE', 'NLF', 'SPB'],
              ESn1=['NLF', 'SPB'])[case]
-    plan = list(T) + (['WEX'] if pw else []) + ['RD'] * Dn
+    plan = list(T) + (['WEX'] if pw else [])
+    nT = len(plan)
+    # the path: every record from the root down to N_D (walked records and the empty-key
+    # extensions between them, which the walk skips)
+    chain = []; cur = Ns[Dn]
+    while cur is not None: chain.append(cur); cur = recs[cur].parent
+    chain.reverse()
+    depD = recs[Ns[Dn]].depth
+    assert len(chain) == depD + 1 and chain[0] == r0
+    deps = [recs[n_].depth for n_ in Ns]
+    lvl = {Ns[d]: d for d in range(Dn)}
+    for dl in range(depD - 1, -1, -1):
+        if chain[dl] not in lvl: assert recs[chain[dl]].node[0] == 'ext' and not recs[chain[dl]].node[1]
+        plan.append('RD' if chain[dl] in lvl else 'PT')
     nQ = len(plan)
     # spec Q nodes along the path of the result
-    pathres = []  # result nodes at levels 0..D (positions of P_0..P_D)
+    pathres = []  # result nodes at depths 0..dep_D (positions of the path records)
     t = spec; key = [0, 15]
-    for d in range(Dn):
+    for d in range(depD):
         pathres.append(t)
         if t[0] == 'branch': t = t[2][key[0]]; key = key[1:]
         else: key = key[len(t[1]):]; t = t[2]
@@ -376,11 +444,12 @@ def gen(root, tau, v, maxQ=4):
         Q[len(T)] = spb
         if case in ('LSa', 'LSc', 'ESn0', 'ESn1'): Q[{'LSa': 1, 'LSc': 2, 'ESn0': 2, 'ESn1': 1}[case]] = spb[2][y]
         if case in ('LSb', 'LSc', 'ESl0', 'ESn0'): Q[1] = spb[2][x]
-    for d in range(Dn):
+    for d in range(depD):
         Q[nQ - d] = pathres[d]
     assert sorted(Q) == list(range(1, nQ + 1)), (Q.keys(), plan)
     seg.update({C['tau']: tau, C['N0']: Ns[0], C['N1']: Ns[1] if len(Ns) > 1 else 0, C['N2']: Ns[2] if len(Ns) > 2 else 0,
                 C['L0']: L & 255, C['L1']: (L >> 8) & 255, C['L2']: L >> 16})
+    for l in range(3): seg[C['dep%d' % l]] = deps[l] if l < len(deps) else 0
     for cn in CASES: seg[C['c' + cn]] = 1 if cn == case else 0
     for l in range(3): seg[C['dd%d' % l]] = 1 if Dn == l else 0
     for l in (1, 2, 3): seg[C['ts%d' % l]] = 1 if tstar == l else 0
@@ -408,20 +477,29 @@ def gen(root, tau, v, maxQ=4):
         if p_ == 0: r[C['pf']] = 1
         if p_ == L - 1: r[C['pl']] = 1
         rows.append(r)
-    for r in rows[4:]: r[C['sd%d' % Dn]] = 1; r[C['sN']] = Ns[Dn]
+    for r in rows[4:]:
+        r[C['sd%d' % Dn]] = 1; r[C['sN']] = Ns[Dn]; r[C['pdep']] = depD; r[C['rc']] = Dn
     # node parts
     exact = {}   # j -> exact mem
     memrows = {}  # j -> list of (rx, rb) for MEMD
     upb = []; memd_s = []; memd_r = []; digs = []
     Lb = [L & 255, (L >> 8) & 255, L >> 16, 0]
+    srcs = {}
     for jj in range(1, nQ + 1):
         q = Q[jj]; kind = plan[jj - 1]
-        sd = Dn if kind != 'RD' else nQ - jj
-        src = Ns[sd] if kind != 'NLF' else Ns[Dn]
+        if jj > nT:
+            pdep = depD - (jj - nT); src = chain[pdep]; sd = lvl.get(src, 0)
+            rcv = sum(1 for d in range(Dn) if deps[d] <= pdep)
+        else:
+            pdep = depD; src = Ns[Dn]; sd = Dn; rcv = Dn
+        srcs[jj] = src
+        cNv = srcs.get(jj - 1, 0)
         prec = recs[src]; pb = prec.bytes; plen = len(pb)
         if kind == 'RD': kind = 'RDB' if prec.node[0] == 'branch' else 'RDE'
+        upv = 1 if jj > nT else 0
         qb_ = ser(q); qlen = len(qb_)
-        pc = {C['j']: jj, C['sN']: src, C['plen']: plen, C['qlen']: qlen, C['rootP']: 1 if jj == nQ else 0}
+        pc = {C['j']: jj, C['sN']: src, C['plen']: plen, C['qlen']: qlen, C['rootP']: 1 if jj == nQ else 0,
+              C['up']: upv, C['rc']: rcv, C['pdep']: pdep, C['cN']: cNv}
         for kn in KIND: pc[C['k' + kn]] = 1 if kn == kind else 0
         for i in range(1, 5): pc[JO(i)] = 1 if i == jj else 0
         for l in range(3): pc[C['sd%d' % l]] = 1 if sd == l else 0
@@ -440,14 +518,14 @@ def gen(root, tau, v, maxQ=4):
         spRecv = case in ('LSb', 'LSc', 'ESl0', 'ESn0')
         xcp = 1 if kind == 'SPB' and case in ('ESl1', 'ESn1') else 0
         pc[C['xcp']] = xcp
-        if kind in ('RDB', 'RDE', 'WEX'): pc[C['jm']] = jj - 1
+        if kind in ('RDB', 'RDE', 'WEX', 'PT'): pc[C['jm']] = jj - 1
         if kind == 'SPB' and spRecv: pc[C['jm']] = 1
-        recvM = kind in ('RDB', 'RDE', 'WEX') or (kind == 'SPB' and spRecv)
+        recvM = kind in ('RDB', 'RDE', 'WEX', 'PT') or (kind == 'SPB' and spRecv)
         if recvM: pc[C['clen']] = len(ser(Q[pc[C['jm']]]))
-        useA = 1 if kind in ('RDB', 'RDE', 'RBR', 'RBV', 'RBI', 'MVE') or xcp else 0
+        useA = 1 if kind in ('RDB', 'RDE', 'RBR', 'RBV', 'RBI', 'MVE', 'PT') or xcp else 0
         bN = 1 if recvM else 0
         bL = cS = 1 if kind == 'RBR' else 0
-        cO = 1 if kind in ('RDB', 'RDE') else 0
+        cO = 1 if kind in ('RDB', 'RDE', 'PT') else 0
         Cc = (50 + 2 * pc.get(C['phk'], 0)) if (kind == 'MVE' or xcp) else 0
         eL = 1 if kind in ('RLP', 'RBV', 'RBI', 'NLF', 'SPB') else 0
         eS = 1 if kind == 'MVL' or (kind == 'SPB' and case == 'LSa') else 0
@@ -472,7 +550,7 @@ def gen(root, tau, v, maxQ=4):
             slb = pb[off:off + 4]; sl = int.from_bytes(bytes(slb), 'little')
         Bx = exact[pc[C['jm']]] if recvM else (L if bL else 0)
         Cx = 0
-        if cO: Cx = int.from_bytes(bytes(recs[Ns[sd + 1]].bytes[-8:]), 'little')
+        if cO: Cx = int.from_bytes(bytes(recs[cNv].bytes[-8:]), 'little')
         if cS: Cx = sl
         Cx += Cc
         Ax = m if useA else 0
@@ -525,7 +603,7 @@ def gen(root, tau, v, maxQ=4):
                 r[C['fw']] = fwv; r[C['lastw']] = lw; r[C['tgt']] = tg
                 slot = kidslot[wi] if typ == 'branch' else None
                 if kind in ('RDB', 'RBI'): wf = tg
-                elif kind in ('RDE', 'WEX'): wf = 1
+                elif kind in ('RDE', 'WEX', 'PT'): wf = 1
                 elif kind in ('RBR', 'RBV', 'MVE'): wf = 0
                 elif kind == 'SPB':
                     wyv = 1 if slot == y else 0; r[C['wy']] = wyv
@@ -540,8 +618,8 @@ def gen(root, tau, v, maxQ=4):
                     if wnv: jx, ln_ = jj - 1, 50
                     else: jx, ln_ = pc[C['jm']], pc[C['clen']]
                     if ix == 0: digs.append((upsId(tau, jx), ln_, fresh_digest))
-            if st == 'sTAG': cpv = 1 if kind in ('RDB', 'RDE', 'RLP', 'RBR', 'RBI') else 0
-            if st in ('sHPL', 'sHPF'): cpv = 1 if kind in ('RDE', 'RLP') else 0
+            if st == 'sTAG': cpv = 1 if kind in ('RDB', 'RDE', 'RLP', 'RBR', 'RBI', 'PT') else 0
+            if st in ('sHPL', 'sHPF'): cpv = 1 if kind in ('RDE', 'RLP', 'PT') else 0
             if st == 'sKEY': cpv = 1 if kind in ('RDE', 'RLP', 'MVL', 'MVE') else 0
             if st in ('sVLEN', 'sVH'): cpv = pc[C['vcp']]
             if st == 'sBM': cpv = 1 if kind in ('RDB', 'RBR', 'RBV', 'RBI') else 0
@@ -552,7 +630,9 @@ def gen(root, tau, v, maxQ=4):
             if st == 'sVLEN' and kind == 'RBR': extra = 1
             if st == 'sBM' and ix == 0 and xcp: extra = 1
             if st == 'sMEM' and kind != 'NLF': extra = 1
-            rdv = cpv + extra
+            rdcv = 1 if (st == 'sCH' and ix == 0 and r[C['tgt']] and upv) else 0
+            r[C['rdc']] = rdcv
+            rdv = cpv + extra + rdcv
             # aft
             if kind == 'RBV': aftv = 1 if st in ('sBM', 'sCH', 'sMEM') else 0
             if kind == 'RBI':
@@ -562,7 +642,7 @@ def gen(root, tau, v, maxQ=4):
             r[C['aft']] = aftv
             if rdv:
                 if st == 'sMEM': sp = plen - 8 + ix
-                elif kind in ('RDB', 'RDE', 'RLP', 'RBR'): sp = qp
+                elif kind in ('RDB', 'RDE', 'RLP', 'RBR', 'PT'): sp = qp
                 elif kind == 'RBV': sp = qp - 36 * aftv
                 elif kind == 'RBI': sp = qp - 32 * aftv
                 elif kind in ('MVL', 'MVE'):
@@ -573,7 +653,10 @@ def gen(root, tau, v, maxQ=4):
                     if st == 'sCH': sp = plen - 40 + ix
                 assert sp is not None, (kind, st)
                 r[C['spos']] = sp; r[C['rb']] = pb[sp]
-                upb.append((src, sp, pb[sp], plen, prec.depth))
+                # cid: the provider row's window column (free off windows: 0 here)
+                cidv = cNv if rdcv else prec.cid.get(sp, 0)
+                r[C['rcid']] = cidv
+                upb.append((src, sp, pb[sp], plen, prec.depth, cidv))
             r[C['cp']] = cpv; r[C['rd']] = rdv
             if (st in ('sTAG', 'sHPF')) and rdv and not cpv:
                 rbv = r[C['rb']]
@@ -626,15 +709,16 @@ def gen(root, tau, v, maxQ=4):
     rows.append({})
     rows.append({})
     return dict(rows=rows, spec=spec, newroot=newroot, upb=upb, recs=recs, memd=(memd_s, memd_r), digs=digs,
-                case=case, D=Dn, nQ=nQ, edges=edges, bmaps=bmaps, wr=wr, Q=Q, tau=tau, v=v, vals=vals)
+                case=case, D=Dn, nQ=nQ, chain=chain, nPT=plan.count('PT'), edges=edges, bmaps=bmaps, wr=wr, Q=Q, tau=tau, v=v, vals=vals)
 
 def check(g):
     rows = g['rows']; n = len(rows)
     bad = []
     for ri in range(n):
         row = rows[ri]; nxt = rows[(ri + 1) % n]
-        for ci_, e in enumerate(CONS):
-            if ev(e, row, nxt, ri == 0, ri == n - 1) != 0:
+        last = ri == n - 1
+        for ci_, x in enumerate(CFUN(row, nxt, 1 if ri == 0 else 0, 1 if last else 0, 0 if last else 1)):
+            if x % P != 0:
                 bad.append((ri, ci_))
     # bytes / digests
     byid = {}
@@ -648,25 +732,30 @@ def check(g):
         bs = byid[upsId(g['tau'], jj)]; assert [bs[i] for i in range(len(bs))] == ser(q)
     assert hashOf(g['Q'][g['nQ']]) == g['newroot'] == hashOf(g['spec'])
     # UPB: path records only, bytes exact
-    path = set(rows[0][C['N0']] for _ in [0])
-    for (src, sp, by, ln, dep) in g['upb']:
+    path = set(g['chain'])
+    for (src, sp, by, ln, dep, cid) in g['upb']:
         rr = g['recs'][src]
+        assert src in path
         assert rr.bytes[sp] == by and len(rr.bytes) == ln and rr.depth == dep
+        if sp in rr.cid: assert rr.cid[sp] == cid, (sp, rr.cid[sp], cid)
     s, r = g['memd']; assert sorted(s) == sorted(r), (s, r)
     return bad
 
-def main(seed=1, iters=300):
+def main(seed=1, iters=300, chain=0.0, long_=0):
     random.seed(seed)
-    stats = {}; fails = 0; tried = 0
+    CHAIN[0] = chain; LONG[0] = long_
+    stats = {}; fails = 0; tried = 0; ptStats = {}; maxNQ = 0
     names = {v: k for k, v in C.items()}
     while tried < iters:
-        root = rnode([0, 15], 0)
+        root = rroot()
         tau = random.randrange(0, 5)
         v = [random.randrange(256) for _ in range(random.randrange(1, 60))]
         g = gen(root, tau, v)
         if g is None: continue
         tried += 1
         stats[(g['case'], g['D'])] = stats.get((g['case'], g['D']), 0) + 1
+        b_ = 0 if g['nPT'] == 0 else (1 if g['nPT'] < 4 else (2 if g['nPT'] < 16 else 3))
+        ptStats[b_] = ptStats.get(b_, 0) + 1; maxNQ = max(maxNQ, g['nQ'])
         bad = check(g)
         if bad:
             fails += 1
@@ -680,7 +769,11 @@ def main(seed=1, iters=300):
     from collections import Counter
     print('neg/overflow by kind', sorted(Counter(NEGS).items()))
     for k in sorted(stats): print(' ', k, stats[k])
+    print('pass-through parts per instance: 0 / 1-3 / 4-15 / >=16:', [ptStats.get(i, 0) for i in range(4)],
+          'max nQ', maxNQ)
     return fails
 
 if __name__ == '__main__':
-    sys.exit(1 if main(int(sys.argv[2]) if len(sys.argv) > 2 else 1, int(sys.argv[3]) if len(sys.argv) > 3 else 300) else 0)
+    a = sys.argv
+    sys.exit(1 if main(int(a[2]) if len(a) > 2 else 1, int(a[3]) if len(a) > 3 else 300,
+                       float(a[4]) if len(a) > 4 else 0.0, int(a[5]) if len(a) > 5 else 0) else 0)
