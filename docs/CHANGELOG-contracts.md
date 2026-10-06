@@ -1,5 +1,18 @@
 # Contract changelog
 
+## v1.7 (additive, design) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
+
+Coverage-tiered challenges (docs/CONTRACTS.md §11, docs/BENCHMARK_SPEC.md §17; first user
+`near-chunk-v3`):
+* `ChallengeDefinition.coverage: Option<CoverageSpec>` (serialized only when present), with
+  `version`, `statement_spec`, `soundness_lift` and `tiers[] {id, rank, params, classes}`.
+* `candidate.toml [entry] declared_tier`: required iff the challenge has `coverage`.
+* Wire protocol: `prove` exit code 3 = `UNSUPPORTED` (abstain). Never an error. `verify`
+  unchanged.
+* Gate result `COVERAGE_GAP_IN_TIER`: an abstention on a class of the declared tier.
+* Report `coverage {tier, per_class, share}`. Board order is (tier rank, score). The `succinct`
+  badge is a display attribute only.
+
 ## v1.6 (additive, scoring-v2 lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
 
 * `ScoringSpec.verify_statistic: Option<VerifyStatistic>` (`median` |

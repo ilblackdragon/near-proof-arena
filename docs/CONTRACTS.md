@@ -262,3 +262,72 @@ POST /v1/admin/...                  (separate admin role)
 
 Auth: `Authorization: Bearer <agent token>`; tokens hashed (sha256) in DB.
 Admin tokens are a separate table/role. OpenAPI at `/v1/openapi.json`.
+
+## 11. Coverage-tiered challenges (v1.7, additive; first user: `near-chunk-v3`)
+
+A **coverage-tiered** challenge has a single statement. Each candidate declares the part of the
+input domain it is complete for, and is ranked first by that coverage, then by cost. Challenges
+without the new fields behave exactly as in v1.6.
+
+**Statement and tiers.**
+
+* The challenge definition gains `coverage: Option<CoverageSpec>`. It is serialized only when
+  present, so v1.6 challenge ids are unchanged.
+  ```
+  CoverageSpec {
+    version: "coverage-v1",
+    statement_spec: "<Lean decl of the top ChallengeSpec>",     // near-chunk-v3: NearSpecV3.challengeSpecChunkTop
+    soundness_lift: "<Lean decl>",                              // NearSpecV3.sound_lift
+    tiers: [ { id: "D0"|"D1"|"D2"|"D3a"|…,
+               rank: u32,                                       // total order, higher = larger domain
+               params: "<Lean decl of the tier's ChallengeParams>",  // NearSpecV3.challengeParamsChunk .d0 …
+               classes: ["<workload class id>", …] } … ]        // the classes this tier is complete for
+  }
+  ```
+* The tier `params` for tier `t` take the relation `Rel_t` (soundness) and the domain `Domain_t`
+  (completeness). The trusted lemma `soundness_lift` turns soundness w.r.t. `Rel_t` into soundness
+  w.r.t. the statement (`NearSpecV3.rel_mono`, `sound_lift`, in `ChallengeChunkV3.lean`).
+* Soundness is never weakened by a lower tier.
+
+**Candidate.**
+
+* `candidate.toml [entry]` gains `declared_tier = "<tier id>"`. It is required when the challenge
+  has `coverage`, and is an error otherwise.
+* The formal gates (§6) run the standard `AdmissionStatement` of that tier's `params`. Formal
+  completeness on `Domain_t` is mandatory: a tier is *declared* only through its completeness
+  theorem.
+* Change classification (§7): a changed `declared_tier` is `VERIFIER_OR_PROTOCOL`.
+
+**`UNSUPPORTED` (wire protocol §4).**
+
+* `prove` may exit with code `3` and write no proof. This means it abstains: the witness is outside
+  the declared tier.
+* `verify` never returns `UNSUPPORTED`.
+* An abstention is never an error and never a soundness failure. On a positive case it lowers
+  coverage; on a rejection case or a hostile input it is a correct non-accept.
+* An abstention on a positive case of a class the declared tier lists in `classes` is
+  `COVERAGE_GAP_IN_TIER`: a FAIL of the conformance gate. The formal completeness theorem promises
+  those cases, so an abstention there is a broken promise.
+* Accepting a rejection case, a hostile mutant or an adversarial proof remains a FAIL on every
+  class (§6, §12 of BENCHMARK_SPEC), whatever the tier.
+
+**Coverage and ranking.**
+
+* The run report gains `coverage: { tier, per_class: {class: {cases, proven, abstained}}, share }`.
+  It covers conformance and held-out positives separately; `share` is the weight-averaged proven
+  fraction over all classes.
+* The board sorts admitted entries by `(tier rank desc, score desc)`. `score` is the challenge's
+  scoring (here `cost_v1`), computed over the classes the candidate proves: abstained classes carry
+  no time and are excluded from the geometric mean, with the weights renormalized. The coverage
+  column makes the trade-off visible.
+* `succinct` badge (BENCHMARK_SPEC §17). It is a display attribute and filter, not a gate and not a
+  score component.
+
+**Versioning.**
+
+* A larger formalized domain (D4, D∞) is a **versioned successor** of the same challenge. It adds
+  a tier, a disjunct of the statement relation, and the `rel_mono` cases for the new tier. Existing
+  tiers keep their `params`.
+* A candidate admitted to the predecessor may be resubmitted unchanged; its tier still exists.
+* The signed `near-chunk-validation-d0*` challenges stay as history. Their entries can be
+  resubmitted to `near-chunk-v3` with `declared_tier = "D0"`.

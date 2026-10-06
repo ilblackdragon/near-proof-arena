@@ -1262,3 +1262,55 @@ python -m arena_bench cost-rescore --challenge chl.json --price-model pm.json \
     --out DIR VIEW.json:SESSION.json...
 python -m pytest benchmarks -q
 ```
+
+## 17. Coverage tiers and the `succinct` badge (bench-spec-v1.5; `near-chunk-v3`)
+
+**Classes span all tiers.** The workload classes of a coverage-tiered challenge (CONTRACTS §11)
+cover every formalized domain:
+
+| domain | classes |
+|---|---|
+| D0 | `d0-quiet`, `d0-transfers`, `d0-missing` |
+| D1 | transfer transactions |
+| D2 | actions, queues, epoch boundaries |
+| D3α | storage, promises/callbacks, yields, max-`G_α` |
+
+* **Class weights** come from the measured real-chain mix where it exists. Elsewhere they are
+  documented assumptions, recorded in the draft's `workloads.weight_source`.
+* **The hostile suite** (§12) and the adversarial mutators, including `v3-ignored-fields` and
+  `v3-witness-freedoms`, run on **every** candidate and every class.
+* **Soundness failures reject; coverage gaps never do.** A soundness failure on any class rejects
+  the candidate. A coverage gap only shows in the coverage column, except inside the declared
+  tier, where it is `COVERAGE_GAP_IN_TIER`.
+
+**Timing over abstentions.** `UNSUPPORTED` exits are not timed. The geometric mean of §8 / the cost
+of §14 is taken over the classes the candidate proves, with the weights renormalized, and reported
+together with `coverage.share`.
+
+**Ranking.** Entries are ranked by declared tier rank, then by score. So a D3α re-executor ranks
+above a faster D0-only prover. Within a tier, `cost_v1` already rewards succinctness: proof bytes
+are paid `N_v` times (validators per shard), and verify time is paid by every validator.
+
+**Should succinctness be a hard gate? Recommendation: no.** Use a badge and filter, and keep
+re-execution as the baseline. An entry gets the `succinct` badge when, over the conformance and
+held-out runs:
+
+* `max proof bytes ≤ S_max` and `max verify time ≤ V_max`;
+* both are bounded independently of the chunk's gas, judged by a log-log slope test. The fitted
+  exponent of proof bytes and verify time against the case's total gas must be ≤ 0.1, with a 95 %
+  upper confidence bound ≤ 0.25.
+
+The challenge fixes `S_max` and `V_max` (proposal for `near-chunk-v3`: 2 MiB and 50 ms). The board
+offers a "succinct only" filter.
+
+* **Why not a gate.**
+  - A re-execution reference is the honest baseline. Its "proof" is the witness, and it must stay
+    admissible, so that the board always has an admitted, sound, full-coverage entry against which
+    a succinct entry's cost is compared.
+  - A hard gate would also reject sound D0-only succinct entries whenever their verify time
+    exceeds `V_max` on some heavy class. The badge reports that without hiding the entry.
+  - `cost_v1` already prices bytes and verify time per validator, so a succinct entry wins on cost
+    wherever it matters.
+* **When a gate would be right.** If the user later wants the board to mean "ZK proofs only",
+  promote the badge criteria to a hard gate in a versioned successor. The criteria above are
+  already measurable and recorded per run.
