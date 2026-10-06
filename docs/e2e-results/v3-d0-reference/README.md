@@ -166,3 +166,15 @@ at 102.144 before `v3-witness-freedoms` existed): `rerun-submission` on the curr
 `run_c8661f22951f415d962e0ad2e1338a40`: **REJECTED** (HOSTILE_PROOF_ACCEPTED,
 `v3-witness-freedoms/entries…` and `…/values…`), the judge's own verdict, same as the hostile case.
 Report `live-run2-reference-rerun-report.json`; the run-1 report above stays as history.
+
+## Live run 4 (2026-10-06): fast PROVER_ONLY child, ADMITTED 104.566
+
+**`sub_2b51fbdeb20c4ff0b5932607c8e8e7da`** (`examples/reexec-v3-d0-fast` from main `38329cf`,
+package `sha256:d065d3cb…`, `--parent sub_0826bb9b…`), run `run_d034b34f43734081879682df72e87bd2`:
+**ADMITTED, score 104.566 ± 3.033**, `change_class=PROVER_ONLY`, all 6 formal gates reused from
+the parent. CONFORMANCE 84/84 + 127 rejection cases (61 refused by prove, 66 rejected by verify,
+0 accepted); ADVERSARIAL 183/183 rejected (incl. `v3-witness-freedoms`); RESOURCE_LIMITS max proof
+118 295 B, max verify 892 ms; BENCHMARK prove medians d0-quiet 6.616 ms, d0-transfers 6.622,
+d0-missing 6.929 (baseline 6.997 / 6.957 / 7.134). The native normaliser's proofs are byte-identical
+to the parent's Lean prover on all 78 public positives (gate test). Report
+`live-run4-fast-child-report.json`, status `live-run4-fast-child-status.json`.

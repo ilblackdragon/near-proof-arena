@@ -527,6 +527,15 @@ diagnostic):
     (HOSTILE_PROOF_ACCEPTED via `v3-witness-freedoms/entries…` and `…/values…`; report
     `docs/e2e-results/v3-d0-reference/live-run2-reference-rerun-report.json`). Its earlier ADMITTED
     run (102.144) stays in its history; the board's rank 1 is now `sub_0826bb9b…` (4.504).
+  * **Fast PROVER_ONLY child** (main `38329cf`, judge unchanged since `a81535b`):
+    `sub_2b51fbdeb20c4ff0b5932607c8e8e7da` **reexec-v3-d0-fast** (`--parent sub_0826bb9b…`,
+    `change_class=PROVER_ONLY`), run `run_d034b34f43734081879682df72e87bd2`: **ADMITTED, score
+    104.566 ± 3.033**, rank 1. The 6 formal gates are `reused_from` the parent (same verifier
+    `sha256:19ee48ed…`, same formal tree); 84/84 conform, 127 rejection cases (61 refused by prove,
+    66 rejected by verify, 0 accepted); 183/183 hostile inputs rejected. Prove medians per 8-chunk
+    batch 6.616 / 6.622 / 6.929 ms (baseline 6.997 / 6.957 / 7.134). Its native Rust normaliser
+    is gated by a byte-match test against the Lean prover on all 78 public positives
+    (`examples/reexec-v3-d0-fast/source/tests/byte_match.rs`).
   * **Install hardening** (main `a81535b`): `arena-live build` builds the service binaries at HEAD
     into the live target dir (heavy wrapper, CPUs 8-15,24-31, clean tree required) and stamps it;
     `arena-live install` refuses unless the stamp equals HEAD, the tree is clean and no binary is
