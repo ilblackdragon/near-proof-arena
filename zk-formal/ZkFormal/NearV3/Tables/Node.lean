@@ -20,7 +20,9 @@ these deltas (STATUS-V3-TRIE §3.2):
   (`valV3`) of length `vlen`: `DIGEST (VPRE(vid), vlen, reg)`, `VPARENT (vid, vlen)`; the
   `VLEN` bytes accumulate to `vlen` (`vacc`, scale `vsc`; top byte `0`); a value written in
   lockstep (`tw`, account `set`) has `DIGEST (VPOST(vid), vlen, preg)` (same length),
-  otherwise `preg = reg`.  v1's `VSLOT` and the constant `72` are removed.
+  otherwise `preg = reg`.  A written window receives `VSLOT (vid)` (gate `valStart·tw`; acctV3
+  sends one per account write, so writes and written windows are a bijection).  v1's constant
+  `72` is removed.
 * **weak uniqueness**: every digest window sends `DIGS (eid, τ, i, byte)` (`eid` = the
   child's `NPRE(cid)` or the value's `VPRE(vid)`); a duplicate record (`dup`) receives
   `DUP (NPRE(nid), repE)` and copies its bytes from its predecessor over
@@ -418,7 +420,8 @@ def interactions : List Interaction :=
     recv B_ENT (c dup) (entMsg (c repE)),
     send B_SIZE (c sumr) [k 0, c sz],
     send B_UPB (c act) (upbMsg (k 0)),
-    recv B_UPB (c act) (upbMsg (c mU)) ]
+    recv B_UPB (c act) (upbMsg (c mU)),
+    recv B_VSLOT (.mul valStart (c tw)) [c vid] ]
 
 /-- Height cap: `2^22` rows (unfolded node bytes `≤ 3,000,000` under A7, plus the `SUM` row). -/
 def maxLog : Nat := 22

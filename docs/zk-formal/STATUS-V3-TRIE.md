@@ -22,7 +22,7 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M6b | link layer: DIGEST/BYTES glue, uniq ⇒ HashFunctional, per-τ composition | **done** (`PerTau3`: `root_tau`, `build_tau`, `walks_tau`) |
 | M6c | post-root after sets | **done**: `post_tau` (`Link/Post3`), `post_eq_set(s)` (`Link/Post3Spec`), `valsPost_eq_setVals` (`Link/Post3Writes`); open M6d below |
 | M6d | occurrences, reach, post root = iterated `set` | **done**: `occ_le_one`, `reach_walk(_at)`, `find_walk_any`, `post_sets_tau`, `post_sets_walk` (`Link/Post3Occ*`, 76ecb4a8). Interface: `hpl` (account writer), `hperm` (each written value has one keyed write: assembly) |
-| M7 | `upsV3` (option A) | M7a **done** (`root_chain`); M7b **done** (table `Tables/Ups.lean`, budget `BudgetUps.lean`, `UPSV3-DESIGN.md`, model check 2,650 instances, 0 failures; nodeV3 delta in `NodeUpb.lean`, not yet applied); M7c–e (view, render, link) open |
+| M7 | `upsV3` (option A) | M7a **done** (`root_chain`); M7b **done** (table `Tables/Ups.lean`, budget `BudgetUps.lean`, `UPSV3-DESIGN.md`, model check 2,650 instances, 0 failures; nodeV3 delta in `NodeUpb.lean`, not yet applied); M7c: table + nodeV3 UPB/VSLOT deltas + view layer 1 (`ups_view`) **done**, layer 2: `ups_layout`, `ups_plan`, `ups_windows`, `ups_mem` (u64 carry chain, exact high limb), `ups_walk` (W0–W3 is a `walkV3` walk), `QNodes` target nodes, walk traffic (`ups_walkTrafficFp`) **done**; per-kind `bytes(Q_j) = nodeEnc` proved for 10/12 kinds (NLF RLP RDE PT WEX RBV RBR RDB RBI MVL); MVE (~350) and SPB (~1–1.5k) open (UPSV3-DESIGN §8.1). Then M7d 3–4k, M7e 4–6k lines |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
 
@@ -488,6 +488,23 @@ counted.
   root handling, value windows, sizes change).
 
 ## 6. Open items
+
+* **Decision (cross-lane, v3-rcpt R3): `VSLOT (vid)` recv in nodeV3.** nodeV3 receives
+  `VSLOT (vid)` (bus 3, v1 format) once on every lockstep-written value window
+  (`valStart·tw`), and acctV3 sends one per account write. The balance then makes account
+  writes and `tw` windows a bijection, which discharges `hperm` (§3.2). This was chosen over a
+  `wr` field on `VPARENT`/`VBYTES`, which would need valV3 to forward the flag to acctV3.
+  Delta: one interaction, gate `(gD − gP)·tw` (degree 2, existing columns). The view gains
+  `B_VSLOT` recvs `[vid]` for written slots; the render is re-proved. Scheduled with M7c/M7d
+  (helper).
+  **Done (lane/v3-trie-h):** `recv B_VSLOT ((gD − gP)·tw) [vid]`, the last interaction of
+  `NodeV3.interactions`; `nodeRecvs3 B_VSLOT` = `[vid]` per record whose value slot has
+  `written = true`; `node3_view`, `node_render_local`, `node_render_traffic` re-proved (axioms
+  propext, Classical.choice, Quot.sound). Budget (`BudgetCheck`): nodeV3 186 cols, 21
+  interactions, degree 4 → 5 at g=1 (degree-2 gate), `W_eq` 370 → 386 (g=1), 298 → 306 (g=3);
+  five-table total 855 → 871 / 783 → 791; with upsV3 (`BudgetUps`) 1185 → 1201 / 1073 → 1081.
+  Alternative (not done): a gate column `gW = valStart·tw` keeps degree 4: 187 cols,
+  `W_eq` 379 (g=1) / 307 (g=3).
 
 0. **Fixed soundness gap (d153d30f)**: `valV3` ids had no start, so `VPRE(vid) ≡ NPRE(c) mod P` was choosable (id-space collision on BYTES/ENT/DIGEST). Now `isFirst·vid = 0`, `ValWf.first`.
 

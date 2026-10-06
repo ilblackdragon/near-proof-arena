@@ -44,10 +44,11 @@ def rowN0 (c : Nat → Nat) (b : Nat) (sd : Bool) : List ZkFormal.Near.Msg :=
   (if B_ENT = b ∧ false = sd then gt (c 170) [c 172, c 6, c 5, c 8] else []) ++
   (if B_SIZE = b ∧ true = sd then gt (c 3) [0, c 152] else [])
 
-/-- The `UPB` pieces (M7c). -/
+/-- The `UPB` pieces (M7c) and the `VSLOT` receive. -/
 def rowNU (c : Nat → Nat) (b : Nat) (sd : Bool) : List ZkFormal.Near.Msg :=
   (if B_UPB = b ∧ true = sd then gt (c 0) [msgId K_NPOST (c 4), c 5, c 9, c 6, c 7, c 137, 0] else []) ++
-  (if B_UPB = b ∧ false = sd then gt (c 0) [msgId K_NPOST (c 4), c 5, c 9, c 6, c 7, c 137, c 185] else [])
+  (if B_UPB = b ∧ false = sd then gt (c 0) [msgId K_NPOST (c 4), c 5, c 9, c 6, c 7, c 137, c 185] else []) ++
+  (if B_VSLOT = b ∧ false = sd then gt ((c 142 - c 143) * c 167) [c 165] else [])
 
 /-- All pieces, in the order of `NodeV3.interactions`. -/
 def rowN (c : Nat → Nat) (b : Nat) (sd : Bool) : List ZkFormal.Near.Msg := rowN0 c b sd ++ rowNU c b sd
@@ -83,7 +84,7 @@ theorem rowT_eq {tr : Trace Fp} {tt q : Nat} {pub : List Fp} (c : Nat → Nat)
     (hc : ∀ x, x < 186 → tr.cell tt q x = Fp.ofNat (c x))
     (hg : ∀ x, x = 0 ∨ x = 1 ∨ x = 3 ∨ x = 142 ∨ x = 143 ∨ x = 144 ∨ x = 145 ∨ x = 160 ∨ x = 170 ∨ x = 171 ∨
       x = 181 ∨ x = 183 ∨ x = 184 → c x ≤ 1)
-    (hvs : c 143 ≤ c 142 ∧ c 142 - c 143 ≤ 1) (b : Nat) (sd : Bool) :
+    (hvs : c 143 ≤ c 142 ∧ c 142 - c 143 ≤ 1) (htw : c 167 ≤ 1) (b : Nat) (sd : Bool) :
     rowTraffic NodeV3.interactions tr tt q pub b sd = (rowN c b sd).map Msg.toFp := by
   simp only [rowTraffic, NodeV3.interactions, send, recv, List.flatMap_cons, List.flatMap_nil, List.append_nil,
     multNat_one', Interaction.msgVal, rowN, rowN0, rowNU, List.map_append, List.append_assoc]
@@ -106,8 +107,18 @@ theorem rowT_eq {tr : Trace Fp} {tt q : Nat} {pub : List Fp} (c : Nat → Nat)
     intro kk; rw [eval_mid, hcc 4 (by decide), mid_eq]
   try simp only [List.append_assoc]
   have g := hg
+  have hm1 : (c 142 - c 143) * c 167 ≤ 1 := by have := Nat.mul_le_mul hvs.2 htw; omega
   refine ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_
-    (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ ?_))))))))))))))))))
+    (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ (ap ?_ ?_)))))))))))))))))))
+  rotate_left 20
+  · refine piece (x := (c 142 - c 143) * c 167) hm1 ?_ ?_
+    · simp only [NodeV3.valStart, eval_sub, eval_mul, hcc _ (by decide : (142 : Nat) < 186),
+        hcc _ (by decide : (143 : Nat) < 186), hcc _ (by decide : (167 : Nat) < 186), NodeV3.gD, NodeV3.gP,
+        NodeV3.tw]
+      rw [ofNat_sub' hvs.1, ofNat_mul']
+    intro _ _
+    simp only [Msg.toFp, List.map_cons, List.map_nil, eval_c, NodeV3.vid,
+      hcc _ (by decide : (165 : Nat) < 186)]
   all_goals first
     | (refine piece ?_ ?_ ?_
        · exact g _ (by decide)
@@ -130,6 +141,7 @@ theorem rowT_eq {tr : Trace Fp} {tt q : Nat} {pub : List Fp} (c : Nat → Nat)
        intro _ _
        simp only [Msg.toFp, List.map_cons, List.map_nil, eval_c, NodeV3.vid, NodeV3.vlen,
          hcc _ (by decide : (165 : Nat) < 186), hcc _ (by decide : (166 : Nat) < 186)])
+
 
 end NodeGen3
 
