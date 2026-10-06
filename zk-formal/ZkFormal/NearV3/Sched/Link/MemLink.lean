@@ -5,8 +5,8 @@ import ZkFormal.NearV3.Sched.Link.MemRun
 
 Stage B step 2. `MemCtx` bundles what the memory link of instance τ = `tau(f)` uses: the AIR,
 the ownership conditions, the instance's rows, its public data, the spec state `st`
-(`≤ 4,500,000`, sizes), `InitVals` (`hInitVals`) and `IsLOk` (missing constraint, see
-`MemSim`).
+(`≤ 4,500,000`, sizes) and `InitVals` (`hInitVals`; it also fixes the `INIT` rows' `isL`,
+`init_row_isL`).
 
 The simulation is `simσ t a = rd τ (stAt t) a` on τ's addresses (`QT τ n`).
 
@@ -42,7 +42,6 @@ structure MemCtx (AP : AirP) (pub : List Fp) (tr : Trace Fp) (tp tm tcmp ts tch 
   hB : ABnd 4500000 st
   hsz : SzA P.n st
   hV : InitVals AP tr pub (cv tr tp f Proc.tau) P.n allowed st
-  hIL : IsLOk tr tm (cv tr tp f Proc.tau) P.n
 
 /-- The simulated memory of instance τ. -/
 def simσ (τ n : Nat) (allowed : Array Bool) (tr : Trace Fp) (tp f m : Nat) (st : St) (t a : Nat) : Nat :=
@@ -214,7 +213,7 @@ theorem step_ok : StepOk (memOpsQ tr tm (QT (cv tr tp f Proc.tau) P.n))
     rw [if_pos (QT_link hn hl), rd_link _ hn hl] at y9
     have hB := stAt_bnd P.n allowed tr tp f m st C.hB (cv tr tp (Proc.hdrAt tr tp f i) Proc.T + j)
     have hsz := stAt_sz P.n allowed tr tp f m st C.hsz (cv tr tp (Proc.hdrAt tr tp f i) Proc.T + j)
-    obtain ⟨gS, gR, gL, oS, oR, oL⟩ := grant_sem C.hH C.O C.OS C.I C.hτ C.SP C.PO C.hB C.hV C.hIL hi hj
+    obtain ⟨gS, gR, gL, oS, oR, oL⟩ := grant_sem C.hH C.O C.OS C.I C.hτ C.SP C.PO C.hB C.hV hi hj
       (by rw [y7]; exact (hB _).1) (by rw [y8]; exact (hB _).2.1) (by rw [y9]; exact (hB _).2.2)
     have hLp := C.hL
     obtain ⟨⟨hh0, hh, ht, -⟩, -⟩ := C.I.hdr i hi
@@ -304,7 +303,7 @@ theorem entry_mem {i : Nat} (hi : i < m) {j : Nat} (hj : j < cv tr tp (Proc.hdrA
   simp only [Arr, Prod.mk.injEq] at hA
   obtain ⟨hsb, hrb, hal⟩ := hA
   have hB := stAt_bnd P.n allowed tr tp f m st C.hB (cv tr tp (Proc.hdrAt tr tp f i) Proc.T + j)
-  obtain ⟨gS, gR, gL, -, -, oL⟩ := grant_sem C.hH C.O C.OS C.I C.hτ C.SP C.PO C.hB C.hV C.hIL hi hj
+  obtain ⟨gS, gR, gL, -, -, oL⟩ := grant_sem C.hH C.O C.OS C.I C.hτ C.SP C.PO C.hB C.hV hi hj
     (by rw [y7]; exact (hB _).1) (by rw [y8]; exact (hB _).2.1) (by rw [y9]; exact (hB _).2.2)
   exact ⟨by rw [y7, hsb, es], by rw [y8, hrb, er], by rw [y9, hal], gS, gR, gL, oL⟩
 

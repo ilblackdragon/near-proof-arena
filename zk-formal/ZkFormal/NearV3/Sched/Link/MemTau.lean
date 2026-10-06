@@ -8,12 +8,13 @@ Stage B step 2 (memory side). Instance τ with `n ≤ 64` participants owns the 
 (`s, r < n`); `QT τ n` is this set.
 
 * `initRec`, `initMsgs`: the expected `INIT` messages of τ: links
-  `(a, 0, 0, allowed[l], st.allowance[l], st.granted[l], 0, 0)`, budgets
+  `(a, 0, 0, allowed[l], st.allowance[l], st.granted[l], 0, 1)` (the codec's `c = 1`), budgets
   `(a, 0, 0, 0, st.senderBudget[s] / st.receiverBudget[r], 0, 0, 0)` (`Gen.Mem.expectedInit`);
 * **`InitVals`** (the agreed `hInitVals`, from the codec / distribute stage): the `INIT`
   messages sent on `SOP` with an address in τ's range are, as a multiset, `initMsgs`;
 * **`initOnce_of`**: `InitVals ⇒ InitOnceQ (QT τ n)`; `init_row_msg`: an `INIT` memory row of a
-  τ address has the expected message; `init_exists`, **`memInit_tau`**: every τ address has
+  τ address has the expected message; **`init_row_isL`**: its `isL = [link address]` (the
+  `INIT` row's `c = isL` is message position 7); `init_exists`, **`memInit_tau`**: every τ address has
   its `INIT` row and `memInit a = rd τ st a`;
 * **`mem_timeQ`**: `TimeQ (QT τ n)` — `INIT` rows at 0, process GRANTs `< T0 + 2^22`,
   scan READs `≤ 2^16` (`op_sent`).
@@ -42,7 +43,7 @@ def rd (τ : Nat) (S : St) (a : Nat) : Nat :=
 /-- The expected `INIT` record of offset `x`. -/
 def initRec (τ : Nat) (allowed : Array Bool) (st : St) (x : Nat) : List Nat :=
   [τ * 16384 + x, 0, OP_INIT, if x < 4096 then (if allowed[x]! then 1 else 0) else 0,
-    rd τ st (τ * 16384 + x), if x < 4096 then st.granted[x]! else 0, 0, 0]
+    rd τ st (τ * 16384 + x), if x < 4096 then st.granted[x]! else 0, 0, if x < 4096 then 1 else 0]
 
 def initMsgs (τ n : Nat) (allowed : Array Bool) (st : St) : List (List Fp) :=
   ((List.range 12288).filter (idxOk n)).map fun x => (initRec τ allowed st x).map Fp.ofNat
@@ -246,6 +247,23 @@ theorem init_row_vals (hH : HoldsP AP pub tr) (hM : MemOwn AP tm) {τ n : Nat} (
   rw [ha, show τ * 16384 + x - τ * 16384 = x by omega]
   refine ⟨cell_ofNat ev (by have := rd_le (τ := τ) hB (τ * 16384 + x); omega), cell_ofNat evin ?_⟩
   split <;> (try split) <;> decide
+
+/-- **The `isL` flag of an `INIT` row of a τ address** is `[link address]`: the row's `c = isL`
+(`Mem.row_init`) is position 7 of its `INIT` message, which the codec sends as 1 (links) and the
+distribute as 0 (budgets). -/
+theorem init_row_isL (hH : HoldsP AP pub tr) (hM : MemOwn AP tm) {τ n : Nat} (hτ : τ < 256) (hn : n ≤ 64)
+    {allowed : Array Bool} {st : St} (hV : InitVals AP tr pub τ n allowed st)
+    {f : Nat} (hf : f < tr.height tm) (hff : cv tr tm f Mem.fst = 1) (hq : QT τ n (cv tr tm f Mem.addr) = true) :
+    cv tr tm f Mem.isL = if cv tr tm f Mem.addr - τ * 16384 < 4096 then 1 else 0 := by
+  have hL := mLocal_of hH hM
+  obtain ⟨x, hx, he⟩ := init_row_msg hH hM hn hV hf hff hq
+  have hx' := idxOk_lt hn hx
+  rw [Mem.opMsg_eq] at he
+  simp only [initRec, List.map_cons, List.map_nil, List.cons.injEq] at he
+  obtain ⟨ea, -, -, -, -, -, -, ec, -⟩ := he
+  have ha := cell_ofNat ea (by omega)
+  rw [ha, show τ * 16384 + x - τ * 16384 = x by omega, ← (Mem.row_init hL hf hff).2.2.2.2.1]
+  exact cell_ofNat ec (by split <;> decide)
 
 /-- **Every τ address has its `INIT` row.** -/
 theorem init_exists (hH : HoldsP AP pub tr) (hM : MemOwn AP tm) {τ n : Nat} (hτ : τ < 256) (hn : n ≤ 64)
