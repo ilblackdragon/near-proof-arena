@@ -163,7 +163,7 @@ theorem chalLateP : ∀ k, 9 ≤ k → ChalAtPg k := by
   have hDn : 2 ^ L.log ≤ 2 ^ L.lde := Nat.pow_le_pow_right (by omega) (by omega)
   have hxs := distinct_pt (n0Of AP.toAir (pg g) τ) L.lde (by omega)
   have he2 : 2 * eRad (pg g) L.lde + 2 ^ L.log ≤ 2 ^ L.lde := by
-    have := eRad_two L.lde; rwa [show L.lde - 4 = L.log by omega] at this
+    have := eRad_two (g := g) L.lde; rwa [show L.lde - 4 = L.log by omega] at this
   by_cases hsb : τ.chals.length < 4 + nBatch AP.toAir (pg g) τ
   · ---------- a batching round
     have hbc : ∀ c, batchChals AP.toAir (pg g) (τ.pushChal c) = batchChals AP.toAir (pg g) τ ++ [c] := by
@@ -179,7 +179,7 @@ theorem chalLateP : ∀ k, 9 ≤ k → ChalAtPg k := by
       (2 ^ L.lde) (2 ^ L.log) hDn hxs Nat) (eRad (pg g) L.lde)
       (evenCols (batchedWord AP.toAir (pg g) τ L.lde)) (oddCols (batchedWord AP.toAir (pg g) τ L.lde)) r) ?_)
       (Nat.le_trans (strong_line_rs _ _ _ _ hDn hxs he2 Nat _ _ Fp8.all Fp8.nodup_all)
-        (bound_budget L.lde h26))
+        (bound_budget (g := g) L.lde h26))
     intro r hbad hstrong
     apply hbad; apply hst' r; refine Or.inr ⟨⟨L, (hlay' r).symm ▸ hL, ?_⟩, ?_⟩
     · intro hclose
@@ -288,7 +288,7 @@ theorem chalLateP : ∀ k, 9 ≤ k → ChalAtPg k := by
             rollG AP.toAir (pg g) τ (kq.2 - 1), fun c => ?_⟩
           simp only [FriChalGood, ↓reduceIte]; exact Iff.rfl
       have he' : 2 * eRad (pg g) (n0Of AP.toAir (pg g) τ - j) + S.DD j ≤ S.nn j := by
-        have := eRad_two (n0Of AP.toAir (pg g) τ - j)
+        have := eRad_two (g := g) (n0Of AP.toAir (pg g) τ - j)
         show _ + 2 ^ (n0Of AP.toAir (pg g) τ - 4 - j) ≤ 2 ^ (n0Of AP.toAir (pg g) τ - j)
         rwa [show n0Of AP.toAir (pg g) τ - j - 4 = n0Of AP.toAir (pg g) τ - 4 - j by omega] at this
       refine Nat.le_trans (count_mono _ (F := fun c => ¬ Strong (S.code j hj)
@@ -296,7 +296,7 @@ theorem chalLateP : ∀ k, 9 ≤ k → ChalAtPg k := by
         (Nat.le_trans (strong_line_rs_scalar _ _ _ _ (S.hDn j hj) (S.hdist j hj) he' _ _ _ Fp8.nodup_all)
           ?_)
       · exact fun hs' => hbad c h ((hcond c).mpr hs')
-      · have := bound_budget (n0Of AP.toAir (pg g) τ - j) (by omega)
+      · have := bound_budget (g := g) (n0Of AP.toAir (pg g) τ - j) (by omega)
         exact this
 
 
