@@ -225,6 +225,11 @@ converted request (the public `SPAR` tag-1 record follows the same rule).
 * `SPOST (τ, pos, b)`, `pos < L`: codec → `upsV3`, the bytes of the written state.
 * `SPLEN (τ, L)`: codec → `upsV3`, once per τ (bus 61, sent on the first row, `L = 37 + 24·N`
   computed by the codec; `upsV3` must not assume it). **Implemented** (`Tables/Codec.lean`, +8 `W_eq`).
+* **`SchedVal` (proved, `Link/CodecVal.lean`):** given `CodecValOwn` (the codec is the only
+  sender on `SPLEN`/`SPOST`, and no public segment sends on them), **`codec_splen_sole`** shows every
+  received `SPLEN` is the codec's `(τ, 37 + 24·N)` from an instance's first row, with `1 ≤ N < 2^16`,
+  so `L < 2^24`. **`codec_spost_sole`** shows every received `SPOST` is a codec send
+  `(τ, pos, bpost)` from a row whose encoding gate is set.
 * `upsV3` hashes the post value under SHA kind `K_VUPS = 12`; the sanity hash keeps `K_SCH = 11`.
   Kind registry: 1–10 v1, 11 SCH, 12 VUPS, 13 SRC, 14 VAK, 15 and 0 reserved.
 
