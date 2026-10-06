@@ -7,8 +7,9 @@
 #   D1 public set (committed): oracle/fixtures/v3/public-d1 (seed 4243, 2 chains x 40 blocks, --domain d1)
 #   D1 full difftest set:      $OUT_D1 (default /tmp/near-v3-d1-full; seed 5151, 12 chains x 150 blocks)
 #   Ed25519 vectors (committed): oracle/fixtures/v3/ed25519 (oracle/tools/gen_ed25519_vectors.py, SOURCES.json)
-#   D2 public set (committed): oracle/fixtures/v3/public-d2 (seed 4243, 4 chains x 60 blocks + chain 2 x 240 blocks,
-#                              --domain d2, coverage-selected honest cases; difftest.json from difftest_v3_d2.py)
+#   D2 public set (committed): oracle/fixtures/v3/public-d2 (seed 4243, chains 0, 3 x 60 blocks and chain 2 x 240
+#                              blocks, --domain d2, honest cases kept when they add coverage; difftest.json from
+#                              difftest_v3_d2.py)
 #   D2 full difftest set:      $OUT_D2 (default /tmp/near-v3-d2-full; seed 6262, 14 chains x 200 blocks,
 #                              chains 2/7/12 x 270 blocks; oracle/scripts/gen-d2-corpus.sh)
 set -euo pipefail
@@ -24,8 +25,8 @@ rm -rf "$here/fixtures/v3/public"
 rm -rf "$here/fixtures/v3/public-d1"
 "$bin_d1" gen --seed 4243 --out "$here/fixtures/v3/public-d1" --chains 2 --blocks 40 --mutate-every 25 --ood-cap 1 --domain d1
 rm -rf "$here/fixtures/v3/public-d2"
-OUT="$here/fixtures/v3/public-d2" SEED=4243 CHAINS=4 BLOCKS=60 LONG="2" LONG_BLOCKS=240 PAR="${PAR:-4}" \
-  MUTATE_EVERY=6 OOD_CAP=1 DROP_CAP=16 KEEP_EVERY=12 CLEAN_PARTS=1 "$here/scripts/gen-d2-corpus.sh"
+OUT="$here/fixtures/v3/public-d2" SEED=4243 CHAIN_LIST="0 2 3" BLOCKS=60 LONG="2" LONG_BLOCKS=240 PAR="${PAR:-4}" \
+  MUTATE_EVERY=45 OOD_CAP=1 DROP_CAP=8 KEEP_EVERY=100000 CLEAN_PARTS=1 "$here/scripts/gen-d2-corpus.sh"
 python3 "$here/tools/difftest_v3_d2.py" --cases "$here/fixtures/v3/public-d2" --python "$here/tools/spec_check_v3_d2.py" \
   --python-d1 "$here/tools/spec_check_v3_d1.py" --report "$here/fixtures/v3/public-d2/difftest.json" || true
 if [[ "${FULL:-0}" == 1 ]]; then

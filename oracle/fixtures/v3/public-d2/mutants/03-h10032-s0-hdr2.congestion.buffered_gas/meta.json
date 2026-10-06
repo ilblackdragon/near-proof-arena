@@ -1,0 +1,25 @@
+{
+  "base": "03-h10032-s0",
+  "case": "03-h10032-s0-hdr2.congestion.buffered_gas",
+  "d0_violations": [
+    "c.single_epoch",
+    "c.no_split_gate",
+    "w.no_txs",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "e.compute",
+    "r.success",
+    "r.shape"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": true,
+  "kind": "mutant",
+  "mutation": "hdr2.congestion.buffered_gas",
+  "nearcore": "validate: InvalidCongestionInfo(\"Congestion Information validate error. extra: V1(CongestionInfoV1 { delayed_receipts_gas: 361757698853186, buffered_receipts_gas: 0, receipt_bytes: 138669, allowed_shard: 1 }), header: V1(CongestionInfoV1 { delayed_receipts_gas: 361757698853186, buffered_receipts_gas: 1, receipt_bytes: 138669, allowed_shard: 1 })\")",
+  "verdict_source": "nearcore"
+}

@@ -1,0 +1,56 @@
+{
+  "action_results": [],
+  "case": "03-h10002-s3",
+  "chain_params": "D2Params { base: ChainParams { seed: 4243012732, n_shards: 4, seats: 3, gas_limit_tgas: 10, epoch_length: 30, blocks: 60, p_missing: 0.12, p_tx_shard: 0.5, p_burst: 0.04, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 6, p_contract: 0.04, p_adv: 0.35, keep_every: 100000, drop_cap: 8 }",
+  "d0_violations": [
+    "c.single_epoch",
+    "c.no_split_gate",
+    "c.not_genesis",
+    "w.no_txs"
+  ],
+  "d1_violations": [
+    "c.single_epoch",
+    "c.no_split_gate",
+    "c.not_genesis",
+    "w.tx_shape"
+  ],
+  "d2_violations": [
+    "c.not_genesis"
+  ],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "features": {
+    "base_state_bytes": 0,
+    "bw_requests_in_context": false,
+    "n_blocks": 2,
+    "n_epochs": 1,
+    "n_implicit": 1,
+    "n_receipts": 0,
+    "n_shards": 4,
+    "n_source_blocks": 1,
+    "other_congestion_nonzero": false,
+    "rs": [
+      1,
+      3
+    ],
+    "validator_update_in_main": true,
+    "validator_updates": 1,
+    "witness_bytes": 2414
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "new_tx_labels": [
+    "h.gas_withdraw",
+    "h.create_not_sub",
+    "h.implicit_eth",
+    "h.deterministic"
+  ],
+  "receipt_classes": {},
+  "tx_labels": [],
+  "tx_results": []
+}

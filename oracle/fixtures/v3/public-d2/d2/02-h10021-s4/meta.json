@@ -1,0 +1,78 @@
+{
+  "action_results": [
+    "postponed:[Transfer] => ok",
+    "incoming:[CreateAccount,Transfer] => fail:CreateAccountNotAllowed"
+  ],
+  "case": "02-h10021-s4",
+  "chain_params": "D2Params { base: ChainParams { seed: 4243012731, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 240, p_missing: 0.12, p_tx_shard: 0.5, p_burst: 0.04, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 6, p_contract: 0.04, p_adv: 0.35, keep_every: 100000, drop_cap: 8 }",
+  "d0_violations": [
+    "w.no_txs",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "e.forwarded",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "e.forwarded",
+    "r.shape",
+    "w.tx_shape"
+  ],
+  "d2_violations": [],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": true,
+  "features": {
+    "base_state_bytes": 5000,
+    "buffered_post": 403,
+    "buffered_pre": 402,
+    "bw_requests_in_context": false,
+    "contract_data_removals": 0,
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "executed_receipts": 2,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_epochs": 1,
+    "n_implicit": 0,
+    "n_receipts": 2,
+    "n_shards": 6,
+    "n_source_blocks": 1,
+    "other_congestion_nonzero": true,
+    "own_congestion_nonzero_post": true,
+    "own_congestion_nonzero_pre": true,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 1,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "rs": [
+      5,
+      16
+    ],
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 6921,
+    "yield_queue_pre": 1
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": true,
+  "kind": "honest",
+  "nearcore": "ok",
+  "new_tx_labels": [
+    "h.call_yield",
+    "h.create_bundle"
+  ],
+  "receipt_classes": {
+    "buffered_pushed": 1,
+    "incoming_action": 1,
+    "incoming_data": 1,
+    "out_refund": 2,
+    "postponed_executed": 1
+  },
+  "tx_labels": [],
+  "tx_results": []
+}

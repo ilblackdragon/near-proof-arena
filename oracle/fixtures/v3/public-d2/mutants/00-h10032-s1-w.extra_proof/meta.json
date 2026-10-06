@@ -1,0 +1,20 @@
+{
+  "base": "00-h10032-s1",
+  "case": "00-h10032-s1-w.extra_proof",
+  "d0_violations": [
+    "w.no_txs",
+    "e.queues_empty",
+    "r.shape"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": true,
+  "kind": "mutant",
+  "mutation": "w.extra_proof",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"source_receipt_proofs contains too many proofs. Expected 3 proofs, found 4\")",
+  "verdict_source": "nearcore"
+}

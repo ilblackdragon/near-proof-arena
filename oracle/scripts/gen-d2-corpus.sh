@@ -4,7 +4,7 @@
 # then merge the per-chain outputs into OUT/{d2,ood,mutants} and write OUT/summary.json last.
 #
 #   OUT=/path SEED=6262 CHAINS=14 BLOCKS=200 LONG="2 7 12" LONG_BLOCKS=270 PAR=4 \
-#     MUTATE_EVERY=14 OOD_CAP=15 DROP_CAP=96 [KEEP_EVERY=1] [CLEAN_PARTS=0] \
+#     MUTATE_EVERY=14 OOD_CAP=15 DROP_CAP=96 [KEEP_EVERY=1] [CLEAN_PARTS=0] [CHAIN_LIST="0 2 3"] \
 #     oracle/scripts/gen-d2-corpus.sh
 #
 # Chains of at least 250 blocks call the yield contract early, so their yields time out
@@ -33,7 +33,8 @@ HEAVY="${HEAVY:-/data/illia/nearproof-deps/bin/heavy}"
 mkdir -p "$OUT/parts"
 rm -f "$OUT/summary.json"
 export bin OUT SEED MUTATE_EVERY OOD_CAP DROP_CAP KEEP_EVERY HEAVY
-for i in $(seq 0 $((CHAINS - 1))); do
+CHAIN_LIST="${CHAIN_LIST:-$(seq 0 $((CHAINS - 1)))}"
+for i in $CHAIN_LIST; do
   b="$BLOCKS"
   for l in $LONG; do [[ "$l" == "$i" ]] && b="$LONG_BLOCKS"; done
   echo "$i $b"

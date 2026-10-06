@@ -731,11 +731,16 @@ pub fn write_d2_case(x: D2Ctx, stats: &mut Stats) {
     }
     if keep_every > 1 {
         let mut keys: Vec<String> = Vec::new();
-        for (l, r) in meta["tx_labels"].as_array().unwrap().iter().zip(meta["tx_results"].as_array().unwrap()) {
-            keys.push(format!("tx:{}=>{}", l.as_str().unwrap(), r.as_str().unwrap()));
+        for l in meta["tx_labels"].as_array().unwrap() {
+            keys.push(format!("tx:{}", l.as_str().unwrap()));
         }
+        // per action kind (outer, as in the receipt) × result
         for a in meta["action_results"].as_array().unwrap() {
-            keys.push(format!("ar:{}", a.as_str().unwrap()));
+            let a = a.as_str().unwrap();
+            let (lhs, st) = a.split_once(" => ").unwrap_or((a, ""));
+            let names = lhs.split_once(":[").map(|x| x.1.trim_end_matches(']')).unwrap_or("");
+            let first = names.split(|c| c == ',' || c == '[').next().unwrap_or("");
+            keys.push(format!("ar:{first}=>{st}"));
         }
         for (k, _) in meta["receipt_classes"].as_object().unwrap() {
             keys.push(format!("rc:{k}"));

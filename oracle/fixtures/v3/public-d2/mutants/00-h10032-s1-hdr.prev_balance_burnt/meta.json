@@ -1,0 +1,20 @@
+{
+  "base": "00-h10032-s1",
+  "case": "00-h10032-s1-hdr.prev_balance_burnt",
+  "d0_violations": [
+    "w.no_txs",
+    "e.queues_empty",
+    "r.shape"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": true,
+  "kind": "mutant",
+  "mutation": "hdr.prev_balance_burnt",
+  "nearcore": "validate: InvalidBalanceBurnt",
+  "verdict_source": "nearcore"
+}
