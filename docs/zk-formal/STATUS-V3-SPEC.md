@@ -48,6 +48,43 @@ objects) vs Lean `nearspec-v3-check-d0a` (compiled `checkD0a`) vs Python
 * A2 mutant `w.foreign_routed_receipt` (valid Merkle path, chain re-hashed; `Rel` by
   construction): 592/592 `out_of_domain` in Lean and Python.
 
+### 1.1a A8 `c.bw_requests` (tested)
+
+Relation-level conjunct (lead decision; Lean `a8`, last check of `checkD0a`; spec v0a §2.3a).
+Independent implementations: Python `spec_check_v3_d0a.a8_ok` (every block of the claim, every
+slot, `read_bw_requests` → distinct `to_shard`; reported after A7, violations joined; Lean
+reports only its first failing check) and the oracle `d0a::a8_ok` (nearcore
+`ShardChunkHeader::bandwidth_requests` of every chunk of every `built.blocks` block).
+**A8 mutant `c.dup_bw_request`** (`oracle/v3-d0a/src/a8mut.rs`, on every accepted D0a case whose
+segment starts at B2, like the A2 mutant): in a non-own slot of B2 (an old slot preferred, so no
+source-proof key changes; else the new slot's proof is re-keyed) append `(t, 0-bitmap)` where `t`
+is the slot's first request's `to_shard`, or `(t, 0), (t, 0)` with `t` the layout's first shard
+id if the slot has none; re-hash chunk hash, `chunk_headers_root`, B2 hash, endorsed chunk's
+`prev_block_hash` (claim + witness header). `Rel`/`RelD0` hold by construction: the slot's
+requests are read only by B2's scheduler run, and nearcore's `SchedulerBandwidthRequest::new`
+(`scheduler.rs:610-640`) drops a request with no increase above base (always for an all-zero
+bitmap) before any shuffle/RNG use. The difftest pins `expected_verdict = out_of_domain` and
+`expected_reason = c.bw_requests` (substring of each checker's reason).
+
+| set | cases | d0 (accept) | ood | mutants (accepted / A2 / A8) | disagreements |
+|---|---|---|---|---|---|
+| full, seed 4243, 9 chains × 120 blocks (`spec/difftest-report-v3-d0a.json`) | 11 616 | 907 | 2 131 (269 with `c.gas_limit`) | 8 578 (1 176 / 592 / 845) | **0** |
+| public `oracle/fixtures/v3/public-d0a` (2 × 40) | 303 | 64 | 59 | 180 (16 / 43 / 59) | **0** |
+
+* A8 on honest witnesses: `c.bw_requests` **0 / 4 597** (oracle); no checker reports
+  `c.bw_requests` on any case other than the A8 mutants (Lean 0, Python 0).
+* A8 mutants: 845/845 (public 59/59) `out_of_domain` with reason `c.bw_requests` in Lean and
+  Python (so Lean `checkD0` and A1/A2/Canon0f/A7 pass on them); 9 of the 845 repeat an honest
+  non-empty request's `to_shard`, the rest add two zero-bitmap requests.
+* Other numbers unchanged from §1.1 (honest set byte-identical: 4 597 witnesses, 907 D0a, 2 131
+  ood); `unfold_bytes` Lean = Python on 3 540 cases (incl. the A8 mutants), = oracle on 927,
+  0 mismatches. Wall (this host, shared): oracle build 9 m 50 s (fresh target), gen 264 s,
+  Lean 1 736 s, Python 9 s.
+* Reproducibility note: the A2 mutant takes its template receipt from
+  `source_receipt_proofs.values()` (a `HashMap`), so 13 of 43 public A2 mutants differ bytewise
+  between generations (all still `out_of_domain` in both checkers); the public fixtures keep
+  their committed files and only gain the A8 mutants (+ `summary.json` mutant count).
+
 ### 1.2 Round 3 (lead follow-ups): A7, raw scheduler requests, hint wire parser, duplicate keys
 
 * **A7 `w.unfolded`** (`ChunkValidationV0a`): `occs`/`kOccs`/`nodeEnc`/`valsOf`/`unfoldedBytesT`
