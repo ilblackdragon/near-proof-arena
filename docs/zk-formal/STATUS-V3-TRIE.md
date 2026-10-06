@@ -290,6 +290,60 @@ Per instance `τ` there is one `0x0f` read and one `0x0f` upsert.
   b)` and kind `K_VUPS = 12` (registry: 11 SCH, 12 VUPS, 13 SRC, 14 VAK, 15 and 0 reserved). That digest goes into the new leaf / branch value window, and the
   value length goes into `memory_usage`.
 
+### 2.3.2 `upsV3` concrete plan (M7)
+
+**Sub-milestones**
+
+* **M7a: the instance chain.** `upsV3` is abstracted as `(τ, mid, post)`: it receives
+  `MIDROOT (τ, mid)` and sends `ROOT (τ+1, post)`. The public bus closes the chain with
+  `ROOT (0, r0)` and `ROOT (K+1, rK)`. Result: exactly one head and one `upsV3` per `τ ≤ K`,
+  with the root values chained. **Done**: `root_chain` (`Link/Chain3.lean`, dd0af31d), which
+  gives `RootChain`: per-`τ` counts, `headAt` / `upsAt`, `pre0`, `link`, `mid`, `postK`.
+  Hypotheses: `HeadWf`, `UpsWf`, `RootBal`, `MidBal`, `K + 1 < P`, `|hs| < P`. The last one
+  comes from the head table height, `HeadProof.height_le`.
+* **M7b: the table `upsV3`.** One segment per instance `τ`, laid out as follows.
+  * **Header row:**
+    * receives `MIDROOT (τ, mid)`;
+    * sends `ROOT (τ+1, root')`;
+    * sends `S0F (τ, present, vid)`, where `present` / `vid` come from the `[0,15]` walk's
+      `FINAL` (the walk is received as a `FINAL` consumer with multiplicity: public walk of `τ`);
+    * receives `SPLEN (τ, L)`;
+    * holds the case selector: one-hot over the ≤ 27 upsert cases of a 2-nibble key, i.e.
+      3 levels × {leaf, ext, branch} × {replace or descend, split, insert} (§2.3).
+  * **Old path:** for each old path node `P_d` (`d ≤ 2`, record ids from the walk's steps),
+    the `upsV3` rows receive the record's post bytes on a new chained bus
+    `UPB (NPOST(n), pos, pb)`. `nodeV3` sends it on path records with a node-constant
+    multiplicity column `mU`.
+  * **New path:** each new node `Q_j` (`j ≤ 6`) is one byte segment that sends
+    `BYTES (NUPS(τ,j), pos, b)` and receives `DIGEST (NUPS(τ,j), len, d)`.
+    * Bytes are either copied from a `P_d` byte at an offset given by the case (sibling
+      windows, slot, key bytes; nibble shifts are done with hi/lo nibble columns as in
+      `nodeV3`) or fresh: tag, length bytes, bitmap, child digests from `DIGEST`, `MEM` from
+      the `u64` arithmetic `m + new − old` (truncated), the new value's digest `VUPS(τ)`.
+    * **Ids (lead, design §12):** packed into `K_VUPS = 12` with `idx = 8τ + j`. `j = 0` is
+    the post `0x0f` value and `j = 1..7` are the `Q` nodes (≤ 7). Owed to the assembly lane:
+    the id-range lemma "the `upsV3` ids are exactly kind 12 with `idx < 8(K+1)`".
+  * **The post value:** the `SPOST` bytes are received and re-sent as `BYTES (msgId 12 (8τ), pos, b)`.
+* **M7c: view.** `UpsViewStmt`, in the segment framework.
+* **M7d: render.**
+* **M7e: link.** From the view, the node records of `τ` and the walk:
+  * `Q = upsert (prune_[0,15] P) [0,15] v`, by case analysis against `PTrie.upsert`
+    (`Spec/Absent.lean`: `upsert_absent`, `upsert_brSlot`, `upsert_leaf_ne`, …);
+  * hence `root' = hashOf (upsert T' [0,15] v)`, via `upsert_hashOf_congr`;
+  * plus `set_upsert_comm` / `trieOpsStmt`, which give the relation's order.
+
+**Lead conditions on the deviation:**
+* M7e proves `Q = upsert (prune_[0,15] P) [0,15] v` **byte-exact, including `memory_usage`**,
+  in all three cases: present, absent at an empty branch slot, and absent by key split.
+* An `UPB` copy must not be able to read a record off the `[0,15]` path. Planned mechanism:
+  `upsV3` takes the source record ids from the `[0,15]` walk's `EDGE` steps, so they are
+  path records, and `UPB` messages carry the record id.
+
+This deviates (**approved**) from option A as first written (`Q` as `nodeV3` records): the new nodes are byte
+segments of `upsV3` itself. `nodeV3` changes only by `UPB` plus `mU` (one interaction, one
+column). Why: copying into `nodeV3` records would need per-row offset columns in `nodeV3`
+and a re-port of its view, whereas `upsV3` writes only the fixed shapes of ≤ 6 nodes.
+
 ### 2.4 Walks
 
 * No depth counter (node depth ≤ 399 bounds `fdepth`, `pathsRevealed_of_rank`).
