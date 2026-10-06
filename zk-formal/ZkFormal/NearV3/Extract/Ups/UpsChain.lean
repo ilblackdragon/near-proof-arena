@@ -160,4 +160,65 @@ theorem ups_tauBound {hs : List HeadE} {v : List UpsSeg} {K : Nat} {r0 rK : List
     (hC : RootChain hs (v.map upsE) K r0 rK) : ∀ s ∈ v, s.row 0 tau ≤ K :=
   fun s hs => (hC.ups_all (upsE s) (List.mem_map.2 ⟨s, hs, rfl⟩)).1
 
+/-! ## The post root of a segment -/
+
+section
+variable {v : List UpsSeg} (hw : UpsWf v) {s : UpsSeg} (hs : s ∈ v)
+  {L : Nat} {ps : List (Nat × Nat)} {fls : List (List (Nat × Nat))} {wsl : List Nat}
+  (hL : UpsLayout s L ps fls wsl) {ci ti di si : Nat} {kd sdx : Nat → Nat} (hP : UpsPlan s ps ci ti di si kd sdx)
+include hw hs hL hP
+
+/-- `W3` looks up the root part's digest at its length. -/
+theorem rootLook3 (k : Nat) (hk : k < ps.length) (hroot : k + 1 = ps.length) :
+    3 < s.rows.length ∧ s.row 3 gD = 1 ∧ s.row 3 dI = upsIdN (s.row 0 tau) (k + 1) ∧ s.row 3 dL = ps[k].2 := by
+  obtain ⟨h4, -, -, -, hw3⟩ := hL.walk
+  have hlt : 3 < s.rows.length := by omega
+  have ok3 := okRow hw hs hlt
+  have hq : s.row 3 qb = 0 := by
+    obtain ⟨ha, hact, -⟩ := kinds ok3 (rowLt hw hs _) (nextLt hw hs _)
+    have := hL.wk 3 (by omega)
+    omega
+  obtain ⟨hlt0, hq0, hpf⟩ := pFirst hw hs hL k hk
+  have hr := (hP.root k hk).2 hroot
+  obtain ⟨-, hjn, hql⟩ := rootPart (okRow hw hs hlt0) (rowLt hw hs _) (nextLt hw hs _) hq0 hr
+  have hj : s.row ps[k].1 j = k + 1 := (hL.part k hk).1
+  have sc := hL.segc
+  have hnQ : s.row 3 nQ = k + 1 := by
+    rw [sc 3 hlt nQ (by decide), ← sc _ hlt0 nQ (by decide), ← hjn, hj]
+  have hrl : s.row 3 rlen = ps[k].2 := by
+    rw [sc 3 hlt rlen (by decide), ← sc _ hlt0 rlen (by decide), ← hql, qlenPart hw hs hL hP k hk]
+  refine ⟨hlt, w3gD ok3 (rowLt hw hs _) (nextLt hw hs _) hw3 hq, ?_, ?_⟩
+  · have := dIj_nat (rowLt hw hs _ _) (w3dI ok3 (rowLt hw hs _) hw3)
+    rw [this, hnQ, sc 3 hlt tau (by decide)]
+  · rw [natv (rowLt hw hs _ _) (rowLt hw hs _ _) (w3dL ok3 (rowLt hw hs _) hw3), hrl]
+
+end
+
+theorem ofNat_toNat_map (l : NearSpec.Bytes) : (l.map UInt8.toNat).map UInt8.ofNat = l := by
+  rw [List.map_map]
+  conv => rhs; rw [← List.map_id l]
+  apply List.map_congr_left; intro x _; simp
+
+/-- **The `ROOT` digest of a segment** (`reg(W3)`, i.e. `(upsE s).post`) is the hash of the encoding of its
+root part's node `upsQ (|ps| − 1)`. -/
+theorem ups_rootDig {vs : List NodeS3} {hds : List HeadE} {es : List ValE} {others : List Msg}
+    {shaS shaR : Nat → List Fp → Nat} {pv : Nat → NearSpec.Bytes} {v : List UpsSeg} {sv : Nat → NearSpec.Bytes}
+    {othersU : List Msg} {ws : List WalkR}
+    (E : UpsEnv vs hds es others shaS shaR pv v sv othersU ws)
+    {s : UpsSeg} (hs : s ∈ v) {L : Nat} {ps : List (Nat × Nat)} {fls : List (List (Nat × Nat))} {wsl : List Nat}
+    (hL : UpsLayout s L ps fls wsl) {ci ti di si : Nat} {kd sdx : Nat → Nat} (hP : UpsPlan s ps ci ti di si kd sdx)
+    (hvb : s.row 0 L0 < 256 ∧ s.row 0 L1 < 256 ∧ s.row 0 L2 < 256)
+    (hshape : ∀ k, k < ps.length → SrcShape ci si ti (sdx k) (kd k) (srcOf (Rpost vs es) (Vpost vs es pv) s ps k)) :
+    (upsE s).post = (NearSpec.sha256 (nodeEnc (upsQ ci si ti (s.row 0 tX) (sv (s.row 0 tau)) kd sdx
+      (srcOf (Rpost vs es) (Vpost vs es pv) s ps) (ps.length - 1)))).map UInt8.toNat := by
+  have hne := hL.nonempty
+  have hk : ps.length - 1 < ps.length := by omega
+  obtain ⟨hlt, hg, hI, hLn⟩ := rootLook3 E.ups hs hL hP (ps.length - 1) hk (by omega)
+  have HS := sha_seg E.ups (Link3.ShaHyp.sha E.sha) othersU E.bytesU E.othU E.digU E.tauD
+    (ups_idBound E.node E.head E.par E.ups E.upb E.tauB) s hs L ps fls wsl hL
+  have h1 := (HS 3 hlt hg (ps.length - 1) hk hI hLn).2
+  have h2 := (ups_partsAll E hs hL hP hvb hshape (ps.length - 1) hk).1
+  show regN (s.row 3) = _
+  rw [h1, h2, ofNat_toNat_map]
+
 end ZkFormal.NearV3.UpsRows
