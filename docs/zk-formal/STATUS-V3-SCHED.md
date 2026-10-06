@@ -251,8 +251,10 @@ mutants** (1,234 s).
 
 **A8 status (lead decision): a relation-level conjunct** `a8` of `RelD0a` (commit `61191270`;
 `ChunkValidationV0a.a8`, `checkD0a`, `relD0a_iff`/`relD0a_relD0`/`relD0a_mono` proved; `prepClaim`
-checks it natively, and so does its `@[csimp]` fast copy). The oracle, Python checker, A8 mutant and difftest are
-in progress. The scheduler uses it **only** in completeness / height bounds (stated parametric in
+checks it natively, and so does its `@[csimp]` fast copy). Independent implementations (Python checker, Rust
+oracle on nearcore's chunk headers), mutant `c.dup_bw_request`, full D0a difftest (seed 4243, 9 × 120):
+11,616 cases, **0 disagreements**, A8 on honest witnesses 0 / 4,597, A8 mutants 845/845
+out_of_domain in Lean and Python (STATUS-V3-SPEC §1.1a; commits `8971775f`, `fd75c9f0`). The scheduler uses it **only** in completeness / height bounds (stated parametric in
 `B0` and A8).
 **Soundness does not need it**:
 * `process_rounds`, `core_compose`, the views and `cmp_sound` have no request-count hypothesis;
@@ -334,7 +336,9 @@ Range checks are kept in every variant.
 1. **Done:** cut B (`ssdV3`, commit `26829f12`: −146; views re-proved; SchedFullTest 600/600, 51/51
    mutants; SchedTablesTest 600/600, 44/44) and cut D (commit `b056a51d`: −27; SchedFullTest 600/600,
    51/51). Cut A is on hold. Codec source map done (+20; `SA0` bus 62, `SDG` carries
-   `(src, hasSrc, use)`, `Render.srcFields`); SchedFullTest 60/60, 51/51. **Open:** a test with a
+   `(src, hasSrc, use)`, `Render.srcFields`). **Both tests rerun on the final tables (781):**
+   SchedFullTest 600/600 vectors, 0 violations, all buses balanced, 51/51 mutants (2,033 s);
+   SchedTablesTest 600/600, 0 violations, 0 unbalanced messages, 44/44 mutants (2,729 s). **Open:** a test with a
    duplicate-id layout (the vectors only exercise the identity map; `Gen.run`'s link pass is
    positional and must switch to `srcArr`).
 2. M3 views: codec, process structure (key block, headers, rounds); link layer per §6 (memory
