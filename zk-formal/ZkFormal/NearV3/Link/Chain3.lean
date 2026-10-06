@@ -5,8 +5,8 @@ import ZkFormal.Near.Link.Bus
 # ZkFormal.NearV3.Link.Chain3 — the ROOT / MIDROOT instance chain (M7a)
 
 Participants on `B_ROOT` and `B_MIDROOT` (message `[τ] ++ d`):
-* heads (`HeadE`): receive `ROOT [h.tau] ++ h.pre`, send `MIDROOT [h.tau] ++ h.post`;
-* `upsV3`, abstract (`UpsE`): receive `MIDROOT [u.tau] ++ u.mid`, send
+* heads (`HeadE`): receive `ROOT [h.tau] ++ h.pre`, send `MIDROOT [h.tau] ++ ([h.rid] ++ h.post)`;
+* `upsV3`, abstract (`UpsE`): receive `MIDROOT [u.tau] ++ ([u.rid] ++ u.mid)`, send
   `ROOT [(u.tau + 1) % P] ++ u.post`.  The table computes `τ + 1` in `Fp`, whose image is
   `Fp.ofNat (τ + 1) = Fp.ofNat ((τ + 1) % P)`; we use the canonical representative `% P` so that
   every message is canonical (`Canon`) and `toFp_inj` applies;
@@ -15,7 +15,7 @@ Participants on `B_ROOT` and `B_MIDROOT` (message `[τ] ++ d`):
 `root_chain`: from the two balances (`Perm` of the `Fp` images) and `hs.length < P`, every
 instance `τ ≤ K` has exactly one head and exactly one ups entry, none has `τ > K`, and the chain
 closes: `(hd 0).pre = r0`, `(hd (τ+1)).pre = (up τ).post`, `(up τ).mid = (hd τ).post`,
-`(up K).post = rK`.
+`(up K).post = rK`, and `(up τ).rid = (hd τ).rid` (the root record the upsert starts from).
 
 Proof: `H τ` / `U τ` count heads / ups with tau `τ`. MIDROOT gives `U = H`; ROOT gives
 `H τ + [τ = K+1] = [τ = 0] + U (τ - 1 mod P)`, so `H` is `H 0` on `[0, K]` and `H 0 - 1` on
@@ -29,19 +29,21 @@ open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Link
 /-- An abstract `upsV3` entry (instance `tau`: mid-root in, post-root out). -/
 structure UpsE where
   tau : Nat
+  /-- the root record of the instance (received on `MIDROOT`) -/
+  rid : Nat
   mid : List Nat
   post : List Nat
   deriving Repr, Inhabited
 
 structure UpsEWf (us : List UpsE) : Prop where
   len : ∀ u ∈ us, u.mid.length = 32 ∧ u.post.length = 32
-  canon : ∀ u ∈ us, u.tau < P ∧ (∀ x ∈ u.mid, x < P) ∧ ∀ x ∈ u.post, x < P
+  canon : ∀ u ∈ us, u.tau < P ∧ (∀ x ∈ u.mid, x < P) ∧ (∀ x ∈ u.post, x < P) ∧ u.rid < P
 
 def upsSends (us : List UpsE) (b : Nat) : List Msg :=
   if b = B_ROOT then us.map fun u => [(u.tau + 1) % P] ++ u.post else []
 
 def upsRecvs (us : List UpsE) (b : Nat) : List Msg :=
-  if b = B_MIDROOT then us.map fun u => [u.tau] ++ u.mid else []
+  if b = B_MIDROOT then us.map fun u => [u.tau] ++ ([u.rid] ++ u.mid) else []
 
 /-- ROOT balance: public send and ups sends against head receives and the public receive. -/
 def RootBal (hs : List HeadE) (us : List UpsE) (K : Nat) (r0 rK : List Nat) : Prop :=
@@ -52,7 +54,8 @@ def RootBal (hs : List HeadE) (us : List UpsE) (K : Nat) (r0 rK : List Nat) : Pr
 def MidBal (hs : List HeadE) (us : List UpsE) : Prop :=
   ((headSends hs B_MIDROOT).map Msg.toFp).Perm ((upsRecvs us B_MIDROOT).map Msg.toFp)
 
-theorem headSends_mid (hs : List HeadE) : headSends hs B_MIDROOT = hs.map fun h => [h.tau] ++ h.post := by
+theorem headSends_mid (hs : List HeadE) :
+    headSends hs B_MIDROOT = hs.map fun h => [h.tau] ++ ([h.rid] ++ h.post) := by
   simp [headSends]
 
 theorem headRecvs_root (hs : List HeadE) : headRecvs hs B_ROOT = hs.map fun h => [h.tau] ++ h.pre := by
@@ -61,7 +64,7 @@ theorem headRecvs_root (hs : List HeadE) : headRecvs hs B_ROOT = hs.map fun h =>
 theorem upsSends_root (us : List UpsE) : upsSends us B_ROOT = us.map fun u => [(u.tau + 1) % P] ++ u.post := by
   simp [upsSends]
 
-theorem upsRecvs_mid (us : List UpsE) : upsRecvs us B_MIDROOT = us.map fun u => [u.tau] ++ u.mid := by
+theorem upsRecvs_mid (us : List UpsE) : upsRecvs us B_MIDROOT = us.map fun u => [u.tau] ++ ([u.rid] ++ u.mid) := by
   simp [upsRecvs]
 
 /-- The head / ups entry of an instance (first in the list; unique under `root_chain`). -/
@@ -79,6 +82,7 @@ structure RootChain (hs : List HeadE) (us : List UpsE) (K : Nat) (r0 rK : List N
   pre0 : (headAt hs 0).pre = r0
   link : ∀ τ < K, (headAt hs (τ + 1)).pre = (upsAt us τ).post
   mid : ∀ τ ≤ K, (upsAt us τ).mid = (headAt hs τ).post
+  rid : ∀ τ ≤ K, (upsAt us τ).rid = (headAt hs τ).rid
   postK : (upsAt us K).post = rK
 
 namespace Chain3
@@ -151,6 +155,12 @@ theorem msg_eq {a b : Nat} {d e : List Nat} (ha : a < P) (hb : b < P) (hd : ∀ 
     (fun x hx => by simp at hx; exact hx.elim (fun e => e ▸ ha) (fun hx => hd x hx))
     (fun x hx => by simp at hx; exact hx.elim (fun e => e ▸ hb) (fun hx => he x hx)) h
   simpa using this
+
+theorem canonApp {a : Nat} {l : List Nat} (ha : a < P) (hl : ∀ x ∈ l, x < P) : ∀ x ∈ [a] ++ l, x < P := by
+  intro x hx
+  rcases List.mem_cons.1 hx with rfl | hx
+  · exact ha
+  · exact hl x hx
 
 theorem ofNat_iff {a b : Nat} (ha : a < P) (hb : b < P) : Fp.ofNat a = Fp.ofNat b ↔ a = b :=
   ⟨Link.ofNat_inj ha hb, fun h => h ▸ rfl⟩
@@ -290,7 +300,21 @@ theorem root_chain {hs : List HeadE} {us : List UpsE} {K : Nat} {r0 rK : List Na
     · obtain ⟨e1, e2⟩ := msg_eq ha (hcanH h hh).1 hd (hcanH h hh).2.1 he
       exact .inl ⟨h, hh, e1.symm, e2.symm⟩
     · obtain ⟨e1, e2⟩ := msg_eq ha hK hd hrK he; exact .inr ⟨e1, e2⟩
-  refine ⟨hHall, hUall, hAt, uAt, hAll, uAll, ?_, ?_, ?_, ?_⟩
+  have midEq : ∀ τ ≤ K, (upsAt us τ).mid = (headAt hs τ).post ∧ (upsAt us τ).rid = (headAt hs τ).rid := by
+    intro τ hτ
+    obtain ⟨hh, ht⟩ := hAt τ hτ
+    have := hMID.subset (List.mem_map.2 ⟨[τ] ++ ([(headAt hs τ).rid] ++ (headAt hs τ).post), by
+      rw [headSends_mid]; simp only [List.mem_map]; exact ⟨_, hh, by rw [ht]⟩, rfl⟩)
+    obtain ⟨m', hm', he⟩ := List.mem_map.1 this
+    rw [upsRecvs_mid] at hm'; simp only [List.mem_map] at hm'
+    obtain ⟨u, hu, rfl⟩ := hm'
+    have cu := huw.canon u hu
+    have ch := hhw.canon _ hh
+    obtain ⟨e1, e2⟩ := msg_eq cu.1 (by omega) (canonApp cu.2.2.2 cu.2.1) (canonApp ch.2.1 ch.2.2.2.2.2.2) he
+    simp only [List.singleton_append, List.cons.injEq] at e2
+    have hu' : upsAt us τ = u := by rw [← e1]; exact ((uAll u hu).2).symm
+    rw [hu']; exact ⟨e2.2, e2.1⟩
+  refine ⟨hHall, hUall, hAt, uAt, hAll, uAll, ?_, ?_, fun τ hτ => (midEq τ hτ).1, fun τ hτ => (midEq τ hτ).2, ?_⟩
   · rcases rootMatch (a := 0) (d := r0) (by simp) (by omega) hr0 with ⟨h, hh, ht, hp⟩ | ⟨h1, -⟩
     · rw [← hp, (hAll h hh).2, ht]
     · omega
@@ -299,23 +323,14 @@ theorem root_chain {hs : List HeadE} {us : List UpsE} {K : Nat} {r0 rK : List Na
     have hm : [τ + 1] ++ (upsAt us τ).post ∈ [[0] ++ r0] ++ upsSends us B_ROOT := by
       rw [upsSends_root]; simp only [List.mem_append, List.mem_map]
       exact .inr ⟨_, hu, by rw [ht, Nat.mod_eq_of_lt (by omega)]⟩
-    rcases rootMatch hm (by omega) (huw.canon _ hu).2.2 with ⟨h, hh, ht', hp⟩ | ⟨h1, -⟩
+    rcases rootMatch hm (by omega) (huw.canon _ hu).2.2.1 with ⟨h, hh, ht', hp⟩ | ⟨h1, -⟩
     · rw [← hp, (hAll h hh).2, ht']
     · omega
-  · intro τ hτ
-    obtain ⟨hh, ht⟩ := hAt τ hτ
-    have := hMID.subset (List.mem_map.2 ⟨[τ] ++ (headAt hs τ).post, by
-      rw [headSends_mid]; simp only [List.mem_map]; exact ⟨_, hh, by rw [ht]⟩, rfl⟩)
-    obtain ⟨m', hm', he⟩ := List.mem_map.1 this
-    rw [upsRecvs_mid] at hm'; simp only [List.mem_map] at hm'
-    obtain ⟨u, hu, rfl⟩ := hm'
-    obtain ⟨e1, e2⟩ := msg_eq (huw.canon u hu).1 (by omega) (huw.canon u hu).2.1 (hcanH _ hh).2.2 he
-    rw [← e2, (uAll u hu).2, e1]
   · obtain ⟨hu, ht⟩ := uAt K (Nat.le_refl _)
     have hm : [K + 1] ++ (upsAt us K).post ∈ [[0] ++ r0] ++ upsSends us B_ROOT := by
       rw [upsSends_root]; simp only [List.mem_append, List.mem_map]
       exact .inr ⟨_, hu, by rw [ht, Nat.mod_eq_of_lt hK]⟩
-    rcases rootMatch hm hK (huw.canon _ hu).2.2 with ⟨h, hh, ht', -⟩ | ⟨-, hp⟩
+    rcases rootMatch hm hK (huw.canon _ hu).2.2.1 with ⟨h, hh, ht', -⟩ | ⟨-, hp⟩
     · have := hle h hh; omega
     · exact hp
 

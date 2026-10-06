@@ -324,13 +324,13 @@ C = dict(act=0, wk=1, vb=2, qb=3, sf=4, wt1=5, wt2=6, wt3=7, pf=8, pl=9, tau=10,
          sKEY=109, sVLEN=110, sVH=111, sBM=112, sCH=113, sMEM=114, fs=115, fe=116, idx=117,
          fw=118, lastw=119, wfr=120, tgt=121, wy=122, wn=123, gD=124, dI=125, dL=126, cp=127,
          aft=128, gMs=168, gMr=169, rx=170, mBv=171, mCv=172, mS=173, mK=174, mB=175,
-         dep0=176, dep1=177, dep2=178, kPT=179, up=180, rc=181, pdep=182, cN=183, rcid=184, rdc=185)
+         dep0=176, dep1=177, dep2=178, kPT=179, up=180, rc=181, pdep=182, cN=183, rcid=184, rdc=185, rootRid=186)
 def XB(i): return 38 + i
 def JO(i): return 60 + i
 def REG(i): return 129 + i
 def LR(i): return 161 + i
 def SR(i): return 164 + i
-WIDTH = 186
+WIDTH = 187
 KIND = ['RDB', 'RDE', 'RLP', 'RBR', 'RBV', 'RBI', 'MVL', 'MVE', 'NLF', 'WEX', 'SPB', 'PT']
 CASES = ['LP', 'BR', 'BV', 'BI', 'LSa', 'LSb', 'LSc', 'ESl0', 'ESl1', 'ESn0', 'ESn1']
 def upsId(tau, jx):
@@ -464,6 +464,7 @@ def gen(root, tau, v, maxQ=4):
     pres = 1 if mode_t == 'S' else 0
     seg[C['pres']] = pres; seg[C['vid']] = wr[3][1][3] if pres else 0
     seg[C['nQ']] = nQ
+    seg[C['rootRid']] = chain[0]
     rootQ = Q[nQ]; seg[C['rlen']] = len(ser(rootQ))
     for r in rows: r.update(seg)
     # W0 MIDROOT reg = digest of root record; W3 = new root digest

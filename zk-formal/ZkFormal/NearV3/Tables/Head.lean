@@ -8,7 +8,8 @@ Lane `v3-trie`.  A head is the virtual parent of instance `τ`'s root record `ri
 digest window holding the pre-root `reg` and the lockstep post-root `preg` (shift registers,
 loaded by the root's `DIGEST` lookups on the first row).  It
 * receives `ROOT (τ, pre)` (from the public bus for `τ = 0`, from `upsV3` of `τ − 1`) and
-  sends `MIDROOT (τ, post)` (to `upsV3` of `τ`, which applies the `0x0f` upsert);
+  sends `MIDROOT (τ, rid, post)` (to `upsV3` of `τ`, which applies the `0x0f` upsert from the root
+  record `rid`);
 * sends `PARENT (rid, τ, 0, rlen, rres)`: the root is a record of instance `τ` at depth 0;
 * provides the walks' `START` edge `(0, τ) –START→ (rres, 0)` (chained, kind `DOWN`);
 * sends the root entry's digest to `uniqV3`: `DIGS (NPRE(rid), τ, i, reg[0])` on row `i`.
@@ -59,7 +60,7 @@ def interactions : List Interaction :=
   [ recv B_DIGEST (c hf) ([mid K_NPRE (c rid), c rlen] ++ regs),
     recv B_DIGEST (c hf) ([mid K_NPOST (c rid), c rlen] ++ pregs),
     recv B_ROOT (c hf) ([c tau] ++ regs),
-    send B_MIDROOT (c hf) ([c tau] ++ pregs),
+    send B_MIDROOT (c hf) ([c tau, c rid] ++ pregs),
     send B_PARENT (c hf) [c rid, c tau, k 0, c rlen, c rres],
     send B_EDGE (c hf) (startEdge (k 0)),
     recv B_EDGE (c hf) (startEdge (c mE)),

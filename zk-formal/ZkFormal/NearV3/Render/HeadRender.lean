@@ -245,7 +245,7 @@ def firstN (h : HeadE) (b : Nat) (sd : Bool) : List ZkFormal.Near.Msg :=
   (if b = B_DIGEST ∧ sd = false then [digMsg (msgId K_NPRE h.rid) h.rlen h.pre] else []) ++
   (if b = B_DIGEST ∧ sd = false then [digMsg (msgId K_NPOST h.rid) h.rlen h.post] else []) ++
   (if b = B_ROOT ∧ sd = false then [[h.tau] ++ h.pre] else []) ++
-  (if b = B_MIDROOT ∧ sd = true then [[h.tau] ++ h.post] else []) ++
+  (if b = B_MIDROOT ∧ sd = true then [[h.tau, h.rid] ++ h.post] else []) ++
   (if b = B_PARENT ∧ sd = true then [[h.rid, h.tau, 0, h.rlen, h.rres]] else []) ++
   (if b = B_EDGE ∧ sd = true then [startEdgeMsg h 0] else []) ++
   (if b = B_EDGE ∧ sd = false then [startEdgeMsg h h.mE] else [])

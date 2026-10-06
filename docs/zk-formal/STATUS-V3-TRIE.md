@@ -503,8 +503,37 @@ counted.
     limbs: `rbiLook`, `spbLookY`, `spbLookC` dropped their unused `vlen`/`vbytes`/`digV` arguments), so SHA's
     `digest` contract (`sha_seg` / `UpsShaSeg`) makes each of its emitted bytes, hence each limb, `< 256`
     (`vbPart`, `ups_vbytes`).  `L < 2^24` then pins `L` exactly (`ups_vlen`).
+  * (closed, AIR fix, lead-approved) **root part not bound to the instance.**  `cid` is free on unrevealed windows
+    (`NodeV3.kidCidOk` only constrains `.node` kids), so the pass-through parts above `N_0` (the walk's first
+    record) had no fixed top: the root part's source was any depth-0 record and a pass-through could read an
+    empty-key extension with a `.hash` child of another instance (its `ucid` set to the part below).  Fixed:
+    `headV3` sends `MIDROOT (τ, rid, post)`, `upsV3` receives `rid` into the new segment constant `rootRid`
+    (column 186) and pins `qb·rootP·(sN − rootRid) = 0`; `RootChain.rid`, `ups_rootSrc`.  Between levels the
+    chain is sound without it (the descend above reads a revealed window; a `.hash` child would make the
+    pass-through its own `res`, i.e. the next walked record, contradicting its depth).  `W_eq` +1 (331 / 291).
+  * **Audit (M7e, lead request): `upsV3` cells read across instances** (constrained only on revealed / in-instance
+    rows, free otherwise?).  Findings:
+    * `sN` (record ids): non-`PT` parts read `N_sd` (segment constants = the walk's records; the walk starts at the
+      head of `τ` by its `START` edge `[0, τ, …]` and follows record-provided edges, so they are `τ`'s); `PT`
+      parts: bound top-down from `rid` (root binding above) and from each descend's revealed window (below);
+      the new leaf has no source.  **Sound.**
+    * `cN` = `sN` of the part below (constraint); `rcid` = the source's `ucid` at the target window's first byte
+      (`UPB`).  `ucid` is free on unrevealed windows — this was the root gap (closed).  Descends' target windows
+      are revealed (the walk's `DOWN` / last-`KEY` edge into the child exists only for `.node` kids); a pass-through
+      below a revealed window with a `.hash` child would be its own `res`, i.e. the next walked record, whose depth
+      differs from the pass-through's `pdep`.  **Sound** (formal argument: M7e step 3).
+    * `vid` (`S0F`): `N2` of `W3`'s `VAL` edge = the value id of `N_D`'s slot (`edgesOf3`).  **Sound.**
+    * depths: `pdep` = the read record's depth (`UPB`); `dep_d` pinned by the part reading `N_d` (every level has
+      one: a descend, or a terminal part other than `NLF`).  **Sound.**
+    * `τ` on messages: `MIDROOT`/`ROOT`/`S0F`/`SPLEN`/`SPOST`/`MEMD` carry `τ`; `BYTES`/`DIGEST` ids `512τ + j`;
+      `EDGE`/`BMAP`/`UPB` carry global record ids, bound to `τ` through the walk's start and the root binding.
+      **Sound.**
+    * `len` (`plen`): the read record's serialized length (record-local).  **Sound.**
+    No further AIR change needed.
   * **Interface (M7e):** `SchedVal v sv` (`Extract/Ups/UpsVal.lean`): every `SPLEN`/`SPOST` receive of `upsV3` is a
-    scheduler send `[τ, |sv τ|]` / `[τ, d, (sv τ)[d]]` (`d < |sv τ|`), `|sv τ| < 2^24` (owed to v3-sched).
+    scheduler send `[τ, |sv τ|]` / `[τ, d, (sv τ)[d]]` (`d < |sv τ|`), `|sv τ| < 2^24` (owed to v3-sched; discharged in the assembly by v3-sched's `codec_schedVal`
+    (`Sched/Link/CodecSV.lean`, lane/v3-air), whose ownership conditions `CodecValOwn`/`SparOwn` and the `SPAR`
+    `PubIdx` are assembly obligations).
   * (closed) `walkV3`'s height `≤ 2^21`: **exported** by `WalkV3ViewStmt` (a conjunct next to `WalkWf3`:
     `(ws.flatMap (·.steps)).length ≤ 2^21`, from `height_le`; `walk3_view` re-proved, axioms propext,
     Classical.choice, Quot.sound).  `WalkWf3.nrows` stays `≤ 2^23` so that the walks of `walkV3` and `upsV3` fit
