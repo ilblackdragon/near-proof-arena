@@ -791,3 +791,56 @@ Levers, ranked:
 | e. g = 3 on the v3 AIR | small (P2 showed ≈ −2 %) | — |
 
 Recommendation: **a + b** (−1.2 to −1.3 MB, which fits with a 0.2–0.3 MB margin), with c and d in reserve.
+
+## 14. Challenge restructuring (coordinator, FYI)
+
+There will be one unified challenge, **`near-chunk-v3`**, with statement `Rel_D3α`. Soundness transfers down to smaller domains through `rel_mono`, which the D3 lane is writing. Candidates declare the domain they are complete for and return UNSUPPORTED outside it. Ranking is by coverage tier, then by cost.
+
+For this prover:
+* Soundness stays proved against `Rel_D0`. It transfers to `Rel_D3α` via `rel_mono`.
+* Completeness is on `InD0a B0` (A1, A2, Canon0f, A7 `unfoldBytes ≤ B0`, A8).
+* **The verifier returns UNSUPPORTED, never ACCEPT, outside D0.** The claim-level part of the domain is decided natively by `prepClaim`, which is where UNSUPPORTED comes from. Witness-level out-of-domain cases cannot produce an accepting proof, because the AIR enforces `InD0a`.
+* Admission is to `near-chunk-v3` with declared domain D0.
+* Open for assembly: the verifier's three-valued output and its interface. This is to be aligned with the unified challenge's `Expected` template once it is published.
+
+## 15. Lever (b): B0 = 2.0 MB approved by the user; exact row check before the spec edit
+
+Single SHA table, joint worst case under A1 (n = 4481, ≤ 1984 lists, path depth ≤ 6):
+
+| SHA rows | amount |
+|---|---|
+| Trie nodes | ≤ 1.25 per unfolded node byte. That is the exact maximum of `2·(1 + 17·⌈(L+9)/64⌉)/L` over L ≥ 46, reached at L = 56. The trie lane's linear `0.531 + 40.25/L` is a looser bound. |
+| Value records | accounts 72 B (0.49 rows/B), access keys 9 B (2 rows/B, ≤ 4481 of them), small fixed-key values |
+| Receipt side | 1,695,759 (`rcptShaRows_A1`, kernel-checked on lane/v3-rcpt) |
+
+* At B0 = 2,000,000: ≈ 1.25·(B0 − 40,329) + 80,658 + 1,695,759 ≈ 4,226,000 > 2²² = 4,194,304, **over by ≈ 31,700 rows (0.8 %)**. The receipt lane's own check independently gives `single_2M_fails`.
+* The largest B0 that fits is ≈ 1,974,000. Proposal: **B0 = 1,950,000**, which leaves ≈ 30.8 k rows of margin and still ≈ 38× headroom over the measured honest maximum of 50,579 B.
+* Alternative: keep B0 = 2,000,000 with two SHA tables, which loses lever (b)'s −0.61 MB.
+
+Liveness note (for the spec doc, once B0 is final): chunks whose unfolded read set lies between B0 and 3 MB move out of D0a. They become unprovable, never wrongly accepted.
+
+Lever (a), the multiproof-dedup size bound, is started as lane `v3-size`. It also reruns the full formal accounting with one SHA table.
+
+## 16. Lever (a) result: deduplicated size bound (lane v3-size, merged 6df2fc07)
+
+**Proved:** `Size.multiproof_size_le`, `Size.size32D`, `Size.sizeBoundD_le_dedup`, `Size.sizeMaxDedup_le_sched`, `Size.admission_v2_dedup`, `Size.sizeMaxDedup_eq_model`, `V3.v3_bound`.
+
+Kernel-checked numbers:
+
+| AIR | bound |
+|---|---|
+| nearAir, g = 1 | 5,473,967 → 4,134,191 |
+| v3 synthetic: 23 tables, **one** SHA table, trie / sched / rcpt shapes from their branch heads, `qvV3` not yet counted | g = 1: 7,450,143; **g = 2: 7,146,495**; g = 3: 7,193,567 |
+
+**Correction to the hint size.** A gas refund carries the signer id (≤ 64 B) and possibly a SECP256K1 key. The largest refund is therefore 289 B, and B ≤ 8 + 4481 · 289 = **1,295,017 B**, not 0.91 MB. The spec lane is to confirm.
+
+Margin against the 8 MiB cap minus B, at g = 2: **−52,904 B**. With `qvV3` (≈ +75–112 KB) it would be ≈ −150 KB.
+
+**Finding: roll-in forced commits dominate FRI.** With 23 tables the bound includes about 2.69 MB of FRI, against 1.06 MB without forced commits.
+
+Levers:
+1. **Roll-in alignment, −1.62 MB, recommended.** The honest prover pads table heights so that every roll-in lands on a regular arity-8 commit layer. The verifier and parameters are unchanged. Some `maxLog` values are raised to the next aligned value, and `multBound` and `fpBound` must be re-checked.
+2. A compact refund codec in the hint, ≈ −0.45 MB of B.
+3. Width cuts, ≈ 928 B per base column.
+
+Lever 1 alone gives a bound of ≈ 5.52 MB + 1.30 MB ≈ 6.8 MB, leaving ≈ 1.5 MB of margin even without lever (b)'s single SHA table.

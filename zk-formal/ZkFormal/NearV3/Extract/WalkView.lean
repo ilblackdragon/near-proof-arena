@@ -71,7 +71,7 @@ structure WalkWf3 (ws : List WalkR) : Prop where
       (wv.step (i + 1)).mode ≠ 3) ∧
     ((wv.step i).mode ≠ 0 → (wv.step (i + 1)).mode = 3)
   /-- one row per step -/
-  nrows : (ws.flatMap (·.steps)).length ≤ 2 ^ 21
+  nrows : (ws.flatMap (·.steps)).length ≤ 2 ^ 23
 
 /-- Edge message of a row with use count `x`. -/
 def WStep3.edgeMsg (st : WStep3) (x : Nat) : Msg := st.e ++ [x]
@@ -93,9 +93,12 @@ def walkRecvs3 (ws : List WalkR) (b : Nat) : List Msg :=
 
 def walkTraffic3 (ws : List WalkR) : Traffic := ⟨walkSends3 ws, walkRecvs3 ws⟩
 
-/-- **The `walkV3` view statement** (any table index `t`). -/
+/-- **The `walkV3` view statement** (any table index `t`).  Besides `WalkWf3` (whose row bound
+`nrows ≤ 2^23` also covers the `upsV3` walks), the view exports `walkV3`'s own height bound: its walks
+have at most `2^21` rows in total (`height_le`). -/
 def WalkV3ViewStmt : Prop :=
   ∀ (tr : Trace Fp) (pub : List Fp) (t : Nat), TableLocal WalkV3.table tr t pub →
-    ∃ ws, WalkWf3 ws ∧ TableTraffic WalkV3.interactions tr t pub (walkTraffic3 ws)
+    ∃ ws, WalkWf3 ws ∧ (ws.flatMap (·.steps)).length ≤ 2 ^ 21 ∧
+      TableTraffic WalkV3.interactions tr t pub (walkTraffic3 ws)
 
 end ZkFormal.NearV3

@@ -172,6 +172,8 @@ def nodeRecvs3 (vs : List NodeS3) (b : Nat) : List Msg :=
       else []
   else if b = B_UPB then
     ns.flatMap fun (s, n) => upbOf n s fun p => s.mU.getD p 0
+  else if b = B_VSLOT then
+    ns.flatMap fun (s, _) => match s.v.value with | some (i, _, _, _, true) => [[i]] | _ => []
   else []
 
 def nodeTraffic3 (vs : List NodeS3) : Traffic := ⟨nodeSends3 vs, nodeRecvs3 vs⟩

@@ -13,7 +13,7 @@ Lean).  One **segment per instance `τ`**, rows in this order:
   head's `START` edge `(0, τ, START, N0, 0, DOWN)`.  The walk fixes the **path records**
   `N0, N1, N2` (by level `lv`), the terminal row `t*` (`ts1 … ts3`), its record level `D`
   (`dd0 … dd2`), its position `I` in that record (`ti0 … ti2`) and its key nibble `x` (`tX`).
-  `W0` also receives `MIDROOT (τ, mid)`, `SPLEN (τ, L)` and sends `S0F (τ, present, vid)`;
+  `W0` also receives `MIDROOT (τ, rid, mid)` (`rid`: the root record, the root part's source), `SPLEN (τ, L)` and sends `S0F (τ, present, vid)`;
   `W3` receives the new root's `DIGEST` and sends `ROOT (τ + 1, post)`.
 * **value rows** (`vb`, part `j = 0`): `SPOST (τ, pos, b)` in, `BYTES (msgId 12 (512τ), pos, b)`
   out, `pos < L`.
@@ -237,7 +237,9 @@ def cN : Nat := 183
 /-- row: `cid` field of the `UPB` read; the row reads the target window's child id -/
 def rcid : Nat := 184
 def rdc : Nat := 185
-def width : Nat := 186
+/-- The instance's root record `rid` (segment constant, received on `MIDROOT`): the root part's source. -/
+def rootRid : Nat := 186
+def width : Nat := 187
 
 /-! ### `reg` aliases -/
 /-- `MEM` rows: inside-chain byte bits, carries, outside-chain carries, carry-ins, inputs -/
@@ -259,7 +261,7 @@ def cases : List Nat := [cLP, cBR, cBV, cBI, cLSa, cLSb, cLSc, cESl0, cESl1, cES
 def kinds : List Nat := [kRDB, kRDE, kRLP, kRBR, kRBV, kRBI, kMVL, kMVE, kNLF, kWEX, kSPB, kPT]
 
 /-- Segment-constant columns. -/
-def segConst : List Nat := (List.range 39).map (· + 10) ++ [dep0, dep1, dep2]
+def segConst : List Nat := (List.range 39).map (· + 10) ++ [dep0, dep1, dep2, rootRid]
 /-- Part-constant columns. -/
 def partConst : List Nat := (List.range 51).map (· + 49) ++ [kPT, up, rc, pdep, cN]
 
@@ -402,6 +404,8 @@ def cRows : List Expr :=
     -- the root part: every descend done, depth 0
     .mul (mul3 (c qb) (c pl) (c rootP)) (sub (c rc) kRD),
     mul3 (c qb) (c rootP) (c pdep),
+    -- the root part reads the instance's root record (`rid` from `MIDROOT`)
+    mul3 (c qb) (c rootP) (sub (c sN) (c rootRid)),
     .mul (c qb) (sub (c pl) (.mul (c sMEM) (c fe))),
     mul3 (c qb) (c pl) (sub (.add (c qpos) (k 1)) (c qlen)),
     .mul (c qb) (.mul (c rootP) (sub (c j) (c nQ))),
@@ -519,6 +523,8 @@ def cPlan : List Expr :=
     .mul g (.mul (sumc [kRLP, kMVL, kNLF]) (not (c qtl))),
     .mul g (.mul (c kSPB) (sub (c qtb2) spValE)),
     .mul g (.mul (c kSPB) (c nochild)),
+    -- a split branch is a branch (pins the type when it has no value)
+    .mul g (.mul (c kSPB) (.add (c qtl) (c qte))),
     .mul g (.mul (c nokey) (sub (c qhk) (k 1))),
     -- fresh keys: new leaf [15] / [], wrapping extension [0] / [15] / [0, 15], moved key xs
     .mul g (.mul (c kNLF) (sub (c qhk) (k 1))), .mul g (.mul (c kNLF) (sub (c qodd) (c ts1))),
@@ -722,7 +728,7 @@ def edgeMsg (uu : Expr) : List Expr := [c nN, c nI, c nib, c nN2, c nI2, c ek, u
 def bmapMsg (uu : Expr) : List Expr := [c nN, c wbm, c hv, uu]
 
 def interactions : List Interaction :=
-  [ recv B_MIDROOT (c sf) ([c tau] ++ regs),
+  [ recv B_MIDROOT (c sf) ([c tau, c rootRid] ++ regs),
     send B_ROOT (c wt3) ([.add (c tau) (k 1)] ++ regs),
     recv B_DIGEST (c gD) ([c dI, c dL] ++ regs),
     send B_S0F (c sf) [c tau, c pres, c vid],

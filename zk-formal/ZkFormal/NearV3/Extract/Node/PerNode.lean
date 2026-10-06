@@ -8,6 +8,21 @@ import ZkFormal.NearV3.Extract.Node.Digs
 namespace ZkFormal.NearV3.NodeProof3
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.NodeV3 ZkFormal.Near
 
+/-- `VSLOT (vid)` receive of a lockstep-written value window. -/
+def pnVslot (S : NodeS3) : List Msg :=
+  match S.v.value with | some (i, _, _, _, true) => [[i]] | _ => []
+
+theorem value_written (tr : Trace Fp) (s : Nat) {i l : Nat} {pre po : List Nat} {w : Bool}
+    (h : (nodeVOf tr s).value = some (i, l, pre, po, w)) : w = decide (cv tr T_NODE s tw = 1) := by
+  unfold nodeVOf at h
+  split at h
+  · rw [value_leaf] at h; unfold slotOf at h; split at h <;> simp_all [slotValue]
+  · split at h
+    · simp [value_ext] at h
+    · rw [value_br] at h; split at h
+      · unfold slotOf at h; split at h <;> simp_all [slotValue]
+      · simp at h
+
 def pnSend (n : Nat) (S : NodeS3) (bb : Nat) : List Msg :=
   if bb = B_BYTES then emitAt (msgId K_NPRE n) 0 (S.v.ser false) ++ emitAt (msgId K_NPOST n) 0 (S.v.ser true)
   else if bb = B_PARENT then pnParS S
@@ -27,6 +42,7 @@ def pnRecv (n : Nat) (S : NodeS3) (bb : Nat) : List Msg :=
   else if bb = B_DUP then pnDup n S
   else if bb = B_ENT then pnEntR S
   else if bb = B_UPB then upbOf n S fun p => S.mU.getD p 0
+  else if bb = B_VSLOT then pnVslot S
   else []
 
 theorem zip_fst_snd {α β : Type} (l : List (α × β)) : (l.map (·.1)).zip (l.map (·.2)) = l := by
@@ -92,6 +108,51 @@ theorem nodeUpb (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid 
       hdS, hnid, hlen, hdep, hpos d hd, ← natCast_eq, toFp_msgId, cast_cv]
     rfl
 
+/-- `VSLOT` receives of one record: the `VPARENT` messages' first entry on a written slot. -/
+theorem nodeVslot (hC : NodeCtx tr s ℓ fl) (S : NodeS3) (hv : S.v = nodeVOf tr s)
+    (hV : (List.range' s ℓ).flatMap (fun r => rowT tr pub r B_VPARENT true) = (pnVpar S).map Msg.toFp) :
+    (List.range' s ℓ).flatMap (fun r => rowT tr pub r B_VSLOT false) = (pnVslot S).map Msg.toFp := by
+  obtain ⟨hr0, -⟩ := nodeStart hL hC
+  have hrow : ∀ r ∈ List.range' s ℓ, rowT tr pub r B_VSLOT false =
+      if cv tr T_NODE s tw = 1 then (rowT tr pub r B_VPARENT true).map (List.take 1) else [] := by
+    intro r hr
+    rw [List.mem_range'_1] at hr
+    rw [rowT_vslotR, rowT_vparentS]
+    have htw : tr.cell T_NODE r tw = tr.cell T_NODE s tw := by
+      have := segConst hL hC (x := tw) (by simp [nodeConst]) (d := r - s) (by omega)
+      rwa [show s + (r - s) = r by omega] at this
+    rw [htw]
+    rcases isBool hL hr0 (x := tw) (by simp [boolCols]) with h | h
+    · rw [h, if_neg (by rw [cv_zero h]; decide)]
+      simp [gate, show ∀ x : Fp, x * 0 = 0 from fun x => by grind, fp_zero_ne_one]
+    · rw [h, if_pos (cv_one h)]
+      simp [gate, show ∀ x : Fp, x * 1 = x from fun x => by grind]
+  rw [flatMap_congr' hrow]
+  have hw : ∀ i l pre po w, S.v.value = some (i, l, pre, po, w) → w = decide (cv tr T_NODE s tw = 1) :=
+    fun i l pre po w h => value_written tr s (hv ▸ h)
+  unfold pnVslot
+  by_cases h1 : cv tr T_NODE s tw = 1
+  · simp only [if_pos h1]
+    rw [← List.map_flatMap, hV, List.map_map]
+    unfold pnVpar
+    revert hw
+    cases S.v.value with
+    | none => intro _; rfl
+    | some x =>
+      obtain ⟨i, l, pre, po, w⟩ := x
+      intro hw
+      rw [hw i l pre po w rfl, decide_eq_true h1]
+      simp [Msg.toFp]
+  · simp only [if_neg h1, flatMap_nil_fun]
+    revert hw
+    cases S.v.value with
+    | none => intro _; rfl
+    | some x =>
+      obtain ⟨i, l, pre, po, w⟩ := x
+      intro hw
+      rw [hw i l pre po w rfl, decide_eq_false h1]
+      rfl
+
 set_option maxHeartbeats 1000000 in
 /-- Every bus, one node. -/
 theorem nodeAll (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid = ((n : Nat) : Fp)) (hnP : n < P)
@@ -123,12 +184,12 @@ theorem nodeAll (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid 
   unfold pnSend pnRecv
   by_cases b0 : bb = B_BYTES
   · subst b0
-    refine ⟨?_, nil false (z false rowT_bytesR) _ (by simp [B_BYTES, B_DIGEST, B_PARENT, B_EDGE, B_BMAP, B_DUP, B_ENT, B_UPB])⟩
+    refine ⟨?_, nil false (z false rowT_bytesR) _ (by simp [B_BYTES, B_DIGEST, B_PARENT, B_EDGE, B_BMAP, B_DUP, B_ENT, B_UPB, B_VSLOT])⟩
     simp only [if_pos rfl]
     exact nodeBytes hL hC hn hpos
   by_cases b1 : bb = B_DIGEST
   · subst b1
-    refine ⟨nil true (z true rowT_digestS) _ (by simp [B_BYTES, B_DIGEST, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT, B_UPB]), ?_⟩
+    refine ⟨nil true (z true rowT_digestS) _ (by simp [B_BYTES, B_DIGEST, B_PARENT, B_VPARENT, B_EDGE, B_BMAP, B_DIGS, B_ENT, B_UPB, B_VSLOT]), ?_⟩
     simp only [if_pos rfl]
     exact D.1
   by_cases b2 : bb = B_PARENT
@@ -184,12 +245,19 @@ theorem nodeAll (hC : NodeCtx tr s ℓ fl) {n : Nat} (hn : tr.cell T_NODE s nid 
       show ¬ B_UPB = B_BMAP by decide, show ¬ B_UPB = B_DIGS by decide, show ¬ B_UPB = B_DUP by decide,
       show ¬ B_UPB = B_ENT by decide, if_false, if_true]
     exact ⟨eq (nodeUpb hL hC hn hpos true), eq (nodeUpb hL hC hn hpos false)⟩
-  simp only [b0, b1, b2, b3, b4, b5, b6, b7, b8, b10, if_false, List.map_nil]
+  by_cases b11 : bb = B_VSLOT
+  · subst b11
+    simp only [show ¬ B_VSLOT = B_BYTES by decide, show ¬ B_VSLOT = B_DIGEST by decide,
+      show ¬ B_VSLOT = B_PARENT by decide, show ¬ B_VSLOT = B_VPARENT by decide, show ¬ B_VSLOT = B_EDGE by decide,
+      show ¬ B_VSLOT = B_BMAP by decide, show ¬ B_VSLOT = B_DIGS by decide, show ¬ B_VSLOT = B_DUP by decide,
+      show ¬ B_VSLOT = B_ENT by decide, show ¬ B_VSLOT = B_UPB by decide, if_false, if_true, List.map_nil]
+    exact ⟨nil true (z true rowT_vslotS) _ rfl, eq (nodeVslot hL hC _ hv D.2.2.1)⟩
+  simp only [b0, b1, b2, b3, b4, b5, b6, b7, b8, b10, b11, if_false, List.map_nil]
   by_cases b9 : bb = B_SIZE
   · subst b9
     exact ⟨nil true (nodeSize hL hC true) _ rfl, nil false (nodeSize hL hC false) _ rfl⟩
   have oth := fun sd => flatMap_eq_nil' (l := List.range' s ℓ) (fun r _ => rowT_other (tr := tr) (pub := pub) r bb sd
-    ⟨b0, b1, b2, b4, b5, b6, b9, b7, b8, b3, b10⟩)
+    ⟨b0, b1, b2, b4, b5, b6, b9, b7, b8, b3, b10, b11⟩)
   exact ⟨nil true (oth true) _ rfl, nil false (oth false) _ rfl⟩
 
 end ZkFormal.NearV3.NodeProof3

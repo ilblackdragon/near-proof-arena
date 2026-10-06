@@ -1,0 +1,13 @@
+import ZkFormal.NearV3.Render.Ups.GSeg
+import ZkFormal.NearV3.Render.Ups.GDig
+import ZkFormal.NearV3.Render.Ups.GWalk
+
+/-!
+# ZkFormal.NearV3.Render.UpsRender — the `upsV3` render (M7d, in progress)
+
+* generator `UpsGen.cell` from `UpsInst` (`Render/Ups/Gen.lean`), honest input `UpsOk`
+  (`Render/Ups/Ok.lean`);
+* `ups_render_local_of` (`Render/Ups/Local.lean`): `TableLocal` from `GroupOk` of all constraints;
+* `ups_render_traffic`, `ups_render_view` (`Render/Ups/Traffic.lean`);
+* groups proved: `cSeg_ok`, `cDigest_ok`; padding rows for every group (`groupOk_of`).
+-/
