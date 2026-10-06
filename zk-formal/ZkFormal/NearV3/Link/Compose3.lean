@@ -85,4 +85,36 @@ theorem walk3_find' {ws : List WalkR}
       obtain ⟨hc, -, -, hr⟩ := kid_depth hw hhw hb hp hk; exact ⟨hc, hr⟩)
     (fun h hh => by obtain ⟨hr, -, -, -, he⟩ := head_link hw hhw hb hh; exact ⟨hr, he⟩) hwv
 
+theorem getD_map' {α β : Type} (f : α → β) (l : List α) (i : Nat) (d : α) :
+    (l.map f).getD i (f d) = f (l.getD i d) := by
+  simp [List.getD_eq_getElem?_getD]
+
+/-- The `KEYNIB` providers (other tables) send only nibbles and `END`, and every `KEYNIB`
+message a walk receives is provided. -/
+structure KeynibOk (ws : List WalkR) (prov : List Msg) : Prop where
+  sub : ∀ m ∈ walkRecvs3 ws B_KEYNIB, Msg.toFp m ∈ prov.map Msg.toFp
+  syms : ∀ m ∈ prov, m.getD 2 0 < ZkFormal.Algebra.P ∧ (m.getD 2 0 < 16 ∨ m.getD 2 0 = SYM_END)
+
+/-- **`hsym` from `KEYNIB`.** -/
+theorem hsym_of {ws : List WalkR} {prov : List Msg} (hW : WalkWf3 ws) (hk : KeynibOk ws prov) :
+    ∀ wv ∈ ws, ∀ i, 1 ≤ i → i < wv.steps.length → (wv.step i).sym ≠ SYM_START := by
+  intro wv hwv i h1 h2 hs
+  have hm : [wv.w, i - 1, (wv.step i).sym, if i - 1 + 2 = wv.steps.length then 1 else 0] ∈ walkRecvs3 ws B_KEYNIB := by
+    unfold walkRecvs3
+    rw [if_neg (by decide), if_neg (by decide), if_pos rfl, List.mem_flatMap]
+    refine ⟨wv, hwv, List.mem_map.mpr ⟨i - 1, List.mem_range.mpr (by omega), ?_⟩⟩
+    rw [show i - 1 + 1 = i by omega]
+  obtain ⟨m, hmp, he⟩ := List.mem_map.mp (hk.sub _ hm)
+  obtain ⟨hP, hsy⟩ := hk.syms m hmp
+  have hsP : (wv.step i).sym < ZkFormal.Algebra.P := by
+    have := (hW.canon wv hwv).2.2 (wv.step i) (by
+      simp only [WalkR.step, List.getD_eq_getElem?_getD, List.getElem?_eq_getElem h2, Option.getD_some]
+      exact List.getElem_mem h2)
+    exact this.1
+  have e2 := congrArg (fun l => l.getD 2 (Fp.ofNat 0)) he
+  simp only [Msg.toFp, getD_map'] at e2
+  simp only [List.getD_cons_succ, List.getD_cons_zero] at e2
+  have := ofNat_eq hP hsP e2
+  rw [hs] at this; rw [this] at hsy; simp [SYM_START, SYM_END] at hsy
+
 end ZkFormal.NearV3.Link3
