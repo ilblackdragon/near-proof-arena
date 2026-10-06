@@ -170,7 +170,9 @@ bits of `rotl32`.
 | **`genRecv_of_holdsP`**, **`memBal_of_holdsP`** | `Shuffle/Link.lean` | the two hypotheses from `HoldsP` (`genV3` is the only sender on `busGen`; `busMem` is private) |
 | **`shuffle_sound`** | `Statements.lean` | `shuffle_contract` inside a v2 AIR from `HoldsP` and the bus-ownership side conditions |
 | `Shuffle.Gen` | `Shuffle/Gen.lean` | honest generator (reference for a Rust generator) |
-| completeness | — | **open**: no proof yet. Executable evidence is below. |
+| **`Shuffle.Complete.shuffle_complete`** | `Shuffle/Complete/All.lean` | for instances with `InstOk` (`1 ≤ L ≤ 2^14`, key ok, `lid` and values `< p`, `kstart < 2^30`, every draw succeeds with positions `< 2^30`) and rows `≤ 2^20`: legal heights, every constraint on every row (padding and the wrap included), 0/1 multiplicity bits, **memory bus balanced** (`MemBal`). Per instance the reads are a permutation of the writes (`inst_perm`): the read of `x` at time `c` consumes stamp `lw c x`, and its value equals the written one (`fyBefore_get`) |
+| **`Shuffle.Complete.shuffle_traffic`** | `Shuffle/Complete/All.lean` | with five distinct buses: receives `expectedIn` (inputs), sends `expectedOut` (`fyLoop` outputs), receives `expectedGen` (one `genMsg` per step), sends `expectedShuf` (headers); zero on the opposite sides |
+| `Shuffle.Complete.sLocal_honest`, `ShuffleCompleteStmt` | `Shuffle/Complete/All.lean`, `Statements.lean` | the honest trace is `SLocal` and `MemBal` |
 
 ## 4. Tests (executable, from `zk-formal/`)
 
@@ -248,23 +250,24 @@ bits of `rotl32`.
 ## 7. Open items
 
 1. *(done)* `genV3` completeness.
-2. **`shufV3` completeness**: not proved. The generator and executable test pass (§4).
-   The remaining proof work:
-   * per-row constraints, which are routine;
-   * memory-bus count equality: each write is read exactly once, by the next access of
-     its position;
-   * traffic for `IN`, `OUT`, `GEN` and `SHUF`.
-3. Root import: the modules are built by name. `ZkFormal.lean` is not modified (as in the
+2. *(done)* `shufV3` completeness.
+3. **Cross-table completeness.** The three completeness theorems give each table's
+   traffic as expected lists. Stating that the lists match for a concrete scheduler run
+   is the assembly lane's job:
+   * the shuffle's `expectedGen` must equal `genV3`'s `expectedGen`;
+   * `genV3`'s `expectedWords` must equal the `used` words of `chachaV3`'s requests.
+4. Root import: the modules are built by name. `ZkFormal.lean` is not modified (as in the
    other v3 lanes).
-4. No Rust trace generator. The `Gen.lean` files are the reference.
-5. The `W_eq` cuts in §5 are proposals and are not implemented.
+5. No Rust trace generator. The `Gen.lean` files are the reference.
+6. The `W_eq` cuts in §5 are proposals and are not implemented.
 
 ## Build
 
 ```
 cd zk-formal
-lake build ZkFormal.Chacha.Statements          # everything proved so far
+lake build ZkFormal.Chacha.Statements          # every statement of the lane
 lake env lean --run test/ChachaGenTest.lean
+lake env lean --run test/RngGenTest.lean
 lake env lean --run test/ShuffleGenTest.lean
 ```
 
@@ -273,4 +276,5 @@ Under the host wrapper:
 
 * Each module elaborates in under about 30 s.
 * The largest are `Sound/Row.lean`, `Rng/Sound.lean` and `Shuffle/Sound.lean`.
-* `ZkFormal/Chacha` is about 8 k lines.
+* Every completeness module takes under 4 s.
+* `ZkFormal/Chacha` is about 10 k lines.
