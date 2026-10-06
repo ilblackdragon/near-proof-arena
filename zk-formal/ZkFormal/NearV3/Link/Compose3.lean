@@ -64,7 +64,7 @@ theorem vlen_le (hvw : ValWf es) : es.length ≤ 2 ^ 22 := by
     exact gen es (fun e he hz => ((hvw.shape e he).2 hz).2)
   omega
 
-/-- Walk rows are below `P` (`WalkWf3.nrows`, walk height `≤ 2^21`). -/
+/-- Walk rows are below `P` (`WalkWf3.nrows`: `≤ 2^23`, `walkV3` height `≤ 2^21` plus the `upsV3` walks). -/
 theorem wrows_lt {ws : List WalkR} (hW : WalkWf3 ws) : (ws.flatMap (·.steps)).length < ZkFormal.Algebra.P := by
   have := hW.nrows; unfold ZkFormal.Algebra.P; omega
 

@@ -16,7 +16,7 @@ A part of kind `SPB` (index 10) is the branch of a leaf or extension split, `qSP
 
 Hypotheses: `UpbReads s Pb` with the source `nodeEnc src` (`< 2^20` bytes; for `LSa` a leaf with a
 36-byte slot, `slen < 2^32`; for `ESl1`/`ESn1` an extension with a 32-byte child hash, `m < 2^64`,
-`|k| < 400`); for `LSb LSc ESl0 ESn0` the `DIGEST` of part `1` at `clen` is `cx.hashOf` and the
+`|k| < 510`); for `LSb LSc ESl0 ESn0` the `DIGEST` of part `1` at `clen` is `cx.hashOf` and the
 `MEMD` limbs (`< 2^12`) have value `cx.memD`; with a new leaf, the `DIGEST` of the part below at 50
 is `(qNLF si v).hashOf` and `x ≠ y` when there are two windows; `|v| = L` with `L`'s bytes `< 256` and
 the value's `DIGEST`; the part's bytes are `< 256`.
@@ -120,9 +120,9 @@ set_option maxHeartbeats 16000000 in
 theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : NearSpec.Bytes)
     (Pb : Nat → List Nat) (hR : UpbReads s Pb) (src cx : NearSpec.PTrie)
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc src).map UInt8.toNat)
-    (hsl : (nodeEnc src).length < 2 ^ 20)
+    (hsl : (nodeEnc src).length < 2 ^ 22)
     (hsrcL : ci = 4 → ∃ key sl m, src = .leaf key sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32)
-    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 400)
+    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 510)
     (hdC : spRN ci = 1 → ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) 1 →
       s.row i dL = s.row ps[k].1 clen → regN (s.row i) = cx.hashOf.map UInt8.toNat)
     (hMd : spRN ci = 1 → ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 4096)
@@ -566,7 +566,7 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
       simp [toNats_u32]; omega
     · rw [hSj i hi]; exact toNats_lt _ _
   -- the extension source of `ESl1` / `ESn1`: `phk`, the old memory and the old child hash
-  have extX : ∀ key c m, src = .ext key c m → c.hashOf.length = 32 → m < 2 ^ 64 → key.length < 400 → spXN ci = 1 →
+  have extX : ∀ key c m, src = .ext key c m → c.hashOf.length = 32 → m < 2 ^ 64 → key.length < 510 → spXN ci = 1 →
       s.row o Cc = 50 + 2 * (NearSpec.hexPrefix key false).length ∧
       limbs (fun i => s.row (o + c0 + 32 * ww + i) rb) 8 = m ∧
       ((Pb (s.row o sN)).drop ((Pb (s.row o sN)).length - 40)).take 32 = c.hashOf.map UInt8.toNat ∧
@@ -827,9 +827,9 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
 theorem spbLookY (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : NearSpec.Bytes)
     (Pb : Nat → List Nat) (hR : UpbReads s Pb) (src cx : NearSpec.PTrie)
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc src).map UInt8.toNat)
-    (hsl : (nodeEnc src).length < 2 ^ 20)
+    (hsl : (nodeEnc src).length < 2 ^ 22)
     (hsrcL : ci = 4 → ∃ key sl m, src = .leaf key sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32)
-    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 400)
+    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 510)
     (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
     (hLb : s.row 0 L0 < 256 ∧ s.row 0 L1 < 256 ∧ s.row 0 L2 < 256)
     (hdig : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) 0 →
@@ -951,9 +951,9 @@ theorem spbLookY (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : NearSpe
 theorem spbLookC (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : NearSpec.Bytes)
     (Pb : Nat → List Nat) (hR : UpbReads s Pb) (src cx : NearSpec.PTrie)
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc src).map UInt8.toNat)
-    (hsl : (nodeEnc src).length < 2 ^ 20)
+    (hsl : (nodeEnc src).length < 2 ^ 22)
     (hsrcL : ci = 4 → ∃ key sl m, src = .leaf key sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32)
-    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 400)
+    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 510)
     (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
     (hLb : s.row 0 L0 < 256 ∧ s.row 0 L1 < 256 ∧ s.row 0 L2 < 256)
     (hdig : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) 0 →

@@ -133,8 +133,8 @@ theorem ups_mvlBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 6)
     (Pb : Nat → List Nat) (key : List Nat) (sl : NearSpec.Slot) (m : Nat)
     (hR : UpbReads s Pb)
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc (.leaf key sl m)).map UInt8.toNat)
-    (hsmall : (nodeEnc (.leaf key sl m)).length < 2 ^ 20) (hkey : ∀ x ∈ key, x < 16) (hI : ti + 1 ≤ key.length)
-    (hklen : key.length < 400) (hsl : sl.valueRef.length = 36) (hslen : sl.len < 2 ^ 32)
+    (hsmall : (nodeEnc (.leaf key sl m)).length < 2 ^ 22) (hkey : ∀ x ∈ key, x < 16) (hI : ti + 1 ≤ key.length)
+    (hklen : key.length < 510) (hsl : sl.valueRef.length = 36) (hslen : sl.len < 2 ^ 32)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
     rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qMVL key sl ti)).map UInt8.toNat ∧
       limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qMVL key sl ti).memD := by

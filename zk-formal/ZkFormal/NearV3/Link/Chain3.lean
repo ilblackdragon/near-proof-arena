@@ -33,7 +33,7 @@ structure UpsE where
   post : List Nat
   deriving Repr, Inhabited
 
-structure UpsWf (us : List UpsE) : Prop where
+structure UpsEWf (us : List UpsE) : Prop where
   len : ∀ u ∈ us, u.mid.length = 32 ∧ u.post.length = 32
   canon : ∀ u ∈ us, u.tau < P ∧ (∀ x ∈ u.mid, x < P) ∧ ∀ x ∈ u.post, x < P
 
@@ -179,7 +179,7 @@ end Chain3
 open Chain3 in
 /-- **M7a — the ROOT / MIDROOT instance chain.** -/
 theorem root_chain {hs : List HeadE} {us : List UpsE} {K : Nat} {r0 rK : List Nat}
-    (hhw : HeadWf hs) (huw : UpsWf us) (hK : K + 1 < P)
+    (hhw : HeadWf hs) (huw : UpsEWf us) (hK : K + 1 < P)
     (hr0 : ∀ x ∈ r0, x < P) (hrK : ∀ x ∈ rK, x < P)
     (hROOT : RootBal hs us K r0 rK) (hMID : MidBal hs us) (hlen : hs.length < P) :
     RootChain hs us K r0 rK := by
