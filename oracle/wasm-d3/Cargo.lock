@@ -852,6 +852,7 @@ checksum = "70e796c081cee67dc755e1a36a0a172b897fab85fc3f6bc48307991f64e4eca9"
 dependencies = [
  "curve25519-dalek",
  "ed25519",
+ "rand_core 0.6.4",
  "sha2",
  "subtle",
 ]
@@ -1783,6 +1784,7 @@ dependencies = [
  "near-schema-checker-lib",
  "near-stdx",
  "primitive-types",
+ "rand 0.8.5",
  "secp256k1",
  "serde",
  "serde_json",
@@ -1939,7 +1941,9 @@ dependencies = [
 name = "near-wasm-d3-harness"
 version = "0.1.0"
 dependencies = [
+ "borsh",
  "hex",
+ "near-crypto",
  "near-parameters",
  "near-primitives-core",
  "near-vm-runner",
@@ -2547,6 +2551,7 @@ version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25996b82292a7a57ed3508f052cfff8640d38d32018784acd714758b43da9c8f"
 dependencies = [
+ "rand 0.8.5",
  "secp256k1-sys",
 ]
 

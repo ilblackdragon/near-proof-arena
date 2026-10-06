@@ -42,7 +42,8 @@ def gen(argv):
                                  check=True, capture_output=True, text=True).stdout.splitlines()
             labels = open(lf.name).read().splitlines()
         return out, labels
-    script = {"random": "gen_d3a.py", "mutate": "mutate.py", "promise": "promise_cases.py"}[kind]
+    script = {"random": "gen_d3a.py", "mutate": "mutate.py", "promise": "promise_cases.py",
+              "host": "host_cases.py"}[kind]
     out = subprocess.run([sys.executable, os.path.join(HERE, script), argv[1], argv[2]],
                          check=True, capture_output=True, text=True).stdout.splitlines()
     return out, [f"{kind}#{i}" for i in range(len(out))]
@@ -82,7 +83,8 @@ def main():
     cases, labels = gen(args)
     n = len(cases)
     t0 = time.time()
-    near = subprocess.run([HARNESS], input="\n".join(cases) + "\n", check=True,
+    full = os.environ.get("D3_FULL") == "1" or args[0] == "host"
+    near = subprocess.run([HARNESS] + (["full"] if full else []), input="\n".join(cases) + "\n", check=True,
                           capture_output=True, text=True).stdout.splitlines()
     t1 = time.time()
     with tempfile.TemporaryDirectory() as td:
@@ -91,7 +93,8 @@ def main():
             p = os.path.join(td, f"in{k}")
             with open(p, "w") as f:
                 f.write("\n".join(cases[k::shards]) + "\n")
-            procs.append(subprocess.Popen([LEAN] + os.environ.get("D3_LEAN_ARGS", "").split(),
+            procs.append(subprocess.Popen([LEAN] + os.environ.get("D3_LEAN_ARGS", "").split()
+                                          + (["--full"] if full else []),
                                           stdin=open(p), stdout=open(p + ".out", "w")))
         for pr in procs:
             pr.wait()

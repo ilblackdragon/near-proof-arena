@@ -20,27 +20,57 @@ def unhex (s : String) : Option ByteArray := Id.run do
     | _, _ => return none
   return some out
 
-partial def loop (bl sizeMode : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
+/-- The harness's optional 3rd token: a comma list of receivers, or `k=v;…` (`rcv`, `input`,
+`results`, `deposit`, `balance`), see `oracle/wasm-d3/src/main.rs` `parse_opts`. -/
+def parseCtx (gas : Nat) (tok : Option String) : Option CallCtx := do
+  let base : CallCtx := { prepaidGas := gas }
+  match tok with
+  | none => pure base
+  | some t =>
+    if !t.contains '=' then pure { base with receivers := (t.splitOn ",").toArray }
+    else
+      let mut c := base
+      for kv in t.splitOn ";" do
+        if kv.isEmpty then continue
+        match kv.splitOn "=" with
+        | [k, v] =>
+          match k with
+          | "rcv" => c := { c with receivers := ((v.splitOn ",").filter (· ≠ "")).toArray }
+          | "input" => c := { c with input := ← unhex v }
+          | "results" =>
+            let mut rs := #[]
+            for r in (v.splitOn ",").filter (· ≠ "") do
+              if r.startsWith "S" then rs := rs.push (PRes.ok (← unhex (r.drop 1).toString))
+              else if r = "F" then rs := rs.push .failed
+              else rs := rs.push .notReady
+            c := { c with promiseResults := rs }
+          | "deposit" => c := { c with attachedDeposit := ← v.toNat? }
+          | "balance" => c := { c with accountBalance := ← v.toNat? }
+          | _ => none
+        | _ => none
+      pure c
+
+partial def loop (bl sizeMode full : Bool) (stdin stdout : IO.FS.Stream) : IO Unit := do
   let line ← stdin.getLine
   if line.isEmpty then return
   let line := line.trimAscii.toString
-  if line.isEmpty then loop bl sizeMode stdin stdout else
+  if line.isEmpty then loop bl sizeMode full stdin stdout else
   let parts := line.splitOn " "
   match parts with
   | g :: h :: rest =>
-    let receivers := match rest with
-      | [r] => (r.splitOn ",").toArray
-      | _ => #[]
     match g.toNat?, unhex h with
     | some gas, some code =>
-      let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
-      stdout.putStrLn (if sizeMode then preparedSizeLine pv86 code
-        else outcome pv86 code "main" gas fuel bl receivers)
+      match parseCtx gas rest.head? with
+      | none => stdout.putStrLn "unmodeled bad options"
+      | some ctx =>
+        let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
+        stdout.putStrLn (if sizeMode then preparedSizeLine pv86 code
+          else outcome pv86 code "main" ctx fuel bl full)
     | _, _ => stdout.putStrLn "unmodeled bad input"
   | _ => stdout.putStrLn "unmodeled bad input"
   stdout.flush
-  loop bl sizeMode stdin stdout
+  loop bl sizeMode full stdin stdout
 
 def main (args : List String) : IO Unit := do
   loop (!args.contains "--instruction-level-metering") (args.contains "--prepared-size")
-    (← IO.getStdin) (← IO.getStdout)
+    (args.contains "--full") (← IO.getStdin) (← IO.getStdout)

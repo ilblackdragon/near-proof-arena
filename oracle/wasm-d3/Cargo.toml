@@ -15,6 +15,8 @@ near-vm-runner = { path = "../vendor/nearcore/runtime/near-vm-runner", features 
 near-parameters = { path = "../vendor/nearcore/core/parameters" }
 near-primitives-core = { path = "../vendor/nearcore/core/primitives-core" }
 hex = "0.4.2"
+near-crypto = { path = "../vendor/nearcore/core/crypto" }
+borsh = "1"
 
 [profile.release]
 debug = false
