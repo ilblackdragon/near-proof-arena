@@ -14,10 +14,10 @@ Rules: no `sorry` / `axiom` / `native_decide`; axioms ⊆ {propext, Classical.ch
 |---|---|---|
 | M0 | design: tables, buses, message formats, public data, walk ids, cuts (§1–§3) | **done** |
 | M1 | table definitions `rcptV3`, `acctV3`, `akeyV3`, `bndV3`, `srcpV3`, `sizeV3`; kernel-checked budget | **done** (§4) |
-| M2 | views of the small tables (`…ViewStmt` proved): `acctV3`, `akeyV3`, `bndV3`, `sizeV3`, `srcpV3` | open |
-| M3 | renders of the small tables | open |
+| M2 | views of the small tables (`…ViewStmt` proved): `acctV3`, `akeyV3`, `bndV3`, `sizeV3` **done** (helper, §5); `srcpV3` in progress | partly done |
+| M3 | renders of the small tables: `acctV3`, `akeyV3`, `bndV3`, `sizeV3` **done**; `srcpV3` in progress | partly done |
 | M4 | `qvV3` (fixed-key value parsers `[7] [10] [13] [16]‖s`), `mrkV3` / `sortV3` (`n ≤ 4481`, `n = 0`) | open |
-| M5 | `rcptV3` view (`RcptV3ViewStmt`, adapting v1's 7.3 k-line `Extract/Rcpt*`) | open |
+| M5 | `rcptV3` view (`RcptV3ViewStmt`, adapting v1's 7.3 k-line `Extract/Rcpt*`) | statement done; proof ≈ 35 % (§6) |
 | M6 | `rcptV3` render | open |
 | M7 | links: body binding (`stream_eq_of_count`), lists ⇒ `verifyReceiptProof`, routing ⇒ A2, run ⇒ `applyReceipts` (incl. `applySystemReceipt`), `KeynibOk` for the sends, `hpl`/`hperm` for account writes | open |
 | M8 | heights under A1 / B0 | open |
@@ -145,6 +145,41 @@ Design estimate (§13): receipt extension ≈ 480 + small tables ≈ 700.
 | `SREC` via the key walk: none found (both directions are needed) | — | — |
 | `sizeV3` as a bit-serial table (one bit column) | ≈ 20 | longer view |
 | keep `g = 1` for the small tables (degree 6–8 at `g = 3`) | 8–16 / table | per-table `g` (L3) |
+
+## 5. Small-table views and renders (helper, branch `lane/v3-rcpt-h`)
+
+All in `NearV3/Rcpt/Extract/*Proof.lean` and `NearV3/Rcpt/Render/*Render.lean`; axioms ⊆ {propext,
+Classical.choice, Quot.sound}; each checked with `#print axioms`.
+
+| table | view | render (local, traffic) |
+|---|---|---|
+| `bndV3` | `bnd_view : BndViewStmt` | `bnd_render_local`, `bnd_render_traffic` |
+| `sizeV3` | `size_view : SizeViewStmt` (`SizeWf`: `base_le`, `tot_le` as Nat bounds under no-wrap) | `size_render_local` (`SizeOk`), `size_render_traffic` |
+| `akeyV3` | `akey_view : AkeyViewStmt` (9 bytes, last byte 1) | `akey_render_local` (`AkeyOk`), `akey_render_traffic` |
+| `acctV3` | `acctV3_view : AcctV3ViewStmt` (v1 `AcctWf` + height) | `acctV3_render_local`, `acctV3_render_traffic` (`AcctV3Ok`) |
+
+## 6. `rcptV3` view: port state (`NearV3/Rcpt/Extract/RcptView.lean`, `Extract/V/*.lean`)
+
+* **Statement** `RcptV3ViewStmt` (built): view `RcptV3Vs` = lists `ListV3 {n0, n1, rs}` of `RcptE`
+  (v1 `RcptV` + `sys ee gv gs sx akf akk aku q rlk`), traffic `rcptTraffic3`, facts `RcptE.Wf`
+  (v1 facts with `sysIff`, system arithmetic, `ee` / `neq`, `RouteOk`) and `RcptV3Wf`.
+* **Model check** (`test/rcptv3_model.py`, `test/RcptExport.lean`): honest traces of random
+  D0 batches satisfy all 881 constraints with 0/1 multiplicities and exactly the expected
+  traffic on every bus (≈ 500 instances over 6 seeds, 0 failures).
+* **Ported and building** (v1 module → v3): `RcptFacts → V/Facts` (v3 list/receipt boundaries,
+  header facts, `brkStep`, `leFacts`, `lconst`), `RcptSegs → V/Segs`, `RcptLayout → V/Layout`
+  (unchanged receipt layout), `RcptTable → V/Table` (**new**: `rcpts_from` per list, block end
+  = padding or next header), `RcptRegs → V/Regs`, `RcptRowT → V/RowT` (18 interactions),
+  `RcptOf → V/Of` (`rcptOf` incl. v3 data), `RcptChunks → V/Chunks`, `RcptFB1/FB2 → V/FB1/FB2`
+  (`RC(j)` ids via the list index), `RcptBytes → V/Bytes`, `RcptGates → V/Gates` (+ `lay_const`),
+  `RcptBus → V/Bus` (+ `gF_row`), `RcptChars → V/Chars`.
+* **Remaining** (in dependency order): `Key` (+ access-key walk symbols on T0/SL/S/KT/PK/GP),
+  `Dig`, block decomposition of the whole table (`blocks_from`, j-constancy inside a block from
+  `le = 0` off the block end), `Shape`/`Traffic` over lists (+ `RCL`, `FINAL` two rows, `SREC`,
+  `AKC`, `BND` traffic), `WfEasy`, `Count`, `Gas1–3` (`pc`, `gq`), `Dep`, `Arith`, `Toks`
+  (claim arithmetic dropped), `StrField`/`Strings`/`CharClass`/`Names` (`sysIff`), new `Sys`
+  (`ee`/`neq` from `SREC` rows) and `Route` (`RouteOk` by induction over the lookup rows),
+  `WfIds`, `Proof`. `test/port_rcpt_v3.py` does the mechanical part of each port.
 
 ## Modules
 
