@@ -1,0 +1,12 @@
+{
+  "base": "01-h10025-s2",
+  "case": "01-h10025-s2-w.unsorted_keys",
+  "d0_violations": [],
+  "expected_rel": true,
+  "expected_rel_d0": true,
+  "in_d0": true,
+  "kind": "mutant",
+  "mutation": "w.unsorted_keys",
+  "nearcore": "ok",
+  "verdict_source": "nearcore"
+}

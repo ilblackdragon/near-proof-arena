@@ -1,0 +1,14 @@
+{
+  "base": "01-h10018-s1",
+  "case": "01-h10018-s1-hdr.prev_gas_used",
+  "d0_violations": [],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": true,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "hdr.prev_gas_used",
+  "nearcore": "validate: InvalidGasUsed",
+  "verdict_source": "nearcore"
+}

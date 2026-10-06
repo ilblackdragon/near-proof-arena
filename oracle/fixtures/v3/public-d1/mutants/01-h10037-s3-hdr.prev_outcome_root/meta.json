@@ -1,0 +1,16 @@
+{
+  "base": "01-h10037-s3",
+  "case": "01-h10037-s3-hdr.prev_outcome_root",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "hdr.prev_outcome_root",
+  "nearcore": "validate: InvalidOutcomesProof",
+  "verdict_source": "nearcore"
+}

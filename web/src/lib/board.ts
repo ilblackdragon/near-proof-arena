@@ -74,3 +74,25 @@ export function partition(entries: BoardEntry[], def: ChallengeDefinition | unde
   for (const k of ['formal_other', 'revoked', 'reference', 'experimental', 'demo'] as const) b[k].sort(byScoreDesc);
   return b;
 }
+
+/**
+ * Cost board (`scoring.kind = cost_v1`, docs/BENCHMARK_SPEC.md §14): the
+ * same officially rankable entries, ranked by the cost score. An entry's
+ * cost result counts only if it was computed under the challenge's own
+ * price model (digest match); speed and cost scores are never mixed.
+ */
+export function costBoard(entries: BoardEntry[], def: ChallengeDefinition | undefined, challengeId?: string): RankedEntry[] {
+  const digest = def?.scoring?.kind === 'cost_v1' ? def.scoring.price_model_digest : undefined;
+  if (!digest) return [];
+  const rows = entries.filter(
+    (e) =>
+      isOfficiallyRankable(e, def, challengeId) &&
+      e.cost?.price_model_digest === digest &&
+      typeof e.cost?.score_milli === 'number',
+  );
+  rows.sort((a, b) => {
+    const d = (b.cost?.score_milli ?? -1) - (a.cost?.score_milli ?? -1);
+    return d !== 0 ? d : String(a.submitted_at).localeCompare(String(b.submitted_at));
+  });
+  return rows.map((entry, i) => ({ rank: i + 1, entry }));
+}

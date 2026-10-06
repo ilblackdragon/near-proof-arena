@@ -289,6 +289,7 @@ export function toEntry(s: SubmissionDetail, def: ChallengeDefinition, rank: num
     security_profile: def.security_profile.id,
     submitted_at: s.created_at,
     revoked: !!s.revoked,
+    cost: s.benchmark?.cost ?? null,
   };
 }
 

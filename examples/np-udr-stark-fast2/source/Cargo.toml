@@ -1,0 +1,43 @@
+# np-udr-stark: Rust prover for the provable STARK `np-udr-stark-v1`
+# (docs/zk-formal/DESIGN.md §4). Uses only Plonky3's field / DFT / matrix
+# crates (pinned to the same revision as examples/stark-plonky3); the protocol
+# (wide-digest MMCS, transcript, DEEP-ALI, FRI) is implemented here so that it
+# matches the Lean verifier byte for byte. Standalone workspace: NOT part of
+# the repository root workspace; build-recipe/vendor.sh vendors every crate.
+[package]
+name = "np-udr-stark"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+name = "npudr"
+path = "src/lib.rs"
+
+[dependencies]
+p3-baby-bear = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-field = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-dft = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-matrix = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-monty-31 = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-util = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d" }
+p3-maybe-rayon = { git = "https://github.com/Plonky3/Plonky3", rev = "3acc8b70e68d6c2afc03930700c26540bd47458d", features = ["parallel"] }
+rayon = "1"
+sha2 = { version = "0.10", features = ["compress"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+
+[profile.release]
+codegen-units = 1
+incremental = false
+lto = "fat"
+panic = "unwind"
+opt-level = 3
+debug = false
+
+[profile.test]
+opt-level = 3
+
+[workspace]

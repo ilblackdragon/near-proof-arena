@@ -3,6 +3,7 @@ rank      score submission               candidate            backend          t
    1    110.007 sub_314aa809c32e42248cc637b462d8ced7 reexec-witness-fast  reexec-witness   formal            7.462     45.050      84970 reference
    2     98.376 sub_c67dd93beafd4ecc9935431366f0baa6 reexec-witness       reexec-witness   formal            8.344     44.604      80034 reference
    3     97.324 sub_7ef24373c6ac46cd800965882635df16 reexec-npai          reexec-witness   formal            8.434      2.106      88273 reference
-   4      0.052 sub_19cc9c90e2184946aad17195bd02d847 np-udr-stark         np-udr-stark-v1  formal        15856.068    630.044    3077615 reference
-   5      0.048 sub_56bb976bc115412483197db8d34c3092 np-udr-stark-fast    np-udr-stark-v1  formal        16933.821    634.751    3088879 reference
+   4      0.070 sub_ec1fdc22d88740188c9ea249d38914b8 np-udr-stark-fast2   np-udr-stark-v1  formal        11651.044    634.467    3046319 reference
+   5      0.052 sub_19cc9c90e2184946aad17195bd02d847 np-udr-stark         np-udr-stark-v1  formal        15856.068    630.044    3077615 reference
+   6      0.048 sub_56bb976bc115412483197db8d34c3092 np-udr-stark-fast    np-udr-stark-v1  formal        16933.821    634.751    3088879 reference
    -          - sub_e2e032d91b1446e883ce0d031dd61dcf reexec-witness       reexec-witness   formal                -          -          - reference

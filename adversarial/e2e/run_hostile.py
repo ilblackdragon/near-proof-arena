@@ -417,7 +417,7 @@ def main():
     ap.add_argument("--materialize", default="",
                     help="write each selected case's package to DIR/<case> and exit")
     ap.add_argument("--target", default=os.environ.get("ARENA_HOSTILE_TARGET", "demo"),
-                    choices=["demo", "near-formal"],
+                    choices=["demo", "near-formal", "near-v3"],
                     help="challenge kind; cases whose targets exclude it are skipped")
     ap.add_argument("--report", default="", help="write per-case outcomes as JSON here")
     args = ap.parse_args()

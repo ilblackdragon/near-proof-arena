@@ -1,0 +1,46 @@
+[prove] trace 2.110s tables 544x2^22 163x2^22 12x2^16 228x2^17 16x2^12 58x2^14 49x2^13 (3323 MB)
+[prove] resident 4368 MB, chunk 32, group 2^24
+[prove] main commit group 2^24
+[prove] main commit: 212.658s
+[prove]   coeffs 37.4s eval 126.2s feed 25.6s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 6896 MB
+[prove] aux coefficient cache 3904 MB (true), group 2^23
+[prove] aux: 90.624s
+[prove]   coeffs 15.0s eval 43.5s feed 9.2s auxvals 4.9s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 9909 MB
+[prove] quotient: 142.889s
+[prove]   coeffs 18.6s eval 64.4s feed 0.0s auxvals 12.1s beval 20.6s auxc 11.3s fill 70.5s | peak RSS 11061 MB
+[prove] quot commit: 28.534s
+[prove]   coeffs 0.6s eval 8.9s feed 1.9s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 8020 MB
+[prove] ood: 16.600s
+[prove]   coeffs 0.0s eval 0.0s feed 0.0s auxvals 5.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 7430 MB
+[prove] deep: 26.853s
+[prove]   coeffs 0.0s eval 3.3s feed 0.0s auxvals 5.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 7945 MB
+[prove] fri: 1.454s
+[prove]   coeffs 0.0s eval 0.0s feed 0.0s auxvals 0.0s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 9814 MB
+[prove] openings: 105.093s
+[prove]   coeffs 16.1s eval 0.0s feed 0.0s auxvals 4.8s beval 0.0s auxc 0.0s fill 0.0s | peak RSS 11092 MB
+[prove] total 626.983s proof 3561135 B
+	Command being timed: "taskset -c 8-15 /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/l8e/prove-v3 --public /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/pv/pub --request /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/maxcase/max/request.bin --witness /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/maxcase/max/witness.bin --claim-out /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/l8e/c-v3.bin --proof-out /tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/l8e/p-v3.bin"
+	User time (seconds): 3368.40
+	System time (seconds): 103.15
+	Percent of CPU this job got: 553%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 10:27.12
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 9114408
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 143673516
+	Voluntary context switches: 316001
+	Involuntary context switches: 1348672
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 7048
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+EXIT 0
+PROOF-IDENTICAL

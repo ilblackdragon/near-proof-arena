@@ -1,0 +1,17 @@
+{
+  "base": "01-h10025-s0",
+  "case": "01-h10025-s0-w.drop_node.main.15",
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "w.drop_node.main.15",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 5FyCAAYSz6DfJdeWP8gNgmq17vAZKs68qujL4RDq5jye }))",
+  "verdict_source": "nearcore"
+}

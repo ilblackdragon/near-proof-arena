@@ -209,14 +209,22 @@ merkle root for any `(d, p)`.
 
 ### D1 — + Transfer transactions
 
-Lifts `w.no_txs`, `c.no_tx_flags`. Allowed: `W.transactions`,
-`W.new_transactions` of Transfer-only `SignedTransaction`s (V0 or V1, ED25519
-signatures — verified inside `Rel` as nearcore does in
-`verify_and_charge_tx_ephemeral`), nonce and access-key checks (full-access
-keys), balance and gas pre-payment, local receipts (receiver on the same
-shard), invalid-validity-period transactions skipped per `tx_valid`,
-`check_valid_for_config`, `tx_root`. Still no gas keys, no function-call keys,
-no delegate actions.
+Specified in full in `spec/near-chunk-validation-d1.md` (same claim and witness formats;
+`InD0 ⊂ InD1`). Lifts `w.no_txs` and `c.no_tx_flags`; adds `w.tx_shape` (every transaction in
+`transactions` and `new_transactions`: `V0`, or `V1` with a plain nonce; one `Transfer`
+action; ED25519 key and signature) and `t.signer_v1` (signer accounts read by
+`process_transactions` are `AccountV1`); `r.shape`, `r.success`, `e.distinct_ids`,
+`e.compute`, `e.forwarded` extend to the transactions' receipts. Inside D1, and formalized:
+`process_transactions` exactly (`runtime/runtime/src/lib.rs:1882-2279`) — duplicate-hash
+skipping, expiry by the trusted `tx_valid` flags, Ed25519 verification with ed25519-dalek
+2.2.0 `verify` semantics (cofactorless, non-canonical `A` and small-order points accepted,
+`s < ℓ`), `tx_cost`, missing / foreign signers and keys, function-call keys (always fail for
+a Transfer), gas keys without a gas-key nonce (fail), monotonic and strict nonces with the
+`height·10⁶` bound, balance and storage stake, failed outcomes (no state change), local
+receipts (`receiver = signer`, processed before incoming receipts) and forwarded transaction
+receipts; and for `new_transactions` the size gate, `tx_root` and the Reed–Solomon body
+(nearcore checks no signature of `new_transactions`). Still no gas-key transactions,
+function calls, or other actions.
 
 ### D2 — + all non-WASM actions and queues
 

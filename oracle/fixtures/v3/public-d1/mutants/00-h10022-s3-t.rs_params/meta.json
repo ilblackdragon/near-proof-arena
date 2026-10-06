@@ -1,0 +1,16 @@
+{
+  "base": "00-h10022-s3",
+  "case": "00-h10022-s3-t.rs_params",
+  "d0_violations": [
+    "w.no_txs"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "in_d0": false,
+  "in_d1": true,
+  "kind": "mutant",
+  "mutation": "t.rs_params",
+  "nearcore": "validate: InvalidChunkEncodedMerkleRoot",
+  "verdict_source": "nearcore"
+}

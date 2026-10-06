@@ -3,8 +3,16 @@
 //! itself; a candidate claim that differs is `CLAIM_MISMATCH`).
 //!
 //! An [`Oracle`] is selected by the challenge's `claim_encoding.format`
-//! (exact match; `near-arena-claim-v1` and `near-arena-claim-v2` are separate
-//! registrations, so a v1 oracle never serves a v2 challenge or vice versa).
+//! (exact match; `near-arena-claim-v1`, `near-arena-claim-v2` and
+//! `near-arena-claim-v3` are separate registrations, so an oracle never
+//! serves a challenge of another encoding).
+//!
+//! **Rejection cases** ([`Oracles::rejection_suite`], v3): judge-held
+//! (claim, witness) pairs whose expected verdict is *reject* — nearcore's own
+//! validator rejects them, or the honest chunk lies outside the challenge's
+//! domain. CONFORMANCE runs the candidate's `prove` on each and `verify` on
+//! whatever it emits; an accepted proof of such a claim is a counterexample
+//! to soundness (`COUNTEREXAMPLE_FOUND`).
 //!
 //! Conformance suites are assembled by [`Oracles::conformance_suite`], which
 //! fails closed (audit A06):
@@ -96,6 +104,20 @@ pub trait Oracle: Send + Sync {
             "held-out sets are not supported for {}",
             self.format()
         )))
+    }
+    /// Cases the candidate must NOT get accepted (expected verdict reject):
+    /// from the public fixtures (`fixtures`), `n` freshly judge-sampled ones
+    /// and, with `heldout`, `n` seed-selected held-out ones (never public).
+    /// Empty for encodings without rejection oracles.
+    fn rejection_cases(
+        &self,
+        _chal: &ChallengeDefinition,
+        _fixtures: Option<&Path>,
+        _heldout: Option<&Path>,
+        _seeds: &SeedCtx,
+        _n: usize,
+    ) -> Result<RejectionSet, OracleError> {
+        Ok(RejectionSet::default())
     }
     /// `approved_params.bin` handed to the judge-run `prepare` (empty unless
     /// the claim encoding defines one).
@@ -308,6 +330,15 @@ pub struct Suite {
     pub notes: Vec<String>,
 }
 
+/// Expected-reject cases (`Case::expected_claim` is empty and unused).
+#[derive(Debug, Default)]
+pub struct RejectionSet {
+    pub cases: Vec<Case>,
+    pub public: usize,
+    pub sampled: usize,
+    pub heldout: usize,
+}
+
 /// Oracle registry + fixture / held-out index + season secret.
 #[derive(Default)]
 pub struct Oracles {
@@ -345,6 +376,15 @@ impl Oracles {
                 generators: gens.clone(),
             }));
         }
+        Ok(self)
+    }
+
+    /// Register the v3 oracle (`near-arena-claim-v3`, binary
+    /// `near-arena-oracle-v3`) over the generator specs in `dirs` (only specs
+    /// whose `tool` is `near-arena-oracle-v3 gen` are used by it).
+    pub fn with_near_v3(mut self, oracle_bin: PathBuf, dirs: &[PathBuf]) -> Result<Self, String> {
+        self.oracles
+            .push(Box::new(NearV3Oracle::new(oracle_bin, dirs)?));
         Ok(self)
     }
 
@@ -430,6 +470,22 @@ impl Oracles {
                     "no oracle for claim encoding {f:?} on this worker"
                 ))
             })
+    }
+
+    /// The rejection cases of a challenge (public fixtures' `rejections/`,
+    /// `n` judge-sampled, and `n` from the committed held-out set when this
+    /// worker holds it), every request pin-checked by the caller. Encodings
+    /// without rejection oracles yield an empty set.
+    pub fn rejection_suite(
+        &self,
+        chal: &ChallengeDefinition,
+        seeds: &SeedCtx,
+        n: usize,
+    ) -> Result<RejectionSet, OracleError> {
+        let o = self.get(chal)?;
+        let fixtures = self.fixtures_for(chal)?;
+        let heldout = self.heldout_for(chal)?;
+        o.rejection_cases(chal, fixtures.as_deref(), heldout.as_deref(), seeds, n)
     }
 
     /// The conformance suite: the pinned public fixtures, at least
@@ -964,6 +1020,394 @@ impl Oracle for NearOracle {
     }
 }
 
+/// Read `<dir>/<name>/{request,witness,expected_claim}.bin` case dirs, sorted
+/// by name. `rejections = false`: dirs without `expected_claim.bin` are
+/// skipped (never issued as positives); `true`: every dir is read as an
+/// expected-reject case (`expected_claim` empty). Non-public read errors never
+/// name the case.
+fn read_case_dirs(
+    dir: &Path,
+    public: bool,
+    prefix: &str,
+    class: Option<&str>,
+    rejections: bool,
+) -> Result<Vec<Case>, OracleError> {
+    let mut names: Vec<String> = match std::fs::read_dir(dir) {
+        Ok(rd) => rd
+            .flatten()
+            .filter(|e| e.path().is_dir())
+            .filter_map(|e| e.file_name().into_string().ok())
+            .collect(),
+        Err(e) if rejections && e.kind() == std::io::ErrorKind::NotFound => return Ok(vec![]),
+        Err(e) => return Err(OracleError::Broken(format!("{}: {e}", dir.display()))),
+    };
+    names.sort();
+    let mut out = vec![];
+    for n in names {
+        let d = dir.join(&n);
+        let rd = |f: &str| {
+            std::fs::read(d.join(f)).map_err(|e| {
+                OracleError::Broken(if public {
+                    format!("{n}/{f}: {e}")
+                } else {
+                    format!("{prefix}*/{f}: {}", e.kind())
+                })
+            })
+        };
+        let expected_claim = if rejections {
+            vec![]
+        } else {
+            match std::fs::read(d.join("expected_claim.bin")) {
+                Ok(c) => c,
+                Err(_) => continue,
+            }
+        };
+        out.push(Case {
+            id: format!("{prefix}{n}"),
+            request: rd("request.bin")?,
+            witness: rd("witness.bin")?,
+            expected_claim,
+            public,
+            class: class.map(String::from),
+        });
+    }
+    Ok(out)
+}
+
+/// `near-arena-claim-v3` (spec/near-chunk-validation-v0.md, spec/claim-v3.md):
+/// the judge-owned oracle `near-arena-oracle-v3` drives real multi-shard
+/// nearcore `TestEnv` chains, captures the `ChunkStateWitness` bytes chunk
+/// producers emit, builds the claim from the producing node's store and epoch
+/// manager, and labels every case with **nearcore's own validator verdict**
+/// (`pre_validate_chunk_state_witness` + `validate_chunk_state_witness`) and
+/// an independent D0 classifier.
+///
+/// Arena layout (`gen --fixtures-layout`): `cases/<n>/{request.bin,
+/// witness.bin, expected_claim.bin}` with `request = expected_claim =
+/// claim.bin` for `Rel_D0` cases (nearcore accepts and the chunk is in D0),
+/// `rejections/<n>/{request.bin, witness.bin}` for the others (nearcore
+/// rejects, or the honest chunk is outside D0), and `params.bin`
+/// (`near-arena-params-v3`). Held-out sets: `<class>/{params.bin, cases/}`
+/// plus `rejections/`.
+///
+/// Sampling runs `near-arena-oracle-v3 gen --fixtures-layout --d0-target n`
+/// with the class's generator-spec args (located by the digest the challenge
+/// commits to; the spec must name this tool and this class) and a
+/// judge-derived seed; rejection sampling runs the judge's fixed
+/// [`NearV3Oracle::REJECTION_ARGS`] with the seed of pseudo-class
+/// `rejections`.
+pub struct NearV3Oracle {
+    bin: PathBuf,
+    generators: Arc<HashMap<Digest, serde_json::Value>>,
+}
+
+impl NearV3Oracle {
+    pub const FORMAT: &'static str = "near-arena-claim-v3";
+    pub const TOOL: &'static str = "near-arena-oracle-v3 gen";
+    /// Judge-fixed rejection sampling: one honest 40-block chain (parameter
+    /// set rotated by the seed: 4/5/6 shards, Reed-Solomon (2,8), (33,100),
+    /// (5,16), (1,3)), every third honest D0 chunk mutated (nearcore judges
+    /// each mutant), out-of-domain honest chunks capped at 3 per violation
+    /// family, no positives. The judge then picks `n` of the written
+    /// rejections, alternating out-of-domain chunks and mutants, by a
+    /// seed-keyed shuffle.
+    pub const REJECTION_ARGS: &'static [&'static str] = &[
+        "--fixtures-layout",
+        "--no-positives",
+        "--rotate",
+        "--mutate-every",
+        "3",
+        "--ood-cap",
+        "3",
+        "--chains",
+        "1",
+        "--blocks",
+        "40",
+    ];
+
+    pub fn new(bin: PathBuf, generators_dirs: &[PathBuf]) -> Result<Self, String> {
+        Ok(NearV3Oracle {
+            bin,
+            generators: Arc::new(NearOracle::index_generators(generators_dirs)?),
+        })
+    }
+
+    /// The class's generator args: the spec must be for this tool and class,
+    /// and may not set the judge-controlled output options.
+    fn generator_args(
+        &self,
+        spec: &serde_json::Value,
+        class_id: &str,
+    ) -> Result<Vec<String>, OracleError> {
+        if spec["tool"].as_str() != Some(Self::TOOL) {
+            return Err(OracleError::Broken(format!(
+                "fail-closed: generator spec tool {:?} is not {:?} (claim encoding {})",
+                spec["tool"].as_str().unwrap_or(""),
+                Self::TOOL,
+                Self::FORMAT
+            )));
+        }
+        if spec["class"].as_str() != Some(class_id) {
+            return Err(OracleError::Broken(format!(
+                "fail-closed: generator spec is for class {:?}, not {class_id:?}",
+                spec["class"].as_str().unwrap_or("")
+            )));
+        }
+        let args: Vec<String> = spec["args"]
+            .as_array()
+            .map(|a| {
+                a.iter()
+                    .filter_map(|x| x.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default();
+        for judge_owned in [
+            "--seed",
+            "--out",
+            "--d0-target",
+            "--rejection-target",
+            "--no-positives",
+            "--accepted-mutants",
+        ] {
+            if args.iter().any(|a| a == judge_owned) {
+                return Err(OracleError::Broken(format!(
+                    "fail-closed: generator spec sets the judge-owned option {judge_owned}"
+                )));
+            }
+        }
+        if !args.iter().any(|a| a == "--fixtures-layout") || !args.iter().any(|a| a == "--class") {
+            return Err(OracleError::Broken(
+                "generator spec must use --fixtures-layout and name a --class".into(),
+            ));
+        }
+        Ok(args)
+    }
+
+    /// Run the oracle into a fresh temp dir; `read` gets the dir.
+    fn gen<T>(
+        &self,
+        seed: u64,
+        args: &[String],
+        read: impl FnOnce(&Path) -> Result<T, OracleError>,
+    ) -> Result<T, OracleError> {
+        // The seed may be secret-derived: it is not put in paths or messages.
+        let out_dir = std::env::temp_dir().join(format!(
+            "near-oracle-v3-{}-{}",
+            std::process::id(),
+            GEN_RUN.fetch_add(1, Ordering::Relaxed)
+        ));
+        let _ = std::fs::remove_dir_all(&out_dir);
+        let o = std::process::Command::new(&self.bin)
+            .arg("gen")
+            .args(["--seed", &seed.to_string(), "--out"])
+            .arg(&out_dir)
+            .args(args)
+            .output()
+            .map_err(|e| OracleError::Broken(format!("near-arena-oracle-v3: {e}")));
+        let res = o.and_then(|o| {
+            if o.status.success() {
+                read(&out_dir)
+            } else {
+                // stderr names chain parameters and case names, never the seed
+                let tail: String = String::from_utf8_lossy(&o.stderr)
+                    .lines()
+                    .rev()
+                    .take(4)
+                    .collect::<Vec<_>>()
+                    .join(" | ");
+                Err(OracleError::Broken(format!(
+                    "near-arena-oracle-v3 gen failed ({}): {tail}",
+                    o.status
+                )))
+            }
+        });
+        let _ = std::fs::remove_dir_all(&out_dir);
+        res
+    }
+}
+
+impl Oracle for NearV3Oracle {
+    fn format(&self) -> &str {
+        Self::FORMAT
+    }
+
+    fn fixture_cases(
+        &self,
+        _chal: &ChallengeDefinition,
+        dir: &Path,
+    ) -> Result<Vec<Case>, OracleError> {
+        read_case_dirs(&dir.join("cases"), true, "fixture/", None, false)
+    }
+
+    fn heldout_cases(
+        &self,
+        chal: &ChallengeDefinition,
+        dir: &Path,
+        class_id: &str,
+    ) -> Result<Vec<Case>, OracleError> {
+        let d = dir.join(class_id);
+        if !d.is_dir() {
+            return Ok(vec![]);
+        }
+        let p = std::fs::read(d.join("params.bin"))
+            .map_err(|e| OracleError::Broken(format!("held-out params.bin: {}", e.kind())))?;
+        if let Some(pin) = crate::jobs::RequestPin::from_challenge(chal) {
+            pin.check_params(&p, &chal.runtime_config_digest)
+                .map_err(|e| OracleError::Broken(format!("held-out params.bin: {e}")))?;
+        }
+        read_case_dirs(
+            &d.join("cases"),
+            false,
+            &format!("heldout/{class_id}/"),
+            Some(class_id),
+            false,
+        )
+    }
+
+    fn sample(
+        &self,
+        chal: &ChallengeDefinition,
+        class_id: &str,
+        seeds: &SeedCtx,
+        n: usize,
+    ) -> Result<Vec<Case>, OracleError> {
+        if n == 0 {
+            return Ok(vec![]);
+        }
+        let class = chal
+            .workload_suite
+            .classes
+            .iter()
+            .find(|c| c.id == class_id)
+            .ok_or_else(|| OracleError::Broken(format!("unknown class {class_id:?}")))?;
+        let spec = self.generators.get(&class.generator).ok_or_else(|| {
+            OracleError::Unavailable(format!(
+                "no generator spec with digest {} on this worker",
+                class.generator
+            ))
+        })?;
+        let mut args = self.generator_args(spec, class_id)?;
+        args.extend(["--d0-target".to_string(), n.to_string()]);
+        let seed = seeds.class_seed(class_id)?;
+        let cases = self.gen(seed, &args, |d| {
+            read_case_dirs(
+                &d.join("cases"),
+                false,
+                &format!("{class_id}/"),
+                Some(class_id),
+                false,
+            )
+        })?;
+        if cases.len() != n {
+            return Err(OracleError::Broken(format!(
+                "generator produced {} in-domain case(s) for {class_id}, {n} requested",
+                cases.len()
+            )));
+        }
+        Ok(cases)
+    }
+
+    fn rejection_cases(
+        &self,
+        _chal: &ChallengeDefinition,
+        fixtures: Option<&Path>,
+        heldout: Option<&Path>,
+        seeds: &SeedCtx,
+        n: usize,
+    ) -> Result<RejectionSet, OracleError> {
+        let mut set = RejectionSet::default();
+        if let Some(f) = fixtures {
+            let c = read_case_dirs(&f.join("rejections"), true, "fixture-reject/", None, true)?;
+            set.public = c.len();
+            set.cases.extend(c);
+        }
+        if n > 0 {
+            let args: Vec<String> = Self::REJECTION_ARGS.iter().map(|s| s.to_string()).collect();
+            let seed = seeds.class_seed("rejections")?;
+            let (mut ood, mut mutants) = self.gen(seed, &args, |d| {
+                let dir = d.join("rejections");
+                let all = read_case_dirs(&dir, false, "rejections/", None, true)?;
+                let mut ood = vec![];
+                let mut mutants = vec![];
+                for c in all {
+                    let name = c.id.trim_start_matches("rejections/");
+                    let meta = std::fs::read(dir.join(name).join("meta.json")).unwrap_or_default();
+                    let kind = serde_json::from_slice::<serde_json::Value>(&meta)
+                        .ok()
+                        .and_then(|m| m["kind"].as_str().map(String::from));
+                    match kind.as_deref() {
+                        Some("mutant") => mutants.push(c),
+                        Some("honest") => ood.push(c),
+                        _ => {
+                            return Err(OracleError::Broken("rejection case without a kind".into()))
+                        }
+                    }
+                }
+                Ok((ood, mutants))
+            })?;
+            let mut rng = SplitMix64::new(seed ^ 0x7265_6a65_6374_696f);
+            arena_measure::stats::shuffle(&mut ood, &mut rng);
+            arena_measure::stats::shuffle(&mut mutants, &mut rng);
+            let (mut a, mut b) = (ood.into_iter(), mutants.into_iter());
+            let mut picked = vec![];
+            while picked.len() < n {
+                let x = if picked.len() % 2 == 0 {
+                    a.next().or_else(|| b.next())
+                } else {
+                    b.next().or_else(|| a.next())
+                };
+                match x {
+                    Some(c) => picked.push(c),
+                    None => break,
+                }
+            }
+            if picked.len() < n {
+                return Err(OracleError::Coverage(format!(
+                    "{} judge-sampled rejection case(s), {n} required",
+                    picked.len()
+                )));
+            }
+            set.sampled = picked.len();
+            set.cases.extend(picked);
+        }
+        if let Some(h) = heldout {
+            let mut c =
+                read_case_dirs(&h.join("rejections"), false, "heldout-reject/", None, true)?;
+            if c.is_empty() {
+                return Err(OracleError::Coverage(
+                    "the committed held-out set has no rejection cases".into(),
+                ));
+            }
+            let mut rng = SplitMix64::new(seeds.tagged("heldout").class_seed("rejections")?);
+            arena_measure::stats::shuffle(&mut c, &mut rng);
+            c.truncate(n.max(1));
+            set.heldout = c.len();
+            set.cases.extend(c);
+        }
+        Ok(set)
+    }
+
+    fn approved_params(
+        &self,
+        chal: &ChallengeDefinition,
+        fixtures: Option<&Path>,
+    ) -> Result<Vec<u8>, OracleError> {
+        let f = fixtures.ok_or_else(|| {
+            OracleError::Unavailable(format!(
+                "{} needs the public fixtures (params.bin)",
+                Self::FORMAT
+            ))
+        })?;
+        let p = std::fs::read(f.join("params.bin"))
+            .map_err(|e| OracleError::Broken(format!("params.bin: {e}")))?;
+        let pin = crate::jobs::RequestPin::from_challenge(chal)
+            .ok_or_else(|| OracleError::Broken("v3 challenge without a request pin".into()))?;
+        pin.check_params(&p, &chal.runtime_config_digest)
+            .map_err(|e| OracleError::Broken(format!("fail-closed: params.bin: {e}")))?;
+        Ok(p)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1322,6 +1766,117 @@ mod tests {
         for c in &cases {
             pin.check(&c.request).unwrap();
             pin.check_claim(&c.expected_claim).unwrap();
+        }
+    }
+
+    /// v3 is its own registration: fixtures (positives with request = claim,
+    /// rejection cases), params pin, generator specs checked for tool and
+    /// class; v1/v2 oracles never serve it.
+    #[test]
+    fn near_v3_oracle_fixtures_rejections_and_generator_pins() {
+        let gens = [
+            repo().join("spec/workloads/near-transfer-receipt-v1"),
+            repo().join("spec/workloads/near-chunk-validation-d0"),
+        ];
+        let mut o = Oracles::builtin()
+            .with_near_dirs(PathBuf::from("/nonexistent/near-arena-oracle"), &gens)
+            .unwrap()
+            .with_near_v3(PathBuf::from("/nonexistent/near-arena-oracle-v3"), &gens)
+            .unwrap();
+        let v3 = load("challenges/drafts/near-chunk-validation-d0.draft.json");
+        let v1 = load("challenges/chl_5ef2bc7d2068219635426e47ca46bfbb.json");
+        assert_eq!(o.get(&v3).unwrap().format(), "near-arena-claim-v3");
+        assert_eq!(o.get(&v1).unwrap().format(), "near-arena-claim-v1");
+        let d = o
+            .add_fixtures_dir(&repo().join("oracle/fixtures/v3/arena-public"))
+            .unwrap();
+        assert_eq!(d, v3.workload_suite.public_fixtures);
+        let fx = o.fixtures_for(&v3).unwrap().unwrap();
+        let cases = o.get(&v3).unwrap().fixture_cases(&v3, &fx).unwrap();
+        assert_eq!(cases.len(), 78);
+        let pin = crate::jobs::RequestPin::from_challenge(&v3).unwrap();
+        for c in &cases {
+            assert_eq!(c.request, c.expected_claim);
+            pin.check_case(&c.request, Some(&c.expected_claim)).unwrap();
+        }
+        let p = o.get(&v3).unwrap().approved_params(&v3, Some(&fx)).unwrap();
+        assert_eq!(p.len(), 99);
+        // rejections: public only here (n = 0, no held-out dir configured)
+        let r = o.rejection_suite(&v3, &seeds(), 0).unwrap();
+        assert_eq!((r.public, r.sampled, r.heldout), (121, 0, 0));
+        for c in &r.cases {
+            assert!(c.expected_claim.is_empty() && c.public);
+            pin.check_case(&c.request, None).unwrap();
+        }
+        // a v1 generator spec under a v3 class is refused before the binary runs
+        let mut x = v3.clone();
+        x.workload_suite.classes[0].generator = v1.workload_suite.classes[0].generator.clone();
+        let e = o
+            .get(&x)
+            .unwrap()
+            .sample(&x, &x.workload_suite.classes[0].id.clone(), &seeds(), 1)
+            .unwrap_err();
+        assert!(e.to_string().contains("near-arena-oracle-v3 gen"), "{e}");
+        // a v3 spec of another class is refused
+        let mut y = v3.clone();
+        y.workload_suite.classes[0].generator = v3.workload_suite.classes[1].generator.clone();
+        let e = o
+            .get(&y)
+            .unwrap()
+            .sample(&y, &y.workload_suite.classes[0].id.clone(), &seeds(), 1)
+            .unwrap_err();
+        assert!(e.to_string().contains("not \"d0-quiet\""), "{e}");
+        // v1 fixtures' params never pass as v3 params
+        let e = o
+            .get(&v3)
+            .unwrap()
+            .approved_params(&v3, Some(&repo().join("oracle/fixtures/public")))
+            .unwrap_err();
+        assert!(e.to_string().contains("format"), "{e}");
+    }
+
+    /// With the real oracle binary (`ARENA_TEST_NEAR_ORACLE_V3`): sampled
+    /// positives are exactly `n` per class and pass the pin; rejection
+    /// sampling alternates out-of-domain chunks and mutants; the committed
+    /// held-out set (`ARENA_TEST_HELDOUT_V3`) verifies against the draft.
+    #[test]
+    fn near_v3_oracle_samples_with_the_real_binary() {
+        let Ok(bin) = std::env::var("ARENA_TEST_NEAR_ORACLE_V3") else {
+            eprintln!("skipped: ARENA_TEST_NEAR_ORACLE_V3 unset");
+            return;
+        };
+        let gens = [repo().join("spec/workloads/near-chunk-validation-d0")];
+        let mut o = Oracles::builtin()
+            .with_near_v3(PathBuf::from(bin), &gens)
+            .unwrap();
+        o.add_fixtures_dir(&repo().join("oracle/fixtures/v3/arena-public"))
+            .unwrap();
+        let v3 = load("challenges/drafts/near-chunk-validation-d0.draft.json");
+        let pin = crate::jobs::RequestPin::from_challenge(&v3).unwrap();
+        for c in &v3.workload_suite.classes {
+            let got = o.get(&v3).unwrap().sample(&v3, &c.id, &seeds(), 3).unwrap();
+            assert_eq!(got.len(), 3);
+            for k in &got {
+                assert_eq!(k.class.as_deref(), Some(c.id.as_str()));
+                assert!(!k.public);
+                pin.check_case(&k.request, Some(&k.expected_claim)).unwrap();
+            }
+        }
+        let r = o.rejection_suite(&v3, &seeds(), 6).unwrap();
+        assert_eq!((r.public, r.sampled), (121, 6));
+        if let Ok(h) = std::env::var("ARENA_TEST_HELDOUT_V3") {
+            o.add_heldout_dir(Path::new(&h)).unwrap();
+            let s = o.conformance_suite(&v3, &seeds(), 3, true).unwrap();
+            assert_eq!(s.heldout, 3);
+            let r = o.rejection_suite(&v3, &seeds(), 4).unwrap();
+            assert_eq!(r.heldout, 4);
+            assert!(r
+                .cases
+                .iter()
+                .filter(|c| !c.public)
+                .all(|c| !c.id.contains("h1")
+                    || c.id.starts_with("rejections/")
+                    || c.id.starts_with("heldout-reject/")));
         }
     }
 }

@@ -83,6 +83,17 @@
     "schema": {
       "type": "string"
     },
+    "scoring": {
+      "description": "Scoring kind and, for `cost_v1`, the pinned price model and reference cost components (v1.5, additive; absent ⇒ `speed` and not serialized, so existing challenge ids are unchanged). docs/BENCHMARK_SPEC.md §14.",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ScoringSpec"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "season": {
       "type": "string"
     },
@@ -151,6 +162,40 @@
         },
         "spec_digest": {
           "$ref": "#/definitions/Digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CostBaselineClass": {
+      "description": "Reference-candidate cost components of one class, measured under the challenge's procedure (component medians over measured runs; one run = one batch of `batch_size` requests).",
+      "type": "object",
+      "required": [
+        "class_id",
+        "proof_bytes",
+        "prove_ns",
+        "verify_ns"
+      ],
+      "properties": {
+        "class_id": {
+          "type": "string"
+        },
+        "proof_bytes": {
+          "description": "Median Σ proof bytes per batch.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "prove_ns": {
+          "description": "Median Σ prove wall ns per batch; must equal `workload_suite.baseline_ns`.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "verify_ns": {
+          "description": "Median Σ verify wall ns per batch, on `verifier_vcpus` CPUs.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
         }
       },
       "additionalProperties": false
@@ -375,6 +420,128 @@
         "BENCHMARK"
       ]
     },
+    "PriceModel": {
+      "description": "`arena-price-model-v1`: integers only, femto-USD. Per-chunk system cost of one proved request (docs/BENCHMARK_SPEC.md §14.2):\n\n```text C = c_cpu·vcpus_p·T_prove + c_cpu·vcpus_p·T_prepare·/A + N_v · ( c_cpu·vcpus_v·T_verify + (c_bw + c_store)·proof_bytes ) ```",
+      "type": "object",
+      "required": [
+        "bandwidth_fusd_per_byte",
+        "cpu_fusd_per_vcpu_second",
+        "currency",
+        "effective_from",
+        "id",
+        "prepare_amortization_requests",
+        "rationale",
+        "schema",
+        "status",
+        "storage_fusd_per_byte",
+        "unit",
+        "validators_per_chunk",
+        "verifier_vcpus",
+        "version"
+      ],
+      "properties": {
+        "bandwidth_fusd_per_byte": {
+          "description": "`c_bw`: network cost per proof byte per validator.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "cpu_fusd_per_vcpu_second": {
+          "description": "`c_cpu`: price of one vCPU for one second (prover and validator).",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "currency": {
+          "description": "`USD`.",
+          "type": "string"
+        },
+        "effective_from": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "prepare_amortization_requests": {
+          "description": "`A`: requests over which one `prepare` is amortized; 0 = `prepare` is not charged (reported only, bench-spec-v1 §2).",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "rationale": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PriceRationale"
+          }
+        },
+        "schema": {
+          "description": "`arena-price-model-v1`.",
+          "type": "string"
+        },
+        "status": {
+          "description": "`draft` (never pinned by a signed challenge) or `governed`.",
+          "type": "string"
+        },
+        "storage_fusd_per_byte": {
+          "description": "`c_store`: retention cost per proof byte per validator (0 = none).",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "unit": {
+          "description": "`femto_usd`.",
+          "type": "string"
+        },
+        "validators_per_chunk": {
+          "description": "`N_v`: validators that each verify every chunk's proof (stateless validation fan-out). ≥ 1.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "verifier_vcpus": {
+          "description": "vCPUs of the reference validator profile; `verify` is measured pinned to this many of the benchmark CPUs and charged for them. ≥ 1 and ≤ the challenge's `hardware_profile.vcpus`.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "version": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false
+    },
+    "PriceRationale": {
+      "description": "Why a price-model parameter has its value (part of the hashed object, so the rationale cannot be edited without a new version).",
+      "type": "object",
+      "required": [
+        "basis",
+        "note",
+        "param",
+        "sources"
+      ],
+      "properties": {
+        "basis": {
+          "description": "`protocol` (read from pinned nearcore), `published` (public price list / docs), or `estimate` (a modelling choice).",
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "param": {
+          "description": "Field name of the parameter, e.g. `validators_per_chunk`.",
+          "type": "string"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "Privacy": {
       "type": "string",
       "enum": [
@@ -460,6 +627,73 @@
         "full_chunk_transition",
         "subset"
       ]
+    },
+    "ScoringKind": {
+      "oneOf": [
+        {
+          "description": "bench-spec-v1 §8: weighted geometric mean of prove-time speedups.",
+          "type": "string",
+          "enum": [
+            "speed"
+          ]
+        },
+        {
+          "description": "bench-spec §14: weighted geometric mean of per-class system-cost ratios under a pinned [`PriceModel`].",
+          "type": "string",
+          "enum": [
+            "cost_v1"
+          ]
+        }
+      ]
+    },
+    "ScoringSpec": {
+      "description": "`ChallengeDefinition.scoring` (v1.5, additive).",
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "cost_baseline": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CostBaselineClass"
+          }
+        },
+        "cost_baseline_prepare_ns": {
+          "description": "Reference candidate's `prepare` wall ns (only charged when `prepare_amortization_requests > 0`).",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "kind": {
+          "$ref": "#/definitions/ScoringKind"
+        },
+        "price_model": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/PriceModel"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "price_model_digest": {
+          "description": "JCS sha256 of `price_model`; shown on every cost-board row.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Digest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "SecurityModel": {
       "type": "string",

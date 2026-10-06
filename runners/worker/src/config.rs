@@ -70,6 +70,9 @@ pub struct WorkerConfig {
     /// `near-arena-oracle` binary + workload generator specs dirs (NEAR
     /// oracles v1 and v2; `ARENA_WORKLOAD_GENERATORS`, comma-separated).
     pub near_oracle: Option<PathBuf>,
+    /// `near-arena-oracle-v3` (claim encoding `near-arena-claim-v3`); uses
+    /// the same `ARENA_WORKLOAD_GENERATORS` dirs (its own specs only).
+    pub near_oracle_v3: Option<PathBuf>,
     pub workload_generators: Vec<PathBuf>,
     /// Judge-only held-out set directories (`ARENA_HELDOUT_DIRS`), matched to
     /// `workload_suite.heldout_commitment` by TreeDigest. When set, committed
@@ -353,6 +356,7 @@ impl WorkerConfig {
             }),
             interp_ref: s.get("ARENA_INTERP_REF").map(PathBuf::from),
             near_oracle: s.get("ARENA_NEAR_ORACLE").map(PathBuf::from),
+            near_oracle_v3: s.get("ARENA_NEAR_ORACLE_V3").map(PathBuf::from),
             workload_generators: dir_list(s.get("ARENA_WORKLOAD_GENERATORS")),
             heldout_dirs: dir_list(s.get("ARENA_HELDOUT_DIRS")),
             season_secret_file: s.get("ARENA_SEASON_SECRET_FILE").map(PathBuf::from),

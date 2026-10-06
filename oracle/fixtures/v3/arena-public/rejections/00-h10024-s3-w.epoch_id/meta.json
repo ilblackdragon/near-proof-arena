@@ -1,0 +1,12 @@
+{
+  "base": "00-h10024-s3",
+  "case": "00-h10024-s3-w.epoch_id",
+  "d0_violations": [],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "in_d0": true,
+  "kind": "mutant",
+  "mutation": "w.epoch_id",
+  "nearcore": "actor: InvalidChunkStateWitness epoch id",
+  "verdict_source": "nearcore"
+}

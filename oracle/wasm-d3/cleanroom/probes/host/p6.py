@@ -1,0 +1,25 @@
+from hp import *
+C = []
+YID = bytes(range(32))
+D = b"cb" + b"payload" + (5).to_bytes(16, "little") + YID + (10**30).to_bytes(16, "little")
+# offsets: m=0 (2), args=2 (7), amt5=9, yid=25, amtbig=57
+for g in [10**12, 2**64-1, 10**15]:
+    C.append((f"yc gas {g}", P(D).call("promise_yield_create", 2, 0, 7, 2, g, 1, 0).call("register_len", 0).done()))
+    C.append((f"ycid gas {g}", P(D).call("promise_yield_create_with_id", 2, 0, 7, 2, 9, g, 1, 32, 25).done()))
+C.append(("yc empty", P(D).call("promise_yield_create", 0, 0, 7, 2, 10**12, 1, 0).done()))
+C.append(("ycid empty", P(D).call("promise_yield_create_with_id", 0, 0, 7, 2, 9, 10**12, 1, 32, 25).done()))
+C.append(("ycid empty badid", P(D).call("promise_yield_create_with_id", 0, 0, 7, 2, 9, 10**12, 1, 31, 25).done()))
+C.append(("ycid bal", P(D).call("promise_yield_create_with_id", 2, 0, 7, 2, 57, 10**12, 1, 32, 25).done()))
+C.append(("ycid amt oob", P(D).call("promise_yield_create_with_id", 2, 0, 7, 2, 2**40, 10**12, 1, 32, 25).done()))
+C.append(("ycid amt oob badid", P(D).call("promise_yield_create_with_id", 2, 0, 7, 2, 2**40, 10**12, 1, 31, 25).done()))
+C.append(("ycid m oob", P(D).call("promise_yield_create_with_id", 2, 2**40, 7, 2, 9, 10**12, 1, 32, 25).done()))
+C.append(("ycid yid reg", P(D).call("promise_yield_create_with_id", 2, 0, 7, 2, 9, 10**12, 1, U64MAX, 3).done()))
+C.append(("ycid yid oob", P(D).call("promise_yield_create_with_id", 2, 0, 7, 2, 9, 10**12, 1, 32, 2**40).done()))
+C.append(("ycid twice", P(D).call("promise_yield_create_with_id", 2, 0, 7, 2, 9, 10**12, 1, 32, 25).call("promise_yield_create_with_id", 2, 0, 7, 2, 9, 10**12, 1, 32, 25).done()))
+C.append(("ycid twice bal", P(D).call("promise_yield_create_with_id", 2, 0, 7, 2, 9, 10**12, 1, 32, 25).call("promise_yield_create_with_id", 2, 0, 7, 2, 57, 10**12, 1, 32, 25).done()))
+C.append(("ycid twice empty", P(D).call("promise_yield_create_with_id", 2, 0, 7, 2, 9, 10**12, 1, 32, 25).call("promise_yield_create_with_id", 0, 0, 7, 2, 9, 10**12, 1, 32, 25).done()))
+C.append(("ycid 1yocto", P((1).to_bytes(16, "little") + D, opts="balance=0").call("promise_yield_create_with_id", 2, 16, 7, 18, 0, 10**12, 1, 32, 41).done()))
+C.append(("yc then batch", P(D + b"bob.near").call("promise_yield_create", 2, 0, 7, 2, 10**12, 1, 0).call("promise_batch_create", 8, len(D)).call("promise_batch_then", 0, 8, len(D)).call("promise_yield_create", 2, 0, 7, 2, 10**12, 1, 1).call("read_register", 1, 1000).done((1000, 32))))
+C.append(("batch then then yc", P(D + b"bob.near").call("promise_batch_create", 8, len(D)).call("promise_batch_then", 0, 8, len(D)).call("promise_yield_create", 2, 0, 7, 2, 10**12, 1, 1).call("read_register", 1, 1000).done((1000, 32))))
+C.append(("yc then then", P(D + b"bob.near").call("promise_yield_create", 2, 0, 7, 2, 10**12, 1, 1).call("promise_batch_then", 0, 8, len(D)).call("promise_batch_action_transfer", 0, 9).done()))
+cmp(C, 400)

@@ -1,0 +1,15 @@
+name = "WasmPoC"
+version = "0.1.0"
+defaultTargets = ["WasmPoC", "wasm-poc"]
+
+# D3 checkpoint-1 PoC: executable semantics of a tiny NEAR/WASM subset
+# (prepare + finite-wasm gas instrumentation + execution + 2 host functions),
+# differential-tested against pinned nearcore 2.13.4 (see ../README.md).
+# Deliberately outside spec/lean so that it does not change any TreeDigest.
+
+[[lean_lib]]
+name = "WasmPoC"
+
+[[lean_exe]]
+name = "wasm-poc"
+root = "Main"

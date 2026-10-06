@@ -125,6 +125,10 @@ miss=[(b,l) for b,l in need if b not in bins]; \
 [print(f"make: *** MISSING COMPONENT: binary {b!r} is not a workspace target yet (owner lane: {l})", file=sys.stderr) for b,l in miss]; \
 sys.exit(2 if miss else 0)' $(REQUIRED_BINS)
 
+.PHONY: pin-check
+pin-check: ## Fail if oracle/v3 drifts from the source the signed D0 challenge's generator specs pin
+	$(PYTHON) spec/tools/check_oracle_pins.py
+
 .PHONY: test
 test: test-rust test-sdk ## Rust workspace tests + SDK tests (web: `make web`, Lean: `make lean`)
 

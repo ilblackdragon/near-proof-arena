@@ -465,9 +465,16 @@ async fn cancel(
     Ok(Json(view_of(&st, &id).await?))
 }
 
+#[derive(serde::Deserialize, Default)]
+struct BoardQuery {
+    /// `speed` (default) or `cost_v1`.
+    board: Option<arena_types::ScoringKind>,
+}
+
 async fn leaderboard(
     State(st): State<SharedState>,
     Path(challenge_id): Path<String>,
+    Query(q): Query<BoardQuery>,
 ) -> ApiResult<Json<Vec<LeaderboardEntry>>> {
     let chal = load_challenge(&st, &challenge_id).await?;
     let f = SubmissionFilter {
@@ -476,15 +483,18 @@ async fn leaderboard(
         ..Default::default()
     };
     let bundles = views::list_bundles(&st.api_db, &f).await?;
-    Ok(Json(
-        views::compute_leaderboard(
-            &chal.id,
-            &chal.definition,
-            chal.superseded_by.as_deref(),
-            &bundles,
-        )
-        .entries(),
-    ))
+    let board = q.board.unwrap_or(arena_types::ScoringKind::Speed);
+    views::compute_leaderboard(
+        &chal.id,
+        &chal.definition,
+        chal.superseded_by.as_deref(),
+        &bundles,
+    )
+    .entries_for(board)
+    .map(Json)
+    .ok_or_else(|| {
+        ApiError::not_found("this challenge has no cost board (no scoring.kind = cost_v1)")
+    })
 }
 
 // ------------------------------------------------------------------ SSE

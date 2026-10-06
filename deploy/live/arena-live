@@ -52,6 +52,8 @@ LIVE="${ARENA_LIVE:-/data/illia/nearproof-live}"
 REPO="${ARENA_LIVE_REPO:-$(cd "$(dirname "$(readlink -f "$0")")/../.." && pwd)}"
 TARGET="${ARENA_LIVE_TARGET:-$HOME/.cache/nearproof-live-target}"
 ORACLE_SRC="${ARENA_LIVE_ORACLE:-/data/illia/nearproof/oracle/target/debug/near-arena-oracle}"
+# v3 (near-arena-claim-v3) oracle: nearcore TestEnv chains + nearcore's validator as judge
+ORACLE_V3_SRC="${ARENA_LIVE_ORACLE_V3:-/data/illia/nearproof/oracle/v3/target/debug/near-arena-oracle-v3}"
 PG_CONTAINER="${ARENA_LIVE_PG_CONTAINER:-arena-pg}"
 # Judge inputs outside the repo (paths only; nothing secret lives in the repo):
 # the lean-checker image (R-L7-5 csimp audit; checker identity sha256:66b014d4…),
@@ -60,6 +62,8 @@ PG_CONTAINER="${ARENA_LIVE_PG_CONTAINER:-arena-pg}"
 LEAN_IMAGES="${ARENA_LIVE_LEAN_IMAGES:-/data/illia/nearproof-deps/lean-checker/images-csimp}"
 LEAN_IMAGE="${ARENA_LIVE_LEAN_IMAGE:-463fdcf45f8818606dc4379d3ba6983ae7187fa83c7592ad175f7b137b16d6fe}"
 HELDOUT_DIRS="${ARENA_LIVE_HELDOUT_DIRS:-/data/illia/nearproof-deps/heldout/near-transfer-receipt-v1}"
+# v3 D0 held-out set (TreeDigest = heldout_commitment of near-chunk-validation-d0, sha256:edac8e6f…)
+HELDOUT_V3_DIR="${ARENA_LIVE_HELDOUT_V3_DIR:-/data/illia/nearproof-deps/heldout/near-chunk-validation-d0}"
 SEASON="${ARENA_LIVE_SEASON:-2026-10}"
 PG_HOSTPORT="${ARENA_LIVE_PG_HOSTPORT:-127.0.0.1:55471}"
 DB="${ARENA_LIVE_DB:-arena_live}"
@@ -104,6 +108,10 @@ cmd_install() {
     [ -x "$ORACLE_SRC" ] || die "no near-arena-oracle at $ORACLE_SRC (oracle/scripts/link-nearcore.sh)"
     install -m 755 "$ORACLE_SRC" "$LIVE/bin/near-arena-oracle.new" && mv -f "$LIVE/bin/near-arena-oracle.new" "$LIVE/bin/near-arena-oracle"
   fi
+  if [ ! -x "$LIVE/bin/near-arena-oracle-v3" ] || [ "$ORACLE_V3_SRC" -nt "$LIVE/bin/near-arena-oracle-v3" ]; then
+    [ -x "$ORACLE_V3_SRC" ] || die "no near-arena-oracle-v3 at $ORACLE_V3_SRC (cd oracle/v3 && cargo build; oracle/scripts/link-nearcore.sh)"
+    install -m 755 "$ORACLE_V3_SRC" "$LIVE/bin/near-arena-oracle-v3.new" && mv -f "$LIVE/bin/near-arena-oracle-v3.new" "$LIVE/bin/near-arena-oracle-v3"
+  fi
 
   local rev; rev=$(git -C "$REPO" rev-parse HEAD)
   say "repo snapshot at $rev"
@@ -113,7 +121,7 @@ cmd_install() {
     spec/workloads deploy/scripts/arena-guard deploy/local/nginx.conf | tar -xf - -C "$stage"
   # public fixtures only: the trusted Lean tree is NEVER taken from HEAD; FORMAL_CHECK
   # builds from trusted-trees/<pin> (arena-live freeze-trusted), see docs/TCB.md
-  git -C "$REPO" archive --format=tar HEAD -- oracle/fixtures/public | tar -xf - -C "$stage/clean"
+  git -C "$REPO" archive --format=tar HEAD -- oracle/fixtures/public oracle/fixtures/v3/arena-public | tar -xf - -C "$stage/clean"
   echo "$rev" >"$stage/REVISION"
   # locally-registered challenges (register-challenge) survive reinstalls
   if [ -d "$LIVE/release/challenges" ]; then
@@ -154,12 +162,28 @@ upgrade_config() {
   grep -q '^ARENA_LEAN_CHECKER_IMAGES=' "$c/worker.env" || echo "ARENA_LEAN_CHECKER_IMAGES=$LEAN_IMAGES" >>"$c/worker.env"
   grep -q '^ARENA_HELDOUT_DIRS=' "$c/worker.env" || {
     echo "ARENA_HELDOUT_DIRS=$HELDOUT_DIRS" >>"$c/worker.env"; say "worker.env: + ARENA_HELDOUT_DIRS"; }
+  # v3 (near-chunk-validation-d0): its oracle, generator specs, public fixtures, held-out set
+  grep -q '^ARENA_NEAR_ORACLE_V3=' "$c/worker.env" || {
+    echo "ARENA_NEAR_ORACLE_V3=$LIVE/bin/near-arena-oracle-v3" >>"$c/worker.env"; say "worker.env: + ARENA_NEAR_ORACLE_V3"; }
+  ensure_list "$c/worker.env" ARENA_WORKLOAD_GENERATORS "$LIVE/release/spec/workloads/near-chunk-validation-d0"
+  ensure_list "$c/worker.env" ARENA_FIXTURES_DIRS "$LIVE/release/clean/oracle/fixtures/v3/arena-public"
+  [ -d "$HELDOUT_V3_DIR" ] && ensure_list "$c/worker.env" ARENA_HELDOUT_DIRS "$HELDOUT_V3_DIR"
   ensure_season_secret
   grep -q '^ARENA_TRUSTED_TREES=' "$c/server.env" || {
     printf '# frozen trusted trees: non-demo challenges register only against their pinned tree\nARENA_TRUSTED_TREES=%s\n' "$LIVE/trusted-trees" >>"$c/server.env"
     say "server.env: + ARENA_TRUSTED_TREES"
   }
   return 0
+}
+
+# ensure_list FILE KEY VALUE: KEY (a comma-separated list) contains VALUE.
+ensure_list() {
+  local f="$1" k="$2" v="$3" cur
+  cur=$(env_get "$f" "$k")
+  case ",$cur," in *",$v,"*) return 0 ;; esac
+  sed -i "/^$k=/d" "$f"
+  echo "$k=${cur:+$cur,}$v" >>"$f"
+  say "$(basename "$f"): $k += $v"
 }
 
 # The season secret (BENCHMARK_SPEC §11.1-11.2): 32 random bytes (hex) in
@@ -220,8 +244,9 @@ ARENA_TRUSTED_TREES=$LIVE/trusted-trees
 ARENA_FORMAL_CONFIGS_DIR=$LIVE/release/runners/formal-checker/challenges
 ARENA_NPAI_VERIFY=$LIVE/bin/npai-verify
 ARENA_NEAR_ORACLE=$LIVE/bin/near-arena-oracle
-ARENA_WORKLOAD_GENERATORS=$LIVE/release/spec/workloads/near-transfer-receipt-v1
-ARENA_FIXTURES_DIRS=$LIVE/release/clean/oracle/fixtures/public
+ARENA_NEAR_ORACLE_V3=$LIVE/bin/near-arena-oracle-v3
+ARENA_WORKLOAD_GENERATORS=$LIVE/release/spec/workloads/near-transfer-receipt-v1,$LIVE/release/spec/workloads/near-chunk-validation-d0
+ARENA_FIXTURES_DIRS=$LIVE/release/clean/oracle/fixtures/public,$LIVE/release/clean/oracle/fixtures/v3/arena-public
 ARENA_CONFORMANCE_SAMPLES=3
 ARENA_LEASE_SECONDS=600
 ARENA_POLL_MS=1000

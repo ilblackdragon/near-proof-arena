@@ -1,0 +1,12 @@
+{
+  "base": "01-h10025-s2",
+  "case": "01-h10025-s2-w.extra_proof",
+  "d0_violations": [],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "in_d0": true,
+  "kind": "mutant",
+  "mutation": "w.extra_proof",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"source_receipt_proofs contains too many proofs. Expected 5 proofs, found 6\")",
+  "verdict_source": "nearcore"
+}

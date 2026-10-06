@@ -1,0 +1,13 @@
+# Generated / large: produced by build-recipe/vendor.sh (packager, network)
+# and by build-recipe/build.sh. Part of the PACKAGE, not of git.
+/source/vendor/
+/source/target/
+/out/
+/formal/.lake/
+/bench/work/
+/source/target-*/
+# Copied from ../../zk-formal by build-recipe/sync-lean.sh (digests pinned in
+# dependency-locks/zk-formal.sha256); part of the PACKAGE's formal/ tree.
+/formal/ZkFormal/
+/formal/ZkFormal.lean
+/build-native/

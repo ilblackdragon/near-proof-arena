@@ -184,3 +184,65 @@ fn rejects_bad_procedures() {
     assert!(check_procedure(&p).is_err());
     assert!(check_procedure(&procedure(0, 0, 0)).is_err());
 }
+
+/// A batch runner that proves and verifies 2 requests per batch plus an
+/// untimed warm-up proof (vm_per_batch shape), with scripted times.
+struct TwoPerBatch {
+    sb: Scripted,
+    n: u64,
+}
+
+impl BatchRunner for TwoPerBatch {
+    fn run_batch(&mut self, _c: &str, _p: Phase, _r: u32) -> Result<BatchSample, RunError> {
+        let mut s = BatchSample::default();
+        let out = |w: u64| {
+            self.sb
+                .run(&SandboxSpec::new(vec![format!("{w}")]))
+                .unwrap()
+        };
+        // untimed warm-up proof: counts for max_proof_bytes only
+        s.note_proof_bytes(1_000_000);
+        for i in 0..2 {
+            self.n += 1;
+            let mut o = out(0);
+            o.wall_ns = 100 + self.n;
+            s.push_prove(&o);
+            s.note_timed_proof_bytes(1_000 + i);
+            o.wall_ns = 10 * self.n;
+            s.push_verify(&o);
+        }
+        Ok(s)
+    }
+}
+
+#[test]
+fn per_run_verify_and_byte_totals_for_cost_scoring() {
+    let sb = Scripted {
+        walls: Mutex::new(vec![1; 64]),
+        calls: Mutex::new(vec![]),
+    };
+    let mut runner = TwoPerBatch { sb, n: 0 };
+    let plan = SessionPlan {
+        classes: vec![ClassPlan {
+            class_id: "a".into(),
+            weight_ppm: 1_000_000,
+            baseline_ns: 1000,
+        }],
+        procedure: procedure(0, 1, 3),
+        schedule_seed: 7,
+        bootstrap_seed: 1,
+        bootstrap_iterations: 10,
+        fresh_confirm_runs: 0,
+    };
+    let r = run_session(&plan, &mut runner).unwrap();
+    let c = &r.classes[0];
+    // run k (k = 0 warm-up, 1..3 measured) proves requests n = 2k+1, 2k+2
+    assert_eq!(c.measured_runs_ns, [207, 211, 215]);
+    assert_eq!(c.measured_verify_runs_ns, [70, 110, 150]);
+    assert_eq!(c.measured_proof_bytes_runs, [2001, 2001, 2001]);
+    assert_eq!(c.verify_runs_ns.len(), 6);
+    assert_eq!(c.proof_bytes_max, 1_000_000);
+    let m = c.to_measurement();
+    assert_eq!(m.verify_runs_ns, [70, 110, 150]);
+    assert_eq!(m.proof_bytes_runs, [2001, 2001, 2001]);
+}

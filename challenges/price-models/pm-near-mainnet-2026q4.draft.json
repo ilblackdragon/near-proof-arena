@@ -1,0 +1,71 @@
+{
+ "schema": "arena-price-model-v1",
+ "id": "pm-near-mainnet-2026q4",
+ "version": 1,
+ "status": "draft",
+ "effective_from": "2026-10-05",
+ "currency": "USD",
+ "unit": "femto_usd",
+ "validators_per_chunk": 84,
+ "verifier_vcpus": 8,
+ "cpu_fusd_per_vcpu_second": 7610000000,
+ "bandwidth_fusd_per_byte": 82000,
+ "storage_fusd_per_byte": 0,
+ "prepare_amortization_requests": 0,
+ "rationale": [
+  {
+   "param": "validators_per_chunk",
+   "basis": "protocol",
+   "note": "N_v = distinct chunk validators that must receive, verify and endorse each chunk. Mainnet RPC `validators` at epoch_height 4835 (2026-10-05): 415 validators, 10 shards; sum of num_expected_endorsements_per_shard / num_expected_chunks_per_shard = 84.0-84.1 on every shard. Independent check: nearcore 2.13.4 mandates model (target_validator_mandates_per_shard = 105, epoch_configs/mainnet/85.json:7; ValidatorMandates::sample deals mandates round-robin over shards, validator_mandates/mod.rs:134-200) applied to the same stake distribution gives an expected 84.1 distinct validators per shard per height. Several mandates of one account verify once, so N_v < 105. Re-check per season: N_v moves with stake distribution and shard count.",
+   "sources": [
+    "nearcore 2.13.4 core/primitives/res/epoch_configs/mainnet/85.json:7 (target_validator_mandates_per_shard = 105)",
+    "nearcore 2.13.4 core/primitives/src/epoch_info.rs:597-611 (sample_chunk_validators per height)",
+    "nearcore 2.13.4 chain/epoch-manager/src/lib.rs:1064-1094 (chunk validator assignments per (epoch, shard, height))",
+    "https://rpc.mainnet.near.org method=validators, retrieved 2026-10-05 (epoch_height 4835)"
+   ]
+  },
+  {
+   "param": "verifier_vcpus",
+   "basis": "published",
+   "note": "Reference validator profile: NEAR's published chunk-validator spec is 'x86_64 with at least 8 physical cores' (recommended and minimal). The judge measures verify pinned to the first 8 benchmark CPUs; on the v1-6 host those are 8 physical cores (CCD0, SMT siblings idle), i.e. the reference profile. Charging allocated vCPUs x wall time (not guest CPU time) keeps the only trusted clock (supervisor wall) and makes parallel verifiers cost what they reserve.",
+   "sources": [
+    "https://near-nodes.io/validator/hardware-validator (chunk validator: 8 physical cores, 8-16 GB RAM)"
+   ]
+  },
+  {
+   "param": "cpu_fusd_per_vcpu_second",
+   "basis": "estimate",
+   "note": "c_cpu = 7.61e-6 USD per vCPU-second = USD 160/month for 8 vCPU (AWS m5a.2xlarge, CPU part, the first cost estimate NEAR publishes for a chunk validator): 160 / (730 h x 8 x 3600 s). The same price is used for the prover (chunk producer) because both run on the same class of node. ESTIMATE: on-demand cloud list price; bare metal is cheaper, reserved instances ~40% cheaper. Only ratios to the baseline enter the score, so a uniform CPU price change does not move CPU-only comparisons; it moves the CPU:bandwidth balance.",
+   "sources": [
+    "https://near-nodes.io/validator/hardware-validator (AWS m5a.2xlarge USD 160 CPU + 160 storage / month)"
+   ]
+  },
+  {
+   "param": "bandwidth_fusd_per_byte",
+   "basis": "estimate",
+   "note": "c_bw = per-validator network cost of one proof byte = egress price x upload amplification. Upload amplification from nearcore partial-witness distribution: Reed-Solomon with WITNESS_RATIO_DATA_PARTS = 0.6 and one part per chunk validator; each validator forwards its part to the other N-2 validators, so with N = 84: data parts = floor(0.6 x 84) = 50 and each validator uploads 82/50 = 1.64 x the proof (ingress is free on clouds). Egress price ESTIMATE USD 0.05/GB (AWS >150 TB/month tier; first tier is 0.09; unmetered bare metal is lower). 0.05e-9 USD/B x 1.64 = 8.2e-11 USD/B = 82000 fUSD/B. Not modelled: the chunk producer's own 1.68 x upload (one node, ~2% of the N_v term), compression (candidates may compress; decompression is inside verify time).",
+   "sources": [
+    "nearcore 2.13.4 chain/client/src/stateless_validation/partial_witness/encoding.rs:6 (WITNESS_RATIO_DATA_PARTS = 0.6)",
+    "nearcore 2.13.4 chain/client/src/stateless_validation/partial_witness/partial_witness_actor.rs:343-398, 442-477 (part i to validator i, forwarded to all others)",
+    "nearcore 2.13.4 core/primitives/src/reed_solomon.rs:76-82 (data parts, part length)",
+    "https://aws.amazon.com/ec2/pricing/on-demand/ (data transfer out to internet)"
+   ]
+  },
+  {
+   "param": "storage_fusd_per_byte",
+   "basis": "estimate",
+   "note": "0: chunk validators do not retain the witness after endorsing (only the endorsement signature enters the block; nearcore keeps witnesses only under a debug option). A future model that archives proofs for light clients would set this.",
+   "sources": [
+    "nearcore 2.13.4 core/primitives/src/stateless_validation/chunk_endorsement.rs:98-134 (only the signature goes into the block)"
+   ]
+  },
+  {
+   "param": "prepare_amortization_requests",
+   "basis": "estimate",
+   "note": "0 = prepare is not charged (bench-spec-v1 section 2 policy kept): prepare runs once per verified surface, i.e. once per release, while a release proves millions of chunks (43200 heights per epoch x 10 shards), so its amortized share is below measurement noise. It stays measured, capped and reported.",
+   "sources": [
+    "nearcore 2.13.4 core/primitives/res/epoch_configs/mainnet/85.json:2 (epoch_length = 43200)"
+   ]
+  }
+ ]
+}

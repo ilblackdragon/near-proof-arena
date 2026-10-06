@@ -448,14 +448,54 @@ diagnostic):
   | 1 | 110.007 | `sub_314aa809c32e42248cc637b462d8ced7` | reexec-witness-fast (PROVER_ONLY, `--parent sub_c67d…`) |
   | 2 | 98.376 | `sub_c67dd93beafd4ecc9935431366f0baa6` | reexec-witness (re-vendored, native-lean) |
   | 3 | 97.324 | `sub_7ef24373c6ac46cd800965882635df16` | reexec-npai (npai-v1) |
-  | 4 | 0.052 | `sub_19cc9c90e2184946aad17195bd02d847` | **np-udr-stark** (NEAR STARK, native-lean): ADMITTED at formal tier, all 14 gates PASS, signed report (docs/e2e-results/np-udr-stark-live/) |
-  | 5 | 0.048 | `sub_56bb976bc115412483197db8d34c3092` | np-udr-stark-fast (PROVER_ONLY, `--parent sub_19cc…`; formal gates reused; score below the parent: 22% faster on batch-256 but 41–53% slower on batch-1/16; cause under investigation (L8), see docs/e2e-results/np-udr-stark-live/) |
+  | 4 | 0.070 | `sub_ec1fdc22d88740188c9ea249d38914b8` | np-udr-stark-fast2 (PROVER_ONLY, `--parent sub_19cc…`; formal gates reused; prove 1.39 / 4.55 / 48.0 s; 2026-10-06) |
+  | 5 | 0.052 | `sub_19cc9c90e2184946aad17195bd02d847` | **np-udr-stark** (NEAR STARK, native-lean): ADMITTED at formal tier, all 14 gates PASS, signed report (docs/e2e-results/np-udr-stark-live/) |
+  | 6 | 0.048 | `sub_56bb976bc115412483197db8d34c3092` | np-udr-stark-fast (PROVER_ONLY, `--parent sub_19cc…`; formal gates reused; score below the parent: 22% faster on batch-256 but 41–53% slower on batch-1/16; cause under investigation (L8), see docs/e2e-results/np-udr-stark-live/) |
   | – | – | `sub_e2e032d91b1446e883ce0d031dd61dcf` | reexec-witness with the old vendored ArenaCore: REJECTED (ARTIFACT_BINDING_FAILED, correct) |
 
 * **np-udr-stark limitation (L8d).** Sampled workload classes prove in
   13–14 s at ≤ 1.5 GB. The worst-case adversarial maximum witness proves in
   1742 s (11.4 GB), above the 600 s per-run cap, so an adversarial case at
   that size would time out.
+
+### 5e. v3 D0 challenge `near-chunk-validation-d0` (2026-10-06)
+
+* **Challenge.** `chl_640ed008467448706236fc727f759ecc` **`near-chunk-validation-d0`**
+  (formal, open): statement `near/pv86/chunk-validation/v0`, domain D0, relation
+  `NearSpecV3.RelD0`. **Synthetic-chain D0, not mainnet-chunk validation**: claims come from
+  nearcore TestEnv chains with `chain_id = arena-v3-local` (mainnet runtime parameters, PV 86;
+  D0 never reads `chain_id`). A mainnet-replay v3 challenge is a later step. Trusted tree
+  `sha256:89903b98…` (commit `9f20f82`, frozen in `trusted-trees/`), checker `66b014d4…`,
+  workload classes d0-quiet / d0-transfers / d0-missing (20/50/30 %), held-out
+  `sha256:edac8e6f…`, baseline from `examples/reexec-v3-d0` measured on CPUs 0-7 with
+  secret sampling (`benchmarks/results/baseline-near-chunk-validation-d0-secret-cpus0-7-20261006/`),
+  speed scoring (cost_v1 needs a governed price model).
+* **Install.** From main `241dc41`. `worker.env` gained `ARENA_NEAR_ORACLE_V3`
+  (`bin/near-arena-oracle-v3`), the v3 generator specs, `release/clean/oracle/fixtures/v3/arena-public`
+  (`sha256:45eb0203…`) and the v3 held-out dir. Conformance on v3 also runs **rejection cases**
+  (nearcore rejects, or out of D0): a candidate whose verify accepts one fails with
+  `COUNTEREXAMPLE_FOUND`.
+* **Reference run 1: REJECTED.** `sub_7c6a67b0c3684852a8f755072744489a`: all 6 formal gates PASS
+  on the real judge, but ADVERSARIAL_PROOFS FAIL (`bitflip/379.3` accepted): the proof was the raw
+  witness, and nearcore (hence `RelD0`) ignores `height_included`, the chunk signature and the
+  transitions' `block_hash`, so a flipped bit there is another valid witness of the same claim.
+* **Fix (lead decision: canonical proof encoding, adversarial semantics unchanged).** The reference
+  proves with the canonical witness (those fields zeroed) and its verifier accepts only canonical
+  bytes; the certificate proves every `RelD0` witness has a canonical one (`relD0_canonical`).
+  The judge gained the structure-aware mutator `v3-ignored-fields` and the permanent hostile case
+  `near-v3-malleable-witness`. Successor **`chl_4b4316516128000f129cff9b3ced8b51`
+  `near-chunk-validation-d0-1`** (same statement, tree, workloads, fixtures, held-out set; baseline
+  re-measured from the canonical reference on CPUs 0-7, calibration OK) supersedes `chl_640ed008…`.
+  Install from main `84fa676`.
+* **v3 D0 board** (`chl_4b431651…`, synthetic-chain D0, benchmarks on CPUs 0-7, secret sampling,
+  held-out set, rejection cases):
+
+  | rank | score | submission | candidate |
+  |------|-------|------------|-----------|
+  | 1 | 102.144 ± 3.214 | `sub_9b0c50fcdf80450da79cced76b4f7aea` | **reexec-v3-d0** (canonical witness, native-lean): **ADMITTED at formal tier**, all 14 gates PASS; 84/84 conform + 127 rejection cases (0 accepted); 165/165 hostile inputs rejected; signed report in docs/e2e-results/v3-d0-reference/ |
+  | – | – | `sub_23822a4bea894cc8bb781f208af7f830` | hostile `near-v3-malleable-witness` (agent-1): **REJECTED** (HOSTILE_PROOF_ACCEPTED: all four `v3-ignored-fields` mutants accepted, deterministic) |
+
+  Details: `docs/e2e-results/v3-d0-reference/`.
 
 ## 5. Current state (2026-10-03 16:10 UTC)
 

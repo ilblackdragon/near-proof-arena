@@ -28,6 +28,8 @@ export interface AssumptionRef {
 
 export interface BenchmarkResult {
   classes: ClassMeasurement[];
+  /** Cost-board result for `scoring.kind = cost_v1` challenges (v1.5, additive). Never compared with `score_milli` (a speed score). */
+  cost?: CostResult | null;
   hardware_profile: string;
   measured_by: string;
   prepare_ns: number;
@@ -84,6 +86,8 @@ export interface ChallengeDefinition {
   resource_limits: ResourceLimits;
   runtime_config_digest: Digest;
   schema: string;
+  /** Scoring kind and, for `cost_v1`, the pinned price model and reference cost components (v1.5, additive; absent ⇒ `speed` and not serialized, so existing challenge ids are unchanged). docs/BENCHMARK_SPEC.md §14. */
+  scoring?: ScoringSpec | null;
   season: string;
   security_profile: SecurityProfile;
   semantic_scope: SemanticScope;
@@ -112,9 +116,52 @@ export interface ClassMeasurement {
   median_ns: number;
   peak_rss_bytes: number;
   proof_bytes_max: number;
+  /** Per measured run: Σ proof bytes of the batch (v1.5, additive). */
+  proof_bytes_runs?: number[];
   runs_ns: number[];
   verify_median_ns: number;
+  /** Per measured run (same order as `runs_ns`): Σ verify wall ns of the batch's proofs (v1.5, additive; empty in older results). */
+  verify_runs_ns?: number[];
   weight_ppm: number;
+}
+
+/** Reference-candidate cost components of one class, measured under the challenge's procedure (component medians over measured runs; one run = one batch of `batch_size` requests). */
+export interface CostBaselineClass {
+  class_id: string;
+  /** Median Σ proof bytes per batch. */
+  proof_bytes: number;
+  /** Median Σ prove wall ns per batch; must equal `workload_suite.baseline_ns`. */
+  prove_ns: number;
+  /** Median Σ verify wall ns per batch, on `verifier_vcpus` CPUs. */
+  verify_ns: number;
+}
+
+/** Cost components of one class (component medians, integer femto-USD per batch run). `*_fusd` validator terms already include the `N_v` factor. */
+export interface CostClass {
+  bandwidth_fusd: number;
+  baseline_total_fusd: number;
+  class_id: string;
+  prepare_fusd: number;
+  proof_bytes: number;
+  prove_fusd: number;
+  prove_ns: number;
+  storage_fusd: number;
+  total_fusd: number;
+  verify_fusd: number;
+  verify_ns: number;
+  weight_ppm: number;
+}
+
+/** `BenchmarkResult.cost` (v1.5, additive): the cost-board result. */
+export interface CostResult {
+  classes: CostClass[];
+  kind: ScoringKind;
+  price_model_digest: Digest;
+  price_model_id: string;
+  score_ci_milli?: number | null;
+  score_milli?: number | null;
+  validators_per_chunk: number;
+  verifier_vcpus: number;
 }
 
 export type Decision = "ADMITTED" | "REJECTED" | "INCONCLUSIVE" | "INFRA_ERROR" | "CANCELLED";
@@ -224,15 +271,29 @@ export interface HardwareRequest {
   min_ram_gb: number;
 }
 
+/** Sandbox-instance granularity of steady-state benchmark runs. */
+export type InvocationMode = "vm_per_invocation" | "vm_per_batch";
+
 export interface LeaderboardEntry {
   accepted?: boolean | null;
   agent: string;
   backend_family: string;
+  /** Which board `rank` belongs to: `speed` (default) or `cost_v1` (additive, v1.5). */
+  board?: ScoringKind | null;
   candidate_name: string;
+  /** The challenge this result was measured under (additive, v1.4). A result is never re-labelled or moved to another challenge's board. */
+  challenge_id?: string;
+  /** Per-class cost components, so the board shows why (v1.5). */
+  cost?: CostResult | null;
+  cost_score_ci_milli?: number | null;
+  /** Cost-board score and its CI (cost_v1 challenges only; v1.5). */
+  cost_score_milli?: number | null;
   decision?: Decision | null;
   hardware_profile: string;
   peak_rss_bytes?: number | null;
   proof_bytes?: number | null;
+  /** That challenge's NEAR protocol version (additive, v1.4). */
+  protocol_version?: number;
   prove_median_ns?: number | null;
   rank?: number | null;
   revoked: boolean;
@@ -243,6 +304,8 @@ export interface LeaderboardEntry {
   security_profile: string;
   submission_id: string;
   submitted_at: string;
+  /** Set when the challenge has been superseded: the board is historical (frozen, closed for new submissions) and scores are not comparable with the successor's (additive, v1.4). */
+  superseded_by?: string | null;
   tier: Tier;
   verify_median_ns?: number | null;
 }
@@ -261,6 +324,8 @@ export interface MeasurementProcedure {
   aggregation: string;
   cold_runs: number;
   concurrency: number;
+  /** How benchmark invocations are isolated (v1.4, additive; absent ⇒ `vm_per_invocation`, i.e. bench-spec-v1, and not serialized, so existing challenge ids are unchanged). See docs/BENCHMARK_SPEC.md §4. */
+  invocation_mode?: InvocationMode | null;
   measured_runs: number;
   /** Runs farther than this many MADs from the median are flagged (not dropped). */
   outlier_mad_k: number;
@@ -277,6 +342,46 @@ export interface NearcorePin {
 export type NodeKind = "nearcore_source" | "formal_semantics" | "backend_semantics" | "theorem" | "assumption" | "artifact" | "tcb_component" | "test_suite" | "measurement";
 
 export type ObligationId = "PKG_WELLFORMED" | "BUILD_REPRODUCIBLE" | "ARTIFACT_BINDING" | "FORMAL_SEMANTIC_SOUNDNESS" | "FORMAL_SEMANTIC_COMPLETENESS" | "FORMAL_CRYPTO_SOUNDNESS" | "FORMAL_IMPL_CONNECTION" | "FORMAL_ZK" | "AXIOM_AUDIT" | "CONFORMANCE_DIFFERENTIAL" | "ADVERSARIAL_PROOFS" | "PROVER_RELIABILITY" | "RESOURCE_LIMITS" | "BENCHMARK";
+
+/** `arena-price-model-v1`: integers only, femto-USD. Per-chunk system cost of one proved request (docs/BENCHMARK_SPEC.md §14.2):
+ * 
+ * ```text C = c_cpu·vcpus_p·T_prove + c_cpu·vcpus_p·T_prepare·/A + N_v · ( c_cpu·vcpus_v·T_verify + (c_bw + c_store)·proof_bytes ) ``` */
+export interface PriceModel {
+  /** `c_bw`: network cost per proof byte per validator. */
+  bandwidth_fusd_per_byte: number;
+  /** `c_cpu`: price of one vCPU for one second (prover and validator). */
+  cpu_fusd_per_vcpu_second: number;
+  /** `USD`. */
+  currency: string;
+  effective_from: string;
+  id: string;
+  /** `A`: requests over which one `prepare` is amortized; 0 = `prepare` is not charged (reported only, bench-spec-v1 §2). */
+  prepare_amortization_requests: number;
+  rationale: PriceRationale[];
+  /** `arena-price-model-v1`. */
+  schema: string;
+  /** `draft` (never pinned by a signed challenge) or `governed`. */
+  status: string;
+  /** `c_store`: retention cost per proof byte per validator (0 = none). */
+  storage_fusd_per_byte: number;
+  /** `femto_usd`. */
+  unit: string;
+  /** `N_v`: validators that each verify every chunk's proof (stateless validation fan-out). ≥ 1. */
+  validators_per_chunk: number;
+  /** vCPUs of the reference validator profile; `verify` is measured pinned to this many of the benchmark CPUs and charged for them. ≥ 1 and ≤ the challenge's `hardware_profile.vcpus`. */
+  verifier_vcpus: number;
+  version: number;
+}
+
+/** Why a price-model parameter has its value (part of the hashed object, so the rationale cannot be edited without a new version). */
+export interface PriceRationale {
+  /** `protocol` (read from pinned nearcore), `published` (public price list / docs), or `estimate` (a modelling choice). */
+  basis: string;
+  note: string;
+  /** Field name of the parameter, e.g. `validators_per_chunk`. */
+  param: string;
+  sources: string[];
+}
 
 export type Privacy = "validity_only" | "zero_knowledge";
 
@@ -313,6 +418,19 @@ export interface RevocationEvent {
 }
 
 export type ScopeKind = "full_chunk_transition" | "subset";
+
+export type ScoringKind = "speed" | "cost_v1";
+
+/** `ChallengeDefinition.scoring` (v1.5, additive). */
+export interface ScoringSpec {
+  cost_baseline?: CostBaselineClass[];
+  /** Reference candidate's `prepare` wall ns (only charged when `prepare_amortization_requests > 0`). */
+  cost_baseline_prepare_ns?: number | null;
+  kind: ScoringKind;
+  price_model?: PriceModel | null;
+  /** JCS sha256 of `price_model`; shown on every cost-board row. */
+  price_model_digest?: Digest | null;
+}
 
 export type SecurityModel = "standard" | "random_oracle";
 
@@ -414,7 +532,15 @@ export interface VerifiedSurface {
   formal_tree: Digest;
   prepare_artifact: Digest;
   public_artifacts: Digest;
+  /** `npai-v1`: SHA-256 digest of the built verifier bytecode image. */
+  verifier_bytecode?: Digest | null;
+  /** `native-lean`: `[formal] verifier_model`. */
+  verifier_model?: string | null;
+  /** `native-lean`: `[formal] verifier_model_module`. */
+  verifier_model_module?: string | null;
   verify_artifact: Digest;
+  /** Effective verify route (`native` when the manifest omits it). */
+  verify_route?: VerifyRoute | null;
 }
 
 export type VerifyRoute = "native" | "npai-v1" | "native-lean";

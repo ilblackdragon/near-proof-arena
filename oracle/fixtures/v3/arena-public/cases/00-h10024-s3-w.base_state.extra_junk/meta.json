@@ -1,0 +1,12 @@
+{
+  "base": "00-h10024-s3",
+  "case": "00-h10024-s3-w.base_state.extra_junk",
+  "d0_violations": [],
+  "expected_rel": true,
+  "expected_rel_d0": true,
+  "in_d0": true,
+  "kind": "mutant",
+  "mutation": "w.base_state.extra_junk",
+  "nearcore": "ok",
+  "verdict_source": "nearcore"
+}

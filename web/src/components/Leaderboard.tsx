@@ -2,6 +2,7 @@ import type { BoardEntry, ChallengeDefinition } from '../api/types';
 import { belongsTo, partition, type RankedEntry } from '../lib/board';
 import { fmtBytes, fmtNs, fmtScoreCi, fmtTime } from '../lib/format';
 import { AcceptedText, DecisionBadge, ReferenceBadge, RevokedBadge, TierBadge } from './Badges';
+import { CostBoard } from './CostBoard';
 import { SubLink } from './Links';
 import { T } from './Text';
 
@@ -110,8 +111,8 @@ export function Leaderboard({
         </h2>
         <p className="small muted">
           Only formal-tier submissions that the judge ADMITTED (every mandatory gate PASS) and that
-          have not been revoked. Ranked by judge-measured score; higher is faster than the baseline
-          (100 = baseline).
+          have not been revoked. Ranked by judge-measured speed score; higher is faster than the
+          baseline (100 = baseline).
         </p>
         {!isFormal ? (
           <p className="empty" role="status">
@@ -125,6 +126,8 @@ export function Leaderboard({
           <BoardTable caption="Official ranking" rows={ranked(b.official)} />
         )}
       </section>
+
+      {isFormal && <CostBoard entries={entries} def={def} challengeId={challengeId} />}
 
       {b.formal_other.length > 0 && (
         <section className="board-section" aria-labelledby="lb-pending">

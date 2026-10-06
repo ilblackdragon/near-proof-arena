@@ -139,6 +139,35 @@ implementation (e.g. a sandbox violation surfaced under `PROVER_RELIABILITY` vs
 matches on three things together: decision, **at least one** expected gate
 FAILed, and **all** expected reason codes present somewhere in the report.
 
+### Note: random bit flips are not enough for malleability (2026-10-06)
+
+Live run 1 of the v3 D0 reference (`near-chunk-validation-d0`) was rejected only
+because one of the generic `bitflip` mutator's five random positions per proof
+happened to land in the chunk signature: the proof was the raw `ChunkStateWitness`,
+and nearcore's validator ignores ~100 of its bytes (`height_included`, the chunk
+signature, every transition `block_hash`). A rerun could have missed them. The
+worker therefore ships a **structure-aware** generic mutator, `v3-ignored-fields`
+(`runners/worker/src/mutators.rs`), which flips one bit of each validator-ignored
+field of every `near-arena-witness-v3` proof, and the permanent hostile case
+`near-v3-malleable-witness` (target `near-v3`) must be REJECTED with
+`HOSTILE_PROOF_ACCEPTED` deterministically. **Follow-up:** whenever a statement has
+inputs the reference validator does not read (known ignored fields of a witness
+format, lenient map decoding, unsorted keys, unreferenced trie nodes), add a
+structure-aware mutator for them instead of relying on random positions.
+
+**Lenient decoding (closed 2026-10-06).** Duplicate / unordered
+`source_receipt_proofs` keys and reordered, repeated or never-read `base_state`
+values are a further malleability class (insertion and reordering, not bit flips)
+that the canonical-only reference left open. The worker's generic structure-aware
+mutator `v3-witness-freedoms` now applies each of them to every
+`near-arena-witness-v3` proof (`entries/duplicate-key`, `entries/reorder`,
+`values/{reorder,duplicate,inject-unused}.<main|implicitN>`), the permanent hostile
+case `near-v3-lenient-witness` (the canonical-only reference) must be REJECTED with
+`HOSTILE_PROOF_ACCEPTED`, and the reference accepts only the **full normal form**
+(`examples/reexec-v3-d0/formal/ReexecV3D0/NormalForm.lean`: entries deduplicated
+and sorted by key, every `base_state` exactly the read set of the relation's trie
+builds, deduplicated and sorted; proved complete and enforced byte-exactly).
+
 ## 2. Proof mutators (`proof-mutators/`)
 
 A Rust crate of hostile proof-byte generators that feed the `ADVERSARIAL_PROOFS`
@@ -197,6 +226,8 @@ well-formedness check, then the Python driver `run_hostile.py`:
   characters.
 
 ## Challenge targeting (`expect.json` `targets` / `runnable`)
+
+`near-v3` targets the v3 D0 challenge `near-chunk-validation-d0` (`run_hostile.py --target near-v3`).
 
 A gate only exists where the challenge requires it, so each case declares which
 challenge kind(s) it is meaningful on:

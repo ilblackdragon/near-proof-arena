@@ -1,0 +1,10 @@
+chunk 28 s0big growth 4000000 nearcore ok spec ok
+chunk 30 s1big growth 3997969 nearcore ok spec ok
+chunk 37 s0big growth 3998151 nearcore ok spec ok
+chunk 38 s1big growth 4000000 nearcore ok spec ok
+chunk 44 s0big growth 3999878 nearcore ok spec ok
+chunk 46 s1big growth 3998175 nearcore ok spec ok
+chunk 52 s0big growth 4000001 nearcore fail:RecordedStorageExceeded spec fail:RecordedStorageExceeded
+chunk 54 s1big growth 3997449 nearcore ok spec ok
+chunk 60 s0big growth 3255933 nearcore ok spec ok
+chunk 62 s1big growth 4645178 nearcore fail:RecordedStorageExceeded spec fail:RecordedStorageExceeded

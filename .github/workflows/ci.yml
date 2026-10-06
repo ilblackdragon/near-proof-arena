@@ -75,6 +75,8 @@ jobs:
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
       - name: Regenerate common/schemas and require no diff
         run: make schemas-check
+      - name: Signed-challenge oracle pins (oracle/v3 source TreeDigest)
+        run: make pin-check
 
   # Lean projects. zk-formal (the STARK admission certificates, audit A07)
   # requires formal-core and spec/lean as Lake *path* dependencies

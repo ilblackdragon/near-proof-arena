@@ -1,5 +1,42 @@
 # Contract changelog
 
+## v1.5 (additive, scoring-v2 lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
+
+Cost-normalized scoring (docs/BENCHMARK_SPEC.md §14). All new fields are
+optional or defaulted, and none is serialized when absent, so every existing
+challenge id, result and signed report is unchanged.
+
+* `ChallengeDefinition.scoring: Option<ScoringSpec>`
+  (`arena_types::scoring`) contains:
+  * `kind`: `speed` | `cost_v1`;
+  * `price_model`: an `arena-price-model-v1` model, inline;
+  * `price_model_digest`: the JCS sha256 of that model, which must match;
+  * `cost_baseline`: per class `{class_id, prove_ns, verify_ns, proof_bytes}`,
+    where `prove_ns` must equal `workload_suite.baseline_ns`;
+  * `cost_baseline_prepare_ns`.
+
+  Absent means `speed`. `ChallengeDefinition::check_scoring` runs in
+  `arena-admin verify` and at server registration (`verify_definition`). A
+  `formal` challenge must pin a `governed` model.
+* `ClassMeasurement.verify_runs_ns` and `proof_bytes_runs`: per measured run,
+  Σ verify wall ns and Σ proof bytes of the batch, in the same order as
+  `runs_ns`.
+* `BenchmarkResult.cost: Option<CostResult>` holds the kind, the price-model
+  id and digest, `validators_per_chunk`, `verifier_vcpus`, `score_milli`,
+  `score_ci_milli` and per-class `CostClass` (component medians and each
+  `*_fusd` term). The server recomputes it from the per-run vectors. It drops
+  the result on speed-only challenges and when the vectors are missing.
+* `LeaderboardEntry` gains `board`, `cost_score_milli`,
+  `cost_score_ci_milli` and `cost`. `GET /v1/leaderboards/{id}?board=cost_v1`
+  serves the cost board, or 404 if the challenge has none.
+  `arena_db::views::Leaderboard` gains `scoring_kind` and `cost_ranked`.
+* Worker: for `cost_v1`, `verify` is pinned to the first
+  `price_model.verifier_vcpus` benchmark CPUs (fail closed). The session
+  report gains `measured_verify_runs_ns` and `measured_proof_bytes_runs` per
+  class.
+* Test vectors: `benchmarks/testvectors/cost.json`
+  (`arena-bench-cost-testvectors-v1`).
+
 ## v1.4 (additive, challenge-v2 lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
 
 Protocol-upgrade governance (docs/PROTOCOL_UPGRADES.md). All new fields are

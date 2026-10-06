@@ -1,0 +1,5 @@
+S	log_h	widths	k	proof_B	prove_s	rust_verify_s	lean_verify_ms	peak_rss_MB	ood	finals	tables	cells
+1	8	150	8	424874	0.032	0.006	131 accept	6	346	4	2	38656
+1	16	150	8	1123210	3.141	0.011	439 accept	285	346	4	2	9830656
+1	18	150	8	1326122	11.107	0.013	496 accept	1084	346	4	2	39321856
+1	20	150	8	1603850	41.060	0.012	445 accept	4098	346	4	2	157286656
