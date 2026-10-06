@@ -279,4 +279,102 @@ theorem distinctKeys_normEntries_length (es : List ProofEntry) :
     dedupLastBy_of_pairwise _ _ (normEntries_pairwise es)]
   exact (isort_perm _ _).length_eq
 
+/-! ## Idempotence of the sort -/
+
+theorem bytesLe_total : ∀ a b : Bytes, bytesLe a b = true ∨ bytesLe b a = true
+  | [], _ => Or.inl rfl
+  | _ :: _, [] => Or.inr rfl
+  | x :: xs, y :: ys => by
+    simp only [bytesLe]
+    by_cases h1 : x.toNat < y.toNat
+    · simp [h1]
+    · by_cases h2 : y.toNat < x.toNat
+      · simp [h2]
+      · have hxy : x = y := UInt8.toNat_inj.mp (by omega)
+        subst hxy
+        simp [h1, bytesLe_total xs ys]
+
+def SortedAdj {α : Type} (le : α → α → Bool) : List α → Prop
+  | [] => True
+  | [_] => True
+  | x :: y :: t => le x y = true ∧ SortedAdj le (y :: t)
+
+theorem sortedAdj_cons {α : Type} (le : α → α → Bool) (y : α) :
+    ∀ l, SortedAdj le l → (∀ h, l.head? = some h → le y h = true) → SortedAdj le (y :: l)
+  | [], _, _ => trivial
+  | z :: t, hs, hh => ⟨hh z rfl, hs⟩
+
+theorem insertBy_head {α : Type} (le : α → α → Bool) (x z : α) (t : List α) (h : α)
+    (hh : (insertBy le x (z :: t)).head? = some h) : h = x ∨ h = z := by
+  unfold insertBy at hh
+  split at hh
+  · simp at hh; exact Or.inl hh.symm
+  · simp at hh; exact Or.inr hh.symm
+
+theorem insertBy_sorted {α : Type} (le : α → α → Bool) (tot : ∀ a b, le a b = true ∨ le b a = true)
+    (x : α) : ∀ l, SortedAdj le l → SortedAdj le (insertBy le x l)
+  | [], _ => trivial
+  | [y], _ => by
+    unfold insertBy
+    split
+    · rename_i h; exact ⟨h, trivial⟩
+    · rename_i h
+      have := (tot x y).resolve_left h
+      exact ⟨this, trivial⟩
+  | y :: z :: t, hs => by
+    obtain ⟨hyz, hs'⟩ := hs
+    unfold insertBy
+    split
+    · rename_i h; exact ⟨h, hyz, hs'⟩
+    · rename_i h
+      have hyx := (tot x y).resolve_left h
+      have ih := insertBy_sorted le tot x (z :: t) hs'
+      apply sortedAdj_cons le y _ ih
+      intro hd hhd
+      rcases insertBy_head le x z t hd hhd with rfl | rfl
+      · exact hyx
+      · exact hyz
+
+theorem isort_sorted {α : Type} (le : α → α → Bool) (tot : ∀ a b, le a b = true ∨ le b a = true) :
+    ∀ l, SortedAdj le (isort le l)
+  | [] => trivial
+  | x :: xs => insertBy_sorted le tot x _ (isort_sorted le tot xs)
+
+theorem isort_of_sorted {α : Type} (le : α → α → Bool) : ∀ l, SortedAdj le l → isort le l = l
+  | [], _ => rfl
+  | [x], _ => rfl
+  | x :: y :: t, hs => by
+    obtain ⟨hxy, hs'⟩ := hs
+    show insertBy le x (isort le (y :: t)) = x :: y :: t
+    rw [isort_of_sorted le (y :: t) hs']
+    unfold insertBy
+    simp [hxy]
+
+theorem isort_idem {α : Type} (le : α → α → Bool) (tot : ∀ a b, le a b = true ∨ le b a = true)
+    (l : List α) : isort le (isort le l) = isort le l :=
+  isort_of_sorted le _ (isort_sorted le tot l)
+
+theorem normEntries_idem (es : List ProofEntry) : normEntries (normEntries es) = normEntries es := by
+  unfold normEntries
+  rw [dedupLastBy_of_pairwise _ _ ((isort_perm _ _).symm.pairwise (dedupLastBy_pairwise _ es)
+    (fun h => fun h' => h h'.symm))]
+  exact isort_idem _ (fun a b => bytesLe_total a.key b.key) _
+
+/-- Re-normalising values with the looked-up hashes of the normal store gives the same
+values. -/
+theorem filterMap_congr_mem {α β : Type} (f g : α → Option β) :
+    ∀ l : List α, (∀ x ∈ l, f x = g x) → l.filterMap f = l.filterMap g
+  | [], _ => rfl
+  | x :: xs, h => by
+    simp only [List.filterMap_cons]
+    rw [h x List.mem_cons_self, filterMap_congr_mem f g xs (fun y hy => h y (List.mem_cons_of_mem _ hy))]
+
+/-- Re-normalising values with the looked-up hashes of the normal store gives the same
+values. -/
+theorem normVals_idem (vals : List Bytes) (q q' : List Bytes) (hq' : ∀ x ∈ q', x ∈ q) :
+    normVals (normVals vals q) q' = normVals vals q' := by
+  have := filterMap_congr_mem _ _ q' (fun x hx => storeGet_normVals vals q x (hq' x hx))
+  unfold normVals at this ⊢
+  rw [this]
+
 end ReexecV3D0

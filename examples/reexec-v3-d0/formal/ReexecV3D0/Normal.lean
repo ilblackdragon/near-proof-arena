@@ -258,4 +258,53 @@ theorem keysD0_normal {cb w w' sw sw' : Bytes} {s : StateWitness} {K : List (Lis
   rw [ha, ok_bind]
   rfl
 
+/-! ## The normal form is a fixed point -/
+
+theorem qFor_normVals (vals q : List Bytes) (R : Bytes) (K : List (List Nat))
+    (hq : ∀ x ∈ qFor (mkStore vals) trieFuel R K, x ∈ q) :
+    qFor (mkStore (normVals vals q)) trieFuel R K = qFor (mkStore vals) trieFuel R K :=
+  qFor_agree _ _ trieFuel R K (fun x hx => storeGet_normVals vals q x (hq x hx))
+
+theorem normMain_idem (K : List (List Nat)) (R : Bytes) (t : Transition) :
+    normMain K R (normMain K R t) = normMain K R t := by
+  have h1 := qFor_normVals t.values (qFor (mkStore t.values) trieFuel R [keyBufferedIdx] ++
+    qFor (mkStore t.values) trieFuel R K) R [keyBufferedIdx] (fun x hx => List.mem_append_left _ hx)
+  have h2 := qFor_normVals t.values (qFor (mkStore t.values) trieFuel R [keyBufferedIdx] ++
+    qFor (mkStore t.values) trieFuel R K) R K (fun x hx => List.mem_append_right _ hx)
+  unfold normMain
+  simp only [Transition.mk.injEq, true_and]
+  refine ⟨?_, trivial⟩
+  show normVals (normMain K R t).values _ = _
+  unfold normMain
+  dsimp only
+  rw [h1, h2]
+  exact normVals_idem _ _ _ (fun x hx => hx)
+
+theorem normT_idem (r : Bytes) (t : Transition) : normT r (normT r t) = normT r t := by
+  have h1 := qFor_normVals t.values (qFor (mkStore t.values) trieFuel r [keyDelayedIdx, keyBwState]) r
+    [keyDelayedIdx, keyBwState] (fun x hx => hx)
+  unfold normT
+  simp only [Transition.mk.injEq, true_and]
+  refine ⟨?_, trivial⟩
+  show normVals (normT r t).values _ = _
+  unfold normT
+  dsimp only
+  rw [h1]
+  exact normVals_idem _ _ _ (fun x hx => hx)
+
+theorem normImpl_idem : ∀ (r : Bytes) (ts : List Transition), normImpl r (normImpl r ts) = normImpl r ts
+  | _, [] => rfl
+  | r, t :: ts => by
+    simp only [normImpl]
+    rw [normT_idem]
+    show normT r t :: normImpl (normT r t).postStateRoot (normImpl t.postStateRoot ts) = _
+    rw [show (normT r t).postStateRoot = t.postStateRoot from rfl, normImpl_idem]
+
+theorem normW_idem (K : List (List Nat)) (R : Bytes) (s : StateWitness) :
+    normW K R (normW K R s) = normW K R s := by
+  unfold normW
+  dsimp only
+  rw [normEntries_idem, normMain_idem]
+  rw [show (normMain K R s.main).postStateRoot = s.main.postStateRoot from rfl, normImpl_idem]
+
 end ReexecV3D0
