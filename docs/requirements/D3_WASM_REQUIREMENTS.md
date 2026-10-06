@@ -309,7 +309,7 @@ the caps, and only then by cost per gas. With composition rejected (§2.5), rais
 path to larger D3 coverage.
 
 **Prover-lane work to raise `G_α`.** Each lever is quantified in `docs/research/recursion-r1-cost.md`
-§levers. Every one must stay inside the existing formal stack, and every parameter change must be
+§6. Every one must stay inside the existing formal stack, and every parameter change must be
 re-checked against the L2/L3 soundness bounds.
 1. **Taller tables with lower blowup.** About 3× fewer proof bytes per operator at rate 1/4. This
    needs new parameter checks and a re-instantiation of the unique-decoding FRI soundness at the
