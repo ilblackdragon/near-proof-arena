@@ -49,7 +49,7 @@ LEAN="${TC}/bin/lean"
 LEANC="${TC}/bin/leanc"
 ORDER="${ROOT}/source/target/release/leanorder"
 TRUSTED_PREFIXES="ArenaCore NearSpec.Bytes NearSpec.SHA256 NearSpec.AccountId NearSpec.Primitives NearSpec.Trie NearSpec.Outcome NearSpec.TransferV1 NearSpec.ClaimCodec NearSpec.Challenge NearSpec.TrieUpsert NearSpec.Bandwidth NearSpecV3.ChaCha20 NearSpecV3.GF256 NearSpecV3.ReedSolomon NearSpecV3.F64 NearSpecV3.Congestion NearSpecV3.BandwidthScheduler NearSpecV3.Wire NearSpecV3.ClaimV3 NearSpecV3.ClaimV3Props NearSpecV3.WitnessV3 NearSpecV3.Layout NearSpecV3.TrieBuild NearSpecV3.RuntimeD0 NearSpecV3.ChunkValidationV0 NearSpecV3.ChallengeV3"
-MODEL_MODULES="ReexecV3D0.Model"   # the model's import closure in formal/
+MODEL_MODULES="ReexecV3D0.CanonDefs ReexecV3D0.Model"   # the model's import closure in formal/
 NB="${ROOT}/build-native"
 rm -rf "${NB}"
 mkdir -p "${NB}/tsrc" "${NB}/msrc/ReexecV3D0" "${NB}/main" "${NB}/olean" "${NB}/c" "${NB}/o"

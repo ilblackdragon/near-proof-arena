@@ -2,6 +2,7 @@ import ArenaCore.Admission
 import NearSpecV3.ChallengeV3
 import ReexecV3D0.Model
 import ReexecV3D0.Size
+import ReexecV3D0.Canon
 
 /-!
 # The admission obligations of the `reexec-v3-d0` backend
@@ -12,10 +13,13 @@ judge renders those literals.
 
 * Backend: `Aux := Witness` (the witness bytes), `B := Rel` — semantic
   soundness and completeness are immediate.
-* Verifier completeness: the honest proof IS the witness `w`; the verifier
-  decodes the canonical claim back (`WfClaim.decode_encode`, the proved codec
-  round trip of `NearSpecV3.ChallengeV3`) and decides `RelD0 (encode c) w`,
-  which holds; `|w| ≤ 8 388 641` by `relD0_witness_length` (`Size.lean`).
+* Verifier completeness: the honest proof is the **canonical form** `w'` of the
+  witness `w` (`relD0_canonical`, `Canon.lean`: the validator-ignored
+  `height_included`, chunk signature and transition block hashes zeroed; `RelD0`
+  still holds by `checkD0_norm`, and `|w'| ≤ |w|`); the verifier decodes the
+  canonical claim back (`WfClaim.decode_encode`, the proved codec round trip of
+  `NearSpecV3.ChallengeV3`), checks `canonicalW w'` and decides `RelD0 (encode c) w'`;
+  `|w| ≤ 8 388 641` by `relD0_witness_length` (`Size.lean`).
 * Cryptographic soundness: **deterministic** (`DeterministicSound`, ε = 0, no
   assumption). The verifier accepts only if `decide (RelD0 (encode c) pb)`
   holds for the decoded claim `c`, so every accepted claim is in the
@@ -53,7 +57,7 @@ theorem check_sound {cb pb : ArenaCore.Bytes} (h : check cb pb = true) :
   split at h
   · cases h
   · rename_i c hc
-    have hr : RelD0 c.encode pb := of_decide_eq_true h
+    have hr : RelD0 c.encode pb := of_decide_eq_true (Bool.and_eq_true_iff.mp h).2
     exact ⟨c, hc, hr⟩
 
 theorem deterministicSound (pub : ArenaCore.Bytes) :
@@ -63,10 +67,12 @@ theorem deterministicSound (pub : ArenaCore.Bytes) :
   obtain ⟨c, hc, hr⟩ := check_sound h
   exact ⟨c, hc, pb, hr⟩
 
-theorem check_complete {c : WfClaim} {w : List UInt8} (h : WfClaim.Rel c w) :
-    check (WfClaim.encode c) w = true := by
+theorem check_complete {c : WfClaim} {w : List UInt8} (h : WfClaim.Rel c w)
+    (hc : canonicalW w = true) : check (WfClaim.encode c) w = true := by
   unfold check
   rw [WfClaim.decode_encode]
+  dsimp only
+  rw [hc, Bool.true_and]
   exact decide_eq_true h
 
 theorem honest_length {c : WfClaim} {w : List UInt8} (h : WfClaim.Rel c w) :
@@ -75,9 +81,10 @@ theorem honest_length {c : WfClaim} {w : List UInt8} (h : WfClaim.Rel c w) :
 theorem verifierComplete (pub : ArenaCore.Bytes) (mpb : Nat) (hm : honestProofBound ≤ mpb) :
     VerifierComplete challengeSpec Model.verifier.deployed pub mpb := by
   intro c w _ h
-  refine ⟨w, Nat.le_trans (honest_length h) hm, ?_⟩
-  have hc : check (WfClaim.encode c) w = true := check_complete h
-  exact (deployed_eq pub (challengeSpec.encodeClaim c) w).trans hc
+  obtain ⟨w', h', hcan, hlen⟩ := relD0_canonical (cb := c.1.encode) h
+  refine ⟨w', Nat.le_trans hlen (Nat.le_trans (honest_length h) hm), ?_⟩
+  have hc : check (WfClaim.encode c) w' = true := check_complete h' hcan
+  exact (deployed_eq pub (challengeSpec.encodeClaim c) w').trans hc
 
 /-- The full admission statement for the native-trusted route, for any
 profile / fuel / reduction budget and any `maxProofBytes ≥ 8 388 641`. -/

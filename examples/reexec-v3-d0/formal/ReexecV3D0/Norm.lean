@@ -1,5 +1,6 @@
 import NearSpecV3.ChunkValidationV0
 import ReexecV3D0.Size
+import ReexecV3D0.CanonDefs
 
 /-!
 # `RelD0` ignores the validator-ignored transition field `block_hash`
@@ -14,8 +15,6 @@ accepted whenever the original is (`checkD0_norm`).
 namespace ReexecV3D0
 
 open NearSpec NearSpecV3
-
-def zeroHash : Bytes := List.replicate 32 0
 
 def zt (t : Transition) : Transition := { t with blockHash := zeroHash }
 
