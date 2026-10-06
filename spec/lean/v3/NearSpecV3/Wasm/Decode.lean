@@ -207,8 +207,9 @@ def instr : P Instr := do
   | 0x1B => pure (.select none)
   | 0x1C => do
     let ts ← vecOf valType
-    if ts.size ≠ 1 then fail "invalid result arity for select"
-    pure (.select (some ts[0]!))
+    match ts[0]?, ts.size with
+    | some t, 1 => pure (.select (some t))
+    | _, _ => fail "invalid result arity for select"
   | 0x20 => pure (.localGet (← u32))
   | 0x21 => pure (.localSet (← u32))
   | 0x22 => pure (.localTee (← u32))

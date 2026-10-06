@@ -1,0 +1,23 @@
+{
+  "ablation_cached_gas": "125039760000000",
+  "ablation_chunk_diffs": 212,
+  "ablation_compute_diffs": 615,
+  "ablation_outcome_diffs": 619,
+  "ablation_ttn_gas": "20982840000000",
+  "blocks": 60,
+  "chunk_gas_diffs": 0,
+  "chunks": 236,
+  "chunks_with_outcomes": 233,
+  "judge_fail": 0,
+  "judge_ok": 240,
+  "memtries": false,
+  "n_shards": 4,
+  "outcomes": 1891,
+  "outcomes_with_trie_node_charges": 612,
+  "producer_memtrie_chunks": 0,
+  "producer_outcome_missing": 0,
+  "producer_vs_validator_outcome_diffs": 0,
+  "seed": 1,
+  "validator_cached_gas": "58411320000000",
+  "validator_ttn_gas": "16518600000000"
+}
