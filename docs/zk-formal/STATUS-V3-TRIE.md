@@ -270,6 +270,26 @@ nibble shift by 1–3), and new `MEM` / `VLEN` values.  Options:
 Recommendation: (A) if insertion must stay in D0 (no amendment); (C) if A4 is acceptable.
 **Lead decision: A** (A4 rejected; B costs more for no gain).
 
+### 2.3.1 `upsV3` ↔ scheduler interface (proposed; lane `v3-sched` STATUS §4)
+
+Per instance `τ` there is one `0x0f` read and one `0x0f` upsert.
+
+* **`S0F (τ, present, vid)`** — sent by `upsV3`, received once per `τ` by the scheduler
+  codec.
+  * The read of `[0,15]` is the public walk of `τ` (`FINAL (w, τ, fk, k)`).
+  * `present = [fk = VAL]`, and `vid = k` if present, else `0`.
+  * The previous value's bytes go out on `VBYTES (vid, pos, b)` from the codec, which
+    `valV3` already receives.
+* **`SPOST (τ, pos, b)`**, `pos < L` — the new value's bytes, sent by the codec and received
+  by `upsV3`.
+* **`SPLEN (τ, L)`** — the new value's length, sent once per `τ` by the codec (proposed).
+  * The alternative is an end flag on the last `SPOST`.
+  * `upsV3` must not rely on `L = 37 + 24·n²` unless that is a claim-decidable fact.
+* **Bytes are canonical** (`< 256`).
+* **The post value's digest**: `upsV3` hashes the bytes itself, with `BYTES (VUPS(τ), pos,
+  b)` and kind `K_VUPS`. That digest goes into the new leaf / branch value window, and the
+  value length goes into `memory_usage`.
+
 ### 2.4 Walks
 
 * No depth counter (node depth ≤ 399 bounds `fdepth`, `pathsRevealed_of_rank`).
