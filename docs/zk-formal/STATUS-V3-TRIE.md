@@ -303,6 +303,48 @@ role clashes are covered because value records live in the same `ENT` space.
 Render theorems are stated for any trace whose table `t` has the generator's cells
 (`hcell` for rows below the height and columns below the width, `hlog` the honest height).
 
+### 3.1 Per-instance link statement and its hypothesis discharges
+
+`Link/PerTau3.lean`, with `R := recsOf (vpos (vid0 es)) vs`, `V := valsOf3 vs es`:
+
+* **`root_tau`**: for each head `h`, `digest R V h.rid = toB h.pre`.
+* **`build_tau`**: for each head `h` and every key list that is determined on the record
+  trie, `partialTrie (storeOf R V h.tau) (toB h.pre) keys` satisfies two things. Its root
+  hash is `toB h.pre`, and it answers every key exactly as `fullTree R V h.rid` does.
+* **`walks_tau`**: every walk computes `find` (a value) or absent on the record trie of a
+  head of its instance.
+
+What the statements are allowed to assume:
+
+* the views: `NodeWf3`, `HeadWf`, `ValWf`, `WalkWf3`;
+* bus balances: `ParentBal`, `VParentBal`, EDGE / BMAP `BusBal`;
+* SHA facts: `ShaHyp`, i.e. `ShaFacts`, the BYTES balance with id kinds, and DIGEST being
+  provided;
+* `KeynibOk`, from the KEYNIB providers' views and balance;
+* **residual `hHF`** in `build_tau`: the store is hash-functional. Lemma
+  `store_hashFunctional` (`Link/Uniq3`, from the uniq view and the DIGS / DUP / ENT
+  balances) is in progress.
+
+How each hypothesis of `walk3_find` is discharged (lemma, file):
+
+| hypothesis | discharge |
+|---|---|
+| `hunf` | `unf3` (`Compose3`): `head_of` + `rootedDag3` + `fullTree_unfoldR` (rank = depth; the DAG fixed point, not A7) |
+| `hpar` | `kid_depth` (`Parent3`) |
+| `hhead` | `head_link` (`Parent3`) |
+| `hT` | `wrows_lt` (`Compose3`), from `WalkWf3.nrows` (≤ 2^21, proved in `walk3_view`) |
+| `hsym` | `hsym_of` (`Compose3`), from `KeynibOk` |
+| `hbytes` | `rec_bytes` (`Sha3`), from `ShaHyp` + `head_sha` / `kid_sha` (`sha_core`) |
+| value count `≤ 2^22` | `vlen_le` (`Compose3`), from `ValWf.rows` |
+
+How the hypotheses of `enc_fullTree` are discharged:
+
+* `hk`: `kid_sha`.
+* `hv`: `val_sha`.
+
+Head uniqueness per `τ`, i.e. which head the walk results attach to, comes with the
+ROOT / MIDROOT chain (`upsV3`, public bus).
+
 ## 4. Budget (kernel-checked: `NearV3/BudgetCheck.lean`, `report_g1`, `report_g3`, `weqTrie_g1`, `weqTrie_g3`)
 
 | table | width | interactions | aux g=1 | degree g=1 | `W_eq` g=1 | `W_eq` g=3 | maxLog |
