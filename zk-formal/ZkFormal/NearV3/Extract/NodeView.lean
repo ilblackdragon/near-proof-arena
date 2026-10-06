@@ -201,6 +201,8 @@ structure NodeWf3 (vs : List NodeS3) : Prop where
   canon : ∀ s ∈ vs, ∀ x ∈ s.v.raw, x < P
   /-- ids are row-segment indices (`< 2^22`) -/
   count : vs.length ≤ 2 ^ 22
+  /-- one row per record byte, plus the `SUM` row -/
+  rows : (vs.map fun s => (s.v.ser false).length).sum + 1 ≤ 2 ^ 22
 
 /-- **The `nodeV3` view statement** (any table index `t`). -/
 def NodeV3ViewStmt : Prop :=
