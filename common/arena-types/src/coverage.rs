@@ -182,7 +182,7 @@ impl CoverageSection {
                 den += c.weight_ppm as u128;
             }
         }
-        self.share_ppm = if den == 0 { 0 } else { (num / den) as u32 };
+        self.share_ppm = num.checked_div(den).map_or(0, |x| x as u32);
     }
 }
 
@@ -296,6 +296,89 @@ mod tests {
         let back: ChallengeDefinition =
             serde_json::from_str(&serde_json::to_string(&with).unwrap()).unwrap();
         assert_eq!(back, with);
+    }
+
+    /// v1.7: `workload_suite.weight_source` is serialized only when present
+    /// (signed ids unchanged), carries `ref` under that wire name, and is
+    /// validated with the coverage section.
+    #[test]
+    fn weight_source_is_additive_and_validated() {
+        use crate::challenge::{WeightSource, WeightSourceStatus};
+        let raw = include_str!("../../../challenges/chl_4b4316516128000f129cff9b3ced8b51.json");
+        let d: ChallengeDefinition = serde_json::from_str(raw).unwrap();
+        assert!(d.workload_suite.weight_source.is_none());
+        assert!(!serde_json::to_string(&d).unwrap().contains("weight_source"));
+        assert_eq!(d.id().unwrap(), "chl_4b4316516128000f129cff9b3ced8b51");
+        let mut c = chal();
+        c.workload_suite.weight_source = Some(WeightSource {
+            status: WeightSourceStatus::Assumed,
+            note: "documented assumption".into(),
+            reference: Some("spec/challenge-inputs/near-chunk-v3-weights.json".into()),
+        });
+        c.check_coverage().unwrap();
+        let j = serde_json::to_value(&c).unwrap();
+        assert_eq!(j["workload_suite"]["weight_source"]["status"], "ASSUMED");
+        assert_eq!(
+            j["workload_suite"]["weight_source"]["ref"],
+            "spec/challenge-inputs/near-chunk-v3-weights.json"
+        );
+        let back: ChallengeDefinition = serde_json::from_value(j).unwrap();
+        assert_eq!(back, c);
+        assert_ne!(back.id().unwrap(), chal().id().unwrap());
+        fn ws(c: &mut ChallengeDefinition) -> &mut WeightSource {
+            c.workload_suite.weight_source.as_mut().unwrap()
+        }
+        ws(&mut c).status = WeightSourceStatus::Measured;
+        c.check_coverage().unwrap();
+        ws(&mut c).reference = None;
+        assert!(c.check_coverage().unwrap_err().contains("MEASURED"));
+        ws(&mut c).status = WeightSourceStatus::Assumed;
+        c.check_coverage().unwrap();
+        ws(&mut c).note = " ".into();
+        assert!(c.check_coverage().is_err());
+        // unknown status / fields are refused
+        assert!(
+            serde_json::from_str::<WeightSource>(r#"{"status":"GUESSED","note":"x"}"#).is_err()
+        );
+        assert!(serde_json::from_str::<WeightSource>(
+            r#"{"status":"ASSUMED","note":"x","by":"y"}"#
+        )
+        .is_err());
+    }
+
+    /// Tiers are data: a tier below D0 (`D0a`, D0a ⊂ D0, so rank(D0a) <
+    /// rank(D0)) needs no code change; ids and ranks come from the challenge.
+    #[test]
+    fn a_sub_d0_tier_is_ranked_by_the_challenge() {
+        let mut c = chal();
+        let mut s = spec();
+        for t in &mut s.tiers {
+            t.rank += 1;
+        }
+        s.tiers.insert(
+            0,
+            CoverageTier {
+                id: "D0a".into(),
+                rank: 0,
+                params: "NearSpecV3.challengeParamsChunk .d0a".into(),
+                classes: vec!["d0-quiet".into()],
+            },
+        );
+        s.validate(&c).unwrap();
+        c.coverage = Some(s.clone());
+        let m = crate::CandidateManifest::parse(
+            &include_str!("../../../examples/reexec-v3-d0/candidate.toml").replace(
+                "verify_route = \"native-lean\"",
+                "verify_route = \"native-lean\"\ndeclared_tier = \"D0a\"",
+            ),
+        )
+        .unwrap();
+        let t = c.declared_tier(&m).unwrap().unwrap();
+        assert_eq!((t.id.as_str(), t.rank), ("D0a", 0));
+        assert!(t.rank < s.tier("D0").unwrap().rank);
+        // a D0a tier listing a class D0 does not would break inclusion
+        s.tiers[0].classes.push("d0-missing".into());
+        assert!(s.validate(&c).unwrap_err().contains("omits class"));
     }
 
     #[test]

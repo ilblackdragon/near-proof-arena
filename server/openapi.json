@@ -4683,6 +4683,47 @@
           }
         ]
       },
+      "WeightSource": {
+        "description": "Provenance of `WorkloadSuite` class weights (contracts v1.7, additive).",
+        "type": "object",
+        "required": [
+          "note",
+          "status"
+        ],
+        "properties": {
+          "note": {
+            "description": "What the weights rest on (the assumption, or how they were measured).",
+            "type": "string"
+          },
+          "ref": {
+            "description": "Repo-relative path or digest of the supporting record (the documented assumption, or the measurement report). Required for `MEASURED`.",
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/WeightSourceStatus"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WeightSourceStatus": {
+        "oneOf": [
+          {
+            "description": "Documented assumption; no measured mix exists yet.",
+            "type": "string",
+            "enum": [
+              "ASSUMED"
+            ]
+          },
+          {
+            "description": "Measured from a real-chain mix (e.g. mainnet replay).",
+            "type": "string",
+            "enum": [
+              "MEASURED"
+            ]
+          }
+        ]
+      },
       "WorkloadClass": {
         "type": "object",
         "required": [
@@ -4767,6 +4808,11 @@
           },
           "revision": {
             "type": "string"
+          },
+          "weight_source": {
+            "description": "Where the class weights come from (v1.7, additive; absent ⇒ not serialized, so existing challenge ids are unchanged). docs/CONTRACTS.md §11, docs/BENCHMARK_SPEC.md §17.",
+            "$ref": "#/components/schemas/WeightSource",
+            "nullable": true
           }
         },
         "additionalProperties": false

@@ -379,6 +379,7 @@ pub fn challenge_def(tier: Tier, name: &str) -> ChallengeDefinition {
             heldout_commitment: d("heldout"),
             baseline_submission: None,
             baseline_ns: vec![("small".into(), 1_000_000), ("large".into(), 4_000_000)],
+            weight_source: None,
         },
         measurement: MeasurementProcedure {
             warmup_runs: 1,

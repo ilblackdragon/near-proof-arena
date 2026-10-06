@@ -16,7 +16,9 @@ pub mod trusted_tree;
 
 pub use candidate::{CandidateManifest, VerifyRoute};
 pub use canonical::{canonical_json, sha256_digest, Digest};
-pub use challenge::{ChallengeDefinition, ChallengeId, FormalParams};
+pub use challenge::{
+    ChallengeDefinition, ChallengeId, FormalParams, WeightSource, WeightSourceStatus,
+};
 pub use coverage::{ClassCoverage, CoverageReport, CoverageSection, CoverageSpec, CoverageTier};
 pub use evidence::EvidenceGraph;
 pub use pipeline::*;

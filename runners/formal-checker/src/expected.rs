@@ -64,8 +64,15 @@ pub enum LeanValue {
 }
 
 /// Declared tier id → `NearSpecV3.Tier` constructor (`near-chunk-v3`,
-/// `spec/lean/v3/NearSpecV3/ChallengeChunkV3.lean`).
+/// `spec/lean/v3/NearSpecV3/ChallengeChunkV3.lean`). Closed table; an entry
+/// is only reachable for a tier the challenge's `coverage.tiers` declares
+/// (`ChallengeDefinition::declared_tier` gates the manifest at registration,
+/// VALIDATE and FORMAL_CHECK). `D0a` (succinct-D0 tier, `RelD0a = RelD0 ∧
+/// bounds`, D0a ⊂ D0) is prepared for a successor whose trusted tree defines
+/// `NearSpecV3.Tier.d0a`; against a tree without it the Expected type does
+/// not elaborate (fail closed).
 pub const COVERAGE_TIERS: &[(&str, &str)] = &[
+    ("D0a", "NearSpecV3.Tier.d0a"),
     ("D0", "NearSpecV3.Tier.d0"),
     ("D1", "NearSpecV3.Tier.d1"),
     ("D2", "NearSpecV3.Tier.d2"),

@@ -316,7 +316,13 @@ mod tests {
             declared_tier: None,
         };
         assert!(cfg.expected(&root, &inp).unwrap().render().is_err());
-        for (id, ctor) in [("D0", "d0"), ("D1", "d1"), ("D2", "d2"), ("D3a", "d3a")] {
+        for (id, ctor) in [
+            ("D0a", "d0a"),
+            ("D0", "d0"),
+            ("D1", "d1"),
+            ("D2", "d2"),
+            ("D3a", "d3a"),
+        ] {
             inp.declared_tier = Some(id.into());
             for t in [
                 cfg.expected(&root, &inp).unwrap(),
@@ -336,5 +342,13 @@ mod tests {
         }
         inp.declared_tier = Some("D4".into());
         assert!(cfg.expected(&root, &inp).unwrap().render().is_err());
+        // ids are matched exactly (no case folding, no free-form splice)
+        for bad in ["d0a", "D0A", "D0a ", "NearSpecV3.Tier.d0a"] {
+            inp.declared_tier = Some(bad.into());
+            assert!(
+                cfg.expected(&root, &inp).unwrap().render().is_err(),
+                "{bad}"
+            );
+        }
     }
 }
