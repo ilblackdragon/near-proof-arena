@@ -97,7 +97,8 @@ class Module:
         if self.types:
             out += section(1, vec(self.types))
         if self.imports:
-            out += section(2, vec([name(m) + name(n) + b"\x00" + uleb(t) for m, n, t in self.imports]))
+            out += section(2, vec([name(m) + name(n) + (b"\x02\x00\x01" if t is None else b"\x00" + uleb(t))
+                                   for m, n, t in self.imports]))
         if self.funcs:
             out += section(3, vec([uleb(t) for t, _, _ in self.funcs]))
         if self.tables:

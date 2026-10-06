@@ -77,8 +77,8 @@ def unstack (G charge : Nat) : Nat :=
   let gs := 1 + uleb (G + 1)
   gs + 2 + (1 + slebPos charge) + 2 + checkedOp 1 + gs
 
-/-- One instrumented code-section entry (size-prefixed). -/
-def body (G : Nat) (ft : FuncType) (groups : Array (Nat × VT)) (code : Array Instr) (lens : Array Nat)
+/-- Payload length of one instrumented code-section entry (locals + instructions). -/
+def bodyPayload (G : Nat) (ft : FuncType) (groups : Array (Nat × VT)) (code : Array Instr) (lens : Array Nat)
     (gas : Array (Option (IK × Fee))) (stackCharge prologueGas : Nat) : Nat :=
   let L := ft.params.size + groups.foldl (fun a (n, _) => a + n) 0
   let localsSz := uleb (groups.size + 2) + groups.foldl (fun a (n, _) => a + uleb n + 1) 0 + 2 + 2
@@ -99,7 +99,12 @@ def body (G : Nat) (ft : FuncType) (groups : Array (Nat × VT)) (code : Array In
         | .end_ => if isLast then 1 + unstack G stackCharge + 1 else lens[i]!
         | _ => lens[i]!
     tot
-  let b := localsSz + prologue + ops
+  localsSz + prologue + ops
+
+/-- One instrumented code-section entry (size-prefixed). -/
+def body (G : Nat) (ft : FuncType) (groups : Array (Nat × VT)) (code : Array Instr) (lens : Array Nat)
+    (gas : Array (Option (IK × Fee))) (stackCharge prologueGas : Nat) : Nat :=
+  let b := bodyPayload G ft groups code lens gas stackCharge prologueGas
   uleb b + b
 
 def elemSeg (e : Elem) (tableExplicit : Bool) (exprs : Bool) : Nat :=

@@ -69,6 +69,9 @@ inductive PrepResult where
   | ok (p : Prepared)
   /-- `CompilationError(PrepareError(<variant>))` -/
   | prepErr (variant : String) (why : String)
+  /-- `CompilationError(WasmtimeCompileError { msg })`: the prepared module passes NEAR's checks
+  but Wasmtime rejects it (`wasmtime_runner/mod.rs:571-580`), naming the instrumented function index -/
+  | compileErr (fnIdx : Nat)
   /-- the contract is outside `InD3α` (float types or operators) -/
   | outOfDomain (why : String)
   /-- a path this version of the spec does not decide (reported, never silently accepted) -/
@@ -386,6 +389,20 @@ def prepare (cfg : NearCfg) (bytes : ByteArray) (blockLevel : Bool := true) : Pr
     let _ := nImp
     if instrumentedSize cfg m pfs > cfg.maxInstrumentedCodeSize then
       return .prepErr "InstrumentedCodeTooLarge" ""
+    -- Wasmtime re-validates the *instrumented* module with wasmparser 0.248
+    -- (`MAX_WASM_FUNCTION_LOCALS` = 50,000, `MAX_WASM_FUNCTION_SIZE` = 7,654,321). Instrumentation
+    -- adds two locals per function (`instrument_v3.rs:557-558`), so a function with
+    -- `params + locals ∈ {49,999, 50,000}` passes NEAR's preparation and then fails to compile:
+    -- an observed instance of hazard H1 (checkpoint-2 finding).
+    let G := m.globals.size
+    for k in [0:m.funcs.size] do
+      let f := m.funcs[k]!
+      let pf := pfs[k]!
+      let nl := pf.type.params.size + pf.locals.size + 2
+      let bodyLen := Size.bodyPayload G pf.type f.localGroups f.code f.opLens pf.gas pf.stackCharge
+        pf.prologueGas
+      if nl > 50000 ∨ bodyLen > 7654321 then
+        return .compileErr (nImp + 3 + k)
     return .ok { m := m, ctx := c, funcs := pfs }
 
 /-! ## Link and method resolution -/

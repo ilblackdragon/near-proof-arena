@@ -2,13 +2,18 @@
 """D3α checkpoint-2 difftest: pinned nearcore (oracle/wasm-d3 harness) vs the Lean spec
 (`NearSpecV3.Wasm`, driver oracle/wasm-d3/lean → `nearspec-v3-wasm`).
 
-  difftest.py (opcodes | random N SEED | mutate N SEED) [--shards K]
+  difftest.py (opcodes | random N SEED | mutate N SEED | promise N SEED | sizes N SEED) [--shards K]
+
+`sizes` compares the exact instrumented-module length (spec `instrumentedSize`, driver flag
+`--prepared-size`) with the length of nearcore's `prepare_contract` output (harness `prepare` mode)
+on random contracts plus the opcode corpus.
 
 Comparison is on full outcome lines (status, burnt, used, return bytes or exact error), with one
 normalisation: the text of a `LinkError` for a mistyped import is wasmtime's message, which the spec
 does not reproduce (`Rel_D3` identifies error kinds; the variant itself is compared). Lean outputs
 `out-of-domain …` (not in `InD3α`, e.g. float contracts) are counted and excluded; `unmodeled …` is a
-failure. Exit 1 on any disagreement or unmodeled case.
+failure. Exit 1 on any disagreement or unmodeled case. `D3_LEAN_ARGS=--instruction-level-metering` runs the
+metering ablation (expected to be caught).
 """
 import collections
 import os
@@ -24,6 +29,7 @@ LEAN = os.environ.get("D3_SPEC", os.path.join(HERE, "../lean/.lake/build/bin/nea
 
 
 def norm(line):
+    line = re.sub(r'WasmtimeCompileError \{ msg: ".*" \}', 'WasmtimeCompileError { msg: <msg> }', line)
     return re.sub(r'LinkError \{ msg: ".*" \}', lambda m: m.group(0) if "unknown or invalid import" in m.group(0)
                   else 'LinkError { msg: <incompatible> }', line.replace('"*incompatible import type*"', '"x"'))
 
@@ -36,14 +42,38 @@ def gen(argv):
                                  check=True, capture_output=True, text=True).stdout.splitlines()
             labels = open(lf.name).read().splitlines()
         return out, labels
-    script = {"random": "gen_d3a.py", "mutate": "mutate.py"}[kind]
+    script = {"random": "gen_d3a.py", "mutate": "mutate.py", "promise": "promise_cases.py"}[kind]
     out = subprocess.run([sys.executable, os.path.join(HERE, script), argv[1], argv[2]],
                          check=True, capture_output=True, text=True).stdout.splitlines()
     return out, [f"{kind}#{i}" for i in range(len(out))]
 
 
+def sizes(n, seed):
+    cases = subprocess.run([sys.executable, os.path.join(HERE, "gen_d3a.py"), n, seed],
+                           check=True, capture_output=True, text=True).stdout.splitlines()
+    cases += gen(["opcodes"])[0]
+    near = subprocess.run([HARNESS, "prepare"], input="\n".join(cases) + "\n", check=True,
+                          capture_output=True, text=True).stdout.splitlines()
+    lean = subprocess.run([LEAN, "--prepared-size"], input="\n".join(cases) + "\n", check=True,
+                          capture_output=True, text=True).stdout.splitlines()
+    bad = ood = 0
+    for i, (a, b) in enumerate(zip(near, lean)):
+        if b.startswith("out-of-domain"):
+            ood += 1
+            continue
+        a = a if a.startswith("prepare-error") else str(len(a) // 2)
+        if a != b:
+            bad += 1
+            if bad <= 10:
+                print(f"SIZE DISAGREE #{i}: nearcore {a} spec {b}")
+    print(f"family=sizes {n} {seed} cases={len(cases)} out_of_domain={ood} disagreements={bad}")
+    sys.exit(1 if bad else 0)
+
+
 def main():
     args = sys.argv[1:]
+    if args and args[0] == "sizes":
+        sizes(args[1], args[2])
     shards = 8
     if "--shards" in args:
         i = args.index("--shards")
@@ -61,11 +91,15 @@ def main():
             p = os.path.join(td, f"in{k}")
             with open(p, "w") as f:
                 f.write("\n".join(cases[k::shards]) + "\n")
-            procs.append(subprocess.Popen([LEAN], stdin=open(p), stdout=open(p + ".out", "w")))
+            procs.append(subprocess.Popen([LEAN] + os.environ.get("D3_LEAN_ARGS", "").split(),
+                                          stdin=open(p), stdout=open(p + ".out", "w")))
         for pr in procs:
             pr.wait()
         outs = [open(os.path.join(td, f"in{k}.out")).read().splitlines() for k in range(shards)]
     t2 = time.time()
+    for k in range(shards):   # review N4: exact per-shard line counts
+        want = len(cases[k::shards])
+        assert len(outs[k]) == want, f"shard {k}: {len(outs[k])} lines, expected {want}"
     lean = [None] * n
     for k in range(shards):
         for j, line in enumerate(outs[k]):

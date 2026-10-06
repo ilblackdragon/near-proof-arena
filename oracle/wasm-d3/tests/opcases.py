@@ -280,6 +280,53 @@ def big(nfuncs, reps):
 for nf, reps in [(30, 12000), (37, 12000), (38, 11500), (38, 12000), (45, 12000)]:
     prep(f"instrumented-size({nf}x{reps})", big(nf, reps))
 
+# ---- remaining NEAR limits (each just over and just at the limit)
+def types(n):
+    def mut(m):
+        while len(m.types) < n:
+            m.types.append(functype([I32] * len(m.types), []))
+    return mut
+
+def nfuncs(n):
+    def mut(m):
+        for _ in range(n - len(m.imports) - len(m.funcs)):
+            m.funcs.append((m.funcs[0][0], [], b""))
+    return mut
+
+def locals_(nf, per):
+    def mut(m):
+        for _ in range(nf):
+            m.funcs.append((m.funcs[0][0], [(per, I32)], b""))
+    return mut
+
+def params(nf):
+    def mut(m):
+        t = m.type([I32] * 64, [])
+        for _ in range(nf):
+            m.funcs.append((t, [], b""))
+    return mut
+
+def blocks(nf):
+    def mut(m):
+        for _ in range(nf):
+            m.funcs.append((m.funcs[0][0], [], b"\x02\x40\x0b" * 5000))
+    return mut
+
+prep("types-1024", types(1024))
+prep("types-1025", types(1025))
+prep("functions-10000", nfuncs(10000))
+prep("functions-10001", nfuncs(10001))
+prep("locals-1000000", locals_(20, 50000))
+prep("locals-1000001", lambda m: (locals_(20, 50000)(m), m.funcs.append((m.funcs[0][0], [(1, I32)], b""))))
+prep("params-contract-50048", params(782))
+prep("params-contract-49984", params(781))
+prep("blocks-contract-50000", blocks(10))
+prep("blocks-contract-55000", blocks(11))
+for per, ty, np_ in [(49998, I32, 0), (49999, I32, 0), (49996, I32, 2), (49997, I32, 2), (24999, I64, 0)]:
+    prep(f"wasmtime-locals({per},{ty:#x},{np_})",
+         lambda m, per=per, ty=ty, np_=np_: m.funcs.append((m.type([I32] * np_, []), [(per, ty)], b"")))
+prep("memory-import", lambda m: m.imports.append(("env", "memory", None)))
+
 labels_path = sys.argv[1] if len(sys.argv) > 1 else None
 for lab, gas, hx in cases:
     print(gas, hx)

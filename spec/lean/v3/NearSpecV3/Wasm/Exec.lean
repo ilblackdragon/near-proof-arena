@@ -31,6 +31,10 @@ def costReadMemoryByte : Nat := 3801333
 def costContractLoadingBase : Nat := 35445963
 def costContractLoadingBytes : Nat := 1089295
 def u64Bound : Nat := 2 ^ 64
+/-- the harness's `current_account_id` (`oracle/wasm-d3/src/main.rs`) -/
+def currentAccount : String := "alice.near"
+/-- `data_receipt_creation_config.cost_per_byte`: send(sir) + exec -/
+def dataReceiptByteFee (sir : Bool) : Nat := (if sir then 17212011 else 47683715) + 17212011
 def pageSize : Nat := 65536
 def maxTableElementsStore : Nat := 10000
 
@@ -45,13 +49,22 @@ def Val.default : VT → Val
   | .funcref | .externref => .ref none
   | _ => .i32 0
 
+/-- `GasCounter` (`logic/gas_counter.rs:64-108`) plus the wasm-side `remaining_gas` global `g`. -/
 structure Gas where
   burnt : Nat
+  /-- gas reserved for promises (`promises_gas`) -/
+  promises : Nat := 0
   prepaid : Nat
+  /-- `fast_counter.gas_limit`: `min(max_gas_burnt, prepaid)`, lowered by promise gas -/
+  limit : Nat
   g : Nat
   deriving Inhabited
 
-def Gas.remaining (gs : Gas) : Nat := gs.prepaid - gs.burnt
+def Gas.init (prepaid : Nat) : Gas :=
+  { burnt := 0, prepaid := prepaid, limit := Nat.min 1000000000000000 prepaid, g := 0 }
+
+def Gas.used (gs : Gas) : Nat := gs.burnt + gs.promises
+def Gas.remaining (gs : Gas) : Nat := gs.prepaid - gs.used
 
 def errGasExceeded : String := "HostError(GasExceeded)"
 def errGasLimitExceeded : String := "HostError(GasLimitExceeded)"
@@ -60,14 +73,32 @@ def errMAV : String := "HostError(MemoryAccessViolation)"
 def trapStr (t : String) : String := s!"WasmTrap({t})"
 def trapMem : String := trapStr "MemoryOutOfBounds"
 
-/-- `GasCounter::burn_gas` / `process_gas_limit` (no promises yet: `used = burnt`). -/
+/-- `process_gas_limit` (`gas_counter.rs:168-201`): clamp `burnt` to `min(prepaid, max_gas_burnt)` —
+*not* to the promise-lowered `limit` (review F1) — and recompute `promises_gas`. -/
+def processGasLimit (gs : Gas) (newBurnt newUsed : Nat) : Gas × Option String :=
+  let hard := Nat.min gs.prepaid maxGasBurnt
+  let b := Nat.min newBurnt hard
+  let usedLim := Nat.min gs.prepaid newUsed
+  ({ gs with burnt := b, promises := usedLim - b },
+   some (if newBurnt > maxGasBurnt then errGasLimitExceeded else errGasExceeded))
+
+/-- `GasCounter::burn_gas` (`gas_counter.rs:147-166`). -/
 def burn (gs : Gas) (x : Nat) : Gas × Option String :=
   let nb := gs.burnt + x
   if nb ≥ u64Bound then (gs, some errIntOverflow)
-  else if nb ≤ Nat.min maxGasBurnt gs.prepaid then ({ gs with burnt := nb }, none)
-  else
-    ({ gs with burnt := Nat.min nb (Nat.min gs.prepaid maxGasBurnt) },
-     some (if nb > maxGasBurnt then errGasLimitExceeded else errGasExceeded))
+  else if nb ≤ gs.limit then ({ gs with burnt := nb }, none)
+  else processGasLimit gs nb ((nb + gs.promises) % u64Bound)
+
+/-- `GasCounter::deduct_gas(burnt, used)` (`gas_counter.rs:118-140`); `b ≤ u`. -/
+def deduct (gs : Gas) (b u : Nat) : Gas × Option String :=
+  let pg := u - b
+  let np := gs.promises + pg
+  let nb := gs.burnt + b
+  if np ≥ u64Bound ∨ nb ≥ u64Bound ∨ nb + np ≥ u64Bound then (gs, some errIntOverflow)
+  else if nb ≤ maxGasBurnt ∧ nb + np ≤ gs.prepaid then
+    let lim := if pg ≠ 0 then Nat.min maxGasBurnt (gs.prepaid - np) else gs.limit
+    ({ gs with burnt := nb, promises := np, limit := lim }, none)
+  else processGasLimit gs nb (nb + np)
 
 def payPer (gs : Gas) (cost n : Nat) : Gas × Option String :=
   if cost * n ≥ u64Bound then (gs, some errIntOverflow) else burn gs (cost * n)
@@ -99,6 +130,12 @@ structure St where
   stackRem : Nat
   gas : Gas
   ret : Option ByteArray := none
+  /-- `current_account_balance` (yocto) -/
+  balance : Nat := 0
+  /-- receivers of the promises created so far (`Promise::Receipt` only, in creation order) -/
+  promises : Array String := #[]
+  /-- `context.output_data_receivers` -/
+  receivers : Array String := #[]
 
 inductive Res where
   | cont (s : St)
@@ -260,7 +297,120 @@ def hostValueReturn (s : St) (len ptr : Nat) : Res :=
           if ptr + len ≥ u64Bound ∨ ptr + len > memBytes s then fail gs errMAV
           else if len > maxLengthReturnedData then
             fail gs s!"HostError(ReturnedValueLengthExceeded \{ length: {len}, limit: {maxLengthReturnedData} })"
-          else .cont { s with gas := gs, ret := some (readBytes s ptr len) }
+          else
+            -- one data receipt per output data receiver (logic.rs:4193-4219): send + exec per byte, all burnt
+            let burnCost := s.receivers.foldl (fun acc r =>
+              acc + (dataReceiptByteFee (r = currentAccount)) * len) 0
+            if burnCost ≥ u64Bound then fail gs errIntOverflow else
+            match deduct gs burnCost burnCost with
+            | (gs, some e) => fail gs e
+            | (gs, none) => .cont { s with gas := gs, ret := some (readBytes s ptr len) }
+
+/-! ### Promises (checkpoint 2 subset: `promise_batch_create`, `promise_batch_action_function_call`) -/
+
+def costUtf8DecodingBase : Nat := 3111779061
+def costUtf8DecodingByte : Nat := 291580479
+/-- `new_action_receipt` (send_sir = send_not_sir, exec) -/
+def feeActionReceiptSend : Nat := 108059500000
+def feeActionReceiptExec : Nat := 108059500000
+def feeFunctionCallSend : Nat := 200000000000
+def feeFunctionCallExec : Nat := 780000000000
+def feeFunctionCallByteSend (sir : Bool) : Nat := if sir then 2235934 else 47683715
+def feeFunctionCallByteExec : Nat := 2235934
+def maxPromises : Nat := 1024
+
+/-- `near-account-id` 2.0.0 `validate` (strict rules, `account_id_validity_rules_version = 2`). -/
+def validAccountId (s : String) : Bool :=
+  let b := s.toUTF8
+  if b.size < 2 ∨ b.size > 64 then false
+  else Id.run do
+    let mut lastSep := true
+    for c in b.toList do
+      let isSep := c = 0x2D ∨ c = 0x5F ∨ c = 0x2E
+      let ok := (0x61 ≤ c ∧ c ≤ 0x7A) ∨ (0x30 ≤ c ∧ c ≤ 0x39) ∨ isSep
+      if !ok then return false
+      if isSep ∧ lastSep then return false
+      lastSep := isSep
+    return !lastSep
+
+/-- `get_memory_or_register` with no registers ever written. -/
+def readMemOrReg (s : St) (gs : Gas) (len ptr : Nat) : Except (Gas × String) (Gas × ByteArray) :=
+  if len = u64Bound - 1 then .error (gs, s!"HostError(InvalidRegisterId \{ register_id: {ptr} })")
+  else
+    match burn gs costReadMemoryBase with
+    | (gs, some e) => .error (gs, e)
+    | (gs, none) =>
+      match payPer gs costReadMemoryByte len with
+      | (gs, some e) => .error (gs, e)
+      | (gs, none) =>
+        if ptr + len ≥ u64Bound ∨ ptr + len > memBytes s then .error (gs, errMAV)
+        else .ok (gs, readBytes s ptr len)
+
+/-- `read_and_parse_account_id` (`logic.rs:4416-4441`). -/
+def readAccountId (s : St) (gs : Gas) (len ptr : Nat) : Except (Gas × String) (Gas × String) := do
+  let (gs, buf) ← readMemOrReg s gs len ptr
+  let gs ← match burn gs costUtf8DecodingBase with
+    | (gs, some e) => throw (gs, e)
+    | (gs, none) => pure gs
+  let gs ← match payPer gs costUtf8DecodingByte buf.size with
+    | (gs, some e) => throw (gs, e)
+    | (gs, none) => pure gs
+  match String.fromUTF8? buf with
+  | none => throw (gs, "HostError(BadUTF8)")
+  | some str => if validAccountId str then pure (gs, str) else throw (gs, "HostError(InvalidAccountId)")
+
+def hostPromiseBatchCreate (s : St) (len ptr : Nat) : Res :=
+  match burn s.gas costBase with
+  | (gs, some e) => .abort { s with gas := gs } e
+  | (gs, none) =>
+    match readAccountId s gs len ptr with
+    | .error (gs, e) => .abort { s with gas := gs } e
+    | .ok (gs, acct) =>
+      let sir := acct = currentAccount
+      let _ := sir
+      match deduct gs feeActionReceiptSend (feeActionReceiptExec + feeActionReceiptSend) with
+      | (gs, some e) => .abort { s with gas := gs } e
+      | (gs, none) =>
+        let s := { s with gas := gs, promises := s.promises.push acct }
+        if s.promises.size > maxPromises then
+          .abort s s!"HostError(NumberPromisesExceeded \{ number_of_promises: {s.promises.size}, limit: {maxPromises} })"
+        else .cont (pushI64 s (s.promises.size - 1))
+
+def hostPromiseBatchActionFunctionCall (s : St) (idx mlen mptr alen aptr amountPtr gas : Nat) : Res :=
+  let fail (gs : Gas) (e : String) : Res := .abort { s with gas := gs } e
+  match burn s.gas costBase with
+  | (gs, some e) => fail gs e
+  | (gs, none) =>
+    match readMemOrReg s gs 16 amountPtr with
+    | .error (gs, e) => fail gs e
+    | .ok (gs, amt) =>
+      let amount := (List.range 16).foldl (fun a i => a + amt[i]!.toNat * 256 ^ i) 0
+      match readMemOrReg s gs mlen mptr with
+      | .error (gs, e) => fail gs e
+      | .ok (gs, mname) =>
+        if mname.size = 0 then fail gs "HostError(EmptyMethodName)" else
+        match readMemOrReg s gs alen aptr with
+        | .error (gs, e) => fail gs e
+        | .ok (gs, args) =>
+          match s.promises[idx]? with
+          | none => fail gs s!"HostError(InvalidPromiseIndex \{ promise_idx: {idx} })"
+          | some recv =>
+            let sir := recv = currentAccount
+            let nb := mname.size + args.size
+            match deduct gs feeFunctionCallSend (feeFunctionCallSend + feeFunctionCallExec) with
+            | (gs, some e) => fail gs e
+            | (gs, none) =>
+              let bs := feeFunctionCallByteSend sir * nb
+              match deduct gs bs (bs + feeFunctionCallByteExec * nb) with
+              | (gs, some e) => fail gs e
+              | (gs, none) =>
+                match deduct gs 0 gas with
+                | (gs, some e) => fail gs e
+                | (gs, none) =>
+                  -- one_yocto_on_promise: a 1-yocto deposit from a zero-balance account is subsidised
+                  if amount = 1 ∧ s.balance = 0 then .cont { s with gas := gs }
+                  else if amount > s.balance then fail gs "HostError(BalanceExceeded)"
+                  else .cont { s with gas := gs, balance := s.balance - amount }
 
 def callHost (cfg : NearCfg) (s : St) (name : String) : Res :=
   match sync s with
@@ -281,6 +431,19 @@ def callHost (cfg : NearCfg) (s : St) (name : String) : Res :=
         match burn s.gas (n * cfg.regularOpCost) with
         | (gs, none) => .cont { s with gas := gs }
         | (gs, some e) => .abort { s with gas := gs } e
+      | "promise_batch_create" =>
+        let (ptr, s) := popN s
+        let (len, s) := popN s
+        hostPromiseBatchCreate s len ptr
+      | "promise_batch_action_function_call" =>
+        let (gas, s) := popN s
+        let (amountPtr, s) := popN s
+        let (aptr, s) := popN s
+        let (alen, s) := popN s
+        let (mptr, s) := popN s
+        let (mlen, s) := popN s
+        let (idx, s) := popN s
+        hostPromiseBatchActionFunctionCall s idx mlen mptr alen aptr amountPtr gas
       | n => .unmodeled s!"host function {n} (checkpoint 3)"
     match r with
     | .cont s => .cont { s with gas := { s.gas with g := s.gas.remaining } }
@@ -628,46 +791,50 @@ def callEntry (cfg : NearCfg) (p : Prepared) (fuel : Nat) (s : St) (fi : Nat) :
 missing method prints as `abort 0 0 …`, as the harness does),
 or `out-of-domain …` / `unmodeled …` (never silently equal to nearcore). -/
 def outcome (cfg : NearCfg) (code : ByteArray) (method : String) (prepaid fuel : Nat)
-    (blockLevel : Bool := true) : String :=
+    (blockLevel : Bool := true) (receivers : Array String := #[])
+    (balance : Nat := 1000000000000000000000000) : String :=
   if method.isEmpty then "abort 0 0 MethodResolveError(MethodEmptyName)" else
   match prepare cfg code blockLevel with
   | .outOfDomain why => s!"out-of-domain {why}"
   | .unmodeled why => s!"unmodeled {why}"
   | .prepErr v _ => s!"abort 0 0 CompilationError(PrepareError({v}))"
+  | .compileErr k =>
+    s!"abort 0 0 CompilationError(WasmtimeCompileError \{ msg: \"failed to compile: wasm[0]::function[{k}]\" })"
   | .ok p =>
-    let gs : Gas := { burnt := 0, prepaid := prepaid, g := 0 }
+    let gs : Gas := Gas.init prepaid
     let loaded := match payPer gs costContractLoadingBytes code.size with
       | (gs, none) => burn gs costContractLoadingBase
       | r => r
     match loaded with
-    | (gs, some _) => s!"abort {gs.burnt} {gs.burnt} {errGasExceeded}"
+    | (gs, some _) => s!"abort {gs.burnt} {gs.used} {errGasExceeded}"
     | (gs, none) =>
       match link p with
-      | .linkError msg => s!"abort {gs.burnt} {gs.burnt} LinkError \{ msg: \"{msg}\" }"
+      | .linkError msg => s!"abort {gs.burnt} {gs.used} LinkError \{ msg: \"{msg}\" }"
       | .ok =>
         match resolve p method with
         | .notFound => "abort 0 0 MethodResolveError(MethodNotFound)"
         | .invalidSignature => "abort 0 0 MethodResolveError(MethodInvalidSignature)"
         | .ok mi =>
           match instantiate cfg p gs with
-          | .error e => s!"abort {gs.burnt} {gs.burnt} {e}"
+          | .error e => s!"abort {gs.burnt} {gs.used} {e}"
           | .ok s =>
+            let s := { s with balance := balance, receivers := receivers }
             let afterStart : Except String (St × Option String) :=
               match p.m.start with
               | some st => callEntry cfg p fuel s st
               | none => .ok (s, none)
             match afterStart with
             | .error why => s!"unmodeled {why}"
-            | .ok (s, some e) => s!"abort {s.gas.burnt} {s.gas.burnt} {e}"
+            | .ok (s, some e) => s!"abort {s.gas.burnt} {s.gas.used} {e}"
             | .ok (s, none) =>
               match callEntry cfg p fuel s mi with
               | .error why => s!"unmodeled {why}"
-              | .ok (s, some e) => s!"abort {s.gas.burnt} {s.gas.burnt} {e}"
+              | .ok (s, some e) => s!"abort {s.gas.burnt} {s.gas.used} {e}"
               | .ok (s, none) =>
                 let ret := match s.ret with
                   | some d => hex d
                   | none => "-"
-                s!"ok {s.gas.burnt} {s.gas.burnt} {ret}"
+                s!"ok {s.gas.burnt} {s.gas.used} {ret} {s.balance}"
 
 end NearSpecV3.Wasm
 
@@ -678,6 +845,7 @@ def preparedSizeLine (cfg : NearCfg) (code : ByteArray) : String :=
   match prepare cfg code with
   | .ok p => toString (instrumentedSize cfg p.m p.funcs)
   | .prepErr v _ => s!"prepare-error {v}"
+  | .compileErr _ => "compile-error"
   | .outOfDomain w => s!"out-of-domain {w}"
   | .unmodeled w => s!"unmodeled {w}"
 
