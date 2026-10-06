@@ -11,7 +11,7 @@ claim and that witness. It is the v3 analogue of `examples/reexec-witness` (v1).
 
 | path | what |
 |---|---|
-| `source/src/bin/{prepare,prove}.rs` | Rust, std only. `prepare` checks `near-arena-params-v3` (domain `D0`) and copies it to `public.bin`; `prove` checks the two format tags and writes `claim.bin = request.bin` (the claim IS the request in v3) and `proof.bin = witness.bin` |
+| `source/src/bin/{prepare,prove}.rs` | Rust, std only. `prepare` checks `near-arena-params-v3` (domain `D0`) and copies it to `public.bin`; `prove` writes `claim.bin = request.bin` (the claim IS the request in v3) and `proof.bin` = the **canonical** witness file (below); it refuses (exit 2) a witness whose D0 layout it cannot walk |
 | `source/src/bin/leanorder.rs` | build helper: the judge's trusted-module link order (`topo` in runners/formal-checker) |
 | `source/lean-vendor/` | verbatim copies of the judge-trusted Lean modules of the challenge (`ArenaCore`, the 11 `NearSpec` modules, the 15 `NearSpecV3` modules listed in `runners/formal-checker/challenges/near-chunk-validation-d0.json`), used to compile `out/verify` offline. Refresh with `source/verifier/sync-vendor.sh <frozen commit>`; digests pinned in `dependency-locks/lean-vendor.sha256` |
 | `source/verifier/` | dev Lake project (certificate against `judge-local/`), the judge's `main` wrapper template (verbatim), `sync-vendor.sh` |
@@ -19,12 +19,21 @@ claim and that witness. It is the v3 analogue of `examples/reexec-witness` (v1).
 | `judge-local/` | **local emulation** of the judge-generated `ArenaExpected` / `ArenaExpectedInst` modules, for development only (the judge renders `spec/lean/judge/ExpectedV3D0.native-lean.lean.template` itself) |
 | `build-recipe/build.sh` | offline reproducible build of `out/{prepare,prove,verify}` |
 
-## Proof format
+## Proof format (canonical witness)
 
-`proof.bin` = `witness.bin` verbatim (`near-arena-witness-v3`: `bytes
-"near-arena-witness-v3" ‖ bytes state_witness ‖ Vec<bytes> contract_code`). On
-every D0 witness it is at most 8 388 641 bytes (proved, below); the public
-fixtures produce 1.5–19 KB.
+`proof.bin` = the witness file (`near-arena-witness-v3`: `bytes
+"near-arena-witness-v3" ‖ bytes state_witness ‖ Vec<bytes> contract_code`, no code)
+in **canonical form**: the three fields nearcore's chunk validator never reads are
+fixed — the chunk header's `height_included` = 0, its signature = ED25519 with 64
+zero bytes, every `ChunkStateTransition.block_hash` = 32 zero bytes
+(`formal/ReexecV3D0/CanonDefs.lean`, `canonicalW`). Everything else is the producer's
+bytes. On every D0 witness it is at most 8 388 641 bytes (proved, below); the public
+fixtures produce 1.5–118 KB.
+
+Why: the first live run of this reference (proof = raw witness) was REJECTED by
+`ADVERSARIAL_PROOFS` — a bit flipped in the signature gave a second accepted proof of
+the same claim (docs/e2e-results/v3-d0-reference/). Exhaustive single-bit flips of
+two canonical proofs (1 565 B and 5 214 B, with an implicit transition): 0 accepted.
 
 ## Verifier
 
@@ -32,7 +41,7 @@ fixtures produce 1.5–19 KB.
 def check (cb pb : Bytes) : Bool :=
   match WfClaim.decode cb with
   | none => false
-  | some c => decide (RelD0 c.encode pb)
+  | some c => canonicalW pb && decide (RelD0 c.encode pb)
 ```
 
 `ReexecV3D0.Model.verifier` (`formal/ReexecV3D0/Model.lean`) ignores the public
@@ -57,7 +66,7 @@ Axioms: `propext`, `Classical.choice`, `Quot.sound`; no `sorry`,
 | public digest | `public.bin` = approved `params.bin` verbatim (`PublicBin.lean`), `sha256` by `decide +kernel` |
 | `FORMAL_IMPL_CONNECTION` | `rfl`: the model in the statement *is* `ReexecV3D0.Model.verifier` (trusted edge) |
 | `FORMAL_SEMANTIC_SOUNDNESS` / `COMPLETENESS` | backend `Aux := witness bytes`, `B := Rel` |
-| verifier completeness | the honest proof is the witness `w`; `WfClaim.decode_encode` (the proved codec round trip of `NearSpecV3.ChallengeV3`) and `decide_eq_true`; size: `relD0_witness_length : RelD0 cb w → w.length ≤ 8 388 641` (`Size.lean`, proved over the trusted parsers: `checkD0` accepts only an empty code list and `|state_witness| ≤ 8 MiB`, and `decodeWitnessFile` consumes exactly `33 + |state_witness|` bytes) ≤ `maxProofBytes` = 64 MiB |
+| verifier completeness | the honest proof is the canonical form `w'` of the witness `w`: `relD0_canonical : RelD0 cb w → ∃ w', RelD0 cb w' ∧ canonicalW w' ∧ |w'| ≤ |w|` (`Canon.lean`), built from (a) context-freeness of every trusted witness parser (`CF.lean`: a parser that accepts `pre ++ r` leaving `r` accepts `pre ++ r'` leaving `r'`), (b) a canonical re-parse (`canon_exists`: the bytes with the ignored fields replaced decode to the same witness with zeroed block hashes), (c) `checkD0_norm` (`Norm.lean`: `checkD0` never reads a transition block hash); then `WfClaim.decode_encode` (the proved codec round trip of `NearSpecV3.ChallengeV3`) and `decide_eq_true`; size: `relD0_witness_length : RelD0 cb w → w.length ≤ 8 388 641` (`Size.lean`) ≤ `maxProofBytes` = 64 MiB |
 | `FORMAL_CRYPTO_SOUNDNESS` | **`DeterministicSound`** (ε = 0, no assumption): acceptance ⇒ `RelD0 (encode c) pb` for the decoded claim |
 
 No collision-resistance assumption is needed for soundness: `RelD0` is stated
@@ -81,10 +90,13 @@ not proved. Trusted claim facts (section C, `epoch_id`, `protocol_version`,
   `FORMAL_CRYPTO_SOUNDNESS`, `FORMAL_IMPL_CONNECTION`, `AXIOM_AUDIT`,
   `ARTIFACT_BINDING` all **PASS**; leanchecker, nanoda, lean4lean, arena-audit
   and the NDJSON audit accept. Judge-built `verify` = `build.sh` output.
-* Public fixtures (`oracle/fixtures/v3/arena-public`): all 80 positives
-  (64 honest D0 chunks + 16 nearcore-accepted mutants) proved and accepted; all
-  121 rejection cases (59 honest out-of-D0 chunks, 62 nearcore-rejected mutants)
-  rejected by `verify`.
+* Public fixtures (`oracle/fixtures/v3/arena-public`): all 78 positives
+  (64 honest D0 chunks + 14 nearcore-accepted mutants) proved and accepted; of the
+  121 rejection cases 49 are refused by `prove` and 72 rejected by `verify`.
+* Worker pipeline (`runners/worker/tests/near_v3.rs`, bwrap-dev): all stages pass,
+  164 hostile inputs rejected including the structure-aware `v3-ignored-fields`
+  mutants; the pre-canonical version (hostile case `near-v3-malleable-witness`) fails
+  `ADVERSARIAL_PROOFS` with `HOSTILE_PROOF_ACCEPTED`.
 
 ## Limitations
 
@@ -92,4 +104,8 @@ not proved. Trusted claim facts (section C, `epoch_id`, `protocol_version`,
   Verify time on the fixtures is 0.01–0.32 s (Reed–Solomon (33,100) cases are
   the slowest); it is not scored.
 * `prove` decides nothing; on a false or out-of-domain claim it still emits a
-  proof, which `verify` rejects.
+  proof (unless it cannot walk the witness layout), which `verify` rejects.
+* Canonical form covers the three validator-ignored fields. Other freedoms of
+  nearcore's lenient decoding (duplicate or unsorted `source_receipt_proofs` keys,
+  unreferenced `base_state` values) are not normalised: they are insertions or
+  reorderings, not single-byte changes, and the reference prover never produces them.
