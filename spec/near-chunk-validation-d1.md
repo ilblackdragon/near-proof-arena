@@ -183,7 +183,29 @@ SHA-512 from `hashlib`).
 
 ## 6. Evidence
 
-*Filled in by the D1 results (§8).*
+**Ed25519 leaf** (`oracle/fixtures/v3/ed25519/`, sources and sha256 in `SOURCES.json`;
+`nearspec-v3-test-ed25519` and `python3 -m v3lib.ed25519`): 7 768 vectors, every one judged by
+nearcore (`near-arena-oracle-v3 ed25519-judge`: borsh decodability and
+`Signature::verify`), **0 mismatches for Lean and 0 for Python**: RFC 8032 §7.1 (10) and the
+1 024 `sign.input` vectors, Wycheproof `ed25519_test.json` (139 64-byte cases; nearcore agrees
+with Wycheproof's own result on all of them), C2SP CCTV validation-criteria vectors (914, 208
+accepted by nearcore), the "Taming the many EdDSAs" speccheck cases (12; cases 0–3 and 11
+accepted), 2 000 signatures made by `near_crypto::SecretKey::sign`, and 3 166 generated edge
+cases of which 213 are accepted by nearcore (small-order / identity / mixed-order `A`,
+non-canonical `y`, `x = 0` with sign bit, small-order and identity `R`, …: the accept side of
+every rule in §2), plus 503 SHA-512 vectors from `hashlib`. libsodium (PyNaCl) disagrees with
+nearcore on 311 of these (it rejects small-order `A`/`R`); OpenSSL 3.0.13 agrees on all.
+Compiled `Ed25519.verify`: 3.4 ms per call.
+
+**Proved (Lean, no `sorry`/axioms beyond `propext`, `Quot.sound`, `Classical.choice`):**
+`sha512_length`; `verify` is false on wrong lengths, on a failed decoding and when `s ≥ ℓ`;
+`verify ⇒ sigEncodingOk` (so nearcore's post-borsh verdict equals `verify`); claim codec round
+trip (inherited). **Kernel-checked by evaluation** (`decide +kernel`): the curve constants
+(`d = −121665/121666`, `√−1`, `d` and `−1/d` non-squares — hence `d·y²+1 ≠ 0`), `B` on the curve
+and its encoding, SHA-512 FIPS digests, RFC 8032 TEST 1/2 and dalek-only accepts
+(`Examples/Ed25519Kernel.lean`, ≈ 20 s, < 1 GB); and `RelD1` itself on real cases
+(`Examples/RealCaseD1.lean`, §8). **Not proved:** primality of p and ℓ, completeness of the
+addition law, equality with dalek's code — the transcription is tested, not proved.
 
 ## 7. Reference oracle for D1
 
@@ -225,4 +247,64 @@ one hash (class `dup_bad_sig_first`) trips it in debug builds, so the oracle bui
 
 ## 8. Results
 
-*Filled in after the D1 difftest.*
+**3-way differential test** (`oracle/tools/difftest_v3_d1.py`; nearcore oracle vs compiled
+Lean `nearspec-v3-check-d1` vs Python `spec_check_v3_d1.py` with its own Ed25519), corpus
+`gen --domain d1 --seed 5151 --chains 12 --blocks 150 --ood-cap 40 --mutate-every 4`
+(7 721 honest witnesses, all accepted by nearcore; 4 285 crafted transactions):
+**53 048 cases, 0 disagreements** — 3 394 honest D1 cases (all accepted by all three; 1 201
+with transactions, 268 with at least one failed transaction, 346 with local receipts, 1 396
+with `new_transactions`, 2 552 with incoming receipts, 385 with implicit transitions; 4/5/6
+shards; Reed–Solomon (1,3) 434, (2,8) 1 018, (5,16) 1 078, (33,100) 864), 3 645 honest
+out-of-D1 cases (both checkers report out of domain), 46 009 mutants (7 695 accepted by
+nearcore). **D0 ⊂ D1**: the compiled D0 relation on the same corpus accepts 3 977 cases, every
+one accepted by D1, and agrees with nearcore's D0 expectation on every case. Public subset
+with its own report: `oracle/fixtures/v3/public-d1/` (529 cases, 0 disagreements).
+
+Coverage of crafted transactions in accepted honest D1 cases (class ⇒ nearcore's result):
+`bad_sig_{flip_r 59, flip_s 62, negated_r 63, s_plus_l 50, wrong_key 63, wrong_msg 59}` ⇒
+InvalidSignature; `cost_overflow` ⇒ CostOverflow 64; `expired_{old 54, unknown 61}_block` ⇒
+Expired; `fc_key_{allowance 58, unlimited 62}` ⇒ InvalidAccessKeyError (NotEnoughAllowance /
+RequiresFullAccess); `foreign_signer` 55 and `missing_account` 70 ⇒ InvalidSignerId;
+`gas_key_v0` ⇒ InvalidNonceIndex 50; `insufficient_balance` ⇒ NotEnoughBalance 37;
+`lack_storage` ⇒ LackBalanceForState 64; `missing_key` ⇒ AccessKeyNotFound 49;
+`nonce_{zero 64, dup 64}` ⇒ InvalidNonce; `nonce_too_large` ⇒ NonceTooLarge 51;
+`v1_strict_gap` ⇒ InvalidNonce 32; duplicates: `dup_identical` ⇒ skipped 57,
+`dup_bad_sig_first` ⇒ skipped 58 (first copy InvalidSignature 27 or success 22, by position);
+successes: `valid` 35, `valid_self` (local) 39, `valid_zero_deposit` 30,
+`valid_implicit_receiver` 33, `valid_v1_monotonic` 37, `valid_v1_strict` 33; honest pool
+traffic 2 201 forwarded + 364 local. Out-of-D1 shapes (`ood_*`) appear only in `ood/`.
+
+Mutant families (all agree): every compared header field, the D0 witness/context mutants,
+`t.tx_valid_flip` (923; 263 accepted by nearcore — flipping a transaction that fails anyway
+leaves the outcome unchanged), `w.tx.{drop, swap, sig_flip, sig_high_bits}` (1 106, all
+rejected), `w.new_tx.{sig_flip_rehashed, drop_rehashed}` (680, all accepted — nearcore never
+verifies `new_transactions` signatures) and `w.new_tx.drop` (340, rejected), 9 792 single
+trie-node drops (8 accepted by nearcore: nodes only a non-surfacing prefetch would read).
+
+**Kernel non-vacuity** (`lake build NearSpecV3.Examples.RealCaseD1`): `RelD1` proved by
+`decide +kernel` on two real D1 chunks with crafted transactions (a duplicate pair with a bad
+first signature, a cost overflow, a nonce failure; a local receipt, a missing signer, a negated-
+`R` signature) and on two nearcore-accepted mutants (a `tx_valid` flip of a failing
+transaction; a corrupted `new_transactions` signature with the header re-hashed); `¬RelD1` on
+two nearcore-rejected mutants (a valid transaction marked expired; `prev_outcome_root`).
+The kernel evaluates every Ed25519 verification on the way. Cost ≈ 1–2 min and ≈ 12 GB per
+theorem — inherited from the D0 relation's kernel cost (the same D0 case costs the same under
+`RelD0` and `RelD1`); a 11 KB case with 7 transactions needed 39 GB and was left out.
+
+**Formalized vs tested (summary).** Formalized as executable Lean definitions: the whole D1
+relation (§3 exactly, §4 conditions) and Ed25519/SHA-512. Proved: the leaf lemmas above and
+kernel evaluation on real cases. Tested, not proved: that the Lean transcription equals
+nearcore (53 048-case difftest, 7 768 signature vectors), `InD0 ⊂ InD1 ∧ (RelD0 ⇒ RelD1)`
+(checked on every case of the corpus, not proved).
+
+**Findings.** (1) nearcore never verifies the signatures (nor nonces, keys, balances) of the
+endorsed chunk's own `new_transactions`; they are checked one chunk later, where an invalid
+one only yields a failed outcome. (2) Duplicate detection is by transaction hash, which does
+not cover the signature: a valid transaction preceded in the chunk by the same body with a
+corrupted signature is skipped and never executes. (3) A missing trie node needed only by a
+transaction that fails before its account lookup is not an error (prefetch errors surface
+only on use). (4) nearcore's store debug-asserts on two different `SignedTransaction`s with
+one hash (`core/store/src/db/refcount.rs:107-119`): a debug-built node panics on such a chunk,
+a release node keeps the first. (5) ED25519 signature verification costs 0 gas at PV 86.
+(6) nearcore's Ed25519 accepts small-order and non-canonical public keys (dalek `verify`),
+unlike libsodium.

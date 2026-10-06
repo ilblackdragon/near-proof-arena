@@ -55,9 +55,9 @@ def main():
           "-/", "", "namespace NearSpecV3.Examples", ""]
     for n, _, _, pos in cases:
         if pos:
-            th.append("theorem relD1_%s : RelD1 claimD1_%s witnessD1_%s := by\n  decide +kernel\n" % (n, n, n))
+            th.append("set_option maxRecDepth 100000 in\ntheorem relD1_%s : RelD1 claimD1_%s witnessD1_%s := by\n  decide +kernel\n" % (n, n, n))
         else:
-            th.append("theorem not_relD1_%s : ¬ RelD1 claimD1_%s witnessD1_%s := by\n  decide +kernel\n" % (n, n, n))
+            th.append("set_option maxRecDepth 100000 in\ntheorem not_relD1_%s : ¬ RelD1 claimD1_%s witnessD1_%s := by\n  decide +kernel\n" % (n, n, n))
     th.append("end NearSpecV3.Examples")
     open(os.path.join(out_dir, "RealCaseD1.lean"), "w").write("\n".join(th) + "\n")
 
