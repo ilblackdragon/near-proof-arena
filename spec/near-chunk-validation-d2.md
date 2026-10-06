@@ -822,7 +822,11 @@ Executables: `nearspec-v3-check-d2 [--d1|--d0] CASE…` (JSON lines as `nearspec
 `PTrie.find_del` (delete with squash is a key→value map deletion: the key becomes absent, every
 other key — present, absent or undetermined — answers as before; no well-formedness
 hypothesis needed), `PTrie.del_false` (a non-deleting delete returns the same trie),
-`find_squashBranch`, `find_extendChild`, `Kids.find_delAt` (`NearSpecV3/D2/TrieProps.lean`);
+`find_squashBranch`, `find_extendChild`, `Kids.find_delAt`, `PTrie.prefixKeys_sound` /
+`prefixKeys_complete` (the prefix iteration returns exactly the present keys with the prefix,
+in a trie whose prefix subtree is revealed) (`NearSpecV3/D2/TrieProps.lean`); `checkD2` itself
+uses only `propext` and `Quot.sound` (no `Classical.choice`: decode failures read from the
+trie are classified by fixed messages, not `String.startsWith`);
 inherited: `PTrie.find_upsert_self/other` (v2), the claim codec round trip, the D1 Ed25519
 lemmas. **Tested, not proved**: that the transcription equals nearcore (difftests), that the
 squashed shapes / memory usages are canonical (trie vectors), `InD1 ⊂ InD2` (fixtures).
