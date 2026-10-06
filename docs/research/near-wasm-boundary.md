@@ -291,7 +291,7 @@ receipt ids, gas burnt and tokens burnt.
   `near_vm_runner::prepare` + `run` with the mainnet PV86 config (asserting `vm_kind == Wasmtime`);
 * `gen_wasm.py`, a typed random generator, and `difftest.py`.
 
-Results are in the README and §5 of `near-wasm-strategy.md`.
+Results: 7,000 random modules, 0 disagreements; the instruction-level-metering ablation is caught (`examples/d3-wasm-poc/RESULTS.md`, strategy §5).
 
 ---
 

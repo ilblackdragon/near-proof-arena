@@ -6,7 +6,10 @@ vs the Lean executable semantics (lean/ → `wasm-poc`).
 
 Generates N cases with gen_wasm.py, runs both implementations on identical
 bytes and compares full outcome lines (status, burnt gas, used gas, return data
-or exact error). Exit 1 on any disagreement or any `unmodeled`/`unsupported`.
+or exact error). With D3_QUOTIENT_GAS_ERRORS=1 the two gas-error variants are identified
+before comparing (used for the instruction-level-metering ablation:
+D3_LEAN_ARGS=--instruction-level-metering).
+Exit 1 on any disagreement or any `unmodeled`/`unsupported`.
 Both binaries must be built first (see README.md); run under
 `taskset -c 8-15,24-31` on the shared host.
 """
@@ -39,7 +42,7 @@ def main():
             p = os.path.join(td, f"in{k}")
             with open(p, "w") as f:
                 f.write("\n".join(cases[k::shards]) + "\n")
-            procs.append(subprocess.Popen([LEAN], stdin=open(p), stdout=open(p + ".out", "w")))
+            procs.append(subprocess.Popen([LEAN] + os.environ.get("D3_LEAN_ARGS", "").split(), stdin=open(p), stdout=open(p + ".out", "w")))
         for pr in procs:
             pr.wait()
         outs = [open(os.path.join(td, f"in{k}.out")).read().splitlines() for k in range(shards)]
@@ -51,7 +54,11 @@ def main():
     assert len(near) == n and all(x is not None for x in lean), "missing outputs"
     cats = collections.Counter()
     bad = 0
+    quotient = os.environ.get("D3_QUOTIENT_GAS_ERRORS") == "1"
     for i, (a, b) in enumerate(zip(near, lean)):
+        if quotient:  # compare modulo GasLimitExceeded/GasExceeded (not consensus-observable)
+            a = a.replace("GasLimitExceeded", "GasExceeded")
+            b = b.replace("GasLimitExceeded", "GasExceeded")
         parts = a.split(" ", 3)
         cat = parts[0] if parts[0] == "ok" else parts[3].split(" ")[0].split("(")[0] + ":" + parts[3].split("(")[1].split(" ")[0].rstrip(")")
         cats[cat] += 1

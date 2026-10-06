@@ -18,22 +18,23 @@ def unhex (s : String) : Option ByteArray := Id.run do
     | _, _ => return none
   return some out
 
-partial def loop (stdin : IO.FS.Stream) (stdout : IO.FS.Stream) : IO Unit := do
+partial def loop (bl : Bool) (stdin : IO.FS.Stream) (stdout : IO.FS.Stream) : IO Unit := do
   let line ← stdin.getLine
   if line.isEmpty then return
   let line := line.trimAscii.toString
-  if line.isEmpty then loop stdin stdout else
+  if line.isEmpty then loop bl stdin stdout else
   match line.splitOn " " with
   | [g, h] =>
     match g.toNat?, unhex h with
     | some gas, some code =>
       -- step budget: far above what gas allows (every loop iteration charges ≥ 1 op)
       let fuel := (gas / regularOpCost + 2) * 64 + 1000000
-      stdout.putStrLn (outcome code gas fuel)
+      stdout.putStrLn (outcome code gas fuel bl)
     | _, _ => stdout.putStrLn "unmodeled bad input"
   | _ => stdout.putStrLn "unmodeled bad input"
   stdout.flush
-  loop stdin stdout
+  loop bl stdin stdout
 
-def main : IO Unit := do
-  loop (← IO.getStdin) (← IO.getStdout)
+/-- `--instruction-level-metering`: the ablation (see `Prepare.optimize`). -/
+def main (args : List String) : IO Unit := do
+  loop (!args.contains "--instruction-level-metering") (← IO.getStdin) (← IO.getStdout)

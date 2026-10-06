@@ -205,11 +205,33 @@ Not de-risked:
 
 ## 5. PoC results (examples/d3-wasm-poc)
 
-See `examples/d3-wasm-poc/README.md` for the subset, the commands and the run log. Summary:
-* **Differential test.** For each case, nearcore 2.13.4 (`near_vm_runner::prepare` + `run`, PV86 mainnet
-  config, Wasmtime/Winch) and the Lean semantics both read the **same module bytes**. The test compares the
-  full outcome line: status, burnt gas, used gas, and the exact return bytes or exact `FunctionCallError`.
-* **Ablation.** The same Lean semantics was rerun with finite-wasm's cross-instruction merging disabled,
-  i.e. instruction-level metering. It disagrees with nearcore only on the `window` family, and only in the
-  error variant (`GasLimitExceeded` vs `GasExceeded`), never in gas. This is the empirical basis for
-  `metering_equiv` (§2(2)).
+See `examples/d3-wasm-poc/README.md` (subset, commands) and `RESULTS.md` (run log).
+* **Differential test: 7,000 random modules (seeds 1–3), 0 disagreements.** Each module goes through
+  nearcore 2.13.4 (`near_vm_runner::prepare` + `run`, PV86 mainnet config, Wasmtime/Winch) and through the
+  Lean semantics, on the same bytes. The comparison is the full outcome line: status, burnt gas, used gas,
+  and the exact return bytes or exact `FunctionCallError`. Every outcome class in the subset occurs: success,
+  every reachable trap, out-of-gas in both variants, the stack budget, prepare rejection at 0 gas, and the
+  host errors.
+* **Ablation.** The same semantics with finite-wasm's cross-instruction merging disabled
+  (`--instruction-level-metering`) gives 50 and 46 disagreements on seeds 1 and 3. All of them are in the
+  `window` family, all are `GasLimitExceeded` vs `GasExceeded`, and all have identical gas. With the two
+  variants identified, both seeds give **0 disagreements**. So the test detects metering granularity, and
+  this is T-evidence for `metering_equiv` (§2(2)).
+* Speed: about 10–50 cases/s for the Lean binary on 8 cores. Single 300 Tgas infinite loops take about 10 s,
+  which is fine for testing and irrelevant for proving.
+
+## 6. Corrections and additions to the requirements contract (`docs/requirements/D3_WASM_REQUIREMENTS.md` v0.1)
+
+| # | Contract text | Finding (boundary doc ref) | Proposed change |
+|---|---|---|---|
+| C1 | §1 "Wasmtime semantics at PV86 — confirm from source" | Confirmed (`84.yaml:2`, B1). The code generator is **Winch** on x86_64 and Cranelift elsewhere (B2). | Pin the oracle to x86_64. List H1 (compile acceptance), H3 (NaN sign off-x86) and H4 (native stack) as explicit assumptions of `Rel_D3`. |
+| C2 | §2.1.1 feature list "float ops, SIMD, bulk memory, reference types, multi-value" | In: MVP, f32/f64, mutable globals, sign-extension, saturating float→int, reference types, bulk memory. Out: multi-value, SIMD, relaxed SIMD, threads, tail calls, multi-memory, memory64, exceptions, extended-const, GC, function references, wide arithmetic (B4). The *instrumentation* uses wide arithmetic (B5). | State the list as above. Allow `prepare` to produce an abstract `PreparedModule` (original module + finite-wasm tables + prologue constants) rather than instrumented bytes; the PoC shows this matches nearcore to the gas unit. |
+| C3 | §2.1.1 "treat preparation failures exactly as nearcore (outcome, gas, refunds)" | At PV86 (`fix_contract_loading_cost = false`): prepare or Winch-compile error → 0 gas; missing method or bad signature → zero-gas *no-op* outcome; link error → loading fee charged; instantiation trap → loading fee (B11, boundary §2.3). `WasmtimeCompileError` is a failure class the contract does not mention. | Add the table from boundary §2.3 to the contract. |
+| C4 | §2.1.2 "canonical NaN rules, or float ops excluded — determine and match" | Determined: canonicalisation applies after arithmetic/rounding/min/max/sqrt/promote/demote only. `abs`/`neg`/`copysign`/loads/reinterprets preserve payloads (B3). Floats cannot be excluded without a domain change. | Record the rule. Decide on staged `InD3α` (no float opcodes) vs full floats (strategy §1.2). |
+| C5 | §2.1.3 "the gas-exceeded and per-receipt-limit semantics" | Two more couplings: the per-receipt **storage-proof-size limit** (4,000,000 B, active at PV86) couples execution results to witness recording (H8), and **compute usage** differs from gas for storage/trie costs and feeds chunk scheduling. | Name both explicitly. |
+| C6 | §2.1.4 host list ("storage … iterators if any", "math") | 89 `env` imports at PV86 (App. A). The iterators are 3 deprecated stubs that always fail (removing them would change link behaviour). There is no "math" family. The list omits `p256_verify`, gas-key actions, global-contract deploy/use, deterministic state init, named yield/resume, `promise_set_refund_to`/refund receiver, `current_contract_code`, the `env.gas` alias, and `bls12381_not_in_group_fix = false` (buggy subgroup behaviour is protocol, H7). | Replace the list with the inventory (`near-wasm-boundary-inventory.json`, 89 entries) as the coverage denominator. |
+| C7 | §1 trusted facts (T3/T7/T8) | Host functions also read `random_seed`, `block_height` and `block_timestamp` (boundary §6). | Confirm these are covered by existing claim facts, or raise a claim-format request. |
+| C8 | §2.1 table "faithful to nearcore's VM (… outcomes)" | Only the failure bit of `ExecutionStatus` enters the outcome root (`PartialExecutionStatus`, B10). Error variants are not consensus-observable. | Let `Rel_D3` quotient error variants (still T-test them exactly). This makes per-instruction gas in the AIR exact (strategy §2(2)). |
+| C9 | §2.2 "one independent implementation (not derived from nearcore's code)" | NEAR's metering is defined *by* finite-wasm's algorithm, so any faithful implementation re-derives it. | Scope independence to the WASM core (reference interpreter / WasmCert) and the host-function logic. Metering faithfulness is T against nearcore only. |
+| C10 | §2.3/§2.4 (single STARK per chunk, v1-style caps) | Chunk WASM gas ≤ 10^15 ⇒ ≤ 1.2·10^9 operators. One np-udr-stark proof (tables ≤ 2^22 rows) holds about 1–3 Tgas of WASM. Prover throughput is orders of magnitude short of 600 s at full scale (strategy §2.2). | Add an explicit requirement or decision point: either segmentation plus aggregation proven in the stack, or an `InD3` per-chunk WASM-gas cap with workload classes. Allow staged domains D3α–D3δ with lead sign-off. |
+| C11 | §4 "no `partial` … in the certified path" | Compatible: the semantics is fuel-bounded. The PoC's only `partial` is its IO driver. | None. Keep this rule. |

@@ -444,8 +444,8 @@ def hex (b : ByteArray) : String :=
   b.foldl (fun acc x => acc.push (d[x.toNat / 16]!) |>.push (d[x.toNat % 16]!)) ""
 
 /-- One line in the harness format (`oracle/wasm-d3/src/main.rs`). -/
-def outcome (code : ByteArray) (prepaid : Nat) (fuel : Nat) : String :=
-  match prepare code with
+def outcome (code : ByteArray) (prepaid : Nat) (fuel : Nat) (blockLevel : Bool := true) : String :=
+  match prepare code blockLevel with
   | .unsupported why => s!"unsupported {why}"
   | .prepareError _ =>
     -- with fix_contract_loading_cost = false the loading fee is only charged

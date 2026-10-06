@@ -355,20 +355,33 @@ class Gen:
     def window_case(self, k):
         """finite-wasm charges a whole basic block up front: with prepaid just below
         max_gas_burnt, out-of-gas inside a long pure run reports GasLimitExceeded
-        (block-level) where an instruction-level meter would report GasExceeded."""
+        (block-level) where an instruction-level meter would report GasExceeded.
+        `memory.grow(n)` (fee 26,328,192 + 822,756 n, paid even when growth fails)
+        burns ~1e15 cheaply; n is solved so that the gas left after it is k ops."""
         r = self.rng
-        f = Func(self, 2, True)
-        f.labels.append('v')
-        n_pages = 1215426000 + k
-        f.const(n_pages); f.e(0x40, 0x00, 0x1A)                # burn ~1e15 via memory.grow's linear fee
-        for _ in range(r.randrange(20, 60)):                    # one long pure range
-            f.const(r.randrange(0, 100)); f.e(0x21, 0x00)
-        f.labels.pop()
-        body_code = bytes(f.code) + b"\x0b"
-        b = vec([uleb(2) + b"\x7f"]) + body_code
-        wasm = self.module([uleb(len(b)) + b], 1)
+        n_pure = r.randrange(20, 60)
+        consts = [r.randrange(0, 100) for _ in range(n_pure)]
         delta = r.randrange(0, 40) * OP + r.randrange(0, OP)
-        return MAX_GAS_BURNT - delta, wasm
+        prepaid = MAX_GAS_BURNT - delta
+
+        def build(n_pages):
+            f = Func(self, 2, True)
+            f.labels.append('v')
+            f.const(n_pages); f.e(0x40, 0x00, 0x1A)
+            for c in consts:                                   # one long pure range
+                f.const(c); f.e(0x21, 0x00)
+            f.labels.pop()
+            b = vec([uleb(2) + b"\x7f"]) + bytes(f.code) + b"\x0b"
+            return self.module([uleb(len(b)) + b], 1)
+
+        probe = build(1215422000)
+        loading = 35445963 + 1089295 * len(probe)
+        prologue = (64 + 8 + 7) // 8 * OP
+        before = loading + prologue + OP + 26328192         # + the i32.const point
+        n_pages = (prepaid - before) // OP - k
+        wasm = build(n_pages)
+        assert len(wasm) == len(probe)
+        return prepaid, wasm
 
     def recursion_case(self):
         r = self.rng
@@ -398,7 +411,7 @@ def main():
     for i in range(n):
         x = g.rng.random()
         if x < 0.06:
-            gas, wasm = g.window_case(g.rng.randrange(-80, 10))
+            gas, wasm = g.window_case(g.rng.randrange(-10, 130))
         elif x < 0.10:
             gas, wasm = g.recursion_case()
         else:

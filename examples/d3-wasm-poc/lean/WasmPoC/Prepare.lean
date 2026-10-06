@@ -361,16 +361,20 @@ def optimizeWith (pts : Array Pt) (merge : Pt → Pt → Option Pt) : Array Pt :
       | none => out := out.push prev; prev := cur
     out.push prev
 
-def optimize (pts : Array Pt) : Array Pt :=
+/-- `blockLevel = false` is the *ablation* used in the strategy doc: only same-offset
+merging, i.e. every operator is charged on its own (instruction-level metering).
+nearcore uses `blockLevel = true`. -/
+def optimize (pts : Array Pt) (blockLevel : Bool := true) : Array Pt :=
   let p1 := optimizeWith pts fun a b =>
     if a.off = b.off then (mergeSame a.k b.k).map fun k => ⟨a.off, k, a.fee.add b.fee⟩ else none
+  if !blockLevel then p1 else
   optimizeWith p1 fun a b =>
     (mergeAcross a.k b.k).map fun k => ⟨min a.off b.off, k, a.fee.add b.fee⟩
 
 /-- Instrumentation points of one function, as `pc ↦ (kind, fee)`; only points
 that `instrument_v3.rs:609-620` / `call_gas_instrumentation` actually emit
 (kind ≠ Unreachable, fee ≠ 0). -/
-def gasTable (code : Array Instr) : Array (Option (IK × Fee)) := Id.run do
+def gasTable (code : Array Instr) (blockLevel : Bool := true) : Array (Option (IK × Fee)) := Id.run do
   let act : StateM GS Unit := do
     for i in [0:code.size] do
       modify fun s => match s.sched with
@@ -378,7 +382,7 @@ def gasTable (code : Array Instr) : Array (Option (IK × Fee)) := Id.run do
         | none => { s with off := i }
       gInstr code[i]!
   let (_, s) := act.run {}
-  let pts := optimize s.pts
+  let pts := optimize s.pts blockLevel
   let mut tbl : Array (Option (IK × Fee)) := Array.replicate code.size none
   for p in pts do
     if p.k ≠ .unreach ∧ p.fee ≠ Fee.zero ∧ p.off < code.size then
@@ -447,7 +451,7 @@ def hostOf (i : Import) (ts : Array FuncType) : Except String Host := do
     if ft == { params := #[], results := #[] } then pure .panic else throw "link"
   | n => throw s!"host function {n} not in the PoC"
 
-def prepare (bytes : ByteArray) : PrepResult :=
+def prepare (bytes : ByteArray) (blockLevel : Bool := true) : PrepResult :=
   match decode bytes with
   | .error (.unsupported m) => .unsupported m
   | .error (.invalid m) => .prepareError m
@@ -479,7 +483,7 @@ def prepare (bytes : ByteArray) : PrepResult :=
         let (endOf, elseOf) := matchBlocks f.code
         pfs := pfs.push {
           type := ft, locals := f.locals, code := f.code, endOf := endOf, elseOf := elseOf,
-          gas := gasTable f.code, stackCharge := opMax + frame,
+          gas := gasTable f.code blockLevel, stackCharge := opMax + frame,
           prologueGas := (frame + 7) / 8 * regularOpCost }
     -- exports: names unique (wasmparser), indices valid
     let mut names : List String := []
