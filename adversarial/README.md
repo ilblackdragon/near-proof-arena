@@ -153,10 +153,20 @@ field of every `near-arena-witness-v3` proof, and the permanent hostile case
 `HOSTILE_PROOF_ACCEPTED` deterministically. **Follow-up:** whenever a statement has
 inputs the reference validator does not read (known ignored fields of a witness
 format, lenient map decoding, unsorted keys, unreferenced trie nodes), add a
-structure-aware mutator for them instead of relying on random positions. Lenient
-decoding (duplicate / unsorted `source_receipt_proofs` keys, extra `base_state`
-values) is a further malleability class of raw-witness proofs that the canonical
-reference does not yet exclude by construction (insertion/reordering, not bit flips).
+structure-aware mutator for them instead of relying on random positions.
+
+**Lenient decoding (closed 2026-10-06).** Duplicate / unordered
+`source_receipt_proofs` keys and reordered, repeated or never-read `base_state`
+values are a further malleability class (insertion and reordering, not bit flips)
+that the canonical-only reference left open. The worker's generic structure-aware
+mutator `v3-witness-freedoms` now applies each of them to every
+`near-arena-witness-v3` proof (`entries/duplicate-key`, `entries/reorder`,
+`values/{reorder,duplicate,inject-unused}.<main|implicitN>`), the permanent hostile
+case `near-v3-lenient-witness` (the canonical-only reference) must be REJECTED with
+`HOSTILE_PROOF_ACCEPTED`, and the reference accepts only the **full normal form**
+(`examples/reexec-v3-d0/formal/ReexecV3D0/NormalForm.lean`: entries deduplicated
+and sorted by key, every `base_state` exactly the read set of the relation's trie
+builds, deduplicated and sorted; proved complete and enforced byte-exactly).
 
 ## 2. Proof mutators (`proof-mutators/`)
 

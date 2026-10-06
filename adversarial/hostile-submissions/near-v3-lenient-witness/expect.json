@@ -1,0 +1,23 @@
+{
+  "case": "near-v3-lenient-witness",
+  "attack_family": "proof-malleability",
+  "targets": [
+    "near-v3"
+  ],
+  "runnable": true,
+  "expected_decision": "REJECTED",
+  "expected_failing_gates": [
+    "ADVERSARIAL_PROOFS"
+  ],
+  "expected_reason_codes": [
+    "HOSTILE_PROOF_ACCEPTED"
+  ],
+  "fail_by_stage": "CONFORMANCE_CHECKED",
+  "must_never": [
+    "ADMITTED",
+    "accepted",
+    "ranked"
+  ],
+  "why": "The canonical-only reexec-v3-d0 reference (live run 2, sub_9b0c50fc..., ADMITTED before this mutator existed): the verifier requires the three validator-ignored fields (height_included, chunk signature, transition block hashes) to be zero, then decides RelD0. It is sound and its certificate is genuine, but nearcore decodes source_receipt_proofs as a HashMap (any entry order, a duplicate key keeps the last value) and every PartialState::TrieValues as a hash-indexed store (any order, duplicates and never-read values accepted), and RelD0 mirrors that. So swapping two receipt-proof entries or two trie values, repeating an entry or a value, or appending a value no trie node references gives a second accepted proof of the same claim. The judge's structure-aware mutator v3-witness-freedoms makes exactly those edits, so ADVERSARIAL_PROOFS fails deterministically.",
+  "notes": "Submit against near-chunk-validation-d0 (chl_4b431651...). Derived case: BASE examples/reexec-v3-d0 with the canonical-only Model.lean, Obligations.lean, prove.rs, Cargo.toml and build.sh of commit 003a9cb (model closure ReexecV3D0.CanonDefs + ReexecV3D0.Model, so the shipped verify equals the judge build)."
+}

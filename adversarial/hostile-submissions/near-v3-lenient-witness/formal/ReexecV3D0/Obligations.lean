@@ -2,7 +2,7 @@ import ArenaCore.Admission
 import NearSpecV3.ChallengeV3
 import ReexecV3D0.Model
 import ReexecV3D0.Size
-import ReexecV3D0.NormalForm
+import ReexecV3D0.Canon
 
 /-!
 # The admission obligations of the `reexec-v3-d0` backend
@@ -13,16 +13,13 @@ judge renders those literals.
 
 * Backend: `Aux := Witness` (the witness bytes), `B := Rel` — semantic
   soundness and completeness are immediate.
-* Verifier completeness: the honest proof is the **normal form** `w'` of the
-  witness `w`, computed by the prover's normaliser `normSW` (`relD0_normal`,
-  `NormalForm.lean`: ignored header fields and block hashes zeroed, receipt-proof
-  entries deduplicated and sorted, every `base_state` cut to its read set; `RelD0`
-  still holds by `checkD0_normal`, the normal form is a fixed point of `normSW` by
-  `normSW_spec`, and `|w'| ≤ |w|`); the verifier decodes the canonical claim back
-  (`WfClaim.decode_encode`, the proved codec round trip of `NearSpecV3.ChallengeV3`),
-  checks `normalW (encode c) w'` and decides `RelD0 (encode c) w'`;
+* Verifier completeness: the honest proof is the **canonical form** `w'` of the
+  witness `w` (`relD0_canonical`, `Canon.lean`: the validator-ignored
+  `height_included`, chunk signature and transition block hashes zeroed; `RelD0`
+  still holds by `checkD0_norm`, and `|w'| ≤ |w|`); the verifier decodes the
+  canonical claim back (`WfClaim.decode_encode`, the proved codec round trip of
+  `NearSpecV3.ChallengeV3`), checks `canonicalW w'` and decides `RelD0 (encode c) w'`;
   `|w| ≤ 8 388 641` by `relD0_witness_length` (`Size.lean`).
-* Accepted proofs are normal: `normalW_sound` / `normalW_fixed` (`NormalForm.lean`).
 * Cryptographic soundness: **deterministic** (`DeterministicSound`, ε = 0, no
   assumption). The verifier accepts only if `decide (RelD0 (encode c) pb)`
   holds for the decoded claim `c`, so every accepted claim is in the
@@ -71,7 +68,7 @@ theorem deterministicSound (pub : ArenaCore.Bytes) :
   exact ⟨c, hc, pb, hr⟩
 
 theorem check_complete {c : WfClaim} {w : List UInt8} (h : WfClaim.Rel c w)
-    (hc : normalW (WfClaim.encode c) w = true) : check (WfClaim.encode c) w = true := by
+    (hc : canonicalW w = true) : check (WfClaim.encode c) w = true := by
   unfold check
   rw [WfClaim.decode_encode]
   dsimp only
@@ -84,7 +81,7 @@ theorem honest_length {c : WfClaim} {w : List UInt8} (h : WfClaim.Rel c w) :
 theorem verifierComplete (pub : ArenaCore.Bytes) (mpb : Nat) (hm : honestProofBound ≤ mpb) :
     VerifierComplete challengeSpec Model.verifier.deployed pub mpb := by
   intro c w _ h
-  obtain ⟨w', h', hcan, hlen⟩ := relD0_normal (cb := c.1.encode) h
+  obtain ⟨w', h', hcan, hlen⟩ := relD0_canonical (cb := c.1.encode) h
   refine ⟨w', Nat.le_trans hlen (Nat.le_trans (honest_length h) hm), ?_⟩
   have hc : check (WfClaim.encode c) w' = true := check_complete h' hcan
   exact (deployed_eq pub (challengeSpec.encodeClaim c) w').trans hc

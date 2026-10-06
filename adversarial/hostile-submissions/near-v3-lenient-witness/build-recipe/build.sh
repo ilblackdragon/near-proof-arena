@@ -2,9 +2,7 @@
 # Offline, reproducible build (run by the judge as `bash build-recipe/build.sh`
 # from the package root, no network, fresh $HOME, SOURCE_DATE_EPOCH=0).
 #
-#   out/prepare             — Rust (source/), std only, --locked --offline
-#   out/prove               — Lean: source/prover/ProveMain.lean (the verifier model's own
-#                             normaliser ReexecV3D0.normSW) linked with the same objects
+#   out/prepare, out/prove  — Rust (source/), std only, --locked --offline
 #   out/verify              — the Lean verifier model ReexecV3D0.Model.verifier
 #                             compiled by the Lean compiler, laid out exactly like
 #                             the judge's native-lean build (runners/formal-checker
@@ -27,9 +25,9 @@ cmp -s source/Cargo.lock dependency-locks/Cargo.lock || {
   echo "dependency-locks/Cargo.lock differs from source/Cargo.lock" >&2
   exit 1
 }
-( cd source && cargo build --release --locked --offline --bin prepare --bin leanorder )
+( cd source && cargo build --release --locked --offline --bin prepare --bin prove --bin leanorder )
 mkdir -p out
-for bin in prepare; do
+for bin in prepare prove; do
   install -m 0755 "source/target/release/${bin}" "out/${bin}"
 done
 
@@ -51,7 +49,7 @@ LEAN="${TC}/bin/lean"
 LEANC="${TC}/bin/leanc"
 ORDER="${ROOT}/source/target/release/leanorder"
 TRUSTED_PREFIXES="ArenaCore NearSpec.Bytes NearSpec.SHA256 NearSpec.AccountId NearSpec.Primitives NearSpec.Trie NearSpec.Outcome NearSpec.TransferV1 NearSpec.ClaimCodec NearSpec.Challenge NearSpec.TrieUpsert NearSpec.Bandwidth NearSpecV3.ChaCha20 NearSpecV3.GF256 NearSpecV3.ReedSolomon NearSpecV3.F64 NearSpecV3.Congestion NearSpecV3.BandwidthScheduler NearSpecV3.Wire NearSpecV3.ClaimV3 NearSpecV3.ClaimV3Props NearSpecV3.WitnessV3 NearSpecV3.Layout NearSpecV3.TrieBuild NearSpecV3.RuntimeD0 NearSpecV3.ChunkValidationV0 NearSpecV3.ChallengeV3"
-MODEL_MODULES="ReexecV3D0.CanonDefs ReexecV3D0.NormDefs ReexecV3D0.KeysD0 ReexecV3D0.NormalDefs ReexecV3D0.NormBytesDefs ReexecV3D0.Model"   # the model's import closure in formal/
+MODEL_MODULES="ReexecV3D0.CanonDefs ReexecV3D0.Model"   # the model's import closure in formal/
 NB="${ROOT}/build-native"
 rm -rf "${NB}"
 mkdir -p "${NB}/tsrc" "${NB}/msrc/ReexecV3D0" "${NB}/main" "${NB}/olean" "${NB}/c" "${NB}/o"
@@ -70,13 +68,7 @@ compile() {  # root module
 }
 LINK=()
 for m in $("${ORDER}" "${NB}/tsrc" ${TRUSTED_PREFIXES}); do compile "${NB}/tsrc" "$m"; LINK+=("$m"); done
-# model modules in the judge's order: its topological order of the WHOLE formal tree,
-# restricted to the model closure
-mkdir -p "${NB}/fsrc"
-cp -R formal/ReexecV3D0 "${NB}/fsrc/"
-for m in $("${ORDER}" "${NB}/fsrc" ReexecV3D0); do
-  case " ${MODEL_MODULES} " in *" ${m} "*) compile "${NB}/msrc" "$m"; LINK+=("$m");; esac
-done
+for m in $("${ORDER}" "${NB}/msrc" ReexecV3D0); do compile "${NB}/msrc" "$m"; LINK+=("$m"); done
 compile "${NB}/main" ArenaVerifyMain; LINK+=(ArenaVerifyMain)
 objs=()
 for m in "${LINK[@]}"; do
@@ -85,12 +77,4 @@ for m in "${LINK[@]}"; do
 done
 "${LEANC}" -o "${NB}/o/verify" "${objs[@]}"
 install -m 0755 "${NB}/o/verify" out/verify
-# out/prove: the same trusted + model objects, the prover's main instead of the judge's
-mkdir -p "${NB}/prover"
-cp source/prover/ProveMain.lean "${NB}/prover/ProveMain.lean"
-compile "${NB}/prover" ProveMain
-"${LEANC}" -c -O3 -DNDEBUG "${NB}/c/ProveMain.c" -o "${NB}/o/ProveMain.o"
-pobjs=("${objs[@]:0:${#objs[@]}-1}" "${NB}/o/ProveMain.o")
-"${LEANC}" -o "${NB}/o/prove" "${pobjs[@]}"
-install -m 0755 "${NB}/o/prove" out/prove
 rm -rf "${NB}"
