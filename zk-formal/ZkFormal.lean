@@ -217,3 +217,5 @@ import ZkFormal.NearAssembly.Closed
 import ZkFormal.NearAssembly.MinHeight
 import ZkFormal.Prover.SizeBoundToy
 import ZkFormal.NearAssembly.NearClosed
+-- v3 D0 design PoC (docs/zk-formal/V3-D0-DESIGN.md §8): hints + native preprocessing.
+import ZkFormal.V3.Hint
