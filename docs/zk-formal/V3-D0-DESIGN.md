@@ -674,3 +674,29 @@ Formally the hint is therefore bounded only by the witness size (≤ 8 MiB). Und
 * (c) the scheduler in-AIR (estimated 20–40 k LOC).
 
 This is raised to the lead; lanes that do not depend on it proceed.
+
+## 11. Decisions round 2 (lead, 2026-10-06) and consequences
+
+* **Governance change.** `near-chunk-validation-d0-1` is now live: `reexec-v3-d0` is admitted on it, and it pins the NearSpecV3 tree `sha256:89903b98…`. Consequences:
+  * Every v3 amendment is **additive**, in new files: `RelD0a cb w := RelD0 cb w ∧ A1 ∧ A2 ∧ Canon0f`, plus a new successor draft challenge with `max_proof_bytes = 8,388,608`.
+  * A5 becomes candidate-side, kernel-proved `@[csimp]` redirections of the spec functions `prepD0` calls. Pinned modules cannot gain imports.
+  * Extracted witnesses are emitted in the v3-ref normal form `normalW`. The encoder reuses `normSW`/`normW` and their lemmas from main.
+* **8 MiB cap, option (a) then (c).**
+  * Canonicality of `0x0f` bounds the main-transition `s₀` at 98,341 B.
+  * It does **not** make the hint complete under 8 MiB, for two reasons:
+    1. A `RelD0a` witness may read, in each implicit transition, a canonical `0x0f` value that differs from the previously written one but has the same SHA-256 digest. Collision resistance cannot be used in the semantic theorems, so the hint must carry each such value: ≤ 31 × 98,341 B ≈ 3.0 MB.
+    2. The queue values (`[13]`, `[16]‖s`) are unbounded.
+  * Formal budget: STARK bound ≈ 6.4 MB (P1 corrected by +1 MB for roll-in commits, see STATUS-V3-BUS), plus `B` ≤ 0.91 MB, leaves ≈ 1.1 MB.
+  * Per the lead's rule this means **(c): the bandwidth scheduler (with its ChaCha20) and the fixed-key value parsers move into the AIR.**
+  * After (c) the hint is only `{n, B}`: ≤ 0.91 MB under A1.
+  * Native in the verifier, unchanged: the claim-only parts (header chain, walk, shuffle permutation, f64 congestion, RS/emr over `B`, outgoing root, forwarding).
+  * The scheduler's *claim-only inputs* become public data, also computed natively: link permissions from congestion and missed chunks, base bandwidth, converted request increase lists. Its state-dependent core (allowances, budgets, bucket processing, distribute-remaining, state encoding) is in-AIR.
+  * Canon0f is kept: in-AIR decoding of the previous state then reads exactly `n²` links in order.
+  * New lanes, after the spec lane reports:
+    * `v3-chacha`: ChaCha20 block table and `gen_index`/Lemire;
+    * `v3-sched`: scheduler tables, sound and complete against `Scheduler.run`;
+    * `v3-qvals`: queue-value parsers.
+
+  Estimated effort: +20–35 k LOC, +3 weeks.
+* **A6 rejected; weak `uniq` instead.** "Equal digest ⇒ equal bytes" is proved in-AIR, with tree-shaped records. This is in lane `v3-trie`.
+* **P2 runs now** in lane `v3-p2`.
