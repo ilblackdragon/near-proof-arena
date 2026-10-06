@@ -165,7 +165,7 @@ def regN (C : URow) : List Nat := (List.range 32).map fun i => C (reg i)
 /-- **The messages of a walk row** (`W0 … W3`). -/
 theorem msgsW (hw : C wk = 1) (bb : Nat) (sd : Bool) :
     uMsgs C D bb sd =
-      (if B_MIDROOT = bb ∧ false = sd then (if C sf = 1 then [[C tau] ++ regN C] else []) else []) ++
+      (if B_MIDROOT = bb ∧ false = sd then (if C sf = 1 then [[C tau, C rootRid] ++ regN C] else []) else []) ++
       (if B_ROOT = bb ∧ true = sd then (if C wt3 = 1 then [[(C tau + 1) % P] ++ regN C] else []) else []) ++
       (if B_DIGEST = bb ∧ false = sd then (if C wt3 = 1 then [[C dI, C dL] ++ regN C] else []) else []) ++
       (if B_S0F = bb ∧ true = sd then (if C sf = 1 then [[C tau, C pres, C vid]] else []) else []) ++

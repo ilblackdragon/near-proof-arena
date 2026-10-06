@@ -47,7 +47,7 @@ structure UpsLayout (s : UpsSeg) (L : Nat) (ps : List (Nat × Nat)) (fls : List 
     UPartL s ps[k].1 ps[k].2 (fls[k]'(by omega)) (ws[k]'(by omega))
   /-- the messages of every row, by its kind -/
   msgsW : ∀ i, i < 4 → ∀ bb sd, uMsgs (s.row i) (s.next i) bb sd =
-      (if B_MIDROOT = bb ∧ false = sd then (if s.row i sf = 1 then [[s.row i tau] ++ regN (s.row i)] else []) else []) ++
+      (if B_MIDROOT = bb ∧ false = sd then (if s.row i sf = 1 then [[s.row i tau, s.row i rootRid] ++ regN (s.row i)] else []) else []) ++
       (if B_ROOT = bb ∧ true = sd then
         (if s.row i wt3 = 1 then [[(s.row i tau + 1) % P] ++ regN (s.row i)] else []) else []) ++
       (if B_DIGEST = bb ∧ false = sd then

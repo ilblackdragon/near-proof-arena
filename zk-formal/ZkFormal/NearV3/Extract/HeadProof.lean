@@ -32,7 +32,7 @@ structure HeadWf (hs : List HeadE) : Prop where
 def startEdgeMsg (h : HeadE) (u : Nat) : Msg := [0, h.tau, SYM_START, h.rres, 0, EK_DOWN, u]
 
 def headSends (hs : List HeadE) (b : Nat) : List Msg :=
-  if b = B_MIDROOT then hs.map fun h => [h.tau] ++ h.post
+  if b = B_MIDROOT then hs.map fun h => [h.tau, h.rid] ++ h.post
   else if b = B_PARENT then hs.map fun h => [h.rid, h.tau, 0, h.rlen, h.rres]
   else if b = B_EDGE then hs.map fun h => startEdgeMsg h 0
   else if b = B_DIGS then hs.flatMap fun h => (List.range 32).map fun i => [msgId K_NPRE h.rid, h.tau, i, h.pre.getD i 0]
@@ -257,7 +257,7 @@ theorem rowT (q : Nat) (b : Nat) (sd : Bool) :
       (if b = B_DIGEST ∧ sd = false ∧ tr.cell tt q hf = 1 then
         [[(K_NPOST : Fp) + 16 * tr.cell tt q rid, tr.cell tt q rlen] ++ pregsAt tr tt q] else []) ++
       (if b = B_ROOT ∧ sd = false ∧ tr.cell tt q hf = 1 then [[tr.cell tt q tau] ++ regsAt tr tt q] else []) ++
-      (if b = B_MIDROOT ∧ sd = true ∧ tr.cell tt q hf = 1 then [[tr.cell tt q tau] ++ pregsAt tr tt q] else []) ++
+      (if b = B_MIDROOT ∧ sd = true ∧ tr.cell tt q hf = 1 then [[tr.cell tt q tau, tr.cell tt q rid] ++ pregsAt tr tt q] else []) ++
       (if b = B_PARENT ∧ sd = true ∧ tr.cell tt q hf = 1 then
         [[tr.cell tt q rid, tr.cell tt q tau, 0, tr.cell tt q rlen, tr.cell tt q rres]] else []) ++
       (if b = B_EDGE ∧ sd = true ∧ tr.cell tt q hf = 1 then
@@ -290,7 +290,7 @@ def firstMsgs (tr : Trace Fp) (tt q b : Nat) (sd : Bool) : List (List Fp) :=
   (if b = B_DIGEST ∧ sd = false then
     [[(K_NPOST : Fp) + 16 * tr.cell tt q rid, tr.cell tt q rlen] ++ pregsAt tr tt q] else []) ++
   (if b = B_ROOT ∧ sd = false then [[tr.cell tt q tau] ++ regsAt tr tt q] else []) ++
-  (if b = B_MIDROOT ∧ sd = true then [[tr.cell tt q tau] ++ pregsAt tr tt q] else []) ++
+  (if b = B_MIDROOT ∧ sd = true then [[tr.cell tt q tau, tr.cell tt q rid] ++ pregsAt tr tt q] else []) ++
   (if b = B_PARENT ∧ sd = true then [[tr.cell tt q rid, tr.cell tt q tau, 0, tr.cell tt q rlen, tr.cell tt q rres]]
     else []) ++
   (if b = B_EDGE ∧ sd = true then [[0, tr.cell tt q tau, (SYM_START : Fp), tr.cell tt q rres, 0, (EK_DOWN : Fp), 0]]

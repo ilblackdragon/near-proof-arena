@@ -20,9 +20,9 @@ Labels used below:
 
 | table | width | interactions | aux g=1 | degree g=1 | `W_eq` g=1 | aux g=3 | degree g=3 | `W_eq` g=3 | maxLog |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `upsV3` | 186 | 15 | 15 | 4 | **330** | 6 | 8 | **290** | 22 |
+| `upsV3` | 187 | 15 | 15 | 4 | **331** | 6 | 8 | **291** | 22 |
 | `nodeV3` + `UPB` delta | 186 (+1) | 20 (+2) | 20 | 4 | 370 (+17) | 7 | 8 | 298 (+1) | 22 |
-| lane total (6 tables) | | | | | **1185** (838 → 1185) | | | **1073** (782 → 1073) | |
+| lane total (6 tables) | | | | | **1202** (with `VSLOT` and the root binding) | | | **1082** | |
 
 M7b had `upsV3` at 176 columns, `W_eq` 320 / 280. The pass-through mode adds 10 columns
 (`dep0‥2`, `kPT`, `up`, `rc`, `pdep`, `cN`, `rcid`, `rdc`) and no interaction. The `nodeV3` delta
@@ -36,7 +36,7 @@ The theorems are `ups_g1`, `ups_g3`, `nodeU_g1`, `nodeU_g3`, `weqTrieU_g1` and `
 
 | bus | message | `upsV3` side | gate |
 |---|---|---|---|
-| `MIDROOT` 24 | `(τ, mid[32])` | recv | `W0` |
+| `MIDROOT` 24 | `(τ, rid, mid[32])` | recv | `W0` (`rid` → segment constant `rootRid`; the root part's source, M7e) |
 | `ROOT` 10 | `(τ+1, post[32])` | send | `W3` |
 | `S0F` 59 | `(τ, present, vid)` | send | `W0` |
 | `SPLEN` 61 | `(τ, L)` | recv | `W0` |
@@ -147,6 +147,7 @@ Part `j` emits `Q_j`. Row `qpos` sends `BYTES (msgId 12 (512τ + j), qpos, b)`, 
 | 161–167 | `LR[3]` (new length bytes), `SR[4]` (old value length bytes) |
 | 168–175 | `gMs gMr rx mBv mCv mS mK mB` |
 | 176–185 | pass-through (§1.1): segment constants `dep0 dep1 dep2`; part constants `kPT up rc pdep cN`; row columns `rcid` (the `cid` field of a read) and `rdc` (the row reads its target window's child id) |
+| 186 | `rootRid` (M7e root binding): segment constant, the `rid` of `MIDROOT`; `qb·rootP·(sN − rootRid) = 0` |
 
 ## 3. Case analysis
 
@@ -435,6 +436,17 @@ Added (this round):
 | `UpsVb` | **step 2, `vbytes` without an AIR change**: `valKind` (every case has a part with a fresh `VLEN` field: `RLP RBR RBV NLF`, or the `LSb ESl0 ESl1` split branch), **`vbPart`** (its rows `L0 L1 L2` are three of its emitted bytes), **`ups_vbytes`** (with the segment SHA facts and the lookups `ups_look0`, which do not use the limbs), **`ups_vbytesE`**; **`ups_ext0V`** / **`ups_partsAllV`**: `UpsExt0` and every part's bytes with exact `MEMD` limbs from `UpsEnv` alone.  `UpsLook`: `ups_look0` (lookups from reads, sources and walk facts); `rbiLook`/`spbLookY`/`spbLookC` dropped their unused `vlen`/`vbytes`/`digV` arguments |
 | `UpsChain` | **step 4**: `upsE s = ⟨τ, reg(W0), reg(W3)⟩`; `ups_rootMsgs`/`ups_midMsgs`; **`ups_chain`** (`root_chain` for the real table: `RootChain hs (v.map upsE) K r0 rK`), **`ups_tauDistinct`**, `ups_tauBound` (`τ ≤ K`); **step 3, root half**: `rootLook3`, **`ups_rootDig`** (`(upsE s).post = sha256 (nodeEnc (upsQ (|ps| − 1)))`) |
 
+**AIR fix (M7e, lead-approved): the root part is bound to the instance's root record.**  `cid` is free on
+unrevealed windows (`kidCidOk` constrains it only for `.node` kids), so above the walk's first record `N_0` the
+pass-through chain had no fixed top: the root part's source was any depth-0 record, and a pass-through could use
+an empty-key extension with a `.hash` child from another instance (§6.2's argument assumed the record was on
+`τ`'s path).  Fix: `headV3` sends `MIDROOT (τ, rid, post)`; `upsV3` receives it into the segment constant
+`rootRid` (column 186) and pins `qb·rootP·(sN − rootRid) = 0`.  `Chain3.UpsE` gets `rid`, `RootChain.rid`
+(`(upsAt τ).rid = (headAt τ).rid`); **`ups_rootSrc`** (`UpsRoot`): the root part's source is the head's `rid`.
+Budget (`BudgetUps`, kernel-checked): `upsV3` 187 columns, `W_eq` 330 → 331 (g=1), 290 → 291 (g=3); lane total
+1201 → 1202 / 1081 → 1082; interactions and degree unchanged; `headV3` unchanged (161 / 161).  Model check
+(`upsv3_model.py`, `rootRid = chain[0]`): seeds 1 (100) and 4 (200, `chain_prob = 0.4`), 0 failures.
+
 Changes to existing statements (all rebuilt): `SrcOk` and the `RBI`/`MVL`/`MVE`/`SPB` lemmas take encodings `< 2^22`
 (was `2^20`) and keys `< 510` nibbles (was `400`), the bounds the records give; `WalkWf3.nrows` is `≤ 2^23` (was `2^21`)
 so that the `upsV3` walks fit (`wrows_lt` unchanged); `Chain3.UpsWf` → `UpsEWf` (name clash).
@@ -442,7 +454,9 @@ so that the `upsV3` walks fit (`wrows_lt` unchanged); `Chain3.UpsWf` → `UpsEWf
 **Interface hypotheses (new):**
 * `SchedVal v sv` (scheduler ↔ `upsV3`, V3-D0-DESIGN §12): `sv τ` is the new value of instance `τ`; every `SPLEN`
   receive is a scheduler send `[τ, |sv τ|]`, every `SPOST` receive a send `[τ, d, (sv τ)[d]]` with `d < |sv τ|`
-  (as `Fp` images), `|sv τ| < 2^24`.
+  (as `Fp` images), `|sv τ| < 2^24`.  Discharged in the assembly by v3-sched's `codec_schedVal`
+  (`Sched/Link/CodecSV.lean`, lane/v3-air; `sv τ` = the codec post-byte column); its ownership conditions
+  (`CodecValOwn`, `SparOwn`) and the `SPAR` `PubIdx` are assembly obligations.
 * (discharged) `walkV3`'s height `≤ 2^21` (`hWr` of `allWalks_wf` / `ups_walkHyp`): now exported by
   `WalkV3ViewStmt` next to `WalkWf3` (whose `nrows` stays `≤ 2^23` for `walkV3` and `upsV3` walks together).
 * `UpsEnv` collects the balances (`UPB`, `MEMD`, `BYTES` with others' ids not of kind 12, `DIGEST` provided) and

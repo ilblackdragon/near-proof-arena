@@ -503,8 +503,18 @@ counted.
     limbs: `rbiLook`, `spbLookY`, `spbLookC` dropped their unused `vlen`/`vbytes`/`digV` arguments), so SHA's
     `digest` contract (`sha_seg` / `UpsShaSeg`) makes each of its emitted bytes, hence each limb, `< 256`
     (`vbPart`, `ups_vbytes`).  `L < 2^24` then pins `L` exactly (`ups_vlen`).
+  * (closed, AIR fix, lead-approved) **root part not bound to the instance.**  `cid` is free on unrevealed windows
+    (`NodeV3.kidCidOk` only constrains `.node` kids), so the pass-through parts above `N_0` (the walk's first
+    record) had no fixed top: the root part's source was any depth-0 record and a pass-through could read an
+    empty-key extension with a `.hash` child of another instance (its `ucid` set to the part below).  Fixed:
+    `headV3` sends `MIDROOT (τ, rid, post)`, `upsV3` receives `rid` into the new segment constant `rootRid`
+    (column 186) and pins `qb·rootP·(sN − rootRid) = 0`; `RootChain.rid`, `ups_rootSrc`.  Between levels the
+    chain is sound without it (the descend above reads a revealed window; a `.hash` child would make the
+    pass-through its own `res`, i.e. the next walked record, contradicting its depth).  `W_eq` +1 (331 / 291).
   * **Interface (M7e):** `SchedVal v sv` (`Extract/Ups/UpsVal.lean`): every `SPLEN`/`SPOST` receive of `upsV3` is a
-    scheduler send `[τ, |sv τ|]` / `[τ, d, (sv τ)[d]]` (`d < |sv τ|`), `|sv τ| < 2^24` (owed to v3-sched).
+    scheduler send `[τ, |sv τ|]` / `[τ, d, (sv τ)[d]]` (`d < |sv τ|`), `|sv τ| < 2^24` (owed to v3-sched; discharged in the assembly by v3-sched's `codec_schedVal`
+    (`Sched/Link/CodecSV.lean`, lane/v3-air), whose ownership conditions `CodecValOwn`/`SparOwn` and the `SPAR`
+    `PubIdx` are assembly obligations).
   * (closed) `walkV3`'s height `≤ 2^21`: **exported** by `WalkV3ViewStmt` (a conjunct next to `WalkWf3`:
     `(ws.flatMap (·.steps)).length ≤ 2^21`, from `height_le`; `walk3_view` re-proved, axioms propext,
     Classical.choice, Quot.sound).  `WalkWf3.nrows` stays `≤ 2^23` so that the walks of `walkV3` and `upsV3` fit

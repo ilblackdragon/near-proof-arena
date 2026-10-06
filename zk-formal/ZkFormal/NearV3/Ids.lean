@@ -19,7 +19,7 @@ record* id `vid` (a segment of `nodeV3`), not by the touched leaf.
 | 22 | `VPARENT` | `(vid, len)` | `nodeV3` value window → value record (permutation, tree-shaped) |
 | 23 | `MEMD` | reserved (`upsV3`) | |
 | 18 | `SIZE` | `(table, total)` | `nodeV3`/`valV3` → `size` |
-| 24 | `MIDROOT` | `(τ, d[32])` | `headV3` (lockstep post-root) → `upsV3` |
+| 24 | `MIDROOT` | `(τ, rid, d[32])` | `headV3` (lockstep post-root) → `upsV3` |
 -/
 
 namespace ZkFormal.NearV3

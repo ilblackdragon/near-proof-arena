@@ -4,7 +4,7 @@ import ZkFormal.NearV3.Link.Chain3
 /-!
 # ZkFormal.NearV3.Extract.Ups.UpsChain — the instance chain over the real `upsV3` table (M7e, step 4)
 
-`upsE s = ⟨τ, reg(W0), reg(W3)⟩` is the abstract entry (`Chain3.UpsE`) of a segment: `W0` receives
+`upsE s = ⟨τ, rid, reg(W0), reg(W3)⟩` is the abstract entry (`Chain3.UpsE`) of a segment: `W0` receives
 `MIDROOT [τ] ++ reg(W0)` and `W3` sends `ROOT [(τ + 1) % P] ++ reg(W3)`, and no other row of a segment uses
 these buses (`ups_rootMsgs`, `ups_midMsgs`).
 
@@ -22,7 +22,7 @@ namespace ZkFormal.NearV3.UpsRows
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.UpsV3
 
 /-- The abstract entry of a segment. -/
-def upsE (s : UpsSeg) : UpsE := ⟨s.row 0 tau, regN (s.row 0), regN (s.row 3)⟩
+def upsE (s : UpsSeg) : UpsE := ⟨s.row 0 tau, s.row 0 rootRid, regN (s.row 0), regN (s.row 3)⟩
 
 theorem regN_len (C : URow) : (regN C).length = 32 := by simp [regN]
 
@@ -30,7 +30,7 @@ theorem upsE_wf {v : List UpsSeg} (hw : UpsWf v) : UpsEWf (v.map upsE) := by
   refine ⟨fun u hu => ?_, fun u hu => ?_⟩
   · obtain ⟨s, -, rfl⟩ := List.mem_map.1 hu; exact ⟨regN_len _, regN_len _⟩
   · obtain ⟨s, hs, rfl⟩ := List.mem_map.1 hu
-    refine ⟨rowLt hw hs _ _, fun x hx => ?_, fun x hx => ?_⟩ <;>
+    refine ⟨rowLt hw hs _ _, fun x hx => ?_, fun x hx => ?_, rowLt hw hs _ _⟩ <;>
     · simp only [upsE, regN, List.mem_map, List.mem_range] at hx
       obtain ⟨i, -, rfl⟩ := hx; exact rowLt hw hs _ _
 
@@ -95,11 +95,11 @@ theorem ups_rootMsgs : s.msgs B_ROOT true = [[(s.row 0 tau + 1) % P] ++ regN (s.
       simp [B_ROOT, B_DIGEST, B_BYTES, B_UPB, B_MEMD]
 
 /-- **`MIDROOT` of a segment**: one receive, by `W0`. -/
-theorem ups_midMsgs : s.msgs B_MIDROOT false = [[s.row 0 tau] ++ regN (s.row 0)] := by
+theorem ups_midMsgs : s.msgs B_MIDROOT false = [[s.row 0 tau, s.row 0 rootRid] ++ regN (s.row 0)] := by
   obtain ⟨L, ps, fls, wsl, hL⟩ := ups_layout hw s hs
   have h4 := hL.walk.1
   unfold UpsSeg.msgs
-  rw [flatMap_ite_congr (g := fun i => if i = 0 then [[s.row 0 tau] ++ regN (s.row 0)] else []) ?_]
+  rw [flatMap_ite_congr (g := fun i => if i = 0 then [[s.row 0 tau, s.row 0 rootRid] ++ regN (s.row 0)] else []) ?_]
   · exact flatMap_single _ _ 0 (by omega)
   intro i hi
   rcases Nat.lt_or_ge i 4 with h | h
@@ -129,7 +129,7 @@ theorem ups_rootSends {v : List UpsSeg} (hw : UpsWf v) : (upsTraffic v).sends B_
 theorem ups_midRecvs {v : List UpsSeg} (hw : UpsWf v) : (upsTraffic v).recvs B_MIDROOT = upsRecvs (v.map upsE) B_MIDROOT := by
   rw [upsRecvs_mid]
   show v.flatMap (·.msgs B_MIDROOT false) = _
-  rw [flatMap_congrR (g := fun s => [[s.row 0 tau] ++ regN (s.row 0)]) (fun s hs => ups_midMsgs hw hs)]
+  rw [flatMap_congrR (g := fun s => [[s.row 0 tau, s.row 0 rootRid] ++ regN (s.row 0)]) (fun s hs => ups_midMsgs hw hs)]
   rw [flatMap_sing, List.map_map]; rfl
 
 /-- **The instance chain over the real table.** -/
