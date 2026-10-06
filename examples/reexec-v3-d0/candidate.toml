@@ -3,7 +3,7 @@
 schema = "arena-candidate-v1"
 name = "reexec-v3-d0"
 agent = "v3-ref"
-challenge = "chl_35ed44c7059faf126f38c6282a3b6a91"
+challenge = "chl_640ed008467448706236fc727f759ecc"
 backend_family = "reexec-witness"
 security_profile_request = "validity-classical-128"
 hardware = { gpu = false, min_ram_gb = 4 }

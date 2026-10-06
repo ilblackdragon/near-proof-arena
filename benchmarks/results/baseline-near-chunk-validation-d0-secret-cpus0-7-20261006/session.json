@@ -1,0 +1,1100 @@
+{
+  "schema": "arena-bench-session-v2",
+  "challenge_id": "chl_35ed44c7059faf126f38c6282a3b6a91",
+  "suite_revision": "near-chunk-validation-d0-r1",
+  "package_digest": "sha256:fec6f7c95bf30999adb77e308e8395136b0636a86ad875ceaac133137fd41d47",
+  "sandbox": {
+    "backend": "firecracker",
+    "steps_share_instance": true,
+    "rootfs": "sha256:bb60e9328af180b61f0a64694e368b2b56ed7d85e2b1cbd6d6c5ed93906f2960",
+    "kernel": "sha256:e20e46d0c36c55c0d1014eb20576171b3f3d922260d9f792017aeff53af3d4f2"
+  },
+  "fc_deps": "/data/illia/nearproof-deps/firecracker-rc",
+  "cpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "bundle_tree_digest": "sha256:46b72ebb3ae3cc16a04ef927d6fb8295096b07e48af91c636eceec95a9a350c5",
+  "public_tree_digest": "sha256:5a94fc392e745cc5c9d8b3dcf7bf70093c1fbdcb00f56423e1398b4a48409b22",
+  "native_verifier": "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7",
+  "procedure": {
+    "warmup_runs": 3,
+    "measured_runs": 15,
+    "aggregation": "median",
+    "outlier_mad_k": 5,
+    "cold_runs": 1,
+    "concurrency": 1,
+    "per_run_timeout_ms": 600000,
+    "invocation_mode": "vm_per_batch"
+  },
+  "sampling": {
+    "rule": "worker NearOracle, judge-secret: seed = first 8 bytes BE of HMAC-SHA256(season_secret, \"near-arena-workload-sample-v1|\" + challenge_id + \"|\" + package_digest + \"|\" + class_id) (BENCHMARK_SPEC §11.1); fresh-confirm uses class_id#fresh",
+    "seed_parts": [
+      "chl_35ed44c7059faf126f38c6282a3b6a91",
+      "sha256:fec6f7c95bf30999adb77e308e8395136b0636a86ad875ceaac133137fd41d47"
+    ],
+    "season_secret_commitment": "sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d"
+  },
+  "calibration": {
+    "workload": "head -c 268435456 /dev/zero | sha256sum",
+    "pre_ns": [
+      468408471,
+      487988282,
+      472725098,
+      488441965,
+      476747531
+    ],
+    "post_ns": [
+      475381641,
+      469486997,
+      488021780,
+      484377176,
+      481201445
+    ]
+  },
+  "loadavg": [
+    {
+      "at": "start",
+      "loadavg": "17.87 17.53 14.37 18/3131 2909961"
+    },
+    {
+      "at": "after_calibration_pre",
+      "loadavg": "18.68 17.70 14.45 24/3157 2910654"
+    },
+    {
+      "at": "after_session",
+      "loadavg": "18.32 19.49 16.20 22/3221 2935439"
+    },
+    {
+      "at": "after_calibration_post",
+      "loadavg": "19.81 19.77 16.33 28/3202 2936096"
+    }
+  ],
+  "session_wall_secs": 262,
+  "job_result": {
+    "gates": [
+      {
+        "gate": "BENCHMARK",
+        "mandatory": true,
+        "status": "PASS",
+        "reason_codes": [],
+        "summary": "judge-secret HMAC sampling (season secret commitment sha256:b860eb74dbc8ddaabaec871ae50a2bde741b069abb2a6122240663e03632051d); challenge has no frozen baseline for every class: measured, not scored; d0-quiet: median 6830 us, MAD 463 us, verify median 21508 us, max proof 2871 B; d0-transfers: median 6959 us, MAD 421 us, verify median 26402 us, max proof 4024 B; d0-missing: median 6998 us, MAD 587 us, verify median 56100 us, max proof 5571 B",
+        "evidence": [
+          {
+            "label": "benchmark session",
+            "digest": "sha256:b00dee01c166f76e323d4e3c52f30cc0a1fd82ff5c3b95e46a1727bc2fd42c99",
+            "public": true
+          }
+        ],
+        "started_at": "2026-10-06T00:34:50.204819381Z",
+        "finished_at": "2026-10-06T00:39:12.376122683Z",
+        "reused_from": null
+      }
+    ],
+    "artifacts": [
+      {
+        "label": "benchmark session",
+        "digest": "sha256:b00dee01c166f76e323d4e3c52f30cc0a1fd82ff5c3b95e46a1727bc2fd42c99",
+        "public": true
+      }
+    ],
+    "benchmark": {
+      "hardware_profile": "nearproof-local-ryzen9-9950x3d",
+      "suite_revision": "near-chunk-validation-d0-r1",
+      "classes": [
+        {
+          "class_id": "d0-quiet",
+          "weight_ppm": 200000,
+          "runs_ns": [
+            7294807,
+            6830957,
+            7117714,
+            6910053,
+            6605191,
+            7578001,
+            6349890,
+            6810979,
+            6980346,
+            7834364,
+            6154422,
+            6521022,
+            6054815,
+            7425071,
+            6306078
+          ],
+          "median_ns": 6830957,
+          "mad_ns": 463850,
+          "cold_ns": 207055786,
+          "baseline_ns": 0,
+          "verify_median_ns": 21508501,
+          "proof_bytes_max": 2871,
+          "peak_rss_bytes": 447946752
+        },
+        {
+          "class_id": "d0-transfers",
+          "weight_ppm": 500000,
+          "runs_ns": [
+            7486337,
+            6651178,
+            7253749,
+            7113166,
+            7453246,
+            7471501,
+            7233842,
+            6308743,
+            6490787,
+            6157900,
+            6906767,
+            6537243,
+            6959158,
+            6952895,
+            7506586
+          ],
+          "median_ns": 6959158,
+          "mad_ns": 421915,
+          "cold_ns": 195037093,
+          "baseline_ns": 0,
+          "verify_median_ns": 26402980,
+          "proof_bytes_max": 4024,
+          "peak_rss_bytes": 447799296
+        },
+        {
+          "class_id": "d0-missing",
+          "weight_ppm": 300000,
+          "runs_ns": [
+            5681562,
+            6006866,
+            7807313,
+            7586017,
+            5859689,
+            7539837,
+            7446171,
+            6433649,
+            6716813,
+            7690411,
+            6726799,
+            5902710,
+            8449801,
+            7385677,
+            6998029
+          ],
+          "median_ns": 6998029,
+          "mad_ns": 587988,
+          "cold_ns": 232627967,
+          "baseline_ns": 0,
+          "verify_median_ns": 56100305,
+          "proof_bytes_max": 5571,
+          "peak_rss_bytes": 448192512
+        }
+      ],
+      "score_milli": null,
+      "score_ci_milli": null,
+      "prepare_ns": 8957335,
+      "public_artifact_bytes": 99,
+      "measured_by": "arena-worker bench-session"
+    },
+    "evidence_graph": null,
+    "manifest": null,
+    "build": null,
+    "execution": {
+      "sandbox_backend": "firecracker",
+      "tier_cap": "formal",
+      "worker_version": "arena-worker/0.1.0"
+    },
+    "log_excerpt": null,
+    "native_verifier": null
+  },
+  "session": {
+    "invocation_mode": "vm_per_batch",
+    "sandbox_instance_per_batch": true,
+    "schedule_seed": 12458585483242465135,
+    "schedule": [
+      {
+        "seq": 0,
+        "phase": "cold",
+        "class_id": "d0-missing",
+        "round": 0
+      },
+      {
+        "seq": 1,
+        "phase": "cold",
+        "class_id": "d0-quiet",
+        "round": 0
+      },
+      {
+        "seq": 2,
+        "phase": "cold",
+        "class_id": "d0-transfers",
+        "round": 0
+      },
+      {
+        "seq": 3,
+        "phase": "warmup",
+        "class_id": "d0-quiet",
+        "round": 0
+      },
+      {
+        "seq": 4,
+        "phase": "warmup",
+        "class_id": "d0-transfers",
+        "round": 0
+      },
+      {
+        "seq": 5,
+        "phase": "warmup",
+        "class_id": "d0-missing",
+        "round": 0
+      },
+      {
+        "seq": 6,
+        "phase": "warmup",
+        "class_id": "d0-transfers",
+        "round": 1
+      },
+      {
+        "seq": 7,
+        "phase": "warmup",
+        "class_id": "d0-quiet",
+        "round": 1
+      },
+      {
+        "seq": 8,
+        "phase": "warmup",
+        "class_id": "d0-missing",
+        "round": 1
+      },
+      {
+        "seq": 9,
+        "phase": "warmup",
+        "class_id": "d0-quiet",
+        "round": 2
+      },
+      {
+        "seq": 10,
+        "phase": "warmup",
+        "class_id": "d0-missing",
+        "round": 2
+      },
+      {
+        "seq": 11,
+        "phase": "warmup",
+        "class_id": "d0-transfers",
+        "round": 2
+      },
+      {
+        "seq": 12,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 0
+      },
+      {
+        "seq": 13,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 0
+      },
+      {
+        "seq": 14,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 0
+      },
+      {
+        "seq": 15,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 1
+      },
+      {
+        "seq": 16,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 1
+      },
+      {
+        "seq": 17,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 1
+      },
+      {
+        "seq": 18,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 2
+      },
+      {
+        "seq": 19,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 2
+      },
+      {
+        "seq": 20,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 2
+      },
+      {
+        "seq": 21,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 3
+      },
+      {
+        "seq": 22,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 3
+      },
+      {
+        "seq": 23,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 3
+      },
+      {
+        "seq": 24,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 4
+      },
+      {
+        "seq": 25,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 4
+      },
+      {
+        "seq": 26,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 4
+      },
+      {
+        "seq": 27,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 5
+      },
+      {
+        "seq": 28,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 5
+      },
+      {
+        "seq": 29,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 5
+      },
+      {
+        "seq": 30,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 6
+      },
+      {
+        "seq": 31,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 6
+      },
+      {
+        "seq": 32,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 6
+      },
+      {
+        "seq": 33,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 7
+      },
+      {
+        "seq": 34,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 7
+      },
+      {
+        "seq": 35,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 7
+      },
+      {
+        "seq": 36,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 8
+      },
+      {
+        "seq": 37,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 8
+      },
+      {
+        "seq": 38,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 8
+      },
+      {
+        "seq": 39,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 9
+      },
+      {
+        "seq": 40,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 9
+      },
+      {
+        "seq": 41,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 9
+      },
+      {
+        "seq": 42,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 10
+      },
+      {
+        "seq": 43,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 10
+      },
+      {
+        "seq": 44,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 10
+      },
+      {
+        "seq": 45,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 11
+      },
+      {
+        "seq": 46,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 11
+      },
+      {
+        "seq": 47,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 11
+      },
+      {
+        "seq": 48,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 12
+      },
+      {
+        "seq": 49,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 12
+      },
+      {
+        "seq": 50,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 12
+      },
+      {
+        "seq": 51,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 13
+      },
+      {
+        "seq": 52,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 13
+      },
+      {
+        "seq": 53,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 13
+      },
+      {
+        "seq": 54,
+        "phase": "measured",
+        "class_id": "d0-transfers",
+        "round": 14
+      },
+      {
+        "seq": 55,
+        "phase": "measured",
+        "class_id": "d0-quiet",
+        "round": 14
+      },
+      {
+        "seq": 56,
+        "phase": "measured",
+        "class_id": "d0-missing",
+        "round": 14
+      },
+      {
+        "seq": 57,
+        "phase": "fresh_confirm",
+        "class_id": "d0-quiet",
+        "round": 0
+      },
+      {
+        "seq": 58,
+        "phase": "fresh_confirm",
+        "class_id": "d0-missing",
+        "round": 0
+      },
+      {
+        "seq": 59,
+        "phase": "fresh_confirm",
+        "class_id": "d0-transfers",
+        "round": 0
+      }
+    ],
+    "classes": [
+      {
+        "class_id": "d0-quiet",
+        "weight_ppm": 200000,
+        "baseline_ns": 0,
+        "cold_runs_ns": [
+          207055786
+        ],
+        "warmup_runs_ns": [
+          6959048,
+          5941623,
+          7592408
+        ],
+        "measured_runs_ns": [
+          7294807,
+          6830957,
+          7117714,
+          6910053,
+          6605191,
+          7578001,
+          6349890,
+          6810979,
+          6980346,
+          7834364,
+          6154422,
+          6521022,
+          6054815,
+          7425071,
+          6306078
+        ],
+        "fresh_runs_ns": [
+          6864960
+        ],
+        "verify_runs_ns": [
+          40926082,
+          23309193,
+          16755879,
+          18746072,
+          20103214,
+          19081423,
+          324138517,
+          359183519,
+          23463613,
+          21577968,
+          14785755,
+          18653749,
+          20945458,
+          19056766,
+          319856712,
+          352926419,
+          23279317,
+          23539967,
+          14826441,
+          18577274,
+          19089729,
+          19106981,
+          324413220,
+          343442535,
+          23273836,
+          23197202,
+          16893538,
+          18227858,
+          19772212,
+          19701729,
+          324040507,
+          341654451,
+          49178270,
+          35878149,
+          65029798,
+          16893679,
+          20608845,
+          18555794,
+          323596922,
+          325726187,
+          24027534,
+          23037923,
+          15664147,
+          19088686,
+          21279536,
+          21036318,
+          328331044,
+          350298924,
+          42774316,
+          37821963,
+          17020307,
+          17258394,
+          19627369,
+          20188655,
+          325948572,
+          344904629,
+          23603225,
+          23378713,
+          14829316,
+          18760208,
+          19428586,
+          19292599,
+          323178812,
+          333859286,
+          44325073,
+          23174228,
+          14695625,
+          16892275,
+          20319120,
+          18852882,
+          404232020,
+          332508546,
+          23962070,
+          43354136,
+          17330119,
+          17124412,
+          20249468,
+          20276639,
+          325145327,
+          327841298,
+          23700568,
+          21959244,
+          17427973,
+          18134531,
+          20431701,
+          18749969,
+          325338480,
+          348609079,
+          40254587,
+          23594468,
+          16968008,
+          16902815,
+          18992505,
+          20864475,
+          326115921,
+          354386472,
+          56215121,
+          23899803,
+          16484358,
+          18877909,
+          19307717,
+          19542689,
+          323240382,
+          335346797,
+          22586363,
+          22851381,
+          14815600,
+          18250339,
+          21120286,
+          19068597,
+          317861937,
+          341068175,
+          22954906,
+          21439035,
+          14769533,
+          18767522,
+          18798079,
+          19955726,
+          323558057,
+          346379361
+        ],
+        "proof_bytes_max": 2871,
+        "peak_rss_bytes": 447946752,
+        "outliers": {
+          "median_ns": 6830957,
+          "mad_ns": 463850,
+          "k": 5,
+          "flagged_indices": [],
+          "flagged_ppm": 0,
+          "excessive": false,
+          "notes": []
+        },
+        "tripwire": {
+          "suspected": false,
+          "measured_median_ns": 6830957,
+          "fresh_median_ns": 6864960,
+          "slowdown_ppm": 4977
+        }
+      },
+      {
+        "class_id": "d0-transfers",
+        "weight_ppm": 500000,
+        "baseline_ns": 0,
+        "cold_runs_ns": [
+          195037093
+        ],
+        "warmup_runs_ns": [
+          6142049,
+          7584794,
+          6943147
+        ],
+        "measured_runs_ns": [
+          7486337,
+          6651178,
+          7253749,
+          7113166,
+          7453246,
+          7471501,
+          7233842,
+          6308743,
+          6490787,
+          6157900,
+          6906767,
+          6537243,
+          6959158,
+          6952895,
+          7506586
+        ],
+        "fresh_runs_ns": [
+          6118766
+        ],
+        "verify_runs_ns": [
+          17247514,
+          16379843,
+          22981036,
+          38587665,
+          354796788,
+          362646670,
+          45705098,
+          26466300,
+          32449792,
+          17250239,
+          22491736,
+          21615228,
+          326652462,
+          340473163,
+          44360871,
+          26779539,
+          17185578,
+          15572904,
+          22378523,
+          20601852,
+          330713036,
+          342236376,
+          39354626,
+          26647641,
+          17760118,
+          17515999,
+          21192572,
+          23113725,
+          332031304,
+          340127760,
+          40347093,
+          67275030,
+          17714883,
+          15447950,
+          20860869,
+          22391116,
+          326675541,
+          339709262,
+          52545762,
+          26423990,
+          16416942,
+          17626847,
+          20446219,
+          23638853,
+          332710369,
+          351622343,
+          41384313,
+          28726761,
+          17418194,
+          17095418,
+          20502424,
+          21367150,
+          326573537,
+          336926255,
+          39095058,
+          26188587,
+          17747364,
+          15717296,
+          21474703,
+          21745061,
+          330300665,
+          338409614,
+          35830819,
+          26381971,
+          17334938,
+          17144309,
+          25149442,
+          20537580,
+          322120660,
+          351889240,
+          52892132,
+          26716510,
+          18327615,
+          18005599,
+          21778675,
+          22146536,
+          327996860,
+          354690768,
+          46918900,
+          28082698,
+          16864723,
+          17618591,
+          21077225,
+          23014418,
+          322890245,
+          340224302,
+          41867691,
+          26858777,
+          52252570,
+          35641703,
+          22290517,
+          23953223,
+          329686704,
+          339551435,
+          37380162,
+          26818401,
+          17505890,
+          15942039,
+          20751913,
+          23398439,
+          324801969,
+          349018908,
+          40315612,
+          26344800,
+          17862099,
+          17228167,
+          22091973,
+          19599045,
+          334963114,
+          336148883,
+          46954426,
+          26791781,
+          17318056,
+          15286295,
+          21991144,
+          21903128,
+          327946890,
+          355761814,
+          43504468,
+          26084119
+        ],
+        "proof_bytes_max": 4024,
+        "peak_rss_bytes": 447799296,
+        "outliers": {
+          "median_ns": 6959158,
+          "mad_ns": 421915,
+          "k": 5,
+          "flagged_indices": [],
+          "flagged_ppm": 0,
+          "excessive": false,
+          "notes": []
+        },
+        "tripwire": {
+          "suspected": false,
+          "measured_median_ns": 6959158,
+          "fresh_median_ns": 6118766,
+          "slowdown_ppm": 0
+        }
+      },
+      {
+        "class_id": "d0-missing",
+        "weight_ppm": 300000,
+        "baseline_ns": 0,
+        "cold_runs_ns": [
+          232627967
+        ],
+        "warmup_runs_ns": [
+          6881361,
+          6003008,
+          6660255
+        ],
+        "measured_runs_ns": [
+          5681562,
+          6006866,
+          7807313,
+          7586017,
+          5859689,
+          7539837,
+          7446171,
+          6433649,
+          6716813,
+          7690411,
+          6726799,
+          5902710,
+          8449801,
+          7385677,
+          6998029
+        ],
+        "fresh_runs_ns": [
+          6081896
+        ],
+        "verify_runs_ns": [
+          63087927,
+          34191007,
+          34926529,
+          46652641,
+          326753534,
+          362228655,
+          57243557,
+          51949101,
+          27580205,
+          35359444,
+          30662070,
+          55230591,
+          343228514,
+          354651155,
+          57782510,
+          31534471,
+          55979409,
+          34843855,
+          50404516,
+          58031659,
+          329693690,
+          348743343,
+          64040829,
+          32254805,
+          60406555,
+          34337773,
+          29683539,
+          25151297,
+          332650970,
+          341915663,
+          50316110,
+          31631684,
+          50795240,
+          35207958,
+          44046920,
+          49413151,
+          337986171,
+          352866643,
+          74828104,
+          31938771,
+          57186829,
+          57488526,
+          49823753,
+          24169480,
+          336459669,
+          359667220,
+          45798784,
+          48081487,
+          64368514,
+          54106025,
+          63201449,
+          24772595,
+          332001403,
+          340841787,
+          78625153,
+          57778792,
+          62040756,
+          35810091,
+          63710637,
+          48113356,
+          328157053,
+          367211314,
+          48487449,
+          53063364,
+          54588413,
+          35448400,
+          28331126,
+          26561758,
+          331098684,
+          354605578,
+          65800486,
+          32333773,
+          55478526,
+          59453761,
+          40786577,
+          81571262,
+          376682652,
+          354206145,
+          54938330,
+          71521565,
+          56790182,
+          66178246,
+          58400971,
+          23864626,
+          338280206,
+          371240066,
+          43267894,
+          32518741,
+          56221202,
+          57409527,
+          54846467,
+          56336729,
+          336051854,
+          354435996,
+          54070869,
+          68172997,
+          25826906,
+          35598662,
+          29972812,
+          24620528,
+          332524199,
+          350300396,
+          46928177,
+          32657090,
+          47695629,
+          35771187,
+          54325798,
+          24177475,
+          328818950,
+          338636873,
+          43715405,
+          57068906,
+          58593292,
+          58815379,
+          65123833,
+          37251610,
+          352655323,
+          344136613,
+          45591994,
+          55624810
+        ],
+        "proof_bytes_max": 5571,
+        "peak_rss_bytes": 448192512,
+        "outliers": {
+          "median_ns": 6998029,
+          "mad_ns": 587988,
+          "k": 5,
+          "flagged_indices": [],
+          "flagged_ppm": 0,
+          "excessive": false,
+          "notes": []
+        },
+        "tripwire": {
+          "suspected": false,
+          "measured_median_ns": 6998029,
+          "fresh_median_ns": 6081896,
+          "slowdown_ppm": 0
+        }
+      }
+    ],
+    "bootstrap": null,
+    "flags": []
+  }
+}

@@ -1,0 +1,1340 @@
+{
+  "schema": "arena-formal-check-v1",
+  "cache_key": "sha256:2d7c616c634f76258438469e8b2b5642c5698b6cfd0fe32cebb0e60823443209",
+  "lean_toolchain": "leanprover/lean4:v4.34.1",
+  "runner": "bwrap-dev",
+  "tier_cap": "demo",
+  "gates": [
+    {
+      "gate": "FORMAL_SEMANTIC_SOUNDNESS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:f606181eb729abdc418c922edd8e09a278018b8d6660a1945d8e928f48c56793",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:1ac2206bfeddee82de519cb5800a6b5490a8c986754f5754b5087fa0c0712b21",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:d42c0861de0a2d1d5b0845f0d5d5bbee1b7233c0248702af490eced406f9a663",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Model",
+          "digest": "sha256:da6170019e5d7d37a769921ed89a565aa5dca7ca9bda9efe2bda4067687bddd2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Size",
+          "digest": "sha256:59ce158dba5aa9eed9d000eb7826112d32892eee16fc5aa148a78d3fdfa52813",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Obligations",
+          "digest": "sha256:43f37c5e0ae4451cdbd72dcfa08266ced36c04ec41863cb792c4b1023c1628eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.PublicBin",
+          "digest": "sha256:9c5f51d1f3970a82a65c4e150678b0ce4a1e2a57dda9c8153648de71f9f9732a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Certificate",
+          "digest": "sha256:62315341e67ade7f1148e1d60f344e1d73f3f677edde0661a05aa1382802da82",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:4d05e5523758e705cd561d7523193320694d04d57b6b07ecc71e56e0e1eb2fb0",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:caf86cfeeeefa3e2483b152bfa6a85ea7022626ee7c4edd6cc91c14643e29a1f",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:3841b02e32354160d4f3a9fd6063db1e800f0e82a476293b4c82a454f457cbc4",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-06T00:10:59.127186025Z",
+      "finished_at": "2026-10-06T00:12:15.697177064Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_SEMANTIC_COMPLETENESS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:f606181eb729abdc418c922edd8e09a278018b8d6660a1945d8e928f48c56793",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:1ac2206bfeddee82de519cb5800a6b5490a8c986754f5754b5087fa0c0712b21",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:d42c0861de0a2d1d5b0845f0d5d5bbee1b7233c0248702af490eced406f9a663",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Model",
+          "digest": "sha256:da6170019e5d7d37a769921ed89a565aa5dca7ca9bda9efe2bda4067687bddd2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Size",
+          "digest": "sha256:59ce158dba5aa9eed9d000eb7826112d32892eee16fc5aa148a78d3fdfa52813",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Obligations",
+          "digest": "sha256:43f37c5e0ae4451cdbd72dcfa08266ced36c04ec41863cb792c4b1023c1628eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.PublicBin",
+          "digest": "sha256:9c5f51d1f3970a82a65c4e150678b0ce4a1e2a57dda9c8153648de71f9f9732a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Certificate",
+          "digest": "sha256:62315341e67ade7f1148e1d60f344e1d73f3f677edde0661a05aa1382802da82",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:4d05e5523758e705cd561d7523193320694d04d57b6b07ecc71e56e0e1eb2fb0",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:caf86cfeeeefa3e2483b152bfa6a85ea7022626ee7c4edd6cc91c14643e29a1f",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:3841b02e32354160d4f3a9fd6063db1e800f0e82a476293b4c82a454f457cbc4",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-06T00:10:59.127186025Z",
+      "finished_at": "2026-10-06T00:12:15.697177064Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_CRYPTO_SOUNDNESS",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:f606181eb729abdc418c922edd8e09a278018b8d6660a1945d8e928f48c56793",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:1ac2206bfeddee82de519cb5800a6b5490a8c986754f5754b5087fa0c0712b21",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:d42c0861de0a2d1d5b0845f0d5d5bbee1b7233c0248702af490eced406f9a663",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Model",
+          "digest": "sha256:da6170019e5d7d37a769921ed89a565aa5dca7ca9bda9efe2bda4067687bddd2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Size",
+          "digest": "sha256:59ce158dba5aa9eed9d000eb7826112d32892eee16fc5aa148a78d3fdfa52813",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Obligations",
+          "digest": "sha256:43f37c5e0ae4451cdbd72dcfa08266ced36c04ec41863cb792c4b1023c1628eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.PublicBin",
+          "digest": "sha256:9c5f51d1f3970a82a65c4e150678b0ce4a1e2a57dda9c8153648de71f9f9732a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Certificate",
+          "digest": "sha256:62315341e67ade7f1148e1d60f344e1d73f3f677edde0661a05aa1382802da82",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:4d05e5523758e705cd561d7523193320694d04d57b6b07ecc71e56e0e1eb2fb0",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:caf86cfeeeefa3e2483b152bfa6a85ea7022626ee7c4edd6cc91c14643e29a1f",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:3841b02e32354160d4f3a9fd6063db1e800f0e82a476293b4c82a454f457cbc4",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-06T00:10:59.127186025Z",
+      "finished_at": "2026-10-06T00:12:15.697177064Z",
+      "reused_from": null
+    },
+    {
+      "gate": "FORMAL_IMPL_CONNECTION",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certificate type equals the judge-constructed statement; kernel rechecks accepted",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:f606181eb729abdc418c922edd8e09a278018b8d6660a1945d8e928f48c56793",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:1ac2206bfeddee82de519cb5800a6b5490a8c986754f5754b5087fa0c0712b21",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:d42c0861de0a2d1d5b0845f0d5d5bbee1b7233c0248702af490eced406f9a663",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Model",
+          "digest": "sha256:da6170019e5d7d37a769921ed89a565aa5dca7ca9bda9efe2bda4067687bddd2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Size",
+          "digest": "sha256:59ce158dba5aa9eed9d000eb7826112d32892eee16fc5aa148a78d3fdfa52813",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Obligations",
+          "digest": "sha256:43f37c5e0ae4451cdbd72dcfa08266ced36c04ec41863cb792c4b1023c1628eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.PublicBin",
+          "digest": "sha256:9c5f51d1f3970a82a65c4e150678b0ce4a1e2a57dda9c8153648de71f9f9732a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Certificate",
+          "digest": "sha256:62315341e67ade7f1148e1d60f344e1d73f3f677edde0661a05aa1382802da82",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:4d05e5523758e705cd561d7523193320694d04d57b6b07ecc71e56e0e1eb2fb0",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:caf86cfeeeefa3e2483b152bfa6a85ea7022626ee7c4edd6cc91c14643e29a1f",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:3841b02e32354160d4f3a9fd6063db1e800f0e82a476293b4c82a454f457cbc4",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-06T00:10:59.127186025Z",
+      "finished_at": "2026-10-06T00:12:15.697177064Z",
+      "reused_from": null
+    },
+    {
+      "gate": "AXIOM_AUDIT",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "certified closure uses only allowlisted axioms; no sorry/native shortcuts",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:f606181eb729abdc418c922edd8e09a278018b8d6660a1945d8e928f48c56793",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:1ac2206bfeddee82de519cb5800a6b5490a8c986754f5754b5087fa0c0712b21",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:d42c0861de0a2d1d5b0845f0d5d5bbee1b7233c0248702af490eced406f9a663",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Model",
+          "digest": "sha256:da6170019e5d7d37a769921ed89a565aa5dca7ca9bda9efe2bda4067687bddd2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Size",
+          "digest": "sha256:59ce158dba5aa9eed9d000eb7826112d32892eee16fc5aa148a78d3fdfa52813",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Obligations",
+          "digest": "sha256:43f37c5e0ae4451cdbd72dcfa08266ced36c04ec41863cb792c4b1023c1628eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.PublicBin",
+          "digest": "sha256:9c5f51d1f3970a82a65c4e150678b0ce4a1e2a57dda9c8153648de71f9f9732a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Certificate",
+          "digest": "sha256:62315341e67ade7f1148e1d60f344e1d73f3f677edde0661a05aa1382802da82",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:4d05e5523758e705cd561d7523193320694d04d57b6b07ecc71e56e0e1eb2fb0",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:caf86cfeeeefa3e2483b152bfa6a85ea7022626ee7c4edd6cc91c14643e29a1f",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:3841b02e32354160d4f3a9fd6063db1e800f0e82a476293b4c82a454f457cbc4",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-06T00:10:59.127186025Z",
+      "finished_at": "2026-10-06T00:12:15.697177064Z",
+      "reused_from": null
+    },
+    {
+      "gate": "ARTIFACT_BINDING",
+      "mandatory": true,
+      "status": "PASS",
+      "reason_codes": [],
+      "summary": "verifier executable is the judge's build of the certified Lean model; its digest is pinned in the statement (binary↔model edge: trusted Lean compiler/runtime)",
+      "evidence": [
+        {
+          "label": "judge-built native verifier",
+          "digest": "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7",
+          "public": true
+        },
+        {
+          "label": "reference export (ndjson)",
+          "digest": "sha256:f606181eb729abdc418c922edd8e09a278018b8d6660a1945d8e928f48c56793",
+          "public": true
+        },
+        {
+          "label": "expected statement source",
+          "digest": "sha256:1ac2206bfeddee82de519cb5800a6b5490a8c986754f5754b5087fa0c0712b21",
+          "public": true
+        },
+        {
+          "label": "candidate olean ArenaExpectedInst",
+          "digest": "sha256:d42c0861de0a2d1d5b0845f0d5d5bbee1b7233c0248702af490eced406f9a663",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Model",
+          "digest": "sha256:da6170019e5d7d37a769921ed89a565aa5dca7ca9bda9efe2bda4067687bddd2",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Size",
+          "digest": "sha256:59ce158dba5aa9eed9d000eb7826112d32892eee16fc5aa148a78d3fdfa52813",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Obligations",
+          "digest": "sha256:43f37c5e0ae4451cdbd72dcfa08266ced36c04ec41863cb792c4b1023c1628eb",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.PublicBin",
+          "digest": "sha256:9c5f51d1f3970a82a65c4e150678b0ce4a1e2a57dda9c8153648de71f9f9732a",
+          "public": true
+        },
+        {
+          "label": "candidate olean ReexecV3D0.Certificate",
+          "digest": "sha256:62315341e67ade7f1148e1d60f344e1d73f3f677edde0661a05aa1382802da82",
+          "public": true
+        },
+        {
+          "label": "arena-audit report",
+          "digest": "sha256:4d05e5523758e705cd561d7523193320694d04d57b6b07ecc71e56e0e1eb2fb0",
+          "public": true
+        },
+        {
+          "label": "candidate certificate export (ndjson)",
+          "digest": "sha256:caf86cfeeeefa3e2483b152bfa6a85ea7022626ee7c4edd6cc91c14643e29a1f",
+          "public": true
+        },
+        {
+          "label": "certificate dependency closure",
+          "digest": "sha256:3841b02e32354160d4f3a9fd6063db1e800f0e82a476293b4c82a454f457cbc4",
+          "public": true
+        }
+      ],
+      "started_at": "2026-10-06T00:10:59.127186025Z",
+      "finished_at": "2026-10-06T00:12:15.697177064Z",
+      "reused_from": null
+    }
+  ],
+  "findings": [],
+  "rechecks": [
+    {
+      "id": "leanchecker",
+      "ran": true,
+      "verdict": "accepted",
+      "wall_ms": 1621,
+      "detail": "6 modules in 6 runs"
+    },
+    {
+      "id": "arena-audit",
+      "ran": true,
+      "verdict": "accepted",
+      "wall_ms": 350,
+      "detail": ""
+    },
+    {
+      "id": "nanoda",
+      "ran": true,
+      "verdict": "accepted",
+      "wall_ms": 472,
+      "detail": ""
+    },
+    {
+      "id": "lean4lean",
+      "ran": true,
+      "verdict": "accepted",
+      "wall_ms": 1738,
+      "detail": "6 modules in 6 runs"
+    },
+    {
+      "id": "ndjson-audit",
+      "ran": true,
+      "verdict": "accepted",
+      "wall_ms": 602,
+      "detail": "3698 decls"
+    }
+  ],
+  "closure": {
+    "certificate": "ReexecV3D0.certificate",
+    "count": 3550,
+    "digest": "sha256:865d455c6ff0adf6386ef636dc00b855d70ee8844f8e238b03b5bb3252ffe55b",
+    "axioms": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "listing": {
+      "label": "certificate dependency closure",
+      "digest": "sha256:3841b02e32354160d4f3a9fd6063db1e800f0e82a476293b4c82a454f457cbc4",
+      "public": true
+    }
+  },
+  "evidence": [
+    {
+      "label": "judge-built native verifier",
+      "digest": "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7",
+      "public": true
+    },
+    {
+      "label": "reference export (ndjson)",
+      "digest": "sha256:f606181eb729abdc418c922edd8e09a278018b8d6660a1945d8e928f48c56793",
+      "public": true
+    },
+    {
+      "label": "expected statement source",
+      "digest": "sha256:1ac2206bfeddee82de519cb5800a6b5490a8c986754f5754b5087fa0c0712b21",
+      "public": true
+    },
+    {
+      "label": "candidate olean ArenaExpectedInst",
+      "digest": "sha256:d42c0861de0a2d1d5b0845f0d5d5bbee1b7233c0248702af490eced406f9a663",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecV3D0.Model",
+      "digest": "sha256:da6170019e5d7d37a769921ed89a565aa5dca7ca9bda9efe2bda4067687bddd2",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecV3D0.Size",
+      "digest": "sha256:59ce158dba5aa9eed9d000eb7826112d32892eee16fc5aa148a78d3fdfa52813",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecV3D0.Obligations",
+      "digest": "sha256:43f37c5e0ae4451cdbd72dcfa08266ced36c04ec41863cb792c4b1023c1628eb",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecV3D0.PublicBin",
+      "digest": "sha256:9c5f51d1f3970a82a65c4e150678b0ce4a1e2a57dda9c8153648de71f9f9732a",
+      "public": true
+    },
+    {
+      "label": "candidate olean ReexecV3D0.Certificate",
+      "digest": "sha256:62315341e67ade7f1148e1d60f344e1d73f3f677edde0661a05aa1382802da82",
+      "public": true
+    },
+    {
+      "label": "arena-audit report",
+      "digest": "sha256:4d05e5523758e705cd561d7523193320694d04d57b6b07ecc71e56e0e1eb2fb0",
+      "public": true
+    },
+    {
+      "label": "candidate certificate export (ndjson)",
+      "digest": "sha256:caf86cfeeeefa3e2483b152bfa6a85ea7022626ee7c4edd6cc91c14643e29a1f",
+      "public": true
+    },
+    {
+      "label": "certificate dependency closure",
+      "digest": "sha256:3841b02e32354160d4f3a9fd6063db1e800f0e82a476293b4c82a454f457cbc4",
+      "public": true
+    }
+  ],
+  "evidence_graph": {
+    "nodes": [
+      {
+        "id": "formal:certificate",
+        "kind": "theorem",
+        "label": "certificate ReexecV3D0.certificate",
+        "digest": "sha256:865d455c6ff0adf6386ef636dc00b855d70ee8844f8e238b03b5bb3252ffe55b"
+      },
+      {
+        "id": "formal:expected_statement",
+        "kind": "theorem",
+        "label": "judge-constructed admission statement",
+        "digest": "sha256:1ac2206bfeddee82de519cb5800a6b5490a8c986754f5754b5087fa0c0712b21"
+      },
+      {
+        "id": "tcb:lean_toolchain",
+        "kind": "tcb_component",
+        "label": "Lean leanprover/lean4:v4.34.1",
+        "digest": "sha256:f15908296a685ffdbe9e815a6eddaaa410d1520115226a9c16e1a55b518b5e76"
+      },
+      {
+        "id": "formal:trusted:formal-core",
+        "kind": "formal_semantics",
+        "label": "formal-core",
+        "digest": "sha256:988c30c29c3b014145fa3f5131f1f199d119c1e1880749ccaf55e59a2db409df"
+      },
+      {
+        "id": "formal:trusted:near-spec",
+        "kind": "formal_semantics",
+        "label": "near-spec",
+        "digest": "sha256:dfad7e79860102e3a09cbd32ef3efd62f72efa3597202f56571b7e10f920e8b4"
+      },
+      {
+        "id": "formal:trusted:near-spec-v3",
+        "kind": "formal_semantics",
+        "label": "near-spec-v3",
+        "digest": "sha256:eb8b8ec2094c9fbdc6e00f0a59f76c4c01e834930105a79df85b764039ba8067"
+      },
+      {
+        "id": "formal:trusted:pinned-trusted-tree",
+        "kind": "formal_semantics",
+        "label": "pinned-trusted-tree",
+        "digest": "sha256:89903b98794a9fd3be31d84b26b6fdf96a9ed94caa1e9a65383c8fbd08e5db34"
+      },
+      {
+        "id": "formal:axiom:Classical.choice",
+        "kind": "assumption",
+        "label": "Classical.choice",
+        "digest": null
+      },
+      {
+        "id": "formal:axiom:Quot.sound",
+        "kind": "assumption",
+        "label": "Quot.sound",
+        "digest": null
+      },
+      {
+        "id": "formal:axiom:propext",
+        "kind": "assumption",
+        "label": "propext",
+        "digest": null
+      },
+      {
+        "id": "tcb:leanchecker",
+        "kind": "tcb_component",
+        "label": "leanchecker",
+        "digest": null
+      },
+      {
+        "id": "tcb:arena-audit",
+        "kind": "tcb_component",
+        "label": "arena-audit",
+        "digest": null
+      },
+      {
+        "id": "tcb:nanoda",
+        "kind": "tcb_component",
+        "label": "nanoda",
+        "digest": null
+      },
+      {
+        "id": "tcb:lean4lean",
+        "kind": "tcb_component",
+        "label": "lean4lean",
+        "digest": null
+      },
+      {
+        "id": "tcb:ndjson-audit",
+        "kind": "tcb_component",
+        "label": "ndjson-audit",
+        "digest": null
+      },
+      {
+        "id": "formal:verifier_model",
+        "kind": "backend_semantics",
+        "label": "candidate-defined verifier model ReexecV3D0.Model.verifier (inside the admission statement)",
+        "digest": "sha256:2e709c0c6deda0da9b9760e0538be491d5b231f7268df4cb20c8abb35456c4e0"
+      },
+      {
+        "id": "artifact:verifier_binary",
+        "kind": "artifact",
+        "label": "judge-built native verify (leanprover/lean4:v4.34.1+leanc)",
+        "digest": "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7"
+      },
+      {
+        "id": "tcb:lean_compiler_runtime",
+        "kind": "tcb_component",
+        "label": "Lean compiler + runtime leanprover/lean4:v4.34.1",
+        "digest": "sha256:f15908296a685ffdbe9e815a6eddaaa410d1520115226a9c16e1a55b518b5e76"
+      }
+    ],
+    "edges": [
+      {
+        "from": "formal:certificate",
+        "to": "formal:expected_statement",
+        "kind": "proves",
+        "status": "checked",
+        "evidence": [
+          "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7",
+          "sha256:f606181eb729abdc418c922edd8e09a278018b8d6660a1945d8e928f48c56793",
+          "sha256:1ac2206bfeddee82de519cb5800a6b5490a8c986754f5754b5087fa0c0712b21",
+          "sha256:d42c0861de0a2d1d5b0845f0d5d5bbee1b7233c0248702af490eced406f9a663",
+          "sha256:da6170019e5d7d37a769921ed89a565aa5dca7ca9bda9efe2bda4067687bddd2",
+          "sha256:59ce158dba5aa9eed9d000eb7826112d32892eee16fc5aa148a78d3fdfa52813",
+          "sha256:43f37c5e0ae4451cdbd72dcfa08266ced36c04ec41863cb792c4b1023c1628eb",
+          "sha256:9c5f51d1f3970a82a65c4e150678b0ce4a1e2a57dda9c8153648de71f9f9732a",
+          "sha256:62315341e67ade7f1148e1d60f344e1d73f3f677edde0661a05aa1382802da82",
+          "sha256:4d05e5523758e705cd561d7523193320694d04d57b6b07ecc71e56e0e1eb2fb0",
+          "sha256:caf86cfeeeefa3e2483b152bfa6a85ea7022626ee7c4edd6cc91c14643e29a1f",
+          "sha256:3841b02e32354160d4f3a9fd6063db1e800f0e82a476293b4c82a454f457cbc4"
+        ],
+        "note": "syntactic Expr equality of the certificate type and the reference statement"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:formal-core",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:988c30c29c3b014145fa3f5131f1f199d119c1e1880749ccaf55e59a2db409df"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:near-spec",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:dfad7e79860102e3a09cbd32ef3efd62f72efa3597202f56571b7e10f920e8b4"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:near-spec-v3",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:eb8b8ec2094c9fbdc6e00f0a59f76c4c01e834930105a79df85b764039ba8067"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:trusted:pinned-trusted-tree",
+        "kind": "defined_in",
+        "status": "trusted",
+        "evidence": [
+          "sha256:89903b98794a9fd3be31d84b26b6fdf96a9ed94caa1e9a65383c8fbd08e5db34"
+        ],
+        "note": "judge-pinned module; candidate copies must be hash-identical"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:Classical.choice",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:Quot.sound",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:axiom:propext",
+        "kind": "assumes",
+        "status": "trusted",
+        "evidence": [],
+        "note": "allowlisted axiom"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:leanchecker",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted (6 modules in 6 runs)"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:arena-audit",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted ()"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:nanoda",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted ()"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:lean4lean",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted (6 modules in 6 runs)"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "tcb:ndjson-audit",
+        "kind": "rechecked_by",
+        "status": "checked",
+        "evidence": [],
+        "note": "accepted (3698 decls)"
+      },
+      {
+        "from": "formal:expected_statement",
+        "to": "formal:verifier_model",
+        "kind": "contains_candidate_model",
+        "status": "checked",
+        "evidence": [
+          "sha256:2e709c0c6deda0da9b9760e0538be491d5b231f7268df4cb20c8abb35456c4e0"
+        ],
+        "note": "statement instantiated at the candidate model; model closure audited (axioms, no sorry/native/partial/unsafe/extern, no shadowing)"
+      },
+      {
+        "from": "formal:certificate",
+        "to": "formal:verifier_model",
+        "kind": "proves_obligations_about",
+        "status": "checked",
+        "evidence": [],
+        "note": "semantic/crypto/completeness obligations are kernel-checked about this model"
+      },
+      {
+        "from": "artifact:verifier_binary",
+        "to": "formal:verifier_model",
+        "kind": "implements",
+        "status": "trusted",
+        "evidence": [
+          "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7"
+        ],
+        "note": "compiled by the judge from the model with the governed Lean compiler; NOT a checked edge"
+      },
+      {
+        "from": "artifact:verifier_binary",
+        "to": "tcb:lean_compiler_runtime",
+        "kind": "built_from",
+        "status": "trusted",
+        "evidence": [
+          "sha256:f15908296a685ffdbe9e815a6eddaaa410d1520115226a9c16e1a55b518b5e76"
+        ],
+        "note": "trusted-base entry"
+      }
+    ]
+  },
+  "native_verifier": {
+    "path": "/tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/fcx/work/verify",
+    "digest": "sha256:02527ce2c8712fb548905360bbdf2aa3cafbe5d58d47011fab45c6e89378e2b7",
+    "toolchain_id": "leanprover/lean4:v4.34.1+leanc",
+    "lean_toolchain": "leanprover/lean4:v4.34.1",
+    "model_decl": "ReexecV3D0.Model.verifier"
+  },
+  "model": {
+    "decl": "ReexecV3D0.Model.verifier",
+    "module": "ReexecV3D0.Model",
+    "closure_digest": "sha256:2e709c0c6deda0da9b9760e0538be491d5b231f7268df4cb20c8abb35456c4e0",
+    "axioms": [
+      "propext",
+      "Quot.sound"
+    ]
+  },
+  "warnings": [],
+  "timings": [
+    {
+      "step": "trusted:elaborate:ArenaCore.Bytes",
+      "wall_ms": 246
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.SHA256",
+      "wall_ms": 273
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.SHA256Fast",
+      "wall_ms": 655
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Interp",
+      "wall_ms": 640
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.InterpLemmas",
+      "wall_ms": 224
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Relation",
+      "wall_ms": 197
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Backend",
+      "wall_ms": 190
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Verifier",
+      "wall_ms": 210
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Security.OracleComp",
+      "wall_ms": 233
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Security.Prob",
+      "wall_ms": 195
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Security.Adversary",
+      "wall_ms": 209
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Assumptions",
+      "wall_ms": 201
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Security.CR",
+      "wall_ms": 188
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Security.ROM",
+      "wall_ms": 231
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Admission",
+      "wall_ms": 257
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Sanity",
+      "wall_ms": 190
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore.Security.ROMLemmas",
+      "wall_ms": 393
+    },
+    {
+      "step": "trusted:elaborate:ArenaCore",
+      "wall_ms": 170
+    },
+    {
+      "step": "trusted:elaborate:NearSpec.Bytes",
+      "wall_ms": 251
+    },
+    {
+      "step": "trusted:elaborate:NearSpec.AccountId",
+      "wall_ms": 182
+    },
+    {
+      "step": "trusted:elaborate:NearSpec.SHA256",
+      "wall_ms": 165
+    },
+    {
+      "step": "trusted:elaborate:NearSpec.Primitives",
+      "wall_ms": 312
+    },
+    {
+      "step": "trusted:elaborate:NearSpec.Bandwidth",
+      "wall_ms": 252
+    },
+    {
+      "step": "trusted:elaborate:NearSpec.Trie",
+      "wall_ms": 308
+    },
+    {
+      "step": "trusted:elaborate:NearSpec.Outcome",
+      "wall_ms": 245
+    },
+    {
+      "step": "trusted:elaborate:NearSpec.TransferV1",
+      "wall_ms": 406
+    },
+    {
+      "step": "trusted:elaborate:NearSpec.ClaimCodec",
+      "wall_ms": 1056
+    },
+    {
+      "step": "trusted:elaborate:NearSpec.Challenge",
+      "wall_ms": 360
+    },
+    {
+      "step": "trusted:elaborate:NearSpec.TrieUpsert",
+      "wall_ms": 344
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.ChaCha20",
+      "wall_ms": 352
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.F64",
+      "wall_ms": 351
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.Congestion",
+      "wall_ms": 327
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.BandwidthScheduler",
+      "wall_ms": 734
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.Wire",
+      "wall_ms": 683
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.ClaimV3",
+      "wall_ms": 697
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.WitnessV3",
+      "wall_ms": 417
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.Layout",
+      "wall_ms": 248
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.TrieBuild",
+      "wall_ms": 305
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.RuntimeD0",
+      "wall_ms": 420
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.GF256",
+      "wall_ms": 355
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.ReedSolomon",
+      "wall_ms": 30592
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.ChunkValidationV0",
+      "wall_ms": 639
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.ClaimV3Props",
+      "wall_ms": 603
+    },
+    {
+      "step": "trusted:elaborate:NearSpecV3.ChallengeV3",
+      "wall_ms": 278
+    },
+    {
+      "step": "model:elaborate:ReexecV3D0.Model",
+      "wall_ms": 227
+    },
+    {
+      "step": "wrapper:elaborate:ArenaVerifyMain",
+      "wall_ms": 241
+    },
+    {
+      "step": "wrapper-stub:elaborate:ReexecV3D0.Model",
+      "wall_ms": 256
+    },
+    {
+      "step": "wrapper-stub:elaborate:ArenaVerifyMain",
+      "wall_ms": 228
+    },
+    {
+      "step": "native:dump-real",
+      "wall_ms": 154
+    },
+    {
+      "step": "native:dump-stub",
+      "wall_ms": 179
+    },
+    {
+      "step": "native:cc:ArenaCore.Bytes",
+      "wall_ms": 154
+    },
+    {
+      "step": "native:cc:ArenaCore.SHA256",
+      "wall_ms": 361
+    },
+    {
+      "step": "native:cc:ArenaCore.SHA256Fast",
+      "wall_ms": 446
+    },
+    {
+      "step": "native:cc:ArenaCore.Interp",
+      "wall_ms": 1196
+    },
+    {
+      "step": "native:cc:ArenaCore.InterpLemmas",
+      "wall_ms": 93
+    },
+    {
+      "step": "native:cc:ArenaCore.Relation",
+      "wall_ms": 68
+    },
+    {
+      "step": "native:cc:ArenaCore.Backend",
+      "wall_ms": 78
+    },
+    {
+      "step": "native:cc:ArenaCore.Verifier",
+      "wall_ms": 112
+    },
+    {
+      "step": "native:cc:ArenaCore.Security.OracleComp",
+      "wall_ms": 129
+    },
+    {
+      "step": "native:cc:ArenaCore.Security.Prob",
+      "wall_ms": 93
+    },
+    {
+      "step": "native:cc:ArenaCore.Security.Adversary",
+      "wall_ms": 99
+    },
+    {
+      "step": "native:cc:ArenaCore.Assumptions",
+      "wall_ms": 97
+    },
+    {
+      "step": "native:cc:ArenaCore.Security.CR",
+      "wall_ms": 75
+    },
+    {
+      "step": "native:cc:ArenaCore.Security.ROM",
+      "wall_ms": 131
+    },
+    {
+      "step": "native:cc:ArenaCore.Admission",
+      "wall_ms": 133
+    },
+    {
+      "step": "native:cc:ArenaCore.Sanity",
+      "wall_ms": 84
+    },
+    {
+      "step": "native:cc:ArenaCore.Security.ROMLemmas",
+      "wall_ms": 157
+    },
+    {
+      "step": "native:cc:ArenaCore",
+      "wall_ms": 125
+    },
+    {
+      "step": "native:cc:NearSpec.Bytes",
+      "wall_ms": 175
+    },
+    {
+      "step": "native:cc:NearSpec.AccountId",
+      "wall_ms": 134
+    },
+    {
+      "step": "native:cc:NearSpec.SHA256",
+      "wall_ms": 64
+    },
+    {
+      "step": "native:cc:NearSpec.Primitives",
+      "wall_ms": 217
+    },
+    {
+      "step": "native:cc:NearSpec.Bandwidth",
+      "wall_ms": 239
+    },
+    {
+      "step": "native:cc:NearSpec.Trie",
+      "wall_ms": 424
+    },
+    {
+      "step": "native:cc:NearSpec.Outcome",
+      "wall_ms": 171
+    },
+    {
+      "step": "native:cc:NearSpec.TransferV1",
+      "wall_ms": 592
+    },
+    {
+      "step": "native:cc:NearSpec.ClaimCodec",
+      "wall_ms": 224
+    },
+    {
+      "step": "native:cc:NearSpec.Challenge",
+      "wall_ms": 121
+    },
+    {
+      "step": "native:cc:NearSpec.TrieUpsert",
+      "wall_ms": 266
+    },
+    {
+      "step": "native:cc:NearSpecV3.ChaCha20",
+      "wall_ms": 262
+    },
+    {
+      "step": "native:cc:NearSpecV3.F64",
+      "wall_ms": 207
+    },
+    {
+      "step": "native:cc:NearSpecV3.Congestion",
+      "wall_ms": 146
+    },
+    {
+      "step": "native:cc:NearSpecV3.BandwidthScheduler",
+      "wall_ms": 789
+    },
+    {
+      "step": "native:cc:NearSpecV3.Wire",
+      "wall_ms": 872
+    },
+    {
+      "step": "native:cc:NearSpecV3.ClaimV3",
+      "wall_ms": 756
+    },
+    {
+      "step": "native:cc:NearSpecV3.WitnessV3",
+      "wall_ms": 307
+    },
+    {
+      "step": "native:cc:NearSpecV3.Layout",
+      "wall_ms": 247
+    },
+    {
+      "step": "native:cc:NearSpecV3.TrieBuild",
+      "wall_ms": 290
+    },
+    {
+      "step": "native:cc:NearSpecV3.RuntimeD0",
+      "wall_ms": 372
+    },
+    {
+      "step": "native:cc:NearSpecV3.GF256",
+      "wall_ms": 293
+    },
+    {
+      "step": "native:cc:NearSpecV3.ReedSolomon",
+      "wall_ms": 168
+    },
+    {
+      "step": "native:cc:NearSpecV3.ChunkValidationV0",
+      "wall_ms": 1408
+    },
+    {
+      "step": "native:cc:NearSpecV3.ClaimV3Props",
+      "wall_ms": 211
+    },
+    {
+      "step": "native:cc:NearSpecV3.ChallengeV3",
+      "wall_ms": 89
+    },
+    {
+      "step": "native:cc:ReexecV3D0.Model",
+      "wall_ms": 83
+    },
+    {
+      "step": "native:cc:ArenaVerifyMain",
+      "wall_ms": 135
+    },
+    {
+      "step": "native:link",
+      "wall_ms": 185
+    },
+    {
+      "step": "reference:elaborate:ArenaExpected",
+      "wall_ms": 223
+    },
+    {
+      "step": "reference:list-trusted",
+      "wall_ms": 167
+    },
+    {
+      "step": "reference:export",
+      "wall_ms": 1227
+    },
+    {
+      "step": "reference:parse",
+      "wall_ms": 1285
+    },
+    {
+      "step": "statement:elaborate:ArenaExpectedInst",
+      "wall_ms": 199
+    },
+    {
+      "step": "candidate:elaborate:ReexecV3D0.Size",
+      "wall_ms": 352
+    },
+    {
+      "step": "candidate:elaborate:ReexecV3D0.Obligations",
+      "wall_ms": 322
+    },
+    {
+      "step": "candidate:elaborate:ReexecV3D0.PublicBin",
+      "wall_ms": 232
+    },
+    {
+      "step": "candidate:elaborate:ReexecV3D0.Certificate",
+      "wall_ms": 398
+    },
+    {
+      "step": "recheck:leanchecker:ArenaExpectedInst",
+      "wall_ms": 227
+    },
+    {
+      "step": "recheck:leanchecker:ReexecV3D0.Model",
+      "wall_ms": 206
+    },
+    {
+      "step": "recheck:leanchecker:ReexecV3D0.Size",
+      "wall_ms": 276
+    },
+    {
+      "step": "recheck:leanchecker:ReexecV3D0.Obligations",
+      "wall_ms": 267
+    },
+    {
+      "step": "recheck:leanchecker:ReexecV3D0.PublicBin",
+      "wall_ms": 243
+    },
+    {
+      "step": "recheck:leanchecker:ReexecV3D0.Certificate",
+      "wall_ms": 402
+    },
+    {
+      "step": "audit:arena-audit",
+      "wall_ms": 350
+    },
+    {
+      "step": "recheck:lean4export",
+      "wall_ms": 669
+    },
+    {
+      "step": "recheck:nanoda",
+      "wall_ms": 472
+    },
+    {
+      "step": "recheck:lean4lean:ArenaExpectedInst",
+      "wall_ms": 233
+    },
+    {
+      "step": "recheck:lean4lean:ReexecV3D0.Model",
+      "wall_ms": 256
+    },
+    {
+      "step": "recheck:lean4lean:ReexecV3D0.Size",
+      "wall_ms": 269
+    },
+    {
+      "step": "recheck:lean4lean:ReexecV3D0.Obligations",
+      "wall_ms": 257
+    },
+    {
+      "step": "recheck:lean4lean:ReexecV3D0.PublicBin",
+      "wall_ms": 243
+    },
+    {
+      "step": "recheck:lean4lean:ReexecV3D0.Certificate",
+      "wall_ms": 480
+    },
+    {
+      "step": "audit:ndjson",
+      "wall_ms": 602
+    }
+  ]
+}

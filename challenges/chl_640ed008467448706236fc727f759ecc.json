@@ -261,11 +261,11 @@
     "max_prepare_ms": 600000,
     "max_build_ms": 3600000
   },
-  "supersedes": null,
-  "created_at": "2026-10-06T01:00:00Z",
   "formal_params": {
     "verify_fuel": 1073741824,
     "max_proof_bytes": 67108864,
     "max_reduction_fuel": 1073741824
-  }
+  },
+  "supersedes": null,
+  "created_at": "2026-10-06T01:00:00Z"
 }
