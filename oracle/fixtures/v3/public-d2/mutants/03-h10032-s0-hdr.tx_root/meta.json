@@ -1,0 +1,25 @@
+{
+  "base": "03-h10032-s0",
+  "case": "03-h10032-s0-hdr.tx_root",
+  "d0_violations": [
+    "c.single_epoch",
+    "c.no_split_gate",
+    "w.no_txs",
+    "c.own_congestion_zero",
+    "e.queues_empty",
+    "e.compute",
+    "r.success",
+    "r.shape"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": true,
+  "kind": "mutant",
+  "mutation": "hdr.tx_root",
+  "nearcore": "validate: InvalidTxRoot",
+  "verdict_source": "nearcore"
+}

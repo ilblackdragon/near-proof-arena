@@ -1,0 +1,22 @@
+{
+  "base": "02-h10026-s3",
+  "case": "02-h10026-s3-hdr.proposed_split.some",
+  "d0_violations": [
+    "c.single_epoch",
+    "c.no_split_gate",
+    "c.no_tx_flags",
+    "w.no_txs",
+    "e.queues_empty"
+  ],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": false,
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": true,
+  "kind": "mutant",
+  "mutation": "hdr.proposed_split.some",
+  "nearcore": "validate: InvalidChunkHeaderShardSplit(\"header has Some(TrieSplit { boundary_account: AccountId(\\\"s1a0\\\"), left_memory: 1, right_memory: 1 }), expected None (prev block hash: G5VktswXXV7HVrPhgaTiGFho3cg81wMepKmCkEU1y41s height created: 10026)\")",
+  "verdict_source": "nearcore"
+}

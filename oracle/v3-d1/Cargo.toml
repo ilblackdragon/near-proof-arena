@@ -41,6 +41,10 @@ rand_chacha = "0.3.1"
 reed-solomon-erasure = { version = "6.0.0", features = ["simd-accel"] }
 serde_json = "1.0.68"
 sha2 = "0.10"
+wat = "1.0.42"
+strum = "0.24"
+near-wallet-contract = { path = "vendor/nearcore/runtime/near-wallet-contract" }
+near-vm-runner = { path = "vendor/nearcore/runtime/near-vm-runner" }
 
 [patch.crates-io]
 protobuf = { git = "https://github.com/near/rust-protobuf.git", branch = "3.0.2-patch" }

@@ -1,0 +1,100 @@
+{
+  "action_results": [
+    "local:[DeployContract] => ok",
+    "incoming(refund):[Transfer] => ok",
+    "incoming:[CreateAccount,Transfer] => fail:OnlyImplicitAccountCreationAllowed",
+    "incoming(refund):[Transfer] => ok",
+    "incoming:[CreateAccount,Transfer] => fail:CreateAccountNotAllowed",
+    "incoming:[CreateAccount,Transfer] => fail:OnlyImplicitAccountCreationAllowed",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "00-h10044-s3",
+  "chain_params": "D2Params { base: ChainParams { seed: 4243012729, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 12, blocks: 60, p_missing: 0.12, p_tx_shard: 0.5, p_burst: 0.04, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 6, p_contract: 0.04, p_adv: 0.35, keep_every: 100000, drop_cap: 8 }",
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "e.queues_empty",
+    "r.refunds",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "e.queues_empty",
+    "r.refunds",
+    "r.shape",
+    "w.tx_shape"
+  ],
+  "d2_violations": [],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": true,
+  "features": {
+    "base_state_bytes": 5659,
+    "buffered_post": 0,
+    "buffered_pre": 0,
+    "bw_requests_in_context": false,
+    "contract_data_removals": 0,
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "executed_receipts": 7,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 3,
+    "n_epochs": 1,
+    "n_implicit": 0,
+    "n_receipts": 6,
+    "n_shards": 4,
+    "n_source_blocks": 2,
+    "other_congestion_nonzero": true,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": false,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "rs": [
+      2,
+      8
+    ],
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 11363,
+    "yield_queue_pre": 3
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": true,
+  "kind": "honest",
+  "nearcore": "ok",
+  "new_tx_labels": [
+    "x.fc_key_call",
+    "x.fc_key_add_key",
+    "x.gas_deposit_failed",
+    "x.fc_key_stake"
+  ],
+  "receipt_classes": {
+    "incoming_action": 3,
+    "incoming_refund": 3,
+    "local": 1,
+    "out_action": 6,
+    "out_refund": 7
+  },
+  "tx_labels": [
+    "h.delete_other",
+    "h.create_not_sub",
+    "h.fc_key_call",
+    "h.create_toplevel",
+    "h.fc_key_call",
+    "h.implicit_near",
+    "h.deploy"
+  ],
+  "tx_results": [
+    "success",
+    "success",
+    "success",
+    "success",
+    "success",
+    "success",
+    "success_local"
+  ]
+}

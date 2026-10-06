@@ -1,0 +1,86 @@
+{
+  "action_results": [
+    "local:[AddKey(fc)] => ok",
+    "local:[AddKey(full),Transfer,DeleteKey] => ok",
+    "incoming:[Delegate[DeleteAccount]] => ok",
+    "instant:[DeleteAccount] => fail:AccountDoesNotExist",
+    "incoming(refund):[Transfer] => ok"
+  ],
+  "case": "02-h10004-s2",
+  "chain_params": "D2Params { base: ChainParams { seed: 4243012731, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 240, p_missing: 0.12, p_tx_shard: 0.5, p_burst: 0.04, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 6, p_contract: 0.04, p_adv: 0.35, keep_every: 100000, drop_cap: 8 }",
+  "d0_violations": [
+    "c.no_tx_flags",
+    "w.no_txs",
+    "r.shape"
+  ],
+  "d1_violations": [
+    "r.shape",
+    "w.tx_shape"
+  ],
+  "d2_violations": [],
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d1": false,
+  "expected_rel_d2": true,
+  "features": {
+    "base_state_bytes": 3963,
+    "buffered_post": 0,
+    "buffered_pre": 0,
+    "bw_requests_in_context": false,
+    "contract_data_removals": 0,
+    "delayed_queue_post": 0,
+    "delayed_queue_pre": 0,
+    "executed_receipts": 5,
+    "header_bandwidth_requests": 0,
+    "header_validator_proposals": 0,
+    "n_blocks": 2,
+    "n_epochs": 1,
+    "n_implicit": 0,
+    "n_receipts": 2,
+    "n_shards": 6,
+    "n_source_blocks": 1,
+    "other_congestion_nonzero": false,
+    "own_congestion_nonzero_post": false,
+    "own_congestion_nonzero_pre": false,
+    "pending_data_count_post": 0,
+    "pending_data_count_pre": 0,
+    "received_data_post": 0,
+    "received_data_pre": 0,
+    "rs": [
+      5,
+      16
+    ],
+    "validator_update_in_main": false,
+    "validator_updates": 0,
+    "witness_bytes": 7189,
+    "yield_queue_pre": 0
+  },
+  "in_d0": false,
+  "in_d1": false,
+  "in_d2": true,
+  "kind": "honest",
+  "nearcore": "ok",
+  "new_tx_labels": [
+    "h.create_bundle"
+  ],
+  "receipt_classes": {
+    "incoming_action": 1,
+    "incoming_refund": 1,
+    "instant": 1,
+    "local": 2,
+    "out_action": 2,
+    "out_refund": 4
+  },
+  "tx_labels": [
+    "h.delegate_delete_self",
+    "h.add_fc_key_contract",
+    "h.transfer_missing",
+    "h.self_multi"
+  ],
+  "tx_results": [
+    "success",
+    "success_local",
+    "success",
+    "success_local"
+  ]
+}
