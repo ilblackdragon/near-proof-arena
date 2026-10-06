@@ -54,8 +54,13 @@ def canonOf (ids : List Nat) (prev : NearSpec.Bandwidth.State) : NearSpec.Bandwi
   let a := allow0Of ids prev
   ⟨(List.range (n * n)).map fun l => ⟨ids.getD (l / n) 0, ids.getD (l % n) 0, a[l]!⟩, prev.sanityHash⟩
 
-def inputOf (c : Json) : Except String Input := do
+/-- Duplicate-id mode: shard id 1 is replaced by shard id 0 (a non-identity source map). -/
+def dupIds (dup : Bool) (ids : List Nat) : List Nat :=
+  if dup && ids.length ≥ 2 then ids.set 1 (ids.getD 0 0) else ids
+
+def inputOf (c : Json) (dup : Bool := false) : Except String Input := do
   let some ids := decodeShardLayoutV2 (unhex (getStr c "shard_layout_borsh")) | throw "layout"
+  let ids := dupIds dup ids
   let prevB : Option (List UInt8) :=
     match c.getObjValAs? String "prev_state_borsh" with
     | .ok s => some (unhex s)
@@ -153,8 +158,8 @@ structure Full where
   ext : List (Nat × Bool × List Nat)
   post : List Nat
 
-def fullOf (c : Json) : Except String Full := do
-  let I ← inputOf c
+def fullOf (c : Json) (dup : Bool := false) : Except String Full := do
+  let I ← inputOf c dup
   let R ← run I
   let present := (c.getObjValAs? String "prev_state_borsh").isOk
   let vidV := 777
@@ -168,6 +173,7 @@ def fullOf (c : Json) : Except String Full := do
   let C ← codecRows I R present vidV D.gb fwd
   -- the spec's new state
   let some ids := decodeShardLayoutV2 (unhex (getStr c "shard_layout_borsh")) | throw "layout"
+  let ids := dupIds dup ids
   let congestion := (getArr c "congestion").toList.map fun x =>
     (getNat x "shard_id", infoOf x, getNat x "missed_chunks_count")
   let reqs := (getArr c "bandwidth_requests").toList.map fun x =>
@@ -244,6 +250,30 @@ def main (args : List String) : IO UInt32 := do
     if sample.isNone && idx > 50 then sample := some c
   let t1 ← IO.monoMsNow
   IO.println s!"vectors: {okV} ok, {badV} bad; time {(t1 - t0) / 1000}s"
+  -- duplicate-id layouts (shard id 1 := shard id 0): non-identity source map, spec semantics
+  let mut dupOk := 0
+  let mut dupBad := 0
+  let mut dupNonId := 0
+  for c in cases do
+    let some ids := decodeShardLayoutV2 (unhex (getStr c "shard_layout_borsh")) | continue
+    if ids.length < 2 then continue
+    let ids' := dupIds true ids
+    if (List.range (ids'.length * ids'.length)).any (fun l => srcOf ids' l != some l) then dupNonId := dupNonId + 1
+    match fullOf c true with
+    | .error e => dupBad := dupBad + 1; if dupBad ≤ 5 then IO.println s!"dup: {e}"
+    | .ok F =>
+      let mut good := true
+      let mut all := F.ext
+      for T in F.tabs do
+        if !(violations T).isEmpty then good := false
+        let (ms, bb) := msgs T
+        if bb != 0 then good := false
+        all := all ++ ms.filter fun m => !shuffleBuses.contains m.1
+      if !(busImbalance all).isEmpty then
+        good := false
+        if dupBad ≤ 5 then IO.println s!"dup imbalance {busImbalance all}"
+      if good then dupOk := dupOk + 1 else dupBad := dupBad + 1
+  IO.println s!"duplicate-id layouts: {dupOk} ok, {dupBad} bad ({dupNonId} with a non-identity source map)"
   IO.println s!"violations per table (schV3, ssdV3, sprV3, smmV3, scpV3): {viol.toList}"
   -- mutants of codec rows and of the merged table's scan / distribute rows
   let some c := sample | return (if badV == 0 then 0 else 1)
@@ -289,4 +319,4 @@ def main (args : List String) : IO UInt32 := do
   IO.println s!"mutants caught {caught}/{probes.length}, missed {missed.reverse}"
   let t2 ← IO.monoMsNow
   IO.println s!"total time {(t2 - t0) / 1000}s"
-  return (if badV == 0 && missed.isEmpty then 0 else 1)
+  return (if badV == 0 && dupBad == 0 && missed.isEmpty then 0 else 1)

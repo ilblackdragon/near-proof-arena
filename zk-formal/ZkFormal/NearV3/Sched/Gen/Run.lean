@@ -168,7 +168,7 @@ def run (I : Input) (tau : Nat := 0) : Except String Run := do
   let n := I.ids.length
   let p := I.p
   let N := n * n
-  let lp := linkPass n p I.allowed (a0Canon n I.prev)
+  let lp := linkPass n p I.allowed (a0Src I.ids I.prev)
   let al (l : Nat) : Bool := I.allowed[l]!
   -- converted requests
   let mut conv : Array CReq := #[]

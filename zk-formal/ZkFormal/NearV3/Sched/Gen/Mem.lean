@@ -43,7 +43,7 @@ def trace (R : Run) : ZkFormal.Air.Trace ZkFormal.Algebra.Fp :=
 /-- `SOP` INIT messages `(addr, 0, OP_INIT, vin, v, inc, 0, 0)` from the link pass. -/
 def expectedInit (I : Input) (tau : Nat := 0) : List (List Nat) :=
   let n := I.ids.length
-  let lp := linkPass n I.p I.allowed (a0Canon n I.prev)
+  let lp := linkPass n I.p I.allowed (a0Src I.ids I.prev)
   (List.range (n * n)).map (fun l =>
       let b := b2n I.allowed[l]!
       [addrOf tau 0 l, 0, OP_INIT, b, lp.a2[l]!, lp.g2[l]!, 0, 0]) ++

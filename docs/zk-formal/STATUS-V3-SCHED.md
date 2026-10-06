@@ -183,6 +183,8 @@ its buses (`STATUS-V3-CHACHA` §6).
 | `Proc.entry_row` | `View/Proc.lean` | process entry rows: `ok = cS·cR·cL`, `last = [rem = 0]`, `za = [alOut = 0]`, push gate |
 | `Dist.div_of_row`, **`Dist.cell_div`**, **`Dist.shard_div`** | `View/Dist.lean` | distribute divisions are exact integer divisions (from the new range checks), `gb = min` via the comparator bit |
 | `Scan.row_*`, `Scan.q_ranges`, `Scan.q_exact`, `struct_all`, `vals_all`, **`scan_request`** | `View/Scan.lean`, `View/ScanReq.lean`, `View/ScanSpec.lean` | a request block: 20 rows, bits = the bitmap's bits, `m` = number of set bits, every sent `INC` is `(τ, 64·cid + j, (incsOf p bm)[j], len − j − 1, s, r, link)` (at most once each), end-row PUSH / READ messages; the process side must show every needed `INC` is used |
+| `Codec.kinds`, `bytes`, gadget iffs, carries, **`codec_block`**, **`codec_post`**, **`codec_pre`**, **`codec_post_encode`**, **`codec_pre_encode`**, `a0_split`, `alw_walk`, **`codec_link`**, **`codec_rec_msgs`**, **`codec_trailer`**, `codec_first` | `View/Codec*.lean` (7 files, 2,422 lines) | an instance block: 5 header rows, `24·N` record rows, 32 + 32 trailer rows. The post bytes are `State.encode ⟨postLinks, digest⟩`, where ids are the received `SDL` bytes and allowances are `afin`. The pre bytes (when present) are `State.encode ⟨preLinks, hash⟩`. The link pass at a record end is `a1 = bigR ? MA : min(apR + fair, MA)` and `a2 = a1 − al·base`, given the comparator bit. It also states every message value (INIT/FIN/SDG/SA0/SCMP/SHA/forwarding). No missing constraint was found. Statements assume `height ≤ 2^22`; unbounded cells are stated mod P. |
+| `ProcRow.*` (kinds, gadgets, carries, transitions), **`proc_keys`**, **`round_shape`**, `round_after`, **`hdr_msgs`**, **`ent_msgs`**, **`proc_rounds`** | `View/Proc*.lean` (5 files, 1,129 lines) | an instance: a 16-row key block (limbs = public key records), then rounds `i < m` with headers at `hdrAt i`. `T_0 = T0`, `T_{i+1} = T_i + Lr_i`; `kst` chains from 0 through `kend`; `Kq/zq` are the previous round's; round validity. Gives every shuffle/push/INC/SOP/CMP message value on headers and entries. No missing constraint. Results are mod P where cells are unbounded (`z = zq + 1` among them). |
 | **`mem_consistent`** | `Spec/MemCons.lean` | abstract offline memory checking: chained time-ordered segments + frame + correct steps ⇒ every op reads the simulated state |
 
 ## 8. M2 tests (executable, from `zk-formal/`)
@@ -338,9 +340,11 @@ Range checks are kept in every variant.
    51/51). Cut A is on hold. Codec source map done (+20; `SA0` bus 62, `SDG` carries
    `(src, hasSrc, use)`, `Render.srcFields`). **Both tests rerun on the final tables (781):**
    SchedFullTest 600/600 vectors, 0 violations, all buses balanced, 51/51 mutants (2,033 s);
-   SchedTablesTest 600/600, 0 violations, 0 unbalanced messages, 44/44 mutants (2,729 s). **Open:** a test with a
-   duplicate-id layout (the vectors only exercise the identity map; `Gen.run`'s link pass is
-   positional and must switch to `srcArr`).
+   SchedTablesTest 600/600, 0 violations, 0 unbalanced messages, 44/44 mutants (2,729 s). Duplicate-id layouts are tested:
+   `SchedFullTest`'s dup mode sets shard id 1 := shard id 0 on every vector with `n ≥ 2`, which
+   gives a non-identity source map. The codec's new state equals `runCore`'s (spec first-index
+   semantics), with every constraint and bus checked. The event model and run data read `allow0`
+   through `srcArr` (commit `e64a64b0`).
 2. M3 views: codec, process structure (key block, headers, rounds); link layer per §6 (memory
    consistency instance, operand bounds of §10, `process_rounds` hypotheses, `core_compose`);
    `schedCore_sound`.

@@ -1,4 +1,5 @@
 import NearSpecV3.PrepD0
+import ZkFormal.NearV3.Sched.Spec.CanonDup
 
 /-!
 # ZkFormal.NearV3.Sched.Model — the scheduler core as the AIR computes it (executable)
@@ -250,10 +251,16 @@ structure Ev where
 def a0Canon (n : Nat) (prev : NearSpec.Bandwidth.State) : Array Nat :=
   if prev.links.length = n * n then (prev.links.map (·.allowance)).toArray else Array.replicate (n * n) 0
 
+/-- `allow0` of a canonical previous state, read the spec's way (first-index `indexOf`, the
+last record wins; `Spec/CanonDup.allow0_src`): record `srcOf ids l` for link `l`. -/
+def a0Src (ids : List Nat) (prev : NearSpec.Bandwidth.State) : Array Nat :=
+  srcArr ids fun k => (a0Canon ids.length prev)[k]!
+
+
 def coreEv (ids : List Nat) (p : Params) (allowed : Array Bool) (raw : List RawReq)
     (seed ash : Bytes) (prev : NearSpec.Bandwidth.State) : Except String Ev := do
   let n := ids.length
-  let lp := linkPass n p allowed (a0Canon n prev)
+  let lp := linkPass n p allowed (a0Src ids prev)
   let reqs := convRaw p n raw
   let st0 : PState := ⟨lp.sb, lp.rb, lp.a2, lp.g2, Rng.ofSeed seed⟩
   let (st, rounds) ← processEv n allowed reqs st0 (1 + (reqs.map (·.incs.length)).sum)

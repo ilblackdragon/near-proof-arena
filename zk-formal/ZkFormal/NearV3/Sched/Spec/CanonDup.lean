@@ -1,4 +1,3 @@
-import ZkFormal.NearV3.Sched.Model
 import ZkFormal.NearV3.Sched.Spec.Buckets
 
 /-!
