@@ -1,6 +1,6 @@
 {
   "schema": "arena-challenge-v1",
-  "name": "near-chunk-validation-d0",
+  "name": "near-chunk-validation-d1",
   "season": "2026-s1",
   "tier": "formal",
   "nearcore": {
@@ -10,9 +10,9 @@
   },
   "protocol_version": 86,
   "chain_id": "mainnet",
-  "runtime_config_digest": "sha256:b7dce2034aeacd470a0c4dbc2d566e480ff9f0f140a07b5088994e0787ed062f",
+  "runtime_config_digest": "sha256:4cb658ee2e39ac5e9760cbb7cb928d59286b3187cd153d0b5fc7fa0560d7267d",
   "semantic_scope": {
-    "name": "near/pv86/chunk-validation/v0#D0",
+    "name": "near/pv86/chunk-validation/v0#D1",
     "kind": "subset",
     "granularity": "chunk_validation",
     "restrictions": [
@@ -41,10 +41,6 @@
         "text": "the last new chunk of the shard is not the genesis chunk"
       },
       {
-        "id": "c.no_tx_flags",
-        "text": "no transaction validity flags (no transactions)"
-      },
-      {
         "id": "c.segment",
         "text": "the chain segment has at most 32 blocks"
       },
@@ -53,8 +49,12 @@
         "text": "the shard's congestion info in the last-chunk block has zero delayed gas, buffered gas and receipt bytes"
       },
       {
-        "id": "w.no_txs",
-        "text": "the witness has no transactions and no new_transactions"
+        "id": "w.tx_shape",
+        "text": "every transaction in transactions and new_transactions: V0, or V1 with a plain nonce; exactly one Transfer action; ED25519 public key and ED25519 signature"
+      },
+      {
+        "id": "t.signer_v1",
+        "text": "every signer account read by process_transactions is AccountV1"
       },
       {
         "id": "w.no_code",
@@ -70,7 +70,7 @@
       },
       {
         "id": "r.shape",
-        "text": "every applied receipt: ReceiptEnum::Action, one Transfer action, no data dependencies, ED25519/SECP256K1 signer key, named receiver"
+        "text": "every applied receipt (incoming or local): ReceiptEnum::Action, one Transfer action, no data dependencies, ED25519/SECP256K1 signer key, named receiver"
       },
       {
         "id": "r.refunds",
@@ -78,11 +78,11 @@
       },
       {
         "id": "r.success",
-        "text": "every applied receipt succeeds (receiver exists as AccountV1, no overflow, storage stake covered)"
+        "text": "every applied receipt (incoming or local) succeeds (receiver exists as AccountV1, no overflow, storage stake covered)"
       },
       {
         "id": "e.compute",
-        "text": "no incoming receipt is delayed by the compute limit"
+        "text": "no local or incoming receipt is delayed by the compute limit (transactions' gas counts)"
       },
       {
         "id": "e.queues_empty",
@@ -90,11 +90,11 @@
       },
       {
         "id": "e.forwarded",
-        "text": "every generated receipt is forwarded (never buffered)"
+        "text": "every transaction receipt and generated receipt is forwarded (never buffered)"
       },
       {
         "id": "e.distinct_ids",
-        "text": "applied receipt ids are pairwise distinct"
+        "text": "applied (incoming and local) receipt ids are pairwise distinct"
       }
     ],
     "excludes": [
@@ -103,7 +103,9 @@
       "chunk_producer_signatures",
       "witness_transport_and_part_decoding",
       "trusted_epoch_facts_correctness",
-      "transactions",
+      "non_transfer_transactions",
+      "gas_key_transactions",
+      "secp256k1_and_mldsa_transactions",
       "non_transfer_actions",
       "function_calls_and_wasm",
       "failure_paths_and_rollback",
@@ -115,13 +117,13 @@
       "other_protocol_versions"
     ],
     "formal_spec": {
-      "relation_module": "NearSpecV3.ChunkValidationV0",
-      "relation_decl": "NearSpecV3.RelD0",
-      "challenge_spec_decl": "NearSpecV3.challengeSpec",
+      "relation_module": "NearSpecV3.ChunkValidationD1",
+      "relation_decl": "NearSpecV3.RelD1",
+      "challenge_spec_decl": "NearSpecV3.challengeSpecD1",
       "tree_digest": "sha256:19fbbbbadbf99bbf95f245957bbfbd454be25f94f4dbfee67935631436e6b392",
       "lean_toolchain": "leanprover/lean4:v4.34.1"
     },
-    "spec_doc_digest": "sha256:84181e7491d25373b4da36d70ff28b0cb32da014cdc3f0bea96457745266ca75"
+    "spec_doc_digest": "sha256:cb544509b1264efad87fcf635a0946400759fde1c22b41187ec8359da82831d1"
   },
   "claim_encoding": {
     "format": "near-arena-claim-v3",
@@ -181,17 +183,17 @@
   ],
   "hardware_profile": null,
   "workload_suite": {
-    "revision": "near-chunk-validation-d0-r0",
+    "revision": "near-chunk-validation-d1-r0",
     "classes": [
       {
-        "id": "d0-chunks",
-        "description": "real ChunkStateWitness + claim-v3 pairs in D0 from multi-shard nearcore TestEnv chains (near-arena-oracle-v3 gen)",
+        "id": "d1-chunks",
+        "description": "real ChunkStateWitness + claim-v3 pairs in D1 from multi-shard nearcore TestEnv chains with Transfer transactions of every validity class (near-arena-oracle-v3 gen --domain d1)",
         "weight_ppm": 1000000,
         "batch_size": 8,
         "generator": null
       }
     ],
-    "public_fixtures": "sha256:7daa5a0947af92f3c1a1c12915423f6c97ea61ecc1b14d66f2e3db1da2ca0103",
+    "public_fixtures": "sha256:ba83636a34d7ebe3041cf8adfe5f1e87e73afdbd46dbf8b4a194f530a65a5b97",
     "heldout_commitment": null,
     "baseline_submission": null,
     "baseline_ns": []
@@ -216,11 +218,11 @@
     "max_build_ms": 3600000
   },
   "supersedes": null,
-  "created_at": "2026-10-05T12:00:00Z",
+  "created_at": "2026-10-06T00:00:00Z",
   "formal_params": {
     "verify_fuel": 1073741824,
     "max_proof_bytes": 67108864,
     "max_reduction_fuel": 1073741824
   },
-  "draft_notes": "UNSIGNED DRAFT. Not loadable by the server: checker_image, hardware_profile, workload generator digests and the held-out commitment are still to be pinned. Statement: spec/near-chunk-validation-v0.md; formats: spec/claim-v3.md. v1/v2 challenges are unrelated and stay frozen."
+  "draft_notes": "UNSIGNED DRAFT. Not loadable by the server: checker_image, hardware_profile, workload generator digests and the held-out commitment are still to be pinned. Statement: spec/near-chunk-validation-v0.md with domain D1 in spec/near-chunk-validation-d1.md; formats: spec/claim-v3.md (unchanged from D0). v1/v2 challenges are unrelated and stay frozen."
 }

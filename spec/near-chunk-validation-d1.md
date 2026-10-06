@@ -281,15 +281,17 @@ rejected), `w.new_tx.{sig_flip_rehashed, drop_rehashed}` (680, all accepted — 
 verifies `new_transactions` signatures) and `w.new_tx.drop` (340, rejected), 9 792 single
 trie-node drops (8 accepted by nearcore: nodes only a non-surfacing prefetch would read).
 
-**Kernel non-vacuity** (`lake build NearSpecV3.Examples.RealCaseD1`): `RelD1` proved by
-`decide +kernel` on two real D1 chunks with crafted transactions (a duplicate pair with a bad
-first signature, a cost overflow, a nonce failure; a local receipt, a missing signer, a negated-
-`R` signature) and on two nearcore-accepted mutants (a `tx_valid` flip of a failing
-transaction; a corrupted `new_transactions` signature with the header re-hashed); `¬RelD1` on
-two nearcore-rejected mutants (a valid transaction marked expired; `prev_outcome_root`).
-The kernel evaluates every Ed25519 verification on the way. Cost ≈ 1–2 min and ≈ 12 GB per
-theorem — inherited from the D0 relation's kernel cost (the same D0 case costs the same under
-`RelD0` and `RelD1`); a 11 KB case with 7 transactions needed 39 GB and was left out.
+**Kernel non-vacuity** (`lake build NearSpecV3.Examples.RealCaseD1`, 266 s, 12 GB; axioms
+`propext`, `Quot.sound`): `RelD1` proved by `decide +kernel` on two real D1 chunks with crafted
+transactions — `00-h10017-s2` (a local self-transfer, a foreign signer, an expired transaction,
+a strict-nonce failure, a bad signature, a too-large nonce; Reed–Solomon (2,8)) and
+`06-h10069-s3` (a local receipt, a missing signer, a negated-`R` signature; (5,16)) — and on
+the nearcore-accepted mutant `t.tx_valid_flip.1` (the foreign-signer transaction marked
+expired: same failed outcome); `¬RelD1` on the nearcore-rejected mutants `t.tx_valid_flip.0`
+(the valid self-transfer marked expired) and `hdr.prev_outcome_root`. The kernel evaluates
+every Ed25519 verification on the way. Kernel cost is the D0 relation's (the same D0 case costs
+the same under `RelD0` and `RelD1`, ≈ 1 min / 11 GB); cases with Reed–Solomon (33,100) exceed
+the kernel's recursion depth and are left out.
 
 **Formalized vs tested (summary).** Formalized as executable Lean definitions: the whole D1
 relation (§3 exactly, §4 conditions) and Ed25519/SHA-512. Proved: the leaf lemmas above and
