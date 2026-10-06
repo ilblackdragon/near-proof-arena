@@ -58,6 +58,93 @@ pub fn lower_quartile_u64(xs: &[u64]) -> Option<u64> {
     Some(s[(s.len() - 1) / 4])
 }
 
+/// Verdict of the bench-spec-v1.6 calibration gate (§6.1) over the probes of
+/// one session, in time order (pre, one per measured round, post).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ProbeVerdict {
+    pub n: u32,
+    pub median_ns: u64,
+    /// MAD / median, ppm, rounded up.
+    pub noise_ppm: u64,
+    /// Order statistic ⌊(m−1)·9/10⌋ of the m sorted consecutive drifts
+    /// (`drift_ppm(q[i−1], q[i])`) of the rolling medians q of
+    /// [`PROBE_SMOOTH`] consecutive probes (the raw probes when n < 3).
+    pub step_p90_ppm: u64,
+    /// `drift_ppm(p[0], p[n−1])`: informational (paired ratios cancel slow drift).
+    pub session_drift_ppm: u64,
+    pub reference_drift_ppm: Option<u64>,
+    pub ok: bool,
+    /// Any of `CALIBRATION_STEP`, `CALIBRATION_NOISY`, `REFERENCE_DRIFT`.
+    pub reasons: Vec<String>,
+}
+
+/// Width of the rolling median the step gate is taken over: a single probe
+/// carries ~2% of its own noise on the reference host (BENCHMARK_SPEC §6.1.1).
+pub const PROBE_SMOOTH: usize = 3;
+
+/// bench-spec-v1.6 calibration gate. A step gate (not a start-vs-end drift
+/// gate): host changes slower than one round cancel out of the paired
+/// reference ratio, so only a jump between consecutive probes, or a noisy
+/// session as a whole, invalidates it. `Err` if fewer than 2 probes or a 0.
+pub fn probe_verdict(
+    probes: &[u64],
+    max_step_ppm: u64,
+    max_noise_ppm: u64,
+    reference: Option<(u64, u64)>,
+) -> Result<ProbeVerdict, String> {
+    if probes.len() < 2 {
+        return Err("calibration needs at least 2 probes".into());
+    }
+    if probes.contains(&0) {
+        return Err("calibration probe of 0 ns".into());
+    }
+    let median = median_u64(probes).expect("non-empty");
+    let mad = mad_u64(probes).expect("non-empty");
+    let noise = drift_ppm(median, median + mad);
+    let smooth: Vec<u64> = if probes.len() >= PROBE_SMOOTH {
+        probes
+            .windows(PROBE_SMOOTH)
+            .map(|w| median_u64(w).expect("non-empty"))
+            .collect()
+    } else {
+        probes.to_vec()
+    };
+    let mut steps: Vec<u64> = smooth.windows(2).map(|w| drift_ppm(w[0], w[1])).collect();
+    if steps.is_empty() {
+        steps.push(0);
+    }
+    steps.sort_unstable();
+    let p90 = steps[(steps.len() - 1) * 9 / 10];
+    let session = drift_ppm(probes[0], probes[probes.len() - 1]);
+    let mut reasons = vec![];
+    if p90 > max_step_ppm {
+        reasons.push("CALIBRATION_STEP".to_string());
+    }
+    if noise > max_noise_ppm {
+        reasons.push("CALIBRATION_NOISY".to_string());
+    }
+    let reference_drift = match reference {
+        Some((ref_ns, max_ppm)) if ref_ns > 0 => {
+            let d = drift_ppm(ref_ns, median);
+            if d > max_ppm {
+                reasons.push("REFERENCE_DRIFT".to_string());
+            }
+            Some(d)
+        }
+        _ => None,
+    };
+    Ok(ProbeVerdict {
+        n: probes.len() as u32,
+        median_ns: median,
+        noise_ppm: noise,
+        step_p90_ppm: p90,
+        session_drift_ppm: session,
+        reference_drift_ppm: reference_drift,
+        ok: reasons.is_empty(),
+        reasons,
+    })
+}
+
 /// Unscaled median absolute deviation around [`median_u64`].
 pub fn mad_u64(xs: &[u64]) -> Option<u64> {
     let m = median_u64(xs)?;

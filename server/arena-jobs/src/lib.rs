@@ -206,6 +206,23 @@ pub struct ExecJob {
     pub challenge: ChallengeDefinition,
     pub manifest: CandidateManifest,
     pub build: BuildOutputs,
+    /// BENCHMARK of a `baseline_mode = paired` challenge (v1.8,
+    /// BENCHMARK_SPEC §6.2): the reference build the worker runs on the same
+    /// batches. Absent on every other job.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reference: Option<ReferenceBuild>,
+}
+
+/// The challenge's reference candidate as built and admitted on this
+/// challenge: the latest ADMITTED run of a submission whose package digest is
+/// `workload_suite.baseline_submission`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct ReferenceBuild {
+    pub submission_id: String,
+    pub run_id: String,
+    pub package_digest: String,
+    pub manifest: CandidateManifest,
+    pub build: BuildOutputs,
 }
 
 pub type ConformanceJob = ExecJob;

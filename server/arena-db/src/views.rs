@@ -875,6 +875,7 @@ mod tests {
                     .collect(),
                 cost_baseline_prepare_ns: None,
                 verify_statistic: None,
+                baseline_mode: None,
             });
             c.check_scoring().unwrap();
         }
@@ -901,6 +902,7 @@ mod tests {
                 score_milli: Some(s),
                 score_ci_milli: Some(2),
                 classes: vec![],
+                baseline_mode: None,
             }),
         };
         SubmissionBundle {

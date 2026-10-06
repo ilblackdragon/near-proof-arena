@@ -1,0 +1,13 @@
+[package]
+name = "arena-calibrate"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Pinned judge calibration workload arena-calibrate-v1 (docs/BENCHMARK_SPEC.md §6.1)"
+
+[[bin]]
+name = "arena-calibrate"
+path = "src/main.rs"
+
+[dependencies]
+sha2.workspace = true

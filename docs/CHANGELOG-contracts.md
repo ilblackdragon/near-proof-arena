@@ -1,5 +1,33 @@
 # Contract changelog
 
+## v1.8 (additive, scoring-v2 lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
+
+Paired baseline control and pinned calibration (docs/BENCHMARK_SPEC.md §6.1.1, §6.2,
+§14.12; bench-spec-v1.6). Built on v1.7 (coverage). Every new field is optional or empty
+and is not serialized when absent, so existing challenge ids and results are unchanged.
+
+* `ScoringSpec.baseline_mode: Option<BaselineMode>` (`frozen` | `paired`; absent =
+  `frozen`). `paired` requires `workload_suite.baseline_submission` and
+  `measurement.invocation_mode = vm_per_batch` (`check_scoring`); `speed` must not set it.
+* `MeasurementProcedure.calibration: Option<CalibrationSpec>` (`workload`,
+  `binary_digest`, `expected_checksum`, `threads`, `steps_per_probe`, `edge_probes`, `max_step_ppm`,
+  `max_noise_ppm`, optional `reference_median_ns` / `max_reference_drift_ppm`).
+* `ClassMeasurement.ref_runs_ns`, `ref_verify_runs_ns`, `ref_proof_bytes_runs`: the
+  paired reference's per-run totals, in the same order as `runs_ns`; empty unless paired.
+  An abstained class carries none.
+* `CostResult.baseline_mode` (`paired` when priced against paired runs).
+  `CostClass.ref_prove_ns`, `ref_verify_ns`, `ref_proof_bytes`: the reference statistics
+  actually priced.
+* Jobs: `ExecJob.reference: Option<ReferenceBuild>` (`submission_id`, `run_id`,
+  `package_digest`, `manifest`, `build`), attached by the orchestrator to the BENCHMARK
+  jobs of paired challenges.
+* Worker: `ARENA_CALIBRATION_BIN` (digest-checked against the pin), probes, and paired
+  runs. A reference failure is INFRA.
+* `arena-measure`: `BatchSample.reference`, `RefSample`, `ProbeAt`, `BatchRunner::probe`,
+  `SessionPlan.calibration_edge_probes`, `SessionResult.calibration`,
+  `stats::probe_verdict`, `cost::PairedRuns`, `CostError::MissingPairedRuns`.
+* Vectors: `cost.json` gains `paired_*` cost-score and bootstrap cases and `calibration_probes`.
+
 ## v1.7 (additive, design) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
 
 Coverage-tiered challenges (docs/CONTRACTS.md §11, docs/BENCHMARK_SPEC.md §17; first user

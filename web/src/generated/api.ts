@@ -5,6 +5,27 @@
  */
 
 /**
+ * Coverage tiers (v1.7, additive; absent ⇒ not serialized, so existing challenge ids are unchanged). docs/CONTRACTS.md §11.
+ */
+export type CoverageSpec = {
+  /**
+   * Trusted Lean lemma lifting tier soundness to the statement, e.g. `NearSpecV3.sound_lift`.
+   */
+  soundness_lift: string;
+  /**
+   * Lean declaration of the top `ChallengeSpec` (the statement every admitted verifier is sound for), e.g. `NearSpecV3.challengeSpecChunkTop`.
+   */
+  statement_spec: string;
+  /**
+   * Tiers in any order; `rank` is the total order (higher = larger domain).
+   */
+  tiers: CoverageTier[];
+  /**
+   * `"coverage-v1"`.
+   */
+  version: string;
+} | null;
+/**
  * Formal admission-statement parameters (v1.2, additive; absent ⇒ not serialized, so existing challenge ids are unchanged).
  */
 export type FormalParams = {
@@ -22,9 +43,55 @@ export type FormalParams = {
   verify_fuel: number;
 } | null;
 /**
+ * The pinned calibration binary and its probe rule (v1.8, additive; docs/BENCHMARK_SPEC.md §6.1). Absent = no in-session calibration (the live worker before v1.8).
+ */
+export type CalibrationSpec = {
+  /**
+   * `sha256:<64 lowercase hex>`
+   */
+  binary_digest: string;
+  /**
+   * Probes before and after the session (each).
+   */
+  edge_probes: number;
+  /**
+   * The checksum the workload must print (a wrong one is INFRA).
+   */
+  expected_checksum: string;
+  /**
+   * Gate: MAD / median over all probes of the session (ppm).
+   */
+  max_noise_ppm: number;
+  max_reference_drift_ppm?: number | null;
+  /**
+   * Gate: the 90th-percentile step between consecutive probes (ppm).
+   */
+  max_step_ppm: number;
+  /**
+   * Host admission median of one probe on this hardware profile; when set, the session median must be within `max_reference_drift_ppm` of it.
+   */
+  reference_median_ns?: number | null;
+  /**
+   * Timed runs per probe, after one untimed warm-up run, all in one sandbox instance; the probe is their median.
+   */
+  steps_per_probe: number;
+  /**
+   * Worker threads per probe (= the benchmark vCPUs).
+   */
+  threads: number;
+  /**
+   * `arena-calibrate-v1`.
+   */
+  workload: string;
+} | null;
+/**
  * Scoring kind and, for `cost_v1`, the pinned price model and reference cost components (v1.5, additive; absent ⇒ `speed` and not serialized, so existing challenge ids are unchanged). docs/BENCHMARK_SPEC.md §14.
  */
 export type ScoringSpec = {
+  /**
+   * v1.8, additive; absent = `frozen`.
+   */
+  baseline_mode?: ('frozen' | 'paired') | null;
   cost_baseline?: CostBaselineClass[];
   /**
    * Reference candidate's `prepare` wall ns (only charged when `prepare_amortization_requests > 0`).
@@ -36,6 +103,10 @@ export type ScoringSpec = {
    * `sha256:<64 lowercase hex>`
    */
   price_model_digest?: string | null;
+  /**
+   * Aggregation of per-run verify totals (v1.6, additive; absent = `median`). `cost_baseline.verify_ns` is pinned with the same statistic.
+   */
+  verify_statistic?: ('median' | 'lower_quartile') | null;
 } | null;
 /**
  * `arena-price-model-v1`: integers only, femto-USD. Per-chunk system cost of one proved request (docs/BENCHMARK_SPEC.md §14.2):
@@ -120,6 +191,7 @@ export interface StoredChallenge {
 export interface ChallengeDefinition {
   chain_id: string;
   claim_encoding: ClaimEncoding;
+  coverage?: CoverageSpec;
   created_at: string;
   formal_params?: FormalParams;
   hardware_profile: HardwareProfile;
@@ -187,6 +259,21 @@ export interface ClaimEncoding {
    */
   spec_digest: string;
 }
+export interface CoverageTier {
+  /**
+   * Workload classes this tier is complete for: an abstention on a positive case of one of them is `COVERAGE_GAP_IN_TIER`.
+   */
+  classes: string[];
+  /**
+   * Tier id, e.g. `D0`, `D1`, `D2`, `D3a`.
+   */
+  id: string;
+  /**
+   * Lean declaration (term) of the tier's `ChallengeParams`, e.g. `NearSpecV3.challengeParamsChunk .d0`. The judge's per-tier Expected template (formal-checker config `tiers`) instantiates exactly this.
+   */
+  params: string;
+  rank: number;
+}
 export interface HardwareProfile {
   cpu_model: string;
   gpu?: string | null;
@@ -199,6 +286,7 @@ export interface MeasurementProcedure {
    * `median` only in v1.
    */
   aggregation: string;
+  calibration?: CalibrationSpec;
   cold_runs: number;
   concurrency: number;
   /**

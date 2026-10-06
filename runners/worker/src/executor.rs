@@ -114,6 +114,9 @@ pub struct WorkerContext {
     /// Lean reference interpreter (`arena-interp-ref`) used as a shadow
     /// check of `npai-verify` on small inputs (conformance, adversarial).
     pub interp_ref: Option<PathBuf>,
+    /// The pinned calibration binary `arena-calibrate` (`ARENA_CALIBRATION_BIN`,
+    /// BENCHMARK_SPEC §6.1); checked against `measurement.calibration.binary_digest`.
+    pub calibration_bin: Option<PathBuf>,
     /// Keep per-job work dirs (debugging).
     pub keep_workdirs: bool,
 }

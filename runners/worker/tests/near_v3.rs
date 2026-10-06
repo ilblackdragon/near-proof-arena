@@ -268,6 +268,7 @@ fn all_stages(f: &Fixture, tier: arena_types::challenge::Tier) {
         challenge: f.chal.clone(),
         manifest,
         build,
+        reference: None,
     };
     let conf = run(f, JobSpec::Conformance(job.clone()));
     for g in &conf.gates {
@@ -379,6 +380,7 @@ fn hostile_fails_adversarial(hostile: &str, needle: &str) {
         challenge: f.chal.clone(),
         manifest,
         build,
+        reference: None,
     };
     let a = run(&f, JobSpec::Adversarial(job));
     let g = &a.gates[0];
@@ -455,6 +457,7 @@ fn accept_all_verifier_fails_on_rejection_cases() {
         challenge: f.chal.clone(),
         manifest,
         build,
+        reference: None,
     };
     let conf = run(&f, JobSpec::Conformance(job));
     let g = gate(&conf, ObligationId::ConformanceDifferential);

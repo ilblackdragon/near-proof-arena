@@ -94,6 +94,8 @@ pub enum CostError {
     RunLengthMismatch,
     #[error("MISSING_BASELINE")]
     MissingBaseline,
+    #[error("MISSING_PAIRED_RUNS")]
+    MissingPairedRuns,
     #[error("{0}")]
     Score(ScoreError),
 }
@@ -107,6 +109,7 @@ impl CostError {
             CostError::CostOverflow => "COST_OVERFLOW",
             CostError::RunLengthMismatch => "RUN_LENGTH_MISMATCH",
             CostError::MissingBaseline => "MISSING_BASELINE",
+            CostError::MissingPairedRuns => "MISSING_PAIRED_RUNS",
             CostError::Score(e) => e.code(),
         }
     }
@@ -229,6 +232,20 @@ pub struct CostClassRuns {
     pub prove_runs_ns: Vec<u64>,
     pub verify_runs_ns: Vec<u64>,
     pub proof_bytes_runs: Vec<u64>,
+    /// bench-spec-v1.6 `baseline_mode = paired`: the reference's runs on the
+    /// same batches, run `i` paired with candidate run `i`. When present they
+    /// replace `baseline` (which stays for display).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub paired: Option<PairedRuns>,
+}
+
+/// The paired reference's per-run totals (same length and order as the
+/// candidate's runs).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PairedRuns {
+    pub prove_runs_ns: Vec<u64>,
+    pub verify_runs_ns: Vec<u64>,
+    pub proof_bytes_runs: Vec<u64>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -238,12 +255,17 @@ pub struct CostClassResult {
     pub medians: Components,
     pub cost: Breakdown,
     pub baseline_total_fusd: u64,
+    /// The reference statistics actually priced (paired runs, or the pinned
+    /// `cost_baseline`).
+    pub baseline: Components,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CostScore {
     pub score_milli: u64,
     pub classes: Vec<CostClassResult>,
+    /// Every class priced against paired reference runs.
+    pub paired: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -264,6 +286,14 @@ fn check_runs(c: &CostClassRuns) -> Result<usize, CostError> {
     if c.verify_runs_ns.len() != n || c.proof_bytes_runs.len() != n {
         return Err(CostError::RunLengthMismatch);
     }
+    if let Some(r) = &c.paired {
+        if r.prove_runs_ns.len() != n
+            || r.verify_runs_ns.len() != n
+            || r.proof_bytes_runs.len() != n
+        {
+            return Err(CostError::RunLengthMismatch);
+        }
+    }
     Ok(n)
 }
 
@@ -275,12 +305,36 @@ fn medians(p: &Prices, c: &CostClassRuns) -> Components {
     }
 }
 
+/// The reference components of a class: the paired runs' statistics (same
+/// rules as the candidate's: median P and S, the verify statistic for V), or
+/// the pinned `cost_baseline`.
+fn baseline_components(p: &Prices, c: &CostClassRuns) -> Components {
+    match &c.paired {
+        Some(r) => stats_of(p, &r.prove_runs_ns, &r.verify_runs_ns, &r.proof_bytes_runs),
+        None => c.baseline,
+    }
+}
+
+fn stats_of(p: &Prices, prove: &[u64], verify: &[u64], bytes: &[u64]) -> Components {
+    Components {
+        prove_ns: median_u64(prove).expect("checked"),
+        verify_ns: verify_stat(p.verify_statistic, verify).expect("checked"),
+        proof_bytes: median_u64(bytes).expect("checked"),
+    }
+}
+
 fn baseline_total(
     p: &Prices,
     c: &CostClassRuns,
     baseline_prepare_ns: u64,
 ) -> Result<u64, CostError> {
-    Ok(batch_cost(p, c.baseline, baseline_prepare_ns, c.batch_size)?.total_fusd)
+    Ok(batch_cost(
+        p,
+        baseline_components(p, c),
+        baseline_prepare_ns,
+        c.batch_size,
+    )?
+    .total_fusd)
 }
 
 /// Cost score of the component medians (point estimate). Class validation
@@ -310,11 +364,13 @@ pub fn cost_score(
             medians: m,
             cost,
             baseline_total_fusd: base,
+            baseline: baseline_components(p, c),
         });
     }
     let s = score::score(&inputs)?;
     Ok(CostScore {
         score_milli: s.score_milli,
+        paired: !classes.is_empty() && classes.iter().all(|c| c.paired.is_some()),
         classes: out,
     })
 }
@@ -336,6 +392,7 @@ pub fn cost_bootstrap(
         .iter()
         .map(|c| baseline_total(p, c, baseline_prepare_ns))
         .collect::<Result<_, _>>()?;
+    let (mut rp, mut rv, mut rs) = (Vec::new(), Vec::new(), Vec::new());
     let mut rng = SplitMix64::new(seed);
     let mut xs = Vec::with_capacity(iterations as usize);
     let (mut bp, mut bv, mut bs) = (Vec::new(), Vec::new(), Vec::new());
@@ -346,12 +403,33 @@ pub fn cost_bootstrap(
             bp.clear();
             bv.clear();
             bs.clear();
+            rp.clear();
+            rv.clear();
+            rs.clear();
             for _ in 0..n {
                 let i = rng.below(n) as usize;
                 bp.push(c.prove_runs_ns[i]);
                 bv.push(c.verify_runs_ns[i]);
                 bs.push(c.proof_bytes_runs[i]);
+                // paired: the same draw resamples the reference's run i
+                if let Some(r) = &c.paired {
+                    rp.push(r.prove_runs_ns[i]);
+                    rv.push(r.verify_runs_ns[i]);
+                    rs.push(r.proof_bytes_runs[i]);
+                }
             }
+            let base = match &c.paired {
+                Some(_) => {
+                    batch_cost(
+                        p,
+                        stats_of(p, &rp, &rv, &rs),
+                        baseline_prepare_ns,
+                        c.batch_size,
+                    )?
+                    .total_fusd
+                }
+                None => *base,
+            };
             let m = Components {
                 prove_ns: median_u64(&bp).expect("non-empty"),
                 verify_ns: verify_stat(p.verify_statistic, &bv).expect("non-empty"),
@@ -360,7 +438,7 @@ pub fn cost_bootstrap(
             inputs.push(ClassInput {
                 class_id: c.class_id.clone(),
                 weight_ppm: c.weight_ppm,
-                baseline_ns: *base,
+                baseline_ns: base,
                 median_ns: batch_cost(p, m, prepare_ns, c.batch_size)?.total_fusd,
             });
         }
@@ -479,6 +557,7 @@ pub fn to_contract(
         verifier_vcpus: pm.verifier_vcpus,
         score_milli: Some(s.score_milli),
         score_ci_milli: ci_milli,
+        baseline_mode: s.paired.then_some(arena_types::BaselineMode::Paired),
         classes: s
             .classes
             .iter()
@@ -495,6 +574,9 @@ pub fn to_contract(
                 storage_fusd: c.cost.storage_fusd,
                 total_fusd: c.cost.total_fusd,
                 baseline_total_fusd: c.baseline_total_fusd,
+                ref_prove_ns: Some(c.baseline.prove_ns),
+                ref_verify_ns: Some(c.baseline.verify_ns),
+                ref_proof_bytes: Some(c.baseline.proof_bytes),
             })
             .collect(),
     }
@@ -507,6 +589,7 @@ pub fn class_runs_for(
     classes: &[arena_types::ClassMeasurement],
 ) -> Result<Vec<CostClassRuns>, CostError> {
     let sc = chal.scoring.as_ref().ok_or(CostError::MissingBaseline)?;
+    let paired = sc.baseline_mode() == arena_types::BaselineMode::Paired;
     classes
         .iter()
         .map(|m| {
@@ -533,6 +616,18 @@ pub fn class_runs_for(
                 prove_runs_ns: m.runs_ns.clone(),
                 verify_runs_ns: m.verify_runs_ns.clone(),
                 proof_bytes_runs: m.proof_bytes_runs.clone(),
+                paired: if paired {
+                    if m.ref_runs_ns.is_empty() {
+                        return Err(CostError::MissingPairedRuns);
+                    }
+                    Some(PairedRuns {
+                        prove_runs_ns: m.ref_runs_ns.clone(),
+                        verify_runs_ns: m.ref_verify_runs_ns.clone(),
+                        proof_bytes_runs: m.ref_proof_bytes_runs.clone(),
+                    })
+                } else {
+                    None
+                },
             })
         })
         .collect()
@@ -574,6 +669,7 @@ mod tests {
             prove_runs_ns: p.to_vec(),
             verify_runs_ns: v.to_vec(),
             proof_bytes_runs: s.to_vec(),
+            paired: None,
         }
     }
 

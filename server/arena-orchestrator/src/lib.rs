@@ -458,11 +458,12 @@ impl Orchestrator {
                 }
                 Stage::ConformanceChecked => {
                     if !exists(JobKind::Benchmark) {
-                        let Some(e) = self.exec_job(ctx) else {
+                        let Some(mut e) = self.exec_job(ctx) else {
                             return self
                                 .finalize(conn, ctx, Finish::Blocked("no build outputs".into()))
                                 .await;
                         };
+                        e.reference = Self::paired_reference(conn, ctx, &e).await?;
                         self.enqueue(conn, ctx, JobSpec::Benchmark(e)).await?;
                         return Ok(());
                     }
@@ -483,7 +484,75 @@ impl Orchestrator {
             challenge: ctx.chal.definition.clone(),
             manifest: ctx.run.manifest.clone()?,
             build: ctx.run.build_outputs.clone()?,
+            reference: None,
         })
+    }
+
+    /// BENCHMARK_SPEC §6.2 (bench-spec-v1.6, `scoring.baseline_mode = paired`):
+    /// the reference build the worker runs on the candidate's batches. It is
+    /// the run itself when the candidate IS the reference package; otherwise
+    /// the latest ADMITTED, unrevoked run on this challenge of a submission with
+    /// package digest `workload_suite.baseline_submission`. `None` (the cost
+    /// score is then not computed, the run is not blocked) when none exists yet.
+    async fn paired_reference(
+        conn: &mut PgConnection,
+        ctx: &Ctx,
+        e: &ExecJob,
+    ) -> Result<Option<arena_jobs::ReferenceBuild>> {
+        let def = &ctx.chal.definition;
+        let paired = def
+            .scoring
+            .as_ref()
+            .is_some_and(|s| s.baseline_mode() == arena_types::BaselineMode::Paired);
+        let Some(pkg) = def.workload_suite.baseline_submission.clone() else {
+            return Ok(None);
+        };
+        if !paired {
+            return Ok(None);
+        }
+        if ctx.sub.package_digest.as_str() == pkg.as_str() {
+            return Ok(Some(arena_jobs::ReferenceBuild {
+                submission_id: ctx.sub.id.clone(),
+                run_id: ctx.run.id.clone(),
+                package_digest: ctx.sub.package_digest.clone(),
+                manifest: e.manifest.clone(),
+                build: e.build.clone(),
+            }));
+        }
+        let row: Option<(
+            String,
+            String,
+            Option<serde_json::Value>,
+            Option<serde_json::Value>,
+        )> = sqlx::query_as(
+            "SELECT r.submission_id, r.id, r.manifest, r.build_outputs
+                   FROM runs r JOIN submissions s ON s.id = r.submission_id
+                  WHERE s.challenge_id = $1 AND s.package_digest = $2
+                    AND r.decision = 'ADMITTED' AND r.build_outputs IS NOT NULL
+                    AND NOT EXISTS (SELECT 1 FROM revocations v WHERE v.submission_id = s.id)
+                  ORDER BY r.decided_at DESC NULLS LAST
+                  LIMIT 1",
+        )
+        .bind(&ctx.sub.challenge_id)
+        .bind(pkg.as_str())
+        .fetch_optional(&mut *conn)
+        .await?;
+        let Some((sub_id, run_id, Some(m), Some(b))) = row else {
+            return Ok(None);
+        };
+        let (Ok(manifest), Ok(build)) = (
+            serde_json::from_value::<arena_types::CandidateManifest>(m),
+            serde_json::from_value::<BuildOutputs>(b),
+        ) else {
+            return Ok(None);
+        };
+        Ok(Some(arena_jobs::ReferenceBuild {
+            submission_id: sub_id,
+            run_id,
+            package_digest: pkg,
+            manifest,
+            build,
+        }))
     }
 
     /// Reuse cached formal gate results if a live entry exists for the run's

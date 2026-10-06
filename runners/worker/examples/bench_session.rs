@@ -114,6 +114,57 @@ fn put_tree(store: &FsStore, dir: &Path) -> (Digest, Digest) {
     (store.put(&tar).unwrap(), tree.digest())
 }
 
+/// The BuildOutputs the control plane would hold for a built bundle.
+fn build_outputs(
+    store: &FsStore,
+    bundle_dir: &Path,
+    public_dir: &Path,
+    native_verifier: Option<&String>,
+) -> (CandidateManifest, BuildOutputs) {
+    let manifest = CandidateManifest::parse(
+        &std::fs::read_to_string(bundle_dir.join("candidate.toml")).unwrap(),
+    )
+    .unwrap_or_else(|e| die(format!("candidate.toml: {e}")));
+    let (bundle_archive, bundle_tree) = put_tree(store, bundle_dir);
+    let (public_archive, public_tree) = put_tree(store, public_dir);
+    let native_verifier = native_verifier.map(|p| {
+        store
+            .put(&std::fs::read(p).unwrap_or_else(|e| die(format!("{p}: {e}"))))
+            .unwrap()
+    });
+    let formal_tree = arena_archive::tree_from_dir(
+        &bundle_dir.join(
+            manifest
+                .formal
+                .as_ref()
+                .map_or("formal", |f| f.lean_project.as_str()),
+        ),
+        &arena_archive::Limits::default(),
+    )
+    .map(|t| t.digest())
+    .unwrap_or_else(|_| Digest::of_bytes(b""));
+    let build = BuildOutputs {
+        prepare: file_digest(&bundle_dir.join(&manifest.entry.prepare)),
+        prove: file_digest(&bundle_dir.join(&manifest.entry.prove)),
+        verify: file_digest(&bundle_dir.join(&manifest.entry.verify)),
+        bundle: bundle_tree,
+        public_artifacts: public_tree,
+        formal_tree,
+        certificate_decl: manifest
+            .formal
+            .as_ref()
+            .map(|f| f.certificate.clone())
+            .unwrap_or_default(),
+        toolchain_image: None,
+        build_ns: None,
+        bundle_archive: Some(bundle_archive),
+        public_archive: Some(public_archive),
+        native_verifier,
+        verifier_bytecode: None,
+    };
+    (manifest, build)
+}
+
 fn file_digest(p: &Path) -> Digest {
     Digest::of_bytes(&std::fs::read(p).unwrap_or_else(|e| die(format!("{}: {e}", p.display()))))
 }
@@ -156,48 +207,34 @@ fn main() {
     let package = std::fs::read(get("package")).unwrap();
     let package_digest = store.put(&package).unwrap();
     let bundle_dir = PathBuf::from(get("bundle-dir"));
-    let manifest = CandidateManifest::parse(
-        &std::fs::read_to_string(bundle_dir.join("candidate.toml")).unwrap(),
-    )
-    .unwrap_or_else(|e| die(format!("candidate.toml: {e}")));
-    let (bundle_archive, bundle_tree) = put_tree(&store, &bundle_dir);
     let public_dir = PathBuf::from(get("public-dir"));
-    let (public_archive, public_tree) = put_tree(&store, &public_dir);
-    let native_verifier = one.get("native-verifier").map(|p| {
-        store
-            .put(&std::fs::read(p).unwrap_or_else(|e| die(format!("{p}: {e}"))))
-            .unwrap()
+    let (manifest, build) =
+        build_outputs(&store, &bundle_dir, &public_dir, one.get("native-verifier"));
+    let (bundle_tree, public_tree, native_verifier) = (
+        build.bundle.clone(),
+        build.public_artifacts.clone(),
+        build.native_verifier.clone(),
+    );
+    // bench-spec-v1.6 paired baseline control: the reference as the control
+    // plane would attach it (`--ref-package --ref-bundle-dir --ref-public-dir
+    // [--ref-native-verifier]`).
+    let reference = one.get("ref-package").map(|rp| {
+        let pkg = std::fs::read(rp).unwrap_or_else(|e| die(format!("{rp}: {e}")));
+        let digest = store.put(&pkg).unwrap();
+        let (m, b) = build_outputs(
+            &store,
+            Path::new(&get("ref-bundle-dir")),
+            Path::new(&get("ref-public-dir")),
+            one.get("ref-native-verifier"),
+        );
+        arena_jobs::ReferenceBuild {
+            submission_id: "sub_reference".into(),
+            run_id: "run_reference".into(),
+            package_digest: digest.to_string(),
+            manifest: m,
+            build: b,
+        }
     });
-    let formal_tree = arena_archive::tree_from_dir(
-        &bundle_dir.join(
-            manifest
-                .formal
-                .as_ref()
-                .map_or("formal", |f| f.lean_project.as_str()),
-        ),
-        &arena_archive::Limits::default(),
-    )
-    .map(|t| t.digest())
-    .unwrap_or_else(|_| Digest::of_bytes(b""));
-    let build = BuildOutputs {
-        prepare: file_digest(&bundle_dir.join(&manifest.entry.prepare)),
-        prove: file_digest(&bundle_dir.join(&manifest.entry.prove)),
-        verify: file_digest(&bundle_dir.join(&manifest.entry.verify)),
-        bundle: bundle_tree.clone(),
-        public_artifacts: public_tree.clone(),
-        formal_tree,
-        certificate_decl: manifest
-            .formal
-            .as_ref()
-            .map(|f| f.certificate.clone())
-            .unwrap_or_default(),
-        toolchain_image: None,
-        build_ns: None,
-        bundle_archive: Some(bundle_archive),
-        public_archive: Some(public_archive),
-        native_verifier: native_verifier.clone(),
-        verifier_bytecode: None,
-    };
     let job = ExecJob {
         ctx: JobContext {
             submission_id: "sub_baseline".into(),
@@ -210,6 +247,7 @@ fn main() {
         challenge: chal.clone(),
         manifest,
         build,
+        reference,
     };
 
     // `--oracle` (near-arena-oracle: v1/v2 encodings) and/or `--oracle-v3`
@@ -277,6 +315,7 @@ fn main() {
         formal: None,
         npai_verify: None,
         interp_ref: None,
+        calibration_bin: one.get("calibration-bin").map(PathBuf::from),
         keep_workdirs: false,
     });
 

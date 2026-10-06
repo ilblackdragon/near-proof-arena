@@ -61,6 +61,7 @@ fn procedure(cold: u32, warm: u32, measured: u32) -> MeasurementProcedure {
         concurrency: 1,
         per_run_timeout_ms: 1000,
         invocation_mode: None,
+        calibration: None,
     }
 }
 
@@ -89,6 +90,7 @@ fn session_uses_supervisor_wall_time_only() {
         bootstrap_seed: 1,
         bootstrap_iterations: 100,
         fresh_confirm_runs: 1,
+        calibration_edge_probes: 0,
     };
     let r = run_session(&plan, &mut runner).unwrap();
     let c = &r.classes[0];
@@ -129,6 +131,7 @@ fn timeout_fails_session_fast() {
         bootstrap_seed: 1,
         bootstrap_iterations: 10,
         fresh_confirm_runs: 0,
+        calibration_edge_probes: 0,
     };
     match run_session(&plan, &mut runner) {
         Err(SessionError::Run {
@@ -165,6 +168,7 @@ fn caching_tripwire_flags() {
         bootstrap_seed: 1,
         bootstrap_iterations: 10,
         fresh_confirm_runs: 1,
+        calibration_edge_probes: 0,
     };
     let r = run_session(&plan, &mut runner).unwrap();
     assert!(
@@ -233,6 +237,7 @@ fn per_run_verify_and_byte_totals_for_cost_scoring() {
         bootstrap_seed: 1,
         bootstrap_iterations: 10,
         fresh_confirm_runs: 0,
+        calibration_edge_probes: 0,
     };
     let r = run_session(&plan, &mut runner).unwrap();
     let c = &r.classes[0];
@@ -245,4 +250,90 @@ fn per_run_verify_and_byte_totals_for_cost_scoring() {
     let m = c.to_measurement();
     assert_eq!(m.verify_runs_ns, [70, 110, 150]);
     assert_eq!(m.proof_bytes_runs, [2001, 2001, 2001]);
+}
+
+/// bench-spec-v1.6: a paired runner (the reference's run attached to every
+/// measured sample) and calibration probes before, per measured round and after.
+struct Paired {
+    probes: Vec<(ProbeAt, u64)>,
+    n: u64,
+}
+
+impl BatchRunner for Paired {
+    fn run_batch(&mut self, _c: &str, phase: Phase, _round: u32) -> Result<BatchSample, RunError> {
+        self.n += 1;
+        let mut s = BatchSample::default();
+        let o = |w: u64| arena_sandbox::SandboxOutcome {
+            wall_ns: w,
+            ..arena_sandbox::SandboxOutcome::empty(ExitStatus::Exited(0), "t", None)
+        };
+        s.push_prove(&o(1000 + self.n));
+        s.push_verify(&o(500));
+        s.note_timed_proof_bytes(64);
+        if matches!(phase, Phase::Warmup | Phase::Measured) {
+            s.reference = Some(RefSample {
+                prove_ns: 2000 + self.n,
+                verify_ns: 900,
+                proof_bytes: 100,
+            });
+        }
+        Ok(s)
+    }
+    fn probe(&mut self, at: ProbeAt) -> Result<u64, RunError> {
+        let ns = 400_000_000 + self.probes.len() as u64;
+        self.probes.push((at, ns));
+        Ok(ns)
+    }
+}
+
+#[test]
+fn paired_runs_and_calibration_probes_are_recorded() {
+    let mut runner = Paired {
+        probes: vec![],
+        n: 0,
+    };
+    let plan = SessionPlan {
+        classes: vec![
+            ClassPlan {
+                class_id: "a".into(),
+                weight_ppm: 500_000,
+                baseline_ns: 1000,
+            },
+            ClassPlan {
+                class_id: "b".into(),
+                weight_ppm: 500_000,
+                baseline_ns: 1000,
+            },
+        ],
+        procedure: procedure(1, 2, 4),
+        schedule_seed: 3,
+        bootstrap_seed: 1,
+        bootstrap_iterations: 50,
+        fresh_confirm_runs: 1,
+        calibration_edge_probes: 2,
+    };
+    let r = run_session(&plan, &mut runner).unwrap();
+    for c in &r.classes {
+        assert_eq!(c.measured_ref_runs_ns.len(), 4);
+        assert_eq!(c.measured_ref_verify_runs_ns, [900; 4]);
+        assert_eq!(c.measured_ref_proof_bytes_runs, [100; 4]);
+        let m = c.to_measurement();
+        assert_eq!(m.ref_runs_ns.len(), m.runs_ns.len());
+    }
+    // 2 pre + one per measured round (4) + 2 post, in time order
+    let at: Vec<ProbeAt> = r.calibration.iter().map(|p| p.at).collect();
+    assert_eq!(
+        at,
+        [
+            ProbeAt::Pre,
+            ProbeAt::Pre,
+            ProbeAt::Round(0),
+            ProbeAt::Round(1),
+            ProbeAt::Round(2),
+            ProbeAt::Round(3),
+            ProbeAt::Post,
+            ProbeAt::Post
+        ]
+    );
+    assert_eq!(runner.probes.len(), 8);
 }

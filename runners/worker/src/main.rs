@@ -188,6 +188,7 @@ fn main() {
                 ),
                 npai_verify: cfg.npai_verify.clone(),
                 interp_ref: cfg.interp_ref.clone(),
+                calibration_bin: cfg.calibration_bin.clone(),
                 keep_workdirs: cfg.keep_workdirs,
             };
             let exec = StageExecutor::new(ctx);
@@ -301,6 +302,7 @@ fn run_job_local(args: &[String]) {
         ),
         npai_verify: std::env::var_os("ARENA_NPAI_VERIFY").map(PathBuf::from),
         interp_ref: std::env::var_os("ARENA_INTERP_REF").map(PathBuf::from),
+        calibration_bin: std::env::var_os("ARENA_CALIBRATION_BIN").map(PathBuf::from),
         keep_workdirs: false,
     };
     match StageExecutor::new(ctx).execute(&spec, "local", &AtomicBool::new(false)) {

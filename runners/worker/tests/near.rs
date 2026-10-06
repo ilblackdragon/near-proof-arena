@@ -227,6 +227,7 @@ fn reexec_witness_reference_all_stages() {
         challenge: f.chal.clone(),
         manifest,
         build,
+        reference: None,
     };
     let c = run(&f, JobSpec::Conformance(job.clone()));
     for g in &c.gates {
@@ -389,6 +390,7 @@ fn reexec_witness_reference_firecracker() {
         challenge: f.chal.clone(),
         manifest,
         build,
+        reference: None,
     };
     for spec in [
         JobSpec::Conformance(job.clone()),

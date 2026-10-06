@@ -42,6 +42,21 @@ struct Runner<'r, 'a> {
     seeds: crate::oracle::SeedCtx,
     /// Fail-closed protocol-version binding of every request.
     pin: Option<crate::jobs::RequestPin>,
+    /// bench-spec-v1.6 paired baseline control (§6.2): the challenge's
+    /// reference, run on exactly the same batches.
+    reference: Option<RefEnv>,
+    /// bench-spec-v1.6 calibration (§6.1): the pinned binary and its spec.
+    calibration: Option<(PathBuf, arena_types::challenge::CalibrationSpec)>,
+    /// Seed of the per-(class, phase, round) order coin of a paired run.
+    pair_seed: u64,
+}
+
+/// The paired reference's built bundle, frozen public dir and verifier.
+struct RefEnv {
+    bundle: PathBuf,
+    public_dir: PathBuf,
+    entry: arena_types::candidate::EntrySection,
+    verifier: common::Verifier,
 }
 
 impl Runner<'_, '_> {
@@ -55,6 +70,23 @@ impl Runner<'_, '_> {
             e => RunError::Infra(e.to_string()),
         }
     }
+    /// A failure of the run: the candidate's (charged), or the paired
+    /// reference's (never charged: the reference is admitted, so the judge
+    /// or the host is at fault — INFRA, the session is retried).
+    fn bad(&mut self, reference: bool, reason: ReasonCode, detail: String) -> RunError {
+        if reference {
+            RunError::Infra(format!("paired reference: {detail} ({reason:?})"))
+        } else {
+            self.fail(reason, detail)
+        }
+    }
+    fn bad_exec(&mut self, reference: bool, e: ExecError) -> RunError {
+        if reference {
+            RunError::Infra(format!("paired reference: {e}"))
+        } else {
+            self.exec_err(e)
+        }
+    }
 }
 
 impl Runner<'_, '_> {
@@ -64,21 +96,34 @@ impl Runner<'_, '_> {
     /// with a wiped scratch and only its own inputs; `T_run` is the sum of
     /// the timed invocations' supervisor wall times. Every proof (warm-up
     /// included) is claim-checked and verified (verifies batched the same way).
-    fn run_batch_shared(&mut self, batch: &[Case], phase: Phase) -> Result<BatchSample, RunError> {
+    fn run_batch_shared(
+        &mut self,
+        batch: &[Case],
+        phase: Phase,
+        reference: bool,
+    ) -> Result<BatchSample, RunError> {
         if batch.is_empty() {
             return Ok(BatchSample::default());
         }
-        let (bundle, public_dir, limits, entry, cpus, verifier) = (
-            self.bundle.clone(),
-            self.public_dir.clone(),
-            self.limits.clone(),
-            self.entry,
-            self.cpus.clone(),
-            self.verifier.clone(),
-        );
+        let (bundle, public_dir, entry, verifier) = match (&self.reference, reference) {
+            (Some(re), true) => (
+                re.bundle.clone(),
+                re.public_dir.clone(),
+                re.entry.clone(),
+                re.verifier.clone(),
+            ),
+            (None, true) => return Err(RunError::Infra("no paired reference".into())),
+            (_, false) => (
+                self.bundle.clone(),
+                self.public_dir.clone(),
+                self.entry.clone(),
+                self.verifier.clone(),
+            ),
+        };
+        let (limits, cpus) = (self.limits.clone(), self.cpus.clone());
         let env = common::EntryEnv {
             bundle: &bundle,
-            entry,
+            entry: &entry,
             public_dir: &public_dir,
             limits: &limits,
             cpu_set: cpus,
@@ -88,7 +133,7 @@ impl Runner<'_, '_> {
         let order: Vec<&Case> = std::iter::once(&batch[0]).chain(batch.iter()).collect();
         let proved = match common::run_prove_batch(self.r, &env, &order) {
             Ok(p) => p,
-            Err(e) => return Err(self.exec_err(e)),
+            Err(e) => return Err(self.bad_exec(reference, e)),
         };
         let mut s = BatchSample::default();
         let mut pairs = Vec::with_capacity(order.len());
@@ -98,7 +143,8 @@ impl Runner<'_, '_> {
             let p = match p {
                 Ok(p) => p,
                 Err(f) => {
-                    return Err(self.fail(
+                    return Err(self.bad(
+                        reference,
                         f.reason,
                         format!(
                             "{} run, {label}: {}",
@@ -123,7 +169,7 @@ impl Runner<'_, '_> {
         };
         let verified = match common::run_verify_batch(self.r, &venv, &pairs) {
             Ok(v) => v,
-            Err(e) => return Err(self.exec_err(e)),
+            Err(e) => return Err(self.bad_exec(reference, e)),
         };
         for (i, (v, vo)) in verified.into_iter().enumerate() {
             let case = order[i];
@@ -136,19 +182,22 @@ impl Runner<'_, '_> {
                     }
                 }
                 Verdict::TimedOut => {
-                    return Err(self.fail(
+                    return Err(self.bad(
+                        reference,
                         ReasonCode::ResourceLimit,
                         format!("{label}: verify exceeded max_verify_ms"),
                     ))
                 }
                 Verdict::BindingMismatch => {
-                    return Err(self.fail(
+                    return Err(self.bad(
+                        reference,
                         ReasonCode::ArtifactBindingFailed,
                         "npai-verify: the verifier bytecode is not the certified image".into(),
                     ))
                 }
                 _ => {
-                    return Err(self.fail(
+                    return Err(self.bad(
+                        reference,
                         ReasonCode::ProverFailed,
                         format!(
                             "{} run, {label}: verify did not accept the proof",
@@ -176,6 +225,14 @@ fn cross_check(o: &arena_sandbox::SandboxOutcome) -> Result<(), RunError> {
 }
 
 impl BatchRunner for Runner<'_, '_> {
+    fn probe(&mut self, _at: arena_measure::ProbeAt) -> Result<u64, RunError> {
+        let Some((bin, spec)) = self.calibration.clone() else {
+            return Err(RunError::Infra("no calibration binary".into()));
+        };
+        common::calibration_probe(self.r, &bin, &spec, self.cpus.clone(), &self.limits)
+            .map_err(|e| RunError::Infra(e.to_string()))
+    }
+
     fn run_batch(
         &mut self,
         class_id: &str,
@@ -201,7 +258,39 @@ impl BatchRunner for Runner<'_, '_> {
         if phase != Phase::Cold
             && self.chal.measurement.invocation_mode() == InvocationMode::VmPerBatch
         {
-            return self.run_batch_shared(&batch, phase);
+            // bench-spec-v1.6 paired baseline control (§6.2): in warm-up and
+            // measured rounds the reference runs the very same batch, right
+            // before or after the candidate (a seeded coin per class, phase and
+            // round), on the same CPUs. Cold and fresh-confirm runs are the
+            // candidate's only.
+            if self.reference.is_some() && matches!(phase, Phase::Warmup | Phase::Measured) {
+                let coin = derive_seed(
+                    "paired-order",
+                    &[
+                        &self.pair_seed.to_string(),
+                        class_id,
+                        phase.as_str(),
+                        &round.to_string(),
+                    ],
+                )
+                .map_err(RunError::Infra)?;
+                let ref_first = coin & 1 == 1;
+                let (cand, refs) = if ref_first {
+                    let r = self.run_batch_shared(&batch, phase, true)?;
+                    (self.run_batch_shared(&batch, phase, false)?, r)
+                } else {
+                    let c = self.run_batch_shared(&batch, phase, false)?;
+                    (c, self.run_batch_shared(&batch, phase, true)?)
+                };
+                let mut cand = cand;
+                cand.reference = Some(arena_measure::RefSample {
+                    prove_ns: refs.total_prove_ns(),
+                    verify_ns: refs.total_verify_ns(),
+                    proof_bytes: refs.proof_bytes_total,
+                });
+                return Ok(cand);
+            }
+            return self.run_batch_shared(&batch, phase, false);
         }
         let mut s = BatchSample::default();
         for case in &batch {
@@ -417,6 +506,78 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         &proven_wc.iter().map(|c| c.weight_ppm).collect::<Vec<_>>(),
     )
     .ok_or_else(|| ExecError::Infra("workload class weights are all zero".into()))?;
+    // bench-spec-v1.6 paired baseline control (§6.2): fetch the reference
+    // build the control plane attached. Without one (the reference is not yet
+    // admitted on this challenge) the run is measured as before and cost_v1 is
+    // not computed.
+    let paired = chal
+        .scoring
+        .as_ref()
+        .is_some_and(|s| s.baseline_mode() == arena_types::BaselineMode::Paired);
+    let reference = match (&j.reference, paired) {
+        (_, false) => None,
+        (None, true) => {
+            bench.note("paired baseline control: no admitted reference build on this challenge yet; cost_v1 is not computed for this run");
+            None
+        }
+        (Some(rb), true) => {
+            if chal.workload_suite.baseline_submission.as_deref()
+                != Some(rb.package_digest.as_str())
+            {
+                return Err(ExecError::Infra(format!(
+                    "paired reference package {} is not the challenge's baseline_submission",
+                    rb.package_digest
+                )));
+            }
+            let rbundle = common::fetch_bundle(r, &rb.build, &rb.manifest.entry)?;
+            let rpublic = common::fetch_public(r, &rb.build, &limits)?;
+            let rjob = ExecJob {
+                ctx: j.ctx.clone(),
+                challenge: chal.clone(),
+                manifest: rb.manifest.clone(),
+                build: rb.build.clone(),
+                reference: None,
+            };
+            let rverifier = match common::verifier_for(r, &rjob, &rbundle, false)? {
+                Ok(v) => v,
+                Err(why) => {
+                    return Err(ExecError::Infra(format!(
+                        "paired reference verifier: {why}"
+                    )))
+                }
+            };
+            bench.note(format!(
+                "paired baseline control: reference {} (run {}, package {}) runs the same batches",
+                rb.submission_id, rb.run_id, rb.package_digest
+            ));
+            Some(RefEnv {
+                bundle: rbundle,
+                public_dir: rpublic,
+                entry: rb.manifest.entry.clone(),
+                verifier: rverifier,
+            })
+        }
+    };
+    // bench-spec-v1.6 calibration (§6.1): the pinned binary, digest-checked.
+    let calibration = match &chal.measurement.calibration {
+        None => None,
+        Some(cs) => {
+            let Some(bin) = r.ctx.calibration_bin.clone() else {
+                return Err(ExecError::Infra(
+                    "the challenge pins a calibration binary; this worker has none (ARENA_CALIBRATION_BIN)".into(),
+                ));
+            };
+            let d = arena_types::Digest::of_bytes(&std::fs::read(&bin)?);
+            if d != cs.binary_digest {
+                return Err(ExecError::Infra(format!(
+                    "calibration binary {} is {d}, the challenge pins {}",
+                    bin.display(),
+                    cs.binary_digest
+                )));
+            }
+            Some((bin, cs.clone()))
+        }
+    };
     let baselines: HashMap<&str, u64> = chal
         .workload_suite
         .baseline_ns
@@ -443,6 +604,9 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             .map_err(ExecError::Infra)?,
         bootstrap_iterations: BOOTSTRAP_ITERATIONS,
         fresh_confirm_runs: 1,
+        calibration_edge_probes: calibration
+            .as_ref()
+            .map_or(0, |(_, c)| c.edge_probes.max(1)),
     };
     let cpus = r.ctx.bench_cpus.clone();
     let verify_cpus = verify_cpu_set(chal, cpus.as_ref()).map_err(ExecError::Infra)?;
@@ -463,6 +627,13 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         chal,
         seeds: seeds.clone(),
         pin: crate::jobs::RequestPin::from_challenge(chal),
+        reference,
+        calibration: calibration.clone(),
+        pair_seed: derive_seed(
+            "paired",
+            &[&j.ctx.challenge_id, &j.ctx.submission_id, &j.ctx.run_id],
+        )
+        .map_err(ExecError::Infra)?,
     };
     let mut plan = plan;
     // A session with too many outliers is re-measured as a whole (spec
@@ -507,6 +678,50 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
             attempt = 0;
             continue;
         }
+        // §6.1 (v1.5): an unstable host invalidates the whole session (infra,
+        // never charged); it is re-measured like an outlier session.
+        if let Some((_, cs)) = &calibration {
+            let probes: Vec<u64> = session.calibration.iter().map(|p| p.wall_ns).collect();
+            let v = arena_measure::stats::probe_verdict(
+                &probes,
+                cs.max_step_ppm,
+                cs.max_noise_ppm,
+                cs.reference_median_ns.zip(cs.max_reference_drift_ppm),
+            )
+            .map_err(ExecError::Infra)?;
+            let probes_ms: Vec<String> = probes
+                .iter()
+                .map(|p| format!("{:.1}", *p as f64 / 1e6))
+                .collect();
+            bench.note(format!(
+                "session {attempt} calibration probes (ms): {}",
+                probes_ms.join(" ")
+            ));
+            bench.note(format!(
+                "session {attempt} calibration: {} probes, median {} us, step p90 {} ppm, noise {} ppm, session drift {} ppm{}",
+                v.n,
+                v.median_ns / 1000,
+                v.step_p90_ppm,
+                v.noise_ppm,
+                v.session_drift_ppm,
+                if v.ok { String::new() } else { format!(" — {}", v.reasons.join(",")) }
+            ));
+            if !v.ok {
+                if attempt >= MAX_SESSIONS {
+                    return Err(ExecError::Infra(format!(
+                        "calibration {} in {attempt} sessions: host too unstable (last probes, ms: {}; step p90 {} ppm, noise {} ppm)",
+                        v.reasons.join(","),
+                        probes_ms.join(" "),
+                        v.step_p90_ppm,
+                        v.noise_ppm
+                    )));
+                }
+                bench.note(format!(
+                    "session {attempt} discarded (calibration); re-measured"
+                ));
+                continue;
+            }
+        }
         match session
             .flags
             .iter()
@@ -548,6 +763,9 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
                 verify_runs_ns: vec![],
                 proof_bytes_runs: vec![],
                 abstained: true,
+                ref_runs_ns: vec![],
+                ref_verify_runs_ns: vec![],
+                ref_proof_bytes_runs: vec![],
             },
         })
         .collect();
@@ -620,6 +838,7 @@ pub fn run(r: &mut JobRun<'_>, j: &ExecJob) -> Result<StageOut, ExecError> {
         "classes": session.classes,
         "bootstrap": session.score.as_ref().ok(),
         "flags": session.flags,
+        "calibration": session.calibration,
     });
     let report_bytes = serde_json::to_vec(&report).map_err(|e| ExecError::Infra(e.to_string()))?;
     let d = r.upload("benchmark session", &report_bytes, true)?;
@@ -753,6 +972,7 @@ mod tests {
                 cost_baseline: vec![],
                 cost_baseline_prepare_ns: None,
                 verify_statistic: None,
+                baseline_mode: None,
             });
         }
         c

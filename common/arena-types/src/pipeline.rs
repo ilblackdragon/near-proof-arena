@@ -203,6 +203,15 @@ pub struct ClassMeasurement {
     /// excluded from the score with the weights renormalized (BENCHMARK_SPEC §17).
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub abstained: bool,
+    /// v1.8 (`scoring.baseline_mode = paired`): the reference's paired runs
+    /// on the same batches, same order as `runs_ns` — Σ prove ns, Σ verify ns
+    /// and Σ proof bytes per run. Empty otherwise.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ref_runs_ns: Vec<u64>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ref_verify_runs_ns: Vec<u64>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ref_proof_bytes_runs: Vec<u64>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

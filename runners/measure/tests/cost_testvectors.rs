@@ -55,6 +55,11 @@ fn classes(v: &Value) -> Vec<CostClassRuns> {
             prove_runs_ns: us(&c["prove_runs_ns"]),
             verify_runs_ns: us(&c["verify_runs_ns"]),
             proof_bytes_runs: us(&c["proof_bytes_runs"]),
+            paired: c.get("paired").map(|r| cost::PairedRuns {
+                prove_runs_ns: us(&r["prove_runs_ns"]),
+                verify_runs_ns: us(&r["verify_runs_ns"]),
+                proof_bytes_runs: us(&r["proof_bytes_runs"]),
+            }),
         })
         .collect()
 }
@@ -215,6 +220,38 @@ fn verify_control_vectors() {
                 assert_eq!(Value::Array(got), ex["classes"], "{name}");
             }
             Err(e) => assert_eq!(ex["error"], e.code(), "{name}"),
+        }
+    }
+}
+
+#[test]
+fn calibration_probe_vectors() {
+    let v = vectors();
+    let cases = v["calibration_probes"].as_array().unwrap();
+    assert!(cases.len() >= 5);
+    for case in cases {
+        let name = &case["name"];
+        let reference = case.get("reference").and_then(|r| {
+            r.as_array()
+                .map(|a| (a[0].as_u64().unwrap(), a[1].as_u64().unwrap()))
+        });
+        let got = arena_measure::stats::probe_verdict(
+            &us(&case["probes"]),
+            u(&case["max_step_ppm"]),
+            u(&case["max_noise_ppm"]),
+            reference,
+        );
+        let ex = &case["expect"];
+        match got {
+            Ok(r) => {
+                let got = serde_json::json!({
+                    "n": r.n, "median_ns": r.median_ns, "noise_ppm": r.noise_ppm,
+                    "step_p90_ppm": r.step_p90_ppm, "session_drift_ppm": r.session_drift_ppm,
+                    "reference_drift_ppm": r.reference_drift_ppm, "ok": r.ok, "reasons": r.reasons,
+                });
+                assert_eq!(&got, ex, "{name}");
+            }
+            Err(_) => assert_eq!(ex["error"], true, "{name}"),
         }
     }
 }

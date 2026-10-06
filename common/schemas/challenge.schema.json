@@ -143,6 +143,105 @@
         }
       ]
     },
+    "BaselineMode": {
+      "description": "Where a `cost_v1` class's reference cost comes from (contracts v1.8, bench-spec-v1.6; docs/BENCHMARK_SPEC.md §6.2, §14.12).",
+      "oneOf": [
+        {
+          "description": "The pinned `cost_baseline` (bench-spec-v1.2–v1.4; the absent field).",
+          "type": "string",
+          "enum": [
+            "frozen"
+          ]
+        },
+        {
+          "description": "The paired baseline control: the judge runs the challenge's reference (`workload_suite.baseline_submission`) on exactly the candidate's sampled batches, interleaved round by round on the same CPUs, and each class's reference cost is measured in the same session (`ClassMeasurement.ref_*`). `cost_baseline` stays pinned as the documented reference profile and is reported, never scored.",
+          "type": "string",
+          "enum": [
+            "paired"
+          ]
+        }
+      ]
+    },
+    "CalibrationSpec": {
+      "description": "The judge calibration workload (bench-spec-v1.6, §6.1): a fixed, deterministic binary (`runners/calibrate`, `arena-calibrate`), pinned by digest, run in the benchmark sandbox on the benchmark CPUs as probes before the session, at the start of every measured round, and after it.",
+      "type": "object",
+      "required": [
+        "binary_digest",
+        "edge_probes",
+        "expected_checksum",
+        "max_noise_ppm",
+        "max_step_ppm",
+        "steps_per_probe",
+        "threads",
+        "workload"
+      ],
+      "properties": {
+        "binary_digest": {
+          "description": "sha256 of the static `arena-calibrate` binary; the worker refuses any other.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Digest"
+            }
+          ]
+        },
+        "edge_probes": {
+          "description": "Probes before and after the session (each).",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "expected_checksum": {
+          "description": "The checksum the workload must print (a wrong one is INFRA).",
+          "type": "string"
+        },
+        "max_noise_ppm": {
+          "description": "Gate: MAD / median over all probes of the session (ppm).",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_reference_drift_ppm": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "max_step_ppm": {
+          "description": "Gate: the 90th-percentile step between consecutive probes (ppm).",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "reference_median_ns": {
+          "description": "Host admission median of one probe on this hardware profile; when set, the session median must be within `max_reference_drift_ppm` of it.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "steps_per_probe": {
+          "description": "Timed runs per probe, after one untimed warm-up run, all in one sandbox instance; the probe is their median.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "threads": {
+          "description": "Worker threads per probe (= the benchmark vCPUs).",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "workload": {
+          "description": "`arena-calibrate-v1`.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "ClaimEncoding": {
       "type": "object",
       "required": [
@@ -410,6 +509,17 @@
         "aggregation": {
           "description": "`median` only in v1.",
           "type": "string"
+        },
+        "calibration": {
+          "description": "The pinned calibration binary and its probe rule (v1.8, additive; docs/BENCHMARK_SPEC.md §6.1). Absent = no in-session calibration (the live worker before v1.8).",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CalibrationSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "cold_runs": {
           "type": "integer",
@@ -728,6 +838,17 @@
         "kind"
       ],
       "properties": {
+        "baseline_mode": {
+          "description": "v1.8, additive; absent = `frozen`.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/BaselineMode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "cost_baseline": {
           "type": "array",
           "items": {

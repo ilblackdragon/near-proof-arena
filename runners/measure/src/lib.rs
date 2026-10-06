@@ -31,6 +31,35 @@ pub struct BatchSample {
     /// Σ proof bytes of the batch's timed proofs (cost_v1, §14).
     pub proof_bytes_total: u64,
     pub peak_rss_bytes: u64,
+    /// The paired reference's run on the same batch (bench-spec-v1.6,
+    /// `baseline_mode = paired`); `None` otherwise.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reference: Option<RefSample>,
+}
+
+/// One paired reference run: Σ prove ns, Σ verify ns, Σ proof bytes of the
+/// batch's timed invocations, from sandbox outcomes only.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RefSample {
+    pub prove_ns: u64,
+    pub verify_ns: u64,
+    pub proof_bytes: u64,
+}
+
+/// Where a calibration probe ran (bench-spec-v1.6, §6.1).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ProbeAt {
+    Pre,
+    /// Start of a measured round.
+    Round(u32),
+    Post,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CalibrationProbe {
+    pub at: ProbeAt,
+    pub wall_ns: u64,
 }
 
 impl BatchSample {
@@ -83,6 +112,13 @@ pub trait BatchRunner {
         phase: Phase,
         round: u32,
     ) -> Result<BatchSample, RunError>;
+    /// One run of the pinned calibration workload (§6.1); the supervisor
+    /// wall time. Only called when `SessionPlan.calibration_edge_probes > 0`.
+    fn probe(&mut self, _at: ProbeAt) -> Result<u64, RunError> {
+        Err(RunError::Infra(
+            "this runner has no calibration workload".into(),
+        ))
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -101,6 +137,9 @@ pub struct SessionPlan {
     pub bootstrap_iterations: u32,
     /// Rounds on an unseen batch for the caching tripwire (spec: 1).
     pub fresh_confirm_runs: u32,
+    /// bench-spec-v1.6: calibration probes before and after the session
+    /// (each), plus one at the start of every measured round; 0 = none.
+    pub calibration_edge_probes: u32,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -119,6 +158,13 @@ pub struct ClassSession {
     /// Per measured run: Σ proof bytes of the batch (cost_v1).
     #[serde(default)]
     pub measured_proof_bytes_runs: Vec<u64>,
+    /// Paired reference (bench-spec-v1.6), per measured run, same order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub measured_ref_runs_ns: Vec<u64>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub measured_ref_verify_runs_ns: Vec<u64>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub measured_ref_proof_bytes_runs: Vec<u64>,
     pub proof_bytes_max: u64,
     pub peak_rss_bytes: u64,
     pub outliers: Option<stats::OutlierReport>,
@@ -141,6 +187,9 @@ impl ClassSession {
             peak_rss_bytes: self.peak_rss_bytes,
             verify_runs_ns: self.measured_verify_runs_ns.clone(),
             proof_bytes_runs: self.measured_proof_bytes_runs.clone(),
+            ref_runs_ns: self.measured_ref_runs_ns.clone(),
+            ref_verify_runs_ns: self.measured_ref_verify_runs_ns.clone(),
+            ref_proof_bytes_runs: self.measured_ref_proof_bytes_runs.clone(),
         }
     }
 }
@@ -153,6 +202,9 @@ pub struct SessionResult {
     pub score: Result<score::BootstrapResult, score::ScoreError>,
     /// Session-level flags: `CACHING_SUSPECTED`, `EXCESSIVE_OUTLIERS:<class>`.
     pub flags: Vec<String>,
+    /// Calibration probes in time order (bench-spec-v1.6; empty if none).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub calibration: Vec<CalibrationProbe>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -220,13 +272,48 @@ pub fn run_session(
             verify_runs_ns: vec![],
             measured_verify_runs_ns: vec![],
             measured_proof_bytes_runs: vec![],
+            measured_ref_runs_ns: vec![],
+            measured_ref_verify_runs_ns: vec![],
+            measured_ref_proof_bytes_runs: vec![],
             proof_bytes_max: 0,
             peak_rss_bytes: 0,
             outliers: None,
             tripwire: None,
         })
         .collect();
+    let run_err = |run: &ScheduledRun, error| SessionError::Run {
+        seq: run.seq,
+        phase: run.phase.as_str(),
+        class_id: run.class_id.clone(),
+        round: run.round,
+        error,
+    };
+    let mut calibration = Vec::new();
+    let probing = plan.calibration_edge_probes > 0;
+    let probe_err = |error| SessionError::Run {
+        seq: 0,
+        phase: "calibration",
+        class_id: String::new(),
+        round: 0,
+        error,
+    };
+    if probing {
+        for _ in 0..plan.calibration_edge_probes {
+            let ns = runner.probe(ProbeAt::Pre).map_err(probe_err)?;
+            calibration.push(CalibrationProbe {
+                at: ProbeAt::Pre,
+                wall_ns: ns,
+            });
+        }
+    }
+    let mut probed_round: Option<u32> = None;
     for run in &schedule {
+        if probing && run.phase == Phase::Measured && probed_round != Some(run.round) {
+            probed_round = Some(run.round);
+            let at = ProbeAt::Round(run.round);
+            let ns = runner.probe(at).map_err(|e| run_err(run, e))?;
+            calibration.push(CalibrationProbe { at, wall_ns: ns });
+        }
         let sample = runner
             .run_batch(&run.class_id, run.phase, run.round)
             .map_err(|error| SessionError::Run {
@@ -254,9 +341,34 @@ pub fn run_session(
             cs.verify_runs_ns.extend_from_slice(sample.verify_wall_ns());
             cs.measured_verify_runs_ns.push(sample.total_verify_ns());
             cs.measured_proof_bytes_runs.push(sample.proof_bytes_total);
+            if let Some(r) = sample.reference {
+                cs.measured_ref_runs_ns.push(r.prove_ns);
+                cs.measured_ref_verify_runs_ns.push(r.verify_ns);
+                cs.measured_ref_proof_bytes_runs.push(r.proof_bytes);
+            }
         }
         cs.proof_bytes_max = cs.proof_bytes_max.max(sample.proof_bytes_max);
         cs.peak_rss_bytes = cs.peak_rss_bytes.max(sample.peak_rss_bytes);
+    }
+    if probing {
+        for _ in 0..plan.calibration_edge_probes {
+            let ns = runner.probe(ProbeAt::Post).map_err(probe_err)?;
+            calibration.push(CalibrationProbe {
+                at: ProbeAt::Post,
+                wall_ns: ns,
+            });
+        }
+    }
+    // A paired session pairs every measured run, or none.
+    for cs in &classes {
+        let n = cs.measured_ref_runs_ns.len();
+        if n != 0 && n != cs.measured_runs_ns.len() {
+            return Err(SessionError::Procedure(format!(
+                "class {}: {n} paired reference runs for {} measured runs",
+                cs.class_id,
+                cs.measured_runs_ns.len()
+            )));
+        }
     }
     let k = plan.procedure.outlier_mad_k;
     let mut flags = Vec::new();
@@ -286,6 +398,7 @@ pub fn run_session(
         classes,
         score,
         flags,
+        calibration,
     })
 }
 

@@ -127,6 +127,13 @@ def main():
     ap.add_argument("--before-session", default=None,
                     help="shell command run once after the build, right before the first session "
                          "(e.g. stop the live benchmark worker: keeps the CPU window to the sessions)")
+    ap.add_argument("--build-only", action="store_true",
+                    help="stop after pack + build + prepare (the --work dir then serves as a --reference-work)")
+    ap.add_argument("--reference-work", default=None,
+                    help="work dir of a --build-only run of the challenge's reference: the session runs it as the "
+                         "paired baseline control on the same batches (BENCHMARK_SPEC §6.2, bench-spec-v1.6)")
+    ap.add_argument("--calibration-bin", default=None,
+                    help="the pinned arena-calibrate binary (challenges with measurement.calibration, §6.1)")
     a = ap.parse_args()
     if not (a.oracle or a.oracle_v3 or a.oracle_v3_d1 or a.oracle_v3_d3):
         sys.exit("give --oracle and/or --oracle-v3 [--oracle-v3-d1 --oracle-v3-d3]")
@@ -198,6 +205,10 @@ def main():
     shutil.rmtree(public, ignore_errors=True)
     run([os.path.join(bundle, "out/prepare"), "--params", os.path.join(fixtures, "params.bin"), "--out", public])
 
+    if a.build_only:
+        print(json.dumps({"package_digest": package_digest, "work": work}))
+        return
+
     # 5. the session (+ control sessions)
     session_json = os.path.join(out, "session.json")
     run_chal = chal_path
@@ -214,6 +225,12 @@ def main():
             "--work", os.path.join(work, "session"), "--out", "SESSION_OUT"]
     if a.fc_deps:
         argv += ["--fc-deps", os.path.abspath(a.fc_deps)]
+    if a.reference_work:
+        rw = os.path.abspath(a.reference_work)
+        argv += ["--ref-package", os.path.join(rw, "package.tar"), "--ref-bundle-dir", os.path.join(rw, "bundle"),
+                 "--ref-public-dir", os.path.join(rw, "public"), "--ref-native-verifier", os.path.join(rw, "bundle/out/verify")]
+    if a.calibration_bin:
+        argv += ["--calibration-bin", os.path.abspath(a.calibration_bin)]
     if a.season_secret_file:
         argv += ["--season-secret-file", os.path.abspath(a.season_secret_file)]
         if a.season_secret_commit:
@@ -256,6 +273,10 @@ def main():
             "proof_bytes_runs": cs["measured_proof_bytes_runs"],
             "verify_run_median_ns": stats.median_u64(cs["measured_verify_runs_ns"]),
             "verify_stat_ns": cost.verify_stat(a.verify_statistic, cs["measured_verify_runs_ns"]),
+            # bench-spec-v1.6 paired reference on the same batches (empty unless --reference-work)
+            "ref_runs_ns": cs.get("measured_ref_runs_ns", []),
+            "ref_verify_runs_ns": cs.get("measured_ref_verify_runs_ns", []),
+            "ref_proof_bytes_runs": cs.get("measured_ref_proof_bytes_runs", []),
             "proof_bytes_run_median": stats.median_u64(cs["measured_proof_bytes_runs"]),
             "peak_rss_bytes": cs["peak_rss_bytes"],
             "outliers": cs["outliers"],
@@ -314,6 +335,7 @@ def main():
             for c in sorted(classes, key=lambda c: c["class_id"])
         ],
         "verify_statistic": a.verify_statistic,
+        "calibration_probes": s["session"].get("calibration", []),
         "calibration_median_ns": stats.median_u64(cal["pre_ns"] + cal["post_ns"]),
         "verify_control": control_verdicts(classes, controls, a.verify_statistic,
                                            stats.median_u64(cal["pre_ns"] + cal["post_ns"])),

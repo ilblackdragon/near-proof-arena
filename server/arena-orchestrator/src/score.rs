@@ -58,7 +58,11 @@ pub fn normalize_benchmark(
                     c.class_id
                 ));
             }
-            if c.median_ns != 0 || !c.runs_ns.is_empty() || !c.verify_runs_ns.is_empty() {
+            if c.median_ns != 0
+                || !c.runs_ns.is_empty()
+                || !c.verify_runs_ns.is_empty()
+                || !c.ref_runs_ns.is_empty()
+            {
                 return Err(format!("abstained class {:?} carries timings", c.class_id));
             }
         } else if c.median_ns == 0 {
@@ -143,6 +147,9 @@ mod tests {
     fn cm(id: &str, w: u32, med: u64, base: u64) -> ClassMeasurement {
         ClassMeasurement {
             abstained: false,
+            ref_runs_ns: vec![],
+            ref_verify_runs_ns: vec![],
+            ref_proof_bytes_runs: vec![],
             class_id: id.into(),
             weight_ppm: w,
             runs_ns: vec![med],
@@ -216,6 +223,7 @@ mod tests {
                     .collect(),
                 cost_baseline_prepare_ns: None,
                 verify_statistic: None,
+                baseline_mode: None,
             });
         }
         c
@@ -229,6 +237,9 @@ mod tests {
             .iter()
             .map(|(id, ns)| ClassMeasurement {
                 abstained: false,
+                ref_runs_ns: vec![],
+                ref_verify_runs_ns: vec![],
+                ref_proof_bytes_runs: vec![],
                 class_id: id.clone(),
                 weight_ppm: c
                     .workload_suite
@@ -274,6 +285,7 @@ mod tests {
             score_milli: Some(999_999_999),
             score_ci_milli: Some(7),
             classes: vec![],
+            baseline_mode: None,
         });
         let n = normalize_benchmark(&c, b.clone()).unwrap();
         let cost = n.cost.unwrap();
@@ -302,6 +314,54 @@ mod tests {
         assert_eq!(
             compute_score_milli(&br(vec![cm("a", 1_000_000, 50, 0)])),
             None
+        );
+    }
+
+    /// v1.8 (BENCHMARK_SPEC §6.2, bench-spec-v1.6): paired mode prices the
+    /// reference from the session's own paired runs, never from the pinned
+    /// `cost_baseline`; without paired runs there is no cost score.
+    #[test]
+    fn paired_cost_uses_the_session_reference() {
+        let mut c = v1_6(true);
+        c.measurement.invocation_mode = Some(arena_types::challenge::InvocationMode::VmPerBatch);
+        c.workload_suite.baseline_submission = Some("sha256:ref".into());
+        c.scoring.as_mut().unwrap().baseline_mode = Some(arena_types::BaselineMode::Paired);
+        c.check_scoring().unwrap();
+        // no paired runs: measured, speed-scored, no cost
+        let b = reference_bench(&c);
+        let n = normalize_benchmark(&c, b.clone()).unwrap();
+        assert!(n.score_milli.is_some());
+        assert!(n.cost.is_none());
+        // the candidate equals its paired reference: 100, whatever cost_baseline says
+        let mut p = b.clone();
+        for k in &mut p.classes {
+            k.ref_runs_ns = k.runs_ns.clone();
+            k.ref_verify_runs_ns = k.verify_runs_ns.clone();
+            k.ref_proof_bytes_runs = k.proof_bytes_runs.clone();
+            k.verify_runs_ns = k.verify_runs_ns.iter().map(|v| v * 3).collect();
+            k.ref_verify_runs_ns = k.verify_runs_ns.clone();
+        }
+        let n = normalize_benchmark(&c, p.clone()).unwrap();
+        let cost = n.cost.unwrap();
+        assert_eq!(cost.score_milli, Some(100_000));
+        assert_eq!(cost.baseline_mode, Some(arena_types::BaselineMode::Paired));
+        assert_eq!(
+            cost.classes[0].ref_verify_ns,
+            Some(p.classes[0].ref_verify_runs_ns[0])
+        );
+        // a reference half as expensive on the same batches: the candidate scores < 100
+        let mut q = p;
+        for k in &mut q.classes {
+            k.ref_verify_runs_ns = k.ref_verify_runs_ns.iter().map(|v| v / 2).collect();
+        }
+        assert!(
+            normalize_benchmark(&c, q)
+                .unwrap()
+                .cost
+                .unwrap()
+                .score_milli
+                .unwrap()
+                < 100_000
         );
     }
 

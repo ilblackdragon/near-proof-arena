@@ -234,6 +234,9 @@ impl FakeWorker {
                             peak_rss_bytes: 1 << 20,
                             verify_runs_ns: vec![1000 * 8; 5],
                             proof_bytes_runs: vec![2048 * 8; 5],
+                            ref_runs_ns: vec![],
+                            ref_verify_runs_ns: vec![],
+                            ref_proof_bytes_runs: vec![],
                         }
                     })
                     .collect();

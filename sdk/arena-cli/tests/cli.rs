@@ -760,6 +760,7 @@ fn sample_challenge() -> arena_types::ChallengeDefinition {
             concurrency: 1,
             per_run_timeout_ms: 1000,
             invocation_mode: None,
+            calibration: None,
         },
         resource_limits: ResourceLimits {
             max_proof_bytes: 1 << 20,

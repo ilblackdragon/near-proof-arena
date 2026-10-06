@@ -38,6 +38,13 @@ export type ObligationId =
   | 'RESOURCE_LIMITS'
   | 'BENCHMARK';
 /**
+ * Where a `cost_v1` class's reference cost comes from (contracts v1.8, bench-spec-v1.6; docs/BENCHMARK_SPEC.md §6.2, §14.12).
+ *
+ * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
+ * via the `definition` "BaselineMode".
+ */
+export type BaselineMode = 'frozen' | 'paired';
+/**
  * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
  * via the `definition` "ScoringKind".
  */
@@ -83,6 +90,10 @@ export type Tier = 'formal' | 'experimental' | 'demo';
 export interface ChallengeDefinition {
   chain_id: string;
   claim_encoding: ClaimEncoding;
+  /**
+   * Coverage tiers (v1.7, additive; absent ⇒ not serialized, so existing challenge ids are unchanged). docs/CONTRACTS.md §11.
+   */
+  coverage?: CoverageSpec | null;
   created_at: string;
   /**
    * Formal admission-statement parameters (v1.2, additive; absent ⇒ not serialized, so existing challenge ids are unchanged).
@@ -125,6 +136,49 @@ export interface ClaimEncoding {
   spec_digest: Digest;
 }
 /**
+ * `ChallengeDefinition.coverage`.
+ *
+ * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
+ * via the `definition` "CoverageSpec".
+ */
+export interface CoverageSpec {
+  /**
+   * Trusted Lean lemma lifting tier soundness to the statement, e.g. `NearSpecV3.sound_lift`.
+   */
+  soundness_lift: string;
+  /**
+   * Lean declaration of the top `ChallengeSpec` (the statement every admitted verifier is sound for), e.g. `NearSpecV3.challengeSpecChunkTop`.
+   */
+  statement_spec: string;
+  /**
+   * Tiers in any order; `rank` is the total order (higher = larger domain).
+   */
+  tiers: CoverageTier[];
+  /**
+   * `"coverage-v1"`.
+   */
+  version: string;
+}
+/**
+ * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
+ * via the `definition` "CoverageTier".
+ */
+export interface CoverageTier {
+  /**
+   * Workload classes this tier is complete for: an abstention on a positive case of one of them is `COVERAGE_GAP_IN_TIER`.
+   */
+  classes: string[];
+  /**
+   * Tier id, e.g. `D0`, `D1`, `D2`, `D3a`.
+   */
+  id: string;
+  /**
+   * Lean declaration (term) of the tier's `ChallengeParams`, e.g. `NearSpecV3.challengeParamsChunk .d0`. The judge's per-tier Expected template (formal-checker config `tiers`) instantiates exactly this.
+   */
+  params: string;
+  rank: number;
+}
+/**
  * Parameters of the judge-built admission statement that are not resource limits of the sandbox (`ArenaCore.ChallengeParams`). Optional so that challenges without a formal statement (demo) keep their ids.
  *
  * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
@@ -164,6 +218,10 @@ export interface MeasurementProcedure {
    * `median` only in v1.
    */
   aggregation: string;
+  /**
+   * The pinned calibration binary and its probe rule (v1.8, additive; docs/BENCHMARK_SPEC.md §6.1). Absent = no in-session calibration (the live worker before v1.8).
+   */
+  calibration?: CalibrationSpec | null;
   cold_runs: number;
   concurrency: number;
   /**
@@ -177,6 +235,51 @@ export interface MeasurementProcedure {
   outlier_mad_k: number;
   per_run_timeout_ms: number;
   warmup_runs: number;
+}
+/**
+ * The judge calibration workload (bench-spec-v1.6, §6.1): a fixed, deterministic binary (`runners/calibrate`, `arena-calibrate`), pinned by digest, run in the benchmark sandbox on the benchmark CPUs as probes before the session, at the start of every measured round, and after it.
+ *
+ * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
+ * via the `definition` "CalibrationSpec".
+ */
+export interface CalibrationSpec {
+  /**
+   * sha256 of the static `arena-calibrate` binary; the worker refuses any other.
+   */
+  binary_digest: Digest;
+  /**
+   * Probes before and after the session (each).
+   */
+  edge_probes: number;
+  /**
+   * The checksum the workload must print (a wrong one is INFRA).
+   */
+  expected_checksum: string;
+  /**
+   * Gate: MAD / median over all probes of the session (ppm).
+   */
+  max_noise_ppm: number;
+  max_reference_drift_ppm?: number | null;
+  /**
+   * Gate: the 90th-percentile step between consecutive probes (ppm).
+   */
+  max_step_ppm: number;
+  /**
+   * Host admission median of one probe on this hardware profile; when set, the session median must be within `max_reference_drift_ppm` of it.
+   */
+  reference_median_ns?: number | null;
+  /**
+   * Timed runs per probe, after one untimed warm-up run, all in one sandbox instance; the probe is their median.
+   */
+  steps_per_probe: number;
+  /**
+   * Worker threads per probe (= the benchmark vCPUs).
+   */
+  threads: number;
+  /**
+   * `arena-calibrate-v1`.
+   */
+  workload: string;
 }
 /**
  * This interface was referenced by `ChallengeDefinition`'s JSON-Schema
@@ -208,6 +311,10 @@ export interface ResourceLimits {
  * via the `definition` "ScoringSpec".
  */
 export interface ScoringSpec {
+  /**
+   * v1.8, additive; absent = `frozen`.
+   */
+  baseline_mode?: BaselineMode | null;
   cost_baseline?: CostBaselineClass[];
   /**
    * Reference candidate's `prepare` wall ns (only charged when `prepare_amortization_requests > 0`).

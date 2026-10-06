@@ -562,10 +562,59 @@ diagnostic):
   | 08:38–08:55 | d0-2 reference (`examples/reexec-v3-d0-fast`), attempt 1 | pinned session calibration failed |
   | 08:56–09:14 | d0-2 attempt 2 | control taken in another host state (calibration −8%) |
   | 09:15–09:34 | d0-2 attempt 3 | both controls failed their own calibration; retry bound reached |
+  | 16:55–17:13 | d0-2 attempt 4 (after the v1-7 STARK benchmarks; load ≈ 4) | pinned session failed its own calibration (SESSION_DRIFT); the one valid control would have passed (≤ 20 356 ppm) |
 
-  `chl_93d9891011bc8d8e4132fc04794c4809` **`near-transfer-receipt-v1-7`** (supersedes v1-6;
-  cost_v1, `pm-near-mainnet-2026q4@v2`, lower quartile) — signed with the local operator key and registered; resubmissions below.
-  d0-2 is not pinned yet; re-measure it when the host is quiet.
+  `chl_93d9891011bc8d8e4132fc04794c4809` **`near-transfer-receipt-v1-7`** (supersedes v1-6, which
+  is now closed; cost_v1, `pm-near-mainnet-2026q4@v2`, lower quartile, 25 runs) — signed with
+  the local operator key, registered after installing `e0aeea9c`. The v1-6 admitted entries
+  were resubmitted by `reference`. The reexec packages are HEAD's examples, and the STARKs are
+  the exact admitted packages from the object store. In both cases only `candidate.toml`
+  `challenge` was changed, and `parent` was set at submit time. Two first np-udr-stark attempts
+  were operator packaging errors (`source/vendor` missing, then a stale `formal/ZkFormal`):
+  `sub_6695ecaf…` and `sub_c083353b…` are REJECTED with BUILD_FAILED, unranked.
+
+  | cost rank | cost_v1 | speed | submission | candidate |
+  |---|---|---|---|---|
+  | 1 | 264.522 ± 0.910 | 98.880 | `sub_cc5bb9c6c15549cb8416d95c37b4243e` | reexec-npai |
+  | 2 | 96.121 ± 2.175 | 91.433 | `sub_882975f830054e6fa41f134814a9dc23` | reexec-witness (= reference package) |
+  | 3 | 93.609 ± 1.055 | 103.405 (speed #1) | `sub_d32d57bbbb5d4abdab5cfa5a679c7048` | reexec-witness-fast (PROVER_ONLY) |
+  | 4 | 1.489 ± 0.005 | 0.065 | `sub_25e396b5f25841938da8b803fe4e995d` | np-udr-stark-fast2 (PROVER_ONLY) |
+  | 5 | 1.476 ± 0.010 | 0.046 | `sub_dcc6f010d9f84e229b9c7b3919227f25` | np-udr-stark (formal, all gates) |
+  | 6 | 1.475 ± 0.003 | 0.047 | `sub_ef3c8a53d141400d9a28fe3969983864` | np-udr-stark-fast (PROVER_ONLY) |
+
+  The reference package scores 96.1 / 91.4 against its own baseline: live sessions ran
+  next to other lanes' load, while the baseline window had w1 alone (dev-host noise, §4).
+  d0-2 is not pinned (4 attempts, none with a valid pinned session and a valid passing control:
+  the ≈ 6-minute d0 sessions keep failing the stand-in calibration on the shared host). Its v3
+  entries stay on the speed-scored `near-chunk-validation-d0-1`. The packages to resubmit are the
+  admitted `sub_0826bb9b…` and `sub_2b51fbde…` packages, with `challenge` changed.
+* **bench-spec-v1.6 validation windows (2026-10-06, lane/cost-paired; queue empty, nothing leased).**
+  w1 was stopped only around the sessions; the reference bundle was built beforehand.
+
+  | window (UTC) | what | outcome |
+  |---|---|---|
+  | 17:29–17:48 | paired + calibration, VM boot per probe | 3 sessions CALIBRATION_STEP |
+  | 17:50–18:12 | warm probes (3 steps), raw step gate | 3 sessions CALIBRATION_STEP (step p90 65 834 ppm, noise ≈ 2 %) |
+  | 18:13–18:28 | 5 steps per probe, rolling-median step gate | session 1 discarded, session 2 PASS: paired cost 100.814 ± 0.829 |
+
+  * **Deploy of `0bb6fc8d` (bench-spec-v1.6 / contracts v1.8 + D3-lane coverage v1.7), 2026-10-06 19:05 UTC.**
+  - `bin/arena-calibrate` was installed from `runners/calibrate/build-pinned.sh`, rebuilt from main:
+    `sha256:d4340778…5e37`, checksum `87a7f539b09c4e7b`, the pinned values.
+  - `config/worker.env` gained only `ARENA_CALIBRATION_BIN=/data/illia/nearproof-live/bin/arena-calibrate`.
+    `install` keeps it, because it never overwrites `config/*.env`; `bin/arena-calibrate` is not in
+    the install's binary list either, so a reinstall must keep it there.
+  - Ran `arena-live build` + web build + `install` + `migrate` (0002_coverage) + `restart`, with the
+    queue empty. All three workers carry the key.
+  - Smoke check: the boards are unchanged. The v1-7 speed and cost boards and the D0-1 speed board
+    read as before, and recomputing the six v1-7 cost scores from their stored runs with the
+    new code reproduces every stored value exactly. No live challenge uses paired mode or
+    calibration yet.
+  - The joint near-chunk-v3 reference window with the D3 lane is pending: their reexec-v3-d3 strict
+    normal form and RelD0a are not final yet.
+
+    **Dropped (plan change, 2026-10-06):** the user wants one unified `near-chunk-v3` challenge
+  (Rel_D3α, coverage tiers). `near-chunk-validation-d0-2` stays unsigned:
+  `challenges/drafts/near-chunk-validation-d0-2.SUPERSEDED.md`.
 
 ## 5. Current state (2026-10-03 16:10 UTC)
 
