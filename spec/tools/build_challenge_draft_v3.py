@@ -95,6 +95,8 @@ def main():
     ap.add_argument("--checker-image", default="sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867")
     ap.add_argument("--out", default=os.path.join(ROOT, "challenges/drafts/near-chunk-validation-d0.draft.json"))
     ap.add_argument("--measure", action="store_true")
+    ap.add_argument("--name", default="near-chunk-validation-d0")
+    ap.add_argument("--supersedes", default=None, help="challenge id this one supersedes")
     a = ap.parse_args()
     wdir = os.path.join(ROOT, "spec/workloads/near-chunk-validation-d0")
     os.makedirs(wdir, exist_ok=True)
@@ -113,7 +115,7 @@ def main():
     rc = json.load(open(os.path.join(ROOT, "spec/challenge-inputs/runtime-config-pv86-v3.json")))
     draft = {
         "schema": "arena-challenge-v1",
-        "name": "near-chunk-validation-d0",
+        "name": a.name,
         "season": "2026-s1",
         "tier": "formal",
         "nearcore": {"repo": "https://github.com/near/nearcore", "tag": "2.13.4",
@@ -176,7 +178,7 @@ def main():
                             "max_ram_bytes": 17179869184, "max_vram_bytes": 0,
                             "max_public_artifact_bytes": 67108864, "max_prepare_ms": 600000,
                             "max_build_ms": 3600000},
-        "supersedes": None,
+        "supersedes": a.supersedes,
         "created_at": a.created_at,
         "formal_params": {"verify_fuel": 1073741824, "max_proof_bytes": 67108864,
                           "max_reduction_fuel": 1073741824},
