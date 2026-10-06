@@ -12,7 +12,7 @@
   "expected_reason_codes": [
     "HOSTILE_PROOF_ACCEPTED"
   ],
-  "fail_by_stage": "ADVERSARIAL",
+  "fail_by_stage": "CONFORMANCE_CHECKED",
   "must_never": [
     "ADMITTED",
     "accepted",
