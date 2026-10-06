@@ -16,7 +16,9 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | M2 | `uniqV3`: table, view, link (weak uniq ⇒ hash-functional), render | **done** |
 | M3 | `walkV3`: table, view, render | **done**; link (walks ⇒ `find`/absent) open |
 | M4 | node side split into `nodeV3` / `headV3` / `valV3`: tables, kernel-checked budget; `headV3` view + render; `valV3` view + render; `nodeV3` view **statement** | **done** except as noted |
-| M5 | `nodeV3` view proof (adapt v1's 22 `Extract/Node*` modules), `nodeV3` render, link layer (trie of τ hashes to root, finds/absents, post-root), `upsV3` (`0x0f` upsert incl. insertion) | **open** |
+| M5a | `nodeV3` view proof (v1's `Extract/Node*` adapted: `Extract/Node/*.lean`, 21 modules) | **done**: `node3_view : NodeV3ViewStmt` |
+| M5b | `nodeV3` render | in progress (helper) |
+| M6 | `upsV3` (`0x0f` upsert incl. insertion, `memory_usage`), link layer (trie of τ hashes to root, finds/absents, post-root) | **open** |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
 
@@ -81,6 +83,45 @@ On real chains `unfoldedBytes T = |base_state|` up to rare identical leaves (no 
 Decidable from `(c, w)` in a few lines over `occs`/`valsOf` (`Spec/Occs.lean`). With A7,
 tree-shaped records cost at most 2 × A7 node rows (pre and post bytes in lockstep, as v1).
 **Raised to the lead** (spec request for lane spec-v3 / V0).
+
+### 1.4 `UnfoldBound e` and the best bound without any amendment
+
+**Decision (lead): no A7 yet.** Every completeness / height statement of this lane takes
+an explicit hypothesis
+
+```lean
+def UnfoldBound (e : Nat) (ws : List Bytes) (root : Bytes) (keys : List (List Nat)) : Prop :=
+  unfoldedBytes (partialTrie ws root keys) ≤ e
+```
+
+(`Spec/TreeRecs.lean`; `treeRecs_bytes_le`: under `UnfoldBound e` the tree-shaped records
+hold `≤ e` bytes, since `storeBytes = unfoldedBytes` by `treeRecs_spec`).  The node table
+has one row per record byte (+ `SUM` row + padding), so its height obligation is
+`e + 1 ≤ 2^22`; value records likewise.
+
+**Best bound provable from `RelD0` alone.**  Notation: `B = |base_state|` (≤ 3,000,000),
+`K` = number of read keys (with multiplicity, as passed to `partialTrie`), `D = trieFuel = 400`,
+`N` = largest node entry of the store, `V` = largest value entry (`N, V ≤ B`; on NEAR
+`N ≤ 559 + |hex-prefix key|`).
+
+> `unfoldedBytes (partialTrie ws root keys) ≤ K·D·N + K·V`,
+> and more finely `≤ N · Σ_{d<D} min(K, 16^d) + K·V`.
+
+Proof (by induction on the fuel of `buildFor`): a subtree is revealed only if a non-empty
+key list reaches it; a branch routes each key to at most one child (by its first nibble)
+and keeps a key that ends there for its value slot; an extension passes only the keys with
+its prefix; a leaf has no children.  So at each depth the revealed occurrences receive
+pairwise disjoint, non-empty sub-multisets of the keys (≤ `K` of them, and ≤ `16^d`), there
+are at most `D` depths (the fuel), and each revealed value consumes a distinct key.  Each
+node occurrence is a store entry (`EntriesFound`), so its encoding has `≤ N` bytes.  Nothing
+better holds without an amendment: the example of §1.3 (one ≈ 560-byte "universal" branch
+repeated under every slot) attains `≈ K · depth · 560` while `B < 1 MB`.
+
+Numbers: with `K = 9,000`, `N = 559`, `D = 400`: `N · Σ_{d<400} min(K,16^d) ≈ 559 ·
+(4,369 + 396·9,000) ≈ 2.0·10^9` bytes — far beyond one `2^22`-row table.  So without A7 the
+tables are complete only for witnesses with `UnfoldBound (2^22 − 1)` (and the value-record
+analogue); on real chains `unfoldedBytes = |base_state|` up to rare identical leaves.
+(Paper proof; the Lean statement is the hypothesis above.)
 
 ## 2. Design decisions (this lane)
 
@@ -153,7 +194,8 @@ role clashes are covered because value records live in the same `ENT` space.
 | `walkV3` | `WalkV3ViewStmt` / **`walk3_view`** (`Extract/WalkProof*.lean`) | **`walk_render_local`, `walk_render_traffic`** (`Render/Walk*.lean`) | open |
 | `headV3` | `HeadViewStmt` / **`head_view`** (`Extract/HeadProof.lean`) | **`head_render_local`, `head_render_traffic`** (`Render/HeadRender.lean`) | open (ROOT chain) |
 | `valV3` | `ValViewStmt` / **`val_view`** (`Extract/ValProof.lean`) | **`val_render_local`, `val_render_traffic`** (`Render/Val*.lean`) | open |
-| `nodeV3` | `NodeV3ViewStmt` (`Extract/NodeView.lean`, statement only) | open | open |
+| `nodeV3` | `NodeV3ViewStmt` / **`node3_view`** (`Extract/Node/Proof.lean`; per-node lemmas `leafEdges`, `extEdges`, `brEdges`, `nodeDigs`, `nodeEnt`, `nodeDPVB`, `nodeAll`; global `nodeTrafficOf` incl. the `SUM` row's `SIZE` total, `nodeWfOf` incl. `depthBound`) | in progress | open |
+| spec | **`UnfoldBound`, `treeRecs_bytes_le`** (`Spec/TreeRecs.lean`) | | |
 | spec | **`storeBuildR`, `pathsRevealed_of_rank`, `hashFunctional_of_weakUniq`, `treeRecs_spec`** | | |
 
 Render theorems are stated for any trace whose table `t` has the generator's cells
@@ -188,13 +230,13 @@ counted.
 
 ## 6. Open items
 
-1. **`nodeV3` view proof** (adapt `Extract/Node*`), **`nodeV3` render**.
+1. **`nodeV3` render** (helper, in progress).
 2. **Link layer**: ROOT/MIDROOT chain; trie of instance τ = records (tree via `PARENT` +
    depth ⇒ `RootedDagR` with rank = depth); entries ⇒ `storeOf` covered by `uniq` entries
    (`storeOf_hashFunctional`) ⇒ `storeBuildR`; walks ⇒ `find`/`AbsentWitness`
    (`absent_iff`); lockstep post-root = `set`s.
 3. **`upsV3`** (§2.3).
-4. **A7** (unfolded-size cap, §1.3) — spec request.
+4. **A7** (unfolded-size cap, §1.3): no decision; statements parametric in `UnfoldBound e` (§1.4).
 5. `size` lane consumes `SIZE (0, ·)` (node) and `SIZE (1, ·)` (values).
 6. Producers must switch value pre-bytes from `BYTES (VPRE)` to `VBYTES (vid, …)` (`acct`
    v3 variant, `akey`, `sched`, `qvals`), and send `FINAL`/`KEYNIB` in the v3 formats.
