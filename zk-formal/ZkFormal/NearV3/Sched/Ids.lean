@@ -16,12 +16,12 @@ statement's bytes); `τ < 32`.
 | 43 | `SINC` | `(τ, e = cid·64 + j, inc, rem, s, r, link)` | scan → process |
 | 44 | `SPUSH` | `(τ, key, z, ts, e)` | scan (initial), process (re-push) → process (bucket entry) |
 | 45–50 | shuffle in / out / mem / gen / headers / chacha | lane v3-chacha formats | `shufV3`/`genV3`/`chachaV3` ↔ process |
-| 51 | `SPUBB` | public `(τ, tag, i, x, y)` | public → codec (ids: tags 0, 1; ash: 2), process (key limbs: 3) |
+| 51 | `SPUBB` | public `(τ, tag, x₀, x₁, x₂, x₃, x₄)` | public → codec (ash: tag 2 `(j, byte, 0, 0, 0)`; forwarding demand of link `l` in instance 0: tag 4 `(l_lo, l_hi, t₀, t₁, t₂)`), process (key limbs: tag 3 `(k, lo, hi, 0, 0)`) |
 | 52 | `SPAR` | public `(τ, tag, n, p0 … p7)` | public → codec (tag 0), scan (tag 1) |
 | 53 | `SRAW` | public `(τ, rid_lo, rid_hi, s, r, bm0 … bm4)` | public → scan |
 | 54 | `SLINK` | public `(τ, l_lo, l_hi, allowed)` | public → distribute |
 | 55 | `SSHD` | public `(τ, side, s, cnt, b0, b1, b2)` | public → distribute |
-| 56 | `SDL` | `(τ, pos, b)` | codec id-byte delay line |
+| 56 | `SDL` | `(τ, k_lo, k_hi, o, b)` | codec id byte `o < 16` of record `k`: instance τ → τ + 1 (public sends instance 0, receives `K + 1`) |
 | 57 | `SDLX` | `(τ, a, b, x, links, left)` | distribute: sorted endpoints → grid, receiver delay line |
 | 58 | `SDG` | `(τ, l, allowed, gb)` | distribute grid → codec |
 | 59 | `S0F` | `(τ, present, vid)` | trie (`0x0f` read of instance τ) → codec |
@@ -71,5 +71,6 @@ def TAG_IDS : Nat := 0
 def TAG_IDR : Nat := 1
 def TAG_ASH : Nat := 2
 def TAG_KEY : Nat := 3
+def TAG_FWD : Nat := 4
 
 end ZkFormal.NearV3.Sched

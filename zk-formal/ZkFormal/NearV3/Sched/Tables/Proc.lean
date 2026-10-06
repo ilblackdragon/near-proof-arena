@@ -182,7 +182,7 @@ def constraints : List Expr := cKind ++ cKey ++ cHdr ++ cEnt
 def keyMsg : List Expr := (List.range 16).map fun i => c (colL i)
 
 def interactions : List Interaction :=
-  [ { bus := B_SPUBB, mult := [c kK], send := false, msg := [c tau, k TAG_KEY, c kc, c sbIn, c sbOut] },
+  [ { bus := B_SPUBB, mult := [c kK], send := false, msg := [c tau, k TAG_KEY, c kc, c sbIn, c sbOut, k 0, k 0] },
     { bus := B_SSHUF, mult := [c kH], send := false, msg := [lidE] ++ keyMsg ++ [c kq, c Lr, c kend] },
     { bus := B_SCMP, mult := [c cg], send := true, msg := [c cx, c cy, k 1] },
     { bus := B_SPUSH, mult := [c kE], send := false, msg := [c tau, c K, c z, c ts, c ein] },
