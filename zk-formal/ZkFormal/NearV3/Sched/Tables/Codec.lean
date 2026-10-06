@@ -79,31 +79,38 @@ def isj : Nat := 47
 def esj : Nat := 48
 def bsha : Nat := 49
 def fb (i : Nat) : Nat := 50 + i
-def reg (i : Nat) : Nat := 53 + i
-def al : Nat := 85
-def a1 : Nat := 86
-def cb : Nat := 87
-def afin : Nat := 88
-def gfin : Nat := 89
-def gb : Nat := 90
-def itz : Nat := 91
-def zt : Nat := 92
-def cx : Nat := 93
-def cy : Nat := 94
-def cbit : Nat := 95
-def cg : Nat := 96
-def rend : Nat := 97
-def a2 : Nat := 98
-def g2 : Nat := 99
-def vbg : Nat := 100
-def fwg : Nat := 101
-def pm0 : Nat := 102
-def pm1 : Nat := 103
-def dgg : Nat := 104
-def bF : Nat := 105
+def al : Nat := 58
+def a1 : Nat := 59
+def cb : Nat := 60
+def afin : Nat := 61
+def gfin : Nat := 62
+def gb : Nat := 63
+def itz : Nat := 64
+def zt : Nat := 65
+def cx : Nat := 66
+def cy : Nat := 67
+def cbit : Nat := 68
+def cg : Nat := 69
+def rend : Nat := 70
+def a2 : Nat := 71
+def g2 : Nat := 72
+def vbg : Nat := 73
+def fwg : Nat := 74
+def pm0 : Nat := 75
+def pm1 : Nat := 76
+def dgg : Nat := 77
+def bF : Nat := 78
+/-- Record-row columns that the digest / header register overlays on header and hash rows
+(cut D): their constraints are gated by the record kinds, and the five flags among them have
+their booleanity gated by `kR`. -/
+def overlay : List Nat :=
+  [kidx, klo, khi, g, ig7, ig2, wt, ap, ib, apost, ikl, a1, afin, gfin, gb, a2, g2, cx, cy,
+   50, 51, 52, lowf, nzb, al, cb, bF]
+/-- The 32-byte register: 27 overlaid columns, then 5 own columns `53 … 57`. -/
+def reg (i : Nat) : Nat := if i < 27 then overlay.getD i 0 else 53 + (i - 27)
 /-- Bits of the pre byte (pre bytes are bytes without relying on `valV3`). -/
-def prbit (i : Nat) : Nat := 106 + i
-def width : Nat := 114
+def prbit (i : Nat) : Nat := 79 + i
+def width : Nat := 87
 
 /-- `max_allowance` (PV 86). -/
 def MA : Nat := 4500000
@@ -120,8 +127,11 @@ def isZ (gate x : Expr) (inv flag : Nat) : List Expr :=
     .mul (notE gate) (c flag) ]
 
 def boolCols : List Nat :=
-  [act, kH, kR, kZ, kA, kF, pres, fS, fR, fA, e7, e2, lowf, nzb, ekl, ehp, esj, al, cb, zt,
-   cbit, cg, rend, vbg, fwg, dgg, bF] ++ (List.range 8).map pbit ++ (List.range 8).map prbit
+  [act, kH, kR, kZ, kA, kF, pres, fS, fR, fA, e7, e2, ekl, ehp, esj, zt,
+   cbit, cg, rend, vbg, fwg, dgg] ++ (List.range 8).map pbit ++ (List.range 8).map prbit
+
+/-- Flags that share columns with the register: bits on record rows only. -/
+def recBoolCols : List Nat := [lowf, nzb, al, cb, bF]
 
 /-- Rows carrying the encoding (pre and post bytes). -/
 def encG : Expr := .add (c kH) (.add (c kR) (c kZ))
@@ -134,7 +144,7 @@ def gT : Expr := sub (c act) (.mul (c kA) (c esj))
 def instCols : List Nat := [tau, pres, vid, nn, NN, base, fair]
 
 def cKind : List Expr :=
-  boolCols.map boolC ++
+  boolCols.map boolC ++ recBoolCols.map (fun x => .mul (c kR) (boolC x)) ++
   [ sub (c act) (.add (c kH) (.add (c kR) (.add (c kZ) (c kA)))),
     sub (c kR) (.add (c fS) (.add (c fR) (c fA))),
     .mul (c kF) (notE (c kH)),
@@ -181,16 +191,18 @@ def cRec : List Expr :=
     mul3 (c kR) (notE (c e7)) (sub (n fA) (c fA)),
     mul3 (c kR) (notE (c e7)) (sub (n kidx) (c kidx)),
     -- field ends
-    .mul (c e7) (n g),
+    -- next field starts at byte 0 (not after the last record: its next row is a hash row)
+    .mul (sub (c e7) (.mul (c rend) (c ekl))) (n g),
     mul3 (c e7) (c fS) (notE (n fR)), mul3 (c e7) (c fS) (sub (n kidx) (c kidx)),
     mul3 (c e7) (c fR) (notE (n fA)), mul3 (c e7) (c fR) (sub (n kidx) (c kidx)),
     sub (c rend) (.mul (c fA) (c e7)),
     mul3 (c rend) (notE (c ekl)) (notE (n fS)),
     mul3 (c rend) (notE (c ekl)) (sub (n kidx) (.add (c kidx) (k 1))),
-    sub (c dgg) (.mul (c rend) (c ekl)),
-    .mul (c dgg) (notE (n kZ)), .mul (c dgg) (n sj) ] ++
-  (List.range 32).map (fun i => .mul (c dgg) (sub (n (reg i)) (c (reg i)))) ++
-  [ -- id bytes: pre = post
+    -- after the last record: the first hash row, which receives the digest (`dgg`)
+    mul3 (c rend) (c ekl) (notE (n kZ)), mul3 (c rend) (c ekl) (n sj),
+    mul3 (c rend) (c ekl) (notE (n dgg)),
+    .mul (c dgg) (notE (c kZ)), .mul (c dgg) (c sj),
+    -- id bytes: pre = post
     .mul (.add (c fS) (c fR)) (sub (c bpre) (.mul (c pres) (c bpost))),
     -- allowance field: start values (set by the receiver field's last row)
     mul3 (c e7) (c fR) (n ap), mul3 (c e7) (c fR) (n big), mul3 (c e7) (c fR) (n apost),

@@ -99,9 +99,7 @@ def codecRows (I : Input) (R : Run) (present : Bool) (vidV : Nat) (gbA : Array N
           let gf := gfinF kk
           let lastRec := kk + 1 = N
           extra := extra ++ [(rend, 1), (bF, bFv), (a1, a1v), (al, alv), (a2, a2v), (g2, alv * baseV),
-            (afin, afinF kk), (gfin, gf), (gb, gbv), (dgg, if lastRec then 1 else 0)]
-          if lastRec then
-            extra := extra ++ (List.range 32).map fun i => (reg i, digest[i]!)
+            (afin, afinF kk), (gfin, gf), (gb, gbv)]
           if tv = 0 then
             let ft := ((fwd.find? (·.1 == kk)).map (·.2)).getD 0
             check (ft ≤ gf + gbv) "forwarding demand above the grant"
@@ -122,7 +120,7 @@ def codecRows (I : Input) (R : Run) (present : Bool) (vidV : Nat) (gbA : Array N
   for j in List.range 32 do
     let bpr := hpre[j]!
     let regs := (List.range 32).map fun i => (reg i, digest.getD (j + i) 0)
-    rows := rows.push (setAll width (inst ++ [(kZ, 1), (pos, base0 + j), (sj, j), (bpost, digest[j]!),
+    rows := rows.push (setAll width (inst ++ [(kZ, 1), (dgg, if j = 0 then 1 else 0), (pos, base0 + j), (sj, j), (bpost, digest[j]!),
       (bpre, if present then bpr else 0), (bsha, if present then bpr else 0), (vbg, b2n present),
       (isj, finv (fsub j 31)), (esj, if j = 31 then 1 else 0)] ++ regs ++ pb digest[j]! ++ qb (if present then bpr else 0)))
   for j in List.range 32 do
