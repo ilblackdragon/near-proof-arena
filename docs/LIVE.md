@@ -457,6 +457,30 @@ diagnostic):
   1742 s (11.4 GB), above the 600 s per-run cap, so an adversarial case at
   that size would time out.
 
+### 5e. v3 D0 challenge `near-chunk-validation-d0` (2026-10-06)
+
+* **Challenge.** `chl_640ed008467448706236fc727f759ecc` **`near-chunk-validation-d0`**
+  (formal, open): statement `near/pv86/chunk-validation/v0`, domain D0, relation
+  `NearSpecV3.RelD0`. **Synthetic-chain D0, not mainnet-chunk validation**: claims come from
+  nearcore TestEnv chains with `chain_id = arena-v3-local` (mainnet runtime parameters, PV 86;
+  D0 never reads `chain_id`). A mainnet-replay v3 challenge is a later step. Trusted tree
+  `sha256:89903b98…` (commit `9f20f82`, frozen in `trusted-trees/`), checker `66b014d4…`,
+  workload classes d0-quiet / d0-transfers / d0-missing (20/50/30 %), held-out
+  `sha256:edac8e6f…`, baseline from `examples/reexec-v3-d0` measured on CPUs 0-7 with
+  secret sampling (`benchmarks/results/baseline-near-chunk-validation-d0-secret-cpus0-7-20261006/`),
+  speed scoring (cost_v1 needs a governed price model).
+* **Install.** From main `241dc41`. `worker.env` gained `ARENA_NEAR_ORACLE_V3`
+  (`bin/near-arena-oracle-v3`), the v3 generator specs, `release/clean/oracle/fixtures/v3/arena-public`
+  (`sha256:45eb0203…`) and the v3 held-out dir. Conformance on v3 also runs **rejection cases**
+  (nearcore rejects, or out of D0): a candidate whose verify accepts one fails with
+  `COUNTEREXAMPLE_FOUND`.
+* **Reference run 1: REJECTED.** `sub_7c6a67b0c3684852a8f755072744489a`: all 6 formal gates PASS
+  on the real judge, but ADVERSARIAL_PROOFS FAIL (`bitflip/379.3` accepted): the proof is the raw
+  witness, and nearcore (hence `RelD0`) ignores `height_included`, the chunk signature and the
+  transitions' `block_hash`, so a flipped bit there is another valid witness of the same true claim.
+  Not unsound, but malleable; the contract requires hostile proof bytes to be rejected. Fix pending
+  (canonical proof encoding). Details: `docs/e2e-results/v3-d0-reference/`.
+
 ## 5. Current state (2026-10-03 16:10 UTC)
 
 * **Deployed revision.** `release/REVISION` is
