@@ -52,6 +52,12 @@ pub struct ChainParams {
     /// (first round, number of rounds, shard index): force that shard's chunks missing for a
     /// long run (segments longer than 32 blocks: D0 exclusion c.segment).
     pub long_skip: Option<(u64, u64, usize)>,
+    /// Domain-D1 mode (src/d1gen.rs): extra genesis keys, honest traffic on accounts
+    /// a00..a04 (incl. self-transfers and V1 transactions), crafted transactions of every
+    /// validity class injected by an adversarial chunk producer with probability `p_adv`
+    /// per height, classification against D1.
+    pub d1: bool,
+    pub p_adv: f64,
 }
 
 const ACCTS_PER_SHARD: usize = 10;
@@ -126,6 +132,9 @@ pub fn setup(p: &ChainParams) -> Setup {
             .checked_add(staked)
             .unwrap();
     }
+    if p.d1 {
+        records.extend(crate::d1gen::genesis_records(&accounts));
+    }
     let genesis = Genesis::new(genesis_config, GenesisRecords(records)).unwrap();
     let n = validators.len();
     let stores: Vec<_> = (0..n).map(|_| create_test_store()).collect();
@@ -155,6 +164,8 @@ pub fn setup(p: &ChainParams) -> Setup {
 }
 
 pub struct Stats {
+    pub d1: usize,
+    pub injected: usize,
     pub honest: usize,
     pub honest_ok: usize,
     pub d0: usize,
@@ -186,6 +197,7 @@ pub fn run_chain(
     let mut ood_count: BTreeMap<String, usize> = BTreeMap::new();
     let mut d0_seen = 0usize;
     let mut pending_skips: HashMap<u64, Vec<AccountId>> = HashMap::new();
+    let mut labels: HashMap<near_primitives::hash::CryptoHash, String> = HashMap::new();
     let tip0 = s.env.clients[0].chain.head().unwrap();
     let mut height = tip0.height;
     let rs = (
@@ -222,8 +234,9 @@ pub fn run_chain(
                     pending_skips.entry(tip.height + off).or_default().push(a);
                 }
             }
+            let n_acc = if p.d1 { crate::d1gen::HONEST_ACCTS } else { ACCTS_PER_SHARD };
             for _ in 0..n {
-                let signer_id = s.accounts[k][rng.gen_range(0..ACCTS_PER_SHARD)].clone();
+                let signer_id = s.accounts[k][rng.gen_range(0..n_acc)].clone();
                 let signer = InMemorySigner::test_signer(&signer_id);
                 let nonce = nonces.entry(signer_id.clone()).or_insert(0);
                 *nonce += 1;
@@ -235,20 +248,33 @@ pub fn run_chain(
                     let h: [u8; 32] = rng.r#gen();
                     (hex::encode(h).parse().unwrap(), 1)
                 } else if rng.gen_bool(p.p_two) {
-                    (s.accounts[ts][rng.gen_range(0..ACCTS_PER_SHARD)].clone(), 2)
+                    (s.accounts[ts][rng.gen_range(0..n_acc)].clone(), 2)
+                } else if p.d1 && rng.gen_bool(0.1) {
+                    (signer_id.clone(), 1) // self-transfer: a local receipt
                 } else {
-                    (s.accounts[ts][rng.gen_range(0..ACCTS_PER_SHARD)].clone(), 1)
+                    (s.accounts[ts][rng.gen_range(0..n_acc)].clone(), 1)
                 };
                 let deposit = Balance::from_yoctonear(rng.gen_range(1..10u128.pow(24)));
                 let acts = (0..actions).map(|_| Action::Transfer(TransferAction { deposit })).collect();
-                txs.push(SignedTransaction::from_actions(
-                    *nonce,
-                    signer_id,
-                    receiver,
-                    &signer,
-                    acts,
-                    tip.last_block_hash,
-                ));
+                if p.d1 && rng.gen_bool(0.1) {
+                    txs.push(SignedTransaction::from_actions_v1(
+                        near_primitives::transaction::TransactionNonce::from_nonce(*nonce),
+                        signer_id,
+                        receiver,
+                        &signer,
+                        acts,
+                        tip.last_block_hash,
+                    ));
+                } else {
+                    txs.push(SignedTransaction::from_actions(
+                        *nonce,
+                        signer_id,
+                        receiver,
+                        &signer,
+                        acts,
+                        tip.last_block_hash,
+                    ));
+                }
             }
         }
         for tx in txs {
@@ -265,16 +291,46 @@ pub fn run_chain(
                 force_skip.push(s.env.get_chunk_producer_at_offset(&tip, 2, sid));
             }
         }
+        // ---- adversarial chunk producer (D1): the producer of shard `k` at height+1
+        let inject: Option<(usize, AccountId)> = if p.d1 && rng.gen_bool(p.p_adv) {
+            let k = rng.gen_range(0..p.n_shards);
+            let em = &s.env.clients[0].epoch_manager;
+            let layout = em.get_shard_layout(&em.get_epoch_id_from_prev_block(&tip.last_block_hash).unwrap()).unwrap();
+            let sid = layout.account_id_to_shard_id(&s.accounts[k][0]);
+            Some((k, s.env.get_chunk_producer_at_offset(&tip, 2, sid)))
+        } else {
+            None
+        };
         // ---- block
         let bp = s.env.get_block_producer_at_offset(&tip, height - tip.height);
         let block = s.env.client(&bp).produce_block(height).unwrap().unwrap();
         for i in 0..s.env.clients.len() {
             let skip = force_skip.contains(&s.env.get_client_id(i)) || rng.gen_bool(p.p_missing);
-            let r = if skip {
+            let injector = !skip && inject.as_ref().is_some_and(|(_, a)| *a == s.env.get_client_id(i));
+            let r = if skip || injector {
                 s.env.clients[i].process_block_test_no_produce_chunk(block.clone().into(), Provenance::NONE)
             } else {
                 s.env.clients[i].process_block_test(block.clone().into(), Provenance::NONE)
             };
+            if injector {
+                let (k, _) = inject.clone().unwrap();
+                let crafted = craft_for(&s, i, k, &block, height, _round, p, &mut rng);
+                stats.injected += crafted.len();
+                let sid = {
+                    let em = &s.env.clients[i].epoch_manager;
+                    let layout = em.get_shard_layout(&em.get_epoch_id_from_prev_block(block.hash()).unwrap()).unwrap();
+                    layout.account_id_to_shard_id(&s.accounts[k][0])
+                };
+                for (class, t) in &crafted {
+                    labels.insert(t.get_hash(), class.clone());
+                }
+                crate::d1gen::produce_chunks_with_injection(
+                    &mut s.env.clients[i],
+                    &block,
+                    Some((sid, crafted.into_iter().map(|x| x.1).collect())),
+                    &mut rng,
+                );
+            }
             match r {
                 Ok(_) => {}
                 Err(near_chain::Error::ChunksMissing(_)) => {}
@@ -357,9 +413,37 @@ pub fn run_chain(
                 }
             };
             let in_d0 = viol.is_empty();
+            let (viol1, in_d1) = if p.d1 {
+                match crate::d1::classify(tracker, &built, &sw, &viol) {
+                    Ok(v1) => {
+                        let e = v1.is_empty();
+                        (v1, e)
+                    }
+                    Err(e) => {
+                        eprintln!("d1 classify failed: {e}");
+                        continue;
+                    }
+                }
+            } else {
+                (viol.clone(), in_d0)
+            };
+            if in_d0 && !in_d1 {
+                panic!("D0 case outside D1: {viol1:?}");
+            }
+            let tx_results = crate::d1::tx_results(tracker, &built, &sw);
+            let tx_labels: Vec<String> = sw
+                .transactions()
+                .iter()
+                .map(|t| labels.get(&t.get_hash()).cloned().unwrap_or_else(|| "honest".into()))
+                .collect();
+            let new_tx_labels: Vec<String> = sw
+                .new_transactions()
+                .iter()
+                .map(|t| labels.get(&t.get_hash()).cloned().unwrap_or_else(|| "honest".into()))
+                .collect();
             let key = sw.chunk_production_key();
             let name = format!("{chain_idx:02}-h{}-s{}", key.height_created, key.shard_id);
-            for v in &viol {
+            for v in if p.d1 { &viol1 } else { &viol } {
                 *stats.by_violation.entry(v.to_string()).or_default() += 1;
             }
             let features = json!({
@@ -380,11 +464,20 @@ pub fn run_chain(
                 "expected_rel": verdict.is_ok(),
                 "in_d0": in_d0, "d0_violations": viol,
                 "expected_rel_d0": verdict.is_ok() && in_d0,
+                "in_d1": in_d1, "d1_violations": viol1,
+                "expected_rel_d1": verdict.is_ok() && in_d1,
+                "tx_labels": tx_labels, "tx_results": tx_results, "new_tx_labels": new_tx_labels,
                 "features": features,
             });
-            if in_d0 {
-                stats.d0 += 1;
-                write_case(&out.join("d0").join(&name), &built.claim, &wb, meta);
+            let in_dom = if p.d1 { in_d1 } else { in_d0 };
+            if in_dom {
+                if in_d0 {
+                    stats.d0 += 1;
+                }
+                if in_d1 {
+                    stats.d1 += 1;
+                }
+                write_case(&out.join(if p.d1 { "d1" } else { "d0" }).join(&name), &built.claim, &wb, meta);
                 d0_seen += 1;
                 if verdict.is_ok() && mutate_every > 0 && d0_seen % mutate_every == 0 {
                     let last = built.blocks.last().unwrap();
@@ -393,16 +486,24 @@ pub fn run_chain(
                     } else {
                         client.chain.get_block(last.header().prev_hash()).ok().and_then(|b| block_rec(&b).ok())
                     };
-                    let mut ms = mutants(&built.claim, &sw, parent, &mut rng);
+                    let mut ms: Vec<(crate::mutate::Mutant, Option<Vec<u8>>)> =
+                        mutants(&built.claim, &sw, parent, &mut rng).into_iter().map(|m| (m, None)).collect();
                     if d0_seen % (mutate_every * 2) == 0 {
-                        ms.extend(drop_each_node(&built.claim, &sw, 48));
+                        ms.extend(drop_each_node(&built.claim, &sw, if p.d1 { 64 } else { 48 }).into_iter().map(|m| (m, None)));
                     }
-                    for m in ms {
-                        let (exp, src) = match m.judge {
-                            Judge::Claim => (Err("claim-v3 discipline".to_string()), "claim-v3"),
-                            Judge::Nearcore => (
+                    if p.d1 {
+                        ms.extend(crate::d1::mutants(client, &built.claim, &sw, &mut rng));
+                    }
+                    for (m, flags) in ms {
+                        let (exp, src) = match (&m.judge, &flags) {
+                            (Judge::Claim, _) => (Err("claim-v3 discipline".to_string()), "claim-v3"),
+                            (Judge::Nearcore, None) => (
                                 nearcore_judge(client, &m.witness, &[], (m.claim.rs_data_parts, m.claim.rs_total_parts)),
                                 "nearcore",
+                            ),
+                            (Judge::Nearcore, Some(f)) => (
+                                crate::judge::nearcore_judge_flags(client, &m.witness, (m.claim.rs_data_parts, m.claim.rs_total_parts), f),
+                                "nearcore(tx_valid=claim)",
                             ),
                         };
                         let mname = format!("{name}-{}", m.name);
@@ -411,8 +512,10 @@ pub fn run_chain(
                             "verdict_source": src,
                             "nearcore": exp.as_ref().map(|_| "ok".to_string()).unwrap_or_else(|e| e.clone()),
                             "expected_rel": exp.is_ok(),
-                            "in_d0": true, "d0_violations": [],
-                            "expected_rel_d0": exp.is_ok(),
+                            "in_d0": in_d0, "d0_violations": viol,
+                            "expected_rel_d0": exp.is_ok() && in_d0,
+                            "in_d1": in_d1,
+                            "expected_rel_d1": exp.is_ok() && in_d1,
                         });
                         stats.mutants += 1;
                         write_case(&out.join("mutants").join(&mname), &m.claim, &m.witness, meta);
@@ -430,4 +533,58 @@ pub fn run_chain(
         }
     }
     let _ = rs;
+}
+
+/// Crafted transactions for shard index `k`, from the exact state after `block` (the state the
+/// crafted chunk's transactions are applied to).
+#[allow(clippy::too_many_arguments)]
+fn craft_for(
+    s: &Setup,
+    _i: usize,
+    k: usize,
+    block: &near_chain::Block,
+    height: u64,
+    round: u64,
+    p: &ChainParams,
+    rng: &mut StdRng,
+) -> Vec<(String, SignedTransaction)> {
+    let c0 = &s.env.clients[0];
+    let layout = c0.epoch_manager.get_shard_layout(block.header().epoch_id()).unwrap();
+    let sid = layout.account_id_to_shard_id(&s.accounts[k][0]);
+    let uid = near_primitives::shard_layout::ShardUId::from_shard_id_and_layout(sid, &layout);
+    let (c, extra) = s
+        .env
+        .clients
+        .iter()
+        .find_map(|c| c.chain.get_chunk_extra(block.hash(), &uid).ok().map(|e| (c, e)))
+        .expect("no client has the chunk extra");
+    let trie = c.runtime_adapter.get_trie_for_shard(sid, block.hash(), *extra.state_root(), false).unwrap();
+    let mut view = HashMap::new();
+    for j in crate::d1gen::HONEST_ACCTS..ACCTS_PER_SHARD {
+        let a = &s.accounts[k][j];
+        let acc = near_store::get_account(&trie, a).unwrap().unwrap();
+        let ak = near_store::get_access_key(&trie, a, &InMemorySigner::test_signer(a).public_key())
+            .unwrap()
+            .map(|x| x.nonce)
+            .unwrap_or(0);
+        view.insert(
+            a.clone(),
+            crate::d1gen::AcctView { amount: acc.amount().as_yoctonear(), storage_usage: acc.storage_usage(), ak_nonce: ak },
+        );
+    }
+    let cfg = RuntimeConfigStore::new(None).get_config(86).clone();
+    let old_hash = if round > 60 { *c.chain.genesis_block().hash() } else { near_primitives::hash::CryptoHash(rng.r#gen()) };
+    let mut ctx = crate::d1gen::Ctx {
+        accounts: &s.accounts,
+        k,
+        n_shards: p.n_shards,
+        apply_height: height + 1,
+        gas_price: block.header().next_gas_price().as_yoctonear(),
+        tip_hash: *block.hash(),
+        old_hash,
+        config: &cfg,
+        view,
+    };
+    let n = rng.gen_range(3..10);
+    crate::d1gen::craft(rng, &mut ctx, n, 0.08)
 }

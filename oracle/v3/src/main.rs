@@ -9,7 +9,7 @@
 //! production), serialized with nearcore borsh.
 //!
 //! Commands:
-//!   gen    --seed S --out DIR [--chains K] [--blocks N] [--ood-cap C] [--mutate-every M]
+//!   gen    --seed S --out DIR [--chains K] [--blocks N] [--ood-cap C] [--mutate-every M] [--domain d1]
 //!          Generate cases: DIR/d0/* (honest, in D0), DIR/ood/* (honest, out of D0,
 //!          capped per violation family), DIR/mutants/* (derived from D0 cases),
 //!          each with claim.bin, witness.bin, meta.json; DIR/summary.json.
@@ -22,6 +22,8 @@
 
 mod claim;
 mod d0;
+mod d1;
+mod d1gen;
 mod ed25519v;
 mod enc;
 mod chaingen;
@@ -38,7 +40,7 @@ fn arg(args: &[String], name: &str) -> Option<String> {
     args.iter().position(|a| a == name).and_then(|i| args.get(i + 1).cloned())
 }
 
-fn chain_params(seed: u64, i: usize, blocks: u64) -> chaingen::ChainParams {
+fn chain_params(seed: u64, i: usize, blocks: u64, d1: bool) -> chaingen::ChainParams {
     let seats = [8u64, 100, 16, 3][i % 4];
     chaingen::ChainParams {
         seed: seed.wrapping_mul(1_000_003).wrapping_add(i as u64),
@@ -54,6 +56,8 @@ fn chain_params(seed: u64, i: usize, blocks: u64) -> chaingen::ChainParams {
         p_implicit: 0.01,
         p_two: 0.02,
         long_skip: if i % 8 == 5 { Some((40, 40, 0)) } else { None },
+        d1,
+        p_adv: if d1 { 0.5 } else { 0.0 },
     }
 }
 
@@ -64,8 +68,11 @@ fn cmd_gen(args: &[String]) -> i32 {
     let blocks: u64 = arg(args, "--blocks").and_then(|s| s.parse().ok()).unwrap_or(100);
     let ood_cap: usize = arg(args, "--ood-cap").and_then(|s| s.parse().ok()).unwrap_or(20);
     let mutate_every: usize = arg(args, "--mutate-every").and_then(|s| s.parse().ok()).unwrap_or(6);
+    let d1 = arg(args, "--domain").as_deref() == Some("d1");
     std::fs::create_dir_all(&out).unwrap();
     let mut stats = chaingen::Stats {
+        d1: 0,
+        injected: 0,
         honest: 0,
         honest_ok: 0,
         d0: 0,
@@ -75,7 +82,7 @@ fn cmd_gen(args: &[String]) -> i32 {
     };
     let mut params = Vec::new();
     for i in 0..chains {
-        let p = chain_params(seed, i, blocks);
+        let p = chain_params(seed, i, blocks, d1);
         eprintln!("chain {i}: {p:?}");
         params.push(format!("{p:?}"));
         chaingen::run_chain(i, &p, &out, ood_cap, mutate_every, &mut stats);
@@ -88,7 +95,8 @@ fn cmd_gen(args: &[String]) -> i32 {
         "nearcore_commit": NEARCORE_COMMIT, "protocol_version": 86, "seed": seed,
         "chains": params, "honest_witnesses": stats.honest, "honest_accepted_by_nearcore": stats.honest_ok,
         "d0_cases": stats.d0, "ood_cases_written": stats.ood_written, "mutants": stats.mutants,
-        "d0_violation_counts": stats.by_violation,
+        "domain": if d1 { "D1" } else { "D0" }, "d1_cases": stats.d1, "crafted_transactions": stats.injected,
+        (if d1 { "d1_violation_counts" } else { "d0_violation_counts" }): stats.by_violation,
     });
     std::fs::write(out.join("summary.json"), serde_json::to_string_pretty(&summary).unwrap()).unwrap();
     if stats.honest_ok != stats.honest {
@@ -96,6 +104,34 @@ fn cmd_gen(args: &[String]) -> i32 {
         return 1;
     }
     0
+}
+
+/// Fee parameters read by Transfer-transaction conversion (domain D1): `tx_cost`
+/// (runtime/runtime/src/config.rs:400-479) and the limits checked on transactions.
+fn d1_fees(cfg: &near_parameters::RuntimeConfig) -> serde_json::Value {
+    use near_parameters::{ActionCosts, SignatureKind};
+    let f = |c: ActionCosts| {
+        let fee = cfg.fees.fee(c);
+        let pc = |p: near_parameters::ParameterCost| json!([p.gas.as_gas(), p.compute]);
+        json!({"send_sir": pc(fee.send_fee(true)), "send_not_sir": pc(fee.send_fee(false)), "exec": pc(fee.exec_fee())})
+    };
+    let sv = |k: SignatureKind| {
+        let p = cfg.fees.signature_verification_costs[k];
+        json!([p.gas.as_gas(), p.compute])
+    };
+    json!({
+        "new_action_receipt": f(ActionCosts::new_action_receipt),
+        "transfer": f(ActionCosts::transfer),
+        "create_account": f(ActionCosts::create_account),
+        "add_full_access_key": f(ActionCosts::add_full_access_key),
+        "signature_verification": {"ed25519": sv(SignatureKind::Ed25519), "secp256k1": sv(SignatureKind::Secp256k1), "mldsa65": sv(SignatureKind::MlDsa65)},
+        "min_gas_purchase_price": cfg.min_gas_purchase_price.as_yoctonear().to_string(),
+        "storage_amount_per_byte": cfg.storage_amount_per_byte().as_yoctonear().to_string(),
+        "eth_implicit_accounts": cfg.wasm_config.eth_implicit_accounts,
+        "max_transaction_size": cfg.wasm_config.limit_config.max_transaction_size,
+        "max_actions_per_receipt": cfg.wasm_config.limit_config.max_actions_per_receipt,
+        "access_key_nonce_range_multiplier": near_primitives::account::AccessKey::ACCESS_KEY_NONCE_RANGE_MULTIPLIER,
+    })
 }
 
 fn cmd_params(args: &[String]) -> i32 {
@@ -127,6 +163,7 @@ fn cmd_params(args: &[String]) -> i32 {
             "max_base_bandwidth": bw.max_base_bandwidth,
         },
         "max_receipt_size": cfg.wasm_config.limit_config.max_receipt_size,
+        "d1_transaction_fees": d1_fees(&cfg),
         "main_storage_proof_size_soft_limit": cfg.witness_config.main_storage_proof_size_soft_limit,
     });
     std::fs::write(&out, serde_json::to_string_pretty(&d).unwrap()).unwrap();
