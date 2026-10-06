@@ -273,4 +273,100 @@ theorem gbGrid_of (G : GridPub AP pub tr tsd tp Ps I fwd) (DX : SdlxOwn AP tsd)
 
 end
 
+/-! ## `schedCore_sound''` and `schedCore_fwd'` -/
+
+section
+variable {AP : AirP} {pub : List Fp} {tr : Trace Fp}
+
+/-- **`schedCore_sound''`**: `schedCore_sound'` with `GbGrid` discharged. Besides the conclusions of
+`schedCore_sound'`, the codec's `gb` of every record is the spec's grid grant, and for τ = 0 every
+forwarding demand below `2^24` is at most its link's output grant `stF.granted[l] + grid[l]`.
+New hypothesis: `SdlxOwn` (ownership, decidable). -/
+theorem schedCore_sound'' (hH : HoldsP AP pub tr) {tp tm tcmp ts tch tg tsd tcd tsha : Nat}
+    -- ownership (decidable on the final AIR)
+    (O : SchedOwn AP tp tm tcmp ts tch tg) (OS : ScanOwn AP tsd tp) (OO : OpOwn AP tp tsd tcd)
+    (OC : CodecValOwn AP tcd) (SO : SparOwn AP) (PB : PubbOwn AP) (IO : InitOwn AP tcd tsd)
+    (DO : SdlOwn AP tcd) (PR : PubbRecv AP tp tcd) (SH : ShaOwn AP tsha) (DX : SdlxOwn AP tsd)
+    -- the kind registry (cross-lane)
+    (SK : ShaKind AP pub tr tcd)
+    -- the prepared statement and the public records (`PubIdx`, R1)
+    {cb : NearSpec.Bytes} {hint : Hint} {p : Prep} (hprep : prepD0 cb hint = .ok p)
+    (I : PubIdx AP pub Fp.ofNat) (fwd : List (Nat × Nat))
+    (hrecP : I.recs B_SPAR true = (render (p.sched.map instOf) fwd).par)
+    (hrecB : I.recs B_SPUBB true = (render (p.sched.map instOf) fwd).pubb)
+    (hrecD : I.recs B_SDL true = (render (p.sched.map instOf) fwd).dlSend)
+    {τ : Nat} (hτ : τ < p.sched.length) :
+    let sp := p.sched[τ]
+    let n := sp.ids.length
+    ∃ f m fc, f < tr.height tp ∧ cv tr tp f Proc.kK = 1 ∧ cv tr tp f Proc.kc = 0 ∧
+      cv tr tp f Proc.tau = τ ∧ Proc.Inst tr tp f m ∧
+      fc < tr.height tcd ∧ cv tr tcd fc Codec.kF = 1 ∧ cv tr tcd fc Codec.tau = τ ∧
+      cv tr tcd fc Codec.NN = n * n ∧
+      let stF := specSt n sp.allowed (reqsOf (instOf sp)) tr tp f
+        (lpState sp.ids sp.params sp.allowed (codecA0 tr tcd τ) sp.seed) m
+      let g := gridGrants n sp.allowed stF.senderBudget stF.receiverBudget
+        (sordOf n sp.allowed stF.senderBudget) (rordOf n sp.allowed stF.receiverBudget)
+      runCore sp (prevOf tr tcd τ) = some
+        ⟨(svOf tr tcd τ).map UInt8.ofNat,
+          (List.range (n * n)).map (fun l => ((sp.ids.getD (l / n) 0, sp.ids.getD (l % n) 0),
+            stF.granted[l]! + (g[l]!).getD 0)),
+          sp.params⟩ ∧
+      (∀ x ∈ svOf tr tcd τ, x < 256) ∧
+      PrevCanon sp.ids (prevOf tr tcd τ) (codecA0 tr tcd τ) (h0Of tr tcd τ) ∧
+      (∀ l, l < n * n → stF.granted[l]! + (g[l]!).getD 0 ≤ 4500000) ∧
+      -- the grants as the AIR holds them
+      (∀ l, l < n * n → cv tr tcd (fc + 5 + 24 * l + 23) Codec.gfin = stF.granted[l]! ∧
+        cv tr tcd (fc + 5 + 24 * l + 23) Codec.gb < 2 ^ 23) ∧
+      -- `gb` is the grid grant (stage F)
+      GbGrid tr tcd fc n g ∧
+      -- the forwarding check of instance 0 against the output grants
+      (τ = 0 → ∀ l, l < n * n → fwdDemand fwd l < 2 ^ 24 →
+        fwdDemand fwd l ≤ stF.granted[l]! + (g[l]!).getD 0) := by
+  intro sp n
+  obtain ⟨f, m, fc, hf, hk, hc, hτf, Ib, hfc, hF, hτc, hNN, H⟩ := schedCore_sound' hH O OS OO OC SO PB IO
+    DO PR SH SK hprep I fwd hrecP hrecB hrecD hτ
+  have hlen33 := prepD0_len hprep
+  have hP := instOk_of hprep
+  have h256 : (p.sched.map instOf).length ≤ 256 := by rw [List.length_map]; omega
+  have hτ' : τ < (p.sched.map instOf).length := by rw [List.length_map]; exact hτ
+  have C : InitCtx AP pub tr tp tm tcmp ts tch tg tsd tcd (p.sched.map instOf) :=
+    ⟨hH, O, OS, OO, OC, SO, IO, h256, hP⟩
+  have hP0 : (p.sched.map instOf).getD τ instD = instOf sp := getD_map_instOf _ hτ
+  obtain ⟨-, M⟩ := memCtx_of C PB I fwd hrecP hrecB hf hk hc Ib
+  rw [hτf, hP0] at M
+  have G : GridPub AP pub tr tsd tp (p.sched.map instOf) I fwd := ⟨hH, OS, hrecP, h256, hP⟩
+  have hgg := gbGrid_of G DX OC IO M hτ' hP0 hτf hfc hF hτc hNN
+  refine ⟨f, m, fc, hf, hk, hc, hτf, Ib, hfc, hF, hτc, hNN, ?_⟩
+  intro stF g
+  obtain ⟨hrun, hbytes, hprev, hle, hgr, hfw⟩ := H
+  refine ⟨hrun, hbytes, hprev, hle, hgr, hgg, fun h0 l hl h24 => ?_⟩
+  have := hfw h0 l hl
+  rw [Nat.mod_eq_of_lt h24, hgg l hl] at this
+  exact this
+
+/-- **`schedCore_fwd'`**: the forwarding check of instance 0 against `runCore`'s output. For every
+link `l` whose public forwarding demand is below `2^24` (assembly condition: the renderer rejects
+larger demands), the demand is at most the grant `runCore` outputs for `l`. -/
+theorem schedCore_fwd' (hH : HoldsP AP pub tr) {tp tm tcmp ts tch tg tsd tcd tsha : Nat}
+    (O : SchedOwn AP tp tm tcmp ts tch tg) (OS : ScanOwn AP tsd tp) (OO : OpOwn AP tp tsd tcd)
+    (OC : CodecValOwn AP tcd) (SO : SparOwn AP) (PB : PubbOwn AP) (IO : InitOwn AP tcd tsd)
+    (DO : SdlOwn AP tcd) (PR : PubbRecv AP tp tcd) (SH : ShaOwn AP tsha) (DX : SdlxOwn AP tsd)
+    (SK : ShaKind AP pub tr tcd)
+    {cb : NearSpec.Bytes} {hint : Hint} {p : Prep} (hprep : prepD0 cb hint = .ok p)
+    (I : PubIdx AP pub Fp.ofNat) (fwd : List (Nat × Nat))
+    (hrecP : I.recs B_SPAR true = (render (p.sched.map instOf) fwd).par)
+    (hrecB : I.recs B_SPUBB true = (render (p.sched.map instOf) fwd).pubb)
+    (hrecD : I.recs B_SDL true = (render (p.sched.map instOf) fwd).dlSend)
+    (h0 : 0 < p.sched.length) :
+    ∃ out, runCore p.sched[0] (prevOf tr tcd 0) = some out ∧
+      ∀ l, l < p.sched[0].ids.length * p.sched[0].ids.length → fwdDemand fwd l < 2 ^ 24 →
+        ∃ gr, out.granted[l]? = some ((p.sched[0].ids.getD (l / p.sched[0].ids.length) 0,
+            p.sched[0].ids.getD (l % p.sched[0].ids.length) 0), gr) ∧ fwdDemand fwd l ≤ gr := by
+  obtain ⟨f, m, fc, -, -, -, -, -, -, -, -, -, hrun, -, -, -, -, -, hfw⟩ := schedCore_sound'' hH O OS OO OC
+    SO PB IO DO PR SH DX SK hprep I fwd hrecP hrecB hrecD h0
+  refine ⟨_, hrun, fun l hl h24 => ⟨_, ?_, hfw rfl l hl h24⟩⟩
+  simp only [List.getElem?_map, List.getElem?_range hl, Option.map_some]
+
+end
+
 end ZkFormal.NearV3.Sched
