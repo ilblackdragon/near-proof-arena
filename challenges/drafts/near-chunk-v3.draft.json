@@ -275,7 +275,12 @@
     "public_fixtures": "sha256:b5f1f342f78ed22497b70b5b479e2b2c56fcd35f25a98e59f8ebc6f5978242ac",
     "heldout_commitment": "sha256:eeeb27a45a70691de0b2785ad4a11c10c4edd378594c0248639416202a8b3696",
     "baseline_submission": null,
-    "baseline_ns": []
+    "baseline_ns": [],
+    "weight_source": {
+      "status": "ASSUMED",
+      "note": "Documented assumption (no measured per-chunk mix of these features exists in the repository yet): mainnet traffic is dominated by FunctionCalls, so the D3a classes carry 65% (calls 30%, callbacks 15%, max-G_alpha 15%, non-WASM chunks around contract state 5%); non-WASM receipts/queues/epochs (D2) 17%; plain transfer transactions (D1) 10%; quiet / transfer-receipt / missing-chunk D0 chunks 8%. To be replaced by a measured mix from mainnet replay (docs/HISTORICAL_REPLAY.md) in a versioned successor.",
+      "ref": "spec/challenge-inputs/near-chunk-v3-weights.json"
+    }
   },
   "measurement": {
     "warmup_runs": 3,

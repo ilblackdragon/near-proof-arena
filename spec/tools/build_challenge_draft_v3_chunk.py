@@ -38,6 +38,20 @@ Digests, computed from the repository (tracked files; commit spec/, oracle/ and 
                             (spec/workloads/near-chunk-validation-d0, oracle/v3 source pinned there);
                             D1/D2 specs pin TreeDigest(oracle/v3-d1 src, Cargo.toml, Cargo.lock) + the
                             shared oracle/v3/src; D3 specs additionally oracle/v3-d3
+  weight_source           = workload_suite.weight_source (contracts v1.7, CONTRACTS §11): status ASSUMED,
+                            the documented assumption (WEIGHT_SOURCE) and ref = the weights record
+                            spec/challenge-inputs/near-chunk-v3-weights.json; a measured mix from mainnet
+                            replay is a follow-up (a versioned successor with status MEASURED)
+
+Judge workers (runners/worker NearV3Oracle): each generator spec's `tool` selects the binary
+(ARENA_NEAR_ORACLE_V3 / _D1 / _D3); judge-sampled rejections use the D3α recipe on the D3 oracle.
+
+Checklist when the draft id changes (any edit here) and again after signing (the signed id is the id of
+the final definition: created_at, held-out commitment, baseline and scoring filled in):
+  [ ] examples/reexec-v3-d3/candidate.toml                               challenge = "<id>"
+  [ ] adversarial/hostile-submissions/near-v3-d3-lenient-codes/candidate.toml   challenge = "<id>"
+  (cargo test -p proof-mutators --test packages checks both against this draft or a signed
+  challenges/chl_<id>.json of near-chunk-v3)
 """
 import argparse, hashlib, json, os, subprocess, sys
 
@@ -179,14 +193,17 @@ def scoring(a):
     return sc
 
 
+WEIGHTS_REF = "spec/challenge-inputs/near-chunk-v3-weights.json"
+
+
 def write_weights():
-    """The class weights and their source (arena-types has no field for it yet; BENCHMARK_SPEC §17
-    asks for `workloads.weight_source`): spec/challenge-inputs/near-chunk-v3-weights.json."""
+    """The class weights and their source, as a record (spec/challenge-inputs/near-chunk-v3-weights.json);
+    the challenge carries the source itself as workload_suite.weight_source (BENCHMARK_SPEC §17)."""
     w = {"schema": "near-arena-class-weights-v1", "challenge": "near-chunk-v3",
          "weight_source": WEIGHT_SOURCE,
          "classes": [{"id": c[0], "tier": c[1], "weight_ppm": c[2]} for c in CLASSES],
          "spec_docs": SPEC_DOCS}
-    open(os.path.join(ROOT, "spec/challenge-inputs/near-chunk-v3-weights.json"), "w").write(json.dumps(w, indent=1) + "\n")
+    open(os.path.join(ROOT, WEIGHTS_REF), "w").write(json.dumps(w, indent=1) + "\n")
 
 
 def main():
@@ -277,7 +294,9 @@ def main():
             if os.path.isdir(os.path.join(ROOT, "oracle/fixtures/v3/public-chunk-v3")) else None,
             "heldout_commitment": a.heldout_commitment,
             "baseline_submission": baseline_sub,
-            "baseline_ns": baseline_ns},
+            "baseline_ns": baseline_ns,
+            # v1.7 (serialized only when present): the weights are a documented assumption
+            "weight_source": {"status": "ASSUMED", "note": WEIGHT_SOURCE, "ref": WEIGHTS_REF}},
         "measurement": {"warmup_runs": 3, "measured_runs": 15, "aggregation": "median", "outlier_mad_k": 5,
                         "cold_runs": 1, "concurrency": 1, "per_run_timeout_ms": 600000,
                         "invocation_mode": "vm_per_batch"},

@@ -83,3 +83,62 @@ fn expected_gates_and_reasons_are_known_contract_values() {
         }
     }
 }
+
+/// Coverage-tiered packages (a `declared_tier`; near-chunk-v3 is the only
+/// such challenge) and the reference they derive from pin the near-chunk-v3
+/// id: the current unsigned draft's, or that of a signed near-chunk-v3
+/// challenge in `challenges/`. Re-pin both after any draft change and after
+/// signing (checklist: spec/tools/build_challenge_draft_v3_chunk.py).
+#[test]
+fn near_chunk_v3_packages_pin_the_challenge() {
+    use arena_types::{CandidateManifest, ChallengeDefinition};
+    let repo = suite::default_root()
+        .parent()
+        .and_then(|p| p.parent())
+        .unwrap()
+        .to_path_buf();
+    let load = |p: &std::path::Path| -> ChallengeDefinition {
+        serde_json::from_slice(&std::fs::read(p).unwrap()).unwrap()
+    };
+    let draft = load(&repo.join("challenges/drafts/near-chunk-v3.draft.json"));
+    let ok_id = |id: &str| {
+        id == draft.id().unwrap() || {
+            let p = repo.join(format!("challenges/{id}.json"));
+            p.exists() && load(&p).name == "near-chunk-v3" && load(&p).id().unwrap() == id
+        }
+    };
+    let reference = CandidateManifest::parse(
+        &std::fs::read_to_string(repo.join("examples/reexec-v3-d3/candidate.toml")).unwrap(),
+    )
+    .unwrap();
+    assert!(
+        ok_id(&reference.challenge),
+        "examples/reexec-v3-d3 pins {} (near-chunk-v3 draft is {})",
+        reference.challenge,
+        draft.id().unwrap()
+    );
+    let mut tiered = 0;
+    for c in suite::load_all(&suite::default_root()).unwrap() {
+        let Ok(m) = &c.manifest else { continue };
+        if m.entry.declared_tier.is_none() {
+            continue;
+        }
+        tiered += 1;
+        assert!(
+            c.dir.join("candidate.toml").exists(),
+            "{}: a near-chunk-v3 case pins its own challenge id (ship candidate.toml)",
+            c.name
+        );
+        assert!(
+            ok_id(&m.challenge),
+            "{} pins {} (near-chunk-v3 draft is {})",
+            c.name,
+            m.challenge,
+            draft.id().unwrap()
+        );
+    }
+    assert!(
+        tiered >= 1,
+        "near-v3-d3-lenient-codes is a near-chunk-v3 case"
+    );
+}

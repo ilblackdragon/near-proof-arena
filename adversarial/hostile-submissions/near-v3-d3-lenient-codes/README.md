@@ -26,3 +26,7 @@ code-blob witness-freedom mutants (the D3 extension of `v3-witness-freedoms`).
 Local evidence (`docs/e2e-results/v3-d3-reference/hostile-lenient-codes.txt`): on the public
 positives with code blobs, the code reorder / duplicate / junk / empty mutants of this candidate's
 proofs are accepted by its verifier; the reference rejects all of them.
+
+Package: `BASE` plus this case's `formal/ReexecV3D3/Canon.lean` and `candidate.toml` (the base's,
+renamed, pinned to the near-chunk-v3 challenge id; re-pin with the base after signing, see the
+checklist in `spec/tools/build_challenge_draft_v3_chunk.py`).
