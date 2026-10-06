@@ -114,6 +114,9 @@ Mathlib in anything the judge trusts) of:
      plus finite-wasm 0.6.1's analysis tables (gas points, operand-stack maxima) plus the prologue
      constants, rather than rewritten bytes. The checkpoint-1 PoC shows this matches nearcore to the
      gas unit.
+   * **wasmparser 0.228 implementation limits** (consensus rejections, `Deserialization`): ≤ 50,000
+     params + locals per function, ≤ 1,000 params per type, names ≤ 100,000 bytes, br_table ≤ 131,072
+     targets, ≤ 100,000 element/data segments. These bind before NEAR's own per-contract limits.
    * **Import/export rules, normalisation and limits.** Imports must come from `env`, function
      imports only. Memory is normalised to `(memory 1024 2048)`. Exports get the `"\0"` prefix. Custom
      sections are discarded. Every limit in `docs/research/near-wasm-boundary.md` §3.2 applies.
@@ -128,7 +131,12 @@ Mathlib in anything the judge trusts) of:
      | instantiation trap (segment out of bounds) | failure | contract-loading fee |
      | loading fee > gas | failure | `min(prepaid, max_gas_burnt)` |
 
-     Sources: `wasmtime_runner/mod.rs:683-923`, `logic/gas_counter.rs:235-270`, `logic/logic.rs:4511-4540`.
+     | `LoadingError`, `WasmUnknownError` (runtime soft-fail) | failure, no-op outcome | 0 (H9) |
+     | `ContractCodeNotPresent` | `CodeDoesNotExist` no-op, or `MissingTrieValue` during witness validation if the account commits to code | 0 |
+
+     Sources: `wasmtime_runner/mod.rs:683-923`, `logic/gas_counter.rs:235-270`, `logic/logic.rs:4511-4540`,
+     `runtime/runtime/src/function_call.rs:293-337`. Preparation is called from
+     `runtime/runtime/src/pipelining.rs:441-450`.
 2. **Execution semantics** of prepared modules: a deterministic small-step or
    big-step interpreter over the accepted instruction set, linear memory,
    tables, globals, locals, the call stack with nearcore's limits, traps, and
@@ -148,10 +156,12 @@ Mathlib in anything the judge trusts) of:
    pinned parameter table, `prepaid_gas`/`used_gas`/`burnt_gas` accounting, the
    gas-exceeded and per-receipt-limit semantics, and the mapping to outcomes,
    balances and refunds. Also, explicitly:
-   * WASM gas is charged per finite-wasm basic block, with Wasmtime call-hook synchronisation
-     (`wasmtime_runner/mod.rs:1042-1072`). Per-instruction charging is admissible in the AIR only
-     with a proved `metering_equiv` lemma: equal on every field `Rel_D3` observes. The error variant
-     is not one of those fields (§0.1.3).
+   * WASM gas is charged at finite-wasm instrumentation points (whole straight-line ranges, paid up
+     front), with Wasmtime call-hook synchronisation (`wasmtime_runner/mod.rs:1042-1072`). **The point
+     table is consensus-relevant.** Once a promise exists, an out-of-gas abort charges the whole failing
+     range (`gas_counter.rs:118-201`; review F1, reproduced on pinned nearcore), and `burnt_gas` enters
+     the outcome root. The spec and **the AIR must charge exactly at the committed finite-wasm points**;
+     per-instruction metering is not admissible.
    * **Storage-proof-size coupling.** The per-receipt storage-proof limit (4,000,000 bytes, active
      at PV86, `logic/recorded_storage_counter.rs`) makes execution results depend on witness
      recording. It must be modelled in `RuntimeD3` together with the trie layer.
@@ -160,8 +170,9 @@ Mathlib in anything the judge trusts) of:
 4. **Host functions.** The coverage denominator is the machine-checked inventory: **89 `env`
    imports at PV86** (`docs/research/near-wasm-boundary-inventory.json`, checked by
    `tools/d3/boundary_inventory.py --check`; table in `docs/research/near-wasm-boundary.md` App. A).
-   The live implementation is `runtime/near-vm-runner/src/wasmtime_runner/logic.rs`. The denominator
-   includes:
+   The split is **78 ungated + 11 runtime-gated** (7 PV85 flags, 4 global-contract functions under the
+   PV78 flag `global_contract_host_fns`). The live implementation is
+   `runtime/near-vm-runner/src/wasmtime_runner/logic.rs`. The denominator includes:
    * `env.gas`;
    * the three deprecated `storage_iter_*` stubs, which always fail with `Deprecated` and must stay
      linked;
@@ -186,17 +197,20 @@ Evidence class: **definitions** (they are the trusted specification), plus:
 | Each crypto host function equals its standard spec on standard vectors | T (standard + Wycheproof vectors) |
 | Semantics faithful to nearcore's VM (preparation, execution, gas, host functions, outcomes) | T, at scale (2.2) |
 | Faithfulness to the WASM spec for the accepted subset (e.g. against WasmCert or the reference interpreter) | T→P |
-| `metering_equiv`: per-instruction gas ≡ finite-wasm block gas on all `Rel_D3`-observable fields (needed only if the AIR charges per instruction) | P (T evidence so far: `examples/d3-wasm-poc/RESULTS.md`) |
+| Gas-point tables equal nearcore's instrumentation (charge positions and fees), plus a declarative statement of the range-charging invariant next to the port, T-tested against it | T (P stretch) |
+| Exact equivalence of the abstract `PreparedModule` (point table, stack charges) with nearcore's instrumented bytes (at least: instrumented size, which decides `InstrumentedCodeTooLarge`) | T |
 
 **Stated assumptions of `Rel_D3`.** These are tested, not provable, and are listed in the spec:
 
 | Id | Assumption | Test obligation |
 |---|---|---|
-| **H1** | Every prepared module within the limits compiles under Winch. The target is pinned to **x86_64/Winch**: the spec states nearcore-on-x86_64 behaviour, and aarch64/Cranelift agreement is out of scope. | compile real mainnet contracts and the random corpus; report any `WasmtimeCompileError` |
+| **H1** | Everything wasmparser 0.228 + finite-wasm accept and NEAR's preparation emits, wasmparser 0.248 + Winch compile, **except the modelled cases** (the spec models the two known rejections: instrumented `params + locals + 2 > 50,000`, and instrumented function body > 7,654,321 bytes; checkpoint-2 finding). The target is pinned to **x86_64/Winch**: the spec states nearcore-on-x86_64 behaviour; aarch64/Cranelift agreement is unmeasured (H11) and an aarch64 difftest leg is recommended. | compile real mainnet contracts and the random corpus; report any unmodelled `WasmtimeCompileError` |
 | **H3** | Canonical NaN sign and payload as on x86_64/Winch (D3β onwards) | per-opcode float difftest on x86_64 |
 | **H4** | ≤ 262,144 accounted stack bytes never overflow the real native stack before instrumentation traps | deep-recursion stress at the budget boundary, with each frame shape at its maximum |
 | H5 | `prepaid_gas ≤ max_gas_burnt` for every function call (otherwise a gas-hook failure becomes `LinkError`) | **P**: derive it from the action-validation spec |
-| H2 | The execution-slot semaphore never exhausts (`wasmtime_runner/mod.rs:1012-1018`) | documented only |
+| H2/H10 | Instantiation resource errors (execution-slot semaphore `mod.rs:1012-1018`, pooling-allocator exhaustion, mmap failure) never occur; they would become `LinkError` *with* the loading fee (`mod.rs:414-419, 1019-1026`) | documented only |
+| **H9** | No `LoadingError` (corrupted/stale local compiled-contract cache) or `WasmUnknownError`. nearcore turns both into 0-gas failed outcomes (`runtime/runtime/src/function_call.rs:328-337`), so a node where they occur diverges from its peers. `Rel_D3` is stated for a correct node | oracle never shares a persistent cache across versions |
+| H12 | Native stack under host calls made at maximum WASM depth does not overflow | stress test (checkpoint 3) |
 
 ### 2.2 Faithfulness evidence against nearcore (the oracle)
 
@@ -215,8 +229,12 @@ Evidence class: **definitions** (they are the trusted specification), plus:
   **Independence scope.** The WASM core (decode, validate, execute) and the host-function logic are
   each checked against an independent implementation that is not derived from nearcore's code (for
   example the WASM reference interpreter or WasmCert's extracted interpreter, plus independently
-  written host code). Gas metering is *defined* by finite-wasm's algorithm, so any faithful
-  implementation re-derives it. Metering faithfulness is therefore T against nearcore only.
+  written host code). Gas metering is *defined* by finite-wasm's algorithm; independence is obtained by a
+  **clean-room reimplementation from a short prose specification** of the range-charging rule, written by
+  a different author (≈1–2k LOC), compared against both the Lean port and nearcore.
+* Required case families include promise creation followed by out-of-gas inside a long range (review F1),
+  `value_return` with non-empty output data receivers, and `compute_usage` and `logs` in the comparison
+  (from checkpoint 3).
 * Comparison is on exact `VMOutcome`s, including the error variant, even though `Rel_D3`
   identifies error kinds (§0.1.3). The quotient is a property of `Rel`, not a relaxation of the
   tests.
@@ -275,6 +293,13 @@ the same formal stack.
 WASM, while a chunk may burn up to 10^15 gas (≈1.2·10^9 operators at `regular_op_cost` = 822,756).
 `G_α` is fixed at checkpoint 5 from the measured EXEC/RAM rows per operator, and the D3α challenge's
 caps come from it. Workload classes must include a max-`G_α` class.
+
+**Contract size vs table height (review §3.7).** A maximum-size contract (4,194,304 bytes) needs at least
+one PREP row per byte, already more than 2^22 rows. D3α must either segment PREP or carry an `InD3α`
+code-size cap fixed at checkpoint 5. Also in scope for the risk register: variable-cost storage gas
+(trie-node charges depend on chunk-level access history), the bn254/BLS12-381 *specification* work
+(map-to-curve, `not_in_group` behaviour, per-item cost formulas), promise-DAG/yield semantics, and
+compute usage (it is derived from `burnt_gas`, so it inherits the point-table dependence).
 
 ### 2.5 Decision point: segmentation and recursion (required for D3∞-scale)
 
@@ -347,7 +372,10 @@ D3 is complete when **all** of these hold:
   * the zero-gas / loading-fee table (§2.1.1);
   * the NaN rule (§2.1.2);
   * storage-proof-limit and compute-usage coupling, and `metering_equiv` (§2.1.3);
-  * the 89-import inventory as the coverage denominator (§2.1.4);
+  * the 89-import inventory as the coverage denominator (§2.1.4), split 78 + 11;
+  * after the independent review (`docs/reviews/D3_REVIEW_2026-10-06.md`): F1, the point table is
+    mandatory and `metering_equiv` is retracted; F2, H9 and the soft-fail rows; F6, the wasmparser triple and
+    0.228 limits; F7, the counts; F12, the `pipelining.rs` citation; H10–H12; C9, clean-room metering;
   * the scope of the independent-implementation requirement (§2.2);
   * the `G_α` cap (§2.4);
   * the segmentation/recursion decision point (§2.5);
