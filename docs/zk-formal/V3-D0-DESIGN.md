@@ -628,3 +628,49 @@ behind binding a hint to the trace.
 3. Confirm that the v3 challenge's `allowed_packages` include `NearSpecV3` for the model (native `prepD0`).
 4. A1 premise: confirm against nearcore 2.13.4 that a chunk's `gas_limit` is never adjusted from genesis (`ChunkExtra.gas_limit` propagation).
 5. Elaboration budget for v3 (an estimated ≈ 1,100 s of 1,800 s).
+
+---
+
+## 10. Review decisions (lead, 2026-10-06) and source checks
+
+Approved with conditions:
+1. Native claim-only work: the verifier calls the trusted `NearSpecV3` functions only. Any faster code enters through kernel-proved `@[csimp]` lemmas, including the `SHA256Fast` import into `NearSpecV3`. Verify time is first-class: typical ≤ 1.5 s, worst ≤ 10 s with fast paths, measured per component.
+2. The public-message bus is a **new protocol version `np-udr-stark-v2`**. v1 (`np-udr-stark-v1`, admitted) stays byte-for-byte unchanged: new modules, no edits to v1 definitions.
+3. Digest distinctness / shared subtrees (§3.3) is a required, *proved* AIR obligation.
+4. Amendments:
+   * **A1** is approved after the source check below.
+   * **A2** is approved after the source check below, plus a test that it holds on every honest D0 case.
+   * **A3/A4 are not adopted** for proof-size reasons. Instead: tighten L7's FRI size bound (P1), and give the D0 challenge an honest succinct `max_proof_bytes` (target 8 MiB, not 64 MiB). The open consequence is in §10.2.
+5. Recursion is out of scope (§5.5).
+6. The worst-case prove time (≈ 720 s / 21 GB) is tracked; a max-witness workload class comes later.
+
+### 10.1 Source checks (nearcore 2.13.4, `44f7ae6c`, `/data/illia/nearproof-deps/nearcore`)
+
+**A1: chunk `gas_limit` is fixed.**
+* The genesis chunk extra takes `genesis_config.gas_limit` (`chain/chain/src/types.rs:288`, `chain/chain/src/chain.rs:430,614`).
+* A chunk producer copies `chunk_extra.gas_limit()` into the new header (`chain/client/src/chunk_producer.rs:393`).
+* Validation requires `prev_chunk_extra.gas_limit() == chunk_header.gas_limit()` (`chain/chain/src/validate.rs:154`).
+* Applying a chunk stores `to_chunk_extra(chunk_header.gas_limit())` (`chain/chain/src/chain_update.rs:472,519`; `types.rs:166-172`). A missing chunk reuses `prev_chunk_extra.gas_limit()` (`update_shard.rs:224`).
+
+So the chunk gas limit equals the genesis value forever; there is no dynamic adjustment. The 10¹⁵ figure is mainnet genesis (1000 Tgas; oracle chains `gas_limit_tgas: 1000`). It is a genesis fact, not a PV 86 runtime parameter. A1 is therefore stated as the **claim-decidable** condition `B2-slot gas_limit ≤ 10¹⁵`; the B2 slot is authenticated chain data in the claim.
+
+**A2: receipt proofs contain only receipts for `to_shard`.**
+* `Chain::create_receipts_proofs_from_outgoing_receipts` (`chain/chain/src/chain.rs:4132-4150`) builds the proof for `to_shard_id = shard_layout.get_shard_id(i)` from `group_receipts_by_shard(outgoing, shard_layout)`. Its root is checked against the header (`chain/chunks/src/logic.rs:77-95`).
+* Routing is `receipt.receiver_shard_id(layout)`, which is `account_id_to_shard_id(receiver_id)` for Action receipts (`core/primitives/src/receipt.rs:438-447`).
+* The layout used is `get_shard_layout_from_prev_block(chunk.prev_block_hash)`. In D0 (single epoch) that is `L(c.epoch_id)`, the same layout the validator filters with.
+* The witness producer passes these stored proofs through unchanged (`stateless_validation/state_witness.rs:264-320`, `ReceiptFilter::All`).
+
+Hence A2 holds on every honest D0 witness. Lane V0 also tests it on the oracle's honest D0 cases.
+
+### 10.2 Open: proof-size cap without A3/A4
+
+The hint must carry every value the native scheduler reads:
+* `s₀`, any decodable `BandwidthSchedulerState`, up to the 3 MB base-state bound;
+* in the collision case, the `0x0f` value of each implicit transition.
+
+Formally the hint is therefore bounded only by the witness size (≤ 8 MiB). Under an 8 MiB cap, `ProverComplete` cannot hold for such witnesses. Options:
+* (a) A canonicality-style D0 condition on `0x0f` (nearcore always writes the canonical state for the current layout);
+* (b) a cap of about 16 MiB;
+* (c) the scheduler in-AIR (estimated 20–40 k LOC).
+
+This is raised to the lead; lanes that do not depend on it proceed.
