@@ -14,7 +14,7 @@ Rules: no `sorry` / `axiom` / `native_decide`; axioms ⊆ {propext, Classical.ch
 |---|---|---|---|
 | M0 | design | tables, buses, message formats, public data, amendments needed, `W_eq` estimate (§2–§4) | **done** |
 | M1 | spec-side refinement | `runCore` decomposed into the AIR's phases, each **proved** equal to the spec (§5); executable event model `coreEv` = `runCore` on 600/600 vectors | **done** |
-| M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 934 at g = 1), honest generators for all six (`Gen/*`), constraint evaluator + bus-balance tests on the 600 vectors, mutants (§8) | **done** |
+| M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 761 at g = 1 after cuts B, D), honest generators for all six (`Gen/*`), constraint evaluator + bus-balance tests on the 600 vectors, mutants (§8) | **done** |
 | M3 | soundness | per table: `…Local → ∃ v, Wf v ∧ Traffic …` (L5 style), bus contracts (comparator, memory, scan, codec), link lemma: `schedCore_sound` | **started** (§7): comparator contract, memory row view + segments, abstract memory consistency |
 | M4 | completeness | honest traces satisfy every constraint, traffic = expected lists; `schedCore_complete`; height bounds | open |
 | M5 | integration | message formats agreed with `v3-trie` (`VBYTES`, `upsV3`) and the assembly (public segments, `Prep.fwd`), cuts | open |
@@ -56,20 +56,22 @@ its sanity hash, and the grants checked against `Prep.fwd`.
 | `sdsV3` distribute | per τ: 2n sorted shard rows + n² grid cells | sorted orders (key `avg·64 + idx` strictly increasing), grid with receiver delay line |
 | `chachaV3`/`genV3`/`shufV3` | lane v3-chacha | one instance set for the scheduler |
 
-**Kernel-checked** (`Sched/BudgetCheck.lean`: `report_g1`, `weqSched_g1`), g = 1:
+**Kernel-checked** (`Sched/BudgetCheck.lean`: `report_g1`, `weqSched_g1`), g = 1, after cuts B and D (§12):
 
 | table | file | width | interactions | degree | `W_eq` | maxLog |
 |---|---|---:|---:|---:|---:|---:|
-| `schV3` codec + link | `Tables/Codec.lean` | 114 | 14 | 4 | 250 | 22 |
-| `sscV3` scan | `Tables/Scan.lean` | 96 | 6 | 4 | 168 | 22 |
+| `schV3` codec + link | `Tables/Codec.lean` | 87 | 14 | 4 | 223 | 22 |
+| `ssdV3` scan + distribute | `Tables/ScanDist.lean` (`Scan.lean`, `Dist.lean`) | 119 | 10 | 4 | 223 | 22 |
 | `sprV3` process | `Tables/Proc.lean` | 64 | 11 | 4 | 176 | 22 |
 | `smmV3` memory | `Tables/Mem.lean` | 18 | 4 | 4 | 74 | 22 |
 | `scpV3` comparator | `Tables/Cmp.lean` | 33 | 1 | 4 | 65 | 22 |
-| `sdsV3` distribute | `Tables/Dist.lean` | 113 | 8 | 4 | 201 | 22 |
-| **total** | | 438 | 44 | | **934** | |
+| **total** | | 321 | 40 | | **761** | |
+
+History: 810 (first layout) → 814 (29-bit comparator) → 822 (`SPLEN`) → 934 (range fixes, §10) →
+788 (cut B) → **761** (cut D).
 
 (At g = 3 the grouped aux constraints have degree 8; g = 1 is the better setting for these
-tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,588 `W_eq` ≈ 1.37 MB of proof (at
+tables.) With lane v3-chacha's 654 the scheduler costs ≈ 1,415 `W_eq` ≈ 1.22 MB of proof (at
 ≈ 864 B per `W_eq`). The comparator is 29-bit: the distribute sort key `avg·64 + shard` reaches
 ≈ 2^28 (found by `SchedFullTest`; 25 bits were too few).
 
@@ -247,7 +249,11 @@ mutants** (1,234 s).
 
 ## 11. Claim conditions for the two proposed amendments (nearcore 2.13.4, `44f7ae6c`)
 
-**A8 status:** an explicit claim-level hypothesis of the **completeness / height theorems only**.
+**A8 status (lead decision): a relation-level conjunct** `a8` of `RelD0a` (commit `61191270`;
+`ChunkValidationV0a.a8`, `checkD0a`, `relD0a_iff`/`relD0a_relD0`/`relD0a_mono` proved; `prepClaim`
+checks it natively, and so does its `@[csimp]` fast copy). The oracle, Python checker, A8 mutant and difftest are
+in progress. The scheduler uses it **only** in completeness / height bounds (stated parametric in
+`B0` and A8).
 **Soundness does not need it**:
 * `process_rounds`, `core_compose`, the views and `cmp_sound` have no request-count hypothesis;
 * table heights are bounded by `HoldsP` itself (`maxLog`);
@@ -325,7 +331,9 @@ Range checks are kept in every variant.
 
 ## 13. Open items (in priority order)
 
-1. Cut B (scan + distribute merge, helper, in progress) and cut D (codec digest overlay), approved by the lead. Cut A is on hold (rows at the 2^22 edge; may be unnecessary after the size lane's multiproof dedup).
+1. **Done:** cut B (`ssdV3`, commit `26829f12`: −146; views re-proved; SchedFullTest 600/600, 51/51
+   mutants; SchedTablesTest 600/600, 44/44) and cut D (commit `b056a51d`: −27; SchedFullTest 600/600,
+   51/51). Cut A is on hold. **Pending:** the codec source map (duplicate ids, ≈ +16), §11.
 2. M3 views: codec, process structure (key block, headers, rounds); link layer per §6 (memory
    consistency instance, operand bounds of §10, `process_rounds` hypotheses, `core_compose`);
    `schedCore_sound`.
