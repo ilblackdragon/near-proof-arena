@@ -111,3 +111,45 @@ proof (at ≈ 864 B per `W_eq`).
 Facts found on the way: the popped keys strictly decrease except trailing key-0 rounds (a re-push
 key is below the popped key unless both are 0); `distribute_remaining_bandwidth`'s `break` is dead
 code; base grants never fail on budgets.
+
+## 6. M3/M4 plan (soundness and completeness of the tables)
+
+Target statements (instance τ of a v2 AIR containing the six tables, lane v3-chacha's three
+tables, the public segments rendered by `Render.render` from the instances' `InstPub` and
+`Prep.fwd`, with the bus-ownership side conditions of §6.1):
+
+* **`schedCore_sound`**: `HoldsP AP pub tr` ⇒ for every instance τ, with `v_τ` the bytes the codec
+  sends on `VBYTES` for τ (absent if `present = 0`): `v_τ` is a canonical state (Canon0f) and
+  `runCore pub_τ v_τ = some out` with `out.state` = the bytes sent on `SPOST` for τ, and in τ = 0
+  every forwarding demand is `≤` its link's grant.
+* **`schedCore_complete`**: for pubs with `PubOk` (n ≤ 64, distinct ids, A8 request bound) and any
+  canonical previous states, the honest traces (`Gen/*`) satisfy every constraint, have 0/1
+  multiplicities, and their traffic on every scheduler bus is the expected list (public records,
+  `VBYTES`/`SPOST`/SHA messages); heights `≤ 2^22` under A7 (`Σ_τ (|pre| + |post|) ≤ 3,000,000`)
+  and A8.
+
+Soundness chain (per τ), using M1's `core_compose`:
+1. comparator: `cmp_sound` (**done**);
+2. memory: row view (**done**, `View/Mem.lean`); segments (one per address, by `INIT`
+   uniqueness on `SOP`); **memory consistency**: by induction over process time, each GRANT's
+   `vin` is the replayed state (`simR`) at its address — ops on an address are exactly its
+   segment's rows (bus balance), sorted by time (comparator), chained;
+3. codec: header/records/trailer structure; pre bytes = `State.encode ⟨canonLinks ids a0, h0⟩`
+   (`decode_encode`); link pass = `linkPass` (INIT values); post bytes = the same encoding with the
+   final allowances and the SHA digest of `h0 ‖ ash`;
+4. scan: the `INC` records of request `cid` are `incsOf` of its bitmap (`Spec/Conv`), the initial
+   pushes are `initPushes`;
+5. process: rounds `RoundD` from headers/entries; `process_rounds`' hypotheses: `hperm` from the
+   `SPUSH` balance (filtered by τ), `hord`/`hval`/`hts` from headers and the comparator, `hsim`
+   from the shuffle contract (`shuffle_sound`, RNG positions chained from `Rng.ofSeed seed =
+   rngAt (leWords seed) 0`) and memory consistency;
+6. distribute: sorted orders (`sortByKey_eq_of_sorted`), cells = `gridGrants_get`;
+7. assemble with `core_compose`.
+
+### 6.1 Bus ownership (side conditions)
+
+`scpV3` the only receiver on `SCMP`; `smmV3` the only receiver on `SOP` and sender on `SFIN`;
+`sscV3` the only sender on `SINC`; `SPUSH` sent only by `sscV3`/`sprV3`, received only by `sprV3`;
+`SDL` only codec + public; `SDLX` only `sdsV3`; `SDG` sender `sdsV3`, receiver codec; public
+segments only on `SPUBB`, `SPAR`, `SRAW`, `SLINK`, `SSHD`, `SDL`; lane v3-chacha's conditions on
+its buses (`STATUS-V3-CHACHA` §6).
