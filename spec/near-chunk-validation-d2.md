@@ -732,6 +732,15 @@ D2 keeps these D0/D1 conditions unchanged: `c.pv86` (for every epoch), `c.layout
 | `w.size` | `|state_witness| ≤ 8 MiB`; `Σ|main base_state values| + 2000·R ≤ 4 000 000` (`R` = `ContractData` removals in the main transition) | the storage-proof limit (§3.3) never triggers |
 | `w.shape` | no action `DeployGlobalContract`/`UseGlobalContract`/`DeterministicStateInit`, no `GlobalContractDistribution` receipt, no ML-DSA-65 public key (receipt signer keys, AddKey/DeleteKey/Stake/gas-key actions, delegate keys) in any decoded transaction or receipt (witness lists and every receipt read from state); transactions (both lists) carry ED25519 keys and signatures | global contracts and SHA3-256 key handles / ML-DSA and secp256k1 *transaction* signature verification are not formalized |
 | `e.wasm` | no FunctionCall action reaches the dispatch point (§7.0) — e.g. an incoming, local, delayed, postponed or yielded receipt with a FunctionCall whose receiver exists and earlier actions succeeded | WASM execution (D3) |
+
+**FunctionCall actions are not excluded by shape.** A transaction (in `transactions` or
+`new_transactions`) or a receipt may contain FunctionCall actions: decoding, `validate_actions`
+(`gas > 0`, method / argument lengths), fees (`function_call_base/byte`, prepaid gas),
+function-call access keys (`verify_function_call_permission`, allowance charging), congestion
+gas, refunds and forwarding of such receipts are all formalized and execute no WASM. Only
+reaching the dispatch point is out of D2 (`e.wasm`). So, for example, a chunk whose
+`new_transactions` contain function calls (they are only size-checked and hashed), or whose
+last chunk's transactions call contracts on other shards, is in D2 if nothing else leaves it.
 | `e.secp` | no SECP256K1 Delegate signature is verified | ECDSA recovery not formalized |
 | `e.storage_proof` | (implied by `w.size`) the proof limit is never reached | |
 
@@ -779,9 +788,9 @@ checks are total in D2 and are reused unchanged.
 |---|---|
 | `D2/Types` | Account V1/V2, AccessKey, actions, receipts, StateStoredReceipt: decoders and encoders |
 | `D2/Params` | §4 |
-| `D2/Trie` | full reveal of the recorded store, `PTrie.delete` with squash (§3.4), path-only refs, prefix iteration with nearcore's read set |
+| `D2/Trie`, `D2/TrieProps` | full reveal of the recorded store, `PTrie.del` with squash (§3.4), path-only refs (`findRef`), prefix iteration (`prefixKeys`) with nearcore's read set; proofs `find_del`, `del_false` |
 | `D2/State` | the `TrieUpdate` overlay (§3.1), `finalize` |
-| `D2/Fees`, `D2/Validate` | §4.1, §6.6 |
+| `D2/Fees` | §4, §4.1, §6.6 (fees, `tx_cost`, `validate_actions`, `validate_receipt`, congestion gas) |
 | `D2/Actions` | §7, §8, `ActionHooks` |
 | `D2/Receipts` | §6 |
 | `D2/Queues` | §9 |
