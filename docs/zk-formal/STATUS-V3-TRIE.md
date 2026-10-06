@@ -13,10 +13,10 @@ Quot.sound} (checked with `#print axioms` for every theorem named here).
 | # | milestone | state |
 |---|---|---|
 | M1 | store spec for tree records + weak uniq (no A6) | **done** (§1) |
-| M2 | `uniqV3` table, view, link, render | in progress |
-| M3 | `walkV3` table, view, link, render | open |
-| M4 | `nodeV3` table + budget | open |
-| M5 | `nodeV3` view, link (trie of τ hashes to root, finds/absents, post-root) | open |
+| M2 | `uniqV3`: table, view, link (weak uniq ⇒ hash-functional), render | **done** |
+| M3 | `walkV3`: table, view, render | **done**; link (walks ⇒ `find`/absent) open |
+| M4 | node side split into `nodeV3` / `headV3` / `valV3`: tables, kernel-checked budget; `headV3` view + render; `valV3` view (render in progress); `nodeV3` view **statement** | **done** except as noted |
+| M5 | `nodeV3` view proof (adapt v1's 22 `Extract/Node*` modules), `nodeV3` render, link layer (trie of τ hashes to root, finds/absents, post-root), `upsV3` (`0x0f` upsert incl. insertion) | **open** |
 
 ## 1. M1 — store obligation under the lead's decision (spec side, proved)
 
@@ -93,7 +93,111 @@ records on its path, each once. The store-lane finding (shared record on two wri
 paths) cannot arise: two paths never share a record unless they share the whole prefix
 in the trie. Option (a) of STATUS-V3-STORE §2.2 is not needed.
 
-(Design of `nodeV3`/`walkV3`/`uniqV3` continues in §3 as tables land.)
+### 2.2 Node side split in three tables
+
+`nodeV3` keeps v1 `node`'s column layout (`0 … 162`) and row structure, so v1's 22-module
+extraction and render proofs transfer by adaptation; instance heads and value records,
+which have different row shapes, are separate small tables:
+
+* **`headV3`** (32 rows per instance τ): root digest window; `ROOT (τ, pre)` in,
+  `MIDROOT (τ, lockstep post)` out; `PARENT (rid, τ, 0, …)` to the root record (so v1's
+  root special cases disappear); the walks' `START` edge `(0, τ) –START→ (root target, 0)`;
+  `DIGS` of the root entry.
+* **`valV3`**: one record per revealed value occurrence (tree-shaped), bytes hashed as
+  `VPRE(vid)`, the same bytes received from the value's parser on `VBYTES` (`acct` /
+  `akey` / `sched` / `qvals` / public), `VPARENT (vid, len)` from the unique value window,
+  `DUP`/`ENT` like node records, `SIZE`.
+* **`nodeV3`** deltas: `τ`; `PARENT` carries τ; depth ≤ 399 (9 bits on the first row);
+  value windows onto `valV3` records with variable `vlen` (LE accumulator over `VLEN`, top
+  byte 0), `tw` = written in lockstep (post digest `VPOST(vid)` of the same length) else
+  `preg = reg`; `DIGS` from every digest window; `DUP`/`ENT`; edge kinds; `LEND` marker per
+  leaf; dead target `(nid, s)` for an extension's last nibble when the child is unrevealed;
+  `BMAP` per branch; `SIZE` instead of v1's in-table 3,000,000 check.
+
+### 2.3 `0x0f` upsert: separate table `upsV3` (open)
+
+Lockstep pre/post records express only same-length `set`s (accounts).  The `0x0f` upsert
+changes `memory_usage` along its path with truncated Nat arithmetic (`m + new − old`), may
+change the value length, and when the key is absent changes node shapes (`splitLeaf`,
+`splitExt`, new branch child/value).  It is applied **after** the lockstep writes
+(`set_upsert_comm`, account keys `[0,0,…] ≠ [0,15]`): the head sends the lockstep post-root on
+`MIDROOT (τ, ·)` and `upsV3` (to be designed) re-reveals the upsert path of the lockstep
+post-trie (bytes copied from the lockstep records' post streams, so no collision assumption),
+computes the post-upsert path (incl. insertion modes) and sends `ROOT (τ+1, ·)`.  Every
+instance has exactly one `0x0f` upsert (scheduler step), so the chain is
+`ROOT τ → head → MIDROOT τ → upsV3 → ROOT τ+1`.
+
+### 2.4 Walks
+
+* No depth counter (node depth ≤ 399 bounds `fdepth`, `pathsRevealed_of_rank`).
+* `START` edges only from heads, keyed by `(0, τ)`; a walk's first row has `I = τ`.
+* Terminal kinds follow `AbsentWitness`: `VAL` (edge kind `VAL`, target the value record),
+  `ABS_KEY` (a `KEY`/`LEND` edge with a different symbol: `extNib`, `leafNib`, `extLen`,
+  `leafLen`), `ABS_BR` / `ABS_VAL` (`BMAP`: bit `sym` of the bitmap is 0, or no value at
+  `END`).  After an absent terminal the walk drains the remaining `KEYNIB` symbols.
+  `FINAL (w, τ, kind, k)`.
+
+### 2.5 Weak uniqueness (`uniqV3`)
+
+Key `(τ, digest)`; `τ` is segment-constant and steps by a bit between segments (so an
+instance's entries are contiguous); within an instance the digest is strictly larger
+(`eq = 0`) or equal (`eq = 1`, then `DUP (eid, eid_prev)`); `nodeV3`/`valV3` answer `DUP` by
+copying the entry's bytes from its predecessor over `ENT (eid, len, pos, byte)`.  Node/value
+role clashes are covered because value records live in the same `ENT` space.
+
+## 3. Statements and theorems (all kernel-checked; axioms ⊆ {propext, Classical.choice, Quot.sound})
+
+| table | view statement / theorem | render | link |
+|---|---|---|---|
+| `uniqV3` | `UniqViewStmt` / **`uniq_view`** (`Extract/UniqProof.lean`) | **`uniq_render_local`, `uniq_render_traffic`, `uniqEntries_wf`** (`Render/Uniq*.lean`) | **`uniq_weak`, `uniq_functional`, `storeOf_hashFunctional`** (`Link/Uniq.lean`) |
+| `walkV3` | `WalkV3ViewStmt` / **`walk3_view`** (`Extract/WalkProof*.lean`) | **`walk_render_local`, `walk_render_traffic`** (`Render/Walk*.lean`) | open |
+| `headV3` | `HeadViewStmt` / **`head_view`** (`Extract/HeadProof.lean`) | **`head_render_local`, `head_render_traffic`** (`Render/HeadRender.lean`) | open (ROOT chain) |
+| `valV3` | `ValViewStmt` / **`val_view`** (`Extract/ValProof.lean`) | in progress | open |
+| `nodeV3` | `NodeV3ViewStmt` (`Extract/NodeView.lean`, statement only) | open | open |
+| spec | **`storeBuildR`, `pathsRevealed_of_rank`, `hashFunctional_of_weakUniq`, `treeRecs_spec`** | | |
+
+Render theorems are stated for any trace whose table `t` has the generator's cells
+(`hcell` for rows below the height and columns below the width, `hlog` the honest height).
+
+## 4. Budget (kernel-checked: `NearV3/BudgetCheck.lean`, `report_g1`, `report_g3`, `weqTrie_g1`, `weqTrie_g3`)
+
+| table | width | interactions | aux g=1 | degree g=1 | `W_eq` g=1 | `W_eq` g=3 | maxLog |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `nodeV3` | 185 | 18 | 18 | 4 | 353 | 297 | 22 |
+| `headV3` | 73 | 8 | 8 | 4 | 161 | 161 | 11 |
+| `valV3` | 15 | 7 | 7 | 4 | 95 | 95 | 22 |
+| `walkV3` | 56 | 6 | 6 | 4 | 128 | 128 | 21 |
+| `uniqV3` | 53 | 2 | 2 | 5 | 101 | 101 | 22 |
+| **total** | 382 | 41 | | | **838** | **782** | |
+
+Design estimate (§3.1) for node + walk + uniq was 345 + 104 + 81 = 530; this lane's five
+tables are 838 (+308: heads 161, value records 95, wider walk/uniq).  `uniqV3` has degree 5
+(gate `sf·eq` on `DUP`); a gate column would save 8 (left as is: proofs done).  `upsV3` not
+counted.
+
+## 5. Reuse
+
+* `uniqV3` view: ≈ 70 % of v1 `SortProof` (structure, segment, delay-line, carry chain
+  copied; new segment constants, equal case, `DUP`).
+* `walkV3` view: ≈ 60 % of v1 `WalkProof`; render (helper) built on v1's `Render/Walk*`
+  pattern.
+* `headV3`, `valV3`: new, written in the same segment framework (`Extract/Segments.lean`).
+* `nodeV3`: v1 layout kept for columns `0 … 162` so the v1 node view (5.8 k lines) can be
+  adapted; estimated 60–70 % reusable (row/field structure, bytes, windows unchanged; edges,
+  root handling, value windows, sizes change).
+
+## 6. Open items
+
+1. **`nodeV3` view proof** (adapt `Extract/Node*`), **`nodeV3` render**.
+2. **Link layer**: ROOT/MIDROOT chain; trie of instance τ = records (tree via `PARENT` +
+   depth ⇒ `RootedDagR` with rank = depth); entries ⇒ `storeOf` covered by `uniq` entries
+   (`storeOf_hashFunctional`) ⇒ `storeBuildR`; walks ⇒ `find`/`AbsentWitness`
+   (`absent_iff`); lockstep post-root = `set`s.
+3. **`upsV3`** (§2.3).
+4. **A7** (unfolded-size cap, §1.3) — spec request.
+5. `size` lane consumes `SIZE (0, ·)` (node) and `SIZE (1, ·)` (values).
+6. Producers must switch value pre-bytes from `BYTES (VPRE)` to `VBYTES (vid, …)` (`acct`
+   v3 variant, `akey`, `sched`, `qvals`), and send `FINAL`/`KEYNIB` in the v3 formats.
 
 ## Modules
 
