@@ -123,6 +123,79 @@ tables are complete only for witnesses with `UnfoldBound (2^22 − 1)` (and the 
 analogue); on real chains `unfoldedBytes = |base_state|` up to rare identical leaves.
 (Paper proof; the Lean statement is the hypothesis above.)
 
+### 1.5 A7 accepted: what is counted, and row costs per unfolded byte
+
+The lead accepted A7 as a decidable conjunct of `InD0` (`RelD0a B … := … ∧ unfoldBytes ≤ B`,
+spec lane, `NearSpecV3/ChunkValidationV0a.lean`).  This lane keeps **every completeness and
+height theorem parametric in the bound** (`UnfoldBound e`, §1.4).  **Soundness never
+mentions it.**
+
+**Definition to mirror (tree records).**  For each transition `τ = 0..K`:
+
+* `T_τ` is the partial trie the relation builds for `τ`:
+  `partialTrie ws root_τ keys_τ`, where `keys_τ` is every key `τ` reads or writes
+  (reads, account `set`s, `[0,15]`).
+* `nodeB_τ = Σ_{o ∈ occs T_τ} |nodeEnc o|` counts node occurrences, each **per read-path
+  copy**.  A digest shared by several paths is counted once per occurrence.
+* `valB_τ = Σ_{v ∈ valsOf T_τ} |v|` counts revealed value occurrences.
+* **Post-write path copies cost no extra records.**  Account `set`s are lockstep: the post
+  bytes sit in the same rows as the pre bytes, so `nodeB_τ` already counts them.
+* `upsB_τ` counts the `0x0f` upsert's new nodes, under `upsV3` option A (§2.3):
+  `upsB_τ = Σ_{o ∈ occs Q_τ} |nodeEnc o|` (value occurrence of `Q_τ` counted in `valB`).
+  * `Q_τ = upsert (prune_{[0,15]} T_τ') [0,15] v_τ`.
+  * `T_τ'` is the lockstep post-trie.
+  * `prune_k t` replaces every child that is off the path of `k` with `.hash (hashOf child)`.
+  * `Q_τ` has at most 6 revealed nodes.
+  * Under option C (A4), `upsB_τ = 0`.
+
+So `unfoldBytes = Σ_τ (nodeB_τ + valB_τ + upsB_τ)`.  Bounding the parts separately is also
+fine.  Some tables need occurrence counts:
+
+* `nOcc = Σ_τ (|occs T_τ| + |occs Q_τ|)`
+* `vOcc = Σ_τ |valsOf T_τ|`
+
+**Rows (all instances share one table each):**
+
+| table | rows | per unfolded byte (node occurrence of `L ≥ 46` bytes) |
+|---|---|---|
+| `nodeV3` | `Σ_τ (nodeB_τ + upsB_τ) + 1` (SUM) | **1** |
+| `valV3` | `Σ_τ valB_τ + #empty values + 1` | 1 (value bytes) |
+| `sha_t` | per node occurrence: **2** messages (`NPRE` and `NPOST`, every record), each `1 + 17·⌈(L+9)/64⌉` rows; per value occurrence: 1 message | `≤ 0.531 + 40.25/L` per node byte (`≤ 1.41` at `L = 46`, ≈ 0.61 at `L ≈ 500`); ≈ 0.27 + 18/L per value byte; plus the other tables' hashing |
+| `uniqV3` | `32 · (nOcc + vOcc)` | `32/L` (`≤ 0.70`); binding cap `nOcc + vOcc ≤ 131,071` |
+| `headV3` | 32 per instance | 0 |
+| `walkV3` | `Σ_walks (|key nibbles| + 2)` | 0 (does not scale with unfolding) |
+
+Widths and `W_eq` are in §4.  From these, `B0` must satisfy, against `2^22` rows:
+
+* `nodeB + upsB ≤ 2^22 − 1`
+* `0.531·nodeB + 40.25·nOcc + (other SHA) ≤ 2^22`
+* `nOcc + vOcc ≤ 2^17 − 1`
+
+The 8 MiB check uses the widths in §4.
+
+### 1.6 Alternative: one record per distinct digest (graph) plus post copies on write paths
+
+| | tree (current) | graph |
+|---|---|---|
+| pre-state node rows | `Σ` occurrences (unfolded) | distinct digests `≤ |base_state|` (does not scale with sharing) |
+| post-state | lockstep, same rows, free | separate **post-copy records** for every write-path occurrence. Their bytes are copied from the pre record (an `ENT`-style copy with window exceptions). They still scale with unfolding of the write paths, so an A7-type cap on write-path bytes is still needed. |
+| SHA | 2 messages per occurrence | 1 per distinct record + 1 per post copy |
+| uniq | 32 rows per occurrence | 32 rows per distinct record |
+| depth ≤ 400 / fuel | 9 bits per record (`depthBound`); occurrence = record | one record sits at many depths, so walks need a depth counter again. Soundness must go through "fuel-unfolding of the graph refines `partialTrie`" (`find_refinedBy`, `hashOf_refinedBy`, `upsert_refinedBy`; a `set_refinedBy` is missing). Cycles (SHA cycles) must be handled by fuel, not rank. |
+| `PARENT` | exact (one per record) | chained with use counts |
+| proof state | M1 spec done, `node3_view` done, render ≈ 2/3 | spec redone (≈ 1.5–2 k lines), `nodeV3` with a post-copy mode and copy bus (view re-port ≈ 3 k changed lines, render redone), walk depth counter: **≈ +5–7 k lines**, M1/M5 restart |
+
+* **Honest witnesses** (`unfolded ≈ |base_state|`, rare shared leaves): node rows are the
+  same or **higher** with the graph (pre records plus post copies vs lockstep), SHA rows
+  ≈ halve, uniq is the same.
+* The graph raises `B` only for adversarial, heavily shared witnesses, which A7 excludes
+  anyway, and it still needs a cap on write-path copies.
+
+**Recommendation: keep tree records.**  If SHA rows bind `B0`, the cheap fix within the
+tree approach is to send `NPOST` bytes only for records on write paths (a node-constant
+`wr` flag; `post = pre` otherwise, with the post digest taken from the pre digest).  That
+halves SHA for read-only records with a small `nodeV3` delta.
+
 ## 2. Design decisions (this lane)
 
 ### 2.1 Writes through shared records
@@ -261,7 +334,7 @@ counted.
    (`storeOf_hashFunctional`) ⇒ `storeBuildR`; walks ⇒ `find`/`AbsentWitness`
    (`absent_iff`); lockstep post-root = `set`s.
 3. **`upsV3`** (§2.3): design options A/B/C, decision requested (insertion ⇒ A).
-4. **A7** (unfolded-size cap, §1.3): no decision; statements parametric in `UnfoldBound e` (§1.4).
+4. **A7** accepted (spec lane `RelD0a`); counting definition and row costs in §1.5; completeness/height parametric, soundness bound-free.
 5. `size` lane consumes `SIZE (0, ·)` (node) and `SIZE (1, ·)` (values).
 6. Producers must switch value pre-bytes from `BYTES (VPRE)` to `VBYTES (vid, …)` (`acct`
    v3 variant, `akey`, `sched`, `qvals`), and send `FINAL`/`KEYNIB` in the v3 formats.
