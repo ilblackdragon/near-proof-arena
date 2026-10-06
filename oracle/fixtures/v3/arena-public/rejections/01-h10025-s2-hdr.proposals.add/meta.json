@@ -1,0 +1,12 @@
+{
+  "base": "01-h10025-s2",
+  "case": "01-h10025-s2-hdr.proposals.add",
+  "d0_violations": [],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "in_d0": true,
+  "kind": "mutant",
+  "mutation": "hdr.proposals.add",
+  "nearcore": "validate: InvalidValidatorProposals",
+  "verdict_source": "nearcore"
+}

@@ -1,0 +1,12 @@
+{
+  "base": "01-h10025-s2",
+  "case": "01-h10025-s2-w.dup_key_last_good",
+  "d0_violations": [],
+  "expected_rel": true,
+  "expected_rel_d0": true,
+  "in_d0": true,
+  "kind": "mutant",
+  "mutation": "w.dup_key_last_good",
+  "nearcore": "ok",
+  "verdict_source": "nearcore"
+}

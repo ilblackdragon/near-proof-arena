@@ -11,17 +11,19 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
 "$here/scripts/link-nearcore.sh" >/dev/null
 (cd "$here/v3" && cargo build -j "${JOBS:-16}")
+(cd "$here/v3-d1" && cargo build -j "${JOBS:-16}")   # D1 oracle (separate crate; ../v3 stays as pinned)
 bin="$here/v3/target/debug/near-arena-oracle-v3"
+bin_d1="$here/v3-d1/target/debug/near-arena-oracle-v3-d1"
 rm -rf "$here/fixtures/v3/public"
 "$bin" gen --seed 4243 --out "$here/fixtures/v3/public" --chains 2 --blocks 40 --mutate-every 25 --ood-cap 1
 "$bin" vectors --out "$here/fixtures/v3/vectors" --seed 86
 rm -rf "$here/fixtures/v3/public-d1"
-"$bin" gen --seed 4243 --out "$here/fixtures/v3/public-d1" --chains 2 --blocks 40 --mutate-every 25 --ood-cap 1 --domain d1
+"$bin_d1" gen --seed 4243 --out "$here/fixtures/v3/public-d1" --chains 2 --blocks 40 --mutate-every 25 --ood-cap 1 --domain d1
 if [[ "${FULL:-0}" == 1 ]]; then
   OUT="${OUT:-/tmp/near-v3-full}"
   rm -rf "$OUT"
   "$bin" gen --seed 4243 --out "$OUT" --chains 8 --blocks 120 --mutate-every 6
   OUT_D1="${OUT_D1:-/tmp/near-v3-d1-full}"
   rm -rf "$OUT_D1"
-  "$bin" gen --seed 5151 --out "$OUT_D1" --chains 12 --blocks 150 --ood-cap 40 --mutate-every 4 --domain d1
+  "$bin_d1" gen --seed 5151 --out "$OUT_D1" --chains 12 --blocks 150 --ood-cap 40 --mutate-every 4 --domain d1
 fi

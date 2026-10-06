@@ -1,0 +1,832 @@
+{
+ "schema": "arena-bench-cost-testvectors-v1",
+ "spec": "docs/BENCHMARK_SPEC.md §14",
+ "notes": "All outputs are integers and must match exactly. Units: ns, bytes, femto-USD.",
+ "batch_cost": [
+  {
+   "name": "ns_rounding_up",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "components": {
+    "prove_ns": 1,
+    "verify_ns": 1,
+    "proof_bytes": 0
+   },
+   "prepare_ns": 0,
+   "batch_size": 8,
+   "expect": {
+    "prove_fusd": 61,
+    "prepare_fusd": 0,
+    "verify_fusd": 6405,
+    "bandwidth_fusd": 0,
+    "storage_fusd": 0,
+    "total_fusd": 6466
+   }
+  },
+  {
+   "name": "reexec_like",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "components": {
+    "prove_ns": 10205590,
+    "verify_ns": 1317280576,
+    "proof_bytes": 669352
+   },
+   "prepare_ns": 0,
+   "batch_size": 8,
+   "expect": {
+    "prove_fusd": 621316320,
+    "prepare_fusd": 0,
+    "verify_fusd": 8420584354035,
+    "bandwidth_fusd": 5868543660000,
+    "storage_fusd": 0,
+    "total_fusd": 14289749330355
+   }
+  },
+  {
+   "name": "stark_like",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "components": {
+    "prove_ns": 62156378513,
+    "verify_ns": 6212980976,
+    "proof_bytes": 24620920
+   },
+   "prepare_ns": 6625675,
+   "batch_size": 8,
+   "expect": {
+    "prove_fusd": 3784080323872,
+    "prepare_fusd": 0,
+    "verify_fusd": 39715859590995,
+    "bandwidth_fusd": 215863916100000,
+    "storage_fusd": 0,
+    "total_fusd": 259363856014867
+   }
+  },
+  {
+   "name": "prepare_amortized",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 7,
+    "prepare_amortization_requests": 43200
+   },
+   "components": {
+    "prove_ns": 5000000,
+    "verify_ns": 9000000,
+    "proof_bytes": 100000
+   },
+   "prepare_ns": 600000000000,
+   "batch_size": 16,
+   "expect": {
+    "prove_fusd": 304400000,
+    "prepare_fusd": 13528888889,
+    "verify_fusd": 57531600000,
+    "bandwidth_fusd": 876750000000,
+    "storage_fusd": 73500000,
+    "total_fusd": 948188388889
+   }
+  },
+  {
+   "name": "bad_prices",
+   "prices": {
+    "validators_per_chunk": 0,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "components": {
+    "prove_ns": 1,
+    "verify_ns": 1,
+    "proof_bytes": 1
+   },
+   "prepare_ns": 0,
+   "batch_size": 1,
+   "expect": {
+    "error": "BAD_PRICES"
+   }
+  },
+  {
+   "name": "zero_verify",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "components": {
+    "prove_ns": 1,
+    "verify_ns": 0,
+    "proof_bytes": 1
+   },
+   "prepare_ns": 0,
+   "batch_size": 1,
+   "expect": {
+    "error": "ZERO_OR_BAD_TIME"
+   }
+  },
+  {
+   "name": "overflow_u64",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "components": {
+    "prove_ns": 18446744073709551615,
+    "verify_ns": 1,
+    "proof_bytes": 1
+   },
+   "prepare_ns": 0,
+   "batch_size": 1,
+   "expect": {
+    "error": "COST_OVERFLOW"
+   }
+  },
+  {
+   "name": "overflow_u128_intermediate",
+   "prices": {
+    "validators_per_chunk": 4294967295,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 18446744073709551615,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "components": {
+    "prove_ns": 1,
+    "verify_ns": 1,
+    "proof_bytes": 18446744073709551615
+   },
+   "prepare_ns": 0,
+   "batch_size": 1,
+   "expect": {
+    "error": "COST_OVERFLOW"
+   }
+  },
+  {
+   "name": "free_bytes",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 0,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "components": {
+    "prove_ns": 1,
+    "verify_ns": 1,
+    "proof_bytes": 0
+   },
+   "prepare_ns": 0,
+   "batch_size": 1,
+   "expect": {
+    "prove_fusd": 61,
+    "prepare_fusd": 0,
+    "verify_fusd": 6405,
+    "bandwidth_fusd": 0,
+    "storage_fusd": 0,
+    "total_fusd": 6466
+   }
+  }
+ ],
+ "cost_score": [
+  {
+   "name": "baseline_is_100",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "batch-256",
+     "weight_ppm": 1000000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 10205590,
+      "verify_ns": 1317280576,
+      "proof_bytes": 669352
+     },
+     "prove_runs_ns": [
+      10205590,
+      9900000,
+      10500000
+     ],
+     "verify_runs_ns": [
+      1317280576,
+      1300000000,
+      1330000000
+     ],
+     "proof_bytes_runs": [
+      669352,
+      669352,
+      669352
+     ]
+    }
+   ],
+   "expect": {
+    "score_milli": 100000,
+    "classes": [
+     {
+      "class_id": "batch-256",
+      "baseline_total_fusd": 14289749330355,
+      "prove_fusd": 621316320,
+      "prepare_fusd": 0,
+      "verify_fusd": 8420584354035,
+      "bandwidth_fusd": 5868543660000,
+      "storage_fusd": 0,
+      "total_fusd": 14289749330355
+     }
+    ]
+   }
+  },
+  {
+   "name": "v1_6_shape_stark_vs_reexec",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "prepare_ns": 6625675,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "batch-1",
+     "weight_ppm": 200000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 6211419,
+      "verify_ns": 38512968,
+      "proof_bytes": 8704
+     },
+     "prove_runs_ns": [
+      1989271600,
+      2039539650,
+      2044468726
+     ],
+     "verify_runs_ns": [
+      3451930376,
+      3480000000,
+      3420000000
+     ],
+     "proof_bytes_runs": [
+      15643512,
+      15643512,
+      15643512
+     ]
+    },
+    {
+     "class_id": "batch-16",
+     "weight_ppm": 300000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 6876460,
+      "verify_ns": 142200576,
+      "proof_bytes": 59256
+     },
+     "prove_runs_ns": [
+      6492014396,
+      6500000000,
+      6480000000
+     ],
+     "verify_runs_ns": [
+      4577845320,
+      4600000000,
+      4560000000
+     ],
+     "proof_bytes_runs": [
+      19688376,
+      19688376,
+      19688376
+     ]
+    },
+    {
+     "class_id": "batch-256",
+     "weight_ppm": 500000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 10205590,
+      "verify_ns": 1317280576,
+      "proof_bytes": 669352
+     },
+     "prove_runs_ns": [
+      62156378513,
+      62000000000,
+      62300000000
+     ],
+     "verify_runs_ns": [
+      6212980976,
+      6250000000,
+      6200000000
+     ],
+     "proof_bytes_runs": [
+      24620920,
+      24620920,
+      24620920
+     ]
+    }
+   ],
+   "expect": {
+    "score_milli": 1537,
+    "classes": [
+     {
+      "class_id": "batch-1",
+      "baseline_total_fusd": 322880767849,
+      "prove_fusd": 124167173892,
+      "prepare_fusd": 0,
+      "verify_fusd": 22066119735555,
+      "bandwidth_fusd": 137154491460000,
+      "storage_fusd": 0,
+      "total_fusd": 159344778369447
+     },
+     {
+      "class_id": "batch-16",
+      "baseline_total_fusd": 1428948580920,
+      "prove_fusd": 395233836429,
+      "prepare_fusd": 0,
+      "verify_fusd": 29263418423610,
+      "bandwidth_fusd": 172617836580000,
+      "storage_fusd": 0,
+      "total_fusd": 202276488840039
+     },
+     {
+      "class_id": "batch-256",
+      "baseline_total_fusd": 14289749330355,
+      "prove_fusd": 3784080323872,
+      "prepare_fusd": 0,
+      "verify_fusd": 39715859590995,
+      "bandwidth_fusd": 215863916100000,
+      "storage_fusd": 0,
+      "total_fusd": 259363856014867
+     }
+    ]
+   }
+  },
+  {
+   "name": "smaller_proof_faster_verify_wins",
+   "prices": {
+    "validators_per_chunk": 60,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "a",
+     "weight_ppm": 400000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 1000000,
+      "verify_ns": 50000000,
+      "proof_bytes": 80000
+     },
+     "prove_runs_ns": [
+      3000000,
+      2900000,
+      3100000,
+      3050000,
+      2950000
+     ],
+     "verify_runs_ns": [
+      5000000,
+      5100000,
+      4900000,
+      5200000,
+      4800000
+     ],
+     "proof_bytes_runs": [
+      12000,
+      12000,
+      12000,
+      12000,
+      12000
+     ]
+    },
+    {
+     "class_id": "b",
+     "weight_ppm": 600000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 2000000,
+      "verify_ns": 400000000,
+      "proof_bytes": 700000
+     },
+     "prove_runs_ns": [
+      9000000,
+      9100000,
+      8900000,
+      9300000,
+      8700000
+     ],
+     "verify_runs_ns": [
+      6000000,
+      6100000,
+      5900000,
+      6050000,
+      5950000
+     ],
+     "proof_bytes_runs": [
+      12500,
+      12500,
+      12400,
+      12500,
+      12600
+     ]
+    }
+   ],
+   "expect": {
+    "score_milli": 2559274,
+    "classes": [
+     {
+      "class_id": "a",
+      "baseline_total_fusd": 583500880000,
+      "prove_fusd": 182640000,
+      "prepare_fusd": 0,
+      "verify_fusd": 18264000000,
+      "bandwidth_fusd": 60120000000,
+      "storage_fusd": 0,
+      "total_fusd": 78566640000
+     },
+     {
+      "class_id": "b",
+      "baseline_total_fusd": 4968241760000,
+      "prove_fusd": 547920000,
+      "prepare_fusd": 0,
+      "verify_fusd": 21916800000,
+      "bandwidth_fusd": 62625000000,
+      "storage_fusd": 0,
+      "total_fusd": 85089720000
+     }
+    ]
+   }
+  },
+  {
+   "name": "no_runs",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "a",
+     "weight_ppm": 1000000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 1,
+      "verify_ns": 1,
+      "proof_bytes": 1
+     },
+     "prove_runs_ns": [],
+     "verify_runs_ns": [],
+     "proof_bytes_runs": []
+    }
+   ],
+   "expect": {
+    "error": "NO_RUNS"
+   }
+  },
+  {
+   "name": "run_length_mismatch",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "a",
+     "weight_ppm": 1000000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 1,
+      "verify_ns": 1,
+      "proof_bytes": 1
+     },
+     "prove_runs_ns": [
+      1,
+      2
+     ],
+     "verify_runs_ns": [
+      1
+     ],
+     "proof_bytes_runs": [
+      1,
+      1
+     ]
+    }
+   ],
+   "expect": {
+    "error": "RUN_LENGTH_MISMATCH"
+   }
+  },
+  {
+   "name": "weight_sum",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "a",
+     "weight_ppm": 999999,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 1,
+      "verify_ns": 1,
+      "proof_bytes": 1
+     },
+     "prove_runs_ns": [
+      1
+     ],
+     "verify_runs_ns": [
+      1
+     ],
+     "proof_bytes_runs": [
+      1
+     ]
+    }
+   ],
+   "expect": {
+    "error": "WEIGHT_SUM"
+   }
+  },
+  {
+   "name": "empty",
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [],
+   "expect": {
+    "error": "EMPTY_SUITE"
+   }
+  }
+ ],
+ "cost_bootstrap": [
+  {
+   "name": "v1_6_shape",
+   "seed": 4242,
+   "iterations": 300,
+   "prices": {
+    "validators_per_chunk": 105,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "prepare_ns": 6625675,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "batch-1",
+     "weight_ppm": 200000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 6211419,
+      "verify_ns": 38512968,
+      "proof_bytes": 8704
+     },
+     "prove_runs_ns": [
+      1989271600,
+      2039539650,
+      2044468726
+     ],
+     "verify_runs_ns": [
+      3451930376,
+      3480000000,
+      3420000000
+     ],
+     "proof_bytes_runs": [
+      15643512,
+      15643512,
+      15643512
+     ]
+    },
+    {
+     "class_id": "batch-16",
+     "weight_ppm": 300000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 6876460,
+      "verify_ns": 142200576,
+      "proof_bytes": 59256
+     },
+     "prove_runs_ns": [
+      6492014396,
+      6500000000,
+      6480000000
+     ],
+     "verify_runs_ns": [
+      4577845320,
+      4600000000,
+      4560000000
+     ],
+     "proof_bytes_runs": [
+      19688376,
+      19688376,
+      19688376
+     ]
+    },
+    {
+     "class_id": "batch-256",
+     "weight_ppm": 500000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 10205590,
+      "verify_ns": 1317280576,
+      "proof_bytes": 669352
+     },
+     "prove_runs_ns": [
+      62156378513,
+      62000000000,
+      62300000000
+     ],
+     "verify_runs_ns": [
+      6212980976,
+      6250000000,
+      6200000000
+     ],
+     "proof_bytes_runs": [
+      24620920,
+      24620920,
+      24620920
+     ]
+    }
+   ],
+   "expect": {
+    "score_milli": 1537,
+    "lo_milli": 1536,
+    "hi_milli": 1537,
+    "half_width_milli": 1
+   }
+  },
+  {
+   "name": "two_class_noisy",
+   "seed": 2762445350120005695,
+   "iterations": 500,
+   "prices": {
+    "validators_per_chunk": 60,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "a",
+     "weight_ppm": 400000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 1000000,
+      "verify_ns": 50000000,
+      "proof_bytes": 80000
+     },
+     "prove_runs_ns": [
+      3000000,
+      2900000,
+      3100000,
+      3050000,
+      2950000
+     ],
+     "verify_runs_ns": [
+      5000000,
+      5100000,
+      4900000,
+      5200000,
+      4800000
+     ],
+     "proof_bytes_runs": [
+      12000,
+      12000,
+      12000,
+      12000,
+      12000
+     ]
+    },
+    {
+     "class_id": "b",
+     "weight_ppm": 600000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 2000000,
+      "verify_ns": 400000000,
+      "proof_bytes": 700000
+     },
+     "prove_runs_ns": [
+      9000000,
+      9100000,
+      8900000,
+      9300000,
+      8700000
+     ],
+     "verify_runs_ns": [
+      6000000,
+      6100000,
+      5900000,
+      6050000,
+      5950000
+     ],
+     "proof_bytes_runs": [
+      12500,
+      12500,
+      12400,
+      12500,
+      12600
+     ]
+    }
+   ],
+   "expect": {
+    "score_milli": 2559274,
+    "lo_milli": 2546390,
+    "hi_milli": 2575147,
+    "half_width_milli": 14379
+   }
+  }
+ ]
+}

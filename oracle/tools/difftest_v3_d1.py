@@ -2,7 +2,7 @@
 """3-way differential test for near/pv86/chunk-validation/v0, domain D1.
 
 Implementations compared on every case directory (claim.bin, witness.bin, meta.json) of a
-corpus written by `near-arena-oracle-v3 gen --domain d1`:
+corpus written by `near-arena-oracle-v3-d1 gen --domain d1`:
   (1) nearcore oracle — meta.json: nearcore's own validator verdict (`expected_rel`, for
       `tx_valid` mutants with the store's validity answers replaced by the claim's) and the
       oracle's independent Rust D1 predicate (`in_d1`); expected D1 verdict = `expected_rel_d1`;

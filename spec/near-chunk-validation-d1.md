@@ -209,7 +209,7 @@ addition law, equality with dalek's code — the transcription is tested, not pr
 
 ## 7. Reference oracle for D1
 
-`near-arena-oracle-v3 gen --domain d1` (`oracle/v3/src/{d1gen,d1}.rs`):
+`near-arena-oracle-v3-d1 gen --domain d1` (crate `oracle/v3-d1`: `src/{d1gen,d1,d1judge,chaingen}.rs`; it reuses the D0 oracle's claim builder, encodings, D0 classifier, judge and mutants from `oracle/v3/src` unchanged by `#[path]`, so the D0 oracle and the tree digest the live D0 challenge pins are untouched):
 
 * **Chains** as for D0 (§7 of the v0 doc), plus genesis keys per shard: a gas key (a06),
   function-call keys with unlimited and 1-yocto allowance (a07, a08), and 14 extra
@@ -232,7 +232,7 @@ addition law, equality with dalek's code — the transcription is tested, not pr
   precisely. Everything downstream is unmodified nearcore; nearcore's own outcome for every
   transaction is recorded (`tx_results`).
 * **Judge**: nearcore's validator as for D0. `tx_valid` mutants (trusted facts) are judged by
-  nearcore with the store's validity answers replaced by the claim's (`judge::nearcore_judge_flags`).
+  nearcore with the store's validity answers replaced by the claim's (`d1judge::nearcore_judge_flags`).
 * **D1 classifier**: `d1::classify` from the node's full state and stored outcomes.
 * **D1 mutants**: each `tx_valid` flag flipped, dropped / swapped / signature-flipped
   transactions, a signature with the borsh-rejected high bits, and `new_transactions`
@@ -242,7 +242,7 @@ addition law, equality with dalek's code — the transcription is tested, not pr
 
 Note: nearcore's store debug-asserts that two values stored under one key are equal
 (`core/store/src/db/refcount.rs:107-119`); a chunk with two different `SignedTransaction`s of
-one hash (class `dup_bad_sig_first`) trips it in debug builds, so the oracle builds
+one hash (class `dup_bad_sig_first`) trips it in debug builds, so the D1 oracle builds
 `near-store` without debug assertions (release nodes have none).
 
 ## 8. Results

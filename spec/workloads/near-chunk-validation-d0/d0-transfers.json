@@ -1,0 +1,27 @@
+{
+ "schema": "near-arena-workload-generator-v1",
+ "challenge": "near-chunk-validation-d0",
+ "class": "d0-transfers",
+ "tool": "near-arena-oracle-v3 gen",
+ "args": [
+  "--fixtures-layout",
+  "--class",
+  "transfers",
+  "--rotate",
+  "--per-chain-cap",
+  "2",
+  "--chains",
+  "48",
+  "--blocks",
+  "40",
+  "--mutate-every",
+  "0",
+  "--ood-cap",
+  "0"
+ ],
+ "seed": "judge-chosen per run (season-secret HMAC, BENCHMARK_SPEC \u00a711.1); --d0-target = batch size; held-out set: secret seed",
+ "oracle_source_tree_digest": "sha256:91b2c4074a682617daa1288a89c00e473e96b456079560d14fae76e6fd7f9516",
+ "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
+ "statement_id": "near/pv86/chunk-validation/v0",
+ "domain": "D0"
+}

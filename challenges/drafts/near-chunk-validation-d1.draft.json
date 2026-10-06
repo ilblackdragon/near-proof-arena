@@ -120,10 +120,10 @@
       "relation_module": "NearSpecV3.ChunkValidationD1",
       "relation_decl": "NearSpecV3.RelD1",
       "challenge_spec_decl": "NearSpecV3.challengeSpecD1",
-      "tree_digest": "sha256:72af401a88ae12b3cd367d635c41a6c0f862c6e19545a28ee41fd47929ed9c72",
+      "tree_digest": "sha256:3902b01da4ce3134645b175fde196dde2982a746a803d56b7144f3c179ccc93f",
       "lean_toolchain": "leanprover/lean4:v4.34.1"
     },
-    "spec_doc_digest": "sha256:cb544509b1264efad87fcf635a0946400759fde1c22b41187ec8359da82831d1"
+    "spec_doc_digest": "sha256:3efcf57ee7c60ded922fcbb2961b40b898a7eac37b30440e0879e417da148509"
   },
   "claim_encoding": {
     "format": "near-arena-claim-v3",
@@ -187,7 +187,7 @@
     "classes": [
       {
         "id": "d1-chunks",
-        "description": "real ChunkStateWitness + claim-v3 pairs in D1 from multi-shard nearcore TestEnv chains with Transfer transactions of every validity class (near-arena-oracle-v3 gen --domain d1)",
+        "description": "real ChunkStateWitness + claim-v3 pairs in D1 from multi-shard nearcore TestEnv chains with Transfer transactions of every validity class (near-arena-oracle-v3-d1 gen --domain d1)",
         "weight_ppm": 1000000,
         "batch_size": 8,
         "generator": null

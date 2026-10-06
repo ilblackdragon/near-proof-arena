@@ -1,0 +1,15 @@
+== parent: PASS [] score_milli=45
+  batch-1    median   2.253s mad    35.5ms cold   2.531s rss 567MB
+  batch-16   median   7.356s mad    35.8ms cold   7.965s rss 637MB
+  batch-256  median  72.394s mad   327.0ms cold  76.487s rss 3304MB
+  summary: PUBLIC sampling seeds (no season secret configured on this worker; inputs are predictable from the challenge id and package digest); batch-1: median 2252623 us, MAD 35476 us, verify median 473593 us, max proof 2014347 B; batch-16: median 7355744 us, MAD 35763 us, verify median 621669 us, max proof 2449043 B; batch-256: median 72393886 us, MAD 326954 us, verify median 845970 us, max proof 3089007 B; worker-side score 45 ± 0 milli (server recomputes)
+== child: PASS [] score_milli=39
+  batch-1    median   3.450s mad   215.9ms cold   3.885s rss 840MB
+  batch-16   median  11.176s mad   202.0ms cold  11.238s rss 930MB
+  batch-256  median  65.053s mad  2594.7ms cold  69.971s rss 1517MB
+  summary: PUBLIC sampling seeds (no season secret configured on this worker; inputs are predictable from the challenge id and package digest); session 1: CACHING_SUSPECTED; re-measured on fresh batches only; session 1 discarded (EXCESSIVE_OUTLIERS:batch-256); re-measured; batch-1: median 3449734 us, MAD 215929 us, verify median 463269 us, max proof 2048407 B; batch-16: median 11175589 us, MAD 201973 us, verify median 606294 us, max proof 2540779 B; batch-256: median 65052848 us, MAD 2594719 us, verify median 811869 us, max proof 3084399 B; worker-side score 39 ± 1 milli (server recomputes)
+== fast2: PASS [] score_milli=52
+  batch-1    median   1.816s mad   303.1ms cold   1.498s rss 467MB
+  batch-16   median   5.282s mad   951.2ms cold   4.549s rss 542MB
+  batch-256  median  73.067s mad 12010.1ms cold  55.328s rss 1754MB
+  summary: PUBLIC sampling seeds (no season secret configured on this worker; inputs are predictable from the challenge id and package digest); batch-1: median 1816379 us, MAD 303122 us, verify median 518205 us, max proof 1932631 B; batch-16: median 5282293 us, MAD 951229 us, verify median 678642 us, max proof 2541187 B; batch-256: median 73067302 us, MAD 12010098 us, verify median 895552 us, max proof 3049903 B; worker-side score 52 ± 5 milli (server recomputes)

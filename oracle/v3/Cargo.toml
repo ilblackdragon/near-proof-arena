@@ -51,10 +51,3 @@ panic = 'unwind'
 opt-level = 1
 [profile.dev.package."*"]
 opt-level = 2
-# near-store's refcount merge debug-asserts that two values stored under one key are equal
-# (core/store/src/db/refcount.rs:107-119); release nodes keep the first value. A chunk carrying
-# two different SignedTransactions with the same hash (same Transaction, different signature —
-# the D1 class `dup_bad_sig_first`) trips it when the chunk's transactions are stored. Only this
-# crate's debug assertions are disabled (production builds have none).
-[profile.dev.package.near-store]
-debug-assertions = false

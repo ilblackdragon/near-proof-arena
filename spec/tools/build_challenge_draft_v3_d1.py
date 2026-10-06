@@ -93,7 +93,7 @@ def main():
         "hardware_profile": None,
         "workload_suite": {
             "revision": "near-chunk-validation-d1-r0",
-            "classes": [{"id": "d1-chunks", "description": "real ChunkStateWitness + claim-v3 pairs in D1 from multi-shard nearcore TestEnv chains with Transfer transactions of every validity class (near-arena-oracle-v3 gen --domain d1)",
+            "classes": [{"id": "d1-chunks", "description": "real ChunkStateWitness + claim-v3 pairs in D1 from multi-shard nearcore TestEnv chains with Transfer transactions of every validity class (near-arena-oracle-v3-d1 gen --domain d1)",
                          "weight_ppm": 1000000, "batch_size": 8, "generator": None}],
             "public_fixtures": tree("oracle/fixtures/v3/public-d1"),
             "heldout_commitment": None, "baseline_submission": None, "baseline_ns": []},

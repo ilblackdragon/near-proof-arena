@@ -1,0 +1,12 @@
+{
+  "base": "01-h10025-s2",
+  "case": "01-h10025-s2-hdr.congestion.receipt_bytes",
+  "d0_violations": [],
+  "expected_rel": false,
+  "expected_rel_d0": false,
+  "in_d0": true,
+  "kind": "mutant",
+  "mutation": "hdr.congestion.receipt_bytes",
+  "nearcore": "validate: InvalidCongestionInfo(\"Congestion Information validate error. extra: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 0, receipt_bytes: 0, allowed_shard: 3 }), header: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 0, receipt_bytes: 1, allowed_shard: 3 })\")",
+  "verdict_source": "nearcore"
+}

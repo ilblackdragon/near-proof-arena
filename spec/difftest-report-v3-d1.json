@@ -1,6 +1,6 @@
 {
   "statement": "near/pv86/chunk-validation/v0#D1",
-  "corpus": "near-arena-oracle-v3 gen --domain d1 --seed 5151 --chains 12 --blocks 150 --ood-cap 40 --mutate-every 4 (regenerable: oracle/scripts/regen-fixtures-v3.sh FULL=1)",
+  "corpus": "near-arena-oracle-v3-d1 gen --domain d1 --seed 5151 --chains 12 --blocks 150 --ood-cap 40 --mutate-every 4 (regenerable: oracle/scripts/regen-fixtures-v3.sh FULL=1)",
   "summary": {
     "chains": [
       "ChainParams { seed: 5151015453, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 150, p_missing: 0.12, p_tx_shard: 0.35, p_burst: 0.08, p_fail: 0.02, p_implicit: 0.01, p_two: 0.02, long_skip: None, d1: true, p_adv: 0.5 }",

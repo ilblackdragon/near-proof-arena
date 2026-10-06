@@ -9,7 +9,7 @@
     "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
   },
   "protocol_version": 86,
-  "chain_id": "mainnet",
+  "chain_id": "arena-v3-local",
   "runtime_config_digest": "sha256:b7dce2034aeacd470a0c4dbc2d566e480ff9f0f140a07b5088994e0787ed062f",
   "semantic_scope": {
     "name": "near/pv86/chunk-validation/v0#D0",
@@ -117,11 +117,10 @@
     "formal_spec": {
       "relation_module": "NearSpecV3.ChunkValidationV0",
       "relation_decl": "NearSpecV3.RelD0",
-      "challenge_spec_decl": "NearSpecV3.challengeSpec",
-      "tree_digest": "sha256:72af401a88ae12b3cd367d635c41a6c0f862c6e19545a28ee41fd47929ed9c72",
+      "tree_digest": "sha256:89903b98794a9fd3be31d84b26b6fdf96a9ed94caa1e9a65383c8fbd08e5db34",
       "lean_toolchain": "leanprover/lean4:v4.34.1"
     },
-    "spec_doc_digest": "sha256:84181e7491d25373b4da36d70ff28b0cb32da014cdc3f0bea96457745266ca75"
+    "spec_doc_digest": "sha256:59833dbbb7e10394ea556f16f1d8decd908fe3aaa3b6aee21b3d09b454f25b4d"
   },
   "claim_encoding": {
     "format": "near-arena-claim-v3",
@@ -148,13 +147,26 @@
   },
   "toolchain_policy": {
     "lean_toolchain": "leanprover/lean4:v4.34.1",
-    "checker_image": null,
+    "checker_image": "sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867",
     "axiom_allowlist": [
       "propext",
       "Classical.choice",
       "Quot.sound"
     ],
-    "allowed_packages": [],
+    "allowed_packages": [
+      [
+        "ArenaCore",
+        "9f20f82c8578cf87adc1307773cb912cc11e5ff8"
+      ],
+      [
+        "NearSpec",
+        "9f20f82c8578cf87adc1307773cb912cc11e5ff8"
+      ],
+      [
+        "NearSpecV3",
+        "9f20f82c8578cf87adc1307773cb912cc11e5ff8"
+      ]
+    ],
     "recheckers": [
       "leanchecker",
       "nanoda",
@@ -179,22 +191,55 @@
   "not_applicable_gates": [
     "FORMAL_ZK"
   ],
-  "hardware_profile": null,
+  "hardware_profile": {
+    "id": "nearproof-local-ryzen9-9950x3d",
+    "cpu_model": "AMD Ryzen 9 9950X3D 16-Core Processor (local operator host; 8 vCPUs pinned per run)",
+    "vcpus": 8,
+    "ram_bytes": 34359738368,
+    "gpu": null
+  },
   "workload_suite": {
-    "revision": "near-chunk-validation-d0-r0",
+    "revision": "near-chunk-validation-d0-r1",
     "classes": [
       {
-        "id": "d0-chunks",
-        "description": "real ChunkStateWitness + claim-v3 pairs in D0 from multi-shard nearcore TestEnv chains (near-arena-oracle-v3 gen)",
-        "weight_ppm": 1000000,
+        "id": "d0-quiet",
+        "description": "D0 chunks with no incoming receipt and no implicit transition: context authentication (hash-linked segment, chunk_headers_root), empty main transition, bandwidth scheduler, congestion info and the Reed-Solomon encoded merkle root",
+        "weight_ppm": 200000,
         "batch_size": 8,
-        "generator": null
+        "generator": "sha256:932759a8d2b4681227a101266590cabddb59864ed99f43bccfce0557fa273d92"
+      },
+      {
+        "id": "d0-transfers",
+        "description": "D0 chunks applying >= 1 incoming cross-shard Transfer receipt (source receipt proofs, ChaCha20 shuffle, Runtime::apply over the partial trie, refunds, outcome and outgoing-receipts roots), no implicit transition",
+        "weight_ppm": 500000,
+        "batch_size": 8,
+        "generator": "sha256:990878011f58b53c34c91f37307ec1248e5ff14c5c56e823747c61578c979e20"
+      },
+      {
+        "id": "d0-missing",
+        "description": "D0 chunks after >= 1 missing chunk of the shard (implicit transitions: missing-chunk applies with the bandwidth scheduler), with or without incoming receipts; chains with 25% chunk skips",
+        "weight_ppm": 300000,
+        "batch_size": 8,
+        "generator": "sha256:77ac4648b4a1223725d109d7a7710b7ceeecfe069581e77d70cfaf0fbd74574c"
       }
     ],
-    "public_fixtures": "sha256:7daa5a0947af92f3c1a1c12915423f6c97ea61ecc1b14d66f2e3db1da2ca0103",
-    "heldout_commitment": null,
-    "baseline_submission": null,
-    "baseline_ns": []
+    "public_fixtures": "sha256:45eb0203dc2567506753c5066a2e4a2693f21ce661b90db3802592c2ff314a67",
+    "heldout_commitment": "sha256:edac8e6fcf9465874f687f70da25e26054b88931c7f9fca9dc4dcb81dfcd5e97",
+    "baseline_submission": "sha256:fec6f7c95bf30999adb77e308e8395136b0636a86ad875ceaac133137fd41d47",
+    "baseline_ns": [
+      [
+        "d0-missing",
+        6998029
+      ],
+      [
+        "d0-quiet",
+        6830957
+      ],
+      [
+        "d0-transfers",
+        6959158
+      ]
+    ]
   },
   "measurement": {
     "warmup_runs": 3,
@@ -203,7 +248,8 @@
     "outlier_mad_k": 5,
     "cold_runs": 1,
     "concurrency": 1,
-    "per_run_timeout_ms": 600000
+    "per_run_timeout_ms": 600000,
+    "invocation_mode": "vm_per_batch"
   },
   "resource_limits": {
     "max_proof_bytes": 67108864,
@@ -216,11 +262,10 @@
     "max_build_ms": 3600000
   },
   "supersedes": null,
-  "created_at": "2026-10-05T12:00:00Z",
+  "created_at": "2026-10-06T01:00:00Z",
   "formal_params": {
     "verify_fuel": 1073741824,
     "max_proof_bytes": 67108864,
     "max_reduction_fuel": 1073741824
-  },
-  "draft_notes": "UNSIGNED DRAFT. Not loadable by the server: checker_image, hardware_profile, workload generator digests and the held-out commitment are still to be pinned. Statement: spec/near-chunk-validation-v0.md; formats: spec/claim-v3.md. v1/v2 challenges are unrelated and stay frozen."
+  }
 }
