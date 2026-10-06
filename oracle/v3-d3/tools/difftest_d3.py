@@ -48,6 +48,12 @@ def main():
         ind3 = m.get("in_d3", m.get("expected_rel_d3") is not None and not m.get("d3_violations"))
         stats[(fam, v, "nearcore_ok" if near else "nearcore_rej")] += 1
         if v == "out_of_domain":
+            # spec/near-chunk-validation-d3.md §10.1: a missing pre-state code blob whose code was
+            # deployed in the same chunk is cache/pipeline-dependent in nearcore (both verdicts occur)
+            # and out of D3α; the oracle classifier predates that rule. Only code mutants can hit it.
+            if ind3 and "compiled-contract cache" in g["reason"] and m.get("mutation", "").startswith("code."):
+                stats[("boundary:code_cache", "nearcore_ok" if near else "nearcore_rej")] += 1
+                continue
             if ind3 and fam != "ood":
                 bad.append((d, "lean out_of_domain on an in-D3α case", g["reason"], m.get("nearcore")))
             continue
