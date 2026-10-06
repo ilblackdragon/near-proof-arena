@@ -267,7 +267,12 @@ pub fn v3_layout(file: &[u8]) -> Option<V3Layout> {
                 values.push((at, self.p));
             }
             self.take(32)?;
-            Some(V3Transition { start, nvals_at, values, end: self.p })
+            Some(V3Transition {
+                start,
+                nvals_at,
+                values,
+                end: self.p,
+            })
         }
     }
     let tag = b"near-arena-witness-v3";
@@ -783,12 +788,18 @@ mod tests {
         let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../../oracle/fixtures/v3/arena-public/cases");
         let mut labels = std::collections::BTreeSet::new();
-        for case in ["00-h10004-s3", "00-h10024-s0", "00-h10035-s3", "01-h10025-s1"] {
+        for case in [
+            "00-h10004-s3",
+            "00-h10024-s0",
+            "00-h10035-s3",
+            "01-h10025-s1",
+        ] {
             let w = std::fs::read(dir.join(case).join("witness.bin")).unwrap();
             let l = v3_layout(&w).unwrap();
             for (label, q) in v3_freedom_mutants(&w) {
                 assert_ne!(q, w, "{case} {label}");
-                let l2 = v3_layout(&q).unwrap_or_else(|| panic!("{case} {label}: not a D0 witness"));
+                let l2 =
+                    v3_layout(&q).unwrap_or_else(|| panic!("{case} {label}: not a D0 witness"));
                 let (de, dv) = match label.as_str() {
                     "entries/duplicate-key" => (1, 0),
                     "entries/reorder" => (0, 0),
