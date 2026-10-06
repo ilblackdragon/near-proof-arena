@@ -4,12 +4,12 @@ import ZkFormal.V2.PG.NpDeep
 # ZkFormal.V2.PG.NpDeep2 (P2 copy of `Prover.NpDeep2` at `dp = pg g`) — honest openings in the DEEP batch
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -63,4 +63,4 @@ theorem ksOfRow_limbsL (xs : List Fp8) : ksOfRow (F := Fp) (limbsL xs) = xs := b
   conv => rhs; rw [← List.map_id xs]
   apply List.map_congr_left; intro x _; rfl
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

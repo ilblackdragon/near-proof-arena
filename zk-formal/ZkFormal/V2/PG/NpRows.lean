@@ -9,12 +9,12 @@ import ZkFormal.V2.PG.NpPrep
 * `allConstraints_row`: the AIR's constraints (and booleanity) vanish there (`Holds`).
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -152,4 +152,4 @@ theorem allConstraints_row (hH : Holds A (pubOf Fp cb) tr) {t : Nat} (ht : TabOk
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

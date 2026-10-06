@@ -4,12 +4,12 @@ import ZkFormal.V2.PG.NpBasic
 # ZkFormal.V2.PG.NpFits (P2 copy of `Prover.NpFits` at `dp = pg g`) — every honest message fits its slot (`MsgFitsStmt`)
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 theorem fits_nil : Entry.Fits (.msg ([] : List (PartV Fp8 (Oracle Fp)))) (.msg []) :=
   ⟨rfl, fun k hk => absurd hk (by simp)⟩
@@ -143,4 +143,4 @@ theorem msgFits : MsgFitsStmt := by
       simp only [Option.map_some, Option.getD_some]
       exact fits_kind A cb tr cs k
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

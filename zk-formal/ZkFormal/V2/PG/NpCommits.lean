@@ -9,12 +9,12 @@ exactly the committed oracles in order (`filterMap_range_lookup`), and every rol
 `0 < i < ℓ` starts a commitment.
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 /-- `l` is a commitment chain from `c` to `ℓ` avoiding roll-ins (`R`) strictly inside steps. -/
 def Chain (R : Nat → Bool) (ℓ : Nat) : Nat → List (Nat × Nat) → Prop
@@ -138,4 +138,4 @@ theorem filterMap_range_lookup {β : Type} {R : Nat → Bool} {ℓ : Nat} (f : N
     rw [hsplit, List.filterMap_append, e1, e2, filterMap_range_lookup f h5]
     rfl
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

@@ -8,12 +8,12 @@ import ZkFormal.V2.PG.NpRows
 constraint vanishes (`aStep_chain`) and the interaction factors are the honest `φ`s.
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -276,4 +276,4 @@ theorem csX_row_zero (hH : Holds A (pubOf Fp cb) tr) {t : Nat} (ht : TabOk A tr 
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

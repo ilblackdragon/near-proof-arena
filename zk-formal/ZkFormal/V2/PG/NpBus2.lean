@@ -7,12 +7,12 @@ import ZkFormal.V2.PG.NpBus
 `(γ - FPv α bus msg)^multNat` (the multiplicity bits are boolean by `Holds`).
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -85,4 +85,4 @@ theorem chain_phi (env : Env Fp8) (α γ : Fp8) (i : Interaction)
     show _ = p0 ^ ((if b0 = 1 then 2 ^ 0 else 0) + goV (b1 :: bs) (0 + 1))
     rw [Semiring.pow_add]
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

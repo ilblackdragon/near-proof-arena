@@ -4,12 +4,12 @@ import ZkFormal.V2.PG.NpHon
 # ZkFormal.V2.PG.NpPrep (P2 copy of `Prover.NpPrep` at `dp = pg g`) — the verifier's context on a transcript of the expected shape
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 section
 variable (A : Air)
@@ -61,4 +61,4 @@ theorem prep_eq (τ : PT Fp8 Unit) {hdr : List Nat} {αfp γ αc z : Fp8} {rest 
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

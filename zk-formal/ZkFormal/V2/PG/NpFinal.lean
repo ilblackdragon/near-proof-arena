@@ -4,12 +4,12 @@ import ZkFormal.V2.PG.NpLocal3
 # ZkFormal.V2.PG.NpFinal (P2 copy of `Prover.NpFinal` at `dp = pg g`) — the final polynomial and the commitment-chain fold
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -67,4 +67,4 @@ theorem chain_fold {β : Type} (R : Nat → Bool) (ℓ : Nat) (Pre : Nat → Fp8
     rw [List.map_cons, List.zip_cons_cons, List.foldl_cons, hF c' a h2 h3 h4]
     exact chain_fold R ℓ Pre g F hF (c' + a) l h3 h5
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

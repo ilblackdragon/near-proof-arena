@@ -10,12 +10,12 @@ aux and quotient trees have depth `≤ 26`, and the FRI trees have the strictly 
 depths `n0 - c_{k+1}` of the commitment chain (`Σ 2^(d+2) < 2^(n0+2)`).
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 /-- Folding a kind list: only fold kinds of committed layers contribute, in chain order. -/
 theorem kinds_flatMap_fold {β : Type} (A : Air) (tr : Trace Fp) (h : Nat → Nat → β) :
@@ -149,4 +149,4 @@ theorem npProverQ : NpProverQStmt' := by
   have : (24 : Nat) = dp.numChunks := rfl
   exact Nat.le_trans (Nat.add_le_add (Nat.add_le_add_right (Nat.add_le_add_left (Nat.mul_le_mul_left 2 hlen) 2) 24) (Nat.add_le_add s3 hf')) (by omega)
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

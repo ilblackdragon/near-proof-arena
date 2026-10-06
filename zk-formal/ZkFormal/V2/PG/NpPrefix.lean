@@ -9,12 +9,12 @@ the FRI word of layer `i` reads `β_{i'}` (`i' < i`) and `γ_{i'}` (`i' ≤ i`),
 precede the fold challenge of layer `i` in the schedule (`kinds_take`).
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 /-! ## List plumbing -/
 
@@ -352,4 +352,4 @@ theorem msgPrefix : MsgPrefixStmt := by
   rw [show 4 + nB A tr + q - (4 + nB A tr) = q by omega]
   exact prefix_fri A cb tr cs q hjc
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

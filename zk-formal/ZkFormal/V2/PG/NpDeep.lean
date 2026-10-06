@@ -7,12 +7,12 @@ import ZkFormal.V2.PG.NpBus4
 (`deepAt_eq_deepZ`); it only reads the rows of the class tables (`deepZ_congr`).
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -88,4 +88,4 @@ theorem deepAt_eq_deepZ (c : Ctx Fp8) (op : List (List (List Fp))) (m x : Nat) :
     obtain ⟨r1, r2⟩ := r
     rfl
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

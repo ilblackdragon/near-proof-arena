@@ -5,12 +5,12 @@ import ZkFormal.V2.PG.NpCompose
 # ZkFormal.V2.PG.NpLocalMain (P2 copy of `Prover.NpLocalMain` at `dp = pg g`) — `localStmt : LocalStmt`
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -129,4 +129,4 @@ theorem localStmt : LocalStmt := by
 theorem npIopComplete' : NpIopCompleteStmt' :=
   npIopComplete_of schedForm msgFits msgPrefix globalStmt localStmt
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

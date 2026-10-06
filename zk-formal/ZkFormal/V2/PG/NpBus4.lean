@@ -4,12 +4,12 @@ import ZkFormal.V2.PG.NpBus3
 # ZkFormal.V2.PG.NpBus4 (P2 copy of `Prover.NpBus4` at `dp = pg g`) — `busProd : BusProdStmt`
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -39,8 +39,9 @@ theorem cnt_entries (s : Bool) (b : Nat) (m : List Fp) :
     simp [this, hs]
 
 theorem numSide_eq (T : Air.Table) (s : Bool) :
-    numGroups (T.numSide s) dp.auxGroup = (T.interactions.filter fun i => i.send == s).length := by
-  simp [numGroups, Table.numSide, dp, V2.G.pg, Params.default]
+    numGroups (T.numSide s) dp.auxGroup =
+      (chunksOf (max dp.auxGroup 1) (T.interactions.filter fun i => i.send == s)).length := by
+  rw [max_dp, V2.G.chunksOf_length AuxG.one_le]; rfl
 
 /-- One side's product over the rows of table `t`. -/
 noncomputable def sideProd (α γ : Fp8) (t : Nat) (s : Bool) : Fp8 :=
@@ -49,7 +50,7 @@ noncomputable def sideProd (α γ : Fp8) (t : Nat) (s : Bool) : Fp8 :=
       (γ - FPv α i.bus (i.msgVal tr t r (pubOf Fp cb))) ^ (i.multNat tr t r (pubOf Fp cb))))
 
 theorem rows_side (hH : Holds A (pubOf Fp cb) tr) {t : Nat} (ht : TabOk A tr t) (α γ : Fp8) (s : Bool)
-    (k : Nat) (f : Nat → Nat) (hk : k = ((tb A t).interactions.filter fun i => i.send == s).length)
+    (k : Nat) (f : Nat → Nat)
     (hf : ∀ r, prodF ((List.range k).map fun j => phiG (rEnv A cb tr t r) α γ (tb A t).interactions (f j)) =
       prodF (((tb A t).interactions.filter fun i => i.send == s).map
         fun i => (chainOf (rEnv A cb tr t r) α γ i).2)) :
@@ -68,28 +69,31 @@ theorem rows_side (hH : Holds A (pubOf Fp cb) tr) {t : Nat} (ht : TabOk A tr t) 
 
 theorem sends_table (hH : Holds A (pubOf Fp cb) tr) {t : Nat} (ht : TabOk A tr t) (α γ : Fp8) :
     ((finsT A cb tr α γ t).take (layT A tr t).sendG).foldl (· * ·) 1 = sideProd A cb tr α γ t true := by
-  have hk : (layT A tr t).sendG = ((tb A t).interactions.filter fun i => i.send == true).length :=
+  have hk : (layT A tr t).sendG =
+      (chunksOf (max dp.auxGroup 1) ((tb A t).interactions.filter fun i => i.send == true)).length :=
     numSide_eq _ true
   have hle : (layT A tr t).sendG ≤ nG A t := by unfold nG; exact Nat.le_add_right _ _
   show prodF _ = _
   unfold finsT
   rw [← List.map_take, List.take_range, Nat.min_eq_left hle]
-  refine rows_side A cb tr hH ht α γ true _ id hk fun r => ?_
+  refine rows_side A cb tr hH ht α γ true _ id fun r => ?_
   have := prod_phiG_send (rEnv A cb tr t r) α γ (tb A t).interactions
   simp only [beq_true] at hk ⊢
   rw [hk]; exact this
 
 theorem recvs_table (hH : Holds A (pubOf Fp cb) tr) {t : Nat} (ht : TabOk A tr t) (α γ : Fp8) :
     ((finsT A cb tr α γ t).drop (layT A tr t).sendG).foldl (· * ·) 1 = sideProd A cb tr α γ t false := by
-  have hk : (layT A tr t).sendG = ((tb A t).interactions.filter fun i => i.send == true).length :=
+  have hk : (layT A tr t).sendG =
+      (chunksOf (max dp.auxGroup 1) ((tb A t).interactions.filter fun i => i.send == true)).length :=
     numSide_eq _ true
-  have hk' : (layT A tr t).recvG = ((tb A t).interactions.filter fun i => i.send == false).length :=
+  have hk' : (layT A tr t).recvG =
+      (chunksOf (max dp.auxGroup 1) ((tb A t).interactions.filter fun i => i.send == false)).length :=
     numSide_eq _ false
   show prodF _ = _
   unfold finsT
   rw [show nG A t = (layT A tr t).sendG + (layT A tr t).recvG from rfl, List.range_add, List.map_append,
     List.drop_left' (by simp), List.map_map]
-  refine rows_side A cb tr hH ht α γ false _ _ hk' fun r => ?_
+  refine rows_side A cb tr hH ht α γ false _ _ fun r => ?_
   have := prod_phiG_recv (rEnv A cb tr t r) α γ (tb A t).interactions
   simp only [beq_true, beq_false] at hk hk' ⊢
   rw [hk', hk]; exact this
@@ -129,11 +133,13 @@ theorem busProd : BusProdStmt := by
   obtain ⟨b, m⟩ := k
   rw [cnt_entries, cnt_entries, hH.balance]
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
+
+variable [AuxG]
 
 /-- **The clear-text checks pass** on every honest complete transcript. -/
 theorem globalStmt : GlobalStmt := global_of busProd
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

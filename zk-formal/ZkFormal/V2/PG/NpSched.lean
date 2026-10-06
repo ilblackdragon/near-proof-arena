@@ -4,12 +4,12 @@ import ZkFormal.V2.PG.NpStatements
 # ZkFormal.V2.PG.NpSched (P2 copy of `Prover.NpSched` at `dp = pg g`) — the schedule as message/challenge pairs (`SchedFormStmt`)
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 theorem slotsOf_append (a b : List (List Part × Bool)) : slotsOf (a ++ b) = slotsOf a ++ slotsOf b := by
   simp [slotsOf, List.flatMap_append]

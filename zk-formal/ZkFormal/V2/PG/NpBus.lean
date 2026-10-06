@@ -8,12 +8,12 @@ each side's product of finals is `∏ (γ - fp(key))^mult` over all (row, intera
 that side; by `Holds.balance` both sides have the same multiplicity per key.
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -134,4 +134,4 @@ theorem prodPow_eq (g : κ → Fp8) : ∀ (N : Nat) (E E' : List (κ × Nat)), E
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

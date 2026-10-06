@@ -5,12 +5,12 @@ import ZkFormal.V2.PG.NpDeep4
 with a polynomial of length `2^(m-4)`
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -130,4 +130,4 @@ theorem deepH_poly {c : Ctx Fp8} (hc : HonCtx A cb tr cs c) (hz : ¬ (cZ cs).IsB
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

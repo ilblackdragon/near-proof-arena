@@ -9,12 +9,12 @@ import ZkFormal.V2.PG.NpDeg2
 * `quot_exists` (needs `Holds`): `C_t = (X^T - 1)·Q` with `Q` of length `(D-1)·T`.
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -221,4 +221,4 @@ theorem qC_spec (hH : Holds A (pubOf Fp cb) tr) {t : Nat} (ht : TabOk A tr t) (�
 end
 
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

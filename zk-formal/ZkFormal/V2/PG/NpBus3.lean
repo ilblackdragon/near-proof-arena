@@ -4,12 +4,12 @@ import ZkFormal.V2.PG.NpBus2
 # ZkFormal.V2.PG.NpBus3 (P2 copy of `Prover.NpBus3` at `dp = pg g`) — the honest factors on the trace domain and the bus equation
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -84,46 +84,60 @@ theorem phis_filter (env : Env Fp8) (α γ : Fp8) (is : List Interaction) (s : B
   unfold phisOf; rw [List.filter_map]; rfl
 
 theorem groups_eq (env : Env Fp8) (α γ : Fp8) (is : List Interaction) :
-    groupsOf env α γ is = ((is.filter fun i => i.send).map fun i => [(i, (chainOf env α γ i).2)]) ++
-      ((is.filter fun i => !i.send).map fun i => [(i, (chainOf env α γ i).2)]) := by
+    groupsOf env α γ is =
+      ((chunksOf (max dp.auxGroup 1) (is.filter fun i => i.send)).map
+        (List.map fun i => (i, (chainOf env α γ i).2))) ++
+      ((chunksOf (max dp.auxGroup 1) (is.filter fun i => !i.send)).map
+        (List.map fun i => (i, (chainOf env α γ i).2))) := by
   unfold groupsOf
-  simp only [dp, V2.G.pg, Params.default, show max 1 1 = 1 from rfl, chunksOf_one]
   have h1 := phis_filter env α γ is true
   have h2 := phis_filter env α γ is false
   simp only [beq_true, beq_false] at h1 h2
-  rw [h1, h2, List.map_map, List.map_map]; rfl
+  rw [h1, h2, V2.G.chunksOf_map, V2.G.chunksOf_map]
+
+theorem prodF_chunks {β : Type} (f : β → Fp8) (l : List β) :
+    prodF ((chunksOf (max dp.auxGroup 1) l).map fun c => prodF (c.map f)) = prodF (l.map f) := by
+  conv => rhs; rw [← V2.G.chunksOf_flatten (g := max dp.auxGroup 1) (by rw [max_dp]; exact AuxG.one_le) l]
+  rw [← List.flatMap_id', List.map_flatMap, prodF_flatMap]
+
+theorem phiG_chunk (env : Env Fp8) (α γ : Fp8) (is : List Interaction) (j : Nat)
+    (c : List Interaction) (h : (groupsOf env α γ is)[j]? = some (c.map fun i => (i, (chainOf env α γ i).2))) :
+    phiG env α γ is j = prodF (c.map fun i => (chainOf env α γ i).2) := by
+  unfold phiG
+  rw [List.getD_eq_getElem?_getD, h, Option.getD_some, List.map_map]
+  rfl
 
 /-- The product of the group factors of one side, on a row. -/
 theorem prod_phiG_send (env : Env Fp8) (α γ : Fp8) (is : List Interaction) :
-    prodF ((List.range (is.filter fun i => i.send).length).map (phiG env α γ is)) =
+    prodF ((List.range (chunksOf (max dp.auxGroup 1) (is.filter fun i => i.send)).length).map
+        (phiG env α γ is)) =
       prodF ((is.filter fun i => i.send).map fun i => (chainOf env α γ i).2) := by
-  have e : (List.range (is.filter fun i => i.send).length).map (phiG env α γ is) =
-      (is.filter fun i => i.send).map fun i => 1 * (chainOf env α γ i).2 := by
-    apply List.ext_getElem (by simp)
-    intro j h1 h2
-    simp only [List.length_map, List.length_range] at h1
-    simp only [List.getElem_map, List.getElem_range]
-    unfold phiG
-    rw [groups_eq, List.getD_eq_getElem?_getD, List.getElem?_append_left (by simp; exact h1)]
-    simp [h1]
-  rw [e, prodF_map_mul, prodF_map_one]; grind
+  rw [← prodF_chunks (fun i => (chainOf env α γ i).2) (is.filter fun i => i.send)]
+  congr 1
+  apply List.ext_getElem (by simp)
+  intro j h1 h2
+  simp only [List.length_map, List.length_range] at h1
+  simp only [List.getElem_map, List.getElem_range]
+  refine phiG_chunk env α γ is j _ ?_
+  rw [groups_eq, List.getElem?_append_left (by simpa using h1), List.getElem?_map,
+    List.getElem?_eq_getElem h1]
+  rfl
 
 theorem prod_phiG_recv (env : Env Fp8) (α γ : Fp8) (is : List Interaction) :
-    prodF ((List.range (is.filter fun i => !i.send).length).map
-        fun j => phiG env α γ is ((is.filter fun i => i.send).length + j)) =
+    prodF ((List.range (chunksOf (max dp.auxGroup 1) (is.filter fun i => !i.send)).length).map
+        fun j => phiG env α γ is ((chunksOf (max dp.auxGroup 1) (is.filter fun i => i.send)).length + j)) =
       prodF ((is.filter fun i => !i.send).map fun i => (chainOf env α γ i).2) := by
-  have e : (List.range (is.filter fun i => !i.send).length).map
-        (fun j => phiG env α γ is ((is.filter fun i => i.send).length + j)) =
-      (is.filter fun i => !i.send).map fun i => 1 * (chainOf env α γ i).2 := by
-    apply List.ext_getElem (by simp)
-    intro j h1 h2
-    simp only [List.length_map, List.length_range] at h1
-    simp only [List.getElem_map, List.getElem_range]
-    unfold phiG
-    rw [groups_eq, List.getD_eq_getElem?_getD, List.getElem?_append_right (by simp)]
-    simp [h1]
-  rw [e, prodF_map_mul, prodF_map_one]; grind
+  rw [← prodF_chunks (fun i => (chainOf env α γ i).2) (is.filter fun i => !i.send)]
+  congr 1
+  apply List.ext_getElem (by simp)
+  intro j h1 h2
+  simp only [List.length_map, List.length_range] at h1
+  simp only [List.getElem_map, List.getElem_range]
+  refine phiG_chunk env α γ is _ _ ?_
+  rw [groups_eq, List.getElem?_append_right (by simp), List.length_map, Nat.add_sub_cancel_left,
+    List.getElem?_map, List.getElem?_eq_getElem h1]
+  rfl
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

@@ -11,12 +11,12 @@ Every transcript the honest prover reaches has, at entry `k`, the honest message
 header facts of `ProverWf` follow from `MsgFitsStmt` and `SchedFormStmt`.
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 /-! ## Indexing pair lists -/
 
@@ -368,4 +368,4 @@ theorem npIopComplete_of (hS : SchedFormStmt) (hF : MsgFitsStmt) (hP : MsgPrefix
       rw [hd] at hx
       rw [he]; exact hL A cb tr hH hok _ hlen hz x hx
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

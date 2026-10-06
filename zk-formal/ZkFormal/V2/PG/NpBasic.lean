@@ -4,12 +4,12 @@ import ZkFormal.V2.PG.NpStatements
 # ZkFormal.V2.PG.NpBasic (P2 copy of `Prover.NpBasic` at `dp = pg g`) — layout of the honest transcript as `List.range` maps
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 section
 variable (A : Air) (tr : Trace Fp)
@@ -49,4 +49,4 @@ theorem sum_flatMap_length {α β : Type} (l : List α) (f : α → List β) :
   | nil => rfl
   | cons a l ih => simp [List.flatMap_cons, ih]
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

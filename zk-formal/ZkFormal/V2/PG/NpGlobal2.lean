@@ -7,12 +7,12 @@ import ZkFormal.V2.PG.NpGlobal
 `BusProdStmt` (the honest finals satisfy the bus equation).
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -125,4 +125,4 @@ theorem global_of (hB : BusProdStmt) : GlobalStmt := by
     oodAll_length A cb tr _ _ _ _⟩, ?_⟩
   exact globalChecks_hon A cb tr hB hH hok _ _ _ _ hz
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

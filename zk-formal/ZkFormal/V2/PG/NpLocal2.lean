@@ -4,12 +4,12 @@ import ZkFormal.V2.PG.NpLocal
 # ZkFormal.V2.PG.NpLocal2 (P2 copy of `Prover.NpLocal2` at `dp = pg g`) — the verifier's and the prover's DEEP contexts agree
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -110,4 +110,4 @@ theorem Bw_eq (hlen : cs.length = nMsg A tr) (m p : Nat) :
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

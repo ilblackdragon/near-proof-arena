@@ -9,12 +9,12 @@ and selectors have formal degree 1, constants 0, and degrees add under products.
 `≤ Expr.degree`.
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -258,4 +258,4 @@ theorem ia_poly (t : Nat) (α γ : Fp8) (i : Interaction) (As : List (Fp8 → Fp
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

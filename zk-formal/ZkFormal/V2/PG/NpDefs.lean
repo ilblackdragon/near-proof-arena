@@ -34,10 +34,10 @@ with arity `2^a` has `2^a` consecutive positions per leaf.  The polynomials behi
 these words exist only in the proofs.
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -50,6 +50,10 @@ variable [AuxG]
 
 /-- The parameters `pg g = {Params.default with auxGroup := g}`. -/
 abbrev dp [AuxG] : Params := V2.G.pg AuxG.g
+
+theorem dp_aux : dp.auxGroup = AuxG.g := rfl
+
+theorem max_dp : max dp.auxGroup 1 = AuxG.g := Nat.max_eq_left AuxG.one_le
 
 /-- `decide` for goals that mention `dp` (whose fields other than `auxGroup` are literals). -/
 macro "dp_decide" : tactic =>
@@ -306,4 +310,4 @@ noncomputable def npProver : IopProver Fp Fp8 :=
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

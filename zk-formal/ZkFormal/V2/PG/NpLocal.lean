@@ -4,12 +4,12 @@ import ZkFormal.V2.PG.NpDeep5
 # ZkFormal.V2.PG.NpLocal (P2 copy of `Prover.NpLocal` at `dp = pg g`) — DEEP values at the query positions and the FRI words as polynomials
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -54,4 +54,4 @@ theorem deepAt_hon {c : Ctx Fp8} (hc : HonCtx A cb tr cs c) (hn : c.n0 = n0 A tr
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

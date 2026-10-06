@@ -7,12 +7,12 @@ The interaction fold and the running-product group constraints as polynomial fun
 `compX_isPoly`: `C_t` has length `D·(T-1)+1`, `D = Table.degree`.
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -122,4 +122,4 @@ theorem degree_facts (T : Air.Table) :
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

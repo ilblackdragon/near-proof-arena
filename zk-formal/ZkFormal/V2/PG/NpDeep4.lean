@@ -4,12 +4,12 @@ import ZkFormal.V2.PG.NpDeep3
 # ZkFormal.V2.PG.NpDeep4 (P2 copy of `Prover.NpDeep4` at `dp = pg g`) — the honest DEEP batch is a polynomial of degree `< T` on `F`
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 attribute [local instance] Semiring.natCast
 
@@ -78,4 +78,4 @@ theorem classRows_info {c : Ctx Fp8} (hc : HonCtx A cb tr cs c) {m : Nat}
 
 end
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G

@@ -36,12 +36,12 @@ message; `fullEntries cs`: the honest complete transcript for the challenge list
 | `LocalStmt` | the local checks pass at every position |
 -/
 
-namespace ZkFormal.V2.PG
+namespace ZkFormal.Prover.Np.G
 
 variable [AuxG]
 
 open ArenaCore ArenaCore.Security Lean.Grind ZkFormal.Stark ZkFormal.Air ZkFormal.Algebra
-open ZkFormal.Udr ZkFormal.Udr.Np ZkFormal.Prover ZkFormal.Prover.Np
+open ZkFormal.Udr ZkFormal.Udr.Np
 
 /-- The deployed np IOP verifier. -/
 abbrev Vd (A : Air) : IopSpec Fp Fp8 := Iop.verifier Fp Fp8 A dp
@@ -126,4 +126,4 @@ def NpProverQStmt' : Prop :=
     (Iop.verifier Fp Fp8 A dp).headerOk hdr = true →
     proverQ (Iop.verifier Fp Fp8 A dp) hdr ≤ 2 ^ 32
 
-end ZkFormal.V2.PG
+end ZkFormal.Prover.Np.G
