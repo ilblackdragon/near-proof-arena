@@ -46,6 +46,24 @@ def run_checker(cmd, dirs, chunk, jobs):
     return out
 
 
+def d1_shaped(case_dir):
+    """Every transaction of the case's witness (both lists) has the D1 shape: V0 or V1 with a
+    plain nonce, exactly one Transfer, ED25519 key and signature (spec/near-chunk-validation-d1.md
+    §4 w.tx_shape). Decoded with the D2 checker's borsh types."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import spec_check_v3_d2 as c2
+    from v3lib.prim import R
+    from v3lib import near2
+    r = R(open(os.path.join(case_dir, "witness.bin"), "rb").read())
+    r.bytes()
+    try:
+        w = c2.decode_state_witness_d2(r.bytes())
+    except Exception:
+        return False
+    return all(t.nonce_index is None and len(t.actions) == 1 and t.actions[0].tag == near2.A_TRANSFER
+               and t.pk[0] == 0 and t.sig[0] == 0 for t in w["txs"] + w["new_txs"])
+
+
 def family(m):
     parts = m.split(".")
     if parts[0] == "w" and len(parts) > 1 and parts[1] == "drop_node":
@@ -125,10 +143,14 @@ def main():
             acc1 = j1 is not None and j1["verdict"] == "accept"
             exp1 = meta.get("expected_rel_d1", False)
             if kind == "mutants" and meta.get("mutation") == "w.new_tx.drop_rehashed":
+                # the oracle copies the base's D1 membership into mutant metadata; dropping the
+                # only new transaction of a base whose sole D1 violation is that transaction's
+                # shape yields a D1 case iff every remaining transaction has the D1 shape
                 base = json.load(open(os.path.join(a.cases, "d2", meta["base"], "meta.json")))
-                if base.get("d1_violations") == ["w.tx_shape"] and not base.get("tx_labels") \
-                        and len(base.get("new_tx_labels", [])) == 1:
+                if base.get("d1_violations") == ["w.tx_shape"] and len(base.get("new_tx_labels", [])) == 1 \
+                        and d1_shaped(d):
                     exp1 = meta["expected_rel_d2"]
+                    stats["d1_relabelled_new_tx_drop"] += 1
             if acc1 != exp1:
                 d1_issues.append({"case": d, "impl": name, "problem": "D1 verdict != expected_rel_d1", "d1": j1})
             if acc1 and any(impls[k].get(d, {}).get("verdict") != "accept" for k in impls):

@@ -832,6 +832,13 @@ pub fn write_d2_case(x: D2Ctx, stats: &mut Stats) {
             ),
         };
         let mname = format!("{name}-{}", m.name);
+        // dropping the only new transaction of a base whose sole D1 violation is that
+        // transaction's shape yields a D1 case when the remaining transactions are D1-shaped
+        let in_d1_m = in_d1
+            || (m.name == "w.new_tx.drop_rehashed"
+                && viol1 == ["w.tx_shape"]
+                && sw.new_transactions().len() == 1
+                && sw.transactions().iter().all(crate::d1::tx_shape_ok));
         let meta = json!({
             "case": mname, "kind": "mutant", "mutation": m.name, "base": name,
             "verdict_source": src,
@@ -839,8 +846,8 @@ pub fn write_d2_case(x: D2Ctx, stats: &mut Stats) {
             "expected_rel": exp.is_ok(),
             "in_d0": in_d0, "d0_violations": viol,
             "expected_rel_d0": exp.is_ok() && in_d0,
-            "in_d1": in_d1,
-            "expected_rel_d1": exp.is_ok() && in_d1,
+            "in_d1": in_d1_m,
+            "expected_rel_d1": exp.is_ok() && in_d1_m,
             "in_d2": true,
             "expected_rel_d2": exp.is_ok(),
         });
