@@ -38,7 +38,8 @@ macro_rules
       UpsV3.rc, pdep, UpsV3.cN, rcid, rdc, rootRid, tb, cb, cc, ci, ci2, X1, Ein, hb, lb, wb, upsId, Lexpr, symE,
       trmE, mDE, wbE, tagE, hiE, loE, tIE, DE, sdE, kRD, kM, splitE, pwE, pnE, spValE, spYE, twoE, spRecvE, s15E,
       winFr, tE, cbE, ccE, coE, sigE, depDE, depSE, K_VUPS, UpsV3.cases, UpsV3.states, UpsV3.kinds, nTE, nTermE,
-      isT2, isT3, isT4, termE, kindCode, plan1, plan2, plan3, plan4, $ts,*])
+      isT2, isT3, isT4, termE, kindCode, plan1, plan2, plan3, plan4, EK_KEY, EK_LEND, EK_VAL, EK_DOWN,
+      SYM_START, SYM_END, $ts,*])
 
 /-- Unfold the row-kind cells at literal columns. -/
 syntax "cellsimp" : tactic

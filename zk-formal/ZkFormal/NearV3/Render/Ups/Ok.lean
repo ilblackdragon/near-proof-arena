@@ -26,6 +26,45 @@ namespace UpsGen
 
 /-! ## The honest input -/
 
+/-- The walk `W0 … W3` of an instance (`walkV3` semantics with the key `[0, 15]`, §2.1). -/
+structure WalkOkU (I : UpsInst) : Prop where
+  mode : ∀ t, t < 4 → (step I t).mode ≤ 3
+  /-- `W0` is the head's `START` edge `(0, τ, START, N0, 0, DOWN)` -/
+  w0 : (step I 0).mode = 0 ∧ (step I 0).e.getD 0 0 = 0 ∧ (step I 0).e.getD 1 0 = I.tau ∧
+    (step I 0).e.getD 2 0 = SYM_START ∧ (step I 0).e.getD 3 0 = I.N.getD 0 0 ∧ (step I 0).e.getD 4 0 = 0 ∧
+    (step I 0).e.getD 5 0 = EK_DOWN
+  /-- a step reads the row's symbol, `DOWN`/`KEY` before `W3`, `VAL` on `W3` -/
+  stepE : ∀ t, 1 ≤ t → t < 4 → (step I t).mode = 0 → (step I t).e.getD 2 0 = wsym t ∧
+    (t < 3 → (step I t).e.getD 5 0 ≤ 1) ∧ (t = 3 → (step I t).e.getD 5 0 = EK_VAL)
+  /-- a step leads to the next lookup position, which is not a drain -/
+  chain : ∀ t, t < 3 → (step I t).mode = 0 → (step I (t + 1)).e.getD 0 0 = (step I t).e.getD 3 0 ∧
+    (step I (t + 1)).e.getD 1 0 = (step I t).e.getD 4 0 ∧ (step I (t + 1)).mode ≠ 3
+  /-- after an absent terminal or a drain: drain -/
+  drain : ∀ t, 1 ≤ t → t < 3 → (step I t).mode ≠ 0 → (step I (t + 1)).mode = 3
+  /-- absent by key: a `KEY`/`LEND` edge with another nibble (field element) -/
+  absK : ∀ t, t < 4 → (step I t).mode = 1 → ((step I t).e.getD 5 0 = EK_KEY ∨ (step I t).e.getD 5 0 = EK_LEND) ∧
+    (step I t).e.getD 2 0 ≠ wsym t ∧ (step I t).e.getD 2 0 < ZkFormal.Algebra.P
+  /-- absent at a branch: position `0`; bit `0` (`W1`) / `15` (`W2`) clear; no value (`W3`) -/
+  absB : ∀ t, t < 4 → (step I t).mode = 2 → (step I t).e.getD 1 0 = 0 ∧ (step I t).hv ≤ 1 ∧
+    (t = 1 → (step I t).bm % 2 = 0) ∧ (t = 2 → (step I t).bm / 2 ^ 15 % 2 = 0) ∧ (t = 3 → (step I t).hv = 0) ∧
+    (t = 1 ∨ t = 2 → (step I t).bm < 2 ^ 16)
+  /-- a step that does not enter a record stays in it -/
+  inRec : ∀ t, 1 ≤ t → t < 3 → (step I t).mode = 0 → (step I t).e.getD 4 0 ≠ 0 →
+    (step I t).e.getD 3 0 = (step I t).e.getD 0 0
+  /-- the lookup record of a row is the path record of its level -/
+  look : ∀ t, 1 ≤ t → t < 4 → (step I t).mode ≤ 2 → (step I t).e.getD 0 0 = I.N.getD (lv I t) 0
+  /-- the terminal row `t*` (`ts`): the first non-step row, or `W3` -/
+  tsStep : (2 ≤ I.ts → (step I 1).mode = 0) ∧ (I.ts = 3 → (step I 2).mode = 0) ∧
+    (I.ts ≤ 2 → (step I I.ts).mode ≠ 0)
+  termI : (step I I.ts).e.getD 1 0 = I.ti
+  termD : I.D = lv I I.ts
+  termX : (step I I.ts).mode = 1 → I.ci ≠ 4 → (step I I.ts).e.getD 2 0 = I.x
+  /-- the case and the terminal mode -/
+  termCase : ((step I I.ts).mode = 0 ↔ I.ci = 0 ∨ I.ci = 1) ∧ ((step I I.ts).mode = 2 ↔ I.ci = 2 ∨ I.ci = 3) ∧
+    ((step I I.ts).mode = 1 ↔ 4 ≤ I.ci)
+  termEk : (step I I.ts).mode = 1 → (I.ci = 4 → (step I I.ts).e.getD 5 0 = EK_LEND) ∧
+    (I.ci ≠ 4 → (step I I.ts).e.getD 5 0 = EK_KEY)
+
 /-- Per-instance conditions. -/
 structure InstOk (I : UpsInst) : Prop where
   L1 : 1 ≤ L I
@@ -44,6 +83,7 @@ structure InstOk (I : UpsInst) : Prop where
   Lsmall : L I < 2 ^ 24
   /-- the number of parts: the terminal parts of the plan, one per depth above `N_D` -/
   nQ : nQ I = UpsRows.nTof I.ci I.ti + I.dep.getD I.D 0
+  walk : WalkOkU I
 
 /-- **The honest input of `upsV3`.** -/
 structure UpsOk (insts : List UpsInst) : Prop where
