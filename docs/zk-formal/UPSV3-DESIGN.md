@@ -418,28 +418,58 @@ Done (kernel-checked, axioms ⊆ {propext, Classical.choice, Quot.sound}; `Extra
 | `UpsBus` | **global SHA / `MEMD`**: **`sha_seg`** (`ShaFacts`, the `BYTES` balance `shaR B_BYTES = cnt (upsV3 sends ++ others)` with no other id of kind 12, every `upsV3` `DIGEST` receive provided, `UpsTauDistinct`, `UpsIdBound` (`τ < 2^17`, `< 512` parts) ⇒ `UpsShaSeg` for every segment, via `sha_core` with the part's bytes); **`memd_seg`** (the `MEMD` balance, `upsV3` only, + `UpsTauDistinct` ⇒ `UpsMemdSeg`); **`ups_partsG`**: every part of every segment emits `nodeEnc (upsQ k)` with exact `MEMD` limbs, from the per-segment `UpsExt0` and "sources are nodes with usage `< 2^64`" and the global facts above |
 | `SpbSplit` | **step 2**: `commonPrefix_eq`; `split_LSa/LSb/LSc` (`splitLeaf k s key' v = wrapExt (k.take I) (qSPB ci (.leaf k s m) (qMVL k s I) k[I] si v)`), `split_ESl0/ESl1/ESn0/ESn1` (same for `splitExt`, moved node `qMVE k c m I` or the old child), given `k.take I = key'.take I` and `key'.drop I = [0,15].drop si`; `wexKey_eq` (the wrapping extension's key is the common prefix) |
 
-**Open (M7e)**, with what each needs:
-* `UpsTauDistinct v` (distinct segment instances) and the segments' `UpsE (τ, mid = reg(W0), post = reg(W3))`
-  for `root_chain` (step 4: `MIDROOT`/`ROOT` messages of `W0`/`W3` from `msgsW`; then `ups_count` gives
-  distinct `τ`);
-* `UpsIdBound v`: `τ < 2^17` (from `K`, or from the row count: a segment has `≥ 51` rows) and `ps.length < 512`
-  (`ps.length = nT + dep_D`, `nT ≤ 4`, `dep_D ≤ 399` from `nodeV3`'s depth bound through the `UPB` reads);
-* interface: no table but `upsV3` sends `BYTES` of kind 12 (owed to the assembly lane, §6 "id-range lemma");
-* `UpsExt0.reads` from the `UPB` balance against `nodeV3`'s chained provider (`upbOf`, `mU`): the generic
-  `Walk3.chain_provided` with `e = [NPOST(sN), spos, rb, plen, pdep, rcid]`, `Pb n = vs[n].v.ser true` (≈ 250
-  lines); `srcEnc` and "sources are nodes with usage `< 2^64`" from the post view (`enc_fullTree_post`,
-  `src k := fullTree R V' (sN k)`); `srcOk` per kind from the walk link (the path records and their shapes:
-  `ups_walk`, `walk3_find`, the descend / pass-through chain by `cid`); `vlen`/`vbytes` from `SPLEN`/codec
-  (interface, as `VPostOk`); `digV` from SHA on the value rows (`sha_seg` with `j = 0`, plus the `SPOST`
-  interface: the codec's bytes are `v`); `tiLe`, `xy` from `ups_walkTerm`;
-* step 3: per instance, `upsQ (root) = upsert (prune T') [0,15] v` up to `hashOf` (`upsert_hashOf_congr` /
-  `upsert_refinedBy`; terminal cases by `upsert_brSlot`/`upsert_brVal`/`upsert_leaf_ne`/`upsert_ext_np` with
-  `SpbSplit`, upper parts by `upsert_branch_down`/`upsert_ext_down`, pass-through `.ext []`), and `S0F` =
-  `T.find [0,15]` (`walk3_find`); step 4: `UpsE` from the view.
+Added (this round):
 
-**Unconstrained cells read by the link (STATUS §6 register):** none new.  The links above read `rx`, `rb`,
-`mBv`, `mCv`, `clen`, `qlen`, `dI`, `dL`, `reg`, `j`, `jm`, `idx`, `gD`, `gMs`, `gMr`, all pinned by the table
-or by a balance.
+| module | content |
+|---|---|
+| `UpsReads` | **`UPB` reads**: `UpbBal` (nodeV3 + upsV3 on `UPB`), `upbMsgs` (only read rows use `UPB`; `rd ⇒ qb`), **`upb_read`** (`Walk3.chain_provided`: a read row's key is record `sN`'s key at `spos`: `sN < |vs|`, `rb` = post byte, `plen` = `|pre|`, `pdep` = depth, `rcid` = `ucid`), **`upb_reads`** (`UpsExt0.reads` with `Pb = postB vs`); `memRead` (every part but the new leaf reads on its first `MEM` row), **`ups_nparts`** (`|ps| ≤ 404`: the first upper part reads a record at depth `dep_D − 1 < 400`), **`ups_idBound`** (`UpsIdBound` from it and `τ < 2^17`) |
+| `UpsSrc` | `post_node` (every record's post subtrie `fullTree R V' n`: `nodeEnc = toB (ser true)`, a node, usage `< 2^64`; `head_of` + `enc_fullTree_post`), `srcOf` (**`src k = fullTree R V' (sN of part k)`**), `part_sN` (every part's `sN` is a record; the new leaf shares its parent part's), **`ups_srcEnc`** (`UpsExt0.srcEnc`, and `ups_partsG`'s "sources are nodes with usage `< 2^64`") |
+| `UpsVal` | **interface `SchedVal v sv`** (below); `ups_valRow` (value rows carry `sv τ`), **`ups_vlen`** (`|sv τ| = L0 + 256 L1 + 65536 L2` = number of value rows, given the limbs are bytes), **`ups_digV`** (`UpsExt0.digV`: `sha_core` with the value rows' `BYTES`), **`ups_xy`** (`UpsExt0.xy`: the terminal `KEY` nibble differs from the walk symbol) |
+| `UpsWalk` | the `upsV3` walks in the walk link: `allWalks ws v = ws ++ v.map upsWalk`, `WalkBal` (the `EDGE`/`BMAP` balance of nodes, heads, `walkV3`, `upsV3`) ⇒ `Walk3.BusBal` over `allWalks` (`walkBal_all`); **`ups_bm`** (`W3`'s `BMAP` bitmap is a branch record's, `< 2^16`: discharges `ups_walk`'s hypothesis); `allWalks_wf`; **`ups_walkHyp`** (`Walk3.WalkHyp` of all walks: `walk3_pos`/`walk3_find` apply to `upsV3` walks); `edge_I`, **`ups_tiLe`** (`UpsExt0.tiLe`) |
+| `UpsShape` | `SrcOk` split: **`NodeOk3`** (generic: encoding `< 2^22`, usage `< 2^64`, nibbles `< 16`, keys `< 510`, 36-byte slots of length `< 2^32`, 16 children, 32-byte child hashes) and **`SrcShape`** (constructor and slot / key conditions per kind); `srcOk_of`; **`post_nodeOk`** (`NodeOk3` of every record's post subtrie); **`ups_srcOk`** (`UpsExt0.srcOk` given the parts' `SrcShape`) |
+| `UpsExt` | **`UpsEnv`** (the other tables' facts, collected); **`ups_ext0`** (`UpsExt0` of every segment given `SrcShape` and `vbytes`); **`ups_partsAll`** (every part emits `nodeEnc (upsQ k)` with exact `MEMD` limbs) |
+| `UpsChain` | **step 4**: `upsE s = ⟨τ, reg(W0), reg(W3)⟩`; `ups_rootMsgs`/`ups_midMsgs`; **`ups_chain`** (`root_chain` for the real table: `RootChain hs (v.map upsE) K r0 rK`), **`ups_tauDistinct`**, `ups_tauBound` (`τ ≤ K`); **step 3, root half**: `rootLook3`, **`ups_rootDig`** (`(upsE s).post = sha256 (nodeEnc (upsQ (|ps| − 1)))`) |
+
+Changes to existing statements (all rebuilt): `SrcOk` and the `RBI`/`MVL`/`MVE`/`SPB` lemmas take encodings `< 2^22`
+(was `2^20`) and keys `< 510` nibbles (was `400`), the bounds the records give; `WalkWf3.nrows` is `≤ 2^23` (was `2^21`)
+so that the `upsV3` walks fit (`wrows_lt` unchanged); `Chain3.UpsWf` → `UpsEWf` (name clash).
+
+**Interface hypotheses (new):**
+* `SchedVal v sv` (scheduler ↔ `upsV3`, V3-D0-DESIGN §12): `sv τ` is the new value of instance `τ`; every `SPLEN`
+  receive is a scheduler send `[τ, |sv τ|]`, every `SPOST` receive a send `[τ, d, (sv τ)[d]]` with `d < |sv τ|`
+  (as `Fp` images), `|sv τ| < 2^24`.
+* `walkV3`'s height `≤ 2^21` (`hWr` of `allWalks_wf` / `ups_walkHyp`): proved inside `walk3_view` (`height_le`)
+  but not exported by `WalkV3ViewStmt` (whose `WalkWf3.nrows` is now `≤ 2^23`).
+* `UpsEnv` collects the balances (`UPB`, `MEMD`, `BYTES` with others' ids not of kind 12, `DIGEST` provided) and
+  `τ < 2^17` (from `ups_tauBound` with `K < 2^17`).
+
+**Open (M7e)**, with what each needs:
+* **`SrcShape`** of every part (the only open field of `UpsExt0`): from the walk and the case.  Non-`PT` parts read
+  the path record `N_sd` (`hP.src`, `ups_walkLev`); with `ups_walkHyp`, `walk3_pos` places these records on the
+  path of `[0, 15]` in `T' = fullTree R V' h.rid`.  Per kind: `RDB` (a `DOWN` step at a branch: the slot holds a
+  child), `RDE`/`MVE` (an extension; `I + 1 ≤ |k|` from the `KEY` edge at `I`), `RLP`/`RBR`/`RBV` (the terminal
+  `VAL` / absent-at-branch record's type: read from the copied tag byte), `RBI` (`BMAP` bit `y` clear: `ups_bm`'s
+  provider), `MVL`/`SPB` (the terminal `KEY`/`LEND` edge's record), `PT` (`.ext []` via `rcid` = `ucid`, the
+  pass-through chain `resOk`).  Estimate 900–1300 lines.
+* **`vbytes`** (`L0 L1 L2 < 256`): not constrained on `W0`; SHA bounds them where a part emits them (a fresh `VLEN`
+  field, present in every case), but `ups_look` uses `vbytes` (circular).  Either reorder (look up the
+  value-carrying part first, ~150 lines) or add a range check on `W0` (AIR change, lead decision).
+* **step 3, upsert half**: `upsQ (|ps| − 1)` vs `upsert (prune_[0,15] T') [0,15] v` up to `hashOf`
+  (`upsert_hashOf_congr` / `upsert_refinedBy`; terminal cases `upsert_brSlot`/`upsert_brVal`/`upsert_leaf_ne`
+  /`upsert_ext_np` with `SpbSplit`; upper parts `upsert_branch_down`/`upsert_ext_down`; pass-through `.ext []`;
+  `upsert_absent`), byte-exact including `memory_usage`; and `S0F (present, vid)` = `T.find [0,15]`
+  (`walk3_find` on the `upsV3` walk via `ups_walkHyp`).  Needs `SrcShape` (the same path facts).  Estimate
+  1200–1800 lines.
+* then `(upsE s).post = toB (hashOf (upsert T' [0,15] v))` from `ups_rootDig`, and with `ups_chain` the post root
+  of every instance chains to the next head.
+
+**Unconstrained cells read by the link (STATUS §6 register):**
+* `W0`'s value-length limbs `L0 L1 L2` (`vbytes`): read by every per-kind lemma through `UpsExt0.vlen`/`vbytes`;
+  not range-checked on `W0` (see above).
+* (closed) `W3`'s `BMAP` bitmap `wbm`: now discharged by `ups_bm`.
+The other cells the links read (`rx`, `rb`, `mBv`, `mCv`, `clen`, `qlen`, `dI`, `dL`, `reg`, `j`, `jm`, `idx`, `gD`,
+`gMs`, `gMr`, `sN`, `spos`, `plen`, `pdep`, `rcid`, `u`, `nI`, `nI2`, `nib`, `tX`) are pinned by the table or by a
+balance.
 
 ## 9. Model check (tested)
 
