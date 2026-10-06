@@ -448,8 +448,8 @@ diagnostic):
   | 1 | 110.007 | `sub_314aa809c32e42248cc637b462d8ced7` | reexec-witness-fast (PROVER_ONLY, `--parent sub_c67d…`) |
   | 2 | 98.376 | `sub_c67dd93beafd4ecc9935431366f0baa6` | reexec-witness (re-vendored, native-lean) |
   | 3 | 97.324 | `sub_7ef24373c6ac46cd800965882635df16` | reexec-npai (npai-v1) |
-  | 5 | 0.052 | `sub_19cc9c90e2184946aad17195bd02d847` | **np-udr-stark** (NEAR STARK, native-lean): ADMITTED at formal tier, all 14 gates PASS, signed report (docs/e2e-results/np-udr-stark-live/) |
   | 4 | 0.070 | `sub_ec1fdc22d88740188c9ea249d38914b8` | np-udr-stark-fast2 (PROVER_ONLY, `--parent sub_19cc…`; formal gates reused; prove 1.39 / 4.55 / 48.0 s; 2026-10-06) |
+  | 5 | 0.052 | `sub_19cc9c90e2184946aad17195bd02d847` | **np-udr-stark** (NEAR STARK, native-lean): ADMITTED at formal tier, all 14 gates PASS, signed report (docs/e2e-results/np-udr-stark-live/) |
   | 6 | 0.048 | `sub_56bb976bc115412483197db8d34c3092` | np-udr-stark-fast (PROVER_ONLY, `--parent sub_19cc…`; formal gates reused; score below the parent: 22% faster on batch-256 but 41–53% slower on batch-1/16; cause under investigation (L8), see docs/e2e-results/np-udr-stark-live/) |
   | – | – | `sub_e2e032d91b1446e883ce0d031dd61dcf` | reexec-witness with the old vendored ArenaCore: REJECTED (ARTIFACT_BINDING_FAILED, correct) |
 
