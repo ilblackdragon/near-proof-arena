@@ -25,7 +25,8 @@ open NearSpecV3 NearSpecV3.Scheduler NearSpec
 
 instance : Inhabited Req := ⟨⟨0, []⟩⟩
 
-/-- `runCore` with the converted request list given explicitly. -/
+/-- `runCore` with the converted request list given explicitly (`runCore` converts the raw
+requests with `convertRaw`; `Spec/Conv.convertRequests_eq_convRaw` relates it to `convRaw`). -/
 def coreOf (ids : List Nat) (p : Params) (allowed : Array Bool) (reqs : List Req)
     (seed allShardsHash : Bytes) (prevState : Option Bytes) : Option Output := do
   let prev ← match prevState with
@@ -51,7 +52,8 @@ def coreOf (ids : List Nat) (p : Params) (allowed : Array Bool) (reqs : List Req
   some ⟨newState.encode, links.map fun l => ((sid (l / n), sid (l % n)), st.granted[l]!), p⟩
 
 theorem runCore_eq (pub : SchedPub) (prev : Option Bytes) :
-    runCore pub prev = coreOf pub.ids pub.params pub.allowed pub.reqs pub.seed pub.allShardsHash prev := rfl
+    runCore pub prev = coreOf pub.ids pub.params pub.allowed
+      (convertRaw pub.values pub.params.base pub.ids pub.raw) pub.seed pub.allShardsHash prev := rfl
 
 /-! ## Requests: raw form and set bits -/
 

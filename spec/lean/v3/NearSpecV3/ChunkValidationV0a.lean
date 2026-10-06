@@ -7,7 +7,7 @@ Additive successor of `NearSpecV3.ChunkValidationV0` (which is pinned by the sig
 challenge `near-chunk-validation-d0-1` and is not modified). The amended relation is a pure
 restriction of `RelD0` (spec/near-chunk-validation-v0a.md, V3-D0-DESIGN §4, §10, §11):
 
-  `RelD0a B cb w := RelD0 cb w ∧ A1 cb ∧ A2 cb w ∧ Canon0f cb w ∧ A7 B cb w`
+  `RelD0a B cb w := RelD0 cb w ∧ A1 cb ∧ A2 cb w ∧ Canon0f cb w ∧ A7 B cb w ∧ A8 cb`
 
 * **A1** (`c.gas_limit`): the chunk `gas_limit` in the last-new-chunk block's (B2) slot of the
   validated shard is at most `10^15` (mainnet genesis, 1000 Tgas). nearcore never changes a
@@ -16,6 +16,12 @@ restriction of `RelD0` (spec/near-chunk-validation-v0a.md, V3-D0-DESIGN §4, §1
   last-wins lookup selects for a new source chunk) routes, under the epoch's layout, to the
   validated shard. Holds on every honest single-epoch witness (§10.1).
 * **A7** (`w.unfolded`, round-2 lead decision): `unfoldBytes cb w ≤ B` (below).
+* **A8** (`c.bw_requests`, lead decision): in every block of the claim's segment, every chunk
+  slot's `BandwidthRequests` has at most one request per `to_shard`. nearcore builds the list
+  with one `generate_bandwidth_request` per layout shard id
+  (`runtime/runtime/src/congestion_control.rs:503-523`) and rejects a chunk header whose
+  requests differ from the chunk extra's (`chain/chain/src/validate.rs:280-298`), so every
+  chunk header of a valid chain satisfies it. Claim-only.
 * **Canon0f** (`e.sched_canonical`): every `BandwidthSchedulerState` value the D0 run reads at
   `0x0f` — in the main pre-state and in each implicit transition's pre-state — is absent or
   decodes as `V1` whose links are exactly the layout's `n²` links `(sender, receiver)` in
@@ -276,10 +282,17 @@ def unfoldBytes (cb w : Bytes) : Nat :=
 /-- A7 (`w.unfolded`). -/
 def a7 (B : Nat) (cb w : Bytes) : Bool := decide (unfoldBytes cb w ≤ B)
 
+/-- A8 (`c.bw_requests`): per block slot of the segment, distinct `to_shard`s. -/
+def a8 (cb : Bytes) : Bool :=
+  match walkD0 cb with
+  | .ok k => k.blks.all fun b => b.slots.all fun (_, ci) => decide (ci.bwRequests.map (·.toShard)).Nodup
+  | .error _ => false
+
 /-- **The D0a relation**, with the unfolded-size bound `B` a parameter (the challenge
 instance is `B0`, `ChallengeD0a`). -/
 def RelD0a (B : Nat) (cb w : Bytes) : Prop :=
-  RelD0 cb w ∧ a1 cb = true ∧ a2 cb w = true ∧ canon0f cb w = true ∧ a7 B cb w = true
+  RelD0 cb w ∧ a1 cb = true ∧ a2 cb w = true ∧ canon0f cb w = true ∧ a7 B cb w = true ∧
+    a8 cb = true
 
 instance (B : Nat) (cb w : Bytes) : Decidable (RelD0a B cb w) := by unfold RelD0a; infer_instance
 
@@ -290,13 +303,14 @@ def checkD0a (B : Nat) (cb w : Bytes) : Except String Unit := do
   check (a2 cb w) "out of domain (w.proof_routing): a used receipt proof holds a receipt routed to another shard"
   check (canon0f cb w) "out of domain (e.sched_canonical): 0x0f value is not the layout's canonical link list"
   check (a7 B cb w) "out of domain (w.unfolded): unfolded trie bytes above the bound"
+  check (a8 cb) "out of domain (c.bw_requests): a chunk's bandwidth requests repeat a to_shard"
 
 theorem relD0a_iff (B : Nat) (cb w : Bytes) : RelD0a B cb w ↔ checkD0a B cb w = .ok () := by
   unfold RelD0a RelD0 acceptsD0 checkD0a check
   cases h : checkD0 cb w with
   | error e => simp [bind, Except.bind]
   | ok u =>
-    cases a1 cb <;> cases a2 cb w <;> cases canon0f cb w <;> cases a7 B cb w <;>
+    cases a1 cb <;> cases a2 cb w <;> cases canon0f cb w <;> cases a7 B cb w <;> cases a8 cb <;>
       simp [bind, Except.bind, pure, Except.pure]
 
 /-- Soundness direction: every D0a witness is a D0 witness (for every bound `B`). -/
@@ -304,8 +318,8 @@ theorem relD0a_relD0 {B : Nat} {cb w : Bytes} (h : RelD0a B cb w) : RelD0 cb w :
 
 /-- The bound is monotone. -/
 theorem relD0a_mono {B B' : Nat} (hB : B ≤ B') {cb w : Bytes} (h : RelD0a B cb w) : RelD0a B' cb w := by
-  obtain ⟨h0, h1, h2, h3, h4⟩ := h
-  refine ⟨h0, h1, h2, h3, ?_⟩
+  obtain ⟨h0, h1, h2, h3, h4, h5⟩ := h
+  refine ⟨h0, h1, h2, h3, ?_, h5⟩
   unfold a7 at *
   simp only [decide_eq_true_eq] at *
   omega

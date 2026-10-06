@@ -351,6 +351,9 @@ def prepClaim (cb : Bytes) : Except String PrepC := do
   check ((blks.zip (hashes.drop 1)).all fun (b, h) => b.hdr.prevHash == h)
     "invalid: segment is not hash-linked"
   check (blks.all fun b => b.slots.length == L.numShards) "invalid: slot count"
+  -- A8 (claim-only, `ChunkValidationV0a.a8`): distinct `to_shard`s per chunk's requests
+  check (blks.all fun b => b.slots.all fun (_, ci) => decide (ci.bwRequests.map (·.toShard)).Nodup)
+    "out of domain (c.bw_requests): a chunk's bandwidth requests repeat a to_shard"
   let idx ← match L.index H.shardId with
     | some i => pure i
     | none => throw "invalid: shard not in layout"

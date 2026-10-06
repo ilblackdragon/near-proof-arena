@@ -9,12 +9,12 @@ challenge `near-chunk-validation-d0-1` and is **not modified**. Draft challenge:
 ## 1. The relation
 
 ```
-RelD0a(B)(cb, w) := RelD0(cb, w) ∧ A1(cb) ∧ A2(cb, w) ∧ Canon0f(cb, w) ∧ unfoldBytes(cb, w) ≤ B
+RelD0a(B)(cb, w) := RelD0(cb, w) ∧ A1(cb) ∧ A2(cb, w) ∧ Canon0f(cb, w) ∧ unfoldBytes(cb, w) ≤ B ∧ A8(cb)
 ```
 
 The challenge instance is `B = B0 = 3,000,000` (§2.4).
 
-Lean: `NearSpecV3.ChunkValidationV0a` (`RelD0a B`, `a1`, `a2`, `canon0f`, `a7`, `unfoldBytes`;
+Lean: `NearSpecV3.ChunkValidationV0a` (`RelD0a B`, `a1`, `a2`, `canon0f`, `a7`, `unfoldBytes`, `a8`;
 executable verdict `checkD0a B`; **proved**: `relD0a_iff : RelD0a B cb w ↔ checkD0a B cb w = .ok ()`,
 `relD0a_relD0 : RelD0a B cb w → RelD0 cb w` (for every `B`), `relD0a_mono`). A pure
 restriction: every D0a proof is a D0 proof of the same claim; no soundness statement
@@ -28,6 +28,7 @@ and witness formats are unchanged (`spec/claim-v3.md`).
 | `c.gas_limit` (A1) | the `gas_limit` of B2's own-shard slot (the block of the shard's last new chunk) is `≤ 10^15` (1000 Tgas) | bounds the applied receipts (`n ≤ 4481`) and the refund body (`≤ 0.91 MB`) for a succinct proof |
 | `w.proof_routing` (A2) | every receipt of every *used* source receipt proof (the entry the last-wins lookup selects for a new source chunk) routes, under `L(epoch_id)`, to the validated shard | no receipt is Merkle-hashed but filtered out (proof-size bound) |
 | `w.unfolded` (A7) | `unfoldBytes(cb, w) ≤ B0 = 3,000,000` (§2.4) | the AIR hashes every revealed node *occurrence* (tree-shaped records); a witness can share one subtree under many slots, so the unfolded size — not `|base_state|` — bounds the SHA and node tables |
+| `c.bw_requests` (A8) | in every block of the claim's segment, every chunk slot's `BandwidthRequests` has at most one request per `to_shard` (claim-only; `prepD0` checks it natively) | bounds the requests the in-AIR scheduler converts and processes (`≤ n²` per applied block), hence the scan / process table heights |
 | `e.sched_canonical` (Canon0f) | every `0x0f` (`BandwidthSchedulerState`) value the run reads — main pre-state and each implicit transition's pre-state — is absent or `V1` whose links are exactly the layout's `n²` links `(sender, receiver)` in sender-major order (any allowances, any sanity hash) | the in-AIR scheduler decodes the previous state as exactly `n²` ordered links |
 
 ### 2.1 A1 source check (nearcore 2.13.4, `44f7ae6c`)
@@ -75,6 +76,17 @@ accepted by nearcore (`filter_incoming_receipts_for_shard` drops it) but is outs
   theorems cannot exclude).
 * Tested: the oracle's classifier (`oracle/v3-d0a/src/d0a.rs`, nearcore's own trie reads)
   checks Canon0f on every honest witness of the generated chains (§3).
+
+### 2.3a A8 source check (nearcore 2.13.4, `44f7ae6c`)
+
+* `runtime/runtime/src/congestion_control.rs:503-523` (`generate_bandwidth_requests`): one
+  `generate_bandwidth_request(shard_id, …)` per `shard_layout.shard_ids()`, at most one request
+  each, `to_shard = shard_id` (`core/primitives/src/bandwidth_scheduler.rs:84-126`).
+* `chain/chain/src/validate.rs:280-298` (`validate_bandwidth_requests`): a chunk header whose
+  requests differ from the ones its previous chunk's application stored in the chunk extra is
+  rejected (`InvalidBandwidthRequests`).
+* So every chunk header of a valid chain satisfies A8. The validated shard's own header carries no
+  requests in D0 (`H.bwRequests = []`).
 
 ### 2.4 A7 `w.unfolded`: definition, `B0`, liveness
 
