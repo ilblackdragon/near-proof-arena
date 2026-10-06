@@ -194,10 +194,38 @@ impl ProofMutator for AppendGarbage {
 /// the random `bitflip` positions. Proofs in any other format produce nothing.
 pub struct V3IgnoredFields;
 
-/// Offsets (in the witness *file*) of the validator-ignored fields of a
-/// `near-arena-witness-v3` proof, or `None` if the bytes are not one in the
-/// D0 layout this walker knows (`NearSpecV3.decodeStateWitness`).
-pub fn v3_ignored_offsets(file: &[u8]) -> Option<Vec<(String, usize)>> {
+/// A `ChunkStateTransition` of a v3 state witness: offsets relative to the state
+/// witness (`[start, end)`, the `PartialState` value count, each value's borsh
+/// `[start, end)` including its length prefix).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct V3Transition {
+    pub start: usize,
+    pub nvals_at: usize,
+    pub values: Vec<(usize, usize)>,
+    pub end: usize,
+}
+
+/// The degrees of freedom of a `near-arena-witness-v3` proof in the D0 layout
+/// (`NearSpecV3.decodeStateWitness`): where the state witness sits in the file,
+/// the validator-ignored header fields, the transitions with their
+/// `base_state` values, and the `source_receipt_proofs` entries. Offsets are
+/// relative to the state witness `sw = file[sw_start .. sw_start + sw_len]`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct V3Layout {
+    pub sw_start: usize,
+    pub sw_len: usize,
+    pub height_included: usize,
+    pub signature_body: usize,
+    pub main: V3Transition,
+    pub entries_count_at: usize,
+    /// `[start, end)` of each entry; the entry's key is its first 32 bytes.
+    pub entries: Vec<(usize, usize)>,
+    pub implicit: Vec<V3Transition>,
+}
+
+/// Walk a `near-arena-witness-v3` file in the D0 layout; `None` if the bytes
+/// are not one (another proof format, or a shape this walker does not know).
+pub fn v3_layout(file: &[u8]) -> Option<V3Layout> {
     struct R<'a> {
         b: &'a [u8],
         p: usize,
@@ -227,22 +255,26 @@ pub fn v3_ignored_offsets(file: &[u8]) -> Option<Vec<(String, usize)>> {
             };
             self.take(n).map(|_| ())
         }
-        fn transition(&mut self) -> Option<usize> {
-            let at = self.p;
+        fn transition(&mut self) -> Option<V3Transition> {
+            let start = self.p;
             self.take(32)?;
             (self.u8()? == 0).then_some(())?;
+            let nvals_at = self.p;
+            let mut values = vec![];
             for _ in 0..self.u32()? {
+                let at = self.p;
                 self.bytes()?;
+                values.push((at, self.p));
             }
             self.take(32)?;
-            Some(at)
+            Some(V3Transition { start, nvals_at, values, end: self.p })
         }
     }
     let tag = b"near-arena-witness-v3";
     let mut f = R { b: file, p: 0 };
     (f.bytes()? == tag).then_some(())?;
     let n = f.u32()? as usize;
-    let base = f.p;
+    let sw_start = f.p;
     let sw = f.take(n)?;
     let mut r = R { b: sw, p: 0 };
     (r.u8()? == 1).then_some(())?;
@@ -273,18 +305,21 @@ pub fn v3_ignored_offsets(file: &[u8]) -> Option<Vec<(String, usize)>> {
             _ => return None,
         }
     }
-    let mut out = vec![("height_included".to_string(), base + r.p)];
+    let height_included = r.p;
     r.take(8)?;
     let sig_tag = r.u8()?;
-    out.push(("signature".to_string(), base + r.p));
+    let signature_body = r.p;
     r.take(match sig_tag {
         0 => 64,
         1 => 65,
         2 => 3309,
         _ => return None,
     })?;
-    out.push(("block_hash.main".to_string(), base + r.transition()?));
+    let main = r.transition()?;
+    let entries_count_at = r.p;
+    let mut entries = vec![];
     for _ in 0..r.u32()? {
+        let at = r.p;
         r.take(32)?;
         for _ in 0..r.u32()? {
             r.bytes()?;
@@ -301,11 +336,39 @@ pub fn v3_ignored_offsets(file: &[u8]) -> Option<Vec<(String, usize)>> {
         for _ in 0..r.u32()? {
             r.take(33)?;
         }
+        entries.push((at, r.p));
     }
     r.take(32)?;
     (r.u32()? == 0).then_some(())?;
-    for i in 0..r.u32()? {
-        out.push((format!("block_hash.implicit{i}"), base + r.transition()?));
+    let mut implicit = vec![];
+    for _ in 0..r.u32()? {
+        implicit.push(r.transition()?);
+    }
+    Some(V3Layout {
+        sw_start,
+        sw_len: n,
+        height_included,
+        signature_body,
+        main,
+        entries_count_at,
+        entries,
+        implicit,
+    })
+}
+
+/// Offsets (in the witness *file*) of the validator-ignored fields of a
+/// `near-arena-witness-v3` proof, or `None` if the bytes are not one in the
+/// D0 layout this walker knows (`NearSpecV3.decodeStateWitness`).
+pub fn v3_ignored_offsets(file: &[u8]) -> Option<Vec<(String, usize)>> {
+    let l = v3_layout(file)?;
+    let base = l.sw_start;
+    let mut out = vec![
+        ("height_included".to_string(), base + l.height_included),
+        ("signature".to_string(), base + l.signature_body),
+        ("block_hash.main".to_string(), base + l.main.start),
+    ];
+    for (i, t) in l.implicit.iter().enumerate() {
+        out.push((format!("block_hash.implicit{i}"), base + t.start));
     }
     Some(out)
 }
@@ -325,6 +388,124 @@ impl ProofMutator for V3IgnoredFields {
                 q[at] ^= 1;
                 out.push(h(
                     format!("v3-ignored-fields/{field}/{}", p.case_id),
+                    &p.claim,
+                    q,
+                ));
+            }
+        }
+        out
+    }
+}
+
+/// Structure-aware mutations of the degrees of freedom nearcore's **lenient
+/// decoding** of a `ChunkStateWitness` leaves (v3, `near-arena-witness-v3`
+/// proofs): `source_receipt_proofs` is a `HashMap` (any entry order; a
+/// duplicate key keeps the last value) and every `PartialState::TrieValues` is
+/// a `Vec` used as a hash-indexed store (any order, duplicates and values the
+/// validator never reads are accepted). Each mutant below is accepted by
+/// nearcore's validator iff the honest witness is, so a verifier that accepts it
+/// accepts two different proof byte strings for one proof slot (malleability):
+/// deterministic `HOSTILE_PROOF_ACCEPTED`.
+///
+/// * `entries/duplicate-key`: the last entry appended again (same key, same value);
+/// * `entries/reorder`: the first two entries swapped (when their bytes differ);
+/// * `values/reorder.<t>`: the first two values of transition `t` swapped;
+/// * `values/duplicate.<t>`: the first value of transition `t` appended again;
+/// * `values/inject-unused.<t>`: a 40-byte value no trie node references appended.
+///
+/// `<t>` is `main` or `implicit<i>`. Proofs in any other format produce nothing.
+pub struct V3WitnessFreedoms;
+
+fn v3_rebuild(file: &[u8], l: &V3Layout, sw: Vec<u8>) -> Vec<u8> {
+    let mut out = file[..l.sw_start - 4].to_vec();
+    out.extend_from_slice(&(sw.len() as u32).to_le_bytes());
+    out.extend_from_slice(&sw);
+    out.extend_from_slice(&file[l.sw_start + l.sw_len..]);
+    out
+}
+
+/// `sw` with the `[a, b)` range replaced and the u32 count at `count_at` (before
+/// `a`) increased by `delta`.
+fn v3_splice(sw: &[u8], a: usize, b: usize, with: &[u8], count_at: usize, delta: u32) -> Vec<u8> {
+    let mut out = sw[..a].to_vec();
+    out.extend_from_slice(with);
+    out.extend_from_slice(&sw[b..]);
+    let c = u32::from_le_bytes(out[count_at..count_at + 4].try_into().unwrap()) + delta;
+    out[count_at..count_at + 4].copy_from_slice(&c.to_le_bytes());
+    out
+}
+
+pub fn v3_freedom_mutants(file: &[u8]) -> Vec<(String, Vec<u8>)> {
+    let Some(l) = v3_layout(file) else {
+        return vec![];
+    };
+    let sw = &file[l.sw_start..l.sw_start + l.sw_len];
+    let mut out = vec![];
+    // source_receipt_proofs
+    if let Some(&(a, b)) = l.entries.last() {
+        let e = sw[a..b].to_vec();
+        out.push((
+            "entries/duplicate-key".to_string(),
+            v3_splice(sw, b, b, &e, l.entries_count_at, 1),
+        ));
+    }
+    if l.entries.len() >= 2 {
+        let ((a0, b0), (a1, b1)) = (l.entries[0], l.entries[1]);
+        if sw[a0..b0] != sw[a1..b1] {
+            let mut sw2 = sw[..a0].to_vec();
+            sw2.extend_from_slice(&sw[a1..b1]);
+            sw2.extend_from_slice(&sw[a0..b0]);
+            sw2.extend_from_slice(&sw[b1..]);
+            out.push(("entries/reorder".to_string(), sw2));
+        }
+    }
+    // base_state of every transition
+    let mut ts = vec![("main".to_string(), &l.main)];
+    for (i, t) in l.implicit.iter().enumerate() {
+        ts.push((format!("implicit{i}"), t));
+    }
+    for (name, t) in ts {
+        if t.values.len() >= 2 {
+            let ((a0, b0), (a1, b1)) = (t.values[0], t.values[1]);
+            if sw[a0..b0] != sw[a1..b1] {
+                let mut sw2 = sw[..a0].to_vec();
+                sw2.extend_from_slice(&sw[a1..b1]);
+                sw2.extend_from_slice(&sw[a0..b0]);
+                sw2.extend_from_slice(&sw[b1..]);
+                out.push((format!("values/reorder.{name}"), sw2));
+            }
+        }
+        if let Some(&(a, b)) = t.values.first() {
+            let v = sw[a..b].to_vec();
+            let end = t.values.last().unwrap().1;
+            out.push((
+                format!("values/duplicate.{name}"),
+                v3_splice(sw, end, end, &v, t.nvals_at, 1),
+            ));
+        }
+        let end = t.values.last().map_or(t.nvals_at + 4, |v| v.1);
+        let mut junk = 36u32.to_le_bytes().to_vec();
+        junk.extend_from_slice(b"nearproof:v3-witness-freedoms:unused");
+        out.push((
+            format!("values/inject-unused.{name}"),
+            v3_splice(sw, end, end, &junk, t.nvals_at, 1),
+        ));
+    }
+    out.into_iter()
+        .map(|(n, sw2)| (n, v3_rebuild(file, &l, sw2)))
+        .collect()
+}
+
+impl ProofMutator for V3WitnessFreedoms {
+    fn name(&self) -> &str {
+        "v3-witness-freedoms"
+    }
+    fn mutate(&self, ctx: &MutationCtx<'_>, _: &mut SplitMix64) -> Vec<HostileInput> {
+        let mut out = vec![];
+        for p in ctx.honest {
+            for (label, q) in v3_freedom_mutants(&p.proof) {
+                out.push(h(
+                    format!("v3-witness-freedoms/{label}/{}", p.case_id),
                     &p.claim,
                     q,
                 ));
@@ -391,7 +572,8 @@ impl MutatorRegistry {
     pub fn empty() -> Self {
         MutatorRegistry { mutators: vec![] }
     }
-    /// truncate, bitflip, empty, oversize, swap, append, v3-ignored-fields.
+    /// truncate, bitflip, empty, oversize, swap, append, v3-ignored-fields,
+    /// v3-witness-freedoms.
     pub fn generic() -> Self {
         MutatorRegistry {
             mutators: vec![
@@ -402,6 +584,7 @@ impl MutatorRegistry {
                 Box::new(SwapClaimProof),
                 Box::new(AppendGarbage),
                 Box::new(V3IgnoredFields),
+                Box::new(V3WitnessFreedoms),
             ],
         }
     }
@@ -590,5 +773,48 @@ mod tests {
             .iter()
             .any(|(n, _)| n == "block_hash.implicit0"));
         assert!(v3_ignored_offsets(b"proof-a").is_none());
+    }
+
+    /// The lenient-decoding mutator: every mutant is again a D0 witness file
+    /// with the expected shape change, labels cover entries and every
+    /// transition, other formats give nothing.
+    #[test]
+    fn v3_witness_freedoms_mutants_are_well_formed() {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../oracle/fixtures/v3/arena-public/cases");
+        let mut labels = std::collections::BTreeSet::new();
+        for case in ["00-h10004-s3", "00-h10024-s0", "00-h10035-s3", "01-h10025-s1"] {
+            let w = std::fs::read(dir.join(case).join("witness.bin")).unwrap();
+            let l = v3_layout(&w).unwrap();
+            for (label, q) in v3_freedom_mutants(&w) {
+                assert_ne!(q, w, "{case} {label}");
+                let l2 = v3_layout(&q).unwrap_or_else(|| panic!("{case} {label}: not a D0 witness"));
+                let (de, dv) = match label.as_str() {
+                    "entries/duplicate-key" => (1, 0),
+                    "entries/reorder" => (0, 0),
+                    _ if label.starts_with("values/reorder") => (0, 0),
+                    _ => (0, 1),
+                };
+                assert_eq!(l2.entries.len(), l.entries.len() + de, "{case} {label}");
+                let nv = |l: &V3Layout| {
+                    l.main.values.len() + l.implicit.iter().map(|t| t.values.len()).sum::<usize>()
+                };
+                assert_eq!(nv(&l2), nv(&l) + dv, "{case} {label}");
+                assert_eq!(q.len() - l2.sw_len, w.len() - l.sw_len, "{case} {label}");
+                labels.insert(label);
+            }
+        }
+        for want in [
+            "entries/duplicate-key",
+            "entries/reorder",
+            "values/reorder.main",
+            "values/duplicate.main",
+            "values/inject-unused.main",
+            "values/duplicate.implicit0",
+            "values/inject-unused.implicit0",
+        ] {
+            assert!(labels.contains(want), "missing {want}: {labels:?}");
+        }
+        assert!(v3_freedom_mutants(b"proof-a").is_empty());
     }
 }

@@ -1,5 +1,4 @@
-# reexec-v3-d0 build helpers (Rust, std only): prepare, leanorder. The prover is Lean
-# (source/prover). The deployed verifier is the
+# reexec-v3-d0 reference prover (Rust, std only). The deployed verifier is the
 # Lean model in ../formal (compiled by the governed Lean compiler).
 [package]
 name = "reexec-v3-d0"
@@ -10,6 +9,10 @@ publish = false
 [[bin]]
 name = "prepare"
 path = "src/bin/prepare.rs"
+
+[[bin]]
+name = "prove"
+path = "src/bin/prove.rs"
 
 [[bin]]
 name = "leanorder"

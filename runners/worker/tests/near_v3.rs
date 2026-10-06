@@ -304,18 +304,15 @@ fn reference_all_stages() {
     all_stages(&f, arena_types::challenge::Tier::Demo);
 }
 
-/// The pre-canonical reference (proof = raw witness; hostile case
-/// `adversarial/hostile-submissions/near-v3-malleable-witness`) passes the
-/// formal gates and conformance but must fail ADVERSARIAL_PROOFS with
-/// HOSTILE_PROOF_ACCEPTED, deterministically, via `v3-ignored-fields`.
-#[test]
-fn malleable_witness_reference_fails_adversarial() {
+/// Overlay the hostile case `hostile` on the reference package; it must pass the
+/// formal gates but fail ADVERSARIAL_PROOFS with HOSTILE_PROOF_ACCEPTED, with a
+/// mutant label containing `needle`.
+fn hostile_fails_adversarial(hostile: &str, needle: &str) {
     let mut f = fixture();
     if v3_env(&mut f).is_none() {
         return;
     }
     let mut files = package(&f);
-    let hostile = "adversarial/hostile-submissions/near-v3-malleable-witness";
     for (p, v) in git_files(hostile) {
         if ["BASE", "expect.json", "README.md"].contains(&p.as_str()) {
             continue;
@@ -387,7 +384,32 @@ fn malleable_witness_reference_fails_adversarial() {
     assert!(g
         .reason_codes
         .contains(&arena_types::ReasonCode::HostileProofAccepted));
-    assert!(g.summary.contains("v3-ignored-fields/"), "{}", g.summary);
+    assert!(g.summary.contains(needle), "{}", g.summary);
+}
+
+/// The pre-canonical reference (proof = raw witness; hostile case
+/// `adversarial/hostile-submissions/near-v3-malleable-witness`) passes the
+/// formal gates and conformance but must fail ADVERSARIAL_PROOFS with
+/// HOSTILE_PROOF_ACCEPTED, deterministically, via `v3-ignored-fields`.
+#[test]
+fn malleable_witness_reference_fails_adversarial() {
+    hostile_fails_adversarial(
+        "adversarial/hostile-submissions/near-v3-malleable-witness",
+        "v3-ignored-fields/",
+    );
+}
+
+/// The canonical-only reference (ignored fields zeroed, but the receipt-proof map and
+/// every `base_state` left as the producer encoded them; hostile case
+/// `adversarial/hostile-submissions/near-v3-lenient-witness`) must fail
+/// ADVERSARIAL_PROOFS with HOSTILE_PROOF_ACCEPTED, deterministically, via
+/// `v3-witness-freedoms` (duplicate key, reorder, injected unused value).
+#[test]
+fn lenient_witness_reference_fails_adversarial() {
+    hostile_fails_adversarial(
+        "adversarial/hostile-submissions/near-v3-lenient-witness",
+        "v3-witness-freedoms/",
+    );
 }
 
 /// A candidate whose verifier accepts everything passes every positive case;
