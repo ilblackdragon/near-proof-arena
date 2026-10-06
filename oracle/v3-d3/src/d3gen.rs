@@ -8,7 +8,13 @@
 //!     panics / aborts / traps / gas exhaustion;
 //!   * `s{k}ctr`, `s{k}ctr2` (every shard): oracle/d3-ttn's ttn2 (storage-heavy, promise chains);
 //!   * `s0fl` (d3float), `s{1}cv` (d3curve), `s{2}ed` (d3ed): rarely called, out of D3α
-//!     (floats, curve import) / the ed25519_verify import.
+//!     (floats, a curve call) / the ed25519_verify import;
+//!   * `s{3}hx` (d3hostx): imports a curve function and state-init / global-contract / gas-key
+//!     functions; `run` calls none of them (in D3α, §10.0a P3), `curve` / `glob` / `stinit` /
+//!     `gaskey` call one (out), `mlkey` builds Stake / AddKey / DeleteKey with an ML-DSA-65 key
+//!     (out, P4);
+//!   * `ETH_LOCAL` (0x + 40 hex, d3tiny): an ETH-implicit account with a `Local` contract; calls
+//!     to it are out of D3α (P5).
 //! Transactions: single and multi-action FunctionCalls (attached deposits, tight gas, missing
 //! methods, wrong signatures, calls to code-less accounts), Delegate meta transactions wrapping
 //! FunctionCalls (key `d3dl` of the honest accounts), CreateAccount + DeployContract +
@@ -47,6 +53,12 @@ pub fn ood_accounts(n_shards: usize) -> Vec<(AccountId, &'static str)> {
         (acct(&format!("s{}ed", 2 % n_shards)), "d3ed"),
     ]
 }
+/// the d3hostx account (shard 3 mod n)
+pub fn hostx(n_shards: usize) -> AccountId {
+    acct(&format!("s{}hx", 3 % n_shards))
+}
+/// an ETH-implicit account (`0x` + 40 hex) with the `Local` contract d3tiny
+pub const ETH_LOCAL: &str = "0xd3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3";
 pub fn dl_signer(a: &AccountId) -> Signer {
     key_signer(a, "d3dl")
 }
@@ -90,6 +102,8 @@ pub fn genesis_records(accounts: &[Vec<AccountId>]) -> (Vec<StateRecord>, Balanc
         let code = crate::d3contracts::all().into_iter().find(|x| x.0 == name).unwrap().1;
         add(&mut r, &a, &code);
     }
+    add(&mut r, &hostx(n), crate::d3contracts::HOSTX);
+    add(&mut r, &acct(ETH_LOCAL), crate::d3contracts::TINY);
     // the D3 delegate key of every honest account
     for sh in accounts {
         for a in sh.iter().take(HONEST) {
@@ -649,6 +663,36 @@ impl D3World {
                 let t = SignedTransaction::from_actions(n, x.id.clone(), x.id.clone(), &x.signer, acts, *bh);
                 self.created[i].code = code_name;
                 return Some(("d3.redeploy_call".into(), t));
+            }
+            85..=87 => {
+                // d3hostx: an import-only call (in D3α) or a call of an excluded host function /
+                // an ML-DSA-65 key action (out of D3α)
+                let r = rng.gen_range(0..100);
+                let (label, m, args): (&str, &str, Vec<u8>) = match r {
+                    0..=39 => ("d3.hostx_import_only", "run", (0..rng.gen_range(0..64)).map(|_| rng.r#gen()).collect()),
+                    40..=49 => ("d3.hostx_curve_call", "curve", vec![]),
+                    50..=59 => ("d3.hostx_global_call", "glob", vec![]),
+                    60..=69 => ("d3.hostx_state_init_call", "stinit", vec![]),
+                    70..=79 => {
+                        self.ctr += 1;
+                        let pk = key_signer(&hostx(self.n_shards), &format!("gk{}", self.ctr)).public_key();
+                        ("d3.hostx_gas_key_call", "gaskey", borsh::to_vec(&pk).unwrap())
+                    }
+                    _ => {
+                        // ML-DSA-65: borsh = key type 2 ‖ 1952 bytes
+                        self.ctr += 1;
+                        let pk = PublicKey::from_seed(near_crypto::KeyType::MLDSA65, &format!("d3mldsa{}", self.ctr));
+                        let op = rng.gen_range(0..3u8);
+                        let mut a = vec![op];
+                        a.extend(borsh::to_vec(&pk).unwrap());
+                        (["d3.hostx_mldsa_add_key", "d3.hostx_mldsa_stake", "d3.hostx_mldsa_delete_key"][op as usize], "mlkey", a)
+                    }
+                };
+                (label, hostx(self.n_shards), vec![fc(m, args, Gas::from_teragas(rng.gen_range(30..80)), 0)])
+            }
+            88 => {
+                // an ETH-implicit account with a Local contract (out of D3α, P5)
+                ("d3.call_eth_implicit_local", acct(ETH_LOCAL), vec![fc("run", b"eth".to_vec(), Gas::from_teragas(20), 0)])
             }
             _ => return self.delegate(w, s, bh, height, rng),
         };

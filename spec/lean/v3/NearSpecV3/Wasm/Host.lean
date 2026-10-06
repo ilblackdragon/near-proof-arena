@@ -555,6 +555,7 @@ def yieldCreateWithIdH (a : Vector Nat 9) : HM Unit := do
   let s ← get
   if amount = 1 ∧ s.balance = 0 then modify fun s => { s with subsidized := s.subsidized + 1 }
   else deductBalanceH amount
+  if (← get).real.isSome && (String.fromUTF8? m).isNone then hErr "InvalidMethodName"
   let _ ← pushAction { text := s!"FC@{r}:{hexStr m}:{hexStr args}:{amount}:{a[5]}:{a[6]}" }
   pushRet pi
 
@@ -991,6 +992,8 @@ def hostCall (name : String) : Option (HM Unit) :=
     let pi ← pushPromiseH (.receipt r)
     payActionBaseH F.functionCall true
     payActionPerByteH F.functionCallByte nb true
+    -- `append_action_function_call_weight` (`receipt_manager.rs:381-382`, real External only)
+    if (← get).real.isSome && (String.fromUTF8? m).isNone then hErr "InvalidMethodName"
     let _ ← pushAction { text := s!"FC@{r}:{hexStr m}:{hexStr args}:0:{a[4]}:{a[5]}" }
     regSetH a[6] did
     pushRet pi

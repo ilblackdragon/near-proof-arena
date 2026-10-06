@@ -4,11 +4,28 @@
 //!   InD2 with `e.wasm` lifted (src/../v3-d1/src/d2.rs `analyze`, unchanged)
 //!   ∧ `c.no_resharding`  one epoch, no epoch start in the segment, no split gate (`noResharding`)
 //!   ∧ `e.float`          no executed contract has a float value type or opcode
-//!   ∧ `e.curve_host`     no executed contract imports a `curveHosts` function (ed25519_verify is
-//!                        modelled by the Lean spec and only recorded, `features.ed25519_import`)
+//!   ∧ `e.ood_host`       no FunctionCall *calls* a curve function (`curveHosts`) or a state-init /
+//!                        global-contract / gas-key function (`Wasm.realOodHosts`); importing one
+//!                        is in D3α (spec §10.0a P3). Decided per dispatched call from the registry
+//!                        contract and method (`d3contracts::ood_call`), cross-checked against the
+//!                        receipt's gas profile. ed25519_verify is modelled by the Lean spec and
+//!                        only recorded (`features.ed25519_import`)
+//!   ∧ `e.mldsa_key`      no FunctionCall creates a Stake / AddKey / DeleteKey action with an
+//!                        ML-DSA-65 key (§10.0a P4; the checkers report `w.shape`)
+//!   ∧ `e.eth_implicit_local`  no FunctionCall reaches an ETH-implicit account with a `Local`
+//!                        contract (§10.0a P5, conservative legacy-wallet exclusion)
+//!   ∧ `e.g_alpha`        the chunk's Σ `gas_burnt_for_function_call` ≤ `G_α` = 2²² · 822,756
+//!                        (`D3.gAlpha`); recorded per case as `features.fc_gas_burnt_for_function_call`
+//!   ∧ `e.code_cache`     (per code-blob list, so per code mutant) the first executed pre-state
+//!                        contract whose blob is absent from the witness was not deployed earlier in
+//!                        the chunk (committed or rolled back, any account). A *pre-state contract*
+//!                        (§10.0a P1) is one whose current `Local` hash equals its `Local` hash in
+//!                        the chunk's pre-state trie (`source == "state"` below). Otherwise nearcore's verdict depends
+//!                        on its compiled-contract cache and preparation pipeline (README.md,
+//!                        spec/near-chunk-validation-d3.md §10.0/§10.1). Honest witnesses carry
+//!                        every accessed code, so only code mutants can leave D3α this way.
 //!   ∧ `o.unknown_receipt` / `o.code_unknown`  (oracle limits: an executed receipt the oracle
 //!                        cannot find, a code hash outside the registry; never seen so far).
-//! The per-chunk WASM gas cap `G_α` is not set yet; `features.fc_gas_burnt` records the gas.
 //! "Executed contract" = the code a FunctionCall that reaches its dispatch point runs: the
 //! receiver's code at that moment (the pre-state's, or one deployed earlier in the chunk —
 //! tracked through the receipts in execution order with nearcore's per-receipt rollback).
@@ -23,6 +40,7 @@ use near_chain::ChainStoreAccess;
 use near_chain::stateless_validation::chunk_validation::MainTransition;
 use near_client::Client;
 use near_primitives::account::AccountContract;
+use near_primitives::account::id::AccountType;
 use near_primitives::action::Action;
 use near_primitives::errors::{ActionErrorKind, TxExecutionError};
 use near_primitives::hash::CryptoHash;
@@ -30,7 +48,7 @@ use near_primitives::receipt::{Receipt, ReceiptSource, VersionedReceiptEnum};
 use near_primitives::sharding::{ShardChunkHeader, ShardChunkHeaderInner};
 use near_primitives::state::PartialState;
 use near_primitives::stateless_validation::state_witness::ChunkStateWitness;
-use near_primitives::transaction::{ExecutionStatus, SignedTransaction};
+use near_primitives::transaction::{ExecutionMetadata, ExecutionStatus, SignedTransaction};
 use near_primitives::types::AccountId;
 use near_store::Trie;
 use rand::Rng;
@@ -58,9 +76,17 @@ pub struct Executed {
     pub source: &'static str,
 }
 
+/// `G_α` (spec/lean/v3/NearSpecV3/D3/FunctionCall.lean `D3.gAlpha`): the D3α per-chunk cap on
+/// Σ `gas_burnt_for_function_call`.
+pub const G_ALPHA: u64 = (1u64 << 22) * 822_756;
+
 pub struct D3Analysis {
     pub violations: Vec<&'static str>,
     pub executed: Vec<Executed>,
+    /// every FunctionCall that reaches dispatch on the receiver's *pre-state* code, in execution
+    /// order: (code hash, the same code was deployed earlier in the chunk — committed or rolled
+    /// back, earlier receipts or earlier actions of this receipt)
+    pub state_calls: Vec<(CryptoHash, bool)>,
     pub features: BTreeMap<String, serde_json::Value>,
     pub chain_id_import: bool,
 }
@@ -121,7 +147,7 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
         }
     };
     let c = &built.claim;
-    let mut an = D3Analysis { violations: vec![], executed: vec![], features: BTreeMap::new(), chain_id_import: false };
+    let mut an = D3Analysis { violations: vec![], executed: vec![], state_calls: vec![], features: BTreeMap::new(), chain_id_import: false };
     if !(c.epochs.len() == 1 && c.epoch_start_after.iter().all(|x| *x == 0) && c.apply_facts.iter().all(|f| f.split_gate.is_none())) {
         add(&mut v, "c.no_resharding");
     }
@@ -172,13 +198,59 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
     let mut fail_kinds: BTreeMap<String, u64> = BTreeMap::new();
     let mut executed: Vec<Executed> = Vec::new();
     let mut deployed_hashes: HashSet<CryptoHash> = HashSet::new();
+    let mut state_calls: Vec<(CryptoHash, bool)> = Vec::new();
+    // Σ gas_burnt_for_function_call: per receipt, nearcore adds each FunctionCall's VM
+    // `outcome.burnt_gas` to it (function_call.rs:144-145) and merges the VM's profile into the
+    // receipt's (function_call.rs:153; no other action writes the profile). A VM profile sums to
+    // its burnt gas: wasm_gas = burnt − action − host (profile.rs compute_wasm_instruction_cost),
+    // so the receipt profile's action + ext + wasm gas = the receipt's gas_burnt_for_function_call.
+    let (mut gas_bfc, mut n_profile_over) = (0u64, 0u64);
+    // gas price coverage: Σ outcome tokens_burnt (receipts / transactions), and the receiver
+    // reward estimate Σ min(receipt.gas_price, chunk gas price) · ⌊gas_burnt_for_function_call ·
+    // 3/10⌋ (lib.rs:919-1016; chunk gas price = B2's next_gas_price, constant on these chains)
+    let chunk_price = b2.header().next_gas_price().as_yoctonear();
+    let (mut tb_receipts, mut tb_txs, mut n_tb_nonzero, mut reward_est, mut n_reward) = (0u128, 0u128, 0u64, 0u128, 0u64);
+    let (mut n_profile_unmarked, mut n_ood_calls) = (0u64, 0u64);
     for id in &outcome_ids {
-        if tx_hashes.contains(id) {
-            continue;
-        }
         let outs = store.get_outcomes_by_id(id).map_err(|e| format!("{e:?}"))?;
         let Some(o) = outs.into_iter().find(|o| &o.block_hash == b2.hash()) else { continue };
         let outcome = o.outcome_with_id.outcome;
+        let tb = outcome.tokens_burnt.as_yoctonear();
+        n_tb_nonzero += (tb > 0) as u64;
+        if tx_hashes.contains(id) {
+            tb_txs += tb;
+            continue;
+        }
+        tb_receipts += tb;
+        let profile = match &outcome.metadata {
+            ExecutionMetadata::V3(p) => Some(&**p),
+            ExecutionMetadata::V4(m) => Some(&m.profile),
+            _ => None,
+        };
+        let mut g_receipt = 0u64;
+        // the receipt's profile shows a curve / excluded-family host call (`e.ood_host`)
+        let mut profile_ood = false;
+        if let Some(p) = profile {
+            let g = p.actions_profile.values().chain(p.wasm_ext_profile.values()).fold(p.wasm_gas.as_gas(), |a, x| a + x.as_gas());
+            if g > outcome.gas_burnt.as_gas() {
+                n_profile_over += 1;
+            }
+            gas_bfc += g;
+            g_receipt = g;
+            for (k, x) in p.wasm_ext_profile.iter() {
+                let n = format!("{k:?}");
+                if x.as_gas() > 0 && (n.starts_with("alt_bn128") || n.starts_with("bls12381") || n.starts_with("ecrecover") || n.starts_with("p256")) {
+                    profile_ood = true;
+                }
+            }
+            for (k, x) in p.actions_profile.iter() {
+                let n = format!("{k:?}");
+                if x.as_gas() > 0 && (n.contains("global_contract") || n.starts_with("deterministic_state_init") || n.starts_with("gas_key")) {
+                    profile_ood = true;
+                }
+            }
+        }
+        let mut ood_marked_here = false;
         let executor = outcome.executor_id.clone();
         let r = match by_id.get(id) {
             Some(x) => x.clone(),
@@ -193,10 +265,18 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
                 },
             },
         };
-        let (actions, has_inputs) = match r.versioned_receipt() {
-            VersionedReceiptEnum::Action(a) | VersionedReceiptEnum::PromiseYield(a) => (a.actions().to_vec(), !a.input_data_ids().is_empty()),
-            _ => (vec![], false),
+        let (actions, has_inputs, purchase_price) = match r.versioned_receipt() {
+            VersionedReceiptEnum::Action(a) | VersionedReceiptEnum::PromiseYield(a) => {
+                (a.actions().to_vec(), !a.input_data_ids().is_empty(), a.gas_price().as_yoctonear())
+            }
+            _ => (vec![], false, 0),
         };
+        let gas_reward = g_receipt as u128 * 3 / 10;
+        let burn_price = purchase_price.min(chunk_price);
+        if gas_reward > 0 && burn_price > 0 {
+            reward_est += gas_reward * burn_price;
+            n_reward += 1;
+        }
         let reached = |j: usize| -> bool {
             match &outcome.status {
                 ExecutionStatus::Failure(TxExecutionError::ActionError(e)) => match e.index {
@@ -218,11 +298,11 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
                 Action::DeleteAccount(_) => tentative = Some(None),
                 Action::DeployContract(d) => {
                     let h = CryptoHash::hash_bytes(&d.code);
-                    deployed_hashes.insert(h);
                     tentative = Some(Some(h));
+                    deployed_hashes.insert(h);
                 }
                 Action::UseGlobalContract(_) => add(&mut v, "w.shape"),
-                Action::FunctionCall(_) => {
+                Action::FunctionCall(fca) => {
                     n_fc += 1;
                     fc_here = true;
                     let cur = match tentative {
@@ -238,11 +318,25 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
                             }
                         },
                     };
+                    if cur.is_some() && a.get_account_type() == AccountType::EthImplicitAccount {
+                        // §10.0a P5: checked at the call, before the code lookup
+                        add(&mut v, "e.eth_implicit_local");
+                    }
                     if let Some(h) = cur {
                         n_fc_code += 1;
+                        if let Some((cn, _)) = crate::d3contracts::registry().by_hash.get(&h) {
+                            if let Some(m) = crate::d3contracts::ood_call(cn, &fca.method_name) {
+                                add(&mut v, m);
+                                n_ood_calls += 1;
+                                ood_marked_here |= m == "e.ood_host";
+                            }
+                        }
                         // nearcore records a contract access iff the pre-state trie holds this
                         // code hash for the account (function_call.rs record_contract_call)
                         let source = if pre_code(&a)?.0 == Some(h) { "state" } else { "deployed_in_chunk" };
+                        if source == "state" {
+                            state_calls.push((h, deployed_hashes.contains(&h)));
+                        }
                         if !executed.iter().any(|e| e.hash == h && e.account == a && e.source == source) {
                             executed.push(Executed { hash: h, account: a.clone(), source });
                         }
@@ -250,6 +344,11 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
                 }
                 _ => {}
             }
+        }
+        if profile_ood && !ood_marked_here {
+            // a host call the method table does not know of: out of D3α anyway (conservative)
+            n_profile_unmarked += 1;
+            add(&mut v, "e.ood_host");
         }
         if matches!(outcome.status, ExecutionStatus::SuccessValue(_) | ExecutionStatus::SuccessReceiptId(_)) {
             if let Some(t) = tentative {
@@ -273,6 +372,7 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
     let reg = crate::d3contracts::registry();
     let mut names = BTreeSet::new();
     let mut ed = false;
+    let mut ood_import = false;
     for e in &executed {
         match reg.by_hash.get(&e.hash) {
             None => add(&mut v, "o.code_unknown"),
@@ -282,9 +382,7 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
                 if f.float {
                     add(&mut v, "e.float");
                 }
-                if !f.curve_imports.is_empty() {
-                    add(&mut v, "e.curve_host");
-                }
+                ood_import |= !f.curve_imports.is_empty() || !f.ood_family_imports.is_empty();
                 ed |= f.ed25519_import;
                 an.chain_id_import |= f.chain_id_import;
             }
@@ -302,13 +400,46 @@ pub fn analyze_d3(client: &Client, built: &Built, w: &ChunkStateWitness, accesse
     an.features.insert("n_promises".into(), json!(n_new_receipts));
     an.features.insert("n_callbacks".into(), json!(n_callbacks));
     an.features.insert("fc_gas_burnt".into(), json!(gas_fc));
+    an.features.insert("fc_gas_burnt_for_function_call".into(), json!(gas_bfc));
+    an.features.insert("fc_profile_exceeds_gas_burnt".into(), json!(n_profile_over));
+    if gas_bfc > G_ALPHA {
+        add(&mut v, "e.g_alpha");
+    }
+    an.state_calls = state_calls;
     an.features.insert("contracts_ran".into(), json!(names));
     an.features.insert("deployed_in_chunk".into(), json!(deployed_hashes.len()));
     an.features.insert("ran_deployed_in_chunk".into(), json!(executed.iter().filter(|e| e.source == "deployed_in_chunk").count()));
     an.features.insert("ed25519_import".into(), json!(ed));
+    an.features.insert("ood_host_import".into(), json!(ood_import));
+    an.features.insert("n_ood_host_calls".into(), json!(n_ood_calls));
+    an.features.insert("ood_host_profile_unmarked".into(), json!(n_profile_unmarked));
+    an.features.insert("chunk_gas_price".into(), json!(b2.header().next_gas_price().as_yoctonear().to_string()));
+    an.features.insert("tokens_burnt_receipts".into(), json!(tb_receipts.to_string()));
+    an.features.insert("tokens_burnt_txs".into(), json!(tb_txs.to_string()));
+    an.features.insert("n_outcomes_tokens_burnt_nonzero".into(), json!(n_tb_nonzero));
+    an.features.insert("receiver_reward_est".into(), json!(reward_est.to_string()));
+    an.features.insert("n_receipts_with_receiver_reward".into(), json!(n_reward));
     an.executed = executed;
     an.violations = v;
     Ok(an)
+}
+
+/// `e.code_cache` for a witness whose trie values are `values` and whose appended code blobs
+/// are `codes`: the first pre-state FunctionCall (execution order) whose code is in neither is a
+/// code-cache-dependent verdict iff that code was deployed earlier in the chunk (else nearcore's
+/// `MissingTrieValue`, a deterministic reject, stops the chunk there). Mirrors `D3.functionCall`
+/// (spec/lean/v3/NearSpecV3/D3/FunctionCall.lean, §2.2 cold-cache rule).
+pub fn code_cache_dependent(state_calls: &[(CryptoHash, bool)], values: &[std::sync::Arc<[u8]>], codes: &[Vec<u8>]) -> bool {
+    let mut avail: Option<HashSet<CryptoHash>> = None;
+    for (h, deployed_before) in state_calls {
+        let av = avail.get_or_insert_with(|| {
+            codes.iter().map(|c| CryptoHash::hash_bytes(c)).chain(values.iter().map(|v| CryptoHash::hash_bytes(v))).collect()
+        });
+        if !av.contains(h) {
+            return *deployed_before;
+        }
+    }
+    false
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -530,6 +661,9 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
             viol3.push(x);
         }
     }
+    if code_cache_dependent(&an3.state_calls, vals, codes) {
+        viol3.push("e.code_cache");
+    }
     let in_d3 = viol3.is_empty();
     // the D2 classifier's e.wasm and the D3 walk agree on whether any contract ran
     let ran = !an3.executed.is_empty();
@@ -560,7 +694,8 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         .map(|e| {
             let f = reg.by_hash.get(&e.hash).map(|x| crate::d3contracts::code_facts(&x.1)).unwrap_or_default();
             json!({"hash": e.hash.to_string(), "name": cname(&e.hash), "account": e.account.to_string(), "source": e.source,
-                   "float": f.float, "curve_imports": f.curve_imports, "ed25519_import": f.ed25519_import})
+                   "float": f.float, "curve_imports": f.curve_imports, "ood_family_imports": f.ood_family_imports,
+                   "ed25519_import": f.ed25519_import})
         })
         .collect();
     let mut features = json!({
@@ -608,6 +743,18 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
     }
     for e in &an3.executed {
         d3s.add(&format!("ran.{}.{}", cname(&e.hash), e.source), 1);
+    }
+    d3s.add("check.fc_profile_exceeds_gas_burnt", an3.features.get("fc_profile_exceeds_gas_burnt").cloned().unwrap_or_default().as_u64().unwrap_or(0));
+    d3s.add("honest_over_g_alpha", viol3.contains(&"e.g_alpha") as u64);
+    d3s.add("check.ood_host_profile_unmarked", an3.features.get("ood_host_profile_unmarked").cloned().unwrap_or_default().as_u64().unwrap_or(0));
+    let fnum = |k: &str| an3.features.get(k).and_then(|x| x.as_u64()).unwrap_or(0);
+    d3s.add("honest_with_tokens_burnt", (fnum("n_outcomes_tokens_burnt_nonzero") > 0) as u64);
+    d3s.add("honest_with_receiver_reward", (fnum("n_receipts_with_receiver_reward") > 0) as u64);
+    if an3.features.get("ood_host_import") == Some(&json!(true)) {
+        d3s.add(if viol3.contains(&"e.ood_host") { "ood_host_import.called" } else { "ood_host_import.not_called" }, 1);
+        if in_d3 {
+            d3s.add("ood_host_import.not_called_in_d3", 1);
+        }
     }
     if an3.features.get("accesses_equal_state_executed").cloned().unwrap_or_default() == json!(false) {
         d3s.add("check.accesses_differ_from_state_executed", 1);
@@ -682,7 +829,14 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
     for (n, cs) in code_mutants(codes, rng) {
         ms.push((Mutant { name: n, claim: built.claim.clone(), witness: wb.to_vec(), judge: Judge::Nearcore }, None, None, cs));
     }
+    let gas_bfc = an3.features.get("fc_gas_burnt_for_function_call").cloned().unwrap_or_default();
     for (m, flags, derived, cs) in ms {
+        // the base is in D3α; a code-blob list can still make the verdict cache-dependent
+        // (`e.code_cache`, only reachable by code mutants: the others carry the honest codes)
+        let m_cc = code_cache_dependent(&an3.state_calls, vals, &cs);
+        let m_viol: Vec<&str> = if m_cc { vec!["e.code_cache"] } else { vec![] };
+        let m_in_d3 = m_viol.is_empty();
+
         let (exp, src): (Result<(), String>, String) = match (&m.judge, &flags, derived) {
             (_, _, Some(_)) => (Err("derived: the changed trusted fact changes the main transition".into()), "derived".into()),
             (Judge::Claim, _, _) => (Err("claim-v3 discipline".to_string()), "claim-v3".into()),
@@ -692,13 +846,17 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         let mname = format!("{name}-{}", m.name);
         let fam = m.name.split(|c: char| c == '.' || c == '(').take(2).collect::<Vec<_>>().join(".");
         d3s.add(&format!("mutant.{fam}.{}", if exp.is_ok() { "accept" } else { "reject" }), 1);
+        if m_cc {
+            d3s.add(&format!("mutant_ood.e.code_cache.nearcore_{}", if exp.is_ok() { "accept" } else { "reject" }), 1);
+        }
         let meta = json!({
             "case": mname, "kind": "mutant", "mutation": m.name, "base": name,
             "verdict_source": src,
             "nearcore": vstr(&exp),
             "expected_rel": exp.is_ok(),
-            "in_d3": true, "expected_rel_d3": exp.is_ok(),
+            "in_d3": m_in_d3, "d3_violations": m_viol, "expected_rel_d3": exp.is_ok() && m_in_d3,
             "in_d2": in_d2, "expected_rel_d2": exp.is_ok() && in_d2,
+            "features": {"base_fc_gas_burnt_for_function_call": gas_bfc, "fc_gas_burnt_for_function_call": gas_bfc},
             "codes": cs.iter().map(|c| { let h = CryptoHash::hash_bytes(c); json!({"hash": h.to_string(), "name": cname(&h), "len": c.len()}) }).collect::<Vec<_>>(),
         });
         stats.mutants += 1;

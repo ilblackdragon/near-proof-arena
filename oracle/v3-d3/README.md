@@ -44,7 +44,9 @@ its D1 class `dup_bad_sig_first`, which D3 chains do not inject.
 | `d3tiny` (345 B) | deployed at run time (transactions and `d3rich` batches) | `storage_write("t", input)`, `log_utf8("tiny")`, `value_return(input)` |
 | `ttn2` (`../d3-ttn/ttn2.wasm`, unchanged) | `s{k}ctr`, `s{k}ctr2` on every shard, with `f`/`k` data as in d3-ttn; deployed at run time | storage over several contracts, promise chains |
 | `d3float` | `s0fl` | f64 arithmetic: **out of D3α** (`e.float`) |
-| `d3curve` | `s1cv` | imports `ecrecover`: **out of D3α** (`e.curve_host`) |
+| `d3curve` | `s1cv` | `run` / `cb` call `ecrecover`: **out of D3α** (`e.ood_host`) |
+| `d3hostx` (1 109 B) | `s{3 mod n}hx` | imports `ecrecover` and state-init / global-contract / gas-key host functions. `run` / `cb`: `storage_write("x", input)`, calls none of them (**in D3α**, spec §10.0a P3). `curve`: `ecrecover`; `glob`: `promise_batch_action_use_global_contract`; `stinit`: `promise_batch_action_state_init`; `gaskey`: `promise_batch_action_add_gas_key_with_full_access` (**out**, `e.ood_host`). `mlkey`: input = op ‖ borsh key, a self batch with AddKey / Stake / DeleteKey of that key; the generator always passes an ML-DSA-65 key (**out**, `e.mldsa_key`, P4) |
+| `d3tiny` on `0xd3d3…d3` | the ETH-implicit account `ETH_LOCAL` (genesis) | a `Local` contract on an ETH-implicit account: calls are **out of D3α** (`e.eth_implicit_local`, P5) |
 | `d3ed` | `s2ed` | imports `ed25519_verify` (see "Domain") |
 | D2's `program` and small modules | `s{k}ct` and D2 deploys | reused D2 traffic |
 
@@ -190,18 +192,55 @@ accesses (summary counter `check.accesses_differ_from_state_executed`).
   those cases.
 * `e.float`: an executed contract has a float value type (function type, local, global,
   block/select type) or a float opcode.
-* `e.curve_host`: an executed contract imports a Lean `curveHosts` function
+* `e.ood_host` (spec §10.0a P3): a dispatched FunctionCall *calls* a Lean `curveHosts` function
   (`spec/lean/v3/NearSpecV3/Wasm/Exec.lean`: alt_bn128_*, bls12381_*, `ecrecover`,
-  `p256_verify`).
+  `p256_verify`) or a state-init / global-contract / gas-key host function (`Wasm.realOodHosts`).
+  Importing one is in D3α (`features.ood_host_import`; counters `ood_host_import.{called,
+  not_called, not_called_in_d3}`).
+  * Decided per dispatched call by `d3contracts::ood_call(contract, method)`: the registry
+    contracts call these functions unconditionally in the listed methods, and no other registry
+    contract imports them.
+  * Cross-check: a receipt whose gas profile shows a curve ext cost or a global-contract /
+    state-init / gas-key action cost, but no call marked by the table, is also marked, and is
+    counted in `check.ood_host_profile_unmarked` (must stay 0).
   * `ed25519_verify` is **not** in that list: the Lean WASM spec models it (`Host.lean`).
   * The requirements table (§1.1) places it in D3γ. The oracle only records it
     (`features.ed25519_import`, contract `d3ed`), so either reading can be applied.
+* `e.mldsa_key` (P4): a dispatched FunctionCall builds a Stake / AddKey / DeleteKey action with an
+  ML-DSA-65 key (d3hostx `mlkey`). The checkers report this as `w.shape`.
+* `e.eth_implicit_local` (P5): a FunctionCall reaches an ETH-implicit account (`0x` + 40 hex)
+  whose contract is `Local`. This is the conservative form of the legacy-wallet exclusion.
+* `e.g_alpha`: the chunk's Σ `gas_burnt_for_function_call` exceeds `G_α` = 2²² · 822,756 =
+  3,450,867,449,856 (`D3.gAlpha`, `spec/lean/v3/NearSpecV3/D3/FunctionCall.lean`; the Lean checker
+  reports `out of domain (e.g_alpha)`).
+  * The value is read from each receipt outcome's gas profile (`ExecutionMetadata` V3/V4):
+    Σ `actions_profile` + Σ `wasm_ext_profile` + `wasm_gas`.
+  * Why this equals nearcore's `gas_burnt_for_function_call`: nearcore adds each FunctionCall's VM
+    `burnt_gas` to it and merges the VM profile into the receipt's
+    (`runtime/runtime/src/function_call.rs:144-153`). No other action writes the profile. A VM
+    profile sums to its burnt gas, because `wasm_gas` = burnt − action − host
+    (`near-vm-runner/src/profile.rs` `compute_wasm_instruction_cost`).
+  * The action part is the gas of promise actions the contract creates; it is part of the VM's
+    burnt gas. A multi-action receipt's profile already sums over its FunctionCall actions.
+  * `features.fc_gas_burnt_for_function_call` records the value for every case. Mutants carry
+    their base's value. The counter `check.fc_profile_exceeds_gas_burnt` (a receipt whose profile
+    sum exceeds its `gas_burnt`) must stay 0.
+* `e.code_cache`: the verdict depends on the compiled-contract cache. This is judged per code-blob
+  list, so in practice only code mutants hit it. Walk the FunctionCalls that dispatch on the
+  receiver's *pre-state* code, in execution order, and take the first one whose code blob is
+  neither appended nor among the witness's trie values. The condition holds when the same code
+  (same hash) was deployed earlier in the chunk, in any receipt, committed or rolled back. If it
+  was not deployed earlier, nearcore rejects deterministically with `MissingTrieValue`, so the
+  case stays in domain. This mirrors `D3.functionCall`'s cold-cache rule (spec §10.0/§10.1).
+  Honest witnesses carry every accessed code, so they are never out of D3α for this reason. A
+  mutant meta records `in_d3` / `d3_violations` / `expected_rel_d3` with this condition, and the
+  counters are `mutant_ood.e.code_cache.nearcore_{accept,reject}`.
 * `o.unknown_receipt`, `o.code_unknown`: oracle limits. These are an executed receipt the
   oracle cannot locate and a code outside the registry.
 
-"Executed contracts" are those of the walk above, including codes deployed in the chunk. The
-per-chunk WASM gas cap `G_α` is not set yet. `features.fc_gas_burnt` records the gas burnt by the
-receipts that dispatched FunctionCalls.
+"Executed contracts" are those of the walk above, including codes deployed in the chunk.
+`features.fc_gas_burnt` records the total `gas_burnt` of the receipts that dispatched
+FunctionCalls, including action fees. `G_α` uses `fc_gas_burnt_for_function_call` instead.
 
 ## Output layout (as the D2 corpus)
 
@@ -223,8 +262,13 @@ the mutants. Each case directory has these files:
   * `features`: the D2 features plus `n_function_calls` (dispatched), `n_function_calls_with_code`,
     `n_fc_failures`, `fc_failure_kinds`, `n_logs`, `n_promises` (receipts created by
     FunctionCall receipts), `n_callbacks` (FunctionCall receipts with input data),
-    `fc_gas_burnt`, `contracts_ran`, `deployed_in_chunk`, `ran_deployed_in_chunk`,
-    `code_blobs`, `code_bytes`, `ed25519_import`.
+    `fc_gas_burnt`, `fc_gas_burnt_for_function_call` (`e.g_alpha`), `contracts_ran`, `deployed_in_chunk`, `ran_deployed_in_chunk`,
+    `code_blobs`, `code_bytes`, `ed25519_import`, `ood_host_import`, `n_ood_host_calls`,
+    `ood_host_profile_unmarked`.
+  * Gas price coverage: `chunk_gas_price` (B2's `next_gas_price`), `tokens_burnt_receipts`,
+    `tokens_burnt_txs`, `n_outcomes_tokens_burnt_nonzero`, `receiver_reward_est` (Σ receipt gas
+    price · ⌊`gas_burnt_for_function_call` · 3/10⌋) and `n_receipts_with_receiver_reward`
+    (summary counters `honest_with_tokens_burnt`, `honest_with_receiver_reward`).
 
 `OUT/summary.json` holds the totals, violation counts and the `d3` counters: coverage sums,
 failure kinds, contracts run by source, mutant verdicts per family and consistency checks.
@@ -259,7 +303,7 @@ failure kinds, contracts run by source, mutant verdicts per family and consisten
 ## Regenerating the corpus
 
 ```
-OUT=/tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/d3corpus \
+OUT=/tmp/claude-1002/-data-illia-nearproof/29f86fd5-cfb7-44c7-996e-70d81e3d17a4/scratchpad/d3c7 \
 SEED=7 CHAINS=8 BLOCKS=200 PAR=1 MUTATE_EVERY=20 CODE_MUTANT_P=0.25 OOD_CAP=25 DROP_CAP=48 \
   oracle/v3-d3/scripts/gen-d3-corpus.sh
 ```
@@ -274,11 +318,37 @@ RAYON_NUM_THREADS=256 taskset -c 8-15,24-31 /data/illia/nearproof-deps/bin/heavy
 
 Chains are byte-reproducible from (seed, chain index).
 
+`MIN_GAS_PRICE=100000000` (`--min-gas-price`) sets the genesis `min_gas_price` (and
+`max_gas_price` = 10²²). The default 0 keeps the TestEnv's zero gas price, under which the receiver
+reward, `tx_burnt` and every outcome's `tokens_burnt` are 0. The gas-price corpus is seed 10:
+
+```
+OUT=.../d3c10 SEED=10 CHAINS=4 BLOCKS=200 PAR=1 MUTATE_EVERY=20 CODE_MUTANT_P=0.25 OOD_CAP=25 \
+DROP_CAP=48 MIN_GAS_PRICE=100000000 oracle/v3-d3/scripts/gen-d3-corpus.sh
+```
+
 ## Known nearcore behaviour relevant to D3
 
 * **The validator's verdict depends on its compiled-contract cache.** Every honest witness that
   executes state code is rejected by a cold validator without codes (`MissingTrieValue`). A warm
   validator (the TestEnv clients) accepts it.
+* **Finding: a missing pre-state code blob whose code was deployed earlier in the chunk gives a
+  cache- and pipeline-dependent verdict (`e.code_cache`).** Take an executed pre-state contract
+  whose code blob is missing from the witness, where the same code was deployed earlier in the
+  same chunk (in any receipt, committed or rolled back). nearcore's verdict on such a witness
+  depends on two things:
+  * the compiled-contract cache: `DeployContract` precompiles into it
+    (`runtime/runtime/src/actions.rs:297-341`), and a rollback of the deploying receipt does not
+    evict the entry;
+  * the order of the preparation pipeline: receipts that were prepared before the deploy ran were
+    prepared against a cold cache.
+
+  Both verdicts occur in the corpus. One code mutant was rejected (a pipelined call before the
+  deploy) and another accepted (a postponed call after a rolled-back deploy). Such cases are
+  therefore out of D3α (spec/near-chunk-validation-d3.md §10.0 decision 2, §10.1). In the seed
+  7 / 8 / 9 / 10 corpora (2026-10-06 15:00 generation), nearcore accepted 61 / 75 / 18 / 15 of
+  these mutants and rejected 31 / 50 / 13 / 16.
+  `checkD3` reports exactly these mutants as out of domain.
 * **Same-chunk deploys are not accesses.** Code deployed and executed in the same chunk is not a
   contract access and is never needed by a validator.
 * **Accesses are not a minimal set.** `ContractsTracker::get` looks codes up by hash, whatever

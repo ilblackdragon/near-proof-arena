@@ -150,7 +150,7 @@ def manager (log : Array MAct) (ah : Bytes) (h : Nat) :
       rs := rs.push { recv := bytesOf recv, inputs }
     else
       match splitTag t with
-      | none => throw s!"unmodeled: action log entry {t}"
+      | none => throw (oodE s!"unmodeled action log entry {t}")
       | some (tag, r, fs) =>
         let m ← mi idx r
         let some cur := rs[m]? | throw "unmodeled: receipt index"
@@ -173,7 +173,7 @@ def manager (log : Array MAct) (ah : Bytes) (h : Nat) :
           rs := push ([5] ++ (← unhexB pk) ++ u64 (← natOf nonce) ++ [0] ++ perm) none
         | "DK", [pk] => rs := push ([6] ++ (← unhexB pk)) none
         | "DA", [b] => rs := push ([7] ++ borshBytes (bytesOf b)) none
-        | _, _ => throw s!"unmodeled: action log entry {t}"
+        | _, _ => throw (oodE s!"unmodeled action log entry {t}")
   pure (rs, idx, resumes)
 
 /-- `distribute_unused_gas` (§5.5, `receipt_manager.rs:654-695`): returns the patched receipts and
@@ -216,7 +216,7 @@ def finishActs (r : MR) : Except String (List Act) :=
     match pBaseAct raw with
     | .ok (b, []) => pure (.base b)
     | .ok _ => throw "unmodeled: action re-encoding"
-    | .error e => if isShapeOOD e then throw e else throw s!"unmodeled: action decoding {e}"
+    | .error e => if isShapeOOD e then throw e else throw (oodE s!"unmodeled action decoding: {e}")
 
 /-! ## The hook -/
 
@@ -359,8 +359,16 @@ def functionCall (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) 
             { ar1 with newReceipts := ar1.newReceipts ++ rcpts, ret := ret,
                        subsidized := ar1.subsidized + s.subsidized })
 
+/-- Any `unmodeled …` path of the hook (an action-log shape the spec does not model) is out of
+domain, never a reject. -/
+def functionCallD3 (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) :
+    Except String (ActSt × AR) :=
+  match functionCall cfg c st ar b with
+  | .error e => if e.startsWith "unmodeled" then .error (oodE e) else .error e
+  | r => r
+
 def d3Hooks (cfg : NearCfg) : ActionHooks where
-  functionCall := functionCall cfg
+  functionCall := functionCallD3 cfg
 
 end NearSpecV3.D3
 

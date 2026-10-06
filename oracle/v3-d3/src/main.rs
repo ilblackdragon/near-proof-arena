@@ -5,6 +5,7 @@
 //!       [--mutate-every M] [--ood-cap C] [--drop-cap D] [--p-missing P] [--max-d3 X]
 //!       [--code-mutant-p Q]   (full mutant set every M-th D3 case; code mutants only for a
 //!                              fraction Q of the other D3 cases with code blobs)
+//!       [--min-gas-price P]   (genesis min_gas_price in yoctoNEAR; default 0 = zero gas price)
 //!       Real multi-shard nearcore TestEnv chains with the D2 workload plus WASM FunctionCall
 //!       traffic (src/d3gen.rs). Every honest chunk witness: DIR/d3/<case> (in D3α) or
 //!       DIR/ood/<case> (out of D3α, capped per violation family), with claim.bin,
@@ -66,7 +67,7 @@ fn arg(args: &[String], name: &str) -> Option<String> {
 }
 
 /// D3 chain parameters of chain `i` (the D2 generator's parameter rotation).
-fn chain_params_d3(seed: u64, i: usize, blocks: u64, p_missing: f64, drop_cap: usize, max_d3: usize, code_mutant_p: f64) -> chaind3::D3Params {
+fn chain_params_d3(seed: u64, i: usize, blocks: u64, p_missing: f64, drop_cap: usize, max_d3: usize, code_mutant_p: f64, min_gas_price: u128) -> chaind3::D3Params {
     chaind3::D3Params {
         base: chaingen::ChainParams {
             seed: seed.wrapping_mul(1_000_003).wrapping_add(i as u64),
@@ -89,6 +90,7 @@ fn chain_params_d3(seed: u64, i: usize, blocks: u64, p_missing: f64, drop_cap: u
         drop_cap,
         max_d3,
         code_mutant_p,
+        min_gas_price,
     }
 }
 
@@ -107,6 +109,7 @@ fn cmd_gen(args: &[String]) -> i32 {
     let drop_cap = num("--drop-cap", 48) as usize;
     let max_d3 = num("--max-d3", 4) as usize;
     let code_mutant_p: f64 = arg(args, "--code-mutant-p").map(|s| s.parse().expect("--code-mutant-p")).unwrap_or(0.25);
+    let min_gas_price: u128 = arg(args, "--min-gas-price").map(|s| s.parse().expect("--min-gas-price")).unwrap_or(0);
     let opts = chaingen::GenOpts {
         ood_cap: num("--ood-cap", 25) as usize,
         mutate_every: num("--mutate-every", 20) as usize,
@@ -128,7 +131,7 @@ fn cmd_gen(args: &[String]) -> i32 {
     let mut d3s = d3::D3Stats::default();
     let mut params = Vec::new();
     for i in first..first + chains {
-        let p = chain_params_d3(seed, i, blocks, p_missing, drop_cap, max_d3, code_mutant_p);
+        let p = chain_params_d3(seed, i, blocks, p_missing, drop_cap, max_d3, code_mutant_p, min_gas_price);
         let pstr = format!("{p:?}");
         eprintln!("chain {i}: {pstr}");
         params.push(pstr);

@@ -47,6 +47,9 @@ pub struct D3Params {
     pub max_d3: usize,
     /// probability of code mutants for a D3 case outside the full-mutant sample
     pub code_mutant_p: f64,
+    /// genesis `min_gas_price` (yoctoNEAR per gas; 0 = the TestEnv default, a zero gas price).
+    /// A nonzero price exercises tokens_burnt, tx_burnt and the receiver reward.
+    pub min_gas_price: u128,
 }
 
 const ACCTS_PER_SHARD: usize = 10;
@@ -58,7 +61,7 @@ fn acct(k: usize, j: usize) -> AccountId {
 /// `chaind2::setup_d2` with the D3 contracts added to the genesis, and every contract of the
 /// registry pre-compiled into every client's cache before the first block (the TestEnv
 /// compilation / chunk-validation deadlock, see chaind2.rs).
-pub fn setup_d3(p: &ChainParams) -> Setup {
+pub fn setup_d3(p: &ChainParams, min_gas_price: u128) -> Setup {
     let accounts: Vec<Vec<AccountId>> = (0..p.n_shards).map(|k| (0..ACCTS_PER_SHARD).map(|j| acct(k, j)).collect()).collect();
     let boundaries: Vec<AccountId> = (1..p.n_shards).map(|k| format!("s{k}").parse().unwrap()).collect();
     let shard_layout = ShardLayout::multi_shard_custom(boundaries, 3);
@@ -88,6 +91,8 @@ pub fn setup_d3(p: &ChainParams) -> Setup {
         online_max_threshold: Rational32::new(1, 1000),
         protocol_reward_rate: Rational32::new(1, 10),
         max_inflation_rate: Rational32::new(1, 1),
+        min_gas_price: Balance::from_yoctonear(min_gas_price),
+        max_gas_price: Balance::from_yoctonear(if min_gas_price > 0 { 10u128.pow(22) } else { 0 }),
         ..Default::default()
     };
     let mut records = Vec::new();
@@ -137,7 +142,7 @@ pub fn setup_d3(p: &ChainParams) -> Setup {
 /// Run one D3 chain; write cases under `out/{d3,ood,mutants}/<chain>-h<height>-s<shard>`.
 pub fn run_chain_d3(chain_idx: usize, dp: &D3Params, out: &Path, o: &GenOpts, stats: &mut Stats, d3s: &mut crate::d3::D3Stats) {
     let p = &dp.base;
-    let mut s = setup_d3(p);
+    let mut s = setup_d3(p, dp.min_gas_price);
     let cold_home = out.join(format!(".cold-{chain_idx}"));
     let judge = crate::d3judge::ColdJudge::new(&s.env.clients, &s.ems, &s.genesis, &cold_home);
     let mut world = crate::d2gen::World::new(&s.accounts, crate::chaind2::validators_of(p.n_shards), crate::chaind2::stakers_of());

@@ -12,6 +12,7 @@ pub const TINY: &[u8] = include_bytes!("../contracts/d3tiny.wasm");
 pub const FLOAT: &[u8] = include_bytes!("../contracts/d3float.wasm");
 pub const CURVE: &[u8] = include_bytes!("../contracts/d3curve.wasm");
 pub const ED: &[u8] = include_bytes!("../contracts/d3ed.wasm");
+pub const HOSTX: &[u8] = include_bytes!("../contracts/d3hostx.wasm");
 pub const TTN2: &[u8] = include_bytes!("../../d3-ttn/ttn2.wasm");
 
 /// (name, code) of every contract a D3 chain can execute.
@@ -22,6 +23,7 @@ pub fn all() -> Vec<(&'static str, Vec<u8>)> {
         ("d3float", FLOAT.to_vec()),
         ("d3curve", CURVE.to_vec()),
         ("d3ed", ED.to_vec()),
+        ("d3hostx", HOSTX.to_vec()),
         ("ttn2", TTN2.to_vec()),
         ("d2program", crate::d2gen::program_wasm().to_vec()),
     ];
@@ -50,6 +52,9 @@ pub struct CodeFacts {
     pub float: bool,
     /// imports one of the Lean spec's `curveHosts` (Exec.lean)
     pub curve_imports: Vec<String>,
+    /// imports a host function of the state-init, global-contract or gas-key family
+    /// (`Wasm.realOodHosts`, spec/lean/v3/NearSpecV3/Wasm/Exec.lean)
+    pub ood_family_imports: Vec<String>,
     /// imports `ed25519_verify` (modelled by the Lean spec; D3γ in the requirements table)
     pub ed25519_import: bool,
     pub chain_id_import: bool,
@@ -64,6 +69,36 @@ pub const CURVE_HOSTS: &[&str] = &[
     "bls12381_g1_multiexp", "bls12381_g2_multiexp", "bls12381_map_fp_to_g1", "bls12381_map_fp2_to_g2",
     "bls12381_pairing_check", "bls12381_p1_decompress", "bls12381_p2_decompress", "ecrecover", "p256_verify",
 ];
+
+/// `Wasm.realOodHosts` (spec/lean/v3/NearSpecV3/Wasm/Exec.lean): the state-init,
+/// global-contract and gas-key host functions, out of D3α when called (§10.0a P3).
+pub const OOD_FAMILY_HOSTS: &[&str] = &[
+    "promise_batch_action_state_init", "promise_batch_action_state_init_by_account_id", "set_state_init_data_entry",
+    "promise_batch_action_deploy_global_contract", "promise_batch_action_deploy_global_contract_by_account_id",
+    "promise_batch_action_use_global_contract", "promise_batch_action_use_global_contract_by_account_id",
+    "promise_batch_action_add_gas_key_with_full_access", "promise_batch_action_add_gas_key_with_function_call",
+    "promise_batch_action_transfer_to_gas_key",
+];
+
+/// Call-based D3α marks of a FunctionCall that reaches dispatch on the registry contract `name`
+/// with `method` (spec/near-chunk-validation-d3.md §10.0a P3/P4). The registry contracts are
+/// straight-line: these methods call the host function unconditionally, before anything that
+/// can fail with the gas the generator attaches, so "dispatched" = "called".
+///   * `e.ood_host`: a curve function (d3curve `run`/`cb`, d3hostx `curve`) or a state-init /
+///     global-contract / gas-key function (d3hostx `glob`, `stinit`, `gaskey`) is called;
+///   * `e.mldsa_key`: d3hostx `mlkey` builds a Stake / AddKey / DeleteKey action from a key the
+///     generator always makes ML-DSA-65.
+/// No other registry contract imports a curve or excluded-family host function (`code_facts`;
+/// `contracts` prints them), and d3rich only creates ED25519 keys. `analyze_d3` cross-checks the
+/// marks against the receipt's gas profile (`check.ood_host_profile_unmarked`).
+pub fn ood_call(name: &str, method: &str) -> Option<&'static str> {
+    match (name, method) {
+        ("d3curve", "run" | "cb") => Some("e.ood_host"),
+        ("d3hostx", "curve" | "glob" | "stinit" | "gaskey") => Some("e.ood_host"),
+        ("d3hostx", "mlkey") => Some("e.mldsa_key"),
+        _ => None,
+    }
+}
 
 pub fn code_facts(code: &[u8]) -> CodeFacts {
     let mut f = CodeFacts::default();
@@ -99,6 +134,9 @@ fn scan(code: &[u8], f: &mut CodeFacts) -> Result<(), wasmparser::BinaryReaderEr
                     }
                     if CURVE_HOSTS.contains(&i.name) {
                         f.curve_imports.push(i.name.to_string());
+                    }
+                    if OOD_FAMILY_HOSTS.contains(&i.name) {
+                        f.ood_family_imports.push(i.name.to_string());
                     }
                     if i.name == "ed25519_verify" {
                         f.ed25519_import = true;
