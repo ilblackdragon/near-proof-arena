@@ -247,8 +247,11 @@ mutants** (1,234 s).
 
 ## 11. Claim conditions for the two proposed amendments (nearcore 2.13.4, `44f7ae6c`)
 
-Until the lead decides, every theorem keeps them as **explicit hypotheses** (`core_compose`:
-`hnd : ids.Nodup`; the height bounds of M4 will take the request bound as a hypothesis).
+**A8 status:** an explicit claim-level hypothesis of the **completeness / height theorems only**.
+**Soundness does not need it**:
+* `process_rounds`, `core_compose`, the views and `cmp_sound` have no request-count hypothesis;
+* table heights are bounded by `HoldsP` itself (`maxLog`);
+* the request count only matters for whether an honest trace fits (M4).
 
 **A8: at most one request per target shard and sender.**
 * *Construction:* `runtime/runtime/src/congestion_control.rs:512-521`, `generate_bandwidth_requests`.
@@ -264,6 +267,28 @@ Until the lead decides, every theorem keeps them as **explicit hypotheses** (`co
 * *Proposed condition:* in each block, each slot's `BandwidthRequests` list has at most `n` entries.
   Equivalently, its `to_shard` values are distinct (claim-decidable). Every honest claim satisfies it,
   because the requests are the validated outputs of the loop above.
+
+**Decision (program lead): no distinct-ids amendment; the AIR follows the spec on every layout.**
+* **Spec side (done).** `Spec/CanonDup.allow0_src` (proved): for any layout, the spec's `allow0` of
+  a canonical previous state is `a (srcOf ids l)`. Here `srcOf ids l` is the last record `k` with
+  `tgt ids k = l`, and `tgt` uses the spec's first-index `indexOf`. `core_compose` no longer
+  assumes `ids.Nodup` (commit `04a4ad9a`).
+* **AIR side (pending, after cut B).** The codec reads `a0` through the claim-only source map.
+  * The public per-link record gains `(src_lo, src_hi, hasSrc)`, plus a per-record `use` bit; these
+    reach the codec with `SDG`.
+  * Record `k` sends `A0 (τ, k, ap, big)` with multiplicity `use(k)`.
+  * Record `l` receives `A0 (τ, src(l), …)` at its byte-2 row with multiplicity `hasSrc(l)`, where
+    the comparator runs.
+  * Cost: ≈ +16 `W_eq` (two interactions) plus a few columns.
+* **Faithfulness finding (pinned spec vs nearcore), unreachable on real layouts.** On a layout with
+  duplicate shard ids:
+  * nearcore's `get_shard_index` reads `id_to_index_map`, built by inserting every `shard_ids` entry
+    in order, so the last index wins (`core/primitives/src/shard_layout/v2.rs:199-215`,
+    `v3.rs:205-216`);
+  * the pinned spec's `indexOf` returns the first index.
+
+  So the spec and nearcore disagree on the scheduler's link indices. No real layout has duplicate
+  ids. The AIR proves the spec relation.
 
 **Distinct layout shard ids: weaker evidence.**
 * No explicit assertion:
@@ -300,10 +325,10 @@ Range checks are kept in every variant.
 
 ## 13. Open items (in priority order)
 
-1. Width cut A (or B) per the lead's decision (§12).
+1. Cut B (scan + distribute merge, helper, in progress) and cut D (codec digest overlay), approved by the lead. Cut A is on hold (rows at the 2^22 edge; may be unnecessary after the size lane's multiproof dedup).
 2. M3 views: codec, process structure (key block, headers, rounds); link layer per §6 (memory
    consistency instance, operand bounds of §10, `process_rounds` hypotheses, `core_compose`);
    `schedCore_sound`.
 3. M4: completeness of the six tables (honest generators exist and pass on 600 vectors).
-4. Amendments (§11): distinct layout ids; A8 request bound. Both are explicit hypotheses for now.
+4. A8 (§11) as a completeness-only hypothesis; the distinct-ids amendment is dropped (source map, §11). The codec source map is pending.
 5. Cuts D/E.
