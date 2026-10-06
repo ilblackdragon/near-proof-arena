@@ -278,7 +278,7 @@ theorem walk {r : Nat} (hr : r < tr.height t) (ha : cv tr t r colA = 1) :
 `genIndex 64 n` on the stream state `rngAt key kstart`. -/
 theorem genIndex_contract {r : Nat} (hr : r < tr.height t) (hacc : cv tr t r colAcc = 1) :
     ∃ key kstart n j kend, key.length = 8 ∧ (∀ x ∈ key, x < 2 ^ 32) ∧ 1 ≤ n ∧ n < 2 ^ 14 ∧
-      kend < 2 ^ 30 + 1 ∧
+      kstart < 2013265921 ∧ kend < 2 ^ 30 + 1 ∧
       genAt 64 n key kstart = some (j, kend) ∧
       genIndex 64 n (rngAt key kstart) = some (j, rngAt key kend) ∧
       (interactions busChacha busGen)[1]!.msgVal tr t r pub = genMsg key kstart n j kend := by
@@ -336,7 +336,7 @@ theorem genIndex_contract {r : Nat} (hr : r < tr.height t) (hacc : cv tr t r col
     · have hvr' : cv tr t r colVlo + 65536 * cv tr t r colVhi = streamWord (keyOf tr t r) (kv tr t r) := hvr
       rw [show cv tr t r colKs + d = kv tr t r by omega, ← hvr', hm2]
   refine ⟨keyOf tr t r, cv tr t r colKs, numv tr t r colN 14, numv tr t r colM2 14, kv tr t r + 1,
-    hkl, hkb, n1, n2, ?_, hgen, ?_, ?_⟩
+    hkl, hkb, n1, n2, cv_lt _ _, ?_, hgen, ?_, ?_⟩
   · unfold kv; have := nbits_lt (f := fun b => cv tr t r (colIdx b)) (n := 4) (bIdx hL hr)
     unfold numv at *; omega
   · rw [genIndex_rngAt, hgen]; rfl

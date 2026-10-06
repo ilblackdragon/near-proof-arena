@@ -75,7 +75,7 @@ theorem genIndex_sound (hH : HoldsP AP pub tr) {tc tg busChacha busGen : Nat}
     (hpub : ∀ seg ∈ AP.pubSegs, seg.bus = busChacha → seg.send = false)
     {r : Nat} (hr : r < tr.height tg) (hacc : cv tr tg r Rng.Table.colAcc = 1) :
     ∃ key kstart n j kend, key.length = 8 ∧ (∀ x ∈ key, x < 2 ^ 32) ∧ 1 ≤ n ∧ n < 2 ^ 14 ∧
-      kend < 2 ^ 30 + 1 ∧ genAt 64 n key kstart = some (j, kend) ∧
+      kstart < 2013265921 ∧ kend < 2 ^ 30 + 1 ∧ genAt 64 n key kstart = some (j, kend) ∧
       genIndex 64 n (rngAt key kstart) = some (j, rngAt key kend) ∧
       (Rng.Table.interactions busChacha busGen)[1]!.msgVal tr tg r pub = Rng.genMsg key kstart n j kend :=
   Rng.genIndex_contract (gLocal_of_holdsP hH htg hTg)
