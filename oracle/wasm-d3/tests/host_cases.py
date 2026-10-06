@@ -20,9 +20,7 @@ from wasmenc import *
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 INV = json.load(open(os.path.join(HERE, "../../../docs/research/near-wasm-boundary-inventory.json")))
-OOD = {"alt_bn128_g1_multiexp", "alt_bn128_g1_sum", "alt_bn128_pairing_check", "ecrecover", "p256_verify",
-       "promise_batch_action_transfer_to_gas_key",
-       "promise_batch_action_add_gas_key_with_full_access", "promise_batch_action_add_gas_key_with_function_call"}
+OOD = {"alt_bn128_g1_multiexp", "alt_bn128_g1_sum", "alt_bn128_pairing_check", "ecrecover", "p256_verify"}
 HOSTS = []
 for i in INV["imports"]:
     if i["module"] != "env" or not i["enabled_in_production"] or i["name"] in OOD or i["name"].startswith("bls12381"):
@@ -163,6 +161,8 @@ def gen_call(r, name, args, m, imp):
             vals[pn] = r.choice([0, 10**12, 10**14, 5 * 10**14, 2**64 - 1])
         elif pn == "gas_weight":
             vals[pn] = r.choice([0, 1, 7])
+        elif pn == "num_nonces":
+            vals[pn] = r.choice([0, 1, 4, 65535, 65536])
         elif pn == "nonce":
             vals[pn] = r.choice([0, 5, 2**63])
         elif pn == "result_idx":

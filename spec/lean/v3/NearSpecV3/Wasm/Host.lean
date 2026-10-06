@@ -15,9 +15,7 @@ everything above `External` is shared.
 
 D3α scope: every host function except the curve ones (`alt_bn128_*`, `bls12381_*`, `ecrecover`,
 `p256_verify`: out of domain). `ed25519_verify` shares D1's `NearSpecV3.Ed25519.verify` (same
-`ed25519_dalek::Verifier::verify` as transaction signatures). The three gas-key actions report
-`unmodeled` until their fee formulas (`gas_key_*_fee`, `core/parameters/src/cost.rs:781-876`) are
-modelled.
+`ed25519_dalek::Verifier::verify` as transaction signatures).
 -/
 namespace NearSpecV3.Wasm
 
@@ -290,7 +288,23 @@ def useGlobalContractByte : Fee3 := ⟨6812999, 47683715, 64572944⟩
 def stateInit : Fee3 := ⟨500000000000, 500000000000, 7430000000000⟩
 def stateInitEntry : Fee3 := ⟨0, 0, 200000000000⟩
 def stateInitByte : Fee3 := ⟨72000000, 72000000, 70000000⟩
+def gasKeyTransfer : Fee3 := ⟨115123062500, 115123062500, 235676644250⟩
+def gasKeyByte : Fee3 := ⟨59357464, 59357464, 101435400⟩
+def gasKeyNonceWrite : Fee3 := ⟨0, 0, 64196736000⟩
 end F
+
+/-- Gas-key fee constants (`core/primitives-core/src/{trie_key,account}.rs`): access-key trie key
+`1 + account + 1 + pk`, `GasKeyInfo` borsh 18 B (u128 + u16), min gas-key `AccessKey` borsh 27 B,
+nonce key adds a u16 index, nonce value 8 B. -/
+def accessKeyKeyLen (acctLen pkLen : Nat) : Nat := 1 + acctLen + 1 + pkLen
+
+/-- `pay_gas_key_add_key_fees` (`gas_counter.rs:356-372`) with `gas_key_add_key_{send,exec}_fee`. -/
+def payGasKeyAddH (sir : Bool) (recvLen pkLen n : Nat) : HM Unit := do
+  let send := F.gasKeyByte.send sir * 18
+  let execBase := F.gasKeyNonceWrite.exec * n
+  let execByte := F.gasKeyByte.exec * (accessKeyKeyLen recvLen pkLen + 2 + 8) * n
+  payActionH 0 0 execBase
+  payActionH send send (send + execByte)
 
 /-- `pay_action_base`: burn send, reserve send + exec (send compute = gas for all PV86 send fees) -/
 def payActionBaseH (f : Fee3) (sir : Bool) : HM Unit :=
@@ -444,6 +458,8 @@ def yieldCreateWithIdH (a : Array Nat) : HM Unit := do
   if amount = 1 ∧ s.balance = 0 then pure () else deductBalanceH amount
   let _ ← pushAction { text := s!"FC@{r}:{hexStr m}:{hexStr args}:{amount}:{a[5]!}:{a[6]!}" }
   pushRet pi
+
+def gasKeyPkLen (pk : ByteArray) : Nat := if pkValid pk then pk.size else 0
 
 /-- Dispatch. `none` = not a D3α host function handled here. -/
 def hostCall (name : String) : Option (HM Unit) :=
@@ -864,6 +880,52 @@ def hostCall (name : String) : Option (HM Unit) :=
     if pk.size ≠ 32 then hErr "Ed25519VerifyInvalidInput { msg: \"invalid public key length\" }"
     pushRet (if Ed25519.verify pk.toList sig.toList msg.toList then 1 else 0)
   | "promise_yield_create_with_id" => some do yieldCreateWithIdH (← popArgs 9)
+  | "promise_batch_action_transfer_to_gas_key" => some do
+    let a ← popArgs 4
+    payBaseH C.base
+    let pk ← memOrRegH a[2]! a[1]!
+    let pl := gasKeyPkLen pk
+    let amount ← getU128H a[3]!
+    let (r, sir) ← promiseReceiptH a[0]!
+    let recv := receiptReceiver (← get) r
+    let sendBase := F.gasKeyTransfer.send sir
+    let sendByte := F.gasKeyByte.send sir * pl
+    let execByte := F.gasKeyByte.exec * (accessKeyKeyLen recv.utf8ByteSize pl + 27)
+    payActionH sendBase sendBase (sendBase + F.gasKeyTransfer.exec)
+    payActionH sendByte sendByte (sendByte + execByte)
+    deductBalanceH amount
+    if !pkValid pk then hErr "InvalidPublicKey"
+    let _ ← pushAction { text := "OTHER" }
+  | "promise_batch_action_add_gas_key_with_full_access" => some do
+    let a ← popArgs 4
+    payBaseH C.base
+    let pk ← memOrRegH a[2]! a[1]!
+    let pl := gasKeyPkLen pk
+    if a[3]! ≥ 65536 then hErr "IntegerOverflow"
+    let (r, sir) ← promiseReceiptH a[0]!
+    payActionBaseH F.addFullAccessKey sir
+    payGasKeyAddH sir (receiptReceiver (← get) r).utf8ByteSize pl a[3]!
+    if !pkValid pk then hErr "InvalidPublicKey"
+    let _ ← pushAction { text := "OTHER" }
+  | "promise_batch_action_add_gas_key_with_function_call" => some do
+    let a ← popArgs 9
+    payBaseH C.base
+    let pk ← memOrRegH a[2]! a[1]!
+    let pl := gasKeyPkLen pk
+    if a[3]! ≥ 65536 then hErr "IntegerOverflow"
+    let _ ← getU128H a[4]!
+    let _ ← readAccountIdH a[5]! a[6]!
+    let raw ← memOrRegH a[8]! a[7]!
+    let names ← match splitMethodNames raw with
+      | some n => pure n
+      | none => hErr "EmptyMethodName"
+    let (r, sir) ← promiseReceiptH a[0]!
+    let nb := names.foldl (fun acc n => acc + n.size + 1) 0
+    payActionBaseH F.addFunctionCallKey sir
+    payActionPerByteH F.addFunctionCallKeyByte nb sir
+    payGasKeyAddH sir (receiptReceiver (← get) r).utf8ByteSize pl a[3]!
+    if !pkValid pk then hErr "InvalidPublicKey"
+    let _ ← pushAction { text := "OTHER" }
   | "promise_yield_resume_with_yield_id" => some do
     let a ← popArgs 4
     payBaseH C.base

@@ -162,6 +162,20 @@ cases.append(P(b"", "rcv=alice.near,bob.near,carol.near").done((0, 4096)))
 for c in cases:
     print(c)
 
+# gas keys
+PK = b"\x00" + bytes(range(32))
+for nn in [0, 1, 3, 65535, 65536]:
+    p = P(A + PK + (7).to_bytes(16, "little") + b"m1,m2")
+    p.call("promise_batch_create", 8, 0).call("promise_batch_action_add_gas_key_with_full_access", 0, 33, 8, nn)
+    p.call("promise_batch_action_add_gas_key_with_function_call", 0, 33, 8, nn, 41, 8, 0, 5, 57)
+    p.call("promise_batch_action_transfer_to_gas_key", 0, 33, 8, 41)
+    cases.append(p.done())
+p = P(A + b"\x00" + bytes(31) + (7).to_bytes(16, "little"))
+p.call("promise_batch_create", 8, 0).call("promise_batch_action_transfer_to_gas_key", 0, 32, 8, 40)
+cases.append(p.done())
+for c in cases[-6:]:
+    print(c)
+
 # ed25519_verify on nearcore-judged vectors (oracle/fixtures/v3/ed25519), plus length errors
 import glob
 vecs = []
