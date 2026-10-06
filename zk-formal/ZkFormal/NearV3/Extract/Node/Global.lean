@@ -93,9 +93,9 @@ theorem NodeSegs.posAt (hS : NodeSegs tr segs) {n : Nat} (h : n < segs.length) :
   have hs := hS.seg' hL h
   have hb := hS.bound' hL h
   have hp := hs.1
-  have := counter_of (f := fun q => tr.cell T_NODE q Node.pos) (s := segs[n].1) (ℓ := segs[n].2) (v0 := 0)
+  have := counter_of (f := fun q => tr.cell T_NODE q NodeV3.pos) (s := segs[n].1) (ℓ := segs[n].2) (v0 := 0)
     (by have := hs.2.1; rw [one_iff] at this
-        show tr.cell T_NODE segs[n].1 Node.pos = _
+        show tr.cell T_NODE segs[n].1 NodeV3.pos = _
         rw [((rowFacts hL (by omega)).2.2.2.1 this).2.2.2.1]; rfl)
     (fun q h1 h2 => by
       have ha := hs.2.2.2.1 q h1 (by omega); rw [one_iff] at ha

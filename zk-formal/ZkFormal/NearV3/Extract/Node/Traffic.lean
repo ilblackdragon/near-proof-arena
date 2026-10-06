@@ -80,24 +80,27 @@ theorem rowsFields {α : Type} (hC : NodeCtx tr s ℓ fl) (f : Nat → List α) 
 /-- Rows that are not a field start emit nothing on the gated buses. -/
 theorem quietRow (hC : NodeCtx tr s ℓ fl) {r : Nat} (h1 : s ≤ r) (h2 : r < s + ℓ) (hfs : tr.cell T_NODE r fs = 0) :
     rowT tr pub r B_DIGEST false = [] ∧ rowT tr pub r B_PARENT true = [] ∧ rowT tr pub r B_PARENT false = [] ∧
-    rowT tr pub r B_VSLOT false = [] := by
+    rowT tr pub r B_VPARENT true = [] ∧ rowT tr pub r B_BMAP true = [] ∧ rowT tr pub r B_BMAP false = [] ∧
+    rowT tr pub r B_DUP false = [] := by
   have hr : r < tr.height T_NODE := by have := hC.bound; omega
   have G := linkGates hL hr
   simp only at G
   have M := winMisc hL hr
   have hgP : tr.cell T_NODE r gP = 0 := by rw [G.1, hfs]; grind
   have hgD : tr.cell T_NODE r gD = 0 := by rw [M.2.1, hgP, hfs]; grind
+  have hgDp : tr.cell T_NODE r gDp = 0 := by rw [G.2.2.2.2.2.1, hgP, hgD]; grind
+  have hgBm : tr.cell T_NODE r gBm = 0 := by rw [G.2.2.2.2.2.2.1, hfs]; grind
   have hnf : tr.cell T_NODE r nf = 0 := bool01 hL hr (by simp [boolCols]) (fun h => by
     have := ((rowFacts hL hr).2.2.2.1 h).2.2.1; rw [hfs] at this; exact fp_zero_ne_one this)
-  have hr0 : r ≠ 0 := by
-    intro h0; subst h0
-    have := (firstRow hL (by omega)).2.1; rw [hnf] at this; exact fp_zero_ne_one this
   have hgV : tr.cell T_NODE r gV = 0 := by rw [G.2.1, hnf]; grind
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · rw [rowT_digest, hgD, if_neg hr0]; simp [gate]
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [rowT_digest, hgD, hgDp]; simp [gate]
   · rw [rowT_parentS, hgP]; simp [gate]
-  · rw [rowT_parentR, hnf, if_neg hr0, show (0 : Fp) - 0 = 0 by decide]; simp [gate]
-  · rw [rowT_vslotR, hgV]; simp [gate]
+  · rw [rowT_parentR, hnf]; simp [gate]
+  · rw [rowT_vparentS, hgD, hgP, show (0 : Fp) - 0 = 0 by decide]; simp [gate]
+  · rw [rowT_bmapS, hgBm]; simp [gate]
+  · rw [rowT_bmapR, hgBm]; simp [gate]
+  · rw [rowT_dupR, hgV]; simp [gate]
 
 /-- On a gated bus, a field emits only at its first row. -/
 theorem fieldGated (hC : NodeCtx tr s ℓ fl) {p : Nat × Nat} (hp : p ∈ fl) {bb : Nat} {sd : Bool}
@@ -123,81 +126,105 @@ variable (hL : TableLocal NodeV3.table tr T_NODE pub)
 include hL
 variable {s ℓ : Nat} {fl : List (Nat × Nat)}
 
-/-- A field start other than the node start. -/
-theorem innerStart (hC : NodeCtx tr s ℓ fl) {o L : Nat} (hm : (o, L) ∈ fl) (ho : 0 < o) :
-    rowT tr pub (s + o) B_PARENT false = [] ∧ rowT tr pub (s + o) B_VSLOT false = [] ∧
-    tr.cell T_NODE (s + o) gP = tr.cell T_NODE (s + o) sCH * tr.cell T_NODE (s + o) rv ∧
-    tr.cell T_NODE (s + o) gD = tr.cell T_NODE (s + o) sCH * tr.cell T_NODE (s + o) rv +
-      tr.cell T_NODE (s + o) sVH * tr.cell T_NODE (s + o) tv ∧ s + o ≠ 0 := by
-  obtain ⟨hF, hH⟩ := fieldAt hL hC hm
-  have hr : s + o < tr.height T_NODE := by have := hF.pos; omega
-  have hfs : tr.cell T_NODE (s + o) fs = 1 := by simpa using (hF.fs 0 hF.pos).2 rfl
-  have hnf : tr.cell T_NODE (s + o) nf = 0 := zero_of hL hr (by simp [boolCols])
-    (hC.seg.2.2.2.2.1 (s + o) (by omega) (by have := hF.pos; have := (hC.fields.field _ hm).2; simp at this; omega))
-  have hr0 : s + o ≠ 0 := by omega
+end ZkFormal.NearV3.NodeProof3
+
+namespace ZkFormal.NearV3.NodeProof3
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.NodeV3 ZkFormal.Near
+
+variable {tr : Trace Fp} {pub : List Fp}
+variable (hL : TableLocal NodeV3.table tr T_NODE pub)
+include hL
+variable {s ℓ : Nat} {fl : List (Nat × Nat)}
+
+/-- Gates at any field start. -/
+theorem startGates {r : Nat} (hr : r < tr.height T_NODE) (hfs : tr.cell T_NODE r fs = 1) :
+    tr.cell T_NODE r gP = tr.cell T_NODE r sCH * tr.cell T_NODE r rv ∧
+    tr.cell T_NODE r gD = tr.cell T_NODE r sCH * tr.cell T_NODE r rv + tr.cell T_NODE r sVH * tr.cell T_NODE r tv ∧
+    tr.cell T_NODE r gDp = tr.cell T_NODE r sCH * tr.cell T_NODE r rv +
+      tr.cell T_NODE r sVH * tr.cell T_NODE r tv * tr.cell T_NODE r tw ∧
+    tr.cell T_NODE r gBm = tr.cell T_NODE r sBM := by
   have G := linkGates hL hr
   simp only at G
   have M := winMisc hL hr
-  refine ⟨?_, ?_, by rw [G.1, hfs]; grind, by rw [M.2.1, G.1, hfs]; grind, hr0⟩
-  · rw [rowT_parentR, hnf, if_neg hr0, show (0 : Fp) - 0 = 0 by decide]; simp [gate]
-  · rw [rowT_vslotR, G.2.1, hnf, show (0 : Fp) * tr.cell T_NODE (s + o) tv = 0 by grind]; simp [gate]
+  refine ⟨by rw [G.1, hfs]; grind, by rw [M.2.1, G.1, hfs]; grind, ?_, by rw [G.2.2.2.2.2.2.1, hfs]; grind⟩
+  rw [G.2.2.2.2.2.1, M.2.1, G.1, hfs]; grind
+
+/-- A field start other than the node start: no `PARENT` / `DUP` receive. -/
+theorem innerStart (hC : NodeCtx tr s ℓ fl) {o L : Nat} (hm : (o, L) ∈ fl) (ho : 0 < o) :
+    rowT tr pub (s + o) B_PARENT false = [] ∧ rowT tr pub (s + o) B_DUP false = [] := by
+  obtain ⟨hF, hH⟩ := fieldAt hL hC hm
+  have hr : s + o < tr.height T_NODE := by have := hF.pos; omega
+  have hnf : tr.cell T_NODE (s + o) nf = 0 := zero_of hL hr (by simp [boolCols])
+    (hC.seg.2.2.2.2.1 (s + o) (by omega) (by have := hF.pos; have := (hC.fields.field _ hm).2; simp at this; omega))
+  have G := linkGates hL hr
+  simp only at G
+  refine ⟨by rw [rowT_parentR, hnf]; simp [gate], ?_⟩
+  rw [rowT_dupR, G.2.1, hnf, show (0 : Fp) * tr.cell T_NODE (s + o) dup = 0 by grind]; simp [gate]
 
 /-- The node start (`TAG` row). -/
 theorem tagStart (hC : NodeCtx tr s ℓ fl) :
-    rowT tr pub s B_PARENT true = [] ∧
-    rowT tr pub s B_DIGEST false =
-      gate (if s = 0 then 1 else 0) ([(K_NPRE : Fp), tr.cell T_NODE s len] ++ (List.range 32).map fun i => pub.getD (PV_PRE + i) 0) ++
-      gate (if s = 0 then 1 else 0) ([(K_NPOST : Fp), tr.cell T_NODE s len] ++ (List.range 32).map fun i => pub.getD (PV_POST + i) 0) ∧
-    rowT tr pub s B_PARENT false = gate (if s = 0 then 0 else 1)
-        [tr.cell T_NODE s nid, tr.cell T_NODE s depth, tr.cell T_NODE s len, tr.cell T_NODE s res] ∧
-    rowT tr pub s B_VSLOT false = gate (tr.cell T_NODE s tv) [tr.cell T_NODE s nid] := by
+    rowT tr pub s B_PARENT true = [] ∧ rowT tr pub s B_DIGEST false = [] ∧ rowT tr pub s B_VPARENT true = [] ∧
+    rowT tr pub s B_BMAP true = [] ∧ rowT tr pub s B_BMAP false = [] ∧
+    rowT tr pub s B_PARENT false =
+      [[tr.cell T_NODE s nid, tr.cell T_NODE s tau, tr.cell T_NODE s depth, tr.cell T_NODE s len, tr.cell T_NODE s res]] ∧
+    rowT tr pub s B_DUP false = gate (tr.cell T_NODE s dup)
+      [(K_NPRE : Fp) + (16 : Nat) * tr.cell T_NODE s nid, tr.cell T_NODE s repE] := by
   obtain ⟨hr, ha⟩ := nodeStart hL hC
   have hnf : tr.cell T_NODE s nf = 1 := by have := hC.seg.2.1; rwa [one_iff] at this
   obtain ⟨-, sT, hfs, -, -⟩ := (rowFacts hL hr).2.2.2.1 hnf
   have G := linkGates hL hr
   simp only at G
-  have M := winMisc hL hr
+  obtain ⟨g1, g2, g3, g4⟩ := startGates hL hr hfs
   have hch : tr.cell T_NODE s sCH = 0 := stOnly hL hr ha sT (by simp [states]) (by simp [states]) (by decide)
   have hvh : tr.cell T_NODE s sVH = 0 := stOnly hL hr ha sT (by simp [states]) (by simp [states]) (by decide)
-  have hgP : tr.cell T_NODE s gP = 0 := by rw [G.1, hch]; grind
-  have hgD : tr.cell T_NODE s gD = 0 := by rw [M.2.1, hgP, hvh]; grind
-  refine ⟨by rw [rowT_parentS, hgP]; simp [gate], by rw [rowT_digest, hgD]; simp [gate], ?_, ?_⟩
-  · rw [rowT_parentR, hnf]
-    by_cases h0 : s = 0
-    · rw [if_pos h0, if_pos h0, show (1 : Fp) - 1 = 0 by decide]
-    · rw [if_neg h0, if_neg h0, show (1 : Fp) - 0 = 1 by decide]
-  · rw [rowT_vslotR, G.2.1, hnf, show (1 : Fp) * tr.cell T_NODE s tv = tr.cell T_NODE s tv by grind]
+  have hbm : tr.cell T_NODE s sBM = 0 := stOnly hL hr ha sT (by simp [states]) (by simp [states]) (by decide)
+  simp only [hch, hvh] at g1 g2 g3; simp only [hbm] at g4
+  have z1 : tr.cell T_NODE s gP = 0 := by rw [g1]; grind
+  have z2 : tr.cell T_NODE s gD = 0 := by rw [g2]; grind
+  have z3 : tr.cell T_NODE s gDp = 0 := by rw [g3]; grind
+  refine ⟨by rw [rowT_parentS, z1]; simp [gate], by rw [rowT_digest, z2, z3]; simp [gate],
+    by rw [rowT_vparentS, z1, z2, show (0 : Fp) - 0 = 0 by decide]; simp [gate],
+    by rw [rowT_bmapS, g4]; simp [gate], by rw [rowT_bmapR, g4]; simp [gate],
+    by rw [rowT_parentR, hnf]; simp [gate], ?_⟩
+  rw [rowT_dupR, G.2.1, hnf, show (1 : Fp) * tr.cell T_NODE s dup = tr.cell T_NODE s dup by grind]
 
 /-- A value window start (`VH`). -/
-theorem vhStart (hC : NodeCtx tr s ℓ fl) {o : Nat} (hm : (o, 32) ∈ fl) (ho : 0 < o)
-    (hv : tr.cell T_NODE (s + o) sVH = 1) :
-    rowT tr pub (s + o) B_PARENT true = [] ∧
+theorem vhStart (hC : NodeCtx tr s ℓ fl) {o : Nat} (hm : (o, 32) ∈ fl) (hv : tr.cell T_NODE (s + o) sVH = 1) :
+    rowT tr pub (s + o) B_PARENT true = [] ∧ rowT tr pub (s + o) B_BMAP true = [] ∧ rowT tr pub (s + o) B_BMAP false = [] ∧
     rowT tr pub (s + o) B_DIGEST false =
-      gate (tr.cell T_NODE (s + o) tv) ([(K_VPRE : Fp) + ((16 : Nat) : Fp) * tr.cell T_NODE (s + o) nid, ((72 : Nat) : Fp)] ++
-        regW tr (s + o) reg) ++
-      gate (tr.cell T_NODE (s + o) tv) ([(K_VPRE : Fp) + ((16 : Nat) : Fp) * tr.cell T_NODE (s + o) nid + ((1 : Nat) : Fp),
-        ((72 : Nat) : Fp)] ++ regW tr (s + o) preg) := by
+      gate (tr.cell T_NODE (s + o) tv) ([(K_VPRE : Fp) + ((16 : Nat) : Fp) * tr.cell T_NODE (s + o) vid,
+        tr.cell T_NODE (s + o) vlen] ++ regW tr (s + o) reg) ++
+      gate (tr.cell T_NODE (s + o) tv * tr.cell T_NODE (s + o) tw)
+        ([(K_VPRE : Fp) + ((16 : Nat) : Fp) * tr.cell T_NODE (s + o) vid + ((1 : Nat) : Fp),
+        tr.cell T_NODE (s + o) vlen] ++ regW tr (s + o) preg) ∧
+    rowT tr pub (s + o) B_VPARENT true = gate (tr.cell T_NODE (s + o) tv)
+      [tr.cell T_NODE (s + o) vid, tr.cell T_NODE (s + o) vlen] := by
   obtain ⟨hF, hH⟩ := fieldAt hL hC hm
   have hr : s + o < tr.height T_NODE := by omega
   have ha : tr.cell T_NODE (s + o) act = 1 := by simpa using hF.act 0 (by omega)
+  have hfs : tr.cell T_NODE (s + o) fs = 1 := by simpa using (hF.fs 0 hF.pos).2 rfl
   have hch : tr.cell T_NODE (s + o) sCH = 0 := stOnly hL hr ha hv (by simp [states]) (by simp [states]) (by decide)
-  obtain ⟨-, -, hgP, hgD, -⟩ := innerStart hL hC hm ho
-  rw [hch] at hgP hgD; rw [hv] at hgD
-  have hgP' : tr.cell T_NODE (s + o) gP = 0 := by rw [hgP]; grind
-  have hgD' : tr.cell T_NODE (s + o) gD = tr.cell T_NODE (s + o) tv := by rw [hgD]; grind
-  refine ⟨by rw [rowT_parentS, hgP']; simp [gate], ?_⟩
-  rw [rowT_digest, hgD', if_neg (by omega)]
-  rcases isBool hL hr (x := tv) (by simp [boolCols]) with ht | ht
-  · rw [ht]; simp [gate]
-  · obtain ⟨e1, e2⟩ := (winMisc hL hr).2.2.2 (by rw [hgD', hgP', ht]; decide)
-    rw [ht, e1, e2]; simp [gate]; rfl
+  have hbm : tr.cell T_NODE (s + o) sBM = 0 := stOnly hL hr ha hv (by simp [states]) (by simp [states]) (by decide)
+  obtain ⟨g1, g2, g3, g4⟩ := startGates hL hr hfs
+  simp only [hch, hv] at g1 g2 g3; simp only [hbm] at g4
+  have z1 : tr.cell T_NODE (s + o) gP = 0 := by rw [g1]; grind
+  have e2 : tr.cell T_NODE (s + o) gD = tr.cell T_NODE (s + o) tv := by rw [g2]; grind
+  have e3 : tr.cell T_NODE (s + o) gDp = tr.cell T_NODE (s + o) tv * tr.cell T_NODE (s + o) tw := by rw [g3]; grind
+  refine ⟨by rw [rowT_parentS, z1]; simp [gate], by rw [rowT_bmapS, g4]; simp [gate],
+    by rw [rowT_bmapR, g4]; simp [gate], ?_, ?_⟩
+  · rw [rowT_digest, e2, e3]
+    rcases isBool hL hr (x := tv) (by simp [boolCols]) with ht | ht
+    · rw [ht, show (0 : Fp) * tr.cell T_NODE (s + o) tw = 0 by grind]; simp [gate]
+    · obtain ⟨d1, d2⟩ := (winMisc hL hr).2.2.2 (by rw [e2, z1, ht]; decide)
+      rw [ht, d1, d2, show (1 : Fp) * tr.cell T_NODE (s + o) tw = tr.cell T_NODE (s + o) tw by grind]
+  · rw [rowT_vparentS, e2, z1, show tr.cell T_NODE (s + o) tv - 0 = tr.cell T_NODE (s + o) tv by grind]
 
 /-- A child window start (`CH`). -/
-theorem chStartMsgs (hC : NodeCtx tr s ℓ fl) {o : Nat} (hm : (o, 32) ∈ fl) (ho : 0 < o)
-    (hc : tr.cell T_NODE (s + o) sCH = 1) :
+theorem chStartMsgs (hC : NodeCtx tr s ℓ fl) {o : Nat} (hm : (o, 32) ∈ fl) (hc : tr.cell T_NODE (s + o) sCH = 1) :
+    rowT tr pub (s + o) B_VPARENT true = [] ∧ rowT tr pub (s + o) B_BMAP true = [] ∧ rowT tr pub (s + o) B_BMAP false = [] ∧
     rowT tr pub (s + o) B_PARENT true = gate (tr.cell T_NODE (s + o) rv)
-      [tr.cell T_NODE (s + o) cid, tr.cell T_NODE (s + o) depth + ((1 : Nat) : Fp), tr.cell T_NODE (s + o) clen,
-        tr.cell T_NODE (s + o) cres] ∧
+      [tr.cell T_NODE (s + o) cid, tr.cell T_NODE (s + o) tau, tr.cell T_NODE (s + o) depth + ((1 : Nat) : Fp),
+        tr.cell T_NODE (s + o) clen, tr.cell T_NODE (s + o) cres] ∧
     rowT tr pub (s + o) B_DIGEST false =
       gate (tr.cell T_NODE (s + o) rv) ([(K_NPRE : Fp) + ((16 : Nat) : Fp) * tr.cell T_NODE (s + o) cid,
         tr.cell T_NODE (s + o) clen] ++ regW tr (s + o) reg) ++
@@ -206,15 +233,59 @@ theorem chStartMsgs (hC : NodeCtx tr s ℓ fl) {o : Nat} (hm : (o, 32) ∈ fl) (
   obtain ⟨hF, hH⟩ := fieldAt hL hC hm
   have hr : s + o < tr.height T_NODE := by omega
   have ha : tr.cell T_NODE (s + o) act = 1 := by simpa using hF.act 0 (by omega)
+  have hfs : tr.cell T_NODE (s + o) fs = 1 := by simpa using (hF.fs 0 hF.pos).2 rfl
   have hvh : tr.cell T_NODE (s + o) sVH = 0 := stOnly hL hr ha hc (by simp [states]) (by simp [states]) (by decide)
-  obtain ⟨-, -, hgP, hgD, -⟩ := innerStart hL hC hm ho
-  rw [hc] at hgP hgD; rw [hvh] at hgD
-  have hgP' : tr.cell T_NODE (s + o) gP = tr.cell T_NODE (s + o) rv := by rw [hgP]; grind
-  have hgD' : tr.cell T_NODE (s + o) gD = tr.cell T_NODE (s + o) rv := by rw [hgD]; grind
-  rw [rowT_parentS, hgP', rowT_digest, hgD', if_neg (by omega)]
+  have hbm : tr.cell T_NODE (s + o) sBM = 0 := stOnly hL hr ha hc (by simp [states]) (by simp [states]) (by decide)
+  obtain ⟨g1, g2, g3, g4⟩ := startGates hL hr hfs
+  simp only [hc, hvh] at g1 g2 g3; simp only [hbm] at g4
+  have e1 : tr.cell T_NODE (s + o) gP = tr.cell T_NODE (s + o) rv := by rw [g1]; grind
+  have e2 : tr.cell T_NODE (s + o) gD = tr.cell T_NODE (s + o) rv := by rw [g2]; grind
+  have e3 : tr.cell T_NODE (s + o) gDp = tr.cell T_NODE (s + o) rv := by rw [g3]; grind
+  refine ⟨by rw [rowT_vparentS, e1, e2, show tr.cell T_NODE (s + o) rv - tr.cell T_NODE (s + o) rv = 0 by grind]; simp [gate],
+    by rw [rowT_bmapS, g4]; simp [gate], by rw [rowT_bmapR, g4]; simp [gate], ?_⟩
+  rw [rowT_parentS, e1, rowT_digest, e2, e3]
   rcases isBool hL hr (x := rv) (by simp [boolCols]) with ht | ht
   · rw [ht]; simp [gate]
-  · obtain ⟨e1, e2⟩ := (winMisc hL hr).2.2.1 (by rw [hgP', ht])
-    rw [ht, e1, e2]; simp [gate]
+  · obtain ⟨d1, d2⟩ := (winMisc hL hr).2.2.1 (by rw [e1, ht])
+    rw [ht, d1, d2]; simp [gate]
+
+/-- A bitmap field start (`BM`). -/
+theorem bmStartMsgs (hC : NodeCtx tr s ℓ fl) {o : Nat} (hm : (o, 2) ∈ fl) (hb : tr.cell T_NODE (s + o) sBM = 1) :
+    rowT tr pub (s + o) B_PARENT true = [] ∧ rowT tr pub (s + o) B_DIGEST false = [] ∧ rowT tr pub (s + o) B_VPARENT true = [] ∧
+    rowT tr pub (s + o) B_BMAP true = [[tr.cell T_NODE (s + o) nid, bmE.eval tr T_NODE (s + o) pub, tr.cell T_NODE (s + o) tb2, 0]] ∧
+    rowT tr pub (s + o) B_BMAP false =
+      [[tr.cell T_NODE (s + o) nid, bmE.eval tr T_NODE (s + o) pub, tr.cell T_NODE (s + o) tb2, tr.cell T_NODE (s + o) mBm]] := by
+  obtain ⟨hF, hH⟩ := fieldAt hL hC hm
+  have hr : s + o < tr.height T_NODE := by omega
+  have ha : tr.cell T_NODE (s + o) act = 1 := by simpa using hF.act 0 (by omega)
+  have hfs : tr.cell T_NODE (s + o) fs = 1 := by simpa using (hF.fs 0 hF.pos).2 rfl
+  have hvh : tr.cell T_NODE (s + o) sVH = 0 := stOnly hL hr ha hb (by simp [states]) (by simp [states]) (by decide)
+  have hch : tr.cell T_NODE (s + o) sCH = 0 := stOnly hL hr ha hb (by simp [states]) (by simp [states]) (by decide)
+  obtain ⟨g1, g2, g3, g4⟩ := startGates hL hr hfs
+  simp only [hch, hvh] at g1 g2 g3; simp only [hb] at g4
+  have z1 : tr.cell T_NODE (s + o) gP = 0 := by rw [g1]; grind
+  have z2 : tr.cell T_NODE (s + o) gD = 0 := by rw [g2]; grind
+  have z3 : tr.cell T_NODE (s + o) gDp = 0 := by rw [g3]; grind
+  exact ⟨by rw [rowT_parentS, z1]; simp [gate], by rw [rowT_digest, z2, z3]; simp [gate],
+    by rw [rowT_vparentS, z1, z2, show (0 : Fp) - 0 = 0 by decide]; simp [gate],
+    by rw [rowT_bmapS, g4]; simp [gate], by rw [rowT_bmapR, g4]; simp [gate]⟩
+
+/-- Any other field start (`HPL`, `HPF`, `KEY`, `VLEN`, `MEM`): no gated message. -/
+theorem plainStart (hC : NodeCtx tr s ℓ fl) {o L : Nat} (hm : (o, L) ∈ fl) (ho : 0 < o)
+    (h1 : tr.cell T_NODE (s + o) sCH = 0) (h2 : tr.cell T_NODE (s + o) sVH = 0) (h3 : tr.cell T_NODE (s + o) sBM = 0) :
+    rowT tr pub (s + o) B_PARENT true = [] ∧ rowT tr pub (s + o) B_DIGEST false = [] ∧
+    rowT tr pub (s + o) B_VPARENT true = [] ∧ rowT tr pub (s + o) B_BMAP true = [] ∧
+    rowT tr pub (s + o) B_BMAP false = [] := by
+  obtain ⟨hF, hH⟩ := fieldAt hL hC hm
+  have hr : s + o < tr.height T_NODE := by have := hF.pos; omega
+  have hfs : tr.cell T_NODE (s + o) fs = 1 := by simpa using (hF.fs 0 hF.pos).2 rfl
+  obtain ⟨g1, g2, g3, g4⟩ := startGates hL hr hfs
+  simp only [h1, h2] at g1 g2 g3; simp only [h3] at g4
+  have z1 : tr.cell T_NODE (s + o) gP = 0 := by rw [g1]; grind
+  have z2 : tr.cell T_NODE (s + o) gD = 0 := by rw [g2]; grind
+  have z3 : tr.cell T_NODE (s + o) gDp = 0 := by rw [g3]; grind
+  exact ⟨by rw [rowT_parentS, z1]; simp [gate], by rw [rowT_digest, z2, z3]; simp [gate],
+    by rw [rowT_vparentS, z1, z2, show (0 : Fp) - 0 = 0 by decide]; simp [gate],
+    by rw [rowT_bmapS, g4]; simp [gate], by rw [rowT_bmapR, g4]; simp [gate]⟩
 
 end ZkFormal.NearV3.NodeProof3
