@@ -86,7 +86,7 @@ def regSetH (id : Nat) (d : ByteArray) (chargeBytes : Bool := true) : HM Unit :=
 def memOrRegH (ptr len : Nat) : HM ByteArray :=
   if len = u64Bound - 1 then regGetH ptr else readMemH ptr len
 
-def leNat (d : ByteArray) : Nat := (List.range d.size).foldl (fun a i => a + d[i]!.toNat * 256 ^ i) 0
+def leNat (d : ByteArray) : Nat := d.toList.foldr (fun b acc => b.toNat + 256 * acc) 0
 def natLE (n w : Nat) : ByteArray := ⟨(Array.range w).map fun i => UInt8.ofNat ((n / 256 ^ i) % 256)⟩
 
 def getU128H (ptr : Nat) : HM Nat := do pure (leNat (← readMemH ptr 16))
@@ -128,8 +128,16 @@ def utf8H (len ptr : Nat) : HM String := do
 
 /-- UTF-16LE → String (`char::decode_utf16`; unpaired surrogates are an error). -/
 def decodeUtf16 (d : ByteArray) : Option String := Id.run do
-  let n := d.size / 2
-  let u (i : Nat) : Nat := d[2 * i]!.toNat + 256 * d[2 * i + 1]!.toNat
+  let units : Array Nat := Id.run do
+    let mut acc := #[]
+    let mut l := d.toList
+    for _ in [0:d.size / 2] do
+      match l with
+      | lo :: hi :: rest => acc := acc.push (lo.toNat + 256 * hi.toNat); l := rest
+      | _ => pure ()
+    acc
+  let n := units.size
+  let u (i : Nat) : Nat := units[i]?.getD 0   -- i < n at every use below
   let mut out : String := ""
   let mut i := 0
   for _ in [0:n] do
@@ -155,7 +163,7 @@ def utf16H (len ptr : Nat) : HM String := do
       for _ in [0:maxLen / 2 + 2] do
         if fin then break
         let w ← readMemH (ptr + l) 2
-        if w[0]! = 0 ∧ w[1]! = 0 then fin := true
+        if w.toList.all (· = 0) then fin := true
         else
           l := l + 2
           if l > maxLen then logLenExceeded l
@@ -221,11 +229,15 @@ def readAccountIdH (len ptr : Nat) : HM String := do
 /-- `PublicKeyBuffer` (`logic/logic.rs:233-259`): borsh `PublicKey` (ED25519 32 B, SECP256K1 64 B,
 ML-DSA-65 1,952 B; the mock enables post-quantum keys), no trailing bytes. -/
 def pkValid (d : ByteArray) : Bool :=
-  d.size ≥ 1 ∧ ((d[0]! = 0 ∧ d.size = 33) ∨ (d[0]! = 1 ∧ d.size = 65) ∨ (d[0]! = 2 ∧ d.size = 1953))
+  match d.toList with
+  | 0 :: rest => rest.length = 32
+  | 1 :: rest => rest.length = 64
+  | 2 :: rest => rest.length = 1952
+  | _ => false
 
 def hexStr (b : ByteArray) : String :=
-  let d := "0123456789abcdef".toList
-  b.foldl (fun acc x => acc.push (d[x.toNat / 16]!) |>.push (d[x.toNat % 16]!)) ""
+  let dig (v : Nat) : Char := if v < 10 then Char.ofNat (48 + v) else Char.ofNat (87 + v)
+  b.foldl (fun acc x => acc.push (dig (x.toNat / 16)) |>.push (dig (x.toNat % 16))) ""
 
 /-! ## Mock `External` (`logic/mocks/mock_external.rs`) -/
 
@@ -357,13 +369,16 @@ def numExtraBytesRecord : Nat := 40
 
 /-! ## The host functions -/
 
-def popArgs (n : Nat) : HM (Array Nat) := do
+/-- Pop the `n` arguments of a host call (validation and linking guarantee they are there),
+first argument at index 0. A `Vector` so that argument access is statically in bounds. -/
+def popArgs (n : Nat) : HM (Vector Nat n) := do
   let mut out := #[]
   for _ in [0:n] do
     let (v, s) := popN (← get)
     set s
     out := out.push v
-  pure out.reverse
+  let rev := out.reverse
+  if h : rev.size = n then pure ⟨rev, h⟩ else throw "unmodeled host-call arity"
 
 def pushRet (v : Nat) (is64 : Bool := true) : HM Unit :=
   modify fun s => if is64 then pushI64 s v else pushI32 s v
@@ -400,43 +415,43 @@ def readContractIdH (byAccount : Bool) (len ptr : Nat) : HM Nat := do
     if h.size ≠ 32 then hErr "ContractCodeHashMalformed"
     pure 32
 
-def deployGlobalH (a : Array Nat) : HM Unit := do
+def deployGlobalH (a : Vector Nat 3) : HM Unit := do
   payBaseH C.base
-  let code ← memOrRegH a[2]! a[1]!
+  let code ← memOrRegH a[2] a[1]
   if code.size > maxContractSize then
     hErr s!"ContractSizeExceeded \{ size: {code.size}, limit: {maxContractSize} }"
-  let (_, sir) ← promiseReceiptH a[0]!
+  let (_, sir) ← promiseReceiptH a[0]
   payActionBaseH F.deployGlobalContract sir
   payActionPerByteH F.deployGlobalContractByte code.size sir
   let _ ← pushAction { text := "OTHER" }
 
-def useGlobalH (byAccount : Bool) (a : Array Nat) : HM Unit := do
+def useGlobalH (byAccount : Bool) (a : Vector Nat 3) : HM Unit := do
   payBaseH C.base
-  let len ← readContractIdH byAccount a[1]! a[2]!
-  let (_, sir) ← promiseReceiptH a[0]!
+  let len ← readContractIdH byAccount a[1] a[2]
+  let (_, sir) ← promiseReceiptH a[0]
   payActionBaseH F.useGlobalContract sir
   payActionPerByteH F.useGlobalContractByte len sir
   let _ ← pushAction { text := "OTHER" }
 
-def stateInitH (byAccount : Bool) (a : Array Nat) : HM Unit := do
+def stateInitH (byAccount : Bool) (a : Vector Nat 4) : HM Unit := do
   payBaseH C.base
-  let _ ← readContractIdH byAccount a[1]! a[2]!
-  let amount ← getU128H a[3]!
-  let (r, sir) ← promiseReceiptH a[0]!
+  let _ ← readContractIdH byAccount a[1] a[2]
+  let amount ← getU128H a[3]
+  let (r, sir) ← promiseReceiptH a[0]
   payActionBaseH F.stateInit sir
   deductBalanceH amount
   let ai ← pushAction { text := "OTHER", stateInit := some (r, #[]) }
   pushRet ai
 
 /-- `promise_yield_create_with_id` (mock: a repeated yield id returns `u64::MAX`, nothing recorded). -/
-def yieldCreateWithIdH (a : Array Nat) : HM Unit := do
+def yieldCreateWithIdH (a : Vector Nat 9) : HM Unit := do
   payBaseH C.base
   payBaseH C.yieldCreateWithIdBase
-  let amount ← getU128H a[4]!
-  let m ← memOrRegH a[1]! a[0]!
+  let amount ← getU128H a[4]
+  let m ← memOrRegH a[1] a[0]
   if m.size = 0 then hErr "EmptyMethodName"
-  let args ← memOrRegH a[3]! a[2]!
-  let yid ← memOrRegH a[8]! a[7]!
+  let args ← memOrRegH a[3] a[2]
+  let yid ← memOrRegH a[8] a[7]
   if yid.size ≠ 32 then hErr "YieldIdMalformed"
   let nb := m.size + args.size
   payPerH C.yieldCreateByte nb
@@ -449,14 +464,14 @@ def yieldCreateWithIdH (a : Array Nat) : HM Unit := do
   set { s with dataCount := s.dataCount + 1 }
   let r ← pushAction { text := s!"YC:{hexStr did}>{s.ctx.currentAccount}:{hexStr yid}",
                        receiver := some s.ctx.currentAccount, yieldCreate := some (did, some yid) }
-  withGas (deduct · 0 a[5]!)
+  withGas (deduct · 0 a[5])
   payNewReceiptH true #[true]
   let pi ← pushPromiseH (.receipt r)
   payActionBaseH F.functionCall true
   payActionPerByteH F.functionCallByte nb true
   let s ← get
   if amount = 1 ∧ s.balance = 0 then pure () else deductBalanceH amount
-  let _ ← pushAction { text := s!"FC@{r}:{hexStr m}:{hexStr args}:{amount}:{a[5]!}:{a[6]!}" }
+  let _ ← pushAction { text := s!"FC@{r}:{hexStr m}:{hexStr args}:{amount}:{a[5]}:{a[6]}" }
   pushRet pi
 
 def gasKeyPkLen (pk : ByteArray) : Nat := if pkValid pk then pk.size else 0
@@ -468,34 +483,34 @@ def hostCall (name : String) : Option (HM Unit) :=
   | "read_register" => some do
     let a ← popArgs 2
     payBaseH C.base
-    let d ← regGetH a[0]!
-    writeMemH a[1]! d
+    let d ← regGetH a[0]
+    writeMemH a[1] d
   | "register_len" => some do
     let a ← popArgs 1
     payBaseH C.base
-    pushRet (((← get).registers.find? (·.1 = a[0]!)).map (·.2.size) |>.getD (u64Bound - 1))
+    pushRet (((← get).registers.find? (·.1 = a[0])).map (·.2.size) |>.getD (u64Bound - 1))
   | "write_register" => some do
     let a ← popArgs 3
     payBaseH C.base
-    let d ← readMemH a[2]! a[1]!
-    regSetH a[0]! d
+    let d ← readMemH a[2] a[1]
+    regSetH a[0] d
   -- context
   | "current_account_id" => some do
-    let a ← popArgs 1; payBaseH C.base; regSetH a[0]! (← get).ctx.currentAccount.toUTF8
+    let a ← popArgs 1; payBaseH C.base; regSetH a[0] (← get).ctx.currentAccount.toUTF8
   | "signer_account_id" => some do
-    let a ← popArgs 1; payBaseH C.base; regSetH a[0]! (← get).ctx.signer.toUTF8
+    let a ← popArgs 1; payBaseH C.base; regSetH a[0] (← get).ctx.signer.toUTF8
   | "signer_account_pk" => some do
-    let a ← popArgs 1; payBaseH C.base; regSetH a[0]! (← get).ctx.signerPk
+    let a ← popArgs 1; payBaseH C.base; regSetH a[0] (← get).ctx.signerPk
   | "predecessor_account_id" => some do
-    let a ← popArgs 1; payBaseH C.base; regSetH a[0]! (← get).ctx.predecessor.toUTF8
+    let a ← popArgs 1; payBaseH C.base; regSetH a[0] (← get).ctx.predecessor.toUTF8
   | "refund_to_account_id" => some do
-    let a ← popArgs 1; payBaseH C.base; regSetH a[0]! (← get).ctx.refundTo.toUTF8
+    let a ← popArgs 1; payBaseH C.base; regSetH a[0] (← get).ctx.refundTo.toUTF8
   | "chain_id" => some do
-    let a ← popArgs 1; payBaseH C.base; regSetH a[0]! (← get).ctx.chainId.toUTF8
+    let a ← popArgs 1; payBaseH C.base; regSetH a[0] (← get).ctx.chainId.toUTF8
   | "input" => some do
-    let a ← popArgs 1; payBaseH C.base; regSetH a[0]! (← get).ctx.input (chargeBytes := false)
+    let a ← popArgs 1; payBaseH C.base; regSetH a[0] (← get).ctx.input (chargeBytes := false)
   | "random_seed" => some do
-    let a ← popArgs 1; payBaseH C.base; regSetH a[0]! (← get).ctx.randomSeed
+    let a ← popArgs 1; payBaseH C.base; regSetH a[0] (← get).ctx.randomSeed
   | "block_index" => some do payBaseH C.base; pushRet (← get).ctx.blockHeight
   | "block_timestamp" => some do payBaseH C.base; pushRet (← get).ctx.blockTimestamp
   | "epoch_height" => some do payBaseH C.base; pushRet (← get).ctx.epochHeight
@@ -503,43 +518,43 @@ def hostCall (name : String) : Option (HM Unit) :=
   | "prepaid_gas" => some do payBaseH C.base; pushRet (← get).ctx.prepaidGas
   | "used_gas" => some do payBaseH C.base; pushRet (← get).gas.used
   | "account_balance" => some do
-    let a ← popArgs 1; payBaseH C.base; setU128H a[0]! (← get).balance
+    let a ← popArgs 1; payBaseH C.base; setU128H a[0] (← get).balance
   | "account_locked_balance" => some do
-    let a ← popArgs 1; payBaseH C.base; setU128H a[0]! (← get).ctx.accountLocked
+    let a ← popArgs 1; payBaseH C.base; setU128H a[0] (← get).ctx.accountLocked
   | "attached_deposit" => some do
-    let a ← popArgs 1; payBaseH C.base; setU128H a[0]! (← get).ctx.attachedDeposit
+    let a ← popArgs 1; payBaseH C.base; setU128H a[0] (← get).ctx.attachedDeposit
   | "current_contract_code" => some do
     let _ ← popArgs 1; payBaseH C.base; pushRet 0   -- AccountContract::None in the harness context
   | "validator_stake" => some do
     let a ← popArgs 3
     payBaseH C.base
-    let acct ← readAccountIdH a[0]! a[1]!
+    let acct ← readAccountIdH a[0] a[1]
     payBaseH C.validatorStakeBase
     let st := (((← get).ctx.validators.find? (·.1 = acct)).map (·.2)).getD 0
-    setU128H a[2]! st
+    setU128H a[2] st
   | "validator_total_stake" => some do
     let a ← popArgs 1
     payBaseH C.base
     payBaseH C.validatorTotalStakeBase
-    setU128H a[0]! ((← get).ctx.validators.foldl (fun acc v => acc + v.2) 0)
+    setU128H a[0] ((← get).ctx.validators.foldl (fun acc v => acc + v.2) 0)
   -- hashes
   | "sha256" => some do
-    let a ← popArgs 3; hashHost C.sha256Base C.sha256Byte Crypto.sha256 a[0]! a[1]! a[2]!
+    let a ← popArgs 3; hashHost C.sha256Base C.sha256Byte Crypto.sha256 a[0] a[1] a[2]
   | "keccak256" => some do
-    let a ← popArgs 3; hashHost C.keccak256Base C.keccak256Byte Crypto.keccak256 a[0]! a[1]! a[2]!
+    let a ← popArgs 3; hashHost C.keccak256Base C.keccak256Byte Crypto.keccak256 a[0] a[1] a[2]
   | "keccak512" => some do
-    let a ← popArgs 3; hashHost C.keccak512Base C.keccak512Byte Crypto.keccak512 a[0]! a[1]! a[2]!
+    let a ← popArgs 3; hashHost C.keccak512Base C.keccak512Byte Crypto.keccak512 a[0] a[1] a[2]
   | "ripemd160" => some do
     let a ← popArgs 3
     payBaseH C.ripemd160Base
-    let v ← memOrRegH a[1]! a[0]!
+    let v ← memOrRegH a[1] a[0]
     payPerH C.ripemd160Block ((v.size + 8) / 64 + 1)
-    regSetH a[2]! (Crypto.ripemd160 v)
+    regSetH a[2] (Crypto.ripemd160 v)
   -- logs and panics
   | "value_return" => some do
     let a ← popArgs 2
     payBaseH C.base
-    let v ← memOrRegH a[1]! a[0]!
+    let v ← memOrRegH a[1] a[0]
     if v.size > maxLengthReturnedData then
       hErr s!"ReturnedValueLengthExceeded \{ length: {v.size}, limit: {maxLengthReturnedData} }"
     let s ← get
@@ -551,12 +566,12 @@ def hostCall (name : String) : Option (HM Unit) :=
     modify fun s => { s with ret := some (.inl v) }
   | "panic" => some do payBaseH C.base; guestPanic "explicit guest panic"
   | "panic_utf8" => some do
-    let a ← popArgs 2; payBaseH C.base; guestPanic (← utf8H a[0]! a[1]!)
+    let a ← popArgs 2; payBaseH C.base; guestPanic (← utf8H a[0] a[1])
   | "log_utf8" => some do
     let a ← popArgs 2
     payBaseH C.base
     checkCanLogH
-    let m ← utf8H a[0]! a[1]!
+    let m ← utf8H a[0] a[1]
     payBaseH C.logBase
     payPerH C.logByte m.utf8ByteSize
     pushLogH m
@@ -564,14 +579,14 @@ def hostCall (name : String) : Option (HM Unit) :=
     let a ← popArgs 2
     payBaseH C.base
     checkCanLogH
-    let m ← utf16H a[0]! a[1]!
+    let m ← utf16H a[0] a[1]
     payBaseH C.logBase
     payPerH C.logByte m.utf8ByteSize
     pushLogH m
   | "abort" => some do
     let a ← popArgs 4
     payBaseH C.base
-    let (mp, fp, line, col) := (a[0]! % 2 ^ 32, a[1]! % 2 ^ 32, a[2]! % 2 ^ 32, a[3]! % 2 ^ 32)
+    let (mp, fp, line, col) := (a[0] % 2 ^ 32, a[1] % 2 ^ 32, a[2] % 2 ^ 32, a[3] % 2 ^ 32)
     if mp < 4 ∨ fp < 4 then hErr "BadUTF16"
     checkCanLogH
     let ml := leNat (← readMemH (mp - 4) 4)
@@ -585,16 +600,16 @@ def hostCall (name : String) : Option (HM Unit) :=
     guestPanic message
   | "gas" => some do
     let a ← popArgs 1
-    burnH (a[0]! * 822756)
+    burnH (a[0] * 822756)
   -- storage (mock External: no trie-node charges, recorded size 0)
   | "storage_write" => some do
     let a ← popArgs 5
     payBaseH C.base
     payBaseH C.storageWriteBase
-    let k ← memOrRegH a[1]! a[0]!
+    let k ← memOrRegH a[1] a[0]
     if k.size > maxLengthStorageKey then
       hErr s!"KeyLengthExceeded \{ length: {k.size}, limit: {maxLengthStorageKey} }"
-    let v ← memOrRegH a[3]! a[2]!
+    let v ← memOrRegH a[3] a[2]
     if v.size > maxLengthStorageValue then
       hErr s!"ValueLengthExceeded \{ length: {v.size}, limit: {maxLengthStorageValue} }"
     payPerH C.storageWriteKeyByte k.size
@@ -608,7 +623,7 @@ def hostCall (name : String) : Option (HM Unit) :=
     match old with
     | some o =>
       modify fun s => { s with storageUsage := s.storageUsage - o.size + v.size }
-      regSetH a[4]! o
+      regSetH a[4] o
       pushRet 1
     | none =>
       modify fun s => { s with storageUsage := s.storageUsage + v.size + k.size + numExtraBytesRecord }
@@ -617,7 +632,7 @@ def hostCall (name : String) : Option (HM Unit) :=
     let a ← popArgs 3
     payBaseH C.base
     payBaseH C.storageReadBase
-    let k ← memOrRegH a[1]! a[0]!
+    let k ← memOrRegH a[1] a[0]
     if k.size > maxLengthStorageKey then
       hErr s!"KeyLengthExceeded \{ length: {k.size}, limit: {maxLengthStorageKey} }"
     payPerH C.storageReadKeyByte k.size
@@ -627,14 +642,14 @@ def hostCall (name : String) : Option (HM Unit) :=
       if v.size > 4000 then
         payBaseH C.storageLargeReadOverheadBase
         payPerH C.storageLargeReadOverheadByte v.size
-      regSetH a[2]! v
+      regSetH a[2] v
       pushRet 1
     | none => pushRet 0
   | "storage_remove" => some do
     let a ← popArgs 3
     payBaseH C.base
     payBaseH C.storageRemoveBase
-    let k ← memOrRegH a[1]! a[0]!
+    let k ← memOrRegH a[1] a[0]
     if k.size > maxLengthStorageKey then
       hErr s!"KeyLengthExceeded \{ length: {k.size}, limit: {maxLengthStorageKey} }"
     payPerH C.storageRemoveKeyByte k.size
@@ -643,14 +658,14 @@ def hostCall (name : String) : Option (HM Unit) :=
     | some v =>
       set { s with trie := s.trie.filter (·.1 != k),
                    storageUsage := s.storageUsage - (v.size + k.size + numExtraBytesRecord) }
-      regSetH a[2]! v
+      regSetH a[2] v
       pushRet 1
     | none => pushRet 0
   | "storage_has_key" => some do
     let a ← popArgs 2
     payBaseH C.base
     payBaseH C.storageHasKeyBase
-    let k ← memOrRegH a[1]! a[0]!
+    let k ← memOrRegH a[1] a[0]
     if k.size > maxLengthStorageKey then
       hErr s!"KeyLengthExceeded \{ length: {k.size}, limit: {maxLengthStorageKey} }"
     payPerH C.storageHasKeyByte k.size
@@ -665,17 +680,17 @@ def hostCall (name : String) : Option (HM Unit) :=
   | "promise_batch_create" => some do
     let a ← popArgs 2
     payBaseH C.base
-    let acct ← readAccountIdH a[0]! a[1]!
+    let acct ← readAccountIdH a[0] a[1]
     payNewReceiptH (acct = (← get).ctx.currentAccount) #[]
     let r ← pushAction { text := s!"CR()>{acct}", receiver := some acct }
     pushRet (← pushPromiseH (.receipt r))
   | "promise_batch_then" => some do
     let a ← popArgs 3
     payBaseH C.base
-    let acct ← readAccountIdH a[1]! a[2]!
+    let acct ← readAccountIdH a[1] a[2]
     let s ← get
-    let deps ← match s.promises[a[0]!]? with
-      | none => hErr s!"InvalidPromiseIndex \{ promise_idx: {a[0]!} }"
+    let deps ← match s.promises[a[0]]? with
+      | none => hErr s!"InvalidPromiseIndex \{ promise_idx: {a[0]} }"
       | some (.receipt r) => pure #[r]
       | some (.joint rs) => pure rs
     payNewReceiptH (acct = s.ctx.currentAccount) (deps.map fun r => receiptReceiver s r = acct)
@@ -686,12 +701,12 @@ def hostCall (name : String) : Option (HM Unit) :=
     let a ← popArgs 2
     payBaseH C.base
     payBaseH C.promiseAndBase
-    let ml := a[1]! * 8
+    let ml := a[1] * 8
     if ml ≥ u64Bound then hErr "IntegerOverflow"
     payPerH C.promiseAndPerPromise ml
-    let d ← readMemH a[0]! ml
+    let d ← readMemH a[0] ml
     let mut deps : Array Nat := #[]
-    for i in [0:a[1]!] do
+    for i in [0:a[1]] do
       let pi := leNat (d.extract (8 * i) (8 * i + 8))
       match (← get).promises[pi]? with
       | none => hErr s!"InvalidPromiseIndex \{ promise_idx: {pi} }"
@@ -703,62 +718,62 @@ def hostCall (name : String) : Option (HM Unit) :=
   | "promise_create" => some do
     let a ← popArgs 8
     payBaseH C.base
-    let acct ← readAccountIdH a[0]! a[1]!
+    let acct ← readAccountIdH a[0] a[1]
     payNewReceiptH (acct = (← get).ctx.currentAccount) #[]
     let r ← pushAction { text := s!"CR()>{acct}", receiver := some acct }
     let pi ← pushPromiseH (.receipt r)
-    functionCallActionH pi a[2]! a[3]! a[4]! a[5]! a[6]! a[7]! 0
+    functionCallActionH pi a[2] a[3] a[4] a[5] a[6] a[7] 0
     pushRet pi
   | "promise_then" => some do
     let a ← popArgs 9
     payBaseH C.base
-    let acct ← readAccountIdH a[1]! a[2]!
+    let acct ← readAccountIdH a[1] a[2]
     let s ← get
-    let deps ← match s.promises[a[0]!]? with
-      | none => hErr s!"InvalidPromiseIndex \{ promise_idx: {a[0]!} }"
+    let deps ← match s.promises[a[0]]? with
+      | none => hErr s!"InvalidPromiseIndex \{ promise_idx: {a[0]} }"
       | some (.receipt r) => pure #[r]
       | some (.joint rs) => pure rs
     payNewReceiptH (acct = s.ctx.currentAccount) (deps.map fun r => receiptReceiver s r = acct)
     let r ← pushAction { text := s!"CR({",".intercalate (deps.toList.map toString)})>{acct}",
                          receiver := some acct }
     let pi ← pushPromiseH (.receipt r)
-    functionCallActionH pi a[3]! a[4]! a[5]! a[6]! a[7]! a[8]! 0
+    functionCallActionH pi a[3] a[4] a[5] a[6] a[7] a[8] 0
     pushRet pi
   | "promise_set_refund_to" => some do
     let a ← popArgs 3
     payBaseH C.base
-    let acct ← readAccountIdH a[1]! a[2]!
-    match (← get).promises[a[0]!]? with
-    | none => hErr s!"InvalidPromiseIndex \{ promise_idx: {a[0]!} }"
+    let acct ← readAccountIdH a[1] a[2]
+    match (← get).promises[a[0]]? with
+    | none => hErr s!"InvalidPromiseIndex \{ promise_idx: {a[0]} }"
     | some (.joint _) => hErr "CannotSetRefundToOnJointPromise"
     | some (.receipt r) => let _ ← pushAction { text := s!"RT@{r}:{acct}" }
   | "promise_batch_action_create_account" => some do
     let a ← popArgs 1
     payBaseH C.base
-    let (r, sir) ← promiseReceiptH a[0]!
+    let (r, sir) ← promiseReceiptH a[0]
     payActionBaseH F.createAccount sir
     let _ ← pushAction { text := s!"CA@{r}" }
   | "promise_batch_action_deploy_contract" => some do
     let a ← popArgs 3
     payBaseH C.base
-    let code ← memOrRegH a[2]! a[1]!
+    let code ← memOrRegH a[2] a[1]
     if code.size > maxContractSize then
       hErr s!"ContractSizeExceeded \{ size: {code.size}, limit: {maxContractSize} }"
-    let (r, sir) ← promiseReceiptH a[0]!
+    let (r, sir) ← promiseReceiptH a[0]
     payActionBaseH F.deployContract sir
     payActionPerByteH F.deployContractByte code.size sir
     let _ ← pushAction { text := s!"DC@{r}:{hexStr code}" }
   | "promise_batch_action_function_call" => some do
     let a ← popArgs 7
-    functionCallActionH a[0]! a[1]! a[2]! a[3]! a[4]! a[5]! a[6]! 0
+    functionCallActionH a[0] a[1] a[2] a[3] a[4] a[5] a[6] 0
   | "promise_batch_action_function_call_weight" => some do
     let a ← popArgs 8
-    functionCallActionH a[0]! a[1]! a[2]! a[3]! a[4]! a[5]! a[6]! a[7]!
+    functionCallActionH a[0] a[1] a[2] a[3] a[4] a[5] a[6] a[7]
   | "promise_batch_action_transfer" => some do
     let a ← popArgs 2
     payBaseH C.base
-    let amount ← getU128H a[1]!
-    let (r, sir) ← promiseReceiptH a[0]!
+    let amount ← getU128H a[1]
+    let (r, sir) ← promiseReceiptH a[0]
     let (send, exec) := transferFees sir (receiptReceiver (← get) r)
     payActionH send send (send + exec)
     deductBalanceH amount
@@ -766,67 +781,67 @@ def hostCall (name : String) : Option (HM Unit) :=
   | "promise_batch_action_stake" => some do
     let a ← popArgs 4
     payBaseH C.base
-    let amount ← getU128H a[1]!
-    let pk ← memOrRegH a[3]! a[2]!
-    let (r, sir) ← promiseReceiptH a[0]!
+    let amount ← getU128H a[1]
+    let pk ← memOrRegH a[3] a[2]
+    let (r, sir) ← promiseReceiptH a[0]
     payActionBaseH F.stake sir
     if !pkValid pk then hErr "InvalidPublicKey"
     let _ ← pushAction { text := s!"ST@{r}:{amount}:{hexStr pk}" }
   | "promise_batch_action_add_key_with_full_access" => some do
     let a ← popArgs 4
     payBaseH C.base
-    let pk ← memOrRegH a[2]! a[1]!
-    let (r, sir) ← promiseReceiptH a[0]!
+    let pk ← memOrRegH a[2] a[1]
+    let (r, sir) ← promiseReceiptH a[0]
     payActionBaseH F.addFullAccessKey sir
     if !pkValid pk then hErr "InvalidPublicKey"
-    let _ ← pushAction { text := s!"AF@{r}:{hexStr pk}:{a[3]!}" }
+    let _ ← pushAction { text := s!"AF@{r}:{hexStr pk}:{a[3]}" }
   | "promise_batch_action_add_key_with_function_call" => some do
     let a ← popArgs 9
     payBaseH C.base
-    let pk ← memOrRegH a[2]! a[1]!
-    let allowance ← getU128H a[4]!
-    let recv ← readAccountIdH a[5]! a[6]!
-    let raw ← memOrRegH a[8]! a[7]!
+    let pk ← memOrRegH a[2] a[1]
+    let allowance ← getU128H a[4]
+    let recv ← readAccountIdH a[5] a[6]
+    let raw ← memOrRegH a[8] a[7]
     let names ← match splitMethodNames raw with
       | some n => pure n
       | none => hErr "EmptyMethodName"
-    let (r, sir) ← promiseReceiptH a[0]!
+    let (r, sir) ← promiseReceiptH a[0]
     let nb := names.foldl (fun acc n => acc + n.size + 1) 0
     payActionBaseH F.addFunctionCallKey sir
     payActionPerByteH F.addFunctionCallKeyByte nb sir
     if !pkValid pk then hErr "InvalidPublicKey"
     let al := if allowance > 0 then toString allowance else "-"
-    let _ ← pushAction { text := s!"AC@{r}:{hexStr pk}:{a[3]!}:{al}:{recv}:{"/".intercalate (names.toList.map hexStr)}" }
+    let _ ← pushAction { text := s!"AC@{r}:{hexStr pk}:{a[3]}:{al}:{recv}:{"/".intercalate (names.toList.map hexStr)}" }
   | "promise_batch_action_delete_key" => some do
     let a ← popArgs 3
     payBaseH C.base
-    let pk ← memOrRegH a[2]! a[1]!
-    let (r, sir) ← promiseReceiptH a[0]!
+    let pk ← memOrRegH a[2] a[1]
+    let (r, sir) ← promiseReceiptH a[0]
     payActionBaseH F.deleteKey sir
     if !pkValid pk then hErr "InvalidPublicKey"
     let _ ← pushAction { text := s!"DK@{r}:{hexStr pk}" }
   | "promise_batch_action_delete_account" => some do
     let a ← popArgs 3
     payBaseH C.base
-    let b ← readAccountIdH a[1]! a[2]!
-    let (r, sir) ← promiseReceiptH a[0]!
+    let b ← readAccountIdH a[1] a[2]
+    let (r, sir) ← promiseReceiptH a[0]
     payActionBaseH F.deleteAccount sir
     let _ ← pushAction { text := s!"DA@{r}:{b}" }
   | "promise_results_count" => some do payBaseH C.base; pushRet (← get).ctx.promiseResults.size
   | "promise_result" => some do
     let a ← popArgs 2
     payBaseH C.base
-    match (← get).ctx.promiseResults[a[0]!]? with
-    | none => hErr s!"InvalidPromiseResultIndex \{ result_idx: {a[0]!} }"
+    match (← get).ctx.promiseResults[a[0]]? with
+    | none => hErr s!"InvalidPromiseResultIndex \{ result_idx: {a[0]} }"
     | some .notReady => pushRet 0
-    | some (.ok d) => regSetH a[1]! d (chargeBytes := false); pushRet 1
+    | some (.ok d) => regSetH a[1] d (chargeBytes := false); pushRet 1
     | some .failed => pushRet 2
   | "promise_return" => some do
     let a ← popArgs 1
     payBaseH C.base
     payBaseH C.promiseReturn
-    match (← get).promises[a[0]!]? with
-    | none => hErr s!"InvalidPromiseIndex \{ promise_idx: {a[0]!} }"
+    match (← get).promises[a[0]]? with
+    | none => hErr s!"InvalidPromiseIndex \{ promise_idx: {a[0]} }"
     | some (.joint _) => hErr "CannotReturnJointPromise"
     | some (.receipt r) => modify fun s => { s with ret := some (.inr r) }
   -- yield / resume
@@ -834,12 +849,12 @@ def hostCall (name : String) : Option (HM Unit) :=
     let a ← popArgs 7
     payBaseH C.base
     payBaseH C.yieldCreateBase
-    let m ← memOrRegH a[1]! a[0]!
+    let m ← memOrRegH a[1] a[0]
     if m.size = 0 then hErr "EmptyMethodName"
-    let args ← memOrRegH a[3]! a[2]!
+    let args ← memOrRegH a[3] a[2]
     let nb := m.size + args.size
     payPerH C.yieldCreateByte nb
-    withGas (deduct · 0 a[4]!)
+    withGas (deduct · 0 a[4])
     payNewReceiptH true #[true]
     let s ← get
     let did := dataId s.dataCount
@@ -849,16 +864,16 @@ def hostCall (name : String) : Option (HM Unit) :=
     let pi ← pushPromiseH (.receipt r)
     payActionBaseH F.functionCall true
     payActionPerByteH F.functionCallByte nb true
-    let _ ← pushAction { text := s!"FC@{r}:{hexStr m}:{hexStr args}:0:{a[4]!}:{a[5]!}" }
-    regSetH a[6]! did
+    let _ ← pushAction { text := s!"FC@{r}:{hexStr m}:{hexStr args}:0:{a[4]}:{a[5]}" }
+    regSetH a[6] did
     pushRet pi
   | "promise_yield_resume" => some do
     let a ← popArgs 4
     payBaseH C.base
     payBaseH C.yieldResumeBase
-    payPerH C.yieldResumeByte a[2]!
-    let did ← memOrRegH a[1]! a[0]!
-    let payload ← memOrRegH a[3]! a[2]!
+    payPerH C.yieldResumeByte a[2]
+    let did ← memOrRegH a[1] a[0]
+    let payload ← memOrRegH a[3] a[2]
     if payload.size > maxYieldPayloadSize then
       hErr s!"YieldPayloadLength \{ length: {payload.size}, limit: {maxYieldPayloadSize} }"
     if did.size ≠ 32 then hErr "DataIdMalformed"
@@ -871,22 +886,22 @@ def hostCall (name : String) : Option (HM Unit) :=
     -- logic.rs `ed25519_verify`: an encoding-invalid signature returns 0 before the message is read
     let a ← popArgs 6
     payBaseH C.ed25519VerifyBase
-    let sig ← memOrRegH a[1]! a[0]!
-    if sig.size ≠ 64 then hErr "Ed25519VerifyInvalidInput { msg: \"invalid signature length\" }"
-    if sig[63]! &&& 0xE0 ≠ 0 then pushRet 0 else
-    let msg ← memOrRegH a[3]! a[2]!
+    let sig ← memOrRegH a[1] a[0]
+    if h : sig.size ≠ 64 then hErr "Ed25519VerifyInvalidInput { msg: \"invalid signature length\" }" else
+    if sig[63]'(by omega) &&& 0xE0 ≠ 0 then pushRet 0 else
+    let msg ← memOrRegH a[3] a[2]
     payPerH C.ed25519VerifyByte msg.size
-    let pk ← memOrRegH a[5]! a[4]!
+    let pk ← memOrRegH a[5] a[4]
     if pk.size ≠ 32 then hErr "Ed25519VerifyInvalidInput { msg: \"invalid public key length\" }"
     pushRet (if Ed25519.verify pk.toList sig.toList msg.toList then 1 else 0)
   | "promise_yield_create_with_id" => some do yieldCreateWithIdH (← popArgs 9)
   | "promise_batch_action_transfer_to_gas_key" => some do
     let a ← popArgs 4
     payBaseH C.base
-    let pk ← memOrRegH a[2]! a[1]!
+    let pk ← memOrRegH a[2] a[1]
     let pl := gasKeyPkLen pk
-    let amount ← getU128H a[3]!
-    let (r, sir) ← promiseReceiptH a[0]!
+    let amount ← getU128H a[3]
+    let (r, sir) ← promiseReceiptH a[0]
     let recv := receiptReceiver (← get) r
     let sendBase := F.gasKeyTransfer.send sir
     let sendByte := F.gasKeyByte.send sir * pl
@@ -899,40 +914,40 @@ def hostCall (name : String) : Option (HM Unit) :=
   | "promise_batch_action_add_gas_key_with_full_access" => some do
     let a ← popArgs 4
     payBaseH C.base
-    let pk ← memOrRegH a[2]! a[1]!
+    let pk ← memOrRegH a[2] a[1]
     let pl := gasKeyPkLen pk
-    if a[3]! ≥ 65536 then hErr "IntegerOverflow"
-    let (r, sir) ← promiseReceiptH a[0]!
+    if a[3] ≥ 65536 then hErr "IntegerOverflow"
+    let (r, sir) ← promiseReceiptH a[0]
     payActionBaseH F.addFullAccessKey sir
-    payGasKeyAddH sir (receiptReceiver (← get) r).utf8ByteSize pl a[3]!
+    payGasKeyAddH sir (receiptReceiver (← get) r).utf8ByteSize pl a[3]
     if !pkValid pk then hErr "InvalidPublicKey"
     let _ ← pushAction { text := "OTHER" }
   | "promise_batch_action_add_gas_key_with_function_call" => some do
     let a ← popArgs 9
     payBaseH C.base
-    let pk ← memOrRegH a[2]! a[1]!
+    let pk ← memOrRegH a[2] a[1]
     let pl := gasKeyPkLen pk
-    if a[3]! ≥ 65536 then hErr "IntegerOverflow"
-    let _ ← getU128H a[4]!
-    let _ ← readAccountIdH a[5]! a[6]!
-    let raw ← memOrRegH a[8]! a[7]!
+    if a[3] ≥ 65536 then hErr "IntegerOverflow"
+    let _ ← getU128H a[4]
+    let _ ← readAccountIdH a[5] a[6]
+    let raw ← memOrRegH a[8] a[7]
     let names ← match splitMethodNames raw with
       | some n => pure n
       | none => hErr "EmptyMethodName"
-    let (r, sir) ← promiseReceiptH a[0]!
+    let (r, sir) ← promiseReceiptH a[0]
     let nb := names.foldl (fun acc n => acc + n.size + 1) 0
     payActionBaseH F.addFunctionCallKey sir
     payActionPerByteH F.addFunctionCallKeyByte nb sir
-    payGasKeyAddH sir (receiptReceiver (← get) r).utf8ByteSize pl a[3]!
+    payGasKeyAddH sir (receiptReceiver (← get) r).utf8ByteSize pl a[3]
     if !pkValid pk then hErr "InvalidPublicKey"
     let _ ← pushAction { text := "OTHER" }
   | "promise_yield_resume_with_yield_id" => some do
     let a ← popArgs 4
     payBaseH C.base
     payBaseH C.yieldResumeBase
-    payPerH C.yieldResumeByte a[2]!
-    let yid ← memOrRegH a[1]! a[0]!
-    let payload ← memOrRegH a[3]! a[2]!
+    payPerH C.yieldResumeByte a[2]
+    let yid ← memOrRegH a[1] a[0]
+    let payload ← memOrRegH a[3] a[2]
     if payload.size > maxYieldPayloadSize then
       hErr s!"YieldPayloadLength \{ length: {payload.size}, limit: {maxYieldPayloadSize} }"
     if yid.size ≠ 32 then hErr "YieldIdMalformed"
@@ -953,18 +968,18 @@ def hostCall (name : String) : Option (HM Unit) :=
   | "set_state_init_data_entry" => some do
     let a ← popArgs 6
     payBaseH C.base
-    let (r, sir) ← promiseReceiptH a[0]!
-    let k ← memOrRegH a[3]! a[2]!
-    let v ← memOrRegH a[5]! a[4]!
+    let (r, sir) ← promiseReceiptH a[0]
+    let k ← memOrRegH a[3] a[2]
+    let v ← memOrRegH a[5] a[4]
     payActionBaseH F.stateInitEntry sir
     payActionPerByteH F.stateInitByte (k.size + v.size) sir
     let s ← get
-    match s.actions[a[1]!]?.bind (·.stateInit) with
+    match s.actions[a[1]]?.bind (·.stateInit) with
     | some (ri, keys) =>
-      if ri ≠ r then hErr s!"InvalidActionIndex \{ receipt_index: {r}, action_index: {a[1]!} }"
+      if ri ≠ r then hErr s!"InvalidActionIndex \{ receipt_index: {r}, action_index: {a[1]} }"
       if keys.any (· == k) then hErr "DataEntryAlreadyExists"
-      set { s with actions := s.actions.modify a[1]! fun x => { x with stateInit := some (ri, keys.push k) } }
-    | none => hErr s!"InvalidActionIndex \{ receipt_index: {r}, action_index: {a[1]!} }"
+      set { s with actions := s.actions.modify a[1] fun x => { x with stateInit := some (ri, keys.push k) } }
+    | none => hErr s!"InvalidActionIndex \{ receipt_index: {r}, action_index: {a[1]} }"
   | _ => none
 
 end NearSpecV3.Wasm
