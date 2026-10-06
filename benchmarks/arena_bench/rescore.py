@@ -115,7 +115,7 @@ def baseline_components(
     for cid in sorted(cls):
         c = cls[cid]
         s = c["proof_bytes_runs"] if exact_bytes else [bs[cid] * c["proof_bytes_max"]] * len(c["proof_bytes_runs"])
-        out[cid] = Components(frozen[cid], c["verify_run_median_ns"], median_u64(s))
+        out[cid] = Components(frozen[cid], c.get("verify_stat_ns", c["verify_run_median_ns"]), median_u64(s))
     # the same reference as each valid control session measured it (same batches):
     # how far the score moves with the session the reference happens to be pinned from
     alts = {}
@@ -157,7 +157,8 @@ def rescore(
     allow_unconfirmed: bool = False,
 ) -> dict:
     hw_vcpus = chal["hardware_profile"]["vcpus"]
-    prices = Prices.from_model(pm, hw_vcpus)
+    stat = (chal.get("scoring") or {}).get("verify_statistic") or (cost_baseline or {}).get("verify_statistic") or "median"
+    prices = Prices.from_model(pm, hw_vcpus, stat)
     exact = (cost_baseline is not None) and all(has_exact_bytes(s) for _, s in subs)
     base, controls, alts = baseline_components(chal, baseline_session, cost_baseline, exact, allow_unconfirmed)
     bs = _batch_sizes(chal)

@@ -46,6 +46,18 @@ pub fn median_u64(xs: &[u64]) -> Option<u64> {
     })
 }
 
+/// Lower quartile as an order statistic: the element at index ⌊(n−1)/4⌋ of
+/// the sorted input (no interpolation; n = 15 → 4th smallest, n = 25 → 7th).
+/// `None` for an empty input. docs/BENCHMARK_SPEC.md §14.3.
+pub fn lower_quartile_u64(xs: &[u64]) -> Option<u64> {
+    if xs.is_empty() {
+        return None;
+    }
+    let mut s = xs.to_vec();
+    s.sort_unstable();
+    Some(s[(s.len() - 1) / 4])
+}
+
 /// Unscaled median absolute deviation around [`median_u64`].
 pub fn mad_u64(xs: &[u64]) -> Option<u64> {
     let m = median_u64(xs)?;

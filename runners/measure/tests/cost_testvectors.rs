@@ -29,6 +29,11 @@ fn prices(v: &Value) -> Prices {
         bandwidth_fusd_per_byte: u(&v["bandwidth_fusd_per_byte"]),
         storage_fusd_per_byte: u(&v["storage_fusd_per_byte"]),
         prepare_amortization_requests: u(&v["prepare_amortization_requests"]),
+        verify_statistic: match v.get("verify_statistic").and_then(Value::as_str) {
+            None | Some("median") => cost::VerifyStatistic::Median,
+            Some("lower_quartile") => cost::VerifyStatistic::LowerQuartile,
+            Some(x) => panic!("verify_statistic {x}"),
+        },
     }
 }
 fn comps(v: &Value) -> Components {
@@ -181,7 +186,12 @@ fn verify_control_vectors() {
             .map(|(k, x)| (k.clone(), us(x)))
             .collect();
         let ex = &case["expect"];
-        match cost::verify_control(&pinned, &control, u(&case["tolerance_ppm"])) {
+        let stat = match case.get("verify_statistic").and_then(Value::as_str) {
+            None | Some("median") => cost::VerifyStatistic::Median,
+            Some("lower_quartile") => cost::VerifyStatistic::LowerQuartile,
+            Some(x) => panic!("verify_statistic {x}"),
+        };
+        match cost::verify_control(&pinned, &control, u(&case["tolerance_ppm"]), stat) {
             Ok(r) => {
                 assert_eq!(Value::Bool(r.ok), ex["ok"], "{name}");
                 assert_eq!(

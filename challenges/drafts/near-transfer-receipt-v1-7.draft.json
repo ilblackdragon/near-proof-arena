@@ -1,0 +1,360 @@
+{
+  "schema": "arena-challenge-v1",
+  "name": "near-transfer-receipt-v1-7",
+  "season": "2026-s1",
+  "tier": "formal",
+  "nearcore": {
+    "repo": "https://github.com/near/nearcore",
+    "tag": "2.13.4",
+    "commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993"
+  },
+  "protocol_version": 86,
+  "chain_id": "mainnet",
+  "runtime_config_digest": "sha256:ae2d1af88031a30bb09d17fd0d514503de26ed83d642ff497618e9f3320eebf1",
+  "semantic_scope": {
+    "name": "near-transfer-receipt-v1",
+    "kind": "subset",
+    "granularity": "receipt_batch_transition",
+    "restrictions": [
+      {
+        "id": "pv86",
+        "text": "protocol_version = 86 (nearcore 2.13.4 STABLE_PROTOCOL_VERSION)"
+      },
+      {
+        "id": "mainnet_params",
+        "text": "chain_id = mainnet: mainnet RuntimeConfig for PV 86 (RuntimeConfigStore::new(None))"
+      },
+      {
+        "id": "claim_wf",
+        "text": "all claim fields within their encoded widths (u32/u64/u128, 32-byte hashes, chain id 1..64 printable ASCII)"
+      },
+      {
+        "id": "batch_size",
+        "text": "the batch has 1..=256 receipts"
+      },
+      {
+        "id": "compute_limit",
+        "text": "(n-1)*223182562500 < gas_limit: no receipt is pushed to the delayed queue"
+      },
+      {
+        "id": "receipt_shape",
+        "text": "every receipt is Receipt::V0 / ReceiptEnum::Action with exactly one Transfer action and no input/output data dependencies"
+      },
+      {
+        "id": "valid_account_ids",
+        "text": "predecessor, receiver and signer are valid NEAR AccountIds"
+      },
+      {
+        "id": "signer_key_type",
+        "text": "signer public key is ED25519 or SECP256K1"
+      },
+      {
+        "id": "not_system_predecessor",
+        "text": "predecessor is not 'system' (refund receipts are not inputs)"
+      },
+      {
+        "id": "named_receiver",
+        "text": "receiver is a NamedAccount (not NEAR-implicit, ETH-implicit or deterministic)"
+      },
+      {
+        "id": "distinct_receipt_ids",
+        "text": "receipt ids are pairwise distinct"
+      },
+      {
+        "id": "witness_size",
+        "text": "the revealed partial-trie bytes are <= 3,000,000 (storage-proof soft limit never reached)"
+      },
+      {
+        "id": "receiver_exists_v1",
+        "text": "each receiver Account exists when its receipt is applied and is a 72-byte AccountV1"
+      },
+      {
+        "id": "no_balance_overflow",
+        "text": "amount+deposit <= 2^128-2 and amount'+locked < 2^128"
+      },
+      {
+        "id": "storage_stake",
+        "text": "after the credit, amount'+locked >= 10^19*storage_usage or storage_usage <= 770"
+      },
+      {
+        "id": "burn_fits_u128",
+        "text": "G*min(gas_price, block_gas_price), G*(gas_price-min) and the total tokens burnt fit in u128"
+      },
+      {
+        "id": "apply_context",
+        "text": "the chunk applies only these incoming receipts: no transactions, no local/delayed/yield receipts, no validator-account update, new chunk"
+      }
+    ],
+    "excludes": [
+      "block_finality",
+      "data_availability",
+      "receipt_inclusion",
+      "pre_state_root_on_chain",
+      "epoch_and_protocol_version_selection",
+      "onchain_post_state_root",
+      "transactions",
+      "signature_verification",
+      "function_calls_and_wasm",
+      "non_transfer_actions",
+      "implicit_account_creation",
+      "failure_paths_and_rollback",
+      "refund_receipt_inputs",
+      "data_postponed_yield_receipts",
+      "delayed_receipt_queue",
+      "congestion_control_and_buffering",
+      "bandwidth_scheduler",
+      "outgoing_receipts_root_and_routing",
+      "validator_updates_and_rewards",
+      "account_v2_global_contracts",
+      "receipt_enum_action_v2",
+      "other_protocol_versions",
+      "testnet_parameters"
+    ],
+    "formal_spec": {
+      "relation_module": "NearSpec.TransferV1",
+      "relation_decl": "NearSpec.TransferV1.NearRelation",
+      "tree_digest": "sha256:35fbd26064cd2f7d64f5b1dce7f41da61d96129517f5696b321c463c45bafdf0",
+      "lean_toolchain": "leanprover/lean4:v4.34.1"
+    },
+    "spec_doc_digest": "sha256:a1323f4a1b93e3fd9325ce3f8a046eb5661b066f20658325bc45e8209d8e09b3"
+  },
+  "claim_encoding": {
+    "format": "near-arena-claim-v1",
+    "spec_digest": "sha256:92289554aa01fac7af1fff992b33e983d42f89baa133697a8d8c7f47f9c5bb09",
+    "max_request_bytes": 131072,
+    "max_witness_bytes": 4194304,
+    "max_claim_bytes": 366
+  },
+  "security_profile": {
+    "id": "validity-classical-128",
+    "privacy": "validity_only",
+    "adversary": "classical",
+    "target_bits": 128,
+    "model": "random_oracle",
+    "setup_model": "transparent",
+    "allowed_assumptions": [
+      "sha256-collision-resistance",
+      "random-oracle-fiat-shamir-sha256"
+    ],
+    "max_prover_queries_log2": 40,
+    "max_hash_queries_log2": 64,
+    "max_aggregation_depth": 8,
+    "deployment_proofs_log2": 40
+  },
+  "toolchain_policy": {
+    "lean_toolchain": "leanprover/lean4:v4.34.1",
+    "checker_image": "sha256:66b014d4e05744bcf21771c469f93d119a0d24a5dc4288d28cb46126c4bf1867",
+    "axiom_allowlist": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "allowed_packages": [
+      [
+        "ArenaCore",
+        "e4088761c996284e25787bd61eabe8bf079bc914"
+      ],
+      [
+        "NearSpec",
+        "e4088761c996284e25787bd61eabe8bf079bc914"
+      ]
+    ],
+    "recheckers": [
+      "leanchecker",
+      "nanoda",
+      "lean4lean"
+    ]
+  },
+  "required_obligations": [
+    "PKG_WELLFORMED",
+    "BUILD_REPRODUCIBLE",
+    "ARTIFACT_BINDING",
+    "FORMAL_SEMANTIC_SOUNDNESS",
+    "FORMAL_SEMANTIC_COMPLETENESS",
+    "FORMAL_CRYPTO_SOUNDNESS",
+    "FORMAL_IMPL_CONNECTION",
+    "AXIOM_AUDIT",
+    "CONFORMANCE_DIFFERENTIAL",
+    "ADVERSARIAL_PROOFS",
+    "PROVER_RELIABILITY",
+    "RESOURCE_LIMITS",
+    "BENCHMARK"
+  ],
+  "not_applicable_gates": [
+    "FORMAL_ZK"
+  ],
+  "hardware_profile": {
+    "id": "nearproof-local-ryzen9-9950x3d",
+    "cpu_model": "AMD Ryzen 9 9950X3D 16-Core Processor (local operator host; 8 vCPUs pinned per run)",
+    "vcpus": 8,
+    "ram_bytes": 34359738368,
+    "gpu": null
+  },
+  "workload_suite": {
+    "revision": "near-transfer-receipt-v1-r1",
+    "classes": [
+      {
+        "id": "batch-1",
+        "description": "requests with exactly 1 single-Transfer receipt(s); generator profiles basic,prefix,boundary,repeat,prices,large",
+        "weight_ppm": 200000,
+        "batch_size": 8,
+        "generator": "sha256:1a6e9c6450d36dd8c84086db75ac1657621d63735695aa06d33acd0b451ef371"
+      },
+      {
+        "id": "batch-16",
+        "description": "requests with exactly 16 single-Transfer receipt(s); generator profiles basic,prefix,boundary,repeat,prices,large",
+        "weight_ppm": 300000,
+        "batch_size": 8,
+        "generator": "sha256:c8ad786e71e309a9fde2cb186c623c3592753b52f54ed0a0e5f6603b2389934e"
+      },
+      {
+        "id": "batch-256",
+        "description": "requests with exactly 256 single-Transfer receipt(s); generator profiles basic,prefix,boundary,repeat,prices,large",
+        "weight_ppm": 500000,
+        "batch_size": 8,
+        "generator": "sha256:290802b219e3cf257590e9dd471487e85eaa702477da5b74a53adcf71ddf5ff8"
+      }
+    ],
+    "public_fixtures": "sha256:c83f3e14d526e78244ee2d7288396a9680717fa42ef77127ba29ccf27bb7e6ec",
+    "heldout_commitment": "sha256:e4312f75b841727b2f039dee36f4b7c775f8a3d39953dd284a4d739f0c48c3f9",
+    "baseline_submission": "sha256:233924e8858d7dc0931962833877aeb50452c6f4fb904d156cc11a5dcb783b30",
+    "baseline_ns": [
+      [
+        "batch-1",
+        6684473
+      ],
+      [
+        "batch-16",
+        6886684
+      ],
+      [
+        "batch-256",
+        9528768
+      ]
+    ]
+  },
+  "measurement": {
+    "warmup_runs": 3,
+    "measured_runs": 25,
+    "aggregation": "median",
+    "outlier_mad_k": 5,
+    "cold_runs": 1,
+    "concurrency": 1,
+    "per_run_timeout_ms": 600000,
+    "invocation_mode": "vm_per_batch"
+  },
+  "resource_limits": {
+    "max_proof_bytes": 8388608,
+    "max_verify_ms": 10000,
+    "max_prove_ms": 600000,
+    "max_ram_bytes": 17179869184,
+    "max_vram_bytes": 0,
+    "max_public_artifact_bytes": 67108864,
+    "max_prepare_ms": 600000,
+    "max_build_ms": 3600000
+  },
+  "formal_params": {
+    "verify_fuel": 1073741824,
+    "max_proof_bytes": 8388608,
+    "max_reduction_fuel": 1073741824
+  },
+  "supersedes": null,
+  "created_at": "2026-10-06T08:45:00Z",
+  "scoring": {
+    "kind": "cost_v1",
+    "price_model": {
+      "schema": "arena-price-model-v1",
+      "id": "pm-near-mainnet-2026q4",
+      "version": 2,
+      "status": "governed",
+      "effective_from": "2026-10-06",
+      "currency": "USD",
+      "unit": "femto_usd",
+      "validators_per_chunk": 50,
+      "verifier_vcpus": 8,
+      "cpu_fusd_per_vcpu_second": 7610000000,
+      "bandwidth_fusd_per_byte": 82000,
+      "storage_fusd_per_byte": 0,
+      "prepare_amortization_requests": 0,
+      "rationale": [
+        {
+          "param": "validators_per_chunk",
+          "basis": "estimate",
+          "note": "N_v = 50 chunk validators PER SHARD (governance decision, 2026-10-06). The per-chunk statement is one shard's chunk at one height; it is verified by that shard's chunk-validator committee, so N_v counts one shard's validators, not all validators. 50 is the governed committee size; the v1 draft's mainnet observation (epoch 4835, 2026-10-05: 415 validators, 10 shards, 84.0-84.1 distinct endorsers per shard per height; 105 mandate seats per shard) is kept as context and as a sensitivity column, not as the price. Only the verify and bandwidth terms scale with N_v, and both scale linearly, so N_v moves the prover:validator balance but not the ranking among candidates whose cost is all validator-side. FUTURE (not priced here, docs/BENCHMARK_SPEC.md 14.11): a whole-block statement covering S shards is verified by every validator, N_v = 50 x S, against a re-execution baseline that grows with S. Re-check per season.",
+          "sources": [
+            "governance decision 2026-10-06 (BENCHMARK_SPEC 14.10, decision 1: N_v = 50 validators per shard)",
+            "nearcore 2.13.4 core/primitives/res/epoch_configs/mainnet/85.json:7 (target_validator_mandates_per_shard = 105)",
+            "nearcore 2.13.4 core/primitives/src/epoch_info.rs:597-611 (sample_chunk_validators per height)",
+            "nearcore 2.13.4 chain/epoch-manager/src/lib.rs:1064-1094 (chunk validator assignments per (epoch, shard, height))",
+            "https://rpc.mainnet.near.org method=validators, retrieved 2026-10-05 (epoch_height 4835)"
+          ]
+        },
+        {
+          "param": "verifier_vcpus",
+          "basis": "published",
+          "note": "Reference validator profile: NEAR's published chunk-validator spec is 'x86_64 with at least 8 physical cores' (recommended and minimal). The judge measures verify pinned to the first 8 benchmark CPUs; on the live host those are CPUs 0-7 (CCD0, 8 physical cores, SMT siblings 16-23 idle), i.e. the reference profile; the references of the v1-6 and v3 D0 challenges were re-measured there on 2026-10-06 with the verify drift control (BENCHMARK_SPEC 14.4: v3 D0 confirmed; v1-6 batch-16 not reproducible within 30 000 ppm). Charging allocated vCPUs x wall time (not guest CPU time) keeps the only trusted clock (supervisor wall) and makes parallel verifiers cost what they reserve.",
+          "sources": [
+            "https://near-nodes.io/validator/hardware-validator (chunk validator: 8 physical cores, 8-16 GB RAM)"
+          ]
+        },
+        {
+          "param": "cpu_fusd_per_vcpu_second",
+          "basis": "estimate",
+          "note": "c_cpu = 7.61e-6 USD per vCPU-second = USD 160/month for 8 vCPU (AWS m5a.2xlarge, CPU part, the first cost estimate NEAR publishes for a chunk validator): 160 / (730 h x 8 x 3600 s). The same price is used for the prover (chunk producer) because both run on the same class of node. ESTIMATE: on-demand cloud list price; bare metal is cheaper, reserved instances ~40% cheaper. Only ratios to the baseline enter the score, so a uniform CPU price change does not move CPU-only comparisons; it moves the CPU:bandwidth balance.",
+          "sources": [
+            "https://near-nodes.io/validator/hardware-validator (AWS m5a.2xlarge USD 160 CPU + 160 storage / month)"
+          ]
+        },
+        {
+          "param": "bandwidth_fusd_per_byte",
+          "basis": "estimate",
+          "note": "c_bw = per-validator network cost of one proof byte = egress price x upload amplification. Upload amplification from nearcore partial-witness distribution: Reed-Solomon with WITNESS_RATIO_DATA_PARTS = 0.6 and one part per chunk validator; each validator forwards its part to the other N-2 validators, so it uploads (N-2)/floor(0.6 N) x the proof: 1.64 at N = 84 (v1 draft), 1.60 at N = 50 (48/30); ingress is free on clouds. Egress price ESTIMATE USD 0.05/GB (AWS >150 TB/month tier; first tier is 0.09; unmetered bare metal is lower). Governed value: 8.2e-11 USD/B = 82000 fUSD/B, the v1 draft constant retained by governance decision (2026-10-06); the N = 50 derivation gives 8.0e-11 (-2.4%), well inside the egress-price uncertainty. Not modelled: the chunk producer's own ~1.7 x upload (one node, ~2-3% of the N_v term), compression (candidates may compress; decompression is inside verify time).",
+          "sources": [
+            "nearcore 2.13.4 chain/client/src/stateless_validation/partial_witness/encoding.rs:6 (WITNESS_RATIO_DATA_PARTS = 0.6)",
+            "nearcore 2.13.4 chain/client/src/stateless_validation/partial_witness/partial_witness_actor.rs:343-398, 442-477 (part i to validator i, forwarded to all others)",
+            "nearcore 2.13.4 core/primitives/src/reed_solomon.rs:76-82 (data parts, part length)",
+            "https://aws.amazon.com/ec2/pricing/on-demand/ (data transfer out to internet)"
+          ]
+        },
+        {
+          "param": "storage_fusd_per_byte",
+          "basis": "estimate",
+          "note": "0: chunk validators do not retain the witness after endorsing (only the endorsement signature enters the block; nearcore keeps witnesses only under a debug option). A future model that archives proofs for light clients would set this.",
+          "sources": [
+            "nearcore 2.13.4 core/primitives/src/stateless_validation/chunk_endorsement.rs:98-134 (only the signature goes into the block)"
+          ]
+        },
+        {
+          "param": "prepare_amortization_requests",
+          "basis": "estimate",
+          "note": "0 = prepare is not charged (bench-spec-v1 section 2 policy kept): prepare runs once per verified surface, i.e. once per release, while a release proves millions of chunks (43200 heights per epoch x 10 shards), so its amortized share is below measurement noise. It stays measured, capped and reported.",
+          "sources": [
+            "nearcore 2.13.4 core/primitives/res/epoch_configs/mainnet/85.json:2 (epoch_length = 43200)"
+          ]
+        }
+      ]
+    },
+    "price_model_digest": "sha256:292f094206162f78ee3ad982a8082c11b49fc379ad04956275693d9ef4d5ca6a",
+    "cost_baseline": [
+      {
+        "class_id": "batch-1",
+        "prove_ns": 6684473,
+        "verify_ns": 37519099,
+        "proof_bytes": 6629
+      },
+      {
+        "class_id": "batch-16",
+        "prove_ns": 6886684,
+        "verify_ns": 127832984,
+        "proof_bytes": 42701
+      },
+      {
+        "class_id": "batch-256",
+        "prove_ns": 9528768,
+        "verify_ns": 1498710914,
+        "proof_bytes": 526307
+      }
+    ],
+    "verify_statistic": "lower_quartile"
+  }
+}

@@ -18,7 +18,7 @@ pub use canonical::{canonical_json, sha256_digest, Digest};
 pub use challenge::{ChallengeDefinition, ChallengeId, FormalParams};
 pub use evidence::EvidenceGraph;
 pub use pipeline::*;
-pub use scoring::{CostClass, CostResult, PriceModel, ScoringKind, ScoringSpec};
+pub use scoring::{CostClass, CostResult, PriceModel, ScoringKind, ScoringSpec, VerifyStatistic};
 pub use security::SecurityProfile;
 pub use tree::{tree_digest, tree_digest_entries, tree_entries, TreeEntry};
 

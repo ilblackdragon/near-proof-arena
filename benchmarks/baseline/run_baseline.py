@@ -55,14 +55,24 @@ def run(cmd, **kw):
     return subprocess.run(cmd, check=True, **kw)
 
 
-def control_verdicts(classes, controls):
-    """§14.4 verify drift control of each control session against the first."""
-    pinned = {c["class_id"]: c["verify_run_median_ns"] for c in classes}
+CROSS_SESSION_CALIBRATION_PPM = 20_000  # §6.1 session-drift threshold, applied between sessions
+
+
+def control_verdicts(classes, controls, stat="median", pinned_cal=None):
+    """§14.4 verify drift control of each control session against the first.
+
+    A control is valid only if its own calibration passed (§6.1) and its
+    calibration median (pre ∪ post) is within 20 000 ppm of the pinned
+    session's: a control taken in another host state measures the host, not
+    the reference."""
+    pinned = {c["class_id"]: c.get("verify_stat_ns", c.get("verify_run_median_ns")) for c in classes}
     out = []
     for path, cs in controls:
         runs = {c["class_id"]: c["measured_verify_runs_ns"] for c in cs["session"]["classes"]}
-        v = cost.verify_control(pinned, runs)
+        v = cost.verify_control(pinned, runs, stat=stat)
         cal = calibration.check_drift(cs["calibration"]["pre_ns"], cs["calibration"]["post_ns"])
+        ctl_cal = stats.median_u64(cs["calibration"]["pre_ns"] + cs["calibration"]["post_ns"])
+        xcal = calibration.drift_ppm(pinned_cal, ctl_cal) if pinned_cal else None
         out.append({
             "session": os.path.basename(path),
             "ok": v.ok,
@@ -78,7 +88,10 @@ def control_verdicts(classes, controls):
             "session_wall_secs": cs["session_wall_secs"],
             # §6.1: a session whose calibration failed (or that is flagged) is
             # infra-invalid; its control verdict does not count either way
-            "valid": cal.ok and not cs["session"]["flags"],
+            "calibration_median_ns": ctl_cal,
+            "calibration_vs_pinned_ppm": xcal,
+            "valid": cal.ok and not cs["session"]["flags"]
+                     and (xcal is None or xcal <= CROSS_SESSION_CALIBRATION_PPM),
         })
     return out
 
@@ -106,6 +119,11 @@ def main():
     ap.add_argument("--package-rev", default="HEAD", help="pack the package as committed at this git revision")
     ap.add_argument("--control-sessions", type=int, default=0,
                     help="extra sessions of the same bundle for the verify drift control (BENCHMARK_SPEC §14.4)")
+    ap.add_argument("--verify-statistic", default="median", choices=list(cost.VERIFY_STATISTICS),
+                    help="aggregation of per-run verify totals for cost_baseline and the control (§14.3)")
+    ap.add_argument("--before-session", default=None,
+                    help="shell command run once after the build, right before the first session "
+                         "(e.g. stop the live benchmark worker: keeps the CPU window to the sessions)")
     a = ap.parse_args()
     if not (a.oracle or a.oracle_v3):
         sys.exit("give --oracle and/or --oracle-v3")
@@ -199,6 +217,8 @@ def main():
         run(argv_i, cwd=REPO, env=dict(os.environ, RUSTC_WRAPPER=os.environ.get("RUSTC_WRAPPER", "sccache")))
         return json.load(open(path))
 
+    if a.before_session:
+        run(["sh", "-c", a.before_session])
     started = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
     s = session(session_json)
     controls = [(os.path.join(out, f"session-control-{i + 1}.json"),) for i in range(a.control_sessions)]
@@ -228,6 +248,7 @@ def main():
             "verify_runs_ns": cs["measured_verify_runs_ns"],
             "proof_bytes_runs": cs["measured_proof_bytes_runs"],
             "verify_run_median_ns": stats.median_u64(cs["measured_verify_runs_ns"]),
+            "verify_stat_ns": cost.verify_stat(a.verify_statistic, cs["measured_verify_runs_ns"]),
             "proof_bytes_run_median": stats.median_u64(cs["measured_proof_bytes_runs"]),
             "peak_rss_bytes": cs["peak_rss_bytes"],
             "outliers": cs["outliers"],
@@ -281,11 +302,14 @@ def main():
         "package_rev": rev,
         "package_is_challenge_baseline_submission": package_digest == chal["workload_suite"]["baseline_submission"],
         "cost_baseline": [
-            {"class_id": c["class_id"], "prove_ns": c["median_ns"], "verify_ns": c["verify_run_median_ns"],
+            {"class_id": c["class_id"], "prove_ns": c["median_ns"], "verify_ns": c["verify_stat_ns"],
              "proof_bytes": c["proof_bytes_run_median"]}
             for c in sorted(classes, key=lambda c: c["class_id"])
         ],
-        "verify_control": control_verdicts(classes, controls),
+        "verify_statistic": a.verify_statistic,
+        "calibration_median_ns": stats.median_u64(cal["pre_ns"] + cal["post_ns"]),
+        "verify_control": control_verdicts(classes, controls, a.verify_statistic,
+                                           stats.median_u64(cal["pre_ns"] + cal["post_ns"])),
         "score_note": "the measured challenge has no baseline: the session is measured, not scored. Against these medians the reference scores exactly 100.000 by construction.",
     }
     json.dump(summary, open(os.path.join(out, "summary.json"), "w"), indent=1)

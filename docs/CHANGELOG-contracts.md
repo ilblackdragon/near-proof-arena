@@ -1,5 +1,19 @@
 # Contract changelog
 
+## v1.6 (additive, scoring-v2 lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
+
+* `ScoringSpec.verify_statistic: Option<VerifyStatistic>` (`median` |
+  `lower_quartile`), not serialized when absent; absent = `median`, so every
+  v1.5 challenge id and cost result is unchanged. With `lower_quartile` the
+  cost's verify component is the lower quartile (`sorted[⌊(n−1)/4⌋]`) of the
+  per-run verify totals, for the reference (`cost_baseline.verify_ns`), every
+  candidate, the bootstrap and the verify drift control
+  (docs/BENCHMARK_SPEC.md §14.3, §14.4.1; bench-spec-v1.4). `speed` scoring
+  must not set it.
+* `arena_measure::cost::Prices` gains `verify_statistic` (serde default
+  `median`); `Prices::for_scoring` is used by the worker and the server.
+  Vectors: `cost.json` cases `lower_quartile_*`.
+
 ## v1.5 (additive, scoring-v2 lane) — `SCHEMA_VERSION` unchanged (`arena-contracts-v1`)
 
 Cost-normalized scoring (docs/BENCHMARK_SPEC.md §14). All new fields are

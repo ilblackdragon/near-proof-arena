@@ -845,6 +845,7 @@ mod tests {
                     })
                     .collect(),
                 cost_baseline_prepare_ns: None,
+                verify_statistic: None,
             });
             c.check_scoring().unwrap();
         }

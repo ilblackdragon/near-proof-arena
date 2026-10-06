@@ -22,7 +22,18 @@ from dataclasses import dataclass
 from typing import Mapping, Sequence
 
 from .score import ClassInput, ScoreError, score
-from .stats import SplitMix64, median_u64
+from .stats import SplitMix64, lower_quartile_u64, median_u64
+
+VERIFY_STATISTICS = ("median", "lower_quartile")
+
+
+def verify_stat(stat: str, runs) -> int:
+    """V of a class from its per-run verify totals (`scoring.verify_statistic`)."""
+    if stat == "median":
+        return median_u64(runs)
+    if stat == "lower_quartile":
+        return lower_quartile_u64(runs)
+    raise ValueError(f"verify_statistic {stat!r}")
 
 U64_MAX = (1 << 64) - 1
 U128_MAX = (1 << 128) - 1
@@ -42,9 +53,10 @@ class Prices:
     bandwidth_fusd_per_byte: int
     storage_fusd_per_byte: int
     prepare_amortization_requests: int
+    verify_statistic: str = "median"
 
     @staticmethod
-    def from_model(pm: Mapping, prover_vcpus: int) -> "Prices":
+    def from_model(pm: Mapping, prover_vcpus: int, verify_statistic: str = "median") -> "Prices":
         return Prices(
             pm["validators_per_chunk"],
             prover_vcpus,
@@ -53,6 +65,7 @@ class Prices:
             pm["bandwidth_fusd_per_byte"],
             pm["storage_fusd_per_byte"],
             pm["prepare_amortization_requests"],
+            verify_statistic,
         )
 
 
@@ -151,15 +164,15 @@ def _check_runs(c: CostClassRuns) -> int:
     return n
 
 
-def _medians(c: CostClassRuns) -> Components:
-    return Components(median_u64(c.prove_runs_ns), median_u64(c.verify_runs_ns), median_u64(c.proof_bytes_runs))
+def _medians(p: Prices, c: CostClassRuns) -> Components:
+    return Components(median_u64(c.prove_runs_ns), verify_stat(p.verify_statistic, c.verify_runs_ns), median_u64(c.proof_bytes_runs))
 
 
 def cost_score(p: Prices, classes: Sequence[CostClassRuns], prepare_ns: int = 0, baseline_prepare_ns: int = 0) -> CostScore:
     out, inputs = [], []
     for c in classes:
         _check_runs(c)
-        m = _medians(c)
+        m = _medians(p, c)
         cost = batch_cost(p, m, prepare_ns, c.batch_size)
         base = batch_cost(p, c.baseline, baseline_prepare_ns, c.batch_size).total_fusd
         inputs.append(ClassInput(c.class_id, c.weight_ppm, base, cost.total_fusd))
@@ -201,7 +214,7 @@ def cost_bootstrap(
             idx = [rng.below(n) for _ in range(n)]
             m = Components(
                 median_u64([c.prove_runs_ns[i] for i in idx]),
-                median_u64([c.verify_runs_ns[i] for i in idx]),
+                verify_stat(p.verify_statistic, [c.verify_runs_ns[i] for i in idx]),
                 median_u64([c.proof_bytes_runs[i] for i in idx]),
             )
             inputs.append(ClassInput(c.class_id, c.weight_ppm, base, batch_cost(p, m, prepare_ns, c.batch_size).total_fusd))
@@ -254,6 +267,7 @@ def verify_control(
     pinned: Mapping[str, int],
     control_runs: Mapping[str, Sequence[int]],
     tolerance_ppm: int = VERIFY_CONTROL_TOLERANCE_PPM,
+    stat: str = "median",
 ) -> VerifyControl:
     """A control session of the reference must reproduce every class's pinned
     verify median (per batch) within `tolerance_ppm`; otherwise VERIFY_DRIFT
@@ -270,7 +284,7 @@ def verify_control(
         runs = list(control_runs[cid])
         if not runs:
             raise CostError("NO_RUNS", cid)
-        med = median_u64(runs)
+        med = verify_stat(stat, runs)
         d = drift_ppm(pin, med)
         out.append(VerifyControlClass(cid, pin, med, d, d <= tolerance_ppm))
     ok = all(c.ok for c in out)

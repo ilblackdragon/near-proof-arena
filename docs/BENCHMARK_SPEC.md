@@ -646,6 +646,11 @@ pinning rule for `cost_baseline` (§14.5), the governed price model
 `pm-near-mainnet-2026q4@v2` (§14.7) and the documented multi-shard extension
 (§14.11, future, not scored). The cost formula (§14.3) and its test vectors are
 unchanged.
+**bench-spec-v1.4** (2026-10-06) adds the verify statistic
+`scoring.verify_statistic` (contracts v1.6, additive): `lower_quartile` aggregates
+the per-run verify totals by their lower quartile instead of their median
+(§14.3, rationale in §14.4.1). Absent means `median`, so every v1.2/v1.3 result
+and vector is unchanged.
 
 ### 14.2 Model: per-chunk system cost
 
@@ -708,7 +713,10 @@ proofs) and `S_run` (Σ proof bytes of the same proofs). Untimed warm-up proofs
 count toward `max_proof_bytes` only.
 
 ```
-P = median_u64(prove runs)  V = median_u64(verify runs)  S = median_u64(byte runs)   (component medians)
+P = median_u64(prove runs)  S = median_u64(byte runs)
+V = median_u64(verify runs)              scoring.verify_statistic absent or "median" (v1.2/v1.3)
+V = lower_quartile_u64(verify runs)      scoring.verify_statistic = "lower_quartile" (v1.4)
+    lower_quartile_u64(xs) = sorted(xs)[⌊(n−1)/4⌋]   (order statistic, no interpolation)
 all integers; u128 intermediates, every product checked (COST_OVERFLOW)
 prove_fusd     = ceil(P · v_p · c_cpu / 1e9)
 prepare_fusd   = A == 0 ? 0 : ceil(prepare_ns · v_p · c_cpu · batch_size / (1e9 · A))
@@ -729,7 +737,8 @@ ranked total. Error codes: `BAD_PRICES`, `ZERO_OR_BAD_TIME` (`P` or `V` = 0),
 **Bootstrap (95% CI).** The procedure is as in §8.3, with the same seed and
 `B`. One `next_u64() % n` draw per element resamples the run **triple**
 `(T, V, S)` jointly, which keeps the correlation between prove and verify noise
-inside a run. Each iteration recomputes the three medians and the cost.
+inside a run. Each iteration recomputes the three statistics (V with the
+challenge's verify statistic) and the cost.
 
 Reference: `benchmarks/arena_bench/cost.py`. Rust: `runners/measure/src/cost.rs`.
 Vectors: `benchmarks/testvectors/cost.json` (`arena-bench-cost-testvectors-v1`;
@@ -764,8 +773,8 @@ cost score of the challenge. The control extends §6.2 from prove time to
 verify time, with the same tolerance:
 
 ```
-verify_control(pinned V_j, control runs of class j):
-  V_ctl,j  = median_u64(per-run Σ verify ns of the control session, class j)
+verify_control(pinned V_j, control runs of class j, statistic):
+  V_ctl,j  = statistic(per-run Σ verify ns of the control session, class j)   (the challenge's §14.3 V)
   drift_j  = ceil(|V_ctl,j − V_j| · 1e6 / V_j)                 (ppm, §6.1 drift_ppm)
   ok       = ∀j: drift_j ≤ 30 000                                (VERIFY_CONTROL_TOLERANCE_PPM)
   else  VERIFY_DRIFT  → the control session is infra-invalid
@@ -781,8 +790,13 @@ vectors: `cost.json` → `verify_control`. Where it applies:
    challenge's benchmark CPUs with `run_baseline.py --control-sessions N`
    (N ≥ 1): N more sessions of the same bundle, the same sampled batches and the
    same CPUs right after the first. Each control is checked against the first
-   session. A control session that is itself infra-invalid (§6.1 calibration
-   failed, or flagged) does not count either way. `pin_baseline.py
+   session. A control session that is itself infra-invalid does not count
+   either way: its own §6.1 calibration failed, it is flagged, or (v1.4) its
+   calibration median (pre ∪ post) differs from the pinned session's by more
+   than 20 000 ppm. In the last case the host changed state between the
+   sessions, and the control would measure the host, not the reference. On
+   2026-10-06 this happened on the shared host: one d0-2 control was 8% faster
+   in calibration and 5% faster in every verify class. `pin_baseline.py
    --price-model` refuses to write `scoring` unless the pinned session is valid,
    at least one control is valid, and every valid control passes. A failed
    control is an infra event: re-measure (bounded by the 3 infra retries), and
@@ -798,6 +812,54 @@ vectors: `cost.json` → `verify_control`. Where it applies:
    worker does not run the paired baseline yet, neither for prove nor for
    verify. Until it does, 1 and 2 are the enforced controls, and the candidate's
    own verify noise is in its bootstrap CI (§14.3).
+
+#### 14.4.1 Verify statistic (bench-spec-v1.4): why the lower quartile
+
+The v1-6 reference failed the median-based control on batch-16 in both
+attempts of 2026-10-06 (§14.8): 41 000–161 000 ppm between sessions on
+identical batches. Within a run the per-request timings show why. The slow
+runs are slow almost entirely in the **first** `verify` of the batch VM (20 ms
+in the fast mode, 40–64 ms in the slow mode), with an occasional spike in a
+later request. That is a sandbox artifact (a cold guest-side load of the
+verifier in a fresh `vm_per_batch` VM, §4.4), not a property of the proof.
+Its share of slow runs changes from session to session (6 to 13 of 15), and
+the median of the per-run totals jumps with it. Timing noise is also
+one-sided: contention and cold caches only add time.
+
+Candidates on the same sessions (6 v1-6 sessions and 3 v3 D0 sessions; the
+spread is the drift of each control against its pinned session, valid sessions
+only):
+
+| statistic of the per-run totals | worst drift, v1-6 | worst drift, v3 D0 | passes 3% in every valid control |
+|---|---|---|---|
+| median (v1.3) | 160 774 ppm | 19 673 ppm | no |
+| **lower quartile** | 22 374 ppm | 8 464 ppm | **yes** |
+| 20th percentile | 26 560 ppm | 9 758 ppm | yes (less margin) |
+| minimum | 59 735 ppm (batch-1) | 9 061 ppm | no |
+| Σ over requests of the per-request lower quartile | 52 871 ppm | 11 019 ppm | no |
+
+The lower quartile is chosen because:
+
+* it is the most stable estimator that passes every valid control with margin;
+* it still describes the population. With 15 runs it is the 4th smallest and
+  with 25 runs the 7th, so one lucky run cannot set it, unlike the minimum.
+  The minimum is dominated by sampling noise on short classes (batch-1, 5 ms
+  per proof);
+* it measures the warm, uncontended cost of verification, which is what a
+  long-running validator pays per chunk. A validator does not start a fresh
+  VM per chunk;
+* it is applied identically to the reference, the control and every
+  candidate. A candidate's verify is charged by the same rule that pins the
+  baseline, so the rule favours no one. A candidate cannot move its lower
+  quartile without being fast in at least 75% of its runs;
+* the tolerance stays at 30 000 ppm.
+
+More repetitions: successor challenges measure **25** runs per class instead
+of 15 (`measurement.measured_runs`), which tightens every statistic of the
+session, the speed median included. Pooling sessions was rejected: a
+candidate has one session, and the statistic must be the same for the
+reference and the candidates. Prove (`P`) and bytes (`S`) keep the median: prove
+is the speed board's quantity, and bytes are deterministic per batch.
 
 ### 14.5 Price model (`arena-price-model-v1`) and governance
 
@@ -1009,6 +1071,27 @@ What moved, and why:
   is the price of rejecting the `v3-witness-freedoms` malleability (§5e of
   LIVE.md), and it is now visible.
 
+#### Cost-scored successors (bench-spec-v1.4, 2026-10-06)
+
+The references were measured on unsigned measure drafts: the predecessor with
+25 measured runs, `baseline` null and the new name. Each run used
+`run_baseline.py --verify-statistic lower_quartile --control-sessions 2
+--before-session "arena-live stop worker@w1"`, so the CPU window covers only
+the sessions, not the build.
+
+| successor | reference | result | verify (lower quartile, ms/batch) | control |
+|---|---|---|---|---|
+| `near-transfer-receipt-v1-7` | `examples/reexec-witness` @ HEAD (`sha256:233924e8…`) | **pinned, signed** | batch-1 37.5, batch-16 127.8, batch-256 1498.7 | valid control 2: 25 536 / 12 561 / 8 688 ppm; control 1 infra-invalid (SESSION_DRIFT), and it would also have passed |
+| `near-chunk-validation-d0-2` | `examples/reexec-v3-d0-fast` @ HEAD (`sha256:f02389d7…`) | **not pinned** | quiet 882–927, transfers 1516–1574, missing 1114–1147 | 3 attempts, **no valid passing control**: attempt 1 pinned session itself failed calibration (SESSION_DRIFT, CALIBRATION_NOISY); attempt 2 the only valid-by-own-calibration control ran 8% faster in calibration than the pinned session (host state changed) and 5% faster in every verify class; attempt 3 both controls failed their own calibration (one would have passed at ≤ 1.3%) |
+
+The v1-6 batch-16 instability is gone under the lower quartile, on new batches
+(2.6% worst class). d0-2 is limited by the host, not by the statistic. Its
+sessions are the longest (≈ 6 min, ≈ 1–1.6 s of verify per batch) on a shared
+host whose calibration moved by up to 8% between sessions. The infra-retry
+bound (3) is exhausted. d0-2 is re-measured when the host is quiet. Its unsigned
+measure draft is `challenges/drafts/near-chunk-validation-d0-2.measure.json`.
+v3 D0-1 stays speed-scored until then.
+
 #### Under the v1 draft (2026-10-05, superseded)
 
 `python -m arena_bench cost-rescore` takes the judge's "benchmark session"
@@ -1090,13 +1173,12 @@ What the cost board shows that the speed board hides:
 4. The verify drift control is added (§14.4). It is a prerequisite for pinning
    a `cost_baseline`.
 5. The references were re-measured on the live benchmark CPUs with per-run byte
-   totals (§14.8). **v3 D0-1 passed the verify control**, so a governed
-   `cost_v1` successor of it can be pinned with `pin_baseline.py --old …
-   --price-model challenges/price-models/pm-near-mainnet-2026q4.v2.json`.
-   **v1-6 failed it** (batch-16 bimodal verify), so its cost baseline stays
-   unconfirmed until the verify measurement is made robust. No cost challenge
-   is registered yet: the live challenges stay speed-scored, and the cost
-   numbers in §14.8 are offline.
+   totals (§14.8). Under the median (v1.3), v3 D0-1 passed the verify control
+   and v1-6 failed it (batch-16 bimodal verify). bench-spec-v1.4 (§14.4.1)
+   fixed the statistic. **`near-transfer-receipt-v1-7`** is the first
+   cost-scored challenge (governed model v2, lower quartile, 25 runs). The v3
+   successor `near-chunk-validation-d0-2` is not pinned yet because no control
+   was valid on the shared host (§14.8).
 
 ### 14.11 Forward plan: one proof for all shards (multi-shard term, FUTURE, not scored)
 

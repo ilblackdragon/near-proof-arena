@@ -48,6 +48,9 @@ def with_cost_scoring(new, summary, pm_path):
         "price_model_digest": "sha256:" + hashlib.sha256(jcs_(pm).encode()).hexdigest(),
         "cost_baseline": [{k: c[k] for k in ("class_id", "prove_ns", "verify_ns", "proof_bytes")} for c in cb],
     }
+    stat = summary.get("verify_statistic", "median")
+    if stat != "median":  # absent = median (contracts v1.6)
+        new["scoring"]["verify_statistic"] = stat
     return new
 
 

@@ -14,11 +14,23 @@
 //! total          = Σ of the five (u64, COST_OVERFLOW otherwise; > 0)
 //! score          = §8 score with baseline_ns := baseline total, median_ns := candidate total
 //! ```
+//! `V` is the median by default; a challenge may pin
+//! `scoring.verify_statistic = lower_quartile` (bench-spec-v1.4), and then
+//! `V = lower_quartile(verify_runs_ns)` (index ⌊(n−1)/4⌋ of the sorted runs).
 //! Bootstrap: like §8.3, but one index draw per element resamples the run
-//! *triple* (P, V, S) jointly, and the three medians are taken over it.
+//! *triple* (P, V, S) jointly, and the three statistics are taken over it.
 
 use crate::score::{self, ClassInput, ScoreError};
-use crate::stats::{median_u64, SplitMix64};
+use crate::stats::{lower_quartile_u64, median_u64, SplitMix64};
+pub use arena_types::VerifyStatistic;
+
+/// `V` of a class from its per-run verify totals.
+pub fn verify_stat(stat: VerifyStatistic, runs: &[u64]) -> Option<u64> {
+    match stat {
+        VerifyStatistic::Median => median_u64(runs),
+        VerifyStatistic::LowerQuartile => lower_quartile_u64(runs),
+    }
+}
 use serde::{Deserialize, Serialize};
 
 const NS_PER_S: u128 = 1_000_000_000;
@@ -34,6 +46,9 @@ pub struct Prices {
     pub bandwidth_fusd_per_byte: u64,
     pub storage_fusd_per_byte: u64,
     pub prepare_amortization_requests: u64,
+    /// Aggregation of per-run verify totals (`scoring.verify_statistic`).
+    #[serde(default)]
+    pub verify_statistic: VerifyStatistic,
 }
 
 impl Prices {
@@ -46,6 +61,20 @@ impl Prices {
             bandwidth_fusd_per_byte: pm.bandwidth_fusd_per_byte,
             storage_fusd_per_byte: pm.storage_fusd_per_byte,
             prepare_amortization_requests: pm.prepare_amortization_requests,
+            verify_statistic: VerifyStatistic::Median,
+        }
+    }
+
+    /// Prices of a `cost_v1` challenge: its price model, its hardware
+    /// profile's vCPUs and its verify statistic.
+    pub fn for_scoring(
+        sc: &arena_types::ScoringSpec,
+        pm: &arena_types::PriceModel,
+        prover_vcpus: u32,
+    ) -> Self {
+        Prices {
+            verify_statistic: sc.verify_statistic(),
+            ..Prices::from_model(pm, prover_vcpus)
         }
     }
 }
@@ -238,10 +267,10 @@ fn check_runs(c: &CostClassRuns) -> Result<usize, CostError> {
     Ok(n)
 }
 
-fn medians(c: &CostClassRuns) -> Components {
+fn medians(p: &Prices, c: &CostClassRuns) -> Components {
     Components {
         prove_ns: median_u64(&c.prove_runs_ns).expect("checked"),
-        verify_ns: median_u64(&c.verify_runs_ns).expect("checked"),
+        verify_ns: verify_stat(p.verify_statistic, &c.verify_runs_ns).expect("checked"),
         proof_bytes: median_u64(&c.proof_bytes_runs).expect("checked"),
     }
 }
@@ -266,7 +295,7 @@ pub fn cost_score(
     let mut inputs = Vec::with_capacity(classes.len());
     for c in classes {
         check_runs(c)?;
-        let m = medians(c);
+        let m = medians(p, c);
         let cost = batch_cost(p, m, prepare_ns, c.batch_size)?;
         let base = baseline_total(p, c, baseline_prepare_ns)?;
         inputs.push(ClassInput {
@@ -325,7 +354,7 @@ pub fn cost_bootstrap(
             }
             let m = Components {
                 prove_ns: median_u64(&bp).expect("non-empty"),
-                verify_ns: median_u64(&bv).expect("non-empty"),
+                verify_ns: verify_stat(p.verify_statistic, &bv).expect("non-empty"),
                 proof_bytes: median_u64(&bs).expect("non-empty"),
             };
             inputs.push(ClassInput {
@@ -361,7 +390,7 @@ pub struct VerifyControlClass {
     pub class_id: String,
     /// The pinned reference verify median per batch (`cost_baseline.verify_ns`).
     pub pinned_verify_ns: u64,
-    /// Median of the control session's per-run verify totals.
+    /// The control session's `V` (per-run verify totals under the statistic).
     pub control_verify_ns: u64,
     /// `|control - pinned| / pinned` in ppm, rounded up.
     pub drift_ppm: u64,
@@ -382,7 +411,8 @@ pub struct VerifyControl {
     pub reasons: Vec<String>,
 }
 
-/// Normative verify drift control. `pinned` and `control_runs` must name the
+/// Normative verify drift control. `V` of the control is taken with `stat`,
+/// the statistic the pinned values were taken with. `pinned` and `control_runs` must name the
 /// same classes (`MISSING_BASELINE` otherwise); every control class needs at
 /// least one run (`NO_RUNS`) and every pinned median must be > 0
 /// (`ZERO_OR_BAD_TIME`).
@@ -390,6 +420,7 @@ pub fn verify_control(
     pinned: &[(String, u64)],
     control_runs: &[(String, Vec<u64>)],
     tolerance_ppm: u64,
+    stat: VerifyStatistic,
 ) -> Result<VerifyControl, CostError> {
     let mut ids: Vec<&str> = pinned.iter().map(|(c, _)| c.as_str()).collect();
     ids.sort_unstable_by(|a, b| a.as_bytes().cmp(b.as_bytes()));
@@ -409,7 +440,7 @@ pub fn verify_control(
         if pin == 0 {
             return Err(CostError::ZeroOrBadTime);
         }
-        let med = median_u64(runs).ok_or(CostError::Score(ScoreError::NoRuns))?;
+        let med = verify_stat(stat, runs).ok_or(CostError::Score(ScoreError::NoRuns))?;
         let drift = crate::stats::drift_ppm(pin, med);
         classes.push(VerifyControlClass {
             class_id: id.to_string(),
@@ -520,6 +551,7 @@ mod tests {
             bandwidth_fusd_per_byte: 83_500,
             storage_fusd_per_byte: 0,
             prepare_amortization_requests: 0,
+            verify_statistic: VerifyStatistic::Median,
         }
     }
     fn runs(
@@ -644,6 +676,7 @@ mod tests {
                 ("a".into(), vec![1_030_000, 990_000, 1_000_000]),
             ],
             VERIFY_CONTROL_TOLERANCE_PPM,
+            VerifyStatistic::Median,
         )
         .unwrap();
         assert!(ok.ok && ok.reasons.is_empty());
@@ -651,24 +684,81 @@ mod tests {
         assert_eq!(ok.classes[1].drift_ppm, 25_000);
         // exactly at the tolerance passes; one ns above fails
         let edge = |v: u64| {
-            verify_control(&pin[..1], &[("a".into(), vec![v])], 30_000)
-                .unwrap()
-                .ok
+            verify_control(
+                &pin[..1],
+                &[("a".into(), vec![v])],
+                30_000,
+                VerifyStatistic::Median,
+            )
+            .unwrap()
+            .ok
         };
         assert!(edge(1_030_000) && edge(970_000));
         assert!(!edge(1_030_001) && !edge(969_999));
-        let bad = verify_control(&pin[..1], &[("a".into(), vec![1_031_000])], 30_000).unwrap();
+        let bad = verify_control(
+            &pin[..1],
+            &[("a".into(), vec![1_031_000])],
+            30_000,
+            VerifyStatistic::Median,
+        )
+        .unwrap();
         assert_eq!(bad.reasons, ["VERIFY_DRIFT"]);
         assert_eq!(
-            verify_control(&pin, &[("a".into(), vec![1])], 30_000).unwrap_err(),
+            verify_control(
+                &pin,
+                &[("a".into(), vec![1])],
+                30_000,
+                VerifyStatistic::Median
+            )
+            .unwrap_err(),
             CostError::MissingBaseline
         );
         assert_eq!(
-            verify_control(&pin[..1], &[("a".into(), vec![])], 30_000)
-                .unwrap_err()
-                .code(),
+            verify_control(
+                &pin[..1],
+                &[("a".into(), vec![])],
+                30_000,
+                VerifyStatistic::Median
+            )
+            .unwrap_err()
+            .code(),
             "NO_RUNS"
         );
+    }
+
+    #[test]
+    fn lower_quartile_verify_statistic() {
+        use crate::stats::lower_quartile_u64;
+        assert_eq!(lower_quartile_u64(&[]), None);
+        assert_eq!(lower_quartile_u64(&[7]), Some(7));
+        assert_eq!(lower_quartile_u64(&[4, 3, 2, 1]), Some(1)); // ⌊3/4⌋ = 0
+        assert_eq!(lower_quartile_u64(&[5, 4, 3, 2, 1]), Some(2)); // ⌊4/4⌋ = 1
+        let fifteen: Vec<u64> = (1..=15).rev().collect();
+        assert_eq!(lower_quartile_u64(&fifteen), Some(4));
+        // A bimodal class (v1-6 batch-16 shape): the median jumps with the
+        // share of slow runs, the lower quartile stays in the fast mode.
+        let a = [
+            150, 151, 152, 153, 154, 155, 156, 157, 190, 191, 192, 193, 194, 195, 196,
+        ];
+        let b = [
+            150, 151, 152, 153, 154, 155, 190, 191, 192, 193, 194, 195, 196, 197, 198,
+        ];
+        assert!(median_u64(&b).unwrap() - median_u64(&a).unwrap() > 30);
+        assert_eq!(lower_quartile_u64(&a), lower_quartile_u64(&b));
+        // The statistic is applied to candidate and control alike.
+        let p = Prices {
+            verify_statistic: VerifyStatistic::LowerQuartile,
+            ..prices()
+        };
+        let c = CostClassRuns {
+            verify_runs_ns: a.to_vec(),
+            prove_runs_ns: vec![10; 15],
+            proof_bytes_runs: vec![1; 15],
+            ..runs("x", 1_000_000, (10, 153, 1), &[], &[], &[])
+        };
+        let s = cost_score(&p, &[c], 0, 0).unwrap();
+        assert_eq!(s.classes[0].medians.verify_ns, 153);
+        assert_eq!(s.score_milli, 100_000);
     }
 
     #[test]

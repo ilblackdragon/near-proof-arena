@@ -1,0 +1,104 @@
+{
+ "schema": "arena-host-profile-v1",
+ "governed": false,
+ "hardware_profile": {
+  "id": "dev-illia-32c",
+  "cpu_model": "AMD Ryzen 9 9950X3D 16-Core Processor",
+  "vcpus": 32,
+  "ram_bytes": 134653128704,
+  "gpu": null
+ },
+ "details": {
+  "cpu": {
+   "vendor_id": "AuthenticAMD",
+   "family": "26",
+   "model": "68",
+   "stepping": "0",
+   "microcode": [
+    "0xb404035"
+   ],
+   "isa_flags": [
+    "adx",
+    "aes",
+    "avx2",
+    "avx512f",
+    "avx512ifma",
+    "bmi2",
+    "sha_ni",
+    "vaes",
+    "vpclmulqdq"
+   ],
+   "hypervisor": false,
+   "online_cpus": 32,
+   "process_affinity_cpus": 16,
+   "governors": {
+    "powersave": 32
+   },
+   "turbo": {
+    "enabled": null,
+    "intel_pstate_no_turbo": null,
+    "cpufreq_boost": null,
+    "scaling_driver": "amd-pstate-epp",
+    "amd_pstate_status": "active",
+    "energy_performance_preference": "balance_performance",
+    "cpuinfo_max_khz": "5752000",
+    "scaling_max_khz": "5752000"
+   },
+   "smt": {
+    "control": "on",
+    "active": "1"
+   },
+   "isolated_cpus": [],
+   "nohz_full_cpus": [],
+   "vulnerabilities": {
+    "gather_data_sampling": "Not affected",
+    "indirect_target_selection": "Not affected",
+    "itlb_multihit": "Not affected",
+    "l1tf": "Not affected",
+    "mds": "Not affected",
+    "meltdown": "Not affected",
+    "mmio_stale_data": "Not affected",
+    "reg_file_data_sampling": "Not affected",
+    "retbleed": "Not affected",
+    "spec_rstack_overflow": "Not affected",
+    "spec_store_bypass": "Mitigation: Speculative Store Bypass disabled via prctl",
+    "spectre_v1": "Mitigation: usercopy/swapgs barriers and __user pointer sanitization",
+    "spectre_v2": "Mitigation: Enhanced / Automatic IBRS; IBPB: conditional; STIBP: always-on; PBRSB-eIBRS: Not affected; BHI: Not affected",
+    "srbds": "Not affected",
+    "tsa": "Not affected",
+    "tsx_async_abort": "Not affected",
+    "vmscape": "Not affected"
+   }
+  },
+  "kernel": {
+   "system": "Linux",
+   "release": "6.8.0-139-generic",
+   "version": "#139-Ubuntu SMP PREEMPT_DYNAMIC Sat Aug  1 03:52:05 UTC 2026",
+   "machine": "x86_64",
+   "cmdline_isolation": {}
+  },
+  "memory": {
+   "total_bytes": 134653128704,
+   "hugepages_total": 0,
+   "hugepage_size_bytes": 2097152,
+   "swap_total_bytes": 536866816,
+   "transparent_hugepage": "always [madvise] never"
+  },
+  "numa": [
+   {
+    "node": 0,
+    "cpulist": "0-31",
+    "mem_bytes": 134653128704
+   }
+  ],
+  "gpus": []
+ },
+ "warnings": [
+  "GOVERNOR_NOT_PERFORMANCE: ['powersave']",
+  "TURBO_NOT_DISABLED",
+  "SMT_ACTIVE",
+  "NO_ISOLCPUS"
+ ],
+ "note": "shared development host, NOT governed hardware; benchmark cpus 0-7 (no isolcpus, SMT on, other tenants' load present). Numbers are dev-host measurements, never official.",
+ "collected_at": "2026-10-06T08:38:07Z"
+}

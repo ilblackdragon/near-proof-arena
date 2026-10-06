@@ -75,7 +75,7 @@ def test_verify_control_vectors_and_rescore_gate():
     vec = json.loads((root / "benchmarks/testvectors/cost.json").read_text())
     for case in vec["verify_control"]:
         try:
-            r = verify_control(case["pinned"], case["control_runs"], case["tolerance_ppm"])
+            r = verify_control(case["pinned"], case["control_runs"], case["tolerance_ppm"], case.get("verify_statistic", "median"))
             assert r.ok == case["expect"]["ok"], case["name"]
             assert [c.drift_ppm for c in r.classes] == [c["drift_ppm"] for c in case["expect"]["classes"]]
         except CostError as e:

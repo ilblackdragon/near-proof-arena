@@ -2,7 +2,7 @@
   "schema": "arena-formal-challenge-v1",
   "challenge": "near-transfer-receipt-v1",
   "aliases": ["near-transfer-receipt-v1-1", "near-transfer-receipt-v1-2",
-    "near-transfer-receipt-v1-3", "near-transfer-receipt-v1-4", "near-transfer-receipt-v1-5", "near-transfer-receipt-v1-6"],
+    "near-transfer-receipt-v1-3", "near-transfer-receipt-v1-4", "near-transfer-receipt-v1-5", "near-transfer-receipt-v1-6", "near-transfer-receipt-v1-7"],
   "trusted": [
     {"name": "formal-core", "src_root": "formal-core", "include": ["ArenaCore"]},
     {"name": "near-spec", "src_root": "spec/lean", "include": [

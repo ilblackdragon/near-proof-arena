@@ -640,6 +640,209 @@
    "expect": {
     "error": "EMPTY_SUITE"
    }
+  },
+  {
+   "name": "lower_quartile_bimodal_verify",
+   "prices": {
+    "validators_per_chunk": 50,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0,
+    "verify_statistic": "lower_quartile"
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "batch-16",
+     "weight_ppm": 400000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 7396337,
+      "verify_ns": 151863038,
+      "proof_bytes": 48164
+     },
+     "prove_runs_ns": [
+      7400000,
+      7401000,
+      7402000,
+      7403000,
+      7404000,
+      7405000,
+      7406000,
+      7407000,
+      7408000,
+      7409000,
+      7410000,
+      7411000,
+      7412000,
+      7413000,
+      7414000
+     ],
+     "verify_runs_ns": [
+      151821275,
+      189491143,
+      151863038,
+      150586441,
+      164231934,
+      184073834,
+      184274509,
+      152006839,
+      193160053,
+      215278709,
+      153381162,
+      200374542,
+      150781531,
+      151936626,
+      210023395
+     ],
+     "proof_bytes_runs": [
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164
+     ]
+    },
+    {
+     "class_id": "batch-1",
+     "weight_ppm": 600000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 6967862,
+      "verify_ns": 38000000,
+      "proof_bytes": 6249
+     },
+     "prove_runs_ns": [
+      6900000,
+      7000000,
+      6950000,
+      7050000
+     ],
+     "verify_runs_ns": [
+      39000000,
+      37900000,
+      41000000,
+      38100000
+     ],
+     "proof_bytes_runs": [
+      6249,
+      6300,
+      6249,
+      6249
+     ]
+    }
+   ],
+   "expect": {
+    "score_milli": 100128,
+    "classes": [
+     {
+      "class_id": "batch-16",
+      "baseline_total_fusd": 663806076697,
+      "prove_fusd": 450938160,
+      "prepare_fusd": 0,
+      "verify_fusd": 462271087700,
+      "bandwidth_fusd": 201084700000,
+      "storage_fusd": 0,
+      "total_fusd": 663806725860
+     },
+     {
+      "class_id": "batch-1",
+      "baseline_total_fusd": 142185778439,
+      "prove_fusd": 424638000,
+      "prepare_fusd": 0,
+      "verify_fusd": 115367600000,
+      "bandwidth_fusd": 26089575000,
+      "storage_fusd": 0,
+      "total_fusd": 141881813000
+     }
+    ]
+   }
+  },
+  {
+   "name": "lower_quartile_even_runs",
+   "prices": {
+    "validators_per_chunk": 50,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0,
+    "verify_statistic": "lower_quartile"
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "a",
+     "weight_ppm": 1000000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 100,
+      "verify_ns": 1000,
+      "proof_bytes": 10
+     },
+     "prove_runs_ns": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+     ],
+     "verify_runs_ns": [
+      990,
+      2000,
+      1010,
+      3000,
+      1000,
+      5000,
+      995,
+      4000
+     ],
+     "proof_bytes_runs": [
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10
+     ]
+    }
+   ],
+   "expect": {
+    "score_milli": 100034,
+    "classes": [
+     {
+      "class_id": "a",
+      "baseline_total_fusd": 44800088,
+      "prove_fusd": 6088,
+      "prepare_fusd": 0,
+      "verify_fusd": 3028800,
+      "bandwidth_fusd": 41750000,
+      "storage_fusd": 0,
+      "total_fusd": 44784888
+     }
+    ]
+   }
   }
  ],
  "cost_bootstrap": [
@@ -826,6 +1029,120 @@
     "lo_milli": 2546390,
     "hi_milli": 2575147,
     "half_width_milli": 14379
+   }
+  },
+  {
+   "name": "lower_quartile_bimodal",
+   "seed": 99,
+   "iterations": 400,
+   "prices": {
+    "validators_per_chunk": 50,
+    "prover_vcpus": 8,
+    "verifier_vcpus": 8,
+    "cpu_fusd_per_vcpu_second": 7610000000,
+    "bandwidth_fusd_per_byte": 83500,
+    "storage_fusd_per_byte": 0,
+    "prepare_amortization_requests": 0,
+    "verify_statistic": "lower_quartile"
+   },
+   "prepare_ns": 0,
+   "baseline_prepare_ns": 0,
+   "classes": [
+    {
+     "class_id": "batch-16",
+     "weight_ppm": 400000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 7396337,
+      "verify_ns": 151863038,
+      "proof_bytes": 48164
+     },
+     "prove_runs_ns": [
+      7400000,
+      7401000,
+      7402000,
+      7403000,
+      7404000,
+      7405000,
+      7406000,
+      7407000,
+      7408000,
+      7409000,
+      7410000,
+      7411000,
+      7412000,
+      7413000,
+      7414000
+     ],
+     "verify_runs_ns": [
+      151821275,
+      189491143,
+      151863038,
+      150586441,
+      164231934,
+      184073834,
+      184274509,
+      152006839,
+      193160053,
+      215278709,
+      153381162,
+      200374542,
+      150781531,
+      151936626,
+      210023395
+     ],
+     "proof_bytes_runs": [
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164,
+      48164
+     ]
+    },
+    {
+     "class_id": "batch-1",
+     "weight_ppm": 600000,
+     "batch_size": 8,
+     "baseline": {
+      "prove_ns": 6967862,
+      "verify_ns": 38000000,
+      "proof_bytes": 6249
+     },
+     "prove_runs_ns": [
+      6900000,
+      7000000,
+      6950000,
+      7050000
+     ],
+     "verify_runs_ns": [
+      39000000,
+      37900000,
+      41000000,
+      38100000
+     ],
+     "proof_bytes_runs": [
+      6249,
+      6300,
+      6249,
+      6249
+     ]
+    }
+   ],
+   "expect": {
+    "score_milli": 100128,
+    "lo_milli": 97900,
+    "hi_milli": 100328,
+    "half_width_milli": 1214
    }
   }
  ],
@@ -1085,6 +1402,120 @@
    "tolerance_ppm": 30000,
    "expect": {
     "error": "ZERO_OR_BAD_TIME"
+   }
+  },
+  {
+   "name": "lower_quartile_bimodal_passes",
+   "pinned": {
+    "batch-16": 151863038
+   },
+   "control_runs": {
+    "batch-16": [
+     183000000,
+     181000000,
+     191000000,
+     154000000,
+     181000000,
+     177000000,
+     156000000,
+     198000000,
+     152000000,
+     153500000,
+     194000000,
+     205000000,
+     154500000,
+     207000000,
+     226000000
+    ]
+   },
+   "tolerance_ppm": 30000,
+   "verify_statistic": "lower_quartile",
+   "expect": {
+    "ok": true,
+    "reasons": [],
+    "classes": [
+     {
+      "class_id": "batch-16",
+      "pinned_verify_ns": 151863038,
+      "control_verify_ns": 154500000,
+      "drift_ppm": 17365,
+      "ok": true
+     }
+    ]
+   }
+  },
+  {
+   "name": "median_bimodal_fails",
+   "pinned": {
+    "batch-16": 164231934
+   },
+   "control_runs": {
+    "batch-16": [
+     183000000,
+     181000000,
+     191000000,
+     154000000,
+     181000000,
+     177000000,
+     156000000,
+     198000000,
+     152000000,
+     153500000,
+     194000000,
+     205000000,
+     154500000,
+     207000000,
+     226000000
+    ]
+   },
+   "tolerance_ppm": 30000,
+   "verify_statistic": "median",
+   "expect": {
+    "ok": false,
+    "reasons": [
+     "VERIFY_DRIFT"
+    ],
+    "classes": [
+     {
+      "class_id": "batch-16",
+      "pinned_verify_ns": 164231934,
+      "control_verify_ns": 181000000,
+      "drift_ppm": 102100,
+      "ok": false
+     }
+    ]
+   }
+  },
+  {
+   "name": "lower_quartile_index",
+   "pinned": {
+    "a": 100
+   },
+   "control_runs": {
+    "a": [
+     500,
+     400,
+     300,
+     200,
+     103,
+     101,
+     99
+    ]
+   },
+   "tolerance_ppm": 30000,
+   "verify_statistic": "lower_quartile",
+   "expect": {
+    "ok": true,
+    "reasons": [],
+    "classes": [
+     {
+      "class_id": "a",
+      "pinned_verify_ns": 100,
+      "control_verify_ns": 101,
+      "drift_ppm": 10000,
+      "ok": true
+     }
+    ]
    }
   }
  ]

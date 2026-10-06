@@ -63,7 +63,9 @@ export function CostBoard({
       <p className="small muted">
         Same admitted entries, ranked by system cost per proved chunk instead of prove time: prove on the
         prover plus, for each of N_v = {fmtInt(pm.validators_per_chunk)} validators, verify on{' '}
-        {fmtInt(pm.verifier_vcpus)} vCPUs and the proof bytes. 100 = the reference candidate&apos;s cost; higher is
+        {fmtInt(pm.verifier_vcpus)} vCPUs (per-batch verify time:{' '}
+        {sc.verify_statistic === 'lower_quartile' ? 'lower quartile' : 'median'} of the measured runs) and the proof
+        bytes. 100 = the reference candidate&apos;s cost; higher is
         cheaper. Price model <code><T v={`${pm.id}@v${pm.version}`} max={64} /></code> ({pm.status}),{' '}
         <code className="wrap">{sc.price_model_digest}</code>. Not comparable with the speed score above.
       </p>

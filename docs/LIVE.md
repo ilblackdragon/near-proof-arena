@@ -552,6 +552,21 @@ diagnostic):
   each). v3 D0-1 passed the verify control; v1-6 failed it on batch-16 (bimodal verify) in both
   attempts. Results and offline re-scores of all admitted entries: BENCHMARK_SPEC §14.8.
 
+* **bench-spec-v1.4 successors (2026-10-06).** Verify statistic = lower quartile, 25 measured
+  runs (BENCHMARK_SPEC §14.4.1). w1 windows (stopped only around the sessions; the
+  build ran before; queue empty, nothing leased each time):
+
+  | window (UTC) | what | outcome |
+  |---|---|---|
+  | 08:26–08:37 | v1-7 reference (`examples/reexec-witness`), 3 sessions | pinned |
+  | 08:38–08:55 | d0-2 reference (`examples/reexec-v3-d0-fast`), attempt 1 | pinned session calibration failed |
+  | 08:56–09:14 | d0-2 attempt 2 | control taken in another host state (calibration −8%) |
+  | 09:15–09:34 | d0-2 attempt 3 | both controls failed their own calibration; retry bound reached |
+
+  `chl_93d9891011bc8d8e4132fc04794c4809` **`near-transfer-receipt-v1-7`** (supersedes v1-6;
+  cost_v1, `pm-near-mainnet-2026q4@v2`, lower quartile) — signed with the local operator key and registered; resubmissions below.
+  d0-2 is not pinned yet; re-measure it when the host is quiet.
+
 ## 5. Current state (2026-10-03 16:10 UTC)
 
 * **Deployed revision.** `release/REVISION` is

@@ -52,6 +52,15 @@ def _check_u64s(xs: Sequence[int]) -> None:
             raise ValueError(f"not a u64: {x!r}")
 
 
+def lower_quartile_u64(xs: Iterable[int]) -> int:
+    """Lower quartile as an order statistic: sorted(xs)[(n - 1) // 4] (BENCHMARK_SPEC §14.3)."""
+    s = sorted(xs)
+    if not s:
+        raise ValueError("lower quartile of empty sequence")
+    _check_u64s(s)
+    return s[(len(s) - 1) // 4]
+
+
 def median_u64(xs: Iterable[int]) -> int:
     """Integer median. Even length: lower + (upper - lower) // 2 (floor, no overflow)."""
     s = sorted(xs)

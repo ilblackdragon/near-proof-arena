@@ -241,9 +241,28 @@ COST_SCORE_CASES = [
     ("empty", _PM, 0, 0, []),
 ]
 
+# bench-spec-v1.4: V = lower quartile of the per-run verify totals (v1-6 batch-16 shape: bimodal)
+_PM_LQ = {**_PM, "validators_per_chunk": 50, "verify_statistic": "lower_quartile"}
+_BIMODAL_16 = [151_821_275, 189_491_143, 151_863_038, 150_586_441, 164_231_934, 184_073_834, 184_274_509, 152_006_839,
+               193_160_053, 215_278_709, 153_381_162, 200_374_542, 150_781_531, 151_936_626, 210_023_395]
+COST_SCORE_CASES += [
+    (
+        "lower_quartile_bimodal_verify",
+        _PM_LQ,
+        0,
+        0,
+        [
+            _cr("batch-16", 400_000, (7_396_337, 151_863_038, 48_164), [7_400_000 + 1_000 * i for i in range(15)], _BIMODAL_16, [48_164] * 15),
+            _cr("batch-1", 600_000, (6_967_862, 38_000_000, 6_249), [6_900_000, 7_000_000, 6_950_000, 7_050_000], [39_000_000, 37_900_000, 41_000_000, 38_100_000], [6_249, 6_300, 6_249, 6_249]),
+        ],
+    ),
+    ("lower_quartile_even_runs", _PM_LQ, 0, 0, [_cr("a", 1_000_000, (100, 1_000, 10), [100, 100, 100, 100, 100, 100, 100, 100], [990, 2_000, 1_010, 3_000, 1_000, 5_000, 995, 4_000], [10] * 8)]),
+]
+
 COST_BOOTSTRAP_CASES = [
     ("v1_6_shape", 4242, 300, COST_SCORE_CASES[1]),
     ("two_class_noisy", derive_seed("bootstrap", "sub_0123456789abcdef", "run_0123456789abcdef"), 500, COST_SCORE_CASES[2]),
+    ("lower_quartile_bimodal", 99, 400, COST_SCORE_CASES[-2]),
 ]
 
 # (name, pinned {class: verify_ns}, control {class: [per-run verify totals]}, tolerance_ppm)
@@ -258,6 +277,12 @@ VERIFY_CONTROL_CASES = [
     ("class_mismatch", {"a": 1}, {"b": [1]}, 30_000),
     ("no_runs", {"a": 1}, {"a": []}, 30_000),
     ("zero_pinned", {"a": 0}, {"a": [1]}, 30_000),
+]
+# (name, pinned, control, tolerance_ppm, verify_statistic): the v1-6 batch-16 sessions of 2026-10-06
+VERIFY_CONTROL_STAT_CASES = [
+    ("lower_quartile_bimodal_passes", {"batch-16": 151_863_038}, {"batch-16": [183_000_000, 181_000_000, 191_000_000, 154_000_000, 181_000_000, 177_000_000, 156_000_000, 198_000_000, 152_000_000, 153_500_000, 194_000_000, 205_000_000, 154_500_000, 207_000_000, 226_000_000]}, 30_000, "lower_quartile"),
+    ("median_bimodal_fails", {"batch-16": 164_231_934}, {"batch-16": [183_000_000, 181_000_000, 191_000_000, 154_000_000, 181_000_000, 177_000_000, 156_000_000, 198_000_000, 152_000_000, 153_500_000, 194_000_000, 205_000_000, 154_500_000, 207_000_000, 226_000_000]}, 30_000, "median"),
+    ("lower_quartile_index", {"a": 100}, {"a": [500, 400, 300, 200, 103, 101, 99]}, 30_000, "lower_quartile"),
 ]
 
 
@@ -344,5 +369,16 @@ def generate_cost() -> dict:
         except CostError as e:
             exp = {"error": e.code}
         out.append({"name": name, "pinned": pinned, "control_runs": control, "tolerance_ppm": tol, "expect": exp})
+    for name, pinned, control, tol, stat in VERIFY_CONTROL_STAT_CASES:
+        r = verify_control(pinned, control, tol, stat)
+        exp = {
+            "ok": r.ok,
+            "reasons": list(r.reasons),
+            "classes": [
+                {"class_id": c.class_id, "pinned_verify_ns": c.pinned_verify_ns, "control_verify_ns": c.control_verify_ns, "drift_ppm": c.drift_ppm, "ok": c.ok}
+                for c in r.classes
+            ],
+        }
+        out.append({"name": name, "pinned": pinned, "control_runs": control, "tolerance_ppm": tol, "verify_statistic": stat, "expect": exp})
     vec["verify_control"] = out
     return vec

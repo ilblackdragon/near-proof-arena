@@ -294,6 +294,9 @@ PriceModel = TypedDict(
     },
 )
 
+# How the per-run verify totals of a class are aggregated into the `V` component of the cost (docs/BENCHMARK_SPEC.md §14.3; contracts v1.6).
+VerifyStatistic = Literal["median", "lower_quartile"]
+
 # `ChallengeDefinition.scoring` (v1.5, additive).
 ScoringSpec = TypedDict(
     "ScoringSpec",
@@ -303,6 +306,7 @@ ScoringSpec = TypedDict(
         "kind": ScoringKind,
         "price_model": NotRequired[Optional[PriceModel]],
         "price_model_digest": NotRequired[Optional[Digest]],
+        "verify_statistic": NotRequired[Optional[VerifyStatistic]],
     },
 )
 
@@ -618,4 +622,4 @@ SubmissionView = TypedDict(
     },
 )
 
-__all__ = ["AdversaryClass", "ArtifactRef", "Assumption", "AssumptionRef", "BenchmarkResult", "BuildInfo", "BuildSection", "CandidateManifest", "ChallengeDefinition", "ChangeClass", "ClaimEncoding", "ClassMeasurement", "CostBaselineClass", "CostClass", "CostResult", "Decision", "Digest", "EdgeStatus", "EntrySection", "EvidenceEdge", "EvidenceGraph", "EvidenceNode", "EvidenceRef", "FormalParams", "FormalSection", "FormalSpecRef", "GateResult", "GateStatus", "HardwareProfile", "HardwareRequest", "InvocationMode", "LeaderboardEntry", "LogExcerpt", "MeasurementProcedure", "NearcorePin", "NodeKind", "ObligationId", "PriceModel", "PriceRationale", "Privacy", "ReasonCode", "ResourceLimits", "Restriction", "Revocation", "RevocationEvent", "ScopeKind", "ScoringKind", "ScoringSpec", "SecurityModel", "SecurityProfile", "SemanticScope", "SetupModel", "Stage", "SubmissionView", "Tier", "ToolchainPolicy", "TrustedBaseEntry", "VerifiedSurface", "VerifyRoute", "WorkloadClass", "WorkloadSuite"]
+__all__ = ["AdversaryClass", "ArtifactRef", "Assumption", "AssumptionRef", "BenchmarkResult", "BuildInfo", "BuildSection", "CandidateManifest", "ChallengeDefinition", "ChangeClass", "ClaimEncoding", "ClassMeasurement", "CostBaselineClass", "CostClass", "CostResult", "Decision", "Digest", "EdgeStatus", "EntrySection", "EvidenceEdge", "EvidenceGraph", "EvidenceNode", "EvidenceRef", "FormalParams", "FormalSection", "FormalSpecRef", "GateResult", "GateStatus", "HardwareProfile", "HardwareRequest", "InvocationMode", "LeaderboardEntry", "LogExcerpt", "MeasurementProcedure", "NearcorePin", "NodeKind", "ObligationId", "PriceModel", "PriceRationale", "Privacy", "ReasonCode", "ResourceLimits", "Restriction", "Revocation", "RevocationEvent", "ScopeKind", "ScoringKind", "ScoringSpec", "SecurityModel", "SecurityProfile", "SemanticScope", "SetupModel", "Stage", "SubmissionView", "Tier", "ToolchainPolicy", "TrustedBaseEntry", "VerifiedSurface", "VerifyRoute", "VerifyStatistic", "WorkloadClass", "WorkloadSuite"]

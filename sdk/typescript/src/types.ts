@@ -430,6 +430,8 @@ export interface ScoringSpec {
   price_model?: PriceModel | null;
   /** JCS sha256 of `price_model`; shown on every cost-board row. */
   price_model_digest?: Digest | null;
+  /** Aggregation of per-run verify totals (v1.6, additive; absent = `median`). `cost_baseline.verify_ns` is pinned with the same statistic. */
+  verify_statistic?: VerifyStatistic | null;
 }
 
 export type SecurityModel = "standard" | "random_oracle";
@@ -544,6 +546,9 @@ export interface VerifiedSurface {
 }
 
 export type VerifyRoute = "native" | "npai-v1" | "native-lean";
+
+/** How the per-run verify totals of a class are aggregated into the `V` component of the cost (docs/BENCHMARK_SPEC.md §14.3; contracts v1.6). */
+export type VerifyStatistic = "median" | "lower_quartile";
 
 export interface WorkloadClass {
   /** Number of requests per measured batch. */

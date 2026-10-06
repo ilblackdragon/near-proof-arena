@@ -78,7 +78,7 @@ pub fn compute_cost(
     }
     let pm = sc.price_model.as_ref()?;
     let digest = sc.price_model_digest.clone()?;
-    let prices = arena_measure::cost::Prices::from_model(pm, chal.hardware_profile.vcpus);
+    let prices = arena_measure::cost::Prices::for_scoring(sc, pm, chal.hardware_profile.vcpus);
     let runs = arena_measure::cost::class_runs_for(chal, &b.classes).ok()?;
     let point = arena_measure::cost::cost_score(
         &prices,
@@ -198,6 +198,7 @@ mod tests {
                     })
                     .collect(),
                 cost_baseline_prepare_ns: None,
+                verify_statistic: None,
             });
         }
         c

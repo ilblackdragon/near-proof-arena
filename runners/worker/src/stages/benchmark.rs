@@ -609,7 +609,7 @@ fn cost_result(
     chal.check_scoring()?;
     let pm = sc.price_model.as_ref().expect("checked");
     let digest = sc.price_model_digest.clone().expect("checked");
-    let prices = arena_measure::cost::Prices::from_model(pm, chal.hardware_profile.vcpus);
+    let prices = arena_measure::cost::Prices::for_scoring(sc, pm, chal.hardware_profile.vcpus);
     let runs = arena_measure::cost::class_runs_for(chal, classes).map_err(|e| e.to_string())?;
     let base_prep = sc.cost_baseline_prepare_ns.unwrap_or(0);
     let point = arena_measure::cost::cost_score(&prices, &runs, prepare_ns, base_prep)
@@ -654,6 +654,7 @@ mod tests {
                 price_model: Some(pm),
                 cost_baseline: vec![],
                 cost_baseline_prepare_ns: None,
+                verify_statistic: None,
             });
         }
         c

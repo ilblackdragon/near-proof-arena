@@ -1,7 +1,7 @@
 {
   "schema": "arena-formal-challenge-v1",
   "challenge": "near-chunk-validation-d0",
-  "aliases": ["near-chunk-validation-d0-1"],
+  "aliases": ["near-chunk-validation-d0-1", "near-chunk-validation-d0-2"],
   "trusted": [
     {"name": "formal-core", "src_root": "formal-core", "include": ["ArenaCore"]},
     {"name": "near-spec", "src_root": "spec/lean", "include": [

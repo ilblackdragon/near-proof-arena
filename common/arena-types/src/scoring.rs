@@ -36,6 +36,28 @@ impl ScoringKind {
     }
 }
 
+/// How the per-run verify totals of a class are aggregated into the `V`
+/// component of the cost (docs/BENCHMARK_SPEC.md §14.3; contracts v1.6).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum VerifyStatistic {
+    /// `median_u64` (bench-spec-v1.2 / v1.3; the meaning of an absent field).
+    #[default]
+    Median,
+    /// `lower_quartile_u64`: the order statistic at index ⌊(n−1)/4⌋ of the
+    /// sorted runs (bench-spec-v1.4).
+    LowerQuartile,
+}
+
+impl VerifyStatistic {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            VerifyStatistic::Median => "median",
+            VerifyStatistic::LowerQuartile => "lower_quartile",
+        }
+    }
+}
+
 /// Why a price-model parameter has its value (part of the hashed object, so
 /// the rationale cannot be edited without a new version).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -149,6 +171,17 @@ pub struct ScoringSpec {
     /// `prepare_amortization_requests > 0`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cost_baseline_prepare_ns: Option<u64>,
+    /// Aggregation of per-run verify totals (v1.6, additive; absent =
+    /// `median`). `cost_baseline.verify_ns` is pinned with the same statistic.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verify_statistic: Option<VerifyStatistic>,
+}
+
+impl ScoringSpec {
+    /// The verify statistic in force (absent = `median`).
+    pub fn verify_statistic(&self) -> VerifyStatistic {
+        self.verify_statistic.unwrap_or_default()
+    }
 }
 
 impl ScoringSpec {
@@ -160,6 +193,7 @@ impl ScoringSpec {
                     || self.price_model_digest.is_some()
                     || !self.cost_baseline.is_empty()
                     || self.cost_baseline_prepare_ns.is_some()
+                    || self.verify_statistic.is_some()
                 {
                     return Err("scoring.kind = speed takes no price model or cost baseline".into());
                 }
@@ -278,6 +312,7 @@ mod tests {
                 })
                 .collect(),
             cost_baseline_prepare_ns: None,
+            verify_statistic: None,
         }
     }
 
