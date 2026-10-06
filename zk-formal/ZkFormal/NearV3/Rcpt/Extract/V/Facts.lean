@@ -433,17 +433,6 @@ theorem rconst {r : Nat} (hq : r + 1 < tr.height tt) (ha : tr.cell tt r act = 1)
   simp only [rowE, eval_mul3, eval_c, eval_not, eval_sub, eval_n, nxt hq] at h
   rw [ha, hc, hl] at h; grind
 
-/-- v3 receipt constants are kept inside a receipt. -/
-theorem rconst3 {r : Nat} (hq : r + 1 < tr.height tt) (ha : tr.cell tt r act = 1)
-    (hc : tr.cell tt r sCL = 0) (hl : tr.cell tt r rl = 0) :
-    ∀ x ∈ rconsts3, tr.cell tt (r + 1) x = tr.cell tt r x := by
-  intro x hx
-  have hm := List.mem_map_of_mem (f := fun x => mul3 rowE (Dsl.not (c rl)) (sub (n x) (c x))) hx
-  have h := con hL (by omega : r < _) (e := mul3 rowE (Dsl.not (c rl)) (sub (n x) (c x))) (mem_st (by
-    unfold cStates; simp only [List.mem_append, hm, true_or, or_true]))
-  simp only [rowE, eval_mul3, eval_c, eval_not, eval_sub, eval_n, nxt hq] at h
-  rw [ha, hc, hl] at h; grind
-
 end ZkFormal.NearV3.RcptV3Proof
 
 namespace ZkFormal.NearV3.RcptV3Proof
