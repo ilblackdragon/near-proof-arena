@@ -1082,13 +1082,16 @@ the sessions, not the build.
 | successor | reference | result | verify (lower quartile, ms/batch) | control |
 |---|---|---|---|---|
 | `near-transfer-receipt-v1-7` | `examples/reexec-witness` @ HEAD (`sha256:233924e8…`) | **pinned, signed** | batch-1 37.5, batch-16 127.8, batch-256 1498.7 | valid control 2: 25 536 / 12 561 / 8 688 ppm; control 1 infra-invalid (SESSION_DRIFT), and it would also have passed |
-| `near-chunk-validation-d0-2` | `examples/reexec-v3-d0-fast` @ HEAD (`sha256:f02389d7…`) | **not pinned** | quiet 882–927, transfers 1516–1574, missing 1114–1147 | 3 attempts, **no valid passing control**: attempt 1 pinned session itself failed calibration (SESSION_DRIFT, CALIBRATION_NOISY); attempt 2 the only valid-by-own-calibration control ran 8% faster in calibration than the pinned session (host state changed) and 5% faster in every verify class; attempt 3 both controls failed their own calibration (one would have passed at ≤ 1.3%) |
+| `near-chunk-validation-d0-2` | `examples/reexec-v3-d0-fast` @ HEAD (`sha256:f02389d7…`) | **not pinned** | quiet 882–927, transfers 1516–1574, missing 1114–1147 | 4 attempts, **no valid pinned session with a valid passing control**: attempt 4 (16:55 UTC, quieter host) pinned session SESSION_DRIFT, while its valid control was within 20 356 ppm; attempt 1 pinned session itself failed calibration (SESSION_DRIFT, CALIBRATION_NOISY); attempt 2 the only valid-by-own-calibration control ran 8% faster in calibration than the pinned session (host state changed) and 5% faster in every verify class; attempt 3 both controls failed their own calibration (one would have passed at ≤ 1.3%) |
 
 The v1-6 batch-16 instability is gone under the lower quartile, on new batches
-(2.6% worst class). d0-2 is limited by the host, not by the statistic. Its
+(2.6% worst class). Live v1-7 board, cost rank (speed): reexec-npai 264.522 (98.880),
+reexec-witness 96.121 (91.433), reexec-witness-fast 93.609 (103.405), np-udr-stark-fast2
+1.489 (0.065), np-udr-stark 1.476 (0.046), np-udr-stark-fast 1.475 (0.047); see LIVE.md §5f.
+d0-2 is limited by the host, not by the statistic. Its
 sessions are the longest (≈ 6 min, ≈ 1–1.6 s of verify per batch) on a shared
 host whose calibration moved by up to 8% between sessions. The infra-retry
-bound (3) is exhausted. d0-2 is re-measured when the host is quiet. Its unsigned
+bound was exhausted, and a fourth attempt in a quieter window also failed. d0-2 is re-measured when the host is quiet. Its unsigned
 measure draft is `challenges/drafts/near-chunk-validation-d0-2.measure.json`.
 v3 D0-1 stays speed-scored until then.
 
