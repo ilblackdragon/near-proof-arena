@@ -11,16 +11,14 @@ statement's bytes); `τ < 32`.
 | # | bus | message | producers → consumers |
 |---|---|---|---|
 | 40 | `SCMP` | `(x, y, b)`: `b = [y ≤ x]` | memory, process, codec, distribute → comparator |
-| 41 | `SOP` | `(addr, t, op, vin, v, inc, ok, c)` | codec / distribute (INIT, `op = 0`), scan (READ, 1), process (GRANT, 2) → memory |
+| 41 | `SOP` | `(addr, t, op, vin, v, inc, ok, c)` | codec / distribute (INIT, `op = 0`), scan (READ, 1; one interaction with the distribute INIT in `ssdV3`), process (GRANT, 2) → memory |
 | 42 | `SFIN` | `(addr, v, w)` | memory (segment end) → codec (links), distribute (budgets) |
 | 43 | `SINC` | `(τ, e = cid·64 + j, inc, rem, s, r, link)` | scan → process |
 | 44 | `SPUSH` | `(τ, key, z, ts, e)` | scan (initial), process (re-push) → process (bucket entry) |
 | 45–50 | shuffle in / out / mem / gen / headers / chacha | lane v3-chacha formats | `shufV3`/`genV3`/`chachaV3` ↔ process |
 | 51 | `SPUBB` | public `(τ, tag, x₀, x₁, x₂, x₃, x₄)` | public → codec (ash: tag 2 `(j, byte, 0, 0, 0)`; forwarding demand of link `l` in instance 0: tag 4 `(l_lo, l_hi, t₀, t₁, t₂)`), process (key limbs: tag 3 `(k, lo, hi, 0, 0)`) |
-| 52 | `SPAR` | public `(τ, tag, n, p0 … p7)` | public → codec (tag 0), scan (tag 1) |
-| 53 | `SRAW` | public `(τ, rid_lo, rid_hi, s, r, bm0 … bm4)` | public → scan |
-| 54 | `SLINK` | public `(τ, l_lo, l_hi, allowed)` | public → distribute |
-| 55 | `SSHD` | public `(τ, side, s, cnt, b0, b1, b2)` | public → distribute |
+| 52 | `SPAR` | public `(τ, tag, f₀ … f₈)` (one shape, 11 elements) | public → codec (tag 0 `(n, N₀, N₁, base₀..₂, fair₀..₂)`), scan/distribute table `ssdV3` (tag 1 scan params `(base₀..₂, D₀..₂, n, 0, 0)`, tag 2 raw request `(bm₀..₄, cid_lo, cid_hi, s, r)`, tag 3 shard `(side, shard, links, B₀ (3 bytes), n, 0, 0)`, tag 4 link `(0 ×6, l_lo, l_hi, allowed)`) |
+| 53–55 | — | retired (were `SRAW`, `SLINK`, `SSHD`; now `SPAR` tags 2, 4, 3) | |
 | 56 | `SDL` | `(τ, k_lo, k_hi, o, b)` | codec id byte `o < 16` of record `k`: instance τ → τ + 1 (public sends instance 0, receives `K + 1`) |
 | 57 | `SDLX` | `(τ, a, b, x, links, left)` | distribute: sorted endpoints → grid, receiver delay line |
 | 58 | `SDG` | `(τ, l, allowed, gb)` | distribute grid → codec |
@@ -44,8 +42,11 @@ def B_SSHUF : Nat := 49
 def B_SCHACHA : Nat := 50
 def B_SPUBB : Nat := 51
 def B_SPAR : Nat := 52
+/-- Retired (cut B): raw requests are `SPAR` tag `PT_RAW`. -/
 def B_SRAW : Nat := 53
+/-- Retired (cut B): link records are `SPAR` tag `PT_LINK`. -/
 def B_SLINK : Nat := 54
+/-- Retired (cut B): shard records are `SPAR` tag `PT_SHD`. -/
 def B_SSHD : Nat := 55
 def B_SDL : Nat := 56
 def B_SDLX : Nat := 57
@@ -75,5 +76,12 @@ def TAG_IDR : Nat := 1
 def TAG_ASH : Nat := 2
 def TAG_KEY : Nat := 3
 def TAG_FWD : Nat := 4
+
+/-- `SPAR` record tags (shape `(τ, tag, f₀ … f₈)`). -/
+def PT_CODEC : Nat := 0
+def PT_SCAN : Nat := 1
+def PT_RAW : Nat := 2
+def PT_SHD : Nat := 3
+def PT_LINK : Nat := 4
 
 end ZkFormal.NearV3.Sched

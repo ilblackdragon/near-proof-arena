@@ -2,25 +2,37 @@ import ZkFormal.Chacha.Rng.Table
 import ZkFormal.NearV3.Sched.Ids
 
 /-!
-# ZkFormal.NearV3.Sched.Tables.Dist — `sdsV3`: budgets and `distribute_remaining_bandwidth`
+# ZkFormal.NearV3.Sched.Tables.Dist — the distribute rows of `ssdV3`: budgets and `distribute_remaining_bandwidth`
 
-Per instance τ: **shard rows** for the senders (`side = 0`) then the receivers (`side = 1`), each
-side in *sorted* order `pos = 0 … n−1` (`Spec/Dist.sortByKey_eq_of_sorted`: the key
-`avg·64 + shard` strictly increases, comparator); then the **grid**: for each sender position
-`i` a **header** row and the **cells** `j = 0 … n−1` (`Spec/Dist.gridGrants_get`).
+Width cut B (STATUS-V3-SCHED §12): the scan and distribute row families share one table,
+`ssdV3` (`Tables/ScanDist.lean`). This file owns the **physical column layout** of that table
+(the scan names of `Tables/Scan.lean` point into it), the kind constraints common to both
+families (`cCommon`), and the distribute family's constraints.
 
-A shard row receives the public `(τ, side, shard, links, B₀, n)` (`B₀` = budget after the base
-grants, claim-only), INITs the budget's memory segment, receives its final value `left`
-(after the process phase), computes `avg = left / links` (`0` if `links = 0`; remainder by
-bits), and sends its endpoint into the grid on `SDLX`: senders as `(τ, i, 255, s, links, left)`
-(received by header `i`), receivers as `(τ, 0, j, r, links, left)` (received by cell `(0, j)`).
-A cell `(i, j)` receives the receiver endpoint `(RN, RL)`, keeps the sender endpoint `(SN, SL)`
-along the row, reads the public `allowed` of link `l = s·n + r`, and on an allowed link grants
-`gb = min(⌊SL/SN⌋, ⌊RL/RN⌋)`; it passes `(RN − al, RL − gb)` to cell `(i+1, j)` and sends
-`(τ, l, al, gb)` to the codec.
+Per instance τ: **shard rows** (`kSh`) for the senders (`side = 0`) then the receivers
+(`side = 1`), each side in *sorted* order `pos = 0 … n−1` (`Spec/Dist.sortByKey_eq_of_sorted`:
+the key `avg·64 + shard` strictly increases, comparator); then the **grid**: for each sender
+position `i` a **header** row (`kGH`) and the **cells** (`kC`) `j = 0 … n−1`
+(`Spec/Dist.gridGrants_get`). The distribute sections come after every scan section; the first
+distribute row is a sender shard row with `pos = 0`, `kp = 0` (from row 0 or after a scan row).
+
+A shard row receives the public `SPAR (τ, 3, side, shard, links, B₀ (3 bytes), n, 0, 0)` (`B₀` =
+budget after the base grants, claim-only), INITs the budget's memory segment, receives its final
+value `left` (after the process phase), computes `avg = left / links` (`0` if `links = 0`;
+remainder by bits), and sends its endpoint into the grid on `SDLX`: senders as
+`(τ, i, 255, s, links, left)` (received by header `i`), receivers as `(τ, 0, j, r, links, left)`
+(received by cell `(0, j)`). A cell `(i, j)` receives the receiver endpoint `(RN, RL)`, keeps the
+sender endpoint `(SN, SL)` along the row, receives the public `SPAR (τ, 4, 0 ×6, l_lo, l_hi,
+allowed)` of link `l = s·n + r`, and on an allowed link grants `gb = min(⌊SL/SN⌋, ⌊RL/RN⌋)`; it
+passes `(RN − al, RL − gb)` to cell `(i+1, j)` and sends `(τ, l, al, gb)` to the codec.
 
 Multiplexed columns: shard rows keep their shard / links / left / avg / remainder in the cell's
-receiver columns `r, N2, L2, q2, r2`.
+receiver columns `r, N2, L2, q2, r2`; `icnt`/`ig2`, `zc`/`e2`, `kp`/`gb`, `adr`/`N1`,
+`bv`/`L1` share a column (shard row / cell). The public record window `f₀ … f₈` is
+`side, shd, lnk, by0, by1, by2, llo, lhi, alc`: shard rows copy `shd = r`, `lnk = N2`,
+`llo = n`; cells copy `alc = al`. The memory INIT of a shard row is the merged `SOP` send
+`(τ·2^14 + adr, b + kS, kS, s, s + bv, 0, 0, 0)` with `adr = 4096·(side + 1) + r`,
+`bv = B₀` and `b = s = 0` on shard rows.
 -/
 
 namespace ZkFormal.NearV3.Sched.Dist
@@ -34,58 +46,71 @@ def kGH : Nat := 2
 def kC : Nat := 3
 def tau : Nat := 4
 def nn : Nat := 5
-def side : Nat := 6
-def a : Nat := 7
-def b : Nat := 8
-def s : Nat := 9
-def r : Nat := 10
-def N1 : Nat := 11
-def L1 : Nat := 12
-def N2 : Nat := 13
-def L2 : Nat := 14
-def by0 : Nat := 15
-def by1 : Nat := 16
-def by2 : Nat := 17
-def q1 : Nat := 18
-def r1 : Nat := 19
-def bt1 (i : Nat) : Nat := 20 + i
-def q2 : Nat := 26
-def r2 : Nat := 27
-def bt2 (i : Nat) : Nat := 28 + i
-def icnt : Nat := 34
-def zc : Nat := 35
-def kp : Nat := 36
-def da : Nat := 37
-def db : Nat := 38
-def llo : Nat := 39
-def lhi : Nat := 40
-def al : Nat := 41
-def gb : Nat := 42
-def ig1 : Nat := 43
-def e1 : Nat := 44
-def ig2 : Nat := 45
-def e2 : Nat := 46
-def cx : Nat := 47
-def cy : Nat := 48
-def cb : Nat := 49
-def cg : Nat := 50
-def dlsg : Nat := 51
-def dlrg : Nat := 52
-def sL : Nat := 53
+/-- Scan kinds (`Tables/Scan.lean`): param row, request row. -/
+def kP : Nat := 6
+def kS : Nat := 7
+/-- The public record window `f₀ … f₈` (`SPAR`). -/
+def side : Nat := 8
+def shd : Nat := 9
+def lnk : Nat := 10
+def by0 : Nat := 11
+def by1 : Nat := 12
+def by2 : Nat := 13
+def llo : Nat := 14
+def lhi : Nat := 15
+def alc : Nat := 16
+def fw (i : Nat) : Nat := 8 + i
+def a : Nat := 17
+def b : Nat := 18
+def s : Nat := 19
+def r : Nat := 20
+def N1 : Nat := 21
+/-- Shard rows: the memory address word `4096·(side + 1) + r`. -/
+def adr : Nat := 21
+def L1 : Nat := 22
+/-- Shard rows: the initial budget `B₀`. -/
+def bv : Nat := 22
+def N2 : Nat := 23
+def L2 : Nat := 24
+def q1 : Nat := 25
+def r1 : Nat := 26
+def bt1 (i : Nat) : Nat := 27 + i
+def q2 : Nat := 33
+def r2 : Nat := 34
+def bt2 (i : Nat) : Nat := 35 + i
+def icnt : Nat := 41
+def ig2 : Nat := 41
+def zc : Nat := 42
+def e2 : Nat := 42
+def kp : Nat := 43
+def gb : Nat := 43
+def da : Nat := 44
+def db : Nat := 45
+def al : Nat := 46
+def ig1 : Nat := 47
+def e1 : Nat := 48
+def cx : Nat := 49
+def cy : Nat := 50
+def cb : Nat := 51
+def cg : Nat := 52
+def dlsg : Nat := 53
+def dlrg : Nat := 54
+def sL : Nat := 55
 /-- End of an instance's grid (`kC ∧ e1 ∧ e2`). -/
-def eI : Nat := 54
+def eI : Nat := 56
 /-- Range checks: bits of `q1, q2` (23 each) and `r1, r2` (6 each). -/
-def qb1 (i : Nat) : Nat := 55 + i
-def qb2 (i : Nat) : Nat := 78 + i
-def rb1 (i : Nat) : Nat := 101 + i
-def rb2 (i : Nat) : Nat := 107 + i
-def width : Nat := 113
+def qb1 (i : Nat) : Nat := 57 + i
+def qb2 (i : Nat) : Nat := 80 + i
+def rb1 (i : Nat) : Nat := 103 + i
+def rb2 (i : Nat) : Nat := 109 + i
+/-- Columns `115 … 118` are scan-only (`fQ, re, us0, us1`, zero on distribute rows). -/
+def width : Nat := 119
 
 def mul3 (x y w : Expr) : Expr := .mul (.mul x y) w
 def notE (e : Expr) : Expr := sub (k 1) e
 
 def boolCols : List Nat :=
-  [act, kSh, kGH, kC, side, zc, al, e1, e2, cb, cg, dlsg, dlrg, eI] ++
+  [act, kP, kS, kSh, kGH, kC, zc, al, e1, cb, cg, dlsg, dlrg, eI] ++
   (List.range 6).map bt1 ++ (List.range 6).map bt2 ++
   (List.range 23).map qb1 ++ (List.range 23).map qb2 ++ (List.range 6).map rb1 ++ (List.range 6).map rb2
 
@@ -99,13 +124,22 @@ def x1E : Expr := .add (.mul (c kSh) (c a)) (.mul (c kC) (c b))
 /-- Instance constants. -/
 def instCols : List Nat := [tau, nn]
 
-def cKind : List Expr :=
-  boolCols.map boolC ++
-  [ sub (c act) (.add (c kSh) (.add (c kGH) (c kC))),
+/-- Kind constraints common to the scan and distribute families: one-hot kinds, padding is a
+suffix, row 0 (when active) is a scan param row or a sender shard row. -/
+def cCommon : List Expr :=
+  [ sub (c act) (.add (c kP) (.add (c kS) (.add (c kSh) (.add (c kGH) (c kC))))),
     .mul .isLast (c act),
     mul3 .isTransition (notE (c act)) (n act),
-    .mul .isFirst (.mul (c act) (notE (c kSh))),
-    .mul .isFirst (c side), .mul .isFirst (c a), .mul .isFirst (c kp),
+    .mul .isFirst (.mul (c act) (notE (.add (c kP) (c kSh)))) ]
+
+def cKind : List Expr :=
+  boolCols.map boolC ++ cCommon ++
+  [ -- `side` shares the record window with scan bytes: a bit on shard rows
+    .mul (c kSh) (boolC side),
+    -- the distribute section starts with sender shard row 0 (row 0, or after a scan row)
+    mul3 .isFirst (c kSh) (c side), mul3 .isFirst (c kSh) (c a), mul3 .isFirst (c kSh) (c kp),
+    .mul (c kS) (n kGH), .mul (c kS) (n kC),
+    mul3 (c kS) (n kSh) (n side), mul3 (c kS) (n kSh) (n a), mul3 (c kS) (n kSh) (n kp),
     -- e1 = [x1 = n − 1] on shard rows and cells; e2 = [a = n − 1] on cells
     .mul (.add (c kSh) (c kC)) (sub (c e1) (notE (.mul (sub x1E (sub (c nn) (k 1))) (c ig1)))),
     .mul (.add (c kSh) (c kC)) (.mul (sub x1E (sub (c nn) (k 1))) (c e1)),
@@ -130,6 +164,13 @@ def cShard : List Expr :=
     .mul (c kSh) (sub (c db) (.add (.mul (c side) (c a)) (smul 255 (notE (c side))))),
     .mul (c kSh) (sub (c sL) (c L2)),
     .mul (c kSh) (c al),
+    -- record window copies and the memory INIT window
+    .mul (c kSh) (sub (c shd) (c r)),
+    .mul (c kSh) (sub (c lnk) (c N2)),
+    .mul (c kSh) (sub (c llo) (c nn)),
+    .mul (c kSh) (sub (c adr) (.add (smul 4096 (.add (c side) (k 1))) (c r))),
+    .mul (c kSh) (sub (c bv) b0E),
+    .mul (c kSh) (c b), .mul (c kSh) (c s),
     -- transitions
     mul3 (c kSh) (notE (c e1)) (notE (n kSh)),
     mul3 (c kSh) (notE (c e1)) (sub (n side) (c side)),
@@ -153,6 +194,7 @@ def cGrid : List Expr :=
   instCols.map (fun x => .mul (c kGH) (sub (n x) (c x))) ++
   [ -- cell: link, allowed, divisions, grant
     .mul (c kC) (sub linkE (.add (.mul (c s) (c nn)) (c r))),
+    .mul (c kC) (sub (c alc) (c al)),
     .mul (c al) (notE (c kC)),
     .mul (c al) (sub (c L1) (.add (.mul (c q1) (c N1)) (c r1))),
     .mul (c al) (sub (sub (sub (c N1) (k 1)) (c r1)) bits1E),
@@ -196,23 +238,7 @@ def cRange : List Expr :=
 
 def constraints : List Expr := cKind ++ cShard ++ cGrid ++ cRange
 
-def interactions : List Interaction :=
-  [ { bus := B_SSHD, mult := [c kSh], send := false,
-      msg := [c tau, c side, c r, c N2, c by0, c by1, c by2, c nn] },
-    { bus := B_SOP, mult := [c kSh], send := true,
-      msg := [addrE, k 0, k OP_INIT, k 0, b0E, k 0, k 0, k 0] },
-    { bus := B_SFIN, mult := [c kSh], send := false, msg := [addrE, c L2, k 0] },
-    { bus := B_SCMP, mult := [c cg], send := true, msg := [c cx, c cy, c cb] },
-    { bus := B_SDLX, mult := [c dlsg], send := true,
-      msg := [c tau, c da, c db, c r, sub (c N2) (c al), c sL] },
-    { bus := B_SDLX, mult := [c dlrg], send := false,
-      msg := [c tau, c a, c b, c r, c N2, c L2] },
-    { bus := B_SLINK, mult := [c kC], send := false, msg := [c tau, c llo, c lhi, c al] },
-    { bus := B_SDG, mult := [c kC], send := true, msg := [c tau, linkE, c al, c gb] } ]
-
-def maxLog : Nat := 22
-
-def table : Table :=
-  { width := width, constraints := constraints, interactions := interactions, maxLog := maxLog }
+/-! The distribute family's interactions are in `ScanDist.interactions`: the merged `SPAR`
+receive (tags 3, 4) and `SOP` send (INIT), and its own `SFIN`, `SCMP`, `SDLX` ×2, `SDG`. -/
 
 end ZkFormal.NearV3.Sched.Dist

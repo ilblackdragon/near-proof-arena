@@ -2,7 +2,7 @@ import ZkFormal.NearV3.Sched.View.Scan
 import ZkFormal.NearV3.Sched.View.ScanSpec
 
 /-!
-# ZkFormal.NearV3.Sched.View.ScanReq — a request block of `sscV3` and its contract
+# ZkFormal.NearV3.Sched.View.ScanReq — a request block of the scan rows of `ssdV3` and its contract
 
 A request block is the 20 rows `f … f + 19` after a request-start row `f` (`fQ = 1`), whose
 register holds the request's bytes `q₀ … q₄` (the public `SRAW` record).
@@ -14,7 +14,9 @@ register holds the request's bytes `q₀ … q₄` (the public `SRAW` record).
 * **`scan_request`**: `m = (incsOf p bm).length`, every `INC` sent with nonzero multiplicity at
   slot `k` of row `f + x` is `(τ, cid·64 + j, (incsOf p bm)[j], len − j − 1, s, r, link)` for the
   index `j = (stAt … (2x + k)).2 < len` of a set bit `2x + k` (distinct slots give distinct
-  `j`: `ScanSpec.stAt_snd_lt`), and the end row's `PUSH` / `READ` messages.
+  `j`: `ScanSpec.stAt_snd_lt`), and the end row's `PUSH` / `READ` messages. The interactions
+  are those of the merged table: `SINC` = `ScanDist.interactions[1, 2]`, `SPUSH` = `[3]`, the
+  merged `SOP` send (READ / distribute INIT, multiplicity `re + kSh`) = `[4]`.
 
 The quotients are exact (`Q = D·(pos + 1)/40`) by the table's range checks `Q₀, Q₁ < 2^23`
 (`Scan.q_ranges`, `Scan.q_exact`), given `D < 2^24`.
@@ -64,8 +66,8 @@ theorem re_of (hL : SLocal tr t pub) {w : Nat} (hw : w < tr.height t) (hk : cv t
     cv tr t w re = if cv tr t w y = 4 ∧ cv tr t w u0 = 1 ∧ cv tr t w u1 = 1 then 1 else 0 := by
   obtain ⟨-, -, -, he4, hre, -, -⟩ := row_cur hL hw hk
   have b := fun x (hx : x ∈ boolCols) => bool_of hL hw hx
-  have h4 := b e4 (by simp [boolCols]); have hu0 := b u0 (by simp [boolCols])
-  have hu1 := b u1 (by simp [boolCols])
+  have h4 := b e4 (by simp [boolCols, sharedBool, ownBool]); have hu0 := b u0 (by simp [boolCols, sharedBool, ownBool])
+  have hu1 := b u1 (by simp [boolCols, sharedBool, ownBool])
   rw [hre]
   split
   · next hc =>
@@ -91,8 +93,8 @@ theorem mid_step (hL : SLocal tr t pub) {w : Nat} (hw : w < tr.height t) (hk : c
       (∀ i, i < 4 → cv tr t (w + 1) (q (i + 1)) = cv tr t w (q (i + 1))) ∧
       ∃ z : Int, (cv tr t w (q 0) : Int) =
         cv tr t w b0 + 2 * cv tr t w b1 + 4 * cv tr t (w + 1) (q 0) + 2013265921 * z := by
-  have hu0 := bool_of hL hw (x := u0) (by simp [boolCols])
-  have hu1 := bool_of hL hw (x := u1) (by simp [boolCols])
+  have hu0 := bool_of hL hw (x := u0) (by simp [boolCols, sharedBool, ownBool])
+  have hu1 := bool_of hL hw (x := u1) (by simp [boolCols, sharedBool, ownBool])
   have hp : cv tr t w u0 * cv tr t w u1 = 0 := by
     rcases Nat.le_one_iff_eq_zero_or_eq_one.1 hu0 with e | e <;>
     rcases Nat.le_one_iff_eq_zero_or_eq_one.1 hu1 with e' | e' <;> simp only [e, e'] <;> omega
@@ -114,8 +116,8 @@ theorem end_step (hL : SLocal tr t pub) {w : Nat} (hw : w < tr.height t) (hk : c
     rw [re_of hL hw hk, if_neg]; omega
   have hp : cv tr t w u0 * cv tr t w u1 = 1 := by rw [hu0, hu1]
   have hw1 := row_next_lt_kS hL hw hk
-  have hu0' := bool_of hL hw1 (x := u0) (by simp [boolCols])
-  have hu1' := bool_of hL hw1 (x := u1) (by simp [boolCols])
+  have hu0' := bool_of hL hw1 (x := u0) (by simp [boolCols, sharedBool, ownBool])
+  have hu1' := bool_of hL hw1 (x := u1) (by simp [boolCols, sharedBool, ownBool])
   obtain ⟨-, k1, -, hc, hu', hy', -, -, -, hrot, -, -⟩ := row_step hL hw hk hre
   rw [hp, hu0, hu1] at hu'
   rw [hp, hy] at hy'
@@ -139,17 +141,17 @@ theorem byte_step (hL : SLocal tr t pub) {f : Nat} {bm : List UInt8}
     mid_step hL hw2 k2 (uu := 2) u2e (by omega) y2 hyy
   have hw3' : g + 1 + 1 + 1 < tr.height t := hw3
   have bb := fun w (hw : w < tr.height t) x (hx : x ∈ boolCols) => bool_of hL hw hx
-  have hu03 := bb _ hw3' u0 (by simp [boolCols]); have hu13 := bb _ hw3' u1 (by simp [boolCols])
+  have hu03 := bb _ hw3' u0 (by simp [boolCols, sharedBool, ownBool]); have hu13 := bb _ hw3' u1 (by simp [boolCols, sharedBool, ownBool])
   have hu0e : cv tr t (g + 1 + 1 + 1) u0 = 1 := by omega
   have hu1e : cv tr t (g + 1 + 1 + 1) u1 = 1 := by omega
   have hq3 := (row_cur hL hw3' k3).2.2.1 hu0e hu1e
   have hw0 : g < tr.height t := hg
   have hw1' : g + 1 < tr.height t := hw1
   have hw2' : g + 1 + 1 < tr.height t := hw2
-  have a0 := bb _ hw0 b0 (by simp [boolCols]); have c0 := bb _ hw0 b1 (by simp [boolCols])
-  have a1 := bb _ hw1' b0 (by simp [boolCols]); have c1' := bb _ hw1' b1 (by simp [boolCols])
-  have a2 := bb _ hw2' b0 (by simp [boolCols]); have c2' := bb _ hw2' b1 (by simp [boolCols])
-  have a3 := bb _ hw3' b0 (by simp [boolCols]); have c3' := bb _ hw3' b1 (by simp [boolCols])
+  have a0 := bb _ hw0 b0 (by simp [boolCols, sharedBool, ownBool]); have c0 := bb _ hw0 b1 (by simp [boolCols, sharedBool, ownBool])
+  have a1 := bb _ hw1' b0 (by simp [boolCols, sharedBool, ownBool]); have c1' := bb _ hw1' b1 (by simp [boolCols, sharedBool, ownBool])
+  have a2 := bb _ hw2' b0 (by simp [boolCols, sharedBool, ownBool]); have c2' := bb _ hw2' b1 (by simp [boolCols, sharedBool, ownBool])
+  have a3 := bb _ hw3' b0 (by simp [boolCols, sharedBool, ownBool]); have c3' := bb _ hw3' b1 (by simp [boolCols, sharedBool, ownBool])
   have hdig : (bm.getD yy 0).toNat =
       (cv tr t g b0 + 2 * cv tr t g b1) + 4 * (cv tr t (g + 1) b0 + 2 * cv tr t (g + 1) b1) +
       16 * (cv tr t (g + 1 + 1) b0 + 2 * cv tr t (g + 1 + 1) b1) +
@@ -278,8 +280,8 @@ theorem val_step (hL : SLocal tr t pub) {f : Nat} {bm : List UInt8}
         (NearSpecV3.Scheduler.requestValues p).getD (2 * x + 1) 0 := by
     intro h
     rw [requestValues_getD p (by omega), hbase', q_exact hr1 (hQx.2 h) (by omega) hz1]
-  have hb0 := bool_of hL hlt (x := b0) (by simp [boolCols])
-  have hb1 := bool_of hL hlt (x := b1) (by simp [boolCols])
+  have hb0 := bool_of hL hlt (x := b0) (by simp [boolCols, sharedBool, ownBool])
+  have hb1 := bool_of hL hlt (x := b1) (by simp [boolCols, sharedBool, ownBool])
   obtain ⟨hcm1, hcm0, -, -, -, hm, -⟩ := row_cur hL hlt hk
   have hjle := stAt_snd_le (NearSpecV3.Scheduler.requestValues p) bm p.base (2 * x)
   have hQ0lt := fun h => hQx.1 h
@@ -376,23 +378,42 @@ theorem mult_one {i : Interaction} {x w : Nat} (hm : i.mult = [c x])
     unfold cv; rw [← e, he]; decide
   · simp at h
 
-theorem inc0_def : interactions[2]! = Interaction.mk B_SINC [c us0]
+/-- A multiplicity `x + z` with `z = 0` on the row. -/
+theorem mult_add_one {i : Interaction} {x z w : Nat} (hm : i.mult = [.add (c x) (c z)])
+    (hz : cv tr t w z = 0) (h : i.multNat tr t w pub ≠ 0) : cv tr t w x = 1 := by
+  unfold Interaction.multNat at h
+  rw [hm] at h
+  simp only [Interaction.multNat.go] at h
+  split at h
+  · next he =>
+    have h0 : tr.cell t w z = 0 := by
+      apply Fp.ext
+      rw [show (0 : Fp) = Fp.ofNat 0 from rfl, Fp.toNat_ofNat]
+      exact hz
+    have e : (Expr.add (c x) (c z)).eval tr t w pub = tr.cell t w x + tr.cell t w z := rfl
+    rw [e, h0] at he
+    have hx : tr.cell t w x = 1 := by rwa [Lean.Grind.Semiring.add_zero] at he
+    unfold cv; rw [hx]; decide
+  · simp at h
+
+theorem inc0_def : ScanDist.interactions[1]! = Interaction.mk B_SINC [c us0]
       [c tau, eE, sub val0 (c cur), sub (sub (c m) (c j)) (k 1), c s, c r, c link] true := rfl
 
-theorem inc1_def : interactions[3]! = Interaction.mk B_SINC [c us1]
+theorem inc1_def : ScanDist.interactions[2]! = Interaction.mk B_SINC [c us1]
       [c tau, .add eE (c b0), sub val1 (c cm), sub (sub (sub (c m) (c j)) (c b0)) (k 1),
         c s, c r, c link] true := rfl
 
-theorem push_def : interactions[4]! = Interaction.mk B_SPUSH [c re]
+theorem push_def : ScanDist.interactions[3]! = Interaction.mk B_SPUSH [c re]
       [c tau, c key, c zk0, c cid, smul 64 (c cid)] true := rfl
 
-theorem read_def : interactions[5]! = Interaction.mk B_SOP [c re]
-      [aL, .add (c cid) (k 1), k OP_READ, c key, c key, k 0, k 0, k 0] true := rfl
+theorem read_def : ScanDist.interactions[4]! = Interaction.mk B_SOP [.add (c re) (c kSh)]
+      [aL, .add (c cid) (c kS), c kS, c key, .add (c key) (c bvz), k 0, k 0, k 0] true := rfl
 
-/-- The scan table's interactions on `SINC`, `SPUSH`, `SOP` are entries 2, 3 / 4 / 5. -/
-theorem bus_cases : ∀ i ∈ interactions,
-    (i.bus = B_SINC → i = interactions[2]! ∨ i = interactions[3]!) ∧
-      (i.bus = B_SPUSH → i = interactions[4]!) ∧ (i.bus = B_SOP → i = interactions[5]!) := by
+/-- The merged table's interactions on `SINC`, `SPUSH`, `SOP` are entries 1, 2 / 3 / 4. -/
+theorem bus_cases : ∀ i ∈ ScanDist.interactions,
+    (i.bus = B_SINC → i = ScanDist.interactions[1]! ∨ i = ScanDist.interactions[2]!) ∧
+      (i.bus = B_SPUSH → i = ScanDist.interactions[3]!) ∧
+      (i.bus = B_SOP → i = ScanDist.interactions[4]!) := by
   decide
 
 /-- The `INC` message of increase index `jj` of a request. -/
@@ -412,18 +433,18 @@ theorem scan_request (hL : SLocal tr t pub) {f : Nat} (hf : f < tr.height t)
     -- the number of increases
     cv tr t f m = (incsOf p bm).length ∧
     -- INC: slot kk of row f + x
-    (∀ x, x < 20 → ∀ kk, kk < 2 → (interactions[2 + kk]!).multNat tr t (f + x) pub ≠ 0 →
+    (∀ x, x < 20 → ∀ kk, kk < 2 → (ScanDist.interactions[1 + kk]!).multNat tr t (f + x) pub ≠ 0 →
       NearSpecV3.Scheduler.getBit bm (2 * x + kk) = true ∧
       (stAt (NearSpecV3.Scheduler.requestValues p) bm p.base (2 * x + kk)).2 < (incsOf p bm).length ∧
-      (interactions[2 + kk]!).msgVal tr t (f + x) pub =
+      (ScanDist.interactions[1 + kk]!).msgVal tr t (f + x) pub =
         incMsg (cv tr t f tau) (cv tr t f cid) (cv tr t f s) (cv tr t f r) (cv tr t f link) (incsOf p bm)
           (stAt (NearSpecV3.Scheduler.requestValues p) bm p.base (2 * x + kk)).2) ∧
     -- PUSH / READ only at the end row
-    (∀ x, x < 20 → ∀ kk, kk < 2 → (interactions[4 + kk]!).multNat tr t (f + x) pub ≠ 0 → x = 19) ∧
-    (interactions[4]!).msgVal tr t (f + 19) pub =
+    (∀ x, x < 20 → ∀ kk, kk < 2 → (ScanDist.interactions[3 + kk]!).multNat tr t (f + x) pub ≠ 0 → x = 19) ∧
+    (ScanDist.interactions[3]!).msgVal tr t (f + 19) pub =
       [cv tr t f tau, cv tr t f key, (if cv tr t f key = 0 then 1 else 0), cv tr t f cid,
         64 * cv tr t f cid].map Fp.ofNat ∧
-    (interactions[5]!).msgVal tr t (f + 19) pub =
+    (ScanDist.interactions[4]!).msgVal tr t (f + 19) pub =
       [addrOf (cv tr t f tau) 0 (cv tr t f link), cv tr t f cid + 1, OP_READ, cv tr t f key,
         cv tr t f key, 0, 0, 0].map Fp.ofNat := by
   have hR := struct_all hL hf hfQ hbm
@@ -444,9 +465,9 @@ theorem scan_request (hL : SLocal tr t pub) {f : Nat} (hf : f < tr.height t)
     have lt := fun col => cv_lt (tr := tr) (t := t) (f + x) col
     have hmx : cv tr t (f + x) m = (incsOf p bm).length := by rw [cc m (by simp [reqCols]), hm]
     rcases (by omega : kk = 0 ∨ kk = 1) with h | h <;> subst h
-    · rw [Nat.add_zero] at hmult ⊢
+    · simp only [Nat.add_zero] at hmult ⊢
       have hu : cv tr t (f + x) us0 = 1 := mult_one (by rfl) hmult
-      have hb : cv tr t (f + x) b0 = 1 := by have := F.2.2.2.2.1; have := bool_of hL hlt (x := b0) (by simp [boolCols]); omega
+      have hb : cv tr t (f + x) b0 = 1 := by have := F.2.2.2.2.1; have := bool_of hL hlt (x := b0) (by simp [boolCols, sharedBool, ownBool]); omega
       have hgb := hg0.2 hb
       have hjlt := stAt_snd_lt (NearSpecV3.Scheduler.requestValues p) bm p.base
         (show 2 * x < 40 by omega) hgb
@@ -474,9 +495,9 @@ theorem scan_request (hL : SLocal tr t pub) {f : Nat} (hf : f < tr.height t)
         eval_ofNat (by simp only [zev_c, cur_cv]; rw [cc link (by simp [reqCols])])
       rw [inc0_def]
       simp only [Interaction.msgVal, incMsg, List.map_cons, List.map_nil, e1, e2, e3, e4', e5, e6, e7]
-    · rw [show 2 + 1 = 3 from rfl] at hmult ⊢
+    · rw [show 1 + 1 = 2 from rfl] at hmult ⊢
       have hu : cv tr t (f + x) us1 = 1 := mult_one (by rfl) hmult
-      have hb : cv tr t (f + x) b1 = 1 := by have := F.2.2.2.2.2.1; have := bool_of hL hlt (x := b1) (by simp [boolCols]); omega
+      have hb : cv tr t (f + x) b1 = 1 := by have := F.2.2.2.2.2.1; have := bool_of hL hlt (x := b1) (by simp [boolCols, sharedBool, ownBool]); omega
       have hgb := hg1.2 hb
       have hjlt := stAt_snd_lt (NearSpecV3.Scheduler.requestValues p) bm p.base
         (show 2 * x + 1 < 40 by omega) hgb
@@ -506,9 +527,12 @@ theorem scan_request (hL : SLocal tr t pub) {f : Nat} (hf : f < tr.height t)
       simp only [Interaction.msgVal, incMsg, List.map_cons, List.map_nil, e1, e2, e3, e4', e5, e6, e7]
   · intro x hx kk hkk hmult
     have hre : cv tr t (f + x) re = 1 := by
+      obtain ⟨hlt, hk, -⟩ := hR x hx
+      have F := row_flags hL hlt
+      have hsh : cv tr t (f + x) kSh = 0 := by omega
       rcases (by omega : kk = 0 ∨ kk = 1) with h | h <;> subst h
       · exact mult_one (by rfl) hmult
-      · exact mult_one (by rfl) hmult
+      · exact mult_add_one (by rfl) hsh hmult
     have := (hR x hx).2.2.1
     rw [hre] at this
     by_cases h : x = 19
@@ -531,18 +555,23 @@ theorem scan_request (hL : SLocal tr t pub) {f : Nat} (hf : f < tr.height t)
     simp only [Interaction.msgVal, List.map_cons, List.map_nil, e1, e2, e3, e4', e5]
   · obtain ⟨hlt, hk, -, hc, -⟩ := hR 19 (by omega)
     have cc := fun col (h : col ∈ reqCols) => hc col h
+    have hbv : cv tr t (f + 19) bvz = 0 :=
+      zero_of_gate hL hlt (by simp [constraints, shared, own, body]) hk
     have e1 : aL.eval tr t (f + 19) pub = Fp.ofNat (addrOf (cv tr t f tau) 0 (cv tr t f link)) :=
       eval_ofNat (by
         simp only [aL, zev_add, zev_smul, zev_c, cur_cv]
         rw [cc tau (by simp [reqCols]), cc link (by simp [reqCols])]; simp only [addrOf]; omega)
-    have e2 : (Expr.add (c cid) (k 1)).eval tr t (f + 19) pub = Fp.ofNat (cv tr t f cid + 1) :=
-      eval_ofNat (by simp only [zev_add, zev_c, zev_k, cur_cv]; rw [cc cid (by simp [reqCols])]; omega)
-    have e3 : (k OP_READ).eval tr t (f + 19) pub = Fp.ofNat OP_READ := eval_ofNat (zev_k _ _)
+    have e2 : (Expr.add (c cid) (c kS)).eval tr t (f + 19) pub = Fp.ofNat (cv tr t f cid + 1) :=
+      eval_ofNat (by simp only [zev_add, zev_c, cur_cv]; rw [cc cid (by simp [reqCols]), hk]; omega)
+    have e3 : (c kS).eval tr t (f + 19) pub = Fp.ofNat OP_READ :=
+      eval_ofNat (by simp only [zev_c, cur_cv]; rw [hk]; rfl)
     have e4' : (c key).eval tr t (f + 19) pub = Fp.ofNat (cv tr t f key) :=
       eval_ofNat (by simp only [zev_c, cur_cv]; rw [cc key (by simp [reqCols])])
+    have e4'' : (Expr.add (c key) (c bvz)).eval tr t (f + 19) pub = Fp.ofNat (cv tr t f key) :=
+      eval_ofNat (by simp only [zev_add, zev_c, cur_cv]; rw [cc key (by simp [reqCols]), hbv]; omega)
     have e5 : (k 0).eval tr t (f + 19) pub = Fp.ofNat 0 := eval_ofNat (zev_k _ _)
     rw [read_def]
-    simp only [Interaction.msgVal, List.map_cons, List.map_nil, e1, e2, e3, e4', e5]
+    simp only [Interaction.msgVal, List.map_cons, List.map_nil, e1, e2, e3, e4', e4'', e5]
 
 end
 
