@@ -425,6 +425,8 @@ theorem post_list (s : Nat) :
     · rw [List.getElem_append_right (by simp [acctOfSeg]; omega)]
       simp [acctOfSeg, valAt, hp, show 16 + (p - 16) = p by omega]
 
+end ZkFormal.NearV3.AcctV3Proof
+
 namespace ZkFormal.NearV3.AcctV3Proof
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.Near.Acct
 
