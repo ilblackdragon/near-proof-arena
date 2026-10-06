@@ -20,20 +20,30 @@ def liftEK {K α : Type} : Except String α → SM K α
 
 def checkK {K : Type} (b : Bool) (msg : String) : SM K Unit := if b then pure () else throw msg
 
-/-- The recorded stores of a witness file, tagged: `0` = main (`base_state ++ code blobs`), `k + 1` =
-implicit transition `k`'s `base_state`. -/
-def storesOf (witnessBytes : Bytes) : Nat × Bytes → Option Bytes :=
+/-- Tagged lookup in the main store and the implicit transitions' stores. -/
+def storesOfW (main : HStore) (imps : List HStore) : Nat × Bytes → Option Bytes
+  | (0, h) => hGet main h
+  | (k + 1, h) => match imps[k]? with
+    | some st => hGet st h
+    | none => none
+
+/-- The recorded stores of a witness file, as data: the main store (`base_state ++ code blobs`) and
+each implicit transition's `base_state`. -/
+def storesData (witnessBytes : Bytes) : Option (HStore × List HStore) :=
   match decodeWitnessFile witnessBytes with
-  | .error _ => fun _ => none
+  | .error _ => none
   | .ok (swBytes, codes) =>
     match decodeStateWitnessD2 swBytes with
-    | .error _ => fun _ => none
-    | .ok w => fun (k, h) =>
-      match k with
-      | 0 => hGet (mkHStore (w.main.values ++ codes)) h
-      | k + 1 => match w.implicit[k]? with
-        | some T => hGet (mkHStore T.values) h
-        | none => none
+    | .error _ => none
+    | .ok w => some (mkHStore (w.main.values ++ codes), w.implicit.map fun T => mkHStore T.values)
+
+def storeFn : Option (HStore × List HStore) → Nat × Bytes → Option Bytes
+  | none, _ => none
+  | some (main, imps), k => storesOfW main imps k
+
+/-- The recorded stores of a witness file, tagged: `0` = main (`base_state ++ code blobs`), `k + 1` =
+implicit transition `k`'s `base_state`. (Evaluate `storesData` once and use `storeFn`.) -/
+def storesOf (witnessBytes : Bytes) : Nat × Bytes → Option Bytes := storeFn (storesData witnessBytes)
 
 def checkD2CoreL (hooks : ActionHooksL) (allowCodes : Bool) (claimBytes witnessBytes : Bytes)
     (gasCap : Option Nat := none) : SM (Nat × Bytes) Unit := do
@@ -385,7 +395,7 @@ theorem checkD2Core_logged (H : ActionHooks) (HL : ActionHooksL)
   all_goals
     apply RK_bind
     · refine RK_keyed ?_ (R_applyNewChunkD2 H HL _ (hH _ _ (HInv_mkHStore _)) (HInv_mkHStore _) _ _ _ _ _ _ _)
-      intro h; simp [storesOf, *]
+      intro h; simp [storesOf, storesData, storeFn, storesOfW, *]
   all_goals lkk
   all_goals
     apply RK_bind
@@ -396,7 +406,7 @@ theorem checkD2Core_logged (H : ActionHooks) (HL : ActionHooksL)
       all_goals
         apply RK_bind
         · refine RK_keyed ?_ (R_applyMissingChunkD2 (HInv_mkHStore _) _ _ _ _)
-          intro h; simp [storesOf, *]
+          intro h; simp [storesOf, storesData, storeFn, storesOfW, *]
       all_goals lkk
   all_goals lkk
 
