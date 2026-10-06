@@ -625,9 +625,11 @@ before subtracts; underflow/overflow panics).
 
 ### 9.2 Receipt sink: limits, forwarding, buffering (`congestion_control.rs:86-500`)
 
-Limits per shard `s` of the block's congestion map: `gas = s = own ? u64::MAX :
-outgoing_gas_limit(s's congestion, missed, own)` (D0), `size = granted bandwidth (own → s)`;
-a shard without an entry: `(u64::MAX, 0)`.
+Limits per shard `s` of the block's congestion map: `gas = (s = own ? u64::MAX :
+outgoing_gas_limit(s's congestion, missed, own))` (D0), `size = granted bandwidth (own → s)`;
+a shard without an entry: `(u64::MAX, 0)`. `ReceiptSink::new` reads `BufferedReceiptIndices`
+and the group metadata from the pre-state trie itself (`&state_update.trie`), as does the
+forwarding iteration below.
 **try_forward**(r, gas, size, shard): `size := min(size, 4 194 304)`; forward iff `limit.gas ≥
 min(gas, allowed_shard_outgoing_gas = 10¹⁵)` (`ClampOutgoingGasAdmission`, PV 85) and
 `limit.size ≥ size`; then `limit.gas ∸= gas` (saturating), `limit.size −= size`.
