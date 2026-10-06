@@ -588,6 +588,9 @@ diagnostic):
   the ≈ 6-minute d0 sessions keep failing the stand-in calibration on the shared host). Its v3
   entries stay on the speed-scored `near-chunk-validation-d0-1`. The packages to resubmit are the
   admitted `sub_0826bb9b…` and `sub_2b51fbde…` packages, with `challenge` changed.
+  **Dropped (plan change, 2026-10-06):** the user wants one unified `near-chunk-v3` challenge
+  (Rel_D3α, coverage tiers). `near-chunk-validation-d0-2` stays unsigned:
+  `challenges/drafts/near-chunk-validation-d0-2.SUPERSEDED.md`.
 
 ## 5. Current state (2026-10-03 16:10 UTC)
 
