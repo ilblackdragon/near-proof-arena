@@ -815,3 +815,16 @@ residual source-key reads and proper resolved-child revelation; branch slots
 use actual native contexts. Both RDB and RDE are covered, with no ID agreement
 premise. Eight axiom guards pass. The terminal off-path resolver correction
 remains in use; proper-child agreement does not generalize to that case.
+
+### Native output SHA jobs
+
+`UpsertShaJobs` allocates concrete `Sha.Gen.Msg` values: scheduler value at
+`msgId 12 (512*tau)`, then native bottom-up node preimages in slots1..n. Actual
+400-step builder traces have at most404 jobs including the value. IDs are
+strictly ordered within a run, disjoint across transitions, match `upsIdV`, and
+are below262144 when tau<32. Output digests follow native `nodeEnc` without
+requiring output memory to fit u64; native serialization performs its usual
+modular encoding. Exact total byte cost is exposed, not bounded by assumption.
+Nineteen axiom guards in `test/AuditUpsertShaJobs.lean` pass using only the
+standard Lean axioms. SHA row capacity and global byte/digest balance remain
+separate unfinished obligations.
