@@ -42,4 +42,34 @@ theorem splitExt_memory_bound (k key : List Nat) (c : PTrie) (m : Nat) (v : Byte
       simp only [h1,h2] <;> cases xs <;> cases p <;>
       simp_all [wrapExt,newLeaf,PTrie.memD,PTrie.mem?,leafMem,valueMem,extOwnMem,
         Render.NodeInfo.hexPrefix_len] <;> omega
+theorem leafSplitRun_memory_bound (k key : List Nat) (s : Slot) (m : Nat) (v : Bytes)
+    (hkey : key.length≤2) (hk : k.length<2^34) (hs : s.len<2^32) (hv : v.length<2^24) :
+    ∀ part∈(leafSplitRun k s m key v).parts, part.output.memD<2^65 := by
+  have hp := commonPrefix_key_bound k key hkey
+  have hl : (k.drop (commonPrefix k key).length).length≤k.length := by simp only [List.length_drop]; omega
+  have hr : (key.drop (commonPrefix k key).length).length≤key.length := by simp only [List.length_drop]; omega
+  unfold leafSplitRun
+  generalize commonPrefix k key=p at *
+  cases h1 : k.drop p.length <;> cases h2 : key.drop p.length <;>
+    simp only [h1,h2,List.length_cons,List.length_nil] at hl hr <;>
+    simp only [h1,h2] <;> cases p <;>
+    simp_all [wrapRun,terminalRun,pushPart,wrapExt,newLeaf,PTrie.memD,PTrie.mem?,leafMem,valueMem,extOwnMem,
+      Render.NodeInfo.hexPrefix_len] <;> (repeat' (apply And.intro)) <;> omega
+
+theorem extSplitRun_memory_bound (k key : List Nat) (c : PTrie) (m : Nat) (v : Bytes)
+    (hkey : key.length≤2) (hk : k.length<2^34) (hm : m<2^64) (hv : v.length<2^24) :
+    ∀ part∈(extSplitRun k c m key v).parts, part.output.memD<2^65 := by
+  have hp := commonPrefix_key_bound k key hkey
+  have hl : (k.drop (commonPrefix k key).length).length≤k.length := by simp only [List.length_drop]; omega
+  have hr : (key.drop (commonPrefix k key).length).length≤key.length := by simp only [List.length_drop]; omega
+  unfold extSplitRun
+  generalize commonPrefix k key=p at *
+  cases h1 : k.drop p.length with
+  | nil => simp [h1,terminalRun]
+  | cons x xs =>
+    cases h2 : key.drop p.length <;>
+      simp only [h1,h2,List.length_cons,List.length_nil] at hl hr <;>
+      simp only [h1,h2] <;> cases xs <;> cases p <;>
+      simp_all [wrapRun,terminalRun,pushPart,wrapExt,newLeaf,PTrie.memD,PTrie.mem?,leafMem,valueMem,extOwnMem,
+        Render.NodeInfo.hexPrefix_len] <;> (repeat' (apply And.intro)) <;> omega
 end ZkFormal.NearV3.Render.UpsGen
