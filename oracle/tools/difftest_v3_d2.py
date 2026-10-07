@@ -25,20 +25,25 @@ result, action results (receipt source:[actions] => status), receipt classes, qu
 features, mutant families.
 
 usage: difftest_v3_d2.py --cases DIR --python FILE [--lean EXE] [--lean-d1] [--python-d1 FILE]
+         [--lean-from RESULTS.jsonl] [--save NEW_DIR]
          [--d1-corpus DIR] [--jobs N] [--report OUT.json]
 """
-import argparse, collections, concurrent.futures as cf, json, os, subprocess, sys, time
+import argparse, collections, concurrent.futures as cf, hashlib, json, os, subprocess, sys, time
+from pathlib import Path
+from check_logged import parse_results
 
 
 def run_checker(cmd, dirs, chunk, jobs):
+    if chunk < 1 or jobs < 1:
+        raise ValueError("chunk and jobs must be positive")
+    if len(set(map(os.path.normpath, dirs))) != len(dirs):
+        raise ValueError("duplicate input case")
     out = {}
     parts = [dirs[i:i + chunk] for i in range(0, len(dirs), chunk)]
 
     def one(ds):
-        p = subprocess.run(cmd + ds, capture_output=True, text=True)
-        if p.returncode != 0:
-            sys.stderr.write(p.stderr[-2000:])
-        return [json.loads(l) for l in p.stdout.splitlines() if l.startswith('{')]
+        p = subprocess.run(cmd + ds, capture_output=True, text=True, check=True)
+        return parse_results(p.stdout, ds).values()
     with cf.ThreadPoolExecutor(jobs) as ex:
         for res in ex.map(one, parts):
             for j in res:
@@ -85,18 +90,40 @@ def main():
     ap.add_argument("--cases", required=True)
     ap.add_argument("--python", required=True)
     ap.add_argument("--lean")
+    ap.add_argument("--lean-from", type=Path, help="Complete saved Lean JSONL for this corpus")
+    ap.add_argument("--save", type=Path, help="New directory for complete checker results")
     ap.add_argument("--lean-d1", action="store_true")
     ap.add_argument("--python-d1")
     ap.add_argument("--d1-corpus")
     ap.add_argument("--jobs", type=int, default=8)
     ap.add_argument("--report")
     a = ap.parse_args()
+    if a.jobs < 1:
+        ap.error("jobs must be positive")
     dirs = list_cases(a.cases, ("d2", "ood", "mutants"))
+    if not dirs:
+        ap.error("corpus contains no cases")
+    if a.lean_d1 and not a.lean:
+        ap.error("--lean-d1 requires --lean")
+    if a.d1_corpus and not list_cases(a.d1_corpus, ("d1", "ood", "mutants")):
+        ap.error("D1 corpus contains no cases")
+    if a.save:
+        a.save.mkdir(parents=True, exist_ok=False)
     times, impls = {}, {}
-    if a.lean:
+    baseline = None
+    if a.lean_from:
+        data = a.lean_from.read_bytes()
+        impls["lean"] = parse_results(data.decode(), dirs)
+        baseline = {"path": str(a.lean_from.resolve()), "sha256": hashlib.sha256(data).hexdigest()}
+    elif a.lean:
         t = time.time(); impls["lean"] = run_checker([a.lean], dirs, 200, a.jobs); times["lean"] = time.time() - t
     t = time.time(); impls["python"] = run_checker([sys.executable, a.python], dirs, 100, a.jobs)
     times["python"] = time.time() - t
+    if a.save:
+        for name, rows in impls.items():
+            with (a.save / f"{name}.jsonl").open("x") as stream:
+                for case in dirs:
+                    stream.write(json.dumps(rows[case]) + "\n")
     d1runs = {}
     if a.lean and a.lean_d1:
         t = time.time(); d1runs["lean_d1"] = run_checker([a.lean, "--d1"], dirs, 200, a.jobs); times["lean_d1"] = time.time() - t
@@ -185,6 +212,11 @@ def main():
             features["contract_data_removals"] += f.get("contract_data_removals", 0) > 0
             features[f"rs_{f.get('rs')}"] += 1
             features[f"shards_{f.get('n_shards')}"] += 1
+    if a.save:
+        for name, rows in d1runs.items():
+            with (a.save / f"{name}.jsonl").open("x") as stream:
+                for case in dirs:
+                    stream.write(json.dumps(rows[case]) + "\n")
     d1c = None
     if a.d1_corpus:
         ddirs = list_cases(a.d1_corpus, ("d1", "ood", "mutants"))
@@ -192,6 +224,11 @@ def main():
         res["python"] = run_checker([sys.executable, a.python], ddirs, 100, a.jobs)
         if a.lean:
             res["lean"] = run_checker([a.lean], ddirs, 200, a.jobs)
+        if a.save:
+            for name, rows in res.items():
+                with (a.save / f"d1corpus-{name}.jsonl").open("x") as stream:
+                    for case in ddirs:
+                        stream.write(json.dumps(rows[case]) + "\n")
         issues = []
         cnt = collections.Counter()
         for d in ddirs:
@@ -213,6 +250,7 @@ def main():
         "corpus": a.cases,
         "summary": json.load(open(os.path.join(a.cases, "summary.json"))) if os.path.exists(os.path.join(a.cases, "summary.json")) else None,
         "implementations": {"nearcore": "near-arena-oracle-v3-d1 --domain d2 (meta.json)", "lean": a.lean, "python": a.python},
+        "lean_from": baseline,
         "cases": len(dirs), "stats": dict(stats), "seconds": times,
         "disagreements": len(disagreements), "disagreement_samples": disagreements[:60],
         "d1_subset_check": None if not d1runs else {"issues": len(d1_issues), "samples": d1_issues[:20]},
@@ -225,6 +263,8 @@ def main():
         "mutant_families": {f"{k[0]}|expected={k[1]}": v for k, v in sorted(families.items())},
     }
     s = json.dumps(report, indent=2)
+    if a.save:
+        (a.save / "report.json").write_text(s + "\n")
     if a.report:
         open(a.report, "w").write(s + "\n")
     print(json.dumps({k: report[k] for k in ("cases", "stats", "seconds", "disagreements")}, indent=1))
