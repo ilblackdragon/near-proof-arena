@@ -6,6 +6,17 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+User explicitly authorized committing and pushing checked work. Root integrating
+D2f79040fc asAIR82d408c4: executable UpsertShaJobs nativevalue/output preimages,
+count≤404 for actualpartialTrie, disjoint bounded K_VUPS IDs. Target and19
+standard-axiom checks PASS (/tmp/nearproof-upsert-sha-integrated{,-audit}.log).
+All4 agent slots confirmed active: root queue soundness/integration; receipt
+KEYNIB final composition; ups child-window inputs; D2 SHAjobs↔encodedparts.
+Three receipt-owned untracked KeyCanonical/KeyMarkerLayout/KeyMarkerValues files
+remain WIP; intentionally outside checked commits. Pushing main and lane/v3-air
+(non-force) per user's request. Full objective remains incomplete.
+
+
 Root SupplierStreams CHECKED at AIR736a11fe: StartClosed permutation/append
 closure; actual acctV3Sends and akeySends startclosure; combined other parser,
 account and accesskey suppliers; selected_record_complete derives full filtered
