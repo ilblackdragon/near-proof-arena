@@ -863,3 +863,10 @@ no injectivity, deduplication, source-wf, or assumed charge bound is needed.
 Across actual runs the charge is at most `4*preBytes` in the unchanged native
 A7 measure. Seven guards pass. Output-vs-source growth and fresh scheduler
 values still need charging before the shared SHA capacity theorem closes.
+
+`UpsertAncestorCost` derives exact native ancestor growth: extension updates
+preserve serialized size; existing branch-child replacement preserves it;
+child insertion adds exactly32 bytes. Fresh short-key leaves cost at most51
+bytes, moved-key nodes cannot grow, and a new branch value adds at most36
+bytes. Eleven guards pass. These are checked ingredients for the remaining
+terminal/split aggregate bound, not a claim that shared SHA capacity is closed.
