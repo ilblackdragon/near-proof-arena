@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Link.SourceHashes
 import ZkFormal.NearV3.Rcpt.Render.Srcp.TrafficProof
 import ZkFormal.NearV3.Rcpt.Render.Srcp.TrafficBlock
 import ZkFormal.NearV3.Rcpt.Render.Srcp.LocalProof
@@ -350,3 +351,51 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.Render.SrcpGen.table_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.SrcpGen.table_traffic
+
+/-- info: 'ZkFormal.NearV3.source_ql' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_ql
+
+/-- info: 'ZkFormal.NearV3.source_interval_before' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_interval_before
+
+/-- info: 'ZkFormal.NearV3.source_lastQ_le' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_lastQ_le
+
+/-- info: 'ZkFormal.NearV3.source_msgId_lt' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_msgId_lt
+
+/-- info: 'ZkFormal.NearV3.source_payload_field_unique' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_payload_field_unique
+
+/-- info: 'ZkFormal.NearV3.source_bytes_isolate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_bytes_isolate
+
+/-- info: 'ZkFormal.NearV3.source_sha_digest' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_sha_digest
+
+/-- info: 'ZkFormal.NearV3.sourceEncoding_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.sourceEncoding_eq
+
+/-- info: 'ZkFormal.NearV3.source_sha_digest_bytes' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_sha_digest_bytes
+
+/-- info: 'ZkFormal.NearV3.source_predecessor' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_predecessor
+
+/-- info: 'ZkFormal.NearV3.source_final_payload' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_final_payload
+
+/-- info: 'ZkFormal.NearV3.source_hashes_of_sha' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_hashes_of_sha
