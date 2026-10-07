@@ -7,6 +7,23 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `db44fb12` + `9d9e0412`: all nine between-word step equations composed
+by cases, plus all24 neighbor equations (13 inside-word, two start, nine step)
+for internal byte neighbors and final words. Terminal-to-next-word rows satisfy
+first15, ready to combine with step cases. All24 proved actual AIR members.
+Target225 jobs;129 exact axiom guards+15 fixtures PASS. Logs
+`/tmp/nearproof-neighbor-equations.log`, `/tmp/nearproof-neighbor-audit-final.log`.
+No active root build. Next: derive neighbor classification from flattened native
+plan and assemble full walk local acceptance, then parser suffix/traffic.
+Physical layout/generated-cell premises are still explicit; no whole-trace
+acceptance or end-to-end certificate claimed. Shared AIR receives both commits.
+Agents remain active: D2 native value occurrence index5ace7872 and provider
+allocation; Ups source adjacency b2bfa802; receipt offset reconstruction c9293e84
+and whole BYTES composition. These newer agent checkpoints need next aggregate
+integration/audit. The previous user-facing progressbar was status only; this
+continuation made checked, committed proof progress.
+
+
 Root QV `4ae98b04`: all five main successor AIR equations from actual indexed
 native plan neighbors; all between-word gates zero inside words or on final
 words. Target223 jobs and QV113 exact axiom guards+15 fixtures PASS.
