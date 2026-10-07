@@ -188,3 +188,14 @@ The combined audit now passes33 exact axiom guards and15 field regressions,
 including three cases built by the production walk generator. Generic whole
 walk local constraints, exact bus traffic, parser wraparound, arbitrary-trace
 extraction and global ownership remain open.
+
+
+`CombinedWalkTraffic` proves generated walk rows emit no parser-provider traffic,
+including VBYTES and parser QSH. It also proves exact field KEYNIB traffic per
+row: the walk ID, byte-symbol positions, high/low nibbles, start/end markers and
+multiplicity all match the explicit natural message list. The positive-expression
+bridge is applied only to the KEYNIB interaction subset; the combined table's
+subtractions are not incorrectly interpreted as natural expressions.
+The audit now passes39 exact axiom guards and15 regressions. QVC/QSH walk
+traffic, complete word/plan message composition and generic local constraints
+remain open; this result does not assume those properties or global balance.

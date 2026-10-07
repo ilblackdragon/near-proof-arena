@@ -252,4 +252,180 @@ namespace ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen
     ((w.row pos b)[36]?).getD 0 = b.toNat / 2^7 % 2 := by
   simpa only [List.getD_eq_getElem?_getD] using w.cell36 pos b
 
+@[simp] theorem Walk.opt0 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[0]?.getD 0 = (1) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell0 pos b
+
+@[simp] theorem Walk.opt1 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[1]?.getD 0 = (1) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell1 pos b
+
+@[simp] theorem Walk.opt2 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[2]?.getD 0 = (1) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell2 pos b
+
+@[simp] theorem Walk.opt3 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[3]?.getD 0 = (if w.value.isSome then w.vid else 0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell3 pos b
+
+@[simp] theorem Walk.opt4 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[4]?.getD 0 = (w.mode) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell4 pos b
+
+@[simp] theorem Walk.opt5 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[5]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell5 pos b
+
+@[simp] theorem Walk.opt6 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[6]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell6 pos b
+
+@[simp] theorem Walk.opt7 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[7]?.getD 0 = (w.users) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell7 pos b
+
+@[simp] theorem Walk.opt8 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[8]?.getD 0 = (w.tau) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell8 pos b
+
+@[simp] theorem Walk.opt9 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[9]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell9 pos b
+
+@[simp] theorem Walk.opt10 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[10]?.getD 0 = (w.count) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell10 pos b
+
+@[simp] theorem Walk.opt11 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[11]?.getD 0 = (1) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell11 pos b
+
+@[simp] theorem Walk.opt12 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[12]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell12 pos b
+
+@[simp] theorem Walk.opt13 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[13]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell13 pos b
+
+@[simp] theorem Walk.opt14 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[14]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell14 pos b
+
+@[simp] theorem Walk.opt15 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[15]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell15 pos b
+
+@[simp] theorem Walk.opt16 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[16]?.getD 0 = (1) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell16 pos b
+
+@[simp] theorem Walk.opt17 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[17]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell17 pos b
+
+@[simp] theorem Walk.opt18 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[18]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell18 pos b
+
+@[simp] theorem Walk.opt19 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[19]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell19 pos b
+
+@[simp] theorem Walk.opt20 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[20]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell20 pos b
+
+@[simp] theorem Walk.opt21 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[21]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell21 pos b
+
+@[simp] theorem Walk.opt22 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[22]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell22 pos b
+
+@[simp] theorem Walk.opt23 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[23]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell23 pos b
+
+@[simp] theorem Walk.opt24 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[24]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell24 pos b
+
+@[simp] theorem Walk.opt25 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[25]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell25 pos b
+
+@[simp] theorem Walk.opt26 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[26]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell26 pos b
+
+@[simp] theorem Walk.opt27 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[27]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell27 pos b
+
+@[simp] theorem Walk.opt28 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[28]?.getD 0 = (0) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell28 pos b
+
+@[simp] theorem Walk.opt37 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[37]?.getD 0 = (1) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell37 pos b
+
+@[simp] theorem Walk.opt38 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[38]?.getD 0 = (w.kind.code%2) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell38 pos b
+
+@[simp] theorem Walk.opt39 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[39]?.getD 0 = (w.kind.code/2) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell39 pos b
+
+@[simp] theorem Walk.opt40 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[40]?.getD 0 = (pos) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell40 pos b
+
+@[simp] theorem Walk.opt41 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[41]?.getD 0 = (b.toNat) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell41 pos b
+
+@[simp] theorem Walk.opt42 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[42]?.getD 0 = (w.slot) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell42 pos b
+
+@[simp] theorem Walk.opt43 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[43]?.getD 0 = ((pos==0).toNat) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell43 pos b
+
+@[simp] theorem Walk.opt44 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[44]?.getD 0 = ((pos+1==w.kind.bytes.length).toNat) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell44 pos b
+
+@[simp] theorem Walk.opt45 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[45]?.getD 0 = (((pos+1==w.kind.bytes.length) && w.final).toNat) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell45 pos b
+
+@[simp] theorem Walk.opt46 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[46]?.getD 0 = ((!w.value.isSome).toNat) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell46 pos b
+
+@[simp] theorem Walk.opt47 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[47]?.getD 0 = (((w.kind.code==3) && !(pos==0)).toNat) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell47 pos b
+
+@[simp] theorem Walk.opt48 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[48]?.getD 0 = (((pos+1==w.kind.bytes.length) && w.value.isSome && (w.tau==0) && (w.kind.code==1)).toNat) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell48 pos b
+
+@[simp] theorem Walk.opt49 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[49]?.getD 0 = ((w.tau==0).toNat) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell49 pos b
+
+@[simp] theorem Walk.opt50 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[50]?.getD 0 = (w.lastMain.toNat) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell50 pos b
+
+@[simp] theorem Walk.opt51 (w : Walk) (pos : Nat) (b : UInt8) :
+    (w.row pos b)[51]?.getD 0 = (((pos+1==w.kind.bytes.length) && w.value.isSome).toNat) := by
+  simpa only [List.getD_eq_getElem?_getD] using w.cell51 pos b
+
 end ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen
