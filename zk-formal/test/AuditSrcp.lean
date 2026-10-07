@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Render.Srcp.Facts
 import ZkFormal.NearV3.Rcpt.Extract.Srcp.Proof
 import ZkFormal.NearV3.Rcpt.Link.SourceHash
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
@@ -167,3 +168,31 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.srcp_view' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.srcp_view
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.R_eq' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.R_eq
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.rows_log_bound' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.rows_log_bound
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.root_q_succ' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.root_q_succ
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.mem_kinds' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.mem_kinds
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.mem_recs' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.mem_recs
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.leaf_registers' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.leaf_registers
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.path_registers' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.path_registers
