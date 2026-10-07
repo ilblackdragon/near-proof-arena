@@ -294,7 +294,7 @@ duplicate computation is omitted, padding is silent, and SIZE is emitted exactly
 once with `sum (L + nonduplicatePathCharge)`. It needs only nonempty source blocks,
 32-byte root/leaf/sibling/accumulator widths, and the trace-to-renderer cell equality;
 it does not assume old source row caps or old `SrcpWf`. This closes logical aggregate
-traffic, while complete local legality remains open.
+traffic. Logical local completeness is now closed by the later TableLocal checkpoint below.
 
 `PreparedNonempty` now composes the actual `walkD0` decoder/lookup success with B2's
 new-slot membership and proves exact preservation of source-slot counts through
@@ -334,8 +334,7 @@ plus at least12 bytes of overhead. `DedupCompile.relD0a_size_bound` composes uni
 last-wins selection, actual repeated-source emptiness, native dictionary cardinality,
 and the decoder's canonical encoding non-expansion theorem to bound the full
 candidate SIZE by the unchanged8MiB raw witness budget. The candidate audit now
-checks98 axiom closures. This closes SIZE coverage, not candidate AIR admission or
-complete local legality.
+checks98 axiom closures. This closes SIZE coverage; candidate AIR admission remains separate.
 
 The candidate now has checked all122-polynomial local cases for computed and
 initial roots, every internal leaf/path byte, the path-window boundary, leaf/path
@@ -344,7 +343,7 @@ duplicate), terminal-to-padding transitions, physical terminal segments, and pad
 These supplement the existing duplicate-header cases. `DedupAdjacency.adjAt`
 (the theorem is in the DedupRender namespace) proves the exact candidate descriptor
 succession, and `DedupRender.mult_bits` proves actual field-valued multiplicity bits.
-Their composition into one whole-renderer/partition `TableLocal` remains open.
+Whole logical-renderer composition is now checked below; physical partition TableLocal remains open.
 
 Physical terminal segments need cyclic successor `sg=0`: several inherited segment
 successor polynomials are not gated by `isTransition`. The logical trace wraps to
@@ -353,3 +352,15 @@ last padding on actual inputs:16,334,272 rows is strictly below the16,777,215-ro
 pair capacity. `padding_physical_last` permits any cyclic successor, including a
 segment carry row. Partition completeness must use this actual capacity slack.
 No protocol height, cap, source domain, or candidate shape changed in this checkpoint.
+
+`DedupCompile.relD0a_table_local` now derives the complete logical candidate
+`TableLocal` from actual unchanged RelD0a, preparation, decoding, and renderer cell
+bindings. `TableFacts` contains only concrete semantic counter/index/repetition facts;
+its actual-input constructor proves each field. No AIR-satisfaction premise, old
+SrcpWf cap, or new path-depth premise is assumed. The proof covers all physical
+endpoints, internal/cross-source transitions, terminal SIZE, arbitrary padding, and
+field-valued multiplicity bits. Its log24 bound is an intermediate logical trace,
+not an admitted deployed table. Actual deployment still needs the overlapping
+log23 partition TableLocal proof, candidate extraction/soundness, final integrated
+bus disjointness/security, and the separate protocol admission family. The source AIR
+audit now checks77 transitive axiom closures and seven fixtures.
