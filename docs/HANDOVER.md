@@ -7,6 +7,23 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `812d5d40`: executable parser suffix after nonempty prefix satisfies
+ALL combined table constraints, including interaction bits, cross-record,
+padding and cyclic wrap. CombinedParserLift handles extra-column zero embedding;
+CombinedRecordPlacement derives original parser acceptance from executable valid
+records and proves public-input independence. Final combined_records_suffix_local
+requires ordinary generated cells, zero extra columns, fit, and first-prefix
+parser marker/zero-mode cells; NO local AIR premise. Target260 jobs;167 exact
+axiom guards+15 fixtures PASS. Logs `/tmp/nearproof-record-placement.log`,
+`/tmp/nearproof-parser-suffix-audit-final.log`. No root process. Next root: mixed
+trace constructor; derive records columns≥37 zero and prefix/suffix first cells,
+then combine with plan_prefix_all_constraints into whole TableLocal. Exact
+traffic and sound extraction still separate. SharedAIR receives cherry-pick;
+last fullaggregate cb1e3577 precedes this. Agents remain active: D2 provider
+multiplicity/traffic (408d367a); Ups upperMemOk0b2bba21; receipt account grammar
+52103b83 and system/Wf work. No end-to-end replacement claim.
+
+
 Root QV `ca9e0b00`: `CombinedPrefixLocal.plan_prefix_all_constraints` proves
 EVERY table.allConstraints equation on EVERY generated physical walk-prefix row,
 including base parser overlay and interaction-bit constraints. Ordinary inputs:
