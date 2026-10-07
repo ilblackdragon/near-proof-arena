@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root PhysicalByteBalance CHECKED at AIR455f1726: physical_balanced_record_complete
+uses actualqueue TableLocal/WalkChain/ParserChain, actual Acct/Akey/Val TableTraffic
+views and ValWf to derive complete demanded stream for every nonempty parserrecord.
+Explicit remaining buspremise is physical four-table VBYTES count equation,
+not record-specific ownership/Perm/closure. Uses byte_all_physical, count→Perm,
+perm_cons_erase for selected physicalrecord occurrence, preserves duplicates.
+Target356jobs+1 exact standard-axiom guard PASS;
+/tmp/nearproof-qv-physical-byte-balance.log and
+/tmp/nearproof-qv-physical-byte-balance-audit-checked.log. Guard output wraps axiom
+list over3lines; exact text fixed and rerun PASS. Next decode filtered value
+stream to a single unique ValE and derive ordered exact bytes/length; then
+parser empty/buffer mode semantics and wholeAIR channel equation from Holds.
+Integrated upse373e439 as3933038b: SourceCidWindows/ExtensionWindowInput proves
+full-header extension CH start and source childCID n+1, encoded RDE/PT window
+under ordinary cN/source allocation. Target781jobs+5exactguards PASS;
+/tmp/nearproof-extension-window-integrated{,-audit}.log. Actual partbindings,
+branch windows/clen/splitCount remain. No root live job. Checked main/AIR push
+continues per user authorization. Latest aggregate83f4a8b7 older; full certificate/
+admission/reference checker/prover/judge and broader NEAR coverage remain open.
+
+
 Root ByteAggregate CHECKED: unconditional combined byte-row expression;
 walk_byte_silent from actual transformed constraints; complete parser suffix
 including inactivepadding; byte_all_physical exact allrows sendlist equals
