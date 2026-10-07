@@ -16,7 +16,7 @@ theorem fourWalk_absent_terminal (I : UpsInst) (bm hv ek1 ek2 target targetPos :
 node annotation, including extension transitions to resolved revealed children. -/
 theorem nativeInstance_key_edge (recordId : PTrie→Nat) (valueId : Slot→Nat)
     (resolvedId : PTrie→Nat) (baseI : UpsInst) {root : PTrie} {v : Bytes} {run : TreeRun}
-    (hr : traceUpsert root [0,15] v=some run) (hw : root.wf=true)
+    (hr : traceUpsert root [0,15] v=some run)
     (hc : 4≤run.terminal.ix) (Qs : List UpsPartI) (s : NodeS3)
     (hnode : nativeKeyNode recordId resolvedId valueId run.terminalSource=some s.v) :
     let I := nativeInstance recordId (nativeWalkBase recordId valueId resolvedId baseI root run v)
@@ -25,8 +25,8 @@ theorem nativeInstance_key_edge (recordId : PTrie→Nat) (valueId : Slot→Nat)
   dsimp only
   let I := nativeInstance recordId baseI root run v Qs
   let target := nativeTerminalTarget valueId resolvedId run (recordId run.terminalSource)
-  have hb := traceInstance_bounds hr hw baseI
-  have ht : 1≤I.ts ∧ I.ts≤3 := ⟨hb.2.2.1,hb.2.2.2.1⟩
+  have hb := trace_fixedKey_bounds hr
+  have ht : 1≤I.ts ∧ I.ts≤3 := ⟨hb.2.2.1,hb.2.2.2⟩
   change (step (withFourWalk I (terminalBitmap run) (terminalHasVal run)
     (nativePathEdgeKind run 0) (nativePathEdgeKind run (if walkEnter1 I then 1 else 0))
     target.1 target.2) I.ts).e∈edgesOf3 (recordId run.terminalSource) s
