@@ -601,3 +601,10 @@ pass; actual request Holds are discharged by existing native_queueInputs.
 agreement to corrected provider ownership: parser Record.mode equals Walk.mode,
 derived from actual main/missing namespace coherence and value-ordinal key
 uniqueness. All5 guards pass. No extra distinct-shard or mode assumption.
+
+`QueueCounterClass.plan_provider_counter_class` closes full-plan rank classes:
+filter the corrected generated plan by present and the provider's exact tau/vid;
+the resulting Walk.users list is exactly range0..provider.users-1. Main and
+implicit transitions are both covered. This supplies the precise per-provider
+counter chain needed for QVC; 7 guards pass. Remaining work is grouping actual
+messages and composing parser endpoints, rather than any assumed occurrence map.
