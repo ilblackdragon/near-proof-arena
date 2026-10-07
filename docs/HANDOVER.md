@@ -7,6 +7,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `03be6b90`: ALL24 neighbor equations at EVERY physical native walk-prefix
+row, from PrefixCells and prefix length≤trace height; cyclic indexing derived.
+Exact endpoint-coordinate equivalence closes physical-last equation; exit needs
+only first suffix row walk=0 (or physical wrap). PrefixCells.of_append derives
+cells from full appended encoding. Target228 jobs;156 exact axiom guards+15
+fixtures PASS. Logs `/tmp/nearproof-trace-neighbors.log`,
+`/tmp/nearproof-trace-neighbors-audit-final.log`. No active root build. Next root:
+full walk constraint composition, parser suffix, provider/global traffic; schedule
+new aggregate integration of latest agent checkpoints below. No whole-trace
+acceptance, unrestricted NEAR coverage or end-to-end certificate claimed.
+D2 `0842527c` (after5ace7872): actual parser Record list Valid, bytes≤2^21,
+count≤83,367 from native acceptance; occurrence IDs/modes/countP users/distinct
+providers.34 guards pass. Next seed-ValE correspondence/resolver traffic.
+Ups `bdd47e79`: whole native ByteInput family from actual trace+source.wf, all12
+constructors, full native InstOk with only WalkOkU explicit.4 guards pass.
+Receipt `482d216a`: exact final rcptSends3 B_BYTES both TableTraffic directions
+from TableLocal and extracted concrete views.13 guards pass; fullWf/otherchannels
+remain. These checkpoints await next aggregate integration/audit.
+
+
 Root QV `27305da2` + `55369c80`: full native plan successor classification,
 exact final flag at last plan entry, all24 neighbor equations for indexed word
 boundaries; flattened walk row location/exact lookup and successor offsets.
