@@ -7,6 +7,24 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root ParserAggregate CHECKED: suffix QVC traffic equals ordered endpoint list;
+all physical QVC messages = request steps++parser endpoints, both sides.
+Physical bus balance yields logical Perm without dropping duplicate messages.
+Target194 jobs+3 exact guards PASS (/tmp/nearproof-qv-parser-aggregate.log,
+/tmp/nearproof-qv-parser-aggregate-audit-checked.log). No root live job. Next
+provider-chain/no-cycle theorem and parser mode/byte semantics. Fullsoundness open.
+IMPORTANT ups candidate overflow regression: initial ext[] parent2^64−1,child
+storedmem1000; write1000 gives child1104,parent2^64+103; next emptywrite gives
+actual parent2^64−897, while normalized cMem parent103/old1104/new104 clamps0.
+Agent checking native fixture and actual accepted scheduler reachability. Do NOT
+assume modulo normalization commutes with Nat subtraction, narrow domain, or
+change arithmetic silently. Root asked prioritize exact checked regression.
+D2d570b277 full native key-path addresses includes PT, part membership pending.
+Receipt6032da97 BND traffic complete; only KEYNIB/DIGEST/FINAL remain. Latest
+aggregate b7002160 older; end-to-end correctness/admission/prover/judge and broad
+NEAR coverage remain incomplete.
+
+
 Root ParserCounter checked: original parser QVC both-side row traffic exact;
 constant endpoint tuple over record; exactly one message at record start on
 each side (send counter0,receive users). Combined-table record traffic equalities
