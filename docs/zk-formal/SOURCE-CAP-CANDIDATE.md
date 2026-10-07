@@ -840,3 +840,11 @@ native preparation, and its encoded size bound. Five exact guards pass.
 The encoded statement size is a protocol admission obligation already needed
 for packing; it is not inferred from a four-byte serialized count and does not
 change the native domain. Traffic composition remains separately unfinished.
+
+`ReceiptSpans` supplies a generic exact decomposition of all physical traffic
+into receipt intervals when actual headers/padding are silent. `MemoryReads`
+instantiates it for account-memory receives, proves header/padding silence from
+local constraints, and equates the full physical B_MEM receive list to the
+unchanged indexed `rcptRecvs3` API. Eight exact guards pass. This is a whole-table
+traffic equality, including empty lists and physical padding; memory sends and
+other channels remain to be composed.
