@@ -21,7 +21,7 @@
   "w.proof_routing": 0,
   "w.unfolded": 0
  },
- "cases_dir": "generated: near-arena-oracle-v3-d0a gen --seed 4243 --chains 9 --blocks 120 --mutate-every 6 (oracle/v3-d0a at the A8 commit; honest cases byte-reproducible; A2 mutants pick their template receipt from a HashMap, so their bytes vary between runs)",
+ "cases_dir": "var/full-d0a",
  "counts": {
   "d0.cases": 907,
   "d0.expected_accept": 907,
@@ -136,7 +136,7 @@
   "mismatches": []
  },
  "wall_seconds": {
-  "lean": 1735.835557460785,
-  "python": 9.01863980293274
+  "lean": 1147.5787870883942,
+  "python": 11.445445775985718
  }
 }
