@@ -812,3 +812,13 @@ unchanged physical 2^22 height cap. The actual signer grammar bounds signer
 length by 64, so each enabled refund is shorter than its receipt layout; the
 eight-byte body prefix still leaves ample characteristic slack. Three exact
 axiom guards pass. No extra layout, receipt, or native-domain bound is assumed.
+
+`NaturalTotals` and `TableWellformed` close every field of `RcptV3Wf` for the
+actual physically extracted lists, conditional only on explicit
+`ReceiptPublicRanges pub` and the field's existing public-byte premises. The
+actual local AIR supplies layout decomposition, complete indexed receipt Wf,
+token chaining/public final value, nonempty list sequence, header counts,
+canonicity, and natural final count/body equality. Eight exact guards pass.
+The overbroad unscoped `RcptV3ViewStmt` is not asserted. Native successful Prep
+must still establish these public ranges, and global non-BYTES/non-RCL traffic
+composition remains unfinished; this is not full transition soundness.
