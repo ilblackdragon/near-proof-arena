@@ -136,3 +136,15 @@ All thirteen transitive axiom guards in `test/AuditCodecSize.lean` pass with onl
 last). This closes original decoded canonical witness coverage; composition
 with changed transition stores and the full multi-instance view constructor
 still remains separate FactorComplete work.
+
+`WitnessSize` composes the decoded canonical bound with per-transition store
+costs. Its executable `compactTransition` reconstructs the actual native
+partial trie and serializes the deduplicated occurrence store.
+`decodeStateWitness_compact_size` proves the resulting main and all implicit
+transitions together remain within the original raw witness size; the only
+additional premise is that supplied roots are 32 bytes. It does not assume a
+serialized-size conclusion or A6. Seven more axiom guards pass.
+
+This is a size theorem: replay equivalence of the reconstructed store, concrete
+root/key choices from execution, and multi-instance view allocation remain
+explicit and are not claimed by this compacting function.
