@@ -42,8 +42,8 @@ rerun. Evidence: `docs/e2e-results/v3-d2-logged-checker/report.json` and
 checker output, supports digest-recorded saved results, and archives outputs.
 Its eight tests and the seven logged-driver tests pass, as does pin-check.
 The D1 corpus comparison is complete, as recorded below; D1 and D2 retain
-distinct domains. The existing WASM/TTN harness driver still
-uses the original WASM execution path and needs logged-path coverage.
+distinct domains. The WASM/TTN harness now has a checked-build `--logged` path; its current
+validation coverage is recorded below.
 
 **D1 corpus regression, 2026-10-07:** all 53,048 cases have identical fresh
 original/logged D2 verdicts and reasons. Fresh independent Python D2 verdicts
@@ -54,6 +54,17 @@ of the D1 and D2 domains. Evidence and hashes:
 `docs/e2e-results/v3-d1-logged-checker/report.json` and `extension.json`.
 The differential runner now also rejects D2 verdict disagreements outside D1;
 its nine tests pass. WASM/TTN runner process/count hardening has twelve tests.
+
+**Logged WASM harness, 2026-10-07:** the unfrozen harness now supports
+`--logged` for mock-host tests and trie chunk replay. Its 143-job build passes.
+All 14,621 generated cases (opcodes, host edges, random, host, promise, mutation)
+have exactly equal original/logged outcomes. A freshly rebuilt pinned nearcore
+harness agrees with logged Lean on all 14,610 in-domain cases, with zero
+unmodeled cases or disagreements; the 11 out-of-domain cases remain covered by
+exact original/logged parity. Evidence: `docs/e2e-results/v3-wasm-logged/report.json`.
+TTN trace regeneration/replay and the logged read-set reference remain pending.
+Process exits, full line counts and trace framing are checked; all 28 lightweight
+runner tests and pin-check pass. Harness adapters remain untrusted test code.
 
 Live state is in `docs/LIVE.md`. Main is at 0bb6fc8d+ (cost lane v1.8 deployed). This lane is main
 plus everything below.
