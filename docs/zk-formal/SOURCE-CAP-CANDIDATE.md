@@ -655,3 +655,11 @@ with `baseR`, `lOffs`, and `bOffs`; `chainByteMsgs` now equals the unchanged
 `extract_bytes_view` obtains the physical chain from TableLocal alone. Thirteen
 exact axiom guards pass. Thus semantic BYTES extraction is complete; full
 `RcptV3ViewStmt` still needs the other channels and receipt well-formedness.
+
+`RclViewProof` and `ViewFacts` close the RCL channel against the unchanged
+`rcptSends3`/`rcptRecvs3` API, in both count directions. The concrete views also
+satisfy table nonemptiness, all `nj` field equations, and header canonicity.
+The `nj` field equation needs no byte-range premise; only its stronger natural
+interpretation does. Seven exact axiom guards pass. BYTES and RCL are now both
+complete semantic table-traffic channels; other receipt channels and full Wf
+remain outstanding.
