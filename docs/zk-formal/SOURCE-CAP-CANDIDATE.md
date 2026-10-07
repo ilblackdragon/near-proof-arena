@@ -701,3 +701,10 @@ difference or extracts an actual selected signer byte with a nonzero difference;
 the signer counter excludes a missing witness. Only TableLocal and Layout are
 required. Three exact axiom guards pass. Remaining per-receipt fields are
 `tprev_le`, the combined arithmetic/token-chain statement, and routing order.
+
+`ReceiptPrevious.tprev_le_of` closes previous-receipt ordering under the exact
+existing `RcptE.Wf.tprev_le` guard (`tprev < P - 512`). It derives the difference
+from the active V3 nine-bit deposit-row check and uses the reconstructed receipt
+counter. One exact axiom guard passes. The guard is unchanged semantic API, not
+a new domain restriction. Per-receipt arithmetic/token accumulation and routing
+order are now the remaining Wf obligations.
