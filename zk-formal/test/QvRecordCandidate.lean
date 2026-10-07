@@ -1,4 +1,5 @@
-import ZkFormal.NearV3.Qv.Candidates.RecordConcat
+import ZkFormal.NearV3.Qv.Candidates.RecordTraffic
+import ZkFormal.NearV3.Qv.Candidates.RecordLocal
 
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.terminal_record_transfer' depends on axioms: [propext,
  Classical.choice,
@@ -49,3 +50,27 @@ private def mixedRecords : List Record :=
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsTrace_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsTrace_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.byteMessages' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.byteMessages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.size_bytes' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.size_bytes
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.records_byteMessages' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.records_byteMessages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsSize_exact' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsSize_exact
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsSize_le' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsSize_le
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.records_table_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.records_table_local
