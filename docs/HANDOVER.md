@@ -7,6 +7,18 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `2a746890`: last-main count/type/source facts, implicit kind/slot,
+final tau=K and absent-buffer count0 derived from actual native plan membership;
+actual AIR public termination equation proved using existing public K binding.
+Target217 jobs and QV86 exact axiom guards+15 fixtures PASS. Logs:
+`/tmp/nearproof-termination.log`, `/tmp/nearproof-plan-termination-audit-final.log`.
+Root next: remaining metadata field equations, physical boundaries and between-
+word sequencing, then complete local/trace composition. No active root build.
+Assembly73a07eb9 now preserves exact native per-transition run/rebuild/A7-related
+quantities for targeted query-retained raw stores; AIR ownership/2MiB allocation
+remains unresolved. Receipt le/RCL uniqueness and global indexing in progress.
+
+
 Root QV `0bd3bed4`: nine actual candidate read-gate equations (including absent
 vid0, present/group/count flags, end-implies-last), final key position0/8 and
 native first-byte equations are proved. Target215 jobs and QV80 axiom guards+15
