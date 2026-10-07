@@ -1,10 +1,10 @@
+import ZkFormal.NearV3.Qv.Candidates.ValueBudget
 import ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable
 import ZkFormal.NearV3.Rcpt.Candidates.SourceSize
 import ZkFormal.NearV3.Rcpt.Candidates.DedupTable
 
 /-! Current candidate shape accounting, not protocol admission. Source shapes are
-read from the actual candidate AIR. QV parser37 is transcribed from the independently
-kernel-checked QV lane (8463ced1/9f596fd8); combined52 reserves fifteen unimplemented
+read from the actual candidate AIR, including the QV parser; combined52 reserves fifteen unimplemented
 walk/control columns and additional auxiliary/quotient/final columns. -/
 namespace ZkFormal.NearV3.Rcpt.Candidates
 open ZkFormal.Size ZkFormal.Size.V3
@@ -15,7 +15,10 @@ def currentSourceShapes (g : Nat) : List TShape :=
   [sha, sha] ++ trieS g ++ chachaT.map (shapeOf g) ++ schedS g ++
     (rcptS g).set 4 src ++ [src] ++ v1S g
 
-def qvParserShape : TShape := sh 37 3 6 3 22
+def qvParserShape : TShape := shapeOf 2 ZkFormal.NearV3.Qv.Candidates.ValueTable.table
+
+theorem qvParserShape_eq : qvParserShape = sh 37 3 6 3 22 :=
+  ZkFormal.NearV3.Qv.Candidates.value_shape_g2
 
 def qvCombinedReserve : TShape := sh 52 8 6 8 22
 
@@ -64,9 +67,9 @@ set_option maxRecDepth 1000000 in
 set_option maxHeartbeats 0 in
 /-- Includes source carry interactions and the provisional combined queue reserve.
 This is a shape-model equality, not an admission or completeness theorem. -/
-theorem wiredReservedSize_eq : wiredReservedSize = 8347010 := by decide +kernel
+theorem wiredReservedSize_eq : wiredReservedSize = 8359074 := by decide +kernel
 
-theorem wiredReservedSize_margin : wiredReservedSize + 41598 = 8388608 := by
+theorem wiredReservedSize_margin : wiredReservedSize + 29534 = 8388608 := by
   rw [wiredReservedSize_eq]
 
 end ZkFormal.NearV3.Rcpt.Candidates

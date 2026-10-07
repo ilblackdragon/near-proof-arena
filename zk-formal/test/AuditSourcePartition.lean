@@ -119,3 +119,7 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceCurrentSize
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.carry_balance_of_equal
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.qvParserShape_eq' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.qvParserShape_eq

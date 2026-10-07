@@ -66,7 +66,7 @@ unchanged. The g2 result is kernel checked:
 | Auxiliary grouping | Modeled proof bytes | Status |
 |---|---:|---|
 | g1 | 8,524,225 | exploratory `#eval`, exceeds 8 MiB |
-| g2 | **8,178,273** | kernel checked, margin **210,335** bytes |
+| g2 | **8,190,337** | updated for Ups200, margin **198,271** bytes |
 | g3 | 8,232,097 | exploratory `#eval`, margin 156,511 bytes |
 
 The model excludes added reference/continuation columns and interactions, queue tables,
@@ -250,16 +250,16 @@ isolated checkpoint; all dependencies use only Lean's standard logical axioms.
 
 | Included candidate components | Model bytes | Remaining below8MiB |
 | --- | ---: | ---: |
-| Actual source57, two source/two SHA partitions | 8,180,129 | 208,479 |
-| Above plus actual parser37/3/6/3/log22 | 8,277,154 | 111,454 |
-| Above with combined queue52/8/6/8/log22 reserve | 8,326,114 | 62,494 |
-| Combined queue reserve plus explicit source carry-table shapes | 8,347,010 | 41,598 |
+| Actual source57/Ups200, two source/two SHA partitions | 8,192,193 | 196,415 |
+| Above plus actual parser37/3/6/3/log22 | 8,289,218 | 99,390 |
+| Above with combined queue52/8/6/8/log22 reserve | 8,338,178 | 50,430 |
+| Combined queue reserve plus explicit source carry-table shapes | 8,359,074 | 29,534 |
 
-The parser37 shape is transcribed from the QV lane's kernel-checked shape at
+The parser37 shape is now derived from the actual merged ValueTable.table; its original kernel check was at
 8463ced1/9f596fd8. The combined52 shape is a **provisional reserve**, including fifteen
 additional base columns for unimplemented queue walk/control and additional auxiliary,
 quotient, and final columns. It is not an implemented table or a proved capacity bound.
-The last row's exact model equality and41,598-byte margin are kernel checked. This is
+The last row's exact model equality and29,534-byte margin are kernel checked. This is
 now the relevant source/queue estimate, replacing the earlier210,335-byte spare margin.
 Other unimplemented wiring must fit the remaining margin, and the final admitted AIR
 must be measured again; the table is not a final encoded-proof guarantee.
@@ -319,9 +319,10 @@ logical row coverage, and exact renderer cell bindings; it does not assume traff
 equality. Honest overlap bindings also imply carry equality and exact carry-bus
 balance. The partition audit now checks26 theorem axiom closures.
 
-A prospective Ups width increase187→200, with all interactions/degrees/auxiliary
-counts unchanged, evaluates to8,359,074 bytes and leaves29,534 bytes. This is a
-conditional model estimate, not an implemented or admitted Ups shape.
+The merged Ups width increase187→200 adds12,064 modeled bytes. The updated
+source/carry model is8,359,074 bytes with29,534 bytes remaining. It uses the actual
+QV parser shape and still reserves an unimplemented combined52-column queue table.
+Earlier exploratory g1/g3 and four-log22 figures above predate this Ups repair.
 
 The candidate's complete SIZE budget now follows from actual accepted input:
 `prepD0_dictionary_count` in `Candidates/DictionaryCount.lean` extracts
