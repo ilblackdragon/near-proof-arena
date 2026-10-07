@@ -586,3 +586,15 @@ header's preserved index and its nonwrapping encoded length. No inactive row,
 including the cyclic physical last row, emits RCL; the table has no RCL receives.
 Eight exact axiom guards pass. The source-to-receipt global bus ownership/balance
 composition and full semantic receipt extraction remain explicit work.
+
+`RclDecode` and `DedupReceiptLengths` connect the channels semantically. Twelve
+header rows per list bound the natural list count below `P`; exact RCL record
+matching uniquely decodes both index and encoded length. Under the actual source
+and receipt local constraints, extracted chains, and explicit equality of their
+physical RCL counts, a source block of length twelve has an actually empty
+extracted receipt list at that exact index. Duplicate and all-occurrence repeated
+flags derive this length from their existing local source constraints, including
+the first computed occurrence. Ten exact axiom guards pass. No `RcptV3Wf`, new
+encoding bound, or restricted domain is assumed. Global RCL ownership and balance
+must still be supplied by assembly; receipt bytes, header count, system/routing,
+and arithmetic semantics remain open parts of whole receipt-view extraction.
