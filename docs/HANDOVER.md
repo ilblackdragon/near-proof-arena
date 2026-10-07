@@ -7,6 +7,22 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `8ccb2287`: physical mixed parser suffix traffic equals canonical parser
+VBYTES/QVC/QSH messages up to permutation on all buses/both directions; padding
+silent. `mixedTrace_traffic_split` partitions every physical message into walk
+prefix+canonical parser contribution, preserving multiplicities. Reuses existing
+CombinedParser.parser_row_traffic (initial duplicate name detected and removed
+by complete audit). Target273 jobs;180 exact axiom guards+15 fixtures PASS.
+Logs `/tmp/nearproof-parser-traffic.log`, `/tmp/nearproof-parser-traffic-audit-final.log`.
+No root process. Next root: physical walk-prefix aggregation into word messages;
+D2 owns corrected rank semantic QVC/mode balance. Its e736d359 proves corrected
+present walk provider ownership+rank<total,6ca80a31 actual main rank sequence.
+Whole-table global bus balance/sound extraction still open; last aggregate
+cb1e3577 precedes this. Ups concrete WalkOk local construction active;
+receipt58c53868 closes tprev_le with existing no-wrap bound, arithmetic/routing
+remain. SharedAIR receives root cherry-pick. No end-to-end certificate claim.
+
+
 Root QV `24f29b7b`: executable mixedRows/mixedTrace and FULL
 `mixedTrace_table_local` for all physical walk+parser+padding rows. Ordinary
 inputs only: MainValues.Valid, Record.Valid, fit, supported log, public K binding.
