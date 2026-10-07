@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Qv.Candidates.CombinedTraceNeighbors
 import ZkFormal.NearV3.Qv.Candidates.CombinedRowLayout
 import ZkFormal.NearV3.Qv.Candidates.CombinedPlanOrder
 import ZkFormal.NearV3.Qv.Candidates.CombinedNeighborEquations
@@ -795,3 +796,47 @@ end QvCombinedRegression
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.flat_rows_generated' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.flat_rows_generated
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.rowOffset_le' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.rowOffset_le
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.row_index_lt' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.row_index_lt
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Kind.bytes_pos' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Kind.bytes_pos
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.PrefixCells.at_word' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.PrefixCells.at_word
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_trace_neighbor_equations' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_trace_neighbor_equations
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_coordinate_last' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_coordinate_last
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_trace_physical_last' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_trace_physical_last
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.PrefixCells.of_append' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.PrefixCells.of_append
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_trace_exit' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_trace_exit
