@@ -296,3 +296,13 @@ Four permanent axiom guards pass. Source root/index/duplicate metadata remains
 explicitly seeded independently of entry payloads; connecting the honest source
 AIR constructor is still required. Shuffle/cardinality/routing composition into
 all of SourceSemanticsV3 is the next semantic step.
+
+`SourceSemantics.checkD0a_source_semantics` now derives the complete
+SourceSemanticsV3 predicate for `nativeExecutionViews`: selected authentication,
+successful native shuffles, original dictionary cardinality versus source
+occurrences, exact applied receipts, and native A2 routing. SourceShuffle exposes
+the actual checked-loop shuffle fact; source-count composition uses the existing
+native dictionary guard. Five permanent axiom guards pass. These source and
+runtime predicates are now connected to one concrete view constructor, while
+header/preparation, shape, whole serialization bounds, remaining amendments,
+and actual AIR metadata still need completeness proofs.
