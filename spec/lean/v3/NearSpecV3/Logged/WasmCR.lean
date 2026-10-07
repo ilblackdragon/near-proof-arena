@@ -4,11 +4,11 @@ import NearSpecV3.Wasm.Exec
 /-!
 # The WASM machine reads the trie store only in the storage host functions
 
-`St.E σ s` replaces the store function of the trie-backed `External` (`TTN.RealStore.store`) by `σ`.
+`E σ s` replaces the store function of the trie-backed `External` (`TTN.RealStore.store`) by `σ`.
 `CR x y` (for host computations): running `y` on `E σ t` gives `x`'s result on `t`, with the
 final state's store replaced by `σ`. Every host function that does not touch the trie store
 satisfies `CR h h` for every `σ` (`CR_hostCall`), and every machine step that does not call one of
-the storage host functions commutes with `E σ` (`step_E`). With `σ := t.real.store` this also says
+the storage host functions commutes with `E σ` (`E_step`, `WasmStepE`). With `σ := t.real.store` this also says
 such steps keep the store field.
 -/
 

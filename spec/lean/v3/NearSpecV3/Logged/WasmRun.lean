@@ -227,18 +227,49 @@ theorem stepPre_storage {p : Prepared} {s s1 : St} {n : String} (h : stepPre p s
     · exact hexec _ _ _ h
     · cases h
 
-/-- One machine step: a storage host call through `SM`, else `Exec.step`. -/
-def stepL (cfg : NearCfg) (p : Prepared) (s : St) : SM NearSpec.Bytes Res :=
-  match stepPre p s with
-  | some (s1, name) => callHostL s1 name
-  | none => pure (step cfg p s)
+/-- The machine loop up to the next storage host call: `done r` (finished with `r`, no storage call)
+or `host n s1 name` (the next step calls the storage host `name` from `s1`, `n` fuel left). Pure and
+tail-recursive, so long runs need no stack. -/
+inductive RU where
+  | done (r : Res)
+  | host (n : Nat) (s1 : St) (name : String)
 
-def runL (cfg : NearCfg) (p : Prepared) : Nat → St → SM NearSpec.Bytes Res
-  | 0, _ => pure (.unmodeled "fuel exhausted")
-  | n + 1, s => stepL cfg p s >>= fun r =>
+def runUntil (cfg : NearCfg) (p : Prepared) : Nat → St → RU
+  | 0, _ => .done (.unmodeled "fuel exhausted")
+  | n + 1, s =>
+    match stepPre p s with
+    | some (s1, name) => .host n s1 name
+    | none =>
+      match step cfg p s with
+      | .cont s' => runUntil cfg p n s'
+      | r => .done r
+
+theorem runUntil_lt {cfg : NearCfg} {p : Prepared} :
+    ∀ {n : Nat} {s : St} {n' : Nat} {s1 : St} {name : String},
+      runUntil cfg p n s = .host n' s1 name → n' < n
+  | 0, _, _, _, _, h => by simp [runUntil] at h
+  | n + 1, s, n', s1, name, h => by
+    unfold runUntil at h
+    split at h
+    · cases h; omega
+    · split at h
+      · have := runUntil_lt h; omega
+      · cases h
+
+/-- `Exec.run` with the storage host calls read through `SM` (`callHostL`). -/
+def runL (cfg : NearCfg) (p : Prepared) (n : Nat) (s : St) : SM NearSpec.Bytes Res :=
+  match h : runUntil cfg p n s with
+  | .done r => pure r
+  | .host n' s1 name => callHostL s1 name >>= fun r =>
     match r with
-    | .cont s => runL cfg p n s
+    | .cont s => runL cfg p n' s
     | r => pure r
+termination_by n
+decreasing_by exact runUntil_lt h
+
+def mapRU (f : St → St) : RU → RU
+  | .done r => .done (mapRes f r)
+  | .host n s1 name => .host n (f s1) name
 
 section
 variable {σ : TTN.Store} {g : NearSpec.Bytes → Option NearSpec.Bytes}
@@ -246,43 +277,124 @@ variable {σ : TTN.Store} {g : NearSpec.Bytes → Option NearSpec.Bytes}
 theorem ResOK_cont {r : Res} {s : St} (h : ResOK σ r) (hr : r = .cont s) : StOK σ s := by
   subst hr; unfold ResOK mapRes at h; injection h with h; rw [← h]; exact StOK_E _
 
-theorem runL_spec (hσ : StoreAgrees σ g) (cfg : NearCfg) (p : Prepared) :
+theorem E_runUntil (cfg : NearCfg) (p : Prepared) :
+    ∀ (n : Nat) (s : St), runUntil cfg p n (E dummy s) = mapRU (E dummy) (runUntil cfg p n s)
+  | 0, s => rfl
+  | n + 1, s => by
+    unfold runUntil
+    rw [E_stepPre]
+    cases hsp : stepPre p s with
+    | some q => obtain ⟨s1, name⟩ := q; rfl
+    | none =>
+      simp only [Option.map_none]
+      rw [E_step cfg p hsp]
+      cases step cfg p s with
+      | cont s' => exact E_runUntil cfg p n s'
+      | fin s' => rfl
+      | abort s' e => rfl
+      | unmodeled w => rfl
+
+/-- What the pure loop says about `run`, on a state with store `σ`. -/
+theorem runUntil_spec (cfg : NearCfg) (p : Prepared) :
     ∀ (n : Nat) (s : St), StOK σ s →
-      SM.run g (runL cfg p n (E dummy s)) = .ok (mapRes (E dummy) (run cfg p n s)) ∧ ResOK σ (run cfg p n s)
-  | 0, s, _ => ⟨rfl, rfl⟩
+      (∀ r, runUntil cfg p n s = .done r → run cfg p n s = r ∧ ResOK σ r) ∧
+      (∀ n' s1 name, runUntil cfg p n s = .host n' s1 name →
+        StOK σ s1 ∧ storageHosts.contains name = true ∧
+        run cfg p n s = (match callHost s1 name with
+          | .cont s' => run cfg p n' s'
+          | r => r))
+  | 0, s, _ => by
+    refine ⟨?_, ?_⟩
+    · intro r h; simp only [runUntil, RU.done.injEq] at h; subst h; exact ⟨rfl, rfl⟩
+    · intro n' s1 name h; simp [runUntil] at h
   | n + 1, s, ht => by
-    unfold runL run
-    -- the step: its mirror result and the fact that it keeps the store
-    have hstep : SM.run g (stepL cfg p (E dummy s)) = .ok (mapRes (E dummy) (step cfg p s)) ∧
-        ResOK σ (step cfg p s) := by
-      unfold stepL
-      rw [E_stepPre]
+    have hok : ∀ (hsp : stepPre p s = none), ResOK σ (step cfg p s) := by
+      intro hsp
+      have e := E_step (σ := σ) cfg p hsp
+      rw [E_of_StOK ht] at e
+      unfold ResOK; exact e.symm
+    refine ⟨?_, ?_⟩
+    · intro r h
+      unfold runUntil at h
       cases hsp : stepPre p s with
+      | some q => obtain ⟨s1, name⟩ := q; rw [hsp] at h; cases h
       | none =>
-        refine ⟨?_, ?_⟩
-        · show Except.ok (step cfg p (E dummy s)) = _
-          rw [E_step cfg p hsp]
-        · have e := E_step (σ := σ) cfg p hsp
-          rw [E_of_StOK ht] at e
-          unfold ResOK; exact e.symm
+        rw [hsp] at h
+        simp only at h
+        have h2 := hok hsp
+        unfold run
+        generalize hr : step cfg p s = r0 at h h2
+        cases r0 with
+        | cont s' => exact (runUntil_spec cfg p n s' (ResOK_cont h2 rfl)).1 r h
+        | fin s' => cases h; exact ⟨rfl, h2⟩
+        | abort s' e => cases h; exact ⟨rfl, h2⟩
+        | unmodeled w => cases h; exact ⟨rfl, h2⟩
+    · intro n' s1 name h
+      unfold runUntil at h
+      cases hsp : stepPre p s with
       | some q =>
-        obtain ⟨s1, name⟩ := q
-        have hs1 : StOK σ s1 := by
+        obtain ⟨s1', name'⟩ := q
+        rw [hsp] at h
+        simp only [RU.host.injEq] at h
+        obtain ⟨rfl, rfl, rfl⟩ := h
+        have hs1 : StOK σ s1' := by
           have e := @E_stepPre σ s p
           rw [E_of_StOK ht, hsp] at e
           simp only [Option.map_some] at e
-          have e2 : s1 = E σ s1 := by injection e with e; injection e
+          have e2 : s1' = E σ s1' := by injection e with e; injection e
           rw [e2]; exact StOK_E _
-        rw [step_of_stepPre cfg p s s1 name hsp]
-        exact callHostL_spec hσ hs1 name (stepPre_storage hsp)
-    obtain ⟨h1, h2⟩ := hstep
-    rw [SM.run_bind', h1]
-    generalize hr : step cfg p s = r at h2 ⊢
-    cases r with
-    | cont s' => exact runL_spec hσ cfg p n s' (ResOK_cont h2 rfl)
-    | fin s' => exact ⟨rfl, h2⟩
-    | abort s' e => exact ⟨rfl, h2⟩
-    | unmodeled w => exact ⟨rfl, h2⟩
+        refine ⟨hs1, stepPre_storage hsp, ?_⟩
+        show run cfg p (n + 1) s = _
+        unfold run
+        rw [step_of_stepPre cfg p s s1' name' hsp]
+      | none =>
+        rw [hsp] at h
+        simp only at h
+        have h2 := hok hsp
+        unfold run
+        generalize hr : step cfg p s = r0 at h h2
+        cases r0 with
+        | cont s' => exact (runUntil_spec cfg p n s' (ResOK_cont h2 rfl)).2 n' s1 name h
+        | fin s' => cases h
+        | abort s' e => cases h
+        | unmodeled w => cases h
+
+theorem runL_spec (hσ : StoreAgrees σ g) (cfg : NearCfg) (p : Prepared) (n : Nat) :
+    ∀ (s : St), StOK σ s →
+      SM.run g (runL cfg p n (E dummy s)) = .ok (mapRes (E dummy) (run cfg p n s)) ∧ ResOK σ (run cfg p n s) := by
+  induction n using Nat.strong_induction_on with
+  | _ n ih =>
+  intro s ht
+  have hspec := runUntil_spec (σ := σ) cfg p n s ht
+  rw [runL]
+  split
+  · rename_i r hr
+    rw [E_runUntil] at hr
+    cases hu : runUntil cfg p n s with
+    | done r0 =>
+      rw [hu] at hr; simp only [mapRU, RU.done.injEq] at hr; subst hr
+      obtain ⟨e1, e2⟩ := hspec.1 r0 hu
+      rw [e1]; exact ⟨rfl, e2⟩
+    | host n' s1 name => rw [hu] at hr; cases hr
+  · rename_i n' s1m name hr
+    rw [E_runUntil] at hr
+    cases hu : runUntil cfg p n s with
+    | done r0 => rw [hu] at hr; cases hr
+    | host n'' s1 name' =>
+      rw [hu] at hr; simp only [mapRU, RU.host.injEq] at hr
+      obtain ⟨rfl, rfl, rfl⟩ := hr
+      obtain ⟨hs1, hname, hrun⟩ := hspec.2 n' s1 name hu
+      have hlt := runUntil_lt hu
+      obtain ⟨c1, c2⟩ := callHostL_spec hσ hs1 name hname
+      rw [SM.run_bind', c1, hrun]
+      generalize hc : callHost s1 name = c at c2
+      cases c with
+      | cont s' => exact ih n' hlt s' (ResOK_cont c2 rfl)
+      | fin s' =>
+        refine ⟨rfl, ?_⟩
+        exact c2
+      | abort s' e => exact ⟨rfl, c2⟩
+      | unmodeled w => exact ⟨rfl, c2⟩
 
 end
 
