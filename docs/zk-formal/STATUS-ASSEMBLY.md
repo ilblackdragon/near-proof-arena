@@ -411,3 +411,10 @@ transition stores. Existing IDs must remain stable under any future allocation.
 The original normalStore(pre) constructor proves requested pre replay, but does
 not yet preserve A7's post rebuild when discarded original blobs shadow new
 post blobs by hash. No collision-freedom assumption has been inserted.
+
+`DecodedShapes` proves exact pMany count, decoded u32 vector-count bounds,
+actual transitionWf (including each value's byte-length bound), receiptWfD0,
+pathWf and entryWf from their native parsers. Seven permanent axiom guards pass.
+This advances the decoder converse needed by reconstructed D0Shape; full
+ChunkInner shape/canonical consumed encoding and the final witness composition
+remain open.
