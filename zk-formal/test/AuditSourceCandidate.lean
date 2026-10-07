@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.PreparedSourceCount
 import ZkFormal.NearV3.Rcpt.Candidates.RawWitnessBudget
 import ZkFormal.NearV3.Rcpt.Candidates.SourceCount
 import ZkFormal.NearV3.Rcpt.Candidates.SourceSizeCheck
@@ -100,3 +101,15 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceEncodingBudget
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.usedProofs_count' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.usedProofs_count
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_count' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_count
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.prepClaim_source_count' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.prepClaim_source_count
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.prepD0_source_count' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.prepD0_source_count
