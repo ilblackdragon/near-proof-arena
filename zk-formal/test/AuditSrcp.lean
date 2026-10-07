@@ -1,3 +1,5 @@
+import ZkFormal.NearV3.Rcpt.Render.Srcp.ProofInputWf
+import ZkFormal.NearV3.Rcpt.Link.SourceDuplicate
 import ZkFormal.NearV3.Rcpt.Link.SourceVerify
 import ZkFormal.NearV3.Rcpt.Link.SourceHashes
 import ZkFormal.NearV3.Rcpt.Render.Srcp.TrafficProof
@@ -416,3 +418,35 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.source_roots_eq_of_lookupLast' depends on axioms: [propext] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.source_roots_eq_of_lookupLast
+
+/-- info: 'ZkFormal.NearV3.source_duplicate_empty' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_duplicate_empty
+
+/-- info: 'ZkFormal.NearV3.source_duplicate_length' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_duplicate_length
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.proofItems_indices' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.proofItems_indices
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.proofItems_canon' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.proofItems_canon
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.proofItems_lengths' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.proofItems_lengths
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.proofItems_steps' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.proofItems_steps
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.blockOfProof_leaf_path' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.blockOfProof_leaf_path
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.blocksOfProofs_wf' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.blocksOfProofs_wf
