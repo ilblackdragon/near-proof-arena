@@ -1,6 +1,18 @@
 ## Combined queue and source extraction checkpoint (2026-10-07)
 
 
+Latest aggregate (2026-10-07):1,711 jobs and19 selected audits PASS;
+226 exact axiom guards,15 behavior guards and0 theorem examples.
+Report: `docs/e2e-results/v3-native-rcpt-integration/report.json`.
+Accepted QueryWitness preserves original A7 and actual native replay in raw-store
+form; ExtV3/AIR retained-byte ownership and2MiB capacity remain unresolved.
+Full native per-part PartOk and total part encoding are imported. Actual receipt
+list decomposition, encoded-length no-wrap, unique indices/terminal gates and
+whole RCL extraction are imported; full receipt Wf/byte traffic remains open.
+Queue local components through physical boundaries are imported; sequence/layout
+composition is not complete. Prover, admission and real judge validation remain.
+
+
 Latest aggregate (2026-10-07):1,663 jobs and13 selected audits PASS;
 182 exact axiom guards,15 behavior guards and7 theorem examples. Report:
 `docs/e2e-results/v3-word-native-integration/report.json`.
