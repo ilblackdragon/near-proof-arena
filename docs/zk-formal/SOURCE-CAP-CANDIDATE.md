@@ -553,3 +553,13 @@ header count/index and encoded-offset reconstruction, complete receipt traffic,
 and the remaining system/routing/arithmetic obligations needed to construct
 `RcptV3Wf` and bind source RCL/dictionary/leaf data. The no-wrap bound alone does
 not establish that RCL traffic contains the extracted encoding length.
+
+`ReceiptOffsets`, `HeaderOffsets`, and `EncodedOffsets` additionally reconstruct
+the actual offset cells: receipt starts have `rf=1`; a header starts the next
+receipt at offset twelve and count one; each receipt's `oEnd` adds its exact
+extracted encoding length; adjacent layouts preserve that end offset. The
+whole block's terminal `oEnd` now equals its natural `lOffs` length cast into
+`Fp`, including empty lists. Thus the earlier physical bound applies to the
+actual terminal offset, not merely an unrelated semantic encoding. Ten exact
+transitive axiom guards pass. Terminal `le`/RCL traffic, global list indices,
+and full semantic receipt extraction remain separate outstanding obligations.
