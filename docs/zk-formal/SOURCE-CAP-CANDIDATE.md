@@ -570,3 +570,12 @@ terminal row's RCL traffic is exactly one message carrying its list-index cell
 and the extracted full encoding length. Five exact axiom guards pass. This
 does not yet exclude RCL messages elsewhere or reconstruct the global index
 sequence; those are the next whole-traffic obligations.
+
+`ListInterior`, `ListGate`, `ListConstants`, and `ListIndices` exclude every
+interior list-end gate, prove all block rows active, preserve every `lconsts`
+column inside the block, and reconstruct the global list-index sequence.
+For a chain starting at physical row zero, header `k` has index `k` in `Fp`;
+the terminal row has the same index. The gate is exactly `q+1=block.stop` on
+all block rows. Thirteen exact axiom guards pass. Remaining RCL composition
+work is the full row-traffic multiset and padding exclusion, followed by the
+source/receipt bus binding; full receipt semantic extraction remains open.
