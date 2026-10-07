@@ -30,7 +30,7 @@ macro "window_roles_mem" : tactic => `(tactic| (
 
 theorem window_roles_q {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p st ix fl wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I Q k p st ix fl wi u x) :
     ∀ ex ∈ cWindowRoles, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   by_cases hs : st = 7

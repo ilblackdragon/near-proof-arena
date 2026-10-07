@@ -81,8 +81,8 @@ theorem memChain (R : Nat → URow) (Dl : URow) (ng : Nat) (hng : ng ≤ 1)
     (hfs : ∀ i, i < 8 → R i fs = if i = 0 then 1 else 0) (hfe : ∀ i, i < 8 → R i fe = if i = 7 then 1 else 0)
     (hneg : ∀ i, i < 8 → R i neg = ng)
     (hcell : ∀ i x, R i x < 2013265921)
-    (bA : ∀ i, i < 8 → inA (R i) < 4096) (bB : ∀ i, i < 8 → inB (R i) < 4096)
-    (bC : ∀ i, i < 8 → inC (R i) < 4096) (bE : ∀ i, i < 8 → inE (R i) < 4096)
+    (bA : ∀ i, i < 8 → inA (R i) < 67108864) (bB : ∀ i, i < 8 → inB (R i) < 67108864)
+    (bC : ∀ i, i < 8 → inC (R i) < 67108864) (bE : ∀ i, i < 8 → inE (R i) < 67108864)
     (bb : ∀ i, i < 8 → R i b < 256) :
     limbs (fun i => R i rx) 8 =
       limbs (fun i => inE (R i)) 8 +
@@ -94,7 +94,7 @@ theorem memChain (R : Nat → URow) (Dl : URow) (ng : Nat) (hng : ng ≤ 1)
     · exact hF i (by omega)
     · rw [show i = 7 by omega]; exact hF7
   -- signed carries
-  let co : Nat → Int := fun i => (cbOf (R i) : Int) - (if i < 7 then 3 else 0)
+  let co : Nat → Int := fun i => (cbOf (R i) : Int) - (if i < 7 then 65536 else 0)
   let cr : Nat → Int := fun i => if i = 0 then 0 else co (i - 1)
   let cr2 : Nat → Int := fun i => if i = 0 then 0 else (ccOf (R (i - 1)) : Int)
   let x : Nat → Int := fun i => (inA (R i) : Int) + inB (R i) - inC (R i)
@@ -126,7 +126,7 @@ theorem memChain (R : Nat → URow) (Dl : URow) (ng : Nat) (hng : ng ≤ 1)
     have hX := hcell i X1; have hc := hcell i ci
     simp only [inA, inB, inC] at hA hB hC'
     have hcr1 : cr (i + 1) = co i := by simp [cr]
-    have hcrb : -3 ≤ cr i ∧ cr i ≤ 4 := by
+    have hcrb : -65536 ≤ cr i ∧ cr i ≤ 65535 := by
       simp only [cr, co]
       split
       · omega
@@ -170,7 +170,7 @@ theorem memChain (R : Nat → URow) (Dl : URow) (ng : Nat) (hng : ng ≤ 1)
     have hprev : cr2 i = ((if i = 0 then 0 else ccOf (R (i - 1)) : Nat) : Int) := by
       simp only [cr2]; split <;> simp
     rw [hprev]
-    have : (if i = 0 then 0 else ccOf (R (i - 1))) < 8 := by
+    have : (if i = 0 then 0 else ccOf (R (i - 1))) < 65536 := by
       split
       · omega
       · exact (F (i - 1) (by omega)).cc
@@ -197,7 +197,7 @@ theorem memChain (R : Nat → URow) (Dl : URow) (ng : Nat) (hng : ng ≤ 1)
     have h := Fi.rx
     rw [hfe 7 (by omega), hneg 7 (by omega), if_pos rfl, Nat.one_mul] at h
     have := bb 7 (by omega); have := Fi.cb; have := Fi.cc
-    have : (1 - ng) * cbOf (R 7) ≤ 7 := by rcases (show ng = 0 ∨ ng = 1 by omega) with hn | hn <;> subst hn <;> simp <;> omega
+    have : (1 - ng) * cbOf (R 7) ≤ 131071 := by rcases (show ng = 0 ∨ ng = 1 by omega) with hn | hn <;> subst hn <;> simp <;> omega
     rw [h, Nat.mod_eq_of_lt (by omega)]
   have hRx : limbs (fun i => R i rx) 8 =
       limbs (fun i => R i b) 8 + 2 ^ 64 * ((1 - ng) * cbOf (R 7) + ccOf (R 7)) := by

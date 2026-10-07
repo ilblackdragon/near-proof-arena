@@ -150,11 +150,11 @@ theorem rowCell_q (insts : List UpsInst) (q i k p : Nat) :
 def nzW (x : Nat) : Bool :=
   x == 0 || x == 1 || (4 ≤ x && x ≤ 7) || (49 ≤ x && x ≤ 62) || x == 105 || (124 ≤ x && x ≤ 126) ||
     (129 ≤ x && x < 161) || (173 ≤ x && x ≤ 175)
-def zW (x : Nat) : Bool := decide (x < 187) && !isSeg x && !nzW x
+def zW (x : Nat) : Bool := decide (x < 200) && !isSeg x && !nzW x
 
 def nzV (x : Nat) : Bool :=
   x == 0 || x == 2 || x == 8 || x == 9 || (65 ≤ x && x ≤ 68) || x == 100 || x == 101 || x == 181 || x == 182
-def zV (x : Nat) : Bool := decide (x < 187) && !isSeg x && !nzV x
+def zV (x : Nat) : Bool := decide (x < 200) && !isSeg x && !nzV x
 
 def zQ (x : Nat) : Bool := [1, 2, 4, 5, 6, 7, 173, 174, 175].contains x
 

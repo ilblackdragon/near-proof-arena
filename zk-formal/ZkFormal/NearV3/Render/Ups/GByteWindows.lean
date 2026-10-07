@@ -13,7 +13,7 @@ def cByteShifts : List Expr := (UpsV3.cBytes.drop 21).take 31
 
 theorem ev_fresh {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p st ix fl wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I Q k p st ix fl wi u x) :
     ev C D fst lst trn P winFr = winFrV I Q st wi := by
   ups_ev [hC]; cellsimp
   exact (winFr_formula I Q st wi).symm
@@ -21,7 +21,7 @@ theorem ev_fresh {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
 theorem fresh_byte_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
     (ok : FieldsOk Q) (hp : p < Q.q.length)
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p
+    (hC : ∀ x, x < 200 → C x = QC I Q k p
       (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1
       (fieldAt Q.shape p).2.2.1 (fieldAt Q.shape p).2.2.2 u x) :
     ∀ ex ∈ cFreshByte, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
@@ -61,10 +61,10 @@ theorem byte_shifts_off {C D P : Nat → Int} {fst lst trn : Int}
 theorem byte_shifts_qmid {I : UpsInst} {Q : UpsPartI} {k p u u' : Nat}
     (ok : FieldsOk Q) (hp : p < Q.q.length)
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p
+    (hC : ∀ x, x < 200 → C x = QC I Q k p
       (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1
       (fieldAt Q.shape p).2.2.1 (fieldAt Q.shape p).2.2.2 u x)
-    (hD : ∀ x, x < 187 → D x = QC I Q k (p+1)
+    (hD : ∀ x, x < 200 → D x = QC I Q k (p+1)
       (fieldAt Q.shape (p+1)).1 (fieldAt Q.shape (p+1)).2.1
       (fieldAt Q.shape (p+1)).2.2.1 (fieldAt Q.shape (p+1)).2.2.2 u' x) :
     ∀ ex ∈ cByteShifts, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by

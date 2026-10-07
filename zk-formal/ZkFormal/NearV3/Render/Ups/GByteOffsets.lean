@@ -13,7 +13,7 @@ def cByteOffsets : List Expr := (UpsV3.cBytes.drop 71).take 5
 theorem byte_offsets_q {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
     (hs : st < 9)
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p st ix fl wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I Q k p st ix fl wi u x) :
     ∀ ex ∈ cByteOffsets, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   change ex ∈ [

@@ -4,7 +4,7 @@ import ZkFormal.NearV3.Render.Ups.Ok
 # ZkFormal.NearV3.Render.Ups.Tac — tactics for the group proofs
 
 * `ups_ev [hs…]`: unfold an integer evaluation `ev` of a `Dsl` expression of `upsV3` and rewrite
-  the cells with the given equations (`hC : ∀ x, x < 187 → C x = …`);
+  the cells with the given equations (`hC : ∀ x, x < 200 → C x = …`);
 * `cellsimp`: unfold the row-kind cells `WC` / `VC` / `QC` at literal columns (segment
   constants, walk, value, part constants, node rows), keeping the derived flags folded;
 * `lt3 … lt16`: small ranges as disjunctions.
@@ -70,7 +70,7 @@ theorem cast0 {z : Int} (h : z = 0) : ((z : Int) : Fp) = 0 := by rw [h]; rfl
 
 /-- The goal of a group on an active row with given current cells. -/
 def ActGoal (insts : List UpsInst) (es : List Expr) (q : Nat) (cells : Nat → Int) : Prop :=
-  ∀ (C D P : Nat → Int), (∀ x, x < 187 → C x = cells x) → (∀ x, x < 187 → D x = nextCell insts q x) →
+  ∀ (C D P : Nat → Int), (∀ x, x < 200 → C x = cells x) → (∀ x, x < 200 → D x = nextCell insts q x) →
     ∀ ex ∈ es, ((ev C D (if q = 0 then 1 else 0) 0 1 P ex : Int) : Fp) = 0
 
 /-- A group, by row kind. -/

@@ -127,7 +127,7 @@ variable {I : UpsInst} (iok : InstOk I) {C D P : Nat → Int} {fst lst trn : Int
 include iok
 
 set_option maxHeartbeats 4000000 in
-theorem walk_w0 (hC : ∀ x, x < 187 → C x = WC I 0 x) (hD : ∀ x, x < 187 → D x = WC I 1 x) :
+theorem walk_w0 (hC : ∀ x, x < 200 → C x = WC I 0 x) (hD : ∀ x, x < 200 → D x = WC I 1 x) :
     ∀ ex ∈ UpsV3.cWalk, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   have W := iok.walk
@@ -144,7 +144,7 @@ theorem walk_w0 (hC : ∀ x, x < 187 → C x = WC I 0 x) (hD : ∀ x, x < 187 �
   wclose 0, 1
 
 set_option maxHeartbeats 4000000 in
-theorem walk_w1 (hC : ∀ x, x < 187 → C x = WC I 1 x) (hD : ∀ x, x < 187 → D x = WC I 2 x) :
+theorem walk_w1 (hC : ∀ x, x < 200 → C x = WC I 1 x) (hD : ∀ x, x < 200 → D x = WC I 2 x) :
     ∀ ex ∈ UpsV3.cWalk, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   have W := iok.walk
@@ -164,7 +164,7 @@ theorem walk_w1 (hC : ∀ x, x < 187 → C x = WC I 1 x) (hD : ∀ x, x < 187 �
   wclose 1, 2
 
 set_option maxHeartbeats 4000000 in
-theorem walk_w2 (hC : ∀ x, x < 187 → C x = WC I 2 x) (hD : ∀ x, x < 187 → D x = WC I 3 x) :
+theorem walk_w2 (hC : ∀ x, x < 200 → C x = WC I 2 x) (hD : ∀ x, x < 200 → D x = WC I 3 x) :
     ∀ ex ∈ UpsV3.cWalk, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   have W := iok.walk
@@ -184,7 +184,7 @@ theorem walk_w2 (hC : ∀ x, x < 187 → C x = WC I 2 x) (hD : ∀ x, x < 187 �
   wclose 2, 3
 
 set_option maxHeartbeats 4000000 in
-theorem walk_w3 (hC : ∀ x, x < 187 → C x = WC I 3 x) :
+theorem walk_w3 (hC : ∀ x, x < 200 → C x = WC I 3 x) :
     ∀ ex ∈ UpsV3.cWalk, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   have W := iok.walk
@@ -219,7 +219,7 @@ theorem cWalk_ok {insts : List UpsInst} (ok : UpsOk insts) {H : Nat} (hH : R ins
   apply groupOk_by ok hH (fun e he => by simp [UpsV3.constraints, he])
   · intro i hi t ht q hq hr C D P hC hD ex hex
     have iok := ok.inst _ (inst_mem hi)
-    have hn : ∀ t', t' = t + 1 → t < 3 → ∀ x, x < 187 → D x = WC (inst insts i) t' x := by
+    have hn : ∀ t', t' = t + 1 → t < 3 → ∀ x, x < 200 → D x = WC (inst insts i) t' x := by
       intro t' e h3 x hx
       rw [hD x hx, nextRow ok.shape hq hr (rk' := .w t') (by simp only [nextRK]; rw [if_pos h3, e]) x, rowCell_w]
     rcases (show t = 0 ∨ t = 1 ∨ t = 2 ∨ t = 3 by omega) with rfl | rfl | rfl | rfl

@@ -113,7 +113,7 @@ theorem plan_agree (I : UpsInst) (Q : UpsPartI) (k st ix fl wi u : Nat) :
       true_or, or_true, false_or, or_false, and_true, true_and, and_false, false_and, and_self] <;>
     (repeat' split) <;> omega
 
-theorem planCols_lt : ∀ x ∈ UpsRows.planCols, x < 187 := by decide
+theorem planCols_lt : ∀ x ∈ UpsRows.planCols, x < 200 := by decide
 theorem eKC_noSel : noSel UpsRows.eKC = true := by decide
 theorem eUT_noSel : noSel UpsRows.eUT = true := by decide
 theorem nTE_noSel : noSel nTE = true := by decide
@@ -145,7 +145,7 @@ section
 variable {C D P : Nat → Int} {fst lst trn : Int}
 
 theorem plan_cells {I : UpsInst} {k st ix fl wi u : Nat}
-    (hC : ∀ x, x < 187 → C x = QC I (part I k) k 0 st ix fl wi u x) {e : Expr}
+    (hC : ∀ x, x < 200 → C x = QC I (part I k) k 0 st ix fl wi u x) {e : Expr}
     (hs : noSel e = true) (hc : (∀ x ∈ e.colsC, x ∈ UpsRows.planCols) ∧ e.colsN = []) :
     ev C D fst lst trn P e = ev (planRowI I.ci I.ti (if k < 4 then k + 1 else 0) (part I k).kind
       (upOf (part I k).kind)) (fun _ => 0) 0 0 0 (fun _ => 0) e := by
@@ -157,17 +157,17 @@ theorem plan_cells {I : UpsInst} {k st ix fl wi u : Nat}
   · intro x hx; rw [hc.2] at hx; simp at hx
 
 theorem plan_kc {I : UpsInst} (iok : InstOk I) {k st ix fl wi u : Nat} (pk : PartOk I k (part I k))
-    (hC : ∀ x, x < 187 → C x = QC I (part I k) k 0 st ix fl wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I (part I k) k 0 st ix fl wi u x) :
     ((ev C D fst lst trn P UpsRows.eKC : Int) : Fp) = 0 := by
   apply cast0; rw [plan_cells hC eKC_noSel UpsRows.eKC_cols]; exact (plan_at iok pk).1
 
 theorem plan_ut {I : UpsInst} (iok : InstOk I) {k st ix fl wi u : Nat} (pk : PartOk I k (part I k))
-    (hC : ∀ x, x < 187 → C x = QC I (part I k) k 0 st ix fl wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I (part I k) k 0 st ix fl wi u x) :
     ((ev C D fst lst trn P UpsRows.eUT : Int) : Fp) = 0 := by
   apply cast0; rw [plan_cells hC eUT_noSel UpsRows.eUT_cols]; exact (plan_at iok pk).2
 
 theorem plan_nT {I : UpsInst} (iok : InstOk I) {k st ix fl wi u : Nat}
-    (hC : ∀ x, x < 187 → C x = QC I (part I k) k 0 st ix fl wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I (part I k) k 0 st ix fl wi u x) :
     ev C D fst lst trn P nTE = (UpsRows.nTof I.ci I.ti : Int) := by
   rw [plan_cells hC nTE_noSel UpsRows.nTE_cols]
   have h := nTCheckI_ok
@@ -232,7 +232,7 @@ macro "pq" f:term : tactic => `(tactic| (
   first | rfl | omega | pkind))
 
 theorem plan_q0 {I : UpsInst} (iok : InstOk I) {k : Nat} (pk : PartOk I k (part I k)) {st ix fl wi u : Nat}
-    (hC : ∀ x, x < 187 → C x = QC I (part I k) k 0 st ix fl wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I (part I k) k 0 st ix fl wi u x) :
     ∀ ex ∈ UpsV3.cPlan, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   have hci := iok.ci; have hti := iok.ti; have hts := iok.ts; have hD := iok.D
@@ -276,7 +276,7 @@ theorem plan_q0 {I : UpsInst} (iok : InstOk I) {k : Nat} (pk : PartOk I k (part 
 
 /-- Walk rows have neither a value flag nor a part-first flag. -/
 theorem plan_w {I : UpsInst} {t : Nat}
-    (hC : ∀ x, x < 187 → C x = WC I t x) :
+    (hC : ∀ x, x < 200 → C x = WC I t x) :
     ∀ ex ∈ UpsV3.cPlan, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   exact vzC (zc := zW) (fun x hx => by
@@ -285,7 +285,7 @@ theorem plan_w {I : UpsInst} {t : Nat}
 
 /-- Non-first node rows have neither a value flag nor a part-first flag. -/
 theorem plan_qn {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat} (hp : p ≠ 0)
-    (hC : ∀ x, x < 187 → C x = QC I Q k p st ix fl wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I Q k p st ix fl wi u x) :
     ∀ ex ∈ UpsV3.cPlan, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   refine vzC (zc := fun x => zQ x || x == 8) (fun x hx => ?_)
@@ -298,7 +298,7 @@ theorem plan_qn {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat} (hp : p �
 
 /-- The value part uses the terminal source level and carries no node-kind flags. -/
 theorem plan_v {I : UpsInst} (iok : InstOk I) {p : Nat}
-    (hC : ∀ x, x < 187 → C x = VC I p x) :
+    (hC : ∀ x, x < 200 → C x = VC I p x) :
     ∀ ex ∈ UpsV3.cPlan, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   have hd := iok.D

@@ -19,7 +19,7 @@ theorem tagByte_formula {ty : Nat} (ht : ty < 4) :
 theorem byte_headers_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
     (enc : NodeEncoding Q) (hp : p < Q.q.length)
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p
+    (hC : ∀ x, x < 200 → C x = QC I Q k p
       (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1
       (fieldAt Q.shape p).2.2.1 (fieldAt Q.shape p).2.2.2 u x) :
     ∀ ex ∈ cByteHeaders, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by

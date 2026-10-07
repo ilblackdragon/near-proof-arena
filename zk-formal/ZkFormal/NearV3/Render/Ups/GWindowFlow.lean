@@ -35,10 +35,10 @@ theorem window_flow_off {C D P : Nat → Int} {fst lst trn : Int}
 theorem window_flow_qmid {I : UpsInst} {Q : UpsPartI} {k p u u' : Nat}
     (ok : FieldsOk Q)
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p
+    (hC : ∀ x, x < 200 → C x = QC I Q k p
       (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1
       (fieldAt Q.shape p).2.2.1 (fieldAt Q.shape p).2.2.2 u x)
-    (hD : ∀ x, x < 187 → D x = QC I Q k (p + 1)
+    (hD : ∀ x, x < 200 → D x = QC I Q k (p + 1)
       (fieldAt Q.shape (p + 1)).1 (fieldAt Q.shape (p + 1)).2.1
       (fieldAt Q.shape (p + 1)).2.2.1 (fieldAt Q.shape (p + 1)).2.2.2 u' x) :
     ∀ ex ∈ cWindowFlow, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by

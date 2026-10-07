@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Render.Ups.WideBits
 import Init.Data.Int.OfNat
 import ZkFormal.NearV3.Render.Ups.Tac
 import ZkFormal.NearV3.Render.Ups.MemArith
@@ -18,7 +19,7 @@ namespace UpsGen
 section
 variable {C D P : Nat → Int} {fst lst trn : Int}
 variable {I : UpsInst} {Q : UpsPartI} {k p ix wi u : Nat}
-variable (hC : ∀ x, x < 187 → C x = QC I Q k p 8 ix 8 wi u x)
+variable (hC : ∀ x, x < 200 → C x = QC I Q k p 8 ix 8 wi u x)
 
 private theorem memWin : winFrV I Q 8 wi = 0 := rfl
 
@@ -35,9 +36,12 @@ theorem mem_tE : ev C D fst lst trn P UpsV3.tE = tV I Q ix := by
   omega
 
 /-- Three carry bits reconstruct cb when its representable range is proved. -/
-theorem mem_cbE (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 8) :
+theorem mem_cbE (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 131072) :
     ev C D fst lst trn P UpsV3.cbE = cbV I Q ix := by
-  have hb := carry_bits (cbV I Q ix) h0 h1
+  have hb := carry_bits17 (cbV I Q ix) h0 h1
+  simp only [List.range_succ,List.range_zero,List.map_append,List.map_cons,List.map_nil,
+    List.sum_append,List.sum_cons,List.sum_nil,Int.reducePow,Int.ediv_one,Int.one_mul,
+    Int.zero_add,Int.add_zero] at hb
   ups_ev [hC]
   cellsimp
   simp only [memWin, show (0 : Int) ≠ 1 by decide, ite_false, memReg,
@@ -45,9 +49,12 @@ theorem mem_cbE (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 8) :
   omega
 
 /-- Three carry bits reconstruct the outside carry when its range is proved. -/
-theorem mem_ccE (h0 : 0 ≤ co2V I Q ix) (h1 : co2V I Q ix < 8) :
+theorem mem_ccE (h0 : 0 ≤ co2V I Q ix) (h1 : co2V I Q ix < 65536) :
     ev C D fst lst trn P UpsV3.ccE = co2V I Q ix := by
-  have hb := carry_bits (co2V I Q ix) h0 h1
+  have hb := carry_bits16 (co2V I Q ix) h0 h1
+  simp only [List.range_succ,List.range_zero,List.map_append,List.map_cons,List.map_nil,
+    List.sum_append,List.sum_cons,List.sum_nil,Int.reducePow,Int.ediv_one,Int.one_mul,
+    Int.zero_add,Int.add_zero] at hb
   ups_ev [hC]
   cellsimp
   simp only [memWin, show (0 : Int) ≠ 1 by decide, ite_false, memReg,
@@ -55,7 +62,7 @@ theorem mem_ccE (h0 : 0 ≤ co2V I Q ix) (h1 : co2V I Q ix < 8) :
   omega
 
 /-- Removing the non-final-row bias recovers the signed inside carry. -/
-theorem mem_coE (hi : ix < 8) (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 8) :
+theorem mem_coE (hi : ix < 8) (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 131072) :
     ev C D fst lst trn P UpsV3.coE = coV I Q ix := by
   simp only [coE, ev]
   rw [mem_cbE hC h0 h1]
@@ -65,7 +72,7 @@ theorem mem_coE (hi : ix < 8) (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 8) :
   split <;> split <;> omega
 
 /-- The encoded inside-chain equation is the proved signed carry recurrence. -/
-theorem mem_inside (hi : ix < 8) (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 8) :
+theorem mem_inside (hi : ix < 8) (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 131072) :
     ((ev C D fst lst trn P (UpsV3.cMem.getD 6 (Dsl.k 0)) : Int) : Fp) = 0 := by
   change ((ev C D fst lst trn P (.mul (c sMEM)
     (sub (.add (.mul sigE (c X1)) (c ci)) (.add tE (smul 256 coE)))) : Int) : Fp) = 0
@@ -110,7 +117,7 @@ theorem mem_extra :
 
 /-- The stored memory byte closes the outside carry equation. -/
 theorem mem_outside (hi : ix < 8) (hn : Q.neg ≤ 1)
-    (h0 : 0 ≤ co2V I Q ix) (h1 : co2V I Q ix < 8)
+    (h0 : 0 ≤ co2V I Q ix) (h1 : co2V I Q ix < 65536)
     (hb : (Q.q.getD p 0 : Int) = RV I Q / 256 ^ ix % 256) :
     ((ev C D fst lst trn P (UpsV3.cMem.getD 7 (Dsl.k 0)) : Int) : Fp) = 0 := by
   change ((ev C D fst lst trn P (.mul (c sMEM)
@@ -133,8 +140,8 @@ theorem mem_outside (hi : ix < 8) (hn : Q.neg ≤ 1)
 
 /-- The parent receives the exact final limb rather than a truncated byte. -/
 theorem mem_parent (hi : ix < 8) (hn : Q.neg ≤ 1)
-    (hb0 : 0 ≤ cbV I Q ix) (hb1 : cbV I Q ix < 8)
-    (hc0 : 0 ≤ co2V I Q ix) (hc1 : co2V I Q ix < 8)
+    (hb0 : 0 ≤ cbV I Q ix) (hb1 : cbV I Q ix < 131072)
+    (hc0 : 0 ≤ co2V I Q ix) (hc1 : co2V I Q ix < 65536)
     (hb : (Q.q.getD p 0 : Int) = RV I Q / 256 ^ ix % 256) :
     ((ev C D fst lst trn P (UpsV3.cMem.getD 8 (Dsl.k 0)) : Int) : Fp) = 0 := by
   change ((ev C D fst lst trn P (.mul (c sMEM)

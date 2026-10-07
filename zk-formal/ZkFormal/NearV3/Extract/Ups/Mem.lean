@@ -25,8 +25,8 @@ include hw hs
 theorem memOf {o ℓ : Nat} {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) :
     let r0 := o + (fl[fl.length - 1]'(by have := U.nonempty; omega)).1
     r0 + 8 = o + ℓ ∧ (∀ i, i < 8 → s.row (r0 + i) sMEM = 1 ∧ s.row (r0 + i) idx = i) ∧
-    ((∀ i, i < 8 → inA (s.row (r0 + i)) < 4096 ∧ inB (s.row (r0 + i)) < 4096 ∧
-        inC (s.row (r0 + i)) < 4096 ∧ inE (s.row (r0 + i)) < 4096 ∧ s.row (r0 + i) b < 256) →
+    ((∀ i, i < 8 → inA (s.row (r0 + i)) < 67108864 ∧ inB (s.row (r0 + i)) < 67108864 ∧
+        inC (s.row (r0 + i)) < 67108864 ∧ inE (s.row (r0 + i)) < 67108864 ∧ s.row (r0 + i) b < 256) →
       limbs (fun i => s.row (r0 + i) rx) 8 =
         limbs (fun i => inE (s.row (r0 + i))) 8 +
           (limbs (fun i => inA (s.row (r0 + i))) 8 + limbs (fun i => inB (s.row (r0 + i))) 8 -
@@ -114,8 +114,8 @@ include hw hs hL
 /-- **`memory_usage` of part `k`** (layer 2). -/
 theorem ups_mem (k : Nat) (hk : k < ps.length) :
     ∃ r0, r0 + 8 = ps[k].1 + ps[k].2 ∧ (∀ i, i < 8 → s.row (r0 + i) sMEM = 1 ∧ s.row (r0 + i) idx = i) ∧
-    ((∀ i, i < 8 → inA (s.row (r0 + i)) < 4096 ∧ inB (s.row (r0 + i)) < 4096 ∧
-        inC (s.row (r0 + i)) < 4096 ∧ inE (s.row (r0 + i)) < 4096 ∧ s.row (r0 + i) b < 256) →
+    ((∀ i, i < 8 → inA (s.row (r0 + i)) < 67108864 ∧ inB (s.row (r0 + i)) < 67108864 ∧
+        inC (s.row (r0 + i)) < 67108864 ∧ inE (s.row (r0 + i)) < 67108864 ∧ s.row (r0 + i) b < 256) →
       limbs (fun i => s.row (r0 + i) rx) 8 =
         limbs (fun i => inE (s.row (r0 + i))) 8 +
           (limbs (fun i => inA (s.row (r0 + i))) 8 + limbs (fun i => inB (s.row (r0 + i))) 8 -

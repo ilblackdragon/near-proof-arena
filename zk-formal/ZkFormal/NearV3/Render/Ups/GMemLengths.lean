@@ -46,8 +46,8 @@ macro "mem_lengths_eval" : tactic => `(tactic| (
 /-- Length-register behavior follows solely from the field cursor and scalar widths. -/
 theorem mem_lengths_pair {C D P : Nat → Int} {fst lst trn : Int}
     {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u st' ix' fl' wi' u' : Nat}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p st ix fl wi u x)
-    (hD : ∀ x, x < 187 → D x = QC I Q k (p + 1) st' ix' fl' wi' u' x)
+    (hC : ∀ x, x < 200 → C x = QC I Q k p st ix fl wi u x)
+    (hD : ∀ x, x < 200 → D x = QC I Q k (p + 1) st' ix' fl' wi' u' x)
     (hi : ix < fl) (h4 : st = 4 → fl = 4) (h8 : st = 8 → fl = 8)
     (hn : if ix + 1 < fl then st' = st ∧ ix' = ix + 1 else ix' = 0) :
     ∀ ex ∈ cMemLengths, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
