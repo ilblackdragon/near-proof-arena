@@ -579,3 +579,10 @@ the terminal row has the same index. The gate is exactly `q+1=block.stop` on
 all block rows. Thirteen exact axiom guards pass. Remaining RCL composition
 work is the full row-traffic multiset and padding exclusion, followed by the
 source/receipt bus binding; full receipt semantic extraction remains open.
+
+`RclTraffic` and `RclProof` now close whole receipt-table RCL traffic exactly:
+the ordered sends are the extracted blocks' records, one per list, carrying the
+header's preserved index and its nonwrapping encoded length. No inactive row,
+including the cyclic physical last row, emits RCL; the table has no RCL receives.
+Eight exact axiom guards pass. The source-to-receipt global bus ownership/balance
+composition and full semantic receipt extraction remain explicit work.
