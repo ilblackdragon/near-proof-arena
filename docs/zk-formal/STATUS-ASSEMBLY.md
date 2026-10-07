@@ -251,3 +251,11 @@ standard Lean axioms. Private compile and guard logs are respectively
 `/tmp/nearproof-assembly-native-trace-guards.log`. The full completeness theorem
 still needs concrete head/receipt/dictionary views and all GoodV3 fields;
 these runtime/allocator results do not assert AIR acceptance or succinctness.
+
+`TraceHeads.traceStoreViews` now combines shared forest stores with actual
+pre/post transition digests and pre-order root addresses. Exact indexed post
+lookup and `runtimePairs_implicit_views` are checked, so implicit normalized
+execution consumes the concrete constructor rather than an assumed store/post
+correspondence. Six permanent `AuditTraceHeads` axiom guards pass. HEAD edge-use
+and walk-result fields remain explicit seeds; no HEAD table acceptance is
+asserted by this semantic constructor.
