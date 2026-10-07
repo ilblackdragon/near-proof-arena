@@ -7,6 +7,18 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `acce82df` adds generated walk base-parser constraints and physical
+parser-to-first-walk overlay preservation. The latter uses actual first delayed
+mode0; it preserves evaluation without assuming original constraints hold.
+`Walk.base_constraints` proves every transformed base equation for generated rows
+with inactive-next or next-record-start, discharged for next walks and padding.
+Target154 jobs and combined64 exact axiom guards+15 fixtures PASS. Evidence:
+`/tmp/nearproof-walk-base.log`, `/tmp/nearproof-boundary-base-audit-final.log`.
+Next root: extra read-sequence constraints and multiplicity bits, full plan/parser
+composition, ownership/extraction. No root job active. This focused checkpoint
+is newer than the full aggregate below.
+
+
 **Latest full AIR integration `9fbbdabf`:1,663 jobs PASS;13 audits,
 182 exact axiom guards,15 behavior checks and7 theorem examples.** Report in AIR:
 `docs/e2e-results/v3-word-native-integration/report.json`; external evidence
