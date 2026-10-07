@@ -4,7 +4,7 @@ namespace ZkFormal.NearV3.Qv.Extract
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near
 open Candidates.ValueTable
 
-private theorem range_from_segments {α : Type} (H S : Nat) (l : List (Nat × Nat))
+theorem range_from_segments {α : Type} (H S : Nat) (l : List (Nat × Nat))
     (f : Nat → List α) (hc : Consec S l) (hfit : segEnd S l≤H)
     (hpad : ∀ r, segEnd S l≤r → r<H → f r=[]) :
     (List.range' S (H-S)).flatMap f=l.flatMap (fun p => (List.range' p.1 p.2).flatMap f) := by
