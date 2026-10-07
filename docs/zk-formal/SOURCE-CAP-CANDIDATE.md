@@ -563,3 +563,10 @@ whole block's terminal `oEnd` now equals its natural `lOffs` length cast into
 actual terminal offset, not merely an unrelated semantic encoding. Ten exact
 transitive axiom guards pass. Terminal `le`/RCL traffic, global list indices,
 and full semantic receipt extraction remain separate outstanding obligations.
+
+`ListTerminal` closes the positive terminal RCL direction: a block boundary has
+`rf=0`, its preceding row is a real break, and therefore `le=1`. The actual
+terminal row's RCL traffic is exactly one message carrying its list-index cell
+and the extracted full encoding length. Five exact axiom guards pass. This
+does not yet exclude RCL messages elsewhere or reconstruct the global index
+sequence; those are the next whole-traffic obligations.
