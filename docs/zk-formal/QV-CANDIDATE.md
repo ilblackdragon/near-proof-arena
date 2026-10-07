@@ -72,3 +72,14 @@ A combined parser/read table is preferred for size. Isolated source partition
 shape estimates leave only75,006 bytes after a provisional48-column queue
 shape; separate parser/read tables leave18,845 bytes. These estimates omit
 remaining source wiring and are not admission/security proofs.
+
+## Generated record placement
+
+`RecordGlue` proves local transfer for terminal and interior rows and validity
+of padding. `Records` packages the three executable generators with exact,
+positive row counts and only their existing byte-size/count preconditions.
+`RecordMarkers` derives every endpoint marker from generated rows;
+`RecordPlaced` proves local validity when a record is placed at a fitting offset,
+with arbitrary unrelated next-record payload and explicit physical boundary
+flags. Seven permanent axiom guards pass in `test/QvRecordCandidate.lean`.
+Full list concatenation, read orchestration and capacity are still pending.
