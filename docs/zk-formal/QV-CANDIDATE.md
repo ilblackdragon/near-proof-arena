@@ -21,10 +21,13 @@ Two static shape/well-formedness axiom guards pass. These results do not replace
 general field extraction and honest local-constraint proofs. `EmptyLocal` and
 `EmptyRender` now prove all local constraints for arbitrary empty-index bytes
 and their actual sixteen-row generator, over any commutative ring. `ShardTraffic`
-proves exact generated buffered shard-byte records. Candidate audit totals eight
-axiom guards and eleven fixtures checked in both integer and BabyBear arithmetic.
-Buffered/raw local constraints, padding/concatenation and full field traffic
-remain open.
+proves exact generated buffered shard-byte records. `RawLocal` and `RawRender`
+prove all local constraints for arbitrary raw bytes, including the empty marker
+and every padding row of any fitting power-of-two trace, over any commutative
+ring. This is connected by trace equality to executable `rawRows`.
+Candidate audit totals ten axiom guards and eleven fixtures checked in both
+integer and BabyBear arithmetic. Buffered local constraints, empty/buffer padding,
+record concatenation and full field traffic remain open.
 
 Rows parse three modes: empty 16-byte index pairs, a four-byte buffered vector
 header followed by 24-byte entries, and uninterpreted raw values. Eight byte

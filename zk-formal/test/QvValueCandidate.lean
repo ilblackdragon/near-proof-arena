@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Qv.Candidates.RawRender
 import ZkFormal.NearV3.Qv.Candidates.EmptyRender
 import ZkFormal.NearV3.Qv.Candidates.ShardTraffic
 import ZkFormal.NearV3.Qv.Candidates.ValueBudget
@@ -63,3 +64,13 @@ open NearSpec ZkFormal.NearV3.Qv ZkFormal.NearV3.Qv.Candidates.ValueGen
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferRows_shards' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferRows_shards
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.rawTrace_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.rawTrace_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.rawGeneratedTrace_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.rawGeneratedTrace_local
