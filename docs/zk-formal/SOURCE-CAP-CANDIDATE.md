@@ -727,3 +727,13 @@ and reads V3's `gq` gate. Token preservation now covers list-header rows as well
 as ordinary non-GP rows. Fifteen exact axiom guards pass. Full semantic arithmetic
 assembly must still combine the system/no-refund branch and public-price minimum
 with these row facts; no complete RcptE.Wf arithmetic claim is made yet.
+
+`ReceiptArithmetic.arith_of` closes the complete unchanged V3 per-receipt
+arithmetic statement: native gas-price minimum, zero system burn/no system refund,
+ordinary refund iff nonzero surplus, exact refund product, token addition and
+128-bit bound, plus the checked balance/storage clauses. `ReceiptWf.wf_of_route`
+assembles every RcptE.Wf field with only three remaining caller obligations:
+RouteOk, the already-reconstructed global receipt counter/canonicity, and byte
+bounds on the entering token state. Routing is the sole unextracted per-receipt
+field; propagating entering token bytes through all lists is a separate table
+assembly obligation. Both exact transitive axiom guards pass.
