@@ -672,3 +672,13 @@ entire concrete table-view `canon` field is proved. Eight exact axiom guards
 pass. The proofs use actual V3 constraints; no V1 table-local premise is assumed.
 Account validity, system/refund arithmetic, equality tests, and routing order
 semantics remain outstanding semantic Wf obligations.
+
+`CharClass`, `StrField`, `NameLengths`, `ReceiptIds`, `Named`, and `ReceiptNamed`
+now derive all three native account-ID grammar/byte-range facts and the receiver's
+named-account rule from the actual V3 constraints and extracted receipt layout.
+The character and named-account arithmetic matches the inherited rules, but every
+constraint-membership proof is checked against the active V3 table. Only pure
+AccountId grammar lemmas are reused. Ten exact axiom guards pass. V3 predecessor
+`system` equivalence is deliberately separate and remains open, as do the other
+arithmetic/routing Wf fields. No byte, string-length, or account-validity premise
+was added to `ids_of` or `named_of`.
