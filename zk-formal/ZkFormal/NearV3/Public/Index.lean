@@ -86,4 +86,14 @@ theorem preparedOn_body (p : Prep) :
   change preparedRecords p (descriptor bodyPlan 202 2) ++ [] = _
   exact List.append_nil _
 
+theorem prepared_pubFit (AP : AirP) (p : Prep) (witnessOverhead : Nat)
+    (hseg : AP.pubSegs = preparedSegments) (hr : RootsSized p)
+    (hs : ∀ s ∈ p.lists, s.root.length = 32)
+    (hlen : (preparedBytes p witnessOverhead).length ≤ AP.maxPub) (hmax : AP.maxPub < 256^4) :
+    pubFit AP (ZkFormal.Udr.pubOf Fp (preparedBytes p witnessOverhead)) = true := by
+  apply List.all_eq_true.mpr
+  intro seg hmem
+  apply prepared_segment_fits p witnessOverhead AP.maxPub hr hs hlen hmax seg
+  rwa [hseg] at hmem
+
 end ZkFormal.NearV3.Public
