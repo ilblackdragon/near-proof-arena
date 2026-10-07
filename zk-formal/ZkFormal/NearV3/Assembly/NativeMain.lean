@@ -1,6 +1,7 @@
 import ZkFormal.NearV3.Assembly.SourceResult
 import ZkFormal.NearV3.Assembly.Execution
 import ZkFormal.NearV3.Assembly.RuntimeReplay
+import ZkFormal.NearV3.Assembly.ImplicitTrace
 
 set_option linter.unusedSimpArgs false
 
@@ -24,9 +25,11 @@ structure MainExecutionV3.NativeValid (k : WalkD0) (w : StateWitness)
   storeBytes : (w.main.values.map List.length).foldl (· + ·) 0 ≤ 3000000
 
 set_option maxHeartbeats 4000000 in
-theorem checkD0_native_main {cb wb : Bytes} {k : WalkD0} {w : StateWitness}
+theorem checkD0_native_steps {cb wb : Bytes} {k : WalkD0} {w : StateWitness}
     (hk : walkD0 cb = .ok k) (hw : decodeW wb = .ok w) (h : checkD0 cb wb = .ok ()) :
-    ∃ m : MainExecutionV3, m.NativeValid k w := by
+    ∃ m : MainExecutionV3, ∃ last : Bytes, m.NativeValid k w ∧
+      forIn (k.implicitBlks.zip w.implicit) m.result.trie.hashOf (checkedImplicitStep k) = .ok last ∧
+      w.implicit.length = k.implicitBlks.length ∧ k.implicitBlks.length ≤ 31 := by
   unfold walkD0 at hk
   repeat' (first
     | (have hh := hk; clear hk; obtain ⟨_, _, hk⟩ := bind_ok hh; clear hh)
@@ -58,21 +61,37 @@ theorem checkD0_native_main {cb wb : Bytes} {k : WalkD0} {w : StateWitness}
         simp only [Option.bind_some, heq_8, Option.some.injEq] at heq_3
         grind only
       refine ⟨⟨w_37, w_43, w_52,
-        partialTrie w_13.main.values w_44.prevStateRoot (mainKeys w_45.1 w_52), w_54⟩, ?_⟩
-      constructor
-      · grind only
-      · grind only
-      · refine ⟨v, ?_, ?_⟩
+        partialTrie w_13.main.values w_44.prevStateRoot (mainKeys w_45.1 w_52), w_54⟩, w_57, ?_, ?_, ?_, ?_⟩
+      · constructor
         · grind only
-        · have hh : (bufferedShards v).mapError id = .ok w_52 := by assumption
-          simpa only [mapError_id] using hh
-      · simp only [appliedReceipts_eq_flatMap]
-        grind only
+        · grind only
+        · refine ⟨v, ?_, ?_⟩
+          · grind only
+          · have hh : (bufferedShards v).mapError id = .ok w_52 := by assumption
+            simpa only [mapError_id] using hh
+        · simp only [appliedReceipts_eq_flatMap]
+          grind only
+        · grind only [check_ok]
+        · simp only [MainExecutionV3.ctx, appliedReceipts_eq_flatMap]
+          grind only
+        · grind only [check_ok]
+        · grind only [check_ok]
+      · unfold checkedImplicitStep
+        simpa only [hb2, hslot, pure, Except.pure] using left_54
       · grind only [check_ok]
-      · simp only [MainExecutionV3.ctx, appliedReceipts_eq_flatMap]
-        grind only
-      · grind only [check_ok]
-      · grind only [check_ok]
+      · have hseg : w_9.blocks.length ≤ 32 := by
+          have hh := check_ok (by assumption : check (decide (w_9.blocks.length ≤ 32)) _ = .ok _)
+          simpa only [decide_eq_true_eq] using hh
+        have hlen := Sched.mapM_length decodeBlk w_9.blocks w_4 (by assumption)
+        have hi := (List.getElem?_eq_some_iff.mp heq_5).1
+        simp only [List.length_reverse, List.length_take]
+        omega
+
+theorem checkD0_native_main {cb wb : Bytes} {k : WalkD0} {w : StateWitness}
+    (hk : walkD0 cb = .ok k) (hw : decodeW wb = .ok w) (h : checkD0 cb wb = .ok ()) :
+    ∃ m : MainExecutionV3, m.NativeValid k w := by
+  obtain ⟨m, _, hm, _, _, _⟩ := checkD0_native_steps hk hw h
+  exact ⟨m, hm⟩
 
 /-- Populate the semantic main-execution interface from actual native execution
 and the concrete normalized store emitted by the allocated views. -/

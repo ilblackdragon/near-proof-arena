@@ -5,6 +5,21 @@ import ZkFormal.NearV3.Assembly.Compute
 namespace ZkFormal.NearV3.Assembly
 open NearSpec NearSpecV3
 
+theorem find_determinate_root_length (t : PTrie) (key : List Nat)
+    (h : t.find key ≠ none) : t.hashOf.length = 32 := by
+  cases t with
+  | hash => exact False.elim (h rfl)
+  | leaf => simp [PTrie.hashOf, sha256, ArenaCore.sha256_length]
+  | ext => simp [PTrie.hashOf, sha256, ArenaCore.sha256_length]
+  | branch v cs m => cases v <;> simp [PTrie.hashOf, sha256, ArenaCore.sha256_length]
+
+theorem MainExecutionV3.NativeValid.root_length {k : WalkD0} {w : StateWitness}
+    {m : MainExecutionV3} (h : m.NativeValid k w) : k.slotB2.prevStateRoot.length = 32 := by
+  obtain ⟨_, _, v, _, _, hv⟩ := Qv.applyNewChunk_queue_reads h.run
+  have hd : m.pre.find keyDelayedIdx ≠ none := by rw [hv.1]; simp
+  have hh := find_determinate_root_length m.pre keyDelayedIdx hd
+  rwa [h.preRoot] at hh
+
 /-- The native 3MB main-store guard bounds the actual parsed buffered shard list. -/
 theorem MainExecutionV3.NativeValid.buffered_count {k : WalkD0} {w : StateWitness}
     {m : MainExecutionV3} (h : m.NativeValid k w) (hr : k.slotB2.prevStateRoot.length = 32) :
@@ -68,5 +83,12 @@ theorem nativeForest_inputs_capacity {k : WalkD0} {w : StateWitness} {m : MainEx
   · intro t ht
     obtain ⟨⟨ws, root⟩, _, rfl⟩ := List.mem_map.mp ht
     exact partialTrie_value_count ws root [keyDelayedIdx, keyBwState]
+
+theorem nativeForest_inputs_capacity_from_run {k : WalkD0} {w : StateWitness}
+    {m : MainExecutionV3} (h : m.NativeValid k w)
+    (hg : k.slotB2.gasLimit ≤ maxGasLimitD0) (inputs : List (List Bytes × Bytes))
+    (hc : inputs.length ≤ 31) :
+    (forestBytes (m.pre :: implicitTrees inputs)).length ≤ ZkFormal.Algebra.P :=
+  nativeForest_inputs_capacity h h.root_length hg inputs hc
 
 end ZkFormal.NearV3.Assembly
