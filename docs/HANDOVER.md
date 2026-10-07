@@ -7,6 +7,23 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+AIR `9959d92c` WalkPhase proves indexed adjacent request transitions, implicit
+suffix cannot re-enter main, and exact implicit tau=index distance from entry.
+When entry tau=1, natural cv decoding follows from physical height<P, without
+caller wrap bounds. Target122 jobs;4 exact phase guards PASS after correcting
+an accidental nested guard from prefix-name replacement in followup commit.
+Logs /tmp/nearproof-qv-walk-phase.log,/tmp/nearproof-qv-phase-audit-final.log.
+Root no live job. Next root main prefix/slot/kind ordinal characterization and
+exact queue traffic/parser/provider linking. Last fullaggregate191ea6da predates
+newphase/agent imports. Agent5bceef6c integrated as9d28d417 shape-only native
+lookup and known-query preservation through writes,17guards+4overflow fixtures;
+ab342dc5 as5dce8f1a all11 native terminal EDGE/BMAP providers without source wf,
+10new/7recheckedguards. Global allocated IDs, earlier edges/pcid and full multi-
+write source-memory assembly remain open. Receipt public ranges/token table
+composition active. Complete certificate/admission/prover/judge/broad coverage
+still incomplete; goal remains active.
+
+
 AIR aggregate `191ea6da`:1859 jobs,81 selected audits,752 exact axiom guards,
 15 behavior guards PASS. Report docs/e2e-results/v3-queue-extraction-integration/
 report.json; external logs /data/illia/nearproof-deps/validation/
