@@ -638,3 +638,12 @@ shard bytes/count over actual providers. `plan_physical_qsh_balance` closes QSH
 send/receive permutation over ALL physical mixedTrace rows using root's complete
 traffic theorem. 10 permanent guards pass. This is separate from pending
 VBYTES seed inclusion and the global ExtV3/post-query ownership gap.
+
+`QueueSeedSublist` proves the selected provider seeds are an ordered sublist of
+actual forestStoreViews.values. `QueueValueBytes` lifts that to an exact sublist
+of valV3 B_VBYTES demand and derives it from accepted native inputs;
+`plan_physical_vbytes_inclusion` gives ALL physical parser byte sends as a
+permutation of a sublist of the seeded Fp requests. This preserves multiplicity
+and does not claim all other byte suppliers or whole-bus balance.10 guards pass
+(standard-only, one axiom-free). Global retained post-query ownership/capacity
+and original-node ID mapping/write-key revelation remain open independently.
