@@ -25,22 +25,25 @@ private theorem flat_keys_nodup {α β γ : Type} (id : α → β) (keys : α �
     have hid : id a=id e := by rw [←hyid,←he,hxid]
     exact hi.1 (List.mem_map.mpr ⟨a,ha,hid⟩)
 
+theorem value_ids_unique {es : List ValE} (hv : ValWf es) :
+    (es.map (fun e => Fp.ofNat e.vid)).Nodup := by
+  unfold List.Nodup
+  rw [List.pairwise_iff_getElem]
+  intro i j hi hj hij he
+  simp only [List.length_map] at hi hj
+  simp only [List.getElem_map] at he
+  have hc := hv.canon _ (List.getElem_mem hi)
+  have hd := hv.canon _ (List.getElem_mem hj)
+  have hn := Link.ofNat_inj hc.1 hd.1 he
+  have hh := Link3.vid_inj hv (Link3.vlen_le hv) hi hj hn
+  omega
+
 /-- Canonical value IDs and bounded byte offsets make all demanded physical
 (id,position) pairs unique, including across distinct value records. -/
 theorem value_byte_keys_unique {es : List ValE} (hv : ValWf es) :
     (((valRecvs es B_VBYTES).map Msg.toFp).map
       (fun m => (m.getD 0 0,m.getD 1 0))).Nodup := by
-  have hids : (es.map (fun e => Fp.ofNat e.vid)).Nodup := by
-    unfold List.Nodup
-    rw [List.pairwise_iff_getElem]
-    intro i j hi hj hij he
-    simp only [List.length_map] at hi hj
-    simp only [List.getElem_map] at he
-    have hc := hv.canon _ (List.getElem_mem hi)
-    have hd := hv.canon _ (List.getElem_mem hj)
-    have hn := Link.ofNat_inj hc.1 hd.1 he
-    have hh := Link3.vid_inj hv (Link3.vlen_le hv) hi hj hn
-    omega
+  have hids := value_ids_unique hv
   have hk : ∀ e∈es, (recordKeys e).Nodup := by
     intro e he
     cases hz : e.vz
