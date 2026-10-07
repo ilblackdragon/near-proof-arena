@@ -479,3 +479,17 @@ starts its hash numbering at 1, and obeys every consecutive endpoint link.
 assuming an honest renderer. Remaining source obligations are global bus
 isolation and size no-wrap, byte/SHA semantics, prepared SRC repetition/key/root
 matching, and source semantics within the complete AIR-to-Good assembly.
+
+Candidate SHA semantic linking now closes for every computed source block.
+`BlockChain.payload_wf` derives canonical source IDs and disjoint computed
+intervals directly from arbitrary candidate rows; skipped intervals are empty.
+`payload_field_unique` and `payload_bytes_isolate` prove exact message isolation
+without the old per-occurrence computation model or log20 source cap. The existing
+closed `ShaFacts`/`sha_core` contract then supplies byte ranges and source digest
+values. `source_hashes_of_sha` reconstructs every predecessor and final digest;
+`BlockChain.verifyReceiptProof` concludes the unchanged native receipt-proof
+verifier from exact SHA bus contracts and the linked RC leaf digest/path.
+Seven modules compile and `AuditDedupSourceSha.lean` checks 30 transitive axiom
+closures. No collision assumption is introduced. Global bus-to-contract assembly,
+RC leaf binding, prepared source metadata/root consistency, skipped-occurrence
+same-key reuse, and size no-wrap remain explicit premises/obligations.
