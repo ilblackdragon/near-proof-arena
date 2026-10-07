@@ -25,7 +25,11 @@ proves exact generated buffered shard-byte records. `RawLocal` and `RawRender`
 prove all local constraints for arbitrary raw bytes, including the empty marker
 and every padding row of any fitting power-of-two trace, over any commutative
 ring. This is connected by trace equality to executable `rawRows`.
-Candidate audit totals ten axiom guards and eleven fixtures checked in both
+`BufferRows` proves the exact 4+24*n row count and pointwise header/entry/padding
+indexing for every sized byte-buffer list. `BufferTrace` connects that formula
+to the executable generator. These are row-layout facts, not buffered local
+constraint validity.
+Candidate audit totals twelve axiom guards and eleven fixtures checked in both
 integer and BabyBear arithmetic. Buffered local constraints, empty/buffer padding,
 record concatenation and full field traffic remain open.
 
