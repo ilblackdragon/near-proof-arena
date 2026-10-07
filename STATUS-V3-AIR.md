@@ -2,6 +2,38 @@
 
 Program lead's hand-over, 2026-10-07.
 
+**Resumption, 2026-10-07:** `lake build ZkFormal` at `399af714` passed (694 jobs)
+under the 16 GiB `heavy` wrapper on CPUs 8–15,24–31. This was an incremental
+build using cached artifacts, not a clean elaboration-budget measurement.
+The receipt lane was interrupted by a usage limit, not paused by the user;
+its outstanding work remains on the active critical path. Its saved branch was
+actually unmerged at handover; it is now merged at `8c40110e`. Main already contains
+the D0a spec merge (`5ce7c42e`). These facts supersede the stale merge/pause
+instructions below. The domain choices in §5 remain unresolved.
+
+The default root does **not** check all merged v3 work: the import-graph audit
+found 339 unreached modules before the receipt merge. New target
+`lake build ZkFormal.V3.Integration` adds 369 previously unreached proof modules
+including the receipts (executable drivers and compiler fast paths remain their
+own targets). Its full incremental build passes all 1,089 jobs. Root success alone must not
+be reported as integration success. Seven guarded axiom checks pass.
+
+The expanded gate found a stale synthetic upsV3 width: 186 instead of 187.
+The corrected kernel size bounds increase by 928 bytes per group; g2 is
+7,147,423 bytes, plus up to 1,295,017 hint bytes (53,832 over 8 MiB). This
+is still a synthetic 23-table model with one SHA and no qvV3, not the final
+assembled proof. All six trie, five scheduler and six receipt shapes now
+match their actual tables in kernel checks for g ∈ {1,2,3}. These numbers
+supersede the older size summaries below. Evidence and exact source hashes:
+`docs/e2e-results/v3-integration/report.json`.
+
+The conditional `lane_770k_22` row-count theorem and `laneMaxes_770k` compile:
+at W = 770,000 and T ≤ 33 the conservative ChaCha bound is 4,141,411 rows with
+padding. This fits 2^22, but exceeds the current `Chacha.Table.maxLog = 21`.
+The existing W = 360,000 theorem remains unchanged. No new domain conjunct or
+table-height change has been made; 770,000 would require updating the table,
+its completeness bounds and size accounting before assembly.
+
 Program goal: a succinct STARK for `RelD0a B0` (v3 chunk validation, domain D0a), formally admitted to the unified challenge `near-chunk-v3` with declared tier D0a.
 
 Design: `docs/zk-formal/V3-D0-DESIGN.md`. §10–§16 are the review decisions, §12 the SHA kind registry, §13/§15/§16 the size accounting.
@@ -18,7 +50,7 @@ Each lane has a worktree `/data/illia/nearproof-wt/<lane>`. Heads are as of hand
 
 | branch | worktree | content | state |
 |---|---|---|---|
-| `lane/v3-air` | v3-air | integration branch: every lane merged; full `ZkFormal` root builds | integration |
+| `lane/v3-air` | v3-air | integration branch: saved receipt lane merged; `ZkFormal.V3.Integration` builds; helper WIP remains separate | integration |
 | `lane/v3-bus` | v3-bus | np-udr-stark-v2: public-message bus (`AirP`, `HoldsP`, `PubSeg`, `verifierP`), `rbrWithP`, `stark_romSound_fullP`, `npIopCompleteP`, `admission_v2`, P1 `sizeMaxSched`, toy `toyP_admission` | **proved**, merged |
 | `lane/v3-p2` | v3-p2 | `auxGroup` g ∈ {1,2,3} for v2: `rbrWithPg`, `stark_romSound_fullPg`, `npIopCompletePg`, `admission_v2_pg`, `toyP_admission_g3`. The Rust `AUX_GROUP` change is documented only. | **proved** (Lean), merged |
 | `lane/v3-store` | v3-store | trie store semantics: `storeBuildStmt`, `trieOpsStmt`, `absent_iff`, `upsert_absent` | **proved**, merged. Its A6-based completeness was superseded by v3-trie (`treeRecs_spec`). |
@@ -27,7 +59,7 @@ Each lane has a worktree `/data/illia/nearproof-wt/<lane>`. Heads are as of hand
 | `lane/v3-trie` (+ helper `lane/v3-trie-h`) | v3-trie, v3-trie-h | trie tables `nodeV3`, `headV3`, `valV3`, `walkV3`, `uniqV3`, `upsV3`; views; renders (all but upsV3); link: `root_tau`, `build_tau`, `walks_tau`, `store_hashFunctional`, `post_tau`, `post_sets_tau`, `root_chain`/`ups_chain`, `upsV3_linkB`, `upsV3_s0f` | soundness **proved**; upsV3 render (M7d) **partial** |
 | `lane/v3-chacha` | v3-chacha | `chachaV3`, `genV3`, `shufV3`: block, stream, genIndex and shuffle contracts plus completeness (`chacha_complete`, `gen_complete`, `shuffle_complete`) | **proved**, merged |
 | `lane/v3-sched` (+ helper `lane/v3-sched-h`) | v3-sched, v3-sched-h | in-AIR bandwidth scheduler (`schV3`, `sprV3`, `ssdV3`, `smmV3`, `scpV3`, 781 W_eq). M1 `core_compose`; M3 `schedCore_sound''`, `codec_schedVal`, `schedCore_fwd_prep`, `Granted` (`core_granted`), `PubIdx`, `KindReg`; M4 `cmp_complete`, `mem_complete`, `heights`, `steps_pv86`, `lp_draws`, `worstK_exceeds` | soundness **proved**; completeness **partial** (M4) |
-| `lane/v3-rcpt` (+ helper `lane/v3-rcpt-h`) | v3-rcpt, v3-rcpt-h | receipt side: `rcptV3` (431), `acctV3`, `akeyV3`, `bndV3`, `srcpV3`, `sizeV3` (867 W_eq). Proved: views and renders of acct/akey/bnd/size; `body_eq`, `body_sha0`, `rcpt_keynib_syms`, `srec_ee`/`srec_neq`, `lex_lo`/`lex_hi`, `rcptShaRows_A1` | **partial**, **paused by the user** (see §5). The helper's srcp WIP is committed as `WIP:` 4ae51a13. |
+| `lane/v3-rcpt` (+ helper `lane/v3-rcpt-h`) | v3-rcpt, v3-rcpt-h | receipt side: `rcptV3` (431), `acctV3`, `akeyV3`, `bndV3`, `srcpV3`, `sizeV3` (867 W_eq). Proved: views and renders of acct/akey/bnd/size; `body_eq`, `body_sha0`, `rcpt_keynib_syms`, `srec_ee`/`srec_neq`, `lex_lo`/`lex_hi`, `rcptShaRows_A1` | **partial**, active; merged at `8c40110e`. The helper's srcp WIP is committed as `WIP:` 4ae51a13. |
 | `lane/v3-size` | v3-size | lever (a): `multiproof_size_le`, `size32D`, `sizeBoundD_le_dedup`, `sizeMaxDedup_le_sched`, `admission_v2_dedup`, `sizeMaxDedup_eq_model`, `V3.v3_bound`, kernel evaluations | **proved**, merged |
 
 ## 2. Soundness picture: open hypotheses and how each is discharged
@@ -45,7 +77,7 @@ The target is `Holds_v2(prep cb h) ⇒ ∃ w, RelD0 cb w`. The assembly addition
 | `ShaHyp` / `ShaFacts` (per SHA table instance) | trie, rcpt | L5 `sha_digest_contract_closed` per instance |
 | `prepD0 cb h = .ok p` plus prep facts | sched | the verifier runs prepD0 natively; lemmas `prepD0_sched`, `prepD0_rawOk`, `prepD0_seed`, `prepD0_ids`, `prepD0_fwd_lt` are proved |
 | global id-range disjointness (all SHA ids, all kinds) | assembly | one global lemma (design §12) |
-| rcpt links: lists ⇒ `verifyReceiptProof`, run ⇒ `applyReceipts`/`applySystemReceipt`, R5 `inIntervals_iff_shardOf` | rcpt | **not done** (the lane is paused) |
+| rcpt links: lists ⇒ `verifyReceiptProof`, run ⇒ `applyReceipts`/`applySystemReceipt`, R5 `inIntervals_iff_shardOf` | rcpt | **not done** (receipt work remains active) |
 
 ## 3. Completeness: what is open
 
@@ -82,9 +114,9 @@ The target is `Holds_v2(prep cb h) ⇒ ∃ w, RelD0 cb w`. The assembly addition
    * Options: W = 360,000 (≈ 16 % over twice the worst-case expectation) or W = 770,000 (the 2²² limit).
    * It is not a deterministic nearcore invariant: rejections depend on hash outputs. The liveness note is the same as A7's.
    * If approved, it should go into `RelD0a` **before** `lane/v3-d0a-spec` freezes.
-3. **Receipt lane:** the user stopped it.
-   * Does it resume?
-   * May it edit `spec/lean/v3/NearSpecV3/PrepD0.lean` (R2: header fields `|B|`, witness overhead, per-list and routing records)? PrepD0 is unsigned and is NOT part of the d0a-spec branch.
+3. **Receipt lane:** active after a usage-limit interruption, not a user pause.
+   * The saved work is merged; continue the remaining view/render/link proofs.
+   * Required implementation work includes edits to `spec/lean/v3/NearSpecV3/PrepD0.lean` (R2: header fields `|B|`, witness overhead, per-list and routing records)? PrepD0 is unsigned and is NOT part of the d0a-spec branch.
 4. **Source-proof path length:** RelD0a allows unbounded Merkle paths (`rootFromPath`); nearcore produces ⌈log₂ shards⌉. Options: a domain conjunct, or count path bytes into a budget. srcp heights are kept parametric in `Dp`.
 5. A8 is **decided**: it is in RelD0a (nearcore-enforced, `congestion_control.rs:503-523`, `validate.rs:280-298`), with difftest 0 disagreements and 845/845 mutants out of domain.
 
@@ -102,7 +134,7 @@ The target is `Holds_v2(prep cb h) ⇒ ∃ w, RelD0 cb w`. The assembly addition
 
 1. Merge `lane/v3-d0a-spec` to main and notify the D3 lane. Small.
 2. Decisions §5.1–§5.4.
-3. Receipt lane, if resumed: the rcptV3 view (≈ 60 % left), renders for rcptV3/srcpV3, `qvV3`, links to `applyReceipts`/`verifyReceiptProof`, R2/R5/R6. ≈ 10–15 k lines.
+3. Receipt lane, resumed: the rcptV3 view (≈ 60 % left), renders for rcptV3/srcpV3, `qvV3`, links to `applyReceipts`/`verifyReceiptProof`, R2/R5/R6. ≈ 10–15 k lines.
 4. Indexed public segments (R1, v2 protocol): instantiate `PubIdx`. ≈ 1.5–3 k lines.
 5. Trie M7d (upsV3 render, ≈ 3 k lines) and the KindReg restatement.
 6. Scheduler M4: sprV3, ssdV3, schV3, `schedCore_complete`. ≈ 4–6 k lines.

@@ -1,5 +1,6 @@
 import ZkFormal.Size.V3Synth
 import ZkFormal.Size.Admission
+import ZkFormal.NearV3.Rcpt.Budget
 
 /-!
 # ZkFormal.Size.V3Eval — kernel-checked evaluations of the deduplicated bound
@@ -18,9 +19,9 @@ All numbers are `decide +kernel` (no `native_decide`).
 
 | `g` | `W_eq` | `sizeOfSchedS` (P1 model) | **`sizeOfWeq` (dedup)** | FRI part |
 |---|---:|---:|---:|---:|
-| 1 | 4,434 | 9,729,983 | **7,450,143** | 2,686,144 |
-| 2 | 4,090 | 9,426,335 | **7,146,495** | 2,686,144 |
-| 3 | 4,146 | 9,473,407 | **7,193,567** | 2,686,144 |
+| 1 | 4,435 | 9,730,911 | **7,451,071** | 2,686,144 |
+| 2 | 4,091 | 9,427,263 | **7,147,423** | 2,686,144 |
+| 3 | 4,147 | 9,474,335 | **7,194,495** | 2,686,144 |
 
 `v3_bound_g*`: every AIR whose tables have these shapes satisfies `sizeBoundD ≤` the value at
 every admissible header.
@@ -46,33 +47,34 @@ theorem near_size_dedup : ∀ hdr, (Iop.verifier Fp Fp8 nearAir Params.default).
 
 /-! ## Transcription cross-checks (tables present in this tree) -/
 
-/-- headV3, valV3, walkV3, uniqV3, upsV3: in-tree tables have the shapes transcribed from
-lane `v3-trie` (`trieS g`, entries 2–6). -/
+/-- All six trie tables, including nodeV3's UPB delta and upsV3's root binding,
+have the transcribed shapes. -/
 theorem trie_shapes_check : ∀ g ∈ [1, 2, 3],
-    [NearV3.HeadV3.table, NearV3.ValV3.table, NearV3.WalkV3.table, NearV3.Uniq.table,
-      NearV3.UpsV3.table].map (shapeOf g) = (trieS g).drop 1 := by decide +kernel
+    NearV3.Budget.trieTablesU.map (shapeOf g) = trieS g := by decide +kernel
 
-/-- sprV3, smmV3, scpV3: in-tree tables have the shapes transcribed from lane `v3-sched`
-(`schedS g`, entries 3–5). -/
+/-- All five scheduler tables have the transcribed shapes. -/
 theorem sched_shapes_check : ∀ g ∈ [1, 2, 3],
-    [NearV3.Sched.Proc.table, NearV3.Sched.Mem.table, NearV3.Sched.Cmp.table 7].map (shapeOf g) =
-      (schedS g).drop 2 := by decide +kernel
+    NearV3.Sched.Budget.schedTables.map (shapeOf g) = schedS g := by decide +kernel
+
+/-- All six receipt tables have the transcribed shapes. -/
+theorem rcpt_shapes_check : ∀ g ∈ [1, 2, 3],
+    NearV3.Rcpt.Budget.rcptTables.map (shapeOf g) = rcptS g := by decide +kernel
 
 /-! ## The synthetic v3 AIR -/
 
-theorem v3_weq : [1, 2, 3].map (fun g => weqS (v3S g)) = [4434, 4090, 4146] := by decide +kernel
+theorem v3_weq : [1, 2, 3].map (fun g => weqS (v3S g)) = [4435, 4091, 4147] := by decide +kernel
 
-theorem v3_sizeOfWeq_g1 : sizeOfWeq (V2.G.pg 1) (v3S 1) = 7450143 := by decide +kernel
-theorem v3_sizeOfWeq_g2 : sizeOfWeq (V2.G.pg 2) (v3S 2) = 7146495 := by decide +kernel
-theorem v3_sizeOfWeq_g3 : sizeOfWeq (V2.G.pg 3) (v3S 3) = 7193567 := by decide +kernel
+theorem v3_sizeOfWeq_g1 : sizeOfWeq (V2.G.pg 1) (v3S 1) = 7451071 := by decide +kernel
+theorem v3_sizeOfWeq_g2 : sizeOfWeq (V2.G.pg 2) (v3S 2) = 7147423 := by decide +kernel
+theorem v3_sizeOfWeq_g3 : sizeOfWeq (V2.G.pg 3) (v3S 3) = 7194495 := by decide +kernel
 
 theorem v3_sizeOfSchedS : [1, 2, 3].map (fun g => sizeOfSchedS (V2.G.pg g) (v3S g)) =
-    [9729983, 9426335, 9473407] := by decide +kernel
+    [9730911, 9427263, 9474335] := by decide +kernel
 
 /-- `(prefix, main, aux, quotient, FRI)` at `g = 1, 2, 3`. -/
 theorem v3_parts : [1, 2, 3].map (fun g => partsS (V2.G.pg g) (v3S g)) =
-    [(175871, 2328544, 1511360, 748224, 2686144), (169439, 2328544, 965312, 997056, 2686144),
-     (168127, 2328544, 799424, 1211328, 2686144)] := by decide +kernel
+    [(175935, 2329408, 1511360, 748224, 2686144), (169503, 2329408, 965312, 997056, 2686144),
+     (168191, 2329408, 799424, 1211328, 2686144)] := by decide +kernel
 
 /-- **Any AIR with the v3 shapes**: on every admissible header of the v2 verifier at
 `auxGroup = g`, `sizeBoundD ≤ sizeOfWeq (pg g) (v3S g)`. -/
@@ -92,17 +94,17 @@ def bodyMax : Nat := 8 + 4481 * (10 + 68 + 32 + 1 + 68 + 65 + 16 + 4 + 4 + 4 + 1
 
 theorem bodyMax_eq : bodyMax = 1295017 := by decide
 
-/-- With the design's `B ≤ 910,000`: the bound fits at every `g` (margins 28,465 / 332,113 /
-285,041 bytes). -/
-theorem v3_fits_910k : sizeOfWeq (V2.G.pg 1) (v3S 1) + 910000 + 28465 = 8388608 ∧
-    sizeOfWeq (V2.G.pg 2) (v3S 2) + 910000 + 332113 = 8388608 ∧
-    sizeOfWeq (V2.G.pg 3) (v3S 3) + 910000 + 285041 = 8388608 := by
+/-- With the design's `B ≤ 910,000`: the bound fits at every `g` (margins 27,537 / 331,185 /
+284,113 bytes). -/
+theorem v3_fits_910k : sizeOfWeq (V2.G.pg 1) (v3S 1) + 910000 + 27537 = 8388608 ∧
+    sizeOfWeq (V2.G.pg 2) (v3S 2) + 910000 + 331185 = 8388608 ∧
+    sizeOfWeq (V2.G.pg 3) (v3S 3) + 910000 + 284113 = 8388608 := by
   rw [v3_sizeOfWeq_g1, v3_sizeOfWeq_g2, v3_sizeOfWeq_g3]; decide
 
-/-- With the decoder's `B ≤ 1,295,017`: over by 356,552 / 52,904 / 99,976 bytes. -/
-theorem v3_over_bodyMax : sizeOfWeq (V2.G.pg 1) (v3S 1) + bodyMax = 8388608 + 356552 ∧
-    sizeOfWeq (V2.G.pg 2) (v3S 2) + bodyMax = 8388608 + 52904 ∧
-    sizeOfWeq (V2.G.pg 3) (v3S 3) + bodyMax = 8388608 + 99976 := by
+/-- With the decoder's `B ≤ 1,295,017`: over by 357,480 / 53,832 / 100,904 bytes. -/
+theorem v3_over_bodyMax : sizeOfWeq (V2.G.pg 1) (v3S 1) + bodyMax = 8388608 + 357480 ∧
+    sizeOfWeq (V2.G.pg 2) (v3S 2) + bodyMax = 8388608 + 53832 ∧
+    sizeOfWeq (V2.G.pg 3) (v3S 3) + bodyMax = 8388608 + 100904 := by
   rw [v3_sizeOfWeq_g1, v3_sizeOfWeq_g2, v3_sizeOfWeq_g3, bodyMax_eq]; decide
 
 /-! ## Lever numbers -/
@@ -127,10 +129,10 @@ def bumpS (f : TShape → TShape) : List TShape → List TShape
 
 /-- Marginal bytes per base column / aux K-column / quotient K-column of a full-height table. -/
 theorem v3_marginal :
-    sizeOfWeq (V2.G.pg 2) (bumpS (fun t => { t with w := t.w + 1 }) (v3S 2)) = 7146495 + 928 ∧
+    sizeOfWeq (V2.G.pg 2) (bumpS (fun t => { t with w := t.w + 1 }) (v3S 2)) = 7147423 + 928 ∧
     sizeOfWeq (V2.G.pg 2) (bumpS (fun t => { t with aux := t.aux + 1, fin := t.fin + 1 }) (v3S 2)) =
-      7146495 + 7008 ∧
+      7147423 + 7008 ∧
     sizeOfWeq (V2.G.pg 2) (bumpS (fun t => { t with quot := t.quot + 1 }) (v3S 2)) =
-      7146495 + 6944 := by decide +kernel
+      7147423 + 6944 := by decide +kernel
 
 end ZkFormal.Size.V3

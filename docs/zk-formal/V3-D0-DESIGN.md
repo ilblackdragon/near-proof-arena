@@ -8,6 +8,16 @@ unchanged in its soundness core: `docs/zk-formal/DESIGN.md` (np-udr-stark, L1–
 PoC: `zk-formal/ZkFormal/V3/Hint.lean` (§8). It is kernel-checked and has no
 `sorry`. Its axioms are ⊆ {propext, Classical.choice, Quot.sound}.
 
+Integration correction (2026-10-07): `ZkFormal.V3.Integration` now checks the
+merged proof modules, including receipt work. Kernel shape checks exposed the
+M7e upsV3 width change (186 → 187); the current synthetic g1/g2/g3 bounds are
+7,451,071 / 7,147,423 / 7,194,495 bytes, each 928 bytes above the older figures
+below. The g2 bound plus the 1,295,017-byte hint exceeds 8 MiB by 53,832 bytes.
+This model has one SHA table and no qvV3; a final two-SHA/queue-aware assembly
+and roll-in alignment proof remain required. No proof cap or domain changed.
+The conditional 770,000-word lane theorem fits ChaCha maxLog 22, not the
+current table's 21. See `docs/e2e-results/v3-integration/report.json` for evidence.
+
 Labels used below:
 * **proved**: a closed Lean theorem.
 * **measured**: run on this host, pinned to CPUs 8–15.
