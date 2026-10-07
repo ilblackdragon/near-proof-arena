@@ -7,6 +7,22 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root CounterAggregate CHECKED: each segment yields exactly one QVC step iff
+present, using invariant tuple; whole request prefix exactly ordered flatMap;
+full physical traffic split into extracted request messages plus explicit parser
+suffix for both directions. Target130 jobs+4 exact guards PASS;
+/tmp/nearproof-qv-counter-aggregate.log and
+/tmp/nearproof-qv-counter-aggregate-audit-checked.log. Generic range_last_only
+now public/reused (FinalAggregate changed only helper name/visibility).
+Root session10232 terminal0; no live root process. Next parser suffix local
+extraction/QVC provider chains, then full queue soundness and fresh aggregate.
+Integrated D2beac822a global forest path locator to actual NodeS3/recT/tau;
+upsbe0ed6d8 explicit native prefix EDGE list exact original query content and
+length. Receipt e60e16b2 full B_MEM sends now joins receives, six guards; RIDS
+next via generic IndexedTraffic. Latest aggregate191ea6da is older; end-to-end
+certificate, admission, prover/judge and general NEAR coverage still incomplete.
+
+
 Root CounterTraffic checked: actual walk-row QVC both sides equals singleton
 counter tuple iff present=1; present iff terminal+absent0; absent walk forces
 vid0; read-mode equation and complete tuple constant through segment. Terminal
