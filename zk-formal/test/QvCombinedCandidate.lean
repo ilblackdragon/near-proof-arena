@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Qv.Candidates.CombinedParserTraffic
 import ZkFormal.NearV3.Qv.Candidates.CombinedLocal
 import ZkFormal.NearV3.Qv.Candidates.CombinedRecordPlacement
 import ZkFormal.NearV3.Qv.Candidates.CombinedPrefixLocal
@@ -933,3 +934,33 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_table_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedTable.parser_row_traffic_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedTable.parser_row_traffic_zero
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_parser_row_traffic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_parser_row_traffic
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_parser_suffix_traffic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_parser_suffix_traffic
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_parser_suffix_canonical' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_parser_suffix_canonical
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_traffic_split' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_traffic_split
