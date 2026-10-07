@@ -692,3 +692,12 @@ string equality. The converse uses the actual inverse constraint. Nine exact
 axiom guards pass. No V1 non-system restriction or new account-domain premise
 is assumed. Other system/refund arithmetic and equality/routing Wf fields remain
 open.
+
+`ReceiptEquality`, `ReceiptUnequal`, and `ReceiptAccessFlag` close the complete
+`ee`, `neq`, and `akf` fields of the actual extracted receipt Wf. Equal mode
+forces system mode, equal native lengths, all receiver/signer SREC gates, and
+signer received-byte equality. Unequal system mode either proves a length
+difference or extracts an actual selected signer byte with a nonzero difference;
+the signer counter excludes a missing witness. Only TableLocal and Layout are
+required. Three exact axiom guards pass. Remaining per-receipt fields are
+`tprev_le`, the combined arithmetic/token-chain statement, and routing order.
