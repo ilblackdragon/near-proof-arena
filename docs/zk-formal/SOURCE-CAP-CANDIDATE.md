@@ -515,3 +515,20 @@ explicit premises. Six modules compile; `AuditDedupSourcePublic.lean` checks
 26 axiom closures and seven kernel fixtures. Candidate final assembly must still
 select SRC34 and the preparation wrapper and rebuild the complete statement
 layout/admission certificate; neither is silently installed in the frozen family.
+
+`DedupPartitionTable.physical_source_extract` now packages the complete physical
+source bridge: arbitrary accepting left/right tables plus exact isolated carry
+balance produce a logical block chain, a nonempty bounded semantic sequence and
+exact external message multiplicities on all buses except the carry namespace.
+`AuditDedupPhysicalExtract.lean` checks its transitive axiom closure. This directly
+composes the checked partition, extraction, SHA and public-source interfaces;
+global carry isolation remains a final assembly obligation.
+
+The next receipt-side blocker is now explicit: `RcptV3ViewStmt` is defined but no
+whole-table theorem constructs `RcptV3Wf`. Existing `Extract/V` proofs cover
+per-receipt field layout, bytes, basic bus traffic, characters and keys. Whole
+list/header decomposition, encoded-length no-wrap, receipt arithmetic/system/
+routing facts and table traffic composition still need proof. In particular,
+RCL equality alone is a field equality; deriving repeated L=12 implies an empty
+receipt list requires the actual list encoded length below P. This must come from
+receipt row/span bounds, not an extra domain premise or an assumed extracted view.
