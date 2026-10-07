@@ -275,4 +275,90 @@ theorem codec_sd_22 (Ps : List IStat) (h7 : A7 2000000 Ps) (h8 : A8 Ps) :
     total codecRows Ps + 1 ≤ 2 ^ 22 ∧ total sdRows Ps + 1 ≤ 2 ^ 22 :=
   ⟨fits (codec_total h7) (by decide), fits (sd_total h7 h8) (by decide)⟩
 
+/-! ## Lane tables: `shufV3`, `genV3`, `chachaV3`
+
+`shufV3` has one row per step (`S`), `genV3` one per drawn word (`K`), `chachaV3` 86 per
+ChaCha block (`⌈K/16⌉` per instance). The spec bounds `K` only by the fuel:
+`K + 64·Rd ≤ 64·S` (`Fuel`; `Spec/Draws.lp_draws`: `≤ 64` words per `gen_index` call, `S − Rd`
+calls). -/
+
+/-- The fuel bound on the words drawn (proved for the replay, `Spec/Draws.lp_draws`). -/
+def Fuel (Ps : List IStat) : Prop := ∀ s ∈ Ps, s.K + 64 * s.Rd ≤ 64 * s.S
+
+/-- `shufV3` rows from the step budget: `24·Σ S ≤ B0 + 24·κ·64·T`. -/
+theorem shuf_total {B0 T κ : Nat} {Ps : List IStat} (h7 : A7 B0 Ps) (h8 : A8 Ps) (hb : Steps κ Ps)
+    (hT : Ps.length ≤ T) : 24 * total shufRows Ps ≤ B0 + 24 * (κ * (64 * T)) := by
+  have h1 : total shufRows Ps ≤ total (fun s => s.N + κ * s.n) Ps :=
+    total_le fun s hs => by have := h8 s hs; have := hb s hs; unfold shufRows; omega
+  rw [total_add, total_mul] at h1
+  have hN := sumN_le h7
+  have : κ * total IStat.n Ps ≤ κ * (64 * T) := Nat.mul_le_mul_left _ (sumn_le h8 hT)
+  omega
+
+/-- `chachaV3` rows from the words: `16·rows ≤ 86·(Σ K + 15·T)`. -/
+theorem chacha_total {T : Nat} {Ps : List IStat} (hT : Ps.length ≤ T) :
+    16 * total chachaRows Ps ≤ 86 * (total genRows Ps + 15 * T) := by
+  have h1 : total (fun s => 16 * chachaRows s) Ps ≤ total (fun s => 86 * genRows s + 86 * 15) Ps :=
+    total_le fun s _ => by unfold chachaRows genRows; omega
+  rw [total_mul, total_add, total_mul, total_const] at h1
+  have : 86 * 15 * Ps.length ≤ 86 * 15 * T := Nat.mul_le_mul_left _ hT
+  omega
+
+def shufMax (B0 T κ : Nat) : Nat := B0 / 24 + κ * (64 * T)
+def chachaMax (W T : Nat) : Nat := 86 * (W + 15 * T) / 16
+
+/-- **Lane heights, parametric in a bound `W` on the total words drawn.** `W` is **not** a
+consequence of the spec (see `worstK`); it is the execution-level condition the lane tables
+need. -/
+theorem lane_heights (B0 T κ W maxLog : Nat) (Ps : List IStat) (h7 : A7 B0 Ps) (h8 : A8 Ps)
+    (hb : Steps κ Ps) (hT : Ps.length ≤ T) (hW : total genRows Ps ≤ W)
+    (hs : shufMax B0 T κ + 1 ≤ 2 ^ maxLog) (hg : W + 1 ≤ 2 ^ maxLog)
+    (hc : chachaMax W T + 1 ≤ 2 ^ maxLog) :
+    total shufRows Ps + 1 ≤ 2 ^ maxLog ∧ total genRows Ps + 1 ≤ 2 ^ maxLog ∧
+    total chachaRows Ps + 1 ≤ 2 ^ maxLog := by
+  refine ⟨fits ?_ hs, fits hW hg, fits ?_ hc⟩
+  · have := shuf_total h7 h8 hb hT; unfold shufMax; omega
+  · have := chacha_total (Ps := Ps) hT
+    have : 86 * (total genRows Ps + 15 * T) ≤ 86 * (W + 15 * T) := Nat.mul_le_mul_left _ (by omega)
+    unfold chachaMax; omega
+
+/-- Instantiation with `W = 360,000` words (`B0 = 2,000,000`, `T = 33`, `κ = 43`): `shufV3`
+`≤ 174,149`, `genV3 ≤ 360,000 < 2^20`, `chachaV3 ≤ 1,937,660 < 2^21` rows (the lane's own
+`gen_complete` / `chacha_complete` bounds), so all `≤ 2^22`. -/
+theorem lane_22 (Ps : List IStat) (h7 : A7 2000000 Ps) (h8 : A8 Ps) (hb : Steps 43 Ps)
+    (hT : Ps.length ≤ 33) (hW : total genRows Ps ≤ 360000) :
+    total shufRows Ps + 1 ≤ 2 ^ 22 ∧ total genRows Ps + 1 ≤ 2 ^ 20 ∧
+    total chachaRows Ps + 1 ≤ 2 ^ 21 := by
+  refine ⟨(lane_heights 2000000 33 43 360000 22 Ps h7 h8 hb hT hW (by decide) (by decide) (by decide)).1,
+    fits hW (by decide), ?_⟩
+  have := chacha_total (Ps := Ps) hT
+  omega
+
+theorem laneMaxes_22 : shufMax 2000000 33 43 = 174149 ∧ chachaMax 360000 33 = 1937660 := by decide
+
+/-- **Worst case of the lane tables** under A7, A8, the step budget and the fuel bound
+(maximum of `Σ (S − Rd)` over claims of `≤ 33` instances with `C = N`, `S = C + 43·n`, one
+round each, no previous values, found by exhaustive search; every call draws 64 words):
+23 instances `n = 50`, 6 `n = 49`, 2 `n = 51`, one `n = 53`, one `n = 58`
+(`Σ |post| = 1,999,965`). -/
+def worstK : List IStat :=
+  (List.replicate 23 50 ++ List.replicate 6 49 ++ [51, 51, 53, 58]).map fun n =>
+    ⟨n, false, n * n, n * n + 43 * n, 1, 64 * (n * n + 43 * n - 1)⟩
+
+theorem worstK_ok : A7 2000000 worstK ∧ A8 worstK ∧ Steps 43 worstK ∧ Shape worstK ∧ Fuel worstK ∧
+    worstK.length = 33 := by
+  refine ⟨by unfold A7; decide, ?_, ?_, ?_, ?_, by decide⟩ <;>
+  · intro s hs
+    simp only [worstK, List.mem_map, List.mem_append, List.mem_replicate, List.mem_cons,
+      List.not_mem_nil, or_false] at hs
+    obtain ⟨n, hn, rfl⟩ := hs
+    rcases hn with ((⟨-, rfl⟩ | ⟨-, rfl⟩) | rfl | rfl | rfl | rfl) <;> decide
+
+/-- 154,499 calls, 9,887,936 words: `genV3` and `chachaV3` exceed `2^22` (`shufV3` fits). -/
+theorem worstK_rows : total shufRows worstK = 154532 ∧ total genRows worstK = 9887936 ∧
+    total chachaRows worstK = 53147656 := by decide
+
+theorem worstK_exceeds : ¬ total genRows worstK + 1 ≤ 2 ^ 22 ∧ ¬ total chachaRows worstK + 1 ≤ 2 ^ 22 := by
+  decide
+
 end ZkFormal.NearV3.Sched.Complete

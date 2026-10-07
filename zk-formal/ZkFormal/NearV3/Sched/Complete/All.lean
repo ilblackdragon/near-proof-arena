@@ -11,6 +11,8 @@ import ZkFormal.NearV3.Sched.Complete.Steps
 * `heights` / `heights_22`: per-table row bounds under A7 (`B0`), A8 and the step budget `κ`;
   `steps_pv86` (spec): the replay's entries are `≤ C + 43·n`, rounds `≤` entries;
   `heights_prep`: from `prepD0` and the replays, A7 alone bounds the five tables by `2^22`;
+  `lp_draws` / `replay_draws`: words drawn `≤ 64·(S − Rd)`; `lane_prep`: lane tables given
+  `Σ K ≤ 360,000`; `worstK_exceeds`: the fuel bound alone does not fit `2^22`;
   `worst_exceeds`: without the step budget, process / memory / comparator exceed `2^22`.
 -/
 
@@ -23,6 +25,11 @@ import ZkFormal.NearV3.Sched.Complete.Steps
 #print axioms ZkFormal.NearV3.Sched.Complete.stat_ok
 #print axioms ZkFormal.NearV3.Sched.Complete.heights_inst
 #print axioms ZkFormal.NearV3.Sched.Complete.heights_prep
+#print axioms ZkFormal.NearV3.Sched.lp_draws
+#print axioms ZkFormal.NearV3.Sched.Complete.replay_draws
+#print axioms ZkFormal.NearV3.Sched.Complete.lane_prep
+#print axioms ZkFormal.NearV3.Sched.Complete.worstK_ok
+#print axioms ZkFormal.NearV3.Sched.Complete.worstK_exceeds
 #print axioms ZkFormal.NearV3.Sched.Complete.codec_sd_22
 #print axioms ZkFormal.NearV3.Sched.Complete.worst_exceeds
 #print axioms ZkFormal.NearV3.Sched.Complete.worst_a7
