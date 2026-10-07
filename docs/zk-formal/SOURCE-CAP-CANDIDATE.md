@@ -848,3 +848,9 @@ local constraints, and equates the full physical B_MEM receive list to the
 unchanged indexed `rcptRecvs3` API. Eight exact guards pass. This is a whole-table
 traffic equality, including empty lists and physical padding; memory sends and
 other channels remain to be composed.
+
+`IndexedTraffic` proves actual receipt counters equal natural flattened indices
+and composes per-receipt messages into the unchanged located-view enumeration.
+`MemoryWrites` closes the complete B_MEM send side, including silent list
+headers/padding and the exact global r+1 write version. Six exact guards pass.
+Both account-memory directions now have whole-table semantic equalities.
