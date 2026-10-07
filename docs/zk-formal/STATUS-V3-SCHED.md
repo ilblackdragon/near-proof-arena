@@ -440,7 +440,7 @@ Range checks are kept in every variant.
    new decidable `InitOwn`), `PubIdx` (`SPAR`, `SPUBB`), prepD0 (`|Ps| ≤ 256`, `InstOk`) and `hprev`
    (codec-encoding stage). No missing constraint found. Next: FIN = `stF`, distribute grid, codec
    encoding (`hprev`, post bytes) ⇒ `schedCore_sound`.
-3. **M4: completeness — in progress** (`zk-formal/ZkFormal/NearV3/Sched/Complete/*.lean`, 2,086 lines,
+3. **M4: completeness — in progress** (`zk-formal/ZkFormal/NearV3/Sched/Complete/*.lean`, 10 files, 2,164 lines,
    axioms ⊆ {propext, Classical.choice, Quot.sound}; pattern of lane v3-chacha's `chacha_complete` /
    `shuffle_complete`). Generators are unchanged except `Gen.clog2`, now structurally recursive (same
    value: the least `l` with `m ≤ 2^l`, `clog2_ge` / `clog2_le`; the old `while` loop was opaque).
