@@ -7,6 +7,32 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+AIR `dc4c12d4`: accepted-input `Assembly.QueueRender.checkD0a_queue_render`
+constructs corrected per-use-rank queue trace with full TableLocal, canonical
+TableTraffic and physical QVC send/receive permutation over all 2^22 rows.
+Parser validity and fit derived from checkD0a B0 (B0 stays 2,000,000 bytes);
+request Holds derived from native main reads and implicit missing requests.
+Prepared header roots/K and native execution witnesses remain explicit inputs.
+Integrated update `280a90c3` as `d9df3669` (complete native InstOk, stored edge
+IDs/authentication and capacity still separate); D2 QSH payload `b0deede2` as
+`99867de7`; receipt `31c82f2a` closes all per-receipt Wf including RouteOk.sem,
+with global index/canonicity and entering-token invariants still premises.
+Aggregate PASS: 1832 jobs,71 audits,651 exact axiom guards,15 behavior guards.
+Report: shared AIR docs/e2e-results/v3-queue-render-integration/report.json;
+logs /data/illia/nearproof-deps/validation/v3-queue-render-20261007/.
+Root aggregate session70947 terminal success; no root build left running.
+Next root: arbitrary accepted combined QV trace extraction, then AIR-to-Good.
+D2 owns physical QSH and VBYTES balance; receipt agent owns whole-list token
+propagation/totals; update agent owns actual stored edge/pcid/window auth.
+Additional update dependency: accepted write-key value revelation through
+preceding writes (generic upsert permits replacing Slot.ref); do not strengthen
+source wf or assume authenticated edges to bypass this.
+Shared AIR receipt IndexedWellformed/TokenBytes and test WIP are agent-owned,
+excluded from this checkpoint. Global honest capacity/SHA/post-shadow ownership,
+reference lean4lean failure, complete admission/correctness certificate, succinct
+prover, real judge and broader NEAR coverage remain open. Goal stays active.
+
+
 Root QV `cb198504`: complete canonical mixed TableTraffic all buses/both
 sides+silence, paired with TableLocal. CombinedPrepared derives public K binding
 from actual prepared bytes, rootsSized, K<u32, implicit-list length equality.
