@@ -1,3 +1,5 @@
+import ZkFormal.NearV3.Qv.Candidates.CombinedPrepared
+import ZkFormal.NearV3.Qv.Candidates.CombinedTraffic
 import ZkFormal.NearV3.Qv.Candidates.CombinedWordAggregate
 import ZkFormal.NearV3.Qv.Candidates.CombinedParserTraffic
 import ZkFormal.NearV3.Qv.Candidates.CombinedLocal
@@ -1011,3 +1013,51 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_counter_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.send_other_silent' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.send_other_silent
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.recv_other_silent' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.recv_other_silent
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.all_word_field' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.all_word_field
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_all_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_all_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_table_traffic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_table_traffic
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_table_traffic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_table_traffic
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_local_and_traffic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_local_and_traffic
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_prepared_local_and_traffic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_prepared_local_and_traffic

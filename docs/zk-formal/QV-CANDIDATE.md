@@ -435,3 +435,13 @@ with the parser suffix to characterize ALL physical QVC messages as walk rank
 messages plus parser endpoint messages. Target278 jobs and189 exact axiom
 guards+15 regressions pass. Corrected rank-chain cancellation remains an allocator
 composition obligation; physical message characterization alone is not balance.
+
+
+`CombinedTraffic` closes the full canonical `TableTraffic` interface for the
+executable mixed trace on every bus and both directions; all unintended traffic
+is proved silent. `plan_local_and_traffic` pairs it with full `TableLocal`.
+`CombinedPrepared.plan_prepared_local_and_traffic` derives the public K equation
+from actual prepared bytes, root sizes, K's u32 bound and matching implicit-list
+length. The398-job prepared target and197 exact axiom guards+15 regressions pass.
+Native ownership and cross-table balance, corrected rank cancellation, arbitrary
+accepted-trace extraction and global admission remain separate obligations.
