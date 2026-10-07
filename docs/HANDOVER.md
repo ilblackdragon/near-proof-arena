@@ -7,6 +7,17 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `72bf392e`: within-word ten-field metadata preservation and three
+clock equations, plus actual byte and mode equations, proved from generated
+cells over any commutative ring. Target213 jobs and QV76 exact axiom guards+15
+fixtures PASS (`/tmp/nearproof-read-algebra.log`,
+`/tmp/nearproof-inside-algebra-audit-final.log`). Next: terminal/read gates,
+endpoints and between-word sequencing, then full constraint/trace composition.
+No active root job. Receipt agent's new `d8d0724a` closes actual list/header
+decomposition and encoded-length no-wrap; full receipt semantic Wf/traffic still
+open. Further assembly/Ups additive checkpoints await joint integration.
+
+
 Root QV `120ee9e5`: generated flag/byte bit bounds and actual AIR equations,
 all `CombinedTable.table.bitConstraints` multiplicity equations, and inactive
 row gates proved over arbitrary commutative rings from generated cells. No
