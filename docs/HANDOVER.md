@@ -6,6 +6,45 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+
+**Current checkpoint superseding the historical entries below:** AIR `c325f2e1`
+passes 1,272 integration jobs. Public `Bindings.bindPrepared` now derives all nine
+record families, root endpoints, header reads and fit from actual preprocessing
+and explicit size bounds. Public audit: 24 behavior checks and 31 axiom guards.
+The final AIR, honest witness, succinct prover and certificate remain incomplete.
+
+Root now owns isolated `/data/illia/nearproof-wt/v3-qvals`, branch `lane/v3-qvals`.
+Commits `c2cbd6d4`, `23104328`, `0282660c`, `5126a756` prove exact queue encodings,
+actual runtime queue-read extraction, group-read completeness, exact buffered
+byte counts, and preservation of buffered/group reads across scheduler upserts.
+11 behavior checks and 20 axiom guards pass. Yield reads still need preservation
+across receipt writes; no queue AIR table exists yet. The old design's A4 128 KiB
+queue cap is absent from actual RelD0a and MUST NOT be assumed.
+
+Receipt source hash linkage and actual decoded path widths now have checked
+lemmas. A real capacity gap remains: the 8 MiB witness cap does not imply the
+current source table's 2^20 row cap, and replaying repeated proofs can overflow
+field identifiers. Receipt agent is evaluating proof deduplication/partitioning
+in isolation; no active caps or domain restrictions have changed. A preliminary
+dedup partition size estimate is tight against the 8 MiB proof cap and does not
+yet include all extra wiring or queue tables.
+
+Upsert byte constructors cover 11 of 12 kinds; SPB's seven subcases are active.
+D3 reference passed public check-local including byte-identical clean builds,
+407 positives, and generic hostile checks. Strict public checks passed 651 cases
+and 3,062 worker mutations; held-out strict checks passed 272 cases and 1,433
+worker mutations. These validate the reference, not succinct proof replacement.
+Configured formal reference admission is running; fresh TTN has four passing
+configurations and continues. Assembly agent is implementing ExtV3/GoodV3 and
+actual relation factoring without assuming the desired equivalence.
+
+Current parallel plan: root completes queue semantics/preservation and AIR;
+upsert agent completes actual constructors; receipt agent resolves source capacity
+and dedup semantics; D3 agent completes reference gates and whole assembly.
+Then assemble the concrete AIR, prove both factoring directions and honest-trace
+completeness, implement the succinct prover, and run the actual certificate/judge.
+Broader NEAR coverage remains required beyond the restricted D0a milestone.
+
 **Latest aggregate checkpoint: AIR `c2dba0c4` passes 1,259 integration jobs.**
 The honest source renderer now has both `SrcpGen.table_local` (112 constraints,
 all multiplicity bits) and `SrcpGen.table_traffic` (`c11a5c8d`), with 86 receipt
