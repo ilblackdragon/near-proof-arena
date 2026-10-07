@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Rcpt.Extract.Srcp.LeafUnit
+import ZkFormal.NearV3.Rcpt.Extract.Srcp.PathRun
 import ZkFormal.NearV3.Rcpt.Link.SourceHash
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 
@@ -115,3 +115,19 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.SrcpProof.root_leaf_unit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.SrcpProof.root_leaf_unit
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.next_path_unit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.next_path_unit
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.next_path_length' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.next_path_length
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.path_unit_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.path_unit_traffic
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.path_run' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.path_run
