@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Render.Srcp.ProofComplete
 import ZkFormal.NearV3.Rcpt.Link.CheckSources
 import ZkFormal.NearV3.Rcpt.Link.WitnessSources
 import ZkFormal.NearV3.Rcpt.Render.Srcp.ProofInputWf
@@ -480,3 +481,11 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.relD0a_source_paths' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.relD0a_source_paths
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.proof_inputs_complete' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.proof_inputs_complete
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.witness_bytes_do_not_bound_source_rows' does not depend on any axioms -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.witness_bytes_do_not_bound_source_rows
