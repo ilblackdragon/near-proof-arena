@@ -21,13 +21,7 @@ SLOTS = ["write_base", "read_base", "read_key_byte", "read_value_byte", "large_r
          "large_read_byte", "remove_base", "has_key_base", "has_key_byte", "touching_trie_node",
          "read_cached_trie_node"]
 
-def main():
-    trace = sys.argv[1]
-    shards = int(sys.argv[sys.argv.index("--shards") + 1]) if "--shards" in sys.argv else 4
-    codef = sys.argv[sys.argv.index("--code") + 1] if "--code" in sys.argv else os.path.join(HERE, "ttn.wasm")
-    lines = [l for l in Path(trace).read_text().splitlines() if l.strip()]
-    if not lines:
-        raise ValueError("trace is empty")
+def parse_trace(lines):
     expected = []
     for l in lines:
         t = l.split(" ")
@@ -43,6 +37,17 @@ def main():
             b = 4 + n + 17 * j
             calls.append((t[b], " ".join(t[b + 3:b + 17])))
         expected.append(calls)
+    return expected
+
+
+def main():
+    trace = sys.argv[1]
+    shards = int(sys.argv[sys.argv.index("--shards") + 1]) if "--shards" in sys.argv else 4
+    codef = sys.argv[sys.argv.index("--code") + 1] if "--code" in sys.argv else os.path.join(HERE, "ttn.wasm")
+    lines = [l for l in Path(trace).read_text().splitlines() if l.strip()]
+    if not lines:
+        raise ValueError("trace is empty")
+    expected = parse_trace(lines)
     with tempfile.TemporaryDirectory() as td:
         code = os.path.join(td, "code.hex")
         Path(code).write_text(Path(codef).read_bytes().hex())
