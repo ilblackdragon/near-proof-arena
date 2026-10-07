@@ -736,3 +736,11 @@ NodeS3 equality** at the concrete forest address, with the existing seed's actua
 child IDs, value ID, depth, and empty-extension target. No wf/capacity premise is
 needed for this structural allocation identity. Ten audit guards pass. Uses,
 post-write windows, uniqueness flags and final AIR provider counts remain seeds.
+
+`PathAddress.traceUpsert_addresses` now constructs the entire proper-source
+address list from actual native upsert success and the located root segment.
+Its mapped trees equal actual `nativePathNodes`; every address retains the
+correct global node/value/depth segment. Allocation is executable and skips
+empty extensions with `resolveAddress`. No structural-tree→ID assumption is
+used. Two guards pass; adapting existing four-row constructors to these
+occurrence-sensitive IDs and assigning provider use counts remain open.
