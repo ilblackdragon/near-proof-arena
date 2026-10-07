@@ -424,3 +424,10 @@ public-key/account input byte decompositions, congestion widths, bandwidth
 request bitmap widths and decoded request-vector bounds. Six permanent axiom
 guards pass. D0Shape remains unchanged; raw proposal/split canonical bytes and
 complete ChunkInner composition are still being derived beneath that interface.
+
+`RawHeaderShape` proves validator-stake and trie-split raw consumed encodings
+satisfy vsWf/tsWf, preserving all accepted public-key tags. `ChunkInnerShape`
+composes actual pChunkInner success into full innerWf, including version/split
+cases, proposals, every scalar width, hashes, congestion and bandwidth requests.
+Six permanent axiom guards pass. Remaining codec obligation: exact complete
+ChunkInner consumed bytes equal encodeChunkInner, then full D0Shape assembly.
