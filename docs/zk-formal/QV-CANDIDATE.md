@@ -344,3 +344,12 @@ ready to combine with the step cases. Membership of all24 in the actual AIR is
 checked. The generated-cell/position premises still require physical layout;
 this does not assert arbitrary neighbors or whole-trace local acceptance. Target
 225 jobs and129 exact axiom guards+15 regressions pass.
+
+
+`CombinedPlanOrder` classifies every adjacent entry of the full native plan into
+one of the three step cases, and proves final=true exactly at its last entry.
+It derives all24 neighbor equations at actual indexed native word boundaries,
+with only generated-cell/terminal-position premises remaining. Duplicate shard
+requests are preserved. The226-job target and138 exact axiom guards+15
+regressions pass. Flattened physical row addressing and full local acceptance
+remain to be composed; this does not close the end-to-end certificate.
