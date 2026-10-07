@@ -21,6 +21,7 @@ structure MainExecutionV3.NativeValid (k : WalkD0) (w : StateWitness)
   preRoot : m.pre.hashOf = k.slotB2.prevStateRoot
   run : applyNewChunk prims (m.ctx k) m.pre (appliedReceipts k w) = .ok m.result
   postRoot : m.result.trie.hashOf = w.main.postStateRoot
+  storeBytes : (w.main.values.map List.length).foldl (· + ·) 0 ≤ 3000000
 
 set_option maxHeartbeats 4000000 in
 theorem checkD0_native_main {cb wb : Bytes} {k : WalkD0} {w : StateWitness}
@@ -70,6 +71,7 @@ theorem checkD0_native_main {cb wb : Bytes} {k : WalkD0} {w : StateWitness}
       · grind only [check_ok]
       · simp only [MainExecutionV3.ctx, appliedReceipts_eq_flatMap]
         grind only
+      · grind only [check_ok]
       · grind only [check_ok]
 
 /-- Populate the semantic main-execution interface from actual native execution

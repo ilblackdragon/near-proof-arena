@@ -214,3 +214,19 @@ buckets, so it covers duplicate keys and branch-held values without a branching
 factor explosion. Five axiom guards pass. The active field is
 `Algebra.P = 2013265921`; the native numeric capacity proof must charge buffered
 index bytes to the actual store budget, not merely use a u32 count bound.
+
+## Native allocator capacity
+
+`NativeValid` now also contains the actual main-store 3MB guard, extracted
+from `checkD0`. `StoreValueBounds` proves every successful native value read
+is an actual byte entry of that store. Together with exact Qv parser sizes,
+this bounds buffered shard indices by 125000. Successful main execution plus
+the native A1 gas-limit bound gives at most 4481 applied receipts. The builder
+value-count theorem therefore gives at most 133966 main value occurrences.
+
+`NativeCapacity.nativeForest_inputs_capacity` adds at most 62 value occurrences
+for at most 31 actual implicit-builder inputs and proves the whole allocation
+fits the active field `P=2013265921`. No assumed field-capacity conclusion or
+extra key/queue cap is used. Root width, native A1 and implicit-count inputs
+remain visible for composition with their claim facts. Ten new axiom guards
+and both previous NativeMain guards pass.
