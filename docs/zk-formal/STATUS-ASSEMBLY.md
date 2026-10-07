@@ -341,3 +341,9 @@ canonical scheduler/unfolded amendments, and the honest AIR view construction.
 using weighted membership/uniqueness rather than incorrectly inferring payload
 size from encoded vector cost. `nativeExecutionViews_main_payload` therefore
 preserves the actual3MB main-store guard. Three permanent axiom guards pass.
+
+`ReceiptWellformed` derives ordinary wf of every actual applied receipt from
+witness decoding and native selection membership, then closes exact decoding of
+the computed outgoing preparation body via the existing RefundCodec runtime
+proof. Four permanent axiom guards pass. This supplies prepBody's parser input
+without assuming refund shape or a separate output-count bound.
