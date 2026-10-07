@@ -843,3 +843,15 @@ Aggregate SHA capacity and global traffic are still unfinished.
 upsert output root. Five guards pass (propext/Quot.sound). These are inclusion
 and endpoint theorems, not a full digest-bus balance claim; repeated consumers
 still require explicit traffic accounting.
+
+### Root fields and SHA physical cost
+
+`RootedUpsert` constructs `mid` and `post` from native input/output hashes,
+rather than retaining arbitrary base fields. Its final renderer node index
+matches the concrete root digest job, and exact part preimages are preserved.
+`ShaRowCost` proves the actual SHA generator's cost bound
+`64*rows <= 17*totalBytes + 1288*messageCount`, including per-message starts
+and padding. Ten guards pass. This is physical cost accounting, not an
+accepted-input capacity theorem: intermediate output preimages still need a
+charge against the unchanged native witness budget, and other SHA kinds need
+space in the same shared table.
