@@ -148,3 +148,11 @@ serialized-size conclusion or A6. Seven more axiom guards pass.
 This is a size theorem: replay equivalence of the reconstructed store, concrete
 root/key choices from execution, and multi-instance view allocation remain
 explicit and are not claimed by this compacting function.
+
+`StoreReplay.normalStore_stored` proves every generated node and value is
+available under actual native first-wins lookup. From native `built_spec`,
+`partialTrie_normalStore_reads` proves replay preserves the authenticated root
+and every requested determinate read, and is a hash-pruning of the original
+partial trie. No SHA injectivity, A6, or store-size premise is required. Four
+axiom guards pass. The theorem retains explicit read determinacy and does not
+yet assert exact trie equality or whole-transition replay.
