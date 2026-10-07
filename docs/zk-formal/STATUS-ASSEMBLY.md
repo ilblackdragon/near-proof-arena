@@ -178,3 +178,11 @@ actual successful `applyNewChunk` supplies pre-state buffered determinacy via
 the checked Qv preservation theorem; `partialTrie_normalStore_singleton_find`
 then equates both first-pass reads. No assumed first-pass equality or requested
 key-subset condition is introduced. Four additional axiom guards pass.
+
+`NativeMain.checkD0_native_main` extracts the actual main block, predecessor,
+first-pass buffered shards, pre-trie, native run and post-root from successful
+`checkD0`, aligned with independently successful claim/witness decoders.
+`NativeValid.normalized` transports this result into `MainExecutionV3.Valid`
+for views emitting the normalized store and the same applied receipts/post-root.
+These are explicit view correspondence inputs, not assumed execution facts.
+Both permanent axiom guards pass.
