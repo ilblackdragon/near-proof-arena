@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root ParserWords CHECKED at AIR5be4eb45: phase_exclusive (one phase1 excludes
+others), selector_exclusive for active structured mode, selected_word_byte
+actual byte=register for header/first/next-index phases, register_carry until
+headerEnd/entryEnd. Reuses RcptProof.oneHot_of with bounded selector lists.
+Build+4 exactstandard guards PASS (/tmp/nearproof-qv-parser-words.log,
+/tmp/nearproof-qv-parser-words-audit-checked.log). Next derive actual selector
+clock/phase progression and prove empty-mode16bytes has equal eightbyte words;
+then buffered count/header/entry traversal and full mode semantics. Existing
+RecordValue connects all physical bytes/length to canonical ValE after balance.
+Integrated D2f4635a27 as8742ee45: rootedNativeInstance fills actual mid/post,
+root SHA provider; ShaRowCost includes physical SHA start/padding cost, bound
+64*rows≤17*totalBytes+1288*messageCount. Build+10 standard axiom checks PASS;
+/tmp/nearproof-rooted-upsert-cost-integrated{,-audit}.log. D2 still proving output
+byte charging against A7 and joint SHA capacity; no fit claim. Ups working RDB/
+SPB/clen windows; receipt nativeencoding/sourceSHA. No root livejob. Authorized
+push continues. Aggregate83f4a8b7 older; full certificate/admission/reference/
+prover/judge and broader NEAR coverage remain incomplete.
+
+
 Root RecordValue CHECKED at AIRf5b11f35: record_value_exact derives existence of
 one ValE with exact vid, nonemptyflag, e.len=n=cvparserlen, and every natural
 byte at offseti equal e.bytes[i], from complete stream ownership. Uses startrow
