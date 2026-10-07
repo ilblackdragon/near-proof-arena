@@ -7,6 +7,17 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Latest root QV `e1fb4f04` adds exact row-level FINAL/QVC/QSH field messages;
+together with KEYNIB all four walk message families are checked. QSH natural
+subtractions use proven bounds, including group slot≥3 from actual plan
+membership. Target211 jobs and combined49 axiom guards+15 fixtures PASS;
+logs `/tmp/nearproof-shard-traffic.log` and
+`/tmp/nearproof-terminal-shard-audit-final.log`. Next: compose complete words
+and plans, prove generic local constraints and parser wraparound, then ownership
+and reverse extraction. No full honest trace or bus-balance claim; no root job
+running. This focused checkpoint supersedes the39-guard root result below.
+
+
 Latest root QV `f416a670`: generated walk rows now prove parser-provider silence
 and exact field KEYNIB row messages, including IDs, positions, nibble values,
 start/end markers and multiplicity. Combined audit39 exact axiom guards and15
