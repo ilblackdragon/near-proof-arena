@@ -114,7 +114,7 @@ theorem ups_extUpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 1 ∨ kd k =
     (hsl : (nodeEnc (.ext key c m)).length < 2 ^ 32) (hc32 : c.hashOf.length = 32) (hm : m < 2 ^ 64)
     (hdC : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) k →
       s.row i dL = s.row ps[k].1 clen → regN (s.row i) = c'.hashOf.map UInt8.toNat)
-    (hMd : ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 4096 ∧ s.row (ps[k].1 + ps[k].2 - 8 + i) mCv < 4096)
+    (hMd : ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 67108864 ∧ s.row (ps[k].1 + ps[k].2 - 8 + i) mCv < 67108864)
     (hmB : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mBv) 8 = c'.memD)
     (hmC : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mCv) 8 = cm)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
@@ -493,7 +493,7 @@ theorem ups_rdeBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 1)
     (hsl : (nodeEnc (.ext key c m)).length < 2 ^ 32) (hc32 : c.hashOf.length = 32) (hm : m < 2 ^ 64)
     (hdC : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) k →
       s.row i dL = s.row ps[k].1 clen → regN (s.row i) = c'.hashOf.map UInt8.toNat)
-    (hMd : ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 4096 ∧ s.row (ps[k].1 + ps[k].2 - 8 + i) mCv < 4096)
+    (hMd : ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 67108864 ∧ s.row (ps[k].1 + ps[k].2 - 8 + i) mCv < 67108864)
     (hmB : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mBv) 8 = c'.memD)
     (hmC : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mCv) 8 = cm)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
@@ -509,7 +509,7 @@ theorem ups_ptBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 11)
     (hsl : (nodeEnc (.ext [] c m)).length < 2 ^ 32) (hc32 : c.hashOf.length = 32) (hm : m < 2 ^ 64)
     (hdC : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) k →
       s.row i dL = s.row ps[k].1 clen → regN (s.row i) = c'.hashOf.map UInt8.toNat)
-    (hMd : ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 4096 ∧ s.row (ps[k].1 + ps[k].2 - 8 + i) mCv < 4096)
+    (hMd : ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 67108864 ∧ s.row (ps[k].1 + ps[k].2 - 8 + i) mCv < 67108864)
     (hmB : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mBv) 8 = c'.memD)
     (hmC : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mCv) 8 = cm)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :

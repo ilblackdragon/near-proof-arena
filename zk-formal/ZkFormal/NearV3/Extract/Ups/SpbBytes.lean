@@ -122,10 +122,10 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc src).map UInt8.toNat)
     (hsl : (nodeEnc src).length < 2 ^ 22)
     (hsrcL : ci = 4 → ∃ key sl m, src = .leaf key sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32)
-    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 510)
+    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 2^23)
     (hdC : spRN ci = 1 → ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) 1 →
       s.row i dL = s.row ps[k].1 clen → regN (s.row i) = cx.hashOf.map UInt8.toNat)
-    (hMd : spRN ci = 1 → ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 4096)
+    (hMd : spRN ci = 1 → ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 67108864)
     (hmB : spRN ci = 1 → limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mBv) 8 = cx.memD)
     (hlen : val.length = s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2)
     (hLb : s.row 0 L0 < 256 ∧ s.row 0 L1 < 256 ∧ s.row 0 L2 < 256)
@@ -365,7 +365,7 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
   have hE1 : (if ci = 4 then 1 else 0) ≤ 1 := by split <;> omega
   have hr0 : o + (c0 + 32 * ww + 8) - 8 = o + c0 + 32 * ww := by omega
   rw [hr0] at hMd hmB
-  have eMgen : (ci = 4 → ∀ i, i < 4 → s.row (o + c0 + 32 * ww) (SR i) < 256) → s.row o Cc < 600 →
+  have eMgen : (ci = 4 → ∀ i, i < 4 → s.row (o + c0 + 32 * ww) (SR i) < 256) → s.row o Cc < 2^24 →
       rowsB s (o + c0 + 32 * ww) 8 = (NearSpec.u64 (spKc ci + (s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2) +
         (if ci = 4 then 1 else 0) * (s.row (o + c0 + 32 * ww) (SR 0) + 256 * s.row (o + c0 + 32 * ww) (SR 1) +
           65536 * s.row (o + c0 + 32 * ww) (SR 2) + 16777216 * s.row (o + c0 + 32 * ww) (SR 3)) +
@@ -566,7 +566,7 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
       simp [toNats_u32]; omega
     · rw [hSj i hi]; exact toNats_lt _ _
   -- the extension source of `ESl1` / `ESn1`: `phk`, the old memory and the old child hash
-  have extX : ∀ key c m, src = .ext key c m → c.hashOf.length = 32 → m < 2 ^ 64 → key.length < 510 → spXN ci = 1 →
+  have extX : ∀ key c m, src = .ext key c m → c.hashOf.length = 32 → m < 2 ^ 64 → key.length < 2^23 → spXN ci = 1 →
       s.row o Cc = 50 + 2 * (NearSpec.hexPrefix key false).length ∧
       limbs (fun i => s.row (o + c0 + 32 * ww + i) rb) 8 = m ∧
       ((Pb (s.row o sN)).drop ((Pb (s.row o sN)).length - 40)).take 32 = c.hashOf.map UInt8.toNat ∧
@@ -596,15 +596,15 @@ theorem ups_spbBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : Nea
       have f := pSB hok (rowLt hw hs _) a1.sum hrd hbm
       rw [show s.row (o + (c0 - 2)) kSPB = 1 from a3.kd 10 (by omega), cast1] at f
       exact natv (rowLt hw hs _ _) one_lt (by rw [cast1]; grind)
-    have hph : s.row (o + (c0 - 2)) rb = s.row (o + (c0 - 2)) phk := by
-      have f := rBM hok (rowLt hw hs _) a1.sum hbm hfs
-      rw [hxc, cast1] at f
-      exact natv (rowLt hw hs _ _) (rowLt hw hs _ _) (by grind)
-    have hrb := (hR _ a2 hrd).1
-    rw [hsp, a4 sN (by decide), hPb] at hrb
     have hphk : s.row o phk = H.length := by
-      rw [← a4 phk (by decide), ← hph, hrb]
-      simp [toNats_u32, List.getD_eq_getElem?_getD]; omega
+      have f := rBM hok (rowLt hw hs _) a1.sum hbm hfs
+      have hl := (hR _ a2 hrd).2
+      rw [a4 sN (by decide), hPl] at hl
+      rw [hxc, cast1, hl, a4 qtl (by decide), htl, a4 phk (by decide)] at f
+      apply natv (rowLt hw hs _ _) (by rw [P_lit]; omega)
+      have he : ((45+H.length : Nat):Fp)=45+(H.length:Fp) := by simp only [natCast_add]; rfl
+      rw [he] at f
+      grind
     refine ⟨?_, ?_, ?_, by omega⟩
     · rw [hCc (by rw [hphk]; omega), hX, hphk]; simp [H]
     · rw [limbs8]
@@ -829,7 +829,7 @@ theorem spbLookY (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : NearSpe
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc src).map UInt8.toNat)
     (hsl : (nodeEnc src).length < 2 ^ 22)
     (hsrcL : ci = 4 → ∃ key sl m, src = .leaf key sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32)
-    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 510)
+    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 2^23)
     (hxy : spYN ci = 1 → ci ≠ 4 → s.row 0 tX ≠ UpsSpec.yOf si)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) (hY : spYN ci = 1) :
     ∃ i, i < s.rows.length ∧ s.row i gD = 1 ∧ s.row i dI = upsIdN (s.row 0 tau) k ∧ s.row i dL = 50 := by
@@ -949,7 +949,7 @@ theorem spbLookC (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (val : NearSpe
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc src).map UInt8.toNat)
     (hsl : (nodeEnc src).length < 2 ^ 22)
     (hsrcL : ci = 4 → ∃ key sl m, src = .leaf key sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32)
-    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 510)
+    (hsrcE : spXN ci = 1 → ∃ key c m, src = .ext key c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ key.length < 2^23)
     (hxy : spYN ci = 1 → ci ≠ 4 → s.row 0 tX ≠ UpsSpec.yOf si)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) (hR1 : spRN ci = 1) :
     ∃ i, i < s.rows.length ∧ s.row i gD = 1 ∧ s.row i dI = upsIdN (s.row 0 tau) 1 ∧ s.row i dL = s.row ps[k].1 clen := by

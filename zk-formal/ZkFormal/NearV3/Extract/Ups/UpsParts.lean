@@ -68,12 +68,12 @@ def SrcOk (ci si ti sd ki : Nat) (P : NearSpec.PTrie) : Prop :=
   (ki = 4 → ∃ cs m, P = .branch none cs m ∧ m < 2 ^ 64) ∧
   (ki = 5 → ∃ bv cs m, P = .branch bv cs m ∧ (∀ sl, bv = some sl → sl.valueRef.length = 36) ∧ m < 2 ^ 64 ∧
     UpsSpec.kidsLen cs = 16 ∧ UpsSpec.kidAt cs (UpsSpec.yOf si) = none) ∧
-  (ki = 6 → ∃ k sl m, P = .leaf k sl m ∧ (∀ x ∈ k, x < 16) ∧ ti + 1 ≤ k.length ∧ k.length < 510 ∧
+  (ki = 6 → ∃ k sl m, P = .leaf k sl m ∧ (∀ x ∈ k, x < 16) ∧ ti + 1 ≤ k.length ∧ k.length < 2^23 ∧
     sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32) ∧
-  (ki = 7 → ∃ k c m, P = .ext k c m ∧ (∀ x ∈ k, x < 16) ∧ ti + 1 ≤ k.length ∧ k.length < 510 ∧
+  (ki = 7 → ∃ k c m, P = .ext k c m ∧ (∀ x ∈ k, x < 16) ∧ ti + 1 ≤ k.length ∧ k.length < 2^23 ∧
     c.hashOf.length = 32 ∧ m < 2 ^ 64) ∧
   (ki = 10 → (ci = 4 → ∃ k sl m, P = .leaf k sl m ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32) ∧
-    (spXN ci = 1 → ∃ k c m, P = .ext k c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ k.length < 510)) ∧
+    (spXN ci = 1 → ∃ k c m, P = .ext k c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64 ∧ k.length < 2^23)) ∧
   (ki = 11 → ∃ c m, P = .ext [] c m ∧ c.hashOf.length = 32 ∧ m < 2 ^ 64)
 
 /-- A part receiving its child's `MEMD` (`bN = 1`): descends, pass-throughs, the wrapping extension,
@@ -109,7 +109,7 @@ structure UpsExtK (s : UpsSeg) (ps : List (Nat × Nat)) (ci ti si : Nat) (kd sdx
   clen : recvK ci (kd k) →
     s.row ps[k].1 UpsV3.clen = (nodeEnc (upsQ ci si ti (s.row 0 tX) val kd sdx src (childK (kd k) k))).length
   memB : recvK ci (kd k) → ∀ i, i < 8 →
-    s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 4096 ∧ s.row (ps[k].1 + ps[k].2 - 8 + i) mCv < 4096
+    s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 67108864 ∧ s.row (ps[k].1 + ps[k].2 - 8 + i) mCv < 67108864
   memV : recvK ci (kd k) →
     limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mBv) 8 =
       (upsQ ci si ti (s.row 0 tX) val kd sdx src (childK (kd k) k)).memD ∧
