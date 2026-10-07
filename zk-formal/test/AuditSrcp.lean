@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Link.CheckSources
 import ZkFormal.NearV3.Rcpt.Link.WitnessSources
 import ZkFormal.NearV3.Rcpt.Render.Srcp.ProofInputWf
 import ZkFormal.NearV3.Rcpt.Link.SourceDuplicate
@@ -471,3 +472,11 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.lookupLast_path_shape' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.lookupLast_path_shape
+
+/-- info: 'ZkFormal.NearV3.checkD0_source_paths' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.checkD0_source_paths
+
+/-- info: 'ZkFormal.NearV3.relD0a_source_paths' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.relD0a_source_paths
