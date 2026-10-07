@@ -255,3 +255,13 @@ require generated current/next cells, not local acceptance. The combined audit
 passes76 exact axiom guards and15 regressions;213 dependency jobs pass.
 Remaining equations concern terminal/read gates, endpoints and between-word
 sequencing, followed by full constraint and trace composition.
+
+
+`CombinedReadGates` proves nine actual candidate equations for raw-marker flags,
+end-implies-last, absent-value ID0, present/group/count request gates and first
+position0. Membership in the actual table constraints is checked explicitly.
+`CombinedKeyEndpoints` proves final position0/8 and the native key's first byte
+7/13/10/16 from generated key data. All are generic field equations without
+local-acceptance assumptions. Audit80 exact axiom guards+15 regressions and215
+dependency jobs pass. Last-main/count rules, implicit metadata, public termination,
+physical endpoints and between-word sequencing remain before full composition.
