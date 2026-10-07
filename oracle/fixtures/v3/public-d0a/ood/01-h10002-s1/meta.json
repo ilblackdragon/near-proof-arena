@@ -1,0 +1,34 @@
+{
+  "case": "01-h10002-s1",
+  "chain_params": "ChainParams { seed: 4243012730, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 40, p_missing: 0.12, p_tx_shard: 0.35, p_burst: 0.08, p_fail: 0.02, p_implicit: 0.01, p_two: 0.02, long_skip: None }",
+  "d0a_violations": [
+    "c.single_epoch",
+    "c.no_split_gate",
+    "c.not_genesis",
+    "w.no_txs"
+  ],
+  "domain": "D0a",
+  "expected_rel": true,
+  "expected_rel_d0": false,
+  "expected_rel_d0a": false,
+  "features": {
+    "bw_requests_in_context": false,
+    "n_blocks": 2,
+    "n_implicit": 1,
+    "n_receipts": 0,
+    "n_shards": 5,
+    "n_source_blocks": 1,
+    "n_source_proofs": 0,
+    "other_congestion_nonzero": false,
+    "rs": [
+      33,
+      100
+    ],
+    "witness_bytes": 1550
+  },
+  "in_d0": false,
+  "in_d0a": false,
+  "kind": "honest",
+  "nearcore": "ok",
+  "unfold_bytes": null
+}
