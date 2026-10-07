@@ -466,3 +466,16 @@ row traffic. Prepared public SRC balance must still authenticate those bits.
 Seven modules compile and `AuditDedupPayloadTraffic.lean` checks 26 transitive
 axiom closures. Final SIZE traffic, SHA-bus semantic linkage, and candidate
 AIR-to-Good assembly remain unfinished.
+
+`DedupProof.extract_source` now packages complete combinatorial extraction and
+exact traffic on all five source buses from arbitrary accepting logical traces.
+The SIZE gate is uniquely the final active row even when the final block is a
+one-row duplicate skip. Its payload is exactly the field cast of the natural
+sum of L plus 33 per computed path item, with no local no-wrap assumption.
+The extracted sequence is nonempty, has exact natural j indices starting at 0,
+starts its hash numbering at 1, and obeys every consecutive endpoint link.
+`AuditDedupExtractProof.lean` checks 20 transitive axiom closures. Together with
+`joined_sound`, the physical pair can now be linked to this extraction without
+assuming an honest renderer. Remaining source obligations are global bus
+isolation and size no-wrap, byte/SHA semantics, prepared SRC repetition/key/root
+matching, and source semantics within the complete AIR-to-Good assembly.
