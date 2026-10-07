@@ -326,3 +326,12 @@ of the five equations in the actual table is checked. Audit113 exact axiom
 guards+15 regressions and223 dependency jobs pass. Full case/layout composition,
 parser suffix composition and ownership remain; individual equations are not
 yet a whole-trace acceptance theorem.
+
+
+`CombinedStepCases` composes all nine between-word equations for main successors,
+main-to-implicit transitions and implicit successors, and proves they all vanish
+inside a word or on a final word. All nine are proved members of the actual AIR
+constraint list. The generated-cell and natural metadata premises remain explicit;
+whole physical layout and parser suffix composition are still required. The
+224-job target and121 exact axiom guards+15 regressions pass. This is a component
+composition checkpoint, not whole-trace acceptance or an end-to-end certificate.

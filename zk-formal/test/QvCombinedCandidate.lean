@@ -16,6 +16,7 @@ import ZkFormal.NearV3.Qv.Candidates.CombinedPhysical
 import ZkFormal.NearV3.Qv.Candidates.CombinedMainOrder
 import ZkFormal.NearV3.Qv.Candidates.CombinedImplicitSteps
 import ZkFormal.NearV3.Qv.Candidates.CombinedMainSteps
+import ZkFormal.NearV3.Qv.Candidates.CombinedStepCases
 
 namespace QvCombinedRegression
 open ZkFormal.NearV3.Qv.Candidates
@@ -636,3 +637,41 @@ end QvCombinedRegression
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.final_step_gates' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.final_step_gates
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.closed_step_constraints' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.closed_step_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_step_other_gates' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_step_other_gates
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.enter_step_other_gates' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.enter_step_other_gates
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicit_step_other_gates' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicit_step_other_gates
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_step_all' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_step_all
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.enter_step_all' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.enter_step_all
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicit_step_all' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicit_step_all
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.step_mem' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.step_mem
