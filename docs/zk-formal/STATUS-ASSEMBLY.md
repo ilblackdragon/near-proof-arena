@@ -489,3 +489,12 @@ post-only constructor also has a payload bound. Nineteen permanent axiom guards
 pass. These are raw-store theorems: node/value classification, instance ownership,
 and the unchanged 2MiB AIR value-byte capacity are not yet derived. In particular,
 original 3MiB payload coverage is not silently substituted for 2MiB AIR coverage.
+
+`TransitionQueries.nativeQueryStore` connects targeted retention to the exact
+frozen native `rebuildPost` bytes (fully qualified native node/occurrence/value
+serialization). Checked lemmas preserve main execution, missing-chunk execution,
+the independent buffered-index discovery read, and the exact per-transition
+`unfoldedBytesT + diffT` contribution. Store encoding cost remains bounded by the
+original. 8 permanent guards pass. This is a raw-store semantic constructor;
+the existing view allocator has not been replaced and its A7 completeness premise
+remains pending row ownership/classification and unchanged AIR byte budgets.
