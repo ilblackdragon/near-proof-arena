@@ -4,6 +4,51 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ## Resumption plan (2026-10-07)
 
+### Latest continuation checkpoint
+
+The user explicitly authorized subagents. Three independent tracks are active:
+D3 regression/reference work, update-field completeness, and receipt/source-proof
+extraction. The lead owns memory completeness and integration. AIR builds and
+audits now use an exclusive lock to avoid shared-artifact races:
+`taskset -c 8-15,24-31 flock /data/illia/nearproof-deps/validation/v3-air-build.lock /data/illia/nearproof-deps/bin/heavy lake ...`
+with `HEAVY_MEM=16G LEAN_NUM_THREADS=4`, from the lane's `zk-formal` directory.
+Keep each queued target's source stable until completion.
+
+- **D3 lane:** D2 exact original/logged comparison passes all 67,384 cases,
+  and fresh Python agrees with logged Lean and nearcore metadata throughout.
+  On the 53,048-case D1 corpus, original/logged D2 agrees exactly; independent
+  Python D2 agrees throughout, all 11,089 expected D1 positives are accepted,
+  and no nearcore-rejected case is accepted. This checks D2 on the D1 corpus;
+  it does not conflate the two domains. See lane evidence reports.
+- **WASM gate:** at D3 commit `4416cfb3`, all 14,621 generated cases have exact
+  original/logged outcomes. Fresh pinned nearcore agrees on all 14,610 in-domain
+  cases; 11 out-of-domain cases remain explicitly covered by parity. The logged
+  harness adapters build (143 jobs), and process/output framing is fail-closed.
+  TTN harness rebuilding and trace regeneration are next, followed by the exact
+  logged read-set reference and unread-value/code injection checks. Existing
+  Canon uses necessity iteration; a logged import alone does not prove witness
+  reconstruction preserves control flow. No pinned trusted source was changed.
+- **AIR lane:** integration at lead commit `036d5467` passes 1,119 jobs.
+  Seven concrete aligned generators were previously added. `cPlan_ok` now
+  closes the full update-plan group from explicit semantic `PartOk` inputs.
+  `GFieldPrefix` covers the first 26 actual field constraints. `MemArith` and
+  `GMemRow` cover signed carries and encoded memory-row equations, including
+  exact high limbs; all 15 memory axiom guards pass with only `propext` and
+  `Quot.sound`. Carry ranges/result bytes, register shifts and full memory
+  dispatch still need closure from actual update construction.
+- **Source proofs:** root/leaf units, complete path-item traffic, nonwrapping
+  counters, exact unique SIZE emission and its field-valued sum, and a semantic
+  SHA-contract bridge to receipt verification are proved. Whole-block assembly,
+  SHA bus-contract discharge and the honest render remain open. The selected
+  new B2 block explains nonempty source lists even when there are no receipts.
+  Full `prepClaim` success decomposition remains required. Receipt guards: 28.
+- **Evidence:** AIR `docs/e2e-results/v3-parallel-proof/report.json` and
+  `/data/illia/nearproof-deps/validation/v3-parallel-proof-20261007`.
+  These are incremental checks, not a clean 1,800-second judge measurement or
+  a completed succinct state-transition prover. Subsequent agent commits/WIP
+  may be ahead of this integration checkpoint; inspect before restarting work.
+
+
 Main is `048fc45d`; the D0a spec merge is already present. Treat the older lane
 status files' requests to merge it, and their receipt-lane pause claims, as stale.
 Work proceeds in the following order, retaining the release gates below:
