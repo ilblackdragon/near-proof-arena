@@ -6,6 +6,35 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root CounterProvider CHECKED at AIR38c3cbab: canonical natural request/provider
+keys, exact natural-to-field messages, generic counter_provider_exists via
+Walk3.chain_provided. Requests <P excludes provider-free cycles with duplicates
+preserved. Target335 jobs +5 exact axiom guards PASS; logs
+/tmp/nearproof-qv-counter-provider.log and
+/tmp/nearproof-qv-counter-provider-audit-checked.log. Still NEED actual physical
+instantiation: form present-request list and parser endpoint list, derive request
+count<P from WalkChain.length_le_height+height_le, reorder logical balance, then
+apply generic theorem. Do not claim physical provider linkage yet.
+Integrated D2 d570b277/d9315049 as53868638/135a2717: full native key path incl PT
+and every actual upsert part resolves to exact forest seed provider. Target614
+jobs PASS; both seven-print axiom audits validated standard axioms only in
+/tmp/nearproof-source-{addresses,coverage}-integrated-audit.log.
+Integrated ups65d43e95/feccc627 asf5cd9548/dd84e22e: native repeated-overflow
+regression + direct occurrence seed EDGE/BMAP providers. Target548jobs and
+8+5 exact guards PASS (/tmp/nearproof-seed-walk-integrated*.log,
+/tmp/nearproof-native-repeated-overflow-integrated-audit.log). Earlier potential
+overflow is a generic repeated-upsert mismatch, not an accepted checker
+counterexample: NativeTrace.checkD0a_native_trace gives wf for main and every
+separately reconstructed implicit pretrie; agents report one scheduler upsert per
+such input followed by receipt set writes. Keep source-wf premise; no arithmetic
+or domain changes. Ups now consumes integrated source providers; D2 extends
+off-path child/empty-ext IDs. Receipt b0c7a7a1 completes FINAL traffic (13guards);
+only KEYNIB/DIGEST remain, active receipt-owned untracked DigestTraffic files.
+No root live process. Latest whole aggregate b7002160 predates these changes.
+Full soundness/certificate/admission/reference check/prover/real judge and broad
+NEAR coverage remain open; D0a is intermediate only.
+
+
 
 Root ParserAggregate CHECKED: suffix QVC traffic equals ordered endpoint list;
 all physical QVC messages = request steps++parser endpoints, both sides.
