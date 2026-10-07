@@ -7,6 +7,42 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+**Latest aggregate AIR `b5d5817b`:1,585 jobs PASS;12 audits,130 axiom guards,
+12 behavior checks and16 theorem regressions.** Report:
+`docs/e2e-results/v3-combined-source-native-integration/report.json` in AIR;
+external logs under `/data/illia/nearproof-deps/validation/v3-combined-source-native-20261007/`.
+This integrates leaf cursor repair, combined queue parser/public bindings,
+source joined/unit extraction, native preparation and decoded shape additions.
+
+Root QV checkpoint `0d93939a` (AIR `fee97cc3`) binds the actual full public u32 K
+at26 to the candidate expression. `0e9a34b7` (AIR `a96dbcb2`) derives zero read
+gates on walk=0 rows and exact standalone-parser traffic from combined local
+constraints; original parser constraints transfer when current/next walk flags
+are zero. Combined audit15 guards+12 fixtures. Next root work: honest walk
+renderer and traffic, parser suffix/wrap composition, native capacity/ownership,
+then reverse queue extraction.
+
+Leaf matched metadata repaired in `10b470af` (AIR `027df827`), with actual
+root[0,15] yielding(ts,ti,ci)=(3,2,0) and child-leaf regressions. Native terminal
+value, inserted-child and extension ByteInput+MemOk dispatch are checked;
+branch ancestor additive checkpoint `aa38006f` follows the aggregate. Split
+runtime dispatch and allocator linkage remain.
+
+NativePrepared `8768bf43` bundles actual prepD0, execution/header/source and
+witness bounds. D0Shape still needs header parser converses (decoded transition/
+receipt/path/entry shapes are checked). A7 normalization has a genuine issue:
+unread original blobs can shadow new post blobs under first-wins lookup.
+`fb28c196` RetainedStore proves retaining all original blobs preserves all
+lookups/rebuildPost and cost without hash injectivity. This is NOT adopted into
+ExtV3: unreferenced implicit ValE seeds default to tau0, and the 3MB store cap
+does not imply the unchanged2MiB value budget. Keep both gaps explicit.
+
+Source `c0ea362a` proves root/segment unit decomposition; `f7cde3f6` additionally
+extracts full computed/skip BlockChain and bounded native counters, with44 guards.
+The latter is committed after aggregate imports were fixed, so its focused audit
+is the evidence. Source agent proceeds semantic metadata/traffic linking.
+
+
 **After AIR18ca4f17:** combined queue table is implemented (`1dad2d20`,
 AIR `9b5850bc`), with actual shape52/8/6/8/log22,14 interactions and local
 degree≤6. Five exact axiom guards+12 Fp fixtures pass. Parser length is overlaid
