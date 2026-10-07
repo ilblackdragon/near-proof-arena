@@ -453,3 +453,16 @@ accepting rows, including the actual repetition bit and absence of a digest
 receive for skips. `BlockSpan.repeated_empty` derives L=12 from that root's actual
 bit. `AuditDedupBlockLinks.lean` checks 17 transitive axiom closures. Leaf/path
 traffic and chain SIZE composition remain separate obligations.
+
+`BlockChain.full_traffic` now proves exact whole-trace traffic on every non-SIZE
+bus and both directions. The proof recovers leaf digest bytes in order, both
+64-byte path concatenation orders, one predecessor digest request per path item,
+and the exact root/leaf/path message concatenation for every extracted block.
+Skipped headers emit no private proof traffic, and trailing inactive rows emit
+nothing on any bus. The semantic `chainMsgs` reads only each root's repetition
+bit from the trace; all root positions follow from extracted block lengths.
+Consequently this is not an honest-renderer assumption or a restatement of raw
+row traffic. Prepared public SRC balance must still authenticate those bits.
+Seven modules compile and `AuditDedupPayloadTraffic.lean` checks 26 transitive
+axiom closures. Final SIZE traffic, SHA-bus semantic linkage, and candidate
+AIR-to-Good assembly remain unfinished.
