@@ -5,8 +5,8 @@ namespace ZkFormal.NearV3.Qv.Extract
 /-- Every other stream which emits a position also emits position zero for
 that ID. Unique demanded positions therefore give a nonempty selected stream
 exclusive ownership of its ID. This is a multiset argument, not a set balance. -/
-theorem stream_other_id_ne {α ι : Type} [DecidableEq ι]
-    (key : α → ι × Nat) (id : ι) (selected others demand : List α)
+theorem stream_other_id_ne {α ι π : Type} [DecidableEq ι] [OfNat π 0]
+    (key : α → ι × π) (id : ι) (selected others demand : List α)
     (hbalance : (selected++others).Perm demand)
     (hunique : (demand.map key).Nodup)
     (hstart : ∃ x∈selected, key x=(id,0))
@@ -24,8 +24,8 @@ theorem stream_other_id_ne {α ι : Type} [DecidableEq ι]
 
 /-- Exact global balance isolates the complete demanded stream for an ID;
 a matching prefix alone cannot satisfy this theorem's hypotheses. -/
-theorem stream_isolate {α ι : Type} [DecidableEq ι]
-    (key : α → ι × Nat) (id : ι) (selected others demand : List α)
+theorem stream_isolate {α ι π : Type} [DecidableEq ι] [OfNat π 0]
+    (key : α → ι × π) (id : ι) (selected others demand : List α)
     (hbalance : (selected++others).Perm demand)
     (hunique : (demand.map key).Nodup)
     (hstart : ∃ x∈selected, key x=(id,0))
