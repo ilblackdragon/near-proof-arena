@@ -7,6 +7,22 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+AIR `fc35da1c`: WalkSegments lifts full main/implicit transition equations
+between whole extracted walks, with metadata transported from segment starts.
+WalkChain packages nonempty consecutive complete segments plus bounded suffix;
+TableLocal alone yields a chain. All nonfinal segment terminals have wend=0;
+final chain terminal has wend=1, including physical-last boundary. No canonical
+renderer assumptions. Target120 jobs and24 exact extraction guards PASS.
+Logs /tmp/nearproof-qv-walk-chain.log,/tmp/nearproof-qv-chain-audit-final.log.
+Root no live job. Next indexed main/implicit metadata, canonical KEYNIB/FINAL
+traffic and parser/provider soundness; aggregate newer integrated checkpoints.
+Ups a408a949 cherry-picked: actual absent-key terminal EDGE shape membership
+for seven cases from executable byte-preserving annotations. Global allocated
+IDs/resolutions and other edges remain obligations. Receipt and D2 continue
+public-range/total and shape-only write determinacy respectively. Last full
+aggregate dc4c12d4 remains older; complete objective still open.
+
+
 AIR `3d37a7b8`: arbitrary accepted WalkOrder now derives initial main/tau/slot/
 kind fields, full main advance equations, main→implicit switch, implicit tau
 increment, implicit fixed shape, public K termination binding, and exact wend
