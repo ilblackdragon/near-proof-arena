@@ -822,3 +822,10 @@ canonicity, and natural final count/body equality. Eight exact guards pass.
 The overbroad unscoped `RcptV3ViewStmt` is not asserted. Native successful Prep
 must still establish these public ranges, and global non-BYTES/non-RCL traffic
 composition remains unfinished; this is not full transition soundness.
+
+`PrepCount` extracts the unchanged successful `prepClaim` gas-limit check and
+`prepBody` compute guard, proving `prepD0 ... = .ok p` implies `p.hdr.n ≤ 5000`
+and `p.hdr.n < P`. Three exact guards pass. Thus public count admissibility needs
+only its concrete packed-header correspondence, not an added native restriction
+or a new header-width assumption. The proof retains only needed check facts
+when decomposing native monadic code and builds in approximately one second.
