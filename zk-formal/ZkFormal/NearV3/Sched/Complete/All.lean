@@ -3,6 +3,7 @@ import ZkFormal.NearV3.Sched.Complete.MemTraffic
 import ZkFormal.NearV3.Sched.Complete.Rows
 import ZkFormal.NearV3.Sched.Complete.Steps
 import ZkFormal.NearV3.Sched.Complete.ProcRows
+import ZkFormal.NearV3.Sched.Complete.Field
 
 /-!
 # ZkFormal.NearV3.Sched.Complete.All — M4 (completeness) of lane `v3-sched`, current state
@@ -39,4 +40,6 @@ import ZkFormal.NearV3.Sched.Complete.ProcRows
 #print axioms ZkFormal.NearV3.Sched.Complete.proc_rows_rel
 #print axioms ZkFormal.NearV3.Sched.Complete.tail_rel
 #print axioms ZkFormal.NearV3.Sched.Complete.pad_rel
+#print axioms ZkFormal.NearV3.Sched.Complete.eval_zero_of_dvd
+#print axioms ZkFormal.NearV3.Sched.Complete.finv_mul
 #print axioms ZkFormal.NearV3.Sched.Complete.scan_rows_size
