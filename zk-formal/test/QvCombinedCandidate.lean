@@ -13,6 +13,7 @@ import ZkFormal.NearV3.Qv.Candidates.CombinedKeyEndpoints
 import ZkFormal.NearV3.Qv.Candidates.CombinedTermination
 import ZkFormal.NearV3.Qv.Candidates.CombinedMetadataEquations
 import ZkFormal.NearV3.Qv.Candidates.CombinedPhysical
+import ZkFormal.NearV3.Qv.Candidates.CombinedMainOrder
 
 namespace QvCombinedRegression
 open ZkFormal.NearV3.Qv.Candidates
@@ -561,3 +562,19 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.next_word_start_equations
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_at_order' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_at_order
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_at_flags' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_at_flags
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_code_successor' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_code_successor
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_successor' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_successor
