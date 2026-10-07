@@ -53,8 +53,12 @@ namespace ExtV3
 def valuePosition (x : ExtV3) : Nat → Nat :=
   Link3.vpos ((x.values.head?.map ValE.vid).getD 0)
 
-def store (x : ExtV3) (tau : Nat) : List Bytes :=
+def rawStore (x : ExtV3) (tau : Nat) : List Bytes :=
   storeOf (Link3.recsOf x.valuePosition x.nodes) (Link3.valsOf3 x.nodes x.values) tau
+
+/-- Stable first-occurrence dedup collapses shared records and node/value overlap.
+`WitnessStore.store_partialTrie` proves exact native behavior is preserved. -/
+def store (x : ExtV3) (tau : Nat) : List Bytes := (x.rawStore tau).eraseDups
 
 def post (x : ExtV3) (tau : Nat) : Bytes :=
   Link3.toB (((x.heads.find? (fun h => h.tau == tau)).map HeadE.post).getD [])
