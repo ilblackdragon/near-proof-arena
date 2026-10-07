@@ -2,6 +2,7 @@ import ZkFormal.NearV3.Sched.Complete.Height
 import ZkFormal.NearV3.Sched.Complete.MemTraffic
 import ZkFormal.NearV3.Sched.Complete.Rows
 import ZkFormal.NearV3.Sched.Complete.Steps
+import ZkFormal.NearV3.Sched.Complete.ProcRows
 
 /-!
 # ZkFormal.NearV3.Sched.Complete.All — M4 (completeness) of lane `v3-sched`, current state
@@ -13,6 +14,7 @@ import ZkFormal.NearV3.Sched.Complete.Steps
   `heights_prep`: from `prepD0` and the replays, A7 alone bounds the five tables by `2^22`;
   `lp_draws` / `replay_draws`: words drawn `≤ 64·(S − Rd)`; `lane_prep`: lane tables given
   `Σ K ≤ 360,000`; `worstK_exceeds`: the fuel bound alone does not fit `2^22`;
+* `proc_rows_rel` (`sprV3`): the generator's rows are the value records `procVs R`;
   `worst_exceeds`: without the step budget, process / memory / comparator exceed `2^22`.
 -/
 
@@ -34,4 +36,7 @@ import ZkFormal.NearV3.Sched.Complete.Steps
 #print axioms ZkFormal.NearV3.Sched.Complete.worst_exceeds
 #print axioms ZkFormal.NearV3.Sched.Complete.worst_a7
 #print axioms ZkFormal.NearV3.Sched.Complete.proc_rows_size
+#print axioms ZkFormal.NearV3.Sched.Complete.proc_rows_rel
+#print axioms ZkFormal.NearV3.Sched.Complete.tail_rel
+#print axioms ZkFormal.NearV3.Sched.Complete.pad_rel
 #print axioms ZkFormal.NearV3.Sched.Complete.scan_rows_size
