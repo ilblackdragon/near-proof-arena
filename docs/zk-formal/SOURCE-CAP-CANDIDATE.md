@@ -901,3 +901,10 @@ fields. Loaded digest registers equal their 32 reconstructed bytes; active end
 constraints fix message IDs and input lengths (48 or 37+32*hr+receiver length).
 All other receipt rows, headers, and padding are silent. Twenty exact guards
 pass. KEYNIB is now the only remaining whole-table receipt traffic channel.
+
+`KeyMessages` checks the pure canonical symbol-list algebra: explicit END marker,
+position-preserving concatenation, and two indexed nibbles per byte. Three exact
+guards pass. The remaining KEYNIB proof must use permutation, because the
+physical access-key separator is emitted before signer bytes but carries its
+canonical later position; treating physical emission order as semantic order
+would be incorrect. No KEYNIB traffic closure is claimed yet.
