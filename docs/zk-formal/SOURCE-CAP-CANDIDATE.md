@@ -241,3 +241,58 @@ traffic to natural row records and proves complete root-header messages. Complet
 rendered-trace locality, aggregate traffic, and authenticated partition continuation
 remain open. Seven executable fixtures and twelve transitive axiom guards check this
 isolated checkpoint; all dependencies use only Lean's standard logical axioms.
+
+## Current concrete source and reserved queue budget
+
+`SourceCurrentSize` replaces both synthetic 56-column source entries with the actual
+57-column `DedupTable` shape. At grouping2 its kernel-checked shape is
+`(w, aux, quot, fin, maxLog) = (57, 3, 5, 3, 23)`. Executable model evaluations give:
+
+| Included candidate components | Model bytes | Remaining below8MiB |
+| --- | ---: | ---: |
+| Actual source57, two source/two SHA partitions | 8,180,129 | 208,479 |
+| Above plus actual parser37/3/6/3/log22 | 8,277,154 | 111,454 |
+| Above with combined queue52/8/6/8/log22 reserve | 8,326,114 | 62,494 |
+| Combined queue reserve plus explicit source carry-table shapes | 8,347,010 | 41,598 |
+
+The parser37 shape is transcribed from the QV lane's kernel-checked shape at
+8463ced1/9f596fd8. The combined52 shape is a **provisional reserve**, including fifteen
+additional base columns for unimplemented queue walk/control and additional auxiliary,
+quotient, and final columns. It is not an implemented table or a proved capacity bound.
+The last row's exact model equality and41,598-byte margin are kernel checked. This is
+now the relevant source/queue estimate, replacing the earlier210,335-byte spare margin.
+Other unimplemented wiring must fit the remaining margin, and the final admitted AIR
+must be measured again; the table is not a final encoded-proof guarantee.
+
+`DedupPartitionTable` makes source continuation costs explicit. Its first partition
+suppresses all constraints and normal message multiplicities on its physical last row,
+which carries a complete57-field state to the second partition's first row. The second
+partition suppresses only global-first source constraints. Carry send/receive are
+unconditional endpoint selectors. Multiplicity digits are individually gated (they are
+binary digits, not a list of multiplicative factors). The first table has degree5 base
+constraints and shape57/4/7/4/log23; the second has shape57/3/5/3/log23. These extra
+interactions and gating cost20,896 modeled bytes. Source carry reserves bus64, distinct from QVC63 and QSH29; the integrated AIR needs
+at least65 buses. Separation from every other bus, a distinct namespace for any SHA
+continuation, and fingerprint/multiset soundness for the full57-field carry record
+must still be proved.
+
+The quotient cost is per table: `Stark/Protocol.lean` defines `Table.degree` from that
+table's base/multiplicity and generated auxiliary constraints, `Table.quotCount` as its
+degree minus one, and `layout` reads that count separately for each table. The source
+carry total degrees are8 and6, both below the unchanged blowup16 ceiling. `NpOkPg`
+and `headerOk` use that ceiling, so this change does not require a larger global blowup
+or larger quotient commitments for other tables. Candidate maxLog23/maxLde27 admission
+and the protocol security numerics still require the separate rebuilding described above.
+
+The overlap's exact traffic-once theorem, absence of extraneous carry messages,
+field-row equality from the existing bus soundness theorem, and complete local
+soundness/completeness across the boundary remain obligations. A syntactic table and
+its size/degree checks do not establish those semantic facts.
+
+The logical renderer's full five-bus contract is now checked by
+`DedupTrafficProof.table_traffic`: every root/leaf/path message is accounted for,
+duplicate computation is omitted, padding is silent, and SIZE is emitted exactly
+once with `sum (L + nonduplicatePathCharge)`. It needs only nonempty source blocks,
+32-byte root/leaf/sibling/accumulator widths, and the trace-to-renderer cell equality;
+it does not assume old source row caps or old `SrcpWf`. This closes logical aggregate
+traffic, while complete local legality and physical partition traffic-once remain open.
