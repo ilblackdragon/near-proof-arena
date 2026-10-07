@@ -548,7 +548,11 @@ empty/buffer/raw `ValueGen.Record` payloads with exact bytes and parser Valid.
 134,028 premise). 34 permanent guards pass. These providers exclude unrelated
 non-QV values; duplicate group requests reuse IDs and increment users.
 
-Still pending: explicit correspondence of provider global ordinals to concrete
-seeded ValE bytes/IDs, global resolver-to-combined walk traffic and provider
-multiplicity linkage, and parent-owned local AIR concatenation. Post-query
-shadow classification/cost remains a separate ExtV3 completeness gap.
+`QueueSeed` now proves that each provider is exactly an existing `seedValue`
+member of the concrete `forestStoreViews.values`, with matching global ID, bytes
+and `valTau` instance. This is structural and unconditional, including repeated
+identical bytes at different value occurrences. 8 permanent axiom guards pass.
+
+Still pending: global resolver-to-combined walk traffic and provider multiplicity
+linkage, and parent-owned local AIR concatenation. Post-query shadow
+classification/cost remains a separate ExtV3 completeness gap.
