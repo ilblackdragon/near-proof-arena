@@ -317,3 +317,12 @@ tau+1 steps from generated neighboring cells. Those natural premises are derived
 by the indexed plan lemmas; whole-list layout still needs composition. Audit108
 exact axiom guards+15 regressions and222 dependency jobs pass. Main-step field
 translation and complete local trace construction remain.
+
+
+`CombinedMainSteps` proves all five main successor AIR equations from adjacent
+indexed native plan entries, preserving duplicates. It also proves every
+between-word gate vanishes on nonterminal byte rows or final words. Membership
+of the five equations in the actual table is checked. Audit113 exact axiom
+guards+15 regressions and223 dependency jobs pass. Full case/layout composition,
+parser suffix composition and ownership remain; individual equations are not
+yet a whole-trace acceptance theorem.
