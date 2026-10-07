@@ -11,6 +11,14 @@ theorem schedStep_shape_known {ctx : ApplyCtx} {pre post : PTrie} {so : SchedOut
   exact ⟨shape_upsert _ _ _ _ hs (by decide) hu,
     fun _ hk => shape_upsert_known hs (by decide) hu hk⟩
 
+/-- The scheduler's actual read certifies its write key before the upsert. -/
+theorem schedStep_write_known {ctx : ApplyCtx} {pre post : PTrie} {so : SchedOut}
+    (h : schedStep prims ctx pre = .ok (post,so)) :
+    pre.find keyBwState ≠ none := by
+  obtain ⟨prev,_,_,hr,_,_,_,_⟩ := schedStep_complete h
+  rw [(Qv.readKey_iff _ _ _ _).mp hr]
+  simp
+
 /-- Full actual main execution preserves known keys despite unchecked output
 memory counters. Shape is structural, not a post-state serialization bound. -/
 theorem applyNewChunk_shape_known {ctx : ApplyCtx} {pre : PTrie}
