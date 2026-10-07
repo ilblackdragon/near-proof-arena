@@ -46,6 +46,23 @@ theorem groupReads_of_loop (t : PTrie) : ∀ (ss : List Nat) {u : Unit},
     · exact ⟨v,(readKey_iff _ _ _ _).mp hv⟩
     · exact ht s hmem
 
+theorem groupReads_loop (t : PTrie) : ∀ (ss : List Nat),
+    (∀ s ∈ ss, ∃ v, t.find (keyGroupsData s) = some v) →
+      forIn ss () (groupReadStep t) = .ok ()
+  | [], _ => rfl
+  | a::ss, h => by
+    obtain ⟨v,hv⟩ := h a (by simp)
+    have hr := (readKey_iff t (keyGroupsData a) "BufferedReceiptGroupsQueueData" v).mpr hv
+    have ht := groupReads_loop t ss (fun s hs => h s (by simp [hs]))
+    rw [List.forIn_cons]
+    simp only [groupReadStep,hr,bind,Except.bind,pure,Except.pure]
+    exact ht
+
+theorem groupReads_loop_iff (t : PTrie) (ss : List Nat) :
+    forIn ss () (groupReadStep t) = .ok () ↔
+      ∀ s ∈ ss, ∃ v, t.find (keyGroupsData s) = some v :=
+  ⟨groupReads_of_loop t ss,groupReads_loop t ss⟩
+
 /-- Actual successful new-chunk execution supplies the parser semantics and
 all deterministic queue reads at their original runtime stages. -/
 theorem applyNewChunk_queue_reads {prims : Prims} {ctx : ApplyCtx} {pre : PTrie}
