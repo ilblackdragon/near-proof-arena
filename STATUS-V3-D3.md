@@ -25,8 +25,12 @@ Configured formal checking rejected that artifact because its model imported
 The corrective candidate-only transform moves unchanged runtime declarations
 into separate modules and records extracted source ranges/hashes/import edits.
 Its 26-module model closure and 69-module admission proof closure compile;
-the local certificate/prover and all 25 guarded axiom audits pass. Fresh native,
-mutation, formal and held-out SDK gates remain pending. No admission is claimed.
+the local certificate/prover and all 25 guarded axiom audits pass. Fresh public
+SDK check-local also passes with two identical native builds and all 407 positives
+(package `f1cc035e…`, verifier `f661d7b8…`). The configured formal route independently
+builds that exact verifier binary, resolving the import/binding rejection; formal
+elaboration and independent kernel checks are running. Fresh worker mutations and
+held-out SDK gates remain pending. No admission is claimed.
 Builds remain serial with two Lean threads. New evidence summary:
 `docs/e2e-results/v3-d3-read-reference/report.json`; raw evidence:
 `/data/illia/nearproof-deps/validation/v3-read-reference-20261007/`.

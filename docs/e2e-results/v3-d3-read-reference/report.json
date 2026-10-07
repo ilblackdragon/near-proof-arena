@@ -59,7 +59,6 @@
     "check_local_exit": 0
   },
   "pending": [
-    "post-split native two-build reproducibility and public SDK check-local",
     "post-split actual worker public and held-out mutations",
     "held-out SDK check-local",
     "configured formal checking and independent kernels"
@@ -156,10 +155,55 @@
     "report_sha256": "f8cf46a5115407c52ea75f2c1ef10c9a74e391d6bf247092a6ab668afd579e29"
   },
   "runtime_split": {
-    "status": "26-module model and 69-module proof closure compile; local certificate/prover and25guardedaxiomauditspass",
+    "status": "native reproducibility and public SDK pass; configured formal elaboration/rechecks running",
     "candidate_model_modules": 26,
     "declaration_bodies": "unchanged namespace-transformed upstream ranges",
     "trusted_sources": "unchanged",
-    "old_evidence_scope": "all existing native and mutation passes above refer to pre-split package_digest"
+    "old_evidence_scope": "all existing native and mutation passes above refer to pre-split package_digest",
+    "candidate_commit": "2d8e3588",
+    "public_check_local": {
+      "ok": true,
+      "official": false,
+      "network_isolated": true,
+      "package_digest": "sha256:f1cc035ebeb40e346a18859baa538f60256d0e02b63152bc8a2a8e001428641a",
+      "positive_cases": 407,
+      "report_sha256": "2e3ffb9db8a87f29a3b9cca466789f6007debbcd3875d007d302114345ec8b66",
+      "gates": [
+        {
+          "gate": "PKG_WELLFORMED",
+          "status": "PASS"
+        },
+        {
+          "gate": "AXIOM_AUDIT",
+          "status": "SKIPPED"
+        },
+        {
+          "gate": "BUILD_REPRODUCIBLE",
+          "status": "PASS"
+        },
+        {
+          "gate": "CONFORMANCE_DIFFERENTIAL",
+          "status": "PASS"
+        },
+        {
+          "gate": "PROVER_RELIABILITY",
+          "status": "PASS"
+        },
+        {
+          "gate": "ADVERSARIAL_PROOFS",
+          "status": "PASS"
+        },
+        {
+          "gate": "RESOURCE_LIMITS",
+          "status": "PASS"
+        }
+      ]
+    },
+    "native_binaries_sha256": {
+      "prepare": "8341e9deeb0579bc38bd8d8868727be816e9ca31e2bff23d78487cda7bc61236",
+      "prove": "8010f24e610b0abf067ebc787fe83d2bafd5e1caf76fea14c11f0735d8d5c5b7",
+      "verify": "f661d7b84e09ea341b255d0a351d1015bdf942011e8e3cc11640ecb18489f862"
+    },
+    "isolated_formal_native_verifier_sha256": "f661d7b84e09ea341b255d0a351d1015bdf942011e8e3cc11640ecb18489f862"
   }
 }
