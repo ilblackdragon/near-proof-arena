@@ -829,3 +829,14 @@ and `p.hdr.n < P`. Three exact guards pass. Thus public count admissibility need
 only its concrete packed-header correspondence, not an added native restriction
 or a new header-width assumption. The proof retains only needed check facts
 when decomposing native monadic code and builds in approximately one second.
+
+`PreparedRanges` completes the public admissibility bridge: exact second-u32
+header reads recover the native receipt count, and exact body-length header
+reads recover the actual body length. Successful native Prep supplies count
+≤5000 and root widths; the actual prepared public byte-string length <P
+supplies body length <P. `extract_prepared_wellformed` now derives the complete
+`RcptV3Wf` directly from local AIR on that actual public statement, successful
+native preparation, and its encoded size bound. Five exact guards pass.
+The encoded statement size is a protocol admission obligation already needed
+for packing; it is not inferred from a four-byte serialized count and does not
+change the native domain. Traffic composition remains separately unfinished.
