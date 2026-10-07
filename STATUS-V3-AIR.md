@@ -2,6 +2,16 @@
 
 Program lead's hand-over, 2026-10-07.
 
+**R1 public-segment protocol:** `PubSeg` now supports constant prefixes,
+verifier-generated record indices, and optional u32 payload offsets for compact
+packing. Fingerprint width counts generated fields; record-count bounds still
+use payload width. `pubIdx_of_segments` supplies exact public counts from segment
+contents. Full integration passes 1,168 jobs, legacy toy admission passes, and
+14 behavioral checks plus five axiom guards pass. Concrete NEAR prepared-record
+bindings and final assembly remain open. Evidence:
+`docs/e2e-results/v3-indexed-public/report.json`.
+
+
 **Semantic memory bridge:** `memOk_of_semantics` now derives encoded carry
 ranges and all serialized memory-byte equations from ordinary `NodeEncoding`,
 its scalar decoded memory usage and semantic operand bounds. These inputs
@@ -161,7 +171,7 @@ The target is `Holds_v2(prep cb h) ⇒ ∃ w, RelD0 cb w`. The assembly addition
 | hypothesis | where | discharge |
 |---|---|---|
 | bus ownership (`SchedOwn`, `ScanOwn`, `OpOwn`, `CodecValOwn`, `SparOwn`, `PubbOwn`, `InitOwn`, `SdlOwn`, `PubbRecv`, `ShaOwn`, `SdlxOwn`, trie bus ownership) | sched, trie | decide on the final assembled AIR (`decide +kernel`) |
-| `PubIdx` (public records = rendered prep records: SPAR, SPUBB, SDL, SRC, BND, body …) | sched, rcpt | instantiate once the **indexed public segments** protocol extension (R1) exists. **Not started.** |
+| `PubIdx` (public records = rendered prep records: SPAR, SPUBB, SDL, SRC, BND, body …) | sched, rcpt | R1 protocol and generic `pubIdx_of_segments` bridge are checked; concrete prepared-statement record bindings remain open. |
 | `KindReg` (SHA kind separation; sched `ShaKind`, trie `othersId`/`othersU`) | sched, trie | per-table proofs from each view against the registry (design §12) at assembly. Trie TODO: restate `othersId` through `KindReg.avoid`. |
 | `SchedVal` | trie `upsV3_linkB` | `codec_schedVal` (sched) at assembly |
 | `KeynibOk` (key-nibble providers send only nibbles/END) | trie walks | rcpt `rcpt_keynib_syms` (provider side, proved) plus public walks at assembly |

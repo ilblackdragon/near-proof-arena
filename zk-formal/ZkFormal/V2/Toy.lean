@@ -77,7 +77,7 @@ def toyAirP : AirP where
   tables := [toyTableP]
   numBuses := 1
   numPub := 0
-  pubSegs := [⟨0, true, 1, 0, 8⟩, ⟨0, false, 1, 4, 72⟩]
+  pubSegs := [⟨0, true, 1, 0, 8, [], none, none⟩, ⟨0, false, 1, 4, 72, [], none, none⟩]
   maxPub := 136
 
 theorem toyAirP_tables : toyAirP.tables ≠ [] := by simp [toyAirP]
@@ -135,10 +135,12 @@ theorem enc_h (c h : Bytes) (j : Nat) (hc : c.length ≤ 64) (hj : j < h.length)
 
 theorem seg_msgs (l : Bytes) (n st : Nat) (pub : List Fp) (hn : n = l.length)
     (he : ∀ j (hj : j < l.length), pub.getD (st + j) 0 = g l[j]) (s : PubSeg)
-    (hw : s.width = 1) (hs : s.start = st) (hcnt : s.count pub = n) :
+    (hw : s.width = 1) (hs : s.start = st) (hcnt : s.count pub = n) (hpre : s.msgPrefix = []) (hidx : s.indexBase = none) (hat : s.startAt = none) :
     s.msgs pub = l.map fun b => [g b] := by
   unfold PubSeg.msgs PubSeg.record
-  rw [hcnt, hw, hs]
+  simp only [PubSeg.startOffset, hat]
+  rw [hcnt, hw, hs, hpre, hidx]
+  simp only [List.map_nil, List.nil_append]
   apply List.ext_getElem (by simp [hn])
   intro j h1 h2
   simp only [List.getElem_map, List.getElem_range, List.range_succ, List.range_zero,
@@ -151,11 +153,11 @@ theorem pubMsgs_enc (c h : Bytes) (hc : c.length ≤ 64) (hh : h.length = c.leng
     pubMsgs toyAirP (Udr.pubOf Fp (enc c h)) =
       c.map (fun b => (0, true, [g b])) ++ h.map (fun b => (0, false, [g b])) := by
   have m1 := seg_msgs c c.length 8 (Udr.pubOf Fp (enc c h)) rfl
-    (fun j hj => by rw [pub_getD c h, enc_c c h j hj]) ⟨0, true, 1, 0, 8⟩ rfl rfl
-    (seg_count c h hc _ (Or.inl rfl))
+    (fun j hj => by rw [pub_getD c h, enc_c c h j hj]) ⟨0, true, 1, 0, 8, [], none, none⟩ rfl rfl
+    (seg_count c h hc _ (Or.inl rfl)) rfl rfl rfl
   have m2 := seg_msgs h c.length 72 (Udr.pubOf Fp (enc c h)) hh.symm
-    (fun j hj => by rw [pub_getD c h, enc_h c h j hc hj]) ⟨0, false, 1, 4, 72⟩ rfl rfl
-    (seg_count c h hc _ (Or.inr rfl))
+    (fun j hj => by rw [pub_getD c h, enc_h c h j hc hj]) ⟨0, false, 1, 4, 72, [], none, none⟩ rfl rfl
+    (seg_count c h hc _ (Or.inr rfl)) rfl rfl rfl
   simp only [pubMsgs, toyAirP, List.flatMap_cons, List.flatMap_nil, List.append_nil, m1, m2,
     List.map_map]
   rfl
@@ -257,9 +259,9 @@ theorem toy_holdsP (c w : Bytes) (hd : c.length ≤ 64) (hp : w.Perm c) :
     subst this
     simp [toyAirP, toyTableP] at hi
   · have hlen := pubOf_enc_length c w hd (by omega)
-    have h1 := seg_count c w hd ⟨0, true, 1, 0, 8⟩ (Or.inl rfl)
-    have h2 := seg_count c w hd ⟨0, false, 1, 4, 72⟩ (Or.inr rfl)
-    simp only [pubFit, toyAirP, List.all_cons, List.all_nil, PubSeg.fits, h1, h2, hlen,
+    have h1 := seg_count c w hd ⟨0, true, 1, 0, 8, [], none, none⟩ (Or.inl rfl)
+    have h2 := seg_count c w hd ⟨0, false, 1, 4, 72, [], none, none⟩ (Or.inr rfl)
+    simp only [pubFit, toyAirP, List.all_cons, List.all_nil, PubSeg.fits, PubSeg.startOffset, h1, h2, hlen,
       Bool.and_true, Bool.and_eq_true, decide_eq_true_eq]
     omega
   · intro b m

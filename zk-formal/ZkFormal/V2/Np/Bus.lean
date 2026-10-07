@@ -22,10 +22,10 @@ section
 variable (AP : AirP)
 
 theorem mem_pubMsgs {pub : List Fp} {x : Nat × Bool × List Fp} (h : x ∈ pubMsgs AP pub) :
-    ∃ s ∈ AP.pubSegs, x.1 = s.bus ∧ x.2.1 = s.send ∧ x.2.2.length = s.width := by
+    ∃ s ∈ AP.pubSegs, x.1 = s.bus ∧ x.2.1 = s.send ∧ x.2.2.length = s.messageWidth := by
   simp only [pubMsgs, List.mem_flatMap, List.mem_map, PubSeg.msgs] at h
   obtain ⟨s, hs, m, ⟨j, _, rfl⟩, rfl⟩ := h
-  exact ⟨s, hs, rfl, rfl, by simp [PubSeg.record]⟩
+  exact ⟨s, hs, rfl, rfl, by cases hidx : s.indexBase <;> simp [PubSeg.record, PubSeg.messageWidth, hidx, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]⟩
 
 theorem length_pubMsgs (pub : List Fp) :
     (pubMsgs AP pub).length = (AP.pubSegs.map fun s => s.count pub).sum := by
@@ -165,7 +165,7 @@ theorem not_perm_of_unbalancedP (hA : BusTagsOk AP.toAir) (hT : PubTagsOk AP) (�
 /-- Fingerprint width with public records. -/
 def msgWP : Nat := max (msgW AP.toAir) (AP.pubWidth + 1)
 
-theorem pubWidth_le {s : PubSeg} (h : s ∈ AP.pubSegs) : s.width ≤ AP.pubWidth := by
+theorem pubWidth_le {s : PubSeg} (h : s ∈ AP.pubSegs) : s.messageWidth ≤ AP.pubWidth := by
   unfold AirP.pubWidth
   exact ZkFormal.Udr.Np.le_foldr_max (List.mem_map.mpr ⟨s, h, rfl⟩)
 
