@@ -54,8 +54,7 @@ the deployed normalization path.
 `formal/ReexecV3D3/Logged/` derives from 30 upstream modules at commit
 `77b844e0e81d9536e8885b4c35ff9f0b89a7af88`. The reproducible transform replaces
 `NearSpecV3.Logged` with `ReexecV3D3.Logged`, then moves unchanged computational
-declarations into `Logged/Runtime/` and rewires imports. All declaration bodies
-and existing proofs are preserved. This keeps proof metaprogramming out of the
+declarations into `Logged/Runtime/` and rewires imports. Runtime declaration bodies are preserved. This keeps proof metaprogramming out of the
 model's native import closure. `dependency-locks/logged-candidate.json` records
 upstream hashes, exact extracted source ranges and their hashes, import edits,
 and every resulting file hash. Reproduce with `source/verifier/sync-logged.py
@@ -70,10 +69,18 @@ Lean axioms (`propext`, `Classical.choice`, `Quot.sound`).
 ## Validation status
 
 The read-set proof stack and wired Model/prover/local certificate have compiled,
-including complete normalization and non-expansion. Fresh native builds, actual
-formal audit and hostile `check-local` runs are in progress. No candidate admission or hostile-suite pass
-is claimed for this revision yet. Required hostile mutations include
-`values/inject-unread` and `codes/inject-unread` on both public and held-out sets.
+including complete normalization and non-expansion. The runtime split passed two reproducible native builds and public SDK gates.
+Actual worker validation passed 407 public and 208 held-out positive cases,
+244 public and 64 held-out negatives, and all 4,495 hostile mutations, including
+`values/inject-unread` and `codes/inject-unread` on both sets. The held-out SDK also passed its two reproducible builds and all six applicable
+local gates.
+
+Configured formal checking passed artifact binding, all 72 leanchecker modules,
+and nanoda, but lean4lean rejected `W.E_exec` for deep recursion. This correctly
+blocks formal admission. Bounded proof-only refactoring experiments did not resolve this; checker policy
+and runtime declarations are unchanged. Exact package and binary scopes, hashes,
+and the failed formal report are recorded in
+`docs/e2e-results/v3-d3-read-reference/report.json`.
 
 Historical reference results in `docs/e2e-results/v3-d3-reference/` concern the
 previous necessity normalizer. Fresh logged checker validation is documented in
