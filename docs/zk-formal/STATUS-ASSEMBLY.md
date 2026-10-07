@@ -431,3 +431,13 @@ composes actual pChunkInner success into full innerWf, including version/split
 cases, proposals, every scalar width, hashes, congestion and bandwidth requests.
 Six permanent axiom guards pass. Remaining codec obligation: exact complete
 ChunkInner consumed bytes equal encodeChunkInner, then full D0Shape assembly.
+
+`HeaderBytes` and `ChunkInnerBytes` prove exact original-byte decomposition for
+all header primitives/composites, vectors/options, raw proposals/splits and the
+whole chunk inner. The stored pChunkHeader inner bytes therefore equal the
+canonical encodeChunkInner. `DecodedWitnessShape.decodeStateWitness_shape`
+proves the unchanged full D0Shape of every successfully decoded witness whose
+raw bytes satisfy the native8MiB bound, using the previously proved nonexpanding
+canonical encodeSW size. Thirteen permanent axiom guards pass. Shape transfer
+to the reconstructed normalized-store witness remains to be composed; original
+D0Shape is now derived rather than assumed.
