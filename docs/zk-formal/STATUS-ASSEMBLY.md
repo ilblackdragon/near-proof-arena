@@ -561,3 +561,10 @@ classification/cost remains a separate ExtV3 completeness gap.
 exact queue input/request. Every present walk then resolves to a selected provider
 with matching instance, bytes, value ID and users. 3 permanent guards pass.
 Exact aggregate provider multiplicity/bus traffic is still the next layer.
+
+`QueueUsers` proves exact resolver multiplicity and transfers it to generated
+main walks, then the full combined plan with `(tau,vid,users)` messages. In
+particular, `plan_main_provider_users` equates the count for each actual main
+provider with its declared counter. Implicit singleton providers have users=1;
+their corresponding full-plan count and the final bus composition remain open.
+7 permanent guards pass; no additional axioms.
