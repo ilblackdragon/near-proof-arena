@@ -7,6 +7,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+New aggregate PASS:1904 jobs,115 selected audits,924 axiom guards,15behavior
+guards. Report docs/e2e-results/v3-queue-traffic-integration/report.json;
+logs /data/illia/nearproof-deps/validation/v3-queue-traffic-20261007/.
+Root session79290 terminal0. After aggregate, ParserRows derives original parser
+constraints and exact parser traffic on every non-walk row, including cyclic
+wrap via derived first_mode_zero. Target134 jobs+3 exact guards PASS;
+/tmp/nearproof-qv-parser-rows.log,/tmp/nearproof-qv-parser-audit-checked.log.
+No root job live. Next parser record decomposition/value semantics and QVC
+provider no-cycle linking. Integrated D2 actual adjacent native path address
+34edd879 and empty-extension resolved occurrence address ebe4c14a. These latest
+modules not in aggregate. Receipt remaining channel extraction and update global
+occurrence-bound traversal continue. Full AIR correctness, admission/reference
+checker, prover/judge and broader NEAR replacement remain incomplete.
+
+
 Root CounterAggregate CHECKED: each segment yields exactly one QVC step iff
 present, using invariant tuple; whole request prefix exactly ordered flatMap;
 full physical traffic split into extracted request messages plus explicit parser
