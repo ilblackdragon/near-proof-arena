@@ -7,6 +7,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root FinalTraffic checked: FINAL sends empty, receives exact one lookup tuple
+only at each segment terminal; tuple metadata constant over segment, arbitrary
+accepted trace. Target126 jobs +4 exact guards PASS (/tmp/nearproof-qv-final-row.log,
+/tmp/nearproof-qv-final-audit-checked.log). Wholephysical aggregation NOT checked.
+Attempt retained /tmp/nearproof-finaltraffic-full.lean and
+/tmp/nearproof-final-segment-attempt.lean; segment aggregation alone caused large
+elaboration memory growth. Root stopped exact FinalTraffic PID3053879 (session95373
+terminal1), removed unproved aggregation. Earlier generic process query led to
+mistaken TERM of receipt PID3051435; receipt agent notified, records external
+termination rather than OOM and retries smaller PrepCount proof. Track exact
+file/PID, never identify processes merely by executable. No root live job.
+Next root use opaque generic finite-list aggregation to avoid unfolding full
+traffic term, then KEYNIB/QVC/parser linking. Integrated cfe4f99d→7af45349 actual
+write-site revelation,638f179e→1d237ff2 proper ancestor edge providers. Receipt
+78a208e2 completes Wf from TableLocal+explicit public ranges; native range discharge
+active. D2d42ff186 original serialized blob IDs checked, compact nid dedup still
+requires union/refinement of differing revealed child views. Latest aggregate
+191ea6da older; full certificate/prover/judge/general coverage still open.
+
+
 Root WalkCount proves final main request exists in every accepted walk chain,
 its index≥2 and cv(count)=index−2, count constant across main prefix and initial
 count<physical height. Existence derived from no early termination/phase
