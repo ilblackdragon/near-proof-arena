@@ -681,3 +681,14 @@ already determinate, and exports this fact for both receipt branches.
 from its actual successful `readKey`. These write-site facts require no wf or
 requested-key completeness assumption; builder membership alone is insufficient
 on an incomplete store. AuditSetRevealed has four guards, AuditMainShape three.
+
+### Original serialized positions
+
+`OriginalBlobIds.originalBlobId` selects the first byte-equal original blob.
+Every normalized byte and revealed native occurrence has an exact original
+position and agrees with the native first-match hash lookup. Equal-hash stored
+occurrences share bytes/position by lookup functionality, without SHA
+injectivity. The native `partialTrie` corollary discharges `Stored` directly.
+Seven audit guards pass. These positions are **not** compact NodeS3 indices:
+merging same-byte node occurrences with different revelation requires consistent
+child/view selection, still open. No node-allocation or AIR completeness claim.
