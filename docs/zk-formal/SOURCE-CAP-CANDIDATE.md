@@ -866,3 +866,10 @@ exactly one global leaf-position message [0,r,K_LEAF+16*r,68], all headers and
 padding are silent, and both receive lists are empty. Seven exact guards pass.
 The remaining whole-table receipt channels are KEYNIB, DIGEST, FINAL, SREC,
 AKC, and BND.
+
+`AccessTrafficRows` and `AccessTraffic` close both B_AKC directions. Actual gate
+constraints isolate the receipt's T0 row, copied equality flag and boolean
+access-key flag match the semantic enable condition exactly, and the send uses
+the natural successor counter cast into the field. No arbitrary header/padding
+lookup remains. Eight exact guards pass. Remaining receipt channels: KEYNIB,
+DIGEST, FINAL, SREC, BND.
