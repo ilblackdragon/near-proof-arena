@@ -114,4 +114,24 @@ theorem branchCidBytes_length (kids : List NKid) :
       simp only [hk,ite_true,ite_false,List.length_append,List.length_nil,List.length_replicate,
         List.filter_cons,ne_eq,not_true_eq_false,not_false_eq_true,decide_true,decide_false,
         Bool.false_eq_true,ih,List.length_cons] <;> omega
+
+/-- Slot lookup fixes the precise source byte window, including absent siblings. -/
+theorem sourceCidBytes_branch_at (value : Option NSlot3) (kids : List NKid)
+    (mem : List Nat) (slot cid clen cres : Nat) (pre post : List Nat)
+    (hk : kids[slot]?=some (.node cid clen cres pre post)) (i : Nat) (hi : i<32) :
+    (sourceCidBytes (.branch value kids mem)).getD
+      ((if value.isSome then 39 else 3)+(branchCidBytes (kids.take slot)).length+i) 0=cid := by
+  have hsplit : kids=kids.take slot ++ (.node cid clen cres pre post :: kids.drop (slot+1)) := by
+    induction kids generalizing slot with
+    | nil => simp at hk
+    | cons k ks ih =>
+      cases slot with
+      | zero => simp only [List.getElem?_cons_zero,Option.some.injEq] at hk; subst k; rfl
+      | succ slot =>
+        simp only [List.getElem?_cons_succ] at hk
+        simpa only [List.take_succ_cons,List.drop_succ_cons,List.cons_append] using
+          congrArg (fun xs : List NKid=>k::xs) (ih slot hk)
+  conv => lhs; arg 1; arg 1; arg 2; rw [hsplit]
+  exact sourceCidBytes_branch_after value (kids.take slot) (kids.drop (slot+1)) mem
+    cid clen cres pre post i hi
 end ZkFormal.NearV3.Render.UpsGen
