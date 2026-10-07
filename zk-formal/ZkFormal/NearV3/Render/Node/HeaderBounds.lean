@@ -26,9 +26,5 @@ theorem hplen_lt24 {vs : List NodeS3} (ok : NodeOk vs) {n : Nat} (hn : n < vs.le
   have hr := ok.rows
   omega
 
-theorem u32Bytes_top_zero {n : Nat} (hn : n < 16777216) :
-    (u32Bytes n).getD 3 0 = 0 := by
-  have hd : n / 16777216 = 0 := Nat.div_eq_of_lt hn
-  simp [u32Bytes, u32, leN, Nat.div_div_eq_div_mul, hd]
 
 end ZkFormal.NearV3.Render.NodeGen3

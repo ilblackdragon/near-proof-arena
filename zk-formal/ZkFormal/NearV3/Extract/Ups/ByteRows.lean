@@ -178,6 +178,91 @@ theorem cpMEM (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM
   simp only [cast_ofNat, h0, z0, z1, z2, z3, z4, z5, z6, z7, cast0, cast1] at f
   grind
 
+theorem hplStep (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM + C sCH + C sMEM = 1) (h0 : C sHPL = 1) (h1 : C fe = 0) :
+    ((D qha : Nat) : Fp) = ((C qha : Nat) : Fp) + ((D qhs : Nat) : Fp) * ((D b : Nat) : Fp) := by
+  have z0 : C sTAG = 0 := by omega
+  have z1 : C sHPF = 0 := by omega
+  have z2 : C sKEY = 0 := by omega
+  have z3 : C sVLEN = 0 := by omega
+  have z4 : C sVH = 0 := by omega
+  have z5 : C sBM = 0 := by omega
+  have z6 : C sCH = 0 := by omega
+  have z7 : C sMEM = 0 := by omega
+  have f := fact ok (e := mul3 (c sHPL) (not (c fe)) (sub (n qha) (.add (c qha) (.mul (n qhs) (n b))))) (memBytes (by simp [cBytes]))
+  try simp only [kM, sumc, List.map_cons, List.map_nil, Dsl.sum, tagE, loE, hiE, bits, winFr, upsId, mid, Lexpr,
+    List.range_succ, List.range_zero, List.map_append, List.nil_append, List.cons_append, List.singleton_append] at f
+  uev_simp
+  simp only [cast_ofNat, h0, h1, z0, z1, z2, z3, z4, z5, z6, z7, cast0, cast1] at f
+  grind
+
+theorem hplScale (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM + C sCH + C sMEM = 1) (h0 : C sHPL = 1) (h1 : C fe = 0) :
+    ((D qhs : Nat) : Fp) = 256 * ((C qhs : Nat) : Fp) := by
+  have z0 : C sTAG = 0 := by omega
+  have z1 : C sHPF = 0 := by omega
+  have z2 : C sKEY = 0 := by omega
+  have z3 : C sVLEN = 0 := by omega
+  have z4 : C sVH = 0 := by omega
+  have z5 : C sBM = 0 := by omega
+  have z6 : C sCH = 0 := by omega
+  have z7 : C sMEM = 0 := by omega
+  have f := fact ok (e := mul3 (c sHPL) (not (c fe)) (sub (n qhs) (smul 256 (c qhs)))) (memBytes (by simp [cBytes]))
+  try simp only [kM, sumc, List.map_cons, List.map_nil, Dsl.sum, tagE, loE, hiE, bits, winFr, upsId, mid, Lexpr,
+    List.range_succ, List.range_zero, List.map_append, List.nil_append, List.cons_append, List.singleton_append] at f
+  uev_simp
+  simp only [cast_ofNat, h0, h1, z0, z1, z2, z3, z4, z5, z6, z7, cast0, cast1] at f
+  grind
+
+theorem hplEnd (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM + C sCH + C sMEM = 1) (h0 : C sHPL = 1) (h1 : C fe = 1) :
+    ((C qha : Nat) : Fp) = ((C qhk : Nat) : Fp) := by
+  have z0 : C sTAG = 0 := by omega
+  have z1 : C sHPF = 0 := by omega
+  have z2 : C sKEY = 0 := by omega
+  have z3 : C sVLEN = 0 := by omega
+  have z4 : C sVH = 0 := by omega
+  have z5 : C sBM = 0 := by omega
+  have z6 : C sCH = 0 := by omega
+  have z7 : C sMEM = 0 := by omega
+  have f := fact ok (e := mul3 (c sHPL) (c fe) (sub (c qha) (c qhk))) (memBytes (by simp [cBytes]))
+  try simp only [kM, sumc, List.map_cons, List.map_nil, Dsl.sum, tagE, loE, hiE, bits, winFr, upsId, mid, Lexpr,
+    List.range_succ, List.range_zero, List.map_append, List.nil_append, List.cons_append, List.singleton_append] at f
+  uev_simp
+  simp only [cast_ofNat, h0, h1, z0, z1, z2, z3, z4, z5, z6, z7, cast0, cast1] at f
+  grind
+
+theorem hplTop (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM + C sCH + C sMEM = 1) (h0 : C sHPL = 1) (h1 : C fe = 1) :
+    ((C b : Nat) : Fp) = 0 := by
+  have z0 : C sTAG = 0 := by omega
+  have z1 : C sHPF = 0 := by omega
+  have z2 : C sKEY = 0 := by omega
+  have z3 : C sVLEN = 0 := by omega
+  have z4 : C sVH = 0 := by omega
+  have z5 : C sBM = 0 := by omega
+  have z6 : C sCH = 0 := by omega
+  have z7 : C sMEM = 0 := by omega
+  have f := fact ok (e := mul3 (c sHPL) (c fe) (c b)) (memBytes (by simp [cBytes]))
+  try simp only [kM, sumc, List.map_cons, List.map_nil, Dsl.sum, tagE, loE, hiE, bits, winFr, upsId, mid, Lexpr,
+    List.range_succ, List.range_zero, List.map_append, List.nil_append, List.cons_append, List.singleton_append] at f
+  uev_simp
+  simp only [cast_ofNat, h0, h1, z0, z1, z2, z3, z4, z5, z6, z7, cast0, cast1] at f
+  grind
+
+theorem hplNibble (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM + C sCH + C sMEM = 1) (h0 : C sHPL = 1) :
+    ((C b : Nat) : Fp) = 16 * (((2 ^ 0 : Nat) : Fp) * ((C (hb 0) : Nat) : Fp) + ((2 ^ 1 : Nat) : Fp) * ((C (hb 1) : Nat) : Fp) + ((2 ^ 2 : Nat) : Fp) * ((C (hb 2) : Nat) : Fp) + ((2 ^ 3 : Nat) : Fp) * ((C (hb 3) : Nat) : Fp)) + (((2 ^ 0 : Nat) : Fp) * ((C (lb 0) : Nat) : Fp) + ((2 ^ 1 : Nat) : Fp) * ((C (lb 1) : Nat) : Fp) + ((2 ^ 2 : Nat) : Fp) * ((C (lb 2) : Nat) : Fp) + ((2 ^ 3 : Nat) : Fp) * ((C (lb 3) : Nat) : Fp)) := by
+  have z0 : C sTAG = 0 := by omega
+  have z1 : C sHPF = 0 := by omega
+  have z2 : C sKEY = 0 := by omega
+  have z3 : C sVLEN = 0 := by omega
+  have z4 : C sVH = 0 := by omega
+  have z5 : C sBM = 0 := by omega
+  have z6 : C sCH = 0 := by omega
+  have z7 : C sMEM = 0 := by omega
+  have f := fact ok (e := .mul (c sHPL) (sub (c b) (.add (smul 16 hiE) loE))) (memBytes (by simp [cBytes]))
+  try simp only [kM, sumc, List.map_cons, List.map_nil, Dsl.sum, tagE, loE, hiE, bits, winFr, upsId, mid, Lexpr,
+    List.range_succ, List.range_zero, List.map_append, List.nil_append, List.cons_append, List.singleton_append] at f
+  uev_simp
+  simp only [cast_ofNat, h0, z0, z1, z2, z3, z4, z5, z6, z7, cast0, cast1] at f
+  grind
+
 theorem bCopy  (h0 : C cp = 1) :
     ((C b : Nat) : Fp) = ((C rb : Nat) : Fp) + ((C sBM : Nat) : Fp) * (((C fs : Nat) : Fp) * ((C ba0 : Nat) : Fp) + (1 - ((C fs : Nat) : Fp)) * ((C ba1 : Nat) : Fp)) := by
 
@@ -206,7 +291,7 @@ theorem bTAG (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM 
   grind
 
 theorem bHPL0 (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM + C sCH + C sMEM = 1) (h0 : C sHPL = 1) (h1 : C fs = 1) :
-    ((C b : Nat) : Fp) = ((C qhk : Nat) : Fp) := by
+    ((C qha : Nat) : Fp) = ((C b : Nat) : Fp) := by
   have z0 : C sTAG = 0 := by omega
   have z1 : C sHPF = 0 := by omega
   have z2 : C sKEY = 0 := by omega
@@ -215,15 +300,15 @@ theorem bHPL0 (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM
   have z5 : C sBM = 0 := by omega
   have z6 : C sCH = 0 := by omega
   have z7 : C sMEM = 0 := by omega
-  have f := fact ok (e := mul3 (c sHPL) (c fs) (sub (c b) (c qhk))) (memBytes (by simp [cBytes]))
+  have f := fact ok (e := mul3 (c sHPL) (c fs) (sub (c qha) (c b))) (memBytes (by simp [cBytes]))
   try simp only [kM, sumc, List.map_cons, List.map_nil, Dsl.sum, tagE, loE, hiE, bits, winFr, upsId, mid, Lexpr,
     List.range_succ, List.range_zero, List.map_append, List.nil_append, List.cons_append, List.singleton_append] at f
   uev_simp
   simp only [cast_ofNat, h0, h1, z0, z1, z2, z3, z4, z5, z6, z7, cast0, cast1] at f
   grind
 
-theorem bHPLr (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM + C sCH + C sMEM = 1) (h0 : C sHPL = 1) (h1 : C fs = 0) :
-    ((C b : Nat) : Fp) = 0 := by
+theorem bHPLr (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM + C sCH + C sMEM = 1) (h0 : C sHPL = 1) (h1 : C fs = 1) :
+    ((C qhs : Nat) : Fp) = 1 := by
   have z0 : C sTAG = 0 := by omega
   have z1 : C sHPF = 0 := by omega
   have z2 : C sKEY = 0 := by omega
@@ -232,7 +317,7 @@ theorem bHPLr (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM
   have z5 : C sBM = 0 := by omega
   have z6 : C sCH = 0 := by omega
   have z7 : C sMEM = 0 := by omega
-  have f := fact ok (e := mul3 (c sHPL) (not (c fs)) (c b)) (memBytes (by simp [cBytes]))
+  have f := fact ok (e := mul3 (c sHPL) (c fs) (sub (c qhs) (k 1))) (memBytes (by simp [cBytes]))
   try simp only [kM, sumc, List.map_cons, List.map_nil, Dsl.sum, tagE, loE, hiE, bits, winFr, upsId, mid, Lexpr,
     List.range_succ, List.range_zero, List.map_append, List.nil_append, List.cons_append, List.singleton_append] at f
   uev_simp
@@ -410,7 +495,7 @@ theorem rHPF (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM 
   grind
 
 theorem rHPL (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM + C sCH + C sMEM = 1) (h0 : C sHPL = 1) (h1 : C fs = 1) :
-    (((C kMVL : Nat) : Fp) + ((C kMVE : Nat) : Fp)) * (((C rb : Nat) : Fp) - ((C phk : Nat) : Fp)) = 0 := by
+    (((C kMVL : Nat) : Fp) + ((C kMVE : Nat) : Fp)) * (((C plen : Nat) : Fp) - (45 + 4 * ((C qtl : Nat) : Fp) + ((C phk : Nat) : Fp))) = 0 := by
   have z0 : C sTAG = 0 := by omega
   have z1 : C sHPF = 0 := by omega
   have z2 : C sKEY = 0 := by omega
@@ -419,7 +504,7 @@ theorem rHPL (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM 
   have z5 : C sBM = 0 := by omega
   have z6 : C sCH = 0 := by omega
   have z7 : C sMEM = 0 := by omega
-  have f := fact ok (e := .mul (mul3 (c sHPL) (c fs) kM) (sub (c rb) (c phk))) (memBytes (by simp [cBytes]))
+  have f := fact ok (e := .mul (mul3 (c sHPL) (c fs) kM) (sub (c plen) (sum [k 45, smul 4 (c qtl), c phk]))) (memBytes (by simp [cBytes]))
   try simp only [kM, sumc, List.map_cons, List.map_nil, Dsl.sum, tagE, loE, hiE, bits, winFr, upsId, mid, Lexpr,
     List.range_succ, List.range_zero, List.map_append, List.nil_append, List.cons_append, List.singleton_append] at f
   uev_simp
@@ -427,7 +512,7 @@ theorem rHPL (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM 
   grind
 
 theorem rBM (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM + C sCH + C sMEM = 1) (h0 : C sBM = 1) (h1 : C fs = 1) :
-    ((C xcp : Nat) : Fp) * (((C rb : Nat) : Fp) - ((C phk : Nat) : Fp)) = 0 := by
+    ((C xcp : Nat) : Fp) * (((C plen : Nat) : Fp) - (45 + 4 * ((C qtl : Nat) : Fp) + ((C phk : Nat) : Fp))) = 0 := by
   have z0 : C sTAG = 0 := by omega
   have z1 : C sHPL = 0 := by omega
   have z2 : C sHPF = 0 := by omega
@@ -436,7 +521,7 @@ theorem rBM (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM +
   have z5 : C sVH = 0 := by omega
   have z6 : C sCH = 0 := by omega
   have z7 : C sMEM = 0 := by omega
-  have f := fact ok (e := mul3 (c sBM) (c fs) (.mul (c xcp) (sub (c rb) (c phk)))) (memBytes (by simp [cBytes]))
+  have f := fact ok (e := mul3 (c sBM) (c fs) (.mul (c xcp) (sub (c plen) (sum [k 45, smul 4 (c qtl), c phk])))) (memBytes (by simp [cBytes]))
   try simp only [kM, sumc, List.map_cons, List.map_nil, Dsl.sum, tagE, loE, hiE, bits, winFr, upsId, mid, Lexpr,
     List.range_succ, List.range_zero, List.map_append, List.nil_append, List.cons_append, List.singleton_append] at f
   uev_simp

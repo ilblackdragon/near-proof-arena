@@ -26,8 +26,8 @@ theorem byte_source_header_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
   intro ex hex
   change ex ∈ [
     mul3 (.add kM (c xcp)) (c sTAG) (sub hiE (.add (smul 2 (c qtl)) (c UpsV3.podd))),
-    .mul (mul3 (c sHPL) (c fs) kM) (sub (c rb) (c UpsV3.phk)),
-    mul3 (c sBM) (c fs) (.mul (c xcp) (sub (c rb) (c UpsV3.phk))),
+    .mul (mul3 (c sHPL) (c fs) kM) (sub (c plen) (Dsl.sum [Dsl.k 45, smul 4 (c qtl), c UpsV3.phk])),
+    mul3 (c sBM) (c fs) (.mul (c xcp) (sub (c plen) (Dsl.sum [Dsl.k 45, smul 4 (c qtl), c UpsV3.phk]))),
     mul3 (c kRBV) (c sTAG) (sub (c rb) (Dsl.k 1))] at hex
   simp only [List.mem_cons,List.not_mem_nil,or_false] at hex
   rcases hex with rfl | rfl | rfl | rfl <;> apply cast0
@@ -47,21 +47,21 @@ theorem byte_source_header_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
     · ups_ev [hC]; cellsimp; simp [ind,hs]
   · ups_ev [hC]; cellsimp
     by_cases hs : (fieldAt Q.shape p).1=1
-    · by_cases hm : Q.kind=6 ∨ Q.kind=7
-      · obtain ⟨src,h⟩ := hi (Or.inr (by rcases hm with h | h; exact Or.inl h; exact Or.inr (Or.inl h)))
-        have heq : rbV I Q (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1 (fieldAt Q.shape p).2.2.2 p=(Q.phk : Int) := by
-          rw [hs]; exact h.moved_hpl _ _ _ hm
-        exact gate_sub_eq heq
-      · simp only [not_or] at hm
-        simp [ind,hm.1,hm.2]
+    · by_cases hz : (fieldAt Q.shape p).2.1=0
+      · by_cases hm : Q.kind=6 ∨ Q.kind=7
+        · obtain ⟨src,h⟩ := hi (Or.inr (by rcases hm with h | h; exact Or.inl h; exact Or.inr (Or.inl h)))
+          have heq := h.length (by rcases hm with h|h; exact Or.inl h; exact Or.inr (Or.inl h))
+          simp [heq,Int.add_assoc,Int.add_right_neg]
+        · simp only [not_or] at hm
+          simp [ind,hm.1,hm.2]
+      · simp [ind,hz]
     · simp [ind,hs]
   · ups_ev [hC]; cellsimp
     by_cases hs : (fieldAt Q.shape p).1=6
     · by_cases hm : XcpB I Q=true
       · obtain ⟨src,h⟩ := hi (Or.inr (Or.inr (Or.inr hm)))
-        have heq : rbV I Q (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1 (fieldAt Q.shape p).2.2.2 p=(Q.phk : Int) := by
-          rw [hs]; exact h.split_hpl _ _ _ hm
-        rw [heq]; simp [Int.add_right_neg]
+        have heq := h.length (Or.inr (Or.inr hm))
+        simp [heq,Int.add_assoc,Int.add_right_neg]
       · simp [xcpV,ind,hm]
     · simp [ind,hs]
   · ups_ev [hC]; cellsimp

@@ -27,12 +27,12 @@ theorem SourceHeader.key_byte {I : UpsInst} {Q : UpsPartI} {e : SourceLayout Q}
   cases hn : e.node with
   | leaf =>
     simp only [hn,NodeGen3.keyOf,NodeGen3.isLeaf] at hl
-    simp [NodeV3.ser,u32r,NodeGen3.keyOf,NodeGen3.isLeaf,List.getD_eq_getElem?_getD,
-      List.getElem?_append,hl,Nat.add_comm]
+    simp [NodeV3.ser,u32Bytes,NodeGen3.keyOf,NodeGen3.isLeaf,List.getD_eq_getElem?_getD,
+      List.getElem?_append,show ¬ j+4<4 by omega,hl,Nat.add_comm]
   | ext =>
     simp only [hn,NodeGen3.keyOf,NodeGen3.isLeaf] at hl
-    simp [NodeV3.ser,u32r,NodeGen3.keyOf,NodeGen3.isLeaf,List.getD_eq_getElem?_getD,
-      List.getElem?_append,hl,Nat.add_comm]
+    simp [NodeV3.ser,u32Bytes,NodeGen3.keyOf,NodeGen3.isLeaf,List.getD_eq_getElem?_getD,
+      List.getElem?_append,show ¬ j+4<4 by omega,hl,Nat.add_comm]
   | branch => simp [hn,NodeGen3.isLE] at hs
 
 theorem MovedPrefix.flag_byte {I : UpsInst} {Q : UpsPartI} {dst : NodeEncoding Q}

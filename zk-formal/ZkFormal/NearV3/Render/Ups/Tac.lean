@@ -34,7 +34,7 @@ macro_rules
       UpsV3.clen, Kc, eL, eS, useA, UpsV3.bN, bL, cO, cS, Cc, UpsV3.neg, UpsV3.phk, UpsV3.podd, vcp, xcp, ba0, ba1,
       spY1, spY2, nN, nI, nib, nN2, nI2, ek, UpsV3.inv, hv, wbm, enter, lv0, lv1, lv2, trm, qpos, UpsV3.b, rd, rb,
       spos, UpsV3.u, sTAG, sHPL, sHPF, sKEY, sVLEN, sVH, sBM, sCH, sMEM, fs, fe, idx, fw, lastw, wfr, tgt, wy, wn,
-      gD, dI, dL, cp, aft, reg, LR, SR, gMs, gMr, rx, mBv, mCv, mS, mK, mB, dep0, dep1, dep2, kPT, UpsV3.up,
+      gD, dI, dL, cp, aft, qha, qhs, reg, LR, SR, gMs, gMr, rx, mBv, mCv, mS, mK, mB, dep0, dep1, dep2, kPT, UpsV3.up,
       UpsV3.rc, pdep, UpsV3.cN, rcid, rdc, rootRid, tb, cb, cc, ci, ci2, X1, Ein, hb, lb, wb, upsId, Lexpr, symE,
       trmE, mDE, wbE, tagE, hiE, loE, tIE, DE, sdE, kRD, kM, splitE, pwE, pnE, spValE, spYE, twoE, spRecvE, s15E,
       winFr, tE, cbE, ccE, coE, sigE, depDE, depSE, K_VUPS, UpsV3.cases, UpsV3.states, UpsV3.kinds, nTE, nTermE,

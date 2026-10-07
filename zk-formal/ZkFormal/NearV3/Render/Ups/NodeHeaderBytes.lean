@@ -44,25 +44,19 @@ theorem NodeEncoding.tag {Q : UpsPartI} (e : NodeEncoding Q) {p : Nat} (hp : p <
 
 theorem NodeEncoding.hpl {Q : UpsPartI} (e : NodeEncoding Q) {p : Nat} (hp : p < Q.q.length)
     (hs : (fieldAt Q.shape p).1 = 1) :
-    Q.q.getD p 0 = if (fieldAt Q.shape p).2.1 = 0 then Q.qhk else 0 := by
+    Q.q.getD p 0 = (u32Bytes Q.qhk).getD (fieldAt Q.shape p).2.1 0 := by
   obtain ⟨f,hf,hstate,hidx,hbyte⟩ := e.byte_field hp
   have htag : f = .hpl := by
     cases f <;> simp [F.state,Node.sTAG,Node.sHPL,Node.sHPF,Node.sKEY,Node.sVLEN,Node.sVH,
       Node.sBM,Node.sCH,Node.sMEM,hs] at hstate ⊢
   subst f
   have hk := (NodeGen3.kind_facts hf).1 (Or.inl rfl)
-  simp only [F.len] at hidx
   rw [hbyte,e.hplen]
-  by_cases hi : (fieldAt Q.shape p).2.1 = 0
-  · rw [if_pos hi,hi]
-    cases hn : e.node with
-    | leaf => simp [NodeGen3.fbytes,NodeGen3.hpN_len,NodeGen3.hplenOf,NodeGen3.isLE,
-        NodeGen3.keyOf,NodeGen3.isLeaf,u32r]
-    | ext => simp [NodeGen3.fbytes,NodeGen3.hpN_len,NodeGen3.hplenOf,NodeGen3.isLE,
-        NodeGen3.keyOf,NodeGen3.isLeaf,u32r]
-    | branch sv kids m => cases sv <;> simp [hn,NodeGen3.typeOf] at hk
-  · rw [if_neg hi]
-    rcases (show (fieldAt Q.shape p).2.1 = 1 ∨ (fieldAt Q.shape p).2.1 = 2 ∨ (fieldAt Q.shape p).2.1 = 3 by omega)
-      with h | h | h <;> rw [h] <;> rfl
+  cases hn : e.node with
+  | leaf => simp [NodeGen3.fbytes,NodeGen3.hpN_len,NodeGen3.hplenOf,NodeGen3.isLE,
+      NodeGen3.keyOf,NodeGen3.isLeaf]
+  | ext => simp [NodeGen3.fbytes,NodeGen3.hpN_len,NodeGen3.hplenOf,NodeGen3.isLE,
+      NodeGen3.keyOf,NodeGen3.isLeaf]
+  | branch sv kids m => cases sv <;> simp [hn,NodeGen3.typeOf] at hk
 
 end ZkFormal.NearV3.Render.UpsGen

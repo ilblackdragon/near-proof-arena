@@ -1,6 +1,7 @@
 import ZkFormal.NearV3.Extract.Ups.View
 import ZkFormal.NearV3.Extract.WalkView
 import ZkFormal.Near.Render.Common
+import ZkFormal.NearV3.Spec.U32Bytes
 
 /-!
 # ZkFormal.NearV3.Render.Ups.Gen — honest rows of the `upsV3` table (M7d)
@@ -483,6 +484,11 @@ def qRow (col : Nat) : Int :=
     if 106 ≤ col ∧ col < 115 then ind (st = col - 106)
     else if 129 ≤ col ∧ col < 161 then
       (if winFrV I P st wi = 1 then (if col - 129 < 32 - ix then (P.q.getD (p + (col - 129)) 0 : Nat) else 0)
+       else if st = 1 then
+         (if col = 137 then (le256 ((u32Bytes P.qhk).take (ix + 1)) : Int)
+          else if col = 138 then (256 ^ ix : Nat)
+          else if col - 129 < 4 then (P.q.getD p 0 : Int) / 16 / 2 ^ (col - 129) % 2
+          else if col - 129 < 8 then (P.q.getD p 0 : Int) % 16 / 2 ^ (col - 133) % 2 else 0)
        else if st = 0 ∨ st = 2 then
          (if col - 129 < 4 then rbV I P st ix wi p / 16 / 2 ^ (col - 129) % 2
           else if col - 129 < 8 then rbV I P st ix wi p % 16 / 2 ^ (col - 133) % 2 else 0)
