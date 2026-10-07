@@ -674,3 +674,10 @@ preservation from actual `schedStep` and full `applyNewChunk` success, composing
 the unchanged scheduler upsert and recursive receipt writes. Initial builder
 coverage and intermediate write-event witness extraction remain separate.
 `AuditMainShape.lean` checks both declarations.
+
+`SetRevealed` proves successful native `set` implies its input write key was
+already determinate, and exports this fact for both receipt branches.
+`MainShape.schedStep_write_known` derives the scheduler's write-key knowledge
+from its actual successful `readKey`. These write-site facts require no wf or
+requested-key completeness assumption; builder membership alone is insufficient
+on an incomplete store. AuditSetRevealed has four guards, AuditMainShape three.
