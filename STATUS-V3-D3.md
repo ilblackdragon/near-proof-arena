@@ -16,7 +16,7 @@ All 115,284 D3 cases pass three-way comparison and exact verdict/reason
 comparison to the original checker. Original Lean and independent Python
 baselines were reused with validated case sets and recorded hashes; fresh logged
 outputs were measured. All 1,720 public D0/D1/D2/chunk fixture comparisons pass.
-Full D1/D2 corpora and WASM/trie harnesses still remain. Evidence and provenance:
+Full D2 results are recorded below; D1 and WASM/trie harnesses remain. Evidence and provenance:
 `docs/e2e-results/v3-logged-checker/report.json`. New driver
 `oracle/tools/check_logged.py` compares both verdict and reason, requires a
 result for every input, and rejects crashes/truncated/duplicate output. Its
@@ -31,6 +31,19 @@ Run the comparison from the lane root as
 Use `--mode d2` for D2. `CORPUS` must use `claim.bin`/`witness.bin`; public arena
 fixtures need temporary `claim.bin` links to their `request.bin` files.
 The saved `logged.jsonl` is compatible with `difftest_d3.py --lean-from`.
+
+**D2 full regression, 2026-10-07:** all 67,384 cases pass exact original/logged
+verdict-and-reason comparison with both implementations freshly run. The fresh
+logged results also agree with a fresh independent Python run and existing
+nearcore corpus metadata on all cases (zero disagreements). Nearcore was not
+rerun. Evidence: `docs/e2e-results/v3-d2-logged-checker/report.json` and
+`three-way.json`; full JSONL is archived under the recorded validation paths.
+`difftest_v3_d2.py` now rejects incomplete, duplicate, malformed and failed
+checker output, supports digest-recorded saved results, and archives outputs.
+Its eight tests and the seven logged-driver tests pass, as does pin-check.
+The D1 corpus original/logged D2 comparison is in progress; this does not claim
+that D1 and D2 have the same domain. The existing WASM/TTN harness driver still
+uses the original WASM execution path and needs logged-path coverage.
 
 Live state is in `docs/LIVE.md`. Main is at 0bb6fc8d+ (cost lane v1.8 deployed). This lane is main
 plus everything below.
@@ -105,7 +118,7 @@ identical verdicts. Logged median 0.018–0.104 s per class (max 2.38 s); origin
    the committed report apart from timings:
    * D0 public: passed;
    * D1 `d1run` (53,048);
-   * D2 `d2corpus.v2` three-way (67,384);
+   * D2 `d2corpus.v2` three-way (67,384): passed, fresh original/logged/Python;
    * D3 three-way on `d3c7`/`d3c8`/`d3c9`/`d3c10` (115,284): passed.
 
    A first D3 run on `d3c7` crashed in `difftest_d3.py`, which hit a truncated JSON line: the

@@ -1,0 +1,53 @@
+{
+  "recorded_at": "2026-10-07T03:37:12.415407+00:00",
+  "base_commit": "6b8f97667476f2a97917d95d11516c3bc6113178",
+  "status": "pass_for_listed_checks",
+  "scope": "D2 checker regression only; not a succinct proof or D0a admission",
+  "corpus": "/data/illia/nearproof-deps/corpora/d2corpus.v2",
+  "cases": 67384,
+  "exact_original_logged": {
+    "corpus": "/data/illia/nearproof-deps/corpora/d2corpus.v2",
+    "checker": "/data/illia/nearproof-wt/v3-d3/oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-logged",
+    "mode": "d2",
+    "cases": 67384,
+    "jobs": 8,
+    "batch_size": 100,
+    "status": "pass",
+    "seconds": {
+      "original": 856.9361634603702,
+      "logged": 971.2812631088309
+    },
+    "differences": 0
+  },
+  "three_way": {
+    "disagreements": 0,
+    "nearcore": "Existing generated corpus metadata, including recorded verdict-source distinctions; nearcore was not rerun",
+    "lean": "Fresh logged output reused after exact original comparison",
+    "python": "Fresh independent Python execution",
+    "python_seconds": 74.43003964424133
+  },
+  "evidence": {
+    "/data/illia/nearproof-deps/validation/v3-d2-logged-20261007/original.jsonl": "046e81057e834c168b024502f196cc16859aaa510e83c73449594a9b0c8e75f8",
+    "/data/illia/nearproof-deps/validation/v3-d2-logged-20261007/logged.jsonl": "e9cfc5fc855f42a8526089256140af431480884fea6a00384e35835f8d5e12ae",
+    "/data/illia/nearproof-deps/validation/v3-d2-logged-20261007/summary.json": "5d76062899e2386b03731ba59a48891f9569ebc813a2698ff4ef44c0d76f0a91",
+    "/data/illia/nearproof-deps/validation/v3-d2-logged-20261007/differences.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "/data/illia/nearproof-deps/validation/v3-d2-independent-20261007/python.jsonl": "8e4d609a497bccc9ba69cd79496261afa51b84681bb1b848555ca6496d83f0ea",
+    "/data/illia/nearproof-deps/validation/v3-d2-independent-20261007/report.json": "8d4ecc05a7fbf1555a5c63b673386d4d197cf4a84c217581dc44f147733b8655"
+  },
+  "checker_binary_sha256": "c5e260763c1067b571e770b3f19f992f2a284471fc15d664f8e74bcc110081d9",
+  "source_sha256": {
+    "oracle/tools/check_logged.py": "b100a74d9cc192f7a9f2d603926b4705c263754cd6ed297d101b73cc88ef19a7",
+    "oracle/tools/difftest_v3_d2.py": "40d5ceabc4715db7f66907537944858c24217c7eed7408dafe0f8661d0242bf4",
+    "oracle/tools/spec_check_v3_d2.py": "24d235ea5b271a7b30b1fe025557a98a45098a384af2235d93c37ff040f2909d"
+  },
+  "tests": {
+    "check_logged": 7,
+    "difftest_v3_d2": 8,
+    "pin_check": "pass"
+  },
+  "limits": [
+    "Wall times are diagnostic, not benchmark scores.",
+    "Full D1 corpus run is still in progress.",
+    "WASM/trie harnesses and read-set reference remain pending."
+  ]
+}
