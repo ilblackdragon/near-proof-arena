@@ -708,3 +708,13 @@ from the active V3 nine-bit deposit-row check and uses the reconstructed receipt
 counter. One exact axiom guard passes. The guard is unchanged semantic API, not
 a new domain restriction. Per-receipt arithmetic/token accumulation and routing
 order are now the remaining Wf obligations.
+
+`GasCompare`, `Deposit`, and `ReceiptBalance` close the actual V3 gas-price
+borrow chain and all four balance/storage clauses of the semantic arithmetic
+field. Deposit byte carries prove the exact post-balance, exclusion of u128::MAX,
+locked-balance addition without overflow, storage-charge reduction modulo 2^128,
+and both large/small-storage branches. `balance_of` uses only the same input-byte
+premises already present in `RcptE.Wf.arith`; every AIR membership is checked
+against active V3 constraints. Twenty exact axiom guards pass. Pure natural
+byte-sum lemmas are reused; no V1 table-local premise is assumed. System-aware
+gas burn/refund and token accumulation remain open, along with routing order.
