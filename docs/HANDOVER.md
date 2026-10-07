@@ -7,6 +7,22 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `cb198504`: complete canonical mixed TableTraffic all buses/both
+sides+silence, paired with TableLocal. CombinedPrepared derives public K binding
+from actual prepared bytes, rootsSized, K<u32, implicit-list length equality.
+Target398 jobs;197 exact axiom guards+15 fixtures PASS. Logs
+`/tmp/nearproof-prepared-queue.log`, `/tmp/nearproof-prepared-queue-audit-final.log`.
+No root process. SharedAIR receives cherry-pick. Next root: aggregate integrate
+latest native ownership/rank balance, update byte+memory+walk, receiptWf; then
+native honest queue construction and accepted-trace extraction. D2 logical QVC
+balance now compiles (pendingaudit/commit), ready for physical lift using root
+mixedTrace_counter_messages; no balance claim until checked. Receipt74e9fca5
+closes full arith_of and wf_of_route, RouteOk/token/counter caller facts remain.
+Ups four-row walk finite proof factoring after bounded slow attempt; committed
+byte/part/memory proofs stable. Last fullaggregate cb1e3577 is older. No full
+AIR certificate, unrestricted NEAR coverage, succinct prover or judge result.
+
+
 Root QV `e32b4d52`→AIR`0e3d93b9`: physical walk-prefix aggregation for KEYNIB,
 FINAL,QVCbothdirections,QSHreceives. `mixedTrace_counter_messages` characterizes
 ALL physical QVC traffic as mapped natural walk rank messages+parser endpoints,
