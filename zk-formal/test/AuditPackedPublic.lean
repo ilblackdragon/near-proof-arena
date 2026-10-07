@@ -2,6 +2,9 @@ import ZkFormal.NearV3.Public.Records
 import ZkFormal.NearV3.Public.Fits
 import ZkFormal.NearV3.Public.Body
 import ZkFormal.NearV3.Public.Source
+import ZkFormal.NearV3.Public.Header
+import ZkFormal.NearV3.Public.Boundary
+import ZkFormal.NearV3.Public.NatRecords
 
 open ZkFormal.NearV3.Public ZkFormal.V2 ZkFormal.Algebra
 
@@ -52,3 +55,24 @@ private def sources : List NearSpecV3.SrcList :=
 /-- info: 'ZkFormal.NearV3.Public.descriptor_source_record' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Public.descriptor_source_record
+
+#guard boundaryRow [(some [97],some [122]),(none,none)] 0 = [97,122,0]
+#guard boundaryRow [(some [97],some [122]),(none,none)] 64 = [0,0,0]
+#guard boundaryRow [(some [97],some [122]),(none,none)] 65 = [0,0,1]
+#guard (boundaryPayload [(none,none)]).length = 65
+#guard natPayload [[0,255]] = [[0,255]]
+/-- info: 'ZkFormal.NearV3.Public.headerBytes_length' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.headerBytes_length
+/-- info: 'ZkFormal.NearV3.Public.header_body_length' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.header_body_length
+/-- info: 'ZkFormal.NearV3.Public.header_witness_overhead' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.header_witness_overhead
+/-- info: 'ZkFormal.NearV3.Public.descriptor_boundary_record' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.descriptor_boundary_record
+/-- info: 'ZkFormal.NearV3.Public.descriptor_nat_record' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.descriptor_nat_record
