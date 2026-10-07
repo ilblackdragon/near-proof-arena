@@ -7,6 +7,17 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Latest root QV `f416a670`: generated walk rows now prove parser-provider silence
+and exact field KEYNIB row messages, including IDs, positions, nibble values,
+start/end markers and multiplicity. Combined audit39 exact axiom guards and15
+regressions PASS (`/tmp/nearproof-walk-traffic-audit-final.log`, target build
+`/tmp/nearproof-walk-traffic.log`). This is newer than the focused report below.
+Root next: exact QVC/QSH traffic, whole-word/plan composition, generic local
+constraints, parser wraparound and allocator ownership. Agents report new
+additive source SHA/public, normalized-witness shape and plan metadata proofs;
+these still need root joint integration. No active root build.
+
+
 **New focused checkpoint AIR `5529e516` (sources `791f879f`):823 dependency
 jobs and8 audits PASS,84 exact axiom guards+15 field fixtures.** Report:
 `docs/e2e-results/v3-walk-shape-integration/report.json` in AIR; external evidence
