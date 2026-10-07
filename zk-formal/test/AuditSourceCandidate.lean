@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.SourceRepetition
 import ZkFormal.NearV3.Rcpt.Candidates.PreparedSourceCount
 import ZkFormal.NearV3.Rcpt.Candidates.RawWitnessBudget
 import ZkFormal.NearV3.Rcpt.Candidates.SourceCount
@@ -113,3 +114,31 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceEncodingBudget
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.prepD0_source_count' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.prepD0_source_count
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.sourceDup_repeated' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.sourceDup_repeated
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.repeated_receipts_empty' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.repeated_receipts_empty
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.sourceRepeated_length' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.sourceRepeated_length
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.sourceRootsConsistent_of_verified' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.sourceRootsConsistent_of_verified
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.sourceRootsConsistent_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.sourceRootsConsistent_iff
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.sources_verified_of_computed' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.sources_verified_of_computed
