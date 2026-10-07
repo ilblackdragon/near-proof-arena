@@ -7,6 +7,22 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `27305da2` + `55369c80`: full native plan successor classification,
+exact final flag at last plan entry, all24 neighbor equations for indexed word
+boundaries; flattened walk row location/exact lookup and successor offsets.
+Target227 jobs;147 exact axiom guards+15 fixtures PASS. Logs
+`/tmp/nearproof-row-layout.log`, `/tmp/nearproof-row-layout-audit-final.log`.
+No active root build. Next: physical trace casting and cyclic/end layout facts,
+then full walk constraint composition and parser suffix. The new list-addressing
+proofs remove coordinate assumptions at the list layer, not yet physical trace
+or whole local acceptance. Both root commits cherry-picked into shared AIR.
+Agent receipt447d1d5c now extracts full actual BYTES into chainByteMsgs with
+natural counters (semantic rcptSends3/fullWf remain). Ups13be6a19 connects native
+source adjacency to positioned signed cN IDs; next whole ByteInput family.
+D2 provider ownership/charging remains independently active. New agent changes
+still await next aggregate integration/audit; no replacement claim.
+
+
 Root QV `db44fb12` + `9d9e0412`: all nine between-word step equations composed
 by cases, plus all24 neighbor equations (13 inside-word, two start, nine step)
 for internal byte neighbors and final words. Terminal-to-next-word rows satisfy
