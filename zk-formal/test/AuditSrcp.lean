@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Link.WitnessSources
 import ZkFormal.NearV3.Rcpt.Render.Srcp.ProofInputWf
 import ZkFormal.NearV3.Rcpt.Link.SourceDuplicate
 import ZkFormal.NearV3.Rcpt.Link.SourceVerify
@@ -450,3 +451,23 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.Render.SrcpGen.blocksOfProofs_wf' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.SrcpGen.blocksOfProofs_wf
+
+/-- info: 'ZkFormal.NearV3.pPathItem_shape' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.pPathItem_shape
+
+/-- info: 'ZkFormal.NearV3.pEntry_path_shape' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.pEntry_path_shape
+
+/-- info: 'ZkFormal.NearV3.decodeStateWitness_path_shape' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.decodeStateWitness_path_shape
+
+/-- info: 'ZkFormal.NearV3.lookupLast_mem' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.lookupLast_mem
+
+/-- info: 'ZkFormal.NearV3.lookupLast_path_shape' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.lookupLast_path_shape
