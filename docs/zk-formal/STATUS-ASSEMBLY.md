@@ -807,3 +807,11 @@ branch-context or ID-agreement premise is supplied by the caller. Twelve guards
 and five kernel fixtures pass, including wf identical sibling leaves where a
 slot1 update correctly selects nid2 rather than nid1. Agreement with the old
 resolver at proper ancestors is the next known-read composition.
+
+`ProperTarget.traceUpsert_seedProperTargets` discharges the complete selected
+child-map premise required by the physical prefix-provider theorem, directly
+from actual upsert success and its known input key. `ContextKnown` derives all
+residual source-key reads and proper resolved-child revelation; branch slots
+use actual native contexts. Both RDB and RDE are covered, with no ID agreement
+premise. Eight axiom guards pass. The terminal off-path resolver correction
+remains in use; proper-child agreement does not generalize to that case.
