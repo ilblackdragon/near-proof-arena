@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Qv.Bounds
+import ZkFormal.NearV3.Qv.ByteBuffers
 import ZkFormal.NearV3.Qv.ReceiptPreserve
 
 open NearSpec NearSpecV3 ZkFormal.NearV3.Qv
@@ -121,3 +121,19 @@ open NearSpec NearSpecV3 ZkFormal.NearV3.Qv
 /-- info: 'ZkFormal.NearV3.Qv.applyNewChunk_pre_queue_reads' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.applyNewChunk_pre_queue_reads
+
+/-- info: 'ZkFormal.NearV3.Qv.ByteBuffer.entry_bytes' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.ByteBuffer.entry_bytes
+
+/-- info: 'ZkFormal.NearV3.Qv.byteBuffered_accept' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.byteBuffered_accept
+
+/-- info: 'ZkFormal.NearV3.Qv.byteBuffered_complete' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.byteBuffered_complete
+
+/-- info: 'ZkFormal.NearV3.Qv.byteBuffered_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.byteBuffered_iff
