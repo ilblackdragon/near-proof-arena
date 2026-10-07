@@ -245,3 +245,13 @@ premise. Thus the protocol-added multiplicity bits are covered explicitly.
 The combined audit passes71 exact axiom guards and15 regressions; the boolean
 target's155 jobs pass. Remaining local work is the read algebra and sequencing,
 plus complete parser/walk composition; ownership and extraction remain separate.
+
+
+`CombinedInside` proves exact preservation of all ten carried metadata cells
+and the three inside-word clock equations from adjacent generated rows.
+`CombinedReadAlgebra` proves the actual byte reconstruction and mode equations,
+including implicit raw mode, over arbitrary commutative rings. These results
+require generated current/next cells, not local acceptance. The combined audit
+passes76 exact axiom guards and15 regressions;213 dependency jobs pass.
+Remaining equations concern terminal/read gates, endpoints and between-word
+sequencing, followed by full constraint and trace composition.
