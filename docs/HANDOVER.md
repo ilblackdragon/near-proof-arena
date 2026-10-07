@@ -7,6 +7,31 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+**New focused checkpoint AIR `5529e516` (sources `791f879f`):823 dependency
+jobs and8 audits PASS,84 exact axiom guards+15 field fixtures.** Report:
+`docs/e2e-results/v3-walk-shape-integration/report.json` in AIR; external evidence
+`/data/illia/nearproof-deps/validation/v3-walk-shape-20261007/`.
+This is a focused joint check, not a replacement for the full aggregate below.
+
+Root QV `405f561c` → AIR `d9557369` now generates actual native queue walk rows,
+proves exact main/implicit request projection and `3+9*groups+K` rows, natural
+and field byte reconstruction, and the full native key nibble sequence.
+Conditional combined log22 capacity uses existing 3MB buffered input,31 implicit,
+2MiB record bytes and134028 records; actual allocator ownership still must
+supply those premises. QV audit33 axiom guards+15 fixtures. Root next: generic
+walk local constraints/traffic, parser wraparound, ownership and extraction.
+
+All native leaf/extension split cases plus wrappers now provide byte and memory
+inputs, including executable mB assignment (`2ca69528` → AIR `791f879f`).
+Physical serialized length and surrounding child source-byte bounds remain.
+Original decoded witness full D0Shape is now proved (`a9e9ddb6` → AIR `fbbd0de9`),
+including exact canonical consumed header bytes; normalized witness transfer
+and A7 remain open. Source `520c9e0c` now extracts all five buses and unique
+terminal SIZE from arbitrary logical acceptance; SHA/public semantics,
+isolation and global no-wrap remain open. These supersede corresponding older
+gaps stated below. Agent scopes continue unchanged. No active root build.
+
+
 **Latest aggregate AIR `b5d5817b`:1,585 jobs PASS;12 audits,130 axiom guards,
 12 behavior checks and16 theorem regressions.** Report:
 `docs/e2e-results/v3-combined-source-native-integration/report.json` in AIR;
