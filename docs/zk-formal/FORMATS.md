@@ -268,8 +268,14 @@ of §3 differs.
 
 ```json
 {"format":"np-air-v2","numBuses":B,"numPub":P,"tables":[ ...exactly as np-air-v1... ],
- "pubSegs":[{"bus":b,"send":true,"width":w,"countAt":i,"start":s}, ...],"maxPub":M}
+ "pubSegs":[{"bus":b,"send":true,"width":w,"countAt":i,"start":s,
+             "prefix":[...],"indexBase":null,"startAt":null}, ...],"maxPub":M}
 ```
+
+`prefix` defaults to `[]`, `indexBase` to null, and `startAt` to null. These
+settings preserve the original static byte-only segment. `width` always counts
+payload bytes, not generated message fields. Dynamic offsets allow compact
+packing of variable-length segments in the deterministic prepared statement.
 
 `AirP` extends v1's `Air`. With `"pubSegs":[]`, the semantics are exactly v1's
 (`holdsP_iff_holds`).
@@ -280,8 +286,13 @@ For each segment `s`, in `pubSegs` order:
 
 * count `n = Σ_{k<4} pub[countAt + k]·256^k` (little-endian u32 over 4 public bytes;
   an index past the claim reads 0);
-* record `j < n` is `[pub[start + j·w + c] for c < w]` (field elements);
-* the segment **fits** iff `start + n·w ≤ min(|cb|, maxPub)`.
+* payload offset `base` is `start` when `startAt = null`; otherwise it is the
+  little-endian u32 at public bytes `startAt..startAt+3`;
+* record `j < n` is the field encoding of `prefix`, followed by `[indexBase+j]`
+  when `indexBase` is not null, followed by `[pub[base + j·w + c] for c < w]`;
+  generated constants and indices are field elements, so an index above 255
+  is not truncated to a byte;
+* the segment **fits** iff `base + n·w ≤ min(|cb|, maxPub)`.
   The verifier rejects otherwise (`pubFit`);
 * each record is one message on bus `b`: a send if `send`, else a receive, with
   multiplicity 1.
@@ -310,7 +321,11 @@ The cost is one fingerprint and one `K` multiplication per public message.
 segment ∧ `multBoundP ≤ 2^36` ∧ `fpBoundP ≤ 2^36`, where
 `pubBound = Σ_s ⌊maxPub / width_s⌋` bounds the number of public messages,
 `multBoundP = multBound + pubBound` and
-`fpBoundP = (Σ_t 2^maxLog_t·|interactions_t| + pubBound) · (max(max msg length, max width) + 1)`.
+`fpBoundP = (Σ_t 2^maxLog_t·|interactions_t| + pubBound) · (max(max trace msg length, max public message width) + 1)`.
+A public message's width is `|prefix| + (indexBase != null ? 1 : 0) + width`.
+Generated fields must be included in the fingerprint degree budget; they do not
+increase the payload-based count bound. `PubSeg.record_length` and the full
+`V2.Np.Bus` proof check this distinction.
 v2's L3 side condition is `NpOkP AP prm = NpOk AP.toAir prm ∧ AP.wf 16`.
 
 ### 8.5 Honest prover

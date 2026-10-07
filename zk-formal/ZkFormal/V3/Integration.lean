@@ -1,3 +1,4 @@
+import ZkFormal.V2.IndexedPublic
 import ZkFormal.NearV3.Rcpt.Render.Srcp.Boolean
 import ZkFormal.NearV3.Rcpt.Render.Srcp.Accumulator
 import ZkFormal.NearV3.Rcpt.Render.Srcp.Adjacency

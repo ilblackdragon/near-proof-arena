@@ -9,7 +9,8 @@ the v1 export of `AP.toAir` (same keys, same expression encoding, same table obj
 `"format":"np-air-v2"` and two extra top-level keys:
 
 * `"pubSegs"`: the public segments, in order, each
-  `{"bus":b,"send":true|false,"width":w,"countAt":i,"start":s}`;
+  `{"bus":b,"send":true|false,"width":w,"countAt":i,"start":s,`
+  `"prefix":[...],"indexBase":null|n,"startAt":null|i}`;
 * `"maxPub"`: the static bound on the used part of the public vector.
 
 Like v1's export, it is not part of soundness.  A mismatch can only make honest proofs fail.
@@ -21,7 +22,9 @@ open ZkFormal.Air
 
 def PubSeg.toJson (s : PubSeg) : String :=
   s!"\{\"bus\":{s.bus},\"send\":{if s.send then "true" else "false"},\"width\":{s.width}," ++
-  s!"\"countAt\":{s.countAt},\"start\":{s.start}}"
+  s!"\"countAt\":{s.countAt},\"start\":{s.start}," ++
+  s!"\"prefix\":{jsonList (s.msgPrefix.map toString)},\"indexBase\":{match s.indexBase with | none => "null" | some n => toString n}," ++
+  s!"\"startAt\":{match s.startAt with | none => "null" | some n => toString n}}"
 
 /-- **The v2 export.** -/
 def AirP.exportJson (AP : AirP) : String :=
