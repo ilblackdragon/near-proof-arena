@@ -3,6 +3,7 @@ import ZkFormal.NearV3.Qv.Candidates.CombinedPublic
 import ZkFormal.NearV3.Qv.Candidates.ValueGen
 import ZkFormal.NearV3.Qv.Candidates.CombinedCapacity
 import ZkFormal.NearV3.Qv.Candidates.CombinedWalkBits
+import ZkFormal.NearV3.Qv.Candidates.CombinedWalkTraffic
 
 namespace QvCombinedRegression
 open ZkFormal.NearV3.Qv.Candidates
@@ -217,3 +218,33 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_symbols
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.parser_silent' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.parser_silent
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.key_traffic_filter' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.key_traffic_filter
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_nat_bits' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_nat_bits
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_field_traffic' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_field_traffic
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_field_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_field_messages
