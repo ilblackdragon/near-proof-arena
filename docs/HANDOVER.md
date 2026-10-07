@@ -7,6 +7,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root CounterTraffic checked: actual walk-row QVC both sides equals singleton
+counter tuple iff present=1; present iff terminal+absent0; absent walk forces
+vid0; read-mode equation and complete tuple constant through segment. Terminal
+step condition tied to actual segment end. Target129 jobs +6 exact guards PASS;
+/tmp/nearproof-qv-counter-traffic.log,/tmp/nearproof-qv-counter-audit-checked.log.
+No root process. Next aggregate request QVC prefix, extract parser suffix and
+prove provider-backed counter chains/no-cycle soundness; full soundness open.
+D2 occurrence path locator2b43e0a9 integrated: nid/vid/depth and exact Seg/
+record/fullTree correspondence,3guards+3 identical-sibling fixtures. Actual
+upsert occurrence-path linkage still agent-owned. Receipt0878f521 whole B_MEM
+receives matches rcptRecvs3 including padding,8guards; reusable ReceiptSpans
+physical decomposition, sends/RIDS next. Fullaggregate191ea6da predates recent
+modules; complete certificate/admission/prover/judge/broad coverage still open.
+
+
 Root KeyTraffic checked: exact KEYNIB row sends/zero receives, silence on all
 non-walk rows, physical range equals concatenated extracted walk traffic.
 key_segment_row fixes wid per segment, positions2offset+1/2/3, high/low nibble
