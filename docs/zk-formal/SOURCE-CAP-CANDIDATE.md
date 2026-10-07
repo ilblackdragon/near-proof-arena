@@ -880,3 +880,10 @@ signer field; exact row selections, actual character bytes, and global receipt
 indices agree with the unchanged semantic filter lists. Header/padding silence
 is proved, with no extra selected-byte assumptions. Ten exact guards pass.
 Remaining whole-table receipt channels: KEYNIB, DIGEST, FINAL, BND.
+
+`BoundaryTrafficRows`, `BoundaryTrafficIndex`, and `BoundaryTraffic` close both
+B_BND directions. The actual route window contains precisely receiver bytes
+and their end marker; copied boundary pair and constrained byte indices yield
+exact addresses. Selected tuples and counter successors match the semantic
+lookup list, with no extraneous header/padding messages. Ten exact guards pass.
+Remaining whole-table receipt traffic: KEYNIB, DIGEST, FINAL.
