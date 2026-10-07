@@ -828,3 +828,12 @@ modular encoding. Exact total byte cost is exposed, not bounded by assumption.
 Nineteen axiom guards in `test/AuditUpsertShaJobs.lean` pass using only the
 standard Lean axioms. SHA row capacity and global byte/digest balance remain
 separate unfinished obligations.
+
+`UpsertOutputWidth` now derives every output branch's16-child width from actual
+tracing and ordinary input well-formedness. `UpsertShaEncoding` uses that fact
+to prove exact native preimages for the encoded `UpsInst` parts and concrete
+SHA jobs. The native digest equality also holds without an output-wf or
+post-memory-width premise. This closes the Nat/byte truncation distinction for
+actual well-formed inputs, rather than introducing a per-byte assumption.
+Thirteen guards in `test/AuditUpsertShaEncoding.lean` pass (propext/Quot.sound).
+Aggregate SHA capacity and global traffic are still unfinished.
