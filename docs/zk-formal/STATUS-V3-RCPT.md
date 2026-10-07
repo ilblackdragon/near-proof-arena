@@ -114,8 +114,10 @@ Walk ids: account `r`, access key `W_AK + r` (`W_AK = 8192 > 4481`), fixed keys
 * **Public data are bytes.** See R1: `stream_eq_of_count`'s `(i, B i)` messages need the index
   supplied by the verifier.
 * **`hperm` gap** (R3): written accounts were not bound to `tw` windows.
-* **Duplicate keys**: in D0 a duplicate used slot's list is empty (otherwise the applied ids
-  repeat, `e.distinct_ids`), so `srcpV3` requires `L = 12` for `dup`; the extracted witness has
+* **Duplicate keys**: in D0a, A2 routes every used proof receipt to the target shard, so
+  a duplicate used slot's raw list is empty (otherwise the applied ids repeat,
+  `e.distinct_ids`). Bare D0 only forces its filtered list to be empty. Thus `srcpV3`
+  requires `L = 12` for `dup` under D0a; the extracted witness has
   one entry per distinct key plus the spec's filler entries (encoder).
 * **Size accounting**: `SIZE` carries byte totals only; the constructed witness also has
   per-entry length prefixes. Either the senders count entries too (`SIZE (t, bytes + 4·count)`)

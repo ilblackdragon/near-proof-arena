@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Link.SourceVerify
 import ZkFormal.NearV3.Rcpt.Link.SourceHashes
 import ZkFormal.NearV3.Rcpt.Render.Srcp.TrafficProof
 import ZkFormal.NearV3.Rcpt.Render.Srcp.TrafficBlock
@@ -399,3 +400,19 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.source_hashes_of_sha' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.source_hashes_of_sha
+
+/-- info: 'ZkFormal.NearV3.source_rootFromPath_of_sha' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_rootFromPath_of_sha
+
+/-- info: 'ZkFormal.NearV3.source_verifyReceiptProof_of_sha' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_verifyReceiptProof_of_sha
+
+/-- info: 'ZkFormal.NearV3.source_roots_eq_of_same_proof' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_roots_eq_of_same_proof
+
+/-- info: 'ZkFormal.NearV3.source_roots_eq_of_lookupLast' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.source_roots_eq_of_lookupLast
