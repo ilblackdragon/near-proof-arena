@@ -914,3 +914,7 @@ composition from local receipt permutations and the physical plan's complete
 field partition. `KeyTrafficRows` proves the second key gate and excludes key
 messages from all non-key states, headers, and padding. Eleven exact guards
 pass. Account/access field-to-canonical-symbol matching remains the KEYNIB gap.
+
+### KEYNIB row extraction checkpoint
+
+`KeyTrafficGates`, `KeyAccountRows`, `KeyAccessRows`, and `KeyAccessMarkers` derive exact traffic for every emitting KEYNIB state, including account prefix/end rows, both character nibbles, access type/kind/public-key bytes, separators, terminal markers, and disabled gates. These are actual local-AIR consequences; complete receipt/list permutation composition remains open. The targeted build and 18 exact transitive axiom guards pass, with only standard axioms. No table, domain, cap, or public descriptor changes.
