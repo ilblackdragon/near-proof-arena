@@ -598,3 +598,13 @@ the first computed occurrence. Ten exact axiom guards pass. No `RcptV3Wf`, new
 encoding bound, or restricted domain is assumed. Global RCL ownership and balance
 must still be supplied by assembly; receipt bytes, header count, system/routing,
 and arithmetic semantics remain open parts of whole receipt-view extraction.
+
+`ListCounts` and `ListView` reconstruct the actual per-list receipt counter:
+every receipt increments it; terminal `cj` and header `nj` equal the extracted
+receipt count in `Fp`. Header registers 8/9 hold its low two count bytes, and
+registers 10/11 are forced zero. The view is now defined from those actual
+registers and extracted receipt layouts. Under range checking of the two emitted
+count bytes, its natural `n0+256*n1` equals the actual receipt count, using the
+physical row bound to rule out modular aliasing. Nine exact axiom guards pass.
+The range checks remain an explicit BYTES/SHA obligation, not an added input
+restriction or an already-proved semantic receipt-view assumption.
