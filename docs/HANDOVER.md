@@ -6,6 +6,31 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Fresh integrated checkpoint AIR83f4a8b7 PASS:1968 build jobs,156 scoped audit
+files,1178 axiom checks,15 behavior guards. Report
+../nearproof-wt/v3-air/docs/e2e-results/v3-parser-link-integration/report.json
+contains sourcehead b04c7e2c and each audited file SHA256; all audit files matched
+that committed head. Printed axiom sets explicitly restricted to standard3;
+exact guard_msgs audited where present. External logs
+/data/illia/nearproof-deps/validation/v3-parser-link-20261007/; driver
+/tmp/nearproof-check-parser-link.py, driverlog
+/tmp/nearproof-parser-link-integration-driver.log. Session14212 terminal0.
+Integrated ups15e7fdfe as18b30045 (physical prefix unaffected by corrected terminal
+resolver, global prefix providers conditional selected-child agreement) and
+D2705f1656 asb04c7e2c (actual residual key/branchslot→occurrence-sensitive childID,
+identical sibling regressions). D2 still composing known contexts/proper-child
+oldresolver agreement; ups building actual W0 heads and global composition.
+Queue full-value coverage investigation: AcctProof acct sends emitAt a.k0 a.pre;
+AkeyProof sends positions0..8; parser nonempty records likewise start0.
+Likely next soundness step is generic exact stream partition: canonical unique
+value IDs + exact VBYTES balance + every nonempty supplier starts0 forbid two
+suppliers owning samevid and then force complete length/bytes. Still needs proof
+and whole-AIR instantiation; do not assume count≤ implies complete consumption.
+No root live process. Receipt KEYNIB actual gate/symbol proof ongoing in untracked
+agent file. Aggregate is scoped evidence only; full certificate/reference check/
+admission/prover/judge and general NEAR coverage remain incomplete.
+
+
 Root ByteLink CHECKED: value_byte_member decodes field-message membership in
 canonical ValWf byte demand to exact natural vid/index/byte; physical_byte_value
 uses exact parser row traffic and explicit physical send-count≤valRecv-count
