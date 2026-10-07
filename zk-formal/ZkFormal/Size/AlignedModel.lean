@@ -1,4 +1,4 @@
-import ZkFormal.Size.Aligned
+import ZkFormal.Size.PadHeader
 import ZkFormal.Size.V3Synth
 
 namespace ZkFormal.Size
@@ -29,7 +29,7 @@ def twoShaS (g : Nat) : List TShape := shapeOf g shaT :: v3S g
 /-- Proposed static caps aligned relative to log 22, with arity log 3.
 This does not modify any actual AIR table. -/
 def padShape22 (t : TShape) : TShape :=
-  { t with maxLog := 22 - 3 * ((22 - t.maxLog) / 3) }
+  { t with maxLog := padLog22 t.maxLog }
 
 def paddedTwoShaS (g : Nat) : List TShape := (twoShaS g).map padShape22
 

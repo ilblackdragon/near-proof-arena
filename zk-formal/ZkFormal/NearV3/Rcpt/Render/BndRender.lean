@@ -47,18 +47,18 @@ end BndRender
 
 open BndRender in
 /-- **The honest `bndV3` table is locally legal.** -/
-theorem bnd_render_local (es : List BndE) (hn : es.length ≤ 2 ^ BndV3.maxLog) (tr : Trace Fp) (t : Nat)
-    (pub : List Fp) (hlog : tr.log t = logOf es.length)
+theorem bnd_render_local_at (es : List BndE) (tr : Trace Fp) (t : Nat)
+    (pub : List Fp) (cap : Nat) (hlog : 1 ≤ tr.log t ∧ tr.log t ≤ cap)
     (hcell : ∀ r x, r < tr.height t → x < BndV3.width → tr.cell t r x = Fp.ofNat (BndGen.cell es r x)) :
-    TableLocal BndV3.table tr t pub := by
+    TableLocal { BndV3.table with maxLog := cap } tr t pub := by
   have hact : ∀ r, r < tr.height t → tr.cell t r BndV3.act = if r < es.length then 1 else 0 := by
     intro r hr
     rw [hcell r BndV3.act hr (by decide)]
     simp only [BndGen.cell, BndV3.act]
     split <;> rfl
   refine ⟨?_, ?_, ?_, ?_⟩
-  · rw [hlog]; exact one_le_logOf _
-  · rw [hlog]; exact logOf_le (by decide) hn
+  · exact hlog.1
+  · exact hlog.2
   · intro r hr e he
     simp only [BndV3.table, BndV3.constraints, List.mem_cons, List.not_mem_nil, or_false] at he
     rcases he with rfl | rfl
@@ -82,12 +82,21 @@ theorem bnd_render_local (es : List BndE) (hn : es.length ≤ 2 ^ BndV3.maxLog) 
       · left; rfl
 
 open BndRender in
+/-- **The honest `bndV3` table is locally legal.** -/
+theorem bnd_render_local (es : List BndE) (hn : es.length ≤ 2 ^ BndV3.maxLog) (tr : Trace Fp) (t : Nat)
+    (pub : List Fp) (hlog : tr.log t = logOf es.length)
+    (hcell : ∀ r x, r < tr.height t → x < BndV3.width → tr.cell t r x = Fp.ofNat (BndGen.cell es r x)) :
+    TableLocal BndV3.table tr t pub := by
+  apply bnd_render_local_at es tr t pub BndV3.maxLog
+  · rw [hlog]; exact ⟨one_le_logOf _, logOf_le (by decide) hn⟩
+  · exact hcell
+
+open BndRender in
 /-- **The honest `bndV3` table has the traffic of `es`.** -/
-theorem bnd_render_traffic (es : List BndE) (tr : Trace Fp) (t : Nat) (pub : List Fp)
-    (hlog : tr.log t = logOf es.length)
+theorem bnd_render_traffic_at (es : List BndE) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hle : es.length ≤ tr.height t)
     (hcell : ∀ r x, r < tr.height t → x < BndV3.width → tr.cell t r x = Fp.ofNat (BndGen.cell es r x)) :
     TableTraffic BndV3.interactions tr t pub (bndTraffic es) := by
-  have hle := height_ge (tr := tr) (t := t) hlog
   have hrow : ∀ b sd q, q < tr.height t → rowTraffic BndV3.interactions tr t q pub b sd =
       if q < es.length then
         (if sd then bndSends [es.getD q default] b else bndRecvs [es.getD q default] b).map Msg.toFp
@@ -122,5 +131,13 @@ theorem bnd_render_traffic (es : List BndE) (tr : Trace Fp) (t : Nat) (pub : Lis
     rw [← List.map_flatMap, ← flatMap_getD default es (fun e => bndSends [e] b), ← BndProof.bndSends_flat]; rfl
   · simp only [Bool.false_eq_true, ↓reduceIte]
     rw [← List.map_flatMap, ← flatMap_getD default es (fun e => bndRecvs [e] b), ← BndProof.bndRecvs_flat]; rfl
+
+open BndRender in
+/-- **The honest `bndV3` table has the traffic of `es`.** -/
+theorem bnd_render_traffic (es : List BndE) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hlog : tr.log t = logOf es.length)
+    (hcell : ∀ r x, r < tr.height t → x < BndV3.width → tr.cell t r x = Fp.ofNat (BndGen.cell es r x)) :
+    TableTraffic BndV3.interactions tr t pub (bndTraffic es) := by
+  exact bnd_render_traffic_at es tr t pub (height_ge hlog) hcell
 
 end ZkFormal.NearV3.Render

@@ -49,6 +49,20 @@ change actual table caps. Final padding correctness, multiplicity/security
 bounds, missing tables and assembly remain required. Six guarded axiom audits
 pass. See `docs/e2e-results/v3-alignment/report.json`.
 
+**Padding milestone:** `Size.PadHeader` now proves that rounding required logs
+into {1,4,7,…,22} yields `RollAligned`, and provides an assembly criterion on
+`trHdr` using each table's actual log. `NearV3.Render.Padded` constructs
+array-backed aligned generators for head, value, boundary and access-key,
+with closed proofs of local constraints, full traffic preservation and the
+log residue. The head generator uses proposed cap 13 (was 11);
+`head_view_at` proves its soundness view for caps up to 22. Existing table
+constants and minimum-height interfaces remain unchanged. The other three
+fit their existing caps. Integration passes 1,094 jobs, seven new axiom
+guards and all six prior alignment guards. Evidence:
+`docs/e2e-results/v3-padding/report.json`. Remaining tables and the assembled
+HoldsP proof are still required; four completed generators do not establish
+padding for the final prover.
+
 Program goal: a succinct STARK for `RelD0a B0` (v3 chunk validation, domain D0a), formally admitted to the unified challenge `near-chunk-v3` with declared tier D0a.
 
 Design: `docs/zk-formal/V3-D0-DESIGN.md`. §10–§16 are the review decisions, §12 the SHA kind registry, §13/§15/§16 the size accounting.

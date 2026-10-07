@@ -1,0 +1,68 @@
+{
+  "recorded_at": "2026-10-07T03:19:53.200196+00:00",
+  "base_commit": "46df7944aff34fad4e3722e43c7b2e9a138c4e0a",
+  "source_sha256": {
+    "zk-formal/ZkFormal/NearV3/Extract/HeadProof.lean": "3eb07a7ec67c672053a72eecae0be74233ea3d69d40d0873913782dc3a390f83",
+    "zk-formal/ZkFormal/NearV3/Render/HeadRender.lean": "e908918da360b09cbc7e7f877878a104d41f0444a07b137f12e7928c084a0768",
+    "zk-formal/ZkFormal/NearV3/Render/ValRender.lean": "671350eb3bbd4abad010e1c42cb6745889c0237ed14bb1dffb0e2789f66f0bc2",
+    "zk-formal/ZkFormal/NearV3/Rcpt/Render/BndRender.lean": "d9d4dd69f305a8a48cb5cd4b5c4e6669736abb042d42fdb01b40bdf7489b3f44",
+    "zk-formal/ZkFormal/NearV3/Rcpt/Render/AkeyRender.lean": "359e0201dde52f10788f3a954e0d7622389fc6d6656ff3671eb3ee9ec08724e1",
+    "zk-formal/ZkFormal/NearV3/Render/Padded.lean": "a747d4ed2cda3df3fecb6add7e76f02dd1fa5d0022733ab03efe3e869ee76839",
+    "zk-formal/ZkFormal/Size/PadHeader.lean": "f4ed25b2fb57f7778a580c1a6b02f7e5b20efe4b17b85fe152f2043274ea4126",
+    "zk-formal/ZkFormal/Size/AlignedModel.lean": "12db3f7673a3d36c1b8ba904e41aabf79e92366b7f853551f9c991f356eb16f6",
+    "zk-formal/ZkFormal/V3/Integration.lean": "d036dd233d5a79862beefae6319e55b3ceb3f072f83c211aa9c2b228610a6b5d",
+    "zk-formal/test/AuditPadded.lean": "0e424b2d7e959d76a3c6550f0baf6e40bcd6a576fda22af23d81dcfd3ad6c8bd"
+  },
+  "build": {
+    "target": "ZkFormal.V3.Integration",
+    "jobs": 1094,
+    "success": true,
+    "clean_judge_budget_measurement": false
+  },
+  "guarded_axiom_audits": {
+    "new_declarations": 7,
+    "prior_aligned_declarations": 6,
+    "success": true,
+    "allowed": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ]
+  },
+  "proved": [
+    "padLog22 bounds, residue, idempotence and cap preservation",
+    "padHeader22 establishes RollAligned from valid required logs",
+    "tablewise actual trace log residues establish RollAligned on trHdr",
+    "array-backed head/value/boundary/access-key generators satisfy local constraints and preserve all traffic",
+    "head_view_at remains sound for any explicit cap at most 22"
+  ],
+  "tables": {
+    "head": {
+      "proposed_cap": 13,
+      "prior_cap": 11,
+      "generalized_soundness_view": true
+    },
+    "value": {
+      "cap": 22
+    },
+    "boundary": {
+      "cap": 13
+    },
+    "access_key": {
+      "cap": 16
+    }
+  },
+  "scope": {
+    "concrete_padded_generators": 4,
+    "assembled_HoldsP_proof": false,
+    "actual_table_caps_changed": false,
+    "final_admission_certificate": false
+  },
+  "artifacts": "/data/illia/nearproof-deps/validation/v3-padding-20261007",
+  "remaining": [
+    "Padded generators for remaining tables and their soundness views where caps change",
+    "Assembled HoldsP and log bounds, security and multiplicity checks",
+    "Receipt/trie/scheduler completeness, indexed public segments and qvV3",
+    "Concrete AIR admission, Rust v2 prover and real judge validation"
+  ]
+}

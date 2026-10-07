@@ -62,9 +62,12 @@ theorem cPreg (hs : List HeadE) (q : Nat) {m : Nat} (hm : m < 32) :
 
 end HeadGen
 
-/-- The honest `headV3` rows. -/
-def headRows (hs : List HeadE) : Array Row :=
-  mkTab (2 ^ logOf (32 * hs.length)) HeadV3.width (HeadGen.cell hs (2 ^ logOf (32 * hs.length)))
+/-- Honest rows at a selected log height; cells after the active heads are zero. -/
+def headRowsAt (log : Nat) (hs : List HeadE) : Array Row :=
+  mkTab (2 ^ log) HeadV3.width (HeadGen.cell hs (2 ^ log))
+
+/-- The minimum-height honest `headV3` rows. -/
+def headRows (hs : List HeadE) : Array Row := headRowsAt (logOf (32 * hs.length)) hs
 
 namespace HeadLocal
 open HeadGen
@@ -219,6 +222,23 @@ end rows
 end HeadLocal
 
 open HeadLocal in
+/-- Honest heads at any sufficient height, with an explicit table cap.
+The active records and traffic are unchanged by extra zero padding. -/
+theorem head_render_local_at (hs : List HeadE) (hok : HeadOk hs) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (cap : Nat) (hlog : 1 ≤ tr.log t ∧ tr.log t ≤ cap)
+    (hHS : 32 * hs.length ≤ tr.height t)
+    (hcell : ∀ r x, r < tr.height t → x < HeadV3.width →
+      tr.cell t r x = Fp.ofNat (HeadGen.cell hs (tr.height t) r x)) :
+    TableLocal { HeadV3.table with maxLog := cap } tr t pub := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · exact hlog.1
+  · exact hlog.2
+  · intro r hr e he
+    exact constr hok rfl hHS hcell hr he
+  · intro r hr it hi b hb
+    exact multBits hok rfl hHS hcell hr hi hb
+
+open HeadLocal in
 /-- **The honest `headV3` table is locally legal.**  Hypotheses on the trace as for
 `uniq_render_local`: `log₂` height `logOf (32·|hs|)`, and cells `Fp.ofNat (HeadGen.cell hs height r x)`
 on rows `r < height`, columns `x < HeadV3.width`. -/
@@ -227,15 +247,11 @@ theorem head_render_local (hs : List HeadE) (hok : HeadOk hs) (tr : Trace Fp) (t
     (hcell : ∀ r x, r < tr.height t → x < HeadV3.width →
       tr.cell t r x = Fp.ofNat (HeadGen.cell hs (tr.height t) r x)) :
     TableLocal HeadV3.table tr t pub := by
-  have hHS : 32 * hs.length ≤ tr.height t := by
-    simp only [Trace.height, hlog]; exact le_pow_logOf _
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · rw [hlog]; exact one_le_logOf _
-  · rw [hlog]; exact logOf_le (by decide) hok.cap
-  · intro r hr e he
-    exact constr hok rfl hHS hcell hr he
-  · intro r hr it hi b hb
-    exact multBits hok rfl hHS hcell hr hi hb
+  apply head_render_local_at hs hok tr t pub HeadV3.maxLog
+  · rw [hlog]
+    exact ⟨one_le_logOf _, logOf_le (by decide) hok.cap⟩
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
 
 namespace HeadTraffic
 open HeadGen HeadLocal
@@ -344,13 +360,11 @@ end HeadTraffic
 
 open HeadTraffic HeadLocal in
 /-- **The honest `headV3` table has the traffic of `hs`.**  Same hypotheses as `head_render_local`. -/
-theorem head_render_traffic (hs : List HeadE) (hok : HeadOk hs) (tr : Trace Fp) (t : Nat) (pub : List Fp)
-    (hlog : tr.log t = logOf (32 * hs.length))
+theorem head_render_traffic_at (hs : List HeadE) (hok : HeadOk hs) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hle : 32 * hs.length ≤ tr.height t)
     (hcell : ∀ r x, r < tr.height t → x < HeadV3.width →
       tr.cell t r x = Fp.ofNat (HeadGen.cell hs (tr.height t) r x)) :
     TableTraffic HeadV3.interactions tr t pub (headTraffic hs) := by
-  have hle : 32 * hs.length ≤ tr.height t := by
-    simp only [Trace.height, hlog]; exact le_pow_logOf _
   have hall : ∀ sd b, (List.range (tr.height t)).flatMap (fun r => rowTraffic HeadV3.interactions tr t r pub b sd) =
       (if sd then headSends hs b else headRecvs hs b).map Msg.toFp := by
     intro sd b
@@ -382,5 +396,16 @@ theorem head_render_traffic (hs : List HeadE) (hok : HeadOk hs) (tr : Trace Fp) 
   apply traffic_of
   · intro b; rw [hall true b]; exact List.Perm.refl _
   · intro b; rw [hall false b]; exact List.Perm.refl _
+
+open HeadTraffic HeadLocal in
+/-- **The honest `headV3` table has the traffic of `hs`.**  Same hypotheses as `head_render_local`. -/
+theorem head_render_traffic (hs : List HeadE) (hok : HeadOk hs) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hlog : tr.log t = logOf (32 * hs.length))
+    (hcell : ∀ r x, r < tr.height t → x < HeadV3.width →
+      tr.cell t r x = Fp.ofNat (HeadGen.cell hs (tr.height t) r x)) :
+    TableTraffic HeadV3.interactions tr t pub (headTraffic hs) := by
+  apply head_render_traffic_at hs hok tr t pub
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
 
 end ZkFormal.NearV3.Render

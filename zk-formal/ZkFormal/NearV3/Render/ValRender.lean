@@ -302,6 +302,22 @@ end rows
 end ValLocal
 
 open ValLocal in
+/-- Honest values and their SUM row at any sufficient padded height. -/
+theorem val_render_local_at (es : List ValE) (hok : ValOk es) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (cap : Nat) (hlog : 1 ≤ tr.log t ∧ tr.log t ≤ cap)
+    (hHS : ValGen.R es + 1 ≤ tr.height t)
+    (hcell : ∀ r x, r < tr.height t → x < ValV3.width →
+      tr.cell t r x = Fp.ofNat (ValGen.cell es (tr.height t) r x)) :
+    TableLocal { ValV3.table with maxLog := cap } tr t pub := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · exact hlog.1
+  · exact hlog.2
+  · intro r hr e he
+    exact constr hok rfl hHS hcell hr he
+  · intro r hr it hi bb hb
+    exact multBits hok rfl hHS hcell hr hi hb
+
+open ValLocal in
 /-- **The honest `valV3` table is locally legal.**  Hypotheses on the trace: `log₂` height
 `logOf (R + 1)` (`R = Σ` record rows, plus the `SUM` row) and cells
 `Fp.ofNat (ValGen.cell es height r x)` on rows `r < height`, columns `x < ValV3.width`. -/
@@ -310,15 +326,10 @@ theorem val_render_local (es : List ValE) (hok : ValOk es) (tr : Trace Fp) (t : 
     (hcell : ∀ r x, r < tr.height t → x < ValV3.width →
       tr.cell t r x = Fp.ofNat (ValGen.cell es (tr.height t) r x)) :
     TableLocal ValV3.table tr t pub := by
-  have hHS : ValGen.R es + 1 ≤ tr.height t := by
-    simp only [Trace.height, hlog]; exact le_pow_logOf _
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · rw [hlog]; exact one_le_logOf _
-  · rw [hlog]; exact logOf_le (by decide) hok.wf.rows
-  · intro r hr e he
-    exact constr hok rfl hHS hcell hr he
-  · intro r hr it hi bb hb
-    exact multBits hok rfl hHS hcell hr hi hb
+  apply val_render_local_at es hok tr t pub ValV3.maxLog
+  · rw [hlog]; exact ⟨one_le_logOf _, logOf_le (by decide) hok.wf.rows⟩
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
 
 namespace ValTraffic
 open ValLocal
@@ -488,13 +499,11 @@ end ValTraffic
 
 open ValTraffic ValLocal in
 /-- **The honest `valV3` table has the traffic of `es`.**  Same hypotheses as `val_render_local`. -/
-theorem val_render_traffic (es : List ValE) (hok : ValOk es) (tr : Trace Fp) (t : Nat) (pub : List Fp)
-    (hlog : tr.log t = logOf (ValGen.R es + 1))
+theorem val_render_traffic_at (es : List ValE) (hok : ValOk es) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hle : ValGen.R es + 1 ≤ tr.height t)
     (hcell : ∀ r x, r < tr.height t → x < ValV3.width →
       tr.cell t r x = Fp.ofNat (ValGen.cell es (tr.height t) r x)) :
     TableTraffic ValV3.interactions tr t pub (valTraffic es) := by
-  have hle : ValGen.R es + 1 ≤ tr.height t := by
-    simp only [Trace.height, hlog]; exact le_pow_logOf _
   -- record rows
   have hrec : ∀ b' sd, (List.range (ValGen.R es)).flatMap
       (fun r => rowTraffic ValV3.interactions tr t r pub b' sd) =
@@ -533,5 +542,16 @@ theorem val_render_traffic (es : List ValE) (hok : ValOk es) (tr : Trace Fp) (t 
   apply traffic_of
   · intro b'; rw [hall true b']; exact List.Perm.refl _
   · intro b'; rw [hall false b']; exact List.Perm.refl _
+
+open ValTraffic ValLocal in
+/-- **The honest `valV3` table has the traffic of `es`.**  Same hypotheses as `val_render_local`. -/
+theorem val_render_traffic (es : List ValE) (hok : ValOk es) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hlog : tr.log t = logOf (ValGen.R es + 1))
+    (hcell : ∀ r x, r < tr.height t → x < ValV3.width →
+      tr.cell t r x = Fp.ofNat (ValGen.cell es (tr.height t) r x)) :
+    TableTraffic ValV3.interactions tr t pub (valTraffic es) := by
+  apply val_render_traffic_at es hok tr t pub
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
 
 end ZkFormal.NearV3.Render

@@ -72,14 +72,14 @@ local macro "akfin" : tactic => `(tactic| ((try simp only [AkeyRender.ofNat0, Ak
 
 open AkeyRender in
 /-- **The honest `akeyV3` table is locally legal.** -/
-theorem akey_render_local (es : List AkeyE) (ok : AkeyOk es) (tr : Trace Fp) (t : Nat) (pub : List Fp)
-    (hlog : tr.log t = logOf (9 * es.length))
+theorem akey_render_local_at (es : List AkeyE) (ok : AkeyOk es) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (cap : Nat) (hlog : 1 ≤ tr.log t ∧ tr.log t ≤ cap)
+    (hHS : 9 * es.length ≤ tr.height t)
     (hcell : ∀ r x, r < tr.height t → x < AkeyV3.width → tr.cell t r x = Fp.ofNat (AkeyGen.cell es r x)) :
-    TableLocal AkeyV3.table tr t pub := by
-  have hHS : 9 * es.length ≤ tr.height t := by simp only [Trace.height, hlog]; exact le_pow_logOf _
+    TableLocal { AkeyV3.table with maxLog := cap } tr t pub := by
   have hH2 : 2 ≤ tr.height t := by
-    simp only [Trace.height, hlog]
-    have := one_le_logOf (9 * es.length)
+    simp only [Trace.height]
+    have := hlog.1
     calc 2 = 2 ^ 1 := rfl
       _ ≤ _ := Nat.pow_le_pow_right (by omega) this
   have cA' := fun {q} (hq : q < 9 * es.length) {x} (hx : x < 7) => cA rfl hHS hcell hq hx
@@ -97,7 +97,7 @@ theorem akey_render_local (es : List AkeyE) (ok : AkeyOk es) (tr : Trace Fp) (t 
     · rcases hx with rfl | rfl | rfl <;> rw [cA' ha (by decide)] <;> simp only [AkeyGen.actCell] <;>
         (try split) <;> simp [ofNat0, ofNat1]
     · left; exact padv q hq ha x (by rcases hx with rfl | rfl | rfl <;> decide)
-  refine ⟨by rw [hlog]; exact one_le_logOf _, by rw [hlog]; exact logOf_le (by decide) ok.rows, ?_, ?_⟩
+  refine ⟨hlog.1, hlog.2, ?_, ?_⟩
   · intro r hr e he
     unfold AkeyV3.table AkeyV3.constraints at he
     rcases List.mem_append.1 he with he' | he'
@@ -246,12 +246,22 @@ theorem akey_render_local (es : List AkeyE) (ok : AkeyOk es) (tr : Trace Fp) (t 
       exact bool01 r hr _ (by simp)
 
 open AkeyRender in
-/-- **The honest `akeyV3` table has the traffic of `es`.** -/
-theorem akey_render_traffic (es : List AkeyE) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+/-- **The honest `akeyV3` table is locally legal.** -/
+theorem akey_render_local (es : List AkeyE) (ok : AkeyOk es) (tr : Trace Fp) (t : Nat) (pub : List Fp)
     (hlog : tr.log t = logOf (9 * es.length))
     (hcell : ∀ r x, r < tr.height t → x < AkeyV3.width → tr.cell t r x = Fp.ofNat (AkeyGen.cell es r x)) :
+    TableLocal AkeyV3.table tr t pub := by
+  apply akey_render_local_at es ok tr t pub AkeyV3.maxLog
+  · rw [hlog]; exact ⟨one_le_logOf _, logOf_le (by decide) ok.rows⟩
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
+
+open AkeyRender in
+/-- **The honest `akeyV3` table has the traffic of `es`.** -/
+theorem akey_render_traffic_at (es : List AkeyE) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hHS : 9 * es.length ≤ tr.height t)
+    (hcell : ∀ r x, r < tr.height t → x < AkeyV3.width → tr.cell t r x = Fp.ofNat (AkeyGen.cell es r x)) :
     TableTraffic AkeyV3.interactions tr t pub (akeyTraffic es) := by
-  have hHS : 9 * es.length ≤ tr.height t := by simp only [Trace.height, hlog]; exact le_pow_logOf _
   have cA' := fun {q} (hq : q < 9 * es.length) {x} (hx : x < 7) => cA rfl hHS hcell hq hx
   have cP' := fun {q} (hqH : q < tr.height t) (hq : ¬ q < 9 * es.length) {x} (hx : x < 7) =>
     cP rfl hHS hcell hqH hq hx
@@ -326,5 +336,15 @@ theorem akey_render_traffic (es : List AkeyE) (tr : Trace Fp) (t : Nat) (pub : L
     rw [← flatMap_getD default es (fun e => akeySends [e] b), ← AkeyProof.akeySends_flat]; rfl
   · simp only [Bool.false_eq_true, ↓reduceIte]
     rw [← flatMap_getD default es (fun e => akeyRecvs [e] b), ← AkeyProof.akeyRecvs_flat]; rfl
+
+open AkeyRender in
+/-- **The honest `akeyV3` table has the traffic of `es`.** -/
+theorem akey_render_traffic (es : List AkeyE) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hlog : tr.log t = logOf (9 * es.length))
+    (hcell : ∀ r x, r < tr.height t → x < AkeyV3.width → tr.cell t r x = Fp.ofNat (AkeyGen.cell es r x)) :
+    TableTraffic AkeyV3.interactions tr t pub (akeyTraffic es) := by
+  apply akey_render_traffic_at es tr t pub
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
 
 end ZkFormal.NearV3.Render

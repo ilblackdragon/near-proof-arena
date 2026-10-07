@@ -57,9 +57,9 @@ namespace ZkFormal.NearV3.HeadProof
 
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.HeadV3
 
-variable {tr : Trace Fp} {pub : List Fp} {tt : Nat}
+variable {cap : Nat} {tr : Trace Fp} {pub : List Fp} {tt : Nat}
 
-theorem con (hL : TableLocal HeadV3.table tr tt pub) {r : Nat} (hr : r < tr.height tt)
+theorem con (hL : TableLocal { HeadV3.table with maxLog := cap } tr tt pub) {r : Nat} (hr : r < tr.height tt)
     {e : Expr} (he : e ∈ HeadV3.constraints) : e.eval tr tt r pub = 0 :=
   hL.constr r hr e he
 
@@ -80,7 +80,7 @@ theorem mem_tail {e : Expr} (h : e ∈ ([ mul3 (c hl) (n act) (Dsl.not (n hf)),
     mul3 .isTransition (Dsl.not (c act)) (n act) ] : List Expr)) : e ∈ HeadV3.constraints := by
   unfold HeadV3.constraints; exact List.mem_append_right _ h
 
-theorem isBool (hL : TableLocal HeadV3.table tr tt pub) {r : Nat} (hr : r < tr.height tt)
+theorem isBool (hL : TableLocal { HeadV3.table with maxLog := cap } tr tt pub) {r : Nat} (hr : r < tr.height tt)
     {x : Nat} (hx : x ∈ [act, hf, hl]) : tr.cell tt r x = 0 ∨ tr.cell tt r x = 1 := by
   have := con hL hr (e := Dsl.bool (c x)) (by
     unfold HeadV3.constraints
@@ -91,14 +91,14 @@ theorem isBool (hL : TableLocal HeadV3.table tr tt pub) {r : Nat} (hr : r < tr.h
 
 def isOne (tr : Trace Fp) (tt x : Nat) (r : Nat) : Bool := decide (tr.cell tt r x = 1)
 
-theorem zero_of_not_one (hL : TableLocal HeadV3.table tr tt pub) {r : Nat} (hr : r < tr.height tt)
+theorem zero_of_not_one (hL : TableLocal { HeadV3.table with maxLog := cap } tr tt pub) {r : Nat} (hr : r < tr.height tt)
     {x : Nat} (hx : x ∈ [act, hf, hl]) (h : isOne tr tt x r = false) : tr.cell tt r x = 0 := by
   rcases isBool hL hr hx with h' | h'
   · exact h'
   · simp [isOne, h'] at h
 
 section
-variable (hL : TableLocal HeadV3.table tr tt pub)
+variable (hL : TableLocal { HeadV3.table with maxLog := cap } tr tt pub)
 include hL
 
 theorem rowFacts {r : Nat} (hr : r < tr.height tt) :
@@ -187,16 +187,19 @@ theorem segFacts : SegFacts (tr.height tt) (isOne tr tt act) (isOne tr tt hf) (i
   start h0 := by simp [isOne, row0 hL h0]
   stop h0 ha := by simp only [isOne, decide_eq_true_eq] at ha ⊢; exact lastRow hL h0 ha
 
-theorem height_le : tr.height tt ≤ 2 ^ 11 := by
+theorem height_le : tr.height tt ≤ 2 ^ cap := by
   have := hL.log_le; unfold Trace.height; exact Nat.pow_le_pow_right (by omega) this
 
 /-- A head is 32 rows; `i` counts, the constants stay, the registers shift. -/
-theorem seg32 {s ℓ : Nat} (hseg : IsSeg (isOne tr tt act) (isOne tr tt hf) (isOne tr tt hl) s ℓ)
+theorem seg32 (hcap : cap ≤ 22) {s ℓ : Nat} (hseg : IsSeg (isOne tr tt act) (isOne tr tt hf) (isOne tr tt hl) s ℓ)
     (hH : s + ℓ ≤ tr.height tt) :
     ℓ = 32 ∧ ∀ j, j < 32 → tr.cell tt (s + j) act = 1 ∧ tr.cell tt (s + j) i = ((j : Nat) : Fp) ∧
       (∀ x ∈ headConst, tr.cell tt (s + j) x = tr.cell tt s x) ∧
       tr.cell tt (s + j) (reg 0) = tr.cell tt s (reg j) := by
-  have hP : tr.height tt < P := by have := height_le hL; unfold P; omega
+  have hP : tr.height tt < P := by
+    have hsmall := Nat.le_trans (height_le hL) (Nat.pow_le_pow_right (by decide) hcap)
+    unfold P
+    omega
   have hpos := hseg.1
   have hsf : tr.cell tt s hf = 1 := by have := hseg.2.1; simpa [isOne] using this
   have hsl : tr.cell tt (s + ℓ - 1) hl = 1 := by have := hseg.2.2.1; simpa [isOne] using this
@@ -281,7 +284,7 @@ namespace ZkFormal.NearV3.HeadProof
 
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.HeadV3
 
-variable {tr : Trace Fp} {pub : List Fp} {tt : Nat}
+variable {cap : Nat} {tr : Trace Fp} {pub : List Fp} {tt : Nat}
 
 /-- First-row messages of a head on bus `b`, side `sd`. -/
 def firstMsgs (tr : Trace Fp) (tt q b : Nat) (sd : Bool) : List (List Fp) :=
@@ -317,13 +320,13 @@ theorem rowT' (q : Nat) (b : Nat) (sd : Bool) (ha : tr.cell tt q act = 1) (hf01 
     · subst hb; simp [h, ha, firstMsgs, digsMsg, hD1.symm, hD2.symm, hD3.symm, hD4.symm, hD5.symm]
     · simp [h, ha, firstMsgs, digsMsg, hb]
 
-theorem segTraffic (hL : TableLocal HeadV3.table tr tt pub) {s ℓ : Nat}
+theorem segTraffic (hL : TableLocal { HeadV3.table with maxLog := cap } tr tt pub) (hcap : cap ≤ 22) {s ℓ : Nat}
     (hseg : IsSeg (isOne tr tt act) (isOne tr tt hf) (isOne tr tt hl) s ℓ) (hH : s + ℓ ≤ tr.height tt)
     (b : Nat) (sd : Bool) :
     (List.range' s ℓ).flatMap (fun q => rowTraffic HeadV3.interactions tr tt q pub b sd) =
       firstMsgs tr tt s b sd ++
         (if b = B_DIGS ∧ sd = true then (List.range 32).map fun j => digsMsg tr tt (s + j) else []) := by
-  obtain ⟨h32, hrow⟩ := seg32 hL hseg hH
+  obtain ⟨h32, hrow⟩ := seg32 hL hcap hseg hH
   subst h32
   have hf0 : tr.cell tt s hf = 1 := by have := hseg.2.1; simpa [isOne] using this
   have hfj : ∀ j, 0 < j → j < 32 → tr.cell tt (s + j) hf = 0 := fun j h0 hj =>
@@ -367,7 +370,7 @@ namespace ZkFormal.NearV3.HeadProof
 
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.HeadV3
 
-variable {tr : Trace Fp} {pub : List Fp} {tt : Nat}
+variable {cap : Nat} {tr : Trace Fp} {pub : List Fp} {tt : Nat}
 
 theorem toFp_mid (kk : Nat) (x : Fp) : Fp.ofNat (msgId kk x.toNat) = (kk : Fp) + 16 * x := by
   unfold msgId
@@ -383,13 +386,13 @@ theorem toFp_pregs (q : Nat) :
 
 theorem o0 : Fp.ofNat 0 = 0 := rfl
 
-theorem segView (hL : TableLocal HeadV3.table tr tt pub) {s ℓ : Nat}
+theorem segView (hL : TableLocal { HeadV3.table with maxLog := cap } tr tt pub) (hcap : cap ≤ 22) {s ℓ : Nat}
     (hseg : IsSeg (isOne tr tt act) (isOne tr tt hf) (isOne tr tt hl) s ℓ) (hH : s + ℓ ≤ tr.height tt)
     (b : Nat) (sd : Bool) :
     firstMsgs tr tt s b sd ++
         (if b = B_DIGS ∧ sd = true then (List.range 32).map fun j => digsMsg tr tt (s + j) else []) =
       ((if sd then headSends [headOf tr tt (s, ℓ)] b else headRecvs [headOf tr tt (s, ℓ)] b)).map Msg.toFp := by
-  obtain ⟨-, hrow⟩ := seg32 hL hseg hH
+  obtain ⟨-, hrow⟩ := seg32 hL hcap hseg hH
   have d1 : B_DIGEST ≠ B_ROOT := by decide
   have d2 : B_DIGEST ≠ B_MIDROOT := by decide
   have d3 : B_DIGEST ≠ B_PARENT := by decide
@@ -462,8 +465,9 @@ theorem headRecvs_flat (hs : List HeadE) (b : Nat) : headRecvs hs b = hs.flatMap
   all_goals simp [map_eq_flatMap]
 
 /-- **The `headV3` view.** -/
-theorem head_view : HeadViewStmt := by
-  intro tr pub tt hL
+theorem head_view_at (cap : Nat) (hcap : cap ≤ 22) (tr : Trace Fp) (pub : List Fp) (tt : Nat)
+    (hL : TableLocal { HeadV3.table with maxLog := cap } tr tt pub) :
+    ∃ hs, HeadWf hs ∧ TableTraffic HeadV3.interactions tr tt pub (headTraffic hs) := by
   have hpos : 0 < tr.height tt := by unfold Trace.height; exact Nat.two_pow_pos _
   obtain ⟨segs, hc, hend, hall, hpad⟩ := segments_of (segFacts hL) hpos
   have hH : ∀ p ∈ segs, p.1 + p.2 ≤ tr.height tt := fun p hp => by
@@ -484,13 +488,18 @@ theorem head_view : HeadViewStmt := by
     · simp only [headOf, List.mem_map] at hx; obtain ⟨j, -, rfl⟩ := hx; exact Fp.toNat_lt _
   · simp only [headTraffic]
     rw [tableBusCount_eq, flatMap_rows_segs _ segs _ hc hend (hpadT b true),
-      flatMap_segs segs _ _ (fun p hp => (segTraffic hL (hall p hp) (hH p hp) b true).trans
-        (segView hL (hall p hp) (hH p hp) b true)), headSends_flat]
+      flatMap_segs segs _ _ (fun p hp => (segTraffic hL hcap (hall p hp) (hH p hp) b true).trans
+        (segView hL hcap (hall p hp) (hH p hp) b true)), headSends_flat]
     simp [List.map_flatMap, List.flatMap_map]
   · simp only [headTraffic]
     rw [tableBusCount_eq, flatMap_rows_segs _ segs _ hc hend (hpadT b false),
-      flatMap_segs segs _ _ (fun p hp => (segTraffic hL (hall p hp) (hH p hp) b false).trans
-        (segView hL (hall p hp) (hH p hp) b false)), headRecvs_flat]
+      flatMap_segs segs _ _ (fun p hp => (segTraffic hL hcap (hall p hp) (hH p hp) b false).trans
+        (segView hL hcap (hall p hp) (hH p hp) b false)), headRecvs_flat]
     simp [List.map_flatMap, List.flatMap_map]
+
+/-- The original cap-11 view is retained as an instance of the generalized view. -/
+theorem head_view : HeadViewStmt := by
+  intro tr pub tt hL
+  exact head_view_at HeadV3.maxLog (by decide) tr pub tt hL
 
 end ZkFormal.NearV3
