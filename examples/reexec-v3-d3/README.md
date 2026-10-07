@@ -142,12 +142,18 @@ projection lemmas. `ReadPools` proves that filtering the canonical pools is
 exactly tagged-store restriction, including missing answers, and proves the
 subpool and idempotence properties. `ReadEncoding` exposes the exact decoded
 witness shape, merged-pool permutation and size bound. All 30 copied modules
-and these helpers compile; fourteen transitive axiom guards pass in
+and these helpers compile; twenty-one transitive axiom guards pass in
 `test/AuditReadLocal.lean`.
 
-The deployed `Model` still uses the existing necessity normal form. Completing
-the migration requires closing the re-encoding control-flow simulation and
-composing it with the pool/store results to prove canonicalization completeness
-and the read-set fixed point, followed by certificate and hostile `check-local`
-runs. The same-syntax
-`reads_restrict_eq` theorem alone does not prove that re-encoding property.
+`ReadReencode` proves the distinct-program control-flow simulation, including
+weakened size guards and implicit transitions. `ReadStores` proves that the
+serialized bytes implement the exact restricted store and that fixed-read-set
+serialization is idempotent. `ReadComplete.check_canonW` composes both halves:
+every valid witness normalizes to accepted bytes of no greater length; the
+normalizer is a literal fixed point. The same-syntax `reads_restrict_eq` theorem
+alone is not used as a substitute for re-encoding congruence.
+
+The deployed `Model` still uses the existing necessity normal form. Wiring the
+new proved path into the Model/prover/certificate and running hostile
+`check-local` remain. This is reference re-execution hardening, not a succinct
+state-transition proof.

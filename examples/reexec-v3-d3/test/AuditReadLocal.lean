@@ -3,6 +3,7 @@ import ReexecV3D3.ReadControl
 import ReexecV3D3.ReadCanon
 import ReexecV3D3.ReadPools
 import ReexecV3D3.ReadEncoding
+import ReexecV3D3.ReadComplete
 
 /-! Transitive axiom audit for the stack-safe read-logging checker.
 Run from source/verifier after checking the candidate modules, with
@@ -64,3 +65,31 @@ The guarded messages make any change to the transitive axiom sets fail this audi
 /-- info: 'ReexecV3D3.Read.encP_decoded' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ReexecV3D3.Read.encP_decoded
+
+/-- info: 'ReexecV3D3.Read.storesOf_encodeReads' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ReexecV3D3.Read.storesOf_encodeReads
+
+/-- info: 'ReexecV3D3.Read.encodeReads_idempotent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ReexecV3D3.Read.encodeReads_idempotent
+
+/-- info: 'ReexecV3D3.Read.check_canonW_of_refines' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ReexecV3D3.Read.check_canonW_of_refines
+
+/-- info: 'ReexecV3D3.Read.checkD2CoreL_reencode' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ReexecV3D3.Read.checkD2CoreL_reencode
+
+/-- info: 'ReexecV3D3.Read.canonW_refines' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ReexecV3D3.Read.canonW_refines
+
+/-- info: 'ReexecV3D3.Read.check_canonW' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ReexecV3D3.Read.check_canonW
+
+/-- info: 'ReexecV3D3.Read.canonW_idempotent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ReexecV3D3.Read.canonW_idempotent
