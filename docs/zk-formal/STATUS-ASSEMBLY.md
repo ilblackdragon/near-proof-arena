@@ -702,3 +702,11 @@ payload+1 ≤ 2^22 from B0=2,000,000, with no node-dedup or new capacity premise
 Thus shared-node union is unnecessary for **pre-node row capacity**. Original
 blob provenance/normalized serialized cost remain distinct. Final write views,
 post-query shadows, and full NodeWf3/traffic are still open. Five axiom guards.
+
+`OccurrenceAddress` adds an executable path-sensitive locator tracking node ID,
+value offset and depth through extension/branch steps. Its checked segment lemma
+preserves the actual global record allocation; the record theorem returns the
+exact record and reconstructed subtree. Equal structural subtrees at different
+paths retain distinct addresses (three executable regressions). This avoids the
+unsound global assumption that occurrence IDs factor through `PTrie` equality.
+Actual upsert path extraction into this locator remains to be composed.
