@@ -1,0 +1,676 @@
+{
+  "status": "PASS",
+  "source_head_before_checkpoint": "d576f2f96e7c923a9ddc163d901b1f8009b0372b",
+  "build_jobs": 1859,
+  "audits": [
+    {
+      "file": "test/AuditBranchSideAllocation.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditDedupPhysicalExtract.lean",
+      "exit_code": 0,
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditDedupReceiptLengths.lean",
+      "exit_code": 0,
+      "axiom_guards": 10,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditEncodedKindTypes.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditFieldEnd.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeByteFamily.lean",
+      "exit_code": 0,
+      "axiom_guards": 4,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeChildId.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeInstanceOk.lean",
+      "exit_code": 0,
+      "axiom_guards": 4,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeKeyEdge.lean",
+      "exit_code": 0,
+      "axiom_guards": 7,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeMemoryAllocation.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeMemoryFamily.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativePartEncoding.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativePartPlan.lean",
+      "exit_code": 0,
+      "axiom_guards": 4,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativePlanMemory.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeUpperMemory.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeValueEdge.lean",
+      "exit_code": 0,
+      "axiom_guards": 6,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeWalkBitmap.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeWalkConstruction.lean",
+      "exit_code": 0,
+      "axiom_guards": 6,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeWalkMismatch.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeWindowCount.lean",
+      "exit_code": 0,
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNodeWalkEdges.lean",
+      "exit_code": 0,
+      "axiom_guards": 9,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditPositionedPart.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditPostShadows.lean",
+      "exit_code": 0,
+      "axiom_guards": 19,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueryWitness.lean",
+      "exit_code": 0,
+      "axiom_guards": 15,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueCapacity.lean",
+      "exit_code": 0,
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueCounterClass.lean",
+      "exit_code": 0,
+      "axiom_guards": 7,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueGlobalBalance.lean",
+      "exit_code": 0,
+      "axiom_guards": 9,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueLocation.lean",
+      "exit_code": 0,
+      "axiom_guards": 4,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueuePhysicalBalance.lean",
+      "exit_code": 0,
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueProviderModes.lean",
+      "exit_code": 0,
+      "axiom_guards": 5,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueProviders.lean",
+      "exit_code": 0,
+      "axiom_guards": 34,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueRankOwnership.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueRanks.lean",
+      "exit_code": 0,
+      "axiom_guards": 6,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueRender.lean",
+      "exit_code": 0,
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueSeed.lean",
+      "exit_code": 0,
+      "axiom_guards": 8,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueShardBalance.lean",
+      "exit_code": 0,
+      "axiom_guards": 10,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueShardPayload.lean",
+      "exit_code": 0,
+      "axiom_guards": 4,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueUsers.lean",
+      "exit_code": 0,
+      "axiom_guards": 7,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueValueBytes.lean",
+      "exit_code": 0,
+      "axiom_guards": 10,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQueueWalk.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditQvWalkExtraction.lean",
+      "exit_code": 0,
+      "axiom_guards": 24,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptArithmetic.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptBalance.lean",
+      "exit_code": 0,
+      "axiom_guards": 20,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptBodyOffsets.lean",
+      "exit_code": 0,
+      "axiom_guards": 13,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptBytesView.lean",
+      "exit_code": 0,
+      "axiom_guards": 13,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptCanon.lean",
+      "exit_code": 0,
+      "axiom_guards": 8,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptChainBytes.lean",
+      "exit_code": 0,
+      "axiom_guards": 6,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptEncodedOffsets.lean",
+      "exit_code": 0,
+      "axiom_guards": 10,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptEquality.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptGas.lean",
+      "exit_code": 0,
+      "axiom_guards": 15,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptGlobalCounts.lean",
+      "exit_code": 0,
+      "axiom_guards": 10,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptHeaderBytes.lean",
+      "exit_code": 0,
+      "axiom_guards": 7,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptIds.lean",
+      "exit_code": 0,
+      "axiom_guards": 10,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptIndexedWf.lean",
+      "exit_code": 0,
+      "axiom_guards": 6,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptListCounts.lean",
+      "exit_code": 0,
+      "axiom_guards": 9,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptListExtraction.lean",
+      "exit_code": 0,
+      "axiom_guards": 19,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptListIndices.lean",
+      "exit_code": 0,
+      "axiom_guards": 13,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptListTerminal.lean",
+      "exit_code": 0,
+      "axiom_guards": 5,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptPrevious.lean",
+      "exit_code": 0,
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptRcl.lean",
+      "exit_code": 0,
+      "axiom_guards": 8,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptRoutePrefix.lean",
+      "exit_code": 0,
+      "axiom_guards": 14,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptSystem.lean",
+      "exit_code": 0,
+      "axiom_guards": 9,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptTokenCarry.lean",
+      "exit_code": 0,
+      "axiom_guards": 10,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptTokenSequence.lean",
+      "exit_code": 0,
+      "axiom_guards": 17,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptWellformed.lean",
+      "exit_code": 0,
+      "axiom_guards": 13,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditReadUnfoldBound.lean",
+      "exit_code": 0,
+      "axiom_guards": 12,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditSignedInstance.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditSourceDepthAllocation.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditSourceLevelAllocation.lean",
+      "exit_code": 0,
+      "axiom_guards": 4,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTransitionQueries.lean",
+      "exit_code": 0,
+      "axiom_guards": 8,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeChildLookup.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeOutputChain.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeOutputLinks.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeRootAndBytes.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeSourceChain.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeTerminalEnd.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeValueTerminal.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeWalkShape.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditUnfoldStoreEq.lean",
+      "exit_code": 0,
+      "axiom_guards": 10,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditValueIndex.lean",
+      "exit_code": 0,
+      "axiom_guards": 8,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/QvCombinedCandidate.lean",
+      "exit_code": 0,
+      "axiom_guards": 197,
+      "behavior_guards": 15,
+      "theorem_examples": 0
+    }
+  ],
+  "axiom_guards": 752,
+  "behavior_guards": 15,
+  "external_logs": "/data/illia/nearproof-deps/validation/v3-queue-extraction-20261007",
+  "scope": "Integrated committed components and selected audits only; no end-to-end certificate.",
+  "advances": [
+    "Arbitrary accepted queue walk extraction: metadata, bytes, tags, segment transitions and exact termination.",
+    "Physical QSH balance and VBYTES inclusion in seeded values.",
+    "Native value and absent-key terminal edge membership from byte-preserving source annotations.",
+    "Global receipt token run and bytewise final burnt binding; public count/body alias regressions retained."
+  ],
+  "remaining": [
+    "Global indexed queue ordering, canonical traffic and parser/provider sound extraction",
+    "All authenticated update edges and global ID allocation",
+    "Receipt public natural count/body range binding and complete traffic",
+    "Whole honest trace capacity, AIR-to-Good and correctness certificate",
+    "Reference lean4lean failure and protocol admission",
+    "Succinct prover, real judge validation, broader NEAR coverage"
+  ],
+  "checked_file_sha256": {
+    "zk-formal/ZkFormal/V3/Integration.lean": "0d0755cb4b51a9499ac95d7bae763ebc551f63aedd8397958acd808f9f205349",
+    "zk-formal/test/AuditBranchSideAllocation.lean": "0902394b39ef84f88a467f89c0c25990716c152a567c431470220743b7b49a37",
+    "zk-formal/test/AuditDedupPhysicalExtract.lean": "d79480a3860111950c1f13897b4066f031aedcc89e66e97496dddbf5f07e11d1",
+    "zk-formal/test/AuditDedupReceiptLengths.lean": "15e9b5fed04c03e79d7cea219d08309ae31c56dd4f5823dfc0ddb35b429c544f",
+    "zk-formal/test/AuditEncodedKindTypes.lean": "6e3a22f2e8f6ca190f25479ab252bf516b59344cd027695f6d3a8478c2a939e2",
+    "zk-formal/test/AuditFieldEnd.lean": "8d2c8a29c9710cc1a4a2ce7d46081acd2f75cff310a2a46ff525d1f3b226aee8",
+    "zk-formal/test/AuditNativeByteFamily.lean": "eb4ab01828dec3095724dff38b7fa1f0437799326895e971634c7f057ec49364",
+    "zk-formal/test/AuditNativeChildId.lean": "e702326bc857a6a4cd8d87a9142cf613c98a2734ad81eed07dc817dee6bd7322",
+    "zk-formal/test/AuditNativeInstanceOk.lean": "778c7a925728b90aa569313e09f7a7d46314692585c8a7e15925c925d1947cd2",
+    "zk-formal/test/AuditNativeKeyEdge.lean": "fa370d74d7f5ac943a948f3b9f1d93a32763fd4a71f0e99537ac87a1d3a218ea",
+    "zk-formal/test/AuditNativeMemoryAllocation.lean": "3e52cdde7ea94495879fbbd028b65706c80c8715cfed61dd640fe24e9cb5f88c",
+    "zk-formal/test/AuditNativeMemoryFamily.lean": "c45d6d756924103afedfaa919345c56c76fff87b723d4135b47c19d2f988b4d4",
+    "zk-formal/test/AuditNativePartEncoding.lean": "b1802494884bb607e7137918671263789085d7b66e59afa8dfd36bf5df115e96",
+    "zk-formal/test/AuditNativePartPlan.lean": "925dd6f85f663814f769ed7eae14ef8edf13518d472c529a5bf18dd46c27b057",
+    "zk-formal/test/AuditNativePlanMemory.lean": "295887492e74b3629d171ed3c7d3220e787ca8471abc8bbf8265f1c11bda111a",
+    "zk-formal/test/AuditNativeUpperMemory.lean": "a879b93c80601ca8d5f6de59f8550f379688e360ac4da47215bdd2365aa1ea9f",
+    "zk-formal/test/AuditNativeValueEdge.lean": "536565a794014c403a084799d5e811f772054e310771c45063a126c3ef04835b",
+    "zk-formal/test/AuditNativeWalkBitmap.lean": "c3273598c90dc74c6cf9b510bf9afbb85cb6c03611838bd8574d574b34e276fd",
+    "zk-formal/test/AuditNativeWalkConstruction.lean": "60a1ac7a4fe3fe165c6eac73ccb5741bc470b26f9c12cbc4bce227530b1aec53",
+    "zk-formal/test/AuditNativeWalkMismatch.lean": "081367de6fdf7eed3fe3c3d4a6d9f47343e811f9be0c7177f60fc2f553ba6f43",
+    "zk-formal/test/AuditNativeWindowCount.lean": "3c344cf7ae7138edd81362dcbf498d7ffde4d33cc6b0075f6932c7999fbe1a24",
+    "zk-formal/test/AuditNodeWalkEdges.lean": "576f7767168f0dcaaddae3416397a3886bf6f7bb8ab5dcef450ee35ae8d5b565",
+    "zk-formal/test/AuditPositionedPart.lean": "dfdc29a75608794cb80f99deaa76939fafa1eb3de95178bdbe637b26e3d38110",
+    "zk-formal/test/AuditPostShadows.lean": "979ed543efe7c4c0ce9df78b62711cbadf5aff27aff8c0e826a40ac0d8fde4d3",
+    "zk-formal/test/AuditQueryWitness.lean": "a978accbed51693649985a586b57aadef5ab308442db45af9a4694a3069dae9e",
+    "zk-formal/test/AuditQueueCapacity.lean": "35eb3c160a612874c64d048d7ea29838cbfc899e914a697c776edbe9e50d7827",
+    "zk-formal/test/AuditQueueCounterClass.lean": "08e9e623b905090c3f840e689e63aa0d8eae36a341694f0947477d4a7e6ae731",
+    "zk-formal/test/AuditQueueGlobalBalance.lean": "c2907410b7199d53fb6b07ae76be0a6dab851cb1df9392a8cd6828a3715eaed2",
+    "zk-formal/test/AuditQueueLocation.lean": "d5377524d921227758b7c5275d3be04bcb1a4dde481cbfb91aa32b2ffd1f473c",
+    "zk-formal/test/AuditQueuePhysicalBalance.lean": "5da92eef5e1ae0eaf06d07bbd91c2b640fccf84a5f939a04dfdd633a51c6edf2",
+    "zk-formal/test/AuditQueueProviderModes.lean": "964d85cd3a0118cc44bb0b206b95d51a3036bf4c5c7f8177e284e939fc926be0",
+    "zk-formal/test/AuditQueueProviders.lean": "1f7a942b512192088d1c066044dc8530c64bfc6f4baa18b96252d0c750573ee7",
+    "zk-formal/test/AuditQueueRankOwnership.lean": "2173b1ede777b29d4a9c73c8d685aefdad628a43040c1144b4b5bf9720fcb172",
+    "zk-formal/test/AuditQueueRanks.lean": "5a2384ad16840a930bfe21f73d4e40972ecb422dfcd204067c50bb6954bd73f1",
+    "zk-formal/test/AuditQueueRender.lean": "3fa43924775af8f7be53b8b400f61db05b01b01ac24bbf74411f98b9c17a659e",
+    "zk-formal/test/AuditQueueSeed.lean": "ab973f147566ecce828079f074dd52e13fc73a70c0e626b1cb99a24493ac5859",
+    "zk-formal/test/AuditQueueShardBalance.lean": "06f52e9aa26c6827939159234a351456537aa0b185637f35884c1e8f416c41cc",
+    "zk-formal/test/AuditQueueShardPayload.lean": "40cf128673338420cbd305b0b73cf93026ee57c6f98f223036bb953b1a53b410",
+    "zk-formal/test/AuditQueueUsers.lean": "2827bdb471ed7d0b61c811741f7e8a9f19fddea5e83b00f78a08f27cedf45e74",
+    "zk-formal/test/AuditQueueValueBytes.lean": "1063de38abc051bdcdc2bd4cd17c7ba317ab0f339943287932017045bf84efd1",
+    "zk-formal/test/AuditQueueWalk.lean": "17fef49c57373716dafe2749aed81df3bc911b09339051e6edbc63f7a960dd38",
+    "zk-formal/test/AuditQvWalkExtraction.lean": "e11dfdf1b5c17036274d06e2dcfdf5f2fc5a20e4a861cbb1d6d8622546f47a1e",
+    "zk-formal/test/AuditRcptArithmetic.lean": "bbdd27ac9abbc74bf4a0346e5c815e8ead4b09c65de4b0eca25444dae1e1edf8",
+    "zk-formal/test/AuditRcptBalance.lean": "a826abe7ae029b681336d60e38bc427bc1f3022670d618ea01e9155d1d63850c",
+    "zk-formal/test/AuditRcptBodyOffsets.lean": "e1cf3dd892c558c2feb7fcf809bc201f6f7b283dfe6d1b2ae3f74832e67b0e8b",
+    "zk-formal/test/AuditRcptBytesView.lean": "da60290a1842a3f47bcf507129d11fd5a57019f4f5244681bd823806ec20417d",
+    "zk-formal/test/AuditRcptCanon.lean": "af8c2e7d33c4f787637768d1bcf10b7a7b7926d633e7fbea3cc3179b28851797",
+    "zk-formal/test/AuditRcptChainBytes.lean": "97e96bba83e8fa5d9da36074d79eaf843c91322802c6828921732a359903f257",
+    "zk-formal/test/AuditRcptEncodedOffsets.lean": "7b8e990a62dcd6c54f991d73dbfa0c82f043dfca7d9c7bc215f2f186a800b7b1",
+    "zk-formal/test/AuditRcptEquality.lean": "aaa51e853b64265bbfb446acf91b684632faedc25c2c3ca73492952001707114",
+    "zk-formal/test/AuditRcptGas.lean": "7477b4dbdde5c77d9cb9b72996e15573eee4c81cf40c6b8414cb873064c7868f",
+    "zk-formal/test/AuditRcptGlobalCounts.lean": "84579304758ee5f6a71c8a7e398ebc98ab8b963ce39efe98972e5e7b971d1a50",
+    "zk-formal/test/AuditRcptHeaderBytes.lean": "5a8564209cfc185308209fe34166712c0249ed512ceacf6c4233b4da7c9322ba",
+    "zk-formal/test/AuditRcptIds.lean": "daae5c706f1a12efb7f55f9c71085da991b64d4f7b37149454a50af222cad676",
+    "zk-formal/test/AuditRcptIndexedWf.lean": "94c9d6daf8675803c461ede56cd0963f3d4d9145202edd3202c11fe80adf40f9",
+    "zk-formal/test/AuditRcptListCounts.lean": "b3187fef60aa22819937572f840be945418ca1f4e047113f0feb0d676bd617e0",
+    "zk-formal/test/AuditRcptListExtraction.lean": "372de2b828acb9a0b920bfe8693fb40649362e97c522aca3b9b306b89c369101",
+    "zk-formal/test/AuditRcptListIndices.lean": "ff1f0a5630064f0b9eb378b0303e7f3e510ae15745f45582a18a0a2e04970876",
+    "zk-formal/test/AuditRcptListTerminal.lean": "b102124c00a28810ede50dc96209ae041c51114b763ccd1f7c5c0ab164d0bc3e",
+    "zk-formal/test/AuditRcptPrevious.lean": "f493549ce28ec705c8d78fdf815a0fb3d2c18045e185060ba869bc28df36e60c",
+    "zk-formal/test/AuditRcptRcl.lean": "06ae2240ae9bda595f68437f66a862d5cfb68004664cac869afae2d1aa16c33a",
+    "zk-formal/test/AuditRcptRoutePrefix.lean": "a11ef61240c3fe00f4f63fc601bfc3d8d985e72005a6c90e013248aaa286ed58",
+    "zk-formal/test/AuditRcptSystem.lean": "57be18fea7c2bf728333708899e401d8fcf6b7caf0a13a4d37e274c8e32e836e",
+    "zk-formal/test/AuditRcptTokenCarry.lean": "b822c3f93523befc2485d4fb61551a9a190896d3546aa649cd1aef4ad294714f",
+    "zk-formal/test/AuditRcptTokenSequence.lean": "dc2db8b6328d3f979debf9c410c9ea501ab0a9fd51d51e3bcd298a6a8620cd9c",
+    "zk-formal/test/AuditRcptWellformed.lean": "684d6ffd10143213a6f5938a5ec6aaa0dee75b851f5c354f7c19da388e88f0b6",
+    "zk-formal/test/AuditReadUnfoldBound.lean": "97ffa6c0a57627161373b5e45191955dafa64fe70838e6ba34f988e9711fcec2",
+    "zk-formal/test/AuditSignedInstance.lean": "45a4903405a8a770d0ea6c091374d44a9281452f370c3ef8a21e9903b66a2c9c",
+    "zk-formal/test/AuditSourceDepthAllocation.lean": "b27bf3aac20d926f48647cee113fb9ff13495100a648e1cfca3cc201eedf39d0",
+    "zk-formal/test/AuditSourceLevelAllocation.lean": "522ebbb719c552f9d90655504d64aea1a25f37579e903c218d77d74f75fd9f21",
+    "zk-formal/test/AuditTransitionQueries.lean": "6a33acdd2c9b3b6583138429e42bae05977098b49aeac3fe7f008ff6508015d9",
+    "zk-formal/test/AuditTreeChildLookup.lean": "7801538dec4c1f495551da3f559c83f1e0de3dde11a7b59ee4ebb69ca8083c5e",
+    "zk-formal/test/AuditTreeOutputChain.lean": "5e0b59e11651bf61fe3d22c54aa7544317f23acbdfc5f60b2d29d55b4ab4a7d8",
+    "zk-formal/test/AuditTreeOutputLinks.lean": "9ec552e3623e8bb92287681f6963a6e68687c39a6266e4d01109180e6a408576",
+    "zk-formal/test/AuditTreeRootAndBytes.lean": "e521a58661a69583b0f2da3cb1790d643cbf170adec248b3cfec18734cdd2c45",
+    "zk-formal/test/AuditTreeSourceChain.lean": "47e0738e58110ad634542c6b3e5d6e5ea0899c59cdd76577e9d9cdfdd1055308",
+    "zk-formal/test/AuditTreeTerminalEnd.lean": "19a9ab97bff8204adfa23b46edf2aec7069f5d94c23108909f35def63240c7b4",
+    "zk-formal/test/AuditTreeValueTerminal.lean": "04ed3e5659fa0b7e7de7329173933cd5424be4bd0c134afa3ada9b977633d73e",
+    "zk-formal/test/AuditTreeWalkShape.lean": "190cdced770b49b780e04fb9ff517e0abf94c0e046712e8223eef8c259847f3f",
+    "zk-formal/test/AuditUnfoldStoreEq.lean": "030cdef25d5526e93a896f7a38edc76dfdc9ac156729af92a55afbc63deff20c",
+    "zk-formal/test/AuditValueIndex.lean": "fb648e7e49536e77dccc303d227255646595daf43e6cf839fd2bd3b44cbfe434",
+    "zk-formal/test/QvCombinedCandidate.lean": "9ee60b140b9e6cd3f1c7a7c487f90e78e4e33999e5cde7a98f0ea7e219b4a67a"
+  }
+}
