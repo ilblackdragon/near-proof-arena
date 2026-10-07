@@ -272,3 +272,19 @@ u128 bounds from the byte parser and lifts the exact inverse through entry and
 witness vector parsing. Six permanent axiom guards pass; no canonical encoding
 or separate receipt-wf premise is assumed. Applied-receipt membership transfer
 and complete source/list metadata still remain for whole-witness assembly.
+
+## Concrete execution portion of completeness
+
+`AppliedSeeds` proves native applied receipts come from decoded dictionary
+entries, including native shuffle/fallback and last-wins selection, and thus
+inherit exact payload reconstruction. `ExecutionViews.checkD0a_execution_views`
+now constructs the forest, digest heads and applied receipt payloads and proves
+both `MainExecutionV3.Valid` and the full chronological `ImplicitRunV3` directly
+from accepted native bytes. Seven permanent `AuditExecutionViews` axiom guards
+pass; logs `/tmp/nearproof-assembly-execution-views.log` and
+`/tmp/nearproof-assembly-execution-views-guards.log` retain verification evidence.
+
+The source dictionary remains a parameter and receipts are currently grouped as
+one semantic list. Source-authenticated dictionary views, actual per-source
+receipt grouping, header comparisons, encoding/domain bounds, and AIR metadata
+must still be composed before claiming full FactorComplete or a succinct proof.
