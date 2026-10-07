@@ -36,6 +36,30 @@ theorem branch_slot_scalar (Q : UpsPartI) (n : Nat) (rest : List Nat)
   simp [pfx,slb,hb,ho,UpsRows.toNats_u32,List.getD]
   omega
 
+theorem treeRbr_slot_scalar (base Q : UpsPartI) (old : Slot) (kids : Kids)
+    (mem : Nat) (v : Bytes)
+    (he : encodeTreePart base ⟨.RBR,.branch (some old) kids mem,
+      .branch (some (.val v)) kids (mem+valueMem v.length-valueMem old.len),0⟩=some Q)
+    (hw : (PTrie.branch (some old) kids mem).wf=true) :
+    pfx (slb Q) 8=(old.len:Int) := by
+  simp [encodeTreePart,treeNode] at he
+  subst Q
+  have hold : slotOk old=true := by
+    simp only [PTrie.wf,Bool.and_eq_true,decide_eq_true_eq] at hw
+    exact hw.1.1
+  have hlen : old.len<256^4 := by cases old <;> simp_all [slotOk,Slot.len]
+  cases old with
+  | val value =>
+    apply branch_slot_scalar _ value.length
+      ((sha256 value).map UInt8.toNat ++ [kidBitmap (treeKids kids)%256,kidBitmap (treeKids kids)/256] ++
+        (treeKids kids).flatMap (NKid.bytes true) ++ (u64 mem).map UInt8.toNat) _ rfl hlen
+    simp [encodePart,NodeV3.ser,treeSlot,NSlot3.bytes,List.append_assoc]
+  | ref len hash =>
+    apply branch_slot_scalar _ len
+      (hash.map UInt8.toNat ++ [kidBitmap (treeKids kids)%256,kidBitmap (treeKids kids)/256] ++
+        (treeKids kids).flatMap (NKid.bytes true) ++ (u64 mem).map UInt8.toNat) _ rfl hlen
+    simp [encodePart,NodeV3.ser,treeSlot,NSlot3.bytes,List.append_assoc]
+
 theorem treeRbr_memory (I : UpsInst) (base Q : UpsPartI) (old : Slot) (kids : Kids)
     (mem : Nat) (v : Bytes)
     (he : encodeTreePart base ⟨.RBR,.branch (some old) kids mem,
@@ -45,24 +69,7 @@ theorem treeRbr_memory (I : UpsInst) (base Q : UpsPartI) (old : Slot) (kids : Ki
     RV I (withMemorySign I Q)=((mem+valueMem v.length-valueMem old.len:Nat):Int) := by
   have hm := encoded_source_memory_exact he hw
   have hk := encodeTreePart_kind he
-  have hs : pfx (slb Q) 8=(old.len:Int) := by
-    simp [encodeTreePart,treeNode] at he
-    subst Q
-    have hold : slotOk old=true := by
-      simp only [PTrie.wf,Bool.and_eq_true,decide_eq_true_eq] at hw
-      exact hw.1.1
-    have hlen : old.len<256^4 := by cases old <;> simp_all [slotOk,Slot.len]
-    cases old with
-    | val value =>
-      apply branch_slot_scalar _ value.length
-        ((sha256 value).map UInt8.toNat ++ [kidBitmap (treeKids kids)%256,kidBitmap (treeKids kids)/256] ++
-          (treeKids kids).flatMap (NKid.bytes true) ++ (u64 mem).map UInt8.toNat) _ rfl hlen
-      simp [encodePart,NodeV3.ser,treeSlot,NSlot3.bytes,List.append_assoc]
-    | ref len hash =>
-      apply branch_slot_scalar _ len
-        (hash.map UInt8.toNat ++ [kidBitmap (treeKids kids)%256,kidBitmap (treeKids kids)/256] ++
-          (treeKids kids).flatMap (NKid.bytes true) ++ (u64 mem).map UInt8.toNat) _ rfl hlen
-      simp [encodePart,NodeV3.ser,treeSlot,NSlot3.bytes,List.append_assoc]
+  have hs := treeRbr_slot_scalar base Q old kids mem v he hw
   rw [rbr_memory_scalar I Q hL hk mem old.len hm hs]
   simp only [valueMem,L,hv,List.length_map]
   omega
