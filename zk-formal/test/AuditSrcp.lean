@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Rcpt.Render.Srcp.Windows
+import ZkFormal.NearV3.Rcpt.Render.Srcp.Adjacency
 import ZkFormal.NearV3.Rcpt.Extract.Srcp.Proof
 import ZkFormal.NearV3.Rcpt.Link.SourceHash
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
@@ -212,3 +212,19 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.Render.SrcpGen.path_shift' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.SrcpGen.path_shift
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.firstAt' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.firstAt
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.lastAt' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.lastAt
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.kinds_adj' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.kinds_adj
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.adjAt' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.adjAt
