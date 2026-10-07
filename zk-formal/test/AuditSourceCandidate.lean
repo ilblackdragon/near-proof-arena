@@ -1,3 +1,5 @@
+import ZkFormal.NearV3.Rcpt.Candidates.RawWitnessBudget
+import ZkFormal.NearV3.Rcpt.Candidates.SourceCount
 import ZkFormal.NearV3.Rcpt.Candidates.SourceSizeCheck
 import ZkFormal.NearV3.Rcpt.Candidates.SourceEncodingBudget
 
@@ -60,3 +62,41 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceEncodingBudget
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.selected_path_budget' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.selected_path_budget
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.pReceipt_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.pReceipt_le
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.pChunkInner_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.pChunkInner_le
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.pPathItem_consumption' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.pPathItem_consumption
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.pEntries_cost' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.pEntries_cost
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.decodeStateWitness_path_bytes' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.decodeStateWitness_path_bytes
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.relD0a_selected_path_budget' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.relD0a_selected_path_budget
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.selectedSources_count' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.selectedSources_count
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.sourceBlock_count' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.sourceBlock_count
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.usedProofs_count' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.usedProofs_count

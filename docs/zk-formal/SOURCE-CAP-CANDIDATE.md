@@ -9,9 +9,10 @@ no active table cap, frozen parameter, domain condition or admission theorem is 
 
 Each decoded path item consumes a 32-byte sibling and one direction byte. Thus a witness
 can contain at most `floor(8,388,608 / 33) = 254,200` distinct encoded path items. This
-ignores all other serialization overhead and is deliberately conservative. The proof
-obligation that all decoded path bytes are charged to the actual witness is separate
-from the checked arithmetic module. Likewise, `1984 = 31*64` uses the existing source
+ignores all other serialization overhead and is deliberately conservative. `RawWitnessBudget.relD0a_selected_path_budget` now proves this directly from successful
+unchanged `RelD0a`: actual parser consumption charges 33 raw bytes per path item and
+last-wins computational selection is a sublist. No re-encoding-coverage premise is needed.
+Likewise, `1984 = 31*64` uses the existing source
 occurrence envelope and still needs its successful-preprocessing derivation.
 
 `lookupLast` can select one encoded proof at many source occurrences. A2 and distinct
@@ -75,5 +76,5 @@ The small g2 margin makes unmeasured additions material. Existing frozen proof-s
 claims remain about their original shapes and parameters.
 
 Checked candidate modules: `Rcpt/Candidates/SourceBudget.lean`, `SourceSize.lean`,
-`SourceSizeCheck.lean`. The existing complete source renderer is
+`SourceSizeCheck.lean`, `RawWitnessBudget.lean`, and `SourceCount.lean`. The existing complete source renderer is
 `Rcpt/Render/Srcp/ProofComplete.lean`; its row-budget premise remains explicit.
