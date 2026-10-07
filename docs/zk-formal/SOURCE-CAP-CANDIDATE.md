@@ -682,3 +682,13 @@ AccountId grammar lemmas are reused. Ten exact axiom guards pass. V3 predecessor
 `system` equivalence is deliberately separate and remains open, as do the other
 arithmetic/routing Wf fields. No byte, string-length, or account-validity premise
 was added to `ids_of` or `named_of`.
+
+`SystemFlag`, `SmallSquares`, `SystemString`, and `ReceiptSystem` close the
+V3-specific predecessor/system equivalence. `system_of` proves the exact
+`RcptE.Wf.sysIff` field from only actual TableLocal and Layout. The flag forces
+length six; the six squared byte distances sum to at most 196,608, strictly
+below BabyBear, so the accumulator's field zero implies bytewise native system
+string equality. The converse uses the actual inverse constraint. Nine exact
+axiom guards pass. No V1 non-system restriction or new account-domain premise
+is assumed. Other system/refund arithmetic and equality/routing Wf fields remain
+open.
