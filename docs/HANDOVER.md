@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root ParserBytes CHECKED at AIR7866a748: original parser VBYTES row traffic,
+record gb=1 iff logical length nonzero (handles raw empty markers), combined
+physical byte tuple exact [startvid,row−start,byte], and exact per-record ordered
+message list, both sides. Target191jobs+4 exact standard-axiom guards PASS;
+/tmp/nearproof-qv-parser-bytes.log and
+/tmp/nearproof-qv-parser-bytes-audit-checked.log. Byte values are NOT yet proven
+byte-ranged/authenticated by this local theorem. Next aggregate whole-table
+VBYTES and link to ValV3 authenticated values, then word/phase semantic parser.
+Integrated D252e7e335 as286e46d1 and upsfe6bdf3b asaa4ed24c. Off-path ext[]→hash
+case below now handled by occurrenceResolvedId := viewTarget(recordId t)t;
+no frozen runtime/spec/domain changes. forest_terminal_safe constructs actual
+global terminal provider with source/value/resolved IDs, no ID-agreement premise.
+SeedProperEdges retains selected-child occurrence agreement for prefix work.
+Target624jobs +7 standard-axiom prints + offpath regressions +2 exactguards PASS;
+/tmp/nearproof-forest-safe-integrated.log,
+/tmp/nearproof-occurrence-resolved-integrated-audit.log,
+/tmp/nearproof-offpath-integrated-regression.log,
+/tmp/nearproof-{forest-safe,seed-proper}-integrated-audit.log.
+Receiptf06b1798 pure keyMsgs marker/concat/nibble helper (3guards); actual KEYNIB
+channel remains open. No root live process. Whole aggregate b7002160 predates
+recent work. Full end-to-end soundness/certificate/reference checker/admission,
+prover/real judge and general NEAR replacement remain incomplete.
+
+
 Root ParserModes CHECKED at AIRac942142: active parser modes exactly one-hot;
 QVC field tag iff selected empty/buffer/raw mode; gb=act−vz; structured modes
 force real byte gate1 and vz0; first-row entry/header/firstIndex/selector reset.
