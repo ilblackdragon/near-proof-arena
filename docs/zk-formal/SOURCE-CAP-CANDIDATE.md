@@ -806,3 +806,9 @@ all extracted lists, then uses the active cEnd equations to bind both public
 field totals. Four exact axiom guards pass. Natural equality intentionally
 remains separate: extracted bounds and real Prep/public range binding are
 required to rule out the retained cast-alias counterexamples.
+
+`TotalBounds` derives both extracted natural totals below BabyBear P from the
+unchanged physical 2^22 height cap. The actual signer grammar bounds signer
+length by 64, so each enabled refund is shorter than its receipt layout; the
+eight-byte body prefix still leaves ample characteristic slack. Three exact
+axiom guards pass. No extra layout, receipt, or native-domain bound is assumed.
