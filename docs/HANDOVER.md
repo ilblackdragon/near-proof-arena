@@ -7,6 +7,44 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+**Newest shared checkpoint: AIR `96944b6b`, 1,403 jobs PASS.** Full-u32
+Node/Ups header repair and width200 carry arithmetic are merged and integrated.
+Twelve merged audits pass:86 axiom guards,38 behavior guards, plus theorem
+regressions for header aliasing and long-key carry truncation. Evidence:
+`docs/e2e-results/v3-full-header-integration/report.json` in the AIR worktree.
+V3Synth/V3Eval/AlignedModel now match the actual wider table; source candidate
+`03f6fcce` kernel-checks wired/reserved8,359,074 bytes, leaving29,534 under8MiB.
+This model still reserves unimplemented queue orchestration and is not admitted.
+
+Queue `a90ccba7` proves all local constraints of complete concatenated executable
+records, including boundaries/padding/physical wrap. Latest isolated `e12078bb`
+adds the actual field TableLocal interface, exact byte traffic concatenation,
+and exact rows=bytes+empty-value-markers. Record audit16 axioms+6 behavior guards;
+standalone audit28 axioms+22 behavior guards. Global field traffic, read
+orchestration, sound extraction and actual accepted-witness capacity remain open.
+
+Native factoring now has exact decoded-witness/store nonexpansion, globally
+allocated forest stores, native ID capacity, actual chronological execution,
+and concrete main/implicit execution views (`602a1513`, merged AIR `efb0e186`).
+These additions after the1,403 checkpoint have focused audits, not a newer
+aggregate. Source dictionary mapping preserves unused fillers. Whole GoodV3
+construction/FactorComplete remains open.
+
+Upsert runtime assembly is active in additive modules. Actual partialTrie input
+bounds emitted parts≤403; encoding totality, runtime metadata and initial
+per-kind dispatch are proved. `f91d292c` (merged AIR `987aeb48`) fixes an overly
+strong MemOk convenience premise to native modulo2^64 semantics; a checked
+native overflow fixture shows exact output memory2^64+103 but serialized103.
+This is a native upsert fixture, not a whole-checkD0a witness. Core carry/MEMD
+constraints already support overflow. Full native trace/window/traffic remains
+open. Source agent is composing logical and physical partition TableLocal.
+
+All older checkpoints below are superseded where this update differs. Final
+succinct prover/certificate/judge and broader NEAR coverage remain unfinished;
+mandatory reference lean4lean admission still fails. Frozen parameters and caps
+remain unchanged.
+
+
 **Latest aggregate: AIR `b47ed83f`, 1,347 jobs PASS.** This includes exact
 first-match native-store normalization and its executable tree-view bridge,
 with 17 store axiom guards, two collision-order regressions, and three
