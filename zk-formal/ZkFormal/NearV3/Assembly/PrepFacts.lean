@@ -1,6 +1,7 @@
 import ZkFormal.NearV3.Sched.Pub.Prep
 import ZkFormal.NearV3.Public.Header
 import ZkFormal.V3.RefundCodec
+import ZkFormal.NearV3.Sched.Spec.Loop
 
 /-! Concrete shape facts extracted from successful native preprocessing. -/
 
@@ -133,5 +134,116 @@ theorem prepD0_roots {cb : Bytes} {hint : Hint} {p : Prep}
   unfold Public.RootsSized
   rw [hpre, hpost, hout]
   exact prepClaim_roots hc
+
+private theorem forIn_post {α β : Type} (P : β → Prop)
+    (f : α → β → Except String (ForInStep β)) :
+    ∀ (xs : List α) (b out : β), P b →
+      (∀ a ∈ xs, ∀ b step, P b → f a b = .ok step →
+        match step with | .done v => P v | .yield v => P v) →
+      forIn xs b f = .ok out → P out
+  | [], b, out, hb, _, h => by
+    simp only [List.forIn_nil, pure, Except.pure, Except.ok.injEq] at h
+    exact h ▸ hb
+  | a :: xs, b, out, hb, hf, h => by
+    rw [List.forIn_cons] at h
+    obtain ⟨step, hs, h⟩ := bind_ok h
+    have hp := hf a (by simp) b step hb hs
+    cases step with
+    | done v => cases h; exact hp
+    | yield v =>
+      exact forIn_post P f xs v out hp (fun a ha => hf a (by simp [ha])) h
+
+private theorem shuffle_roots {xs ys : List SrcList} {seed : Bytes}
+    (hx : ∀ s ∈ xs, s.root.length = 32) (h : shuffleWithSeed xs seed = some ys) :
+    ∀ s ∈ ys, s.root.length = 32 := by
+  unfold shuffleWithSeed at h
+  cases hs : shuffle xs (Rng.ofSeed seed) with
+  | none => simp [hs] at h
+  | some p =>
+    have he : p.1 = ys := by simpa [hs] using h
+    have hp := shuffle_perm hs
+    intro s hmem
+    apply hx s
+    exact hp.mem_iff.mp (he ▸ hmem)
+
+private theorem slotSources_roots (B : Blk)
+    (hb : ∀ x ∈ B.slots, x.2.prevOutgoingReceiptsRoot.length = 32)
+    {out : List SrcList}
+    (h : (forIn B.slots [] fun x acc =>
+      if x.1.heightIncluded == B.hdr.height then
+        pure (.yield (acc ++ [⟨chunkHash x.1.inner x.2.encodedMerkleRoot,
+          x.2.shardId, x.2.prevOutgoingReceiptsRoot⟩]))
+      else pure (.yield acc) : Except String (List SrcList)) = .ok out) :
+    ∀ s ∈ out, s.root.length = 32 := by
+  apply forIn_post (fun l => ∀ s ∈ l, s.root.length = 32) _ _ _ _ (by simp) ?_ h
+  intro x hx acc step ha hs
+  split at hs
+  · cases hs
+    intro s hmem
+    rcases List.mem_append.1 hmem with hm | hm
+    · exact ha s hm
+    · simpa using (List.mem_singleton.1 hm ▸ hb x hx)
+  · cases hs; exact ha
+
+private theorem sourceLists_roots {blocks : List Blk}
+    (hb : ∀ B ∈ blocks, ∀ x ∈ B.slots, x.2.prevOutgoingReceiptsRoot.length = 32)
+    {out : List SrcList}
+    (h : (forIn blocks [] fun B acc => do
+      let srcs ← forIn B.slots [] fun x srcs =>
+        if x.1.heightIncluded == B.hdr.height then
+          pure (.yield (srcs ++ [⟨chunkHash x.1.inner x.2.encodedMerkleRoot,
+            x.2.shardId, x.2.prevOutgoingReceiptsRoot⟩]))
+        else pure (.yield srcs)
+      let shuffled ← match shuffleWithSeed srcs B.hdr.prevHash with
+        | some p => pure p
+        | none => throw "invalid: shuffle fuel exhausted (probability < 2^-1024)"
+      pure (.yield (acc ++ shuffled)) : Except String (List SrcList)) = .ok out) :
+    ∀ s ∈ out, s.root.length = 32 := by
+  apply forIn_post (fun l => ∀ s ∈ l, s.root.length = 32) _ _ _ _ (by simp) ?_ h
+  intro B hB acc step ha hs
+  obtain ⟨srcs, hsrc, hs⟩ := bind_ok hs
+  have hr := slotSources_roots B (hb B hB) hsrc
+  split at hs
+  · rename_i p hp
+    obtain ⟨shuffled, he, hs⟩ := bind_ok hs
+    cases he
+    cases hs
+    intro s hmem
+    rcases List.mem_append.1 hmem with hm | hm
+    · exact ha s hm
+    · exact shuffle_roots hr hp s hm
+  · obtain ⟨_, he, _⟩ := bind_ok hs
+    cases he
+
+private theorem sourceBlocks_roots {rs : List BlockRec} {blks : List Blk}
+    (hm : rs.mapM decodeBlk = .ok blks) (start count : Nat) :
+    ∀ B ∈ (blks.drop start).take count, ∀ x ∈ B.slots,
+      x.2.prevOutgoingReceiptsRoot.length = 32 := by
+  intro B hB x hx
+  have hmem := List.mem_of_mem_drop (List.mem_of_mem_take hB)
+  obtain ⟨r, _, hd⟩ := mapM_ok _ _ _ hm B hmem
+  exact (decodeBlk_roots hd x.1 x.2 hx).2.2
+
+set_option maxHeartbeats 4000000 in
+theorem prepClaim_source_roots {cb : Bytes} {pc : PrepC} (h : prepClaim cb = .ok pc) :
+    ∀ s ∈ pc.lists, s.root.length = 32 := by
+  unfold prepClaim at h
+  repeat' (first
+    | (obtain ⟨_, _, h⟩ := bind_ok h)
+    | (split at h)
+    | (dsimp only at h))
+  all_goals try (cases h; done)
+  all_goals try (exfalso; exact throw_ne (by assumption))
+  all_goals
+    simp only [pure, Except.pure, Except.ok.injEq] at h; subst h
+    apply sourceLists_roots ?_ (by assumption)
+    exact sourceBlocks_roots (by assumption) _ _
+
+theorem prepD0_source_roots {cb : Bytes} {hint : Hint} {p : Prep}
+    (h : prepD0 cb hint = .ok p) : ∀ s ∈ p.lists, s.root.length = 32 := by
+  unfold prepD0 at h
+  obtain ⟨pc, hc, hb⟩ := bind_ok h
+  rw [(prepBody_shape hb).2.2.1]
+  exact prepClaim_source_roots hc
 
 end ZkFormal.NearV3.Assembly
