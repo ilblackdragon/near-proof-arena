@@ -1,5 +1,7 @@
 import ZkFormal.NearV3.Public.Records
 import ZkFormal.NearV3.Public.Fits
+import ZkFormal.NearV3.Public.Body
+import ZkFormal.NearV3.Public.Source
 
 open ZkFormal.NearV3.Public ZkFormal.V2 ZkFormal.Algebra
 
@@ -34,3 +36,19 @@ private def packed := ZkFormal.Udr.pubOf Fp (encode [99,98] blocks)
 /-- info: 'ZkFormal.NearV3.Public.descriptor_fits' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Public.descriptor_fits
+
+#guard (bodyPayload [0,0,0,0,1,0,0,0,255]) = [[255]]
+#guard (bodyPayload [0,0]) = []
+#guard (recordValues bodyPlan 300 [255]).map Fp.toNat = [2,308,255]
+private def sources : List NearSpecV3.SrcList :=
+  [⟨[1],0,List.replicate 32 7⟩,⟨[2],0,List.replicate 32 8⟩,⟨[1],0,List.replicate 32 7⟩]
+#guard sourceDup sources 0 = false
+#guard sourceDup sources 1 = false
+#guard sourceDup sources 2 = true
+#guard (sourcePayload sources).length = 3
+/-- info: 'ZkFormal.NearV3.Public.descriptor_body_record' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.descriptor_body_record
+/-- info: 'ZkFormal.NearV3.Public.descriptor_source_record' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.descriptor_source_record
