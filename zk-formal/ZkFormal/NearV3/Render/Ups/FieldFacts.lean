@@ -72,6 +72,32 @@ theorem fieldAt_next_boundary (sh : List (Nat × Nat)) (p : Nat)
       rw [show p + 1 - l = (p - l) + 1 by omega]
       exact ih (p - l) (by omega) he
 
+/-- Appending fields does not change the cursor before the prefix ends. -/
+theorem fieldAt_append_before (pre post : List (Nat × Nat)) (p : Nat)
+    (hp : p < fieldsLen pre) : fieldAt (pre ++ post) p = fieldAt pre p := by
+  induction pre generalizing p with
+  | nil => simp at hp
+  | cons f pre ih =>
+    obtain ⟨s,l⟩ := f
+    simp only [fieldsLen_cons] at hp
+    by_cases h : p < l
+    · simp [fieldAt,h]
+    · simp only [List.cons_append,fieldAt,h,ite_false]
+      rw [ih (p-l) (by omega)]
+
+/-- Beyond the serialization the cursor has sentinel state 9 and counts all windows. -/
+theorem fieldAt_past (sh : List (Nat × Nat)) (p : Nat) (hp : fieldsLen sh ≤ p) :
+    fieldAt sh p = (9,0,0,nWin sh) := by
+  induction sh generalizing p with
+  | nil => rfl
+  | cons f sh ih =>
+    obtain ⟨s,l⟩ := f
+    simp only [fieldsLen_cons] at hp
+    have hn : ¬ p < l := by omega
+    simp only [fieldAt,hn,ite_false]
+    rw [ih (p-l) (by omega)]
+    by_cases hs : s = 7 <;> simp [nWin,hs]
+
 /-- Passing a serialized prefix subtracts its byte length and counts its child windows. -/
 theorem fieldAt_append_after (pre post : List (Nat × Nat)) (p : Nat)
     (hp : fieldsLen pre ≤ p) :
