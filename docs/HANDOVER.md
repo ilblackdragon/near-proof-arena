@@ -7,6 +7,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root FinalAggregate now CHECKED: whole physical FINAL receives equal exactly
+one extracted lookup tuple per walk, in order; sends zero; final_counts gives
+standard tableBusCount characterization. Generic opaque last_only list lemma
+avoids prior segment elaboration growth. Target127 jobs +3 exact guards PASS;
+/tmp/nearproof-qv-final-aggregate.log and
+/tmp/nearproof-qv-final-aggregate-audit-checked.log. No root process remains.
+Next KEYNIB/QVC traffic and parser/provider soundness, exact natural tuple binding.
+D2d42ff186 original serialized blob IDs integrated; pre-node occurrence budget
+may already follow A7 per-path copies, so agent quantifies before unnecessary
+compact union design. Receipt26e09b29 now derives successful prepD0 header n≤5000
+and<P in1.2sec using selective gas/compute guard retention; public packing/body
+range next. Latest aggregate191ea6da predates these targets. End-to-end correctness,
+admission, succinct prover, real judge and general NEAR coverage remain open.
+
+
 Root FinalTraffic checked: FINAL sends empty, receives exact one lookup tuple
 only at each segment terminal; tuple metadata constant over segment, arbitrary
 accepted trace. Target126 jobs +4 exact guards PASS (/tmp/nearproof-qv-final-row.log,
