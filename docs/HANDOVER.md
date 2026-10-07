@@ -7,6 +7,32 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+**After AIR18ca4f17:** combined queue table is implemented (`1dad2d20`,
+AIR `9b5850bc`), with actual shape52/8/6/8/log22,14 interactions and local
+degree≤6. Five exact axiom guards+12 Fp fixtures pass. Parser length is overlaid
+with read mode on raw-empty walk markers; `CombinedOverlay` proves evaluation
+transport and unchanged parser-row evaluation. Actual `ReadPlan` confirms main
+group-data reads are RAW(mode2), not empty; preserve that semantics.
+`SourceCurrentSize` now reads this actual table;275-job build rechecks total
+8,359,074/margin29,534. Generic honest walk rendering/traffic, full parser
+transfer, extraction and native capacity are the next root queue tasks.
+
+Log23 candidate verifier now has schedule/compiled-query bounds (`cef7a7f0`,
+AIR `3a4b1bff`);26 guards+8 regressions pass. Source `2ad46fa4` proves arbitrary
+accepting physical partitions plus isolated carry balance reconstruct logical
+TableLocal and exactly preserve all external bus counts.24 guards+3 Fp fixtures
+pass; source agent continues logical semantic extraction.
+
+Native `e5a076b1` proves actual accepted input→prepClaim success (from decoded
+walk outputs), completing the preparation path with prior body proof;5 guards
+pass. Remaining full semantic constructor work includes reconstructed D0Shape
+and amendment preservation. Ups checked all12 constructor scalar families and
+actual value-terminal byte+memory dispatch (`fef53f5f`), but then found a real
+trace metadata bug: leaf replacement terminal matched=0 should be key.length.
+Agent is fixing this with root-leaf[0,15] regression; do not claim whole dispatch
+complete until corrected and integrated.
+
+
 **Continuation after the 1,403-job checkpoint:** queue field traffic is closed
 for generated records (`79aef84e`, AIR `8b081577`):35 exact axiom guards and six
 behavior checks. The contract covers canonical VBYTES, QVC provider pairs,
