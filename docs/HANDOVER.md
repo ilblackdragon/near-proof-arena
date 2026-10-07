@@ -7,6 +7,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root ParserCounter checked: original parser QVC both-side row traffic exact;
+constant endpoint tuple over record; exactly one message at record start on
+each side (send counter0,receive users). Combined-table record traffic equalities
+use derived parser_traffic. Target193 jobs+4 exact guards PASS;
+/tmp/nearproof-qv-parser-counter.log,/tmp/nearproof-qv-parser-counter-audit-checked.log.
+No root live process. Next aggregate suffix endpoints, combine complete QVC
+message lists, then provider chain/no-cycle linking and mode/byte semantics.
+Integrated pending D2 source provider family3ebdc6a8, coherent trace-local ID
+b8f3ce3c; ups e6ec6714 physical prefix providers+counter assignment preserving
+local InstOk. Whole global bus balance/use allocation still open. Latest full
+aggregate b7002160 predates these modules; full correctness/admission/reference
+checker/prover/judge and broad NEAR goal remain incomplete.
+
+
 Root ParserView CHECKED: parser_chain_exists from TableLocal+extracted WalkChain
 handles active/inactive/exhausted suffix and yields physical-coordinate consecutive
 records, fit, valid segments and padding. parser_chain_lengths lifts exact empty/
