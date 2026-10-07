@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.DedupTrafficProof
 import ZkFormal.NearV3.Rcpt.Candidates.DedupComputedLocal
 import ZkFormal.NearV3.Rcpt.Candidates.DedupTraffic
 import ZkFormal.NearV3.Rcpt.Candidates.DedupTable
@@ -113,3 +114,39 @@ private def checkRows (bs : List SrcpB) (repeated : Nat → Bool) (H : Nat) : Bo
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.root_messages' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.root_messages
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.nonroot_messages' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.nonroot_messages
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.block_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.block_messages
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.recs_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.recs_messages
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.active_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.active_messages
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.all_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.all_messages
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.field_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.field_messages
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.last_size_cell' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.last_size_cell
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.size_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.size_messages
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.table_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.table_traffic
