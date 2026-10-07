@@ -837,3 +837,9 @@ post-memory-width premise. This closes the Nat/byte truncation distinction for
 actual well-formed inputs, rather than introducing a per-byte assumption.
 Thirteen guards in `test/AuditUpsertShaEncoding.lean` pass (propext/Quot.sound).
 Aggregate SHA capacity and global traffic are still unfinished.
+
+`UpsertShaDigests` proves value/part/root membership in the honest SHA
+`expectedDigests` traffic. The final job's preimage is exactly the native
+upsert output root. Five guards pass (propext/Quot.sound). These are inclusion
+and endpoint theorems, not a full digest-bus balance claim; repeated consumers
+still require explicit traffic accounting.
