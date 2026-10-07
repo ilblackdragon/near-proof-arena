@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Render.Ups.GMemCurrent
+import ZkFormal.NearV3.Render.Ups.GMem
 
 /-! Guards for signed carry arithmetic and its row encoding. -/
 
@@ -65,3 +65,15 @@ import ZkFormal.NearV3.Render.Ups.GMemCurrent
 /-- info: 'ZkFormal.NearV3.Render.UpsGen.cMemCurrent_ok' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.UpsGen.cMemCurrent_ok
+
+/-- info: 'ZkFormal.NearV3.Render.UpsGen.cMemCarry_ok' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.UpsGen.cMemCarry_ok
+
+/-- info: 'ZkFormal.NearV3.Render.UpsGen.cMemLengths_ok' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.UpsGen.cMemLengths_ok
+
+/-- info: 'ZkFormal.NearV3.Render.UpsGen.cMem_ok' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.UpsGen.cMem_ok

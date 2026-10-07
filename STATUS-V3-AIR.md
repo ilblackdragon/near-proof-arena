@@ -2,6 +2,18 @@
 
 Program lead's hand-over, 2026-10-07.
 
+**Memory/source checkpoint:** all 29 `cMem` constraints are proved across the
+padded generated trace by `cMem_ok`, with explicit `FieldsOk` and `MemOk`
+inputs. All 19 memory axiom guards pass. The full source-proof extraction
+`srcp_view` now derives `SrcpWf` and exact traffic on every bus from table
+legality alone. The honest source renderer has checked capacity, register
+windows and complete descriptor traversal; local constraints/traffic remain.
+Integration passes 1,160 jobs, also covering all 62 field constraints and
+58/76 byte constraints. See `docs/e2e-results/v3-memory-complete/report.json`.
+The actual upsert construction, final assembly/prover and real judge remain
+open. The isolated clean timing diagnostic is being repaired after a missing
+toy-spec snapshot dependency; it is not an admission result.
+
 **Field/memory checkpoint:** all 62 `cFields` constraints are now proved by
 `cFields_ok`, from explicit canonical serialization and window semantics.
 `cMemCurrent_ok` closes all nine current-row memory equations across the full

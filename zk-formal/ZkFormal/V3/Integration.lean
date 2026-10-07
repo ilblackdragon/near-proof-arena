@@ -1,4 +1,5 @@
-import ZkFormal.NearV3.Rcpt.Extract.Srcp.PathRun
+import ZkFormal.NearV3.Rcpt.Render.Srcp.Adjacency
+import ZkFormal.NearV3.Rcpt.Extract.Srcp.Proof
 import ZkFormal.NearV3.Rcpt.Link.SourceHash
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 import ZkFormal

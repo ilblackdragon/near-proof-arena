@@ -1,0 +1,36 @@
+{
+  "status": "pass",
+  "milestone": "All 29 update-memory constraints and full source-proof view",
+  "integration_jobs": 1160,
+  "memory_target_jobs": 116,
+  "memory_guards": 19,
+  "field_constraints": 62,
+  "memory_constraints": 29,
+  "byte_constraints": 58,
+  "receipt_commit": "d125d268",
+  "byte_commit": "223addff",
+  "explicit_inputs": [
+    "UpsOk structural/instance conditions",
+    "FieldsOk canonical serialization",
+    "MemOk carry ranges and serialized memory-result bytes"
+  ],
+  "remaining": [
+    "remaining 18 cBytes constraints",
+    "construct all semantic inputs from real updates",
+    "honest source renderer local legality and traffic",
+    "source SHA bus discharge",
+    "final AIR, prover, size certificate and real judge"
+  ],
+  "limits": "Incremental integration; no final validator replacement or clean judge-budget claim. Isolated clean timing initially failed on missing toy-spec snapshot dependency.",
+  "archive": "/data/illia/nearproof-deps/validation/v3-memory-complete-20261007",
+  "source_sha256": {
+    "zk-formal/ZkFormal/NearV3/Render/Ups/MemRegisters.lean": "cb03e6166e84b72153dd03dec6dfa6065342d15a2b3d8dd6f4fe014c26464313",
+    "zk-formal/ZkFormal/NearV3/Render/Ups/GMemCarry.lean": "e19a7d4ce6ee93ffae7b825b8b3c28be7c267e9577c8278303a30aa571ff8681",
+    "zk-formal/ZkFormal/NearV3/Render/Ups/GMemLengths.lean": "44f4ad5cb697f864122df88aa444bf8d73e9a5d954671669a82e8343fb2c1396",
+    "zk-formal/ZkFormal/NearV3/Render/Ups/GMemLengthTrace.lean": "ce592cf2de9b7e2a44de87bae623962c65c158804ef1adad33cf32f8e9783f39",
+    "zk-formal/ZkFormal/NearV3/Render/Ups/GMem.lean": "af98a3660148c58f4af6e290399d9d11368fe7cd1a27e76a747045debf878746",
+    "zk-formal/ZkFormal/NearV3/Render/UpsRender.lean": "3033ac8c5c7a526b218d6db8feef3c389474168034c8273e41c2dcdfa7383d86",
+    "zk-formal/ZkFormal/V3/Integration.lean": "9733db04f1c8b0acc0b497849fae10af2d831d9ac9c11aaa4ef8e3e2a5293fb2",
+    "zk-formal/test/AuditUpsMem.lean": "a36f07a326fc326c0e3c67aec53405c9079ef6ebbfaf94e00c232f68a265f9c0"
+  }
+}
