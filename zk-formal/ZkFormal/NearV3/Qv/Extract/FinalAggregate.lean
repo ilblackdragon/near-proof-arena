@@ -4,7 +4,7 @@ namespace ZkFormal.NearV3.Qv.Extract
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near
 open Candidates.CombinedTable
 
-private theorem last_only {α : Type} (f : Nat → List α) (v : α) (s n : Nat)
+theorem range_last_only {α : Type} (f : Nat → List α) (v : α) (s n : Nat)
     (hn : 0<n) (hf : ∀ r, s≤r → r<s+n → f r=if r+1=s+n then [v] else []) :
     (List.range' s n).flatMap f=[v] := by
   obtain ⟨k,rfl⟩ := Nat.exists_eq_succ_of_ne_zero (by omega : n≠0)
@@ -26,7 +26,7 @@ theorem final_segment_aggregate {s len : Nat} (hfit : s+len≤tr.height tt)
     (hs : IsSeg (isOne tr tt walk) (isOne tr tt wf) (isOne tr tt wl) s len) :
     (List.range' s len).flatMap (fun r => rowTraffic interactions tr tt r pub B_FINAL false)=
       [finalMessage tr tt s pub] :=
-  last_only (fun r => rowTraffic interactions tr tt r pub B_FINAL false)
+  range_last_only (fun r => rowTraffic interactions tr tt r pub B_FINAL false)
     (finalMessage tr tt s pub) s len hs.1 (final_segment_row hL hfit hs)
 
 theorem final_physical (q : WalkChain tr tt) :
