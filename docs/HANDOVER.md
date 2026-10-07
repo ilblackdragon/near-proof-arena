@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root EmptyWords CHECKED at AIRcc977fc9: empty_header_zero; register values
+constant through all16empty rows (no reset at firstword boundary); pairedbyte
+equality i↔8+i; empty_queue_bytes proves native EmptyQueue(some bs) for actual
+native byte witness of the physicalrecord. Only byte-identification/length
+premises remain for witness and connect to RecordValue; no new caps. Target196
+jobs+4exact standardguards PASS (/tmp/nearproof-qv-empty-words.log,
+/tmp/nearproof-qv-empty-words-audit-checked.log). Next buffered header/entry parser
+semantics, and canonical byte→native witness bridge/physical mode linking.
+Integrated ups1afe42c0/501f20ed as9575b63a/df922f16: canonicalcursor CH byteoffset
+and generic RDB WindowOk from occupiedchild replacement/sourceCID semantics.
+Actual native specialization still ongoing. Target783jobs+2+3exactguards PASS;
+/tmp/nearproof-branch-window-integrated.log,
+/tmp/nearproof-integrated-Audit{WindowStart,BranchWindowInput}.log.
+D2838a8b70 pending integration: primitive output encoding growth11audits, final
+splitaggregatecapacity still pending. Receipt RC byte/sourceSHA work ongoing.
+No root livejob. Authorizedpush continues. Aggregate83f4a8b7 older. Full
+certificate/admission/reference checker/prover/judge/broad NEAR coverage open.
+
+
 Root EmptyRows CHECKED at AIR3179a4d2: record_continue rules out early physical
 termination when vl0; empty_first_rows/empty_second_rows derive exactphase and
 selector at all16rows; empty_row_count proves n=16 from actual TableLocal,
