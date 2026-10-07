@@ -710,3 +710,9 @@ exact record and reconstructed subtree. Equal structural subtrees at different
 paths retain distinct addresses (three executable regressions). This avoids the
 unsound global assumption that occurrence IDs factor through `PTrie` equality.
 Actual upsert path extraction into this locator remains to be composed.
+
+`ForestAddress` connects the locator to executable global forest root offsets.
+`forest_located_view` returns an actual `NodeS3` at the computed node address,
+whose extracted record is the exact native occurrence record with actual value
+offset. It uses native wf and the already-derived field-ID capacity, not an
+assumed provider or abstract record-ID function. Three audit guards pass.
