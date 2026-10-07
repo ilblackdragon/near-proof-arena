@@ -370,3 +370,9 @@ HeaderSemantics whenever prepClaim succeeds. Three permanent axiom guards pass.
 The remaining preparation obligation is accepted-native→prepClaim existence;
 body parsing/forwarding/compute/header comparisons no longer require extra
 premises beyond the actual runtime and claim preparation.
+
+`PreparedSourcesComplete` derives successful prepared descriptor shuffles from
+actual native selected-proof shuffles using exact shuffle/map commutation,
+then constructs the whole prepared source list from successful checkD0.
+No separate shuffle fuel/completeness premise is needed. Three permanent axiom
+guards pass (standard Lean axioms only).
