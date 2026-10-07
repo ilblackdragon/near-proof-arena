@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Qv.Candidates.CombinedRowLayout
 import ZkFormal.NearV3.Qv.Candidates.CombinedPlanOrder
 import ZkFormal.NearV3.Qv.Candidates.CombinedNeighborEquations
 import ZkFormal.NearV3.Qv.Candidates.CombinedParser
@@ -758,3 +759,39 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_neighbor_equations
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.rowOffset_zero' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.rowOffset_zero
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.rowOffset_cons' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.rowOffset_cons
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.flat_rows_at' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.flat_rows_at
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.flat_rows_location' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.flat_rows_location
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.rows_at' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.rows_at
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.rowOffset_next' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.rowOffset_next
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.rowOffset_end' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.rowOffset_end
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.flat_rows_boundary' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.flat_rows_boundary
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.flat_rows_generated' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.flat_rows_generated
