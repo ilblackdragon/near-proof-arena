@@ -1,5 +1,4 @@
-import ZkFormal.NearV3.Rcpt.Render.Srcp.RowListCarry
-import ZkFormal.NearV3.Rcpt.Render.Srcp.RowRegisters
+import ZkFormal.NearV3.Rcpt.Render.Srcp.Duplicate
 import ZkFormal.NearV3.Rcpt.Extract.Srcp.Proof
 import ZkFormal.NearV3.Rcpt.Link.SourceHash
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
@@ -281,3 +280,11 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.Render.SrcpGen.register_constraints' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.SrcpGen.register_constraints
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.segment_constraints' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.segment_constraints
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.duplicate_constraint' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.duplicate_constraint
