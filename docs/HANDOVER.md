@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root ValueByteKeys CHECKED at AIR4fe814fb: value_byte_keys_unique derives Nodup
+of actual field-valued (vid,pos) projections of valRecvs VBYTES from ValWf alone.
+Uses derived recordcount bound, canonical vid injectivity, per-record byteoffset
+bounds from shape/canon; no extra ID/position uniqueness premise. StreamOwnership
+now polymorphic in position type, so accepts field positions directly. Target342
+jobs+new1 and prior2 exact guards PASS; /tmp/nearproof-qv-value-byte-keys.log,
+/tmp/nearproof-checked-AuditQv{ValueByteKeys,StreamOwnership}.log. Next instantiate
+stream isolate with complete parser/supplier decomposition, start-at-zero and
+exact whole bus Perm; then convert isolated messagePerm into complete value
+bytes and mode semantics. Emptyraw marker still separate.
+Integrated ups7d780c8f asf28c127b, forest_native_walk: actual scheduler-key[0,15]
+trace+knownlookup+sourcewf+nonemptyvalue<2^24 constructs executableparts/InstOk,
+actualforesthead W0 provider, all physicalproperprefix providers and terminal
+EDGE/BMAP. No source/child/value/resolver ID-agreement premise. Target778jobs
++2 exact guards PASS (/tmp/nearproof-forest-native-walk-integrated{,-audit}.log).
+Global counters, windows, memoryfamily and bounds remain explicit separate work.
+D2 working K_VUPS output SHA job allocation; ups working pcid/clen/window inputs.
+Receiptb9dbcf67 KEYNIB row gates complete18guards, whole field/list permutation
+still open. No root live job. Aggregate83f4a8b7 older. Full certificate/admission/
+reference/prover/judge and broad NEAR replacement remain incomplete.
+
+
 Root StreamOwnership CHECKED at AIR50464abe: generic stream_other_id_ne and
 stream_isolate. Exact multiset Perm selected++others=demand + unique demanded
 (id,position) + selected starts0/hasfixedid + every other supplier also starts0
