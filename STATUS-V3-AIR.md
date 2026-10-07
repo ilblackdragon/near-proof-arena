@@ -2,6 +2,15 @@
 
 Program lead's hand-over, 2026-10-07.
 
+**Semantic memory bridge:** `memOk_of_semantics` now derives encoded carry
+ranges and all serialized memory-byte equations from ordinary `NodeEncoding`,
+its scalar decoded memory usage and semantic operand bounds. These inputs
+still need discharge by actual upsert construction. All 24 memory axiom guards
+pass; integration passes 1,167 jobs, now including 62/76 byte constraints,
+`NodeEncoding.fieldsOk`, source SIZE accumulation and Boolean constraints.
+Evidence: `docs/e2e-results/v3-memory-semantics/report.json`.
+
+
 **Memory/source checkpoint:** all 29 `cMem` constraints are proved across the
 padded generated trace by `cMem_ok`, with explicit `FieldsOk` and `MemOk`
 inputs. All 19 memory axiom guards pass. The full source-proof extraction
