@@ -7,6 +7,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root ParserRecord checked: given actual suffix record segment, position=row
+ offset,8 metadata fields constant, vz marker forces one-row zero-length record,
+otherwise declared natural length=physical segment rows. length_cases complete;
+existing height rules out field wrap. Target189 jobs+5 exact guards PASS,
+/tmp/nearproof-qv-parser-record.log,/tmp/nearproof-qv-parser-record-audit-checked.log.
+No root job live. Next derive actual suffix segment list/start after walk prefix,
+then byte/mode semantics and QVC provider soundness (these remain open).
+Integrated D2f6fec709 actual complete nativePathNodes occurrence-address list
+with every address authenticated in global records; two guards, no recordId
+oracle. Ups wires occurrence-sensitive path levels. Receipt remaining channels
+active. Latest aggregate b7002160 older than newest individual targets. Complete
+correctness certificate/admission/prover/judge/broader NEAR scope remain open.
+
+
 Root ParserFacts CHECKED: suffix parser boolean flags, act/first/last relations,
 raw-empty single marker, continuation byte increment and8 constant metadata
 fields, next-record first flag, padding persistence and physical-last termination.
