@@ -1,3 +1,7 @@
+import ZkFormal.NearV3.Qv.Candidates.RecordTrafficContract
+import ZkFormal.NearV3.Qv.Candidates.RecordShardTraffic
+import ZkFormal.NearV3.Qv.Candidates.RecordProviders
+import ZkFormal.NearV3.Qv.Candidates.RecordBusMessages
 import ZkFormal.NearV3.Qv.Candidates.RecordTraffic
 import ZkFormal.NearV3.Qv.Candidates.RecordLocal
 
@@ -74,3 +78,93 @@ private def mixedRecords : List Record :=
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.records_table_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.records_table_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.eval_nat_row' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.eval_nat_row
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.interaction_nat_fragment' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.interaction_nat_fragment
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.rowTraffic_nat' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.rowTraffic_nat
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.parser_nat_bits_row' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.parser_nat_bits_row
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.records_rowTraffic' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.records_rowTraffic
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.records_field_traffic' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.records_field_traffic
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsTraffic_bytes' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsTraffic_bytes
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.natRowTraffic_qvc' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.natRowTraffic_qvc
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.firstFields' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.firstFields
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.first_filter' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.first_filter
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.provider_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.provider_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsTraffic_providers' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsTraffic_providers
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.qsh_natTraffic_perm' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.qsh_natTraffic_perm
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferRows_counts' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferRows_counts
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.shard_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.shard_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.count_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.count_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsTraffic_shards' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsTraffic_shards
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsTraffic_canonical' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsTraffic_canonical
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.records_canonical_traffic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.records_canonical_traffic
