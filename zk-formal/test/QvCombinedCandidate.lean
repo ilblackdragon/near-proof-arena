@@ -10,6 +10,7 @@ import ZkFormal.NearV3.Qv.Candidates.CombinedWalkBase
 import ZkFormal.NearV3.Qv.Candidates.CombinedBoolean
 import ZkFormal.NearV3.Qv.Candidates.CombinedReadAlgebra
 import ZkFormal.NearV3.Qv.Candidates.CombinedKeyEndpoints
+import ZkFormal.NearV3.Qv.Candidates.CombinedTermination
 
 namespace QvCombinedRegression
 open ZkFormal.NearV3.Qv.Candidates
@@ -468,3 +469,35 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.first_byte_equation
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_last_metadata' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_last_metadata
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_last_metadata' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_last_metadata
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_implicit_metadata' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_implicit_metadata
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_final_metadata' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_final_metadata
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_absent_buffer_count' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_absent_buffer_count
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_public_termination' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_public_termination
