@@ -12,7 +12,7 @@ guards. Report docs/e2e-results/v3-queue-traffic-integration/report.json;
 logs /data/illia/nearproof-deps/validation/v3-queue-traffic-20261007/.
 Root session79290 terminal0. After aggregate, ParserRows derives original parser
 constraints and exact parser traffic on every non-walk row, including cyclic
-wrap via derived first_mode_zero. Target134 jobs+3 exact guards PASS;
+wrap via derived first_mode_zero. Target187 jobs+3 exact guards PASS;
 /tmp/nearproof-qv-parser-rows.log,/tmp/nearproof-qv-parser-audit-checked.log.
 No root job live. Next parser record decomposition/value semantics and QVC
 provider no-cycle linking. Integrated D2 actual adjacent native path address
