@@ -156,3 +156,18 @@ and every requested determinate read, and is a hash-pruning of the original
 partial trie. No SHA injectivity, A6, or store-size premise is required. Four
 axiom guards pass. The theorem retains explicit read determinacy and does not
 yet assert exact trie equality or whole-transition replay.
+
+## Exact normalized-store replay
+
+`ExactReplay.partialTrie_normalStore` now proves literal equality of native
+partial tries rebuilt from normalized occurrence bytes, for the same root
+and requested keys. Its only premise is the root's 32-byte width. Unlike the
+earlier read theorem, it needs no determinacy premise. Missing/malformed
+queried blobs are handled explicitly, not incorrectly counted as retained
+occurrences. The general `buildFor_replay` combines target-store lookup
+restriction with preservation of all originally revealed bytes.
+
+All eight transitive axiom guards in `test/AuditExactReplay.lean` pass with
+only standard Lean axioms. This closes same-key replay. Choosing roots/keys
+from actual execution, the separate buffered-index first pass, multi-instance
+view allocation, and assembling all GoodV3 fields remain FactorComplete work.
