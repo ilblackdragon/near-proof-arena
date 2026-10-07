@@ -306,3 +306,12 @@ native dictionary guard. Five permanent axiom guards pass. These source and
 runtime predicates are now connected to one concrete view constructor, while
 header/preparation, shape, whole serialization bounds, remaining amendments,
 and actual AIR metadata still need completeness proofs.
+
+`NativeHeader` extracts every native endorsed-header comparison, including
+encoded outgoing-body root and length, alongside actual main/implicit execution.
+Native main execution is proved unique. `HeaderCompose.checkD0_header_of_trace`
+therefore binds those comparisons to the same previously extracted trace and
+final root, and `NativeHeaderV3.prepared` populates HeaderSemanticsV3 once the
+concrete preparation body's equality is supplied. Four permanent axiom guards
+pass. Preparation existence and its body equality remain explicit obligations;
+no header comparison is supplied as an assumption of native extraction.
