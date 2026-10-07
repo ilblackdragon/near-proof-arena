@@ -854,3 +854,9 @@ and composes per-receipt messages into the unchanged located-view enumeration.
 `MemoryWrites` closes the complete B_MEM send side, including silent list
 headers/padding and the exact global r+1 write version. Six exact guards pass.
 Both account-memory directions now have whole-table semantic equalities.
+
+`ReceiptIdsTraffic` closes both B_RIDS directions for the whole physical table:
+all 32 receipt-ID bytes carry the exact natural global index, headers/padding
+emit nothing, and both physical/semantic receive sides are empty. Six exact
+guards pass. Checked whole-table channels now include BYTES, RCL, MEM, and RIDS;
+KEYNIB, DIGEST, FINAL, MPOS, SREC, AKC, and BND remain to be completed.
