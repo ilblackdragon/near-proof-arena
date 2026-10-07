@@ -668,3 +668,9 @@ shape preservation and preservation of every initially known lookup. This
 covers repeated receiver writes without requiring post-state `wf` (which can
 fail after native upsert memory overflow). Scheduler/initial builder key-domain
 composition remains separate. `AuditReceiptShape.lean` checks six declarations.
+
+`MainShape` now derives the same structural invariant and all known-key
+preservation from actual `schedStep` and full `applyNewChunk` success, composing
+the unchanged scheduler upsert and recursive receipt writes. Initial builder
+coverage and intermediate write-event witness extraction remain separate.
+`AuditMainShape.lean` checks both declarations.
