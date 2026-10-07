@@ -568,3 +568,10 @@ particular, `plan_main_provider_users` equates the count for each actual main
 provider with its declared counter. Implicit singleton providers have users=1;
 their corresponding full-plan count and the final bus composition remain open.
 7 permanent guards pass; no additional axioms.
+
+`QueueLocation.plan_provider_users` closes that implicit/full-plan count: EVERY
+allocated provider's `(tau,vid,users)` message occurs exactly `users` times in
+the actual combined generated walk plan. Provider location is inverted against
+the original allocator and resolver, not an assumed location map. 4 permanent
+guards pass. Physical bus-message composition remains to be connected to this
+exact logical multiplicity and to the proved seed bytes/ownership.
