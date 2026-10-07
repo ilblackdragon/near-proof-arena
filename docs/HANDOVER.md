@@ -7,6 +7,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `e32b4d52`→AIR`0e3d93b9`: physical walk-prefix aggregation for KEYNIB,
+FINAL,QVCbothdirections,QSHreceives. `mixedTrace_counter_messages` characterizes
+ALL physical QVC traffic as mapped natural walk rank messages+parser endpoints,
+up to permutation. Repeated request multiplicities preserved. Target278 jobs;
+189 exact axiom guards+15 fixtures PASS (`/tmp/nearproof-word-aggregate.log`,
+`/tmp/nearproof-word-aggregate-audit-final.log`). No root process. D2 notified to
+compose c594490f corrected full-plan rank classes with this physical API for
+actual QVC balance. Next root: complete other-bus canonical mixed traffic and
+sound extraction/aggregate integration. Last wholeaggregate cb1e3577 still older.
+QVC message characterization is NOT balance by itself. All work remains active,
+no end-to-end certificate/prover/judge result. Ups92d6cbca absent-key mismatch
+ready for actual WalkOk construction; receipt7bc16688 deposit/storage arithmetic
+and gas-price borrow, remaining V3 gas/token/routing active.
+
+
 Root QV `8ccb2287`: physical mixed parser suffix traffic equals canonical parser
 VBYTES/QVC/QSH messages up to permutation on all buses/both directions; padding
 silent. `mixedTrace_traffic_split` partitions every physical message into walk
