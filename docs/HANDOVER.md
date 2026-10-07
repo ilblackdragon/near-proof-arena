@@ -7,6 +7,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+AIR `3d37a7b8`: arbitrary accepted WalkOrder now derives initial main/tau/slot/
+kind fields, full main advance equations, main→implicit switch, implicit tau
+increment, implicit fixed shape, public K termination binding, and exact wend
+iff walk-prefix end (including physical final row). These are row-level facts;
+indexed whole-list ordering/canonical traffic and provider linking still open.
+Target118 jobs and19 exact extraction axiom guards PASS. Logs
+/tmp/nearproof-qv-walk-order.log,/tmp/nearproof-qv-order-audit-final.log.
+Root no live process. Next: lift row transitions through extracted segment list,
+then key/FINAL/QVC traffic and parser soundness; integrate latest agents in a
+new aggregate after interfaces settle. Last aggregate remains dc4c12d4.
+Receipt8274e0a1 now has actual global token run from zero through empty/nonempty
+lists and final16-byte public burnt binding;17 guards. PublicAlias checked
+count/body field alias regressions; ReceiptPublicRanges records N/body<P.
+Correctly scoped Prep range derivation remains agent-owned, no domain narrowing.
+D2 structural shape-only find preservation through upserts compiles, proving
+shape preserved and chaining write-key determinacy next; avoids post-memory wf
+assumption. Ups remaining edge/pcid authentication continues. Full objective open.
+
+
 AIR `91be9ea8`: WalkMetadata derives all ten constant walk fields from arbitrary
 TableLocal+extracted segment; first tag=7+6lo+3hi and exact group/non-group
 length. WalkBytes derives all8 key bits, canonical byte<256 and exact four
