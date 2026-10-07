@@ -1,159 +1,82 @@
-# reexec-v3-d3: reference candidate for `near-chunk-v3`, declared tier D3a
+# D3α read-set reference
 
-The re-execution reference of **`near-chunk-v3`** ("NEAR chunk state-transition succinct proof"), the
-coverage-tiered challenge of docs/CONTRACTS.md §11 (statement `near/pv86/chunk-validation/v0`,
-relation `NearSpecV3.RelChunkV3 = RelD0 ∨ RelD1 ∨ RelD2 ∨ D3.RelD3`,
-`spec/lean/v3/NearSpecV3/ChallengeChunkV3.lean`). It declares the largest tier, **`D3a`**
-(`candidate.toml [entry] declared_tier`), and is admitted under
-`NearSpecV3.challengeParamsChunkWith .d3a …`: soundness w.r.t. `D3.RelD3` (lifted to the statement by
-the trusted `NearSpecV3.sound_lift`) and completeness on `DomainTier .d3a`. Backend family
-**re-execution witness**: the proof is the witness file (the real nearcore `ChunkStateWitness` and the
-contract code blobs) in **normal form**, and the verifier decides `NearSpecV3.D3.checkD3` on it. It
-never answers `UNSUPPORTED`.
+`reexec-v3-d3` is the witness re-execution reference for the unified
+`near-chunk-v3` challenge, declared tier `D3a`. It is **not a succinct proof**:
+the proof contains the recorded-store bytes needed to execute the transition.
+The verifier establishes the original frozen `NearSpecV3.D3.RelD3` relation.
 
-## Layout
+The prover executes the proved logged checker once, then serializes the exact
+recorded-store answers read by that execution. The verifier also executes the
+logged checker once and accepts only if re-encoding its read set gives exactly
+the supplied proof bytes. There is no fallback accepting noncanonical bytes.
 
-| path | what |
+## Encoding
+
+* Ignored chunk height/signature and transition block hashes are zeroed.
+* Receipt-proof entries retain the producer's bytes, with one last-wins entry
+  per key in increasing byte order.
+* The main `base_state ++ contract_code` store is tag zero; implicit transition
+  `k` has its own store at tag `k + 1`.
+* Each store keeps exactly the successful answers to its logged read keys,
+  with one last-wins value per hash, in byte order. Missing answers remain
+  missing. Hash collisions require no injectivity assumption for these proofs.
+* The existing deterministic `encP` layout divides the main pool into trie
+  values and code blobs; its large-state-witness fallback keeps the state
+  witness within 8 MiB. Everything outside the normalized fields is preserved.
+
+`source/prover/ProveMain.lean` emits `Read.canonW`. `Model.lean` decodes the claim
+and calls `Read.check`; the native verifier is this Lean definition compiled by
+the governed compiler. The implementation connection remains the challenge's
+`native-lean` trusted compiler edge. `build-recipe/build.sh` lists the exact
+35-module candidate model closure and uses the frozen vendor unchanged.
+
+## Proofs
+
+| Property | Module / theorem |
 |---|---|
-| `source/src/bin/prepare.rs` | Rust, std only: checks `near-arena-params-v3` (domain `D3a`) and copies it to `public.bin` |
-| `source/prover/ProveMain.lean` | `prove` (Lean, linked with the same compiled trusted + model objects as `verify`): `claim.bin = request.bin`, `proof.bin = ReexecV3D3.proveW` of the witness |
-| `source/src/bin/leanorder.rs` | build helper: the judge's trusted-module link order |
-| `source/lean-vendor/` | verbatim copies of the judge-trusted Lean modules of `near-chunk-v3` (`runners/formal-checker/challenges/near-chunk-v3.json`: `ArenaCore`, 11 `NearSpec`, 47 `NearSpecV3` modules) at the freeze commit `8926b431`; `source/verifier/sync-vendor.sh 8926b431`; digests in `dependency-locks/lean-vendor.sha256` |
-| `formal/ReexecV3D3/` | `Canon` (normaliser, `normalW`, `proveW`), `Model` (verifier), `Obligations`, `PublicBin`, `Certificate` |
-| `judge-local/` | local emulation of the judge-generated `ArenaExpected` (template `spec/lean/judge/ExpectedChunkV3.native-lean.lean.template`, `declared_tier` = `NearSpecV3.Tier.d3a`) |
-| `build-recipe/build.sh` | offline reproducible build of `out/{prepare,prove,verify}`, step for step the judge's native-lean build |
+| Logged execution equals the frozen D3 checker | `Logged.API.checkD3Reads_eq` |
+| Acceptance implies the frozen relation and literal normality | `ReadCanon.check_sound`, `check_normal` |
+| Filtering pools is exact tagged-store restriction | `ReadPools.poolStore_restrict` |
+| Serialized bytes implement that restricted store | `ReadStores.storesOf_encodeReads` |
+| Re-encoding preserves checker control flow and successful reads | `ReadReencode.checkD2CoreL_reencode`, `canonW_refines` |
+| Every valid witness yields accepted bytes of no greater length | `ReadComplete.check_canonW` |
+| Normalization is a literal byte fixed point | `ReadComplete.canonW_idempotent` |
+| Full native-route admission and unified-statement soundness | `Obligations.admission`, `statementSound` |
 
-## Verifier
+The distinct-program simulation is separate from the fixed-program store
+restriction theorem: `reads_restrict_eq` alone does not establish re-encoding
+congruence. `ReadComplete` composes both proved halves. The older necessity
+normalizer remains as supporting encoding/proof infrastructure; it is no longer
+the deployed normalization path.
 
-```lean
-def check (cb pb : Bytes) : Bool :=
-  match WfClaim.decode cb with
-  | none => false
-  | some c => normalW c.encode pb && acceptsD3 c.encode pb      -- acceptsD3 ↔ D3.RelD3
-```
+## Candidate-local logged library
 
-## Normal form (`formal/ReexecV3D3/Canon.lean`)
+`formal/ReexecV3D3/Logged/` contains 30 candidate-local copies from upstream
+commit `77b844e0e81d9536e8885b4c35ff9f0b89a7af88`. The only transform is literal
+replacement of `NearSpecV3.Logged` with `ReexecV3D3.Logged` in imports, namespaces
+and references. `dependency-locks/logged-candidate.json` records both hashes
+for every file. Reproduce with `source/verifier/sync-logged.py COMMIT`, or add
+`--check` for read-only verification.
 
-`canonW cb w` fixes every degree of freedom that nearcore's validator (and `RelD3`, which mirrors it)
-leaves in a witness file:
+These are candidate proof/code modules, outside the judge's trusted module set.
+The frozen `source/lean-vendor` and the signed challenge's trusted set are
+unchanged. Twenty-five guarded transitive axiom checks pass in
+`test/AuditReadLocal.lean`; the new completeness proofs use only the permitted
+Lean axioms (`propext`, `Classical.choice`, `Quot.sound`).
 
-| freedom | normal form |
-|---|---|
-| chunk header `height_included`, chunk signature, every transition `block_hash` (never read) | 0 / ED25519 + 64 zero bytes / 32 zero bytes |
-| `source_receipt_proofs` (`HashMap`: any order, a duplicate key keeps the last value) | one entry per key (the last), increasing key order; entry bytes are the producer's |
-| main `base_state` (hash-indexed store: any order, duplicates, unread values) | the values **reachable** from the chunk's `prev_state_root` through the merged store `base_state ++ code blobs` (trie nodes by child hash, leaf values by value hash), deduplicated, increasing SHA-256 order |
-| implicit transition *i*'s `base_state` | the same from its pre-state root (the previous transition's `post_state_root`) through its own values |
-| contract code blobs (appended to the main store: any order, duplicates, unused blobs, blobs that are also trie values) | the blobs of the merged store that are not reachable (above) and are **needed**: removing one from the code list makes `checkD3` fail (cold-cache rule: an executed pre-state contract's code must be in the witness), deduplicated, increasing SHA-256 order — one `checkD3` run per candidate blob |
+## Validation status
 
-Everything else (header inner, receipts and merkle paths, applied-receipts hash, both transaction
-lists, post-state roots) is the producer's bytes.
+The read-set proof stack and wired Model/prover/local certificate have compiled,
+including complete normalization and non-expansion. Fresh native builds, actual
+formal audit and hostile `check-local` runs are in progress. No candidate admission or hostile-suite pass
+is claimed for this revision yet. Required hostile mutations include
+`values/inject-unread` and `codes/inject-unread` on both public and held-out sets.
 
-**Residual freedom (stated, not closed): reachable but unread values.** A `base_state` value is kept
-iff its SHA-256 is referenced, as a child or as a leaf value, by a node that is itself kept, starting
-at the pre-state root. An honest witness holds exactly nearcore's read set, which is closed under that
-rule (every recorded node was read along a path from the root), so the normal form of an honest
-witness is its read set. But a value that is the true preimage of a hash referenced by a kept node,
-and that the relation never reads (e.g. a sibling subtree's node, or a `ContractCode` value of an
-account whose leaf is read but whose contract is not called), is accepted in `base_state` too:
-nearcore accepts it and so does `RelD3` (the D2 relation reveals the whole recorded store), and the
-normal form keeps it. Exploiting it needs the real bytes of state the chunk did not touch; the
-judge's freedom mutators (reorder, duplicate, unreferenced junk) cannot produce it. Closing it would
-need the exact read set of the D2/WASM runtime (an instrumented re-execution), as the D0 reference
-does for its much smaller runtime; the D1/D2 normaliser handoff (`examples/reexec-v3-d2`) has the
-same residual freedom.
+Historical reference results in `docs/e2e-results/v3-d3-reference/` concern the
+previous necessity normalizer. Fresh logged checker validation is documented in
+`docs/e2e-results/v3-wasm-logged/` and the D1/D2 logged-checker reports; TTN replay
+is being regenerated separately against the pinned nearcore harness.
 
-## The escape clause, precisely
-
-```lean
-def canonOkOf cb w w1 := acceptsD3 cb w1 && canonW cb w1 == w1 && decide (w1.length ≤ w.length)
-def normalW cb w := let w1 := canonW cb w; w1 == w || !canonOkOf cb w w1
-def proveW cb w  := let w1 := canonW cb w; if canonOkOf cb w w1 then w1 else w
-```
-
-* **What the prover emits.** `prove` emits `proveW cb w`: the canonical form `canonW cb w` when it is
-  *usable* (`checkD3` accepts it, it is a fixed point of `canonW`, and it is no longer than `w`);
-  otherwise — the "canon not usable" branch — the witness `w` exactly as given.
-* **Why only normal bytes are accepted.** The verifier accepts `pb` only if `canonW pb = pb`, or
-  `canonOkOf pb (canonW pb)` is false (`check_normal`). The second disjunct is the escape: it is
-  taken only for a witness whose canonical form is not itself a valid, fixed, no-longer witness, i.e.
-  only if `canonW` breaks `RelD3` on that witness. On every witness where `canonW` is correct, the
-  canonical form is the *only* accepted encoding: a reordered, duplicated or padded variant `m` has
-  `canonW m = canonW pb ≠ m` and a usable canonical form, so `normalW m` is false. That `canonW`
-  preserves `RelD3` is **tested, not proved**: every positive of the public set (407) and of the
-  held-out set takes the canonical branch, and 4 916 witness-freedom mutants of the 407 public proofs
-  (values / entries / implicit reorder, duplicate, junk; the three ignored fields; code reorder,
-  duplicate, junk, empty; code ↔ value moves) are all rejected. If a witness family existed where
-  `canonW` broke `RelD3`, its members would be accepted as they are, and their variants could be
-  accepted too: the escape is exactly where malleability would reappear, and it is what
-  `ADVERSARIAL_PROOFS` probes. No lock-step proof that `canonW` preserves `RelD3` through the D2/WASM
-  runtime is claimed (the D1/D2 `StoreCong` argument does not carry over: `Env.codeOf` and the WASM
-  storage reads consult the store).
-* **Completeness is not weakened.** `proveW_normal` / `check_proveW` (no hypothesis on `canonW`):
-  for every `RelD3` witness `w`, `proveW cb w` is a `RelD3` witness, satisfies `normalW`, is no longer
-  than `w`, and is accepted. With `DomainTier .d3a c = ∃ w, RelD3 c w ∧ |w| ≤ 64 MiB`
-  (`maxWitnessChunk`), `verifierComplete` gives an accepted proof ≤ 64 MiB for every claim of the
-  tier. The only witnesses the prover cannot turn into an accepted proof within the size cap are
-  witnesses larger than 64 MiB (outside `DomainTier`; such a claim always has a smaller witness in
-  practice, since `w.size` bounds the state witness by 8 MiB and the code bytes by 4 000 000). Cost
-  of completeness: `prove` runs `checkD3` `2k + 1` times (`k` = candidate code blobs) and `verify`
-  `k + 1` times on a canonical proof.
-
-## Formal certificate
-
-`ReexecV3D3.certificate : ArenaExpectedInst.expectedType` =
-`AdmissionStatement (NearSpecV3.challengeParamsChunkWith .d3a profile fuel maxProofBytes red)
-{ publicDigest, impl := .nativeTrusted binDigest toolchainId ReexecV3D3.Model.verifier }`.
-Axioms: `propext`, `Classical.choice`, `Quot.sound`; no `sorry`, `native_decide`, `implemented_by`,
-`extern`, `partial`, `unsafe` in the package.
-
-| obligation | how |
-|---|---|
-| public digest | `public.bin` = approved `params.bin` (domain `D3a`) verbatim (`PublicBin.lean`), `decide +kernel` |
-| `FORMAL_IMPL_CONNECTION` | `rfl` (native-lean, trusted edge) |
-| `FORMAL_SEMANTIC_SOUNDNESS` / `COMPLETENESS` | backend `Aux := witness`, `B := Rel` |
-| verifier completeness | `verifierComplete` via `proveW_normal` (above), any `maxProofBytes ≥ 64 MiB` |
-| `FORMAL_CRYPTO_SOUNDNESS` | `DeterministicSound` (ε = 0): acceptance ⇒ `checkD3 (encode c) pb = .ok ()`; `statementSound` lifts it to `challengeSpecChunkTop` by `sound_lift` |
-
-## Limitations
-
-* Not succinct: the proof is the (normalised) witness, ≤ 182 KB on the public set.
-* The residual freedom and the tested-not-proved canonicalisation above.
-* `Rel_D3` is the cold-cache statement (spec/near-chunk-validation-d3.md §10.0): a warm-cache nearcore
-  validator may accept witnesses without code blobs that `RelD3` rejects.
-* The relation is a transcription of nearcore, difftested, not proved equal to it.
-
-Results: `docs/e2e-results/v3-d3-reference/`.
-
-## Read-set migration in progress
-
-`formal/ReexecV3D3/Logged/` contains candidate-local copies of the proved logging
-library from commit `77b844e0e81d9536e8885b4c35ff9f0b89a7af88`. They are candidate
-proof/code modules, outside the judge's trusted module set. The only transform
-is the literal namespace replacement `NearSpecV3.Logged` → `ReexecV3D3.Logged`.
-`dependency-locks/logged-candidate.json` records every upstream and transformed
-file hash. Reproduce or verify using `source/verifier/sync-logged.py COMMIT`
-(or add `--check` for read-only verification). The frozen Lean vendor is retained.
-
-`ReadCanon` defines the new single-execution read-set encoder/checker and proves
-its semantic soundness and literal byte-equality requirement. `ReadControl`
-proves that structural simulation preserves successful results and exact read
-sequences. `ReadLockstep` supplies size-check weakening and implicit-transition
-projection lemmas. `ReadPools` proves that filtering the canonical pools is
-exactly tagged-store restriction, including missing answers, and proves the
-subpool and idempotence properties. `ReadEncoding` exposes the exact decoded
-witness shape, merged-pool permutation and size bound. All 30 copied modules
-and these helpers compile; twenty-one transitive axiom guards pass in
-`test/AuditReadLocal.lean`.
-
-`ReadReencode` proves the distinct-program control-flow simulation, including
-weakened size guards and implicit transitions. `ReadStores` proves that the
-serialized bytes implement the exact restricted store and that fixed-read-set
-serialization is idempotent. `ReadComplete.check_canonW` composes both halves:
-every valid witness normalizes to accepted bytes of no greater length; the
-normalizer is a literal fixed point. The same-syntax `reads_restrict_eq` theorem
-alone is not used as a substitute for re-encoding congruence.
-
-The deployed `Model` still uses the existing necessity normal form. Wiring the
-new proved path into the Model/prover/certificate and running hostile
-`check-local` remain. This is reference re-execution hardening, not a succinct
-state-transition proof.
+The relation remains a tested transcription of nearcore, not a proof of equality
+to its Rust implementation. D3 is the cold-cache statement: a warm-cache
+nearcore validator can accept witnesses without code blobs that `RelD3` rejects.

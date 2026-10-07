@@ -4,9 +4,8 @@ import ReexecV3D3.Logged.API
 /-!
 Candidate-local read-set normal form. The verifier performs one logged execution
 and requires byte equality with the encoding of precisely the recorded-store
-answers read by that execution. This module defines the new path separately
-while its re-encoding/completeness proof is assembled; the deployed Model is not
-switched until those obligations are closed.
+answers read by that execution. `ReadComplete` proves re-encoding completeness and byte idempotence. The
+deployed Model uses this path.
 -/
 namespace ReexecV3D3.Read
 
