@@ -206,3 +206,11 @@ Ten more axiom guards pass. The constructor still visibly needs ordinary wf
 for each tree and total value-ID capacity; it assumes no store equality, AIR
 acceptance, or desired cost bound. Native instance extraction, capacity, heads,
 receipts/dictionary correspondence and full GoodV3 assembly remain.
+
+`ValueCapacity.partialTrie_value_count` now bounds native revealed value
+occurrences by requested key count, unconditionally for any store/root. The
+branch proof partitions requested keys into empty keys and disjoint child
+buckets, so it covers duplicate keys and branch-held values without a branching
+factor explosion. Five axiom guards pass. The active field is
+`Algebra.P = 2013265921`; the native numeric capacity proof must charge buffered
+index bytes to the actual store budget, not merely use a u32 count bound.
