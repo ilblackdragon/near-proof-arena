@@ -362,3 +362,11 @@ most4500000; prims.sched and schedStep inherit it. `ForwardDemand` composes that
 native bound with the exact forwarding conservation theorem, so successful
 applyNewChunk unconditionally implies prepBody's fwdDemand guard. Ten permanent
 axiom guards pass; no initial grant-bound or replay-completeness premise remains.
+
+`PrepContext` derives actual prepClaim/native execution field correspondence.
+`PrepBodyComplete` constructs nativeHint from applied count and outgoing bytes,
+proves every prepBody guard and its success, and composes full prepD0 plus
+HeaderSemantics whenever prepClaim succeeds. Three permanent axiom guards pass.
+The remaining preparation obligation is accepted-native→prepClaim existence;
+body parsing/forwarding/compute/header comparisons no longer require extra
+premises beyond the actual runtime and claim preparation.
