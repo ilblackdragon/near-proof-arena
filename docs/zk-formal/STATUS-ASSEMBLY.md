@@ -354,3 +354,11 @@ execution. The native fwdDemand guard follows when initial allowances are at
 most the PV86 grant bound4500000. Four guards pass. Connecting that initial
 bound to actual scheduler execution remains to be composed; it is not assumed
 as a completed native acceptance consequence.
+
+`NativeSchedulerBounds` now proves the grant/array-size invariant through the
+actual native processBucket/processLoop/processRequests, independently of any
+replay witness. Every output grant of actual Scheduler.run under PV86 is at
+most4500000; prims.sched and schedStep inherit it. `ForwardDemand` composes that
+native bound with the exact forwarding conservation theorem, so successful
+applyNewChunk unconditionally implies prepBody's fwdDemand guard. Ten permanent
+axiom guards pass; no initial grant-bound or replay-completeness premise remains.
