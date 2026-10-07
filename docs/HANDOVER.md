@@ -2,6 +2,57 @@
 
 This is for the next lead agent. Read this first, then the two lane status files named in §3 and §4.
 
+## Resumption plan (2026-10-07)
+
+Main is `048fc45d`; the D0a spec merge is already present. Treat the older lane
+status files' requests to merge it, and their receipt-lane pause claims, as stale.
+Work proceeds in the following order, retaining the release gates below:
+
+1. **Restore checked baselines.** Build `ZkFormal` on `lane/v3-air`, then repair
+   `Logged/WasmRun.lean` on `lane/v3-d3` and rebuild the logged checker. Check the
+   transitive theorem axioms and reproduce the formerly stack-overflowing case.
+2. **Validate the logged reference.** Run all D3 corpora and the D2/D1/D0
+   regressions, WASM harness and trie traces. Implement the exact read-set normal
+   form in the D3 reference and run check-local, including unread-value/code
+   injection. Record full-case counts and missing results as failures.
+3. **Finish the succinct prover.** Resume receipt proofs; finish trie/scheduler
+   completeness, indexed public segments, roll-in alignment, assembly and the
+   Rust v2 prover. Keep B0 at 2,000,000 and the existing proof-size cap; prove
+   the size savings before relying on them. Measure clean elaboration and real
+   judge verification before declaring admission feasible.
+4. **Resolve domain choices before freezing.** The ChaCha word bound and source
+   Merkle-path budget remain user decisions. Until resolved, keep capacity
+   statements conditional and do not freeze a newly narrowed domain.
+5. **Release only after the gates pass.** Add D0a to the unified tier ladder,
+   merge tested lanes, freeze once, measure the paired baseline in a logged w1
+   window, then sign/register/deploy and verify reference admission and hostile
+   rejection. Preserve signed challenges and all existing pinned files.
+
+Recovery completed on the two lanes (not merged to main):
+`lane/v3-d3` at `77b844e0`; `lane/v3-air` at `d455885a`.
+* **D3:** repaired and kernel-checked the stack-safe logged loop; built the
+  checker and D0a tier (195 jobs). All 115,284 D3 cases agree with the saved
+  original Lean and independent Python baselines and nearcore expectations;
+  all 1,720 public-fixture comparisons agree in verdict and reason. Saved
+  baselines were reused, not rerun. Eight guarded axiom audits and seven
+  regression-driver tests pass. Full D1/D2 corpora, WASM/trie harnesses and the
+  read-set reference remain next. Evidence: lane file
+  `docs/e2e-results/v3-logged-checker/report.json`.
+* **AIR:** merged the saved receipt lane at `8c40110e`. The default `ZkFormal`
+  root missed hundreds of proof modules. New target
+  `lake build ZkFormal.V3.Integration` covers 369 additional modules and passes
+  all 1,089 jobs. It exposed and fixed a stale upsV3 width (186 → 187), adding
+  928 bytes to each synthetic size bound. Kernel checks now compare all trie,
+  scheduler and receipt shapes; seven guarded axiom audits pass. This is an
+  incremental integration check, not a clean judge-budget measurement or a
+  completed STARK. Evidence: lane file `docs/e2e-results/v3-integration/report.json`.
+* **Domain:** the conditional W = 770,000 capacity theorem needs ChaCha
+  maxLog 22 (4,141,411 padded rows), whereas the current table uses 21.
+  The W and source-path choices remain unanswered; no domain or cap changed.
+* Full validation artifacts are preserved at
+  `/data/illia/nearproof-deps/validation/v3-recovery-20261007-023334`.
+  No live worker was stopped, and no challenge was frozen, signed or deployed.
+
 ## 0. Goal and standing user directives
 
 **Goal.** A self-hostable arena where candidates submit NEAR state-transition provers. Each submission comes with a machine-checked Lean certificate. The judge independently builds the submission, checks it formally (fixed trusted root), tests it, and benchmarks it.
@@ -83,7 +134,7 @@ User directives (binding):
 
 Branch `lane/v3-d3`, worktree `nearproof-wt/v3-d3`. **Read `STATUS-V3-D3.md` at the lane root.**
 
-**The lane HEAD does NOT build.** `351c1adc` contains WIP commit `b8633b30`, and `Logged/WasmRun.lean` `runUntil_spec` has 2 open goals (around lines 335 and 357).
+**Recovery builds and audits pass.** The open `runUntil_spec` goals and long-run stack overflow are fixed; see the resumption evidence above.
 
 * **Design.**
   * Statement: `RelD0 ∨ RelD1 ∨ RelD2 ∨ RelD3`, with `rel_mono` and `sound_lift`.
@@ -95,16 +146,15 @@ Branch `lane/v3-d3`, worktree `nearproof-wt/v3-d3`. **Read `STATUS-V3-D3.md` at 
 
 Remaining, in order:
 1. **Read-logging refactor.** `checkD2L_eq` and `checkD3L_eq` are already proved; the logged run equals the trusted checker.
-   * Close the 2 goals.
-   * Fix the stack overflow on long WASM runs by making the loop tail-recursive.
+   * Completed: close the loop proof and validate the tail-recursive executable.
 2. **Re-run every regression with the logged checker:**
-   * D3 three-way on all four corpora;
-   * D2, D1 and D0;
+   * Completed: D3 three-way on all four corpora;
+   * D2 and D1 full corpora remain; D0/D1/D2 public fixtures pass;
    * the WASM harness and trie-accounting traces.
 3. **Rebuild the D3α reference `examples/reexec-v3-d3` on the read-set normal form.**
    * base_state must be exactly the logged read set, and verify must accept only those bytes.
    * Run check-local, including the `values/inject-unread` and `codes/inject-unread` mutators.
-4. **Add the D0a tier** (`Tier.d0a`, using RelD0a from main).
+4. **D0a formal tier is added and builds.** Draft activation still needs checked workload-class coverage and final domain bounds; an empty class list would silently allow abstention on every input.
 5. **Re-freeze the trusted tree once**, covering the logged spec and RelD0a.
 6. **Run the joint w1 cost-baseline window** for the paired-mode draft. The procedure is in `docs/LIVE.md` §5f and BENCHMARK_SPEC §14.
 7. **Release and record.**
@@ -120,7 +170,7 @@ Open nearcore findings and spec ambiguities: STATUS-V3-D3 §6, and `oracle/tools
 
 Integration branch `lane/v3-air`, which also carries 13 sub-lane branches. **Read `STATUS-V3-AIR.md` at the lane root.** Design: `docs/zk-formal/V3-D0-DESIGN.md`.
 
-First action: `lake build ZkFormal` on `lane/v3-air`. It has not been rebuilt in full since the last three merges.
+Integration gate: `lake build ZkFormal.V3.Integration` on `lane/v3-air`, now passing. Use this target rather than the incomplete historical root. Next: finish completeness and indexed public segments, then assemble the real AIR and size proof.
 
 * **Proved:**
   * the v2 protocol: public bus, auxGroup and admission;
