@@ -7,6 +7,44 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+**Latest aggregate: AIR `b47ed83f`, 1,347 jobs PASS.** This includes exact
+first-match native-store normalization and its executable tree-view bridge,
+with 17 store axiom guards, two collision-order regressions, and three
+FactorSound guards. Subsequent Assembly additions have their own passing
+focused audits but have not yet been included in a newer aggregate checkpoint:
+actual decoded witness re-encoding does not grow; normalized stores preserve
+the exact partial trie and actual runtime; native main execution is extracted;
+and shared forest allocation reconstructs each instance's normalized store.
+FactorComplete still needs capacity and remaining native fields.
+
+Queue candidate `1f744100` (merged AIR through `20687f96`) proves all local
+constraints for all three parser modes at arbitrary fitting heights, including
+padding and executable-generator bridges. Its audit has 28 axiom guards and
+11 fixtures in each of integer/field arithmetic. Root is proving record gluing;
+read orchestration, sound extraction, and actual global capacity remain open.
+
+Source `37dfbb04` proves its deduplicated SIZE charge stays within the actual
+unchanged 8 MiB raw-witness bound, preserving unused dictionary fillers.
+Full logical five-bus traffic and exact traffic across overlapping partitions
+are proved; full local legality and protocol admission remain open. The cost
+model including full-row source carry, reserved combined queue width52, and
+Ups width200 is **8,359,074 bytes**, leaving29,534 bytes. This remains a candidate
+model; final wiring and protocol/security admission are not established.
+
+The isolated HPL repair has checked full-u32 Node encoding and Ups byte/header
+constraints. The carry counterexample requires widened memory carry: checkpoint
+`0ae875e0` checks width200, unchanged interactions/degree, full cMem rendering
+and extraction. Direct/moved header consumers are checked; split/shape consumers
+remain in progress. Do not merge the isolated HPL lane as complete yet.
+
+Reference lean4lean admission remains FAIL. Proof-only factoring experiments
+did not solve the E_exec recursion failure; canonical upstream-derived proof
+sources were restored, with diagnostic evidence retained. No checker limit was
+relaxed. Frozen parameters, raw/proof caps, and accepted domain are unchanged.
+
+The paragraphs below are historical checkpoints where superseded by this one.
+
+
 **Newest aggregate: AIR `f0da580b` passes 1,337 jobs with proved FactorSound.**
 `GoodV3.checkD0`, `GoodV3.checkD0a`, and `factorSound` imply unchanged native
 checker acceptance from explicit semantic fields. Three permanent axiom guards
