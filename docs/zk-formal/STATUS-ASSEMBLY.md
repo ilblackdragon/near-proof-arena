@@ -774,3 +774,14 @@ trace-local recordId points to the exact actual seeded forest provider, deriving
 source revelation from the native trace. Seven guards pass. This certifies
 source-provider lookup, not output/fresh-node allocation, off-path child-map
 coherence, provider use counters, or complete AIR traffic.
+
+### Terminal extension child IDs
+
+`ExtendedRecordId` closes the off-path mismatching-extension target gap. The
+extended local address map includes that child's empty-extension chain, retains
+strict size descent and preserves all existing source IDs. Its resolved ID is
+exactly the seeded `viewTarget`, and the target is an existing forest NodeS3;
+no new node allocation or capacity premise is introduced. Twenty audit guards
+pass. Resolved target revelation remains explicit when the native child is
+unrevealed. Proper branch child address/slot correspondence and full traffic
+counts are separate remaining work.
