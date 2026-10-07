@@ -123,3 +123,26 @@ Axioms: `propext`, `Classical.choice`, `Quot.sound`; no `sorry`, `native_decide`
 * The relation is a transcription of nearcore, difftested, not proved equal to it.
 
 Results: `docs/e2e-results/v3-d3-reference/`.
+
+## Read-set migration in progress
+
+`formal/ReexecV3D3/Logged/` contains candidate-local copies of the proved logging
+library from commit `77b844e0e81d9536e8885b4c35ff9f0b89a7af88`. They are candidate
+proof/code modules, outside the judge's trusted module set. The only transform
+is the literal namespace replacement `NearSpecV3.Logged` → `ReexecV3D3.Logged`.
+`dependency-locks/logged-candidate.json` records every upstream and transformed
+file hash. Reproduce or verify using `source/verifier/sync-logged.py COMMIT`
+(or add `--check` for read-only verification). The frozen Lean vendor is retained.
+
+`ReadCanon` defines the new single-execution read-set encoder/checker and proves
+its semantic soundness and literal byte-equality requirement. `ReadControl`
+proves that structural simulation preserves successful results and exact read
+sequences. `ReadLockstep` supplies size-check weakening and implicit-transition
+projection lemmas. All 30 copied modules and these helpers compile; eleven
+transitive axiom guards pass in `test/AuditReadLocal.lean`.
+
+The deployed `Model` still uses the existing necessity normal form. Completing
+the migration requires a proof that re-encoding preserves checker control flow,
+store answers on the read keys, the read-set fixed point, and the witness-size
+bound, followed by certificate and hostile `check-local` runs. The same-syntax
+`reads_restrict_eq` theorem alone does not prove that re-encoding property.
