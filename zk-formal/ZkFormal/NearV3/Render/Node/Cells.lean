@@ -75,21 +75,21 @@ theorem c27 : rowCell vs r 27 = oddOf (rec vs r.n).v := by
   rfl
 theorem c28 : rowCell vs r 28 = nokeyOf (rec vs r.n).v := by
   rfl
-theorem c29 : rowCell vs r 29 = (if r.f.nib then bitOf (r.b / 16) 0 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 0 else 0) := by
+theorem c29 : rowCell vs r 29 = (if r.f.nib || r.f.state == 15 then bitOf (r.b / 16) 0 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 0 else 0) := by
   rfl
-theorem c30 : rowCell vs r 30 = (if r.f.nib then bitOf (r.b / 16) 1 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 1 else 0) := by
+theorem c30 : rowCell vs r 30 = (if r.f.nib || r.f.state == 15 then bitOf (r.b / 16) 1 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 1 else 0) := by
   rfl
-theorem c31 : rowCell vs r 31 = (if r.f.nib then bitOf (r.b / 16) 2 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 2 else 0) := by
+theorem c31 : rowCell vs r 31 = (if r.f.nib || r.f.state == 15 then bitOf (r.b / 16) 2 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 2 else 0) := by
   rfl
-theorem c32 : rowCell vs r 32 = (if r.f.nib then bitOf (r.b / 16) 3 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 3 else 0) := by
+theorem c32 : rowCell vs r 32 = (if r.f.nib || r.f.state == 15 then bitOf (r.b / 16) 3 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 3 else 0) := by
   rfl
-theorem c33 : rowCell vs r 33 = (if r.f.nib then bitOf (r.b % 16) 0 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 4 else 0) := by
+theorem c33 : rowCell vs r 33 = (if r.f.nib || r.f.state == 15 then bitOf (r.b % 16) 0 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 4 else 0) := by
   rfl
-theorem c34 : rowCell vs r 34 = (if r.f.nib then bitOf (r.b % 16) 1 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 5 else 0) := by
+theorem c34 : rowCell vs r 34 = (if r.f.nib || r.f.state == 15 then bitOf (r.b % 16) 1 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 5 else 0) := by
   rfl
-theorem c35 : rowCell vs r 35 = (if r.f.nib then bitOf (r.b % 16) 2 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 6 else 0) := by
+theorem c35 : rowCell vs r 35 = (if r.f.nib || r.f.state == 15 then bitOf (r.b % 16) 2 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 6 else 0) := by
   rfl
-theorem c36 : rowCell vs r 36 = (if r.f.nib then bitOf (r.b % 16) 3 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 7 else 0) := by
+theorem c36 : rowCell vs r 36 = (if r.f.nib || r.f.state == 15 then bitOf (r.b % 16) 3 else if r.f.isTag then bitOf ((rec vs r.n).depth + 112) 7 else 0) := by
   rfl
 theorem c37 : rowCell vs r 37 = bitOf (bmvOf (rec vs r.n).v) 0 := by
   rfl
@@ -353,9 +353,9 @@ theorem c166 : rowCell vs r 166 = vlenOf (rec vs r.n).v := by
   rfl
 theorem c167 : rowCell vs r 167 = b2n (twOf (rec vs r.n).v) := by
   rfl
-theorem c168 : rowCell vs r 168 = (if r.f.isVlen then le256 ((((slotOf (rec vs r.n).v).map NSlot3.lenB).getD []).take (r.idx + 1)) else 0) := by
+theorem c168 : rowCell vs r 168 = (if r.f.state == 15 then le256 ((u32Bytes (hplenOf (rec vs r.n).v)).take (r.idx + 1)) else if r.f.isVlen then le256 ((((slotOf (rec vs r.n).v).map NSlot3.lenB).getD []).take (r.idx + 1)) else 0) := by
   rfl
-theorem c169 : rowCell vs r 169 = (if r.f.isVlen then 256 ^ r.idx else 0) := by
+theorem c169 : rowCell vs r 169 = (if r.f.isVlen || r.f.state == 15 then 256 ^ r.idx else 0) := by
   rfl
 theorem c170 : rowCell vs r 170 = b2n (rec vs r.n).dup := by
   rfl

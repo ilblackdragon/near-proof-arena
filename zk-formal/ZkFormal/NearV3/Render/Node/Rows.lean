@@ -52,7 +52,7 @@ theorem cRows_node {q : Nat} (hqn : q < R vs) : RowGoal vs H NodeV3.cRows q := b
     all_goals node_ev3 [hC']
     all_goals node_rc3 []
     all_goals try simp only [F.state, Node.sTAG, F.len, NodeGen.F.nib, NodeGen.F.isTag, Bool.false_eq_true, ite_true,
-      ite_false, b2n, decide_true, decide_false, Nat.reduceEqDiff]
+      ite_false, b2n, decide_true, decide_false, Nat.reduceEqDiff, Bool.or_eq_true, beq_iff_eq, false_or, true_or]
     all_goals (repeat' split) <;> first | omega | (simp only [decide_eq_true_eq] at *; omega) | (simp only [bitOf] at *; omega)
   · have hml : ((layN vs n).getD p default).1.state = 22 →
         ((layN vs n).getD p default).1.len (hplenOf (rec vs n).v) = 8 := by

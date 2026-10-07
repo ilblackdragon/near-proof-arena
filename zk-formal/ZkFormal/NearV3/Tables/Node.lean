@@ -276,8 +276,8 @@ def cFields : List Expr :=
 /-- Byte contents of the non-window fields. -/
 def cBytes : List Expr :=
   [ .mul (c sTAG) (sub (c b) tagE),
-    mul3 (c sHPL) (c fs) (sub (c b) (c hplen)),
-    mul3 (c sHPL) (not (c fs)) (c b),
+    mul3 (c sHPL) (c fs) (sub (c vacc) (c b)),
+    mul3 (c sHPL) (c fs) (sub (c vsc) (k 1)),
     .mul (.add (c sHPF) (c sKEY)) (sub (c b) (.add (smul 16 hiE) loE)),
     .mul (c sHPF) (sub hiE (.add (smul 2 (c tl)) (c odd))),
     mul3 (c sHPF) (not (c odd)) loE,
@@ -290,7 +290,14 @@ def cBytes : List Expr :=
     mul3 (c sBM) (c fs) (sub (c b) bmLo),
     mul3 (c sBM) (not (c fs)) (sub (c b) bmHi),
     -- post = pre outside the windows
-    .mul (sub (c act) winE) (sub (c pb) (c b)) ]
+    .mul (sub (c act) winE) (sub (c pb) (c b)),
+    -- Full four-byte HPL accumulator, with local byte range decomposition.
+    mul3 (c sHPL) (not (c fe)) (sub (n vacc) (.add (c vacc) (.mul (n vsc) (n b)))),
+    mul3 (c sHPL) (not (c fe)) (sub (n vsc) (smul 256 (c vsc))),
+    mul3 (c sHPL) (c fe) (sub (c vacc) (c hplen)),
+    .mul (c sHPL) (sub (c b) (.add (smul 16 hiE) loE)),
+    -- The trace row bound is below 2^24; exclude field-modulus aliases.
+    mul3 (c sHPL) (c fe) (c b) ]
 
 /-- Windows: register reads and shifts, loads, child slot bookkeeping. -/
 def windowConst : List Nat := [rv, cid, clen, cres, w, lastw] ++ (List.range 16).map jj

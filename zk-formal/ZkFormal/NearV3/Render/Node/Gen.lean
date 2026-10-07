@@ -258,9 +258,9 @@ def rowCell (vs : List NodeS3) (r : NRec) (col : Nat) : Nat :=
     | 28 => nokeyOf v
     | c => b2n (r.f.state = c)
   else if col < 33 then
-    (if r.f.nib then bitOf (r.b / 16) (col - 29) else if r.f.isTag then bitOf D (col - 29) else 0)
+    (if r.f.nib || r.f.state == 15 then bitOf (r.b / 16) (col - 29) else if r.f.isTag then bitOf D (col - 29) else 0)
   else if col < 37 then
-    (if r.f.nib then bitOf (r.b % 16) (col - 33) else if r.f.isTag then bitOf D (col - 33 + 4) else 0)
+    (if r.f.nib || r.f.state == 15 then bitOf (r.b % 16) (col - 33) else if r.f.isTag then bitOf D (col - 33 + 4) else 0)
   else if col < 53 then bitOf (bmvOf v) (col - 37)
   else if col = 53 then nochildOf v
   else if col < 70 then (match r.f.chw with | some w => b2n (w.slot = some (col - 54)) | none => 0)
@@ -302,8 +302,8 @@ def rowCell (vs : List NodeS3) (r : NRec) (col : Nat) : Nat :=
     | 165 => vidOf v
     | 166 => vlenOf v
     | 167 => b2n (twOf v)
-    | 168 => if r.f.isVlen then le256 (((slotOf v).map NSlot3.lenB).getD [] |>.take (r.idx + 1)) else 0
-    | 169 => if r.f.isVlen then 256 ^ r.idx else 0
+    | 168 => if r.f.state == 15 then le256 ((u32Bytes hplen).take (r.idx + 1)) else if r.f.isVlen then le256 (((slotOf v).map NSlot3.lenB).getD [] |>.take (r.idx + 1)) else 0
+    | 169 => if r.f.isVlen || r.f.state == 15 then 256 ^ r.idx else 0
     | 170 => b2n s.dup
     | 171 => b2n s.hd
     | 172 => s.repE
@@ -349,8 +349,6 @@ structure NodeOk (vs : List NodeS3) : Prop where
   wf : NodeWf3 vs
   pos : 0 < vs.length
   depth : ∀ s ∈ vs, s.depth < 400
-  /-- key lengths (`hplen < 256`) -/
-  keys : ∀ s ∈ vs, ∀ k memB, (∃ v, s.v = .leaf k v memB) ∨ (∃ kid, s.v = .ext k kid memB) → k.length < 510
   /-- the length bytes of revealed values are bytes -/
   lenB : ∀ s ∈ vs, ∀ lenB i l pre po w, (∃ k m, s.v = .leaf k (.val lenB i l pre po w) m) ∨
       (∃ kids m, s.v = .branch (some (.val lenB i l pre po w)) kids m) → ∀ x ∈ lenB, x < 256

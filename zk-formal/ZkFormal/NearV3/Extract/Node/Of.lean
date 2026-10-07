@@ -210,8 +210,8 @@ theorem leafSer (hC : NodeCtx tr s ℓ fl) (ht : tr.cell T_NODE s tl = 1) :
       cv_zero (typeZeros hL hC (x := tl) (y := tb2) (by simp) ht (by simp) (by decide)),
       cv_zero (typeZeros hL hC (x := tl) (y := te) (by simp) ht (by simp) (by decide))]
   obtain ⟨hF1, hH1⟩ := fieldAt hL hC (mem (1, 4) (by simp [leafFL, keyFL]))
-  have T1 : rowsB tr b (s + 1) 4 = u32r (cv tr T_NODE s hplen) := by
-    rw [hplBytes hL hF1 hH1 sH, cvConst hL hC (by simp [nodeConst]) (by omega)]
+  have T1 : rowsB tr b (s + 1) 4 = u32Bytes (cv tr T_NODE s hplen) := by
+    rw [hplBytes hL hF1 hH1 sH, Nat.add_assoc, cvConst hL hC (by simp [nodeConst]) (by omega)]
   have P0 := pbOf hL hC (o := 0) (L := 1) (mem _ (by simp [leafFL, keyFL])) (by simpa using sT) (by simp [states]) (by decide) (by decide)
   have P1 := pbOf hL hC (L := 4) (mem _ (by simp [leafFL, keyFL])) sH (by simp [states]) (by decide) (by decide)
   have P5 := pbOf hL hC (L := 1) (mem _ (by simp [leafFL, keyFL])) sF (by simp [states]) (by decide) (by decide)
@@ -290,8 +290,8 @@ theorem extSer (hC : NodeCtx tr s ℓ fl) (ht : tr.cell T_NODE s te = 1) :
       cv_zero (typeZeros hL hC (x := te) (y := tb1) (by simp) ht (by simp) (by decide)),
       cv_zero (typeZeros hL hC (x := te) (y := tb2) (by simp) ht (by simp) (by decide)), hcv]
   obtain ⟨hF1, hH1⟩ := fieldAt hL hC (mem (1, 4) (by simp [extFL, keyFL]))
-  have T1 : rowsB tr b (s + 1) 4 = u32r (cv tr T_NODE s hplen) := by
-    rw [hplBytes hL hF1 hH1 sH, cvConst hL hC (by simp [nodeConst]) (by omega)]
+  have T1 : rowsB tr b (s + 1) 4 = u32Bytes (cv tr T_NODE s hplen) := by
+    rw [hplBytes hL hF1 hH1 sH, Nat.add_assoc, cvConst hL hC (by simp [nodeConst]) (by omega)]
   have P0 := pbOf hL hC (o := 0) (L := 1) (mem _ (by simp [extFL, keyFL])) (by simpa using sT) (by simp [states]) (by decide) (by decide)
   have P1 := pbOf hL hC (L := 4) (mem _ (by simp [extFL, keyFL])) sH (by simp [states]) (by decide) (by decide)
   have P5 := pbOf hL hC (L := 1) (mem _ (by simp [extFL, keyFL])) sF (by simp [states]) (by decide) (by decide)

@@ -27,7 +27,7 @@ def tagOf : NodeV3 → Nat
 /-- The bytes of field `f` of record `v`. -/
 def fbytes (v : NodeV3) (post : Bool) : F → List Nat
   | .tag => [tagOf v]
-  | .hpl => u32r (hpN (keyOf v) (isLeaf v)).length
+  | .hpl => u32Bytes (hpN (keyOf v) (isLeaf v)).length
   | .hpf => (hpN (keyOf v) (isLeaf v)).take 1
   | .key => (hpN (keyOf v) (isLeaf v)).drop 1
   | .vlen => ((slotOf v).map NSlot3.lenB).getD []

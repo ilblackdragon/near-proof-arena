@@ -59,10 +59,9 @@ theorem ser_vals3 (v : NodeV3) (hw : v.wf) :
     simp only [NodeV3.ser, List.mem_append] at hx
     rcases hx with ((((h | h) | h) | h) | h)
     · simp at h; omega
-    · simp [u32r] at h
-      rcases h with rfl | rfl
-      · exact Or.inr (Or.inr hl)
-      · right; left; omega
+    · right; left
+      have := u32Bytes_lt _ _ h
+      omega
     · right; left; unfold hpN at h; obtain ⟨y, -, rfl⟩ := List.mem_map.mp h; have := UInt8.toNat_lt y; omega
     · left; simp [NodeV3.raw, slot_bytes_raw h]
     · left; simp [NodeV3.raw, h]
@@ -71,10 +70,9 @@ theorem ser_vals3 (v : NodeV3) (hw : v.wf) :
     simp only [NodeV3.ser, List.mem_append] at hx
     rcases hx with ((((h | h) | h) | h) | h)
     · simp at h; omega
-    · simp [u32r] at h
-      rcases h with rfl | rfl
-      · exact Or.inr (Or.inr hl)
-      · right; left; omega
+    · right; left
+      have := u32Bytes_lt _ _ h
+      omega
     · right; left; unfold hpN at h; obtain ⟨y, -, rfl⟩ := List.mem_map.mp h; have := UInt8.toNat_lt y; omega
     · left; simp [NodeV3.raw, kid_bytes_raw h]
     · left; simp [NodeV3.raw, h]

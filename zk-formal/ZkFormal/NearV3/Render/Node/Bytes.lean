@@ -1,4 +1,5 @@
 import ZkFormal.NearV3.Render.Node.ByteFacts
+import ZkFormal.NearV3.Render.Node.HeaderBounds
 
 /-!
 # ZkFormal.NearV3.Render.Node.Bytes — `cBytes`: bytes of the non-window fields, `VLEN` accumulator
@@ -66,13 +67,13 @@ theorem cBytes_node {q : Nat} (hqn : q < R vs) : RowGoal vs H NodeV3.cBytes q :=
   simp only [NodeV3.cBytes, List.mem_cons, List.not_mem_nil, or_false] at hex
   -- the `VLEN` accumulator step needs the next row
   have hacc : ∀ (Dn : Nat → Int), (∀ x, x < 185 → Dn x = D x) →
-      ((layN vs n).getD p default).1.state = 18 → ((layN vs n).getD p default).2 + 1 ≠ 4 →
+      (((layN vs n).getD p default).1.state = 15 ∨ ((layN vs n).getD p default).1.state = 18) → ((layN vs n).getD p default).2 + 1 ≠ 4 →
       p + 1 < (layN vs n).length ∧ off vs n + p + 1 < R vs ∧
         (∀ x, x < 185 → D x = (rowCell vs (mkR vs n (p + 1)) x : Int)) ∧
         ((layN vs n).getD (p + 1) default).1 = ((layN vs n).getD p default).1 ∧
         ((layN vs n).getD (p + 1) default).2 = ((layN vs n).getD p default).2 + 1 := by
     intro _ _ h18 hne
-    have h4 := hLf.2.2.2.2.1 h18
+    have h4 := h18.elim hLf.2.1 hLf.2.2.2.2.1
     have h1 : p + 1 < (layN vs n).length := by
       apply Classical.byContradiction; intro hh
       have := (last_iff ok hn hp).1 (by omega); omega
@@ -89,10 +90,29 @@ theorem cBytes_node {q : Nat} (hqn : q < R vs) : RowGoal vs H NodeV3.cBytes q :=
     · exact ⟨a1, a2⟩
     · omega
   generalize hA : (layN vs n).getD p default = A at *
-  rcases hex with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+  rcases hex with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
   · node_ev3 [hC']; node_rc3 []; have h := hbf.1; bclose
-  · node_ev3 [hC']; node_rc3 []; have h := hbf.2.1; bclose
-  · node_ev3 [hC']; node_rc3 []; have h := hbf.2.2.1; bclose
+  · -- HPL accumulator start
+    node_ev3 [hC']; node_rc3 []
+    by_cases h15 : A.1.state = 15
+    · simp only [h15, beq_self_eq_true, ite_true]
+      by_cases h0 : A.2 = 0
+      · simp only [h0, Nat.zero_add]
+        rw [le256_take_one _ (by intro he; have := u32Bytes_length (hplenOf (rec vs n).v); rw [he] at this; contradiction)]
+        have hb := hbf.2.1 h15
+        rw [h0] at hb
+        rw [hb]
+        bclose
+      · bclose
+    · simp [b2n, h15]
+  · -- HPL scale start
+    node_ev3 [hC']; node_rc3 []
+    by_cases h15 : A.1.state = 15
+    · simp only [h15, beq_self_eq_true, Bool.or_true, ite_true]
+      by_cases h0 : A.2 = 0
+      · simp only [h0, Nat.pow_zero]; bclose
+      · bclose
+    · simp [b2n, h15]
   · node_ev3 [hC']; node_rc3 []
     have h1 := nib4 (((rec vs n).v.ser false).getD p 0 / 16)
     have h2 := nib4 (((rec vs n).v.ser false).getD p 0 % 16)
@@ -115,8 +135,10 @@ theorem cBytes_node {q : Nat} (hqn : q < R vs) : RowGoal vs H NodeV3.cBytes q :=
     have h := hbf.2.2.2.2.2.2.1
     by_cases h18 : A.1.state = 18
     · have hv : A.1.isVlen = true := hvl.2 h18
+      have h15 : (A.1.state == 15) = false := by simp; omega
+      simp only [h15, Bool.false_eq_true, ite_false, Bool.or_false]
       have hl := (hlb h18).1
-      simp only [hv, ite_true]
+      simp only [hv, ite_true, Bool.true_or]
       by_cases h0 : A.2 = 0
       · simp only [h0, Nat.zero_add, b2n, decide_true, ite_true]
         rw [le256_take_one _ (by intro h'; rw [h'] at hl; simp at hl)]
@@ -127,7 +149,9 @@ theorem cBytes_node {q : Nat} (hqn : q < R vs) : RowGoal vs H NodeV3.cBytes q :=
   · node_ev3 [hC']; node_rc3 []
     by_cases h18 : A.1.state = 18
     · have hv : A.1.isVlen = true := hvl.2 h18
-      simp only [hv, ite_true]
+      have h15 : (A.1.state == 15) = false := by simp; omega
+      simp only [h15, Bool.false_eq_true, ite_false, Bool.or_false]
+      simp only [hv, ite_true, Bool.true_or]
       by_cases h0 : A.2 = 0
       · simp only [h0, Nat.pow_zero]; bclose
       · bclose
@@ -135,10 +159,12 @@ theorem cBytes_node {q : Nat} (hqn : q < R vs) : RowGoal vs H NodeV3.cBytes q :=
       simp only [hv, Bool.false_eq_true, ite_false]; bclose
   · -- accumulator step
     by_cases hcase : A.1.state = 18 ∧ A.2 + 1 ≠ 4
-    · obtain ⟨h1, h2, hD', ha1, ha2⟩ := hacc D (fun _ _ => rfl) hcase.1 hcase.2
+    · obtain ⟨h1, h2, hD', ha1, ha2⟩ := hacc D (fun _ _ => rfl) (Or.inr hcase.1) hcase.2
       simp only [mkR, ha1, ha2] at hD'
       node_ev3 [hC', hD']; node_rc3 []
       have hv : A.1.isVlen = true := hvl.2 hcase.1
+      have h15 : (A.1.state == 15) = false := by simp; omega
+      simp only [h15, Bool.false_eq_true, ite_false, Bool.or_false]
       have hl := (hlb hcase.1).1
       have hstep := le256_take_succ ((Option.map NSlot3.lenB (slotOf (rec vs n).v)).getD []) A.2 (by have := hidx; rw [hLf.2.2.2.2.1 hcase.1] at this; omega)
       have hbn := hbf.2.2.2.2.2.2.1
@@ -147,7 +173,7 @@ theorem cBytes_node {q : Nat} (hqn : q < R vs) : RowGoal vs H NodeV3.cBytes q :=
       rw [ha1, ha2] at hbn'
       have hb1 := hbn'.2.2.2.2.2.2.1 hcase.1
       simp only [lenBOf] at hb1
-      simp only [hv, ite_true] at hstep hb1 ⊢
+      simp only [hv, ite_true, Bool.true_or] at hstep hb1 ⊢
       rw [show A.2 + 1 + 1 = A.2 + 2 by omega, hstep, ← hb1]
       simp only [b2n, decide_eq_true_eq]
       generalize 256 ^ (A.2 + 1) = P at *
@@ -161,10 +187,12 @@ theorem cBytes_node {q : Nat} (hqn : q < R vs) : RowGoal vs H NodeV3.cBytes q :=
         bclose
   · -- `vsc` step
     by_cases hcase : A.1.state = 18 ∧ A.2 + 1 ≠ 4
-    · obtain ⟨h1, h2, hD', ha1, ha2⟩ := hacc D (fun _ _ => rfl) hcase.1 hcase.2
+    · obtain ⟨h1, h2, hD', ha1, ha2⟩ := hacc D (fun _ _ => rfl) (Or.inr hcase.1) hcase.2
       simp only [mkR, ha1, ha2] at hD'
       node_ev3 [hC', hD']; node_rc3 []
       have hv : A.1.isVlen = true := hvl.2 hcase.1
+      have h15 : (A.1.state == 15) = false := by simp; omega
+      simp only [h15, Bool.false_eq_true, ite_false, Bool.or_false]
       simp only [hv, ite_true, Nat.pow_succ]
       generalize 256 ^ A.2 = Q at *
       simp only [Int.natCast_mul]; bclose
@@ -177,8 +205,10 @@ theorem cBytes_node {q : Nat} (hqn : q < R vs) : RowGoal vs H NodeV3.cBytes q :=
     node_ev3 [hC']; node_rc3 []
     by_cases h18 : A.1.state = 18
     · have hv : A.1.isVlen = true := hvl.2 h18
+      have h15 : (A.1.state == 15) = false := by simp; omega
+      simp only [h15, Bool.false_eq_true, ite_false, Bool.or_false]
       have hl := hLf.2.2.2.2.1 h18
-      simp only [hv, ite_true]
+      simp only [hv, ite_true, Bool.true_or]
       cases ht : tvOf (rec vs n).v
       · simp [b2n]
       · have hlen4 := (hlb h18).1
@@ -214,6 +244,67 @@ theorem cBytes_node {q : Nat} (hqn : q < R vs) : RowGoal vs H NodeV3.cBytes q :=
   · node_ev3 [hC']; node_rc3 []
     have h := hbf.2.2.2.2.2.2.2.2.2
     bclose
+  · -- HPL accumulator continuation
+    by_cases hcase : A.1.state = 15 ∧ A.2 + 1 ≠ 4
+    · obtain ⟨h1, h2, hD', ha1, ha2⟩ := hacc D (fun _ _ => rfl) (Or.inl hcase.1) hcase.2
+      simp only [mkR, ha1, ha2] at hD'
+      node_ev3 [hC', hD']; node_rc3 []
+      have hstep := le256_take_succ (u32Bytes (hplenOf (rec vs n).v)) A.2
+        (by have := hidx; rw [hLf.2.1 hcase.1] at this; simp; omega)
+      have hbn' := byte_facts ok hn h1
+      simp only at hbn'
+      rw [ha1, ha2] at hbn'
+      have hb1 := hbn'.2.1 hcase.1
+      simp only [hcase.1, beq_self_eq_true, Bool.or_true, ite_true]
+      rw [show A.2 + 1 + 1 = A.2 + 2 by omega, hstep, ← hb1]
+      simp only [b2n, decide_eq_true_eq]
+      generalize 256 ^ (A.2 + 1) = P at *
+      split
+      · omega
+      · simp only [Int.natCast_add, Int.natCast_mul]; omega
+    · node_ev3 [hC']; node_rc3 []
+      have hl := hLf.2.1
+      bclose
+  · -- HPL scale continuation
+    by_cases hcase : A.1.state = 15 ∧ A.2 + 1 ≠ 4
+    · obtain ⟨h1, h2, hD', ha1, ha2⟩ := hacc D (fun _ _ => rfl) (Or.inl hcase.1) hcase.2
+      simp only [mkR, ha1, ha2] at hD'
+      node_ev3 [hC', hD']; node_rc3 []
+      simp only [hcase.1, beq_self_eq_true, Bool.or_true, ite_true, Nat.pow_succ]
+      generalize 256 ^ A.2 = Q at *
+      simp only [Int.natCast_mul]; bclose
+    · node_ev3 [hC']; node_rc3 []
+      have hl := hLf.2.1
+      bclose
+  · -- HPL final value, using only the existing row bound
+    node_ev3 [hC']; node_rc3 []
+    by_cases h15 : A.1.state = 15
+    · have hl := hLf.2.1 h15
+      simp only [h15, beq_self_eq_true, ite_true]
+      by_cases he : A.2 + 1 = 4
+      · rw [he, List.take_of_length_le (by simp), u32Bytes_value (by have := hplen_lt24 ok hn; omega)]
+        bclose
+      · bclose
+    · simp [b2n, h15]
+  · -- Header byte range, using the free nibble columns
+    node_ev3 [hC']; node_rc3 []
+    have h1 := nib4 (((rec vs n).v.ser false).getD p 0 / 16)
+    have h2 := nib4 (((rec vs n).v.ser false).getD p 0 % 16)
+    by_cases h15 : A.1.state = 15
+    · have hb := hbf.2.2.1 h15
+      simp only [h15, beq_self_eq_true, Bool.or_true, ite_true]
+      bclose
+    · simp [b2n, h15]
+  · -- Header top byte is zero by the existing row bound
+    node_ev3 [hC']; node_rc3 []
+    by_cases h15 : A.1.state = 15
+    · have hl := hLf.2.1 h15
+      have hb := hbf.2.1 h15
+      by_cases he : A.2 + 1 = 4
+      · rw [hb, show A.2 = 3 by omega, u32Bytes_top_zero (hplen_lt24 ok hn)]
+        simp
+      · bclose
+    · simp [b2n, h15]
 
 set_option maxHeartbeats 4000000 in
 theorem cBytes_other {q : Nat} (hq : R vs ≤ q) (hqH : q < H) : RowGoal vs H NodeV3.cBytes q := by
@@ -226,7 +317,7 @@ theorem cBytes_other {q : Nat} (hq : R vs ≤ q) (hqH : q < H) : RowGoal vs H No
     · rw [X_pad (by omega)]
   simp only [NodeV3.cBytes, List.mem_cons, List.not_mem_nil, or_false] at hex
   generalize total vs = T at *
-  rcases hex with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+  rcases hex with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
   all_goals node_ev3 [hC']
   all_goals split <;> simp [sumCell, padCell]
 

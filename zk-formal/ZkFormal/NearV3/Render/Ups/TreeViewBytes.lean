@@ -21,12 +21,12 @@ open NearSpec ZkFormal.Near ZkFormal.Near.Render
     simp [viewKids,kidBitmap_cons,kidsBitmap,runtime_bitmap_shift rest 1,viewKids_bitmap (n+tsize child) rest]
 
 /-- Revealing child/value IDs does not change the actual runtime serialized bytes. -/
-theorem viewNode_ser (nid vid : Nat) (t : PTrie) (hw : t.wf=true) (hh : SmallNodeHeader t)
+theorem viewNode_ser (nid vid : Nat) (t : PTrie) (hw : t.wf=true) 
     (hn : isNode t=true) (post : Bool) : (viewNode nid vid t).ser post=(nodeEnc t).map UInt8.toNat := by
   cases t with
   | hash => simp [isNode] at hn
-  | leaf key value mem => simp [viewNode,NodeV3.ser,nodeEnc,map_u32_small _ hh,hpN]
-  | ext key child mem => simp [viewNode,NodeV3.ser,nodeEnc,map_u32_small _ hh,hpN]
+  | leaf key value mem => simp [viewNode,NodeV3.ser,nodeEnc,u32Bytes,hpN]
+  | ext key child mem => simp [viewNode,NodeV3.ser,nodeEnc,u32Bytes,hpN]
   | branch value kids mem =>
     simp only [PTrie.wf,Bool.and_eq_true] at hw
     have hl := (treeKids_wf kids 16 hw.1.2).1
