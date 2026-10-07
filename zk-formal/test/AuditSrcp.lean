@@ -1,4 +1,5 @@
-import ZkFormal.NearV3.Rcpt.Extract.Srcp.SizeGate
+import ZkFormal.NearV3.Rcpt.Extract.Srcp.SizeTraffic
+import ZkFormal.NearV3.Rcpt.Link.SourceHash
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 
 /-! Guard the recovered source-proof extraction and digest-byte reconstruction. -/
@@ -78,3 +79,19 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.SrcpProof.size_gate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.SrcpProof.size_gate
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.size_prefix' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.size_prefix
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.size_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.size_traffic
+
+/-- info: 'ZkFormal.NearV3.srcp_rootFromPath' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.srcp_rootFromPath
+
+/-- info: 'ZkFormal.NearV3.srcp_verifyReceiptProof' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.srcp_verifyReceiptProof
