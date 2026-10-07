@@ -14,6 +14,7 @@ import ZkFormal.NearV3.Qv.Candidates.CombinedTermination
 import ZkFormal.NearV3.Qv.Candidates.CombinedMetadataEquations
 import ZkFormal.NearV3.Qv.Candidates.CombinedPhysical
 import ZkFormal.NearV3.Qv.Candidates.CombinedMainOrder
+import ZkFormal.NearV3.Qv.Candidates.CombinedImplicitSteps
 
 namespace QvCombinedRegression
 open ZkFormal.NearV3.Qv.Candidates
@@ -578,3 +579,35 @@ end QvCombinedRegression
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_successor' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_successor
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_at_order' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_at_order
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_at_flags' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_at_flags
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_successor' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_successor
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_last_flags' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_last_flags
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_implicit_boundary' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_implicit_boundary
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicit_step_equations' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicit_step_equations
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.enter_implicit_equations' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.enter_implicit_equations
