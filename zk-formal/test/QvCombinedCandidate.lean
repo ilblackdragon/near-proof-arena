@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Qv.Candidates.CombinedWordAggregate
 import ZkFormal.NearV3.Qv.Candidates.CombinedParserTraffic
 import ZkFormal.NearV3.Qv.Candidates.CombinedLocal
 import ZkFormal.NearV3.Qv.Candidates.CombinedRecordPlacement
@@ -964,3 +965,49 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_traffic_split
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.zipIdx_positions' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.zipIdx_positions
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.zipIdx_flatMap_positions' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.zipIdx_flatMap_positions
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.placed_words_traffic' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.placed_words_traffic
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix_word_messages' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix_word_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix_key' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix_key
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix_final' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix_final
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix_counter' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix_counter
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix_shard' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix_shard
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_counter_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_counter_messages

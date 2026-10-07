@@ -425,3 +425,13 @@ plus that canonical parser contribution with multiplicities preserved. The row
 bridge reuses existing CombinedParser.parser_row_traffic. Target273 jobs and180
 exact axiom guards+15 regressions pass. Walk-prefix aggregation and corrected
 rank-counter bus balance remain; this is not whole-table global balance.
+
+
+`CombinedWordAggregate` aggregates physical walk rows into complete ordered word
+messages, preserving repeated requests. Actual prefix KEYNIB sends, FINAL
+receives, QVC sends/receives and QSH receives equal their natural semantic word
+messages mapped to the field. `mixedTrace_counter_messages` then combines this
+with the parser suffix to characterize ALL physical QVC messages as walk rank
+messages plus parser endpoint messages. Target278 jobs and189 exact axiom
+guards+15 regressions pass. Corrected rank-chain cancellation remains an allocator
+composition obligation; physical message characterization alone is not balance.
