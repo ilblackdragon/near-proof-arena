@@ -692,3 +692,13 @@ injectivity. The native `partialTrie` corollary discharges `Stored` directly.
 Seven audit guards pass. These positions are **not** compact NodeS3 indices:
 merging same-byte node occurrences with different revelation requires consistent
 child/view selection, still open. No node-allocation or AIR completeness claim.
+
+### Accepted pre-node occurrence row capacity
+
+`ForestNodeBytes` proves exact full-u32 seeded serialization for every native
+node occurrence, then charges the entire pre-forest node payload to accepted A7
+`preBytes`. `checkD0a_forest_node_rows` derives the actual node generator's
+payload+1 ≤ 2^22 from B0=2,000,000, with no node-dedup or new capacity premise.
+Thus shared-node union is unnecessary for **pre-node row capacity**. Original
+blob provenance/normalized serialized cost remain distinct. Final write views,
+post-query shadows, and full NodeWf3/traffic are still open. Five axiom guards.
