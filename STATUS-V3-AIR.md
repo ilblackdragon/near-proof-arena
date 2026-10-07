@@ -1,5 +1,17 @@
 ## Combined queue and source extraction checkpoint (2026-10-07)
 
+
+Latest focused checkpoint (2026-10-07): source791f879f passes823 dependency jobs
+and8 audits:84 exact axiom guards and15 field regressions. Report:
+`docs/e2e-results/v3-walk-shape-integration/report.json`.
+This adds native queue walk generation/key symbols/conditional log22 capacity,
+all native split byte-memory dispatch with executable mB assignment, full
+original decoded witness D0Shape, and complete combinatorial source extraction
+including terminal SIZE. It is a focused joint check, not a new full AIR
+aggregate or end-to-end certificate. Queue local/traffic composition, allocator
+ownership, normalized-store A7, source SHA/public binding, protocol admission,
+prover and judge validation remain open.
+
 Integration passes1,585 jobs;12 merged audits pass. Exact counts and evidence:
 `docs/e2e-results/v3-combined-source-native-integration/report.json`.
 CombinedTable now replaces the static queue reserve without changing the checked

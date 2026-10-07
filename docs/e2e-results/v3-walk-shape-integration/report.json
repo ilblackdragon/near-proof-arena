@@ -1,0 +1,73 @@
+{
+  "status": "PASS",
+  "scope": "Focused joint dependency build and eight audits; not the full AIR integration or protocol admission",
+  "source_head": "791f879f1584f22a7adaab026c78aaab2fc5bebe",
+  "build_jobs": 823,
+  "axiom_guards": 84,
+  "behavior_guards": 15,
+  "audits": [
+    {
+      "test": "test/QvCombinedCandidate.lean",
+      "axiom_guards": 33,
+      "behavior_guards": 15,
+      "status": "PASS",
+      "log": "/data/illia/nearproof-deps/validation/v3-walk-shape-20261007/nearproof-QvCombinedCandidate.log"
+    },
+    {
+      "test": "test/AuditTreeLeafSplitDispatch.lean",
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "status": "PASS",
+      "log": "/data/illia/nearproof-deps/validation/v3-walk-shape-20261007/nearproof-AuditTreeLeafSplitDispatch.log"
+    },
+    {
+      "test": "test/AuditTreeExtSplitDispatch.lean",
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "status": "PASS",
+      "log": "/data/illia/nearproof-deps/validation/v3-walk-shape-20261007/nearproof-AuditTreeExtSplitDispatch.log"
+    },
+    {
+      "test": "test/AuditTreeSplitMemory.lean",
+      "axiom_guards": 6,
+      "behavior_guards": 0,
+      "status": "PASS",
+      "log": "/data/illia/nearproof-deps/validation/v3-walk-shape-20261007/nearproof-AuditTreeSplitMemory.log"
+    },
+    {
+      "test": "test/AuditTreeEncodedBounds.lean",
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "status": "PASS",
+      "log": "/data/illia/nearproof-deps/validation/v3-walk-shape-20261007/nearproof-AuditTreeEncodedBounds.log"
+    },
+    {
+      "test": "test/AuditChunkInnerShape.lean",
+      "axiom_guards": 6,
+      "behavior_guards": 0,
+      "status": "PASS",
+      "log": "/data/illia/nearproof-deps/validation/v3-walk-shape-20261007/nearproof-AuditChunkInnerShape.log"
+    },
+    {
+      "test": "test/AuditDecodedWitnessShape.lean",
+      "axiom_guards": 13,
+      "behavior_guards": 0,
+      "status": "PASS",
+      "log": "/data/illia/nearproof-deps/validation/v3-walk-shape-20261007/nearproof-AuditDecodedWitnessShape.log"
+    },
+    {
+      "test": "test/AuditDedupExtractProof.lean",
+      "axiom_guards": 20,
+      "behavior_guards": 0,
+      "status": "PASS",
+      "log": "/data/illia/nearproof-deps/validation/v3-walk-shape-20261007/nearproof-AuditDedupExtractProof.log"
+    }
+  ],
+  "remaining": [
+    "Generic honest combined walk constraints and exact traffic",
+    "Parser wraparound composition and native record ownership",
+    "Source SHA/public linkage and global size no-wrap",
+    "Normalized-witness A7 preservation and value budget",
+    "Full AIR soundness, protocol admission, prover and judge validation"
+  ]
+}
