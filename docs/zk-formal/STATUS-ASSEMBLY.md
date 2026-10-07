@@ -441,3 +441,12 @@ raw bytes satisfy the native8MiB bound, using the previously proved nonexpanding
 canonical encodeSW size. Thirteen permanent axiom guards pass. Shape transfer
 to the reconstructed normalized-store witness remains to be composed; original
 D0Shape is now derived rather than assumed.
+
+`EncodedShapeBounds` derives every transition vector/value width from the actual
+whole encoded witness bound, without assuming original and normalized store
+counts coincide. `NativeShape.nativeExecutionViews_shape` transfers the unchanged
+full D0Shape to the concrete normalized-store constructor using actual trace
+post roots, exact dictionary preservation and independently decoded claim header.
+`checkD0a_constructed_shape` obtains all premises from native acceptance. Twelve
+permanent axiom guards pass. The codec/shape completeness gap is closed; A7's
+post-rebuild allocation gap and canonical scheduler-read preservation remain.
