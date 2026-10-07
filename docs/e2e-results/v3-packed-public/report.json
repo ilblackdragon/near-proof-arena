@@ -1,0 +1,51 @@
+{
+  "status": "partial-formal-milestone",
+  "scope": "R2 concrete nine-segment packed public statement; no final succinct prover or admission",
+  "integration": {
+    "target": "ZkFormal.V3.Integration",
+    "jobs": 1244,
+    "result": "pass",
+    "includes": [
+      "Public.Index",
+      "Ups.GBytes all 76 conditional byte constraints",
+      "Srcp.LocalProof all 112 constraints"
+    ]
+  },
+  "public_audit": {
+    "behavior_guards": 24,
+    "axiom_guards": 20,
+    "result": "pass",
+    "allowed_axioms": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ]
+  },
+  "checked": [
+    "fixed 202-byte header with existing offsets and body-length/witness-overhead fields",
+    "u32 count/offset extraction and exact payload records",
+    "nine static descriptors, all payload widths and overall-size-derived fit",
+    "concrete PubIdx without assumed public record multiplicity"
+  ],
+  "remaining": [
+    "successful preparation yields root widths, scheduler count, and source consistency",
+    "native witness-overhead derivation and header semantic binding",
+    "all scheduler natural messages preserved by byte packing (subsequent isolated branch proof now passes; audit pending)",
+    "full AIR semantic factoring and honest construction",
+    "actual succinct prover, final certificate and real judge"
+  ],
+  "archive": "/data/illia/nearproof-deps/validation/v3-packed-public-20261007",
+  "public_commits": [
+    "fc0fd676",
+    "bdcc753e",
+    "800d61ed",
+    "bae0985a"
+  ],
+  "air_commits": [
+    "35f88374",
+    "d82e75db",
+    "d946b334",
+    "7aba6ec8"
+  ],
+  "pins": "make pin-check passes; frozen oracle/challenge unchanged"
+}

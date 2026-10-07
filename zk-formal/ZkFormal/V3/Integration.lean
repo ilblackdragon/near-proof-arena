@@ -1,3 +1,6 @@
+import ZkFormal.NearV3.Public.Index
+import ZkFormal.NearV3.Render.Ups.GBytes
+import ZkFormal.NearV3.Rcpt.Render.Srcp.LocalProof
 import ZkFormal.V2.IndexedPublic
 import ZkFormal.NearV3.Rcpt.Render.Srcp.Boolean
 import ZkFormal.NearV3.Rcpt.Render.Srcp.Accumulator
