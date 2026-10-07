@@ -887,3 +887,10 @@ and their end marker; copied boundary pair and constrained byte indices yield
 exact addresses. Selected tuples and counter successors match the semantic
 lookup list, with no extraneous header/padding messages. Ten exact guards pass.
 Remaining whole-table receipt traffic: KEYNIB, DIGEST, FINAL.
+
+`FinalTrafficRows`, `FinalTrafficValues`, and `FinalTraffic` close both B_FINAL
+directions. Each receipt consumes precisely its successful account result and
+its equality-enabled access-key result, with exact global walk IDs and concrete
+record/flag values. The two physical message rows are disjoint; all other rows,
+headers, and padding are silent. Thirteen exact guards pass. Only KEYNIB and
+DIGEST remain for whole-table receipt traffic extraction.
