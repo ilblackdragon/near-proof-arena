@@ -39,8 +39,12 @@ cell projections to avoid repeated row-list expansion during these proofs.
 including arbitrary entry counts, all entry boundaries, physical last rows and
 padding. Its generated-trace theorem requires sized entries, count<2^24 and
 4+24*n≤2^log; these remain explicit assembly obligations.
-Candidate audit totals twenty-three axiom guards and eleven fixtures checked in both
-integer and BabyBear arithmetic. Empty-mode arbitrary-height padding, record concatenation, sound extraction and
+`EmptyPaddedRender` extends empty-index validity to every fitting trace height,
+with all padding and the executable row-generator bridge. Thus all three
+standalone modes have complete honest local-constraint proofs over any
+commutative ring, with explicit fit/encoding premises.
+Candidate audit totals twenty-eight axiom guards and eleven fixtures checked in both
+integer and BabyBear arithmetic. Record concatenation, read orchestration, sound extraction, actual capacity and
 full field traffic remain open.
 
 Rows parse three modes: empty 16-byte index pairs, a four-byte buffered vector

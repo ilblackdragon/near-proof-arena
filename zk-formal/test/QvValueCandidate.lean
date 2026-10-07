@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Qv.Candidates.EmptyPaddedRender
 import ZkFormal.NearV3.Qv.Candidates.BufferRender
 import ZkFormal.NearV3.Qv.Candidates.BufferHeaderRender
 import ZkFormal.NearV3.Qv.Candidates.BufferLocal
@@ -143,3 +144,31 @@ open NearSpec ZkFormal.NearV3.Qv ZkFormal.NearV3.Qv.Candidates.ValueGen
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferGeneratedTrace_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyPaddedTrace_interior_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyPaddedTrace_interior_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyPaddedTrace_end_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyPaddedTrace_end_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyPaddedTrace_padding_local' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyPaddedTrace_padding_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyPaddedTrace_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyPaddedTrace_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyGeneratedPaddedTrace_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyGeneratedPaddedTrace_local
