@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Rcpt.Render.Srcp.Last
+import ZkFormal.NearV3.Rcpt.Render.Srcp.RowEnd
 import ZkFormal.NearV3.Rcpt.Extract.Srcp.Proof
 import ZkFormal.NearV3.Rcpt.Link.SourceHash
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
@@ -268,3 +268,7 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.Render.SrcpGen.last_constraints' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.SrcpGen.last_constraints
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.end_constraints' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.end_constraints
