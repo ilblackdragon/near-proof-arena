@@ -794,3 +794,9 @@ restricting the accepted native domain or changing frozen AIR constraints.
 The regressions prove the exact cast alias, not an independently instantiated
 full malicious table. Correctly scoped extraction/public admissibility and
 native-bound composition are in progress.
+
+`TokenList` and `TableTokens` close the complete table token field: a concrete
+sequence begins at zero, every flattened globally indexed receipt satisfies
+its full Wf predicate at adjacent sequence values, and the final value equals
+the bytewise public burnt balance. Seven exact axiom guards pass. Count/body
+natural public binding and the remaining global bus channels stay open.
