@@ -17,6 +17,7 @@ structure TreeRun where
   output : PTrie
   parts : List TreePart
   terminal : UCase
+  /-- Terminal node key cursor: common-prefix length at a split, full key length at an exact leaf value. -/
   matched : Nat
   terminalSource : PTrie
   terminalKey : List Nat
@@ -57,7 +58,7 @@ def leafSplitRun (k : List Nat) (s : Slot) (m : Nat) (key : List Nat) (v : Bytes
     let fresh := newLeaf ys v
     let branch := PTrie.branch none (kids2 x moved y fresh) (50+leafMem xs s.len+leafMem ys v.length)
     wrapRun src p (terminalRun src key .LSc p.length branch [⟨.MVL,src,moved,0⟩,⟨.NLF,src,fresh,0⟩,⟨.SPB,src,branch,0⟩])
-  | [], [] => terminalRun src key .LP 0 (newLeaf key v) [⟨.RLP,src,newLeaf key v,0⟩]
+  | [], [] => terminalRun src key .LP key.length (newLeaf key v) [⟨.RLP,src,newLeaf key v,0⟩]
 
 def extSplitRun (k : List Nat) (c : PTrie) (m : Nat) (key : List Nat) (v : Bytes) : TreeRun :=
   let src := PTrie.ext k c m
@@ -84,7 +85,7 @@ mutual
 def traceUpsert : PTrie → List Nat → Bytes → Option TreeRun
   | .hash _, _, _ => none
   | .leaf k s m, key, v =>
-    if k=key then some (terminalRun (.leaf k s m) key .LP 0 (newLeaf k v) [⟨.RLP,.leaf k s m,newLeaf k v,0⟩])
+    if k=key then some (terminalRun (.leaf k s m) key .LP k.length (newLeaf k v) [⟨.RLP,.leaf k s m,newLeaf k v,0⟩])
     else some (leafSplitRun k s m key v)
   | .ext k c m, key, v =>
     if isPrefix k key then
