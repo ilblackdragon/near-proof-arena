@@ -7,6 +7,24 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+**Latest full AIR integration `cb1e3577`:1,758 jobs,39 audits,430 exact axiom
+guards+15 behavior checks PASS.** Report in shared AIR:
+`docs/e2e-results/v3-native-queue-integration/report.json`; external evidence
+`/data/illia/nearproof-deps/validation/v3-native-queue-20261007/`.
+Driver `/tmp/nearproof-check-native-queue.py`, externalcopy audit-driver.py.
+Root new `Assembly/QueueCapacity.checkD0a_queue_rows_fit` composes actual
+accepted-input queue records+queueForestResolve+walk plan to≤2^22 rows, without
+separate parser byte/count premises. Frozen B0 remains2,000,000. Formal native
+execution/trace premises remain; ownership and full traffic are not implied.
+Integrated D2 through0842527c→563ef5e4, Ups throughbdd47e79→7d5aabef,
+receipt audits through482d216a, QV through03be6b90→8b71e602. New receiptf500146a
+exists in shared history but its new audit is outside this selected39-audit set;
+Ups ef048908 likewise not yet integrated. No active root build. Next root:
+full walk constraint composition and parser suffix acceptance; agents continue
+seed-ValE/traffic, memory assembly, receipt Wf/remaining channels. No end-to-end
+certificate, unrestricted coverage, succinct prover or judge validation claim.
+
+
 Root QV `03be6b90`: ALL24 neighbor equations at EVERY physical native walk-prefix
 row, from PrefixCells and prefix length≤trace height; cyclic indexing derived.
 Exact endpoint-coordinate equivalence closes physical-last equation; exit needs
