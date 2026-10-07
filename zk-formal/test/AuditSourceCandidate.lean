@@ -1,3 +1,6 @@
+import ZkFormal.NearV3.Rcpt.Candidates.PreparedMetadata
+import ZkFormal.NearV3.Rcpt.Candidates.DedupRender
+import ZkFormal.NearV3.Rcpt.Candidates.SourceSize22
 import ZkFormal.NearV3.Rcpt.Candidates.OrderedSources
 import ZkFormal.NearV3.Rcpt.Candidates.PreparedVerified
 import ZkFormal.NearV3.Rcpt.Candidates.SourceRepetition
@@ -198,3 +201,37 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceEncodingBudget
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.raw_ordered_path_budget' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.raw_ordered_path_budget
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.relD0a_prepared_metadata' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.relD0a_prepared_metadata
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.relD0a_prepared_claim_metadata' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.relD0a_prepared_claim_metadata
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.R_eq' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.R_eq
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.R_accounting' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.R_accounting
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.R_bound' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.R_bound
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.duplicate_header_only' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.duplicate_header_only
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.rows_capacity' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.rows_capacity
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.log23_not_wf' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.log23_not_wf

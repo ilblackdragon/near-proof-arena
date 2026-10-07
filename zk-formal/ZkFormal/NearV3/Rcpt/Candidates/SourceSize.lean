@@ -6,7 +6,7 @@ partitions and log27 LDE are model inputs only; no active cap or parameter chang
 namespace ZkFormal.NearV3.Rcpt.Candidates
 open ZkFormal.Size ZkFormal.Size.V3 ZkFormal.Stark
 
-def partitionParams (g : Nat) : Params := { ZkFormal.V2.G.pg g with maxLogLde := 27 }
+def partitionParams (g : Nat) : Params := { ZkFormal.V2.G.pg g with maxLogLde := 27, posBits := 27 }
 
 def partitionShapes (g : Nat) : List TShape :=
   let sha := { shapeOf g shaT with maxLog := 23 }

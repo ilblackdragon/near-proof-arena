@@ -118,3 +118,60 @@ have equal roots. `Candidates.PreparedVerified` preserves those authentications 
 the exact prepared slot/shuffle loops. Connecting the full `prepClaim` output to that
 same source-block slice is the remaining prepared-record bridge; no native consistency
 check has yet been added to active preprocessing.
+
+## Active log22 restriction and candidate protocol scope
+
+The active verifier does **not** admit the two-log23 model. `Air/Basic.lean:Table.wf`
+hardcodes `T.maxLog ≤ 22`; `V2/Air.lean:AirP.wf` directly reuses that predicate.
+`Candidates.SourceSize22.log23_not_wf` proves rejection for every table with maxLog23,
+independent of expression validity or a larger `Params.maxLogLde`. This is a protocol
+implementation restriction, not an additional restriction to impose on the NEAR domain.
+
+An alternative using four source partitions and four SHA partitions at log22 retains
+maxLDE26 but fails the proof-size target before new wiring. Exploratory evaluation of
+`Candidates.SourceSize22` gives:
+
+| log22 model | Proof bytes | Excess over 8 MiB |
+|---|---:|---:|
+| g1, no queue | 9,708,997 | 1,320,389 |
+| g2, no queue | 9,278,437 | 889,829 |
+| g3, no queue | 9,345,765 | 957,157 |
+| g2 + actual candidate parser shape (37,3,6,3,22) | 9,375,462 | 986,854 |
+| g2 + provisional combined queue shape (48,8,5,8,22) | 9,413,766 | 1,025,158 |
+
+These are shape-model `#eval` results, not kernel-checked admission claims. They still
+exclude new source repetition/continuation wiring. They make a separately reviewed
+log23 protocol generalization the preferred candidate over simply adding log22 tables.
+
+The candidate parameter record now sets both `maxLogLde=27` **and `posBits=27`**.
+Setting only maxLogLde leaves 26-bit query positions unable to sample the full largest
+LDE domain. Nine 27-bit positions still fit a 256-bit oracle answer (243 bits). The size
+model does not read posBits, so this necessary correction does not change its byte count.
+It does not establish protocol security or admission.
+
+Before active assembly can adopt log23, a separate candidate protocol must close:
+
+1. A parameterized or candidate-specific table-height well-formedness predicate and its
+   extraction facts (`Air/Basic`, `V2/Air`, `Udr/Np/Early`). Preserve the existing log22
+   predicate and deployed challenge pins while developing the candidate.
+2. Header/layout/subgroup bounds through log23 traces and log27 LDEs (`Udr/Np/Msg4`,
+   `Msg8`, `V2/Np/Early`, `V2/G/Early`, `V2/G/Groups`, `V2/G/V1`). The field's actual
+   two-adicity27 is the limit. Do not reuse default maxLDE26 facts by coercion.
+3. DEEP and FRI bad-challenge bounds (`Udr/Np/Chal7`, `Udr/Np/Late`, `V2/G/Late`,
+   `V2/G/Main`). Chal7 currently uses `T≤2^22`; Late currently bounds only logs≤26.
+   Recheck the `2^36` bad-event budget for the larger domains, and recompute actual
+   bus multiplicity/fingerprint bounds for every new partition and continuation.
+4. Query coverage and ROM soundness (`V2/G/Defs`, `Query`, `RomFull`): introduce an
+   explicit candidate parameter family, prove queryLog≤27, 9×27≤256, the required
+   agreement/dominance and QueryOk inequalities, verifier query count, and the final
+   128-bit numerical security inequality. `NpOkPg` currently forces the deployed
+   `pg g` family and is not a certificate for the candidate parameters.
+5. Honest-prover completeness and proof-byte accounting (`V2/PG/Np*`, `V2Prover`,
+   `V2/PG/Admission`), including hints, record descriptors, all AIR shapes, and the
+   8 MiB encoded proof cap. The active admission theorem is tied to deployed `pg`;
+   a new candidate admission theorem must compose the rebuilt semantic and crypto facts.
+
+No active protocol, challenge definition, or frozen pin has been changed by these
+candidate calculations. Current executable `DedupRender` has checked row accounting
+and header-only duplicate behavior, but still has no new AIR local/traffic or partition
+continuation theorem. Those obligations and the protocol work above remain open.
