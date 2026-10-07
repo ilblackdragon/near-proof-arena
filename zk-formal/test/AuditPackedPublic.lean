@@ -5,6 +5,7 @@ import ZkFormal.NearV3.Public.Source
 import ZkFormal.NearV3.Public.Header
 import ZkFormal.NearV3.Public.Boundary
 import ZkFormal.NearV3.Public.NatRecords
+import ZkFormal.NearV3.Public.Index
 
 open ZkFormal.NearV3.Public ZkFormal.V2 ZkFormal.Algebra
 
@@ -76,3 +77,31 @@ private def sources : List NearSpecV3.SrcList :=
 /-- info: 'ZkFormal.NearV3.Public.descriptor_nat_record' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Public.descriptor_nat_record
+
+#guard preparedSegments.length = 9
+#guard preparedSegments.map (·.countAt) = [202,210,218,226,234,242,250,258,266]
+#guard preparedSegments.map (·.width) = [33,3,1,7,11,5,5,33,33]
+/-- info: 'ZkFormal.NearV3.Public.descriptor_u32_bounds' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.descriptor_u32_bounds
+/-- info: 'ZkFormal.NearV3.Public.render_pubb_width' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.render_pubb_width
+/-- info: 'ZkFormal.NearV3.Public.render_par_width' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.render_par_width
+/-- info: 'ZkFormal.NearV3.Public.prepared_width' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_width
+/-- info: 'ZkFormal.NearV3.Public.prepared_segment_fits' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_segment_fits
+/-- info: 'ZkFormal.NearV3.Public.prepared_segment_msgs' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_segment_msgs
+/-- info: 'ZkFormal.NearV3.Public.prepared_pubIdx' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_pubIdx
+/-- info: 'ZkFormal.NearV3.Public.prepared_pubIdx_recs' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_pubIdx_recs
