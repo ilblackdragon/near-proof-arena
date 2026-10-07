@@ -55,7 +55,7 @@ def natRow (rows : Array (Array Nat)) (pad : Nat → Array Nat) (r : Nat) : Arra
   if h : r < rows.size then rows[r] else pad r
 
 /-- Array read with default `0`. -/
-abbrev gd (a : Array Nat) (c : Nat) : Nat := a.getD c 0
+def gd (a : Array Nat) (c : Nat) : Nat := a.getD c 0
 
 def natCell (rows : Array (Array Nat)) (pad : Nat → Array Nat) (r c : Nat) : Nat :=
   gd (natRow rows pad r) c
@@ -134,6 +134,10 @@ theorem gd_set (a : Array Nat) (i v c : Nat) :
     · simp [hi]
     · simp [hi]
   · rw [if_neg h, if_neg (fun e => h e.1.symm)]
+
+theorem gd_setIf (a : Array Nat) (i v c : Nat) :
+    gd (a.setIfInBounds i v) c = if c = i ∧ i < a.size then v else gd a c := by
+  rw [← Array.set!_eq_setIfInBounds]; exact gd_set a i v c
 
 theorem size_set (a : Array Nat) (i v : Nat) : (a.set! i v).size = a.size := by
   simp [Array.set!_eq_setIfInBounds]
