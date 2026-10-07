@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTraffic
 import ZkFormal.NearV3.Rcpt.Candidates.DedupCarry
 import ZkFormal.NearV3.Rcpt.Candidates.SourceCurrentSize
 
@@ -86,3 +87,35 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceCurrentSize
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.carry_cells' depends on axioms: [propext] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.carry_cells
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_normal_row' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_normal_row
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_normal_row' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_normal_row
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.pair_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.pair_messages
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.pair_counts' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.pair_counts
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.rendered_carry_equal' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.rendered_carry_equal
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.carry_balance_of_equal' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.carry_balance_of_equal

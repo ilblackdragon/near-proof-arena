@@ -284,10 +284,9 @@ and `headerOk` use that ceiling, so this change does not require a larger global
 or larger quotient commitments for other tables. Candidate maxLog23/maxLde27 admission
 and the protocol security numerics still require the separate rebuilding described above.
 
-The overlap's exact traffic-once theorem, absence of extraneous carry messages,
-field-row equality from the existing bus soundness theorem, and complete local
-soundness/completeness across the boundary remain obligations. A syntactic table and
-its size/degree checks do not establish those semantic facts.
+The overlap now has exact traffic-once and carry-count lemmas below. Global bus
+soundness integration and complete local soundness/completeness across the boundary
+remain obligations; syntactic size/degree checks alone do not establish them.
 
 The logical renderer's full five-bus contract is now checked by
 `DedupTrafficProof.table_traffic`: every root/leaf/path message is accounted for,
@@ -295,7 +294,7 @@ duplicate computation is omitted, padding is silent, and SIZE is emitted exactly
 once with `sum (L + nonduplicatePathCharge)`. It needs only nonempty source blocks,
 32-byte root/leaf/sibling/accumulator widths, and the trace-to-renderer cell equality;
 it does not assume old source row caps or old `SrcpWf`. This closes logical aggregate
-traffic, while complete local legality and physical partition traffic-once remain open.
+traffic, while complete local legality remains open.
 
 `PreparedNonempty` now composes the actual `walkD0` decoder/lookup success with B2's
 new-slot membership and proves exact preservation of source-slot counts through
@@ -310,5 +309,16 @@ sides emit none on64. Ideal carry-bus balance for this pair forces equality of t
 complete57-field tuple, hence all57 individual row cells. This is a conditional
 soundness lemma using exact bus counts, not a fixture comparison. Global assembly
 must still prove every other table/public segment is absent from64 and obtain that
-ideal balance from the existing cryptographic bus theorem. External traffic-once
-across the overlap and full partition local legality remain open.
+ideal balance from the existing cryptographic bus theorem. Full partition local legality remains open.
+
+`DedupPartitionTraffic.pair_messages` and `pair_counts` now prove that the two
+actual partition tables jointly emit exactly the logical renderer traffic on every
+non-carry bus, including the single terminal SIZE record. The common overlap row
+is suppressed only in the left table. The theorem uses equal physical heights,
+logical row coverage, and exact renderer cell bindings; it does not assume traffic
+equality. Honest overlap bindings also imply carry equality and exact carry-bus
+balance. The partition audit now checks26 theorem axiom closures.
+
+A prospective Ups width increase187→200, with all interactions/degrees/auxiliary
+counts unchanged, evaluates to8,359,074 bytes and leaves29,534 bytes. This is a
+conditional model estimate, not an implemented or admitted Ups shape.
