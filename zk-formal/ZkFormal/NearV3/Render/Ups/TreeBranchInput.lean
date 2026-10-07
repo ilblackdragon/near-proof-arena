@@ -45,7 +45,7 @@ def treeRdb_byteInput (I : UpsInst) (base : UpsPartI) (value : Option Slot) (cs 
       (edgeKids base.sd ((treeKids cs).getD (edgeSlot base.sd) .none) (edgeRest base.sd (treeKids cs)))
       ((u64 mem).map UInt8.toNat)).ser true,b<256 := by
     rw [hec]
-    exact treeNode_byte_bound hs trivial rfl true
+    exact treeNode_byte_bound hs rfl true
   simpa only [treeOption_snapshot,edgeRest_snapshot,hec,←heo,UKind.ix] using
     rdb_byteInput I {base with kind:=0} rfl sd (value.map treeSlot) (edgeRest base.sd (treeKids cs))
       ((treeKids cs).getD (edgeSlot base.sd) .none) (treeKid run.inner.output) _ _
@@ -86,7 +86,7 @@ def treeRbi_byteInput (I : UpsInst) (base : UpsPartI) (value : Option Slot) (cs 
       (edgeKids (insertSide I) .none (edgeRest (insertSide I) (treeKids cs)))
       ((u64 mem).map UInt8.toNat)).ser true,b<256 := by
     rw [hec]
-    exact treeNode_byte_bound hs trivial rfl true
+    exact treeNode_byte_bound hs rfl true
   simpa only [treeOption_snapshot,edgeRest_snapshot,hec,←heo,UKind.ix] using
     rbi_byteInput I {base with kind:=5} rfl (value.map treeSlot) (edgeRest (insertSide I) (treeKids cs))
       (treeKid run.inner.output) _ _ (by simp [treeKid]) hnw hs' hd' hb hts hx

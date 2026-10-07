@@ -176,7 +176,7 @@ theorem ser5_leaf (k : List Nat) (sl : NSlot3) (m : List Nat) (hk : ∀ x ∈ k,
     ((NodeV3.leaf k sl m).ser true).getD 5 0 / 16 = 2 + k.length % 2 := by
   have hl : 0 < (hpN k true).length := by simp [hpN, UpsSpec.hp_len]
   have e : ((NodeV3.leaf k sl m).ser true).getD 5 0 = (hpN k true).getD 0 0 := by
-    simp only [NodeV3.ser, u32r, List.getD_eq_getElem?_getD, List.cons_append, List.nil_append, List.append_assoc,
+    simp only [NodeV3.ser, u32Bytes, toNats_u32, List.getD_eq_getElem?_getD, List.cons_append, List.nil_append, List.append_assoc,
       List.getElem?_cons_succ, List.getElem?_cons_zero]
     rw [List.getElem?_append_left hl]
   rw [e, hp_head k true hk]; simp [UpsSpec.lb]
@@ -185,23 +185,29 @@ theorem ser5_ext (k : List Nat) (kid : NKid) (m : List Nat) (hk : ∀ x ∈ k, x
     ((NodeV3.ext k kid m).ser true).getD 5 0 / 16 = k.length % 2 := by
   have hl : 0 < (hpN k false).length := by simp [hpN, UpsSpec.hp_len]
   have e : ((NodeV3.ext k kid m).ser true).getD 5 0 = (hpN k false).getD 0 0 := by
-    simp only [NodeV3.ser, u32r, List.getD_eq_getElem?_getD, List.cons_append, List.nil_append, List.append_assoc,
+    simp only [NodeV3.ser, u32Bytes, toNats_u32, List.getD_eq_getElem?_getD, List.cons_append, List.nil_append, List.append_assoc,
       List.getElem?_cons_succ, List.getElem?_cons_zero]
     rw [List.getElem?_append_left hl]
   rw [e, hp_head k false hk]; simp [UpsSpec.lb]
 
 /-- An extension whose bytes 1–5 are `1 0 0 0 0` has the empty key. -/
 theorem ext_nil_of (k : List Nat) (kid : NKid) (m : List Nat) (hk : ∀ x ∈ k, x < 16)
-    (h1 : ((NodeV3.ext k kid m).ser true).getD 1 0 = 1) (h5 : ((NodeV3.ext k kid m).ser true).getD 5 0 = 0) :
-    k = [] := by
+    (hlen : ((NodeV3.ext k kid m).ser true).length<2^22)
+    (h1 : (List.range 4).map (fun i => ((NodeV3.ext k kid m).ser true).getD (1+i) 0)=[1,0,0,0])
+    (h5 : ((NodeV3.ext k kid m).ser true).getD 5 0 = 0) : k = [] := by
   have hl : (hpN k false).length = k.length / 2 + 1 := by simp [hpN, UpsSpec.hp_len]
-  have e1 : ((NodeV3.ext k kid m).ser true).getD 1 0 = (hpN k false).length := by
-    simp [NodeV3.ser, u32r]
+  have hb : (hpN k false).length<2^32 := by
+    simp only [NodeV3.ser, List.length_append, List.length_cons, List.length_nil, u32Bytes_length] at hlen
+    omega
+  have hh : u32Bytes (hpN k false).length=[1,0,0,0] := by
+    simpa [NodeV3.ser, List.range_succ, u32Bytes, toNats_u32, List.getD_eq_getElem?_getD] using h1
+  have hval := congrArg le256 hh
+  rw [u32Bytes_value hb] at hval
   have h5' := ser5_ext k kid m hk
   rw [h5] at h5'
-  rw [e1, hl] at h1
-  have : k.length = 0 := by omega
-  exact List.length_eq_zero_iff.mp this
+  simp only [le256] at hval
+  rw [hl] at hval
+  exact List.length_eq_zero_iff.mp (by omega)
 
 /-! ## Post nodes -/
 

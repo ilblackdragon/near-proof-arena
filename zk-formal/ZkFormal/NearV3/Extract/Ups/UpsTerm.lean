@@ -63,13 +63,12 @@ theorem mveLong (k : Nat) (hk : k < ps.length) (hkd : kd k = 7) (key : List Nat)
   rw [rowsB_get s o ℓ 1 (by omega)] at n1
   rw [rowsB_get s o ℓ 5 (by omega)] at n5
   -- `hplen = 1`
-  have F1 := kField hw hs hsc K U1 s1 (by omega) (by omega) 0 (by omega)
-  simp only [Nat.add_zero] at F1
-  obtain ⟨oh1, st1, lt1, -, pc1, -⟩ := F1
-  have hpl1 := (stOf_inv oh1).2.1 st1
-  have hfs1 : s.row (o + 1) fs = 1 := by simpa using (U1.fs 0 (by omega)).2 rfl
-  have b1 := (gramRow (okRow hw hs lt1) (rowLt hw hs _) (nextLt hw hs _) oh1.sum).2.1 hpl1 hfs1
-  rw [pc1 qhk (by decide), n1] at b1
+  have b1 : 1 = s.row o qhk := by
+    have hl := congrArg List.length hrows
+    rw [hE] at hl
+    simp only [rowsB, List.length_map, List.length_range, nodeEnc, List.length_append,
+      List.length_cons, List.length_nil, u32_length, u64_length, hc, UpsSpec.hp_len, List.length_nil] at hl
+    omega
   have hnok : s.row o nokey = 1 := hnk.2 b1.symm
   simp only [← b1] at KR
   -- `qodd = 1`
@@ -105,10 +104,10 @@ theorem mveLong (k : Nat) (hk : k < ps.length) (hkd : kd k = 7) (key : List Nat)
 
 /-- **An `ESx1` split branch's extension has `|k| = I + 1`.** -/
 theorem esx1Len (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (hX : spXN ci = 1) (Pb : Nat → List Nat)
-    (hR : ∀ i, i < s.rows.length → s.row i rd = 1 → s.row i rb = (Pb (s.row i sN)).getD (s.row i spos) 0)
-    (key : List Nat) (hkl : key.length < 510) (h1 : (Pb (s.row ps[k].1 sN)).getD 1 0 = key.length / 2 + 1)
+    (hR : UpbReads s Pb)
+    (key : List Nat) (hkl : key.length < 2^23) (h1 : (Pb (s.row ps[k].1 sN)).length = 45 + (key.length / 2 + 1))
     (h5 : (Pb (s.row ps[k].1 sN)).getD 5 0 / 16 = key.length % 2) : key.length = ti + 1 := by
-  obtain ⟨n5, hpo, -, hq0'⟩ := tagNib5 hw hs hL hP Pb hR k hk (Or.inr (Or.inr ⟨hkd, hX⟩))
+  obtain ⟨n5, hpo, -, hq0'⟩ := tagNib5 hw hs hL hP Pb (fun i hi hr => (hR i hi hr).1) k hk (Or.inr (Or.inr ⟨hkd, hX⟩))
   have hqtl := hq0' (by omega)
   rw [h5, hqtl] at n5
   have K := partK hw hs hL hP k hk
@@ -144,13 +143,15 @@ theorem esx1Len (k : Nat) (hk : k < ps.length) (hkd : kd k = 10) (hX : spXN ci =
     have f := pSB hok (rowLt hw hs _) a1.sum hrd hbm
     rw [show s.row (o + (c0 - 2)) kSPB = 1 from a3.kd 10 (by omega), cast1] at f
     exact natv (rowLt hw hs _ _) one_lt (by rw [cast1]; grind)
-  have hph : s.row (o + (c0 - 2)) rb = s.row (o + (c0 - 2)) phk := by
+  have hphk : s.row o phk = key.length / 2 + 1 := by
     have f := rBM hok (rowLt hw hs _) a1.sum hbm hfs
-    rw [hxc, cast1] at f
-    exact natv (rowLt hw hs _ _) (rowLt hw hs _ _) (by grind)
-  have hrb := hR _ a2 hrd
-  rw [hsp, a4 sN (by decide), h1] at hrb
-  have hphk : s.row o phk = key.length / 2 + 1 := by rw [← a4 phk (by decide), ← hph, hrb]
+    have hl := (hR _ a2 hrd).2
+    rw [a4 sN (by decide), h1] at hl
+    rw [hxc, cast1, hl, a4 qtl (by decide), htl, a4 phk (by decide)] at f
+    apply natv (rowLt hw hs _ _) (by rw [P_lit]; omega)
+    have he : ((45+(key.length/2+1):Nat):Fp)=45+((key.length/2+1:Nat):Fp) := by simp only [natCast_add]; rfl
+    rw [he] at f
+    grind
   -- `2·phk + podd = I + 3`
   have f := factN ok0 (rowLt hw hs _) (nextLt hw hs _)
     (e := .mul (c pf) (.mul (c xcp) (sub (.add (smul 2 (c phk)) (c podd)) (.add tIE (Dsl.k 3)))))

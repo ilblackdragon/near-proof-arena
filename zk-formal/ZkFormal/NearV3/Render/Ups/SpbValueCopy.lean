@@ -12,7 +12,7 @@ theorem spb_value_copy (I : UpsInst) (base : UpsPartI) (hk : base.kind=10) (hi :
       (.branch (some (snapshotValue sv)) kids newMem)) := by
   let Q := encodePart base (.leaf key sv oldMem) (.branch (some (snapshotValue sv)) kids newMem)
   have f : FieldsOk Q := encodePart_fields _ _ _ hd
-  let sourceHead := [0]++u32r (hpN key true).length++hpN key true
+  let sourceHead := [0]++u32Bytes (hpN key true).length++hpN key true
   let tailBytes := [kidBitmap kids%256,kidBitmap kids/256]++kids.flatMap (NKid.bytes false)++newMem
   have hshape : Q.shape=([(0,1),(4,4),(5,32)]++[(6,2)]++List.replicate (nWin Q.shape) (7,32))++[(8,8)] := by
     calc Q.shape=nodeFields Q.ty Q.qhk (nWin Q.shape) := f.shape

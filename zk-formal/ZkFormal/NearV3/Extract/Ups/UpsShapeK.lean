@@ -286,7 +286,9 @@ theorem ups_shape :
     obtain ⟨key, kid, m, rfl⟩ := (tag_cases rv).2.1 (by have := hT (Or.inr (Or.inr (Or.inr (Or.inr h)))); omega)
     obtain ⟨p1, p5⟩ := ptHead hw hs hL hP (postB vs) hR k hk h
     rw [hPb, hrv] at p1 p5
-    have hk0 := ext_nil_of key kid m hwf.1 p1 p5
+    have hlen := Link3.post_len_lt hN hn
+    rw [hrv] at hlen
+    have hk0 := ext_nil_of key kid m hwf.1 hlen p1 p5
     subst hk0
     rw [hsrc]; simp only [NodeV3.toRec3, nodeTree3]; exact ⟨_, _, rfl⟩
 

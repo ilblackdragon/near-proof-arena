@@ -18,7 +18,7 @@ def treeExt_byteInput (I : UpsInst) (base : UpsPartI) (key : List Nat) (child : 
     (hr : traceUpsert child rest v=some run)
     (he : encodeTreePart base ⟨if key.isEmpty then .PT else .RDE,
       .ext key child mem,qRDE key mem run.output cm,0⟩=some Q)
-    (hs : (PTrie.ext key child mem).wf=true) (hh : SmallNodeHeader (.ext key child mem))
+    (hs : (PTrie.ext key child mem).wf=true)
     (hts : 1≤I.ts ∧ I.ts≤3) (hx : I.x<16) : ByteInput I Q := by
   have hu : child.upsert rest v=some run.output := by
     have h := traceUpsert_output child rest v
@@ -27,7 +27,7 @@ def treeExt_byteInput (I : UpsInst) (base : UpsPartI) (key : List Nat) (child : 
   have hdst : (NodeV3.ext key (treeKid run.output)
       ((u64 (mem+run.output.memD-cm)).map UInt8.toNat)).wf :=
     ⟨hsrc.1,by simp [treeKid],treeKid_upsert_wf hu,by simp⟩
-  have hb := treeNode_byte_bound hs hh rfl true
+  have hb := treeNode_byte_bound hs rfl true
   cases key with
   | nil =>
     simp [encodeTreePart,treeNode,qRDE] at he
