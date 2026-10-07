@@ -213,3 +213,13 @@ All four walk message families now have exact row-level field traffic results;
 this does not yet establish their whole-word/plan composition, full constraints,
 provider ownership or global balance. The combined audit passes49 exact axiom
 guards and15 regressions; the shard target's211 dependency jobs pass.
+
+
+`CombinedWordTraffic` composes each complete native key word. Its actual field
+traffic is exactly one FINAL receive, one QVC step iff present, a START marker
+followed by the numbered native nibbles and END marker, and the expected eight
+shard bytes or buffered count. Arbitrary trace offsets and public inputs are
+supported; the hypotheses specify generated cells and the established group
+slot bound. This is whole-word traffic, not global provider balance or complete
+local constraints. The combined audit now passes57 exact axiom guards and15
+regressions. Whole-plan composition, local constraints and ownership remain.
