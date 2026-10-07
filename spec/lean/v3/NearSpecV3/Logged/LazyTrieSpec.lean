@@ -206,5 +206,4 @@ theorem prefixKeysL_spec (s : HStore) :
   all_goals first
     | (rw [prefixKeysLK]; simp_all [LK.force, Kids.prefixKeys]; done)
     | (rw [prefixKeysL]; simp_all [LT.force, PTrie.prefixKeys, (allKeysL_spec s).1]; done)
-    | (rw [prefixKeysL]; simp only [LT.force, PTrie.prefixKeys]; trace_state; sorry)
 end NearSpecV3.Logged

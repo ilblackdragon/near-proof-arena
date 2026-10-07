@@ -21,7 +21,3 @@ root = "MainD3"
 [[lean_exe]]
 name = "nearspec-v3-check-logged"
 root = "MainLogged"
-
-[[lean_exe]]
-name = "prof-logged"
-root = "ProfLogged"
