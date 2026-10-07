@@ -53,6 +53,26 @@ Recovery completed on the two lanes (not merged to main):
   `/data/illia/nearproof-deps/validation/v3-recovery-20261007-023334`.
   No live worker was stopped, and no challenge was frozen, signed or deployed.
 
+### Active end condition and alignment milestone
+
+The user clarified: continue until a succinct NEAR state-transition proof can
+replace stateless validator verification. Restricted D0a admission is an
+intermediate milestone, not evidence of full transition coverage.
+
+The AIR lane now proves the actual FRI schedule's conditional aligned-size
+bound and an admission interface requiring the size bound only on honest
+trace headers. Its integration target passes 1,092 jobs; six guarded axiom
+checks pass. The proposed padded two-SHA model is 6,164,160 bytes, leaving
+929,431 bytes after the maximum hint under 8 MiB. qvV3 and the actual padding
+construction remain missing. See the AIR lane's
+`docs/e2e-results/v3-alignment/report.json` and `Size/Aligned*.lean` /
+`Size/HonestAdmission.lean`. Next: construct padding preserving HoldsP,
+finish missing tables/proofs, and instantiate the full admission certificate.
+
+A fresh original-vs-logged full D2 comparison (67,384 cases) is running with
+outputs at `/data/illia/nearproof-deps/validation/v3-d2-logged-20261007`.
+Inspect its `summary.json` before starting another run. It is not yet a pass.
+
 ## 0. Goal and standing user directives
 
 **Goal.** A self-hostable arena where candidates submit NEAR state-transition provers. Each submission comes with a machine-checked Lean certificate. The judge independently builds the submission, checks it formally (fixed trusted root), tests it, and benchmarks it.
