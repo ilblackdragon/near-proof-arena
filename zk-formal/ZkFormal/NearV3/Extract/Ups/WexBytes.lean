@@ -113,7 +113,7 @@ theorem ups_wexBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 9) (b' : NearS
   rw [show s.row o qtb1 + 2 * s.row o qtb2 + 3 * s.row o qte = 3 by omega] at eT
   have eH := hplField hw hs U1 s1 (by omega) (fun d hd => by
     have := K.qb (1 + d) (by omega); rwa [show o + (1 + d) = o + 1 + d by omega] at this)
-  rw [show s.row (o + 1) qhk = q by rw [← hqq]; exact K.pc 1 (by omega) qhk (by decide)] at eH
+  rw [show o+1+3=o+4 by omega, show s.row (o + 4) qhk = q by rw [← hqq]; exact K.pc 4 (by omega) qhk (by decide)] at eH
   -- HPF [KEY] (fresh)
   have F5 := kField hw hs hsc K KR.hpf.1 KR.hpf.2 (by omega) (by omega) 0 (by omega)
   simp only [Nat.add_zero] at F5
@@ -213,15 +213,15 @@ theorem ups_wexBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 9) (b' : NearS
   rcases hcase with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
   · simp only [if_pos, if_neg] at hqv ⊢
     subst hqv
-    simp [UpsSpec.qWEX, wexKey, UpsSpec.key, NearSpec.wrapExt, nodeEnc, toNats_u32, NearSpec.extOwnMem,
+    simp [UpsSpec.qWEX, wexKey, UpsSpec.key, NearSpec.wrapExt, nodeEnc, u32Bytes, toNats_u32, NearSpec.extOwnMem,
       NearSpec.hexPrefix, NearSpec.packNibbles]
   · simp only [if_pos, if_neg] at hqv ⊢
     subst hqv
-    simp [UpsSpec.qWEX, wexKey, UpsSpec.key, NearSpec.wrapExt, nodeEnc, toNats_u32, NearSpec.extOwnMem,
+    simp [UpsSpec.qWEX, wexKey, UpsSpec.key, NearSpec.wrapExt, nodeEnc, u32Bytes, toNats_u32, NearSpec.extOwnMem,
       NearSpec.hexPrefix, NearSpec.packNibbles]
   · simp only [if_pos, if_neg] at hqv ⊢
     subst hqv
-    simp [UpsSpec.qWEX, wexKey, UpsSpec.key, NearSpec.wrapExt, nodeEnc, toNats_u32, NearSpec.extOwnMem,
+    simp [UpsSpec.qWEX, wexKey, UpsSpec.key, NearSpec.wrapExt, nodeEnc, u32Bytes, toNats_u32, NearSpec.extOwnMem,
       NearSpec.hexPrefix, NearSpec.packNibbles]
 
 /-- A `WEX` part looks up its child's digest (id `jm = k`, length `clen`) on its window. -/
@@ -265,7 +265,7 @@ theorem wexLook (k : Nat) (hk : k < ps.length) (hkd : kd k = 9) (b' : NearSpec.P
   rw [show s.row o qtb1 + 2 * s.row o qtb2 + 3 * s.row o qte = 3 by omega] at eT
   have eH := hplField hw hs U1 s1 (by omega) (fun d hd => by
     have := K.qb (1 + d) (by omega); rwa [show o + (1 + d) = o + 1 + d by omega] at this)
-  rw [show s.row (o + 1) qhk = q by rw [← hqq]; exact K.pc 1 (by omega) qhk (by decide)] at eH
+  rw [show o+1+3=o+4 by omega, show s.row (o + 4) qhk = q by rw [← hqq]; exact K.pc 4 (by omega) qhk (by decide)] at eH
   -- HPF [KEY] (fresh)
   have F5 := kField hw hs hsc K KR.hpf.1 KR.hpf.2 (by omega) (by omega) 0 (by omega)
   simp only [Nat.add_zero] at F5

@@ -23,27 +23,8 @@ section
 variable {C D : URow} (ok : URowOk C D) (hC : ∀ x, C x < P) (hD : ∀ x, D x < P)
 include ok hC hD
 
-theorem nibBits (hst : C sTAG + C sHPF = 1) : ∀ i, i < 8 → C (reg i) ≤ 1 := by
-  intro i hi
-  have h := factN ok hC hD (e := Expr.mul (.add (c sTAG) (c sHPF)) (Dsl.bool (c (reg i)))) (memBool (by
-    unfold cBool; simp only [List.mem_append, List.mem_map, List.mem_range]
-    exact Or.inl (Or.inl (Or.inl (Or.inr ⟨i, hi, rfl⟩)))))
-  have := hC (reg i); have := hC sTAG; have := hC sHPF
-  simp only [P_lit] at *
-  nev_simp at h
-  rw [show (C sTAG + C sHPF) % 2013265921 = 1 by omega] at h
-  simp at h
-  rcases (show C (reg i) = 0 ∨ C (reg i) = 1 ∨ 2 ≤ C (reg i) by omega) with h' | h' | h'
-  · omega
-  · omega
-  · exfalso
-    have e : (C (reg i) * ((C (reg i) + (2013265921 - 1 % 2013265921) % 2013265921) % 2013265921)) % 2013265921 = 0 := by
-      simpa using h
-    rw [show (C (reg i) + (2013265921 - 1 % 2013265921) % 2013265921) % 2013265921 = C (reg i) - 1 by omega] at e
-    have hm := Nat.dvd_of_mod_eq_zero e
-    rcases euclid p_prime (by simpa [P_lit] using hm) with h1 | h1
-    · have := Nat.le_of_dvd (by omega) h1; simp [P_lit] at this; omega
-    · have := Nat.le_of_dvd (by omega) h1; simp [P_lit] at this; omega
+theorem nibBits (hst : C sTAG+C sHPL+C sHPF=1) : ∀ i,i<8 → C (reg i)≤1 :=
+  headerBits ok hC hst
 
 /-- The `TAG` read of a moved-key part: the source's first byte, `hi = 2·qtl + podd`. -/
 theorem mvTag (hoh : OneHot C) (hT : C sTAG = 1) (hk : C kMVL + C kMVE = 1) (hx : C xcp = 0)
@@ -113,7 +94,7 @@ theorem mvPos (hoh : OneHot C) (hrd : C rd = 1) (hk : C kMVL + C kMVE = 1)
 
 /-- The new hex-prefix length of a moved key. -/
 theorem mvQhk (hpf : C pf = 1) (hk : C kMVL + C kMVE = 1) {I : Nat} (hI : C ti1 + 2 * C ti2 = I) (hI3 : I < 3)
-    (hq : C qhk < 2 ^ 20) (hp : C phk < 2 ^ 20) (hqo : C qodd ≤ 1) (hpo : C podd ≤ 1) :
+    (hq : C qhk < 2 ^ 23) (hp : C phk < 2 ^ 23) (hqo : C qodd ≤ 1) (hpo : C podd ≤ 1) :
     2 * C qhk + C qodd + I + 1 = 2 * C phk + C podd := by
   have f := factN ok hC hD (e := .mul (c pf) (.mul kM (sub (.add (smul 2 (c qhk)) (c qodd))
       (sub (.add (smul 2 (c phk)) (c podd)) (.add tIE (Dsl.k 1)))))) (memPlan (by simp [cPlan]))

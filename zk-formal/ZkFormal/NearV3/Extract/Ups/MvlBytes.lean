@@ -134,7 +134,7 @@ theorem ups_mvlBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 6)
     (hR : UpbReads s Pb)
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc (.leaf key sl m)).map UInt8.toNat)
     (hsmall : (nodeEnc (.leaf key sl m)).length < 2 ^ 22) (hkey : ∀ x ∈ key, x < 16) (hI : ti + 1 ≤ key.length)
-    (hklen : key.length < 510) (hsl : sl.valueRef.length = 36) (hslen : sl.len < 2 ^ 32)
+    (hklen : key.length < 2^23) (hsl : sl.valueRef.length = 36) (hslen : sl.len < 2 ^ 32)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
     rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qMVL key sl ti)).map UInt8.toNat ∧
       limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qMVL key sl ti).memD := by
@@ -168,7 +168,9 @@ theorem ups_mvlBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 6)
   have hPb : Pb (s.row o sN) = [0] ++ ((NearSpec.u32 H.length).map UInt8.toNat ++ (H ++
       (sl.valueRef.map UInt8.toNat ++ (NearSpec.u64 m).map UInt8.toNat))) := by
     rw [hsrc]; simp [nodeEnc, H]
-  have hsmall' : H.length < 256 := by omega
+  have hPlen : (Pb (s.row o sN)).length = 49 + H.length := by
+    rw [hPb]; simp only [List.length_append, List.length_cons, List.length_nil, List.length_map, u32_length, hsl,
+      u64_length]; omega
   -- TAG: the source's flag byte
   have hT0 := kField hw hs hsc K U0 s0 (by omega) (by omega) 0 (by omega)
   simp only [Nat.add_zero] at hT0
@@ -226,15 +228,22 @@ theorem ups_mvlBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 6)
   have hphk : s.row o phk = H.length := by
     have f := rHPL ok1 (rowLt hw hs _) F1.1.sum hpl1 hfs1
     rw [← natCast_add, show s.row (o + 1) kMVL + s.row (o + 1) kMVE = 1 by simpa using hkm 1 (by omega)] at f
-    have e := natv (rowLt hw hs _ _) (rowLt hw hs _ _) (show ((s.row (o + 1) rb : Nat) : Fp) = ((s.row (o + 1) phk : Nat) : Fp) by grind)
-    rw [← F1.2.2.2.2.1 phk (by decide), ← e, (hR _ F1.2.2.1 hrd1).1, hsp1, F1.2.2.2.2.1 sN (by decide), hPb]
-    simp [toNats_u32, List.getD_eq_getElem?_getD]; omega
+    have hl := (hR _ F1.2.2.1 hrd1).2
+    rw [F1.2.2.2.2.1 sN (by decide), hPlen] at hl
+    rw [hl, F1.2.2.2.2.1 qtl (by decide), htl,
+      F1.2.2.2.2.1 phk (by decide)] at f
+    have hHsmall : H.length<2^22 := by
+      have hh : (Pb (s.row o sN)).length<2^22 := by rw [hsrc]; simpa using hsmall
+      rw [hPlen] at hh; omega
+    apply natv (rowLt hw hs _ _) (by rw [P_lit]; omega)
+    have he : ((49+H.length : Nat):Fp) = 49+(H.length: Fp) := by simp only [natCast_add]; rfl
+    rw [he] at f
+    grind
   -- the new hex-prefix length
   have eH := hplField hw hs U1 s1 (by omega) (fun d hd => by
     have := K.qb (1 + d) (by omega); rwa [show o + (1 + d) = o + 1 + d by omega] at this)
-  rw [show s.row (o + 1) qhk = q by rw [← hqq]; exact K.pc 1 (by omega) qhk (by decide)] at eH
-  have hq256 : q < 256 := by
-    have := hbyte 1 (by omega); rw [rowsB_four] at eH; simp only [List.cons.injEq] at eH; omega
+  rw [show o+1+3=o+4 by omega, show s.row (o + 4) qhk = q by rw [← hqq]; exact K.pc 4 (by omega) qhk (by decide)] at eH
+  have hq22 : q<2^22 := by omega
   have hQ := mvQhk ok0 (rowLt hw hs _) (nextLt hw hs _) K.pf (by simpa using hkm 0 (by omega)) (I := ti)
     (by rw [show s.row o ti1 = if 1 = ti then 1 else 0 from I0.ti 1 (by omega),
       show s.row o ti2 = if 2 = ti then 1 else 0 from I0.ti 2 (by omega)]; split <;> split <;> omega) (by omega)
@@ -447,11 +456,10 @@ theorem ups_mvlBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 6)
   rw [show s.row o qtb1 + 2 * s.row o qtb2 + 3 * s.row o qte = 0 by omega] at eT
   rw [hBy, eT, eH, keyR, ← List.append_assoc (rowsB s (o + 5 + q) 4),
     show o + 9 + q = o + 5 + q + 4 by omega, ← rowsB_append, show 4 + 32 = 36 from rfl, cV, eM]
-  simp only [UpsSpec.qMVL, nodeEnc, List.map_append, List.map_cons, List.map_nil, toNats_u32, List.append_assoc,
+  simp only [UpsSpec.qMVL, nodeEnc, List.map_append, List.map_cons, List.map_nil, u32Bytes, toNats_u32, List.append_assoc,
     List.cons_append, List.nil_append]
   have hXq : (NearSpec.hexPrefix (key.drop (ti + 1)) true).length = q := by simpa [X] using hXl
-  rw [hXq, show q % 256 = q by omega, show q / 256 % 256 = 0 by omega, show q / 65536 % 256 = 0 by omega,
-    show q / 16777216 % 256 = 0 by omega]
+  rw [hXq]
   simp only [NearSpec.leafMem, hXq]
   rw [show 100 + 2 * q + 0 * (s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2) + 1 * sl.len +
       (0 * limbs (fun i => s.row (o + 41 + q + i) rb) 8 + (0 * limbs (fun i => s.row (o + 41 + q + i) mBv) 8 +

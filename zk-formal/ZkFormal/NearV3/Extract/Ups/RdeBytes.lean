@@ -153,9 +153,9 @@ theorem ups_extUpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 1 ∨ kd k =
   rw [show s.row o qtb1 + 2 * s.row o qtb2 + 3 * s.row o qte = 3 by omega] at eT
   have eH := hplField hw hs U1 s1 (by omega) (fun d hd => by
     have := K.qb (1 + d) (by omega); rwa [show o + (1 + d) = o + 1 + d by omega] at this)
-  rw [show s.row (o + 1) qhk = q by rw [← hqq]; exact K.pc 1 (by omega) qhk (by decide)] at eH
-  have hq256 : q < 256 := by
-    have := hbyte 1 (by omega); rw [rowsB_four] at eH; simp only [List.cons.injEq] at eH; omega
+  rw [show o+1+3=o+4 by omega, show s.row (o + 4) qhk = q by rw [← hqq]; exact K.pc 4 (by omega) qhk (by decide)] at eH
+  have hq22 : q<2^22 := by have := lenLe hw hs; have := K.le; omega
+  have hq32 : q<2^32 := by have := rowLt hw hs o qhk; rw [hqq,P_lit] at this; omega
   -- the copied rows `HPL HPF [KEY]`
   have copyAt : ∀ d, 1 ≤ d → d < 5 + q → s.row (o + d) cp = 1 ∧ s.row (o + d) rd = 1 ∧ s.row (o + d) sBM = 0 ∧
       s.row (o + d) spos = d ∧ s.row (o + d) sN = s.row o sN := by
@@ -223,7 +223,7 @@ theorem ups_extUpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 1 ∨ kd k =
     rw [hsrc]; simp [nodeEnc, List.take_append_of_le_length, u32_length]
   rw [hP1, eH] at cH
   have hqhp : (NearSpec.hexPrefix key false).length = q :=
-    u32_eq (by have := hlenE; omega) cH.symm
+    u32_eq_full (by have := hlenE; omega) hq32 cH.symm
   have cK := copyRun hw hs Pb hR (r := o + 5) (n := q) (δ := 5) (N := s.row o sN) (by omega) (by omega)
     (fun d hd => by
       have := copyAt (5 + d) (by omega) (by omega); rwa [show o + (5 + d) = o + 5 + d by omega] at this)
@@ -316,10 +316,9 @@ theorem ups_extUpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 1 ∨ kd k =
   -- assemble
   rw [hBy, eT, eH, cK, eW, eM]
   rw [show (List.range 32).map (fun i => s.row (o + 5 + q) (reg i)) = regN (s.row (o + 5 + q)) from rfl, hDC]
-  simp only [nodeEnc, List.map_append, List.map_cons, List.map_nil, toNats_u32, hqhp, List.append_assoc,
+  simp only [nodeEnc, List.map_append, List.map_cons, List.map_nil, u32Bytes, toNats_u32, hqhp, List.append_assoc,
     List.cons_append, List.nil_append]
-  rw [show q % 256 = q by omega, show q / 256 % 256 = 0 by omega, show q / 65536 % 256 = 0 by omega,
-    show q / 16777216 % 256 = 0 by omega]
+
   simp only [List.cons.injEq, true_and]
   refine ⟨rfl, ?_⟩
   congr 3
@@ -366,9 +365,9 @@ theorem extUpLook (k : Nat) (hk : k < ps.length) (hkd : kd k = 1 ∨ kd k = 11)
   rw [show s.row o qtb1 + 2 * s.row o qtb2 + 3 * s.row o qte = 3 by omega] at eT
   have eH := hplField hw hs U1 s1 (by omega) (fun d hd => by
     have := K.qb (1 + d) (by omega); rwa [show o + (1 + d) = o + 1 + d by omega] at this)
-  rw [show s.row (o + 1) qhk = q by rw [← hqq]; exact K.pc 1 (by omega) qhk (by decide)] at eH
-  have hq256 : q < 256 := by
-    have := hbyte 1 (by omega); rw [rowsB_four] at eH; simp only [List.cons.injEq] at eH; omega
+  rw [show o+1+3=o+4 by omega, show s.row (o + 4) qhk = q by rw [← hqq]; exact K.pc 4 (by omega) qhk (by decide)] at eH
+  have hq22 : q<2^22 := by have := lenLe hw hs; have := K.le; omega
+  have hq32 : q<2^32 := by have := rowLt hw hs o qhk; rw [hqq,P_lit] at this; omega
   -- the copied rows `HPL HPF [KEY]`
   have copyAt : ∀ d, 1 ≤ d → d < 5 + q → s.row (o + d) cp = 1 ∧ s.row (o + d) rd = 1 ∧ s.row (o + d) sBM = 0 ∧
       s.row (o + d) spos = d ∧ s.row (o + d) sN = s.row o sN := by
@@ -436,7 +435,7 @@ theorem extUpLook (k : Nat) (hk : k < ps.length) (hkd : kd k = 1 ∨ kd k = 11)
     rw [hsrc]; simp [nodeEnc, List.take_append_of_le_length, u32_length]
   rw [hP1, eH] at cH
   have hqhp : (NearSpec.hexPrefix key false).length = q :=
-    u32_eq (by have := hlenE; omega) cH.symm
+    u32_eq_full (by have := hlenE; omega) hq32 cH.symm
   have cK := copyRun hw hs Pb hR (r := o + 5) (n := q) (δ := 5) (N := s.row o sN) (by omega) (by omega)
     (fun d hd => by
       have := copyAt (5 + d) (by omega) (by omega); rwa [show o + (5 + d) = o + 5 + d by omega] at this)
