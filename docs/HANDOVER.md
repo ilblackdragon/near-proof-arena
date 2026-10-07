@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root StreamOwnership CHECKED at AIR50464abe: generic stream_other_id_ne and
+stream_isolate. Exact multiset Perm selected++others=demand + unique demanded
+(id,position) + selected starts0/hasfixedid + every other supplier also starts0
+for any emitted ID imply selected exclusively owns its ID and equals filtered
+complete demand up to Perm. Target206jobs+2 exact standard-axiom guards PASS;
+/tmp/nearproof-qv-stream-ownership.log and
+/tmp/nearproof-qv-stream-ownership-audit-checked.log. This establishes generic
+full-value coverage argument, NOT wholeAIR instantiation; must still derive
+physical stream decomposition, unique canonical positions (including field
+wrap bounds), supplier start closure, and exact global bus balance. Empty raw
+records not covered by nonempty start premise; mode semantics needs treatment.
+Integrated ups6ff35294/f3623b91 as c83f3f9a/ff2857f7: executable forestWalkHeads
+fills actual root resolution targets, authenticates physical W0 START, preserves
+native store/post roots. D246b468c2 as51cae83f derives all proper child target
+agreements from actual successful trace+knownlookup (RDB/RDE). Target771jobs,
+8 standard-axiom prints +8 exact guards PASS;
+/tmp/nearproof-proper-head-integrated.log and
+/tmp/nearproof-integrated-Audit{ProperTarget,ForestWalkHeads,ForestHeadSemantics}.log.
+Ups composing full W0/prefix/terminal global provider theorem now. No root live
+process. Latest aggregate83f4a8b7 predates this turn. Full certificate/admission/
+reference checker/prover/judge and broad NEAR coverage remain incomplete.
+
+
 Fresh integrated checkpoint AIR83f4a8b7 PASS:1968 build jobs,156 scoped audit
 files,1178 axiom checks,15 behavior guards. Report
 ../nearproof-wt/v3-air/docs/e2e-results/v3-parser-link-integration/report.json
