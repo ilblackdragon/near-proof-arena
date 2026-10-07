@@ -458,3 +458,11 @@ therefore closes Good.canonicalScheduler directly from native acceptance. Nine
 permanent axiom guards pass. No injectivity, read-commutativity or extra lookup
 premise remains. A7 post-rebuild preservation remains the substantive semantic
 completeness gap; codec shape and canonical scheduler preservation are closed.
+
+`NativeGoodGap.accepted_good_except_unfolded` now bundles every semantic GoodV3
+field from actual checkD0a acceptance (including deriving walk/witness decoder
+outputs), with exactly one remaining explicit premise: the reconstructed
+witness's unfoldBytes≤the ORIGINAL bound B. It does not change B, prove that
+premise, or claim FactorComplete. Two permanent axiom guards pass. This records
+the precise remaining A7 normalization/allocator obligation, rather than leaving
+receipt counts/IDs, congestion, request distinctness or shape as hidden gaps.
