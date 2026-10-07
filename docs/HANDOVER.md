@@ -7,6 +7,16 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `120ee9e5`: generated flag/byte bit bounds and actual AIR equations,
+all `CombinedTable.table.bitConstraints` multiplicity equations, and inactive
+row gates proved over arbitrary commutative rings from generated cells. No
+acceptance premise. Target155 jobs and QV71 exact axiom guards+15 fixtures PASS;
+logs `/tmp/nearproof-combined-boolean.log`,
+`/tmp/nearproof-boolean-audit-final.log`. Root next: remaining read algebra and
+sequence constraints, full parser/walk composition, allocator ownership and
+reverse extraction. No active root job. Newer than aggregate below.
+
+
 Root QV `acce82df` adds generated walk base-parser constraints and physical
 parser-to-first-walk overlay preservation. The latter uses actual first delayed
 mode0; it preserves evaluation without assuming original constraints hold.
