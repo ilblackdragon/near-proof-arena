@@ -716,3 +716,10 @@ Actual upsert path extraction into this locator remains to be composed.
 whose extracted record is the exact native occurrence record with actual value
 offset. It uses native wf and the already-derived field-ID capacity, not an
 assumed provider or abstract record-ID function. Three audit guards pass.
+
+`PartAddress.traceUpsert_child_address` now composes the actual native adjacent
+upsert-source theorem with the locator: a located upper source derives the
+consumed child's concrete nid/vid/depth and exact global segment. It counts all
+preceding sibling occurrences and does not assume a `PTrie → Nat` provider map.
+Four guards pass. Full trace address allocation and physical provider traffic
+remain to be composed from these steps.
