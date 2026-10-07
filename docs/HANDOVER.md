@@ -6,6 +6,40 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+**Latest aggregate checkpoint: AIR `c2dba0c4` passes 1,259 integration jobs.**
+The honest source renderer now has both `SrcpGen.table_local` (112 constraints,
+all multiplicity bits) and `SrcpGen.table_traffic` (`c11a5c8d`), with 86 receipt
+axiom guards. Full upsert `cBytes_ok` covers all 76 constraints (`9ab95e1a`);
+actual node-form input constructors now cover seven of twelve kinds through
+`2c2249e7`, with the remaining cases active. These conditional/local theorems
+are not yet full honest-trace completeness.
+
+R2 concrete public packing is implemented in the public lane and merged through
+AIR `94ec591e`: a 202-byte header and nine fixed segments, exact source/body/
+boundary records, all widths, overall-size-derived count/offset bounds, `pubFit`,
+and concrete `PubIdx`. All four scheduler record lists are proved exact from
+successful `prepD0`; no scheduler byte-range assumption remains. The checkpoint
+passes 24 behavior checks and 24 axiom guards. Evidence is in
+`docs/e2e-results/v3-packed-public/report.json` in AIR and the matching validation
+archive. Root is extending this with exact root endpoints, all receipt record
+families, header reads, and a bundled `Public.Bindings` interface.
+
+D3 agent additionally owns isolated `/data/illia/nearproof-wt/v3-assembly`, branch
+`lane/v3-assembly`, based on AIR `7aba6ec8`. Commits `04c8bdf8` and `a1b2d7be`
+prove operational scheduler/public-core factoring and actual prep-derived header
+root widths, source-root widths, and `sched.length = K+1`. Those commits are now
+in the public worktree (`72f79746`, `0e9c7308`); not yet merged to AIR. D3 native
+reference has passed its first clean build and is in the second reproducibility
+build; worker mutation/formal gates remain pending. TTN remains running.
+
+Next parallel tasks: root completes all prepared-public bindings and merges
+assembly facts; receipt agent links SHA contracts using proved disjoint source-ID
+intervals; upsert agent constructs remaining edit cases; D3/assembly agent
+continues actual relation factoring and reference validation. Keep final
+FactorSound/FactorComplete, complete AIR/honest trace, Rust succinct prover,
+certificate/judge validation, and broader NEAR coverage explicitly open.
+
+
 **Latest parallel checkpoint:** R1 indexed-public protocol passed 1,168 integration
 jobs and is merged to AIR as `a1215d2e` (public lane `0de153cf`); 14 behavior
 checks and five axiom guards pass. Prefixes, generated indices, and dynamic
