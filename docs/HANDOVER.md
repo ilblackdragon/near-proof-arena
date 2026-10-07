@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root ParserStream CHECKED: physicalRecordBytes from actual combined recordrows;
+physical_record_id proves fixed vid; physical_record_start derives offset0 for
+nonzero logical length; physical_record_closed derives startclosure from any
+emitted byte; physical_records_closed lifts to any subcollection of extracted
+ParserChain records. physical_record_complete instantiates generic stream
+ownership + derived ValWf fieldposition uniqueness: physical record equals
+complete filtered val demand up to Perm, under explicit exact global balance
+and other-supplier startclosure. Target build +5 exact standard-axiom guards
+PASS (/tmp/nearproof-qv-parser-stream.log,
+/tmp/nearproof-qv-parser-stream-audit-checked.log). Next derive account/access-key
+supplier closure from their actual extracted streams, compose whole parser
+physical traffic decomposition, discharge whole-air bus assumption, and turn
+messagePerm into full value equality/mode semantics. Emptyraw record acceptance
+is separate; no full soundness claim yet. No root live job. Latest aggregate
+83f4a8b7 predates this work. Agents continuing receipt KEYNIB/window fields/output
+SHA IDs. Full certificate/admission/reference checker/prover/real judge and
+broader NEAR coverage remain incomplete.
+
+
 Root ValueByteKeys CHECKED at AIR4fe814fb: value_byte_keys_unique derives Nodup
 of actual field-valued (vid,pos) projections of valRecvs VBYTES from ValWf alone.
 Uses derived recordcount bound, canonical vid injectivity, per-record byteoffset
