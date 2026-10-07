@@ -10,21 +10,6 @@ namespace ZkFormal.NearV3.Render.UpsGen
   · have hk : Q.kind=10 := by have hh := h; simp only [XcpB,Bool.and_eq_true,beq_iff_eq] at hh; exact hh.1
     simp [rbV,sposV,hk]
 
-theorem SourceHeader.moved_hpl {I : UpsInst} {Q : UpsPartI} {e : SourceLayout Q}
-    (h : SourceHeader I Q e) (p ix wi : Nat) (hk : Q.kind=6 ∨ Q.kind=7) :
-    rbV I Q 1 ix wi p=(Q.phk : Int) := by
-  have hp := h.hpl (by rcases hk with hk | hk; exact Or.inl hk; exact Or.inr (Or.inl hk))
-  simp only [List.getD_eq_getElem?_getD] at hp
-  rcases hk with hk | hk <;> simp [rbV,sposV,hk,hp]
-
-theorem SourceHeader.split_hpl {I : UpsInst} {Q : UpsPartI} {e : SourceLayout Q}
-    (h : SourceHeader I Q e) (p ix wi : Nat) (hk : XcpB I Q=true) :
-    rbV I Q 6 ix wi p=(Q.phk : Int) := by
-  have hp := h.hpl (Or.inr (Or.inr hk))
-  have hk' : Q.kind=10 := by have hh := hk; simp only [XcpB,Bool.and_eq_true,beq_iff_eq] at hh; exact hh.1
-  simp only [List.getD_eq_getElem?_getD] at hp
-  simp [rbV,sposV,hk',hp]
-
 theorem fieldAt_avoid_zero (sh : List (Nat × Nat)) (h : ∀ f ∈ sh, f.1 ≠ 0) (p : Nat) :
     (fieldAt sh p).1 ≠ 0 := by
   induction sh generalizing p with

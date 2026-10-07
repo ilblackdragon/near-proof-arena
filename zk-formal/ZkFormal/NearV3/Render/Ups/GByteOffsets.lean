@@ -8,7 +8,7 @@ open ZkFormal.Near ZkFormal.Near.Render ZkFormal.Algebra ZkFormal.Air
   ZkFormal.Near.Render.EvI ZkFormal.Near.Dsl ZkFormal.NearV3.UpsV3
 namespace UpsGen
 
-def cByteOffsets : List Expr := UpsV3.cBytes.drop 71
+def cByteOffsets : List Expr := (UpsV3.cBytes.drop 71).take 5
 
 theorem byte_offsets_q {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
     (hs : st < 9)
@@ -36,7 +36,7 @@ theorem cByteOffsets_ok {insts : List UpsInst} (ok : UpsOk insts)
     (hf : ∀ I ∈ insts, ∀ k, k < nQ I → FieldsOk (part I k))
     {H : Nat} (hH : R insts + 1 ≤ H) : GroupOk insts H cByteOffsets := by
   apply groupOk_by ok hH (fun e he => by
-    have hm : e ∈ UpsV3.cBytes := List.mem_of_mem_drop he
+    have hm : e ∈ UpsV3.cBytes := List.mem_of_mem_drop (List.mem_of_mem_take he)
     simp [UpsV3.constraints,hm])
   · intro i hi t ht q _ _ C D P hC _ ex hex
     exact vzC (zc := zW) (fun x hx => by

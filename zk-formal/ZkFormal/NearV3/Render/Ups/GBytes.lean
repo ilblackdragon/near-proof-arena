@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Render.Ups.GByteHpl
 import ZkFormal.NearV3.Render.Ups.GByteCopy
 import ZkFormal.NearV3.Render.Ups.GByteHeaders
 import ZkFormal.NearV3.Render.Ups.GByteFreshPrefix
@@ -9,7 +10,7 @@ import ZkFormal.NearV3.Render.Ups.GByteSourceValue
 import ZkFormal.NearV3.Render.Ups.GBytePositions
 import ZkFormal.NearV3.Render.Ups.GByteEditPositions
 
-/-! All 76 update-byte constraints. The structured semantic inputs are explicit:
+/-! All 81 update-byte constraints. The structured semantic inputs are explicit:
 this is completeness for the renderer given correctly constructed node edits, not yet
 an unconditional construction theorem for real trie upserts. -/
 set_option maxHeartbeats 2000000
@@ -39,7 +40,7 @@ theorem ByteInput.fieldsOk {I : UpsInst} {Q : UpsPartI} (h : ByteInput I Q) : Fi
 
 def byteGroups : List Expr := cByteFlags ++ cByteCopy ++ cByteHeaders ++ cByteMovedPrefix ++
   cByteFreshPrefix ++ cByteFreshValue ++ cFreshByte ++ cByteShifts ++ cByteSplitBitmap ++
-  cByteReadBits ++ cByteSourceHeader ++ cByteSourceValue ++ cBytePositions ++ cByteEditPositions ++ cByteOffsets
+  cByteReadBits ++ cByteSourceHeader ++ cByteSourceValue ++ cBytePositions ++ cByteEditPositions ++ cByteOffsets ++ cByteHpl
 
 theorem byteGroups_cover : UpsV3.cBytes ⊆ byteGroups := by decide
 
@@ -54,7 +55,7 @@ theorem cBytes_ok {insts : List UpsInst} (ok : UpsOk insts)
   have hb := fun I hI k hk => (hi I hI k hk).sourceBytes
   have hall : GroupOk insts H byteGroups := by
     unfold byteGroups
-    exact (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (cByteFlags_ok ok hf hk hH)
+    exact (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (groupOk_append (cByteFlags_ok ok hf hk hH)
       (cByteCopy_ok ok (fun I hI k hk => (hi I hI k hk).copyFields) hf hk hH))
       (cByteHeaders_ok ok he hH))
       (cByteMovedPrefix_ok ok he (fun I hI k hk => (hi I hI k hk).movedPrefix) hb hf hH))
@@ -69,6 +70,7 @@ theorem cBytes_ok {insts : List UpsInst} (ok : UpsOk insts)
       (cBytePositions_ok ok hf hH))
       (cByteEditPositions_ok ok (fun I hI k hk => (hi I hI k hk).sourceLayout) hf hH))
       (cByteOffsets_ok ok hf hH))
+      (cByteHpl_ok ok he hf hH))
   intro q hq C D P hC hD e he
   exact hall q hq C D P hC hD e (byteGroups_cover he)
 

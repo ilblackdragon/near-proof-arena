@@ -120,7 +120,7 @@ theorem vlenRow (hv : C sVLEN = 1) :
 /-- Tag and hex-prefix length bytes. -/
 theorem gramRow (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C sBM + C sCH + C sMEM = 1) :
     (C sTAG = 1 → C pf = 1 → C b = C qtb1 + 2 * C qtb2 + 3 * C qte) ∧
-    (C sHPL = 1 → C fs = 1 → C b = C qhk) ∧ (C sHPL = 1 → C fs = 0 → C b = 0) := by
+    (C sHPL = 1 → C fs = 1 → C qha = C b) ∧ (C sHPL = 1 → C fs = 1 → C qhs = 1) := by
   have a := fun x => hC x
   simp only [P_lit] at a
   have := a b; have := a qhk; have := a qtb1; have := a qtb2; have := a qte
@@ -131,10 +131,8 @@ theorem gramRow (hoh : C sTAG + C sHPL + C sHPF + C sKEY + C sVLEN + C sVH + C s
     have := partBoolN ok hC hpf (x := qtb1) (by decide); have := partBoolN ok hC hpf (x := qtb2) (by decide)
     have := partBoolN ok hC hpf (x := qte) (by decide)
     omega
-  · have f := factN ok hC hD (e := mul3 (c sHPL) (c fs) (sub (c b) (c qhk))) (memBytes (by simp [cBytes]))
-    nev_simp at f; simp [h, h'] at f; omega
-  · have f := factN ok hC hD (e := mul3 (c sHPL) (not (c fs)) (c b)) (memBytes (by simp [cBytes]))
-    nev_simp at f; simp [h, h'] at f; omega
+  · exact natv (hC _) (hC _) (bHPL0 ok hC hoh h h')
+  · exact natv (hC _) (by unfold P; omega) (by simpa only [cast1] using bHPLr ok hC hoh h h')
 
 end
 

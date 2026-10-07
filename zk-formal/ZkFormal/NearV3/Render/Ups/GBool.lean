@@ -108,14 +108,12 @@ theorem node_partbits (I : UpsInst) (Q : UpsPartI) (k p st ix fl wi u : Nat)
     rfl | rfl | rfl | rfl | rfl <;> cellsimp <;> (try bsimp) <;> first | bclose | exact b01_nat (by assumption)
 
 /-- `reg` bits on `TAG` / `HPF` rows (nibble bits of the read byte). -/
-theorem node_nibbits (I : UpsInst) (Q : UpsPartI) (k p st ix fl wi u : Nat) (hs : st = 0 ∨ st = 2) :
+theorem node_nibbits (I : UpsInst) (Q : UpsPartI) (k p st ix fl wi u : Nat) (hs : st = 0 ∨ st = 1 ∨ st = 2) :
     ∀ i, i < 8 → B01 (QC I Q k p st ix fl wi u (129 + i)) := by
   intro i hi
-  have hw : winFrV I Q st wi = 0 := by
-    simp only [winFrV, WinFrB]; rcases hs with rfl | rfl <;> rfl
-  rcases lt8 hi with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> cellsimp <;>
-    simp only [hw, hs, show (0 : Int) ≠ 1 by decide, ite_false, ite_true, Nat.reduceSub, Nat.reduceAdd,
-      or_true, true_or] <;> exact b01_mod _
+  rcases hs with rfl | rfl | rfl <;>
+    rcases lt8 hi with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    cellsimp <;> simp [winFrV,WinFrB,ind] <;> exact b01_mod _
 
 /-- `reg` bits on `MEM` rows (byte bits, carries). -/
 theorem node_membits (I : UpsInst) (Q : UpsPartI) (k p ix fl wi u : Nat) :
@@ -150,7 +148,7 @@ theorem cBool_cases {ex : Expr} (h : ex ∈ UpsV3.cBool) :
     (∃ x ∈ UpsV3.segBools, ex = .mul (c sf) (Dsl.bool (c x))) ∨
     (∃ x ∈ UpsV3.partBools, ex = .mul (c pf) (Dsl.bool (c x))) ∨
     ex = Dsl.bool mDE ∨
-    (∃ i, i < 8 ∧ ex = .mul (.add (c sTAG) (c sHPF)) (Dsl.bool (c (reg i)))) ∨
+    (∃ i, i < 8 ∧ ex = .mul (sumc [sTAG,sHPL,sHPF]) (Dsl.bool (c (reg i)))) ∨
     (∃ i, i < 14 ∧ ex = .mul (c sMEM) (Dsl.bool (c (reg i)))) ∨
     (∃ i, i < 16 ∧ ex = .mul (.add (c wt1) (c wt2)) (Dsl.bool (c (wb i)))) ∨
     ex ∈ [.mul (c wk) (Dsl.bool (c enter)), .mul (c wk) (Dsl.bool (c hv)),
@@ -185,8 +183,8 @@ theorem cBool_w {I : UpsInst} (iok : InstOk I) {t : Nat} (ht : t < 4) (hC : ∀ 
     rcases (show (step I t).mode = 0 ∨ (step I t).mode = 1 ∨ (step I t).mode = 2 ∨ (step I t).mode = 3 by omega)
       with h | h | h | h <;> simp [h, ind]
   · exact ev_gbool (.inl (by
-      simp only [ev, Dsl.c, Bool.false_eq_true, ite_false, sTAG, sHPF]
-      rw [hC 106 (by decide), hC 108 (by decide)]; rfl))
+      simp only [ev, sumc, Dsl.sum, Dsl.c, List.map, List.foldl, Bool.false_eq_true, ite_false, sTAG, sHPL, sHPF]
+      rw [hC 106 (by decide), hC 107 (by decide), hC 108 (by decide)]; rfl))
   · exact ev_gbool (.inl (by
       simp only [ev, Dsl.c, Bool.false_eq_true, ite_false, sMEM]; rw [hC 114 (by decide)]; rfl))
   · by_cases h12 : t = 1 ∨ t = 2
@@ -220,7 +218,7 @@ theorem cBool_v {I : UpsInst} {p : Nat} (hC : ∀ x, x < 187 → C x = VC I p x)
        rcases h with rfl | rfl | rfl | rfl | rfl <;> exact ev_gbool (.inl (by
          simp only [ev, Dsl.c, Bool.false_eq_true, ite_false, wk]; rw [hC 1 (by decide)]; rfl)))
     | exact ev_gbool (.inl (by
-        simp only [ev, Dsl.c, Bool.false_eq_true, ite_false, sTAG, sHPF, sMEM, wt1, wt2]
+        simp only [ev, sumc, Dsl.sum, Dsl.c, List.map, List.foldl, Bool.false_eq_true, ite_false, sTAG, sHPL, sHPF, sMEM, wt1, wt2]
         (repeat rw [hC _ (by decide)]); rfl))
 
 theorem cBool_q {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
@@ -234,11 +232,11 @@ theorem cBool_q {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
     exact ev_gbool (.inr (by rw [hC x hl]; simp only [QC, hs, ite_true]; exact seg_bits I x hx))
   · exact ev_gbool (.inr (by rw [hC x (partBools_lt x hx)]; exact node_partbits I Q k p st ix fl wi u hb x hx))
   · apply cast0; ups_ev [hC]; cellsimp
-  · by_cases hs : st = 0 ∨ st = 2
+  · by_cases hs : st = 0 ∨ st = 1 ∨ st = 2
     · exact ev_gbool (.inr (by simp only [reg]; rw [hC _ (by omega)]; exact node_nibbits I Q k p st ix fl wi u hs i hi))
     · exact ev_gbool (.inl (by
-        simp only [ev, Dsl.c, Bool.false_eq_true, ite_false, sTAG, sHPF]
-        rw [hC 106 (by decide), hC 108 (by decide)]; cellsimp; simp [ind]; omega))
+        simp only [ev, sumc, Dsl.sum, Dsl.c, List.map, List.foldl, Bool.false_eq_true, ite_false, sTAG, sHPL, sHPF]
+        rw [hC 106 (by decide), hC 107 (by decide), hC 108 (by decide)]; cellsimp; simp [ind]; omega))
   · by_cases hs : st = 8
     · subst hs
       exact ev_gbool (.inr (by simp only [reg]; rw [hC _ (by omega)]; exact node_membits I Q k p ix fl wi u i hi))

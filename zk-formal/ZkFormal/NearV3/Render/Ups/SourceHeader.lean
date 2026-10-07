@@ -15,14 +15,39 @@ structure SourceHeader (I : UpsInst) (Q : UpsPartI) (e : SourceLayout Q) : Prop 
   insertValue : Q.kind=4 → nodeTypeCode e.node=2
 
 theorem SourceHeader.hpl {I : UpsInst} {Q : UpsPartI} {e : SourceLayout Q}
-    (h : SourceHeader I Q e) (hk : Q.kind=6 ∨ Q.kind=7 ∨ XcpB I Q=true) :
-    Q.pb.getD 1 0=Q.phk := by
+    (h : SourceHeader I Q e) (hk : Q.kind=6 ∨ Q.kind=7 ∨ XcpB I Q=true)
+    (i : Nat) (hi : i < 4) : Q.pb.getD (1+i) 0 = (u32Bytes Q.phk).getD i 0 := by
   have hs := h.prefixNode hk
   rw [e.bytes,h.hplen]
   cases hn : e.node with
-  | leaf => simp [NodeV3.ser,u32r,NodeGen3.hplenOf,NodeGen3.isLE,NodeGen3.keyOf,NodeGen3.hpN_len]
-  | ext => simp [NodeV3.ser,u32r,NodeGen3.hplenOf,NodeGen3.isLE,NodeGen3.keyOf,NodeGen3.hpN_len]
+  | leaf => simp [NodeV3.ser,NodeGen3.hplenOf,NodeGen3.isLE,NodeGen3.keyOf,
+      NodeGen3.hpN_len,List.getD_eq_getElem?_getD,List.getElem?_append,hi,Nat.add_comm]
+  | ext => simp [NodeV3.ser,NodeGen3.hplenOf,NodeGen3.isLE,NodeGen3.keyOf,
+      NodeGen3.hpN_len,List.getD_eq_getElem?_getD,List.getElem?_append,hi,Nat.add_comm]
   | branch => simp [hn,NodeGen3.isLE] at hs
+
+/-- The complete authenticated source length binds its HP length without truncation. -/
+theorem SourceHeader.length {I : UpsInst} {Q : UpsPartI} {e : SourceLayout Q}
+    (h : SourceHeader I Q e) (hk : Q.kind=6 ∨ Q.kind=7 ∨ XcpB I Q=true) :
+    (Q.pb.length : Int) = 45 + 4 * ind (Q.ty=0) + Q.phk := by
+  have hs := h.prefixNode hk
+  have hl := h.leaf hk
+  have hw := e.wf
+  rw [e.bytes,h.hplen]
+  cases hn : e.node with
+  | branch => simp [hn,NodeGen3.isLE] at hs
+  | leaf k v m =>
+    have ht : Q.ty=0 := hl.mpr (by simp [hn,NodeGen3.isLeaf])
+    simp only [hn,NodeV3.wf] at hw
+    rcases hw with ⟨_,hv,hm⟩
+    cases v <;> simp_all [NodeV3.ser,NSlot3.bytes,NSlot3.wf,NodeGen3.hplenOf,
+      NodeGen3.keyOf,NodeGen3.isLE,NodeGen3.hpN_len,ind] <;> omega
+  | ext k v m =>
+    have ht : Q.ty≠0 := by intro ht; have := hl.mp ht; simp [hn,NodeGen3.isLeaf] at this
+    simp only [hn,NodeV3.wf] at hw
+    rcases hw with ⟨_,hne,hv,hm⟩
+    cases v <;> simp_all [NodeV3.ser,NKid.bytes,NKid.wf,NodeGen3.hplenOf,
+      NodeGen3.keyOf,NodeGen3.isLE,NodeGen3.hpN_len,ind] <;> omega
 
 theorem SourceHeader.flag {I : UpsInst} {Q : UpsPartI} {e : SourceLayout Q}
     (h : SourceHeader I Q e) (hk : Q.kind=6 ∨ Q.kind=7 ∨ XcpB I Q=true) :
@@ -30,9 +55,9 @@ theorem SourceHeader.flag {I : UpsInst} {Q : UpsPartI} {e : SourceLayout Q}
   have hs := h.prefixNode hk
   rw [e.bytes]
   cases hn : e.node with
-  | leaf => simp [NodeV3.ser,u32r,NodeGen3.keyOf,NodeGen3.isLeaf,List.getD_eq_getElem?_getD,
+  | leaf => simp [NodeV3.ser,u32Bytes_length,NodeGen3.keyOf,NodeGen3.isLeaf,List.getD_eq_getElem?_getD,
       List.getElem?_append,NodeGen3.hpN_len] <;> split <;> (first | rfl | omega)
-  | ext => simp [NodeV3.ser,u32r,NodeGen3.keyOf,NodeGen3.isLeaf,List.getD_eq_getElem?_getD,
+  | ext => simp [NodeV3.ser,u32Bytes_length,NodeGen3.keyOf,NodeGen3.isLeaf,List.getD_eq_getElem?_getD,
       List.getElem?_append,NodeGen3.hpN_len] <;> split <;> (first | rfl | omega)
   | branch => simp [hn,NodeGen3.isLE] at hs
 

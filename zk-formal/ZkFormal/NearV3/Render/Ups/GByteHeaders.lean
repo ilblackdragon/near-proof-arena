@@ -1,5 +1,6 @@
 import ZkFormal.NearV3.Render.Ups.GByteFlags
 import ZkFormal.NearV3.Render.Ups.NodeHeaderBytes
+import ZkFormal.NearV3.Render.Node.ByteFacts
 
 /-! TAG and HPL constraints derived from the ordinary NodeV3 serializer. -/
 set_option maxHeartbeats 1000000
@@ -24,10 +25,10 @@ theorem byte_headers_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
     ∀ ex ∈ cByteHeaders, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   change ex ∈ [.mul (c sTAG) (sub (c UpsV3.b) tagE),
-    mul3 (c sHPL) (c fs) (sub (c UpsV3.b) (c UpsV3.qhk)),
-    mul3 (c sHPL) (Dsl.not (c fs)) (c UpsV3.b)] at hex
+    mul3 (c sHPL) (c fs) (sub (c qha) (c UpsV3.b)),
+    mul3 (c sHPL) (c fs) (sub (c qhs) (Dsl.k 1))] at hex
   simp only [List.mem_cons,List.not_mem_nil,or_false] at hex
-  rcases hex with rfl | rfl | rfl <;> apply cast0 <;> ups_ev [hC] <;> cellsimp
+  rcases hex with rfl | rfl | rfl <;> apply cast0 <;> ups_ev [qha,qhs,hC] <;> cellsimp
   · by_cases hs : (fieldAt Q.shape p).1 = 0
     · have ht : Q.ty < 4 := by
         rw [enc.ty]
@@ -42,16 +43,17 @@ theorem byte_headers_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
   · by_cases hs : (fieldAt Q.shape p).1 = 1
     · by_cases hi : (fieldAt Q.shape p).2.1 = 0
       · have hb := enc.hpl hp hs
-        rw [if_pos hi] at hb
-        exact gate_sub_eq (congrArg Int.ofNat hb)
+        rw [hi] at hb
+        have ha := NodeGen3.le256_take_one (u32Bytes Q.qhk)
+          (by intro he; have := u32Bytes_length Q.qhk; rw [he] at this; contradiction)
+        simp only [List.getD_eq_getElem?_getD] at hb ha
+        simp [hs,hi,winFrV,WinFrB,ind,ha,hb,Int.add_right_neg]
       · simp [ind,hi]
     · simp [ind,hs]
   · by_cases hs : (fieldAt Q.shape p).1 = 1
     · by_cases hi : (fieldAt Q.shape p).2.1 = 0
+      · simp [hs,hi,winFrV,WinFrB,ind]
       · simp [ind,hi]
-      · have hb := enc.hpl hp hs
-        rw [if_neg hi] at hb
-        simpa only [List.getD_eq_getElem?_getD, Int.ofNat_zero, Int.mul_zero, Lean.Omega.Int.natCast_ofNat] using congrArg (fun n : Nat => ind ((fieldAt Q.shape p).1 = 1) * (1 + -ind ((fieldAt Q.shape p).2.1 = 0)) * (n : Int)) hb
     · simp [ind,hs]
 
 /-- Header byte constraints over the padded trace, from ordinary node serialization. -/

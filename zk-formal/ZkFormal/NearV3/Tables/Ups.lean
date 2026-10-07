@@ -253,6 +253,9 @@ def Ein : Nat := reg 17
 /-- read rows (`TAG`, `HPF`): nibble bits of `rb` -/
 def hb (i : Nat) : Nat := reg i
 def lb (i : Nat) : Nat := reg (4 + i)
+/-- HPL rows reuse registers for output accumulator and scale. -/
+def qha : Nat := reg 8
+def qhs : Nat := reg 9
 /-- `W1`, `W2`: bitmap bits -/
 def wb (i : Nat) : Nat := reg i
 
@@ -363,7 +366,7 @@ def cBool : List Expr :=
   partBools.map (fun x => Expr.mul (c pf) (Dsl.bool (c x))) ++
   [Dsl.bool mDE] ++
   -- `reg` used as bits: nibbles on TAG/HPF rows, arithmetic on MEM rows, bitmap on W1/W2
-  (List.range 8).map (fun i => Expr.mul (.add (c sTAG) (c sHPF)) (Dsl.bool (c (reg i)))) ++
+  (List.range 8).map (fun i => Expr.mul (sumc [sTAG,sHPL,sHPF]) (Dsl.bool (c (reg i)))) ++
   (List.range 14).map (fun i => Expr.mul (c sMEM) (Dsl.bool (c (reg i)))) ++
   (List.range 16).map (fun i => Expr.mul (.add (c wt1) (c wt2)) (Dsl.bool (c (wb i)))) ++
   [.mul (c wk) (Dsl.bool (c enter)), .mul (c wk) (Dsl.bool (c hv)),
@@ -637,7 +640,8 @@ def cBytes : List Expr :=
       (.mul (not (c fs)) (c ba1)))))),
     -- grammar bytes: tag, hex-prefix length
     .mul (c sTAG) (sub (c b) tagE),
-    mul3 (c sHPL) (c fs) (sub (c b) (c qhk)), mul3 (c sHPL) (not (c fs)) (c b),
+    mul3 (c sHPL) (c fs) (sub (c qha) (c b)),
+    mul3 (c sHPL) (c fs) (sub (c qhs) (k 1)),
     -- fresh hex-prefix flag bytes and the key byte of [0, 15]
     .mul (.mul (c sHPF) kM) (sub (c b) (sum [smul 32 (c qtl), smul 16 (c qodd), .mul (c qodd) loE])),
     mul3 (c sHPF) (c kNLF) (sub (c b) (.add (k 32) (smul 31 (c ts1)))),
@@ -655,8 +659,8 @@ def cBytes : List Expr :=
     mul3 (.add kM (c xcp)) (c sTAG) (sub (c rb) (.add (smul 16 hiE) loE)),
     mul3 (.add kM (c xcp)) (c sTAG) (sub hiE (.add (smul 2 (c qtl)) (c podd))),
     mul3 (c sHPF) kM (sub (c rb) (.add (smul 16 hiE) loE)),
-    .mul (mul3 (c sHPL) (c fs) kM) (sub (c rb) (c phk)),
-    mul3 (c sBM) (c fs) (.mul (c xcp) (sub (c rb) (c phk))),
+    .mul (mul3 (c sHPL) (c fs) kM) (sub (c plen) (sum [k 45, smul 4 (c qtl), c phk])),
+    mul3 (c sBM) (c fs) (.mul (c xcp) (sub (c plen) (sum [k 45, smul 4 (c qtl), c phk]))),
     mul3 (c kRBV) (c sTAG) (sub (c rb) (k 1)),
     mul3 (c rd) (c sVLEN) (sub (c rb) (c (SR 0))),
     -- read positions
@@ -677,7 +681,13 @@ def cBytes : List Expr :=
     mul3 (c kRBV) (sumc [sTAG, sVLEN, sVH]) (c aft),
     mul3 (c kRBI) (sumc [sTAG, sVLEN, sVH, sBM]) (c aft),
     mul3 (c kRBI) (c sCH) (sub (c aft) (.mul (not (c fw)) (c ts1))),
-    mul3 (c kRBI) (c sMEM) (not (c aft)) ]
+    mul3 (c kRBI) (c sMEM) (not (c aft)),
+    -- Full output HPL; the existing trace row cap implies zero top byte.
+    mul3 (c sHPL) (not (c fe)) (sub (n qha) (.add (c qha) (.mul (n qhs) (n b)))),
+    mul3 (c sHPL) (not (c fe)) (sub (n qhs) (smul 256 (c qhs))),
+    mul3 (c sHPL) (c fe) (sub (c qha) (c qhk)),
+    mul3 (c sHPL) (c fe) (c b),
+    .mul (c sHPL) (sub (c b) (.add (smul 16 hiE) loE)) ]
 
 /-- Digest lookups: fresh windows (value / child), the new root on `W3`. -/
 def cDigest : List Expr :=

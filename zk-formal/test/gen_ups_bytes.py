@@ -24,14 +24,28 @@ add("cpBM", [("sBM",1)], ".mul (c sBM) (sub (c cp) (sumc [kRDB, kRBR, kRBV, kRBI
     f"{cast('cp')} = {K('kRDB','kRBR','kRBV','kRBI')}")
 add("cpCH", [("sCH",1)], ".mul (c sCH) (sub (c cp) (not (c wfr)))", f"{cast('cp')} = 1 - {cast('wfr')}")
 add("cpMEM", [("sMEM",1)], ".mul (c sMEM) (c cp)", f"{cast('cp')} = 0")
+# Four-byte header accumulation; range checks are supplied by byte lookups.
+add("hplStep", [("sHPL",1),("fe",0)],
+    "mul3 (c sHPL) (not (c fe)) (sub (n qha) (.add (c qha) (.mul (n qhs) (n b))))",
+    f"{ncast('qha')} = {cast('qha')} + {ncast('qhs')} * {ncast('b')}")
+add("hplScale", [("sHPL",1),("fe",0)],
+    "mul3 (c sHPL) (not (c fe)) (sub (n qhs) (smul 256 (c qhs)))",
+    f"{ncast('qhs')} = 256 * {cast('qhs')}")
+add("hplEnd", [("sHPL",1),("fe",1)],
+    "mul3 (c sHPL) (c fe) (sub (c qha) (c qhk))", f"{cast('qha')} = {cast('qhk')}")
+add("hplTop", [("sHPL",1),("fe",1)],
+    "mul3 (c sHPL) (c fe) (c b)", f"{cast('b')} = 0")
+add("hplNibble", [("sHPL",1)],
+    ".mul (c sHPL) (sub (c b) (.add (smul 16 hiE) loE))",
+    f"{cast('b')} = 16 * {hiE} + {loE}")
 # copied byte
 add("bCopy", [("cp",1)], ".mul (c cp) (sub (c b) (.add (c rb) (.mul (c sBM) (.add (.mul (c fs) (c ba0)) (.mul (not (c fs)) (c ba1))))))",
     f"{cast('b')} = {cast('rb')} + {cast('sBM')} * ({cast('fs')} * {cast('ba0')} + (1 - {cast('fs')}) * {cast('ba1')})")
 # grammar bytes
 add("bTAG", [("sTAG",1)], ".mul (c sTAG) (sub (c b) tagE)",
     f"{cast('b')} = {cast('qtb1')} + 2 * {cast('qtb2')} + 3 * {cast('qte')}")
-add("bHPL0", [("sHPL",1),("fs",1)], "mul3 (c sHPL) (c fs) (sub (c b) (c qhk))", f"{cast('b')} = {cast('qhk')}")
-add("bHPLr", [("sHPL",1),("fs",0)], "mul3 (c sHPL) (not (c fs)) (c b)", f"{cast('b')} = 0")
+add("bHPL0", [("sHPL",1),("fs",1)], "mul3 (c sHPL) (c fs) (sub (c qha) (c b))", f"{cast('qha')} = {cast('b')}")
+add("bHPLr", [("sHPL",1),("fs",1)], "mul3 (c sHPL) (c fs) (sub (c qhs) (k 1))", f"{cast('qhs')} = 1")
 add("bHPFm", [("sHPF",1)], ".mul (.mul (c sHPF) kM) (sub (c b) (sum [smul 32 (c qtl), smul 16 (c qodd), .mul (c qodd) loE]))",
     f"{kM} * ({cast('b')} - (32 * {cast('qtl')} + 16 * {cast('qodd')} + {cast('qodd')} * {loE})) = 0")
 add("bHPFn", [("sHPF",1)], "mul3 (c sHPF) (c kNLF) (sub (c b) (.add (k 32) (smul 31 (c ts1))))",
@@ -50,10 +64,10 @@ add("rTAGh", [("sTAG",1)], "mul3 (.add kM (c xcp)) (c sTAG) (sub hiE (.add (smul
     f"({kM} + {cast('xcp')}) * ({hiE} - (2 * {cast('qtl')} + {cast('podd')})) = 0")
 add("rHPF", [("sHPF",1)], "mul3 (c sHPF) kM (sub (c rb) (.add (smul 16 hiE) loE))",
     f"{kM} * ({cast('rb')} - (16 * {hiE} + {loE})) = 0")
-add("rHPL", [("sHPL",1),("fs",1)], ".mul (mul3 (c sHPL) (c fs) kM) (sub (c rb) (c phk))",
-    f"{kM} * ({cast('rb')} - {cast('phk')}) = 0")
-add("rBM", [("sBM",1),("fs",1)], "mul3 (c sBM) (c fs) (.mul (c xcp) (sub (c rb) (c phk)))",
-    f"{cast('xcp')} * ({cast('rb')} - {cast('phk')}) = 0")
+add("rHPL", [("sHPL",1),("fs",1)], ".mul (mul3 (c sHPL) (c fs) kM) (sub (c plen) (sum [k 45, smul 4 (c qtl), c phk]))",
+    f"{kM} * ({cast('plen')} - (45 + 4 * {cast('qtl')} + {cast('phk')})) = 0")
+add("rBM", [("sBM",1),("fs",1)], "mul3 (c sBM) (c fs) (.mul (c xcp) (sub (c plen) (sum [k 45, smul 4 (c qtl), c phk])))",
+    f"{cast('xcp')} * ({cast('plen')} - (45 + 4 * {cast('qtl')} + {cast('phk')})) = 0")
 add("rRBV", [("sTAG",1)], "mul3 (c kRBV) (c sTAG) (sub (c rb) (k 1))", f"{cast('kRBV')} * ({cast('rb')} - 1) = 0")
 add("rVLEN", [("rd",1),("sVLEN",1)], "mul3 (c rd) (c sVLEN) (sub (c rb) (c (SR 0)))", f"{cast('rb')} = {cast('SR 0')}")
 # read positions
