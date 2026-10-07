@@ -766,3 +766,11 @@ extensions. All addresses preserve exact seeded view segments and strictly
 decrease in subtree size, so the executable local ID map is coherent even for
 PT nodes. Seven guards pass. Coverage of every actual trace part source by this
 full key-path list is the next operational composition; it is not assumed.
+
+`SourceCoverage` closes actual source coverage: successful `traceUpsert` puts
+all emitted part sources (including PT and repeated split-terminal sources) in
+`sourceAddresses`. `forest_traceUpsert_source_provider` proves the executable
+trace-local recordId points to the exact actual seeded forest provider, deriving
+source revelation from the native trace. Seven guards pass. This certifies
+source-provider lookup, not output/fresh-node allocation, off-path child-map
+coherence, provider use counters, or complete AIR traffic.
