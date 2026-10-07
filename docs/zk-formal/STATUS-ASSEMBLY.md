@@ -478,3 +478,14 @@ semantic preservation theorem, not a completed allocation: mapping retained
 original blobs into existing views still needs correct instance ownership and
 the unchanged 2MiB AIR value-byte budget. The normalized constructor's A7 premise
 therefore remains open.
+
+`PostShadows.transitionQueryStore` now gives executable targeted retention with
+exact simultaneous pre-query replay and post-query replay after appending native
+new bytes. It retains queried original blobs plus first-match original winners
+for hashes of newly written blobs. The latter preserves collision shadows even
+when they were not pre-referenced; no hash-injectivity assumption is used. Its
+full encoded-store cost is bounded by the original store, and the corresponding
+post-only constructor also has a payload bound. Nineteen permanent axiom guards
+pass. These are raw-store theorems: node/value classification, instance ownership,
+and the unchanged 2MiB AIR value-byte capacity are not yet derived. In particular,
+original 3MiB payload coverage is not silently substituted for 2MiB AIR coverage.
