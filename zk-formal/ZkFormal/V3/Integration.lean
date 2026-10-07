@@ -1,3 +1,6 @@
+import ZkFormal.NearV3.Rcpt.Extract.Srcp.LeafUnit
+import ZkFormal.NearV3.Rcpt.Link.SourceHash
+import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 import ZkFormal
 import ZkFormal.NearV3.BudgetCheck
 import ZkFormal.NearV3.Extract.Node.Proof

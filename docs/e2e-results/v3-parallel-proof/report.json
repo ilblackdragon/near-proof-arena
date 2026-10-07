@@ -1,0 +1,53 @@
+{
+  "milestone": "Integrated source-proof extraction, update field prefix and signed memory rows",
+  "status": "pass",
+  "integration_jobs": 1119,
+  "memory_target_jobs": 107,
+  "memory_axiom_guards": 15,
+  "memory_axioms": [
+    "propext",
+    "Quot.sound"
+  ],
+  "field_axiom_guards": 9,
+  "receipt_axiom_guards": 28,
+  "receipt_commit": "aec807bc",
+  "field_prefix_commit": "d63fcfb2",
+  "memory_coverage": [
+    "signed prefix carry recurrence",
+    "outside truncated carry recurrence",
+    "exact high limb",
+    "byte and carry bit reconstruction",
+    "actual cMem inputs, initialization, inside/outside equations, exact parent limb and gates on MEM rows"
+  ],
+  "memory_explicit_inputs": [
+    "inside and outside carries fit their encoded ranges",
+    "serialized memory byte equals the computed result byte"
+  ],
+  "receipt_coverage": [
+    "root and full leaf unit extraction",
+    "leaf and path item traffic including both Merkle directions",
+    "natural message and list counters without field wrap",
+    "unique SIZE gate and exact SIZE traffic as a field image of a natural row sum",
+    "semantic SHA-contract bridge to rootFromPath and verifyReceiptProof",
+    "structural source-list nonemptiness"
+  ],
+  "remaining": [
+    "all cFields and cBytes constraints",
+    "cMem register transitions and full group dispatch",
+    "derive generator semantic conditions from actual updates",
+    "assemble source blocks and discharge SHA contracts from bus balance",
+    "receipt honest render and other missing receipt tables",
+    "final AIR assembly, size certificate, Rust prover and real judge validation"
+  ],
+  "archive": "/data/illia/nearproof-deps/validation/v3-parallel-proof-20261007",
+  "source_sha256": {
+    "zk-formal/ZkFormal/NearV3/Render/Ups/MemArith.lean": "6f5e907df69beb081db04e26c3697ac114b90569f1cd110303e1eaf0d87f1bd9",
+    "zk-formal/ZkFormal/NearV3/Render/Ups/GMemRow.lean": "452502131726349f4cd8cb3e017b3251a358c92b816c8ceabf1c79d3921d609a",
+    "zk-formal/ZkFormal/NearV3/Render/UpsRender.lean": "46769ff1816e4952d3e76679ba73282ddbad9c4bb8eb6c937b582772fcd3c4e6",
+    "zk-formal/ZkFormal/V3/Integration.lean": "7e7c0be7b7c8bb1e4ef0c0db190a9b196d5279317044b85cbaedf9eeac1c3671",
+    "zk-formal/test/AuditUpsMem.lean": "64a65b7fc8588ee9c958b0cf88428fbb982b930bb343bc91e37387dd1733cafc",
+    "zk-formal/test/AuditUpsFields.lean": "4e769b4eb1965685634cdba65f469854863c3c68d0c1d0b0d81f6e96d78be6b3",
+    "zk-formal/test/AuditSrcp.lean": "64a9854e0ae7459e125fe6ff97fbf94ec1f65114d1a23e6037de3b59139dc8ea"
+  },
+  "limits": "Incremental build. D0a remains intermediate; no full stateless-validator replacement, clean elaboration budget, or real judge admission is claimed."
+}

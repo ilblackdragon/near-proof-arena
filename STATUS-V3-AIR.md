@@ -2,6 +2,22 @@
 
 Program lead's hand-over, 2026-10-07.
 
+**Parallel proof milestone:** integration passes 1,119 jobs. `GFieldPrefix`
+closes the first 26 actual field constraints from canonical node shapes.
+`MemArith` and `GMemRow` prove signed carry arithmetic and its actual row
+encoding, including exact high-limb propagation; 15 axiom guards use only
+`propext` and `Quot.sound`. Carry ranges and serialized result bytes remain
+explicit inputs; register shifts and full `cMem` dispatch remain open.
+
+Source-proof extraction now includes root/leaf units, complete non-SIZE path
+traffic, nonwrapping counters, unique SIZE emission and its exact field-valued
+sum, plus a semantic SHA-contract bridge to `rootFromPath`/receipt verification.
+The selected B2 block accounts for source-list nonemptiness even with no
+receipts. Whole-block assembly, bus discharge of SHA contracts and the honest
+render remain open. Field/source guards pass (9/28 respectively). Evidence:
+`docs/e2e-results/v3-parallel-proof/report.json`. No final prover or admission
+claim is implied. Further agent work may be ahead of these checkpoint imports.
+
 **Update plan milestone:** `UpsGen.cPlan_ok` proves the full plan constraint
 group for the generated table, including all row kinds and padding. It takes
 explicit semantic `PartOk` conditions on each constructed part; `InstOk` and
