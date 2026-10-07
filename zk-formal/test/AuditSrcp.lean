@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Rcpt.Extract.Srcp.PathItem
+import ZkFormal.NearV3.Rcpt.Extract.Srcp.SizeGate
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 
 /-! Guard the recovered source-proof extraction and digest-byte reconstruction. -/
@@ -58,3 +58,23 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.SrcpProof.pathItem_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.SrcpProof.pathItem_traffic
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.counter_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.counter_bound
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.counter_id_lt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.counter_id_lt
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.pathItem_traffic_closed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.pathItem_traffic_closed
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.active_end' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.active_end
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.size_gate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.size_gate
