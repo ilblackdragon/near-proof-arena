@@ -15,7 +15,7 @@ theorem spb_child_copy (I : UpsInst) (base : UpsPartI) (hk : base.kind=10)
       (.branch sv (splitKids I (snapshotKid old) new) newMem)) := by
   let Q := encodePart base (.ext key old oldMem) (.branch sv (splitKids I (snapshotKid old) new) newMem)
   have f : FieldsOk Q := encodePart_fields _ _ _ hd
-  let sourceHead := [3]++u32r (hpN key false).length++hpN key false
+  let sourceHead := [3]++u32Bytes (hpN key false).length++hpN key false
   let header := (match sv with | none => [1] | some s => [2]++s.bytes false)++
     [kidBitmap (splitKids I (snapshotKid old) new)%256,kidBitmap (splitKids I (snapshotKid old) new)/256]
   have ho : snapshotKid old≠.none := by simpa using hs.2.1

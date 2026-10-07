@@ -10,7 +10,7 @@ open NearSpec UpsRows ZkFormal.Near ZkFormal.Near.Render
 
 def treeNlf_byteInput (I : UpsInst) (base : UpsPartI) (source : PTrie) (v : Bytes) (Q : UpsPartI)
     (he : encodeTreePart base ⟨.NLF,source,newLeaf ([0,15].drop I.ts) v,0⟩=some Q)
-    (hs : source.wf=true) (hh : SmallNodeHeader source)
+    (hs : source.wf=true)
     (hv : I.v=v.map UInt8.toNat) (hts : 1≤I.ts ∧ I.ts≤3) (hx : I.x<16) : ByteInput I Q := by
   cases hn : treeNode source with
   | none => simp [encodeTreePart,hn] at he
@@ -27,13 +27,13 @@ def treeNlf_byteInput (I : UpsInst) (base : UpsPartI) (source : PTrie) (v : Byte
       simp at hm
       rcases hm with rfl|rfl <;> decide
     exact nlf_byteInput I _ rfl src _ _ hd (treeSlot_fresh_length I v hv)
-      (treeNode_byte_bound hs hh hn true) hts hx
+      (treeNode_byte_bound hs hn true) hts hx
 
 def treeMvl_byteInput (I : UpsInst) (base : UpsPartI) (key : List Nat) (value : Slot)
     (mem : Nat) (Q : UpsPartI)
     (he : encodeTreePart base ⟨.MVL,.leaf key value mem,
       .leaf (key.drop (I.ti+1)) value (leafMem (key.drop (I.ti+1)) value.len),0⟩=some Q)
-    (hs : (PTrie.leaf key value mem).wf=true) (hh : SmallNodeHeader (.leaf key value mem))
+    (hs : (PTrie.leaf key value mem).wf=true)
     (hcut : I.ti+1≤key.length) (hts : 1≤I.ts ∧ I.ts≤3) (hx : I.x<16) : ByteInput I Q := by
   simp [encodeTreePart,treeNode] at he
   subst Q
@@ -43,13 +43,13 @@ def treeMvl_byteInput (I : UpsInst) (base : UpsPartI) (key : List Nat) (value : 
     rw [treeSlot_snapshot]
     exact ⟨fun n h => hsrc.1 n (List.mem_of_mem_drop h),hsrc.2.1,by simp⟩
   simpa only [treeSlot_snapshot,UKind.ix] using mvl_byteInput I {base with kind:=6} rfl
-    key (treeSlot value) _ _ hsrc hd hcut (treeNode_byte_bound hs hh rfl true) hts hx
+    key (treeSlot value) _ _ hsrc hd hcut (treeNode_byte_bound hs rfl true) hts hx
 
 def treeMve_byteInput (I : UpsInst) (base : UpsPartI) (key : List Nat) (child : PTrie)
     (mem : Nat) (Q : UpsPartI)
     (he : encodeTreePart base ⟨.MVE,.ext key child mem,
       .ext (key.drop (I.ti+1)) child (extOwnMem (key.drop (I.ti+1))+(mem-extOwnMem key)),0⟩=some Q)
-    (hs : (PTrie.ext key child mem).wf=true) (hh : SmallNodeHeader (.ext key child mem))
+    (hs : (PTrie.ext key child mem).wf=true)
     (hcut : I.ti+1≤key.length) (hts : 1≤I.ts ∧ I.ts≤3) (hx : I.x<16) : ByteInput I Q := by
   simp [encodeTreePart,treeNode] at he
   subst Q
@@ -59,7 +59,7 @@ def treeMve_byteInput (I : UpsInst) (base : UpsPartI) (key : List Nat) (child : 
     rw [treeKid_snapshot]
     exact ⟨fun n h => hsrc.1 n (List.mem_of_mem_drop h),hsrc.2.1,hsrc.2.2.1,by simp⟩
   simpa only [treeKid_snapshot,UKind.ix] using mve_byteInput I {base with kind:=7} rfl
-    key (treeKid child) _ _ hsrc hd hcut (treeNode_byte_bound hs hh rfl true) hts hx
+    key (treeKid child) _ _ hsrc hd hcut (treeNode_byte_bound hs rfl true) hts hx
 
 /-- The split branch is a concrete node, so its child hash has the required width
 without any assumption about its runtime memory-usage bound. -/
@@ -67,7 +67,7 @@ def treeWex_byteInput (I : UpsInst) (base : UpsPartI) (source child : PTrie) (Q 
     (he : encodeTreePart base ⟨.WEX,source,
       .ext (([0,15].drop (I.ts-1-I.ti)).take I.ti) child
         (extOwnMem (([0,15].drop (I.ts-1-I.ti)).take I.ti)+child.memD),0⟩=some Q)
-    (hs : source.wf=true) (hh : SmallNodeHeader source) (hc : isNode child=true)
+    (hs : source.wf=true)  (hc : isNode child=true)
     (hts : 1≤I.ts ∧ I.ts≤3) (hx : I.x<16)
     (wrap : I.ts=2 ∧ I.ti=1 ∨ I.ts=3 ∧ I.ti=1 ∨ I.ts=3 ∧ I.ti=2) : ByteInput I Q := by
   cases hn : treeNode source with
@@ -85,6 +85,6 @@ def treeWex_byteInput (I : UpsInst) (base : UpsPartI) (source child : PTrie) (Q 
         simp at hm
         rcases hm with rfl|rfl <;> decide
       · simp [treeKid,NKid.wf,hashOf_eq_enc child hc]
-    exact wex_byteInput I _ rfl src _ _ hd (treeNode_byte_bound hs hh hn true) hts hx wrap
+    exact wex_byteInput I _ rfl src _ _ hd (treeNode_byte_bound hs hn true) hts hx wrap
 
 end ZkFormal.NearV3.Render.UpsGen

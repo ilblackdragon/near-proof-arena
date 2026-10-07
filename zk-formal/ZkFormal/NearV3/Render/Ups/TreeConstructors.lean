@@ -14,7 +14,7 @@ source serialization byte bounds, fresh value lengths and unchanged-field copies
 are derived, not independently assumed.
 
 Ordinary path-index/terminal metadata, source well-formedness and the existing
-SmallNodeHeader restriction remain explicit. Full-path dispatch into these constructors,
+native serialization semantics remain explicit. Full-path dispatch into these constructors,
 revealed-node identity allocation, and plan/window/memory/traffic assembly still need
 to be constructed. This module does not assert complete honest AIR generation.
 -/

@@ -15,7 +15,7 @@ theorem pt_copy (I : UpsInst) (base : UpsPartI) (hk : base.kind=11)
   have hkind : Q.kind=11 := hk
   have hn : nWin Q.shape=1 := hf.extension ht
   let fields := valuePrefix 0 Q.qhk
-  let headBytes := [3] ++ u32r (hpN key false).length ++ hpN key false
+  let headBytes := [3] ++ u32Bytes (hpN key false).length ++ hpN key false
   have hshape : Q.shape=fields++[(7,32),(8,8)] := by
     calc Q.shape = nodeFields Q.ty Q.qhk (nWin Q.shape) := hf.shape
          _ = _ := by simp [fields,nodeFields,valuePrefix,ht,hn,List.append_assoc]
@@ -23,7 +23,7 @@ theorem pt_copy (I : UpsInst) (base : UpsPartI) (hk : base.kind=11)
     have hh : 1≤Q.qhk := hf.prefixLength (by omega)
     have hq : Q.qhk=1+key.length/2 := rfl
     by_cases h : 1<Q.qhk <;>
-      simp [fields,valuePrefix,h,fieldsLen_append,headBytes,u32r,NodeGen3.hpN_len] <;> omega
+      simp [fields,valuePrefix,h,fieldsLen_append,headBytes,u32Bytes,NodeGen3.hpN_len] <;> omega
   refine ⟨?_⟩
   intro pre post st width he hc
   change Q.shape=pre++(st,width)::post at he

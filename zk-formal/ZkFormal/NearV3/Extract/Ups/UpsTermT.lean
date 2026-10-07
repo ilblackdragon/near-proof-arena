@@ -243,11 +243,16 @@ theorem ups_term :
     rw [hv] at hwf
     have hPb : postB vs (s.row ps[j].1 sN) = vs[s.row ps[j].1 sN].v.ser true := by
       simp only [postB]; rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem hn]; rfl
-    have hR : ∀ i, i < s.rows.length → s.row i rd = 1 →
-        s.row i rb = (postB vs (s.row i sN)).getD (s.row i spos) 0 :=
-      fun i hi hrd => (upb_reads E.node hw E.upb hs i hi hrd).1
+    have hR : UpbReads s (postB vs) := fun i hi hrd => upb_reads E.node hw E.upb hs i hi hrd
     refine esx1Len hw hs hL hP j hj h10 hX (postB vs) hR key (ho.ext key c m rfl).2.1 ?_ ?_
-    · rw [hPb, hv]; simp [NodeV3.ser, u32r, hpN, UpsSpec.hp_len]
+    · rw [hPb,hv]
+      have hb : (kid.bytes true).length=32 := by
+        cases kid with
+        | none => exact absurd rfl hwf.2.1
+        | hash h => exact hwf.2.2.1
+        | node n l r pre po => exact hwf.2.2.1.2
+      simp [NodeV3.ser, u32Bytes_length, hpN, UpsSpec.hp_len, hb, hwf.2.2.2]
+      omega
     · rw [hPb, hv]; exact ser5_ext key kid mB hwf.1
   generalize hval : sv (s.row 0 tau) = val
   generalize hsrc : srcOf (Rpost vs es) (Vpost vs es pv) s ps = src at srcT hshape mveL esxL

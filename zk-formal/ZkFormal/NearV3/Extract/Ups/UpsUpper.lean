@@ -63,9 +63,15 @@ theorem filter_take15 (l : List NKid) (hl : l.length = 16) (hp : (l[15]'(by omeg
   congr 1
   simp [hp]
 
-theorem extSer1 (kk : List Nat) (kid : NKid) (memB : List Nat) :
-    ((NodeV3.ext kk kid memB).ser true).getD 1 0 = (hpN kk false).length := by
-  simp [NodeV3.ser, u32r]
+theorem extSer1 (kk : List Nat) (kid : NKid) (memB : List Nat)
+    (hlen : ((NodeV3.ext kk kid memB).ser true).length<2^22) :
+    le256 ((List.range 4).map (fun i => ((NodeV3.ext kk kid memB).ser true).getD (1+i) 0)) = (hpN kk false).length := by
+  have hb : (hpN kk false).length<2^32 := by
+    simp only [NodeV3.ser, List.length_append, List.length_cons, List.length_nil, u32Bytes_length] at hlen
+    omega
+  have he : (List.range 4).map (fun i => ((NodeV3.ext kk kid memB).ser true).getD (1+i) 0)=u32Bytes (hpN kk false).length := by
+    simp [NodeV3.ser, List.range_succ, u32Bytes, toNats_u32, List.getD_eq_getElem?_getD]
+  rw [he,u32Bytes_value hb]
 
 theorem nodeTree_mem (V' : List ValRec3) (g : Nat → NearSpec.PTrie) (r : Rec3) :
     (nodeTree3 V' g r).mem? = some (nodeTree3 V' g r).memD := by
@@ -424,7 +430,7 @@ theorem chStep (k : Nat) (hk : k + 1 < ps.length) (hT : nTof ci ti ≤ k + 1)
           ← List.getD_eq_getElem?_getD, wsym_key i i1 (by omega)]
       obtain ⟨i', hi', hrd', hsN', hsp', hrc'⟩ := extCid hw hs hL hP (k + 1) hk (Or.inl h1e) hup (postB vs) hR
       have hcN := cidOf i' hi' hrd' hsN' hrc'
-      rw [hsp', postB_eq hn, hv, extSer1] at hcN
+      rw [hsp', postB_eq hn, hv, extSer1 _ _ _ (by have hh := Link3.post_len_lt E.node hn; rw [hv] at hh; exact hh)] at hcN
       rw [hv] at hcid
       simp only [NodeV3.kidCidOk] at hcid
       rw [hcid c l cr pre po rfl] at hcN
@@ -446,7 +452,7 @@ theorem chStep (k : Nat) (hk : k + 1 < ps.length) (hT : nTof ci ti ≤ k + 1)
     obtain ⟨hc, -, -, hcres⟩ := Link3.kid_depth E.node E.head E.par hn hrev
     obtain ⟨i', hi', hrd', hsN', hsp', hrc'⟩ := extCid hw hs hL hP (k + 1) hk (Or.inr h11) hup (postB vs) hR
     have hcN := cidOf i' hi' hrd' hsN' hrc'
-    rw [hsp', postB_eq hn, hv, extSer1] at hcN
+    rw [hsp', postB_eq hn, hv, extSer1 _ _ _ (by have hh := Link3.post_len_lt E.node hn; rw [hv] at hh; exact hh)] at hcN
     rw [hv] at hcid
     simp only [NodeV3.kidCidOk] at hcid
     rw [hcid c l cr pre po rfl] at hcN

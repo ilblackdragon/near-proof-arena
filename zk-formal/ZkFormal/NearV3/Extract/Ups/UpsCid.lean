@@ -60,11 +60,12 @@ theorem extCid (k : Nat) (hk : k < ps.length) (hkd : kd k = 1 ∨ kd k = 11) (hu
     (Pb : Nat → List Nat)
     (hR : ∀ i, i < s.rows.length → s.row i rd = 1 → s.row i rb = (Pb (s.row i sN)).getD (s.row i spos) 0) :
     ∃ i, i < s.rows.length ∧ s.row i rd = 1 ∧ s.row i sN = s.row ps[k].1 sN ∧
-      s.row i spos = 5 + (Pb (s.row ps[k].1 sN)).getD 1 0 ∧ s.row i rcid = s.row ps[k].1 cN := by
+      s.row i spos = 5 + le256 ((List.range 4).map (fun j => (Pb (s.row ps[k].1 sN)).getD (1+j) 0)) ∧ s.row i rcid = s.row ps[k].1 cN := by
+  have cH := copiedHpl hw hs hL hP Pb hR k hk hkd
   have K := partK hw hs hL hP k hk
   obtain ⟨-, U⟩ := hL.part k hk
   generalize hkk : kd k = ki at K hkd
-  generalize ps[k].1 = o at K U hup ⊢
+  generalize ps[k].1 = o at K U hup cH ⊢
   generalize ps[k].2 = ℓ at K U ⊢
   have hsc := hL.segc
   obtain ⟨i1, -, -, i4, i5, i6⟩ := K.idx
@@ -81,41 +82,9 @@ theorem extCid (k : Nat) (hk : k < ps.length) (hkd : kd k = 1 ∨ kd k = 11) (hu
   generalize hqq : s.row o qhk = q at hℓ KR U3 s3
   subst hℓ
   have hle := K.le
-  -- byte 1: the `HPL` row copies `|hp| = q`
-  have eH := hplField hw hs U1 s1 (by omega) (fun d hd => by
-    have := K.qb (1 + d) (by omega); rwa [show o + (1 + d) = o + 1 + d by omega] at this)
-  rw [show s.row (o + 1) qhk = q by rw [← hqq]; exact K.pc 1 (by omega) qhk (by decide)] at eH
-  have hb1 : s.row (o + 1) b = q := by
-    have := rowsB_get s (o + 1) 4 0 (by omega)
-    rw [eH] at this; simpa using this.symm
-  have F1 := kField hw hs hsc K U1 s1 (by omega) (by omega) 0 (by omega)
-  simp only [Nat.add_zero] at F1
-  obtain ⟨oh1, st1, lt1, ix1, pc1, qb1⟩ := F1
-  have hpl1 : s.row (o + 1) sHPL = 1 := (stOf_inv oh1).2.1 st1
-  have hs1 := oh1.sum
-  have hb1' := oh1.bs
-  have ok1 := okRow hw hs lt1
-  have hcp1 : s.row (o + 1) cp = 1 := by
-    apply natv (rowLt hw hs _ _) one_lt
-    have k1 : s.row (o + 1) kRDE = if 1 = ki then 1 else 0 := ix1.kd 1 (by omega)
-    have k2 : s.row (o + 1) kRLP = if 2 = ki then 1 else 0 := ix1.kd 2 (by omega)
-    have k11 : s.row (o + 1) kPT = if 11 = ki then 1 else 0 := ix1.kd 11 (by omega)
-    rw [cpHPL ok1 (rowLt hw hs _) hs1 hpl1, k1, k2, k11]
-    rcases hkd with rfl | rfl <;> rfl
-  have k6 : s.row (o + 1) kMVL = 0 := by
-    have : s.row (o + 1) kMVL = if 6 = ki then 1 else 0 := ix1.kd 6 (by omega)
-    rcases hkd with rfl | rfl <;> exact this
-  have k7 : s.row (o + 1) kMVE = 0 := by
-    have : s.row (o + 1) kMVE = if 7 = ki then 1 else 0 := ix1.kd 7 (by omega)
-    rcases hkd with rfl | rfl <;> exact this
-  have hrd1 : s.row (o + 1) rd = 1 := rdCopy ok1 (rowLt hw hs _) (nextLt hw hs _) qb1 hcp1 oh1
-    (fun h => by omega) (fun _ => ⟨k6, k7⟩)
-    (fun h => by omega) (fun h => by omega) (rdcOff ok1 (rowLt hw hs _) (nextLt hw hs _) (by omega))
-  have hbr := bCopyN ok1 (rowLt hw hs _) (nextLt hw hs _) hcp1 (by omega)
-  have hsp1 : s.row (o + 1) spos = 1 := by
-    rw [dirRow ok1 (rowLt hw hs _) (nextLt hw hs _) ix1 (by omega) hrd1]; exact (U.rows 1 (by omega)).2.1
-  have hq : (Pb (s.row o sN)).getD 1 0 = q := by
-    rw [← hb1, hbr, hR _ lt1 hrd1, hsp1, pc1 sN (by decide)]
+  have hq : le256 ((List.range 4).map (fun j => (Pb (s.row o sN)).getD (1+j) 0))=q := by
+    rw [hqq] at cH
+    rw [cH,u32Bytes_value (by have := rowLt hw hs o qhk; rw [hqq,P_lit] at this; omega)]
   -- the window's first row
   have FC := kField hw hs hsc K U3 s3 (by omega) (by omega) 0 (by omega)
   simp only [Nat.add_zero] at FC

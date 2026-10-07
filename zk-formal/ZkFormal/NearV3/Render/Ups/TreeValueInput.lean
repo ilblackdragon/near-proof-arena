@@ -29,7 +29,7 @@ def treeRlp_byteInput (I : UpsInst) (base : UpsPartI) (key : List Nat) (old : Sl
     (mem : Nat) (v : Bytes) (Q : UpsPartI)
     (he : encodeTreePart base ⟨.RLP,.leaf key old mem,newLeaf key v,0⟩=some Q)
     (hs : (PTrie.leaf key old mem).wf=true)
-    (hh : SmallNodeHeader (.leaf key old mem))
+
     (hv : I.v=v.map UInt8.toNat) (hts : 1≤I.ts ∧ I.ts≤3) (hx : I.x<16) : ByteInput I Q := by
   simp [encodeTreePart,treeNode,newLeaf] at he
   subst Q
@@ -37,7 +37,7 @@ def treeRlp_byteInput (I : UpsInst) (base : UpsPartI) (key : List Nat) (old : Sl
   have hdst : (NodeV3.leaf key (treeSlot (.val v)) ((u64 (leafMem key v.length)).map UInt8.toNat)).wf :=
     ⟨hsrc.1,treeSlot_fresh_wf v,by simp⟩
   exact rlp_byteInput I _ rfl key _ _ _ _ hsrc hdst (treeSlot_fresh_length I v hv)
-    (treeNode_byte_bound hs hh rfl true) hts hx
+    (treeNode_byte_bound hs rfl true) hts hx
 
 /-- Runtime replacement of an existing branch value. -/
 def treeRbr_byteInput (I : UpsInst) (base : UpsPartI) (old : Slot) (kids : Kids)
@@ -55,7 +55,7 @@ def treeRbr_byteInput (I : UpsInst) (base : UpsPartI) (old : Slot) (kids : Kids)
     exact ⟨hsrc.1,by intro s h; cases h; exact treeSlot_fresh_wf v,hsrc.2.2.1,by simp⟩
   simpa only [treeKids_snapshot,UKind.ix] using rbr_byteInput I {base with kind:=3} rfl
     (treeSlot old) (treeSlot (.val v)) (treeKids kids) _ _ hsrc hdst (treeSlot_fresh_length I v hv)
-    (treeNode_byte_bound hs trivial rfl true) hts hx
+    (treeNode_byte_bound hs rfl true) hts hx
 
 /-- Runtime insertion of a value into an existing valueless branch. -/
 def treeRbv_byteInput (I : UpsInst) (base : UpsPartI) (kids : Kids)
@@ -73,6 +73,6 @@ def treeRbv_byteInput (I : UpsInst) (base : UpsPartI) (kids : Kids)
     exact ⟨hsrc.1,by intro s h; cases h; exact treeSlot_fresh_wf v,hsrc.2.2.1,by simp⟩
   simpa only [treeKids_snapshot,UKind.ix] using rbv_byteInput I {base with kind:=4} rfl
     (treeSlot (.val v)) (treeKids kids) _ _ hsrc hdst (treeSlot_fresh_length I v hv)
-    (treeNode_byte_bound hs trivial rfl true) hts hx
+    (treeNode_byte_bound hs rfl true) hts hx
 
 end ZkFormal.NearV3.Render.UpsGen
