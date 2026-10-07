@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.PreparedNonempty
 import ZkFormal.NearV3.Rcpt.Candidates.PreparedRepeated
 import ZkFormal.NearV3.Rcpt.Candidates.DedupSha
 import ZkFormal.NearV3.Rcpt.Candidates.DedupCounters
@@ -391,3 +392,15 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceEncodingBudget
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_repeated_L12
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.walkD0_has_source' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.walkD0_has_source
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_length' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_length
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.prepD0_sources_nonempty' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.prepD0_sources_nonempty

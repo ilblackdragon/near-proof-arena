@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.DedupCarry
 import ZkFormal.NearV3.Rcpt.Candidates.SourceCurrentSize
 
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.sourceCarryBus_reserved' does not depend on any axioms -/
@@ -47,3 +48,41 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceCurrentSize
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.wiredReservedSize_margin' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.wiredReservedSize_margin
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_carry_row' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_carry_row
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_carry_row' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_carry_row
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_carry_recv' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_carry_recv
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_carry_send' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_carry_send
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_carry_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_carry_messages
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_carry_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_carry_messages
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.carry_equal_of_balance' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.carry_equal_of_balance
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.carry_cells' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.carry_cells

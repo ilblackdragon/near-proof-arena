@@ -296,3 +296,19 @@ once with `sum (L + nonduplicatePathCharge)`. It needs only nonempty source bloc
 32-byte root/leaf/sibling/accumulator widths, and the trace-to-renderer cell equality;
 it does not assume old source row caps or old `SrcpWf`. This closes logical aggregate
 traffic, while complete local legality and physical partition traffic-once remain open.
+
+`PreparedNonempty` now composes the actual `walkD0` decoder/lookup success with B2's
+new-slot membership and proves exact preservation of source-slot counts through
+preparation's shuffle loop. Thus actual successful `prepD0` with that native walk
+has a nonempty prepared source list. `DedupActualTraffic` derives all source block
+widths and nonemptiness from unchanged `RelD0a`, real preparation, and real witness
+decoding, then instantiates the complete five-bus logical `TableTraffic` theorem.
+
+`DedupCarry` checks carry messages against the actual partition interactions and
+`tableBusCount_eq`: exactly one left send and one right receive occur; the opposite
+sides emit none on64. Ideal carry-bus balance for this pair forces equality of the
+complete57-field tuple, hence all57 individual row cells. This is a conditional
+soundness lemma using exact bus counts, not a fixture comparison. Global assembly
+must still prove every other table/public segment is absent from64 and obtain that
+ideal balance from the existing cryptographic bus theorem. External traffic-once
+across the overlap and full partition local legality remain open.

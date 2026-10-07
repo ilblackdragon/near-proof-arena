@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.DedupActualTraffic
 import ZkFormal.NearV3.Rcpt.Candidates.DedupTrafficProof
 import ZkFormal.NearV3.Rcpt.Candidates.DedupComputedLocal
 import ZkFormal.NearV3.Rcpt.Candidates.DedupTraffic
@@ -150,3 +151,21 @@ private def checkRows (bs : List SrcpB) (repeated : Nat → Bool) (H : Nat) : Bo
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.table_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.table_traffic
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_block_widths' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_block_widths
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_blocks_nonempty' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_blocks_nonempty
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_table_traffic' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_table_traffic
