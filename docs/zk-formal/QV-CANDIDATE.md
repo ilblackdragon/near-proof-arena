@@ -199,3 +199,17 @@ subtractions are not incorrectly interpreted as natural expressions.
 The audit now passes39 exact axiom guards and15 regressions. QVC/QSH walk
 traffic, complete word/plan message composition and generic local constraints
 remain open; this result does not assume those properties or global balance.
+
+
+`CombinedTerminalTraffic` adds exact FINAL receives and both directions of the
+QVC counter step. Missing reads use value ID0 and send no QVC requests; present
+reads use the supplied value ID and advance the counter once on the final row.
+`CombinedShardTraffic` proves exact QSH shard-byte/count receives. Its natural
+subtractions are justified by bounds, with the group slot bound derived from
+membership in the generated native plan (`plan_group_slot`). No global bus
+balance or local-acceptance premise is used in these row traffic theorems.
+
+All four walk message families now have exact row-level field traffic results;
+this does not yet establish their whole-word/plan composition, full constraints,
+provider ownership or global balance. The combined audit passes49 exact axiom
+guards and15 regressions; the shard target's211 dependency jobs pass.
