@@ -6,6 +6,23 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root ParserClock CHECKED at AIRf9bd3f80: selectorzero reset equation, seven
+selector shifts incl headerbyte3 exception, first/next-index phase steps,
+empty-mode vl=nextIndex*sel7, first_word_advance and first_word_end. Target193
+jobs+6 exact standard-axiom guards PASS (/tmp/nearproof-qv-parser-clock.log,
+/tmp/nearproof-qv-parser-clock-audit-checked.log). Next next_word_advance and
+segment induction: empty mode starts firstIndex/sel0, lasts exactly16rows,
+register carry gives equal first/next eightbyte words. Current facts are local;
+full empty/buffer mode Accepts not yet proved.
+Receipt f1a31994 nativeencoding bridge on sharedAIR rechecked: native system
+receipt/list encodeReceipts, prepared PH_OWN8=u64own, actualphysical listpayload.
+Targets+9exactguards PASS (/tmp/nearproof-rcpt-native-encoding-integrated{,-audit}.log).
+Next RC byte isolation/SHAleaf/source semantics remains agent work. D2 output
+byte charging/joint SHA capacity; ups branch/splitCount/clen windows ongoing.
+No root livejob. Continuing authorizedpush. Aggregate83f4a8b7 older. Full
+certificate/admission/reference checker/prover/judge/broad NEAR coverage open.
+
+
 Root ParserWords CHECKED at AIR5be4eb45: phase_exclusive (one phase1 excludes
 others), selector_exclusive for active structured mode, selected_word_byte
 actual byte=register for header/first/next-index phases, register_carry until
