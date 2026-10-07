@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root ValueStream CHECKED at AIRab03b234: exported value_ids_unique (refactored
+from ValueByteKeys), valueRecordStream, value_stream_filter selects exactly one
+existing ValE's fieldbyte stream from complete demand, using canonical unique
+IDs. Target343jobs +2new/1prior exactguards PASS;
+/tmp/nearproof-qv-value-stream.log,/tmp/nearproof-checked-AuditQv{ValueStream,ValueByteKeys}.log.
+Next combine physicalrecord_start+value_byte_member to obtain its ValE; rewrite
+physical_balanced_record_complete with value_stream_filter, use Perm lengths
+and indexed membership to obtain exact natural length/ordered bytes. Then
+empty/buffer semantic parser and wholeAIR channel equation.
+Integrated D2ab788d1b as20c4c192: UpsertOutputWidth/UpsertShaEncoding exact native
+encodedpart preimages/digests from actualtrace+inputwf+encoding success; no
+outputwf/byte/memory-bound premise. Target521jobs+13printedstandard axiom checks
+PASS (/tmp/nearproof-upsert-sha-encoding-integrated{,-audit}.log).
+Receipt1cdb21c8 fully closes KEYNIB13guards; all individual11channels checked.
+Agent reports aggregate TableTraffic/ViewProof compiled, auditing/commit pending;
+correctly scopes fullview to ReceiptPublicRanges or actualsuccessful prepD0
+preparedpublic length<P, does not assert overbroad universal RcptV3ViewStmt.
+No root livejob. User-authorized checkedpush continues. Aggregate83f4a8b7 older;
+full certificate/admission/reference checker/prover/judge and broadcoverage open.
+
+
 Root PhysicalByteBalance CHECKED at AIR455f1726: physical_balanced_record_complete
 uses actualqueue TableLocal/WalkChain/ParserChain, actual Acct/Akey/Val TableTraffic
 views and ValWf to derive complete demanded stream for every nonempty parserrecord.
