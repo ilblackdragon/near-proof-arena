@@ -293,3 +293,18 @@ last implies completed final word; a completed final word exits to non-walk or
 physical wrap). These layout premises must still be discharged by full trace
 construction. Audit97 exact axiom guards+15 regressions and219 dependency jobs
 pass. Between-word metadata sequencing and full layout/local composition remain.
+
+
+`CombinedMainOrder` proves exact indexed main-plan metadata and flags, and the
+successor low/high-bit recurrence, slot increment, stable count and nonfinal
+status directly from adjacent native plan entries. Duplicate shard IDs remain
+preserved. This is the natural sequencing theorem; its field translation and
+main-to-implicit/implicit successor composition remain. Audit101 exact axiom
+guards+15 regressions passes; the focused main-order target has77 dependencies.
+
+Capacity clarification: frozen `NearSpecV3.ChunkValidationV0a.B0` is2,000,000
+bytes, not2MiB. Active `ValWf.rows` allows2^22 rows; the combined queue parser's
+2^21-byte premise is a separate conditional bound. No constants were changed.
+The oversized duplicate-buffer example does not establish an accepted-input
+counterexample because its revealed pre-value exceeds frozen A7/B0. Actual
+retained/QV capacity must still be derived from the accepted-input bounds.
