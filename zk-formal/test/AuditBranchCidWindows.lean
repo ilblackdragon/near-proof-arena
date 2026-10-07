@@ -9,3 +9,7 @@ import ZkFormal.NearV3.Render.Ups.BranchCidWindows
 /-- info: 'ZkFormal.NearV3.Render.UpsGen.sourceCidBytes_branch_first' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.UpsGen.sourceCidBytes_branch_first
+
+/-- info: 'ZkFormal.NearV3.Render.UpsGen.sourceCidBytes_branch_after' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.UpsGen.sourceCidBytes_branch_after
