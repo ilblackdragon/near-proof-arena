@@ -53,6 +53,6 @@ def rbv_byteInput (I : UpsInst) (base : UpsPartI) (hk : base.kind=4)
     exact ⟨src,rfl,rfl,by simp [Q,encodePart,hk,XcpB],
       by simp [Q,encodePart,hk,XcpB],by intros; rfl⟩
   · intro h; simp [Q,encodePart,hk] at h
-  · intro h; simp [VcpB,Q,encodePart,hk] at h
+  · intro _ h; simp [VcpB,Q,encodePart,hk] at h
 
 end ZkFormal.NearV3.Render.UpsGen

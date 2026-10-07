@@ -53,7 +53,7 @@ def rbr_byteInput (I : UpsInst) (base : UpsPartI) (hk : base.kind=3)
   · refine ⟨hx,?_,?_⟩ <;> simp [Q,encodePart,hk]
   · intro h; simp [HeaderNeeded,XcpB,Q,encodePart,hk] at h
   · intro h; simp [Q,encodePart,hk] at h
-  · intro _
+  · intro _ _
     refine ⟨src,?_,rfl,rfl⟩
     change ValueEdit base.kind I.ci (.branch (some old) kids oldMem)
       (.branch (some new) (kids.map snapshotKid) newMem)

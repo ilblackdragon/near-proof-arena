@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Render.Ups.NodeHeaderBytes
 import ZkFormal.NearV3.Render.Ups.SourceValueLayout
 import ZkFormal.NearV3.Render.Ups.GByteFlags
 
@@ -11,7 +12,7 @@ namespace UpsGen
 def cByteSourceValue : List Expr := (UpsV3.cBytes.drop 59).take 1
 
 theorem byte_source_value_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
-    (enc : NodeEncoding Q) (hv : VcpB I Q=true ∨ Q.kind=3 → SourceValueLayout I Q enc)
+    (enc : NodeEncoding Q) (hv : (Q.ty=0 ∨ Q.ty=3) → VcpB I Q=true ∨ Q.kind=3 → SourceValueLayout I Q enc)
     (hf : FieldsOk Q) (hp : p < Q.q.length)
     {C D P : Nat → Int} {fst lst trn : Int}
     (hC : ∀ x, x < 187 → C x = QC I Q k p
@@ -27,7 +28,19 @@ theorem byte_source_value_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
   cellsimp
   by_cases hs : (fieldAt Q.shape p).1=4
   · by_cases hr : VcpB I Q=true ∨ Q.kind=3
-    · have hpv := (hv hr).position hf hs
+    · have ht : Q.ty=0 ∨ Q.ty=3 := by
+        obtain ⟨f,hf,he,_,_⟩ := enc.byte_field hp
+        have hvlen : f = NodeGen.F.vlen := by
+          cases f <;> simp [NodeGen.F.state,Node.sTAG,Node.sHPL,Node.sHPF,Node.sKEY,Node.sVLEN,Node.sVH,
+            Node.sBM,Node.sCH,Node.sMEM,hs] at he ⊢
+        subst f
+        have hh := (NodeGen3.kind_facts hf).2.1 (Or.inl rfl)
+        rw [enc.ty]
+        cases hn : enc.node with
+        | leaf => simp [nodeTypeCode]
+        | ext => simp [hn,NodeGen3.typeOf] at hh
+        | branch sv kids mem => cases sv <;> simp_all [NodeGen3.typeOf,nodeTypeCode]
+      have hpv := (hv ht hr).position hf hs
       have hbounds := fieldAt_bounds Q.shape p (by rw [← hf.bytes]; exact hp)
       have hfields : ((fieldAt Q.shape p).1,(fieldAt Q.shape p).2.2.1) ∈
           nodeFields Q.ty Q.qhk (nWin Q.shape) := by rw [← hf.shape]; exact hbounds.2
@@ -48,7 +61,7 @@ theorem byte_source_value_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
 theorem cByteSourceValue_ok {insts : List UpsInst} (ok : UpsOk insts)
     (he : ∀ I ∈ insts, ∀ k, k < nQ I → NodeEncoding (part I k))
     (hv : ∀ I (hI : I ∈ insts) k (hk : k < nQ I),
-      VcpB I (part I k)=true ∨ (part I k).kind=3 → SourceValueLayout I (part I k) (he I hI k hk))
+      ((part I k).ty=0 ∨ (part I k).ty=3) → VcpB I (part I k)=true ∨ (part I k).kind=3 → SourceValueLayout I (part I k) (he I hI k hk))
     (hf : ∀ I ∈ insts, ∀ k, k < nQ I → FieldsOk (part I k))
     {H : Nat} (hH : R insts + 1 ≤ H) : GroupOk insts H cByteSourceValue := by
   apply groupOk_by ok hH (fun e he => by

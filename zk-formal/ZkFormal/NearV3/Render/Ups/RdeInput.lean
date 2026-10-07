@@ -51,7 +51,7 @@ def rde_byteInput (I : UpsInst) (base : UpsPartI) (hk : base.kind=1)
     simp [HeaderNeeded,XcpB,Q,encodePart,hk] at h
   · intro h
     simp [Q,encodePart,hk] at h
-  · intro h
+  · intro _ h
     simp [VcpB,Q,encodePart,hk] at h
 
 end ZkFormal.NearV3.Render.UpsGen

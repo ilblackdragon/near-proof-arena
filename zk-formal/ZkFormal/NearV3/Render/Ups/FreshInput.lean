@@ -35,7 +35,7 @@ def nlf_byteInput (I : UpsInst) (base : UpsPartI) (hk : base.kind=8)
   · intro h; simp [Q,encodePart,hk] at h
   · intro h; simp [HeaderNeeded,XcpB,Q,encodePart,hk] at h
   · intro h; simp [Q,encodePart,hk] at h
-  · intro h; simp [VcpB,Q,encodePart,hk] at h
+  · intro _ h; simp [VcpB,Q,encodePart,hk] at h
 
 def wex_byteInput (I : UpsInst) (base : UpsPartI) (hk : base.kind=9)
     (src : NodeV3) (kid : NKid) (mem : List Nat)
@@ -71,6 +71,6 @@ def wex_byteInput (I : UpsInst) (base : UpsPartI) (hk : base.kind=9)
   · intro h; simp [Q,encodePart,hk] at h
   · intro h; simp [HeaderNeeded,XcpB,Q,encodePart,hk] at h
   · intro h; simp [Q,encodePart,hk] at h
-  · intro h; simp [VcpB,Q,encodePart,hk] at h
+  · intro _ h; simp [VcpB,Q,encodePart,hk] at h
 
 end ZkFormal.NearV3.Render.UpsGen

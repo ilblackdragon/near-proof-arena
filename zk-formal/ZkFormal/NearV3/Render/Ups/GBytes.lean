@@ -31,7 +31,7 @@ structure ByteInput (I : UpsInst) (Q : UpsPartI) where
   sourceLayout : Q.kind ∈ [0,1,2,3,4,5,11] → SourceLayout Q
   sourceHeader : HeaderInput I Q
   movedPrefix : Q.kind=6 ∨ Q.kind=7 → MovedPrefix I Q output
-  sourceValue : VcpB I Q=true ∨ Q.kind=3 → SourceValueLayout I Q output
+  sourceValue : (Q.ty=0 ∨ Q.ty=3) → VcpB I Q=true ∨ Q.kind=3 → SourceValueLayout I Q output
   copyFields : CopyFields I Q
 
 theorem ByteInput.fieldsOk {I : UpsInst} {Q : UpsPartI} (h : ByteInput I Q) : FieldsOk Q :=
