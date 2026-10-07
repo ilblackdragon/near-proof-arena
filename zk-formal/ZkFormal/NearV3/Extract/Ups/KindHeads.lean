@@ -156,7 +156,7 @@ theorem head_RLP (hpf : C pf = 1) (hk : ∀ m, m < 12 → C (kcol m) = if m = 2 
     C Cc = 0 ∧
     C eL = 1 ∧
     C eS = 0 ∧
-    (C qhk < 2 ^ 20 → C Kc = 100 + 2 * C qhk) := by
+    (C qhk < 2 ^ 23 → C Kc = 100 + 2 * C qhk) := by
   have k0 : C kRDB = 0 := hk 0 (by omega)
   have k1 : C kRDE = 0 := hk 1 (by omega)
   have k2 : C kRLP = 1 := hk 2 (by omega)
@@ -411,7 +411,7 @@ theorem head_MVL (hpf : C pf = 1) (hk : ∀ m, m < 12 → C (kcol m) = if m = 6 
     C Cc = 0 ∧
     C eL = 0 ∧
     C eS = 1 ∧
-    (C qhk < 2 ^ 20 → C Kc = 100 + 2 * C qhk) := by
+    (C qhk < 2 ^ 23 → C Kc = 100 + 2 * C qhk) := by
   have k0 : C kRDB = 0 := hk 0 (by omega)
   have k1 : C kRDE = 0 := hk 1 (by omega)
   have k2 : C kRLP = 0 := hk 2 (by omega)
@@ -471,10 +471,10 @@ theorem head_MVE (hpf : C pf = 1) (hk : ∀ m, m < 12 → C (kcol m) = if m = 7 
     C bL = 0 ∧
     C cO = 0 ∧
     C cS = 0 ∧
-    (C phk < 2 ^ 20 → C Cc = 50 + 2 * C phk) ∧
+    (C phk < 2 ^ 23 → C Cc = 50 + 2 * C phk) ∧
     C eL = 0 ∧
     C eS = 0 ∧
-    (C qhk < 2 ^ 20 → C Kc = 50 + 2 * C qhk) := by
+    (C qhk < 2 ^ 23 → C Kc = 50 + 2 * C qhk) := by
   have k0 : C kRDB = 0 := hk 0 (by omega)
   have k1 : C kRDE = 0 := hk 1 (by omega)
   have k2 : C kRLP = 0 := hk 2 (by omega)
@@ -601,7 +601,7 @@ theorem head_WEX (hpf : C pf = 1) (hk : ∀ m, m < 12 → C (kcol m) = if m = 9 
     C Cc = 0 ∧
     C eL = 0 ∧
     C eS = 0 ∧
-    (C qhk < 2 ^ 20 → C Kc = 50 + 2 * C qhk) := by
+    (C qhk < 2 ^ 23 → C Kc = 50 + 2 * C qhk) := by
   have k0 : C kRDB = 0 := hk 0 (by omega)
   have k1 : C kRDE = 0 := hk 1 (by omega)
   have k2 : C kRLP = 0 := hk 2 (by omega)

@@ -33,6 +33,13 @@ theorem u32_eq {x q : Nat} (hx : x < 2 ^ 32) (h : (NearSpec.u32 x).map UInt8.toN
   simp only [List.cons.injEq, and_true] at h
   omega
 
+/-- Equality of complete headers pins both lengths below the native u32 modulus. -/
+theorem u32_eq_full {x q : Nat} (hx : x<2^32) (hq : q<2^32)
+    (h : u32Bytes x=u32Bytes q) : x=q := by
+  have he := congrArg le256 h
+  rw [u32Bytes_value hx,u32Bytes_value hq] at he
+  exact he
+
 section
 variable {C D : URow} (ok : URowOk C D) (hC : ∀ x, C x < P) (hD : ∀ x, D x < P)
 include ok hC hD
@@ -99,9 +106,9 @@ theorem ups_rlpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 2) (val : Near
   -- HPL (grammar)
   have eH := hplField hw hs U1 s1 (by omega) (fun d hd => by
     have := K.qb (1 + d) (by omega); rwa [show o + (1 + d) = o + 1 + d by omega] at this)
-  rw [show s.row (o + 1) qhk = q by rw [← hqq]; exact K.pc 1 (by omega) qhk (by decide)] at eH
-  have hq256 : q < 256 := by
-    have := hbyte 1 (by omega); rw [rowsB_four] at eH; simp only [List.cons.injEq] at eH; omega
+  rw [show o+1+3=o+4 by omega, show s.row (o + 4) qhk = q by rw [← hqq]; exact K.pc 4 (by omega) qhk (by decide)] at eH
+  have hq22 : q<2^22 := by have := lenLe hw hs; have := K.le; omega
+  have hq32 : q<2^32 := by have := rowLt hw hs o qhk; rw [hqq,P_lit] at this; omega
   -- the copied rows: `HPL HPF [KEY]` (rows `o+1 … o+4+q`)
   have kv := fun d (hd : d < 49 + q) m (hm : m < 12) => (K.ix d hd).kd m hm
   have copyAt : ∀ d, 1 ≤ d → d < 5 + q → s.row (o + d) cp = 1 ∧ s.row (o + d) rd = 1 ∧ s.row (o + d) sBM = 0 ∧
@@ -160,7 +167,7 @@ theorem ups_rlpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 2) (val : Near
     rw [hsrc]; simp [nodeEnc, List.take_append_of_le_length, u32_length]
   rw [hP1, eH] at cH
   have hqhp : (NearSpec.hexPrefix key true).length = q :=
-    u32_eq (by have := hlenE; omega) cH.symm
+    u32_eq_full (by have := hlenE; omega) hq32 cH.symm
   have cK := copyRun hw hs Pb hR (r := o + 5) (n := q) (δ := 5) (N := s.row o sN) (by omega) (by omega)
     (fun d hd => by
       have := copyAt (5 + d) (by omega) (by omega); rwa [show o + (5 + d) = o + 5 + d by omega] at this)
@@ -217,13 +224,12 @@ theorem ups_rlpBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 2) (val : Near
   -- assemble
   rw [hBy, eT, eH, cK, eV, eW, eM, hD]
   simp only [UpsSpec.qRLP, NearSpec.newLeaf, nodeEnc, NearSpec.Slot.valueRef, NearSpec.leafMem, List.map_append,
-    List.map_cons, List.map_nil, toNats_u32, hqhp, List.append_assoc, List.cons_append, List.nil_append]
+    List.map_cons, List.map_nil, u32Bytes, toNats_u32, hqhp, List.append_assoc, List.cons_append, List.nil_append]
   have e1 : val.length % 256 = s.row 0 L0 := by omega
   have e2 : val.length / 256 % 256 = s.row 0 L1 := by omega
   have e3 : val.length / 65536 % 256 = s.row 0 L2 := by omega
   have e4 : val.length / 16777216 % 256 = 0 := by omega
-  rw [e1, e2, e3, e4, show q % 256 = q by omega, show q / 256 % 256 = 0 by omega, show q / 65536 % 256 = 0 by omega,
-    show q / 16777216 % 256 = 0 by omega]
+  rw [e1,e2,e3,e4]
   simp only [List.cons.injEq, true_and, List.append_cancel_left_eq]
   refine ⟨rfl, ?_⟩
   congr 2

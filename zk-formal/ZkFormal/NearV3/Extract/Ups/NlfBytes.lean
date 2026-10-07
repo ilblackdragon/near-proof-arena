@@ -106,7 +106,8 @@ theorem ups_nlfBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 8) (val : Near
   rw [hb1, hb2, hte] at eT
   -- HPL
   have eH := hplField hw hs U1 s1 (by omega) (fun d hd => by rw [show o + 1 + d = o + (1 + d) by omega]; exact qd _ (by omega))
-  rw [hpc 1 (by omega) qhk (by decide), hhk] at eH
+  rw [show o+1+3=o+4 by omega, hpc 4 (by omega) qhk (by decide), hhk] at eH
+  change rowsB s (o+1) 4=[1,0,0,0] at eH
   -- HPF
   have st2 := fieldRowSt hw hs U2 s2 (by omega) (fun d hd => by rw [show o + 1 + 4 + d = o + (5 + d) by omega]; exact qd _ (by omega)) 0 (by omega)
   simp only [show o + 1 + 4 = o + 5 by omega] at st2

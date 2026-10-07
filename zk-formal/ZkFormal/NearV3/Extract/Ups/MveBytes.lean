@@ -37,7 +37,7 @@ theorem ups_mveBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 7)
     (hR : UpbReads s Pb)
     (hsrc : Pb (s.row ps[k].1 sN) = (nodeEnc (.ext key c m)).map UInt8.toNat)
     (hsmall : (nodeEnc (.ext key c m)).length < 2 ^ 22) (hkey : ∀ x ∈ key, x < 16) (hI : ti + 1 ≤ key.length)
-    (hklen : key.length < 510) (hc32 : c.hashOf.length = 32) (hm : m < 2 ^ 64)
+    (hklen : key.length < 2^23) (hc32 : c.hashOf.length = 32) (hm : m < 2 ^ 64)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
     rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qMVE key c m ti)).map UInt8.toNat ∧
       limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) rx) 8 = (UpsSpec.qMVE key c m ti).memD := by
@@ -133,15 +133,22 @@ theorem ups_mveBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 7)
   have hphk : s.row o phk = H.length := by
     have f := rHPL ok1 (rowLt hw hs _) F1.1.sum hpl1 hfs1
     rw [← natCast_add, show s.row (o + 1) kMVL + s.row (o + 1) kMVE = 1 by simpa using hkm 1 (by omega)] at f
-    have e := natv (rowLt hw hs _ _) (rowLt hw hs _ _) (show ((s.row (o + 1) rb : Nat) : Fp) = ((s.row (o + 1) phk : Nat) : Fp) by grind)
-    rw [← F1.2.2.2.2.1 phk (by decide), ← e, (hR _ F1.2.2.1 hrd1).1, hsp1, F1.2.2.2.2.1 sN (by decide), hPb]
-    simp [toNats_u32, List.getD_eq_getElem?_getD]; omega
+    have hl := (hR _ F1.2.2.1 hrd1).2
+    rw [F1.2.2.2.2.1 sN (by decide), hPlen] at hl
+    rw [hl, F1.2.2.2.2.1 qtl (by decide), htl,
+      F1.2.2.2.2.1 phk (by decide)] at f
+    have hHsmall : H.length<2^22 := by
+      have hh : (Pb (s.row o sN)).length<2^22 := by rw [hsrc]; simpa using hsmall
+      rw [hPlen] at hh; omega
+    apply natv (rowLt hw hs _ _) (by rw [P_lit]; omega)
+    have he : ((45+H.length : Nat):Fp) = 45+(H.length: Fp) := by simp only [natCast_add]; rfl
+    rw [he] at f
+    grind
   -- the new hex-prefix length
   have eH := hplField hw hs U1 s1 (by omega) (fun d hd => by
     have := K.qb (1 + d) (by omega); rwa [show o + (1 + d) = o + 1 + d by omega] at this)
-  rw [show s.row (o + 1) qhk = q by rw [← hqq]; exact K.pc 1 (by omega) qhk (by decide)] at eH
-  have hq256 : q < 256 := by
-    have := hbyte 1 (by omega); rw [rowsB_four] at eH; simp only [List.cons.injEq] at eH; omega
+  rw [show o+1+3=o+4 by omega, show s.row (o + 4) qhk = q by rw [← hqq]; exact K.pc 4 (by omega) qhk (by decide)] at eH
+  have hq22 : q<2^22 := by omega
   have hQ := mvQhk ok0 (rowLt hw hs _) (nextLt hw hs _) K.pf (by simpa using hkm 0 (by omega)) (I := ti)
     (by rw [show s.row o ti1 = if 1 = ti then 1 else 0 from I0.ti 1 (by omega),
       show s.row o ti2 = if 2 = ti then 1 else 0 from I0.ti 2 (by omega)]; split <;> split <;> omega) (by omega)
@@ -331,11 +338,10 @@ theorem ups_mveBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 7)
   have eT := tagField hw hs U0 s0 (by omega) hq0 K.pf
   rw [show s.row o qtb1 + 2 * s.row o qtb2 + 3 * s.row o qte = 3 by omega] at eT
   rw [hBy, eT, eH, keyR, cW, eM]
-  simp only [UpsSpec.qMVE, nodeEnc, List.map_append, List.map_cons, List.map_nil, toNats_u32, List.append_assoc,
+  simp only [UpsSpec.qMVE, nodeEnc, List.map_append, List.map_cons, List.map_nil, u32Bytes, toNats_u32, List.append_assoc,
     List.cons_append, List.nil_append]
   have hXq : (NearSpec.hexPrefix (key.drop (ti + 1)) false).length = q := by simpa [X] using hXl
-  rw [hXq, show q % 256 = q by omega, show q / 256 % 256 = 0 by omega, show q / 65536 % 256 = 0 by omega,
-    show q / 16777216 % 256 = 0 by omega]
+  rw [hXq]
   have hHk : (NearSpec.hexPrefix key false).length = H.length := by simp [H]
   simp only [NearSpec.extOwnMem, hXq, hHk]
   simp only [Nat.zero_mul, Nat.one_mul, Nat.add_zero, Nat.zero_add]

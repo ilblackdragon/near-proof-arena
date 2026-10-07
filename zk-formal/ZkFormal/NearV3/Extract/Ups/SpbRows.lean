@@ -50,7 +50,7 @@ theorem head_SPB {ci : Nat} (hpf : C pf = 1) (hk : ∀ m, m < 12 → C (kcol m) 
     (hcs : ∀ m, m < 11 → C (17 + m) = if m = ci then 1 else 0) (h4 : 4 ≤ ci) (h10 : ci ≤ 10) :
     C qtl = 0 ∧ C qte = 0 ∧ C qtb2 = spVN ci ∧ C nochild = 0 ∧
     C xcp = spXN ci ∧ C vcp = (if ci = 4 then 1 else 0) ∧ C useA = spXN ci ∧ C bN = spRN ci ∧ C bL = 0 ∧
-    C cO = 0 ∧ C cS = 0 ∧ (spXN ci = 0 → C Cc = 0) ∧ (C phk < 2 ^ 20 → C Cc = spXN ci * (50 + 2 * C phk)) ∧ C eL = 1 ∧
+    C cO = 0 ∧ C cS = 0 ∧ (spXN ci = 0 → C Cc = 0) ∧ (C phk < 2 ^ 23 → C Cc = spXN ci * (50 + 2 * C phk)) ∧ C eL = 1 ∧
     C eS = (if ci = 4 then 1 else 0) ∧ C Kc = spKc ci ∧ (spRN ci = 1 → C jm = 1) := by
   have k0 : C kRDB = 0 := hk 0 (by omega)
   have k1 : C kRDE = 0 := hk 1 (by omega)
