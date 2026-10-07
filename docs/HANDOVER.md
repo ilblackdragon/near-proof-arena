@@ -7,6 +7,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+**Latest full AIR integration `862fc32c`:1,711 jobs,19 audits,226 exact axiom
+guards+15 behavior checks PASS.** Report:
+`docs/e2e-results/v3-native-rcpt-integration/report.json` in AIR; evidence
+`/data/illia/nearproof-deps/validation/v3-native-rcpt-20261007/`.
+Integrated QueryAccepted7adf4cb4→8aa286b3: actual accepted input yields a fresh
+encodable/decodable targeted-store witness, exact unfoldedBytes and original A7
+bound. This closes raw-store A7 completeness, NOT current ExtV3/AIR completeness.
+Retained-byte classification, instance ownership and2MiB value capacity remain.
+Full native PartOk through4e3c94f8 and total native part encoding27dd6b63 are
+integrated. Receipt through9b210b7c includes actual list decomposition/no-wrap,
+terminal offsets, j/le uniqueness and exact whole RCL traffic; full semantic
+Wf/byte traffic still open. Queue through93728ed5 physical boundaries integrated.
+
+Next root: actual between-word sequencing and full local/layout composition.
+No active root build. D2 next checks capacity with repeated buffered shard IDs:
+87,382 empty duplicate entries exceed2MiB while below3MB native store budget;
+NOT yet an accepted-transition counterexample, must check unchanged A7 and
+constructive native acceptance. Do not assume distinct shards or narrow domain
+to justify current conditional2MiB parser/value bound. Representation/cost must
+be repaired if accepted coverage exceeds it. Receipt source RCL binding ongoing.
+
+
 Root QV `93728ed5`: first-row/nonfirst, no-restart and next-word start equations
 proved; physical last/exit equations proved with explicit layout premises still
 to be derived during full trace construction. Target219 jobs and QV97 exact
