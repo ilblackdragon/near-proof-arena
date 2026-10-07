@@ -18,7 +18,13 @@ both integer and actual BabyBear evaluation, including malformed second queue
 indices, mismatched buffer counts, truncated headers and mixed segments. `ValueTraffic` additionally proves exact natural VBYTES records for every
 empty, buffered and raw generated segment; three traffic axiom guards pass.
 Two static shape/well-formedness axiom guards pass. These results do not replace
-general field extraction and honest local-constraint proofs.
+general field extraction and honest local-constraint proofs. `EmptyLocal` and
+`EmptyRender` now prove all local constraints for arbitrary empty-index bytes
+and their actual sixteen-row generator, over any commutative ring. `ShardTraffic`
+proves exact generated buffered shard-byte records. Candidate audit totals eight
+axiom guards and eleven fixtures checked in both integer and BabyBear arithmetic.
+Buffered/raw local constraints, padding/concatenation and full field traffic
+remain open.
 
 Rows parse three modes: empty 16-byte index pairs, a four-byte buffered vector
 header followed by 24-byte entries, and uninterpreted raw values. Eight byte
