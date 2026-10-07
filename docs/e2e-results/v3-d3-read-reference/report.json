@@ -59,7 +59,6 @@
     "check_local_exit": 0
   },
   "pending": [
-    "held-out SDK check-local",
     "independent lean4lean recursion failure and full configured formal rerun"
   ],
   "evidence_directory": "/data/illia/nearproof-deps/validation/v3-read-reference-20261007",
@@ -342,6 +341,45 @@
       },
       "seconds": 160.9008375662379,
       "inputs_sha256": "7a54e159ab86c162385a10bd9406b1b3658f94868100ff003f07c9c2dac4ed2a"
+    },
+    "heldout_check_local": {
+      "ok": true,
+      "official": false,
+      "network_isolated": true,
+      "package_digest": "sha256:947ec58c9c07e89485a3c9615ad2f7c006caf05e38d86d6ff34c7654d603da1e",
+      "positive_cases": 208,
+      "report_sha256": "2b405c7b836e505de5b8bb22758de99a5a94447086f877272de964b3861d0133",
+      "gates": [
+        {
+          "gate": "PKG_WELLFORMED",
+          "status": "PASS"
+        },
+        {
+          "gate": "AXIOM_AUDIT",
+          "status": "SKIPPED"
+        },
+        {
+          "gate": "BUILD_REPRODUCIBLE",
+          "status": "PASS"
+        },
+        {
+          "gate": "CONFORMANCE_DIFFERENTIAL",
+          "status": "PASS"
+        },
+        {
+          "gate": "PROVER_RELIABILITY",
+          "status": "PASS"
+        },
+        {
+          "gate": "ADVERSARIAL_PROOFS",
+          "status": "PASS"
+        },
+        {
+          "gate": "RESOURCE_LIMITS",
+          "status": "PASS"
+        }
+      ],
+      "scope": "proof-refactoring snapshot; runtime binary hashes identical to post-split public gates"
     }
   }
 }
