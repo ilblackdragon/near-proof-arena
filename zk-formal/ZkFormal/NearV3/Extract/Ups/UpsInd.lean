@@ -130,12 +130,12 @@ theorem mem_qb (hm : C sMEM = 1) : C qb = 1 := by
   have hq := rowBool ok hC (x := qb) (by simp [rowBools])
   omega
 
-/-- The exact limb of a `MEM` row is below `2^12`. -/
-theorem rx_lt (hm : C sMEM = 1) (hneg : C neg ≤ 1) (hb : C b < 256) : C rx < 4096 := by
+/-- The exact limb of a `MEM` row is below `2^26`. -/
+theorem rx_lt (hm : C sMEM = 1) (hneg : C neg ≤ 1) (hb : C b < 256) : C rx < 67108864 := by
   have hfe := rowBool ok hC (x := fe) (by simp [rowBools])
   have F := memRow ok hC hD hm hneg (le1 hfe)
   have h1 := F.rx; have h2 := F.cb; have h3 := F.cc
-  have : C fe * ((1 - C neg) * cbOf C + ccOf C) ≤ 14 := by
+  have : C fe * ((1 - C neg) * cbOf C + ccOf C) ≤ 196606 := by
     rcases hfe with e | e <;> rw [e]
     · omega
     · rcases (show C neg = 0 ∨ C neg = 1 by omega) with e' | e' <;> rw [e'] <;> omega

@@ -72,7 +72,7 @@ theorem ups_wexBytes (k : Nat) (hk : k < ps.length) (hkd : kd k = 9) (b' : NearS
     (hti : 1 ≤ ti) (hts : ti ≤ si)
     (hdC : ∀ i, i < s.rows.length → s.row i gD = 1 → s.row i dI = upsIdN (s.row 0 tau) k →
       s.row i dL = s.row ps[k].1 clen → regN (s.row i) = b'.hashOf.map UInt8.toNat)
-    (hMd : ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 4096)
+    (hMd : ∀ i, i < 8 → s.row (ps[k].1 + ps[k].2 - 8 + i) mBv < 67108864)
     (hmB : limbs (fun i => s.row (ps[k].1 + ps[k].2 - 8 + i) mBv) 8 = b'.memD)
     (hbyte : ∀ d, d < ps[k].2 → s.row (ps[k].1 + d) b < 256) :
     rowsB s ps[k].1 ps[k].2 = (nodeEnc (UpsSpec.qWEX (wexKey si ti) b')).map UInt8.toNat ∧

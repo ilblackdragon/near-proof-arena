@@ -5,9 +5,9 @@ import ZkFormal.NearV3.Extract.Ups.UpsWalk
 
 `SrcOk` (what a part's kind needs from its source node) splits into
 * **`NodeOk3 P`**: facts every post subtrie of a record has — encoding `< 2^22` bytes, usage `< 2^64`, key
-  nibbles `< 16` and keys `< 510` nibbles, 36-byte value slots of length `< 2^32`, 16 children, 32-byte
+  nibbles `< 16` and keys `< 2^23` nibbles, 36-byte value slots of length `< 2^32`, 16 children, 32-byte
   child hashes.  **`post_nodeOk`** proves it for `fullTree R V' n` of every record `n` (the hex-prefix
-  length is a serialized byte, so `< 256`; slots and children from `NodeV3.wf` and the post SHA facts);
+  length is bounded by the serialized node size; slots and children from `NodeV3.wf` and the post SHA facts);
 * **`SrcShape`**: the constructor of the source and the kind's slot / key conditions (a descend's target
   slot holds a child, an inserted slot is empty, a moved key is longer than `I`, a pass-through is
   `.ext []`).  These come from the walk and the case (open, UPSV3-DESIGN §8.2).
@@ -27,8 +27,8 @@ structure NodeOk3 (P : NearSpec.PTrie) : Prop where
   len : (nodeEnc P).length < 2 ^ 22
   mem : P.memD < 2 ^ 64
   leaf : ∀ k sl m, P = .leaf k sl m →
-    (∀ x ∈ k, x < 16) ∧ k.length < 510 ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32
-  ext : ∀ k c m, P = .ext k c m → (∀ x ∈ k, x < 16) ∧ k.length < 510 ∧ c.hashOf.length = 32
+    (∀ x ∈ k, x < 16) ∧ k.length < 2^23 ∧ sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32
+  ext : ∀ k c m, P = .ext k c m → (∀ x ∈ k, x < 16) ∧ k.length < 2^23 ∧ c.hashOf.length = 32
   branch : ∀ bv cs m, P = .branch bv cs m → UpsSpec.kidsLen cs = 16 ∧
     (∀ sl, bv = some sl → sl.valueRef.length = 36 ∧ sl.len < 2 ^ 32) ∧
     ∀ j c, UpsSpec.kidAt cs j = some c → c.hashOf.length = 32
@@ -184,8 +184,9 @@ theorem post_nodeOk (hN : NodeWf3 vs) (hhw : HeadWf hds) (hvw : ValWf es) (hb : 
       fun _ _ _ he' => by simp [NodeV3.toRec3, nodeTree3] at he'⟩
     simp only [NodeV3.toRec3, nodeTree3, NearSpec.PTrie.leaf.injEq] at he'
     obtain ⟨rfl, rfl, -⟩ := he'
-    have hhp := hB (hpN k true).length (by simp [NodeV3.ser, u32r])
-    simp only [hpN, List.length_map, UpsSpec.hp_len] at hhp
+    have hhp := hlen
+    simp only [NodeV3.toRec3, nodeTree3, nodeEnc, List.length_append,
+      List.length_cons, List.length_nil, u32_length, u64_length, UpsSpec.hp_len] at hhp
     have hS := hslot sl hsw (fun x hx => hB x (by simp [NodeV3.ser, hx]))
       (fun lb i l pre po w e => by rw [e]; rfl)
     exact ⟨hk16, by omega, hS.1, hS.2⟩
@@ -195,8 +196,9 @@ theorem post_nodeOk (hN : NodeWf3 vs) (hhw : HeadWf hds) (hvw : ValWf es) (hb : 
       fun _ _ _ he' => by simp [NodeV3.toRec3, nodeTree3] at he'⟩
     simp only [NodeV3.toRec3, nodeTree3, NearSpec.PTrie.ext.injEq] at he'
     obtain ⟨rfl, rfl, -⟩ := he'
-    have hhp := hB (hpN k false).length (by simp [NodeV3.ser, u32r])
-    simp only [hpN, List.length_map, UpsSpec.hp_len] at hhp
+    have hhp := hlen
+    simp only [NodeV3.toRec3, nodeTree3, nodeEnc, List.length_append,
+      List.length_cons, List.length_nil, u32_length, u64_length, UpsSpec.hp_len] at hhp
     refine ⟨hk16, by omega, ?_⟩
     cases kid with
     | none => exact absurd rfl hkn
