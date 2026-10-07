@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+**Latest parallel checkpoint:** R1 indexed-public protocol passed 1,168 integration
+jobs and is merged to AIR as `a1215d2e` (public lane `0de153cf`); 14 behavior
+checks and five axiom guards pass. Prefixes, generated indices, and dynamic
+payload offsets are supported, but concrete NEAR prepared-statement bindings
+remain R2 work. Root's public lane has checked byte/packing/payload/layout
+lemmas; exact record binding is in progress under `NearV3/Public/`.
+
+The clean snapshot diagnostic ended at its 1,800-second total cutoff: 927 of
+1,110 modules passed, and `Render.Ups.GRows` was interrupted. There was no prior
+proof failure. Results are in the attempt2 directory named below. This broad
+integration closure is not the final certificate; final closure pruning and
+checker timing remain necessary. Its heavy scope has been released to D3.
+
+D3 checkpoint `2d9d4e58` wires the read-set model and admission certificate;
+25 axiom guards pass. Long native/check-local/formal and worker mutation gates
+are next. TTN has two fresh passing configurations, including v1-s1-o300
+(236 chunks, 667 calls, 65 expected failures, 635 charged calls); suite continues.
+AIR byte completeness has reached 74/76 at `54500db2`. Receipt rendering has
+92/112 constraints checked at `3c16b628`, with transitions actively compiling.
+These are intermediate milestones, not a succinct validator replacement.
+
+
 **New checkpoint (after the earlier summary below):** AIR `5e084a5c` passes
 1,167 integration jobs. All 29 memory constraints are complete (`ac76c7a8`),
 with 24 axiom guards after `memOk_of_semantics`: encoded carry ranges and memory
