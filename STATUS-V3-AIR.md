@@ -1,5 +1,19 @@
 # STATUS-V3-AIR: succinct v3 D0 prover (np-udr-stark-v2), program state at hand-over
 
+## Latest semantic factoring checkpoint (2026-10-07)
+
+Integration passes **1,337 jobs** with `Assembly.FactorSound`. `GoodV3.checkD0`,
+`GoodV3.checkD0a` and `factorSound` are proved; three permanent transitive axiom
+guards pass with standard Lean axioms only. Source loops, implicit transitions,
+preprocessing comparisons and actual main execution compose into the unchanged
+native checker. No native-acceptance field was added to `GoodV3`.
+
+FactorComplete, AIR-to-Good, full honest completeness, source partition/protocol
+admission, queue orchestration, succinct prover and final certificate remain open.
+The full-u32 HPL repair is isolated and is not included in this aggregate yet.
+Evidence: `docs/e2e-results/v3-factor-sound/report.json`.
+
+
 Program lead's hand-over, 2026-10-07.
 
 **Assembly interface checkpoint:** integration passes **1,329 jobs**. Executable
