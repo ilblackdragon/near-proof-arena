@@ -7,6 +7,17 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `4ae98b04`: all five main successor AIR equations from actual indexed
+native plan neighbors; all between-word gates zero inside words or on final
+words. Target223 jobs and QV113 exact axiom guards+15 fixtures PASS.
+Logs `/tmp/nearproof-main-steps.log`, `/tmp/nearproof-main-steps-audit-final.log`.
+Next root: assemble case/layout lemmas into full walk local acceptance, parser
+suffix composition and whole traffic. Individual equations do not yet imply a
+whole-trace theorem. No active root build. D2 owns executable key→native value
+occurrence allocation and unique provider charging; Ups runtime WalkOk/edges;
+receipt header bytes/full semantic Wf remain active.
+
+
 Root QV `8d3371c6`: actual implicit indexed order/flags, successors and main-to-
 implicit boundary proved; matching AIR equations for entering tau1 and later
 tau+1 transitions checked. Target222 jobs and QV108 axiom guards+15 fixtures
