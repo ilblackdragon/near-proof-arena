@@ -59,9 +59,9 @@
     "check_local_exit": 0
   },
   "pending": [
-    "post-split actual worker public and held-out mutations",
+    "post-split held-out actual worker mutations",
     "held-out SDK check-local",
-    "configured formal checking and independent kernels"
+    "independent lean4lean recursion failure and full configured formal rerun"
   ],
   "evidence_directory": "/data/illia/nearproof-deps/validation/v3-read-reference-20261007",
   "public_strict": {
@@ -155,7 +155,7 @@
     "report_sha256": "f8cf46a5115407c52ea75f2c1ef10c9a74e391d6bf247092a6ab668afd579e29"
   },
   "runtime_split": {
-    "status": "native reproducibility and public SDK pass; configured formal elaboration/rechecks running",
+    "status": "public native and worker gates pass; configured formal recheck fails on WasmStepE recursion",
     "candidate_model_modules": 26,
     "declaration_bodies": "unchanged namespace-transformed upstream ranges",
     "trusted_sources": "unchanged",
@@ -204,6 +204,105 @@
       "prove": "8010f24e610b0abf067ebc787fe83d2bafd5e1caf76fea14c11f0735d8d5c5b7",
       "verify": "f661d7b84e09ea341b255d0a351d1015bdf942011e8e3cc11640ecb18489f862"
     },
-    "isolated_formal_native_verifier_sha256": "f661d7b84e09ea341b255d0a351d1015bdf942011e8e3cc11640ecb18489f862"
+    "isolated_formal_native_verifier_sha256": "f661d7b84e09ea341b255d0a351d1015bdf942011e8e3cc11640ecb18489f862",
+    "public_strict": {
+      "status": "pass",
+      "positive_cases": 407,
+      "rejection_cases": 244,
+      "proof_bytes_max": 181810,
+      "mutations": {
+        "status": "pass",
+        "honest_cases": 407,
+        "mutants": 3062,
+        "counts": {
+          "codes/duplicate": 120,
+          "codes/inject-unread": 79,
+          "codes/inject-unused": 120,
+          "codes/reorder": 46,
+          "entries/duplicate-key": 407,
+          "entries/reorder": 407,
+          "values/duplicate.implicit0": 51,
+          "values/duplicate.implicit1": 11,
+          "values/duplicate.implicit2": 6,
+          "values/duplicate.main": 407,
+          "values/inject-unread.implicit0": 46,
+          "values/inject-unread.implicit1": 11,
+          "values/inject-unread.implicit2": 6,
+          "values/inject-unread.main": 395,
+          "values/inject-unused.implicit0": 51,
+          "values/inject-unused.implicit1": 11,
+          "values/inject-unused.implicit2": 6,
+          "values/inject-unused.main": 407,
+          "values/reorder.implicit0": 51,
+          "values/reorder.implicit1": 11,
+          "values/reorder.implicit2": 6,
+          "values/reorder.main": 407
+        },
+        "values_inject_unread": 458,
+        "codes_inject_unread": 79,
+        "verifier_sha256": "f661d7b84e09ea341b255d0a351d1015bdf942011e8e3cc11640ecb18489f862",
+        "mutators_source_sha256": "cbea667ae2ab9b7bd7530c654830d5b2c0044e71a142e10a16b23b105f55539e",
+        "harness_source_sha256": "d267244644fa6653eaa823fa989c85af832dfee6c4c219ff32ba3da515237d8c",
+        "jobs": 4,
+        "seconds": 416.586113443
+      },
+      "seconds": 523.6166165261529,
+      "inputs_sha256": "3ce53fca6f7897b5d39be6a1586ba729701b28dce8ea0eb58690b69bf510e69c"
+    },
+    "configured_formal": {
+      "status": "fail",
+      "reason": "RECHECK_FAILED",
+      "detail": "lean4lean rejects W.E_exec with deep recursion; proof-only refactoring in progress, checker policy unchanged",
+      "report_sha256": "cb1a24d18412e9dae8556c98820f320e599f9641268979dddcdb34edc9b2b558",
+      "gates": [
+        {
+          "gate": "FORMAL_SEMANTIC_SOUNDNESS",
+          "status": "FAIL",
+          "reason_codes": [
+            "RECHECK_FAILED"
+          ]
+        },
+        {
+          "gate": "FORMAL_SEMANTIC_COMPLETENESS",
+          "status": "FAIL",
+          "reason_codes": [
+            "RECHECK_FAILED"
+          ]
+        },
+        {
+          "gate": "FORMAL_CRYPTO_SOUNDNESS",
+          "status": "FAIL",
+          "reason_codes": [
+            "RECHECK_FAILED"
+          ]
+        },
+        {
+          "gate": "FORMAL_IMPL_CONNECTION",
+          "status": "FAIL",
+          "reason_codes": [
+            "RECHECK_FAILED"
+          ]
+        },
+        {
+          "gate": "AXIOM_AUDIT",
+          "status": "FAIL",
+          "reason_codes": [
+            "RECHECK_FAILED"
+          ]
+        },
+        {
+          "gate": "ARTIFACT_BINDING",
+          "status": "PASS",
+          "reason_codes": []
+        }
+      ],
+      "leanchecker": "72 candidate modules accepted",
+      "nanoda": "full exported environment accepted",
+      "axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound"
+      ]
+    }
   }
 }
