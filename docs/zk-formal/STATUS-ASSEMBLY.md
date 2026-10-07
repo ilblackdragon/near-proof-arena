@@ -393,3 +393,21 @@ comparisons, full8MiB encoded witness size and3MB main-store payload in one
 constructed witness theorem. Its permanent axiom guard passes. The theorem
 retains actual native main execution correspondence for follow-up shape and
 amendment preservation. It deliberately does not assert full GoodV3 yet.
+
+`RetainedStore` proves a separate semantic extension: prepend only blobs actually
+Found by the original first-wins store, retain original blobs in original order,
+then stable byte-dedup. Every lookup, every partialTrie and every rebuildPost is
+exactly preserved, including interleaved hash collisions. Full encoded store
+cost and payload do not increase. Twelve permanent axiom guards pass.
+
+**Not adopted into ExtV3/AIR yet.** `retainedExtra` precisely identifies distinct
+original blobs absent from the front store and bounds their payload by original
+payload. A checked size-domain example shows the native3MB limit alone permits
+more than2MiB extras; this is not an accepted-transition counterexample. The
+unchanged AIR2MiB value-byte capacity needs separate justification. Furthermore,
+Link3.valTau derives instance ownership from referencing nodes and defaults to0,
+so simply appending unreferenced ValE seeds cannot represent arbitrary implicit
+transition stores. Existing IDs must remain stable under any future allocation.
+The original normalStore(pre) constructor proves requested pre replay, but does
+not yet preserve A7's post rebuild when discarded original blobs shadow new
+post blobs by hash. No collision-freedom assumption has been inserted.
