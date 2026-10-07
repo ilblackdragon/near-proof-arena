@@ -124,3 +124,31 @@ queue shape of 52/8/6/8 at log22. With the current source wiring and 200-column
 Ups table it totals 8,359,074 bytes, leaving 29,534 bytes under 8 MiB. These
 figures supersede the earlier provisional estimates above and are not protocol
 admission or security proofs.
+
+## Executable combined read/parser candidate
+
+`CombinedTable` now implements the previously reserved52-column table with14
+interactions. Its actual kernel-checked group2 shape is52/8/6/8/log22, exactly
+matching the reserve. Static well-formedness passes at local degree6. Walk rows
+precede parser rows, enforce the main delayed/buffered/yield/group read sequence,
+then implicit delayed reads, and bind termination to the full public u32 K at26.
+Group data and implicit delayed reads use raw mode, matching `ReadPlan`; only
+main delayed/yield index values use empty mode. Byte bits bind KEYNIB messages.
+
+Walk rows reuse raw-empty parser markers. Their otherwise unused length cell
+holds the requested parse mode; `parserExpr` virtualizes that cell to zero for
+base parser equations. `CombinedOverlay` proves this evaluation mapping and
+unchanged evaluation on parser rows whose current/next walk flags are zero.
+This keeps QVC message degree low enough to preserve the reserved quotient cost.
+
+Five exact axiom guards and12 Fp local fixtures pass, including zero/one/two
+implicit transitions, full-height termination, present delayed value parsing,
+buffered group reads, and mutated key/order/mode/bit/termination rejection.
+These are local regressions, not a proof of global traffic balance.
+
+Remaining: generic honest walk rendering and traffic, transfer of full parser
+local/traffic theorems, native ownership and height bounds, and extraction.
+Extraction must derive exact walk lengths and implicit count using height<P,
+exclude detached QVC counter cycles, and connect FINAL to value-ID semantics.
+The static shape is now concrete; protocol admission and the 8 MiB end-to-end
+certificate are still open.
