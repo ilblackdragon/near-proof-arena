@@ -171,3 +171,10 @@ All eight transitive axiom guards in `test/AuditExactReplay.lean` pass with
 only standard Lean axioms. This closes same-key replay. Choosing roots/keys
 from actual execution, the separate buffered-index first pass, multi-instance
 view allocation, and assembling all GoodV3 fields remain FactorComplete work.
+
+`RuntimeReplay` transports actual main and implicit executions through exact
+store replay. The separate buffered-index first pass is now covered too:
+actual successful `applyNewChunk` supplies pre-state buffered determinacy via
+the checked Qv preservation theorem; `partialTrie_normalStore_singleton_find`
+then equates both first-pass reads. No assumed first-pass equality or requested
+key-subset condition is introduced. Four additional axiom guards pass.
