@@ -335,3 +335,12 @@ constraint list. The generated-cell and natural metadata premises remain explici
 whole physical layout and parser suffix composition are still required. The
 224-job target and121 exact axiom guards+15 regressions pass. This is a component
 composition checkpoint, not whole-trace acceptance or an end-to-end certificate.
+
+
+`CombinedNeighborEquations` composes the13 inside-word equations, two next-word
+start equations and nine transition equations. Internal byte neighbors and final
+word endpoints satisfy all24; terminal-to-next-word rows satisfy the first15,
+ready to combine with the step cases. Membership of all24 in the actual AIR is
+checked. The generated-cell/position premises still require physical layout;
+this does not assert arbitrary neighbors or whole-trace local acceptance. Target
+225 jobs and129 exact axiom guards+15 regressions pass.
