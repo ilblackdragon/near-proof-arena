@@ -7,6 +7,22 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root KeyTraffic checked: exact KEYNIB row sends/zero receives, silence on all
+non-walk rows, physical range equals concatenated extracted walk traffic.
+key_segment_row fixes wid per segment, positions2offset+1/2/3, high/low nibble
+order, start/end only at actual boundaries. Target128 jobs +5 exact guards PASS;
+/tmp/nearproof-qv-key-traffic.log,/tmp/nearproof-qv-key-traffic-audit-checked.log.
+No root live job. Next QVC/parser extraction and link encoded keys to natural
+lookup views; full queue soundness still open. Integrated D2b1a7afcf occurrence
+pre-node payload+1≤2^22 from accepted A7 (no unnecessary shared-node dedup);
+ups02bef78f executable empty-extension resolver/source-level linkage.
+Occurrence allocator must refine only consumed edges/source shape, not demand
+full node equality under a single PTrie→Nat map for duplicated subtrees.
+Receipt32663e8a closes full Wf extraction from actual successful prepD0 and actual
+prepared byte length<P, with n≤5000/root widths/body bounds discharged. Other
+receipt traffic remains. Last aggregate191ea6da older; complete objective open.
+
+
 Root FinalAggregate now CHECKED: whole physical FINAL receives equal exactly
 one extracted lookup tuple per walk, in order; sends zero; final_counts gives
 standard tableBusCount characterization. Generic opaque last_only list lemma
