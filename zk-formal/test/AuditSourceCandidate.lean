@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.DedupSha
 import ZkFormal.NearV3.Rcpt.Candidates.DedupCounters
 import ZkFormal.NearV3.Rcpt.Candidates.PartitionCapacity
 import ZkFormal.NearV3.Rcpt.Candidates.PreparedMetadata
@@ -323,3 +324,17 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceEncodingBudget
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.bounded_preimage_rows' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.bounded_preimage_rows
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.block_payload_widths' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.block_payload_widths
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.sourceWeights_exact' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.sourceWeights_exact
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_sha_partition' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_sha_partition
