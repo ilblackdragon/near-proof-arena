@@ -99,3 +99,28 @@ serialized value bytes plus one marker for each empty record. Six additional
 axiom guards pass (record audit total16, with six behavior guards). These are
 compositional results; global native ownership/budgets and the complete
 field-valued bus contract remain to be assembled.
+
+## Canonical field traffic checkpoint
+
+`RecordTrafficContract.records_canonical_traffic` now proves the shared
+field-valued `TableTraffic` contract for the actual concatenated trace. It
+provides exactly the numbered value bytes, one QVC provider start/end pair per
+record, and the buffered shard bytes and count. All other buses are silent.
+The proof handles arbitrary public inputs, padding, and field multiplicity bits;
+its premises are record validity and the explicit total row-fit bound.
+`NaturalEval`, `NaturalTraffic`, and `NaturalBits` justify the natural-message
+bridge rather than assuming field and natural traffic coincide.
+
+The record audit passes 35 exact axiom guards and six behavior guards. The
+separate parser audit remains 28 axiom guards and 22 behavior guards. This closes
+the generated parser traffic obligation, not authentication or extraction from
+arbitrary accepting traces. Native value ownership, total capacity, read
+orchestration, and global bus balance remain open. In particular, a raw empty
+marker does not establish that the authenticated value is empty; raw extraction
+must use the value table.
+
+The latest integrated source cost model reserves a still-unimplemented combined
+queue shape of 52/8/6/8 at log22. With the current source wiring and 200-column
+Ups table it totals 8,359,074 bytes, leaving 29,534 bytes under 8 MiB. These
+figures supersede the earlier provisional estimates above and are not protocol
+admission or security proofs.
