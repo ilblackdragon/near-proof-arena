@@ -2,6 +2,14 @@
 
 Program lead's hand-over, 2026-10-07.
 
+**Assembly interface checkpoint:** integration passes **1,329 jobs**. Executable
+`witnessOfV3` reconstructs bytes from extracted views. `GoodV3` binds explicit
+source/runtime/domain/header semantics, with decode/amendment consequences
+proved. FactorSound/FactorComplete remain open proposition types, not axioms.
+`Qv.ReadPlan` adds actual main/missing read requests and conditional walk bounds;
+queue audit now has 11 behavior checks and 38 axiom guards. Evidence:
+`docs/e2e-results/v3-assembly-interface/report.json`.
+
 **Queue semantics checkpoint:** integration passes **1,323 jobs**, including all
 12 concrete upsert byte constructors. Queue audit passes 11 behavior checks and
 32 axiom guards. `Qv.applyNewChunk_pre_queue_reads` binds every main queue check
