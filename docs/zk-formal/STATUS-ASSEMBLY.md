@@ -336,3 +336,8 @@ native acceptance. Five permanent axiom guards pass. This closes the earlier
 encoded-size gap for this semantic constructor without an extra cap assumption.
 Remaining FactorComplete fields include preparation/shape, main payload bound,
 canonical scheduler/unfolded amendments, and the honest AIR view construction.
+
+`NativePayload` separately proves normalized payload-byte sums cannot increase,
+using weighted membership/uniqueness rather than incorrectly inferring payload
+size from encoded vector cost. `nativeExecutionViews_main_payload` therefore
+preserves the actual3MB main-store guard. Three permanent axiom guards pass.
