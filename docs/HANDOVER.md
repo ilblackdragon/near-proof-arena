@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root ParserModes CHECKED at AIRac942142: active parser modes exactly one-hot;
+QVC field tag iff selected empty/buffer/raw mode; gb=act−vz; structured modes
+force real byte gate1 and vz0; first-row entry/header/firstIndex/selector reset.
+Target189jobs+5 exact standard-axiom guards PASS;
+/tmp/nearproof-qv-parser-modes.log and
+/tmp/nearproof-qv-parser-modes-audit-checked.log. Next parser VBYTES physical
+traffic/value authentication and word/phase/empty/buffer semantic extraction.
+Integrated D2f279fc41 as044429ef and upsbbd70a12 as1a139ded: extended occurrence
+addresses/conditional extension target IDs and actual global forest terminal
+provider composition. Combined621jobs PASS,20 printed axiom sets checked standard
+only +3 exact guards PASS; /tmp/nearproof-extended-record-integrated-audit.log,
+/tmp/nearproof-forest-terminal-integrated{,-audit}.log. IMPORTANT conditional gap:
+off-path ext[]→hash child is possible at successful terminal split; old
+resolveNative strips to hash while actual viewTarget stops at revealed ext.
+Do not discharge resolved-isNode premise from lookup success. Agents repairing
+proof-side map using occurrenceResolvedId recordId t := viewTarget(recordId t)t,
+keeping frozen runtime/domain and existing proofs unchanged. Actual global
+terminal provider still requires resolved-child agreement; not complete yet.
+Receipt7428222e completes DIGEST (20guards); KEYNIB only remaining channel,
+needs Perm because access-key separator is emitted before signer bytes. Receipt
+agent active. No root live process. Fullsoundness/certificate/admission/reference
+checker/prover/judge and broad NEAR goal open; latest aggregate b7002160 older.
+
+
 Root physical_provider_exists CHECKED at AIR3f116c10 in Qv/Extract/ProviderLink:
 actual TableLocal + physical QVC bus balance + extracted WalkChain/ParserChain
 imply every present walk request has a parser provider with exact canonical
