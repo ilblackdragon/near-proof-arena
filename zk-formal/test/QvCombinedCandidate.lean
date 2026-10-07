@@ -15,6 +15,7 @@ import ZkFormal.NearV3.Qv.Candidates.CombinedMetadataEquations
 import ZkFormal.NearV3.Qv.Candidates.CombinedPhysical
 import ZkFormal.NearV3.Qv.Candidates.CombinedMainOrder
 import ZkFormal.NearV3.Qv.Candidates.CombinedImplicitSteps
+import ZkFormal.NearV3.Qv.Candidates.CombinedMainSteps
 
 namespace QvCombinedRegression
 open ZkFormal.NearV3.Qv.Candidates
@@ -611,3 +612,27 @@ end QvCombinedRegression
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.enter_implicit_equations' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.enter_implicit_equations
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_step_equations' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_step_equations
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_step_equations' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_step_equations
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_step_mem' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.main_step_mem
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.nonterminal_step_gates' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.nonterminal_step_gates
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.final_step_gates' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.final_step_gates
