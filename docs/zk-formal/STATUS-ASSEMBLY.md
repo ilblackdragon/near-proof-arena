@@ -386,3 +386,10 @@ now admit actual prepClaim output. Five permanent axiom guards pass. This closes
 the claim-preparation existence premise of `PrepBodyComplete`; it does not yet
 supply the separate reconstructed D0Shape, canonical/unfolded amendments, or
 honest AIR metadata and row-capacity obligations of full FactorComplete.
+
+`NativePrepared.checkD0a_prepared_fields` now combines actual claim/body
+preparation, authenticated sources, main and implicit execution, endorsed header
+comparisons, full8MiB encoded witness size and3MB main-store payload in one
+constructed witness theorem. Its permanent axiom guard passes. The theorem
+retains actual native main execution correspondence for follow-up shape and
+amendment preservation. It deliberately does not assert full GoodV3 yet.
