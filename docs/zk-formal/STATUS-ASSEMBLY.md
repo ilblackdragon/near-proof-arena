@@ -616,3 +616,10 @@ preserves every repeated use; QueueCounterMessages supplies exact mode-aware
 per-provider telescoping. All premises are actual request Holds, available from
 native_queueInputs. 9 permanent guards pass. Physical lift now uses root's
 mixedTrace_counter_messages; this result does not close other buses or ExtV3.
+
+`QueuePhysicalBalance.plan_physical_qvc_balance` lifts the logical identity to
+ALL2^log physical mixedTrace rows: QVC send and receive message multisets are
+permutations in Fp. Uses root's checked mixedTrace_counter_messages plus actual
+request Holds, parser Valid and trace fit; accepted-input QueueRender supplies
+these without a new capacity assumption. Permanent guard passes standard3.
+Other buses and retained post-query value allocation remain separate work.
