@@ -1,0 +1,53 @@
+{
+  "recorded_at": "2026-10-07T03:09:49.226073+00:00",
+  "base_commit": "d455885ab27bae7cfc7b20689c0654c92b97a8a9",
+  "source_sha256": {
+    "zk-formal/ZkFormal/Size/Aligned.lean": "7ae94357c897ff2fb32718080bda7689f9364f47dd4ec36db66fa32d6acf098a",
+    "zk-formal/ZkFormal/Size/AlignedModel.lean": "83f96e00344427651369222fd78be46ccb806f5ee9c06c3481f3b9fcbdb3557e",
+    "zk-formal/ZkFormal/Size/HonestAdmission.lean": "a7540fed0064f1d89e8dd054a9f345c651e19dc787b0b8f2c17e8ac13af8705b",
+    "zk-formal/ZkFormal/V3/Integration.lean": "ef0ca17c80ddbc8b735460560c779582671682c29ada70a622a31980d8081d30",
+    "zk-formal/test/AuditAligned.lean": "ae2d9d3b322b0f7d337188d4c2a9e7adea8e8596c05f30e08dc6fcf3500f2371"
+  },
+  "build": {
+    "target": "ZkFormal.V3.Integration",
+    "jobs": 1092,
+    "success": true,
+    "clean_judge_budget_measurement": false
+  },
+  "guarded_axiom_audit": {
+    "declarations": 6,
+    "allowed": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ]
+  },
+  "results": {
+    "actual_verifier_schedule_bound": "conditional on RollAligned for honest headers",
+    "admission": "honest-header size obligation; verifier soundness and query obligations retained",
+    "fri_aligned_bytes": 1061952,
+    "one_sha_model_bytes": 5523231,
+    "two_sha_model_bytes": 6125856,
+    "padded_two_sha_model_bytes": 6164160,
+    "maximum_hint_bytes": 1295017,
+    "remaining_to_8_MiB": 929431,
+    "numeric_method": "decide +kernel"
+  },
+  "scope": {
+    "tables": 24,
+    "sha_tables": 2,
+    "queue_value_tables_included": false,
+    "actual_table_caps_changed": false,
+    "honest_trace_padding_implemented": false,
+    "final_admission_certificate": false
+  },
+  "artifacts": "/data/illia/nearproof-deps/validation/v3-alignment-20261007",
+  "remaining": [
+    "Honest trace padding preserves HoldsP and establishes RollAligned",
+    "Final table caps, multiplicity and security bounds",
+    "Queue-value tables and complete assembled size model",
+    "Receipt/trie/scheduler completeness and indexed public segments",
+    "AIR semantic assembly and concrete admission",
+    "Rust prover v2 and real judge verification"
+  ]
+}

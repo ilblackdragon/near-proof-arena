@@ -34,6 +34,21 @@ The existing W = 360,000 theorem remains unchanged. No new domain conjunct or
 table-height change has been made; 770,000 would require updating the table,
 its completeness bounds and size accounting before assembly.
 
+**Alignment milestone:** the integration target now passes 1,092 jobs. New
+`Size.Aligned` proves the smaller opening bound for the actual verifier
+schedule under `RollAligned`; `rollAligned_of_layout` states the sufficient
+condition on actual LDE heights. `Size.HonestAdmission` requires the size bound
+only on honest trace headers, retaining all adversarial soundness and query
+obligations. This makes honest-prover padding usable without imposing an
+unproved property on every verifier-admissible header.
+
+`Size.AlignedModel` kernel-checks 6,164,160 bytes for the proposed padded
+24-table/two-SHA model at g=2. With the 1,295,017-byte hint, 929,431 bytes remain
+under 8 MiB. This still omits qvV3 and does not construct padded traces or
+change actual table caps. Final padding correctness, multiplicity/security
+bounds, missing tables and assembly remain required. Six guarded axiom audits
+pass. See `docs/e2e-results/v3-alignment/report.json`.
+
 Program goal: a succinct STARK for `RelD0a B0` (v3 chunk validation, domain D0a), formally admitted to the unified challenge `near-chunk-v3` with declared tier D0a.
 
 Design: `docs/zk-formal/V3-D0-DESIGN.md`. §10–§16 are the review decisions, §12 the SHA kind registry, §13/§15/§16 the size accounting.
@@ -103,12 +118,12 @@ The target is `Holds_v2(prep cb h) ⇒ ∃ w, RelD0 cb w`. The assembly addition
 * **Hint `B` maximum:** 8 + 4481 · 289 = **1,295,017 B**. This corrects the design's 0.91 MB; the spec lane is to confirm it.
 * **Margin** at g = 2 with one SHA table: **−52,904 B**, and ≈ −150 KB once `qvV3` is counted.
 * **B0 = 2.0 MB (user-approved) does not fit one SHA table:** ≈ 31.7 k rows over 2²² (`single_2M_fails`). So **two SHA tables** stay, which adds +704 W_eq ≈ +0.65 MB.
-* **The cap can only be met with lever (1), roll-in alignment.** The honest prover pads table heights so FRI roll-ins land on committed layers. That is about −1.62 MB; the expected result is ≈ 6.8 MB + B including two SHA tables. It is **still pending approval**.
+* **The cap can only be met with lever (1), roll-in alignment.** The honest prover pads table heights so FRI roll-ins land on committed layers. That is about −1.62 MB; the expected result is ≈ 6.8 MB + B including two SHA tables. The conditional schedule/size theorem is now proved; honest-trace padding and final accounting remain.
 * Other levers: a compact refund codec (≈ −0.45 MB of B), and width cuts (928 B per base column).
 
 ## 5. Decisions pending (user / coordinator)
 
-1. **Size cap:** approve lever (1), roll-in alignment, with two SHA tables at B0 = 2.0 MB, or lower B0 to ≈ 1.95 MB so one SHA table fits.
+1. **Size cap:** retain B0 = 2.0 MB and 8 MiB. Implement honest-trace padding for the now-proved conditional roll-in alignment bound with two SHA tables.
 2. **ChaCha words bound W:** a new execution-level conjunct of `RelD0a`, "Σ ChaCha words drawn by all scheduler runs ≤ W".
    * Why it is needed: the formal worst case (`worstK_exceeds`: genV3 ≈ 9.9 M rows, chachaV3 ≈ 53 M rows) exceeds 2²².
    * Options: W = 360,000 (≈ 16 % over twice the worst-case expectation) or W = 770,000 (the 2²² limit).

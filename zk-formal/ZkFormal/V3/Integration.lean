@@ -28,6 +28,8 @@ import ZkFormal.NearV3.Sched.Link.FwdPrep
 import ZkFormal.NearV3.Sched.Link.KindSched
 import ZkFormal.NearV3.Spec.TreeRecs
 import ZkFormal.Size.V3Eval
+import ZkFormal.Size.AlignedModel
+import ZkFormal.Size.HonestAdmission
 import ZkFormal.V3.RefundCodec
 
 /-!

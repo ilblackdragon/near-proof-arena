@@ -18,6 +18,15 @@ and roll-in alignment proof remain required. No proof cap or domain changed.
 The conditional 770,000-word lane theorem fits ChaCha maxLog 22, not the
 current table's 21. See `docs/e2e-results/v3-integration/report.json` for evidence.
 
+Alignment milestone (2026-10-07): `Size.sizeBoundD_le_aligned` and its v2
+public-bus counterpart now prove the actual verifier-schedule bound under an
+explicit header alignment condition. `Size.admission_v2_honest` limits the
+size obligation to honest trace headers, keeping adversarial soundness
+unchanged. The proposed padded two-SHA shape model is kernel-evaluated at
+6,164,160 bytes (g=2), leaving 929,431 bytes after the full maximum hint.
+This is conditional accounting, not final admission: qvV3, padded trace
+construction, security bounds for changed caps and assembled AIR remain.
+
 Labels used below:
 * **proved**: a closed Lean theorem.
 * **measured**: run on this host, pinned to CPUs 8–15.
