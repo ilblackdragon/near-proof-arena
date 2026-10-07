@@ -276,3 +276,11 @@ supplied through the existing prepared-public interface. Audit86 exact axiom
 guards+15 regressions and217 dependency jobs pass. The remaining metadata field
 equations, physical boundary conditions and between-word sequencing still need
 composition into full local acceptance; this is not an end-to-end certificate.
+
+
+`CombinedMetadataEquations` derives six main/implicit metadata equations from
+actual plan membership, plus the last-main count, end-main and absent-buffer
+count equations. The last-main subtraction is justified by slot≥2 before its
+natural-to-field conversion. No accepted-trace premise is introduced. Audit91
+exact axiom guards+15 regressions and218 dependency jobs pass. Physical endpoint
+conditions and between-word transitions remain before full local composition.
