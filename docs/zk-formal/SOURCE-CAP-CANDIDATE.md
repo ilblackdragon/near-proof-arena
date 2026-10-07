@@ -608,3 +608,11 @@ count bytes, its natural `n0+256*n1` equals the actual receipt count, using the
 physical row bound to rule out modular aliasing. Nine exact axiom guards pass.
 The range checks remain an explicit BYTES/SHA obligation, not an added input
 restriction or an already-proved semantic receipt-view assumption.
+
+`HeaderRegisters` and `HeaderTraffic` prove the actual twelve header BYTES
+messages, exactly `emitAt RC(j) 0 (hdrBytes pub view)`. Active-field register
+shifting supplies each byte; public loads fix the first eight own-shard bytes;
+the count registers and forced zero high bytes supply the remaining four. The
+other two header emission slots are disabled. Seven exact axiom guards pass.
+No byte-range claim is hidden in this equality: range checking must still be
+linked to the BYTES/SHA channel before using the natural header-count theorem.
