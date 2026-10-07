@@ -7,6 +7,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+**Newest aggregate: AIR `f0da580b` passes 1,337 jobs with proved FactorSound.**
+`GoodV3.checkD0`, `GoodV3.checkD0a`, and `factorSound` imply unchanged native
+checker acceptance from explicit semantic fields. Three permanent axiom guards
+pass; evidence is `docs/e2e-results/v3-factor-sound/report.json`. FactorComplete,
+AIR-to-Good and the final succinct prover/certificate remain open.
+
+Queue candidate `1e2da6c2` now proves arbitrary raw-value local constraints,
+including empty markers/padding and actual generated trace equality. Buffered
+row count/indexing/padding and generator identity are proved, along with u32
+header reconstruction; buffered local validity is next. Fourteen axiom guards
+and eleven fixtures in both arithmetic models pass. HPL helper is copied exactly
+from `60ebdf40`; full HPL repair remains isolated on `lane/v3-hpl` (Node checkpoint
+`5a5183d6`, Ups pending). Source `820b58bf` has actual57-column/122-constraint
+candidate local duplicate proofs and field row traffic, with partition/security
+admission still open. Current size estimate with reserved queue controls is
+8,326,114 bytes before carry/wiring, only62,494 below8MiB; this is not an admitted
+proof bound.
+
+Reference post-split public and held-out SDK reproducibility/mutation gates pass
+(two clean builds each); held-out1433 mutations all rejected. Formal admission
+remains FAIL on independent lean4lean recursion, with proof-only repair ongoing.
+
+
+
 **Latest coverage and capacity findings (supersede estimates below):**
 
 * Upsert `a0ad83a1` kernel-checks an accepted 305-byte node with a 510-nibble
