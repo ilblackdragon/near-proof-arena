@@ -16,8 +16,14 @@ theorem sourceCarryBus_reserved : sourceCarryBus < 65 ∧ sourceCarryBus ≠ 63 
 def carryMessage : List Expr := (List.range DedupTable.width).map c
 
 /-- Only the first partition enforces global-first constraints. -/
-def rightConstraints : List Expr := DedupTable.constraints.mapIdx fun i ex =>
+def rightBaseConstraints : List Expr := DedupTable.constraints.mapIdx fun i ex =>
   if i ∈ [14, 15, 16, 51] then k 0 else ex
+
+/-- Force the right cyclic endpoint to be inactive. Honest row-budget slack
+supplies this padding; arbitrary carry cells cannot suppress terminal equations. -/
+def rightEndpoint : Expr := .mul .isLast SrcpV3.actE
+
+def rightConstraints : List Expr := rightBaseConstraints ++ [rightEndpoint]
 
 /-- The first partition's final row is a carried copy checked in the second one.
 The preceding transition into that row remains fully constrained. -/

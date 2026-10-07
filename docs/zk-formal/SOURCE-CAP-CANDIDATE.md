@@ -378,3 +378,22 @@ closes renderer local completeness for the physical source pair. The partition
 audit now checks41 transitive axiom closures (standard Lean axioms only). Frozen
 maxLog22 admission is unchanged: the separate candidate protocol family, source
 extraction, and integrated bus security remain explicit obligations.
+
+The right candidate table now explicitly enforces `isLast*(rt+sg)=0`. Honest
+renderer padding alone was insufficient for soundness: the old last-row
+constraints could follow a cyclic path carry (`next.sg=1`) and suppress terminal
+`q=qe`/length checks. `AuditSourceEndpoint.lean` gives a kernel-checked local
+regression with `qe=le=999`: all old right equations hold on the terminal row,
+and the new endpoint equation rejects it. This is a local counterexample to the
+missing endpoint invariant, not a claimed complete forged AIR trace.
+
+Both actual-input partition TableLocal proofs still pass from the already proved
+row slack. Direct field-valued reverse transfer now recovers all logical equations
+from nonterminal left rows and all non-first equations from arbitrary right rows;
+it does not infer integer polynomial equality from field equality. The added
+endpoint equation plus root/segment disjointness proves both endpoint activity
+flags individually zero for arbitrary accepting field traces. Rebuilding the
+exact shape/cost target preserves the source right shape57/3/5/3/log23 and total
+8,359,074-byte model with29,534 bytes reserved. The partition audit now checks49
+axiom closures; four kernel regression assertions pass. Frozen admission and
+active source tables remain unchanged.

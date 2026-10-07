@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionEndpoint
 import ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionCompile
 import ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTraffic
 import ZkFormal.NearV3.Rcpt.Candidates.DedupCarry
@@ -198,3 +199,45 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceCurrentSize
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_partition_local
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.zero_first_of_right' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.zero_first_of_right
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.base_of_left' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.base_of_left
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.endpoint_of_right' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.endpoint_of_right
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.field_zero_first_of_right' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.field_zero_first_of_right
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.field_base_of_left' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.field_base_of_left
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.field_endpoint_sum' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.field_endpoint_sum
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.field_endpoint_inactive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.field_endpoint_inactive
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.local_endpoint_inactive' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.local_endpoint_inactive

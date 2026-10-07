@@ -38,10 +38,11 @@ theorem right_rows {bs : List SrcpB} {rep : Nat → Bool} (h : TableFacts bs rep
   · simp only [hl, ite_true, Nat.mod_self, Nat.add_zero]
     rw [padding_cellsI bs rep (H - 1 + r) (by omega)]
     apply right_of_zero_first _ _ _ 1 0 pub
-    exact padding_physical_last (size bs) (cellsI bs rep (H - 1)) pub
+    · exact padding_physical_last (size bs) (cellsI bs rep (H - 1)) pub
+    · simp [SrcpV3.rt, SrcpV3.sg, SrcpV3.sz]
   · have hm : (r + 1) % H = r + 1 := Nat.mod_eq_of_lt (by omega)
     simp only [hl, ite_false, hm]
-    apply right_of_zero_first _ _ _ 0 1 pub
+    apply right_of_zero_first _ _ _ 0 1 pub _ (by simp)
     have hh := row_local h (2 * H) (H - 1 + r) (by omega) (by omega) pub
     have hz : H - 1 + r ≠ 0 := by omega
     have hg : H - 1 + r + 1 ≠ 2 * H := by omega
