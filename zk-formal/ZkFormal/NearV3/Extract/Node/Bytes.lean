@@ -182,20 +182,57 @@ theorem tagByte {r : Nat} (hr : r < tr.height T_NODE) (ht : tr.cell T_NODE r sTA
   apply fp_cast_eq (cv_lt _ _ _ _) (by unfold P; omega)
   rw [e, natCast_add, natCast_add, natCast_mul, natCast_mul]; grind
 
-/-- `HPL` field: `[hplen, 0, 0, 0]`. -/
+/-- Canonical four-byte HPL, reconstructed locally without a lookup assumption.
+The last byte is zero by the AIR equation; this excludes modular aliases. -/
 theorem hplBytes {r0 : Nat} (hF : Field tr r0 4) (hH : r0 + 4 ≤ tr.height T_NODE)
-    (hs : tr.cell T_NODE r0 sHPL = 1) : rowsB tr b r0 4 = u32r (cv tr T_NODE r0 hplen) := by
-  have st := fun d (hd : d < 4) => hF.st d hd sHPL (by simp [states])
-  have z : ∀ d, 0 < d → d < 4 → cv tr T_NODE (r0 + d) b = 0 := by
-    intro d h0 hd
-    have hfs : tr.cell T_NODE (r0 + d) fs = 0 :=
-      bool01 hL (by omega) (by simp [boolCols]) (fun h => by have := (hF.fs d hd).1 h; omega)
-    exact cv_zero ((bytes hL (by omega)).2.2.1 (by rw [st d hd, hs]) hfs)
-  have f0 := (bytes hL (r := r0) (by omega)).2.1 hs ((hF.fs 0 (by omega)).2 rfl)
-  simp only [rowsB, u32r, List.range_succ, List.range_zero, List.map_append, List.map_cons, List.map_nil,
-    List.nil_append, List.cons_append, Nat.add_zero]
-  rw [z 1 (by omega) (by omega), z 2 (by omega) (by omega), z 3 (by omega) (by omega)]
-  unfold cv; rw [f0]
+    (hs : tr.cell T_NODE r0 sHPL = 1) :
+    rowsB tr b r0 4 = u32Bytes (cv tr T_NODE (r0 + 3) hplen) := by
+  have sv : ∀ d, d < 4 → tr.cell T_NODE (r0 + d) sHPL = 1 := fun d hd => by
+    rw [hF.st d hd sHPL (by simp [states]), hs]
+  have fe0 : ∀ d, d < 3 → tr.cell T_NODE (r0 + d) fe = 0 := fun d hd =>
+    bool01 hL (by omega) (by simp [boolCols]) (fun h => by have := (hF.fe d (by omega)).1 h; omega)
+  have fe3 : tr.cell T_NODE (r0 + 3) fe = 1 := (hF.fe 3 (by omega)).2 rfl
+  have fs0 : tr.cell T_NODE r0 fs = 1 := by simpa using (hF.fs 0 (by omega)).2 rfl
+  have a0 := (bytes hL (r := r0) (by omega)).2.1 hs fs0
+  have s0 := (bytes hL (r := r0) (by omega)).2.2.1 hs fs0
+  have st1 := hplStep hL (r := r0) (by omega) hs (by simpa using fe0 0 (by omega))
+  have st2 := hplStep hL (r := r0 + 1) (by omega) (sv 1 (by omega)) (fe0 1 (by omega))
+  have st3 := hplStep hL (r := r0 + 2) (by omega) (sv 2 (by omega)) (fe0 2 (by omega))
+  have e3 := hplEnd hL (r := r0 + 3) (by omega) (sv 3 (by omega)) fe3
+  have b3 := hplTop hL (r := r0 + 3) (by omega) (sv 3 (by omega)) fe3
+  have hb3 : cv tr T_NODE (r0 + 3) b = 0 := cv_zero b3
+  have hb : ∀ d, d < 4 → cv tr T_NODE (r0 + d) b < 256 := by
+    intro d hd
+    obtain ⟨h1, h2, h3, h4⟩ := nibs hL (r := r0 + d) (by omega)
+    have e := hplNibble hL (r := r0 + d) (by omega) (sv d hd)
+    rw [h3, h4, cell_eq_cast tr T_NODE (r0 + d) b] at e
+    have ee : cv tr T_NODE (r0 + d) b = 16 * hiN tr (r0 + d) + loN tr (r0 + d) := by
+      apply fp_cast_eq (cv_lt _ _ _ _) (by unfold P; omega)
+      simpa only [natCast_add, natCast_mul, show ((16 : Nat) : Fp) = 16 from rfl] using e
+    omega
+  have hby : ∀ x ∈ rowsB tr b r0 4, x < 256 := by
+    intro x hx
+    obtain ⟨d, hd, rfl⟩ := List.mem_map.mp hx
+    exact hb d (List.mem_range.mp hd)
+  have hrows : rowsB tr b r0 4 = [cv tr T_NODE r0 b, cv tr T_NODE (r0 + 1) b,
+      cv tr T_NODE (r0 + 2) b, cv tr T_NODE (r0 + 3) b] := by
+    simp [rowsB, List.range_succ]
+  have hv : le256 (rowsB tr b r0 4) = cv tr T_NODE (r0 + 3) hplen := by
+    rw [hrows, hb3]; simp only [le256]
+    rw [show r0 + 1 + 1 = r0 + 2 by omega] at st2
+    rw [show r0 + 2 + 1 = r0 + 3 by omega] at st3
+    have eF : tr.cell T_NODE (r0 + 3) hplen =
+        ((cv tr T_NODE r0 b + 256 * (cv tr T_NODE (r0 + 1) b +
+          256 * (cv tr T_NODE (r0 + 2) b + 256 * 0)) : Nat) : Fp) := by
+      rw [← e3, st3.1, st3.2, st2.1, st2.2, st1.1, st1.2, s0, a0, b3]
+      simp only [cell_eq_cast, natCast_add, natCast_mul]
+      grind
+    have h0 := hb 0 (by omega); have h1 := hb 1 (by omega); have h2 := hb 2 (by omega)
+    simp only [Nat.add_zero] at h0
+    apply eq_of_cast (by unfold P; omega) (cv_lt _ _ _ _)
+    rw [eF.symm, cell_eq_cast]
+  rw [← hv]
+  exact (u32Bytes_of_digits _ (rowsB_length _ _ _ _) hby).symm
 
 /-- Revealed-value `VLEN` field: the bytes encode `vlen` little-endian, top byte 0. -/
 theorem vlenVal {r0 : Nat} (hF : Field tr r0 4) (hH : r0 + 4 ≤ tr.height T_NODE)

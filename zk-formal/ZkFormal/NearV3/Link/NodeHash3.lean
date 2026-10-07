@@ -27,6 +27,8 @@ theorem toB_le256 : ∀ (l : List Nat), (∀ x ∈ l, x < 256) → toB l = leN l
 theorem toB_u32r {L : Nat} (h : L < 256) : toB (u32r L) = u32 L := by
   rw [toB_le256 _ (by simp [u32r]; omega)]; simp [u32r, le256, u32]
 
+theorem toB_u32Bytes (n : Nat) : toB (u32Bytes n) = u32 n := u32Bytes_toBytes n
+
 theorem toB_toNat (l : Bytes) : toB (l.map UInt8.toNat) = l := by
   unfold toB; rw [List.map_map]
   have : (UInt8.ofNat ∘ UInt8.toNat) = fun x => x := by funext x; exact UInt8.ofNat_toNat
@@ -126,16 +128,14 @@ theorem enc_tree (V : List ValRec3) (f : Nat → Nat) (g : Nat → PTrie) (v : N
   | leaf k sl m =>
     obtain ⟨-, hsw, hm8⟩ := hw
     simp only [NodeV3.ser, List.mem_append] at hb
-    have hlen : (hpN k true).length < 256 := hb _ (Or.inl (Or.inl (Or.inl (Or.inr (by simp [u32r])))))
     simp only [NodeV3.toRec3, nodeTree3, nodeEnc, NodeV3.ser, toB_append]
-    rw [toB_u32r hlen, toB_hpN, slot_spec V f sl hsw (fun x hx => hb x (Or.inl (Or.inr hx)))
+    rw [toB_u32Bytes, toB_hpN, slot_spec V f sl hsw (fun x hx => hb x (Or.inl (Or.inr hx)))
         (fun lb i l pre po w h => hv i l pre po w (by subst h; simp [NodeV3.value])),
       toB_le256 m (fun x hx => hb x (Or.inr hx)), hm8]
     simp only [hpN, List.length_map]; rfl
   | ext k kid m =>
     obtain ⟨-, hne, hkw, hm8⟩ := hw
     simp only [NodeV3.ser, List.mem_append] at hb
-    have hlen : (hpN k false).length < 256 := hb _ (Or.inl (Or.inl (Or.inl (Or.inr (by simp [u32r])))))
     have hkid : (kidTree3 g kid.toKid3).hashOf = toB (kid.bytes false) := by
       cases kid with
       | none => exact absurd rfl hne
@@ -143,7 +143,7 @@ theorem enc_tree (V : List ValRec3) (f : Nat → Nat) (g : Nat → PTrie) (v : N
       | node c l r pre po =>
         exact hk c l r pre po (by simp [NodeV3.revealed])
     simp only [NodeV3.toRec3, nodeTree3, nodeEnc, NodeV3.ser, toB_append]
-    rw [toB_u32r hlen, toB_hpN, hkid, toB_le256 m (fun x hx => hb x (Or.inr hx)), hm8]
+    rw [toB_u32Bytes, toB_hpN, hkid, toB_le256 m (fun x hx => hb x (Or.inr hx)), hm8]
     simp only [hpN, List.length_map]; rfl
   | branch sv kids m =>
     obtain ⟨h16, hsv, hkw, hm8⟩ := hw

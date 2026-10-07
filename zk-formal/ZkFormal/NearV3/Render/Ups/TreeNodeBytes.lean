@@ -28,24 +28,18 @@ theorem map_u16_small (x : Nat) (h : x<65536) :
   have hh : x/256<256 := by omega
   simp [u16,leN,Nat.mod_eq_of_lt hh]
 
-/-- The raw-byte node model uses a one-byte hex-prefix length, followed by three zero bytes. -/
-def SmallNodeHeader : PTrie → Prop
-  | .leaf key .. => (hexPrefix key true).length<256
-  | .ext key .. => (hexPrefix key false).length<256
-  | _ => True
-
 /-- The executable shallow node view serializes to the actual runtime node preimage. -/
 theorem treeNode_ser {t : PTrie} {node : NodeV3} (hw : t.wf=true)
-    (hh : SmallNodeHeader t) (hn : treeNode t=some node) (post : Bool) :
+     (hn : treeNode t=some node) (post : Bool) :
     node.ser post=(nodeEnc t).map UInt8.toNat := by
   cases t with
   | hash => simp [treeNode] at hn
   | leaf key val mem =>
     simp only [treeNode,Option.some.injEq] at hn; subst node
-    simp [NodeV3.ser,nodeEnc,map_u32_small _ hh,hpN]
+    simp [NodeV3.ser,nodeEnc,u32Bytes,hpN]
   | ext key child mem =>
     simp only [treeNode,Option.some.injEq] at hn; subst node
-    simp [NodeV3.ser,nodeEnc,map_u32_small _ hh,hpN]
+    simp [NodeV3.ser,nodeEnc,u32Bytes,hpN]
   | branch value kids mem =>
     simp only [treeNode,Option.some.injEq] at hn; subst node
     simp only [PTrie.wf,Bool.and_eq_true] at hw
@@ -56,9 +50,9 @@ theorem treeNode_ser {t : PTrie} {node : NodeV3} (hw : t.wf=true)
     cases value <;> simp [NodeV3.ser,nodeEnc,map_u16_small _ hb]
 
 theorem treeNode_byte_bound {t : PTrie} {node : NodeV3} (hw : t.wf=true)
-    (hh : SmallNodeHeader t) (hn : treeNode t=some node) (post : Bool) :
+     (hn : treeNode t=some node) (post : Bool) :
     ∀b∈node.ser post,b<256 := by
-  rw [treeNode_ser hw hh hn post]
+  rw [treeNode_ser hw hn post]
   intro b hb
   obtain ⟨x,_,rfl⟩ := List.mem_map.1 hb
   exact UInt8.toNat_lt x

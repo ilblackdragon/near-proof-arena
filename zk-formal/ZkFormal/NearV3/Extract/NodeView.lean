@@ -2,6 +2,7 @@ import ZkFormal.Near.Extract.NodeView
 import ZkFormal.NearV3.Tables.Node
 import ZkFormal.NearV3.IdsUps
 import ZkFormal.Near.Extract.Segments
+import ZkFormal.NearV3.Spec.U32Bytes
 
 /-!
 # ZkFormal.NearV3.Extract.NodeView — what `nodeV3` holds (view statement)
@@ -61,8 +62,8 @@ def NSlot3.bytes (post : Bool) : NSlot3 → List Nat
   | .val lenB _ _ pre po _ => lenB ++ (if post then po else pre)
 
 def NodeV3.ser (post : Bool) : NodeV3 → List Nat
-  | .leaf k v memB => [0] ++ u32r (hpN k true).length ++ hpN k true ++ v.bytes post ++ memB
-  | .ext k kid memB => [3] ++ u32r (hpN k false).length ++ hpN k false ++ kid.bytes post ++ memB
+  | .leaf k v memB => [0] ++ u32Bytes (hpN k true).length ++ hpN k true ++ v.bytes post ++ memB
+  | .ext k kid memB => [3] ++ u32Bytes (hpN k false).length ++ hpN k false ++ kid.bytes post ++ memB
   | .branch v kids memB =>
     (match v with | none => [1] | some s => [2] ++ s.bytes post) ++
       [kidBitmap kids % 256, kidBitmap kids / 256] ++ (kids.flatMap (NKid.bytes post)) ++ memB

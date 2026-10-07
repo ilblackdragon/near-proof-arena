@@ -57,7 +57,7 @@ theorem byte_facts :
     let B := (v.ser false).getD p 0
     let PB := (v.ser true).getD p 0
     (A.1.state = 14 → B = (typeOf v).2.2.1 + 2 * (typeOf v).2.2.2 + 3 * (typeOf v).2.1) ∧
-    (A.1.state = 15 → A.2 = 0 → B = hplenOf v) ∧ (A.1.state = 15 → A.2 ≠ 0 → B = 0) ∧
+    (A.1.state = 15 → B = (u32Bytes (hplenOf v)).getD A.2 0) ∧ (A.1.state = 15 → B < 256) ∧
     (A.1.state = 16 → B / 16 = 2 * (typeOf v).1 + oddOf v) ∧ (A.1.state = 16 → oddOf v = 0 → B % 16 = 0) ∧
     (A.1.state = 16 ∨ A.1.state = 17 → B < 256) ∧
     (A.1.state = 18 → B = (lenBOf v).getD A.2 0) ∧
@@ -99,15 +99,20 @@ theorem byte_facts :
     | branch sv => cases sv <;> rfl
   | hpl =>
     simp only [F.state, Node.sHPL, fbytes] at hb hpb ⊢
-    refine ⟨(fun h => absurd h (by decide)), fun _ h => ?_, fun _ h => ?_, (fun h => absurd h (by decide)), (fun h => absurd h (by decide)), (fun h => absurd h (by decide)), (fun h => absurd h (by decide)), (fun h => absurd h (by decide)), (fun h => absurd h (by decide)),
-      fun _ _ => by rw [hb, hpb]⟩
-    · subst h; rw [hb]
+    have hh : (hpN (keyOf r) (isLeaf r)).length = hplenOf r := by
       cases r with
-      | leaf k sv m => simp [u32r, hpN_len, hplenOf, isLE, keyOf, isLeaf]
-      | ext k kid m => simp [u32r, hpN_len, hplenOf, isLE, keyOf, isLeaf]
-      | branch sv => exact absurd (hb2 _ (by cases sv <;> simpa [fieldsOf, kidsOf] using hf)) (by simp [F.state, Node.sHPL, Node.sHPF])
-    · simp only [F.len] at hi
-      rw [hb]; rcases (show i = 1 ∨ i = 2 ∨ i = 3 by omega) with rfl | rfl | rfl <;> rfl
+      | leaf k sv m => simp [hpN_len, hplenOf, isLE, keyOf, isLeaf]
+      | ext k kid m => simp [hpN_len, hplenOf, isLE, keyOf, isLeaf]
+      | branch sv => exact absurd (hb2 _ (by cases sv <;> simpa [fieldsOf, kidsOf] using hf)) (by decide)
+    refine ⟨(fun h => absurd h (by decide)), fun _ => by simpa only [hh] using hb,
+      fun _ => ?_, (fun h => absurd h (by decide)), (fun h => absurd h (by decide)),
+      (fun h => absurd h (by decide)), (fun h => absurd h (by decide)),
+      (fun h => absurd h (by decide)), (fun h => absurd h (by decide)),
+      fun _ _ => by rw [hb, hpb]⟩
+    rw [hb, List.getD_eq_getElem?_getD]
+    cases he : (u32Bytes (hpN (keyOf r) (isLeaf r)).length)[i]? with
+    | none => simp
+    | some x => exact u32Bytes_lt _ _ (List.mem_of_getElem? he)
   | hpf =>
     simp only [F.len] at hi
     simp only [F.state, Node.sHPF, show i = 0 by omega, fbytes, NodeLay.hpf_byte] at hb hpb ⊢

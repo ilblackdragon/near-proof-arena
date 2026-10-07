@@ -138,6 +138,17 @@ theorem vlenStep {r : Nat} (hr : r + 1 < tr.height T_NODE) (hv : tr.cell T_NODE 
   simp only [eval_mul3, eval_mul, eval_c, eval_n, eval_not, eval_sub, eval_add, eval_smul, nxt hr] at c1 c2
   rw [hv, he] at c1 c2; exact ⟨by grind, by grind⟩
 
+/-- The `HPL` accumulator. -/
+theorem hplStep {r : Nat} (hr : r + 1 < tr.height T_NODE) (hv : tr.cell T_NODE r sHPL = 1) (he : tr.cell T_NODE r fe = 0) :
+    tr.cell T_NODE (r + 1) vacc = tr.cell T_NODE r vacc + tr.cell T_NODE (r + 1) vsc * tr.cell T_NODE (r + 1) b ∧
+    tr.cell T_NODE (r + 1) vsc = 256 * tr.cell T_NODE r vsc := by
+  have c1 := con hL (by omega : r < _) (e := mul3 (c sHPL) (Dsl.not (c fe))
+    (sub (n vacc) (.add (c vacc) (.mul (n vsc) (n b))))) (mem_bytes (by simp [cBytes]))
+  have c2 := con hL (by omega : r < _) (e := mul3 (c sHPL) (Dsl.not (c fe)) (sub (n vsc) (smul 256 (c vsc))))
+    (mem_bytes (by simp [cBytes]))
+  simp only [eval_mul3, eval_mul, eval_c, eval_n, eval_not, eval_sub, eval_add, eval_smul, nxt hr] at c1 c2
+  rw [hv, he] at c1 c2; exact ⟨by grind, by grind⟩
+
 end ZkFormal.NearV3.NodeProof3
 
 namespace ZkFormal.NearV3.NodeProof3
@@ -167,11 +178,37 @@ theorem flags {r : Nat} (hr : r < tr.height T_NODE) :
                     exact Or.inr ⟨i, hi, rfl⟩))
   simpa using c4
 
+/-- The HPL accumulator ends at the node's declared hex-prefix length. -/
+theorem hplEnd {r : Nat} (hr : r < tr.height T_NODE)
+    (hh : tr.cell T_NODE r sHPL = 1) (he : tr.cell T_NODE r fe = 1) :
+    tr.cell T_NODE r vacc = tr.cell T_NODE r hplen := by
+  have h := con hL hr (e := mul3 (c sHPL) (c fe) (sub (c vacc) (c hplen)))
+    (mem_bytes (by simp [cBytes]))
+  simp only [eval_mul3, eval_c, eval_sub, hh, he] at h
+  grind
+
+theorem hplTop {r : Nat} (hr : r < tr.height T_NODE)
+    (hh : tr.cell T_NODE r sHPL = 1) (he : tr.cell T_NODE r fe = 1) :
+    tr.cell T_NODE r b = 0 := by
+  have h := con hL hr (e := mul3 (c sHPL) (c fe) (c b))
+    (mem_bytes (by simp [cBytes]))
+  simp only [eval_mul3, eval_c, hh, he] at h
+  grind
+
+/-- The HPL byte uses the existing Boolean nibble columns. -/
+theorem hplNibble {r : Nat} (hr : r < tr.height T_NODE)
+    (hh : tr.cell T_NODE r sHPL = 1) :
+    tr.cell T_NODE r b = 16 * hiE.eval tr T_NODE r pub + loE.eval tr T_NODE r pub := by
+  have h := con hL hr (e := .mul (c sHPL) (sub (c b) (.add (smul 16 hiE) loE)))
+    (mem_bytes (by simp [cBytes]))
+  simp only [eval_mul, eval_c, eval_sub, eval_add, eval_smul, hh] at h
+  grind
+
 /-- Bytes of the non-window fields. -/
 theorem bytes {r : Nat} (hr : r < tr.height T_NODE) :
     (tr.cell T_NODE r sTAG = 1 → tr.cell T_NODE r b = tagE.eval tr T_NODE r pub) ∧
-    (tr.cell T_NODE r sHPL = 1 → tr.cell T_NODE r fs = 1 → tr.cell T_NODE r b = tr.cell T_NODE r hplen) ∧
-    (tr.cell T_NODE r sHPL = 1 → tr.cell T_NODE r fs = 0 → tr.cell T_NODE r b = 0) ∧
+    (tr.cell T_NODE r sHPL = 1 → tr.cell T_NODE r fs = 1 → tr.cell T_NODE r vacc = tr.cell T_NODE r b) ∧
+    (tr.cell T_NODE r sHPL = 1 → tr.cell T_NODE r fs = 1 → tr.cell T_NODE r vsc = 1) ∧
     (tr.cell T_NODE r sHPF + tr.cell T_NODE r sKEY = 1 →
       tr.cell T_NODE r b = 16 * hiE.eval tr T_NODE r pub + loE.eval tr T_NODE r pub) ∧
     (tr.cell T_NODE r sHPF = 1 → hiE.eval tr T_NODE r pub = 2 * tr.cell T_NODE r tl + tr.cell T_NODE r odd ∧
@@ -183,8 +220,8 @@ theorem bytes {r : Nat} (hr : r < tr.height T_NODE) :
     (tr.cell T_NODE r sBM = 1 → tr.cell T_NODE r fs = 0 → tr.cell T_NODE r b = bmHi.eval tr T_NODE r pub) ∧
     (tr.cell T_NODE r act - winE.eval tr T_NODE r pub = 1 → tr.cell T_NODE r pb = tr.cell T_NODE r b) := by
   have c1 := con hL hr (e := .mul (c sTAG) (sub (c b) tagE)) (mem_bytes (by simp [cBytes]))
-  have c2 := con hL hr (e := mul3 (c sHPL) (c fs) (sub (c b) (c hplen))) (mem_bytes (by simp [cBytes]))
-  have c3 := con hL hr (e := mul3 (c sHPL) (Dsl.not (c fs)) (c b)) (mem_bytes (by simp [cBytes]))
+  have c2 := con hL hr (e := mul3 (c sHPL) (c fs) (sub (c vacc) (c b))) (mem_bytes (by simp [cBytes]))
+  have c3 := con hL hr (e := mul3 (c sHPL) (c fs) (sub (c vsc) (k 1))) (mem_bytes (by simp [cBytes]))
   have c4 := con hL hr (e := .mul (.add (c sHPF) (c sKEY)) (sub (c b) (.add (smul 16 hiE) loE)))
     (mem_bytes (by simp [cBytes]))
   have c5 := con hL hr (e := .mul (c sHPF) (sub hiE (.add (smul 2 (c tl)) (c odd)))) (mem_bytes (by simp [cBytes]))
