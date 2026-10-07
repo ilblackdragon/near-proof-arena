@@ -1,0 +1,21 @@
+import ZkFormal.NearV3.Assembly.ExtendedRecordId
+#print axioms ZkFormal.NearV3.Assembly.resolutionAddresses_view
+#print axioms ZkFormal.NearV3.Assembly.resolutionAddresses_size
+#print axioms ZkFormal.NearV3.Assembly.resolutionAddresses_decreasing
+#print axioms ZkFormal.NearV3.Assembly.resolutionAddresses_resolved
+#print axioms ZkFormal.NearV3.Assembly.extendedAddresses_view
+#print axioms ZkFormal.NearV3.Assembly.kidExtendedAddresses_view
+#print axioms ZkFormal.NearV3.Assembly.extendedAddresses_size
+#print axioms ZkFormal.NearV3.Assembly.kidExtendedAddresses_size
+#print axioms ZkFormal.NearV3.Assembly.extendedAddresses_decreasing
+#print axioms ZkFormal.NearV3.Assembly.kidExtendedAddresses_decreasing
+#print axioms ZkFormal.NearV3.Assembly.extendedAddresses_ids
+#print axioms ZkFormal.NearV3.Assembly.sourceAddresses_extended
+#print axioms ZkFormal.NearV3.Assembly.kidSourceAddresses_extended
+#print axioms ZkFormal.NearV3.Assembly.extendedAddresses_resolved
+#print axioms ZkFormal.NearV3.Assembly.sourceExtension_extended
+#print axioms ZkFormal.NearV3.Assembly.kidSourceExtension_extended
+#print axioms ZkFormal.NearV3.Assembly.extendedRecordId_source
+#print axioms ZkFormal.NearV3.Assembly.extendedRecordId_ext_target
+#print axioms ZkFormal.NearV3.Assembly.forest_traceUpsert_extended_provider
+#print axioms ZkFormal.NearV3.Assembly.forest_extended_target_provider
