@@ -119,7 +119,7 @@ orchestration, and global bus balance remain open. In particular, a raw empty
 marker does not establish that the authenticated value is empty; raw extraction
 must use the value table.
 
-The latest integrated source cost model reserves a still-unimplemented combined
+The latest integrated source cost model uses the implemented combined
 queue shape of 52/8/6/8 at log22. With the current source wiring and 200-column
 Ups table it totals 8,359,074 bytes, leaving 29,534 bytes under 8 MiB. These
 figures supersede the earlier provisional estimates above and are not protocol
@@ -166,3 +166,25 @@ tag plus Borsh prefix has length26, header bytes26–29 are exactly u32 K, and
 `CombinedPublic.kPublic_prepared` proves the actual AIR expression evaluates
 to that prepared K in the field. The standard explicit u32 range premise is
 preserved. Combined audit now has15 axiom guards and12 field regressions.
+
+
+## Native walk generation and conditional capacity
+
+`CombinedWalkGen` constructs actual 52-cell rows for the native main and implicit
+read plans. Its request projection preserves order and duplicates exactly;
+`applyNewChunk_plan_reads` derives main read validity from successful native
+execution. The exact walk row count is `3 + 9 * groups.length + implicit.length`.
+`CombinedWalkCells` and `CombinedWalkBits` prove byte reconstruction in both
+natural and field evaluation, and that emitted high/low symbols equal the
+native trie key's nibble sequence.
+
+`CombinedCapacity` proves the walks plus parser records fit log22 under the
+existing 3,000,000-byte buffered-value bound, at most31 implicit transitions,
+2MiB record bytes and134,028 records. Actual allocator ownership must still
+supply those record premises; this is conditional capacity arithmetic, not a
+completed honest-trace certificate or a new native acceptance restriction.
+
+The combined audit now passes33 exact axiom guards and15 field regressions,
+including three cases built by the production walk generator. Generic whole
+walk local constraints, exact bus traffic, parser wraparound, arbitrary-trace
+extraction and global ownership remain open.

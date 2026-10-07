@@ -1,6 +1,8 @@
 import ZkFormal.NearV3.Qv.Candidates.CombinedParser
 import ZkFormal.NearV3.Qv.Candidates.CombinedPublic
 import ZkFormal.NearV3.Qv.Candidates.ValueGen
+import ZkFormal.NearV3.Qv.Candidates.CombinedCapacity
+import ZkFormal.NearV3.Qv.Candidates.CombinedWalkBits
 
 namespace QvCombinedRegression
 open ZkFormal.NearV3.Qv.Candidates
@@ -118,3 +120,100 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedTable.kPublic_prepared
+
+namespace QvCombinedRegression
+open ZkFormal.NearV3.Qv ZkFormal.NearV3.Qv.Candidates
+open NearSpec
+
+def noQueueKeys : PTrie := .leaf [] (.val []) 0
+
+def nativeEmpty : MainValues := ⟨none,none,[],none⟩
+#guard check ((CombinedWalkGen.plan noQueueKeys nativeEmpty [] (fun _ _ => (0,0))).flatMap
+  CombinedWalkGen.Walk.rows) 2 0
+#guard check ((CombinedWalkGen.plan noQueueKeys nativeEmpty [noQueueKeys,noQueueKeys] (fun _ _ => (0,0))).flatMap
+  CombinedWalkGen.Walk.rows) 3 2
+
+def nativeGroup : MainValues :=
+  ⟨none,some (u32 1 ++ u64 0 ++ u64 42 ++ u64 42),[0],none⟩
+#guard check (((CombinedWalkGen.plan noQueueKeys nativeGroup [] (fun _ _ => (5,0))).flatMap
+  CombinedWalkGen.Walk.rows) ++ ValueGen.bufferRows 5 0 1 [⟨u64 0,u64 42⟩]) 6 0
+end QvCombinedRegression
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.rows_length' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.rows_length
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.row_width' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.row_width
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_requests' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_requests
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_requests' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_requests
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_rows_length' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_rows_length
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_rows_length' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_rows_length
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_rows_length' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_rows_length
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.applyNewChunk_plan_reads' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.applyNewChunk_plan_reads
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_rows_bound' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_rows_bound
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.combined_rows_fit' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.combined_rows_fit
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.byte_low_bits' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.byte_low_bits
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.byte_high_bits' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.byte_high_bits
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.low_nibble' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.low_nibble
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.high_nibble' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.high_nibble
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.byte_reconstructed' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.byte_reconstructed
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.field_low_nibble' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.field_low_nibble
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.field_high_nibble' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.field_high_nibble
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_symbols' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_symbols
