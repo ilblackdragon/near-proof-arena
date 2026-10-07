@@ -1,0 +1,97 @@
+{
+  "status": "PASS",
+  "integration_jobs": 1585,
+  "audits": 12,
+  "axiom_guards": 130,
+  "behavior_guards": 12,
+  "theorem_examples": 16,
+  "source_head_before_checkpoint": "f7cde3f657078bb7b59d582b3bcd5c339e96e00d",
+  "evidence": "/data/illia/nearproof-deps/validation/v3-combined-source-native-20261007",
+  "scope": "Combined queue parser/public binding, source join/unit extraction, repaired leaf terminal metadata and native preparation. RetainedStore is a separate lemma, not adopted in final AIR. No full succinct-prover/admission claim.",
+  "checks": [
+    {
+      "file": "test/QvCombinedCandidate.lean",
+      "exit_code": 0,
+      "axiom_guards": 15,
+      "behavior_guards": 12,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditLog23Candidate.lean",
+      "exit_code": 0,
+      "axiom_guards": 26,
+      "behavior_guards": 0,
+      "theorem_examples": 8
+    },
+    {
+      "file": "test/AuditSourceJoined.lean",
+      "exit_code": 0,
+      "axiom_guards": 24,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditDedupExtract.lean",
+      "exit_code": 0,
+      "axiom_guards": 33,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditLeafTerminalCursor.lean",
+      "exit_code": 0,
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "theorem_examples": 8
+    },
+    {
+      "file": "test/AuditTreeValueMemoryDispatch.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeInsertDispatch.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeExtMemoryInput.lean",
+      "exit_code": 0,
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativePrepared.lean",
+      "exit_code": 0,
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRetainedStore.lean",
+      "exit_code": 0,
+      "axiom_guards": 12,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditDecodedShapes.lean",
+      "exit_code": 0,
+      "axiom_guards": 7,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeWitnessSize.lean",
+      "exit_code": 0,
+      "axiom_guards": 5,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    }
+  ]
+}

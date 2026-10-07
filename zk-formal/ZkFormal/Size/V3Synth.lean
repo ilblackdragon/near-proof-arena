@@ -19,13 +19,13 @@ def sh (w aux quot fin maxLog : Nat) : TShape := ⟨w, aux, quot, fin, maxLog⟩
 def shaT : Air.Table := Sha.Table.table Near.B_BYTES Near.B_DIGEST
 
 /-- Trie after M7e root binding (`trieTablesU`: nodeV3 with `UPB` delta, headV3,
-valV3, walkV3, uniqV3, upsV3). The `rootRid` column makes upsV3 width 187;
-`weqTrieU 1 = 1202`, `weqTrieU 3 = 1082`. `V3Eval.trie_shapes_check` checks
+valV3, walkV3, uniqV3, upsV3). Root binding and full-range memory carries make upsV3 width 200;
+`weqTrieU 1 = 1215`, `weqTrieU 3 = 1095`. `V3Eval.trie_shapes_check` checks
 all six transcribed shapes against the integrated tables. -/
 def trieS : Nat → List TShape
-  | 1 => [sh 186 21 4 21 22, sh 73 8 3 8 11, sh 15 7 3 7 22, sh 56 6 3 6 21, sh 53 2 4 2 22, sh 187 15 3 15 22]
-  | 2 => [sh 186 11 6 11 22, sh 73 4 5 4 11, sh 15 4 5 4 22, sh 56 4 5 4 21, sh 53 2 4 2 22, sh 187 8 5 8 22]
-  | _ => [sh 186 8 7 8 22, sh 73 4 7 4 11, sh 15 3 7 3 22, sh 56 2 7 2 21, sh 53 2 4 2 22, sh 187 6 7 6 22]
+  | 1 => [sh 186 21 4 21 22, sh 73 8 3 8 11, sh 15 7 3 7 22, sh 56 6 3 6 21, sh 53 2 4 2 22, sh 200 15 3 15 22]
+  | 2 => [sh 186 11 6 11 22, sh 73 4 5 4 11, sh 15 4 5 4 22, sh 56 4 5 4 21, sh 53 2 4 2 22, sh 200 8 5 8 22]
+  | _ => [sh 186 8 7 8 22, sh 73 4 7 4 11, sh 15 3 7 3 22, sh 56 2 7 2 21, sh 53 2 4 2 22, sh 200 6 7 6 22]
 
 /-- ChaCha (in tree, lane `v3-chacha`): `chachaV3`, `genV3`, `shufV3` (real tables). -/
 def chachaT : List Air.Table :=

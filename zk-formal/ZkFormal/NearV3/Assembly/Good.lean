@@ -3,8 +3,8 @@ import ZkFormal.NearV3.Assembly.Execution
 /-!
 Semantic factoring interface. `GoodV3` never calls `checkD0`, `checkD0a` or
 `RelD0a`; it states source selection, exact state execution, ordinary byte/domain
-bounds and header equality. `FactorSound` and `FactorComplete` below are OPEN
-proposition types, not axioms or proved equivalences. The separate AIR bridge
+bounds and header equality. `FactorSound` is proved in `Assembly.FactorSound`;
+`FactorComplete` remains an open proposition type, not an axiom. The separate AIR bridge
 must establish these semantic fields from checked views and explicitly budgeted
 hash assumptions. Row capacity is not implied by this interface.
 -/
@@ -104,7 +104,7 @@ theorem GoodV3.amendments {B cb k h p x} (g : GoodV3 B cb k h p x) :
     rintro ⟨s, ci⟩ hs
     exact decide_eq_true (g.distinctRequests b hb s ci hs)
 
-/-- Open proof obligation: semantic reconstructed views imply the frozen
+/-- Soundness statement, proved by `Assembly.factorSound`: semantic reconstructed views imply the frozen
 amended checker accepts their concrete encoded witness. -/
 def FactorSound : Prop := ∀ B cb k h p x,
   GoodV3 B cb k h p x → checkD0a B cb (witnessOfV3 k x) = .ok ()

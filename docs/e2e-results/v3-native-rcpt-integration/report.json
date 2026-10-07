@@ -1,0 +1,161 @@
+{
+  "status": "PASS",
+  "source_head_before_checkpoint": "8aa286b37926cb8cfd9468c47268450807effe2b",
+  "build_target": "ZkFormal.V3.Integration",
+  "build_jobs": 1711,
+  "audits": [
+    {
+      "file": "test/AuditQueryWitness.lean",
+      "exit_code": 0,
+      "axiom_guards": 15,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/QvCombinedCandidate.lean",
+      "exit_code": 0,
+      "axiom_guards": 97,
+      "behavior_guards": 15,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditSourceLevelAllocation.lean",
+      "exit_code": 0,
+      "axiom_guards": 4,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditSourceDepthAllocation.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeRootAndBytes.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditPositionedPart.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditEncodedKindTypes.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativePartPlan.lean",
+      "exit_code": 0,
+      "axiom_guards": 4,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditFieldEnd.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativePartEncoding.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditUnfoldStoreEq.lean",
+      "exit_code": 0,
+      "axiom_guards": 10,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditPostShadows.lean",
+      "exit_code": 0,
+      "axiom_guards": 19,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTransitionQueries.lean",
+      "exit_code": 0,
+      "axiom_guards": 8,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditDedupPhysicalExtract.lean",
+      "exit_code": 0,
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptListExtraction.lean",
+      "exit_code": 0,
+      "axiom_guards": 19,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptEncodedOffsets.lean",
+      "exit_code": 0,
+      "axiom_guards": 10,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptListTerminal.lean",
+      "exit_code": 0,
+      "axiom_guards": 5,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptListIndices.lean",
+      "exit_code": 0,
+      "axiom_guards": 13,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditRcptRcl.lean",
+      "exit_code": 0,
+      "axiom_guards": 8,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    }
+  ],
+  "axiom_guards": 226,
+  "behavior_guards": 15,
+  "theorem_examples": 0,
+  "external_logs": "/data/illia/nearproof-deps/validation/v3-native-rcpt-20261007",
+  "scope": "Full AIR import integration plus nineteen selected audits. No complete prover, protocol admission or judge-validation claim.",
+  "advances": [
+    "Accepted native input yields encodable targeted-store witness with exact unfolded size and original A7 bound",
+    "Actual native update parts satisfy full PartOk from ordinary ByteInput",
+    "Actual receipt list decomposition, encoded-length no-wrap and exact whole RCL channel extraction",
+    "Generated queue local proof components through physical boundaries"
+  ],
+  "remaining": [
+    "AIR retained-byte classification ownership and2MiB capacity",
+    "Whole queue local/trace composition and sound extraction",
+    "Full receipt semantic Wf/byte traffic",
+    "Full AIR soundness and honest trace fit",
+    "Protocol admission and byte-cap certificate",
+    "Succinct prover and real judge validation",
+    "Broader NEAR coverage beyond D0a"
+  ]
+}

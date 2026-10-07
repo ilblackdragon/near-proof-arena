@@ -1,4 +1,108 @@
+## Combined queue and source extraction checkpoint (2026-10-07)
+
+
+Latest aggregate (2026-10-07):1,711 jobs and19 selected audits PASS;
+226 exact axiom guards,15 behavior guards and0 theorem examples.
+Report: `docs/e2e-results/v3-native-rcpt-integration/report.json`.
+Accepted QueryWitness preserves original A7 and actual native replay in raw-store
+form; ExtV3/AIR retained-byte ownership and2MiB capacity remain unresolved.
+Full native per-part PartOk and total part encoding are imported. Actual receipt
+list decomposition, encoded-length no-wrap, unique indices/terminal gates and
+whole RCL extraction are imported; full receipt Wf/byte traffic remains open.
+Queue local components through physical boundaries are imported; sequence/layout
+composition is not complete. Prover, admission and real judge validation remain.
+
+
+Latest aggregate (2026-10-07):1,663 jobs and13 selected audits PASS;
+182 exact axiom guards,15 behavior guards and7 theorem examples. Report:
+`docs/e2e-results/v3-word-native-integration/report.json`.
+Queue traffic now composes over full native words on KEYNIB/FINAL/QVC/QSH.
+Native Good construction isolates original A7 as the remaining semantic premise;
+it is not FactorComplete. Source SHA and candidate SRC34 public binding/reuse
+are imported; receipt-byte linkage/no-wrap and explicit candidate public assembly
+remain. Update count/kind/depth/descent allocator proofs are imported. Generic
+queue local constraints, complete AIR assembly, ownership, protocol admission,
+prover and real judge validation remain open.
+
+
+Latest focused checkpoint (2026-10-07): source791f879f passes823 dependency jobs
+and8 audits:84 exact axiom guards and15 field regressions. Report:
+`docs/e2e-results/v3-walk-shape-integration/report.json`.
+This adds native queue walk generation/key symbols/conditional log22 capacity,
+all native split byte-memory dispatch with executable mB assignment, full
+original decoded witness D0Shape, and complete combinatorial source extraction
+including terminal SIZE. It is a focused joint check, not a new full AIR
+aggregate or end-to-end certificate. Queue local/traffic composition, allocator
+ownership, normalized-store A7, source SHA/public binding, protocol admission,
+prover and judge validation remain open.
+
+Integration passes1,585 jobs;12 merged audits pass. Exact counts and evidence:
+`docs/e2e-results/v3-combined-source-native-integration/report.json`.
+CombinedTable now replaces the static queue reserve without changing the checked
+8,359,074-byte model. Parser traffic/public K bindings are checked; full walk
+rendering, extraction and native capacity remain. Source join and unit extraction
+are integrated. Exact leaf replacement terminal cursor is repaired and audited.
+Native preparation is bundled, but D0Shape/A7 preservation and full Good remain
+open. RetainedStore proves unconditional lookup/rebuild preservation; it is not
+adopted into ExtV3 because unused-value ownership/2MiB accounting are unresolved.
+
+## Native traffic and log23 integration checkpoint (2026-10-07)
+
+Expanded integration target passes 1,531 jobs. Thirteen focused merged audits
+pass; exact guard counts and logs are in
+`docs/e2e-results/v3-native-traffic-log23-integration/report.json`.
+This covers native constructed witness size/preparation, scheduler forwarding
+bounds, per-part memory/carry bounds, canonical queue field traffic, physical
+source endpoint repair and the isolated log23 verifier/numerical candidate.
+Full AIR construction/extraction, cryptographic round proofs/admission, Rust
+prover, final certificate/judge and broader NEAR coverage remain open.
+
 # STATUS-V3-AIR: succinct v3 D0 prover (np-udr-stark-v2), program state at hand-over
+
+## Full-header and queue-record integration (2026-10-07)
+
+Integration passes **1,403 jobs** after merging the full-u32 Node/Ups header
+repair and width200 memory carries. Twelve merged audits pass, with86 axiom
+guards and38 behavior guards, plus kernel theorem regressions for source-header
+aliasing and long-key carry truncation. Executable queue records now concatenate
+with all local constraints proved, including padding and physical wraparound.
+Native forest/store reconstruction and actual byte/gas-derived ID capacity are
+included. Size.V3Synth/V3Eval/AlignedModel now cross-check the actual200-column
+update table; each previous shape model increases by12,064 bytes.
+
+Evidence: `docs/e2e-results/v3-full-header-integration/report.json`. The candidate
+source/queue reserve model is still not a protocol admission theorem. Remaining
+work includes native semantic factoring, full runtime trace construction,
+queue/source extraction and global traffic/capacity, the log23 candidate protocol
+family, final succinct prover/certificate/judge, and broader NEAR coverage.
+The native checker domain, frozen parameters and8MiB cap are unchanged.
+
+
+## Store-normalization checkpoint (2026-10-07)
+
+Integration passes **1,347 jobs**, including TreeStore and normalized ExtV3.store.
+Seventeen store axiom guards and two collision-order regressions pass; all three
+FactorSound guards pass again. Stable first-occurrence byte dedup preserves the
+actual first-match storeGet and partialTrie without hash injectivity. Per-store
+serialized cost does not expand. Single-instance executable view allocation has
+explicit node/value-ID capacity premises; whole-witness codec coverage and
+multi-instance allocation remain open. Evidence:
+`docs/e2e-results/v3-store-normal/report.json`.
+
+
+## Latest semantic factoring checkpoint (2026-10-07)
+
+Integration passes **1,337 jobs** with `Assembly.FactorSound`. `GoodV3.checkD0`,
+`GoodV3.checkD0a` and `factorSound` are proved; three permanent transitive axiom
+guards pass with standard Lean axioms only. Source loops, implicit transitions,
+preprocessing comparisons and actual main execution compose into the unchanged
+native checker. No native-acceptance field was added to `GoodV3`.
+
+FactorComplete, AIR-to-Good, full honest completeness, source partition/protocol
+admission, queue orchestration, succinct prover and final certificate remain open.
+The full-u32 HPL repair is isolated and is not included in this aggregate yet.
+Evidence: `docs/e2e-results/v3-factor-sound/report.json`.
+
 
 Program lead's hand-over, 2026-10-07.
 

@@ -1,0 +1,40 @@
+{
+  "status": "partial-formal-milestone",
+  "scope": "Semantic reconstructed witness implies the unchanged amended native checker",
+  "integration": {
+    "target": "ZkFormal.V3.Integration",
+    "jobs": 1337,
+    "result": "pass",
+    "includes": [
+      "Assembly.FactorSound",
+      "Assembly.SourceComplete",
+      "Assembly.ImplicitComplete",
+      "Assembly.ClaimFacts"
+    ]
+  },
+  "axiom_audit": {
+    "command": "lake env lean test/AuditAssemblyFactor.lean",
+    "guards": 3,
+    "result": "pass",
+    "allowed": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ]
+  },
+  "checked": [
+    "GoodV3.checkD0",
+    "GoodV3.checkD0a",
+    "factorSound"
+  ],
+  "open": [
+    "FactorComplete including encoded-witness nonexpansion",
+    "AIR-to-Good",
+    "Full honest AIR trace",
+    "Isolated full-u32 Node/Ups coverage repair",
+    "Queue buffered local constraints and read orchestration",
+    "Source authenticated partition continuation",
+    "Candidate log23 protocol/security admission and final proof size",
+    "Succinct Rust prover and final certificate/judge"
+  ]
+}

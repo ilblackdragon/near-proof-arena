@@ -1,3 +1,7 @@
+import ZkFormal.NearV3.Rcpt.Candidates.SourceSizeActual
+import ZkFormal.NearV3.Rcpt.Candidates.PreparedNonempty
+import ZkFormal.NearV3.Rcpt.Candidates.PreparedRepeated
+import ZkFormal.NearV3.Rcpt.Candidates.DedupSha
 import ZkFormal.NearV3.Rcpt.Candidates.DedupCounters
 import ZkFormal.NearV3.Rcpt.Candidates.PartitionCapacity
 import ZkFormal.NearV3.Rcpt.Candidates.PreparedMetadata
@@ -323,3 +327,123 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceEncodingBudget
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.bounded_preimage_rows' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.bounded_preimage_rows
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.block_payload_widths' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.block_payload_widths
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.sourceWeights_exact' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.sourceWeights_exact
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_sha_partition' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_sha_partition
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.slotSources_eq' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.slotSources_eq
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.slotDescriptors_selected' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.slotDescriptors_selected
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.shuffleWithSeed_map' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.shuffleWithSeed_map
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.shuffled_source_receipts' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.shuffled_source_receipts
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_receipts' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_receipts
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.appliedReceipts_sourceBlocks' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.appliedReceipts_sourceBlocks
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_applied' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_applied
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_property' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_property
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_raw_routing' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_raw_routing
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_repeated_empty' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_repeated_empty
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_repeated_L12' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_repeated_L12
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.walkD0_has_source' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.walkD0_has_source
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_length' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_length
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.prepD0_sources_nonempty' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.prepD0_sources_nonempty
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.checkedSourceLoop_count' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.checkedSourceLoop_count
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.checkD0_dictionary_count' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.checkD0_dictionary_count
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.prepD0_dictionary_count' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.prepD0_dictionary_count
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.distinctKeys_length_le' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.distinctKeys_length_le
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.prepD0_sources_le_entries' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.prepD0_sources_le_entries
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.encoded_entry_charge' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.encoded_entry_charge
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.encoded_entries_charge' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.encoded_entries_charge
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.raw_computed_size_charge' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.raw_computed_size_charge
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.size_le_computed' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.size_le_computed
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_size_bound' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_size_bound
