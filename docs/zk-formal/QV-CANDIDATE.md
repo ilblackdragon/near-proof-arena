@@ -15,8 +15,10 @@ and g2 shape `(37,3,6,3,22)`. The log22 cap is provisional: assembly must prove
 capacity from authenticated value bytes and zero-length value markers.
 `ValueGen` supplies executable rows. Eleven acceptance/rejection fixtures pass
 both integer and actual BabyBear evaluation, including malformed second queue
-indices, mismatched buffer counts, truncated headers and mixed segments. These
-examples do not replace general extraction and honest-renderer proofs.
+indices, mismatched buffer counts, truncated headers and mixed segments. `ValueTraffic` additionally proves exact natural VBYTES records for every
+empty, buffered and raw generated segment; three traffic axiom guards pass.
+Two static shape/well-formedness axiom guards pass. These results do not replace
+general field extraction and honest local-constraint proofs.
 
 Rows parse three modes: empty 16-byte index pairs, a four-byte buffered vector
 header followed by 24-byte entries, and uninterpreted raw values. Eight byte

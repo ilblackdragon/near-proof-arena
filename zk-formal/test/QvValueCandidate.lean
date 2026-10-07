@@ -1,4 +1,5 @@
-import ZkFormal.NearV3.Qv.Candidates.ValueGen
+import ZkFormal.NearV3.Qv.Candidates.ValueTraffic
+import ZkFormal.NearV3.Qv.Candidates.ValueBudget
 open NearSpec ZkFormal.NearV3.Qv ZkFormal.NearV3.Qv.Candidates.ValueGen
 #guard checkRows [] 0
 #guard checkRows (emptyRows 4 0 2 (u64 300)) 4
@@ -27,3 +28,23 @@ open NearSpec ZkFormal.NearV3.Qv ZkFormal.NearV3.Qv.Candidates.ValueGen
 #guard !(checkFieldRows ((emptyRows 4 0 2 (u64 300)).modify 8 (fun r => r.set 6 45)) 4)
 #guard !(checkFieldRows ((bufferRows 5 0 1 []).modify 0 (fun r => r.set 6 1)) 2)
 #guard !(checkFieldRows ((bufferRows 5 0 1 []).take 3) 2)
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.value_shape_g2' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.value_shape_g2
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.value_table_wf' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.value_table_wf
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyRows_bytes' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.emptyRows_bytes
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferRows_bytes' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferRows_bytes
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.rawRows_bytes' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.rawRows_bytes
