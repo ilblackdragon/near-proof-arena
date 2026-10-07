@@ -532,3 +532,24 @@ routing facts and table traffic composition still need proof. In particular,
 RCL equality alone is a field equality; deriving repeated L=12 implies an empty
 receipt list requires the actual list encoded length below P. This must come from
 receipt row/span bounds, not an extra domain premise or an assumed extracted view.
+
+### Actual receipt list decomposition and length bound
+
+`Rcpt/Extract/V/ListBlocks`, `ListChain`, and `ListLengths` now derive complete
+physical receipt-list blocks from the unchanged `RcptV3.table` local constraints.
+Every block has its actual twelve-row header, a possibly empty consecutive list
+of receipt layouts, and a next-header or padding boundary. Row-zero extraction
+produces a nonempty chain with exact physical row sum; padding cannot resume
+active rows after its end. This is extraction, not an assumed `RcptV3Wf` view.
+For each extracted receipt, the exact encoding length is `123 + Vt`, bounded by
+its physical receipt interval. Consequently every extracted list's full encoding
+length is below the actual table height and therefore below `P`. Length twelve
+is equivalent to an empty extracted receipt list. These bounds impose no new
+receipt-list or domain restriction.
+
+Validation: three modules build; `AuditRcptListExtraction.lean` checks nineteen
+exact transitive axiom outputs (only the standard Lean axioms). Still open:
+header count/index and encoded-offset reconstruction, complete receipt traffic,
+and the remaining system/routing/arithmetic obligations needed to construct
+`RcptV3Wf` and bind source RCL/dictionary/leaf data. The no-wrap bound alone does
+not establish that RCL traffic contains the extracted encoding length.
