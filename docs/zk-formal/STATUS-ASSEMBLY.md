@@ -230,3 +230,24 @@ fits the active field `P=2013265921`. No assumed field-capacity conclusion or
 extra key/queue cap is used. Root width, native A1 and implicit-count inputs
 remain visible for composition with their claim facts. Ten new axiom guards
 and both previous NativeMain guards pass.
+
+## Chronological native transition extraction
+
+`ImplicitTrace.traceImplicit` executes the actual implicit partial-trie builders
+and missing-chunk transitions, recording their concrete inputs and outputs.
+`NativeMain.checkD0_native_steps` extracts its successful native loop and the
+actual implicit count guard while preserving the earlier main-only API.
+`NativeTrace.checkD0a_native_trace` now combines these facts directly from
+accepted `checkD0a` bytes: exact main execution, chronological implicit steps,
+at most 31 implicit transitions, ordinary wf for every pre-tree, and total
+forest value-ID capacity below the active field. Root widths follow from actual
+successful queue reads, so they are no longer external premises to this
+composition. `ImplicitTraceReplay` transports the trace to the existing semantic
+implicit-run interface using explicit allocated store/post correspondence.
+
+Thirteen permanent axiom guards in `test/AuditNativeTrace.lean` pass with only
+standard Lean axioms. Private compile and guard logs are respectively
+`/tmp/nearproof-assembly-native-trace.log` and
+`/tmp/nearproof-assembly-native-trace-guards.log`. The full completeness theorem
+still needs concrete head/receipt/dictionary views and all GoodV3 fields;
+these runtime/allocator results do not assert AIR acceptance or succinctness.
