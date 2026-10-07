@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root ByteAggregate CHECKED: unconditional combined byte-row expression;
+walk_byte_silent from actual transformed constraints; complete parser suffix
+including inactivepadding; byte_all_physical exact allrows sendlist equals
+v.segs.flatMap physicalRecordBytes. Generic range_from_segments exported from
+ParserAggregate for reuse (old3guards rerun PASS). New4exactguards PASS;
+/tmp/nearproof-qv-byte-aggregate.log,
+/tmp/nearproof-checked-AuditQv{ByteAggregate,ParserAggregate}.log.
+Lean reduction timeout resolved by explicit DSL/column simplification, no raised
+limits or admitted proof. Temporary debugfile under /tmp not part of source.
+Next selectedrecord/remainder Perm from parserchain occurrence and combine
+physical VBYTES balance with extracted acct/akey traffic to discharge exact
+balance premise in selected_record_complete. Full value decoding/modes next.
+Receipt ed15832b checked15guards marker metadata/keytype/canonical separator
+permutation on sharedAIR; whole KEYNIB receipt/list composition still underway.
+No root live process. Continuing user-authorized pushes of checked main/AIR.
+Full certificate/admission/reference checker/prover/judge and broad NEAR goal
+remain incomplete; last aggregate83f4a8b7 predates current modules.
+
+
 User explicitly authorized committing and pushing checked work. Root integrating
 D2f79040fc asAIR82d408c4: executable UpsertShaJobs nativevalue/output preimages,
 count≤404 for actualpartialTrie, disjoint bounded K_VUPS IDs. Target and19
