@@ -259,3 +259,9 @@ execution consumes the concrete constructor rather than an assumed store/post
 correspondence. Six permanent `AuditTraceHeads` axiom guards pass. HEAD edge-use
 and walk-result fields remain explicit seeds; no HEAD table acceptance is
 asserted by this semantic constructor.
+
+`ReceiptSeeds` supplies executable native Receipt→RcptE payload conversion with
+an exact left inverse under actual u128 widths (or ordinary Receipt.wf), plus
+exact list reconstruction. Three permanent axiom guards pass. Execution,
+refund, and routing fields remain seeds, and native receipt-wf extraction is
+still needed when composing this constructor with accepted transition traces.
