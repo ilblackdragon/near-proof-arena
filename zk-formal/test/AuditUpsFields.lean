@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Render.Ups.GFields
+import ZkFormal.NearV3.Render.Ups.GFieldPrefix
 
 /-- info: 'ZkFormal.NearV3.Render.UpsGen.fieldAt_bounds' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
@@ -23,3 +23,15 @@ import ZkFormal.NearV3.Render.Ups.GFields
 /-- info: 'ZkFormal.NearV3.Render.UpsGen.cFieldFrame_ok' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.UpsGen.cFieldFrame_ok
+
+/-- info: 'ZkFormal.NearV3.Render.UpsGen.cFields_prefix_ok' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.UpsGen.cFields_prefix_ok
+
+/-- info: 'ZkFormal.NearV3.Render.UpsGen.fieldAt_windows' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.UpsGen.fieldAt_windows
+
+/-- info: 'ZkFormal.NearV3.Render.UpsGen.fieldAt_after_windows' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.UpsGen.fieldAt_after_windows

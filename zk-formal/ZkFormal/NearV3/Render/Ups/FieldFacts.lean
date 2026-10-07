@@ -72,6 +72,27 @@ theorem fieldAt_next_boundary (sh : List (Nat × Nat)) (p : Nat)
       rw [show p + 1 - l = (p - l) + 1 by omega]
       exact ih (p - l) (by omega) he
 
+/-- Passing a serialized prefix subtracts its byte length and counts its child windows. -/
+theorem fieldAt_append_after (pre post : List (Nat × Nat)) (p : Nat)
+    (hp : fieldsLen pre ≤ p) :
+    fieldAt (pre ++ post) p =
+      ((fieldAt post (p - fieldsLen pre)).1,
+       (fieldAt post (p - fieldsLen pre)).2.1,
+       (fieldAt post (p - fieldsLen pre)).2.2.1,
+       (fieldAt post (p - fieldsLen pre)).2.2.2 + nWin pre) := by
+  induction pre generalizing p with
+  | nil => simp [fieldAt,fieldsLen,nWin]
+  | cons f pre ih =>
+    obtain ⟨s,l⟩ := f
+    simp only [fieldsLen_cons] at hp
+    have hn : ¬ p < l := by omega
+    simp only [List.cons_append,fieldAt,hn,ite_false]
+    rw [ih (p - l) (by omega)]
+    have he : p - l - fieldsLen pre = p - (l + fieldsLen pre) := by omega
+    rw [he]
+    simp only [fieldsLen_cons]
+    by_cases hs : s = 7 <;> simp [nWin,hs,Nat.add_assoc]
+
 /-- Every canonical node field has a valid state and positive length. -/
 theorem nodeFields_mem {ty hk children s l : Nat}
     (h : (s,l) ∈ nodeFields ty hk children) : s < 9 ∧ 0 < l := by
