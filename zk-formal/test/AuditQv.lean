@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Qv.Reads
+import ZkFormal.NearV3.Qv.Bounds
 
 open NearSpec NearSpecV3 ZkFormal.NearV3.Qv
 
@@ -52,3 +52,23 @@ open NearSpec NearSpecV3 ZkFormal.NearV3.Qv
 /-- info: 'ZkFormal.NearV3.Qv.applyMissingChunk_delayed_read' depends on axioms: [propext] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.applyMissingChunk_delayed_read
+
+/-- info: 'ZkFormal.NearV3.Qv.groupReads_loop_iff' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.groupReads_loop_iff
+
+/-- info: 'ZkFormal.NearV3.Qv.bufferedBytes_length' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.bufferedBytes_length
+
+/-- info: 'ZkFormal.NearV3.Qv.bufferedValue_length' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.bufferedValue_length
+
+/-- info: 'ZkFormal.NearV3.Qv.bufferedValue_count_bound' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.bufferedValue_count_bound
+
+/-- info: 'ZkFormal.NearV3.Qv.bufferedValue_count_u24' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.bufferedValue_count_u24
