@@ -758,3 +758,14 @@ invariant. Thirteen exact transitive axiom guards pass. No routing/semantic
 receipt premise remains. Whole-table token propagation, final public totals,
 and outstanding traffic channels still require assembly; the full receipt
 view statement is not claimed complete yet.
+
+`TokenBytes` proves the incoming token-byte invariant for every active physical
+row directly from zero initialization, GP rotation/new-byte constraints, and
+preservation across both receipts and list headers. `IndexedWellformed` proves
+flattened receipt indices below the physical row count and field modulus, then
+combines the actual list/global counters with complete per-receipt extraction.
+`ListChain.indexed_wf` therefore has no external receipt/token/routing premise:
+only TableLocal and the extracted chain. Six exact axiom guards pass. The
+remaining token assembly task is equality of consecutive receipts' actual token
+endpoints, followed by the final public total; other unclosed traffic channels
+and public receipt/body totals also remain.
