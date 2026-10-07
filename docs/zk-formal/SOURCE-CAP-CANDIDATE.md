@@ -205,3 +205,39 @@ at most2,228,242 rows; an 8 MiB preimage has that row bound. Proving the largest
 premise for every non-source SHA input is still open. Likewise the carried boundary
 state must be authenticated and local/traffic soundness proved across the split; list
 placement lemmas alone do not establish those AIR contracts.
+
+## Concrete payloads and repeated-source semantics
+
+`DedupSha` proves that every actually decoded source leaf preimage has 32 bytes and
+all path preimages have 64 bytes. Their actual `msgRows` weights agree with the
+18/35-row accounting above, and the actual source payload sequence admits the checked
+two-log23 whole-message packing. This still does not prove SHA table rendering or bus
+balance.
+
+`PreparedReceipts` proves that actual preparation's shuffled source-list order, mapped
+through last-wins witness lookup and receipt routing, gives exactly native
+`appliedReceipts`. `PreparedRouting` transfers D0a's A2 routing guarantee to every
+prepared selected source. Combined with the native successful-check distinct receipt-ID
+guard (`Assembly.SourceResult`), `PreparedRepeated` proves that **every occurrence** of a
+repeated prepared key has an empty raw receipt list, including its first occurrence.
+Consequently the concrete candidate block has `L = 12`. This is derived from unchanged
+`RelD0a`, actual successful preparation, and actual witness decoding; there is no new
+receipt emptiness or key-distinctness assumption.
+
+`DedupTable` is an isolated concrete 57-column candidate with 122 constraints and five
+bus interactions. Kernel checks establish column bounds and degree at most four.
+Executable integer fixtures cover both path directions, duplicate-to-computed transitions,
+a physically full trace ending on a duplicate, and rejection of inconsistent repetition
+metadata/length. Its new public SRC payload is `[j, dup, repeated] ++ root`, so adopting it
+still requires coordinated public descriptor and binding changes. The active public SRC
+schema remains unchanged. General local, traffic, continuation, and candidate protocol
+admission proofs are tracked separately; these checks do not certify a succinct protocol.
+
+The candidate now has checked all-constraint local theorems for duplicate-to-root,
+duplicate-to-padding, and a duplicate physical last row. `DedupComputedLocal` transfers
+all original constraints on non-duplicate rows to the patched table, with exactly the
+new repetition metadata conditions. `DedupTraffic` connects actual candidate field bus
+traffic to natural row records and proves complete root-header messages. Complete
+rendered-trace locality, aggregate traffic, and authenticated partition continuation
+remain open. Seven executable fixtures and twelve transitive axiom guards check this
+isolated checkpoint; all dependencies use only Lean's standard logical axioms.
