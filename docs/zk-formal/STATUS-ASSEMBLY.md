@@ -376,3 +376,13 @@ actual native selected-proof shuffles using exact shuffle/map commutation,
 then constructs the whole prepared source list from successful checkD0.
 No separate shuffle fuel/completeness premise is needed. Three permanent axiom
 guards pass (standard Lean axioms only).
+
+`NativeClaim` extracts all claim/chain guards, native main transaction root and
+zero own congestion from actual checkD0. `SchedulerPublicComplete` proves PV86
+public scheduler preparation total for every nonempty layout, then for context
+lists. `PrepClaimComplete.checkD0a_prepClaim_exists` composes these facts with the
+native source-list construction and amendments A1/A8: accepted native inputs
+now admit actual prepClaim output. Five permanent axiom guards pass. This closes
+the claim-preparation existence premise of `PrepBodyComplete`; it does not yet
+supply the separate reconstructed D0Shape, canonical/unfolded amendments, or
+honest AIR metadata and row-capacity obligations of full FactorComplete.
