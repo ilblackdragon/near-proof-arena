@@ -30,3 +30,16 @@ cd lean && taskset -c 8-15,24-31 lake build
 cd ../tests && taskset -c 8-15,24-31 python3 difftest.py opcodes
 taskset -c 8-15,24-31 python3 difftest.py random 5000 1
 ```
+
+Logged-path regression (unfrozen harness adapter): build the same executable and
+set `D3_LEAN_ARGS=--logged` for both `tests/difftest.py` and
+`../d3-ttn/difftest_ttn.py`. The mock-host adapter retains the original mock
+storage context while executing through `Logged.W.callEntryL`; trie chunk replay
+uses `Logged.W.runCallL`, as the logged D3 checker does. Default execution retains
+the original path for comparison. Harness adapters are test code, not certificate
+assumptions. `--prepared-size` and `--charge-points` still inspect preparation.
+
+Both differential scripts reject nonzero process exits and missing or extra
+output lines, including each trie chunk's variable number of calls. Lightweight
+runner tests: `python3 -m unittest discover -s oracle/tools -p test_harness_io.py`
+from the repository root. Use the required heavy wrapper for actual corpus runs.
