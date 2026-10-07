@@ -1,3 +1,16 @@
+import ZkFormal.NearV3.Rcpt.Candidates.DedupRootLocal
+import ZkFormal.NearV3.Rcpt.Candidates.DedupLeafLocal
+import ZkFormal.NearV3.Rcpt.Candidates.DedupPathLocal
+import ZkFormal.NearV3.Rcpt.Candidates.DedupPathUpper
+import ZkFormal.NearV3.Rcpt.Candidates.DedupPathBoundary
+import ZkFormal.NearV3.Rcpt.Candidates.DedupLeafExit
+import ZkFormal.NearV3.Rcpt.Candidates.DedupPathExit
+import ZkFormal.NearV3.Rcpt.Candidates.DedupTerminalLocal
+import ZkFormal.NearV3.Rcpt.Candidates.DedupPaddingLocal
+import ZkFormal.NearV3.Rcpt.Candidates.DedupTerminalPadding
+import ZkFormal.NearV3.Rcpt.Candidates.DedupCrossLocal
+import ZkFormal.NearV3.Rcpt.Candidates.DedupLocalBits
+import ZkFormal.NearV3.Rcpt.Candidates.DedupAdjacency
 import ZkFormal.NearV3.Rcpt.Candidates.DedupActualTraffic
 import ZkFormal.NearV3.Rcpt.Candidates.DedupTrafficProof
 import ZkFormal.NearV3.Rcpt.Candidates.DedupComputedLocal
@@ -169,3 +182,105 @@ private def checkRows (bs : List SrcpB) (repeated : Nat → Bool) (H : Nat) : Bo
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_table_traffic
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.computed_root_to_leaf' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.computed_root_to_leaf
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.first_root_to_leaf' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.first_root_to_leaf
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.leaf_step' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.leaf_step
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_lower_step' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_lower_step
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_upper_step' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_upper_step
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_window_boundary' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_window_boundary
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.leaf_to_path' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.leaf_to_path
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_to_path' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_to_path
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.leaf_physical_last' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.leaf_physical_last
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_physical_last' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_physical_last
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.padding_to_padding' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.padding_to_padding
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.padding_physical_last' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.padding_physical_last
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.leaf_to_padding' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.leaf_to_padding
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_to_padding' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_to_padding
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.leaf_to_root' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.leaf_to_root
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_to_root' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.path_to_root
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.mult_bits' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.mult_bits
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.kinds_first' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.kinds_first
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.next_last' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.next_last
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.kinds_adj' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.kinds_adj
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.recs_adj' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.recs_adj
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupRender.adjAt' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupRender.adjAt

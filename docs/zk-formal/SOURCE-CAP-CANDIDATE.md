@@ -335,3 +335,20 @@ and the decoder's canonical encoding non-expansion theorem to bound the full
 candidate SIZE by the unchanged8MiB raw witness budget. The candidate audit now
 checks98 axiom closures. This closes SIZE coverage, not candidate AIR admission or
 complete local legality.
+
+The candidate now has checked all122-polynomial local cases for computed and
+initial roots, every internal leaf/path byte, the path-window boundary, leaf/path
+segment transitions, computed source-to-source transitions (including a following
+duplicate), terminal-to-padding transitions, physical terminal segments, and padding.
+These supplement the existing duplicate-header cases. `DedupAdjacency.adjAt`
+(the theorem is in the DedupRender namespace) proves the exact candidate descriptor
+succession, and `DedupRender.mult_bits` proves actual field-valued multiplicity bits.
+Their composition into one whole-renderer/partition `TableLocal` remains open.
+
+Physical terminal segments need cyclic successor `sg=0`: several inherited segment
+successor polynomials are not gated by `isTransition`. The logical trace wraps to
+its first root, which supplies this fact. The right partition instead has physical
+last padding on actual inputs:16,334,272 rows is strictly below the16,777,215-row
+pair capacity. `padding_physical_last` permits any cyclic successor, including a
+segment carry row. Partition completeness must use this actual capacity slack.
+No protocol height, cap, source domain, or candidate shape changed in this checkpoint.
