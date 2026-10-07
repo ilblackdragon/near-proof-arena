@@ -16,7 +16,7 @@ Rules: no `sorry` / `axiom` / `native_decide`; axioms ⊆ {propext, Classical.ch
 | M1 | spec-side refinement | `runCore` decomposed into the AIR's phases, each **proved** equal to the spec (§5); executable event model `coreEv` = `runCore` on 600/600 vectors | **done** |
 | M2 | tables | six `Table` values (§3), kernel-checked budget (`W_eq` = 781 at g = 1 after cuts B, D and the source map), honest generators for all six (`Gen/*`), constraint evaluator + bus-balance tests on the 600 vectors, mutants (§8) | **done** |
 | M3 | soundness | per table: `…Local → ∃ v, Wf v ∧ Traffic …` (L5 style), bus contracts (comparator, memory, scan, codec), link lemma: `schedCore_sound` | **`schedCore_sound` proved** (§7, stage D): `runCore sp (prevOf τ) = some ⟨svOf τ, grants, params⟩` for every instance. **Stage E (`schedCore_sound'`)**: `gfin = stF.granted[l]` (memory `w` column), `gb < 2^23`, τ = 0 forwarding `fwd(l) mod 2^24 ≤ gfin + gb`. **Stage F (`schedCore_sound''`, `schedCore_fwd'`)**: `GbGrid` proved (`gbGrid_of`: `gb = grid[l]`), so for τ = 0 every forwarding demand `< 2^24` is `≤` its output grant; new ownership `SdlxOwn` |
-| M4 | completeness | honest traces satisfy every constraint, traffic = expected lists; `schedCore_complete`; height bounds | open |
+| M4 | completeness | honest traces satisfy every constraint, traffic = expected lists; `schedCore_complete`; height bounds | **in progress** (`Sched/Complete/*`, §13 item 3): **`cmp_complete`** (`scpV3`) and **`mem_complete`** (`smmV3`, traffic: `SOP` = INITs + op log, `SFIN` = finals, `SCMP` = time / budget checks) proved; heights parametric in `maxLog`, `B0`, A8 and a step budget `κ` (`heights`), instantiated at `B0 = 2,000,000`, `maxLog = 22` (`heights_22`); without `κ` process / memory / comparator exceed `2^22` (`worst_exceeds`). Open: `sprV3`, `ssdV3`, `schV3`, the step-budget lemma, `schedCore_complete` |
 | M5 | integration | message formats agreed with `v3-trie` (`VBYTES`, `upsV3`) and the assembly (public segments, `Prep.fwd`), cuts | open |
 
 ## 1. Inputs and what is native
@@ -143,7 +143,7 @@ tables, the public segments rendered by `Render.render` from the instances' `Ins
 * **`schedCore_complete`**: for pubs with `PubOk` (n ≤ 64, distinct ids, A8 request bound) and any
   canonical previous states, the honest traces (`Gen/*`) satisfy every constraint, have 0/1
   multiplicities, and their traffic on every scheduler bus is the expected list (public records,
-  `VBYTES`/`SPOST`/SHA messages); heights `≤ 2^22` under A7 (`Σ_τ (|pre| + |post|) ≤ 3,000,000`)
+  `VBYTES`/`SPOST`/SHA messages); heights `≤ 2^22` under A7 (`Σ_τ (|pre| + |post|) ≤ B0`, `B0 = 2,000,000` = `ChunkValidationV0a.B0`; stated parametric in `B0` and `maxLog`)
   and A8.
 
 Soundness chain (per τ), using M1's `core_compose`:
@@ -440,7 +440,54 @@ Range checks are kept in every variant.
    new decidable `InitOwn`), `PubIdx` (`SPAR`, `SPUBB`), prepD0 (`|Ps| ≤ 256`, `InstOk`) and `hprev`
    (codec-encoding stage). No missing constraint found. Next: FIN = `stF`, distribute grid, codec
    encoding (`hprev`, post bytes) ⇒ `schedCore_sound`.
-3. M4: completeness of the six tables (honest generators exist and pass on 600 vectors).
+3. **M4: completeness — in progress** (`zk-formal/ZkFormal/NearV3/Sched/Complete/*.lean`, 2,086 lines,
+   axioms ⊆ {propext, Classical.choice, Quot.sound}; pattern of lane v3-chacha's `chacha_complete` /
+   `shuffle_complete`). Generators are unchanged except `Gen.clog2`, now structurally recursive (same
+   value: the least `l` with `m ≤ 2^l`, `clog2_ge` / `clog2_le`; the old `while` loop was opaque).
+   * **Generic** (`Complete/Trace`): `mkTrace` as row functions (`mk_cell`, `mk_env`, `mk_log_bounds`,
+     `busCount_sum`), array-write lemmas (`gd_set`, `gd_range_set`, …).
+   * **`cmp_complete`** (`Complete/Cmp`): for comparisons with `x, y < 2^29`, `b = [y ≤ x]` and
+     `|cmps| ≤ 2^22`, `Gen.Cmp.trace cmps` has log height in `[1, 22]`, satisfies every constraint
+     (rows and padding), has 0/1 multiplicities, receives on `SCMP` exactly `Gen.Cmp.expected cmps`
+     and sends nothing.
+   * **`mem_complete`** (`Complete/Mem{Rows,Cons,Honest,}`, `MemTraffic`): for a run whose segments
+     are honest (`SegOk`: INIT `vin = al`; ops READ/GRANT chained from the previous row's `v, w`, with
+     the replay's semantics `sf = [inc ≤ vin]`, `c = al` / `sf`, `ok ⇒ c`, `v = vin − inc` (0 when
+     `¬sf`), links `w += ok·inc`; values `< P`) and `Σ_g (1 + |ops|) + 1 ≤ 2^22`: legal height, every
+     constraint, 0/1 multiplicities, and traffic **`SOP` receives = `sopList`** (per segment its
+     INIT then its op log in order), **`SFIN` sends = `finList`** (`(addr, vfin, wfin)`), **`SCMP`
+     sends = `cmpList`** (`(t, tp + 1, 1)` per op, `(vin, inc, sf)` per GRANT), nothing else. The
+     generator's rows are proved equal, cell by cell, to value records (`rows_rel`).
+   * **Heights** (`Complete/Height`, `Complete/Rows`): per instance (`n`, `N = n²`, `C` converted
+     requests, `S` steps, `Rd` rounds, `K` RNG words): codec `69 + 24N = |post| + 32`; scan +
+     distribute `[C > 0](1 + 20C) + 2n + n(1 + n)` (scan part = `scan_rows_size`); process
+     `16 + Rd + S` (`proc_rows_size`); memory `N + 2n + C + 3S` (`= Σ_g (1 + |ops|)`,
+     `memRows_size`); comparator `≤ C + 7S + Rd + 3N + 2n`; lane tables `S` / `K` / `86⌈K/16⌉`.
+     Hypotheses: A7 (`B0`), A8 (`C ≤ N`, plus `Rd ≤ S ≤ 40C`, `n ≤ 64`), `T` instances, step budget
+     `κ` (`S ≤ C + κ·n`). **`heights`** (parametric) and **`heights_22`** (`B0 = 2,000,000`, `T = 33`,
+     `κ = 43`): codec `≤ 4,000,000`, scan + distribute `≤ 2,000,000`, process `≤ 348,826`, memory
+     `≤ 693,338`, comparator `≤ 1,730,752` (each `+1` padding row) — all `≤ 2^22`. Codec and scan +
+     distribute need only A7 + A8 (`codec_sd_22`).
+   * **Finding: A7 + A8 alone do not bound process / memory / comparator by `2^22`.** Worst case
+     (`worst`, `worst_a7`, `worst_a8`, `worst_exceeds`): 20 instances `n = 64`, one `n = 37`, one
+     `n = 3`, no previous values (`Σ|post| = 1,999,966 ≤ B0`), `C = N`, `S = Rd = 40·C`: process
+     6,664,193, memory 10,164,997, comparator 26,991,193 rows. The missing fact is the **step
+     budget** (spec lemma, not yet proved): a request stops at its first failed grant, and a
+     successful grant spends `≥ ⌊D/40⌋ ≥ 102,357` (`D = maxSingleGrant − base ≥ 4,094,304`) of a
+     sender budget `≤ 4,500,000`, so `S ≤ C + 43·n`. Lane tables: `genV3` has one row per drawn word
+     (`K`), which is `≤ 64` per `gen_index` call only by the fuel; the expected count is `≈ S`.
+   * **Remaining (plan):** (a) the step-budget lemma on `processRequests` (`Spec/Granted`-style
+     invariant: each `ok` step lowers `senderBudget[s]` by `inc ≥ ⌊D/40⌋`; a non-`ok` step ends its
+     request); (b) `sprV3`: row records (key block, header, entries) like `MemRows`, `Step` pairs as in
+     `Chacha.Complete.Step`, inverse / zero-test columns, traffic (`SPUBB` keys, `SPUSH`, `SINC`,
+     `SSIN`/`SSOUT`, `SOP`, `SCMP`); (c) `ssdV3`: scan rows (20-row blocks: bits, remainders,
+     `INC` multiplicities `us`) and distribute rows (sorted shard rows, grid cells, `SDLX` delay
+     line), traffic (`SPAR`, `SINC`, `SPUSH`, `SOP` INITs, `SFIN`, `SDL`/`SDLX`/`SDG`, `SCMP`);
+     (d) `schV3`: header / record / hash rows (`setAll` rows; `codecRows` is in `Except`, so first
+     `codecRows = .ok` from the run), traffic (`VBYTES`, `SPOST`, `S0F`, `SDL`, `SDG`, `SA0`, SHA
+     `DIGEST`/`BYTES`, `SOP` INITs, `SFIN`, `SCMP`); (e) the link to `Gen.run`: its segments satisfy
+     `SegOk` and its comparisons `CmpOk` (the run's checks + replay), then `schedCore_complete`
+     assembling per-table traffic into bus balance.
 4. A8 (§11) as a completeness-only hypothesis; the distinct-ids amendment is dropped (source map, §11). The codec source map is pending.
 5. Cuts D/E.
 
