@@ -6,6 +6,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root EmptyRows CHECKED at AIR3179a4d2: record_continue rules out early physical
+termination when vl0; empty_first_rows/empty_second_rows derive exactphase and
+selector at all16rows; empty_row_count proves n=16 from actual TableLocal,
+IsSeg and starting mEmpty1. Build+4exact standardguards PASS;
+/tmp/nearproof-qv-empty-rows.log,/tmp/nearproof-qv-empty-rows-audit-checked.log.
+Next use phase/header/endpoints and register_carry to prove registers unchanged
+across first15 transitions, selected_word_byte yields bytei=byte(8+i), then
+empty-mode semantic Accepts over exact ValE bytes. Buffered parser remains.
+Integrated ups83795397/00d89f03 as483bb589/664b8775: exact branch CID layout and
+all32bytes selectedchild window after arbitrary serializedprefix; actual RDB
+window composition still pending. D2d4937dd8 asdd5c38c3: native source occurrence
+bytes including repeated splits charge≤4*preBytes; output growth/shared SHA
+capacity still open. Combined build+4exactbranchguards/7standardaxiom checks
+PASS (/tmp/nearproof-branch-source-cost-integrated.log,
+/tmp/nearproof-integrated-Audit{BranchCidWindows,UpsertSourceCost}.log).
+No root livejob. Receipt working RC listbyte/sourceSHA. Authorized pushes
+continue. Aggregate83f4a8b7 older. Full certificate/admission/reference checker/
+prover/judge and general NEAR coverage remain incomplete.
+
+
 Root ParserClock CHECKED at AIRf9bd3f80: selectorzero reset equation, seven
 selector shifts incl headerbyte3 exception, first/next-index phase steps,
 empty-mode vl=nextIndex*sel7, first_word_advance and first_word_end. Target193
