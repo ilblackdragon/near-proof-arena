@@ -760,3 +760,9 @@ trace-local structural ID lookup, using the proven unique source sizes;
 Nine guards pass. This map is currently certified for proper walk source levels
 (including the terminal); skipped PT sources and off-path output/source child
 lookups must still be included before instantiating all nativeInstance fields.
+
+`SourceAddresses` builds the full write-key descent, retaining skipped empty
+extensions. All addresses preserve exact seeded view segments and strictly
+decrease in subtree size, so the executable local ID map is coherent even for
+PT nodes. Seven guards pass. Coverage of every actual trace part source by this
+full key-path list is the next operational composition; it is not assumed.
