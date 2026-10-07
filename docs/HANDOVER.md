@@ -7,6 +7,16 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `93728ed5`: first-row/nonfirst, no-restart and next-word start equations
+proved; physical last/exit equations proved with explicit layout premises still
+to be derived during full trace construction. Target219 jobs and QV97 exact
+axiom guards+15 fixtures PASS (`/tmp/nearproof-physical.log`,
+`/tmp/nearproof-physical-audit-final.log`). Next root: between-word metadata
+sequencing, actual layout premises, and whole local/trace composition. No active
+root job. Many additive receipt/Ups/assembly checkpoints since9fbbdabf still need
+joint integration; their individual audits are evidence only for their scopes.
+
+
 Root QV `1f001da8`: six main/implicit metadata field equations, last-main count,
 end-main and absent-buffer count equations derived from generated plan membership.
 Subtraction slot−2 is justified by the derived slot≥2 bound. Target218 jobs and
