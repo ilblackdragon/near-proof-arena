@@ -223,3 +223,15 @@ supported; the hypotheses specify generated cells and the established group
 slot bound. This is whole-word traffic, not global provider balance or complete
 local constraints. The combined audit now passes57 exact axiom guards and15
 regressions. Whole-plan composition, local constraints and ownership remain.
+
+
+`CombinedBoundary` closes parser-expression preservation at physical wraparound:
+the actual first delayed walk has mode0, so the length overlay is unchanged even
+though its walk flag is1. This is expression preservation, not an assumption that
+the original parser constraints already hold at that boundary.
+`CombinedWalkBase` proves every generated walk marker satisfies every transformed
+base-parser constraint over any commutative ring. Its sole neighbor condition is
+inactive-next or next-record-start; generated next walks and padding discharge it.
+The independent extra read-sequence constraints and multiplicity-bit obligations
+still require proofs. The combined audit now passes64 exact axiom guards and15
+regressions; the base target's154 dependency jobs pass.
