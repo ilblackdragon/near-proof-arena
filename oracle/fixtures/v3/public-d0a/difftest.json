@@ -21,7 +21,7 @@
   "w.proof_routing": 0,
   "w.unfolded": 0
  },
- "cases_dir": "oracle/fixtures/v3/public-d0a (near-arena-oracle-v3-d0a gen --seed 4243 --chains 2 --blocks 40 --mutate-every 25 --ood-cap 1; A8 mutants c.dup_bw_request added from a regeneration at the A8 commit, other files kept)",
+ "cases_dir": "oracle/fixtures/v3/public-d0a",
  "counts": {
   "d0.cases": 64,
   "d0.expected_accept": 64,
@@ -130,7 +130,7 @@
   "mismatches": []
  },
  "wall_seconds": {
-  "lean": 108.70797181129456,
-  "python": 0.7506482601165771
+  "lean": 108.11002802848816,
+  "python": 0.6082320213317871
  }
 }

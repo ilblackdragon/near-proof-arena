@@ -90,7 +90,7 @@ pub fn extra(client: &Client, built: &Built, w: &ChunkStateWitness) -> Result<Ve
 // ---------------- A7 `w.unfolded` ----------------
 
 /// A7 bound of the challenge instance (`NearSpecV3.B0`).
-pub const B0: u64 = 3_000_000;
+pub const B0: u64 = 2_000_000;
 //
 // Independent computation of `unfoldBytes` (spec/near-chunk-validation-v0a.md §2.4) on
 // nearcore's own node type (`RawTrieNodeWithSize` borsh) and stores: the pre-trie nodes come

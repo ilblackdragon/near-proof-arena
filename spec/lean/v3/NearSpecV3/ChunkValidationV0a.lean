@@ -313,6 +313,38 @@ theorem relD0a_iff (B : Nat) (cb w : Bytes) : RelD0a B cb w ↔ checkD0a B cb w 
     cases a1 cb <;> cases a2 cb w <;> cases canon0f cb w <;> cases a7 B cb w <;> cases a8 cb <;>
       simp [bind, Except.bind, pure, Except.pure]
 
+/-- A7 bound of the challenge instance: unfolded trie bytes (pre + post-write copies, all
+transitions); `B0 = 2,000,000` (lead decision, user-approved; derivation
+spec/near-chunk-validation-v0a.md §2.4: 1.25 SHA rows/byte · 2 M = 2.5 M of 2^22 rows). -/
+def B0 : Nat := 2000000
+
+/-- The D0a domain conditions at bound `B` (Bool form). -/
+def inD0a (B : Nat) (cb w : Bytes) : Bool :=
+  a1 cb && a2 cb w && canon0f cb w && a7 B cb w && a8 cb
+
+/-- The D0a domain conditions at bound `B`. -/
+def InD0a (B : Nat) (cb w : Bytes) : Prop :=
+  a1 cb = true ∧ a2 cb w = true ∧ canon0f cb w = true ∧ a7 B cb w = true ∧ a8 cb = true
+
+/-- The D0a domain at the challenge bound `B0`. -/
+def InD0a0 (cb w : Bytes) : Prop := InD0a B0 cb w
+
+theorem inD0a_iff (B : Nat) (cb w : Bytes) : inD0a B cb w = true ↔ InD0a B cb w := by
+  unfold inD0a InD0a
+  simp only [Bool.and_eq_true, and_assoc]
+
+instance (B : Nat) (cb w : Bytes) : Decidable (InD0a B cb w) :=
+  decidable_of_iff _ (inD0a_iff B cb w)
+
+instance (cb w : Bytes) : Decidable (InD0a0 cb w) := by unfold InD0a0; infer_instance
+
+/-- `RelD0a B` is `RelD0` restricted to the domain `InD0a B`. -/
+theorem relD0a_iff_inD0a (B : Nat) (cb w : Bytes) : RelD0a B cb w ↔ RelD0 cb w ∧ InD0a B cb w :=
+  Iff.rfl
+
+/-- Same at the challenge bound. -/
+theorem relD0a_iff_in (cb w : Bytes) : RelD0a B0 cb w ↔ RelD0 cb w ∧ InD0a0 cb w := Iff.rfl
+
 /-- Soundness direction: every D0a witness is a D0 witness (for every bound `B`). -/
 theorem relD0a_relD0 {B : Nat} {cb w : Bytes} (h : RelD0a B cb w) : RelD0 cb w := h.1
 

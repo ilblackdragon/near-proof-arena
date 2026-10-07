@@ -10,7 +10,7 @@ challenges) and, on an accepting case, the amendments:
   C0f e.sched_canonical  every 0x0f value read (main pre-state, each implicit
                          pre-state) is absent or BandwidthSchedulerState::V1 whose links
                          are exactly the layout's n^2 links, sender-major
-  A7  w.unfolded         unfold_bytes <= B (default B0 = 3,000,000): for every applied
+  A7  w.unfolded         unfold_bytes <= B (default B0 = 2,000,000): for every applied
                          transition, the bytes of the pre-trie revealed along the read keys,
                          counted per path copy (node encodings + revealed values), plus the
                          post-trie's node copies (and revealed values) that differ from the
@@ -35,7 +35,7 @@ import spec_check_v3 as d0  # noqa: E402
 from v3lib.prim import PartialTrie, nibbles, decode_node  # noqa: E402
 
 MAX_GAS_LIMIT = 10 ** 15
-B0 = 3_000_000
+B0 = 2_000_000
 
 # ---------------- A7: record the tries the D0 checker builds ----------------
 _TRIES = []

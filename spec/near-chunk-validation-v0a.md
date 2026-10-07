@@ -12,7 +12,7 @@ challenge `near-chunk-validation-d0-1` and is **not modified**. Draft challenge:
 RelD0a(B)(cb, w) := RelD0(cb, w) ∧ A1(cb) ∧ A2(cb, w) ∧ Canon0f(cb, w) ∧ unfoldBytes(cb, w) ≤ B ∧ A8(cb)
 ```
 
-The challenge instance is `B = B0 = 3,000,000` (§2.4).
+The challenge instance is `B = B0 = 2,000,000` (§2.4).
 
 Lean: `NearSpecV3.ChunkValidationV0a` (`RelD0a B`, `a1`, `a2`, `canon0f`, `a7`, `unfoldBytes`, `a8`;
 executable verdict `checkD0a B`; **proved**: `relD0a_iff : RelD0a B cb w ↔ checkD0a B cb w = .ok ()`,
@@ -104,17 +104,18 @@ oracle (`oracle/v3-d0a/src/d0a.rs`: nearcore `RawTrieNodeWithSize`, witness valu
 tracking node's State column, keys from `TrieKey::to_vec`) and the Python checker (the keys the
 D0 checker reads, raw node bytes); the difftest compares the three values exactly.
 
-**`B0 = 3,000,000`.** The SHA table hashes every unfolded byte (pre occurrences once; changed
-post occurrences once) at ≤ 1.25 rows/byte (sha_t, lane v3-trie); 1.25 · 3,000,000 = 3.75 M of
-its 2²² = 4.19 M rows, leaving ≈ 0.44 M rows (≈ 350 KB of input) for the non-trie hashing
-(receipt lists, outcome leaves, Merkle paths), the budget V3-D0-DESIGN §5.1 assumes. The node
-table (1 row per pre byte, post bytes in lockstep) stays below 2²². Table heights — hence the
-8 MiB proof-size analysis (§5.3) — are unchanged by A7. *Assumption to confirm with the trie
-and receipt lanes: the non-trie SHA input at A1-maximal load fits in the remaining 0.44 M rows.*
+**`B0 = 2,000,000`** (lead decision, user-approved). The SHA table hashes every unfolded byte
+(pre occurrences once; changed post occurrences once) at ≤ 1.25 rows/byte (sha_t, lane
+v3-trie); 1.25 · 2,000,000 = 2.5 M of its 2²² = 4.19 M rows, leaving ≈ 1.69 M rows for the
+non-trie hashing (receipt lists, outcome leaves, Merkle paths). The node table (1 row per pre
+byte, post bytes in lockstep) stays below 2²². Table heights — hence the 8 MiB proof-size
+analysis (§5.3) — are unchanged by A7. Note `B0` is below the `base_state ≤ 3,000,000` bound
+of `w.size`: **chunks whose unfolded read set is between 2 and 3 MB move out of D0a** — they
+become unprovable in this domain, never wrongly accepted.
 
 **Measured** (STATUS-V3-SPEC §1.2): over the 2,993 nearcore-accepted honest witnesses of the
 full corpus `unfoldBytes` ≤ 50,579 (p50 4,286, p99 12,650; on the 2,695 RelD0 cases ≤ 7,917):
-headroom ≥ 59× against `B0`. Honest tries share only identical leaves/values (full unfold /
+headroom ≈ 40× against `B0`. Honest tries share only identical leaves/values (full unfold /
 recorded bytes ≤ 2.31 on D0, ≤ 1.32 on the public D1 corpus).
 
 **Liveness limit (known, for later domains).** A7 never makes a false statement provable; it
@@ -123,11 +124,11 @@ of one chunk long and their unfolded bytes large while `|base_state|` stays smal
 subtrees are recorded once): every revealed occurrence is a node of the logical trie, so a
 path through `D` branch levels needs ≈ `D` sibling accounts, and ≈ `U / 75` accounts are needed
 for `U` unfolded bytes with 2-child branches (≈ 75 B each; with 16-child branches ≈ 559 B per
-occurrence but 15 siblings). Exceeding `B0` thus takes ≈ 40,000 named accounts with identical
+occurrence but 15 siblings). Exceeding `B0` thus takes ≈ 27,000 named accounts with identical
 sub-structure (e.g. sub-accounts of one attacker account), plus receipts to ≤ 4,481 of them in one
 chunk. Cost at PV 86: storage stake ≈ 182 B per account (account record + full-access key) ×
-10¹⁹ yocto/B ≈ 0.0018 NEAR → **≈ 75 NEAR locked** (refundable on deletion) + creation gas
-(CreateAccount + AddKey + Transfer ≈ 0.4–0.5 Tgas each → ≈ 20 Pgas ≈ 2 NEAR at the 10⁸ yocto/gas
+10¹⁹ yocto/B ≈ 0.0018 NEAR → **≈ 50 NEAR locked** (refundable on deletion) + creation gas
+(CreateAccount + AddKey + Transfer ≈ 0.4–0.5 Tgas each → ≈ 13 Pgas ≈ 1.3 NEAR at the 10⁸ yocto/gas
 minimum price) + the transfers that target the chunk. Cheap: the domain's liveness against an
 adversarial state owner is weak; later domains need a larger `B` (multi-instance tables /
 recursion) or a cost-based argument. The attacker cannot make a wrong chunk provable.

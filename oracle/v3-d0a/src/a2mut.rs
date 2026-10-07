@@ -62,7 +62,10 @@ pub fn foreign_routing(
         sha256(&v)
     };
     // a template receipt (any receipt of any proof)
-    let tmpl = x.source_receipt_proofs.values().flat_map(|p| p.0.iter()).next()?.clone();
+    // deterministic template: first receipt in key order (HashMap iteration order is random)
+    let mut keyed: Vec<_> = x.source_receipt_proofs.iter().collect();
+    keyed.sort_by(|a, b| a.0.cmp(b.0));
+    let tmpl = keyed.iter().flat_map(|(_, p)| p.0.iter()).next()?.clone();
     // a named receiver routed to another shard
     let recv: near_primitives::types::AccountId = ["aa", "zz", "mm", "near", "s0", "s9z", "test0", "zzzz.near"]
         .iter()
