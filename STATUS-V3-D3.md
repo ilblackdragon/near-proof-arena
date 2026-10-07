@@ -1,6 +1,37 @@
 # STATUS — lane/v3-d3 (handover, 2026-10-07)
 
 Handover note for the next agent. **Nothing is signed, registered or deployed for `near-chunk-v3`.**
+
+**Resumption, 2026-10-07 (recovery):** the `WasmRun.lean` proof repair now
+builds the full `nearspec-v3-check-logged` executable and D0a tier (195 jobs). The repair
+limits unfolding of `run`, uses `Nat.strongRecOn`, and retains the correct
+names after dependent equalities substitute the host-call arguments. The eight
+declarations in `oracle/wasm-d3/lean/AuditLogged.lean` have transitive axioms
+exactly `{propext, Classical.choice, Quot.sound}`. The generated C for
+`runUntil` uses a tail-loop jump.
+
+The formerly failing `d3c7/ood/00-h10007-s1` completes and agrees with the
+original checker on both verdict and reason (out of domain, `e.g_alpha`).
+All 115,284 D3 cases pass three-way comparison and exact verdict/reason
+comparison to the original checker. Original Lean and independent Python
+baselines were reused with validated case sets and recorded hashes; fresh logged
+outputs were measured. All 1,720 public D0/D1/D2/chunk fixture comparisons pass.
+Full D1/D2 corpora and WASM/trie harnesses still remain. Evidence and provenance:
+`docs/e2e-results/v3-logged-checker/report.json`. New driver
+`oracle/tools/check_logged.py` compares both verdict and reason, requires a
+result for every input, and rejects crashes/truncated/duplicate output. Its
+seven failure-handling unit tests pass. `make pin-check` passes. No live worker
+has been stopped. The reference still uses the old necessity verifier.
+
+Reproduce the proof/build audit from `oracle/wasm-d3/lean` using the required
+`heavy` wrapper and CPU affinity:
+`lake build nearspec-v3-check-logged NearSpecV3.ChallengeChunkV3`, then `lake env lean AuditLogged.lean`.
+Run the comparison from the lane root as
+`python3 oracle/tools/check_logged.py CORPUS --mode d3 --jobs 8 --save NEW_DIR`.
+Use `--mode d2` for D2. `CORPUS` must use `claim.bin`/`witness.bin`; public arena
+fixtures need temporary `claim.bin` links to their `request.bin` files.
+The saved `logged.jsonl` is compatible with `difftest_d3.py --lean-from`.
+
 Live state is in `docs/LIVE.md`. Main is at 0bb6fc8d+ (cost lane v1.8 deployed). This lane is main
 plus everything below.
 
@@ -52,7 +83,7 @@ files; the original definitions are untouched).
 `reads_restrict_eq` and `reads_fixed`, with axioms propext / Classical.choice / Quot.sound and no
 sorry. No trusted file changed.
 
-**The current HEAD is WIP and does not build.**
+**Historical failure before recovery (now fixed; retained for context).**
 * WIP commit b8633b30 replaces the deep `SM` recursion of the logged WASM run loop with a
   tail-recursive `runUntil` loop (`Logged/WasmRun.lean`).
 * Why: the logged D3 checker at b27fea89 overflows the stack on long WASM runs (e.g.
@@ -69,16 +100,16 @@ identical verdicts. Logged median 0.018–0.104 s per class (max 2.38 s); origin
 
 **Not done:**
 
-1. **Stack-safe run loop.** Fix it as above, then re-check the axioms.
+1. **Completed:** stack-safe loop, proof and guarded axiom audit.
 2. **Full regressions with the logged checker.** Lead conditions require each to be identical to
    the committed report apart from timings:
-   * D0 public;
+   * D0 public: passed;
    * D1 `d1run` (53,048);
    * D2 `d2corpus.v2` three-way (67,384);
-   * D3 three-way on `d3c7`/`d3c8`/`d3c9`/`d3c10` (115,284).
+   * D3 three-way on `d3c7`/`d3c8`/`d3c9`/`d3c10` (115,284): passed.
 
    A first D3 run on `d3c7` crashed in `difftest_d3.py`, which hit a truncated JSON line: the
-   checker's output was cut off when the job was stopped. Rerun.
+   checker's output was cut off when the job was stopped. Recovery rerun passed.
 3. **Recheck the D1/D2 normal-form building blocks** (`examples/reexec-v3-d1|d2/formal`) against the
    spec.
 4. **Performance.** One `checkD3Reads` run per case must fit the verify budget (old reference:
@@ -99,6 +130,9 @@ identical verdicts. Logged median 0.018–0.104 s per class (max 2.38 s); origin
 
 ## 3. `near-chunk-v3` challenge (single coverage-tiered challenge)
 
+D0a now has a proved tier inclusion. Draft activation remains gated on final
+domain bounds and workload-class coverage; the unsigned draft was not regenerated.
+
 * **Draft.** `challenges/drafts/near-chunk-v3.draft.json` (+ `.measure.json`), built by
   `spec/tools/build_challenge_draft_v3_chunk.py`.
   - Unsigned id `chl_b44dc87154d4581cf125707b9dd0a7b3`. `arena-admin check` is OK with the
@@ -106,7 +140,7 @@ identical verdicts. Logged median 0.018–0.104 s per class (max 2.38 s); origin
 * **Statement.** `NearSpecV3.RelChunkV3 = RelD0 ∨ RelD1 ∨ RelD2 ∨ RelD3`
   (`spec/lean/v3/NearSpecV3/ChallengeChunkV3.lean`).
   - `rel_mono`, `inLang_mono`, `sound_lift`.
-  - Tiers `d0 | d1 | d2 | d3a`, with `challengeParamsChunkWith` / `challengeParamsChunk t`, and
+  - Formal tiers `d0a | d0 | d1 | d2 | d3a`, with `challengeParamsChunkWith` / `challengeParamsChunk t`, and
     `DomainTier` size-bounded at 64 MiB.
 * **Settings.**
   - Scoring: `cost_v1`, `baseline_mode: paired`, the calibration block (pinned `arena-calibrate`),

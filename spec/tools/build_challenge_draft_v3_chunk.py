@@ -143,7 +143,12 @@ WEIGHT_SOURCE = (
     "max-G_alpha 15%, non-WASM chunks around contract state 5%); non-WASM receipts/queues/epochs (D2) 17%; "
     "plain transfer transactions (D1) 10%; quiet / transfer-receipt / missing-chunk D0 chunks 8%. To be replaced "
     "by a measured mix from mainnet replay (docs/HISTORICAL_REPLAY.md) in a versioned successor.")
-TIERS = [("D0", 0, ".d0"), ("D1", 1, ".d1"), ("D2", 2, ".d2"), ("D3a", 3, ".d3a")]
+# Match Tier.rank in ChallengeChunkV3. Rank 0 is reserved for the formal D0a
+# tier. Do not expose D0a here with an empty class list: that would let it
+# abstain on every benchmark input without COVERAGE_GAP_IN_TIER. Its workload
+# classes must first be checked against the final D0a domain (including the
+# still-pending ChaCha/source-path bounds), then assigned explicitly.
+TIERS = [("D0", 1, ".d0"), ("D1", 2, ".d1"), ("D2", 3, ".d2"), ("D3a", 4, ".d3a")]
 TIER_RANK = {t: r for t, r, _ in TIERS}
 
 ORACLE_TREES = {

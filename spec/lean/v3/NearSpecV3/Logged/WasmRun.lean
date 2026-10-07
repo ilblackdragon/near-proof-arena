@@ -322,7 +322,7 @@ theorem runUntil_spec (cfg : NearCfg) (p : Prepared) :
         rw [hsp] at h
         simp only at h
         have h2 := hok hsp
-        unfold run
+        rw [run]
         generalize hr : step cfg p s = r0 at h h2
         cases r0 with
         | cont s' => exact (runUntil_spec cfg p n s' (ResOK_cont h2 rfl)).1 r h
@@ -345,13 +345,15 @@ theorem runUntil_spec (cfg : NearCfg) (p : Prepared) :
           rw [e2]; exact StOK_E _
         refine ⟨hs1, stepPre_storage hsp, ?_⟩
         show run cfg p (n + 1) s = _
-        unfold run
+        -- Unfold only the outer run; keep the recursive run under callHost folded.
+        rw [run]
         rw [step_of_stepPre cfg p s s1' name' hsp]
+        rfl
       | none =>
         rw [hsp] at h
         simp only at h
         have h2 := hok hsp
-        unfold run
+        rw [run]
         generalize hr : step cfg p s = r0 at h h2
         cases r0 with
         | cont s' => exact (runUntil_spec cfg p n s' (ResOK_cont h2 rfl)).2 n' s1 name h
@@ -362,8 +364,8 @@ theorem runUntil_spec (cfg : NearCfg) (p : Prepared) :
 theorem runL_spec (hσ : StoreAgrees σ g) (cfg : NearCfg) (p : Prepared) (n : Nat) :
     ∀ (s : St), StOK σ s →
       SM.run g (runL cfg p n (E dummy s)) = .ok (mapRes (E dummy) (run cfg p n s)) ∧ ResOK σ (run cfg p n s) := by
-  induction n using Nat.strong_induction_on with
-  | _ n ih =>
+  induction n using Nat.strongRecOn with
+  | ind n ih =>
   intro s ht
   have hspec := runUntil_spec (σ := σ) cfg p n s ht
   rw [runL]
@@ -383,13 +385,13 @@ theorem runL_spec (hσ : StoreAgrees σ g) (cfg : NearCfg) (p : Prepared) (n : N
     | host n'' s1 name' =>
       rw [hu] at hr; simp only [mapRU, RU.host.injEq] at hr
       obtain ⟨rfl, rfl, rfl⟩ := hr
-      obtain ⟨hs1, hname, hrun⟩ := hspec.2 n' s1 name hu
+      obtain ⟨hs1, hname, hrun⟩ := hspec.2 n'' s1 name' hu
       have hlt := runUntil_lt hu
-      obtain ⟨c1, c2⟩ := callHostL_spec hσ hs1 name hname
+      obtain ⟨c1, c2⟩ := callHostL_spec hσ hs1 name' hname
       rw [SM.run_bind', c1, hrun]
-      generalize hc : callHost s1 name = c at c2
+      generalize hc : callHost s1 name' = c at c2
       cases c with
-      | cont s' => exact ih n' hlt s' (ResOK_cont c2 rfl)
+      | cont s' => exact ih n'' hlt s' (ResOK_cont c2 rfl)
       | fin s' =>
         refine ⟨rfl, ?_⟩
         exact c2
