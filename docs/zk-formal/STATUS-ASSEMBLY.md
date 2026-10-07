@@ -647,3 +647,14 @@ permutation of a sublist of the seeded Fp requests. This preserves multiplicity
 and does not claim all other byte suppliers or whole-bus balance.10 guards pass
 (standard-only, one axiom-free). Global retained post-query ownership/capacity
 and original-node ID mapping/write-key revelation remain open independently.
+
+`TrieShape` isolates the minimal lookup invariant: recursively valid stored
+nibble paths, with no memory/slot/hash-size/child-count bound. Adapted native
+find_upsert_other proves exact other-key preservation; source hash is recorded.
+`TrieShapeUpsert` proves this invariant preserved by every successful native
+upsert. `TrieKnownWrites` gives exact map update and known-query preservation
+through executable sequences of native writes.17 axiom guards plus4 overflow
+fixtures pass: a native wf input can produce memory≥2^64 and lose full wf while
+a second write still preserves determined lookup. Remaining: extract actual
+scheduler/receipt/system write sequence and tie initial write keys to builder
+queries; receipts use set, requiring the matching structural preservation lemma.
