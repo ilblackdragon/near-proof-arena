@@ -32,7 +32,7 @@ def trace_value_byteInput {source : PTrie} {key : List Nat} {v : Bytes} {run : T
     apply treeRlp_byteInput _ base key old mem v Q he hw rfl
     · simp only [traceInstance,TreeRun.splitCursor,TreeRun.consumed,terminalRun,List.length_cons,List.length_nil]
       omega
-    · have hsrc : (terminalRun (.leaf key old mem) key .LP 0 (newLeaf key v)
+    · have hsrc : (terminalRun (.leaf key old mem) key .LP key.length (newLeaf key v)
           [⟨.RLP,.leaf key old mem,newLeaf key v,0⟩]).terminalSource.wf=true := hw
       exact splitNibble_lt hsrc
   | branch old kids mem =>
@@ -51,4 +51,26 @@ def trace_value_byteInput {source : PTrie} {key : List Nat} {v : Bytes} {run : T
       apply treeRbr_byteInput _ base old kids mem v Q (by simpa using he) hw rfl
       · change 1≤3 ∧ 3≤3; decide
       · change 0<16; decide
+/-- Existing values are reached at the END symbol, after all remaining leaf key
+nibbles have been consumed. -/
+theorem trace_value_end {source : PTrie} {key : List Nat} {v : Bytes} {run : TreeRun}
+    (hr : traceUpsert source key v=some run) (ht : valueTerminal source key)
+    (hk : key.length≤2) (base : UpsInst) : (traceInstance base run v).ts=3 := by
+  cases source with
+  | hash => simp [valueTerminal] at ht
+  | ext => simp [valueTerminal] at ht
+  | leaf oldKey old mem =>
+    have he : oldKey=key := ht
+    subst oldKey
+    simp only [traceUpsert,ite_true,Option.some.injEq] at hr
+    subst run
+    simp [traceInstance,terminalRun,TreeRun.splitCursor,TreeRun.consumed]
+    omega
+  | branch old kids mem =>
+    have he : key=[] := ht
+    subst key
+    simp only [traceUpsert,Option.some.injEq] at hr
+    subst run
+    rfl
+
 end ZkFormal.NearV3.Render.UpsGen
