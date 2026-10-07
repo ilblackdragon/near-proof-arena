@@ -2,6 +2,19 @@
 
 Program lead's hand-over, 2026-10-07.
 
+**Concrete public binding checkpoint:** integration passes **1,272 jobs**.
+`Public.bindPrepared` derives all nine exact bus families, segment fit, body
+length and overhead reads from actual `prepD0` success. Header/source root widths
+and root-instance bounds are proved by `Assembly.PrepFacts`. Global public-size
+and overhead bounds remain explicit; the overhead's witness-size meaning is not
+yet derived. All 24 behavior checks and 31 public axiom guards pass. Source
+rendering is complete from `SrcpWf`, SHA contracts are linked to actual traffic,
+and all 76 upsert byte constraints are proved with concrete edit constructors
+progressing separately. Evidence: `docs/e2e-results/v3-packed-public/report.json`.
+Final semantic factoring, qv, full trace construction, actual size bound, prover,
+and judge remain open. Root is starting qv in `lane/v3-qvals`.
+
+
 **R1 public-segment protocol:** `PubSeg` now supports constant prefixes,
 verifier-generated record indices, and optional u32 payload offsets for compact
 packing. Fingerprint width counts generated fields; record-count bounds still
@@ -171,7 +184,7 @@ The target is `Holds_v2(prep cb h) ⇒ ∃ w, RelD0 cb w`. The assembly addition
 | hypothesis | where | discharge |
 |---|---|---|
 | bus ownership (`SchedOwn`, `ScanOwn`, `OpOwn`, `CodecValOwn`, `SparOwn`, `PubbOwn`, `InitOwn`, `SdlOwn`, `PubbRecv`, `ShaOwn`, `SdlxOwn`, trie bus ownership) | sched, trie | decide on the final assembled AIR (`decide +kernel`) |
-| `PubIdx` (public records = rendered prep records: SPAR, SPUBB, SDL, SRC, BND, body …) | sched, rcpt | R1 protocol and generic `pubIdx_of_segments` bridge are checked; concrete prepared-statement record bindings remain open. |
+| `PubIdx` (public records = rendered prep records: SPAR, SPUBB, SDL, SRC, BND, body …) | sched, rcpt | Concrete nine-segment `Public.bindPrepared` is checked from actual prepD0 success; global size/overhead meaning and final AIR assembly remain. |
 | `KindReg` (SHA kind separation; sched `ShaKind`, trie `othersId`/`othersU`) | sched, trie | per-table proofs from each view against the registry (design §12) at assembly. Trie TODO: restate `othersId` through `KindReg.avoid`. |
 | `SchedVal` | trie `upsV3_linkB` | `codec_schedVal` (sched) at assembly |
 | `KeynibOk` (key-nibble providers send only nibbles/END) | trie walks | rcpt `rcpt_keynib_syms` (provider side, proved) plus public walks at assembly |

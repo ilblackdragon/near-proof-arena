@@ -3,17 +3,18 @@
   "scope": "R2 concrete nine-segment packed public statement; no final succinct prover or admission",
   "integration": {
     "target": "ZkFormal.V3.Integration",
-    "jobs": 1259,
+    "jobs": 1272,
     "result": "pass",
     "includes": [
-      "Public.SchedulerIndex exact scheduler records from successful prepD0",
+      "Public.Bindings all nine families from actual prepD0",
+      "Assembly.Scheduler operational/public factoring",
       "Ups.GBytes all 76 conditional byte constraints",
-      "Srcp.LocalProof and TrafficProof complete honest source rendering"
+      "Srcp local/traffic completeness and SourceHashes SHA bridge"
     ]
   },
   "public_audit": {
     "behavior_guards": 24,
-    "axiom_guards": 24,
+    "axiom_guards": 31,
     "result": "pass",
     "allowed_axioms": [
       "propext",
@@ -26,12 +27,15 @@
     "u32 count/offset extraction and exact payload records",
     "nine static descriptors, all payload widths and overall-size-derived fit",
     "concrete PubIdx without assumed public record multiplicity",
-    "all scheduler byte ranges and four exact public record families derive from successful prepD0"
+    "all scheduler byte ranges and four exact public record families derive from successful prepD0",
+    "header/source root widths and K+1 index bound from actual prepD0",
+    "all nine exact public families and body/overhead header reads bundled by bindPrepared"
   ],
   "remaining": [
-    "successful preparation yields root widths, scheduler count, and source consistency",
-    "native witness-overhead derivation and header semantic binding",
+    "global encoded-statement size bound and actual witness-overhead derivation",
+    "source duplicate consistency tied to actual relation execution (lane lemmas exist)",
     "full AIR semantic factoring and honest construction",
+    "missing qv parser, actual assembled size proof",
     "actual succinct prover, final certificate and real judge"
   ],
   "archive": "/data/illia/nearproof-deps/validation/v3-packed-public-20261007",
@@ -40,14 +44,20 @@
     "bdcc753e",
     "800d61ed",
     "bae0985a",
-    "c1ce4d6f"
+    "c1ce4d6f",
+    "72f79746",
+    "0e9c7308",
+    "26be72bc"
   ],
   "air_commits": [
     "35f88374",
     "d82e75db",
     "d946b334",
     "7aba6ec8",
-    "94ec591e"
+    "94ec591e",
+    "00958a16",
+    "7f628f48",
+    "7edd3f8c"
   ],
   "pins": "make pin-check passes; frozen oracle/challenge unchanged"
 }
