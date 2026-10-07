@@ -7,6 +7,23 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `ca9e0b00`: `CombinedPrefixLocal.plan_prefix_all_constraints` proves
+EVERY table.allConstraints equation on EVERY generated physical walk-prefix row,
+including base parser overlay and interaction-bit constraints. Ordinary inputs:
+MainValues.Valid, PrefixCells, prefix≤height, public K binding, and first suffix
+row markers (act=0 or vf=1, walk=0) if suffix exists. No local-acceptance premise
+in the final prefix theorem; intermediate LocalCompose is only a grouping lemma.
+Target230 jobs;162 exact axiom guards+15 fixtures PASS. Logs
+`/tmp/nearproof-prefix-local.log`, `/tmp/nearproof-prefix-local-audit-final.log`.
+No root process. Next root: parser suffix local acceptance and physical wrap,
+then full combined trace+traffic. Do not equate full prefix with full table or
+end-to-end certificate. Cherry-picked root commit into shared AIR; last aggregate
+remains cb1e3577 (before this root checkpoint). Agent new pending commits:
+D2 25910b9b QueueSeed exact forestStoreViews ValE vid/bytes/tau membership;
+Ups ef048908,693d2dd0,1b8d5507 memory prerequisites; receipt69b2a074 actualV3
+canonicity. Their newest audits await next aggregate check.
+
+
 **Latest full AIR integration `cb1e3577`:1,758 jobs,39 audits,430 exact axiom
 guards+15 behavior checks PASS.** Report in shared AIR:
 `docs/e2e-results/v3-native-queue-integration/report.json`; external evidence
