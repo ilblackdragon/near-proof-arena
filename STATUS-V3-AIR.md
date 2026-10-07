@@ -1,3 +1,14 @@
+## Native traffic and log23 integration checkpoint (2026-10-07)
+
+Expanded integration target passes 1,531 jobs. Thirteen focused merged audits
+pass; exact guard counts and logs are in
+`docs/e2e-results/v3-native-traffic-log23-integration/report.json`.
+This covers native constructed witness size/preparation, scheduler forwarding
+bounds, per-part memory/carry bounds, canonical queue field traffic, physical
+source endpoint repair and the isolated log23 verifier/numerical candidate.
+Full AIR construction/extraction, cryptographic round proofs/admission, Rust
+prover, final certificate/judge and broader NEAR coverage remain open.
+
 # STATUS-V3-AIR: succinct v3 D0 prover (np-udr-stark-v2), program state at hand-over
 
 ## Full-header and queue-record integration (2026-10-07)

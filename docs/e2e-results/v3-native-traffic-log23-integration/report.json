@@ -1,0 +1,104 @@
+{
+  "status": "PASS",
+  "integration_jobs": 1531,
+  "audits": 13,
+  "axiom_guards": 141,
+  "behavior_guards": 6,
+  "theorem_examples": 12,
+  "source_head_before_integration_commit": "c44fbd87da4ea4ba1cc048fe292b99ae522f2a14",
+  "evidence": "/data/illia/nearproof-deps/validation/v3-native-traffic-log23-20261007",
+  "scope": "Partial proof integration including native construction, source partition endpoint repair, canonical queue parser traffic and isolated log23 candidate. Not end-to-end succinct proving or admission.",
+  "checks": [
+    {
+      "file": "test/QvRecordCandidate.lean",
+      "exit_code": 0,
+      "axiom_guards": 35,
+      "behavior_guards": 6,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditSourcePartition.lean",
+      "exit_code": 0,
+      "axiom_guards": 49,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditSourceEndpoint.lean",
+      "exit_code": 0,
+      "axiom_guards": 0,
+      "behavior_guards": 0,
+      "theorem_examples": 4
+    },
+    {
+      "file": "test/AuditLog23Candidate.lean",
+      "exit_code": 0,
+      "axiom_guards": 21,
+      "behavior_guards": 0,
+      "theorem_examples": 8
+    },
+    {
+      "file": "test/AuditNativeWitnessSize.lean",
+      "exit_code": 0,
+      "axiom_guards": 5,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditPrepBodyComplete.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditForwardDemand.lean",
+      "exit_code": 0,
+      "axiom_guards": 10,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditForwardBytes.lean",
+      "exit_code": 0,
+      "axiom_guards": 4,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditMemGrowth.lean",
+      "exit_code": 0,
+      "axiom_guards": 4,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditMemGrowthParts.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditMemTotalBounds.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeMemoryInput.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeMemoryUp.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    }
+  ]
+}
