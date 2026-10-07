@@ -83,3 +83,11 @@ positive row counts and only their existing byte-size/count preconditions.
 with arbitrary unrelated next-record payload and explicit physical boundary
 flags. Seven permanent axiom guards pass in `test/QvRecordCandidate.lean`.
 Full list concatenation, read orchestration and capacity are still pending.
+
+`RecordConcat.recordsTrace_local` now proves all local constraints of the actual
+flat-mapped list of generated records, including cross-record transitions,
+empty lists, padding, and physical wraparound. Its only sizing premise is the
+explicit sum of generated row counts fitting the trace. That sum is proved
+exactly equal to the executable row-list length. The record audit now has ten
+axiom guards and three fixtures in each arithmetic model, including a rejected
+corrupted boundary marker. Global accepted-witness capacity is still open.
