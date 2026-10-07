@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root SupplierStreams CHECKED at AIR736a11fe: StartClosed permutation/append
+closure; actual acctV3Sends and akeySends startclosure; combined other parser,
+account and accesskey suppliers; selected_record_complete derives full filtered
+value-demand Perm for nonempty physical parserrecord using concrete supplier
+families. No caller supplierclosure hypothesis remains. Exact assembled Perm
+selected++otherstreams=valRecvs is still explicit and must follow wholephysical
+VBYTES extraction/bus composition. Target build+6 exact standard-axiom guards
+PASS (/tmp/nearproof-qv-supplier-streams.log,
+/tmp/nearproof-qv-supplier-streams-audit-checked.log). Next physical all-table
+parser byte decomposition, selection/remainder permutation, exact globalbalance,
+then complete value equality and mode semantics (emptyraw separate).
+Integrated upsc97c4877 as5eb4dc69: sourceCidBytes/nativeCidBase executable pcid
+from actual occurrence node layout, all positions equal actualglobalprovider
+NodeGen3.cidAt, no supplied column agreement. Target+7 exactguards PASS;
+/tmp/nearproof-source-cid-integrated{,-audit}.log. SelectedCH positions/preceding
+child IDs,clen/splitCount/windowsemantics remain. D2 UpsertShaJobs compiled,
+audit/commit pending agent report (native outputjobs/count≤404/IDseparation),
+not yet integrated. No root live process. Receipt KEYNIB marker/permutationwork
+ongoing. Latest aggregate83f4a8b7 older. Full certificate/admission/reference/
+prover/real judge and broader NEAR coverage remain incomplete.
+
+
 Root ParserStream CHECKED: physicalRecordBytes from actual combined recordrows;
 physical_record_id proves fixed vid; physical_record_start derives offset0 for
 nonzero logical length; physical_record_closed derives startclosure from any
