@@ -7,6 +7,7 @@ import ZkFormal.NearV3.Public.Boundary
 import ZkFormal.NearV3.Public.NatRecords
 import ZkFormal.NearV3.Public.Index
 import ZkFormal.NearV3.Public.SchedulerIndex
+import ZkFormal.NearV3.Public.Bindings
 
 open ZkFormal.NearV3.Public ZkFormal.V2 ZkFormal.Algebra
 
@@ -118,3 +119,24 @@ private def sources : List NearSpecV3.SrcList :=
 /-- info: 'ZkFormal.NearV3.Public.prepared_pubFit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Public.prepared_pubFit
+/-- info: 'ZkFormal.NearV3.Public.prep_root_index_lt' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prep_root_index_lt
+/-- info: 'ZkFormal.NearV3.Public.prepared_root_records' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_root_records
+/-- info: 'ZkFormal.NearV3.Public.prepared_receipt_index' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_receipt_index
+/-- info: 'ZkFormal.NearV3.Public.prepared_header' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_header
+/-- info: 'ZkFormal.NearV3.Public.prepared_body_count' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_body_count
+/-- info: 'ZkFormal.NearV3.Public.prepared_overhead_count' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_overhead_count
+/-- info: 'ZkFormal.NearV3.Public.bindPrepared' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.bindPrepared
