@@ -372,3 +372,16 @@ row encoding by `PrefixCells.of_append`. No local acceptance or balance premise
 is used. Target228 jobs and156 exact axiom guards+15 regressions pass. Full walk
 constraint composition, parser suffix acceptance, provider/global traffic and
 end-to-end extraction/certification remain.
+
+
+`CombinedLocalCompose` and `CombinedPrefixLocal` now prove every constraint in
+`CombinedTable.table.allConstraints` on every physical row of the generated
+native walk prefix, including parser overlay and interaction-bit constraints.
+The theorem derives row membership, neighboring cases, first/last boundaries
+and physical cyclic indexing. Its ordinary inputs are MainValues.Valid, generated
+prefix cells, prefix≤height, the public K binding, and first-suffix-row marker
+cells (act=0 or vf=1, walk=0) when a suffix exists. No local-acceptance premise
+remains in `plan_prefix_all_constraints`. The parser suffix itself, exact traffic
+ownership and arbitrary accepted-trace extraction still require composition.
+Target230 jobs and162 exact axiom guards+15 regressions pass. This is whole walk
+prefix local acceptance, not whole combined table or end-to-end certification.

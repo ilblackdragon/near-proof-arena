@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Qv.Candidates.CombinedPrefixLocal
 import ZkFormal.NearV3.Qv.Candidates.CombinedTraceNeighbors
 import ZkFormal.NearV3.Qv.Candidates.CombinedRowLayout
 import ZkFormal.NearV3.Qv.Candidates.CombinedPlanOrder
@@ -840,3 +841,33 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_trace_exit
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_row_all_constraints' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_row_all_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_first_row' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_first_row
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.PrefixCells.parser_marker' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.PrefixCells.parser_marker
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_prefix_first' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_prefix_first
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_prefix_parser_next' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_prefix_parser_next
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_prefix_all_constraints' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_prefix_all_constraints
