@@ -596,3 +596,8 @@ every present generated walk has the actual selected provider with equal tau,
 bytes and vid, and walk prefix counter strictly below provider total. This
 replaces total-equality use of `plan_provider` in future bus wiring. All3 guards
 pass; actual request Holds are discharged by existing native_queueInputs.
+
+`QueueProviderModes.plan_rank_provider_mode` adds exact physical mode-code
+agreement to corrected provider ownership: parser Record.mode equals Walk.mode,
+derived from actual main/missing namespace coherence and value-ordinal key
+uniqueness. All5 guards pass. No extra distinct-shard or mode assumption.
