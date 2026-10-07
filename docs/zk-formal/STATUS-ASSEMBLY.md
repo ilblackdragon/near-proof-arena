@@ -92,3 +92,31 @@ this cap cannot be silently assumed. Successful `prepClaim` / an honest hint,
 exact root/store/runtime view construction, AIR-to-`GoodV3`, source capacity,
 and global rendering remain separate obligations. This checkpoint is semantic
 sound factoring, not an admitted succinct replacement.
+
+## Nonexpanding transition-store construction
+
+`Assembly.StoreNormal` proves stable first-occurrence byte dedup preserves the
+actual native `storeGet` and every `partialTrie` computation, including stores
+with interleaved digest collisions. It does not use SHA injectivity. The native
+store is first-wins; the source receipt dictionary separately remains last-wins.
+
+`ExtV3.rawStore` retains the original linked record interpretation;
+`ExtV3.store` now serializes its stable byte dedup. `WitnessStore` proves exact
+native trie equality before/after that encoder normalization. This collapses
+both shared occurrence bytes and bytes serving as both a node and a value.
+All existing Assembly modules, including FactorSound, recompile unchanged.
+
+`normalStore_cost` charges the full vector encoding: four bytes for the vector
+count and four plus payload length for each entry. From the existing unconditional
+`StoreBuilt.built_spec` and occurrence `Found` lemmas, the deduplicated regenerated
+store costs no more than the original store. No `StoreDag`/A6 premise, distinct
+input digests, node/value separation, or desired size bound is assumed.
+`TreeStore.treeStoreViews` is an executable single-instance constructor using
+actual node/value view seeds; its native-store cost theorem composes these facts.
+Its non-hash root and modular value-ID capacity premises remain explicit.
+
+Seventeen transitive axiom guards and two collision-order regression guards pass
+in `test/AuditStoreNormal.lean`; the three FactorSound guards pass again with the
+normalized encoder. This closes the per-store duplication cost problem, not
+FactorComplete: multi-instance allocation, exact runtime reconstruction and
+actual decoder-to-canonical whole-witness size coverage remain to be proved.
