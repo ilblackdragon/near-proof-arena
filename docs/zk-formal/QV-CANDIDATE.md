@@ -398,3 +398,20 @@ row fit, and first-prefix parser marker/zero-mode cells; no local acceptance
 premise remains. The260-job target and167 exact axiom guards+15 regressions pass.
 The complete mixed trace constructor must still discharge these ordinary cell
 premises and combine suffix with prefix, then exact traffic and extraction.
+
+
+`CombinedTrace` supplies the executable mixedRows/mixedTrace constructor,
+record width37 and high-column-zero proofs, and exact prefix/suffix cell facts.
+`CombinedLocal.mixedTrace_local` now proves ALL combined constraints at EVERY
+physical row; `mixedTrace_table_local` packages standard field TableLocal.
+Ordinary inputs are MainValues.Valid, parser Record.Valid, row fit, supported
+log and public K binding. All boundary/generated-cell premises are discharged
+by construction. Target262 jobs and175 exact axiom guards+15 regressions pass.
+This closes whole combined local acceptance, not global traffic or extraction.
+
+Resolver correction discovered during separate bus composition: parser users
+is a provider's total count, but each walk users must be its prior-use ordinal.
+The initial queueForestResolve returned total count for every walk, so it cannot
+establish QVC chain balance. The allocator lane is correcting this; the local
+proof is generic in Resolve and the accepted-input capacity theorem remains
+valid. Do not treat prior exact count results as established physical bus balance.
