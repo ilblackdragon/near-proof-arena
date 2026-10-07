@@ -347,3 +347,10 @@ witness decoding and native selection membership, then closes exact decoding of
 the computed outgoing preparation body via the existing RefundCodec runtime
 proof. Four permanent axiom guards pass. This supplies prepBody's parser input
 without assuming refund shape or a separate output-count bound.
+
+`ForwardBytes` proves exact destination-wise conservation of remaining byte
+allowance plus consumed capped receipt sizes through actual tryForward/fold
+execution. The native fwdDemand guard follows when initial allowances are at
+most the PV86 grant bound4500000. Four guards pass. Connecting that initial
+bound to actual scheduler execution remains to be composed; it is not assumed
+as a completed native acceptance consequence.
