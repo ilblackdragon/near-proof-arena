@@ -9,6 +9,7 @@ import ZkFormal.NearV3.Qv.Candidates.CombinedWordTraffic
 import ZkFormal.NearV3.Qv.Candidates.CombinedWalkBase
 import ZkFormal.NearV3.Qv.Candidates.CombinedBoolean
 import ZkFormal.NearV3.Qv.Candidates.CombinedReadAlgebra
+import ZkFormal.NearV3.Qv.Candidates.CombinedKeyEndpoints
 
 namespace QvCombinedRegression
 open ZkFormal.NearV3.Qv.Candidates
@@ -445,3 +446,25 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.mode_equation
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.read_gate_mem' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.read_gate_mem
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.read_gate_constraints' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.read_gate_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.last_position_equation' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.last_position_equation
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.first_byte_equation' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.first_byte_equation
