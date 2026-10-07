@@ -7,6 +7,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root ParserView CHECKED: parser_chain_exists from TableLocal+extracted WalkChain
+handles active/inactive/exhausted suffix and yields physical-coordinate consecutive
+records, fit, valid segments and padding. parser_chain_lengths lifts exact empty/
+nonempty natural length semantics to all members. Target192 jobs+2 exact guards
+PASS (/tmp/nearproof-qv-parser-view.log,/tmp/nearproof-qv-parser-view-audit-checked.log).
+No root live process. Next mode-specific semantics and per-record parser QVC/
+VBYTES traffic, then provider-chain soundness. Last aggregate b7002160 older.
+Pending checked agent integrations: D2 source-list seed identity3ebdc6a8 and
+trace-local coherent occurrence IDs b8f3ce3c (strict tsize descent/Nodup,9guards),
+ups e6ec6714 physical prefix provider family+global use assignment preserving
+InstOk (7guards). Receipt6d183280 SREC whole-table traffic complete; only
+KEYNIB/DIGEST/FINAL/BND remain in receipt channel work. Full correctness certificate,
+admission/reference checker, prover/judge and general NEAR coverage still open.
+
+
 Root ParserStart/ParserSegments checked: every walk row is a parser-last marker;
 length-free next-record constraint holds across final walk boundary, so active
 suffix starts with vf. Shifted suffix SegFacts and complete active record list+
