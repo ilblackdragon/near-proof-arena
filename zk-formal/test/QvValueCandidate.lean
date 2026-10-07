@@ -1,3 +1,5 @@
+import ZkFormal.NearV3.Qv.Candidates.BufferHeaderRender
+import ZkFormal.NearV3.Qv.Candidates.BufferLocal
 import ZkFormal.NearV3.Qv.Candidates.BufferHeader
 import ZkFormal.NearV3.Qv.Candidates.BufferTrace
 import ZkFormal.NearV3.Qv.Candidates.RawRender
@@ -92,3 +94,27 @@ open NearSpec ZkFormal.NearV3.Qv ZkFormal.NearV3.Qv.Candidates.ValueGen
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.buffer_count_top_zero' depends on axioms: [propext] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.buffer_count_top_zero
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferTrace_header_prefix_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferTrace_header_prefix_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferTrace_header_end_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferTrace_header_end_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferTrace_header_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferTrace_header_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferGeneratedTrace_header_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferGeneratedTrace_header_local
