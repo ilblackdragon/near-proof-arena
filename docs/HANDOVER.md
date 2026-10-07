@@ -7,6 +7,36 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+**Newest aggregate: AIR integration passes 1,329 jobs**, adding the actual
+witness constructor and explicit GoodV3/Execution interfaces. Both factoring
+directions remain OPEN proposition types; they are not axioms or proved claims.
+The prior 1,323 checkpoint (`7c3e3997`) includes all 12 upsert byte constructors
+and exact queue semantics. Queue read-request work adds checked identifier and
+count bounds; current semantic audit has 11 behavior checks and 38 axiom guards.
+
+Root's isolated queue candidate is `fd20afa7` on `lane/v3-qvals`: a 37-column,
+97-constraint parser, kernel-checked static g2 shape `(37,3,6,3,22)` and degree4
+well-formedness. Eleven fixtures pass both integer and BabyBear evaluation.
+Read orchestration, general field extraction/honest renderer and actual row
+capacity remain open. Candidate bus63/QSH byte schema is isolated. See its
+`docs/zk-formal/QV-CANDIDATE.md`; active caps/parameters have not changed.
+
+Receipt candidate `d8e34347` now derives the deduplicated path bound directly
+from actual accepted raw witness bytes; `78037b64` derives source count≤1984
+from successful preprocessing. `ca8bcdff` adds repetition/root semantics for a
+low-width skip-repeated-source proposal; real validator source-loop extraction
+is active. Upsert now has unconditional runtime trace erasure and actual part
+plan, node encoding/root hash bridges, and nine runtime-to-ByteInput bridges;
+sparse branch bridges continue. Final all-constraint completeness remains open.
+
+The reference formal gate found an inadmissible proof-only Lean import in the
+model closure. D3 fixed the runtime/proof split at `2d8e3588`; 26 model modules,
+69 proof modules and 25 axiom guards pass. Fresh native reproducibility and
+hostile/formal gates are rerunning because the binary digest changes. Earlier
+native passes refer to the pre-split artifact. TTN has five passing fresh
+configurations and continues; no general succinct replacement exists yet.
+
+
 **Current checkpoint superseding the historical entries below:** AIR `c325f2e1`
 passes 1,272 integration jobs. Public `Bindings.bindPrepared` now derives all nine
 record families, root endpoints, header reads and fit from actual preprocessing
