@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Qv.Extract.WalkOrder
+import ZkFormal.NearV3.Qv.Extract.WalkChain
 
 /-- info: 'ZkFormal.NearV3.Qv.Extract.isBool' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
@@ -59,3 +59,19 @@ import ZkFormal.NearV3.Qv.Extract.WalkOrder
 /-- info: 'ZkFormal.NearV3.Qv.Extract.order_implicit_shape' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Extract.order_implicit_shape
+
+/-- info: 'ZkFormal.NearV3.Qv.Extract.adjacent_not_end' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Extract.adjacent_not_end
+/-- info: 'ZkFormal.NearV3.Qv.Extract.adjacent_order' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Extract.adjacent_order
+/-- info: 'ZkFormal.NearV3.Qv.Extract.walk_chain_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Extract.walk_chain_exists
+/-- info: 'ZkFormal.NearV3.Qv.Extract.WalkChain.final_end' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Extract.WalkChain.final_end
+/-- info: 'ZkFormal.NearV3.Qv.Extract.WalkChain.adjacent_not_end' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Extract.WalkChain.adjacent_not_end
