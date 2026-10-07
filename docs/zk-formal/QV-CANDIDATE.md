@@ -152,3 +152,11 @@ Extraction must derive exact walk lengths and implicit count using height<P,
 exclude detached QVC counter cycles, and connect FINAL to value-ID semantics.
 The static shape is now concrete; protocol admission and the 8 MiB end-to-end
 certificate are still open.
+
+`CombinedParser` now extracts original parser constraints on rows whose current
+and next walk flags are zero. More importantly, it derives all added read gates
+as zero from the combined local constraints whenever walk=0, then proves exact
+field-valued row traffic equality with the standalone parser. Combined audit
+now passes10 exact axiom guards and12 field fixtures. Physical wraparound,
+whole-prefix composition and honest walk construction still need their own
+proofs; this row-level transfer does not assume they have been established.
