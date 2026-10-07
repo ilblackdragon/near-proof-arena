@@ -2,6 +2,40 @@
 
 Handover note for the next agent. **Nothing is signed, registered or deployed for `near-chunk-v3`.**
 
+**Read-set reference checkpoint, 2026-10-07:** `2d9d4e58` wires the prover,
+Model and admission proof to a single logged execution plus exact read-set
+encoding. The complete proof stack (`e7ded6c6`) separately proves distinct-program
+control-flow simulation, serialized store restriction, byte idempotence and
+non-expansion; it does not mistake same-program `reads_restrict_eq` for
+re-encoding congruence. Twenty-five guarded axiom checks pass, including the
+wired local-emulation certificate. The 30 candidate-local logged modules have a
+namespace-only transform and per-file provenance from `77b844e0`; neither the
+trusted vendor nor the signed challenge changed. This remains a witness
+re-execution reference, **not a succinct state-transition proof**.
+
+Fresh native reproducibility, actual configured formal checking, public/held-out
+check-local and the worker's `values/inject-unread` / `codes/inject-unread` gates
+are in progress; no admission or full hostile pass is claimed yet. SDK check-local
+only runs generic mutations, so the actual worker mutators are a separate required
+gate. The first clean public native build has passed the large logged receipts
+proof under the 16 GiB cap. Runtime closure is 35 modules, built serially with two
+Lean threads. Evidence directory:
+`/data/illia/nearproof-deps/validation/v3-read-reference-20261007/`.
+
+`91f1043f` adds `formal-check --declared-tier`: configured D3a rendering verifies
+the exact frozen trusted tree (`8926b431`, digest `03fb64fd…`) and D4 fails closed.
+Fresh CLI/helper builds, the tier-renderer test and affected clippy checks pass.
+The vendor is only a trusted-module subset; the full frozen tree for configured
+checking is materialized in the evidence directory, not substituted or re-pinned.
+
+Fresh WASM/nearcore validation has passed (14,621 original/logged parity cases;
+14,610 in-domain independent nearcore comparisons, no disagreements). The 26-run
+fresh TTN suite remains active in
+`/data/illia/nearproof-deps/validation/v3-ttn-logged-20261007/`; three completed
+configurations have zero disagreements. Heavy o300 traces take about 47 minutes,
+so the suite may take many hours. `summary.json` records each completed run and
+all commands/digests; continue it rather than restarting.
+
 **Resumption, 2026-10-07 (recovery):** the `WasmRun.lean` proof repair now
 builds the full `nearspec-v3-check-logged` executable and D0a tier (195 jobs). The repair
 limits unfolding of `run`, uses `Nat.strongRecOn`, and retains the correct
@@ -16,12 +50,12 @@ All 115,284 D3 cases pass three-way comparison and exact verdict/reason
 comparison to the original checker. Original Lean and independent Python
 baselines were reused with validated case sets and recorded hashes; fresh logged
 outputs were measured. All 1,720 public D0/D1/D2/chunk fixture comparisons pass.
-Full D2 and D1-corpus results are recorded below; WASM/trie harnesses remain. Evidence and provenance:
+Full D2 and D1-corpus results are recorded below; fresh WASM validation has passed and TTN replay remains. Evidence and provenance:
 `docs/e2e-results/v3-logged-checker/report.json`. New driver
 `oracle/tools/check_logged.py` compares both verdict and reason, requires a
 result for every input, and rejects crashes/truncated/duplicate output. Its
 seven failure-handling unit tests pass. `make pin-check` passes. No live worker
-has been stopped. The reference still uses the old necessity verifier.
+has been stopped. The new reference checkpoint above supersedes the old necessity verifier.
 
 Reproduce the proof/build audit from `oracle/wasm-d3/lean` using the required
 `heavy` wrapper and CPU affinity:

@@ -17,6 +17,8 @@ set -euo pipefail
 
 ROOT="$(pwd)"
 export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-0}"
+export LEAN_NUM_THREADS=2
+export CARGO_BUILD_JOBS=2
 
 # ---- Rust prover ------------------------------------------------------------
 export CARGO_HOME="${HOME}/cargo-home"
