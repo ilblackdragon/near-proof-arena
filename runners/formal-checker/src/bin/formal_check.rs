@@ -19,6 +19,7 @@
 //!     --challenge-config runners/formal-checker/challenges/<name>.json \
 //!     (--trusted-store <ARENA_TRUSTED_TREES> | --repo-root <dir>) \
 //!     --public-digest <hex> --verifier-digest <hex> [--emit-expected out.lean]
+//!     [--declared-tier D3a]   # coverage-tiered challenges
 //! ```
 //! The trusted packages and templates come from the challenge's pinned
 //! trusted tree (`formal_spec.tree_digest`): `--trusted-store` copies it from
@@ -47,6 +48,7 @@ fn main() -> anyhow::Result<()> {
         (None, None, None, None, None, None);
     let mut trusted_store: Option<PathBuf> = None;
     let mut trusted_tree: Option<arena_types::Digest> = None;
+    let mut declared_tier = None;
     let mut work = std::env::temp_dir().join(format!("formal-check-{}", std::process::id()));
     let mut cache = toolchain::fc_home().join("ref-cache");
     while let Some(a) = args.next() {
@@ -66,6 +68,7 @@ fn main() -> anyhow::Result<()> {
             "--repo-root" => repo_root = Some(PathBuf::from(v()?)),
             "--trusted-store" => trusted_store = Some(PathBuf::from(v()?)),
             "--public-digest" => pub_d = Some(v()?),
+            "--declared-tier" => declared_tier = Some(v()?),
             "--verifier-digest" => ver_d = Some(v()?),
             "--emit-expected" => emit = Some(PathBuf::from(v()?)),
             "--cache" => cache = PathBuf::from(v()?),
@@ -138,7 +141,7 @@ fn main() -> anyhow::Result<()> {
                 _ => anyhow::bail!("give exactly one of --trusted-store or --repo-root"),
             };
             trusted_tree = Some(pin);
-            let inp = ExpectedInputs::from_definition(
+            let mut inp = ExpectedInputs::from_definition(
                 &def,
                 pub_d.ok_or_else(|| anyhow::anyhow!("--public-digest required"))?,
                 match (&route, ver_d) {
@@ -146,6 +149,7 @@ fn main() -> anyhow::Result<()> {
                     (_, d) => d.ok_or_else(|| anyhow::anyhow!("--verifier-digest required"))?,
                 },
             )?;
+            inp.declared_tier = declared_tier;
             trusted.extend(cfg.trusted_packages(&root));
             policy
                 .reserved_prefixes
