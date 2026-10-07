@@ -59,7 +59,6 @@
     "check_local_exit": 0
   },
   "pending": [
-    "post-split held-out actual worker mutations",
     "held-out SDK check-local",
     "independent lean4lean recursion failure and full configured formal rerun"
   ],
@@ -303,6 +302,46 @@
         "Classical.choice",
         "Quot.sound"
       ]
+    },
+    "heldout_strict": {
+      "status": "pass",
+      "positive_cases": 208,
+      "rejection_cases": 64,
+      "proof_bytes_max": 122776,
+      "mutations": {
+        "status": "pass",
+        "honest_cases": 208,
+        "mutants": 1433,
+        "counts": {
+          "codes/duplicate": 47,
+          "codes/inject-unread": 3,
+          "codes/inject-unused": 47,
+          "codes/reorder": 11,
+          "entries/duplicate-key": 208,
+          "entries/reorder": 208,
+          "values/duplicate.implicit0": 26,
+          "values/duplicate.implicit1": 2,
+          "values/duplicate.main": 208,
+          "values/inject-unread.implicit0": 18,
+          "values/inject-unread.implicit1": 1,
+          "values/inject-unread.main": 182,
+          "values/inject-unused.implicit0": 26,
+          "values/inject-unused.implicit1": 2,
+          "values/inject-unused.main": 208,
+          "values/reorder.implicit0": 26,
+          "values/reorder.implicit1": 2,
+          "values/reorder.main": 208
+        },
+        "values_inject_unread": 201,
+        "codes_inject_unread": 3,
+        "verifier_sha256": "f661d7b84e09ea341b255d0a351d1015bdf942011e8e3cc11640ecb18489f862",
+        "mutators_source_sha256": "cbea667ae2ab9b7bd7530c654830d5b2c0044e71a142e10a16b23b105f55539e",
+        "harness_source_sha256": "d267244644fa6653eaa823fa989c85af832dfee6c4c219ff32ba3da515237d8c",
+        "jobs": 4,
+        "seconds": 126.065820992
+      },
+      "seconds": 160.9008375662379,
+      "inputs_sha256": "7a54e159ab86c162385a10bd9406b1b3658f94868100ff003f07c9c2dac4ed2a"
     }
   }
 }
