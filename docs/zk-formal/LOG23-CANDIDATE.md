@@ -31,3 +31,9 @@ composition; actual bus multiplicity and fingerprint bounds; RBR and ROM
 soundness; actual verifier/prover query counts; honest completeness; proof-byte
 accounting and admission of the complete AIR. No frozen protocol or challenge
 pin is changed. The candidate is not a replacement certificate.
+
+`QueryBound` now proves schedule shape, slot/oracle/depth bounds and the actual
+compiled verifier unit-query bound `NVu` using the candidate header. It does not
+assume that log23 headers pass the deployed log22 verifier. Candidate audit now
+has26 exact axiom guards plus the eight boundary regressions. The concrete AIR
+still needs its `NVu≤2^30` instance and all RBR/ROM obligations above.

@@ -1,6 +1,7 @@
 import ZkFormal.V2.Log23.Budget
 import ZkFormal.V2.Log23.Verifier
 import ZkFormal.V2.Log23.TransportBudget
+import ZkFormal.V2.Log23.QueryBound
 
 /-- info: 'ZkFormal.V2.Log23.tableWf_22' depends on axioms: [propext] -/
 #guard_msgs in
@@ -67,3 +68,19 @@ end Log23Regression
 /-- info: 'ZkFormal.V2.Log23.full_transport_budget' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.V2.Log23.full_transport_budget
+
+/-- info: 'ZkFormal.V2.Log23.schedule_bound' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.V2.Log23.schedule_bound
+/-- info: 'ZkFormal.V2.Log23.oracles_bound' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.V2.Log23.oracles_bound
+/-- info: 'ZkFormal.V2.Log23.schedule_ok' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.V2.Log23.schedule_ok
+/-- info: 'ZkFormal.V2.Log23.iop_bounds' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.V2.Log23.iop_bounds
+/-- info: 'ZkFormal.V2.Log23.verifier_query_bound' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.V2.Log23.verifier_query_bound
