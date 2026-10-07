@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Rcpt.Extract.Srcp.SizeTraffic
+import ZkFormal.NearV3.Rcpt.Extract.Srcp.LeafUnit
 import ZkFormal.NearV3.Rcpt.Link.SourceHash
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 
@@ -95,3 +95,23 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.srcp_verifyReceiptProof' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.srcp_verifyReceiptProof
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.list_counter_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.list_counter_bound
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.list_id_lt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.list_id_lt
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.list_j_succ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.list_j_succ
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.leaf_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.leaf_traffic
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.root_leaf_unit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.root_leaf_unit
