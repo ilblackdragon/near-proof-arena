@@ -35,13 +35,11 @@ Remaining semantic work:
   then obtain native `< 2^24` demand guards from the existing scheduler bound.
 - Lift the existing refund codec theorem through decoded source receipts so the
   native body's refund list equals execution's outgoing stream.
-- Build concrete extracted witness semantics / encoder coherence for the reverse
-  direction. `ExtV3`, `GoodV3`, `witnessOfV3`, `FactorSoundStmt` and
-  `FactorCompleteStmt` are design interfaces, not implemented declarations in this
-  snapshot. Existing per-table semantics must be connected without adding them as
-  unsupported assumptions.
-- Equal source keys implying equal roots needs an explicit connection to hash
-  binding / collision events; do not silently assume SHA-256 injectivity.
+- Construct extracted views from accepted raw witnesses, preserving authenticated
+  stores, source dictionaries and exact execution. The executable `ExtV3` /
+  `witnessOfV3` and semantic `GoodV3` interfaces are implemented below.
+- Derive `GoodV3` from the checked AIR tables, including store/root coherence and
+  the actual main and implicit execution semantics.
 
 The D3 logged read-set reference is a separate worktree and validation lane. Its
 native/worker/formal checks do not discharge any succinct proof admission gap.
@@ -65,9 +63,32 @@ It contains no `checkD0` or `RelD0a` field. It proves decoding of reconstructed
 bytes and all five frozen D0a amendments. Modular elaboration and four transitive
 axiom audits pass (only `propext`, `Classical.choice`, `Quot.sound`).
 
-`FactorSound` and `FactorComplete` are explicitly OPEN proposition definitions.
-They are not axioms, theorem wrappers, AIR soundness, rendering or row-capacity
-claims. Remaining work includes the native check/preprocessing decomposition,
-extracting source selection from successful native loops, exact root/store and
-runtime view construction, and deriving each `GoodV3` field from AIR semantics.
-The global source row-capacity redesign remains a separate candidate obligation.
+`Assembly.FactorSound.factorSound` now proves the actual `FactorSound` statement:
+`GoodV3` implies the unchanged `checkD0a` accepts the concrete encoded
+`witnessOfV3`. It composes actual decoder round trips, `prepD0_guards`, exact
+source-loop execution, main execution, implicit-loop execution, endorsed header
+comparisons and all five amendments. No checker-success field or equivalence
+premise was added to `GoodV3`. All three new transitive axiom audits pass using
+only `propext`, `Classical.choice`, and `Quot.sound`.
+
+Supporting checked modules now include:
+
+- `ClaimFacts`: native preprocessing supplies all claim and chain-prefix guards.
+- `PreparedSources`: actual preprocessing's source lists equal the candidate's
+  exact nested-loop/shuffle computation.
+- `SourceComplete`: authenticated source selection and successful shuffles yield
+  the exact native applied receipts and source occurrence count.
+- `ImplicitComplete`: the chronological semantic run yields the exact native
+  zipped implicit-transition loop.
+- `SourceResult`: successful native checking implies the actual applied receipt
+  IDs are pairwise distinct. Receipt candidate modules consume this fact to
+  derive repeated-key empty lists, including the first occurrence.
+
+`FactorComplete` remains OPEN. The occurrence-tree view allocator reconstructs
+the original trie but may expand a compact shared store. For arbitrary `B`, the
+unfolded-byte A7 bound does not imply the reconstructed encoded witness is at
+most 8 MiB. Original-record reuse or a proved nonexpanding allocation is required;
+this cap cannot be silently assumed. Successful `prepClaim` / an honest hint,
+exact root/store/runtime view construction, AIR-to-`GoodV3`, source capacity,
+and global rendering remain separate obligations. This checkpoint is semantic
+sound factoring, not an admitted succinct replacement.
