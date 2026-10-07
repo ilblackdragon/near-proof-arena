@@ -723,3 +723,10 @@ consumed child's concrete nid/vid/depth and exact global segment. It counts all
 preceding sibling occurrences and does not assume a `PTrie → Nat` provider map.
 Four guards pass. Full trace address allocation and physical provider traffic
 remain to be composed from these steps.
+
+`ResolvedAddress` connects empty-extension resolution to actual allocated
+positions and global segments. Its node ID equals the existing seeded
+`viewTarget` when the resolved target is revealed; actual known-key lookups
+imply that revelation. Resolution preserves native lookup exactly. This closes
+the immediate interface between write-key knowledge and allocated walk targets,
+without assuming a globally injective structural ID map. Five audit guards.
