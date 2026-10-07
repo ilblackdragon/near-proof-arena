@@ -14,3 +14,9 @@ import ZkFormal.NearV3.Render.Ups.MemValueScalars
 /-- info: 'ZkFormal.NearV3.Render.UpsGen.rbv_memory_scalar' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.UpsGen.rbv_memory_scalar
+/-- info: 'ZkFormal.NearV3.Render.UpsGen.encoded_source_memory' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.UpsGen.encoded_source_memory
+/-- info: 'ZkFormal.NearV3.Render.UpsGen.encoded_source_memory_exact' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.UpsGen.encoded_source_memory_exact

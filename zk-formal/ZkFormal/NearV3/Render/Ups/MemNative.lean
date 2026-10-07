@@ -40,4 +40,54 @@ theorem source_memory_scalar (Q : UpsPartI) (frontBytes : List Nat) (m : Nat)
   have hf := funext (memRb_suffix Q frontBytes _ he hl)
   rw [hf,pfx_byte_list _ hb (by omega),u64_memory_decode]
   omega
+/-- Every revealed native node ends with its memory serializer. -/
+theorem nodeEnc_memory_suffix (t : PTrie) (hn : isNode t=true) :
+    ∃ frontBytes, (nodeEnc t).map UInt8.toNat=frontBytes++(u64 t.memD).map UInt8.toNat := by
+  cases t with
+  | hash => simp [isNode] at hn
+  | leaf key value mem =>
+    refine ⟨([0] ++ u32 (hexPrefix key true).length ++ hexPrefix key true ++ value.valueRef).map UInt8.toNat,?_⟩
+    simp [nodeEnc,PTrie.memD,PTrie.mem?,List.map_append]
+  | ext key child mem =>
+    refine ⟨([3] ++ u32 (hexPrefix key false).length ++ hexPrefix key false ++ child.hashOf).map UInt8.toNat,?_⟩
+    simp [nodeEnc,PTrie.memD,PTrie.mem?,List.map_append]
+  | branch value kids mem =>
+    cases value with
+    | none =>
+      refine ⟨([1] ++ u16 (kidsBitmap kids 0) ++ kids.hashes).map UInt8.toNat,?_⟩
+      simp [nodeEnc,PTrie.memD,PTrie.mem?,List.map_append]
+    | some value =>
+      refine ⟨([2] ++ value.valueRef ++ u16 (kidsBitmap kids 0) ++ kids.hashes).map UInt8.toNat,?_⟩
+      simp [nodeEnc,PTrie.memD,PTrie.mem?,List.map_append]
+
+/-- The encoded actual source supplies its memory operand directly. -/
+theorem encoded_source_memory {base Q : UpsPartI} {part : TreePart}
+    (he : encodeTreePart base part=some Q) (hw : part.source.wf=true) :
+    pfx (memRb Q) 8=(part.source.memD%256^8:Int) := by
+  unfold encodeTreePart at he
+  cases hs : treeNode part.source with
+  | none => simp [hs] at he
+  | some src =>
+    cases hd : treeNode part.output with
+    | none => simp [hs,hd] at he
+    | some dst =>
+      simp [hs,hd] at he
+      subst Q
+      have hn : isNode part.source=true := by
+        cases h : part.source <;> simp_all [treeNode,isNode]
+      obtain ⟨frontBytes,hfront⟩ := nodeEnc_memory_suffix part.source hn
+      apply source_memory_scalar _ frontBytes
+      exact (treeNode_ser hw hs true).trans hfront
+
+theorem source_memory_bound (t : PTrie) (hw : t.wf=true) : t.memD<256^8 := by
+  cases t <;> simp_all [PTrie.wf,PTrie.memD,PTrie.mem?]
+
+/-- Only the original source needs the bound guaranteed by native well-formedness. -/
+theorem encoded_source_memory_exact {base Q : UpsPartI} {part : TreePart}
+    (he : encodeTreePart base part=some Q) (hw : part.source.wf=true) :
+    pfx (memRb Q) 8=(part.source.memD:Int) := by
+  rw [encoded_source_memory he hw]
+  have hb := source_memory_bound part.source hw
+  omega
+
 end ZkFormal.NearV3.Render.UpsGen
