@@ -12,7 +12,7 @@ namespace UpsGen
 def cByteEditPositions : List Expr := (UpsV3.cBytes.drop 61).take 3
 
 theorem byte_edit_positions_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
-    (e : SourceLayout Q) (f : FieldsOk Q) (hp : p < Q.q.length)
+    (e : Q.kind ∈ [0,1,2,3,4,5,11] → SourceLayout Q) (f : FieldsOk Q) (hp : p < Q.q.length)
     {C D P : Nat → Int} {fst lst trn : Int}
     (hC : ∀ x, x < 187 → C x = QC I Q k p
       (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1
@@ -26,19 +26,19 @@ theorem byte_edit_positions_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
   simp only [List.mem_cons,List.not_mem_nil,or_false] at hex
   rcases hex with rfl | rfl | rfl <;> apply cast0 <;> ups_ev [hC] <;> cellsimp
   · by_cases hk : Q.kind ∈ [0,1,2,3,11]
-    · exact gate_sub_eq (e.preserved_position f hp hk)
+    · exact gate_sub_eq ((e (by simp only [List.mem_cons,List.not_mem_nil,or_false] at hk ⊢; omega)).preserved_position f hp hk)
     · simp only [List.mem_cons,List.not_mem_nil,or_false,not_or] at hk
       simp [ind,hk.1,hk.2.1,hk.2.2.1,hk.2.2.2.1,hk.2.2.2.2]
   · by_cases hk : Q.kind=4
-    · simpa only [Lean.Omega.Int.natCast_ofNat] using gate_sub_eq (g := rdV I Q (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1 (fieldAt Q.shape p).2.2.2 * ind (Q.kind=4)) (e.value_position (I:=I) f hp hk)
+    · simpa only [Lean.Omega.Int.natCast_ofNat] using gate_sub_eq (g := rdV I Q (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1 (fieldAt Q.shape p).2.2.2 * ind (Q.kind=4)) ((e (by simp [hk])).value_position (I:=I) f hp hk)
     · simp [ind,hk]
   · by_cases hk : Q.kind=5
-    · simpa only [Lean.Omega.Int.natCast_ofNat] using gate_sub_eq (g := rdV I Q (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1 (fieldAt Q.shape p).2.2.2 * ind (Q.kind=5)) (e.child_position (I:=I) f hp hk)
+    · simpa only [Lean.Omega.Int.natCast_ofNat] using gate_sub_eq (g := rdV I Q (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1 (fieldAt Q.shape p).2.2.2 * ind (Q.kind=5)) ((e (by simp [hk])).child_position (I:=I) f hp hk)
     · simp [ind,hk]
 
 /-- Read positions follow the source node's actual serializer-field edit. -/
 theorem cByteEditPositions_ok {insts : List UpsInst} (ok : UpsOk insts)
-    (he : ∀ I ∈ insts, ∀ k, k < nQ I → SourceLayout (part I k))
+    (he : ∀ I ∈ insts, ∀ k, k < nQ I → (part I k).kind ∈ [0,1,2,3,4,5,11] → SourceLayout (part I k))
     (hf : ∀ I ∈ insts, ∀ k, k < nQ I → FieldsOk (part I k))
     {H : Nat} (hH : R insts + 1 ≤ H) : GroupOk insts H cByteEditPositions := by
   apply groupOk_by ok hH (fun e he => by
