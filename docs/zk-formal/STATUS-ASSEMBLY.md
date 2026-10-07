@@ -197,3 +197,12 @@ combined `forestStoreViews_records` theorem requires ordinary tree wf and a
 visible total value-ID capacity bound. It does not assume successful AIR checks.
 Ten transitive axiom guards pass. Forest-wide Seg/fullTree/store reconstruction
 and deriving native capacity remain open.
+
+`ForestStore` now lifts the actual offset `TreeRecs.Seg` reconstruction proofs
+to all global forest records. `forestStoreViews_store` gives exactly
+`normalStore t` at every allocated instance, and `forestStoreViews_native_store`
+combines exact native partial-trie replay with encoded store-cost preservation.
+Ten more axiom guards pass. The constructor still visibly needs ordinary wf
+for each tree and total value-ID capacity; it assumes no store equality, AIR
+acceptance, or desired cost bound. Native instance extraction, capacity, heads,
+receipts/dictionary correspondence and full GoodV3 assembly remain.
