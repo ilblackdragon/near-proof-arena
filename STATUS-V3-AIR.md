@@ -1,6 +1,18 @@
 ## Combined queue and source extraction checkpoint (2026-10-07)
 
 
+Latest aggregate (2026-10-07):1,663 jobs and13 selected audits PASS;
+182 exact axiom guards,15 behavior guards and7 theorem examples. Report:
+`docs/e2e-results/v3-word-native-integration/report.json`.
+Queue traffic now composes over full native words on KEYNIB/FINAL/QVC/QSH.
+Native Good construction isolates original A7 as the remaining semantic premise;
+it is not FactorComplete. Source SHA and candidate SRC34 public binding/reuse
+are imported; receipt-byte linkage/no-wrap and explicit candidate public assembly
+remain. Update count/kind/depth/descent allocator proofs are imported. Generic
+queue local constraints, complete AIR assembly, ownership, protocol admission,
+prover and real judge validation remain open.
+
+
 Latest focused checkpoint (2026-10-07): source791f879f passes823 dependency jobs
 and8 audits:84 exact axiom guards and15 field regressions. Report:
 `docs/e2e-results/v3-walk-shape-integration/report.json`.

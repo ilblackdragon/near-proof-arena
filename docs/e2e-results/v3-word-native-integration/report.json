@@ -1,0 +1,113 @@
+{
+  "status": "PASS",
+  "source_head_before_checkpoint": "5959f0a92989f2fae5ecae2cddb505c22ec3f513",
+  "build_target": "ZkFormal.V3.Integration",
+  "build_jobs": 1663,
+  "audits": [
+    {
+      "file": "test/QvCombinedCandidate.lean",
+      "exit_code": 0,
+      "axiom_guards": 57,
+      "behavior_guards": 15,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeShape.lean",
+      "exit_code": 0,
+      "axiom_guards": 12,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditCanonicalReplay.lean",
+      "exit_code": 0,
+      "axiom_guards": 9,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditNativeGoodGap.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreePlanDepth.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditPlanAllocation.lean",
+      "exit_code": 0,
+      "axiom_guards": 2,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditDescentAllocation.lean",
+      "exit_code": 0,
+      "axiom_guards": 5,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTerminalDescent.lean",
+      "exit_code": 0,
+      "axiom_guards": 1,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditDedupSourcePublic.lean",
+      "exit_code": 0,
+      "axiom_guards": 26,
+      "behavior_guards": 0,
+      "theorem_examples": 7
+    },
+    {
+      "file": "test/AuditDedupSourceSha.lean",
+      "exit_code": 0,
+      "axiom_guards": 30,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditDedupExtractProof.lean",
+      "exit_code": 0,
+      "axiom_guards": 20,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditTreeEncodedBounds.lean",
+      "exit_code": 0,
+      "axiom_guards": 3,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    },
+    {
+      "file": "test/AuditDecodedWitnessShape.lean",
+      "exit_code": 0,
+      "axiom_guards": 13,
+      "behavior_guards": 0,
+      "theorem_examples": 0
+    }
+  ],
+  "axiom_guards": 182,
+  "behavior_guards": 15,
+  "theorem_examples": 7,
+  "external_logs": "/data/illia/nearproof-deps/validation/v3-word-native-20261007",
+  "scope": "Full AIR import integration plus thirteen selected audits; no protocol admission, complete prover or judge validation claim",
+  "remaining": [
+    "Generic combined queue local constraints and plan composition",
+    "Native ownership and global bus balance",
+    "Original A7 bound for normalized witness",
+    "Source receipt byte linkage and global no-wrap",
+    "Protocol security and byte-cap certificate",
+    "Succinct prover, mandatory reference admission and real judge validation",
+    "Broader NEAR coverage beyond D0a"
+  ]
+}
