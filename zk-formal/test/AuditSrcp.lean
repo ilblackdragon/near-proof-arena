@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Rcpt.Extract.Srcp.BlockTraffic
+import ZkFormal.NearV3.Rcpt.Extract.Srcp.Proof
 import ZkFormal.NearV3.Rcpt.Link.SourceHash
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 
@@ -147,3 +147,23 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.SrcpProof.block_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.SrcpProof.block_traffic
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.block_size' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.block_size
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.blocks_from' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.blocks_from
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.BlockChain.wf' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.BlockChain.wf
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.BlockChain.table_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.BlockChain.table_traffic
+
+/-- info: 'ZkFormal.NearV3.srcp_view' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.srcp_view
