@@ -894,3 +894,10 @@ its equality-enabled access-key result, with exact global walk IDs and concrete
 record/flag values. The two physical message rows are disjoint; all other rows,
 headers, and padding are silent. Thirteen exact guards pass. Only KEYNIB and
 DIGEST remain for whole-table receipt traffic extraction.
+
+The `DigestTraffic*` series closes both B_DIGEST directions. Physical lookup
+starts are exactly optional refund-ID and unconditional partial-outcome digest
+fields. Loaded digest registers equal their 32 reconstructed bytes; active end
+constraints fix message IDs and input lengths (48 or 37+32*hr+receiver length).
+All other receipt rows, headers, and padding are silent. Twenty exact guards
+pass. KEYNIB is now the only remaining whole-table receipt traffic channel.
