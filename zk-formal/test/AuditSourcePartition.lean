@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionCompile
 import ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTraffic
 import ZkFormal.NearV3.Rcpt.Candidates.DedupCarry
 import ZkFormal.NearV3.Rcpt.Candidates.SourceCurrentSize
@@ -123,3 +124,77 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceCurrentSize
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.qvParserShape_eq' depends on axioms: [propext] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.qvParserShape_eq
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_of_zero_first' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_of_zero_first
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_of_not_last' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_of_not_last
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_last' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_last
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.base_mult_bits' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.base_mult_bits
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_mult_bits' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_mult_bits
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_mult_bits' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_mult_bits
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_rows' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_rows
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_rows' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_rows
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_field_constraints' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_field_constraints
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_field_constraints' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_field_constraints
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.left_local
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupPartitionTable.right_local
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_partition_padding' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_partition_padding
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_partition_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.DedupCompile.relD0a_partition_local

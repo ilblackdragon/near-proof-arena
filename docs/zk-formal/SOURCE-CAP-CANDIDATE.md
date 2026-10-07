@@ -309,7 +309,7 @@ sides emit none on64. Ideal carry-bus balance for this pair forces equality of t
 complete57-field tuple, hence all57 individual row cells. This is a conditional
 soundness lemma using exact bus counts, not a fixture comparison. Global assembly
 must still prove every other table/public segment is absent from64 and obtain that
-ideal balance from the existing cryptographic bus theorem. Full partition local legality remains open.
+ideal balance from the existing cryptographic bus theorem. Full partition local legality is now checked below.
 
 `DedupPartitionTraffic.pair_messages` and `pair_counts` now prove that the two
 actual partition tables jointly emit exactly the logical renderer traffic on every
@@ -343,7 +343,7 @@ duplicate), terminal-to-padding transitions, physical terminal segments, and pad
 These supplement the existing duplicate-header cases. `DedupAdjacency.adjAt`
 (the theorem is in the DedupRender namespace) proves the exact candidate descriptor
 succession, and `DedupRender.mult_bits` proves actual field-valued multiplicity bits.
-Whole logical-renderer composition is now checked below; physical partition TableLocal remains open.
+Whole logical-renderer composition is now checked below; physical partition TableLocal is now checked below.
 
 Physical terminal segments need cyclic successor `sg=0`: several inherited segment
 successor polynomials are not gated by `isTransition`. The logical trace wraps to
@@ -360,7 +360,21 @@ its actual-input constructor proves each field. No AIR-satisfaction premise, old
 SrcpWf cap, or new path-depth premise is assumed. The proof covers all physical
 endpoints, internal/cross-source transitions, terminal SIZE, arbitrary padding, and
 field-valued multiplicity bits. Its log24 bound is an intermediate logical trace,
-not an admitted deployed table. Actual deployment still needs the overlapping
-log23 partition TableLocal proof, candidate extraction/soundness, final integrated
+not an admitted deployed table. Actual deployment still needs candidate extraction/soundness, final integrated
 bus disjointness/security, and the separate protocol admission family. The source AIR
 audit now checks77 transitive axiom closures and seven fixtures.
+
+`DedupCompile.relD0a_partition_local` now proves actual accepted input renders
+into **both physical log23 source tables** with all local constraints and
+multiplicity bits, from their concrete cell bindings. The only partition row
+condition, `R ≤ 2*2^23−2`, follows from the existing16,334,272-row bound; it
+ensures right-endpoint padding. Left constraints are suppressed only on the
+carried endpoint, preserving the preceding transition; the right first row omits
+exactly four global-first equations. A syntactic theorem checks every remaining
+right expression is independent of `isFirst` and is an original constraint or
+zero. Carry send/receive multiplicities are bits on every physical row. Together
+with the already checked exact five-bus traffic and full-row carry equality, this
+closes renderer local completeness for the physical source pair. The partition
+audit now checks41 transitive axiom closures (standard Lean axioms only). Frozen
+maxLog22 admission is unchanged: the separate candidate protocol family, source
+extraction, and integrated bus security remain explicit obligations.
