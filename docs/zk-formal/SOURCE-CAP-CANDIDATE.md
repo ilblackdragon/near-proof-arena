@@ -663,3 +663,12 @@ The `nj` field equation needs no byte-range premise; only its stronger natural
 interpretation does. Seven exact axiom guards pass. BYTES and RCL are now both
 complete semantic table-traffic channels; other receipt channels and full Wf
 remain outstanding.
+
+`ReceiptShape` and `ReceiptCanon` establish the active V3 structural receipt
+facts: every required vector length, the five canonical small lookup values,
+post-balance byte range from the actual V3 boolean bit columns, all inherited raw
+vectors, and all routing metadata including natural positions. Consequently the
+entire concrete table-view `canon` field is proved. Eight exact axiom guards
+pass. The proofs use actual V3 constraints; no V1 table-local premise is assumed.
+Account validity, system/refund arithmetic, equality tests, and routing order
+semantics remain outstanding semantic Wf obligations.
