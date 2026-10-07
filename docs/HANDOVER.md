@@ -7,6 +7,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `1f001da8`: six main/implicit metadata field equations, last-main count,
+end-main and absent-buffer count equations derived from generated plan membership.
+Subtraction slot−2 is justified by the derived slot≥2 bound. Target218 jobs and
+QV91 exact axiom guards+15 fixtures PASS. Evidence:
+`/tmp/nearproof-metadata-equations.log`,
+`/tmp/nearproof-metadata-equations-audit-final.log`.
+Next root: physical endpoints and between-word transition equations, then full
+local/trace composition. No active root build. Ups4e3c94f8 closes full encoded
+native PartOk from actual trace+ByteInput; whole instance/store IDs remain open.
+Receipt15274448 closes unique terminal le and global header j; whole-table RCL
+composition and full receipt semantics remain. New agent checkpoints await joint
+integration; full proof goal remains incomplete.
+
+
 Root QV `2a746890`: last-main count/type/source facts, implicit kind/slot,
 final tau=K and absent-buffer count0 derived from actual native plan membership;
 actual AIR public termination equation proved using existing public K binding.
