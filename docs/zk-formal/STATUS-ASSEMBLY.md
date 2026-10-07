@@ -730,3 +730,9 @@ positions and global segments. Its node ID equals the existing seeded
 imply that revelation. Resolution preserves native lookup exactly. This closes
 the immediate interface between write-key knowledge and allocated walk targets,
 without assuming a globally injective structural ID map. Five audit guards.
+
+`ViewSegment.forest_located_seed` strengthens record correspondence to **exact
+NodeS3 equality** at the concrete forest address, with the existing seed's actual
+child IDs, value ID, depth, and empty-extension target. No wf/capacity premise is
+needed for this structural allocation identity. Ten audit guards pass. Uses,
+post-write windows, uniqueness flags and final AIR provider counts remain seeds.
