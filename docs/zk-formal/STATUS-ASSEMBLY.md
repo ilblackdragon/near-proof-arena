@@ -315,3 +315,11 @@ final root, and `NativeHeaderV3.prepared` populates HeaderSemanticsV3 once the
 concrete preparation body's equality is supplied. Four permanent axiom guards
 pass. Preparation existence and its body equality remain explicit obligations;
 no header comparison is supplied as an assumption of native extraction.
+
+`NativeWitnessFields` now recovers the actual decoded raw witness, native8MiB
+bound, epoch/header-byte equalities, and applied-receipt hash from accepted
+checkD0 bytes. `DecodedTransitions` derives both transition hash widths for main
+and every implicit transition directly from decoding. Three permanent guards
+pass. These facts support composition of the concrete forest constructor with
+the existing nonexpanding whole-witness encoding theorem; that final size
+composition remains the next task.
