@@ -737,3 +737,12 @@ RouteOk, the already-reconstructed global receipt counter/canonicity, and byte
 bounds on the entering token state. Routing is the sole unextracted per-receipt
 field; propagating entering token bytes through all lists is a separate table
 assembly obligation. Both exact transitive axiom guards pass.
+
+`RouteRows` and `RoutePrefix` close the exact routing positions and length
+fields: physical receiver-plus-end-marker rows, actual prefix-flag updates,
+boolean-union lookup gate, mandatory first lookup, and no reopening after a
+lookup stops. The concrete optional-record list projects to precisely
+`range rlk.length`, with length between one and receiver length plus one.
+Fourteen exact axiom guards pass. RouteOk.sem (natural byte comparisons and
+lexicographic interval semantics) remains open; no semantic interval premise is
+hidden in these structural routing proofs.
