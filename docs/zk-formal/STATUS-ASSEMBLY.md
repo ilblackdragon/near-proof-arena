@@ -323,3 +323,16 @@ and every implicit transition directly from decoding. Three permanent guards
 pass. These facts support composition of the concrete forest constructor with
 the existing nonexpanding whole-witness encoding theorem; that final size
 composition remains the next task.
+
+## Concrete witness encoded-size gap closed
+
+`NativeWitnessSize.nativeExecutionViews_witness_size` now proves the full encoded
+concrete witness is no larger than the actual decoded raw witness. It accounts
+for every main/implicit store, original transition hash widths, exact implicit
+ordering/count, preserved dictionary entries and accepted header/hash fields.
+`checkD0a_constructed_fields` jointly constructs source semantics, main/implicit
+execution, same-run native header comparisons, and the actual8MiB bound from
+native acceptance. Five permanent axiom guards pass. This closes the earlier
+encoded-size gap for this semantic constructor without an extra cap assumption.
+Remaining FactorComplete fields include preparation/shape, main payload bound,
+canonical scheduler/unfolded amendments, and the honest AIR view construction.
