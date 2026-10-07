@@ -860,3 +860,9 @@ all 32 receipt-ID bytes carry the exact natural global index, headers/padding
 emit nothing, and both physical/semantic receive sides are empty. Six exact
 guards pass. Checked whole-table channels now include BYTES, RCL, MEM, and RIDS;
 KEYNIB, DIGEST, FINAL, MPOS, SREC, AKC, and BND remain to be completed.
+
+`ReceiptPositionsTraffic` closes both B_MPOS directions: each receipt emits
+exactly one global leaf-position message [0,r,K_LEAF+16*r,68], all headers and
+padding are silent, and both receive lists are empty. Seven exact guards pass.
+The remaining whole-table receipt channels are KEYNIB, DIGEST, FINAL, SREC,
+AKC, and BND.
