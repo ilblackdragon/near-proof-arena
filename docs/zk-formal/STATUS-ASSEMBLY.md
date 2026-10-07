@@ -575,3 +575,13 @@ the actual combined generated walk plan. Provider location is inverted against
 the original allocator and resolver, not an assumed location map. 4 permanent
 guards pass. Physical bus-message composition remains to be connected to this
 exact logical multiplicity and to the proved seed bytes/ownership.
+
+Counter-chain correction: `queueResolve` above returns TOTAL users and is useful
+for ownership/counting and row capacity, but is NOT the walk-side QVC resolver.
+Actual QVC walks consume prefix ordinal u and emit u+1; the parser emits0 and
+consumes the total. `QueueRanks.queueForestRankResolve` is the corrected executable
+walk resolver. `queueUseRanks_eq` proves its selected ordinals are exactly
+0..users-1, and `queueUseRanks_balance` proves exact natural counter-list balance.
+4 permanent guards pass. Full generated-plan/field-message transfer of this
+corrected rank resolver remains open; previous total-counter lemmas are not a
+claim of bus completeness.
