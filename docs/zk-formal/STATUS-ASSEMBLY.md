@@ -658,3 +658,13 @@ fixtures pass: a native wf input can produce memory≥2^64 and lose full wf whil
 a second write still preserves determined lookup. Remaining: extract actual
 scheduler/receipt/system write sequence and tie initial write keys to builder
 queries; receipts use set, requiring the matching structural preservation lemma.
+
+### Receipt writes preserve structural lookup knowledge
+
+`TrieShapeSet` proves the minimal shape invariant survives the unchanged native
+`PTrie.set`, with no memory or value bounds. `ReceiptShape` composes actual
+`applyReceipt`, `applySystemReceipt`, and recursive `applyReceipts` success into
+shape preservation and preservation of every initially known lookup. This
+covers repeated receiver writes without requiring post-state `wf` (which can
+fail after native upsert memory overflow). Scheduler/initial builder key-domain
+composition remains separate. `AuditReceiptShape.lean` checks six declarations.
