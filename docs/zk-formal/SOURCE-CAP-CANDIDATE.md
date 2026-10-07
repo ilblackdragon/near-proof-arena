@@ -78,3 +78,43 @@ claims remain about their original shapes and parameters.
 Checked candidate modules: `Rcpt/Candidates/SourceBudget.lean`, `SourceSize.lean`,
 `SourceSizeCheck.lean`, `RawWitnessBudget.lean`, and `SourceCount.lean`. The existing complete source renderer is
 `Rcpt/Render/Srcp/ProofComplete.lean`; its row-budget premise remains explicit.
+
+## Checked repetition semantics and remaining integration
+
+`PreparedSourceCount.prepD0_source_count` now derives the 1,984 occurrence bound
+from successful real preprocessing, including the source slice and shuffle loops.
+`RawWitnessBudget.relD0a_selected_path_budget` derives the 254,200 selected-path-item
+bound directly from actual raw decoding and the unchanged 8 MiB check; no canonical
+re-encoding size premise remains.
+
+A lower-overhead candidate reuses the existing later-duplicate flag for deciding which
+occurrences compute a proof, and adds an all-occurrence repetition bit computed from
+prepared keys. The latter marks the first occurrence too. `SourceRepetition` proves
+that every marked occurrence has raw receipt-list length 12 under the routed distinct-ID
+condition, and that later duplicates are marked. It also defines the native equal-key
+root consistency check and proves it follows from shared last-wins verified entries.
+Representative verification then transfers to all occurrences under that check.
+
+These are isolated semantic APIs. The active SRC payload remains width33; adding the
+repetition bit requires a coordinated width34 public descriptor and AIR transition
+change. The current source header cannot be terminal or skip directly to another header,
+so header-only duplicate rows need new constraints and checked rendering. Deriving all
+semantic API premises from the complete successful validator/preparation paths remains
+an explicit integration obligation. No extra native check may narrow RelD0a.
+
+Root's provisional combined queue shape (48 main columns, 8 auxiliary terms, degree5,
+8 interactions, log22) gives an exploratory 8,313,602-byte total with the partitioned g2
+model, leaving only 75,006 bytes for all additional wiring. This is a planning estimate,
+not a checked final queue AIR shape or admission result. Continuations, public repetition
+metadata, proof partition ownership, and existing walk-table capacity must all fit the
+final accounting before any active cap or frozen pin is changed.
+
+The source authentication premise has now been extracted from the real validator:
+`Link.CheckedSources.checkD0_sources_verified` connects successful `checkD0` to its
+actual walk/witness decoder outputs and proves every new source slot's last-wins
+lookup, from/to shards, and Merkle-root verification. `Link.RelSources` derives those
+outputs and raw routing directly from `RelD0a`, and proves equal actual source keys
+have equal roots. `Candidates.PreparedVerified` preserves those authentications through
+the exact prepared slot/shuffle loops. Connecting the full `prepClaim` output to that
+same source-block slice is the remaining prepared-record bridge; no native consistency
+check has yet been added to active preprocessing.

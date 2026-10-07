@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.PreparedVerified
 import ZkFormal.NearV3.Rcpt.Candidates.SourceRepetition
 import ZkFormal.NearV3.Rcpt.Candidates.PreparedSourceCount
 import ZkFormal.NearV3.Rcpt.Candidates.RawWitnessBudget
@@ -142,3 +143,19 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceEncodingBudget
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.sources_verified_of_computed
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.slotSources_verified' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.slotSources_verified
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_verified' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_verified
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_roots_consistent' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_roots_consistent
