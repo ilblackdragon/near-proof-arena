@@ -7,6 +7,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root ParserStart/ParserSegments checked: every walk row is a parser-last marker;
+length-free next-record constraint holds across final walk boundary, so active
+suffix starts with vf. Shifted suffix SegFacts and complete active record list+
+padding derived; initially inactive suffix remains entirely inactive. Target191
+jobs+6 exact guards PASS (/tmp/nearproof-qv-parser-segments.log,
+/tmp/nearproof-qv-parser-segments-audit-checked.log). No root live process.
+Next unify active/empty branches into physical record view, derive modes/bytes
+and QVC provider no-cycle linking. D2 trace-local coherent IDs under strict
+path descent/Nodup underway; full source seed identity3ebdc6a8 checked externally.
+Receipt72192363 AKC full physical traffic checked, remaining channels active.
+Latest aggregate b7002160 older than newtargets; full AIR correctness/admission/
+prover/judge/general NEAR replacement remains incomplete.
+
+
 Root ParserRecord checked: given actual suffix record segment, position=row
  offset,8 metadata fields constant, vz marker forces one-row zero-length record,
 otherwise declared natural length=physical segment rows. length_cases complete;
