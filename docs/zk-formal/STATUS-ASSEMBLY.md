@@ -186,3 +186,14 @@ first-pass buffered shards, pre-trie, native run and post-root from successful
 for views emitting the normalized store and the same applied receipts/post-root.
 These are explicit view correspondence inputs, not assumed execution facts.
 Both permanent axiom guards pass.
+
+## Shared multi-instance allocation
+
+`ForestViews.forestStoreViews` now allocates real NodeS3/ValE views for all
+transition tries in one shared node/value address space. Checked node extraction
+returns the offset occurrence records; checked value extraction returns exactly
+each value's original instance, including across concatenated trees. The
+combined `forestStoreViews_records` theorem requires ordinary tree wf and a
+visible total value-ID capacity bound. It does not assume successful AIR checks.
+Ten transitive axiom guards pass. Forest-wide Seg/fullTree/store reconstruction
+and deriving native capacity remain open.
