@@ -718,3 +718,12 @@ premises already present in `RcptE.Wf.arith`; every AIR membership is checked
 against active V3 constraints. Twenty exact axiom guards pass. Pure natural
 byte-sum lemmas are reused; no V1 table-local premise is assumed. System-aware
 gas burn/refund and token accumulation remain open, along with routing order.
+
+`GasProduct` and `GasTokens` prove the V3 effective-price, product, and token
+chains. Burn price is zero for system receipts and otherwise the ge-selected
+price; delay lines and convolution use actual `pc` cells. Refund products use
+the unchanged raw surplus, while `gp_hr` explicitly requires non-system mode
+and reads V3's `gq` gate. Token preservation now covers list-header rows as well
+as ordinary non-GP rows. Fifteen exact axiom guards pass. Full semantic arithmetic
+assembly must still combine the system/no-refund branch and public-price minimum
+with these row facts; no complete RcptE.Wf arithmetic claim is made yet.
