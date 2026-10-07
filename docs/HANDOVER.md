@@ -7,6 +7,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+**Latest full AIR integration `9fbbdabf`:1,663 jobs PASS;13 audits,
+182 exact axiom guards,15 behavior checks and7 theorem examples.** Report in AIR:
+`docs/e2e-results/v3-word-native-integration/report.json`; external evidence
+`/data/illia/nearproof-deps/validation/v3-word-native-20261007/`.
+Root QV `c7435184` → AIR `ea4284e4` composes all four bus families over complete
+native key words: exactly one FINAL, optional single QVC step, canonical numbered
+key nibbles+markers, and shard bytes/count. QV57 guards+15 fixtures pass. Next
+root work: whole-plan composition and generic local constraints, parser wrap,
+ownership and reverse extraction. No active root build.
+
+Integrated native `24742b93` → AIR `49e02383` derives every GoodV3 field from
+actual acceptance except the explicit unchanged original A7 unfolded-size bound.
+Normalized-witness shape and singleton canonical reads are closed; this is NOT
+FactorComplete. Update allocator depth/kind/part-count/descent metadata through
+`b864f657` are integrated. Source SHA and candidate SRC34 public/reuse through
+`a6debb88` are integrated; actual candidate assembly must choose that interface.
+
+New receipt gap from agent code audit: RcptV3ViewStmt currently occurs only at its
+definition, with no whole-table extraction theorem constructing RcptV3Wf. RC
+encoded-length/no-wrap cannot be presumed. Receipt agent owns explicit span-bound
+linking then actual receipt decomposition. All end-to-end blockers remain active.
+
+
 Latest root QV `e1fb4f04` adds exact row-level FINAL/QVC/QSH field messages;
 together with KEYNIB all four walk message families are checked. QSH natural
 subtractions use proven bounds, including group slot≥3 from actual plan
