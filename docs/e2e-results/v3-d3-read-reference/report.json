@@ -59,10 +59,92 @@
     "check_local_exit": 0
   },
   "pending": [
-    "strict public rejection and actual worker mutations",
-    "held-out positive/rejection and actual worker mutations",
     "held-out SDK check-local",
     "configured formal checking and independent kernels"
   ],
-  "evidence_directory": "/data/illia/nearproof-deps/validation/v3-read-reference-20261007"
+  "evidence_directory": "/data/illia/nearproof-deps/validation/v3-read-reference-20261007",
+  "public_strict": {
+    "status": "pass",
+    "positive_cases": 407,
+    "rejection_cases": 244,
+    "proof_bytes_max": 181810,
+    "mutations": {
+      "status": "pass",
+      "honest_cases": 407,
+      "mutants": 3062,
+      "counts": {
+        "codes/duplicate": 120,
+        "codes/inject-unread": 79,
+        "codes/inject-unused": 120,
+        "codes/reorder": 46,
+        "entries/duplicate-key": 407,
+        "entries/reorder": 407,
+        "values/duplicate.implicit0": 51,
+        "values/duplicate.implicit1": 11,
+        "values/duplicate.implicit2": 6,
+        "values/duplicate.main": 407,
+        "values/inject-unread.implicit0": 46,
+        "values/inject-unread.implicit1": 11,
+        "values/inject-unread.implicit2": 6,
+        "values/inject-unread.main": 395,
+        "values/inject-unused.implicit0": 51,
+        "values/inject-unused.implicit1": 11,
+        "values/inject-unused.implicit2": 6,
+        "values/inject-unused.main": 407,
+        "values/reorder.implicit0": 51,
+        "values/reorder.implicit1": 11,
+        "values/reorder.implicit2": 6,
+        "values/reorder.main": 407
+      },
+      "values_inject_unread": 458,
+      "codes_inject_unread": 79,
+      "verifier_sha256": "d55f1f37a1ffa8e62767b16084e73debb5acc5cd1e54d998a38e6be109947b7e",
+      "mutators_source_sha256": "cbea667ae2ab9b7bd7530c654830d5b2c0044e71a142e10a16b23b105f55539e",
+      "harness_source_sha256": "d267244644fa6653eaa823fa989c85af832dfee6c4c219ff32ba3da515237d8c",
+      "jobs": 4,
+      "seconds": 245.462564854
+    },
+    "seconds": 333.69833515631035,
+    "inputs_sha256": "e563b219d2379a2f330b634cdb1c68c80a4e70e9902555f00707e46cfb72247f"
+  },
+  "heldout_strict": {
+    "status": "pass",
+    "positive_cases": 208,
+    "rejection_cases": 64,
+    "proof_bytes_max": 122776,
+    "mutations": {
+      "status": "pass",
+      "honest_cases": 208,
+      "mutants": 1433,
+      "counts": {
+        "codes/duplicate": 47,
+        "codes/inject-unread": 3,
+        "codes/inject-unused": 47,
+        "codes/reorder": 11,
+        "entries/duplicate-key": 208,
+        "entries/reorder": 208,
+        "values/duplicate.implicit0": 26,
+        "values/duplicate.implicit1": 2,
+        "values/duplicate.main": 208,
+        "values/inject-unread.implicit0": 18,
+        "values/inject-unread.implicit1": 1,
+        "values/inject-unread.main": 182,
+        "values/inject-unused.implicit0": 26,
+        "values/inject-unused.implicit1": 2,
+        "values/inject-unused.main": 208,
+        "values/reorder.implicit0": 26,
+        "values/reorder.implicit1": 2,
+        "values/reorder.main": 208
+      },
+      "values_inject_unread": 201,
+      "codes_inject_unread": 3,
+      "verifier_sha256": "d55f1f37a1ffa8e62767b16084e73debb5acc5cd1e54d998a38e6be109947b7e",
+      "mutators_source_sha256": "cbea667ae2ab9b7bd7530c654830d5b2c0044e71a142e10a16b23b105f55539e",
+      "harness_source_sha256": "d267244644fa6653eaa823fa989c85af832dfee6c4c219ff32ba3da515237d8c",
+      "jobs": 4,
+      "seconds": 140.694815006
+    },
+    "seconds": 179.3987616300583,
+    "inputs_sha256": "66ebf3ed0699b1cd0dcebdce61141c18f0e94b2b3692a9f3f65e589b93122eaa"
+  }
 }

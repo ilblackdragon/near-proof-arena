@@ -17,8 +17,10 @@ Fresh public SDK check-local **passes**: two clean native builds produce identic
 binaries; all 407 positives, generic hostile mutations, conformance, reliability
 and local resource checks pass. The package digest is `313c4bb4…`, and the new
 verifier digest is `d55f1f37…`. Formal audit is correctly marked skipped by SDK
-check-local. Strict public rejection/worker-unread mutations are now running;
-held-out checks and configured formal checking remain pending. No admission or
+check-local. Strict public and held-out gates also pass: 615 positives, 308 rejection cases,
+4,495 actual worker mutations, including 659 unread-value and 82 unread-code
+injections. All mutations exit 1. Configured formal checking is running; the
+separate held-out SDK gate remains pending. No admission or
 full hostile pass is claimed yet. Runtime closure is 35 modules, built serially
 with two Lean threads. New evidence summary:
 `docs/e2e-results/v3-d3-read-reference/report.json`; raw evidence:
@@ -33,7 +35,7 @@ checking is materialized in the evidence directory, not substituted or re-pinned
 Fresh WASM/nearcore validation has passed (14,621 original/logged parity cases;
 14,610 in-domain independent nearcore comparisons, no disagreements). The 26-run
 fresh TTN suite remains active in
-`/data/illia/nearproof-deps/validation/v3-ttn-logged-20261007/`; three completed
+`/data/illia/nearproof-deps/validation/v3-ttn-logged-20261007/`; four completed
 configurations have zero disagreements. Heavy o300 traces take about 47 minutes,
 so the suite may take many hours. `summary.json` records each completed run and
 all commands/digests; continue it rather than restarting.
