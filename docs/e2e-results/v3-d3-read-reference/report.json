@@ -1,0 +1,68 @@
+{
+  "status": "partial",
+  "scope": "read-set witness re-execution reference, not a succinct proof",
+  "candidate_commit": "f6176081",
+  "package_digest": "sha256:313c4bb4debfaa2574981ad20f4752437966265ff486197f747f0407796b1f75",
+  "public_check_local": {
+    "status": "pass",
+    "official": false,
+    "network_isolated": true,
+    "positive_cases": 407,
+    "process_exit": 0,
+    "report_sha256": "acfe96ed4ce1a7706ad5acfb39d27d1fe481a901f0f3f742d91ef736cfd3e2fa",
+    "gates": [
+      {
+        "gate": "PKG_WELLFORMED",
+        "status": "PASS",
+        "reason_codes": []
+      },
+      {
+        "gate": "AXIOM_AUDIT",
+        "status": "SKIPPED",
+        "reason_codes": []
+      },
+      {
+        "gate": "BUILD_REPRODUCIBLE",
+        "status": "PASS",
+        "reason_codes": []
+      },
+      {
+        "gate": "CONFORMANCE_DIFFERENTIAL",
+        "status": "PASS",
+        "reason_codes": []
+      },
+      {
+        "gate": "PROVER_RELIABILITY",
+        "status": "PASS",
+        "reason_codes": []
+      },
+      {
+        "gate": "ADVERSARIAL_PROOFS",
+        "status": "PASS",
+        "reason_codes": []
+      },
+      {
+        "gate": "RESOURCE_LIMITS",
+        "status": "PASS",
+        "reason_codes": []
+      }
+    ]
+  },
+  "native": {
+    "package_digest": "sha256:313c4bb4debfaa2574981ad20f4752437966265ff486197f747f0407796b1f75",
+    "binaries": {
+      "out/prepare": "8341e9deeb0579bc38bd8d8868727be816e9ca31e2bff23d78487cda7bc61236",
+      "out/prove": "1372abb3eec9ee53209d1e8a170830b5d07d88a07941c1bca22c18873440b26b",
+      "out/verify": "d55f1f37a1ffa8e62767b16084e73debb5acc5cd1e54d998a38e6be109947b7e"
+    },
+    "source": "two clean check-local builds",
+    "check_local_exit": 0
+  },
+  "pending": [
+    "strict public rejection and actual worker mutations",
+    "held-out positive/rejection and actual worker mutations",
+    "held-out SDK check-local",
+    "configured formal checking and independent kernels"
+  ],
+  "evidence_directory": "/data/illia/nearproof-deps/validation/v3-read-reference-20261007"
+}

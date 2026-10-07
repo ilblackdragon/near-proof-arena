@@ -13,13 +13,15 @@ namespace-only transform and per-file provenance from `77b844e0`; neither the
 trusted vendor nor the signed challenge changed. This remains a witness
 re-execution reference, **not a succinct state-transition proof**.
 
-Fresh native reproducibility, actual configured formal checking, public/held-out
-check-local and the worker's `values/inject-unread` / `codes/inject-unread` gates
-are in progress; no admission or full hostile pass is claimed yet. SDK check-local
-only runs generic mutations, so the actual worker mutators are a separate required
-gate. The first clean public native build has passed the large logged receipts
-proof under the 16 GiB cap. Runtime closure is 35 modules, built serially with two
-Lean threads. Evidence directory:
+Fresh public SDK check-local **passes**: two clean native builds produce identical
+binaries; all 407 positives, generic hostile mutations, conformance, reliability
+and local resource checks pass. The package digest is `313c4bb4…`, and the new
+verifier digest is `d55f1f37…`. Formal audit is correctly marked skipped by SDK
+check-local. Strict public rejection/worker-unread mutations are now running;
+held-out checks and configured formal checking remain pending. No admission or
+full hostile pass is claimed yet. Runtime closure is 35 modules, built serially
+with two Lean threads. New evidence summary:
+`docs/e2e-results/v3-d3-read-reference/report.json`; raw evidence:
 `/data/illia/nearproof-deps/validation/v3-read-reference-20261007/`.
 
 `91f1043f` adds `formal-check --declared-tier`: configured D3a rendering verifies
