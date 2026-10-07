@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Candidates.OrderedSources
 import ZkFormal.NearV3.Rcpt.Candidates.PreparedVerified
 import ZkFormal.NearV3.Rcpt.Candidates.SourceRepetition
 import ZkFormal.NearV3.Rcpt.Candidates.PreparedSourceCount
@@ -159,3 +160,41 @@ import ZkFormal.NearV3.Rcpt.Candidates.SourceEncodingBudget
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_roots_consistent
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.slotSources_authenticated' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.slotSources_authenticated
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_authenticated' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_authenticated
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.sourceMetadataConsistent_of_authenticated' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.sourceMetadataConsistent_of_authenticated
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_metadata_consistent' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.preparedSourceLists_metadata_consistent
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.orderedSources_keys_nodup' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.orderedSources_keys_nodup
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.orderedSources_perm' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.orderedSources_perm
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.orderedSources_pathCount' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.orderedSources_pathCount
+
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.raw_ordered_path_budget' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.raw_ordered_path_budget
