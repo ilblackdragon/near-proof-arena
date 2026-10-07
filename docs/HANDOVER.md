@@ -7,6 +7,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+AIR aggregate `191ea6da`:1859 jobs,81 selected audits,752 exact axiom guards,
+15 behavior guards PASS. Report docs/e2e-results/v3-queue-extraction-integration/
+report.json; external logs /data/illia/nearproof-deps/validation/
+v3-queue-extraction-20261007/. Includes committed extraction throughWalkChain,
+physical QSH/VBYTES, native terminal edge and receipt token/public-alias work.
+Root aggregate session90121 terminal success; no root process remains.
+After aggregate, `8bb422e8` WalkIndex proves request ordinal≤segment start,
+chain length≤physical height and every index<P directly from TableLocal.
+Target121 jobs and3 exact guards PASS; /tmp/nearproof-qv-walk-index.log,
+/tmp/nearproof-qv-index-audit-final.log. Separate audit preserves report hashes.
+Next root: global indexed ordering and canonical queue traffic/parser soundness.
+Material update composition gap from ups agent: native InstOk/ByteInput/MemOk
+still requires source root.wf, which may fail after earlier writes with exact
+memory overflow. Shape-only read preservation closes revelation only; multi-write
+memory assembly needs checked refinement/modulo normalization or generalized
+source-memory lemmas. Do not silently assume post.wf. Terminal provider package
+itself avoids source wf. Full objective and admission/reference-checker/prover/
+judge/broad NEAR coverage obligations remain open.
+
+
 AIR `fc35da1c`: WalkSegments lifts full main/implicit transition equations
 between whole extracted walks, with metadata transported from segment starts.
 WalkChain packages nonempty consecutive complete segments plus bounded suffix;
