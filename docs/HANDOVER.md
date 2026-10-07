@@ -29,6 +29,12 @@ This is for the next lead agent. Read this first, then the two lane status files
   fails on E_exec recursion depth. Proof-only factoring compiles and its
   independent recheck is pending. Formal admission is still FAIL, not PASS.
 
+Additional completeness obligation: reconstructing an equivalent unfolded trie is
+not enough to establish the original 8 MiB encoded-witness guard. FactorComplete
+must preserve/reuse original serialized store records or prove nonexpansion of
+the selected view allocation. Its arbitrary unfolded-byte parameter B does not
+by itself supply this bound. Keep this separate from semantic reconstruction.
+
 Parallel ownership: root queue candidate/integration; ups_fields full-u32 HPL;
 receipt_gap source dedup AIR/partition proofs; d2_validation semantic factoring
 and reference gates. Continue through full factoring, concrete AIR, honest
