@@ -466,3 +466,15 @@ witness's unfoldBytes≤the ORIGINAL bound B. It does not change B, prove that
 premise, or claim FactorComplete. Two permanent axiom guards pass. This records
 the precise remaining A7 normalization/allocator obligation, rather than leaving
 receipt counts/IDs, congestion, request distinctness or shape as hidden gaps.
+
+`UnfoldStoreEq` proves exact `triesD0` and `unfoldBytes` equality between
+actually decoded witnesses with the same ordered receipt dictionary and
+first-match store lookup equality for the main and aligned implicit stores.
+The proof follows the actual main execution and complete implicit loop, including
+post-state rebuilding; it assumes neither successful execution nor SHA injectivity.
+`retainedStore_storeEq` supplies this sufficient condition for original-blob
+retention. Ten permanent axiom guards pass (only standard axioms). This is a
+semantic preservation theorem, not a completed allocation: mapping retained
+original blobs into existing views still needs correct instance ownership and
+the unchanged 2MiB AIR value-byte budget. The normalized constructor's A7 premise
+therefore remains open.
