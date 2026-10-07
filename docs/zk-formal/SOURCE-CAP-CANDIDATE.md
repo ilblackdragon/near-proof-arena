@@ -635,3 +635,14 @@ non-refund receipts add zero. The additive prefix theorem is proved over the
 actual consecutive physical layouts. Thirteen exact axiom guards pass. Whole
 BYTES traffic composition and the remaining semantic receipt Wf obligations
 remain open; no new external counter or range assumption was introduced here.
+
+`BlockBytes`, `ListByteTraffic`, and `ChainBytes` now prove complete physical
+receipt-table BYTES send extraction. The result is a permutation of ordinary
+`chainByteMsgs` starting at list index zero, receipt index zero, and body offset
+eight. Each list contains its concrete public/count header and all existing V3
+receipt byte views (RC encodings, refunds, PEO, LEAF, and RID preimages), positioned
+by exact natural prefix lengths. The physical padding, including the cyclic last
+row, emits no bytes. Six exact axiom guards pass. The final theorem has no
+external counter, offset, or semantic-view assumptions: only TableLocal and the
+extracted chain. Pure reformatting to the existing `rcptSends3` API and the
+remaining whole receipt Wf/other-bus obligations are still open.
