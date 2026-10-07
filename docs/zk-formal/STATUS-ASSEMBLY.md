@@ -119,4 +119,20 @@ Seventeen transitive axiom guards and two collision-order regression guards pass
 in `test/AuditStoreNormal.lean`; the three FactorSound guards pass again with the
 normalized encoder. This closes the per-store duplication cost problem, not
 FactorComplete: multi-instance allocation, exact runtime reconstruction and
-actual decoder-to-canonical whole-witness size coverage remain to be proved.
+whole-witness composition with the allocated views remain to be proved.
+
+## Raw witness codec coverage
+
+`CodecSize.decodeStateWitness_encodeSW_size` now derives
+`(V3.encodeSW s).length ≤ raw.length` from actual successful
+`decodeStateWitness raw = .ok s`, with no other premise. Account IDs, public
+keys, D0 receipts, paths, dictionary entries, transitions and vectors have exact
+encoding-consumption equalities. The header uses the actual minimum accepted
+signature length (65 bytes), so longer accepted signature variants remain
+covered. No canonical-input or forward round-trip assumption is used.
+
+All thirteen transitive axiom guards in `test/AuditCodecSize.lean` pass with only
+`propext`, `Classical.choice`, and `Quot.sound` (several use only the first and
+last). This closes original decoded canonical witness coverage; composition
+with changed transition stores and the full multi-instance view constructor
+still remains separate FactorComplete work.
