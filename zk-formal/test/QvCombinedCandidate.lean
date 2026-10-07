@@ -1,4 +1,5 @@
 import ZkFormal.NearV3.Qv.Candidates.CombinedParser
+import ZkFormal.NearV3.Qv.Candidates.CombinedPublic
 import ZkFormal.NearV3.Qv.Candidates.ValueGen
 
 namespace QvCombinedRegression
@@ -99,3 +100,21 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedTable.parser_traffic_of_combined
+
+/-- info: 'ZkFormal.NearV3.Public.prep_tag_prefix_length' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prep_tag_prefix_length
+/-- info: 'ZkFormal.NearV3.Public.header_implicit_count' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.header_implicit_count
+/-- info: 'ZkFormal.NearV3.Public.prepared_implicit_count' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_implicit_count
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedTable.kPublic_eval' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedTable.kPublic_eval
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedTable.kPublic_prepared' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedTable.kPublic_prepared

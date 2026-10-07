@@ -160,3 +160,9 @@ field-valued row traffic equality with the standalone parser. Combined audit
 now passes10 exact axiom guards and12 field fixtures. Physical wraparound,
 whole-prefix composition and honest walk construction still need their own
 proofs; this row-level transfer does not assume they have been established.
+
+The public implicit-count binding is now checked end to end: the native prep
+tag plus Borsh prefix has length26, header bytes26–29 are exactly u32 K, and
+`CombinedPublic.kPublic_prepared` proves the actual AIR expression evaluates
+to that prepared K in the field. The standard explicit u32 range premise is
+preserved. Combined audit now has15 axiom guards and12 field regressions.
