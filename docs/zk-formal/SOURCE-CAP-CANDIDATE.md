@@ -908,3 +908,9 @@ guards pass. The remaining KEYNIB proof must use permutation, because the
 physical access-key separator is emitted before signer bytes but carries its
 canonical later position; treating physical emission order as semantic order
 would be incorrect. No KEYNIB traffic closure is claimed yet.
+
+`IndexedTrafficPerm` and `PlanTraffic` prove exact multiplicity-preserving
+composition from local receipt permutations and the physical plan's complete
+field partition. `KeyTrafficRows` proves the second key gate and excludes key
+messages from all non-key states, headers, and padding. Eleven exact guards
+pass. Account/access field-to-canonical-symbol matching remains the KEYNIB gap.
