@@ -265,3 +265,10 @@ an exact left inverse under actual u128 widths (or ordinary Receipt.wf), plus
 exact list reconstruction. Three permanent axiom guards pass. Execution,
 refund, and routing fields remain seeds, and native receipt-wf extraction is
 still needed when composing this constructor with accepted transition traces.
+
+`ReceiptSeedDecode.decodeStateWitness_receipt_seeds` discharges payload inverse
+premises for every receipt in every actual decoded dictionary entry. It derives
+u128 bounds from the byte parser and lifts the exact inverse through entry and
+witness vector parsing. Six permanent axiom guards pass; no canonical encoding
+or separate receipt-wf premise is assumed. Applied-receipt membership transfer
+and complete source/list metadata still remain for whole-witness assembly.
