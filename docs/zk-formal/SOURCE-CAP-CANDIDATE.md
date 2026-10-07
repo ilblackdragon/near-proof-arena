@@ -429,3 +429,17 @@ repetition bit also forces L=12 on the first computed occurrence. Segment
 metadata, window counters, and register shifts are derived from arbitrary field
 constraints. `AuditDedupExtract.lean` checks33 axiom closures. Grouping these units
 into complete source views and closing their exact semantic traffic remains next.
+
+`DedupProof.extract_blocks` now groups arbitrary accepting logical source rows
+into a finite nonempty `BlockChain` of computed proof blocks and one-row skipped
+headers. Natural source/SHA counters and identifiers are bounded using the
+logical log24 height below the field modulus. Every computed block has its full
+32-row leaf and finite sequence of 64-row path items, with consecutive hash
+indices, matching root endpoints, canonical field representatives, and exact
+vector lengths. Skips have L=12 and preserve the hash counter. The chain ends at
+exactly `DedupRender.R bs`, and every remaining row is inactive. This is an
+extraction theorem, not an assumption that accepting traces are honest renders.
+`AuditDedupBlocks.lean` checks 44 transitive axiom closures. Cross-block numbering,
+exact semantic traffic, byte/SHA linkage, and prepared repetition metadata remain
+the next source extraction obligations; skipped roots still require linkage to
+the earlier same-key computed proof.
