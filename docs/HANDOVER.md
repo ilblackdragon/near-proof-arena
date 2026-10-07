@@ -6,6 +6,34 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+**New checkpoint (after the earlier summary below):** AIR `5e084a5c` passes
+1,167 integration jobs. All 29 memory constraints are complete (`ac76c7a8`),
+with 24 axiom guards after `memOk_of_semantics`: encoded carry ranges and memory
+bytes now follow from ordinary node/scalar semantics and operand bounds.
+All 62 field constraints and 62/76 byte constraints are integrated; the field
+agent has since reached 68/76 (`3892ab08`). Full `srcp_view` is closed; honest
+source generation, capacity, adjacency, SIZE and 33 polynomial constraints
+are checked through `3bc8d369`, with remaining renderer work active.
+Evidence: lane `docs/e2e-results/v3-memory-complete/report.json` and
+`v3-memory-semantics/report.json`. This is not yet validator replacement.
+
+Root is implementing R1 indexed public records in isolated branch
+`lane/v3-public`, worktree `/data/illia/nearproof-wt/v3-public`, based on
+`5e084a5c`. Protocol edits are not merged until tested. Its builds use the same
+AIR lock. An isolated serial clean elaboration diagnostic is running under
+`/data/illia/nearproof-deps/validation/v3-clean-elaboration-20261007-attempt2`;
+first attempt stopped on an omitted toy-spec snapshot dependency, not a proof
+failure. It uses fresh candidate outputs, copied trusted oleans, a 1,800 s total
+cutoff and 300 s/module, and is not an actual judge admission.
+
+D3 checkpoints `078eb032` and `3bb5020f` add candidate-local logged reference
+foundations, exact hash-filtered storage and encoding proofs with 14 axiom
+guards. Re-encoding control-flow simulation is still open; deployed Model is
+unchanged. TTN's first fresh run passed (236 chunks/633 calls); the 26-run suite
+is still active and may take hours. While clean timing uses the second D3
+scope, bounded D3 proof diagnostics may queue behind the AIR flock (one queued
+job, source stable) to remain within three 16 GiB heavy scopes globally.
+
 The user explicitly authorized subagents. Three independent tracks are active:
 D3 regression/reference work, update-field completeness, and receipt/source-proof
 extraction. The lead owns memory completeness and integration. AIR builds and
