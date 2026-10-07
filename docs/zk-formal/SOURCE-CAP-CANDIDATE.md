@@ -175,3 +175,33 @@ No active protocol, challenge definition, or frozen pin has been changed by thes
 candidate calculations. Current executable `DedupRender` has checked row accounting
 and header-only duplicate behavior, but still has no new AIR local/traffic or partition
 continuation theorem. Those obligations and the protocol work above remain open.
+
+## Actual-input candidate capacity closure
+
+`Candidates.DedupCompile` now compiles every actual prepared occurrence, preserving
+its root, index, and existing duplicate flag, while advancing source message counters
+only for first-occurrence leaf/path computation. `FirstSources` proves that retaining
+indices with the actual public duplicate flag false gives distinct keys. The selected
+entries are a permutation of their last-wins dictionary representatives, so their path
+sum is bounded directly by raw decoding.
+
+For successful unchanged `RelD0a`, successful actual `prepD0`, and the actual raw witness
+decoder outputs, the executable candidate now has checked bounds:
+
+- source renderer rows ≤16,334,272;
+- source hash-preimage bytes ≤16,332,288;
+- source SHA work (18-row leaf messages, 35-row path messages) ≤8,932,712;
+- source messages ≤256,184; next-message counter ≤256,185, with canonical field IDs.
+
+These bounds no longer take a path-depth or computed-path-sum premise. They do not
+assert that the new rows satisfy a yet-to-be-defined dedup AIR or that new SHA traces
+have been rendered and connected on the buses.
+
+`PartitionCapacity` checks exact logical-row reconstruction and two log23 physical
+source capacities with one carried boundary row. It also checks greedy whole-message
+SHA packing: the source-only envelope fits when each message has at most35 rows.
+The full 12,674,664-row SHA envelope fits two log23 partitions when each message has
+at most2,228,242 rows; an 8 MiB preimage has that row bound. Proving the largest-message
+premise for every non-source SHA input is still open. Likewise the carried boundary
+state must be authenticated and local/traffic soundness proved across the split; list
+placement lemmas alone do not establish those AIR contracts.

@@ -102,4 +102,41 @@ theorem raw_ordered_path_budget {raw : Bytes} {w : StateWitness}
   rw [orderedSources_pathCount]
   exact raw_selected_path_budget hw hb keys
 
+/-- Any distinct-key ordering of actual selected entries is exactly its dictionary
+selection; useful for binding concrete source-row generators to the raw budget. -/
+theorem computed_perm_selected (computed entries : List ProofEntry)
+    (hn : (computed.map ProofEntry.key).Nodup)
+    (hl : ∀ e ∈ computed, lookupLast e.key entries = some e) :
+    computed.Perm (selectedSources (computed.map ProofEntry.key) entries) := by
+  have hn1 : computed.Nodup := List.Pairwise.of_map ProofEntry.key
+    (fun a b hne he => hne (congrArg ProofEntry.key he)) hn
+  have hn2 : (selectedSources (computed.map ProofEntry.key) entries).Nodup :=
+    List.Pairwise.of_map ProofEntry.key (fun a b hne he => hne (congrArg ProofEntry.key he))
+      (selectedSources_keys_nodup _ entries)
+  apply (List.perm_ext_iff_of_nodup hn1 hn2).mpr
+  intro e
+  constructor
+  · intro he
+    apply lookupLast_mem (key := e.key)
+    rw [selectedSources_lookup _ _ _ (List.mem_map.mpr ⟨e, he, rfl⟩)]
+    exact hl e he
+  · intro he
+    obtain ⟨f, hf, hk⟩ := List.mem_map.mp (selectedSources_keys_subset _ entries e he)
+    have hs := selected_mem_lookup _ entries e he
+    have ht := hl f hf
+    rw [hk] at ht
+    have hef := Option.some.inj (ht.symm.trans hs)
+    exact hef ▸ hf
+
+theorem raw_computed_path_budget {raw : Bytes} {w : StateWitness}
+    (hw : decodeStateWitness raw = .ok w) (hb : lenT raw ≤ witnessBytes)
+    (computed : List ProofEntry) (hn : (computed.map ProofEntry.key).Nodup)
+    (hl : ∀ e ∈ computed, lookupLast e.key w.entries = some e) :
+    pathCount computed ≤ distinctPathItems := by
+  have hp := ((computed_perm_selected computed w.entries hn hl).map
+    (fun (e : ProofEntry) => e.proof.path.length)).sum_nat
+  change pathCount computed = pathCount (selectedSources (computed.map ProofEntry.key) w.entries) at hp
+  rw [hp]
+  exact raw_selected_path_budget hw hb _
+
 end ZkFormal.NearV3.Rcpt.Candidates
