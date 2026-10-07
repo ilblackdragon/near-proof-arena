@@ -16,7 +16,7 @@ All 115,284 D3 cases pass three-way comparison and exact verdict/reason
 comparison to the original checker. Original Lean and independent Python
 baselines were reused with validated case sets and recorded hashes; fresh logged
 outputs were measured. All 1,720 public D0/D1/D2/chunk fixture comparisons pass.
-Full D2 results are recorded below; D1 and WASM/trie harnesses remain. Evidence and provenance:
+Full D2 and D1-corpus results are recorded below; WASM/trie harnesses remain. Evidence and provenance:
 `docs/e2e-results/v3-logged-checker/report.json`. New driver
 `oracle/tools/check_logged.py` compares both verdict and reason, requires a
 result for every input, and rejects crashes/truncated/duplicate output. Its
@@ -41,9 +41,19 @@ rerun. Evidence: `docs/e2e-results/v3-d2-logged-checker/report.json` and
 `difftest_v3_d2.py` now rejects incomplete, duplicate, malformed and failed
 checker output, supports digest-recorded saved results, and archives outputs.
 Its eight tests and the seven logged-driver tests pass, as does pin-check.
-The D1 corpus original/logged D2 comparison is in progress; this does not claim
-that D1 and D2 have the same domain. The existing WASM/TTN harness driver still
+The D1 corpus comparison is complete, as recorded below; D1 and D2 retain
+distinct domains. The existing WASM/TTN harness driver still
 uses the original WASM execution path and needs logged-path coverage.
+
+**D1 corpus regression, 2026-10-07:** all 53,048 cases have identical fresh
+original/logged D2 verdicts and reasons. Fresh independent Python D2 verdicts
+agree on every case, including outside D1 (14,651 accept, 83 out of domain,
+38,314 reject). All 11,089 metadata D1 positives are accepted; no case rejected
+by nearcore metadata is accepted. This checks D2 on the D1 corpus, not equality
+of the D1 and D2 domains. Evidence and hashes:
+`docs/e2e-results/v3-d1-logged-checker/report.json` and `extension.json`.
+The differential runner now also rejects D2 verdict disagreements outside D1;
+its nine tests pass. WASM/TTN runner process/count hardening has twelve tests.
 
 Live state is in `docs/LIVE.md`. Main is at 0bb6fc8d+ (cost lane v1.8 deployed). This lane is main
 plus everything below.
@@ -117,7 +127,7 @@ identical verdicts. Logged median 0.018–0.104 s per class (max 2.38 s); origin
 2. **Full regressions with the logged checker.** Lead conditions require each to be identical to
    the committed report apart from timings:
    * D0 public: passed;
-   * D1 `d1run` (53,048);
+   * D1 `d1run` (53,048): original/logged D2 exact parity and independent D2/D1 inclusion passed;
    * D2 `d2corpus.v2` three-way (67,384): passed, fresh original/logged/Python;
    * D3 three-way on `d3c7`/`d3c8`/`d3c9`/`d3c10` (115,284): passed.
 

@@ -1,0 +1,53 @@
+{
+  "recorded_at": "2026-10-07T03:54:37.667760+00:00",
+  "base_commit": "8be9debcd5a80c4c23174e0ecec015fe33330e3b",
+  "status": "pass_for_listed_checks",
+  "scope": "Original and logged D2 on the complete D1 corpus, with independent D2 verdict parity and D1 inclusion; D1 and D2 domains remain distinct",
+  "exact_original_logged": {
+    "corpus": "/data/illia/nearproof-deps/corpora/d1run",
+    "checker": "/data/illia/nearproof-wt/v3-d3/oracle/wasm-d3/lean/.lake/build/bin/nearspec-v3-check-logged",
+    "mode": "d2",
+    "cases": 53048,
+    "jobs": 8,
+    "batch_size": 100,
+    "status": "pass",
+    "seconds": {
+      "original": 470.233067760244,
+      "logged": 483.33468513190746
+    },
+    "differences": 0
+  },
+  "independent": {
+    "corpus": "/data/illia/nearproof-deps/corpora/d1run",
+    "counts": {
+      "cases": 53048,
+      "expected_rel_d1": 11089,
+      "python.accept": 14651,
+      "lean.accept": 14651,
+      "python.out_of_domain": 83,
+      "lean.out_of_domain": 83,
+      "python.reject": 38314,
+      "lean.reject": 38314
+    },
+    "issues": 0,
+    "samples": []
+  },
+  "nearcore_provenance": "Existing generated corpus metadata; nearcore was not rerun",
+  "evidence": {
+    "/data/illia/nearproof-deps/validation/v3-d1-logged-20261007/original.jsonl": "436ac4f7df4fed148ce6ffb5c758b244190472b4440927a2373d94043b31e395",
+    "/data/illia/nearproof-deps/validation/v3-d1-logged-20261007/logged.jsonl": "20f6f1335c76f6355753936d5b9cd6455bd1c9f709fe0c41e18115b7f489d81e",
+    "/data/illia/nearproof-deps/validation/v3-d1-logged-20261007/summary.json": "2930cbc1b17c28d305b6ea44630a8e8c6c2648fb51cc1403e97a21690a969b0c",
+    "/data/illia/nearproof-deps/validation/v3-d1-logged-20261007/differences.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "/data/illia/nearproof-deps/validation/v3-d1-independent-20261007/d1corpus-python.jsonl": "74561826a5f3f2d34307a1312dfde55750288765bdd45acf98e6bd9698e743de",
+    "/data/illia/nearproof-deps/validation/v3-d1-independent-20261007/report.json": "48300fdd3d56ef0bac728086768b15b7eeb1ea2d5f5170b0344b558b17e66e25"
+  },
+  "checker_binary_sha256": "c5e260763c1067b571e770b3f19f992f2a284471fc15d664f8e74bcc110081d9",
+  "tests": {
+    "logged_driver": 7,
+    "differential_driver": 9
+  },
+  "limits": [
+    "WASM/trie logged harness integration and read-set reference remain pending.",
+    "Wall times are diagnostic, not scoring measurements."
+  ]
+}
