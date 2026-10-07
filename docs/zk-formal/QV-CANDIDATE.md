@@ -284,3 +284,12 @@ count equations. The last-main subtraction is justified by slot≥2 before its
 natural-to-field conversion. No accepted-trace premise is introduced. Audit91
 exact axiom guards+15 regressions and218 dependency jobs pass. Physical endpoint
 conditions and between-word transitions remain before full local composition.
+
+
+`CombinedPhysical` proves actual first-main row constraints, their inactivity
+after row0, no-restart on walk rows, and the two next-word start equations.
+It proves final-row and exit equations under explicit layout premises (physical
+last implies completed final word; a completed final word exits to non-walk or
+physical wrap). These layout premises must still be discharged by full trace
+construction. Audit97 exact axiom guards+15 regressions and219 dependency jobs
+pass. Between-word metadata sequencing and full layout/local composition remain.

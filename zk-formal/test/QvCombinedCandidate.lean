@@ -12,6 +12,7 @@ import ZkFormal.NearV3.Qv.Candidates.CombinedReadAlgebra
 import ZkFormal.NearV3.Qv.Candidates.CombinedKeyEndpoints
 import ZkFormal.NearV3.Qv.Candidates.CombinedTermination
 import ZkFormal.NearV3.Qv.Candidates.CombinedMetadataEquations
+import ZkFormal.NearV3.Qv.Candidates.CombinedPhysical
 
 namespace QvCombinedRegression
 open ZkFormal.NearV3.Qv.Candidates
@@ -528,3 +529,35 @@ end QvCombinedRegression
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_absent_buffer_equation' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_absent_buffer_equation
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.first_main_constraints' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.first_main_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.nonfirst_constraints' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.nonfirst_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.no_restart_equation' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.no_restart_equation
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.physical_last_equation' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.physical_last_equation
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.exit_equation' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.exit_equation
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.next_word_start_equations' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.next_word_start_equations
