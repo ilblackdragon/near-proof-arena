@@ -265,3 +265,14 @@ position0. Membership in the actual table constraints is checked explicitly.
 local-acceptance assumptions. Audit80 exact axiom guards+15 regressions and215
 dependency jobs pass. Last-main/count rules, implicit metadata, public termination,
 physical endpoints and between-word sequencing remain before full composition.
+
+
+`CombinedPlanMetadata` derives last-main source/type/count facts, implicit
+kind/slot metadata, final instance index and absent-buffer count0 from membership
+in the generated native plan. Only the absent-buffer result needs the existing
+native `MainValues.Valid` predicate. `CombinedTermination` uses the final-index
+fact to prove the actual public termination equation, with the public K binding
+supplied through the existing prepared-public interface. Audit86 exact axiom
+guards+15 regressions and217 dependency jobs pass. The remaining metadata field
+equations, physical boundary conditions and between-word sequencing still need
+composition into full local acceptance; this is not an end-to-end certificate.
