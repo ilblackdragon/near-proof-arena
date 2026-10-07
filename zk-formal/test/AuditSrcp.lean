@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Render.Srcp.TrafficProof
 import ZkFormal.NearV3.Rcpt.Render.Srcp.TrafficBlock
 import ZkFormal.NearV3.Rcpt.Render.Srcp.LocalProof
 import ZkFormal.NearV3.Rcpt.Extract.Srcp.Proof
@@ -333,3 +334,19 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.Render.SrcpGen.block_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.SrcpGen.block_messages
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.active_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.active_messages
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.size_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.size_messages
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.messages
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.table_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.table_traffic
