@@ -752,3 +752,11 @@ index. No external provider map, wf, or capacity assumption is needed for this
 identity. Five audit guards pass. A trace-local coherent structural ID function
 is still required by the current ups renderer API; global equality-to-ID is
 neither assumed nor valid for repeated sibling occurrences.
+
+`PathDistinct` derives strict subtree-size descent and proper-path size/tree
+Nodup from actual `traceUpsert` success. `PathRecordId` supplies an executable
+trace-local structural ID lookup, using the proven unique source sizes;
+`traceUpsert_sourceLevelIds` proves exact equality with allocated occurrence IDs.
+Nine guards pass. This map is currently certified for proper walk source levels
+(including the terminal); skipped PT sources and off-path output/source child
+lookups must still be included before instantiating all nativeInstance fields.
