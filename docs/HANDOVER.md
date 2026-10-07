@@ -7,6 +7,22 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `3b80b751`: indexed native main-plan metadata/flags and exact adjacent
+successor recurrence proved (slot+1, stable count, kind bits, nonfinal flags).
+Duplicate shard IDs preserved. QV101 exact axiom guards+15 fixtures PASS; focused
+77-job target PASS. Logs `/tmp/nearproof-main-order.log`,
+`/tmp/nearproof-main-order-audit-final.log`. Next: field translation, main-to-
+implicit and implicit order, then full layout/local composition. No root job.
+
+**Capacity correction verified in source:** frozen B0=2,000,000 at
+`spec/lean/v3/NearSpecV3/ChunkValidationV0a.lean:319`; actual ValWf.rows≤2^22
+at`zk-formal/ZkFormal/NearV3/Extract/ValProof.lean:36`. These differ from the
+conditional combined QV parser2^21-byte premise. Earlier references to a frozen
+2MiB ValE cap are inaccurate.87,382 duplicate buffer entries exceed accepted
+A7 through the pre-value, so are NOT an accepted-transition counterexample.
+No budget changed. D2 now derives proper retained/QV bounds from accepted A7.
+
+
 **Latest full AIR integration `862fc32c`:1,711 jobs,19 audits,226 exact axiom
 guards+15 behavior checks PASS.** Report:
 `docs/e2e-results/v3-native-rcpt-integration/report.json` in AIR; evidence
