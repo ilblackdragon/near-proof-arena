@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Rcpt.Render.Srcp.TrafficBlock
 import ZkFormal.NearV3.Rcpt.Render.Srcp.LocalProof
 import ZkFormal.NearV3.Rcpt.Extract.Srcp.Proof
 import ZkFormal.NearV3.Rcpt.Link.SourceHash
@@ -304,3 +305,31 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.Render.SrcpGen.table_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.SrcpGen.table_local
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.row_traffic' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.row_traffic
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.root_messages' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.root_messages
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.leaf_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.leaf_messages
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.path_byte_value' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.path_byte_value
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.path_digest_flag' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.path_digest_flag
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.path_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.path_messages
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.block_messages' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.block_messages
