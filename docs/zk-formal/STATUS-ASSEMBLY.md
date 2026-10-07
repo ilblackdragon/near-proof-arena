@@ -288,3 +288,11 @@ The source dictionary remains a parameter and receipts are currently grouped as
 one semantic list. Source-authenticated dictionary views, actual per-source
 receipt grouping, header comparisons, encoding/domain bounds, and AIR metadata
 must still be composed before claiming full FactorComplete or a succinct proof.
+
+`SourceSeeds` reconstructs decoded ProofEntry payloads from actual receipt and
+path views, preserves the original dictionary order and unused entries, and
+proves the selected-source authentication field against that exact dictionary.
+Four permanent axiom guards pass. Source root/index/duplicate metadata remains
+explicitly seeded independently of entry payloads; connecting the honest source
+AIR constructor is still required. Shuffle/cardinality/routing composition into
+all of SourceSemanticsV3 is the next semantic step.
