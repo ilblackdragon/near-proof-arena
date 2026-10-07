@@ -7,6 +7,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `24f29b7b`: executable mixedRows/mixedTrace and FULL
+`mixedTrace_table_local` for all physical walk+parser+padding rows. Ordinary
+inputs only: MainValues.Valid, Record.Valid, fit, supported log, public K binding.
+All prior cell/boundary premises discharged by generated construction; generic
+in Resolve. Target262 jobs;175 exact axiom guards+15 fixtures PASS. Logs
+`/tmp/nearproof-mixed-local.log`, `/tmp/nearproof-mixed-local-audit-final.log`.
+No root process. Next root: whole physical mixed-table traffic, then sound
+extraction, and aggregate latest agent checkpoints. No global bus balance or
+end-to-end certification claimed. Shared AIR receives cherry-pick.
+IMPORTANT resolver mismatch found by D2: initial queueForestResolve returns total
+users for every walk; actual QVC needs prior-use ordinal per walk, with total
+only on parser. D2 is correcting resolver+prefix-count chain. Prior count/seed
+lemmas remain useful but do not prove bus completeness; row capacity theorem
+remains valid as row count is resolver-independent. Last wholeaggregate cb1e3577
+precedes this checkpoint. Other pending agent work: Ups7682b647 fullMemOk family
+with depth≤400/HPL<2^22 still renderer capacity premises; receipt31234053 system
+iff no-wrap; D2a062eb27 full multiplicity count (before resolver correction).
+
+
 Root QV `812d5d40`: executable parser suffix after nonempty prefix satisfies
 ALL combined table constraints, including interaction bits, cross-record,
 padding and cyclic wrap. CombinedParserLift handles extra-column zero embedding;
