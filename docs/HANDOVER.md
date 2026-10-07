@@ -7,6 +7,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+AIR `bcc619ca`: arbitrary accepted QV trace extraction starts in
+Qv/Extract/WalkRows and WalkLength. TableLocal alone gives boolean flags,
+SegFacts and full consecutive walk-prefix decomposition with inactive suffix.
+For every extracted segment, wp is exactly row offset and length is 1 or9;
+physical height≤2^22<P discharges wrap exclusion. No generated/canonical trace
+premise. Target115 jobs and5 exact standard-axiom guards PASS. Logs
+/tmp/nearproof-qv-walk-length.log and /tmp/nearproof-qv-walk-audit-final.log.
+Root next: constant metadata/key shape, main/implicit ordering, parser extraction,
+and FINAL/provider linking. This is not yet complete QV soundness.
+New shared AIR integrations after dc4c12d4 aggregate: D2 physical QSH469c3bd6
+as33360fd9; update node-local edgescde397c4 aseac906cf and native determinate-read
+terminal revelationbfa26ba3 as6bd04af9. Receipt86b2f633 removes entering-token and
+global-index premises for per-receipt Wf via ListChain.indexed_wf;984dd0d1 adds
+all token endpoint carry equalities. These newer imports are not covered by the
+older1832-job aggregate. Receipt TokenValues WIP agent-owned; root no live job.
+All previous global capacity, soundness, admission/reference-checker, prover,
+real judge and broad NEAR coverage obligations remain active.
+
+
 AIR `dc4c12d4`: accepted-input `Assembly.QueueRender.checkD0a_queue_render`
 constructs corrected per-use-rank queue trace with full TableLocal, canonical
 TableTraffic and physical QVC send/receive permutation over all 2^22 rows.
