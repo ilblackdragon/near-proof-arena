@@ -2,6 +2,15 @@
 
 Program lead's hand-over, 2026-10-07.
 
+**Update plan milestone:** `UpsGen.cPlan_ok` proves the full plan constraint
+group for the generated table, including all row kinds and padding. It takes
+explicit semantic `PartOk` conditions on each constructed part; `InstOk` and
+`UpsOk` are unchanged. The saved helper proof is repaired and imported through
+`UpsRender`. Integration passes 1,097 jobs; five guarded axiom checks pass.
+The actual trie-update construction must still establish these inputs, and
+`cFields`, `cBytes`, `cMem` remain incomplete. See
+`docs/e2e-results/v3-ups-plan/report.json`.
+
 **Resumption, 2026-10-07:** `lake build ZkFormal` at `399af714` passed (694 jobs)
 under the 16 GiB `heavy` wrapper on CPUs 8–15,24–31. This was an incremental
 build using cached artifacts, not a clean elaboration-budget measurement.
