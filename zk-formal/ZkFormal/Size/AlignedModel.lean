@@ -40,19 +40,19 @@ set_option maxHeartbeats 2000000
 theorem friAligned_g2 : friAlignedMax (V2.G.pg 2) = 1061952 := by decide +kernel
 
 /-- The corrected one-SHA synthetic model saves 1,624,192 bytes under alignment. -/
-theorem aligned_oneSha_g2 : sizeOfAligned (V2.G.pg 2) (v3S 2) = 5523231 := by decide +kernel
+theorem aligned_oneSha_g2 : sizeOfAligned (V2.G.pg 2) (v3S 2) = 5535295 := by decide +kernel
 
 /-- Two SHA instances, before increasing static caps for padding. -/
-theorem aligned_twoSha_g2 : sizeOfAligned (V2.G.pg 2) (twoShaS 2) = 6125856 := by decide +kernel
+theorem aligned_twoSha_g2 : sizeOfAligned (V2.G.pg 2) (twoShaS 2) = 6137920 := by decide +kernel
 
 /-- Includes the larger proposed static caps, but still omits qvV3. -/
 theorem aligned_padded_twoSha_g2 :
-    sizeOfAligned (V2.G.pg 2) (paddedTwoShaS 2) = 6164160 := by decide +kernel
+    sizeOfAligned (V2.G.pg 2) (paddedTwoShaS 2) = 6176224 := by decide +kernel
 
-/-- Diagnostic remaining budget after the full maximum hint: 929,431 bytes.
+/-- Diagnostic remaining budget after the full maximum hint: 917,367 bytes.
 This is not a final prover certificate; missing tables must fit this budget. -/
 theorem padded_twoSha_hint_margin :
-    sizeOfAligned (V2.G.pg 2) (paddedTwoShaS 2) + 1295017 + 929431 = 8388608 := by
+    sizeOfAligned (V2.G.pg 2) (paddedTwoShaS 2) + 1295017 + 917367 = 8388608 := by
   rw [aligned_padded_twoSha_g2]
 
 /-- Each proposed cap is large enough and aligns with the largest cap. This

@@ -1,5 +1,24 @@
 # STATUS-V3-AIR: succinct v3 D0 prover (np-udr-stark-v2), program state at hand-over
 
+## Full-header and queue-record integration (2026-10-07)
+
+Integration passes **1,403 jobs** after merging the full-u32 Node/Ups header
+repair and width200 memory carries. Twelve merged audits pass, with86 axiom
+guards and38 behavior guards, plus kernel theorem regressions for source-header
+aliasing and long-key carry truncation. Executable queue records now concatenate
+with all local constraints proved, including padding and physical wraparound.
+Native forest/store reconstruction and actual byte/gas-derived ID capacity are
+included. Size.V3Synth/V3Eval/AlignedModel now cross-check the actual200-column
+update table; each previous shape model increases by12,064 bytes.
+
+Evidence: `docs/e2e-results/v3-full-header-integration/report.json`. The candidate
+source/queue reserve model is still not a protocol admission theorem. Remaining
+work includes native semantic factoring, full runtime trace construction,
+queue/source extraction and global traffic/capacity, the log23 candidate protocol
+family, final succinct prover/certificate/judge, and broader NEAR coverage.
+The native checker domain, frozen parameters and8MiB cap are unchanged.
+
+
 ## Store-normalization checkpoint (2026-10-07)
 
 Integration passes **1,347 jobs**, including TreeStore and normalized ExtV3.store.

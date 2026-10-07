@@ -1,3 +1,10 @@
+import ZkFormal.NearV3.Assembly.ForestStore
+import ZkFormal.NearV3.Assembly.NativeCapacity
+import ZkFormal.NearV3.Assembly.WitnessSize
+import ZkFormal.NearV3.Qv.Candidates.RecordConcat
+import ZkFormal.NearV3.Qv.Candidates.ValueBudget
+import ZkFormal.NearV3.Rcpt.Candidates.DedupCrossLocal
+import ZkFormal.NearV3.Rcpt.Candidates.DedupTerminalPadding
 import ZkFormal.NearV3.Assembly.TreeStore
 import ZkFormal.NearV3.Assembly.FactorSound
 import ZkFormal.NearV3.Qv.ReadPlan
@@ -66,6 +73,6 @@ interfaces together without changing the v1 build root or deployed packages.
 
 Executable drivers (`V3.Tools`) and their compiler fast paths (`V3.Fast`) remain
 separate targets. Unmerged WIP helpers are not imported. A successful build
-checks the existing partial results, not the still-missing FactorSound,
-FactorComplete, honestTrace_fits, or final admission certificate.
+checks the existing partial results, not the still-missing FactorComplete, AIR-to-Good, honestTrace_fits,
+or final admission certificate. Candidate imports do not admit their protocol parameters.
 -/

@@ -1,0 +1,120 @@
+{
+  "status": "partial-formal-milestone",
+  "created_utc": "2026-10-07T09:38:46.276376+00:00",
+  "base_commit": "03f6fcced671e11ffd785fb337d94093cd37e79e",
+  "scope": "Full-u32 trie/update headers, full-range update carries, executable queue-record concatenation, native forest/store capacity, and corrected shape accounting",
+  "integration": {
+    "target": "ZkFormal.V3.Integration",
+    "jobs": 1403,
+    "result": "pass"
+  },
+  "audits": [
+    {
+      "test": "AuditV3FullNodeHeader",
+      "returncode": 0,
+      "seconds": 0.318,
+      "axiom_guards": 6,
+      "behavior_guards": 8
+    },
+    {
+      "test": "AuditV3UpsHeader",
+      "returncode": 0,
+      "seconds": 0.283,
+      "axiom_guards": 3,
+      "behavior_guards": 2
+    },
+    {
+      "test": "AuditHeaderAlias",
+      "returncode": 0,
+      "seconds": 0.524,
+      "axiom_guards": 0,
+      "behavior_guards": 0
+    },
+    {
+      "test": "AuditLongTrieMemory",
+      "returncode": 0,
+      "seconds": 5.936,
+      "axiom_guards": 0,
+      "behavior_guards": 0
+    },
+    {
+      "test": "AuditWideCarryBounds",
+      "returncode": 0,
+      "seconds": 0.239,
+      "axiom_guards": 4,
+      "behavior_guards": 0
+    },
+    {
+      "test": "AuditWideCarryShape",
+      "returncode": 0,
+      "seconds": 0.273,
+      "axiom_guards": 2,
+      "behavior_guards": 0
+    },
+    {
+      "test": "AuditFullHeaderConsumers",
+      "returncode": 0,
+      "seconds": 0.312,
+      "axiom_guards": 10,
+      "behavior_guards": 0
+    },
+    {
+      "test": "QvValueCandidate",
+      "returncode": 0,
+      "seconds": 0.468,
+      "axiom_guards": 28,
+      "behavior_guards": 22
+    },
+    {
+      "test": "QvRecordCandidate",
+      "returncode": 0,
+      "seconds": 0.32,
+      "axiom_guards": 10,
+      "behavior_guards": 6
+    },
+    {
+      "test": "AuditNativeCapacity",
+      "returncode": 0,
+      "seconds": 0.302,
+      "axiom_guards": 10,
+      "behavior_guards": 0
+    },
+    {
+      "test": "AuditForestStore",
+      "returncode": 0,
+      "seconds": 0.282,
+      "axiom_guards": 10,
+      "behavior_guards": 0
+    },
+    {
+      "test": "AuditAssemblyFactor",
+      "returncode": 0,
+      "seconds": 0.227,
+      "axiom_guards": 3,
+      "behavior_guards": 0
+    }
+  ],
+  "axiom_guards": 86,
+  "behavior_guards": 38,
+  "additional_regressions": [
+    "AuditHeaderAlias: full authenticated source length prevents byte0 header alias",
+    "AuditLongTrieMemory: accepted long-key native update exposes legacy carry truncation"
+  ],
+  "owned_source_sha256": {
+    "zk-formal/ZkFormal/Size/V3Synth.lean": "687cfa98eb0f68b0fc2c6b9509b7a8768160b05df7f6be1a488098d75d330872",
+    "zk-formal/ZkFormal/Size/V3Eval.lean": "cd315a6928c64f851a4162c8a7991e49ccde120e3fa791813e2faef5074df40f",
+    "zk-formal/ZkFormal/Size/AlignedModel.lean": "cec1ecb5f71aa3281219fa7026ec34ed0e2800083d7a40d318c399ea8e168be6",
+    "zk-formal/ZkFormal/V3/Integration.lean": "4b48dd9d1cb77f91329c3d6403c4101bcf2ad9ea828a0f5abb474afd2fcf2aea"
+  },
+  "evidence_directory": "/data/illia/nearproof-deps/validation/v3-full-header-integration-20261007",
+  "remaining": [
+    "FactorComplete and AIR-to-Good",
+    "Whole runtime update plan/window/memory/traffic construction",
+    "Queue read orchestration, extraction and accepted-witness total capacity",
+    "Whole deduplicated source local/partition composition",
+    "log23 candidate protocol family and security admission",
+    "Final succinct prover, independent certificate checker, real judge and broader NEAR coverage"
+  ],
+  "caps_and_frozen_parameters_changed": false,
+  "succinct_validator_replacement_established": false
+}
