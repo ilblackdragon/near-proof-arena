@@ -4,6 +4,7 @@ import ZkFormal.NearV3.Qv.Candidates.ValueGen
 import ZkFormal.NearV3.Qv.Candidates.CombinedCapacity
 import ZkFormal.NearV3.Qv.Candidates.CombinedWalkBits
 import ZkFormal.NearV3.Qv.Candidates.CombinedWalkTraffic
+import ZkFormal.NearV3.Qv.Candidates.CombinedShardTraffic
 
 namespace QvCombinedRegression
 open ZkFormal.NearV3.Qv.Candidates
@@ -248,3 +249,51 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.key_field_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.terminal_filter' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.terminal_filter
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.terminal_nat_bits' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.terminal_nat_bits
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.final_nat_messages' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.final_nat_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.counter_nat_messages' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.counter_nat_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.final_field_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.final_field_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.counter_field_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.counter_field_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.shard_field_messages' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.shard_field_messages
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_group_slot' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mainPlan_group_slot
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_group_slot' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.implicitPlan_group_slot
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_group_slot' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_group_slot
