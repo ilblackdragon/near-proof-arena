@@ -45,3 +45,29 @@ Remaining semantic work:
 
 The D3 logged read-set reference is a separate worktree and validation lane. Its
 native/worker/formal checks do not discharge any succinct proof admission gap.
+
+## Semantic assembly interface (2026-10-07)
+
+`Assembly.Witness` now defines `ExtV3` from actual node/value/head, receipt and
+source path views and computes `stateWitnessOfV3` / `witnessOfV3`. Ordered source
+dictionaries preserve explicit unused fillers; no source lookup may select a
+filler in `SourceSemanticsV3`. Main and implicit stores come from the existing
+`Link3` record interpretation. Ignored transition hashes are canonical zeros.
+
+`Assembly.Execution` separates exact main runtime execution and chronological
+implicit execution. The queue-stage theorem uses the actual successful run;
+authenticated pre-state queue reads additionally require the explicit `pre.wf`
+premise from `Qv.ReceiptPreserve`. That premise has not been silently discharged.
+
+`Assembly.Good` combines ordinary source selection/Merkle checks/shuffle,
+cardinality, exact runtime, header/body comparisons and domain/codec bounds.
+It contains no `checkD0` or `RelD0a` field. It proves decoding of reconstructed
+bytes and all five frozen D0a amendments. Modular elaboration and four transitive
+axiom audits pass (only `propext`, `Classical.choice`, `Quot.sound`).
+
+`FactorSound` and `FactorComplete` are explicitly OPEN proposition definitions.
+They are not axioms, theorem wrappers, AIR soundness, rendering or row-capacity
+claims. Remaining work includes the native check/preprocessing decomposition,
+extracting source selection from successful native loops, exact root/store and
+runtime view construction, and deriving each `GoodV3` field from AIR semantics.
+The global source row-capacity redesign remains a separate candidate obligation.
