@@ -7,7 +7,7 @@ open ZkFormal.Near ZkFormal.Near.Render
 open NodeGen (F)
 
 structure FreshValue (I : UpsInst) (Q : UpsPartI) (e : NodeEncoding Q) : Prop where
-  slot : VcpB I Q = false → ∃ sv, NodeGen3.slotOf e.node = some sv ∧
+  slot : (Q.ty=0 ∨ Q.ty=3) → VcpB I Q = false → ∃ sv, NodeGen3.slotOf e.node = some sv ∧
     sv.lenB = (NearSpec.u32 (L I)).map UInt8.toNat
 
 theorem FreshValue.length_byte {I : UpsInst} {Q : UpsPartI} {e : NodeEncoding Q}
@@ -19,7 +19,15 @@ theorem FreshValue.length_byte {I : UpsInst} {Q : UpsPartI} {e : NodeEncoding Q}
     cases f <;> simp [F.state,Node.sTAG,Node.sHPL,Node.sHPF,Node.sKEY,Node.sVLEN,Node.sVH,
       Node.sBM,Node.sCH,Node.sMEM,hs] at hstate ⊢
   subst f
-  obtain ⟨sv,hsv,hlen⟩ := h.slot hc
+  have ht : Q.ty=0 ∨ Q.ty=3 := by
+    have hh := (NodeGen3.kind_facts hf).2.1 (Or.inl rfl)
+    rw [e.ty]
+    cases hn : e.node with
+    | leaf => simp [nodeTypeCode]
+    | ext => simp [hn,NodeGen3.typeOf] at hh
+    | branch sv kids mem =>
+      cases sv <;> simp_all [NodeGen3.typeOf,nodeTypeCode]
+  obtain ⟨sv,hsv,hlen⟩ := h.slot ht hc
   simp only [F.len] at hidx
   rw [hbyte]
   simp only [NodeGen3.fbytes,hsv,Option.map_some,Option.getD_some,hlen,UpsRows.toNats_u32]
