@@ -361,3 +361,14 @@ offsets and terminal-to-next-word lookup are checked, without trace-acceptance
 premises. This discharges the list-addressing layer; casting into the physical
 trace, cyclic boundary behavior, parser suffix and full constraint composition
 remain. The227-job target and147 exact axiom guards+15 regressions pass.
+
+
+`CombinedTraceNeighbors` proves all24 neighbor equations at every physical row
+of the generated native walk prefix, from generated prefix cells and prefix
+length≤trace height. Cyclic indexing is handled explicitly. Exact prefix endpoint
+coordinates imply the physical-last equation; exit holds when the first suffix
+row has walk=0 (or at physical wrap). Prefix cells are obtained from an appended
+row encoding by `PrefixCells.of_append`. No local acceptance or balance premise
+is used. Target228 jobs and156 exact axiom guards+15 regressions pass. Full walk
+constraint composition, parser suffix acceptance, provider/global traffic and
+end-to-end extraction/certification remain.
