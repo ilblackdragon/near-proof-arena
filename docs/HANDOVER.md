@@ -7,6 +7,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `0bd3bed4`: nine actual candidate read-gate equations (including absent
+vid0, present/group/count flags, end-implies-last), final key position0/8 and
+native first-byte equations are proved. Target215 jobs and QV80 axiom guards+15
+fixtures PASS (`/tmp/nearproof-key-endpoints.log`,
+`/tmp/nearproof-read-gates-audit-final.log`). Remaining local work: last-main/count,
+implicit metadata, public termination, physical endpoints and between-word
+sequencing, then full constraint/trace composition. No active root job.
+Receipt checkpoint7222be79 connects actual terminal oEnd to bounded extracted
+list length. Assemblyd7c393de gives targeted retained-store exact pre/post replay
+and original serialized-store cost, but not2MiB value allocation. Ups shape and
+metadata additions await next joint integration. Full goal remains incomplete.
+
+
 Root QV `72bf392e`: within-word ten-field metadata preservation and three
 clock equations, plus actual byte and mode equations, proved from generated
 cells over any commutative ring. Target213 jobs and QV76 exact axiom guards+15
