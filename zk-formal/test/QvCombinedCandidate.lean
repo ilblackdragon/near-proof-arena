@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Qv.Candidates.CombinedLocal
 import ZkFormal.NearV3.Qv.Candidates.CombinedRecordPlacement
 import ZkFormal.NearV3.Qv.Candidates.CombinedPrefixLocal
 import ZkFormal.NearV3.Qv.Candidates.CombinedTraceNeighbors
@@ -896,3 +897,39 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.combined_records_suffix_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.rows_width' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.Record.rows_width
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsCell_high' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsCell_high
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsCell_first_marker' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.recordsCell_first_marker
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_prefix
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_suffix' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_suffix
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_first' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_first
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_table_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.mixedTrace_table_local
