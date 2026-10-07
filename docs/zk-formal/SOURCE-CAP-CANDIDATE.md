@@ -616,3 +616,12 @@ the count registers and forced zero high bytes supply the remaining four. The
 other two header emission slots are disabled. Seven exact axiom guards pass.
 No byte-range claim is hidden in this equality: range checking must still be
 linked to the BYTES/SHA channel before using the natural header-count theorem.
+
+`GlobalCounters` and `GlobalListCounters` reconstruct global receipt numbering:
+headers preserve `r` and body offset, the first receipt inherits them, receipts
+increment `r`, and the next list header inherits the previous terminal `r+rl`.
+Header `k` therefore has the natural prefix receipt count cast into `Fp`, with
+initial counter zero; receipt `i` within the list adds `i`. Empty lists are
+included. Ten exact axiom guards pass. These are actual physical counters, not
+extra witnesses or assumptions. Global refund-body offset reconstruction is
+still needed to assemble existing per-receipt byte traffic.
