@@ -873,3 +873,10 @@ access-key flag match the semantic enable condition exactly, and the send uses
 the natural successor counter cast into the field. No arbitrary header/padding
 lookup remains. Eight exact guards pass. Remaining receipt channels: KEYNIB,
 DIGEST, FINAL, SREC, BND.
+
+`SignerTrafficRows`, `SignerTrafficField`, and `SignerTraffic` close both B_SREC
+directions. Gate constraints confine messages to the appropriate receiver or
+signer field; exact row selections, actual character bytes, and global receipt
+indices agree with the unchanged semantic filter lists. Header/padding silence
+is proved, with no extra selected-byte assumptions. Ten exact guards pass.
+Remaining whole-table receipt channels: KEYNIB, DIGEST, FINAL, BND.
