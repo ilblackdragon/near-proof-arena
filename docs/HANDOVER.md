@@ -7,6 +7,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root QV `8d3371c6`: actual implicit indexed order/flags, successors and main-to-
+implicit boundary proved; matching AIR equations for entering tau1 and later
+tau+1 transitions checked. Target222 jobs and QV108 axiom guards+15 fixtures
+PASS (`/tmp/nearproof-implicit-steps.log`,
+`/tmp/nearproof-implicit-order-audit-final.log`). Next root: main-step field
+translation and full local/layout composition. No active root build.
+D2 8b69ebf4 derives accepted aggregate preValueBytes≤B (12 guards); delegated
+constructive distinct queue records/ownership charging next, with duplicate
+requests sharing providers. Extra post-query collision-shadow cost remains open.
+Ups ab6ca604 closes all non-walk InstOk fields (520 jobs,4 guards), leaving actual
+WalkOkU/IDs, memory/window/global capacity composition. Receipt51bd055c closes
+extracted count/header register facts with byte range still explicit.
+
+
 Root QV `3b80b751`: indexed native main-plan metadata/flags and exact adjacent
 successor recurrence proved (slot+1, stable count, kind bits, nonfinal flags).
 Duplicate shard IDs preserved. QV101 exact axiom guards+15 fixtures PASS; focused
