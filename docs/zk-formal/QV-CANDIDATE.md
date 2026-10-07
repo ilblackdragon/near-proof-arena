@@ -308,3 +308,12 @@ bytes, not2MiB. Active `ValWf.rows` allows2^22 rows; the combined queue parser's
 The oversized duplicate-buffer example does not establish an accepted-input
 counterexample because its revealed pre-value exceeds frozen A7/B0. Actual
 retained/QV capacity must still be derived from the accepted-input bounds.
+
+
+`CombinedImplicitOrder` gives exact indexed implicit metadata/flags, successor
+indices, and the main-to-implicit boundary from the native lists. The matching
+`CombinedImplicitSteps` field equations establish entering tau1 and subsequent
+tau+1 steps from generated neighboring cells. Those natural premises are derived
+by the indexed plan lemmas; whole-list layout still needs composition. Audit108
+exact axiom guards+15 regressions and222 dependency jobs pass. Main-step field
+translation and complete local trace construction remain.
