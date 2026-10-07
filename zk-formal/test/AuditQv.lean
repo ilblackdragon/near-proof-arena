@@ -1,4 +1,5 @@
 import ZkFormal.NearV3.Qv.Bounds
+import ZkFormal.NearV3.Qv.Preserve
 
 open NearSpec NearSpecV3 ZkFormal.NearV3.Qv
 
@@ -72,3 +73,19 @@ open NearSpec NearSpecV3 ZkFormal.NearV3.Qv
 /-- info: 'ZkFormal.NearV3.Qv.bufferedValue_count_u24' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.bufferedValue_count_u24
+
+/-- info: 'ZkFormal.NearV3.Qv.schedStep_find_other' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.schedStep_find_other
+
+/-- info: 'ZkFormal.NearV3.Qv.schedStep_buffered_read' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.schedStep_buffered_read
+
+/-- info: 'ZkFormal.NearV3.Qv.schedStep_group_read' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.schedStep_group_read
+
+/-- info: 'ZkFormal.NearV3.Qv.MainValues.pre_buffer_reads' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.MainValues.pre_buffer_reads
