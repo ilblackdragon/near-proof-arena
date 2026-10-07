@@ -102,4 +102,16 @@ theorem sourceCidBytes_branch_after (value : Option NSlot3) (before after : List
   simp only [List.length_append,List.length_replicate,Nat.add_sub_cancel_left]
   rw [List.getElem?_append_left (by simpa using hi)]
   simp only [List.getElem?_replicate_of_lt hi,Option.getD_some]
+
+/-- Each present child contributes exactly one 32-byte CID window. -/
+theorem branchCidBytes_length (kids : List NKid) :
+    (branchCidBytes kids).length=32*(kids.filter (fun k=>k≠.none)).length := by
+  induction kids with
+  | nil => rfl
+  | cons k ks ih =>
+    change ((if k=.none then [] else List.replicate 32 (kidCid k)) ++ branchCidBytes ks).length=_
+    by_cases hk : k=.none <;>
+      simp only [hk,ite_true,ite_false,List.length_append,List.length_nil,List.length_replicate,
+        List.filter_cons,ne_eq,not_true_eq_false,not_false_eq_true,decide_true,decide_false,
+        Bool.false_eq_true,ih,List.length_cons] <;> omega
 end ZkFormal.NearV3.Render.UpsGen
