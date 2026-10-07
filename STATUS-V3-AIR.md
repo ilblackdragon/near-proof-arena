@@ -1,3 +1,15 @@
+## Combined queue and source extraction checkpoint (2026-10-07)
+
+Integration passes1,585 jobs;12 merged audits pass. Exact counts and evidence:
+`docs/e2e-results/v3-combined-source-native-integration/report.json`.
+CombinedTable now replaces the static queue reserve without changing the checked
+8,359,074-byte model. Parser traffic/public K bindings are checked; full walk
+rendering, extraction and native capacity remain. Source join and unit extraction
+are integrated. Exact leaf replacement terminal cursor is repaired and audited.
+Native preparation is bundled, but D0Shape/A7 preservation and full Good remain
+open. RetainedStore proves unconditional lookup/rebuild preservation; it is not
+adopted into ExtV3 because unused-value ownership/2MiB accounting are unresolved.
+
 ## Native traffic and log23 integration checkpoint (2026-10-07)
 
 Expanded integration target passes 1,531 jobs. Thirteen focused merged audits
