@@ -1,5 +1,17 @@
 # STATUS-V3-AIR: succinct v3 D0 prover (np-udr-stark-v2), program state at hand-over
 
+## Store-normalization checkpoint (2026-10-07)
+
+Integration passes **1,347 jobs**, including TreeStore and normalized ExtV3.store.
+Seventeen store axiom guards and two collision-order regressions pass; all three
+FactorSound guards pass again. Stable first-occurrence byte dedup preserves the
+actual first-match storeGet and partialTrie without hash injectivity. Per-store
+serialized cost does not expand. Single-instance executable view allocation has
+explicit node/value-ID capacity premises; whole-witness codec coverage and
+multi-instance allocation remain open. Evidence:
+`docs/e2e-results/v3-store-normal/report.json`.
+
+
 ## Latest semantic factoring checkpoint (2026-10-07)
 
 Integration passes **1,337 jobs** with `Assembly.FactorSound`. `GoodV3.checkD0`,
