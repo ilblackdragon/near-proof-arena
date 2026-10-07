@@ -252,6 +252,10 @@ def main():
             e1 = meta.get("expected_rel_d1", False)
             cnt["cases"] += 1
             cnt["expected_rel_d1"] += e1
+            verdicts = {name: rows[d]["verdict"] for name, rows in res.items()}
+            if len(set(verdicts.values())) > 1:
+                issues.append({"case": d, "problem": "D2 checker verdict disagreement on D1 corpus",
+                               "verdicts": verdicts})
             for name, r in res.items():
                 j = r.get(d)
                 v = j["verdict"] if j else "missing"

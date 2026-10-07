@@ -52,7 +52,7 @@ class CheckerOutputTests(unittest.TestCase):
 
 
 class SavedResultsTests(unittest.TestCase):
-    def test_d1_extension_reuses_complete_d2_baselines(self):
+    def run_extension(self, disagrees=False):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             d2 = root / "d2corpus" / "d2" / "case"
@@ -60,7 +60,7 @@ class SavedResultsTests(unittest.TestCase):
             for case in (d2, d1):
                 case.mkdir(parents=True)
                 (case / "meta.json").write_text(json.dumps({
-                    "expected_rel": True, "expected_rel_d1": True,
+                    "expected_rel": True, "expected_rel_d1": not disagrees,
                     "expected_rel_d2": True,
                 }))
             def row(case):
@@ -72,18 +72,24 @@ class SavedResultsTests(unittest.TestCase):
                     "--d1-corpus", str(d1.parent.parent), "--d1-lean-from", str(root / "d1lean"),
                     "--save", str(root / "saved")]
             with patch.object(sys, "argv", args), contextlib.redirect_stdout(io.StringIO()), \
-                    patch("difftest_v3_d2.run_checker", return_value={str(d1): row(d1)}) as run:
+                    patch("difftest_v3_d2.run_checker", return_value={str(d1): {**row(d1), "verdict": "reject" if disagrees else "accept"}}) as run:
                 with self.assertRaises(SystemExit) as result:
                     main()
-                self.assertEqual(result.exception.code, 0)
+                self.assertEqual(result.exception.code, int(disagrees))
                 run.assert_called_once()
                 self.assertEqual(run.call_args.args[1], [str(d1)])
             report = json.loads((root / "saved" / "report.json").read_text())
-            self.assertEqual(report["d1_corpus_check"]["issues"], 0)
+            self.assertEqual(report["d1_corpus_check"]["issues"], int(disagrees))
             for name in ("lean_from", "python_from", "d1_lean_from"):
                 self.assertEqual(len(report[name]["sha256"]), 64)
             self.assertTrue((root / "saved" / "d1corpus-lean.jsonl").is_file())
             self.assertTrue((root / "saved" / "d1corpus-python.jsonl").is_file())
+
+    def test_d1_extension_reuses_complete_d2_baselines(self):
+        self.run_extension()
+
+    def test_d2_disagreement_outside_d1_is_rejected(self):
+        self.run_extension(disagrees=True)
 
 
 if __name__ == "__main__":
