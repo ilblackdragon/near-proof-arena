@@ -450,3 +450,11 @@ post roots, exact dictionary preservation and independently decoded claim header
 `checkD0a_constructed_shape` obtains all premises from native acceptance. Twelve
 permanent axiom guards pass. The codec/shape completeness gap is closed; A7's
 post-rebuild allocation gap and canonical scheduler-read preservation remain.
+
+`CanonicalReplay` derives actual scheduler-key determinacy from successful main
+and implicit execution, applies singleton replay to each normalized store, and
+proves exact equality of the entire reads0f list. `checkD0a_native_canonical`
+therefore closes Good.canonicalScheduler directly from native acceptance. Nine
+permanent axiom guards pass. No injectivity, read-commutativity or extra lookup
+premise remains. A7 post-rebuild preservation remains the substantive semantic
+completeness gap; codec shape and canonical scheduler preservation are closed.
