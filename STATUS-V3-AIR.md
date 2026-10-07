@@ -2,6 +2,16 @@
 
 Program lead's hand-over, 2026-10-07.
 
+**Queue semantics checkpoint:** integration passes **1,323 jobs**, including all
+12 concrete upsert byte constructors. Queue audit passes 11 behavior checks and
+32 axiom guards. `Qv.applyNewChunk_pre_queue_reads` binds every main queue check
+to authenticated pre-state reads using proved scheduler and receipt preservation.
+`Qv.byteBuffered_iff` supplies byte witnesses with eight-byte shard/index values.
+Queue AIR construction and actual row-budget derivation remain open; the old A4
+128 KiB cap is not part of RelD0a. Evidence:
+`docs/e2e-results/v3-queue-semantics/report.json`. A separate source capacity gap
+requires deduplication/partitioning; candidate estimates are not final admission.
+
 **Concrete public binding checkpoint:** integration passes **1,272 jobs**.
 `Public.bindPrepared` derives all nine exact bus families, segment fit, body
 length and overhead reads from actual `prepD0` success. Header/source root widths
