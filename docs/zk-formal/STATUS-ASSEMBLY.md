@@ -623,3 +623,10 @@ permutations in Fp. Uses root's checked mixedTrace_counter_messages plus actual
 request Holds, parser Valid and trace fit; accepted-input QueueRender supplies
 these without a new capacity assumption. Permanent guard passes standard3.
 Other buses and retained post-query value allocation remain separate work.
+
+`QueueShardPayload` derives each buffered parser Record's exact QSH shard bytes
+and count from native BufferedValue, preserving duplicate IDs and order. It also
+proves the entire generated plan consumes exactly the ordered native shard bytes
+plus the buffered count when present. 4 guards pass. Remaining composition:
+prove exactly one buffered provider when present (none otherwise), aggregate
+records, and lift to physical QSH balance; VBYTES inclusion follows afterward.
