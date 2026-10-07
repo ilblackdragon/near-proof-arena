@@ -196,4 +196,26 @@ theorem partialTrie_normalStore (ws : List Bytes) (root : Bytes)
   exact buildFor_replay (fun _ _ h => normalStore_lookup_sub ht h) trieFuel root keys
     (normalStore_stored ht)
 
+/-- A separate singleton first-pass lookup is preserved whenever the full trie
+already determines that key; it need not use the full builder's key list. -/
+theorem partialTrie_normalStore_singleton_find (ws : List Bytes) (root : Bytes)
+    (keys : List (List Nat)) (key : List Nat) (hr : root.length = 32)
+    (hk : (partialTrie ws root keys).find key ≠ none) :
+    (partialTrie (normalStore (partialTrie ws root keys)) root [key]).find key =
+      (partialTrie ws root [key]).find key := by
+  have hb := built_spec ws trieFuel root keys hr
+  have hroot : (partialTrie ws root keys).hashOf = root := hb.1
+  have hkeys : ∀ k ∈ [key], (partialTrie ws root keys).find k ≠ none := by
+    intro k h
+    have : k = key := by simpa using h
+    subst k
+    exact hk
+  have ho := buildFor_spec (mkStore ws) trieFuel (partialTrie ws root keys) [key]
+    hb.2.1 hb.2.2.1 hkeys
+  have hn := buildFor_spec (mkStore (normalStore (partialTrie ws root keys))) trieFuel
+    (partialTrie ws root keys) [key] hb.2.1 (normalStore_stored hb.2.2.1) hkeys
+  rw [hroot] at ho hn
+  exact (hn.2 key (by simp) (hb.2.2.2 key)).trans
+    (ho.2 key (by simp) (hb.2.2.2 key)).symm
+
 end ZkFormal.NearV3.Assembly
