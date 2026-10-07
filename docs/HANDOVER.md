@@ -7,6 +7,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root WalkMain now derives main-request prefix, no lastMain before another main,
+slot=i both Fp and Nat (using physical bound), exact kind bits by index:
+0delayed,1buffered,2yielded,≥3group. Arbitrary accepted chain; no renderer premise.
+Target123 jobs +7 exact guards PASS. Logs /tmp/nearproof-qv-walk-main.log,
+/tmp/nearproof-qv-main-audit-final.log. Root no live job. Next main count/final
+bounds and exact KEYNIB/FINAL/QVC traffic, then parser/provider soundness.
+Integrated ups8ca262c8 ancestor branch/extension symbols+terminal suffix
+concatenate exactly to original query; source wf unnecessary. Receipt88c2cb98
+closes complete RcptV3Wf token field with actual zero-start sequence/global
+receipt Wf/final bytewise public burnt. Public count/body range still active.
+Last aggregate191ea6da predates newest modules; global admission/certificate,
+prover/judge and broader NEAR goal remain incomplete.
+
+
 AIR `9959d92c` WalkPhase proves indexed adjacent request transitions, implicit
 suffix cannot re-enter main, and exact implicit tau=index distance from entry.
 When entry tau=1, natural cv decoding follows from physical height<P, without
