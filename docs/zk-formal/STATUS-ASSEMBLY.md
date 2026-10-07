@@ -785,3 +785,15 @@ no new node allocation or capacity premise is introduced. Twenty audit guards
 pass. Resolved target revelation remains explicit when the native child is
 unrevealed. Proper branch child address/slot correspondence and full traffic
 counts are separate remaining work.
+
+### Off-path empty-extension resolver correction
+
+A checked wf native split with off-path child `ext [] (hash h)` exposed a real
+resolver mismatch: `resolveNative` reaches the hash, while seed `viewTarget`
+stops at the last revealed extension. `OccurrenceResolvedId` adds the map-level
+resolver `viewTarget (recordId t) t`, preserving runtime/spec behavior. The
+extended map now proves exact extension-child targets **without** a resolved
+revelation premise; on revealed actual source paths it agrees with the old
+resolver. Seven guards and six kernel-evaluated regression fixtures pass. The
+regression's old target is index2 beyond a two-node forest; corrected target1 is
+the actual provider. Existing f279fc41 remains a correctly conditional theorem.
