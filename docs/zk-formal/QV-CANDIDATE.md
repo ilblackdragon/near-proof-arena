@@ -353,3 +353,11 @@ with only generated-cell/terminal-position premises remaining. Duplicate shard
 requests are preserved. The226-job target and138 exact axiom guards+15
 regressions pass. Flattened physical row addressing and full local acceptance
 remain to be composed; this does not close the end-to-end certificate.
+
+
+`CombinedRowLayout` derives coordinates for every row of the flattened walk
+list and proves exact generated-row lookup at those offsets. Consecutive word
+offsets and terminal-to-next-word lookup are checked, without trace-acceptance
+premises. This discharges the list-addressing layer; casting into the physical
+trace, cyclic boundary behavior, parser suffix and full constraint composition
+remain. The227-job target and147 exact axiom guards+15 regressions pass.
