@@ -1,6 +1,8 @@
 import ReexecV3D3.Logged.API
 import ReexecV3D3.ReadControl
 import ReexecV3D3.ReadCanon
+import ReexecV3D3.ReadPools
+import ReexecV3D3.ReadEncoding
 
 /-! Transitive axiom audit for the stack-safe read-logging checker.
 Run from source/verifier after checking the candidate modules, with
@@ -50,3 +52,15 @@ The guarded messages make any change to the transitive axiom sets fail this audi
 /-- info: 'ReexecV3D3.Read.check_normal' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ReexecV3D3.Read.check_normal
+
+/-- info: 'ReexecV3D3.Read.hGet_filter_hash' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ReexecV3D3.Read.hGet_filter_hash
+
+/-- info: 'ReexecV3D3.Read.restrictPools_idempotent' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ReexecV3D3.Read.restrictPools_idempotent
+
+/-- info: 'ReexecV3D3.Read.encP_decoded' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ReexecV3D3.Read.encP_decoded

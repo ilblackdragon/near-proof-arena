@@ -138,11 +138,16 @@ file hash. Reproduce or verify using `source/verifier/sync-logged.py COMMIT`
 its semantic soundness and literal byte-equality requirement. `ReadControl`
 proves that structural simulation preserves successful results and exact read
 sequences. `ReadLockstep` supplies size-check weakening and implicit-transition
-projection lemmas. All 30 copied modules and these helpers compile; eleven
-transitive axiom guards pass in `test/AuditReadLocal.lean`.
+projection lemmas. `ReadPools` proves that filtering the canonical pools is
+exactly tagged-store restriction, including missing answers, and proves the
+subpool and idempotence properties. `ReadEncoding` exposes the exact decoded
+witness shape, merged-pool permutation and size bound. All 30 copied modules
+and these helpers compile; fourteen transitive axiom guards pass in
+`test/AuditReadLocal.lean`.
 
 The deployed `Model` still uses the existing necessity normal form. Completing
-the migration requires a proof that re-encoding preserves checker control flow,
-store answers on the read keys, the read-set fixed point, and the witness-size
-bound, followed by certificate and hostile `check-local` runs. The same-syntax
+the migration requires closing the re-encoding control-flow simulation and
+composing it with the pool/store results to prove canonicalization completeness
+and the read-set fixed point, followed by certificate and hostile `check-local`
+runs. The same-syntax
 `reads_restrict_eq` theorem alone does not prove that re-encoding property.

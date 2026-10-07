@@ -26,7 +26,8 @@ def main():
     commit = git("rev-parse", "--verify", args.commit + "^{commit}").decode().strip()
     prefix = "spec/lean/v3/NearSpecV3/Logged/"
     paths = git("ls-tree", "-r", "--name-only", commit, prefix).decode().splitlines()
-    assert paths and all(path.startswith(prefix) and path.endswith(".lean") for path in paths)
+    if not paths or not all(path.startswith(prefix) and path.endswith(".lean") for path in paths):
+        raise ValueError("missing or unexpected upstream logging modules")
     destination = package / "formal/ReexecV3D3/Logged"
     manifest_path = package / "dependency-locks/logged-candidate.json"
     manifest = {"upstream_commit": commit, "role": "candidate code; not judge-trusted",
@@ -41,16 +42,19 @@ def main():
                                   "candidate_path": str(target.relative_to(package)),
                                   "upstream_sha256": sha(source), "candidate_sha256": sha(transformed)})
         if args.check:
-            assert target.read_bytes() == transformed, f"modified candidate copy: {target}"
+            if target.read_bytes() != transformed:
+                raise ValueError(f"modified candidate copy: {target}")
         else:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(transformed)
     expected = {item["candidate_path"] for item in manifest["files"]}
     actual = {str(path.relative_to(package)) for path in destination.rglob("*.lean")}
-    assert actual == expected, "unexpected candidate logging modules"
+    if actual != expected:
+        raise ValueError("unexpected candidate logging modules")
     encoded = json.dumps(manifest, indent=2) + "\n"
     if args.check:
-        assert manifest_path.read_text() == encoded, "provenance manifest mismatch"
+        if manifest_path.read_text() != encoded:
+            raise ValueError("provenance manifest mismatch")
     else:
         manifest_path.write_text(encoded)
     print(f"{'verified' if args.check else 'copied'} {len(paths)} candidate modules from {commit}")

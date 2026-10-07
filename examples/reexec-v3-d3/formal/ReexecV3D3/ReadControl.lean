@@ -54,5 +54,16 @@ theorem runR {p q : SM K α} (hp : Refines p q) (store : K → Option Bytes)
   obtain ⟨hr, hk⟩ := hp.run_reads store h
   simp only [SM.runR_eq, hr, h, hk]
 
+/-- Combine program simulation with agreement only on the source execution's
+read keys. This is the bridge required when both bytes and storage change. -/
+theorem run_reads_congr {p q : SM K α} (hp : Refines p q)
+    (store store' : K → Option Bytes)
+    (hag : ∀ k ∈ SM.reads store p, store' k = store k)
+    {a : α} (h : SM.run store p = .ok a) :
+    SM.run store' q = .ok a ∧ SM.reads store' q = SM.reads store p := by
+  obtain ⟨hv, hk⟩ := SM.run_congr store store' p hag
+  obtain ⟨hv', hk'⟩ := hp.run_reads store' (hv.trans h)
+  exact ⟨hv', hk'.trans hk⟩
+
 end Refines
 end ReexecV3D3.Read
