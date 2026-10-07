@@ -31,8 +31,12 @@ to the executable generator. These are row-layout facts, not buffered local
 constraint validity.
 `BufferHeader` reuses the isolated HPL repair’s exact `Spec.U32Bytes` helper
 to prove four-byte count reconstruction and zero top byte under count<2^24.
-Candidate audit totals fourteen axiom guards and eleven fixtures checked in both
-integer and BabyBear arithmetic. Buffered local constraints, empty/buffer padding,
+`BufferLocal` now proves all local constraints on all four buffered header rows,
+including the empty-vector boundary and the transition into a nonempty vector.
+`BufferHeaderRender` connects this to the actual row generator. `RowCells` caches
+cell projections to avoid repeated row-list expansion during these proofs.
+Candidate audit totals eighteen axiom guards and eleven fixtures checked in both
+integer and BabyBear arithmetic. Buffered entry constraints, empty/buffer padding,
 record concatenation and full field traffic remain open.
 
 Rows parse three modes: empty 16-byte index pairs, a four-byte buffered vector
