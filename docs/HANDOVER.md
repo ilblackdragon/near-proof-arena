@@ -7,6 +7,40 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+**Continuation after the 1,403-job checkpoint:** queue field traffic is closed
+for generated records (`79aef84e`, AIR `8b081577`):35 exact axiom guards and six
+behavior checks. The contract covers canonical VBYTES, QVC provider pairs,
+QSH shard bytes/counts and silence elsewhere. Ownership, native capacity, read
+orchestration and reverse extraction remain open.
+
+Source physical completeness and endpoint repair are committed (`73d71160`,
+`f6ed261c`): the right terminal row is explicitly inactive, preventing a cyclic
+carry row from suppressing terminal constraints.49 partition guards plus four
+endpoint regressions pass; current source size remains8,359,074 bytes, margin
+29,534. The source agent is proving reverse partition composition.
+
+Root introduced an isolated log23 protocol candidate (`1ebd1a62`, AIR `c44fbd87`),
+with executable candidate verifier, height/public/header checks, log27 LDE and
+27-bit positions, query dominance for every domain log8–27, and the actual BCS
+numerical budget.21 exact axiom guards and eight kernel regressions pass. The
+round/RBR/ROM/admission chain is still open; no frozen protocol/pin was changed.
+See `docs/zk-formal/LOG23-CANDIDATE.md` in the QV/AIR worktrees.
+
+Native assembly now derives the complete constructed-witness size from accepted
+raw size, actual scheduler grants≤4,500,000 and forwarding demand bounds with
+no assumed replay/cap (`94d89dc9`). Native preparation body/header composition
+passes (`925917f4`); accepted native bytes→prepClaim existence remains open.
+Ups runtime assembly now derives every emitted part output.memD<2^74, allowing
+native u64 overflow; total signed carry-input bounds and ancestor memory
+propagation are checked (`e5fa8dc8`, `12f69c13`, `7912ac7d`).
+
+The newer aggregate is AIR `18ca4f17`:1,531 jobs PASS,13 focused audits,141
+axiom guards,six behavior guards and12 kernel theorem regressions. Report:
+`docs/e2e-results/v3-native-traffic-log23-integration/report.json` in AIR.
+External evidence: `/data/illia/nearproof-deps/validation/v3-native-traffic-log23-20261007/`.
+The older1,403-job result below is retained as a historical checkpoint.
+
+
 **Newest shared checkpoint: AIR `96944b6b`, 1,403 jobs PASS.** Full-u32
 Node/Ups header repair and width200 carry arithmetic are merged and integrated.
 Twelve merged audits pass:86 axiom guards,38 behavior guards, plus theorem
