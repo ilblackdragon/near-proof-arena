@@ -6,6 +6,7 @@ import ZkFormal.NearV3.Public.Header
 import ZkFormal.NearV3.Public.Boundary
 import ZkFormal.NearV3.Public.NatRecords
 import ZkFormal.NearV3.Public.Index
+import ZkFormal.NearV3.Public.SchedulerIndex
 
 open ZkFormal.NearV3.Public ZkFormal.V2 ZkFormal.Algebra
 
@@ -105,3 +106,15 @@ private def sources : List NearSpecV3.SrcList :=
 /-- info: 'ZkFormal.NearV3.Public.prepared_pubIdx_recs' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Public.prepared_pubIdx_recs
+/-- info: 'ZkFormal.NearV3.Public.prep_scheduler_bytes' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prep_scheduler_bytes
+/-- info: 'ZkFormal.NearV3.Public.prepared_scheduler_records' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_scheduler_records
+/-- info: 'ZkFormal.NearV3.Public.prepared_scheduler_index' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_scheduler_index
+/-- info: 'ZkFormal.NearV3.Public.prepared_pubFit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Public.prepared_pubFit
