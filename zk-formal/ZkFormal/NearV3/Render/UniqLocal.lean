@@ -366,19 +366,33 @@ open UniqLocal in
 `log₂` height `logOf (32·|L|)` and, on every row `r < height` and column `x < Uniq.width`,
 the cell `Fp.ofNat (UniqGen.cell L height r x)` (this is what `mkTab` + `Fp.ofNat` gives for
 `uniqRows L`, as for v1 `render_mkTab`; cells outside the table are unconstrained). -/
+theorem uniq_render_local_at (L : List UEnt) (hok : UOk L) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (cap : Nat) (hlog : 1 ≤ tr.log t ∧ tr.log t ≤ cap)
+    (hHS : 32 * L.length ≤ tr.height t)
+    (hcell : ∀ r x, r < tr.height t → x < Uniq.width →
+      tr.cell t r x = Fp.ofNat (UniqGen.cell L (tr.height t) r x)) :
+    TableLocal { Uniq.table with maxLog := cap } tr t pub := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · exact hlog.1
+  · exact hlog.2
+  · intro r hr e he
+    exact constr hok rfl hHS hcell hr he
+  · intro r hr it hi b hb
+    exact multBits hok rfl hHS hcell hr hi hb
+
+open UniqLocal in
+/-- **The honest `uniqV3` table is locally legal.**  Hypotheses on the trace: table `t` has
+`log₂` height `logOf (32·|L|)` and, on every row `r < height` and column `x < Uniq.width`,
+the cell `Fp.ofNat (UniqGen.cell L height r x)` (this is what `mkTab` + `Fp.ofNat` gives for
+`uniqRows L`, as for v1 `render_mkTab`; cells outside the table are unconstrained). -/
 theorem uniq_render_local (L : List UEnt) (hok : UOk L) (tr : Trace Fp) (t : Nat) (pub : List Fp)
     (hlog : tr.log t = logOf (32 * L.length))
     (hcell : ∀ r x, r < tr.height t → x < Uniq.width →
       tr.cell t r x = Fp.ofNat (UniqGen.cell L (tr.height t) r x)) :
     TableLocal Uniq.table tr t pub := by
-  have hHS : 32 * L.length ≤ tr.height t := by
-    simp only [Trace.height, hlog]; exact le_pow_logOf _
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · rw [hlog]; exact one_le_logOf _
-  · rw [hlog]; exact logOf_le (by decide) hok.cap
-  · intro r hr e he
-    exact constr hok rfl hHS hcell hr he
-  · intro r hr it hi b hb
-    exact multBits hok rfl hHS hcell hr hi hb
+  apply uniq_render_local_at L hok tr t pub Uniq.maxLog
+  · rw [hlog]; exact ⟨one_le_logOf _, logOf_le (by decide) hok.cap⟩
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
 
 end ZkFormal.NearV3.Render

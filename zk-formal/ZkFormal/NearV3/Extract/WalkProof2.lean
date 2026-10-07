@@ -8,7 +8,7 @@ namespace ZkFormal.NearV3.WalkProof
 
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.WalkV3
 
-variable {tr : Trace Fp} {pub : List Fp} {tt : Nat}
+variable {cap : Nat} {tr : Trace Fp} {pub : List Fp} {tt : Nat}
 
 /-- Row mode as a natural. -/
 def modeOf (tr : Trace Fp) (tt q : Nat) : Nat :=
@@ -27,7 +27,7 @@ def walkOfSeg (tr : Trace Fp) (tt : Nat) (p : Nat × Nat) : WalkR :=
   ⟨(tr.cell tt p.1 w).toNat, (tr.cell tt p.1 tau).toNat, (List.range p.2).map fun j => stepAt tr tt (p.1 + j)⟩
 
 /-- One-hot modes on an active row. -/
-theorem modes_cases (hL : TableLocal WalkV3.table tr tt pub) {q : Nat} (hq : q < tr.height tt)
+theorem modes_cases (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {q : Nat} (hq : q < tr.height tt)
     (ha : tr.cell tt q act = 1) :
     (tr.cell tt q mS = 1 ∧ tr.cell tt q mK = 0 ∧ tr.cell tt q mB = 0 ∧ tr.cell tt q mD = 0) ∨
     (tr.cell tt q mS = 0 ∧ tr.cell tt q mK = 1 ∧ tr.cell tt q mB = 0 ∧ tr.cell tt q mD = 0) ∨
@@ -68,7 +68,7 @@ theorem toNat_ne {a b : Fp} (h : a ≠ b) : a.toNat ≠ b.toNat := by
   intro e; apply h; rw [← Fp.ofNat_toNat a, ← Fp.ofNat_toNat b, e]
 
 /-- `StepOk` of an active row. -/
-theorem stepOk (hL : TableLocal WalkV3.table tr tt pub) {q : Nat} (hq : q < tr.height tt)
+theorem stepOk (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {q : Nat} (hq : q < tr.height tt)
     (ha : tr.cell tt q act = 1) (isL : Bool) (hwe : tr.cell tt q we = if isL then 1 else 0) :
     StepOk (stepAt tr tt q) isL := by
   obtain ⟨hS, hK, hB, hsum, hidx, hbit⟩ := modeFacts hL hq
@@ -185,7 +185,7 @@ namespace ZkFormal.NearV3.WalkProof
 
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.WalkV3
 
-variable {tr : Trace Fp} {pub : List Fp} {tt : Nat}
+variable {cap : Nat} {tr : Trace Fp} {pub : List Fp} {tt : Nat}
 
 theorem filter_map_fm {α β : Type} (q : α → Bool) (f : α → β) :
     ∀ l : List α, (l.filter q).map f = l.flatMap fun a => if q a then [f a] else []
@@ -195,7 +195,7 @@ theorem filter_map_fm {α β : Type} (q : α → Bool) (f : α → β) :
     · simp [List.filter_cons, h, filter_map_fm q f l]
     · simp [List.filter_cons, h, filter_map_fm q f l]
 
-theorem sk_iff (hL : TableLocal WalkV3.table tr tt pub) {q : Nat} (hq : q < tr.height tt)
+theorem sk_iff (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {q : Nat} (hq : q < tr.height tt)
     (ha : tr.cell tt q act = 1) :
     (tr.cell tt q mS + tr.cell tt q mK = 1 ↔ modeOf tr tt q ≤ 1) ∧ (tr.cell tt q mB = 1 ↔ modeOf tr tt q = 2) ∧
     (modeOf tr tt q = 0 ↔ tr.cell tt q mS = 1) := by
@@ -205,7 +205,7 @@ theorem cellsE_eq (q : Nat) (uu : Nat) :
     Msg.toFp ((stepAt tr tt q).edgeMsg uu) = cellsE tr tt q (Fp.ofNat uu) := by
   simp [Msg.toFp, WStep3.edgeMsg, stepAt, edgeAt, cellsE, Fp.ofNat_toNat]
 
-theorem cellsB_eq (hL : TableLocal WalkV3.table tr tt pub) {q : Nat} (hq : q < tr.height tt) (uu : Nat) :
+theorem cellsB_eq (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {q : Nat} (hq : q < tr.height tt) (uu : Nat) :
     Msg.toFp ((stepAt tr tt q).bmapMsg uu) = cellsB tr tt q pub (Fp.ofNat uu) := by
   have hb : (bmE).eval tr tt q pub = ((bmAt tr tt q : Nat) : Fp) := by
     unfold bmE bmAt
@@ -224,16 +224,16 @@ theorem cellsE_eq1 (q : Nat) :
   rw [cellsE_eq]; simp only [stepAt]; congr 1
   rw [← natCast_eq, natCast_add, natCast_eq (tr.cell tt q u).toNat, Fp.ofNat_toNat]; rfl
 
-theorem cellsB_eq' (hL : TableLocal WalkV3.table tr tt pub) {q : Nat} (hq : q < tr.height tt) :
+theorem cellsB_eq' (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {q : Nat} (hq : q < tr.height tt) :
     cellsB tr tt q pub (tr.cell tt q ub) = Msg.toFp ((stepAt tr tt q).bmapMsg (stepAt tr tt q).ub) := by
   rw [cellsB_eq hL hq]; simp [stepAt, Fp.ofNat_toNat]
 
-theorem cellsB_eq1 (hL : TableLocal WalkV3.table tr tt pub) {q : Nat} (hq : q < tr.height tt) :
+theorem cellsB_eq1 (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {q : Nat} (hq : q < tr.height tt) :
     cellsB tr tt q pub (tr.cell tt q ub + 1) = Msg.toFp ((stepAt tr tt q).bmapMsg ((stepAt tr tt q).ub + 1)) := by
   rw [cellsB_eq hL hq]; simp only [stepAt]; congr 1
   rw [← natCast_eq, natCast_add, natCast_eq (tr.cell tt q ub).toNat, Fp.ofNat_toNat]; rfl
 
-theorem segRecv (hL : TableLocal WalkV3.table tr tt pub) {s ℓ : Nat}
+theorem segRecv (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {s ℓ : Nat}
     (hseg : IsSeg (isOne tr tt act) (isOne tr tt ws) (isOne tr tt we) s ℓ) (hH : s + ℓ ≤ tr.height tt)
     (b : Nat) :
     (List.range' s ℓ).flatMap (fun q => rowTraffic WalkV3.interactions tr tt q pub b false) =
@@ -318,9 +318,9 @@ namespace ZkFormal.NearV3.WalkProof
 
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.WalkV3
 
-variable {tr : Trace Fp} {pub : List Fp} {tt : Nat}
+variable {cap : Nat} {tr : Trace Fp} {pub : List Fp} {tt : Nat}
 
-theorem segSend (hL : TableLocal WalkV3.table tr tt pub) {s ℓ : Nat}
+theorem segSend (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {s ℓ : Nat}
     (hseg : IsSeg (isOne tr tt act) (isOne tr tt ws) (isOne tr tt we) s ℓ) (hH : s + ℓ ≤ tr.height tt)
     (b : Nat) :
     (List.range' s ℓ).flatMap (fun q => rowTraffic WalkV3.interactions tr tt q pub b true) =
@@ -424,8 +424,11 @@ theorem walkRecvs3_flat (ws : List WalkR) (b : Nat) :
     · split <;> simp
 
 /-- **The `walkV3` view.** -/
-theorem walk3_view : WalkV3ViewStmt := by
-  intro tr pub tt hL
+theorem walk3_view_at (cap : Nat) (hcap : cap ≤ 22) (tr : Trace Fp) (pub : List Fp) (tt : Nat)
+    (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) :
+    ∃ ws, WalkWf3 ws ∧ (ws.flatMap (·.steps)).length ≤ 2 ^ cap ∧
+      TableTraffic WalkV3.interactions tr tt pub (walkTraffic3 ws) := by
+  have hcapRows : 2 ^ cap ≤ 2 ^ 23 := Nat.pow_le_pow_right (by decide) (by omega)
   obtain ⟨segs, hc, hend, hall, hpad⟩ := segments_of (segFacts hL) height_pos
   have hH : ∀ p ∈ segs, p.1 + p.2 ≤ tr.height tt := fun p hp => by
     have := seg_le_end segs 0 hc p hp; omega
@@ -454,7 +457,7 @@ theorem walk3_view : WalkV3ViewStmt := by
     rw [rowT]
     simp [hz WalkV3.mS (by simp), hz WalkV3.mK (by simp), hz WalkV3.mB (by simp), hw, hg,
       show (0 : Fp) + 0 = 0 by grind]
-  have hrows : ((segs.map (walkOfSeg tr tt)).flatMap (·.steps)).length ≤ 2 ^ 21 := by
+  have hrows : ((segs.map (walkOfSeg tr tt)).flatMap (·.steps)).length ≤ 2 ^ cap := by
     have hl := congrArg List.length (range'_segs segs 0 hc)
     simp only [List.length_range', Nat.sub_zero, List.length_flatMap] at hl
     have hle := height_le hL
@@ -529,5 +532,10 @@ theorem walk3_view : WalkV3ViewStmt := by
     rw [tableBusCount_eq, flatMap_rows_segs _ segs _ hc hend (hpadT b false),
       flatMap_segs segs _ _ (fun p hp => segRecv hL (hall p hp) (hH p hp) b), walkRecvs3_flat]
     simp [List.map_flatMap, walkOfSeg, List.flatMap_map]
+
+/-- Preserve the original cap-21 view and its tighter exported row bound. -/
+theorem walk3_view : WalkV3ViewStmt := by
+  intro tr pub tt hL
+  exact walk3_view_at WalkV3.maxLog (by decide) tr pub tt hL
 
 end ZkFormal.NearV3

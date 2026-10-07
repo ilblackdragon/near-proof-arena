@@ -426,19 +426,33 @@ open WalkLocal in
 `log₂` height `logOf (rows ws)` and, on every row `r < height` and column `x < WalkV3.width`,
 the cell `Fp.ofNat (WalkGen.cell ws height r x)` (what `mkTab` + `Fp.ofNat` gives for
 `walkRows ws`; cells outside the table are unconstrained). -/
+theorem walk_render_local_at (ws : List WalkR) (hok : WalkOk ws) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (cap : Nat) (hlog : 1 ≤ tr.log t ∧ tr.log t ≤ cap)
+    (hHS : rows ws ≤ tr.height t)
+    (hcell : ∀ r x, r < tr.height t → x < WalkV3.width →
+      tr.cell t r x = Fp.ofNat (WalkGen.cell ws (tr.height t) r x)) :
+    TableLocal { WalkV3.table with maxLog := cap } tr t pub := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · exact hlog.1
+  · exact hlog.2
+  · intro r hr e he
+    exact constr hok rfl hHS hcell hr he
+  · intro r hr it hi b hb
+    exact multBits hok rfl hHS hcell hr hi hb
+
+open WalkLocal in
+/-- **The honest `walkV3` table is locally legal.**  Hypotheses on the trace: table `t` has
+`log₂` height `logOf (rows ws)` and, on every row `r < height` and column `x < WalkV3.width`,
+the cell `Fp.ofNat (WalkGen.cell ws height r x)` (what `mkTab` + `Fp.ofNat` gives for
+`walkRows ws`; cells outside the table are unconstrained). -/
 theorem walk_render_local (ws : List WalkR) (hok : WalkOk ws) (tr : Trace Fp) (t : Nat) (pub : List Fp)
     (hlog : tr.log t = logOf (rows ws))
     (hcell : ∀ r x, r < tr.height t → x < WalkV3.width →
       tr.cell t r x = Fp.ofNat (WalkGen.cell ws (tr.height t) r x)) :
     TableLocal WalkV3.table tr t pub := by
-  have hHS : rows ws ≤ tr.height t := by
-    simp only [Trace.height, hlog]; exact le_pow_logOf _
-  refine ⟨?_, ?_, ?_, ?_⟩
-  · rw [hlog]; exact one_le_logOf _
-  · rw [hlog]; exact logOf_le (by decide) hok.cap
-  · intro r hr e he
-    exact constr hok rfl hHS hcell hr he
-  · intro r hr it hi b hb
-    exact multBits hok rfl hHS hcell hr hi hb
+  apply walk_render_local_at ws hok tr t pub WalkV3.maxLog
+  · rw [hlog]; exact ⟨one_le_logOf _, logOf_le (by decide) hok.cap⟩
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
 
 end ZkFormal.NearV3.Render

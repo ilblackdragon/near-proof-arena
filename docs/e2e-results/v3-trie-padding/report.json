@@ -1,0 +1,65 @@
+{
+  "recorded_at": "2026-10-07T03:26:56.624831+00:00",
+  "base_commit": "9aca6efd952c210ab9ab0c02aa5a4140ee73b9d0",
+  "source_sha256": {
+    "zk-formal/ZkFormal/NearV3/Extract/WalkProof.lean": "d1cf5ea66c6aea235a3c924386399e647b869a9dc27d63b0a9726dbb7e2428e9",
+    "zk-formal/ZkFormal/NearV3/Extract/WalkProof2.lean": "db4575e2aae76afb144224249b51b0ff9a4a7a013c8ee85ee1e6dac1307a5143",
+    "zk-formal/ZkFormal/NearV3/Render/Node/Local.lean": "d822c0d49098f0d5be43559f8657b6bb12a8f4e44fbac94f05d9c08ecb4164b0",
+    "zk-formal/ZkFormal/NearV3/Render/Node/Traffic.lean": "91b2a5c5059f5432fe45a90eeea9f946f3061ade208383800598d375b260c8fe",
+    "zk-formal/ZkFormal/NearV3/Render/UniqLocal.lean": "4d1c21b1af31742d024f072b8d2490db361c04fb1f925697b0415cd0f59caf3d",
+    "zk-formal/ZkFormal/NearV3/Render/UniqRender.lean": "d914ab8d5761bfc7f81fd4d00ad8419e393f9e9332a04516baae40b1a8453de8",
+    "zk-formal/ZkFormal/NearV3/Render/WalkLocal.lean": "ce9c774ade6688bf7c70d5e5dcd54b5c503c659fe6c5460613b5ddd30301de5c",
+    "zk-formal/ZkFormal/NearV3/Render/WalkRender.lean": "34f1a1408e618b9fdb8d8ae81846734f822faf3bc5e16ba4691a75296485cb67",
+    "zk-formal/ZkFormal/NearV3/Render/PaddedTrie.lean": "311154a14c99606b64b7da3f7ee7904f508f77d0823a91fb558836ea8b3120af",
+    "zk-formal/ZkFormal/V3/Integration.lean": "e9d2d67e6227f18c455ccc1693d574b8db3c1234f3f3df40d402cca658daab12",
+    "zk-formal/test/AuditPaddedTrie.lean": "a21327498d92662412f5442466b1193136a9c370878771bd675ad43393f67310"
+  },
+  "build": {
+    "target": "ZkFormal.V3.Integration",
+    "jobs": 1095,
+    "success": true,
+    "clean_judge_budget_measurement": false
+  },
+  "guarded_axiom_audits": {
+    "new_declarations": 4,
+    "prior_padding_declarations": 7,
+    "success": true,
+    "allowed": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ]
+  },
+  "proved": [
+    "array-backed node/uniqueness/walk generators satisfy local constraints and preserve exact traffic at aligned heights",
+    "walk3_view_at is sound with explicit cap at most 22 and exports a cap-dependent row bound",
+    "original cap-21 walk3_view retains its tighter row bound"
+  ],
+  "tables": {
+    "node": {
+      "cap": 22
+    },
+    "uniqueness": {
+      "cap": 22
+    },
+    "walk": {
+      "proposed_cap": 22,
+      "prior_cap": 21,
+      "generalized_soundness_view": true
+    }
+  },
+  "scope": {
+    "new_concrete_padded_generators": 3,
+    "total_concrete_padded_generators": 7,
+    "assembled_HoldsP_proof": false,
+    "actual_table_caps_changed": false,
+    "final_admission_certificate": false
+  },
+  "artifacts": "/data/illia/nearproof-deps/validation/v3-trie-padding-20261007",
+  "remaining": [
+    "Update-table cPlan/cFields/cBytes/cMem completeness",
+    "Padded generators and changed-cap soundness for remaining tables",
+    "Assembled HoldsP, semantic soundness/completeness, security and size bounds",
+    "Rust prover v2 and real judge verification"
+  ]
+}

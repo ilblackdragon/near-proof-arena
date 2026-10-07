@@ -89,13 +89,11 @@ end UniqTraffic
 open UniqTraffic in
 /-- **The honest `uniqV3` table has the traffic of `uniqEntries L`.**  Same hypotheses on the
 trace as `uniq_render_local`. -/
-theorem uniq_render_traffic (L : List UEnt) (hok : UOk L) (tr : Trace Fp) (t : Nat) (pub : List Fp)
-    (hlog : tr.log t = logOf (32 * L.length))
+theorem uniq_render_traffic_at (L : List UEnt) (hok : UOk L) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hle : 32 * L.length ≤ tr.height t)
     (hcell : ∀ r x, r < tr.height t → x < Uniq.width →
       tr.cell t r x = Fp.ofNat (UniqGen.cell L (tr.height t) r x)) :
     TableTraffic Uniq.interactions tr t pub (uniqTraffic (uniqEntries L)) := by
-  have hle : 32 * L.length ≤ tr.height t := by
-    simp only [Trace.height, hlog]; exact le_pow_logOf _
   have hlen : (uniqEntries L).length = L.length := by simp [uniqEntries]
   have hget : ∀ q, q < 32 * L.length → (uniqEntries L).getD (q / 32) default =
       { eid := (ent L (q / 32)).eid, peid := peidOf L (q / 32), tau := (ent L (q / 32)).tau,
@@ -213,5 +211,17 @@ theorem uniqEntries_wf (L : List UEnt) (hok : UOk L) : UniqWf (uniqEntries L) :=
       have h1 := adj hok ht' hs'
       simp only [he, prevOf, curOf, Nat.add_sub_cancel] at h1
       omega
+
+open UniqTraffic in
+/-- **The honest `uniqV3` table has the traffic of `uniqEntries L`.**  Same hypotheses on the
+trace as `uniq_render_local`. -/
+theorem uniq_render_traffic (L : List UEnt) (hok : UOk L) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hlog : tr.log t = logOf (32 * L.length))
+    (hcell : ∀ r x, r < tr.height t → x < Uniq.width →
+      tr.cell t r x = Fp.ofNat (UniqGen.cell L (tr.height t) r x)) :
+    TableTraffic Uniq.interactions tr t pub (uniqTraffic (uniqEntries L)) := by
+  apply uniq_render_traffic_at L hok tr t pub
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
 
 end ZkFormal.NearV3.Render

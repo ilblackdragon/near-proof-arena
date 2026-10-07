@@ -14,9 +14,9 @@ namespace ZkFormal.NearV3.WalkProof
 
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Near ZkFormal.Near.Dsl ZkFormal.NearV3.WalkV3
 
-variable {tr : Trace Fp} {pub : List Fp} {tt : Nat}
+variable {cap : Nat} {tr : Trace Fp} {pub : List Fp} {tt : Nat}
 
-theorem con (hL : TableLocal WalkV3.table tr tt pub) {r : Nat} (hr : r < tr.height tt)
+theorem con (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {r : Nat} (hr : r < tr.height tt)
     {e : Expr} (he : e ∈ WalkV3.constraints) : e.eval tr tt r pub = 0 :=
   hL.constr r hr e he
 
@@ -57,7 +57,7 @@ theorem mem_tail {e : Expr} (h : e ∈ ([ sub (c gK) (sub (c act) (c ws)),
     mul3 .isTransition (Dsl.not (c act)) (n act) ] : List Expr)) : e ∈ WalkV3.constraints := by
   unfold WalkV3.constraints; exact List.mem_append_right _ h
 
-theorem isBool (hL : TableLocal WalkV3.table tr tt pub) {r : Nat} (hr : r < tr.height tt)
+theorem isBool (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {r : Nat} (hr : r < tr.height tt)
     {x : Nat} (hx : x ∈ boolCols) : tr.cell tt r x = 0 ∨ tr.cell tt r x = 1 := by
   have := con hL hr (e := Dsl.bool (c x)) (by
     unfold WalkV3.constraints
@@ -80,7 +80,7 @@ theorem bc_sel (j : Nat) (hj : j < 16) : sel j ∈ boolCols := by
   simp only [boolCols, List.mem_append, List.mem_map, List.mem_range]; exact Or.inr ⟨j, hj, rfl⟩
 
 section
-variable (hL : TableLocal WalkV3.table tr tt pub)
+variable (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub)
 include hL
 
 /-- Start / end / gate facts of a row. -/
@@ -202,14 +202,14 @@ end
 
 def isOne (tr : Trace Fp) (tt x : Nat) (r : Nat) : Bool := decide (tr.cell tt r x = 1)
 
-theorem zero_of_not_one (hL : TableLocal WalkV3.table tr tt pub) {r : Nat}
+theorem zero_of_not_one (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {r : Nat}
     (hr : r < tr.height tt) {x : Nat} (hx : x ∈ boolCols) (h : isOne tr tt x r = false) :
     tr.cell tt r x = 0 := by
   rcases isBool hL hr hx with h' | h'
   · exact h'
   · simp [isOne, h'] at h
 
-theorem segFacts (hL : TableLocal WalkV3.table tr tt pub) :
+theorem segFacts (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) :
     SegFacts (tr.height tt) (isOne tr tt act) (isOne tr tt ws) (isOne tr tt we) where
   first_act r hr h := by
     simp only [isOne, decide_eq_true_eq] at h ⊢; exact ((rowFacts hL hr).2.2.1 h).1
@@ -229,13 +229,13 @@ theorem segFacts (hL : TableLocal WalkV3.table tr tt pub) :
   stop h0 ha := by
     simp only [isOne, decide_eq_true_eq] at ha ⊢; exact lastRow hL h0 ha
 
-theorem height_le (hL : TableLocal WalkV3.table tr tt pub) : tr.height tt ≤ 2 ^ 21 := by
+theorem height_le (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) : tr.height tt ≤ 2 ^ cap := by
   have := hL.log_le; unfold Trace.height; exact Nat.pow_le_pow_right (by omega) this
 
 theorem height_pos : 0 < tr.height tt := by unfold Trace.height; exact Nat.two_pow_pos _
 
 /-- Facts about one walk segment. -/
-theorem segInfo (hL : TableLocal WalkV3.table tr tt pub) {s ℓ : Nat}
+theorem segInfo (hL : TableLocal { WalkV3.table with maxLog := cap } tr tt pub) {s ℓ : Nat}
     (hseg : IsSeg (isOne tr tt act) (isOne tr tt ws) (isOne tr tt we) s ℓ) (hH : s + ℓ ≤ tr.height tt) :
     2 ≤ ℓ ∧
     (∀ j, j < ℓ → tr.cell tt (s + j) act = 1 ∧ tr.cell tt (s + j) w = tr.cell tt s w ∧

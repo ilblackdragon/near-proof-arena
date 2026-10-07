@@ -226,13 +226,11 @@ end WalkTraffic
 open WalkTraffic in
 /-- **The honest `walkV3` table has the traffic of `ws`.**  Same hypotheses on the trace as
 `walk_render_local`. -/
-theorem walk_render_traffic (ws : List WalkR) (hok : WalkOk ws) (tr : Trace Fp) (t : Nat) (pub : List Fp)
-    (hlog : tr.log t = logOf (rows ws))
+theorem walk_render_traffic_at (ws : List WalkR) (hok : WalkOk ws) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hle : rows ws ≤ tr.height t)
     (hcell : ∀ r x, r < tr.height t → x < WalkV3.width →
       tr.cell t r x = Fp.ofNat (WalkGen.cell ws (tr.height t) r x)) :
     TableTraffic WalkV3.interactions tr t pub (walkTraffic3 ws) := by
-  have hle : rows ws ≤ tr.height t := by
-    simp only [Trace.height, hlog]; exact le_pow_logOf _
   have hall : ∀ sd b, (List.range (tr.height t)).flatMap (fun r => rowTraffic WalkV3.interactions tr t r pub b sd) =
       (if sd then walkSends3 ws b else walkRecvs3 ws b).map Msg.toFp := by
     intro sd b
@@ -248,5 +246,17 @@ theorem walk_render_traffic (ws : List WalkR) (hok : WalkOk ws) (tr : Trace Fp) 
   apply traffic_of
   · intro b; rw [hall true b]; exact List.Perm.refl _
   · intro b; rw [hall false b]; exact List.Perm.refl _
+
+open WalkTraffic in
+/-- **The honest `walkV3` table has the traffic of `ws`.**  Same hypotheses on the trace as
+`walk_render_local`. -/
+theorem walk_render_traffic (ws : List WalkR) (hok : WalkOk ws) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hlog : tr.log t = logOf (rows ws))
+    (hcell : ∀ r x, r < tr.height t → x < WalkV3.width →
+      tr.cell t r x = Fp.ofNat (WalkGen.cell ws (tr.height t) r x)) :
+    TableTraffic WalkV3.interactions tr t pub (walkTraffic3 ws) := by
+  apply walk_render_traffic_at ws hok tr t pub
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
 
 end ZkFormal.NearV3.Render

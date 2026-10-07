@@ -115,17 +115,16 @@ open NodeGen3 in
 /-- **The honest `nodeV3` table is locally legal.**  Hypotheses on the trace: `log₂` height
 `logOf (R + 1)` (`R = Σ` serialization lengths, plus the `SUM` row) and cells
 `Fp.ofNat (NodeGen3.cell vs height r x)` on rows `r < height`, columns `x < NodeV3.width`. -/
-theorem node_render_local (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp) (t : Nat) (pub : List Fp)
-    (hlog : tr.log t = logOf ((vs.map fun s => (s.v.ser false).length).sum + 1))
+theorem node_render_local_at (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (cap : Nat) (hlog : 1 ≤ tr.log t ∧ tr.log t ≤ cap)
+    (hHR : (vs.map fun s => (s.v.ser false).length).sum + 1 ≤ tr.height t)
     (hcell : ∀ r x, r < tr.height t → x < NodeV3.width →
       tr.cell t r x = Fp.ofNat (NodeGen3.cell vs (tr.height t) r x)) :
-    TableLocal NodeV3.table tr t pub := by
-  rw [← R_eq hok] at hlog
-  have hHR : R vs + 1 ≤ tr.height t := by
-    simp only [Trace.height, hlog]; exact le_pow_logOf _
+    TableLocal { NodeV3.table with maxLog := cap } tr t pub := by
+  rw [← R_eq hok] at hHR
   refine ⟨?_, ?_, ?_, ?_⟩
-  · rw [hlog]; exact one_le_logOf _
-  · rw [hlog]; exact logOf_le (by decide) (by rw [R_eq hok]; exact hok.rows)
+  · exact hlog.1
+  · exact hlog.2
   · exact constr_of rfl (fun q col hq hcol => hcell q col hq (by unfold NodeV3.width; omega)) (constraints_ok hok hHR)
   · intro q hq it hi bb hbb
     have hc : ∀ col, (col = 0 ∨ col = 1 ∨ col = 142 ∨ col = 144 ∨ col = 145 ∨ col = 160 ∨ col = 143 ∨ col = 181 ∨
@@ -166,5 +165,19 @@ theorem node_render_local (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp) (
       | exact hc _ (by simp [NodeV3.act, NodeV3.nf, NodeV3.gD, NodeV3.gP, NodeV3.gV, NodeV3.gA, NodeV3.gB,
           NodeV3.gS, NodeV3.gDp, NodeV3.gBm, NodeV3.hd, NodeV3.dup, NodeV3.sumr])
       | exact hc 0 (Or.inl rfl)
+
+open NodeGen3 in
+/-- **The honest `nodeV3` table is locally legal.**  Hypotheses on the trace: `log₂` height
+`logOf (R + 1)` (`R = Σ` serialization lengths, plus the `SUM` row) and cells
+`Fp.ofNat (NodeGen3.cell vs height r x)` on rows `r < height`, columns `x < NodeV3.width`. -/
+theorem node_render_local (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hlog : tr.log t = logOf ((vs.map fun s => (s.v.ser false).length).sum + 1))
+    (hcell : ∀ r x, r < tr.height t → x < NodeV3.width →
+      tr.cell t r x = Fp.ofNat (NodeGen3.cell vs (tr.height t) r x)) :
+    TableLocal NodeV3.table tr t pub := by
+  apply node_render_local_at vs hok tr t pub NodeV3.maxLog
+  · rw [hlog]; exact ⟨one_le_logOf _, logOf_le (by decide) hok.rows⟩
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
 
 end ZkFormal.NearV3.Render

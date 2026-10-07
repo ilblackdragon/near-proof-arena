@@ -63,6 +63,14 @@ guards and all six prior alignment guards. Evidence:
 HoldsP proof are still required; four completed generators do not establish
 padding for the final prover.
 
+**Trie padding extension:** `Render.PaddedTrie` adds checked array-backed
+node, uniqueness and walk generators (seven padded generators total).
+The proposed walk cap is 22; `walk3_view_at` exports the correct cap-dependent
+row bound and preserves `WalkWf3`. The old cap-21 interface remains valid.
+Integration passes 1,095 jobs; four new axiom guards and the seven earlier
+padding guards pass. Actual table constants are unchanged. Evidence:
+`docs/e2e-results/v3-trie-padding/report.json`.
+
 Program goal: a succinct STARK for `RelD0a B0` (v3 chunk validation, domain D0a), formally admitted to the unified challenge `near-chunk-v3` with declared tier D0a.
 
 Design: `docs/zk-formal/V3-D0-DESIGN.md`. §10–§16 are the review decisions, §12 the SHA kind registry, §13/§15/§16 the size accounting.

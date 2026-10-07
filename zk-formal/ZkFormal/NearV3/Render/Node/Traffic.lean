@@ -235,14 +235,12 @@ end NodeGen3
 open NodeGen3 in
 /-- **The honest `nodeV3` table has the traffic `nodeTraffic3 vs`.**  Same hypotheses as
 `node_render_local`. -/
-theorem node_render_traffic (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp) (t : Nat) (pub : List Fp)
-    (hlog : tr.log t = logOf ((vs.map fun s => (s.v.ser false).length).sum + 1))
+theorem node_render_traffic_at (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hHR : (vs.map fun s => (s.v.ser false).length).sum + 1 ≤ tr.height t)
     (hcell : ∀ r x, r < tr.height t → x < NodeV3.width →
       tr.cell t r x = Fp.ofNat (NodeGen3.cell vs (tr.height t) r x)) :
     TableTraffic NodeV3.interactions tr t pub (nodeTraffic3 vs) := by
-  rw [← R_eq hok] at hlog
-  have hHR : R vs + 1 ≤ tr.height t := by
-    simp only [Trace.height, hlog]; exact le_pow_logOf _
+  rw [← R_eq hok] at hHR
   have hall : ∀ b sd, (List.range (tr.height t)).flatMap (fun q => rowTraffic NodeV3.interactions tr t q pub b sd) =
       ((List.range vs.length).flatMap (fun n => recN vs n b sd) ++
         (if b = B_SIZE ∧ sd = true then [[0, total vs]] else [])).map Msg.toFp := by
@@ -255,5 +253,17 @@ theorem node_render_traffic (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp)
   apply traffic_of
   · intro b; rw [hall b true]; exact (sends_perm hok b).map _
   · intro b; rw [hall b false]; exact (recvs_perm hok b).map _
+
+open NodeGen3 in
+/-- **The honest `nodeV3` table has the traffic `nodeTraffic3 vs`.**  Same hypotheses as
+`node_render_local`. -/
+theorem node_render_traffic (vs : List NodeS3) (hok : NodeOk vs) (tr : Trace Fp) (t : Nat) (pub : List Fp)
+    (hlog : tr.log t = logOf ((vs.map fun s => (s.v.ser false).length).sum + 1))
+    (hcell : ∀ r x, r < tr.height t → x < NodeV3.width →
+      tr.cell t r x = Fp.ofNat (NodeGen3.cell vs (tr.height t) r x)) :
+    TableTraffic NodeV3.interactions tr t pub (nodeTraffic3 vs) := by
+  apply node_render_traffic_at vs hok tr t pub
+  · simp only [Trace.height, hlog]; exact le_pow_logOf _
+  · exact hcell
 
 end ZkFormal.NearV3.Render
