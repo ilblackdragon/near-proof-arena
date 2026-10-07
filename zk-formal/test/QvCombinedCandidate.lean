@@ -6,6 +6,7 @@ import ZkFormal.NearV3.Qv.Candidates.CombinedWalkBits
 import ZkFormal.NearV3.Qv.Candidates.CombinedWalkTraffic
 import ZkFormal.NearV3.Qv.Candidates.CombinedShardTraffic
 import ZkFormal.NearV3.Qv.Candidates.CombinedWordTraffic
+import ZkFormal.NearV3.Qv.Candidates.CombinedWalkBase
 
 namespace QvCombinedRegression
 open ZkFormal.NearV3.Qv.Candidates
@@ -346,3 +347,37 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.shard_word_field
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedTable.parser_row_preserved_or_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedTable.parser_row_preserved_or_zero
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedTable.parser_wrap_preserved' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedTable.parser_wrap_preserved
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.first_main_mode_zero' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.first_main_mode_zero
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.generated_parser_wrap' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.generated_parser_wrap
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.base_constraints' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.base_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.base_to_walk' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.base_to_walk
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.base_to_padding' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.base_to_padding
