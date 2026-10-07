@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Rcpt.Render.Srcp.Facts
+import ZkFormal.NearV3.Rcpt.Render.Srcp.Windows
 import ZkFormal.NearV3.Rcpt.Extract.Srcp.Proof
 import ZkFormal.NearV3.Rcpt.Link.SourceHash
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
@@ -196,3 +196,19 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.Render.SrcpGen.path_registers' depends on axioms: [propext] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.SrcpGen.path_registers
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.path_first_flag' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.path_first_flag
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.path_last_flag' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.path_last_flag
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.leaf_shift' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.leaf_shift
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.path_shift' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.path_shift
