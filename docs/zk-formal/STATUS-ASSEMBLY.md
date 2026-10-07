@@ -744,3 +744,11 @@ correct global node/value/depth segment. Allocation is executable and skips
 empty extensions with `resolveAddress`. No structural-tree→ID assumption is
 used. Two guards pass; adapting existing four-row constructors to these
 occurrence-sensitive IDs and assigning provider use counts remain open.
+
+`PathView.forest_traceUpsert_views` completes actual forest-to-native-path
+provider identity: executable allocation yields `nativePathNodes`, and every
+revealed allocated source is exactly its seeded NodeS3 at the actual global
+index. No external provider map, wf, or capacity assumption is needed for this
+identity. Five audit guards pass. A trace-local coherent structural ID function
+is still required by the current ups renderer API; global equality-to-ID is
+neither assumed nor valid for repeated sibling occurrences.
