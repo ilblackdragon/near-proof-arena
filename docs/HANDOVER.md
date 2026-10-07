@@ -7,6 +7,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root ParserFacts CHECKED: suffix parser boolean flags, act/first/last relations,
+raw-empty single marker, continuation byte increment and8 constant metadata
+fields, next-record first flag, padding persistence and physical-last termination.
+Target188 jobs+9 exact guards PASS (/tmp/nearproof-qv-parser-facts.log,
+/tmp/nearproof-qv-parser-facts-audit-checked.log). Root session64499 terminal0;
+no root live job. Next record decomposition (including start after walk prefix),
+length/byte/mode semantics and QVC provider-backed chain soundness.
+Integrated c8e6f366 exact forest_located_seed NodeS3 identity at occurrence IDs;
+db27790a physical native prefix W1/W2 edges exactly match resolved traversal.
+Global allocated provider families/use counts/windows remain agent-owned.
+Latest fullaggregate b7002160:1904jobs/115audits/924axiomguards/15behavior guards,
+older than newest modules. Full end-to-end correctness/admission/prover/judge
+and general NEAR coverage remain incomplete; goal active.
+
+
 New aggregate PASS:1904 jobs,115 selected audits,924 axiom guards,15behavior
 guards. Report docs/e2e-results/v3-queue-traffic-integration/report.json;
 logs /data/illia/nearproof-deps/validation/v3-queue-traffic-20261007/.
