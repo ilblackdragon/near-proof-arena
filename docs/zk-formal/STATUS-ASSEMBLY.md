@@ -630,3 +630,11 @@ proves the entire generated plan consumes exactly the ordered native shard bytes
 plus the buffered count when present. 4 guards pass. Remaining composition:
 prove exactly one buffered provider when present (none otherwise), aggregate
 records, and lift to physical QSH balance; VBYTES inclusion follows afterward.
+
+`QueueBufferedProvider` proves unique buffered provider existence when the native
+value is present, and absence otherwise; no distinct-shard assumption.
+`QueueShardBalance.queueRecords_shard_messages` aggregates exact ordered native
+shard bytes/count over actual providers. `plan_physical_qsh_balance` closes QSH
+send/receive permutation over ALL physical mixedTrace rows using root's complete
+traffic theorem. 10 permanent guards pass. This is separate from pending
+VBYTES seed inclusion and the global ExtV3/post-query ownership gap.
