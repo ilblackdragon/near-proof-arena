@@ -535,3 +535,20 @@ that ordinal, every resolved ordinal is in bounds, and equal ordinals force
 equal keys even when value bytes repeat. 8 permanent guards pass. This is the
 constructive lookup needed for queue provider reuse; request selection, use
 counts, parser payloads and global offset integration are the next layer.
+
+`QueueProviders` selects only requested per-occurrence value ordinals, once each,
+with exact `countP` users. The resolver returns stable global IDs and users;
+`QueueForest` gives disjoint IDs and instance ownership over the actual value
+forest, and proves selected provider bytes are bounded by accepted A7.
+`QueueModes` proves actual main/missing request modes agree for reused IDs, using
+key uniqueness rather than byte equality. `QueuePayload` constructs executable
+empty/buffer/raw `ValueGen.Record` payloads with exact bytes and parser Valid.
+`checkD0a_queue_records` derives from actual native acceptance both the unchanged
+2^21 parser-byte bound and record count≤83,367 (stronger than the candidate's
+134,028 premise). 34 permanent guards pass. These providers exclude unrelated
+non-QV values; duplicate group requests reuse IDs and increment users.
+
+Still pending: explicit correspondence of provider global ordinals to concrete
+seeded ValE bytes/IDs, global resolver-to-combined walk traffic and provider
+multiplicity linkage, and parent-owned local AIR concatenation. Post-query
+shadow classification/cost remains a separate ExtV3 completeness gap.
