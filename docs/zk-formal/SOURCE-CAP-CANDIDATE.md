@@ -646,3 +646,12 @@ row, emits no bytes. Six exact axiom guards pass. The final theorem has no
 external counter, offset, or semantic-view assumptions: only TableLocal and the
 extracted chain. Pure reformatting to the existing `rcptSends3` API and the
 remaining whole receipt Wf/other-bus obligations are still open.
+
+`ViewPositions`, `IndexedBytes`, and `BytesViewProof` close the final BYTES API
+bridge. A generic flatten-prefix identity aligns the actual prefix positions
+with `baseR`, `lOffs`, and `bOffs`; `chainByteMsgs` now equals the unchanged
+`rcptSends3` BYTES list exactly. `ListChain.bytes_view_traffic` proves both
+`TableTraffic` count directions for the concrete extracted list views, and
+`extract_bytes_view` obtains the physical chain from TableLocal alone. Thirteen
+exact axiom guards pass. Thus semantic BYTES extraction is complete; full
+`RcptV3ViewStmt` still needs the other channels and receipt well-formedness.
