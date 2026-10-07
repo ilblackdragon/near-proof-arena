@@ -235,3 +235,13 @@ inactive-next or next-record-start; generated next walks and padding discharge i
 The independent extra read-sequence constraints and multiplicity-bit obligations
 still require proofs. The combined audit now passes64 exact axiom guards and15
 regressions; the base target's154 dependency jobs pass.
+
+
+`CombinedBoolean` proves all generated control flags and byte registers are bits,
+then derives their actual AIR equations over any commutative ring. It also proves
+every interaction multiplicity equation in `CombinedTable.table.bitConstraints`
+and every inactive-row gate. These use generated cells, with no local-acceptance
+premise. Thus the protocol-added multiplicity bits are covered explicitly.
+The combined audit passes71 exact axiom guards and15 regressions; the boolean
+target's155 jobs pass. Remaining local work is the read algebra and sequencing,
+plus complete parser/walk composition; ownership and extraction remain separate.
