@@ -7,6 +7,23 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+Root WalkCount proves final main request exists in every accepted walk chain,
+its index≥2 and cv(count)=index−2, count constant across main prefix and initial
+count<physical height. Existence derived from no early termination/phase
+transitions, no witness or count-range assumption. Target124 jobs +5 exact
+guards PASS. Logs /tmp/nearproof-qv-walk-count.log,/tmp/nearproof-qv-count-audit-final.log.
+Root session64412 terminal success, no root live job. Next exact canonical
+queue traffic and parser/provider soundness; indexed phase/count groundwork done.
+Integrated D2c3002bdc and089d903f: minimal shape/known lookup preservation through
+actual receipts, scheduler, full main execution; initial builder domain and
+write-event binding still active. Upscc22470a earlier terminal-record key edges
+from actual consumed prefix (no wf); ancestor traversal/allocated IDs still open.
+Receipt86261ff7 derives extracted count/refund byte total<P from physical rows;
+natural public total theorem/native Prep admissibility next. Last aggregate
+191ea6da older than these targets. Full certificate/prover/judge and broad NEAR
+replacement remain incomplete; no protocol/domain changes authorized or made.
+
+
 Root WalkMain now derives main-request prefix, no lastMain before another main,
 slot=i both Fp and Nat (using physical bound), exact kind bits by index:
 0delayed,1buffered,2yielded,≥3group. Arbitrary accepted chain; no renderer premise.
