@@ -14,8 +14,9 @@
 """
 import os
 import random
-import subprocess
 import sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../tools"))
+from harness_io import run_lines
 from wasmenc import *
 
 OP = 822756
@@ -53,8 +54,7 @@ def receivers_module(nbytes):
 
 
 def run_near(lines):
-    return subprocess.run([HARNESS], input="\n".join(lines) + "\n", check=True, capture_output=True,
-                          text=True).stdout.splitlines()
+    return run_lines([HARNESS], lines)
 
 
 def main():
