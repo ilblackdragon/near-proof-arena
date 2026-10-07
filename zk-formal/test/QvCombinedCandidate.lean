@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Qv.Candidates.CombinedNeighborEquations
 import ZkFormal.NearV3.Qv.Candidates.CombinedParser
 import ZkFormal.NearV3.Qv.Candidates.CombinedPublic
 import ZkFormal.NearV3.Qv.Candidates.ValueGen
@@ -675,3 +676,42 @@ end QvCombinedRegression
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.step_mem' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.step_mem
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.inside_constraints' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.inside_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.terminal_inside_zero' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.terminal_inside_zero
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.inside_constraints_zero' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.inside_constraints_zero
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.start_constraints_zero' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.start_constraints_zero
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.internal_neighbor_constraints' depends on axioms: [propext,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.internal_neighbor_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.final_neighbor_constraints' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.final_neighbor_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.terminal_clock_constraints' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.Walk.terminal_clock_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.neighbor_constraints_mem' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.neighbor_constraints_mem
