@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root RecordValue CHECKED at AIRf5b11f35: record_value_exact derives existence of
+one ValE with exact vid, nonemptyflag, e.len=n=cvparserlen, and every natural
+byte at offseti equal e.bytes[i], from complete stream ownership. Uses startrow
+membership to obtainvalue, unique filteredstream, Perm length, canonicaloffset
+injection and canonicalbyte decoding. Target358jobs+1 exact standard-axiomguard
+PASS (/tmp/nearproof-qv-record-value.log,
+/tmp/nearproof-qv-record-value-audit-checked.log). Next combine automatically with
+physical_balanced_record_complete, and prove structured mode empty/buffer parser
+semantics over exact value bytes; emptyraw handled separately. Need wholeAIR
+physicalchannel equation/admission later; no fullcertificate claim.
+Integrated D20dae7213 ascb84fec9 (nativefinalroot SHA job/digest inclusions),
+ups45172a22 as6dcb8f12 (actual RDE/PT upperpart WindowOk from source-child allocator).
+Also rechecked receipt62fbe5c1 full scoped ViewProof. Combined974jobs+5printed
+standardaxiom checks +4window/4receipt exactguards PASS;
+/tmp/nearproof-complete-receipt-native-integrated.log and
+/tmp/nearproof-integrated-Audit{UpsertShaDigests,ForestExtensionWindows,RcptCompleteView}.log.
+Receipt now working native encodeReceipts inclsystem/RCleaf SHA/source bridge.
+D2 continued SHA capacity/rootinputs, ups branch/splitCount/clen windows. No root
+livejob. Continuing authorizedpush. Aggregate83f4a8b7 older; full admission/
+reference checker/certificate/prover/judge and broad NEAR coverage open.
+
+
 Root ValueStream CHECKED at AIRab03b234: exported value_ids_unique (refactored
 from ValueByteKeys), valueRecordStream, value_stream_filter selects exactly one
 existing ValE's fieldbyte stream from complete demand, using canonical unique
