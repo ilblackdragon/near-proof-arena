@@ -35,9 +35,13 @@ to prove four-byte count reconstruction and zero top byte under count<2^24.
 including the empty-vector boundary and the transition into a nonempty vector.
 `BufferHeaderRender` connects this to the actual row generator. `RowCells` caches
 cell projections to avoid repeated row-list expansion during these proofs.
-Candidate audit totals eighteen axiom guards and eleven fixtures checked in both
-integer and BabyBear arithmetic. Buffered entry constraints, empty/buffer padding,
-record concatenation and full field traffic remain open.
+`BufferRender` now proves every local constraint on every buffered trace row,
+including arbitrary entry counts, all entry boundaries, physical last rows and
+padding. Its generated-trace theorem requires sized entries, count<2^24 and
+4+24*n≤2^log; these remain explicit assembly obligations.
+Candidate audit totals twenty-three axiom guards and eleven fixtures checked in both
+integer and BabyBear arithmetic. Empty-mode arbitrary-height padding, record concatenation, sound extraction and
+full field traffic remain open.
 
 Rows parse three modes: empty 16-byte index pairs, a four-byte buffered vector
 header followed by 24-byte entries, and uninterpreted raw values. Eight byte
