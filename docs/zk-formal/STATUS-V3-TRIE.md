@@ -601,3 +601,32 @@ Build: `lake build ZkFormal.NearV3.Spec.TreeRecs` (Rank 0.5 s, TreeRecs 1.7 s).
 ## Commits
 
 (see `git log lane/v3-trie`)
+
+
+## Session end state (2026-10-07)
+
+* **Soundness:** done for all six trie tables, plus the link layer through M7e.
+  * Per-instance statements: `root_tau`, `build_tau`, `walks_tau`.
+  * Post-root after writes: `post_tau`, `post_sets_tau`.
+  * Instance chain: `root_chain` / `ups_chain`.
+  * Upsert link: `upsV3_link` / `upsV3_linkB`, `upsV3_s0f`.
+  * Axioms ⊆ {propext, Classical.choice, Quot.sound}.
+* **M7d, the `upsV3` render (completeness), partial:**
+  * Done: generator `UpsGen.cell`, `UpsOk`, `ups_render_traffic` (assumes TableLocal),
+    `ups_render_local_of`.
+  * Constraint groups proved: `cSeg`, `cDigest`, `cWalk`, `cRows` + `cConst`, `cBool`.
+  * Open: `cPlan` (WIP on lane/v3-trie-h 1d8b2f12: `GPlan.lean` not building, not
+    imported), `cFields`, `cBytes`, `cMem`. Then the unconditional `ups_render_local` and
+    TableLocal-free `ups_render_traffic`. About 2k lines.
+  * The new `InstOk` fields are checked against `upsv3_model.py` by reading, not by script.
+* **Open interface hypotheses:**
+  * `SchedVal`: the assembly discharges it via `codec_schedVal` (ownership + `PubIdx`
+    obligations).
+  * `VPostOk` and `vpostLen`: from the account writer.
+  * `hperm`: via `VSLOT` balance, once acctV3 exists.
+  * `KeynibOk`: from the KEYNIB providers.
+  * The kind-12 id lemma: owed to the assembly.
+* **TODO:** restate `ShaHyp.othersId` / `othersU` via `KindReg.avoid`. `KindReg` is
+  available after the v3-air merge.
+* **Branches:** lane/v3-trie = ddd0eedb + this STATUS commit (all building).
+  lane/v3-trie-h = 1d8b2f12 (WIP, only `GPlan.lean` fails).
