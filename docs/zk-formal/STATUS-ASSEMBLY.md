@@ -556,3 +556,8 @@ identical bytes at different value occurrences. 8 permanent axiom guards pass.
 Still pending: global resolver-to-combined walk traffic and provider multiplicity
 linkage, and parent-owned local AIR concatenation. Post-query shadow
 classification/cost remains a separate ExtV3 completeness gap.
+
+`QueueWalk` connects every generated combined-plan walk's `(tau,slot)` to its
+exact queue input/request. Every present walk then resolves to a selected provider
+with matching instance, bytes, value ID and users. 3 permanent guards pass.
+Exact aggregate provider multiplicity/bus traffic is still the next layer.
