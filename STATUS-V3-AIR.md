@@ -2,6 +2,15 @@
 
 Program lead's hand-over, 2026-10-07.
 
+**Field/memory checkpoint:** all 62 `cFields` constraints are now proved by
+`cFields_ok`, from explicit canonical serialization and window semantics.
+`cMemCurrent_ok` closes all nine current-row memory equations across the full
+padded trace from `MemOk`; memory-register transitions remain open. Sixteen
+memory axiom guards pass. Integration now passes 1,133 jobs and also includes
+the finite source-proof path parser (`PathRun`). Evidence:
+`docs/e2e-results/v3-fields-memory/report.json`. The semantic inputs must still
+be constructed from real updates; this remains a partial prover.
+
 **Parallel proof milestone:** integration passes 1,119 jobs. `GFieldPrefix`
 closes the first 26 actual field constraints from canonical node shapes.
 `MemArith` and `GMemRow` prove signed carry arithmetic and its actual row
