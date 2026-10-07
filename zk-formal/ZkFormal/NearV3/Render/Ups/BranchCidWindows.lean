@@ -86,4 +86,20 @@ theorem sourceCidBytes_branch_first (value : Option NSlot3) (kids : List NKid)
   rw [List.getElem?_append_left (by simp; omega)]
   rw [List.getElem?_append_left (by simpa using hi)]
   simp only [List.getElem?_replicate_of_lt hi,Option.getD_some]
+
+/-- Prefix child windows determine the byte offset of the next revealed child. -/
+theorem sourceCidBytes_branch_after (value : Option NSlot3) (before after : List NKid)
+    (mem : List Nat) (cid clen cres : Nat) (pre post : List Nat) (i : Nat) (hi : i<32) :
+    (sourceCidBytes (.branch value (before ++ .node cid clen cres pre post :: after) mem)).getD
+      ((if value.isSome then 39 else 3)+(branchCidBytes before).length+i) 0=cid := by
+  rw [sourceCidBytes_branch]
+  rw [show branchCidBytes (before ++ .node cid clen cres pre post :: after)=
+      branchCidBytes before ++ (List.replicate 32 cid ++ branchCidBytes after) by
+    simp only [branchCidBytes,List.flatMap_append,List.flatMap_cons,reduceCtorEq,ite_false,kidCid]]
+  simp only [List.append_assoc]
+  rw [←List.append_assoc (List.replicate _ 0) (branchCidBytes before)]
+  rw [List.getD_eq_getElem?_getD,List.getElem?_append_right (by simp)]
+  simp only [List.length_append,List.length_replicate,Nat.add_sub_cancel_left]
+  rw [List.getElem?_append_left (by simpa using hi)]
+  simp only [List.getElem?_replicate_of_lt hi,Option.getD_some]
 end ZkFormal.NearV3.Render.UpsGen
