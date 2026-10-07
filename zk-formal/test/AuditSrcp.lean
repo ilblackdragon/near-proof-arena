@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Rcpt.Extract.Srcp.Leaf
+import ZkFormal.NearV3.Rcpt.Extract.Srcp.PathItem
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 
 /-! Guard the recovered source-proof extraction and digest-byte reconstruction. -/
@@ -46,3 +46,15 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.SrcpProof.leaf_digest_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.SrcpProof.leaf_digest_traffic
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.path_digest_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.path_digest_traffic
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.pathItem_bytes' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.pathItem_bytes
+
+/-- info: 'ZkFormal.NearV3.SrcpProof.pathItem_traffic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.SrcpProof.pathItem_traffic
