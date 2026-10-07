@@ -493,3 +493,25 @@ Seven modules compile and `AuditDedupSourceSha.lean` checks 30 transitive axiom
 closures. No collision assumption is introduced. Global bus-to-contract assembly,
 RC leaf binding, prepared source metadata/root consistency, skipped-occurrence
 same-key reuse, and size no-wrap remain explicit premises/obligations.
+
+Candidate public source binding and skipped-proof reuse are now checked.
+`SourcePublic.plan` has 34 payload bytes (dup, repeated, root32), giving 35 field
+limbs after the record index. It is additive; active SRC33 and frozen descriptors
+are unchanged. Exact descriptor-record evaluation, canonical record decoding,
+and field-count equality authenticate the extracted occurrence count, source
+indices, both bits and roots. `BlockChain.bind_prepared` discharges the public
+index bound using actual prepD0's at-most-1984 source count. It also derives L=12
+for every publicly repeated occurrence, including the first computed one.
+
+`prepSourceD0` is a candidate-only executable preparation wrapper that checks
+equal-key roots/from-shards. Its soundness and completeness are kernel checked:
+unchanged RelD0a plus successful prepD0 implies wrapper success, so this introduces
+no new accepted-input assumption. `first_source_cover` proves every prepared key
+has a nonduplicate first occurrence using the actual sourceDup computation.
+`BlockChain.sources_authenticated` combines these facts with SHA authentication
+of computed blocks to authenticate every last-wins source entry, including
+skips. RC leaf/dictionary/path binding and global exact bus contracts remain
+explicit premises. Six modules compile; `AuditDedupSourcePublic.lean` checks
+26 axiom closures and seven kernel fixtures. Candidate final assembly must still
+select SRC34 and the preparation wrapper and rebuild the complete statement
+layout/admission certificate; neither is silently installed in the frozen family.
