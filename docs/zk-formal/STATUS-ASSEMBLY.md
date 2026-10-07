@@ -855,3 +855,11 @@ and padding. Ten guards pass. This is physical cost accounting, not an
 accepted-input capacity theorem: intermediate output preimages still need a
 charge against the unchanged native witness budget, and other SHA kinds need
 space in the same shared table.
+
+`UpsertSourceCost` proves directly from actual native recursion that emitted
+parts' source encodings cost at most four times all input occurrence-node
+bytes. This includes split-terminal repetition and empty-extension ancestors;
+no injectivity, deduplication, source-wf, or assumed charge bound is needed.
+Across actual runs the charge is at most `4*preBytes` in the unchanged native
+A7 measure. Seven guards pass. Output-vs-source growth and fresh scheduler
+values still need charging before the shared SHA capacity theorem closes.
