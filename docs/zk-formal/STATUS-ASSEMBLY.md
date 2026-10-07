@@ -608,3 +608,11 @@ the resulting Walk.users list is exactly range0..provider.users-1. Main and
 implicit transitions are both covered. This supplies the precise per-provider
 counter chain needed for QVC; 7 guards pass. Remaining work is grouping actual
 messages and composing parser endpoints, rather than any assumed occurrence map.
+
+`QueueGlobalBalance.plan_qvc_balance` closes actual logical QVC balance:
+corrected full-plan counterWordMessages sends plus actual parser zero endpoints
+are a permutation of receives plus parser total endpoints. QueuePartition
+preserves every repeated use; QueueCounterMessages supplies exact mode-aware
+per-provider telescoping. All premises are actual request Holds, available from
+native_queueInputs. 9 permanent guards pass. Physical lift now uses root's
+mixedTrace_counter_messages; this result does not close other buses or ExtV3.
