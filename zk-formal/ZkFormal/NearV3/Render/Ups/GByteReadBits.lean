@@ -14,7 +14,7 @@ def cByteReadBits : List Expr := (UpsV3.cBytes.drop 53).take 1 ++ (UpsV3.cBytes.
 theorem byte_read_bits_q {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
     (hb : SourceBytes Q)
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p st ix fl wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I Q k p st ix fl wi u x) :
     ∀ ex ∈ cByteReadBits, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   change ex ∈ [

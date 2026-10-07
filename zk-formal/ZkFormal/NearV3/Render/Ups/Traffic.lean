@@ -115,10 +115,10 @@ theorem toNat_int0 : ((0 : Int) : Fp).toNat = 0 := rfl
 
 section
 variable {tr : Trace Fp} {t : Nat}
-  (hcell : ∀ r x, r < tr.height t → x < 187 → tr.cell t r x = ((cell insts r x : Int) : Fp))
+  (hcell : ∀ r x, r < tr.height t → x < 200 → tr.cell t r x = ((cell insts r x : Int) : Fp))
 include hcell
 
-theorem rowC_cell {r x : Nat} (hr : r < tr.height t) (hx : x < 187) :
+theorem rowC_cell {r x : Nat} (hr : r < tr.height t) (hx : x < 200) :
     rowC tr t r x = ((cell insts r x : Int) : Fp).toNat := by
   show (tr.cell t r x).toNat = _
   rw [hcell r x hr hx]
@@ -239,7 +239,7 @@ theorem recsI_getLast {I : UpsInst} (hL : 1 ≤ L I) (hQ : 1 ≤ nQ I) (hq : ∀
 
 /-- The honest table's rows: segments, `act`, `sf`, last rows. -/
 theorem segs_isSeg (hs : UpsShape insts) {tr : Trace Fp} {t : Nat} (hH : R insts + 1 ≤ tr.height t)
-    (hcell : ∀ r x, r < tr.height t → x < 187 → tr.cell t r x = ((cell insts r x : Int) : Fp)) :
+    (hcell : ∀ r x, r < tr.height t → x < 200 → tr.cell t r x = ((cell insts r x : Int) : Fp)) :
     ∀ p ∈ segsOf insts, IsSeg (actB tr t) (firstB tr t) (lastB tr t) p.1 p.2 := by
   intro p hp
   simp only [segsOf, List.mem_map, List.mem_range] at hp
@@ -254,7 +254,7 @@ theorem segs_isSeg (hs : UpsShape insts) {tr : Trace Fp} {t : Nat} (hH : R insts
     exact sum_mono (by omega)
   have hrow : ∀ d, d < (recsI (inst insts i)).length → start insts i + d < R insts := fun d hd => by omega
   have hrec := fun d (hd : d < (recsI (inst insts i)).length) => recs_seg (insts := insts) hi hd
-  have hC := fun r x (hr : r < R insts) (hx : x < 187) => rowC_cell hcell (r := r) (x := x) (by omega) hx
+  have hC := fun r x (hr : r < R insts) (hx : x < 200) => rowC_cell hcell (r := r) (x := x) (by omega) hx
   simp only
   refine ⟨by omega, ?_, ?_, ?_, ?_, ?_⟩
   · simp only [firstB, decide_eq_true_eq]
@@ -300,7 +300,7 @@ height `2^logOf (R + 1)` and the generator's cells, and which is locally legal
 theorem ups_render_traffic (insts : List UpsInst) (hs : UpsShape insts) (tr : Trace Fp) (t : Nat) (pub : List Fp)
     (hL : TableLocal UpsV3.table tr t pub)
     (hlog : tr.log t = logOf (R insts + 1))
-    (hcell : ∀ r x, r < tr.height t → x < 187 → tr.cell t r x = ((cell insts r x : Int) : Fp)) :
+    (hcell : ∀ r x, r < tr.height t → x < 200 → tr.cell t r x = ((cell insts r x : Int) : Fp)) :
     TableTraffic UpsV3.interactions tr t pub (upsTraffic (UpsRows.viewOf tr t (segsOf insts))) := by
   have hH := height_ge hlog
   refine UpsRows.viewTraffic hL consec_segs (by rw [segEnd_R]; omega) (segs_isSeg hs hH hcell) ?_
@@ -315,8 +315,8 @@ open UpsGen in
 row `d` of instance `i`'s segment is generator row `start i + d`. -/
 theorem ups_render_view (insts : List UpsInst) (hs : UpsShape insts) (tr : Trace Fp) (t : Nat)
     (hlog : tr.log t = logOf (R insts + 1))
-    (hcell : ∀ r x, r < tr.height t → x < 187 → tr.cell t r x = ((cell insts r x : Int) : Fp))
-    {i d x : Nat} (hi : i < insts.length) (hd : d < (recsI (inst insts i)).length) (hx : x < 187) :
+    (hcell : ∀ r x, r < tr.height t → x < 200 → tr.cell t r x = ((cell insts r x : Int) : Fp))
+    {i d x : Nat} (hi : i < insts.length) (hd : d < (recsI (inst insts i)).length) (hx : x < 200) :
     ((UpsRows.viewOf tr t (segsOf insts)).getD i ⟨[], fun _ => 0⟩).row d x =
       ((rowCell insts (start insts i + d) (i, (recsI (inst insts i)).getD d default) x : Int) : Fp).toNat := by
   have hH := height_ge hlog

@@ -58,7 +58,7 @@ theorem co2V_bounds (I : UpsInst) (Q : UpsPartI) (hn : Q.neg ≤ 1)
 theorem cbV_bounds (I : UpsInst) (Q : UpsPartI)
     (hx : ∀ i, i < 7 → -765 ≤ sigV Q * X1V I Q i ∧ sigV Q * X1V I Q i ≤ 1020)
     (ht : 0 ≤ TV I Q ∧ TV I Q < 8 * 256 ^ 8) :
-    ∀ i, i < 8 → 0 ≤ cbV I Q i ∧ cbV I Q i < 8 := by
+    ∀ i, i < 8 → 0 ≤ cbV I Q i ∧ cbV I Q i < 131072 := by
   intro i hi
   by_cases h : i < 7
   · have hc := coV_bounds I Q hx i h

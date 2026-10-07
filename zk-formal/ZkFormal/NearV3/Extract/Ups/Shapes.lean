@@ -143,8 +143,8 @@ theorem memBytesK {fl : List (Nat × Nat)} {w : Nat} (U : UPartL s o ℓ fl w) {
     (hst : stOf (s.row r0) = 8) (hend : r0 + 8 = o + ℓ)
     (hb : s.row o eL ≤ 1 ∧ s.row o eS ≤ 1 ∧ s.row o useA ≤ 1 ∧ s.row o bN ≤ 1 ∧ s.row o bL ≤ 1 ∧
       s.row o cO ≤ 1 ∧ s.row o cS ≤ 1)
-    (hin : ∀ i, i < 8 → inA (s.row (r0 + i)) < 4096 ∧ inB (s.row (r0 + i)) < 4096 ∧
-        inC (s.row (r0 + i)) < 4096 ∧ inE (s.row (r0 + i)) < 4096 ∧ s.row (r0 + i) b < 256) :
+    (hin : ∀ i, i < 8 → inA (s.row (r0 + i)) < 67108864 ∧ inB (s.row (r0 + i)) < 67108864 ∧
+        inC (s.row (r0 + i)) < 67108864 ∧ inE (s.row (r0 + i)) < 67108864 ∧ s.row (r0 + i) b < 256) :
     let Lv := s.row 0 L0 + 256 * s.row 0 L1 + 65536 * s.row 0 L2
     let Sv := s.row r0 (SR 0) + 256 * s.row r0 (SR 1) + 65536 * s.row r0 (SR 2) + 16777216 * s.row r0 (SR 3)
     rowsB s r0 8 = (NearSpec.u64 (s.row o Kc + s.row o eL * Lv + s.row o eS * Sv +

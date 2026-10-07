@@ -81,7 +81,7 @@ in `Fp`) below the width; and `GroupOk` of all constraints (proved group by grou
 theorem ups_render_local_of (insts : List UpsInst) (tr : Trace Fp) (t : Nat) (pub : List Fp)
     (hcap : R insts + 1 ≤ 2 ^ 22)
     (hlog : tr.log t = logOf (R insts + 1))
-    (hcell : ∀ r x, r < tr.height t → x < 187 → tr.cell t r x = ((cell insts r x : Int) : Fp))
+    (hcell : ∀ r x, r < tr.height t → x < 200 → tr.cell t r x = ((cell insts r x : Int) : Fp))
     (hG : GroupOk insts (tr.height t) UpsV3.constraints) :
     TableLocal UpsV3.table tr t pub := by
   have hcon := constr_of (pub := pub) hcell hG

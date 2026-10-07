@@ -71,8 +71,8 @@ def nextCell (insts : List UpsInst) (q x : Nat) : Int :=
 theorem groupOk_of (hs : UpsShape insts) {H : Nat} (hH : R insts + 1 ≤ H) {es : List Expr}
     (hsub : ∀ e ∈ es, e ∈ UpsV3.constraints)
     (hact : ∀ q, q < R insts → ∀ (C D P : Nat → Int),
-      (∀ x, x < 187 → C x = rowCell insts q ((recs insts).getD q default) x) →
-      (∀ x, x < 187 → D x = nextCell insts q x) →
+      (∀ x, x < 200 → C x = rowCell insts q ((recs insts).getD q default) x) →
+      (∀ x, x < 200 → D x = nextCell insts q x) →
       ∀ ex ∈ es, ((ev C D (if q = 0 then 1 else 0) 0 1 P ex : Int) : Fp) = 0) :
     GroupOk insts H es := by
   intro q hq C D P hC hD ex hex
@@ -81,14 +81,14 @@ theorem groupOk_of (hs : UpsShape insts) {H : Nat} (hH : R insts + 1 ≤ H) {es 
     rw [if_neg (show q + 1 ≠ H by omega), if_neg (show q + 1 ≠ H by omega)]
     apply hact q ha C D P (fun x hx => by rw [hC x hx]; simp [cell, ha]) (fun x hx => by
       rw [hD x hx, h1]; simp only [cell, nextCell]) ex hex
-  · have hpz : ∀ x, x < 187 → C x = 0 := fun x hx => by rw [hC x hx]; simp [cell, ha]
+  · have hpz : ∀ x, x < 200 → C x = 0 := fun x hx => by rw [hC x hx]; simp [cell, ha]
     have hq0 : q ≠ 0 := by have := R_pos hs; omega
     rw [if_neg hq0]
     have he := hsub ex hex
     by_cases hl : q + 1 = H
     · rw [if_pos hl, if_pos hl]
       have hz := List.all_eq_true.1 pad_last ex he
-      rw [ev_vz (zc := fun x => decide (x < 187)) (zn := fun x => x == 113) (zf := true) (zl := false) (zt := true)
+      rw [ev_vz (zc := fun x => decide (x < 200)) (zn := fun x => x == 113) (zf := true) (zl := false) (zt := true)
         (fun x h => hpz x (by simpa using h)) (fun x h => ?_) (fun _ => rfl) (fun h => absurd h (by decide))
         (fun _ => rfl) ex hz]
       · rfl
@@ -98,7 +98,7 @@ theorem groupOk_of (hs : UpsShape insts) {H : Nat} (hH : R insts + 1 ≤ H) {es 
         rfl
     · rw [if_neg hl, if_neg hl]
       have hz := List.all_eq_true.1 pad_all ex he
-      rw [ev_vz (zc := fun x => decide (x < 187)) (zn := fun x => decide (x < 187)) (zf := true) (zl := false)
+      rw [ev_vz (zc := fun x => decide (x < 200)) (zn := fun x => decide (x < 200)) (zf := true) (zl := false)
         (zt := false) (fun x h => hpz x (by simpa using h)) (fun x h => ?_) (fun _ => rfl)
         (fun h => absurd h (by decide)) (fun h => absurd h (by decide)) ex hz]
       · rfl

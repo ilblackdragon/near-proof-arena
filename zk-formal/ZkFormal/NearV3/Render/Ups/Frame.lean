@@ -37,8 +37,8 @@ structure UpsShape (insts : List UpsInst) : Prop where
 
 /-- A group of constraints vanishes (in `Fp`) on every row, with integer cells. -/
 def GroupOk (insts : List UpsInst) (H : Nat) (es : List Expr) : Prop :=
-  ∀ q, q < H → ∀ (C D P : Nat → Int), (∀ x, x < 187 → C x = cell insts q x) →
-    (∀ x, x < 187 → D x = cell insts ((q + 1) % H) x) →
+  ∀ q, q < H → ∀ (C D P : Nat → Int), (∀ x, x < 200 → C x = cell insts q x) →
+    (∀ x, x < 200 → D x = cell insts ((q + 1) % H) x) →
     ∀ ex ∈ es, ((ev C D (if q = 0 then 1 else 0) (if q + 1 = H then 1 else 0)
       (if q + 1 = H then 0 else 1) P ex : Int) : Fp) = 0
 
@@ -51,10 +51,10 @@ theorem groupOk_append {insts : List UpsInst} {H : Nat} {a b : List Expr} (ha : 
 
 /-- Integer cells from integer images below the width (junk above). -/
 def cellsZ (f : Nat → Int) (tr : Trace Fp) (t q : Nat) (x : Nat) : Int :=
-  if x < 187 then f x else ((tr.cell t q x).toNat : Int)
+  if x < 200 then f x else ((tr.cell t q x).toNat : Int)
 
 theorem cellsZ_ok {f : Nat → Int} {tr : Trace Fp} {t q : Nat}
-    (h : ∀ x, x < 187 → tr.cell t q x = ((f x : Int) : Fp)) : ∀ x, tr.cell t q x = ((cellsZ f tr t q x : Int) : Fp) := by
+    (h : ∀ x, x < 200 → tr.cell t q x = ((f x : Int) : Fp)) : ∀ x, tr.cell t q x = ((cellsZ f tr t q x : Int) : Fp) := by
   intro x
   unfold cellsZ
   split
@@ -62,7 +62,7 @@ theorem cellsZ_ok {f : Nat → Int} {tr : Trace Fp} {t q : Nat}
   · rw [Lean.Grind.Ring.intCast_natCast]; exact (Fp.ofNat_toNat _).symm
 
 theorem constr_of {insts : List UpsInst} {tr : Trace Fp} {tt : Nat} {pub : List Fp}
-    (hc : ∀ q col, q < tr.height tt → col < 187 → tr.cell tt q col = ((cell insts q col : Int) : Fp))
+    (hc : ∀ q col, q < tr.height tt → col < 200 → tr.cell tt q col = ((cell insts q col : Int) : Fp))
     (h : GroupOk insts (tr.height tt) UpsV3.constraints) :
     ∀ r, r < tr.height tt → ∀ ex ∈ UpsV3.constraints, ex.eval tr tt r pub = 0 := by
   intro q hq ex hex
@@ -110,12 +110,12 @@ theorem ev_vz {zc zn : Nat → Bool} {zf zl zt : Bool} {C D : Nat → Int} {fst 
   | .neg a, h => by simp only [vz] at h; simp [ev, ev_vz hC hD hf hl ht a h]
 
 /-- Every constraint vanishes on a zero row followed by a zero row (not the first row). -/
-theorem pad_all : UpsV3.constraints.all (vz (fun x => decide (x < 187)) (fun x => decide (x < 187)) true false false) = true := by
+theorem pad_all : UpsV3.constraints.all (vz (fun x => decide (x < 200)) (fun x => decide (x < 200)) true false false) = true := by
   decide +kernel
 
 /-- Every constraint vanishes on a zero last row (not the first row) followed by a row whose
 `sCH` is zero (the first row, `W0`). -/
-theorem pad_last : UpsV3.constraints.all (vz (fun x => decide (x < 187)) (fun x => x == 113) true false true) = true := by
+theorem pad_last : UpsV3.constraints.all (vz (fun x => decide (x < 200)) (fun x => x == 113) true false true) = true := by
   decide +kernel
 
 /-! ## Row records -/

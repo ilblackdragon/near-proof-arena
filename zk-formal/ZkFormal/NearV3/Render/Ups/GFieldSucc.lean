@@ -46,10 +46,10 @@ macro "scalar_succ" n:num : tactic => `(tactic| (
 theorem fields_succ_qmid {I : UpsInst} {Q : UpsPartI} {k p u u' : Nat}
     (ok : FieldsOk Q) (hp : p + 1 < Q.q.length)
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p
+    (hC : ∀ x, x < 200 → C x = QC I Q k p
       (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1
       (fieldAt Q.shape p).2.2.1 (fieldAt Q.shape p).2.2.2 u x)
-    (hD : ∀ x, x < 187 → D x = QC I Q k (p + 1)
+    (hD : ∀ x, x < 200 → D x = QC I Q k (p + 1)
       (fieldAt Q.shape (p + 1)).1 (fieldAt Q.shape (p + 1)).2.1
       (fieldAt Q.shape (p + 1)).2.2.1 (fieldAt Q.shape (p + 1)).2.2.2 u' x) :
     ∀ ex ∈ cFieldSucc, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
@@ -90,7 +90,7 @@ theorem fields_succ_qmid {I : UpsInst} {Q : UpsPartI} {k p u u' : Nat}
 theorem fields_succ_qlast {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
     (hs : (fieldAt Q.shape p).1 = 8)
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p
+    (hC : ∀ x, x < 200 → C x = QC I Q k p
       (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1
       (fieldAt Q.shape p).2.2.1 (fieldAt Q.shape p).2.2.2 u x) :
     ∀ ex ∈ cFieldSucc, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by

@@ -31,13 +31,13 @@ def trieTablesU : List ZkFormal.Air.Table :=
 
 def weqTrieU (g : Nat) : Nat := (trieTablesU.map (weqTable g)).sum
 
-theorem ups_g1 : row6 1 UpsV3.table = (187, 15, 15, 4, 331, 22) := by decide +kernel
-theorem ups_g3 : row6 3 UpsV3.table = (187, 15, 6, 8, 291, 22) := by decide +kernel
+theorem ups_g1 : row6 1 UpsV3.table = (200, 15, 15, 4, 344, 22) := by decide +kernel
+theorem ups_g3 : row6 3 UpsV3.table = (200, 15, 6, 8, 304, 22) := by decide +kernel
 
 theorem nodeU_g1 : row6 1 NodeV3.tableU = (186, 21, 21, 5, 386, 22) := by decide +kernel
 theorem nodeU_g3 : row6 3 NodeV3.tableU = (186, 21, 8, 8, 306, 22) := by decide +kernel
 
-theorem weqTrieU_g1 : weqTrieU 1 = 1202 := by decide +kernel
-theorem weqTrieU_g3 : weqTrieU 3 = 1082 := by decide +kernel
+theorem weqTrieU_g1 : weqTrieU 1 = 1215 := by decide +kernel
+theorem weqTrieU_g3 : weqTrieU 3 = 1095 := by decide +kernel
 
 end ZkFormal.NearV3.Budget

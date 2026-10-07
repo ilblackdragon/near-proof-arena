@@ -37,30 +37,30 @@ macro "rows_mem" : tactic => `(tactic| (simp only [UpsV3.cRows, List.mem_cons, L
 section
 variable {I : UpsInst} {C D P : Nat → Int} {fst : Int}
 
-theorem rows_w0 (hC : ∀ x, x < 187 → C x = WC I 0 x) (hD : ∀ x, x < 187 → D x = WC I 1 x) :
+theorem rows_w0 (hC : ∀ x, x < 200 → C x = WC I 0 x) (hD : ∀ x, x < 200 → D x = WC I 1 x) :
     ∀ ex ∈ UpsV3.cRows, ((ev C D fst 0 1 P ex : Int) : Fp) = 0 := by
   intro ex hex; rows_mem <;> ups_ev [hC, hD] <;> cellsimp <;> rclose
 
-theorem rows_w1 (hf : fst = 0) (hC : ∀ x, x < 187 → C x = WC I 1 x) (hD : ∀ x, x < 187 → D x = WC I 2 x) :
+theorem rows_w1 (hf : fst = 0) (hC : ∀ x, x < 200 → C x = WC I 1 x) (hD : ∀ x, x < 200 → D x = WC I 2 x) :
     ∀ ex ∈ UpsV3.cRows, ((ev C D fst 0 1 P ex : Int) : Fp) = 0 := by
   intro ex hex; subst hf; rows_mem <;> ups_ev [hC, hD] <;> cellsimp <;> rclose
 
-theorem rows_w2 (hf : fst = 0) (hC : ∀ x, x < 187 → C x = WC I 2 x) (hD : ∀ x, x < 187 → D x = WC I 3 x) :
+theorem rows_w2 (hf : fst = 0) (hC : ∀ x, x < 200 → C x = WC I 2 x) (hD : ∀ x, x < 200 → D x = WC I 3 x) :
     ∀ ex ∈ UpsV3.cRows, ((ev C D fst 0 1 P ex : Int) : Fp) = 0 := by
   intro ex hex; subst hf; rows_mem <;> ups_ev [hC, hD] <;> cellsimp <;> rclose
 
-theorem rows_w3 (hf : fst = 0) (hC : ∀ x, x < 187 → C x = WC I 3 x) (hD : ∀ x, x < 187 → D x = VC I 0 x) :
+theorem rows_w3 (hf : fst = 0) (hC : ∀ x, x < 200 → C x = WC I 3 x) (hD : ∀ x, x < 200 → D x = VC I 0 x) :
     ∀ ex ∈ UpsV3.cRows, ((ev C D fst 0 1 P ex : Int) : Fp) = 0 := by
   intro ex hex; subst hf; rows_mem <;> ups_ev [hC, hD] <;> cellsimp <;> rclose
 
-theorem rows_vmid {p : Nat} (hp : p + 1 < L I) (hf : fst = 0) (hC : ∀ x, x < 187 → C x = VC I p x)
-    (hD : ∀ x, x < 187 → D x = VC I (p + 1) x) :
+theorem rows_vmid {p : Nat} (hp : p + 1 < L I) (hf : fst = 0) (hC : ∀ x, x < 200 → C x = VC I p x)
+    (hD : ∀ x, x < 200 → D x = VC I (p + 1) x) :
     ∀ ex ∈ UpsV3.cRows, ((ev C D fst 0 1 P ex : Int) : Fp) = 0 := by
   intro ex hex; subst hf; rows_mem <;> ups_ev [hC, hD] <;> cellsimp <;> rclose
 
 theorem rows_vlast {p : Nat} (hp : p + 1 = L I) (hLs : L I < 2 ^ 24) (hf : fst = 0)
-    {st ix fl wi u : Nat} (hC : ∀ x, x < 187 → C x = VC I p x)
-    (hD : ∀ x, x < 187 → D x = QC I (part I 0) 0 0 st ix fl wi u x) :
+    {st ix fl wi u : Nat} (hC : ∀ x, x < 200 → C x = VC I p x)
+    (hD : ∀ x, x < 200 → D x = QC I (part I 0) 0 0 st ix fl wi u x) :
     ∀ ex ∈ UpsV3.cRows, ((ev C D fst 0 1 P ex : Int) : Fp) = 0 := by
   intro ex hex; subst hf; have := Lb_sum I hLs
   rows_mem <;> ups_ev [hC, hD] <;> cellsimp <;> rclose
@@ -68,8 +68,8 @@ theorem rows_vlast {p : Nat} (hp : p + 1 = L I) (hLs : L I < 2 ^ 24) (hf : fst =
 theorem rows_qmid {k p st ix fl wi u st' ix' fl' wi' u' : Nat} (hp : p + 1 < (part I k).q.length)
     (hfa : p + 1 = (part I k).q.length ↔ st = 8 ∧ ix + 1 = fl) (hf : fst = 0)
     (hroot : k + 1 = nQ I → (part I k).pdep = 0 ∧ (part I k).sN = I.rid ∧ (part I k).q.length = rlen I)
-    (hC : ∀ x, x < 187 → C x = QC I (part I k) k p st ix fl wi u x)
-    (hD : ∀ x, x < 187 → D x = QC I (part I k) k (p + 1) st' ix' fl' wi' u' x) :
+    (hC : ∀ x, x < 200 → C x = QC I (part I k) k p st ix fl wi u x)
+    (hD : ∀ x, x < 200 → D x = QC I (part I k) k (p + 1) st' ix' fl' wi' u' x) :
     ∀ ex ∈ UpsV3.cRows, ((ev C D fst 0 1 P ex : Int) : Fp) = 0 := by
   intro ex hex; subst hf; rows_mem <;> ups_ev [hC, hD] <;> cellsimp <;> rclose
 
@@ -77,8 +77,8 @@ theorem rows_qpart {k p st ix fl wi u st' ix' fl' wi' u' : Nat} (hp : p + 1 = (p
     (hk : k + 1 < nQ I) (hfa : p + 1 = (part I k).q.length ↔ st = 8 ∧ ix + 1 = fl) (hf : fst = 0)
     (hrc : (part I (k + 1)).rc + (if (part I k).kind = 0 ∨ (part I k).kind = 1 then 1 else 0) = (part I k).rc)
     (hcN : (part I (k + 1)).cN = (part I k).sN)
-    (hC : ∀ x, x < 187 → C x = QC I (part I k) k p st ix fl wi u x)
-    (hD : ∀ x, x < 187 → D x = QC I (part I (k + 1)) (k + 1) 0 st' ix' fl' wi' u' x) :
+    (hC : ∀ x, x < 200 → C x = QC I (part I k) k p st ix fl wi u x)
+    (hD : ∀ x, x < 200 → D x = QC I (part I (k + 1)) (k + 1) 0 st' ix' fl' wi' u' x) :
     ∀ ex ∈ UpsV3.cRows, ((ev C D fst 0 1 P ex : Int) : Fp) = 0 := by
   intro ex hex; subst hf
   rows_mem <;> ups_ev [hC, hD] <;> cellsimp <;>
@@ -89,7 +89,7 @@ theorem rows_qlast {k p st ix fl wi u : Nat} (hp : p + 1 = (part I k).q.length)
     (hk : k + 1 = nQ I) (hfa : p + 1 = (part I k).q.length ↔ st = 8 ∧ ix + 1 = fl) (hf : fst = 0)
     (hrc : (part I k).rc = (if (part I k).kind = 0 ∨ (part I k).kind = 1 then 1 else 0))
     (hdep : (part I k).pdep = 0) (hsN : (part I k).sN = I.rid) (hrl : (part I k).q.length = rlen I)
-    (hC : ∀ x, x < 187 → C x = QC I (part I k) k p st ix fl wi u x) (hDa : D 0 = D 4) :
+    (hC : ∀ x, x < 200 → C x = QC I (part I k) k p st ix fl wi u x) (hDa : D 0 = D 4) :
     ∀ ex ∈ UpsV3.cRows, ((ev C D fst 0 1 P ex : Int) : Fp) = 0 := by
   intro ex hex; subst hf
   rows_mem <;> ups_ev [hC, hDa] <;> cellsimp <;>
@@ -110,8 +110,8 @@ open ZkFormal.Near ZkFormal.Near.Render ZkFormal.Algebra ZkFormal.Air ZkFormal.N
 namespace UpsGen
 
 theorem segConst_isSeg : ∀ x ∈ UpsV3.segConst, isSeg x = true := by decide
-theorem partConst_isPC : ∀ x ∈ UpsV3.partConst, isPC x = true ∧ isSeg x = false ∧ x < 187 := by decide
-theorem segConst_lt : ∀ x ∈ UpsV3.segConst, x < 187 := by decide
+theorem partConst_isPC : ∀ x ∈ UpsV3.partConst, isPC x = true ∧ isSeg x = false ∧ x < 200 := by decide
+theorem segConst_lt : ∀ x ∈ UpsV3.segConst, x < 200 := by decide
 
 theorem rowCell_seg {insts : List UpsInst} {q x : Nat} {r : Nat × RK} (h : isSeg x = true) :
     rowCell insts q r x = segCell (inst insts r.1) x := by
@@ -140,7 +140,7 @@ theorem cConst_ok {insts : List UpsInst} (ok : UpsOk insts) {H : Nat} (hH : R in
   all_goals intro i hi
   · intro t ht q hq hr C D P hC hD ex hex
     simp only [UpsV3.cConst, List.mem_append, List.mem_map] at hex
-    have hn : ∀ x, x < 187 → D x = rowCell insts (q + 1) (i, if t < 3 then .w (t + 1) else .v 0) x := by
+    have hn : ∀ x, x < 200 → D x = rowCell insts (q + 1) (i, if t < 3 then .w (t + 1) else .v 0) x := by
       intro x hx; rw [hD x hx]
       exact nextRow ok.shape hq hr (by simp only [nextRK]; split <;> rfl) x
     rcases hex with ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩
@@ -153,7 +153,7 @@ theorem cConst_ok {insts : List UpsInst} (ok : UpsOk insts) {H : Nat} (hH : R in
       rw [hC 2 (by decide), hC 3 (by decide)]; simp [WC, isSeg, wCell]
   · intro p hp q hq hr C D P hC hD ex hex
     simp only [UpsV3.cConst, List.mem_append, List.mem_map] at hex
-    have hn : ∀ x, x < 187 → D x = rowCell insts (q + 1) (i, if p + 1 < L (inst insts i) then .v (p + 1) else .q 0 0) x := by
+    have hn : ∀ x, x < 200 → D x = rowCell insts (q + 1) (i, if p + 1 < L (inst insts i) then .v (p + 1) else .q 0 0) x := by
       intro x hx; rw [hD x hx]
       exact nextRow ok.shape hq hr (by simp only [nextRK]; split <;> rfl) x
     rcases hex with ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩
@@ -226,7 +226,7 @@ theorem cRows_ok {insts : List UpsInst} (ok : UpsOk insts) {H : Nat} (hH : R ins
   apply groupOk_by ok hH (fun e he => by simp [UpsV3.constraints, he])
   all_goals intro i hi
   · intro t ht q hq hr C D P hC hD ex hex
-    have hn : ∀ rk', nextRK (inst insts i) (.w t) = some rk' → ∀ x, x < 187 → D x = rowCell insts (q + 1) (i, rk') x :=
+    have hn : ∀ rk', nextRK (inst insts i) (.w t) = some rk' → ∀ x, x < 200 → D x = rowCell insts (q + 1) (i, rk') x :=
       fun rk' h x hx => by rw [hD x hx]; exact nextRow ok.shape hq hr h x
     rcases (show t = 0 ∨ t = 1 ∨ t = 2 ∨ t = 3 by omega) with rfl | rfl | rfl | rfl
     · exact rows_w0 hC (fun x hx => by rw [hn (.w 1) rfl x hx, rowCell_w]) ex hex

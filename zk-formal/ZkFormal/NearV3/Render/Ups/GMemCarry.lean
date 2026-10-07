@@ -13,11 +13,11 @@ def cMemCarry : List Expr := (UpsV3.cMem.drop 4).take 2
 /-- The next row's carry-in is this row's exact decoded carry-out. -/
 theorem mem_carry_row {C D P : Nat → Int} {fst lst trn : Int}
     {I : UpsInst} {Q : UpsPartI} {k p ix wi wi' u u' : Nat}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p 8 ix 8 wi u x)
-    (hD : ∀ x, x < 187 → D x = QC I Q k (p + 1) 8 (ix + 1) 8 wi' u' x)
+    (hC : ∀ x, x < 200 → C x = QC I Q k p 8 ix 8 wi u x)
+    (hD : ∀ x, x < 200 → D x = QC I Q k (p + 1) 8 (ix + 1) 8 wi' u' x)
     (hi : ix < 7)
-    (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 8)
-    (h2 : 0 ≤ co2V I Q ix) (h3 : co2V I Q ix < 8) :
+    (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 131072)
+    (h2 : 0 ≤ co2V I Q ix) (h3 : co2V I Q ix < 65536) :
     ∀ e ∈ cMemCarry, ((ev C D fst lst trn P e : Int) : Fp) = 0 := by
   intro e he
   change e ∈ [.mul (.mul (c sMEM) (Dsl.not (c fe))) (sub (n ci) coE),
@@ -41,7 +41,7 @@ theorem mem_carry_row {C D P : Nat → Int} {fst lst trn : Int}
 /-- No carry transition is enabled outside a nonfinal memory byte. -/
 theorem mem_carry_off {C D P : Nat → Int} {fst lst trn : Int}
     {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p st ix fl wi u x)
+    (hC : ∀ x, x < 200 → C x = QC I Q k p st ix fl wi u x)
     (hoff : st ≠ 8 ∨ ix + 1 = fl) :
     ∀ e ∈ cMemCarry, ((ev C D fst lst trn P e : Int) : Fp) = 0 := by
   intro e he
@@ -55,10 +55,10 @@ theorem mem_carry_off {C D P : Nat → Int} {fst lst trn : Int}
 theorem mem_carry_mid {C D P : Nat → Int} {fst lst trn : Int}
     {I : UpsInst} {Q : UpsPartI} {k p u u' : Nat}
     (f : FieldsOk Q) (m : MemOk I Q) (hp : p + 1 < Q.q.length)
-    (hC : ∀ x, x < 187 → C x = QC I Q k p
+    (hC : ∀ x, x < 200 → C x = QC I Q k p
       (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1
       (fieldAt Q.shape p).2.2.1 (fieldAt Q.shape p).2.2.2 u x)
-    (hD : ∀ x, x < 187 → D x = QC I Q k (p + 1)
+    (hD : ∀ x, x < 200 → D x = QC I Q k (p + 1)
       (fieldAt Q.shape (p + 1)).1 (fieldAt Q.shape (p + 1)).2.1
       (fieldAt Q.shape (p + 1)).2.2.1 (fieldAt Q.shape (p + 1)).2.2.2 u' x) :
     ∀ e ∈ cMemCarry, ((ev C D fst lst trn P e : Int) : Fp) = 0 := by

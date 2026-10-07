@@ -21,7 +21,7 @@ namespace UpsGen
 
 section
 variable {I : UpsInst} (iok : InstOk I) {C D P : Nat → Int} {fst lst trn : Int}
-  (hC : ∀ x, x < 187 → C x = WC I 0 x)
+  (hC : ∀ x, x < 200 → C x = WC I 0 x)
 include iok hC
 
 theorem seg_w0 : ∀ ex ∈ UpsV3.cSeg, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by

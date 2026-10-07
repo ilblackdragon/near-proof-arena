@@ -15,10 +15,10 @@ def cMemCurrent : List Expr := UpsV3.cMem.take 4 ++ (UpsV3.cMem.drop 6).take 5
 
 theorem mem_current {C D P : Nat → Int} {fst lst trn : Int}
     {I : UpsInst} {Q : UpsPartI} {k p ix wi u : Nat}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p 8 ix 8 wi u x)
+    (hC : ∀ x, x < 200 → C x = QC I Q k p 8 ix 8 wi u x)
     (hi : ix < 8) (hn : Q.neg ≤ 1)
-    (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 8)
-    (h2 : 0 ≤ co2V I Q ix) (h3 : co2V I Q ix < 8)
+    (h0 : 0 ≤ cbV I Q ix) (h1 : cbV I Q ix < 131072)
+    (h2 : 0 ≤ co2V I Q ix) (h3 : co2V I Q ix < 65536)
     (hb : (Q.q.getD p 0 : Int) = RV I Q / 256 ^ ix % 256) :
     ∀ e ∈ cMemCurrent, ((ev C D fst lst trn P e : Int) : Fp) = 0 := by
   intro e he
@@ -42,7 +42,7 @@ theorem mem_current {C D P : Nat → Int} {fst lst trn : Int}
 /-- Every current-row memory equation vanishes outside MEM fields. -/
 theorem mem_non {C D P : Nat → Int} {fst lst trn : Int}
     {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat} (hs : st ≠ 8)
-    (hC : ∀ x, x < 187 → C x = QC I Q k p st ix fl wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I Q k p st ix fl wi u x) :
     ∀ e ∈ cMemCurrent, ((ev C D fst lst trn P e : Int) : Fp) = 0 := by
   intro e he
   refine vzC (zc := fun x => zQ x || [114,168,169].contains x) (fun x hx => ?_)

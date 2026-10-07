@@ -27,7 +27,7 @@ section
 variable {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
 variable (hb : SourceBytes Q) (hs : st=0 ∨ st=2)
 variable {C D P : Nat → Int} {fst lst trn : Int}
-variable (hC : ∀ x, x < 187 → C x = QC I Q k p st ix fl wi u x)
+variable (hC : ∀ x, x < 200 → C x = QC I Q k p st ix fl wi u x)
 
 include hb hs hC
 

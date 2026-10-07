@@ -239,17 +239,19 @@ def rcid : Nat := 184
 def rdc : Nat := 185
 /-- The instance's root record `rid` (segment constant, received on `MIDROOT`): the root part's source. -/
 def rootRid : Nat := 186
-def width : Nat := 187
+def width : Nat := 200
 
 /-! ### `reg` aliases -/
 /-- `MEM` rows: inside-chain byte bits, carries, outside-chain carries, carry-ins, inputs -/
 def tb (i : Nat) : Nat := reg i
-def cb (i : Nat) : Nat := reg (8 + i)
-def cc (i : Nat) : Nat := reg (11 + i)
+def cb (i : Nat) : Nat := if i<3 then reg (8+i) else reg (15+i)
+def cc (i : Nat) : Nat := if i<3 then reg (11+i) else 184+i
 def ci : Nat := reg 14
 def ci2 : Nat := reg 15
 def X1 : Nat := reg 16
 def Ein : Nat := reg 17
+/-- Memory bit columns: byte8, inside17, outside16; high outside bits add13 columns. -/
+def memBitCols : List Nat := (List.range 8).map tb ++ (List.range 17).map cb ++ (List.range 16).map cc
 /-- read rows (`TAG`, `HPF`): nibble bits of `rb` -/
 def hb (i : Nat) : Nat := reg i
 def lb (i : Nat) : Nat := reg (4 + i)
@@ -306,10 +308,10 @@ def s15E : Expr := .add (.mul (c kRDB) (c sd1)) (.mul (c kRBI) (not (c ts1)))
 /-- fresh 32-byte window (value digest or child digest) -/
 def winFr : Expr := .add (.mul (c sVH) (not (c cp))) (.mul (c sCH) (c wfr))
 def tE : Expr := bits (fun i => c (tb i)) 0 8
-def cbE : Expr := bits (fun i => c (cb i)) 0 3
-def ccE : Expr := bits (fun i => c (cc i)) 0 3
+def cbE : Expr := bits (fun i => c (cb i)) 0 17
+def ccE : Expr := bits (fun i => c (cc i)) 0 16
 /-- inside-chain carry out: `cb − 3` (rows 0 … 6), the high limb `cb` (row 7) -/
-def coE : Expr := .add cbE (smul 3 (sub (c fe) (k 1)))
+def coE : Expr := .add cbE (smul 65536 (sub (c fe) (k 1)))
 def sigE : Expr := sub (k 1) (smul 2 (c neg))
 def upbMsg (uu : Expr) : List Expr := [mid K_NPOST (c sN), c spos, c rb, c plen, c pdep, c rcid, uu]
 /-- depth of the terminal record `N_D` -/
@@ -367,7 +369,7 @@ def cBool : List Expr :=
   [Dsl.bool mDE] ++
   -- `reg` used as bits: nibbles on TAG/HPF rows, arithmetic on MEM rows, bitmap on W1/W2
   (List.range 8).map (fun i => Expr.mul (sumc [sTAG,sHPL,sHPF]) (Dsl.bool (c (reg i)))) ++
-  (List.range 14).map (fun i => Expr.mul (c sMEM) (Dsl.bool (c (reg i)))) ++
+  memBitCols.map (fun x => Expr.mul (c sMEM) (Dsl.bool (c x))) ++
   (List.range 16).map (fun i => Expr.mul (.add (c wt1) (c wt2)) (Dsl.bool (c (wb i)))) ++
   [.mul (c wk) (Dsl.bool (c enter)), .mul (c wk) (Dsl.bool (c hv)),
    .mul (c wk) (Dsl.bool (c lv0)), .mul (c wk) (Dsl.bool (c lv1)), .mul (c wk) (Dsl.bool (c lv2))]

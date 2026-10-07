@@ -12,10 +12,10 @@ namespace UpsGen
 theorem mem_lengths_mid {C D P : Nat → Int} {fst lst trn : Int}
     {I : UpsInst} {Q : UpsPartI} {k p u u' : Nat}
     (f : FieldsOk Q) (hp : p + 1 < Q.q.length)
-    (hC : ∀ x, x < 187 → C x = QC I Q k p
+    (hC : ∀ x, x < 200 → C x = QC I Q k p
       (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1
       (fieldAt Q.shape p).2.2.1 (fieldAt Q.shape p).2.2.2 u x)
-    (hD : ∀ x, x < 187 → D x = QC I Q k (p + 1)
+    (hD : ∀ x, x < 200 → D x = QC I Q k (p + 1)
       (fieldAt Q.shape (p + 1)).1 (fieldAt Q.shape (p + 1)).2.1
       (fieldAt Q.shape (p + 1)).2.2.1 (fieldAt Q.shape (p + 1)).2.2.2 u' x) :
     ∀ ex ∈ cMemLengths, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
@@ -32,7 +32,7 @@ theorem mem_lengths_mid {C D P : Nat → Int} {fst lst trn : Int}
 /-- No length-register transition is enabled on the last memory byte. -/
 theorem mem_lengths_last {C D P : Nat → Int} {fst lst trn : Int}
     {I : UpsInst} {Q : UpsPartI} {k p wi u : Nat} (hp : p + 1 = Q.q.length)
-    (hC : ∀ x, x < 187 → C x = QC I Q k p 8 7 8 wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I Q k p 8 7 8 wi u x) :
     ∀ ex ∈ cMemLengths, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   mem_lengths_cases <;> apply cast0 <;> ups_ev [UpsV3.cMem, UpsV3.Lb, Nat.reduceMod, List.getD, List.getElem?_cons_zero, List.getElem?_cons_succ, Option.getD_some, hC] <;> cellsimp <;>

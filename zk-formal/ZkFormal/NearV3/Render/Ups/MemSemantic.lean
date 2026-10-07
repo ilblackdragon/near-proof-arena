@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Render.Ups.MemBounds
+import ZkFormal.NearV3.Render.Ups.WideCarryBounds
 import ZkFormal.NearV3.Render.Ups.MemInput
 import ZkFormal.NearV3.Render.Ups.NodeHeaderBytes
 import ZkFormal.NearV3.Render.UniqGen
@@ -36,11 +36,11 @@ theorem memOk_of_semantics {I : UpsInst} {Q : UpsPartI} (e : NodeEncoding Q)
     (hb : ∀ b ∈ NodeGen3.memOf e.node, b < 256)
     (hr : RV I Q = (le256 (NodeGen3.memOf e.node) : Int))
     (hn : Q.neg ≤ 1)
-    (hx : ∀ i, i < 7 → -765 ≤ sigV Q * X1V I Q i ∧ sigV Q * X1V I Q i ≤ 1020)
-    (he : ∀ i, i < 8 → 0 ≤ EinV I Q i ∧ EinV I Q i ≤ 1785)
-    (ht : 0 ≤ TV I Q ∧ TV I Q < 8 * 256 ^ 8) : MemOk I Q where
-  carries i hi := ⟨(cbV_bounds I Q hx ht i hi).1,(cbV_bounds I Q hx ht i hi).2,
-    (co2V_bounds I Q hn he i hi).1,(co2V_bounds I Q hn he i hi).2⟩
+    (hx : ∀ i, i < 7 → -(2^23+1024) ≤ sigV Q * X1V I Q i ∧ sigV Q * X1V I Q i ≤ 2^23+1024)
+    (he : ∀ i, i < 8 → 0 ≤ EinV I Q i ∧ EinV I Q i ≤ 2^23+1024)
+    (ht : 0 ≤ TV I Q ∧ TV I Q < 131072 * 256 ^ 8) : MemOk I Q where
+  carries i hi := ⟨(encoded_inside_widebounds I Q hx ht i hi).1,(encoded_inside_widebounds I Q hx ht i hi).2,
+    (co2V_widebounds I Q hn he i hi).1,(co2V_widebounds I Q hn he i hi).2⟩
   bytes p hp hs := e.memory_result hb hr hp hs
 
 end ZkFormal.NearV3.Render.UpsGen

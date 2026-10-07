@@ -13,7 +13,7 @@ def cByteCopy : List Expr := (UpsV3.cBytes.drop 10).take 1
 theorem byte_copy_q {I : UpsInst} {Q : UpsPartI} {k p u : Nat}
     (copy : CopyFields I Q) (hf : FieldsOk Q) (hkind : Q.kind<12) (hp : p < Q.q.length)
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p
+    (hC : ∀ x, x < 200 → C x = QC I Q k p
       (fieldAt Q.shape p).1 (fieldAt Q.shape p).2.1
       (fieldAt Q.shape p).2.2.1 (fieldAt Q.shape p).2.2.2 u x) :
     ∀ ex ∈ cByteCopy, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by

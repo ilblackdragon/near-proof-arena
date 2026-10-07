@@ -424,7 +424,7 @@ def RV : Int := pfx (EinV I P) 8 + (1 - (P.neg : Int)) * TV I P
 def coV (i : Nat) : Int := (sigV P * pfx (X1V I P) (i + 1) - TV I P % 256 ^ (i + 1)) / 256 ^ (i + 1)
 def co2V (i : Nat) : Int :=
   (pfx (fun l => EinV I P l + (1 - (P.neg : Int)) * tV I P l) (i + 1) - RV I P % 256 ^ (i + 1)) / 256 ^ (i + 1)
-def cbV (i : Nat) : Int := coV I P i + (if i < 7 then 3 else 0)
+def cbV (i : Nat) : Int := coV I P i + (if i < 7 then 65536 else 0)
 
 /-- `reg` on a `MEM` row `i`: `tb[8] cb[3] cc[3] ci ci2 X1 Ein` -/
 def memReg (i m : Nat) : Int :=
@@ -435,6 +435,7 @@ def memReg (i m : Nat) : Int :=
   else if m = 15 then (if i = 0 then 0 else co2V I P (i - 1))
   else if m = 16 then X1V I P i
   else if m = 17 then EinV I P i
+  else if m < 32 then cbV I P i / 2 ^ (m - 15) % 2
   else 0
 
 end
@@ -499,6 +500,7 @@ def qRow (col : Nat) : Int :=
     else if 164 ≤ col ∧ col < 168 then
       (if st = 4 then slb P ((col - 164 + ix) % 4)
        else if st = 8 then slb P (col - 164 + ix) else slb P (col - 164))
+    else if 187 ≤ col ∧ col < 200 then (if st = 8 then co2V I P ix / 2 ^ (col - 184) % 2 else 0)
     else 0
 
 end

@@ -15,7 +15,7 @@ def cByteHpl : List Expr := UpsV3.cBytes.drop 76
 /-- Appended header constraints vanish off HPL, independently of the successor row. -/
 theorem byte_hpl_off {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
     (hs : st≠1) {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x<187 → C x=QC I Q k p st ix fl wi u x) :
+    (hC : ∀ x, x<200 → C x=QC I Q k p st ix fl wi u x) :
     ∀ ex∈cByteHpl, ((ev C D fst lst trn P ex : Int) : Fp)=0 := by
   intro ex hex
   simp only [cByteHpl,UpsV3.cBytes,List.drop,List.map,List.range_succ,List.range_zero,
@@ -27,9 +27,9 @@ theorem byte_hpl_qmid {I : UpsInst} {Q : UpsPartI} {k p u u' : Nat}
     (enc : NodeEncoding Q) (hf : FieldsOk Q) (hp : p<Q.q.length) (hp1 : p+1<Q.q.length)
     (hqh : Q.qhk<16777216)
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x<187 → C x=QC I Q k p (fieldAt Q.shape p).1
+    (hC : ∀ x, x<200 → C x=QC I Q k p (fieldAt Q.shape p).1
       (fieldAt Q.shape p).2.1 (fieldAt Q.shape p).2.2.1 (fieldAt Q.shape p).2.2.2 u x)
-    (hD : ∀ x, x<187 → D x=QC I Q k (p+1) (fieldAt Q.shape (p+1)).1
+    (hD : ∀ x, x<200 → D x=QC I Q k (p+1) (fieldAt Q.shape (p+1)).1
       (fieldAt Q.shape (p+1)).2.1 (fieldAt Q.shape (p+1)).2.2.1 (fieldAt Q.shape (p+1)).2.2.2 u' x) :
     ∀ ex∈cByteHpl, ((ev C D fst lst trn P ex : Int) : Fp)=0 := by
   by_cases hs : (fieldAt Q.shape p).1=1

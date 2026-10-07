@@ -19,7 +19,7 @@ def extraReadE : Expr := Dsl.sum [
 theorem byte_flags_q {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
     (hk : Q.kind < 12) (hs : st < 9)
     {C D P : Nat → Int} {fst lst trn : Int}
-    (hC : ∀ x, x < 187 → C x = QC I Q k p st ix fl wi u x) :
+    (hC : ∀ x, x < 200 → C x = QC I Q k p st ix fl wi u x) :
     ∀ ex ∈ cByteFlags, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   change ex ∈ [

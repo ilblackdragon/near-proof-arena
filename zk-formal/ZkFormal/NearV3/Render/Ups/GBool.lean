@@ -115,14 +115,22 @@ theorem node_nibbits (I : UpsInst) (Q : UpsPartI) (k p st ix fl wi u : Nat) (hs 
     rcases lt8 hi with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
     cellsimp <;> simp [winFrV,WinFrB,ind] <;> exact b01_mod _
 
-/-- `reg` bits on `MEM` rows (byte bits, carries). -/
+/-- All MEM bits, including the high signed/unsigned carry bits. -/
 theorem node_membits (I : UpsInst) (Q : UpsPartI) (k p ix fl wi u : Nat) :
-    ∀ i, i < 14 → B01 (QC I Q k p 8 ix fl wi u (129 + i)) := by
-  intro i hi
-  have hw : winFrV I Q 8 wi = 0 := rfl
-  rcases lt14 hi with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> cellsimp <;>
-    simp only [hw, show (0 : Int) ≠ 1 by decide, ite_false, ite_true, memReg, Nat.reduceSub, Nat.reduceLT,
-      Nat.reduceAdd, Nat.reduceEqDiff, or_false, false_or] <;> exact b01_mod _
+    ∀ x∈memBitCols, B01 (QC I Q k p 8 ix fl wi u x) := by
+  intro x hx
+  simp only [memBitCols,List.mem_append,List.mem_map,List.mem_range] at hx
+  rcases hx with (⟨i,hi,rfl⟩ | ⟨i,hi,rfl⟩) | ⟨i,hi,rfl⟩
+  · rcases lt8 hi with rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl <;>
+      simp only [tb,reg] <;> cellsimp <;> simp [winFrV,WinFrB,ind,memReg] <;> exact b01_mod _
+  · have hh : i=0 ∨ i=1 ∨ i=2 ∨ i=3 ∨ i=4 ∨ i=5 ∨ i=6 ∨ i=7 ∨ i=8 ∨
+        i=9 ∨ i=10 ∨ i=11 ∨ i=12 ∨ i=13 ∨ i=14 ∨ i=15 ∨ i=16 := by omega
+    rcases hh with rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl <;>
+      simp only [cb,reg,Nat.reduceLT,ite_true,ite_false,Nat.reduceAdd] <;>
+      cellsimp <;> simp [winFrV,WinFrB,ind,memReg] <;> exact b01_mod _
+  · rcases lt16 hi with rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl <;>
+      simp only [cc,reg,Nat.reduceLT,ite_true,ite_false,Nat.reduceAdd] <;>
+      cellsimp <;> simp [winFrV,WinFrB,ind,memReg] <;> exact b01_mod _
 
 /-- `W1` / `W2` bitmap bits. -/
 theorem walk_bmbits (I : UpsInst) (t : Nat) (ht : t = 1 ∨ t = 2) :
@@ -135,9 +143,9 @@ theorem walk_bmbits (I : UpsInst) (t : Nat) (ht : t = 1 ∨ t = 2) :
   rw [if_pos (by omega)]; simp only [wReg, Nat.add_sub_cancel_left]
   rcases ht with rfl | rfl <;> simp only [Nat.reduceEqDiff, ite_false] <;> split <;> first | exact b01_natmod _ | exact b01_0
 
-theorem rowBools_lt : ∀ x ∈ UpsV3.rowBools, x < 187 := by decide
-theorem segBools_seg : ∀ x ∈ UpsV3.segBools, x < 187 ∧ isSeg x = true := by decide
-theorem partBools_lt : ∀ x ∈ UpsV3.partBools, x < 187 := by decide
+theorem rowBools_lt : ∀ x ∈ UpsV3.rowBools, x < 200 := by decide
+theorem segBools_seg : ∀ x ∈ UpsV3.segBools, x < 200 ∧ isSeg x = true := by decide
+theorem partBools_lt : ∀ x ∈ UpsV3.partBools, x < 200 := by decide
 
 theorem gate0 {C D P : Nat → Int} {fst lst trn : Int} {g : Expr} (h : ev C D fst lst trn P g = 0) :
     ev C D fst lst trn P g = 0 ∨ B01 0 := .inl h
@@ -149,7 +157,7 @@ theorem cBool_cases {ex : Expr} (h : ex ∈ UpsV3.cBool) :
     (∃ x ∈ UpsV3.partBools, ex = .mul (c pf) (Dsl.bool (c x))) ∨
     ex = Dsl.bool mDE ∨
     (∃ i, i < 8 ∧ ex = .mul (sumc [sTAG,sHPL,sHPF]) (Dsl.bool (c (reg i)))) ∨
-    (∃ i, i < 14 ∧ ex = .mul (c sMEM) (Dsl.bool (c (reg i)))) ∨
+    (∃ x, x∈memBitCols ∧ ex = .mul (c sMEM) (Dsl.bool (c x))) ∨
     (∃ i, i < 16 ∧ ex = .mul (.add (c wt1) (c wt2)) (Dsl.bool (c (wb i)))) ∨
     ex ∈ [.mul (c wk) (Dsl.bool (c enter)), .mul (c wk) (Dsl.bool (c hv)),
       .mul (c wk) (Dsl.bool (c lv0)), .mul (c wk) (Dsl.bool (c lv1)), .mul (c wk) (Dsl.bool (c lv2))] := by
@@ -168,7 +176,7 @@ theorem cBool_cases {ex : Expr} (h : ex ∈ UpsV3.cBool) :
 section
 variable {C D P : Nat → Int} {fst lst trn : Int}
 
-theorem cBool_w {I : UpsInst} (iok : InstOk I) {t : Nat} (ht : t < 4) (hC : ∀ x, x < 187 → C x = WC I t x) :
+theorem cBool_w {I : UpsInst} (iok : InstOk I) {t : Nat} (ht : t < 4) (hC : ∀ x, x < 200 → C x = WC I t x) :
     ∀ ex ∈ UpsV3.cBool, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   rcases cBool_cases hex with ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩ | rfl | ⟨i, hi, rfl⟩ | ⟨i, hi, rfl⟩ |
@@ -203,7 +211,7 @@ theorem cBool_w {I : UpsInst} (iok : InstOk I) {t : Nat} (ht : t < 4) (hC : ∀ 
       · simp only [h2, ite_false]; exact b01_0
     all_goals exact b01_ind _
 
-theorem cBool_v {I : UpsInst} {p : Nat} (hC : ∀ x, x < 187 → C x = VC I p x) :
+theorem cBool_v {I : UpsInst} {p : Nat} (hC : ∀ x, x < 200 → C x = VC I p x) :
     ∀ ex ∈ UpsV3.cBool, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   rcases cBool_cases hex with ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩ | rfl | ⟨i, hi, rfl⟩ | ⟨i, hi, rfl⟩ |
@@ -222,7 +230,7 @@ theorem cBool_v {I : UpsInst} {p : Nat} (hC : ∀ x, x < 187 → C x = VC I p x)
         (repeat rw [hC _ (by decide)]); rfl))
 
 theorem cBool_q {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
-    (hb : Q.qodd ≤ 1 ∧ Q.nochild ≤ 1 ∧ Q.neg ≤ 1 ∧ Q.podd ≤ 1) (hC : ∀ x, x < 187 → C x = QC I Q k p st ix fl wi u x) :
+    (hb : Q.qodd ≤ 1 ∧ Q.nochild ≤ 1 ∧ Q.neg ≤ 1 ∧ Q.podd ≤ 1) (hC : ∀ x, x < 200 → C x = QC I Q k p st ix fl wi u x) :
     ∀ ex ∈ UpsV3.cBool, ((ev C D fst lst trn P ex : Int) : Fp) = 0 := by
   intro ex hex
   rcases cBool_cases hex with ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩ | ⟨x, hx, rfl⟩ | rfl | ⟨i, hi, rfl⟩ | ⟨i, hi, rfl⟩ |
@@ -239,7 +247,7 @@ theorem cBool_q {I : UpsInst} {Q : UpsPartI} {k p st ix fl wi u : Nat}
         rw [hC 106 (by decide), hC 107 (by decide), hC 108 (by decide)]; cellsimp; simp [ind]; omega))
   · by_cases hs : st = 8
     · subst hs
-      exact ev_gbool (.inr (by simp only [reg]; rw [hC _ (by omega)]; exact node_membits I Q k p ix fl wi u i hi))
+      exact ev_gbool (.inr (by rw [hC i ((show ∀ x∈memBitCols,x<200 by decide) i hi)]; exact node_membits I Q k p ix fl wi u i hi))
     · exact ev_gbool (.inl (by
         simp only [ev, Dsl.c, Bool.false_eq_true, ite_false, sMEM]
         rw [hC 114 (by decide)]; cellsimp; simp [ind]; omega))
