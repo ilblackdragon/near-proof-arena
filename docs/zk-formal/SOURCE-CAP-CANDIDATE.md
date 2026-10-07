@@ -443,3 +443,13 @@ extraction theorem, not an assumption that accepting traces are honest renders.
 exact semantic traffic, byte/SHA linkage, and prepared repetition metadata remain
 the next source extraction obligations; skipped roots still require linkage to
 the earlier same-key computed proof.
+
+Cross-block extraction now proves consecutive natural source indices and the
+correct hash-counter link `next.ql = previous.qe + 1`; a skipped block has
+`qe + 1 = ql`, so no nonexistent duplicate computation is counted. Every block
+has either computed `BlockWf` or the exact empty skip shape. Root traffic now
+matches `DedupRender.rootMsgs` on all non-SIZE buses directly from arbitrary
+accepting rows, including the actual repetition bit and absence of a digest
+receive for skips. `BlockSpan.repeated_empty` derives L=12 from that root's actual
+bit. `AuditDedupBlockLinks.lean` checks 17 transitive axiom closures. Leaf/path
+traffic and chain SIZE composition remain separate obligations.
