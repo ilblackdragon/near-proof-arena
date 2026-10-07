@@ -797,3 +797,13 @@ revelation premise; on revealed actual source paths it agrees with the old
 resolver. Seven guards and six kernel-evaluated regression fixtures pass. The
 regression's old target is index2 beyond a two-node forest; corrected target1 is
 the actual provider. Existing f279fc41 remains a correctly conditional theorem.
+
+### Actual branch-slot address binding
+
+`BranchCoverage` extracts each actual RDB part's residual key and selected slot
+from unchanged native tracing. `BranchRecordId.traceUpsert_branch_target` then
+binds the corrected resolver to the exact seed child occurrence offset. No
+branch-context or ID-agreement premise is supplied by the caller. Twelve guards
+and five kernel fixtures pass, including wf identical sibling leaves where a
+slot1 update correctly selects nid2 rather than nid1. Agreement with the old
+resolver at proper ancestors is the next known-read composition.
