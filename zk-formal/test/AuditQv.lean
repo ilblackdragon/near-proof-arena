@@ -1,5 +1,5 @@
 import ZkFormal.NearV3.Qv.ByteBuffers
-import ZkFormal.NearV3.Qv.ReceiptPreserve
+import ZkFormal.NearV3.Qv.ReadPlan
 
 open NearSpec NearSpecV3 ZkFormal.NearV3.Qv
 
@@ -137,3 +137,27 @@ open NearSpec NearSpecV3 ZkFormal.NearV3.Qv
 /-- info: 'ZkFormal.NearV3.Qv.byteBuffered_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.byteBuffered_iff
+
+/-- info: 'ZkFormal.NearV3.Qv.mainRequests_hold' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.mainRequests_hold
+
+/-- info: 'ZkFormal.NearV3.Qv.applyNewChunk_requests' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.applyNewChunk_requests
+
+/-- info: 'ZkFormal.NearV3.Qv.applyMissingChunk_request' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.applyMissingChunk_request
+
+/-- info: 'ZkFormal.NearV3.Qv.walkId_injective' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.walkId_injective
+
+/-- info: 'ZkFormal.NearV3.Qv.main_group_count_bound' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.main_group_count_bound
+
+/-- info: 'ZkFormal.NearV3.Qv.main_walkId_bound' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.main_walkId_bound
