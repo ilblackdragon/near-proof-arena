@@ -25,7 +25,8 @@ result, action results (receipt source:[actions] => status), receipt classes, qu
 features, mutant families.
 
 usage: difftest_v3_d2.py --cases DIR --python FILE [--lean EXE] [--lean-d1] [--python-d1 FILE]
-         [--lean-from RESULTS.jsonl] [--save NEW_DIR]
+         [--lean-from RESULTS.jsonl] [--python-from RESULTS.jsonl] [--save NEW_DIR]
+         [--d1-lean-from D2_RESULTS_ON_D1_CORPUS.jsonl]
          [--d1-corpus DIR] [--jobs N] [--report OUT.json]
 """
 import argparse, collections, concurrent.futures as cf, hashlib, json, os, subprocess, sys, time
@@ -59,7 +60,7 @@ def d1_shaped(case_dir):
     import spec_check_v3_d2 as c2
     from v3lib.prim import R
     from v3lib import near2
-    r = R(open(os.path.join(case_dir, "witness.bin"), "rb").read())
+    r = R((Path(case_dir) / "witness.bin").read_bytes())
     r.bytes()
     try:
         w = c2.decode_state_witness_d2(r.bytes())
@@ -91,6 +92,8 @@ def main():
     ap.add_argument("--python", required=True)
     ap.add_argument("--lean")
     ap.add_argument("--lean-from", type=Path, help="Complete saved Lean JSONL for this corpus")
+    ap.add_argument("--python-from", type=Path, help="Complete saved Python JSONL for this corpus")
+    ap.add_argument("--d1-lean-from", type=Path, help="Complete saved D2 Lean JSONL for --d1-corpus")
     ap.add_argument("--save", type=Path, help="New directory for complete checker results")
     ap.add_argument("--lean-d1", action="store_true")
     ap.add_argument("--python-d1")
@@ -103,6 +106,8 @@ def main():
     dirs = list_cases(a.cases, ("d2", "ood", "mutants"))
     if not dirs:
         ap.error("corpus contains no cases")
+    if a.d1_lean_from and not a.d1_corpus:
+        ap.error("--d1-lean-from requires --d1-corpus")
     if a.lean_d1 and not a.lean:
         ap.error("--lean-d1 requires --lean")
     if a.d1_corpus and not list_cases(a.d1_corpus, ("d1", "ood", "mutants")):
@@ -117,8 +122,14 @@ def main():
         baseline = {"path": str(a.lean_from.resolve()), "sha256": hashlib.sha256(data).hexdigest()}
     elif a.lean:
         t = time.time(); impls["lean"] = run_checker([a.lean], dirs, 200, a.jobs); times["lean"] = time.time() - t
-    t = time.time(); impls["python"] = run_checker([sys.executable, a.python], dirs, 100, a.jobs)
-    times["python"] = time.time() - t
+    python_baseline = None
+    if a.python_from:
+        data = a.python_from.read_bytes()
+        impls["python"] = parse_results(data.decode(), dirs)
+        python_baseline = {"path": str(a.python_from.resolve()), "sha256": hashlib.sha256(data).hexdigest()}
+    else:
+        t = time.time(); impls["python"] = run_checker([sys.executable, a.python], dirs, 100, a.jobs)
+        times["python"] = time.time() - t
     if a.save:
         for name, rows in impls.items():
             with (a.save / f"{name}.jsonl").open("x") as stream:
@@ -141,7 +152,7 @@ def main():
     ood_fams = collections.Counter()
     d1_issues = []
     for d in dirs:
-        meta = json.load(open(os.path.join(d, "meta.json")))
+        meta = json.loads((Path(d) / "meta.json").read_text())
         kind = os.path.basename(os.path.dirname(d))
         exp = meta["expected_rel_d2"]
         stats[f"{kind}.cases"] += 1
@@ -173,7 +184,7 @@ def main():
                 # the oracle copies the base's D1 membership into mutant metadata; dropping the
                 # only new transaction of a base whose sole D1 violation is that transaction's
                 # shape yields a D1 case iff every remaining transaction has the D1 shape
-                base = json.load(open(os.path.join(a.cases, "d2", meta["base"], "meta.json")))
+                base = json.loads((Path(a.cases) / "d2" / meta["base"] / "meta.json").read_text())
                 if base.get("d1_violations") == ["w.tx_shape"] and len(base.get("new_tx_labels", [])) == 1 \
                         and d1_shaped(d):
                     exp1 = meta["expected_rel_d2"]
@@ -217,12 +228,17 @@ def main():
             with (a.save / f"{name}.jsonl").open("x") as stream:
                 for case in dirs:
                     stream.write(json.dumps(rows[case]) + "\n")
+    d1_baseline = None
     d1c = None
     if a.d1_corpus:
         ddirs = list_cases(a.d1_corpus, ("d1", "ood", "mutants"))
         res = {}
         res["python"] = run_checker([sys.executable, a.python], ddirs, 100, a.jobs)
-        if a.lean:
+        if a.d1_lean_from:
+            data = a.d1_lean_from.read_bytes()
+            res["lean"] = parse_results(data.decode(), ddirs)
+            d1_baseline = {"path": str(a.d1_lean_from.resolve()), "sha256": hashlib.sha256(data).hexdigest()}
+        elif a.lean:
             res["lean"] = run_checker([a.lean], ddirs, 200, a.jobs)
         if a.save:
             for name, rows in res.items():
@@ -232,7 +248,7 @@ def main():
         issues = []
         cnt = collections.Counter()
         for d in ddirs:
-            meta = json.load(open(os.path.join(d, "meta.json")))
+            meta = json.loads((Path(d) / "meta.json").read_text())
             e1 = meta.get("expected_rel_d1", False)
             cnt["cases"] += 1
             cnt["expected_rel_d1"] += e1
@@ -248,9 +264,10 @@ def main():
     report = {
         "statement": "near/pv86/chunk-validation/v0#D2",
         "corpus": a.cases,
-        "summary": json.load(open(os.path.join(a.cases, "summary.json"))) if os.path.exists(os.path.join(a.cases, "summary.json")) else None,
+        "summary": json.loads((Path(a.cases) / "summary.json").read_text()) if os.path.exists(os.path.join(a.cases, "summary.json")) else None,
         "implementations": {"nearcore": "near-arena-oracle-v3-d1 --domain d2 (meta.json)", "lean": a.lean, "python": a.python},
-        "lean_from": baseline,
+        "lean_from": baseline, "python_from": python_baseline,
+        "d1_lean_from": d1_baseline,
         "cases": len(dirs), "stats": dict(stats), "seconds": times,
         "disagreements": len(disagreements), "disagreement_samples": disagreements[:60],
         "d1_subset_check": None if not d1runs else {"issues": len(d1_issues), "samples": d1_issues[:20]},
@@ -266,7 +283,7 @@ def main():
     if a.save:
         (a.save / "report.json").write_text(s + "\n")
     if a.report:
-        open(a.report, "w").write(s + "\n")
+        Path(a.report).write_text(s + "\n")
     print(json.dumps({k: report[k] for k in ("cases", "stats", "seconds", "disagreements")}, indent=1))
     if d1runs:
         print("d1 subset issues:", len(d1_issues))
