@@ -84,6 +84,19 @@ structure InstOk (I : UpsInst) : Prop where
   /-- the number of parts: the terminal parts of the plan, one per depth above `N_D` -/
   nQ : nQ I = UpsRows.nTof I.ci I.ti + I.dep.getD I.D 0
   walk : WalkOkU I
+  /-- the descend counter and the part below's source (bottom-up chain of the parts) -/
+  rcStep : ∀ k, k + 1 < UpsGen.nQ I →
+    (part I (k + 1)).rc + (if (part I k).kind = 0 ∨ (part I k).kind = 1 then 1 else 0) = (part I k).rc
+  cNStep : ∀ k, k + 1 < UpsGen.nQ I → (part I (k + 1)).cN = (part I k).sN
+  /-- the root part: every descend done, depth `0`, source the root record `rid` -/
+  rootRc : (part I (UpsGen.nQ I - 1)).rc =
+    (if (part I (UpsGen.nQ I - 1)).kind = 0 ∨ (part I (UpsGen.nQ I - 1)).kind = 1 then 1 else 0)
+  rootDep : (part I (UpsGen.nQ I - 1)).pdep = 0
+  rootSN : (part I (UpsGen.nQ I - 1)).sN = I.rid
+  /-- a part ends with the last byte of its `MEM` field, and only there -/
+  memEnd : ∀ k, k < UpsGen.nQ I → ∀ p, p < (part I k).q.length →
+    (p + 1 = (part I k).q.length ↔ ((fieldAt (part I k).shape p).1 = 8 ∧
+      (fieldAt (part I k).shape p).2.1 + 1 = (fieldAt (part I k).shape p).2.2.1))
 
 /-- **The honest input of `upsV3`.** -/
 structure UpsOk (insts : List UpsInst) : Prop where
