@@ -26,15 +26,15 @@ row (`+1`) is.
 
 **Hypotheses (all parametric):**
 * A7 (`B0`): `Σ_τ (|pre_τ| + |post_τ|) ≤ B0`;
-* A8: `C ≤ N` (at most `n` requests per sender);
-* request structure: `Rd ≤ S` (rounds are nonempty), `S ≤ 40·C` (`incsOf_length_le`);
-* the **step budget** `κ`: `S ≤ C + κ·n` (each request stops at its first failed grant, and a
-  successful grant spends `≥ ⌊D/40⌋ ≥ 102,357` of a sender budget `≤ 4,500,000`, so at most
-  43 per sender: `κ = 43`; a spec fact **not yet proved**, see STATUS §13);
-* `n ≤ 64`, at most `T` instances.
+* A8: `C ≤ N` (at most `n` requests per sender) and `n ≤ 64` (`prepD0` facts);
+* the **step budget** `Steps κ`: `Rd ≤ S` (rounds are nonempty) and `S ≤ C + κ·n` (a
+  re-push needs a successful grant, which spends `≥ ⌊D/40⌋ ≥ 102,357` of a sender budget
+  `≤ 4,500,000`, so at most 43 per sender: `κ = 43`; **proved** from the replay,
+  `Spec/Steps.steps_pv86`, and discharged per instance in `Complete/Steps.heights_prep`);
+* at most `T` instances.
 
 **Results** (`B0 = 2,000,000`, `maxLog = 22`, `T = 33`, `κ = 43`):
-* without `κ`: codec `≤ 2·B0 + 1` ✓, scan + distribute `≤ B0 + 1` ✓; process, memory and
+* without the step budget (only `Shape`: `Rd ≤ S ≤ 40·C`): codec `≤ 2·B0 + 1` ✓, scan + distribute `≤ B0 + 1` ✓; process, memory and
   comparator **do not** fit: the worst case (`worst`: 20 instances `n = 64`, one `n = 37`, one
   `n = 3`, `C = N`, `S = Rd = 40·C`, no previous values; A7 holds with `Σ |post| = 1,999,966`)
   needs 6,664,193 / 10,164,997 / 26,991,193 rows (`worst_*`);
@@ -84,11 +84,17 @@ def total (f : IStat → Nat) (Ps : List IStat) : Nat := (Ps.map f).sum
 /-- A7: total previous + new `0x0f` value bytes `≤ B0`. -/
 def A7 (B0 : Nat) (Ps : List IStat) : Prop := total (fun s => s.preLen + s.postLen) Ps ≤ B0
 
-/-- A8 (at most `n` requests per sender) and the request structure. -/
-def A8 (Ps : List IStat) : Prop := ∀ s ∈ Ps, s.C ≤ s.N ∧ s.Rd ≤ s.S ∧ s.S ≤ 40 * s.C ∧ s.n ≤ 64
+/-- A8 (at most `n` requests per sender: `C ≤ N`) and `n ≤ 64` (both `prepD0` facts,
+`Complete/Steps.statOf_ok`). -/
+def A8 (Ps : List IStat) : Prop := ∀ s ∈ Ps, s.C ≤ s.N ∧ s.n ≤ 64
 
-/-- The step budget: at most `κ` successful grants per sender shard. -/
-def Budget (κ : Nat) (Ps : List IStat) : Prop := ∀ s ∈ Ps, s.S ≤ s.C + κ * s.n
+/-- The step budget: rounds are nonempty (`Rd ≤ S`) and at most `κ` re-pushes per sender
+shard (`S ≤ C + κ·n`). **Proved** for the replay with `κ = 43` under PV 86
+(`Spec/Steps.steps_pv86`, `Complete/Steps.statOf_ok`). -/
+def Steps (κ : Nat) (Ps : List IStat) : Prop := ∀ s ∈ Ps, s.Rd ≤ s.S ∧ s.S ≤ s.C + κ * s.n
+
+/-- The request structure alone (no step budget): `Rd ≤ S ≤ 40·C` (`incsOf_length_le`). -/
+def Shape (Ps : List IStat) : Prop := ∀ s ∈ Ps, s.Rd ≤ s.S ∧ s.S ≤ 40 * s.C
 
 /-! ## Sums -/
 
@@ -129,7 +135,7 @@ theorem sumPost_le {B0 : Nat} {Ps : List IStat} (h7 : A7 B0 Ps) : total IStat.po
 
 theorem sumn_le {T : Nat} {Ps : List IStat} (h8 : A8 Ps) (hT : Ps.length ≤ T) :
     total IStat.n Ps ≤ 64 * T := by
-  have := total_le (g := fun _ => 64) (Ps := Ps) fun s hs => (h8 s hs).2.2.2
+  have := total_le (g := fun _ => 64) (Ps := Ps) fun s hs => (h8 s hs).2
   rw [total_const] at this
   exact Nat.le_trans this (Nat.mul_le_mul_left _ hT)
 
@@ -161,7 +167,7 @@ theorem sd_total {B0 : Nat} {Ps : List IStat} (h7 : A7 B0 Ps) (h8 : A8 Ps) : tot
 
 /-! ## Process, memory, comparator: with the step budget -/
 
-theorem proc_total {B0 T κ : Nat} {Ps : List IStat} (h7 : A7 B0 Ps) (h8 : A8 Ps) (hb : Budget κ Ps)
+theorem proc_total {B0 T κ : Nat} {Ps : List IStat} (h7 : A7 B0 Ps) (h8 : A8 Ps) (hb : Steps κ Ps)
     (hT : Ps.length ≤ T) : 24 * total procRows Ps ≤ 24 * (16 * T) + 2 * B0 + 24 * (2 * κ * (64 * T)) := by
   have h1 : total procRows Ps ≤ total (fun s => 16 + (2 * s.N + 2 * κ * s.n)) Ps :=
     total_le fun s hs => by
@@ -175,7 +181,7 @@ theorem proc_total {B0 T κ : Nat} {Ps : List IStat} (h7 : A7 B0 Ps) (h8 : A8 Ps
   have : 16 * Ps.length ≤ 16 * T := Nat.mul_le_mul_left _ hT
   omega
 
-theorem mem_total {B0 T κ : Nat} {Ps : List IStat} (h7 : A7 B0 Ps) (h8 : A8 Ps) (hb : Budget κ Ps)
+theorem mem_total {B0 T κ : Nat} {Ps : List IStat} (h7 : A7 B0 Ps) (h8 : A8 Ps) (hb : Steps κ Ps)
     (hT : Ps.length ≤ T) : 24 * total memRows Ps ≤ 5 * B0 + 24 * ((2 + 3 * κ) * (64 * T)) := by
   have h1 : total memRows Ps ≤ total (fun s => 5 * s.N + (2 + 3 * κ) * s.n) Ps :=
     total_le fun s hs => by
@@ -187,7 +193,7 @@ theorem mem_total {B0 T κ : Nat} {Ps : List IStat} (h7 : A7 B0 Ps) (h8 : A8 Ps)
   have : (2 + 3 * κ) * total IStat.n Ps ≤ (2 + 3 * κ) * (64 * T) := Nat.mul_le_mul_left _ (sumn_le h8 hT)
   omega
 
-theorem cmp_total {B0 T κ : Nat} {Ps : List IStat} (h7 : A7 B0 Ps) (h8 : A8 Ps) (hb : Budget κ Ps)
+theorem cmp_total {B0 T κ : Nat} {Ps : List IStat} (h7 : A7 B0 Ps) (h8 : A8 Ps) (hb : Steps κ Ps)
     (hT : Ps.length ≤ T) : 24 * total cmpRows Ps ≤ 12 * B0 + 24 * ((8 * κ + 2) * (64 * T)) := by
   have h1 : total cmpRows Ps ≤ total (fun s => 12 * s.N + (8 * κ + 2) * s.n) Ps :=
     total_le fun s hs => by
@@ -214,7 +220,7 @@ def memMax (B0 T κ : Nat) : Nat := 5 * B0 / 24 + (2 + 3 * κ) * (64 * T)
 def cmpMax (B0 T κ : Nat) : Nat := B0 / 2 + (8 * κ + 2) * (64 * T)
 
 theorem heights (B0 T κ maxLog : Nat) (Ps : List IStat) (h7 : A7 B0 Ps) (h8 : A8 Ps)
-    (hb : Budget κ Ps) (hT : Ps.length ≤ T)
+    (hb : Steps κ Ps) (hT : Ps.length ≤ T)
     (hc : codecMax B0 + 1 ≤ 2 ^ maxLog) (hs : sdMax B0 + 1 ≤ 2 ^ maxLog)
     (hp : procMax B0 T κ + 1 ≤ 2 ^ maxLog) (hm : memMax B0 T κ + 1 ≤ 2 ^ maxLog)
     (hq : cmpMax B0 T κ + 1 ≤ 2 ^ maxLog) :
@@ -228,7 +234,7 @@ theorem heights (B0 T κ maxLog : Nat) (Ps : List IStat) (h7 : A7 B0 Ps) (h8 : A
 
 /-- **Instantiation**: `B0 = 2,000,000` (`ChunkValidationV0a.B0`), at most 33 instances
 (`prepD0_len`), step budget `κ = 43`, `maxLog = 22`. -/
-theorem heights_22 (Ps : List IStat) (h7 : A7 2000000 Ps) (h8 : A8 Ps) (hb : Budget 43 Ps)
+theorem heights_22 (Ps : List IStat) (h7 : A7 2000000 Ps) (h8 : A8 Ps) (hb : Steps 43 Ps)
     (hT : Ps.length ≤ 33) :
     total codecRows Ps + 1 ≤ 2 ^ 22 ∧ total sdRows Ps + 1 ≤ 2 ^ 22 ∧
     total procRows Ps + 1 ≤ 2 ^ 22 ∧ total memRows Ps + 1 ≤ 2 ^ 22 ∧
@@ -249,9 +255,9 @@ def worst : List IStat :=
 
 theorem worst_a7 : A7 2000000 worst ∧ total IStat.postLen worst = 1999966 := by unfold A7; decide
 
-theorem worst_a8 : A8 worst := by
-  intro s hs
-  simp only [worst, List.mem_append, List.mem_replicate, List.mem_cons, List.not_mem_nil, or_false] at hs
+theorem worst_a8 : A8 worst ∧ Shape worst := by
+  refine ⟨fun s hs => ?_, fun s hs => ?_⟩ <;>
+  simp only [worst, List.mem_append, List.mem_replicate, List.mem_cons, List.not_mem_nil, or_false] at hs <;>
   rcases hs with ⟨-, rfl⟩ | rfl | rfl <;> decide
 
 theorem worst_len : worst.length = 22 := by decide

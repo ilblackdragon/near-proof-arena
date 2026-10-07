@@ -1,6 +1,7 @@
 import ZkFormal.NearV3.Sched.Complete.Height
 import ZkFormal.NearV3.Sched.Complete.MemTraffic
 import ZkFormal.NearV3.Sched.Complete.Rows
+import ZkFormal.NearV3.Sched.Complete.Steps
 
 /-!
 # ZkFormal.NearV3.Sched.Complete.All — M4 (completeness) of lane `v3-sched`, current state
@@ -8,6 +9,8 @@ import ZkFormal.NearV3.Sched.Complete.Rows
 * `cmp_complete` (`scpV3`), `mem_complete` (`smmV3`): honest traces satisfy every constraint,
   have boolean multiplicity bits, and their traffic is the expected list on every bus;
 * `heights` / `heights_22`: per-table row bounds under A7 (`B0`), A8 and the step budget `κ`;
+  `steps_pv86` (spec): the replay's entries are `≤ C + 43·n`, rounds `≤` entries;
+  `heights_prep`: from `prepD0` and the replays, A7 alone bounds the five tables by `2^22`;
   `worst_exceeds`: without the step budget, process / memory / comparator exceed `2^22`.
 -/
 
@@ -15,6 +18,11 @@ import ZkFormal.NearV3.Sched.Complete.Rows
 #print axioms ZkFormal.NearV3.Sched.Complete.mem_complete
 #print axioms ZkFormal.NearV3.Sched.Complete.heights
 #print axioms ZkFormal.NearV3.Sched.Complete.heights_22
+#print axioms ZkFormal.NearV3.Sched.steps_budget
+#print axioms ZkFormal.NearV3.Sched.steps_pv86
+#print axioms ZkFormal.NearV3.Sched.Complete.stat_ok
+#print axioms ZkFormal.NearV3.Sched.Complete.heights_inst
+#print axioms ZkFormal.NearV3.Sched.Complete.heights_prep
 #print axioms ZkFormal.NearV3.Sched.Complete.codec_sd_22
 #print axioms ZkFormal.NearV3.Sched.Complete.worst_exceeds
 #print axioms ZkFormal.NearV3.Sched.Complete.worst_a7
