@@ -385,3 +385,16 @@ remains in `plan_prefix_all_constraints`. The parser suffix itself, exact traffi
 ownership and arbitrary accepted-trace extraction still require composition.
 Target230 jobs and162 exact axiom guards+15 regressions pass. This is whole walk
 prefix local acceptance, not whole combined table or end-to-end certification.
+
+
+`CombinedParserLift` lifts original parser acceptance to combined constraints
+when the extra columns are zero, including interaction bits and physical wrap.
+`CombinedRecordPlacement.records_suffix_local` derives original parser validity
+for executable valid records after a nonempty prefix, across records, padding
+and cyclic wrap. Parser evaluation is independent of public input.
+`combined_records_suffix_local` composes both and proves every combined equation
+for each suffix row. Premises are generated record cells, zero extra columns,
+row fit, and first-prefix parser marker/zero-mode cells; no local acceptance
+premise remains. The260-job target and167 exact axiom guards+15 regressions pass.
+The complete mixed trace constructor must still discharge these ordinary cell
+premises and combine suffix with prefix, then exact traffic and extraction.

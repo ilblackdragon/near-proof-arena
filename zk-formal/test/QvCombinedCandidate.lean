@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Qv.Candidates.CombinedRecordPlacement
 import ZkFormal.NearV3.Qv.Candidates.CombinedPrefixLocal
 import ZkFormal.NearV3.Qv.Candidates.CombinedTraceNeighbors
 import ZkFormal.NearV3.Qv.Candidates.CombinedRowLayout
@@ -871,3 +872,27 @@ end QvCombinedRegression
  Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.CombinedWalkGen.plan_prefix_all_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedTable.parser_bits' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedTable.parser_bits
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.CombinedTable.parser_row_all_constraints' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.CombinedTable.parser_row_all_constraints
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.records_suffix_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.records_suffix_local
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.parser_public_independent' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.parser_public_independent
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.combined_records_suffix_local' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.combined_records_suffix_local
