@@ -6,6 +6,24 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root ByteLink CHECKED: value_byte_member decodes field-message membership in
+canonical ValWf byte demand to exact natural vid/index/byte; physical_byte_value
+uses exact parser row traffic and explicit physical send-count≤valRecv-count
+condition to prove every emitted parser byte matches a value record at r−start.
+Build and2 exact standard-axiom guards PASS (/tmp/nearproof-qv-byte-link.log,
+/tmp/nearproof-qv-byte-link-audit-checked.log). NO full value authentication claim:
+ValWf gives bytes<P, not256; byte-range comes from later authenticated byte/SHA
+link. Per-byte prefix agreement also does NOT prove complete value length.
+Next prove whole parser byte coverage and exact per-vid ownership/no-other
+supplier conditions from global assembly to obtain complete value equality,
+then mode-specific semantic extraction. QVC provider key carries mode, not
+value length; do not silently infer full consumption from count inequality.
+Receipt8f01858e KEYNIB infrastructure checked11guards, actual account/access
+symbols still underway. No root live job. Agent native prefix/selected-child
+work remains active. Full certificate/reference/admission/prover/real judge and
+general NEAR replacement remain open; last whole aggregate b7002160 older.
+
+
 Root ParserBytes CHECKED at AIR7866a748: original parser VBYTES row traffic,
 record gb=1 iff logical length nonzero (handles raw empty markers), combined
 physical byte tuple exact [startvid,row−start,byte], and exact per-record ordered
