@@ -7,6 +7,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 ### Latest continuation checkpoint
 
 
+AIR `91be9ea8`: WalkMetadata derives all ten constant walk fields from arbitrary
+TableLocal+extracted segment; first tag=7+6lo+3hi and exact group/non-group
+length. WalkBytes derives all8 key bits, canonical byte<256 and exact four
+(tag,length) alternatives (7,1),(13,1),(10,1),(16,9). No generated trace premise.
+Target117 jobs and12 exact standard-axiom guards PASS; logs
+/tmp/nearproof-qv-walk-bytes.log and /tmp/nearproof-qv-key-audit-final.log.
+Next root: main/implicit ordering, exact key traffic, parser/provider extraction.
+Newest integrations: edbc5969→8e779507 ordered VBYTES seed/supply sublist incl
+complete physical sends (not yet whole global balance);3e39c91c→5348e4e3 native
+value terminal edge membership from byte-preserving source annotations.
+D2 now owns structural-shape find preservation through prior writes: full wf
+may not survive output memory overflow, so do not assume it. Ups continues
+remaining generated edge/pcid authentication. Receipt agent found exact statement
+issue: four byte bounds alone do not prevent public count/body+P aliases when
+AIR checks only field-compressed values. Agent will formalize regression and
+scope natural extraction with actual Prep admissibility, without frozen table
+changes or native domain narrowing. TokenSequence/TokenValues agent WIP.
+No root job live. Last full aggregate remains dc4c12d4; newer targets separately
+checked. End-to-end certificate/admission/prover/judge/broad coverage remain open.
+
+
 AIR `bcc619ca`: arbitrary accepted QV trace extraction starts in
 Qv/Extract/WalkRows and WalkLength. TableLocal alone gives boolean flags,
 SegFacts and full consecutive walk-prefix decomposition with inactive suffix.
