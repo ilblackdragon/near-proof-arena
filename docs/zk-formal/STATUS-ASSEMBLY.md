@@ -528,3 +528,10 @@ these occurrences, and `checkD0a_read_bound` bounds each read by B. 12 guards
 pass. Charging QV's distinct parser records to these occurrences can discharge
 its 2^21 byte premise at B0; repeated group reads must reuse allocated records.
 This does not yet charge extra post-query collision shadows to A7.
+
+`ValueIndex` computes the existing per-occurrence native value ordinal directly
+from a trie read key. It proves successful reads resolve to the exact bytes at
+that ordinal, every resolved ordinal is in bounds, and equal ordinals force
+equal keys even when value bytes repeat. 8 permanent guards pass. This is the
+constructive lookup needed for queue provider reuse; request selection, use
+counts, parser payloads and global offset integration are the next layer.
