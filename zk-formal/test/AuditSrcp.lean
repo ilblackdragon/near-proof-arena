@@ -1,4 +1,4 @@
-import ZkFormal.NearV3.Rcpt.Render.Srcp.Adjacency
+import ZkFormal.NearV3.Rcpt.Render.Srcp.Accumulator
 import ZkFormal.NearV3.Rcpt.Extract.Srcp.Proof
 import ZkFormal.NearV3.Rcpt.Link.SourceHash
 import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
@@ -228,3 +228,19 @@ import ZkFormal.NearV3.Rcpt.Link.SourceNonempty
 /-- info: 'ZkFormal.NearV3.Render.SrcpGen.adjAt' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Render.SrcpGen.adjAt
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.before_next' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.before_next
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.next_root_size' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.next_root_size
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.internal_size' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.internal_size
+
+/-- info: 'ZkFormal.NearV3.Render.SrcpGen.charge_gate' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Render.SrcpGen.charge_gate
