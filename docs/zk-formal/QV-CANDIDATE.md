@@ -91,3 +91,11 @@ explicit sum of generated row counts fitting the trace. That sum is proved
 exactly equal to the executable row-list length. The record audit now has ten
 axiom guards and three fixtures in each arithmetic model, including a rejected
 corrupted boundary marker. Global accepted-witness capacity is still open.
+
+`RecordLocal.records_table_local` packages concatenated generator validity into
+the shared field-level `TableLocal` interface, including multiplicity bits.
+`RecordTraffic` proves the exact byte-message concatenation and exact row cost:
+serialized value bytes plus one marker for each empty record. Six additional
+axiom guards pass (record audit total16, with six behavior guards). These are
+compositional results; global native ownership/budgets and the complete
+field-valued bus contract remain to be assembled.
