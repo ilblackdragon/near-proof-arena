@@ -498,3 +498,19 @@ the independent buffered-index discovery read, and the exact per-transition
 original. 8 permanent guards pass. This is a raw-store semantic constructor;
 the existing view allocator has not been replaced and its A7 completeness premise
 remains pending row ownership/classification and unchanged AIR byte budgets.
+
+`QueryTrace`, `QueryWitness`, `QueryCodec`, and `QueryAccepted` now compose the
+targeted raw-store constructor over the actual entire transition sequence.
+`checkD0a_query_witness` derives from accepted native input (with its actual
+walk/witness decoder outputs) a concrete `queryWitness` whose canonical bytes
+satisfy D0Shape, encode within 8MiB, decode successfully, and preserve EXACT
+`unfoldBytes`; consequently the ORIGINAL A7 bound B holds. Root widths, implicit
+counts, and fresh decoder success are proved, not supplied as extra premises.
+All15 permanent `AuditQueryWitness` guards pass with only standard axioms.
+
+This closes raw-store replay/encoding/A7 preservation, not the existing ExtV3
+allocator's completeness. `nativeExecutionViews` still produces pre-only
+occurrence stores; it has not been changed to represent targeted retained bytes.
+AIR classification, shared record IDs, instance ownership, and unchanged 2MiB
+value-byte coverage remain open, so `accepted_good_except_unfolded` is not yet
+upgraded to unconditional FactorComplete.
