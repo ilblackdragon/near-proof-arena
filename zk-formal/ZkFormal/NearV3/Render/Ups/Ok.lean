@@ -98,6 +98,10 @@ structure InstOk (I : UpsInst) : Prop where
     (p + 1 = (part I k).q.length ↔ ((fieldAt (part I k).shape p).1 = 8 ∧
       (fieldAt (part I k).shape p).2.1 + 1 = (fieldAt (part I k).shape p).2.2.1))
 
+  /-- the part flags that are fields of the part description are bits -/
+  bits : ∀ k, k < UpsGen.nQ I → (part I k).qodd ≤ 1 ∧ (part I k).nochild ≤ 1 ∧ (part I k).neg ≤ 1 ∧
+    (part I k).podd ≤ 1
+
 /-- **The honest input of `upsV3`.** -/
 structure UpsOk (insts : List UpsInst) : Prop where
   pos : 0 < insts.length
