@@ -397,3 +397,22 @@ exact shape/cost target preserves the source right shape57/3/5/3/log23 and total
 8,359,074-byte model with29,534 bytes reserved. The partition audit now checks49
 axiom closures; four kernel regression assertions pass. Frozen admission and
 active source tables remain unchanged.
+
+`DedupPartitionTable.joined_sound` now closes sound partition reconstruction from
+**arbitrary accepting field traces**, not just honest renderer cells. It takes
+both physical `TableLocal` predicates, equal heights, and exact isolated carry-bus
+balance. The carry theorem authenticates all57 source columns; evaluation
+congruence explicitly uses the constraints'57-column bound. The reconstruction
+keepsH−1 left rows, allH right rows, and clones the final inactive right row once,
+producing logical height2H (log≤24). Checked inactive-row lemmas permit both the
+new padding transition and the changed cyclic successor. All logical local
+constraints and multiplicity-bit checks follow from the physical predicates.
+
+`joined_messages` and `joined_counts` preserve every external message/count
+exactly, including terminal SIZE. The cloned padding row emits no base traffic;
+this property is derived from arbitrary source constraints, not a renderer
+assumption. `AuditSourceJoined.lean` checks24 transitive axiom closures and three
+physical-pair/logical-trace fixtures (leaf overlap, both path directions, duplicate
+header). This is the source partition soundness bridge; candidate source semantic
+extraction, global isolation of bus64, and the separate protocol security and
+admission certificate remain unfinished.
