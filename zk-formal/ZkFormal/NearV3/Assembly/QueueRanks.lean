@@ -68,4 +68,46 @@ theorem queueUseRanks_balance (pre : PTrie) (rs : List ReadRequest) (base i : Na
   have h := List.range'_1_concat (s := 0) (n := queueUsers pre rs i)
   simpa only [List.range'_succ,Nat.zero_add] using h
 
+theorem queueRankResolve_bound {pre : PTrie} {rs : List ReadRequest} {slot i : Nat}
+    {r : ReadRequest} (hr : rs[slot]?=some r) (hi : valueIndex pre r.key=some i) (base : Nat) :
+    (queueRankResolve pre rs base slot).2 < rs.length := by
+  rw [queueRankResolve_present hr hi base]
+  have hc := queueUsers_bound pre (rs.take slot) i
+  have ht := List.length_take_le slot rs
+  have hs := (List.getElem?_eq_some_iff.mp hr).1
+  dsimp only
+  omega
+
+open Qv.Candidates.CombinedWalkGen
+
+/-- Generated main walks carry exactly the selected prefix-use chain. -/
+theorem mainPlan_useRanks (pre : PTrie) (v : MainValues) (pres : List PTrie) (i : Nat) :
+    (mainPlan pre v pres.length (queueForestRankResolve (queueInputs pre v pres) 0)).filterMap
+      (fun w => if valueIndex pre (w.request v.shards).key == some i then some w.users else none) =
+      List.range' 0 (queueUsers pre (mainRequests pre v) i) := by
+  let rs := mainRequests pre v
+  let resolve := queueForestRankResolve (queueInputs pre v pres) 0
+  let f := fun slot => if valueIndex pre (rs.getD slot ⟨[],none,.raw⟩).key == some i
+    then some (queueRankResolve pre rs 0 slot).2 else none
+  have hm := congrArg (List.filterMap f) (mainPlan_slots pre v pres.length resolve)
+  simp only [List.filterMap_map,Function.comp_def] at hm
+  have hl : (mainPlan pre v pres.length resolve).filterMap
+      (fun w => if valueIndex pre (w.request v.shards).key == some i then some w.users else none) =
+      (mainPlan pre v pres.length resolve).filterMap (fun w => f w.slot) := by
+    apply filterMap_congr_mem
+    intro w hw
+    obtain ⟨ht,hs,hr⟩ := mainPlan_slot hw
+    have hr' := congrArg Prod.snd hr
+    change w.users=(resolve w.tau w.slot).2 at hr'
+    rw [ht] at hr'
+    simp only [f,List.getD_eq_getElem?_getD,rs,hs,Option.getD_some]
+    rw [hr']
+    rfl
+  have hh : rs.zipIdx.filterMap (fun x => f x.2)=queueUseRanks pre rs 0 i := by
+    apply filterMap_congr_mem
+    intro x hx
+    have hr := List.mk_mem_zipIdx_iff_getElem?.mp hx
+    simp [f,List.getD_eq_getElem?_getD,hr]
+  exact hl.trans (hm.trans (hh.trans (queueUseRanks_eq pre rs 0 i)))
+
 end ZkFormal.NearV3.Assembly

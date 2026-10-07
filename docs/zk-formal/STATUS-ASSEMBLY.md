@@ -585,3 +585,8 @@ walk resolver. `queueUseRanks_eq` proves its selected ordinals are exactly
 4 permanent guards pass. Full generated-plan/field-message transfer of this
 corrected rank resolver remains open; previous total-counter lemmas are not a
 claim of bus completeness.
+
+`mainPlan_useRanks` now transfers the corrected prefix counters to actual
+generated main walks; `queueRankResolve_bound` derives each selected counter
+strictly below the request count. QueueRanks now has6 passing guards. Implicit
+rank transfer and physical QVC-message balance remain explicit next steps.
