@@ -322,3 +322,16 @@ balance. The partition audit now checks26 theorem axiom closures.
 A prospective Ups width increase187→200, with all interactions/degrees/auxiliary
 counts unchanged, evaluates to8,359,074 bytes and leaves29,534 bytes. This is a
 conditional model estimate, not an implemented or admitted Ups shape.
+
+The candidate's complete SIZE budget now follows from actual accepted input:
+`prepD0_dictionary_count` in `Candidates/DictionaryCount.lean` extracts
+native `distinctKeys entries` cardinality equal to prepared source **occurrences**,
+and `prepD0_sources_le_entries` bounds those occurrences by encoded entries. It
+preserves unused filler entries and makes no selected-key distinctness assumption.
+`SourceSizeEncoding` proves each encoded entry pays its unique computation charge
+plus at least12 bytes of overhead. `DedupCompile.relD0a_size_bound` composes unique
+last-wins selection, actual repeated-source emptiness, native dictionary cardinality,
+and the decoder's canonical encoding non-expansion theorem to bound the full
+candidate SIZE by the unchanged8MiB raw witness budget. The candidate audit now
+checks98 axiom closures. This closes SIZE coverage, not candidate AIR admission or
+complete local legality.
