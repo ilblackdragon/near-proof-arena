@@ -625,3 +625,13 @@ initial counter zero; receipt `i` within the list adds `i`. Empty lists are
 included. Ten exact axiom guards pass. These are actual physical counters, not
 extra witnesses or assumptions. Global refund-body offset reconstruction is
 still needed to assemble existing per-receipt byte traffic.
+
+`BodyOffsets`, `ListBodyOffsets`, `GlobalBodyOffsets`, and `PrefixOffsets` now
+reconstruct both offset families completely at receipt starts: RC offsets are
+12 plus preceding receipt encoding lengths in the list; body offsets are 8 plus
+all preceding enabled refund lengths, across headers and receipts. Actual
+`o2End` adds exactly `rfLen`, with refund encoding length `129+2*Ls+32*kt`;
+non-refund receipts add zero. The additive prefix theorem is proved over the
+actual consecutive physical layouts. Thirteen exact axiom guards pass. Whole
+BYTES traffic composition and the remaining semantic receipt Wf obligations
+remain open; no new external counter or range assumption was introduced here.
