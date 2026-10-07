@@ -415,3 +415,13 @@ The initial queueForestResolve returned total count for every walk, so it cannot
 establish QVC chain balance. The allocator lane is correcting this; the local
 proof is generic in Resolve and the accepted-input capacity theorem remains
 valid. Do not treat prior exact count results as established physical bus balance.
+
+
+`CombinedParserTraffic` derives exact parser row traffic in the mixed trace,
+removes padding messages, and proves the full physical suffix is a permutation
+of canonical VBYTES/QVC/QSH parser messages on every bus/both directions.
+`mixedTrace_traffic_split` partitions all physical traffic into the walk prefix
+plus that canonical parser contribution with multiplicities preserved. The row
+bridge reuses existing CombinedParser.parser_row_traffic. Target273 jobs and180
+exact axiom guards+15 regressions pass. Walk-prefix aggregation and corrected
+rank-counter bus balance remain; this is not whole-table global balance.
