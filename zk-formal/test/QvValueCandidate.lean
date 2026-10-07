@@ -1,3 +1,4 @@
+import ZkFormal.NearV3.Qv.Candidates.BufferHeader
 import ZkFormal.NearV3.Qv.Candidates.BufferTrace
 import ZkFormal.NearV3.Qv.Candidates.RawRender
 import ZkFormal.NearV3.Qv.Candidates.EmptyRender
@@ -83,3 +84,11 @@ open NearSpec ZkFormal.NearV3.Qv ZkFormal.NearV3.Qv.Candidates.ValueGen
 /-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferRows_length' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.bufferRows_length
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.buffer_count_value' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.buffer_count_value
+
+/-- info: 'ZkFormal.NearV3.Qv.Candidates.ValueGen.buffer_count_top_zero' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms ZkFormal.NearV3.Qv.Candidates.ValueGen.buffer_count_top_zero

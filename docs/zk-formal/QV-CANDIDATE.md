@@ -29,7 +29,9 @@ ring. This is connected by trace equality to executable `rawRows`.
 indexing for every sized byte-buffer list. `BufferTrace` connects that formula
 to the executable generator. These are row-layout facts, not buffered local
 constraint validity.
-Candidate audit totals twelve axiom guards and eleven fixtures checked in both
+`BufferHeader` reuses the isolated HPL repair’s exact `Spec.U32Bytes` helper
+to prove four-byte count reconstruction and zero top byte under count<2^24.
+Candidate audit totals fourteen axiom guards and eleven fixtures checked in both
 integer and BabyBear arithmetic. Buffered local constraints, empty/buffer padding,
 record concatenation and full field traffic remain open.
 
