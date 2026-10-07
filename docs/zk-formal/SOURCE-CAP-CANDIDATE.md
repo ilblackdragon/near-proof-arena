@@ -416,3 +416,16 @@ physical-pair/logical-trace fixtures (leaf overlap, both path directions, duplic
 header). This is the source partition soundness bridge; candidate source semantic
 extraction, global isolation of bus64, and the separate protocol security and
 admission certificate remain unfinished.
+
+Candidate semantic extraction now proves `DedupProof.extract_units`: every
+accepting logical source trace has a nonempty consecutive decomposition into
+one-row roots and32/64-row leaf/path segments, followed only by padding. It uses
+the candidate logical log24 bound below the actual field modulus, not the old
+source table's log20 cap. `old_row_of_nodup` recovers every original source
+constraint on computed roots, segments, and padding. Skipped roots are treated
+separately: they force repeated=1, L=12, qe=q, le=0, and no digest request; a
+nonterminal skip advances j by one while preserving q. The all-occurrence
+repetition bit also forces L=12 on the first computed occurrence. Segment
+metadata, window counters, and register shifts are derived from arbitrary field
+constraints. `AuditDedupExtract.lean` checks33 axiom closures. Grouping these units
+into complete source views and closing their exact semantic traffic remains next.
