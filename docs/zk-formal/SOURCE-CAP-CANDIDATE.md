@@ -746,3 +746,15 @@ lookup stops. The concrete optional-record list projects to precisely
 Fourteen exact axiom guards pass. RouteOk.sem (natural byte comparisons and
 lexicographic interval semantics) remains open; no semantic interval premise is
 hidden in these structural routing proofs.
+
+`RouteCompare`, `RouteValues`, and `RouteSemantic` close the complete routing
+interval semantics. Actual nine-bit differences give natural unsigned-byte
+comparisons with no wrap; inverse/equality constraints preserve prefix flags;
+the final upper comparison is strict. Existing pure lexicographic lemmas then
+prove the exact native interval (including a missing upper bound). Consequently
+`ReceiptWellformed.wf_of` derives every per-receipt RcptE.Wf field from TableLocal,
+Layout, global receipt-index canonicity/cast, and the entering-token byte
+invariant. Thirteen exact transitive axiom guards pass. No routing/semantic
+receipt premise remains. Whole-table token propagation, final public totals,
+and outstanding traffic channels still require assembly; the full receipt
+view statement is not claimed complete yet.
