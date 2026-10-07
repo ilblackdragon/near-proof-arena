@@ -418,3 +418,9 @@ pathWf and entryWf from their native parsers. Seven permanent axiom guards pass.
 This advances the decoder converse needed by reconstructed D0Shape; full
 ChunkInner shape/canonical consumed encoding and the final witness composition
 remain open.
+
+`HeaderWireShape` proves decoded public-key shape including MLDSA65, exact
+public-key/account input byte decompositions, congestion widths, bandwidth
+request bitmap widths and decoded request-vector bounds. Six permanent axiom
+guards pass. D0Shape remains unchanged; raw proposal/split canonical bytes and
+complete ChunkInner composition are still being derived beneath that interface.
