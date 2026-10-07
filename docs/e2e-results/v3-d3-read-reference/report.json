@@ -59,6 +59,8 @@
     "check_local_exit": 0
   },
   "pending": [
+    "post-split native two-build reproducibility and public SDK check-local",
+    "post-split actual worker public and held-out mutations",
     "held-out SDK check-local",
     "configured formal checking and independent kernels"
   ],
@@ -146,5 +148,18 @@
     },
     "seconds": 179.3987616300583,
     "inputs_sha256": "66ebf3ed0699b1cd0dcebdce61141c18f0e94b2b3692a9f3f65e589b93122eaa"
+  },
+  "configured_formal_pre_split": {
+    "status": "fail",
+    "reason": "ARTIFACT_BINDING_FAILED",
+    "detail": "Model closure imported Lean through Logged.Lockstep. No candidate elaboration or independent kernel verdict was reached.",
+    "report_sha256": "f8cf46a5115407c52ea75f2c1ef10c9a74e391d6bf247092a6ab668afd579e29"
+  },
+  "runtime_split": {
+    "status": "26-module model and 69-module proof closure compile; local certificate/prover and25guardedaxiomauditspass",
+    "candidate_model_modules": 26,
+    "declaration_bodies": "unchanged namespace-transformed upstream ranges",
+    "trusted_sources": "unchanged",
+    "old_evidence_scope": "all existing native and mutation passes above refer to pre-split package_digest"
   }
 }

@@ -8,8 +8,8 @@ encoding. The complete proof stack (`e7ded6c6`) separately proves distinct-progr
 control-flow simulation, serialized store restriction, byte idempotence and
 non-expansion; it does not mistake same-program `reads_restrict_eq` for
 re-encoding congruence. Twenty-five guarded axiom checks pass, including the
-wired local-emulation certificate. The 30 candidate-local logged modules have a
-namespace-only transform and per-file provenance from `77b844e0`; neither the
+wired local-emulation certificate. The candidate-local logged modules preserve upstream declaration bodies and
+per-file provenance from `77b844e0`; neither the
 trusted vendor nor the signed challenge changed. This remains a witness
 re-execution reference, **not a succinct state-transition proof**.
 
@@ -19,10 +19,15 @@ and local resource checks pass. The package digest is `313c4bb4…`, and the new
 verifier digest is `d55f1f37…`. Formal audit is correctly marked skipped by SDK
 check-local. Strict public and held-out gates also pass: 615 positives, 308 rejection cases,
 4,495 actual worker mutations, including 659 unread-value and 82 unread-code
-injections. All mutations exit 1. Configured formal checking is running; the
-separate held-out SDK gate remains pending. No admission or
-full hostile pass is claimed yet. Runtime closure is 35 modules, built serially
-with two Lean threads. New evidence summary:
+injections. All mutations exit 1. These results refer to the pre-split artifact.
+Configured formal checking rejected that artifact because its model imported
+`Lean` through mixed runtime/proof modules (`ARTIFACT_BINDING_FAILED`).
+The corrective candidate-only transform moves unchanged runtime declarations
+into separate modules and records extracted source ranges/hashes/import edits.
+Its 26-module model closure and 69-module admission proof closure compile;
+the local certificate/prover and all 25 guarded axiom audits pass. Fresh native,
+mutation, formal and held-out SDK gates remain pending. No admission is claimed.
+Builds remain serial with two Lean threads. New evidence summary:
 `docs/e2e-results/v3-d3-read-reference/report.json`; raw evidence:
 `/data/illia/nearproof-deps/validation/v3-read-reference-20261007/`.
 

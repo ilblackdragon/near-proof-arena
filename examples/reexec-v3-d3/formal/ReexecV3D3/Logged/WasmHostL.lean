@@ -1,4 +1,4 @@
-import ReexecV3D3.Logged.WasmStep
+import ReexecV3D3.Logged.Runtime.WasmStep
 import ReexecV3D3.Logged.WasmStore
 
 /-!

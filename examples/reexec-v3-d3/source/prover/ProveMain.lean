@@ -1,5 +1,5 @@
 import NearSpecV3.ChallengeChunkV3
-import ReexecV3D3.ReadCanon
+import ReexecV3D3.ReadCanonDefs
 
 /-!
 # `prove` (Lean, compiled with the verifier model)

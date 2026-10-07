@@ -1,6 +1,6 @@
 import ArenaCore.Verifier
 import NearSpecV3.ChallengeChunkV3
-import ReexecV3D3.ReadCanon
+import ReexecV3D3.ReadCanonDefs
 
 /-!
 The D3α reference verifier decodes the claim, executes the proved logged checker

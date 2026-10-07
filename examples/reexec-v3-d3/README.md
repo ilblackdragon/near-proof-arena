@@ -28,7 +28,7 @@ the supplied proof bytes. There is no fallback accepting noncanonical bytes.
 and calls `Read.check`; the native verifier is this Lean definition compiled by
 the governed compiler. The implementation connection remains the challenge's
 `native-lean` trusted compiler edge. `build-recipe/build.sh` lists the exact
-35-module candidate model closure and uses the frozen vendor unchanged.
+26-module candidate model closure and uses the frozen vendor unchanged.
 
 ## Proofs
 
@@ -51,12 +51,15 @@ the deployed normalization path.
 
 ## Candidate-local logged library
 
-`formal/ReexecV3D3/Logged/` contains 30 candidate-local copies from upstream
-commit `77b844e0e81d9536e8885b4c35ff9f0b89a7af88`. The only transform is literal
-replacement of `NearSpecV3.Logged` with `ReexecV3D3.Logged` in imports, namespaces
-and references. `dependency-locks/logged-candidate.json` records both hashes
-for every file. Reproduce with `source/verifier/sync-logged.py COMMIT`, or add
-`--check` for read-only verification.
+`formal/ReexecV3D3/Logged/` derives from 30 upstream modules at commit
+`77b844e0e81d9536e8885b4c35ff9f0b89a7af88`. The reproducible transform replaces
+`NearSpecV3.Logged` with `ReexecV3D3.Logged`, then moves unchanged computational
+declarations into `Logged/Runtime/` and rewires imports. All declaration bodies
+and existing proofs are preserved. This keeps proof metaprogramming out of the
+model's native import closure. `dependency-locks/logged-candidate.json` records
+upstream hashes, exact extracted source ranges and their hashes, import edits,
+and every resulting file hash. Reproduce with `source/verifier/sync-logged.py
+COMMIT`, or add `--check` for read-only verification.
 
 These are candidate proof/code modules, outside the judge's trusted module set.
 The frozen `source/lean-vendor` and the signed challenge's trusted set are

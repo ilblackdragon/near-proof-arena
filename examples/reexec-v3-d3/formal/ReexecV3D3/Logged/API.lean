@@ -1,3 +1,4 @@
+import ReexecV3D3.Logged.Runtime.API
 import ReexecV3D3.Logged.D3LSpec
 
 /-!
@@ -20,13 +21,6 @@ namespace ReexecV3D3.Logged
 open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.D3
 
 /-! ## D3 -/
-
-/-- `checkD3` and its recorded-storage reads, in one run. -/
-def checkD3Reads (cb wb : Bytes) : Except String Unit × List (Nat × Bytes) :=
-  SM.runR (storeFn (storesData wb)) (checkD3L cb wb)
-
-/-- The keys `checkD3 cb wb` reads. -/
-def d3Reads (cb wb : Bytes) : List (Nat × Bytes) := (checkD3Reads cb wb).2
 
 theorem checkD3Reads_eq (cb wb : Bytes) :
     checkD3Reads cb wb = (checkD3 cb wb, SM.reads (storesOf wb) (checkD3L cb wb)) := by
@@ -61,11 +55,6 @@ theorem reads_fixed (cb wb : Bytes) :
   rw [d3Reads_eq, SM.reads_restrict]
 
 /-! ## D2 -/
-
-def checkD2Reads (cb wb : Bytes) : Except String Unit × List (Nat × Bytes) :=
-  SM.runR (storeFn (storesData wb)) (checkD2L cb wb)
-
-def d2Reads (cb wb : Bytes) : List (Nat × Bytes) := (checkD2Reads cb wb).2
 
 theorem checkD2Reads_eq (cb wb : Bytes) :
     checkD2Reads cb wb = (checkD2 cb wb, SM.reads (storesOf wb) (checkD2L cb wb)) := by

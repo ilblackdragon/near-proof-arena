@@ -1,5 +1,5 @@
-import ReexecV3D3.Logged.D2Check
-import ReexecV3D3.Logged.WasmRun
+import ReexecV3D3.Logged.Runtime.D2Check
+import ReexecV3D3.Logged.Runtime.WasmRun
 import NearSpecV3.D3.FunctionCall
 
 /-!

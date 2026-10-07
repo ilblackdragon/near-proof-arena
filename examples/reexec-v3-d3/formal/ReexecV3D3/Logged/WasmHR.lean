@@ -1,3 +1,4 @@
+import ReexecV3D3.Logged.Runtime.Dr
 import ReexecV3D3.Logged.WasmHostL
 import ReexecV3D3.Logged.WasmCRHostCall
 import ReexecV3D3.Logged.Lockstep
@@ -128,9 +129,6 @@ theorem HP_liftW_bind {γ β : Type} {t : St} {w : WM γ} {v : γ} {k' : γ → 
   exact h1
 
 theorem E_real (t : St) : (E σ t).real = t.real.map (fun r => { r with store := σ }) := rfl
-
-/-- The erased store record. -/
-def dr (r : RealStore) : RealStore := { r with store := dummy }
 
 theorem E_real' (t : St) : (E dummy t).real = t.real.map dr := rfl
 

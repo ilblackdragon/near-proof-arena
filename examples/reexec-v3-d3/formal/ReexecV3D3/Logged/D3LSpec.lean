@@ -1,3 +1,6 @@
+import ReexecV3D3.Logged.WasmRun
+import ReexecV3D3.Logged.D2Check
+import ReexecV3D3.Logged.Runtime.D3Check
 import ReexecV3D3.Logged.D3L
 
 /-! # `functionCallL` = `functionCall`, `checkD3L` = `checkD3` -/
@@ -187,16 +190,6 @@ theorem HooksR_d3 (cfg : NearCfg) : HooksR s root s (d3Hooks cfg) (d3HooksL cfg)
 end
 
 end ReexecV3D3.Logged
-
-namespace NearSpecV3.D3
-
-open NearSpec NearSpecV3 NearSpecV3.D2 ReexecV3D3.Logged
-
-/-- `checkD3` with every recorded-storage read through `SM` (tagged store `storesOf witnessBytes`). -/
-def checkD3L (claimBytes witnessBytes : Bytes) : SM (Nat × Bytes) Unit :=
-  checkD2CoreL (d3HooksL Wasm.pv86) true claimBytes witnessBytes (some gAlpha)
-
-end NearSpecV3.D3
 
 namespace ReexecV3D3.Logged
 
