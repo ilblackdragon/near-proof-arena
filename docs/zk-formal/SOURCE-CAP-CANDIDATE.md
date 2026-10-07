@@ -800,3 +800,9 @@ sequence begins at zero, every flattened globally indexed receipt satisfies
 its full Wf predicate at adjacent sequence values, and the final value equals
 the bytewise public burnt balance. Seven exact axiom guards pass. Count/body
 natural public binding and the remaining global bus channels stay open.
+
+`TableTotals` proves the actual terminal count and refund-body position across
+all extracted lists, then uses the active cEnd equations to bind both public
+field totals. Four exact axiom guards pass. Natural equality intentionally
+remains separate: extracted bounds and real Prep/public range binding are
+required to rule out the retained cast-alias counterexamples.
