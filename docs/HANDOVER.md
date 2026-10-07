@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root physical_provider_exists CHECKED at AIR3f116c10 in Qv/Extract/ProviderLink:
+actual TableLocal + physical QVC bus balance + extracted WalkChain/ParserChain
+imply every present walk request has a parser provider with exact canonical
+[vid,tau,mode] key. Natural requests are filtered present walks; count<P is
+DERIVED from length_le_height and table height; counter values canonical via
+cv_lt. Logical Perm is converted using exact natural-message lemmas and
+append reordering, preserving duplicate requests. Target336 jobs +1 exact axiom
+guard PASS (/tmp/nearproof-qv-provider-link.log,
+/tmp/nearproof-qv-provider-link-audit-checked.log). This closes the physical
+instantiation left open below. Next mode-specific parser semantics, authenticated
+VBYTES/value correspondence, and complete queue soundness/QSH integration.
+Integrated ups0a4b4f2e as2d7e8fde: all terminal EDGE/BMAP cases against occurrence
+seed views; ordinary value-ID and extension-child resolved-ID agreements remain
+explicit. Target+4 exactguards PASS (/tmp/nearproof-seed-terminal-integrated.log,
+/tmp/nearproof-seed-terminal-integrated-audit.log). D2 f279fc41 pending integration:
+terminal extension child empty-extension chain IDs, preserves sourceIDs,20audits.
+Receipt DIGEST/KEYNIB work active in agent-owned untracked files. No root live job.
+Full certificate, reference checker/admission, succinct prover, real judge and
+broader NEAR coverage remain incomplete; last aggregate b7002160 is older.
+
+
 Root CounterProvider CHECKED at AIR38c3cbab: canonical natural request/provider
 keys, exact natural-to-field messages, generic counter_provider_exists via
 Walk3.chain_provided. Requests <P excludes provider-free cycles with duplicates
