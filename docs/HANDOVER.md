@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+Root BufferedHeader CHECKED at AIRcd428446: header lastrow requires sel3/count0;
+headerclock advance, headerend→shard/sel0; exact first4header rows and exit:
+either n4/count0 or row4shard/sel0. Target196jobs+5exactstandardguards PASS;
+/tmp/nearproof-qv-buffered-header.log,/tmp/nearproof-qv-buffered-header-audit-checked.log.
+Next shard8bytes→first8→next8 entryclock, endcount/entry increment and headercount
+decoding; combine perentry equalindices and QSH shardbytes with native BufferedValue.
+Integrated D2838a8b70 asd982827b (primitiveancestor/output growth,11standardchecks)
+and ups7c1df10a as46cea66c (actual selectedimmediatechildID and byteoffset,2guards).
+Combined628jobs PASS; initial native audit saw stale BranchCidWindows olean,
+explicitly built updated auditimport and reran PASS. Logs
+/tmp/nearproof-ancestor-branch-integrated.log,/tmp/nearproof-native-branch-audit-import.log,
+/tmp/nearproof-integrated-Audit{UpsertAncestorCost,NativeBranchChildIds}.log.
+Receipt94a32ac9 sharedAIR closes actual RC SHA→native sourceentry verification
+without hleaf premise (21guards peragent; root integration recheck pending).
+Ups42443658 occupancybridge pending integration. No root livejob. Authorized
+push continues. Last aggregate83f4a8b7 older; full certificate/admission/reference/
+prover/judge and general NEAR coverage remain incomplete.
+
+
 Root EmptyWords CHECKED at AIRcc977fc9: empty_header_zero; register values
 constant through all16empty rows (no reset at firstword boundary); pairedbyte
 equality i↔8+i; empty_queue_bytes proves native EmptyQueue(some bs) for actual
