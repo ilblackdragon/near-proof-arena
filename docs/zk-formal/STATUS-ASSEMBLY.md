@@ -404,7 +404,8 @@ cost and payload do not increase. Twelve permanent axiom guards pass.
 original blobs absent from the front store and bounds their payload by original
 payload. A checked size-domain example shows the native3MB limit alone permits
 more than2MiB extras; this is not an accepted-transition counterexample. The
-unchanged AIR2MiB value-byte capacity needs separate justification. Furthermore,
+actual valV3 cap is 2^22 rows, while the QV candidate assumes 2^21 parser
+bytes; this example does not refute either accepted-input capacity. Furthermore,
 Link3.valTau derives instance ownership from referencing nodes and defaults to0,
 so simply appending unreferenced ValE seeds cannot represent arbitrary implicit
 transition stores. Existing IDs must remain stable under any future allocation.
@@ -476,7 +477,7 @@ post-state rebuilding; it assumes neither successful execution nor SHA injectivi
 retention. Ten permanent axiom guards pass (only standard axioms). This is a
 semantic preservation theorem, not a completed allocation: mapping retained
 original blobs into existing views still needs correct instance ownership and
-the unchanged 2MiB AIR value-byte budget. The normalized constructor's A7 premise
+the unchanged valV3 row budget. The normalized constructor's A7 premise
 therefore remains open.
 
 `PostShadows.transitionQueryStore` now gives executable targeted retention with
@@ -487,8 +488,8 @@ when they were not pre-referenced; no hash-injectivity assumption is used. Its
 full encoded-store cost is bounded by the original store, and the corresponding
 post-only constructor also has a payload bound. Nineteen permanent axiom guards
 pass. These are raw-store theorems: node/value classification, instance ownership,
-and the unchanged 2MiB AIR value-byte capacity are not yet derived. In particular,
-original 3MiB payload coverage is not silently substituted for 2MiB AIR coverage.
+and aggregate valV3 row capacity are not yet derived. Original per-main-store
+payload coverage alone does not bound all retained stores across transitions.
 
 `TransitionQueries.nativeQueryStore` connects targeted retention to the exact
 frozen native `rebuildPost` bytes (fully qualified native node/occurrence/value
@@ -511,6 +512,19 @@ All15 permanent `AuditQueryWitness` guards pass with only standard axioms.
 This closes raw-store replay/encoding/A7 preservation, not the existing ExtV3
 allocator's completeness. `nativeExecutionViews` still produces pre-only
 occurrence stores; it has not been changed to represent targeted retained bytes.
-AIR classification, shared record IDs, instance ownership, and unchanged 2MiB
-value-byte coverage remain open, so `accepted_good_except_unfolded` is not yet
+AIR classification, shared record IDs, instance ownership, and unchanged aggregate
+valV3 row coverage remain open, so `accepted_good_except_unfolded` is not yet
 upgraded to unconditional FactorComplete.
+
+Capacity correction and actual A7 bound: B0 is **2,000,000**, while `ValWf.rows`
+allows **2^22 total rows**. The QV candidate's conditional parser-byte bound is
+**2^21**; it must not be conflated with valV3. A buffered vector above 2MiB is
+not an accepted B0 counterexample, because its revealed pre-value already
+exceeds A7. `NativeUnfold.checkD0a_preBytes` now derives the sum of ALL actual
+pre-state unfolded byte counts ≤B from successful native execution and A7.
+`ReadUnfoldBound.checkD0a_preValueBytes` derives the corresponding aggregate
+revealed pre-value occurrence bytes ≤B. `find_value_mem` ties actual reads to
+these occurrences, and `checkD0a_read_bound` bounds each read by B. 12 guards
+pass. Charging QV's distinct parser records to these occurrences can discharge
+its 2^21 byte premise at B0; repeated group reads must reuse allocated records.
+This does not yet charge extra post-query collision shadows to A7.
