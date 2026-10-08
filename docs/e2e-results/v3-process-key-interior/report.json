@@ -1,0 +1,60 @@
+{
+  "lane": "process-key-interior",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKeyRows.lean",
+      "sha256": "479b22a861a8a4d4b3d5309863f6d7d49956cc376f80462f11412c19a9926b07",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-interior-ProcKeyRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKeyTests.lean",
+      "sha256": "e869b8297674d6c418d4231f67c9470c1743738f506fe4fe4050467728838fad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-interior-ProcKeyTests.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKeyStep.lean",
+      "sha256": "03ec59a6795221c7bfa7aef694b1b9e6addb2f222cd07b0b55e1b5231eae4e72",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-interior-ProcKeyStep.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKeyRotate.lean",
+      "sha256": "7b37b136fd754dc4234ff90547eb26190c71f484cc2661a30ad74f94794c53f6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-interior-ProcKeyRotate.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKeyScalar.lean",
+      "sha256": "f4153e16a5de1eec54063fbba93880df25b360a7cde000c6f1f47212dab373cd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-interior-ProcKeyScalar.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKeyInterior.lean",
+      "sha256": "e2f9917ebd41e3cf7b401bfc3595c9044d6d129a28d36cb88687ed6f6205a97e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-interior-ProcKeyInterior.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcKey.lean",
+      "sha256": "46c9513be275187277f072dfdc09c6bff16a0a72546d52144608ecc3369cb04f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-interior-AuditProcKey.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Full cKey on actual process key rows0..14, including16 register rotations. Generic evaluation factored before native specialization to avoid large defeq; no memory cap increase. Key terminal/header/entry/concatenation remain open.",
+  "exact_axiom_guards": 20,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

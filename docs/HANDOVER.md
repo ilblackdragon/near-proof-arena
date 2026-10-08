@@ -6,6 +6,37 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: StoreDuplicateMetadata/ValueDuplicateMetadata/CombinedStoreOccurrences
+strict PASS14 exact guards. Concrete lookup selects actual entity ID by tagged
+native-byte key; updates dup/hd/repE while preserving complete NodeWf3 and ValWf,
+row capacities, semantic fields and payload bytes. Combined node+value occurrence
+list uses one byte-class namespace and proves lookup fallback unreachable for
+every actual node/value occurrence. Selected representative belongs to that same
+list and has matching transition+bytes. Entity-ID canonicality remains explicit;
+value transition tags are still a supplied function needing native binding.
+
+This is metadata/local-wf progress, NOT completed global duplicate ownership.
+Need native byte canonicality for toBytes key faithfulness, unique actual entity
+IDs, exact selected class count/payload correspondence to previous representative
+charge bound, and ENT/DUP/UNIQ traffic. Native NodeOk renderer-specific fields
+also need preservation/composition. Root continues this honest SIZE allocator.
+
+Independent native-ranked-traffic PASS15 guards: actual walk EDGE/BMAP traffic
+is exactly prefix-count chains across whole walk list; derives counter Perm
+conservation with explicit distinct providers and actual coverage. Forest agent
+continues provider uniqueness/head START/terminal coverage. Process-key-interior
+PASS20 guards: complete cKey on native process rows0..14, all16 register rotations.
+Factoring generic evaluation before native cell specialization fixed earlier
+elaboration expansion within unchanged16GiB cap. Key terminal row15, header,
+entry and full joined instances remain open. UPS agent also handles exact
+terminal BMAP provider node ID, not just equal bitmap/value flag.
+
+Reviewed receipts707/881; height components10/19. Actual size/header8,288,148.
+Full certificate/clean build/succinct prover/realjudge/generalNEAR not complete.
+Strict checks use prebuilt dependencies. Checked local commits/bundle continue;
+GitHub DNS still blocks push.
+
+
 2026-10-08: HonestStoreRepresentatives +NativeStoreRepresentatives strict
 PASS12 exact guards. Executable first byte-class selection uses (transition,
 serializedBytes), with combined node/value byte namespace. Representatives
