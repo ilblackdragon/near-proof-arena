@@ -1,0 +1,32 @@
+{
+  "lane": "native-account-allocation",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountAllocation.lean",
+      "sha256": "e0fbc65140117c7c586c2ac6057a4e45ba72be5a07503b1b9a54678849b13b2e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-allocation-NativeAccountAllocation.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountAllocationWf.lean",
+      "sha256": "86d2101a5d61d45ae050855fbad363a4393d4b92c399bb2b44d3af5ef9117c3b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-allocation-NativeAccountAllocationWf.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountAllocation.lean",
+      "sha256": "fa3ba0138c657b8c264fff74207d4f80b3b885b729d0d43299ee29e6dd6627c0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-allocation-AuditNativeAccountAllocation.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules7guards. Successful actual applyReceipts constructs all closing account views with exact distinct-touched cardinality, wellformedness and SHA payload byte bounds. Receipt-stage IDs remain to be rebased.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

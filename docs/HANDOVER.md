@@ -19,6 +19,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeAccountDigestAllocation and NativeAccountExecutionTrace strict
+PASS2 exact guards. Combined native receipt/trie/fourSHA proof now constructs
+account trace and proves local/full traffic; removes arbitrary trA and account
+byte-traffic premise. Separate successful bounded applyReceipts bridge constructs
+actual closing views and local/full trace traffic from pre-value field bound and
+receipt count<=8192. Receipt-stage account IDs still need original-pre rebase.
+Independent account allocation2modules7guards and bytes/rebase2modules6guards
+PASS. Exact constructor cardinality, Wf, byte ranges, keyed before/after reads and
+suffix conservation reviewed. No failure filtering or ordinal identification.
+Receipt882/882, integrated10/19; full family, prover, clean certificate and judge
+remain unfinished. Latest parser proposal evaluates25,492bytes OVER8MiB; full size
+kernel certification pending. Prior39c4c157 push failed DNS. Agents continue
+scheduler DIGEST inventory, account accepted bounds/rebase, parser budget reuse.
+
+
 2026-10-08: NativeReceiptDigestAllocation strictPASS2guards across2root modules
 adds full physical DIGEST accounting on SAME accepted source-backed receipt/trie/
 UPS/Walk/fourSHA allocation. FourSHA outputs +empty-value provider +written VPOST
