@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independent native-window-coverage PASS4modules5guards closes mapped
+source ownership for every actual compact read. chosen_origin_instances retains
+encoded origin in SAME allocation alongside exact/dispatch/SHA evidence. Native
+replay/prestate/budget contracts derive every nonfresh/address/source-key condition;
+no read-ownership premise. NativeWindowPhysicalCoverage PASS2guards converts to
+natural membership with explicit base provider wf/bytes.
+
+WindowProviderMetadata strict PASS3guards gives stronger final-provider path:
+chain metadata and usage assignment preserve key membership; final assigned node
+NodeWf3/native bytes prove canonicality, and mapped original coverage yields exact
+natural final-provider membership. Avoids requiring separate base-list NodeWf.
+Agent integrating accepted SAME-origin allocation with native facts and full physical
+UPB balance. No complete global assembly claim yet.
+
+Independent process-prior-events PASS2modules15guards constructs executable sorted
+original-record writes+per-link queries, proves order/permutation/provenance/native
+summary correspondence, and separate stream log22 capacity from explicit prior
+byte/instance/ID bounds. Raw parser/ID lookup/AIR transition/comparator width and
+accepted-family budget remain. Candidate881/881 and arithmeticTableLocal verified;
+original832 separate; profile10/19 pending integration. Full certificate/prover/
+real judge/general NEAR unfinished. Strict checks use prebuilt dependencies.
+Prior9a6f8084 push failed DNS; retry after checkpoint/recovery bundle.
+
+
 2026-10-08: Independent receipt-candidate-table-local PASS2modules4guards extends
 881-equation milestone to FULL TableLocal for receiptArithmeticCandidate (original
 interaction list,width,maxLog22). Multiplicity bits derived from actual boolean

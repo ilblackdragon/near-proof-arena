@@ -1,0 +1,46 @@
+{
+  "lane": "native-window-coverage",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderOrigin.lean",
+      "sha256": "83e599513bf4489f25f58867e8569a759b98c5638cb7f8ef7b48310dcb8ba6be",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-window-coverage-NativeReaderOrigin.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderOriginProvider.lean",
+      "sha256": "a078cb7f601507a7255bf58afb47e499824b10120f1e935c893df2e7e47f5498",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-window-coverage-NativeReaderOriginProvider.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ChosenReaderOrigins.lean",
+      "sha256": "e628354ff57f0c3b8db9981b5808f4fd19b806e0dc2cd3c436eb1bcaafb5b4be",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-window-coverage-ChosenReaderOrigins.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeWindowCoverage.lean",
+      "sha256": "dc578d4388596e75c34a1448725b849478de66ca8ca46251f11e48f7f8838c1e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-window-coverage-NativeWindowCoverage.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeWindowCoverage.lean",
+      "sha256": "9a9b8995adeb7ce00e29cc672a25afb28d92eed6f4dbe4ee7ab94896bc348279",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-window-coverage-AuditNativeWindowCoverage.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules5 guards. SAME allocated native instances retain encoded origin; every actual compact rd row has mapped key belonging to original initialized+updated native provider forest, deriving all read address/ownership facts from actual native runs/replay.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
