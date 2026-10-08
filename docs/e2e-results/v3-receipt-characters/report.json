@@ -1,0 +1,95 @@
+{
+  "lane": "receipt-characters",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCharLocal.lean",
+      "sha256": "ec96eb967e5b0f5959ed6ff8ad81518c4eeee2489f589283cc50e41743e7551b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-RcptCharLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeCharacters.lean",
+      "sha256": "df16a303e90050c8b36376da19a0343315351c8da167222255b5d11f8edccb3a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-RcptNativeCharacters.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCharacterCells.lean",
+      "sha256": "3e22c0b6bab469b29226933a2b6565d3b8e0d45fe5df55ae780fd1c24c86e4fe",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-RcptCharacterCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCharacterZero.lean",
+      "sha256": "1ef1168619417b9caeb2f0c03163f39681cf230b78a9e8fcaca2d400cd0ce16d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-RcptCharacterZero.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCharacterPhysical.lean",
+      "sha256": "dc11894052356fe17ec1e264e3b7221902d425b48a8aae8ee655c94f5eea0324",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-RcptCharacterPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCharacterComposition.lean",
+      "sha256": "e77332a91cb0ca29da19b4bb5f489ebf7cbc24883e9593d39312cc749569ca47",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-RcptCharacterComposition.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCharLocal.lean",
+      "sha256": "0234a0ea3b71557054cf4146ccb3a3177add86e844d10f3615371018f08db7ea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-AuditRcptCharLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeCharacters.lean",
+      "sha256": "f5a4344afc12004e8c14f3b400694bdeab450d8bc7690f33f81c7d6ca6f98e48",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-AuditRcptNativeCharacters.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCharacterCells.lean",
+      "sha256": "c31b1a3897ca00086aeaea6e44c5ae9e2a597bf1beb685e4a3566cea475d68c0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-AuditRcptCharacterCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCharacterZero.lean",
+      "sha256": "371698d76460e6668c5fa86128338f62acd33cadef7c5916848d35b4b9c06947",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-AuditRcptCharacterZero.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCharacterPhysical.lean",
+      "sha256": "fafca5addd534929039f76cf70f185518cd949da9ba12179847d5daeacacfe98",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-AuditRcptCharacterPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCharacterComposition.lean",
+      "sha256": "b2bd12da930e6e593cef4e7ca8e20a2e1aa8cf1ccb48b82238c3ef15d7636948",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-characters-AuditRcptCharacterComposition.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same concrete native receipt trace satisfies 692 of 881 local constraints; 32 character constraints added with commuting character/digest overlays preserving earlier 660. Remaining local families and prepared public bindings are open.",
+  "exact_axiom_guards": 20,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

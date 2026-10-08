@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independent strict rebuild PASS for scheduler-fixed-height:
+5 modules, 11 exact axiom guards. Actual comparator and memory TableLocal
+and exact bus traffic now hold at log22, including memory padding and cyclic
+edges. Input validity and memory row bound remain explicit. Fixed-height
+component coverage is now 10/19 selected slots; codec/scan/process honest
+completeness remains under construction, plus final source/receipt/QV wiring.
+
+Independent receipt-characters rebuild PASS: 6 modules, 20 exact guards.
+Same concrete native receipt trace now satisfies 692/881 constraints (78.5%).
+Adds 32 character constraints; character/digest overlays commute and preserve
+all earlier 660. Remaining 189: chars29/key49/sys14/route18/gas40/dep39.
+Prepared-public binding and full native digest/global traffic still open.
+
+Plan continues in parallel: receipt local completeness; native forest global
+metadata and NodeWf3; scheduler codec/scan/process completeness. Root integrates
+SIZE accounting and whole native component composition. Then assemble full
+correctness certificate, build succinct prover and run real judge. Certified
+size/header stays 8,288,148; D0a coverage is not general NEAR verification.
+Checks used prebuilt dependencies, not a clean full certificate build.
+Push still blocked by github.com DNS resolution; local commits and verified
+checkpoint bundle preserve progress. Prior checked commit: 09af0039.
+
+
 2026-10-08: NodeRecordCount strict PASS5guards. Honest node SIZEcount column
 at actual SUM row equals exact nonduplicate node-record count. Arithmetic
 bound from physical rows proves canonical natural equality (no field wrap).
