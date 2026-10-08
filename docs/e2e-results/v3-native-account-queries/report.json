@@ -1,0 +1,67 @@
+{
+  "lane": "native-account-queries",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupQueryRows.lean",
+      "sha256": "e483c7022c62ab0c16994b3718e4026895ac7bdb42fefd37d92e9239cec2ebed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-queries-NativeLookupQueryRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeQueueLookupRows.lean",
+      "sha256": "fce5c46019c551c01ff9fe04ccaf8c1e8ddef7ca2610b4720df035f6feabbeab",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-queries-NativeQueueLookupRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountKnown.lean",
+      "sha256": "a0270db3fb7a1017272ed8dc1ae0d925ca28642d53ec74b767018d2d60d8ac0a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-queries-NativeAccountKnown.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountPrestate.lean",
+      "sha256": "be830f15502c8a0902153f593ef3877e0eb8c6f5c38b31550e5b70984c3002ec",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-queries-NativeAccountPrestate.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountQueries.lean",
+      "sha256": "f767db2aa7fbd623e3367785636f58524ffe7aba2f505d08b8a4296c1338f7dc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-queries-NativeAccountQueries.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountQueryRows.lean",
+      "sha256": "be5b0448ff7512d8f8f6938e76ea8f3657be3a32a0ea917963909fd9088d1711",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-queries-NativeAccountQueryRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeCombinedLookupRows.lean",
+      "sha256": "ba0d9e2b25229aa53cf7e5654e38f96da17b115fce75742f2667ac9ee9918220",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-queries-NativeCombinedLookupRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountQueries.lean",
+      "sha256": "771c22ca44a2c5aa64ec11bc275ed58ea39f484ecfb3d024e9754f5b4ebe80d2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-queries-AuditNativeAccountQueries.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Seven modules15guards. Actual native execution gives receiver-account query availability with HEAD/EDGE/BMAP providers. Queue/account/UPS total<=2258420 rows under explicit counts,log22. Additional real access-key refund walks excluded and being constructed; returned value-ID correspondence remains open.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

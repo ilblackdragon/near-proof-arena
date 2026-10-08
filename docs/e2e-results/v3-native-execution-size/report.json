@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual accepted D0a B<=2M derives indexed store provenance and transition alignment from same native main/implicit execution. Constructs node/value/SIZE TableLocal plus exact SIZE receiver traffic on SAME initialized forest,class chain,canonical public input. Global bus assembly and nonzero ownership assignment remain. Prebuilt dependencies,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeExecutionStores.lean",
+      "sha256": "f80b25126b7ee94d316ceb397798148cdb90dd1c550c37d6e2b332459bdf8f08",
+      "audit": "zk-formal/test/AuditNativeExecutionStores.lean",
+      "audit_sha256": "218cadbb79ae30836619b380130dc6e0412ae7f6aa65a6dfd6a38deb7376b365",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeExecutionSize.lean",
+      "sha256": "3b3942868e8ba8ef1aa3ddd6db6f923ec689fdc50498af4447c977c58434df12",
+      "audit": "zk-formal/test/AuditNativeExecutionSize.lean",
+      "audit_sha256": "f3928f9ab502dca5fef2a96a6702f2af0f4d5f152ddfda13417c104d79679d4a",
+      "guards": 2
+    }
+  ]
+}

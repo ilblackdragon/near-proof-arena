@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeExecutionStores/NativeExecutionSize strict PASS4 exact guards.
+Actual accepted D0a (B≤2M) execution derives witness-transition alignment and
+indexed store provenance for main+implicit forest. NativeExecutionSize.complete
+constructs count-extended node/value/SIZE TableLocal and SIZE receiver traffic on
+SAME initialized native execution forest, duplicate class chain and canonical
+public bytes. No supplied forest shape,accounting or store alignment premises.
+Native main/implicit execution facts and successful prep/decode/walk remain
+explicit. Shared consumer counts/global buses/SHA assembly are still incomplete.
+
+Independent native-account-queries PASS7modules/15guards: receipt-stage reads
+lift through scheduler writes to native prestate; actual receiver account query
+list succeeds with HEAD/EDGE/BMAP coverage. Queue/account/UPS rows bounded by
+2258420 for S≤83333,K≤32,n≤4481,UPS≤32, fitting log22. Agent identified real
+W_AK refund access-key walks in receipt AIR; these are explicitly EXCLUDED from
+that bound and being constructed. Do not claim complete walk inventory yet.
+Returned value-ID correspondence and physical whole-list integration also open.
+
+Receipt808/881; fixed-height10/19. Full certificate,clean build,prover,judge and
+general NEAR incomplete. Strict checks use prebuilt dependencies. Prior95d9252a
+push failed GitHub DNS; retry after checkpoint; verified bundle retained.
+
+
 2026-10-08: Native node/value local construction strict PASS7 exact guards.
 NativeNodeLocal supplies NodeOk after metadata initialization, including revealed
 length-byte bounds and exact child-ID layout, then count-extended node/value
