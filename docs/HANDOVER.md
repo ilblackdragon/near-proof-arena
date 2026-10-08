@@ -6,6 +6,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeExecutionUsage strict PASS4 guards. Same actual accepted D0a
+(B≤2M) execution supplies initialized forest,duplicate chain and NodeOk/ValWf;
+provider usage assignment preserves full generated node/value/SIZE TableLocal
+and receiver traffic. Seven-trace SIZE conservation now uses SAME actual native
+forest/count-assigned records/source dictionary/canonical public bytes. Explicit
+edge/bmap/window request-list lengths<P remain; actual complete requests/windows
+inventory/global physical placement are not assumed complete.
+
+Independent walk22-renderer PASS4modules/8guards. Old WalkOk had log21 rows cap;
+complete inventory envelope needs22. Isolated generalized renderer proves all
+local constraints+traffic at22 with same table/cells. cell_original,recs_original,
+rows_original are kernel rfl; old WalkOk embeds. No active/frozen table mutation.
+Whole native query-list Wf/physical assignment and usage balance still underway.
+
+Receipt824/881; fixed-height10/19. Scheduler native replay complete but actual
+aggregate spend/capacity bridge open. Full assembly/certificate/clean build/prover/
+judge/general NEAR incomplete. Strict checks use prebuilt dependencies.
+Prior84667ca5 push failed GitHub DNS; retry after checkpoint; verified bundle.
+
+
 2026-10-08: NodeUseLocal/NodeUseSize strict PASS11 exact guards. Actual terminal
 provider counts assigned by NodePostUpdate.assignList preserve FULL NodeOk and
 count-node TableLocal under edge/bmap/window request lengths<P. SIZE selected
