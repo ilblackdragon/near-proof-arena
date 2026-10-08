@@ -1,0 +1,25 @@
+{
+  "lane": "native-replay-provider-keys",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReplayProviderKeys.lean",
+      "sha256": "67e5f2b75c9f21bad381aaab50321f8c14fd40cbc12dde2eab6fe66338554df2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-replay-provider-keys-NativeReplayProviderKeys.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReplayProviderKeys.lean",
+      "sha256": "66304464913aa0d99fd9cb8ad6f4afe710cdd12be78e59e968a91bf76c0bba9d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-replay-provider-keys-AuditNativeReplayProviderKeys.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4 guards. Exact ordered full EDGE/BMAP key inventory preserved by receipt replay.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

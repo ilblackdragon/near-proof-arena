@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: GatedMemoryFusion strictPASS8 exact guards proves actual appended
+fusion shape3384/108/7/108/log22 with degree8; complete proposed shape inventory
+size8,313,300 and75,308 headroom below8MiB. Repaired gate column preserves
+baseline row traffic (independent gated review); unlike prior raw comparator,
+does not raise fused degree. Bus67/68/69 provisional: parser/ID/Codec repair
+costs and global ownership/execution admission still open. Not final proof size.
+
+HorizontalReceiptWf strictPASS6guards proves actual repaired receipt family
+AIR well-formedness, multiplicity/field bounds, grouped degree and verifier
+header admission. No independent global trace/balance claim.
+Receipt per-record BYTES and21-module list/header byte chain independently
+checked,44+78guards. Full receipt traffic migration continues.
+Native replay providers+keys checked17guards: exact ordered original vs
+post-receipt EDGE/BMAP inventories and IDs retained. Joint query coverage next.
+Process Canonical+Gated independently checked8guards; canonical ranges derive
+from actual native provenance, not field-injectivity assumptions.
+
+Integrated families10/19 retained pending complete admission; receipt882/882.
+Full certificate/prover/judge/general NEAR unfinished. Three agents continue.
+Priordb9bd94a push failed GitHub DNS. Bundle regenerated at this checkpoint.
+
+
 2026-10-08: PriorMemoryFusion strictPASS2guards measures actual horizontal
 receipt candidate + baseline prior-memory table: appended auxDegree10 and
 prepended auxDegree9, versus existing8. Scheduler agent owns a separate gated
