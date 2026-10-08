@@ -6,6 +6,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: QueueKeyRepairRows strictPASS5guards proves actual repaired row
+key traffic in naturals/field and whole-key composition for all4queue kinds.
+No START; native key/end positions exact. Whole mixed table aggregation, candidate
+installation and family recertification remain. Independent full lookup FINAL
+1guard balances SAME physical ranked lookup sends with receipt+queue receives;
+strongest allocation integration assigned receipt agent. Codec13modules38guards
+checks whole executable refactor equality by definition, regression, register
+semantics and actual hashRow additions19constraints with arbitrary next row.
+Zero-ehp variant covers prior hash-row counter gap. Original Codec groups/full
+TableLocal remain.44guards checked including15generator rechecks; pin PASS.
+Prebuilt dependencies only; full certificate/prover/judge pending. Receipt882/882;
+integrated10/19. Prior4e5c9482 push DNS failed; local bundle retained. Goal active.
+
+
 2026-10-08: QueueKeyRepairTransport strictPASS4guards proves repaired queue
 non-KEYNIB physical row/table counts equal old table on arbitrary traces. Every
 repaired multiplicity factor is covered by old interactions, so old TableLocal

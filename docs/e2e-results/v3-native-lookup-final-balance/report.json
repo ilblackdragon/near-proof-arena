@@ -1,0 +1,25 @@
+{
+  "lane": "native-lookup-final-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeLookupFinalBalance.lean",
+      "sha256": "531e8318c13a58417e844108714c1304d4f92c6380be79b49521d9a820823212",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-final-balance-NativeLookupFinalBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupFinalBalance.lean",
+      "sha256": "8c46418d59f9d714e9451655a3106349cd75d5cfdaff0312e9cadf545f536c55",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-final-balance-AuditNativeLookupFinalBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module1guard. Whole SAME physical ranked native lookup FINAL sends equal actual receipt plus actual mixed QV FINAL receives. Strongest allocation integration ongoing.",
+  "exact_axiom_guards": 1,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

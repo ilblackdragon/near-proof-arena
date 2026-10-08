@@ -1,5 +1,3 @@
-import ZkFormal.NearV3.Candidates.ProcPriorCodecCoreLegacy
-import ZkFormal.NearV3.Candidates.ProcPriorCodecAssignments
 import ZkFormal.NearV3.Candidates.ProcPriorCodecActual
 import ZkFormal.NearV3.Candidates.ProcActualInput
 import ZkFormal.NearV3.Sched.Gen.Codec
@@ -9,11 +7,11 @@ bytes are the original state encoding, while the fake lockstep allowance-byte
 columns are zero and are never used as authenticated prior bytes. Actual prior
 allowances are read through the parser/memory join. Local legality is proved
 separately; this definition alone is not a successful-run theorem. -/
-namespace ZkFormal.NearV3.Candidates.ProcPriorCodecGen
+namespace ZkFormal.NearV3.Candidates.ProcPriorCodecCoreLegacy
 open NearSpecV3 NearSpecV3.Scheduler ZkFormal.NearV3.Sched.Codec
 open ZkFormal.NearV3.Sched ZkFormal.NearV3.Sched.Gen
 
-private def codecRowsCore (I : Input) (R : Run) (present : Bool) (vidV : Nat) (gbA : Array Nat)
+def core (I : Input) (R : Run) (present : Bool) (vidV : Nat) (gbA : Array Nat)
     (fwd : List (Nat × Nat)) : Except String CodecOut := do
   let n := R.n
   let N := n * n
@@ -42,7 +40,9 @@ private def codecRowsCore (I : Input) (R : Run) (present : Bool) (vidV : Nat) (g
   for p in List.range 5 do
     let bp := hdr[p]!
     let regs := (List.range 32).map fun i => (reg i, params.getD (p + i) 0)
-    rows := rows.push (ProcPriorCodecAssignments.headerRow inst params hdr present p)
+    rows := rows.push (ZkFormal.NearV3.Sched.Gen.setAll width (inst ++ [(kH, 1), (kF, if p = 0 then 1 else 0), (pos, p),
+      (bpost, bp), (bpre, if present then bp else 0), (vbg, b2n present),
+      (ihp, finv (fsub p 4)), (ehp, if p = 4 then 1 else 0)] ++ regs ++ pb bp ++ qb (if present then bp else 0)))
   -- records
   for kk in List.range N do
     for f in List.range 3 do
@@ -98,7 +98,12 @@ private def codecRowsCore (I : Input) (R : Run) (present : Bool) (vidV : Nat) (g
             cmps := cmps ++ [(gf + gbv, ft, 1)]
             extra := extra ++ [(fwg, 1), (cx, gf + gbv), (cy, ft), (cbit, 1), (cg, 1), (pm0, kk % 256),
               (pm1, kk / 256), (fb 0, ft % 256), (fb 1, ft / 256 % 256), (fb 2, ft / 65536 % 256)]
-        rows := rows.push (ProcPriorCodecAssignments.recordRow I present n kk f gg p bpo bpr inst extra)
+        rows := rows.push (ZkFormal.NearV3.Sched.Gen.setAll width (inst ++ [(kR, 1), (pos, p), (bpost, bpo), (bpre, bpr),
+          (vbg, b2n present), (kidx, kk), (klo, kk % 256), (khi, kk / 256),
+          (fS, if f = 0 then 1 else 0), (fR, if f = 1 then 1 else 0), (fA, if f = 2 then 1 else 0),
+          (g, gg), (ig7, finv (fsub gg 7)), (e7, if gg = 7 then 1 else 0),
+          (ikl, finv (fsub kk (N - 1))), (ekl, if kk + 1 = N then 1 else 0)] ++ pb bpo ++
+          (if f=0 then (List.range 8).map (fun i=>(prbit i,(bytesLE (I.ids.getD sender 0) 8).getD (gg+i) 0)) else []) ++ extra))
         if f = 2 ∧ gg < 3 then
           apv := apv + wtv * bpr
           apostv := apostv + wtv * bpo
@@ -108,49 +113,13 @@ private def codecRowsCore (I : Input) (R : Run) (present : Bool) (vidV : Nat) (g
   for j in List.range 32 do
     let bpr := hpre[j]!
     let regs := (List.range 32).map fun i => (reg i, digest.getD (j + i) 0)
-    rows := rows.push (ProcPriorCodecAssignments.hashRow inst digest hpre present base0 j)
+    rows := rows.push (ZkFormal.NearV3.Sched.Gen.setAll width (inst ++ [(kZ, 1), (dgg, if j = 0 then 1 else 0), (pos, base0 + j), (sj, j), (bpost, digest[j]!),
+      (bpre, if present then bpr else 0), (bsha, if present then bpr else 0), (vbg, b2n present),
+      (isj, finv (fsub j 31)), (esj, if j = 31 then 1 else 0)] ++ regs ++ pb digest[j]! ++ qb (if present then bpr else 0)))
   for j in List.range 32 do
     let x := (I.ash.getD j 0).toNat
-    rows := rows.push (ProcPriorCodecAssignments.ashRow inst I base0 j)
+    rows := rows.push (ZkFormal.NearV3.Sched.Gen.setAll width (inst ++ [(kA, 1), (pos, base0 + 32 + j), (sj, 32 + j), (bsha, x),
+      (pm0, j), (pm1, x), (isj, finv (fsub (32 + j) 63)), (esj, if j = 31 then 1 else 0)]))
   return ⟨rows, pre, post, cmps, shaIn, digest⟩
 
-/-- Pure helper extraction preserves the complete executable core, including
-rows, original-byte metadata, comparator inventory, errors, and SHA input. -/
-theorem core_refactor (I : Input) (R : Run) (present : Bool) (vidV : Nat)
-    (gbA : Array Nat) (fwd : List (Nat×Nat)) :
-    codecRowsCore I R present vidV gbA fwd =
-      ProcPriorCodecCoreLegacy.core I R present vidV gbA fwd := rfl
-
-/-- Canonical public output is built from the native final link values. -/
-def postBytes (I : Input) (R : Run) (present : Bool) : List Nat :=
-  let hpre := if present then I.prev.sanityHash.map (·.toNat) else List.replicate 32 0
-  let dg := (NearSpec.sha256 ((hpre ++ I.ash.map (·.toNat)).map UInt8.ofNat)).map (·.toNat)
-  stateBytes I.ids (fun k => (R.segs.getD k default).vfin) dg
-
-/-- Authentication metadata is installed outside the imperative row builder,
-so its exact native meaning does not depend on a successful-loop invariant. -/
-def install (I : Input) (R : Run) (present : Bool) (o : CodecOut) : CodecOut :=
-  {o with pre := if present then I.prev.encode.map (·.toNat) else [],
-          post := postBytes I R present}
-
-def codecRows (I : Input) (R : Run) (present : Bool) (vidV : Nat) (gbA : Array Nat)
-    (fwd : List (Nat × Nat)) : Except String CodecOut :=
-  (codecRowsCore I R present vidV gbA fwd).map (install I R present)
-
-theorem successful_bytes (I : Input) (R : Run) (present : Bool) (vidV : Nat)
-    (gbA : Array Nat) (fwd : List (Nat × Nat)) (o : CodecOut)
-    (h : codecRows I R present vidV gbA fwd = .ok o) :
-    o.pre = (if present then I.prev.encode.map (·.toNat) else []) ∧
-    o.post = postBytes I R present := by
-  unfold codecRows at h
-  cases hc : codecRowsCore I R present vidV gbA fwd with
-  | error e => simp [hc,Except.map] at h
-  | ok a =>
-    simp only [hc,Except.map,Except.ok.injEq] at h
-    subst o
-    exact ⟨rfl,rfl⟩
-
-theorem install_rows (I : Input) (R : Run) (present : Bool) (o : CodecOut) :
-    (install I R present o).rows = o.rows := rfl
-
-end ZkFormal.NearV3.Candidates.ProcPriorCodecGen
+end ZkFormal.NearV3.Candidates.ProcPriorCodecCoreLegacy
