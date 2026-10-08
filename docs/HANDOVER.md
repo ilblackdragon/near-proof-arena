@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Corrected NativeExecutionPost construction order: install records u
+post payloads BEFORE assignList q usage counters. Window keys include post bytes,
+so these operations must not be treated as commuting. Existing local/SIZE proofs
+strict PASS after correction. New PostNodeTraffic EDGE/windows2guards prove exact
+physical original EDGE inventory and updated-byte window counters. Root audit20
+passed, including rechecks of previous18; current report hashes updated.
+
+Independent review PASS25 agent guards: native old-tree replay9; deposit scratch
+ownership5; prepared scheduler conversion11. Actual successful main receipt writes
+replay on original prestate, giving shape-preserving oldPost with identical ordered
+72-byte writes, value lengths and account reads. Structural scheduler/final trie
+identity is NOT proved. Agent continues UPS reconstruction/commutation and oldPost
+wf/slot lengths. Prepared conversion now exists directly from actual decoder/prep
+facts (including five-byte bitmap widths), no added bitmap premise; later scheduler
+model/replay/shuffle success remains open. Deposit repair other-group scratch
+independence checked; actual first-row boolean patch still to integrate.
+
+Receipt824/881 and fixed-height10/19 unchanged. Full certificate/prover/judge/general
+NEAR unfinished. Checks use prebuilt dependencies, not clean full certificate.
+Prior2b8055ef push failed GitHub DNS; retry after checkpoint; verified bundle retained.
+Three agents active. Next root actual oldPost payload binding and post-provider/global
+window integration using the corrected update-then-count order.
+
+
 2026-10-08: PostNodeLocal/PostNodeSize/NativeExecutionPost strict PASS18guards.
 Arbitrary NodePostUpdate.records u preserves full NodeOk/TableLocal, physical
 child-ID column, original store occurrence keys, SIZE view/count/receiver and

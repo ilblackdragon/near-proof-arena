@@ -14,10 +14,10 @@ theorem assigned_inputs {B : Nat} {cb wb : Bytes} {k : WalkD0} {w : StateWitness
     let vs:=initializeList 0 (forestNodes 0 0 0 ts)
     let es:=seedValuesFrom 0 (forestBytes ts)
     let cs:=StoreClassPartition.chain (CombinedStoreOccurrences.allOccurrences vs (NativeStoreProvenance.valueTau ts) es)
-    NodeOk (records u (assignList q 0 (ChainMetadata.assign cs 0 vs))) ∧ ValWf (ChainMetadata.assignValues cs es) := by
+    NodeOk (assignList q 0 (records u (ChainMetadata.assign cs 0 vs))) ∧ ValWf (ChainMetadata.assignValues cs es) := by
   obtain ⟨hn,hval⟩:=NativeExecutionUsage.inputs hk hw h hB hm hv
   have hids:=(StoreClassPartition.combined_metadata _ (NativeStoreProvenance.valueTau (m.pre::steps.map ImplicitStepV3.pre)) _ hn.wf hval).2.1
-  exact ⟨PostNodeLocal.node_ok u _ (NodeUseLocal.node_ok q _ (ChainMetadata.node_ok _ _ hn hids) he hb hu),
+  exact ⟨NodeUseLocal.node_ok q _ (PostNodeLocal.node_ok u _ (ChainMetadata.node_ok _ _ hn hids)) he hb hu,
     ChainMetadata.value_wf _ _ hval hids⟩
 
 theorem complete {budget : Nat} {cb wb raw : Bytes} {codes : List Bytes}
@@ -35,7 +35,7 @@ theorem complete {budget : Nat} {cb wb raw : Bytes} {codes : List Bytes}
     let vs:=NodePostUpdate.initializeList 0 (Assembly.forestNodes 0 0 0 ts)
     let es:=Render.UpsGen.seedValuesFrom 0 (Assembly.forestBytes ts)
     let cs:=StoreClassPartition.chain (CombinedStoreOccurrences.allOccurrences vs (NativeStoreProvenance.valueTau ts) es)
-    let ns:=records u (assignList q 0 (ChainMetadata.assign cs 0 vs))
+    let ns:=assignList q 0 (records u (ChainMetadata.assign cs 0 vs))
     let vals:=ChainMetadata.assignValues cs es
     let pub:=ZkFormal.Udr.pubOf ZkFormal.Algebra.Fp bytes
     let v:=SizeComponents.view ns vals (DedupCompile.blocks p.lists w.entries)
@@ -51,7 +51,7 @@ theorem complete {budget : Nat} {cb wb raw : Bytes} {codes : List Bytes}
     change decodeStateWitness raw=.ok w
     exact hw
   obtain ⟨hn,hval⟩:=assigned_inputs hk hdecode ((relD0a_iff budget cb wb).mp h) hB hm hv u q he hb hu
-  have hreceiver:=PostNodeSize.receiver u _ _ _ _ (NodeUseSize.receiver q _ _ _ _ (NativeExecutionSize.receiver h hp hf hw hk hB hm hv))
+  have hreceiver:=NodeUseSize.receiver q _ _ _ _ (PostNodeSize.receiver u _ _ _ _ (NativeExecutionSize.receiver h hp hf hw hk hB hm hv))
   exact ⟨TrieCountHeight.node_local _ hn _ _,TrieCountHeight.value_local _ ⟨hval⟩ _ _,
     SizeComponents.receiver_complete _ _ _ _ hreceiver t⟩
 
@@ -70,7 +70,7 @@ theorem size_balance {budget : Nat} {cb wb raw : Bytes} {codes : List Bytes}
     let vs:=NodePostUpdate.initializeList 0 (Assembly.forestNodes 0 0 0 ts)
     let es:=Render.UpsGen.seedValuesFrom 0 (Assembly.forestBytes ts)
     let cs:=StoreClassPartition.chain (CombinedStoreOccurrences.allOccurrences vs (NativeStoreProvenance.valueTau ts) es)
-    let ns:=records u (assignList q 0 (ChainMetadata.assign cs 0 vs))
+    let ns:=assignList q 0 (records u (ChainMetadata.assign cs 0 vs))
     let vals:=ChainMetadata.assignValues cs es
     let pub:=ZkFormal.Udr.pubOf ZkFormal.Algebra.Fp bytes
     let v:=SizeComponents.view ns vals (DedupCompile.blocks p.lists w.entries)

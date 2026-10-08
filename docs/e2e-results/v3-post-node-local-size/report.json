@@ -1,11 +1,18 @@
 {
   "date": "2026-10-08",
   "status": "PASS",
-  "scope": "Arbitrary NodePostUpdate records preserve full NodeOk/local table, physical child IDs, exact original store occurrence classes and SIZE receiver/count/view, and commute with duplicate-chain assignment. Supplied payload correctness/native replay plus UPS reconstruction remain open; prebuilt dependencies,not full certificate",
+  "scope": "Arbitrary NodePostUpdate records preserve full NodeOk/local table, physical child IDs, exact original store occurrence classes and SIZE receiver/count/view, and commute with duplicate-chain assignment. Window usage assigned AFTER post updates; exact updated window traffic checked. Supplied payload correctness/native replay plus UPS reconstruction remain open; prebuilt dependencies,not full certificate",
   "records": [
     {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PostNodeTraffic.lean",
+      "sha256": "f8c4ec0aa06e2c8532ef97cead4ea82932617a0fcb8b02423ab786f30e7e1898",
+      "audit": "zk-formal/test/AuditPostNodeTraffic.lean",
+      "audit_sha256": "62f2c08cb6c084b9e395cf8b5d179a9bc403c8f2cbf4b783f1d1930e3048d8f2",
+      "guards": 2
+    },
+    {
       "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeExecutionPost.lean",
-      "sha256": "e6543361134381f766741c91e4781b962fd4e80bb6cd3817109ef658830ce905",
+      "sha256": "1824e520fbbe68d7d7ecd85cb1348a60787935dcc28802aa199e6794dbc62c4e",
       "audit": "zk-formal/test/AuditNativeExecutionPost.lean",
       "audit_sha256": "2fdcf42385ffa31dc2ef1490ec0a8e67ba4ef4a5c8421b45e2b4f08bee7b4de5",
       "guards": 3
