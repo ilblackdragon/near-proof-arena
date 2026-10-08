@@ -1,0 +1,67 @@
+{
+  "lane": "receipt-domain-repairs",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasContradiction.lean",
+      "sha256": "295a64f32e0a1de818524c7020a42b509ae135b40b6a09de38aacbefd391bb9a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-domain-repairs-RcptGasContradiction.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemGasCandidate.lean",
+      "sha256": "be7b91a1e7761c671c4f4a9c5ff8d12bfe4b37e9f82a2b3010c76fe30abe420c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-domain-repairs-RcptSystemGasCandidate.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositContradiction.lean",
+      "sha256": "ab2c405919b5b0c3ed53fb11b9c7732006c8a014c1a0b438c53bd88a6d9e3fb7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-domain-repairs-RcptDepositContradiction.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositAgeCandidate.lean",
+      "sha256": "96de5c2347ac846403befe1b61aded93a0b74c1b386533975542f0b35ebfb043",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-domain-repairs-RcptDepositAgeCandidate.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasContradiction.lean",
+      "sha256": "b6aebd848131b6bd7b55e22f571b7e91323489d16ad281fe957f077bd36a2aa8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-domain-repairs-AuditRcptGasContradiction.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemGasCandidate.lean",
+      "sha256": "076d8d7a23c849120cef3e7f3e4f32043137de5cff7eed4ce871fb6af267bf33",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-domain-repairs-AuditRcptSystemGasCandidate.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositContradiction.lean",
+      "sha256": "320ce1fd22959eeae608011fe396a9fb7674bf464b3a40425aa8a0b2f7c97729",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-domain-repairs-AuditRcptDepositContradiction.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositAgeCandidate.lean",
+      "sha256": "6b4af27481d5169c0c98d2ec97a49dae365ffa83bc11e60ec85e618f600abaeb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-domain-repairs-AuditRcptDepositAgeCandidate.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules14 exact guards: contradictions for original gas/version domain; isolated gas and deposit repair transcriptions. No full accepted fixture or active family migration. Original receipt824/881 unchanged.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

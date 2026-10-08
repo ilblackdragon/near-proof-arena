@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independent strict review PASS process-native-budget seven modules,
+29 exact guards. Actual native run entrycount <= C+43*n and rows <=16+2*(C+43*n).
+For <=33 inputs with n<=64/raw<=4096, successful enumerated runInputs derives
+transition continuity and candidate process TableLocal at log22. Actual accepted
+input construction and Gen.run success remain open; candidate is not activated.
+
+Receipt-domain-repairs independent PASS four modules14 exact guards. Original
+gas constraints cannot represent max gas price vs blockprice0; original deposit
+constraints cannot represent receipt512 with tprev0. Full accepted D0a fixtures
+NOT asserted. Isolated gas gq-mask and deposit13-bit age candidates preserve
+polynomial counts; global soundness/completeness, scratch ownership, migration
+remain open. Original receipt824/881 and fixed-height10/19 unchanged.
+
+Prior checkpointd4d72d2e contains paired-store accounting and actual accepted
+physical lookup closure18 guards. Push failed GitHub DNS; local commits and
+verified bundle retained. Full proof/certificate/prover/judge/general NEAR remain
+incomplete. Reviews rely on prebuilt dependencies, not a clean full certificate.
+
+
 2026-10-08: PairedStoreKeys/PairedStoreCharge strict PASS6 exact guards:
 WriteTreePair paired pre/post records preserve original duplicate-store keys,
 occurrence IDs and actual native witness charge. Pair validity and paired
