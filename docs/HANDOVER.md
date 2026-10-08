@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualRoundTimes and ProcActualBucketComparisons strict PASS, eleven exact axiom guards. Initial empty rounds establish AllGood; initialized actual replay derives timestamp order and bounds without extra initial premises. replay_good binds those facts to any successful replay result by determinism. Exact indexed bucket comparison loop succeeds, and actual_loop_eq identifies the imperative body with the proved forIn. Full suffix composition, round-key decrease and numeric bounds remain open. Full integration/certificate/prover/judge unfinished; prebuilt dependencies only, receipt882/882 and integrated10/19 unchanged. Agents remain usage-limit errored. Prior b357391f push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualRoundTimes strict PASS, four exact guards. Actual emitted RoundD records preserve strict entry timestamp order and bound below round start. Whole model trace propagates AllGood together with clock/state alignment; prepared_times derives bucket chronology from process_time and request-count bound from preparation. good_checks converts each emitted record property to exact indexed bucket timestamp check success. Initialization and final comparison-loop composition remain, along with round-key decrease and numeric bounds. Full integration/certificate/prover/judge unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previous67fd4d05 push failed GitHub DNS. Goal active.
 
 

@@ -127,4 +127,42 @@ theorem prepared_times (sp : SchedPub) (hs : SchedPubOk sp)
     (ProcActualInput.initial I) cv.size rs st last ht (ProcActualAllowanceShape.initial_shape I)
     (fun rd hr => (hv rd hr).2) hsize htags hR htimes s hclock hgood0 ha
   exact ⟨out,last,ho,he,hco,hgo⟩
+theorem initial_good (I : Input) (cv : Array CReq) (ops : Array (Array Gen.MOp)) :
+    AllGood (ProcActualReplayInitial.initial I cv ops) := by
+  simp [AllGood,rounds,ProcActualReplayInitial.initial]
+
+open NearSpecV3.Scheduler ProcActualRoundTransition ProcActualReplayFactor in
+theorem replay_times (sp : SchedPub) (hs : SchedPubOk sp)
+    (prev : NearSpec.Bandwidth.State) (cv : Array CReq) (st : PState) (rs : List Round)
+    (hcv : forIn (ProcPreparedSequence.input sp prev).raw #[]
+      (ProcActualConverted.step (ProcPreparedSequence.input sp prev))=.ok cv)
+    (hproc : ProcActualInput.process (ProcPreparedSequence.input sp prev)=.ok (st,rs)) :
+    ∃out last,replay (ProcPreparedSequence.input sp prev) cv rs=.ok out ∧
+      Aligned (NearSpecV3.leWords sp.seed) cv out st last ∧
+      ProcActualReplayClock.Clock out ∧ AllGood out := by
+  let I := ProcPreparedSequence.input sp prev
+  let lp := linkPass I.ids.length I.p I.allowed (ProcActualInput.allowances I.ids I.prev)
+  obtain ⟨ops,hop⟩ := ProcActualReplayTotal.reads_array lp.a2 lp.g2 cv
+    (Array.replicate (I.ids.length*I.ids.length) #[])
+  obtain ⟨out,last,hr,ha,hc,hg⟩ := prepared_times sp hs prev cv st rs hcv hproc
+    (ProcActualReplayInitial.initial I cv ops) (ProcActualReplayClock.initial_clock I cv ops)
+    (initial_good I cv ops) (ProcActualReplayInitial.initial_aligned I cv ops)
+  refine ⟨out,last,?_,ha,hc,hg⟩
+  change (forIn cv _ (readStep lp.a2 lp.g2) >>= fun ops =>
+    forIn rs (ProcActualReplayInitial.initial I cv ops) (step I cv (NearSpecV3.leWords sp.seed)))=.ok out
+  rw [hop]
+  exact hr
+
+open NearSpecV3.Scheduler in
+theorem replay_good (sp : SchedPub) (hs : SchedPubOk sp)
+    (prev : NearSpec.Bandwidth.State) (cv : Array CReq) (st : PState) (rs : List Round)
+    (hcv : forIn (ProcPreparedSequence.input sp prev).raw #[]
+      (ProcActualConverted.step (ProcPreparedSequence.input sp prev))=.ok cv)
+    (hproc : ProcActualInput.process (ProcPreparedSequence.input sp prev)=.ok (st,rs))
+    (out : Acc) (hr : ProcActualReplayFactor.replay (ProcPreparedSequence.input sp prev) cv rs=.ok out) :
+    AllGood out := by
+  obtain ⟨actual,last,ha,_,_,hg⟩ := replay_times sp hs prev cv st rs hcv hproc
+  have he := Except.ok.inj (ha.symm.trans hr)
+  subst actual
+  exact hg
 end ZkFormal.NearV3.Candidates.ProcActualRoundTimes

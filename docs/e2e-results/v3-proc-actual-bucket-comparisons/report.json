@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual emitted round records retain strict entry timestamp order below round start. Whole model trace preserves these facts with clock/state alignment; prepared processing discharges model-time and request-count premises. Initialized actual replay now derives AllGood; exact bucket comparison loop succeeds. Full suffix composition, round-key decrease and numeric bounds remain. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRoundTimes.lean",
+      "sha256": "b23cb06ca0eebc3e55b2ecad4935bf591d57b53a2fe650bc8c6673ea009327a0",
+      "audit": "zk-formal/test/AuditProcActualRoundTimes.lean",
+      "audit_sha256": "0939e54eca6921615f5277a6da0c31f5aa762a9ed273cc903646e5fac0a437d5",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualBucketComparisons.lean",
+      "sha256": "1be446ffeebe7c00675525a8343237f1d5bf5cbcf6b57a076d3a0ab1e5e6b49a",
+      "audit": "zk-formal/test/AuditProcActualBucketComparisons.lean",
+      "audit_sha256": "118a37f614bae71a88807dfd706f815c5df3dead41cacde825f4befde0193d2a",
+      "guards": 4
+    }
+  ]
+}
