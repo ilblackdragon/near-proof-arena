@@ -1,0 +1,95 @@
+{
+  "lane": "receipt-state-current",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateReceiptFlags.lean",
+      "sha256": "05e6fa0743c42a99cbee343b7de84698fc53f300b998ae83c13b6daeab039a01",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-RcptStateReceiptFlags.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCurrentFamily.lean",
+      "sha256": "257801980bfbf6b7eb775c34f925e263629eef8cb1a2a33cc7386e7041b9fb45",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-RcptCurrentFamily.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateReceiptEnd.lean",
+      "sha256": "a5a79d161fdd87bd4794b5e432dcd2bffe264296a32e53a2c402d76c1a6eadf1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-RcptStateReceiptEnd.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateSizes.lean",
+      "sha256": "e986a0c938e4f1396b0c61eb23b301f826cd484c8767e6ad83fef6a2829f36d2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-RcptStateSizes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptStateTableEnds.lean",
+      "sha256": "649a8856cea090447862346e52b70807169238b9de26598c5eaaf7c0549c41b7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-RcptStateTableEnds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeCapacity.lean",
+      "sha256": "1f209002f98deb2ac4056f3ff2ec61004b75668a6da5054dd86d3a46c88b942f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-RcptNativeCapacity.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateReceiptFlags.lean",
+      "sha256": "3b0a325ffeb5ef7c83ac4f6e981f0383e31cdf609283370e13a4bed0417b72da",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-AuditRcptStateReceiptFlags.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCurrentFamily.lean",
+      "sha256": "4bbf2e0b3b3df0be5ef5531a7d0cbaa365174b94463193d6e496a7a195b33049",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-AuditRcptCurrentFamily.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateReceiptEnd.lean",
+      "sha256": "3f9fe81c944abef4d9d9bd78161e227f100d41d4dff54a1417be2eb2340ff703",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-AuditRcptStateReceiptEnd.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateSizes.lean",
+      "sha256": "28e8f61ded6011cd7a33b42eb26d90617d574b26db4b57c3215f4fc5319f1224",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-AuditRcptStateSizes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptStateTableEnds.lean",
+      "sha256": "5f65b99b3d59b10506cf9b70fce1e7abaf22c233902f3a939a362ec8fa2ca70e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-AuditRcptStateTableEnds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeCapacity.lean",
+      "sha256": "96be5bd51f9fd84688766af9585a6601e3add3959375cfb69ff8e2ba8765eba8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-state-current-AuditRcptNativeCapacity.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same physical receipt trace checks596/881; native capacity with explicit plan/context correspondence.",
+  "exact_axiom_guards": 24,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -6,6 +6,23 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independently checked MerkleRender/Bytes (2 guards), AccountEmpty
+coverage/soundness/traffic (13 guards), receipt flags/end/sizes/table ends and
+native capacity (24 guards). Merkle physical BYTE counts now equal concrete
+native SHA jobs, including zero outcomes. Same receipt trace checked596/881.
+Native capacity <=2,147,802 rows, with explicit plan/context correspondence.
+Empty account repair preserves old nonempty traces and gives an honest empty
+trace; final family integration remains open.
+
+New agent milestones awaiting root review:617/881 receipt constraints;
+four-bin allocator bound14,894,546 rows preserving job objects; horizontal
+projection, equal-height assembly and degree/shape transport. Numeric fused
+admission still pending after bounded kernel OOM. Runtime8,288,148 is a
+measurement, not a kernel-certified admission. Full certificate/prover/judge
+and broader NEAR coverage remain open. Push still blocked by GitHub DNS;
+verified local bundle is refreshed at each checkpoint.
+
+
 2026-10-08 latest: NativeRoot/NativeTrace/Traffic/NativeTraffic strictPASS13guards.
 Concrete generic leafpreimages/levelTable now yield exact nativeoutcomeRoot
 (includingempty,promotion), honestnativeoutcomeTrace TableLocal, allphysicalbus
