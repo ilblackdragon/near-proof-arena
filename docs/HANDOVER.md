@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08 latest: receipt ALL200 cRegs now proved for every physical row of ONE
+nativeReceiptTrace (ordinary native receipt wf, public-own bytes and row capacity),
+including all endpoints/padding/wrap. Independent14-module/14-audit review PASS50
+guards. Full receipt has881 constraints; next cEmit189 then othergroups. Digest
+streams and nonregister columns still parameterized; no fullTableLocal claim.
+
+MerkleEmpty candidate strict PASS13 exactguards: explicit60-column empty branch,
+honest2-row TableLocal from zero count/root bytes, no traffic, sound zero public
+root; nonzero count forces original remapped local predicate. Not integrated in
+CurrentFamily yet; nonempty renderer/traffic and log19 extraction still open.
+NativeOccurrenceSha joint occurrence-byte bound PASS5 guards; NativeShortValues
+accepted134028 valuecount PASS3. Full correlated SHA bound still open.
+
+SHA width512 physical decoder/local+traffic root independently rebuilt3modules;
+honest encoder and extended audit still agent work. No admission/size-cap closure.
+Next root: finish Merkle nonempty branch/extraction and whole-family integration.
+Checkpoint reports record exact hashes and prebuilt-dependency scope.
+
+
 2026-10-08 checkpoint: MerkleAlias/MerkleTraffic strict PASS, nine exact guards:
 log19 original equations and all bus messages/multiplicities agree under the v3
 public alias. Old log15 extraction still needs generalization. Investigate empty

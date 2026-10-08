@@ -1,0 +1,25 @@
+{
+  "lane": "native-short-values",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeShortValues.lean",
+      "sha256": "dc0549c507633685cbbdc615b34d90ee720dd2cfdabe1caecb1082ec662af561",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-short-values-NativeShortValues.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeShortValues.lean",
+      "sha256": "ef26ef856e8ab6a062b101c18a14db6a8b7446a94c10ec691881070496e8539b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-short-values-AuditNativeShortValues.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Accepted actual forest value occurrence count at most134028; conservative overhead only, not full SHA capacity.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

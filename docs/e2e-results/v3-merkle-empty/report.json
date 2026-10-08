@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Empty-tree candidate: honest two-row TableLocal, zero traffic, enforced zero public root; nonempty local equations preserved. Not yet integrated or admitted; nonempty completeness and full semantic extraction remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleEmpty.lean",
+      "sha256": "40cbccbd2d28eb2bfb55917d3c430b6b338a0447ed46f79ebf5e81d840ffbfd3",
+      "audit": "zk-formal/test/AuditMerkleEmpty.lean",
+      "audit_sha256": "46617da35a798059033b0103aedca8b2b7cc5db428d7afd160ba2d1e662d563d",
+      "guards": 13,
+      "log": "/tmp/nearproof-MerkleEmpty-audit-checked.log"
+    }
+  ]
+}

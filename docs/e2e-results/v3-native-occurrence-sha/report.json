@@ -1,0 +1,25 @@
+{
+  "lane": "native-occurrence-sha",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeOccurrenceSha.lean",
+      "sha256": "4a5202ca534e7cff8a08cf778bd232d803413eee2d4ad37c6cd8c669de943254",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-occurrence-sha-NativeOccurrenceSha.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeOccurrenceSha.lean",
+      "sha256": "b0440ece2251b3149b9cbdbdfc06845b70d09707a4c2776a08c1093e50420a11",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-occurrence-sha-AuditNativeOccurrenceSha.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Joint actual native forest node/value bytes including duplicates bounded by accepted native preBytes. Short-message overhead and updated post coverage open.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
