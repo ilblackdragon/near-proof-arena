@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualStateReplay strict PASS, five exact guards. Actual converted
+coordinates equate replay writes and model grants. entries_state proves whole
+model entry-loop final state equals sequential replay fold; entries_events
+carries updated states/clocks and equates complete emitted event list.
+model_loop_verify proves sequential verifier time/event checks succeed on actual
+model output and return exact final state. Valid pointers and initial allowance
+shape remain inputs discharged by existing lemmas at integration. This auxiliary
+verifier does not yet cover actual suffix memory logs, used flags, push accounting
+or outer-round wiring. Full suffix/integration/certificate/prover/judge remain
+open. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged.
+Prior46d43965 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualAllowanceShape/ProcActualEntryAgreement strict PASS,
 11exactguards. Allowance-array size preserved by model grant, entry, entry loop,
 round and complete corrected process; actual initialization supplies size.

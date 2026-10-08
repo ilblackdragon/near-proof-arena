@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Successful model entry loop yields sequential replay with exact final state/events and successful time/event checks. Auxiliary verifier excludes memory, used flags, push logs and outer-round wiring; full generator remains open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualStateReplay.lean",
+      "sha256": "db6a2800a64cca12ca4bfc56456d8d2b2a8d92b7ac1845fc8d7f42b0fa881dbe",
+      "audit": "zk-formal/test/AuditProcActualStateReplay.lean",
+      "audit_sha256": "6b29b1fc28cc8b31155efec44cfa27791226199822a9bdf7cf8289aa0465db2f",
+      "guards": 5
+    }
+  ]
+}
