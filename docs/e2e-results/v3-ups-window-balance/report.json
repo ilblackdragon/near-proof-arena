@@ -1,0 +1,46 @@
+{
+  "lane": "ups-window-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWindowPatchedTraffic.lean",
+      "sha256": "1fec3c82f64b831ce4c493da8b51aa374fc0b2b03ed17f295aa3cb8d17b1c1b6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-balance-UpsWindowPatchedTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWindowRanks.lean",
+      "sha256": "d0517c13121ab8c36fd987d32b0cd3f6e267eb3093531aed0834fe450ea39414",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-balance-UpsWindowRanks.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWindowMessages.lean",
+      "sha256": "c3cb0eae23d867882ec26cb3d1f0e70329e6008f02bafe9e5d0cf4bc5c284fc1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-balance-UpsWindowMessages.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWindowBalance.lean",
+      "sha256": "1211de2ca84ba830307101f28b34f70a4de6c68effeabf290a089eef42825eae",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-balance-UpsWindowBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsWindowBalance.lean",
+      "sha256": "c63a1fefa7e5ef16356155ea3e493d6126d05a76b7903486b973d6e8115fa4ea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-balance-AuditUpsWindowBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules13 guards. Actual patched physical UPB counts use per-key prefix ranks and balance against zero/terminal counters. Provider key uniqueness and generated-reader coverage remain explicit.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -6,6 +6,31 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independently verified receipt-deposit-complete-pairs PASS7modules19
+exact guards. All39 corrected candidate DEP equations now hold on SAME actual
+receipt row pairs; account/previous-version maps explicit. Physical transport and
+composition with842 remain. Candidate842/881 and original832/881 unchanged.
+
+Independent ups-window-balance PASS4modules13 guards: executable prefix-ranked
+physical requests balance exact zero/terminal provider counters, preserving repeated
+reads. Provider-key Nodup and generated-row coverage remain explicit and active.
+PackedShaFacts PASS1guard transfers semantic SHA facts to the SAME packed physical
+union via exact counts; no independent SHA oracle assumed.
+
+Independent process-previous-state-regression PASS1module12 guards exposes a real
+model coverage mismatch: actual Scheduler.run accepts decoded prior records with a
+foreign sender and initializes allowances using ID lookup/last-write wins; positional
+a0Src gives a different output allowance. Exact native/model output prefixes checked.
+This fixture is not a full checkD0a witness. Agent repairing candidate model input,
+without narrowing native domain or changing authenticated prior bytes. Earlier model
+existence theorem retains its explicit native-process premise and cannot discharge
+accepted scheduler linkage until this mismatch is repaired.
+
+Fixed-height10/19, full certificate/prover/real judge/general NEAR unfinished.
+Checks use prebuilt dependencies. Three agents continue in parallel. Commitb744c3b0
+push failed because github.com DNS cannot resolve; retry after new checkpoint.
+
+
 2026-10-08: SchedulerShaSplit/SchedulerPhysicalShaSplit/
 RebasedCompactPackedAllocation strict PASS8 exact guards. SAME chosen native replay
 forest/us now supplies exact allocated compact instances, compact TableLocal and

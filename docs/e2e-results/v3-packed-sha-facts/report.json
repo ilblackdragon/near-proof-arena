@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Semantic ShaFacts for SAME physical packed SHA union, transported through exact send/receive counts. Valid whole-job bins remain premise. Prebuilt dependencies, not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PackedShaFacts.lean",
+      "sha256": "130c3c4473845a07afcea0a11746fe4696da559927ae78123a7af27b666134e4",
+      "audit": "zk-formal/test/AuditPackedShaFacts.lean",
+      "audit_sha256": "416f83c61a160da5ed4920ad577dd76d0b6fb93f1a7bf8367e410aab5c71f9c8",
+      "guards": 1
+    }
+  ]
+}
