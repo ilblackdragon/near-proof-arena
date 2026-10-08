@@ -6,6 +6,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeQueueOwnership strictPASS4guards proves native main queue key
+tags disjoint from account/access keys, and every actual main queue provider VID
+lies in exact residual after both account writes and selected access providers.
+Complete byte partition and implicit forest ownership remain. Independent query
+FINAL2modules7guards equates whole ranked physical lookup results with SAME
+native query list, preserving absence/global VID offsets; consumer joins open.
+Scheduler moved split5modules9guards closes full physical LSb/ESl0 digest payload
+against actual fresh0/moved1 jobs; serialized header derived, no added width
+premise. Other split cases and aggregate equation remain.20guards this checkpoint.
+Pin check PASS. Prebuilt dependencies only; full certificate/prover/judge pending.
+Receipt882/882, integrated10/19. Prior d061c3b5 push failed DNS; local recovery
+bundle retained. Strongest allocation remains NativeCounterAllocation.
+
+
 2026-10-08: NativeQueueBytes strictPASS2 exact guards. SAME accepted MainValues
 actual queue parser byte packets are a permutation of a sublist of original and
 implicit forest value requests; packet counts bounded by actual physical
