@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Any accepting corrected logical trace yields extraction-only old-counter trace, preserving every non-SIZE expression/message. Established source extraction yields nonempty blocks within original height and exact submitted non-SIZE traffic. No old-counter byte bound claimed; corrected SIZE sound extraction and physical sound reassembly remain open. Strict checks use prebuilt dependencies; not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceSoundShadow.lean",
+      "sha256": "17a0a779bf0eb682f4812d50f1ecde7584b91593eaa1d41fd3374bba564b8d12",
+      "audit": "zk-formal/test/AuditUniqueSourceSoundShadow.lean",
+      "audit_sha256": "509f2d87100f9d07d9d9b3a8aea16d541b9c863088cc8884d841b4c10e9bce2f",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceSoundSemantic.lean",
+      "sha256": "120a6548b1fb5fe22f5ba65a128e4c2b20e108acc0a3f4558cc9c8bafc685e78",
+      "audit": "zk-formal/test/AuditUniqueSourceSoundSemantic.lean",
+      "audit_sha256": "f054d88cdb0ff931196218c84643d061b94a77c60cbbb2c7464f909f39a0913b",
+      "guards": 4
+    }
+  ]
+}

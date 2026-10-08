@@ -6,6 +6,31 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Corrected source SOUND semantic extraction bridge strict PASS9
+exact guards (UniqueSourceSoundShadow/SoundSemantic). Any accepting corrected
+logical table yields an extraction-only trace with old accumulator reconstructed
+by field recursion. All other columns/selectors preserved; old full TableLocal
+recovered by kernel-checked constraint coverage. NO old-counter byte budget is
+claimed. Every non-SIZE row/message is unchanged. Established block extraction
+now yields a nonempty semantic chain within submitted height, with EXACT actual
+submitted non-SIZE traffic. Remaining: corrected SIZE sound bound/unique dictionary
+without fillers, four-part physical sound reassembly and active family swap.
+
+Provider audit found a REAL mismatch in new NativeLookupTree constructor:
+extension mismatch reused leaf path terminal EDGE destination (nid,key.length),
+while actual extension provider uses (viewTarget child,0). Local rows/chain and
+WalkWf proofs did not detect provider mismatch. receipt_gap is repairing exact
+constructor/checked APIs and regression; provider completeness NOT claimed.
+Native account local WalkWf<=132 remains a local result, not an assembled proof.
+Scheduler agent now proving actual Gen.run fields/empty-raw behavior before
+nonempty replay invariants; receipt agent continues remaining key equations.
+
+Receipt753/881; selected fixed-height10/19. Corrected source4/4 local/traffic/carry
+and native completeness budget verified separately. Full certificate, clean build,
+prover, judge and general NEAR incomplete. Strict checks use prebuilt dependencies.
+Prior4796385d push failed GitHub DNS; retry after checkpoint; verified bundle.
+
+
 2026-10-08: Corrected source NATIVE budget linkage strict PASS7 exact guards.
 UniqueSourceNativeBudget.compiled_charges binds actual blocks to first native
 entries. First-occurrence order is handled by exact last-wins permutation before
