@@ -6,6 +6,18 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+GIT CHECKPOINT SUCCESS (2026-10-08): proof commit3760d4f9 contains653 files/
+46788 inserted lines on codex/near-state-proof-20261008 in writable alternate
+Git store /tmp/nearproof-checkpoint-20261008.git. Original .git/main untouched.
+Push attempted and FAILED: Could not resolve host github.com. Verified portable
+bundle checkpoints/near-state-proof-20261008.bundle requires existing20ff8369 base.
+Use explicit --git-dir/--work-tree for subsequent checkpoint commits; original
+plain git status still reports untracked files. Do not mistake this for lost work.
+All agent freezes released; resumed native token ledger, Codec SPAR inventory,
+and source22 honest traffic. Root next: arbitrary accepted four-way joined source
+extraction and final candidate family/global isolation. Commit is progress only.
+
+
 2026-10-08 additional checked closure: SourceLog22Local/Extract bring root source
 candidate to20 exact guards, including honest middle TableLocal and arbitrary
 accepted middle recovery of original source constraints over Fp. Agent
