@@ -1,3 +1,16 @@
+2026-10-08: NativeAccountTrace strict PASS2 exact axiom guards constructs actual
+AccountEmpty trace (including empty case) from empty-or-AcctWf views, <=8192
+accounts and pre bytes<256. Derives renderer requirements and full TableLocal /
+TableTraffic; removes need to assume account traffic once composed. Not yet
+composed into NativeReceiptDigestAllocation. Uses prebuilt dependencies, not clean
+certificate. Report: docs/e2e-results/v3-native-account-trace/report.json.
+Trie shape cost confirmed: actual extension/branch paths, serialized occurrences,
+rebuilt output parts and repeated accesses charged. No measured runtime claim.
+LATEST full four-stage linear parser proposal EVALUATES to 8,414,100 bytes,
+25,492 OVER 8MiB; kernel size certification still pending. Old 8,378,132 size
+excludes final parser joins. Integrated10/19, receipt882/882; full prover and judge
+remain open. Agents continue scheduler digest, native account binding and budget.
+
 # NEAR Proof Arena — handover (2026-10-07)
 
 This is for the next lead agent. Read this first, then the two lane status files named in §3 and §4.

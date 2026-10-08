@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual AccountEmpty trace constructed from empty or well-formed account views, explicit cardinality and pre-byte bounds. Both local constraints and complete traffic proved. Strict build and exact guards use prebuilt dependencies; not a clean full-source certificate or end-to-end prover",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccountTrace.lean",
+      "sha256": "0cc2fa19a3d295660236ace650c6147f110266b3098b329fff8177d1ce45324d",
+      "audit": "zk-formal/test/AuditNativeAccountTrace.lean",
+      "audit_sha256": "9595c129138171f170982d2244a7e7d3575be619006082a63923971183eeb77c",
+      "guards": 2
+    }
+  ]
+}
