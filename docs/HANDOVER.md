@@ -6,6 +6,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeQueuePartition strictPASS4guards proves exact original queue
+provider ID permutation within non-account/non-access residual, payload byte
+inventory and explicit remaining-ID byte partition. Composes with actual physical
+access-key sends. Queue term is still provider messages; physical full-forest
+queue traffic and implicit-state partition remain. Independent native query
+KEYNIB2modules6guards equates whole ranked lookup key demand with SAME successful
+query list including END/last flags, repetitions and absence. Consumer joins open.
+Codec grid1module10guards proves all19 added constraints on computed native
+record projection. Original constraints and imperative generator indexing remain;
+not full TableLocal.20guards checked. Pin check PASS. All prebuilt dependencies;
+full certificate/prover/judge pending. Prior1a5684c1 push failed DNS; verified
+local bundle retained. Receipt882/882; integrated10/19; goal active.
+
+
 2026-10-08: NativeQueueOwnership strictPASS4guards proves native main queue key
 tags disjoint from account/access keys, and every actual main queue provider VID
 lies in exact residual after both account writes and selected access providers.

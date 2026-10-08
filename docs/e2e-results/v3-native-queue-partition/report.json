@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact original queue provider IDs permute filtered residual after account/access ownership. Original provider byte inventory and residual count partition proved, composed with physical access-key sends. Full physical queue forest traffic and implicit-state partition remain. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueuePartition.lean",
+      "sha256": "52c7a3c247dc887344003e87f9228b474cb001279251ede1ae2a464260c364e7",
+      "audit": "zk-formal/test/AuditNativeQueuePartition.lean",
+      "audit_sha256": "06dfe1def2f5759174dae6f7f2698de8a6e28efd697136a46b11a5e79a2ff50d",
+      "guards": 4
+    }
+  ]
+}
