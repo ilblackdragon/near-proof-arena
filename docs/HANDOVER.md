@@ -19,6 +19,24 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeClosedAccountAllocation strictPASS8 exact guards across8 root
+modules retains exact native write keys through chosen origins, accepted physical
+window coverage, shared UPB/EDGE/BMAP conservation, native SHA bins and combined
+receipt/public proof. Actual account SHA digest multiset equals SAME final-node
+VPOST requests and cancels them from the physical DIGEST equation. Only scheduler
+expected digests remain on RHS; no account list/Wf/byte/count/activation premise
+added. Actual public refund BYTES receive retained.
+Independent native keys+accepted VPOST4modules4guards and native memory versions/
+last writes2modules7guards PASS (19guards total). Exact native keys are essential:
+final-state equality cannot rule out extra same-value writes. Upstream Keys APIs
+retain evidence rather than infer it. Remaining account MEM/VSLOT/VBYTES global
+conservation is explicit; account DIGEST contribution is now closed.
+Receipt882/882, integrated10/19. Full prover, clean certificate and judge pending.
+Pg3 candidate evaluates8,231,316; generic traffic/local transport checked, concrete
+kernel size certificate still pending. Priorfe85686a push DNS failed; retry and
+verified recovery bundle maintained.
+
+
 2026-10-08: NativeConstructedPublicAllocation strictPASS10guards across5 root
 modules binds refund byte stream to actual native outgoing receipt encodings,
 prepared body after8-byte prefix and normalized public descriptor BYTES receive.

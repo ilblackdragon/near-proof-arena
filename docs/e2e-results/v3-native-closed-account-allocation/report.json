@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact native write keys retained through original replay, accepted origins, physical window coverage, shared UPB/EDGE/BMAP balance, native fourSHA allocation and receipt/public byte composition. Actual original-ID account SHA digests match SAME final node VPOST multiset and cancel from global DIGEST equation, leaving only scheduler expected digests. No added account construction or write-key premise. MEM/VSLOT/VBYTES and full global family/judge remain. Strict audits use prebuilt dependencies, not clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeOriginWriteKeys.lean",
+      "sha256": "3645f9994f644d3ee5d3f7a661ee979f44b3e4353687b44468e32b2f4e55576a",
+      "audit": "zk-formal/test/AuditNativeOriginWriteKeys.lean",
+      "audit_sha256": "40f1ce8e49ef408913f0fc2b6e003e1f00b601abd5fc681c4cc7740da1479109",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/AcceptedOriginWriteKeys.lean",
+      "sha256": "e59a0aa8d7d980b7713fef9b81a45855bd390ad52d53e9a2fe086d1d46f9d881",
+      "audit": "zk-formal/test/AuditAcceptedOriginWriteKeys.lean",
+      "audit_sha256": "59bef3456b7c9b28102bb64f1ee221a57c576385715e75d67e908ae15d62380a",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/AcceptedWindowWriteKeys.lean",
+      "sha256": "c68a16b185a82ea1e8bed234830033314c6a6894a6f2a1cd7c4d220a2a68021c",
+      "audit": "zk-formal/test/AuditAcceptedWindowWriteKeys.lean",
+      "audit_sha256": "07bfad6b0e6459ac0089a0e0889413b2dc92ddb0e4d4bee4c9d5502411ddb64c",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/AcceptedSharedWriteKeys.lean",
+      "sha256": "d291bf50af65a8b4302ec3681e2d0c46969289a727ddf017ea46b4f558139a25",
+      "audit": "zk-formal/test/AuditAcceptedSharedWriteKeys.lean",
+      "audit_sha256": "16f882cf0fbd552e28341751ea17954175b29ac56220b14fcb1c154af187ade9",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedValueWriteKeys.lean",
+      "sha256": "f178ebff3f41e4377a1856970b7f0da384024ef9cd687b29f46d7447ed48bf1a",
+      "audit": "zk-formal/test/AuditRebasedValueWriteKeys.lean",
+      "audit_sha256": "d1d75e2a99c9cb9a86b46273b0a7816f417a5fbc71f71a6c00827c166c4634d5",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptWriteKeys.lean",
+      "sha256": "67b5eb59123c5d5855d60c0e3820e0395d0ce9a97ff8f76dcb7677a09f876652",
+      "audit": "zk-formal/test/AuditNativeReceiptWriteKeys.lean",
+      "audit_sha256": "6e3b14489da89326114fcd0fbd099618c07d35469ff1d56cd4f9ef9427080424",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptAccountBalance.lean",
+      "sha256": "418846b0ce76dce629f7eebd7bfa5962cb14d530cfdda54aee5e6026136dfd13",
+      "audit": "zk-formal/test/AuditNativeReceiptAccountBalance.lean",
+      "audit_sha256": "8366bedd559f9afed68ca3557d676b913cf7005a2b0c9b6550143157c25866e5",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeClosedAccountAllocation.lean",
+      "sha256": "c280323c77970cd053353646a65c1b36ca9cf47c2e26cdd66cc4b2064b5a3c8e",
+      "audit": "zk-formal/test/AuditNativeClosedAccountAllocation.lean",
+      "audit_sha256": "96bb1b9beb50981cbd8a35de1f1034605fdbcddaaec122d72d2c77b260e7ec41",
+      "guards": 1
+    }
+  ]
+}

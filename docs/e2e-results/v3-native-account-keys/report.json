@@ -1,0 +1,46 @@
+{
+  "lane": "native-account-keys",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeExecutionRebasedKeys.lean",
+      "sha256": "b78ab68d9acff0fcb3891217acd845e0477f7329b0e5344e134cce18e20654ee",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-keys-NativeExecutionRebasedKeys.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedUpsertKeys.lean",
+      "sha256": "6743289b2265ab40016d41cc82a85d2a6177297018a64c6223f4c6e39a509dd9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-keys-NativeRebasedUpsertKeys.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedPhysicalKeys.lean",
+      "sha256": "58386f460ec8d1abd1b7e4cfee5355e8ae9c408c8d5a82278e692c11529a4adb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-keys-NativeRebasedPhysicalKeys.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedNativeAccountDigest.lean",
+      "sha256": "1b307849f80df5b90dcf38efb14949fad8e31827b9869e85177ce21d802d94d9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-keys-AcceptedNativeAccountDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAcceptedNativeAccountDigest.lean",
+      "sha256": "d96b07dcc9820bd118a166061544d497fa45b1f98984c755fd67c67cd0bc4475",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-keys-AuditAcceptedNativeAccountDigest.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules4guards. Actual native write keys retained through replay payloads, upsert list and physical bounds. Native same-replay account VPOST wrapper discharges keyed read/payload premises while requiring exact native keys explicitly.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
