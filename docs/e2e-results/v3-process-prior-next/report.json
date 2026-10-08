@@ -1,0 +1,32 @@
+{
+  "lane": "process-prior-next",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRowNext.lean",
+      "sha256": "8914e2031a9a09b99b5103d9b79d1492484af0396b8ec8a74ca64f55d65cfe0e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-next-ProcPriorRowNext.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorEventNext.lean",
+      "sha256": "55fc0ecdf44330e92dbe928d915be867a6e95b147bd2ae51473d62fa9c08d6a5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-next-ProcPriorEventNext.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorNext.lean",
+      "sha256": "082b8c33409faa54c5e8606979cd81f0eee3549debcb987e729f6620d1f8abcf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-next-AuditProcPriorNext.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules8 guards. Native row successor carry/reset, unique sorted events, queries end groups and same-link stamps strictly increase.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

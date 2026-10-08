@@ -1,0 +1,25 @@
+{
+  "lane": "accepted-replay-shared",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedReplaySharedBalance.lean",
+      "sha256": "c61dcf0a4fe38d9f7a598cd79f05b857efa1480631ecacc34a8542f4af066203",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-replay-shared-AcceptedReplaySharedBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAcceptedReplaySharedBalance.lean",
+      "sha256": "4350e61451ccb59b71a63f9d177dcd6bb188582674005501cb6dc9b8a1c01be0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-replay-shared-AuditAcceptedReplaySharedBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module1 guard. SAME accepted allocation, retained native v.Valid/Reads, all three EDGE/BMAP/UPB balances; corrected replay oldPost HEAD traffic is renderer interface.",
+  "exact_axiom_guards": 1,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

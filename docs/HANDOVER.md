@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: RebasedSharedAllocation strictPASS1 exact guard combines SAME actual
+accepted query/native allocation with retained v.Valid/Reads, full EDGE/BMAP/UPB
+conservation, fourpacked SHA local/ShaFacts and exact byte/digest inventory.
+Correct replay HEAD interface uses receipt oldPost (implicit unchanged pre),
+not final scheduler root. Physical HEAD renderer remains an explicit interface;
+fresh codec/sanity/receipt byte residuals remain. No independent witnesses mixed.
+Independent accepted-replay-shared PASS1guard supports corrected composition.
+
+FusedReceiptMemory strictPASS1guard derives SAME actual fused receipt views,
+semantic Wf and all-bus traffic from public ranges and actual fused MEM receive
+stream version bound. Component count<=fused count proven via exact split sum.
+Independent MemoryVersion+MemoryProviders PASS8guards further reduce bound to
+actual account/receipt provider-count domination, without circular Wf assumption.
+Agent pursuing global sender inventory/exclusion and public admission next.
+Independent prior-next PASS2modules8guards supplies native adjacency/order/carry.
+
+Integrated10/19 retained. Gated proposal8,313,300 excludes remaining scheduler
+parser/ID repairs. Full certificate/prover/judge/general NEAR still incomplete.
+Three agents active. Prioreb89a2bd push failed DNS; retry verified bundle.
+
+
 2026-10-08: FusedReceiptTraffic strictPASS3 exact guards locates repaired receipt
 inside actual GatedMemoryFusion selected inventory, projects fused local trace,
 and extracts SAME receipt ListChain/views/all-bus TableTraffic. Every shifted

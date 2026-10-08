@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME native read-valid query allocation and correct replay HEAD interface combine EDGE/BMAP/UPB and fourpacked SHA/facts/byte/digest inventories. HEAD renderer and fresh/sanity/receipt residuals remain. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedSharedAllocation.lean",
+      "sha256": "b1f3ad0af59e1954d2ade0d920828f9c8c1ea4d3e65bdadebfe0f09d16ad59fb",
+      "audit": "zk-formal/test/AuditRebasedSharedAllocation.lean",
+      "audit_sha256": "a3172b524afe20896d89c73d088171073947ffecf9c6ceec3b4e53a206b4193d",
+      "guards": 1
+    }
+  ]
+}
