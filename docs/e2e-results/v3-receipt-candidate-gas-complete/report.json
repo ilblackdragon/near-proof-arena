@@ -1,0 +1,109 @@
+{
+  "lane": "receipt-candidate-gas-complete",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGasDelayCommute.lean",
+      "sha256": "48a08823490c70a36b43cf6e473bb4f8537245fb19bcf9e720cf3e7cc9c2d7a7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-RcptCandidateGasDelayCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasProductCommute.lean",
+      "sha256": "522fa7e9dd801d0cda74059206dfbb614f5a86c2606769612a54dd22e92a6c61",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-RcptGasProductCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasCandidateCommute.lean",
+      "sha256": "22bf70befd719ffebdf0d8090e6d61a755f8a907989110093cb8ae206b927545",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-RcptGasCandidateCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGasDelayNativeComplete.lean",
+      "sha256": "5c6432150a94eda91c72b44d6e257c038b4f830eb34f686ccc1ac72a2894f36d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-RcptCandidateGasDelayNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGasFlagNativeComplete.lean",
+      "sha256": "c33341489ca9910aabecf92beaf9741f7269ed6d12b6a2ec5656ae27fd52e65c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-RcptCandidateGasFlagNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGasTokenNativeComplete.lean",
+      "sha256": "f56f250508cbb97c092919c76f953733d874d60ddc3c2f6b4be54dd2258d2256",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-RcptCandidateGasTokenNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGasProductNativeComplete.lean",
+      "sha256": "d9c8821ce8a0288c13f8f5052fe08fc4bb21b4b1adec023d0fc658e4d08231a4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-RcptCandidateGasProductNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGasDelayCommute.lean",
+      "sha256": "e757ac6baec07e5cee2582840fe0f6368a709aa32c2e9c902eb0c7f0db53d940",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-AuditRcptCandidateGasDelayCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasProductCommute.lean",
+      "sha256": "4be0ed335d686cc601d9ccc137d1e099b80a2fffea7b621999d932c94c195ac3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-AuditRcptGasProductCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasCandidateCommute.lean",
+      "sha256": "daabad4d53e143c05ca66fe761b4d700d066ca4829185f247bb3e05c71eb5dfa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-AuditRcptGasCandidateCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGasDelayNativeComplete.lean",
+      "sha256": "71b62088a647821ab61bd317717b462583eb82ca1a5425afa9ea3e5d81975b37",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-AuditRcptCandidateGasDelayNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGasFlagNativeComplete.lean",
+      "sha256": "82657e95c788bd78c6a50b8964027fdc97a816342e41b42c0c6589f8469f572e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-AuditRcptCandidateGasFlagNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGasTokenNativeComplete.lean",
+      "sha256": "795170acf92e921b747f9deb70e1d79881d3bb16debce68f133cec2f220389d0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-AuditRcptCandidateGasTokenNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGasProductNativeComplete.lean",
+      "sha256": "07030cfa74523508244d5b52feb9df2039a41dd3d30a96c06a3e11a15e3933c8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-gas-complete-AuditRcptCandidateGasProductNativeComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Seven modules32 guards. SAME physical mixed log22 receipt trace satisfies842/881 candidate equations, including ALL40 corrected systemGasConstraints and previous802 nongas constraints. Deposit39 remains. Original832/881 kept separate.",
+  "exact_axiom_guards": 32,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

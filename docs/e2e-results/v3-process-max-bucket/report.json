@@ -1,0 +1,39 @@
+{
+  "lane": "process-max-bucket",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPendingTime.lean",
+      "sha256": "138e4b739bc93210def2c8693445c325441c5566582a52a61603f1398a0ea802",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-max-bucket-ProcPendingTime.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcMaxBucket.lean",
+      "sha256": "023c4180550d93c6e1eb46def81e7be2b5aca28920df6e59433cb9990c6e001b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-max-bucket-ProcMaxBucket.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelTime.lean",
+      "sha256": "7a0be8f4bb19b6bff5107d9dd340f11dc392e9588ed96d2b8f338827556c7a66",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-max-bucket-ProcModelTime.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcMaxBucket.lean",
+      "sha256": "e797b326b5f7190dc868fc789d8827cd32e36091187673f0908d883ee01fc635",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-max-bucket-AuditProcMaxBucket.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules11 guards. Successful model pending timestamps increase, sortTs identity, native maximal bucket/dropLast matches model selection/filter remainder. Forward guard success/model existence remains.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

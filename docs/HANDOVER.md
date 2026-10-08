@@ -6,6 +6,35 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: AcceptedSourceShaContract/NativeSourcePackedAllocation/
+NativeSourceShaTraffic strict PASS3 exact guards. Source8932712-row total, <=35 per
+job and byte ranges now derived from SAME accepted witness/prepared inputs with
+original duplicate accounting. Both native/source contracts feed executable four
+packed log22 SHA tables; scheduler/receipt contracts remain explicit. Exact physical
+byte sends from actual four original source partitions equal source SHA jobs,
+including overlap suppression and duplicate semantics. Remaining global balance open.
+
+Independent receipt-gas-product-delay PASS8modules21guards plus candidate-gas-complete
+PASS7modules32guards: SAME physical mixed log22 trace now satisfies842/881 CANDIDATE
+equations, including full corrected40 systemGasConstraints and802 other equations.
+Actual native burn/refund bounds, headers/endpoints/padding covered. Only deposit39
+remains in this candidate constraint list. ORIGINAL coverage stays832/881: repaired
+candidate gas equations must not be counted as proofs of the obstructed originals.
+Candidate full table/soundness/degree/profile integration also remains separate.
+
+Independent native-rebased-depths PASS1module4guards and native-reader-old-post
+PASS2modules3guards: indexed actual source sN selects ORIGINAL updated provider,
+its post bytes equal reader pb, and occurrence depth is preserved. Remaining reader
+pdep equality, initialized child-id transfer and full UPB balance remain active.
+Independent process-max-bucket PASS3modules11guards matches actual native maximal
+bucket/dropLast to successful model selection, with timestamp sorting derived.
+Native forward model existence/guards and RNG capacity remain open.
+
+Fixed-height10/19 unchanged. Full global certificate/prover/real judge/general NEAR
+unfinished. Reviews use prebuilt dependencies, not clean certificate. Three agents
+continue. Priorc9d0bdda push failed GitHub DNS; retry after checkpoint/bundle.
+
+
 2026-10-08: FourPackedSha/NativePackedAllocation strict PASS4 exact guards.
 Executable allocator now supplies exactly four packed log22 local SHA tables and
 exact byte/digest counts from physical family row budgets and byte ranges. Complete

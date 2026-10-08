@@ -1,0 +1,25 @@
+{
+  "lane": "native-rebased-depths",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedDepths.lean",
+      "sha256": "1f847c353982a099905bc7fcd5051929f7b708399d0860702caad7c8901d6826",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-depths-NativeRebasedDepths.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeRebasedDepths.lean",
+      "sha256": "df0aae134045b3e7be38578269a30c34b01fdaceb91b38f5c7507537cd5de20e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-depths-AuditNativeRebasedDepths.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4 guards. Actual valid replay forest preserves occurrence depths; indexed rebased seed depth transfers to original updated record at same index. Generated part depth still separate.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
