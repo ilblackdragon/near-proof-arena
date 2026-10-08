@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: MILESTONE: independent receipt-candidate-native-complete PASS3modules22
+exact guards. booleanReceiptTrace_native_candidate_complete proves ALL881 repaired
+candidate receipt equations on ONE physical log22 trace, using same actual native
+execution/account ledger and bounded earlier-receiver versions. Exact list length881
+kernel checked. Candidate coverage now881/881; original832/881 remains separate.
+Candidate TableLocal multiplicity/height packaging, soundness/degree/profile/install,
+global digest/account ownership and full assembly are NOT proved by this milestone.
+D0a/named-input hypotheses remain explicit; no general NEAR replacement claim.
+
+RebasedRequestedAllocation strict PASS1guard removes externally supplied window
+request list/capacity: chooses request multiset from SAME allocated compact instances,
+derives field bound, assigns original updated node counters and ranks compact reads.
+Full accepted four-packed-SHA composition/local compact legality preserved. Native
+reader coverage and fresh/sanity/receipt physical producers remain open.
+Independent process-prior-winner PASS5guards proves exact original last matching
+record/no-later-match/absence semantics. Raw prior parser/lookup AIR work active.
+
+Fixed-height10/19 unchanged. Full certificate/prover/real judge/general NEAR
+unfinished. Checks use prebuilt dependencies. Three agents continue; prior37a182bd
+push failed DNS; retry after checkpoint and verified recovery bundle.
+
+
 2026-10-08: PhysicalWindowBalance strict PASS4 exact guards. Actual node table
 zero sends/terminal receives and prefix-ranked compact UPS reads conserve UPB
 exactly. Concrete constructor chooses BOTH counter sets from SAME physical read

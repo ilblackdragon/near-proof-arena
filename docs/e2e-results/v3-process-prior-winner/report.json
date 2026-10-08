@@ -1,0 +1,25 @@
+{
+  "lane": "process-prior-winner",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorWinner.lean",
+      "sha256": "9844845758068d1c89e07e4f17c6e84b564d915e9b5237408e8a1222a61514d9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-winner-ProcPriorWinner.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorWinner.lean",
+      "sha256": "b985b53750c0f8246413e407598127a2cab2656fa583a89ba8563167ec09745d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-winner-AuditProcPriorWinner.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module5 exact guards. Native allowance equals last matching original record; winner belongs to original records and no later record matches, absent winner iff no match. Parser/lookup AIR remains.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

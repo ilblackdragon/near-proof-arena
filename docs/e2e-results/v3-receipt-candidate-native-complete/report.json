@@ -1,0 +1,53 @@
+{
+  "lane": "receipt-candidate-native-complete",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositFinalCommute.lean",
+      "sha256": "f27f5db33978e07d6c20859f83066174c671b58c33f299257a307026fefe3b51",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-native-complete-RcptDepositFinalCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositGlobalCommute.lean",
+      "sha256": "3d9eb5e6e1a9a592910a37ef25660e787ab8216363d6ba7a5cf0cd8150c28d7d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-native-complete-RcptDepositGlobalCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateNativeComplete.lean",
+      "sha256": "6e293d4ea697d70a8f3b5215da0a19f32217ffc0ffa33cbffb8709113690ae8f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-native-complete-RcptCandidateNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositFinalCommute.lean",
+      "sha256": "e76f70ba6f506d97415c9e21c5217994273e0b7fdc3db8e06a2d7c039efde0ca",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-native-complete-AuditRcptDepositFinalCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositGlobalCommute.lean",
+      "sha256": "cafca2c7e289b5c1169c3a9401b9ef51032ee65d412263e45cf3adaf6d1c8a64",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-native-complete-AuditRcptDepositGlobalCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateNativeComplete.lean",
+      "sha256": "c6fb5389934996cb665a25a0e591c0588ca914086f295c94decabcc9be0b0d42",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-native-complete-AuditRcptCandidateNativeComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules22 exact guards. ALL881 corrected candidate receipt equations on SAME actual mixed physical log22 trace with native account ledger and bounded prior versions. 842+39 composition and exact881 count verified. Original832 separate. Candidate TableLocal bits/height packaging, soundness/degree/install and global ownership remain.",
+  "exact_axiom_guards": 22,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
