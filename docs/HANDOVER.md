@@ -6,6 +6,24 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: WindowPatchOtherTraffic/PatchedCompactAllocation strict PASS4 exact
+guards. Derived from compact TableLocal alone: every rd=1 row has mS=mK=mB=0.
+Therefore executable arbitrary reader-counter patch preserves EVERY non-UPB row
+message and table bus count, including SHA BYTES/DIGEST and walk EDGE/BMAP. SAME
+allocated physical log22 trace now combines compact local legality, scheduler
+node SHA byte inventory, exact non-UPB preservation and ranked UPB conservation.
+Provider-key uniqueness and generated-reader coverage remain explicit obligations;
+agent actively deriving them from original initialized native providers. Fresh
+codec/sanity/receipt producers and full global assembly remain open.
+
+Three agents continue: candidate deposit39 physical migration; native previous-state
+ID/last-write-wins model repair; generated UPS reader/provider coverage. Candidate
+842/881, original832/881, fixed-height10/19 unchanged. All39 deposit equations on
+actual row pairs proved, not yet globally integrated. Full certificate/prover/real
+judge/general NEAR incomplete. Strict checks use prebuilt dependencies. Prior
+commitecda045a push failed github.com DNS; retry after new checkpoint.
+
+
 2026-10-08: Independently verified receipt-deposit-complete-pairs PASS7modules19
 exact guards. All39 corrected candidate DEP equations now hold on SAME actual
 receipt row pairs; account/previous-version maps explicit. Physical transport and
