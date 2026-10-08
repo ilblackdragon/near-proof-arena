@@ -6,6 +6,23 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independent original-prior raw rows PASS3modules15guards (includes
+4 previously committed length regression guards) derives executable tagged byte
+stream and exact original (byte,position) inventory. Unknown and duplicate IDs
+remain in original order. This is honest raw inventory, not parser AIR legality.
+
+Independent native receipt outcomes PASS1module4guards derives exact ordered
+native outcome list from successful actual applyNewChunk execution, covering
+ordinary refunds and system receipts. Physical receipt leaf identity remains
+open; receipt agent continues field-position/byte transport to close it.
+
+Prior parser agent implementing candidate authenticated value-length relay;
+actual selection multiplicity, global ownership and final budget must be checked.
+No unproved space saving or length authentication assumed. Integrated10/19 and
+receipt882/882 retained; complete proof/certificate/real judge remain unfinished.
+Prior459514f4 push failed DNS; retry with verified recovery bundle.
+
+
 2026-10-08: Independent compact-root-traffic PASS5modules14 exact guards proves
 actual compact ROOT sends [tau+1]++post once per instance, no extra/padding sends,
 and no receives. Physical query-prefix ranking and window counter patch preserve

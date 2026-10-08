@@ -1,0 +1,39 @@
+{
+  "lane": "process-prior-raw-rows",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorLengthRegression.lean",
+      "sha256": "2e56ea9b4162c24191466402816056015f063d5d696185a5d23cd79737045613",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-rows-ProcPriorLengthRegression.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawRows.lean",
+      "sha256": "7113917c013edd427a216a1cd4b964923100aab7c18cb4796e313efcb7e4bab7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-rows-ProcPriorRawRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawPositions.lean",
+      "sha256": "a9b95085b57c1775ed3dde8f1f408ea6e34c1a7000f9deabfc36c54fc6e018fa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-rows-ProcPriorRawPositions.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRawRows.lean",
+      "sha256": "1acaa329dbda2fc863b5542c60e809818227120b76be61520560d62a85c1e447",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-rows-AuditProcPriorRawRows.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules15guards (four length-regression guards previously audited separately). Executable field-tagged byte rows preserve the full original decoded state encoding and exact byte-position inventory. AIR legality and authenticated length remain open.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
