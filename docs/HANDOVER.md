@@ -6,6 +6,31 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeEncodedBudget strict PASS4 exact guards. Original tagged native
+store charge equals actual witness payload plus four-byte record prefixes under
+transition-store alignment. Encoded witness<=8MiB implies store+source+fixed
+overhead<=8MiB using dictionary encoding lowerbound (unused entries allowed).
+Prepared public constructor derives exact natural overhead. Indexed native store
+lookup satisfies alignment from tree/transition count, without synthetic stores.
+Remaining: native source dictionary lowerbound and accepted forest/store binding,
+then connect to SizeChargeFields.native_valid; not a full native SIZE certificate.
+
+Independent native-ups-generated-traffic PASS8 guards. Actual generated value,
+part and padding rows send/receive no EDGE/BMAP; walk overlays reproduce wCell
+interaction messages; all generated recsI rows reduce exactly to four walk rows
+per instance at arbitrary global positions/next rows. Physical trace cell lookup
+and ups_render_traffic composition remain next, then native query constructors.
+
+Process agent reports kernel regression: consecutive empty-round generator runs
+with distinct seeds violate old cross-boundary key rotation. Gen.run success for
+both confirmed; full checkD0a reachability still open. Additive candidate gate
+correction under review; do not narrow accepted domain. Baseline single-instance
+proof remains scoped accurately. Receipt735/881; fixed-height10/19 unchanged.
+Full certificate, clean build, prover, real judge and general NEAR incomplete.
+Strict checks use prebuilt dependencies. Last5240b748 push failed DNS; retry after
+commit. Three agents continue; local bundle preserves verified checkpoints.
+
+
 2026-10-08: SizeChargeFields strict PASS7 exact guards. Actual SIZE node/value
 payload fields plus4*(nodeCount+valueCount) exactly equal patched chain store
 charge. Empty value markers contribute zero payload but retain record prefixes.

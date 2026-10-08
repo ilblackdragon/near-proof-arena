@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Original native store charge equals actual witness payload+record prefixes under transition alignment. Native encoded witness size limit pays store/source/overhead given dictionary encoding lowerbound; prepared public constructor derives exact overhead, and actual indexed store alignment follows transition count. Source dictionary lowerbound and accepted native forest correspondence remain integration obligations. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeEncodedBudget.lean",
+      "sha256": "3e768eaf2de10acab39f8ece8152ab481855a65f6ca7b9960c44d73f131901d9",
+      "audit": "zk-formal/test/AuditNativeEncodedBudget.lean",
+      "audit_sha256": "caf2d52a71bb1f929db75e438a34f8da1a9b45e75ddfe0fc2a55e4cad7e0a360",
+      "guards": 4
+    }
+  ]
+}

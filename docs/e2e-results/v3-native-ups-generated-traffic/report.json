@@ -1,0 +1,32 @@
+{
+  "lane": "native-ups-generated-traffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsSilentRows.lean",
+      "sha256": "6a254389542b546e614137544560aeabea06635a2ab8231a1b48a327aafd55b2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-generated-traffic-UpsSilentRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsGeneratedTraffic.lean",
+      "sha256": "65f2c01b48b46501a8e26f65bf1441563130f8738facfc4b50667a09ae048799",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-generated-traffic-UpsGeneratedTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsGeneratedTraffic.lean",
+      "sha256": "7900f5d37d4b2881dc3e5401bb9fe65d4901eb1f777d851039db8d7f979bf5e6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-generated-traffic-AuditUpsGeneratedTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual generated value/part/padding rows are silent on EDGE/BMAP, walk overlays equal wCell interactions, and every full generated recsI instance reduces to its four walk rows at arbitrary positions. Physical trace segment lookup and ups_render_traffic composition remain open.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
