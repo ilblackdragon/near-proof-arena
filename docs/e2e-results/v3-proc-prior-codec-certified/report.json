@@ -5,7 +5,7 @@
   "records": [
     {
       "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecActual.lean",
-      "sha256": "63c909723bc09e19c40f11d06dfd9f63cac58eb1de9519bf30b69b019e49d64d",
+      "sha256": "8ca582016100379455ad6c3fda5b1298d5c0f6c90a03379bb0a1219a798b1ec2",
       "audit": "zk-formal/test/AuditProcPriorCodecActual.lean",
       "audit_sha256": "a7297d612fdb1add146783acd6cfb1bdc227a6b4e3411c7b9e022cc0ff18204e",
       "guards": 3

@@ -6,6 +6,31 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeQueueIds/NativeQueueLookupBinding strictPASS13guards fixes
+queue renderer IDs to exact original forest occurrence offsets/local value slots,
+including implicit transition prestates. Concrete use counter is the number of
+PRECEDING uses of the same slot, not final provider total. Query paths invariant
+under resolver changes; SAME allocated MainValues and raw/ranked native lookup
+lists prove presence/absence and exact queue VID. QV physical table/provider
+construction and VBYTES/QVC conservation still open; no closure claim.
+
+Corrected actual Codec candidate recompiled with all5 kernel certification modules
+and31exact guards: receiver-zero off-gate constraint now additionally kR-gated,
+avoiding overlap with digest rows. Interactions/shapes/admission unchanged:
+size8,238,324; fpBound68,697,539,256; margins150,284 bytes and21,937,480 fingerprint.
+Previous source certificate is superseded by this corrected-source report.
+Native Codec generator diagnostic work ongoing; not included until stabilized.
+
+Independent AKC4modules11guards proves prefix ranks, physical uak override and
+actual receipt T0 packets; whole-table endpoint aggregation ongoing. Scheduler
+RDB4modules6guards and RBI5modules7guards close complete ordinary rebuilt and
+insertion digest payloads; SPB split layouts remain.68guards checked this checkpoint
+including31recertification guards. All checks use prebuilt dependencies; no clean
+full correctness certificate/prover/judge. Strongest joined theorem remains
+NativeMemoryAllocation. Receipt882/882, integrated10/19. Prior8ee19bc4 push DNS
+failed; local commits and verified recovery bundle retained.
+
+
 2026-10-08: REVISED CODEC actual-family structural certificate strictPASS31guards
 across7modules (2concrete definitions+5certification modules). Actual pg3 fused
 shape3402/90/7/90/log22, auxdegree8; full sizeMaxDedup=8,238,324,150,284 below8MiB.

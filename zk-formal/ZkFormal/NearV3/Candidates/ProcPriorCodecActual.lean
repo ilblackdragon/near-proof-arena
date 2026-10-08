@@ -26,7 +26,8 @@ def additions : List Expr:=
   [.mul (c ehp) (n srcC),.mul (c ehp) (n useC),
    .mul (c rs) (sub (c kidx) (.add (.mul (c srcC) (c nn)) (c useC)))] ++
   (isZ (c rs) (sub (c useC) (sub (c nn) (k 1))) ib hasC).take 2 ++
-  isZ (c rs) (c useC) ig2 nzb ++
+  (isZ (c rs) (c useC) ig2 nzb).take 2 ++
+  [.mul (c kR) (.mul (notE (c rs)) (c nzb))] ++
   [mul3 (c rend) (notE (c ekl)) (sub (n srcC) (.add (c srcC) (c hasC))),
    mul3 (c rend) (notE (c ekl)) (sub (n useC) (.mul (notE (c hasC)) (.add (c useC) (k 1)))),
    .mul (c fA) (c bpre),

@@ -1,0 +1,60 @@
+{
+  "lane": "native-access-key-ranks",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyRanks.lean",
+      "sha256": "6f00b20f4a36604473d07e5cc6a7d539acf870bb6dcb8114e767e8a2b5ecd317",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-ranks-NativeAccessKeyRanks.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyRankAux.lean",
+      "sha256": "b67ffc6da891c21c3098ace72303beb391030edac87e9cf6562a5f467399e4df",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-ranks-NativeAccessKeyRankAux.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyGateCells.lean",
+      "sha256": "273aa8671d588f63293ca48981f76d2503fd799aa713ea5c4eb0d94b5e2925f9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-ranks-NativeAccessKeyGateCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessKeyPhysicalRow.lean",
+      "sha256": "1cf16f1ae55f99676b1ee47c6a4e0aa35f82f10077349351e4e7900f352c9d1c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-ranks-NativeAccessKeyPhysicalRow.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccessKeyRanks.lean",
+      "sha256": "26fc9e37c417d46c4abb79ac457d8b57aad278fa43d8b26a5c4d4d2269b92846",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-ranks-AuditNativeAccessKeyRanks.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccessKeyRankAux.lean",
+      "sha256": "a5001e4b303d91994d70ebd7be71da7c4d23859b39def065b3429eaac5529ac3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-ranks-AuditNativeAccessKeyRankAux.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccessKeyPhysicalRow.lean",
+      "sha256": "8cc51ea0154fb2aa757d2c054500ccc2aaee875935a983d5989e80217971eb63",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-access-key-ranks-AuditNativeAccessKeyPhysicalRow.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules11guards. Exact selected occurrence prefix ranks and endpoint conservation, rankAux uak override preserved through actual repaired receipt/deposit trace, actual T0 B_AKC row equals native field packet for repeated/present/absent/disabled lookups. Whole physical table/provider aggregation remains.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,81 @@
+{
+  "lane": "scheduler-rbi-payload",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerRbiInfo.lean",
+      "sha256": "9f0a738df10fb3f6e180b9a82475e80e39f7258e9c4642c4d4db9ddc06bbe17e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rbi-payload-SchedulerRbiInfo.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerBranchOutputShape.lean",
+      "sha256": "4c47c24b31ee21df98b37869bd682bb9ee0f9f977f2f5fc56fc0d0f2421cf098",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rbi-payload-SchedulerBranchOutputShape.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerRbiFieldSlice.lean",
+      "sha256": "691c1aae0278302161d9fb44425d10db53e800e379f9b2291c2e775229ea2520",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rbi-payload-SchedulerRbiFieldSlice.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerRbiChildLength.lean",
+      "sha256": "ba92fb0909ca35b588d0363ce56515cdc4cf83db1d02fd979cc52a4f0a0108a8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rbi-payload-SchedulerRbiChildLength.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSignedRbiDigest.lean",
+      "sha256": "fae9698cb85aee36af96f13cd4ec8ea8cef874462d59ee23a3990bdf0eea04b6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rbi-payload-SchedulerSignedRbiDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerRbiInfo.lean",
+      "sha256": "ba73670f40fc1ff0e5355c3f0da0c6bc33dfe93e86044534c70ff72215b53af7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rbi-payload-AuditSchedulerRbiInfo.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerBranchOutputShape.lean",
+      "sha256": "cb12e409129b6ee76fac4dd8c5b775cc432306c8c47c06e415be40ac0403a700",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rbi-payload-AuditSchedulerBranchOutputShape.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerRbiFieldSlice.lean",
+      "sha256": "2fe623fa484ba44a61bb192ed42f1b610f862019e092e9dfcdd5fa0bc5218359",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rbi-payload-AuditSchedulerRbiFieldSlice.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerRbiChildLength.lean",
+      "sha256": "0b81e7e8289e2e98724e887f20ce5c44ee1035a7f0536e2a9340084ccdf871a3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rbi-payload-AuditSchedulerRbiChildLength.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSignedRbiDigest.lean",
+      "sha256": "fdf900c0187e0a97f5abc34c7f6a9e96634a80e02e2458804454a95138d04378",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-rbi-payload-AuditSchedulerSignedRbiDigest.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules7guards. Actual RBI insertion slot/encoded output shape/preceding fresh-leaf50-byte length derive complete physical digest-message equality. SPB split cases remain.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
