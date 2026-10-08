@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: FusedReceiptTraffic strictPASS3 exact guards locates repaired receipt
+inside actual GatedMemoryFusion selected inventory, projects fused local trace,
+and extracts SAME receipt ListChain/views/all-bus TableTraffic. Every shifted
+physical count equals its projected count. Semantic RcptV3Wf for those SAME
+views follows from candidate public ranges and explicit MEM version<=2^22.
+No separate receipt witness and no old-obstructed TableLocal assumed.
+
+Independent receipt-candidate-global-wf PASS21modules79guards derives all global
+receipt routing/token/index/natural total facts; leaves authenticated provider
+version bound explicit. Agent adding MEM-stream version-to-view bridge.
+
+AcceptedSharedBalance independently reviewed1guard but UNCOMMITTED: component
+EDGE/BMAP/UPB conservation valid, however full HEAD interface currently requests
+final-state root while K_NPOST node root is receipt oldPost. Agent correcting via
+replay HEADs (pre→oldPost, implicit pre→pre), identical EDGE keys. Do not use old
+full HEAD payload interface for global assembly. RebasedQueryAllocation remains
+committed accepted query/UPB/SHA composition, awaiting corrected shared extension.
+
+Integrated10/19, receipt882/882. Gated proposal8,313,300 excludes outstanding
+scheduler parser/ID repairs. Full prover/certificate/judge/general NEAR open.
+Prior9392afe8 push failed GitHub DNS; retry after verified recovery bundle.
+
+
 2026-10-08: RebasedQueryAllocation strictPASS1 exact axiom guard combines actual
 accepted native query walks, shared walk prefix/EDGE/BMAP requests and SAME
 scheduler instances with local Walk/node/compact, full UPB conservation,

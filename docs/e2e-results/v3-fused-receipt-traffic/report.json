@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Extract actual repaired receipt column block from gated fused local trace: SAME list views, complete all-bus traffic and shifted count equality. Semantic Wf conditional on public ranges and authenticated MEM version bound. Not complete global AIR soundness; prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/FusedReceiptTraffic.lean",
+      "sha256": "45819fc9e0d72dad03928afe2e80b7af8c985ced4f3251862457111196172663",
+      "audit": "zk-formal/test/AuditFusedReceiptTraffic.lean",
+      "audit_sha256": "a1f0be3b831b7c1089e01ff368c28611c5e5b9df79881081f1f4fdb33bc06ab6",
+      "guards": 3
+    }
+  ]
+}
