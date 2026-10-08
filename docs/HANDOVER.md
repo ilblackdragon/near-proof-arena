@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualParameterGuard strict PASS, five exact axiom guards. PV86 calculation gives base<=100000 and maxSingleGrant=4194304; bounds/check_ok discharge both 24-bit parameter operands and exact generator parameter guard. finish_eq preserves exact returned Run while removing this discharged check. suffix_reduction now leaves only the 29-bit comparison operand check, conditional on explicit round-key decrease. Round-key decrease and operand bounds remain open; full integration/certificate/prover/judge incomplete. Prebuilt dependencies only; receipt882/882 and integrated10/19 unchanged. Prior e11cd44c push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualComparisonFactor strict PASS, six exact axiom guards. afterMemory_eq is definitional equality with actual generator comparison loop. Per-round/list/array success composes proved bucket chronology with explicit nonzero round-key decrease. prepared_reduction derives chronology from actual replay; suffix_reduction combines existing push/final-state/memory success with comparison loop to leave only operand and parameter checks, conditional on round-key decrease. Round-key decrease and numeric bounds remain open, as do full integration/certificate/prover/judge. Prebuilt dependencies only; receipt882/882 and integrated10/19 unchanged. Prior8878d048 push failed GitHub DNS. Goal active.
 
 
