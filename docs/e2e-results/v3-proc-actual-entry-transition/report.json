@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Successful model batch supplies actual indexed replay loop success, identical final state, exact cursor and entry count; all side effects included. Outer-round and final guard integration remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualEntryTransition.lean",
+      "sha256": "71cea7dab49bf58cd80fe5cfea5a1b075096ecfca4e6a86e19aa8c3ffc690dd4",
+      "audit": "zk-formal/test/AuditProcActualEntryTransition.lean",
+      "audit_sha256": "9099f08f9b46ba419b578c872753f7cc33d3fbe576cc38c5b415deaf4b0a62d6",
+      "guards": 6
+    }
+  ]
+}

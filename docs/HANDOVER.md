@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualEntryTransition strict PASS, six exact axiom guards.
+step_effect/loop_effect expose exact real-entry state fold, cursor and Entry
+count. loop_success derives actual entry-loop success from sequential event
+relation, preserving arbitrary side accumulators. model_batch_success connects
+successful model batch to actual bucket-indexed forIn replay, all side effects
+included, with identical final state and exact cursor/entry count. Inputs are
+valid pointers, initial allowance shape, model batch and round/list alignment;
+outer-round proof must derive and thread them alongside shuffle/RNG. Final
+push/memory/comparison checks, integration and full certificate/prover/judge
+remain open. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged.
+Prior147577dc push failed GitHub DNS. Goal active.
+
+
 2026-10-08: Actual replay entry connected: ProcActualReplayEntry and
 ProcActualEntryFactor strict PASS, two exact guards. Extracted step includes
 all original state writes, memory-log appends, used bits, push records, emitted
