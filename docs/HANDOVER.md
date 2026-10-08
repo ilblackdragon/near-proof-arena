@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualAllowanceShape/ProcActualEntryAgreement strict PASS,
+11exactguards. Allowance-array size preserved by model grant, entry, entry loop,
+round and complete corrected process; actual initialization supplies size.
+entry_agreement combines shape preservation with exact emitted replay event.
+checkEvent matches actual replay field-check expression; model_check discharges
+it at valid converted pointer and shape. initialized_prefix derives shape for
+entry-loop prefixes from actual initial state. Full model/replay state induction
+and wiring these facts to every actual suffix iteration remain open, plus push,
+memory/comparison checks, integration and full certificate/prover/real judge.
+Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged.
+Prior04453fd1 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcModelEvent/ProcActualCoordinates strict PASS, five exact guards.
 entry_emits characterizes exact Step appended by actual model entry execution.
 event_eq_replay equates all event fields with replay arithmetic at valid

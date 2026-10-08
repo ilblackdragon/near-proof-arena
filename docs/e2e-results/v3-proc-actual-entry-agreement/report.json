@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Allowance size preserved through model entries/rounds/process; model event passes actual replay field check at valid converted pointer with shape invariant. Full combined replay induction remains open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualAllowanceShape.lean",
+      "sha256": "e660258e4222a3aa0e837dceeaaf98850fea6d5d63755334790edb3f5cd4f0f9",
+      "audit": "zk-formal/test/AuditProcActualAllowanceShape.lean",
+      "audit_sha256": "5b43dfeb288e66f045ca0e95c5830626a93ef78a004b15abbedadfc22e75832c",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualEntryAgreement.lean",
+      "sha256": "c631bb35e819a8f7cefc0fad1d9919bf74b52742a5d630867fafa6980b7e93d6",
+      "audit": "zk-formal/test/AuditProcActualEntryAgreement.lean",
+      "audit_sha256": "d710b9a224cc8e3b4e7f3ee1e1128d207586c584a8190ed5df4db3fcfec4ea32",
+      "guards": 4
+    }
+  ]
+}
