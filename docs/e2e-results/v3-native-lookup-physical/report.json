@@ -1,0 +1,46 @@
+{
+  "lane": "native-lookup-physical",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupQueryWf.lean",
+      "sha256": "3fec1d7982da578a5223cf5814ab96854039ab1fba2d2e5306a11cf1a2ec148d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-physical-NativeLookupQueryWf.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupQueryBounds.lean",
+      "sha256": "2a857c9b11c670631cbcd091bc4001c3e714b8d371c73ebd3a7c86c159170d34",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-physical-NativeLookupQueryBounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupPhysical.lean",
+      "sha256": "b48e0ec082044f4243af9e6b829d91cacde6e3921c365dc7f8f0e683ff7702ce",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-physical-NativeLookupPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupWhole.lean",
+      "sha256": "af39ea0aab3ae14ec0a574e7b24a7b266a875b0a9eca08ced001364c0eb9817e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-physical-NativeLookupWhole.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupPhysical.lean",
+      "sha256": "72fd7cfb2ccc19c549ba6807f016f786dfc5303f3fcf198ec719750881cf045e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-physical-AuditNativeLookupPhysical.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules,11 exact guards: ordered account/access-key/queue physical log22 walk trace, under explicit native validity and size bounds.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

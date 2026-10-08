@@ -6,6 +6,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PairedStoreKeys/PairedStoreCharge strict PASS6 exact guards:
+WriteTreePair paired pre/post records preserve original duplicate-store keys,
+occurrence IDs and actual native witness charge. Pair validity and paired
+NodeOk/post-window binding remain premises or future work, not established.
+
+Independent lookup physical review PASS5 modules/12 exact guards. The full
+ordered receiver/access-key/queue log22 walk has TableLocal and TableTraffic;
+AcceptedLookupPhysical derives its bounds from successful checkD0a 2000000.
+Shared node/UPS provider inventory and actual post-state binding remain open.
+Receipt824/881; fixed-height10/19. Full certificate/prover/judge/general NEAR
+remain incomplete. Reviews use prebuilt dependencies, not a clean certificate.
+Push of55bcf879 failed GitHub DNS; retry this checkpoint, retain verified bundle.
+
+
 2026-10-08: NodeUseTraffic strict PASS5 exact guards. Actual count-extended
 rendered node table nonSIZE traffic equals assigned semantic node sends/receives;
 EDGE zero/terminal counters,bitmap/window terminals are exact. Field-valued

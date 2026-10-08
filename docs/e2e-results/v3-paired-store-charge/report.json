@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "WriteTreePair paired post payloads preserve exact transition-tagged prestate store keys,entity IDs,combined duplicate classes and chain-selected store charge. Native original witness still pays paired records. Actual pair validity,paired NodeOk/post traffic bindings remain to integrate. NodePairedViews/Wf/Forest dependencies rebuilt from current source;other dependencies prebuilt,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PairedStoreKeys.lean",
+      "sha256": "ccbb8c85d6a5e81bc4c8a0cbec9f2f458d2091cf3f912d2837f48e355e243e39",
+      "audit": "zk-formal/test/AuditPairedStoreKeys.lean",
+      "audit_sha256": "65337026b1979f9895767187649fb40cb28511930034c26bfce58862abc64823",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PairedStoreCharge.lean",
+      "sha256": "bad9ee5618fe13e5bc360594f5da9db3206d8ca1d172547817fafc1185052a88",
+      "audit": "zk-formal/test/AuditPairedStoreCharge.lean",
+      "audit_sha256": "83d875b232682d0dce2a393f7a585eb8cb81dd04a514ab3ed8b1485151aa008c",
+      "guards": 1
+    }
+  ]
+}
