@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Gated memory proposal structural AIR/header and sizeMaxDedup8313300 verified. Provisional buses67-69, no parser/ID/Codec repair ownership, complete execution or full soundness admission. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/GatedMemoryAdmission.lean",
+      "sha256": "71c26cd2f265195fcf1672603d668332b31a15a02d8df58d26c4c97239a530d5",
+      "audit": "zk-formal/test/AuditGatedMemoryAdmission.lean",
+      "audit_sha256": "877bb1beabd4744cf282c49038b31ad69fa086f99c0982bb376362d0f4142974",
+      "guards": 8
+    }
+  ]
+}

@@ -6,6 +6,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: GatedMemoryAdmission strictPASS8 exact guards proves actual proposal
+AIR well-formedness, field/multiplicity bounds, grouped degree, verifier header,
+and sizeMaxDedup=8,313,300<8MiB. Provisional new buses67--69 still lack ownership;
+parser/ID/Codec repair inventory and full honest/sound execution remain open.
+No structural check is treated as complete assembly. Independent memory lift
+PASS4modules12guards proves both local directions and exact all-bus counts.
+
+Receipt traffic independently checked: viewtraffic9modules36guards (BYTES/RCL),
+manybus15modules63guards (MEM/RIDS/MPOS/AKC/SREC/BND), and digesttraffic8modules
+33guards (FINAL/DIGEST). KEY and all-bus assembly next.
+Native joint-query coverage3modules5guards and shared compact balance2modules
+4guards independently checked: original query and rebased UPS provider coverage,
+actual compact EDGE/BMAP conservation after UPB patch. Agent's accepted query
+allocation wrapper now compiles but awaits independent review/checkpoint.
+
+Integrated family10/19, candidate receipt882/882 retained. Full certificate,
+prover, real judge and general NEAR replacement unfinished. Three agents active.
+Prior1f78ec7a push failed GitHub DNS; retry after verified bundle checkpoint.
+
+
 2026-10-08: GatedMemoryFusion strictPASS8 exact guards proves actual appended
 fusion shape3384/108/7/108/log22 with degree8; complete proposed shape inventory
 size8,313,300 and75,308 headroom below8MiB. Repaired gate column preserves

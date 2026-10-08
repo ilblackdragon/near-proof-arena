@@ -1,0 +1,46 @@
+{
+  "lane": "process-prior-memory-lift",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryTransport.lean",
+      "sha256": "b8be0236252634b3598648d73b1d911e8d6540dfd65aeb598e53129028b0135f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-memory-lift-ProcPriorMemoryTransport.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryLift.lean",
+      "sha256": "9bd59c887c7c3c8785b8efd0791f9480cbd2065ba493b3a5e5b82303c7d7603b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-memory-lift-ProcPriorMemoryLift.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryLiftLocal.lean",
+      "sha256": "a92db78c05ce7ee73d1f8f7bbbb99dee35c2597a54361c3af3b97cab9d3739d6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-memory-lift-ProcPriorMemoryLiftLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryLiftTraffic.lean",
+      "sha256": "8f3e327dad01a75ea25ab1874a0c306c8bef875b65779ac0beb5599bca51419e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-memory-lift-ProcPriorMemoryLiftTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorMemoryLift.lean",
+      "sha256": "f5b44385d74ba44605ab2cd66945ff334534ea59a296cbd859e4696ad20ad405",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-memory-lift-AuditProcPriorMemoryLift.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules12 guards. Gated implies baseline local; executable extra-column lift preserves local constraints and exact all-bus physical counts.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
