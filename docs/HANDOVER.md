@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08 checkpoint: MerkleAlias/MerkleTraffic strict PASS, nine exact guards:
+log19 original equations and all bus messages/multiplicities agree under the v3
+public alias. Old log15 extraction still needs generalization. Investigate empty
+outcomes: old MrkWf requires n>=1, while PrepD0 has a zero-count branch; no complete
+accepted zero-case counterexample established yet. Do not silently restrict domain.
+
+Independent strict reviews PASS: current-family (6 guards), source-sha-pressure (8),
+receipt-reg-physical (14), source-three-packing (6). Together with Merkle, 43 exact
+guards this checkpoint. Reports under docs/e2e-results/v3-{lane}/report.json.
+Three-bin packing covers source+upsert+sanity ONLY; remaining SHA inventory open.
+Current concrete family still exceeds 8MiB by 1,109,766 bytes. SHA width reduction
+candidate and receipt endpoint closure are parallel work in progress.
+
+Plan: finish receipt endpoints/all-register constraints; prove correlated full
+native SHA inventory and packing; connect narrower SHA physical traces; close
+Merkle coverage and extractor; assemble global ownership and certificate; implement
+prover and run real judge. No full stateless-validator replacement claim yet.
+
+
 2026-10-08 UNEQUAL-HEIGHT source closure: SourceVariableJoin/Trace/Sound/Extract/
 Provider strict checked, TWELVE exact guards. Actual4local+threecarrybusbalance
 now derives one logical accepting variableTrace and BlockChain with NO equalheight,

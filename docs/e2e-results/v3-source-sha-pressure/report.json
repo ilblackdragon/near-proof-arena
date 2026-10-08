@@ -1,0 +1,25 @@
+{
+  "lane": "source-sha-pressure",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceShaPressure.lean",
+      "sha256": "3095d0ff6a790b647b17b033053425e74f0ae03d19c8d594b7305db054c76ca9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-sha-pressure-SourceShaPressure.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSourceShaPressure.lean",
+      "sha256": "c4a9ee28b0daa970dbab4b04cc5a23e4e807b743ab0dbb0282e14aaa702c6e2c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-sha-pressure-AuditSourceShaPressure.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_axiom_guards": 8,
+  "scope": "Local native receipt-proof path workload exceeds two SHA bins; not a complete accepted checkD0a fixture.",
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean whole-certificate build."
+}

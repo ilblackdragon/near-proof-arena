@@ -1,0 +1,39 @@
+{
+  "lane": "current-family",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/CurrentFamily.lean",
+      "sha256": "6530019504dd617ea3a6d4588c3f029d06d35334194ffcb4b23c0df2e6dede45",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-current-family-CurrentFamily.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/CurrentFamilyChecks.lean",
+      "sha256": "fb1702e5837e94b648bc607bb582017e5106adc3d9b5a941df379d9d40e95422",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-current-family-CurrentFamilyChecks.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/CurrentFamilyBudget.lean",
+      "sha256": "33790498531653aa33467306585bbbfce6eca6a6e9419257edfb00998b462a4b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-current-family-CurrentFamilyBudget.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCurrentFamily.lean",
+      "sha256": "93d8282c3000122386ea59d500a47e8a37f0019a097505d4246007ea2752d260",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-current-family-AuditCurrentFamily.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_axiom_guards": 6,
+  "scope": "Actual 30-table candidate well-formedness and exact proof-size calculation; candidate exceeds cap and is not admitted.",
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean whole-certificate build."
+}
