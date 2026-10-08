@@ -1,0 +1,53 @@
+{
+  "lane": "receipt-native-sha-bytes",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCanonicalShaBytes.lean",
+      "sha256": "4839f7d912d451a343cebc96c9a63c4e645584fd24a30fb6a6303823ae74f882",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-bytes-RcptCanonicalShaBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptMerkleShaBytes.lean",
+      "sha256": "f78957c5f2049f07d323278ce35b04615692107f96aab73ef4808654b40d21df",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-bytes-RcptMerkleShaBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptShaByteContract.lean",
+      "sha256": "5c6b5ae87b962d7cc8f438a8391986d16daa5ad21d4a443b1295b731c48345eb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-bytes-RcptShaByteContract.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCanonicalShaBytes.lean",
+      "sha256": "577be67eaaa7c951707a42553a5d1b4d2c26d063b647a1e6f85e91dd55844d88",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-bytes-AuditRcptCanonicalShaBytes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptMerkleShaBytes.lean",
+      "sha256": "24c1fd1b4a12d3d4e0cf01e1b1d64898dd2bb4909d98bf02d9cbe752f8cb2234",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-bytes-AuditRcptMerkleShaBytes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptShaByteContract.lean",
+      "sha256": "32567c71fd0648a407c82196e290c050b7e585b6b6da234ed24701a1d1aac560",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-bytes-AuditRcptShaByteContract.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules5guards. SAME native receipt/RC/LEAF/RID/internal-Merkle byte range; full receipt batch byte contract leaves exact account VPOST preimage bytes prerequisite.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

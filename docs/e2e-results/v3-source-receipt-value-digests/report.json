@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Receipt/Merkle constructor now uses actual accepted sourceInputLists, derives all native plan/gas/public header bindings and exact RC IDs/duplicate flags, plus same canonical SHA-row capacity and byte range from actual account Wf/count/byte prerequisites. SAME accepted trie/SHA allocation includes repaired value TableLocal and exact node VPRE plus written-VPOST digest partition; pre-state values include empties. Account constructor/byte bounds, source complete traffic and global installation still open. Prebuilt dependencies, not clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptGatedShaBytes.lean",
+      "sha256": "08211879df53ca081511d69da011f15d1800cef12c6716f0fdb72999907b89ae",
+      "audit": "zk-formal/test/AuditReceiptGatedShaBytes.lean",
+      "audit_sha256": "56d688624332116d07041f39f57ba5554e75bb49920c7292220bb5a5430f42a1",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptSourceDigestBridge.lean",
+      "sha256": "387623c65ab676e217b84cfe629b8cb8dada5053a0504f76b35b52c4ffe9035c",
+      "audit": "zk-formal/test/AuditReceiptSourceDigestBridge.lean",
+      "audit_sha256": "40969329aec8324b2af4644a89ec34bc19dba8db009fad6dbffd6d58aa6f484f",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptSourceInputs.lean",
+      "sha256": "680eceba47f81b131bbe0728a7915d9a6fa71706d1e1fe6c292eccedbd72e720",
+      "audit": "zk-formal/test/AuditReceiptSourceInputs.lean",
+      "audit_sha256": "f21c61e368eb2850c8b387434aa3514f33b20626e943db0e30131d82e3995de9",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptSourceMerkleDigests.lean",
+      "sha256": "ef7e5f7c80f6e4824c9f7cd6fdedf1a8bf377a831de88ab49eaf12c989740047",
+      "audit": "zk-formal/test/AuditReceiptSourceMerkleDigests.lean",
+      "audit_sha256": "59aa4f5d3a93bc3e662a6df8b00ab232e5b48f1503dc1049438d753416d25401",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedValueDigestAllocation.lean",
+      "sha256": "79e48ef30c9a6570636d99fd8a786d37c248b64955c861f75daab18635a785ba",
+      "audit": "zk-formal/test/AuditRebasedValueDigestAllocation.lean",
+      "audit_sha256": "d3eb83e375f077e92ae8e4530af3cb5fd1a796bc7190f7c1cd1192eb36228df8",
+      "guards": 1
+    }
+  ]
+}

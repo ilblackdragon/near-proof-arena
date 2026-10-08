@@ -6,6 +6,31 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Source/native digest composite strictPASS8guards across5root modules.
+ReceiptSourceMerkleDigests uses concrete accepted sourceInputLists, deriving wf,
+named receivers,refund flags,nonempty lists and gas bounds. SAME canonical blocks
+match actual sourceRcShaJobs IDs/duplicate flags and prove <=1,373,299 SHA rows plus
+byte ranges; only account Wf/count/byte/traffic prerequisites remain. All prepared
+header bytes derived from nativeHint. RebasedValueDigestAllocation keeps SAME
+accepted trie/UPS/HEAD/Walk/SHA objects and adds repaired value TableLocal plus
+physical VPRE/nonemptySHA/empty-provider/written-VPOST partition.
+
+Independent empty-value fusion PASS8: actual selected repaired length table keeps
+full fused shape3401/115/7/115/log22 and total8,378,132 (10,476 margin). No final
+capacity guarantee before parser joins. Native receipt capacity+bytes8modules13guards,
+VPRE4modules13guards,VPOST1module7guards and native singleton account1module6guards
+reviewed. Account whole-list/closing-version binding still open; source whole
+DIGEST traffic under active agent work.
+
+Record-join stage1module2guards has wf/shape23/4/7/4/log22; executable rows/event
+semantics3modules13guards gives9rows/original record, exact ID queries/nativewrites
+and four-stage row bound3,137,313 under explicit shared inputs. Accepted absent
+state/header mapping, record TableLocal/extraction, full overlay assembly remain.
+Three agents continue. Receipt882/882,integrated10/19 unchanged. Full prover, clean
+certificate, judge and general NEAR unfinished. Priorab1ed8b9 push DNS-blocked;
+retry and preserve verified recovery bundle.
+
+
 2026-10-08: ReceiptAcceptedMerkleDigests strictPASS14guards across4root modules
 DISCHARGES FinalPublicBytes count/body/tokens and own-shard bytes for actual
 nativeHint preparation and SAME accepted m.run. All public header byte premises

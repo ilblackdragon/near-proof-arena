@@ -1,0 +1,46 @@
+{
+  "lane": "native-value-digest",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeValueDigestSlots.lean",
+      "sha256": "94a7454c295ada4be6e34d155a0e4419281ec1e44c37e486d00c40abee6335b0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-value-digest-NativeValueDigestSlots.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeValueDigestForest.lean",
+      "sha256": "cc81b655a64037ddf28671a33379cd00779fea2794b9d7dadeaca398a8b6ed71",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-value-digest-NativeValueDigestForest.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeValueDigestPipeline.lean",
+      "sha256": "d319c17146b141194191398a8041b4dfa1911ef39dec022988ece66860335c77",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-value-digest-NativeValueDigestPipeline.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeValueDigestBalance.lean",
+      "sha256": "b52d455f030f7f602a823f6abc6ca2efdc0130d56ddd673e43166efd72407187",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-value-digest-NativeValueDigestBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeValueDigest.lean",
+      "sha256": "2e90b4c22cd9a17c1aa419676b57fc54955383c54258f9e96e5b90561e30738e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-value-digest-AuditNativeValueDigest.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules13guards. SAME initialized/chain/post/provider metadata pipeline and actual value list: VPRE inventory and actual physical node/value digest partition include all empty/repeated values. Only written VPOST remains.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

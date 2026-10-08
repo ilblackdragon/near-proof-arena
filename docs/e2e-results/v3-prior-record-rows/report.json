@@ -1,0 +1,39 @@
+{
+  "lane": "prior-record-rows",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordRows.lean",
+      "sha256": "551df700fcff120c760af7918e42387649ec86023119e7abff99dc71cf9207f6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-record-rows-ProcPriorRecordRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordSemantics.lean",
+      "sha256": "48dda5435c00c73f352c6608f7d314b5cbddf08b8bf66e861c22f5cd7541d391",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-record-rows-ProcPriorRecordSemantics.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorFourStageBudget.lean",
+      "sha256": "f9d5197e64a523645794956c8addb988cf2c025896df938ee636084d7edb7100",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-record-rows-ProcPriorFourStageBudget.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRecordRows.lean",
+      "sha256": "684f12b707e1a3f7b2451cc7e0ccbd7cfc9616dfc9bed3e6efe98c2465fcae4c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-record-rows-AuditProcPriorRecordRows.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules13guards. Executable9-row record enumeration, exact original bytes, first-ID request events and native write events; four-stage row count<=3,137,313<2^22 under explicit shared input bounds. Actual accepted including absent state mapping and local/extraction remain.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,25 @@
+{
+  "lane": "empty-value-fusion",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/EmptyValueFusion.lean",
+      "sha256": "3eca4092c961cfeb5db05d87707323bb2aeab7a471a0111dd6cf7b4a9265fd9c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-empty-value-fusion-EmptyValueFusion.log"
+    },
+    {
+      "path": "zk-formal/test/AuditEmptyValueFusion.lean",
+      "sha256": "5253addce5b7780f991437767b301fa0e77f9f9770fda3d6991cc80a649c2a0b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-empty-value-fusion-AuditEmptyValueFusion.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module8guards. Actual selected authenticated-length value repair plus vertical fusion exact shape3401/115/7/115/log22, degree8, total8,378,132 and10,476 margin. No additional rows or width; global constructor/install remains separate.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

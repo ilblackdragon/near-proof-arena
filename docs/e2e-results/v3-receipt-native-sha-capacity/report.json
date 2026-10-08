@@ -1,0 +1,81 @@
+{
+  "lane": "receipt-native-sha-capacity",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeShaLengths.lean",
+      "sha256": "931fe77b3f0098c3f39c330bee383ddb3eb8a770917e8f05536421c62dc823e3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-capacity-RcptNativeShaLengths.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCanonicalShaLengths.lean",
+      "sha256": "83c66b8749bb8ccb2a88ed19af21e54a84fc81f365f1b1a632c29cc00b742bfb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-capacity-RcptCanonicalShaLengths.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptShaLengthCapacity.lean",
+      "sha256": "8182fcccf832dccf6838054c8f5fabffc219649056ee8aa79025f8af8070f7cd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-capacity-RcptShaLengthCapacity.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCanonicalCounts.lean",
+      "sha256": "2d3fd0318a6d5ae3c6c68fe27b5f8745946c4e538fb05ec67ffd9d95ae1bed72",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-capacity-RcptCanonicalCounts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCanonicalShaCapacity.lean",
+      "sha256": "c036b28668ae8e2961ba9e5ff3f128cdb4c70a61c9ed01b8eaa21e5fbe7ea661",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-capacity-RcptCanonicalShaCapacity.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeShaLengths.lean",
+      "sha256": "803c903db30a3e57ff9527da7ca2063e7efd8b483eeec7f5e161cd3e921c57d1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-capacity-AuditRcptNativeShaLengths.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCanonicalShaLengths.lean",
+      "sha256": "2385cd2b1c30fac17cbdcb8ecc0f917718c09d43b07703c7e30124b781826b07",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-capacity-AuditRcptCanonicalShaLengths.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptShaLengthCapacity.lean",
+      "sha256": "a1c90620a9f3fae1dab15177b431dfdf28128cc5ea46f29a29e2696765f11677",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-capacity-AuditRcptShaLengthCapacity.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCanonicalCounts.lean",
+      "sha256": "8c7d889433640269ea409887350454925049466e6118fc11132f4ec880108ee6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-capacity-AuditRcptCanonicalCounts.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCanonicalShaCapacity.lean",
+      "sha256": "e1f05dd726d23cf7b278f46adc94021a78ece31d466cfa0c1d55f7a17b3cebfd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-sha-capacity-AuditRcptCanonicalShaCapacity.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules8guards. SAME actual canonical native receipt views row capacity<=1,373,299 derived from native serialized lengths and preparation/execution counts, with account Wf/count prerequisites; no receipt-view Wf assumption.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

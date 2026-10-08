@@ -1,0 +1,25 @@
+{
+  "lane": "native-post-digest",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativePostDigestForest.lean",
+      "sha256": "71580ebdb756cf837f341c248be0ecb89c16dc0c46eab1da9d2214b24b6044b8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-post-digest-NativePostDigestForest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativePostDigest.lean",
+      "sha256": "b8c46e46a8a6b97f3975e5f04aa234e029af5a58476cedaef87d4caa0876bab6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-post-digest-AuditNativePostDigest.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module7guards. SAME final node pipeline written VPOST slots equal actual original compact value-array postDigestFrom inventory preserving IDs/length/occurrences. Native account binding remains.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
