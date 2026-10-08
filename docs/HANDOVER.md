@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcDistGridAgreement strict PASS, nine exact axiom guards.
+Actual distributeEv receiver and sender loops now agree exactly with native
+optional grid grants mapped by getD 0, preserving endpoint budgets/counts.
+distribute_grid identifies the full event result with native gridGrants and
+native sordOf/rordOf; link_pass_grid instantiates actual linkPass counts.
+No new budget or array-size premises are needed for this grid agreement.
+Remaining native output join must reconcile saturating grantMore with event
+ordinary addition using budget invariants; full ActualRun replay success,
+Codec Local, allocation integration, full certificate/prover and real judge
+remain open. Prebuilt dependency checks only. Receipt882/882, integrated10/19
+unchanged. Priorc4563349 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: Corrected core totality strict PASS: three modules, eight exact
 axiom guards. ProcDistEventRow definitionally factors the actual distributeEv
 receiver body and proves its grid equality under remaining-link counts, plus

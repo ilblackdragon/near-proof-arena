@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual event distribution equals native grid numerical grants and native sender/receiver order using actual link-pass counts. Native accumulated grant overflow bounds and full replay success remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistGridAgreement.lean",
+      "sha256": "e5a29adf22eba2516a5dc31fd27317585ec946ff756046dfd3648f4ecb41540e",
+      "audit": "zk-formal/test/AuditProcDistGridAgreement.lean",
+      "audit_sha256": "38fd2a376e4e211d3099c822c4c2d7e0abd3828cc23ca1ddd59207a12a513ce9",
+      "guards": 9
+    }
+  ]
+}
