@@ -6,6 +6,32 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: UniqueSourceRender/Partitions strict PASS10 guards. Concrete new
+renderer changes only SIZE column54, using full computed-entry charge and zero
+duplicate-reference charge. Only accumulator constraints51/52 inspect that column;
+all other logical constraints/non-SIZE interaction expressions syntactically
+independent. Actual old/new trace evaluations agree for size-free expressions.
+Four corrected physical source partitions have EXACT same shapeOf2 as current
+four, wf67/202/degree6 checked, all maxLog22, identical interaction definitions.
+Full new accumulator transition/local proof, SIZE traffic/carry integration and
+source dictionary extraction without fillers still required. Active horizontal
+family remains old; no replacement/header certificate claim yet.
+
+Independent native-lookup-leaf PASS9 guards: arbitrary-key leaf paths handle
+match/mismatch/short/long/drain/unresolved values; native definedness and FINAL
+results exact, key++END rows and StepOk. Native-lookup-tree PASS6 guards: recursive
+extension/branch traversal, absent/unknown nodes, compact preorder cursors; definedness
+exactly PTrie.find for all trees/keys, exact symbols/row count. Full WalkWf,
+provider coverage, queue/account assembly and shared counter ordering remain.
+Receipt-routing-cells PASS21 guards: actual receiver/firstRID cells match native
+interval frames; physical successor/inactive composition open, no +18 count yet.
+
+Receipt735/881; fixed-height10/19. Three agents continue routing, process sound
+repair and native lookup validity. Full certificate, clean build, prover, judge
+and general NEAR incomplete. Strict checks use prebuilt dependencies. Prior
+9f399f03 push failed DNS; retry after commit, verified bundle preserves work.
+
+
 2026-10-08: UniqueSourceCharge/UniqueSourceBudget strict PASS11 exact guards.
 Isolated source-accounting correction replaces only accumulator constraints51/52:
 computed roots add L+44, repeated references add0, path increments33 unchanged.

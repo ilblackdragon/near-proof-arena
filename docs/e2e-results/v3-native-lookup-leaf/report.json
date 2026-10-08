@@ -1,0 +1,39 @@
+{
+  "lane": "native-lookup-leaf",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupLeaf.lean",
+      "sha256": "803d87c92e5680b452a38c7e8114c11db0f6191258e6f8097d36134fcf508186",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-leaf-NativeLookupLeaf.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupLeafFinal.lean",
+      "sha256": "093c5754a9e276aa12c0a063990b97cefea0b6689e704bc6309d816c3ada7062",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-leaf-NativeLookupLeafFinal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupLeafRows.lean",
+      "sha256": "1eedd7ea8c3fcf48f70fae8c2ea57a9c867569ae71b256bf1ad4b38363597be6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-leaf-NativeLookupLeafRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupLeaf.lean",
+      "sha256": "8000781ea77e94464ede48a76cc2336d9019c75351f2c7b929fed35c51aac6d1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-leaf-AuditNativeLookupLeaf.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Arbitrary-key native leaf lookup constructor: exact definedness/final lookup, key++END symbols, key.length+1 rows and StepOk under native nibble bounds. Indexed chain/provider coverage pending.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
