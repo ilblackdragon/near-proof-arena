@@ -6,6 +6,34 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Corrected source NATIVE budget linkage strict PASS7 exact guards.
+UniqueSourceNativeBudget.compiled_charges binds actual blocks to first native
+entries. First-occurrence order is handled by exact last-wins permutation before
+selected dictionary Sublist accounting; no false order assumption. Decoding
+supplies byte widths and accepted D0a supplies lookups. accepted_dictionary needs
+NO caller-supplied source accounting/selection premise. UniqueSourceNativeTotal
+accepted_total derives corrected whole SIZE budget and accepted_receiver derives
+Valid for actual chain-patched node/value/source inventories. Ordinary native
+forest/store alignment/provenance, public roots and inner/K bindings remain
+explicit. Sound dictionary extraction without fillers and active horizontal
+family replacement remain open; completeness budget regression closed.
+
+Independent native-lookup-payload PASS16 guards: every actual EDGE field bound
+follows from native forest allocation and unchanged preBytes<=2M. Complete native
+forest WalkWf3 has no per-step canonicality premise. Actual successful account
+lookup with accountId.length<=64 yields constructor success, WalkWf3 and<=132rows.
+Same-forest provider coverage/global shared ranks and queue capacity remain open.
+Independent receipt-key-gates PASS15 guards:2 key gates +4 FINAL/AKC equations
+across physical trace including headers/padding. Native symbol/coordinate and
+PK nibble scratch constructors checked; account/access provider IDs still explicit.
+Not yet commuted into753 assignment, so receipt count unchanged.
+
+Receipt753/881; selected fixed-height10/19; corrected source4/4 local+traffic+carry
+and native completeness budget checked separately. Full certificate, clean build,
+prover, judge and general NEAR incomplete. Strict checks use prebuilt dependencies.
+Priorc244d636 push failed GitHub DNS; retry after checkpoint; verified bundle.
+
+
 2026-10-08: Corrected source COMPLETE logical/four-physical traffic strict PASS16
 exact guards (UniqueSourceTraffic/PhysicalTraffic/SizeTraffic, UniqueSizeComponents,
 UniqueSizeValid). Preserves all non-SIZE messages, emits exactly one corrected

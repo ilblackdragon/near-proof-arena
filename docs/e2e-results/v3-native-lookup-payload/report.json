@@ -1,0 +1,53 @@
+{
+  "lane": "native-lookup-payload",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupPayloadLeaf.lean",
+      "sha256": "f5c5339424637f9aaa6a716a654d266090eb119678966d96cb78aa31f1757cb7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-payload-NativeLookupPayloadLeaf.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupKeyBounds.lean",
+      "sha256": "a5c87014a523362d6ddd959c4737c6b48c90d9f141d409344f53448c75edd5f1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-payload-NativeLookupKeyBounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupPayload.lean",
+      "sha256": "0e074cffc46946636aae5288a4e880d9626788bed36723f7dd41e224f00fc55f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-payload-NativeLookupPayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeForestLookup.lean",
+      "sha256": "7549ade470426792c09fb449e2d889804031e6f9d24260bbebd700cece9c3852",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-payload-NativeForestLookup.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountLookup.lean",
+      "sha256": "d3786d2d1697593d2b642326eea38821fae3c29a10ff8a530517bdd269bf2797",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-payload-NativeAccountLookup.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupPayload.lean",
+      "sha256": "e9194a5380136016d4233a35014a85e660cf4a517aa9820a715a94531b2a7624",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-payload-AuditNativeLookupPayload.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual native forest EDGE payload bounds from allocated prefixes and preBytes<=2M; full native_forest_lookup_wf without per-step canonicality premise. Successful native account lookup constructs WalkWf3 with at most132rows. Same-forest provider coverage/shared ranks and queue key capacity remain open.",
+  "exact_axiom_guards": 16,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

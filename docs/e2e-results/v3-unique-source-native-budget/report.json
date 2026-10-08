@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual compiled first-occurrence charges bound by native encoded dictionary through exact last-wins permutation and sublist, with widths/lookup derived from decoding and accepted D0a. Corrected whole SIZE budget and receiver Valid from same native inputs; forest/store/public bindings explicit. Sound dictionary extraction and active family replacement remain open. Strict checks use prebuilt dependencies; not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceNativeBudget.lean",
+      "sha256": "5365d7e08b34f072288f802ba888eaeb70d6800085871d75b253482baf36defb",
+      "audit": "zk-formal/test/AuditUniqueSourceNativeBudget.lean",
+      "audit_sha256": "bcbcf1eb0c990f75f8471a0b400df48e3b6628c8f70dfef2e3711970ad790b33",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceNativeTotal.lean",
+      "sha256": "a26893a94f70ac5450caa15c166148603bfee9ecb4b4394777d2f608f0752416",
+      "audit": "zk-formal/test/AuditUniqueSourceNativeTotal.lean",
+      "audit_sha256": "afa0f7a07a51abb8afb6d754eadf38069af5ddf6e2041b5f3209817afed9f9f8",
+      "guards": 3
+    }
+  ]
+}
