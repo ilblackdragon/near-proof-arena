@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Physical joint EDGE and BMAP conservation with actual post-updated node records and usage counters assigned afterward. Existing shared provider coverage and head/walk/UPS trace hypotheses retained; supplied payload binding and window balance remain open. Prebuilt dependencies,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PostSharedTraffic.lean",
+      "sha256": "554074204f75befee8fd7b3ffc330ce1fa7fb0af558d1a5c3f2d5d7ac21343da",
+      "audit": "zk-formal/test/AuditPostSharedTraffic.lean",
+      "audit_sha256": "ce22360e1093ee6605fc825b658f16a3c9244d5e4cb2ace3b1f9a820a7114b41",
+      "guards": 2
+    }
+  ]
+}

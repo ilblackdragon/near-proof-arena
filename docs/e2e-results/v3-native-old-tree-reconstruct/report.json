@@ -1,0 +1,39 @@
+{
+  "lane": "native-old-tree-reconstruct",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeSetWf.lean",
+      "sha256": "dab5e0cd3a2d9fb373435200d857dddc08e0591fd4f02825874b549bca1a3cf9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-tree-reconstruct-NativeSetWf.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReplayUpsert.lean",
+      "sha256": "1be54bd04bd1d74e07148ba3011697fc50a73d849024f5eb2ed90523dec01c2d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-tree-reconstruct-NativeReplayUpsert.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeOldTreeReconstruct.lean",
+      "sha256": "c7a11478962c9c05e456319595d1c7243f71973676040aaa0339a873f1fa9a48",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-tree-reconstruct-NativeOldTreeReconstruct.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeOldTreeReconstruct.lean",
+      "sha256": "a452b8ca46728d2904b61880aefd4dfc0e41522fb9a9b83171da644bbe3178f7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-old-tree-reconstruct-AuditNativeOldTreeReconstruct.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules7guards: same actual receipt writes replay on original prestate, preserving wf and value lengths; applying same scheduler upsert last gives EXACT final native trie. Concrete table payload binding remains open.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PostSharedTraffic strict PASS2 exact guards. Physical joint EDGE
+and BMAP conservation now includes records u post-updated nodes with counters
+assigned afterward. Same original provider coverage/head/walk/UPS renderer
+hypotheses retained; arbitrary windows retained, actual payload binding still open.
+
+Independent native-old-tree-reconstruct PASS3modules7guards: existing native
+set/upsert commutation lifted through SAME actual sized receipt write run. From
+successful applyNewChunk and native pre wf/shape, constructs oldPost.wf, same-shape
+pre/oldPost, preserved compact lengths, and oldPost.upsert keyBwState so.state =
+some out.trie EXACT final native trie. This closes semantic reconstruction order,
+not constructor/window/fresh-node binding. Provider agent owns executable replay
+and concrete Inputs from oldPost occurrence/value arrays next; root owns physical
+integration. Do not assume original pre/final WriteTreePair for structural UPS.
+
+Independent deposit-age-frame PASS1module5guards: first DEP13-bit age assignment,
+r1=0, correct age equation under authenticated previous<=receiptIndex<4481, storage
+overlap gate zero. Full physical/mixed receipt repair remains; active824/881.
+Fixed-height10/19 unchanged. Full certificate/prover/judge/general NEAR incomplete.
+Checks use prebuilt dependencies, not clean full certificate. Prior8e2df759 push
+failed GitHub DNS; retry after checkpoint; verified bundle retained. Three agents
+continue concrete oldPost payloads, mixed gas/deposit repair, scheduler loop/replay.
+
+
 2026-10-08: Corrected NativeExecutionPost construction order: install records u
 post payloads BEFORE assignList q usage counters. Window keys include post bytes,
 so these operations must not be treated as commuting. Existing local/SIZE proofs
