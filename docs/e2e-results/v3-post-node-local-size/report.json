@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Arbitrary NodePostUpdate records preserve full NodeOk/local table, physical child IDs, exact original store occurrence classes and SIZE receiver/count/view, and commute with duplicate-chain assignment. Supplied payload correctness/native replay plus UPS reconstruction remain open; prebuilt dependencies,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeExecutionPost.lean",
+      "sha256": "e6543361134381f766741c91e4781b962fd4e80bb6cd3817109ef658830ce905",
+      "audit": "zk-formal/test/AuditNativeExecutionPost.lean",
+      "audit_sha256": "2fdcf42385ffa31dc2ef1490ec0a8e67ba4ef4a5c8421b45e2b4f08bee7b4de5",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PostNodeLocal.lean",
+      "sha256": "8298814a1447c4a5332c9f07fc2f5881b563538c2776945e11a6f2f3ce1236fa",
+      "audit": "zk-formal/test/AuditPostNodeLocal.lean",
+      "audit_sha256": "a02f0a57a041b661ab1dff063f2097355b5c99fa01ff129589b76a1bfbcf8f35",
+      "guards": 8
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PostNodeSize.lean",
+      "sha256": "3a23671ba36d140f6a437f51067ce06ca6dcf31d13dfdd6020f80a3a309ca2ba",
+      "audit": "zk-formal/test/AuditPostNodeSize.lean",
+      "audit_sha256": "6f29a4d008649000e15ee137e7c8a0cdd105ffa9baf3dbd666ede305e9d6ced2",
+      "guards": 7
+    }
+  ]
+}

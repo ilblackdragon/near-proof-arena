@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PostNodeLocal/PostNodeSize/NativeExecutionPost strict PASS18guards.
+Arbitrary NodePostUpdate.records u preserves full NodeOk/TableLocal, physical
+child-ID column, original store occurrence keys, SIZE view/count/receiver and
+commutes with chain metadata. Actual accepted execution now constructs updated
+node/value/SIZE local tables and seven-trace SIZE balance. Supplied u payloads
+remain explicit: NO claim they equal native final state. No WriteTreePair premise
+is imposed on structural scheduler updates by this general transport.
+
+Independent reviews PASS19 agent guards: NodePostProviders3 preserves ordered
+EDGE/BMAP provider keys under records u; RcptNativeSurplus5 derives corrected
+refund amount bound from actual batch success; ProcPendingCurrent/Transition/
+PreparedLinks11 establishes unique/valid links and pending/current invariants.
+Full scheduler loop/replay/native refinement and mixed gas renderer migration open.
+
+Root next: post traffic integration and actual payload assignments. Provider agent
+constructing SAME account-write replay on original prestate, then scheduler UPS
+reconstruction/commutation (no existing rebuildPre bridge). Receipt824/881 and
+fixed-height10/19 unchanged. Full certificate/prover/judge/general NEAR unfinished.
+Reviews use prebuilt dependencies, not clean full certificate. Prior2dfb5697 push
+failed GitHub DNS; retry after checkpoint; verified bundle retained. Three agents active.
+
+
 2026-10-08: PairedNodeLocal strict PASS4 exact guards: full paired NodeOk and
 count-extended node/value TableLocal after duplicate-chain assignment. Explicit
 same-shape WriteTreePair is essential; this is not original pre-to-final validity

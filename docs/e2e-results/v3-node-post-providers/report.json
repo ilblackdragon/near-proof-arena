@@ -1,0 +1,25 @@
+{
+  "lane": "node-post-providers",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodePostProviders.lean",
+      "sha256": "b634c194b70290489c9b13bf9a2c71e245bb87c0c57622298a6b4c9e1435043c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-node-post-providers-NodePostProviders.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNodePostProviders.lean",
+      "sha256": "1aea3160229db0491f64bb2311fed0247e9824a2974df167071131bbdac2f4a4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-node-post-providers-AuditNodePostProviders.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module3guards: arbitrary post updates preserve exact ordered EDGE/BMAP provider keys and IDs.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
