@@ -6,6 +6,31 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeValueWf/NativeByteFaithfulness strict PASS13 exact guards.
+Full seeded ValWf now derives from existing native preBytes<=2000000: value
+count<=2M plus value payload<=2M pays every row, including empty records, below
+2^22. Consecutive IDs, canonical fields and shape proved for actual constructors.
+forest_charge composes exact selected node/value payload+4*record accounting
+with original native store coverage; both abstract ValWf and byte provenance
+premises discharged. Canonical toBytes encoding is injective on native AIR byte
+payloads, including cross-kind node/value matches; no hash injectivity used.
+Postforest/metadata integration and ENT/DUP/UNIQ traffic remain open.
+
+Independent native-ups-ranked-physical PASS10 guards. Four-step instance
+inventories exactly equal rankWalks over the flattened stream and preserve
+InstOk/NativePartFamily. At least four walk rows derives from InstOk, with no
+new premise. Inventory EDGE/BMAP counter messages exact. IMPORTANT: UPS renderer
+column105 uses u for both EDGE and BMAP, unlike separate semantic u/ub. Agent
+is implementing a bitmap adapter; field-level physical traffic remains open.
+Do not claim the inventory theorem already proves actual renderer traffic.
+
+Receipt721/881 and selected fixed-height10/19 unchanged. Three agents continue
+system14, process header/entry completeness and UPS physical traffic adapter.
+Actual size/header8,288,148 unchanged. Full certificate, clean build, prover,
+real judge and general NEAR remain incomplete; strict source checks use prebuilt
+dependencies. Previous checkpoint52a7980f push failed DNS; retry after this commit.
+
+
 2026-10-08: NativeStoreProvenance strict PASS4 exact guards. Actual seeded
 forest node/value keys carry native transition tags and are covered by original
 native serialized stores. Value tags derive from allocated native parents via

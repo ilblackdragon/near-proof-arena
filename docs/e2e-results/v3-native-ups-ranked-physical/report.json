@@ -1,0 +1,25 @@
+{
+  "lane": "native-ups-ranked-physical",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsRankPhysical.lean",
+      "sha256": "10e95c7d5c0697fe88e57ccfcad9a26c1a5cb68db0a1395a8082c8991f6207ba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-ranked-physical-UpsRankPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsRankPhysical.lean",
+      "sha256": "42cf9007242d464eba5a2127b78a2b8839a2018b332f2c27dd67cc02dbb3093c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-ranked-physical-AuditUpsRankPhysical.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual four-step instance inventories equal rankWalks over the flattened stream; InstOk and NativePartFamily preserved. Inventory EDGE/BMAP counter messages exact. UPS renderer uses one u column for both modes, so bitmap u/ub adapter and field-level traffic bridge remain open.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
