@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualComparisonFactor strict PASS, six exact axiom guards. afterMemory_eq is definitional equality with actual generator comparison loop. Per-round/list/array success composes proved bucket chronology with explicit nonzero round-key decrease. prepared_reduction derives chronology from actual replay; suffix_reduction combines existing push/final-state/memory success with comparison loop to leave only operand and parameter checks, conditional on round-key decrease. Round-key decrease and numeric bounds remain open, as do full integration/certificate/prover/judge. Prebuilt dependencies only; receipt882/882 and integrated10/19 unchanged. Prior8878d048 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualRoundTimes and ProcActualBucketComparisons strict PASS, eleven exact axiom guards. Initial empty rounds establish AllGood; initialized actual replay derives timestamp order and bounds without extra initial premises. replay_good binds those facts to any successful replay result by determinism. Exact indexed bucket comparison loop succeeds, and actual_loop_eq identifies the imperative body with the proved forIn. Full suffix composition, round-key decrease and numeric bounds remain open. Full integration/certificate/prover/judge unfinished; prebuilt dependencies only, receipt882/882 and integrated10/19 unchanged. Agents remain usage-limit errored. Prior b357391f push failed GitHub DNS. Goal active.
 
 
