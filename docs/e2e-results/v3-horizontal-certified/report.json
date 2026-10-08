@@ -1,0 +1,53 @@
+{
+  "lane": "horizontal-certified",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalProfile.lean",
+      "sha256": "32b5f95b0284a31d750a4fc3d0a2af9db277e24fa270469b7f028bca90af2678",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-certified-HorizontalProfile.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalAuxCheck.lean",
+      "sha256": "e0a8613d62b0fd7034c401f39415b03a2c71e93c8a6d7fedffc850f441405264",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-certified-HorizontalAuxCheck.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalWf.lean",
+      "sha256": "be4e42a48b9c469cdface9d1fd439e19f8f52e0a1f5a87e1b0a4c4d1308e5696",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-certified-HorizontalWf.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalAccounts.lean",
+      "sha256": "5c369599be78edded904bfe657ae345ce0029cd15b86ae5f55c0be986511a2b2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-certified-HorizontalAccounts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalCertified.lean",
+      "sha256": "1a4214406aa87fac08b2506b7b1ea0e87b43d0cfcf6f15e74d9b957f6f1b8229",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-certified-HorizontalCertified.log"
+    },
+    {
+      "path": "zk-formal/test/AuditHorizontalCertified.lean",
+      "sha256": "6b01c754e8cb480d02753a0edfcd4c94bf7825666708ae5db97530a00a17d2c4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-horizontal-certified-AuditHorizontalCertified.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual candidate with four SHA tables and empty account repair: kernel-certified8,288,148 bytes,100,460 below8MiB, wf16 and actual protocol headerOk. Full witness assembly/completeness remains open.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

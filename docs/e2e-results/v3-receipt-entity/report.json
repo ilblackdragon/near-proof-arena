@@ -1,0 +1,39 @@
+{
+  "lane": "receipt-entity",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEntityPlan.lean",
+      "sha256": "88030334381640bfbdde7693af328d18cba54dc67f0f1a5e407bf306555d44ed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-entity-RcptEntityPlan.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptEntityBoundary.lean",
+      "sha256": "04ab7f78cd19558aa4b720a1a3ff9be99209315968fe2b3ed8dd6f703147cdfa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-entity-RcptEntityBoundary.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEntityPlan.lean",
+      "sha256": "910a61171b4ea01634a438423f4b25be8fd95314335662c74a6ae127c4fcc7d1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-entity-AuditRcptEntityPlan.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptEntityBoundary.lean",
+      "sha256": "1e1650bd2abbaff4eeeecb212e0a874927199578ca750a6c8b9c6bbd31b67ae3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-entity-AuditRcptEntityBoundary.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual plannedRows entity boundaries satisfy derived counters/offsets/flags; physical list-polynomial transport remains open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

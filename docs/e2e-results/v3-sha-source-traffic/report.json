@@ -1,0 +1,32 @@
+{
+  "lane": "sha-source-traffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceJobTraffic.lean",
+      "sha256": "35ef83540658d9d7ce086ecb05dd0b189e8e0b5add7a27835dffcd6542a01f75",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-source-traffic-SourceJobTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ShaJobBridge.lean",
+      "sha256": "838acd81193bf09a5b38f943098f9ad40eb52728b641f79afa6b2fa3f04562bb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-source-traffic-ShaJobBridge.log"
+    },
+    {
+      "path": "zk-formal/test/AuditShaSourceTraffic.lean",
+      "sha256": "192787e7158320b028c0710ff6e7ecaf541f78c28f42eca769a6eb0f47565eff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sha-source-traffic-AuditShaSourceTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Exact source byte jobs and conversion to physical SHA messages; four bins fit actual honestRows with full-object permutation.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08 MAJOR SIZE GATE CHECKED: Independent strict source rebuild of
+HorizontalProfile/AuxCheck/Wf/Accounts/Certified and14 exact axiom guards PASS.
+Actual candidate with FOUR512-column SHA tables,19 fused log22 tables,11
+separate lower-height tables, empty Merkle and empty-account repair:
+sizeMaxDedup=8,288,148 bytes;100,460 below8MiB. Exact fused shape
+3372/106/7/106/log22, groupeddegree8. All-table wf16, global multiplicity and
+fingerprint bounds, AIR wf16, grouped-degree check and ACTUAL headerOk pass.
+No extra protocol degree/height budget or three-bin assumption. This is now
+kernel-certified, superseding earlier runtime-only warnings above older notes.
+Full list trace assembly, honest common heights, global native bus balance,
+full receipt TableLocal, full correctness certificate/prover/judge remain open.
+
+Also independent PASS: receipt-entity9 guards (actual boundaries/counters);
+sha-source-traffic6 (exact source BYTE jobs and physical SHA message conversion,
+four bins fit honestRows preserving full objects). Root Merkle Isolation2guards:
+no sends outside BYTE/MPOS, no receives outside DIGEST/MPOS incl empty outcome.
+New report scopes explicitly distinguish local/global remaining obligations.
+Three agents continue receipt physical list polynomials, concrete workload
+constructor correspondence, and fused list trace assembly. Push still fails
+GitHub DNS; writable alternate Git and verified bundle preserve checkpoints.
+
+
 2026-10-08: MerkleRender/Positions and RootPin strict PASS6 exact guards.
 Physical MPOS receives equal own sends plus explicit leaf positions, including
 empty native outcomes. Public canonical root bytes now discharge the DIGEST
