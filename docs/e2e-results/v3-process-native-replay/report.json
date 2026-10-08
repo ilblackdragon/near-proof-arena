@@ -1,0 +1,39 @@
+{
+  "lane": "process-native-replay",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcGeneratedEmpty.lean",
+      "sha256": "c5d98ca2eb45e1ffc175a6495513eb14026d550280308d4f8349912df6501109",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-replay-ProcGeneratedEmpty.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRunProjection.lean",
+      "sha256": "301743146145cf865a6960376e69ebbdbe7592e2d1cfc760c26b44edd68179d7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-replay-ProcRunProjection.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcEmptyReplay.lean",
+      "sha256": "3f439ad6ceb624da7643ff77d8f0c389f8d4ed81248eeac6da6daed0eea4e35b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-replay-ProcEmptyReplay.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcNativeReplay.lean",
+      "sha256": "1d7d73993bb6df8bc3f91c6ce4014d15e1133832550b27cf17affc22679df79a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-replay-AuditProcNativeReplay.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Generic successful Gen.run yields exact run metadata/parameter bounds/seed-word shape; empty raw requests imply empty rounds. Full candidate process TableLocal for successful empty-raw run lists without RunData premise, with native clock continuity and16*n+1 cap. Nonempty replay still open.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

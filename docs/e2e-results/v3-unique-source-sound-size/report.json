@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Accepting corrected logical traces have field accumulator equal exact corrected natural prefix cast, with duplicate roots charged zero. Exactly one SIZE message at actual active terminal; no SIZE receives. Natural prefix-to-extracted-block equality, no-wrap budget, filler-free dictionary and physical sound reassembly remain open. Strict checks use prebuilt dependencies; not full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceSoundSize.lean",
+      "sha256": "91fec3300ecded92feac76a713019d3a165d41a634c1d59571cd54a32985f328",
+      "audit": "zk-formal/test/AuditUniqueSourceSoundSize.lean",
+      "audit_sha256": "7e7615ea8e3d744b164971d7c77f0c7f78362fccd7ede0a838d78027df7c0a1c",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/UniqueSourceSoundSizeTraffic.lean",
+      "sha256": "202081562fe8e5199391f4a17489a7706a3d529f0e62f37dbc8ae92c42f506b2",
+      "audit": "zk-formal/test/AuditUniqueSourceSoundSizeTraffic.lean",
+      "audit_sha256": "250d0ffe3fe43b3da940a9a95d018e42494aa85dd7eb599f23657c005303c4b1",
+      "guards": 1
+    }
+  ]
+}

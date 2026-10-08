@@ -1,0 +1,53 @@
+{
+  "lane": "receipt-key-nibbles",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyPkBits.lean",
+      "sha256": "005cbad3249f0459fc017f24d3ebd4846ac96fa2a5ffd51e5805795d441b931a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-nibbles-RcptKeyPkBits.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyCharNibbles.lean",
+      "sha256": "cafa436ee6650603f1952be1c545883505084d2b0640b3d9301cfc52bb523635",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-nibbles-RcptKeyCharNibbles.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptKeyCharacterCommute.lean",
+      "sha256": "8c2a4070913cbb1602f7a9f94896c05b3e4904e26fc4477600da1c23ae64f032",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-nibbles-RcptKeyCharacterCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyPkBits.lean",
+      "sha256": "7610a72f2c40139c98c10cbb177795cb1ced8e3d8089b3f15732fbedb2811646",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-nibbles-AuditRcptKeyPkBits.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyCharNibbles.lean",
+      "sha256": "39447f88c05605007b068c6ba643581778b23d9b1aca9a42ff1cb325ecd47a63",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-nibbles-AuditRcptKeyCharNibbles.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptKeyCharacterCommute.lean",
+      "sha256": "685b86210a15a71b2990ccdec934e6517eb09ce725203cba68e6141a5d0aeb91",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-key-nibbles-AuditRcptKeyCharacterCommute.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Native PK high/low nibble bits and valid receiver/signer byte-nibble expressions match actual cells; character patch commutation checked. Not yet composed into753 assignment; full key/account provider authentication pending.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -6,6 +6,33 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Corrected source SIZE sound prefix and terminal traffic strict PASS8
+exact guards. UniqueSourceSoundSize derives Boolean flags/duplicate-root implication
+from accepting corrected trace via extraction shadow, proves exact natural row
+charge cast, initial/transition equations and prefix accumulation. Duplicate roots
+pay zero; computed roots pay L+44; path starts pay33. SoundSizeTraffic proves
+exactly one SIZE send at actual active terminal, carrying corrected natural prefix,
+and no SIZE receives. No no-wrap assumption hidden: equality is to field cast.
+Remaining: prefix-to-extracted-block sum, native dictionary without fillers,
+no-wrap budget, corrected four-part SOUND reassembly and active family swap.
+
+Independent process-native-replay PASS13 guards: actual Gen.run success yields
+exact tau/n/base/D/seed/key and parameter/seed-word facts. Empty raw requests force
+empty rounds for arbitrary inputs. native_list_local derives complete candidate
+TableLocal from successful empty-raw runs, clock continuity and16*n+1 capacity,
+WITHOUT RunData premise. Concrete differing-seed PV86 pair checked. Nonempty
+replay invariants and general accepted row cap remain open.
+Independent receipt-key-nibbles PASS8 guards: PK high/low bits and receiver/signer
+character nibble formulas derive from actual native bytes; patch commutation checked.
+Not yet composed into753 receipt assignment. Lookup constructor migration for
+extension mismatch provider destination is ongoing; defer dependent rebuilds
+until agent green. Revealed versus hash-child targets must remain distinguished.
+
+Receipt753/881; selected fixed-height10/19. Full certificate, clean build, prover,
+judge and general NEAR incomplete. Strict checks use prebuilt dependencies.
+Prior73540e3f push failed GitHub DNS; retry after checkpoint; verified bundle.
+
+
 2026-10-08: Corrected source SOUND semantic extraction bridge strict PASS9
 exact guards (UniqueSourceSoundShadow/SoundSemantic). Any accepting corrected
 logical table yields an extraction-only trace with old accumulator reconstructed
