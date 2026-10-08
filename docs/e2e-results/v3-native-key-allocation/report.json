@@ -1,0 +1,39 @@
+{
+  "lane": "native-key-allocation",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeLookupKeyBalance.lean",
+      "sha256": "33dc8977c5bba5ae0112ba069019439563ccf9a5c327c0d30d27c637aea4bdbd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-key-allocation-NativeLookupKeyBalance.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptKeyBytes.lean",
+      "sha256": "1f334a8fb52291de1400bbad7803db0b2b8e82da4f60eda202450adb609cdf44",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-key-allocation-NativeReceiptKeyBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeKeyAllocation.lean",
+      "sha256": "a8339467e7d30ea9339f427b745c5b4b464d662247885e9321ab3de29c92505a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-key-allocation-NativeKeyAllocation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeKeyAllocation.lean",
+      "sha256": "071243a871d7729388d157406d2a6b9df2504cdf9f663b99f47b35638e332ab3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-key-allocation-AuditNativeKeyAllocation.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules4guards. Strongest NativeKeyAllocation preserves all prior repaired queue/FINAL/MEM/AKC facts and adds full physical receipt+queue KEYNIB sends=SAME ranked walk receives. No added accepted assumptions.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
