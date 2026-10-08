@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Native prior occurrence is disjoint from account/access/queue providers and lies in exact original-state byte residual. Physical decoded parser supply subtracts exactly that occurrence, retaining all other equal-valued occurrences. Whole forest placement and integration remain pending. Prebuilt dependency checks, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativePriorOwnership.lean",
+      "sha256": "d086f351ecd285e6375af8c05d81c58238e2ba9ce0aad19cbd50e3d4463500ba",
+      "audit": "zk-formal/test/AuditNativePriorOwnership.lean",
+      "audit_sha256": "91de31e0358d34b6c3f6e8c6b41bfc8233754257fd5b3d5cdcd3efc76d743d2f",
+      "guards": 5
+    }
+  ]
+}
