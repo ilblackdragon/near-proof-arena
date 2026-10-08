@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual native/source physical byte senders integrated with concrete four packed SHA consumers. Strong constructor derives scheduler/native/source byte and capacity contracts from SAME chosen rebased execution and forest; receipt SHA contracts alone remain external. Scheduler/receipt physical byte residual, global digest and other buses still open. Prebuilt dependencies, not clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeSourceByteBalance.lean",
+      "sha256": "5e9ba309d80aab3fcdb8f5502c9846040c43d4b0753a07af42cc9c6378001a5b",
+      "audit": "zk-formal/test/AuditNativeSourceByteBalance.lean",
+      "audit_sha256": "376cde68daf43a9a6f8df0460dc20e8e4a655bb39c26369f6a81c057ea202ecc",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeSourcePhysicalAllocation.lean",
+      "sha256": "e2fa4ecfd002e8944f765ef800db0f37fd56f9ead1351eabe6f6d43c42e0cb83",
+      "audit": "zk-formal/test/AuditNativeSourcePhysicalAllocation.lean",
+      "audit_sha256": "fdc016f39d9a48332ace21691ee4d7ca5f2a3a5e2ac82ea12563ac3ac0fa11b0",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedSourcePackedAllocation.lean",
+      "sha256": "fd66e9d76c24956174f2733b85f7d4355b8eff18b762ab6e3d54d4c0a0414c68",
+      "audit": "zk-formal/test/AuditRebasedSourcePackedAllocation.lean",
+      "audit_sha256": "1bb0762f1bc235b0673179f682f992ed7209d4158a28e8e3f49638f50519e03b",
+      "guards": 1
+    }
+  ]
+}

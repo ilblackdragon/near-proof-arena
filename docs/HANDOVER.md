@@ -6,6 +6,35 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeSourceByteBalance/NativeSourcePhysicalAllocation/
+RebasedSourcePackedAllocation strict PASS3 exact guards. Concrete four packed SHA
+consumers now equal actual native node/value plus original four source byte senders,
+with scheduler/receipt residual explicit. Strong constructor starts from SAME chosen
+native_rebased_physical_bounds writes/oldPost/us and exact actual output pairs,
+deriving scheduler byte+1,663,260-row contract along with native/source contracts.
+Only receipt SHA byte/1,373,299-row contracts remain external to bin construction.
+Original node post bytes, NodeOk/ValWf, four local log22 packed tables and exact
+all-job digest counts retained. Physical scheduler/receipt traffic, digest matching
+and complete global bus assembly remain open.
+
+Independent native-rebased-initialized-ids PASS2modules10guards: actual replay
+preserves global window/child ID lists; initialized original updated provider at
+rebased index has exact same per-byte renderer cidAt. Reader generated depth and
+full UPB balance remain. Independent process-batch-success PASS5modules12guards
+constructively executes selected model bucket from native successful shuffle,
+retains allowance/link uniqueness and derives input invariants from preparation.
+Outer order/ordinal guard propagation and full native model existence remain, plus
+RNG capacity.
+
+Independent receipt-deposit-native-arithmetic PASS2modules37guards: actual native
+ordinary/system balance data derives storage bound and scalar arithmetic contract;
+generalized deposit byte/carry arithmetic avoids unrelated receipt-index/version
+restrictions. Physical deposit frames/account ledger remain. Candidate842/881,
+original832/881 and fixed-height10/19 unchanged. Full certificate/prover/real judge/
+general NEAR unfinished. Prebuilt dependency reviews, not clean certificate.
+Three agents continue. Prior18a35d10 push failed GitHub DNS; retry after checkpoint.
+
+
 2026-10-08: AcceptedSourceShaContract/NativeSourcePackedAllocation/
 NativeSourceShaTraffic strict PASS3 exact guards. Source8932712-row total, <=35 per
 job and byte ranges now derived from SAME accepted witness/prepared inputs with
