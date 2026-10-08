@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual replay entry with all memory/used/push side effects succeeds under pointer/event invariants. Definitional equality connects factored entry to entire runRest. Whole-loop invariant and remaining checks stay open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayEntry.lean",
+      "sha256": "81bab205e06f705054682ff3df81b66106744abfb92eea672d84ddab43b4a229",
+      "audit": "zk-formal/test/AuditProcActualReplayEntry.lean",
+      "audit_sha256": "1807352383ea15601989d95be6d13c274ce22d4f4c24dbc80b8cdd4de8f418dd",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualEntryFactor.lean",
+      "sha256": "bb4a414385941daa6eeb9c6222990b80f59d3c4e1d02c88c22cec89ae756df25",
+      "audit": "zk-formal/test/AuditProcActualEntryFactor.lean",
+      "audit_sha256": "680bc7d1d16541f32cf5092bd9590ee8a25ec82a860536d0785ef44b5683b98d",
+      "guards": 1
+    }
+  ]
+}

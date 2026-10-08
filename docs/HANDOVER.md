@@ -6,6 +6,18 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Actual replay entry connected: ProcActualReplayEntry and
+ProcActualEntryFactor strict PASS, two exact guards. Extracted step includes
+all original state writes, memory-log appends, used bits, push records, emitted
+Entry and cursor increment. step_success derives execution from valid pointer
+and replay-equal model event with correct time, for arbitrary side accumulators.
+rest_eq is definitional equality of entire previous runRest and version calling
+this extracted step. Whole entry-loop invariant preserving model/state relation,
+outer rounds, final push/memory/comparison checks remain open, as do integration
+and full certificate/prover/judge. Prebuilt dependencies only; receipt882/882,
+integrated10/19 unchanged. Prior7e6e5064 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualStateReplay strict PASS, five exact guards. Actual converted
 coordinates equate replay writes and model grants. entries_state proves whole
 model entry-loop final state equals sequential replay fold; entries_events
