@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Revised Codec actual family full pg3 structural/header certificate: same width3402, fused aux90/degree8/log22, exact sizeMaxDedup8238324, byte margin150284, multBound1038721028, fpBound68697539256, fingerprint margin21937480, air.wf/groupeddegree/headerMax checked. Actual definitions include public ID70, memory68, sanity74, single-owner presence60 and four-field SDG. One additional padded log22 triple at coefficient58 exceeds fingerprint budget. Native completeness/soundness and global joins remain independent obligations. Strict checks use prebuilt dependencies; no full correctness certificate/prover/judge claim.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecActual.lean",
+      "sha256": "63c909723bc09e19c40f11d06dfd9f63cac58eb1de9519bf30b69b019e49d64d",
+      "audit": "zk-formal/test/AuditProcPriorCodecActual.lean",
+      "audit_sha256": "a7297d612fdb1add146783acd6cfb1bdc227a6b4e3411c7b9e022cc0ff18204e",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecActualFamily.lean",
+      "sha256": "fc5b06387edd508f581d49d3ce2d4c33ab27e4014a8bc54c2492cf31380e3754",
+      "audit": "zk-formal/test/AuditProcPriorCodecActualFamily.lean",
+      "audit_sha256": "f9afb0addefae4d52368638ed7779b20dea0a5c0c5dbb86c19e65708f6613a93",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCertifiedProfile.lean",
+      "sha256": "262230f567a43233a38340c6520d1e05e813fc793f6568b5b345a5a7f65e4c7c",
+      "audit": "zk-formal/test/AuditProcPriorCodecCertifiedProfile.lean",
+      "audit_sha256": "fd7a4ce6ecd277e0d1b373e824071d83075f4bad5eccead08cca411cb205978d",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCertifiedDegree.lean",
+      "sha256": "85b18fb9e9a8f6ed5f352898d53bf5b3a6189d0a5952bdce6c527ab1590fcf76",
+      "audit": "zk-formal/test/AuditProcPriorCodecCertifiedDegree.lean",
+      "audit_sha256": "9f4cc0ce71e95db71665e64a772f4d0c8aeef33334a78906cbaa47810d006ff1",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCertifiedSize.lean",
+      "sha256": "de6ec8d094a3d07446b673cac49a82211e6519f5f70ab8c146689b6c17b31644",
+      "audit": "zk-formal/test/AuditProcPriorCodecCertifiedSize.lean",
+      "audit_sha256": "e5e5de91c6c487ae02231c6c390521ec777440c20a58c920684c91c16acab834",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCertifiedWf.lean",
+      "sha256": "066e7d253988d1ed346f9743e3849a48e13a2553ab09dc42ee46411162e44828",
+      "audit": "zk-formal/test/AuditProcPriorCodecCertifiedWf.lean",
+      "audit_sha256": "20451af675a44e68ef27073e868c5380eed1e2f6d7adad073a03e48c7a43f168",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecCertifiedAdmission.lean",
+      "sha256": "90e7fe137ae537f40de9e2087ceefcc7b35f182e0d919b7f7f130f66527af38b",
+      "audit": "zk-formal/test/AuditProcPriorCodecCertifiedAdmission.lean",
+      "audit_sha256": "fed015f98f2def4ab3fccc86602b2d95338460d8c7107df24b5c4f79e538678d",
+      "guards": 7
+    }
+  ]
+}

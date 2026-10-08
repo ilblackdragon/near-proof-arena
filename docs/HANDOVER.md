@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: REVISED CODEC actual-family structural certificate strictPASS31guards
+across7modules (2concrete definitions+5certification modules). Actual pg3 fused
+shape3402/90/7/90/log22, auxdegree8; full sizeMaxDedup=8,238,324,150,284 below8MiB.
+multBound1,038,721,028; fpBound68,697,539,256 leaves21,937,480 below2^36. air.wf,
+grouped degree and max header pass kernel checks. One extra padded log22 triple
+at58 fingerprint units/row EXCEEDS fixed budget. Replaces old Codec structural
+candidate: public IDs70, prior-memory68, sanity74, one-owner S0F presence60 relay,
+SDG first4 fields. Actual native local/soundness and authenticated joins remain;
+this is NOT a full correctness certificate or installed final prover.
+
+NativeMemoryAllocation is new strongest root API: independently strictPASS3guards
+across NativeAccountMemContext, NativeReceiptMemoryBytes, NativeMemoryAllocation.
+Full physical receipt/account MEM conservation now attached to SAME accepted native
+allocation, with no new acceptance assumptions. Actual ledger context, canonical
+receipt ordering, original IDs and timestamps derived. Prior full account/key
+VBYTES partition and all raw/ranked/public/fourSHA facts retained.
+Scheduler extension3modules9guards closes actual signed RDE/WEX/PT digest payload
+against preceding native job. Branch/split cases and full scheduler equation open.
+43guards total; prebuilt dependency checks, no clean full certificate/prover/judge.
+Receipt882/882, integrated10/19. Prior2d12f5fb push DNS failure persists; local
+commits and verified recovery bundle retained. Agents continue AKC, remaining
+scheduler payloads and native repaired Codec installation.
+
+
 2026-10-08: NativeAccessByteAllocation strictPASS5guards across3root modules.
 Strongest SAME native receipt/account/access-key/trie/fourSHA theorem discharges
 actual account AND access-key physical VBYTES sends from full EmptyValue forest
