@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual quicksort strict partition progress and recursive sortedness prove sortPush timestamp order. Unique reachable timestamps plus permutation imply exact sorted-list equality. Actual replay push-log check succeeds from prepared model processing and conversion. Memory/comparison checks and full certificate remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcQsortProgress.lean",
+      "sha256": "4f3840bd3fde04f07fc66c3490fb84c463eebd328f0660bd005d7baf2a3ccfca",
+      "audit": "zk-formal/test/AuditProcQsortProgress.lean",
+      "audit_sha256": "6126ee57fbdb2e14d19604b5c203a36d07540ccbc6a3dc7ff60306c9db6a26ef",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcQsortSorted.lean",
+      "sha256": "dce4f7abf8c2d1dbb8a020f7c5358c642fe971bdd4f34bba2359190084b7fb92",
+      "audit": "zk-formal/test/AuditProcQsortSorted.lean",
+      "audit_sha256": "f847ea018feba2e210f83ee251b0c3492811c3e60d091223e6676de000e500cb",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualPushLogGuard.lean",
+      "sha256": "553b7ba49562fc817cfea035ee4ce642d8e345a8262bd325651a5c0314b47e7e",
+      "audit": "zk-formal/test/AuditProcActualPushLogGuard.lean",
+      "audit_sha256": "862f68fa6e87babd0f661b4f03140a8a079f76eb3a6abbd56a26bb08f169d9a5",
+      "guards": 3
+    }
+  ]
+}

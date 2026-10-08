@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcQsortProgress/ProcQsortSorted/ProcActualPushLogGuard strict PASS, nine exact axiom guards. Median sentinel proves strict partition progress for asymmetric comparators, excluding unsorted early-return branch on nontrivial ranges. Generic recursive sortedness combines partition order, frame and range predicates. Actual sortPush outputs nondecreasing timestamps. Reachable strict timestamp uniqueness and multiset conservation imply exact sorted-list equality; replay_push_guard proves the actual push-log check succeeds from prepared processing and conversion. No replacement sorting implementation or sort assumption used. Memory timestamp/round comparison/operand checks and full integration/certificate/prover/judge remain open. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previousd5cef7ad push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcQsortRangePredicate strict PASS, five exact axiom guards. Swaps, partition scan, partition and recursive/public clamped quicksort preserve arbitrary element predicates over any containing interval. Supplies pivot upper/lower bound transport during recursive sortedness composition. Additional necessary sortedness obligation identified: median-selection sentinel must prove returned partition index<hi for lo<hi; otherwise actual qsort early-return branch cannot be claimed sorted from partition ordering alone. No sortedness claim yet. Remaining generator checks and full integration/certificate/prover/judge unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previous4c81f419 push failed GitHub DNS. Goal active.
 
 
