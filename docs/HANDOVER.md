@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativePostWindowBinding/NativeBoundWindows strict PASS6 exact guards.
+Actual accepted execution constructor now binds exact physical UPB provider counts
+to native post node bytes at the SAME chosen forest's global occurrence indices,
+with full request multiplicities and original length/depth/child-id metadata.
+Includes indexed serialization/window equality and usage assignment idempotence.
+Actual rebased UPS reader inventory coverage and global bus balance remain open.
+
+Independent process-push-conservation PASS3modules11 exact guards: successful
+processEv conserves initial/generated versus popped push multisets including Gen
+stamp translation. This does NOT prove the Array.qsort equality guard or native
+acceptance to model success. Agent continues executable replay/refinement work;
+any alternate certified RunData constructor must retain native semantics/bounds.
+RNG capacity stays separate. Receipt832/881 and fixed-height10/19 unchanged.
+
+Checks use prebuilt dependencies, not a clean full certificate. Complete certificate,
+prover, real judge and general NEAR replacement remain unfinished. Three agents
+continue in parallel. Prior944d86a9 push failed GitHub DNS; retry after checkpoint.
+
+
 2026-10-08: Independent receipt-gas-token strict PASS10modules37 exact guards.
 SAME mixed physical native receipt trace coverage rises828→832/881 original
 constraints. Four token accumulator constraints use the actual receiptPlanToken

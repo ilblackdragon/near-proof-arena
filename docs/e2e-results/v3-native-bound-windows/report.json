@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME actual accepted native execution supplies concrete post forest and exact physical UPB provider counts rewritten to native post node bytes at global indices. Includes request multiplicities and original metadata; reader coverage/global balance remain open. Prebuilt dependencies, not a clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativePostWindowBinding.lean",
+      "sha256": "5931145589a3f067f5824ecca8c62a47086dfbe303a43b6d2a712c3fc3a0624e",
+      "audit": "zk-formal/test/AuditNativePostWindowBinding.lean",
+      "audit_sha256": "b1a48eb51f5c4424c95e2a8ca0e4951b12ca32e255ca4b94c53a46b647c20de8",
+      "guards": 5
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeBoundWindows.lean",
+      "sha256": "34566fb7c4d62456bb65fdf6889ce8a7b27f6184bdb88f8fcf16e724b98e8c84",
+      "audit": "zk-formal/test/AuditNativeBoundWindows.lean",
+      "audit_sha256": "3498aa649802257fbb188448d7de1abcd766f608658202f6139aaf7e8b3254b3",
+      "guards": 1
+    }
+  ]
+}
