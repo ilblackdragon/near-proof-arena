@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PairedForestRelation/Metadata/Wf strict PASS14 exact guards.
+Full initialized NodeWf3 now holds for paired pre/post records: exact allocation,
+depth/target/field bounds, count/row limits and child-window metadata. Explicit
+WriteTreePair, native prestate wf/byte/fuel/count bounds remain; actual pair validity,
+NodeOk, post-traffic binding and global family construction are not yet closed.
+
+Independent review PASS24 agent guards: physical shared EDGE/BMAP4; native joint
+request bounds2; system gas candidate zero products5; decoder/prepared gas bound6;
+exact conversion/instrumented round agreement7. Original receipt824/881 unchanged.
+All former prepared gas evidence premises are now derived from native preparation.
+System candidate10 product constraints remain row-local pending physical/global
+scratch migration. Scheduler full native refinement/Gen.run existence remains.
+
+Important provider integration distinction: scheduler pairs contain intermediate
+UPS output while lookup pairs contain receipt-final poststate; only prestates align.
+Agent is exposing the SAME chosen native trace and proving pre-provider invariance,
+not assuming whole pair equality. Windows remain actual inventory obligations.
+Fixed-height10/19 unchanged. Full certificate/prover/judge/general NEAR incomplete.
+Checks use prebuilt dependencies, not clean certificate. Prior943969b4 push failed
+GitHub DNS; retry after checkpoint; verified bundle retained. Three agents active.
+
+
 2026-10-08: PairedNodeCanonical strict PASS4 exact guards. Raw field bounds for
 slots/children/nodes transport from pre-only views to paired actual post-digest
 views. No new post-digest bound premise; actual byte encoding supplies it.

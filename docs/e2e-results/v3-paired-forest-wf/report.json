@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact paired forest record allocation, canonical/wellformed view transport, indexed target/depth preservation and full initialized NodeWf3 under WriteTreePair, native prestate wf/byte/fuel/count bounds. Actual write-pair validity and NodeOk/post traffic remain open; prebuilt dependencies,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PairedForestRelation.lean",
+      "sha256": "a42cdb914ba8474bac4a4e055cbfa8ed4fa5be9d32d098b52f497dee3cbdad5a",
+      "audit": "zk-formal/test/AuditPairedForestRelation.lean",
+      "audit_sha256": "ff658cc1a4b3d728874f124c035fed133a1824e04946ab76453ef0f02b8a4ade",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PairedForestMetadata.lean",
+      "sha256": "3619d140d175f4cfee47f6caf246da6e618b4f35ed52fe89249efe8d9d3ee76d",
+      "audit": "zk-formal/test/AuditPairedForestMetadata.lean",
+      "audit_sha256": "a9a7081f43290be41f4473b6de611fbc1f3dae8923bb8a1b6b61623a7f109c83",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/PairedForestWf.lean",
+      "sha256": "0d5b38836bc5a10dd1dfd19470a46aa7e95727532d9b4db5efd7bdd78120b2e3",
+      "audit": "zk-formal/test/AuditPairedForestWf.lean",
+      "audit_sha256": "7fc930cbfb1b28b10cf22f32d6cda9bee3ae1aaf405827339209c0b74a0bcf9c",
+      "guards": 1
+    }
+  ]
+}

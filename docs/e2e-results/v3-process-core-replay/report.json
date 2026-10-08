@@ -1,0 +1,32 @@
+{
+  "lane": "process-core-replay",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConversionExact.lean",
+      "sha256": "45bc074769bccd9e72ab53501fd62a3461a7564319ff655c87e92d174301fcbc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-core-replay-ProcConversionExact.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcCoreReplay.lean",
+      "sha256": "198ff5e1134a47565dca39dc2c3de0742d72b36054d10b8a26f9407f044af747",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-core-replay-ProcCoreReplay.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcCoreReplay.lean",
+      "sha256": "c6d03401da390945cef1e4704673c9eb2fe4d768b94cb0027d1463b382b923e7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-core-replay-AuditProcCoreReplay.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules7guards: exact first conversion output and definitionally matching instrumented rounds/check loop. Full native scheduler refinement and generator existence remain open.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,46 @@
+{
+  "lane": "shared-physical-providers",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SharedPhysicalEdgeBalance.lean",
+      "sha256": "f2b4169950f56f774ce56fa8974a162adf9901292a299ebd3b7fbf413e14bab8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-shared-physical-providers-SharedPhysicalEdgeBalance.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodeBitmapMessages.lean",
+      "sha256": "5038798037981deeeea67a3642f138911f4f74bb368ba15c1560e6b207e462ec",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-shared-physical-providers-NodeBitmapMessages.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SharedPhysicalBitmapBalance.lean",
+      "sha256": "819f11564a11e6f5a5805d054edb37484dd2337e7910be955e7cb2262ae6c92d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-shared-physical-providers-SharedPhysicalBitmapBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSharedPhysicalEdgeBalance.lean",
+      "sha256": "6b4278ed0231fb3981e8f4a3126aa75384aedb996648cdd3d6c42b6a29b6ea39",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-shared-physical-providers-AuditSharedPhysicalEdgeBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSharedPhysicalBitmapBalance.lean",
+      "sha256": "02a9b5c9eca04b1a2b742ffca0698dae26ffe72e45d0e1f6fcc6984e3b73dfc0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-shared-physical-providers-AuditSharedPhysicalBitmapBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules4guards: physical EDGE and BMAP balances across common node/walk/UPS providers (EDGE also Head), explicit provider membership and renderer traffic. Arbitrary windows inventory retained.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
