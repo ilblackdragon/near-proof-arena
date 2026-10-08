@@ -1,0 +1,32 @@
+{
+  "lane": "native-lookup-queries",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupQueries.lean",
+      "sha256": "85f57a640de48456b2b0152775176e3a47469864d2144a4c8f4c0f30097545ba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-queries-NativeLookupQueries.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupQueryList.lean",
+      "sha256": "0b6e4191128a0575321483d4b4fe55b4839020e5e203df085a5158aef781f49c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-queries-NativeLookupQueryList.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupQueries.lean",
+      "sha256": "855a8ce4bb09b7121ca252fdf0759abc536331c489739ec14819e54fa4131aad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-queries-AuditNativeLookupQueries.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Executable arbitrary native query constructor preserves order/cardinality, fails on unresolved requests, derives provider coverage from success. Two modules4guards. Actual queue/account query instantiation and total rows remain open.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

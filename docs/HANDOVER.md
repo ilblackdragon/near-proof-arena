@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Initialized native SIZE construction strict PASS6 guards. Exact
+initialization preserves occurrence keys/IDs, duplicate classes and chain-selected
+serialized node charge. InitializedSizeValid uses native_forest_wf of actual
+initialized metadata; no raw forest NodeWf assumption. InitializedNativeSize derives
+forest count bound from accepted native transitions and proves SIZE receiver local
+AIR/traffic for initialized+duplicate-chain metadata. Explicit native trie wf,
+fdepth≤trieFuel,2M preBytes and Stored provenance remain. Usage counts still zero;
+shared consumer ranks/physical bus assembly remain separate obligations.
+
+Independent native-lookup-queries PASS2modules/4guards: executable query assembly
+fails on unavailable/unresolved queries, preserves exact order/cardinality, derives
+provider coverage. Native queue/account instantiation and total row bound remain.
+Independent native-lookup-joint PASS1module/3guards: query and UPS inventories use
+shared rank prefixes with EDGE conservation on same actual HEAD/node providers.
+Physical shared-prefix UPS counter transport remains open. BMAP/START15guard
+checkpoint was already committed489f25d3; not counted twice here.
+
+Receipt802/881; selected fixed-height10/19. Full certificate, clean build, prover,
+judge and general NEAR incomplete. Strict checks use prebuilt dependencies.
+Prior489f25d3 push failed GitHub DNS; retry after checkpoint and verify bundle.
+
+
 2026-10-08: NativeSizeConstruction strict PASS4 exact guards. Actual accepted
 native input derives ORIGINAL public bytes, roots, inner bytes, K and indexed
 transition-store alignment. Same accepted source/store budget produces generated
