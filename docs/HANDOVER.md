@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeAccessKeyAllocation strictPASS11guards across4root modules.
+Accepted native system receipt validation derives original-prestate nine-byte
+FullAccess encodings, preserved through intervening account writes and scheduler.
+Actual access-key providers deduplicate original VIDs while retaining true receipt
+use count; no provider for absent keys. Wf, allbytes<256, aligned TableLocal and
+full traffic constructed even for empty batches. Physical VBYTES sends equal
+exact selected original-value bytes. Joined to SAME native receipt/account/trie/
+fourSHA proof. AKC receipt-counter balance and complete VBYTES partition remain.
+
+Independent scheduler9modules21guards closes whole-instance physical DIGEST job-ID
+multiset, with explicit native frame/part/positive-branch premises; hash payloads
+and native premise discharge remain. Receipt MEM3modules4guards binds physical
+packets to SAME ledger, proves actual occurrence order and accepted field bounds;
+full aggregate still open. Parser DataEval1module3guards checks actual overlay
+expression/virtual-marker transport.39guards total; prebuilt dependencies only.
+No clean/full correctness certificate, executable prover, or real judge yet.
+Receipt882/882, integrated10/19. Pg3 structural size8,231,316; fingerprint bound
+67,967,730,360 leaves751,746,376 below2^36. Codec semantic repairs must be rechecked
+against BOTH size and fingerprint budgets; structural certificate is not final
+native installation. Prior53e9e2e0 push DNS failed; recovery bundle maintained.
+
+
 2026-10-08: NativeReceiptLookupAllocation strictPASS11guards across3root modules
 fixes BOTH receipt account and access-key IDs to original-prestate value slots.
 Conditional native access-key queries preserve W_AK+receiptIndex through filtering

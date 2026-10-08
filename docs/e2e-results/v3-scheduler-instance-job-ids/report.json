@@ -1,0 +1,137 @@
+{
+  "lane": "scheduler-instance-job-ids",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactDigestTargets.lean",
+      "sha256": "46e25db6d0c818d247370df48163f2722b53d5dac47ef210faf17e607cef424a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-CompactDigestTargets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactUnaryDigestTargets.lean",
+      "sha256": "5f2dc9ea62667b326224687406f6ea159f95e8b1b600b1ef13cf5d1c074611fa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-CompactUnaryDigestTargets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactBranchValueTargets.lean",
+      "sha256": "5d3f7e96f6aae36d7951125822b4426bbf53ad252b6ac5106a20a5ff99b2c61e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-CompactBranchValueTargets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactSelectedChildTargets.lean",
+      "sha256": "7429c5c11d46d89a6133d352aebfca40c413d7a67caf969a37876ef7ffd603ac",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-CompactSelectedChildTargets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactSplitValueTargets.lean",
+      "sha256": "55c9e5886d53e7888c7e06f16f0fe1d25f703c3452fda3cf77ea562a76c69a01",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-CompactSplitValueTargets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactSplitChildTargets.lean",
+      "sha256": "83255d247f06acc1712c8c9f92bb90b6c98e72cafba92f209da9690b89652f28",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-CompactSplitChildTargets.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactPartJobIds.lean",
+      "sha256": "49f1ae1f6c05dffa28203868ec8383bace6d80476c8316cc446d038e180da6e3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-CompactPartJobIds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerDigestFrame.lean",
+      "sha256": "4e64ee2251fa489041d3eaff327d1951bb1a71775ee1c62017d8479fa235c376",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-SchedulerDigestFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactInstanceJobIds.lean",
+      "sha256": "b072d87140906f229a15e5b402552bce30fec181efcb8be114cb05168a14bbab",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-CompactInstanceJobIds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactDigestTargets.lean",
+      "sha256": "981f4ddd1cbde817dfa4dce5d390a30217073693a6502cd2abf468902a34bb99",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-AuditCompactDigestTargets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactUnaryDigestTargets.lean",
+      "sha256": "6bb3b4484e3d977c07cbe1a649a62e5229ad36afa85240b59a6a7bb634758111",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-AuditCompactUnaryDigestTargets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactBranchValueTargets.lean",
+      "sha256": "4957b98c1cb88357e615354073a800ca41620478522f2b15d5237939ad5c5bc3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-AuditCompactBranchValueTargets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactSelectedChildTargets.lean",
+      "sha256": "7d9205cfbd141a817f1d4596617a4e65018c7828f08092bcdecabdf47caef3cc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-AuditCompactSelectedChildTargets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactSplitValueTargets.lean",
+      "sha256": "b544ceca68aa3d63dae19dc09f9e80d0c2a28bde449d989bd49192c38ff7f974",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-AuditCompactSplitValueTargets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactSplitChildTargets.lean",
+      "sha256": "a0aaaf146e7c07584fc488caaa1382df5fd920ab479a12175a7a019adb647b24",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-AuditCompactSplitChildTargets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactPartJobIds.lean",
+      "sha256": "1c50de2adc5ea8041b8006431c2a811912e13f0498b91722066eb7fc6461c51e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-AuditCompactPartJobIds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerDigestFrame.lean",
+      "sha256": "31c19a743de98ed94ccab336be644ae37a9f9bea9c7680c1536378d1df552f06",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-AuditSchedulerDigestFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactInstanceJobIds.lean",
+      "sha256": "a0f31c6c355afe8aa3550ecb34a21795c5a5f747d4f4a71707d177dc23cb2043",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-instance-job-ids-AuditCompactInstanceJobIds.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Nine modules21guards. Whole-instance physical digest job-ID permutation equals native upsertShaJobs IDs including root and every serialized window, preserving multiplicity. NativeDigestFrame/InstOk/part-family/positive ordinary branch-window premises explicit. Hash-payload correspondence and native premise discharge remain.",
+  "exact_axiom_guards": 21,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

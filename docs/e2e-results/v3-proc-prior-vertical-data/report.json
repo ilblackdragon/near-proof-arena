@@ -1,0 +1,25 @@
+{
+  "lane": "proc-prior-vertical-data",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVertical4DataEval.lean",
+      "sha256": "49c7ee50fd0c3795a85b82be0075317a34384974d5709921eb0dc4293a0cfec7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-vertical-data-ProcPriorVertical4DataEval.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorVertical4Data.lean",
+      "sha256": "b5792fd677772d6213f38e4982a9fccb722e4ee662f09078bf23e38d85d8b70e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-vertical-data-AuditProcPriorVertical4Data.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module3guards. Arbitrary component expressions with colBound<=23 see original overlaid data and virtual endpoint markers; all four components satisfy bound. Actual component data installation and authenticated Codec joins remain.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
