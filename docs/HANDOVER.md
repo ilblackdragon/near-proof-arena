@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independent receipt-gas-flags PASS8modules37 exact guards. Active
+original-family SAME mixed physical trace coverage rises824→828/881: four refund
+flag/sum constraints, ordinary/system receipts, headers/endpoints/padding; all
+previous824 preserved via checked commutations. Remaining gas14 and deposit39.
+System product candidate not counted; token4 then candidate10 integration ongoing.
+
+PostNodeBytes/NativePostBytes strict PASS10 exact guards. Serialized bytes remain
+<256 after arbitrary post digest updates. Actual native forest + initializer,
+chain metadata, post updates, usage assignment and native values produce only valid
+byte payloads for NPRE/NPOST/VPRE jobs. Full MsgsOk length/bin obligations and actual
+final payload binding remain; no semantic correctness claim for arbitrary Inputs.
+Independent process-replay-boundary-guards PASS1module3guards supplies prepared seed
+length and final RNG-position check. Full model/replay state/log success and RNG
+multi-table/tighter capacity remain open.
+
+Fixed-height10/19 unchanged. Full certificate/prover/judge/general NEAR unfinished.
+Checks use prebuilt dependencies, not clean certificate. Priora3b6c5c2 push failed
+GitHub DNS; retry after checkpoint; verified bundle retained. Three agents active
+on full payload/window bindings, receipt repair integration, scheduler execution.
+Root next native SHA job length/MsgsOk closure and complete physical allocation.
+
+
 2026-10-08: NativeShaBinBalance strict PASS3 exact guards. Physical SHA bin
 byte and digest counts equal allocated whole-job multiset including repeated IDs
 and digest-enable flags. Native physical node/value sends discharge their exact
