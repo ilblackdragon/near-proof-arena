@@ -1,0 +1,39 @@
+{
+  "lane": "process-prior-decode",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorLookup.lean",
+      "sha256": "5bdaf10071c120db543742cc556874cc158be1509555c88a237c7854d5b7a581",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-decode-ProcPriorLookup.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorDecode.lean",
+      "sha256": "a2bd45542469b86893e41cf914ecc1f18a4c8b9c1af47763d9ded2b2ea46fe09",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-decode-ProcPriorDecode.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorBytes.lean",
+      "sha256": "eff6e86875844aa9889c4cbdc1430d7211379e01d3c2ddd1c56d529ac28617f0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-decode-ProcPriorBytes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorDecode.lean",
+      "sha256": "fcd6017ff8aaa1404f007c2f859cb37383253beb5b928900eff6457fec07c244",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-decode-AuditProcPriorDecode.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules18 exact guards. Exact arbitrary original State.decode bytes and count/u64/hash bounds, original record positions, native first-ID lookup and last-original-record-wins semantics, duplicate-ID regression. Raw parser/lookup AIR and codec integration remain.",
+  "exact_axiom_guards": 18,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

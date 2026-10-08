@@ -1,0 +1,25 @@
+{
+  "lane": "node-window-distinct",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodeWindowDistinct.lean",
+      "sha256": "aed21d1a5b62843d291474c601e590377a3e781be8f165ef523142b76ba91d9f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-node-window-distinct-NodeWindowDistinct.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNodeWindowDistinct.lean",
+      "sha256": "86aaed71a017875609a39b9aea754c9cd5659523b63129f64818c90f09798da2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-node-window-distinct-AuditNodeWindowDistinct.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4 exact guards. Actual global provider key list is unconditionally Nodup; node/position injectivity and indexed membership derived.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

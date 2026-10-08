@@ -1,0 +1,39 @@
+{
+  "lane": "receipt-deposit-commute",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositCommute.lean",
+      "sha256": "aaa85f9022ca52cd60d417428fd9bf269056ca0394a9d433732f9826355f1529",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-commute-RcptDepositCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositFrameCommute.lean",
+      "sha256": "50eab8e7bb9b1b9560e20130dc0c68ed47ebfc99bfcfe51abae331323aed8d2f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-commute-RcptDepositFrameCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositCommute.lean",
+      "sha256": "bba89324e4fcb2cce3440415185bfe4a04bb27d315c521fa622b148e4a2e18f4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-commute-AuditRcptDepositCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositFrameCommute.lean",
+      "sha256": "372e7c912bb5a32bf5de55e4c7e4395843c95ba85b5eddbd6e3401a47d43d479",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-commute-AuditRcptDepositFrameCommute.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules15 exact guards. Exact deposit scratch ownership and commutation with gas, digest/system, character, routing/key frames. Remaining age/constants/borrow/header composition active; coverage unchanged.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

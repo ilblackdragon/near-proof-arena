@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PhysicalWindowBalance strict PASS4 exact guards. Actual node table
+zero sends/terminal receives and prefix-ranked compact UPS reads conserve UPB
+exactly. Concrete constructor chooses BOTH counter sets from SAME physical read
+multiset and proves local validity of both tables. Window list field bound derived;
+provider uniqueness derived by independent NodeWindowDistinct PASS4guards. Only
+native ownership coverage remains explicit; extra-read source bounds active.
+
+Independent receipt-deposit-commute PASS2modules15guards establishes exact scratch
+ownership and commutations needed to preserve842 while composing39 DEP. Final
+age/constants/borrow/header composition still pending; no881 global claim.
+Independent process-prior-decode PASS3modules18guards proves arbitrary original
+State.decode exact byte reconstruction, original record slices/length/u64/hash,
+native first-ID index and last-original-record write semantics. Duplicate-ID fixture
+checked. Raw prior parser/lookup AIR and post codec integration remain. Prior count
+must not be assumed current n²; original bytes preserved.
+
+Candidate842/881, original832/881, fixed-height10/19 unchanged. Full certificate/
+prover/real judge/general NEAR unfinished. All checks use prebuilt dependencies.
+Three agents continue; prior25e68a22 push failed DNS; retry after checkpoint.
+
+
 2026-10-08: PhysicalWindowRequests strict PASS4 exact guards. Concrete physical
 UPS key multiset retains every read in row order; counts equal physicalWindowUsers.
 List length<P derived from compact TableLocal/log22, discharging window assignment
