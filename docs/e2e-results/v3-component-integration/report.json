@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Receipt semantic MPOS connects to native Merkle under explicit leaf correspondence. Concrete repaired table partition preserves every original index and index-sensitive sums. Full native witness assembly remains open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/ReceiptPositions.lean",
+      "sha256": "f0f896d3a332db257c2023893a6229a58aa4a5937179c705cfedc599ec84630e",
+      "audit": "zk-formal/test/AuditMerkleRenderReceiptPositions.lean",
+      "audit_sha256": "1070b53744533e94ea1d9af9e02f2224535352c3f18682559861a6238d2efe57",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalInventory.lean",
+      "sha256": "b9d6cb2a9922c25ec7431205b1bba96161de0c682c320ef757e6736f44f0a745",
+      "audit": "zk-formal/test/AuditHorizontalInventory.lean",
+      "audit_sha256": "05df535bbc0dca323c30b54454931996a0232a765c6a6c132fd79993ac10675d",
+      "guards": 7
+    }
+  ]
+}

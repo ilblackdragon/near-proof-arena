@@ -1,0 +1,39 @@
+{
+  "lane": "node-post-update",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodePostUpdate.lean",
+      "sha256": "015d1d0840949f6c2366b3151f2c83cd62aeffff406036be4b50c56650dd1260",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-node-post-update-NodePostUpdate.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodePostFacts.lean",
+      "sha256": "2221592c67d9abd865969064a8cc8c842ae2b47bf3d55b2156dd2118e4a217f9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-node-post-update-NodePostFacts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodePostWf.lean",
+      "sha256": "eab6b24178e0cefd54abf2333e2734cf690403ad86254931567b6d53584bdb4c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-node-post-update-NodePostWf.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNodePostUpdate.lean",
+      "sha256": "552d61ac630626ea73c197357b059bad11e653f8c2395a81cbf22f9ac51137d2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-node-post-update-AuditNodePostUpdate.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Executable SHA256 post-window constructor preserves pre serialization and full NodeWf3. Native post-trie callback correspondence remains open.",
+  "exact_axiom_guards": 19,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

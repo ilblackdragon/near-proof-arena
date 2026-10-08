@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08 integration checkpoint: root strict PASS11 guards. ReceiptPositions
+connects actual flattened receipt MPOS order to physical Merkle position
+balance; ordinary receipt Wf supplies length68, exact native leaf correspondence
+remains explicit. HorizontalInventory proves repaired original30-table inventory
+(set19 AccountEmpty) equals selected19/rest11 by a checked index permutation.
+Index-sensitive sums preserve four distinct SHA traces, even with equal tables.
+
+Independent PASS: horizontal-transport20 guards, SHA allocation traffic4,
+NodePostUpdate/Facts/Wf19. Full-list fused trace assembly and reverse projection
+preserve local constraints and exact per-bus counts. Native common clocks/log22
+completeness remains a separate gate. Four-bin allocator preserves actual BYTE
+and DIGEST streams including dmult. Executable post-window constructor uses
+actual payload SHA256, preserves exact pre serialization and full NodeWf3;
+native receipt-stage post-trie callback binding remains unfinished.
+
+Size/header certificate remains8,288,148 bytes with100,460 margin. Receipt625/881
+plus entity-boundary groundwork is last committed count; full local/native
+witness/correctness certificate/prover/realjudge and broadNEAR remain open.
+Agents continue native common clocks, receipt list polynomials and native
+post-trie correspondence. Push DNS blocked; checkpoint bundle remains verified.
+
+
 2026-10-08 MAJOR SIZE GATE CHECKED: Independent strict source rebuild of
 HorizontalProfile/AuxCheck/Wf/Accounts/Certified and14 exact axiom guards PASS.
 Actual candidate with FOUR512-column SHA tables,19 fused log22 tables,11
