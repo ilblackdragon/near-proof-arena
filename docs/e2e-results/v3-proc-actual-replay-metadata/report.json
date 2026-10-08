@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-08",
+  "status": "UNVERIFIED_BUILD_BLOCKED",
+  "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayMetadata.lean",
+  "sha256": "bac0dacd5c1eb6a3891ab61a81e79256b1a0de80203f92c47f8f924696ae2dd3",
+  "scope": "WIP replay cursor stamping, exact model key sequence, zero rules, and nonzero key decrease conditional on sentinel bounds. Latest source is not verified.",
+  "evidence": [
+    "Initial version before stamped_decreasing/replay_decreasing compiled successfully.",
+    "Latest strict build fails at import loading ProcActualReplayFactor.olean before theorem checking.",
+    "Previously verified ProcActualParameterGuard also fails importing ProcActualAfterMemoryReduction.olean.",
+    "Reported dependency files exist and are readable via Python.",
+    "24GiB limit also failed at import loading; unlimited diagnostic ended exit143.",
+    "strace unavailable: ptrace not permitted."
+  ],
+  "remaining": [
+    "Restore dependency loading and rerun strict source/axiom checks.",
+    "Prove emitted keys below sentinel from prepared model bounds.",
+    "Prove comparison operand bounds.",
+    "Full integration, clean certificate, prover and real judge validation."
+  ],
+  "last_verified_checkpoint": "f4f0157eb85479193ba32a22dd7083c9236d9407"
+}

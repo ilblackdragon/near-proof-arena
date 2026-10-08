@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: UNVERIFIED WIP ProcActualReplayMetadata saved. Initial version compiled; added stamped_decreasing/replay_decreasing then builds began failing while loading existing dependency oleans. Latest source has NOT passed Lean or axiom audit. The previously verified ProcActualParameterGuard also reproduces import-load failure; files exist/readable. 24GiB diagnostic failed too, unlimited diagnostic exited143, ptrace denied. Reduced imports to ReplayClock plus RoundOrder; latest failure names ProcActualReplayFactor.olean. Next restore dependency loading, verify metadata, then discharge sentinel/operand bounds. Last VERIFIED checkpoint f4f0157e. Full goal remains active; certificate/prover/judge incomplete. Prior push DNS failed.
+
+
 2026-10-08: ProcActualParameterGuard strict PASS, five exact axiom guards. PV86 calculation gives base<=100000 and maxSingleGrant=4194304; bounds/check_ok discharge both 24-bit parameter operands and exact generator parameter guard. finish_eq preserves exact returned Run while removing this discharged check. suffix_reduction now leaves only the 29-bit comparison operand check, conditional on explicit round-key decrease. Round-key decrease and operand bounds remain open; full integration/certificate/prover/judge incomplete. Prebuilt dependencies only; receipt882/882 and integrated10/19 unchanged. Prior e11cd44c push failed GitHub DNS. Goal active.
 
 
