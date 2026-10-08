@@ -1,0 +1,60 @@
+{
+  "lane": "native-paired-views",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodePostChildren.lean",
+      "sha256": "ef4477905452bb3eddd5edaf23b034d606bdf238e63dee6b25facc55248cd478",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-views-NodePostChildren.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeWriteLookup.lean",
+      "sha256": "d533de48cfb105e5b43af8d3125a3d223d2e6dcb4e8d0e1e7710cd9fb8406b2c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-views-NativeWriteLookup.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeWriteSkeleton.lean",
+      "sha256": "5e51260a68a47bb29a107d0138247b487f8dffae7ca383d5d7863549429ad0fa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-views-NativeWriteSkeleton.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodePairedViews.lean",
+      "sha256": "0bbf24c93469cdf7e62626a76d6632ac3bd6723f96ccbe875986231e74a8a238",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-views-NodePairedViews.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodePairedWf.lean",
+      "sha256": "e587fcb5816590361c0d1bc0a0b227456cb344aa1c0ec56e894b81c4b5bce9e5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-views-NodePairedWf.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeNodeWrite.lean",
+      "sha256": "a9b875c1f6eeb5375f6441fb9cd638285b81159f9a57c23071965de262cb380f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-views-AuditNativeNodeWrite.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativePairedViews.lean",
+      "sha256": "f646f46ff692dc8d14853e3b599792e8c12a0f34c5b095a6d78d41306ca43d5b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-paired-views-AuditNativePairedViews.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Concrete native pre/post constructors handle leaves/extensions/branches and sequential same-shape writes with stable slot replay. Whole forest allocation/metadata validity and same-length native account binding remain open.",
+  "exact_axiom_guards": 35,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

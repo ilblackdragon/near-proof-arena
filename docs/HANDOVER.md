@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ShaFourPhysical strict PASS7 exact guards. Checked whole-job
+four-bin allocator now builds EXACT four512-column SHA traces atlog22, with
+local legality, complete BYTE receives/DIGEST sends preserving dmult, and
+no unrelated-channel traffic. Message-length validity follows from rowcap,
+not an extra native assumption. Batch workload bounds and byte validity still
+must be supplied by final single native witness constructor.
+
+Independent PASS: native-paired-views35guards; receipt-refund-result2;
+trie-fixed-height21. Native paired constructor takes actual pre/post trees,
+proves exact pre/post serialization for leaves/extensions/branches and recursive
+node/child/slot wf. Successful sequential writes replay at stable initial slots,
+including repeats. Remaining whole-forest allocation/IDs/global metadata and
+same-length native account update binding explicit. Actual node/value SIZEcount
+and uniq native traces atlog22 now checked; new prefix counter has honest local
+proof and exact amended SIZE formula, non-SIZE traffic unchanged. Semantic
+SIZE final counter→distinct record count remains open.
+
+Receipt native states637/881 remains checked checkpoint; native refund suffix
+now matched to successful ordinary/system applyReceipt. Digest endpoint and
+other semantic families continue. CompactUPS/scheduler common-height wrappers
+next in height lane. Full native witness/certificate/prover/realjudge/general
+NEAR replacement remains unfinished. Size/header8,288,148 unchanged.
+
+
 2026-10-08: Forward full-family witness assembly strict PASS12 exact guards.
 HorizontalPack stacks separately clocked components, proves exact busCount,
 then fuses selected components and yields Holds for EXACT HorizontalAccounts.air.

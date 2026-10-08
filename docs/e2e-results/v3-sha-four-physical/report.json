@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Four-bin whole-job allocation constructs exactly four actual512-column log22 SHA traces, with local legality and complete BYTE/DIGEST multiplicities. Message lengths derive from physical row bounds. Workload bounds and native byte validity remain explicit input obligations.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ShaFourPhysical.lean",
+      "sha256": "93588e9a01dc37ea4ff2dcc90dd781c6062e7b6a8ebfa2d93b6128dd8578d271",
+      "audit": "zk-formal/test/AuditShaFourPhysical.lean",
+      "audit_sha256": "a346853aec03131f0689ceef89972379987050b85b3a2ed38a5ee5e320082d13",
+      "guards": 7
+    }
+  ]
+}
