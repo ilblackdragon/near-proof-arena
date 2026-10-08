@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: FusedReceiptPublic strictPASS3 exact guards derives SAME projected
+receipt ListChain, RcptV3Wf and complete TableTraffic from ACTUAL HoldsP plus
+native prepD0 and static AP configuration. Handles both original prepared bytes
+and bounded-routing prepared bytes. Public count/body ranges from actual pubFit;
+MEM receive version bounds from exact public MEM exclusion and concrete global
+sender inventory. No independent public range/body length/MEM ownership premise.
+Receipt component soundness only: full state-transition soundness remains open.
+Independent receipt-public-admission PASS2modules17guards supports this closure.
+
+Independent prior-ID rows PASS4modules15guards: linear first-public index carry
+matches native values while preserving duplicate/unknown ID semantics. ID AIR
+full renderer and raw prior parser remain. Current gated memory+ID size proposal
+8,359,892 leaves28,716bytes before parser/Codec changes. Agent investigating safe
+Codec column removal and possible vertical ID/memory multiplexing, with no
+unproved savings counted. Receipt lane now connecting honest native views to
+receipt SHA jobs/outcome leaves. MIDROOT physical aggregation continues.
+
+Integrated10/19 retained. Full prover/certificate/judge/general NEAR unfinished.
+Three agents active. Prior07b760aa push failed DNS; retry verified bundle.
+
+
 2026-10-08: GatedIdFusion strictPASS8 guards proves actual appended gated memory
 and first-ID fusion shape3404/112/7/112/log22, degree8, full proposed inventory
 bytes8,359,892 with ONLY28,716 below8MiB. Provisional buses70/71/72/shared69;

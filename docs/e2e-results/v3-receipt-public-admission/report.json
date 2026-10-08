@@ -1,0 +1,39 @@
+{
+  "lane": "receipt-public-admission",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateFamilyPublicMemory.lean",
+      "sha256": "347f566f316e4749b392ae89ee4f568c1d00df3f27fa3e0a87e383d45bda3c5d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-public-admission-RcptCandidateFamilyPublicMemory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidatePublicAdmission.lean",
+      "sha256": "6e00e74fb349e685c29596081a62cc962c69bd030bf3d02063cb629fd7e0d9be",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-public-admission-RcptCandidatePublicAdmission.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateFamilyPublicMemory.lean",
+      "sha256": "7b22288cbfd84341893356f5a12786434512968cafe3eaa44239b4d4ec2e47d0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-public-admission-AuditRcptCandidateFamilyPublicMemory.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidatePublicAdmission.lean",
+      "sha256": "56221126202c4fe2be1333bf0f2468c548964db0cdd2e2c31886e63f4946140b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-public-admission-AuditRcptCandidatePublicAdmission.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules17guards. HoldsP plus prepared public segments derives MEM-only balance/exclusion and version bound. Native preparation+actual pubFit+static maxPub bound derives public count/body ranges, including bounded routing; no total-public length premise.",
+  "exact_axiom_guards": 17,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

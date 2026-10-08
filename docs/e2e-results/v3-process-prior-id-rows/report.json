@@ -1,0 +1,46 @@
+{
+  "lane": "process-prior-id-rows",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdCarry.lean",
+      "sha256": "af569db812c11a8a09f683d5a54fe2b0c8cbb864c7796ed5d581c0745eb6c8a9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-rows-ProcPriorIdCarry.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdCarryValue.lean",
+      "sha256": "056bd509c3dc6d48547365cd23d7d2865c027adfff11c89804ec7159f01741b4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-rows-ProcPriorIdCarryValue.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdCarryRead.lean",
+      "sha256": "30a130da9c5352033e69bcd1bf0ce740d22556b05a1a5e712a410b661f3a178b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-rows-ProcPriorIdCarryRead.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdRows.lean",
+      "sha256": "2480397e0601ae5f1e2441be7cde5a3a6a52f6e1f9272d524a143418e369f7ba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-rows-ProcPriorIdRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorIdRows.lean",
+      "sha256": "875108f19e61ecfa622155f0e1e8f56b3a295e3fd119a65648e48d665ab7b7fa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-id-rows-AuditProcPriorIdRows.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules15guards. Executable linear first-ID carry produces exact native first public index or none; duplicate public IDs and unknown originals retained.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
