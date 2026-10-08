@@ -1,0 +1,46 @@
+{
+  "lane": "compact-walk-traffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactWalkRows.lean",
+      "sha256": "ea74c56024dad45cd3af885db4c12213374348db85f5f0e1c7a0a637d781e80f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-walk-traffic-CompactWalkRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactWalkInventory.lean",
+      "sha256": "11a4557806ae5b094c75bca361256d4e9a0288a3bb80c5cd84a72376ab89c801",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-walk-traffic-CompactWalkInventory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactWalkPhysical.lean",
+      "sha256": "e418064ddce33230769226c5a6442ec669932e19fe37de68fbc3d513dbad78f3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-walk-traffic-CompactWalkPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactWalkRanks.lean",
+      "sha256": "0aa3d7db573f17caf7d4b596187b1b9023e919772a2cbe22341ee3c28499e940",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-walk-traffic-CompactWalkRanks.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactWalkTraffic.lean",
+      "sha256": "5a899a4929a53c9f22a7184475398df6afe6e9e0524e30053c355cdb58dc4285",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-walk-traffic-AuditCompactWalkTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules13 exact guards. Actual compact EDGE/BMAP inventory, full physical rows and UPB-patched shared-prefix counter messages; actual native query prefix/provider replay transport remains.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

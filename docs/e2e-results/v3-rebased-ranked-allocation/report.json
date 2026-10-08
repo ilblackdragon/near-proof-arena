@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted native ranked compact allocation has local node/UPS constraints, full UPB balance, four packed SHA local tables and byte inventory equality. Explicit previous EDGE/BMAP prefix and receipt/fresh/sanity residuals remain. Prebuilt dependencies, not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedRankedAllocation.lean",
+      "sha256": "785f7e356a9bbf4314be3f51aa28b36338a0d07ced085f0b54f14370ceebbba9",
+      "audit": "zk-formal/test/AuditRebasedRankedAllocation.lean",
+      "audit_sha256": "e9cba0d9625b9c3d1004df77725438ca271a047156b2e73c43b728e151b4632f",
+      "guards": 1
+    }
+  ]
+}

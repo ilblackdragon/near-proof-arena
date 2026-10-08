@@ -6,6 +6,31 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: RebasedRankedAllocation strict PASS1 exact axiom guard combines SAME
+accepted native ranked compact instances, actual original node post-updates,
+node/UPS TableLocal and FULL physical UPB conservation with four packed SHA
+local tables, semantic ShaFacts, byte inventory and exact digest inventory.
+No independent existence witness mismatch: all conclusions use same writes,
+oldPost, scheduler witnesses, compact instances, request counters and SHA bins.
+Previous walk prefix/EDGE/BMAP requests and fresh/sanity/receipt residuals remain
+explicit. Actual original-query to post-receipt provider replay bridge active.
+
+Independent compact-walk-traffic PASS4modules13guards connects full compact
+physical EDGE/BMAP rows, including padding, to shared-prefix ranked counters
+after UPB patch. Independent receipt-candidate-sound-wf PASS18modules38guards
+extracts full original semantic receipt Wf from repaired candidate; routes,
+receipt numbering, incoming token bytes and authenticated version bound remain
+explicit. Original constraint failure is not concealed by old TableLocal casts.
+
+Prior-state memory AIR candidate defined by scheduler agent; full honest/sound
+transport, raw parser/ID tables and width admission remain. Proof budget remains
+conditional on final scheduler repair inventory. Integrated families10/19,
+receipt candidate882/882 and original832/881 unchanged. No full certificate,
+working complete prover, real judge success or general NEAR replacement yet.
+Strict builds use prebuilt dependencies. Three agents continue in parallel.
+Priordd7e0929 push failed GitHub DNS; retry after checkpoint/recovery bundle.
+
+
 2026-10-08: HorizontalReceipt strict PASS9 exact axiom guards installs repaired
 receipt candidate in actual horizontal selected slot13 and proves unchanged
 profiles/widths/degrees/full-family shapes and candidate sizeMaxDedup=8,288,148.
