@@ -6,6 +6,36 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08 IMPORTANT SOURCE PLAN CORRECTION: preserve ORIGINAL active source
+accounting and filler construction. The native checker requires distinct dictionary
+keys = ALL source occurrences, including repeats. The filler-free UniqueSource
+candidate does not meet that guard for repeated keys and MUST NOT be activated as
+a native replacement. Its isolated local/sound accounting lemmas remain valid;
+the prior generic counterexample was not an accepted native witness. Earlier
+checkpoint plans to replace the original source accounting are superseded.
+
+OriginalSourceReserve/NativeBudget/NativeTotal strict PASS7 exact axiom guards.
+Unused native entries contribute at least56 bytes each. Keeping this reserve in
+the selected-entry sublist bound proves ORIGINAL source+44*N+4 is paid by the
+actual decoded dictionary. Actual accepted D0a/walk/preparation supplies cardinality,
+lookup selection, repeated L12 and byte widths. Original whole8MiB budget and
+receiver validity follow, retaining explicit native forest/store/root alignment
+premises. No source family/public constructor has been switched to UniqueSource.
+
+Independent receipt-key-complete strict PASS7modules/23guards: all49 key equations
+compose on the SAME trace with prior753, giving802/881. Gas40/deposit39 remain.
+IDs/absence authentication, q7bit/BND traffic and native digest binding remain open.
+Independent native-lookup-edge-coverage strict PASS7modules/15guards: every active
+arbitrary-key EDGE request has a provider in SAME actual forest, including corrected
+extension mismatches and branch sibling cursor offsets. BMAP/START and joint ranks
+remain open. Scheduler actual replay invariants progressing in separate files.
+
+Progress: receipt802/881; selected fixed-height10/19. Full assembly/certificate,
+clean build, prover, judge and general NEAR remain incomplete. These strict checks
+use prebuilt dependencies. Prior8a86b0d1 push failed GitHub DNS; retry after this
+checkpoint. Verified bundle retained for transfer.
+
+
 2026-10-08: Corrected source SOUND block/dictionary accounting strict PASS14
 exact guards. Natural row charge sums over computed leaf/path spans and skipped
 headers to UniqueSourceCharge.size of extracted semantic blocks. Exact submitted
