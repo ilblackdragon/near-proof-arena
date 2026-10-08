@@ -1,0 +1,66 @@
+{
+  "lane": "compact-codec-sound",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelayLength.lean",
+      "sha256": "abaa294ddcadf9877cef8634dc46da7040b7d83f93be4dd754105e1d4e39be69",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-codec-sound-CodecRelayLength.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelayLengthGlobal.lean",
+      "sha256": "05f8e6ab56701d5c0718195d844152b9241cc521d94d8db729706ddd5a7378ce",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-codec-sound-CodecRelayLengthGlobal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelayActive.lean",
+      "sha256": "4c8eff8823d664d1dd150a4396e0fe7aed786babb2667f9eec02fe689c3ca3ad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-codec-sound-CodecRelayActive.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelaySanity.lean",
+      "sha256": "1191e8bd50beeb75ed12154f9817ed97af730cb5651945c22aa6bd603359bcea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-codec-sound-CodecRelaySanity.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelayBalance.lean",
+      "sha256": "80ca261321fd17caab8cdd2894dbf67f6aee867f8357ab9f81d55229588ab645",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-codec-sound-CodecRelayBalance.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CompactExtract/CodecSound.lean",
+      "sha256": "5bf13b4f917ba0b48975d3333bd53091cbcc8da6c4bf910b911d5c1b4f33a350",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-codec-sound-CodecSound.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCodecRelayLength.lean",
+      "sha256": "df670a707224b4cc564be9d0ed098bb9981a3ddbdbb871cf42abb5b8ec9b6ee9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-codec-sound-AuditCodecRelayLength.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCodecRelaySound.lean",
+      "sha256": "df3efd783c4db3c84a75cf9c3980f29f3a8b3eb8ce5dd58357e126cb637d6893",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-codec-sound-AuditCodecRelaySound.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 10,
+  "scope": "Independent strict recompilation with both implicit-variable flags disabled and exact standard-axiom audits. Dependencies include prebuilt artifacts; not whole clean certificate, prover or judge validation."
+}

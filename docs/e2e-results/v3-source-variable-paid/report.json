@@ -1,0 +1,31 @@
+{
+  "lane": "source-variable-paid",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceVariableCharges.lean",
+      "sha256": "25ca7e05e3b430e77821e85207e6fce2fdf4b29f8642b6ff4256d41bc1664998",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-variable-paid-SourceVariableCharges.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceVariablePaid.lean",
+      "sha256": "405510615f0a5f13b163bd35a96dc7697923aac06b1dcfa9e7fe95969347686f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-variable-paid-SourceVariablePaid.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSourceVariablePaid.lean",
+      "sha256": "260625bb736a0f8029b01f2f1706dc22ea9b3e10a6654415a6c6670491b1c763",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-variable-paid-AuditSourceVariablePaid.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 6,
+  "scope": "Independent strict recompilation with both implicit-variable flags disabled and exact standard-axiom audits. Dependencies include prebuilt artifacts; not whole clean certificate, prover or judge validation."
+}

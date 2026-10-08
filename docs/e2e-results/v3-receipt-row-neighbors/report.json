@@ -1,0 +1,39 @@
+{
+  "lane": "receipt-row-neighbors",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRowNeighbors.lean",
+      "sha256": "9cc0434c59fa673197b99d584a285bd88f2da14f93e28327b4d2a0428e03b9fb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-row-neighbors-RcptRowNeighbors.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSegmentPlan.lean",
+      "sha256": "936e7f33b6f61e7b08a5515f6f27974ae2f9db20d94b72afd8a63f4b36919d57",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-row-neighbors-RcptSegmentPlan.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRowNeighbors.lean",
+      "sha256": "df4368782c6b52dc68d242436a7299920619cb7a76e98d389c4489a7edc5b727",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-row-neighbors-AuditRcptRowNeighbors.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSegmentPlan.lean",
+      "sha256": "39c1eccbd3d6ed34c6442d5c2f38da480aa6004da33e01e6ddaf66c08e5431de",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-row-neighbors-AuditRcptSegmentPlan.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 17,
+  "scope": "Independent strict recompilation with both implicit-variable flags disabled and exact standard-axiom audits. Dependencies include prebuilt artifacts; not whole clean certificate, prover or judge validation.",
+  "review_note": "Initial strict failure found missing type binders. Explicit binders repaired; final strict checks and audits passed."
+}

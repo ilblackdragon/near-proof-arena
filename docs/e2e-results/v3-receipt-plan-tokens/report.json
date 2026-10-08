@@ -1,0 +1,38 @@
+{
+  "lane": "receipt-plan-tokens",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptPlanLedger.lean",
+      "sha256": "628837157235a2cf8963d158639631eb78f95294d7faba60b6cc9a8e3263ef31",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-plan-tokens-RcptPlanLedger.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptBoundaryTokens.lean",
+      "sha256": "648ceb3f6ffdc2a8ae5eff41ee701f5f91834f959ad1264dcfa068c099acb60e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-plan-tokens-RcptBoundaryTokens.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPlanLedger.lean",
+      "sha256": "60103722e9b449b3b509fca4c64cf2c34db3acdd50f849bad22d49c1967562d0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-plan-tokens-AuditRcptPlanLedger.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptBoundaryTokens.lean",
+      "sha256": "51b103ab9263f022d91a72858b720dd9c4742b377c42ae859c825d1197c00b05",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-plan-tokens-AuditRcptBoundaryTokens.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 8,
+  "scope": "Independent strict recompilation with both implicit-variable flags disabled and exact standard-axiom audits. Dependencies include prebuilt artifacts; not whole clean certificate, prover or judge validation."
+}

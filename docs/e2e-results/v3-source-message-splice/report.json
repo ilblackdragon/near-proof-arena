@@ -1,0 +1,24 @@
+{
+  "lane": "source-message-splice",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22MessageSplice.lean",
+      "sha256": "4f146c9977277a7f69f401a12ccd518c775f4ca49cf1c3aabe89e7c06b81216c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-message-splice-SourceLog22MessageSplice.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSourceLog22MessageSplice.lean",
+      "sha256": "56f12cc87e64fafdfe17c34ebbfb362755df3f939916e1fb77f1848620220fbd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source-message-splice-AuditSourceLog22MessageSplice.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 8,
+  "scope": "Independent strict recompilation with both implicit-variable flags disabled and exact standard-axiom audits. Dependencies include prebuilt artifacts; not whole clean certificate, prover or judge validation."
+}

@@ -6,6 +6,39 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08 UNEQUAL-HEIGHT source closure: SourceVariableJoin/Trace/Sound/Extract/
+Provider strict checked, TWELVE exact guards. Actual4local+threecarrybusbalance
+now derives one logical accepting variableTrace and BlockChain with NO equalheight,
+honestplacement, or supplied cell-equality premise. Samebs accounts for ALL external
+physical messages and exactlyONE arity3 SIZE source record. Report
+ docs/e2e-results/v3-source-variable-extract/report.json. Supersedes equalheight-only
+joined4 blocker below. Physical heights remain≤22, logical24 is extraction only.
+
+Independent reviews this turn PASS: compact-codec-sound6modules10guards;
+receipt-plan-tokens2/8; receipt-row-neighbors2/17 (initial missingtypebinders repaired);
+source-message-splice1/8; source-variable-messages1/5; receipt-header-streams3/13;
+source-variable-paid2/6. Source physical native witness payment is now connected,
+with global non-source ownership remaining explicit. All reports docs/e2e-results.
+
+NEW concrete budget blocker: CurrentFamily30 actual tables, best pg2/log26 gives
+9,498,374 bytes >8MiB by1,109,766; fourSHA bins not yet fullSHAcapacityproof.
+EachSHA costs602625. Lowering oneSHA to21/20/19 savesZERO; threeSHA8,895,749,
+twoSHA8,293,124 but currentsourceSHA bound8,932,712 alone exceeds two log22 bins.
+UPS agent owns actual inventory/marginal structural cost; receipt agent now reviews
+sourceSHA bound tightness/dedup correlations without restricting native domain.
+Raw v1 Merkle table public offsets invalid for202-field v3 public vector. Root
+MerklePublic remaps PV_N149→PH_N30, PV_OUT217→PH_OUT146; strictwf67/202 and
+same58/3/5/3/19 shape + expression evaluation commutation, SIX exactguards PASS.
+Report v3-merkle-public. UPS will replace rawMerkleref in CurrentFamily; full old
+Merkle semantic/extraction transport still needs wiring. Do not raise public vector
+or proof/height cap to hide the mismatch. Full family not admitted/budgeted yet.
+
+Root next: global bus isolation/whole candidate family, Merkle semantic transport,
+and budget repair; D2 continues unified all-row receipt register/local construction.
+Full certificate/prover/realjudge/general NEAR coverage remain open. Gitcheckpoint
+store /tmp/nearproof-checkpoint-20261008.git; portable bundle in checkpoints/.
+
+
 2026-10-08 root arbitrary four-source reconstruction: SourceLog22Join/Padded/
 Trace/Sound strict PASS, FIFTEEN exact standard-axiom guards. Three authenticated
 boundaries preserve all constraints; inactive endpoint clones restore logical
