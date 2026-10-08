@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativePostShaBudget strict PASS3 exact guards. Actual accepted
+native node/value job construction (post updated, chain metadata, usage assigned
+last) has <=2925275 SHA rows. Abstract node/value length/wf/implicit count premises
+are derived. This is native NPRE/NPOST/VPRE inventory only; receipt VPOST and fresh
+UPS/all-family SHA union/table balance are separate obligations.
+
+Independent process-shuffle-replay PASS1module3guards: successful native shuffle
+supplies exact generator shuffle replay and final stream position. Model-round
+stream propagation/replay remains. Independent native-old-post-inputs PASS2modules
+9guards: executable Option replay exactly matches AccountWriteRun; successful main
+execution yields replay plus final reconstruction. Concrete oldTreeInputs uses
+oldPost preorder nodeEnc and compact values at ONLY actual written IDs (pre valueIndex),
+avoiding false VSLOT activation. Child digest/slot encoding and same-index native
+value lengths checked. Preorder correspondence, untouched equality, global offsets
+and binding constructor windows/fresh UPS nodes to exact final tree remain open.
+
+Receipt824/881 and fixed-height10/19 unchanged. Full certificate/prover/judge/general
+NEAR unfinished. Checks use prebuilt dependencies, not clean certificate. Prior
+f4bc8e63 push failed GitHub DNS; retry after checkpoint; verified bundle retained.
+Three agents continue concrete payload/global binding, mixed gas/deposit repairs,
+and actual scheduler whole-loop/replay success. Root next global hash/window
+inventory integration against the same accepted execution/constructor.
+
+
 2026-10-08: PostSharedTraffic strict PASS2 exact guards. Physical joint EDGE
 and BMAP conservation now includes records u post-updated nodes with counters
 assigned afterward. Same original provider coverage/head/walk/UPS renderer
