@@ -1,0 +1,25 @@
+{
+  "lane": "process-prior-summary",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorSummary.lean",
+      "sha256": "873cf83907d0b1538d2a1ca5edf66987deaf7b2adb20e6bf1428231207b08dee",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-summary-ProcPriorSummary.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorSummary.lean",
+      "sha256": "0dc9057c242a913761d8a7f5b3a26395a4bc52c53092f8a914687b09000dd162",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-summary-AuditProcPriorSummary.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4 guards. Low24 allowance plus high-nonzero flag exactly determines native capped increase including u64max; no truncation assumption. Raw parser/lookup candidate still active.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

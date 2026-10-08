@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independent receipt-candidate-table-local PASS2modules4guards extends
+881-equation milestone to FULL TableLocal for receiptArithmeticCandidate (original
+interaction list,width,maxLog22). Multiplicity bits derived from actual boolean
+constraints, fixed physical height22. Routing-q strengthening NOT included; agent
+continuing integration then candidate soundness. Family coverage10/19 retained
+pending profile integration; arithmetic candidate local validity separately proved.
+
+WindowKeyCanonical strict PASS3guards derives all6 key fields<P, native updated
+forest byte premise, and field-equality→original-natural-key equality. Independent
+ups-window-address PASS4modules7guards closes ALL copied/extra read address cases,
+with actual source-room bound and conditional layout premise matching ByteInput.
+GeneratedAddress PASS1module2guards yields actual indexed nonfresh part, bounded
+source position and mapped key for every physical read. Exact encoded-native
+instance retention/provider composition active; no assumed ownership discharge.
+
+Independent process-prior-summary PASS1module4guards proves low24+high-nonzero
+summary exactly determines native capped allowance including u64max. Raw prior
+parser/lookup AIR, budgets and canonical post codec repair continue. Candidate881/881,
+original832/881; full certificate/prover/real judge/general NEAR unfinished.
+Checks use prebuilt dependencies. Three agents active. Prior86673074 push failed
+GitHub DNS; retry after new checkpoint and verified recovery bundle.
+
+
 2026-10-08: MILESTONE: independent receipt-candidate-native-complete PASS3modules22
 exact guards. booleanReceiptTrace_native_candidate_complete proves ALL881 repaired
 candidate receipt equations on ONE physical log22 trace, using same actual native
