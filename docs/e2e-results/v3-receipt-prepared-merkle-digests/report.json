@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted native run and actual normalized prepared public bytes yield repaired receipt plus native Merkle local proofs, exact physical byte/position/digest equations and full receipt SHA DIGEST residual RC/account obligations. Native run and public height/gas/outcome-root bindings derived; final public body/count/token and own-shard plus account traffic premises remain. No complete global proof claim. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptFullDigestResidual.lean",
+      "sha256": "00f5bc28b650764a791f4b720745776c61758d6f88da3bf06063241516e060ee",
+      "audit": "zk-formal/test/AuditReceiptFullDigestResidual.lean",
+      "audit_sha256": "c19c8ae2721a2da2703cd5da11520a6bd132f11166c72c64bd90906f15a40279",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptPreparedMerkleDigests.lean",
+      "sha256": "eaef17751648cc94ff285625ab8cd3f19aad597ee361a60b7da970571794c66a",
+      "audit": "zk-formal/test/AuditReceiptPreparedMerkleDigests.lean",
+      "audit_sha256": "c3a135e5265d3ebdefd895c1774fc04584a5d5206a08e5c644828aec0431c179",
+      "guards": 1
+    }
+  ]
+}

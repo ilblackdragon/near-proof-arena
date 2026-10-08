@@ -6,6 +6,24 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ReceiptPreparedMerkleDigests strictPASS2guards across2modules binds
+receipt/Merkle construction directly to SAME accepted m.run and actual normalized
+prepared public bytes. Height, gas-price and outcome-root public byte premises
+are discharged. Actual receipt+Merkle local, byte, MPOS and DIGEST equations are
+retained for SAME extracted blocks. Full receipt SHA batch now explicitly splits
+physical receipt+Merkle digest consumers and exact remaining RC/account jobs.
+RC retains each source occurrence; sourceDup digest filtering is still required.
+FinalPublicBytes count/body/tokens, own-shard bytes and account traffic remain
+explicit. No whole global balance, clean certificate or prover/judge claim.
+
+Latest prior38341210 independently reviewed52guards including raw framing local,
+node SHA consumers, canonical RC payloads and prepared native outcome root.
+Empty-value DIGEST repair has standalone shape proof, selected fused shape pending.
+Parser record/query joins and multi-instance vertical assembly still open. Three
+agents continue. Integrated10/19,receipt882/882 unchanged. Push still DNS-blocked;
+checkpoint recovery bundle verified after each commit.
+
+
 2026-10-08: Native Merkle/node DIGEST checkpoint strictPASS7guards across3root
 modules. SAME native repaired receipt trace now includes actual native Merkle
 TableLocal and physical per-receipt plus internal-Merkle DIGEST conservation.
