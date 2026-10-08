@@ -6,6 +6,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Scheduler core output connection complete at native-runCore boundary:
+ProcActualProcessFacts and ProcActualOutputAgreement strict PASS, nine exact
+guards. Process shape preservation plus existing budget preservation derive
+final GInv and array shapes from corrected process success. scheduled_output_exists
+constructs corrected ActualRun.coreEv success from native runCore success and
+actual apply-context public inputs, retaining original decoded prior bytes,
+exact native poststate bytes and complete grant-amount list in native order.
+No independent final invariant, array-shape, overflow, canonical-prior or event
+success premises. SchedPubOk and native runCore success remain the boundary.
+Full ActualRun replay success, caller/Codec/allocation integration, full
+correctness certificate, prover and real judge remain open. Prebuilt dependency
+checks only; receipt882/882 and integrated10/19 unchanged. Prior1e2562e6 push
+failed GitHub DNS; local progress continues. Goal active.
+
+
 2026-10-08: ProcDistGrantBounds strict PASS, seven exact axiom guards.
 Grid row/fold proofs bound every native optional grant by its original sender
 residual budget and preserve grants-array size. grid_bound applies this to the

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Native scheduler core success constructs corrected event core success with exact poststate bytes and full grant amount list in native order. Final invariant and array shapes derived from process success. Full replay run, caller integration and certificate remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualProcessFacts.lean",
+      "sha256": "74824e8ec7bebb4f79faaaf12e3fb5d148c3cedfd034aeb6a8d724b0a56c187a",
+      "audit": "zk-formal/test/AuditProcActualProcessFacts.lean",
+      "audit_sha256": "85d5ff4f5724926cfa5ccd2362f6bffdd57c451dda0c21596c3c92d4724f3294",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualOutputAgreement.lean",
+      "sha256": "81ba005747b9ad701ee0156ce2ead1ca39fe781760b0a9505d298ab091bcd97b",
+      "audit": "zk-formal/test/AuditProcActualOutputAgreement.lean",
+      "audit_sha256": "76f225a9de19637c8dc29939db6e60e10a0a68699cef48f6074ee66833f21adf",
+      "guards": 2
+    }
+  ]
+}
