@@ -1,0 +1,116 @@
+{
+  "lane": "process-concat",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcBoundaryKeys.lean",
+      "sha256": "9248aed820d46d7ca454a3904d147e8daefd1fdd4b2d4e3e736906ad987c6fbd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcBoundaryKeys.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcBoundaryRegressionRepair.lean",
+      "sha256": "5ac85602de1dee6b56664d4175adbaa8c8609307218b3531908ff572567aaa8e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcBoundaryRegressionRepair.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRowTransport.lean",
+      "sha256": "d2ed361fe251e7da736cb23261912273b7b0147a774f38c9e7772dddd475ae9c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcRowTransport.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcBoundaryEntries.lean",
+      "sha256": "4e453d6530cce85e684c6b76a8f211556136ada618380f12c9ff3e959fa5272f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcBoundaryEntries.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcBoundaryGroups.lean",
+      "sha256": "eb7e66f256462812af26eef404832a35b0005869902b88fb119a6c73ad8ac533",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcBoundaryGroups.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConcatGeometry.lean",
+      "sha256": "4ba9d69d95ca8b06003a70519377383f101cdb651bf0e38b46e182a47495798f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcConcatGeometry.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcLastRow.lean",
+      "sha256": "129f90d54ecefabfa6da8aa4d63e3a7f478005908f0c3955781ea907dc46afc9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcLastRow.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConcatRows.lean",
+      "sha256": "4828d07cbeb3fdef52140a352b72e7d0867a1b1a01c431cff04c56d1043e0b06",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcConcatRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConcatKind.lean",
+      "sha256": "433a10881b8787a4a2fe9f011638955dbc92e2c0b6610bd06eef0c0e94e5e7f3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcConcatKind.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeGroups.lean",
+      "sha256": "c3733b15852539e1b5a2e013d0d93f01c790638c453d84a674b117f42bde47ba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcNativeGroups.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConcatActive.lean",
+      "sha256": "f176c1cf17bbc0c65b9ed333a3792ec61bfc3099b25c35a545ba3805ed981aed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcConcatActive.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConcatPadding.lean",
+      "sha256": "dbd8513fe54782308a6994097d96ab0c58cb43a406c030816a77e11f123076ec",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcConcatPadding.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConcatLocal.lean",
+      "sha256": "88d60838e7a58366db715f4ff8ce2357ba50b7a14306785a66eee2b6808e9109",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-ProcConcatLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcBoundaryJoin.lean",
+      "sha256": "182addda8258ee4a1f2325254be0d3aea4ac23b419596387045acbdba2078d6d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-AuditProcBoundaryJoin.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcConcat.lean",
+      "sha256": "78efb5bd41ccaa56165c07b0f63422328503c257ee94965bd5b82e8a6dde1eef",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-concat-AuditProcConcat.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Full actual concatenated candidate process TableLocal at log22, including empty run list and distinct-seed empty instances, under ordinary per-run RunData, tau0/consecutive tau and aggregate row capacity. Native Gen.run replay linkage and accepted capacity remain open. Corrected sound extraction reviewed previously; active family still old.",
+  "exact_axiom_guards": 41,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

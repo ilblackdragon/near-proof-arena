@@ -1,0 +1,32 @@
+{
+  "lane": "native-lookup-walk",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupWalk.lean",
+      "sha256": "75f623d0ce392a4887e980a0f53b44a0cab35b24c7e96673ecffc02ede37cec8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-walk-NativeLookupWalk.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeLookupCounters.lean",
+      "sha256": "414c423ecc9dc39abfe1c7028bf52aa307c1d3a43325510f7ef5a63250da7f63",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-walk-NativeLookupCounters.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeLookupWalk.lean",
+      "sha256": "d1c19809b98d9a5352aae9968575d6c9fbb0233e9aa1d205fbc51401eb76bcb7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-lookup-walk-AuditNativeLookupWalk.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual START wrapper and full recursive chain, exact key.length+2 rows, canonical symbols/zero counters; full singleton WalkWf3 under explicit remaining EDGE payload/metadata/capacity bounds. Native provider coverage not yet discharged.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -6,6 +6,32 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Corrected source COMPLETE logical/four-physical traffic strict PASS16
+exact guards (UniqueSourceTraffic/PhysicalTraffic/SizeTraffic, UniqueSizeComponents,
+UniqueSizeValid). Preserves all non-SIZE messages, emits exactly one corrected
+SIZE charge including terminal duplicate headers, and no duplicate overlap traffic.
+Actual arity-three SIZE tuple count checked. Seven-component SIZE balance proved
+for node/value/four source/receiver; receiver Valid follows from native store
+provenance and corrected original-store/source/public total bound. Native source
+dictionary bindings must still derive that bound. Sound dictionary extraction
+without fillers and active horizontal family replacement remain open.
+
+Independent process-concat PASS41 guards across13 modules +2 audit suites:
+full actual concatenated process candidate TableLocal at log22, including empty
+run list and consecutive distinct-seed empty instances. Ordinary per-run RunData,
+tau0/consecutive tau and aggregate row capacity explicit. Gen.run replay invariant
+and accepted capacity still open; no new domain restriction introduced.
+Independent native-lookup-walk PASS12 guards: START wrapper, key.length+2 rows,
+complete recursive rows/chains, canonical symbols and zero initial counters.
+Singleton WalkWf3 reduces to explicit remaining EDGE payload/allocated metadata
+bounds and capacity; actual provider coverage remains open.
+
+Receipt753/881; selected fixed-height10/19; corrected source4/4 local+traffic+carry
+checked separately. Full certificate, clean build, prover, judge and general NEAR
+remain incomplete. Strict checks use prebuilt dependencies. Three agents continue.
+Priorf335fcb9 push failed GitHub DNS; retry after checkpoint; verified bundle.
+
+
 2026-10-08: Corrected source FOUR PHYSICAL cap22 TableLocal and carry balance
 strict PASS17 exact guards across Shift/PartitionTransfer/PhysicalLocal/Four/Carry.
 Actual old/new partition constraint coverage kernel-checked; unchanged expressions
