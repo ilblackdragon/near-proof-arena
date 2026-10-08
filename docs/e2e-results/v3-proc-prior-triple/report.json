@@ -1,0 +1,116 @@
+{
+  "lane": "proc-prior-triple",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRecordLinear.lean",
+      "sha256": "6b29b0b8fec209d43f4a1051e50903a5f8518d8a9ed0ada987a86a1adf2a3046",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-ProcPriorRecordLinear.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVertical4Linear.lean",
+      "sha256": "d55abe80160a2f88489e321e59b0c4a28c9bf256e2c75837e5f2ef28f37160b0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-ProcPriorVertical4Linear.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecParameter.lean",
+      "sha256": "f1b21892e1de4f06525a9acddd8bcee662349b1e72f7acc61eda6c733252e8e0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-ProcPriorCodecParameter.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorFourStageLinearFusion.lean",
+      "sha256": "dd924be30ac62443bfc9f0d41aea14226a96aa95393955af824f442684c00866",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-ProcPriorFourStageLinearFusion.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/InteractionTriplesProfile.lean",
+      "sha256": "98dac89561cdeecde21bdf94cc01ea33a59b6b60180c494ee28394eb7787a8a9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-InteractionTriplesProfile.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/InteractionTriplesDegree.lean",
+      "sha256": "3d1ea305687c05018b9fd3432cac3cbe4dabed01ea86ec505c651670144b29ce",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-InteractionTriplesDegree.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/InteractionTriplesWf.lean",
+      "sha256": "80aeb14674447e5657b5a002950afa31ac5a72f116ac002d36bcf8cf76c06563",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-InteractionTriplesWf.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorFourStageBounds.lean",
+      "sha256": "6ce1a46909be2a6e2d2a1932a4358e38de86565b369fb0cd53920601f015d50a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-ProcPriorFourStageBounds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorTripleFusion.lean",
+      "sha256": "6314d1262d77296bc9e4107e037a11ec6e0ce02f94141c973ae1d637c1e19fda",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-ProcPriorTripleFusion.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorTripleProfile.lean",
+      "sha256": "9382c2c46406f2dd42b866c6a95d20fd04ff75280f9b1b7522af2c0750c190e1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-ProcPriorTripleProfile.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorTripleDegree.lean",
+      "sha256": "66ae212d3dfd1c9b24ce57e693aa43e56a2db8a32285458e42a6403a837f0b87",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-ProcPriorTripleDegree.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorTripleSize.lean",
+      "sha256": "0367ad6c75dd49d2707bae13da5be1cc64d2bab9f300231b7074e35762debdfb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-ProcPriorTripleSize.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorTripleWf.lean",
+      "sha256": "a85ede740e0f1404e19b3d6f94f0d9f5cbd29dcb88a307b0bc743095a97ad49f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-ProcPriorTripleWf.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorTripleAdmission.lean",
+      "sha256": "b2ff2168185c86c2b8bedf6ac0ec217767adf5f19f864e5e28f904c60482ea17",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-ProcPriorTripleAdmission.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorTriple.lean",
+      "sha256": "01b06ed17b15e63d9514e57531e689752fe808c1da7ea43c77fad8fd72d96fb5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-triple-AuditProcPriorTriple.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Fourteen modules42guards. Actual four-stage raw/memory/ID/record parser overlay plus Codec parameter relay, repaired receipt/empty-value and four SHA family regrouped at pg3. Exact full shapes, sizeMaxDedup8231316<8388608, headroom157292, multBound1034526724, fpBound67967730360, air.wf and max header checks kernel checked. Generic traffic/local preservation committed earlier. Native renderer installation/global ownership/prover/judge still outstanding.",
+  "exact_axiom_guards": 42,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

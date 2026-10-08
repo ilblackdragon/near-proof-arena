@@ -19,6 +19,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeValueByteAllocation strictPASS8guards across3root modules
+extends SAME native/account/receipt/public/trie/fourSHA proof with full physical
+EmptyValue VBYTES inventory. Actual account sends plus untouched original values
+plus ALL implicit-prestate value occurrences exactly equal physical receives.
+Duplicate bytes/IDs retained, empty values emit zero byte requests; metadata has
+no effect. Existing account DIGEST/VSLOT and public refund conservation retained.
+Query/codec/access-key providers for explicit remaining byte terms still open.
+
+Pg3 FULL CANDIDATE STRUCTURAL/SIZE CERTIFICATE independently strictPASS14modules,
+42exact guards. Actual raw/memory/ID/record overlay, Codec parameter join, repaired
+receipt/empty-value and fourSHA family: fused3402/89/7/89/log22; exact total
+8,231,316 bytes BELOW8MiB by157,292. air.wf, max header and grouped degree checked;
+multBound1,034,526,724,fpBound67,967,730,360. Generic pg3 inert grouping preserves
+TableLocal iff/all natural traffic (previously committed). This supersedes old
+pg2 overrun as size candidate. Full native renderer installation, ownership and
+global bus conservation still outstanding; not a full correctness certificate.
+Independent scheduler split/fresh3modules6guards PASS.56guards total this checkpoint.
+Receipt882/882, integrated10/19, no full prover, clean certificate or judge yet.
+Priorbf432643 push DNS failed; retry and verified recovery bundle maintained.
+
+
 2026-10-08: NativeAccountSlotAllocation strictPASS9guards across4root modules
 extends SAME combined native/account/receipt/public/fourSHA allocation with exact
 physical AccountEmpty VSLOT send =physical SizeCount node VSLOT receive. Derived
