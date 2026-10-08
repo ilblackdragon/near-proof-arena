@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact physical count-node nonSIZE traffic after provider use assignment. EDGE zero/terminal,bitmap/window terminal counts proved. Field-level head/node/walk EDGE conservation derives from same request inventory under explicit provider coverage/head distinctness and rendered head/walk traffic. Complete native placement still open. Prebuilt dependencies,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NodeUseTraffic.lean",
+      "sha256": "047e1090cff0526897780e220090a43ea4915e269c4bffc76cde72e53c28855c",
+      "audit": "zk-formal/test/AuditNodeUseTraffic.lean",
+      "audit_sha256": "ccec89af1e3bb62a91aa419973d33696900fbc1f384068d064834a3fbffc27e0",
+      "guards": 5
+    }
+  ]
+}

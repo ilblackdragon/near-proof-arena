@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NodeUseTraffic strict PASS5 exact guards. Actual count-extended
+rendered node table nonSIZE traffic equals assigned semantic node sends/receives;
+EDGE zero/terminal counters,bitmap/window terminals are exact. Field-valued
+head/node/walk EDGE conservation follows inventory permutation with multiplicity,
+under explicit head/walk TableTraffic,provider coverage/head distinctness.
+
+Important next root integration: NativeExecutionUsage currently uses pre-only
+forestNodes views. That is sufficient for the checked local/SIZE/pre-lookup facts,
+NOT actual post-digest/window binding. Existing NodePairedForest.pairedForest and
+WriteTreePair preserve pre-byte accounting while supplying post payloads; transport
+metadata/NodeOk/usage/SIZE to those actual paired records before claiming state
+transition assembly. Returned VID agent proof is prestate-specific and valid there.
+
+Independent receipt-native-balances PASS2modules/6guards: actual native get/find
+correspondence and decoded pre-account amount/total/stake bounds for ordinary and
+system successful execution. Receipt824/881 unchanged; gas18/deposit39 pending.
+Fixed-height10/19. Full assembly/certificate/clean build/prover/judge/general NEAR
+incomplete. Checks use prebuilt dependencies. Priorb62b3ff9 push failed GitHub DNS;
+retry after checkpoint; verified bundle retained.
+
+
 2026-10-08: NativeExecutionUsage strict PASS4 guards. Same actual accepted D0a
 (B≤2M) execution supplies initialized forest,duplicate chain and NodeOk/ValWf;
 provider usage assignment preserves full generated node/value/SIZE TableLocal

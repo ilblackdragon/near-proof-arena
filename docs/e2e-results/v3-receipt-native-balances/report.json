@@ -1,0 +1,39 @@
+{
+  "lane": "receipt-native-balances",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptAccountRead.lean",
+      "sha256": "36fa4b459b146714ce3b9a0d15d809cbbd37d2520d7ae0cdd8637d2efa785707",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-balances-RcptAccountRead.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeBalances.lean",
+      "sha256": "948da5f64bbd77a9f9657adcd18a8d49ee86e0d4cbe48e3d46a5d47b917cd596",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-balances-RcptNativeBalances.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptAccountRead.lean",
+      "sha256": "fe8e46c4fc38cb90990f5263ae5d4be419ce8c13ffadd3db94b5a15e2109ce31",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-balances-AuditRcptAccountRead.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeBalances.lean",
+      "sha256": "19999466b7ed0cf3d4652a708e7da15097565efe6e644ac1c090e5e50d3e0c17",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-balances-AuditRcptNativeBalances.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules6guards. Native get/find correspondence and decoded pre-account/amount/total/stake bounds from actual ordinary/system receipt success. No added receipt-local constraints yet; gas18/deposit39 remain.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
