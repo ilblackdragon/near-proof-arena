@@ -1,0 +1,95 @@
+{
+  "lane": "receipt-gas-product-candidate",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasProductArithmetic.lean",
+      "sha256": "8b760d3ca5a3cecaca7a9b4e9f363eecee819203523d4461bb8a624b8b552a0d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-RcptGasProductArithmetic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasProductPrices.lean",
+      "sha256": "d716e3741c1654835b525a5cf87e059bfcce164d7b354dacfe43bf499748b342",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-RcptGasProductPrices.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasProductFrame.lean",
+      "sha256": "828d66bb89ea35e4b262a91ed1df5c4524959739712606c6c31454894391645b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-RcptGasProductFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGasDelayCells.lean",
+      "sha256": "73dbbedb3c8eac5651dfac83fdf3668378d8e346fcc692b57833d6102e02e24e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-RcptCandidateGasDelayCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGasDelayLocal.lean",
+      "sha256": "9bea6e54c14008bdeb7b066b519cd849d6b912228963cc1d10db257a86b4c370",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-RcptCandidateGasDelayLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasProductLocal.lean",
+      "sha256": "30c79ab818112ccac051e26898f6f9190140fc9bc8581bf6730a6d94f9629391",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-RcptGasProductLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasProductArithmetic.lean",
+      "sha256": "4e5d028841354c63e6b8f3eba0c4c880cae7b4c3c2ed78703649569a10593a79",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-AuditRcptGasProductArithmetic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasProductPrices.lean",
+      "sha256": "39f268587c91f61975c58810eee23966f8f80f5c5e17085f3f41e8d49b2e7434",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-AuditRcptGasProductPrices.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasProductFrame.lean",
+      "sha256": "2587ee0bcd4e591925cd43a78571c6d868e43aabde3ef7d1ce5971184154eea4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-AuditRcptGasProductFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGasDelayCells.lean",
+      "sha256": "72d7ae6210b41221c142e9175ed44ba1a45073f0342cf4e057355441e36f71db",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-AuditRcptCandidateGasDelayCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGasDelayLocal.lean",
+      "sha256": "f00e1449fd2f2312cc6fed84bddf223992004e8f3c197bbd385a881a2f2bf8cd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-AuditRcptCandidateGasDelayLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasProductLocal.lean",
+      "sha256": "430581c89b6f001bc7d504c1ae0bb67b2ed3718f79c49ecb1235eb1ed6cc6e87",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-product-candidate-AuditRcptGasProductLocal.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules29 guards: generic native gas multiplication/carry arithmetic and corrected candidate16 delay equations on mixed pairs. Candidate-only; original832/881 unchanged. Actual product-frame instantiation and total composition remain.",
+  "exact_axiom_guards": 29,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

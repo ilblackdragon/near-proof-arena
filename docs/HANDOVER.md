@@ -6,6 +6,33 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PackedShaBins/PackedShaAllocation strict PASS9 exact guards. Allocated
+physical width512 SHA bins now share log22, with local legality and exact byte/digest
+counts for the same logical job multiset. Native physical node/value byte senders
+discharge their allocated part of this packed union. All-job MsgsOk, allocation and
+residual producer premises remain explicit; not yet global full-family assembly.
+
+Independent native-rebased-readers PASS3modules3guards keeps SAME chosen us/oldPost/
+writes, native output pairs, bounds and post forest with actual allocated UPS/SHA/
+dispatch instances. native-reader-payload PASS2modules2guards adds exact native
+source bytes and occurrence membership. Reader global index/depth/cid alignment
+with original-record post providers remains, and is actively being proved.
+
+Independent process-model-pointers PASS4modules11guards derives actual emitted-step
+request/increase indices. process-native-state PASS2modules9guards matches native
+tryGrant fold to successful model entries including saturating-u64 semantics, and
+derives granted<=4,500,000 from actual linkPass invariant. Full native request-tail/
+bucket execution, model existence, generator guards and RNG capacity remain.
+
+Independent receipt-gas-product-candidate PASS6modules29guards adds native product/
+carry arithmetic plus corrected16 delay constraints on mixed receipt pairs. This is
+candidate-only; actual product-frame instantiation and full composition remain.
+Original coverage stays832/881, fixed-height10/19 unchanged. Full certificate/prover/
+real judge/general NEAR remain unfinished. Checks use prebuilt dependencies, not a
+clean certificate. Three agents continue. Previousc3e5618d push failed GitHub DNS;
+retry after this checkpoint and verified recovery bundle regeneration.
+
+
 2026-10-08: Independent native-rebased-bounds strict PASS6modules8 exact guards.
 ChosenRebasedWitness/NativeExecutionRebased retain SAME chosen receipt replay,
 oldPost, scheduler result, final trie and global post payload forest. Ordered

@@ -1,0 +1,46 @@
+{
+  "lane": "process-model-pointers",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRequestPointers.lean",
+      "sha256": "4304da6f36d52fea2f77e44481ad7ccb7d09fdff4e1ec24e985e90eacc911a83",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-pointers-ProcRequestPointers.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcEntryPointers.lean",
+      "sha256": "4684862c485cf0c5440f6fc4e9d6b3b1aabc96fa7da9e8dbd43bb5ea719c9693",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-pointers-ProcEntryPointers.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelPointers.lean",
+      "sha256": "ed11a0e2a9e78fcd1a5dd604351dd67362effb51bdccb4c2943d5d10e47334ad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-pointers-ProcModelPointers.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConvertedPointers.lean",
+      "sha256": "4c99e87010a1de3e81a8b5ffdd6019a64ef82114ebd70edac095726d2e5cac50",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-pointers-ProcConvertedPointers.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcModelPointers.lean",
+      "sha256": "931dda687fbb9bc7553d81f7a9e061d96b4666d4c84141f08e268251b508f0b0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-pointers-AuditProcModelPointers.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules11 guards: successful actual model execution yields valid cid/increase indices for all steps; converted request length bound instantiated. Native acceptance to model success remains.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

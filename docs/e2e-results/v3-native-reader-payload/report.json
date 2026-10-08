@@ -1,0 +1,32 @@
+{
+  "lane": "native-reader-payload",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderPayload.lean",
+      "sha256": "fe9a74451f7d5d88ed034121d586dace06093a27dfe66f00e1b48b9d969e8f32",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-payload-NativeReaderPayload.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderAllocation.lean",
+      "sha256": "74adab487b828355b0f1cc2bce667402fecd574b529b373e794cde8a1834bce8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-payload-NativeReaderAllocation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReaderPayload.lean",
+      "sha256": "27cb875216bd14207642e9e079af603141eea2fe715706b38358b4d7e29b5f12",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-payload-AuditNativeReaderPayload.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules2 guards: actual allocated reader payloads equal native nodeEnc source bytes, retaining source occurrence membership. Exact global index/depth/cid still needed.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

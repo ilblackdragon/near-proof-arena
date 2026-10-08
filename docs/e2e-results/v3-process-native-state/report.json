@@ -1,0 +1,32 @@
+{
+  "lane": "process-native-state",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeGrant.lean",
+      "sha256": "91e106540a8ca1c88c2641698e334143501d78d2eba55c602b1e11719c0ffffc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-state-ProcNativeGrant.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeState.lean",
+      "sha256": "07129d20f0103a7d3444c108407acbfb4d554edd93e1caffa986a5069e2fdf9d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-state-ProcNativeState.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcNativeState.lean",
+      "sha256": "fb2c59a26a47f23e1acf762f12c434c230c614ce89cf1e7b6123b9e79b753795",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-state-AuditProcNativeState.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules9 guards: executable native tryGrant fold equals successful model entry replay including u64 saturation; invariant derives PV86 granted bound from actual linkPass. Whole native process refinement/existence and RNG capacity remain.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
