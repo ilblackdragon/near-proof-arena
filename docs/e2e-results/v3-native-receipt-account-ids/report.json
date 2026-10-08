@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete receipt account IDs equal original-prestate value slots returned by the SAME native combined lookup list. Repeated receiver occurrences retained. Strict checks use prebuilt dependencies; physical receipt MEM transport and full certificate remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptAccountIds.lean",
+      "sha256": "3a620563602fb30a72929703749026f3da351dfe650ddd6185c2a7f6288e7d7a",
+      "audit": "zk-formal/test/AuditNativeReceiptAccountIds.lean",
+      "audit_sha256": "285535db6215254d92138279b68722319a2268ae03e928707f8a4eee36efaa30",
+      "guards": 4
+    }
+  ]
+}

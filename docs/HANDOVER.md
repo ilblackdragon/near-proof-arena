@@ -1,16 +1,3 @@
-2026-10-08: NativeAccountTrace strict PASS2 exact axiom guards constructs actual
-AccountEmpty trace (including empty case) from empty-or-AcctWf views, <=8192
-accounts and pre bytes<256. Derives renderer requirements and full TableLocal /
-TableTraffic; removes need to assume account traffic once composed. Not yet
-composed into NativeReceiptDigestAllocation. Uses prebuilt dependencies, not clean
-certificate. Report: docs/e2e-results/v3-native-account-trace/report.json.
-Trie shape cost confirmed: actual extension/branch paths, serialized occurrences,
-rebuilt output parts and repeated accesses charged. No measured runtime claim.
-LATEST full four-stage linear parser proposal EVALUATES to 8,414,100 bytes,
-25,492 OVER 8MiB; kernel size certification still pending. Old 8,378,132 size
-excludes final parser joins. Integrated10/19, receipt882/882; full prover and judge
-remain open. Agents continue scheduler digest, native account binding and budget.
-
 # NEAR Proof Arena — handover (2026-10-07)
 
 This is for the next lead agent. Read this first, then the two lane status files named in §3 and §4.
@@ -18,6 +5,33 @@ This is for the next lead agent. Read this first, then the two lane status files
 ## Resumption plan (2026-10-07)
 
 ### Latest continuation checkpoint
+
+2026-10-08: NativeReceiptAccountIds strict PASS, four exact axiom guards.
+Concrete receipt account IDs equal original-prestate value slots returned by
+THE SAME combined native lookup list. Repeated receiver occurrences preserved.
+This supplies the account-ID binding needed for physical receipt MEM transport;
+that transport and the full correctness certificate remain unfinished.
+Report: docs/e2e-results/v3-native-receipt-account-ids/report.json.
+
+Trie shape cost is already structural, not a flat charge per lookup:
+- NativeLookupQueryBounds follows actual branch/extension/leaf walks, with
+  accepted aggregate row bound 3,441,276.
+- Assembly/UpsertOutputCost.traceUpsert_output_charge and
+  SchedulerSizedWitness.checkD0a_upsert_byte_budget charge serialized output
+  parts, including rebuilt ancestors and repeated occurrences.
+- Rcpt/Candidates/NativeShaAmortization.tree_sha_amortized proves
+  344 * occurrenceShaRows <= 503 * unfoldedBytesT + 9216 for well-formed trees;
+  actual node/value serialization and hash padding overhead enter this bound.
+These are kernel-checked resource bounds using prebuilt dependencies, not a
+measured proving-time, cache/I/O, or protocol gas model. Full physical assembly,
+clean certificate and real judge benchmarking remain open.
+
+Current size candidate: pg3 structural certificate 8,231,316 bytes; 157,292 below
+8 MiB. Receipt882/882, integrated10/19. Previous top-of-file summary of the pg2
+25,492-byte overrun was stale and has been removed; history below is retained.
+Push remains unavailable due to github.com DNS resolution failure; checkpoints
+are committed in the writable git directory and bundled for recovery.
+
 
 2026-10-08: NativeValueByteAllocation strictPASS8guards across3root modules
 extends SAME native/account/receipt/public/trie/fourSHA proof with full physical
