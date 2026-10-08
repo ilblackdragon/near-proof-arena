@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualRoundTimes strict PASS, four exact guards. Actual emitted RoundD records preserve strict entry timestamp order and bound below round start. Whole model trace propagates AllGood together with clock/state alignment; prepared_times derives bucket chronology from process_time and request-count bound from preparation. good_checks converts each emitted record property to exact indexed bucket timestamp check success. Initialization and final comparison-loop composition remain, along with round-key decrease and numeric bounds. Full integration/certificate/prover/judge unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previous67fd4d05 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualEntryTimes strict PASS, six exact guards. Actual entry and full indexed batch timestamp lists equal initial entry timestamps plus translated model bucket timestamps. Translation preserves strict bucket order and bound below round start under explicit R<=T0 and aligned start. Exact indexed bucket timestamp checks follow from ordered entry timestamp map and upper boundary, including final-entry case. Across-round emitted RoundD timestamp map transport still needs composition with model process_time/clock. Round-key and numeric operand/parameter bounds and full integration/certificate/prover/judge remain open. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previousd1b94935 push failed GitHub DNS. Goal active.
 
 

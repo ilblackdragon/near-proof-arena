@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual emitted round records retain strict entry timestamp order below round start. Whole model trace preserves these facts with clock/state alignment; prepared processing discharges model-time and request-count premises. Initial accumulator and final comparison-loop integration remain. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRoundTimes.lean",
+      "sha256": "3977d1575c626dda1b5cca7b52a4c8321e555014c4266f1e30333cededdb780b",
+      "audit": "zk-formal/test/AuditProcActualRoundTimes.lean",
+      "audit_sha256": "a7d6ce22ed2e16fe574c2e3503c0c3ede29325f928b8a63572eb9801d01ed89e",
+      "guards": 4
+    }
+  ]
+}
