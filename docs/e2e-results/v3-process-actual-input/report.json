@@ -1,0 +1,39 @@
+{
+  "lane": "process-actual-input",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualInput.lean",
+      "sha256": "0c3e2a15513342d877d68b2510c108512a983810733c8fd5ba2958807657d719",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-actual-input-ProcActualInput.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualCore.lean",
+      "sha256": "0e39a01786bedab98a6ee49638830a02505e0b82de0d7330643c877cdb2cf475",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-actual-input-ProcActualCore.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualPublic.lean",
+      "sha256": "5bceec72f92bfdb079507b615b1e01eb37b60e0625e20228381862e875d59787",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-actual-input-ProcActualPublic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcActualInput.lean",
+      "sha256": "d82e2c22a2c7e8329e7018b3c677b94b3ebe31fe1ab9a21017586237204a54e8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-actual-input-AuditProcActualInput.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules15 exact guards. Actual native prior-ID lookup/last-write-wins input, actual runCore to successful model process, public array/value premises derived from actual schedPub. Original previous bytes retained. Active generator/Codec authentication repair remains separate.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

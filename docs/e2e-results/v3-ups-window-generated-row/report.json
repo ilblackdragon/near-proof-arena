@@ -1,0 +1,25 @@
+{
+  "lane": "ups-window-generated-row",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWindowGeneratedRow.lean",
+      "sha256": "9c4a2632b7d32514d088a995aeb0169301fec82797d98cf08c49b4ff8cb1ec37",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-generated-row-UpsWindowGeneratedRow.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsWindowGeneratedRow.lean",
+      "sha256": "85344ac0d98056645e9f80c4ba7d3ca74aa29c3f468e8fe70f901e1ac4f8a09a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-generated-row-AuditUpsWindowGeneratedRow.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module2 exact guards. Every actual generated compact read belongs to indexed native q part; six field key equals readerSourceKey under explicit source-address nonnegative premise. Address bounds/provider ownership remain.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

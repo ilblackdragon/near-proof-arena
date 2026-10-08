@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted native replay forest, scheduler witnesses and compact instances now use actual prefix-ranked counter patch. Compact TableLocal and full four-packed-SHA byte inventory are preserved, leaving fresh/sanity/receipt residual. Provider coverage and full assembly remain open. Strict checks with prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedPatchedAllocation.lean",
+      "sha256": "4dc06ebf59ab511973a95da15aaa71f2127e2e9cfb524a59460dcae1885dc4db",
+      "audit": "zk-formal/test/AuditRebasedPatchedAllocation.lean",
+      "audit_sha256": "74c330317ad739fd5a8c9d06c48e47678739c0efed0c51f6d2738b078317e892",
+      "guards": 1
+    }
+  ]
+}

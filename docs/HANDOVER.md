@@ -6,6 +6,31 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: RebasedPatchedAllocation strict PASS1 exact guard: SAME accepted
+native forest/us/instances now supports prefix-ranked compact trace with local
+legality and unchanged complete four-packed-SHA byte composition. Fresh/sanity/
+receipt physical producers and full provider coverage still open.
+
+Independent process-actual-input PASS3modules15guards repairs isolated process
+initialization to EXACT native previous-record ID lookup, ignoring foreign IDs and
+retaining last duplicates; actual runCore success constructs successful process,
+with public allowed shape/request values derived from schedPub. Original prior
+bytes retained. Active generator/Codec still reconstructs canonical prior records;
+raw prior parser/authenticated first-ID lookup and last-record semantics remain
+required. No accepted-domain narrowing or general replacement claim.
+
+Independent ups-window-generated-row PASS1module2guards derives actual indexed
+q part for every physical rd=1, excludes walk/padding; six fields equal native key
+under explicit source-address nonnegative premise. Agent deriving bounds/coverage.
+
+Recovered disk after ENOSPC: hash-identical immutable review oleans deduplicated,
+29GB freed; future independent review overlays link dependencies and rebuild owned
+modules. No source or unique artifact removed. Candidate842/881, original832/881,
+fixed-height10/19 unchanged. All39 deposit physical proof agent-checked; independent
+physical audit/global composition remain. Full certificate/prover/judge/general
+NEAR unfinished. Priorfb5e53df push failed DNS; retry after checkpoint.
+
+
 2026-10-08: WindowPatchOtherTraffic/PatchedCompactAllocation strict PASS4 exact
 guards. Derived from compact TableLocal alone: every rd=1 row has mS=mK=mB=0.
 Therefore executable arbitrary reader-counter patch preserves EVERY non-UPB row
