@@ -1,0 +1,39 @@
+{
+  "lane": "scheduler-split-layout",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSplitShape.lean",
+      "sha256": "9ae941e5b3e5ee5e2c660f84aa297a4e3ee89b480c8e78dd54ac33791a3d758d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-layout-SchedulerSplitShape.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSplitSlots.lean",
+      "sha256": "b6889d27f3a502607877074e337b0795badf6879452b026594fce920c5ebf01e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-layout-SchedulerSplitSlots.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSplitShape.lean",
+      "sha256": "f223e57c7ea96207827078e121ce7cf93f5727c277d4702aa3eb11f038c2f368",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-layout-AuditSchedulerSplitShape.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSplitSlots.lean",
+      "sha256": "dbe88738cea28055727a6d9ce06f02b2b617d67b9233fe7a5aee55da3a2b8bef",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-layout-AuditSchedulerSplitSlots.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules4guards. Actual indexed outputs and SPB child layout for all seven native split cases. Full split physical payload composition remains.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

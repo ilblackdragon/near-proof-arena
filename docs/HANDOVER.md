@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeQueueCounters strictPASS5guards constructs actual log22 mixed
+queue table from SAME supplied accepted MainValues: exact recursive forest/prefix
+resolver equality, record validity/capacity, TableLocal/full traffic and physical
+QVC conservation. Reuses existing rank-resolved QueuePhysicalBalance via proved
+allocator equality. No caller fit or parser validity assumption remains. Global
+QV VBYTES ownership and remaining bus joins still open.
+
+Independent AKC7modules14guards closes whole receipt/provider physical B_AKC
+conservation using rankAux, including repeated/absent queries; strongest joined
+allocation specialization ongoing. Codec5modules22guards adds repaired generator
+regression, successful metadata byte contract, exact last-write query inventory,
+public sender-row uniqueness and actual field counter equations. Metadata contract
+does not authenticate rows; all-row legality and joins remain. Scheduler split
+2modules4guards derives all seven actual split child layouts/indexed outputs;
+complete split digest payload composition remains.45guards checked this checkpoint.
+
+All checks use prebuilt dependencies; no clean full correctness certificate,
+prover or real judge. Receipt882/882, integrated10/19. Candidate structural bounds
+unchanged. Prior70db90a8 push failed DNS; local commits and verified bundle retained.
+
+
 2026-10-08: NativeQueueIds/NativeQueueLookupBinding strictPASS13guards fixes
 queue renderer IDs to exact original forest occurrence offsets/local value slots,
 including implicit transition prestates. Concrete use counter is the number of
