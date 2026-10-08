@@ -1,0 +1,39 @@
+{
+  "lane": "native-rebased-scheduler",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedScheduler.lean",
+      "sha256": "5657d23f843f8fef3d6ec1db248e74cfc0773133712e8864580550ef4a8429ac",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-scheduler-NativeRebasedScheduler.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReplayByteSize.lean",
+      "sha256": "4a12872899878e02f75cd5105f26d8b5e7462271d6c4bba4a5afd0b59d75923d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-scheduler-NativeReplayByteSize.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedUpsertWitness.lean",
+      "sha256": "62f3fedd2fb6bc851559f794275a0be71ee9eb6809a9e31facc0267969b360d8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-scheduler-NativeRebasedUpsertWitness.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeRebasedScheduler.lean",
+      "sha256": "f8569279eb348d21ac7e1727cf4fcca4aeaf7aefdc87bbf86da7e886520bac25",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-scheduler-AuditNativeRebasedScheduler.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules9 exact guards. Scheduler on receipt-updated oldPost yields same scheduler state and actual final trie; executable rebased UPS witness and exact unfolded-byte budget preservation. Global chosen forest/physical readers still open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

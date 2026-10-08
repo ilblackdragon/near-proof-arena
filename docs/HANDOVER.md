@@ -6,6 +6,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independent receipt-gas-token strict PASS10modules37 exact guards.
+SAME mixed physical native receipt trace coverage rises828→832/881 original
+constraints. Four token accumulator constraints use the actual receiptPlanToken
+ledger and native execution bounds; thirteen commutations preserve previous groups.
+Remaining original groups: gas-product10 and deposit39, with known original-domain
+obstructions requiring explicit candidate repairs. Candidate coverage stays separate.
+
+Independent native-rebased-scheduler strict PASS3modules9 exact guards. Scheduler
+on receipt-updated oldPost produces SAME scheduler state; executable rebased UPS
+witness reaches the actual native final trie. SizedAccountRun preserves exact
+unfolded-byte charge, so original resource bounds transfer. Chosen global forest
+alignment and physical UPS readers/counters remain agent integration work.
+
+Fixed-height10/19 unchanged. Full scheduler replay/existence, RNG capacity, global
+bus/hash assembly, certificate/prover/judge/general NEAR remain unfinished. Checks
+use prebuilt dependencies; not a clean full certificate. Three parallel agents
+continue gas/deposit repair, rebased UPS integration and scheduler conservation.
+Previous checkpointbf06724b push blocked by DNS; retry after this checkpoint.
+
+
 2026-10-08: PostMetadataPayloads/NativeBoundPost strict PASS5 exact guards.
 Core accepted constructor now derives concrete global forestOldInputs, NodeOk,
 ValWf, exact complete post serialization list and SHA MsgsOk for SAME accepted
