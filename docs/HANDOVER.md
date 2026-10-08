@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcModelEvent/ProcActualCoordinates strict PASS, five exact guards.
+entry_emits characterizes exact Step appended by actual model entry execution.
+event_eq_replay equates all event fields with replay arithmetic at valid
+coordinates, including denied grants, last increment and allowance output.
+Actual conversion loop derives source/receiver bounds and link=s*n+r;
+selected_event transports valid converted pointer to event equality with only
+allowance-array size still explicit. Combined replay state induction, allowance
+shape propagation, push/memory/comparison guards and full suffix success remain
+open, along with integration and full certificate/prover/judge. Prebuilt
+dependencies only; receipt882/882, integrated10/19 unchanged. Prior54d43d18 push
+failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcShufflePointers/ProcActualIndexGuards strict PASS, six exact
 axiom guards. Successful model execution preserves valid pending pointers and
 emits shuffled lists with bucket-equal length and valid request/increment

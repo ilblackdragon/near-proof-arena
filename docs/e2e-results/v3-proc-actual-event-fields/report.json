@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact model emitted event equals replay event under valid converted pointer and allowance array size; converted coordinate premises derived from actual conversion loop. Combined replay invariant and guard wiring remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelEvent.lean",
+      "sha256": "ddb0b5805534ccb6e33682b8be0ae131d379663f8be627ba9882ef6925ffbd9f",
+      "audit": "zk-formal/test/AuditProcModelEvent.lean",
+      "audit_sha256": "68f7e8e71d4c31b2df83751db61015f6f9c62611d0cbcd28237b478cde7a0a09",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualCoordinates.lean",
+      "sha256": "793413e83353805c678f20593def4d4879f990757dd95c0ab6888b4248ddbaad",
+      "audit": "zk-formal/test/AuditProcActualCoordinates.lean",
+      "audit_sha256": "b6b89e98bbde683e3b718104646f372d093ad41d37ce922e0c8e3e3b6b99ded6",
+      "guards": 3
+    }
+  ]
+}
