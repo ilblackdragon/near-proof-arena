@@ -1,0 +1,60 @@
+{
+  "lane": "native-rebased-bounds",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ChosenRebasedWitness.lean",
+      "sha256": "e9537de3c69ec6c9fc78a087f27ce82fd11f1f48581dd5c418c68594b433b55a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-bounds-ChosenRebasedWitness.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeExecutionRebased.lean",
+      "sha256": "cfe27d2b6e135281c28d0b7bddb12a5877a03d66b3a3cc23aff3bd4efe6c168d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-bounds-NativeExecutionRebased.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeImplicitExactUpserts.lean",
+      "sha256": "1fd1161e2bdaff28389ac6f083fc3157a2e3e90449c3bcbfade193b614b56316",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-bounds-NativeImplicitExactUpserts.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeWriteDepth.lean",
+      "sha256": "ac1c6952d9c961cc5ab5be5f05e0c8d3a05fe02afa9e754ac74706b9902f47a9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-bounds-NativeWriteDepth.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedUpsertList.lean",
+      "sha256": "984a35f919482cf4a3d8277f7eb7aff9b8a7710449c7c2cc6800640dd24c62d2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-bounds-NativeRebasedUpsertList.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedBounds.lean",
+      "sha256": "d9ef680b5c53ddf703a3d86e3d679a2addeb5c700f24a38273c166f761a54f69",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-bounds-NativeRebasedBounds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeRebasedBounds.lean",
+      "sha256": "8283e2e69470b7e65e54030d408689f338d52a6eed455bf6668b8d5350b9988f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-rebased-bounds-AuditNativeRebasedBounds.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules8 exact guards. SAME chosen native post forest and ordered executable rebased scheduler witnesses match actual main/implicit outputs. Replay preserves unfolded bytes and lookup depth; original input/output/value allocation bounds transfer. Physical reader instance integration remains.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

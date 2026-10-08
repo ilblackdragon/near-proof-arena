@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independent native-rebased-bounds strict PASS6modules8 exact guards.
+ChosenRebasedWitness/NativeExecutionRebased retain SAME chosen receipt replay,
+oldPost, scheduler result, final trie and global post payload forest. Ordered
+native_rebased_upserts witnesses have exact pre/output pairs for main and implicit
+steps; payload equality is retained in that constructor. Receipt replay preserves
+lookup depth and unfolded-byte charge. NativeRebasedBounds transfers accepted
+preBytes<=2,000,000, output charge<=2,131,072 and value sum<=3,146,912 to the correct
+receipt-updated scheduler inputs. Step-count and pre-wf premises remain explicit
+there. Physical instance constructor must retain SAME forest/payload alongside
+bounds, rather than conflating independently chosen existential witnesses.
+
+Earlier this turn f661e6ce committed native physical window binding6guards and
+process push conservation11guards. Receipt832/881; fixed-height10/19 unchanged.
+Full reader coverage, scheduler replay/success/RNG capacity, global balance,
+certificate/prover/judge/general NEAR remain incomplete. Three agents active.
+Checks use prebuilt dependencies, not clean certificate. Push f661e6ce failed DNS;
+retry follows this checkpoint and verified bundle regeneration.
+
+
 2026-10-08: NativePostWindowBinding/NativeBoundWindows strict PASS6 exact guards.
 Actual accepted execution constructor now binds exact physical UPB provider counts
 to native post node bytes at the SAME chosen forest's global occurrence indices,
