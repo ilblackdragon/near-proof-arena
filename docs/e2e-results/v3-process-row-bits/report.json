@@ -1,0 +1,39 @@
+{
+  "lane": "process-row-bits",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcBits.lean",
+      "sha256": "f7d6fb50e0831aa93174013ede7d74db0ef0c727c32408ac2b19d2c0ffeb5782",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-row-bits-ProcBits.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcHeightBits.lean",
+      "sha256": "eaa34564e900d88de7459966eab54963773f1ecdc6ca8158c8db8a90e3ee3646",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-row-bits-ProcHeightBits.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKeyInverse.lean",
+      "sha256": "3646d5624c8e6dfc144517df1acd4781e3c76bfe52797104fbe4c6c54aeafaac",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-row-bits-ProcKeyInverse.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcRows.lean",
+      "sha256": "42262c447c622c8ebbcf4f8984462f74a7afda097dbe6a0e51b0dd86f7fc3bc0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-row-bits-AuditProcRows.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual process generator at log22 Boolean constraints and all interaction multiplicity bits across active and padding rows, plus key zero-test arithmetic. Remaining process constraints and concatenation not yet TableLocal.",
+  "exact_axiom_guards": 19,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

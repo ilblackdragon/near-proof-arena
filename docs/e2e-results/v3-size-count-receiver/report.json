@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete count-extended four-row SIZE receiver with exact all-bus traffic,24-bit slack decomposition and TableLocal. Requires explicit payload-base and total witness bound including4 bytes per store record; native accounting and global ownership remain open. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SizeCountReceiver.lean",
+      "sha256": "a0077ff94127bb7266399c0529a80f29cb124c12fb431d7f827b6c9387e2e9d3",
+      "audit": "zk-formal/test/AuditSizeCountReceiver.lean",
+      "audit_sha256": "e4190c8b5ff463d9c177764863bccab74c5aec4b10ba566b9e2f399edaaaf287",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SizeCountBits.lean",
+      "sha256": "8a99edaf9a328e34f71ec332f51dac949dd2f1c6897d0df36b12f1e4f76998a4",
+      "audit": "zk-formal/test/AuditSizeCountBits.lean",
+      "audit_sha256": "bb629eae76fc5e1f82cee1405fcdcfc58e17c890209e2a97aa8485ad8a2f5c3e",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SizeCountLocal.lean",
+      "sha256": "0d327e02d262ed76cbbbb55afeb0c9c29d5d7fd3619e02d6692c287dd930ed3c",
+      "audit": "zk-formal/test/AuditSizeCountLocal.lean",
+      "audit_sha256": "61a821aeacc6b4f734dea70ee1bd333f262b24daeb2eef476356591f855d0a20",
+      "guards": 1
+    }
+  ]
+}

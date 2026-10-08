@@ -6,6 +6,35 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: SIZE receiver completeness milestone strict PASS7 exact guards.
+SizeCountReceiver constructs actual4-row/log2 trace with counts in columns31/32
+and final24-bit slack subtracting4*(nodeCount+valueCount). Exact all-bus traffic
+receives three tuples [0,nodeBytes,nodeCount], [1,valueBytes,valueCount],
+[2,sourceBytes,0], with silent padding/no sends/other channels. SizeCountBits
+proves all bit values/Booleanity and exact slack decomposition. SizeCountLocal
+proves FULL TableLocal for amended sizeTable under explicit payload-base≤3M
+and overhead+payload+4*records≤8MiB. Full native derivation of these premises
+and same-witness global SIZE balance remain composition work.
+
+Independent native-field-bounds PASS8 guards; native-forest-wf PASS16 guards.
+Native forest allocation and raw fields now derive from wf and unchanged2M
+preBytes cap; initialized entire forest NodeWf3 derives with native depth bound
+and root count≤P. No raw field/ID/row/array/res assumptions remain. Uses remain
+initialized zero: this proves local wf, NOT global traffic ownership. Agent
+continues concrete use-count assignment and preservation/balance.
+Independent process-row-bits PASS19 guards: actual native log22 generator has
+all Boolean constraints and multiplicity bits checked, plus key zero tests.
+Remaining process constraint families and concatenated instances still open.
+
+Last reviewed receipts701/881; selected fixed-height components10/19.
+Size receiver is a separate lower-height table, not an additional selected
+log22 slot. Three agents continue receipt, forest ownership, scheduler work.
+Actual size/header8,288,148 unchanged. Full machine-checked certificate/clean
+build, succinct prover, real judge and general NEAR remain incomplete.
+Strict source checks use prebuilt dependencies. Push still fails GitHub DNS;
+checked local commits and verified bundle preserve progress.
+
+
 2026-10-08: SizeRecordTraffic strict PASS6 guards. Full actual log22 node/value
 traces each send exactly ONE SIZE message [tag,payloadBytes,recordCount], with
 no SIZE receives and no extra messages in any active/padding row. Uses existing

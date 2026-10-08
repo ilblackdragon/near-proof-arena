@@ -1,0 +1,39 @@
+{
+  "lane": "native-forest-wf",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeForestAllocation.lean",
+      "sha256": "83a9c9e145c398667564b5c3e172e129e1eb363e247e0f760f479a8a7de8fd64",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-forest-wf-NativeForestAllocation.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeForestMetadata.lean",
+      "sha256": "4395ec1cfe709c4d01131bd67477bb25e00575d38a9c97878069054453e26054",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-forest-wf-NativeForestMetadata.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeForestAllocation.lean",
+      "sha256": "4881a9efe5212b5e8d0971344fbcfec8a7f1b2c0360e7bb93424887ee8db511e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-forest-wf-AuditNativeForestAllocation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeForestWf.lean",
+      "sha256": "acf526f97226e5472f3603f5cc70157d1a49023a7c44128753597c44dcda9d92",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-forest-wf-AuditNativeForestWf.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Native allocation bounds and initialized full NodeWf3 from native forest wf, preBytes\u22642M, native depth bound and root count\u2264P. Zero usage counts establish local wf only; global ownership assignment still open.",
+  "exact_axiom_guards": 16,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
