@@ -1,0 +1,67 @@
+{
+  "lane": "process-key-complete",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKeyBoundary.lean",
+      "sha256": "1f43da6d6dc755dafa994c6bac9dad9565f55f7beb1de4162985000e4a952c78",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-complete-ProcKeyBoundary.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKeyLast.lean",
+      "sha256": "1f1e7146ba29e86dde28e596060b11b340bbc14f1bb9f5a61b4e98a7e8269387",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-complete-ProcKeyLast.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcOtherRows.lean",
+      "sha256": "0a5c5cfc9f8f56f4f9b3b83d0d53d310dcca1db8bd42bd099c4fdb5f5d4c2a25",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-complete-ProcOtherRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNonKeyEval.lean",
+      "sha256": "ee5407e8b51267113ef63eb88795926b2e862c55aa55d7a0592a8a881a21d0c7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-complete-ProcNonKeyEval.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNonKey.lean",
+      "sha256": "0947ec836ec3601e7d26de415c06af761f4fb41d48d8ea9d4d5f5fc4ed2f896d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-complete-ProcNonKey.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcKeyComplete.lean",
+      "sha256": "b7d73ee7cd32c7a4efe6c3bc81474d1cc3e870d56b614f230ffe375685f4727a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-complete-ProcKeyComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcKeyLast.lean",
+      "sha256": "c943f2c08ff9eb98e1abc6d14f0aa0b776d88dcade4492efed9a0cafa846e1d5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-complete-AuditProcKeyLast.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcKeyComplete.lean",
+      "sha256": "453b190a13a9f793b71ba756cc963a53a15d7853a5577ebe33750ca38005c1a9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-key-complete-AuditProcKeyComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "All cKey constraints on every native process row at22 including headers, entries, padding, last row and cyclic wrap, under row capacity. cHdr/cEnt and concatenation remain open.",
+  "exact_axiom_guards": 18,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -6,6 +6,35 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeStoreProvenance strict PASS4 exact guards. Actual seeded
+forest node/value keys carry native transition tags and are covered by original
+native serialized stores. Value tags derive from allocated native parents via
+forestViews_values, with no hash injectivity assumption. This discharges the
+selected-charge byte-provenance premise for the seeded forest. Postforest
+integration, native ValWf composition, byte faithfulness and ENT/DUP/UNIQ traffic
+remain open.
+
+Independent receipt-character-complete PASS18 guards: same native physical
+trace721/881, all61 character constraints closed. Native system identity flags
+and executable first-mismatch witness checked; system14 remains open alongside
+key49/routing18/gas40/deposit39. Native-ups-inventory PASS19 guards: accepted
+native active request coverage, four physical walk rows per instance and total
+bound128, plus counter patch preserving full InstOk/NativePartFamily. Whole
+physical rank/traffic composition and honest queue/account walks remain open.
+Process-key-complete PASS18 guards: all cKey constraints on every native process
+row at22, including headers/entries, padding, final row and wrap; native row cap
+explicit. cKind and multiplicity bits were already checked. cHdr/cEnt and
+concatenation remain open.
+
+Plan: continue three parallel lanes (receipt system constraints, UPS physical
+traffic/native query walks, scheduler header/entry completeness); root integrates
+native store charge and duplicate traffic, then common-clock/global balance.
+Selected fixed-height coverage10/19; actual size/header8,288,148 unchanged.
+Full transition certificate, clean build, succinct prover, real judge and general
+NEAR remain incomplete. Checks rebuild strict sources using prebuilt dependencies.
+Local checkpoints and verified bundle preserve work; GitHub push retried separately.
+
+
 2026-10-08: StoreSelectedClasses/Counts/Charge strict PASS12 guards.
 Combined actual node/value entity IDs are Nodup. Actual representative predicate
 selects distinct byte classes with complete coverage; selected keys Perm the

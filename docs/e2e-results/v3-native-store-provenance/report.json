@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual seeded forest node/value byte keys carry native transition tags and are covered by original native stores. Value tags derive from allocated parents. Postforest integration, byte faithfulness and global duplicate traffic remain open. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeStoreProvenance.lean",
+      "sha256": "cca242f1e62d69e1d56c628a908070676ed39ded39282b623719fa3e54fb9cbf",
+      "audit": "zk-formal/test/AuditNativeStoreProvenance.lean",
+      "audit_sha256": "98f2d07778dae560920017d09be9e83066efaeb39e6d46586654b0a39f6cd67f",
+      "guards": 4
+    }
+  ]
+}

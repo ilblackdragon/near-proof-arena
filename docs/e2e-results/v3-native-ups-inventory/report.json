@@ -1,0 +1,53 @@
+{
+  "lane": "native-ups-inventory",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWalkPhases.lean",
+      "sha256": "b12f69954b67d7b2cf69f1bfff2713a6db31df7d12044f85391c159de58f5e9f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-inventory-UpsWalkPhases.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsActiveCoverage.lean",
+      "sha256": "2e30ecd595e06ecaefb05ee55a944267a40aae26cbdfaafb5f5f73565088506f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-inventory-UpsActiveCoverage.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsRequestInventory.lean",
+      "sha256": "8dfbf9e1b25d8585bc5110b4f1997271979bc2099f416c98f67023057fe68937",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-inventory-UpsRequestInventory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsCounterPatch.lean",
+      "sha256": "7ca52fbbdc93fb26196deec5df92cb43ad258311e6ffbf4957f67f28cb8e4dd0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-inventory-UpsCounterPatch.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsRequestInventory.lean",
+      "sha256": "ff44789682ade09eaf839a8b70154926538a7c76d9b638f240f839805c169350",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-inventory-AuditUpsRequestInventory.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsCounterPatch.lean",
+      "sha256": "2647e6570360813f1715afd17a2f17099d48f453aff1a801320c36644615041c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-ups-inventory-AuditUpsCounterPatch.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Accepted native UPS inventory covers active EDGE/BMAP with actual four physical rows per instance. Counter patch preserves full InstOk and NativePartFamily; whole physical traffic composition remains open.",
+  "exact_axiom_guards": 19,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

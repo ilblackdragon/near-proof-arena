@@ -1,0 +1,81 @@
+{
+  "lane": "receipt-character-complete",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedCells.lean",
+      "sha256": "4fc9a21c58c01da739562c2bbd5b1b29712922d78ab25142a8cffd0a0cf38069",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-character-complete-RcptNamedCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedStart.lean",
+      "sha256": "4ef08772a0d8fd3f48d8ac040c3aed7e437d48cd24fdb15343c7e051c57467c4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-character-complete-RcptNamedStart.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNamedStep.lean",
+      "sha256": "0d0aecffeacee9ecbbb60d5769f1034c4a37748070e26dfb3c9e7e45b242e27b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-character-complete-RcptNamedStep.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCharacterComplete.lean",
+      "sha256": "825c2fd8d4b269dcf6668ad6fbc2ee367c97e8ddaf33d64777077d0ed0c7a5de",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-character-complete-RcptCharacterComplete.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemIdentity.lean",
+      "sha256": "d960a6d57d403144c61bb2e7243f0ea9bb97f1e4dc16de55907c6e272405b6d7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-character-complete-RcptSystemIdentity.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedCells.lean",
+      "sha256": "43bb8f018b326bebf0d6e0b80f44be5b8461189ecf574d23c5e84630a3d87be3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-character-complete-AuditRcptNamedCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedStart.lean",
+      "sha256": "8b2a7bf86c2623a398ef5a7bc182a62c5fbc2427fa0784f73a47374f75186472",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-character-complete-AuditRcptNamedStart.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNamedStep.lean",
+      "sha256": "a851bddfa406096441006be3299f3b2a15ebf4c4273cf8c31e5e3ae99392fd00",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-character-complete-AuditRcptNamedStep.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCharacterComplete.lean",
+      "sha256": "0d259a2e7925fef416500bef76f1359f8fc1996616e429e3ff3d7fd4fb4b00fd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-character-complete-AuditRcptCharacterComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemIdentity.lean",
+      "sha256": "5988211061a484aaa469908c965c2c64de0b212961e1360d3a0fa1d9933d823e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-character-complete-AuditRcptSystemIdentity.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same physical native receipt trace721/881; all61 character constraints. System identity flags and executable mismatch witness checked, no additional system constraints claimed.",
+  "exact_axiom_guards": 18,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
