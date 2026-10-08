@@ -6,6 +6,32 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: StoreClassPartition strict PASS10 exact guards. Concrete grouping
+by transition-tagged native bytes is a permutation of all actual occurrences.
+Combined chain entity IDs are unique and complete; predecessor canonicality
+derives from existing NodeWf3/ValWf. No assumed metadata coverage or field bound.
+Nonempty classes each charge exactly bytes.length+4, and class ENT conservation
+composes over the whole partition. Concrete partitioned chain metadata produces
+actual count-extended node/value TableLocal from original NodeOk/ValWf. Physical
+traffic pullback, charge equality for actual node/value dup filters, and global
+digest-sorted UNIQ construction remain open. No hash injectivity assumption used.
+
+Independent process-header-cases PASS9 guards: remaining header family transition
+shapes cover entry/entry, entry/header or tail, key/key, key/header or tail and
+padding/final wrap. Ordinary replay sequencing invariants still explicit; derive
+from Gen.run before claiming full native process local. Native-ups-physical-payload
+PASS15 guards: synced EDGE/BMAP inventory traffic and exact physical wCell message
+payloads. Six-field EDGE arity follows native provider coverage. Interaction gates/
+uMsgs and whole table traffic remain next UPS work; do not equate payload equality
+with completed physical traffic.
+
+Receipt reviewed721/881 and fixed-height10/19 unchanged. Three agents continue
+receipt system constraints, process replay invariants, UPS interaction traffic.
+Size/header8,288,148 unchanged. Full certificate, clean build, succinct prover,
+real judge and general NEAR incomplete. Strict checks use prebuilt dependencies.
+Previous checkpoint7e7f0d53 push failed DNS; retry after commit.
+
+
 2026-10-08: ChainMetadata strict PASS12 exact guards. Concrete entity-ID lookup
 installs predecessor-chain dup/hd/repE into actual NodeS3 and ValE records.
 Lookup returns the exact entry under entity-ID Nodup; chain predecessor IDs are

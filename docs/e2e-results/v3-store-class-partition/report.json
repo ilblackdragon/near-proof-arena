@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Transition-tagged native byte grouping is a permutation of actual occurrences. Combined chain IDs are unique, cover all actual entities and have canonical predecessor IDs from existing NodeWf3/ValWf. Partitioned chain charge equals one full byte+4 record charge per class; per-class ENT conservation composes. Physical node/value traffic pullback and digest-sorted UNIQ integration remain open. Strict source checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/StoreClassPartition.lean",
+      "sha256": "63747470a9b5da536a5a4ce6927482435c1420069d0be88c4b50ffea5e920549",
+      "audit": "zk-formal/test/AuditStoreClassPartition.lean",
+      "audit_sha256": "fcb2b66fef40811ca7666ba2b5407416256b5520f11be1f493d5ad3d5c837b27",
+      "guards": 10
+    }
+  ]
+}
