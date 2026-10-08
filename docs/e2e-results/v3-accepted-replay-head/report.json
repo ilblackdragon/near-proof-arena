@@ -1,0 +1,46 @@
+{
+  "lane": "accepted-replay-head",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeHeadWf.lean",
+      "sha256": "a7ef455290fd1cc4fb1bc791862b993a0121f21e5736bd4696767c9229f3a0c8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-replay-head-NativeHeadWf.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ReplayHeadOk.lean",
+      "sha256": "071b36f623c3e9b2adb4c50a2a81b0d5df095a4901d6b0c2a29e26840e318d5f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-replay-head-ReplayHeadOk.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ReplayHeadPhysical.lean",
+      "sha256": "51435529ab40faea1e19e1d8e68769d6277945f221eb878990a6c4ad602e0ea8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-replay-head-ReplayHeadPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedReplayHead.lean",
+      "sha256": "7738e1aa8fda4653f2f079826602bcc8f2812c994d3a3e5ef90719abde7a0f2c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-replay-head-AcceptedReplayHead.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAcceptedReplayHead.lean",
+      "sha256": "57a2f55b167173d45f604ffc3218f4e15e3246b1a775443e6d758d01003a0120",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-replay-head-AuditAcceptedReplayHead.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules5guards. Payload-correct SAME native receipt replay HEAD with concrete log22 renderer, local constraints and all-bus traffic. Width/scalars/digests/capacity/requests derived from checkD0a, including hash-only roots.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -6,6 +6,24 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: RebasedPhysicalAllocation strictPASS1 exact guard removes remaining
+HEAD TableTraffic premise from shared trie/SHA composite. SAME accepted query
+and scheduler allocation now includes concrete log22 replay HEAD local+all-bus
+traffic, Walk/node/UPS local, EDGE/BMAP/UPB conservation and fourpacked SHA
+local/ShaFacts/byte/digest inventories. Retains native v.Valid/Reads. Physical
+HEAD uses receipt oldPost rather than structural scheduler final root.
+Independent accepted-replay-head PASS4modules5guards derives digest/scalar/byte/
+capacity/request facts from acceptance; hash-only root supported, no new domain
+restriction. Agent pursuing MIDROOT HEAD→UPS digest inventory next.
+
+Fresh codec/sanity/receipt SHA byte residuals, remaining global buses and
+scheduler raw-parser/ID/renderer remain. Receipt agent deriving fused actual
+MEM sender inventory and public admission for FusedReceiptMemory. No full
+certificate/prover/judge/general NEAR claim; integrated10/19 retained.
+Gated proposal8,313,300 excludes remaining scheduler repairs. Three agents active.
+Prior2775b651 push failed GitHub DNS; retry after verified recovery bundle.
+
+
 2026-10-08: RebasedSharedAllocation strictPASS1 exact guard combines SAME actual
 accepted query/native allocation with retained v.Valid/Reads, full EDGE/BMAP/UPB
 conservation, fourpacked SHA local/ShaFacts and exact byte/digest inventory.
