@@ -6,6 +6,35 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: UniqueSourceCharge/UniqueSourceBudget strict PASS11 exact guards.
+Isolated source-accounting correction replaces only accumulator constraints51/52:
+computed roots add L+44, repeated references add0, path increments33 unchanged.
+New source size pays full encoded unique entries apart from outer vector prefix.
+Public overhead is224+inner.length+69*K, with no44*occurrence count; no filler
+entries required by this corrected accounting. Logical table shapeOf2 identical
+and wf67/202/degree8 kernel checked. Exact old/new delta56*duplicateCount proved;
+60-vs116 fixture now exactly60. Native encoded cap guarantees corrected public
+constructor success. Prepared public overhead exact; selected-entry sublist
+coverage yields dictionary lowerbound, then native source/store total<=8MiB.
+No spare-byte margin or new native domain restriction. Source payload/selected
+entry binding and native store alignment remain explicit.
+
+Do NOT claim full correction installed: new accumulator renderer/local/traffic,
+source dictionary sound extraction without fillers, partition continuation and
+horizontal family integration still required. Existing assembled size/header
+8,288,148 refers to OLD family until replacement/recheck.
+
+Independent process-boundary-repair PASS11 guards. Candidate gate
+kK-kl*next(kK) changes only16 key rotations. Actual shape/maxdegree/wf unchanged;
+old local and single-instance native local transport proved. Original rotation
+recovered away from cross-instance boundaries. Sound extraction needs conditional
+end-key limbs rather than old unconditional f+16; agent ports it. Active family
+unchanged. Receipt735/881 and fixed-height10/19; agents routing18, process sound
+port/replay, queue/account paths. Full certificate/cleanbuild/prover/judge/general
+NEAR incomplete. Strict checks use prebuilt dependencies. Last2ec1e90e push failed
+DNS; retry after checkpoint, verified bundle preserves local work.
+
+
 2026-10-08: SourceDictionaryBudget strict PASS5 guards. Actual selected entries
 fit native encoded dictionary by sublist, with44 bytes overhead per unique entry.
 IMPORTANT completeness correction: existing repeated-source/filler accounting

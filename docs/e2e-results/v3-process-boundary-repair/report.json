@@ -1,0 +1,32 @@
+{
+  "lane": "process-boundary-repair",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcBoundaryRepair.lean",
+      "sha256": "1e5bef071a0afaeca25ac939d00f891ca19e29776225fa1018eaecd061819c23",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-boundary-repair-ProcBoundaryRepair.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcBoundaryLocal.lean",
+      "sha256": "0238e757cf4d71b0dbb42cf1e01078fac346b71fa8800e9dc95e93e50379e419",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-boundary-repair-ProcBoundaryLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcBoundaryRepair.lean",
+      "sha256": "0f7cebc42c021b8dcfcb5270e4c3a255726b3915f54ceeb067b2b5607bb31c0a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-boundary-repair-AuditProcBoundaryRepair.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Isolated rotation gate correction preserves actual shape/maxdegree/wf and transports old TableLocal and single-instance completeness. Rotation agrees away from cross-instance key boundaries; distinct-key boundary zero. Sound extraction port remains open; active horizontal family unchanged.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
