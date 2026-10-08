@@ -6,6 +6,35 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: SchedulerShaSplit/SchedulerPhysicalShaSplit/
+RebasedCompactPackedAllocation strict PASS8 exact guards. SAME chosen native replay
+forest/us now supplies exact allocated compact instances, compact TableLocal and
+four packed SHA local tables. Native node/value, original source and compact output
+BYTES sends discharge consumption; residual is EXACTLY native fresh-value slot0,
+scheduler sanity and receipt jobs. Whole scheduler job partition preserves IDs,
+payloads/digest flags/multiplicity, and fresh bytes equal native codec relay values.
+Only receipt SHA contract remains external to allocation; residual physical producers,
+global DIGEST/UPB/other buses and complete assembly remain open.
+
+Independent process-native-loop-existence PASS4modules12guards is substantive:
+actual successful native processRequests constructs complete successful event model
+with same final native state/RNG and fuel; no model-success premise. Prepared public
+shape/allowed array and native process success still explicit. Agent continuing
+link from actual accepted scheduler run; generator replay/guards and RNG capacity
+remain separate. Independent native-reader-window-key PASS2modules4guards closes
+all six source-key fields to SAME original initialized updated provider, including
+span/wf/byte/depth/cid. ups-window-counter-patch PASS1module4guards preserves all
+compact local constraints/gates under executable reader-counter patch. Prefix
+ranks and physical aggregation/global balance remain active.
+
+Independent receipt-deposit-pairs PASS8modules21guards proves29/39 DEP equations
+on actual row pairs with native data; borrow/stake/age10 and global migration remain.
+Candidate842/881, original832/881, fixed-height10/19 unchanged. Full certificate/
+prover/real judge/general NEAR unfinished. Checks use prebuilt dependencies, not
+clean certificate. Three agents continue. Prior2369ea16 push failed GitHub DNS;
+retry after checkpoint/bundle regeneration.
+
+
 2026-10-08: CompactPhysicalShaBytes strict PASS5 exact guards. Actual compact UPS
 physical BYTES sends at log22, including padding rows, equal exact native output-node
 SHA inventory after field encoding. For caller-chosen SAME native allocated us/insts,

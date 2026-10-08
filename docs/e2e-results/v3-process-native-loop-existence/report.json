@@ -1,0 +1,46 @@
+{
+  "lane": "process-native-loop-existence",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeRound.lean",
+      "sha256": "c07b8f0097c6e1beb0a91011446e8e6785bac490d961ed2d4b404850ddd09d2a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-loop-existence-ProcNativeRound.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeRoundExistence.lean",
+      "sha256": "3f7110cda52a4ac5c9148ac1ab6627b81c9867f6a0a6e470807ca00498e4517d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-loop-existence-ProcNativeRoundExistence.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeLoopExistence.lean",
+      "sha256": "80e8dbc713c79c13965ded8306c93d7eca9aa392956b15ad1ae06f9129436edc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-loop-existence-ProcNativeLoopExistence.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeInitial.lean",
+      "sha256": "b4e3be8370e9f9dc5abaf74a790bd30d6bcbd02b941f2fe31bfae6329cd7e8c0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-loop-existence-ProcNativeInitial.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcNativeLoopExistence.lean",
+      "sha256": "d17895c6de75b60cc7333d9fb9070647e1d253a1578c19ee2f5e2d951b2f1dc5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-loop-existence-AuditProcNativeLoopExistence.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules12 guards. Successful native processRequests yields complete successful event-model process with same final state/RNG and fuel, without model-success premise. SchedPubOk/allowed shape and native process premise still explicit; accepted scheduler linkage/full generator/RNG capacity remain.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

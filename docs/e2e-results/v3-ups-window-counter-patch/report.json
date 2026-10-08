@@ -1,0 +1,25 @@
+{
+  "lane": "ups-window-counter-patch",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/UpsWindowCounterPatch.lean",
+      "sha256": "c8a7dcdab2dff6f79c0787df619885626a69e60ce7bd85c598779cef9825a9e9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-counter-patch-UpsWindowCounterPatch.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsWindowCounterPatch.lean",
+      "sha256": "116b95f0c6b27fb956aaa9ba0deb0bd552888298f31619210314fbd43608d874",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-window-counter-patch-AuditUpsWindowCounterPatch.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4 guards. Executable trace patch modifies only UPB use counter on reader rows; every compact constraint and multiplicity gate is counter-free, so local legality/height preserved. Patched traffic/ranks/balance remain.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
