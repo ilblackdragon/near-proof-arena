@@ -1,0 +1,46 @@
+{
+  "lane": "process-entry-header",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcEntryScalar.lean",
+      "sha256": "f2980dd49da1d98f0591fa4a12b3a9251050f6a92bd5b7314f7fdac4b11cfb84",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-entry-header-ProcEntryScalar.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcEntryAdjacent.lean",
+      "sha256": "16eafb5e14d966e602e6db4ba9674ac6adcc35731d75c160ebf9fb184cff4852",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-entry-header-ProcEntryAdjacent.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcHeader.lean",
+      "sha256": "6924ae6e7a802e819bb08adc39702078ed49fa621c79980cf0963c1d6096b4d8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-entry-header-ProcHeader.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNonEntry.lean",
+      "sha256": "1e1f4d8d2d628539bac52a3ba5b4817842cf27dbcbe21f680e99ebe4bfb79487",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-entry-header-ProcNonEntry.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcEntry.lean",
+      "sha256": "4092e4d1f369e47e2a06e87a424a217cf883fc2704ee9a8ca55f2f0ad52fb8e9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-entry-header-AuditProcEntry.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Entry cEnt under ordinary replay bounds/decisions/adjacency and header cHdr under RoundOk with header-to-entry cells; non-entry cEnt on key/header/tail/padding unconditional. Actual Gen.run replay invariants and physical adjacency, non-header cHdr and multi-instance concatenation remain open.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

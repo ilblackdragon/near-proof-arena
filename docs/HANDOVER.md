@@ -6,6 +6,35 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: StoreDuplicateComplete/StoreDuplicateChain strict PASS8 guards.
+Initial representative metadata preserves full NodeOk including generator cidAt,
+length bytes and SUM row budget; count-extended actual node/value TableLocal and
+all semantic traffic obtained. IMPORTANT integration correction: the original
+first-representative assignment is NOT globally balanced. UNIQ sends DUP to the
+immediate predecessor, and ENT requires a chain: dup false only at class start,
+repE previous entity, hd true except class end. A singleton has hd false.
+New additive chain constructor proves exact ENT list conservation at every
+class multiplicity, exact immediate-predecessor DUP pairs, unchanged entity
+IDs and one charged record per class. No table/acceptance change. Physical
+chain metadata assignment and digest-sorted UNIQ construction remain next root work.
+Existing first-representative accounting/local lemmas remain valid in their scope.
+
+Independent process-entry-header PASS8 guards: cEnt on actual entry-shaped
+records under ordinary replay bounds/decisions/index/adjacent cells; cHdr on
+header-to-entry0 under ordinary RoundOk and x0. Non-entry cEnt on key/header/
+tail/padding unconditional. Generator replay invariants/physical adjacency,
+remaining non-header cHdr and concatenation still open. Native-ups-physical-counter
+PASS14 guards: additive bitmap u:=ub adapter preserves FULL instance/part-input
+validity, selected counters and successors<P from accepted<=32 instances,
+physical column105 roundtrip exact. Actual interaction traffic transport remains.
+
+Three agents continue receipt system14, process actual generator integration,
+UPS actual interaction traffic/native query walks. Receipt721/881 and selected
+fixed-height10/19 unchanged. Size/header8,288,148 unchanged. Full certificate,
+clean build, prover, real judge and general NEAR incomplete. Strict source checks
+use prebuilt dependencies. Last checkpoint6c8406be push failed DNS; retry after commit.
+
+
 2026-10-08: NativeValueWf/NativeByteFaithfulness strict PASS13 exact guards.
 Full seeded ValWf now derives from existing native preBytes<=2000000: value
 count<=2M plus value payload<=2M pays every row, including empty records, below
