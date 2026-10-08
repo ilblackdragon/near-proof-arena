@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Corrected generator early guards and RNG replay: seven modules
+strict PASS,20exactguards. Migrated conversion success/exactness/prepared inputs,
+core round checks, shuffle replay and boundary guards to actual native-prior
+allowances. ProcActualPrefix.runPrefix extracts operations through seed check;
+prepared_prefix derives its success from prepD0 membership, actual schedPub and
+native runCore success, with native state/grant agreement. Full-run factorization
+of this extracted prefix is not yet proved. Corrected model shuffle replay and
+final RNG guard checked separately. Full combined replay loop, memory/compare
+checks, caller/Codec/allocation integration and full certificate/prover/judge
+remain open. Prebuilt dependency checks only; receipt882/882, integrated10/19
+unchanged. Priore5610ab7 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: Scheduler core output connection complete at native-runCore boundary:
 ProcActualProcessFacts and ProcActualOutputAgreement strict PASS, nine exact
 guards. Process shape preservation plus existing budget preservation derive
