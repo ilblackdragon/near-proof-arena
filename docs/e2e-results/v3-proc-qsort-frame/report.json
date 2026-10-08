@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual Lean 4.34.1 quicksort preserves every element outside its clamped sorting interval. Swap, partition loop, partition and recursive sort frame properties are kernel checked. Pivot partition order and full sortedness remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcQsortFrame.lean",
+      "sha256": "181da59d23007c58291e11245e6b5aca3cfbf00814d044f736b664e645f90fa7",
+      "audit": "zk-formal/test/AuditProcQsortFrame.lean",
+      "audit_sha256": "679dec2a0452ed08fe08a29d5b74e19a114adaa7ef5ae682e9ccdda5cb703424",
+      "guards": 5
+    }
+  ]
+}

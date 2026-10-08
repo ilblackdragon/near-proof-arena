@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcQsortFrame strict PASS, five exact axiom guards. Actual Lean4.34.1 swap, partition loop, partition, recursive quicksort and public clamped qsort preserve every value outside their selected interval. This supplies the separation invariant needed to compose sorted subpartitions. Pivot placement/partition order and complete sortedness remain open; a dependent-result pivot proof needs explicit recursive-equation transport (fun_induction alone does not rewrite dependent result indexing). Existing qsort permutation is checked. Final generator checks and full integration/certificate/prover/judge remain unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previous931c559d push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcQsortPermutation strict PASS, five exact axiom guards. Actual Lean4.34.1 quicksort partition loop, median swaps, partition and recursive sort preserve input permutations for arbitrary comparators and subarray bounds. sortPush_perm now proves actual scheduler sort preserves record multiplicity. Local macros only resolve exact pinned private recursive helper names; all resulting proof terms pass standard-axiom audit. Sortedness remains unproved, so final sorted-log check is not claimed. Memory/comparison checks and full integration/certificate/prover/judge remain unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previous9933708e push failed GitHub DNS. Goal active.
 
 
