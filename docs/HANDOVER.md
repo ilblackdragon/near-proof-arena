@@ -6,6 +6,36 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: SourceDictionaryBudget strict PASS5 guards. Actual selected entries
+fit native encoded dictionary by sublist, with44 bytes overhead per unique entry.
+IMPORTANT completeness correction: existing repeated-source/filler accounting
+adds exactly56*(occurrences-unique entries). Kernel accounting regression:
+one empty entry vector encodes60 bytes, two current source headers+overhead
+charge116. Therefore the generic per-occurrence native dictionary lowerbound
+needed by NativeEncodedBudget cannot follow from reuse coverage alone. Fixture
+is NOT a complete accepted checkD0a witness. Need correct duplicate-source charge/
+public overhead/reconstructed dictionary, or prove an actual native restriction;
+do not assume spare56-byte margins or restrict accepted domain. Old soundness
+accounting for constructed filler dictionaries remains valid, not completeness.
+
+Independent process-empty-regression PASS9 guards confirms actual generator
+empty-round distinct-seed boundary conflict, including PV86 one-shard params.
+Accepted-checker reachability not established. Candidate gate fix underway.
+Receipt-system-traffic PASS17 guards: exact ordered physical SREC sends=receives
+on shared735 trace with native capacity, all headers/padding included.
+Native-ups-physical-balance PASS12 guards: physical segment lookup plus actual
+ups_render_traffic closes full UPS EDGE/BMAP count/provider balance under same
+ranked instances, shape/local/cell placement and provider coverage. UPS-only rank
+starts0; queue/account honest paths and shared all-consumer prefixes remain open.
+
+Receipt735/881 and fixed-height10/19 unchanged. Three agents continue routing18,
+process correction/replay and honest queue/account walks. Actual size/header
+8,288,148 unchanged for existing candidate; candidate fixes must be rechecked.
+Full certificate, clean build, prover, real judge and general NEAR incomplete.
+Strict source checks use prebuilt dependencies. Last1ec29458 push failed DNS;
+retry after commit, verified bundle preserves local work.
+
+
 2026-10-08: NativeEncodedBudget strict PASS4 exact guards. Original tagged native
 store charge equals actual witness payload plus four-byte record prefixes under
 transition-store alignment. Encoded witness<=8MiB implies store+source+fixed

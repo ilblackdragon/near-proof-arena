@@ -1,0 +1,32 @@
+{
+  "lane": "process-empty-regression",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcEmptyBoundaryRegression.lean",
+      "sha256": "e3f6723ae0050622accb242496a8584c73889d773c163e9e0b8b19f34b3928a8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-empty-regression-ProcEmptyBoundaryRegression.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcEmptyRunRegression.lean",
+      "sha256": "bc052a6bf101081e2902fa45f9ee7181dbd59bf4ca0e141b792b9a7822388efb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-empty-regression-ProcEmptyRunRegression.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcEmptyBoundary.lean",
+      "sha256": "2ea432412f9680adda00d0fb8c335f4de3e0d50f05f80ff5bffd464521dc9cd3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-empty-regression-AuditProcEmptyBoundary.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Kernel actual rotation boundary violation across successful empty-request Gen.run instances with distinct seeds, including one-shard PV86 Params.calculate fixture. Not a full accepted checkD0a witness. Candidate gate correction still separate.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

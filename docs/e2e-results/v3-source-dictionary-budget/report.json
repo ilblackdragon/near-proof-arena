@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual selected native dictionary entries fit encoded dictionary by sublist. Current repeated-source accounting adds exactly56 bytes per duplicate occurrence; kernel accounting fixture60-byte original versus116-byte two-occurrence charge disproves generic occurrence lowerbound. Fixture is not a full accepted checkD0a witness. Source charge/overhead correction and honest native integration remain required. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SourceDictionaryBudget.lean",
+      "sha256": "220edbc85a0bc9acabc2289f6fb9ae95495a39b7792cc58936b680aaa3bfba52",
+      "audit": "zk-formal/test/AuditSourceDictionaryBudget.lean",
+      "audit_sha256": "14857b5200009fec424b16414b58fe2588c49dda5e1606df8126db5ccb750240",
+      "guards": 5
+    }
+  ]
+}
