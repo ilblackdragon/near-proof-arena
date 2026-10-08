@@ -6,6 +6,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PriorMemoryFusion strictPASS2guards measures actual horizontal
+receipt candidate + baseline prior-memory table: appended auxDegree10 and
+prepended auxDegree9, versus existing8. Scheduler agent owns a separate gated
+candidate with constrained Boolean gate column to reduce comparator degree.
+Do NOT split Interaction.mult into factors: it encodes binary multiplicity,
+not multiplication. Traffic equivalence must be proved for gate-column repair.
+PriorMemoryBudget standalone overrun remains authoritative baseline.
+
+Independent receipt-candidate-traffic-base PASS6modules42guards derives physical
+row gates/bus rules and original ListChain structure directly from repaired
+candidate local. Full receipt byte/final/global traffic migration remains.
+No integrated-family count increase or full certificate/prover/judge claim.
+Three agents active; prior360f9a68 push failed GitHub DNS, retry checkpoint.
+
+
 2026-10-08: PriorMemoryBudget strict PASS5guards proves standalone addition of
 prior-memory table raises horizontal receipt candidate from8,288,148 to8,466,293
 bytes: +178,145 and77,685 ABOVE8MiB, before parser/ID tables. This is a failed

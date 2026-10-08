@@ -1,0 +1,95 @@
+{
+  "lane": "receipt-candidate-traffic-base",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateRowT.lean",
+      "sha256": "1886d5878008be3114c2d7ba823b1e97fa3428d27e0e8bff061aa5dd24bbb05b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-RcptCandidateRowT.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateGates.lean",
+      "sha256": "1439f0a1e14353b0e28301bbccd6fbb76e5660ed350167c95001e7e2e70a2971",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-RcptCandidateGates.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateBus.lean",
+      "sha256": "97bf33a85292a08de861d1ba4f3ef6de9758ca7590d1f5e755f929ef4ac7b486",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-RcptCandidateBus.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateTable.lean",
+      "sha256": "7989a8a34ce127b46995fcdc7161bbe2ed9fcf0e8b4ea04cfed92a839e93d746",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-RcptCandidateTable.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListBlocks.lean",
+      "sha256": "01db93b9c37db1e943589e4d31144c10c51ae5c093b4a3c5220c19bc86f07cda",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-RcptCandidateListBlocks.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateListChain.lean",
+      "sha256": "93ae25d07ff34893e7b9b13bf4d5a8739f595e02e3b6159365504c2920e496f6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-RcptCandidateListChain.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateRowT.lean",
+      "sha256": "fd2d46db5bef50cb5704b7070cd1d2aaefc4c4018486e3b2561aeafed5f9499c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-AuditRcptCandidateRowT.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateGates.lean",
+      "sha256": "107b8f4f75a49441544e9d3e428c1b81257998b0b468067faf62292f35e593f5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-AuditRcptCandidateGates.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateBus.lean",
+      "sha256": "08ad9827f23a49d0cfae929980453ac9408d1aea3f60f30b098aeeb5c6a3edbd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-AuditRcptCandidateBus.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateTable.lean",
+      "sha256": "d0a89cb0aedeb517b1875d93649f0e5b1e231e00b966573fdff6d464b5df78b1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-AuditRcptCandidateTable.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListBlocks.lean",
+      "sha256": "03206f5c440f7f25504dfce1ea1cdb675e3093e8cb611ec283538151a424ffbd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-AuditRcptCandidateListBlocks.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateListChain.lean",
+      "sha256": "aab2210f5277deca479e6505741a3dc068d8a90c81d24183d5c05bd99ad73213",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-traffic-base-AuditRcptCandidateListChain.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules42 guards. Candidate-local physical row/bus gates and original ListChain structure. Full BYTES/final/global traffic remains under migration.",
+  "exact_axiom_guards": 42,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
