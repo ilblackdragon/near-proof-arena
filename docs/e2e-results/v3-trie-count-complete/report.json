@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Whole actual count-extended node/value components have TableLocal, exact semantic TableTraffic on every bus, and log22. Assumes explicit NodeOk/ValOk views; complete native construction and global accounting remain open. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/TrieCountComplete.lean",
+      "sha256": "aa59734d9aae93e34a829fc19093db3ea10ccb8eb82eb965f8ba3b6653f363b0",
+      "audit": "zk-formal/test/AuditTrieCountComplete.lean",
+      "audit_sha256": "46ca3eff75eacfc3c7400dfa624afd47b52315362595d84ca8aa49c6050fb8bf",
+      "guards": 4
+    }
+  ]
+}

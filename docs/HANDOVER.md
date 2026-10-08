@@ -6,6 +6,37 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: SizeRecordTraffic strict PASS6 guards. Full actual log22 node/value
+traces each send exactly ONE SIZE message [tag,payloadBytes,recordCount], with
+no SIZE receives and no extra messages in any active/padding row. Uses existing
+NodeOk/ValOk row bounds to place SUM inside the actual physical trace.
+TrieCountComplete strict PASS4 guards combines this with non-SIZE preservation:
+both amended components now have TableLocal + exact semantic TableTraffic on
+EVERY bus + log22. Native NodeOk/ValOk constructors remain explicit; whole
+same-execution witness and global SIZE accounting still need composition.
+
+Independent scheduler-row-prerequisites PASS14 guards: field inverse/zero-test
+facts and codec/scan padding constraints/bits, including final cyclic row with
+arbitrary next row. These are prerequisites only; active generator and joined
+instance completeness still open. Native-forest-metadata PASS9 guards: full
+original forest preorder resOk, depths<400 from existing trieFuel, and revealed
+target in allocated subtree interval. Canonical raw fields and global usage
+assignments remain before full native NodeWf3.
+
+Independent receipt-character-lengths PASS19 guards across8 modules. Actual
+native receipt wf discharges6 length and3 separator constraints, bringing the
+same concrete trace to701/881. Remaining character constraints20; total180.
+
+Last reviewed receipt progress701/881; selected fixed-height wrappers10/19.
+Three agents continue receipt constraints, native forest construction, and
+scheduler codec/scan/process completeness. Root next: connect complete count
+components with native witness SIZE/accounting and candidate assembly.
+Actual size/header remains8,288,148. Full correctness certificate/clean build,
+succinct prover, real judge, and general NEAR coverage remain incomplete.
+Strict checks use prebuilt dependencies. Push DNS still fails; local commits
+and verified checkpoint bundle preserve all checked work.
+
+
 2026-10-08: SizeRecordMessages strict PASS6 exact guards. Actual node/value
 SUM interactions are members of the amended candidate tables and send exact
 three-field tuples [tag,payloadBytes,nonduplicateRecordCount], each with unit

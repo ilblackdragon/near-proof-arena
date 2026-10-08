@@ -1,0 +1,46 @@
+{
+  "lane": "scheduler-row-prerequisites",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/SchedField.lean",
+      "sha256": "4c431f58bd2726728bb78b5ed4e4dd56a8a55ef71aa838a624fa692c1474a9eb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-row-prerequisites-SchedField.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/CodecZeroTest.lean",
+      "sha256": "d12c8aa5745b1805980d057b4bf50a8067b6430051d45423fb48bf888b20f604",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-row-prerequisites-CodecZeroTest.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/CodecPadding.lean",
+      "sha256": "ea6e9e15bb6de15e88e9bdf751a084a5c0906377127d75009f086808186f6fc9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-row-prerequisites-CodecPadding.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ScanPadding.lean",
+      "sha256": "37220a38498b5247b518077f6afb0c171f8d7f789c3ded269b09f4fd9b904592",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-row-prerequisites-ScanPadding.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedRows.lean",
+      "sha256": "01b78c59649f23a92ef3534eace88318bf2bab047a65b1d194e936ef36040ac3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-row-prerequisites-AuditSchedRows.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Native field inverse/zero tests and full codec/scan padding constraints and multiplicity gates, including final physical wrap. Active row and concatenation completeness still open.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
