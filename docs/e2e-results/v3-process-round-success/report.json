@@ -1,0 +1,39 @@
+{
+  "lane": "process-round-success",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRoundGuards.lean",
+      "sha256": "7db05d711caf5b67ef5ba2e69ce8be32c7ce61760c35c33fd3927d35f3e0d7ba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-round-success-ProcRoundGuards.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcTagTransition.lean",
+      "sha256": "cc8ca10f47002bd5c4f5fc5bcac546c9674c54ef4c3b423eab36bf6cafc05d08",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-round-success-ProcTagTransition.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRoundSuccess.lean",
+      "sha256": "d08701d881e8338851eb9d999f32c051e2ad15d5cc984d4dabca269493cb8a37",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-round-success-ProcRoundSuccess.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcRoundSuccess.lean",
+      "sha256": "2165f493c9d8e6a8af1f2e3810e2917cdde34c4555e7686e540013d674f1bb70",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-round-success-AuditProcRoundSuccess.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules9 guards. Entire model round constructively succeeds/preserves Ready with mixed-z/zero/positive/order/entry guards derived. initial_ready from actual prepared requests. Native loop/shuffle/map/fuel composition and RNG capacity remain.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

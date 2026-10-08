@@ -6,6 +6,32 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: CompactPhysicalShaBytes strict PASS5 exact guards. Actual compact UPS
+physical BYTES sends at log22, including padding rows, equal exact native output-node
+SHA inventory after field encoding. For caller-chosen SAME native allocated us/insts,
+compact capacity and local validity follow from native charges, paired with exact
+byte traffic. Fresh-value codec relay and scheduler sanity byte producers still
+separate; no full scheduler/global SHA balance claim. Generic variable-clock lemma
+avoids evaluation of concrete 2^22 row ranges during proof checking.
+
+Independent native-reader-depth PASS3modules8guards derives actual generated pdep;
+native-reader-window PASS2modules2guards binds ONE original initialized+updated
+provider at actual sN with pb/post bytes, pdep/depth and every pcid/ucid. NLF kind8
+excluded exactly as no source reader. Source-length equality and global UPB
+rank/counter balance remain active. Independent deposit-ledger PASS1module5guards
+constructs executable actual account ledger from post-scheduler state, ordinary/system
+native transitions, exact receipt order and per-step NativeBalanceData. Physical
+DEP frames/version ownership remain.
+
+Independent process-round-success PASS3modules9guards constructively executes entire
+model round and preserves Ready; all entry/order/mixed-z guards derived from prepared
+inputs and pending invariants. Native full loop/shuffle/map/fuel composition remains,
+alongside separate RNG capacity. Candidate842/881, original832/881, fixed-height10/19
+unchanged. Full certificate/prover/real judge/general NEAR unfinished. Prebuilt
+dependency checks, not clean certificate. Three agents continue. Prior1a74fba7 push
+failed GitHub DNS; retry after checkpoint and verified recovery bundle regeneration.
+
+
 2026-10-08: NativeSourceByteBalance/NativeSourcePhysicalAllocation/
 RebasedSourcePackedAllocation strict PASS3 exact guards. Concrete four packed SHA
 consumers now equal actual native node/value plus original four source byte senders,
