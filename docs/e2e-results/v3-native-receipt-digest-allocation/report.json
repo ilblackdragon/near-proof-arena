@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted source receipt and native trie allocation: full physical DIGEST equation across four SHA outputs, empty-value provider, HEAD/node, receipt/Merkle and all four source consumers. Derived node+VPRE inventory and accepted source path+RC digest conservation leave exactly scheduler/account outputs and written VPOST obligations. Physical byte balance retained; fresh-codec/sanity byte and native account list/global installation remain. Strict audits use prebuilt dependencies, not clean certificate or full prover/judge",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeDigestConservation.lean",
+      "sha256": "9abddd1567a991b16bfffbdfc82d4d8ef565fe56d42ea330331eb632c893aadd",
+      "audit": "zk-formal/test/AuditNativeDigestConservation.lean",
+      "audit_sha256": "780730b2f3f917b2cdca5d3a7d498d7d4e9ea359729bd6699238b0111a48ae74",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptDigestAllocation.lean",
+      "sha256": "b561f5e24720b280d4d330f678cda0cc2cb66339cb3408ba7411089ccfe8221a",
+      "audit": "zk-formal/test/AuditNativeReceiptDigestAllocation.lean",
+      "audit_sha256": "88ac7747c79540291b9bc713451adea5fd4c9a48399b39db3f73bc1c4b8c947f",
+      "guards": 1
+    }
+  ]
+}

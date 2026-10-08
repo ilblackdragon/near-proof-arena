@@ -6,6 +6,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeReceiptDigestAllocation strictPASS2guards across2root modules
+adds full physical DIGEST accounting on SAME accepted source-backed receipt/trie/
+UPS/Walk/fourSHA allocation. FourSHA outputs +empty-value provider +written VPOST
+requests equal physical HEAD/node+receipt/Merkle+all four source receives plus
+scheduler/account SHA outputs. Node/VPRE and source+RC contributions derived;
+only scheduler/account/VPOST binding remains in this equation. Physical BYTES
+composition retained; codec fresh/sanity bytes still explicit. No final global
+bus proof, prover, clean certificate or judge claim.
+
+Independent source physical DIGEST5modules8guards derives path/root hashes from
+accepted proof validation and exact four-table traffic, with duplicate RC flags.
+Native account pair/touched decode2modules11guards derives actual initial/final
+touched account decoding and closing payload without a free suffix/post-decode
+premise. Account original-pre rebase, list IDs/closing versions still open.
+Three agents continue scheduler hash binding, whole account construction and parser
+record/overlay. Integrated10/19,receipt882/882 unchanged.8,378,132 size proposal
+still excludes final joins;10,476 margin not final capacity assurance. Prior
+7f1855ca push DNS-blocked; retry and preserve verified recovery bundle.
+
+
 2026-10-08: NativeReceiptAllocation strictPASS1 exact guard COMPOSES actual
 source-backed receipt trace/canonical blocks with SAME accepted native trie,
 query,UPS,HEAD,value objects and four packed SHA tables. Receipt batch is actual

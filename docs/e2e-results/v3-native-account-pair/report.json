@@ -1,0 +1,39 @@
+{
+  "lane": "native-account-pair",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountPair.lean",
+      "sha256": "72ef0704f2172da71cb321c02c530ccd912a2d8d87b4217ad2d97786f18a9446",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-pair-NativeAccountPair.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeTouchedAccountDecode.lean",
+      "sha256": "ad349c88648d7e7ad91556056c965650c1ab356ead004b10074dac64e86b0715",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-pair-NativeTouchedAccountDecode.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountPair.lean",
+      "sha256": "9189348a9ff4d5953527daa7ca4751aa2046bdd79dc3da7e5e7631f2d8f3a25d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-pair-AuditNativeAccountPair.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeTouchedAccount.lean",
+      "sha256": "a24f4be63301bf188c29e7c0355c3170f583405145c9f082b0e8300ac9607899",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-pair-AuditNativeTouchedAccount.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules11guards. Actual applyReceipts derives decoded initial/final touched accounts, including first touch after earlier writes and repeated receivers. Closing AcctV SHA payload matches same native account update without suffix or post-decode premise. Original-pre rebase and whole-list closing IDs remain.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
