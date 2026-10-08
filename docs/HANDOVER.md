@@ -6,6 +6,35 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: RebasedRootAllocation strictPASS1 exact guard extends SAME native
+query/allocation/HEAD/Walk/node/UPS/SHA composite with exact compact ROOT output
+messages equal indexed actual native post roots. SAME chosen native trace ends
+at endorsed k.H.prevStateRoot; ordered native root chain retained. Independent
+native-root-chain PASS4modules9guards. Physical HEAD ROOT/global public balance
+still separate; no full transition prover claim.
+
+Shared ROOT+MIDROOT import exposed a copied public helper-name collision missed
+by isolated checks. Renamed ROOT helper compact_instance_root; rebuilt/reviewed
+ROOT5modules14guards and new joint-import audit. No proof obligation weakened.
+
+Native receipt leaf packages independentPASS8modules27guards: physical located
+receipt views map in exact order to actual successful applyNewChunk outcome
+preimages, including empty lists, duplicates, system/ordinary receipts. Canonical
+extracted ListChain identity and native SHA digest-stream register compatibility
+remain explicit work. No full ReceiptMerkleShaBytes leaf premise closure yet.
+
+Authenticated prior value length relay independentPASS3modules15guards: +1 column,
+actual header gate, unchanged old traffic/local projection, honest selected lift.
+Selection multiplicities/global balance still open. GatedLengthFusion PASS9guards
+replaces actual value table at selected slot5: fused shape3405/112/7/112/log22,
+degree8. Full proposal8,360,820bytes (928 additional), headroom27,788 before raw
+parser/Codec repair. Standalone aux unchanged and fused grouping also unchanged.
+
+Integrated10/19; receipt882/882. End-to-end prover, clean full certificate and
+real judge unfinished. Three agents continue. Prior6e19ba16 push failed DNS;
+verified recovery bundle maintained and push retried after checkpoint.
+
+
 2026-10-08: Independent original-prior raw rows PASS3modules15guards (includes
 4 previously committed length regression guards) derives executable tagged byte
 stream and exact original (byte,position) inventory. Unknown and duplicate IDs

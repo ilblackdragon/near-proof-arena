@@ -30,11 +30,11 @@ import ZkFormal.NearV3.Rcpt.Candidates.CompactRootRanks
 #guard_msgs in
 #print axioms ZkFormal.NearV3.Rcpt.Candidates.NodePostUpdate.compact_root_row
 
-/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.NodePostUpdate.compact_instance_midroot' depends on axioms: [propext,
+/-- info: 'ZkFormal.NearV3.Rcpt.Candidates.NodePostUpdate.compact_instance_root' depends on axioms: [propext,
  Classical.choice,
  Quot.sound] -/
 #guard_msgs in
-#print axioms ZkFormal.NearV3.Rcpt.Candidates.NodePostUpdate.compact_instance_midroot
+#print axioms ZkFormal.NearV3.Rcpt.Candidates.NodePostUpdate.compact_instance_root
 
 /-- info: 'ZkFormal.NearV3.Rcpt.Candidates.NodePostUpdate.compact_root_inventory' depends on axioms: [propext,
  Classical.choice,

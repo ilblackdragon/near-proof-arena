@@ -18,7 +18,7 @@
     },
     {
       "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactRootInventory.lean",
-      "sha256": "fde8108f50ba1010b7ec566aa10352d350530245ca56cc36020847165dd91135",
+      "sha256": "d294586b66cca48d79df940f85122b64c3a50dcea45635c1233b9e3eacc2d351",
       "exit_code": 0,
       "unchanged_during_check": true,
       "log": "/tmp/nearproof-review-compact-root-traffic-CompactRootInventory.log"
@@ -39,7 +39,7 @@
     },
     {
       "path": "zk-formal/test/AuditCompactRootTraffic.lean",
-      "sha256": "fdfb7467e0cccb0fabe1f9afd1e4df4e5635d7f38269c69a1d367861b3b18a48",
+      "sha256": "75b3ea7d6c798a32ec8d23b247b5dbd9dc647ef7645a978e020cf175950c847b",
       "exit_code": 0,
       "unchanged_during_check": true,
       "log": "/tmp/nearproof-review-compact-root-traffic-AuditCompactRootTraffic.log"
@@ -47,7 +47,7 @@
   ],
   "status": "PASS",
   "date": "2026-10-08",
-  "scope": "Five modules14guards. Actual compact W3 emits each indexed post digest exactly once; other and padding rows silent. Actual query prefixes and UPB patch preserve ROOT traffic. Native/public endpoint binding remains open.",
+  "scope": "Rechecked five modules14guards after renaming copied public helper compact_instance_midroot to compact_instance_root. Fixes ROOT/MIDROOT simultaneous import collision caught by actual shared composite.",
   "exact_axiom_guards": 14,
   "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
 }

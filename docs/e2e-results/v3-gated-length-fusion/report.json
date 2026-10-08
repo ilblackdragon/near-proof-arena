@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual optional authenticated value-length relay replaces selected value table at slot5 in gated memory+ID fusion. Concrete degree8/shape3405,112,7,112,22; complete candidate size8360820, headroom27788. Parser/renderer/selection/global balance still open. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/GatedLengthFusion.lean",
+      "sha256": "76b324d3f113c22f419f4911f3fa4cda0400f2057b89b35594610f6d9559e9d4",
+      "audit": "zk-formal/test/AuditGatedLengthFusion.lean",
+      "audit_sha256": "144be72d8c94c245f6706496c0ac1ced1955f76f1acbb6eda8040087daefff85",
+      "guards": 9
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import ZkFormal.NearV3.Rcpt.Candidates.CompactRootCells
 namespace ZkFormal.NearV3.Rcpt.Candidates.NodePostUpdate
 open ZkFormal.Near ZkFormal.Air ZkFormal.Algebra Render Render.UpsGen Render.UpsRelay UpsRows
 
-theorem compact_instance_midroot (Is : List UpsInst) (i : Nat)
+theorem compact_instance_root (Is : List UpsInst) (i : Nat)
     (pos : RK→Nat) (next : RK→URow) (hl : (inst Is i).post.length=32) :
     (compactRecsI (inst Is i)).flatMap (fun rk=>
       compactMsgs (compactGeneratedRow Is (pos rk) (i,rk)) (next rk) B_ROOT true)=
@@ -25,7 +25,7 @@ theorem compact_root_inventory (Is : List UpsInst) (pos : Nat×RK→Nat) (next :
         compactMsgs (compactGeneratedRow Is (pos (i,rk)) (i,rk)) (next (i,rk)) B_ROOT true)=
       [reduceMessage ([(inst Is i).tau+1]++(inst Is i).post)] := by
     intro i hi
-    apply compact_instance_midroot
+    apply compact_instance_root
     apply hl
     have hib:=List.mem_range.mp hi
     simp only [inst,List.getD_eq_getElem?_getD,List.getElem?_eq_getElem hib,Option.getD_some]
