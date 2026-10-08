@@ -6,6 +6,33 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Corrected source FOUR PHYSICAL cap22 TableLocal and carry balance
+strict PASS17 exact guards across Shift/PartitionTransfer/PhysicalLocal/Four/Carry.
+Actual old/new partition constraint coverage kernel-checked; unchanged expressions
+transport on concrete shifted traces. Both changed accumulator equations proved
+at physical offsets; all multiplicity bits retained. Native row bound16334272
+unchanged. honest_four_local proves all four actual SIZE-wrapped partition tables.
+honest_four_carries derives full reserved-bus balance from overlapping placement,
+including changed SIZE column54, without a carry-balance premise. Source SIZE
+and non-SIZE traffic, dictionary sound extraction without duplicate fillers,
+and active horizontal family replacement remain open. Prior family size bound
+is not yet a certificate for the replacement.
+
+Independent native-lookup-full-chain PASS13 guards: complete indexed successor
+chains for every native recursive lookup and exact resolved first-row target,
+including empty extensions. START/canonical/bounds/provider coverage next.
+Independent receipt-routing-native PASS3 guards: actual prep/walk/decode/ordered
+applied receipts derive interval containment, positive endpoints, q<128 and
+public-key coverage, closing prior routing-validity premises on753-constraint
+same trace. q7bit and BND rank/traffic integration still separate.
+
+Receipt753/881; selected fixed-height10/19; corrected source4/4 physical tables
+now locally proved separately. Full certificate, clean build, prover, real judge
+and general NEAR incomplete. Strict checks use prebuilt dependencies. Three
+agents continue native lookup bounds, scheduler concatenation and receipt fields.
+Prior1e176d08 push failed GitHub DNS; retry after checkpoint and verify bundle.
+
+
 2026-10-08: Corrected source complete logical TableLocal strict PASS12 exact
 axiom guards (UniqueSourceBoundary/Increment/Equations/Local). Proves first,
 terminal, padding and every successor counter equation; exact polynomial on

@@ -1,0 +1,39 @@
+{
+  "lane": "receipt-routing-native",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingNativeSelection.lean",
+      "sha256": "285819819d71b32014aad7d2771456256e1527200073af83160e89686c3f48fb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-native-RcptRoutingNativeSelection.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptRoutingNativeComplete.lean",
+      "sha256": "0a1c8e0e81fc773a4172b13430fe28ac18c7ce318f3b05d828660846559ecf8a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-native-RcptRoutingNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingNativeSelection.lean",
+      "sha256": "6256ca5548a580c688ae049c63c91b52c9e39a371d56df26177f88875a7bb808",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-native-AuditRcptRoutingNativeSelection.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptRoutingNativeComplete.lean",
+      "sha256": "f3ba99cad3348354f0c0b3c327084e891ca88f40d4607c291721797c6aa564c9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-routing-native-AuditRcptRoutingNativeComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual native prep/walk/decode and ordered applied receipt list discharge routing interval containment, endpoint positivity, q<128 and public-key coverage on753-constraint physical trace. q7bit and BND traffic integration remain separate.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
