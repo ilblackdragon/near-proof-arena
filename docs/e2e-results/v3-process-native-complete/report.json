@@ -1,0 +1,67 @@
+{
+  "lane": "process-native-complete",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelStep.lean",
+      "sha256": "d2d72862330e78d385274243cc776754f6471449bc8427fb2e52fe63cd45f535",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-complete-ProcModelStep.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelValid.lean",
+      "sha256": "c8ab7f2316b9755124b3377ebf2ec443002fa7ccbe27d87a872f85f896a0932f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-complete-ProcModelValid.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcZeroPending.lean",
+      "sha256": "ce2aa9d5405f5011b44e72d0df732f1c0d17d645232c6d5ba58ba7f85d496f36",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-complete-ProcZeroPending.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcZeroTransition.lean",
+      "sha256": "8a18448c84d78c022fa6fa6b57114d1716b130074bbd362fb8c3f62ed176a09d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-complete-ProcZeroTransition.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcZeroTrace.lean",
+      "sha256": "a61029e0642366a991b19e147bf8dc7e1f09b0a1b0c9dfe88dea0742a8b0d9a5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-complete-ProcZeroTrace.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcRoundOrder.lean",
+      "sha256": "f2dd662772896f550a06718d6acac173477e9bd6d01d30ea1ab4452beba1b861",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-complete-ProcRoundOrder.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcNativeComplete.lean",
+      "sha256": "cc3ccfcc05e9bd43bbdfe994a889e5f61634ed8d333c022287ff19538853dafa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-complete-ProcNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcNativeComplete.lean",
+      "sha256": "07bf550222646511fa3e02d46b2657f48b6229f6fbc99a31b453d2a3be7ace0a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-native-complete-AuditProcNativeComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Seven modules27guards. Full RunData follows actual Gen.run success and PV86; no replay/round-order/entry/memory assumptions. Combined process TableLocal log22 under native runs plus global tau continuity/capacity. Frozen process boundary repair still isolated candidate; active family migration pending.",
+  "exact_axiom_guards": 27,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

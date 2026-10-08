@@ -6,6 +6,35 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeSourceFour strict PASS3 guards. ORIGINAL accepted native source
+compiler constructs four log22 traces, all four count-extended TableLocal and
+exact arity-three SIZE send. Seven-trace SIZE conservation with same node/value
+and receiver payload/counts under explicit NodeOk/ValOk. Source constructor and
+original filler accounting preserved. Global family placement/remaining buses open.
+
+Independent receipt-gas-delay PASS7modules/30guards:16 original delay-line
+equations on SAME shared trace,824/881. Remaining gas18+deposit39. Explicit
+GasPublicBytes/context bound pending prepared binding. System surplus mismatch
+still open. New deposit issue under investigation: original version-distance
+constraint is9bits(<512) versus native4481 receipt bound; no full D0a counterexample
+claimed,active table unchanged. Do not assume legacy DepOk.r<512 for native proof.
+
+Independent process-native-complete PASS7modules/27guards: FULL actual Gen.run
+RunData from PV86 and success, including zero ordinal sequencing. Native process
+TableLocal for combined list under global tau continuity and capacity. No abstract
+replay/round-order/entry/memory premise remains. ProcBoundaryRepair candidate still
+isolated; native aggregate capacity/global link/active family migration remain.
+Independent native-access-key PASS4modules/10guards: actual conditional refund
+access-key queries succeed in original prestate, W_AK+original receipt indices.
+Complete receiver/access/queue/UPS row envelope3441404 fitslog22 under explicit
+wf/count bounds. PublicKey64byte data case included (264rows/access). Returned VID
+and physical whole-inventory integration remain open.
+
+Receipt824/881; selected fixed-height10/19. Full certificate,clean build,prover,
+judge/general NEAR incomplete. Checks use prebuilt deps. Prior2bc0de26 push failed
+GitHub DNS; retry after checkpoint and retain verified bundle.
+
+
 2026-10-08: NativeExecutionStores/NativeExecutionSize strict PASS4 exact guards.
 Actual accepted D0a (B≤2M) execution derives witness-transition alignment and
 indexed store provenance for main+implicit forest. NativeExecutionSize.complete
