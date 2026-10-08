@@ -1,0 +1,81 @@
+{
+  "lane": "receipt-gas-effective",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasEffectiveFrame.lean",
+      "sha256": "7aa36c2e4a56f08b89658edcd4ea21a574099c1008286860455bf8d3b6b91526",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-effective-RcptGasEffectiveFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasEffectiveLocal.lean",
+      "sha256": "5003d1cda237d8ecb966b4e53426f74d2d6df4f2a587c66c6d651ab42fa5d662",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-effective-RcptGasEffectiveLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasEffectivePhysical.lean",
+      "sha256": "a7e70a59c77fc99b538d3412bd6628a1c7a1db642500d9854be89212f2ab95f6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-effective-RcptGasEffectivePhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasEffectiveCommute.lean",
+      "sha256": "72f45d426a1bc72634f05c3a3ba36e3f82bf363123a16fdb5ba4cbb00bf304f3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-effective-RcptGasEffectiveCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasEffectiveNativeComplete.lean",
+      "sha256": "fd544a352b85c2a355245576cb9c0b69e94b6fc63a48cd81f6f856aee86b3f90",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-effective-RcptGasEffectiveNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasEffectiveFrame.lean",
+      "sha256": "78f5be7d07bc1cc3e95fc1bfcb770cba3ee5ede321c56311e67f2d63cc65c020",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-effective-AuditRcptGasEffectiveFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasEffectiveLocal.lean",
+      "sha256": "f509a0112593e007444c5d1a00477c988c35427607a262592e30d0e2282c2a36",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-effective-AuditRcptGasEffectiveLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasEffectivePhysical.lean",
+      "sha256": "7395e885e2540cbfb09d454b883ec28fee6d03658d5528cb996f445688259e36",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-effective-AuditRcptGasEffectivePhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasEffectiveCommute.lean",
+      "sha256": "159ca5861fe3086eb7bcae39c37e7aa0b2811736de34b47b1388a133d4df10bb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-effective-AuditRcptGasEffectiveCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasEffectiveNativeComplete.lean",
+      "sha256": "17d6b52ff282ab8b67cb3b2935112653c73bc8194ad4decf45623687e5e13b8c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-effective-AuditRcptGasEffectiveNativeComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules25guards: pc and gq original gas equations compose on same shared trace,808/881. Same explicit public-price binding/context bound; delay lines/convolution and system surplus remain open.",
+  "exact_axiom_guards": 25,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

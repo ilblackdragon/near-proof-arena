@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Native node/value local construction strict PASS7 exact guards.
+NativeNodeLocal supplies NodeOk after metadata initialization, including revealed
+length-byte bounds and exact child-ID layout, then count-extended node/value
+TableLocal after duplicate-chain assignment. NativeExecutionNodeLocal.complete
+uses actual successful D0a (B≤2M) main+implicit execution to discharge forest wf,
+depth,nonempty,count,unfolded-byte prerequisites. This closes assumed forest local
+shape for these actual generated tables. Initial use counts still zero: shared
+consumer ownership/global buses/SHA jobs remain to integrate. Fixed-height10/19
+not incremented, as this strengthens existing node/value construction.
+
+Independent receipt-gas-borrow PASS10modules/39guards and gas-effective
+PASS5modules/25guards. First4 borrow +pc/gq equations compose on SAME previous802
+trace:808/881 reviewed. NEW explicit GasPublicBytes(ctx,pub) and ctx.gasPrice<u128
+premises must bind to actual prepared public/context. No hidden refund/nooverflow
+premise added. Remaining cGas34 +cDep39. System gas probe: actual parsed/wf system
+receipt at u128Max gasPrice succeeds under applySystemReceipt, but ungated surplus
+can exceedu128. This is NOT a full checkD0a fixture. Active AIR unchanged; agent
+investigating minimal system-gated surplus repair separately.
+
+Progress receipt808/881; fixed-height10/19. Full assembly,certificate,clean build,
+prover,judge/general NEAR remain incomplete. Strict checks use prebuilt deps.
+Priord9d5b148 push failed GitHub DNS; retry after checkpoint; verified bundle.
+
+
 2026-10-08: NativeNodeChildIds strict PASS5 guards. Exact initialized child-ID
 arrays agree with generator byte layout for every well-formed leaf/extension/
 branch view, including hash/revealed child windows. This discharges NodeOk.ucid

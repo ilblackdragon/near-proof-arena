@@ -1,0 +1,151 @@
+{
+  "lane": "receipt-gas-borrow",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSystemGasDomain.lean",
+      "sha256": "fe939db109991c2827ea6896937e68a346b9c7b883401f097b68b3e3d83e36c3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-RcptSystemGasDomain.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasBorrow.lean",
+      "sha256": "b3218145d9994133b9194af12b964b38827d6de489c5d56bfe736f28813f0ec0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-RcptGasBorrow.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasBorrowFrame.lean",
+      "sha256": "e2d00f1cf54576cc0e41745496b40495d9f6576323d714371f41ab8f6b183ed6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-RcptGasBorrowFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasPriceCells.lean",
+      "sha256": "ebde85d795f330add789225714bce4f218c3bd1666bb8cc64037df0445ad826c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-RcptGasPriceCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasBorrowLocal.lean",
+      "sha256": "979a3307fd4678467755ce4f962b7a56668b532388c1637407ae6853622a0943",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-RcptGasBorrowLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasBorrowCurrent.lean",
+      "sha256": "e2ee4dc377e72d187e0262519046609db8b82bda88578c77227c6dd945cf4ac2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-RcptGasBorrowCurrent.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasBorrowTransition.lean",
+      "sha256": "d67463ea0a3a07887019edf0692e206fb925a3ba415a0af6b94e9381d8cfd3f9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-RcptGasBorrowTransition.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasBorrowCommute.lean",
+      "sha256": "9ff8de973f0abee802f68f112bcd0fbe3ef95772cc2dcf8fd50bc79da25a43da",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-RcptGasBorrowCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasBorrowPhysical.lean",
+      "sha256": "a4b9f471eecb9e1dc5c7a93205ea23a38be7d25270726931c1ad9edbede9aaf8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-RcptGasBorrowPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptGasBorrowNativeComplete.lean",
+      "sha256": "ca762f225e3645e90319a6d9dfda8180fc116a0b289e7eaa266120b885fa1488",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-RcptGasBorrowNativeComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSystemGasDomain.lean",
+      "sha256": "abb364006d94834a40c7a839e380e852928f91395bca7fa98e2d9ee7fa07f10c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-AuditRcptSystemGasDomain.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasBorrow.lean",
+      "sha256": "b7a58787f982378b34edebddfbe3c62709ecd5afcc1d3c5d8be04a2b58102628",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-AuditRcptGasBorrow.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasBorrowFrame.lean",
+      "sha256": "5fdc0d6964d3e9f9cb0d87f9c068390f29eaf4e3980e2526d19e64126269e98a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-AuditRcptGasBorrowFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasPriceCells.lean",
+      "sha256": "31cc90a245314839adae7450824bb48d35c1cff3eff028a7f7b827a374271223",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-AuditRcptGasPriceCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasBorrowLocal.lean",
+      "sha256": "fbe48f11d830f294d118c144d6e6b1e8e74f4e60799a9d22e85253948b0285f3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-AuditRcptGasBorrowLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasBorrowCurrent.lean",
+      "sha256": "1997875cdc72c425390db7a4c01058a8c64157ac26ece441481e2af7a879f773",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-AuditRcptGasBorrowCurrent.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasBorrowTransition.lean",
+      "sha256": "11ed6bdef8bad6ff4722e893ef8da9a30ec978a086e9d2a83732c570b32d8f71",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-AuditRcptGasBorrowTransition.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasBorrowCommute.lean",
+      "sha256": "3fb44b522c63fdc350e4e9b65a017643e9175c239f8307599cb0e0dcf6644fe0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-AuditRcptGasBorrowCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasBorrowPhysical.lean",
+      "sha256": "79185e9400726b5d7ae25351939f0dcd7011f313732f5e4a66fcc9971cacab07",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-AuditRcptGasBorrowPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptGasBorrowNativeComplete.lean",
+      "sha256": "5e7672459b98c09e445d7e87f390a7a5d8bafaa1a70e6c85307b58df79a299e7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-gas-borrow-AuditRcptGasBorrowNativeComplete.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Ten modules39guards: original first4 cGas composed on same trace,806/881. Explicit GasPublicBytes/context gasPrice<u128 required. System receipt probe is actual parser/runtime acceptance with overflow of old ungated surplus, NOT full accepted D0a counterexample.",
+  "exact_axiom_guards": 39,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
