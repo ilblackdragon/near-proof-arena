@@ -1,0 +1,67 @@
+{
+  "lane": "receipt-boolean",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptBooleanInputs.lean",
+      "sha256": "da3c2c566a037839657cdd32c46d0583b413492c9ec3638ea5dbeec94585df47",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-boolean-RcptBooleanInputs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptBooleanCells.lean",
+      "sha256": "87d0ed72c50c8562ecb620cf6cd8149e176def4c976239a36452b81548b9f7c2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-boolean-RcptBooleanCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptBooleanTrace.lean",
+      "sha256": "71866b14f60d7f32ab7107ae111a3a499c03a5c742626c3d00d6261d40d48ce2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-boolean-RcptBooleanTrace.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptBooleanLocal.lean",
+      "sha256": "0330504d3e72515a86957352df54a44c82528e23e8425248f3962c25569b61ca",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-boolean-RcptBooleanLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptBooleanInputs.lean",
+      "sha256": "5681ce0c5fc5d8d107317bbdecb72438cdbf5eccd71a83aa73ac15e957cfb151",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-boolean-AuditRcptBooleanInputs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptBooleanCells.lean",
+      "sha256": "533aec2b2479f6dc47305217b5830676b2434febf984b0d6baaa13079e888963",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-boolean-AuditRcptBooleanCells.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptBooleanTrace.lean",
+      "sha256": "a2886c2d6373bf482aecc46df0233df43585a2cc8752eeed3ded6649dbb6bd8a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-boolean-AuditRcptBooleanTrace.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptBooleanLocal.lean",
+      "sha256": "b84848c95ddf0f5c0c452e0a8e073fd9465344a5a2069ec50a7d40a153bc1d35",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-boolean-AuditRcptBooleanLocal.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One concrete trace satisfies200register+189emission+119Boolean constraints,508/881. Native gas/key flag identities and remaining structural constraints open.",
+  "exact_axiom_guards": 19,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

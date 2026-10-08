@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08 latest: honest Merkle renderer FULL native count range0..4481 strict
+PASS14guards across6modules MerkleRender/{Local,Local2,Local3,Trace,Public,Honest}.
+Old caseproofs restrictedn≤256; widened inverse arithmetic ton<P and rechecked.
+Native applyNewChunk+gaslimit supplies4481bound; recs+root+padding fitlog19.
+Publiccountbytes denote exact nativecount. Emptycase2rows/rootzero; nonemptylift
+honestTableLocal. Leveldigestdata stillparameters for global SHA authentication.
+MerklePhysical3guards moves nonemptyview+exacttraffic toANYphysicalfamilyindex.
+
+Independent PASS: receipt-boolean4modules19guards, native-view-sha1module3guards,
+receipt-sha-payloads1module7guards. SAMEreceipttrace now508/881constraints
+(200register+189emission+119Boolean);373 remain. CallerBoolean normalization
+notnativegas/keyidentityproof. cStates requiresstrictpaddingcapacity andnonempty
+lists, plusheadercountbound; dischargefromnativeacceptance, do notassume≤enough.
+
+Nextroot: connect newgeneric MerkleShaJobs.levelTable (actualleafpreimages,no
+v1Info dependency) torenderer and nativeoutcome root; globalSHA trafficcomposition.
+Agents: receiptstructuralstates; VPOST/Merkleactualjobinventory; proofbudgetrepair.
+Newactualsha messagepairpacking can raisegroupeddegree despiteTable.wf8; require
+protocoladmission separately. No fullcertificate/prover/judge claim.
+
+
 2026-10-08 latest checkpoint: MerkleLog19 rechecks FULL original extractor with
 physical height19 (all no-wrap arithmetic rechecked), without changing frozen
 original. MerkleBranches extracts semantic view+exacttraffic for arbitrary

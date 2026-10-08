@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Honest Merkle case proofs widened from n<=256 to n<P, complete log19 local renderer for 0..4481 receipts, native successful execution supplies the count bound, exact public count bytes. Digest levels remain parameters for global SHA authentication. Not a complete global certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/Local.lean",
+      "sha256": "c2ade455095df5447dfec8da25f6b3a7a90588382b6ea3e3f547a10164713f7f",
+      "audit": "zk-formal/test/AuditMerkleRenderLocal.lean",
+      "audit_sha256": "5ce5fb13c5019d8e2414f00fcf21775d586dabcad5d17c0bb85559c21d493922",
+      "guards": 2,
+      "log": "/tmp/nearproof-Local-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/Local2.lean",
+      "sha256": "62d54852d1db34c536b97cfb18f25f27ebacca57830cf3b019711cb5abcef4b7",
+      "audit": "zk-formal/test/AuditMerkleRenderLocal2.lean",
+      "audit_sha256": "1e567c21b42976db46240130248a21acd55efae81202078e3394cd07e21879e5",
+      "guards": 3,
+      "log": "/tmp/nearproof-Local2-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/Local3.lean",
+      "sha256": "8689cc2753a9a7fda5fc7f7f75dcf48378a1a8cd0bf311ab015aca0d2ec52ce4",
+      "audit": "zk-formal/test/AuditMerkleRenderLocal3.lean",
+      "audit_sha256": "710d63ed984152d83bb41bfd8017a7242d72284792e757f9b3b86508aa577b33",
+      "guards": 2,
+      "log": "/tmp/nearproof-Local3-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/Trace.lean",
+      "sha256": "49c8ed99012e6a13e629afc590bfdef97b8249abb077c11dde027b9943377b9c",
+      "audit": "zk-formal/test/AuditMerkleRenderTrace.lean",
+      "audit_sha256": "8e2c96d00f5c3c9ef45f831aaacf150fbe96505a5d78f0dae2788ab3f2e75f82",
+      "guards": 2,
+      "log": "/tmp/nearproof-Trace-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/Public.lean",
+      "sha256": "e32f835094ff3ef21633fb9bda13241d88ecab295bb25b520a7f27447b2369e3",
+      "audit": "zk-formal/test/AuditMerkleRenderPublic.lean",
+      "audit_sha256": "19ddfd04a490b9ce454c9653a1bfcc0e4ee37f73b37e24ea50703db8560c044f",
+      "guards": 2,
+      "log": "/tmp/nearproof-Public-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/Honest.lean",
+      "sha256": "e860b8fcb9a557afaee01146bbd0ddd814179f2f4bac5977768737e4d86dc501",
+      "audit": "zk-formal/test/AuditMerkleRenderHonest.lean",
+      "audit_sha256": "73e525446e706761bdcae54ae0fdd4260ad881f520317a0b6a7560b61c7d350c",
+      "guards": 3,
+      "log": "/tmp/nearproof-Honest-audit-checked.log"
+    }
+  ]
+}
