@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualNativeResult strict PASS, two exact axiom guards.
+Native runCore success now yields corrected process execution together with
+exact reconstruction of the native Output (state bytes, grants, params) from
+its final process state using native distribution. scheduled_process_output
+discharges allowed-grid/conversion premises from the actual apply context.
+This preserves the final-state identity previously discarded by process_exists.
+It does not yet prove ActualRun.coreEv distribution/output equivalence or full
+ActualRun success. Those, Codec Local, allocation wiring, full certificate and
+real judge remain open. Prebuilt dependency checks only. Receipt882/882 and
+integrated10/19 unchanged. Subagents confirmed errored at usage limit; local
+proof work continues. Goal active.
+
+
 2026-10-08: ActualRun process proof migration complete through prepared-input
 API:24new modules strictPASS88exactguards (all exported theorems). New ProcActual*
 chain derives conversion, replay entries/metadata, allowances, round ordering,
