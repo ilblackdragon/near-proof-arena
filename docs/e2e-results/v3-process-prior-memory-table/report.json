@@ -1,0 +1,25 @@
+{
+  "lane": "process-prior-memory-table",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorMemoryTable.lean",
+      "sha256": "baa8fc25b5c9b0156d5fc94f23da35a0ff53408aff70e202c9439517c1304ddb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-memory-table-ProcPriorMemoryTable.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorMemoryTable.lean",
+      "sha256": "43e1e0482e555f5e3ee46aa102fb1c40fb7b8c7e29509560e4c30d099c9008b6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-memory-table-AuditProcPriorMemoryTable.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Isolated width11 memory AIR with four interactions, degree8 and measured shape11/3/7/3/22. Honest/sound transport, authenticated bounds and parser/ID ownership remain.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

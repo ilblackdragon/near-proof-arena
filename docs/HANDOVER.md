@@ -6,6 +6,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PriorMemoryBudget strict PASS5guards proves standalone addition of
+prior-memory table raises horizontal receipt candidate from8,288,148 to8,466,293
+bytes: +178,145 and77,685 ABOVE8MiB, before parser/ID tables. This is a failed
+budget proposal with provisional bus assignments, not admitted complete family.
+Process-prior-memory-table independent strictPASS2guards validates isolated
+width11/degree8/log22 candidate shape. Scheduler agent continues honest/sound
+transport with actual native range/provenance facts. Fuse with existing common
+log22 group next; must measure final parser/ID/Codec repairs too.
+
+Previousc0a255cb was concrete progress: same ranked native trie UPB/SHA composition,
+compact EDGE/BMAP traffic and repaired receipt semantic Wf. Full proof assembly,
+certificate/prover/judge/general NEAR remain open; integrated10/19 unchanged.
+Pushc0a255cb failed GitHub DNS. Recovery bundle regenerated after checkpoint.
+
+
 2026-10-08: RebasedRankedAllocation strict PASS1 exact axiom guard combines SAME
 accepted native ranked compact instances, actual original node post-updates,
 node/UPS TableLocal and FULL physical UPB conservation with four packed SHA
