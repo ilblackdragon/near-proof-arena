@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact per-tree and recursive forest queue provider/complement byte partitions at arbitrary global offsets. SAME accepted physical queue sends plus explicit unselected forest messages equal physical EmptyValue receives. Combining complement with account/access/codec providers and full allocation remains. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueueForestPartition.lean",
+      "sha256": "3de357f3a8c8cf3fc3591e5dedabe4694b31847ec2a5d301c439ca6618758688",
+      "audit": "zk-formal/test/AuditNativeQueueForestPartition.lean",
+      "audit_sha256": "e60fbf116164100c0904bdcca6700e8794d3253093d8f03ed8c7bbc228eb38a4",
+      "guards": 3
+    }
+  ]
+}

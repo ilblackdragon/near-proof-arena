@@ -1,0 +1,67 @@
+{
+  "lane": "scheduler-split-pair",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSplitPairSlices.lean",
+      "sha256": "679f350f0e2d0311a8eec79ae3b41827960911540b4ad0ebcc1ed7e7648e3383",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-pair-SchedulerSplitPairSlices.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSplitChildLength.lean",
+      "sha256": "d8fbb29f116299a43001fbb735d91f04449c6ddc07478a07e599be4fbd193425",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-pair-SchedulerSplitChildLength.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerNativeBytesAt.lean",
+      "sha256": "d27bf339784bc7d239ef670a80f626715ea9c1d3a307c1c59c46d5175a0c23ed",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-pair-SchedulerNativeBytesAt.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerSignedSplitPair.lean",
+      "sha256": "484ffa81eea67f6b731432ccc09adf7270ad5e5463a16393d56d7e2b64ec2524",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-pair-SchedulerSignedSplitPair.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSplitPairSlices.lean",
+      "sha256": "c8b886572be4cc7828200c1d1ead29b93f99cf63b21c89b2a2c9f8086e3ac79b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-pair-AuditSchedulerSplitPairSlices.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSplitChildLength.lean",
+      "sha256": "d8b948d93b24f9c455d15dca76e79f17e2cb62c75d592a509429300fd5ec1218",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-pair-AuditSchedulerSplitChildLength.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerNativeBytesAt.lean",
+      "sha256": "69611c89df506b2cfeb56705df7555ea0ca2e3a87a8ad7c793e6837ae7ea7762",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-pair-AuditSchedulerNativeBytesAt.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerSignedSplitPair.lean",
+      "sha256": "6cbc0a510c033df9d9984b5f73f495f718d255acdc0f33c155eb1f1bdd7fdbc3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-split-pair-AuditSchedulerSignedSplitPair.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules4guards. Full physical LSc/ESn0 pair digest equality, deriving native byte windows, moved-child length, fresh-child50-byte length and actual slot ordering. Remaining sole-new-child and aggregate equation open.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
