@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual replay clock is preserved through every round and full replay. Model batches produce actual round success with aligned state/RNG/clock and exact generated-push append. Full trace log transport, initial push binding, sortPush contract and finish checks remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayClock.lean",
+      "sha256": "e39b1e450dc8264d1571ecfcfdebe60caa0b98d177c484f714bb6c6719c7fe27",
+      "audit": "zk-formal/test/AuditProcActualReplayClock.lean",
+      "audit_sha256": "84f8eb8a5b169a31ff35d80d234a4a22ac1aed21b9df87436481778c8ce5512f",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualBatchPush.lean",
+      "sha256": "3c3051851ad828cf3375b0756922da1c99e100953d0bd32208eaa75fa830cb9d",
+      "audit": "zk-formal/test/AuditProcActualBatchPush.lean",
+      "audit_sha256": "6269b31a1b11590205cf7b29d218d8931583325fd8a042a289030a1ba6c5bd39",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualRoundPush.lean",
+      "sha256": "ccd58095ad172560413a301f62e07800288f2706e571fec64f34b0bc4dd64fa5",
+      "audit": "zk-formal/test/AuditProcActualRoundPush.lean",
+      "audit_sha256": "8b381ccdb5e70f2587a1935fe17068215e24046ad10adc36a969406a42257977",
+      "guards": 1
+    }
+  ]
+}

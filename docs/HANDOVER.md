@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualReplayClock/ProcActualBatchPush/ProcActualRoundPush strict PASS, six exact guards. Actual clock T=T0+cursor is preserved by each successful round and full replay, with initial alignment proved. Strengthened batch and round construction retains exact stamped model-generated push append alongside state/RNG/clock alignment. Nonzero-key z=0 remains explicit in round theorem (existing process_valid can supply it). Full trace push append, initial push binding and sortPush contract remain before final log check; memory/comparison checks and full integration/certificate/prover/judge remain open. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previousf30cb0cb push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualGeneratedPush strict PASS, four exact guards. Actual successful entry and contiguous entry-loop pushes equal stamped model pushes, and model_batch_push derives event correspondence from successful model processing and conversion. Clock T=T0+cursor and nonzero-key ordinal z=0 remain explicit for across-round integration. Actual popped-log binding already checked. Initial/generated push concatenation, across-round clock/ordinal transport and sortPush contract remain before final log check; memory/comparison checks, full integration/certificate/prover/judge remain unfinished. Prebuilt dependencies only; receipt882/882 and integrated10/19 unchanged. Previous4f41df3b push failed GitHub DNS. Goal active.
 
 
