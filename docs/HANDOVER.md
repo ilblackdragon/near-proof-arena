@@ -6,6 +6,23 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: process-complete-local independently rebuilt PASS11 exact guards.
+ProcComplete.proc_local proves full actual Proc.table TableLocal at log22,
+all constraints and multiplicity bits, for a single Run with tau0 and row cap.
+RunData is ordinary replay data: RoundOk, nonempty/length-consistent round entry
+arrays, entry decisions/bounds/index laws, initial and cross-round carries.
+No assumed AIR evaluations. Gen.run success=>RunData and multi-instance trace
+assembly remain open; do not count this as a new fully native component yet.
+Selected fixed-height coverage stays10/19. Receipt reviewed735/881.
+
+Earlier9431dca1 preserved actual native duplicate-chain charge bound and UPS
+per-row interaction messages. Root next physical ENT/DUP pullback and SIZE
+composition; agents continue receipt/SREC, replay invariants and UPS aggregation.
+Full certificate, clean build, prover, real judge and general NEAR incomplete.
+Strict source rebuilds use prebuilt dependencies. Push still fails GitHub DNS;
+local commits and verified bundle are authoritative checkpoints.
+
+
 2026-10-08: ChainDuplicateFlags/ChainStoreCharge strict PASS8 exact guards.
 The actual chain metadata dup predicate equals the checked first-representative
 selection, although hd/repE differ for the required predecessor-chain traffic.
