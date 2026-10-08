@@ -1,0 +1,95 @@
+{
+  "lane": "receipt-deposit-native-physical",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositFootprint.lean",
+      "sha256": "7f860ad730cf8a819030ffbb1dc7978573f922bd1254e6e4539bf8b3e18648a0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-RcptDepositFootprint.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositEndpoint.lean",
+      "sha256": "9218bbddcf6afab4e4f202a70210bccfa42ad754602ab6a2031e57c351b228ea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-RcptDepositEndpoint.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositIdle.lean",
+      "sha256": "ff53d13515ad7223236b4949c2a38cdd6f3fdb5f0f938e2be13655322e4dd01c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-RcptDepositIdle.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositPhysical.lean",
+      "sha256": "16c432056fd001c40fb9e8397e49b3d339ca3895f17e36cfc5ba9c8b14a2f40c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-RcptDepositPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositPlanLedger.lean",
+      "sha256": "697e9c64bab5409473150468c7cd7e8242063b52e5ffea1bf04fd99d26af7af5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-RcptDepositPlanLedger.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDepositNativePhysical.lean",
+      "sha256": "eb608ecf9f6a6ceff6d00503ee7e9b9ed8d94f48dac4948e23c6c13d449af471",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-RcptDepositNativePhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositFootprint.lean",
+      "sha256": "5a27bf0a56b30afbc59541c0b0de38c34255879eadd9a912c6d51630ddf29f31",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-AuditRcptDepositFootprint.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositEndpoint.lean",
+      "sha256": "5adbfda7a102ea9674c27b2c66e16ba20f8aa586dd91dbb4728b7bab1cd4a058",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-AuditRcptDepositEndpoint.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositIdle.lean",
+      "sha256": "80ff60765b1a098496e83e0d5fab2a753dc266ab46ed13054b5a8a2e593a3c3b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-AuditRcptDepositIdle.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositPhysical.lean",
+      "sha256": "af5350316139e9cff724d431f1bc3935200d99332648afae239f878fc428df4c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-AuditRcptDepositPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositPlanLedger.lean",
+      "sha256": "e39f32a0ee2875db0daaec4b2c48150bf83fd04809ecd8ed7c606963d4f26acd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-AuditRcptDepositPlanLedger.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDepositNativePhysical.lean",
+      "sha256": "3f60d0fbc3e5f2c4a1957b287080bfc9b58a4649d79aea4692e0d24eaa899bf5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-deposit-native-physical-AuditRcptDepositNativePhysical.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules16 exact guards. All39 corrected candidate DEP constraints on actual native-ledger mixed physical log22 trace. Explicit actual prior versions/index/capacity justified. Same842 preservation/composition still active; global count unchanged.",
+  "exact_axiom_guards": 16,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

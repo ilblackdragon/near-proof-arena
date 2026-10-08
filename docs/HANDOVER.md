@@ -6,6 +6,25 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PhysicalWindowRequests strict PASS4 exact guards. Concrete physical
+UPS key multiset retains every read in row order; counts equal physicalWindowUsers.
+List length<P derived from compact TableLocal/log22, discharging window assignment
+capacity. Actual assigned node provider receives now use precisely these concrete
+terminal counts. Native source coverage and aggregate full balance still separate.
+
+Independent receipt-deposit-native-physical PASS6modules16guards: all39 corrected
+candidate DEP equations on actual native-ledger mixed physical log22 trace, including
+endpoints/padding and actual account/version ownership. Same842 preservation and
+composition remain agent work; no881 global claim yet. Independent ups-window-copy-
+bounds PASS1module3guards derives actual copied read source address nonnegative/in
+bounds and non-NLF from CopyFields/FieldsOk; extra read cases remain.
+
+Three agents active: global deposit composition; raw authenticated prior scheduler
+codec; remaining UPS source coverage. Candidate842/881, original832/881, fixed-height
+10/19 unchanged. Full certificate/prover/real judge/general NEAR unfinished. Checks
+use prebuilt dependencies. Priorcfd614a5 push failed DNS; retry after checkpoint.
+
+
 2026-10-08: RebasedPatchedAllocation strict PASS1 exact guard: SAME accepted
 native forest/us/instances now supports prefix-ranked compact trace with local
 legality and unchanged complete four-packed-SHA byte composition. Fresh/sanity/
