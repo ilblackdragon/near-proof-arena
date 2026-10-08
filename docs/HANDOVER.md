@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ValueRecordCount strict PASS5guards. Honest value SIZEcount column
+at actual SUM row equals exact filtered nonduplicate value-record count,
+INCLUDING empty values. Row-bound proves count<P; value_counter_nat gives
+canonical natural equality, not just field congruence. Node counterpart next.
+
+Independent PASS: receipt-digest-metadata8guards; compact-fixed-height6;
+receipt-native-end15. Same native log22 receipttrace now660/881:
+200register+189emission+248state+23endpoint constraints. Remaining221 across
+chars/key/sys/route/gas/dep. FinalPublicBytes pins raw count/body/token public
+bytes explicitly; prepared-public bridge still needed. Actual successful native
+execution supplies exact refund sequence and bodylength8+sum refundLength.
+CompactUPS actual accepted witness now has full TableLocal atlog22, preserving
+same scheduler instances/native SHA witnesses; multiplicity bits derived.
+
+Height coverage now SHA4/node/value/uniq3/compactUPS1=8of19 selected slots.
+Scheduler audit identified missing honest-completeness proofs for codec/scan/
+process (generators exist); comparator/memory have closed proofs to generalize.
+Agent continues these required gates, not treating them as implicit padding.
+Other source4/receipt/QV slots still need final common-clock composition.
+Full native forest/witness/certificate/prover/realjudge/generalNEAR incomplete.
+Certified size/header8,288,148 unchanged. Checkpoint bundle/push policy unchanged.
+
+
 2026-10-08: ShaFourPhysical strict PASS7 exact guards. Checked whole-job
 four-bin allocator now builds EXACT four512-column SHA traces atlog22, with
 local legality, complete BYTE receives/DIGEST sends preserving dmult, and
