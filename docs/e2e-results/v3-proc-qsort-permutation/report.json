@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual Lean 4.34.1 quicksort partition loop, partition and recursive sort preserve permutations for arbitrary comparators; sortPush now has a kernel-checked permutation theorem. Macros resolve pinned private helper names only. Sortedness, final checks and full certificate remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcQsortPermutation.lean",
+      "sha256": "4599f1b48f38affe2aed3a9db4b47cd3df0ec7bd5ed09669c04becfa0bea19aa",
+      "audit": "zk-formal/test/AuditProcQsortPermutation.lean",
+      "audit_sha256": "5d4b72642a75df4c93a99d1a38a6de5edd9a675c8be71c52885722cdaeb4c03d",
+      "guards": 5
+    }
+  ]
+}
