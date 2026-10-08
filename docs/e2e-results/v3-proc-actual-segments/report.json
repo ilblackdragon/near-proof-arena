@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual segment construction yields ordered link/sender/receiver logs and successful memory scan from replay Memory. Exact suffix factorization connects this construction and scan to remaining round comparisons. Composition with previously proved prefix guards and remaining comparisons remains open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualSegments.lean",
+      "sha256": "f12a074c7f1d7917adebd3d127e65480cf6a41d6552be7e0185a2cd96d9c673c",
+      "audit": "zk-formal/test/AuditProcActualSegments.lean",
+      "audit_sha256": "f1b85fdc56ccd3ff4e891b25a889e30770735fbe9b9fafa1c392f4d92512424e",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualSegmentFactor.lean",
+      "sha256": "f126e11138865f0a44ea06da56c1a7737f0474678f09f5d56be4759d9c42b859",
+      "audit": "zk-formal/test/AuditProcActualSegmentFactor.lean",
+      "audit_sha256": "5067fd5d097b21ecd6eeb2af97d53b9036ce47020f9466a24cc126f571a8ae81",
+      "guards": 1
+    }
+  ]
+}
