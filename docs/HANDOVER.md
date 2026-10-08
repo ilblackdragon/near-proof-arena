@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcQsortPivot strict PASS, five exact axiom guards. Explicit fixed output index resolves dependent pivot proof. Actual partition loop preserves chosen pivot; skip/swap scan invariants prove completed partition classifies every pre-pivot element as less and every post-pivot element as not less. Public partition_order discharges initialization using median-swap implementation; comparator arbitrary. Recursive sortedness composition and scheduler comparator order properties remain required before final sorted-log equality. Other finish checks and full integration/certificate/prover/judge remain unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previousbac1bcb5 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcQsortFrame strict PASS, five exact axiom guards. Actual Lean4.34.1 swap, partition loop, partition, recursive quicksort and public clamped qsort preserve every value outside their selected interval. This supplies the separation invariant needed to compose sorted subpartitions. Pivot placement/partition order and complete sortedness remain open; a dependent-result pivot proof needs explicit recursive-equation transport (fun_induction alone does not rewrite dependent result indexing). Existing qsort permutation is checked. Final generator checks and full integration/certificate/prover/judge remain unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previous931c559d push failed GitHub DNS. Goal active.
 
 
