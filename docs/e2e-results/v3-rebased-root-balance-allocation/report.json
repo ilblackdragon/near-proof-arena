@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME native allocation with concrete HEAD/Walk/node/UPS and SHA; ROOT physical conservation with actual prepared header endpoint singleton counts, plus MIDROOT/EDGE/BMAP/UPB conservation. Physical public descriptor connection and other global buses remain open. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedRootBalanceAllocation.lean",
+      "sha256": "b1915b6ee97e448dc2b5de1139601c23d92450d1124d164e68022e329517c6ee",
+      "audit": "zk-formal/test/AuditRebasedRootBalanceAllocation.lean",
+      "audit_sha256": "bda8b3964af324d680f46259dd3e7d683e31e73560fc7e61f9baf5f7e7c23ed0",
+      "guards": 1
+    }
+  ]
+}

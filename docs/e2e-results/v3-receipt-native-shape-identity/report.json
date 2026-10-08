@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-native-shape-identity",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeShapeIdentity.lean",
+      "sha256": "9168bdef570d9714dcf3b8e5088eaeb222085b17a73261898ced3ec10e97c3a7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-shape-identity-RcptNativeShapeIdentity.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeShapeIdentity.lean",
+      "sha256": "68574d4104ea3f37fc6564f620d6bc74eacff5e77765bdb833c410dde716af3e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-shape-identity-AuditRcptNativeShapeIdentity.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module3guards. Any extracted Layout at actual planned receipt row has exact native shape, from physical columns and height bound; no shape equality assumed.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

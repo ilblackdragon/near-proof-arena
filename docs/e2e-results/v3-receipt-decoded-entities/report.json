@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-decoded-entities",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptDecodedEntities.lean",
+      "sha256": "49a67311689796ea916402f40f9a36672370831d5dc2f69f7aeac1680f015c23",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-decoded-entities-RcptDecodedEntities.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptDecodedEntities.lean",
+      "sha256": "fb4d8e7e3e61c236f7649cda6ff135bde12b78112a08a96c3119b22e0b51cc71",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-decoded-entities-AuditRcptDecodedEntities.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4guards. Actual extracted ListChain induces ordered physical header/receipt entity partition with exact consecutive offsets and receipt Layout certification. Uniqueness against native entityPlans still open.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

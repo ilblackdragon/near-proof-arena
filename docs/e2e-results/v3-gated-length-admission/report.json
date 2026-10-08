@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual optional authenticated value-length relay plus gated memory/ID fusion structural AIR wf, header, and full size bound8360820. Does not establish honest execution/global bus balance/soundness; original prior parser remains. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/GatedLengthAdmission.lean",
+      "sha256": "75fea7542baf5dae33d2ac42f344b6a1472f4b899e93477340eb4c7ab99c18a5",
+      "audit": "zk-formal/test/AuditGatedLengthAdmission.lean",
+      "audit_sha256": "d2a31ab7137809abdd5e5e6c0238553b0df1d65e581e57a26c7ad4637e045fc1",
+      "guards": 8
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "lane": "process-prior-raw-frame",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawAuth.lean",
+      "sha256": "4442d72d9a991d9e7f307b828952e48cef2fa6dd7ee552842abe2ce83486e724",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-frame-ProcPriorRawAuth.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawFrame.lean",
+      "sha256": "9882e18c9f6ab6cc22c146dbf2e2923e4f5f357bd28274a76d91891121b8a139",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-frame-ProcPriorRawFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRawFrame.lean",
+      "sha256": "072d1f5adf0bce1d47a9a51248750156b6ad16cc2221a712483ddefe7adfeec1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-raw-frame-AuditProcPriorRawFrame.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules5guards. Raw-byte framing table structural wf/shape; exact authenticated byte length plus canonical field extraction implies original decode. Constraint-derived canonical field extraction/limb joins unfinished.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -6,6 +6,32 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: RebasedRootBalanceAllocation strictPASS1 exact guard adds actual
+physical HEAD+patched compact ROOT conservation to SAME accepted allocation used
+by node/Walk/UPS, MIDROOT/EDGE/BMAP/UPB and four packed SHA tables. Endpoint counts
+now use actual prepared p.hdr.prevStateRoot/postStateRoot/K, derived from prepD0
+and same native trace. Independent native-root-balance PASS4modules7guards.
+Actual public descriptor traffic still separate; no whole-family balance claim.
+
+GatedLengthAdmission strictPASS8guards checks actual latest length/memory/ID
+candidate structural AIR wf/header and full8,360,820 size. RawFrameFusion then
+appends actual23-column raw framing: strictPASS8guards, fused3428/115/7/115/log22,
+degree8, full8,403,188bytes =14,580 OVER8MiB. This already overruns BEFORE record
+limb/query joins. Therefore previous27,788 margin is NOT final parser headroom.
+Agent pursuing real Codec column removal or vertical fusion; no savings counted.
+Independent raw frame/auth PASS2modules5guards; actual AIR-to-canonical-fields
+extraction still pending. No full parser soundness inferred from auth lemmas.
+
+Receipt native shape identity PASS1module3guards eliminates extracted shape
+ambiguity at actual planned receipt rows. Decoded entity partition PASS1module
+4guards derives ordered physical entity coverage from actual ListChain. Agent
+continues partition uniqueness and native SHA-stream compatibility.
+
+Integrated10/19 and receipt882/882 remain. Full prover/clean certificate/real judge
+unfinished; current raw-framing size proposal over limit. Three agents continue.
+Prior9c038770 push failed DNS; retry after checkpoint and verified recovery bundle.
+
+
 2026-10-08: RebasedRootAllocation strictPASS1 exact guard extends SAME native
 query/allocation/HEAD/Walk/node/UPS/SHA composite with exact compact ROOT output
 messages equal indexed actual native post roots. SAME chosen native trace ends
