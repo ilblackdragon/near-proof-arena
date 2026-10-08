@@ -6,6 +6,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Corrected core totality strict PASS: three modules, eight exact
+axiom guards. ProcDistEventRow definitionally factors the actual distributeEv
+receiver body and proves its grid equality under remaining-link counts, plus
+receiver-count decrement. ProcDistEventTotal propagates counts across senders
+and proves distributeEv success from actual linkPass counts, for arbitrary
+budgets and without extra shape premises. ProcActualCoreTotal now derives
+ActualRun.coreEv success from native runCore success and actual apply-context
+public inputs, retaining exact decoded prior bytes and native poststate equality.
+Core success is no longer an assumption at this boundary. Generated grant
+agreement, full ActualRun replay success, Codec Local, allocation integration,
+full certificate/prover and real judge remain open. Prebuilt dependencies only.
+Receipt882/882, integrated10/19 unchanged. Prior50c51b64 push failed GitHub DNS.
+Subagents remain usage-limited; local progress continues. Goal active.
+
+
 2026-10-08: ProcActualStateAgreement strict PASS, four exact axiom guards.
 Native distribution preserves allowances without shape/size premises. Successful
 corrected ActualRun.coreEv state bytes equal the exact native runCore output for
