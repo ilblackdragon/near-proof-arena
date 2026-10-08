@@ -1,0 +1,39 @@
+{
+  "lane": "native-midroot-records",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderRootId.lean",
+      "sha256": "d010d5c3b353c28aba64429f09dba85520f8ed27d3f1b5fce785401f57edaaba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-midroot-records-NativeReaderRootId.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/ReplayHeadRoot.lean",
+      "sha256": "25932d20142bca8f07da363aa8a9adc4e7efb479c954ca37ccae929fa33966d7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-midroot-records-ReplayHeadRoot.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeMidrootRecords.lean",
+      "sha256": "54016787c105efe6325ee1fa73374bc43050e91cba62d055e86b0ca07257c348",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-midroot-records-NativeMidrootRecords.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeMidrootRecords.lean",
+      "sha256": "4243bfcbcde97e0176779ee6ae53c3fdc71b9074c073fedeb1d4eae85cc09043",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-midroot-records-AuditNativeMidrootRecords.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules4guards. Actual original-reader origin derives root ID; SAME chosen indexed allocation mid digests match ordered replay HEAD MIDROOT records. Physical compact row aggregation next.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

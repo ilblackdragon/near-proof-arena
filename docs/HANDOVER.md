@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ReceiptPhysicalShaBytes strictPASS2guards proves exact receipt/account
+SHA producer split: SHA job bytes PLUS public refund-body bytes equals actual
+repaired receipt sends + account sends + explicit Merkle job bytes. Refund
+traffic is neither omitted nor treated as a SHA preimage. Physical receipt
+TableTraffic and account byte-count contracts used; final Merkle/refund consumer
+and actual receipt-byte range/capacity assembly remain.
+
+Independent native-midroot-records PASS3modules4guards derives actual reader
+root IDs and ordered HEAD→chosen UPS mid digest equality. Physical compact
+MIDROOT row/patch balance next. Independent process-prior-cells PASS5modules
+14guards verifies active/last/padding/wrap expressions, multiplicity bits and
+indexed native row invariants; complete physical renderer remains active.
+Receipt agent compiling concrete fused MEM sender inventory/exclusion.
+
+Latest full native composite RebasedPhysicalAllocation retains concrete HEAD,
+Walk/node/UPS, EDGE/BMAP/UPB, native read facts and fourpacked SHA accounting.
+Integrated10/19 retained. Gated proposal8,313,300 excludes scheduler parser/ID
+repairs. Full certificate/prover/judge/general NEAR unfinished. Three agents
+continue. Prior3a5b506e push failed DNS; retry after verified bundle checkpoint.
+
+
 2026-10-08: RebasedPhysicalAllocation strictPASS1 exact guard removes remaining
 HEAD TableTraffic premise from shared trie/SHA composite. SAME accepted query
 and scheduler allocation now includes concrete log22 replay HEAD local+all-bus
