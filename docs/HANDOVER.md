@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeQueueAllocation is new strongest SAME native allocation API.
+NativeReceiptQueueBytes/NativeQueueAllocation strictPASS2guards preserve every
+NativeCounterAllocation fact and add actual physical account/access/queue byte
+sends + explicit original/implicit residual = physical EmptyValue receives. No
+new accepted hypotheses. All original MEM/AKC/lookups/bytes/digest facts retained;
+residual provider closure and remaining QV buses still open. Independent receipt
+query inventory1module4guards joins indexed locations to actual account/access
+query lists including interleaving/permutation. Physical consumer fields ongoing.
+6guards checked; pin check PASS. Prebuilt dependency checks, not clean full
+certificate/prover/judge. Receipt882/882, integrated10/19. Prior0d36f492 push DNS
+failed; verified local recovery bundle retained. Goal active.
+
+
 2026-10-08: NativeCombinedBytePartition strictPASS1guard joins actual physical
 account + access-key + SAME accepted queue VBYTES sends with explicit residual
 to actual physical EmptyValue receives. Residual is original-state slots outside

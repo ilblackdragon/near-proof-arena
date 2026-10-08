@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "NativeQueueAllocation strongest SAME native allocation preserves all prior NativeCounterAllocation facts and adds combined physical account/access/queue byte sends plus explicit original/implicit residual equal EmptyValue receives. No additional accepted assumptions. Residual provider closure, QV other bus joins and full certificate/prover/judge remain. Prebuilt dependencies only.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptQueueBytes.lean",
+      "sha256": "0db58868067e0e5a34e2aa8ffa000cb8c5b77da3d88af5b946324eca035c7154",
+      "audit": "zk-formal/test/AuditNativeReceiptQueueBytes.lean",
+      "audit_sha256": "0c4b9637951db78d08be5311878dfd836e423d77be7fa93c2442427d842b8e4d",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueueAllocation.lean",
+      "sha256": "3c2e8ad01f7f1bab9956c7575185063415b31233aa4c6f184a7bedbf7cbe4463",
+      "audit": "zk-formal/test/AuditNativeQueueAllocation.lean",
+      "audit_sha256": "c4cc9b30fe92cb188dc2f85bee1cc4d8f1bdbb1347260e65b85f4eaa9260c8b5",
+      "guards": 1
+    }
+  ]
+}
