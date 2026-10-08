@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualReplayMemory strict PASS, six exact guards. Complete actual round and outer replay loops preserve positive strict memory timestamp ordering below current replay time. Prepared conversion supplies initial invariant; replay_memory applies to actual successful replay, with no final-check success premise. Every selected link/sender/receiver log succeeds through extracted timestamp/comparator scan, including empty default logs. Exact finish segment construction/outer-scan factorization remains before claiming full memory-check integration. Remaining round/comparator bounds and full certificate/prover/judge unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previousea7751f6 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualReadMemory/ProcActualGrantMemory strict PASS, six exact guards. Conversion IDs derive complete read-loop time progression; prepared raw-request cap proves every actual read precedes T0. Actual grant step updates all three memory logs at the current timestamp and preserves positive strict ordering; indexed grant loop propagates the bound through the full batch. Across-round memory transport and exact finish scan factorization remain before final memory-check success. Push-log/state/RNG guards already checked; remaining comparison/full integration/certificate/prover/judge unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previous6e4805f4 push failed GitHub DNS. Goal active.
 
 

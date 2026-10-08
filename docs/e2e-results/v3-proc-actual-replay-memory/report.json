@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Complete prepared actual replay preserves positive strictly ordered memory logs below current replay time. Every selected link/sender/receiver log succeeds through the extracted timestamp/comparator scan. Exact finish segment/scan factorization and remaining comparison checks remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualReplayMemory.lean",
+      "sha256": "4d12824c27a51549973d793da99fe9df88b4f9e8c3dc54b58c5f7d176345930b",
+      "audit": "zk-formal/test/AuditProcActualReplayMemory.lean",
+      "audit_sha256": "d7c61c7a1e3260a49c9f5ce0ec3ba5e822148848ed204ed0c6c616e4d870f4c9",
+      "guards": 6
+    }
+  ]
+}
