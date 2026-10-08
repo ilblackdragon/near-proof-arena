@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Concrete horizontal inventory replaces receipt slot with repaired candidate, preserving profiles, widths, degree and 8288148-byte size accounting. Scheduler prior-state repair tables, complete soundness and trace admission remain open. Prebuilt dependencies; not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalReceipt.lean",
+      "sha256": "0ea5c5f5ec7fb20fcdf465afa03603585b019d0d95c929f22e1377682b506fcf",
+      "audit": "zk-formal/test/AuditHorizontalReceipt.lean",
+      "audit_sha256": "280666941d9743888be3a978352d014c214f9f96f881bb9e65d4cfeb751d3506",
+      "guards": 9
+    }
+  ]
+}

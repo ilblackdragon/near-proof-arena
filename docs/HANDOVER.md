@@ -6,6 +6,33 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: HorizontalReceipt strict PASS9 exact axiom guards installs repaired
+receipt candidate in actual horizontal selected slot13 and proves unchanged
+profiles/widths/degrees/full-family shapes and candidate sizeMaxDedup=8,288,148.
+This is concrete size accounting only: scheduler prior-parser tables still need
+admission and may change final budget. No full soundness/prover claim.
+
+Independent receipt sound basics/arithmetic/layout checked: actual candidate
+constraints imply widened-age comparison, masked gas/refund, deposit arithmetic,
+registers, layout and full receipt arithmetic clause. Standard axioms only.
+AcceptedWindowBalance and AcceptedRankedWindowBalance now derive full physical
+UPB conservation on SAME accepted native instances after chain/post/usage updates
+and walk-prefix ranking. NativeReaderRank preserves origin and SHA evidence.
+Actual global EDGE/BMAP query prefix and remaining bus assembly remain open.
+
+Scheduler sorted event/ID order, actual last-write/first-ID values and segmented
+carry query invariant independently checked. Native arbitrary decoded IDs/order
+and duplicate semantics retained. Raw parser/AIR width and final integration open.
+
+Trie cost explicitly shape-dependent: actual path serialized bytes plus nodes,
+repeated source occurrences retained; short scheduler upsert output <= source+4096.
+No constant-cost trie access assumption or measured wall-time claim.
+Integrated families remain10/19; receipt candidate882/882, original832/881 separate.
+Full certificate/prover/real judge/general NEAR unfinished. Checks use prebuilt
+ dependencies, not a clean full certificate. Three agents continue in parallel.
+Prior7a126a7f push failed DNS; retry after checkpoint and verified recovery bundle.
+
+
 2026-10-08: Independent receipt-candidate-repaired-table PASS6modules56guards:
 FULL882-constraint TableLocal including routing-q7 on SAME actual native ledger
 log22 trace. q<128 derived from native bounded intervals, no extra q-domain premise;

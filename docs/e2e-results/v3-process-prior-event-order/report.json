@@ -1,0 +1,25 @@
+{
+  "lane": "process-prior-event-order",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorEventOrder.lean",
+      "sha256": "49bbaec30b7da91c37baebdc8f2d04bc0bf42f7d68fa5d04e570e53f4653ea1f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-event-order-ProcPriorEventOrder.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorEventOrder.lean",
+      "sha256": "87b60c411845eaf95f9a004ae3222ced8f2123e3958b249c6d204bf45b9efa71",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-event-order-AuditProcPriorEventOrder.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Exact original writes then queries per link; sorted witness provenance and chronology.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

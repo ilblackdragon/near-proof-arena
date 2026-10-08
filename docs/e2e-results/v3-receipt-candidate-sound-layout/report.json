@@ -1,0 +1,67 @@
+{
+  "lane": "receipt-candidate-sound-layout",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateSegs.lean",
+      "sha256": "9fabda3cf47ceb53fd65ae78b03c33e99acfca56a6a74504750414df45c902be",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-layout-RcptCandidateSegs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateLayout.lean",
+      "sha256": "ab1bfcbd165b484189dae7281bd650566aa09721a16a8987c9de4537022a21b1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-layout-RcptCandidateLayout.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateReceiptBalance.lean",
+      "sha256": "e2f08dcca93058b35471bc2dbf5b5ab7c77b2ad0075be00a43d3e79e7b0921e5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-layout-RcptCandidateReceiptBalance.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateReceiptArithmetic.lean",
+      "sha256": "082ee41c25ea0dc3a47030689ee6e865d75c6995f8f89af0bac0fb98e4ee37a8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-layout-RcptCandidateReceiptArithmetic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateSegs.lean",
+      "sha256": "08ddd9c03d3d297406f7adc6289b5ad3b9baca9d7d1f78841ce05ea45ffcef3c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-layout-AuditRcptCandidateSegs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateLayout.lean",
+      "sha256": "4e2178c1165e01286d5ad35b954ff19104cb10e021e3bf622ebd2f4a066e5908",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-layout-AuditRcptCandidateLayout.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateReceiptBalance.lean",
+      "sha256": "f7cd480cf5ef0436e632358838947b10e809466d4a6da0900fd54949142c875c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-layout-AuditRcptCandidateReceiptBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateReceiptArithmetic.lean",
+      "sha256": "4692e1574c0a985f8c9b6d48af798c82195f1b3dd36f238f22110ac5fd3acb72",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-candidate-sound-layout-AuditRcptCandidateReceiptArithmetic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Candidate layout derived from local constraints and receipt start; full receipt arithmetic clause, with remaining explicit structural hypotheses.",
+  "exact_axiom_guards": 24,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

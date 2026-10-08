@@ -1,0 +1,67 @@
+{
+  "lane": "process-prior-values",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorValues.lean",
+      "sha256": "b9f448092eb7cffa65bc63267e57b7c174c7ad2cbaeea812b6c814ccbbf903aa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-values-ProcPriorValues.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdValue.lean",
+      "sha256": "8484dc7cb4bf1ae796de94a4fca477768f2f08bfa16bbd09bc0d294f774c4325",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-values-ProcPriorIdValue.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCarry.lean",
+      "sha256": "b398131238d1efde7472163b637f5e63c416c6ee2d60165075f59a2272584c82",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-values-ProcPriorCarry.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCarryValue.lean",
+      "sha256": "a491f3865fc2a982205941d5bfae45c70ae3f7064775899596535507dc60db98",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-values-ProcPriorCarryValue.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCarryRead.lean",
+      "sha256": "713d8f1f83cb5006b018b9afae5b8dab4d273eb70ef9f349739f4f055b4292e7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-values-ProcPriorCarryRead.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorValues.lean",
+      "sha256": "9f8e95e1e06f09edf56cb52dfb402690b7015fd30bebd6cad203650f46c4ea32",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-values-AuditProcPriorValues.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorIdValue.lean",
+      "sha256": "d936ee940db601212a2c20d70d6ba6c08dba1f7534a73d8d5b29955f4db63620",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-values-AuditProcPriorIdValue.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCarry.lean",
+      "sha256": "d7996afa5773ec496c7de9161be588bb86ccdac83387dedb4ee09950dfb1d638",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-values-AuditProcPriorCarry.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Native last-write values, first public ID matching and executable segmented carry query equation. AIR integration remains.",
+  "exact_axiom_guards": 18,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

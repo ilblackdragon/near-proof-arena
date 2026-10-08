@@ -1,0 +1,32 @@
+{
+  "lane": "accepted-window-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/WindowProviderKeys.lean",
+      "sha256": "f51300835983c4ce4333cb46a5659a19ec80efa7687b59a59f7e547ab08ab04a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-window-balance-WindowProviderKeys.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedWindowBalance.lean",
+      "sha256": "b440f5d53d3aa6405240c212cda898b578584606a491852668a2410e69947dfb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-window-balance-AcceptedWindowBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAcceptedWindowBalance.lean",
+      "sha256": "269109668cf083bc98f6bfe6263e856cdb7bf9a2a830dd7c1bbc21991c45ac8f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-window-balance-AuditAcceptedWindowBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Same accepted native allocation derives final provider ownership and full physical UPB balance.",
+  "exact_axiom_guards": 3,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
