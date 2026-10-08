@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Prepared public and unmodified native prior inputs feed corrected ActualRun sequence; successful execution yields full process Local at log22 with derived capacity. Success still explicit, no accepted totality claim. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualPreparedSequence.lean",
+      "sha256": "3f6ca70abb01d4987514172b35e2115a2ddba3a27aaf91dffb6263464c252dd7",
+      "audit": "zk-formal/test/AuditProcActualPreparedSequence.lean",
+      "audit_sha256": "db7628d2b3746eef04943c245814f0da13f3e2fe7a737cbe0e5f785a6954ddc4",
+      "guards": 1
+    }
+  ]
+}

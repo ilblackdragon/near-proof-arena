@@ -6,6 +6,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ActualRun process proof migration complete through prepared-input
+API:24new modules strictPASS88exactguards (all exported theorems). New ProcActual*
+chain derives conversion, replay entries/metadata, allowances, round ordering,
+spend/row budgets, single/list process Local, ordered sequence Local and prepared
+input Local using corrected native prior lookup. All original proofs unchanged.
+ProcActualPreparedSequence.prepared_local uses same original prepared input
+definitions, actual prior state and derived common-log22 capacity.
+Successful ActualRun execution remains explicit; accepted total success, full
+Codec Local, old caller replacement and strongest allocation wiring are open.
+No canonical-prior equality premise introduced. Prebuilt dependency checks only.
+Strongest NativeSortAllocation; receipt882/882, integrated10/19; full certificate/
+prover/judge unfinished. Prior059ad703 push failed DNS; verified bundle retained.
+Subagents stopped at usage limit; local work continued. Goal active.
+
+
 2026-10-08: ProcActualRun adds executable Sched.Gen.ActualRun.coreEv/run
 using native shard-ID last-record-wins allowances in BOTH initial link pass and
 core replay, retaining original bytes and all original run checks. Strict compile
