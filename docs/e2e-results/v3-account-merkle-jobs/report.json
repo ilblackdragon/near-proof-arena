@@ -1,0 +1,39 @@
+{
+  "lane": "account-merkle-jobs",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/MerkleShaCount.lean",
+      "sha256": "f7056dc35c9231c8f334c56f93efba61f36aa0d7251bb5e175f20c9bc895c9e5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-account-merkle-jobs-MerkleShaCount.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/MerkleShaJobs.lean",
+      "sha256": "860bf3595158fd9724b50056dba81e24f7eab6d50b920b0315890209bcdbeb7a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-account-merkle-jobs-MerkleShaJobs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AccountShaJobs.lean",
+      "sha256": "9ab7dfcd8dd5d95cc2420e98b4b6a6fb15dc0a08aa83431922d83cbb71cb3696",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-account-merkle-jobs-AccountShaJobs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAccountMerkleShaJobs.lean",
+      "sha256": "86cc43fd91601b45d911e0d389a3e9f90760134058e36e96d070a75704ffd960",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-account-merkle-jobs-AuditAccountMerkleShaJobs.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Concrete Merkle and account SHA messages and row charges; complete four-bin allocator still open.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

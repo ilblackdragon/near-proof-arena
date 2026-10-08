@@ -6,6 +6,33 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08 latest: NativeRoot/NativeTrace/Traffic/NativeTraffic strictPASS13guards.
+Concrete generic leafpreimages/levelTable now yield exact nativeoutcomeRoot
+(includingempty,promotion), honestnativeoutcomeTrace TableLocal, allphysicalbus
+traffic fornonempty, exactn−1 internal64byte/35rowjobs. No v1Info dependency in
+newconstructor. FullglobalSHA/MPOS balance stillopen, asisreceipt→outcomebinding.
+
+Independentreviews PASS: packed-budget8guards; receipt-state-continuation11;
+receipt-state-boundaries28; account-merkle-jobs12; native-account-touches6.
+Same receipttrace now581/881constraints. Allreports sources/hashes recorded.
+Currentpackedfamilyexact9,395,334bytes>cap1,006,726.
+
+SIZEBREAKTHROUGH INPROGRESS: HorizontalTables fuses19log22tables inclFOUR
+checked512colSHA,source4,receiptQ,UPS,KEYrepair;11lowerheighttablesseparate.
+Actual executablemodel8,288,148 atg2 (under8MiB100,460), shape3372/106/7/106/22,
+groupeddegree8. Kernelbudget/headeradmission and generic projection/assembly
+proofs UPSagentwork, notyetreviewedorcheckpointed. Mustprovecommonhonestlog22,
+especiallypadding/lastrowsemantics. No3SHAcapacityassumptionneeded for thispath.
+Actualprotocol logBlowup4 degreecap16; Table.wf8 alone isnotheaderadmission.
+
+Rootnext: globalcomposition withfusionproofs andnativeMerkletraffic. Receiptlane
+continues56structuralstateconstraints andstrictcapacity. Receiptgaplane checks
+emptyaccount (oldAcctWf nonempty excludesnativezero), pluswhole4SHAallocation.
+DoNOTsubtractunfoldedpreBytes directlyfromrawwitness/source8MiB: sharingbreaks
+thatpayment. 3bin temporalcorrelation unprovedandnolongercriticalforfusionpath.
+Fullcertificate/prover/realjudge/generalNEARcoverage stillincomplete.
+
+
 2026-10-08 latest: honest Merkle renderer FULL native count range0..4481 strict
 PASS14guards across6modules MerkleRender/{Local,Local2,Local3,Trace,Public,Honest}.
 Old caseproofs restrictedn≤256; widened inverse arithmetic ton<P and rechecked.

@@ -1,0 +1,32 @@
+{
+  "lane": "packed-budget",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/PackedFamily.lean",
+      "sha256": "f15c1f87e0e5def500fc21038d03b65f48061da9be655f341bbf50121b273c4e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-packed-budget-PackedFamily.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/PackedMerkleFamily.lean",
+      "sha256": "f02e7265647d2d0e169cf7eac4344859a904db356630e7170b867d617ecf401e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-packed-budget-PackedMerkleFamily.log"
+    },
+    {
+      "path": "zk-formal/test/AuditPackedBudget.lean",
+      "sha256": "5dfdcc00ee9a02328b97d1b10814d2dbdc3d9cebf906fd4efd5198af56f7a170",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-packed-budget-AuditPackedBudget.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual packed SHA plus empty Merkle family budget9,395,334 bytes; exceeds cap. Fusion measured separately, not certified in this report.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
