@@ -1,0 +1,32 @@
+{
+  "lane": "sort-empty",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/SortEmpty.lean",
+      "sha256": "c2ed18996a35e15a597312448d778123ebb6f5877e3fa1d693f9d6afa92d9f96",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sort-empty-SortEmpty.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/SortEmptyShape.lean",
+      "sha256": "2a9fe3427da4b7001a11f7ea71a4226ab3459bcf700a2f4e749716cf0fd7998c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sort-empty-SortEmptyShape.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSortEmpty.lean",
+      "sha256": "90a8a67971e1cd27ebe24293f5cda9d89688f843fec5b51a80322129d17bed44",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-sort-empty-AuditSortEmpty.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Selected old Sort necessarily receives nonempty RIDS. Candidate changes two first-row equations; zero trace local and silent, unchanged measured shape and interactions. Candidate not yet selected or fully admitted; accepted zero-receipt fixture still pending.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

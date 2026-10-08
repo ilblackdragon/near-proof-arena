@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual native prior read selects exact original value occurrence and original bytes; absent reads produce no VBYTES. Accepted forest budget derives parser capacity. Forest slot offsets preserve repeated occurrences. Native ownership partition and concatenated placement remain open. Prebuilt dependency checks, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativePriorRawBytes.lean",
+      "sha256": "93e72c84ab164167a4c3515563a42d546b20089abcb0ed34e646a1c5e8580918",
+      "audit": "zk-formal/test/AuditNativePriorRawBytes.lean",
+      "audit_sha256": "e8042a3533904f5eda8d269ee9cd468649c89fce9e053b6321215fa7f7bba497",
+      "guards": 4
+    }
+  ]
+}

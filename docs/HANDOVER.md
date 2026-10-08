@@ -6,6 +6,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativePriorRawBytes strictPASS4guards binds actual scheduler-prior
+read to exact original value occurrence and decoded bytes, includes absent-read
+silence, derives parser capacity from accepted forest budget, and proves global
+forest offset slot identity with duplicates retained. Combined residual ownership
+and concatenated physical installation still pending. Independent SortEmpty/Shape
+PASS10guards confirms selected old Sort requires nonempty RIDS receives and
+checks empty-capable candidate Local/silence/Wf/unchanged shape. Not installed:
+new-family soundness/admission and concrete accepted zero-receipt fixture remain.
+Independent CodecRecordBase PASS3guards proves actual generated fields/bytes.
+Total17guards, prebuilt dependencies. Strongest remains NativeShardSanityAllocation.
+Receipt882/882; integrated10/19; full certificate/prover/judge unfinished.
+Prior7d07c2bc push failed DNS; verified local bundle retained. Goal active.
+
+
 2026-10-08: Prior raw parser physical VBYTES inventory strictPASS6guards.
 ProcPriorRawByteTraffic proves actual selected raw table active/padding traffic,
 full log22 inventory, decoded original byte identity and count equality; absent
