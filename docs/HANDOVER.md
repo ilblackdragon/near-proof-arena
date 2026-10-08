@@ -6,6 +6,38 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: RebasedAcceptedPublicAllocation strictPASS1 exact guard DISCHARGES
+encoded public length premise for actual boundedPrep(nativeHint k w m), retaining
+SAME native m/allocation/physical ROOT/HEAD/UPS/Walk/node/SHA facts. Independent
+accepted length PASS4modules8guards proves<=2^26 from native body,scheduler/source
+counts and normalized routing. Actual public ROOT counts PASS1module1guard.
+AP public descriptor identity remains explicit; whole-family proof not claimed.
+
+ReceiptNativeMerkleBytes strictPASS2guards removes independent leaf identity,
+receipt traffic/local and outcome-count premises in native wrapper: actual native
+renderer yields SAME extracted chain, native executed outcomes and receipt/account/
+Merkle SHA-byte equation, with public refund fragments retained. SAME canonical
+views' PEO digests hash their actual emitted preimages. Native input/public/account
+correspondences remain explicit. Canonical native bridge PASS7modules18guards;
+PEO byte/digest package PASS4modules10guards plus canonical PEO1guard. Other receipt
+SHA families still need complete native compatibility and global conservation.
+
+VerticalPriorFusion strictPASS19guards including generic interaction pairing and
+base slot inventory: actual fused raw/memory/ID stage overlay width3401, aux115,
+quot7,fin115,log22,degree8. Complete proposed size8,378,132 leaves10,476 below8MiB.
+This supersedes8,403,188 independent append measurement AS A PROPOSAL ONLY: stage
+window construction/extraction and record limb/query joins remain unfinished.
+Generic permutation preserves every bus multiplicity and TableLocal both ways;
+no bit-product shortcut. Independent vertical core3modules12guards and raw frame
+slots1module11guards. No final budget or whole execution admission claim.
+
+Integrated10/19, receipt882/882 unchanged. Full prover, clean certificate, real
+judge/general NEAR remain open, with RNG capacity separate. Native DIGEST lane
+investigating exact root/parent-child occurrence ownership, including hash-only
+root endpoints (must derive revealed roots from actual execution when needed).
+Three agents continue. Prior f1177c14 push failed DNS; retry verified bundle.
+
+
 2026-10-08: RebasedPublicRootAllocation strictPASS1 exact guard replaces public
 ROOT singleton abstractions with actual executable V2.pubCount AP over
 pubOf(preparedBytes p overhead), retaining SAME accepted native allocation,

@@ -1,0 +1,39 @@
+{
+  "lane": "process-prior-vertical",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVertical.lean",
+      "sha256": "520fdf93219497aebb87a73349f544984956ea808efbd7d25d7e7db8eb3c09a8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-vertical-ProcPriorVertical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVerticalEval.lean",
+      "sha256": "87ed67b9e5b36eb8f9beb2bbca08584bd35fbef692ff07a64513b738fb388b13",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-vertical-ProcPriorVerticalEval.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVerticalTraffic.lean",
+      "sha256": "0c43affce33db3a8ccc66bd6141a7d3b9792b61afa7d34cf0fe93c73d7e3aac0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-vertical-ProcPriorVerticalTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorVertical.lean",
+      "sha256": "d6329bd7baa8e507cba80bec5c6b65929c70d834d0aea4d7d06d1c19ee725893",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-vertical-AuditProcPriorVertical.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules12guards. Isolated28-column raw/memory/ID stage overlay; actual stage selectors and virtual endpoints transport constraints/bits/natural row traffic. Window trace assembly/extraction still open.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

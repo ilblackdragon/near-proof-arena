@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME canonical extracted physical receipt chain has actual executed native outcome leaves; exact receipt/account/native-Merkle SHA byte producer balance. Native wrapper derives repaired TableLocal and4481 outcome cap from original native renderer/execution contracts. No separate leaf identity/receipt traffic/receipt local premise. SAME extracted PEO digest hashes its actual emitted preimage, via native refund/outcome digest stream. Account traffic and preparation/public/native-input correspondences explicit. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptNativeMerkleBytes.lean",
+      "sha256": "56937b422e8afd1a6eebc26e77f06cbde2c9d24aa7a7086aec09af96244c991c",
+      "audit": "zk-formal/test/AuditReceiptNativeMerkleBytes.lean",
+      "audit_sha256": "37134518d37065a9cf640005f06f50868e6370fb6cbf5c05eec426732e6955cc",
+      "guards": 2
+    }
+  ]
+}

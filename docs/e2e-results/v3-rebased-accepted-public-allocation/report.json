@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted native allocation with actual executable ROOT publiccounts of boundedPrep(nativeHint) prepared bytes. Encoded public size prerequisite discharged from native constructor, unchanged original acceptance and normalized routing. AP public segment identity explicit. Physical HEAD/UPS plus shared trie/SHA facts retained. No whole proof/global soundness claim. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedAcceptedPublicAllocation.lean",
+      "sha256": "3ab02a04d634c6cef5126e7ef5752059b430a15460b8d97f012486a35615efe6",
+      "audit": "zk-formal/test/AuditRebasedAcceptedPublicAllocation.lean",
+      "audit_sha256": "7c24c6a063533f9c95dad42732835086cd75219a809a02b5384e51337b0b0230",
+      "guards": 1
+    }
+  ]
+}

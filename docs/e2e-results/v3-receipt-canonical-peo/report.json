@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-canonical-peo",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCanonicalPeoDigest.lean",
+      "sha256": "f7cb96e5d9ede500491365661fe8aaacb7d7839479b49f0c1034ac1b4208dbd3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-canonical-peo-RcptCanonicalPeoDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCanonicalPeoDigest.lean",
+      "sha256": "28d8798bc9f629b33cd4b4499093b8bf5838e58329d9a4c30db9a4cbce0d5d3b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-canonical-peo-AuditRcptCanonicalPeoDigest.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module1guard. All SAME canonical extracted receipt PEO digests hash their actual emitted PEO bytes.",
+  "exact_axiom_guards": 1,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
