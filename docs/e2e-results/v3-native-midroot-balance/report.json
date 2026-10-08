@@ -1,0 +1,60 @@
+{
+  "lane": "native-midroot-balance",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactMidrootRows.lean",
+      "sha256": "616a6944aa5f9e678c4b33df79290d179b10b625e7fd6e37d6246bf91b120dea",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-midroot-balance-CompactMidrootRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactMidrootCells.lean",
+      "sha256": "df8587151050f642be23ce41a3b0a360c893f089ccbc53fc8d547f2150b8b2ac",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-midroot-balance-CompactMidrootCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactMidrootInventory.lean",
+      "sha256": "aeabb3913b39dc50c440667c7f0715d6c5cea25a54c9b19dd84bc2a4e3f880c5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-midroot-balance-CompactMidrootInventory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactMidrootPhysical.lean",
+      "sha256": "169823c04014d8a55d5f2904d8d6d53733e4cd805aa297b5a77a55fabb8b143f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-midroot-balance-CompactMidrootPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactMidrootRanks.lean",
+      "sha256": "c1e091488c1e34a284c665a0b552f2c3bd44793bbab947cfbbf2727b7e9e8740",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-midroot-balance-CompactMidrootRanks.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeMidrootBalance.lean",
+      "sha256": "88956a43992a0580eb853ed9179675fc94711dd3bd46787a6580bfeeac66c668",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-midroot-balance-NativeMidrootBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeMidrootBalance.lean",
+      "sha256": "32b4418efdb625c02a9e6acee2bb157dff574b0f5579f32361905996da9d6c12",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-midroot-balance-AuditNativeMidrootBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules15guards. Physical HEAD and compact UPS MIDROOT conservation from same native replay allocation, actual query prefix and physical counter patch; root ID and digest binding derived from native origin.",
+  "exact_axiom_guards": 15,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

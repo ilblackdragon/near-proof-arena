@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME accepted native allocation with retained reads, concrete log22 replay HEAD+Walk+node+UPS local/traffic, EDGE/BMAP/UPB/MIDROOT conservation, fourpackedSHA/facts and byte/digest accounting. HEAD interface discharged. Fresh/sanity/receipt byte residuals and whole-family remaining buses open. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedMidrootAllocation.lean",
+      "sha256": "06f0e20565fb664d02af0c3fc78dd15e263a4d7d5edcadad44f65e8fc27140d9",
+      "audit": "zk-formal/test/AuditRebasedMidrootAllocation.lean",
+      "audit_sha256": "9bd3dcd52c1af547135dd6d6d17997899b5523c67772bc3efd2439b42347d999",
+      "guards": 1
+    }
+  ]
+}

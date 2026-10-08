@@ -6,6 +6,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: RebasedMidrootAllocation strictPASS1 exact guard composes physical
+MIDROOT conservation with SAME accepted native allocation, actual query prefix,
+HEAD/Walk/node/UPS local and traffic, EDGE/BMAP/UPB conservation and four packed
+SHA tables. Independent native-midroot-balance PASS6modules15guards derives
+native root ID/digest binding, exact physical rows, padding silence, query-prefix
+and counter-patch preservation. Original rawInsts retained; no duplicate ranking.
+
+Trie costs remain shape-dependent: NativeLookupCounters/NativeLookupWhole charge
+actual extension/branch paths; NativeJointRequestBounds bounds combined query+UPS
+steps; NativeForestAllocation/NativeForestByteBounds count serialized node/value
+occurrences including repeats. NativeRebasedPhysicalBounds charges rebuilt output
+bytes and parts. Bounds depend on accepted preBytes and key/domain limits; these
+are proof-resource bounds, not measured wall-time or a general NEAR gas model.
+
+Integrated10/19 and receipt882/882 retained. Full prover/certificate/judge/general
+NEAR remain unfinished. Three agents continue final ROOT binding, native receipt
+SHA/outcome binding, and original prior parser plus authenticated value length.
+Prior dbca0802 push failed DNS; retry after commit and verified recovery bundle.
+
+
 2026-10-08: FusedReceiptPublic strictPASS3 exact guards derives SAME projected
 receipt ListChain, RcptV3Wf and complete TableTraffic from ACTUAL HoldsP plus
 native prepD0 and static AP configuration. Handles both original prepared bytes
