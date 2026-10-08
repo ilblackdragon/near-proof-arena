@@ -1,0 +1,25 @@
+{
+  "lane": "native-reader-cid",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReaderCid.lean",
+      "sha256": "0aaa3b6a06aef37d2f5dcf1970a682ffe5084a7a48fe9965bbc87617e303e3b0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-cid-NativeReaderCid.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReaderCid.lean",
+      "sha256": "173a4a44badf28fd050b2b92562f0f300512e592f6b2f2b638d351b6aac6449b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-reader-cid-AuditNativeReaderCid.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module1 guard: actual nativeCidBase encoder supplies every reader byte child ID equal to rebased forest renderer cidAt at exact sN. Original-updated-record metadata transfer remains.",
+  "exact_axiom_guards": 1,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

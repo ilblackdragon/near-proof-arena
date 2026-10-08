@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: FourPackedSha/NativePackedAllocation strict PASS4 exact guards.
+Executable allocator now supplies exactly four packed log22 local SHA tables and
+exact byte/digest counts from physical family row budgets and byte ranges. Complete
+job objects and digest-enable flags retained; arbitrary allocation/per-bin validity
+premises discharged. Instantiated with SAME accepted concrete native post forest,
+retaining native final-upsert identity, NodeOk/ValWf and post bytes; native byte and
+2,925,275-row bounds derived. Other family byte/budget contracts still explicit.
+
+Independent native-reader-forest PASS2modules2guards and native-reader-cid
+PASS1module1guard derive actual reader source global sN and per-byte renderer cidAt
+for rebased forest. Depth and original-record post metadata transfer remain.
+Independent process-native-bucket PASS3modules7guards proves actual processBucket
+agrees with successful model replay on BOTH native state and pending dictionary.
+Native maximal-bucket selection, guard success/model existence and RNG capacity
+remain. Receipt original832/881; fixed-height10/19 unchanged. Candidate gas product
+physical integration still in progress, not counted in original coverage.
+
+Three agents continue. Full certificate/prover/real judge/general NEAR unfinished.
+Reviews use prebuilt dependencies, not clean certificate. Prior8a54cead push failed
+GitHub DNS; retry after this checkpoint and verified recovery bundle regeneration.
+
+
 2026-10-08: PackedShaBins/PackedShaAllocation strict PASS9 exact guards. Allocated
 physical width512 SHA bins now share log22, with local legality and exact byte/digest
 counts for the same logical job multiset. Native physical node/value byte senders

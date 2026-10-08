@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Executable four-bin allocator supplies packed log22 local tables and exact bytes/digests for full job objects. Instantiated with SAME accepted concrete native post forest, discharging native byte and row bounds. Otherfamily budgets/byte contracts and global physical balance remain explicit. Prebuilt dependencies, not a clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/FourPackedSha.lean",
+      "sha256": "79717ddec34eccbe1c782dc5e72498dc0309d30c0de20e36d1dbf4a92f51130a",
+      "audit": "zk-formal/test/AuditFourPackedSha.lean",
+      "audit_sha256": "872d73b084a4629c74069f8838324ec93a74c17b3db961be6ea69bc6581d76cf",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativePackedAllocation.lean",
+      "sha256": "92e6ebd2d6c597a437f1c3eb627017e82d8396b359580b0fc2fb1b2db5da2fb8",
+      "audit": "zk-formal/test/AuditNativePackedAllocation.lean",
+      "audit_sha256": "8e44bac7b2c541f91b74557e6ba229b7f125dabf7243a471f3012a620fe2ae38",
+      "guards": 1
+    }
+  ]
+}
