@@ -1,0 +1,81 @@
+{
+  "lane": "receipt-predecessor-named",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptPredecessorScore.lean",
+      "sha256": "56d8e65f630dffcd92db35c6ea8f56593b709758256e31609e2b2d51855414c3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-named-RcptPredecessorScore.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptPredecessorFrame.lean",
+      "sha256": "5c59c9da7fa85fe417dc90be05f814f3091faf35b1f6cba0744971535705ff47",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-named-RcptPredecessorFrame.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptPredecessorBytes.lean",
+      "sha256": "de1d24ff568946f4ebb4b484537eddf50b940d725abb3ee36af99ab880c4345a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-named-RcptPredecessorBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptPredecessorArithmetic.lean",
+      "sha256": "d6f282d901781a60a08aa1b1ac0b74775fe04cb6951157267d768042a7b5bdc0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-named-RcptPredecessorArithmetic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeNamed.lean",
+      "sha256": "0d6e734c273561b26a02ec9f6d07e05fcbd0f06c9a204d61b67696866932f4e8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-named-RcptNativeNamed.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPredecessorScore.lean",
+      "sha256": "3390b390eabeb9409279e75db8e3fd183d0ea9c07cb7641d2e5dfbafda23407b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-named-AuditRcptPredecessorScore.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPredecessorFrame.lean",
+      "sha256": "1c18eb6eead08e0f34fb0cd567de6b986806f85c1a6847124fb1e9115244bd9e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-named-AuditRcptPredecessorFrame.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPredecessorBytes.lean",
+      "sha256": "a71244bedac16495424401b2bb60b3f6dc6200209ed10fb87dee3caa31d11951",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-named-AuditRcptPredecessorBytes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPredecessorArithmetic.lean",
+      "sha256": "318c1f2b0fb4292329ea01a77c625c65811891d91f41c9939b74fd74f94bd430",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-named-AuditRcptPredecessorArithmetic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeNamed.lean",
+      "sha256": "f14a5b00f347afc1e4aab211d5bdab44a9a9b3c8d53a32eb47bb8abd8ccf3094",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-named-AuditRcptNativeNamed.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Native predecessor arithmetic and actual cells; actual decoded witness dictionary/applied receipts have named receiver from pReceipt parser. Physical constraint transport not complete, count stays701/881.",
+  "exact_axiom_guards": 17,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

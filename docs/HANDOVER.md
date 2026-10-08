@@ -6,6 +6,37 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: SIZE component composition strict PASS3 exact guards.
+SourceSizeTraffic proves aggregate four physical source tables send exactly
+one [2,sourceSize,0] tuple and receive none, using actual honest partition
+cells and overlap ownership. SizeComponents constructs receiver view/counts
+from the same node/value/source lists and proves exact SIZE balance across
+all7 traces (node,value,source4,receiver), in both directions for every field
+message. Receiver local validity/traffic packaged under exact witness-size
+premises. Native inputs/source layout validity and final wholefamily assembly
+still explicit; this is not yet global all-bus completeness.
+
+Independent native-node-usage PASS13 guards: concrete uses from request-list
+counts, entire NodeWf3 preservation and exact terminal EDGE/BMAP/UPB traffic.
+List-length<P, actual request/provider coverage and rank assignment remain.
+START edges are provided by heads, not node edges; global request allocation
+must preserve this distinction. Receipt-predecessor-named PASS17 guards:
+native predecessor arithmetic/cells and named receivers from actual pReceipt
+parser lifted through decoded witness dictionary and appliedReceipts. This
+is the existing D0 wire restriction; receipt wf alone was insufficient.
+Physical transport remains open; reviewed same-trace coverage stays701/881.
+Process-kind PASS9 guards: actual native kind/one-hot/inactive suffix and first
+row checks at22, with first tau0 and capacity explicit. Other process families
+and multi-instance concatenation still open. Height coverage stays10/19.
+
+Next root: native accounting premises and final component assembly; agents
+continue receipt polynomial transport, forest global ownership, scheduler
+completeness. Certified size/header8,288,148 unchanged. Full certificate,
+clean build, succinct prover, real judge and generalNEAR coverage incomplete.
+Checks use prebuilt dependencies. GitHub DNS still blocks push; local commits
+and verified checkpoint bundle preserve checked progress.
+
+
 2026-10-08: SIZE receiver completeness milestone strict PASS7 exact guards.
 SizeCountReceiver constructs actual4-row/log2 trace with counts in columns31/32
 and final24-bit slack subtracting4*(nodeCount+valueCount). Exact all-bus traffic

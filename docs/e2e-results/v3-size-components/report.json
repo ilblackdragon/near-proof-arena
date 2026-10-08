@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact SIZE traffic across four actual source partitions and balance with honest node/value and count-extended receiver traces. Component input validity/source layout and receiver witness-size bounds remain explicit; complete native assembly/global all-bus balance still open. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SourceSizeTraffic.lean",
+      "sha256": "aeebe7c179a4674906cb3e5fccce3012bab8f6f59273ee20bde1721f15aa27f9",
+      "audit": "zk-formal/test/AuditSourceSizeTraffic.lean",
+      "audit_sha256": "90d1e26309fc5c7d0a5d3458597a7d5766887411f1640c042b83c4173cac7002",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SizeComponents.lean",
+      "sha256": "70732d3f4aa5c5a47541567bffc61327a45eb6635235be8bf726bae919f76bd6",
+      "audit": "zk-formal/test/AuditSizeComponents.lean",
+      "audit_sha256": "d0459c700296b03ef7bbbd709d481d070b165149b88dba45f453df9c04aa9b0e",
+      "guards": 2
+    }
+  ]
+}
