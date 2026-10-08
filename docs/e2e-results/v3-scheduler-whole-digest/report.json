@@ -1,0 +1,137 @@
+{
+  "lane": "scheduler-whole-digest",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecLoops.lean",
+      "sha256": "874df155eb65e45321a0e61681822bbe07b964e00361f4866af799c0473cf95a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-SchedulerCodecLoops.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecLayout.lean",
+      "sha256": "fe38d67e7c345ef42e79af66b90e212a0e77c94c82c43383274ebf7c3b0a68fe",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-SchedulerCodecLayout.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRecordLoops.lean",
+      "sha256": "570ffc1fba2bc30985333da30d8d58e70a551c4c5079955de7a183c3d43070dd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-SchedulerCodecRecordLoops.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecPlacement.lean",
+      "sha256": "f197b840522f2263663e82e154ac2b476dbe71910be7aef44b7f92c8d7822b6f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-SchedulerCodecPlacement.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecGeneratedDigests.lean",
+      "sha256": "d9ed309cd5a254ddece5713ff52b0d39e7dfa1f10e607c86ee1cd73f3fb625fa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-SchedulerCodecGeneratedDigests.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecTraceDigests.lean",
+      "sha256": "a4a776956d6d81c014169d8123a2d691a7f7575c0856716c10d458b763329f4e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-SchedulerCodecTraceDigests.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecNativeBlocks.lean",
+      "sha256": "6fadf27c70779f965d7c462a6658d702cbdb9ee4f47c38a94941a758ccf03742",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-SchedulerCodecNativeBlocks.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecRepairedDigests.lean",
+      "sha256": "825f063f237c4e539889c152e2ddf929c91c0f9eb315d5235810b0b5f2db0211",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-SchedulerCodecRepairedDigests.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerWholeDigestConservation.lean",
+      "sha256": "4ade70110a0bc97dd07e08e5c1b157dfb5ac94b60da47f7e3989b0c980d44303",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-SchedulerWholeDigestConservation.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecLoops.lean",
+      "sha256": "09841b671e63c2b5ba37ba6bc504fcd6a7b816791af72dfdc60720352920fad6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-AuditSchedulerCodecLoops.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecLayout.lean",
+      "sha256": "e3e31286c7b1b6c07c866a4a86d399b7cab99db0200763189e5aeb6920e28ea7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-AuditSchedulerCodecLayout.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecRecordLoops.lean",
+      "sha256": "cce08d46cc2ec1c4f90c2c24714d02c1423802fe3ce3d1f8add47d5d8c7107b8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-AuditSchedulerCodecRecordLoops.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecPlacement.lean",
+      "sha256": "467e60f93f62fa0f75bafc57bfae3770a76c0ff054a4bf328fc8902f7dbb1089",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-AuditSchedulerCodecPlacement.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecGeneratedDigests.lean",
+      "sha256": "f4ee16526e7eb5a1cc0b653347d4991e5f4fb7815e95446cc56c472696285dbe",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-AuditSchedulerCodecGeneratedDigests.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecTraceDigests.lean",
+      "sha256": "8c1793437948d834a15658c6722081e7c55cb30b79bce37d2f34d7880a2970cd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-AuditSchedulerCodecTraceDigests.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecNativeBlocks.lean",
+      "sha256": "3f0dca685cefad11563704e8fbcc4ba79368a9ad43e311ad6731b70f281f49be",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-AuditSchedulerCodecNativeBlocks.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecRepairedDigests.lean",
+      "sha256": "484e662bec382852901c46c4279662d5e4d44c1f392de9d5a97a55e66cc5d2fb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-AuditSchedulerCodecRepairedDigests.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerWholeDigestConservation.lean",
+      "sha256": "505e5ebe7b61ef2e73be0948fc00f536895828335ec2f4162fc4a02398ec0022",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-whole-digest-AuditSchedulerWholeDigestConservation.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual corrected generated Codec concatenation and log22 physical DIGEST inventory composed with compact UPS conservation for both native scheduler job families. Successful native block generation remains explicit, to be derived from acceptance. No old CLocal or assumed placement/digest identity.",
+  "exact_axiom_guards": 24,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
