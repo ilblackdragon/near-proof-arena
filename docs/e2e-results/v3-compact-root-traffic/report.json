@@ -1,0 +1,53 @@
+{
+  "lane": "compact-root-traffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactRootRows.lean",
+      "sha256": "8182cc3d7bb7c4e1876b218090225d534544ffe7f2f8a70a317ddb4b3510d0b3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-root-traffic-CompactRootRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactRootCells.lean",
+      "sha256": "94bbe4819ec771a292b067ffea486f438d50e3e0dbd04ca39f0ae8decd55f821",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-root-traffic-CompactRootCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactRootInventory.lean",
+      "sha256": "fde8108f50ba1010b7ec566aa10352d350530245ca56cc36020847165dd91135",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-root-traffic-CompactRootInventory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactRootPhysical.lean",
+      "sha256": "dc4e983cd5f1de6c04af37be70c31b2f5b883caec2dadd3766853ae4985efbf8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-root-traffic-CompactRootPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/CompactRootRanks.lean",
+      "sha256": "557d89f52c5fbf541b862bdfa7f6bc59fd8659ac262f2973f4ca1f997cab850d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-root-traffic-CompactRootRanks.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactRootTraffic.lean",
+      "sha256": "fdfb7467e0cccb0fabe1f9afd1e4df4e5635d7f38269c69a1d367861b3b18a48",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-compact-root-traffic-AuditCompactRootTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules14guards. Actual compact W3 emits each indexed post digest exactly once; other and padding rows silent. Actual query prefixes and UPB patch preserve ROOT traffic. Native/public endpoint binding remains open.",
+  "exact_axiom_guards": 14,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

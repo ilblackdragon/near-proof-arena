@@ -6,6 +6,24 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independent compact-root-traffic PASS5modules14 exact guards proves
+actual compact ROOT sends [tau+1]++post once per instance, no extra/padding sends,
+and no receives. Physical query-prefix ranking and window counter patch preserve
+this exact inventory. Agent continues binding to native chain/public endpoints.
+
+Independent prior-ID ranges PASS2modules9guards checks exact u64 limb recovery,
+lex order, field and packed-index injectivity. ProcPriorLengthRegression adds
+4 kernel-checked guards: native initial state has37bytes and decodes; appending
+one zero preserves all37parsed bytes but native decoder rejects it. Thus original
+prior parser must authenticate exact value length, not only each consumed byte.
+Agent retains explicit length authentication requirement and budgets its provider.
+No parser acceptance or final capacity claim follows from these regression lemmas.
+
+Integrated10/19 and receipt882/882 unchanged. End-to-end prover, clean full
+certificate and successful real judge remain open. Prior b409d5b5 push failed DNS;
+verified recovery bundle maintained and push retried after this checkpoint.
+
+
 2026-10-08: RebasedMidrootAllocation strictPASS1 exact guard composes physical
 MIDROOT conservation with SAME accepted native allocation, actual query prefix,
 HEAD/Walk/node/UPS local and traffic, EDGE/BMAP/UPB conservation and four packed

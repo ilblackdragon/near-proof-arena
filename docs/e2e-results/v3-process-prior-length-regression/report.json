@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Kernel-checked exact native decode regression: 37-byte initial state accepted, same prefix with trailing byte rejected. Authenticated parsed bytes alone do not authenticate original value length. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorLengthRegression.lean",
+      "sha256": "2e56ea9b4162c24191466402816056015f063d5d696185a5d23cd79737045613",
+      "audit": "zk-formal/test/AuditProcPriorLengthRegression.lean",
+      "audit_sha256": "27618ad3edc5b2b1d6e1f0d03ba7f827b447ce8d4de87e52704b122e52180444",
+      "guards": 4
+    }
+  ]
+}
