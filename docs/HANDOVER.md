@@ -19,6 +19,24 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeAccountSlotAllocation strictPASS9guards across4root modules
+extends SAME combined native/account/receipt/public/fourSHA allocation with exact
+physical AccountEmpty VSLOT send =physical SizeCount node VSLOT receive. Derived
+by projecting natural VPOST digest permutation before field encoding, not by
+field division or guessed ownership. Earlier global account DIGEST cancellation
+and exact writes keys retained. NativeAccountPreBytes also proves actual account
+VBYTES traffic is exactly activated original-value byte portion; explicit untouched
+remainder partitions all main pre-value byte requests. Other providers and implicit
+values still needed before global VBYTES balance.
+Independent scheduler plan/codec4modules8guards, serialized windows3modules9guards,
+MEM prefix/timestamp5modules14guards PASS;40guards total. No full scheduler DIGEST
+balance or physical account MEM conservation claim. Three agents continue those
+and pg3 concrete certificate. Receipt882/882, integrated10/19, full prover/clean
+certificate/judge unfinished. Latest pg3 evaluation8,231,316 (157,292 margin),
+concrete size kernel guard still pending. Priorb7b31384 push DNS failed; retry and
+verified recovery bundle maintained.
+
+
 2026-10-08: NativeClosedAccountAllocation strictPASS8 exact guards across8 root
 modules retains exact native write keys through chosen origins, accepted physical
 window coverage, shared UPB/EDGE/BMAP conservation, native SHA bins and combined

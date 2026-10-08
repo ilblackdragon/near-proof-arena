@@ -1,0 +1,67 @@
+{
+  "lane": "scheduler-plan-codec-digest",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerDigestPlan.lean",
+      "sha256": "3a1d1a3492cad5092f2031f2f072d7bd777402614820e3588157572f6ca6e32b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-plan-codec-digest-SchedulerDigestPlan.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerDigestPlanJobs.lean",
+      "sha256": "6a2cc416425c74ad8f9cbc170e348f7cce3f55b678afbabab720d63b619ce795",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-plan-codec-digest-SchedulerDigestPlanJobs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecDigest.lean",
+      "sha256": "a748b22ff38abce912db5d2703b7fc13f4a7874770c3855fc95182890edfc52f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-plan-codec-digest-SchedulerCodecDigest.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerCodecConsumer.lean",
+      "sha256": "552a87f9adcbae3f78cfb53856eed8f22fb38841fa0a14585e1391a63e15bf4b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-plan-codec-digest-SchedulerCodecConsumer.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerDigestPlan.lean",
+      "sha256": "02d5023174fa82657abcdb6296a81fe94d64dca039ea335163011dd140f339ec",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-plan-codec-digest-AuditSchedulerDigestPlan.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerDigestPlanJobs.lean",
+      "sha256": "d9fc619b4994fcaf7bf5e1205307751d44fefba23fb61bc3db38f548a64dc729",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-plan-codec-digest-AuditSchedulerDigestPlanJobs.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecDigest.lean",
+      "sha256": "769047756eb4693cd84dd124188b30da75c262cbd12c04596bd1656caffc89d6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-plan-codec-digest-AuditSchedulerCodecDigest.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerCodecConsumer.lean",
+      "sha256": "072a6514b83f5ce0ac49f1c5242386e6faf03dca52009097d663da8ae4a0aa45",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-plan-codec-digest-AuditSchedulerCodecConsumer.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules8guards. Actual canonical scheduler plan covers same-batch job IDs for all terminal cases/arbitrary ancestor depth. Physical codec digest interaction matches native sanity job under installed native post bytes and CLocal; whole-block installation remains.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
