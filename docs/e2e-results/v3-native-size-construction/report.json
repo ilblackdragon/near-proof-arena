@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual accepted native input derives original public bytes, inner bytes, K, roots and indexed store alignment; same8MiB source/store budget yields generated SIZE TableLocal and exact traffic. Explicit forest provenance/wf/2M payload/NodeWf premises remain. Prebuilt dependencies, not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeSizeConstruction.lean",
+      "sha256": "19850e77c0398ca66ec2391ea070eea30e438c83f1e9c360a60384670a2f7e27",
+      "audit": "zk-formal/test/AuditNativeSizeConstruction.lean",
+      "audit_sha256": "0070a3b08ea9d8236e06497e89fab48015aa15cf6bbe118e2d59cafe3164ceed",
+      "guards": 4
+    }
+  ]
+}

@@ -6,6 +6,33 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeSizeConstruction strict PASS4 exact guards. Actual accepted
+native input derives ORIGINAL public bytes, roots, inner bytes, K and indexed
+transition-store alignment. Same accepted source/store budget produces generated
+SIZE receiver TableLocal and exact traffic. Forest wf/2M preBytes/Stored and
+NodeWf3(raw forestNodes) remain explicit. Next root integration must use initialized
+node metadata (NativeForestMetadata.native_forest_wf proves initializeList forest,
+not raw forest), preserving duplicate class/size accounting before joint usage ranks.
+Do not infer raw NodeWf3 from initialized NodeWf3.
+
+Independent process-native-invariants PASS9modules/27guards. Actual Gen.run loops
+supply native replay Initial/Follows and EntryOk under PV86: positive Lr, exact
+entries/index, conversion remainder bound, native Boolean decisions and allowance
+bound through nested replay. Remaining RoundOk K bound/zero-ordinal sequencing is
+explicit; full native RunData and scheduler integration remain open.
+Independent native-lookup-bitmap-coverage PASS5modules/15guards. Actual wrapped
+lookup EDGE has providers in HEAD++node inventory, BMAP in same forest, including
+START. Combined queue/account/UPS inventory/ranks remain open.
+Receipt agent investigating system gas surplus: actual well-formed/parsed system
+receipt with u128Max gas price succeeds under applySystemReceipt, whose execution
+ignores gasPrice. Old ungated surplus exceeds u128. This is a per-receipt domain
+probe, NOT a full accepted D0a counterexample; active tables unchanged.
+
+Receipt802/881; fixed-height10/19. Full assembly/certificate/clean build/prover/
+judge/general NEAR remain incomplete. Strict checks use prebuilt dependencies.
+Priorf2903413 push failed GitHub DNS; retry after checkpoint, verified bundle.
+
+
 2026-10-08 IMPORTANT SOURCE PLAN CORRECTION: preserve ORIGINAL active source
 accounting and filler construction. The native checker requires distinct dictionary
 keys = ALL source occurrences, including repeats. The filler-free UniqueSource
