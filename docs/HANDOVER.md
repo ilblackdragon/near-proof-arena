@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: SizeChargeFields strict PASS7 exact guards. Actual SIZE node/value
+payload fields plus4*(nodeCount+valueCount) exactly equal patched chain store
+charge. Empty value markers contribute zero payload but retain record prefixes.
+Payload bounded by unfiltered serialized bytes; unchanged native preBytes<=2M
+implies SIZE base<=3M. Native Valid now follows original-store charge + actual
+source bytes + public overhead<=8MiB. This encoded-accounting premise remains to
+derive from native witness length; do not claim complete native receiver yet.
+
+Independent native-ups-interaction-balance PASS10 guards. Actual per-instance
+W0-W3 uMsgs aggregate to reduced EDGE/BMAP prefix-counter streams; provider chain
+Perm balance proven. Concrete head/node EDGE provider composition derives arity
+from coverage. Non-walk/value/part/padding rows still need exclusion and connection
+to ups_render_traffic. This proves actual walk-row traffic, not whole UPS table.
+
+Process single-instance local is checked under RunData. Agent investigating
+possible consecutive zero-round different-seed boundary conflict in cKey rotation;
+regression/reachability/correct candidate fix pending. No accepted domain narrowing
+authorized. Receipt reviewed735/881; selected fixed-height10/19 unchanged.
+Full certificate, clean build, prover, real judge, general NEAR incomplete.
+Three agents active; strict checks use prebuilt dependencies. Lastd4d9c82a push
+failed GitHub DNS; retry after checkpoint. Verified bundle preserves local work.
+
+
 2026-10-08: process-complete-local independently rebuilt PASS11 exact guards.
 ProcComplete.proc_local proves full actual Proc.table TableLocal at log22,
 all constraints and multiplicity bits, for a single Run with tau0 and row cap.

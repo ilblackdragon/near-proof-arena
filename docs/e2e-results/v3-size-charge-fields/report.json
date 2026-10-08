@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual SIZE payload/count fields equal chain-patched node/value charge, including empty records. Existing native unfolding cap proves base<=3M. SIZE Valid derives from native original-store charge plus source bytes and public overhead<=8MiB; this remaining encoded accounting premise still requires native witness composition. Strict source checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/SizeChargeFields.lean",
+      "sha256": "31aa5cb09315ae8d290cf6ff2620ce1809ec96c7d2154c5443af9c09032959c6",
+      "audit": "zk-formal/test/AuditSizeChargeFields.lean",
+      "audit_sha256": "c6a233958788cb1558ba3b12ea81a3e7a7020e137076e43ca70807d8905ec486",
+      "guards": 7
+    }
+  ]
+}
