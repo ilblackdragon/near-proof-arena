@@ -6,6 +6,18 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualReplayRound/ProcActualRoundFactor strict PASS, three exact
+guards. Extracted full actual round body includes size/shuffle/count checks,
+bucket collection, entry loop and round metadata. round_success derives its
+success from retained model batch, allowance shape, valid pointers and bucket
+size/tags, without assuming actual entry-loop success. batch_count derives
+step-count equality. rest_eq definitionally connects full suffix to extracted
+round implementation. Across-round state/clock/RNG/shape invariant still needs
+threading; final push/memory/comparison checks and full integration/certificate/
+prover/judge remain open. Prebuilt dependencies only; receipt882/882,
+integrated10/19 unchanged. Prior8e0e19d9 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcModelBatchTrace/ProcActualBatchReplay strict PASS, three exact
 guards. Successful process emits ordered Trace retaining each actual shuffle
 and model-entry batch, with start/end state and clock. batch_replay translates
