@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeSanityResidualAllocation is strongest SAME native allocation.
+Two modules strictPASS2guards preserve all prior scheduler facts and add global
+physical DIGEST equation with actual compact scheduler receives; only expected
+schedulerSanityJobs remain explicit. No added assumptions. Independently rebuilt
+six corrected Codec sanity modules PASS13guards: actual hash cells/row/block
+traffic, nonhash silence, native input and sanity payload linkage. Whole corrected
+generator placement/concatenation, full Codec Local and remaining global byte
+providers still open. Total checkpoint15guards; prebuilt dependencies only.
+Trie costs remain shape-dependent formal bounds, not runtime/cache/I/O measurements.
+Receipt882/882; integrated10/19; full certificate/prover/judge unfinished.
+Prior1a5591ca push failed DNS; verified local recovery bundle retained. Goal active.
+
+
 2026-10-08: NativeSchedulerAllocation is new strongest SAME native allocation
 API. RebasedSchedulerDigests→NativeReceiptSchedulerDigests→NativeSchedulerAllocation
 strictPASS3guards. Preserves every NativeKeyAllocation fact and adds actual
