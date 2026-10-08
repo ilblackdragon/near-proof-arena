@@ -6,6 +6,18 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcShufflePointers/ProcActualIndexGuards strict PASS, six exact
+axiom guards. Successful model execution preserves valid pending pointers and
+emits shuffled lists with bucket-equal length and valid request/increment
+indices. Exact converted-view transport derives both actual replay checks
+(entry cid and entry j); prepared_indexed covers sh[x]! for x<bucket.length.
+No full generator success premise. Combined entry state/step equality, push
+accounting, memory/comparison checks and full suffix success remain open, plus
+caller/Codec/allocation integration and full certificate/prover/real judge.
+Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged.
+Prior61355b5e push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcBucketSize strict PASS, six exact axiom guards. Pending link
 uniqueness plus valid request pointers bound pending count by converted request
 count; selected maximal buckets are nonempty and no larger. Successful model

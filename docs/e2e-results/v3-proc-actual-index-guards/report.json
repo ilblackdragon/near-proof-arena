@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Successful prepared process derives shuffled length and valid request/increment indices against exact converted array; actual bucket-indexed lookup passes both guards. Combined replay remains open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcShufflePointers.lean",
+      "sha256": "038d2a33484ebd4cf422ecc4cc285a54d37509eb633a0ab488a1bc74f7a556c9",
+      "audit": "zk-formal/test/AuditProcShufflePointers.lean",
+      "audit_sha256": "563eca54733beea5be3c9e603731a3ab69feadee209d54ea4304a6756464ee1d",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcActualIndexGuards.lean",
+      "sha256": "128587ff551ee455c7776710282f65c8a21b1aad10a2b9e4684666ea87a24539",
+      "audit": "zk-formal/test/AuditProcActualIndexGuards.lean",
+      "audit_sha256": "0ec6e4d3e0ad07e1e4afc89bd24f306e22f337f2b071ae0b66820e62a8548197",
+      "guards": 4
+    }
+  ]
+}
