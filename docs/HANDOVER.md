@@ -6,6 +6,32 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Native Merkle/node DIGEST checkpoint strictPASS7guards across3root
+modules. SAME native repaired receipt trace now includes actual native Merkle
+TableLocal and physical per-receipt plus internal-Merkle DIGEST conservation.
+PH_OUT field-byte binding derives from accepted checker and SAME native execution;
+count bytes derive from FinalPublicBytes and actual outcome length. SAME accepted
+trie allocation matches physical HEAD/node DIGEST consumers to concrete node SHA
+outputs plus exact value-slot residual. No full global digest closure claimed.
+
+Independent node SHA balance4modules9guards, grouped RC payloads6modules14guards,
+and prepared outcome root1module6guards passed strict source reviews. RC payloads
+preserve actual source order, empty/repeated lists and native serialization.
+Original-state framing8case+3local modules16guards now has actual TableLocal with
+native decode/byte-bound capacity, padding/wrap and bits. Record/query joins and
+multi-instance vertical assembly remain open; shared parser8,378,132 proposal is
+not final capacity assurance (10,476 margin before joins).
+
+Empty-value DIGEST gap isolated: revealed empty value can be read at group-data
+key while nativeValueShaJobs skips empty payloads. No whole-checker counterexample
+claimed. Agent repairing fixed SHA([]) provider with exact multiplicity and shape
+checks; current global digest balance must retain this residual.
+
+Integrated10/19, receipt882/882 unchanged. Full prover, clean certificate, real
+judge and general NEAR replacement remain unfinished. Three agents continue.
+Prior d534cce8 push failed DNS; retry checkpoint and maintain verified bundle.
+
+
 2026-10-08: ReceiptNativeDigestBalance strictPASS9guards across3modules composes
 SAME native repaired receipt trace/extracted canonical chain with exact per-receipt
 SHA digest partition: physical PEO/RID receipt consumers plus indexed LEAF digest

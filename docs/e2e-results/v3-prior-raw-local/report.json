@@ -1,0 +1,39 @@
+{
+  "lane": "prior-raw-local",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawActive.lean",
+      "sha256": "8636a2c07e87660e0c01d08310f5d15ab018f4c9569fb8e28b327ba38300b969",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-local-ProcPriorRawActive.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawPhysical.lean",
+      "sha256": "34fa1c40cee7986298735422d745e7f6a56d8f91989e58ef3764a5b957d22ec3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-local-ProcPriorRawPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawLocal.lean",
+      "sha256": "b5695cca8a3fe8ac315e28213b2bff0ad1398f2242c7fe169e98c996a66b747d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-local-ProcPriorRawLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRawLocal.lean",
+      "sha256": "a8b6ca1a1a32de758e1b83d48f6457d1f2d57d85e65b6516795dafaa69df3638",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-local-AuditProcPriorRawLocal.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules7guards. All actual raw physical framing rows, padding/wrap, multiplicity bits and TableLocal; decoded log22 capacity derives from original State.decode and byte bound. Record joins and multi-instance shared assembly remain.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,74 @@
+{
+  "lane": "prior-raw-cases",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawPadding.lean",
+      "sha256": "ae1c2b4144dd60023fed4656f5be9163107421228838493b105084ebac0ee5ab",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-cases-ProcPriorRawPadding.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawStart.lean",
+      "sha256": "cb684986b94d2f7c3fbec586367231c71df62bb8e5615882bbc3c80e3c942863",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-cases-ProcPriorRawStart.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawHeaderInner.lean",
+      "sha256": "a913135c8fb31db6fb542ef7274e5e5b0adc4d61325f32b6da969479c15b4079",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-cases-ProcPriorRawHeaderInner.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawHeaderEnd.lean",
+      "sha256": "d4ce87b3f927fc15f091eb5b294784b1238abd49db4dd515e448029fc38d2f6f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-cases-ProcPriorRawHeaderEnd.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawRecordInner.lean",
+      "sha256": "b2c9fdafbe3f368932d3e4e77f8beff50f4208bd6a0a5cf259b6e16374324c7e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-cases-ProcPriorRawRecordInner.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawRecordEnd.lean",
+      "sha256": "d7b4c7b50bb04eb01500a1a5a62df94132286710d6ae9348e0bb18f88f357df7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-cases-ProcPriorRawRecordEnd.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawHashInner.lean",
+      "sha256": "02dfb84a29824358623ca35cc10850029c9feae165012cfbe066c4d437989b46",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-cases-ProcPriorRawHashInner.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawHashEnd.lean",
+      "sha256": "7270cf4ed7482c4c8df67cdc41594f3f9021e3575432b7857b46e04c47e191be",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-cases-ProcPriorRawHashEnd.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorRawCases.lean",
+      "sha256": "4de792d97346fd7f2c785bc90cd2d856e5ce103b5570519ddaaf5ff5d6b29e73",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-raw-cases-AuditProcPriorRawCases.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Eight modules9guards. Raw original-state framing constraint cases: start/header/record/hash/padding, including absent State.initial.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
