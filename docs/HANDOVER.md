@@ -6,6 +6,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: MerkleRender/Positions and RootPin strict PASS6 exact guards.
+Physical MPOS receives equal own sends plus explicit leaf positions, including
+empty native outcomes. Public canonical root bytes now discharge the DIGEST
+root premise; native root length32 proved for empty/nonempty. Receipt physical
+leaf-message correspondence and full family balance remain integration gates.
+
+Independent SHA byte traffic review PASS14 guards across NativeShaTraffic,
+ReceiptShaTraffic, ReceiptJobOrder and ReceiptByteBatch. Concrete node/value
+BYTE jobs exactly match semantic table traffic; concrete receipt RC/PEO/LEAF/RID
+jobs match receipt traffic up to permutation with exact refund fragments
+retained separately. Account VPOST byte messages also exact. Full constructor
+correspondence and final all-family balance remain open.
+
+Fusion agent has checked exact fused shape and degree; actual byte-bound/header
+final certification running, not yet independently reviewed or committed here.
+Receipt lane and full certificate/prover/judge remain unfinished. Prior turn
+made verified progress; goal remains active, push DNS blockage does not block
+local proof work.
+
+
 2026-10-08: Root Merkle DIGEST conservation strict PASS5 guards. Concrete leaf
 and internal SHA jobs supply exactly physical digest multiplicities, including
 empty outcomes, under the explicit public outcome-root pin. Odd promotions

@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Physical MPOS receives equal Merkle sends plus concrete leaf positions, including empty outcomes. Canonical public root bytes now also discharge the physical DIGEST root premise. Receipt-table leaf traffic binding and full family ownership remain open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/Positions.lean",
+      "sha256": "e31387fa595fa1ddeb2e13685c0cb1325406ab38a24da51ae2df9b0a6ce5eff6",
+      "audit": "zk-formal/test/AuditMerkleRenderPositions.lean",
+      "audit_sha256": "d855012e51a81ee9363627d6b57d60d02788d292a2d1293db0d060bc0b021039",
+      "guards": 3,
+      "log": "/tmp/nearproof-Positions-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/MerkleRender/RootPin.lean",
+      "sha256": "6707567b0f37639ef5364ebaa5c4999f774cccaefee2aa927ffcc5aaecad2618",
+      "audit": "zk-formal/test/AuditMerkleRenderRootPin.lean",
+      "audit_sha256": "fde806ed994e96bbc69b3c18f567e6a2b85e0fbf28f8b19f60c8edde7a625de7",
+      "guards": 3,
+      "log": "/tmp/nearproof-RootPin-audit-checked.log"
+    }
+  ]
+}
