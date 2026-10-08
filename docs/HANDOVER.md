@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativePriorBytePartition strictPASS2guards adds actual main prior
+parser to global account/access/queue/EmptyValue byte equation, both present and
+absent native read cases. Capacity and occurrence derived; present residual removes
+exactly prior slot, absent keeps residual. Native read/decode facts explicit.
+Implicit combined placement, repaired queue transport and strongest allocation
+integration remain open. Independent NativeSortIds/Trace PASS8guards constructs
+repaired Sort Local for actual accepted0..4481 receipt IDs, deriving widths,
+indexed permutation and uniqueness from decoder/native acceptance. Physical RIDS
+and new family certificate remain pending. Total10guards; prebuilt dependencies.
+Strongest NativeShardSanityAllocation unchanged; receipt882/882, integrated10/19;
+full certificate/prover/judge unfinished. Prior5acfd2a2 push failed DNS. Goal active.
+
+
 2026-10-08: NativePriorImplicitBytes strictPASS3guards proves implicit scheduler
 prior disjoint from missing queue provider and subtracts its physical raw-parser
 bytes from exact remaining demand at global offset, retaining other occurrences.

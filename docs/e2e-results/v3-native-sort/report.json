@@ -1,0 +1,32 @@
+{
+  "lane": "native-sort",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeSortIds.lean",
+      "sha256": "c23293fbf091e4c93aada2457863213b8c57905ac76ce2d205181577ec097776",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-sort-NativeSortIds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeSortTrace.lean",
+      "sha256": "133a249cbd2ae47758c5656220a210a5f593b197229b7cc8e569d48b3335cb72",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-sort-NativeSortTrace.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeSort.lean",
+      "sha256": "3f49500c2b3599ab5c8a08863523d608e9f064cfce859077a3188dc54465965b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-sort-AuditNativeSort.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual accepted receipts construct repaired Sort local trace for 0..4481 IDs. Sorted original indexed ID occurrence permutation and strict uniqueness derived from decoder/native check, no positive-count or separate uniqueness assumptions. Physical RIDS traffic and repaired family certificate pending.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
