@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact access-key provider ownership permutation partitions the remaining original-value byte requests, preserving repeated lookup use counts while emitting bytes once per original VID. Strongest combined proof now discharges BOTH actual account and access-key physical VBYTES sends from full EmptyValue forest demand. Only original values outside both owned sets plus implicit-prestate value occurrences remain. All earlier raw/ranked lookup, receipt/public and fourSHA balances retained. AKC and remaining QV/Codec provider conservation remain. Strict source checks use prebuilt dependencies, not full clean certificate or prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessBytePartition.lean",
+      "sha256": "21687ea4aeaf6916621b93f0c70ecc489910a326fb5989f243ba2c96924d0c7a",
+      "audit": "zk-formal/test/AuditNativeAccessBytePartition.lean",
+      "audit_sha256": "46eed940f04971e95f42ca3b63da6f83ef949326a9c9086e54078393edfd531d",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptAccessBytes.lean",
+      "sha256": "116bf0e1db61b376b6b398e07a28ac9b883b2a105b8fecee82cff31d21a10bb3",
+      "audit": "zk-formal/test/AuditNativeReceiptAccessBytes.lean",
+      "audit_sha256": "9198e6874da2e4fa5c640e69f18dbd3840361f8a53e504f995fc79f12d9f1e61",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccessByteAllocation.lean",
+      "sha256": "41a7b42b5a98377a9e4690cb41a550810b96da14f5792683a3cf6b35d1b68d48",
+      "audit": "zk-formal/test/AuditNativeAccessByteAllocation.lean",
+      "audit_sha256": "cf612323a8a7cb24f24b69320a07ceffdb12b478c9db67d39ef6a77ca8b75cd2",
+      "guards": 1
+    }
+  ]
+}

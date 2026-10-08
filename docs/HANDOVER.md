@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeAccessByteAllocation strictPASS5guards across3root modules.
+Strongest SAME native receipt/account/access-key/trie/fourSHA theorem discharges
+actual account AND access-key physical VBYTES sends from full EmptyValue forest
+demand. Remaining demand is exactly original values outside BOTH owned sets plus
+all implicit-prestate occurrences. Selection permutation preserves one byte
+provider per original VID and repeated access-query use counts. Existing raw/
+ranked lookups, local/traffic, public and digest balances preserved. QV/Codec
+providers and AKC receipt multiplicities still open.
+
+Independent scheduler3modules8guards derives runtime frame and positive branch
+windows internally, leaving full-instance job-ID permutation with actual ordinary
+instance/part validity; fresh payload4modules5guards proves exact signed native
+fresh digest messages. Upper/split payloads and full conservation remain.
+Receipt MEM3modules4guards closes full physical receipt+account send=receive
+for SAME native trace/ledger, deriving canonical block ordering and field bounds.
+Agent is composing into new NativeReceiptMemoryBytes/NativeMemoryAllocation;
+those files are not part of this checkpoint until independently checked.
+22guards total; prebuilt dependencies only, not clean/full correctness certificate.
+Receipt882/882, integrated10/19; full prover/real judge pending. Candidate pg3
+size8,231,316 bytes remains structural with unfinished Codec installation.
+Priorf3c52c9d push DNS failed; local checkpoints and verified bundle retained.
+
+
 2026-10-08: NativeAccessKeyAllocation strictPASS11guards across4root modules.
 Accepted native system receipt validation derives original-prestate nine-byte
 FullAccess encodings, preserved through intervening account writes and scheduler.

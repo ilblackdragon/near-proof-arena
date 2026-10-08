@@ -1,0 +1,25 @@
+{
+  "lane": "native-receipt-mem-aggregate",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReceiptMemAggregate.lean",
+      "sha256": "e5a178a6d8ff1008bcda4567833bf36d3848ff6ac959cdb5556a224f91799f26",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-aggregate-NativeReceiptMemAggregate.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptMemAggregate.lean",
+      "sha256": "db8065a8d3eb11f0b911a96f514ffcdbfa0051132807b19cfcd255f6834e3229",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-aggregate-AuditNativeReceiptMemAggregate.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module1guard. Actual located physical receipt MEM sends/receives equal SAME native ordered ledger, including repeats and empty lists, deriving original slot and timestamp field bounds.",
+  "exact_axiom_guards": 1,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
