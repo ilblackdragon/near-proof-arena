@@ -1,0 +1,25 @@
+{
+  "lane": "codec-nonrecord",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecNonrecord.lean",
+      "sha256": "ad76d0a519f2dc9e54cc039cc1f3c07b9b2573545e660c2c4aa16d33537be21d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-nonrecord-ProcPriorCodecNonrecord.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecNonrecord.lean",
+      "sha256": "b7a3d58591b8d2fc9c9b558b06bd1f013a9810ff050916ea6c649c63fe79a8aa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-nonrecord-AuditProcPriorCodecNonrecord.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module1guard. All19 added Codec constraints vanish on computed header/hash/padding layouts from five phase flags and next-grid counters zero; digest bytes unrestricted. Imperative array linkage and original constraint composition remain.",
+  "exact_axiom_guards": 1,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
