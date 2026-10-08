@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08 root arbitrary four-source reconstruction: SourceLog22Join/Padded/
+Trace/Sound strict PASS, FIFTEEN exact standard-axiom guards. Three authenticated
+boundaries preserve all constraints; inactive endpoint clones restore logical
+power-of-two height; multiplicity bits transfer; joined4_local/blocks recover
+complete Dedup TableLocal and same nonempty BlockChain. Physical tables staylog22;
+logical log24 is ONLY extraction. Report v3-source-log22-sound.
+IMPORTANT NEXT: current joined4_* requires common physical height. TableLocal
+permits DIFFERENT heights≤22; generalize to unequal strides and fixed logical24
+before full soundness. Do not silently assume equal heights from honest rendering.
+Agent boundaries_cells ALREADY independent of equal heights and honest inputs.
+
+Independent new reviews PASS: native-token-ledger5modules21guards; source22-honest
+2modules14guards; codec-relay-inventory5modules13guards; source22-boundaries1module
+6guards. Reports docs/e2e-results/v3-{lane}/report.json. These use prebuilt
+dependencies and are not a clean whole certificate. Receipt agent now owns generic
+external traffic concatenation for arbitrary physical row functions; D2 continues
+actual row neighbor/header composition; UPS owns actual global Codec/SHA send
+inventory and SPLEN binding. Latest per-agent only: RcptPlanLedger/BoundaryTokens8,
+CodecRelayLength/LengthGlobal3. Root next unequal-height joined source and global
+message/SIZE extraction, then concrete whole candidate AIR/admission and budget.
+Goal remains full NEAR replacement; D0a, certificate/prover/judge still incomplete.
+
+
 GIT CHECKPOINT SUCCESS (2026-10-08): proof commit3760d4f9 contains653 files/
 46788 inserted lines on codex/near-state-proof-20261008 in writable alternate
 Git store /tmp/nearproof-checkpoint-20261008.git. Original .git/main untouched.

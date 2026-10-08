@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Fifteen exact guards: arbitrary accepted four-source traces reconstruct one complete logical source TableLocal and nonempty semantic BlockChain under common height and three full-row carry equalities. Physical tables stay log22; logical log24 is only extraction. Global carry derivation and exact external traffic remain to compose.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22Join.lean",
+      "sha256": "bdda7bc10303e696e6f83bbf807f1e1f71456901eac031b46dd7d027ce6ce070",
+      "audit": "zk-formal/test/AuditSourceLog22Join.lean",
+      "audit_sha256": "8645413443477a305ede3dad93fa131f79073793261b63aed1332e2c0b2a9118",
+      "guards": 5,
+      "log": "/tmp/nearproof-SourceLog22Join-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22Padded.lean",
+      "sha256": "b83cdf86fbd0cdd03bb6de4bd28b15d0876437fe962671d0a19f2c40250142e4",
+      "audit": "zk-formal/test/AuditSourceLog22Padded.lean",
+      "audit_sha256": "f175f8d73da988511abe3b9813d1f102b45c87a32f69044ae84e4683808bcd71",
+      "guards": 4,
+      "log": "/tmp/nearproof-SourceLog22Padded-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22Trace.lean",
+      "sha256": "409269f2e34bd5cad1dccb9314b61ea1804efa6988cd70dd1b7acb0cd43c13db",
+      "audit": "zk-formal/test/AuditSourceLog22Trace.lean",
+      "audit_sha256": "f5ff60b50abc6d7e731b3a36fa58b4efaa9f92969b62b969c4e1c43a38dced95",
+      "guards": 3,
+      "log": "/tmp/nearproof-SourceLog22Trace-audit-checked.log"
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22Sound.lean",
+      "sha256": "21c8567ecd814776baa0ab3e0fc2ad59a381323ddfee99206e2203bef5fabb8f",
+      "audit": "zk-formal/test/AuditSourceLog22Sound.lean",
+      "audit_sha256": "5be9ae9e8d97d7308af81e6da9384fed82ec0f723c9d6ad85159bde34b3b1b0a",
+      "guards": 3,
+      "log": "/tmp/nearproof-SourceLog22Sound-audit-checked.log"
+    }
+  ]
+}

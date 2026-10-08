@@ -1,0 +1,59 @@
+{
+  "lane": "codec-relay-inventory",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelayCover.lean",
+      "sha256": "9bc697e7472b24b4a85f65aaa67689d4e648c2446655b102b8554ec4155ad70f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-relay-inventory-CodecRelayCover.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelayInventory.lean",
+      "sha256": "7aef61c2999ea38209841911cb94dad13b2fcec03691265c340f13dbbed0716f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-relay-inventory-CodecRelayInventory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelayIds.lean",
+      "sha256": "9481056d7b99be5ace2d3f5ce7d0273d97f86b25fca438dd8f114f0ab0bd286d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-relay-inventory-CodecRelayIds.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelayValues.lean",
+      "sha256": "e361a5a0917eb2fe0e1fb4c47ccc41d5d02535d428af273eee5a804e8c9af8d8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-relay-inventory-CodecRelayValues.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/CodecRelaySupply.lean",
+      "sha256": "23dbb7702d95456deb4e719b23fc2034a7198ceec070400a82f6dff0118613d2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-relay-inventory-CodecRelaySupply.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCodecRelayInventory.lean",
+      "sha256": "2541efcb5845dbbfc687229ec100baff4c019823cb7b20921f1139bed808e867",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-relay-inventory-AuditCodecRelayInventory.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCodecRelaySupply.lean",
+      "sha256": "ff3e603460866c494d360aac576446a20c2647c5bd66dbf36fd98e89539dff5d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-relay-inventory-AuditCodecRelaySupply.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 13,
+  "scope": "Independent strict recompilation and exact standard-axiom audits of recorded modules against prebuilt dependency artifacts; not whole certificate or general NEAR replacement."
+}

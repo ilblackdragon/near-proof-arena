@@ -1,0 +1,31 @@
+{
+  "lane": "source22-honest",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22HonestTraffic.lean",
+      "sha256": "d62a6fad9ed535b99fa84fb1524b62712b582c9cc0578d349475d78421f3653e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source22-honest-SourceLog22HonestTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22HonestCarry.lean",
+      "sha256": "910c5247bbfa19becac6e44c4dafc837889de0e8159470b6ab9dbd53c4e53f6c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source22-honest-SourceLog22HonestCarry.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSourceLog22Honest.lean",
+      "sha256": "6e8da2e9403c101bc64f99167c68ca72167e58802c69be6b2b8cb768ef67f278",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source22-honest-AuditSourceLog22Honest.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 14,
+  "scope": "Independent strict recompilation and exact standard-axiom audits of recorded modules against prebuilt dependency artifacts; not whole certificate or general NEAR replacement."
+}

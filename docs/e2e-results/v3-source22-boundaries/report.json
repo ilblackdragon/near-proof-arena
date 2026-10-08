@@ -1,0 +1,24 @@
+{
+  "lane": "source22-boundaries",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/SourceLog22BoundarySound.lean",
+      "sha256": "610aa606a56cdc7a49a04b73fe23c940e63499b9825701668553e7c876e4b968",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source22-boundaries-SourceLog22BoundarySound.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSourceLog22BoundarySound.lean",
+      "sha256": "d4271dbfb4ecc5deb7beb18908d70e7ac45398a4012e4882cddfb1803f88e28a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-source22-boundaries-AuditSourceLog22BoundarySound.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "exact_guards": 6,
+  "scope": "Independent strict check: actual four-table SIZE-decorated carry counts authenticate all three57-column overlaps, without honest cells or equal-height premise. Whole-AIR bus isolation remains explicit."
+}
