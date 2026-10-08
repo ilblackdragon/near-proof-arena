@@ -6,6 +6,19 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcDistGrantBounds strict PASS, seven exact axiom guards.
+Grid row/fold proofs bound every native optional grant by its original sender
+residual budget and preserve grants-array size. grid_bound applies this to the
+full native distribution. granted_eq_add derives no saturating-add overflow
+from GInv and M<=u64Max. event_granted binds actual link-pass event grants to
+native accumulated grants under process invariant and array shapes, without
+an independent no-overflow assumption. Accepted-process final invariant/shape
+facts still need wiring into complete core output equivalence. Full ActualRun
+replay success, Codec Local, allocation wiring and full certificate/prover/judge
+remain open. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged.
+Prior6c350a55 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcDistGridAgreement strict PASS, nine exact axiom guards.
 Actual distributeEv receiver and sender loops now agree exactly with native
 optional grid grants mapped by getD 0, preserving endpoint budgets/counts.

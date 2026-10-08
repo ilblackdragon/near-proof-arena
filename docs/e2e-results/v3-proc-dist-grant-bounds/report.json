@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Grid grants are bounded by original residual sender budgets. Under process GInv and array shapes, event accumulated grants equal native distribution without a separate no-overflow premise. Accepted-process invariant/shape wiring and full replay remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcDistGrantBounds.lean",
+      "sha256": "1f5afe80319ba493fc04f6ebc3cf750a96e9bd00f5b44f452fea4e690f487dab",
+      "audit": "zk-formal/test/AuditProcDistGrantBounds.lean",
+      "audit_sha256": "15266e61a776748c8e9f8e26b4bbc026c5623c54dc7caef90449317ab3f67aff",
+      "guards": 7
+    }
+  ]
+}
