@@ -1,0 +1,53 @@
+{
+  "lane": "ups-terminal-id",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/NativeTerminalId.lean",
+      "sha256": "68864f21deadee53665076f31850cc964fd9b903618b1a0cf3fb1a94eb7dcdbf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-NativeTerminalId.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/ForestTerminalExact.lean",
+      "sha256": "adc735e7c666efb53eb58c5b35eed9725405500c09fafbb2fdd8a3cb6d777964",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-ForestTerminalExact.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/ForestNativeWalkExact.lean",
+      "sha256": "2f93f631d6e15719edcfba7e78946813499bf942f021f5e0b5ea5f5a59702f5f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-ForestNativeWalkExact.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/SchedulerExactInstances.lean",
+      "sha256": "8e54b669de4e9970e294096aa815a7643c055806a981fd7ff487e1ba81c8ea9c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-SchedulerExactInstances.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Render/Ups/AcceptedExactTrafficList.lean",
+      "sha256": "f1f4b219d0ad7ea926049be5d11a2745708b48721f8fdfd7a3382602851e10c4",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-AcceptedExactTrafficList.log"
+    },
+    {
+      "path": "zk-formal/test/AuditUpsTerminalId.lean",
+      "sha256": "241f12779886cef5ca52fe8eee466a5430d95ab480d5b0973912197bd3fbc48a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-ups-terminal-id-AuditUpsTerminalId.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Exact terminal provider node ID propagated through same accepted scheduler allocator/native traffic list; same allocated/SHA witnesses, no domain change.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

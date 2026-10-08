@@ -1,0 +1,32 @@
+{
+  "lane": "native-provider-coverage",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodeEdgeDistinct.lean",
+      "sha256": "888417eaaf23af4bdb94ac27f91671b634f519c5eb5948c578655cd546afee91",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-provider-coverage-NodeEdgeDistinct.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeProviderCoverage.lean",
+      "sha256": "ef7317261b8ca24186a03d35180beaa28673fed72c870a41254852ddcc11a7e9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-provider-coverage-NativeProviderCoverage.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeProviders.lean",
+      "sha256": "ce4e1270e4a01ffb0f6b9b3b78d8df3456c2923ccb00fbfd7936045ee164e272",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-provider-coverage-AuditNativeProviders.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual node EDGE/BMAP key uniqueness and exact UPS START/terminal coverage from strengthened native providers. Combined heads and active-terminal mode/allinstance assembly remain.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

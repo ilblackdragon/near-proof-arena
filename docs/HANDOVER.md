@@ -6,6 +6,33 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: StoreOccurrenceIds/StoreOccurrenceUnique strict PASS7 guards.
+Value count<2^22 derives from existing ValWf rows/shape including empty values;
+consecutive value IDs equal actual natural list indices with no field wrap.
+Combined node/value entity IDs all<P follows original NodeWf3/ValWf, removing
+canonical-ID premise from shared duplicate metadata local validity. Node/value
+ID namespaces disjoint; each concrete entity ID identifies one occurrence.
+A record carrying its representative ID is exactly the actual selected head.
+Native value transition tags, toBytes byte faithfulness, exact selected class
+count/payload and global ENT/DUP/UNIQ traffic remain root integration work.
+
+Independent receipt-named-inverse PASS16 guards: same trace710/881, actual named
+score inverses and commuting scratch layout, native decoded applied-input name
+premise discharged. Remaining character equations11; other local families open.
+UPS-terminal-id PASS7 guards: actual terminal e[0]=allocated nid retained through
+native forest, scheduler and accepted allocator. Same native allocation/SHA
+witnesses, no added domain guard. Native-provider-coverage PASS9 guards: actual
+node EDGE/BMAP provider keys unconditionally distinct, and exact native UPS
+START(head) and terminal BMAP/EDGE coverage. Combined head/node uniqueness,
+active terminal mode and all-instance ownership still under construction.
+
+Reviewed receipts710/881; selected fixed-height components10/19; size/header
+8,288,148 unchanged. Three agents continue receipt, ownership and scheduler.
+Full certificate/clean build/prover/realjudge/generalNEAR remain incomplete.
+Strict source checks use prebuilt dependencies; do not claim whole build.
+Local commits/bundle preserve work; GitHub DNS continues blocking push.
+
+
 2026-10-08: StoreDuplicateMetadata/ValueDuplicateMetadata/CombinedStoreOccurrences
 strict PASS14 exact guards. Concrete lookup selects actual entity ID by tagged
 native-byte key; updates dup/hd/repE while preserving complete NodeWf3 and ValWf,
