@@ -1,0 +1,67 @@
+{
+  "lane": "proc-prior-vertical-clock",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVertical4Eval.lean",
+      "sha256": "59b2598f32d247a5d676dd9dc1e444311c6859c5a10080d0d159e0c88d15d067",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-vertical-clock-ProcPriorVertical4Eval.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVertical4Traffic.lean",
+      "sha256": "26929a359dacfa2749ae5597ad76053f27da8df1b4f5cda04d39b4c77a2e2652",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-vertical-clock-ProcPriorVertical4Traffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVertical4ClockCases.lean",
+      "sha256": "71d4806ceb4638b2986c6913fa1c70d6b41e7b534ffa4b3be566a4fd10c5abd7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-vertical-clock-ProcPriorVertical4ClockCases.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVertical4Clock.lean",
+      "sha256": "7940c4baffea733f0df544892fe88bb37711fee16cebbe6743b6737437ed8710",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-vertical-clock-ProcPriorVertical4Clock.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVertical4ClockTrace.lean",
+      "sha256": "336d25f9837cb53212cf57803547007ae03adae30c55dfcbac2dfe27598da54f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-vertical-clock-ProcPriorVertical4ClockTrace.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorVertical4NativeClock.lean",
+      "sha256": "aa9045db1e100f7da575521e900691b72a19156340f84159f2df54b06e5d60a8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-vertical-clock-ProcPriorVertical4NativeClock.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorVertical4.lean",
+      "sha256": "60860ebdfaac394e1eba74c20369e9404bd437bbc87ccb25c310144dbbba3c4b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-vertical-clock-AuditProcPriorVertical4.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorVertical4Clock.lean",
+      "sha256": "e11b2c1fbb222a60ce3557ce6a5bbd9f5ac19b6543841a5e3557994678a50564",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-proc-prior-vertical-clock-AuditProcPriorVertical4Clock.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules23guards. Actual four-stage window clock with log22 cuts derived from memory/ID/raw inventories and record padding;21 window constraints checked every physical row including wrap. Eval/traffic transport checked. Native data-column installation and authenticated bus joins remain.",
+  "exact_axiom_guards": 23,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

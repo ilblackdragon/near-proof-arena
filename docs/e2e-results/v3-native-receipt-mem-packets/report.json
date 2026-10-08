@@ -1,0 +1,53 @@
+{
+  "lane": "native-receipt-mem-packets",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReceiptMemCells.lean",
+      "sha256": "1ea760a4d80c72e4e67d1a6b253dab06b81231d90cc8eee27bc44e3bfd428bdd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-packets-NativeReceiptMemCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReceiptMemDecode.lean",
+      "sha256": "8e6ad76300f4a98f913efee620c4bfdc8264a023bd2328990aee1802b3a342f3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-packets-NativeReceiptMemDecode.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReceiptMemView.lean",
+      "sha256": "add6b96ccacae8f0b2c6eeb3451db5f6f10da21312c4322c3f2ae6224424eda7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-packets-NativeReceiptMemView.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReceiptMemMetadata.lean",
+      "sha256": "35439d22c468f4afb570e6ca139c5c2f628f7c11f2a843b0501d057bb18794c7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-packets-NativeReceiptMemMetadata.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReceiptMemPackets.lean",
+      "sha256": "d181b3667d2915ed62b64d049c975633cc46c0e27f6466f394ed335e7116c75c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-packets-NativeReceiptMemPackets.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptMemPackets.lean",
+      "sha256": "7e5083c6056299be275be042c22acf08f748c9229972769d9a2118fc01e9bd82",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-mem-packets-AuditNativeReceiptMemPackets.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules8guards. Repaired actual receipt completeReceiptAux/depositFinalAux yields extracted MEM packets at all16 lanes with concrete scalar amount/deposit/locked/storage and original slot/timestamps. Field-range bounds explicit. Ledger instantiation and canonical ListChain aggregation remain.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

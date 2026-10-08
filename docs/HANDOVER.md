@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeReceiptLookupAllocation strictPASS11guards across3root modules
+fixes BOTH receipt account and access-key IDs to original-prestate value slots.
+Conditional native access-key queries preserve W_AK+receiptIndex through filtering
+and actual counter-ranked lookup lists. Proved missing access key (find=some none)
+is legitimate and retained; unresolved proof (find=none) is excluded by native
+execution. Existing access-key bytes fetched at the exact original VID. Key-tag
+separation proves account/access slots disjoint and every existing access VID lies
+in the exact remaining original-value byte inventory (no account double charge).
+Full physical access-key byte-provider conservation remains open.
+
+Independent receipt MEM5modules8guards gives actual extracted per-receipt sixteen
+lane packets from completeReceiptAux/depositFinalAux; actual ledger instantiation,
+field bounds and canonical block aggregation remain. Four-stage parser clock
+6modules23guards checked: all21 window constraints at all rows and wrap, explicit
+actual input inventories/capacity, data-column installation and bus joins remain.
+42guards total; prebuilt dependencies, not clean/full correctness certificate.
+Receipt882/882; integrated10/19. Candidate structural size8,231,316 bytes checked.
+Full prover and real judge still pending. Prior7bf52f29 push DNS failure persists;
+local commits and verified recovery bundle retained.
+
+
 2026-10-08: NativeReceiptIdAllocation strictPASS8guards across3root modules
 removes arbitrary receipt accountId from strongest combined native/account/receipt/
 public/trie/fourSHA theorem. Concrete IDs are original-prestate account slots;
