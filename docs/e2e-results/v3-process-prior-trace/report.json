@@ -1,0 +1,46 @@
+{
+  "lane": "process-prior-trace",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorTrace.lean",
+      "sha256": "2209d0d09aa44f9504a37071f74f3faf1ab7833179452b525c29dd63858f86e8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-trace-ProcPriorTrace.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorTraceConstraints.lean",
+      "sha256": "3960e1189adb7cec258c402b5505e8515df051262b78d65147997449dbe22074",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-trace-ProcPriorTraceConstraints.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorTraceLocal.lean",
+      "sha256": "115b3da030da3243b6298ab0e2faf8a39a40a323d0613b0c4c6faf4090c13739",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-trace-ProcPriorTraceLocal.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorDecodedLocal.lean",
+      "sha256": "1051e0c5b6ee4086516393c43848663e36fa19f73dacee5aea42ac63f829109e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-trace-ProcPriorDecodedLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorTraceLocal.lean",
+      "sha256": "231a2e67be94029fba9470de23ea5dde646e62f9cb3f8ffeb133cf8064c0d2e1",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-trace-AuditProcPriorTraceLocal.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules11guards. Executable log22 native decoded prior-memory gated Fp trace satisfies full TableLocal, all active/padding/wrap constraints and multiplicity bits. Original bytes/ID bounds derive capacity. Multi-instance/authenticated parser/first-ID AIR remain.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

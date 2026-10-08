@@ -6,6 +6,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: FusedReceiptHolds strictPASS1 exact guard derives SAME projected
+receipt ListChain/semantic RcptV3Wf/all-bus traffic from actual gated-family
+Holds plus public ranges. Independent MEM version/ownership premises removed:
+concrete family sender inventory and balance discharge them. This uses Holds,
+not yet actual public protocol HoldsP; receipt agent factoring MEM-only balance
+and proving prepared public MEM exclusion. Do not claim full protocol soundness.
+Independent receipt-family-memory PASS1module12guards confirms exclusion of
+other MEM senders, account version0 and bounded receipt writes without circular
+receipt Wf assumptions.
+
+Independent process-prior-trace PASS4modules11guards closes actual gated Fp
+TableLocal renderer at log22 from original decoded prior bytes, IDs<=64 and
+bytes<=2M, including padding/wrap. Parser/first-ID AIR and aggregate bus ownership
+remain. Agent designing canonical limb raw-ID parser; all final repair costs
+must be admitted to actual budget, not presumed within75,308-byte margin.
+
+Integrated10/19 retained. Full certificate/prover/judge/general NEAR open.
+Three agents active. Priordddd62fd push failed DNS; retry verified bundle.
+
+
 2026-10-08: ReceiptPhysicalShaBytes strictPASS2guards proves exact receipt/account
 SHA producer split: SHA job bytes PLUS public refund-body bytes equals actual
 repaired receipt sends + account sends + explicit Merkle job bytes. Refund

@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-family-memory",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptCandidateFamilyMemory.lean",
+      "sha256": "fbf87cf20ed8512360ca3dba667418b6024bb1988f22af75ead19afcbc4de4c6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-family-memory-RcptCandidateFamilyMemory.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptCandidateFamilyMemory.lean",
+      "sha256": "81a64b3f6e80ddde2a18e6c53f5d94c885eaef37c201982512b4fa2c326c7dee",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-family-memory-AuditRcptCandidateFamilyMemory.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module12guards. Concrete fused sender inventory only repaired receipt plus account table6; global Holds balance derives positive MEM receive version<=2^22 without age/Wf/ownership assumptions. Actual HoldsP adaptation remains.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
