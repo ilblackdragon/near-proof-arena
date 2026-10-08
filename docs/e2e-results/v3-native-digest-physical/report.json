@@ -1,0 +1,32 @@
+{
+  "lane": "native-digest-physical",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeDigestMetadata.lean",
+      "sha256": "dadabdce1d8420bfb223abf73007d5e7b5f89db0fab76139e3fdf075323a372f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-digest-physical-NativeDigestMetadata.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeDigestPhysical.lean",
+      "sha256": "f05772a4afcba8349604b4a8f86f70f441af91788335b33ec2df47ef77755a05",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-digest-physical-NativeDigestPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeDigestPhysical.lean",
+      "sha256": "b019d5a46ef6bb96a5f1427985e3477fa13c164a36ee56a8f1b226d5de396bab",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-digest-physical-AuditNativeDigestPhysical.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules7guards. Actual initialize/chain/records/assignList metadata pipeline preserves child DIGEST requests; exact physical node receive count splits child and value-slot requests under final NodeOk.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -1,0 +1,81 @@
+{
+  "lane": "receipt-native-encoding",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeFieldBytes.lean",
+      "sha256": "3384e567f5948d598b87bd6912ff295b18310985e5bdcf877be5914dee4a08b2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-encoding-RcptNativeFieldBytes.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeInputSlices.lean",
+      "sha256": "a60debfd03d636c937744b50d296d29a722f6f270f386e0a6b0ad6bfb339faf0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-encoding-RcptNativeInputSlices.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeEncoding.lean",
+      "sha256": "1f8fcae5b10f127a55c198a81872b7e0963daf33816575443b8c881c9f7fdfcf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-encoding-RcptNativeEncoding.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeRefundAmount.lean",
+      "sha256": "61c67c21e135388b6967504c9282b231e271daeab6df163959c02dca6d05085e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-encoding-RcptNativeRefundAmount.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptNativeRefundEncoding.lean",
+      "sha256": "c9c5e3d36fb09667d2f47a780dd04778a13b24707fff2ca85ee505d53e777cbc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-encoding-RcptNativeRefundEncoding.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeFieldBytes.lean",
+      "sha256": "36f4750e0531beb4c01da5c34e4e2d9c8eccefeacf5ae417c3b8e9d8941a3516",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-encoding-AuditRcptNativeFieldBytes.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeInputSlices.lean",
+      "sha256": "3b5e37667762763402bd21603bcbfbb9d88304d76374eb92492e6eed92b6bf54",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-encoding-AuditRcptNativeInputSlices.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeEncoding.lean",
+      "sha256": "f1c069ca6c0ea957cda6f3dc7e1705ffa03d22804e0e6f214faa2891633f92d3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-encoding-AuditRcptNativeEncoding.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeRefundAmount.lean",
+      "sha256": "b02cb3efe64dc4440f3256cf9cd10f38c54b51271ab096720ad1ccaecc6da726",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-encoding-AuditRcptNativeRefundAmount.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptNativeRefundEncoding.lean",
+      "sha256": "6c91f701c49b68f40696505906039bf39418a50dd42fb6d6a1709de0334f6869",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-native-encoding-AuditRcptNativeRefundEncoding.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Five modules12guards. Actual physical receipt encoding equals native Receipt.encode; actual refund amount and bytes equal native gasRefundReceipt.encode. No reconstructed serialization equality assumed.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ReceiptNativeDigestBalance strictPASS9guards across3modules composes
+SAME native repaired receipt trace/extracted canonical chain with exact per-receipt
+SHA digest partition: physical PEO/RID receipt consumers plus indexed LEAF digest
+records. Native PEO/RID equations,32-byte IDs,68-byte leaves and native outcome cap
+are derived, not extra premises. Physical receipt/Merkle MPOS conservation now
+uses same actual native leaves. Existing receipt/account/Merkle byte equation and
+public refund fragments retained. RC/account/internal-Merkle full DIGEST balance
+still separate; no full SHA/global prover claim.
+
+Independent native serialization5modules12guards and canonical encoding2modules
+4guards match actual receipt encodings and ordered refund bodies to actual native
+inputs/outgoing receipts. Source-list grouping/RC headers still in progress.
+Independent replay node DIGEST partition2modules5guards and metadata/physical
+split2modules7guards preserve same forest, actual pipeline and duplicate nodes.
+Matching concrete SHA job expected digests and value-slot consumers remains.
+
+Integrated10/19, receipt882/882 unchanged. Shared parser proposal8,378,132 with
+10,476 spare bytes before record joins; stage-window completion still open.
+Full prover/clean certificate/real judge/general NEAR unfinished. Three agents
+continue. Prior3ea26bb0 push failed DNS; retry checkpoint with verified bundle.
+
+
 2026-10-08: ReceiptNativeRefundBytes strictPASS2guards composes SAME actual
 native repaired receipt trace, canonical views, native outcome leaves and exact
 receipt/account/Merkle SHA-byte balance with both PEO and RID refund digest

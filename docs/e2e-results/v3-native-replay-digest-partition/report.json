@@ -1,0 +1,32 @@
+{
+  "lane": "native-replay-digest-partition",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeDigestHeads.lean",
+      "sha256": "d9245f4b8dfc8920dc65df39033ddc8164f1b2bda031c8c575971f34528a546c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-replay-digest-partition-NativeDigestHeads.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeReplayDigestPartition.lean",
+      "sha256": "93f385109507b16a1b18d7b64574ba16336b257ace044524e3273cc524445798",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-replay-digest-partition-NativeReplayDigestPartition.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReplayDigestPartition.lean",
+      "sha256": "e80a2394f69bb5ded0545c3e0553e09ba9254161e6ac3f72835e42a3a5a45a3e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-replay-digest-partition-AuditNativeReplayDigestPartition.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules5guards. SAME actual native replay HEAD roots plus updated seed-node child DIGEST requests permute to indexed node occurrences; root revelation derived from native success.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
