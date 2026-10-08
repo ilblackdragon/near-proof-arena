@@ -1,0 +1,46 @@
+{
+  "lane": "empty-value-repair",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/EmptyValueTable.lean",
+      "sha256": "ca119cfbe77e0ccd817a058e9c87c76f6575cfce67e4e81582ee1cb7b5244460",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-empty-value-repair-EmptyValueTable.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/EmptyValueMessages.lean",
+      "sha256": "c6113e036fcd59bd9bf00e2840662cb7d8e7e8ce113cb40bf8fe3b0a698c812d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-empty-value-repair-EmptyValueMessages.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/EmptyValueTraffic.lean",
+      "sha256": "b3852d0f44047ac919057b45f2ac995bb919038528dc7e19bff873eb1471986c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-empty-value-repair-EmptyValueTraffic.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/EmptyValueComplete.lean",
+      "sha256": "1bdd6ac882d32e780b74ce3645bc7d8cd48d9e82977d89507e990110a56150ff",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-empty-value-repair-EmptyValueComplete.log"
+    },
+    {
+      "path": "zk-formal/test/AuditEmptyValueRepair.lean",
+      "sha256": "cc67a2ba99b2264d8c61933f4eb0cb4b2df44ff7b00743508ef605b8b9006a48",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-empty-value-repair-AuditEmptyValueRepair.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules23guards. Fixed SHA(empty) DIGEST provider per empty value occurrence. Actual counted log22 trace plus existing nonempty SHA jobs accounts all value digests; no extra SHA rows/bytes. Other traffic unchanged, authenticated value-length component local compatibility. Selected fused budget separately pending.",
+  "exact_axiom_guards": 23,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

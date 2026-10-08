@@ -1,0 +1,95 @@
+{
+  "lane": "prior-id-local",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdNext.lean",
+      "sha256": "35ecaebab87dfc52027d5c34868ad6c867f9219b54a7ffc8c62b1fb82f97e9b6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-ProcPriorIdNext.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdCells.lean",
+      "sha256": "a3ff415075412c881dec1943d96f9361c7ef89ea8b0f78df8c0b8fcfe99d46a9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-ProcPriorIdCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdCarryFields.lean",
+      "sha256": "fd6dd08d3ff24ed4ad891c39240bbd59a44fa843e3cc224d5b86631e767f026b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-ProcPriorIdCarryFields.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdGateFields.lean",
+      "sha256": "8be354c70ff0a20b7ce3da9d8365d2ae2a49fab487813bf48035a34c7df63a28",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-ProcPriorIdGateFields.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdActive.lean",
+      "sha256": "2a8bcb183fc98774620dbba263f4f6b19d9d9950ee3001236f70dcd24d344b9b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-ProcPriorIdActive.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdBoundary.lean",
+      "sha256": "3233120fda165007d447b81248d58a5302806669e2e647b8f1190f4a52d72f75",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-ProcPriorIdBoundary.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdPadding.lean",
+      "sha256": "c183d3c6f6588411fb751c61ffe61254c5515b4bde9e6a7eb0bbf0abec5193d7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-ProcPriorIdPadding.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdBits.lean",
+      "sha256": "f8a65fc59e9884ee7ee694c52efafa2392112cd26bd825a394633e1aa9565b2a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-ProcPriorIdBits.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdTrace.lean",
+      "sha256": "caebb17e3ac74fb5f9041ad1fc6ccd54a53e072e932cc93f778f010bdcfa64ad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-ProcPriorIdTrace.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdTraceConstraints.lean",
+      "sha256": "2d2000d72ad1a5e284f39c006217448dd86906c35c6cf5edb6920a7174ab2a39",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-ProcPriorIdTraceConstraints.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIdLocal.lean",
+      "sha256": "ebd228633b8744e886ed149d34ba28da8f78abc565b94b701ae953fbe465b961",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-ProcPriorIdLocal.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorIdLocal.lean",
+      "sha256": "ddb56e98f5f35735f7115a3cd611a78a157ffdfb3a9212202c61cd8e86a71d7b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-prior-id-local-AuditProcPriorIdLocal.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Eleven modules28guards. Actual first-ID lookup renderer all physical rows, padding/boundary/wrap and multiplicity bits; TableLocal with original State.decode and accepted size/ID domain bounds. Duplicate public IDs and original arbitrary records retained. Record joins and multi-instance vertical assembly remain.",
+  "exact_axiom_guards": 28,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

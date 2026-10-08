@@ -1,0 +1,25 @@
+{
+  "lane": "empty-value-gap",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/EmptyValueDigestGap.lean",
+      "sha256": "6c1a8e20e1be4e03b6a28e170b9908683457929a31db3af8363a8e148b7a7cfc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-empty-value-gap-EmptyValueDigestGap.log"
+    },
+    {
+      "path": "zk-formal/test/AuditEmptyValueDigestGap.lean",
+      "sha256": "81cd780ac0dd291c35a06b3974a88708c6cdc793bc72a61b1d5940d1ecb60a2a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-empty-value-gap-AuditEmptyValueDigestGap.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4guards. Concrete local native empty-value read and missing prior VPRE job counterexample, including group-data key. Not a whole accepted-checker fixture.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

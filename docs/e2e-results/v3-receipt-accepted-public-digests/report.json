@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual nativeHint preparation and accepted SAME native execution discharge receipt FinalPublicBytes count/body/tokens and own-shard fields. Receipt/Merkle composite retains SAME local/MPOS/byte/digest balances and explicit duplicate-gated RC/account digest residual. Corrected RC job flags preserve every preimage byte and exact SHA row count; source-dup flags come from actual prepared source lists. Input-plan correspondences, gas/domain bounds and account traffic remain. Not full global proof or clean certificate; strict audits use prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptGatedShaJobs.lean",
+      "sha256": "26a538f5912d20b280ca127179b3efa9d076badf55c3812600bb5019a0d94e74",
+      "audit": "zk-formal/test/AuditReceiptGatedShaJobs.lean",
+      "audit_sha256": "f8378af0669670264c5ca0f9ec1e5e3d5801f9dd89ef487b7b9ff68399cb282e",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptPreparedFields.lean",
+      "sha256": "3deb154d57eaa9465d120d36d70b316955917279785409e0db93a31030eb1a49",
+      "audit": "zk-formal/test/AuditReceiptPreparedFields.lean",
+      "audit_sha256": "51659104708fa49a7340e250b0b7510eeff3d150a276b24769b3cd85a1cacebf",
+      "guards": 7
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptPreparedFinalPublic.lean",
+      "sha256": "f1298d518d4c69e7dca6a46ed748be4877bf34ce2984c89b12c773d7d32e6008",
+      "audit": "zk-formal/test/AuditReceiptPreparedFinalPublic.lean",
+      "audit_sha256": "8c5f95c15dab688448ca1a7fceb1c8cc482ec9d8d36ae7b58c7b34d77e27d82f",
+      "guards": 2
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ReceiptAcceptedMerkleDigests.lean",
+      "sha256": "218ff5e35605fdefe04605975be9ba860e6749853905d513ef99acea46ff3a39",
+      "audit": "zk-formal/test/AuditReceiptAcceptedMerkleDigests.lean",
+      "audit_sha256": "4b28fc4af80ec0447fe9dc555677150e195b58f1ab7b6e98f4901dd78ce70961",
+      "guards": 1
+    }
+  ]
+}

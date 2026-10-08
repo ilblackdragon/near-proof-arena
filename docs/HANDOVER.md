@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ReceiptAcceptedMerkleDigests strictPASS14guards across4root modules
+DISCHARGES FinalPublicBytes count/body/tokens and own-shard bytes for actual
+nativeHint preparation and SAME accepted m.run. All public header byte premises
+used by receipt/Merkle composition now derived. Corrected receipt SHA constructor
+hashes every source occurrence but gates RC DIGEST output by actual sourceDup.
+Exact preimage bytes and SHA row count unchanged; physical receipt/Merkle DIGEST
+balance retains gated RC/account residual. Native source-plan/gas/account premises
+remain; no complete global proof claim.
+
+Independent source RC jobs/preimages5modules12guards links actual canonical source
+inputs, byte/hash identities and deduplicated RC digest consumers. Empty-value
+local gap1module4guards and candidate repair4modules23guards: actual counted value
+trace supplies fixed SHA(empty), preserving every occurrence and all other traffic;
+existing nonempty SHA inventory plus new sends covers full value digest inventory.
+Selected fusion shape/budget review and node-slot ownership still pending.
+First-ID renderer11modules28guards now has physical TableLocal including padding,
+wrap, bits and native decode-derived capacity. Joins/shared assembly remain open.
+
+Receipt882/882 and integrated10/19 unchanged. Previous shared parser proposal
+8,378,132 with10,476 margin before joins; no final capacity assurance. Full prover,
+clean certificate, judge and general NEAR replacement remain unfinished. Three
+agents continue. Prior7fa48309 push DNS-blocked; retry and verify recovery bundle.
+
+
 2026-10-08: ReceiptPreparedMerkleDigests strictPASS2guards across2modules binds
 receipt/Merkle construction directly to SAME accepted m.run and actual normalized
 prepared public bytes. Height, gas-price and outcome-root public byte premises

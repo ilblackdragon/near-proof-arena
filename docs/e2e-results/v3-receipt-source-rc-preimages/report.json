@@ -1,0 +1,25 @@
+{
+  "lane": "receipt-source-rc-preimages",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptSourceRcPreimages.lean",
+      "sha256": "74979e498cda3b1c0d7c4abc23ac597593ce3f2d4c5ccd5de0f29bd8ccefbe94",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-source-rc-preimages-RcptSourceRcPreimages.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptSourceRcPreimages.lean",
+      "sha256": "587274fee493ce6cc2a9e6e8cf8635c53534762affeea94759333dfab0dbeabe",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-source-rc-preimages-AuditRcptSourceRcPreimages.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module2guards. SAME canonical receipt blocks from concrete sourceInputLists have exactly actual native source RC preimages, removing independent grouping/preimage identity.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
