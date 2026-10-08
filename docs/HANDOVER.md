@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcActualMemoryScan/ProcActualMemoryFactor strict PASS, six exact axiom guards. Exact actual memory scan uses (comparisons,time) accumulator, unlike earlier helper; extracted actualStep and segmentStep retain that ordering. segment_eq and finish_eq are definitional, connecting exact generator suffix to extracted scan. Inner/list/array scans succeed on positive strictly ordered segment logs. Constructed-segment ordering still needs transport from replay Memory before claiming complete final memory check. Remaining round/comparator/full integration/certificate/prover/judge unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previous6a06951a push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualReplayMemory strict PASS, six exact guards. Complete actual round and outer replay loops preserve positive strict memory timestamp ordering below current replay time. Prepared conversion supplies initial invariant; replay_memory applies to actual successful replay, with no final-check success premise. Every selected link/sender/receiver log succeeds through extracted timestamp/comparator scan, including empty default logs. Exact finish segment construction/outer-scan factorization remains before claiming full memory-check integration. Remaining round/comparator bounds and full certificate/prover/judge unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previousea7751f6 push failed GitHub DNS. Goal active.
 
 
