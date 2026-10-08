@@ -19,6 +19,24 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeConstructedPublicAllocation strictPASS10guards across5 root
+modules binds refund byte stream to actual native outgoing receipt encodings,
+prepared body after8-byte prefix and normalized public descriptor BYTES receive.
+SAME constructed-account/receipt/trie/UPS/fourSHA allocation uses actual pubCount
+in byte conservation; no abstract refund fragment remains in its equation.
+Codec fresh/sanity byte residual and full family/global bus proof still open.
+Independent scheduler windows6modules12guards, account VPOST4modules13guards and
+pg3 inert grouping3modules13guards PASS;48guards total. Generic pg3 TableLocal
+iff and exact traffic preservation now checked. Concrete8,231,316 size remains
+evaluation-only pending kernel certificate.
+IMPORTANT account VPOST needs exact writes keys retained from native execution.
+SizedAccountRun plus same final upsert cannot imply this: extra same-value writes
+preserve final trie but add activation. Agent adding stronger replay API retaining
+native hkeys; root must thread it through allocation before cancelling VPOST.
+Receipt882/882, integrated10/19. Full prover, clean certificate and judge pending.
+Prior7d2bd017 push DNS failed; retry with verified recovery bundle maintained.
+
+
 2026-10-08: NativeConstructedAccountAllocation strictPASS8guards across3 root
 modules removes ALL account-list/Wf/cardinality/byte hypotheses from combined
 receipt/trie/UPS/fourSHA proof. Accepted execution constructs original-ID account

@@ -1,0 +1,95 @@
+{
+  "lane": "scheduler-digest-windows",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactNodeDigestRows.lean",
+      "sha256": "9c67e5f975f14c16bb8761b67a7fd6b0bf40b2c4b028e10a0f22c41ec309df93",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-CompactNodeDigestRows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactDigestProjection.lean",
+      "sha256": "14de265549aa21b5c9ed5d012c7c71220a69f2441b70906b3c611bb2bf045577",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-CompactDigestProjection.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactDigestInventory.lean",
+      "sha256": "aad24b5b76f235cb0e4e4bdbb77eed22126f7f53e62df81b7cf9f3dc226074bd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-CompactDigestInventory.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactDigestWindows.lean",
+      "sha256": "f406b8b21b97a3a89d4a09dfb44308f85c236c2470aa0946547554759d2564f0",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-CompactDigestWindows.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/SchedulerChildDigests.lean",
+      "sha256": "071f6f82ba24394db03eb1dfe894ffa551d733e4d5421a419341d47236ad8206",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-SchedulerChildDigests.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/CompactNativeNodeWindows.lean",
+      "sha256": "95fe6050effa713f1326bced47e9f7a9a51f21d3e3cb9e5c6a17726b6fc66c5d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-CompactNativeNodeWindows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactNodeDigestRows.lean",
+      "sha256": "cb29169e26ec2d0fa55bd0cd79dd36381006a0feb84b2f581fa9edd0a0317772",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-AuditCompactNodeDigestRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactDigestProjection.lean",
+      "sha256": "8121bcbb36a0f0e7342f6c621beaa0c376010e7f3c289c84137e08860ac5ab5c",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-AuditCompactDigestProjection.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactDigestInventory.lean",
+      "sha256": "20d0014678000783b1698fd01c35ce950b65dba4529e7a176dfe942ed33b1c83",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-AuditCompactDigestInventory.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactDigestWindows.lean",
+      "sha256": "c3e3a92285be6290c74c6d91ad1fef6a7985d81b6ac91599c85347aa2463c1de",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-AuditCompactDigestWindows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditSchedulerChildDigests.lean",
+      "sha256": "29d3839e81b756554487e1ca7ca5725e4cadba79fe70994b1c59fcaf153a695b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-AuditSchedulerChildDigests.log"
+    },
+    {
+      "path": "zk-formal/test/AuditCompactNativeNodeWindows.lean",
+      "sha256": "735f4cabc6d2c4fe25fe83aed2a25615ecfcd26355657debd79c1677ff254c5e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-scheduler-digest-windows-AuditCompactNativeNodeWindows.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six modules12guards. Enumerates exact physical node digest windows and UPB patch invariance. Actual upper child output is preceding native hash job; windows are slices of actual native serialized outputs. Full aggregate demand permutation remains.",
+  "exact_axiom_guards": 12,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
