@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Prepared corrected process derives bucket sizes between 1 and 4096 and discharges actual replay bucket-size guard. Ready invariant preserved through successful steps; no full-run success assumption. Combined replay remains open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcBucketSize.lean",
+      "sha256": "6b98bc414d52119c8515568d6864ae375bf88c30dd94be550b799827ba577e3c",
+      "audit": "zk-formal/test/AuditProcBucketSize.lean",
+      "audit_sha256": "348700eb478ef75860240baabbade82c041763b2e04e9f8d85f7e2724aa6e05e",
+      "guards": 6
+    }
+  ]
+}

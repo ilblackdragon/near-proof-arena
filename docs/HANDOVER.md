@@ -6,6 +6,18 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcBucketSize strict PASS, six exact axiom guards. Pending link
+uniqueness plus valid request pointers bound pending count by converted request
+count; selected maximal buckets are nonempty and no larger. Successful model
+steps preserve Ready, and loop invariant propagates bounds across all rounds.
+prepared_guard derives 1<=bucket.length<=4096 for corrected prepared processing,
+discharging actual replay bucket-size guard (<16384) without full-run success.
+Combined entry/state replay, memory/comparison checks, full suffix success and
+caller/Codec/allocation integration remain open, as do full certificate/prover/
+real judge. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged.
+Priorb33c3de1 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualBucketGuards strict PASS, four exact axiom guards.
 Successful processEv derives every emitted bucket entry's key/ordinal from the
 actual model filtering and mixed-ordinal check. collect_success proves the
