@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NodeRecordCount strict PASS5guards. Honest node SIZEcount column
+at actual SUM row equals exact nonduplicate node-record count. Arithmetic
+bound from physical rows proves canonical natural equality (no field wrap).
+Together with ValueRecordCount, both added record counters now have exact
+semantic values, including empty value records. Exact amended SIZE bus tuple
+composition with complete native forest/accounting remains next integration.
+
+Independent native-paired-forest PASS21guards across5modules. Whole paired
+pre/post native forest preserves exact original pre serialization and compact
+value IDs (global range). Actual successful ordinary/system receipt writes
+preserve native account72-byte values, and sequential SizedAccountRun derives
+unchanged compact value-length lists. Native forest shallow node wf comes
+from forest wf and accepted2M unfolded cap, discharging24-bit value lengths.
+Global depth/res/uses/ucid/mU metadata and full forest NodeWf3 remain unfinished.
+
+Receipt660/881 last checked; height lane now building scheduler comparator/
+memory fixed22 then missing codec/scan/proc completeness. Size/header8,288,148
+unchanged. Whole native witness/certificate/prover/realjudge/generalNEAR remain
+open. Goal makes verified progress; network push DNS failure does not block
+local proof work. Nextroot: exact3-field SIZE traffic and full accounting link.
+
+
 2026-10-08: ValueRecordCount strict PASS5guards. Honest value SIZEcount column
 at actual SUM row equals exact filtered nonduplicate value-record count,
 INCLUDING empty values. Row-bound proves count<P; value_counter_nat gives
