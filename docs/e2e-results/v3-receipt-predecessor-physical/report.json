@@ -1,0 +1,95 @@
+{
+  "lane": "receipt-predecessor-physical",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptPredecessorCurrent.lean",
+      "sha256": "cbbb2530fe496547e46a9d56ce57e19de09e7bc368110b51ec7474cce43acedc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-RcptPredecessorCurrent.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptPredecessorCurrentPhysical.lean",
+      "sha256": "d1e062568a02a0afc62f9bc3b2d400ee7a3f59ab2e64137ea707320a1a07b49d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-RcptPredecessorCurrentPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptPredecessorStep.lean",
+      "sha256": "4a78dee25691a30b7281467f2ad18c78e03c749db1b9e6cbaba927efe9111b68",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-RcptPredecessorStep.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptPredecessorStepPhysical.lean",
+      "sha256": "12a5de9809d65d5127e3aaddfd34de86b5f191a6e6f951237e9174686c808bbc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-RcptPredecessorStepPhysical.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptPredecessorCommute.lean",
+      "sha256": "32b323c9dc1fea514ed63086b0b4d374e4a38f7e9a9786e1cf05ca454ff66226",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-RcptPredecessorCommute.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Assembly/RcptPredecessorComposition.lean",
+      "sha256": "6dad4ea7b6ede0c262325e6d2c9a4f18e3eb2a32ab01918c74ea4686c31dc369",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-RcptPredecessorComposition.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPredecessorCurrent.lean",
+      "sha256": "a9fe3bad046a2e7b83ba112f21dd832183b1878af7e5b581b73886d2720b19fb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-AuditRcptPredecessorCurrent.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPredecessorCurrentPhysical.lean",
+      "sha256": "ef2d47e527076b97ae5324e72d827bc2b5b2b4e427ede08e993cf28023d9d6d8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-AuditRcptPredecessorCurrentPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPredecessorStep.lean",
+      "sha256": "fd406e1c82ea4369a5ff9aac3bacb7f1e14d4dcbcc8e64e0d1c6554cf7325ac6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-AuditRcptPredecessorStep.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPredecessorStepPhysical.lean",
+      "sha256": "5bbe27bdcf8f151f4d5453ebd81d4bd147e28169dc82488f197aa00a3c0d9925",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-AuditRcptPredecessorStepPhysical.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPredecessorCommute.lean",
+      "sha256": "a0afa4705ee83a9bfbdcc84383f127a63ce5c23a105e110361a4f9a77aa785da",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-AuditRcptPredecessorCommute.log"
+    },
+    {
+      "path": "zk-formal/test/AuditRcptPredecessorComposition.lean",
+      "sha256": "6a76093fbb2c08b6616bd491fec996d59c9893567e5e35292b094d5672a7c5c5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-receipt-predecessor-physical-AuditRcptPredecessorComposition.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Six predecessor/system polynomials checked on same concrete native receipt trace; commuting scratch update preserves previous constraints. Coverage707/881; named14 and other local families remain.",
+  "exact_axiom_guards": 13,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

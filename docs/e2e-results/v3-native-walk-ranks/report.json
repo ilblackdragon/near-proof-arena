@@ -1,0 +1,32 @@
+{
+  "lane": "native-walk-ranks",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/WalkRanks.lean",
+      "sha256": "e8bb58b091626ddd6f12594a4ab6ed0cd70dbdbd838f442e6ea869b01a3bbeba",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-walk-ranks-WalkRanks.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/WalkRanksWf.lean",
+      "sha256": "7424c3678dc146bdfc19064e428c16f20cdf7cfe32fe9fb59c772f1b32a71ae2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-walk-ranks-WalkRanksWf.log"
+    },
+    {
+      "path": "zk-formal/test/AuditWalkRanks.lean",
+      "sha256": "8881c06986ae7c818368cea6df12fb54068d932025c20f8c0cffd8bf5ba71583",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-walk-ranks-AuditWalkRanks.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Concrete whole-walk rank assignment preserves ALL WalkWf3 fields under original WalkWf3, across walk boundaries with exact prior physical step history. Ranked traffic/global counter balance still open.",
+  "exact_axiom_guards": 9,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

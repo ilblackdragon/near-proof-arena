@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Executable transition-tagged byte representative selection and first-occurrence provenance. Actual native Stored trees supply original-store coverage and exact payload+4*count charge bound. AIR node/value duplicate/head/repE assignment and same native witness integration remain open. Strict checks use prebuilt dependencies; not a clean full certificate.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/HonestStoreRepresentatives.lean",
+      "sha256": "7eb1455cc1ba458f8633d0cf4fa2297161b327f852a94bdbf45318349f460dcc",
+      "audit": "zk-formal/test/AuditHonestStoreRepresentatives.lean",
+      "audit_sha256": "e94af6eaa1115d6c6a5d90dadbf7ee70660ddbaa6ba0b246ba3d75e3fa3b7111",
+      "guards": 8
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeStoreRepresentatives.lean",
+      "sha256": "8a5dbe2d4c4b1e75a7e2ffe31eb68660fa4c1676867fabd0db48ee8724cc3712",
+      "audit": "zk-formal/test/AuditNativeStoreRepresentatives.lean",
+      "audit_sha256": "8d994ee5303b400a538b1a2d5ae91d49a74cef062a588c0c197d9cd964e66767",
+      "guards": 4
+    }
+  ]
+}

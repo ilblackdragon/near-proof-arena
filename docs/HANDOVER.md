@@ -6,6 +6,39 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: HonestStoreRepresentatives +NativeStoreRepresentatives strict
+PASS12 exact guards. Executable first byte-class selection uses (transition,
+serializedBytes), with combined node/value byte namespace. Representatives
+are distinct, cover every occurrence, have actual first-occurrence positions,
+and charge payload+4*recordCount including empties. Native Stored trees imply
+coverage by actual original stores and the representative charge upper bound;
+original serialized positions are proved via successful native lookup, without
+assuming injective SHA. Equal bytes in different transitions stay separate.
+
+IMPORTANT honest completeness gap identified: current seed/initialized forest
+has dup=false,hd=false,repE=0. NodeWf3/unfolded2M cap does NOT imply honest
+native8MiB witness accounting. New representative selection supplies the right
+upper-charge construction; attaching actual node/value dup/hd/repE flags and
+ENT/DUP/UNIQ traffic still remains. Root owns this next, then native SIZE bounds
+and final candidate assembly. Do not replace upper-charge proof with earlier
+SOUND extracted-witness ownership bounds (opposite direction).
+
+Independent native-request-coverage PASS7 guards: native walk inventory bounds
+and UPS proper-prefix provider coverage. Native-walk-ranks PASS9 guards: whole
+rankWalks constructor preserves complete WalkWf3 from exact previous physical
+steps across all walk boundaries, under original row cap. START edges still
+belong to heads; terminal BMAP provider node ID must be exact, not just bitmap
+and hasValue equality. UPS agent is closing this lost-equality packaging gap.
+Independent receipt-predecessor-physical PASS13 guards: same trace now707/881,
+all6 predecessor/system character polynomials checked. Remaining chars14 plus
+key49/sys14/route18/gas40/dep39. Native named premise already from pReceipt.
+
+Height coverage10/19 unchanged. Actual size/header8,288,148 unchanged.
+Full correctness certificate/clean build/prover/realjudge/generalNEAR remain
+incomplete. Strict checks use prebuilt dependencies. GitHub DNS push fails;
+checked local commits and verified bundle preserve progress.
+
+
 2026-10-08: SIZE component composition strict PASS3 exact guards.
 SourceSizeTraffic proves aggregate four physical source tables send exactly
 one [2,sourceSize,0] tuple and receive none, using actual honest partition
