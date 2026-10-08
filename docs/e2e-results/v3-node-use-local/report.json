@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact provider count assignment preserves full NodeOk and count-node TableLocal under request lengths<P. Same SIZE payload/count receiver and duplicate-chain assignment preserved; updates commute. Actual whole requests/windows inventory and physical global placement remain open. Prebuilt dependencies,not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NodeUseLocal.lean",
+      "sha256": "4c58e67f7ab30f1603e28ef404cafcf7dbbdfac82dd1badbb7680a71d3d2a9b7",
+      "audit": "zk-formal/test/AuditNodeUseLocal.lean",
+      "audit_sha256": "73ab8d6357ef12d27b7a884a254861d58fa5fe114dc30c22ef9c1c2a113d4aa1",
+      "guards": 4
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NodeUseSize.lean",
+      "sha256": "c6ba293d5c045d92858d5e6f256ddba5ee2886a8a8296545f849f2d2d68f3cff",
+      "audit": "zk-formal/test/AuditNodeUseSize.lean",
+      "audit_sha256": "4a16b82b70e4d44f39887510059df5806e82b5351d2e1070f64ee045ffcf6469",
+      "guards": 7
+    }
+  ]
+}

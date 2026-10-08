@@ -6,6 +6,27 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NodeUseLocal/NodeUseSize strict PASS11 exact guards. Actual terminal
+provider counts assigned by NodePostUpdate.assignList preserve FULL NodeOk and
+count-node TableLocal under edge/bmap/window request lengths<P. SIZE selected
+payload/counts and receiver legality remain EXACTLY unchanged. Duplicate-chain
+metadata patch/list assignment commutes with usage assignment, retaining both
+constructed meanings. Next: instantiate all actual requests including windows,
+prove their aggregate bounds, place counter-assigned providers with ranked walks.
+
+Independent native-lookup-value PASS3modules/10guards. Recursive native lookup
+terminal VID = supplied baseVID+Assembly.valueIndex, including all leaf/ext/branch
+cases and corrected mismatch behavior. Present terminal binds actual native bytes
+to SAME forestStoreViews.values record at VID; native absence yields no VID.
+Access-key4modules/10guards already committed204c7f6e,not counted again.
+
+Receipt824/881; fixed-height10/19. Scheduler native replay closed, aggregate spend/
+capacity still being derived from actual native loop. Gas surplus/deposit9bit
+limitations remain under investigation. Full assembly/certificate/clean build/
+prover/judge/general NEAR incomplete. Checks use prebuilt dependencies.
+Prior204c7f6e push failed GitHub DNS; retry after checkpoint; verified bundle.
+
+
 2026-10-08: NativeSourceFour strict PASS3 guards. ORIGINAL accepted native source
 compiler constructs four log22 traces, all four count-extended TableLocal and
 exact arity-three SIZE send. Seven-trace SIZE conservation with same node/value
