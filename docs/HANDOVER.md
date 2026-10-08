@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Forward full-family witness assembly strict PASS12 exact guards.
+HorizontalPack stacks separately clocked components, proves exact busCount,
+then fuses selected components and yields Holds for EXACT HorizontalAccounts.air.
+Static column/height bounds derive from inventory. Honest local validity,
+common fused clock and joint component balance remain explicit native inputs.
+HorizontalHeader.actual_header proves protocol admission for ACTUAL witness
+clocks from Holds, not merely maximal header. Bound8,288,148 stays certified.
+
+Independent PASS: receipt-native-states9guards; sha-fixed-height18guards.
+Same native log22 receipttrace now637/881:200regs+189emit+ALL248states.
+Native refund flag uses G*(receiptPrice-min(receiptPrice,blockPrice)) and excludes
+system; independent ge comparison closes final refundSurplus equation.
+Other semantic families still244constraints to establish. SHA fixed22 renderer
+uses actual honest cells; cyclic final next-row edge checked, added padding
+sends no messages, width512 packedTrace preserves local legality and exact
+shaBinTraffic. Four SHA slots can now use actual common22 clocks.
+
+Remaining selected node/value SIZE lifts/common clocks in progress; native
+post-trie branch/extension and sequential update correspondence in progress.
+Full native witness/correctness certificate/prover/realjudge/generalNEAR remain
+unfinished. Native assumptions are not hidden by generic assembly theorems.
+
+
 2026-10-08: Whole admitted-family extraction strict PASS12 exact guards in
 HorizontalFamily. candidate_components derives every extracted component
 TableLocal AND complete per-bus natural balance from Holds HorizontalAccounts.air.
