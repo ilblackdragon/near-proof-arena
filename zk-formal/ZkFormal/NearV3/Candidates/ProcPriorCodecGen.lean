@@ -1,3 +1,5 @@
+import ZkFormal.NearV3.Candidates.ProcPriorCodecRecordStep
+import ZkFormal.NearV3.Candidates.ProcPriorCodecExtra
 import ZkFormal.NearV3.Candidates.ProcPriorCodecCoreLegacy
 import ZkFormal.NearV3.Candidates.ProcPriorCodecAssignments
 import ZkFormal.NearV3.Candidates.ProcPriorCodecActual
@@ -50,59 +52,14 @@ private def codecRowsCore (I : Input) (R : Run) (present : Bool) (vidV : Nat) (g
       let mut apostv := 0
       let mut bigv := 0
       let mut cbv := 0
-      for gg in List.range 8 do
-        let p := 5 + 24 * kk + 8 * f + gg
-        let bpo := if f < 2 then idByte I.ids kk (8 * f + gg) else (if gg < 3 then afinF kk / 256 ^ gg % 256 else 0)
-        let bpr := if ¬present then 0 else if f < 2 then bpo else a0[kk]! / 256 ^ gg % 256
-        let lowfv := if gg < 3 then 1 else 0
-        let wtv := 256 ^ gg
-        let nzbv := if bpr = 0 then 0 else 1
-        let isEnd := f = 2 ∧ gg = 7
-        -- link data of record kk (from `SDG`, carried over the record) and its source record
-        let sender := kk/n
-        let receiver := kk%n
-        let wrap := receiver+1=n
-        let a0s := if present then (ProcActualInput.allowances I.ids I.prev)[kk]! else 0
-        let apRv := a0s % 16777216
-        let bigRv := if a0s ≥ 16777216 then 1 else 0
-        let alv := b2n (I.allowed[kk]!)
-        let gbv := gbA[kk]!
-        let mut extra : List (Nat × Nat) := [(rs, if f = 0 ∧ gg = 0 then 1 else 0), (al, alv), (gb, gbv),
-          (srcC, sender), (hasC, if wrap then 1 else 0), (useC, receiver)]
-        if f=0 ∧ gg=0 then
-          extra := extra ++ [(nzb, if receiver=0 then 1 else 0), (ig2, finv receiver),
-            (ib, finv (fsub receiver (n-1)))]
-        if f = 2 ∧ gg ≥ 2 then extra := extra ++ [(apR, apRv), (bigR, bigRv)]
-        if f = 2 then
-          extra := extra ++ [(lowf, lowfv), (wt, wtv % ZkFormal.Algebra.P), (ap, apv), (big, bigv), (apost, apostv),
-            (nzb, nzbv), (ib, finv bpr), (ig2, finv (fsub gg 2)), (e2, if gg = 2 then 1 else 0)]
-          if gg = 2 then
-            extra := extra ++ [(a0g, if wrap then 1 else 0)]
-            let x := apRv + fairV
-            cbv := if Codec.MA ≤ x then 1 else 0
-            cmps := cmps ++ [(x, Codec.MA, cbv)]
-            extra := extra ++ [(cx, x), (cy, Codec.MA), (cbit, cbv), (cg, 1)]
-          if gg ≥ 2 then extra := extra ++ [(cb, cbv)]
-        if isEnd then
-          let bFv := if bigv = 1 ∨ nzbv = 1 then 1 else 0
-          let a1v := if bigRv = 1 then Codec.MA else (if cbv = 1 then Codec.MA else apRv + fairV)
-          let a2v := a1v - alv * baseV
-          ZkFormal.NearV3.Sched.Gen.check (a2v == R.a2[kk]!) "codec a2 differs from the link pass"
-          let gf := gfinF kk
-          let lastRec := kk + 1 = N
-          extra := extra ++ [(rend, 1), (bF, bFv), (a1, a1v), (a2, a2v), (g2, alv * baseV),
-            (afin, afinF kk), (gfin, gf), (u0g, receiver)]
-          if tv = 0 then
-            let ft := ((fwd.find? (·.1 == kk)).map (·.2)).getD 0
-            ZkFormal.NearV3.Sched.Gen.check (ft ≤ gf + gbv) "forwarding demand above the grant"
-            cmps := cmps ++ [(gf + gbv, ft, 1)]
-            extra := extra ++ [(fwg, 1), (cx, gf + gbv), (cy, ft), (cbit, 1), (cg, 1), (pm0, kk % 256),
-              (pm1, kk / 256), (fb 0, ft % 256), (fb 1, ft / 256 % 256), (fb 2, ft / 65536 % 256)]
-        rows := rows.push (ProcPriorCodecAssignments.recordRow I present n kk f gg p bpo bpr inst extra)
-        if f = 2 ∧ gg < 3 then
-          apv := apv + wtv * bpr
-          apostv := apostv + wtv * bpo
-        if f = 2 ∧ gg ≥ 3 ∧ bpr ≠ 0 then bigv := 1
+      let recState ← forIn (List.range 8) (rows,cmps,apv,apostv,bigv,cbv)
+        (fun gg st => ProcPriorCodecRecordStep.step I R present gbA fwd inst kk f gg st)
+      rows := recState.1
+      cmps := recState.2.1
+      apv := recState.2.2.1
+      apostv := recState.2.2.2.1
+      bigv := recState.2.2.2.2.1
+      cbv := recState.2.2.2.2.2
   -- hash rows
   let base0 := 5 + 24 * N
   for j in List.range 32 do

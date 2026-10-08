@@ -1,0 +1,53 @@
+{
+  "lane": "codec-record-step",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecExtra.lean",
+      "sha256": "d41f9c244e5096eafe317d060b96615db687f4c2bd2c73703a4f72fbc62300f2",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-step-ProcPriorCodecExtra.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecExtraColumns.lean",
+      "sha256": "46a0cfbeedb439a673b15984127b21e603d817378e396024b5f51228e9c8dff9",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-step-ProcPriorCodecExtraColumns.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecRecordStep.lean",
+      "sha256": "191ff43642cfa4d1bc999a59be3e84000f636ad720870df4fe90ec69feb9dccd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-step-ProcPriorCodecRecordStep.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecGen.lean",
+      "sha256": "854b8ba5998238eaf216293b17880bf1e736d27cb0279607a4ed75412f990975",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-step-ProcPriorCodecGen.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorCodecStepRows.lean",
+      "sha256": "e1b93efd0ac0d28e7f10c3c036e540a7e8da3a5fb9edc5d7178417471c183cc6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-step-ProcPriorCodecStepRows.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorCodecRecordStep.lean",
+      "sha256": "91f8cf6509aa6fa0b55889f632398394439fd373a06f0f8bb015870da511a93d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-codec-record-step-AuditProcPriorCodecRecordStep.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Corrected generator record-step refactor, exact successful row push and derived column support; whole executable core_refactor remains definitional equality. Full original Codec locality pending.",
+  "exact_axiom_guards": 16,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

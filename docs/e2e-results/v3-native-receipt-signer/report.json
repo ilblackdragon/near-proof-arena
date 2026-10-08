@@ -1,0 +1,25 @@
+{
+  "lane": "native-receipt-signer",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptSignerBalance.lean",
+      "sha256": "e4fe07cbcb61f64de2193eb35013e8be1db00d6fc09e31088086d3527424dbeb",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-signer-NativeReceiptSignerBalance.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptSignerBalance.lean",
+      "sha256": "fff7bc32ea11982d067e5bd198f227b7a0249fa5c57a37a7c03c7b863f5f1496",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-signer-AuditNativeReceiptSignerBalance.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Actual full-aux patched native receipt B_SREC conservation from accepted inputs. No added locality premise.",
+  "exact_axiom_guards": 2,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

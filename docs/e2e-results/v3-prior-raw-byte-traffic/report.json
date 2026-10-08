@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact physical VBYTES sends from selected prior raw parser, all active and padding rows; successful decoding ties complete inventory to original bytes and occurrence ID. Absent input emits no synthetic bytes. Multiple-instance placement and residual ownership integration remain open. Strict prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorRawByteTraffic.lean",
+      "sha256": "ba75ae8a218a2cb9a05994c95eeacb9817b62beb1b766d68a7b0d714aceb6348",
+      "audit": "zk-formal/test/AuditProcPriorRawByteTraffic.lean",
+      "audit_sha256": "97a0d4065df9e2afdc69c79a281d2fc0b862a120b3bc7fb29abcceb1d4de4456",
+      "guards": 6
+    }
+  ]
+}

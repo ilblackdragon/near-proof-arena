@@ -6,6 +6,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Prior raw parser physical VBYTES inventory strictPASS6guards.
+ProcPriorRawByteTraffic proves actual selected raw table active/padding traffic,
+full log22 inventory, decoded original byte identity and count equality; absent
+values emit no synthetic initial-state bytes. Original-count capacity explicit.
+Native forest ownership/concatenated placement/overlay integration still pending.
+Independent receipt signer balance PASS2guards on actual full-aux q7-patched
+trace; independent corrected Codec record-step package5modules PASS16guards,
+including successful row push/support and unchanged executable core_refactor rfl.
+Total24guards. Pin-check PASS. Strongest allocation remains NativeShardSanityAllocation.
+Receipt882/882; integrated10/19; no full certificate/prover/judge. Prebuilt checks.
+Receipt lane investigating selected Sort empty-receipt handling, without assuming
+nonempty accepted inputs. Prior0b340797 push failed DNS; verified bundle retained.
+
+
 2026-10-08: NativeShardSanityAllocation is strongest allocation. Five independently
 rebuilt modules PASS5exactguards derive repaired queue physical QSH conservation
 from SAME native validity, reads and accepted capacity, retaining all prior facts
