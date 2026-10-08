@@ -1,0 +1,39 @@
+{
+  "lane": "native-execution-payloads",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeForestPayloads.lean",
+      "sha256": "14a02f1cf7dd62cbc315d6319188504314d32020a595e59ccc66981755fc177b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-execution-payloads-NativeForestPayloads.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeForestInputs.lean",
+      "sha256": "e8086686b15d1ab54fe02c181fd17b53a061fa6c178438d0d639f13c51a69dbc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-execution-payloads-NativeForestInputs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeExecutionPayloads.lean",
+      "sha256": "4120d4896eb5cd31f1e00f7f84a47cc7a8dcd2777f596fcea9210f83b8371ae3",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-execution-payloads-NativeExecutionPayloads.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeExecutionPayloads.lean",
+      "sha256": "e22d046326f0e3d8ad0d8fcc2e78bdb438203e0bc8aaf899d987e51f395b0a5b",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-execution-payloads-AuditNativeExecutionPayloads.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules6guards: concrete global forestOldInputs with exact node/value offsets, actual main receipt replay and implicit unchanged trees, whole forest post byte equality from SAME native hm/hv. Physical UPS rebasing remains open.",
+  "exact_axiom_guards": 6,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

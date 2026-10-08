@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: PostMetadataPayloads/NativeBoundPost strict PASS5 exact guards.
+Core accepted constructor now derives concrete global forestOldInputs, NodeOk,
+ValWf, exact complete post serialization list and SHA MsgsOk for SAME accepted
+native execution, retaining same scheduler/final upsert identity. Arbitrary payload
+premise eliminated here. Shared request length bounds remain; initializer/chain/
+usage metadata proved to preserve exact post bytes, updates before counters.
+
+Independent native-execution-payloads PASS3modules6guards closes full forest
+node/value offset constructor: main original tree with actual receipt writes plus
+implicit unchanged old trees. No independent payload/wf/value-length premises.
+IMPORTANT remaining UPS integration: existing original-pre UPS instances/jobs
+contain pre-receipt child bytes. Must construct/rebase UPS on oldPost, with MIDROOT
+oldPost.hash, same scheduler state and actual final output. Provider agent proving
+same schedStep result on oldPost plus bounded fresh job/window reconstruction.
+
+Independent process-entry-event PASS1module4guards: exact model entry event fields
+match generator under actual conversion and valid selected request/increase.
+Full replay state/index/log/push-pop propagation and processEv existence/refinement
+remain, plus RNG capacity. Receipt828/881; fixed-height10/19 unchanged. Full global
+certificate/prover/judge/general NEAR unfinished. Reviews use prebuilt dependencies,
+not clean certificate. Priorab024ec3 push failed GitHub DNS; retry after checkpoint;
+verified bundle retained. Three agents active on remaining integration lanes.
+
+
 2026-10-08: NativeShaLengths/NativePostShaOk strict PASS5 exact guards. Actual
 accepted post-updated, duplicate-accounted, usage-counted node/value job list
 satisfies SHA MsgsOk byte/length/row bounds and renders a native SHA table with
