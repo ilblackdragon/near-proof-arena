@@ -1,0 +1,53 @@
+{
+  "lane": "accepted-window-coverage",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeRebasedOrigins.lean",
+      "sha256": "d946a65e137576e5a2d306fb1e00cf4fbbb0f0bc99613b013635845f9fa46b83",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-window-coverage-NativeRebasedOrigins.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeWindowProviderInputs.lean",
+      "sha256": "ecdf8e76ee135a822a352a8c2a38b046e77f5c79073dba8adc0a79e7476fecc5",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-window-coverage-NativeWindowProviderInputs.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedRebasedOrigins.lean",
+      "sha256": "3000fe5ca5fc5f0f69ccc3defce1aa139065317f8b8279fea1fa2bef13f099f8",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-window-coverage-AcceptedRebasedOrigins.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedWindowCoverage.lean",
+      "sha256": "dd64fafef93685140a8178fe9babbf7edf2fa9c95c756644aeb541d5a2dfc763",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-window-coverage-AcceptedWindowCoverage.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeRebasedOrigins.lean",
+      "sha256": "d765a2cf85c59eff4a0381acb499828956a9127d414510652724ad7dbfbe25d6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-window-coverage-AuditNativeRebasedOrigins.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAcceptedWindowCoverage.lean",
+      "sha256": "3e50d4b29b4b785d6b5f9350fde09958bcbc0e5bd2b8008a3391e1cdf4013c56",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-window-coverage-AuditAcceptedWindowCoverage.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Four modules5 guards. Actual checkD0a/native main+implicit executions produce SAME writes/oldPost/us/encoded instances and full natural read-provider membership. Steps/prewf/budget/address/bytes/canonicality/ownership all derived; final chained-provider/full physical balance wrapper next.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

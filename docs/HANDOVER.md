@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Independent receipt-candidate-repaired-table PASS6modules56guards:
+FULL882-constraint TableLocal including routing-q7 on SAME actual native ledger
+log22 trace. q<128 derived from native bounded intervals, no extra q-domain premise;
+all original bus counts preserved. Control/predecessor extraction migrated to
+candidate rather than assuming obstructed original gas/deposit constraints.
+ReceiptRepairedProfile strict kernelPASS5guards: shapeOf2=263/9/5/9/log22 EXACTLY
+original; degree2=6 and all expression column bounds valid. Arbitrary familyshape
+replacement preserves sizing list. Installation/changed-arithmetic soundness remain;
+13-bit age soundness must use tprev<P-8192 (or authenticated version bound), not old
+P-512 guard. Candidate now882/882 with routing; original832/881 separate.
+
+Independent accepted-window-coverage PASS4modules5guards derives SAME accepted
+native encoded instances and FULL natural original-provider ownership from checkD0a
+plus actual main/implicit executions. No extra provider wf/byte/read-ownership
+assumptions. Final chained metadata transfer and physical balance wrapper active.
+Independent process-prior-ids PASS10guards constructs sorted ID lookup witness,
+exact original provenance/order/first-ID/unknown semantics. Full64-bit key AIR
+limbs, row transitions and width admission remain; no single-field u64 encoding.
+
+Integrated family10/19 retained pending installation. Full certificate/prover/real
+judge/general NEAR unfinished. Strict checks use prebuilt dependencies. Three agents
+active. Priora5830740 push failed DNS; retry after checkpoint/recovery bundle.
+
+
 2026-10-08: Independent native-window-coverage PASS4modules5guards closes mapped
 source ownership for every actual compact read. chosen_origin_instances retains
 encoded origin in SAME allocation alongside exact/dispatch/SHA evidence. Native

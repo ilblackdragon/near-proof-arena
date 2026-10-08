@@ -1,0 +1,25 @@
+{
+  "lane": "process-prior-ids",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcPriorIds.lean",
+      "sha256": "7f3e15fd4303dc435c5d83818114e01e06393b6a36efb83d007d73d15fd493a6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-ids-ProcPriorIds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcPriorIds.lean",
+      "sha256": "7bf7975e3eb0b0554daf298f3e49fd0c98928652899c8cdb2e07a5f1bed23533",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-prior-ids-AuditProcPriorIds.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module10 guards. Executable sorted original ID queries+public ID witness; exact permutation/order/count/provenance/first-ID match and unknown absence. Full64 key semantic; AIR needs limb encoding, transitions and width still open.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
