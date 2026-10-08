@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeShaBinBalance strict PASS3 exact guards. Physical SHA bin
+byte and digest counts equal allocated whole-job multiset including repeated IDs
+and digest-enable flags. Native physical node/value sends discharge their exact
+byte contribution; remaining job families retained as explicit residual inventory.
+MsgsOk and permutation/bin hypotheses still explicit, not full global assembly.
+
+Independent native-untouched-values PASS2modules5guards: actual single-set is
+exact List.set at concrete valueIndex; ordered account replay leaves every compact
+value outside writtenValueIds unchanged. oldTreeInputs inactive slot now has actual
+byte equality, not a new assumption. Full node window/forest offsets still ongoing.
+Independent process-model-clock PASS3modules11guards: one model step per shuffled
+entry, round length, flattened timestamp=reqs.length+globalIndex, exact model-time
+guard success. Full model existence and replay state/data agreement remain open;
+RNG/chacha log22 capacity remains separate unresolved issue.
+
+Receipt824/881 and fixed-height10/19 unchanged. Full certificate/prover/judge/general
+NEAR incomplete. Reviews use prebuilt dependencies, not clean certificate. Prior
+0c732387 push failed GitHub DNS; retry after checkpoint; verified bundle retained.
+Three agents continue payload binding, mixed gas/full deposit repair, scheduler
+model/replay. Root next concrete global SHA byte/canonical-ID/MsgsOk obligations
+and full shared window inventory against the same constructed execution.
+
+
 2026-10-08: NativePostShaTraffic strict PASS2 exact guards. Physical count-extended
 node/value B_BYTES sends equal expectedBytes of actual native SHA job list with
 IDs and multiplicities retained. Instantiated on accepted post-updated/chain/counted

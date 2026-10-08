@@ -1,0 +1,39 @@
+{
+  "lane": "process-model-clock",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelEntryShape.lean",
+      "sha256": "7589ea1af23099427c45050f2f0d8d5d1cd8f19c221bb52a862df754dd03177f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-clock-ProcModelEntryShape.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelRoundShape.lean",
+      "sha256": "2832eea6d28a2f83d6b08ecb5476e3701b07fca69084f6e7c344278eb80ef4cf",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-clock-ProcModelRoundShape.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcModelClock.lean",
+      "sha256": "ec798e4a659d1a9b21d9b78ad93759058f574bb69fb2a1bfc5551e6db30b2fdc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-clock-ProcModelClock.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcModelClock.lean",
+      "sha256": "49ecf4b476b92702a4a57a6bcaa00a657e9213a13a1460db59e586ffea084a6d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-model-clock-AuditProcModelClock.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules11guards: actual model step/round counts and flattened timestamps; generator model-time check success. Full model existence/replay agreement remain open.",
+  "exact_axiom_guards": 11,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
