@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Accepted native execution constructs original-ID account views, all account bounds/bytes/Wf and honest local/full traffic. Combined receipt/trie/fourSHA allocation eliminates all account premises. Account constructor agrees with every SAME valid allocated replay via actual scheduler upsert; exact VPOST multiplicities and closing MEM balance still pending. Strict audits use prebuilt dependencies, not clean full-source certificate or full prover/judge",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAccountReplayAgreement.lean",
+      "sha256": "94c533a716d3b4859916fbc7a85fff393a0509f8226532f97c9030851909d02a",
+      "audit": "zk-formal/test/AuditNativeAccountReplayAgreement.lean",
+      "audit_sha256": "5a1c4e5f5db8811ee9c35a925259bb45b64975a2a487301fc87e5b3467a0ffa8",
+      "guards": 6
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeAcceptedAccountViews.lean",
+      "sha256": "9e074be192084143db511396aba95f726ae2c31b4ed3cf8c2d4d56b0b4a33d5e",
+      "audit": "zk-formal/test/AuditNativeAcceptedAccountViews.lean",
+      "audit_sha256": "f231f5971e2dcf790f19a46f7c5302dada2dfb4035bafb4fa653d66766c769d7",
+      "guards": 1
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeConstructedAccountAllocation.lean",
+      "sha256": "cb582a41080a52d58d28dcebb7d677a750a29289f2f0d7fbb32f5f140dc0ad8d",
+      "audit": "zk-formal/test/AuditNativeConstructedAccountAllocation.lean",
+      "audit_sha256": "d7e19a7cfbdf3aab2782d3fb6b1114cb40377eec2b775f0a525e3d7735cfbf30",
+      "guards": 1
+    }
+  ]
+}

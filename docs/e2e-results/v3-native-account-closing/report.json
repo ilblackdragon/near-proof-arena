@@ -1,0 +1,39 @@
+{
+  "lane": "native-account-closing",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountClosingVersion.lean",
+      "sha256": "414a1216c9f40fcb38b604ad919e615227daee1a6a60cf850e1c7295e713054f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-closing-NativeAccountClosingVersion.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountIds.lean",
+      "sha256": "e8062b3c048837fcb474bb326c385d6130bde18d2d0aa152552362af54a9d8c7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-closing-NativeAccountIds.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountClosingVersion.lean",
+      "sha256": "eedf28692190124e2dd3c5761ae94470827178b6f61ae1cba872115aaf3d8e3a",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-closing-AuditNativeAccountClosingVersion.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeAccountIds.lean",
+      "sha256": "2d590aec0d85dd6248328524b17bb2576971b5ae43287f70270a04a56d5663d6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-account-closing-AuditNativeAccountIds.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules8guards. Exact last receiver occurrence determines closing version; constructed account IDs equal selected original value indices and match activated write IDs by membership. Multiplicity/injectivity and final MEM balance remain.",
+  "exact_axiom_guards": 8,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

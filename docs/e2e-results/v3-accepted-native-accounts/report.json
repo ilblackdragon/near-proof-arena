@@ -1,0 +1,39 @@
+{
+  "lane": "accepted-native-accounts",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountRebasedAllocation.lean",
+      "sha256": "5fc9f2677f9088f57c3af5d91fb5f5c784c507cd3845e9db22b2081c46a7e018",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-native-accounts-NativeAccountRebasedAllocation.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeAccountNativeAllocation.lean",
+      "sha256": "038bf7dcb366b79e95697870115c4150dd150ff664c28caa9195e782177155cc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-native-accounts-NativeAccountNativeAllocation.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/AcceptedNativeAccounts.lean",
+      "sha256": "ef5dd337a185e6d3b0231a51d5b9ffffeaa8e655ae40beb203ea968255e24054",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-native-accounts-AcceptedNativeAccounts.log"
+    },
+    {
+      "path": "zk-formal/test/AuditAcceptedNativeAccounts.lean",
+      "sha256": "69c7b03bccf0ff7dad3045b513723e4a6d80f55baeaa392580b8c4fb43643af7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-accepted-native-accounts-AuditAcceptedNativeAccounts.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules5guards. Accepted execution supplies actual closing account views on caller-chosen original-state replay with all count, scalar and byte bounds derived.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

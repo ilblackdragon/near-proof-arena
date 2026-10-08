@@ -19,6 +19,26 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeConstructedAccountAllocation strictPASS8guards across3 root
+modules removes ALL account-list/Wf/cardinality/byte hypotheses from combined
+receipt/trie/UPS/fourSHA proof. Accepted execution constructs original-ID account
+views and their honest trace. Replay agreement proves account constructor matches
+any SAME allocated oldPost with SizedAccountRun, native upsert pair list and Valid
+scheduler witnesses; no receipt-stage ordinal equality assumed. Actual allocated
+first scheduler witness discharges final upsert condition. Account VPOST exact
+multiplicity and closing MEM conservation still pending.
+Independent accepted accounts3modules5guards, closing versions/activated IDs
+2modules8guards, scheduler physical digest6modules9guards PASS. Total30guards.
+Scheduler actual W3 root digest consumer matches native last output job; child
+windows/codec sanity remain. Refund public-body bytes still explicit residual.
+Budget agent pg3 candidate EVALUATES8,231,316 bytes (157,292 margin), including
+four-stage joins/Codec parameter/empty repair. Protocol allows pg1..3; numeric
+kernel guards and inert grouping traffic/local preservation pending. This is not
+admitted yet. Prior linear pg2 candidate remains25,492 over8MiB.
+Receipt882/882, integrated10/19; no full prover, clean certificate or judge.
+Prior3d09a327 push DNS failed; retry and verified recovery bundle maintained.
+
+
 2026-10-08: NativeAccountDigestAllocation and NativeAccountExecutionTrace strict
 PASS2 exact guards. Combined native receipt/trie/fourSHA proof now constructs
 account trace and proves local/full traffic; removes arbitrary trA and account
