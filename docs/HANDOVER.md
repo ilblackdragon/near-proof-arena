@@ -6,6 +6,21 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeQueueFinalMessages strictPASS4guards equates actual planned
+queue FINAL messages with native query results including absence/global VID
+offsets. Full physical queue FINAL receive permutation proved. NativeQueueCounters
+supplies record validity/capacity; global receipt+queue FINAL join still open.
+Independent receipt key2modules5guards closes actual ee gate and whole physical
+KEYNIB sends against native account/access queries on SAME canonical ListChain.
+Queue key START/head and nibble/walk partition next; receipt FINAL ongoing.
+Codec Nonrecord earlier theorem is conditional: zero next counters does not cover
+all hash rows with overlaid digest data; agent adding zero-ehp variant. No full
+nonrecord coverage claim. Codec helper refactor/encoded-instance retention ready
+but not yet independently reviewed.9guards checked, pin PASS; prebuilt dependencies
+only, no full certificate/prover/judge. Strongest NativeQueueAllocation unchanged.
+Receipt882/882; integrated10/19. Priorbcb35179 push DNS failed; bundle retained.
+
+
 2026-10-08: NativeQueueAllocation is new strongest SAME native allocation API.
 NativeReceiptQueueBytes/NativeQueueAllocation strictPASS2guards preserve every
 NativeCounterAllocation fact and add actual physical account/access/queue byte

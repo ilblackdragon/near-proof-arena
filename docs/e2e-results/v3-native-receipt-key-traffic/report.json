@@ -1,0 +1,39 @@
+{
+  "lane": "native-receipt-key-traffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptQueryGate.lean",
+      "sha256": "775c9674eb16b4851fb7d1a928774f6c3ba6cc8c42ba60a87b7a3065eb138faa",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-key-traffic-NativeReceiptQueryGate.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptKeyTraffic.lean",
+      "sha256": "83720e9ff658570929aa22f3bc773046b882c1e45c73171129a4e6364a67060d",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-key-traffic-NativeReceiptKeyTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptQueryGate.lean",
+      "sha256": "7d17b3c1b38ec45c849fc7a520e558ba1a9d320d5c9832395cb2c67d88aacafc",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-key-traffic-AuditNativeReceiptQueryGate.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptKeyTraffic.lean",
+      "sha256": "91c70d50eb2cf8853285f6e36937a5dfe353a54623f8f58fb29c6130668a1c4f",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-key-traffic-AuditNativeReceiptKeyTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules5guards. Actual patched receipt ee gate and whole physical candidate receipt KEYNIB sends equal native account/access query packets on SAME canonical ListChain. Repeated/absent queries retained; queue keys and receipt FINAL remain.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

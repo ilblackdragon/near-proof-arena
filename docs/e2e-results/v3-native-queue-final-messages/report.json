@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Exact actual queue plan FINAL messages including absence and forest offsets equal SAME native query results; whole physical queue FINAL receive permutation. Record validity/capacity supplied by NativeQueueCounters. Global receipt+queue lookup balance remains. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeQueueFinalMessages.lean",
+      "sha256": "2d034fc798d443c5b8c4a43c1f3fc62f5654473f5ed140829441471306070ac9",
+      "audit": "zk-formal/test/AuditNativeQueueFinalMessages.lean",
+      "audit_sha256": "9e5d34a7da74c69f53f654886f433530c23fca9636050eeb4f0c5d675060d699",
+      "guards": 4
+    }
+  ]
+}
