@@ -6,6 +6,29 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativePostShaTraffic strict PASS2 exact guards. Physical count-extended
+node/value B_BYTES sends equal expectedBytes of actual native SHA job list with
+IDs and multiplicities retained. Instantiated on accepted post-updated/chain/counted
+constructor. Global SHA MsgsOk/bin construction/all-family balance still open;
+previous node/value budget covers only NPRE/NPOST/VPRE, not all jobs.
+
+Independent process-model-rng PASS2modules7guards: actual whole model rounds carry
+RNG stream position and generator replay executes shuffle/equality guards with same
+final RNG. Accepted model existence and other replay guards remain. Verified existing
+Sched/Spec/Draws notes old M4 worst case9887936 RNG words exceeds2^22; process row
+capacity does NOT discharge gen/chacha capacity. Need sound multi-table allocation
+or tighter proven bound, no average rejection assumption.
+
+Independent native-write-indices PASS2modules10guards: same-shaped native replay
+preserves exact old preorder/multiplicity and compact valueIndex for ALL queries,
+including absent/hash paths. Agent continues untouched payload equality/global
+forest offsets to actual constructor windows. Receipt agent continues mixed gas
+and full deposit repair. Receipt824/881 and fixed-height10/19 unchanged. Full
+certificate/prover/judge/general NEAR incomplete. Checks use prebuilt dependencies,
+not clean certificate. Priorb368ea8d push failed GitHub DNS; retry after checkpoint;
+verified bundle retained. Three agents active.
+
+
 2026-10-08: NativePostShaBudget strict PASS3 exact guards. Actual accepted
 native node/value job construction (post updated, chain metadata, usage assigned
 last) has <=2925275 SHA rows. Abstract node/value length/wf/implicit count premises

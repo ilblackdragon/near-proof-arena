@@ -1,0 +1,32 @@
+{
+  "lane": "native-write-indices",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeWriteOccurrences.lean",
+      "sha256": "39ca3a2b5a39c341e69b69d4f4bb76a4624c6d970723d2398a3dd502ef15c4a7",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-write-indices-NativeWriteOccurrences.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NativeWriteValueIndex.lean",
+      "sha256": "f4d5f09b789e70f2189c65e903c9905d6436ebcbf09bd187f35e3c8378b5820e",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-write-indices-NativeWriteValueIndex.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeWriteIndices.lean",
+      "sha256": "090d6602762b7b1c921686597facf138eb2f8ed1aff8cda855ad2a4f552abd49",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-write-indices-AuditNativeWriteIndices.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Two modules10guards: native sized replay preserves exact old-node preorder positions/multiplicity and compact valueIndex for every query. Concrete untouched values/global offsets/window binding remain open.",
+  "exact_axiom_guards": 10,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
