@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: Whole admitted-family extraction strict PASS12 exact guards in
+HorizontalFamily. candidate_components derives every extracted component
+TableLocal AND complete per-bus natural balance from Holds HorizontalAccounts.air.
+component_count proves exact global multiplicities; candidate_inventory retains
+all repaired original table identities. Separate clocks retained, no padding
+or ownership premise. Forward full-stack Holds assembly remains root next step.
+
+Independent PASS: receipt-state-coverage33guards (8modules), node-post-native4.
+Same native log22 receipttrace now636/881:200register+189emit+247state equations;
+only state exception refundSurplusConstraint hr*(1-ge), native flag constructor
+in progress. Remaining non-state semantic families still needed. Native leaf
+same-length PTrie.set serializes exactly to concrete updated windows; actual
+updated node/value SHA row sum is unchanged. Branch/extension recursion,
+sequential receipt writes, initial forest validity remain open.
+
+SHA fusion clock audit found minimal honestLog renderer, so agent is proving
+actual fixed22 SHA rows including cyclic next-row boundary—not assuming padding.
+Other native common clocks follow. Size/header8,288,148 certificate unchanged.
+Full correctness certificate/prover/realjudge/generalNEAR still incomplete.
+Previous goal turn and this checkpoint make verified progress; goal active.
+
+
 2026-10-08 integration checkpoint: root strict PASS11 guards. ReceiptPositions
 connects actual flattened receipt MPOS order to physical Merkle position
 balance; ordinary receipt Wf supplies length68, exact native leaf correspondence

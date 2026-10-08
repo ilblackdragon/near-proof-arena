@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual admitted candidate Holds yields all original components local validity, exact full-family bus multiplicities and balance, preserving all table identities. Native honest witness completeness remains open.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/HorizontalFamily.lean",
+      "sha256": "235478aa940418bd0e30dc2bb21224a8b5fbe2e67d471a11d2ca2c423caf6979",
+      "audit": "zk-formal/test/AuditHorizontalFamily.lean",
+      "audit_sha256": "c1f8aa38c4e6079fbe02c0f54e5c9b2c1ae4742d71c173404b19d70705253c14",
+      "guards": 12
+    }
+  ]
+}

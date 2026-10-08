@@ -1,0 +1,25 @@
+{
+  "lane": "node-post-native",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/NodePostNative.lean",
+      "sha256": "d85850dfbedd50cda9c6ca45a6bd2abf3e2bae6ba1f8ccd11c147d3da800ad38",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-node-post-native-NodePostNative.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNodePostNative.lean",
+      "sha256": "b5771de91a3da974cf0ebd18e8140995a3ea31d902c94fb6e82093c6fb9a58ac",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-node-post-native-AuditNodePostNative.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Concrete same-length native leaf set matches post-window constructor, and updated node SHA rows equal initial rows. Branch/extension and sequential update correspondence remain open.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
