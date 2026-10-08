@@ -6,6 +6,20 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: QueueKeyRepairTransport strictPASS4guards proves repaired queue
+non-KEYNIB physical row/table counts equal old table on arbitrary traces. Every
+repaired multiplicity factor is covered by old interactions, so old TableLocal
+transports to repaired table. Byte/QVC/FINAL facts can be retained. Actual new
+KEYNIB physical traffic, table installation and family recertification remain.
+Independent receipt FINAL3modules7guards closes whole actual receipt result
+demand against native account/access queries; shared queue/walk sum ongoing.
+Scheduler encoded1guard retains actual encodeNativeParts/nativeInstance equation
+in strengthened constructor with all old facts; allocation propagation remains.
+12guards checked, pin PASS. Prebuilt dependencies only; full certificate/prover/
+judge pending. Receipt882/882, integrated10/19. Priorad2f8ff2 push DNS failed;
+verified local bundle retained. Goal active.
+
+
 2026-10-08: CONFIRMED integration bug: old CombinedTable KEYNIB emits extra
 START at0 and nibble/end positions shifted+1. Native lookup consumes key+END
 at0..n; Head has no START consumer. QueueKeyRepair.old_mismatch kernel regression

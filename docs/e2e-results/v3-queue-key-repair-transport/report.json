@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Repaired queue interactions preserve every non-KEYNIB physical row and table count on arbitrary traces; multiplicity factors covered by old table imply local legality transport. Physical new KEYNIB traffic, installation and family admission recertification remain. Prebuilt dependencies, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/QueueKeyRepairTransport.lean",
+      "sha256": "729f8a753f7aab0cef045f8b8b874c5b71cb016461aeca237e05ac396cbf663b",
+      "audit": "zk-formal/test/AuditQueueKeyRepairTransport.lean",
+      "audit_sha256": "4282709f1186e2ba4c4b15f1e7810c2676103745d36c14e5f2a893b33300c900",
+      "guards": 4
+    }
+  ]
+}

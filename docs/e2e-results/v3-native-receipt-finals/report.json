@@ -1,0 +1,39 @@
+{
+  "lane": "native-receipt-finals",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptFinalCells.lean",
+      "sha256": "9ddc6fa2d05b65814903b150084cc795118d2e46fe4a988a6342cddcc8ff95a6",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-finals-NativeReceiptFinalCells.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptFinalView.lean",
+      "sha256": "0632cd02e7c67eca443cda4ef75fa7ce08b181f4c7944dafc6908d738be738ad",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-finals-NativeReceiptFinalView.log"
+    },
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptFinalTraffic.lean",
+      "sha256": "c0356f50765d016043a22e6a99a557ffad1853415dd441b89bf9fd0400b4bbfd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-finals-NativeReceiptFinalTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditNativeReceiptFinalTraffic.lean",
+      "sha256": "025895ff17a28dd58593d0f569dd1f1c9f8d69c7421e54bf5a364f17477153cd",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-native-receipt-finals-AuditNativeReceiptFinalTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "Three modules7guards. Whole physical receipt FINAL receives equal native account/access query results including absent/repeated accesses, deriving fields/gates/order on SAME canonical trace. Full receipt+queue+walk FINAL aggregation ongoing.",
+  "exact_axiom_guards": 7,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
