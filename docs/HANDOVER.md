@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: RebasedPublicRootAllocation strictPASS1 exact guard replaces public
+ROOT singleton abstractions with actual executable V2.pubCount AP over
+pubOf(preparedBytes p overhead), retaining SAME accepted native allocation,
+actual replay HEAD, patched UPS and shared node/Walk/SHA facts. Independent
+PublicRootTraffic PASS1module1guard links actual descriptors to endpoint counts.
+AP.pubSegs=preparedSegments and encoded length<256^4 remain explicit.
+
+No unjustified bound on arbitrary hint.body or unnormalized ownIntervals:
+prepD0 retains caller hint body and prior interval-count issue still matters.
+Receipt agent derives actual component length formula then native body/normalized
+boundedPrep coverage; raw arbitrary preparation is not claimed small. ROOT bus
+closure alone is not whole global traffic, soundness or an executable prover.
+
+Integrated10/19 and receipt882/882. Latest framing proposal8,403,188 exceeds8MiB
+by14,580 before record joins; no unproved Codec/vertical sharing savings counted.
+Scheduler agent investigates vertical sharing across raw/memory/ID stages with
+actual transition/interaction gates and original bounds. Receipt lane works on
+canonical extracted entity uniqueness. Full certificate/prover/real judge remain
+open, as does independent RNG capacity (old worst bound9,887,936>2^22).
+Prior343f635b push failed DNS; retry after checkpoint and verified recovery bundle.
+
+
 2026-10-08: RebasedRootBalanceAllocation strictPASS1 exact guard adds actual
 physical HEAD+patched compact ROOT conservation to SAME accepted allocation used
 by node/Walk/UPS, MIDROOT/EDGE/BMAP/UPB and four packed SHA tables. Endpoint counts

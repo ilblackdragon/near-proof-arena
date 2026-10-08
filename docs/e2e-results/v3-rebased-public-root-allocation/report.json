@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "SAME native allocation and actual prepared public bytes; ROOT conservation uses executable V2.pubCount AP plus physical HEAD/patchedUPS counts. Preserves all shared node/Walk/UPS/SHA facts and other proved bus balances. AP segment equality and encoded public length below256^4 remain explicit; arbitrary hint normalization/native body connection unfinished. Prebuilt dependencies",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/RebasedPublicRootAllocation.lean",
+      "sha256": "8a609a9fa7f53d8c173f7b6a4ccb1e65a30927086ee513709fd80ef9ea9e2b99",
+      "audit": "zk-formal/test/AuditRebasedPublicRootAllocation.lean",
+      "audit_sha256": "0a3578c442e9b6703b07b479bad36a24cc9b4b36da627ce34022f25bddea1f63",
+      "guards": 1
+    }
+  ]
+}

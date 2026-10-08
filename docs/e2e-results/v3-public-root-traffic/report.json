@@ -1,0 +1,25 @@
+{
+  "lane": "public-root-traffic",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-air",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Rcpt/Candidates/PublicRootTraffic.lean",
+      "sha256": "545d12eb7265905b3cd9d03d4ba61206c424fbc53b71b86796ef5651b5882b83",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-public-root-traffic-PublicRootTraffic.log"
+    },
+    {
+      "path": "zk-formal/test/AuditPublicRootTraffic.lean",
+      "sha256": "9fc3fd0a27dc8028b9bcd7f5e686758daa06f26978c1e8a93f02f0beec9cf350",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-public-root-traffic-AuditPublicRootTraffic.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module1guard. Actual prepared public bytes and exact AP public segments derive executable V2.pubCount ROOT messages. Four-byte total encoded length prerequisite explicit.",
+  "exact_axiom_guards": 1,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}
