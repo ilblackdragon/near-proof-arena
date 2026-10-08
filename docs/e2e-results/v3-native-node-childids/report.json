@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Initialized child-ID arrays equal actual renderer byte layout for all well-formed leaf/extension/branch views; exact NodeOk.ucid requirement derived. Native NodeOk positive count and revealed length-byte requirements remain to assemble. Prebuilt dependencies, not full certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeNodeChildIds.lean",
+      "sha256": "839c1c94df7ffff01f36e02c9840ff9cf663a47dee38bd0527346681a9455401",
+      "audit": "zk-formal/test/AuditNativeNodeChildIds.lean",
+      "audit_sha256": "e12b17a640b92026d6207ed737f6e36455381f7ac192d6001aaa98de20d97b82",
+      "guards": 5
+    }
+  ]
+}

@@ -6,6 +6,30 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeNodeChildIds strict PASS5 guards. Exact initialized child-ID
+arrays agree with generator byte layout for every well-formed leaf/extension/
+branch view, including hash/revealed child windows. This discharges NodeOk.ucid
+for initializeList, not just weaker kidCidOk. Next root step: native revealed
+length-byte bounds and nonempty occurrence count, then NodeOk/full local node
+construction and shared ownership counts. No full node integration claimed yet.
+
+Independent process-round-bridge PASS4modules/8guards: exact ordered model rounds
+from actual Gen.run, native round K<P derived from checked cursor chain. Zero-key
+ordinal sequencing remains before all native RunData follows automatically.
+Independent native-queue-prefix PASS4modules/14guards: physical UPS counters now
+include preceding queries; tableBusCount plus ranked query messages matches joint
+inventory. Actual native main+implicit execution constructs complete queue lookup
+list with HEAD/EDGE/BMAP providers. Account queries, combined row capacity and
+returned value-ID correspondence remain open.
+Receipt agent reports806/881 with new explicit GasPublicBytes/context-price-bound
+premises, under audit; committed reviewed receipt count remains802 pending root
+review. Original system surplus domain mismatch still isolated, AIR unchanged.
+
+Fixed-height10/19. End-to-end certificate,clean build,prover,judge/general NEAR
+incomplete. Checks use prebuilt dependencies. Prior3e5e7d61 push failed GitHub
+DNS; retry after checkpoint; verified bundle retained.
+
+
 2026-10-08: Initialized native SIZE construction strict PASS6 guards. Exact
 initialization preserves occurrence keys/IDs, duplicate classes and chain-selected
 serialized node charge. InitializedSizeValid uses native_forest_wf of actual
