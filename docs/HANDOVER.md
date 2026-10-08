@@ -6,6 +6,28 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeShaLengths/NativePostShaOk strict PASS5 exact guards. Actual
+accepted post-updated, duplicate-accounted, usage-counted node/value job list
+satisfies SHA MsgsOk byte/length/row bounds and renders a native SHA table with
+TableLocal plus exact TableTraffic. Uses honestLog<=22, not a completed common-clock
+family. Global all-job bins/byte-digest balance and actual final payload binding open.
+
+Independent native-old-node-bytes PASS6modules19guards: exact full ordered equality
+of concrete oldTreeInputs records post serialization with actual oldPost preorder
+node encodings. Includes every leaf/ext/branch descendant, changed/unchanged slots,
+indexed record and byte access. Child/hash/slot-length assumptions derived from
+actual SizedAccountRun; one-tree n=v=0 constructor. Forest offsets/UPS reader binding
+remain agent scope. Independent process-grant-agreement4 and converted-links5guards
+prove exact native/generator state updates and instantiate from actual conversion/
+selected indices. Whole replay state/log/model existence and RNG capacity remain.
+
+Receipt828/881; fixed-height10/19 unchanged. Full certificate/prover/judge/general
+NEAR incomplete. Reviews use prebuilt dependencies, not clean certificate. Prior
+d950228b push failed GitHub DNS; retry after checkpoint; verified bundle retained.
+Three agents active on forest payload/UPS binding, gas/deposit integration and
+scheduler replay. Root next native physical SHA/common job allocation/global traffic.
+
+
 2026-10-08: Independent receipt-gas-flags PASS8modules37 exact guards. Active
 original-family SAME mixed physical trace coverage rises824→828/881: four refund
 flag/sum constraints, ordinary/system receipts, headers/endpoints/padding; all

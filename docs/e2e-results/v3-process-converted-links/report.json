@@ -1,0 +1,25 @@
+{
+  "lane": "process-converted-links",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcConvertedLinks.lean",
+      "sha256": "529d454da65668df927816fd3a1e2cdf3445ffe3db17305e0c253adab1642190",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-converted-links-ProcConvertedLinks.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcConvertedLinks.lean",
+      "sha256": "9a1a72ef5fedfe3f7b646d4770fbd8eb74451b379e0b6aeef4ac1c751a847561",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-converted-links-AuditProcConvertedLinks.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module5guards: actual converted selected request supplies link coordinates and exact native/generator grant state agreement. Whole replay metadata/log consistency remains open.",
+  "exact_axiom_guards": 5,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

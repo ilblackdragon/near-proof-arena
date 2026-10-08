@@ -1,0 +1,25 @@
+{
+  "lane": "process-grant-agreement",
+  "dependency_worktree": "/data/illia/nearproof-wt/v3-hpl",
+  "checked": [
+    {
+      "path": "zk-formal/ZkFormal/NearV3/Candidates/ProcGrantAgreement.lean",
+      "sha256": "ccd44263278b363284acb6875770209dccb27beb26dfa6967567c51e160c3480",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-grant-agreement-ProcGrantAgreement.log"
+    },
+    {
+      "path": "zk-formal/test/AuditProcGrantAgreement.lean",
+      "sha256": "0c63d1c01e94665f9e95e1ce20e47dd8f804f8c592c68f1bfe81978fe58be3af",
+      "exit_code": 0,
+      "unchanged_during_check": true,
+      "log": "/tmp/nearproof-review-process-grant-agreement-AuditProcGrantAgreement.log"
+    }
+  ],
+  "status": "PASS",
+  "date": "2026-10-08",
+  "scope": "One module4guards: exact native/generator allowed/denied grant state update; indexed request integration separate.",
+  "exact_axiom_guards": 4,
+  "dependency_scope": "Independent strict source rebuild using prebuilt dependencies; not a clean full certificate."
+}

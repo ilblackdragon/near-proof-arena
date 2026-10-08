@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Accepted actual updated node/value SHA job inventory satisfies all MsgsOk byte/length/row premises and renders one native SHA table with exact local validity/traffic. Full all-family SHA allocation/common clock/global balance and payload binding remain open. Prebuilt dependencies,not clean certificate",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeShaLengths.lean",
+      "sha256": "ce0fd2aab53e93cb1d9bc3a9cec3d8ac4de3e31fc45161d4fa50aa5a4b5906e0",
+      "audit": "zk-formal/test/AuditNativeShaLengths.lean",
+      "audit_sha256": "af7abbfdbd2cc936cfd3401333333e9740303bb5a312d2920519a383e974eef6",
+      "guards": 3
+    },
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativePostShaOk.lean",
+      "sha256": "0c1c34aefb37775c68080a1a30c829a001a87e68ec1a90b979a9b2c14ff80327",
+      "audit": "zk-formal/test/AuditNativePostShaOk.lean",
+      "audit_sha256": "3d337a6e8026ad2965082fe65c2ce33e6e554a97f7eca6948d06e8f11eb58b94",
+      "guards": 2
+    }
+  ]
+}
