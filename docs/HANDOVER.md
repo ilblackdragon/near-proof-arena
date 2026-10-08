@@ -6,6 +6,17 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeReceiptIdBytes strictPASS4guards proves actual patched
+receipt ID bytes and all located native ID views equal original receipts in
+order. Canonical ID view maps to original indexed sort inventory; physical
+receipt sends cancel repaired sort receives under installed receipt traffic
+and canonical view facts. Accepted canonical installation and strongest
+allocation composition remain pending; do not treat conditional join as done.
+Prebuilt dependency checks only. Receipt882/882, integrated10/19; full
+correctness certificate/prover/judge open. Prior03397517 push failed DNS;
+verified recovery bundle retained. Subagents stopped at usage limit. Goal active.
+
+
 2026-10-08: SortGeneralTraffic +NativeSortTraffic strictPASS3exactguards.
 Full physical repaired sort traffic equals original indexed receipt-ID bytes,
 not just sorted values; indexed permutation preserves multiplicity. Zero receipt

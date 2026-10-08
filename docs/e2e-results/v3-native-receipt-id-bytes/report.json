@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Actual patched native receipt ID bytes and ordered located views equal original input receipts. Generic canonical ID view maps to original indexed sort inventory; physical receipt sends equal repaired-sort receives under installed receipt TableTraffic and ID view. Accepted canonical installation and strongest allocation composition remain pending. Prebuilt dependencies, not full correctness/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativeReceiptIdBytes.lean",
+      "sha256": "ad490d1b3183d3978170aaf3828216ac71c49263613c86c06cc58e15945c3213",
+      "audit": "zk-formal/test/AuditNativeReceiptIdBytes.lean",
+      "audit_sha256": "e47a07f0d421d60e18431392c5dbcece949c2c5a1ac5893a5ee7314bf390e1b7",
+      "guards": 4
+    }
+  ]
+}
