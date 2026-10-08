@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Implicit prior occurrence is disjoint from missing-chunk queue provider. Its actual physical raw parser bytes plus residual erasing exactly that occurrence equal remaining implicit value demand, at arbitrary global offset. Whole forest placement and strongest allocation integration remain pending. Prebuilt dependency checks, not full certificate/prover/judge.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/NativePriorImplicitBytes.lean",
+      "sha256": "7dbebbc96acdf7041253a94e97cfbfca07a44e6f757ab1e8642c2f7f5148119b",
+      "audit": "zk-formal/test/AuditNativePriorImplicitBytes.lean",
+      "audit_sha256": "73b227130ddb4ffd5074253305f85a0d4083929676bc155914dbde77cf5273bb",
+      "guards": 3
+    }
+  ]
+}
