@@ -6,6 +6,18 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: NativeSchedulerAllocation is new strongest SAME native allocation
+API. RebasedSchedulerDigests→NativeReceiptSchedulerDigests→NativeSchedulerAllocation
+strictPASS3guards. Preserves every NativeKeyAllocation fact and adds actual
+prefix-ranked/window-patched compact DIGEST receives=expectedDigests of SAME
+schedulerShaJobs. Existing reader origins discharge encoded-instance requirement;
+no new accepted hypotheses or constructor choices. Codec sanity physical
+installation and global digest cancellation remain, along with residual byte
+providers, Codec full local/global joins and end-to-end prover/certificate/judge.
+Pin check PASS; prebuilt dependencies only. Receipt882/882; integrated10/19.
+Prior414bb5e7 push failed DNS; verified local recovery bundle retained. Goal active.
+
+
 2026-10-08: NativeKeyAllocation is strongest SAME API, independently3modules
 4guards: whole actual receipt+repaired queue KEYNIB sends equal ranked native
 walk receives; all earlier repaired Local/QVC/FINAL/MEM/AKC/bytes retained with
