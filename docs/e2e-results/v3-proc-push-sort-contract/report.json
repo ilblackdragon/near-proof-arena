@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-08",
+  "status": "PASS",
+  "scope": "Comparator ties, monotone/injective timestamp translation and canonical equality for strictly timestamp-ordered permutations are kernel checked. Separate runtime tie regression shows arbitrary multiset equality is insufficient for sortPush equality; not a reachable scheduler counterexample. qsort postconditions and reachable log ordering remain open. Prebuilt dependencies.",
+  "records": [
+    {
+      "source": "zk-formal/ZkFormal/NearV3/Candidates/ProcPushSortContract.lean",
+      "sha256": "c63e6eb092312b8910a93e06d650cfe6f271fc25d41e32840d921f9500ace1b1",
+      "audit": "zk-formal/test/AuditProcPushSortContract.lean",
+      "audit_sha256": "fd8ef2ffd64092206af71d359a341426812d174157e242e39a03455fc7f2107a",
+      "guards": 5
+    }
+  ],
+  "checked": [
+    {
+      "path": "zk-formal/test/ProcPushSortTieRegression.lean",
+      "sha256": "11939b0c1da209948647b2e1c1fe5708d1b98e9a599e3b9ac18813358a9df20f",
+      "kind": "runtime regression, not kernel theorem"
+    }
+  ]
+}

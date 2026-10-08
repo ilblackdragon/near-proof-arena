@@ -6,6 +6,9 @@ This is for the next lead agent. Read this first, then the two lane status files
 
 ### Latest continuation checkpoint
 
+2026-10-08: ProcPushSortContract strict PASS, five exact axiom guards plus separate runtime tie regression. Comparator uses timestamp and entry ID only. Runtime regression demonstrates arbitrary permuted records with tied timestamp/entry ID can yield unequal sortPush outputs; this is NOT a reachable scheduler counterexample or kernel theorem. Kernel lemmas prove monotone/injective timestamp translation under R<=T0 and canonical equality for strictly timestamp-ordered permutations. Reachable log strict ordering and qsort permutation/order postconditions are required; multiset conservation alone must not be presented as final sorted-log check. Remaining finish checks and full certificate/prover/judge remain open. Prebuilt dependencies only. Previous4c17f201 push failed GitHub DNS. Goal active.
+
+
 2026-10-08: ProcActualInitialPush strict PASS, five exact guards. Successful conversion establishes IDs equal array indices, keys equal exact initial allowances, and nonempty increment lists. Exact initial model Push records and their timestamp translation now match actual conversion pushes. replay_conservation constructs actual replay whose pushed and popped arrays are permutations, including multiplicity. sortPush contract is still required for final sorted-log equality; memory/comparison checks and full integration/certificate/prover/judge remain unfinished. Prebuilt dependencies only; receipt882/882, integrated10/19 unchanged. Previousc5edbd9e push failed GitHub DNS. Goal active.
 
 
